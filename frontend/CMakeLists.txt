@@ -9,5 +9,3 @@ if (QT4_FOUND)
 endif (QT4_FOUND)
 
 add_subdirectory (src)
-
-
