@@ -6,6 +6,9 @@ INCLUDE_DIRECTORIES(
   ${CMAKE_CURRENT_BINARY_DIR})
 
 #------------------------------------------------------------------------------
+# Add Qt Resource files
+QT4_ADD_RESOURCES(RCC_BUILT_SOURCES
+	../rsc/espina.qrc)
 # Add extra library containing custom code for the client.
 QT4_WRAP_CPP(MOC_BUILT_SOURCES
 espinaMainWindow.h)
@@ -17,14 +20,16 @@ QT4_WRAP_UI(UI_BUILT_SOURCES
 SOURCE_GROUP("Generated" FILES
   ${MOC_BUILT_SOURCES}
   ${UI_BUILT_SOURCES}
+  ${RCC_BUILT_SOURCES}
 )
 
 
-SET(ParaView_SOURCE_FILES
+SET(Espina_SOURCE_FILES
   espinaMainWindow.cpp
   ${MOC_BUILT_SOURCES}
-  ${UI_BUILT_SOURCES})
-
+  ${UI_BUILT_SOURCES}
+  ${RCC_BUILT_SOURCES}
+  )
 
 
 #------------------------------------------------------------------------------
@@ -41,14 +46,14 @@ build_paraview_client(espina
     PVMAIN_WINDOW_INCLUDE espinaMainWindow.h
     BUNDLE_ICON   "${CMAKE_CURRENT_SOURCE_DIR}/MacIcon.icns"
     APPLICATION_ICON  "${CMAKE_CURRENT_SOURCE_DIR}/WinIcon.ico"
-	#GUI_CONFIGURATION_XMLS
+	GUI_CONFIGURATION_XMLS
 	#  ${CMAKE_CURRENT_SOURCE_DIR}/ParaViewSources.xml
 	#  ${CMAKE_CURRENT_SOURCE_DIR}/ParaViewFilters.xml
-	#  ${CMAKE_CURRENT_SOURCE_DIR}/ParaViewReaders.xml
+	  ${CMAKE_CURRENT_SOURCE_DIR}/EspinaReaders.xml
 	#  ${CMAKE_CURRENT_SOURCE_DIR}/ParaViewWriters.xml
 	#  ${PARAVIEW_EXTRA_GUI_RESOURCES} # Add any compiled in GUI configuration xmls
 	COMPRESSED_HELP_FILE "${ParaView_BINARY_DIR}/Documentation/paraview.qch"
-    SOURCES ${ParaView_SOURCE_FILES}
+    SOURCES ${Espina_SOURCE_FILES}
 	#INSTALL_BIN_DIR "${PV_INSTALL_BIN_DIR}"
 	#INSTALL_LIB_DIR "${PV_INSTALL_LIB_DIR}"
 )

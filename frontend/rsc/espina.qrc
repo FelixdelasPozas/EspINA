@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="espina">
+    <file>editor.ico</file>
+  </qresource>
+</RCC>

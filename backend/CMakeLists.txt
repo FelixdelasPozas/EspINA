@@ -1,4 +1,4 @@
-project (ESPINA_BACK)
+project (ESPINA_BACKEND)
 
 cmake_minimum_required (VERSION 2.6)
 
@@ -9,4 +9,4 @@ if (QT4_FOUND)
    include (${QT_USE_FILE})
 endif (QT4_FOUND)
 
-#add_subdirectory (src)
+add_subdirectory (src)
