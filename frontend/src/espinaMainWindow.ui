@@ -23,27 +23,11 @@
      <number>0</number>
     </property>
     <item row="0" column="0">
-     <widget class="pqViewManager" name="MultiViewManager" native="true"/>
+     <widget class="pqMultiViewFrame" name="MultiViewManager" native="true"/>
     </item>
    </layout>
   </widget>
   <widget class="pqStatusBar" name="statusbar"/>
-  <widget class="QDockWidget" name="pipelineBrowserDock">
-   <property name="allowedAreas">
-    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
-   </property>
-   <property name="windowTitle">
-    <string>Pipeline Browser</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>1</number>
-   </attribute>
-   <widget class="pqPipelineBrowserWidget" name="pipelineBrowser">
-    <property name="contextMenuPolicy">
-     <enum>Qt::ActionsContextMenu</enum>
-    </property>
-   </widget>
-  </widget>
   <widget class="QDockWidget" name="proxyTabDock">
    <property name="allowedAreas">
     <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
@@ -68,24 +52,6 @@
    </attribute>
    <widget class="pqDataInformationWidget" name="statisticsView"/>
   </widget>
-  <widget class="QDockWidget" name="animationViewDock">
-   <property name="windowTitle">
-    <string>Animation View</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>8</number>
-   </attribute>
-   <widget class="pqPVAnimationWidget" name="animationView"/>
-  </widget>
-  <widget class="QDockWidget" name="selectionInspectorDock">
-   <property name="windowTitle">
-    <string>Selection Inspector</string>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-   <widget class="pqSelectionInspectorWidget" name="selectionInspector"/>
-  </widget>
   <widget class="QDockWidget" name="comparativePanelDock">
    <property name="windowTitle">
     <string>Comparative View Inspector</string>
@@ -104,11 +70,6 @@
      <height>19</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menu_File">
-    <property name="title">
-     <string>&amp;File</string>
-    </property>
-   </widget>
    <widget class="QMenu" name="menu_Edit">
     <property name="title">
      <string>&amp;Edit</string>
@@ -129,12 +90,44 @@
      <string>&amp;Help</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menu_File">
+    <property name="title">
+     <string>&amp;File</string>
+    </property>
+   </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Edit"/>
    <addaction name="menu_View"/>
    <addaction name="menuTools"/>
    <addaction name="menu_Help"/>
   </widget>
+  <widget class="QDockWidget" name="pipelineBrowserDock">
+   <property name="allowedAreas">
+    <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
+   </property>
+   <property name="windowTitle">
+    <string>Pipeline Browser</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="pqPipelineBrowserWidget" name="pipelineBrowser">
+    <property name="contextMenuPolicy">
+     <enum>Qt::ActionsContextMenu</enum>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="testDock">
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="pqViewManager" name="dockWidgetContents_2"/>
+  </widget>
+  <action name="openAction">
+   <property name="text">
+    <string>Open,,,,</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -156,18 +149,6 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>pqSelectionInspectorWidget</class>
-   <extends>QWidget</extends>
-   <header>pqSelectionInspectorWidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>pqPVAnimationWidget</class>
-   <extends>QWidget</extends>
-   <header>pqPVAnimationWidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>pqDataInformationWidget</class>
    <extends>QWidget</extends>
    <header>pqDataInformationWidget.h</header>
@@ -182,6 +163,12 @@
    <class>pqComparativeVisPanel</class>
    <extends>QWidget</extends>
    <header>pqComparativeVisPanel.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>pqMultiViewFrame</class>
+   <extends>QWidget</extends>
+   <header>pqMultiViewFrame.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

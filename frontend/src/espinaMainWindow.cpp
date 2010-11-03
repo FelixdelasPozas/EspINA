@@ -36,6 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqObjectInspectorWidget.h"
 #include "pqParaViewBehaviors.h"
 #include "pqParaViewMenuBuilders.h"
+#include "pqLoadDataReaction.h"
 #include "vtkPVPlugin.h"
 
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
@@ -54,13 +55,6 @@ EspinaMainWindow::EspinaMainWindow()
   this->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
   this->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
-  this->Internals->animationViewDock->hide();
-  this->Internals->statisticsDock->hide();
-  this->Internals->selectionInspectorDock->hide();
-  this->Internals->comparativePanelDock->hide();
-  this->tabifyDockWidget(this->Internals->animationViewDock,
-    this->Internals->statisticsDock);
-
   // Enable automatic creation of representation on accept.
   this->Internals->proxyTabWidget->setShowOnAccept(true);
 
@@ -68,6 +62,11 @@ EspinaMainWindow::EspinaMainWindow()
   //QObject::connect(this->Internals->proxyTabWidget->getObjectInspector(),
   //  SIGNAL(helpRequested(QString)),
   //  this, SLOT(showHelpForProxy(const QString&)));
+
+  //Create File Menu
+  buildFileMenu(*this->Internals->menu_File);
+  
+  
 
   //// Populate application menus with actions.
   //pqParaViewMenuBuilders::buildFileMenu(*this->Internals->menu_File);
@@ -90,17 +89,21 @@ EspinaMainWindow::EspinaMainWindow()
 
   //// Setup the View menu. This must be setup after all toolbars and dockwidgets
   //// have been created.
-  //pqParaViewMenuBuilders::buildViewMenu(*this->Internals->menu_View, *this);
+  pqParaViewMenuBuilders::buildViewMenu(*this->Internals->menu_View, *this);
 
   //// Setup the menu to show macros.
   //pqParaViewMenuBuilders::buildMacrosMenu(*this->Internals->menu_Macros);
 
   //// Setup the help menu.
-  //pqParaViewMenuBuilders::buildHelpMenu(*this->Internals->menu_Help);
+  pqParaViewMenuBuilders::buildHelpMenu(*this->Internals->menu_Help);
 
   // Final step, define application behaviors. Since we want all ParaView
   // behaviors, we use this convenience method.
   new pqParaViewBehaviors(this, this);
+
+  //this->Internals->MultiViewManager->init();
+  this->Internals->MultiViewManager->showDecorations();
+  this->Internals->MultiViewManager->setActive(true);
 }
 
 //-----------------------------------------------------------------------------
@@ -116,3 +119,11 @@ EspinaMainWindow::~EspinaMainWindow()
 //  pqHelpReaction::showHelp(
 //    QString("qthelp://paraview.org/paraview/%1.html").arg(proxyname));
 //}
+
+
+void EspinaMainWindow::buildFileMenu(QMenu &menu)
+{
+	QAction *openAction = new QAction(tr("Open"),this);
+	new pqLoadDataReaction(openAction);
+	menu.addAction(openAction);
+}

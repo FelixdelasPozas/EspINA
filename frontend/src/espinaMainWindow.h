@@ -34,6 +34,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <QMainWindow>
 
+class QMenu; //Forward declaration
+
 /// MainWindow for the default ParaView application.
 class EspinaMainWindow : public QMainWindow
 {
@@ -49,6 +51,8 @@ protected slots:
 private:
   EspinaMainWindow(const EspinaMainWindow&); // Not implemented.
   void operator=(const EspinaMainWindow&); // Not implemented.
+
+  void buildFileMenu(QMenu &menu);
 
   class pqInternals;
   pqInternals* Internals;
