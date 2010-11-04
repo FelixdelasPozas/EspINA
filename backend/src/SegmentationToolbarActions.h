@@ -1,7 +1,7 @@
 /*=========================================================================
 
    Program: ParaView
-   Module:    SourceToolbarActions.h
+   Module:    SegmentationToolbarActions.h
 
    Copyright (c) 2005-2008 Sandia Corporation, Kitware Inc.
    All rights reserved.
@@ -29,22 +29,23 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
-#ifndef __SourceToolbarActions_h
-#define __SourceToolbarActions_h
+#ifndef SEGMENTATION_TOOLBAR_ACTIONS_H
+#define SEGMENTATION_TOOLBAR_ACTIONS_H
 
 #include <QActionGroup>
-/// This example illustrates adding a toolbar to ParaView to create a sphere and
-/// a cylinder source.
-class SourceToolbarActions : public QActionGroup
+
+/// This plugin adds the Segmentation toolbar to ESPINA
+
+class SegmentationToolbarActions : public QActionGroup
 {
   Q_OBJECT
 public:
-  SourceToolbarActions(QObject* p);
+  SegmentationToolbarActions(QObject* p);
 
 public slots:
   /// Callback for each action triggerred.
   void onAction(QAction* a);
 };
 
-#endif
+#endif// SEGMENTATION_TOOLBAR_ACTIONS_H
 

@@ -1,7 +1,7 @@
 /*=========================================================================
 
    Program: ParaView
-   Module:    SourceToolbarActions.cxx
+   Module:    SegmentationToolbarActions.cxx
 
    Copyright (c) 2005-2008 Sandia Corporation, Kitware Inc.
    All rights reserved.
@@ -29,7 +29,7 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
-#include "SourceToolbarActions.h"
+#include "SegmentationToolbarActions.h"
 
 #include <QApplication>
 #include <QStyle>
@@ -41,21 +41,21 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqUndoStack.h"
 
 //-----------------------------------------------------------------------------
-SourceToolbarActions::SourceToolbarActions(QObject* p) : QActionGroup(p)
+SegmentationToolbarActions::SegmentationToolbarActions(QObject* p) : QActionGroup(p)
 {
   // let's use a Qt icon (we could make our own)
-  QIcon icon = qApp->style()->standardIcon(QStyle::SP_MessageBoxCritical);
-  QAction* a = new QAction(icon, "Create Sphere", this);
+  //QIcon icon = qApp->style()->standardIcon(QStyle::SP_MessageBoxCritical);
+  QAction* a = new QAction(QIcon(":/puntero_mas.svg"), "Add synapse", this);
   a->setData("SphereSource");
   this->addAction(a);
-  a = new QAction(icon, "Create Cylinder", this);
+  a = new QAction(QIcon(":/puntero_menos.svg"), "Remove synapse", this);
   a->setData("CylinderSource");
   this->addAction(a);
   QObject::connect(this, SIGNAL(triggered(QAction*)), this, SLOT(onAction(QAction*)));
 }
 
 //-----------------------------------------------------------------------------
-void SourceToolbarActions::onAction(QAction* a)
+void SegmentationToolbarActions::onAction(QAction* a)
 {
   pqApplicationCore* core = pqApplicationCore::instance();
   pqObjectBuilder* builder = core->getObjectBuilder();
