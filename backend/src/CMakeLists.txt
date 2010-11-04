@@ -1,5 +1,9 @@
 FIND_PACKAGE(ParaView REQUIRED)
 INCLUDE(${PARAVIEW_USE_FILE})
 
-ADD_PARAVIEW_PLUGIN(Segmentation "1.0"
-	  SERVER_MANAGER_XML Segmentation.xml)
+ADD_PARAVIEW_PLUGIN(
+	Segmentation 
+	"1.0"
+	SERVER_MANAGER_XML MyElevationFilter.xml
+	SERVER_MANAGER_SOURCES vtkMyElevationFilter.cxx
+	)

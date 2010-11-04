@@ -79,7 +79,7 @@ EspinaMainWindow::EspinaMainWindow()
   //pqParaViewMenuBuilders::buildFiltersMenu(*this->Internals->menuFilters, this);
 
   //// Populate Tools menu.
-  //pqParaViewMenuBuilders::buildToolsMenu(*this->Internals->menuTools);
+  pqParaViewMenuBuilders::buildToolsMenu(*this->Internals->menuTools);
 
   //// setup the context menu for the pipeline browser.
   //pqParaViewMenuBuilders::buildPipelineBrowserContextMenu(
