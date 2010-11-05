@@ -1,9 +1,14 @@
 FIND_PACKAGE(ParaView REQUIRED)
 INCLUDE(${PARAVIEW_USE_FILE})
+
+FIND_PACKAGE(Cajal)
+
 INCLUDE_DIRECTORIES(.)
 INCLUDE_DIRECTORIES(
-  ${CMAKE_CURRENT_BINARY_DIR}
-  ${CMAKE_CURRENT_BINARY_DIR})
+	${Cajal_INCLUDE_DIR}
+	${CMAKE_CURRENT_BINARY_DIR}
+	${CMAKE_CURRENT_BINARY_DIR}
+  )
 
 #------------------------------------------------------------------------------
 # Add Qt Resource files
@@ -57,3 +62,5 @@ build_paraview_client(espina
 	#INSTALL_BIN_DIR "${PV_INSTALL_BIN_DIR}"
 	#INSTALL_LIB_DIR "${PV_INSTALL_LIB_DIR}"
 )
+
+target_link_libraries (espina ${Cajal_LIBRARIES})

@@ -23,7 +23,7 @@
      <number>0</number>
     </property>
     <item row="0" column="0">
-     <widget class="pqMultiViewFrame" name="MultiViewManager" native="true"/>
+     <widget class="pqViewManager" name="MultiViewManager" native="true"/>
     </item>
    </layout>
   </widget>
@@ -57,7 +57,7 @@
     <string>Comparative View Inspector</string>
    </property>
    <attribute name="dockWidgetArea">
-    <number>2</number>
+    <number>1</number>
    </attribute>
    <widget class="pqComparativeVisPanel" name="comparativeVisPanel"/>
   </widget>
@@ -67,7 +67,7 @@
      <x>0</x>
      <y>0</y>
      <width>970</width>
-     <height>19</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_Edit">
@@ -117,11 +117,32 @@
     </property>
    </widget>
   </widget>
-  <widget class="QDockWidget" name="testDock">
+  <widget class="QDockWidget" name="xySliceDock">
+   <property name="windowTitle">
+    <string>X-Y</string>
+   </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
    </attribute>
-   <widget class="pqViewManager" name="dockWidgetContents_2"/>
+   <widget class="SliceView" name="xySliceView"/>
+  </widget>
+  <widget class="QDockWidget" name="yzSliceDock">
+   <property name="windowTitle">
+    <string>Y-Z</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="SliceView" name="yzSliceView"/>
+  </widget>
+  <widget class="QDockWidget" name="xzSliceDock">
+   <property name="windowTitle">
+    <string>X-Z</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="SliceView" name="xzSliceView"/>
   </widget>
   <action name="openAction">
    <property name="text">
@@ -166,9 +187,9 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>pqMultiViewFrame</class>
+   <class>SliceView</class>
    <extends>QWidget</extends>
-   <header>pqMultiViewFrame.h</header>
+   <header>slice_view.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

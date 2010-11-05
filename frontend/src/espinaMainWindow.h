@@ -34,7 +34,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <QMainWindow>
 
-class QMenu; //Forward declaration
+//Forward declaration
+class QMenu;
+class pqPipelineSource;
 
 /// MainWindow for the default ParaView application.
 class EspinaMainWindow : public QMainWindow
@@ -46,7 +48,7 @@ public:
   ~EspinaMainWindow();
 
 protected slots:
-  //void showHelpForProxy(const QString& proxyname);
+  void setWorkingStack(pqPipelineSource *source);
 
 private:
   EspinaMainWindow(const EspinaMainWindow&); // Not implemented.
@@ -56,6 +58,7 @@ private:
 
   class pqInternals;
   pqInternals* Internals;
+  pqPipelineSource *m_stack;
 };
 
 #endif //ESPINA_MAIN_WINDOW_H

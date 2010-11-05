@@ -37,7 +37,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqParaViewBehaviors.h"
 #include "pqParaViewMenuBuilders.h"
 #include "pqLoadDataReaction.h"
+#include "pqPipelineSource.h"
 #include "vtkPVPlugin.h"
+
+#include <QDebug>
 
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
@@ -58,16 +61,9 @@ EspinaMainWindow::EspinaMainWindow()
   // Enable automatic creation of representation on accept.
   this->Internals->proxyTabWidget->setShowOnAccept(true);
 
-  // Enable help for from the object inspector.
-  //QObject::connect(this->Internals->proxyTabWidget->getObjectInspector(),
-  //  SIGNAL(helpRequested(QString)),
-  //  this, SLOT(showHelpForProxy(const QString&)));
-
   //Create File Menu
   buildFileMenu(*this->Internals->menu_File);
   
-  
-
   //// Populate application menus with actions.
   //pqParaViewMenuBuilders::buildFileMenu(*this->Internals->menu_File);
   //pqParaViewMenuBuilders::buildEditMenu(*this->Internals->menu_Edit);
@@ -101,9 +97,8 @@ EspinaMainWindow::EspinaMainWindow()
   // behaviors, we use this convenience method.
   new pqParaViewBehaviors(this, this);
 
-  //this->Internals->MultiViewManager->init();
-  this->Internals->MultiViewManager->showDecorations();
-  this->Internals->MultiViewManager->setActive(true);
+  // Create default ESPINA views
+  //this->Internals->MultiViewManager->hideDecorations();
 }
 
 //-----------------------------------------------------------------------------
@@ -114,16 +109,18 @@ EspinaMainWindow::~EspinaMainWindow()
 
 
 //-----------------------------------------------------------------------------
-//void EspinaMainWindow::showHelpForProxy(const QString& proxyname)
-//{
-//  pqHelpReaction::showHelp(
-//    QString("qthelp://paraview.org/paraview/%1.html").arg(proxyname));
-//}
-
-
+void EspinaMainWindow::setWorkingStack(pqPipelineSource *source)
+{
+	qDebug() << "Changed source:" << source->getSMName() << "Outputs:" << source->getViews().size();
+	m_stack = source;
+}
+//-----------------------------------------------------------------------------
 void EspinaMainWindow::buildFileMenu(QMenu &menu)
 {
-	QAction *openAction = new QAction(tr("Open"),this);
-	new pqLoadDataReaction(openAction);
+	QIcon icon = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
+	QAction *openAction = new QAction(icon,tr("Open"),this);
+	pqLoadDataReaction * loadReaction = new pqLoadDataReaction(openAction);
+	QObject::connect(loadReaction, SIGNAL(loadedData(pqPipelineSource *)),
+		this, SLOT(setWorkingStack(pqPipelineSource *)));
 	menu.addAction(openAction);
 }
