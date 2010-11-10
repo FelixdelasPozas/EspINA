@@ -31,6 +31,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ========================================================================*/
 #include "espinaMainWindow.h"
 #include "ui_espinaMainWindow.h"
+#include "sliceWidget.h"
+#include "volumeWidget.h"
 
 #include "pqHelpReaction.h"
 #include "pqObjectInspectorWidget.h"
@@ -40,6 +42,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqPipelineSource.h"
 #include "vtkPVPlugin.h"
 
+#include "pqTwoDRenderView.h"
+#include "pqApplicationCore.h"
+#include "pqActiveObjects.h"
+#include "pqObjectBuilder.h"
+#include "pqObjectInspectorWidget.h"
+#include "pqDisplayPolicy.h"
+
 #include <QDebug>
 
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
@@ -48,6 +57,10 @@ class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
 
 //-----------------------------------------------------------------------------
 EspinaMainWindow::EspinaMainWindow()
+	: m_stack(NULL)
+	, m_xy(NULL)
+	, m_yz(NULL)
+	, m_xz(NULL)
 {
   this->Internals = new pqInternals();
   this->Internals->setupUi(this);
@@ -57,9 +70,6 @@ EspinaMainWindow::EspinaMainWindow()
   // Set up the dock window corners to give the vertical docks more room.
   this->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
   this->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
-
-  // Enable automatic creation of representation on accept.
-  this->Internals->proxyTabWidget->setShowOnAccept(true);
 
   //Create File Menu
   buildFileMenu(*this->Internals->menu_File);
@@ -97,23 +107,42 @@ EspinaMainWindow::EspinaMainWindow()
   // behaviors, we use this convenience method.
   new pqParaViewBehaviors(this, this);
 
-  // Create default ESPINA views
-  //this->Internals->MultiViewManager->hideDecorations();
+  //Create ESPINA views
+  m_xy = new SliceWidget();
+  this->setCentralWidget(m_xy);
+  m_yz = new SliceWidget();
+  this->Internals->yzSliceDock->setWidget(m_yz);
+  m_xz = new SliceWidget();
+  this->Internals->xzSliceDock->setWidget(m_xz);
+  m_3d = new VolumeWidget();
+  this->Internals->volumeDock->setWidget(m_3d);
 }
+
 
 //-----------------------------------------------------------------------------
 EspinaMainWindow::~EspinaMainWindow()
 {
   delete this->Internals;
+  delete m_xy;
+  delete m_yz;
+  delete m_xz;
 }
 
 
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::setWorkingStack(pqPipelineSource *source)
 {
-	qDebug() << "Changed source:" << source->getSMName() << "Outputs:" << source->getViews().size();
+	pqActiveObjects& activeObjects = pqActiveObjects::instance();
+	if (m_stack) pqApplicationCore::instance()->getObjectBuilder()->destroy(m_stack);
 	m_stack = source;
+	activeObjects.setActiveSource(source);
+	pqApplicationCore::instance()->getDisplayPolicy()->setRepresentationVisibility(source->getOutputPort(0),m_xy->getView(),true);
+	pqApplicationCore::instance()->getDisplayPolicy()->setRepresentationVisibility(source->getOutputPort(0),m_yz->getView(),true);
+	pqApplicationCore::instance()->getDisplayPolicy()->setRepresentationVisibility(source->getOutputPort(0),m_xz->getView(),true);
+	pqApplicationCore::instance()->getDisplayPolicy()->setRepresentationVisibility(source->getOutputPort(0),m_3d->getView(),true);
 }
+
+
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::buildFileMenu(QMenu &menu)
 {

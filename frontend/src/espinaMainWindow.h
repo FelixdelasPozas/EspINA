@@ -37,6 +37,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //Forward declaration
 class QMenu;
 class pqPipelineSource;
+class SliceWidget;
+class VolumeWidget;
 
 /// MainWindow for the default ParaView application.
 class EspinaMainWindow : public QMainWindow
@@ -59,6 +61,8 @@ private:
   class pqInternals;
   pqInternals* Internals;
   pqPipelineSource *m_stack;
+  SliceWidget *m_xy, *m_yz, *m_xz;
+  VolumeWidget *m_3d;
 };
 
 #endif //ESPINA_MAIN_WINDOW_H

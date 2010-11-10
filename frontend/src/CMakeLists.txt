@@ -31,6 +31,8 @@ SOURCE_GROUP("Generated" FILES
 
 SET(Espina_SOURCE_FILES
   espinaMainWindow.cpp
+  sliceWidget.cpp
+  volumeWidget.cpp
   ${MOC_BUILT_SOURCES}
   ${UI_BUILT_SOURCES}
   ${RCC_BUILT_SOURCES}
