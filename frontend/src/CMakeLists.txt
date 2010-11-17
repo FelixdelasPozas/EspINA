@@ -16,7 +16,9 @@ QT4_ADD_RESOURCES(RCC_BUILT_SOURCES
 	../rsc/espina.qrc)
 # Add extra library containing custom code for the client.
 QT4_WRAP_CPP(MOC_BUILT_SOURCES
-espinaMainWindow.h)
+espinaMainWindow.h
+sliceWidget.h
+)
 
 QT4_WRAP_UI(UI_BUILT_SOURCES
   espinaMainWindow.ui

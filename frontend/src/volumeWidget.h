@@ -1,7 +1,7 @@
 #include <QWidget>
 
 //Forward declaration
-class pqTwoDRenderView;
+class pqRenderView;
 class QScrollBar;
 class QSpinBox;
 
@@ -11,9 +11,9 @@ public:
 	VolumeWidget();
 	~VolumeWidget();
 
-	pqTwoDRenderView *getView(){return m_view;}
+	pqRenderView *getView(){return m_view;}
 private:
-	pqTwoDRenderView *m_view;
+	pqRenderView *m_view;
 	QScrollBar *m_scroll;
 	QSpinBox *m_slice;
 

@@ -5,7 +5,7 @@
     apperaring later will be tried first when reading the file. 
   -->
   <!--Proxy group="sources" name="LSDynaReader" /-->
-  <!--Proxy group="sources" name="PVDReader" /-->
+  <Proxy group="sources" name="PVDReader" />
   <!--Proxy group="sources" name="XMLPolyDataReader"/-->
   <!--Proxy group="sources" name="XMLUnstructuredGridReader" /-->
   <!--Proxy group="sources" name="XMLImageDataReader" /-->
@@ -37,7 +37,7 @@
   <!--Proxy group="sources" name="plyreader" /-->
   <!--Proxy group="sources" name="stlreader" /-->
   <!--Proxy group="sources" name="gaussiancubereader" /-->
-  <!--Proxy group="sources" name="ImageReader" /-->
+  <Proxy group="sources" name="ImageReader" />
   <!--Proxy group="sources" name="popreader"/-->
   <!--Proxy group="sources" name="AVSucdSeriesReader" /-->
   <Proxy group="sources" name="MetaImageReader" />
