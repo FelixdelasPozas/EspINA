@@ -51,7 +51,6 @@ public:
 
 protected slots:
   void setWorkingStack(pqPipelineSource *source);
-void printo();
 
 private:
   EspinaMainWindow(const EspinaMainWindow&); // Not implemented.

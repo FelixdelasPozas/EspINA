@@ -19,6 +19,7 @@
 
 #define HINTWIDTH 40
 
+//-----------------------------------------------------------------------------
 SliceWidget::SliceWidget()
 	: m_view(NULL)
 	, m_viewWidget(NULL)
@@ -44,6 +45,7 @@ SliceWidget::SliceWidget()
 }
 
 
+//-----------------------------------------------------------------------------
 SliceWidget::~SliceWidget()
 {
 	//Objects creted by pqObjectBuilder have to be destroyed by it
@@ -53,36 +55,22 @@ SliceWidget::~SliceWidget()
 	if (m_slice) m_slice->Delete();
 }
 
+//-----------------------------------------------------------------------------
 //TODO: Plane conventions differ from ESPINA
 void SliceWidget::setPlane(int plane)
 {
-	return;
-	if (!m_init)
-		m_init = initialize();
+	m_plane = plane;
 
-	if (!m_init)
-		return;
-	vtkSMIntVectorProperty *m_plane = vtkSMIntVectorProperty::SafeDownCast(m_rep->GetProperty("SliceMode"));
-	m_plane->SetElements1(plane);
-	m_rep->UpdateVTKObjects();
+	if (m_init)
+	{
+		vtkSMIntVectorProperty *sliceMode = 
+			vtkSMIntVectorProperty::SafeDownCast(m_rep->GetProperty("SliceMode"));
+		sliceMode->SetElements1(plane);
+		m_rep->UpdateVTKObjects();
+	}
 }
 
-void SliceWidget::setSlice(int slice)
-{
-	return;
-	/*
-	pqPipelineRepresentation* pipelineRep = qobject_cast<pqPipelineRepresentation*>(m_view->getRepresentations()[0]);
-	m_rep = vtkSMImageSliceRepresentationProxy::SafeDownCast(pipelineRep->getRepresentationProxy());
-	m_slice = vtkSMIntVectorProperty::SafeDownCast(m_rep->GetProperty("Slice"));
-	*/
-	if (!m_init)
-		m_init = initialize();
-
-	m_slice->SetElements1(slice);
-	m_rep->UpdateVTKObjects();
-	m_view->render();
-}
-
+//-----------------------------------------------------------------------------
 void SliceWidget::connectToServer()
 {
 	qDebug() << "Creating View";
@@ -92,9 +80,9 @@ void SliceWidget::connectToServer()
 			  pqTwoDRenderView::twoDRenderViewType(),server));
 	m_viewWidget = m_view->getWidget();
 	m_mainLayout->insertWidget(0,m_viewWidget);//To preserver view order
-
 }
 
+//-----------------------------------------------------------------------------
 void SliceWidget::disconnectFromServer()
 {
 	if (m_view)
@@ -107,20 +95,43 @@ void SliceWidget::disconnectFromServer()
 	}
 }
 
+//-----------------------------------------------------------------------------
+void SliceWidget::setSlice(int slice)
+{
+	if (!m_init)
+		return;
+	m_slice->SetElements1(slice);
+	m_rep->UpdateVTKObjects();
+	m_view->render();
+}
+
+
+//-----------------------------------------------------------------------------
 bool SliceWidget::initialize()
 {
-	return false;
+	m_init = false;
 	if (m_view->getRepresentations().size() == 0)
-		return false;
+		return m_init;
 
 	pqPipelineRepresentation* pipelineRep = qobject_cast<pqPipelineRepresentation*>(m_view->getRepresentations()[0]);
 	if (!pipelineRep) 
-		return false;
+		return m_init;
 
 	m_rep = vtkSMImageSliceRepresentationProxy::SafeDownCast(pipelineRep->getRepresentationProxy());
 	if (!m_rep)
-		return false;
+		return m_init;
+
+	vtkSMIntVectorProperty *sliceMode = vtkSMIntVectorProperty::SafeDownCast(m_rep->GetProperty("SliceMode"));
+	if (!sliceMode)
+	{
+		return m_init;
+	} else {
+		sliceMode->SetElements1(m_plane);
+	}
 
 	m_slice = vtkSMIntVectorProperty::SafeDownCast(m_rep->GetProperty("Slice"));
-	return (m_slice != NULL);
+	m_init = m_slice != NULL;
+
+	m_rep->UpdateVTKObjects();
+	return m_init;
 }

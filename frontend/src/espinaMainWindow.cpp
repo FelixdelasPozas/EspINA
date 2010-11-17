@@ -122,43 +122,38 @@ EspinaMainWindow::EspinaMainWindow()
 
   //Create ESPINA views
   m_xy = new SliceWidget();
+  m_xy->setPlane(VTK_XY_PLANE);
   this->setCentralWidget(m_xy);
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_xy,SLOT(connectToServer()));
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_xy,SLOT(disconnectFromServer()));
   m_yz = new SliceWidget();
+  m_yz->setPlane(VTK_YZ_PLANE);
   this->Internals->yzSliceDock->setWidget(m_yz);
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_yz,SLOT(connectToServer()));
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_yz,SLOT(disconnectFromServer()));
   m_xz = new SliceWidget();
+  m_xz->setPlane(VTK_XZ_PLANE);
   this->Internals->xzSliceDock->setWidget(m_xz);
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_xz,SLOT(connectToServer()));
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_xz,SLOT(disconnectFromServer()));
   //m_3d = new VolumeWidget();
-  //QPushButton *update = new QPushButton("PrintSelf");
-  //connect(update,SIGNAL(clicked()),this,SLOT(printo()));
-  //this->Internals->volumeDock->setWidget(update);
+  //this->Internals->volumeDock->setWidget(m_3d);
+  //connect(server,SIGNAL(connectionCreated(vtkIdType)),m_3d,SLOT(connectToServer()));
+  //connect(server,SIGNAL(connectionClosed(vtkIdType)),m_3d,SLOT(disconnectFromServer()));
   
   // Final step, define application behaviors. Since we want all ParaView
   // behaviors, we use this convenience method.
   new pqParaViewBehaviors(this, this);
 }
 
-void EspinaMainWindow::printo()
-{
-	m_xy->connectToServer();
-	//vtkImageData *img = vtkImageData::SafeDownCast(m_stack->getOutputPort(0)->getOutputPortProxy());
-	//img->PrintSelf(std::cout,vtkIndent(0));
-}
-
-
-
 //-----------------------------------------------------------------------------
 EspinaMainWindow::~EspinaMainWindow()
 {
-  delete this->Internals;
-  delete m_xy;
-  delete m_yz;
-  delete m_xz;
+  //delete this->Internals;
+  //delete m_xy;
+  //delete m_yz;
+  //delete m_xz;
+ // delete m_3d;
 }
 
 
@@ -177,11 +172,11 @@ void EspinaMainWindow::setWorkingStack(pqPipelineSource *source)
 	activeObjects.setActiveSource(source);
 	pqDisplayPolicy *displayManager = pqApplicationCore::instance()->getDisplayPolicy();
 	displayManager->setRepresentationVisibility(source->getOutputPort(0),m_xy->getView(),true);
-	m_xy->setPlane(VTK_XY_PLANE);
+	m_xy->initialize();
 	displayManager->setRepresentationVisibility(source->getOutputPort(0),m_yz->getView(),true);
-	m_yz->setPlane(VTK_YZ_PLANE);
+	m_yz->initialize();
 	displayManager->setRepresentationVisibility(source->getOutputPort(0),m_xz->getView(),true);
-	m_xz->setPlane(VTK_XZ_PLANE);
+	m_xz->initialize();
 	//displayManager->setRepresentationVisibility(source->getOutputPort(0),m_3d->getView(),true);
 }
 

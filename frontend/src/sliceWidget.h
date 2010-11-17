@@ -17,11 +17,15 @@ public:
 	SliceWidget();
 	~SliceWidget();
 
+	bool initialize();
 	pqTwoDRenderView *getView(){return m_view;}
+
+public slots:
 	void setPlane(int plane);
+	void connectToServer();
+	void disconnectFromServer();
 
 private:
-	bool initialize();
 
 private:
 	pqTwoDRenderView *m_view;
@@ -33,16 +37,13 @@ private:
 	QVBoxLayout *m_mainLayout;
 	QHBoxLayout *m_controlLayout;
 	bool m_init;
-
+	int m_plane;
 
 protected:
 		Q_DISABLE_COPY(SliceWidget)
 
 protected slots:
 	void setSlice(int slice);
-public slots:
-	void connectToServer();
-	void disconnectFromServer();
 
 signals:
 	void sliceChanged(int);
