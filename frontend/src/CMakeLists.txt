@@ -1,9 +1,14 @@
 FIND_PACKAGE(ParaView REQUIRED)
 INCLUDE(${PARAVIEW_USE_FILE})
+
+FIND_PACKAGE(Cajal)
+
 INCLUDE_DIRECTORIES(.)
 INCLUDE_DIRECTORIES(
-  ${CMAKE_CURRENT_BINARY_DIR}
-  ${CMAKE_CURRENT_BINARY_DIR})
+	${Cajal_INCLUDE_DIR}
+	${CMAKE_CURRENT_BINARY_DIR}
+	${CMAKE_CURRENT_BINARY_DIR}
+  )
 
 #------------------------------------------------------------------------------
 # Add Qt Resource files
@@ -11,7 +16,10 @@ QT4_ADD_RESOURCES(RCC_BUILT_SOURCES
 	../rsc/espina.qrc)
 # Add extra library containing custom code for the client.
 QT4_WRAP_CPP(MOC_BUILT_SOURCES
-espinaMainWindow.h)
+espinaMainWindow.h
+sliceWidget.h
+volumeWidget.h
+)
 
 QT4_WRAP_UI(UI_BUILT_SOURCES
   espinaMainWindow.ui
@@ -26,6 +34,8 @@ SOURCE_GROUP("Generated" FILES
 
 SET(Espina_SOURCE_FILES
   espinaMainWindow.cpp
+  sliceWidget.cpp
+  volumeWidget.cpp
   ${MOC_BUILT_SOURCES}
   ${UI_BUILT_SOURCES}
   ${RCC_BUILT_SOURCES}
@@ -57,3 +67,5 @@ build_paraview_client(espina
 	#INSTALL_BIN_DIR "${PV_INSTALL_BIN_DIR}"
 	#INSTALL_LIB_DIR "${PV_INSTALL_LIB_DIR}"
 )
+
+target_link_libraries (espina ${Cajal_LIBRARIES})

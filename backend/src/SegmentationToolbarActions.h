@@ -1,14 +1,14 @@
 /*=========================================================================
 
-   Program: Espina
-   Module:    espinaViewMainWindow.h
+   Program: ParaView
+   Module:    SegmentationToolbarActions.h
 
-   Copyright (c) 2005,2006 Sandia Corporation, Kitware Inc.
+   Copyright (c) 2005-2008 Sandia Corporation, Kitware Inc.
    All rights reserved.
 
    ParaView is a free software; you can redistribute it and/or modify it
    under the terms of the ParaView license version 1.2. 
-   
+
    See License_v1.2.txt for the full ParaView license.
    A copy of this license can be obtained by contacting
    Kitware Inc.
@@ -28,43 +28,24 @@ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-========================================================================*/
-#ifndef ESPINA_MAIN_WINDOW_H
-#define ESPINA_MAIN_WINDOW_H
+=========================================================================*/
+#ifndef SEGMENTATION_TOOLBAR_ACTIONS_H
+#define SEGMENTATION_TOOLBAR_ACTIONS_H
 
-#include <QMainWindow>
+#include <QActionGroup>
 
-//Forward declaration
-class QMenu;
-class pqPipelineSource;
-class SliceWidget;
-class VolumeWidget;
+/// This plugin adds the Segmentation toolbar to ESPINA
 
-/// MainWindow for the default ParaView application.
-class EspinaMainWindow : public QMainWindow
+class SegmentationToolbarActions : public QActionGroup
 {
   Q_OBJECT
-  typedef QMainWindow Superclass;
 public:
-  EspinaMainWindow();
-  ~EspinaMainWindow();
+  SegmentationToolbarActions(QObject* p);
 
-protected slots:
-  void setWorkingStack(pqPipelineSource *source);
-
-private:
-  EspinaMainWindow(const EspinaMainWindow&); // Not implemented.
-  void operator=(const EspinaMainWindow&); // Not implemented.
-
-  void buildFileMenu(QMenu &menu);
-
-  class pqInternals;
-  pqInternals* Internals;
-  pqPipelineSource *m_stack;
-  SliceWidget *m_xy, *m_yz, *m_xz;
-  VolumeWidget *m_3d;
+public slots:
+  /// Callback for each action triggerred.
+  void onAction(QAction* a);
 };
 
-#endif //ESPINA_MAIN_WINDOW_H
-
+#endif// SEGMENTATION_TOOLBAR_ACTIONS_H
 
