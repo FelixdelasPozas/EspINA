@@ -4,7 +4,7 @@
        a filter already in ParaView (in Servers/ServerManager/Resources/*.xml)
        that matches your filter and then model your xml on it -->
   <ProxyGroup name="filters">
-   <SourceProxy name="MyElevationFilter" class="vtkMyElevationFilter" label="MyElevation">
+   <SourceProxy name="SegmentationFilter" class="vtkSegmentationFilter" label="ESPINA Segmentation">
      <Documentation
         long_help="Create point attribute array by projecting points onto an elevation vector."
         short_help="Create a point array representing elevation.">
@@ -28,51 +28,51 @@
              <Group name="filters"/>
            </ProxyGroupDomain>
            <DataTypeDomain name="input_type">
-             <DataType value="vtkDataSet"/>
+             <DataType value="vtkImageData"/>
            </DataTypeDomain>
       </InputProperty>
 
-      <DoubleVectorProperty
-         name="LowPoint"
-         label="Low Point"
-         command="SetLowPoint"
-         number_of_elements="3"
-         animateable="1"
-         default_values="0 0 0" >
-         <BoundsDomain name="range" mode="normal" default_mode="min" >
+      <IntVectorProperty
+         name="VOI"
+         label="Volume Of Interest"
+         command="SetVOI"
+         number_of_elements="6"
+         animateable="0"
+         default_values="100 200 100 200 50 100" >
+		 <!--BoundsDomain name="range" mode="normal" default_mode="min" >
            <RequiredProperties>
              <Property name="Input" function="Input" />
            </RequiredProperties>
-         </BoundsDomain>
+         </BoundsDomain-->
          <Documentation>
            Define one end of the line (small scalar values). Default is (0,0,0).
          </Documentation>
-      </DoubleVectorProperty>
-
-      <DoubleVectorProperty
-         name="HighPoint"
-         label="High Point"
-         command="SetHighPoint"
+      </IntVectorProperty>
+	  
+	  <IntVectorProperty
+         name="SampleRate"
+         label="Sample Rates"
+         command="SetSampleRate"
          number_of_elements="3"
-         animateable="1"
-         default_values="0 0 1" >
-         <BoundsDomain name="range" mode="normal" default_mode="max" >
+         animateable="0"
+         default_values="1 1 1" >
+		 <!--BoundsDomain name="range" mode="normal" default_mode="min" >
            <RequiredProperties>
              <Property name="Input" function="Input" />
            </RequiredProperties>
-         </BoundsDomain>
+         </BoundsDomain-->
          <Documentation>
-           Define other end of the line (large scalar values). Default is (0,0,1).
+           Define one end of the line (small scalar values). Default is (0,0,0).
          </Documentation>
-      </DoubleVectorProperty>
+      </IntVectorProperty>
 
-      <Hints>
+      <!--Hints>
         <PropertyGroup type="Line" label="My Elevation Widget">
           <Property function="Point1WorldPosition" name="LowPoint" />
           <Property function="Point2WorldPosition" name="HighPoint" />
         </PropertyGroup>
-      </Hints>
-   <!-- End MyElevationFilter -->
+      </Hints-->
+   <!-- End SegmentationFilter -->
    </SourceProxy>
  </ProxyGroup>
 </ServerManagerConfiguration>

@@ -12,24 +12,24 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-#include "vtkMyElevationFilter.h"
+#include "vtkSegmentationFilter.h"
 
 #include "vtkObjectFactory.h"
 
-vtkStandardNewMacro(vtkMyElevationFilter);
+vtkStandardNewMacro(vtkSegmentationFilter);
 
 //----------------------------------------------------------------------------
-vtkMyElevationFilter::vtkMyElevationFilter()
+vtkSegmentationFilter::vtkSegmentationFilter()
 {
 }
 
 //----------------------------------------------------------------------------
-vtkMyElevationFilter::~vtkMyElevationFilter()
+vtkSegmentationFilter::~vtkSegmentationFilter()
 {
 }
 
 //----------------------------------------------------------------------------
-void vtkMyElevationFilter::PrintSelf(ostream& os, vtkIndent indent)
+void vtkSegmentationFilter::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 }

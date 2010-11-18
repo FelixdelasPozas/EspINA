@@ -45,10 +45,10 @@ SegmentationToolbarActions::SegmentationToolbarActions(QObject* p) : QActionGrou
 {
   // let's use a Qt icon (we could make our own)
   //QIcon icon = qApp->style()->standardIcon(QStyle::SP_MessageBoxCritical);
-  QAction* a = new QAction(QIcon(":/puntero_mas.svg"), "Add synapse", this);
+  QAction* a = new QAction(QIcon(":/puntero_mas.svg"), "Add synapse (Ctrl +)", this);
   a->setData("SphereSource");
   this->addAction(a);
-  a = new QAction(QIcon(":/puntero_menos.svg"), "Remove synapse", this);
+  a = new QAction(QIcon(":/puntero_menos.svg"), "Remove synapse (Ctrl -)", this);
   a->setData("CylinderSource");
   this->addAction(a);
   QObject::connect(this, SIGNAL(triggered(QAction*)), this, SLOT(onAction(QAction*)));
