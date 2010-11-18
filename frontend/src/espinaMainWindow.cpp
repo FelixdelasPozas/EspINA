@@ -136,10 +136,10 @@ EspinaMainWindow::EspinaMainWindow()
   this->Internals->xzSliceDock->setWidget(m_xz);
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_xz,SLOT(connectToServer()));
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_xz,SLOT(disconnectFromServer()));
-  //m_3d = new VolumeWidget();
-  //this->Internals->volumeDock->setWidget(m_3d);
-  //connect(server,SIGNAL(connectionCreated(vtkIdType)),m_3d,SLOT(connectToServer()));
-  //connect(server,SIGNAL(connectionClosed(vtkIdType)),m_3d,SLOT(disconnectFromServer()));
+  m_3d = new VolumeWidget();
+  this->Internals->volumeDock->setWidget(m_3d);
+  connect(server,SIGNAL(connectionCreated(vtkIdType)),m_3d,SLOT(connectToServer()));
+  connect(server,SIGNAL(connectionClosed(vtkIdType)),m_3d,SLOT(disconnectFromServer()));
   
   // Final step, define application behaviors. Since we want all ParaView
   // behaviors, we use this convenience method.
@@ -177,7 +177,7 @@ void EspinaMainWindow::setWorkingStack(pqPipelineSource *source)
 	m_yz->initialize();
 	displayManager->setRepresentationVisibility(source->getOutputPort(0),m_xz->getView(),true);
 	m_xz->initialize();
-	//displayManager->setRepresentationVisibility(source->getOutputPort(0),m_3d->getView(),true);
+	displayManager->setRepresentationVisibility(source->getOutputPort(0),m_3d->getView(),true);
 }
 
 
