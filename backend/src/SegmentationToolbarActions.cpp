@@ -44,9 +44,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMProxy.h"
 #include "vtkSMInputProperty.h"
 
-#include "../../frontend/src/sliceWidget.h"
+#include <QDebug>
 
-extern SliceWidget *vista;
+//#include "../../frontend/src/sliceWidget.h"
+
+//extern SliceWidget *vista;
 
 //-----------------------------------------------------------------------------
 SegmentationToolbarActions::SegmentationToolbarActions(QObject* p) : QActionGroup(p)
@@ -82,17 +84,9 @@ void SegmentationToolbarActions::onAction(QAction* a)
       {
       stack->beginUndoSet(QString("Create %1").arg(source_type));
       }
-	vtkSMProxy *currentStack = activeObjects.activeSource()->getProxy();
-    pqPipelineSource * filter = builder->createSource("filters", "SegmentationFilter", s);
-	std::cout << "Filter:\n\n";
-	//filter->getProxy()->PrintSelf(std::cout,vtkIndent(0));
-	vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(filter->getProxy()->GetProperty("Input"));
-	std::cout << "Active Source:\n\n";
-	//currentStack->PrintSelf(std::cout,vtkIndent(0));
-	input->SetInputConnection(0,currentStack,0);
-	std::cout << "Property:\n\n";
-	input->PrintSelf(std::cout,vtkIndent(0));
-	vista->showSource(filter->getOutputPort(0),true);
+	pqPipelineSource *currentStack = activeObjects.activeSource();
+    pqPipelineSource *filter = builder->createFilter("filters", "SegmentationFilter", currentStack,0);
+	//vista->showSource(filter->getOutputPort(0),true);
     if(stack)
       {
       stack->endUndoSet();
