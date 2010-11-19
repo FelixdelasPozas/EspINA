@@ -66,6 +66,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #include <QPushButton>
 
+SliceWidget *vista;
+
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
 };
@@ -97,7 +99,7 @@ EspinaMainWindow::EspinaMainWindow()
   //pqParaViewMenuBuilders::buildSourcesMenu(*this->Internals->menuSources, this);
 
   //// Populate filters menu.
-  //pqParaViewMenuBuilders::buildFiltersMenu(*this->Internals->menuFilters, this);
+  pqParaViewMenuBuilders::buildFiltersMenu(*this->Internals->menuTools, this);
 
   //// Populate Tools menu.
   pqParaViewMenuBuilders::buildToolsMenu(*this->Internals->menuTools);
@@ -122,6 +124,7 @@ EspinaMainWindow::EspinaMainWindow()
 
   //Create ESPINA views
   m_xy = new SliceWidget();
+  vista = m_xy;
   m_xy->setPlane(VTK_XY_PLANE);
   this->setCentralWidget(m_xy);
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_xy,SLOT(connectToServer()));
@@ -144,6 +147,7 @@ EspinaMainWindow::EspinaMainWindow()
   // Final step, define application behaviors. Since we want all ParaView
   // behaviors, we use this convenience method.
   new pqParaViewBehaviors(this, this);
+
 }
 
 //-----------------------------------------------------------------------------
@@ -171,13 +175,13 @@ void EspinaMainWindow::setWorkingStack(pqPipelineSource *source)
 	pqActiveObjects& activeObjects = pqActiveObjects::instance();
 	activeObjects.setActiveSource(source);
 	pqDisplayPolicy *displayManager = pqApplicationCore::instance()->getDisplayPolicy();
-	displayManager->setRepresentationVisibility(source->getOutputPort(0),m_xy->getView(),true);
+	m_xy->showSource(source->getOutputPort(0),false);
 	m_xy->initialize();
-	displayManager->setRepresentationVisibility(source->getOutputPort(0),m_yz->getView(),true);
+	m_yz->showSource(source->getOutputPort(0),true);
 	m_yz->initialize();
-	displayManager->setRepresentationVisibility(source->getOutputPort(0),m_xz->getView(),true);
+	m_xz->showSource(source->getOutputPort(0),true);
 	m_xz->initialize();
-	displayManager->setRepresentationVisibility(source->getOutputPort(0),m_3d->getView(),true);
+	m_3d->showSource(source->getOutputPort(0),true);
 }
 
 

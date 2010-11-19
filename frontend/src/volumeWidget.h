@@ -7,6 +7,7 @@ class QSpinBox;
 class QWidget;
 class QVBoxLayout;
 class QHBoxLayout;
+class pqOutputPort;
 
 class VolumeWidget : public QWidget
 {
@@ -16,6 +17,7 @@ public:
 	~VolumeWidget();
 
 	pqRenderView *getView(){return m_view;}
+	void showSource(pqOutputPort *opPort, bool visible);
 
 public slots:
 	void connectToServer();

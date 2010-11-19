@@ -9,6 +9,7 @@ class vtkSMIntVectorProperty;
 class QWidget;
 class QVBoxLayout;
 class QHBoxLayout;
+class pqOutputPort;
 
 class SliceWidget : public QWidget
 {
@@ -19,6 +20,7 @@ public:
 
 	bool initialize();
 	pqTwoDRenderView *getView(){return m_view;}
+	void showSource(pqOutputPort *opPort, bool visible);
 
 public slots:
 	void setPlane(int plane);

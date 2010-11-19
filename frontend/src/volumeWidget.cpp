@@ -3,6 +3,7 @@
 #include "pqRenderView.h"
 #include "pqApplicationCore.h"
 #include "pqActiveObjects.h"
+#include "pqDisplayPolicy.h"
 #include "pqObjectBuilder.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -41,6 +42,12 @@ VolumeWidget::~VolumeWidget()
 		pqApplicationCore::instance()->getObjectBuilder()->destroy(m_view);
 }
 
+//-----------------------------------------------------------------------------
+void VolumeWidget::showSource(pqOutputPort *opPort, bool visible)
+{
+	pqDisplayPolicy *displayManager = pqApplicationCore::instance()->getDisplayPolicy();
+	displayManager->setRepresentationVisibility(opPort,m_view,visible);
+}
 //-----------------------------------------------------------------------------
 void VolumeWidget::connectToServer()
 {

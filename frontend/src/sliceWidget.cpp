@@ -4,6 +4,7 @@
 #include "pqTwoDRenderView.h"
 #include "pqApplicationCore.h"
 #include "pqActiveObjects.h"
+#include "pqDisplayPolicy.h"
 #include "pqObjectBuilder.h"
 #include "pqPipelineRepresentation.h"
 #include "vtkSMImageSliceRepresentationProxy.h"
@@ -68,6 +69,13 @@ void SliceWidget::setPlane(int plane)
 		sliceMode->SetElements1(plane);
 		m_rep->UpdateVTKObjects();
 	}
+}
+
+//-----------------------------------------------------------------------------
+void SliceWidget::showSource(pqOutputPort *opPort, bool visible)
+{
+	pqDisplayPolicy *displayManager = pqApplicationCore::instance()->getDisplayPolicy();
+	displayManager->setRepresentationVisibility(opPort,m_view,visible);
 }
 
 //-----------------------------------------------------------------------------

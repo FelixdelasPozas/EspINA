@@ -37,7 +37,7 @@
          label="Volume Of Interest"
          command="SetVOI"
          number_of_elements="6"
-         animateable="0"
+         animateable="1"
          default_values="100 200 100 200 50 100" >
 		 <!--BoundsDomain name="range" mode="normal" default_mode="min" >
            <RequiredProperties>
