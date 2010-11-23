@@ -81,7 +81,7 @@ void SliceWidget::showSource(pqOutputPort *opPort, bool visible)
 //-----------------------------------------------------------------------------
 void SliceWidget::connectToServer()
 {
-	qDebug() << "Creating View";
+	//qDebug() << "Creating View";
 	pqObjectBuilder *builder = pqApplicationCore::instance()->getObjectBuilder();
 	pqServer * server= pqActiveObjects::instance().activeServer();
 	m_view = qobject_cast<pqTwoDRenderView*>(builder->createView(
@@ -128,6 +128,7 @@ bool SliceWidget::initialize()
 	m_rep = vtkSMImageSliceRepresentationProxy::SafeDownCast(pipelineRep->getRepresentationProxy());
 	if (!m_rep)
 		return m_init;
+	//m_rep->PrintSelf(std::cout,vtkIndent(0));
 
 	vtkSMIntVectorProperty *sliceMode = vtkSMIntVectorProperty::SafeDownCast(m_rep->GetProperty("SliceMode"));
 	if (!sliceMode)

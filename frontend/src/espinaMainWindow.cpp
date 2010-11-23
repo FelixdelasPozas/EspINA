@@ -164,6 +164,8 @@ EspinaMainWindow::~EspinaMainWindow()
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::setWorkingStack(pqPipelineSource *source)
 {
+	//TODO: Deal with multiple representations inside the same view
+	//		At the moment, we only display the first one
 	qDebug() << "Set Working Stack";
 	//Clean previous stack
 	if (m_stack)
@@ -175,7 +177,7 @@ void EspinaMainWindow::setWorkingStack(pqPipelineSource *source)
 	pqActiveObjects& activeObjects = pqActiveObjects::instance();
 	activeObjects.setActiveSource(source);
 	pqDisplayPolicy *displayManager = pqApplicationCore::instance()->getDisplayPolicy();
-	m_xy->showSource(source->getOutputPort(0),false);
+	m_xy->showSource(source->getOutputPort(0),true);
 	m_xy->initialize();
 	m_yz->showSource(source->getOutputPort(0),true);
 	m_yz->initialize();

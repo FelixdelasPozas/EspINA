@@ -51,7 +51,7 @@ void VolumeWidget::showSource(pqOutputPort *opPort, bool visible)
 //-----------------------------------------------------------------------------
 void VolumeWidget::connectToServer()
 {
-	qDebug() << "Creating View";
+	//qDebug() << "Creating View";
 	pqObjectBuilder *builder = pqApplicationCore::instance()->getObjectBuilder();
 	pqServer * server= pqActiveObjects::instance().activeServer();
 	m_view = qobject_cast<pqRenderView*>(builder->createView(
