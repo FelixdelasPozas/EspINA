@@ -92,18 +92,7 @@ void VolumeWidget::disconnectFromServer()
 
 void VolumeWidget::updateRepresentation()
 {
-	pqPipelineRepresentation* pipelineRep = qobject_cast<pqPipelineRepresentation*>(m_view->getRepresentations()[0]);
-	if (!pipelineRep) 
-		return;
-	qDebug() << "La segunda ";
-	pipelineRep->getProxy()->PrintSelf(std::cout,vtkIndent(0));
-	pipelineRep->getProxy()->UpdateVTKObjects();
 	m_view->render();
-
-	vtkSMUniformGridVolumeRepresentationProxy *m_rep = vtkSMUniformGridVolumeRepresentationProxy::SafeDownCast(pipelineRep->getRepresentationProxy());
-	if (!m_rep)
-		return;
-	qDebug() << "NO ES NULL";
 }
 
 

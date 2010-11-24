@@ -90,17 +90,6 @@ void SliceWidget::disconnectFromServer()
 //-----------------------------------------------------------------------------
 void SliceWidget::updateRepresentation()
 {
-	pqPipelineRepresentation* pipelineRep = qobject_cast<pqPipelineRepresentation*>(m_view->getRepresentations()[0]);
-	if (!pipelineRep) 
-		return;
-	//pipelineRep->getProxy()->UpdateVTKObjects();
-	m_view->render();
-
-	return;
-	m_rep = vtkSMImageSliceRepresentationProxy::SafeDownCast(pipelineRep->getRepresentationProxy());
-	if (!m_rep)
-		return;
-	m_rep->UpdateVTKObjects();
 	m_view->render();
 }
 
