@@ -74,6 +74,37 @@
       </Hints-->
    <!-- End SegmentationFilter -->
    </SourceProxy>
+   <SourceProxy name="ImageSlicer" class="vtkPVImageSlicer" label="ImageSlicer">
+     <Documentation
+        long_help="Create point attribute array by projecting points onto an elevation vector."
+        short_help="Create a point array representing elevation.">
+     </Documentation>
+     <InputProperty
+        name="Input"
+        command="SetInputConnection">
+           <ProxyGroupDomain name="groups">
+             <Group name="sources"/>
+             <Group name="filters"/>
+           </ProxyGroupDomain>
+           <DataTypeDomain name="input_type">
+             <DataType value="vtkDataImage"/>
+           </DataTypeDomain>
+      </InputProperty>
+     <IntVectorProperty
+		 name="SliceMode"
+         number_of_elements="1"
+		 default_values="5"
+		 immediate_update="1"
+        command="SetSliceMode">
+      </IntVectorProperty>
+     <IntVectorProperty
+		 name="Slice"
+         number_of_elements="1"
+         default_values="0"
+		 immediate_update="1"
+        command="SetSlice">
+      </IntVectorProperty>
+   </SourceProxy>
  </ProxyGroup>
 </ServerManagerConfiguration>
 

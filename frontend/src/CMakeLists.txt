@@ -17,7 +17,9 @@ QT4_ADD_RESOURCES(RCC_BUILT_SOURCES
 # Add extra library containing custom code for the client.
 QT4_WRAP_CPP(MOC_BUILT_SOURCES
 espinaMainWindow.h
+emSegmentation.h
 sliceWidget.h
+slicer.h
 volumeWidget.h
 )
 
@@ -34,7 +36,9 @@ SOURCE_GROUP("Generated" FILES
 
 SET(Espina_SOURCE_FILES
   espinaMainWindow.cpp
+  emSegmentation.cpp
   sliceWidget.cpp
+  slicer.cpp
   volumeWidget.cpp
   ${MOC_BUILT_SOURCES}
   ${UI_BUILT_SOURCES}
@@ -58,7 +62,7 @@ build_paraview_client(espina
     APPLICATION_ICON  "${CMAKE_CURRENT_SOURCE_DIR}/WinIcon.ico"
 	GUI_CONFIGURATION_XMLS
 	#  ${CMAKE_CURRENT_SOURCE_DIR}/ParaViewSources.xml
-	#  ${CMAKE_CURRENT_SOURCE_DIR}/ParaViewFilters.xml
+	  ${CMAKE_CURRENT_SOURCE_DIR}/EspinaFilters.xml
 	  ${CMAKE_CURRENT_SOURCE_DIR}/EspinaReaders.xml
 	#  ${CMAKE_CURRENT_SOURCE_DIR}/ParaViewWriters.xml
 	#  ${PARAVIEW_EXTRA_GUI_RESOURCES} # Add any compiled in GUI configuration xmls

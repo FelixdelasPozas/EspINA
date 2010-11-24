@@ -32,7 +32,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // ESPINA includes
 #include "espinaMainWindow.h"
 #include "ui_espinaMainWindow.h"
+#include "emSegmentation.h"
 #include "sliceWidget.h"
+#include "slicer.h"
 #include "volumeWidget.h"
 
 //ParaQ includes
@@ -60,6 +62,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //VTK Includes
 #include "vtkStructuredData.h" 
 #include "vtkImageData.h" 
+
+//New
+#include "vtkPVImageSlicer.h"
+#include "vtkSMIntVectorProperty.h"
 
 //Debug includes
 #include <QDebug>
@@ -109,6 +115,7 @@ EspinaMainWindow::EspinaMainWindow()
   //  *this->Internals->pipelineBrowser);
 
   //pqParaViewMenuBuilders::buildToolbars(*this);
+  this->Internals->toolBar->addAction("Test");
 
   //// Setup the View menu. This must be setup after all toolbars and dockwidgets
   //// have been created.
@@ -122,23 +129,27 @@ EspinaMainWindow::EspinaMainWindow()
 
   pqServerManagerObserver *server = pqApplicationCore::instance()->getServerManagerObserver();
 
+  //Create ESPINA
+  m_segmentation = new EMSegmentation();
+  for (int plane = SLICE_PLANE_XY; plane < SLICE_PLANES; plane++)
+	  m_planes[SlicePlane(plane)] = new SliceBlender(SlicePlane(plane));
   //Create ESPINA views
-  m_xy = new SliceWidget();
-  vista = m_xy;
-  m_xy->setPlane(VTK_XY_PLANE);
+  m_xy = new SliceWidget(m_planes[SLICE_PLANE_YZ]);
+  //vista = m_xy;//Deprecated
+  //m_xy->setPlane(VTK_XY_PLANE);
   this->setCentralWidget(m_xy);
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_xy,SLOT(connectToServer()));
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_xy,SLOT(disconnectFromServer()));
-  m_yz = new SliceWidget();
-  m_yz->setPlane(VTK_YZ_PLANE);
-  this->Internals->yzSliceDock->setWidget(m_yz);
-  connect(server,SIGNAL(connectionCreated(vtkIdType)),m_yz,SLOT(connectToServer()));
-  connect(server,SIGNAL(connectionClosed(vtkIdType)),m_yz,SLOT(disconnectFromServer()));
-  m_xz = new SliceWidget();
-  m_xz->setPlane(VTK_XZ_PLANE);
-  this->Internals->xzSliceDock->setWidget(m_xz);
-  connect(server,SIGNAL(connectionCreated(vtkIdType)),m_xz,SLOT(connectToServer()));
-  connect(server,SIGNAL(connectionClosed(vtkIdType)),m_xz,SLOT(disconnectFromServer()));
+  //m_yz = new SliceWidget();
+  //m_yz->setPlane(VTK_YZ_PLANE);
+  //this->Internals->yzSliceDock->setWidget(m_yz);
+  //connect(server,SIGNAL(connectionCreated(vtkIdType)),m_yz,SLOT(connectToServer()));
+  //connect(server,SIGNAL(connectionClosed(vtkIdType)),m_yz,SLOT(disconnectFromServer()));
+  //m_xz = new SliceWidget();
+  //m_xz->setPlane(VTK_XZ_PLANE);
+  //this->Internals->xzSliceDock->setWidget(m_xz);
+  //connect(server,SIGNAL(connectionCreated(vtkIdType)),m_xz,SLOT(connectToServer()));
+  //connect(server,SIGNAL(connectionClosed(vtkIdType)),m_xz,SLOT(disconnectFromServer()));
   m_3d = new VolumeWidget();
   this->Internals->volumeDock->setWidget(m_3d);
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_3d,SLOT(connectToServer()));
@@ -166,24 +177,32 @@ void EspinaMainWindow::setWorkingStack(pqPipelineSource *source)
 {
 	//TODO: Deal with multiple representations inside the same view
 	//		At the moment, we only display the first one
-	qDebug() << "Set Working Stack";
+	//qDebug() << "Set Working Stack";
+	pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
 	//Clean previous stack
 	if (m_stack)
-		pqApplicationCore::instance()->getObjectBuilder()->destroy(m_stack);
+		ob->destroy(m_stack);
 
 	m_stack = source;
+	m_blurred = source;
+
+	//pqPipelineSource *myslice = ob->createFilter("filters","ImageSlicer",source,0);
 
 	//Set new stack and display it
 	pqActiveObjects& activeObjects = pqActiveObjects::instance();
 	activeObjects.setActiveSource(source);
-	pqDisplayPolicy *displayManager = pqApplicationCore::instance()->getDisplayPolicy();
-	m_xy->showSource(source->getOutputPort(0),true);
-	m_xy->initialize();
-	m_yz->showSource(source->getOutputPort(0),true);
-	m_yz->initialize();
-	m_xz->showSource(source->getOutputPort(0),true);
-	m_xz->initialize();
-	m_3d->showSource(source->getOutputPort(0),true);
+	//pqDisplayPolicy *displayManager = pqApplicationCore::instance()->getDisplayPolicy();
+//	//m_xy->showSource(source->getOutputPort(0),true);
+	m_planes[SLICE_PLANE_YZ]->addInput(source);
+	//m_xy->initialize();
+	//m_yz->showSource(source->getOutputPort(0),true);
+	//m_yz->initialize();
+	//m_xz->showSource(source->getOutputPort(0),true);
+	//m_xz->initialize();
+	//m_3d->showSource(source->getOutputPort(0),true);
+	m_3d->showSource(m_planes[SLICE_PLANE_YZ]->getOutput(),true);
+	//m_3d->showSource(myslice2->getOutputPort(0),true);
+	connect(m_planes[SLICE_PLANE_YZ],SIGNAL(updated()),m_3d,SLOT(updateRepresentation()));
 }
 
 

@@ -1,5 +1,8 @@
 #include "sliceWidget.h"
 
+//Espina includes
+#include "slicer.h"
+
 //ParaQ includes
 #include "pqTwoDRenderView.h"
 #include "pqApplicationCore.h"
@@ -21,8 +24,9 @@
 #define HINTWIDTH 40
 
 //-----------------------------------------------------------------------------
-SliceWidget::SliceWidget()
-	: m_view(NULL)
+SliceWidget::SliceWidget(SliceBlender *input)
+	: m_input(input)
+	, m_view(NULL)
 	, m_viewWidget(NULL)
 	, m_rep(NULL)
 	, m_slice(NULL)
@@ -36,7 +40,9 @@ SliceWidget::SliceWidget()
 	m_spin->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Preferred);
 	QObject::connect(m_scroll,SIGNAL(valueChanged(int)),m_spin,SLOT(setValue(int)));
 	QObject::connect(m_spin,SIGNAL(valueChanged(int)),m_scroll,SLOT(setValue(int)));
-	QObject::connect(m_spin,SIGNAL(valueChanged(int)),this,SLOT(setSlice(int)));
+	QObject::connect(m_spin,SIGNAL(valueChanged(int)),m_input,SLOT(setSlice(int)));
+	QObject::connect(m_input,SIGNAL(updated()),this,SLOT(updateRepresentation()));
+	QObject::connect(m_input,SIGNAL(outputChanged(pqOutputPort *)),this,SLOT(setInput(pqOutputPort *)));
 	m_controlLayout->addWidget(m_scroll);
 	m_controlLayout->addWidget(m_spin);
 
@@ -57,28 +63,6 @@ SliceWidget::~SliceWidget()
 }
 
 //-----------------------------------------------------------------------------
-//TODO: Plane conventions differ from ESPINA
-void SliceWidget::setPlane(int plane)
-{
-	m_plane = plane;
-
-	if (m_init)
-	{
-		vtkSMIntVectorProperty *sliceMode = 
-			vtkSMIntVectorProperty::SafeDownCast(m_rep->GetProperty("SliceMode"));
-		sliceMode->SetElements1(plane);
-		m_rep->UpdateVTKObjects();
-	}
-}
-
-//-----------------------------------------------------------------------------
-void SliceWidget::showSource(pqOutputPort *opPort, bool visible)
-{
-	pqDisplayPolicy *displayManager = pqApplicationCore::instance()->getDisplayPolicy();
-	displayManager->setRepresentationVisibility(opPort,m_view,visible);
-}
-
-//-----------------------------------------------------------------------------
 void SliceWidget::connectToServer()
 {
 	//qDebug() << "Creating View";
@@ -87,7 +71,7 @@ void SliceWidget::connectToServer()
 	m_view = qobject_cast<pqTwoDRenderView*>(builder->createView(
 			  pqTwoDRenderView::twoDRenderViewType(),server));
 	m_viewWidget = m_view->getWidget();
-	m_mainLayout->insertWidget(0,m_viewWidget);//To preserver view order
+	m_mainLayout->insertWidget(0,m_viewWidget);//To preserve view order
 }
 
 //-----------------------------------------------------------------------------
@@ -104,11 +88,18 @@ void SliceWidget::disconnectFromServer()
 }
 
 //-----------------------------------------------------------------------------
-void SliceWidget::setSlice(int slice)
+void SliceWidget::updateRepresentation()
 {
-	if (!m_init)
+	pqPipelineRepresentation* pipelineRep = qobject_cast<pqPipelineRepresentation*>(m_view->getRepresentations()[0]);
+	if (!pipelineRep) 
 		return;
-	m_slice->SetElements1(slice);
+	//pipelineRep->getProxy()->UpdateVTKObjects();
+	m_view->render();
+
+	return;
+	m_rep = vtkSMImageSliceRepresentationProxy::SafeDownCast(pipelineRep->getRepresentationProxy());
+	if (!m_rep)
+		return;
 	m_rep->UpdateVTKObjects();
 	m_view->render();
 }
@@ -143,4 +134,10 @@ bool SliceWidget::initialize()
 
 	m_rep->UpdateVTKObjects();
 	return m_init;
+}
+
+void SliceWidget::setInput(pqOutputPort *opPort)
+{
+	pqDisplayPolicy *displayManager = pqApplicationCore::instance()->getDisplayPolicy();
+	displayManager->setRepresentationVisibility(opPort,m_view,true);
 }

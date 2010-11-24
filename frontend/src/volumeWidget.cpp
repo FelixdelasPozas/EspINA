@@ -5,6 +5,8 @@
 #include "pqActiveObjects.h"
 #include "pqDisplayPolicy.h"
 #include "pqObjectBuilder.h"
+#include "pqPipelineRepresentation.h"
+#include "vtkSMUniformGridVolumeRepresentationProxy.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QScrollBar>
@@ -47,6 +49,21 @@ void VolumeWidget::showSource(pqOutputPort *opPort, bool visible)
 {
 	pqDisplayPolicy *displayManager = pqApplicationCore::instance()->getDisplayPolicy();
 	displayManager->setRepresentationVisibility(opPort,m_view,visible);
+
+	/*
+	if (m_view->getRepresentations().size() < 2)
+		return;
+	pqPipelineRepresentation* pipelineRep = qobject_cast<pqPipelineRepresentation*>(m_view->getRepresentations()[1]);
+	if (!pipelineRep) 
+		return;
+	qDebug() << "La segunda ";
+	pipelineRep->getProxy()->PrintSelf(std::cout,vtkIndent(0));
+
+	vtkSMUniformGridVolumeRepresentationProxy *m_rep = vtkSMUniformGridVolumeRepresentationProxy::SafeDownCast(pipelineRep->getRepresentationProxy());
+	if (!m_rep)
+		return;
+	qDebug() << "NO ES NULL";
+	*/
 }
 //-----------------------------------------------------------------------------
 void VolumeWidget::connectToServer()
@@ -71,6 +88,22 @@ void VolumeWidget::disconnectFromServer()
 		//TODO: BugFix -> destroy previous instance of m_view
 		//pqApplicationCore::instance()->getObjectBuilder()->destroy(m_view);
 	}
+}
+
+void VolumeWidget::updateRepresentation()
+{
+	pqPipelineRepresentation* pipelineRep = qobject_cast<pqPipelineRepresentation*>(m_view->getRepresentations()[0]);
+	if (!pipelineRep) 
+		return;
+	qDebug() << "La segunda ";
+	pipelineRep->getProxy()->PrintSelf(std::cout,vtkIndent(0));
+	pipelineRep->getProxy()->UpdateVTKObjects();
+	m_view->render();
+
+	vtkSMUniformGridVolumeRepresentationProxy *m_rep = vtkSMUniformGridVolumeRepresentationProxy::SafeDownCast(pipelineRep->getRepresentationProxy());
+	if (!m_rep)
+		return;
+	qDebug() << "NO ES NULL";
 }
 
 

@@ -22,6 +22,7 @@ public:
 public slots:
 	void connectToServer();
 	void disconnectFromServer();
+	void updateRepresentation();
 
 private:
 	pqRenderView *m_view;
