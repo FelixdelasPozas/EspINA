@@ -72,8 +72,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #include <QPushButton>
 
-SliceWidget *vista;
-
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
 };
@@ -134,22 +132,18 @@ EspinaMainWindow::EspinaMainWindow()
   for (int plane = SLICE_PLANE_XY; plane < SLICE_PLANES; plane++)
 	  m_planes[SlicePlane(plane)] = new SliceBlender(SlicePlane(plane));
   //Create ESPINA views
-  m_xy = new SliceWidget(m_planes[SLICE_PLANE_YZ]);
-  //vista = m_xy;//Deprecated
-  //m_xy->setPlane(VTK_XY_PLANE);
+  m_xy = new SliceWidget(m_planes[SLICE_PLANE_XY]);
   this->setCentralWidget(m_xy);
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_xy,SLOT(connectToServer()));
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_xy,SLOT(disconnectFromServer()));
-  //m_yz = new SliceWidget();
-  //m_yz->setPlane(VTK_YZ_PLANE);
-  //this->Internals->yzSliceDock->setWidget(m_yz);
-  //connect(server,SIGNAL(connectionCreated(vtkIdType)),m_yz,SLOT(connectToServer()));
-  //connect(server,SIGNAL(connectionClosed(vtkIdType)),m_yz,SLOT(disconnectFromServer()));
-  //m_xz = new SliceWidget();
-  //m_xz->setPlane(VTK_XZ_PLANE);
-  //this->Internals->xzSliceDock->setWidget(m_xz);
-  //connect(server,SIGNAL(connectionCreated(vtkIdType)),m_xz,SLOT(connectToServer()));
-  //connect(server,SIGNAL(connectionClosed(vtkIdType)),m_xz,SLOT(disconnectFromServer()));
+  m_yz = new SliceWidget(m_planes[SLICE_PLANE_YZ]);
+  this->Internals->yzSliceDock->setWidget(m_yz);
+  connect(server,SIGNAL(connectionCreated(vtkIdType)),m_yz,SLOT(connectToServer()));
+  connect(server,SIGNAL(connectionClosed(vtkIdType)),m_yz,SLOT(disconnectFromServer()));
+  m_xz = new SliceWidget(m_planes[SLICE_PLANE_XZ]);
+  this->Internals->xzSliceDock->setWidget(m_xz);
+  connect(server,SIGNAL(connectionCreated(vtkIdType)),m_xz,SLOT(connectToServer()));
+  connect(server,SIGNAL(connectionClosed(vtkIdType)),m_xz,SLOT(disconnectFromServer()));
   m_3d = new VolumeWidget();
   this->Internals->volumeDock->setWidget(m_3d);
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_3d,SLOT(connectToServer()));
@@ -193,16 +187,22 @@ void EspinaMainWindow::setWorkingStack(pqPipelineSource *source)
 	activeObjects.setActiveSource(source);
 	//pqDisplayPolicy *displayManager = pqApplicationCore::instance()->getDisplayPolicy();
 //	//m_xy->showSource(source->getOutputPort(0),true);
+	m_planes[SLICE_PLANE_XY]->addInput(source);
 	m_planes[SLICE_PLANE_YZ]->addInput(source);
+	m_planes[SLICE_PLANE_XZ]->addInput(source);
 	//m_xy->initialize();
 	//m_yz->showSource(source->getOutputPort(0),true);
 	//m_yz->initialize();
 	//m_xz->showSource(source->getOutputPort(0),true);
 	//m_xz->initialize();
 	//m_3d->showSource(source->getOutputPort(0),true);
+	m_3d->showSource(m_planes[SLICE_PLANE_XY]->getOutput(),true);
 	m_3d->showSource(m_planes[SLICE_PLANE_YZ]->getOutput(),true);
+	m_3d->showSource(m_planes[SLICE_PLANE_XZ]->getOutput(),true);
 	//m_3d->showSource(myslice2->getOutputPort(0),true);
+	connect(m_planes[SLICE_PLANE_XY],SIGNAL(updated()),m_3d,SLOT(updateRepresentation()));
 	connect(m_planes[SLICE_PLANE_YZ],SIGNAL(updated()),m_3d,SLOT(updateRepresentation()));
+	connect(m_planes[SLICE_PLANE_XZ],SIGNAL(updated()),m_3d,SLOT(updateRepresentation()));
 }
 
 
