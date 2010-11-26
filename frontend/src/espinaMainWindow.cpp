@@ -87,6 +87,7 @@ EspinaMainWindow::EspinaMainWindow()
   this->Internals->setupUi(this);
 
   // Setup default GUI layout.
+  connect(this->Internals->toggleVisibility,SIGNAL(toggled(bool)),this,SLOT(toggleVisibility(bool)));
 
   // Set up the dock window corners to give the vertical docks more room.
   this->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
@@ -113,7 +114,6 @@ EspinaMainWindow::EspinaMainWindow()
   //  *this->Internals->pipelineBrowser);
 
   //pqParaViewMenuBuilders::buildToolbars(*this);
-  this->Internals->toolBar->addAction("Test");
 
   //// Setup the View menu. This must be setup after all toolbars and dockwidgets
   //// have been created.
@@ -185,24 +185,25 @@ void EspinaMainWindow::setWorkingStack(pqPipelineSource *source)
 	//Set new stack and display it
 	pqActiveObjects& activeObjects = pqActiveObjects::instance();
 	activeObjects.setActiveSource(source);
-	//pqDisplayPolicy *displayManager = pqApplicationCore::instance()->getDisplayPolicy();
-//	//m_xy->showSource(source->getOutputPort(0),true);
 	m_planes[SLICE_PLANE_XY]->addInput(source);
 	m_planes[SLICE_PLANE_YZ]->addInput(source);
 	m_planes[SLICE_PLANE_XZ]->addInput(source);
-	//m_xy->initialize();
-	//m_yz->showSource(source->getOutputPort(0),true);
-	//m_yz->initialize();
-	//m_xz->showSource(source->getOutputPort(0),true);
-	//m_xz->initialize();
-	//m_3d->showSource(source->getOutputPort(0),true);
+	m_3d->showSource(source->getOutputPort(0),true);
 	m_3d->showSource(m_planes[SLICE_PLANE_XY]->getOutput(),true);
 	m_3d->showSource(m_planes[SLICE_PLANE_YZ]->getOutput(),true);
 	m_3d->showSource(m_planes[SLICE_PLANE_XZ]->getOutput(),true);
-	//m_3d->showSource(myslice2->getOutputPort(0),true);
 	connect(m_planes[SLICE_PLANE_XY],SIGNAL(updated()),m_3d,SLOT(updateRepresentation()));
 	connect(m_planes[SLICE_PLANE_YZ],SIGNAL(updated()),m_3d,SLOT(updateRepresentation()));
 	connect(m_planes[SLICE_PLANE_XZ],SIGNAL(updated()),m_3d,SLOT(updateRepresentation()));
+}
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::toggleVisibility(bool visible)
+{
+	this->Internals->toggleVisibility->setIcon(
+			visible?QIcon(":/espina/ojo_abierto.svg"):QIcon(":/espina/ojo_cerrado.svg")
+			);
+	//TODO: Modificar blenders para redirigir la salida
 }
 
 

@@ -21,6 +21,7 @@ emSegmentation.h
 sliceWidget.h
 slicer.h
 volumeWidget.h
+iPixelSelector.h
 )
 
 QT4_WRAP_UI(UI_BUILT_SOURCES
@@ -40,6 +41,7 @@ SET(Espina_SOURCE_FILES
   sliceWidget.cpp
   slicer.cpp
   volumeWidget.cpp
+  iPixelSelector.cpp
   ${MOC_BUILT_SOURCES}
   ${UI_BUILT_SOURCES}
   ${RCC_BUILT_SOURCES}
@@ -62,7 +64,7 @@ build_paraview_client(espina
     APPLICATION_ICON  "${CMAKE_CURRENT_SOURCE_DIR}/WinIcon.ico"
 	GUI_CONFIGURATION_XMLS
 	#  ${CMAKE_CURRENT_SOURCE_DIR}/ParaViewSources.xml
-	  ${CMAKE_CURRENT_SOURCE_DIR}/EspinaFilters.xml
+	# ${CMAKE_CURRENT_SOURCE_DIR}/EspinaFilters.xml
 	  ${CMAKE_CURRENT_SOURCE_DIR}/EspinaReaders.xml
 	#  ${CMAKE_CURRENT_SOURCE_DIR}/ParaViewWriters.xml
 	#  ${PARAVIEW_EXTRA_GUI_RESOURCES} # Add any compiled in GUI configuration xmls

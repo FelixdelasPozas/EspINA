@@ -12,12 +12,22 @@
 #include "pqPipelineRepresentation.h"
 #include "vtkSMImageSliceRepresentationProxy.h"
 #include "vtkSMIntVectorProperty.h"
+#include "vtkSMViewProxy.h"
+#include "vtkSMRenderViewProxy.h"
+#include "vtkSMTwoDRenderViewProxy.h"
+#include "vtkPVGenericRenderWindowInteractor.h"
+#include "vtkRenderWindowInteractor.h"
+#include "vtkAbstractPicker.h"
+#include "vtkPropCollection.h"
+#include "vtkPVDataInformation.h"
+#include "pqOutputPort.h"
 
 //Qt includes
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QScrollBar>
 #include <QSpinBox>
+#include <QMouseEvent>
 
 #include <QDebug>
 
@@ -42,7 +52,8 @@ SliceWidget::SliceWidget(SliceBlender *input)
 	QObject::connect(m_spin,SIGNAL(valueChanged(int)),m_scroll,SLOT(setValue(int)));
 	QObject::connect(m_spin,SIGNAL(valueChanged(int)),m_input,SLOT(setSlice(int)));
 	QObject::connect(m_input,SIGNAL(updated()),this,SLOT(updateRepresentation()));
-	QObject::connect(m_input,SIGNAL(outputChanged(pqOutputPort *)),this,SLOT(setInput(pqOutputPort *)));
+	QObject::connect(m_input,SIGNAL(outputChanged(pqOutputPort *)),
+			this,SLOT(setInput(pqOutputPort *)));
 	m_controlLayout->addWidget(m_scroll);
 	m_controlLayout->addWidget(m_spin);
 
@@ -63,6 +74,41 @@ SliceWidget::~SliceWidget()
 }
 
 //-----------------------------------------------------------------------------
+void SliceWidget::vtkWidgetMouseEvent(QMouseEvent *event)
+{
+	if (event->type() == QMouseEvent::MouseButtonPress &&
+			event->buttons() == Qt::LeftButton)
+	{
+		//Use Render Window Interactor's Picker to find the world coordinates
+		//of the stack
+		vtkSMTwoDRenderViewProxy* view = vtkSMTwoDRenderViewProxy::SafeDownCast( 
+				m_view->getProxy());
+		vtkSMRenderViewProxy* renModule = view->GetRenderView();
+		vtkRenderWindowInteractor *rwi = vtkRenderWindowInteractor::SafeDownCast(
+				renModule->GetInteractor());
+		if (!rwi) 
+			return;
+		
+		int x_dis,y_dis, z_dis = 0.0; //Display coordinates
+		rwi->GetEventPosition(x_dis,y_dis);
+		vtkAbstractPicker *picker = rwi->GetPicker();
+		if (!picker) 
+			return;
+
+		//Change coordinates acording the plane
+		picker->Pick(x_dis,y_dis,z_dis,renModule->GetRenderer());
+		double pos[3];//World coordinates
+		picker->GetPickPosition(pos);
+		std::cout << pos[0] << " " << pos[1] << " " << m_spin->value() << "\n";
+		m_input->getOutput()->getDataInformation()->PrintSelf(std::cout,vtkIndent(0));
+		//Get Spacing
+		double sx, sy, sz;//Image Spacing
+
+		int i, j, k;//Image coordinates
+	}
+}
+
+//-----------------------------------------------------------------------------
 void SliceWidget::connectToServer()
 {
 	//qDebug() << "Creating View";
@@ -71,6 +117,8 @@ void SliceWidget::connectToServer()
 	m_view = qobject_cast<pqTwoDRenderView*>(builder->createView(
 			  pqTwoDRenderView::twoDRenderViewType(),server));
 	m_viewWidget = m_view->getWidget();
+	QObject::connect(m_viewWidget,SIGNAL(mouseEvent(QMouseEvent *)),
+			this,SLOT(vtkWidgetMouseEvent(QMouseEvent *)));
 	m_mainLayout->insertWidget(0,m_viewWidget);//To preserve view order
 }
 

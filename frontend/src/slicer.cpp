@@ -10,6 +10,10 @@
 #include "pqPipelineSource.h"
 #include "vtkSMIntVectorProperty.h"
 #include "vtkSMProxy.h"
+#include "vtkSMSourceProxy.h"
+#include "vtkSMOutputPort.h"
+#include "vtkSMDataSourceProxy.h"
+#include "vtkPVDataInformation.h"
 
 #include <QDebug>
 
@@ -32,6 +36,14 @@ void SliceBlender::addInput(pqPipelineSource *source)
 		vtkSMIntVectorProperty::SafeDownCast(slicer->getProxy()->GetProperty("SliceMode"));
 	sliceMode->SetElements1(5+m_plane);
 	m_slicers->push_back(slicer);
+
+	vtkSMSourceProxy * reader = vtkSMSourceProxy::SafeDownCast(source->getProxy());
+	//source->getOutputPort(0)->getDataInformation()->PrintSelf(std::cout,vtkIndent(0));
+	//vtkSMDataSourceProxy *data = vtkSMDataSourceProxy::SafeDownCast(source->getOutputPort(0)->getOutputPortProxy());
+	//if (data) qDebug() << "OK";
+	//double *spacing;
+	//reader->GetPixelSpacing();
+	//qDebug() << spacing[0] << spacing[1] << spacing[2];
 	
 	emit outputChanged(slicer->getOutputPort(0));
 }

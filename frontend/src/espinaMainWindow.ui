@@ -17,6 +17,9 @@
    <iconset resource="../rsc/espina.qrc">
     <normaloff>:/espina/editor.ico</normaloff>:/espina/editor.ico</iconset>
   </property>
+  <property name="unifiedTitleAndToolBarOnMac">
+   <bool>false</bool>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
     <property name="margin">
@@ -50,6 +53,8 @@
     <property name="title">
      <string>&amp;Edit</string>
     </property>
+    <addaction name="actionUndo"/>
+    <addaction name="actionRedo"/>
    </widget>
    <widget class="QMenu" name="menu_View">
     <property name="title">
@@ -127,16 +132,63 @@
    <property name="windowTitle">
     <string>toolBar</string>
    </property>
+   <property name="movable">
+    <bool>false</bool>
+   </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
    </attribute>
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="toggleVisibility"/>
   </widget>
-  <action name="openAction">
+  <action name="toggleVisibility">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../rsc/espina.qrc">
+     <normaloff>:/espina/ojo_abierto.svg</normaloff>:/espina/ojo_abierto.svg</iconset>
+   </property>
    <property name="text">
-    <string>Open,,,,</string>
+    <string>Visibility</string>
+   </property>
+   <property name="toolTip">
+    <string>Turn Visibility On/Off</string>
+   </property>
+  </action>
+  <action name="actionUndo">
+   <property name="icon">
+    <iconset resource="../rsc/espina.qrc">
+     <normaloff>:/espina/edit-undo.svg</normaloff>:/espina/edit-undo.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Undo</string>
+   </property>
+   <property name="toolTip">
+    <string>Undo last action</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
+   </property>
+  </action>
+  <action name="actionRedo">
+   <property name="icon">
+    <iconset resource="../rsc/espina.qrc">
+     <normaloff>:/espina/edit-redo.svg</normaloff>:/espina/edit-redo.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Redo</string>
+   </property>
+   <property name="toolTip">
+    <string>Re-do previously undo action</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Y</string>
    </property>
   </action>
  </widget>

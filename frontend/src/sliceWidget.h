@@ -7,7 +7,6 @@ class QScrollBar;
 class QSpinBox;
 class vtkSMImageSliceRepresentationProxy;
 class vtkSMIntVectorProperty;
-class QWidget;
 class QVBoxLayout;
 class QHBoxLayout;
 class pqOutputPort;
@@ -22,8 +21,11 @@ public:
 	~SliceWidget();
 
 	bool initialize();
-	pqTwoDRenderView *getView(){return m_view;}
-	void showSource(pqOutputPort *opPort, bool visible);
+		pqTwoDRenderView *getView(){return m_view;}
+		//void showSource(pqOutputPort *opPort, bool visible);
+
+protected slots:
+	void vtkWidgetMouseEvent(QMouseEvent *event);
 
 public slots:
 	void connectToServer();

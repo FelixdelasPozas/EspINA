@@ -32,7 +32,7 @@ VolumeWidget::VolumeWidget()
 	m_controlLayout->addWidget(m_slice);
 
 	m_mainLayout = new QVBoxLayout();
-	m_mainLayout->addLayout(m_controlLayout);
+	//m_mainLayout->addLayout(m_controlLayout);
 	setLayout(m_mainLayout);
 }
 

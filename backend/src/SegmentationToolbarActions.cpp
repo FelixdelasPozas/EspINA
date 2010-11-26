@@ -57,14 +57,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
 SegmentationToolbarActions::SegmentationToolbarActions(QObject* p) : QActionGroup(p)
 {
-  //Add synapse
-  QAction* add = new QAction(QIcon(":/puntero_mas.svg"), "Add synapse (Ctrl +)", this);
-  add->setData("AddSynapse");
-  this->addAction(add);
-  //Remove synapse
-  QAction *remove = new QAction(QIcon(":/puntero_menos.svg"), "Remove synapse (Ctrl -)", this);
-  remove->setData("RemoveSynapse");
-  this->addAction(remove);
   //Threshold
   QWidgetAction *threshold = new QWidgetAction(this);
   QWidget *thresholdFrame = new QWidget();
@@ -75,6 +67,14 @@ SegmentationToolbarActions::SegmentationToolbarActions(QObject* p) : QActionGrou
   thresholdLayout->addWidget(m_threshold);
   thresholdFrame->setLayout(thresholdLayout);
   threshold->setDefaultWidget(thresholdFrame);
+  //Add synapse
+  QAction* add = new QAction(QIcon(":/puntero_mas.svg"), tr("Add synapse (Ctrl +)"), this);
+  add->setData("AddSynapse");
+  this->addAction(add);
+  //Remove synapse
+  QAction *remove = new QAction(QIcon(":/puntero_menos.svg"), tr("Remove synapse (Ctrl -)"), this);
+  remove->setData("RemoveSynapse");
+  this->addAction(remove);
   //Action's Signal connection
   QObject::connect(this, SIGNAL(triggered(QAction*)), this, SLOT(onAction(QAction*)));
 }
