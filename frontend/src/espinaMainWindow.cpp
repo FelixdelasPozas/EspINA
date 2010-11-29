@@ -78,8 +78,7 @@ class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
 
 //-----------------------------------------------------------------------------
 EspinaMainWindow::EspinaMainWindow()
-	: m_stack(NULL)
-	, m_xy(NULL)
+	: m_xy(NULL)
 	, m_yz(NULL)
 	, m_xz(NULL)
 {
@@ -98,10 +97,6 @@ EspinaMainWindow::EspinaMainWindow()
   
   //// Populate application menus with actions.
   pqParaViewMenuBuilders::buildFileMenu(*this->Internals->menu_File);
-  //pqParaViewMenuBuilders::buildEditMenu(*this->Internals->menu_Edit);
-
-  //// Populate sources menu.
-  //pqParaViewMenuBuilders::buildSourcesMenu(*this->Internals->menuSources, this);
 
   //// Populate filters menu.
   pqParaViewMenuBuilders::buildFiltersMenu(*this->Internals->menuTools, this);
@@ -113,24 +108,22 @@ EspinaMainWindow::EspinaMainWindow()
   //pqParaViewMenuBuilders::buildPipelineBrowserContextMenu(
   //  *this->Internals->pipelineBrowser);
 
-  //pqParaViewMenuBuilders::buildToolbars(*this);
 
   //// Setup the View menu. This must be setup after all toolbars and dockwidgets
   //// have been created.
   pqParaViewMenuBuilders::buildViewMenu(*this->Internals->menu_View, *this);
 
-  //// Setup the menu to show macros.
-  //pqParaViewMenuBuilders::buildMacrosMenu(*this->Internals->menu_Macros);
-
   //// Setup the help menu.
   pqParaViewMenuBuilders::buildHelpMenu(*this->Internals->menu_Help);
 
+  // ParaView Server
   pqServerManagerObserver *server = pqApplicationCore::instance()->getServerManagerObserver();
 
   //Create ESPINA
   m_segmentation = new EMSegmentation();
-  for (int plane = SLICE_PLANE_XY; plane < SLICE_PLANES; plane++)
+  for (SlicePlane plane = SLICE_PLANE_FIRST; plane <= SLICE_PLANE_LAST; plane=SlicePlane(plane+1))
 	  m_planes[SlicePlane(plane)] = new SliceBlender(SlicePlane(plane));
+
   //Create ESPINA views
   m_xy = new SliceWidget(m_planes[SLICE_PLANE_XY]);
   this->setCentralWidget(m_xy);
@@ -171,30 +164,19 @@ void EspinaMainWindow::setWorkingStack(pqPipelineSource *source)
 {
 	//TODO: Deal with multiple representations inside the same view
 	//		At the moment, we only display the first one
-	//qDebug() << "Set Working Stack";
-	pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
-	//Clean previous stack
-	if (m_stack)
-		ob->destroy(m_stack);
+	m_segmentation->setStack(source);
 
-	m_stack = source;
-	m_blurred = source;
-
-	//pqPipelineSource *myslice = ob->createFilter("filters","ImageSlicer",source,0);
-
+	//pqActiveObjects& activeObjects = pqActiveObjects::instance();
+	//activeObjects.setActiveSource(source);
+	
 	//Set new stack and display it
-	pqActiveObjects& activeObjects = pqActiveObjects::instance();
-	activeObjects.setActiveSource(source);
-	m_planes[SLICE_PLANE_XY]->addInput(source);
-	m_planes[SLICE_PLANE_YZ]->addInput(source);
-	m_planes[SLICE_PLANE_XZ]->addInput(source);
-	m_3d->showSource(source->getOutputPort(0),true);
-	m_3d->showSource(m_planes[SLICE_PLANE_XY]->getOutput(),true);
-	m_3d->showSource(m_planes[SLICE_PLANE_YZ]->getOutput(),true);
-	m_3d->showSource(m_planes[SLICE_PLANE_XZ]->getOutput(),true);
-	connect(m_planes[SLICE_PLANE_XY],SIGNAL(updated()),m_3d,SLOT(updateRepresentation()));
-	connect(m_planes[SLICE_PLANE_YZ],SIGNAL(updated()),m_3d,SLOT(updateRepresentation()));
-	connect(m_planes[SLICE_PLANE_XZ],SIGNAL(updated()),m_3d,SLOT(updateRepresentation()));
+	m_3d->showSource(m_segmentation->visualizationStack()->getOutputPort(0),true);
+	for (SlicePlane plane = SLICE_PLANE_FIRST; plane <= SLICE_PLANE_LAST; plane=SlicePlane(plane+1))
+	{
+		m_planes[plane]->addInput(m_segmentation->visualizationStack());
+		m_3d->showSource(m_planes[plane]->getOutput(),true);
+		connect(m_planes[plane],SIGNAL(updated()),m_3d,SLOT(updateRepresentation()));
+	}
 }
 
 //-----------------------------------------------------------------------------

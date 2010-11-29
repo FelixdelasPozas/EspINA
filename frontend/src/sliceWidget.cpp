@@ -44,8 +44,10 @@ SliceWidget::SliceWidget(SliceBlender *input)
 {
 	m_controlLayout = new QHBoxLayout();
 	m_scroll = new QScrollBar(Qt::Horizontal);
+	m_scroll->setMaximum(0);
 	m_scroll->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
 	m_spin = new QSpinBox();
+	m_spin->setMaximum(0);
 	m_spin->setMinimumWidth(HINTWIDTH);
 	m_spin->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Preferred);
 	QObject::connect(m_scroll,SIGNAL(valueChanged(int)),m_spin,SLOT(setValue(int)));
@@ -100,7 +102,7 @@ void SliceWidget::vtkWidgetMouseEvent(QMouseEvent *event)
 		double pos[3];//World coordinates
 		picker->GetPickPosition(pos);
 		std::cout << pos[0] << " " << pos[1] << " " << m_spin->value() << "\n";
-		m_input->getOutput()->getDataInformation()->PrintSelf(std::cout,vtkIndent(0));
+		//m_input->getOutput()->getDataInformation()->PrintSelf(std::cout,vtkIndent(0));
 		//Get Spacing
 		double sx, sy, sz;//Image Spacing
 
@@ -177,4 +179,7 @@ void SliceWidget::setInput(pqOutputPort *opPort)
 {
 	pqDisplayPolicy *displayManager = pqApplicationCore::instance()->getDisplayPolicy();
 	displayManager->setRepresentationVisibility(opPort,m_view,true);
+
+	m_scroll->setMaximum(m_input->getNumSlices());
+	m_spin->setMaximum(m_input->getNumSlices());
 }

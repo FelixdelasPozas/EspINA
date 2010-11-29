@@ -1,3 +1,6 @@
+#ifndef _SLICE_WIDGET_H
+#define _SLICE_WIDGET_H
+
 #include <QWidget>
 
 //Forward declaration
@@ -16,11 +19,14 @@ class pqOutputPort;
 class SliceWidget : public QWidget
 {
 	Q_OBJECT
+
 public:
 	SliceWidget(SliceBlender *input);
 	~SliceWidget();
 
-	bool initialize();
+
+public:
+		bool initialize();
 		pqTwoDRenderView *getView(){return m_view;}
 		//void showSource(pqOutputPort *opPort, bool visible);
 
@@ -44,12 +50,12 @@ private:
 	bool m_init;
 	int m_plane;
 
-protected:
-		Q_DISABLE_COPY(SliceWidget)
-
 protected slots:
 	void updateRepresentation();
 	void setInput(pqOutputPort *opPort);
+
+protected:
+		Q_DISABLE_COPY(SliceWidget)
 };
 
-
+#endif// _SLICE_WIDGET_H
