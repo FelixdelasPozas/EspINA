@@ -12,14 +12,16 @@ enum SlicePlane
 	, SLICE_PLANE_LAST = 2
 };
 
-//enum SliceAxis 
-//{
-//	SLICE_AXIS_FIRST = 0
-//	, SLICE_AXIS_X = 0
-//	, SLICE_AXIS_Y = 1
-//	, SLICE_AXIS_Z = 2
-//	, SLICE_AXIS_LAST = 2
-//};
+enum SliceAxis 
+{
+	SLICE_AXIS_FIRST = 0
+	, SLICE_AXIS_X = 0
+	, SLICE_AXIS_Y = 1
+	, SLICE_AXIS_Z = 2
+	, SLICE_AXIS_LAST = 2
+};
+
+
 //class Slicer
 //{
 //public:
@@ -81,8 +83,8 @@ signals:
 	/// Note that this doesn't require to update the pipeline
 	void outputChanged(pqOutputPort *);
 
-//private:
-//	void updateAxis();
+private:
+	void updateAxis();
 
 private:
 	QList<pqPipelineSource *> *m_inputs;

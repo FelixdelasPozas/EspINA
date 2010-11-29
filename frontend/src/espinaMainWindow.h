@@ -67,7 +67,7 @@ private:
   class pqInternals;
   pqInternals* Internals;
   EMSegmentation *m_segmentation;
-  SliceBlender *m_planes[SLICE_PLANE_LAST];
+  SliceBlender *m_planes[SLICE_PLANE_LAST+1];
   //pqPipelineSource *m_stack, *m_blurred; //Deprecated
   SliceWidget *m_xy, *m_yz, *m_xz;
   VolumeWidget *m_3d;
