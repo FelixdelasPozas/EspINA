@@ -91,14 +91,21 @@ void SliceWidget::vtkWidgetMouseEvent(QMouseEvent *event)
 		if (!rwi) 
 			return;
 		
-		int x_dis,y_dis, z_dis = 0.0; //Display coordinates
-		rwi->GetEventPosition(x_dis,y_dis);
+		// Because we display all slice planes in the same display coordinates
+		// it is necesary to translate the axis correspondence between the
+		// display coordinates and the plane coordinates
+		int selection[3] = {0.0, 0.0, 0.0}; //Selection in plane coordinates
+		rwi->GetEventPosition(selection[0],selection[1]);
+		//rwi->GetEventPosition(selection[m_input->getAxisX()],selection[m_input->getAxisY()]);
+		//selection[m_input->getAxisZ()] = m_scroll->value();
 		vtkAbstractPicker *picker = rwi->GetPicker();
 		if (!picker) 
 			return;
 
 		//Change coordinates acording the plane
-		picker->Pick(x_dis,y_dis,z_dis,renModule->GetRenderer());
+		picker->Pick(selection[0],selection[1],selection[2],renModule->GetRenderer());
+		qDebug() << selection[0] << " "<< selection[1] << " "<< selection[2];
+		picker->PrintSelf(std::cout,vtkIndent(0));
 		double pos[3];//World coordinates
 		picker->GetPickPosition(pos);
 		std::cout << pos[0] << " " << pos[1] << " " << m_spin->value() << "\n";

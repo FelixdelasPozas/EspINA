@@ -62,15 +62,19 @@ public:
 	/// Return the number of slices this filter handles
 	int getNumSlices();
 
+	int getAxisX() {return m_xAxis;}
+	int getAxisY() {return m_yAxis;}
+	int getAxisZ() {return m_zAxis;}
+
 	double getBound(int index){return m_bounds[index];}
 	int getExtent(int index){return m_extent[index];}
 
 public slots:
-	void setPlane(SlicePlane plane){}
-	//{
-	//	//TODO: Update all slice modes for all inputs
-	//	m_plane = plane;
-	//}
+	void setPlane(SlicePlane plane)
+	{
+		//TODO: Update all slice modes for all inputs
+		m_plane = plane;
+	}
 	void setSlice(int slice);
 	void setBlending(Blender value){m_blending = value;}
 
