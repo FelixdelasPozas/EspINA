@@ -1,27 +1,42 @@
 #include "sliceWidget.h"
 
+//Espina includes
+#include "slicer.h"
+
 //ParaQ includes
 #include "pqTwoDRenderView.h"
 #include "pqApplicationCore.h"
 #include "pqActiveObjects.h"
+#include "pqDisplayPolicy.h"
 #include "pqObjectBuilder.h"
 #include "pqPipelineRepresentation.h"
 #include "vtkSMImageSliceRepresentationProxy.h"
 #include "vtkSMIntVectorProperty.h"
+#include "vtkSMViewProxy.h"
+#include "vtkSMRenderViewProxy.h"
+#include "vtkSMTwoDRenderViewProxy.h"
+#include "vtkPVGenericRenderWindowInteractor.h"
+#include "vtkRenderWindowInteractor.h"
+#include "vtkAbstractPicker.h"
+#include "vtkPropCollection.h"
+#include "vtkPVDataInformation.h"
+#include "pqOutputPort.h"
 
 //Qt includes
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QScrollBar>
 #include <QSpinBox>
+#include <QMouseEvent>
 
 #include <QDebug>
 
 #define HINTWIDTH 40
 
 //-----------------------------------------------------------------------------
-SliceWidget::SliceWidget()
-	: m_view(NULL)
+SliceWidget::SliceWidget(SliceBlender *input)
+	: m_input(input)
+	, m_view(NULL)
 	, m_viewWidget(NULL)
 	, m_rep(NULL)
 	, m_slice(NULL)
@@ -29,13 +44,18 @@ SliceWidget::SliceWidget()
 {
 	m_controlLayout = new QHBoxLayout();
 	m_scroll = new QScrollBar(Qt::Horizontal);
+	m_scroll->setMaximum(0);
 	m_scroll->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
 	m_spin = new QSpinBox();
+	m_spin->setMaximum(0);
 	m_spin->setMinimumWidth(HINTWIDTH);
 	m_spin->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Preferred);
 	QObject::connect(m_scroll,SIGNAL(valueChanged(int)),m_spin,SLOT(setValue(int)));
 	QObject::connect(m_spin,SIGNAL(valueChanged(int)),m_scroll,SLOT(setValue(int)));
-	QObject::connect(m_spin,SIGNAL(valueChanged(int)),this,SLOT(setSlice(int)));
+	QObject::connect(m_spin,SIGNAL(valueChanged(int)),m_input,SLOT(setSlice(int)));
+	QObject::connect(m_input,SIGNAL(updated()),this,SLOT(updateRepresentation()));
+	QObject::connect(m_input,SIGNAL(outputChanged(pqOutputPort *)),
+			this,SLOT(setInput(pqOutputPort *)));
 	m_controlLayout->addWidget(m_scroll);
 	m_controlLayout->addWidget(m_spin);
 
@@ -56,30 +76,59 @@ SliceWidget::~SliceWidget()
 }
 
 //-----------------------------------------------------------------------------
-//TODO: Plane conventions differ from ESPINA
-void SliceWidget::setPlane(int plane)
+void SliceWidget::vtkWidgetMouseEvent(QMouseEvent *event)
 {
-	m_plane = plane;
-
-	if (m_init)
+	if (event->type() == QMouseEvent::MouseButtonPress &&
+			event->buttons() == Qt::LeftButton)
 	{
-		vtkSMIntVectorProperty *sliceMode = 
-			vtkSMIntVectorProperty::SafeDownCast(m_rep->GetProperty("SliceMode"));
-		sliceMode->SetElements1(plane);
-		m_rep->UpdateVTKObjects();
+		//Use Render Window Interactor's Picker to find the world coordinates
+		//of the stack
+		vtkSMTwoDRenderViewProxy* view = vtkSMTwoDRenderViewProxy::SafeDownCast( 
+				m_view->getProxy());
+		vtkSMRenderViewProxy* renModule = view->GetRenderView();
+		vtkRenderWindowInteractor *rwi = vtkRenderWindowInteractor::SafeDownCast(
+				renModule->GetInteractor());
+		if (!rwi) 
+			return;
+		
+		// Because we display all slice planes in the same display coordinates
+		// it is necesary to translate the axis correspondence between the
+		// display coordinates and the plane coordinates
+		int selection[3] = {0.0, 0.0, 0.0}; //Selection in plane coordinates
+		rwi->GetEventPosition(selection[0],selection[1]);
+		//rwi->GetEventPosition(selection[m_input->getAxisX()],selection[m_input->getAxisY()]);
+		//selection[m_input->getAxisZ()] = m_scroll->value();
+		vtkAbstractPicker *picker = rwi->GetPicker();
+		if (!picker) 
+			return;
+
+		//Change coordinates acording the plane
+		picker->Pick(selection[0],selection[1],selection[2],renModule->GetRenderer());
+		qDebug() << selection[0] << " "<< selection[1] << " "<< selection[2];
+		picker->PrintSelf(std::cout,vtkIndent(0));
+		double pos[3];//World coordinates
+		picker->GetPickPosition(pos);
+		std::cout << pos[0] << " " << pos[1] << " " << m_spin->value() << "\n";
+		//m_input->getOutput()->getDataInformation()->PrintSelf(std::cout,vtkIndent(0));
+		//Get Spacing
+		double sx, sy, sz;//Image Spacing
+
+		int i, j, k;//Image coordinates
 	}
 }
 
 //-----------------------------------------------------------------------------
 void SliceWidget::connectToServer()
 {
-	qDebug() << "Creating View";
+	//qDebug() << "Creating View";
 	pqObjectBuilder *builder = pqApplicationCore::instance()->getObjectBuilder();
 	pqServer * server= pqActiveObjects::instance().activeServer();
 	m_view = qobject_cast<pqTwoDRenderView*>(builder->createView(
 			  pqTwoDRenderView::twoDRenderViewType(),server));
 	m_viewWidget = m_view->getWidget();
-	m_mainLayout->insertWidget(0,m_viewWidget);//To preserver view order
+	QObject::connect(m_viewWidget,SIGNAL(mouseEvent(QMouseEvent *)),
+			this,SLOT(vtkWidgetMouseEvent(QMouseEvent *)));
+	m_mainLayout->insertWidget(0,m_viewWidget);//To preserve view order
 }
 
 //-----------------------------------------------------------------------------
@@ -96,12 +145,8 @@ void SliceWidget::disconnectFromServer()
 }
 
 //-----------------------------------------------------------------------------
-void SliceWidget::setSlice(int slice)
+void SliceWidget::updateRepresentation()
 {
-	if (!m_init)
-		return;
-	m_slice->SetElements1(slice);
-	m_rep->UpdateVTKObjects();
 	m_view->render();
 }
 
@@ -120,6 +165,7 @@ bool SliceWidget::initialize()
 	m_rep = vtkSMImageSliceRepresentationProxy::SafeDownCast(pipelineRep->getRepresentationProxy());
 	if (!m_rep)
 		return m_init;
+	//m_rep->PrintSelf(std::cout,vtkIndent(0));
 
 	vtkSMIntVectorProperty *sliceMode = vtkSMIntVectorProperty::SafeDownCast(m_rep->GetProperty("SliceMode"));
 	if (!sliceMode)
@@ -134,4 +180,13 @@ bool SliceWidget::initialize()
 
 	m_rep->UpdateVTKObjects();
 	return m_init;
+}
+
+void SliceWidget::setInput(pqOutputPort *opPort)
+{
+	pqDisplayPolicy *displayManager = pqApplicationCore::instance()->getDisplayPolicy();
+	displayManager->setRepresentationVisibility(opPort,m_view,true);
+
+	m_scroll->setMaximum(m_input->getNumSlices());
+	m_spin->setMaximum(m_input->getNumSlices());
 }

@@ -34,6 +34,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <QActionGroup>
 
+//Forward declarations
+class QSpinBox;
+
 /// This plugin adds the Segmentation toolbar to ESPINA
 
 class SegmentationToolbarActions : public QActionGroup
@@ -45,6 +48,9 @@ public:
 public slots:
   /// Callback for each action triggerred.
   void onAction(QAction* a);
+
+private:
+  QSpinBox *m_threshold;
 };
 
 #endif// SEGMENTATION_TOOLBAR_ACTIONS_H

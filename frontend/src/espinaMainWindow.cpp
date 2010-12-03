@@ -32,7 +32,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // ESPINA includes
 #include "espinaMainWindow.h"
 #include "ui_espinaMainWindow.h"
+#include "emSegmentation.h"
 #include "sliceWidget.h"
+#include "slicer.h"
 #include "volumeWidget.h"
 
 //ParaQ includes
@@ -61,6 +63,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkStructuredData.h" 
 #include "vtkImageData.h" 
 
+//New
+#include "vtkPVImageSlicer.h"
+#include "vtkSMIntVectorProperty.h"
+
 //Debug includes
 #include <QDebug>
 #include <iostream>
@@ -72,8 +78,7 @@ class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
 
 //-----------------------------------------------------------------------------
 EspinaMainWindow::EspinaMainWindow()
-	: m_stack(NULL)
-	, m_xy(NULL)
+	: m_xy(NULL)
 	, m_yz(NULL)
 	, m_xz(NULL)
 {
@@ -81,6 +86,7 @@ EspinaMainWindow::EspinaMainWindow()
   this->Internals->setupUi(this);
 
   // Setup default GUI layout.
+  connect(this->Internals->toggleVisibility,SIGNAL(toggled(bool)),this,SLOT(toggleVisibility(bool)));
 
   // Set up the dock window corners to give the vertical docks more room.
   this->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
@@ -91,48 +97,43 @@ EspinaMainWindow::EspinaMainWindow()
   
   //// Populate application menus with actions.
   pqParaViewMenuBuilders::buildFileMenu(*this->Internals->menu_File);
-  //pqParaViewMenuBuilders::buildEditMenu(*this->Internals->menu_Edit);
-
-  //// Populate sources menu.
-  //pqParaViewMenuBuilders::buildSourcesMenu(*this->Internals->menuSources, this);
 
   //// Populate filters menu.
-  //pqParaViewMenuBuilders::buildFiltersMenu(*this->Internals->menuFilters, this);
+  pqParaViewMenuBuilders::buildFiltersMenu(*this->Internals->menuTools, this);
 
   //// Populate Tools menu.
-  //pqParaViewMenuBuilders::buildToolsMenu(*this->Internals->menuTools);
+  pqParaViewMenuBuilders::buildToolsMenu(*this->Internals->menuTools);
 
   //// setup the context menu for the pipeline browser.
   //pqParaViewMenuBuilders::buildPipelineBrowserContextMenu(
   //  *this->Internals->pipelineBrowser);
 
-  //pqParaViewMenuBuilders::buildToolbars(*this);
 
   //// Setup the View menu. This must be setup after all toolbars and dockwidgets
   //// have been created.
   pqParaViewMenuBuilders::buildViewMenu(*this->Internals->menu_View, *this);
 
-  //// Setup the menu to show macros.
-  //pqParaViewMenuBuilders::buildMacrosMenu(*this->Internals->menu_Macros);
-
   //// Setup the help menu.
   pqParaViewMenuBuilders::buildHelpMenu(*this->Internals->menu_Help);
 
+  // ParaView Server
   pqServerManagerObserver *server = pqApplicationCore::instance()->getServerManagerObserver();
 
+  //Create ESPINA
+  m_segmentation = new EMSegmentation();
+  for (SlicePlane plane = SLICE_PLANE_FIRST; plane <= SLICE_PLANE_LAST; plane=SlicePlane(plane+1))
+	  m_planes[SlicePlane(plane)] = new SliceBlender(SlicePlane(plane));
+
   //Create ESPINA views
-  m_xy = new SliceWidget();
-  m_xy->setPlane(VTK_XY_PLANE);
+  m_xy = new SliceWidget(m_planes[SLICE_PLANE_XY]);
   this->setCentralWidget(m_xy);
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_xy,SLOT(connectToServer()));
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_xy,SLOT(disconnectFromServer()));
-  m_yz = new SliceWidget();
-  m_yz->setPlane(VTK_YZ_PLANE);
+  m_yz = new SliceWidget(m_planes[SLICE_PLANE_YZ]);
   this->Internals->yzSliceDock->setWidget(m_yz);
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_yz,SLOT(connectToServer()));
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_yz,SLOT(disconnectFromServer()));
-  m_xz = new SliceWidget();
-  m_xz->setPlane(VTK_XZ_PLANE);
+  m_xz = new SliceWidget(m_planes[SLICE_PLANE_XZ]);
   this->Internals->xzSliceDock->setWidget(m_xz);
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_xz,SLOT(connectToServer()));
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_xz,SLOT(disconnectFromServer()));
@@ -144,6 +145,7 @@ EspinaMainWindow::EspinaMainWindow()
   // Final step, define application behaviors. Since we want all ParaView
   // behaviors, we use this convenience method.
   new pqParaViewBehaviors(this, this);
+
 }
 
 //-----------------------------------------------------------------------------
@@ -160,24 +162,30 @@ EspinaMainWindow::~EspinaMainWindow()
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::setWorkingStack(pqPipelineSource *source)
 {
-	qDebug() << "Set Working Stack";
-	//Clean previous stack
-	if (m_stack)
-		pqApplicationCore::instance()->getObjectBuilder()->destroy(m_stack);
+	//TODO: Deal with multiple representations inside the same view
+	//		At the moment, we only display the first one
+	m_segmentation->setStack(source);
 
-	m_stack = source;
-
+	//pqActiveObjects& activeObjects = pqActiveObjects::instance();
+	//activeObjects.setActiveSource(source);
+	
 	//Set new stack and display it
-	pqActiveObjects& activeObjects = pqActiveObjects::instance();
-	activeObjects.setActiveSource(source);
-	pqDisplayPolicy *displayManager = pqApplicationCore::instance()->getDisplayPolicy();
-	displayManager->setRepresentationVisibility(source->getOutputPort(0),m_xy->getView(),true);
-	m_xy->initialize();
-	displayManager->setRepresentationVisibility(source->getOutputPort(0),m_yz->getView(),true);
-	m_yz->initialize();
-	displayManager->setRepresentationVisibility(source->getOutputPort(0),m_xz->getView(),true);
-	m_xz->initialize();
-	displayManager->setRepresentationVisibility(source->getOutputPort(0),m_3d->getView(),true);
+	m_3d->showSource(m_segmentation->visualizationStack()->getOutputPort(0),true);
+	for (SlicePlane plane = SLICE_PLANE_FIRST; plane <= SLICE_PLANE_LAST; plane=SlicePlane(plane+1))
+	{
+		m_planes[plane]->addInput(m_segmentation->visualizationStack());
+		m_3d->showSource(m_planes[plane]->getOutput(),true);
+		connect(m_planes[plane],SIGNAL(updated()),m_3d,SLOT(updateRepresentation()));
+	}
+}
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::toggleVisibility(bool visible)
+{
+	this->Internals->toggleVisibility->setIcon(
+			visible?QIcon(":/espina/ojo_abierto.svg"):QIcon(":/espina/ojo_cerrado.svg")
+			);
+	//TODO: Modificar blenders para redirigir la salida
 }
 
 

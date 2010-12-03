@@ -33,24 +33,49 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <QApplication>
 #include <QStyle>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QSpinBox>
+#include <QWidgetAction>
 
 #include "pqApplicationCore.h"
 #include "pqObjectBuilder.h"
+#include "pqActiveObjects.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
 #include "pqUndoStack.h"
+#include "pqPipelineFilter.h"
+#include "vtkSMProxy.h"
+#include "vtkSMInputProperty.h"
+
+#include <QDebug>
+
+//#include "../../frontend/src/sliceWidget.h"
+
+//extern SliceWidget *vista;
 
 //-----------------------------------------------------------------------------
 SegmentationToolbarActions::SegmentationToolbarActions(QObject* p) : QActionGroup(p)
 {
-  // let's use a Qt icon (we could make our own)
-  //QIcon icon = qApp->style()->standardIcon(QStyle::SP_MessageBoxCritical);
-  QAction* a = new QAction(QIcon(":/puntero_mas.svg"), "Add synapse", this);
-  a->setData("SphereSource");
-  this->addAction(a);
-  a = new QAction(QIcon(":/puntero_menos.svg"), "Remove synapse", this);
-  a->setData("CylinderSource");
-  this->addAction(a);
+  //Threshold
+  QWidgetAction *threshold = new QWidgetAction(this);
+  QWidget *thresholdFrame = new QWidget();
+  QHBoxLayout *thresholdLayout = new QHBoxLayout();
+  QLabel *thresholdLabel = new QLabel(tr("Threshold"));
+  m_threshold = new QSpinBox();
+  thresholdLayout->addWidget(thresholdLabel);
+  thresholdLayout->addWidget(m_threshold);
+  thresholdFrame->setLayout(thresholdLayout);
+  threshold->setDefaultWidget(thresholdFrame);
+  //Add synapse
+  QAction* add = new QAction(QIcon(":/puntero_mas.svg"), tr("Add synapse (Ctrl +)"), this);
+  add->setData("AddSynapse");
+  this->addAction(add);
+  //Remove synapse
+  QAction *remove = new QAction(QIcon(":/puntero_menos.svg"), tr("Remove synapse (Ctrl -)"), this);
+  remove->setData("RemoveSynapse");
+  this->addAction(remove);
+  //Action's Signal connection
   QObject::connect(this, SIGNAL(triggered(QAction*)), this, SLOT(onAction(QAction*)));
 }
 
@@ -59,6 +84,7 @@ void SegmentationToolbarActions::onAction(QAction* a)
 {
   pqApplicationCore* core = pqApplicationCore::instance();
   pqObjectBuilder* builder = core->getObjectBuilder();
+  pqActiveObjects& activeObjects = pqActiveObjects::instance();
   pqServerManagerModel* sm = core->getServerManagerModel();
   pqUndoStack* stack = core->getUndoStack();
 
@@ -69,12 +95,19 @@ void SegmentationToolbarActions::onAction(QAction* a)
     pqServer* s = sm->getItemAtIndex<pqServer*>(0);
     QString source_type = a->data().toString();
     // make this operation undo-able if undo is enabled
-    if(stack)
+    if (stack)
       {
       stack->beginUndoSet(QString("Create %1").arg(source_type));
       }
-    builder->createSource("sources", source_type.toAscii().data(), s);
-    if(stack)
+	if (source_type == tr("AddSynapse"))
+	{
+		pqPipelineSource *currentStack = activeObjects.activeSource();
+		qDebug() << "Threshold: " << m_threshold->value();
+		pqPipelineSource *filter = builder->createFilter("filters", "SegmentationFilter", currentStack,0);
+		filter->rename("Asymmetric Synapse");
+	}
+	//vista->showSource(filter->getOutputPort(0),true);
+    if (stack)
       {
       stack->endUndoSet();
       }

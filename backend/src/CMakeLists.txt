@@ -14,9 +14,16 @@ ADD_PARAVIEW_ACTION_GROUP(IFACES IFACE_SRCS
 # Now crete a plugin for the toolbar. Here we pass IFACES and IFACE_SRCS
 # which are filled up by the above macro with relevant entries
 ADD_PARAVIEW_PLUGIN(
-	SegmentationToolBar
+	Segmentation
 	"0.1" 
-	GUI_INTERFACES ${IFACES} 
+	SERVER_MANAGER_XML SegmentationFilter.xml
+	SERVER_MANAGER_SOURCES vtkSegmentationFilter.cpp
+	#According to: http://markmail.org/message/wj27wmlj6rjd7vg5
+	# - See the macro documentation in ParaView/CMake/ParaViewPlugins.cmake:~835
+	# - the parser doesn't work because it seems there is no vtkClass inside
+	#   thus we have to use a vtkXXXX class name for our filter, other wise,
+	#   we need to use SERVER_SOURCES instead of SERVER_MANAGER_SOURCES
+	#   SERVER_SOURCES SegmentationFilter.cpp 
 	SOURCES ${MOC_SRCS} ${IFACE_SRCS} ${RCC_BUILT_SOURCES} SegmentationToolbarActions.cpp
+	GUI_INTERFACES ${IFACES} 
 	)
-

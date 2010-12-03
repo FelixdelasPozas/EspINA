@@ -3,7 +3,10 @@
 #include "pqRenderView.h"
 #include "pqApplicationCore.h"
 #include "pqActiveObjects.h"
+#include "pqDisplayPolicy.h"
 #include "pqObjectBuilder.h"
+#include "pqPipelineRepresentation.h"
+#include "vtkSMUniformGridVolumeRepresentationProxy.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QScrollBar>
@@ -29,7 +32,7 @@ VolumeWidget::VolumeWidget()
 	m_controlLayout->addWidget(m_slice);
 
 	m_mainLayout = new QVBoxLayout();
-	m_mainLayout->addLayout(m_controlLayout);
+	//m_mainLayout->addLayout(m_controlLayout);
 	setLayout(m_mainLayout);
 }
 
@@ -42,9 +45,30 @@ VolumeWidget::~VolumeWidget()
 }
 
 //-----------------------------------------------------------------------------
+void VolumeWidget::showSource(pqOutputPort *opPort, bool visible)
+{
+	pqDisplayPolicy *displayManager = pqApplicationCore::instance()->getDisplayPolicy();
+	displayManager->setRepresentationVisibility(opPort,m_view,visible);
+
+	/*
+	if (m_view->getRepresentations().size() < 2)
+		return;
+	pqPipelineRepresentation* pipelineRep = qobject_cast<pqPipelineRepresentation*>(m_view->getRepresentations()[1]);
+	if (!pipelineRep) 
+		return;
+	qDebug() << "La segunda ";
+	pipelineRep->getProxy()->PrintSelf(std::cout,vtkIndent(0));
+
+	vtkSMUniformGridVolumeRepresentationProxy *m_rep = vtkSMUniformGridVolumeRepresentationProxy::SafeDownCast(pipelineRep->getRepresentationProxy());
+	if (!m_rep)
+		return;
+	qDebug() << "NO ES NULL";
+	*/
+}
+//-----------------------------------------------------------------------------
 void VolumeWidget::connectToServer()
 {
-	qDebug() << "Creating View";
+	//qDebug() << "Creating View";
 	pqObjectBuilder *builder = pqApplicationCore::instance()->getObjectBuilder();
 	pqServer * server= pqActiveObjects::instance().activeServer();
 	m_view = qobject_cast<pqRenderView*>(builder->createView(
@@ -64,6 +88,11 @@ void VolumeWidget::disconnectFromServer()
 		//TODO: BugFix -> destroy previous instance of m_view
 		//pqApplicationCore::instance()->getObjectBuilder()->destroy(m_view);
 	}
+}
+
+void VolumeWidget::updateRepresentation()
+{
+	m_view->render();
 }
 
 

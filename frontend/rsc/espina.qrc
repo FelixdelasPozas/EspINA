@@ -1,5 +1,11 @@
 <RCC>
   <qresource prefix="espina">
+    <file>puntero_mas.svg</file>
+    <file>puntero_menos.svg</file>
+    <file>edit-redo.svg</file>
+    <file>edit-undo.svg</file>
     <file>editor.ico</file>
+    <file>ojo_abierto.svg</file>
+    <file>ojo_cerrado.svg</file>
   </qresource>
 </RCC>

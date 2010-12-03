@@ -1,11 +1,11 @@
 FIND_PACKAGE(ParaView REQUIRED)
 INCLUDE(${PARAVIEW_USE_FILE})
 
-FIND_PACKAGE(Cajal)
+#FIND_PACKAGE(Cajal)
 
 INCLUDE_DIRECTORIES(.)
 INCLUDE_DIRECTORIES(
-	${Cajal_INCLUDE_DIR}
+	#${Cajal_INCLUDE_DIR}
 	${CMAKE_CURRENT_BINARY_DIR}
 	${CMAKE_CURRENT_BINARY_DIR}
   )
@@ -17,8 +17,11 @@ QT4_ADD_RESOURCES(RCC_BUILT_SOURCES
 # Add extra library containing custom code for the client.
 QT4_WRAP_CPP(MOC_BUILT_SOURCES
 espinaMainWindow.h
+emSegmentation.h
 sliceWidget.h
+slicer.h
 volumeWidget.h
+iPixelSelector.h
 )
 
 QT4_WRAP_UI(UI_BUILT_SOURCES
@@ -34,8 +37,11 @@ SOURCE_GROUP("Generated" FILES
 
 SET(Espina_SOURCE_FILES
   espinaMainWindow.cpp
+  emSegmentation.cpp
   sliceWidget.cpp
+  slicer.cpp
   volumeWidget.cpp
+  iPixelSelector.cpp
   ${MOC_BUILT_SOURCES}
   ${UI_BUILT_SOURCES}
   ${RCC_BUILT_SOURCES}
@@ -58,7 +64,7 @@ build_paraview_client(espina
     APPLICATION_ICON  "${CMAKE_CURRENT_SOURCE_DIR}/WinIcon.ico"
 	GUI_CONFIGURATION_XMLS
 	#  ${CMAKE_CURRENT_SOURCE_DIR}/ParaViewSources.xml
-	#  ${CMAKE_CURRENT_SOURCE_DIR}/ParaViewFilters.xml
+	# ${CMAKE_CURRENT_SOURCE_DIR}/EspinaFilters.xml
 	  ${CMAKE_CURRENT_SOURCE_DIR}/EspinaReaders.xml
 	#  ${CMAKE_CURRENT_SOURCE_DIR}/ParaViewWriters.xml
 	#  ${PARAVIEW_EXTRA_GUI_RESOURCES} # Add any compiled in GUI configuration xmls
@@ -68,4 +74,4 @@ build_paraview_client(espina
 	#INSTALL_LIB_DIR "${PV_INSTALL_LIB_DIR}"
 )
 
-target_link_libraries (espina ${Cajal_LIBRARIES})
+#target_link_libraries (espina ${Cajal_LIBRARIES})
