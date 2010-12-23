@@ -5,14 +5,25 @@
 #include "pqActiveObjects.h"
 #include "pqDisplayPolicy.h"
 #include "pqObjectBuilder.h"
+#include "pqOutputPort.h"
 #include "pqPipelineRepresentation.h"
 #include "vtkSMUniformGridVolumeRepresentationProxy.h"
+#include "vtkSMPVRepresentationProxy.h"
+#include "vtkSMIntVectorProperty.h"
+#include "vtkSMProxyProperty.h"
+#include "vtkSMDoubleVectorProperty.h"
+#include "vtkSMStringVectorProperty.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QScrollBar>
 #include <QSpinBox>
 
+// LUT
+#include "vtkSmartPointer.h"
+#include "vtkLookupTable.h"
+
 #include <QDebug>
+#include <assert.h>
 
 #define HINTWIDTH 40
 
@@ -45,26 +56,70 @@ VolumeWidget::~VolumeWidget()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeWidget::showSource(pqOutputPort *opPort, bool visible)
+void VolumeWidget::showSource(pqOutputPort *opPort, Rep3D rep)
 {
 	pqDisplayPolicy *displayManager = pqApplicationCore::instance()->getDisplayPolicy();
+	// Creates the representation if it doesn't exit
+	bool visible = rep != HIDEN;
 	displayManager->setRepresentationVisibility(opPort,m_view,visible);
 
-	/*
-	if (m_view->getRepresentations().size() < 2)
-		return;
-	pqPipelineRepresentation* pipelineRep = qobject_cast<pqPipelineRepresentation*>(m_view->getRepresentations()[1]);
-	if (!pipelineRep) 
-		return;
-	qDebug() << "La segunda ";
-	pipelineRep->getProxy()->PrintSelf(std::cout,vtkIndent(0));
+	// Configures the specified representation
+	pqPipelineRepresentation* pipelineRep = 
+		qobject_cast<pqPipelineRepresentation*>(opPort->getRepresentation(m_view));
+	assert(!visible ||  pipelineRep);
 
-	vtkSMUniformGridVolumeRepresentationProxy *m_rep = vtkSMUniformGridVolumeRepresentationProxy::SafeDownCast(pipelineRep->getRepresentationProxy());
-	if (!m_rep)
-		return;
-	qDebug() << "NO ES NULL";
-	*/
+	//TODO: Representation specific code must be addded
+	switch (rep)
+	{
+		case POINTS:
+		case OUTLINE:
+		case SURFACE:
+		case VOLUME:
+			pipelineRep->setRepresentation(rep);
+			break;
+		case SLICE:
+			break;
+		case HIDEN:
+			break;
+		default:
+			assert(false);
+	}
+
+	//vtkSMIntVectorProperty *rt = 
+	//	vtkSMIntVectorProperty::SafeDownCast(orepproxy->GetProperty("Representation"));
+	//if (rt)
+	//{
+	//	std::cout << "Representation\n";
+	//	rt->PrintSelf(std::cout,vtkIndent(2));
+	//	rt->SetElements1(2);
+	//	rep->UpdateVTKObjects();
+	//}
+
+	//// Create LUT
+	//vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
+	//lut->SetRange(0, 256); // image intensity range
+	//lut->SetValueRange(0.0, 1.0); // from black to white
+	//lut->SetSaturationRange(0.0, 0.0); // no color saturation
+	//lut->SetRampToLinear();
+
+	// Create Server LUT
+	//pqObjectBuilder *builder = pqApplicationCore::instance()->getObjectBuilder();
+	//pqServer * server= pqActiveObjects::instance().activeServer();
+	//vtkSMProxy *pLUT = builder->createSource("sources","vtkLookupTable",server);
+	
+	
+	//vtkSMProxyProperty *cat = 
+	//	vtkSMProxyProperty::SafeDownCast(pipelineRep->getProxy()->GetProperty("LookupTable"));
+	//if (cat)
+	//{
+	//	std::cout << "LUT\n";
+	//	//cat->SetElements3(0,1,0);
+	//	cat->GetProxy(0)->PrintSelf(std::cout,vtkIndent(2));
+	//	//rep->UpdateVTKObjects();
+	//}
 }
+
+
 //-----------------------------------------------------------------------------
 void VolumeWidget::connectToServer()
 {
@@ -76,6 +131,7 @@ void VolumeWidget::connectToServer()
 	m_viewWidget = m_view->getWidget();
 	m_mainLayout->insertWidget(0,m_viewWidget);//To preserver view order
 }
+
 
 //-----------------------------------------------------------------------------
 void VolumeWidget::disconnectFromServer()

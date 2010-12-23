@@ -164,17 +164,19 @@ void EspinaMainWindow::setWorkingStack(pqPipelineSource *source)
 {
 	//TODO: Deal with multiple representations inside the same view
 	//		At the moment, we only display the first one
+	//Set new stack and display it
 	m_segmentation->setStack(source);
 
 	//pqActiveObjects& activeObjects = pqActiveObjects::instance();
 	//activeObjects.setActiveSource(source);
 	
-	//Set new stack and display it
-	m_3d->showSource(m_segmentation->visualizationStack()->getOutputPort(0),true);
+	// This updates the visualization pipeline before initializing the slice widgets
+	// TODO: Update the pipeline inside the setInput method of SliceWidget
+	m_3d->showSource(m_segmentation->visualizationStack()->getOutputPort(0),OUTLINE); 
 	for (SlicePlane plane = SLICE_PLANE_FIRST; plane <= SLICE_PLANE_LAST; plane=SlicePlane(plane+1))
 	{
 		m_planes[plane]->addInput(m_segmentation->visualizationStack());
-		m_3d->showSource(m_planes[plane]->getOutput(),true);
+		m_3d->showSource(m_planes[plane]->getOutput(),SLICE);
 		connect(m_planes[plane],SIGNAL(updated()),m_3d,SLOT(updateRepresentation()));
 	}
 }
@@ -186,6 +188,9 @@ void EspinaMainWindow::toggleVisibility(bool visible)
 			visible?QIcon(":/espina/ojo_abierto.svg"):QIcon(":/espina/ojo_cerrado.svg")
 			);
 	//TODO: Modificar blenders para redirigir la salida
+	
+	pqActiveObjects& activeObjects = pqActiveObjects::instance();
+	m_3d->showSource(activeObjects.activeSource()->getOutputPort(0),SURFACE); 
 }
 
 
