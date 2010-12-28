@@ -15,13 +15,15 @@
 #include "vtkSMStringVectorProperty.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QScrollBar>
-#include <QSpinBox>
+#include <QToolButton>
 
 // LUT
 #include "vtkSmartPointer.h"
 #include "vtkLookupTable.h"
 #include "vtkSMPVLookupTableProxy.h"
+
+#include <QMenu>
+#include <QAction>
 
 #include <QDebug>
 #include <assert.h>
@@ -34,18 +36,34 @@ VolumeWidget::VolumeWidget()
 	: m_view(NULL)
 	, m_viewWidget(NULL)
 	, m_init(false)
+	, m_showPlanes(false)
 {
+	for (SlicePlane plane = SLICE_PLANE_FIRST; 
+			plane <= SLICE_PLANE_LAST; 
+			plane=SlicePlane(plane+1))
+		m_planes[plane] = NULL;
+
+	// Create Layout and Widgets
 	m_controlLayout = new QHBoxLayout();
-	m_scroll = new QScrollBar(Qt::Horizontal);
-	m_scroll->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
-	m_slice = new QSpinBox();
-	m_slice->setMinimumWidth(HINTWIDTH);
-	m_slice->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Preferred);
-	m_controlLayout->addWidget(m_scroll);
-	m_controlLayout->addWidget(m_slice);
+	m_toggle3D = new QToolButton(this);
+	m_toggle3D->setIcon(QIcon(":/espina/hide_3D.svg"));
+	m_toggle3D->setCheckable(true);
+	m_togglePlanes = new QToolButton(this);
+	m_togglePlanes->setIcon(QIcon(":/espina/hide_planes.svg"));
+	m_togglePlanes->setCheckable(true);
+	connect(m_togglePlanes,SIGNAL(toggled(bool)),this,SLOT(showPlanes(bool)));
+	m_controlLayout->addStretch();
+	m_controlLayout->addWidget(m_toggle3D);
+	QMenu *renders = new QMenu();
+	QAction *meshRenderer = new QAction(QIcon(":/espina/hide_3D.svg"),tr("Mesh"),renders);
+	QAction *volumeRenderer = new QAction(QIcon(":/espina/hide_planes.svg"),tr("Volume"),renders);
+	renders->addAction(meshRenderer);
+	renders->addAction(volumeRenderer);
+	m_toggle3D->setMenu(renders);
+	m_controlLayout->addWidget(m_togglePlanes);
 
 	m_mainLayout = new QVBoxLayout();
-	//m_mainLayout->addLayout(m_controlLayout);
+	m_mainLayout->addLayout(m_controlLayout);
 	setLayout(m_mainLayout);
 }
 
@@ -58,6 +76,28 @@ VolumeWidget::~VolumeWidget()
 }
 
 //-----------------------------------------------------------------------------
+void VolumeWidget::setPlane(pqOutputPort *opPort, const SlicePlane plane)
+{
+	if (opPort)
+		m_planes[plane] = opPort;
+}
+
+//-----------------------------------------------------------------------------
+void VolumeWidget::showPlanes(bool value)
+{
+	if (m_showPlanes == value)
+		return;
+
+	m_togglePlanes->setIcon(m_showPlanes?QIcon(":/espina/hide_planes.svg"):QIcon(":/espina/show_planes.svg"));
+	
+	m_showPlanes = value;
+	pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+	for (SlicePlane plane = SLICE_PLANE_FIRST; 
+			plane <= SLICE_PLANE_LAST; 
+			plane=SlicePlane(plane+1))
+		dp->setRepresentationVisibility(m_planes[plane],m_view,m_showPlanes);
+	updateRepresentation();
+}
 
 
 //-----------------------------------------------------------------------------

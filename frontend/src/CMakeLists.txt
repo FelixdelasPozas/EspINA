@@ -38,6 +38,7 @@ SOURCE_GROUP("Generated" FILES
 SET(Espina_SOURCE_FILES
   espinaMainWindow.cpp
   emSegmentation.cpp
+  segmentation.cpp
   sliceWidget.cpp
   slicer.cpp
   volumeWidget.cpp

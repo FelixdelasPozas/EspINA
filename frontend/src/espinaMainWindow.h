@@ -43,6 +43,7 @@ class QMenu;
 class pqPipelineSource;
 class SliceWidget;
 class VolumeWidget;
+class Segmentation;
 
 /// MainWindow for the default ParaView application.
 class EspinaMainWindow : public QMainWindow
@@ -67,6 +68,7 @@ private:
   class pqInternals;
   pqInternals* Internals;
   EMSegmentation *m_segmentation;
+  Segmentation *m_segmentations;
   SliceBlender *m_planes[SLICE_PLANE_LAST+1];
   //pqPipelineSource *m_stack, *m_blurred; //Deprecated
   SliceWidget *m_xy, *m_yz, *m_xz;

@@ -152,7 +152,7 @@
    </property>
    <property name="icon">
     <iconset resource="../rsc/espina.qrc">
-     <normaloff>:/espina/ojo_abierto.svg</normaloff>:/espina/ojo_abierto.svg</iconset>
+     <normaloff>:/espina/show_all.svg</normaloff>:/espina/show_all.svg</iconset>
    </property>
    <property name="text">
     <string>Visibility</string>
