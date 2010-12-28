@@ -80,18 +80,27 @@ void VolumeWidget::showSource(pqOutputPort *opPort, Rep3D rep)
 		case POINTS:
 		case OUTLINE:
 		case SURFACE:
+			{
 				pipelineRep->setRepresentation(rep);
-				//pipelineRep->getProxy()->PrintSelf(std::cout,vtkIndent(2));
-				// // Opacity
+				 // Ambient Color
+				vtkSMDoubleVectorProperty *ambient = 
+					vtkSMDoubleVectorProperty::SafeDownCast(pipelineRep->getProxy()->GetProperty("DiffuseColor"));
+				if (ambient)
+				{
+					ambient->SetElements3(0,1,0); 
+					pipelineRep->getProxy()->UpdateVTKObjects();
+				}
+				//// Opacity
 				//vtkSMDoubleVectorProperty *opacity = 
 				//	vtkSMDoubleVectorProperty::SafeDownCast(pipelineRep->getProxy()->GetProperty("Opacity"));
 				//if (opacity)
 				//{
 				//	opacity->SetElements1(0.5); 
 				//	pipelineRep->getProxy()->UpdateVTKObjects();
-				//	pipelineRep->getProxy()->PrintSelf(std::cout,vtkIndent(2));
 				//}
-				break;
+				////pipelineRep->getProxy()->PrintSelf(std::cout,vtkIndent(2));
+			}
+			break;
 		case VOLUME:
 			{
 				pipelineRep->setRepresentation(rep);
