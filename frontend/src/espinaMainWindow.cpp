@@ -172,7 +172,7 @@ void EspinaMainWindow::setWorkingStack(pqPipelineSource *source)
 	
 	// This updates the visualization pipeline before initializing the slice widgets
 	// TODO: Update the pipeline inside the setInput method of SliceWidget
-	m_3d->showSource(m_segmentation->visualizationStack()->getOutputPort(0),OUTLINE); 
+	m_3d->showSource(m_segmentation->visualizationStack()->getOutputPort(0),VOLUME); 
 	for (SlicePlane plane = SLICE_PLANE_FIRST; plane <= SLICE_PLANE_LAST; plane=SlicePlane(plane+1))
 	{
 		m_planes[plane]->addInput(m_segmentation->visualizationStack());

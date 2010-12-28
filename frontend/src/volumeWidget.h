@@ -12,11 +12,11 @@ class pqOutputPort;
 enum Rep3D 
 {
 	POINTS = 0
-		, SURFACE = 2
-		, OUTLINE = 3
-		, VOLUME = 4
-		, SLICE = 6
-		, HIDEN = 100
+	, SURFACE = 2
+	, OUTLINE = 3
+	, VOLUME = 4
+	, SLICE = 6
+	, HIDEN = 100
 };
 
 class VolumeWidget : public QWidget

@@ -21,11 +21,13 @@
 // LUT
 #include "vtkSmartPointer.h"
 #include "vtkLookupTable.h"
+#include "vtkSMPVLookupTableProxy.h"
 
 #include <QDebug>
 #include <assert.h>
 
 #define HINTWIDTH 40
+
 
 //-----------------------------------------------------------------------------
 VolumeWidget::VolumeWidget()
@@ -56,6 +58,9 @@ VolumeWidget::~VolumeWidget()
 }
 
 //-----------------------------------------------------------------------------
+
+
+//-----------------------------------------------------------------------------
 void VolumeWidget::showSource(pqOutputPort *opPort, Rep3D rep)
 {
 	pqDisplayPolicy *displayManager = pqApplicationCore::instance()->getDisplayPolicy();
@@ -68,14 +73,44 @@ void VolumeWidget::showSource(pqOutputPort *opPort, Rep3D rep)
 		qobject_cast<pqPipelineRepresentation*>(opPort->getRepresentation(m_view));
 	assert(!visible ||  pipelineRep);
 
+	vtkSMProxyProperty *cat;
 	//TODO: Representation specific code must be addded
 	switch (rep)
 	{
 		case POINTS:
 		case OUTLINE:
 		case SURFACE:
+				pipelineRep->setRepresentation(rep);
+				//pipelineRep->getProxy()->PrintSelf(std::cout,vtkIndent(2));
+				// // Opacity
+				//vtkSMDoubleVectorProperty *opacity = 
+				//	vtkSMDoubleVectorProperty::SafeDownCast(pipelineRep->getProxy()->GetProperty("Opacity"));
+				//if (opacity)
+				//{
+				//	opacity->SetElements1(0.5); 
+				//	pipelineRep->getProxy()->UpdateVTKObjects();
+				//	pipelineRep->getProxy()->PrintSelf(std::cout,vtkIndent(2));
+				//}
+				break;
 		case VOLUME:
-			pipelineRep->setRepresentation(rep);
+			{
+				pipelineRep->setRepresentation(rep);
+				// Change LUT colors to gray scale
+				vtkSMPVLookupTableProxy *lut = 
+					vtkSMPVLookupTableProxy::SafeDownCast(pipelineRep->getLookupTableProxy());
+				if (lut)
+				{
+					lut->UpdatePropertyInformation();
+					//lut->PrintSelf(std::cout,vtkIndent(2));
+					vtkSMDoubleVectorProperty *rgbs = 
+						vtkSMDoubleVectorProperty::SafeDownCast(lut->GetProperty("RGBPoints"));
+					if (rgbs)
+					{
+						double colors[8] = {0,0,0,0,1,1,1,1};
+						rgbs->SetElements(colors);
+					}
+				}
+			}
 			break;
 		case SLICE:
 			break;
@@ -85,22 +120,13 @@ void VolumeWidget::showSource(pqOutputPort *opPort, Rep3D rep)
 			assert(false);
 	}
 
-	//vtkSMIntVectorProperty *rt = 
-	//	vtkSMIntVectorProperty::SafeDownCast(orepproxy->GetProperty("Representation"));
-	//if (rt)
-	//{
-	//	std::cout << "Representation\n";
-	//	rt->PrintSelf(std::cout,vtkIndent(2));
-	//	rt->SetElements1(2);
-	//	rep->UpdateVTKObjects();
-	//}
-
 	//// Create LUT
 	//vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
 	//lut->SetRange(0, 256); // image intensity range
 	//lut->SetValueRange(0.0, 1.0); // from black to white
 	//lut->SetSaturationRange(0.0, 0.0); // no color saturation
 	//lut->SetRampToLinear();
+	//lut->Build();
 
 	// Create Server LUT
 	//pqObjectBuilder *builder = pqApplicationCore::instance()->getObjectBuilder();
@@ -108,15 +134,6 @@ void VolumeWidget::showSource(pqOutputPort *opPort, Rep3D rep)
 	//vtkSMProxy *pLUT = builder->createSource("sources","vtkLookupTable",server);
 	
 	
-	//vtkSMProxyProperty *cat = 
-	//	vtkSMProxyProperty::SafeDownCast(pipelineRep->getProxy()->GetProperty("LookupTable"));
-	//if (cat)
-	//{
-	//	std::cout << "LUT\n";
-	//	//cat->SetElements3(0,1,0);
-	//	cat->GetProxy(0)->PrintSelf(std::cout,vtkIndent(2));
-	//	//rep->UpdateVTKObjects();
-	//}
 }
 
 
