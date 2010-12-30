@@ -16,11 +16,14 @@ enum Rep3D
 {
 	POINTS = 0
 	, SURFACE = 2
+	, MESH = 2
 	, OUTLINE = 3
 	, VOLUME = 4
 	, SLICE = 6
 	, HIDEN = 100
 };
+
+typedef pqOutputPort Actor;
 
 class VolumeWidget : public QWidget
 {
@@ -38,6 +41,9 @@ public:
 	void setPlane(pqOutputPort *opPort, const SlicePlane plane);
 	//
 	void showSource(pqOutputPort *opPort, Rep3D rep);
+	void setValidActors(const QList<Actor *> *segmentations) {m_valid = segmentations;}
+	void setRejectedActors(const QList<Actor *> *segmentations) {m_rejected = segmentations;}
+	void setUserSelection(const QList<Actor *> *segmentations) {m_userSelection = segmentations;}
 
 public slots:
 	void connectToServer();
@@ -45,19 +51,32 @@ public slots:
 	void updateRepresentation();
 	// Show/Hide axial planes
 	void showPlanes(bool value);
+	// Show/Hide scene actors
+	void showActors(bool value);
+	// Renderer Selection
+	void setMeshRenderer(); 
+	void setVolumeRenderer(); 
+
+private:
+	void renderValidActors();
+	void renderRejected();
+	void renderUserSelection();
 
 private:
 	pqRenderView *m_view;
 	QWidget *m_viewWidget;
 	QToolButton *m_togglePlanes;
-	QToolButton *m_toggle3D;
+	QToolButton *m_toggleActors;
 	QVBoxLayout *m_mainLayout;
 	QHBoxLayout *m_controlLayout;
 
 	bool m_init;
-	pqOutputPort *m_planes[SLICE_AXIS_LAST+1];
 	bool m_showPlanes;
-	QList<Segmentation *> m_valid;
-	QList<Segmentation *> m_rejeted;
-	QList<Segmentation *> m_userSelection;
+	bool m_showActors;
+	Rep3D m_renderer;
+	pqOutputPort *m_planes[SLICE_AXIS_LAST+1];
+
+	const QList<Actor *> *m_valid;
+	const QList<Actor *> *m_rejected;
+	const QList<Actor *> *m_userSelection;
 };

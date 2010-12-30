@@ -37,6 +37,12 @@ VolumeWidget::VolumeWidget()
 	, m_viewWidget(NULL)
 	, m_init(false)
 	, m_showPlanes(false)
+	, m_showActors(false)
+	, m_renderer(VOLUME)
+	, m_valid(NULL)
+	, m_rejected(NULL)
+	, m_userSelection(NULL)
+
 {
 	for (SlicePlane plane = SLICE_PLANE_FIRST; 
 			plane <= SLICE_PLANE_LAST; 
@@ -45,21 +51,24 @@ VolumeWidget::VolumeWidget()
 
 	// Create Layout and Widgets
 	m_controlLayout = new QHBoxLayout();
-	m_toggle3D = new QToolButton(this);
-	m_toggle3D->setIcon(QIcon(":/espina/hide_3D.svg"));
-	m_toggle3D->setCheckable(true);
+	m_toggleActors = new QToolButton(this);
+	m_toggleActors->setIcon(QIcon(":/espina/hide3D"));
+	m_toggleActors->setCheckable(true);
 	m_togglePlanes = new QToolButton(this);
-	m_togglePlanes->setIcon(QIcon(":/espina/hide_planes.svg"));
+	m_togglePlanes->setIcon(QIcon(":/espina/hidePlanes"));
 	m_togglePlanes->setCheckable(true);
 	connect(m_togglePlanes,SIGNAL(toggled(bool)),this,SLOT(showPlanes(bool)));
 	m_controlLayout->addStretch();
-	m_controlLayout->addWidget(m_toggle3D);
+	m_controlLayout->addWidget(m_toggleActors);
 	QMenu *renders = new QMenu();
-	QAction *meshRenderer = new QAction(QIcon(":/espina/hide_3D.svg"),tr("Mesh"),renders);
-	QAction *volumeRenderer = new QAction(QIcon(":/espina/hide_planes.svg"),tr("Volume"),renders);
-	renders->addAction(meshRenderer);
+	QAction *volumeRenderer = new QAction(QIcon(":/espina/hide3D"),tr("Mesh"),renders);
+	QAction *meshRenderer = new QAction(QIcon(":/espina/hidePlanes"),tr("Volume"),renders);
 	renders->addAction(volumeRenderer);
-	m_toggle3D->setMenu(renders);
+	renders->addAction(meshRenderer);
+	m_toggleActors->setMenu(renders);
+	connect(m_toggleActors,SIGNAL(toggled(bool)),this,SLOT(showActors(bool)));
+	connect(volumeRenderer,SIGNAL(triggered()),this,SLOT(setVolumeRenderer()));
+	connect(meshRenderer,SIGNAL(triggered()),this,SLOT(setMeshRenderer()));
 	m_controlLayout->addWidget(m_togglePlanes);
 
 	m_mainLayout = new QVBoxLayout();
@@ -80,23 +89,7 @@ void VolumeWidget::setPlane(pqOutputPort *opPort, const SlicePlane plane)
 {
 	if (opPort)
 		m_planes[plane] = opPort;
-}
-
-//-----------------------------------------------------------------------------
-void VolumeWidget::showPlanes(bool value)
-{
-	if (m_showPlanes == value)
-		return;
-
-	m_togglePlanes->setIcon(m_showPlanes?QIcon(":/espina/hide_planes.svg"):QIcon(":/espina/show_planes.svg"));
-	
-	m_showPlanes = value;
-	pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-	for (SlicePlane plane = SLICE_PLANE_FIRST; 
-			plane <= SLICE_PLANE_LAST; 
-			plane=SlicePlane(plane+1))
-		dp->setRepresentationVisibility(m_planes[plane],m_view,m_showPlanes);
-	updateRepresentation();
+	//TODO: Manage previous plane if existen?
 }
 
 
@@ -214,7 +207,62 @@ void VolumeWidget::disconnectFromServer()
 
 void VolumeWidget::updateRepresentation()
 {
+	if (m_valid)
+	{
+	}
 	m_view->render();
 }
 
 
+//-----------------------------------------------------------------------------
+void VolumeWidget::showPlanes(bool value)
+{
+	if (m_showPlanes == value)
+		return;
+
+	m_showPlanes = value;
+	m_togglePlanes->setIcon(m_showPlanes?QIcon(":/espina/showPlanes"):QIcon(":/espina/hidePlanes"));
+
+	pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+	for (SlicePlane plane = SLICE_PLANE_FIRST; 
+			plane <= SLICE_PLANE_LAST; 
+			plane=SlicePlane(plane+1))
+		dp->setRepresentationVisibility(m_planes[plane],m_view,m_showPlanes);
+	updateRepresentation();
+}
+
+
+//-----------------------------------------------------------------------------
+void VolumeWidget::showActors(bool value)
+{
+	if (m_showActors == value)
+		return;
+
+	m_showActors = value;
+	switch (m_renderer)
+	{
+		case SURFACE:
+			m_toggleActors->setIcon(m_showActors?QIcon(":/espina/showPlanes"):QIcon(":/espina/hidePlanes"));
+			break;
+		case VOLUME:
+			m_toggleActors->setIcon(m_showActors?QIcon(":/espina/show3D"):QIcon(":/espina/hide3D"));
+			break;
+		default:
+			assert(false);
+	}
+
+	updateRepresentation();
+}
+
+
+void VolumeWidget::setMeshRenderer()
+{
+	m_renderer = SURFACE;
+	m_toggleActors->setIcon(m_showActors?QIcon(":/espina/showPlanes"):QIcon(":/espina/hidePlanes"));
+}
+
+void VolumeWidget::setVolumeRenderer()
+{
+	m_renderer = VOLUME;
+	m_toggleActors->setIcon(m_showActors?QIcon(":/espina/show3D"):QIcon(":/espina/hide3D"));
+}
