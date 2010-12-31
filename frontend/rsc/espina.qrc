@@ -1,5 +1,15 @@
 <RCC>
   <qresource prefix="espina">
+    <file>puntero_mas.svg</file>
+    <file alias="hide3D">hide_3D.svg</file>
+    <file alias="hidePlanes">hide_planes.svg</file>
+    <file alias="show3D">show_3D.svg</file>
+    <file alias="showPlanes">show_planes.svg</file>
+    <file>puntero_menos.svg</file>
+    <file>edit-redo.svg</file>
+    <file>edit-undo.svg</file>
     <file>editor.ico</file>
+    <file>show_all.svg</file>
+    <file>hide_all.svg</file>
   </qresource>
 </RCC>

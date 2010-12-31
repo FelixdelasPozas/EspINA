@@ -34,11 +34,16 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <QMainWindow>
 
+//Necessary to use Planes enumeration
+#include "slicer.h"
+
 //Forward declaration
+class EMSegmentation;
 class QMenu;
 class pqPipelineSource;
 class SliceWidget;
 class VolumeWidget;
+class Segmentation;
 
 /// MainWindow for the default ParaView application.
 class EspinaMainWindow : public QMainWindow
@@ -51,6 +56,8 @@ public:
 
 protected slots:
   void setWorkingStack(pqPipelineSource *source);
+  void toggleVisibility(bool visible);
+
 
 private:
   EspinaMainWindow(const EspinaMainWindow&); // Not implemented.
@@ -60,7 +67,10 @@ private:
 
   class pqInternals;
   pqInternals* Internals;
-  pqPipelineSource *m_stack;
+  EMSegmentation *m_segmentation;
+  Segmentation *m_segmentations;
+  SliceBlender *m_planes[SLICE_PLANE_LAST+1];
+  //pqPipelineSource *m_stack, *m_blurred; //Deprecated
   SliceWidget *m_xy, *m_yz, *m_xz;
   VolumeWidget *m_3d;
 };

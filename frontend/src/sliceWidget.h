@@ -1,33 +1,44 @@
+#ifndef _SLICE_WIDGET_H
+#define _SLICE_WIDGET_H
+
 #include <QWidget>
 
 //Forward declaration
+class SliceBlender;
 class pqTwoDRenderView;
 class QScrollBar;
 class QSpinBox;
 class vtkSMImageSliceRepresentationProxy;
 class vtkSMIntVectorProperty;
-class QWidget;
 class QVBoxLayout;
 class QHBoxLayout;
+class pqOutputPort;
 
+/// Displays a unique slice of a image's stack. 
+/// The slice which is shown can be modified using the widget controls
 class SliceWidget : public QWidget
 {
 	Q_OBJECT
+
 public:
-	SliceWidget();
+	SliceWidget(SliceBlender *input);
 	~SliceWidget();
 
-	bool initialize();
-	pqTwoDRenderView *getView(){return m_view;}
+
+public:
+		bool initialize();
+		pqTwoDRenderView *getView(){return m_view;}
+		//void showSource(pqOutputPort *opPort, bool visible);
+
+protected slots:
+	void vtkWidgetMouseEvent(QMouseEvent *event);
 
 public slots:
-	void setPlane(int plane);
 	void connectToServer();
 	void disconnectFromServer();
 
 private:
-
-private:
+	SliceBlender *m_input;
 	pqTwoDRenderView *m_view;
 	QScrollBar *m_scroll;
 	QSpinBox *m_spin;
@@ -39,14 +50,12 @@ private:
 	bool m_init;
 	int m_plane;
 
+protected slots:
+	void updateRepresentation();
+	void setInput(pqOutputPort *opPort);
+
 protected:
 		Q_DISABLE_COPY(SliceWidget)
-
-protected slots:
-	void setSlice(int slice);
-
-signals:
-	void sliceChanged(int);
 };
 
-
+#endif// _SLICE_WIDGET_H
