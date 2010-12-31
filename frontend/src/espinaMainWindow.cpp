@@ -37,6 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "sliceWidget.h"
 #include "slicer.h"
 #include "volumeWidget.h"
+#include "stack.h"
 
 //ParaQ includes
 #include "pqHelpReaction.h"
@@ -123,7 +124,7 @@ EspinaMainWindow::EspinaMainWindow()
   //Create ESPINA
   m_segmentation = new EMSegmentation();
   for (SlicePlane plane = SLICE_PLANE_FIRST; plane <= SLICE_PLANE_LAST; plane=SlicePlane(plane+1))
-	  m_planes[SlicePlane(plane)] = new SliceBlender(SlicePlane(plane));
+	  m_planes[plane] = new SliceBlender(plane);
 
   //Create ESPINA views
   m_xy = new SliceWidget(m_planes[SLICE_PLANE_XY]);
@@ -161,21 +162,21 @@ EspinaMainWindow::~EspinaMainWindow()
 
 
 //-----------------------------------------------------------------------------
-void EspinaMainWindow::setWorkingStack(pqPipelineSource *source)
-{
-	//TODO: Deal with multiple representations inside the same view
-	//		At the moment, we only display the first one
-	//Set new stack and display it
-	m_segmentation->setStack(source);
-
-	//pqActiveObjects& activeObjects = pqActiveObjects::instance();
-	//activeObjects.setActiveSource(source);
+void EspinaMainWindow::loadData(pqPipelineSource *source)
+{ 
+	//TODO: Remove previous state
 	
+	//TODO: Get filename!
+	Stack *stack = new Stack(source);
+	m_stacks.insert("input",stack);
+	//m_segmentation->setStack(source);
+
 	// This updates the visualization pipeline before initializing the slice widgets
-	m_segmentation->visualizationStack()->updatePipeline();
+	//m_segmentation->visualizationStack()->updatePipeline();
+	source->updatePipeline();
 	for (SlicePlane plane = SLICE_PLANE_FIRST; plane <= SLICE_PLANE_LAST; plane=SlicePlane(plane+1))
 	{
-		m_planes[plane]->addInput(m_segmentation->visualizationStack());
+		m_planes[plane]->setBackground(stack);
 		m_3d->setPlane(m_planes[plane]->getOutput(),plane);
 		connect(m_planes[plane],SIGNAL(updated()),m_3d,SLOT(updateRepresentation()));
 	}
@@ -193,10 +194,12 @@ void EspinaMainWindow::toggleVisibility(bool visible)
 	this->Internals->toggleVisibility->setIcon(
 			visible?QIcon(":/espina/show_all.svg"):QIcon(":/espina/hide_all.svg")
 			);
-	//TODO: Modificar blenders para redirigir la salida
 	
-	//pqActiveObjects& activeObjects = pqActiveObjects::instance();
-	//m_3d->showSource(activeObjects.activeSource()->getOutputPort(0),SURFACE); 
+  for (SlicePlane plane = SLICE_PLANE_FIRST; plane <= SLICE_PLANE_LAST; plane=SlicePlane(plane+1))
+  {
+	if (m_planes[plane])
+	  m_planes[plane]->setBlending(visible);
+  }
 }
 
 
@@ -207,6 +210,6 @@ void EspinaMainWindow::buildFileMenu(QMenu &menu)
 	QAction *openAction = new QAction(icon,tr("Open"),this);
 	pqLoadDataReaction * loadReaction = new pqLoadDataReaction(openAction);
 	QObject::connect(loadReaction, SIGNAL(loadedData(pqPipelineSource *)),
-		this, SLOT(setWorkingStack(pqPipelineSource *)));
+		this, SLOT( loadData(pqPipelineSource *)));
 	menu.addAction(openAction);
 }

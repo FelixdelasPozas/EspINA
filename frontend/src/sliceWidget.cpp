@@ -184,8 +184,8 @@ bool SliceWidget::initialize()
 
 void SliceWidget::setInput(pqOutputPort *opPort)
 {
-	pqDisplayPolicy *displayManager = pqApplicationCore::instance()->getDisplayPolicy();
-	displayManager->setRepresentationVisibility(opPort,m_view,true);
+	pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+	dp->setRepresentationVisibility(opPort,m_view,true);
 
 	m_scroll->setMaximum(m_input->getNumSlices());
 	m_spin->setMaximum(m_input->getNumSlices());

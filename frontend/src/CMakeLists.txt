@@ -40,6 +40,7 @@ SET(Espina_SOURCE_FILES
   emSegmentation.cpp
   segmentation.cpp
   renderer.cpp
+  stack.cpp
   sliceWidget.cpp
   slicer.cpp
   volumeWidget.cpp

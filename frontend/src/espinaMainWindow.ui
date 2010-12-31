@@ -160,6 +160,9 @@
    <property name="toolTip">
     <string>Turn Visibility On/Off</string>
    </property>
+   <property name="shortcut">
+    <string>Space</string>
+   </property>
   </action>
   <action name="actionUndo">
    <property name="icon">

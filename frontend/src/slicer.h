@@ -3,6 +3,9 @@
 
 #include <QObject>
 
+class Stack;
+class Segmentation;
+
 enum SlicePlane 
 {
 	SLICE_PLANE_FIRST = 0
@@ -43,16 +46,17 @@ class SliceBlender : public QObject
 {
 	Q_OBJECT
 
-public:
-	enum Blender {BLENDER_OFF=0, BLENDER_ON=1};
+//public:
+//	enum Blender {BLENDER_OFF=0, BLENDER_ON=1};
 public:
 	/// Creates a SliceBlender filter in *plane* 
 	SliceBlender(SlicePlane plane);
 
-
 public:
-	/// Add a source to the set of inputs
-	void addInput(pqPipelineSource *source);
+	/// Set stack as background
+	void setBackground(Stack *stack);
+	/// Add seg to the set of inputs to blend
+	void addSegmentation(Segmentation *seg);
 
 	/// Gets the filter output. Depending on the behaviour
 	/// of the filter it can show only the first one (BLENDING_OFF)
@@ -76,7 +80,12 @@ public slots:
 		m_plane = plane;
 	}
 	void setSlice(int slice);
-	void setBlending(Blender value){m_blending = value;}
+	void setBlending(bool blending)
+	{
+	  m_blending = blending;
+	  emit outputChanged(getOutput());
+	  emit updated();
+	}
 
 signals:
 	/// This signal is triggered when the internal state of the filter
@@ -91,11 +100,13 @@ private:
 	void updateAxis();
 
 private:
-	QList<pqPipelineSource *> *m_inputs;
+	Stack *m_background;
+	pqPipelineSource *m_bgSlicer;
+	QList<Segmentation *> *m_inputs;
 	QList<pqPipelineSource *> *m_slicers;
 	pqPipelineSource *m_blender;
 	SlicePlane m_plane;
-	Blender m_blending;
+	bool m_blending;
 	double m_bounds[6];
 	int m_extent[6];
 	int m_xAxis, m_yAxis, m_zAxis;

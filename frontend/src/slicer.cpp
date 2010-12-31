@@ -1,5 +1,11 @@
 #include "slicer.h"
 
+#include "stack.h"
+#include "segmentation.h"
+
+// Standard
+#include <assert.h>
+
 //Qt
 #include <QList>
 
@@ -18,31 +24,49 @@
 #include <QDebug>
 
 SliceBlender::SliceBlender(SlicePlane plane)
-	: m_plane(plane)
+	: m_background(NULL)
+	, m_bgSlicer(NULL)
+	, m_plane(plane)
+	, m_blending(false)
 {
-	m_inputs = new QList<pqPipelineSource *>;
+	m_inputs = new QList<Segmentation *>;
 	m_slicers = new QList<pqPipelineSource *>;
+
+	//pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
+	//m_blender = ob->createFilter("filters","ImageSlicer",source,0);
+	
+	//assert(m_blender);
+	
+	//vtkSMIntVectorProperty *sliceMode = vtkSMIntVectorProperty::SafeDownCast(
+	//  m_bgSlicer->getProxy()->GetProperty("SliceMode"));
+	//sliceMode->SetElements1(5+m_plane);
 
 	updateAxis();
 }
 
 
-void SliceBlender::addInput(pqPipelineSource *source)
+void SliceBlender::setBackground ( Stack* stack )
 {
 	//Store real input
-	m_inputs->push_back(source);
-	//Create its slider
+	m_background = stack;
+	pqPipelineSource *input = m_background->data();
+	
+	//Create its slicer
 	pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
-	pqPipelineSource *slicer = ob->createFilter("filters","ImageSlicer",source,0);
-	vtkSMIntVectorProperty *sliceMode = 
-		vtkSMIntVectorProperty::SafeDownCast(slicer->getProxy()->GetProperty("SliceMode"));
-	sliceMode->SetElements1(5+m_plane);
-	m_slicers->push_back(slicer);
+	m_bgSlicer = ob->createFilter("filters","ImageSlicer",input,0);
+	
+	assert(m_bgSlicer);
+	
+	vtkSMIntVectorProperty *sliceMode = vtkSMIntVectorProperty::SafeDownCast(
+	  m_bgSlicer->getProxy()->GetProperty("SliceMode"));
+	
+	if (sliceMode)
+	  sliceMode->SetElements1(5+m_plane);
 
-	vtkSMSourceProxy * reader = vtkSMSourceProxy::SafeDownCast(source->getProxy());
+	vtkSMSourceProxy * reader = vtkSMSourceProxy::SafeDownCast(input->getProxy());
 	//source->getOutputPort(0)->getDataInformation()->PrintSelf(std::cout,vtkIndent(0));
-	double *bounds = source->getOutputPort(0)->getDataInformation()->GetBounds();
-	int *extent = source->getOutputPort(0)->getDataInformation()->GetExtent();
+	double *bounds = input->getOutputPort(0)->getDataInformation()->GetBounds();
+	int *extent = input->getOutputPort(0)->getDataInformation()->GetExtent();
 	memcpy(m_bounds,bounds,6*sizeof(double));
 	memcpy(m_extent,extent,6*sizeof(int));
 	//vtkSMDataSourceProxy *data = vtkSMDataSourceProxy::SafeDownCast(source->getOutputPort(0)->getOutputPortProxy());
@@ -51,15 +75,45 @@ void SliceBlender::addInput(pqPipelineSource *source)
 	//reader->GetPixelSpacing();
 	//qDebug() << spacing[0] << spacing[1] << spacing[2];
 	
-	emit outputChanged(slicer->getOutputPort(0));
+	emit outputChanged(this->getOutput());
 }
+
+void SliceBlender::addSegmentation ( Segmentation* seg )
+{
+	//Store real input
+	m_inputs->push_back(seg);
+	
+	//Create its slider
+	pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
+	pqPipelineSource *slicer = ob->createFilter("filters","ImageSlicer",seg->data(),0);
+	
+	vtkSMIntVectorProperty *sliceMode = 
+		vtkSMIntVectorProperty::SafeDownCast(slicer->getProxy()->GetProperty("SliceMode"));
+	sliceMode->SetElements1(5+m_plane);
+	m_slicers->push_back(slicer);
+
+// 	vtkSMSourceProxy * reader = vtkSMSourceProxy::SafeDownCast(source->getProxy());
+// 	//source->getOutputPort(0)->getDataInformation()->PrintSelf(std::cout,vtkIndent(0));
+// 	double *bounds = source->getOutputPort(0)->getDataInformation()->GetBounds();
+// 	int *extent = source->getOutputPort(0)->getDataInformation()->GetExtent();
+// 	memcpy(m_bounds,bounds,6*sizeof(double));
+// 	memcpy(m_extent,extent,6*sizeof(int));
+// 	//vtkSMDataSourceProxy *data = vtkSMDataSourceProxy::SafeDownCast(source->getOutputPort(0)->getOutputPortProxy());
+// 	//if (data) qDebug() << "OK";
+// 	//double *spacing;
+// 	//reader->GetPixelSpacing();
+// 	//qDebug() << spacing[0] << spacing[1] << spacing[2];
+	
+	emit outputChanged(this->getOutput());
+}
+
 
 pqOutputPort *SliceBlender::getOutput()
 {
-	if (m_slicers->size() > 0)
-		return (*m_slicers)[0]->getOutputPort(0);
+	if (m_blending)
+	  return NULL;
 	else
-		return NULL;
+	  return m_bgSlicer->getOutputPort(0);
 }
 
 int SliceBlender::getNumSlices()
@@ -69,14 +123,20 @@ int SliceBlender::getNumSlices()
 
 void SliceBlender::setSlice(int slice)
 {
-	pqPipelineSource *slicer;
-	foreach(slicer,*m_slicers)
-	{
-		vtkSMIntVectorProperty *sliceIdx = 
-			vtkSMIntVectorProperty::SafeDownCast(slicer->getProxy()->GetProperty("Slice"));
-		sliceIdx->SetElements1(slice);
-	}
-	emit updated();
+  vtkSMIntVectorProperty *sliceIdx = vtkSMIntVectorProperty::SafeDownCast(
+	m_bgSlicer->getProxy()->GetProperty("Slice"));
+  if (sliceIdx)
+	sliceIdx->SetElements1(slice);
+  
+  pqPipelineSource *slicer;
+  foreach(slicer,*m_slicers)
+  {
+	sliceIdx = vtkSMIntVectorProperty::SafeDownCast(
+	  slicer->getProxy()->GetProperty("Slice"));
+	if (sliceIdx)
+	  sliceIdx->SetElements1(slice);
+  }
+  emit updated();
 }
 
 void SliceBlender::updateAxis()

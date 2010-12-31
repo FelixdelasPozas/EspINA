@@ -31,14 +31,14 @@ MeshRenderer *MeshRenderer::m_singleton = NULL;
 void MeshRenderer::hide ( Segmentation* seg, pqRenderView* view )
 {
 	pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-	pqDataRepresentation *dr = dp->setRepresentationVisibility(seg->data(),view,false);
+	pqDataRepresentation *dr = dp->setRepresentationVisibility(seg->outPut(),view,false);
 }
 
 
 void MeshRenderer::render( Segmentation* seg, pqRenderView* view)
 {
 	pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-	pqDataRepresentation *dr = dp->setRepresentationVisibility(seg->data(),view,true);
+	pqDataRepresentation *dr = dp->setRepresentationVisibility(seg->outPut(),view,true);
 	pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
 	
 	assert(rep);
@@ -100,14 +100,14 @@ Renderer *VolumeRenderer::renderer()
 void VolumeRenderer::hide ( Segmentation* seg, pqRenderView* view )
 {
 	pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-	pqDataRepresentation *dr = dp->setRepresentationVisibility(seg->data(),view,false);
+	pqDataRepresentation *dr = dp->setRepresentationVisibility(seg->outPut(),view,false);
 }
 
 
 void VolumeRenderer::render ( Segmentation* seg, pqRenderView* view )
 {
 	pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-	pqDataRepresentation *dr = dp->setRepresentationVisibility(seg->data(),view,true);
+	pqDataRepresentation *dr = dp->setRepresentationVisibility(seg->outPut(),view,true);
 	pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
 	//qDebug() << "Total Rep: " << view->getRepresentations().size();
 	
