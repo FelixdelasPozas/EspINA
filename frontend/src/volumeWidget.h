@@ -9,6 +9,7 @@ class QVBoxLayout;
 class QHBoxLayout;
 class pqOutputPort;
 class Segmentation;
+class Renderer;
 
 #include "slicer.h"
 
@@ -23,7 +24,7 @@ enum Rep3D
 	, HIDEN = 100
 };
 
-typedef pqOutputPort Actor;
+typedef Segmentation Actor;
 
 class VolumeWidget : public QWidget
 {
@@ -39,8 +40,8 @@ public:
 	pqRenderView *getView(){return m_view;}
 	// Set axial plane's input
 	void setPlane(pqOutputPort *opPort, const SlicePlane plane);
-	//
-	void showSource(pqOutputPort *opPort, Rep3D rep);
+
+	//void showSource(pqOutputPort *opPort, Rep3D rep);
 	void setValidActors(const QList<Actor *> *segmentations) {m_valid = segmentations;}
 	void setRejectedActors(const QList<Actor *> *segmentations) {m_rejected = segmentations;}
 	void setUserSelection(const QList<Actor *> *segmentations) {m_userSelection = segmentations;}
@@ -73,7 +74,7 @@ private:
 	bool m_init;
 	bool m_showPlanes;
 	bool m_showActors;
-	Rep3D m_renderer;
+	Renderer *m_renderer;
 	pqOutputPort *m_planes[SLICE_AXIS_LAST+1];
 
 	const QList<Actor *> *m_valid;

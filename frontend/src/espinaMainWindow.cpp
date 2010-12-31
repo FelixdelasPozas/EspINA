@@ -180,7 +180,10 @@ void EspinaMainWindow::setWorkingStack(pqPipelineSource *source)
 		connect(m_planes[plane],SIGNAL(updated()),m_3d,SLOT(updateRepresentation()));
 	}
 		
-	m_segmentations = new SegmentedObject();
+	m_segmentations = new SegmentedObject(source);
+	QList<Segmentation *> *validActors = new QList<Segmentation *>;
+	validActors->push_back(m_segmentations);
+	m_3d->setValidActors(validActors);
 	//m_3d->showSource(m_segmentation->visualizationStack()->getOutputPort(0),VOLUME); 
 }
 

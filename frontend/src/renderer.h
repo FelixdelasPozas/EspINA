@@ -1,24 +1,30 @@
 #ifndef _RENDERER_H_
 #define _RENDERER_H_
 
-enum Rep3D 
+class pqRenderView;
+class Segmentation;
+class pqRenderView;
+
+enum RenderType
 {
-	POINTS = 0
-	, SURFACE = 2
-	, MESH = 2
-	, OUTLINE = 3
-	, VOLUME = 4
-	, SLICE = 6
-	, HIDEN = 100
+	RENDERTYPE_FIRST = 0
+	, MESH_RENDERER = 0
+	, VOLUME_RENDERER = 1
+	, RENDERTYPE_LAST = 1
 };
 
 class Renderer
 {
 public:
 	Renderer(){}
-	virtual ~Renderer() = 0;
+	virtual ~Renderer() {};
 
-	virtual void render(Segmentation *, double r, double g, double b) = 0;
+	virtual RenderType type() = 0;
+	
+	virtual void hide(Segmentation *seg, pqRenderView *view) = 0;
+	virtual void render(Segmentation *seg, pqRenderView *view) = 0;
+	virtual void renderSelection(Segmentation *seg, pqRenderView *view) = 0;
+	virtual void renderDiscarted(Segmentation *seg, pqRenderView *view) = 0;
 };
 
 class MeshRenderer : public Renderer
@@ -26,8 +32,19 @@ class MeshRenderer : public Renderer
 public:
 	MeshRenderer() : Renderer(){}
 	~MeshRenderer(){}
+	
+	static Renderer *renderer();
 
-	virtual void render(Segmentation *, double r, double g, double b) = 0;
+	RenderType type() {return MESH_RENDERER;}
+	
+	void hide(Segmentation *seg, pqRenderView *view);
+	void render(Segmentation *seg, pqRenderView *view);
+	void renderSelection(Segmentation *seg, pqRenderView *view);
+	void renderDiscarted(Segmentation *seg, pqRenderView *view);
+
+private:
+	static MeshRenderer *m_singleton;
+	
 };
 
 class VolumeRenderer : public Renderer
@@ -35,8 +52,18 @@ class VolumeRenderer : public Renderer
 public:
 	VolumeRenderer() : Renderer(){}
 	~VolumeRenderer(){}
+	
+	static Renderer *renderer();
 
-	virtual void render(Segmentation *, double r, double g, double b) = 0;
+	RenderType type() {return VOLUME_RENDERER;}
+	
+	void hide(Segmentation *seg, pqRenderView *view);
+	void render(Segmentation *seg, pqRenderView *view);
+	void renderSelection(Segmentation *seg, pqRenderView *view);
+	void renderDiscarted(Segmentation *seg, pqRenderView *view);
+
+private:
+	static VolumeRenderer *m_singleton;
 };
 
 #endif// _RENDERER_H_
