@@ -131,14 +131,17 @@ EspinaMainWindow::EspinaMainWindow()
   this->setCentralWidget(m_xy);
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_xy,SLOT(connectToServer()));
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_xy,SLOT(disconnectFromServer()));
+  
   m_yz = new SliceWidget(m_planes[SLICE_PLANE_YZ]);
   this->Internals->yzSliceDock->setWidget(m_yz);
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_yz,SLOT(connectToServer()));
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_yz,SLOT(disconnectFromServer()));
+  
   m_xz = new SliceWidget(m_planes[SLICE_PLANE_XZ]);
   this->Internals->xzSliceDock->setWidget(m_xz);
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_xz,SLOT(connectToServer()));
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_xz,SLOT(disconnectFromServer()));
+  
   m_3d = new VolumeWidget();
   this->Internals->volumeDock->setWidget(m_3d);
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_3d,SLOT(connectToServer()));
@@ -171,17 +174,28 @@ void EspinaMainWindow::loadData(pqPipelineSource *source)
 	m_stacks.insert("input",stack);
 	//m_segmentation->setStack(source);
 
+	// Create a fake segmentation to make the tests
+	pqPipelineSource *fakeSeg;
+	pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
+	pqServer * server= pqActiveObjects::instance().activeServer();
+	QStringList file;
+	file << "/home/lokifacio/Stacks/peque.mha";
+	//file << "/home/lokifacio/Stacks/segmentita.mha";
+	fakeSeg = ob->createReader("sources","MetaImageReader",file,server);
+	fakeSeg->updatePipeline();
+	m_segmentations = new SegmentedObject(fakeSeg);
+
 	// This updates the visualization pipeline before initializing the slice widgets
 	//m_segmentation->visualizationStack()->updatePipeline();
 	source->updatePipeline();
 	for (SlicePlane plane = SLICE_PLANE_FIRST; plane <= SLICE_PLANE_LAST; plane=SlicePlane(plane+1))
 	{
 		m_planes[plane]->setBackground(stack);
+		m_planes[plane]->addSegmentation(m_segmentations);
 		m_3d->setPlane(m_planes[plane]->getOutput(),plane);
 		connect(m_planes[plane],SIGNAL(updated()),m_3d,SLOT(updateRepresentation()));
 	}
-		
-	m_segmentations = new SegmentedObject(source);
+	
 	QList<Segmentation *> *validActors = new QList<Segmentation *>;
 	validActors->push_back(m_segmentations);
 	m_3d->setValidActors(validActors);

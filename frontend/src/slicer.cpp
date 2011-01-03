@@ -20,6 +20,7 @@
 #include "vtkSMOutputPort.h"
 #include "vtkSMDataSourceProxy.h"
 #include "vtkPVDataInformation.h"
+#include <vtkSMInputProperty.h>
 
 #include <QDebug>
 
@@ -27,7 +28,7 @@ SliceBlender::SliceBlender(SlicePlane plane)
 	: m_background(NULL)
 	, m_bgSlicer(NULL)
 	, m_plane(plane)
-	, m_blending(false)
+	, m_blending(true)
 {
 	m_inputs = new QList<Segmentation *>;
 	m_slicers = new QList<pqPipelineSource *>;
@@ -54,6 +55,7 @@ void SliceBlender::setBackground ( Stack* stack )
 	//Create its slicer
 	pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
 	m_bgSlicer = ob->createFilter("filters","ImageSlicer",input,0);
+	m_blender = ob->createFilter("filters","ImageBlend",m_bgSlicer,0);
 	
 	assert(m_bgSlicer);
 	
@@ -63,7 +65,7 @@ void SliceBlender::setBackground ( Stack* stack )
 	if (sliceMode)
 	  sliceMode->SetElements1(5+m_plane);
 
-	vtkSMSourceProxy * reader = vtkSMSourceProxy::SafeDownCast(input->getProxy());
+	//vtkSMSourceProxy * reader = vtkSMSourceProxy::SafeDownCast(input->getProxy());
 	//source->getOutputPort(0)->getDataInformation()->PrintSelf(std::cout,vtkIndent(0));
 	double *bounds = input->getOutputPort(0)->getDataInformation()->GetBounds();
 	int *extent = input->getOutputPort(0)->getDataInformation()->GetExtent();
@@ -89,9 +91,34 @@ void SliceBlender::addSegmentation ( Segmentation* seg )
 	
 	vtkSMIntVectorProperty *sliceMode = 
 		vtkSMIntVectorProperty::SafeDownCast(slicer->getProxy()->GetProperty("SliceMode"));
-	sliceMode->SetElements1(5+m_plane);
+	if (sliceMode)
+	  sliceMode->SetElements1(5+m_plane);
+	
 	m_slicers->push_back(slicer);
 
+	// Blends new slice
+	vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(
+	  m_blender->getProxy()->GetProperty("BlendInput"));
+	
+	
+	std::cout << "BLENDER INPUT INFO:\n";
+	std::cout << "BG INFO:\n";
+	m_bgSlicer->getOutputPort(0)->getDataInformation()->PrintSelf(std::cout,vtkIndent(0));
+	//qDebug() << m_bgSlicer->getOutputPort(0)->getDataInformation()->GetPrettyDataTypeString();
+	std::cout << "SEG INFO:\n";
+	slicer->updatePipeline();
+	slicer->getOutputPort(0)->getDataInformation()->PrintSelf(std::cout,vtkIndent(2));
+	//qDebug() << slicer->getOutputPort(0)->getDataInformation();
+	if (input) 
+	{
+	  input->SetMultipleInput(1);
+	  input->AddInputConnection(slicer->getProxy(),0);
+	  //std::cout << "Input Property:\n";
+	  //input->PrintSelf(std::cout,vtkIndent(0));
+	  //qDebug() << "Multiple Input" << input->GetMultipleInput();
+	}
+	
+	
 // 	vtkSMSourceProxy * reader = vtkSMSourceProxy::SafeDownCast(source->getProxy());
 // 	//source->getOutputPort(0)->getDataInformation()->PrintSelf(std::cout,vtkIndent(0));
 // 	double *bounds = source->getOutputPort(0)->getDataInformation()->GetBounds();
@@ -111,7 +138,7 @@ void SliceBlender::addSegmentation ( Segmentation* seg )
 pqOutputPort *SliceBlender::getOutput()
 {
 	if (m_blending)
-	  return NULL;
+	  return m_blender->getOutputPort(0);
 	else
 	  return m_bgSlicer->getOutputPort(0);
 }
