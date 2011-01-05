@@ -17,6 +17,7 @@ QT4_ADD_RESOURCES(RCC_BUILT_SOURCES
 # Add extra library containing custom code for the client.
 QT4_WRAP_CPP(MOC_BUILT_SOURCES
 espinaMainWindow.h
+unitExplorer.h
 emSegmentation.h
 sliceWidget.h
 slicer.h
@@ -26,6 +27,7 @@ iPixelSelector.h
 
 QT4_WRAP_UI(UI_BUILT_SOURCES
   espinaMainWindow.ui
+  unitExplorer.ui
 )
 
 SOURCE_GROUP("Generated" FILES
@@ -46,6 +48,7 @@ SET(Espina_SOURCE_FILES
   volumeWidget.cpp
   iPixelSelector.cpp
   distance.cpp
+  unitExplorer.cpp
   ${MOC_BUILT_SOURCES}
   ${UI_BUILT_SOURCES}
   ${RCC_BUILT_SOURCES}
