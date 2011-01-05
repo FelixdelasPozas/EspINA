@@ -107,6 +107,33 @@
       </IntVectorProperty>
    </SourceProxy>
 
+   <SourceProxy name="ImageMapToColors" class="vtkImageMapToColors" label="ImageMapToColors">
+     <Documentation
+		long_help="Map the input image through a lookup table"
+		short_help="The vtkImageMapToColors filter will take an input 
+		image of any valid scalar type, and map the first component of 
+		the image through a lookup table. The result is an image of type 
+		VTK_UNSIGNED_CHAR. If the lookup table is not set, or is set to NULL,
+		then the input data will be passed through if it is already of 
+		type VTK_UNSIGNED_CHAR.">
+     </Documentation>
+     <InputProperty
+        name="Input"
+        command="SetInputConnection">
+           <ProxyGroupDomain name="groups">
+             <Group name="sources"/>
+             <Group name="filters"/>
+           </ProxyGroupDomain>
+           <DataTypeDomain name="input_type">
+             <DataType value="vtkDataImage"/>
+           </DataTypeDomain>
+      </InputProperty>
+     <ProxyProperty
+        name="LUT"
+        command="SetLookupTable">
+      </ProxyProperty>
+   </SourceProxy>
+
    <SourceProxy name="ImageBlend" class="vtkImageBlend" label="ImageBlend">
      <Documentation
         long_help="Blends images together using alph or opacity"
@@ -125,7 +152,7 @@
       </InputProperty>
      <InputProperty
         name="BlendInput"
-        command="AddInputConnection">
+        command="SetInputConnection">
            <ProxyGroupDomain name="groups">
              <Group name="sources"/>
              <Group name="filters"/>
@@ -134,6 +161,35 @@
              <DataType value="vtkDataImage"/>
            </DataTypeDomain>
       </InputProperty>
+   </SourceProxy>
+
+
+   <SourceProxy name="MyWindowLevelLookupTable" class="vtkWindowLevelLookupTable" label="WindowLevelLookupTable">
+     <Documentation
+        long_help="Map scalar values into colors or colors to scalars; generate color table"
+		short_help="">
+     </Documentation>
+     <DoubleVectorProperty
+		 name="Window"
+         number_of_elements="1"
+		 default_values="255"
+		 immediate_update="1"
+        command="SetWindow">
+      </DoubleVectorProperty>
+     <DoubleVectorProperty
+		 name="Level"
+         number_of_elements="1"
+		 default_values="127.5"
+		 immediate_update="1"
+        command="SetLevel">
+      </DoubleVectorProperty>
+     <IntVectorProperty
+		 name="Ramp"
+         number_of_elements="1"
+		 default_values="0"
+		 immediate_update="1"
+        command="SetRamp">
+      </IntVectorProperty>
    </SourceProxy>
  </ProxyGroup>
 </ServerManagerConfiguration>

@@ -179,8 +179,8 @@ void EspinaMainWindow::loadData(pqPipelineSource *source)
 	pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
 	pqServer * server= pqActiveObjects::instance().activeServer();
 	QStringList file;
-	file << "/home/lokifacio/Stacks/peque.mha";
-	//file << "/home/lokifacio/Stacks/segmentita.mha";
+	//file << "/home/jorge/Stacks/peque.mha";
+	file << "/home/jorge/Stacks/segmentita.mha";
 	fakeSeg = ob->createReader("sources","MetaImageReader",file,server);
 	fakeSeg->updatePipeline();
 	m_segmentations = new SegmentedObject(fakeSeg);

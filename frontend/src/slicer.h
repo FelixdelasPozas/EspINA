@@ -5,6 +5,7 @@
 
 class Stack;
 class Segmentation;
+class vtkImageMapToColors;
 
 enum SlicePlane 
 {
@@ -102,8 +103,10 @@ private:
 private:
 	Stack *m_background;
 	pqPipelineSource *m_bgSlicer;
-	QList<Segmentation *> *m_inputs;
+	pqPipelineSource *m_bgMapper;
+	QList<Segmentation *> *m_segmentations;
 	QList<pqPipelineSource *> *m_slicers;
+	QList<pqPipelineSource *> *m_sliceMappers;
 	pqPipelineSource *m_blender;
 	SlicePlane m_plane;
 	bool m_blending;
