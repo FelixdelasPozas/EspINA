@@ -96,7 +96,7 @@ void SliceBlender::setBackground ( Stack* stack )
 	
 	// Set the greyLUT for the slicemapper
 	vtkSMProxyProperty *lut = vtkSMProxyProperty::SafeDownCast(
-	  m_bgMapper->getProxy()->GetProperty("LUT"));
+	  m_bgMapper->getProxy()->GetProperty("LookupTable"));
 	if (lut)
 	{
 	  lut->SetProxy(0,greyLUT->getProxy());
@@ -161,7 +161,14 @@ void SliceBlender::addSegmentation ( Segmentation* seg )
 	  ->getLookupTable(server,QString("SegmentationsLUT"),4,0);
 	if (segLUT)
 	{
-	  //std::cout << "ScalarToColors\n";
+	  vtkSMIntVectorProperty *colorSpace = vtkSMIntVectorProperty::SafeDownCast(
+	    segLUT->getProxy()->GetProperty("ColorSpace"));
+	    if (colorSpace)
+	      colorSpace->SetElements1(0);
+	  segLUT->getProxy()->UpdateVTKObjects();
+	  
+	  //std::cout << "Seg LUT\n";
+	  //segLUT->getProxy()->PrintSelf(std::cout,vtkIndent(5));
 	  vtkSMDoubleVectorProperty *rgbs = vtkSMDoubleVectorProperty::SafeDownCast(
 	    segLUT->getProxy()->GetProperty("RGBPoints"));
 	    if (rgbs)
@@ -177,7 +184,7 @@ void SliceBlender::addSegmentation ( Segmentation* seg )
 	
 	// Set the greyLUT for the slicemapper
 	vtkSMProxyProperty *lut = vtkSMProxyProperty::SafeDownCast(
-	  sliceMapper->getProxy()->GetProperty("LUT"));
+	  sliceMapper->getProxy()->GetProperty("LookupTable"));
 	if (lut)
 	{
 	  lut->SetProxy(0,segLUT->getProxy());

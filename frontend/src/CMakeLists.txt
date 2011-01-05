@@ -45,6 +45,7 @@ SET(Espina_SOURCE_FILES
   slicer.cpp
   volumeWidget.cpp
   iPixelSelector.cpp
+  distance.cpp
   ${MOC_BUILT_SOURCES}
   ${UI_BUILT_SOURCES}
   ${RCC_BUILT_SOURCES}

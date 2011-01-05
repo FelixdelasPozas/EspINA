@@ -60,6 +60,7 @@
     <property name="title">
      <string>&amp;View</string>
     </property>
+    <addaction name="actionUnits"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="tearOffEnabled">
@@ -192,6 +193,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Y</string>
+   </property>
+  </action>
+  <action name="actionUnits">
+   <property name="text">
+    <string>Units</string>
    </property>
   </action>
  </widget>

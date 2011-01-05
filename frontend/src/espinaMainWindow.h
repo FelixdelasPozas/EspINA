@@ -1,3 +1,4 @@
+
 /*=========================================================================
 
    Program: Espina
@@ -36,6 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 //Necessary to use Planes enumeration
 #include "slicer.h"
+#include "distance.h"
 
 // Qt
 #include <QString>
@@ -79,6 +81,7 @@ private:
   SliceBlender *m_planes[SLICE_PLANE_LAST+1];
   SliceWidget *m_xy, *m_yz, *m_xz;
   VolumeWidget *m_3d;
+  DistUnit m_unit;
 };
 
 #endif //ESPINA_MAIN_WINDOW_H

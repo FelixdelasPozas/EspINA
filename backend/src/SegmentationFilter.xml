@@ -129,7 +129,7 @@
            </DataTypeDomain>
       </InputProperty>
      <ProxyProperty
-        name="LUT"
+        name="LookupTable"
         command="SetLookupTable">
       </ProxyProperty>
    </SourceProxy>

@@ -38,6 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "slicer.h"
 #include "volumeWidget.h"
 #include "stack.h"
+#include "distance.h"
 
 //ParaQ includes
 #include "pqHelpReaction.h"
@@ -83,6 +84,8 @@ EspinaMainWindow::EspinaMainWindow()
 	: m_xy(NULL)
 	, m_yz(NULL)
 	, m_xz(NULL)
+	, m_3d(NULL)
+	, m_unit(NM)
 {
   this->Internals = new pqInternals();
   this->Internals->setupUi(this);

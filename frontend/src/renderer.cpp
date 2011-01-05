@@ -61,14 +61,14 @@ void MeshRenderer::render( Segmentation* seg, pqRenderView* view)
 	  color->SetElements3(0,1,0);
 	}
 	
-	//TODO: Create individual properties?
-	// Opacity
-	vtkSMDoubleVectorProperty *opacity = vtkSMDoubleVectorProperty::SafeDownCast(
-	  rep->getProxy()->GetProperty("Opacity"));
-	if (opacity)
-	{
-	  opacity->SetElements1(0.2); 
-	}
+// 	//TODO: Create individual properties?
+// 	// Opacity
+// 	vtkSMDoubleVectorProperty *opacity = vtkSMDoubleVectorProperty::SafeDownCast(
+// 	  rep->getProxy()->GetProperty("Opacity"));
+// 	if (opacity)
+// 	{
+// 	  opacity->SetElements1(0.2); 
+// 	}
 	
 	repProxy->UpdateVTKObjects();
 }
