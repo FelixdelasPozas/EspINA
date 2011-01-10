@@ -198,7 +198,7 @@ void EspinaMainWindow::loadData(pqPipelineSource *source)
 	{
 		m_planes[plane]->setBackground(stack);
 		m_planes[plane]->addSegmentation(m_segmentations);
-		m_3d->setPlane(m_planes[plane]->getOutput(),plane);
+		m_3d->setPlane(m_planes[plane],plane);
 		connect(m_planes[plane],SIGNAL(updated()),m_3d,SLOT(updateRepresentation()));
 	}
 	
