@@ -2,6 +2,7 @@
 #include <QList>
 
 //Forward declaration
+class SliceBlender;
 class pqRenderView;
 class QWidget;
 class QToolButton;
@@ -39,7 +40,7 @@ public:
 
 	pqRenderView *getView(){return m_view;}
 	// Set axial plane's input
-	void setPlane(pqOutputPort *opPort, const SlicePlane plane);
+	void setPlane(SliceBlender *slice, const SlicePlane plane);
 
 	//void showSource(pqOutputPort *opPort, Rep3D rep);
 	void setValidActors(const QList<Actor *> *segmentations) {m_valid = segmentations;}
@@ -75,7 +76,7 @@ private:
 	bool m_showPlanes;
 	bool m_showActors;
 	Renderer *m_renderer;
-	pqOutputPort *m_planes[SLICE_AXIS_LAST+1];
+	SliceBlender *m_planes[SLICE_AXIS_LAST+1];
 
 	const QList<Actor *> *m_valid;
 	const QList<Actor *> *m_rejected;

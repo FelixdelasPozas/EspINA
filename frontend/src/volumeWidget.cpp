@@ -1,5 +1,6 @@
 #include "volumeWidget.h"
 #include "renderer.h"
+#include "slicer.h"
 
 #include "pqRenderView.h"
 #include "pqApplicationCore.h"
@@ -91,10 +92,10 @@ VolumeWidget::~VolumeWidget()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeWidget::setPlane(pqOutputPort *opPort, const SlicePlane plane)
+void VolumeWidget::setPlane(SliceBlender *slice, const SlicePlane plane)
 {
-	if (opPort)
-		m_planes[plane] = opPort;
+	if (slice)
+		m_planes[plane] = slice;
 	//TODO: Manage previous plane if existen?
 }
 
@@ -126,7 +127,19 @@ void VolumeWidget::disconnectFromServer()
 
 void VolumeWidget::updateRepresentation()
 {
-	if (m_valid)
+    pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+    pqRepresentation *rep;
+    foreach(rep,m_view->getRepresentations())
+    {
+      rep->setVisible(false);
+    }
+    for (SlicePlane plane = SLICE_PLANE_FIRST; 
+	 plane <= SLICE_PLANE_LAST; 
+         plane=SlicePlane(plane+1))
+	 dp->setRepresentationVisibility(m_planes[plane]->getOutput(),m_view,m_showPlanes);
+	  
+    // If there are segmentations
+	if (m_valid)  
 	{
 	  Segmentation *seg;
 	  foreach(seg,*m_valid)
@@ -154,7 +167,7 @@ void VolumeWidget::showPlanes(bool value)
 	for (SlicePlane plane = SLICE_PLANE_FIRST; 
 			plane <= SLICE_PLANE_LAST; 
 			plane=SlicePlane(plane+1))
-		dp->setRepresentationVisibility(m_planes[plane],m_view,m_showPlanes);
+		dp->setRepresentationVisibility(m_planes[plane]->getOutput(),m_view,m_showPlanes);
 	updateRepresentation();
 }
 

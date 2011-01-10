@@ -39,6 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "volumeWidget.h"
 #include "stack.h"
 #include "distance.h"
+#include "unitExplorer.h"
 
 //ParaQ includes
 #include "pqHelpReaction.h"
@@ -116,6 +117,8 @@ EspinaMainWindow::EspinaMainWindow()
 
   //// Setup the View menu. This must be setup after all toolbars and dockwidgets
   //// have been created.
+  m_unitExplorer = new UnitExplorer();
+  connect(this->Internals->actionUnits,SIGNAL(triggered()),m_unitExplorer,SLOT(show()));
   pqParaViewMenuBuilders::buildViewMenu(*this->Internals->menu_View, *this);
 
   //// Setup the help menu.
@@ -195,7 +198,7 @@ void EspinaMainWindow::loadData(pqPipelineSource *source)
 	{
 		m_planes[plane]->setBackground(stack);
 		m_planes[plane]->addSegmentation(m_segmentations);
-		m_3d->setPlane(m_planes[plane]->getOutput(),plane);
+		m_3d->setPlane(m_planes[plane],plane);
 		connect(m_planes[plane],SIGNAL(updated()),m_3d,SLOT(updateRepresentation()));
 	}
 	

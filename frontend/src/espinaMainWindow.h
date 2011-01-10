@@ -51,6 +51,7 @@ class SliceWidget;
 class VolumeWidget;
 class Segmentation;
 class Stack;
+class UnitExplorer;
 
 /// MainWindow for the default ParaView application.
 class EspinaMainWindow : public QMainWindow
@@ -82,6 +83,7 @@ private:
   SliceWidget *m_xy, *m_yz, *m_xz;
   VolumeWidget *m_3d;
   DistUnit m_unit;
+  UnitExplorer *m_unitExplorer;
 };
 
 #endif //ESPINA_MAIN_WINDOW_H
