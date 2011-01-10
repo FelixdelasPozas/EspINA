@@ -14,6 +14,11 @@
 #include <vtkSMPVLookupTableProxy.h>
 
 #include <QDebug>
+#include <vtkSMProxyProperty.h>
+#include "vtkSMProxyProperty.h"
+#include "vtkImageMapToColors.h"
+#include <pqPQLookupTableManager.h>
+#include <pqScalarsToColors.h>
 
 enum Rep3D 
 {
@@ -31,14 +36,14 @@ MeshRenderer *MeshRenderer::m_singleton = NULL;
 void MeshRenderer::hide ( Segmentation* seg, pqRenderView* view )
 {
 	pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-	pqDataRepresentation *dr = dp->setRepresentationVisibility(seg->data(),view,false);
+	pqDataRepresentation *dr = dp->setRepresentationVisibility(seg->outPut(),view,false);
 }
 
 
 void MeshRenderer::render( Segmentation* seg, pqRenderView* view)
 {
 	pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-	pqDataRepresentation *dr = dp->setRepresentationVisibility(seg->data(),view,true);
+	pqDataRepresentation *dr = dp->setRepresentationVisibility(seg->outPut(),view,true);
 	pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
 	
 	assert(rep);
@@ -46,6 +51,7 @@ void MeshRenderer::render( Segmentation* seg, pqRenderView* view)
 	rep->setRepresentation(SURFACE);
 	
 	vtkSMProxy *repProxy = rep->getProxy();
+	
 	
 	vtkSMDoubleVectorProperty *color = vtkSMDoubleVectorProperty::SafeDownCast(
 	  repProxy->GetProperty("DiffuseColor"));
@@ -55,14 +61,14 @@ void MeshRenderer::render( Segmentation* seg, pqRenderView* view)
 	  color->SetElements3(0,1,0);
 	}
 	
-	//TODO: Create individual properties?
-	// Opacity
-	vtkSMDoubleVectorProperty *opacity = vtkSMDoubleVectorProperty::SafeDownCast(
-	  rep->getProxy()->GetProperty("Opacity"));
-	if (opacity)
-	{
-	  opacity->SetElements1(0.2); 
-	}
+// 	//TODO: Create individual properties?
+// 	// Opacity
+// 	vtkSMDoubleVectorProperty *opacity = vtkSMDoubleVectorProperty::SafeDownCast(
+// 	  rep->getProxy()->GetProperty("Opacity"));
+// 	if (opacity)
+// 	{
+// 	  opacity->SetElements1(0.2); 
+// 	}
 	
 	repProxy->UpdateVTKObjects();
 }
@@ -100,14 +106,14 @@ Renderer *VolumeRenderer::renderer()
 void VolumeRenderer::hide ( Segmentation* seg, pqRenderView* view )
 {
 	pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-	pqDataRepresentation *dr = dp->setRepresentationVisibility(seg->data(),view,false);
+	pqDataRepresentation *dr = dp->setRepresentationVisibility(seg->outPut(),view,false);
 }
 
 
 void VolumeRenderer::render ( Segmentation* seg, pqRenderView* view )
 {
 	pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-	pqDataRepresentation *dr = dp->setRepresentationVisibility(seg->data(),view,true);
+	pqDataRepresentation *dr = dp->setRepresentationVisibility(seg->outPut(),view,true);
 	pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
 	//qDebug() << "Total Rep: " << view->getRepresentations().size();
 	
@@ -117,22 +123,45 @@ void VolumeRenderer::render ( Segmentation* seg, pqRenderView* view )
 	
 	vtkSMProxy *repProxy = rep->getProxy();
 	
-	vtkSMPVLookupTableProxy *lut = vtkSMPVLookupTableProxy::SafeDownCast(
-		  rep->getLookupTableProxy());
-	
+	// Get (or create if it doesn't exit) the lut for the segmentations' images
+	pqServer *server =  pqApplicationCore::instance()->getActiveServer();
+	pqScalarsToColors *segLUT = pqApplicationCore::instance()->getLookupTableManager()
+	  ->getLookupTable(server,QString("SegmentationsLUT"),4,0);
+	if (segLUT)
+	{
+	  //std::cout << "ScalarToColors\n";
+	  vtkSMDoubleVectorProperty *rgbs = vtkSMDoubleVectorProperty::SafeDownCast(
+	    segLUT->getProxy()->GetProperty("RGBPoints"));
+	    if (rgbs)
+	    {
+	      // TODO: Use segmentation's information
+	      double colors[8] = {0,0,0,0,1,0,0,1};
+	      rgbs->SetElements(colors);
+	    }
+	  segLUT->getProxy()->UpdateVTKObjects();
+	}
+	vtkSMProxyProperty *lut = vtkSMProxyProperty::SafeDownCast(repProxy->GetProperty("LookupTable"));
 	if (lut)
 	{
-		lut->UpdatePropertyInformation();
-		vtkSMDoubleVectorProperty *rgbs = vtkSMDoubleVectorProperty::SafeDownCast(
-		  lut->GetProperty("RGBPoints"));
-		
-		if (rgbs)
-		{
-		  // TODO: Use segmentation's information
-		  double colors[8] = {0,0,0,0,1,1,1,1}; 
-		  rgbs->SetElements(colors);
-		}
+	  lut->SetProxy(0,segLUT->getProxy());
 	}
+	
+// 	vtkSMPVLookupTableProxy *lut = vtkSMPVLookupTableProxy::SafeDownCast(
+// 		  rep->getLookupTableProxy());
+// 	
+// 	if (lut)
+// 	{
+// 		lut->UpdatePropertyInformation();
+// 		vtkSMDoubleVectorProperty *rgbs = vtkSMDoubleVectorProperty::SafeDownCast(
+// 		  lut->GetProperty("RGBPoints"));
+// 		
+// 		if (rgbs)
+// 		{
+// 		  // TODO: Use segmentation's information
+// 		  double colors[8] = {0,0,0,0,1,1,1,1}; 
+// 		  rgbs->SetElements(colors);
+// 		}
+// 	}
 	repProxy->UpdateVTKObjects();
 }
 

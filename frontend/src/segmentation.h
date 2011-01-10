@@ -28,7 +28,8 @@ protected:
 public:
 	virtual pqPipelineSource *workingStack() = 0;
 	virtual SegmentedObject *objects() = 0;
-	virtual pqOutputPort *data() = 0;
+	virtual pqPipelineSource *data() = 0;
+	virtual pqOutputPort *outPut() = 0;
 };
 
 
@@ -47,7 +48,8 @@ public:
 
 	pqPipelineSource *workingStack();
 	SegmentedObject *objects() {return this;}
-	pqOutputPort *data() {return m_pvOutput;}
+	pqPipelineSource *data() {return m_pvData;}
+	pqOutputPort *outPut() {return m_pvOutput;}
 
 private:
 	Taxonomy semantic;

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>970</width>
+    <width>830</width>
     <height>700</height>
    </rect>
   </property>
@@ -45,7 +45,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>970</width>
+     <width>830</width>
      <height>22</height>
     </rect>
    </property>
@@ -60,6 +60,7 @@
     <property name="title">
      <string>&amp;View</string>
     </property>
+    <addaction name="actionUnits"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="tearOffEnabled">
@@ -79,11 +80,18 @@
      <string>&amp;File</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menuNew">
+    <property name="title">
+     <string>New</string>
+    </property>
+    <addaction name="actionUnits"/>
+   </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Edit"/>
    <addaction name="menu_View"/>
    <addaction name="menuTools"/>
    <addaction name="menu_Help"/>
+   <addaction name="menuNew"/>
   </widget>
   <widget class="QDockWidget" name="pipelineBrowserDock">
    <property name="allowedAreas">
@@ -160,6 +168,9 @@
    <property name="toolTip">
     <string>Turn Visibility On/Off</string>
    </property>
+   <property name="shortcut">
+    <string>Space</string>
+   </property>
   </action>
   <action name="actionUndo">
    <property name="icon">
@@ -189,6 +200,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Y</string>
+   </property>
+  </action>
+  <action name="actionUnits">
+   <property name="text">
+    <string>Units</string>
    </property>
   </action>
  </widget>

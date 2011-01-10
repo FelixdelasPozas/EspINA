@@ -37,6 +37,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "sliceWidget.h"
 #include "slicer.h"
 #include "volumeWidget.h"
+#include "stack.h"
+#include "distance.h"
+#include "unitExplorer.h"
 
 //ParaQ includes
 #include "pqHelpReaction.h"
@@ -82,6 +85,8 @@ EspinaMainWindow::EspinaMainWindow()
 	: m_xy(NULL)
 	, m_yz(NULL)
 	, m_xz(NULL)
+	, m_3d(NULL)
+	, m_unit(NM)
 {
   this->Internals = new pqInternals();
   this->Internals->setupUi(this);
@@ -112,6 +117,8 @@ EspinaMainWindow::EspinaMainWindow()
 
   //// Setup the View menu. This must be setup after all toolbars and dockwidgets
   //// have been created.
+  m_unitExplorer = new UnitExplorer();
+  connect(this->Internals->actionUnits,SIGNAL(triggered()),m_unitExplorer,SLOT(show()));
   pqParaViewMenuBuilders::buildViewMenu(*this->Internals->menu_View, *this);
 
   //// Setup the help menu.
@@ -123,21 +130,24 @@ EspinaMainWindow::EspinaMainWindow()
   //Create ESPINA
   m_segmentation = new EMSegmentation();
   for (SlicePlane plane = SLICE_PLANE_FIRST; plane <= SLICE_PLANE_LAST; plane=SlicePlane(plane+1))
-	  m_planes[SlicePlane(plane)] = new SliceBlender(SlicePlane(plane));
+	  m_planes[plane] = new SliceBlender(plane);
 
   //Create ESPINA views
   m_xy = new SliceWidget(m_planes[SLICE_PLANE_XY]);
   this->setCentralWidget(m_xy);
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_xy,SLOT(connectToServer()));
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_xy,SLOT(disconnectFromServer()));
+  
   m_yz = new SliceWidget(m_planes[SLICE_PLANE_YZ]);
   this->Internals->yzSliceDock->setWidget(m_yz);
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_yz,SLOT(connectToServer()));
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_yz,SLOT(disconnectFromServer()));
+  
   m_xz = new SliceWidget(m_planes[SLICE_PLANE_XZ]);
   this->Internals->xzSliceDock->setWidget(m_xz);
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_xz,SLOT(connectToServer()));
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_xz,SLOT(disconnectFromServer()));
+  
   m_3d = new VolumeWidget();
   this->Internals->volumeDock->setWidget(m_3d);
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_3d,SLOT(connectToServer()));
@@ -161,26 +171,37 @@ EspinaMainWindow::~EspinaMainWindow()
 
 
 //-----------------------------------------------------------------------------
-void EspinaMainWindow::setWorkingStack(pqPipelineSource *source)
-{
-	//TODO: Deal with multiple representations inside the same view
-	//		At the moment, we only display the first one
-	//Set new stack and display it
-	m_segmentation->setStack(source);
-
-	//pqActiveObjects& activeObjects = pqActiveObjects::instance();
-	//activeObjects.setActiveSource(source);
+void EspinaMainWindow::loadData(pqPipelineSource *source)
+{ 
+	//TODO: Remove previous state
 	
+	//TODO: Get filename!
+	Stack *stack = new Stack(source);
+	m_stacks.insert("input",stack);
+	//m_segmentation->setStack(source);
+
+	// Create a fake segmentation to make the tests
+	pqPipelineSource *fakeSeg;
+	pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
+	pqServer * server= pqActiveObjects::instance().activeServer();
+	QStringList file;
+	//file << "/home/jorge/Stacks/peque.mha";
+	file << "/home/jorge/Stacks/segmentita.mha";
+	fakeSeg = ob->createReader("sources","MetaImageReader",file,server);
+	fakeSeg->updatePipeline();
+	m_segmentations = new SegmentedObject(fakeSeg);
+
 	// This updates the visualization pipeline before initializing the slice widgets
-	m_segmentation->visualizationStack()->updatePipeline();
+	//m_segmentation->visualizationStack()->updatePipeline();
+	source->updatePipeline();
 	for (SlicePlane plane = SLICE_PLANE_FIRST; plane <= SLICE_PLANE_LAST; plane=SlicePlane(plane+1))
 	{
-		m_planes[plane]->addInput(m_segmentation->visualizationStack());
-		m_3d->setPlane(m_planes[plane]->getOutput(),plane);
+		m_planes[plane]->setBackground(stack);
+		m_planes[plane]->addSegmentation(m_segmentations);
+		m_3d->setPlane(m_planes[plane],plane);
 		connect(m_planes[plane],SIGNAL(updated()),m_3d,SLOT(updateRepresentation()));
 	}
-		
-	m_segmentations = new SegmentedObject(source);
+	
 	QList<Segmentation *> *validActors = new QList<Segmentation *>;
 	validActors->push_back(m_segmentations);
 	m_3d->setValidActors(validActors);
@@ -193,10 +214,12 @@ void EspinaMainWindow::toggleVisibility(bool visible)
 	this->Internals->toggleVisibility->setIcon(
 			visible?QIcon(":/espina/show_all.svg"):QIcon(":/espina/hide_all.svg")
 			);
-	//TODO: Modificar blenders para redirigir la salida
 	
-	//pqActiveObjects& activeObjects = pqActiveObjects::instance();
-	//m_3d->showSource(activeObjects.activeSource()->getOutputPort(0),SURFACE); 
+  for (SlicePlane plane = SLICE_PLANE_FIRST; plane <= SLICE_PLANE_LAST; plane=SlicePlane(plane+1))
+  {
+	if (m_planes[plane])
+	  m_planes[plane]->setBlending(visible);
+  }
 }
 
 
@@ -207,6 +230,6 @@ void EspinaMainWindow::buildFileMenu(QMenu &menu)
 	QAction *openAction = new QAction(icon,tr("Open"),this);
 	pqLoadDataReaction * loadReaction = new pqLoadDataReaction(openAction);
 	QObject::connect(loadReaction, SIGNAL(loadedData(pqPipelineSource *)),
-		this, SLOT(setWorkingStack(pqPipelineSource *)));
+		this, SLOT( loadData(pqPipelineSource *)));
 	menu.addAction(openAction);
 }
