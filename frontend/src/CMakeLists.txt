@@ -23,6 +23,7 @@ sliceWidget.h
 slicer.h
 volumeWidget.h
 iPixelSelector.h
+selectionManager.h
 )
 
 QT4_WRAP_UI(UI_BUILT_SOURCES
@@ -37,18 +38,10 @@ SOURCE_GROUP("Generated" FILES
 )
 
 
+FILE ( GLOB LOCAL_SOURCES *.cpp )
+
 SET(Espina_SOURCE_FILES
-  espinaMainWindow.cpp
-  emSegmentation.cpp
-  segmentation.cpp
-  renderer.cpp
-  stack.cpp
-  sliceWidget.cpp
-  slicer.cpp
-  volumeWidget.cpp
-  iPixelSelector.cpp
-  distance.cpp
-  unitExplorer.cpp
+  ${LOCAL_SOURCES}
   ${MOC_BUILT_SOURCES}
   ${UI_BUILT_SOURCES}
   ${RCC_BUILT_SOURCES}

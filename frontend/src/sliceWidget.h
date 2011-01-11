@@ -14,6 +14,8 @@ class QVBoxLayout;
 class QHBoxLayout;
 class pqOutputPort;
 
+#include "selectionManager.h"//TODO: Forward declare?
+
 /// Displays a unique slice of a image's stack. 
 /// The slice which is shown can be modified using the widget controls
 class SliceWidget : public QWidget
@@ -36,6 +38,8 @@ protected slots:
 public slots:
 	void connectToServer();
 	void disconnectFromServer();
+signals:
+  void pointSelected(const Point);
 
 private:
 	SliceBlender *m_input;
