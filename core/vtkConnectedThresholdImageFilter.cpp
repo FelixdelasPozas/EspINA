@@ -8,6 +8,7 @@
 #include "itkImage.h"
 #include "itkConnectedThresholdImageFilter.h"
 
+
 vtkStandardNewMacro(vtkConnectedThresholdImageFilter);
 
 
@@ -25,7 +26,7 @@ void applyFilter(vtkImageData* input,
 
   typedef unsigned short SegPixel;
   typedef itk::Image<IT,3> InputImageType;
-  typedef itk::Image<SegPixel,1> OutputImageType;
+  typedef itk::Image<SegPixel,3> OutputImageType;
   
 //   if (input->GetScalarType() != output->GetScalarType())
 //   {
@@ -34,8 +35,8 @@ void applyFilter(vtkImageData* input,
 //     return;
 //   }
   
-  //itkConnectedThresholdImageFilter<InputImageType, OutputImageType> *ctif =
-    //new itkConnectedThresholdImageFilter<InputImageType, OutputImageType>();
+  typename itk::ConnectedThresholdImageFilter<InputImageType, OutputImageType>::Pointer ctif =
+    itk::ConnectedThresholdImageFilter<InputImageType, OutputImageType>::New();
   
   
 }
@@ -50,10 +51,10 @@ void vtkConnectedThresholdImageFilter::SimpleExecute(vtkImageData* input,
     {
     // This is simply a #define for a big case list. It handles all
     // data types VTK supports.
-    vtkTemplateMacro(
-      applyFilter(input, output,
-	static_cast<VTK_TT *>(inPtr), 
-        static_cast<VTK_TT *>(outPtr)));
+     vtkTemplateMacro(
+		      applyFilter<VTK_TT>(input, output,
+					  static_cast<VTK_TT *>(inPtr), 
+					  static_cast<VTK_TT *>(outPtr)));
     
     default:
       vtkGenericWarningMacro("Execute: Unknown input ScalarType");
