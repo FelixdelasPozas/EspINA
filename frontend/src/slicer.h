@@ -63,6 +63,7 @@ public:
 	/// of the filter it can show only the first one (BLENDING_OFF)
 	/// or a slice containing a blend of all the inputs (BLENDING_ON)
 	pqOutputPort *getOutput();
+	pqOutputPort *getBgOutput();
 
 	/// Return the number of slices this filter handles
 	int getNumSlices();

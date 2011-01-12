@@ -133,10 +133,9 @@ void VolumeWidget::updateRepresentation()
     {
       rep->setVisible(false);
     }
-    for (SlicePlane plane = SLICE_PLANE_FIRST; 
-	 plane <= SLICE_PLANE_LAST; 
-         plane=SlicePlane(plane+1))
-	 dp->setRepresentationVisibility(m_planes[plane]->getOutput(),m_view,m_showPlanes);
+    //TODO: Center on selection bounding box or active stack if no selection
+    if (m_showPlanes)
+      dp->setRepresentationVisibility(m_planes[SLICE_AXIS_X]->getBgOutput(),m_view,true);
 	  
     // If there are segmentations
 	if (m_valid)  
@@ -150,6 +149,10 @@ void VolumeWidget::updateRepresentation()
 		  m_renderer->hide(seg,m_view);
 	  }
 	}
+    for (SlicePlane plane = SLICE_PLANE_FIRST; 
+	 plane <= SLICE_PLANE_LAST; 
+         plane=SlicePlane(plane+1))
+	 dp->setRepresentationVisibility(m_planes[plane]->getOutput(),m_view,m_showPlanes);
 	m_view->render();
 }
 

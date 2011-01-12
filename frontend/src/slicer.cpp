@@ -243,6 +243,12 @@ pqOutputPort *SliceBlender::getOutput()
 	  return m_bgSlicer->getOutputPort(0);
 }
 
+pqOutputPort* SliceBlender::getBgOutput()
+{
+  return m_background->data()->getOutputPort(0);
+}
+
+
 int SliceBlender::getNumSlices()
 {
 	return m_extent[2*m_zAxis+1];
