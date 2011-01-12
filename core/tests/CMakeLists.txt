@@ -1,0 +1,15 @@
+SET(TESTS 
+	Pipeline
+)
+
+
+# Include libCajal header files
+INCLUDE_DIRECTORIES (..)
+
+FOREACH(TEST ${TESTS})
+	SET(EXE_NAME Cajal${TEST})
+	ADD_EXECUTABLE(${EXE_NAME} Test${TEST}.cpp)
+	TARGET_LINK_LIBRARIES(${EXE_NAME} vtkRendering Cajal)
+	ADD_TEST(Cajal-${TEST} ${EXECUTABLE_OUTPUT_PATH}/${EXE_NAME})
+ENDFOREACH(TEST)
+
