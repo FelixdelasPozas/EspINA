@@ -15,6 +15,10 @@ ELSE(ITK_FOUND)
         MESSAGE(FATAL_ERROR "ITK not found. Please set ITK_DIR.")
 ENDIF(ITK_FOUND)
 
+SET (ITK_VTK_GLUE "" CACHE PATH "Path to ItkVtkGlue external project")
+
+INCLUDE_DIRECTORIES (${ITK_VTK_GLUE})
+
 
 # 
 FILE ( GLOB CORE_SOURCES *.cpp )

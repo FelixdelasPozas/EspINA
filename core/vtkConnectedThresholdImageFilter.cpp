@@ -7,7 +7,25 @@
 //ITK
 #include "itkImage.h"
 #include "itkConnectedThresholdImageFilter.h"
+#include "itkImageToVTKImageFilter.h"
 
+#define vtkTemplateMyMacro(call)                                              \
+  vtkTemplateMacroCase(VTK_DOUBLE, double, call);                           \
+  vtkTemplateMacroCase(VTK_FLOAT, float, call);                             \
+  //vtkTemplateMacroCase_ll(VTK_LONG_LONG, long long, call)                   \
+  vtkTemplateMacroCase_ll(VTK_UNSIGNED_LONG_LONG, unsigned long long, call) \
+  vtkTemplateMacroCase_si64(VTK___INT64, __int64, call)                     \
+  vtkTemplateMacroCase_ui64(VTK_UNSIGNED___INT64, unsigned __int64, call)   \
+  vtkTemplateMacroCase(VTK_ID_TYPE, vtkIdType, call);                       \
+  vtkTemplateMacroCase(VTK_LONG, long, call);                               \
+  vtkTemplateMacroCase(VTK_UNSIGNED_LONG, unsigned long, call);             \
+  vtkTemplateMacroCase(VTK_INT, int, call);                                 \
+  vtkTemplateMacroCase(VTK_UNSIGNED_INT, unsigned int, call);               \
+  vtkTemplateMacroCase(VTK_SHORT, short, call);                             \
+  vtkTemplateMacroCase(VTK_UNSIGNED_SHORT, unsigned short, call);           \
+  vtkTemplateMacroCase(VTK_CHAR, char, call);                               \
+  vtkTemplateMacroCase(VTK_SIGNED_CHAR, signed char, call);                 \
+  vtkTemplateMacroCase(VTK_UNSIGNED_CHAR, unsigned char, call)
 
 vtkStandardNewMacro(vtkConnectedThresholdImageFilter);
 
@@ -37,6 +55,10 @@ void applyFilter(vtkImageData* input,
   
   typename itk::ConnectedThresholdImageFilter<InputImageType, OutputImageType>::Pointer ctif =
     itk::ConnectedThresholdImageFilter<InputImageType, OutputImageType>::New();
+    
+  
+    
+    
   
   
 }
@@ -51,7 +73,7 @@ void vtkConnectedThresholdImageFilter::SimpleExecute(vtkImageData* input,
     {
     // This is simply a #define for a big case list. It handles all
     // data types VTK supports.
-     vtkTemplateMacro(
+     vtkTemplateMyMacro(
 		      applyFilter<VTK_TT>(input, output,
 					  static_cast<VTK_TT *>(inPtr), 
 					  static_cast<VTK_TT *>(outPtr)));

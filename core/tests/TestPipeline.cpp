@@ -6,6 +6,7 @@
 #include "vtkCamera.h"
 #include "vtkRenderWindow.h"
 #include "vtkConnectedThresholdImageFilter.h"
+#include "vtkConnectedThresholdRegionGrowImageFilter.h"
 
 
 #include <cstdio>
@@ -18,8 +19,8 @@ int main(int argc, char **argv)
     
   reader.GetPointer()->SetFileName("/home/jorge/Stacks/peque.mha");
   // Pasarle el filtro que queremos probar
-  vtkSmartPointer<vtkConnectedThresholdImageFilter> segmentation =
-    vtkSmartPointer<vtkConnectedThresholdImageFilter>::New();
+  vtkSmartPointer<vtkConnectedThresholdRegionGrowImageFilter> segmentation =
+    vtkSmartPointer<vtkConnectedThresholdRegionGrowImageFilter>::New();
     
   segmentation->SetInputConnection(reader->GetOutputPort());
   

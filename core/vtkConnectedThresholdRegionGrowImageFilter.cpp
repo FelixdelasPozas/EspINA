@@ -4,9 +4,9 @@
 #include "vtkImageData.h"
 #include "vtkObjectFactory.h"
 
-#include "itkImage.h"
+//#include "itkImage.h"
 
-typedef itk::Image<char,2> ImageType;
+//typedef itk::Image<char,2> ImageType;
 
 vtkStandardNewMacro(vtkConnectedThresholdRegionGrowImageFilter);
 
@@ -33,7 +33,7 @@ void vtkSimpleImageFilterExampleExecute(vtkImageData* input,
 
   for(int i=0; i<size; i++)
     {
-    outPtr[i] = inPtr[i];
+    outPtr[i] = 255 - inPtr[i];
     }
 }
 
