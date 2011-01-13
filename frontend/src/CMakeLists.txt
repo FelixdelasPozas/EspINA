@@ -3,9 +3,11 @@ INCLUDE(${PARAVIEW_USE_FILE})
 
 #FIND_PACKAGE(Cajal)
 
-INCLUDE_DIRECTORIES(.)
 INCLUDE_DIRECTORIES(
+	.
+	../../common/src
 	#${Cajal_INCLUDE_DIR}
+	
 	${CMAKE_CURRENT_BINARY_DIR}
 	${CMAKE_CURRENT_BINARY_DIR}
   )
@@ -22,8 +24,6 @@ emSegmentation.h
 sliceWidget.h
 slicer.h
 volumeWidget.h
-iPixelSelector.h
-selectionManager.h
 )
 
 QT4_WRAP_UI(UI_BUILT_SOURCES
@@ -74,4 +74,4 @@ build_paraview_client(espina
 	#INSTALL_LIB_DIR "${PV_INSTALL_LIB_DIR}"
 )
 
-#target_link_libraries (espina ${Cajal_LIBRARIES})
+target_link_libraries (espina Espina ${Cajal_LIBRARIES})

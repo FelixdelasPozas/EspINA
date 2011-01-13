@@ -36,7 +36,7 @@ SelectionManager::SelectionManager()
 //------------------------------------------------------------------------
 void SelectionManager::setSelectionHandler(ISelectionHandler* sh)
 {
-  if (m_sh)
+  if (m_sh && m_sh != sh)
     m_sh->abortSelection();
   m_sh = sh;
 }

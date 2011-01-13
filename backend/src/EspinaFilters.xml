@@ -4,21 +4,11 @@
        a filter already in ParaView (in Servers/ServerManager/Resources/*.xml)
        that matches your filter and then model your xml on it -->
   <ProxyGroup name="filters">
-   <SourceProxy name="SegmentationFilter" class="vtkSegmentationFilter" label="ESPINA Segmentation">
+   <SourceProxy name="SeedGrowingSegmentationFilter" class="vtkSegmentationFilter" label="Seed Growing Segmentation Filter">
      <Documentation
-        long_help="Create point attribute array by projecting points onto an elevation vector."
-        short_help="Create a point array representing elevation.">
-          The Elevation filter generates point scalar values for an input data
-          set along a specified direction vector. The Input menu allows the user
-          to select the data set to which this filter will be applied. The Low
-          Point and High Point define a line onto which each point of the data
-          set is projected. The minimum scalar value is associated with the Low
-          Point, and the maximum scalar value is associated with the High Point.
-          The scalar value for each point in the data set is determined by the
-          location along the line to which that point projects.
-
-          The line can be specified interactively using the 3D line widget. See
-          section 7.4 for more information about this widget.
+		 long_help="Build a new segmentation using a seed growing filter"
+		 short_help="Build a new segmentation using a seed growing filter">
+		 This is the original itk implementation
      </Documentation>
      <InputProperty
         name="Input"
@@ -31,49 +21,13 @@
              <DataType value="vtkImageData"/>
            </DataTypeDomain>
       </InputProperty>
-
-      <IntVectorProperty
-         name="VOI"
-         label="Volume Of Interest"
-         command="SetVOI"
-         number_of_elements="6"
-         animateable="1"
-         default_values="100 200 100 200 50 100" >
-		 <!--BoundsDomain name="range" mode="normal" default_mode="min" >
-           <RequiredProperties>
-             <Property name="Input" function="Input" />
-           </RequiredProperties>
-         </BoundsDomain-->
-         <Documentation>
-           Define one end of the line (small scalar values). Default is (0,0,0).
-         </Documentation>
-      </IntVectorProperty>
-	  
-	  <IntVectorProperty
-         name="SampleRate"
-         label="Sample Rates"
-         command="SetSampleRate"
-         number_of_elements="3"
-         animateable="0"
-         default_values="1 1 1" >
-		 <!--BoundsDomain name="range" mode="normal" default_mode="min" >
-           <RequiredProperties>
-             <Property name="Input" function="Input" />
-           </RequiredProperties>
-         </BoundsDomain-->
-         <Documentation>
-           Define one end of the line (small scalar values). Default is (0,0,0).
-         </Documentation>
-      </IntVectorProperty>
-
-      <!--Hints>
-        <PropertyGroup type="Line" label="My Elevation Widget">
-          <Property function="Point1WorldPosition" name="LowPoint" />
-          <Property function="Point2WorldPosition" name="HighPoint" />
-        </PropertyGroup>
-      </Hints-->
    <!-- End SegmentationFilter -->
    </SourceProxy>
+
+   <!-- ************************************************ -->
+   <!-- HERE BEGINS THOSE PLUGINS REQUIRED BY THE CLIENT -->
+   <!--    TODO: They must be compiled with the client   -->
+   <!-- ************************************************ -->
 
    <SourceProxy name="ImageSlicer" class="vtkPVImageSlicer" label="ImageSlicer">
      <Documentation

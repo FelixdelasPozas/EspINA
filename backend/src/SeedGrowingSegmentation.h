@@ -1,3 +1,4 @@
+
 /*=========================================================================
 
    Program: ParaView
@@ -29,29 +30,46 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
-#ifndef SEGMENTATION_TOOLBAR_ACTIONS_H
-#define SEGMENTATION_TOOLBAR_ACTIONS_H
+#ifndef SEEDGROWINGSEGMENTATION_H
+#define SEEDGROWINGSEGMENTATION_H
 
-#include <QActionGroup>
+#include "iSegmentationPlugin.h"
+#include "interfaces.h"
 
 //Forward declarations
 class QSpinBox;
+class QToolButton;
+class IPixelSelector;
 
-/// This plugin adds the Segmentation toolbar to ESPINA
-
-class SegmentationToolbarActions : public QActionGroup
+//! Seed Growing Segmenation Plugin
+class SeedGrowingSegmentation : public ISegmentationPlugin, public ISelectionHandler
 {
   Q_OBJECT
 public:
-  SegmentationToolbarActions(QObject* p);
-
+  SeedGrowingSegmentation(QObject* parent);
+  
+  //! Implements ISelectionHandler interface
+  void handle(const Selection sel);
+  void abortSelection();
+  
 public slots:
   /// Callback for each action triggerred.
-  void onAction(QAction* a);
-
+  void onAction(QAction* action);
+  void setActive(bool active);
+  
+signals:
+  virtual void segmentationCreated();
+  void waitingSelection(ISelectionHandler *);
+  void selectionAborted(ISelectionHandler *);
+  
+private:
+  void buildUI();
+  
 private:
   QSpinBox *m_threshold;
+  QToolButton *m_addSeed;
+  IPixelSelector *m_selector;
 };
 
-#endif// SEGMENTATION_TOOLBAR_ACTIONS_H
+#endif// SEEDGROWINGSEGMENTATION_H
 
