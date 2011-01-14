@@ -13,12 +13,10 @@
 
 int main(int argc, char **argv)
 {
-  //TODO: Cambiar esto por un reader de peque.mha
   vtkSmartPointer<vtkMetaImageReader> reader =
     vtkSmartPointer<vtkMetaImageReader>::New();
-    
-  //reader.GetPointer()->SetFileName("/home/jfernandez/workspace/bbp_workflow/data_experiments/Espina_files/peque.mha");
-  reader->SetFileName("/home/sets/Serie2_electronico/02 JPGs_Stack_affine_crop_239-353/stacks/peque.mha");
+
+  reader->SetFileName(argv[1]);
   // Pasarle el filtro que queremos probar
   vtkSmartPointer<vtkConnectedThresholdImageFilter> segmentation =
     vtkSmartPointer<vtkConnectedThresholdImageFilter>::New();

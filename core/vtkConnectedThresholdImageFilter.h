@@ -8,6 +8,7 @@ class VTK_IMAGING_EXPORT vtkConnectedThresholdImageFilter :
 {
 public:
     static vtkConnectedThresholdImageFilter *New();
+	vtkTypeMacro(vtkConnectedThresholdImageFilter,vtkSimpleImageToImageFilter); 
     
     //! Gray level segmentation threshlod
     vtkSetMacro(m_threshold,double);
