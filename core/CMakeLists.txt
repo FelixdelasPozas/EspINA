@@ -30,7 +30,7 @@ ADD_LIBRARY (Cajal ${CORE_SOURCES} )
 
 # Maybe the target_link_libraries command is optional...
 # (I think it depends if we use shared libraries)
-TARGET_LINK_LIBRARIES (Cajal ITKCommon)
+TARGET_LINK_LIBRARIES (Cajal ITKCommon ITKBasicFilters ITKAlgorithms )
 
 ADD_SUBDIRECTORY(tests)
 
