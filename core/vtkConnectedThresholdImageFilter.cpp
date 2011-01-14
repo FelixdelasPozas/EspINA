@@ -6,8 +6,11 @@
 
 //ITK
 #include "itkImage.h"
+#include "itkVTKImageToImageFilter.h"
 #include "itkConnectedThresholdImageFilter.h"
 #include "itkImageToVTKImageFilter.h"
+#include <algorithm>
+
 
 #define vtkTemplateMyMacro(call)                                              \
   vtkTemplateMacroCase(VTK_DOUBLE, double, call);                           \
@@ -34,32 +37,78 @@ vtkStandardNewMacro(vtkConnectedThresholdImageFilter);
 // the appropriate input type (IT). Note that this example assumes
 // that the output data type is the same as the input data type.
 // This is not always the case.
-template <class IT>
+//template <class IT>
 void applyFilter(vtkImageData* input,
     vtkImageData* output,
-    IT* inPtr, IT* outPtr)
+   // IT* inPtr, IT* outPtr,
+    /*
+    std::vector<IndexType> SeedList,
+    InputImagePixelType    Lower,
+    InputImagePixelType    Upper,
+    OutputImagePixelType   ReplaceValue,
+  
+    */
+    double x, double y, double z,
+    double threshold
+    
+    
+		)
 {
   int dims[3];
   input->GetDimensions(dims);
 
   typedef unsigned short SegPixel;
-  typedef itk::Image<IT,3> InputImageType;
-  typedef itk::Image<SegPixel,3> OutputImageType;
-  
+  typedef itk::Image<unsigned char,1> InputImageType;
+  typedef itk::Image<unsigned char,1> OutputImageType;
+    std::cout << "FLAG applyFilter 1" << std::endl;
 //   if (input->GetScalarType() != output->GetScalarType())
 //   {
 //     vtkGenericWarningMacro(<< "Execute: input ScalarType, " << input->GetScalarType()
 //     << ", must match out ScalarType " << output->GetScalarType());
 //     return;
 //   }
-  
-  typename itk::ConnectedThresholdImageFilter<InputImageType, OutputImageType>::Pointer ctif =
+  //typename 
+  itk::VTKImageToImageFilter<InputImageType>::Pointer vtk2itk_filter =
+    itk::VTKImageToImageFilter<InputImageType>::New();
+    
+ // typename 
+    itk::ConnectedThresholdImageFilter<InputImageType, OutputImageType>::Pointer ctif =
     itk::ConnectedThresholdImageFilter<InputImageType, OutputImageType>::New();
-    
+ 
+  //typename 
+  itk::ImageToVTKImageFilter<OutputImageType>::Pointer itk2vtk_filter =
+    itk::ImageToVTKImageFilter<OutputImageType>::New();
+     
+  vtk2itk_filter->SetInput(input);
+  vtk2itk_filter->Update();
   
-    
-    
+  ctif->SetInput( vtk2itk_filter->GetOutput() );
+  ctif->GetInput()->Print(std::cout);
+  double color = input->GetScalarComponentAsDouble(x, y, z, 0); // No tengo muy claro lo de la componente, aunque está igual que en el de Juan
   
+  ctif->SetReplaceValue(255); // 1 es ya el valor por defecto. Remplaza los valores de los pixeles que se encuentren entre lower y upper.
+  ctif->SetLower(0);//std::max(color - threshold, 0.0));
+  ctif->SetUpper(255); //std::min(color + threshold, 255.0));
+  
+  std::cout << "COLOR: " << color << std::endl << "LOWER: " << ctif->GetLower() << std::endl<< "UPPER: " << ctif->GetUpper() << std::endl;
+  
+  InputImageType::IndexType seed;
+  seed[0] = x;
+  seed[1] = y;
+  seed[2] = z;
+
+   seed2[] = {10, 20, 30};
+  
+  std::cout << "FLAG applyFilter 2" << std::endl;
+  std::cout << x << " " << y << " " << z << std::endl;
+  std::cout << seed[0] << " " << seed[1] << " " << seed[2] << std::endl;
+  
+  ctif->AddSeed( seed2 );
+  std::cout << "FLAG applyFilter 3" << std::endl;
+  itk2vtk_filter->SetInput( vtk2itk_filter->GetOutput() );//ctif->GetOutput() );
+  itk2vtk_filter->Update();
+  
+  output->ShallowCopy( itk2vtk_filter->GetOutput() );
   
 }
 
@@ -69,19 +118,31 @@ void vtkConnectedThresholdImageFilter::SimpleExecute(vtkImageData* input,
   void* inPtr = input->GetScalarPointer();
   void* outPtr = output->GetScalarPointer();
 
+  std::cerr << "FLAG simpleExecute" << std::endl;
+  
+  	      applyFilter(input, output,
+					  //static_cast<unsigned char *>(inPtr), 
+					  //static_cast<unsigned char *>(outPtr),
+					  m_seed[0], m_seed[1], m_seed[2], m_threshold);
+
+  /*
   switch(output->GetScalarType())
     {
     // This is simply a #define for a big case list. It handles all
     // data types VTK supports.
      vtkTemplateMyMacro(
-		      applyFilter<VTK_TT>(input, output,
+		      applyFilter(input, output,
 					  static_cast<VTK_TT *>(inPtr), 
-					  static_cast<VTK_TT *>(outPtr)));
+					  static_cast<VTK_TT *>(outPtr),
+					  m_seed[0], m_seed[1], m_seed[2], m_threshold)
+ 		      );
     
     default:
       vtkGenericWarningMacro("Execute: Unknown input ScalarType");
       return;
     }
+    */
+  
 }
 
 void vtkConnectedThresholdImageFilter::PrintSelf(ostream& os, vtkIndent indent)

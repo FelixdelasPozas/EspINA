@@ -17,8 +17,11 @@ ENDIF(ITK_FOUND)
 
 SET (ITK_VTK_GLUE "" CACHE PATH "Path to ItkVtkGlue external project")
 
-INCLUDE_DIRECTORIES (${ITK_VTK_GLUE})
-
+INCLUDE_DIRECTORIES (
+  ${ITK_VTK_GLUE}
+#  ${ITK_DIR}/../Code/BasicFilters/
+  )
+#MESSAGE( STATUS "EEEE ${ITK_DIR}\n ${ITK_VTK_GLUE}\n   ${ITK_DIR}/../Code/BasicFilters/itkVTKImageExportBase.h" )
 
 # 
 FILE ( GLOB CORE_SOURCES *.cpp )

@@ -17,12 +17,16 @@ int main(int argc, char **argv)
   vtkSmartPointer<vtkMetaImageReader> reader =
     vtkSmartPointer<vtkMetaImageReader>::New();
     
-  reader.GetPointer()->SetFileName("/home/jorge/Stacks/peque.mha");
+  reader.GetPointer()->SetFileName("/home/jfernandez/workspace/bbp_workflow/data_experiments/Espina_files/peque.mha");
   // Pasarle el filtro que queremos probar
-  vtkSmartPointer<vtkConnectedThresholdRegionGrowImageFilter> segmentation =
-    vtkSmartPointer<vtkConnectedThresholdRegionGrowImageFilter>::New();
+  vtkSmartPointer<vtkConnectedThresholdImageFilter> segmentation =
+    vtkSmartPointer<vtkConnectedThresholdImageFilter>::New();
     
   segmentation->SetInputConnection(reader->GetOutputPort());
+  
+  segmentation->Setm_threshold(200);
+  segmentation->Setm_seed(10,20,30);
+  segmentation->Update();
   
   // Es posible que haya que cambiar el mapper
   //vtkImageMapper *imageMapper = vtkImageMapper::New();
