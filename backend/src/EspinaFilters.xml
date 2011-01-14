@@ -4,7 +4,10 @@
        a filter already in ParaView (in Servers/ServerManager/Resources/*.xml)
        that matches your filter and then model your xml on it -->
   <ProxyGroup name="filters">
-   <SourceProxy name="SeedGrowingSegmentationFilter" class="vtkSegmentationFilter" label="Seed Growing Segmentation Filter">
+	  <!-- SourceProxy name="SeedGrowingSegmentationFilter"
+		  class="vtkConnectedThresholdRegionGrowImageFilter" 
+		  label="Seed Growing Segmentation Filter"-->
+	   <SourceProxy name="SeedGrowingSegmentationFilter" class="vtkConnectedThresholdImageFilter" label="Seed Growing Segmentation Filter" >
      <Documentation
 		 long_help="Build a new segmentation using a seed growing filter"
 		 short_help="Build a new segmentation using a seed growing filter">

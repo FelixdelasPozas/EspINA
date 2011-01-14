@@ -1,11 +1,20 @@
 FIND_PACKAGE(ParaView REQUIRED)
 INCLUDE(${PARAVIEW_USE_FILE})
 
+FIND_PACKAGE(VTK REQUIRED)
+INCLUDE(${VTK_USE_FILE})
+
+FIND_PACKAGE(ITK REQUIRED)
+INCLUDE(${ITK_USE_FILE})
+
+SET (ITK_VTK_GLUE "" CACHE PATH "Path to ItkVtkGlue external project")
+
 FIND_PACKAGE(Cajal REQUIRED)
 
 INCLUDE_DIRECTORIES(
 	../../common/src/
-	${CAJAL_INCLUDE_DIR}
+	${CAJAL_INCLUDE_DIR}/core
+	${ITK_VTK_GLUE}
 	)
 
 
@@ -28,13 +37,20 @@ SET(PLUGIN_SRCS
 	${MOC_SRCS} 
 	)
 
+SET (PARAVIEW_ADDITIONAL_LIBRARIES
+	     ${PARAVIEW_ADDITIONAL_LIBRARIES}
+		 ${CAJAL_LIBRARIES}
+		 Espina
+		 ITKCommon ITKBasicFilters ITKAlgorithms 
+		 )
+
 # Now crete a plugin for the toolbar. Here we pass IFACES and IFACE_SRCS
 # which are filled up by the above macro with relevant entries
 ADD_PARAVIEW_PLUGIN(
 	Segmentation
 	"0.1" 
 	SERVER_MANAGER_XML EspinaFilters.xml
-	SERVER_MANAGER_SOURCES vtkSegmentationFilter.cpp
+	SERVER_MANAGER_SOURCES vtkConnectedThresholdImageFilter.cpp
 	#According to: http://markmail.org/message/wj27wmlj6rjd7vg5
 	# - See the macro documentation in ParaView/CMake/ParaViewPlugins.cmake:~835
 	# - the parser doesn't work because it seems there is no vtkClass inside
@@ -45,4 +61,4 @@ ADD_PARAVIEW_PLUGIN(
 	GUI_INTERFACES ${IFACES} 
 	)
 
-target_link_libraries (Segmentation Espina)
+target_link_libraries (Segmentation ${PARAVIEW_ADDITIONAL_LIBRARIES})
