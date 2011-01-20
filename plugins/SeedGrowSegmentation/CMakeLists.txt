@@ -1,3 +1,15 @@
+project (ESPINA_SEEDGROW_PLUGIN)
+
+cmake_minimum_required (VERSION 2.6)
+
+find_package (Qt4 REQUIRED)
+
+#TODO: load only qt  
+if (QT4_FOUND)
+   include (${QT_USE_FILE})
+endif (QT4_FOUND)
+
+
 FIND_PACKAGE(ParaView REQUIRED)
 INCLUDE(${PARAVIEW_USE_FILE})
 
@@ -12,13 +24,14 @@ SET (ITK_VTK_GLUE "" CACHE PATH "Path to ItkVtkGlue external project")
 FIND_PACKAGE(Cajal REQUIRED)
 
 INCLUDE_DIRECTORIES(
-	../../common/src/
+	../../common/src
 	${CAJAL_INCLUDE_DIR}/core
 	${ITK_VTK_GLUE}
 	)
 
 
-QT4_ADD_RESOURCES(RCC_BUILT_SOURCES ../rsc/segmentation.qrc)
+QT4_ADD_RESOURCES(RCC_BUILT_SOURCES 
+	rsc/segmentation.qrc)
 
 # We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
 QT4_WRAP_CPP(MOC_SRCS 
@@ -49,7 +62,7 @@ SET (PARAVIEW_ADDITIONAL_LIBRARIES
 ADD_PARAVIEW_PLUGIN(
 	Segmentation
 	"0.1" 
-	SERVER_MANAGER_XML EspinaFilters.xml
+	SERVER_MANAGER_XML SeedGrowSegmentation.xml
 	SERVER_MANAGER_SOURCES vtkConnectedThresholdImageFilter.cpp
 	#According to: http://markmail.org/message/wj27wmlj6rjd7vg5
 	# - See the macro documentation in ParaView/CMake/ParaViewPlugins.cmake:~835
