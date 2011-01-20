@@ -8,7 +8,7 @@ INCLUDE_DIRECTORIES (..)
 
 SET(LIB_DEPENDECIES
   vtkRendering
-  Cajal
+  CajalFilters
 )
 
 SET (STACK_DIR "" CACHE PATH "Path to test Stack's folder")

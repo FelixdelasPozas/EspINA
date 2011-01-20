@@ -1,4 +1,3 @@
-
 # VTK Support
 FIND_PACKAGE(VTK)
 IF(VTK_FOUND)
@@ -26,11 +25,11 @@ INCLUDE_DIRECTORIES (
 # 
 FILE ( GLOB CORE_SOURCES *.cpp )
 
-ADD_LIBRARY (Cajal ${CORE_SOURCES} )
+ADD_LIBRARY (CajalFilters ${CORE_SOURCES} )
 
 # Maybe the target_link_libraries command is optional...
 # (I think it depends if we use shared libraries)
-TARGET_LINK_LIBRARIES (Cajal ITKCommon ITKBasicFilters ITKAlgorithms )
+TARGET_LINK_LIBRARIES (CajalFilters ITKCommon ITKBasicFilters ITKAlgorithms )
 
 ADD_SUBDIRECTORY(tests)
 
