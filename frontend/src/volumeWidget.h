@@ -29,10 +29,10 @@ typedef Segmentation Actor;
 
 class VolumeWidget : public QWidget
 {
-	Q_OBJECT
+  Q_OBJECT
 
 protected:
-		Q_DISABLE_COPY(VolumeWidget)
+  Q_DISABLE_COPY(VolumeWidget)
 
 public:
 	VolumeWidget();

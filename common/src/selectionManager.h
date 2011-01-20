@@ -21,41 +21,8 @@
 #define SELECTIONMANAGER_H
 
 #include <qt4/QtCore/QObject>
+#include "interfaces.h"
 
-//TODO: Temporary data type until proper definition
-struct Point
-{
-  int x;
-  int y;
-  int z;
-};
-
-class ISelectableObject
-{
-public:
-  ISelectableObject(){}
-  virtual ~ISelectableObject(){}
-};
-
-//! Tuple containing the selected object and its selected coordinate
-struct Selection 
-{
-  Point coord;
-  ISelectableObject *object;
-};
-
-//! Interface to handle selections
-class ISelectionHandler
-{
-  
-public:
-  ISelectionHandler(){};
-  virtual ~ISelectionHandler() = 0;
-
-  //! Handles @sel
-  virtual void handle(const Selection sel) = 0;
-  virtual void abortSelection() = 0;
-};
 
 
 class SelectionManager : public QObject
