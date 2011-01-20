@@ -40,6 +40,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "stack.h"
 #include "distance.h"
 #include "unitExplorer.h"
+#include "selectionManager.h"
 
 //ParaQ includes
 #include "pqHelpReaction.h"
@@ -87,6 +88,7 @@ EspinaMainWindow::EspinaMainWindow()
 	, m_xz(NULL)
 	, m_3d(NULL)
 	, m_unit(NM)
+	, m_selectionManager(NULL)
 {
   this->Internals = new pqInternals();
   this->Internals->setupUi(this);
@@ -131,12 +133,14 @@ EspinaMainWindow::EspinaMainWindow()
   m_segmentation = new EMSegmentation();
   for (SlicePlane plane = SLICE_PLANE_FIRST; plane <= SLICE_PLANE_LAST; plane=SlicePlane(plane+1))
 	  m_planes[plane] = new SliceBlender(plane);
+  m_selectionManager = SelectionManager::singleton();
 
   //Create ESPINA views
   m_xy = new SliceWidget(m_planes[SLICE_PLANE_XY]);
   this->setCentralWidget(m_xy);
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_xy,SLOT(connectToServer()));
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_xy,SLOT(disconnectFromServer()));
+  connect(m_xy,SIGNAL(pointSelected(const Point)),m_selectionManager,SLOT(pointSelected(const Point)));
   
   m_yz = new SliceWidget(m_planes[SLICE_PLANE_YZ]);
   this->Internals->yzSliceDock->setWidget(m_yz);

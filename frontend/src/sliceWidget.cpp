@@ -21,6 +21,7 @@
 #include "vtkPropCollection.h"
 #include "vtkPVDataInformation.h"
 #include "pqOutputPort.h"
+#include "selectionManager.h"
 
 //Qt includes
 #include <QVBoxLayout>
@@ -112,6 +113,12 @@ void SliceWidget::vtkWidgetMouseEvent(QMouseEvent *event)
 		//m_input->getOutput()->getDataInformation()->PrintSelf(std::cout,vtkIndent(0));
 		//Get Spacing
 		double sx, sy, sz;//Image Spacing
+		Point coord;
+		coord.x = pos[0];
+		coord.y = pos[1];
+		coord.z = m_spin->value();
+		
+		emit pointSelected(coord);
 
 		int i, j, k;//Image coordinates
 	}
