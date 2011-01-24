@@ -24,7 +24,7 @@ SET (ITK_VTK_GLUE "" CACHE PATH "Path to ItkVtkGlue external project")
 FIND_PACKAGE(Cajal REQUIRED)
 
 INCLUDE_DIRECTORIES(
-	../../common/src
+	../../common
 	${CAJAL_INCLUDE_DIR}/core
 	${ITK_VTK_GLUE}
 	)

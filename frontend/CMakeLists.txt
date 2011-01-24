@@ -15,7 +15,7 @@ include(${PARAVIEW_USE_FILE})
 
 include_directories(
 	.
-	../common/src
+	../common
 	${CMAKE_CURRENT_BINARY_DIR}
 	)
 
