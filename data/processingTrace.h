@@ -17,11 +17,43 @@
 
 */
 
-#ifndef PORCESSINGTRACE_H
-#define PORCESSINGTRACE_H
+#ifndef PROCESSINGTRACE_H
+#define PROCESSINGTRACE_H
 
-class PorcessingTrace
+//! Interface to trace elements
+class TraceNode
+{
+public:
+  virtual void printSelf();
+  char name[256];
+};
+
+//! A class to represent a filter as part of a trace
+class Filter : public TraceNode
+{
+public:
+  void printSelf();
+  int numParam;
+};
+
+class Product : public TraceNode
 {
 };
 
-#endif // PORCESSINGTRACE_H
+//! A class to represent how products are related to filters 
+class ProcessingTrace
+{
+  class Trace;
+public:
+  ProcessingTrace();
+  ProcessingTrace(const char *filename);
+  ~ProcessingTrace();
+  
+  //void addTrace();
+
+private:
+  char m_filename[256];
+  Trace *m_trace;
+};
+
+#endif // PROCESSINGTRACE_H
