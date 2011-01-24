@@ -1,17 +1,19 @@
 SET(TESTS 
+	CreateGraph
+	ProcessingTrace
 	Taxonomy
 )
 
 
-# Include libCajal-data header files
+# Include libCajal header files
 INCLUDE_DIRECTORIES (..)
-#INCLUDE_DIRECTORIES (${CAJAL_SOURCE_DIR}/data)
 
 SET(LIB_DEPENDECIES
-#  vtkRendering
-  CajalData
+	igraph
+	CajalData
 )
 
+#SET (STACK_DIR "" CACHE PATH "Path to test Stack's folder")
 
 FOREACH(TEST ${TESTS})
 	SET(EXE_NAME Cajal${TEST})
