@@ -21,17 +21,20 @@
 #define CACHE_H
 
 #include <QMap>
+#include <QString>
 
+class pqPipelineSource;
 typedef double CacheEntry;
-class vtkSMProxy;
 
 class Cache
 {
 public:
-  vtkSMProxy *getEntry(const CacheEntry) const;
+  Cache(const QString &path="cache") : m_path(path) {};
+  pqPipelineSource *getEntry(const CacheEntry entry) const;
   
 private:
-  QMap<CacheEntry, vtkSMProxy *> m_cachedProxies;
+  QMap<CacheEntry, pqPipelineSource*> m_cachedProxies;
+  QString m_path; 
 };
 
 #endif // CACHE_H

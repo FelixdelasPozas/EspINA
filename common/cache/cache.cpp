@@ -18,8 +18,12 @@
 */
 
 #include "cache.h"
-#include "vtkSMProxy.h"
+#include "pqPipelineSource.h"
 
+pqPipelineSource *Cache::getEntry(const CacheEntry entry) const
+{
+  return m_cachedProxies[entry];
+}
 
 
 

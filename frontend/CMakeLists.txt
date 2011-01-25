@@ -28,7 +28,6 @@ QT4_ADD_RESOURCES(RCC_BUILT_SOURCES
 QT4_WRAP_CPP(MOC_BUILT_SOURCES
 	espinaMainWindow.h
 	unitExplorer.h
-	emSegmentation.h
 	sliceWidget.h
 	slicer.h
 	volumeWidget.h

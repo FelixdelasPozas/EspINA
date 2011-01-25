@@ -44,7 +44,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QMap>
 
 //Forward declaration
-class EMSegmentation;
+class ObjectManager;
 class QMenu;
 class pqPipelineSource;
 class SliceWidget;
@@ -77,7 +77,7 @@ private:
 
   class pqInternals;
   pqInternals* Internals;
-  EMSegmentation *m_segmentation;
+  ObjectManager *m_segmentation;
   Segmentation *m_segmentations;
   QMap<QString,Stack *> m_stacks;
   SliceBlender *m_planes[SLICE_PLANE_LAST+1];

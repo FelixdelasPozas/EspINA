@@ -52,13 +52,16 @@ public:
   void handle(const Selection sel);
   void abortSelection();
   
+  //! Implements ISegmentationPlugin interface
+  void execute();
+  
 public slots:
   /// Callback for each action triggerred.
   void onAction(QAction* action);
   void setActive(bool active);
   
 signals:
-  virtual void segmentationCreated();
+  void segmentationCreated(ProcessingTrace *);
   void waitingSelection(ISelectionHandler *);
   void selectionAborted(ISelectionHandler *);
   

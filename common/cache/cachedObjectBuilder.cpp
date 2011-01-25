@@ -18,4 +18,31 @@
 */
 
 #include "cachedObjectBuilder.h"
+#include "cache.h"
+
+#include "pqPipelineSource.h"
+
+CachedObjectBuilder * CachedObjectBuilder::m_singleton = NULL;
+
+CachedObjectBuilder::CachedObjectBuilder()
+{
+  m_cache = new Cache();
+}
+
+CachedObjectBuilder* CachedObjectBuilder::instance()
+{
+  if (!m_singleton)
+    m_singleton = new CachedObjectBuilder();
+  return m_singleton;
+}
+
+pqPipelineSource *CachedObjectBuilder::get(const Trace trace)
+{
+  
+  //if (!sm->getNumberOfItems<pqServer*>())
+    // just create it on the first server connection
+    //pqServer* s = sm->getItemAtIndex<pqServer*>(0);
+  return NULL;
+}
+
 

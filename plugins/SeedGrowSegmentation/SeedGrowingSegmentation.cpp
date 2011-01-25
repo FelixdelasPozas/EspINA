@@ -31,7 +31,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =========================================================================*/
 #include "SeedGrowingSegmentation.h"
 #include "selectionManager.h"
+#include "objectManager.h"
+#include <cache/cachedObjectBuilder.h>
 #include "iPixelSelector.h"
+#include <eFilter.h>
 
 //GUI includes
 #include <QApplication>
@@ -44,8 +47,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QMenu>
 
 #include "pqApplicationCore.h"
-#include "pqObjectBuilder.h"
-#include "pqActiveObjects.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
 #include "pqUndoStack.h"
@@ -55,9 +56,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <QDebug>
 #include "assert.h"
-//#include "../../frontend/src/sliceWidget.h"
-
-//extern SliceWidget *vista;
 
 //-----------------------------------------------------------------------------
 SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): ISegmentationPlugin(parent)
@@ -76,9 +74,6 @@ SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): ISegmentation
 
 void SeedGrowingSegmentation::handle(const Selection sel)
 {
-  // Initialize application context
-  pqApplicationCore* core = pqApplicationCore::instance();
-  pqUndoStack* stack = core->getUndoStack();
   
   qDebug() << "Ejecutando Plugin";
   
@@ -88,36 +83,50 @@ void SeedGrowingSegmentation::handle(const Selection sel)
   //TODO: Search in the logic application to get the input
   //for the algorithm
   
-  SelectionManager *manager = SelectionManager::singleton();
-  pqObjectBuilder* builder = core->getObjectBuilder();
-  pqActiveObjects& activeObjects = pqActiveObjects::instance();
+ //SelectionManager *manager = SelectionManager::singleton();
+ // pqObjectBuilder* builder = core->getObjectBuilder();
+  //pqActiveObjects& activeObjects = pqActiveObjects::instance();
+  
+}
+
+void SeedGrowingSegmentation::execute()
+{
+  // Initialize application context
+  pqApplicationCore* core = pqApplicationCore::instance();
+  pqUndoStack* undoStack = core->getUndoStack();
   pqServerManagerModel* sm = core->getServerManagerModel();
   
-  /// Check that we are connect to some server (either builtin or remote).
-  if (sm->getNumberOfItems<pqServer*>())
+  // Pedir los objetos al cachedBuilder
+  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+  
+  
+  // Crear una sub-traza con cada paso del algoritmo
+  if (cob)
   {
-    // just create it on the first server connection
-    pqServer* s = sm->getItemAtIndex<pqServer*>(0);
     // make this operation undo-able if undo is enabled
-    if (stack)
+    if (undoStack)
     {
-      stack->beginUndoSet(QString("Create SeedGrowingSegmentation"));
+      undoStack->beginUndoSet(QString("Create SeedGrowingSegmentation"));
     }
-    pqPipelineSource *input = activeObjects.activeSource();
+
+//pqPipelineSource *input = activeObjects.activeSource();
+    pqPipelineSource *filter = cob->get("SeedGrowingSegmentationFilter");
     
     qDebug() << "Threshold: " << m_threshold->value();
     
-    pqPipelineSource *filter = builder->createFilter("filters", "SeedGrowingSegmentationFilter", input);
-    assert(filter);
-    filter->rename("Asymmetric Synapse");
-    //vista->showSource(filter->getOutputPort(0),true);
-    if (stack)
+    //pqPipelineSource *filter = builder->createFilter("filters", "SeedGrowingSegmentationFilter", input);
+    //assert(filter);
+    //filter->rename("Asymmetric Synapse");
+    if (undoStack)
     {
-      stack->endUndoSet();
+      undoStack->endUndoSet();
     }
+    
+    // Comment following line to allow several selections 
     emit waitingSelection(NULL);
   }
 }
+
 
 
 void SeedGrowingSegmentation::abortSelection()

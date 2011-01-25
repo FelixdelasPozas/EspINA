@@ -22,17 +22,20 @@
 
 #include <QActionGroup>
 
+class ProcessingTrace;
+
 //! Interface for Segmentation Plugins
 class ISegmentationPlugin : public QActionGroup
 {
 public:
     ISegmentationPlugin(QObject* parent) : QActionGroup(parent){}
+    virtual void execute() = 0;
     
 public slots:
   virtual void onAction(QAction* a) = 0;
   
 signals:
-  virtual void segmentationCreated() = 0;
+  virtual void segmentationCreated(ProcessingTrace *) = 0;
   
 };
 

@@ -9,9 +9,12 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR})
 find_package(ParaView REQUIRED)
 include(${PARAVIEW_USE_FILE})
 
+find_package(Cajal REQUIRED)
+
 include_directories(
 	.
 	cache
+	${CAJAL_INCLUDE_DIR}/data
 	${CMAKE_CURRENT_BINARY_DIR}
   )
 
@@ -22,6 +25,7 @@ QT4_ADD_RESOURCES(RCC_BUILT_SOURCES
 # Add extra library containing custom code for the client.
 QT4_WRAP_CPP(MOC_BUILT_SOURCES
 selectionManager.h
+objectManager.h
 iPixelSelector.h
 )
 

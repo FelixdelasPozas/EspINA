@@ -19,10 +19,30 @@
 
 #ifndef CACHEDOBJECTBUILDER_H
 #define CACHEDOBJECTBUILDER_H
+#include "cache.h"
 
+class pqPipelineSource;
+class Cache;
+typedef char* Trace; 
 
+//! A class to provide ParaView proxies, either using
+//! ESPINA cache system or creating a new one if not
+//! available.
 class CachedObjectBuilder
 {
+public:
+  static CachedObjectBuilder *instance();
+  pqPipelineSource *get(const Trace trace);
+  
+private:
+  CachedObjectBuilder();
+  ~CachedObjectBuilder(){}
+  
+  CachedObjectBuilder(const CachedObjectBuilder&);//Not implemented
+  void *operator=(const CachedObjectBuilder&);//Not implemented
+  
+  static CachedObjectBuilder *m_singleton;
+  Cache *m_cache;
 };
 
 #endif // CACHEDOBJECTBUILDER_H

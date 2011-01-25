@@ -32,7 +32,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // ESPINA includes
 #include "espinaMainWindow.h"
 #include "ui_espinaMainWindow.h"
-#include "emSegmentation.h"
+#include "objectManager.h"
 #include "segmentation.h"
 #include "sliceWidget.h"
 #include "slicer.h"
@@ -116,7 +116,6 @@ EspinaMainWindow::EspinaMainWindow()
   //pqParaViewMenuBuilders::buildPipelineBrowserContextMenu(
   //  *this->Internals->pipelineBrowser);
 
-
   //// Setup the View menu. This must be setup after all toolbars and dockwidgets
   //// have been created.
   m_unitExplorer = new UnitExplorer();
@@ -130,7 +129,7 @@ EspinaMainWindow::EspinaMainWindow()
   pqServerManagerObserver *server = pqApplicationCore::instance()->getServerManagerObserver();
 
   //Create ESPINA
-  m_segmentation = new EMSegmentation();
+  m_segmentation = new ObjectManager();
   for (SlicePlane plane = SLICE_PLANE_FIRST; plane <= SLICE_PLANE_LAST; plane=SlicePlane(plane+1))
 	  m_planes[plane] = new SliceBlender(plane);
   m_selectionManager = SelectionManager::singleton();
