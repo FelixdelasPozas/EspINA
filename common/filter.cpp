@@ -28,20 +28,28 @@ Filter::Filter(
   const std::string& group
 , const std::string& name
 , const ParamList& args
+, const TranslatorTable &table
   )
-  : ITraceNode(group, name, args)
-  , m_args(args)
+  : m_args(args)
+  , m_translator(table)
 {
-  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+  //CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   
-  m_proxy = cob->createFilter(group,name,args);
+  //m_proxy = cob->createFilter(group,name,args);
 }
 
 
 void Filter::print(int indent)
 {
-  std::cout << std::string(indent," ") << name << std::endl;
+  std::cout << name << std::endl;
 }
+
+ParamList Filter::getArguments()
+{
+  ParamList p;
+  return p;
+}
+
 
 std::string Filter::id()
 {

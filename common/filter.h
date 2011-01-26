@@ -23,12 +23,11 @@
 #include "tracing.h"
 #include "interfaces.h"
 
+#include <map>
+
 // Forward declarations
 class pqPipelineSource;
 typedef pqPipelineSource EspinaProxy;
-typedef std::pair<std::string, std::string> Param;
-typedef std::vector<Param> ParamList;
-
 
 class ISingleton
 {
@@ -36,30 +35,47 @@ public:
   virtual std::string id() = 0;
 };
 
-class Product : public ISelectableObject, public ISingleton
+class Product : public ISelectableObject, public ITraceNode, public ISingleton
 {
+public:
+  Product();
+  ~Product();
+
+  //! Implements ITraceNode interface
+  virtual void print(int indent = 0);
+  virtual ParamList getArguments();
+  
+  //! Implements ISingleton
+  virtual std::string id();
 };
 
-//typedef std::pair<std::string, std::string> Param;
-//typedef std::vector<Param> ParamList;
 
 class Filter : public ITraceNode, public ISingleton
 {
 public:
+  typedef int vtkArg;
+  typedef std::string espinaArg;
+  typedef std::map<espinaArg,vtkArg> TranslatorTable;
+  
+public:
   Filter(
     const std::string &group
   , const std::string &name
-  , const ParamList &args);
+  , const ParamList &args
+  , const TranslatorTable &table  
+  );
   
   //! Implements ITraceNode interface
   virtual void print(int indent = 0);
+  virtual ParamList getArguments();
   
   //! Implements ISingleton
   virtual std::string id();
   
 private:
-  ParamList *m_args;
+  const ParamList &m_args;
   EspinaProxy *m_proxy;
+  const TranslatorTable &m_translator;
 };
 
 #endif // FILTER_H

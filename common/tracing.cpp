@@ -19,3 +19,20 @@
 
 #include "tracing.h"
 
+#include <iostream>
+
+using namespace boost;
+
+
+ProcessingTrace::ProcessingTrace()
+: m_trace(0)
+, m_nodeId(0)
+{
+}
+
+void ProcessingTrace::addNode(const ITraceNode* node)
+{
+  NodeId id = add_vertex(m_trace);
+  std::cout << id << std::endl;
+}
+

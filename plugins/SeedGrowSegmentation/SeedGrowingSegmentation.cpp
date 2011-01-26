@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "objectManager.h"
 #include <cache/cachedObjectBuilder.h>
 #include "iPixelSelector.h"
-#include <filter.h>
+//#include <filter.h>
 
 //GUI includes
 #include <QApplication>
@@ -57,10 +57,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QDebug>
 #include "assert.h"
 
+
 //-----------------------------------------------------------------------------
 SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): ISegmentationPlugin(parent)
 {
   m_selector = new PixelSelector();
+  //m_tableBlur["input"] = 0;
   buildUI();
   connect(this,
 	  SIGNAL(waitingSelection(ISelectionHandler *)),
@@ -79,7 +81,7 @@ void SeedGrowingSegmentation::handle(const Selection sel)
   
   //Depending on the pixel selector 
   ImagePixel realInputPixel = m_selector->pickPixel(sel);
-  m_sel = sel;
+  m_sel = NULL;
   
   execute();
   
@@ -112,15 +114,20 @@ void SeedGrowingSegmentation::execute()
   // *filter = builder->createFilter("filters", "SeedGrowingSegmentationFilter", input);
   
   
-  Product *input = dynamic_cast<Product *>(m_sel.object);
-  assert (input);
+//   Product *input = dynamic_cast<Product *>(m_sel->object);
+//   assert (input);
+//   
+//   // Crear los Filtros
+//   ParamList blurArgs;
+//   blurArgs.push_back(Param("Sigma","2"));
+//   blurArgs.push_back(Param("input",input->id()));
+//   
+//   Filter *blur = new Filter("filter","blur",blurArgs,m_tableBlur);
+//   
+//   ProcessingTrace *ptrace;
+//   ptrace->addNode(blur);
   
-  // Crear los Filtros
-  ParamList blurArgs;
-  blurArgs.push_back(Param("Sigma","2"));
-  blurArgs.push_back(Param("input",input->id()));
   
-  Filter *blur = new Filter("filter","blur",blurArgs);
   /*
    *   
    *   Product *blurOutput;
@@ -130,7 +137,6 @@ void SeedGrowingSegmentation::execute()
    *   // Crear los proxies que hacen falta
    *   
    *   // Crear traza
-   *   ProcessingTrace *ptrace;
    *   ptrace->addNode(blur);
    *   ptrace->addNode(blurOutput);
    *   ptrace->connect(blur,blurOutput,"creates");

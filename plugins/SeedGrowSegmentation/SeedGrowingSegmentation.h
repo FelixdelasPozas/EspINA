@@ -35,6 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "iSegmentationPlugin.h"
 #include "interfaces.h"
+//#include "filter.h"
 
 //Forward declarations
 class QSpinBox;
@@ -45,6 +46,7 @@ class IPixelSelector;
 class SeedGrowingSegmentation : public ISegmentationPlugin, public ISelectionHandler
 {
   Q_OBJECT
+  
 public:
   SeedGrowingSegmentation(QObject* parent);
   
@@ -72,8 +74,9 @@ private:
   QSpinBox *m_threshold;
   QToolButton *m_addSeed;
   IPixelSelector *m_selector;
-  Selection m_sel;
+  Selection *m_sel;
+  //Filter::TranslatorTable m_tableBlur;
+  //Filter::TranslatorTable m_tableGrow;
 };
 
 #endif// SEEDGROWINGSEGMENTATION_H
-

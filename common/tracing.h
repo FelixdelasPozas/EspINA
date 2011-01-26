@@ -16,42 +16,57 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-
 #ifndef TRACING_H
 #define TRACING_H
 
 #include <string>
-#include <boost/graph/adjacency_list.hpp>
 
+#include <vector>
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/subgraph.hpp>
+
+typedef std::pair<std::string, std::string> Param;
+typedef std::vector<Param> ParamList;
 
 //! Interface to trace's nodes
 class ITraceNode
 {
 public:
   virtual void print(int indent = 0) = 0;
+  virtual ParamList getArguments() = 0;
   std::string name;
-  
+  int type;// 0: Product 1: Filter
 };
 
 //! A class to represent the working trace
 class ProcessingTrace
 {
-  typedef boost::adjacency_list<boost::vecS,boost::vecS,boost::directedS, ITraceNode *> Graph;
+  typedef unsigned int NodeId;
+  //! SubGraphs REQUIRE vertex and edge properties
+  typedef boost::adjacency_list<
+  boost::vecS
+  ,boost::vecS,
+  boost::directedS,
+  boost::property<boost::vertex_index_t, NodeId, ITraceNode *>,
+  boost::property<boost::edge_index_t, NodeId>
+  > Graph;
+  typedef boost::subgraph<Graph > SubGraph;
+  
 public:
   ProcessingTrace();
-  ~ProcessingTrace();
+  ~ProcessingTrace(){}
   
-  void addNode(const ITraceNode &node);
+  void addNode(const ITraceNode *node);
   void connect(
     const ITraceNode &origin
   , const ITraceNode &destination
   , const std::string &description
   );
   
-  void addSubtrace();
+  void addSubtrace(const ProcessingTrace *subTrace);
 private:
-  Graph m_trace;
-  int m_nodeId;
+  SubGraph m_trace;
+  NodeId m_nodeId;
 };
 
 #endif // TRACING_H
