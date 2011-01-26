@@ -17,28 +17,49 @@
 
 */
 
-#ifndef CACHE_H
-#define CACHE_H
+#ifndef FILTER_H
+#define FILTER_H
 
-#include <QMap>
-#include <QString>
+#include "tracing.h"
+#include "interfaces.h"
 
+// Forward declarations
 class pqPipelineSource;
 typedef pqPipelineSource EspinaProxy;
-typedef double CacheIndex;
-typedef EspinaProxy CacheEntry;
+typedef std::pair<std::string, std::string> Param;
+typedef std::vector<Param> ParamList;
 
 
-class Cache
+class ISingleton
 {
 public:
-  Cache(const QString &path="cache") : m_diskCachePath(path) {};
-  void insert(const CacheIndex& index, CacheEntry* entry);
-  CacheEntry *getEntry(const CacheIndex index) const;
-  
-private:
-  QMap<CacheIndex, CacheEntry *> m_cachedProxies;
-  QString m_diskCachePath; 
+  virtual std::string id() = 0;
 };
 
-#endif // CACHE_H
+class Product : public ISelectableObject, public ISingleton
+{
+};
+
+//typedef std::pair<std::string, std::string> Param;
+//typedef std::vector<Param> ParamList;
+
+class Filter : public ITraceNode, public ISingleton
+{
+public:
+  Filter(
+    const std::string &group
+  , const std::string &name
+  , const ParamList &args);
+  
+  //! Implements ITraceNode interface
+  virtual void print(int indent = 0);
+  
+  //! Implements ISingleton
+  virtual std::string id();
+  
+private:
+  ParamList *m_args;
+  EspinaProxy *m_proxy;
+};
+
+#endif // FILTER_H

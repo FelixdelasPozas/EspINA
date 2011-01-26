@@ -17,22 +17,35 @@
 
 */
 
-#include "cache.h"
-#include "pqPipelineSource.h"
+#include "filter.h"
 
-void Cache::insert(const CacheIndex& index, CacheEntry* entry)
+#include "cache/cachedObjectBuilder.h"
+
+#include <iostream>
+
+
+Filter::Filter(
+  const std::string& group
+, const std::string& name
+, const ParamList& args
+  )
+  : ITraceNode(group, name, args)
+  , m_args(args)
 {
-  m_cachedProxies.insert(index,entry);
+  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+  
+  m_proxy = cob->createFilter(group,name,args);
 }
 
 
-CacheEntry* Cache::getEntry(const CacheIndex index) const
+void Filter::print(int indent)
 {
-  // TODO: Check for null results
-  return NULL; // Force cache fail
-  return m_cachedProxies[index];
+  std::cout << std::string(indent," ") << name << std::endl;
 }
 
-
+std::string Filter::id()
+{
+  return name;
+}
 
 

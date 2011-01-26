@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "objectManager.h"
 #include <cache/cachedObjectBuilder.h>
 #include "iPixelSelector.h"
-#include <eFilter.h>
+#include <filter.h>
 
 //GUI includes
 #include <QApplication>
@@ -79,12 +79,14 @@ void SeedGrowingSegmentation::handle(const Selection sel)
   
   //Depending on the pixel selector 
   ImagePixel realInputPixel = m_selector->pickPixel(sel);
+  m_sel = sel;
+  
+  execute();
   
   //TODO: Search in the logic application to get the input
   //for the algorithm
   
  //SelectionManager *manager = SelectionManager::singleton();
- // pqObjectBuilder* builder = core->getObjectBuilder();
   //pqActiveObjects& activeObjects = pqActiveObjects::instance();
   
 }
@@ -96,35 +98,83 @@ void SeedGrowingSegmentation::execute()
   pqUndoStack* undoStack = core->getUndoStack();
   pqServerManagerModel* sm = core->getServerManagerModel();
   
-  // Pedir los objetos al cachedBuilder
-  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-  
-  
-  // Crear una sub-traza con cada paso del algoritmo
-  if (cob)
+  // make this operation undo-able if undo is enabled
+  if (undoStack)
   {
-    // make this operation undo-able if undo is enabled
-    if (undoStack)
-    {
-      undoStack->beginUndoSet(QString("Create SeedGrowingSegmentation"));
-    }
-
-//pqPipelineSource *input = activeObjects.activeSource();
-    pqPipelineSource *filter = cob->get("SeedGrowingSegmentationFilter");
-    
-    qDebug() << "Threshold: " << m_threshold->value();
-    
-    //pqPipelineSource *filter = builder->createFilter("filters", "SeedGrowingSegmentationFilter", input);
-    //assert(filter);
-    //filter->rename("Asymmetric Synapse");
-    if (undoStack)
-    {
-      undoStack->endUndoSet();
-    }
-    
-    // Comment following line to allow several selections 
-    emit waitingSelection(NULL);
+    undoStack->beginUndoSet(QString("Create SeedGrowingSegmentation"));
   }
+  
+  //pqPipelineSource *input = activeObjects.activeSource();
+  //pqPipelineSource *filter = cob->get("SeedGrowingSegmentationFilter");
+  
+  qDebug() << "Threshold: " << m_threshold->value();
+  
+  // *filter = builder->createFilter("filters", "SeedGrowingSegmentationFilter", input);
+  
+  
+  Product *input = dynamic_cast<Product *>(m_sel.object);
+  assert (input);
+  
+  // Crear los Filtros
+  ParamList blurArgs;
+  blurArgs.push_back(Param("Sigma","2"));
+  blurArgs.push_back(Param("input",input->id()));
+  
+  Filter *blur = new Filter("filter","blur",blurArgs);
+  /*
+   *   
+   *   Product *blurOutput;
+   *   Filter *grow;
+   *   Param th("Threshold","50");
+   *   Product *growOutput;
+   *   // Crear los proxies que hacen falta
+   *   
+   *   // Crear traza
+   *   ProcessingTrace *ptrace;
+   *   ptrace->addNode(blur);
+   *   ptrace->addNode(blurOutput);
+   *   ptrace->connect(blur,blurOutput,"creates");
+   *   ptrace->addNode(grow);
+   *   ptrace->connect(blurOutput,grow,"stack");
+   *   ptrace->addNode(growOutput);
+   *   ptrace->connect(grow,growOutput,"creates");
+   *   
+   *   emit newTrace(ptrace);
+   *   
+   *   
+   *   
+   *   ParamList args;
+   *   Param input("input","peque.mha");
+   *   args.push_back(input);
+   *   
+   *   Filter *efilter = new Filter("filters","SeedGrowingSegmentationFilter",args);
+   *   pqPipelineFilter *pfilter = efilter->getProxy();
+   *   //assert(filter);
+   *   //filter->rename("Asymmetric Synapse");
+   *   
+   *   
+   */
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  if (undoStack)
+  {
+    undoStack->endUndoSet();
+  }
+  
+  // Comment following line to allow several selections 
+  emit waitingSelection(NULL);
 }
 
 

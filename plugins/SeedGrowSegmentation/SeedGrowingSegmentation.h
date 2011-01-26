@@ -72,6 +72,7 @@ private:
   QSpinBox *m_threshold;
   QToolButton *m_addSeed;
   IPixelSelector *m_selector;
+  Selection m_sel;
 };
 
 #endif// SEEDGROWINGSEGMENTATION_H

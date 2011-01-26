@@ -17,22 +17,41 @@
 
 */
 
-#include "cache.h"
-#include "pqPipelineSource.h"
+#ifndef TRACING_H
+#define TRACING_H
 
-void Cache::insert(const CacheIndex& index, CacheEntry* entry)
+#include <string>
+#include <boost/graph/adjacency_list.hpp>
+
+
+//! Interface to trace's nodes
+class ITraceNode
 {
-  m_cachedProxies.insert(index,entry);
-}
+public:
+  virtual void print(int indent = 0) = 0;
+  std::string name;
+  
+};
 
-
-CacheEntry* Cache::getEntry(const CacheIndex index) const
+//! A class to represent the working trace
+class ProcessingTrace
 {
-  // TODO: Check for null results
-  return NULL; // Force cache fail
-  return m_cachedProxies[index];
-}
+  typedef boost::adjacency_list<boost::vecS,boost::vecS,boost::directedS, ITraceNode *> Graph;
+public:
+  ProcessingTrace();
+  ~ProcessingTrace();
+  
+  void addNode(const ITraceNode &node);
+  void connect(
+    const ITraceNode &origin
+  , const ITraceNode &destination
+  , const std::string &description
+  );
+  
+  void addSubtrace();
+private:
+  Graph m_trace;
+  int m_nodeId;
+};
 
-
-
-
+#endif // TRACING_H

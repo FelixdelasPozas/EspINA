@@ -17,22 +17,5 @@
 
 */
 
-#include "cache.h"
-#include "pqPipelineSource.h"
-
-void Cache::insert(const CacheIndex& index, CacheEntry* entry)
-{
-  m_cachedProxies.insert(index,entry);
-}
-
-
-CacheEntry* Cache::getEntry(const CacheIndex index) const
-{
-  // TODO: Check for null results
-  return NULL; // Force cache fail
-  return m_cachedProxies[index];
-}
-
-
-
+#include "tracing.h"
 

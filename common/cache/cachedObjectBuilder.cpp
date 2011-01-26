@@ -20,7 +20,12 @@
 #include "cachedObjectBuilder.h"
 #include "cache.h"
 
+// ParaQ includes
+#include "pqApplicationCore.h"
+#include "pqObjectBuilder.h"
 #include "pqPipelineSource.h"
+#include <vtkSMProxy.h>
+#include <vtkSMProperty.h>
 
 CachedObjectBuilder * CachedObjectBuilder::m_singleton = NULL;
 
@@ -36,13 +41,39 @@ CachedObjectBuilder* CachedObjectBuilder::instance()
   return m_singleton;
 }
 
-pqPipelineSource *CachedObjectBuilder::get(const Trace trace)
+
+EspinaProxy* CachedObjectBuilder::createFilter(
+  std::string group
+, std::string name
+, ParamList args
+  )
 {
+  // Create cache entry
+  CacheIndex entryIndex(5);//(group,name,args);
+  EspinaProxy * proxy = m_cache->getEntry(entryIndex);
+  if (proxy)
+    return proxy;
   
-  //if (!sm->getNumberOfItems<pqServer*>())
-    // just create it on the first server connection
-    //pqServer* s = sm->getItemAtIndex<pqServer*>(0);
-  return NULL;
+  proxy = createSMFilter(group,name,args);
+  m_cache->insert(entryIndex,proxy);
 }
+
+pqPipelineSource *CachedObjectBuilder::createSMFilter(
+  std::string group
+, std::string name
+, ParamList args)
+{
+  pqApplicationCore* core = pqApplicationCore::instance();
+  pqObjectBuilder* builder = core->getObjectBuilder();
+  
+  pqPipelineSource *filter; //= builder->createFilter(group, name,NULL);
+  initFilter(filter,args);
+}
+
+
+void CachedObjectBuilder::initFilter(pqPipelineSource* filter, ParamList args)
+{
+}
+
 
 

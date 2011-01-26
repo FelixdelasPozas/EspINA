@@ -21,9 +21,14 @@
 #define CACHEDOBJECTBUILDER_H
 #include "cache.h"
 
+#include <vector>
+
 class pqPipelineSource;
 class Cache;
-typedef char* Trace; 
+
+typedef pqPipelineSource EspinaProxy;
+typedef std::pair<std::string, std::string> Param;
+typedef std::vector<Param> ParamList;
 
 //! A class to provide ParaView proxies, either using
 //! ESPINA cache system or creating a new one if not
@@ -32,7 +37,7 @@ class CachedObjectBuilder
 {
 public:
   static CachedObjectBuilder *instance();
-  pqPipelineSource *get(const Trace trace);
+  EspinaProxy * createFilter(std::string group, std::string name, ParamList args);
   
 private:
   CachedObjectBuilder();
@@ -40,6 +45,8 @@ private:
   
   CachedObjectBuilder(const CachedObjectBuilder&);//Not implemented
   void *operator=(const CachedObjectBuilder&);//Not implemented
+  pqPipelineSource *createSMFilter(std::string group, std::string name, ParamList args);
+  void initFilter(pqPipelineSource* filter, ParamList args);
   
   static CachedObjectBuilder *m_singleton;
   Cache *m_cache;
