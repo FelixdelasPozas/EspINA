@@ -2,53 +2,34 @@
 #define OBJECT_MANAGER_H
 
 #include <QObject>
+#include <QList>
 
 //Forward declarations
-class pqPipelineSource;
+class Product;
+class IRenderable;
 
 /// This class manages the segmentation process of EM image stacks
 class ObjectManager : public QObject
 {
-	Q_OBJECT
+  Q_OBJECT
 public:
-	ObjectManager();
-	~ObjectManager(){}
-
-	pqPipelineSource *stack(){return m_stack;}
-
-	void setStack(pqPipelineSource *stack);
-
-	/// Returns a pointer to the stack set by the user
-	//  Note: Consider visualization pipeline?
-	pqPipelineSource *visualizationStack();
-
-	/// Returns a pointer to the working stack. This stack can differ from the one set by the user due to preprocessing pipeline
-	pqPipelineSource *workingStack();
-
-	/// Load a segmentation file or creates an empty one if a single
-	/// stack is given
-	void loadSegmentation();
-
-	/// Saves the current segmentation in file
-	void saveSegmentation();
-
-	/// Appends a new filter to the preprocessing pipeline
-	void appendPreprocessingFilter(pqPipelineSource *filter);
-
-	/// Deletes all preprocessing filtering
-	void clearPreprocessingPipeline();
-
+  static ObjectManager *instance();
+  
 public slots:
-	/// Adds segmentation to the current image's segmentation
-	void addSegmentation(pqPipelineSource *segmentation);
-
+  //! A new Product has been added
+  void registerProduct(Product *product);
+  
 signals:
-	void segmentationAdded(pqPipelineSource *);
-
+  void render(IRenderable *product);
+  
+protected:
+  ObjectManager();
+  
 private:
-	pqPipelineSource *m_stack, *m_workingStack;
-	QList<pqPipelineSource *> *m_preprocessingPipeline;
-	QList<pqPipelineSource *> *m_segmentations;
+  //TODO: This single list could be decomposed into severals
+  // to optimize class operations
+  QList<Product *> m_products;
+  static ObjectManager *m_singleton;
 };
 
 #endif// OBJECT_MANAGER_H

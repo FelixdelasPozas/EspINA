@@ -21,7 +21,33 @@
 
 #include "cache/cachedObjectBuilder.h"
 
+#include "pqPipelineSource.h"
+
 #include <iostream>
+
+
+pqOutputPort *Product::outPut()
+{
+  return source->getOutputPort(0);
+}
+
+void Product::print(int indent) const
+{
+}
+
+ParamList Product::getArguments()
+{
+  ParamList p;
+  return p;
+}
+
+
+std::string Product::id()
+{
+
+}
+
+
 
 
 Filter::Filter(
@@ -33,13 +59,14 @@ Filter::Filter(
   : m_args(args)
   , m_translator(table)
 {
+  this->name = group + "::" + name;
   //CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   
   //m_proxy = cob->createFilter(group,name,args);
 }
 
 
-void Filter::print(int indent)
+void Filter::print(int indent) const
 {
   std::cout << name << std::endl;
 }

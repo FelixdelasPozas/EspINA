@@ -20,19 +20,46 @@
 #include "tracing.h"
 
 #include <iostream>
+#include <boost/graph/graphviz.hpp>
 
 using namespace boost;
 
 
 ProcessingTrace::ProcessingTrace()
 : m_trace(0)
-, m_nodeId(0)
 {
+  //m_trace[0].trace_name = "Espina";
 }
 
-void ProcessingTrace::addNode(const ITraceNode* node)
+void ProcessingTrace::addNode(ITraceNode* node)
 {
-  NodeId id = add_vertex(m_trace);
-  std::cout << id << std::endl;
+  typedef Graph::vertex_descriptor VertexId;
+  VertexId v = add_vertex(m_trace);
+  m_trace[v].node = node;
+  //m_trace[v].node->print();
 }
+
+void ProcessingTrace::connect(
+  ITraceNode* origin
+, ITraceNode* destination
+, const std::string& description
+)
+{
+  // Get list of vertex_descriptor
+  //Find the nodes corresponding the nodes
+  // Add a new edge(origin,destination) with 
+  // description property
+}
+
+
+void ProcessingTrace::print()
+{
+  // property_map<Graph, (return type) Class::*)
+  //property_map<Graph, std::string VertexProperty::*>::type nameMap =
+  //  get(&VertexProperty::name,m_trace);
+  //add_edge(0,1,m_trace);
+    
+  //write_graphviz(std::cout,m_trace,make_label_writer(nameMap));
+}
+
 

@@ -22,6 +22,8 @@
 
 #include "types.h"
 
+// Forward declaration
+class pqOutputPort;
 
 class ISelectableObject
 {
@@ -48,6 +50,22 @@ public:
   //! Handles @sel
   virtual void handle(const Selection sel) = 0;
   virtual void abortSelection() = 0;
+};
+
+class IRenderable
+{
+  enum RENDER_STYLE {
+    NORMAL=0,
+    SELECTED = 2^0,
+    DISCARTED = 2^1
+  };
+  
+public:
+  virtual bool visible(){return m_visible;}
+  virtual pqOutputPort *outPut() = 0;
+  
+private:
+  bool m_visible;
 };
 
 

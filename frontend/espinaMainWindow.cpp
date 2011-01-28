@@ -41,6 +41,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "distance.h"
 #include "unitExplorer.h"
 #include "selectionManager.h"
+#include "filter.h"
 
 //ParaQ includes
 #include "pqHelpReaction.h"
@@ -129,7 +130,6 @@ EspinaMainWindow::EspinaMainWindow()
   pqServerManagerObserver *server = pqApplicationCore::instance()->getServerManagerObserver();
 
   //Create ESPINA
-  m_segmentation = new ObjectManager();
   for (SlicePlane plane = SLICE_PLANE_FIRST; plane <= SLICE_PLANE_LAST; plane=SlicePlane(plane+1))
 	  m_planes[plane] = new SliceBlender(plane);
   m_selectionManager = SelectionManager::singleton();
@@ -156,6 +156,9 @@ EspinaMainWindow::EspinaMainWindow()
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_3d,SLOT(connectToServer()));
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_3d,SLOT(disconnectFromServer()));
   
+  m_productManager = ObjectManager::instance();
+  connect(m_productManager,SIGNAL(render(IRenderable*)),
+	  m_3d,SLOT(refresh(IRenderable*)));
   // Final step, define application behaviors. Since we want all ParaView
   // behaviors, we use this convenience method.
   new pqParaViewBehaviors(this, this);
@@ -176,39 +179,43 @@ EspinaMainWindow::~EspinaMainWindow()
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::loadData(pqPipelineSource *source)
 { 
-	//TODO: Remove previous state
-	
-	//TODO: Get filename!
-	Stack *stack = new Stack(source);
-	m_stacks.insert("input",stack);
-	//m_segmentation->setStack(source);
-
-	// Create a fake segmentation to make the tests
-	pqPipelineSource *fakeSeg;
-	pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
-	pqServer * server= pqActiveObjects::instance().activeServer();
-	QStringList file;
-	//file << "/home/jorge/Stacks/peque.mha";
-	file << "/home/jorge/Stacks/segmentita.mha";
-	fakeSeg = ob->createReader("sources","MetaImageReader",file,server);
-	fakeSeg->updatePipeline();
-	m_segmentations = new SegmentedObject(fakeSeg);
-
-	// This updates the visualization pipeline before initializing the slice widgets
-	//m_segmentation->visualizationStack()->updatePipeline();
-	source->updatePipeline();
-	for (SlicePlane plane = SLICE_PLANE_FIRST; plane <= SLICE_PLANE_LAST; plane=SlicePlane(plane+1))
-	{
-		m_planes[plane]->setBackground(stack);
-		m_planes[plane]->addSegmentation(m_segmentations);
-		m_3d->setPlane(m_planes[plane],plane);
-		connect(m_planes[plane],SIGNAL(updated()),m_3d,SLOT(updateRepresentation()));
-	}
-	
-	QList<Segmentation *> *validActors = new QList<Segmentation *>;
-	validActors->push_back(m_segmentations);
-	m_3d->setValidActors(validActors);
-	//m_3d->showSource(m_segmentation->visualizationStack()->getOutputPort(0),VOLUME); 
+  //TODO: Remove previous state
+  
+  //TODO: Get filename!
+  Stack *stack = new Stack(source);
+  m_stacks.insert("input",stack);
+  //m_segmentation->setStack(source);
+  
+  // Create a fake segmentation to make the tests
+  pqPipelineSource *fakeSeg;
+  pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
+  pqServer * server= pqActiveObjects::instance().activeServer();
+  QStringList file;
+  //file << "/home/jorge/Stacks/peque.mha";
+  file << "/home/jorge/Stacks/segmentita.mha";
+  fakeSeg = ob->createReader("sources","MetaImageReader",file,server);
+  fakeSeg->updatePipeline();
+  m_segmentations = new SegmentedObject(fakeSeg);
+  Product *segProduct = new Product();
+  segProduct->source = fakeSeg;
+  
+  // This updates the visualization pipeline before initializing the slice widgets
+  //m_segmentation->visualizationStack()->updatePipeline();
+  source->updatePipeline();
+  for (SlicePlane plane = SLICE_PLANE_FIRST; plane <= SLICE_PLANE_LAST; plane=SlicePlane(plane+1))
+  {
+    m_planes[plane]->setBackground(stack);
+    m_planes[plane]->addSegmentation(m_segmentations);
+    m_3d->setPlane(m_planes[plane],plane);
+    connect(m_planes[plane],SIGNAL(updated()),m_3d,SLOT(updateScene()));
+  }
+  m_productManager->registerProduct(segProduct);
+  /* Deprecated
+   *	QList<Segmentation *> *validActors = new QList<Segmentation *>;
+   *	validActors->push_back(m_segmentations);
+   *	m_3d->setValidActors(validActors);
+   */
+  //m_3d->showSource(m_segmentation->visualizationStack()->getOutputPort(0),VOLUME); 
 }
 
 //-----------------------------------------------------------------------------

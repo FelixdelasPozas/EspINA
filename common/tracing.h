@@ -28,45 +28,84 @@
 typedef std::pair<std::string, std::string> Param;
 typedef std::vector<Param> ParamList;
 
+
 //! Interface to trace's nodes
 class ITraceNode
 {
 public:
-  virtual void print(int indent = 0) = 0;
+  virtual void print(int indent = 0) const = 0;
   virtual ParamList getArguments() = 0;
   std::string name;
   int type;// 0: Product 1: Filter
 };
 
+
 //! A class to represent the working trace
 class ProcessingTrace
 {
-  typedef unsigned int NodeId;
+  typedef unsigned int IndexType;
+  
+  //! A set of properties for graph vertex
+  struct VertexProperty
+  {
+    //! A pointer to a class representing
+    //! a node element
+    ITraceNode *node;//TODO: Use smart pointers?
+  };
+  typedef boost::property<
+  boost::vertex_index_t, IndexType,
+  VertexProperty
+  > VertexProperties;
+  
+  //! A set of properties for graph edges
+  struct EdgeProperty
+  {
+    //! Describes the relationships between
+    //! two nodes connected by an edge
+    std::string relationship;
+  };
+  typedef boost::property<
+  boost::edge_index_t, IndexType
+  > EdgeProperties;
+  
+  //! A set of properties for graphs
+  struct GraphPropery
+  {
+    //! The name of the class responsible 
+    //! for the trace
+    std::string owner;
+  };
+  typedef GraphPropery GraphProperties;
+  
   //! SubGraphs REQUIRE vertex and edge properties
   typedef boost::adjacency_list<
-  boost::vecS
-  ,boost::vecS,
+  boost::vecS,
+  boost::vecS,
   boost::directedS,
-  boost::property<boost::vertex_index_t, NodeId, ITraceNode *>,
-  boost::property<boost::edge_index_t, NodeId>
-  > Graph;
-  typedef boost::subgraph<Graph > SubGraph;
+  VertexProperties,
+  EdgeProperties,
+  GraphProperties
+  > SubGraph;
+  
+  typedef boost::subgraph<SubGraph> Graph;
   
 public:
   ProcessingTrace();
   ~ProcessingTrace(){}
   
-  void addNode(const ITraceNode *node);
+  void addNode(ITraceNode* node);
   void connect(
-    const ITraceNode &origin
-  , const ITraceNode &destination
+    ITraceNode *origin
+  , ITraceNode *destination
   , const std::string &description
   );
   
   void addSubtrace(const ProcessingTrace *subTrace);
+  
+  void print();
+  
 private:
-  SubGraph m_trace;
-  NodeId m_nodeId;
+  Graph m_trace;
 };
 
 #endif // TRACING_H

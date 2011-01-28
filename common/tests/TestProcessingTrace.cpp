@@ -13,17 +13,17 @@ using namespace boost;
   
 int main(int argc, char **argv)
 {
-  std::cout << "INIT" << std::endl;
   ProcessingTrace trace;
    
    ParamList args;
    Filter::TranslatorTable tb;
    Filter *blur = new Filter("filters","blur",args,tb);
+   Filter *grow = new Filter("filters","grow",args,tb);
    
    trace.addNode(blur);
-   trace.addNode(blur);
-   trace.addNode(blur);
-   trace.addNode(blur);
+   trace.addNode(grow);
+   
+   trace.print();
   
 //   // Load initial source
 //   Source *peque = trace.createSource("peque.mha");

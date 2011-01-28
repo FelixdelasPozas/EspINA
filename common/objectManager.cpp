@@ -1,38 +1,27 @@
 #include "objectManager.h"
 
+#include "filter.h"
+
 //ParaQ Includes
 #include "pqPipelineSource.h"
 
+ObjectManager *ObjectManager::m_singleton(NULL);
+
 ObjectManager::ObjectManager()
-	: m_stack(NULL)
-	, m_workingStack(NULL)
 {
 }
 
-void ObjectManager::setStack(pqPipelineSource *stack)
+
+ObjectManager* ObjectManager::instance()
 {
-	if (m_stack)
-	{
-		//TODO: Free previous stacks and state
-		//pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
-	}
-	m_stack = stack;
-	m_workingStack = stack;
+  if (!m_singleton)
+    m_singleton = new ObjectManager();
+  
+  return m_singleton;
 }
 
-pqPipelineSource *ObjectManager::visualizationStack()
+void ObjectManager::registerProduct(Product* product)
 {
-	return m_stack;
+  emit render(product);
 }
 
-pqPipelineSource *ObjectManager::workingStack()
-{
-	return m_workingStack;
-}
-
-
-void ObjectManager::addSegmentation(pqPipelineSource *segmentation)
-{
-	m_segmentations->push_back(segmentation);
-	emit segmentationAdded(segmentation);
-}

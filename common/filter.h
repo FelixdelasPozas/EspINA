@@ -35,18 +35,27 @@ public:
   virtual std::string id() = 0;
 };
 
-class Product : public ISelectableObject, public ITraceNode, public ISingleton
+class Product 
+: public ISelectableObject
+, public ITraceNode
+, public ISingleton
+, public IRenderable
 {
 public:
-  Product();
-  ~Product();
+  Product(){}
+  ~Product(){}
 
   //! Implements ITraceNode interface
-  virtual void print(int indent = 0);
+  virtual void print(int indent = 0) const;
   virtual ParamList getArguments();
   
   //! Implements ISingleton
   virtual std::string id();
+  
+  //! Implements IRenderable
+  virtual pqOutputPort* outPut();
+  //TODO: Only for test this session
+  pqPipelineSource *source;
 };
 
 
@@ -66,7 +75,7 @@ public:
   );
   
   //! Implements ITraceNode interface
-  virtual void print(int indent = 0);
+  virtual void print(int indent = 0) const;
   virtual ParamList getArguments();
   
   //! Implements ISingleton
