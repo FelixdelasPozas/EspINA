@@ -20,23 +20,35 @@
 #ifndef PROCESSINGTRACE_H
 #define PROCESSINGTRACE_H
 
+#include <map>
+#include <string>
+
 //! Interface to trace elements
 class TraceNode
 {
 public:
-  virtual void printSelf();
-  char name[256];
+  virtual void printSelf(int indent = 0);
+  std::string name;
+  
 };
 
-//! A class to represent a filter as part of a trace
-class Filter : public TraceNode
+class TraceConnection
 {
 public:
-  void printSelf();
-  int numParam;
+  std::string description;
 };
 
-class Product : public TraceNode
+
+//! A class to represent a filter as part of a trace
+class Filter2 : public TraceNode
+{
+public:
+  void printSelf(int indent = 0);
+  int numParam;
+  std::map<std::string,std::string> params;
+};
+
+class Source : public TraceNode
 {
 };
 
@@ -49,10 +61,14 @@ public:
   ProcessingTrace(const char *filename);
   ~ProcessingTrace();
   
+  void addNode(TraceNode *node){}
+    Source *createSource(const char* arg1){}
+    void connect(TraceNode* arg1, TraceNode *arg2, const char* arg3){}
+  
   //void addTrace();
 
 private:
-  char m_filename[256];
+  std::string m_filename;
   Trace *m_trace;
 };
 

@@ -1,13 +1,14 @@
 #include "taxonomy.h"
 #include <iomanip>
-//#include <assert.h>
+#include <assert.h>
 
 #define ASSERT(x) \
   if (! (x)) \
   { \
     std::cout << "ERROR: Assert " << #x << " failed\n"; \
     std::cout << " in " << __FILE__ << ":" << __LINE__  << "\n"; \
-  }
+  } \
+  assert(x)
 
 void TaxonomyNode::insertElement(std::string subElement)
 {

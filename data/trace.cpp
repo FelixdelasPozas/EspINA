@@ -17,23 +17,29 @@
 
 */
 
-#include "processingTrace.h"
-#include <string.h>
+#include "trace.h"
+#include <string>
 #include <boost/graph/adjacency_list.hpp>
 #include <iostream>
 
 using namespace boost;
 
 
-void TraceNode::printSelf()
+void TraceNode::printSelf(int indent)
 {
-  std::cout << name << "\n";
+  std::cout 
+    << std::string(indent*2,' ')
+    << name 
+    << "\n";
 }
 
-void Filter::printSelf()
+void Filter2::printSelf(int indent)
 {
     TraceNode::printSelf();
-    std::cout << "\tNum Args: " << numParam << "\n";
+    std::cout 
+      << std::string((indent+1)*2,' ')
+      << "Num Args: " << numParam 
+      << "\n";
 }
 
 
@@ -50,14 +56,11 @@ ProcessingTrace::ProcessingTrace()
 
 ProcessingTrace::ProcessingTrace(const char *filename)
 {
-  strcpy(m_filename,filename);
+  m_filename = filename;
   std::cout << m_filename << "\n";
 }
 
 ProcessingTrace::~ProcessingTrace()
 {
 }
-
-
-
 
