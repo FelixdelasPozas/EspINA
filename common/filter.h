@@ -42,7 +42,7 @@ class Product
 , public IRenderable
 {
 public:
-  Product(){}
+  Product() {}
   ~Product(){}
 
   //! Implements ITraceNode interface

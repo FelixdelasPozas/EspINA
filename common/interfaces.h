@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received  copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
@@ -54,18 +54,29 @@ public:
 
 class IRenderable
 {
-  enum RENDER_STYLE {
-    NORMAL=0,
-    SELECTED = 2^0,
-    DISCARTED = 2^1
+public:
+  enum RENDER_STYLE 
+  { VISIBLE   = 2^0
+  , SELECTED  = 2^1
+  , DISCARTED = 2^2
   };
   
+// protected:
+//   enum RENDER_MASK 
+//   { isVISIBLE   = 1
+//   , isSELECTED  = 2^0
+//   , isDISCARTED = 2^1
+//   };
+  
 public:
-  virtual bool visible(){return m_visible;}
+  IRenderable() : m_style(VISIBLE) {}
+  virtual bool visible(){return m_style & VISIBLE;}
+  virtual void setVisible(bool value) {m_style = RENDER_STYLE((m_style | !VISIBLE) & (value?1:0));}
+  virtual RENDER_STYLE style() {return m_style;}
   virtual pqOutputPort *outPut() = 0;
   
-private:
-  bool m_visible;
+protected:
+  RENDER_STYLE m_style;
 };
 
 

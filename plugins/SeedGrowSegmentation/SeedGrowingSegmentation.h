@@ -35,12 +35,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "iSegmentationPlugin.h"
 #include "interfaces.h"
-//#include "filter.h"
+#include "filter.h"
 
 //Forward declarations
 class QSpinBox;
 class QToolButton;
 class IPixelSelector;
+class Product;
 
 //! Seed Growing Segmenation Plugin
 class SeedGrowingSegmentation : public ISegmentationPlugin, public ISelectionHandler
@@ -64,6 +65,7 @@ public slots:
   
 signals:
   void segmentationCreated(ProcessingTrace *);
+  void productCreated(Product *);
   void waitingSelection(ISelectionHandler *);
   void selectionAborted(ISelectionHandler *);
   
@@ -74,9 +76,9 @@ private:
   QSpinBox *m_threshold;
   QToolButton *m_addSeed;
   IPixelSelector *m_selector;
-  Selection *m_sel;
+  Selection m_sel;
   //Filter::TranslatorTable m_tableBlur;
-  //Filter::TranslatorTable m_tableGrow;
+  Filter::TranslatorTable m_tableGrow;
 };
 
 #endif// SEEDGROWINGSEGMENTATION_H

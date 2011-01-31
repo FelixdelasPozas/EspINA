@@ -60,8 +60,10 @@ void MeshRenderer::render( IRenderable* actor, pqRenderView* view)
     , view
     , actor->visible());
   
-  pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
+  if (!actor->visible())
+    return;
   
+  pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
   assert(rep);
   
   rep->setRepresentation(SURFACE);
@@ -128,10 +130,14 @@ void VolumeRenderer::render ( IRenderable *actor, pqRenderView * view )
     actor->outPut()
     , view
     , actor->visible());
+  
+  if (!actor->visible())
+    return;
+  
   pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
+  //TODO: Manage style representations
   //qDebug() << "Total Rep: " << view->getRepresentations().size();
   assert(rep);
-  
   rep->setRepresentation(VOLUME);
   
   vtkSMProxy *repProxy = rep->getProxy();

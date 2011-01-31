@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "objectManager.h"
 #include <cache/cachedObjectBuilder.h>
 #include "iPixelSelector.h"
-//#include <filter.h>
+#include <filter.h>
 
 //GUI includes
 #include <QApplication>
@@ -68,6 +68,11 @@ SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): ISegmentation
 	  SIGNAL(waitingSelection(ISelectionHandler *)),
 	  SelectionManager::singleton(),
 	  SLOT(setSelectionHandler(ISelectionHandler*)));
+  connect(this,
+	  SIGNAL(productCreated(Product *)),
+	  ObjectManager::instance(),
+	  SLOT(registerProduct(Product*)));
+    
 //   connect(this,
 // 	  SIGNAL(selectionAborted(ISelectionHandler *)),
 // 	  SelectionManager::singleton(),
@@ -81,7 +86,8 @@ void SeedGrowingSegmentation::handle(const Selection sel)
   
   //Depending on the pixel selector 
   ImagePixel realInputPixel = m_selector->pickPixel(sel);
-  m_sel = NULL;
+  m_sel.coord = sel.coord;
+  m_sel.object = ObjectManager::instance()->activeStack();
   
   execute();
   
@@ -113,17 +119,37 @@ void SeedGrowingSegmentation::execute()
   
   // *filter = builder->createFilter("filters", "SeedGrowingSegmentationFilter", input);
   
-  
-//   Product *input = dynamic_cast<Product *>(m_sel->object);
-//   assert (input);
-//   
-//   // Crear los Filtros
+   Product *input = dynamic_cast<Product *>(m_sel.object);
+   assert (input);
+
+   // Crear los Filtros
 //   ParamList blurArgs;
 //   blurArgs.push_back(Param("Sigma","2"));
 //   blurArgs.push_back(Param("input",input->id()));
 //   
 //   Filter *blur = new Filter("filter","blur",blurArgs,m_tableBlur);
-//   
+   
+   ParamList growArgs;
+   growArgs.push_back(Param("input",input->id()));
+   growArgs.push_back(Param("Seed","50,50,50"));
+   
+   //TODO: Parseparams --> Create TranslatorTable
+   
+//    Filter *grow = new Filter(
+//      "filter",
+//      "SeedGrowingSegmentationFilter",
+//      m_tableGrow
+//    );
+   
+   
+   //TODO: Pasar de filter a products
+   
+   
+   Product *seg = new Product();
+   //seg->source = grow->GetOutput();
+   
+   
+   
 //   ProcessingTrace *ptrace;
 //   ptrace->addNode(blur);
   
@@ -164,7 +190,7 @@ void SeedGrowingSegmentation::execute()
   
   
   
-  
+ 
   
   
   
@@ -178,6 +204,8 @@ void SeedGrowingSegmentation::execute()
   {
     undoStack->endUndoSet();
   }
+  
+  emit productCreated(seg);
   
   // Comment following line to allow several selections 
   emit waitingSelection(NULL);

@@ -22,6 +22,7 @@ ObjectManager* ObjectManager::instance()
 
 void ObjectManager::registerProduct(Product* product)
 {
+  m_products.push_back(product);
   emit render(product);
 }
 

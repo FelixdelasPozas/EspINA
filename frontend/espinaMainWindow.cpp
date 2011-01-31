@@ -184,6 +184,10 @@ void EspinaMainWindow::loadData(pqPipelineSource *source)
   //TODO: Get filename!
   Stack *stack = new Stack(source);
   m_stacks.insert("input",stack);
+  
+  Product *stackProduct = new Product();
+  stackProduct->source = source;
+  stackProduct->setVisible(false);
   //m_segmentation->setStack(source);
   
   // Create a fake segmentation to make the tests
@@ -209,6 +213,7 @@ void EspinaMainWindow::loadData(pqPipelineSource *source)
     m_3d->setPlane(m_planes[plane],plane);
     connect(m_planes[plane],SIGNAL(updated()),m_3d,SLOT(updateScene()));
   }
+  m_productManager->registerProduct(stackProduct);
   m_productManager->registerProduct(segProduct);
   /* Deprecated
    *	QList<Segmentation *> *validActors = new QList<Segmentation *>;

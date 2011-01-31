@@ -15,6 +15,8 @@ class ObjectManager : public QObject
 public:
   static ObjectManager *instance();
   
+  Product *activeStack(){return m_products.first();}
+  
 public slots:
   //! A new Product has been added
   void registerProduct(Product *product);
