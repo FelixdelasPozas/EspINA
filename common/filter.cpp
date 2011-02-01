@@ -31,6 +31,11 @@ pqOutputPort *Product::outPut()
   return source->getOutputPort(0);
 }
 
+pqPipelineSource* Product::data()
+{
+  return source;
+}
+
 void Product::print(int indent) const
 {
 }
@@ -44,7 +49,7 @@ ParamList Product::getArguments()
 
 std::string Product::id()
 {
-
+  
 }
 
 

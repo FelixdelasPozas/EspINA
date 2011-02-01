@@ -182,38 +182,38 @@ void EspinaMainWindow::loadData(pqPipelineSource *source)
   //TODO: Remove previous state
   
   //TODO: Get filename!
-  Stack *stack = new Stack(source);
-  m_stacks.insert("input",stack);
+  //Stack *stack = new Stack(source);
+  //m_stacks.insert("input",stack);
   
-  Product *stackProduct = new Product();
-  stackProduct->source = source;
-  stackProduct->setVisible(false);
+  Product *stack = new Product();
+  stack->source = source;
+  stack->setVisible(false);
   //m_segmentation->setStack(source);
   
   // Create a fake segmentation to make the tests
-  pqPipelineSource *fakeSeg;
+  //pqPipelineSource *fakeSeg;
   pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
   pqServer * server= pqActiveObjects::instance().activeServer();
   QStringList file;
-  //file << "/home/jorge/Stacks/peque.mha";
-  file << "/home/jorge/Stacks/segmentita.mha";
-  fakeSeg = ob->createReader("sources","MetaImageReader",file,server);
-  fakeSeg->updatePipeline();
-  m_segmentations = new SegmentedObject(fakeSeg);
+  file << "/home/jfernandez/workspace/bbp_workflow/data_experiments/Espina_files/segmentita.mha";
+  //fakeSeg = ob->createReader("sources","MetaImageReader",file,server);
+  //fakeSeg->updatePipeline();
+  //m_segmentations = new SegmentedObject(fakeSeg);
   Product *segProduct = new Product();
-  segProduct->source = fakeSeg;
-  
+  segProduct->source = ob->createReader("sources","MetaImageReader",file,server);
+  segProduct->source->updatePipeline();
+    
   // This updates the visualization pipeline before initializing the slice widgets
   //m_segmentation->visualizationStack()->updatePipeline();
   source->updatePipeline();
   for (SlicePlane plane = SLICE_PLANE_FIRST; plane <= SLICE_PLANE_LAST; plane=SlicePlane(plane+1))
   {
     m_planes[plane]->setBackground(stack);
-    m_planes[plane]->addSegmentation(m_segmentations);
+    m_planes[plane]->addSegmentation(segProduct);
     m_3d->setPlane(m_planes[plane],plane);
     connect(m_planes[plane],SIGNAL(updated()),m_3d,SLOT(updateScene()));
   }
-  m_productManager->registerProduct(stackProduct);
+  m_productManager->registerProduct(stack);
   m_productManager->registerProduct(segProduct);
   /* Deprecated
    *	QList<Segmentation *> *validActors = new QList<Segmentation *>;

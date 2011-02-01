@@ -54,6 +54,7 @@ public:
   
   //! Implements IRenderable
   virtual pqOutputPort* outPut();
+  virtual pqPipelineSource* data();	
   //TODO: Only for test this session
   pqPipelineSource *source;
 };

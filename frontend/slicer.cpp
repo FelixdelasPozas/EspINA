@@ -36,7 +36,7 @@ SliceBlender::SliceBlender(SlicePlane plane)
 	, m_plane(plane)
 	, m_blending(true)
 {
-	m_segmentations = new QList<Segmentation *>;
+	m_segmentations = new QList<IRenderable *>;
 	m_slicers = new QList<pqPipelineSource *>;
 	m_sliceMappers = new QList<pqPipelineSource *>;
 
@@ -53,15 +53,15 @@ SliceBlender::SliceBlender(SlicePlane plane)
 }
 
 
-void SliceBlender::setBackground ( Stack* stack )
+void SliceBlender::setBackground ( IRenderable* background )
 {
 	//Use a stack as background image
-	m_background = stack;
+	m_background = background;
 	pqPipelineSource *input = m_background->data();
 	
 	//Slice the background image
 	pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
-	m_bgSlicer = ob->createFilter("filters","ImageSlicer",input);
+	m_bgSlicer = ob->createFilter("filters","ImageSlicer",m_background->data(), m_background->portNumber());
 	assert(m_bgSlicer);
 	
 	vtkSMIntVectorProperty *sliceMode = vtkSMIntVectorProperty::SafeDownCast(
@@ -121,8 +121,8 @@ void SliceBlender::setBackground ( Stack* stack )
 
 	//vtkSMSourceProxy * reader = vtkSMSourceProxy::SafeDownCast(input->getProxy());
 	//source->getOutputPort(0)->getDataInformation()->PrintSelf(std::cout,vtkIndent(0));
-	double *bounds = input->getOutputPort(0)->getDataInformation()->GetBounds();
-	int *extent = input->getOutputPort(0)->getDataInformation()->GetExtent();
+	double *bounds = m_background->outPut()->getDataInformation()->GetBounds();
+	int *extent = m_background->outPut()->getDataInformation()->GetExtent();
 	memcpy(m_bounds,bounds,6*sizeof(double));
 	memcpy(m_extent,extent,6*sizeof(int));
 	//vtkSMDataSourceProxy *data = vtkSMDataSourceProxy::SafeDownCast(source->getOutputPort(0)->getOutputPortProxy());
@@ -134,7 +134,7 @@ void SliceBlender::setBackground ( Stack* stack )
 	emit outputChanged(this->getOutput());
 }
 
-void SliceBlender::addSegmentation ( Segmentation* seg )
+void SliceBlender::addSegmentation ( IRenderable* seg )
 {
 	//Add seg to segmentation's blending list
 	m_segmentations->push_back(seg);;
@@ -245,7 +245,7 @@ pqOutputPort *SliceBlender::getOutput()
 
 pqOutputPort* SliceBlender::getBgOutput()
 {
-  return m_background->data()->getOutputPort(0);
+  return m_background->outPut();//->data()->getOutputPort(0);
 }
 
 

@@ -2,6 +2,7 @@
 #define _SLICER_H_
 
 #include <QObject>
+#include <interfaces.h>
 
 class Stack;
 class Segmentation;
@@ -55,9 +56,9 @@ public:
 
 public:
 	/// Set stack as background
-	void setBackground(Stack *stack);
+	void setBackground(IRenderable *background); //-> IRendered
 	/// Add seg to the set of inputs to blend
-	void addSegmentation(Segmentation *seg);
+	void addSegmentation(IRenderable *seg); //-> IRenderable
 
 	/// Gets the filter output. Depending on the behaviour
 	/// of the filter it can show only the first one (BLENDING_OFF)
@@ -102,10 +103,10 @@ private:
 	void updateAxis();
 
 private:
-	Stack *m_background;
+	IRenderable *m_background;
 	pqPipelineSource *m_bgSlicer;
 	pqPipelineSource *m_bgMapper;
-	QList<Segmentation *> *m_segmentations;
+	QList</*Segmentation*/ IRenderable *> *m_segmentations;
 	QList<pqPipelineSource *> *m_slicers;
 	QList<pqPipelineSource *> *m_sliceMappers;
 	pqPipelineSource *m_blender;

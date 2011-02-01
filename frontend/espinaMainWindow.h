@@ -78,7 +78,6 @@ private:
   class pqInternals;
   pqInternals* Internals;
   ObjectManager *m_productManager;
-  Segmentation *m_segmentations;
   QMap<QString,Stack *> m_stacks;
   SliceBlender *m_planes[SLICE_PLANE_LAST+1];
   SliceWidget *m_xy, *m_yz, *m_xz;
