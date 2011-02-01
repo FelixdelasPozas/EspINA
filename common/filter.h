@@ -24,6 +24,7 @@
 #include "interfaces.h"
 
 #include <map>
+#include <vector>
 
 // Forward declarations
 class pqPipelineSource;
@@ -42,10 +43,12 @@ class Product
 , public IRenderable
 {
 public:
-  Product() {}
-  ~Product(){}
+  Product(){}
+  virtual ~Product(){}
 
   //! Implements ITraceNode interface
+  virtual std::vector<ITraceNode *> inputs();
+  virtual std::vector<ITraceNode *> outputs();
   virtual void print(int indent = 0) const;
   virtual ParamList getArguments();
   
@@ -54,8 +57,12 @@ public:
   
   //! Implements IRenderable
   virtual pqOutputPort* outPut();
-  //TODO: Only for test this session
-  pqPipelineSource *source;
+  
+  // Friend of Filter?
+  virtual void setOutputPort(pqOutputPort *port);
+
+private:
+  pqOutputPort *m_outputPort;
 };
 
 
@@ -64,7 +71,13 @@ class Filter : public ITraceNode, public ISingleton
 public:
   typedef int vtkArg;
   typedef std::string espinaArg;
-  typedef std::map<espinaArg,vtkArg> TranslatorTable;
+  
+  class TranslatorTable{
+  public: 
+    ParamList translate(ParamList args) const {return args;}
+  private:
+    std::map<espinaArg,vtkArg> m_table;
+  };
   
 public:
   Filter(
@@ -75,16 +88,24 @@ public:
   );
   
   //! Implements ITraceNode interface
+  virtual std::vector<ITraceNode *> inputs();
+  virtual std::vector<ITraceNode *> outputs();
   virtual void print(int indent = 0) const;
   virtual ParamList getArguments();
   
   //! Implements ISingleton
   virtual std::string id();
   
+  std::vector<Product *> products();
+  
 private:
-  const ParamList &m_args;
+  //void createFilter();
+  
+private:
+  ParamList m_args;
   EspinaProxy *m_proxy;
   const TranslatorTable &m_translator;
+  std::vector<Product *> m_products;
 };
 
 #endif // FILTER_H

@@ -19,37 +19,67 @@
 
 #include "filter.h"
 
+// ESPINA
 #include "cache/cachedObjectBuilder.h"
 
+// ParaQ
 #include "pqPipelineSource.h"
 
+// Debug
 #include <iostream>
+#include <assert.h>
 
-
-pqOutputPort *Product::outPut()
+//-----------------------------------------------------------------------------
+// PRODUCT
+//-----------------------------------------------------------------------------
+std::vector< ITraceNode* > Product::inputs()
 {
-  return source->getOutputPort(0);
+  return m_trace->inputs(this);
 }
 
+//-----------------------------------------------------------------------------
+std::vector< ITraceNode* > Product::outputs()
+{
+  return m_trace->outputs(this);
+}
+
+//-----------------------------------------------------------------------------
 void Product::print(int indent) const
 {
 }
 
+//-----------------------------------------------------------------------------
 ParamList Product::getArguments()
 {
   ParamList p;
   return p;
 }
 
-
+//-----------------------------------------------------------------------------
 std::string Product::id()
 {
+  std::string pId = name;// Use translator to generate own id.
+  assert(this->inputs().size() == 1);// Products are only created by a filter
+  Filter * parent = dynamic_cast<Filter *>(this->inputs().front());
+  return parent->id() + pId;
+}
 
+//-----------------------------------------------------------------------------
+//! Returns the vtk outputport
+pqOutputPort *Product::outPut()
+{
+  return m_outputPort;
+}
+
+void Product::setOutputPort(pqOutputPort* port)
+{
+  m_outputPort = port;
 }
 
 
-
-
+//-----------------------------------------------------------------------------
+// FILTER
+//-----------------------------------------------------------------------------
 Filter::Filter(
   const std::string& group
 , const std::string& name
@@ -60,17 +90,36 @@ Filter::Filter(
   , m_translator(table)
 {
   this->name = group + "::" + name;
-  //CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   
-  //m_proxy = cob->createFilter(group,name,args);
+  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+  
+  ParamList vtkArgs;
+  vtkArgs = m_translator.translate(args);
+  
+  m_proxy = cob->createFilter(group,name,vtkArgs);
+  
+  qDebug() << m_proxy->getOutputPorts().size();
 }
 
+//-----------------------------------------------------------------------------
+std::vector< ITraceNode* > Filter::inputs()
+{
+ return m_trace->inputs(this);
+}
 
+//-----------------------------------------------------------------------------
+std::vector< ITraceNode* > Filter::outputs()
+{
+ return m_trace->outputs(this);
+}
+
+//-----------------------------------------------------------------------------
 void Filter::print(int indent) const
 {
   std::cout << name << std::endl;
 }
 
+//-----------------------------------------------------------------------------
 ParamList Filter::getArguments()
 {
   ParamList p;
@@ -78,9 +127,16 @@ ParamList Filter::getArguments()
 }
 
 
+//-----------------------------------------------------------------------------
 std::string Filter::id()
 {
+  //TODO: ParamList to Id
   return name;
 }
 
+
+std::vector<Product *> Filter::products()
+{
+  return m_products;
+}
 

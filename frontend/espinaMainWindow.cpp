@@ -186,7 +186,7 @@ void EspinaMainWindow::loadData(pqPipelineSource *source)
   m_stacks.insert("input",stack);
   
   Product *stackProduct = new Product();
-  stackProduct->source = source;
+  stackProduct->setOutputPort(source->getOutputPort(0));
   stackProduct->setVisible(false);
   //m_segmentation->setStack(source);
   
@@ -201,7 +201,7 @@ void EspinaMainWindow::loadData(pqPipelineSource *source)
   fakeSeg->updatePipeline();
   m_segmentations = new SegmentedObject(fakeSeg);
   Product *segProduct = new Product();
-  segProduct->source = fakeSeg;
+  segProduct->setOutputPort(source->getOutputPort(0));;
   
   // This updates the visualization pipeline before initializing the slice widgets
   //m_segmentation->visualizationStack()->updatePipeline();

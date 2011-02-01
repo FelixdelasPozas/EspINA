@@ -50,12 +50,14 @@ EspinaProxy* CachedObjectBuilder::createFilter(
 {
   // Create cache entry
   CacheIndex entryIndex(5);//(group,name,args);
+  
   EspinaProxy * proxy = m_cache->getEntry(entryIndex);
   if (proxy)
     return proxy;
   
   proxy = createSMFilter(group,name,args);
-  m_cache->insert(entryIndex,proxy);
+  //m_cache->insert(entryIndex,proxy);
+  return proxy;
 }
 
 pqPipelineSource *CachedObjectBuilder::createSMFilter(

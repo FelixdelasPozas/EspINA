@@ -62,4 +62,22 @@ void ProcessingTrace::print()
   //write_graphviz(std::cout,m_trace,make_label_writer(nameMap));
 }
 
+void ProcessingTrace::addSubtrace(const ProcessingTrace* subTrace)
+{
+
+}
+
+std::vector< ITraceNode* > ProcessingTrace::inputs(const ITraceNode* node)
+{
+  std::vector<ITraceNode *> inputNodes;
+  return inputNodes;
+}
+
+std::vector< ITraceNode* > ProcessingTrace::outputs(const ITraceNode* node)
+{
+  std::vector<ITraceNode *> outputNodes;
+  return outputNodes;
+}
+
+
 

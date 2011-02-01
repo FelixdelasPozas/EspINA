@@ -58,6 +58,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "assert.h"
 
 
+
+
 //-----------------------------------------------------------------------------
 SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): ISegmentationPlugin(parent)
 {
@@ -72,11 +74,12 @@ SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): ISegmentation
 	  SIGNAL(productCreated(Product *)),
 	  ObjectManager::instance(),
 	  SLOT(registerProduct(Product*)));
-    
 //   connect(this,
 // 	  SIGNAL(selectionAborted(ISelectionHandler *)),
 // 	  SelectionManager::singleton(),
 // 	  SLOT(setSelectionHandler(ISelectionHandler*)));
+  
+  // Init Grow table
 }
 
 void SeedGrowingSegmentation::handle(const Selection sel)
@@ -123,9 +126,9 @@ void SeedGrowingSegmentation::execute()
    assert (input);
 
    // Crear los Filtros
-//   ParamList blurArgs;
-//   blurArgs.push_back(Param("Sigma","2"));
-//   blurArgs.push_back(Param("input",input->id()));
+   //ParamList blurArgs;
+   //blurArgs.push_back(Param("Sigma","2"));
+   //blurArgs.push_back(Param("input",input->id()));
 //   
 //   Filter *blur = new Filter("filter","blur",blurArgs,m_tableBlur);
    
@@ -133,21 +136,20 @@ void SeedGrowingSegmentation::execute()
    growArgs.push_back(Param("input",input->id()));
    growArgs.push_back(Param("Seed","50,50,50"));
    
-   //TODO: Parseparams --> Create TranslatorTable
    
-//    Filter *grow = new Filter(
-//      "filter",
-//      "SeedGrowingSegmentationFilter",
-//      m_tableGrow
-//    );
+   Filter *grow = new Filter(
+     "filter",
+     "SeedGrowingSegmentationFilter",
+     growArgs,
+     m_tableGrow
+   );
    
    
    //TODO: Pasar de filter a products
    
    
-   Product *seg = new Product();
+   //Product *seg = new Product();
    //seg->source = grow->GetOutput();
-   
    
    
 //   ProcessingTrace *ptrace;
@@ -205,7 +207,7 @@ void SeedGrowingSegmentation::execute()
     undoStack->endUndoSet();
   }
   
-  emit productCreated(seg);
+  //emit productCreated(seg);
   
   // Comment following line to allow several selections 
   emit waitingSelection(NULL);

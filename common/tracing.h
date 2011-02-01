@@ -28,15 +28,22 @@
 typedef std::pair<std::string, std::string> Param;
 typedef std::vector<Param> ParamList;
 
+//Forward declarations
+class ProcessingTrace;
 
 //! Interface to trace's nodes
 class ITraceNode
 {
 public:
+  virtual std::vector<ITraceNode *> inputs() = 0;
+  virtual std::vector<ITraceNode *> outputs() = 0;
   virtual void print(int indent = 0) const = 0;
   virtual ParamList getArguments() = 0;
   std::string name;
   int type;// 0: Product 1: Filter
+
+protected:
+  ProcessingTrace *m_trace;
 };
 
 
@@ -101,6 +108,8 @@ public:
   );
   
   void addSubtrace(const ProcessingTrace *subTrace);
+  std::vector<ITraceNode *> inputs(const ITraceNode *node);
+  std::vector<ITraceNode *> outputs(const ITraceNode *node);
   
   void print();
   
