@@ -24,6 +24,7 @@
 
 // Forward declaration
 class pqOutputPort;
+class pqPipelineSource;
 
 class ISelectableObject
 {
@@ -67,16 +68,24 @@ public:
 //   , isSELECTED  = 2^0
 //   , isDISCARTED = 2^1
 //   };
-  
 public:
   IRenderable() : m_style(VISIBLE) {}
+  IRenderable(pqPipelineSource *source, int portNumber) 
+  : m_style(VISIBLE) 
+  , m_source(source)
+  , m_portNumber(portNumber)
+  {}
   virtual bool visible(){return m_style & VISIBLE;}
   virtual void setVisible(bool value) {m_style = RENDER_STYLE((m_style | !VISIBLE) & (value?1:0));}
   virtual RENDER_STYLE style() {return m_style;}
-  virtual pqOutputPort *outPut() = 0;
+  virtual pqOutputPort *outputPort() = 0;
+  virtual pqPipelineSource *data() = 0;
+  virtual int portNumber() = 0;
   
 protected:
   RENDER_STYLE m_style;
+  pqPipelineSource *m_source;
+  int m_portNumber;
 };
 
 

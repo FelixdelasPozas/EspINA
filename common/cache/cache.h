@@ -25,18 +25,21 @@
 
 class pqPipelineSource;
 typedef pqPipelineSource EspinaProxy;
-typedef double CacheIndex;
+typedef QString CacheIndex;
 typedef EspinaProxy CacheEntry;
-
 
 class Cache
 {
 public:
-  Cache(const QString &path="cache") : m_diskCachePath(path) {};
+  static Cache *instance();
   void insert(const CacheIndex& index, CacheEntry* entry);
   CacheEntry *getEntry(const CacheIndex index) const;
   
+protected:
+  Cache(const QString &path="cache") : m_diskCachePath(path) {};
+  
 private:
+  static Cache *m_singleton;
   QMap<CacheIndex, CacheEntry *> m_cachedProxies;
   QString m_diskCachePath; 
 };

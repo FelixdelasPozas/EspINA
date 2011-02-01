@@ -28,6 +28,7 @@
 // Debug
 #include <iostream>
 #include <assert.h>
+#include <QDebug>
 
 //-----------------------------------------------------------------------------
 // PRODUCT
@@ -43,7 +44,6 @@ std::vector< ITraceNode* > Product::outputs()
   return m_trace->outputs(this);
 }
 
-//-----------------------------------------------------------------------------
 void Product::print(int indent) const
 {
 }
@@ -59,22 +59,33 @@ ParamList Product::getArguments()
 std::string Product::id()
 {
   std::string pId = name;// Use translator to generate own id.
+  return name; //DEBUG
   assert(this->inputs().size() == 1);// Products are only created by a filter
   Filter * parent = dynamic_cast<Filter *>(this->inputs().front());
   return parent->id() + pId;
 }
 
 //-----------------------------------------------------------------------------
-//! Returns the vtk outputport
-pqOutputPort *Product::outPut()
+pqOutputPort* Product::outputPort()
 {
-  return m_outputPort;
+  return IRenderable::outputPort();
 }
 
-void Product::setOutputPort(pqOutputPort* port)
+
+//-----------------------------------------------------------------------------
+pqPipelineSource* Product::data()
 {
-  m_outputPort = port;
+  return IRenderable::data();
 }
+
+
+//-----------------------------------------------------------------------------
+int Product::portNumber()
+{
+
+  return IRenderable::portNumber();
+}
+
 
 
 //-----------------------------------------------------------------------------

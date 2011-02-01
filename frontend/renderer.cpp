@@ -56,7 +56,7 @@ void MeshRenderer::render( IRenderable* actor, pqRenderView* view)
 {
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
   pqDataRepresentation *dr = dp->setRepresentationVisibility(
-    actor->outPut()
+    actor->outputPort()
     , view
     , actor->visible());
   
@@ -127,7 +127,7 @@ void VolumeRenderer::render ( IRenderable *actor, pqRenderView * view )
 {
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
   pqDataRepresentation *dr = dp->setRepresentationVisibility(
-    actor->outPut()
+    actor->outputPort()
     , view
     , actor->visible());
   

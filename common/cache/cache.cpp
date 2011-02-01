@@ -20,6 +20,15 @@
 #include "cache.h"
 #include "pqPipelineSource.h"
 
+Cache *Cache::m_singleton = NULL;
+
+Cache* Cache::instance()
+{
+  if (!m_singleton)
+    m_singleton = new Cache();
+  return m_singleton;
+}
+
 void Cache::insert(const CacheIndex& index, CacheEntry* entry)
 {
   m_cachedProxies.insert(index,entry);
@@ -28,6 +37,7 @@ void Cache::insert(const CacheIndex& index, CacheEntry* entry)
 
 CacheEntry* Cache::getEntry(const CacheIndex index) const
 {
+  //if (m_cachedProxies.find(index)
   // TODO: Check for null results
   return NULL; // Force cache fail
   return m_cachedProxies[index];

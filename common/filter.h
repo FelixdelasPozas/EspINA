@@ -44,6 +44,7 @@ class Product
 {
 public:
   Product(){}
+  Product(pqPipelineSource *source, int portNumber) : IRenderable(source, portNumber) {}
   virtual ~Product(){}
 
   //! Implements ITraceNode interface
@@ -56,13 +57,9 @@ public:
   virtual std::string id();
   
   //! Implements IRenderable
-  virtual pqOutputPort* outPut();
-  
-  // Friend of Filter?
-  virtual void setOutputPort(pqOutputPort *port);
-
-private:
-  pqOutputPort *m_outputPort;
+  virtual pqOutputPort* outputPort();
+  virtual pqPipelineSource* data();	
+  virtual int portNumber();
 };
 
 

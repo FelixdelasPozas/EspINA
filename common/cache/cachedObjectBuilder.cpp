@@ -26,12 +26,16 @@
 #include "pqPipelineSource.h"
 #include <vtkSMProxy.h>
 #include <vtkSMProperty.h>
+#include <boost/graph/graph_concepts.hpp>
+
+
+#include <QDebug>
 
 CachedObjectBuilder * CachedObjectBuilder::m_singleton = NULL;
 
 CachedObjectBuilder::CachedObjectBuilder()
 {
-  m_cache = new Cache();
+  m_cache = Cache::instance();
 }
 
 CachedObjectBuilder* CachedObjectBuilder::instance()
@@ -66,10 +70,20 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(
 , ParamList args)
 {
   pqApplicationCore* core = pqApplicationCore::instance();
-  pqObjectBuilder* builder = core->getObjectBuilder();
+  pqObjectBuilder* ob = core->getObjectBuilder();
   
   pqPipelineSource *filter; //= builder->createFilter(group, name,NULL);
-  initFilter(filter,args);
+  for (int p = 0; p < args.size(); p++)
+  {
+    if (args[p].first == "input")
+    {
+      pqPipelineSource *proxy = m_cache->getEntry(args[p].second.c_str());
+      filter = ob->createFilter(group.c_str(),name.c_str(),proxy);
+    }
+    else
+      qDebug() << "Unkown parameter";
+  }
+ // initFilter(filter,args);
 }
 
 

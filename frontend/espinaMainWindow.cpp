@@ -42,6 +42,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "unitExplorer.h"
 #include "selectionManager.h"
 #include "filter.h"
+#include "cache/cache.h"
 
 //ParaQ includes
 #include "pqHelpReaction.h"
@@ -179,48 +180,34 @@ EspinaMainWindow::~EspinaMainWindow()
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::loadData(pqPipelineSource *source)
 { 
-  //TODO: Remove previous state
+  Product *stack = new Product(source,0);
+  stack->name = "/home/jorge/Stacks/peque.mha";
+  stack->setVisible(false);
   
-  //TODO: Get filename!
-  Stack *stack = new Stack(source);
-  m_stacks.insert("input",stack);
-  
-  Product *stackProduct = new Product();
-  stackProduct->setOutputPort(source->getOutputPort(0));
-  stackProduct->setVisible(false);
-  //m_segmentation->setStack(source);
+  Cache *cache = Cache::instance();
+  cache->insert(stack->id().c_str(),source);
   
   // Create a fake segmentation to make the tests
-  pqPipelineSource *fakeSeg;
   pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
   pqServer * server= pqActiveObjects::instance().activeServer();
   QStringList file;
-  //file << "/home/jorge/Stacks/peque.mha";
+  //file << "/home/jfernandez/workspace/bbp_workflow/data_experiments/Espina_files/segmentita.mha";
   file << "/home/jorge/Stacks/segmentita.mha";
-  fakeSeg = ob->createReader("sources","MetaImageReader",file,server);
-  fakeSeg->updatePipeline();
-  m_segmentations = new SegmentedObject(fakeSeg);
-  Product *segProduct = new Product();
-  segProduct->setOutputPort(source->getOutputPort(0));;
+  pqPipelineSource *fakeSource = ob->createReader("sources","MetaImageReader",file,server);
+  fakeSource->updatePipeline();
+  Product *seg = new Product(fakeSource,0);
   
   // This updates the visualization pipeline before initializing the slice widgets
-  //m_segmentation->visualizationStack()->updatePipeline();
   source->updatePipeline();
   for (SlicePlane plane = SLICE_PLANE_FIRST; plane <= SLICE_PLANE_LAST; plane=SlicePlane(plane+1))
   {
     m_planes[plane]->setBackground(stack);
-    m_planes[plane]->addSegmentation(m_segmentations);
+    m_planes[plane]->addSegmentation(seg);
     m_3d->setPlane(m_planes[plane],plane);
     connect(m_planes[plane],SIGNAL(updated()),m_3d,SLOT(updateScene()));
   }
-  m_productManager->registerProduct(stackProduct);
-  m_productManager->registerProduct(segProduct);
-  /* Deprecated
-   *	QList<Segmentation *> *validActors = new QList<Segmentation *>;
-   *	validActors->push_back(m_segmentations);
-   *	m_3d->setValidActors(validActors);
-   */
-  //m_3d->showSource(m_segmentation->visualizationStack()->getOutputPort(0),VOLUME); 
+  m_productManager->registerProduct(stack);
+  m_productManager->registerProduct(seg);
 }
 
 //-----------------------------------------------------------------------------
