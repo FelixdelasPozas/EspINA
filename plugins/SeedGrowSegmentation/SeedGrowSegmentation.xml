@@ -24,6 +24,13 @@
              <DataType value="vtkImageData"/>
            </DataTypeDomain>
       </InputProperty>
+	  <DoubleVectorProperty
+		 name="Threshold"
+         number_of_elements="1"
+		 default_values="30"
+		 immediate_update="1"
+		 command="Setm_threshold">
+      </DoubleVectorProperty>
    <!-- End SegmentationFilter -->
    </SourceProxy>
 

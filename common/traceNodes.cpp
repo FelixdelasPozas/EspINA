@@ -31,6 +31,8 @@
 #include <assert.h>
 #include <QDebug>
 
+using namespace std;
+
 //-----------------------------------------------------------------------------
 // PRODUCT
 //-----------------------------------------------------------------------------
@@ -40,36 +42,36 @@ Product::Product(pqPipelineSource* source, int portNumber)
   this->name = "Product";
 }
 
-std::vector< ITraceNode* > Product::inputs()
+vector< ITraceNode* > Product::inputs()
 {
-  std::vector<ITraceNode *> nullVector;
+  vector<ITraceNode *> nullVector;
   return nullVector;
 }
 
 //-----------------------------------------------------------------------------
-std::vector< ITraceNode* > Product::outputs()
+vector< ITraceNode* > Product::outputs()
 {
-  std::vector<ITraceNode *> nullVector;
+  vector<ITraceNode *> nullVector;
   return nullVector;
 }
 
 void Product::print(int indent) const
 {
-  std::cout << name << std::endl;
+  cout << name << endl;
 }
 
 //-----------------------------------------------------------------------------
-ParamList Product::getArguments()
+EspinaParamList Product::getArguments()
 {
-  ParamList p;
-  return p;
+  EspinaParamList nullParamList;
+  return nullParamList;
 }
 
 
 //-----------------------------------------------------------------------------
-std::string Product::id()
+string Product::id()
 {
-  std::string pId = name;// Use translator to generate own id.
+  string pId = name;// Use translator to generate own id.
   return name; //DEBUG
   assert(this->inputs().size() == 1);// Products are only created by a filter
   Filter * parent = dynamic_cast<Filter *>(this->inputs().front());
@@ -99,13 +101,14 @@ int Product::portNumber()
 
 
 
+
 //-----------------------------------------------------------------------------
 // FILTER
 //-----------------------------------------------------------------------------
 Filter::Filter(
-  const std::string& group
-, const std::string& name
-, const ParamList& args
+  const string& group
+, const string& name
+, const EspinaParamList& args
 , const TranslatorTable &table
   )
   : m_args(args)
@@ -118,7 +121,7 @@ Filter::Filter(
   
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   
-  ParamList vtkArgs;
+  VtkParamList vtkArgs;
   vtkArgs = m_translator.translate(args);
   
   m_proxy = cob->createFilter(group,name,vtkArgs);
@@ -135,13 +138,13 @@ Filter::Filter(
 }
 
 //-----------------------------------------------------------------------------
-std::vector< ITraceNode* > Filter::inputs()
+vector< ITraceNode* > Filter::inputs()
 {
  return m_filtertrace.inputs(this);
 }
 
 //-----------------------------------------------------------------------------
-std::vector< ITraceNode* > Filter::outputs()
+vector< ITraceNode* > Filter::outputs()
 {
  return m_filtertrace.outputs(this);
 }
@@ -149,25 +152,25 @@ std::vector< ITraceNode* > Filter::outputs()
 //-----------------------------------------------------------------------------
 void Filter::print(int indent) const
 {
-  std::cout << name << std::endl;
+  cout << name << endl;
 }
 
 //-----------------------------------------------------------------------------
-ParamList Filter::getArguments()
+EspinaParamList Filter::getArguments()
 {
-  ParamList p;
-  return p;
+  EspinaParamList nullParamList;
+  return nullParamList;
 }
 
 //-----------------------------------------------------------------------------
-std::string Filter::id()
+string Filter::id()
 {
   //TODO: ParamList to Id
   return name;
 }
 
 
-std::vector<Product *> Filter::products()
+vector<Product *> Filter::products()
 {
   return m_products;
 }

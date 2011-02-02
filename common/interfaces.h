@@ -20,7 +20,7 @@
 #ifndef INTERFACES_H
 #define INTERFACES_H
 
-#include "types.h"
+#include "espinaTypes.h"
 
 // Forward declaration
 class pqOutputPort;

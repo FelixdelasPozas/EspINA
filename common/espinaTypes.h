@@ -11,4 +11,7 @@ struct Point
 
 typedef Point ImagePixel;
 
+
+
+
 #endif// ESPINATYPES_H

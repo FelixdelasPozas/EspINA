@@ -78,7 +78,7 @@ private:
   IPixelSelector *m_selector;
   Selection m_sel;
   //Filter::TranslatorTable m_tableBlur;
-  Filter::TranslatorTable m_tableGrow;
+  TranslatorTable m_tableGrow;
 };
 
 #endif// SEEDGROWINGSEGMENTATION_H

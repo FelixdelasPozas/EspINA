@@ -22,9 +22,7 @@
 
 #include "tracing.h"
 #include "interfaces.h"
-
-#include <map>
-#include <vector>
+#include "translatorTable.h"
 
 // Forward declarations
 class pqPipelineSource;
@@ -51,7 +49,7 @@ public:
   virtual std::vector<ITraceNode *> inputs();
   virtual std::vector<ITraceNode *> outputs();
   virtual void print(int indent = 0) const;
-  virtual ParamList getArguments();
+  virtual EspinaParamList getArguments();
   
   //! Implements ISingleton
   virtual std::string id();
@@ -66,16 +64,33 @@ public:
 
 class Filter : public ITraceNode, public ISingleton
 {
-public:
-  typedef std::string vtkArg;//TODO:
-  typedef std::string espinaArg;//TODO:
+//public:
   
-  class TranslatorTable{//TODO
-  public: 
-    ParamList translate(ParamList args) const {return args;}
-  private:
-    std::map<espinaArg,vtkArg> m_table;
-  };
+//   class TranslatorTable{
+//   public: 
+//     //! Different Types of Vtk Properties
+//     enum VtkPropType
+//     { INPUT      = 0    
+//     , INTVECT    = 1
+//     , DOUBLEVECT = 2
+//     };
+//     
+//     //! Argument that can be interpreted as a vtk property
+//     typedef struct
+//     {
+//       VtkPropType type;
+//       std::string name;
+//     } VtkArg;
+//     
+//     typedef std::pair<VtkArg,ParamValue> VtkParam;
+//     typedef std::vector<VtkParam> VtkParamList;
+//     
+//   public:
+//     VtkParamList translate(EspinaParamList args) const;
+//     
+//   private:
+//     std::map<EspinaArg,VtkArg> m_table;
+//   };
   
 public:
   Filter(
@@ -84,7 +99,7 @@ public:
     //! Paraview filter's name
     , const std::string &name
     //! Espina Args list
-    , const ParamList &args
+    , const EspinaParamList &args
     //! Filter Translation Table
   , const TranslatorTable &table  
   );
@@ -93,7 +108,7 @@ public:
   virtual std::vector<ITraceNode *> inputs();
   virtual std::vector<ITraceNode *> outputs();
   virtual void print(int indent = 0) const;
-  virtual ParamList getArguments();
+  virtual EspinaParamList getArguments();
   
   //! Implements ISingleton
   virtual std::string id();
@@ -105,7 +120,7 @@ private:
   //void createFilter();
   
 private:
-  ParamList m_args;
+  EspinaParamList m_args;
   EspinaProxy *m_proxy;
   const TranslatorTable &m_translator;
   ProcessingTrace m_filtertrace;

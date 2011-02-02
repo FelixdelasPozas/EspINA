@@ -12,6 +12,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR})
 find_package(ParaView REQUIRED)
 include(${PARAVIEW_USE_FILE})
 
+find_package(Cajal REQUIRED)
+
 find_package(Boost REQUIRED COMPONENTS  system filesystem)
 link_directories ( ${Boost_LIBRARY_DIRS} )
 include_directories ( ${Boost_INCLUDE_DIRS} )
@@ -19,6 +21,7 @@ include_directories ( ${Boost_INCLUDE_DIRS} )
 include_directories(
 	.
 	../common
+	${CAJAL_INCLUDE_DIR}/data
 	${CMAKE_CURRENT_BINARY_DIR}
 	)
 

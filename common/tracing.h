@@ -19,14 +19,20 @@
 #ifndef TRACING_H
 #define TRACING_H
 
-#include <string>
+#include "cajalTypes.h"
 
-#include <vector>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/subgraph.hpp>
 
-typedef std::pair<std::string, std::string> Param;
-typedef std::vector<Param> ParamList;
+/*
+//! A Trace node argument. It only has semantic meaning
+typedef std::string EspinaArg;
+//! The value of a Espina argument
+typedef std::string ParamValue;
+typedef std::pair<EspinaArg, ParamValue> EspinaParam;
+typedef std::vector<EspinaParam> EspinaParamList;
+*/
+typedef NodeParamList EspinaParamList;
 
 //Forward declarations
 class ProcessingTrace;
@@ -38,7 +44,7 @@ public:
   virtual std::vector<ITraceNode *> inputs() = 0;
   virtual std::vector<ITraceNode *> outputs() = 0;
   virtual void print(int indent = 0) const = 0;
-  virtual ParamList getArguments() = 0;
+  virtual EspinaParamList getArguments() = 0;
   
   //! Descriptive name of the node
   std::string name;

@@ -18,7 +18,8 @@
 */
 
 #include "cachedObjectBuilder.h"
-#include "cache.h"
+
+#include <QString>
 
 // ParaQ includes
 #include "pqApplicationCore.h"
@@ -26,10 +27,16 @@
 #include "pqPipelineSource.h"
 #include <vtkSMProxy.h>
 #include <vtkSMProperty.h>
+#include <vtkSMDoubleVectorProperty.h>
+
+// TODO: Boost??
 #include <boost/graph/graph_concepts.hpp>
 
-
+// Debug
 #include <QDebug>
+#include <assert.h>
+
+
 
 CachedObjectBuilder * CachedObjectBuilder::m_singleton = NULL;
 
@@ -49,7 +56,7 @@ CachedObjectBuilder* CachedObjectBuilder::instance()
 EspinaProxy* CachedObjectBuilder::createFilter(
   std::string group
 , std::string name
-, ParamList args
+, VtkParamList args
   )
 {
   
@@ -68,7 +75,7 @@ EspinaProxy* CachedObjectBuilder::createFilter(
 pqPipelineSource *CachedObjectBuilder::createSMFilter(
   std::string group
 , std::string name
-, ParamList args)
+, VtkParamList args)
 {
   pqApplicationCore* core = pqApplicationCore::instance();
   pqObjectBuilder* ob = core->getObjectBuilder();
@@ -77,22 +84,52 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(
   pqPipelineSource *filter; //= builder->createFilter(group, name,NULL);
   for (int p = 0; p < args.size(); p++)
   {
-    if (args[p].first == "input")
+    VtkArg vtkArg = args[p].first;
+    switch (vtkArg.type)
+    {
+      case INPUT:
+      {
+	pqPipelineSource *inputProxy = m_cache->getEntry(args[p].second.c_str());
+	filter = ob->createFilter(group.c_str(),name.c_str(),inputProxy);
+      }
+      break;
+      case DOUBLEVECT:
+	assert(filter);
+	{
+	  vtkSMDoubleVectorProperty * prop = vtkSMDoubleVectorProperty::SafeDownCast(
+	    filter->getProxy()->GetProperty(vtkArg.name.c_str())
+	  );
+	  QString value(args[p].second.c_str());
+	  double th = value.toDouble();
+	  qDebug() << "Value" <<  th;
+	  prop->SetElements1(th);
+	}
+	break;
+      default:
+	qDebug() << "Unkown parameter type";
+	assert(false);
+    };
+    /*
+    if (args[p] == "input")
     {
       pqPipelineSource *proxy = m_cache->getEntry(args[p].second.c_str());
       filter = ob->createFilter(group.c_str(),name.c_str(),proxy);
     }
     else
       qDebug() << "Unkown parameter";
+    */
   }
+  assert(filter);
+  filter->getProxy()->UpdateVTKObjects();
+  filter->updatePipeline();
  // initFilter(filter,args);
  return filter;
 }
 
 
-void CachedObjectBuilder::initFilter(pqPipelineSource* filter, ParamList args)
-{
-}
+// void CachedObjectBuilder::initFilter(pqPipelineSource* filter, ParamList args)
+// {
+// }
 
 
 

@@ -16,8 +16,8 @@ int main(int argc, char **argv)
 {
   ProcessingTrace trace;
    
-   ParamList args;
-   Filter::TranslatorTable tb;
+   EspinaParamList args;
+   TranslatorTable tb;
    Filter *grow = new Filter("filters","grow",args,tb);
   
 //   // Load initial source

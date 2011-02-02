@@ -77,6 +77,13 @@ SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): ISegmentation
 	  SLOT(registerProduct(Product*)));
   
   // Init Grow table
+  EspinaArg espina = "input";
+  VtkArg vtk = {INPUT,"input"};
+  m_tableGrow.addTranslation(espina, vtk);
+  espina = "Threshold";
+  vtk.type = DOUBLEVECT;
+  vtk.name = "Threshold";
+  m_tableGrow.addTranslation(espina, vtk);
 }
 
 void SeedGrowingSegmentation::handle(const Selection sel)
@@ -124,12 +131,14 @@ void SeedGrowingSegmentation::execute()
 //   
 //   Filter *blur = new Filter("filter","blur",blurArgs,m_tableBlur);
    
-   ParamList growArgs;
-   growArgs.push_back(Param("input",input->id()));
-   growArgs.push_back(Param("Seed","50,50,50"));
+   EspinaParamList growArgs;
+   typedef NodeParam EspinaParam;
+   growArgs.push_back(EspinaParam("input",input->id()));
+   growArgs.push_back(EspinaParam("Seed","50,50,50"));
    qDebug() << "Seed: " << m_sel.coord.x << "," << m_sel.coord.y << "," << m_sel.coord.z;
-   growArgs.push_back(Param("Threshold","30"));
-   qDebug() << "Threshold: " << m_threshold->value();
+   QString th = QString::number(m_threshold->value());
+   growArgs.push_back(EspinaParam("Threshold",th.toStdString()));
+   qDebug() << "Threshold: " << th;
    
    Filter *grow = new Filter(
      "filters",
