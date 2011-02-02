@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "iSegmentationPlugin.h"
 #include "interfaces.h"
-#include "filter.h"
+#include "traceNodes.h"
 
 //Forward declarations
 class QSpinBox;

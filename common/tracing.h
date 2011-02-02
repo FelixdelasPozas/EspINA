@@ -39,11 +39,13 @@ public:
   virtual std::vector<ITraceNode *> outputs() = 0;
   virtual void print(int indent = 0) const = 0;
   virtual ParamList getArguments() = 0;
+  
+  //! Descriptive name of the node
   std::string name;
+  //! Node id in the local subgraph
+  unsigned int localId;
+  //! Type used to enhance the output of the graph....
   int type;// 0: Product 1: Filter
-
-protected:
-  ProcessingTrace *m_trace;
 };
 
 
@@ -96,8 +98,15 @@ class ProcessingTrace
   
   typedef boost::subgraph<SubGraph> Graph;
   
+  typedef boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
+  typedef std::pair<OutEdgeIter, OutEdgeIter> EdgeIteratorRange;
+  
+  typedef Graph::vertex_descriptor VertexId;
+  typedef Graph::edge_descriptor EdgeId;
+  
 public:
   ProcessingTrace();
+  ProcessingTrace(const std::string &name);
   ~ProcessingTrace(){}
   
   void addNode(ITraceNode* node);

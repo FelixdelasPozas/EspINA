@@ -44,7 +44,7 @@ class Product
 {
 public:
   Product(){}
-  Product(pqPipelineSource *source, int portNumber) : IRenderable(source, portNumber) {}
+  Product(pqPipelineSource *source, int portNumber);
   virtual ~Product(){}
 
   //! Implements ITraceNode interface
@@ -63,13 +63,14 @@ public:
 };
 
 
+
 class Filter : public ITraceNode, public ISingleton
 {
 public:
-  typedef int vtkArg;
-  typedef std::string espinaArg;
+  typedef std::string vtkArg;//TODO:
+  typedef std::string espinaArg;//TODO:
   
-  class TranslatorTable{
+  class TranslatorTable{//TODO
   public: 
     ParamList translate(ParamList args) const {return args;}
   private:
@@ -78,9 +79,13 @@ public:
   
 public:
   Filter(
+    //! Paraview filter's group name
     const std::string &group
-  , const std::string &name
-  , const ParamList &args
+    //! Paraview filter's name
+    , const std::string &name
+    //! Espina Args list
+    , const ParamList &args
+    //! Filter Translation Table
   , const TranslatorTable &table  
   );
   
@@ -94,6 +99,7 @@ public:
   virtual std::string id();
   
   std::vector<Product *> products();
+  ProcessingTrace *trace();
   
 private:
   //void createFilter();
@@ -102,6 +108,7 @@ private:
   ParamList m_args;
   EspinaProxy *m_proxy;
   const TranslatorTable &m_translator;
+  ProcessingTrace m_filtertrace;
   std::vector<Product *> m_products;
 };
 

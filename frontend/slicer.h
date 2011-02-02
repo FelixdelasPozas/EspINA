@@ -57,8 +57,6 @@ public:
 public:
 	/// Set stack as background
 	void setBackground(IRenderable *background); //-> IRendered
-	/// Add seg to the set of inputs to blend
-	void addSegmentation(IRenderable *seg); //-> IRenderable
 
 	/// Gets the filter output. Depending on the behaviour
 	/// of the filter it can show only the first one (BLENDING_OFF)
@@ -77,6 +75,9 @@ public:
 	int getExtent(int index){return m_extent[index];}
 
 public slots:
+	/// Add seg to the set of inputs to blend
+	void addSegmentation(IRenderable *seg); //-> IRenderable
+	
 	void setPlane(SlicePlane plane)
 	{
 		//TODO: Update all slice modes for all inputs

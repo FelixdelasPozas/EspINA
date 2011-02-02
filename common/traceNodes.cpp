@@ -17,13 +17,14 @@
 
 */
 
-#include "filter.h"
+#include "traceNodes.h"
 
 // ESPINA
 #include "cache/cachedObjectBuilder.h"
 
 // ParaQ
 #include "pqPipelineSource.h"
+#include "vtkSMProxy.h"
 
 // Debug
 #include <iostream>
@@ -33,19 +34,28 @@
 //-----------------------------------------------------------------------------
 // PRODUCT
 //-----------------------------------------------------------------------------
+Product::Product(pqPipelineSource* source, int portNumber)
+: IRenderable(source, portNumber)
+{
+  this->name = "Product";
+}
+
 std::vector< ITraceNode* > Product::inputs()
 {
-  return m_trace->inputs(this);
+  std::vector<ITraceNode *> nullVector;
+  return nullVector;
 }
 
 //-----------------------------------------------------------------------------
 std::vector< ITraceNode* > Product::outputs()
 {
-  return m_trace->outputs(this);
+  std::vector<ITraceNode *> nullVector;
+  return nullVector;
 }
 
 void Product::print(int indent) const
 {
+  std::cout << name << std::endl;
 }
 
 //-----------------------------------------------------------------------------
@@ -54,6 +64,7 @@ ParamList Product::getArguments()
   ParamList p;
   return p;
 }
+
 
 //-----------------------------------------------------------------------------
 std::string Product::id()
@@ -99,8 +110,11 @@ Filter::Filter(
   )
   : m_args(args)
   , m_translator(table)
+  , m_filtertrace(name)
 {
   this->name = group + "::" + name;
+  
+  m_filtertrace.addNode(this);
   
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   
@@ -109,19 +123,27 @@ Filter::Filter(
   
   m_proxy = cob->createFilter(group,name,vtkArgs);
   
-  qDebug() << m_proxy->getOutputPorts().size();
+  m_proxy->getProxy()->UpdateVTKObjects();
+  
+  for (int portNumber = 0; portNumber < m_proxy->getOutputPorts().size(); portNumber++)
+  {
+    Product *filterOutput = new Product(m_proxy,portNumber);
+    m_filtertrace.addNode(filterOutput);
+    m_filtertrace.connect(this,filterOutput,"segmentation");
+    m_products.push_back(filterOutput);
+  }
 }
 
 //-----------------------------------------------------------------------------
 std::vector< ITraceNode* > Filter::inputs()
 {
- return m_trace->inputs(this);
+ return m_filtertrace.inputs(this);
 }
 
 //-----------------------------------------------------------------------------
 std::vector< ITraceNode* > Filter::outputs()
 {
- return m_trace->outputs(this);
+ return m_filtertrace.outputs(this);
 }
 
 //-----------------------------------------------------------------------------
@@ -137,7 +159,6 @@ ParamList Filter::getArguments()
   return p;
 }
 
-
 //-----------------------------------------------------------------------------
 std::string Filter::id()
 {
@@ -149,5 +170,10 @@ std::string Filter::id()
 std::vector<Product *> Filter::products()
 {
   return m_products;
+}
+
+ProcessingTrace* Filter::trace()
+{
+  return &m_filtertrace;
 }
 

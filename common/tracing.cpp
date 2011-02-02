@@ -22,6 +22,9 @@
 #include <iostream>
 #include <boost/graph/graphviz.hpp>
 
+//Debug
+#include <QDebug>
+
 using namespace boost;
 
 
@@ -31,12 +34,21 @@ ProcessingTrace::ProcessingTrace()
   //m_trace[0].trace_name = "Espina";
 }
 
+ProcessingTrace::ProcessingTrace(const std::string& name)
+: m_trace(0)
+{
+ // m_trace.m_property.owner = name;
+}
+
+
 void ProcessingTrace::addNode(ITraceNode* node)
 {
-  typedef Graph::vertex_descriptor VertexId;
   VertexId v = add_vertex(m_trace);
-  m_trace[v].node = node;
-  //m_trace[v].node->print();
+  property_map<Graph, ITraceNode * VertexProperty::*>::type nodeMap =
+    get(&VertexProperty::node,m_trace);
+  node->localId = v;
+  nodeMap[v] = node;
+  nodeMap[v]->print();
 }
 
 void ProcessingTrace::connect(
@@ -45,6 +57,10 @@ void ProcessingTrace::connect(
 , const std::string& description
 )
 {
+  add_edge(origin->localId,destination->localId,m_trace);
+  //property_map<Graph, std::string EdgeProperty::*>::type descMap =
+  //  get(&EdgeProperty::relationship,m_trace);
+  //descMap[e] = description;
   // Get list of vertex_descriptor
   //Find the nodes corresponding the nodes
   // Add a new edge(origin,destination) with 
@@ -75,8 +91,19 @@ std::vector< ITraceNode* > ProcessingTrace::inputs(const ITraceNode* node)
 
 std::vector< ITraceNode* > ProcessingTrace::outputs(const ITraceNode* node)
 {
-  std::vector<ITraceNode *> outputNodes;
-  return outputNodes;
+  std::vector<ITraceNode *> result;
+  // Node prooperty map
+  property_map<Graph, ITraceNode * VertexProperty::*>::type nodeMap =
+    get(&VertexProperty::node,m_trace);
+  // Find targets of output edges
+    qDebug() << out_degree(node->localId,m_trace);
+  EdgeIteratorRange edges = out_edges(node->localId,m_trace);
+  for (OutEdgeIter e = edges.first; e != edges.second; e++)
+  {
+    VertexId v = target(*e,m_trace);
+    result.push_back(nodeMap[v]);
+  }
+  return result;
 }
 
 

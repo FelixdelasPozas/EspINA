@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "objectManager.h"
 #include <cache/cachedObjectBuilder.h>
 #include "iPixelSelector.h"
-#include <filter.h>
+#include "traceNodes.h"
 
 //GUI includes
 #include <QApplication>
@@ -64,8 +64,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): ISegmentationPlugin(parent)
 {
   m_selector = new PixelSelector();
-  //m_tableBlur["input"] = 0;
+  
   buildUI();
+  
   connect(this,
 	  SIGNAL(waitingSelection(ISelectionHandler *)),
 	  SelectionManager::singleton(),
@@ -74,10 +75,6 @@ SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): ISegmentation
 	  SIGNAL(productCreated(Product *)),
 	  ObjectManager::instance(),
 	  SLOT(registerProduct(Product*)));
-//   connect(this,
-// 	  SIGNAL(selectionAborted(ISelectionHandler *)),
-// 	  SelectionManager::singleton(),
-// 	  SLOT(setSelectionHandler(ISelectionHandler*)));
   
   // Init Grow table
 }
@@ -115,12 +112,7 @@ void SeedGrowingSegmentation::execute()
     undoStack->beginUndoSet(QString("Create SeedGrowingSegmentation"));
   }
   
-  //pqPipelineSource *input = activeObjects.activeSource();
-  //pqPipelineSource *filter = cob->get("SeedGrowingSegmentationFilter");
-  
-  qDebug() << "Threshold: " << m_threshold->value();
-  
-  // *filter = builder->createFilter("filters", "SeedGrowingSegmentationFilter", input);
+  ProcessingTrace *trace = new ProcessingTrace("SeedGrowingSegmentationPlguin");
   
    Product *input = dynamic_cast<Product *>(m_sel.object);
    assert (input);
@@ -135,79 +127,30 @@ void SeedGrowingSegmentation::execute()
    ParamList growArgs;
    growArgs.push_back(Param("input",input->id()));
    growArgs.push_back(Param("Seed","50,50,50"));
-   
+   qDebug() << "Seed: " << m_sel.coord.x << "," << m_sel.coord.y << "," << m_sel.coord.z;
+   growArgs.push_back(Param("Threshold","30"));
+   qDebug() << "Threshold: " << m_threshold->value();
    
    Filter *grow = new Filter(
-     "filter",
+     "filters",
      "SeedGrowingSegmentationFilter",
      growArgs,
      m_tableGrow
    );
    
+   trace->addSubtrace(grow->trace());
    
-   //TODO: Pasar de filter a products
+   Product *product;
+   foreach(product,grow->products())
+   {
+     emit productCreated(product);
+   }
    
-   
-   //Product *seg = new Product();
-   //seg->source = grow->GetOutput();
-   
-   
-//   ProcessingTrace *ptrace;
-//   ptrace->addNode(blur);
-  
-  
-  /*
-   *   
-   *   Product *blurOutput;
-   *   Filter *grow;
-   *   Param th("Threshold","50");
-   *   Product *growOutput;
-   *   // Crear los proxies que hacen falta
-   *   
-   *   // Crear traza
-   *   ptrace->addNode(blur);
-   *   ptrace->addNode(blurOutput);
-   *   ptrace->connect(blur,blurOutput,"creates");
-   *   ptrace->addNode(grow);
-   *   ptrace->connect(blurOutput,grow,"stack");
-   *   ptrace->addNode(growOutput);
-   *   ptrace->connect(grow,growOutput,"creates");
-   *   
-   *   emit newTrace(ptrace);
-   *   
-   *   
-   *   
-   *   ParamList args;
-   *   Param input("input","peque.mha");
-   *   args.push_back(input);
-   *   
-   *   Filter *efilter = new Filter("filters","SeedGrowingSegmentationFilter",args);
-   *   pqPipelineFilter *pfilter = efilter->getProxy();
-   *   //assert(filter);
-   *   //filter->rename("Asymmetric Synapse");
-   *   
-   *   
-   */
-  
-  
-  
-  
- 
-  
-  
-  
-  
-  
-  
-  
-  
-  
   if (undoStack)
   {
     undoStack->endUndoSet();
   }
   
-  //emit productCreated(seg);
   
   // Comment following line to allow several selections 
   emit waitingSelection(NULL);

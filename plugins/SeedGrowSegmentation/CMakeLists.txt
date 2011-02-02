@@ -10,6 +10,10 @@ if (QT4_FOUND)
 endif (QT4_FOUND)
 
 
+find_package(Boost REQUIRED COMPONENTS  system filesystem)
+link_directories ( ${Boost_LIBRARY_DIRS} )
+include_directories ( ${Boost_INCLUDE_DIRS} )
+
 FIND_PACKAGE(ParaView REQUIRED)
 INCLUDE(${PARAVIEW_USE_FILE})
 
@@ -52,11 +56,12 @@ SET(PLUGIN_SRCS
 	)
 
 SET (PARAVIEW_ADDITIONAL_LIBRARIES
-	     ${PARAVIEW_ADDITIONAL_LIBRARIES}
-		 ${CAJAL_LIBRARIES}
-		 Espina
-		 ITKCommon ITKBasicFilters ITKAlgorithms 
-		 )
+  ${PARAVIEW_ADDITIONAL_LIBRARIES}
+  ${CAJAL_LIBRARIES}
+  Espina
+  ITKCommon ITKBasicFilters ITKAlgorithms 
+  ${Boost_LIBRARIES}
+)
 
 # Now crete a plugin for the toolbar. Here we pass IFACES and IFACE_SRCS
 # which are filled up by the above macro with relevant entries
@@ -75,4 +80,8 @@ ADD_PARAVIEW_PLUGIN(
 	GUI_INTERFACES ${IFACES} 
 	)
 
-target_link_libraries (Segmentation ${PARAVIEW_ADDITIONAL_LIBRARIES})
+IF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+  SET_TARGET_PROPERTIES(Segmentation PROPERTIES COMPILE_FLAGS "-fPIC")
+ENDIF( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+
+target_link_libraries (Segmentation ${PARAVIEW_ADDITIONAL_LIBRARIES} )

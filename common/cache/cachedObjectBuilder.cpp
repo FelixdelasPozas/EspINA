@@ -52,15 +52,16 @@ EspinaProxy* CachedObjectBuilder::createFilter(
 , ParamList args
   )
 {
+  
   // Create cache entry
-  CacheIndex entryIndex(5);//(group,name,args);
+  CacheIndex entryIndex(5);//createIndex(group,name,args);
   
   EspinaProxy * proxy = m_cache->getEntry(entryIndex);
   if (proxy)
     return proxy;
   
   proxy = createSMFilter(group,name,args);
-  //m_cache->insert(entryIndex,proxy);
+  m_cache->insert(entryIndex,proxy);
   return proxy;
 }
 
@@ -72,6 +73,7 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(
   pqApplicationCore* core = pqApplicationCore::instance();
   pqObjectBuilder* ob = core->getObjectBuilder();
   
+  qDebug() << "Create Filter: " << group.c_str() << "::" << name.c_str();
   pqPipelineSource *filter; //= builder->createFilter(group, name,NULL);
   for (int p = 0; p < args.size(); p++)
   {
@@ -84,6 +86,7 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(
       qDebug() << "Unkown parameter";
   }
  // initFilter(filter,args);
+ return filter;
 }
 
 

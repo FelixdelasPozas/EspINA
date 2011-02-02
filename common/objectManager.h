@@ -23,6 +23,7 @@ public slots:
   
 signals:
   void render(IRenderable *product);
+  void sliceRender(IRenderable *product);
   
 protected:
   ObjectManager();

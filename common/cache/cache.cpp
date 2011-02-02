@@ -18,7 +18,23 @@
 */
 
 #include "cache.h"
+
+// Qt
+#include <QStringList>
+
+#include <boost/filesystem.hpp>
+
+// ParaView
 #include "pqPipelineSource.h"
+#include "pqApplicationCore.h"
+#include "pqObjectBuilder.h"
+#include "pqActiveObjects.h"
+#include "pqServer.h"
+
+#include "vtkSMProxy.h"
+
+// Debug
+#include <QDebug>
 
 Cache *Cache::m_singleton = NULL;
 
@@ -37,10 +53,21 @@ void Cache::insert(const CacheIndex& index, CacheEntry* entry)
 
 CacheEntry* Cache::getEntry(const CacheIndex index) const
 {
-  //if (m_cachedProxies.find(index)
-  // TODO: Check for null results
-  return NULL; // Force cache fail
-  return m_cachedProxies[index];
+  CacheEntry *proxy;
+  // First we try to recover the proxy from cache
+  if (proxy = m_cachedProxies.value(index,NULL))
+    return proxy;
+  // If not available, try to read from disk/disk cache
+  pqApplicationCore *core = pqApplicationCore::instance();
+  pqObjectBuilder *ob = core->getObjectBuilder();
+  pqServer * server= pqActiveObjects::instance().activeServer();
+  QStringList file;
+  file << index;
+  // TODO: Only works in local mode!!!!
+  if (boost::filesystem::exists(index.toStdString().c_str()))
+    proxy = ob->createReader("sources","MetaImageReader",file,server);
+  
+  return proxy;
 }
 
 

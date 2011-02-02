@@ -5,11 +5,12 @@
 // #include <boost/graph/adjacency_list.hpp>
 // #include <string.h>
 
-#include "filter.h"
+#include "traceNodes.h"
 
 #include <iostream>
 
 using namespace boost;
+
   
 int main(int argc, char **argv)
 {
@@ -17,13 +18,7 @@ int main(int argc, char **argv)
    
    ParamList args;
    Filter::TranslatorTable tb;
-   Filter *blur = new Filter("filters","blur",args,tb);
    Filter *grow = new Filter("filters","grow",args,tb);
-   
-   trace.addNode(blur);
-   trace.addNode(grow);
-   
-   trace.print();
   
 //   // Load initial source
 //   Source *peque = trace.createSource("peque.mha");
