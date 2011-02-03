@@ -24,6 +24,13 @@
              <DataType value="vtkImageData"/>
            </DataTypeDomain>
       </InputProperty>
+	  <IntVectorProperty
+		 name="Seed"
+         number_of_elements="3"
+		 default_values="0 0 0"
+		 immediate_update="1"
+		 command="Setm_seed">
+      </IntVectorProperty>
 	  <DoubleVectorProperty
 		 name="Threshold"
          number_of_elements="1"

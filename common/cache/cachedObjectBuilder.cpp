@@ -19,7 +19,9 @@
 
 #include "cachedObjectBuilder.h"
 
+// Qt
 #include <QString>
+#include <QStringList>
 
 // ParaQ includes
 #include "pqApplicationCore.h"
@@ -27,6 +29,7 @@
 #include "pqPipelineSource.h"
 #include <vtkSMProxy.h>
 #include <vtkSMProperty.h>
+#include <vtkSMIntVectorProperty.h>
 #include <vtkSMDoubleVectorProperty.h>
 
 // TODO: Boost??
@@ -93,16 +96,28 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(
 	filter = ob->createFilter(group.c_str(),name.c_str(),inputProxy);
       }
       break;
+      case INTVECT:
+	assert(filter);
+	{
+	  vtkSMIntVectorProperty * prop = vtkSMIntVectorProperty::SafeDownCast(
+	    filter->getProxy()->GetProperty(vtkArg.name.c_str())
+	  );
+	  QStringList values = QString(args[p].second.c_str()).split(",");
+	  qDebug() << "Values" <<  values;
+	  for (int i = 0; i < values.size(); i++)
+	    prop->SetElement(i, values[i].toInt());
+	}
+	break;
       case DOUBLEVECT:
 	assert(filter);
 	{
 	  vtkSMDoubleVectorProperty * prop = vtkSMDoubleVectorProperty::SafeDownCast(
 	    filter->getProxy()->GetProperty(vtkArg.name.c_str())
 	  );
-	  QString value(args[p].second.c_str());
-	  double th = value.toDouble();
-	  qDebug() << "Value" <<  th;
-	  prop->SetElements1(th);
+	  QStringList values = QString(args[p].second.c_str()).split(",");
+	  qDebug() << "Values" <<  values;
+	  for (int i = 0; i < values.size(); i++)
+	    prop->SetElement(i, values[i].toDouble());
 	}
 	break;
       default:

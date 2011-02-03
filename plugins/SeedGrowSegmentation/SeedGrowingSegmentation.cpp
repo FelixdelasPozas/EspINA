@@ -58,6 +58,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "assert.h"
 
 
+#define DEFAULT_THRESHOLD 30
+
 
 
 //-----------------------------------------------------------------------------
@@ -77,12 +79,17 @@ SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): ISegmentation
 	  SLOT(registerProduct(Product*)));
   
   // Init Grow table
+  // TODO: Make cleaner
   EspinaArg espina = "input";
   VtkArg vtk = {INPUT,"input"};
   m_tableGrow.addTranslation(espina, vtk);
   espina = "Threshold";
   vtk.type = DOUBLEVECT;
   vtk.name = "Threshold";
+  m_tableGrow.addTranslation(espina, vtk);
+  espina = "Seed";
+  vtk.type = INTVECT;
+  vtk.name = "Seed";
   m_tableGrow.addTranslation(espina, vtk);
 }
 
@@ -134,7 +141,8 @@ void SeedGrowingSegmentation::execute()
    EspinaParamList growArgs;
    typedef NodeParam EspinaParam;
    growArgs.push_back(EspinaParam("input",input->id()));
-   growArgs.push_back(EspinaParam("Seed","50,50,50"));
+   QString seed = QString("%1,%2,%3").arg(m_sel.coord.x).arg(m_sel.coord.y).arg(m_sel.coord.z);
+   growArgs.push_back(EspinaParam("Seed",seed.toStdString()));
    qDebug() << "Seed: " << m_sel.coord.x << "," << m_sel.coord.y << "," << m_sel.coord.z;
    QString th = QString::number(m_threshold->value());
    growArgs.push_back(EspinaParam("Threshold",th.toStdString()));
@@ -196,6 +204,7 @@ void SeedGrowingSegmentation::buildUI()
   //Threshold
   QLabel *thresholdLabel = new QLabel(tr("Threshold"));
   m_threshold = new QSpinBox();
+  m_threshold->setValue(DEFAULT_THRESHOLD);
   
   //Add synapse button
   m_addSeed = new QToolButton();
