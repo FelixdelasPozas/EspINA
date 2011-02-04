@@ -9,13 +9,19 @@ endif (QT4_FOUND)
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR})
 
-
 find_package(ParaView REQUIRED)
 include(${PARAVIEW_USE_FILE})
+
+find_package(Cajal REQUIRED)
+
+find_package(Boost REQUIRED COMPONENTS  system filesystem)
+link_directories ( ${Boost_LIBRARY_DIRS} )
+include_directories ( ${Boost_INCLUDE_DIRS} )
 
 include_directories(
 	.
 	../common
+	${CAJAL_INCLUDE_DIR}/data
 	${CMAKE_CURRENT_BINARY_DIR}
 	)
 
@@ -28,7 +34,6 @@ QT4_ADD_RESOURCES(RCC_BUILT_SOURCES
 QT4_WRAP_CPP(MOC_BUILT_SOURCES
 	espinaMainWindow.h
 	unitExplorer.h
-	emSegmentation.h
 	sliceWidget.h
 	slicer.h
 	volumeWidget.h
@@ -83,6 +88,6 @@ build_paraview_client(espina
 	#INSTALL_LIB_DIR "${PV_INSTALL_LIB_DIR}"
 	)
 
-target_link_libraries (espina Espina)
+target_link_libraries (espina Espina ${Boost_LIBRARIES})
 
 add_subdirectory (plugins)

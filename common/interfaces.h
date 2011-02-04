@@ -12,7 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
+    You should have received  copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
@@ -20,8 +20,11 @@
 #ifndef INTERFACES_H
 #define INTERFACES_H
 
-#include "types.h"
+#include "espinaTypes.h"
 
+// Forward declaration
+class pqOutputPort;
+class pqPipelineSource;
 
 class ISelectableObject
 {
@@ -48,6 +51,41 @@ public:
   //! Handles @sel
   virtual void handle(const Selection sel) = 0;
   virtual void abortSelection() = 0;
+};
+
+class IRenderable
+{
+public:
+  enum RENDER_STYLE 
+  { VISIBLE   = 2^0
+  , SELECTED  = 2^1
+  , DISCARTED = 2^2
+  };
+  
+// protected:
+//   enum RENDER_MASK 
+//   { isVISIBLE   = 1
+//   , isSELECTED  = 2^0
+//   , isDISCARTED = 2^1
+//   };
+public:
+  IRenderable() : m_style(VISIBLE) {}
+  IRenderable(pqPipelineSource *source, int portNumber) 
+  : m_style(VISIBLE) 
+  , m_source(source)
+  , m_portNumber(portNumber)
+  {}
+  virtual bool visible(){return m_style & VISIBLE;}
+  virtual void setVisible(bool value) {m_style = RENDER_STYLE((m_style | !VISIBLE) & (value?1:0));}
+  virtual RENDER_STYLE style() {return m_style;}
+  virtual pqOutputPort *outputPort() = 0;
+  virtual pqPipelineSource *data() = 0;
+  virtual int portNumber() = 0;
+  
+protected:
+  RENDER_STYLE m_style;
+  pqPipelineSource *m_source;
+  int m_portNumber;
 };
 
 

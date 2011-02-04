@@ -19,10 +19,33 @@
 
 #ifndef CACHEDOBJECTBUILDER_H
 #define CACHEDOBJECTBUILDER_H
+#include "cache.h"
 
+#include "translatorTable.h"
 
+class pqPipelineSource;
+class Cache;
+
+//! A class to provide ParaView proxies, either using
+//! ESPINA cache system or creating a new one if not
+//! available.
 class CachedObjectBuilder
 {
+public:
+  static CachedObjectBuilder *instance();
+  EspinaProxy *createFilter(QString group, QString name, VtkParamList args);
+  
+private:
+  CachedObjectBuilder();
+  ~CachedObjectBuilder(){}
+  
+  CachedObjectBuilder(const CachedObjectBuilder&);//Not implemented
+  void *operator=(const CachedObjectBuilder&);//Not implemented
+  pqPipelineSource *createSMFilter(QString group, QString name, VtkParamList args);
+ // void initFilter(pqPipelineSource* filter, ParamList args);
+  
+  static CachedObjectBuilder *m_singleton;
+  Cache *m_cache;
 };
 
 #endif // CACHEDOBJECTBUILDER_H

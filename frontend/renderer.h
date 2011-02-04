@@ -1,69 +1,71 @@
-#ifndef _RENDERER_H_
-#define _RENDERER_H_
+#ifndef RENDERER_H_
+#define RENDERER_H_
 
 class pqRenderView;
-class Segmentation;
-class pqRenderView;
+class IRenderable;
 
 enum RenderType
-{
-	RENDERTYPE_FIRST = 0
-	, MESH_RENDERER = 0
-	, VOLUME_RENDERER = 1
-	, RENDERTYPE_LAST = 1
+{ RENDERTYPE_FIRST = 0
+, MESH_RENDERER    = 0
+, VOLUME_RENDERER  = 1
+, RENDERTYPE_LAST  = 1
 };
 
-class Renderer
+//! Interface for renders
+class IRenderer
 {
 public:
-	Renderer(){}
-	virtual ~Renderer() {};
-
-	virtual RenderType type() = 0;
-	
-	virtual void hide(Segmentation *seg, pqRenderView *view) = 0;
-	virtual void render(Segmentation *seg, pqRenderView *view) = 0;
-	virtual void renderSelection(Segmentation *seg, pqRenderView *view) = 0;
-	virtual void renderDiscarted(Segmentation *seg, pqRenderView *view) = 0;
+  IRenderer(){}
+  virtual ~IRenderer() {};
+  
+  virtual RenderType type() = 0;
+  
+  //virtual void hide(Segmentation *seg, pqRenderView *view) = 0;
+  virtual void render(IRenderable *actor, pqRenderView *view) = 0;
+  //virtual void renderSelection(Segmentation *seg, pqRenderView *view) = 0;
+  //virtual void renderDiscarted(Segmentation *seg, pqRenderView *view) = 0;
 };
 
-class MeshRenderer : public Renderer
+//! A Mesh Renderer Class
+class MeshRenderer : public IRenderer
 {
 public:
-	MeshRenderer() : Renderer(){}
-	~MeshRenderer(){}
-	
-	static Renderer *renderer();
-
-	RenderType type() {return MESH_RENDERER;}
-	
-	void hide(Segmentation *seg, pqRenderView *view);
-	void render(Segmentation *seg, pqRenderView *view);
-	void renderSelection(Segmentation *seg, pqRenderView *view);
-	void renderDiscarted(Segmentation *seg, pqRenderView *view);
-
+  MeshRenderer() : IRenderer(){}
+  ~MeshRenderer(){}
+  
+  static IRenderer *renderer();
+  
+  RenderType type() {return MESH_RENDERER;}
+  
+  //void hide(Segmentation *seg, pqRenderView *view);
+  void render(IRenderable *actor, pqRenderView *view);
+  //void renderSelection(Segmentation *seg, pqRenderView *view);
+  //void renderDiscarted(Segmentation *seg, pqRenderView *view);
+  
 private:
-	static MeshRenderer *m_singleton;
-	
+  static MeshRenderer *m_singleton;
+  
 };
 
-class VolumeRenderer : public Renderer
+//! A Volume Renderer Class
+class VolumeRenderer : public IRenderer
 {
 public:
-	VolumeRenderer() : Renderer(){}
-	~VolumeRenderer(){}
-	
-	static Renderer *renderer();
-
-	RenderType type() {return VOLUME_RENDERER;}
-	
-	void hide(Segmentation *seg, pqRenderView *view);
-	void render(Segmentation *seg, pqRenderView *view);
-	void renderSelection(Segmentation *seg, pqRenderView *view);
-	void renderDiscarted(Segmentation *seg, pqRenderView *view);
-
+  VolumeRenderer() : IRenderer(){}
+  ~VolumeRenderer(){}
+  
+  static IRenderer *renderer();
+  
+  RenderType type() {return VOLUME_RENDERER;}
+  
+  //void hide(Segmentation *seg, pqRenderView *view);
+  void render(IRenderable *actor, pqRenderView *view);
+  //void renderSelection(Segmentation *seg, pqRenderView *view);
+  //void renderDiscarted(Segmentation *seg, pqRenderView *view);
+  
 private:
-	static VolumeRenderer *m_singleton;
+  static VolumeRenderer *m_singleton;
 };
 
-#endif// _RENDERER_H_
+
+#endif// RENDERER_H_

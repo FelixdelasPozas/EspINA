@@ -31,7 +31,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =========================================================================*/
 #include "SeedGrowingSegmentation.h"
 #include "selectionManager.h"
+#include "objectManager.h"
+#include <cache/cachedObjectBuilder.h>
 #include "iPixelSelector.h"
+#include "traceNodes.h"
 
 //GUI includes
 #include <QApplication>
@@ -44,8 +47,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QMenu>
 
 #include "pqApplicationCore.h"
-#include "pqObjectBuilder.h"
-#include "pqActiveObjects.h"
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
 #include "pqUndoStack.h"
@@ -55,69 +56,124 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <QDebug>
 #include "assert.h"
-//#include "../../frontend/src/sliceWidget.h"
 
-//extern SliceWidget *vista;
+
+#define DEFAULT_THRESHOLD 30
+
+
 
 //-----------------------------------------------------------------------------
 SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): ISegmentationPlugin(parent)
 {
   m_selector = new PixelSelector();
+  
   buildUI();
+  
   connect(this,
 	  SIGNAL(waitingSelection(ISelectionHandler *)),
 	  SelectionManager::singleton(),
 	  SLOT(setSelectionHandler(ISelectionHandler*)));
-//   connect(this,
-// 	  SIGNAL(selectionAborted(ISelectionHandler *)),
-// 	  SelectionManager::singleton(),
-// 	  SLOT(setSelectionHandler(ISelectionHandler*)));
+  connect(this,
+	  SIGNAL(productCreated(Product *)),
+	  ObjectManager::instance(),
+	  SLOT(registerProduct(Product*)));
+  
+  // Init Grow table
+  // TODO: Make cleaner
+  EspinaArg espina = "input";
+  VtkArg vtk = {INPUT,"input"};
+  m_tableGrow.addTranslation(espina, vtk);
+  espina = "Threshold";
+  vtk.type = DOUBLEVECT;
+  vtk.name = "Threshold";
+  m_tableGrow.addTranslation(espina, vtk);
+  espina = "Seed";
+  vtk.type = INTVECT;
+  vtk.name = "Seed";
+  m_tableGrow.addTranslation(espina, vtk);
 }
 
 void SeedGrowingSegmentation::handle(const Selection sel)
 {
-  // Initialize application context
-  pqApplicationCore* core = pqApplicationCore::instance();
-  pqUndoStack* stack = core->getUndoStack();
   
   qDebug() << "Ejecutando Plugin";
   
   //Depending on the pixel selector 
   ImagePixel realInputPixel = m_selector->pickPixel(sel);
+  m_sel.coord = sel.coord;
+  m_sel.object = ObjectManager::instance()->activeStack();
+  
+  execute();
   
   //TODO: Search in the logic application to get the input
   //for the algorithm
   
-  SelectionManager *manager = SelectionManager::singleton();
-  pqObjectBuilder* builder = core->getObjectBuilder();
-  pqActiveObjects& activeObjects = pqActiveObjects::instance();
+ //SelectionManager *manager = SelectionManager::singleton();
+  //pqActiveObjects& activeObjects = pqActiveObjects::instance();
+  
+}
+
+void SeedGrowingSegmentation::execute()
+{
+  // Initialize application context
+  pqApplicationCore* core = pqApplicationCore::instance();
+  pqUndoStack* undoStack = core->getUndoStack();
   pqServerManagerModel* sm = core->getServerManagerModel();
   
-  /// Check that we are connect to some server (either builtin or remote).
-  if (sm->getNumberOfItems<pqServer*>())
+  // make this operation undo-able if undo is enabled
+  if (undoStack)
   {
-    // just create it on the first server connection
-    pqServer* s = sm->getItemAtIndex<pqServer*>(0);
-    // make this operation undo-able if undo is enabled
-    if (stack)
-    {
-      stack->beginUndoSet(QString("Create SeedGrowingSegmentation"));
-    }
-    pqPipelineSource *input = activeObjects.activeSource();
-    
-    qDebug() << "Threshold: " << m_threshold->value();
-    
-    pqPipelineSource *filter = builder->createFilter("filters", "SeedGrowingSegmentationFilter", input);
-    assert(filter);
-    filter->rename("Asymmetric Synapse");
-    //vista->showSource(filter->getOutputPort(0),true);
-    if (stack)
-    {
-      stack->endUndoSet();
-    }
-    emit waitingSelection(NULL);
+    undoStack->beginUndoSet(QString("Create SeedGrowingSegmentation"));
   }
+  
+  ProcessingTrace *trace = new ProcessingTrace("SeedGrowingSegmentationPlguin");
+  
+   Product *input = dynamic_cast<Product *>(m_sel.object);
+   assert (input);
+
+   // Crear los Filtros
+   //ParamList blurArgs;
+   //blurArgs.push_back(Param("Sigma","2"));
+   //blurArgs.push_back(Param("input",input->id()));
+//   
+//   Filter *blur = new Filter("filter","blur",blurArgs,m_tableBlur);
+   
+   EspinaParamList growArgs;
+   typedef NodeParam EspinaParam;
+//    qDebug() << "ID SEEDGROWING "<<  input->name.c_str() << " - " << input->id();
+   growArgs.push_back(EspinaParam(QString("input"), input->id()));
+   QString seed = QString("%1,%2,%3").arg(m_sel.coord.x).arg(m_sel.coord.y).arg(m_sel.coord.z);
+   growArgs.push_back(EspinaParam(QString("Seed"), seed));
+   qDebug() << "Seed: " << m_sel.coord.x << "," << m_sel.coord.y << "," << m_sel.coord.z;
+   QString th = QString::number(m_threshold->value());
+   growArgs.push_back(EspinaParam(QString("Threshold"), th));
+   qDebug() << "Threshold: " << th;
+   
+   Filter *grow = new Filter(
+     "filters",
+     "SeedGrowingSegmentationFilter",
+     growArgs,
+     m_tableGrow
+   );
+   
+   trace->addSubtrace(grow->trace());
+   
+   Product *product;
+   foreach(product,grow->products())
+   {
+     emit productCreated(product);
+   }
+   
+  if (undoStack)
+  {
+    undoStack->endUndoSet();
+  }
+  
+  
+  // Comment following line to allow several selections 
+  emit waitingSelection(NULL);
 }
+
 
 
 void SeedGrowingSegmentation::abortSelection()
@@ -149,6 +205,7 @@ void SeedGrowingSegmentation::buildUI()
   //Threshold
   QLabel *thresholdLabel = new QLabel(tr("Threshold"));
   m_threshold = new QSpinBox();
+  m_threshold->setValue(DEFAULT_THRESHOLD);
   
   //Add synapse button
   m_addSeed = new QToolButton();

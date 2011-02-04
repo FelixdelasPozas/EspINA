@@ -10,22 +10,22 @@ class QVBoxLayout;
 class QHBoxLayout;
 class pqOutputPort;
 class Segmentation;
-class Renderer;
+class IRenderer;
 
 #include "slicer.h"
 
-enum Rep3D 
-{
-	POINTS = 0
-	, SURFACE = 2
-	, MESH = 2
-	, OUTLINE = 3
-	, VOLUME = 4
-	, SLICE = 6
-	, HIDEN = 100
-};
+// enum Rep3D 
+// { POINTS  = 0
+// , SURFACE = 2
+// , MESH    = 2
+// , OUTLINE = 3
+// , VOLUME  = 4
+// , SLICE   = 6
+// , HIDEN   = 100
+// };
 
-typedef Segmentation Actor;
+
+class IRenderable;
 
 class VolumeWidget : public QWidget
 {
@@ -43,42 +43,50 @@ public:
 	void setPlane(SliceBlender *slice, const SlicePlane plane);
 
 	//void showSource(pqOutputPort *opPort, Rep3D rep);
-	void setValidActors(const QList<Actor *> *segmentations) {m_valid = segmentations;}
-	void setRejectedActors(const QList<Actor *> *segmentations) {m_rejected = segmentations;}
-	void setUserSelection(const QList<Actor *> *segmentations) {m_userSelection = segmentations;}
+	//void setValidActors(const QList<Actor *> *segmentations) {m_valid = segmentations;}
+	//void setRejectedActors(const QList<Actor *> *segmentations) {m_rejected = segmentations;}
+	//void setUserSelection(const QList<Actor *> *segmentations) {m_userSelection = segmentations;}
 
 public slots:
 	void connectToServer();
 	void disconnectFromServer();
-	void updateRepresentation();
-	// Show/Hide axial planes
+	
+	//! Show/Hide axial planes
 	void showPlanes(bool value);
-	// Show/Hide scene actors
+	
+	//! Show/Hide scene actors
 	void showActors(bool value);
-	// Renderer Selection
+
+	void refresh(IRenderable *actor);
+	
+	void updateScene();
+	
+protected slots:
+	//! Select Mesh Rendering
 	void setMeshRenderer(); 
+	//! Select Volume Rendering
 	void setVolumeRenderer(); 
 
 private:
-	void renderValidActors();
-	void renderRejected();
-	void renderUserSelection();
+  void renderScene();
+	//void renderValidActors();
+	//void renderRejected();
+	//void renderUserSelection();
 
 private:
-	pqRenderView *m_view;
-	QWidget *m_viewWidget;
-	QToolButton *m_togglePlanes;
-	QToolButton *m_toggleActors;
-	QVBoxLayout *m_mainLayout;
-	QHBoxLayout *m_controlLayout;
-
-	bool m_init;
-	bool m_showPlanes;
-	bool m_showActors;
-	Renderer *m_renderer;
-	SliceBlender *m_planes[SLICE_AXIS_LAST+1];
-
-	const QList<Actor *> *m_valid;
-	const QList<Actor *> *m_rejected;
-	const QList<Actor *> *m_userSelection;
+  bool m_init;
+  bool m_showPlanes;
+  bool m_showActors;
+  IRenderer *m_renderer;
+  SliceBlender *m_planes[SLICE_AXIS_LAST+1];
+  
+  QList<IRenderable *> m_actors;
+  
+  // GUI
+  pqRenderView *m_view;
+  QWidget *m_viewWidget;
+  QToolButton *m_togglePlanes;
+  QToolButton *m_toggleActors;
+  QVBoxLayout *m_mainLayout;
+  QHBoxLayout *m_controlLayout;
 };
