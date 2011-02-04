@@ -100,9 +100,9 @@ class Filter : public ITraceNode, public ISingleton
 public:
   Filter(
     //! Paraview filter's group name
-    const std::string &group
+    const QString &group
     //! Paraview filter's name
-    , const std::string &name
+    , const QString &name
     //! Espina Args list
     , const EspinaParamList &args
     //! Filter Translation Table

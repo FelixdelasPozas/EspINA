@@ -33,7 +33,7 @@ class CachedObjectBuilder
 {
 public:
   static CachedObjectBuilder *instance();
-  EspinaProxy *createFilter(std::string group, std::string name, VtkParamList args);
+  EspinaProxy *createFilter(QString group, QString name, VtkParamList args);
   
 private:
   CachedObjectBuilder();
@@ -41,7 +41,7 @@ private:
   
   CachedObjectBuilder(const CachedObjectBuilder&);//Not implemented
   void *operator=(const CachedObjectBuilder&);//Not implemented
-  pqPipelineSource *createSMFilter(std::string group, std::string name, VtkParamList args);
+  pqPipelineSource *createSMFilter(QString group, QString name, VtkParamList args);
  // void initFilter(pqPipelineSource* filter, ParamList args);
   
   static CachedObjectBuilder *m_singleton;

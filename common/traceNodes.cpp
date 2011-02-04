@@ -113,8 +113,8 @@ int Product::portNumber()
 // FILTER
 //-----------------------------------------------------------------------------
 Filter::Filter(
-  const string& group
-, const string& name
+  const QString& group
+, const QString& name
 , const EspinaParamList& args
 , const TranslatorTable &table
   )
@@ -122,7 +122,7 @@ Filter::Filter(
   , m_translator(table)
   , m_filtertrace(name)
 {
-  this->name = QString(group.c_str()).append("::").append(name.c_str());
+  this->name = QString(group).append("::").append(name);
   
   m_filtertrace.addNode(this);
   

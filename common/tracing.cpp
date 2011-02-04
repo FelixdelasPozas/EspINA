@@ -34,7 +34,7 @@ ProcessingTrace::ProcessingTrace()
   //m_trace[0].trace_name = "Espina";
 }
 
-ProcessingTrace::ProcessingTrace(const std::string& name)
+ProcessingTrace::ProcessingTrace(const QString& name)
 : m_trace(0)
 {
  // m_trace.m_property.owner = name;

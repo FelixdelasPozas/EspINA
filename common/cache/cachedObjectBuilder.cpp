@@ -58,15 +58,15 @@ CachedObjectBuilder* CachedObjectBuilder::instance()
 
 
 EspinaProxy* CachedObjectBuilder::createFilter(
-  std::string group
-, std::string name
+  QString group
+, QString name
 , VtkParamList args
   )
 {
   
   // Create cache entry
   std::vector<QString> namesToHash, argsToHash;
-  namesToHash.push_back( QString(group.c_str()).append("::").append(name.c_str()) );
+  namesToHash.push_back( QString(group).append("::").append(name) );
   argsToHash = reduceVtkArgs( args );
   namesToHash.insert( namesToHash.end(), argsToHash.begin(), argsToHash.end());
   CacheIndex entryIndex = generateSha1( namesToHash );//createIndex(group,name,args);
@@ -75,20 +75,20 @@ EspinaProxy* CachedObjectBuilder::createFilter(
   if (proxy)
     return proxy;
   
-  proxy = createSMFilter(group,name,args);
+  proxy = createSMFilter(group, name, args);
   m_cache->insert(entryIndex,proxy);
   return proxy;
 }
 
 pqPipelineSource *CachedObjectBuilder::createSMFilter(
-  std::string group
-, std::string name
+  QString group
+, QString name
 , VtkParamList args)
 {
   pqApplicationCore* core = pqApplicationCore::instance();
   pqObjectBuilder* ob = core->getObjectBuilder();
   
-  qDebug() << "Create Filter: " << group.c_str() << "::" << name.c_str();
+  qDebug() << "Create Filter: " << group << "::" << name;
   pqPipelineSource *filter; //= builder->createFilter(group, name,NULL);
   for (int p = 0; p < args.size(); p++)
   {
@@ -98,7 +98,7 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(
       case INPUT:
       {
 	pqPipelineSource *inputProxy = m_cache->getEntry(args[p].second);
-	filter = ob->createFilter(group.c_str(),name.c_str(),inputProxy);
+	filter = ob->createFilter(group, name, inputProxy);
       }
       break;
       case INTVECT:

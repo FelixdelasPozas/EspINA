@@ -113,7 +113,7 @@ class ProcessingTrace
   
 public:
   ProcessingTrace();
-  ProcessingTrace(const std::string &name);
+  ProcessingTrace(const QString &name);
   ~ProcessingTrace(){}
   
   void addNode(ITraceNode* node);
