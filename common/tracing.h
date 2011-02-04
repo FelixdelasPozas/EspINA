@@ -24,6 +24,7 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/subgraph.hpp>
 
+#include <QString>
 /*
 //! A Trace node argument. It only has semantic meaning
 typedef std::string EspinaArg;
@@ -47,7 +48,7 @@ public:
   virtual EspinaParamList getArguments() = 0;
   
   //! Descriptive name of the node
-  std::string name;
+  QString name;
   //! Node id in the local subgraph
   unsigned int localId;
   //! Type used to enhance the output of the graph....

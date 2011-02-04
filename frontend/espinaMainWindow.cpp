@@ -185,7 +185,7 @@ void EspinaMainWindow::loadData(pqPipelineSource *source)
   stack->setVisible(false);
   
   Cache *cache = Cache::instance();
-  cache->insert(stack->id().c_str(),source);
+  cache->insert(stack->id(),source);
   
   /*
   // Create a fake segmentation to make the tests

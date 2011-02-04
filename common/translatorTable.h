@@ -22,6 +22,9 @@
 
 #include "cajalTypes.h"
 
+#include <vector>
+#include <string> //TODO to QString sooner or later
+
 #include <QMap>
 
 typedef NodeArg EspinaArg;
@@ -39,11 +42,24 @@ enum VtkPropType
 struct VtkArg
 {
   VtkPropType type;
-  std::string name;
+  QString name;
 };
 
 typedef std::pair<VtkArg,ParamValue> VtkParam;
 typedef std::vector<VtkParam> VtkParamList;
+
+//! A function to translate from VtkParamList to vector
+inline std::vector<QString> reduceVtkArgs( VtkParamList& vl )
+{
+  std::vector<QString> v;
+  VtkParamList::iterator it;
+  for( it=vl.begin(); it != vl.end(); it++ )
+  {
+    v.push_back(it->first.name);
+    v.push_back(it->second);
+  }
+  return v;
+}
 
 //! A class to create translation between Espina and Vtk parameter lists
 class TranslatorTable{

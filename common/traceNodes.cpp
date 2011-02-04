@@ -31,6 +31,7 @@
 #include <assert.h>
 #include <QDebug>
 
+#include "hash.h"
 using namespace std;
 
 //-----------------------------------------------------------------------------
@@ -57,7 +58,7 @@ vector< ITraceNode* > Product::outputs()
 
 void Product::print(int indent) const
 {
-  cout << name << endl;
+  cout << name.toStdString().c_str() << endl;
 }
 
 //-----------------------------------------------------------------------------
@@ -69,13 +70,19 @@ EspinaParamList Product::getArguments()
 
 
 //-----------------------------------------------------------------------------
-string Product::id()
+QString Product::id()
 {
-  string pId = name;// Use translator to generate own id.
-  return name; //DEBUG
-  assert(this->inputs().size() == 1);// Products are only created by a filter
-  Filter * parent = dynamic_cast<Filter *>(this->inputs().front());
-  return parent->id() + pId;
+  vector<QString> v;
+  v.push_back( name );
+  QString id;
+  id.append( m_parentHash );
+  return id.append(generateSha1( v ));
+  
+//   string pId = name;// Use translator to generate own id.
+//   return name; //DEBUG
+//   assert(this->inputs().size() == 1);// Products are only created by a filter
+//   Filter * parent = dynamic_cast<Filter *>(this->inputs().front());
+//   return parent->id() + pId;
 }
 
 //-----------------------------------------------------------------------------
@@ -115,7 +122,7 @@ Filter::Filter(
   , m_translator(table)
   , m_filtertrace(name)
 {
-  this->name = group + "::" + name;
+  this->name = QString(group.c_str()).append("::").append(name.c_str());
   
   m_filtertrace.addNode(this);
   
@@ -131,10 +138,12 @@ Filter::Filter(
   for (int portNumber = 0; portNumber < m_proxy->getOutputPorts().size(); portNumber++)
   {
     Product *filterOutput = new Product(m_proxy,portNumber);
+    filterOutput->m_parentHash = this->id(); //TODO modify the way it takes the parent hash, Maybe in the constructer (above line)
     m_filtertrace.addNode(filterOutput);
     m_filtertrace.connect(this,filterOutput,"segmentation");
     m_products.push_back(filterOutput);
   }
+  qDebug() << "Filter ID " << this->id();
 }
 
 //-----------------------------------------------------------------------------
@@ -152,7 +161,7 @@ vector< ITraceNode* > Filter::outputs()
 //-----------------------------------------------------------------------------
 void Filter::print(int indent) const
 {
-  cout << name << endl;
+  cout << name.toStdString().c_str() << endl;
 }
 
 //-----------------------------------------------------------------------------
@@ -163,10 +172,14 @@ EspinaParamList Filter::getArguments()
 }
 
 //-----------------------------------------------------------------------------
-string Filter::id()
+QString Filter::id()
 {
   //TODO: ParamList to Id
-  return name;
+  std::vector<QString> namesToHash, argsToHash;
+  namesToHash.push_back(name);
+  argsToHash = reduceArgs( m_args );
+  namesToHash.insert( namesToHash.end(), argsToHash.begin(), argsToHash.end());
+  return generateSha1(namesToHash);
 }
 
 

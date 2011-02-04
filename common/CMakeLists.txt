@@ -48,6 +48,6 @@ SET(Espina_SOURCE_FILES
 
 add_library (Espina SHARED ${Espina_SOURCE_FILES})
 
-#target_link_libraries (espina ${Cajal_LIBRARIES})
+target_link_libraries (Espina ${CAJAL_LIBRARIES})
 
 add_subdirectory(tests)

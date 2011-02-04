@@ -8,7 +8,7 @@
 
 FIND_PATH(CAJAL_INCLUDE_DIR slice_view.h /usr/include/ /usr/local/include/)
 
-FIND_LIBRARY(CAJAL_LIBRARIES NAMES CajalFilter PATH /usr/lib /usr/local/lib) 
+FIND_LIBRARY(CAJAL_LIBRARIES NAMES CajalFilter CajalData PATH /usr/lib /usr/local/lib) 
 
 IF (CAJAL_INCLUDE_DIR AND CAJAL_LIBRARIES)
 	   SET(CAJAL_FOUND TRUE)

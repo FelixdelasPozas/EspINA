@@ -18,6 +18,7 @@
 */
 
 #include "cachedObjectBuilder.h"
+#include "hash.h"
 
 // Qt
 #include <QString>
@@ -64,7 +65,11 @@ EspinaProxy* CachedObjectBuilder::createFilter(
 {
   
   // Create cache entry
-  CacheIndex entryIndex(5);//createIndex(group,name,args);
+  std::vector<QString> namesToHash, argsToHash;
+  namesToHash.push_back( QString(group.c_str()).append("::").append(name.c_str()) );
+  argsToHash = reduceVtkArgs( args );
+  namesToHash.insert( namesToHash.end(), argsToHash.begin(), argsToHash.end());
+  CacheIndex entryIndex = generateSha1( namesToHash );//createIndex(group,name,args);
   
   EspinaProxy * proxy = m_cache->getEntry(entryIndex);
   if (proxy)
@@ -92,7 +97,7 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(
     {
       case INPUT:
       {
-	pqPipelineSource *inputProxy = m_cache->getEntry(args[p].second.c_str());
+	pqPipelineSource *inputProxy = m_cache->getEntry(args[p].second);
 	filter = ob->createFilter(group.c_str(),name.c_str(),inputProxy);
       }
       break;
@@ -100,9 +105,9 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(
 	assert(filter);
 	{
 	  vtkSMIntVectorProperty * prop = vtkSMIntVectorProperty::SafeDownCast(
-	    filter->getProxy()->GetProperty(vtkArg.name.c_str())
+	    filter->getProxy()->GetProperty(vtkArg.name.toStdString().c_str())
 	  );
-	  QStringList values = QString(args[p].second.c_str()).split(",");
+	  QStringList values = args[p].second.split(",");//   QString(args[p].second.c_str()).split(",");
 	  qDebug() << "Values" <<  values;
 	  for (int i = 0; i < values.size(); i++)
 	    prop->SetElement(i, values[i].toInt());
@@ -112,9 +117,9 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(
 	assert(filter);
 	{
 	  vtkSMDoubleVectorProperty * prop = vtkSMDoubleVectorProperty::SafeDownCast(
-	    filter->getProxy()->GetProperty(vtkArg.name.c_str())
+	    filter->getProxy()->GetProperty(vtkArg.name.toStdString().c_str())
 	  );
-	  QStringList values = QString(args[p].second.c_str()).split(",");
+	  QStringList values = args[p].second.split(","); //QString(args[p].second.c_str()).split(",");
 	  qDebug() << "Values" <<  values;
 	  for (int i = 0; i < values.size(); i++)
 	    prop->SetElement(i, values[i].toDouble());

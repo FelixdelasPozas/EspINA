@@ -140,12 +140,13 @@ void SeedGrowingSegmentation::execute()
    
    EspinaParamList growArgs;
    typedef NodeParam EspinaParam;
-   growArgs.push_back(EspinaParam("input",input->id()));
+//    qDebug() << "ID SEEDGROWING "<<  input->name.c_str() << " - " << input->id();
+   growArgs.push_back(EspinaParam(QString("input"), input->id()));
    QString seed = QString("%1,%2,%3").arg(m_sel.coord.x).arg(m_sel.coord.y).arg(m_sel.coord.z);
-   growArgs.push_back(EspinaParam("Seed",seed.toStdString()));
+   growArgs.push_back(EspinaParam(QString("Seed"), seed));
    qDebug() << "Seed: " << m_sel.coord.x << "," << m_sel.coord.y << "," << m_sel.coord.z;
    QString th = QString::number(m_threshold->value());
-   growArgs.push_back(EspinaParam("Threshold",th.toStdString()));
+   growArgs.push_back(EspinaParam(QString("Threshold"), th));
    qDebug() << "Threshold: " << th;
    
    Filter *grow = new Filter(

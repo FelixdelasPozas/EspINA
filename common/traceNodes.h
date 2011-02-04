@@ -24,14 +24,18 @@
 #include "interfaces.h"
 #include "translatorTable.h"
 
+#include <QString>
+
 // Forward declarations
 class pqPipelineSource;
+
+
 typedef pqPipelineSource EspinaProxy;
 
 class ISingleton
 {
 public:
-  virtual std::string id() = 0;
+  virtual QString id() = 0;
 };
 
 class Product 
@@ -52,7 +56,8 @@ public:
   virtual EspinaParamList getArguments();
   
   //! Implements ISingleton
-  virtual std::string id();
+  virtual QString id();
+  QString m_parentHash; //TODO delete
   
   //! Implements IRenderable
   virtual pqOutputPort* outputPort();
@@ -111,7 +116,7 @@ public:
   virtual EspinaParamList getArguments();
   
   //! Implements ISingleton
-  virtual std::string id();
+  virtual QString id();
   
   std::vector<Product *> products();
   ProcessingTrace *trace();
