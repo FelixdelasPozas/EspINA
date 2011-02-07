@@ -1,4 +1,87 @@
 <ServerManagerConfiguration>
+	<ProxyGroup name="lookup_tables">
+		<LookupTableProxy name="EspinaLookupTable" class="vtkLookupTable">
+		<!--This is a copy of the LUT defined inside Paraview resources/utilities
+		with SetTableValue property's support-->
+			<DoubleVectorProperty
+				name="TableValue"
+				command="SetTableValue"
+				number_of_elements="5" 
+				default_values="0 0 1 0 1">
+				<!--DoubleRangeDomain name="range" min="0 0" max="1 1" /-->
+			</DoubleVectorProperty>
+			<IntVectorProperty
+				name="NumberOfTableValues"
+				command="SetNumberOfTableValues"
+				number_of_elements="1"
+				default_values="256" >
+				<IntRangeDomain name="range" min="1" />
+			</IntVectorProperty>
+
+			<DoubleVectorProperty
+				name="HueRange"
+				command="SetHueRange"
+				number_of_elements="2" 
+				default_values="0 0.66667">
+				<DoubleRangeDomain name="range" min="0 0" max="1 1" />
+			</DoubleVectorProperty>
+
+			<DoubleVectorProperty
+				name="SaturationRange"
+				command="SetSaturationRange"
+				number_of_elements="2" 
+				default_values="1 1">
+				<DoubleRangeDomain name="range" min="0 0" max="1 1" />
+			</DoubleVectorProperty>
+
+			<DoubleVectorProperty
+				name="ValueRange"
+				command="SetValueRange"
+				number_of_elements="2" 
+				default_values="1 1">
+				<DoubleRangeDomain name="range" min="0 0" max="1 1" />
+			</DoubleVectorProperty>
+
+			<DoubleVectorProperty
+				name="ScalarRange"
+				command="SetTableRange"
+				number_of_elements="2" 
+				default_values="0 1">
+			</DoubleVectorProperty>
+
+			<IntVectorProperty
+				name="VectorComponent"
+				command="SetVectorComponent"
+				number_of_elements="1" 
+				default_values="0">
+				<EnumerationDomain name="enum">
+					<Entry value="0" text="X" />
+					<Entry value="1" text="Y" />
+					<Entry value="2" text="Z" />
+				</EnumerationDomain>
+			</IntVectorProperty>
+
+			<IntVectorProperty
+				name="VectorMode"
+				command="SetVectorMode"
+				number_of_elements="1" 
+				default_values="1">
+				<EnumerationDomain name="enum">
+					<Entry value="0" text="Magnitude" />
+					<Entry value="1" text="Component" />
+				</EnumerationDomain>
+			</IntVectorProperty>
+
+			<StringVectorProperty
+				name="ArrayName"
+				command="SetArrayName"
+				number_of_elements="1"
+				update_self="1"
+				default_values="">
+			</StringVectorProperty>
+
+		</LookupTableProxy>
+	</ProxyGroup>
   <ProxyGroup name="filters">
    <SourceProxy name="ImageSlicer" class="vtkPVImageSlicer" label="ImageSlicer">
      <Documentation

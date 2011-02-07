@@ -14,6 +14,7 @@ find_package(Cajal REQUIRED)
 include_directories(
 	.
 	cache
+	proxies
 	${CAJAL_INCLUDE_DIR}/data
 	${CMAKE_CURRENT_BINARY_DIR}
   )
@@ -36,7 +37,7 @@ SOURCE_GROUP("Generated" FILES
 
 
 FILE ( GLOB LOCAL_SOURCES *.cpp )
-FILE ( GLOB CACHE_SOURCES cache/*.cpp )
+FILE ( GLOB CACHE_SOURCES proxies/*.cpp cache/*.cpp )
 
 SET(Espina_SOURCE_FILES
   ${LOCAL_SOURCES}
@@ -51,3 +52,5 @@ add_library (Espina SHARED ${Espina_SOURCE_FILES})
 target_link_libraries (Espina ${CAJAL_LIBRARIES})
 
 add_subdirectory(tests)
+
+#add_subdirectory(proxies)

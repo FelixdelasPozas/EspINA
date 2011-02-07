@@ -9,6 +9,8 @@
 //Qt
 #include <QList>
 
+#include "proxies/vtkSMRGBALookupTableProxy.h"
+
 //ParaQ
 #include "pqApplicationCore.h"
 #include "pqObjectBuilder.h"
@@ -24,6 +26,7 @@
 #include "vtkSMDoubleVectorProperty.h"
 #include "vtkSMProxyProperty.h"
 #include "vtkImageMapToColors.h"
+#include "vtkProcessModule.h"
 #include <pqPQLookupTableManager.h>
 #include <pqScalarsToColors.h>
 
@@ -160,7 +163,33 @@ void SliceBlender::addSegmentation ( IRenderable* seg )
   // Get (or create if it doesn't exit) the lut for the segmentations' images
   pqServer *server =  core->getActiveServer();
   pqLookupTableManager *lutManager = core->getLookupTableManager();
-  pqScalarsToColors *segLUT = lutManager->getLookupTable(server,QString("SegmentationsLUT"),4,0);
+  pqScalarsToColors *segLUT = lutManager->getLookupTable(server,"SegmentationsLUT",4,0);
+  /*
+  vtkSMProxy *LUT = ob->createProxy("lookup_tables","EspinaLookupTable",server,"LUTs");//I'm not sure about second group name 
+  vtkSMProperty *p;
+  vtkSMDoubleVectorProperty *doubleVectProp;
+  p = LUT->GetProperty("TableValue");
+  doubleVectProp = vtkSMDoubleVectorProperty::SafeDownCast(p);
+  double lutColors[5] = {0,0,0,0,0};
+  //doubleVectProp->SetElements(lutColors,5);
+  vtkClientServerStream stream;
+  stream << vtkClientServerStream::Invoke
+    << LUT->GetID() << "SetTableValue 0 0 0 0 0"
+    << vtkClientServerStream::End;
+  stream << vtkClientServerStream::Invoke
+    << LUT->GetID() << "SetTableValue 1 0 1 0 1"
+    << vtkClientServerStream::End;
+    
+
+  
+  LUT->GetProperty("Build");
+  LUT->PrintSelf(std::cout,vtkIndent(5));
+  */
+  vtkSMRGBALookupTableProxy *LUT = vtkSMRGBALookupTableProxy::New();//= vtkSMRGBALookupTableProxy::SafeDownCast(ob->createProxy("lookup_tables","EspinaLookupTable",server,"LUTs"));//I'm not sure about second group name 
+  double rgba[4] = {0,1,1,1};
+  LUT->SetTableValue(255,rgba);
+  LUT->UpdateVTKObjects();
+  /*
   if (segLUT)
   {
     vtkSMIntVectorProperty *colorSpace = vtkSMIntVectorProperty::SafeDownCast(
@@ -175,20 +204,22 @@ void SliceBlender::addSegmentation ( IRenderable* seg )
       if (rgbs)
       {
 	// TODO: Use segmentation's information
-	double colors[8] = {0,0,0,0,1,0,0,1};
+	double colors[8] = {0,0,0,0,1,0,1,0};
 	rgbs->SetElements(colors);
       }
       //lut->getProxy()->InvokeCommand("UpdateLookupTableScalarRange");
       segLUT->getProxy()->UpdateVTKObjects();
       //segLUT->getProxy()->PrintSelf(std::cout,vtkIndent(0));
   }
+  */
   
   // Set the greyLUT for the slicemapper
   vtkSMProxyProperty *lut = vtkSMProxyProperty::SafeDownCast(
     sliceMapper->getProxy()->GetProperty("LookupTable"));
   if (lut)
   {
-    lut->SetProxy(0,segLUT->getProxy());
+    //lut->SetProxy(0,segLUT->getProxy());
+    lut->SetProxy(0,LUT);
   }
   
   // 	vtkSMInputProperty *input_prop = vtkSMInputProperty::SafeDownCast(
