@@ -2,12 +2,12 @@
 #define CAJAL_TYPES_H
 
 #include <vector>
-#include <string>
+#include <QString>
 
 //! A Trace node argument. It only has semantic meaning
-typedef std::string NodeArg;
+typedef QString NodeArg;
 //! The value of a node argument
-typedef std::string ParamValue;
+typedef QString ParamValue;
 typedef std::pair<NodeArg, ParamValue> NodeParam;
 typedef std::vector<NodeParam> NodeParamList;
 
