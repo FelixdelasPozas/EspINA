@@ -1,6 +1,6 @@
 SET(TESTS 
-	CreateGraph
-	ProcessingTrace
+#	CreateGraph
+#	ProcessingTrace
 	Taxonomy
 )
 
@@ -9,7 +9,7 @@ SET(TESTS
 INCLUDE_DIRECTORIES (..)
 
 SET(LIB_DEPENDECIES
-	igraph
+#	igraph
 	CajalData
 )
 

@@ -3,6 +3,11 @@
 # 
 file ( GLOB DATA_SOURCES *.cpp )
 
+find_package (Qt4 REQUIRED)
+if (QT4_FOUND)
+	include (${QT_USE_FILE})
+endif (QT4_FOUND)
+
 add_library (CajalData ${DATA_SOURCES} )
 
 # Maybe the target_link_libraries command is optional...
