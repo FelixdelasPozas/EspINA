@@ -91,6 +91,15 @@ SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): ISegmentation
   vtk.type = INTVECT;
   vtk.name = "Seed";
   m_tableGrow.addTranslation(espina, vtk);
+
+  // Init Blur table
+  espina = "input";
+  vtk = {INPUT,"input"};
+  m_tableGrow.addTranslation(espina, vtk);
+  espina = "Kernel";
+  vtk.type = INTVECT;
+  vtk.name = "KernelSize";
+  m_tableGrow.addTranslation(espina, vtk);
 }
 
 void SeedGrowingSegmentation::handle(const Selection sel)
@@ -131,15 +140,20 @@ void SeedGrowingSegmentation::execute()
    Product *input = dynamic_cast<Product *>(m_sel.object);
    assert (input);
 
+   typedef NodeParam EspinaParam;
    // Crear los Filtros
-   //ParamList blurArgs;
-   //blurArgs.push_back(Param("Sigma","2"));
-   //blurArgs.push_back(Param("input",input->id()));
-//   
-//   Filter *blur = new Filter("filter","blur",blurArgs,m_tableBlur);
+   /*
+   EspinaParamList blurArgs;
+   blurArgs.push_back(EspinaParam("input",input->id()));
+   QString kernel = QString("2,2,2");
+   blurArgs.push_back(EspinaParam("Kernel",kernel.toStdString()));
+
+   Filter *blur = new Filter("filter","Median",blurArgs,m_tableBlur); 
+   
+   assert(blur->products().size() == 1);
+   */
    
    EspinaParamList growArgs;
-   typedef NodeParam EspinaParam;
 //    qDebug() << "ID SEEDGROWING "<<  input->name.c_str() << " - " << input->id();
    growArgs.push_back(EspinaParam(QString("input"), input->id()));
    QString seed = QString("%1,%2,%3").arg(m_sel.coord.x).arg(m_sel.coord.y).arg(m_sel.coord.z);

@@ -11,7 +11,7 @@ link_directories ( ${Boost_LIBRARY_DIRS} )
 include_directories ( ${Boost_INCLUDE_DIRS} )
 
 set(TESTS 
-	ProcessingTrace
+	#ProcessingTrace
 )
 
 include_directories (..)

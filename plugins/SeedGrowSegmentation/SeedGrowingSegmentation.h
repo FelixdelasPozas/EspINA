@@ -77,7 +77,7 @@ private:
   QToolButton *m_addSeed;
   IPixelSelector *m_selector;
   Selection m_sel;
-  //Filter::TranslatorTable m_tableBlur;
+  TranslatorTable m_tableBlur;
   TranslatorTable m_tableGrow;
 };
 
