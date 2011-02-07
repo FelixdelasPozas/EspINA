@@ -186,6 +186,8 @@ void SliceBlender::addSegmentation ( IRenderable* seg )
   LUT->PrintSelf(std::cout,vtkIndent(5));
   */
   vtkSMRGBALookupTableProxy *LUT = vtkSMRGBALookupTableProxy::New();//= vtkSMRGBALookupTableProxy::SafeDownCast(ob->createProxy("lookup_tables","EspinaLookupTable",server,"LUTs"));//I'm not sure about second group name 
+  double rgba[4] = {0,1,1,1};
+  LUT->SetTableValue(255,rgba);
   LUT->UpdateVTKObjects();
   /*
   if (segLUT)
