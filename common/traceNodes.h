@@ -63,6 +63,10 @@ public:
   virtual pqOutputPort* outputPort();
   virtual pqPipelineSource* data();	
   virtual int portNumber();
+  virtual void color(double* rgba);
+private:
+  static int c;
+  double m_rgba[4];
 };
 
 

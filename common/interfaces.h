@@ -81,6 +81,7 @@ public:
   virtual pqOutputPort *outputPort() = 0;
   virtual pqPipelineSource *data() = 0;
   virtual int portNumber() = 0;
+  virtual void color(double *rgba) = 0;
   
 protected:
   RENDER_STYLE m_style;

@@ -34,6 +34,7 @@
 #include "hash.h"
 using namespace std;
 
+int Product::c = -1;
 //-----------------------------------------------------------------------------
 // PRODUCT
 //-----------------------------------------------------------------------------
@@ -41,6 +42,11 @@ Product::Product(pqPipelineSource* source, int portNumber)
 : IRenderable(source, portNumber)
 {
   this->name = "Product";
+  m_rgba[0] = 0;
+  m_rgba[1] = 1-c;
+  m_rgba[2] = c;
+  m_rgba[3] = 1;
+  c++;
 }
 
 vector< ITraceNode* > Product::inputs()
@@ -106,6 +112,11 @@ int Product::portNumber()
   return IRenderable::portNumber();
 }
 
+void Product::color(double *rgba)
+{
+  for(int i=0;i<4;i++)
+    rgba[i] = m_rgba[i];
+}
 
 
 

@@ -91,7 +91,9 @@ void MeshRenderer::render( IRenderable* actor, pqRenderView* view)
     if (color)
     {
       //TODO: Get colors from segmentation's property
-      color->SetElements3(1,0,0);
+      double rgba[4];
+      actor->color(rgba);
+      color->SetElements3(rgba[0],rgba[1],rgba[2]);
     }
     
     // 	//TODO: Create individual properties?
@@ -168,8 +170,9 @@ void VolumeRenderer::render ( IRenderable *actor, pqRenderView * view )
       segLUT->getProxy()->GetProperty("RGBPoints"));
   if (rgbs)
   {
-    // TODO: Use segmentation's information
-    double colors[8] = {0,0,0,0,1,0,0,1};
+    double rgba[4];
+    actor->color(rgba);
+    double colors[8] = {0,0,0,0,1,rgba[0],rgba[1],rgba[2]};
     rgbs->SetElements(colors);
   }
   segLUT->getProxy()->UpdateVTKObjects();
