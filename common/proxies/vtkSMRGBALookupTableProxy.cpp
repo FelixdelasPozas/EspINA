@@ -62,18 +62,28 @@ void vtkSMRGBALookupTableProxy::UpdateVTKObjects(vtkClientServerStream& stream)
     this->Build();
 }
 
-void vtkSMRGBALookupTableProxy::SetTableValue(int id, double rgba[4])
+void vtkSMRGBALookupTableProxy::SetTableValue(int id, double r, double g, double b, double a)
 {
   vtkClientServerStream stream;
-  const int OPAQUE = 1;
 
+  stream << vtkClientServerStream::Invoke                                                                                            
+         << this->GetID() << "SetNumberOfTableValues"                                                                                
+         << 256
+         << vtkClientServerStream::End;  
+  
   stream << vtkClientServerStream::Invoke
   << this->GetID() << "SetTableValue" << id 
-  << rgba[0] << rgba[1] << rgba[2] << OPAQUE
+  << r << g << b << a
   << vtkClientServerStream::End;
   
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   pm->SendStream(this->ConnectionID, this->Servers, stream);
+}
+
+void vtkSMRGBALookupTableProxy::SetTableValue(int id, double rgba[4])
+{
+  const int OPAQUE = 1;
+  SetTableValue(id, rgba[0], rgba[1], rgba[2], rgba[3]);
 }
 
 
@@ -86,10 +96,14 @@ void vtkSMRGBALookupTableProxy::Build()
   vtkSMIntVectorProperty* intVectProp;
   vtkSMDoubleVectorProperty* doubleVectProp;
   
-  // Background color
-  stream << vtkClientServerStream::Invoke
-  << this->GetID() << "SetTableValue" << 0 << 0 << 0 << 0 << 0
+  stream << vtkClientServerStream::Invoke << this->GetID() 
+  << "SetRampToLinear" 
   << vtkClientServerStream::End;
+  
+  // Background color
+  //stream << vtkClientServerStream::Invoke
+  //<< this->GetID() << "SetTableValue" << 0 << 0 << 0 << 0 << 1
+  //<< vtkClientServerStream::End;
   
   /*
   stream << vtkClientServerStream::Invoke

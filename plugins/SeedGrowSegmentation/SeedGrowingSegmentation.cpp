@@ -183,9 +183,8 @@ void SeedGrowingSegmentation::execute()
     undoStack->endUndoSet();
   }
   
-  
   // Comment following line to allow several selections 
-  emit waitingSelection(NULL);
+  //emit waitingSelection(NULL);
 }
 
 

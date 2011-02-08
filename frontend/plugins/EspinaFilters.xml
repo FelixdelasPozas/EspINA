@@ -160,7 +160,7 @@
       </InputProperty>
      <InputProperty
         name="BlendInput"
-        command="SetInputConnection">
+        command="AddInputConnection">
            <ProxyGroupDomain name="groups">
              <Group name="sources"/>
              <Group name="filters"/>

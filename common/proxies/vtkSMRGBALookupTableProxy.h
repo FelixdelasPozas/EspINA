@@ -39,6 +39,7 @@ public:
   
   //! Add a new colour entry to the Lookup Table
   void SetTableValue(int id, double rgba[4]);
+  void SetTableValue(int id, double r, double g, double b, double a);
   
   
 protected:                                                                                                                             
