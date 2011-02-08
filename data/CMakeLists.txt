@@ -15,4 +15,3 @@ add_library (CajalData ${DATA_SOURCES} )
 #TARGET_LINK_LIBRARIES (Cajal ITKCommon ITKBasicFilters ITKAlgorithms )
 
 add_subdirectory(tests)
-

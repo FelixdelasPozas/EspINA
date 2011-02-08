@@ -1,6 +1,9 @@
 #include "taxonomy.h"
 #include <iomanip>
 #include <assert.h>
+#include <stack>
+
+#include <QDebug>
 
 #define ASSERT(x) \
   if (! (x)) \
@@ -10,7 +13,7 @@
   } \
   assert(x)
 
-void TaxonomyNode::insertElement(std::string subElement)
+void TaxonomyNode::insertElement(QString subElement)
 {
   if( !m_elements )
     m_elements = new std::vector<TaxonomyNode*>();
@@ -33,7 +36,7 @@ void TaxonomyNode::print(int level)
   std::cout << 
   std::string(level*2, ' ') <<
   //std::string("-") <<
-  m_name <<
+  m_name.toStdString() <<
   std::endl;
   
   if(m_elements){
@@ -44,30 +47,37 @@ void TaxonomyNode::print(int level)
 }
 
 
-TaxonomyNode::TaxonomyNode(std::string name):
+TaxonomyNode::TaxonomyNode(QString name):
   m_name(name), m_elements(NULL)
 {
 }
 
 /*
-void TaxonomyNode::addElement(std::string subElement)
+void TaxonomyNode::addElement(QString subElement)
 {
   assert( this->getComponent(subElement)==NULL);
   this->insertElement( subElement );
 }
 */
 
-TaxonomyNode* TaxonomyNode::addElement(std::string subElement, std::string supElement)
+
+TaxonomyNode* TaxonomyNode::addElement(QString subElement, QString supElement)
 {
 
-  ASSERT( this->getComponent(subElement)==NULL);
+  //ASSERT( this->getComponent(subElement)==NULL);
+  if( this->getComponent(subElement) )
+    throw "RepeatedElementException"; //TODO change exception
   TaxonomyNode* supNode = this->getComponent(supElement);
   if( supNode )
     supNode->insertElement( subElement );
+  else{
+    std::cerr << "Error: " << supElement.toStdString() << " does not exist in the taxonomy" << std::endl;
+    //exit(1);
+  }
 }
 
 
-TaxonomyNode* TaxonomyNode::getComponent(std::string name)
+TaxonomyNode* TaxonomyNode::getComponent(QString name)
 {
   TaxonomyNode* taxNode = NULL;
   if( m_name.compare(name) != 0 ){
@@ -85,3 +95,109 @@ TaxonomyNode* TaxonomyNode::getComponent(std::string name)
     return this;
   return taxNode;
 }
+
+// Returns a vector with the subelements of a node
+std::vector< TaxonomyNode* >* TaxonomyNode::getSubElements()
+{
+  return m_elements;
+}
+
+
+/****************
+ ** IOTaxonomy **
+ ****************/
+
+IOTaxonomy::IOTaxonomy()
+{
+
+}
+
+IOTaxonomy::~IOTaxonomy()
+{
+
+}
+
+TaxonomyNode* IOTaxonomy::openXMLTaxonomy(QString& fileName)
+{
+  QFile file( fileName );
+  if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) 
+  {
+/*    QMessageBox::critical(this, "IOTaxonomy::openXMLTaxonomy", 
+			  "Couldn't open the file", 
+			  QMessageBox::Ok);*/
+    qDebug() <<"File could not be oppended";
+    return NULL;
+  }
+  QXmlStreamReader stream(&file);
+  QStringRef nodeName;
+  TaxonomyNode* tax;
+
+  std::stack<QString> taxHierarchy;
+  while(!stream.atEnd())
+  {
+    stream.readNextStartElement();
+    if( stream.name() == "node")
+    {
+      if( stream.isStartElement() )
+      {
+	nodeName = stream.attributes().value("name");
+	if( taxHierarchy.empty() )
+	{
+	  tax = new TaxonomyNode( nodeName.toString() );
+	}
+	else
+	{
+	  tax->addElement( nodeName.toString(), taxHierarchy.top() );
+	}
+	taxHierarchy.push( nodeName.toString() );
+      }
+      else if( stream.isEndElement() )
+      {
+	taxHierarchy.pop();
+      }
+    }
+  }
+  file.close();
+  return tax;
+}
+
+
+void IOTaxonomy::writeTaxonomyNode(TaxonomyNode* node, QXmlStreamWriter& stream)
+{
+  if( node )
+  {
+    std::vector<TaxonomyNode*>* nodes;
+    stream.writeStartElement( "node" );
+    stream.writeAttribute("name", node->getName());
+    nodes = node->getSubElements();
+    if( nodes )
+    {
+	std::vector<TaxonomyNode*>::iterator itNodes;
+	for( itNodes=nodes->begin(); itNodes < nodes->end(); itNodes++ )
+	{
+	  IOTaxonomy::writeTaxonomyNode( (*itNodes), stream );
+	}
+    }
+    stream.writeEndElement();
+  }
+}
+
+
+void IOTaxonomy::writeXMLTaxonomy(TaxonomyNode& tax, QString fileName)
+{
+  //QString fd (file);
+  QFile fd (fileName);
+  fd.open( QIODevice::WriteOnly | QIODevice::Truncate );
+  QXmlStreamWriter stream(&fd);
+  
+  stream.setAutoFormatting(true);
+  stream.writeStartDocument();
+  stream.writeStartElement("Taxonomy");
+  
+  IOTaxonomy::writeTaxonomyNode( &tax, stream );
+  
+  stream.writeEndElement();
+  stream.writeEndDocument();
+  fd.close();
+}
+
