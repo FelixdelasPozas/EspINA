@@ -31,7 +31,7 @@
 #include <assert.h>
 #include <QDebug>
 
-#include "hash.h"
+#include "data/hash.h"
 using namespace std;
 
 //-----------------------------------------------------------------------------

@@ -18,7 +18,7 @@
 */
 
 #include "cachedObjectBuilder.h"
-#include "hash.h"
+#include "data/hash.h"
 
 // Qt
 #include <QString>

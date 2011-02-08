@@ -19,7 +19,7 @@
 #ifndef TRACING_H
 #define TRACING_H
 
-#include "cajalTypes.h"
+#include "data/cajalTypes.h"
 
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/subgraph.hpp>
