@@ -2,13 +2,9 @@
 #define _TAXONOMY_
 
 #include <vector>
-//#include <string>
-#include <iostream>
 
 // Qt dependencies
-#include <QFile>
 #include <QString>
-#include <QXmlStreamReader>
 #include <QXmlStreamWriter>
 
 class TaxonomyNode

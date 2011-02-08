@@ -1,10 +1,14 @@
 #include "taxonomy.h"
-#include <iomanip>
-#include <assert.h>
 #include <stack>
 
+#include <QFile>
+#include <QXmlStreamReader>
+
+#include <iostream>
 #include <QDebug>
 
+//#include <assert.h>
+/*
 #define ASSERT(x) \
   if (! (x)) \
   { \
@@ -12,6 +16,7 @@
     std::cout << " in " << __FILE__ << ":" << __LINE__  << "\n"; \
   } \
   assert(x)
+*/
 
 void TaxonomyNode::insertElement(QString subElement)
 {
@@ -22,10 +27,8 @@ void TaxonomyNode::insertElement(QString subElement)
 
 TaxonomyNode::~TaxonomyNode()
 {
-  std::vector<TaxonomyNode *>::iterator it;
   if( m_elements )
-    //std::vector<TaxonomyNode *>::iterator it;
-    for(it = m_elements->begin(); it < m_elements->end(); it++)
+    for(std::vector< TaxonomyNode* >::iterator it = m_elements->begin(); it < m_elements->end(); it++)
       delete (*it);
     
     delete( m_elements );
@@ -35,17 +38,15 @@ void TaxonomyNode::print(int level)
 {
   std::cout << 
   std::string(level*2, ' ') <<
-  //std::string("-") <<
   m_name.toStdString() <<
   std::endl;
-  
+
   if(m_elements){
     std::vector<TaxonomyNode *>::iterator it;
     for( it = m_elements->begin(); it < m_elements->end(); it++)
       (*it)->print(level+1);
   }
 }
-
 
 TaxonomyNode::TaxonomyNode(QString name):
   m_name(name), m_elements(NULL)
@@ -59,7 +60,6 @@ void TaxonomyNode::addElement(QString subElement)
   this->insertElement( subElement );
 }
 */
-
 
 TaxonomyNode* TaxonomyNode::addElement(QString subElement, QString supElement)
 {
@@ -82,9 +82,7 @@ TaxonomyNode* TaxonomyNode::getComponent(QString name)
   TaxonomyNode* taxNode = NULL;
   if( m_name.compare(name) != 0 ){
     if (m_elements){ 
-      std::vector<TaxonomyNode *>::iterator it;
-      
-      for( it = m_elements->begin(); it < m_elements->end(); it++){
+      for( std::vector< TaxonomyNode* >::iterator it = m_elements->begin(); it < m_elements->end(); it++){
 	taxNode = (*it)->getComponent( name );
 	if( taxNode )
 	  break;
@@ -185,7 +183,6 @@ void IOTaxonomy::writeTaxonomyNode(TaxonomyNode* node, QXmlStreamWriter& stream)
 
 void IOTaxonomy::writeXMLTaxonomy(TaxonomyNode& tax, QString fileName)
 {
-  //QString fd (file);
   QFile fd (fileName);
   fd.open( QIODevice::WriteOnly | QIODevice::Truncate );
   QXmlStreamWriter stream(&fd);

@@ -4,10 +4,10 @@ SET(TESTS
 	Taxonomy
 )
 
-find_package (Qt4 REQUIRED)
-if (QT4_FOUND)
-	include (${QT_USE_FILE})
-endif (QT4_FOUND)
+# find_package (Qt4 REQUIRED)
+# if (QT4_FOUND)
+# 	include (${QT_USE_FILE})
+# endif (QT4_FOUND)
 
 # Include libCajal header files
 INCLUDE_DIRECTORIES (..)

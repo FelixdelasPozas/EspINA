@@ -1,9 +1,4 @@
-#include <iostream>
-#include <map>
-#include <vector>
-#include <string>
 #include "taxonomy.h"
-
 #include <QDebug>
 
 int main(int argc, const char* argv[]){
