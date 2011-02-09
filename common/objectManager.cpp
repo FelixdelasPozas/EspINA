@@ -23,8 +23,10 @@ ObjectManager* ObjectManager::instance()
 void ObjectManager::registerProduct(Product* product)
 {
   m_products.push_back(product);
-  emit render(product);
   if (m_products.size() > 1)
+  {
+    emit render(product);
     emit sliceRender(product);
+  }
 }
 

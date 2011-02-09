@@ -1,8 +1,12 @@
 #ifndef RENDERER_H_
 #define RENDERER_H_
 
+#include <QMap>
+
 class pqRenderView;
 class IRenderable;
+class pqPipelineSource;
+
 
 enum RenderType
 { RENDERTYPE_FIRST = 0
@@ -44,6 +48,7 @@ public:
   
 private:
   static MeshRenderer *m_singleton;
+  static QMap<IRenderable *,pqPipelineSource *> m_contours;
   
 };
 

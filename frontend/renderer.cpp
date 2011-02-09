@@ -2,11 +2,12 @@
 
 #include "interfaces.h"
 
-
 // ParaQ include files
 #include "pqDisplayPolicy.h"
 #include "pqApplicationCore.h"
+#include "pqObjectBuilder.h"
 #include "pqRenderView.h"
+#include "pqPipelineSource.h"
 #include <pqPipelineRepresentation.h>
 #include <vtkSMDoubleVectorProperty.h>
 #include <vtkSMPVLookupTableProxy.h>
@@ -35,6 +36,8 @@ enum Rep3D
 //------------------------------------------------------------------------
 MeshRenderer *MeshRenderer::m_singleton(NULL);
 
+QMap<IRenderable *,pqPipelineSource *> MeshRenderer::m_contours;
+
 //------------------------------------------------------------------------
 IRenderer *MeshRenderer::renderer()
 {
@@ -54,9 +57,21 @@ void MeshRenderer::hide ( Segmentation* seg, pqRenderView* view )
 //------------------------------------------------------------------------
 void MeshRenderer::render( IRenderable* actor, pqRenderView* view)
 {
+  pqPipelineSource *contour = NULL;
+  if (m_contours.contains(actor))
+    contour = m_contours[actor];
+  else
+  {
+    pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
+    contour = ob->createFilter("filters","Contour",actor->data());
+    vtkSMProperty *p = contour->getProxy()->GetProperty("ContourValues");
+    vtkSMDoubleVectorProperty *values = vtkSMDoubleVectorProperty::SafeDownCast(p);
+    values->SetElements1(255);
+    m_contours.insert(actor,contour);
+  }
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
   pqDataRepresentation *dr = dp->setRepresentationVisibility(
-    actor->outputPort()
+    contour->getOutputPort(0)
     , view
     , actor->visible());
   
@@ -76,7 +91,9 @@ void MeshRenderer::render( IRenderable* actor, pqRenderView* view)
     if (color)
     {
       //TODO: Get colors from segmentation's property
-      color->SetElements3(0,1,0);
+      double rgba[4];
+      actor->color(rgba);
+      color->SetElements3(rgba[0],rgba[1],rgba[2]);
     }
     
     // 	//TODO: Create individual properties?
@@ -153,8 +170,9 @@ void VolumeRenderer::render ( IRenderable *actor, pqRenderView * view )
       segLUT->getProxy()->GetProperty("RGBPoints"));
   if (rgbs)
   {
-    // TODO: Use segmentation's information
-    double colors[8] = {0,0,0,0,1,0,0,1};
+    double rgba[4];
+    actor->color(rgba);
+    double colors[8] = {0,0,0,0,1,rgba[0],rgba[1],rgba[2]};
     rgbs->SetElements(colors);
   }
   segLUT->getProxy()->UpdateVTKObjects();

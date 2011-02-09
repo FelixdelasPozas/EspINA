@@ -157,7 +157,12 @@ void SliceBlender::addSegmentation ( IRenderable* seg )
   
   vtkSMRGBALookupTableProxy *segLUT = vtkSMRGBALookupTableProxy::New();//= vtkSMRGBALookupTableProxy::SafeDownCast(ob->createProxy("lookup_tables","EspinaLookupTable",server,"LUTs"));//I'm not sure about second group name 
   segLUT->SetTableValue(0,0,0,0,0);
-  segLUT->SetTableValue(255,0,0,1,1);
+  double rgba[4];
+  //TODO: In this case it should provide its LUT 
+  //instead of its color
+  seg->color(rgba);
+  //TODO: change to binary segmentation images
+  segLUT->SetTableValue(255,rgba[0],rgba[1],rgba[2],rgba[3]);
   segLUT->UpdateVTKObjects();
   
   // Set the greyLUT for the slicemapper

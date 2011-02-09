@@ -198,6 +198,7 @@ void VolumeWidget::updateScene()
   
   // Render renderable products
   IRenderable *actor;
+  qDebug() << m_actors.size();
   foreach(actor,m_actors)
   {
     if (m_showActors)
