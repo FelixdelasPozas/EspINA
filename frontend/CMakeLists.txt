@@ -1,14 +1,6 @@
-project (ESPINA_PLUGINS)
+project (ESPINA_FRONTEND)
 
-#cmake_minimum_required (VERSION 2.6)
-
-#find_package (Qt4 REQUIRED)
-#include (${QT_USE_FILE})
-
-#set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR})
-
-#find_package(ParaView REQUIRED)
-#include(${PARAVIEW_USE_FILE})
+cmake_minimum_required (VERSION 2.6)
 
 #find_package(Cajal REQUIRED)
 
@@ -17,9 +9,9 @@ find_package(Boost REQUIRED COMPONENTS  system filesystem)
 link_directories ( ${Boost_LIBRARY_DIRS} )
 
 include_directories(
-  .
   ${CMAKE_SOURCE_DIR}/common 
-  ${CMAKE_CURRENT_BINARY_DIR} 
+  ${CMAKE_CURRENT_SOURCE_DIR} 
+  ${CMAKE_CURRENT_BINARY_DIR}  #For wrap/ui files
   ${CAJAL_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS} 
   )
@@ -61,6 +53,11 @@ set (Espina_SOURCE_FILES
   ${RCC_BUILT_SOURCES}
   )
 
+set (Espina_LIBRARIES
+  Espina
+  ${Boost_LIBRARIES}
+)
+
 
 #------------------------------------------------------------------------------
 # Build the client
@@ -88,6 +85,6 @@ build_paraview_client(espina
 	#INSTALL_LIB_DIR "${PV_INSTALL_LIB_DIR}"
   )
 
-target_link_libraries (espina Espina ${Boost_LIBRARIES})
+target_link_libraries (espina ${Espina_LIBRARIES})
 
 add_subdirectory (plugins)

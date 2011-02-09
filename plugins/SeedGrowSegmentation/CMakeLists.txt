@@ -15,6 +15,7 @@ find_package (ITK REQUIRED)
 include (${ITK_USE_FILE})
 
 find_package (Cajal REQUIRED)
+include (${ITK_USE_FILE})
 
 find_package(Boost REQUIRED COMPONENTS  system filesystem)
 link_directories ( ${Boost_LIBRARY_DIRS} )
@@ -25,7 +26,7 @@ SET (ITK_VTK_GLUE "" CACHE PATH "Path to ItkVtkGlue external project")
 
 include_directories(
   ${CMAKE_SOURCE_DIR}/common
-  ${CAJAL_INCLUDE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR} 
   ${ITK_VTK_GLUE}
   ${Boost_INCLUDE_DIRS}
   )
