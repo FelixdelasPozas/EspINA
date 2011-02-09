@@ -14,3 +14,17 @@ ENABLE_TESTING()
 add_subdirectory (filters)
 add_subdirectory (data)
 #add_subdirectory (gui)
+
+get_target_property (CAJAL_DATA_LIBRARY CajalData LOCATION)
+get_target_property (CAJAL_FILTERS_LIBRARY CajalFilters LOCATION)
+
+set (CAJAL_INCLUDE ${PROJECT_SOURCE_DIR})
+
+set (CAJAL_USE_FILE "${PROJECT_SOURCE_DIR}/CajalUse.cmake") 
+
+configure_file (
+  "${PROJECT_SOURCE_DIR}/CajalConfig.cmake.in"
+  "${PROJECT_BINARY_DIR}/CajalConfig.cmake"
+  )
+
+## TODO: To create installation .cmake, refer to Mastering CMake p.120

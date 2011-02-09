@@ -10,6 +10,11 @@ endif (QT4_FOUND)
 
 add_library (CajalData ${DATA_SOURCES} )
 
+if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+         SET_TARGET_PROPERTIES(CajalData PROPERTIES COMPILE_FLAGS "-fPIC")
+endif( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+
+
 # Maybe the target_link_libraries command is optional...
 # (I think it depends if we use shared libraries)
 #TARGET_LINK_LIBRARIES (Cajal ITKCommon ITKBasicFilters ITKAlgorithms )
