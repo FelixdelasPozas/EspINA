@@ -20,7 +20,7 @@
 #ifndef TRANSLATORTABLE_H
 #define TRANSLATORTABLE_H
 
-#include "cajalTypes.h"
+#include "data/cajalTypes.h"
 
 #include <vector>
 #include <string> //TODO to QString sooner or later
