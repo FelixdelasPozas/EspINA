@@ -43,6 +43,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "selectionManager.h"
 #include "traceNodes.h"
 #include "cache/cache.h"
+#include "segmentationModel.h"
+#include "data/taxonomy.h"
 
 //ParaQ includes
 #include "pqHelpReaction.h"
@@ -104,6 +106,12 @@ EspinaMainWindow::EspinaMainWindow()
 
   //Create File Menu
   buildFileMenu(*this->Internals->menu_File);
+  
+  buildTaxonomy();
+  
+  m_segModel = new SegmentationModel;
+  m_segModel->setTaxonomy(m_taxonomies);
+  this->Internals->objectTreeView->setModel(m_segModel);;
   
   //// Populate application menus with actions.
   pqParaViewMenuBuilders::buildFileMenu(*this->Internals->menu_File);
@@ -238,4 +246,16 @@ void EspinaMainWindow::buildFileMenu(QMenu &menu)
 	QObject::connect(loadReaction, SIGNAL(loadedData(pqPipelineSource *)),
 		this, SLOT( loadData(pqPipelineSource *)));
 	menu.addAction(openAction);
+}
+
+
+void EspinaMainWindow::buildTaxonomy()
+{
+  m_taxonomies = new TaxonomyNode("FEM");
+  m_taxonomies->addElement("Synapse","FEM");
+  m_taxonomies->addElement("Vesicles","FEM");
+  m_taxonomies->addElement("Symetric","Synapse");
+  m_taxonomies->addElement("Asymetric","Synapse");
+  m_taxonomies->addElement("Rojas","Vesicles");
+  m_taxonomies->print();
 }
