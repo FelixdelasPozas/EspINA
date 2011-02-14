@@ -108,9 +108,11 @@ EspinaMainWindow::EspinaMainWindow()
   buildFileMenu(*this->Internals->menu_File);
   
   buildTaxonomy();
+  m_productManager = ObjectManager::instance();
   
   m_segModel = new SegmentationModel;
   m_segModel->setTaxonomy(m_taxonomies);
+  m_segModel->setObjectManager(m_productManager);
   this->Internals->objectTreeView->setModel(m_segModel);;
   
   //// Populate application menus with actions.
@@ -165,7 +167,6 @@ EspinaMainWindow::EspinaMainWindow()
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_3d,SLOT(connectToServer()));
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_3d,SLOT(disconnectFromServer()));
   
-  m_productManager = ObjectManager::instance();
   connect(m_productManager,SIGNAL(render(IRenderable*)),
 	  m_3d,SLOT(refresh(IRenderable*)));
   // Final step, define application behaviors. Since we want all ParaView
@@ -256,6 +257,5 @@ void EspinaMainWindow::buildTaxonomy()
   m_taxonomies->addElement("Vesicles","FEM");
   m_taxonomies->addElement("Symetric","Synapse");
   m_taxonomies->addElement("Asymetric","Synapse");
-  m_taxonomies->addElement("Rojas","Vesicles");
   m_taxonomies->print();
 }

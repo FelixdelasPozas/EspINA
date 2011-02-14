@@ -24,6 +24,7 @@
 
 // Forward declarations
 class TaxonomyNode;
+class ObjectManager;
 
 //! An Abstract Model to represent Segementations
 class SegmentationModel : public QAbstractItemModel
@@ -44,8 +45,10 @@ public:
     
     //! Segmentation Model methods
     void setTaxonomy(TaxonomyNode *taxonomy) {m_tax = taxonomy;}
+    void setObjectManager(ObjectManager *manager) {m_om = manager;}
 private:
   TaxonomyNode *m_tax;
+  ObjectManager *m_om;
 };
 
 #endif // SEGMENTATIONMODEL_H

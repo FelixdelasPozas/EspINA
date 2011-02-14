@@ -20,6 +20,13 @@ ObjectManager* ObjectManager::instance()
   return m_singleton;
 }
 
+QList<Product*> ObjectManager::segmentations(const QString &filter)
+{
+  return m_products;
+}
+
+
+
 void ObjectManager::registerProduct(Product* product)
 {
   m_products.push_back(product);

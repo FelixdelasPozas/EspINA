@@ -18,20 +18,34 @@
 
 
 #include "segmentationModel.h"
-#include <data/taxonomy.h>
 
+// ESPINA
+#include <data/taxonomy.h>
+#include "objectManager.h"
+
+// Qt
+#include <QColor>
+
+// Debug
 #include <QDebug>
+#include <assert.h>
+#include <iostream>
 
 QVariant SegmentationModel::data(const QModelIndex& index, int role) const
 {
   if (!index.isValid())
     return QVariant();
 
-  if (role != Qt::DisplayRole)
-    return QVariant();
-  
-  QString texto = "Variable";
-  return texto;
+  TaxonomyNode *item = static_cast<TaxonomyNode *>(index.internalPointer());
+  switch (role)
+  {
+    case Qt::DisplayRole:
+      return item->getName();
+    case Qt::DecorationRole:
+      return QColor(255,0,0);//TODO; Change for QPixmap 
+    default:
+      return QVariant();
+  }
 }
 
 int SegmentationModel::columnCount(const QModelIndex& parent) const
@@ -41,43 +55,81 @@ int SegmentationModel::columnCount(const QModelIndex& parent) const
 
 int SegmentationModel::rowCount(const QModelIndex& parent) const
 {
+  // This avoid creating indexes of an unitialized model
+  if (!m_tax || !m_om)
+    return 0;
+  
   TaxonomyNode *parentItem;
   if (!parent.isValid())
     parentItem = m_tax;
   else
     parentItem = static_cast<TaxonomyNode *>(parent.internalPointer());
-  return parentItem->getSubElements()->size();
+  assert(parentItem);
   
+  // Taxonomy leaf nodes can hold segmentations
+  int childs = parentItem->getSubElements().size();
+  bool isLeaf = childs == 0;
+  
+  if (!isLeaf)
+    return parentItem->getSubElements().size();
+  else
+  {
+    // Look for segmentations belonging to this  taxonomical class
+    return m_om->segmentations(parentItem->getName()).size();
+  }
 }
 
 QModelIndex SegmentationModel::parent(const QModelIndex& child) const
 {
-  TaxonomyNode *item = static_cast<TaxonomyNode *>(child.internalPointer());
-  qDebug() << item->getName();
   if (!child.isValid())
     return QModelIndex();
-  int r;
-  for (r =0; m_tax->getSubElements()->size();r++)
-    if (m_tax->getSubElements()->at(r)->getName() == item->getName())
-      break;
-  return createIndex(r,0,m_tax);
+  
+  TaxonomyNode *item = static_cast<TaxonomyNode *>(child.internalPointer());
+  assert (item);
+  
+  TaxonomyNode *parentItem = m_tax->getParent(item->getName());
+  assert(parentItem);
+  
+  // We avoid seting the Taxonomy descriptor as parent of an index
+  if (parentItem->getName() == "FEM")
+    return QModelIndex();
+  
+  TaxonomyNode *grandParent = m_tax->getParent(parentItem->getName());
+  int r = grandParent->getSubElements().indexOf(parentItem);
+  // Returns the row and column of parentItem in its own parent
+  return createIndex(r,0,parentItem);
 }
 
 QModelIndex SegmentationModel::index(int row, int column, const QModelIndex& parent) const
 {
+  if (!hasIndex(row,column,parent))
+    return QModelIndex();
+  
+  TaxonomyNode *parentItem;
   if (!parent.isValid())
   {// It corresponds to a taxonomy
-    TaxonomyNode *tax = m_tax->getSubElements()->at(row);
-    qDebug() << tax->getName();
-    return createIndex(row,column,tax);
+    parentItem = m_tax;
   }
   else
-    return QModelIndex();
+  {
+    parentItem = static_cast<TaxonomyNode *>(parent.internalPointer());
+  }
+  assert(parentItem);
+  
+  bool isLeaf = parentItem->getSubElements().size() == 0;
+  if (isLeaf)
+    // Create segmentation index
+    return createIndex(row,column,m_om->segmentations(parentItem->getName())[row]);
+  else
+    // Create taxonomy index
+    return createIndex(row,column,parentItem->getSubElements()[row]);
 }
 
 QVariant SegmentationModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    return QAbstractItemModel::headerData(section, orientation, role);
+  // if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
+    // return "Segmented Objects";
+   return QVariant();
 }
 
 Qt::ItemFlags SegmentationModel::flags(const QModelIndex& index) const
@@ -86,6 +138,8 @@ Qt::ItemFlags SegmentationModel::flags(const QModelIndex& index) const
 }
 
 SegmentationModel::SegmentationModel()
+: m_tax(NULL)
+, m_om(NULL)
 {
 
 }

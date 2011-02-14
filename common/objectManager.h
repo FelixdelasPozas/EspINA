@@ -16,6 +16,7 @@ public:
   static ObjectManager *instance();
   
   Product *activeStack(){return m_products.first();}
+  QList<Product *> segmentations(const QString &filter);
   
 public slots:
   //! A new Product has been added
