@@ -20,18 +20,23 @@
 
 void TaxonomyNode::insertElement(QString subElement)
 {
-  if( !m_elements )
-    m_elements = new std::vector<TaxonomyNode*>();
-  m_elements->push_back( new TaxonomyNode(subElement) );
+  //if( !m_elements )
+  //  m_elements = new std::vector<TaxonomyNode*>();
+  m_elements.push_back( new TaxonomyNode(subElement) );
 }
 
 TaxonomyNode::~TaxonomyNode()
 {
-  if( m_elements )
-    for(std::vector< TaxonomyNode* >::iterator it = m_elements->begin(); it < m_elements->end(); it++)
-      delete (*it);
-    
-    delete( m_elements );
+  TaxonomyNode *node;
+  foreach(node,m_elements)
+  {
+    delete node;
+  }
+//   if( m_elements )
+//     for(std::vector< TaxonomyNode* >::iterator it = m_elements->begin(); it < m_elements->end(); it++)
+//       delete (*it);
+//     
+//     delete( m_elements );
 }
 
 void TaxonomyNode::print(int level)
@@ -41,15 +46,20 @@ void TaxonomyNode::print(int level)
   m_name.toStdString() <<
   std::endl;
 
-  if(m_elements){
-    std::vector<TaxonomyNode *>::iterator it;
-    for( it = m_elements->begin(); it < m_elements->end(); it++)
-      (*it)->print(level+1);
+  TaxonomyNode *node;
+  foreach (node, m_elements)
+  {
+    node->print(level+1);
   }
+//   if(m_elements){
+//     std::vector<TaxonomyNode *>::iterator it;
+//     for( it = m_elements->begin(); it < m_elements->end(); it++)
+//       (*it)->print(level+1);
+//   }
 }
 
 TaxonomyNode::TaxonomyNode(QString name):
-  m_name(name), m_elements(NULL)
+  m_name(name)//, m_elements(NULL)
 {
 }
 
@@ -76,26 +86,55 @@ TaxonomyNode* TaxonomyNode::addElement(QString subElement, QString supElement)
   }
 }
 
+TaxonomyNode* TaxonomyNode::getParent(QString name)
+{
+  TaxonomyNode *parent = NULL;
+  
+  for (int i = 0; i < getSubElements().size(); i++)
+  {
+    if (getSubElements()[i]->getName() == name)
+	parent = this;
+    else
+      parent = getSubElements()[i]->getParent(name);
+    if (parent)
+     return parent;
+  }
+  
+  return parent;
+}
+
+
 
 TaxonomyNode* TaxonomyNode::getComponent(QString name)
 {
   TaxonomyNode* taxNode = NULL;
-  if( m_name.compare(name) != 0 ){
-    if (m_elements){ 
-      for( std::vector< TaxonomyNode* >::iterator it = m_elements->begin(); it < m_elements->end(); it++){
-	taxNode = (*it)->getComponent( name );
-	if( taxNode )
-	  break;
-      }
-    }
-  }
-  else
+  if (m_name == name)
     return this;
+  
+  TaxonomyNode *node;
+  foreach(node,m_elements)
+  {
+    taxNode = node->getComponent(name);
+    if (taxNode)
+      break;
+  }
+    
+//   if( m_name.compare(name) != 0 ){
+//     if (m_elements){ 
+//       for( std::vector< TaxonomyNode* >::iterator it = m_elements->begin(); it < m_elements->end(); it++){
+// 	taxNode = (*it)->getComponent( name );
+// 	if( taxNode )
+// 	  break;
+//       }
+//     }
+//   }
+//   else
+//     return this;
   return taxNode;
 }
 
 // Returns a vector with the subelements of a node
-std::vector< TaxonomyNode* >* TaxonomyNode::getSubElements()
+QVector< TaxonomyNode* > TaxonomyNode::getSubElements()
 {
   return m_elements;
 }
@@ -164,18 +203,24 @@ void IOTaxonomy::writeTaxonomyNode(TaxonomyNode* node, QXmlStreamWriter& stream)
 {
   if( node )
   {
-    std::vector<TaxonomyNode*>* nodes;
+    //QVector<TaxonomyNode*> nodes;
     stream.writeStartElement( "node" );
     stream.writeAttribute("name", node->getName());
-    nodes = node->getSubElements();
-    if( nodes )
+    
+    TaxonomyNode *node;
+    foreach(node,node->getSubElements())
     {
-	std::vector<TaxonomyNode*>::iterator itNodes;
-	for( itNodes=nodes->begin(); itNodes < nodes->end(); itNodes++ )
-	{
-	  IOTaxonomy::writeTaxonomyNode( (*itNodes), stream );
-	}
+      IOTaxonomy::writeTaxonomyNode(node, stream );
     }
+//     nodes = node->getSubElements();
+//     if( nodes )
+//     {
+// 	std::vector<TaxonomyNode*>::iterator itNodes;
+// 	for( itNodes=nodes->begin(); itNodes < nodes->end(); itNodes++ )
+// 	{
+// 	  IOTaxonomy::writeTaxonomyNode( (*itNodes), stream );
+// 	}
+//     }
     stream.writeEndElement();
   }
 }

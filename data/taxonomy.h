@@ -9,10 +9,7 @@
 
 class TaxonomyNode
 {
- std::vector<TaxonomyNode *>* m_elements;
- QString m_name;
  
- void insertElement( QString subElement ); // Without checking 
 public:
 
   TaxonomyNode( QString name );
@@ -28,9 +25,17 @@ public:
   // the elements through the TaxonoyNode object at the top of the tree.
   TaxonomyNode* addElement( QString subElement, QString supElement );
  
+  TaxonomyNode* getParent( QString name );
   TaxonomyNode* getComponent( QString name ); 
   QString getName() {return m_name;}
-  std::vector<TaxonomyNode*>* getSubElements();
+  QVector<TaxonomyNode*> getSubElements();
+  
+private:
+ void insertElement( QString subElement ); // Without checking 
+ 
+private:
+ QVector<TaxonomyNode *> m_elements;
+ QString m_name;
   
 };
 
