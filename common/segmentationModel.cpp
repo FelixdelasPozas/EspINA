@@ -36,13 +36,22 @@ QVariant SegmentationModel::data(const QModelIndex& index, int role) const
   if (!index.isValid())
     return QVariant();
 
-  TaxonomyNode *item = static_cast<TaxonomyNode *>(index.internalPointer());
+  TaxonomyNode *indexParentNode = static_cast<TaxonomyNode *>(index.internalPointer());
+  
+  bool isSegmentation = isLeaf(indexParentNode);
+  
   switch (role)
   {
     case Qt::DisplayRole:
-      return item->getName();
+      if (isSegmentation)
+	return "Segmentation";
+      else 
+	return indexNode(index)->getName();
     case Qt::DecorationRole:
-      return QColor(255,0,0);//TODO; Change for QPixmap 
+      if (isSegmentation)
+	return QColor(0,255,0); //TODO; Change for QPixmap 
+      else
+	return QColor(255,0,0); //TODO; Change for QPixmap 
     default:
       return QVariant();
   }
@@ -59,24 +68,23 @@ int SegmentationModel::rowCount(const QModelIndex& parent) const
   if (!m_tax || !m_om)
     return 0;
   
-  TaxonomyNode *parentItem;
+  TaxonomyNode *parentNode;
   if (!parent.isValid())
-    parentItem = m_tax;
+    parentNode = m_tax;
   else
-    parentItem = static_cast<TaxonomyNode *>(parent.internalPointer());
-  assert(parentItem);
+    parentNode = indexNode(parent);
+  
+  if (!parentNode)
+    return 0;
   
   // Taxonomy leaf nodes can hold segmentations
-  int childs = parentItem->getSubElements().size();
-  bool isLeaf = childs == 0;
-  
-  if (!isLeaf)
-    return parentItem->getSubElements().size();
-  else
+  if (isLeaf(parentNode))
   {
     // Look for segmentations belonging to this  taxonomical class
-    return m_om->segmentations(parentItem->getName()).size();
+    return m_om->segmentations(parentNode->getName()).size();
   }
+  else
+    return parentNode->getSubElements().size();
 }
 
 QModelIndex SegmentationModel::parent(const QModelIndex& child) const
@@ -84,45 +92,42 @@ QModelIndex SegmentationModel::parent(const QModelIndex& child) const
   if (!child.isValid())
     return QModelIndex();
   
-  TaxonomyNode *item = static_cast<TaxonomyNode *>(child.internalPointer());
-  assert (item);
+  TaxonomyNode *childParentNode = static_cast<TaxonomyNode *>(child.internalPointer());
+  assert (childParentNode);
   
-  TaxonomyNode *parentItem = m_tax->getParent(item->getName());
-  assert(parentItem);
-  
-  // We avoid seting the Taxonomy descriptor as parent of an index
-  if (parentItem->getName() == "FEM")
+  // We avoid setting the Taxonomy descriptor as parent of an index
+  if (childParentNode->getName() == "FEM")
     return QModelIndex();
   
-  TaxonomyNode *grandParent = m_tax->getParent(parentItem->getName());
-  int r = grandParent->getSubElements().indexOf(parentItem);
-  // Returns the row and column of parentItem in its own parent
-  return createIndex(r,0,parentItem);
+  TaxonomyNode *grandParentNode = m_tax->getParent(childParentNode->getName());
+  assert(grandParentNode);
+  int row = grandParentNode->getSubElements().indexOf(childParentNode);
+  // Returns the row and column of parentNode in the parentNode's parent
+  return createIndex(row,0,grandParentNode);
 }
 
+
+//! Returned index is compossed by the row, column and parent element).
+//! Thus, we don't need to store leaf nodes (which in our case can be
+//! either a taxonomy or a segmentation)
 QModelIndex SegmentationModel::index(int row, int column, const QModelIndex& parent) const
 {
   if (!hasIndex(row,column,parent))
     return QModelIndex();
   
-  TaxonomyNode *parentItem;
+  TaxonomyNode *parentNode;
   if (!parent.isValid())
   {// It corresponds to a taxonomy
-    parentItem = m_tax;
+    parentNode = m_tax;
   }
   else
   {
-    parentItem = static_cast<TaxonomyNode *>(parent.internalPointer());
+    parentNode = indexNode(parent);
   }
-  assert(parentItem);
+  assert(parentNode);
   
-  bool isLeaf = parentItem->getSubElements().size() == 0;
-  if (isLeaf)
-    // Create segmentation index
-    return createIndex(row,column,m_om->segmentations(parentItem->getName())[row]);
-  else
-    // Create taxonomy index
-    return createIndex(row,column,parentItem->getSubElements()[row]);
+  // Both taxonomy and segmentation parents are Taxonomy nodes
+  return createIndex(row,column,parentNode);
 }
 
 QVariant SegmentationModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -136,6 +141,22 @@ Qt::ItemFlags SegmentationModel::flags(const QModelIndex& index) const
 {
     return QAbstractItemModel::flags(index);
 }
+
+TaxonomyNode* SegmentationModel::indexNode(const QModelIndex& index) const
+{
+  TaxonomyNode *parentNode  = static_cast<TaxonomyNode *>(index.internalPointer());
+  if (isLeaf(parentNode))
+    return NULL; // This is a segmentation 
+  else
+    return parentNode->getSubElements()[index.row()];
+}
+
+
+bool SegmentationModel::isLeaf(TaxonomyNode* node) const
+{
+  return node->getSubElements().size() == 0;
+}
+
 
 SegmentationModel::SegmentationModel()
 : m_tax(NULL)

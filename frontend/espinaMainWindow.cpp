@@ -257,5 +257,14 @@ void EspinaMainWindow::buildTaxonomy()
   m_taxonomies->addElement("Vesicles","FEM");
   m_taxonomies->addElement("Symetric","Synapse");
   m_taxonomies->addElement("Asymetric","Synapse");
+  /*
+  m_taxonomies->addElement("A","Vesicles");
+  m_taxonomies->addElement("B","Vesicles");
+  m_taxonomies->addElement("B1","B");
+  m_taxonomies->addElement("A1","A");
+  m_taxonomies->addElement("A2","A");
+  m_taxonomies->addElement("B2","B");
+  m_taxonomies->addElement("B3","B");
+  */
   m_taxonomies->print();
 }

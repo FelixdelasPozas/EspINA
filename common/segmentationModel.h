@@ -47,6 +47,10 @@ public:
     void setTaxonomy(TaxonomyNode *taxonomy) {m_tax = taxonomy;}
     void setObjectManager(ObjectManager *manager) {m_om = manager;}
 private:
+  TaxonomyNode *indexNode(const QModelIndex &index) const;
+  bool isLeaf(TaxonomyNode *node) const;
+  
+private:
   TaxonomyNode *m_tax;
   ObjectManager *m_om;
 };
