@@ -6,17 +6,16 @@
 // Qt dependencies
 #include <QString>
 #include <QXmlStreamWriter>
+#include <QColor>
 
 class TaxonomyNode
 {
  
 public:
-
   TaxonomyNode( QString name );
   ~TaxonomyNode();
   
   void print(int level=0);   
-
   //void addElement( QString subElement ); // With checking. TO DELTE. No tiene sentido estando el otro addElement
   
   // It introduces the subElement string as a subnode of supElement string. If subElement
@@ -25,18 +24,26 @@ public:
   // the elements through the TaxonoyNode object at the top of the tree.
   TaxonomyNode* addElement( QString subElement, QString supElement );
  
+  // Methods to explore the taxonomy
   TaxonomyNode* getParent( QString name );
-  TaxonomyNode* getComponent( QString name ); 
-  QString getName() {return m_name;}
   QVector<TaxonomyNode*> getSubElements();
+  TaxonomyNode* getComponent( QString name ); 
+  
+  // Taxonomy information methods
+  QString getName() {return m_name;}
+  QString getDescription() 
+    {return m_description;}
+  void setDescription(const QString &desc) {m_description = desc;}
+  QColor getColor() {return m_color;}
+  void setColor(const QColor &color) {m_color = color;} 
   
 private:
- void insertElement( QString subElement ); // Without checking 
+ TaxonomyNode *insertElement( QString subElement ); // Without checking 
  
 private:
  QVector<TaxonomyNode *> m_elements;
- QString m_name;
-  
+ QString m_name, m_description;
+ QColor m_color;
 };
 
 class IOTaxonomy

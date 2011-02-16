@@ -18,13 +18,15 @@
   assert(x)
 */
 
-void TaxonomyNode::insertElement(QString subElement)
+//------------------------------------------------------------------------
+TaxonomyNode::TaxonomyNode(QString name) 
+: m_name(name)//, m_elements(NULL)
+, m_description(name)
+, m_color(0,255,0)
 {
-  //if( !m_elements )
-  //  m_elements = new std::vector<TaxonomyNode*>();
-  m_elements.push_back( new TaxonomyNode(subElement) );
 }
 
+//------------------------------------------------------------------------
 TaxonomyNode::~TaxonomyNode()
 {
   TaxonomyNode *node;
@@ -39,6 +41,7 @@ TaxonomyNode::~TaxonomyNode()
 //     delete( m_elements );
 }
 
+//------------------------------------------------------------------------
 void TaxonomyNode::print(int level)
 {
   std::cout << 
@@ -58,10 +61,6 @@ void TaxonomyNode::print(int level)
 //   }
 }
 
-TaxonomyNode::TaxonomyNode(QString name):
-  m_name(name)//, m_elements(NULL)
-{
-}
 
 /*
 void TaxonomyNode::addElement(QString subElement)
@@ -71,21 +70,27 @@ void TaxonomyNode::addElement(QString subElement)
 }
 */
 
+//------------------------------------------------------------------------
 TaxonomyNode* TaxonomyNode::addElement(QString subElement, QString supElement)
 {
-
   //ASSERT( this->getComponent(subElement)==NULL);
   if( this->getComponent(subElement) )
     throw "RepeatedElementException"; //TODO change exception
   TaxonomyNode* supNode = this->getComponent(supElement);
+  TaxonomyNode *newElement = NULL;
   if( supNode )
-    supNode->insertElement( subElement );
+  {
+    newElement = supNode->insertElement( subElement );
+    newElement->setColor(supNode->getColor());
+  }
   else{
     std::cerr << "Error: " << supElement.toStdString() << " does not exist in the taxonomy" << std::endl;
     //exit(1);
   }
+  return newElement;
 }
 
+//------------------------------------------------------------------------
 TaxonomyNode* TaxonomyNode::getParent(QString name)
 {
   TaxonomyNode *parent = NULL;
@@ -105,6 +110,7 @@ TaxonomyNode* TaxonomyNode::getParent(QString name)
 
 
 
+//------------------------------------------------------------------------
 TaxonomyNode* TaxonomyNode::getComponent(QString name)
 {
   TaxonomyNode* taxNode = NULL;
@@ -133,11 +139,23 @@ TaxonomyNode* TaxonomyNode::getComponent(QString name)
   return taxNode;
 }
 
-// Returns a vector with the subelements of a node
-QVector< TaxonomyNode* > TaxonomyNode::getSubElements()
+//------------------------------------------------------------------------
+//! Returns a vector with the subelements of a node
+QVector<TaxonomyNode *> TaxonomyNode::getSubElements()
 {
   return m_elements;
 }
+
+//------------------------------------------------------------------------
+TaxonomyNode* TaxonomyNode::insertElement(QString subElement)
+{
+  //if( !m_elements )
+  //  m_elements = new std::vector<TaxonomyNode*>();
+  TaxonomyNode *newElement = new TaxonomyNode(subElement);
+  m_elements.push_back(newElement);
+  return newElement;
+}
+
 
 
 /****************
