@@ -29,6 +29,7 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
   sliceWidget.h
   slicer.h
   volumeWidget.h
+  volumeView.h
   )
 
 # Create Interface files

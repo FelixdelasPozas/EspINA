@@ -37,6 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "sliceWidget.h"
 #include "slicer.h"
 #include "volumeWidget.h"
+#include "volumeView.h"
 #include "stack.h"
 #include "distance.h"
 #include "unitExplorer.h"
@@ -162,7 +163,9 @@ EspinaMainWindow::EspinaMainWindow()
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_xz,SLOT(connectToServer()));
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_xz,SLOT(disconnectFromServer()));
   
-  m_3d = new VolumeWidget();
+  m_3d = new VolumeView();
+  m_3d->setModel(m_segModel);
+  m_3d->setSelectionModel(this->Internals->objectTreeView->selectionModel());
   this->Internals->volumeDock->setWidget(m_3d);
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_3d,SLOT(connectToServer()));
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_3d,SLOT(disconnectFromServer()));
@@ -214,7 +217,7 @@ void EspinaMainWindow::loadData(pqPipelineSource *source)
   {
     m_planes[plane]->setBackground(stack);
     //m_planes[plane]->addSegmentation(seg);
-    m_3d->setPlane(m_planes[plane],plane);
+    //m_3d->setPlane(m_planes[plane],plane);
     connect(m_planes[plane],SIGNAL(updated()),m_3d,SLOT(updateScene()));
     connect(m_productManager,SIGNAL(sliceRender(IRenderable*)),
 	    m_planes[plane],SLOT(addSegmentation(IRenderable *)));

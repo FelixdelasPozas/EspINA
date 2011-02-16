@@ -43,6 +43,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QString>
 #include <QMap>
 
+class VolumeView;
 class SegmentationModel;
 //Forward declaration
 class ObjectManager;
@@ -84,7 +85,7 @@ private:
   QMap<QString,Stack *> m_stacks;
   SliceBlender *m_planes[SLICE_PLANE_LAST+1];
   SliceWidget *m_xy, *m_yz, *m_xz;
-  VolumeWidget *m_3d;
+  VolumeView *m_3d;
   DistUnit m_unit;
   UnitExplorer *m_unitExplorer;
   SelectionManager *m_selectionManager;
