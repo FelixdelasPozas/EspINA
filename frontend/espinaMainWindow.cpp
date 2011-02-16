@@ -253,10 +253,13 @@ void EspinaMainWindow::buildFileMenu(QMenu &menu)
 void EspinaMainWindow::buildTaxonomy()
 {
   m_taxonomies = new TaxonomyNode("FEM");
-  m_taxonomies->addElement("Synapse","FEM");
+  TaxonomyNode *newNode;
+  newNode = m_taxonomies->addElement("Synapse","FEM");
+  newNode->setColor(QColor(255,0,0));
   m_taxonomies->addElement("Vesicles","FEM");
   m_taxonomies->addElement("Symetric","Synapse");
-  m_taxonomies->addElement("Asymetric","Synapse");
+  newNode = m_taxonomies->addElement("Asymetric","Synapse");
+  newNode->setColor(QColor(Qt::yellow));
   /*
   m_taxonomies->addElement("A","Vesicles");
   m_taxonomies->addElement("B","Vesicles");
@@ -266,5 +269,7 @@ void EspinaMainWindow::buildTaxonomy()
   m_taxonomies->addElement("B2","B");
   m_taxonomies->addElement("B3","B");
   */
+  //IOTaxonomy::writeXMLTaxonomy(*m_taxonomies,"TaxonomyFIB.xml");
   m_taxonomies->print();
+  
 }

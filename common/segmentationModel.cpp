@@ -49,9 +49,9 @@ QVariant SegmentationModel::data(const QModelIndex& index, int role) const
 	return indexNode(index)->getName();
     case Qt::DecorationRole:
       if (isSegmentation)
-	return QColor(0,255,0); //TODO; Change for QPixmap 
+	return indexParentNode->getColor();
       else
-	return QColor(255,0,0); //TODO; Change for QPixmap 
+	return indexNode(index)->getColor();
     default:
       return QVariant();
   }
