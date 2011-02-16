@@ -43,6 +43,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "selectionManager.h"
 #include "traceNodes.h"
 #include "cache/cache.h"
+#include "segmentationModel.h"
+#include "data/taxonomy.h"
 
 //ParaQ includes
 #include "pqHelpReaction.h"
@@ -105,6 +107,14 @@ EspinaMainWindow::EspinaMainWindow()
   //Create File Menu
   buildFileMenu(*this->Internals->menu_File);
   
+  buildTaxonomy();
+  m_productManager = ObjectManager::instance();
+  
+  m_segModel = new SegmentationModel;
+  m_segModel->setTaxonomy(m_taxonomies);
+  m_segModel->setObjectManager(m_productManager);
+  this->Internals->objectTreeView->setModel(m_segModel);;
+  
   //// Populate application menus with actions.
   pqParaViewMenuBuilders::buildFileMenu(*this->Internals->menu_File);
 
@@ -157,7 +167,6 @@ EspinaMainWindow::EspinaMainWindow()
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_3d,SLOT(connectToServer()));
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_3d,SLOT(disconnectFromServer()));
   
-  m_productManager = ObjectManager::instance();
   connect(m_productManager,SIGNAL(render(IRenderable*)),
 	  m_3d,SLOT(refresh(IRenderable*)));
   // Final step, define application behaviors. Since we want all ParaView
@@ -238,4 +247,29 @@ void EspinaMainWindow::buildFileMenu(QMenu &menu)
 	QObject::connect(loadReaction, SIGNAL(loadedData(pqPipelineSource *)),
 		this, SLOT( loadData(pqPipelineSource *)));
 	menu.addAction(openAction);
+}
+
+
+void EspinaMainWindow::buildTaxonomy()
+{
+  m_taxonomies = new TaxonomyNode("FEM");
+  TaxonomyNode *newNode;
+  newNode = m_taxonomies->addElement("Synapse","FEM");
+  newNode->setColor(QColor(255,0,0));
+  m_taxonomies->addElement("Vesicles","FEM");
+  m_taxonomies->addElement("Symetric","Synapse");
+  newNode = m_taxonomies->addElement("Asymetric","Synapse");
+  newNode->setColor(QColor(Qt::yellow));
+  /*
+  m_taxonomies->addElement("A","Vesicles");
+  m_taxonomies->addElement("B","Vesicles");
+  m_taxonomies->addElement("B1","B");
+  m_taxonomies->addElement("A1","A");
+  m_taxonomies->addElement("A2","A");
+  m_taxonomies->addElement("B2","B");
+  m_taxonomies->addElement("B3","B");
+  */
+  //IOTaxonomy::writeXMLTaxonomy(*m_taxonomies,"TaxonomyFIB.xml");
+  m_taxonomies->print();
+  
 }

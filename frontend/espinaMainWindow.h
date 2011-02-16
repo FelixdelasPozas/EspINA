@@ -43,6 +43,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QString>
 #include <QMap>
 
+class SegmentationModel;
 //Forward declaration
 class ObjectManager;
 class QMenu;
@@ -53,6 +54,7 @@ class Segmentation;
 class Stack;
 class UnitExplorer;
 class SelectionManager;
+class TaxonomyNode;
 
 /// MainWindow for the default ParaView application.
 class EspinaMainWindow : public QMainWindow
@@ -74,6 +76,7 @@ private:
   void operator=(const EspinaMainWindow&); // Not implemented.
 
   void buildFileMenu(QMenu &menu);
+    void buildTaxonomy();
 
   class pqInternals;
   pqInternals* Internals;
@@ -85,6 +88,8 @@ private:
   DistUnit m_unit;
   UnitExplorer *m_unitExplorer;
   SelectionManager *m_selectionManager;
+  TaxonomyNode *m_taxonomies;
+  SegmentationModel *m_segModel;
 };
 
 #endif //ESPINA_MAIN_WINDOW_H
