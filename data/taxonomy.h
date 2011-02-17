@@ -1,6 +1,8 @@
 #ifndef _TAXONOMY_
 #define _TAXONOMY_
 
+#include "modelItem.h"
+
 #include <vector>
 
 // Qt dependencies
@@ -8,7 +10,7 @@
 #include <QXmlStreamWriter>
 #include <QColor>
 
-class TaxonomyNode
+class TaxonomyNode : public IModelItem
 {
  
 public:
@@ -34,8 +36,11 @@ public:
   QString getDescription() const 
     {return m_description;}
   void setDescription(const QString &desc) {m_description = desc;}
-  QColor getColor() {return m_color;}
+  QColor getColor() const {return m_color;}
   void setColor(const QColor &color) {m_color = color;} 
+  
+  //! Implements IModelItem
+  virtual QVariant data(int role = Qt::UserRole + 1) const;
   
 private:
  TaxonomyNode *insertElement( QString subElement ); // Without checking 

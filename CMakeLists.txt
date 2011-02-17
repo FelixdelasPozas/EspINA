@@ -13,7 +13,7 @@ ENABLE_TESTING()
 
 add_subdirectory (filters)
 add_subdirectory (data)
-add_subdirectory (gui)
+#add_subdirectory (gui)
 
 get_target_property (CAJAL_DATA_LIBRARY CajalData LOCATION)
 get_target_property (CAJAL_FILTERS_LIBRARY CajalFilters LOCATION)
