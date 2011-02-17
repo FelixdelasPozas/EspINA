@@ -47,25 +47,22 @@ QVariant EspINA::data(const QModelIndex& index, int role) const
   if (!index.isValid())
     return QVariant();
   
-  TaxonomyNode *indexParentNode = static_cast<TaxonomyNode *>(index.internalPointer());
+  IModelItem *indexItem = static_cast<IModelItem *>(index.internalPointer());
   
-  bool isSegmentation = isLeaf(indexParentNode);
+  return indexItem->data(role);
   
+  
+  //bool isSegmentation = isLeaf(indexNode);
+/*  
   switch (role)
   {
     case Qt::DisplayRole:
-      if (isSegmentation)
-	return "Segmentation";
-      else
-	return indexNode(index)->getName();
+	return indexNode->getName();
     case Qt::DecorationRole:
-      if (isSegmentation)
-	return indexParentNode->getColor();
-      else
-	return indexNode(index)->getColor();
+	return indexNode->getColor();
     default:
       return QVariant();
-  }
+  }*/
 }
 
 int EspINA::columnCount(const QModelIndex& parent) const
@@ -80,8 +77,11 @@ int EspINA::rowCount(const QModelIndex& parent) const
   if (!parent.isValid())
     parentNode = m_tax;
   else
-    parentNode = indexNode(parent);
-  
+  {
+    //parentNode = indexNode(parent);
+    IModelItem *parentItem = static_cast<IModelItem *>(parent.internalPointer());
+    parentNode = dynamic_cast<TaxonomyNode *>(parentItem);
+  }
   if (!parentNode)
     return 0;
   
@@ -100,10 +100,30 @@ QModelIndex EspINA::parent(const QModelIndex& child) const
   if (!child.isValid())
     return QModelIndex();
   
-  TaxonomyNode *childParentNode = static_cast<TaxonomyNode *>(child.internalPointer());
-  assert (childParentNode);
+  IModelItem *childItem = static_cast<IModelItem *>(child.internalPointer());
+  assert (childItem);
   
-  return index(childParentNode);
+  TaxonomyNode *childNode = dynamic_cast<TaxonomyNode *>(childItem);
+  if (childNode)
+  {
+    if (childNode->getName() == m_tax->getName())
+      return QModelIndex();
+  
+    TaxonomyNode *parentNode = m_tax->getParent(childNode->getName());
+    assert(parentNode);
+    int row = parentNode->getSubElements().indexOf(childNode);
+  // Returns the row and column of parentNode in the parentNode's parent
+    return createIndex(row,0,parentNode);
+  }
+  Product *childProduct = dynamic_cast<Product *>(childItem);
+  if (childProduct)
+  {
+    int row = segmentations(childProduct->taxonomy()).indexOf(childProduct);
+    return createIndex(row,0,childProduct->taxonomy());
+  }
+  
+  return QModelIndex();
+  
   
   /*
   // We avoid setting the Taxonomy descriptor as parent of an index
@@ -120,9 +140,10 @@ QModelIndex EspINA::parent(const QModelIndex& child) const
 
 
 //------------------------------------------------------------------------
-//! Returned index is compossed by the row, column and parent element).
-//! Thus, we don't need to store leaf nodes (which in our case can be
-//! either a taxonomy or a segmentation)
+////! Returned index is compossed by the row, column and parent element).
+////! Thus, we don't need to store leaf nodes (which in our case can be
+////! either a taxonomy or a segmentation)
+//! Returned index is compossed by the row, column and an element).
 QModelIndex EspINA::index(int row, int column, const QModelIndex& parent) const
 {
   if (!hasIndex(row,column,parent))
@@ -135,12 +156,24 @@ QModelIndex EspINA::index(int row, int column, const QModelIndex& parent) const
   }
   else
   {
-    parentNode = indexNode(parent);
+    //parentNode = indexNode(parent);
+    // Segmentation can't be parent index
+    parentNode = static_cast<TaxonomyNode *>(parent.internalPointer());
   }
   assert(parentNode);
   
-  // Both taxonomy and segmentation parents are Taxonomy nodes
-  return createIndex(row,column,parentNode);
+  //!COMMENT// Both taxonomy and segmentation parents are Taxonomy nodes
+  //return createIndex(row,column,parentNode);
+  IModelItem *element;
+  if (isLeaf(parentNode))
+  {
+    element = segmentations(parentNode)[row];
+  }
+  else
+  {
+    element = parentNode->getSubElements()[row];
+  }
+  return createIndex(row,column,element);
 }
 
 //------------------------------------------------------------------------
@@ -163,8 +196,8 @@ TaxonomyNode* EspINA::indexNode(const QModelIndex& index) const
   TaxonomyNode *parentNode  = static_cast<TaxonomyNode *>(index.internalPointer());
   if (isLeaf(parentNode))
     return NULL; // This is a segmentation
-    else
-      return parentNode->getSubElements()[index.row()];
+  else 
+    return parentNode->getSubElements()[index.row()];
 }
 
 
@@ -222,11 +255,12 @@ void EspINA::addSample(Product* sample)
 //------------------------------------------------------------------------
 void EspINA::addSegmentation(Product* seg)
 {
-  TaxonomyNode *node = m_tax->getParent(m_newSegType);
+  TaxonomyNode *node = m_tax->getComponent(m_newSegType);
   QModelIndex nodeIndex = index(node);
   int lastRow = rowCount(nodeIndex);
   
   beginInsertRows(nodeIndex,lastRow,lastRow);
+  seg->setTaxonomy(node);
   m_segmentations[m_newSegType].push_back(seg);
   endInsertRows();
   
@@ -237,10 +271,14 @@ void EspINA::addSegmentation(Product* seg)
 //------------------------------------------------------------------------
 void EspINA::setUserDefindedTaxonomy(const QModelIndex& index)
 {
+  IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+  m_newSegType = item->data(Qt::DisplayRole).toString();
+  /*
   TaxonomyNode *node = indexNode(index);
   if (!node)
     node = static_cast<TaxonomyNode *>(index.internalPointer());
-  m_newSegType = node->getName();  
+  m_newSegType = node->getName();
+  */
 }
 
 

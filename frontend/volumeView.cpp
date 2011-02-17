@@ -18,6 +18,9 @@
 
 
 #include "volumeView.h"
+
+#include "interfaces.h"
+#include "renderer.h"
 // GUI
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -41,6 +44,7 @@
 
 #include <QDebug>
 #include <data/taxonomy.h>
+#include <traceNodes.h>
 
 VolumeView::VolumeView(QWidget* parent): QAbstractItemView(parent)
 {
@@ -101,51 +105,167 @@ void VolumeView::disconnectFromServer()
   }
 }
 
+//-----------------------------------------------------------------------------
+void VolumeView::showActors(bool value)
+{
+  if (m_showActors == value)
+    return;
+  
+  m_showActors = value;
+  switch (m_renderer->type())
+  {
+    case MESH_RENDERER:
+      m_toggleActors->setIcon(m_showActors?QIcon(":/espina/showPlanes"):QIcon(":/espina/hidePlanes"));
+      break;
+    case VOLUME_RENDERER:
+      m_toggleActors->setIcon(m_showActors?QIcon(":/espina/show3D"):QIcon(":/espina/hide3D"));
+      break;
+    default:
+      assert(false);
+  }
+  
+  updateScene();
+}
+
+
+//-----------------------------------------------------------------------------
 QRegion VolumeView::visualRegionForSelection(const QItemSelection& selection) const
 {
   return QRect();
 }
 
+//-----------------------------------------------------------------------------
 void VolumeView::setSelection(const QRect& rect, QItemSelectionModel::SelectionFlags command)
 {
   qDebug() << "Selection";
 }
 
+//-----------------------------------------------------------------------------
 bool VolumeView::isIndexHidden(const QModelIndex& index) const
 {
-  return true;
+  if (!index.isValid())
+    return true;
+  
+  IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+  Product *actor = dynamic_cast<Product *>(item);
+  return !actor;
 }
 
+//-----------------------------------------------------------------------------
 int VolumeView::verticalOffset() const
 {
   return 0;
 }
 
+//-----------------------------------------------------------------------------
 int VolumeView::horizontalOffset() const
 {
   return 0;
 
 }
 
+//-----------------------------------------------------------------------------
 QModelIndex VolumeView::moveCursor(QAbstractItemView::CursorAction cursorAction, Qt::KeyboardModifiers modifiers)
 {
   return QModelIndex();
 }
 
+//-----------------------------------------------------------------------------
 QModelIndex VolumeView::indexAt(const QPoint& point) const
 {
   return QModelIndex();
 }
 
+//-----------------------------------------------------------------------------
 void VolumeView::scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint)
 {
   
   TaxonomyNode *indexParentNode = static_cast<TaxonomyNode *>(index.internalPointer());
-  qDebug() << indexParentNode->getName();
+  //qDebug() << indexParentNode->getName();
 }
 
+//-----------------------------------------------------------------------------
 QRect VolumeView::visualRect(const QModelIndex& index) const
 {
   return QRect();
+}
+
+
+//-----------------------------------------------------------------------------
+void VolumeView::setMeshRenderer()
+{
+  m_renderer = MeshRenderer::renderer();
+  // Which one is easier to read/understand? This one or the VolumeRenderer one?
+  m_toggleActors->setIcon(
+    m_showActors?
+      QIcon(":/espina/showPlanes")
+    :
+      QIcon(":/espina/hidePlanes")
+	);
+  
+  updateScene();
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::setVolumeRenderer()
+{
+  m_renderer = VolumeRenderer::renderer();
+  m_toggleActors->setIcon(m_showActors?QIcon(":/espina/show3D"):QIcon(":/espina/hide3D"));
+  
+  updateScene();
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::updateScene()
+{
+  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+  pqRepresentation *rep;
+  foreach(rep,m_view->getRepresentations())
+  {
+    rep->setVisible(false);
+  }
+  
+  //TODO: Center on selection bounding box or active stack if no selection
+  //if (m_showPlanes)
+  //  dp->setRepresentationVisibility(m_planes[SLICE_AXIS_X]->getBgOutput(),m_view,true);
+  
+  // Render renderable products
+  render(rootIndex());
+  /*
+  foreach(actor,m_actors)
+  {
+    if (m_showActors)
+      m_renderer->render(actor,m_view);
+  }
+  */
+    /* XXX: Is really necessary? They should be already hidden by 
+     * initial foreach loop
+    else
+      m_renderer->hide(actor,m_view);
+  }
+    */
+  /*
+  // Render planes
+  for (SlicePlane plane = SLICE_PLANE_FIRST
+    ; plane <= SLICE_PLANE_LAST
+    ; plane = SlicePlane(plane+1))
+    dp->setRepresentationVisibility(m_planes[plane]->getOutput(),m_view,m_showPlanes);
+  */
+  m_view->render();
+}
+
+
+void VolumeView::render(const QModelIndex& index)
+{
+  qDebug() << "Render " << index;
+  if (!isIndexHidden(index))
+  {
+    qDebug() << "   Visible";
+    IRenderable *actor = static_cast<Product *>(index.internalPointer());
+    assert(actor);
+    m_renderer->render(actor,m_view);
+  }
+  for (int row = 0; row < model()->rowCount(index); row++)
+    render(model()->index(row,0,index));
 }
 

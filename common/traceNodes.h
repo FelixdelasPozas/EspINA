@@ -23,8 +23,10 @@
 #include "tracing.h"
 #include "interfaces.h"
 #include "translatorTable.h"
+#include "data/modelItem.h"
 
 #include <QString>
+#include <data/taxonomy.h>
 
 // Forward declarations
 class pqPipelineSource;
@@ -43,6 +45,7 @@ class Product
 , public ITraceNode
 , public ISingleton
 , public IRenderable
+, public IModelItem
 {
 public:
   Product(){}
@@ -64,9 +67,15 @@ public:
   virtual pqPipelineSource* data();	
   virtual int portNumber();
   virtual void color(double* rgba);
+  
+  virtual QVariant data(int role = Qt::UserRole + 1) const;
+  virtual TaxonomyNode *taxonomy() {return m_taxonomy;}
+  virtual void setTaxonomy(TaxonomyNode *taxonomy){m_taxonomy = taxonomy;} 
+  
 private:
   static int c;
   double m_rgba[4];
+  TaxonomyNode *m_taxonomy;
 };
 
 

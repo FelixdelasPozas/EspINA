@@ -42,6 +42,9 @@ public:
 public slots:
   void connectToServer();
   void disconnectFromServer();
+  
+  //! Show/Hide scene actors
+  void showActors(bool value);
     
 protected:
     virtual QRegion visualRegionForSelection(const QItemSelection& selection) const;
@@ -55,7 +58,22 @@ public:
     virtual QModelIndex indexAt(const QPoint& point) const;
     virtual void scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint = EnsureVisible);
     virtual QRect visualRect(const QModelIndex& index) const;
+    
+protected slots:
+  //! Select Mesh Rendering
+  void setMeshRenderer(); 
+  //! Select Volume Rendering
+  void setVolumeRenderer(); 
+
+  void updateScene();
+  void render(const QModelIndex &index);
+  
 private:
+  bool m_init;
+  bool m_showPlanes;
+  bool m_showActors;
+  IRenderer *m_renderer;
+  
   // GUI
   pqRenderView *m_view;
   QWidget *m_viewWidget;

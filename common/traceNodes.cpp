@@ -118,6 +118,18 @@ void Product::color(double *rgba)
     rgba[i] = m_rgba[i];
 }
 
+QVariant Product::data(int role) const
+{
+  switch (role)
+  {
+    case Qt::DisplayRole:
+	return "Segmentation";
+    case Qt::DecorationRole:
+	return m_taxonomy->getColor();
+    default:
+      return QVariant();
+  }
+}
 
 
 //-----------------------------------------------------------------------------
