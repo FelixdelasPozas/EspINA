@@ -20,28 +20,78 @@
 #ifndef ESPINA_H
 #define ESPINA_H
 
+#include <QModelIndex>
+
+#include <QObject>
 #include <QMap>
-#include <QVector>
+#include <QList>
 #include <QString>
 
+class IRenderable;
 class ProcessingTrace;
 class TaxonomyNode;
+class Product;
+
 //! Espina Interactive Neuron Analyzer
-class EspINA
+class EspINA : public QAbstractItemModel
 {
+    Q_OBJECT
 public:
-  typedef enum {ELECTRONE, OPTICAL} Microscopy;
+    // Defines Factory Type
+    typedef enum {ELECTRONE, OPTICAL} Microscopy;
 public:
-    EspINA(Microscopy type);
+    static EspINA *instance();
     virtual ~EspINA();
-    
+
+    //! Implement QAbstractItemModel Interface
+    virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
+    virtual int columnCount(const QModelIndex& parent = QModelIndex()) const;
+    virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
+    virtual QModelIndex parent(const QModelIndex& child) const;
+    virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
+    virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
+    virtual Qt::ItemFlags flags(const QModelIndex& index) const;
+
     // Sample managing
-    void loadSample();
+    Product *activeSample() {return m_samples.first();}
+
+    // Segmentation managing
+    QList<Product *> segmentations(const TaxonomyNode* taxonomy) const;
     
+    // Taxonomy managin
+    TaxonomyNode *taxonomy() {return m_tax;}
+
+public slots:
+    //! Add a new sample (used by the UI)
+    void addSample(Product *sample);
+
+    //! Add a new segmentation (used by the plugins)
+    void addSegmentation(Product *seg);
+    
+    //! Set which is the taxonomy defined by the user
+    void setUserDefindedTaxonomy(const QModelIndex &index);
+
+signals:
+    void render(IRenderable *product);
+    void sliceRender(IRenderable *product);
+
+protected:
+    explicit EspINA(QObject* parent = 0);
+
 private:
-  TaxonomyNode *m_tax;
-  QMap<QString, QVector<QString> > m_segmentations;
-  ProcessingTrace *m_analysis;
+    void loadTaxonomy();//TODO: Replace with factory
+    TaxonomyNode *indexNode(const QModelIndex &index) const;
+    bool isLeaf(TaxonomyNode *node) const;
+    QModelIndex index(TaxonomyNode *node) const;
+
+private:
+    TaxonomyNode *m_tax;
+    QString m_newSegType; // The type for new segmentations
+    QMap<QString, QList<Product *> > m_segmentations;
+    QList<Product *> m_samples;
+    ProcessingTrace *m_analysis;
+
+    static EspINA *m_singleton;
 };
 
 #endif // ESPINA_H

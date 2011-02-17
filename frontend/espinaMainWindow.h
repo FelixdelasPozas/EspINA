@@ -43,19 +43,15 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QString>
 #include <QMap>
 
+class EspINA;
 class VolumeView;
-class SegmentationModel;
 //Forward declaration
-class ObjectManager;
 class QMenu;
 class pqPipelineSource;
 class SliceWidget;
 class VolumeWidget;
-class Segmentation;
-class Stack;
 class UnitExplorer;
 class SelectionManager;
-class TaxonomyNode;
 
 /// MainWindow for the default ParaView application.
 class EspinaMainWindow : public QMainWindow
@@ -81,16 +77,13 @@ private:
 
   class pqInternals;
   pqInternals* Internals;
-  ObjectManager *m_productManager;
-  QMap<QString,Stack *> m_stacks;
+  EspINA *m_espina;
   SliceBlender *m_planes[SLICE_PLANE_LAST+1];
   SliceWidget *m_xy, *m_yz, *m_xz;
   VolumeView *m_3d;
   DistUnit m_unit;
   UnitExplorer *m_unitExplorer;
   SelectionManager *m_selectionManager;
-  TaxonomyNode *m_taxonomies;
-  SegmentationModel *m_segModel;
 };
 
 #endif //ESPINA_MAIN_WINDOW_H

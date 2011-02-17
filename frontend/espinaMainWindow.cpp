@@ -32,20 +32,17 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // ESPINA includes
 #include "espinaMainWindow.h"
 #include "ui_espinaMainWindow.h"
-#include "objectManager.h"
-#include "segmentation.h"
 #include "sliceWidget.h"
 #include "slicer.h"
 #include "volumeWidget.h"
 #include "volumeView.h"
-#include "stack.h"
 #include "distance.h"
 #include "unitExplorer.h"
 #include "selectionManager.h"
 #include "traceNodes.h"
 #include "cache/cache.h"
-#include "segmentationModel.h"
 #include "data/taxonomy.h"
+#include "espina.h"
 
 //ParaQ includes
 #include "pqHelpReaction.h"
@@ -104,17 +101,21 @@ EspinaMainWindow::EspinaMainWindow()
   // Set up the dock window corners to give the vertical docks more room.
   this->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
   this->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
+  
+  m_espina = EspINA::instance();
+  this->Internals->objectTreeView->setModel(m_espina);;
+  connect(this->Internals->objectTreeView,SIGNAL(doubleClicked(const QModelIndex &)),m_espina,SLOT(setUserDefindedTaxonomy(const QModelIndex&)));
 
   //Create File Menu
   buildFileMenu(*this->Internals->menu_File);
   
-  buildTaxonomy();
-  m_productManager = ObjectManager::instance();
+  //buildTaxonomy();
+  //m_productManager = ObjectManager::instance();
   
-  m_segModel = new SegmentationModel;
-  m_segModel->setTaxonomy(m_taxonomies);
-  m_segModel->setObjectManager(m_productManager);
-  this->Internals->objectTreeView->setModel(m_segModel);;
+ // m_segModel = new SegmentationModel;
+ // m_segModel->setTaxonomy(m_taxonomies);
+ // m_segModel->setObjectManager(m_productManager);
+ // this->Internals->objectTreeView->setModel(m_segModel);;
   
   //// Populate application menus with actions.
   pqParaViewMenuBuilders::buildFileMenu(*this->Internals->menu_File);
@@ -164,13 +165,13 @@ EspinaMainWindow::EspinaMainWindow()
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_xz,SLOT(disconnectFromServer()));
   
   m_3d = new VolumeView();
-  m_3d->setModel(m_segModel);
+  m_3d->setModel(m_espina);
   m_3d->setSelectionModel(this->Internals->objectTreeView->selectionModel());
   this->Internals->volumeDock->setWidget(m_3d);
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_3d,SLOT(connectToServer()));
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_3d,SLOT(disconnectFromServer()));
   
-  connect(m_productManager,SIGNAL(render(IRenderable*)),
+  connect(m_espina,SIGNAL(render(IRenderable*)),
 	  m_3d,SLOT(refresh(IRenderable*)));
   // Final step, define application behaviors. Since we want all ParaView
   // behaviors, we use this convenience method.
@@ -196,9 +197,8 @@ void EspinaMainWindow::loadData(pqPipelineSource *source)
   stack->name = "/home/jorge/Stacks/peque.mha";
   stack->setVisible(false);
   
-  Cache *cache = Cache::instance();
-  cache->insert(stack->id(),source);
-  
+  //Cache *cache = Cache::instance();
+  //cache->insert(stack->id(),source);
   /*
   // Create a fake segmentation to make the tests
   pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
@@ -219,11 +219,12 @@ void EspinaMainWindow::loadData(pqPipelineSource *source)
     //m_planes[plane]->addSegmentation(seg);
     //m_3d->setPlane(m_planes[plane],plane);
     connect(m_planes[plane],SIGNAL(updated()),m_3d,SLOT(updateScene()));
-    connect(m_productManager,SIGNAL(sliceRender(IRenderable*)),
+    connect(m_espina,SIGNAL(sliceRender(IRenderable*)),
 	    m_planes[plane],SLOT(addSegmentation(IRenderable *)));
   }
-  m_productManager->registerProduct(stack);
+  //m_productManager->registerProduct(stack);
   //m_productManager->registerProduct(seg);
+  m_espina->addSample(stack);
 }
 
 //-----------------------------------------------------------------------------
@@ -255,14 +256,14 @@ void EspinaMainWindow::buildFileMenu(QMenu &menu)
 
 void EspinaMainWindow::buildTaxonomy()
 {
-  m_taxonomies = new TaxonomyNode("FEM");
-  TaxonomyNode *newNode;
-  newNode = m_taxonomies->addElement("Synapse","FEM");
-  newNode->setColor(QColor(255,0,0));
-  m_taxonomies->addElement("Vesicles","FEM");
-  m_taxonomies->addElement("Symetric","Synapse");
-  newNode = m_taxonomies->addElement("Asymetric","Synapse");
-  newNode->setColor(QColor(Qt::yellow));
+//   m_taxonomies = new TaxonomyNode("FEM");
+//   TaxonomyNode *newNode;
+//   newNode = m_taxonomies->addElement("Synapse","FEM");
+//   newNode->setColor(QColor(255,0,0));
+//   m_taxonomies->addElement("Vesicles","FEM");
+//   m_taxonomies->addElement("Symetric","Synapse");
+//   newNode = m_taxonomies->addElement("Asymetric","Synapse");
+//   newNode->setColor(QColor(Qt::yellow));
   /*
   m_taxonomies->addElement("A","Vesicles");
   m_taxonomies->addElement("B","Vesicles");
@@ -273,6 +274,6 @@ void EspinaMainWindow::buildTaxonomy()
   m_taxonomies->addElement("B3","B");
   */
   //IOTaxonomy::writeXMLTaxonomy(*m_taxonomies,"TaxonomyFIB.xml");
-  m_taxonomies->print();
+//   m_taxonomies->print();
   
 }

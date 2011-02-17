@@ -1,8 +1,5 @@
 #include "slicer.h"
 
-#include "stack.h"
-#include "segmentation.h"
-
 // Standard
 #include <assert.h>
 
