@@ -26,12 +26,12 @@ public:
  
   // Methods to explore the taxonomy
   TaxonomyNode* getParent( QString name );
-  QVector<TaxonomyNode*> getSubElements();
+  QVector<TaxonomyNode*> getSubElements() const;
   TaxonomyNode* getComponent( QString name ); 
   
   // Taxonomy information methods
-  QString getName() {return m_name;}
-  QString getDescription() 
+  QString getName() const {return m_name;}
+  QString getDescription() const 
     {return m_description;}
   void setDescription(const QString &desc) {m_description = desc;}
   QColor getColor() {return m_color;}
