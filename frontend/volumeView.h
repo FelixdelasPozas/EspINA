@@ -53,6 +53,8 @@ protected:
     virtual int verticalOffset() const;
     virtual int horizontalOffset() const;
     virtual QModelIndex moveCursor(QAbstractItemView::CursorAction cursorAction, Qt::KeyboardModifiers modifiers);
+    // Updating model changes
+    virtual void rowsInserted(const QModelIndex& parent, int start, int end);
 
 public:
     virtual QModelIndex indexAt(const QPoint& point) const;

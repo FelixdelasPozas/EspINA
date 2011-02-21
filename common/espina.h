@@ -56,7 +56,7 @@ public:
     Product *activeSample() {return m_samples.first();}
 
     // Segmentation managing
-    QList<Product *> segmentations(const TaxonomyNode* taxonomy) const;
+    QList<Product *> segmentations(const TaxonomyNode* taxonomy, bool recursive = false) const;
     
     // Taxonomy managin
     TaxonomyNode *taxonomy() {return m_tax;}
@@ -80,9 +80,18 @@ protected:
 
 private:
     void loadTaxonomy();//TODO: Replace with factory
-    TaxonomyNode *indexNode(const QModelIndex &index) const;
+    //TaxonomyNode *indexNode(const QModelIndex &index) const;
+    //! Returns wheter or not node is a taxonomy leaf node
     bool isLeaf(TaxonomyNode *node) const;
+    //! Return the QModelIndex for a Taxonomy node given by
+    //! the row and column of the node whithin its parent index
+    //! and a pointer to the node itself
     QModelIndex index(TaxonomyNode *node) const;
+    
+    //! Return the number of segmentations which belong to tax
+    int numOfSegmentations(TaxonomyNode *tax) const;
+    //! Return the number of subtaxonomies which belong to tax
+    int numOfSubTaxonomies(TaxonomyNode *tax) const;
 
 private:
     TaxonomyNode *m_tax;

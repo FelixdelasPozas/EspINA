@@ -46,36 +46,39 @@
 #include <data/taxonomy.h>
 #include <traceNodes.h>
 
+//-----------------------------------------------------------------------------
 VolumeView::VolumeView(QWidget* parent): QAbstractItemView(parent)
 {
-      m_controlLayout = new QHBoxLayout();
-    
-    m_toggleActors = new QToolButton(this);
-    m_toggleActors->setIcon(QIcon(":/espina/hide3D"));
-    m_toggleActors->setCheckable(true);
-    
-    m_togglePlanes = new QToolButton(this);
-    m_togglePlanes->setIcon(QIcon(":/espina/hidePlanes"));
-    m_togglePlanes->setCheckable(true);
-    connect(m_togglePlanes,SIGNAL(toggled(bool)),this,SLOT(showPlanes(bool)));
-    
-    m_controlLayout->addStretch();
-    m_controlLayout->addWidget(m_toggleActors);
-    
-    QMenu *renders = new QMenu();
-    QAction *volumeRenderer = new QAction(QIcon(":/espina/hide3D"),tr("Volume"),renders);
-    QAction *meshRenderer = new QAction(QIcon(":/espina/hidePlanes"),tr("Mesh"),renders);
-    renders->addAction(volumeRenderer);
-    renders->addAction(meshRenderer);
-    m_toggleActors->setMenu(renders);
-    connect(m_toggleActors,SIGNAL(toggled(bool)),this,SLOT(showActors(bool)));
-    connect(volumeRenderer,SIGNAL(triggered()),this,SLOT(setVolumeRenderer()));
-    connect(meshRenderer,SIGNAL(triggered()),this,SLOT(setMeshRenderer()));
-    m_controlLayout->addWidget(m_togglePlanes);
-    
-    m_mainLayout = new QVBoxLayout();
-    m_mainLayout->addLayout(m_controlLayout);
-    setLayout(m_mainLayout);
+  m_controlLayout = new QHBoxLayout();
+  
+  m_toggleActors = new QToolButton(this);
+  m_toggleActors->setIcon(QIcon(":/espina/hide3D"));
+  m_toggleActors->setCheckable(true);
+  
+  m_togglePlanes = new QToolButton(this);
+  m_togglePlanes->setIcon(QIcon(":/espina/hidePlanes"));
+  m_togglePlanes->setCheckable(true);
+  connect(m_togglePlanes,SIGNAL(toggled(bool)),this,SLOT(showPlanes(bool)));
+  
+  m_controlLayout->addStretch();
+  m_controlLayout->addWidget(m_toggleActors);
+  
+  QMenu *renders = new QMenu();
+  QAction *volumeRenderer = new QAction(QIcon(":/espina/hide3D"),tr("Volume"),renders);
+  QAction *meshRenderer = new QAction(QIcon(":/espina/hidePlanes"),tr("Mesh"),renders);
+  renders->addAction(volumeRenderer);
+  renders->addAction(meshRenderer);
+  m_toggleActors->setMenu(renders);
+  connect(m_toggleActors,SIGNAL(toggled(bool)),this,SLOT(showActors(bool)));
+  connect(volumeRenderer,SIGNAL(triggered()),this,SLOT(setVolumeRenderer()));
+  connect(meshRenderer,SIGNAL(triggered()),this,SLOT(setMeshRenderer()));
+  m_controlLayout->addWidget(m_togglePlanes);
+  
+  m_mainLayout = new QVBoxLayout();
+  m_mainLayout->addLayout(m_controlLayout);
+  setLayout(m_mainLayout);
+  
+  m_renderer = VolumeRenderer::renderer();
 }
 
 //-----------------------------------------------------------------------------
@@ -171,6 +174,15 @@ QModelIndex VolumeView::moveCursor(QAbstractItemView::CursorAction cursorAction,
 }
 
 //-----------------------------------------------------------------------------
+void VolumeView::rowsInserted(const QModelIndex& parent, int start, int end)
+{
+    QAbstractItemView::rowsInserted(parent, start, end);
+    //updateScene();
+}
+
+
+
+//-----------------------------------------------------------------------------
 QModelIndex VolumeView::indexAt(const QPoint& point) const
 {
   return QModelIndex();
@@ -179,9 +191,7 @@ QModelIndex VolumeView::indexAt(const QPoint& point) const
 //-----------------------------------------------------------------------------
 void VolumeView::scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint)
 {
-  
-  TaxonomyNode *indexParentNode = static_cast<TaxonomyNode *>(index.internalPointer());
-  //qDebug() << indexParentNode->getName();
+  //updateScene();
 }
 
 //-----------------------------------------------------------------------------
@@ -225,12 +235,16 @@ void VolumeView::updateScene()
     rep->setVisible(false);
   }
   
+  if (m_showActors)
+    render(rootIndex());
+  
+  m_view->render();
+  
   //TODO: Center on selection bounding box or active stack if no selection
   //if (m_showPlanes)
   //  dp->setRepresentationVisibility(m_planes[SLICE_AXIS_X]->getBgOutput(),m_view,true);
   
   // Render renderable products
-  render(rootIndex());
   /*
   foreach(actor,m_actors)
   {
@@ -251,17 +265,15 @@ void VolumeView::updateScene()
     ; plane = SlicePlane(plane+1))
     dp->setRepresentationVisibility(m_planes[plane]->getOutput(),m_view,m_showPlanes);
   */
-  m_view->render();
 }
 
 
 void VolumeView::render(const QModelIndex& index)
 {
-  qDebug() << "Render " << index;
-  if (!isIndexHidden(index))
+  if (!isIndexHidden(index) && m_showActors)
   {
-    qDebug() << "   Visible";
-    IRenderable *actor = static_cast<Product *>(index.internalPointer());
+    IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+    Product *actor = dynamic_cast<Product *>(item);
     assert(actor);
     m_renderer->render(actor,m_view);
   }
