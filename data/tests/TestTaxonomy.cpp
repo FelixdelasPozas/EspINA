@@ -1,14 +1,38 @@
 #include "taxonomy.h"
 #include <QDebug>
 
+#include <assert.h>
+#include <stdio.h>
+#include <fstream>
+
+int diff( std::string file1, std::string file2)
+{
+  char name1[256], name2[256];
+  std::ifstream f1, f2;
+  
+  f1.open(file1.c_str());
+  f2.open(file2.c_str());
+  
+  while( f1.good() )
+  {
+    f1.getline(name1, 256);
+    f2.getline(name2, 256);
+    if( strncmp(name1, name2, 256) ){
+      qDebug() << "DIFF ERROR:\n" << name1 << "\n" << name2;
+      return 1;
+    }
+  }
+  return 0;  
+}
+
 int main(int argc, const char* argv[]){
 
   qDebug(" -- Testing TaxnomyNode class --");
   TaxonomyNode* tax;
   QString sup = "Seres vivos";
   tax = new TaxonomyNode(sup);
-  tax->addElement("Animales", sup);
-  tax->addElement("Vegetales", sup);
+  tax->addElement("Animales", "Seres vivos");
+  tax->addElement("Vegetales", "Seres vivos");
   
   sup = "Animales";
   tax->addElement("Aves", sup);
@@ -52,9 +76,13 @@ int main(int argc, const char* argv[]){
   tax = IOTaxonomy::openXMLTaxonomy( fileName );
   tax->print();
   
-  IOTaxonomy::writeXMLTaxonomy( *tax, fileName.append("v2"));
+  QString fileName2 (fileName);
+  fileName2.append("v2");
   
-  //TODO diff fileName vs fileName+"v2"
+  IOTaxonomy::writeXMLTaxonomy( *tax, fileName2 );
+  
+  qDebug() << "diff " << fileName << " " << fileName2;
+  assert( diff( fileName.toStdString(), fileName2.toStdString()) == 0 );
   
   delete tax;
   
