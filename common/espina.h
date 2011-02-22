@@ -31,6 +31,8 @@ class IRenderable;
 class ProcessingTrace;
 class TaxonomyNode;
 class Product;
+class Sample;
+class Segmentation;
 
 //! Espina Interactive Neuron Analyzer
 class EspINA : public QAbstractItemModel
@@ -53,20 +55,20 @@ public:
     virtual Qt::ItemFlags flags(const QModelIndex& index) const;
 
     // Sample managing
-    Product *activeSample() {return m_samples.first();}
+    Sample *activeSample() {return m_activeSample;}
 
     // Segmentation managing
-    QList<Product *> segmentations(const TaxonomyNode* taxonomy, bool recursive = false) const;
+    QList<Segmentation *> segmentations(const TaxonomyNode* taxonomy, bool recursive = false) const;
     
     // Taxonomy managin
     TaxonomyNode *taxonomy() {return m_tax;}
 
 public slots:
     //! Add a new sample (used by the UI)
-    void addSample(Product *sample);
+    void addSample(Sample *sample);
 
     //! Add a new segmentation (used by the plugins)
-    void addSegmentation(Product *seg);
+    void addSegmentation(Segmentation *seg);
     
     //! Set which is the taxonomy defined by the user
     void setUserDefindedTaxonomy(const QModelIndex &index);
@@ -95,9 +97,11 @@ private:
 
 private:
     TaxonomyNode *m_tax;
-    QString m_newSegType; // The type for new segmentations
-    QMap<QString, QList<Product *> > m_segmentations;
-    QList<Product *> m_samples;
+    TaxonomyNode *m_newSegType; // The type for new segmentations
+    Sample *m_activeSample;
+    QMap<const TaxonomyNode *, QList<Segmentation *> > m_taxonomySegs;
+    QMap<const Sample *, QList<Segmentation *> > m_sampleSegs;
+    QList<Sample *> m_samples;
     ProcessingTrace *m_analysis;
 
     static EspINA *m_singleton;

@@ -121,7 +121,7 @@ EspinaMainWindow::EspinaMainWindow()
   pqParaViewMenuBuilders::buildFileMenu(*this->Internals->menu_File);
 
   //// Populate filters menu.
-  pqParaViewMenuBuilders::buildFiltersMenu(*this->Internals->menuTools, this);
+  //pqParaViewMenuBuilders::buildFiltersMenu(*this->Internals->menuTools, this);
 
   //// Populate Tools menu.
   pqParaViewMenuBuilders::buildToolsMenu(*this->Internals->menuTools);
@@ -193,7 +193,7 @@ EspinaMainWindow::~EspinaMainWindow()
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::loadData(pqPipelineSource *source)
 { 
-  Product *stack = new Product(source,0);
+  Sample *stack = new Sample(source,0);
   stack->name = "/home/jorge/Stacks/peque.mha";
   stack->setVisible(false);
   

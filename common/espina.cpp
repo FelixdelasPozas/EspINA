@@ -76,6 +76,12 @@ int EspINA::columnCount(const QModelIndex& parent) const
 //------------------------------------------------------------------------
 int EspINA::rowCount(const QModelIndex& parent) const
 {
+  if (!parent.isValid())
+    return 2;
+  
+  //Special cases:
+  
+  //! Old Model
   // This avoid creating indexes of an unitialized model
   TaxonomyNode *parentNode;
   if (!parent.isValid())
@@ -212,12 +218,12 @@ QModelIndex EspINA::index(TaxonomyNode* node) const
 
 
 //------------------------------------------------------------------------
-QList< Product* > EspINA::segmentations(const TaxonomyNode* taxonomy, bool recursive) const
+QList<Segmentation * > EspINA::segmentations(const TaxonomyNode* taxonomy, bool recursive) const
 {
   // Get all segmentations that belong to taxonomy
-  QList<Product *> segs;
+  QList<Segmentation *> segs;
   
-  segs.append(m_segmentations[taxonomy->getName()]);
+  segs.append(m_taxonomySegs[taxonomy]);
   
   if (recursive)
   {
@@ -232,19 +238,20 @@ QList< Product* > EspINA::segmentations(const TaxonomyNode* taxonomy, bool recur
 }
 
 //------------------------------------------------------------------------
-void EspINA::addSample(Product* sample)
+void EspINA::addSample(Sample* sample)
 {
   Cache *cache = Cache::instance();
   cache->insert(sample->id(),sample->data());
   
+  m_activeSample = sample;
   m_samples.push_back(sample);
 }
 
 
 //------------------------------------------------------------------------
-void EspINA::addSegmentation(Product* seg)
+void EspINA::addSegmentation(Segmentation *seg)
 {
-  TaxonomyNode *node = m_tax->getComponent(m_newSegType);
+  TaxonomyNode *node = m_newSegType;
   
   // We need to notify other components that the model has changed
   QModelIndex parent = index(node);
@@ -252,7 +259,7 @@ void EspINA::addSegmentation(Product* seg)
   
   beginInsertRows(parent,lastRow,lastRow);
   seg->setTaxonomy(node);
-  m_segmentations[m_newSegType].push_back(seg);
+  m_taxonomySegs[m_newSegType].push_back(seg);
   endInsertRows();
   
   emit render(seg);
@@ -271,15 +278,17 @@ void EspINA::setUserDefindedTaxonomy(const QModelIndex& index)
       node = seg->taxonomy();
   }
   assert(node);
-  m_newSegType = node->getName();//item->data(Qt::DisplayRole).toString();
+  m_newSegType = node;//->getName();//item->data(Qt::DisplayRole).toString();
 }
 
 
 //------------------------------------------------------------------------
-EspINA::EspINA(QObject* parent): QAbstractItemModel(parent)
+EspINA::EspINA(QObject* parent)
+: QAbstractItemModel(parent)
+, m_activeSample(NULL)
 {
   loadTaxonomy();
-  m_newSegType = "Symetric";
+  m_newSegType = m_tax->getComponent("Symetric");
   m_analysis = new ProcessingTrace();
 }
 

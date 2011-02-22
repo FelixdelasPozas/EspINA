@@ -78,6 +78,18 @@ private:
   TaxonomyNode *m_taxonomy;
 };
 
+class Segmentation : public Product
+{
+public:
+  Segmentation(pqPipelineSource *source, int portNumber) : Product(source,portNumber) {}
+};
+
+class Sample : public Product
+{
+public:
+  Sample(pqPipelineSource *source, int portNumber) : Product(source,portNumber) {}
+};
+
 
 
 class Filter : public ITraceNode, public ISingleton

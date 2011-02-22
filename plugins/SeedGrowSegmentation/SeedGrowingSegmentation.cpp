@@ -75,9 +75,9 @@ SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): ISegmentation
 	  SelectionManager::singleton(),
 	  SLOT(setSelectionHandler(ISelectionHandler*)));
   connect(this,
-	  SIGNAL(productCreated(Product *)),
+	  SIGNAL(productCreated(Segmentation *)),
 	  EspINA::instance(),
-	  SLOT(addSegmentation(Product*)));
+	  SLOT(addSegmentation(Segmentation*)));
   
   // Init Grow table
   // TODO: Make cleaner
@@ -176,7 +176,8 @@ void SeedGrowingSegmentation::execute()
    Product *product;
    foreach(product,grow->products())
    {
-     emit productCreated(product);
+     Segmentation *seg = new Segmentation(product->data(),product->portNumber());
+     emit productCreated(seg);
    }
    
   if (undoStack)
