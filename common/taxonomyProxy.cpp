@@ -44,10 +44,10 @@ int TaxonomyProxy::rowCount(const QModelIndex& parent) const
 {
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
   
-  updateSegmentations();
+  //updateSegmentations();
   
   if (!parent.isValid())
-    return 1;
+    return 3;
   
   if (parent.internalPointer() == model->taxonomyRoot().internalPointer())
     return 2;//Num sub tax
@@ -61,19 +61,20 @@ int TaxonomyProxy::rowCount(const QModelIndex& parent) const
   // Cast to base type 
   IModelItem *parentItem = static_cast<IModelItem *>(parent.internalPointer());
   // Check if Taxonomy Item
-  TaxonomyNode *taxItem = dynamic_cast<TaxonomyNode *>(parentItem);
-  if (taxItem)
+  TaxonomyNode *parentTax = dynamic_cast<TaxonomyNode *>(parentItem);
+  if (parentTax)
   {
-    return 0;
-    int numSegs = m_taxonomySegs[taxItem].size();
-    std::cout << taxItem->getName().toStdString() << ": " << numSegs << " segmentations" << std::endl; 
-    return taxItem->getSubElements().size() + numSegs;
+    std::cout << "Getting rows of " << parentTax->getName().toStdString() << std::endl;
+    int numSegs = 0;//m_taxonomySegs[taxItem].size();
+    //std::cout << taxItem->getName().toStdString() << ": " << numSegs << " segmentations" << std::endl; 
+    return parentTax->getSubElements().size() + numSegs;
   }
     //return numOfSubTaxonomies(taxItem);// + numOfSegmentations(taxItem);
   // Otherwise Samples and Segmentations have no children
+  std::cout << "Getting rows of invalid parent" << std::endl;
+  
   return 0;
 }
-
 
 QModelIndex TaxonomyProxy::index(int row, int column, const QModelIndex& parent) const
 {
@@ -96,15 +97,18 @@ QModelIndex TaxonomyProxy::index(int row, int column, const QModelIndex& parent)
   // Segmentation can't be parent index
   IModelItem *parentItem = static_cast<IModelItem *>(parent.internalPointer());
   // Checks if parent is Taxonomy
-  TaxonomyNode *taxItem = dynamic_cast<TaxonomyNode *>(parentItem);
-  if (taxItem)
+  TaxonomyNode *parentTax = dynamic_cast<TaxonomyNode *>(parentItem);
+  if (parentTax)
   {
     IModelItem *element;
     //int subTaxonomies = numOfSubTaxonomies(taxItem);
-    int subTaxonomies = taxItem->getSubElements().size();
+    int subTaxonomies = parentTax->getSubElements().size();
     if (row < subTaxonomies)
     {
-      element = taxItem->getSubElements()[row];
+      TaxonomyNode *taxItem = parentTax->getSubElements()[row];
+      //int numSegs = m_taxonomySegs[taxItem].size();
+      //std::cout << taxItem->getName().toStdString() << ": " << numSegs << " segmentations" << std::endl;
+      element = taxItem;
     }
     else
       assert(false);
@@ -137,13 +141,15 @@ QModelIndex TaxonomyProxy::parent(const QModelIndex& child) const
   TaxonomyNode *childNode = dynamic_cast<TaxonomyNode *>(childItem);
   if (childNode)
   {
+    std::cout << "Getting parent of " << childNode->getName().toStdString() << std::endl;
     TaxonomyNode *tax = static_cast<TaxonomyNode *>(model->taxonomyRoot().internalPointer());
     TaxonomyNode *parentNode = tax->getParent(childNode->getName());
+    std::cout << "\tParent is " << parentNode->getName().toStdString() << std::endl;
     if (parentNode == tax)
       return createIndex(0,0,tax);
     TaxonomyNode *gparentNode = tax->getParent(parentNode->getName());
     int r = gparentNode->getSubElements().indexOf(parentNode);
-    return createIndex(r,0,parentNode);
+    return createIndex(r,0,parentNode);//childNode
   }
   
   // Otherwise is a segmentation
@@ -158,14 +164,35 @@ QModelIndex TaxonomyProxy::parent(const QModelIndex& child) const
 
 QModelIndex TaxonomyProxy::mapFromSource(const QModelIndex& sourceIndex) const
 {
+  if (!sourceIndex.isValid())
+    return QModelIndex();
+  
   return createIndex(sourceIndex.row(),sourceIndex.column(),sourceIndex.internalPointer());
+  
+  //IModelItem *item = static_cast<IModelItem *>(sourceIndex.internalPointer());
+  //TaxonomyNode *node =  dynamic_cast<TaxonomyNode *>(item);
+  //if (node)// && node->getName() == "Synapse")
+    //std::cout << node->getName().toStdString() << std::endl;
+  QModelIndex sourceParent = sourceIndex.parent();
+  QModelIndex proxyParent = mapFromSource(sourceParent);
+  //std::cout << "source parent: (" << sourceParent.row() << "," << sourceParent.column() << "," << sourceParent.internalPointer() << ") >> proxy parent: (" << proxyParent.row() << "," << proxyParent.column() << "," << proxyParent.internalPointer() << std::endl; 
+  return this->index(sourceIndex.row(),sourceIndex.column(),proxyParent);
+  //return createIndex(sourceIndex.row(),sourceIndex.column(),sourceIndex.internalPointer());
 }
 
 QModelIndex TaxonomyProxy::mapToSource(const QModelIndex& proxyIndex) const
 {
   if (!proxyIndex.isValid())
     return QModelIndex();
-  return sourceModel()->index(proxyIndex.row(),proxyIndex.column(),proxyIndex.parent());
+  
+  //QModelIndex proxyParent = proxyIndex.parent();
+  //QModelIndex sourceParent = mapToSource(proxyParent);
+  QModelIndex sourceIndex = sourceModel()->index(proxyIndex.row(),proxyIndex.column(),proxyIndex.parent());
+  //IModelItem *item = static_cast<IModelItem *>(sourceIndex.internalPointer());
+  //TaxonomyNode *node =  dynamic_cast<TaxonomyNode *>(item);
+  //if (node)// && node->getName() == "Synapse")
+    //std::cout << node->getName().toStdString() << std::endl;
+  return sourceIndex;
 }
 
 
