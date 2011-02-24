@@ -49,6 +49,11 @@ QVariant EspINA::data(const QModelIndex& index, int role) const
   if (!index.isValid())
     return QVariant();
   
+  if (index.internalId() < 3)
+  {
+    return "Falso";
+  }
+  
   IModelItem *indexItem = static_cast<IModelItem *>(index.internalPointer());
   
   return indexItem->data(role);
@@ -77,26 +82,25 @@ int EspINA::columnCount(const QModelIndex& parent) const
 int EspINA::rowCount(const QModelIndex& parent) const
 {
   if (!parent.isValid())
-    return 2;
+    return 3;
   
-  //Special cases:
+  if (parent == taxonomyRoot())
+    return numOfSubTaxonomies(m_tax);
   
-  //! Old Model
-  // This avoid creating indexes of an unitialized model
-  TaxonomyNode *parentNode;
-  if (!parent.isValid())
-    parentNode = m_tax;
-  else
-  {
-    //parentNode = indexNode(parent);
-    IModelItem *parentItem = static_cast<IModelItem *>(parent.internalPointer());
-    parentNode = dynamic_cast<TaxonomyNode *>(parentItem);
-  }
-  // Segmentations haven't children
-  if (!parentNode)
-    return 0;
+  if (parent == sampleRoot())
+    return m_samples.size();
   
-  return numOfSubTaxonomies(parentNode) + numOfSegmentations(parentNode);
+  if (parent == segmentationRoot())
+    return m_segmentations.size();
+  
+  // Cast to base type 
+  IModelItem *parentItem = static_cast<IModelItem *>(parent.internalPointer());
+  // Check if Taxonomy Item
+  TaxonomyNode *taxItem = dynamic_cast<TaxonomyNode *>(parentItem);
+  if (taxItem)
+    return numOfSubTaxonomies(taxItem);// + numOfSegmentations(taxItem);
+  // Otherwise Samples and Segmentations have no children
+  return 0;
 }
 
 //------------------------------------------------------------------------
@@ -105,27 +109,34 @@ QModelIndex EspINA::parent(const QModelIndex& child) const
   if (!child.isValid())
     return QModelIndex();
   
+  if ( child == taxonomyRoot() 
+    || child == sampleRoot() 
+    || child == segmentationRoot())
+    return QModelIndex();
+  
   IModelItem *childItem = static_cast<IModelItem *>(child.internalPointer());
   assert (childItem);
   
-  // Model Item can be either Taxonomy Nodes or Segmentation Nodes
-  TaxonomyNode *parentNode;
-  
+  // Checks if Taxonomy
   TaxonomyNode *childNode = dynamic_cast<TaxonomyNode *>(childItem);
   if (childNode)
   {
-    parentNode = m_tax->getParent(childNode->getName());
+    TaxonomyNode *parentNode = m_tax->getParent(childNode->getName());
+    return index(parentNode);
   }
-  else
-  {
-    Product *childProduct = dynamic_cast<Product *>(childItem);
-    assert(childProduct);
-    parentNode = childProduct->taxonomy();
-  }
+  // Checks if Sample
+  Sample *parentSample = dynamic_cast<Sample *>(childItem);
+  if (parentSample)
+    return sampleRoot();
   
-  return index(parentNode);
+  // Otherwise is a segmentation
+  Segmentation *childProduct = dynamic_cast<Segmentation *>(childItem);
+  if (childProduct)
+    return segmentationRoot();
+  
+  assert(false);
+  return QModelIndex();
 }
-
 
 //------------------------------------------------------------------------
 //! Returned index is compossed by the row, column and an element).
@@ -134,26 +145,52 @@ QModelIndex EspINA::index(int row, int column, const QModelIndex& parent) const
   if (!hasIndex(row,column,parent))
     return QModelIndex();
   
-  TaxonomyNode *parentNode;
   if (!parent.isValid())
-  { // It corresponds to a taxonomy
-    parentNode = m_tax;
+  {
+    assert(row<3);
+    if (row == 0)
+      return taxonomyRoot();
+    if (row == 1)
+      return sampleRoot();
+    if (row == 2)
+      return segmentationRoot();
   }
-  else
-  { // Segmentation can't be parent index
-    IModelItem *item = static_cast<IModelItem *>(parent.internalPointer());
-    parentNode       = dynamic_cast<TaxonomyNode *>(item);
+  
+  // Checks if parent is Sample's root
+  if (parent.internalPointer() == sampleRoot().internalPointer())
+  {
+    IModelItem * element = m_samples[row];
+    return createIndex(row,column,element);
   }
-  assert(parentNode);
   
-  IModelItem *element;
-  int subTaxonomies = numOfSubTaxonomies(parentNode);
-  if (row < subTaxonomies)
-    element = parentNode->getSubElements()[row];
-  else
-    element = segmentations(parentNode)[row-subTaxonomies];
+  // Checks if parent is Segmentation's root
+  if (parent.internalPointer() == segmentationRoot().internalPointer())
+  {
+    IModelItem * element = m_segmentations[row];
+    return createIndex(row,column,element);
+  }
   
-  return createIndex(row,column,element);
+  // Segmentation can't be parent index
+  IModelItem *parentItem = static_cast<IModelItem *>(parent.internalPointer());
+  // Checks if parent is Taxonomy
+  TaxonomyNode *taxItem = dynamic_cast<TaxonomyNode *>(parentItem);
+  if (taxItem)
+  {
+    IModelItem *element;
+    int subTaxonomies = numOfSubTaxonomies(taxItem);
+    if (row < subTaxonomies)
+    {
+      element = taxItem->getSubElements()[row];
+      std::cout << taxItem->getSubElements()[row]->getName().toStdString();
+    }
+    else
+      element = segmentations(taxItem)[row-subTaxonomies];
+   
+    return createIndex(row,column,element);
+  }
+  // Otherwise, invalid index
+  assert(false);
+  return QModelIndex();
 }
 
 //------------------------------------------------------------------------
@@ -181,6 +218,28 @@ Qt::ItemFlags EspINA::flags(const QModelIndex& index) const
   return QAbstractItemModel::flags(index);
 }
 
+
+ //------------------------------------------------------------------------
+QModelIndex EspINA::taxonomyRoot() const
+{
+
+  return createIndex(0,0,m_tax);
+}
+
+//------------------------------------------------------------------------
+QModelIndex EspINA::sampleRoot() const
+{
+  return createIndex(1,0,1);
+}
+
+//------------------------------------------------------------------------
+QModelIndex EspINA::segmentationRoot() const
+{
+  return createIndex(2,0,2);
+}
+
+
+
 //------------------------------------------------------------------------
 /*
 TaxonomyNode* EspINA::indexNode(const QModelIndex& index) const
@@ -204,7 +263,7 @@ QModelIndex EspINA::index(TaxonomyNode* node) const
 {
   // We avoid setting the Taxonomy descriptor as parent of an index
   if (node->getName() == m_tax->getName())
-    return QModelIndex();
+    return taxonomyRoot();
   
   TaxonomyNode *parentNode = m_tax->getParent(node->getName());
   assert(parentNode);

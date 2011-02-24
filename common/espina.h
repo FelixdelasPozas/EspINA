@@ -53,7 +53,11 @@ public:
     virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
     virtual Qt::ItemFlags flags(const QModelIndex& index) const;
-
+    // Special Nodes
+    QModelIndex taxonomyRoot() const;
+    QModelIndex sampleRoot() const;
+    QModelIndex segmentationRoot() const;
+    
     // Sample managing
     Sample *activeSample() {return m_activeSample;}
 
@@ -96,13 +100,15 @@ private:
     int numOfSubTaxonomies(TaxonomyNode *tax) const;
 
 private:
-    TaxonomyNode *m_tax;
     TaxonomyNode *m_newSegType; // The type for new segmentations
     Sample *m_activeSample;
+    TaxonomyNode *m_tax;
+    QList<Sample *> m_samples;
+    QList<Segmentation *> m_segmentations;
+    ProcessingTrace *m_analysis;
+
     QMap<const TaxonomyNode *, QList<Segmentation *> > m_taxonomySegs;
     QMap<const Sample *, QList<Segmentation *> > m_sampleSegs;
-    QList<Sample *> m_samples;
-    ProcessingTrace *m_analysis;
 
     static EspINA *m_singleton;
 };

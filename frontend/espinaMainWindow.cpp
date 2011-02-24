@@ -78,6 +78,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QDebug>
 #include <iostream>
 #include <QPushButton>
+#include <taxonomyProxy.h>
 
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
@@ -103,7 +104,10 @@ EspinaMainWindow::EspinaMainWindow()
   this->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
   
   m_espina = EspINA::instance();
-  this->Internals->objectTreeView->setModel(m_espina);;
+  TaxonomyProxy *taxProxy = new TaxonomyProxy();
+  taxProxy->setSourceModel(m_espina);
+  this->Internals->objectTreeView->setModel(taxProxy);
+  this->Internals->objectTreeView->setRootIndex(taxProxy->mapFromSource(m_espina->taxonomyRoot()));
   connect(this->Internals->objectTreeView,SIGNAL(doubleClicked(const QModelIndex &)),m_espina,SLOT(setUserDefindedTaxonomy(const QModelIndex&)));
 
   //Create File Menu
@@ -165,8 +169,8 @@ EspinaMainWindow::EspinaMainWindow()
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_xz,SLOT(disconnectFromServer()));
   
   m_3d = new VolumeView();
-  m_3d->setModel(m_espina);
-  m_3d->setSelectionModel(this->Internals->objectTreeView->selectionModel());
+  //m_3d->setModel(m_espina);
+  //m_3d->setSelectionModel(this->Internals->objectTreeView->selectionModel());
   this->Internals->volumeDock->setWidget(m_3d);
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_3d,SLOT(connectToServer()));
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_3d,SLOT(disconnectFromServer()));
