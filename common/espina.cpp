@@ -84,13 +84,13 @@ int EspINA::rowCount(const QModelIndex& parent) const
   if (!parent.isValid())
     return 3;
   
-  if (parent == taxonomyRoot())
+  if (parent.internalPointer() == taxonomyRoot().internalPointer())
     return numOfSubTaxonomies(m_tax);
   
-  if (parent == sampleRoot())
+  if (parent.internalId() == sampleRoot().internalId())
     return m_samples.size();
   
-  if (parent == segmentationRoot())
+  if (parent.internalId() == segmentationRoot().internalId())
     return m_segmentations.size();
   
   // Cast to base type 
@@ -109,9 +109,9 @@ QModelIndex EspINA::parent(const QModelIndex& child) const
   if (!child.isValid())
     return QModelIndex();
   
-  if ( child == taxonomyRoot() 
-    || child == sampleRoot() 
-    || child == segmentationRoot())
+  if ( child.internalPointer() == taxonomyRoot().internalPointer() 
+    || child.internalId() == sampleRoot().internalId() 
+    || child.internalId() == segmentationRoot().internalId())
     return QModelIndex();
   
   IModelItem *childItem = static_cast<IModelItem *>(child.internalPointer());
@@ -181,7 +181,7 @@ QModelIndex EspINA::index(int row, int column, const QModelIndex& parent) const
     if (row < subTaxonomies)
     {
       element = taxItem->getSubElements()[row];
-      std::cout << taxItem->getSubElements()[row]->getName().toStdString();
+      //std::cout << taxItem->getSubElements()[row]->getName().toStdString();
     }
     else
       element = segmentations(taxItem)[row-subTaxonomies];
