@@ -78,7 +78,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QDebug>
 #include <iostream>
 #include <QPushButton>
+
 #include <taxonomyProxy.h>
+#include <sampleProxy.h>
 
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
@@ -169,8 +171,8 @@ EspinaMainWindow::EspinaMainWindow()
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_xz,SLOT(disconnectFromServer()));
   
   m_3d = new VolumeView();
-  //m_3d->setModel(m_espina);
-  //m_3d->setSelectionModel(this->Internals->objectTreeView->selectionModel());
+  //m_3d->setModel(taxProxy);
+ // m_3d->setSelectionModel(this->Internals->objectTreeView->selectionModel());
   this->Internals->volumeDock->setWidget(m_3d);
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_3d,SLOT(connectToServer()));
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_3d,SLOT(disconnectFromServer()));
@@ -229,6 +231,10 @@ void EspinaMainWindow::loadData(pqPipelineSource *source)
   //m_productManager->registerProduct(stack);
   //m_productManager->registerProduct(seg);
   m_espina->addSample(stack);
+  SampleProxy *sampleProxy = new SampleProxy();
+  sampleProxy->setSourceModel(m_espina);
+  this->Internals->objectTreeView->setModel(sampleProxy);
+  this->Internals->objectTreeView->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
 }
 
 //-----------------------------------------------------------------------------

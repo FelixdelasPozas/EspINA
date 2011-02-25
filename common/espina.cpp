@@ -49,9 +49,20 @@ QVariant EspINA::data(const QModelIndex& index, int role) const
   if (!index.isValid())
     return QVariant();
   
-  if (index.internalId() < 3)
+  if (index.internalId() == 1)
   {
-    return "Falso";
+    if (role == Qt::DisplayRole)
+      return "Samples";
+    else
+      return QVariant();
+  }
+
+  if (index.internalId() == 2)
+  {
+    if (role == Qt::DisplayRole)
+      return "Segmentations";
+    else
+      return QVariant();
   }
   
   IModelItem *indexItem = static_cast<IModelItem *>(index.internalPointer());
@@ -125,7 +136,7 @@ QModelIndex EspINA::parent(const QModelIndex& child) const
   if (childNode)
   {
     TaxonomyNode *parentNode = m_tax->getParent(childNode->getName());
-    return index(parentNode);
+    return taxonomyIndex(parentNode);
   }
   // Checks if Sample
   Sample *parentSample = dynamic_cast<Sample *>(childItem);
@@ -145,8 +156,8 @@ QModelIndex EspINA::parent(const QModelIndex& child) const
 //! Returned index is compossed by the row, column and an element).
 QModelIndex EspINA::index(int row, int column, const QModelIndex& parent) const
 {
-  if (!hasIndex(row,column,parent))
-    return QModelIndex();
+  //if (!hasIndex(row,column,parent))
+    //return QModelIndex();
   
   if (!parent.isValid())
   {
@@ -192,7 +203,6 @@ QModelIndex EspINA::index(int row, int column, const QModelIndex& parent) const
     return createIndex(row,column,element);
   }
   // Otherwise, invalid index
-  assert(false);
   return QModelIndex();
 }
 
@@ -242,6 +252,15 @@ QModelIndex EspINA::segmentationRoot() const
 }
 
 
+QModelIndex EspINA::sampleIndex(Sample* sample) const
+{
+  // We avoid setting the Taxonomy descriptor as parent of an index
+  int row = m_samples.indexOf(sample);
+  IModelItem *item = sample;
+  return createIndex(row,0,item);
+}
+
+
 
 //------------------------------------------------------------------------
 /*
@@ -262,7 +281,7 @@ bool EspINA::isLeaf(TaxonomyNode* node) const
 }
 
 //------------------------------------------------------------------------
-QModelIndex EspINA::index(TaxonomyNode* node) const
+QModelIndex EspINA::taxonomyIndex(TaxonomyNode* node) const
 {
   // We avoid setting the Taxonomy descriptor as parent of an index
   if (node->getName() == m_tax->getName())
@@ -303,7 +322,7 @@ QList<Segmentation * > EspINA::segmentations(const TaxonomyNode* taxonomy, bool 
 void EspINA::addSample(Sample* sample)
 {
   Cache *cache = Cache::instance();
-  cache->insert(sample->id(),sample->data());
+  cache->insert(sample->id(),sample->sourceData());
   
   m_activeSample = sample;
   m_samples.push_back(sample);
@@ -316,13 +335,16 @@ void EspINA::addSegmentation(Segmentation *seg)
   TaxonomyNode *node = m_newSegType;
   
   // We need to notify other components that the model has changed
-  QModelIndex parent = index(node);
-  int lastRow = rowCount(parent);
+  int lastRow = rowCount(segmentationRoot());
   
-  beginInsertRows(parent,lastRow,lastRow);
+  //beginResetModel();
+  beginInsertRows(segmentationRoot(),lastRow,lastRow);
   seg->setTaxonomy(node);
+  seg->setOrigin(m_activeSample);
   m_taxonomySegs[m_newSegType].push_back(seg);
+  m_segmentations.push_back(seg);
   endInsertRows();
+  //endResetModel();
   
   emit render(seg);
   emit sliceRender(seg);

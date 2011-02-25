@@ -8,7 +8,7 @@ pqOutputPort *IRenderable::outputPort()
   return m_source->getOutputPort(m_portNumber);
 }
 
-pqPipelineSource *IRenderable::data()
+pqPipelineSource *IRenderable::sourceData()
 {
   return m_source;
 }

@@ -93,9 +93,9 @@ pqOutputPort* Product::outputPort()
 
 
 //-----------------------------------------------------------------------------
-pqPipelineSource* Product::data()
+pqPipelineSource* Product::sourceData()
 {
-  return IRenderable::data();
+  return IRenderable::sourceData();
 }
 
 
@@ -120,14 +120,45 @@ QVariant Product::data(int role) const
   switch (role)
   {
     case Qt::DisplayRole:
-	return "Segmentation";
+	return "Generic Product";
     case Qt::DecorationRole:
-	return m_taxonomy->getColor();
+	return QColor(Qt::darkMagenta);
     default:
       return QVariant();
   }
 }
 
+//-----------------------------------------------------------------------------
+// Sample
+//-----------------------------------------------------------------------------
+QVariant Sample::data(int role) const
+{
+  switch (role)
+  {
+    case Qt::DisplayRole:
+      return name;
+    case Qt::DecorationRole:
+      return QColor(Qt::blue);
+    default:
+      return QVariant();
+  }
+}
+
+//-----------------------------------------------------------------------------
+// Segmentation
+//-----------------------------------------------------------------------------
+QVariant Segmentation::data(int role) const
+{
+  switch (role)
+  {
+    case Qt::DisplayRole:
+      return "Segmentation";
+    case Qt::DecorationRole:
+      return m_taxonomy->getColor();
+    default:
+      return QVariant();
+  }
+}
 
 //-----------------------------------------------------------------------------
 // FILTER

@@ -60,12 +60,14 @@ public:
     
     // Sample managing
     Sample *activeSample() {return m_activeSample;}
+    QModelIndex sampleIndex(Sample *sample) const;
 
     // Segmentation managing
     QList<Segmentation *> segmentations(const TaxonomyNode* taxonomy, bool recursive = false) const;
     
     // Taxonomy managin
     TaxonomyNode *taxonomy() {return m_tax;}
+    QModelIndex taxonomyIndex(TaxonomyNode *node) const;
 
 public slots:
     //! Add a new sample (used by the UI)
@@ -92,7 +94,6 @@ private:
     //! Return the QModelIndex for a Taxonomy node given by
     //! the row and column of the node whithin its parent index
     //! and a pointer to the node itself
-    QModelIndex index(TaxonomyNode *node) const;
     
     //! Return the number of segmentations which belong to tax
     int numOfSegmentations(TaxonomyNode *tax) const;

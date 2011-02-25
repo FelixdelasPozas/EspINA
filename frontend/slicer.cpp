@@ -59,7 +59,7 @@ void SliceBlender::setBackground ( IRenderable* background )
   
   //Slice the background image
   pqObjectBuilder *ob = core->getObjectBuilder();
-  m_bgSlicer = ob->createFilter("filters","ImageSlicer",m_background->data(), m_background->portNumber());
+  m_bgSlicer = ob->createFilter("filters","ImageSlicer",m_background->sourceData(), m_background->portNumber());
   assert(m_bgSlicer);
   
   p = m_bgSlicer->getProxy()->GetProperty("SliceMode");
@@ -129,7 +129,7 @@ void SliceBlender::addSegmentation ( IRenderable* seg )
   
   //Slice the background image
   pqObjectBuilder *ob = core->getObjectBuilder();
-  pqPipelineSource *slicer = ob->createFilter("filters","ImageSlicer",seg->data());
+  pqPipelineSource *slicer = ob->createFilter("filters","ImageSlicer",seg->sourceData());
   assert(slicer);
   m_slicers->push_back(slicer);
   

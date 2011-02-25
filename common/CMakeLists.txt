@@ -12,6 +12,7 @@ qt4_add_resources(RCC_BUILT_SOURCES )
 qt4_wrap_cpp(MOC_BUILT_SOURCES
   selectionManager.h
   taxonomyProxy.h
+  sampleProxy.h
   espina.h
   iPixelSelector.h
 )

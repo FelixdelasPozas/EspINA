@@ -16,29 +16,28 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+
+#ifndef SAMPLEPROXY_H
+#define SAMPLEPROXY_H
+
 #include <QAbstractProxyModel>
 
 // Forward declaration
-class TaxonomyNode;
+class Sample;
 class Segmentation;
 
-#ifndef TAXONOMYPROXY_H
-#define TAXONOMYPROXY_H
-class TaxonomyProxy : public QAbstractProxyModel
+class SampleProxy : public QAbstractProxyModel
 {
   Q_OBJECT
 public:
-  TaxonomyProxy(QObject *parent=0);
-  virtual ~TaxonomyProxy();
-  
-  virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
-  virtual int columnCount(const QModelIndex& parent = QModelIndex()) const {return 1;}
-  virtual QModelIndex parent(const QModelIndex& child) const;
-  virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
-  virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
-  virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
-  
-  virtual void setSourceModel(QAbstractItemModel* sourceModel);
+    virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
+    virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
+    virtual int columnCount(const QModelIndex& parent = QModelIndex()) const;
+    virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
+    virtual QModelIndex parent(const QModelIndex& child) const;
+    virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
+    
+    virtual void setSourceModel(QAbstractItemModel* sourceModel);
   
 public slots:
   void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
@@ -47,7 +46,7 @@ protected:
   void updateSegmentations() const;
   
 private:
-  mutable QMap<const TaxonomyNode *, QList<Segmentation *> > m_taxonomySegs;
+  mutable QMap<const Sample *, QList<Segmentation *> > m_sampleSegs;
 };
 
-#endif // TAXONOMYPROXY_H
+#endif // SAMPLEPROXY_H
