@@ -22,7 +22,7 @@
 #include "data/cajalTypes.h"
 
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/subgraph.hpp>
+//#include <boost/graph/subgraph.hpp>
 
 #include <QString>
 /*
@@ -34,7 +34,7 @@ typedef std::pair<EspinaArg, ParamValue> EspinaParam;
 typedef std::vector<EspinaParam> EspinaParamList;
 */
 typedef NodeParamList EspinaParamList;
-
+typedef unsigned int IndexType;
 //Forward declarations
 class ProcessingTrace;
 
@@ -42,15 +42,17 @@ class ProcessingTrace;
 class ITraceNode
 {
 public:
+  /*
   virtual std::vector<ITraceNode *> inputs() = 0;
   virtual std::vector<ITraceNode *> outputs() = 0;
+  */
   virtual void print(int indent = 0) const = 0;
   virtual EspinaParamList getArguments() = 0;
   
   //! Descriptive name of the node
   QString name;
-  //! Node id in the local subgraph
-  unsigned int localId;
+  //! Node id in the graph
+  IndexType vertexId;
   //! Type used to enhance the output of the graph....
   int type;// 0: Product 1: Filter
 };
@@ -59,7 +61,7 @@ public:
 //! A class to represent the working trace
 class ProcessingTrace
 {
-  typedef unsigned int IndexType;
+  //typedef unsigned int IndexType;
   
   //! A set of properties for graph vertex
   struct VertexProperty
@@ -67,9 +69,12 @@ class ProcessingTrace
     //! A pointer to a class representing
     //! a node element
     ITraceNode *node;//TODO: Use smart pointers?
+    std::string labelName;
+    std::string shape;
+    std::string args;
   };
   typedef boost::property<
-  boost::vertex_index_t, IndexType,
+  boost::vertex_index1_t, IndexType,
   VertexProperty
   > VertexProperties;
   
@@ -81,7 +86,7 @@ class ProcessingTrace
     std::string relationship;
   };
   typedef boost::property<
-  boost::edge_index_t, IndexType
+  boost::edge_name_t, std::string
   > EdgeProperties;
   
   //! A set of properties for graphs
@@ -101,9 +106,9 @@ class ProcessingTrace
   VertexProperties,
   EdgeProperties,
   GraphProperties
-  > SubGraph;
+  > Graph;
   
-  typedef boost::subgraph<SubGraph> Graph;
+  //typedef boost::subgraph<SubGraph> Graph;
   
   typedef boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
   typedef std::pair<OutEdgeIter, OutEdgeIter> EdgeIteratorRange;
@@ -112,8 +117,7 @@ class ProcessingTrace
   typedef Graph::edge_descriptor EdgeId;
   
 public:
-  ProcessingTrace();
-  ProcessingTrace(const QString &name);
+  static ProcessingTrace* instance();
   ~ProcessingTrace(){}
   
   void addNode(ITraceNode* node);
@@ -123,14 +127,21 @@ public:
   , const std::string &description
   );
   
+  void readTrace(std::istream& fileName);
+  
+  /*
   void addSubtrace(const ProcessingTrace *subTrace);
   std::vector<ITraceNode *> inputs(const ITraceNode *node);
   std::vector<ITraceNode *> outputs(const ITraceNode *node);
-  
-  void print();
+  */
+  void print(std::ostream& out);
   
 private:
+  ProcessingTrace();
+  ProcessingTrace(const QString &name); // TODO delte. No tiene sentido sin subgraph
+  
   Graph m_trace;
+  static ProcessingTrace* m_instnace;
 };
 
 #endif // TRACING_H

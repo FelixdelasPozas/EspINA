@@ -182,6 +182,7 @@ void EspinaMainWindow::loadData(pqPipelineSource *source)
 { 
   Product *stack = new Product(source,0);
   stack->name = "/home/jorge/Stacks/peque.mha";
+  ProcessingTrace::instance()->addNode(stack);
   stack->setVisible(false);
   
   Cache *cache = Cache::instance();

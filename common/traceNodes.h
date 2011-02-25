@@ -50,8 +50,10 @@ public:
   virtual ~Product(){}
 
   //! Implements ITraceNode interface
+  /*
   virtual std::vector<ITraceNode *> inputs();
   virtual std::vector<ITraceNode *> outputs();
+  */
   virtual void print(int indent = 0) const;
   virtual EspinaParamList getArguments();
   
@@ -114,8 +116,10 @@ public:
   );
   
   //! Implements ITraceNode interface
+  /*
   virtual std::vector<ITraceNode *> inputs();
   virtual std::vector<ITraceNode *> outputs();
+  */
   virtual void print(int indent = 0) const;
   virtual EspinaParamList getArguments();
   
@@ -123,16 +127,15 @@ public:
   virtual QString id();
   
   std::vector<Product *> products();
-  ProcessingTrace *trace();
+  //ProcessingTrace *trace();
   
 private:
   //void createFilter();
   
-private:
   EspinaParamList m_args;
   EspinaProxy *m_proxy;
   const TranslatorTable &m_translator;
-  ProcessingTrace m_filtertrace;
+  //ProcessingTrace m_filtertrace;
   std::vector<Product *> m_products;
 };
 
