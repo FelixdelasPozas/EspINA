@@ -69,7 +69,8 @@ VolumeView::VolumeView(QWidget* parent): QAbstractItemView(parent)
   renders->addAction(volumeRenderer);
   renders->addAction(meshRenderer);
   m_toggleActors->setMenu(renders);
-  connect(m_toggleActors,SIGNAL(toggled(bool)),this,SLOT(showActors(bool)));
+  connect(m_togglePlanes,SIGNAL(toggled(bool)),this,SLOT(showSamples(bool)));
+  connect(m_toggleActors,SIGNAL(toggled(bool)),this,SLOT(showSegmentations(bool)));
   connect(volumeRenderer,SIGNAL(triggered()),this,SLOT(setVolumeRenderer()));
   connect(meshRenderer,SIGNAL(triggered()),this,SLOT(setMeshRenderer()));
   m_controlLayout->addWidget(m_togglePlanes);
@@ -109,19 +110,32 @@ void VolumeView::disconnectFromServer()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::showActors(bool value)
+void VolumeView::showSamples(bool value)
 {
-  if (m_showActors == value)
+  if (m_showSamples == value)
     return;
   
-  m_showActors = value;
+  m_showSamples = value;
+  m_togglePlanes->setIcon(m_showSamples?QIcon(":/espina/showPlanes"):QIcon(":/espina/hidePlanes"));
+  
+  updateScene();
+}
+
+
+//-----------------------------------------------------------------------------
+void VolumeView::showSegmentations(bool value)
+{
+  if (m_showSegmentations == value)
+    return;
+  
+  m_showSegmentations = value;
   switch (m_renderer->type())
   {
     case MESH_RENDERER:
-      m_toggleActors->setIcon(m_showActors?QIcon(":/espina/showPlanes"):QIcon(":/espina/hidePlanes"));
+      m_toggleActors->setIcon(m_showSegmentations?QIcon(":/espina/showPlanes"):QIcon(":/espina/hidePlanes"));
       break;
     case VOLUME_RENDERER:
-      m_toggleActors->setIcon(m_showActors?QIcon(":/espina/show3D"):QIcon(":/espina/hide3D"));
+      m_toggleActors->setIcon(m_showSegmentations?QIcon(":/espina/show3D"):QIcon(":/espina/hide3D"));
       break;
     default:
       assert(false);
@@ -147,6 +161,9 @@ void VolumeView::setSelection(const QRect& rect, QItemSelectionModel::SelectionF
 bool VolumeView::isIndexHidden(const QModelIndex& index) const
 {
   if (!index.isValid())
+    return true;
+  
+  if (index.internalId() < 3)
     return true;
   
   IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
@@ -207,7 +224,7 @@ void VolumeView::setMeshRenderer()
   m_renderer = MeshRenderer::renderer();
   // Which one is easier to read/understand? This one or the VolumeRenderer one?
   m_toggleActors->setIcon(
-    m_showActors?
+    m_showSegmentations?
       QIcon(":/espina/showPlanes")
     :
       QIcon(":/espina/hidePlanes")
@@ -220,7 +237,7 @@ void VolumeView::setMeshRenderer()
 void VolumeView::setVolumeRenderer()
 {
   m_renderer = VolumeRenderer::renderer();
-  m_toggleActors->setIcon(m_showActors?QIcon(":/espina/show3D"):QIcon(":/espina/hide3D"));
+  m_toggleActors->setIcon(m_showSegmentations?QIcon(":/espina/show3D"):QIcon(":/espina/hide3D"));
   
   updateScene();
 }
@@ -235,8 +252,8 @@ void VolumeView::updateScene()
     rep->setVisible(false);
   }
   
-  if (m_showActors)
-    render(rootIndex());
+  //if (m_showActors)
+  render(rootIndex());
   
   m_view->render();
   
@@ -270,12 +287,22 @@ void VolumeView::updateScene()
 
 void VolumeView::render(const QModelIndex& index)
 {
-  if (!isIndexHidden(index) && m_showActors)
+  if (!isIndexHidden(index))
   {
     IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
-    Product *actor = dynamic_cast<Product *>(item);
-    assert(actor);
-    m_renderer->render(actor,m_view);
+    // Check for sample
+    Sample *sample = dynamic_cast<Sample *>(item);
+    if (sample && m_showSamples)
+    {
+      //TODO: Render planes
+      qDebug() << "Render planes";
+    } 
+    else if (m_showSegmentations)
+    {
+      Segmentation *seg = dynamic_cast<Segmentation *>(item);
+      assert(seg); // If not sample, it has to be a segmentation
+      m_renderer->render(seg,m_view);
+    }
   }
   for (int row = 0; row < model()->rowCount(index); row++)
     render(model()->index(row,0,index));

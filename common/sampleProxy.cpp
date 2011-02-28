@@ -189,7 +189,12 @@ void SampleProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start,
 {
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
   
-  if (sourceParent == model->segmentationRoot())
+  if (sourceParent == model->sampleRoot())
+  {
+    beginInsertRows(mapFromSource(model->sampleRoot()),0,0);
+    endInsertRows();
+  }
+  else if (sourceParent == model->segmentationRoot())
   {
     updateSegmentations();
     //Look for modified segmentations

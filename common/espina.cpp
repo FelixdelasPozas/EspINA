@@ -306,8 +306,11 @@ void EspINA::addSample(Sample* sample)
   Cache *cache = Cache::instance();
   cache->insert(sample->id(),sample->sourceData());
   
+  int lastRow = rowCount(sampleRoot());
+  beginInsertRows(sampleRoot(),lastRow,lastRow);
   m_activeSample = sample;
   m_samples.push_back(sample);
+  endInsertRows();
 }
 
 

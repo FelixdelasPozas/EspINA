@@ -108,6 +108,8 @@ EspinaMainWindow::EspinaMainWindow()
   m_espina = EspINA::instance();
   TaxonomyProxy *taxProxy = new TaxonomyProxy();
   taxProxy->setSourceModel(m_espina);
+  SampleProxy *sampleProxy = new SampleProxy();
+  sampleProxy->setSourceModel(m_espina);
   this->Internals->objectTreeView->setModel(taxProxy);
   this->Internals->objectTreeView->setRootIndex(taxProxy->mapFromSource(m_espina->taxonomyRoot()));
   connect(this->Internals->objectTreeView,SIGNAL(doubleClicked(const QModelIndex &)),m_espina,SLOT(setUserDefindedTaxonomy(const QModelIndex&)));
@@ -171,7 +173,10 @@ EspinaMainWindow::EspinaMainWindow()
   connect(server,SIGNAL(connectionClosed(vtkIdType)),m_xz,SLOT(disconnectFromServer()));
   
   m_3d = new VolumeView();
-  //m_3d->setModel(taxProxy);
+  //SampleProxy *sampleProxy = new SampleProxy();
+  //sampleProxy->setSourceModel(m_espina);
+  m_3d->setModel(sampleProxy);
+  m_3d->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
  // m_3d->setSelectionModel(this->Internals->objectTreeView->selectionModel());
   this->Internals->volumeDock->setWidget(m_3d);
   connect(server,SIGNAL(connectionCreated(vtkIdType)),m_3d,SLOT(connectToServer()));
@@ -230,11 +235,8 @@ void EspinaMainWindow::loadData(pqPipelineSource *source)
   }
   //m_productManager->registerProduct(stack);
   //m_productManager->registerProduct(seg);
+  
   m_espina->addSample(stack);
-  SampleProxy *sampleProxy = new SampleProxy();
-  sampleProxy->setSourceModel(m_espina);
-  //this->Internals->objectTreeView->setModel(sampleProxy);
-  //this->Internals->objectTreeView->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
 }
 
 //-----------------------------------------------------------------------------

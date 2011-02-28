@@ -43,8 +43,11 @@ public slots:
   void connectToServer();
   void disconnectFromServer();
   
+  //! Show/Hide axial planes
+  void showSamples(bool value);
+  
   //! Show/Hide scene actors
-  void showActors(bool value);
+  void showSegmentations(bool value);
     
 protected:
     virtual QRegion visualRegionForSelection(const QItemSelection& selection) const;
@@ -72,8 +75,8 @@ protected slots:
   
 private:
   bool m_init;
-  bool m_showPlanes;
-  bool m_showActors;
+  bool m_showSamples;
+  bool m_showSegmentations;
   IRenderer *m_renderer;
   
   // GUI
