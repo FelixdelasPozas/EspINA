@@ -53,15 +53,23 @@ public:
     virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
     virtual Qt::ItemFlags flags(const QModelIndex& index) const;
-
+    // Special Nodes
+    QModelIndex taxonomyRoot() const;
+    QModelIndex sampleRoot() const;
+    QModelIndex segmentationRoot() const;
+    
     // Sample managing
     Sample *activeSample() {return m_activeSample;}
+    QModelIndex sampleIndex(Sample *sample) const;
 
     // Segmentation managing
     QList<Segmentation *> segmentations(const TaxonomyNode* taxonomy, bool recursive = false) const;
     
     // Taxonomy managin
     TaxonomyNode *taxonomy() {return m_tax;}
+    QModelIndex taxonomyIndex(TaxonomyNode *node) const;
+    
+    QModelIndex segmentationIndex(Segmentation *seg) const;
 
 public slots:
     //! Add a new sample (used by the UI)
@@ -88,7 +96,6 @@ private:
     //! Return the QModelIndex for a Taxonomy node given by
     //! the row and column of the node whithin its parent index
     //! and a pointer to the node itself
-    QModelIndex index(TaxonomyNode *node) const;
     
     //! Return the number of segmentations which belong to tax
     int numOfSegmentations(TaxonomyNode *tax) const;
@@ -96,13 +103,15 @@ private:
     int numOfSubTaxonomies(TaxonomyNode *tax) const;
 
 private:
-    TaxonomyNode *m_tax;
     TaxonomyNode *m_newSegType; // The type for new segmentations
     Sample *m_activeSample;
+    TaxonomyNode *m_tax;
+    QList<Sample *> m_samples;
+    QList<Segmentation *> m_segmentations;
+    ProcessingTrace *m_analysis;
+
     QMap<const TaxonomyNode *, QList<Segmentation *> > m_taxonomySegs;
     QMap<const Sample *, QList<Segmentation *> > m_sampleSegs;
-    QList<Sample *> m_samples;
-    ProcessingTrace *m_analysis;
 
     static EspINA *m_singleton;
 };

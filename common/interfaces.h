@@ -79,7 +79,7 @@ public:
   virtual void setVisible(bool value) {m_style = RENDER_STYLE((m_style | !VISIBLE) & (value?1:0));}
   virtual RENDER_STYLE style() {return m_style;}
   virtual pqOutputPort *outputPort() = 0;
-  virtual pqPipelineSource *data() = 0;
+  virtual pqPipelineSource *sourceData() = 0;
   virtual int portNumber() = 0;
   virtual void color(double *rgba) = 0;
   

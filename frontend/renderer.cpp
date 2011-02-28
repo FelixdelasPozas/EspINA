@@ -63,7 +63,7 @@ void MeshRenderer::render( IRenderable* actor, pqRenderView* view)
   else
   {
     pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
-    contour = ob->createFilter("filters","Contour",actor->data());
+    contour = ob->createFilter("filters","Contour",actor->sourceData());
     vtkSMProperty *p = contour->getProxy()->GetProperty("ContourValues");
     vtkSMDoubleVectorProperty *values = vtkSMDoubleVectorProperty::SafeDownCast(p);
     values->SetElements1(255);

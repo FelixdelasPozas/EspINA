@@ -176,7 +176,7 @@ void SeedGrowingSegmentation::execute()
    Product *product;
    foreach(product,grow->products())
    {
-     Segmentation *seg = new Segmentation(product->data(),product->portNumber());
+     Segmentation *seg = new Segmentation(product->sourceData(),product->portNumber());
      emit productCreated(seg);
    }
    

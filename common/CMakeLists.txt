@@ -11,6 +11,8 @@ qt4_add_resources(RCC_BUILT_SOURCES )
 # Add extra library containing custom code for the client.
 qt4_wrap_cpp(MOC_BUILT_SOURCES
   selectionManager.h
+  taxonomyProxy.h
+  sampleProxy.h
   espina.h
   iPixelSelector.h
 )
