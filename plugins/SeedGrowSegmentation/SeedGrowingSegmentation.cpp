@@ -63,7 +63,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 //-----------------------------------------------------------------------------
-SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): ISegmentationPlugin(parent)
+SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): EspinaPlugin(), ISegmentationPlugin(parent)
 {
   m_selector = new PixelSelector();
   
@@ -102,6 +102,12 @@ SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): ISegmentation
   m_tableGrow.addTranslation(espina, vtk);
 }
 
+void SeedGrowingSegmentation::LoadAnalaisys(EspinaParamList args)
+{
+
+}
+
+
 void SeedGrowingSegmentation::handle(const Selection sel)
 {
   
@@ -135,54 +141,66 @@ void SeedGrowingSegmentation::execute()
     undoStack->beginUndoSet(QString("Create SeedGrowingSegmentation"));
   }
   
-  ProcessingTrace *trace = new ProcessingTrace("SeedGrowingSegmentationPlguin");
+  ProcessingTrace *trace = ProcessingTrace::instance();//new ProcessingTrace("SeedGrowingSegmentationPlguin");
+
+  Product *input = dynamic_cast<Product *>(m_sel.object);
+  assert (input);
+
+
+  // Crear los Filtros
+  /*
+  EspinaParamList blurArgs;
+  blurArgs.push_back(EspinaParam("input",input->id()));
+  QString kernel = QString("2,2,2");
+  blurArgs.push_back(EspinaParam("Kernel",kernel.toStdString()));
+
+  Filter *blur = new Filter("filter","Median",blurArgs,m_tableBlur); 
   
-   Product *input = dynamic_cast<Product *>(m_sel.object);
-   assert (input);
+  assert(blur->products().size() == 1);
+  */
 
-   typedef NodeParam EspinaParam;
-   // Crear los Filtros
-   /*
-   EspinaParamList blurArgs;
-   blurArgs.push_back(EspinaParam("input",input->id()));
-   QString kernel = QString("2,2,2");
-   blurArgs.push_back(EspinaParam("Kernel",kernel.toStdString()));
-
-   Filter *blur = new Filter("filter","Median",blurArgs,m_tableBlur); 
-   
-   assert(blur->products().size() == 1);
-   */
-   
-   EspinaParamList growArgs;
+  EspinaParamList growArgs;
 //    qDebug() << "ID SEEDGROWING "<<  input->name.c_str() << " - " << input->id();
-   growArgs.push_back(EspinaParam(QString("input"), input->id()));
-   QString seed = QString("%1,%2,%3").arg(m_sel.coord.x).arg(m_sel.coord.y).arg(m_sel.coord.z);
-   growArgs.push_back(EspinaParam(QString("Seed"), seed));
-   qDebug() << "Seed: " << m_sel.coord.x << "," << m_sel.coord.y << "," << m_sel.coord.z;
-   QString th = QString::number(m_threshold->value());
-   growArgs.push_back(EspinaParam(QString("Threshold"), th));
-   qDebug() << "Threshold: " << th;
-   
-   Filter *grow = new Filter(
-     "filters",
-     "SeedGrowingSegmentationFilter",
-     growArgs,
-     m_tableGrow
-   );
-   
-   trace->addSubtrace(grow->trace());
-   
-   Product *product;
-   foreach(product,grow->products())
-   {
-     emit productCreated(product);
-   }
+  growArgs.push_back(EspinaParam(QString("input"), input->id()));
+  QString seed = QString("%1,%2,%3").arg(m_sel.coord.x).arg(m_sel.coord.y).arg(m_sel.coord.z);
+  growArgs.push_back(EspinaParam(QString("Seed"), seed));
+  qDebug() << "Seed: " << m_sel.coord.x << "," << m_sel.coord.y << "," << m_sel.coord.z;
+  QString th = QString::number(m_threshold->value());
+  growArgs.push_back(EspinaParam(QString("Threshold"), th));
+  qDebug() << "Threshold: " << th;
+
+  Filter *grow = new Filter(
+    "filters",
+    "SeedGrowingSegmentationFilter",
+    growArgs,
+    m_tableGrow
+  );
+  
+  trace->connect(input, grow, "input");
+  trace->print(std::cout);
+  
+  Product *product;
+  foreach(product,grow->products())
+  {
+    emit productCreated(product);
+  }
+
    
   if (undoStack)
   {
     undoStack->endUndoSet();
   }
   
+  ProcessingTrace* p = ProcessingTrace::instance();
+  qDebug("TRACE PRINT 1");
+  p->print(std::cout);
+  fstream f1 ("/tmp/traza.dot", fstream::in | fstream::out | fstream::trunc );
+  p->print(f1);
+  
+  f1.seekg(0);
+  p->readTrace(f1);
+  qDebug("TRACE PRINT 2");
+  p->print(std::cout);
   // Comment following line to allow several selections 
   //emit waitingSelection(NULL);
 }

@@ -19,10 +19,9 @@
 #ifndef TRACING_H
 #define TRACING_H
 
-#include "data/cajalTypes.h"
+#include "espinaTypes.h"
 
 #include <boost/graph/adjacency_list.hpp>
-//#include <boost/graph/subgraph.hpp>
 
 #include <QString>
 /*
@@ -33,7 +32,7 @@ typedef std::string ParamValue;
 typedef std::pair<EspinaArg, ParamValue> EspinaParam;
 typedef std::vector<EspinaParam> EspinaParamList;
 */
-typedef NodeParamList EspinaParamList;
+
 typedef unsigned int IndexType;
 //Forward declarations
 class ProcessingTrace;

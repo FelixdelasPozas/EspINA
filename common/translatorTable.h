@@ -20,15 +20,13 @@
 #ifndef TRANSLATORTABLE_H
 #define TRANSLATORTABLE_H
 
-#include "data/cajalTypes.h"
+#include "espinaTypes.h"
 
 #include <vector>
 #include <string> //TODO to QString sooner or later
 
 #include <QMap>
 
-typedef NodeArg EspinaArg;
-typedef NodeParamList EspinaParamList;
 
 //! Different Types of Vtk Properties
 enum VtkPropType
