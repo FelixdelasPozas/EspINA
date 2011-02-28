@@ -41,6 +41,15 @@ TaxonomyProxy::~TaxonomyProxy()
 }
 
 //------------------------------------------------------------------------
+void TaxonomyProxy::setSourceModel(QAbstractItemModel* sourceModel)
+{
+    QAbstractProxyModel::setSourceModel(sourceModel);
+    updateSegmentations();
+    connect(sourceModel,SIGNAL(rowsInserted(const QModelIndex&,int,int)),
+	    this,SLOT(sourceRowsInserted(const QModelIndex&,int,int)));
+}
+
+//------------------------------------------------------------------------
 int TaxonomyProxy::rowCount(const QModelIndex& parent) const
 {
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
@@ -165,17 +174,17 @@ QModelIndex TaxonomyProxy::mapToSource(const QModelIndex& proxyIndex) const
   if (!proxyIndex.isValid())
     return QModelIndex();
   
-  return sourceModel()->index(proxyIndex.row(),proxyIndex.column(),proxyIndex.parent());
-}
-
-
-//------------------------------------------------------------------------
-void TaxonomyProxy::setSourceModel(QAbstractItemModel* sourceModel)
-{
-    QAbstractProxyModel::setSourceModel(sourceModel);
-    updateSegmentations();
-    connect(sourceModel,SIGNAL(rowsInserted(const QModelIndex&,int,int)),
-	    this,SLOT(sourceRowsInserted(const QModelIndex&,int,int)));
+  IModelItem *proxyItem = static_cast<IModelItem *>(proxyIndex.internalPointer());
+  TaxonomyNode *proxyTax = dynamic_cast<TaxonomyNode *>(proxyItem);
+  if (proxyTax)
+    return sourceModel()->index(proxyIndex.row(),proxyIndex.column(),proxyIndex.parent());
+  Segmentation *proxySeg = dynamic_cast<Segmentation *>(proxyItem);
+  if (proxySeg)
+  {
+    EspINA *model = dynamic_cast<EspINA *>(sourceModel());
+    return model->segmentationIndex(proxySeg);
+  }
+  assert(false);
 }
 
 //------------------------------------------------------------------------
@@ -183,7 +192,7 @@ void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
 {
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
   
-  if (sourceParent == model->taxonomyRoot())
+  if (sourceParent == model->segmentationRoot())
   {
     updateSegmentations();
     //Look for modified segmentations
@@ -202,7 +211,6 @@ void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
     }
   }
 }
-
 
 //------------------------------------------------------------------------
 void TaxonomyProxy::updateSegmentations() const

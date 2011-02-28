@@ -30,6 +30,8 @@ class TaxonomyProxy : public QAbstractProxyModel
 public:
   TaxonomyProxy(QObject *parent=0);
   virtual ~TaxonomyProxy();
+
+  virtual void setSourceModel(QAbstractItemModel* sourceModel);
   
   virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
   virtual int columnCount(const QModelIndex& parent = QModelIndex()) const {return 1;}
@@ -38,9 +40,7 @@ public:
   virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
   virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
   
-  virtual void setSourceModel(QAbstractItemModel* sourceModel);
-  
-public slots:
+protected slots:
   void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
   
 protected:

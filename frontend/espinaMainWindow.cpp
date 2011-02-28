@@ -233,8 +233,8 @@ void EspinaMainWindow::loadData(pqPipelineSource *source)
   m_espina->addSample(stack);
   SampleProxy *sampleProxy = new SampleProxy();
   sampleProxy->setSourceModel(m_espina);
-  this->Internals->objectTreeView->setModel(sampleProxy);
-  this->Internals->objectTreeView->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
+  //this->Internals->objectTreeView->setModel(sampleProxy);
+  //this->Internals->objectTreeView->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
 }
 
 //-----------------------------------------------------------------------------

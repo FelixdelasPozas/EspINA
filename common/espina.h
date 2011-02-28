@@ -68,6 +68,8 @@ public:
     // Taxonomy managin
     TaxonomyNode *taxonomy() {return m_tax;}
     QModelIndex taxonomyIndex(TaxonomyNode *node) const;
+    
+    QModelIndex segmentationIndex(Segmentation *seg) const;
 
 public slots:
     //! Add a new sample (used by the UI)

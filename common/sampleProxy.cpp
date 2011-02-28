@@ -28,27 +28,27 @@
 #include <QDebug>
 #include <iostream>
 
-QModelIndex SampleProxy::mapFromSource(const QModelIndex& sourceIndex) const
+SampleProxy::SampleProxy(QObject* parent)
+: QAbstractProxyModel(parent)
 {
-  if (!sourceIndex.isValid())
-    return QModelIndex();
-  
-  return createIndex(sourceIndex.row(),sourceIndex.column(),sourceIndex.internalPointer());
+  updateSegmentations();
 }
 
-QModelIndex SampleProxy::mapToSource(const QModelIndex& proxyIndex) const
+SampleProxy::~SampleProxy()
 {
-  if (!proxyIndex.isValid())
-    return QModelIndex();
-  
-  return sourceModel()->index(proxyIndex.row(),proxyIndex.column(),proxyIndex.parent());
+
 }
 
-int SampleProxy::columnCount(const QModelIndex& parent) const
+//------------------------------------------------------------------------
+void SampleProxy::setSourceModel(QAbstractItemModel* sourceModel)
 {
-  return 1;
+    QAbstractProxyModel::setSourceModel(sourceModel);
+    updateSegmentations();
+    connect(sourceModel,SIGNAL(rowsInserted(const QModelIndex&,int,int)),
+	    this,SLOT(sourceRowsInserted(const QModelIndex&,int,int)));
 }
 
+//------------------------------------------------------------------------
 int SampleProxy::rowCount(const QModelIndex& parent) const
 {
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
@@ -80,41 +80,7 @@ int SampleProxy::rowCount(const QModelIndex& parent) const
   return 0;
 }
 
-QModelIndex SampleProxy::parent(const QModelIndex& child) const
-{
-  EspINA *model = dynamic_cast<EspINA *>(sourceModel());
-  assert(model);
-
-  if (!child.isValid())
-    return QModelIndex();
-  
-  if ( child == mapFromSource(model->taxonomyRoot()) 
-    || child == mapFromSource(model->sampleRoot()) 
-    || child == mapFromSource(model->segmentationRoot()))
-    return QModelIndex();
-  
-  IModelItem *childItem = static_cast<IModelItem *>(child.internalPointer());
-  assert (childItem);
-  // Checks if Sample
-  Sample *childSample = dynamic_cast<Sample *>(childItem);
-  if (childSample)
-    return mapFromSource(model->sampleRoot());
-  
-  // Otherwise is a segmentation
-  Segmentation *childSeg = dynamic_cast<Segmentation *>(childItem);
-  if (childSeg)
-  {
-    QModelIndex p = mapFromSource(model->sampleIndex(childSeg->origin()));
-    
-    IModelItem * element = static_cast<IModelItem *>(p.internalPointer());
-    Sample * sample = dynamic_cast<Sample *>(element);
-    return p;
-  }
-  
-  assert(false);
-  return QModelIndex();
-}
-
+//------------------------------------------------------------------------
 QModelIndex SampleProxy::index(int row, int column, const QModelIndex& parent) const
 {
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
@@ -147,9 +113,12 @@ QModelIndex SampleProxy::index(int row, int column, const QModelIndex& parent) c
     IModelItem *parentItem = static_cast<IModelItem *>(parent.internalPointer());
     Sample * parentSample = dynamic_cast<Sample *>(parentItem);
     assert(parentSample);
-    Segmentation *seg = m_sampleSegs[parentSample][row];
-    IModelItem *indexItem = seg;
-    return createIndex(row,column,indexItem);
+    IModelItem *element = m_sampleSegs[parentSample][row];
+    assert(element);
+    QModelIndex retIndex = createIndex(row,column,element);
+    std::cout << "Element: " << retIndex.data(Qt::DisplayRole).toString().toStdString() << std::endl;
+    assert(retIndex.model() != model);
+    return retIndex;
     
   }
   
@@ -158,14 +127,64 @@ QModelIndex SampleProxy::index(int row, int column, const QModelIndex& parent) c
   return QModelIndex();
 }
 
-void SampleProxy::setSourceModel(QAbstractItemModel* sourceModel)
+//------------------------------------------------------------------------
+QModelIndex SampleProxy::parent(const QModelIndex& child) const
 {
-    QAbstractProxyModel::setSourceModel(sourceModel);
-    updateSegmentations();
-    connect(sourceModel,SIGNAL(rowsInserted(const QModelIndex&,int,int)),
-	    this,SLOT(sourceRowsInserted(const QModelIndex&,int,int)));
+  EspINA *model = dynamic_cast<EspINA *>(sourceModel());
+  assert(model);
+
+  if (!child.isValid())
+    return QModelIndex();
+  
+  if ( child == mapFromSource(model->taxonomyRoot()) 
+    || child == mapFromSource(model->sampleRoot()) 
+    || child == mapFromSource(model->segmentationRoot()))
+    return QModelIndex();
+  
+  IModelItem *childItem = static_cast<IModelItem *>(child.internalPointer());
+  assert (childItem);
+  // Checks if Sample
+  Sample *childSample = dynamic_cast<Sample *>(childItem);
+  if (childSample)
+    return mapFromSource(model->sampleRoot());
+  
+  // Otherwise is a segmentation
+  Segmentation *childSeg = dynamic_cast<Segmentation *>(childItem);
+  if (childSeg)
+    return mapFromSource(model->sampleIndex(childSeg->origin()));
+    
+  assert(false);
+  return QModelIndex();
+}
+//------------------------------------------------------------------------
+QModelIndex SampleProxy::mapFromSource(const QModelIndex& sourceIndex) const
+{
+  if (!sourceIndex.isValid())
+    return QModelIndex();
+  
+  return createIndex(sourceIndex.row(),sourceIndex.column(),sourceIndex.internalPointer());
 }
 
+//------------------------------------------------------------------------
+QModelIndex SampleProxy::mapToSource(const QModelIndex& proxyIndex) const
+{
+  if (!proxyIndex.isValid())
+    return QModelIndex();
+  
+  EspINA *model = dynamic_cast<EspINA *>(sourceModel());
+  IModelItem *proxyItem = static_cast<IModelItem *>(proxyIndex.internalPointer());
+  Sample *proxySample = dynamic_cast<Sample *>(proxyItem);
+  if (proxySample)
+    return sourceModel()->index(proxyIndex.row(),proxyIndex.column(),model->sampleRoot());
+  Segmentation *proxySeg = dynamic_cast<Segmentation *>(proxyItem);
+  if (proxySeg)
+    return model->segmentationIndex(proxySeg);
+  
+  assert(false);
+}
+
+
+//------------------------------------------------------------------------
 void SampleProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start, int end)
 {
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
@@ -173,8 +192,6 @@ void SampleProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start,
   if (sourceParent == model->segmentationRoot())
   {
     updateSegmentations();
-    reset();
-    return;
     //Look for modified segmentations
     for (int r = start; r <= end; r++)
     {
@@ -192,6 +209,7 @@ void SampleProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start,
   }
 }
 
+//------------------------------------------------------------------------
 void SampleProxy::updateSegmentations() const
 {
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
@@ -210,4 +228,3 @@ void SampleProxy::updateSegmentations() const
     m_sampleSegs[seg->origin()].push_back(seg);
   }
 }
-
