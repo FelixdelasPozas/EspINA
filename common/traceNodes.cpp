@@ -38,8 +38,8 @@ int Product::c = -1;
 //-----------------------------------------------------------------------------
 // PRODUCT
 //-----------------------------------------------------------------------------
-Product::Product(pqPipelineSource* source, int portNumber)
-: IRenderable(source, portNumber)
+Product::Product(pqPipelineSource* source, int portNumber, QString parentHash)
+: IRenderable(source, portNumber), m_parentHash(parentHash)
 {
   this->name = "Product";
   this->type = 0;
@@ -151,8 +151,8 @@ Filter::Filter(
   
   for (int portNumber = 0; portNumber < m_proxy->getOutputPorts().size(); portNumber++)
   {
-    Product *filterOutput = new Product(m_proxy,portNumber);
-    filterOutput->m_parentHash = this->id(); //TODO modify the way it takes the parent hash, Maybe in the constructer (above line)
+    Product *filterOutput = new Product(m_proxy,portNumber, this->id());
+    //filterOutput->m_parentHash = this->id(); //TODO modify the way it takes the parent hash, Maybe in the constructer (above line)
     trace->addNode(filterOutput);
     trace->connect(this,filterOutput,"segmentation");
     m_products.push_back(filterOutput);

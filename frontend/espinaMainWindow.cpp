@@ -74,10 +74,14 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkPVImageSlicer.h"
 #include "vtkSMIntVectorProperty.h"
 
+//QT includes
+#include <QFileDialog>
+
 //Debug includes
 #include <QDebug>
 #include <iostream>
 #include <QPushButton>
+
 
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
@@ -176,11 +180,20 @@ EspinaMainWindow::~EspinaMainWindow()
  // delete m_3d;
 }
 
+void EspinaMainWindow::loadTrace()
+{
+  QString filePath = QFileDialog::getOpenFileName(this, tr("Open trace"), "", tr("Trace Files (*.trace)"));
+  
+  if( !filePath.isEmpty() )
+  {
+    qDebug() << "Loading Trace: " << filePath;
+  }
+}
 
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::loadData(pqPipelineSource *source)
 { 
-  Product *stack = new Product(source,0);
+  Product *stack = new Product(source,0, "");
   stack->name = "/home/jorge/Stacks/peque.mha";
   ProcessingTrace::instance()->addNode(stack);
   stack->setVisible(false);
@@ -233,10 +246,24 @@ void EspinaMainWindow::toggleVisibility(bool visible)
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::buildFileMenu(QMenu &menu)
 {
-	QIcon icon = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
-	QAction *openAction = new QAction(icon,tr("Open"),this);
-	pqLoadDataReaction * loadReaction = new pqLoadDataReaction(openAction);
-	QObject::connect(loadReaction, SIGNAL(loadedData(pqPipelineSource *)),
-		this, SLOT( loadData(pqPipelineSource *)));
-	menu.addAction(openAction);
+  QIcon icon = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
+
+  QAction *action = new QAction(icon,tr("Open"),this);
+  pqLoadDataReaction * loadReaction = new pqLoadDataReaction(action);
+  QObject::connect(loadReaction, SIGNAL(loadedData(pqPipelineSource *)),
+	  this, SLOT( loadData(pqPipelineSource *)));
+  menu.addAction(action);
+
+  /* Load Trace */
+  
+  action = new QAction(icon,tr("Load trace"),this);
+  QObject::connect(action, SIGNAL(triggered()),
+		    this, SLOT(loadTrace()));
+  menu.addAction(action);
+  /* Save Trace */
+  action = new QAction(qApp->style()->standardIcon(QStyle::SP_DialogSaveButton),
+			tr("Save trace"),this);
+
+  menu.addAction(action);
+	
 }

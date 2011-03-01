@@ -64,6 +64,7 @@ public:
   ~EspinaMainWindow();
 
 protected slots:
+  void loadTrace();
   void loadData(pqPipelineSource *source);
   void importData(pqPipelineSource *source){}//TODO
   void toggleVisibility(bool visible);

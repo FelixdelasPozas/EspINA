@@ -45,8 +45,8 @@ class Product
 , public IRenderable
 {
 public:
-  Product(){}
-  Product(pqPipelineSource *source, int portNumber);
+  //Product(){}
+  Product(pqPipelineSource *source, int portNumber, QString parentHash);
   virtual ~Product(){}
 
   //! Implements ITraceNode interface
@@ -59,7 +59,7 @@ public:
   
   //! Implements ISingleton
   virtual QString id();
-  QString m_parentHash; //TODO delete
+  
   
   //! Implements IRenderable
   virtual pqOutputPort* outputPort();
@@ -69,6 +69,7 @@ public:
 private:
   static int c;
   double m_rgba[4];
+  QString m_parentHash;
 };
 
 
