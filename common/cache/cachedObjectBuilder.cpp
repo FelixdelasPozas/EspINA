@@ -64,13 +64,10 @@ EspinaProxy* CachedObjectBuilder::createFilter(
 , VtkParamList args
   )
 {
-  
   // Create cache entry
-  std::vector<QString> namesToHash, argsToHash;
+  QStringList namesToHash;
   namesToHash.push_back( QString(group).append("::").append(name) );
-  argsToHash = reduceVtkArgs( args );
-  namesToHash.insert( namesToHash.end(), argsToHash.begin(), argsToHash.end());
-  
+  namesToHash.append( reduceVtkArgs(args));
   CacheIndex entryIndex = generateSha1( namesToHash );//createIndex(group,name,args);
   
   EspinaProxy * proxy = m_cache->getEntry(entryIndex);
@@ -150,7 +147,7 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(
 
 EspinaProxy* CachedObjectBuilder::createStack(QString filePath)
 {
-  std::vector<QString> v;
+  QStringList v;
   v.push_back( filePath );
   CacheIndex fileIndex = generateSha1(v);
   CacheEntry* proxy = m_cache->getEntry(fileIndex);

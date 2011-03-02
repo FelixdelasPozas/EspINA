@@ -42,6 +42,7 @@ Product::Product(pqPipelineSource* source, int portNumber, QString traceName, QS
   m_parentHash(parentHash)
 {
   this->name = traceName;
+  this->type = 0;
 }
 /*
 vector< ITraceNode* > Product::inputs()
@@ -71,19 +72,13 @@ EspinaParamList Product::getArguments()
 
 
 //-----------------------------------------------------------------------------
+//! Returns the id of the Product composed with the parent id and its Product name
 QString Product::id()
 {
-  vector<QString> v;
+  QStringList v;
   v.push_back( name );
-  QString id;
-  id.append( m_parentHash );
+  QString id = QString( m_parentHash );
   return id.append(generateSha1( v ));
-  
-//   string pId = name;// Use translator to generate own id.
-//   return name; //DEBUG
-//   assert(this->inputs().size() == 1);// Products are only created by a filter
-//   Filter * parent = dynamic_cast<Filter *>(this->inputs().front());
-//   return parent->id() + pId;
 }
 
 //-----------------------------------------------------------------------------
@@ -229,11 +224,9 @@ EspinaParamList Filter::getArguments()
 //-----------------------------------------------------------------------------
 QString Filter::id()
 {
-  //TODO: ParamList to Id
-  std::vector<QString> namesToHash, argsToHash;
+  QStringList namesToHash;
   namesToHash.push_back(name);
-  argsToHash = reduceArgs( m_args );
-  namesToHash.insert( namesToHash.end(), argsToHash.begin(), argsToHash.end());
+  namesToHash.append( reduceArgs(m_args) );
   return generateSha1(namesToHash);
 }
 

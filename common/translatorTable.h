@@ -26,6 +26,7 @@
 #include <string> //TODO to QString sooner or later
 
 #include <QMap>
+#include <QStringList>
 
 
 //! Different Types of Vtk Properties
@@ -47,9 +48,9 @@ typedef std::pair<VtkArg,ParamValue> VtkParam;
 typedef std::vector<VtkParam> VtkParamList;
 
 //! A function to translate from VtkParamList to vector
-inline std::vector<QString> reduceVtkArgs( VtkParamList& vl )
+inline QStringList reduceVtkArgs( VtkParamList& vl )
 {
-  std::vector<QString> v;
+  QStringList v;
   VtkParamList::iterator it;
   for( it=vl.begin(); it != vl.end(); it++ )
   {
