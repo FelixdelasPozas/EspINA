@@ -102,9 +102,24 @@ SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): EspinaPlugin(
   m_tableGrow.addTranslation(espina, vtk);
 }
 
-void SeedGrowingSegmentation::LoadAnalaisys(EspinaParamList args)
+void SeedGrowingSegmentation::LoadAnalisys(EspinaParamList args)
 {
-
+  QString InputId = "";
+  EspinaParamList::iterator it;
+  for(it=args.begin(); it != args.end(); it++)
+  {
+    if( (*it).first == "input" ){
+      InputId = (*it).second;
+      break;
+    }
+  }
+  
+  if( InputId.isEmpty() ){
+    qDebug("SeedGrowingSegmenation::LoadAnalisys: Error loading a tarce file. \"input\" argument not found");
+    exit(-1);//throw Finalizar importacion
+  }
+  Product* input = dynamic_cast<Product*> (Cache::instance()->getEntry(InputId));
+  this->buildSubPipeline(input, args);
 }
 
 
@@ -141,7 +156,7 @@ void SeedGrowingSegmentation::execute()
     undoStack->beginUndoSet(QString("Create SeedGrowingSegmentation"));
   }
   
-  ProcessingTrace *trace = ProcessingTrace::instance();//new ProcessingTrace("SeedGrowingSegmentationPlguin");
+  //ProcessingTrace *trace = ProcessingTrace::instance();//!X
 
   Product *input = dynamic_cast<Product *>(m_sel.object);
   assert (input);
@@ -164,26 +179,26 @@ void SeedGrowingSegmentation::execute()
   growArgs.push_back(EspinaParam(QString("input"), input->id()));
   QString seed = QString("%1,%2,%3").arg(m_sel.coord.x).arg(m_sel.coord.y).arg(m_sel.coord.z);
   growArgs.push_back(EspinaParam(QString("Seed"), seed));
-  qDebug() << "Seed: " << m_sel.coord.x << "," << m_sel.coord.y << "," << m_sel.coord.z;
+  //qDebug() << "Seed: " << m_sel.coord.x << "," << m_sel.coord.y << "," << m_sel.coord.z;
   QString th = QString::number(m_threshold->value());
   growArgs.push_back(EspinaParam(QString("Threshold"), th));
-  qDebug() << "Threshold: " << th;
+  //qDebug() << "Threshold: " << th;
 
-  Filter *grow = new Filter(
-    "filters",
-    "SeedGrowingSegmentationFilter",
-    growArgs,
-    m_tableGrow
-  );
-  
-  trace->connect(input, grow, "input");
-  trace->print(std::cout);
-  
-  Product *product;
-  foreach(product,grow->products())
-  {
-    emit productCreated(product);
-  }
+  this->buildSubPipeline(input, growArgs);
+//   Filter *grow = new Filter(
+//     "filters",
+//     "SeedGrowingSegmentationFilter",
+//     growArgs,
+//     m_tableGrow
+//   );//!X
+//   
+//   trace->connect(input, grow, "input");//!X
+//     
+//   Product *product;
+//   foreach(product,grow->products())
+//   {
+//     emit productCreated(product);
+//   }//!X
 
    
   if (undoStack)
@@ -191,16 +206,16 @@ void SeedGrowingSegmentation::execute()
     undoStack->endUndoSet();
   }
   
-  ProcessingTrace* p = ProcessingTrace::instance();
-  qDebug("TRACE PRINT 1");
-  p->print(std::cout);
-  fstream f1 ("/tmp/traza.dot", fstream::in | fstream::out | fstream::trunc );
-  p->print(f1);
-  
-  f1.seekg(0);
-  p->readTrace(f1);
-  qDebug("TRACE PRINT 2");
-  p->print(std::cout);
+//   ProcessingTrace* p = ProcessingTrace::instance();
+//   qDebug("TRACE PRINT 1");
+//   p->print(std::cout);
+//   fstream f1 ("/tmp/traza.dot", fstream::in | fstream::out | fstream::trunc );
+//   p->print(f1);
+//   
+//   f1.seekg(0);
+//   p->readTrace(f1);
+//   qDebug("TRACE PRINT 2");
+//   p->print(std::cout);
   // Comment following line to allow several selections 
   //emit waitingSelection(NULL);
 }
@@ -266,3 +281,26 @@ void SeedGrowingSegmentation::buildUI()
 }
 
 
+//! Creates the corresponding Pipeline of the plugin (the Filters and the Products). It also updates the Trace of the system
+void SeedGrowingSegmentation::buildSubPipeline(Product* input, EspinaParamList args)
+{
+  ProcessingTrace *trace = ProcessingTrace::instance();//!X
+
+  Filter *grow = new Filter(
+    "filters",
+    "SeedGrowingSegmentationFilter",
+    args,
+    m_tableGrow
+  );
+  
+  trace->connect(input, grow, "input");
+   
+  Product *product;
+  foreach(product,grow->products())
+  {
+    emit productCreated(product);
+  }
+  
+  ofstream f ("/tmp/example.trace", std::_S_trunc);
+  trace->print(f);
+}

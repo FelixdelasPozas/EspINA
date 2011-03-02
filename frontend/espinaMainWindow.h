@@ -65,6 +65,7 @@ public:
 
 protected slots:
   void loadTrace();
+  void loadFile();
   void loadData(pqPipelineSource *source);
   void importData(pqPipelineSource *source){}//TODO
   void toggleVisibility(bool visible);

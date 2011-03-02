@@ -52,7 +52,7 @@ class SeedGrowingSegmentation : public ISegmentationPlugin, public EspinaPlugin,
 public:
   SeedGrowingSegmentation(QObject* parent);
   
-  virtual void LoadAnalaisys(EspinaParamList args);
+  virtual void LoadAnalisys(EspinaParamList args);
   
   //! Implements ISelectionHandler interface
   void handle(const Selection sel);
@@ -74,6 +74,8 @@ signals:
   
 private:
   void buildUI();
+  
+  void buildSubPipeline(Product* input, EspinaParamList args);
   
 private:
   QSpinBox *m_threshold;

@@ -6,8 +6,8 @@
 class EspinaPlugin
 {
 public:
-  EspinaPlugin(){};
-  virtual void LoadAnalaisys(EspinaParamList args) = 0;
+
+  virtual void LoadAnalisys(EspinaParamList args) = 0;
 
 };
 

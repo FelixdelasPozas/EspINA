@@ -43,6 +43,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "selectionManager.h"
 #include "traceNodes.h"
 #include "cache/cache.h"
+#include "cache/cachedObjectBuilder.h"
 
 //ParaQ includes
 #include "pqHelpReaction.h"
@@ -81,6 +82,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QDebug>
 #include <iostream>
 #include <QPushButton>
+#include <pqServerResources.h>
 
 
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
@@ -190,13 +192,58 @@ void EspinaMainWindow::loadTrace()
   }
 }
 
+void EspinaMainWindow::loadFile()
+{
+  // GUI 
+  QString filePath = QFileDialog::getOpenFileName(this, tr("Open"), "", 
+						  tr("Espina old files (*.mha);;Trace Files (*.trace)"));
+  // en cache
+  /*
+  pqPipelineSource* stack = pqLoadDataReaction::loadData( QStringList(filePath) );
+  if( stack )
+    emit loadData(stack);
+  */
+  //EspinaProxy* stack = CachedObjectBuilder::createStack( filePath );
+  
+  if( !filePath.isEmpty() ){
+    qDebug() << "FILEPATH: " << filePath;
+    
+    EspinaProxy* source = CachedObjectBuilder::instance()->createStack(filePath);
+    Product *stack = new Product(source,0, "");
+    stack->name = filePath;
+    stack->setVisible(false);
+    
+    ProcessingTrace::instance()->addNode(stack);
+    
+    // This updates the visualization pipeline before initializing the slice widgets
+    source->updatePipeline();
+    for (SlicePlane plane = SLICE_PLANE_FIRST; plane <= SLICE_PLANE_LAST; plane=SlicePlane(plane+1))
+    {
+      m_planes[plane]->setBackground(stack);
+      //m_planes[plane]->addSegmentation(seg);
+      m_3d->setPlane(m_planes[plane],plane);
+      connect(m_planes[plane],SIGNAL(updated()),m_3d,SLOT(updateScene()));
+      connect(m_productManager,SIGNAL(sliceRender(IRenderable*)),
+	      m_planes[plane],SLOT(addSegmentation(IRenderable *)));
+    }
+    m_productManager->registerProduct(stack);
+    //m_productManager->registerProduct(seg)
+   
+  }
+}
+
 //-----------------------------------------------------------------------------
-void EspinaMainWindow::loadData(pqPipelineSource *source)
+void EspinaMainWindow::loadData(pqPipelineSource *source) //! deprecated
 { 
   Product *stack = new Product(source,0, "");
-  stack->name = "/home/jorge/Stacks/peque.mha";
+  stack->name = pqApplicationCore::instance()->serverResources().list().first().path();//"/home/jorge/Stacks/peque.mha";
   ProcessingTrace::instance()->addNode(stack);
   stack->setVisible(false);
+  
+  pqServerResource res;
+  foreach(res, pqApplicationCore::instance()->serverResources().list()){
+    qDebug() << "STACK " << res.path();
+  }
   
   Cache *cache = Cache::instance();
   cache->insert(stack->id(),source);
@@ -248,18 +295,23 @@ void EspinaMainWindow::buildFileMenu(QMenu &menu)
 {
   QIcon icon = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
 
-  QAction *action = new QAction(icon,tr("Open"),this);
+  QAction *action = new QAction(icon,tr("PV Open"),this);
   pqLoadDataReaction * loadReaction = new pqLoadDataReaction(action);
   QObject::connect(loadReaction, SIGNAL(loadedData(pqPipelineSource *)),
-	  this, SLOT( loadData(pqPipelineSource *)));
+		    this, SLOT( loadData(pqPipelineSource *)));
   menu.addAction(action);
-
-  /* Load Trace */
+    
+  /* Load mha */
+  action = new QAction(icon,tr("new Open"),this);
+  QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT( loadFile()));
+  menu.addAction(action);
   
+  /* Load Trace */
   action = new QAction(icon,tr("Load trace"),this);
   QObject::connect(action, SIGNAL(triggered()),
 		    this, SLOT(loadTrace()));
   menu.addAction(action);
+  
   /* Save Trace */
   action = new QAction(qApp->style()->standardIcon(QStyle::SP_DialogSaveButton),
 			tr("Save trace"),this);
