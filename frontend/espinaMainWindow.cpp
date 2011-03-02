@@ -38,8 +38,6 @@
 #include "unitExplorer.h"
 #include "selectionManager.h"
 #include "traceNodes.h"
-#include "cache/cache.h" //TODO delete
-#include "cache/cachedObjectBuilder.h" // TODO deberia ir en traceNodes
 #include "data/taxonomy.h"
 #include "espina.h"
 
@@ -209,6 +207,14 @@ void EspinaMainWindow::loadFile()
   }
 }
 
+void EspinaMainWindow::saveTrace()
+{
+  QString filePath = QFileDialog::getSaveFileName(this, tr("Save Trace"), "", 
+		      tr("Trace Files (*.trace)"));
+  if( !filePath.isEmpty() )
+    m_espina->saveTrace( filePath );
+
+}
 
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::toggleVisibility(bool visible)
@@ -232,5 +238,6 @@ void EspinaMainWindow::buildFileMenu(QMenu &menu)
   /* TODO Save Trace */
   action = new QAction(qApp->style()->standardIcon(QStyle::SP_DialogSaveButton),
 			tr("Save trace"),this);
+  QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT( saveTrace()) );
   menu.addAction(action);
 }

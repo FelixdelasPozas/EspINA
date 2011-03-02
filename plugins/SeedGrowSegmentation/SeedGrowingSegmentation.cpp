@@ -285,7 +285,4 @@ void SeedGrowingSegmentation::buildSubPipeline(Product* input, EspinaParamList a
     Segmentation *seg = new Segmentation(product->sourceData(),product->portNumber(), grow->id());
     emit productCreated(seg);
   }
-  
-  ofstream f ("/tmp/example.trace", std::_S_trunc);
-  trace->print(f);
 }

@@ -25,6 +25,7 @@
 
 #include <QDebug>
 #include <iostream>
+#include <fstream>
 //------------------------------------------------------------------------
 EspINA *EspINA::m_singleton(NULL);
 
@@ -321,6 +322,12 @@ void EspINA::loadFile(QString filePath)
   else{
     qDebug() << QString("Error: %1 file not supported yet").arg(filePath.remove(0, filePath.lastIndexOf('.')));
   }
+}
+
+void EspINA::saveTrace(QString filePath)
+{
+  std::ofstream file( filePath.toStdString().c_str(), std::_S_trunc );
+  m_analysis->print(file);
 }
 
 
