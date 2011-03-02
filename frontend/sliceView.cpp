@@ -229,6 +229,7 @@ void SliceView::focusOnSample(Sample* sample)
     pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
     m_slicer = ob->createFilter("filters", "ImageSlicer", sample->sourceData(), 0);
     setPlane(m_plane);
+    sample->sourceData()->updatePipeline();
     vtkPVDataInformation *info = sample->outputPort()->getDataInformation();
     double *bounds = info->GetBounds();
     int *extent = info->GetExtent();
