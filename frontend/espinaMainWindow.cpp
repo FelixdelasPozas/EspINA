@@ -38,7 +38,6 @@
 #include "unitExplorer.h"
 #include "selectionManager.h"
 #include "traceNodes.h"
-#include "cache/cache.h"
 #include "data/taxonomy.h"
 #include "espina.h"
 
@@ -72,10 +71,15 @@
 #include "vtkPVImageSlicer.h"
 #include "vtkSMIntVectorProperty.h"
 
+//QT includes
+#include <QFileDialog>
+
 //Debug includes
 #include <QDebug>
 #include <iostream>
 #include <QPushButton>
+#include <pqServerResources.h>
+
 
 #include <taxonomyProxy.h>
 #include <sampleProxy.h>
@@ -192,15 +196,24 @@ EspinaMainWindow::~EspinaMainWindow()
   // delete m_3d;
 }
 
-
-//-----------------------------------------------------------------------------
-void EspinaMainWindow::loadData(pqPipelineSource *source)
+void EspinaMainWindow::loadFile()
 {
-  Sample *stack = new Sample(source, 0);
-  stack->name = "/home/jorge/Stacks/peque.mha";
-  stack->setVisible(false);
+  // GUI 
+  QString filePath = QFileDialog::getOpenFileName(this, tr("Open"), "", 
+		      tr("Espina old files (*.mha);;Trace Files (*.trace)"));
+  if( !filePath.isEmpty() ){
+    qDebug() << "FILEPATH: " << filePath;
+    m_espina->loadFile( filePath );
+  }
+}
 
-  m_espina->addSample(stack);
+void EspinaMainWindow::saveTrace()
+{
+  QString filePath = QFileDialog::getSaveFileName(this, tr("Save Trace"), "", 
+		      tr("Trace Files (*.trace)"));
+  if( !filePath.isEmpty() )
+    m_espina->saveTrace( filePath );
+
 }
 
 //-----------------------------------------------------------------------------
@@ -217,9 +230,14 @@ void EspinaMainWindow::toggleVisibility(bool visible)
 void EspinaMainWindow::buildFileMenu(QMenu &menu)
 {
   QIcon icon = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
-  QAction *openAction = new QAction(icon, tr("Open"), this);
-  pqLoadDataReaction * loadReaction = new pqLoadDataReaction(openAction);
-  QObject::connect(loadReaction, SIGNAL(loadedData(pqPipelineSource *)),
-                   this, SLOT(loadData(pqPipelineSource *)));
-  menu.addAction(openAction);
+
+  QAction* action = new QAction(icon,tr("Open"),this);
+  QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT( loadFile()));
+  menu.addAction(action);
+
+  /* TODO Save Trace */
+  action = new QAction(qApp->style()->standardIcon(QStyle::SP_DialogSaveButton),
+			tr("Save trace"),this);
+  QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT( saveTrace()) );
+  menu.addAction(action);
 }

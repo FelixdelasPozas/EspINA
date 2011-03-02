@@ -49,19 +49,21 @@ class Product
 , public IModelItem
 {
 public:
-  Product(){}
-  Product(pqPipelineSource *source, int portNumber);
+  //Product(){}
+  Product(pqPipelineSource *source, int portNumber, QString traceName = "Product", QString parentHash = "");
   virtual ~Product(){}
 
   //! Implements ITraceNode interface
+  /*
   virtual std::vector<ITraceNode *> inputs();
   virtual std::vector<ITraceNode *> outputs();
+  */
   virtual void print(int indent = 0) const;
   virtual EspinaParamList getArguments();
   
   //! Implements ISingleton
   virtual QString id();
-  QString m_parentHash; //TODO delete
+  
   
   //! Implements IRenderable
   virtual pqOutputPort* outputPort();
@@ -77,6 +79,7 @@ public:
   
 protected:
   double m_rgba[4];
+  QString m_parentHash;
   TaxonomyNode *m_taxonomy;
   Sample *m_sample;
 };
@@ -84,7 +87,7 @@ protected:
 class Sample : public Product
 {
 public:
-  Sample(pqPipelineSource *source, int portNumber) : Product(source,portNumber) {}
+  Sample(pqPipelineSource *source, int portNumber, QString sampleName) : Product(source,portNumber, sampleName) {}
   
   virtual QVariant data(int role = Qt::UserRole + 1) const;
 };
@@ -92,7 +95,7 @@ public:
 class Segmentation : public Product
 {
 public:
-  Segmentation(pqPipelineSource *source, int portNumber) : Product(source,portNumber) {}
+  Segmentation(pqPipelineSource *source, int portNumber, QString parentHash = "") : Product(source,portNumber, parentHash) {}
   
   virtual QVariant data(int role = Qt::UserRole + 1) const;
 };
@@ -141,8 +144,10 @@ public:
   );
   
   //! Implements ITraceNode interface
+  /*
   virtual std::vector<ITraceNode *> inputs();
   virtual std::vector<ITraceNode *> outputs();
+  */
   virtual void print(int indent = 0) const;
   virtual EspinaParamList getArguments();
   
@@ -150,16 +155,15 @@ public:
   virtual QString id();
   
   std::vector<Product *> products();
-  ProcessingTrace *trace();
+  //ProcessingTrace *trace();
   
 private:
   //void createFilter();
   
-private:
   EspinaParamList m_args;
   EspinaProxy *m_proxy;
   const TranslatorTable &m_translator;
-  ProcessingTrace m_filtertrace;
+  //ProcessingTrace m_filtertrace;
   std::vector<Product *> m_products;
 };
 

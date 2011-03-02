@@ -34,6 +34,7 @@ class CachedObjectBuilder
 public:
   static CachedObjectBuilder *instance();
   EspinaProxy *createFilter(QString group, QString name, VtkParamList args);
+  EspinaProxy* createStack(QString filePath);
   
 private:
   CachedObjectBuilder();

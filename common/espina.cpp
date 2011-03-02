@@ -21,10 +21,11 @@
 //Espina
 #include <data/taxonomy.h>
 #include "traceNodes.h"
-#include "cache/cache.h"
+#include "cache/cachedObjectBuilder.h"
 
 #include <QDebug>
 #include <iostream>
+#include <fstream>
 //------------------------------------------------------------------------
 EspINA *EspINA::m_singleton(NULL);
 
@@ -301,10 +302,44 @@ QList<Segmentation * > EspINA::segmentations(const TaxonomyNode* taxonomy, bool 
 }
 
 //------------------------------------------------------------------------
+void EspINA::loadFile(QString filePath)
+{
+  //TODO Check the type of file .mha, .trace, or .seg
+  // .mha at the moment
+  if( filePath.endsWith(".mha") ) //TODO change it to parse with readers lists
+  {
+    qDebug() << "MHA FILE: " << filePath;
+    EspinaProxy* source = CachedObjectBuilder::instance()->createStack( filePath);
+    Sample *stack = new Sample(source, 0, filePath);
+    stack->setVisible(false);
+    this->addSample(stack);
+  }
+  else if( filePath.endsWith(".trace") ){
+    qDebug() << "Error: .trace files not supported yet";
+  }
+  else if( filePath.endsWith(".seg") )
+    qDebug() << "Error: .seg files not supported yet";
+  else{
+    qDebug() << QString("Error: %1 file not supported yet").arg(filePath.remove(0, filePath.lastIndexOf('.')));
+  }
+}
+
+void EspINA::saveTrace(QString filePath)
+{
+  std::ofstream file( filePath.toStdString().c_str(), std::_S_trunc );
+  m_analysis->print(file);
+}
+
+
+//------------------------------------------------------------------------
 void EspINA::addSample(Sample* sample)
 {
-  Cache *cache = Cache::instance();
-  cache->insert(sample->id(),sample->sourceData());
+  /*Cache *cache = Cache::instance();
+  cache->insert(sample->id(),sample->sourceData());*/
+  /* If this is used to load samples when using .trace files. The next line must be uncommented*/
+  CachedObjectBuilder::instance()->createStack( sample->name );
+  
+  m_analysis->addNode(sample);
   
   int lastRow = rowCount(sampleRoot());
   beginInsertRows(sampleRoot(),lastRow,lastRow);
@@ -358,7 +393,7 @@ EspINA::EspINA(QObject* parent)
 {
   loadTaxonomy();
   m_newSegType = m_tax->getComponent("Symetric");
-  m_analysis = new ProcessingTrace();
+  m_analysis = ProcessingTrace::instance();
 }
 
 //------------------------------------------------------------------------

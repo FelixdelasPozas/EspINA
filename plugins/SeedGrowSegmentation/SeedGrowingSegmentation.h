@@ -33,6 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef SEEDGROWINGSEGMENTATION_H
 #define SEEDGROWINGSEGMENTATION_H
 
+#include "EspinaPlugin.h"
 #include "iSegmentationPlugin.h"
 #include "interfaces.h"
 #include "traceNodes.h"
@@ -44,12 +45,14 @@ class IPixelSelector;
 class Product;
 
 //! Seed Growing Segmenation Plugin
-class SeedGrowingSegmentation : public ISegmentationPlugin, public ISelectionHandler
+class SeedGrowingSegmentation : public ISegmentationPlugin, public EspinaPlugin, public ISelectionHandler
 {
   Q_OBJECT
   
 public:
   SeedGrowingSegmentation(QObject* parent);
+  
+  virtual void LoadAnalisys(EspinaParamList args);
   
   //! Implements ISelectionHandler interface
   void handle(const Selection sel);
@@ -71,6 +74,8 @@ signals:
   
 private:
   void buildUI();
+  
+  void buildSubPipeline(Product* input, EspinaParamList args);
   
 private:
   QSpinBox *m_threshold;

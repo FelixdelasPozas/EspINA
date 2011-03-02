@@ -20,15 +20,14 @@
 #ifndef TRANSLATORTABLE_H
 #define TRANSLATORTABLE_H
 
-#include "data/cajalTypes.h"
+#include "espinaTypes.h"
 
 #include <vector>
 #include <string> //TODO to QString sooner or later
 
 #include <QMap>
+#include <QStringList>
 
-typedef NodeArg EspinaArg;
-typedef NodeParamList EspinaParamList;
 
 //! Different Types of Vtk Properties
 enum VtkPropType
@@ -49,9 +48,9 @@ typedef std::pair<VtkArg,ParamValue> VtkParam;
 typedef std::vector<VtkParam> VtkParamList;
 
 //! A function to translate from VtkParamList to vector
-inline std::vector<QString> reduceVtkArgs( VtkParamList& vl )
+inline QStringList reduceVtkArgs( VtkParamList& vl )
 {
-  std::vector<QString> v;
+  QStringList v;
   VtkParamList::iterator it;
   for( it=vl.begin(); it != vl.end(); it++ )
   {

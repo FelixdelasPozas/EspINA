@@ -28,6 +28,16 @@
 using namespace boost;
 
 
+ProcessingTrace* ProcessingTrace::m_instnace(NULL);
+
+ProcessingTrace* ProcessingTrace::instance()
+{
+  if( !m_instnace )
+    m_instnace = new ProcessingTrace();
+  return m_instnace;
+}
+
+
 ProcessingTrace::ProcessingTrace()
 : m_trace(0)
 {
@@ -44,11 +54,32 @@ ProcessingTrace::ProcessingTrace(const QString& name)
 void ProcessingTrace::addNode(ITraceNode* node)
 {
   VertexId v = add_vertex(m_trace);
+  /*
   property_map<Graph, ITraceNode * VertexProperty::*>::type nodeMap =
     get(&VertexProperty::node,m_trace);
-  node->localId = v;
-  nodeMap[v] = node;
-  nodeMap[v]->print();
+  */
+  node->vertexId = v;
+  //nodeMap[v] = node;
+  m_trace[v].node = node;
+  
+  QString args;  
+  foreach( NodeParam param, node->getArguments())
+  {
+    if( args.size() )
+      args.append(";");
+    args.append(param.first + ":" + param.second);
+  }
+  
+  m_trace[v].labelName = node->name.toStdString();
+  m_trace[v].args =  args.toStdString();
+  if( node->type ) // 0: Product, 1: Filter
+    m_trace[v].shape = "box";
+  else
+    m_trace[v].shape = "ellipse";
+  //nodeMap[v]->print();
+  //m_trace[v].node->print();
+    
+  
 }
 
 void ProcessingTrace::connect(
@@ -57,7 +88,8 @@ void ProcessingTrace::connect(
 , const std::string& description
 )
 {
-  add_edge(origin->localId,destination->localId,m_trace);
+  boost::add_edge(origin->vertexId, destination->vertexId, description, m_trace);
+  
   //property_map<Graph, std::string EdgeProperty::*>::type descMap =
   //  get(&EdgeProperty::relationship,m_trace);
   //descMap[e] = description;
@@ -67,9 +99,44 @@ void ProcessingTrace::connect(
   // description property
 }
 
-
-void ProcessingTrace::print()
+void ProcessingTrace::readTrace(std::istream& fileName)
 {
+  m_trace.clear();
+  boost::dynamic_properties dp;
+//   boost::property_map<Graph, boost::vertex_index1_t>::type vIndex
+//     = boost::get(boost::vertex_index, m_trace);
+  dp.property("node_id", boost::get(boost::vertex_index1, m_trace));
+//   boost::property_map<Graph, std::string VertexProperty::*>::type vString;
+//   vString = boost::get(&VertexProperties::labelName, m_trace);
+  dp.property("label", boost::get(&VertexProperties::labelName, m_trace));
+  //boost::property_map<Graph, std::string VertexProperty::*>::type vShape
+  //vString = boost::get(&VertexProperties::shape, m_trace);
+  dp.property("shape", boost::get(&VertexProperties::shape, m_trace));
+  //boost::property_map<Graph, std::string VertexProperty::*>::type vShape
+  //vString = boost::get(&VertexProperties::args, m_trace);
+  dp.property("args", boost::get(&VertexProperties::args, m_trace));
+  
+  dp.property("label", boost::get(boost::edge_name, m_trace));
+
+  boost::read_graphviz( fileName, m_trace, dp);
+  
+  //TODO build the pipeline
+  qDebug() << "After read the fu*:~ file I should build the pipeline ...";
+  
+}
+
+
+void ProcessingTrace::print( std::ostream& out )
+{
+  boost::dynamic_properties dp;
+  
+  dp.property("node_id", boost::get(boost::vertex_index, m_trace));
+  dp.property("label", boost::get(&VertexProperties::labelName, m_trace));
+  dp.property("shape", boost::get(&VertexProperties::shape, m_trace));
+  dp.property("args", boost::get(&VertexProperties::args, m_trace));
+  dp.property("label", boost::get(boost::edge_name, m_trace));
+	      
+  boost::write_graphviz( out, m_trace, dp);
   // property_map<Graph, (return type) Class::*)
   //property_map<Graph, std::string VertexProperty::*>::type nameMap =
   //  get(&VertexProperty::name,m_trace);
@@ -78,6 +145,7 @@ void ProcessingTrace::print()
   //write_graphviz(std::cout,m_trace,make_label_writer(nameMap));
 }
 
+/*
 void ProcessingTrace::addSubtrace(const ProcessingTrace* subTrace)
 {
 
@@ -105,6 +173,6 @@ std::vector< ITraceNode* > ProcessingTrace::outputs(const ITraceNode* node)
   }
   return result;
 }
-
+*/
 
 

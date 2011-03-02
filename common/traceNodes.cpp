@@ -37,12 +37,14 @@ using namespace std;
 //-----------------------------------------------------------------------------
 // PRODUCT
 //-----------------------------------------------------------------------------
-Product::Product(pqPipelineSource* source, int portNumber)
-: IRenderable(source, portNumber)
+Product::Product(pqPipelineSource* source, int portNumber, QString traceName, QString parentHash)
+: IRenderable(source, portNumber), 
+  m_parentHash(parentHash)
 {
-  this->name = "Product";
+  this->name = traceName;
+  this->type = 0;
 }
-
+/*
 vector< ITraceNode* > Product::inputs()
 {
   vector<ITraceNode *> nullVector;
@@ -55,7 +57,7 @@ vector< ITraceNode* > Product::outputs()
   vector<ITraceNode *> nullVector;
   return nullVector;
 }
-
+*/
 void Product::print(int indent) const
 {
   cout << name.toStdString().c_str() << endl;
@@ -70,19 +72,13 @@ EspinaParamList Product::getArguments()
 
 
 //-----------------------------------------------------------------------------
+//! Returns the id of the Product composed with the parent id and its Product name
 QString Product::id()
 {
-  vector<QString> v;
+  QStringList v;
   v.push_back( name );
-  QString id;
-  id.append( m_parentHash );
+  QString id = QString( m_parentHash );
   return id.append(generateSha1( v ));
-  
-//   string pId = name;// Use translator to generate own id.
-//   return name; //DEBUG
-//   assert(this->inputs().size() == 1);// Products are only created by a filter
-//   Filter * parent = dynamic_cast<Filter *>(this->inputs().front());
-//   return parent->id() + pId;
 }
 
 //-----------------------------------------------------------------------------
@@ -171,11 +167,13 @@ Filter::Filter(
   )
   : m_args(args)
   , m_translator(table)
-  , m_filtertrace(name)
+  //, m_filtertrace(name)
 {
   this->name = QString(group).append("::").append(name);
+  this->type = 1;
   
-  m_filtertrace.addNode(this);
+  ProcessingTrace* trace = ProcessingTrace::instance();
+  trace->addNode(this);
   
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   
@@ -188,16 +186,17 @@ Filter::Filter(
   
   for (int portNumber = 0; portNumber < m_proxy->getOutputPorts().size(); portNumber++)
   {
-    Product *filterOutput = new Product(m_proxy,portNumber);
-    filterOutput->m_parentHash = this->id(); //TODO modify the way it takes the parent hash, Maybe in the constructer (above line)
-    m_filtertrace.addNode(filterOutput);
-    m_filtertrace.connect(this,filterOutput,"segmentation");
+    Product *filterOutput = new Product(m_proxy,portNumber, this->id());
+    //filterOutput->m_parentHash = this->id(); //TODO modify the way it takes the parent hash, Maybe in the constructer (above line)
+    trace->addNode(filterOutput);
+    trace->connect(this,filterOutput,"segmentation");
     m_products.push_back(filterOutput);
   }
   qDebug() << "Filter ID " << this->id();
 }
 
 //-----------------------------------------------------------------------------
+/*
 vector< ITraceNode* > Filter::inputs()
 {
  return m_filtertrace.inputs(this);
@@ -208,7 +207,7 @@ vector< ITraceNode* > Filter::outputs()
 {
  return m_filtertrace.outputs(this);
 }
-
+*/
 //-----------------------------------------------------------------------------
 void Filter::print(int indent) const
 {
@@ -218,18 +217,16 @@ void Filter::print(int indent) const
 //-----------------------------------------------------------------------------
 EspinaParamList Filter::getArguments()
 {
-  EspinaParamList nullParamList;
-  return nullParamList;
+  //EspinaParamList nullParamList;
+  return m_args;
 }
 
 //-----------------------------------------------------------------------------
 QString Filter::id()
 {
-  //TODO: ParamList to Id
-  std::vector<QString> namesToHash, argsToHash;
+  QStringList namesToHash;
   namesToHash.push_back(name);
-  argsToHash = reduceArgs( m_args );
-  namesToHash.insert( namesToHash.end(), argsToHash.begin(), argsToHash.end());
+  namesToHash.append( reduceArgs(m_args) );
   return generateSha1(namesToHash);
 }
 
@@ -239,8 +236,8 @@ vector<Product *> Filter::products()
   return m_products;
 }
 
-ProcessingTrace* Filter::trace()
-{
-  return &m_filtertrace;
-}
+// ProcessingTrace* Filter::trace()
+// {
+//   return &m_filtertrace;
+// }
 
