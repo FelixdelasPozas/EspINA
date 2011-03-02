@@ -156,6 +156,19 @@ TaxonomyNode* TaxonomyNode::insertElement(QString subElement)
   return newElement;
 }
 
+QVariant TaxonomyNode::data(int role) const
+{
+  switch (role)
+  {
+    case Qt::DisplayRole:
+	return getName();
+    case Qt::DecorationRole:
+	return getColor();
+    default:
+      return QVariant();
+  }
+}
+
 
 
 /****************
