@@ -47,7 +47,10 @@
 #include <traceNodes.h>
 
 //-----------------------------------------------------------------------------
-VolumeView::VolumeView(QWidget* parent): QAbstractItemView(parent)
+VolumeView::VolumeView(QWidget* parent)
+: QAbstractItemView(parent)
+, m_showSamples(false)
+, m_showSegmentations(false)
 {
   m_controlLayout = new QHBoxLayout();
   
@@ -194,7 +197,7 @@ QModelIndex VolumeView::moveCursor(QAbstractItemView::CursorAction cursorAction,
 void VolumeView::rowsInserted(const QModelIndex& parent, int start, int end)
 {
     QAbstractItemView::rowsInserted(parent, start, end);
-    //updateScene();
+    updateScene();
 }
 
 
@@ -297,7 +300,7 @@ void VolumeView::render(const QModelIndex& index)
       //TODO: Render planes
       qDebug() << "Render planes";
     } 
-    else if (m_showSegmentations)
+    else if (!sample && m_showSegmentations)
     {
       Segmentation *seg = dynamic_cast<Segmentation *>(item);
       assert(seg); // If not sample, it has to be a segmentation

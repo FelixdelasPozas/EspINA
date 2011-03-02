@@ -205,7 +205,7 @@ void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
       TaxonomyNode *segTax = sourceSeg->taxonomy();
       QModelIndex taxIndex = mapFromSource(model->taxonomyIndex(segTax));
       int begin = segTax->getSubElements().size();
-      int end = rowCount(taxIndex);
+      int end = rowCount(taxIndex) - 1;
       beginInsertRows(taxIndex,end,end);
       endInsertRows();
     }

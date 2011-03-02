@@ -26,9 +26,8 @@ qt4_add_resources(RCC_BUILT_SOURCES
 qt4_wrap_cpp (MOC_BUILT_SOURCES
   espinaMainWindow.h
   unitExplorer.h
-  sliceWidget.h
   slicer.h
-  volumeWidget.h
+  sliceView.h
   volumeView.h
   )
 

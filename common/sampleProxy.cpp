@@ -102,24 +102,19 @@ QModelIndex SampleProxy::index(int row, int column, const QModelIndex& parent) c
   if (parent == mapFromSource(model->sampleRoot()))
   {
     QModelIndex sourceIndex = model->index(row,column,parent);
-    IModelItem * element = static_cast<IModelItem *>(sourceIndex.internalPointer());
-    Sample * sample = dynamic_cast<Sample *>(element);
-    //std::cout << "Name:" << sample->name.toStdString() << std::endl;
-    assert(sample);
-    return createIndex(row,column,element);
+    IModelItem * interalPtr = static_cast<IModelItem *>(sourceIndex.internalPointer());
+    Sample * sample = dynamic_cast<Sample *>(interalPtr); //DEBUG
+    assert(sample); //DEBUG
+    return createIndex(row,column,interalPtr);
   }
   else 
   {
     IModelItem *parentItem = static_cast<IModelItem *>(parent.internalPointer());
     Sample * parentSample = dynamic_cast<Sample *>(parentItem);
     assert(parentSample);
-    IModelItem *element = m_sampleSegs[parentSample][row];
-    assert(element);
-    QModelIndex retIndex = createIndex(row,column,element);
-    std::cout << "Element: " << retIndex.data(Qt::DisplayRole).toString().toStdString() << std::endl;
-    assert(retIndex.model() != model);
-    return retIndex;
-    
+    IModelItem *internalPtr = m_sampleSegs[parentSample][row];
+    assert(internalPtr);
+    return createIndex(row,column,internalPtr);
   }
   
   // Otherwise, invalid index
@@ -207,7 +202,7 @@ void SampleProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start,
       assert(sourceSeg);
       Sample *segSample = sourceSeg->origin();
       QModelIndex sampleIndex = mapFromSource(model->sampleIndex(segSample));
-      int end = rowCount(sampleIndex);
+      int end = rowCount(sampleIndex)-1;
       beginInsertRows(sampleIndex,end,end);
       endInsertRows();
     }
