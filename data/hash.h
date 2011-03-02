@@ -1,13 +1,11 @@
 #ifndef HASH_H
 #define HASH_H
 
-#include <vector>
-#include <string>
-
 #include "cajalTypes.h"
 #include <QString>
+#include <QStringList>
 
-QString generateSha1( std::vector<QString>& v );
-std::vector<QString> reduceArgs( NodeParamList& nl);
+QString generateSha1( QStringList& v );
+QStringList reduceArgs( NodeParamList& nl);
 
 #endif // HASHL_H
