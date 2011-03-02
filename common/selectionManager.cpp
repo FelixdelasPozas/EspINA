@@ -18,7 +18,6 @@
 */
 
 #include "selectionManager.h"
-#include "objectManager.h"
 
 // Debug
 #include <QDebug>
@@ -51,8 +50,8 @@ void SelectionManager::pointSelected(const Point coord)
   if (m_sh)
   {
     m_sh->handle(sel);
-    qDebug() << "Selection managed";
+    //qDebug() << "Selection managed";
   }
-  else
-    qDebug() << "Selection ignored";
+  //else
+    //qDebug() << "Selection ignored";
 }

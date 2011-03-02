@@ -31,7 +31,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =========================================================================*/
 #include "SeedGrowingSegmentation.h"
 #include "selectionManager.h"
-#include "objectManager.h"
+//#include "objectManager.h"
+#include "espina.h"
 #include <cache/cachedObjectBuilder.h>
 #include "iPixelSelector.h"
 #include "traceNodes.h"
@@ -74,9 +75,9 @@ SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): EspinaPlugin(
 	  SelectionManager::singleton(),
 	  SLOT(setSelectionHandler(ISelectionHandler*)));
   connect(this,
-	  SIGNAL(productCreated(Product *)),
-	  ObjectManager::instance(),
-	  SLOT(registerProduct(Product*)));
+	  SIGNAL(productCreated(Segmentation *)),
+	  EspINA::instance(),
+	  SLOT(addSegmentation(Segmentation*)));
   
   // Init Grow table
   // TODO: Make cleaner
@@ -131,7 +132,7 @@ void SeedGrowingSegmentation::handle(const Selection sel)
   //Depending on the pixel selector 
   ImagePixel realInputPixel = m_selector->pickPixel(sel);
   m_sel.coord = sel.coord;
-  m_sel.object = ObjectManager::instance()->activeStack();
+  m_sel.object = EspINA::instance()->activeSample();
   
   execute();
   
@@ -175,32 +176,15 @@ void SeedGrowingSegmentation::execute()
   */
 
   EspinaParamList growArgs;
-//    qDebug() << "ID SEEDGROWING "<<  input->name.c_str() << " - " << input->id();
   growArgs.push_back(EspinaParam(QString("input"), input->id()));
   QString seed = QString("%1,%2,%3").arg(m_sel.coord.x).arg(m_sel.coord.y).arg(m_sel.coord.z);
   growArgs.push_back(EspinaParam(QString("Seed"), seed));
-  //qDebug() << "Seed: " << m_sel.coord.x << "," << m_sel.coord.y << "," << m_sel.coord.z;
+
   QString th = QString::number(m_threshold->value());
   growArgs.push_back(EspinaParam(QString("Threshold"), th));
-  //qDebug() << "Threshold: " << th;
 
   this->buildSubPipeline(input, growArgs);
-//   Filter *grow = new Filter(
-//     "filters",
-//     "SeedGrowingSegmentationFilter",
-//     growArgs,
-//     m_tableGrow
-//   );//!X
-//   
-//   trace->connect(input, grow, "input");//!X
-//     
-//   Product *product;
-//   foreach(product,grow->products())
-//   {
-//     emit productCreated(product);
-//   }//!X
 
-   
   if (undoStack)
   {
     undoStack->endUndoSet();
@@ -298,7 +282,8 @@ void SeedGrowingSegmentation::buildSubPipeline(Product* input, EspinaParamList a
   Product *product;
   foreach(product,grow->products())
   {
-    emit productCreated(product);
+    Segmentation *seg = new Segmentation(product->sourceData(),product->portNumber(), grow->id());
+    emit productCreated(seg);
   }
   
   ofstream f ("/tmp/example.trace", std::_S_trunc);

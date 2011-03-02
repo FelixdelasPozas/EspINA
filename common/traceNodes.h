@@ -23,11 +23,14 @@
 #include "tracing.h"
 #include "interfaces.h"
 #include "translatorTable.h"
+#include "data/modelItem.h"
 
 #include <QString>
+#include <data/taxonomy.h>
 
 // Forward declarations
 class pqPipelineSource;
+class Sample;
 
 
 typedef pqPipelineSource EspinaProxy;
@@ -43,10 +46,11 @@ class Product
 , public ITraceNode
 , public ISingleton
 , public IRenderable
+, public IModelItem
 {
 public:
   //Product(){}
-  Product(pqPipelineSource *source, int portNumber, QString parentHash);
+  Product(pqPipelineSource *source, int portNumber, QString parentHash = "");
   virtual ~Product(){}
 
   //! Implements ITraceNode interface
@@ -63,15 +67,38 @@ public:
   
   //! Implements IRenderable
   virtual pqOutputPort* outputPort();
-  virtual pqPipelineSource* data();	
+  virtual pqPipelineSource* sourceData();	
   virtual int portNumber();
   virtual void color(double* rgba);
-private:
-  static int c;
+  
+  virtual QVariant data(int role = Qt::UserRole + 1) const;
+  virtual TaxonomyNode *taxonomy() {return m_taxonomy;}
+  virtual void setTaxonomy(TaxonomyNode *taxonomy){m_taxonomy = taxonomy;} 
+  virtual void setOrigin(Sample *sample) {m_sample = sample;}
+  virtual Sample *origin() {return m_sample;}
+  
+protected:
   double m_rgba[4];
   QString m_parentHash;
+  TaxonomyNode *m_taxonomy;
+  Sample *m_sample;
 };
 
+class Sample : public Product
+{
+public:
+  Sample(pqPipelineSource *source, int portNumber) : Product(source,portNumber) {}
+  
+  virtual QVariant data(int role = Qt::UserRole + 1) const;
+};
+
+class Segmentation : public Product
+{
+public:
+  Segmentation(pqPipelineSource *source, int portNumber, QString parentHash = "") : Product(source,portNumber, parentHash) {}
+  
+  virtual QVariant data(int role = Qt::UserRole + 1) const;
+};
 
 
 class Filter : public ITraceNode, public ISingleton
