@@ -65,7 +65,7 @@ public slots:
   
 signals:
   void segmentationCreated(ProcessingTrace *);
-  void productCreated(Product *);
+  void productCreated(Segmentation *);
   void waitingSelection(ISelectionHandler *);
   void selectionAborted(ISelectionHandler *);
   

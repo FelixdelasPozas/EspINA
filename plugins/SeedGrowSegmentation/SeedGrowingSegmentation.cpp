@@ -31,7 +31,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =========================================================================*/
 #include "SeedGrowingSegmentation.h"
 #include "selectionManager.h"
-#include "objectManager.h"
+//#include "objectManager.h"
+#include "espina.h"
 #include <cache/cachedObjectBuilder.h>
 #include "iPixelSelector.h"
 #include "traceNodes.h"
@@ -74,9 +75,9 @@ SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): ISegmentation
 	  SelectionManager::singleton(),
 	  SLOT(setSelectionHandler(ISelectionHandler*)));
   connect(this,
-	  SIGNAL(productCreated(Product *)),
-	  ObjectManager::instance(),
-	  SLOT(registerProduct(Product*)));
+	  SIGNAL(productCreated(Segmentation *)),
+	  EspINA::instance(),
+	  SLOT(addSegmentation(Segmentation*)));
   
   // Init Grow table
   // TODO: Make cleaner
@@ -110,7 +111,7 @@ void SeedGrowingSegmentation::handle(const Selection sel)
   //Depending on the pixel selector 
   ImagePixel realInputPixel = m_selector->pickPixel(sel);
   m_sel.coord = sel.coord;
-  m_sel.object = ObjectManager::instance()->activeStack();
+  m_sel.object = EspINA::instance()->activeSample();
   
   execute();
   
@@ -175,7 +176,8 @@ void SeedGrowingSegmentation::execute()
    Product *product;
    foreach(product,grow->products())
    {
-     emit productCreated(product);
+     Segmentation *seg = new Segmentation(product->sourceData(),product->portNumber());
+     emit productCreated(seg);
    }
    
   if (undoStack)

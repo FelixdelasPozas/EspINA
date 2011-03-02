@@ -34,7 +34,6 @@
 #include "data/hash.h"
 using namespace std;
 
-int Product::c = -1;
 //-----------------------------------------------------------------------------
 // PRODUCT
 //-----------------------------------------------------------------------------
@@ -42,11 +41,6 @@ Product::Product(pqPipelineSource* source, int portNumber)
 : IRenderable(source, portNumber)
 {
   this->name = "Product";
-  m_rgba[0] = 0;
-  m_rgba[1] = 1-c;
-  m_rgba[2] = c;
-  m_rgba[3] = 1;
-  c++;
 }
 
 vector< ITraceNode* > Product::inputs()
@@ -99,9 +93,9 @@ pqOutputPort* Product::outputPort()
 
 
 //-----------------------------------------------------------------------------
-pqPipelineSource* Product::data()
+pqPipelineSource* Product::sourceData()
 {
-  return IRenderable::data();
+  return IRenderable::sourceData();
 }
 
 
@@ -114,11 +108,57 @@ int Product::portNumber()
 
 void Product::color(double *rgba)
 {
-  for(int i=0;i<4;i++)
-    rgba[i] = m_rgba[i];
+  QColor color = this->data(Qt::DecorationRole).value<QColor>();
+  rgba[0] = color.red()/255.0;
+  rgba[1] = color.green()/255.0;
+  rgba[2] = color.blue()/255.0;
+  rgba[3] = 1;
 }
 
+QVariant Product::data(int role) const
+{
+  switch (role)
+  {
+    case Qt::DisplayRole:
+	return "Generic Product";
+    case Qt::DecorationRole:
+	return QColor(Qt::darkMagenta);
+    default:
+      return QVariant();
+  }
+}
 
+//-----------------------------------------------------------------------------
+// Sample
+//-----------------------------------------------------------------------------
+QVariant Sample::data(int role) const
+{
+  switch (role)
+  {
+    case Qt::DisplayRole:
+      return name;
+    case Qt::DecorationRole:
+      return QColor(Qt::blue);
+    default:
+      return QVariant();
+  }
+}
+
+//-----------------------------------------------------------------------------
+// Segmentation
+//-----------------------------------------------------------------------------
+QVariant Segmentation::data(int role) const
+{
+  switch (role)
+  {
+    case Qt::DisplayRole:
+      return "Segmentation";
+    case Qt::DecorationRole:
+      return m_taxonomy->getColor();
+    default:
+      return QVariant();
+  }
+}
 
 //-----------------------------------------------------------------------------
 // FILTER

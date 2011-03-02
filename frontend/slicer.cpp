@@ -1,8 +1,5 @@
 #include "slicer.h"
 
-#include "stack.h"
-#include "segmentation.h"
-
 // Standard
 #include <assert.h>
 
@@ -62,7 +59,7 @@ void SliceBlender::setBackground ( IRenderable* background )
   
   //Slice the background image
   pqObjectBuilder *ob = core->getObjectBuilder();
-  m_bgSlicer = ob->createFilter("filters","ImageSlicer",m_background->data(), m_background->portNumber());
+  m_bgSlicer = ob->createFilter("filters","ImageSlicer",m_background->sourceData(), m_background->portNumber());
   assert(m_bgSlicer);
   
   p = m_bgSlicer->getProxy()->GetProperty("SliceMode");
@@ -132,7 +129,7 @@ void SliceBlender::addSegmentation ( IRenderable* seg )
   
   //Slice the background image
   pqObjectBuilder *ob = core->getObjectBuilder();
-  pqPipelineSource *slicer = ob->createFilter("filters","ImageSlicer",seg->data());
+  pqPipelineSource *slicer = ob->createFilter("filters","ImageSlicer",seg->sourceData());
   assert(slicer);
   m_slicers->push_back(slicer);
   
@@ -155,6 +152,7 @@ void SliceBlender::addSegmentation ( IRenderable* seg )
    *  pqScalarsToColors *segLUT = lutManager->getLookupTable(server,"SegmentationsLUT",4,0);
    */
   
+  
   vtkSMRGBALookupTableProxy *segLUT = vtkSMRGBALookupTableProxy::New();//= vtkSMRGBALookupTableProxy::SafeDownCast(ob->createProxy("lookup_tables","EspinaLookupTable",server,"LUTs"));//I'm not sure about second group name 
   segLUT->SetTableValue(0,0,0,0,0);
   double rgba[4];
@@ -175,6 +173,7 @@ void SliceBlender::addSegmentation ( IRenderable* seg )
   
   sliceMapper->getProxy()->UpdateVTKObjects();
   
+  sliceMapper->updatePipeline();
   //Add the colored segmentation slice to the list of blending 
   //inputs of the blender algorithm
   assert(m_blender);

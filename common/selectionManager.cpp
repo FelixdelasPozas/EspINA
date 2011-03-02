@@ -18,7 +18,6 @@
 */
 
 #include "selectionManager.h"
-#include "objectManager.h"
 
 // Debug
 #include <QDebug>

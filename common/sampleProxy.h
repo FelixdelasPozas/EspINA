@@ -17,42 +17,39 @@
 */
 
 
-#ifndef SEGMENTATIONMODEL_H
-#define SEGMENTATIONMODEL_H
+#ifndef SAMPLEPROXY_H
+#define SAMPLEPROXY_H
 
-#include <QModelIndex>
+#include <QAbstractProxyModel>
 
-// Forward declarations
-class TaxonomyNode;
-class ObjectManager;
+// Forward declaration
+class Sample;
+class Segmentation;
 
-//! An Abstract Model to represent Segementations
-class SegmentationModel : public QAbstractItemModel
+class SampleProxy : public QAbstractProxyModel
 {
   Q_OBJECT
 public:
-    SegmentationModel();
-    virtual ~SegmentationModel();
+    SampleProxy(QObject* parent = 0);
+    virtual ~SampleProxy();
     
-    //! Implement QAbstractItemModel Interface
-    virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
-    virtual int columnCount(const QModelIndex& parent = QModelIndex()) const;
+    virtual void setSourceModel(QAbstractItemModel* sourceModel);
+    
     virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
+    virtual int columnCount(const QModelIndex& parent = QModelIndex()) const {return 1;}
     virtual QModelIndex parent(const QModelIndex& child) const;
     virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
-    virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
-    virtual Qt::ItemFlags flags(const QModelIndex& index) const;
+    virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
+    virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
     
-    //! Segmentation Model methods
-    void setTaxonomy(TaxonomyNode *taxonomy) {m_tax = taxonomy;}
-    void setObjectManager(ObjectManager *manager) {m_om = manager;}
-private:
-  TaxonomyNode *indexNode(const QModelIndex &index) const;
-  bool isLeaf(TaxonomyNode *node) const;
+protected slots:
+  void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
+  
+protected:
+  void updateSegmentations() const;
   
 private:
-  TaxonomyNode *m_tax;
-  ObjectManager *m_om;
+  mutable QMap<const Sample *, QList<Segmentation *> > m_sampleSegs;
 };
 
-#endif // SEGMENTATIONMODEL_H
+#endif // SAMPLEPROXY_H

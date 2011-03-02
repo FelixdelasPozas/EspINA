@@ -8,8 +8,8 @@
    All rights reserved.
 
    ParaView is a free software; you can redistribute it and/or modify it
-   under the terms of the ParaView license version 1.2. 
-   
+   under the terms of the ParaView license version 1.2.
+
    See License_v1.2.txt for the full ParaView license.
    A copy of this license can be obtained by contacting
    Kitware Inc.
@@ -36,25 +36,20 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QMainWindow>
 
 //Necessary to use Planes enumeration
-#include "slicer.h"
 #include "distance.h"
 
 // Qt
 #include <QString>
 #include <QMap>
 
-class SegmentationModel;
 //Forward declaration
-class ObjectManager;
+class EspINA;
+class SliceView;
+class VolumeView;
 class QMenu;
 class pqPipelineSource;
-class SliceWidget;
-class VolumeWidget;
-class Segmentation;
-class Stack;
 class UnitExplorer;
 class SelectionManager;
-class TaxonomyNode;
 
 /// MainWindow for the default ParaView application.
 class EspinaMainWindow : public QMainWindow
@@ -67,7 +62,7 @@ public:
 
 protected slots:
   void loadData(pqPipelineSource *source);
-  void importData(pqPipelineSource *source){}//TODO
+  void importData(pqPipelineSource *source) {}//TODO
   void toggleVisibility(bool visible);
 
 
@@ -76,20 +71,16 @@ private:
   void operator=(const EspinaMainWindow&); // Not implemented.
 
   void buildFileMenu(QMenu &menu);
-    void buildTaxonomy();
+  void buildTaxonomy();
 
   class pqInternals;
   pqInternals* Internals;
-  ObjectManager *m_productManager;
-  QMap<QString,Stack *> m_stacks;
-  SliceBlender *m_planes[SLICE_PLANE_LAST+1];
-  SliceWidget *m_xy, *m_yz, *m_xz;
-  VolumeWidget *m_3d;
+  EspINA *m_espina;
+  SliceView *m_xy, *m_yz, *m_xz;;
+  VolumeView *m_3d;
   DistUnit m_unit;
   UnitExplorer *m_unitExplorer;
   SelectionManager *m_selectionManager;
-  TaxonomyNode *m_taxonomies;
-  SegmentationModel *m_segModel;
 };
 
 #endif //ESPINA_MAIN_WINDOW_H
