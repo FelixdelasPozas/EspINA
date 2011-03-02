@@ -198,53 +198,17 @@ EspinaMainWindow::~EspinaMainWindow()
   // delete m_3d;
 }
 
-void EspinaMainWindow::loadTrace()
-{
-  QString filePath = QFileDialog::getOpenFileName(this, tr("Open trace"), "", tr("Trace Files (*.trace)"));
-  
-  if( !filePath.isEmpty() )
-  {
-    qDebug() << "Loading Trace: " << filePath;
-  }
-}
-
 void EspinaMainWindow::loadFile()
 {
   // GUI 
   QString filePath = QFileDialog::getOpenFileName(this, tr("Open"), "", 
-						  tr("Espina old files (*.mha);;Trace Files (*.trace)"));
-  // en cache
-  /*
-  pqPipelineSource* stack = pqLoadDataReaction::loadData( QStringList(filePath) );
-  if( stack )
-    emit loadData(stack);
-  */
-  //EspinaProxy* stack = CachedObjectBuilder::createStack( filePath );
-  
+		      tr("Espina old files (*.mha);;Trace Files (*.trace)"));
   if( !filePath.isEmpty() ){
     qDebug() << "FILEPATH: " << filePath;
     m_espina->loadFile( filePath );
-    /*
-    EspinaProxy* source = CachedObjectBuilder::instance()->createStack(filePath);
-    Product *stack = new Product(source,0, ""); //TO stack
-    stack->name = filePath;
-    stack->setVisible(false);
-    
-    ProcessingTrace::instance()->addNode(stack);
-    */
-   
   }
 }
 
-//-----------------------------------------------------------------------------
-void EspinaMainWindow::loadData(pqPipelineSource *source) //! deprecated
-{
-  Sample *stack = new Sample(source, 0, "/home/jorge/Stacks/peque.mha");
-  //stack->name = "/home/jorge/Stacks/peque.mha";
-  stack->setVisible(false);
-
-  m_espina->addSample(stack);
-}
 
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::toggleVisibility(bool visible)
@@ -261,24 +225,11 @@ void EspinaMainWindow::buildFileMenu(QMenu &menu)
 {
   QIcon icon = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
 
-  QAction *action = new QAction(icon,tr("PV Open"),this);
-  pqLoadDataReaction * loadReaction = new pqLoadDataReaction(action);
-  QObject::connect(loadReaction, SIGNAL(loadedData(pqPipelineSource *)),
-		    this, SLOT( loadData(pqPipelineSource *)));
-  menu.addAction(action);
-    
-  /* Load mha */
-  action = new QAction(icon,tr("new Open"),this);
+  QAction* action = new QAction(icon,tr("Open"),this);
   QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT( loadFile()));
   menu.addAction(action);
-  
-  /* Load Trace */
-  action = new QAction(icon,tr("Load trace"),this);
-  QObject::connect(action, SIGNAL(triggered()),
-		    this, SLOT(loadTrace()));
-  menu.addAction(action);
-  
-  /* Save Trace */
+
+  /* TODO Save Trace */
   action = new QAction(qApp->style()->standardIcon(QStyle::SP_DialogSaveButton),
 			tr("Save trace"),this);
   menu.addAction(action);

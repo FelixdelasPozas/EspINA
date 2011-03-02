@@ -73,7 +73,7 @@ public:
     //! Openning .mha, .trace or .seg (.trace + .mha) file (used by the UI)
     void loadFile(QString filePath);
     
-//public slots:
+public slots:
     //! Add a new sample (used by the UI -> not anymore)
     void addSample(Sample *sample);
 
