@@ -1,25 +1,23 @@
 #ifndef _TAXONOMY_
 #define _TAXONOMY_
 
+#include "modelItem.h"
+
 #include <vector>
 
 // Qt dependencies
 #include <QString>
 #include <QXmlStreamWriter>
+#include <QColor>
 
-class TaxonomyNode
+class TaxonomyNode : public IModelItem
 {
- std::vector<TaxonomyNode *>* m_elements;
- QString m_name;
  
- void insertElement( QString subElement ); // Without checking 
 public:
-
   TaxonomyNode( QString name );
   ~TaxonomyNode();
   
   void print(int level=0);   
-
   //void addElement( QString subElement ); // With checking. TO DELTE. No tiene sentido estando el otro addElement
   
   // It introduces the subElement string as a subnode of supElement string. If subElement
@@ -28,10 +26,29 @@ public:
   // the elements through the TaxonoyNode object at the top of the tree.
   TaxonomyNode* addElement( QString subElement, QString supElement );
  
+  // Methods to explore the taxonomy
+  TaxonomyNode* getParent( QString name );
+  QVector<TaxonomyNode*> getSubElements() const;
   TaxonomyNode* getComponent( QString name ); 
-  QString getName() {return m_name;}
-  std::vector<TaxonomyNode*>* getSubElements();
   
+  // Taxonomy information methods
+  QString getName() const {return m_name;}
+  QString getDescription() const 
+    {return m_description;}
+  void setDescription(const QString &desc) {m_description = desc;}
+  QColor getColor() const {return m_color;}
+  void setColor(const QColor &color) {m_color = color;} 
+  
+  //! Implements IModelItem
+  virtual QVariant data(int role = Qt::UserRole + 1) const;
+  
+private:
+ TaxonomyNode *insertElement( QString subElement ); // Without checking 
+ 
+private:
+ QVector<TaxonomyNode *> m_elements;
+ QString m_name, m_description;
+ QColor m_color;
 };
 
 class IOTaxonomy
