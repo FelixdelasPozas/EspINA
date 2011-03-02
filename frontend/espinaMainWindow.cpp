@@ -223,23 +223,24 @@ void EspinaMainWindow::loadFile()
   
   if( !filePath.isEmpty() ){
     qDebug() << "FILEPATH: " << filePath;
-    
+    m_espina->loadFile( filePath );
+    /*
     EspinaProxy* source = CachedObjectBuilder::instance()->createStack(filePath);
     Product *stack = new Product(source,0, ""); //TO stack
     stack->name = filePath;
     stack->setVisible(false);
     
     ProcessingTrace::instance()->addNode(stack);
-    
+    */
    
   }
 }
 
 //-----------------------------------------------------------------------------
-void EspinaMainWindow::loadData(pqPipelineSource *source)
+void EspinaMainWindow::loadData(pqPipelineSource *source) //! deprecated
 {
-  Sample *stack = new Sample(source, 0);
-  stack->name = "/home/jorge/Stacks/peque.mha";
+  Sample *stack = new Sample(source, 0, "/home/jorge/Stacks/peque.mha");
+  //stack->name = "/home/jorge/Stacks/peque.mha";
   stack->setVisible(false);
 
   m_espina->addSample(stack);

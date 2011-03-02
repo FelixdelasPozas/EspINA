@@ -37,10 +37,11 @@ using namespace std;
 //-----------------------------------------------------------------------------
 // PRODUCT
 //-----------------------------------------------------------------------------
-Product::Product(pqPipelineSource* source, int portNumber, QString parentHash)
-: IRenderable(source, portNumber), m_parentHash(parentHash)
+Product::Product(pqPipelineSource* source, int portNumber, QString traceName, QString parentHash)
+: IRenderable(source, portNumber), 
+  m_parentHash(parentHash)
 {
-  this->name = "Product";
+  this->name = traceName;
 }
 /*
 vector< ITraceNode* > Product::inputs()

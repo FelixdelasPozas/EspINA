@@ -70,9 +70,11 @@ public:
     QModelIndex taxonomyIndex(TaxonomyNode *node) const;
     
     QModelIndex segmentationIndex(Segmentation *seg) const;
-
-public slots:
-    //! Add a new sample (used by the UI)
+    //! Openning .mha, .trace or .seg (.trace + .mha) file (used by the UI)
+    void loadFile(QString filePath);
+    
+//public slots:
+    //! Add a new sample (used by the UI -> not anymore)
     void addSample(Sample *sample);
 
     //! Add a new segmentation (used by the plugins)
@@ -80,6 +82,8 @@ public slots:
     
     //! Set which is the taxonomy defined by the user
     void setUserDefindedTaxonomy(const QModelIndex &index);
+  
+    
 
 signals:
     void render(IRenderable *product);

@@ -50,7 +50,7 @@ class Product
 {
 public:
   //Product(){}
-  Product(pqPipelineSource *source, int portNumber, QString parentHash = "");
+  Product(pqPipelineSource *source, int portNumber, QString traceName = "Product", QString parentHash = "");
   virtual ~Product(){}
 
   //! Implements ITraceNode interface
@@ -87,7 +87,7 @@ protected:
 class Sample : public Product
 {
 public:
-  Sample(pqPipelineSource *source, int portNumber) : Product(source,portNumber) {}
+  Sample(pqPipelineSource *source, int portNumber, QString sampleName) : Product(source,portNumber, sampleName) {}
   
   virtual QVariant data(int role = Qt::UserRole + 1) const;
 };
