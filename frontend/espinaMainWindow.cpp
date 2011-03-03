@@ -196,11 +196,20 @@ EspinaMainWindow::~EspinaMainWindow()
   // delete m_3d;
 }
 
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::loadData(pqPipelineSource *source)
+{
+  Sample *stack = new Sample(source, 0, "/home/jorge/Stacks/peque.mha");
+  //stack->name = "/home/jorge/Stacks/peque.mha";
+  stack->setVisible(false);
+  m_espina->addSample(stack);
+}
+
 void EspinaMainWindow::loadFile()
 {
   // GUI 
   QString filePath = QFileDialog::getOpenFileName(this, tr("Open"), "", 
-		      tr("Espina old files (*.mha);;Trace Files (*.trace)"));
+		      tr("Espina old files (*.mha);;Espina trace files (*.trace);;Espina files(*.seg)"));
   if( !filePath.isEmpty() ){
     qDebug() << "FILEPATH: " << filePath;
     m_espina->loadFile( filePath );
@@ -209,6 +218,7 @@ void EspinaMainWindow::loadFile()
 
 void EspinaMainWindow::saveTrace()
 {
+  // GUI  
   QString filePath = QFileDialog::getSaveFileName(this, tr("Save Trace"), "", 
 		      tr("Trace Files (*.trace)"));
   if( !filePath.isEmpty() )
@@ -230,14 +240,21 @@ void EspinaMainWindow::toggleVisibility(bool visible)
 void EspinaMainWindow::buildFileMenu(QMenu &menu)
 {
   QIcon icon = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
+ 
+  QAction *action = new QAction(icon,tr("Open"),this);
+  pqLoadDataReaction * loadReaction = new pqLoadDataReaction(action);
+  QObject::connect(loadReaction, SIGNAL(loadedData(pqPipelineSource *)),
+		    this, SLOT( loadData(pqPipelineSource *)));
+  menu.addAction(action);
 
-  QAction* action = new QAction(icon,tr("Open"),this);
+  /* Import Trace from localhost  */
+  action = new QAction(icon,tr("Import"),this);
   QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT( loadFile()));
   menu.addAction(action);
 
-  /* TODO Save Trace */
+  /* Export Trace to localhost */
   action = new QAction(qApp->style()->standardIcon(QStyle::SP_DialogSaveButton),
-			tr("Save trace"),this);
+			tr("Export trace"),this);
   QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT( saveTrace()) );
   menu.addAction(action);
 }
