@@ -1,0 +1,5 @@
+<ParaViewReaders>
+  <Reader name="RemoteFile" extensions="trace"
+	  file_description="My trace files">
+  </Reader>
+</ParaViewReaders>

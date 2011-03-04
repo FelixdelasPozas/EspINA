@@ -1,6 +1,5 @@
 project (ESPINA_REMOTE_FILE_PLUGIN)
 cmake_minimum_required(VERSION 2.6)
-PROJECT(AlgorithmSourceExample)
 
 find_package (ParaView REQUIRED)
 include (${PARAVIEW_USE_FILE})
@@ -11,12 +10,17 @@ include (${VTK_USE_FILE})
 # find_package (Cajal REQUIRED)
 # include (${ITK_USE_FILE})
 
-ADD_EXECUTABLE(AlgorithmSourceExample AlgorithmSourceExample.cpp 
-  vtkFileContent.cpp
-  vtkTraceReader.cpp
+# ADD_EXECUTABLE(AlgorithmSourceExample 
+#   vtkFileContent.cpp
+#   vtkRemoteFileReader.cpp
+# 
+# )
 
-)
 
+ADD_PARAVIEW_PLUGIN(RemoteFile "1.0" 
+  SERVER_MANAGER_XML RemoteFile.xml
+  SERVER_MANAGER_SOURCES vtkRemoteFileReader.cpp
+  GUI_RESOURCE_FILES MyReaderGUI.xml)
 
 
 ############################
@@ -37,4 +41,4 @@ include_directories(
 #   CLASS_NAME SeedGrowingSegmentation 
 #   GROUP_NAME "ToolBar/SeedGrowingSegmentation")
  
-TARGET_LINK_LIBRARIES(AlgorithmSourceExample vtkHybrid)
+TARGET_LINK_LIBRARIES(RemoteFile vtkHybrid)
