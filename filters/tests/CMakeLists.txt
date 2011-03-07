@@ -1,4 +1,6 @@
 SET(TESTS 
+  BoundingRegion
+  CountingRegion
 	Pipeline
 )
 

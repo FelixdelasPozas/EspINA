@@ -26,6 +26,8 @@ endif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
 # (I think it depends if we use shared libraries)
 target_link_libraries (CajalFilters ITKCommon ITKBasicFilters ITKAlgorithms)
 
+SET (ENABLE_TESTS 1)
+
 if (ENABLE_TESTS)
 	add_subdirectory(tests)
 endif (ENABLE_TESTS)
