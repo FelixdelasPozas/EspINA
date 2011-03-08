@@ -60,7 +60,10 @@ protected:
   virtual ~vtkCountingRegionFilter();
   
 private:
-  double BottonMargin, RightMargin, TopMargin, LeftMargin;
+  double BottonMargin;
+  double RightMargin;
+  double TopMargin;
+  double LeftMargin;
 };
 
 #endif // VTKCOUNTINGREGION_H

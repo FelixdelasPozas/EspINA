@@ -9,8 +9,18 @@
 #include "itkVTKImageToImageFilter.h"
 #include "itkConnectedThresholdImageFilter.h"
 #include "itkImageToVTKImageFilter.h"
+#include <itkLabelMap.h>
+#include <itkLabelImageToLabelMapFilter.h>
+#include <itkLabelMapToLabelImageFilter.h>
+#include <itkLabelImageToShapeLabelMapFilter.h>
+#include <itkStatisticsLabelObject.h>
+#include <itkRegionOfInterestImageFilter.h>
+#include <itkExtractImageFilter.h>
+#include <itkImageFileWriter.h>
 #include <algorithm>
-
+#include <vtkInformation.h>
+#include <vtkInformationVector.h>
+#include <vtkStreamingDemandDrivenPipeline.h>
 
 #define vtkTemplateMyMacro(call)                                              \
   vtkTemplateMacroCase(VTK_DOUBLE, double, call);                           \
@@ -54,13 +64,23 @@ void applyFilter(vtkImageData* input,
     
 		)
 {
+  std::cout << "REQUEST DATA" << std::endl;
   int dims[3];
   input->GetDimensions(dims);
 
+  //Typedefs
   typedef unsigned short SegPixel;
-  typedef itk::Image<unsigned char,3> InputImageType;
-  typedef itk::Image<unsigned char,3> OutputImageType;
-    std::cout << "FLAG applyFilter 1" << std::endl;
+  typedef unsigned char InputPixelType;
+  typedef unsigned char OutputPixelType;
+  typedef itk::Image<InputPixelType,3> InputImageType;
+  typedef itk::Image<OutputPixelType,3> OutputImageType;
+  typedef itk::VTKImageToImageFilter<InputImageType> VTK2ITKFilter;
+  
+  typedef itk::ImageFileWriter< OutputImageType >  WriterType;
+  WriterType::Pointer writer = WriterType::New();
+
+  
+  std::cout << "FLAG applyFilter 1" << std::endl;
 //   if (input->GetScalarType() != output->GetScalarType())
 //   {
 //     vtkGenericWarningMacro(<< "Execute: input ScalarType, " << input->GetScalarType()
@@ -68,8 +88,7 @@ void applyFilter(vtkImageData* input,
 //     return;
 //   }
   //typename 
-  itk::VTKImageToImageFilter<InputImageType>::Pointer vtk2itk_filter =
-    itk::VTKImageToImageFilter<InputImageType>::New();
+  VTK2ITKFilter::Pointer vtk2itk_filter = VTK2ITKFilter::New();
     
  // typename 
     itk::ConnectedThresholdImageFilter<InputImageType, OutputImageType>::Pointer ctif =
@@ -102,10 +121,70 @@ void applyFilter(vtkImageData* input,
   std::cout << seed[0] << " " << seed[1] << " " << seed[2] << std::endl;
   
   ctif->AddSeed( seed );
-  itk2vtk_filter->SetInput( ctif->GetOutput() );
+  
+  // Convert label image to label map
+  typedef itk::StatisticsLabelObject<unsigned int, 3> LabelObjectType;
+  typedef itk::LabelMap<LabelObjectType> LabelMapType;
+  typedef itk::LabelImageToShapeLabelMapFilter<OutputImageType, LabelMapType> Image2LabelFilter;
+  
+  Image2LabelFilter::Pointer image2label = Image2LabelFilter::New();
+  image2label->SetInput(ctif->GetOutput());
+  image2label->Update();//TODO: Check if needed
+  
+  //TODO: Sobra?
+  itk::LabelMapToLabelImageFilter<LabelMapType,OutputImageType>::Pointer label2image =
+  itk::LabelMapToLabelImageFilter<LabelMapType,OutputImageType>::New();
+  label2image->SetInput(image2label->GetOutput());
+  label2image->Update();
+
+  
+  // Get the roi of the object
+  LabelMapType *labelMap = image2label->GetOutput();
+  std::cout << "Labels: " << labelMap->GetLabels().at(0) << std::endl;;
+  
+  LabelObjectType *object = labelMap->GetLabelObject(255);
+  unsigned char label = object->GetLabel();
+  LabelObjectType::RegionType objectROI = object->GetRegion();
+  //OutputImageType::SizeType t;
+  //t[0] = t[1] = t[2] = 50;
+  //objectROI.SetSize(t);
+  
+  //itk::RegionOfInterestImageFilter<OutputImageType,OutputImageType>::Pointer roi =
+  //itk::RegionOfInterestImageFilter<OutputImageType,OutputImageType>::New();
+  itk::ExtractImageFilter<OutputImageType,OutputImageType>::Pointer extract =
+  itk::ExtractImageFilter<OutputImageType,OutputImageType>::New();
+  
+  //InputImageType::RegionType inputRegion = ctif->GetOutput()->GetLargestPossibleRegion();
+  
+  //InputImageType::SizeType size = inputRegion.GetSize();
+  //InputImageType::IndexType start = inputRegion.GetIndex();
+  //start[0] = 50;
+  
+  //InputImageType::RegionType miROI;
+  //size[0] = 100;
+  //miROI.SetSize(size);
+  //miROI.SetIndex(start);
+  
+  extract->SetInput(ctif->GetOutput());
+  extract->SetExtractionRegion(objectROI);
+  extract->Update();
+  //extract->GetOutput()->Print(std::cout);
+  
+  writer->SetFileName("Test.mha");
+  writer->SetInput(extract->GetOutput());
+  writer->Write();
+  
+  //std:cout << objectROI.GetSize() << std::endl;
+  //roi->SetRegionOfInterest(objectROI);
+  //roi->SetInput(label2image->GetOutput());
+  //roi->Update();
+  
+  
+  itk2vtk_filter->SetInput( extract->GetOutput() );
   itk2vtk_filter->Update();
   std::cout << "FLAG applyFilter 3" << std::endl;
   output->DeepCopy( itk2vtk_filter->GetOutput() );
+  
   
 }
 
@@ -135,6 +214,32 @@ void vtkConnectedThresholdImageFilter::SimpleExecute(vtkImageData* input,
     */
   
 }
+
+int vtkConnectedThresholdImageFilter::RequestInformation(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
+{
+  vtkInformation* inInfo = inputVector[0]->GetInformationObject(0);
+  vtkInformation* outInfo = outputVector->GetInformationObject(0);
+  
+  int wholeExtent[6];
+  double spacing[3];
+  
+  // Use the same input spacing
+  inInfo->Get(vtkDataObject::SPACING(), spacing);
+  outInfo->Set(vtkDataObject::SPACING(), spacing, 3);
+  
+  std::cout << "REQUEST EXTENT" << std::endl;
+  wholeExtent[0] = 0;
+  wholeExtent[1] = 82;
+  wholeExtent[2] = 164;
+  wholeExtent[3] = 420;
+  wholeExtent[4] = 0;
+  wholeExtent[5] = 22;
+  
+  outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),wholeExtent,6); 
+  
+  return 1;
+}
+
 
 void vtkConnectedThresholdImageFilter::PrintSelf(ostream& os, vtkIndent indent)
 {

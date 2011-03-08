@@ -25,6 +25,8 @@ protected:
     
     virtual void SimpleExecute(vtkImageData* input, vtkImageData* output);
     
+  virtual int RequestInformation(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector);
+    
 private:
     vtkConnectedThresholdImageFilter(const vtkSimpleImageToImageFilter& );// Not implemented
     void operator=(const vtkConnectedThresholdImageFilter&);// Not implemented
