@@ -24,12 +24,15 @@ int main(int argc, char **argv)
   segmentation->SetInputConnection(reader->GetOutputPort());
   
   segmentation->Setm_threshold(30);
-  segmentation->Setm_seed(0,0,0);
+  segmentation->Setm_seed(76,177,0);
+  segmentation->DebugOn();
   segmentation->Update();
   
-  // Es posible que haya que cambiar el mapper
-  //vtkImageMapper *imageMapper = vtkImageMapper::New();
-  //imageMapper->SetInputConnection( reader->GetOutputPort() );
+  //vtkSmartPointer<vtkMetaImageWriter> writer = vtkSmartPointer<vtkMetaImageWriter>::New();
+  //writer->SetFileName("Test2.mha");
+  //writer->SetRAWFileName("Test2.raw");
+  //writer->SetInputConnection(segmentation->GetOutputPort());
+  //writer->Write();
   
   // El resto es igual
   vtkImageActor *imageActor = vtkImageActor::New();
