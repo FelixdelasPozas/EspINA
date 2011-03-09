@@ -116,6 +116,8 @@ EspinaMainWindow::EspinaMainWindow()
   this->Internals->objectTreeView->setModel(taxProxy);
   this->Internals->objectTreeView->setRootIndex(taxProxy->mapFromSource(m_espina->taxonomyRoot()));
   connect(this->Internals->objectTreeView, SIGNAL(doubleClicked(const QModelIndex &)), m_espina, SLOT(setUserDefindedTaxonomy(const QModelIndex&)));
+  this->Internals->sampleView->setModel(m_espina);
+  this->Internals->sampleView->setRootIndex(m_espina->sampleRoot());
 
   //Create File Menu
   buildFileMenu(*this->Internals->menu_File);

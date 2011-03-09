@@ -162,6 +162,9 @@
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
       <widget class="QTreeView" name="objectTreeView">
+       <property name="animated">
+        <bool>true</bool>
+       </property>
        <attribute name="headerVisible">
         <bool>false</bool>
        </attribute>
@@ -205,6 +208,9 @@
         </widget>
        </item>
       </layout>
+     </item>
+     <item>
+      <widget class="QListView" name="sampleView"/>
      </item>
      <item>
       <spacer name="verticalSpacer">

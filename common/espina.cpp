@@ -68,19 +68,37 @@ QVariant EspINA::data(const QModelIndex& index, int role) const
   
   IModelItem *indexItem = static_cast<IModelItem *>(index.internalPointer());
   return indexItem->data(role);
-  
-  
-  //bool isSegmentation = isLeaf(indexNode);
-/*  
-  switch (role)
+}
+
+//------------------------------------------------------------------------
+bool EspINA::setData(const QModelIndex& index, const QVariant& value, int role)
+{
+  if (index.isValid())
   {
-    case Qt::DisplayRole:
-	return indexNode->getName();
-    case Qt::DecorationRole:
-	return indexNode->getColor();
-    default:
-      return QVariant();
-  }*/
+    if (role == Qt::EditRole)
+    {
+      IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+      Segmentation *seg = dynamic_cast<Segmentation *>(item);
+      if (seg)
+      {
+	seg->name = value.toString();
+      }
+      emit dataChanged(index, index);
+      return true;
+    }
+    if (role == Qt::CheckStateRole)
+    {
+      IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+      Segmentation *seg = dynamic_cast<Segmentation *>(item);
+      if (seg)
+      {
+	seg->setVisible(value.toBool());
+      }
+      emit dataChanged(index, index);
+      return true;
+    }
+  }
+  return false;
 }
 
 //------------------------------------------------------------------------
@@ -222,9 +240,25 @@ QVariant EspINA::headerData(int section, Qt::Orientation orientation, int role) 
 //------------------------------------------------------------------------
 Qt::ItemFlags EspINA::flags(const QModelIndex& index) const
 {
-  return QAbstractItemModel::flags(index);
+  if (!index.isValid())
+    return Qt::ItemIsEnabled;
+  
+  if (index == taxonomyRoot() || index == sampleRoot() || index == segmentationRoot())
+    return Qt::ItemIsEnabled;
+  
+  // Segmentation are read-only (TODO: Allow editing extent/spacing)
+  if (index.parent() == sampleRoot())
+    return Qt::ItemIsEnabled;
+  
+  return QAbstractItemModel::flags(index) | Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
 }
 
+ //------------------------------------------------------------------------
+bool EspINA::removeRows(int row, int count, const QModelIndex& parent)
+{
+  std::cout << "REMOVIIIIIIIING ROWWWWWA\n\n\n\n";
+  return QAbstractItemModel::removeRows(row, count, parent);
+}
 
  //------------------------------------------------------------------------
 QModelIndex EspINA::taxonomyRoot() const
