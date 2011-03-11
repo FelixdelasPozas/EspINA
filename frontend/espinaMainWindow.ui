@@ -161,7 +161,7 @@
    <widget class="QWidget" name="dockWidgetContents">
     <layout class="QVBoxLayout" name="verticalLayout">
      <item>
-      <widget class="QTreeView" name="objectTreeView">
+      <widget class="QTreeView" name="taxonomyView">
        <property name="animated">
         <bool>true</bool>
        </property>

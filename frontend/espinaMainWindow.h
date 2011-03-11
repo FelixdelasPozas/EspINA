@@ -65,14 +65,13 @@ protected slots:
   void saveTrace();
   void importData(pqPipelineSource *source) {}//TODO
   void toggleVisibility(bool visible);
-
+  virtual bool eventFilter(QObject* obj, QEvent* event);
 
 private:
   EspinaMainWindow(const EspinaMainWindow&); // Not implemented.
   void operator=(const EspinaMainWindow&); // Not implemented.
 
   void buildFileMenu(QMenu &menu);
-  void buildTaxonomy();
 
   class pqInternals;
   pqInternals* Internals;

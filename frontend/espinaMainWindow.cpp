@@ -84,6 +84,7 @@
 #include <taxonomyProxy.h>
 #include <sampleProxy.h>
 #include "sliceView.h"
+#include <QMouseEvent>
 
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
@@ -113,9 +114,10 @@ EspinaMainWindow::EspinaMainWindow()
   taxProxy->setSourceModel(m_espina);
   SampleProxy *sampleProxy = new SampleProxy();
   sampleProxy->setSourceModel(m_espina);
-  this->Internals->objectTreeView->setModel(taxProxy);
-  this->Internals->objectTreeView->setRootIndex(taxProxy->mapFromSource(m_espina->taxonomyRoot()));
-  connect(this->Internals->objectTreeView, SIGNAL(doubleClicked(const QModelIndex &)), m_espina, SLOT(setUserDefindedTaxonomy(const QModelIndex&)));
+  this->Internals->taxonomyView->setModel(taxProxy);
+  this->Internals->taxonomyView->setRootIndex(taxProxy->mapFromSource(m_espina->taxonomyRoot()));
+  this->Internals->taxonomyView->installEventFilter(this);
+  connect(this->Internals->taxonomyView, SIGNAL(doubleClicked(const QModelIndex &)), m_espina, SLOT(setUserDefindedTaxonomy(const QModelIndex&)));
   this->Internals->sampleView->setModel(m_espina);
   this->Internals->sampleView->setRootIndex(m_espina->sampleRoot());
 
@@ -172,7 +174,7 @@ EspinaMainWindow::EspinaMainWindow()
   connect(server, SIGNAL(connectionCreated(vtkIdType)), m_xz, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), m_xz, SLOT(disconnectFromServer()));
   */
-  
+
   m_3d = new VolumeView();
   m_3d->setModel(sampleProxy);
   m_3d->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
@@ -180,8 +182,8 @@ EspinaMainWindow::EspinaMainWindow()
   connect(server, SIGNAL(connectionCreated(vtkIdType)), m_3d, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), m_3d, SLOT(disconnectFromServer()));
 
-  // m_3d->setSelectionModel(this->Internals->objectTreeView->selectionModel());
-  
+  // m_3d->setSelectionModel(this->Internals->taxonomyView->selectionModel());
+
   // Final step, define application behaviors. Since we want all ParaView
   // behaviors, we use this convenience method.
   new pqParaViewBehaviors(this, this);
@@ -200,21 +202,22 @@ EspinaMainWindow::~EspinaMainWindow()
 
 void EspinaMainWindow::loadFile()
 {
-  // GUI 
-  QString filePath = QFileDialog::getOpenFileName(this, tr("Open"), "", 
-		      tr("Espina old files (*.mha);;Trace Files (*.trace)"));
-  if( !filePath.isEmpty() ){
+  // GUI
+  QString filePath = QFileDialog::getOpenFileName(this, tr("Open"), "",
+                     tr("Espina old files (*.mha);;Trace Files (*.trace)"));
+  if (!filePath.isEmpty())
+  {
     qDebug() << "FILEPATH: " << filePath;
-    m_espina->loadFile( filePath );
+    m_espina->loadFile(filePath);
   }
 }
 
 void EspinaMainWindow::saveTrace()
 {
-  QString filePath = QFileDialog::getSaveFileName(this, tr("Save Trace"), "", 
-		      tr("Trace Files (*.trace)"));
-  if( !filePath.isEmpty() )
-    m_espina->saveTrace( filePath );
+  QString filePath = QFileDialog::getSaveFileName(this, tr("Save Trace"), "",
+                     tr("Trace Files (*.trace)"));
+  if (!filePath.isEmpty())
+    m_espina->saveTrace(filePath);
 
 }
 
@@ -227,19 +230,49 @@ void EspinaMainWindow::toggleVisibility(bool visible)
   m_xy->showSegmentations(visible);
 }
 
+//-----------------------------------------------------------------------------
+bool EspinaMainWindow::eventFilter(QObject* obj, QEvent* event)
+{
+  if (obj == this->Internals->taxonomyView)
+  {
+    if (event->type() == QEvent::KeyPress)
+    {
+      QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+      if (keyEvent->key() == Qt::Key_Delete
+          || keyEvent->key() == Qt::Key_Backspace)
+      {
+
+        TaxonomyProxy *taxModel = static_cast<TaxonomyProxy *>(this->Internals->taxonomyView->model());
+        QItemSelectionModel *selection = this->Internals->taxonomyView->selectionModel();
+        QModelIndex index;
+        foreach(index, selection->selectedIndexes())
+        {
+          IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+          Segmentation *seg = dynamic_cast<Segmentation *>(item);
+	  //TODO: Handle segmentation and taxonomy deletions differently
+          if (seg)
+            m_espina->removeSegmentation(seg);
+        }
+      }
+    }
+  }
+  // Pass the event on to the parent class
+  return QMainWindow::eventFilter(obj, event);
+}
+
 
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::buildFileMenu(QMenu &menu)
 {
   QIcon icon = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
 
-  QAction* action = new QAction(icon,tr("Open"),this);
-  QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT( loadFile()));
+  QAction* action = new QAction(icon, tr("Open"), this);
+  QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT(loadFile()));
   menu.addAction(action);
 
   /* TODO Save Trace */
   action = new QAction(qApp->style()->standardIcon(QStyle::SP_DialogSaveButton),
-			tr("Save trace"),this);
-  QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT( saveTrace()) );
+                       tr("Save trace"), this);
+  QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT(saveTrace()));
   menu.addAction(action);
 }

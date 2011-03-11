@@ -54,7 +54,7 @@ public:
     virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
     virtual Qt::ItemFlags flags(const QModelIndex& index) const;
-  virtual bool removeRows(int row, int count, const QModelIndex& parent = QModelIndex());
+    
     // Special Nodes
     QModelIndex taxonomyRoot() const;
     QModelIndex sampleRoot() const;
@@ -82,6 +82,7 @@ public slots:
 
     //! Add a new segmentation (used by the plugins)
     void addSegmentation(Segmentation *seg);
+    void removeSegmentation(Segmentation *seg);
     
     //! Set which is the taxonomy defined by the user
     void setUserDefindedTaxonomy(const QModelIndex &index);

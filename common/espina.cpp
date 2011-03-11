@@ -254,11 +254,6 @@ Qt::ItemFlags EspINA::flags(const QModelIndex& index) const
 }
 
  //------------------------------------------------------------------------
-bool EspINA::removeRows(int row, int count, const QModelIndex& parent)
-{
-  std::cout << "REMOVIIIIIIIING ROWWWWWA\n\n\n\n";
-  return QAbstractItemModel::removeRows(row, count, parent);
-}
 
  //------------------------------------------------------------------------
 QModelIndex EspINA::taxonomyRoot() const
@@ -403,6 +398,16 @@ void EspINA::addSegmentation(Segmentation *seg)
   emit render(seg);
   emit sliceRender(seg);
 }
+
+//------------------------------------------------------------------------
+void EspINA::removeSegmentation(Segmentation* seg)
+{
+  QModelIndex segIndex = segmentationIndex(seg);
+  beginRemoveRows(segmentationRoot(),segIndex.row(),segIndex.row());
+  m_segmentations.removeOne(seg);
+  endRemoveRows();
+}
+
 
 //------------------------------------------------------------------------
 void EspINA::setUserDefindedTaxonomy(const QModelIndex& index)

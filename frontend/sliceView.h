@@ -36,9 +36,9 @@ class pqOutputPort;
 class Segmentation;
 class Sample;
 class IRenderer;
+class vtkSMProxy;
 
 #include "selectionManager.h"//TODO: Forward declare?
-
 
 //! Displays a unique slice of a sample
 //! If segmentations are visible, then their slices are
@@ -78,6 +78,7 @@ protected:
   virtual QModelIndex moveCursor(QAbstractItemView::CursorAction cursorAction, Qt::KeyboardModifiers modifiers);
   // Updating model changes
   virtual void rowsInserted(const QModelIndex& parent, int start, int end);
+  virtual void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end);
 
 public:
   virtual QModelIndex indexAt(const QPoint& point) const;
@@ -96,12 +97,12 @@ public slots:
 
 protected:
   void updateScene();
-  void render(const QModelIndex &index);
 
 private:
   pqPipelineSource *blender();
   void slice(pqPipelineSource *source);
-  void updateBlending(Segmentation* seg);
+  void blendSegmentation(Segmentation* seg);
+  void unblendSegmentation(Segmentation* seg);
 
 private:
   bool m_init;
@@ -110,10 +111,14 @@ private:
   SlicePlane m_plane;
   vtkSMIntVectorProperty *m_slice;
   pqPipelineSource *m_slicer;
+  QMap<Segmentation *,pqPipelineSource *> m_segMappers;
+  QVector<vtkSMProxy*> m_inputs;
+  QVector<unsigned int> m_inputPorts;
 
   //TODO: Reasign when reconecting to server
   static Sample *s_focusedSample; // The sample which is being currently displayed
   static pqPipelineSource *s_colouredSample; // A blending filter
+  pqPipelineSource *map2color;
 
   // GUI
   QWidget *m_viewWidget;

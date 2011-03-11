@@ -15,8 +15,6 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-
 #include "sliceView.h"
 
 #include "interfaces.h"
@@ -192,11 +190,36 @@ void SliceView::rowsInserted(const QModelIndex& parent, int start, int end)
   {
     Segmentation *seg = dynamic_cast<Segmentation *>(newItem);
     assert(seg); // If not sample, it has to be a segmentation
-    updateBlending(seg);
+    blendSegmentation(seg);
   }
-
   updateScene();
 }
+
+//-----------------------------------------------------------------------------
+void SliceView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end)
+{
+  for (int r = start; r <= end; r++)
+  {
+    QModelIndex index = parent.child(r,0);
+    IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+    // Check for sample
+    Sample *sample = dynamic_cast<Sample *>(item);
+    if (sample)
+    {
+      //TODO: Render planes
+      qDebug() << "Render planes";
+    } 
+    else if (!sample)
+    {
+      Segmentation *seg = dynamic_cast<Segmentation *>(item);
+      assert(seg); // If not sample, it has to be a segmentation
+      std::cout << seg->name.toStdString() << " about to be destroyed\n";
+      unblendSegmentation(seg);
+    }
+  }
+  updateScene();
+}
+
 
 
 //-----------------------------------------------------------------------------
@@ -331,30 +354,12 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
 //-----------------------------------------------------------------------------
 void SliceView::updateScene()
 {
-  render(rootIndex());
-
+  if (m_showSegmentations)
+    slice(blender());
+  else
+    slice(s_focusedSample->sourceData());
+  
   m_view->render();
-}
-
-//-----------------------------------------------------------------------------
-void SliceView::render(const QModelIndex& index)
-{
-  if (!isIndexHidden(index))
-  {
-    IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
-    // Check for sample
-    Sample *sample = dynamic_cast<Sample *>(item);
-    if (sample && sample == s_focusedSample)
-    {
-      if (m_showSegmentations)
-        slice(blender());
-      else
-        slice(sample->sourceData());
-    }
-
-  }
-  for (int row = 0; row < model()->rowCount(index); row++)
-    render(model()->index(row, 0, index));
 }
 
 //-----------------------------------------------------------------------------
@@ -375,6 +380,8 @@ pqPipelineSource* SliceView::blender()
     // This filter is the output of the sliceBlender class when blending is off
     pqPipelineSource *sampleMapper = ob->createFilter("filters", "ImageMapToColors", s_focusedSample->sourceData(), 0);
     assert(sampleMapper);
+    m_inputs.push_back(sampleMapper->getProxy());
+    m_inputPorts.push_back(0);
 
     // Get (or create if it doesn't exit) the lut for the background image
     pqScalarsToColors *greyLUT = lutManager->getLookupTable(server, QString("GreyLUT"), 4, 0);
@@ -399,10 +406,9 @@ pqPipelineSource* SliceView::blender()
       lut->SetProxy(0, greyLUT->getProxy());
     }
 
-
     sampleMapper->getProxy()->UpdateVTKObjects();
 
-    s_colouredSample = ob->createFilter("filters", "ImageBlend", sampleMapper, 0);
+    s_colouredSample = ob->createFilter("filters", "ImageBlend", sampleMapper);
     assert(s_colouredSample);
   }
   return s_colouredSample;
@@ -422,7 +428,7 @@ void SliceView::slice(pqPipelineSource* source)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::updateBlending(Segmentation* seg)
+void SliceView::blendSegmentation(Segmentation* seg)
 {
   vtkSMProperty* p;
   vtkSMIntVectorProperty* intVectProp;
@@ -442,7 +448,7 @@ void SliceView::updateBlending(Segmentation* seg)
   double rgba[4];
   seg->color(rgba);
   //TODO: change to binary segmentation images
-  segLUT->SetTableValue(255, rgba[0], rgba[1], rgba[2], rgba[3]);
+  segLUT->SetTableValue(255, rgba[0], rgba[1], rgba[2], 0.2);
   segLUT->UpdateVTKObjects();
 
   // Set the greyLUT for the slicemapper
@@ -459,14 +465,50 @@ void SliceView::updateBlending(Segmentation* seg)
 
   //Add the colored segmentation to the list of blending
   //inputs of the blender algorithm
-  assert(s_colouredSample);
-  p = s_colouredSample->getProxy()->GetProperty("BlendInput");
+  p = blender()->getProxy()->GetProperty("Input");
   vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
   if (input)
   {
-    //input->SetMultipleInput(1);
-    s_colouredSample->getProxy()->UpdateVTKObjects();
-    input->AddInputConnection(segMapper->getProxy(), 0);
+    m_inputs.push_back(segMapper->getProxy());
+    m_inputPorts.push_back(0);
+    m_segMappers.insert(seg,segMapper);
+    input->SetProxies( static_cast<unsigned int>(m_inputs.size())
+    , &m_inputs[0]
+    , &m_inputPorts[0]);
   }
-  s_colouredSample->getProxy()->UpdateVTKObjects();
+  blender()->getProxy()->UpdateVTKObjects();
+}
+
+
+//-----------------------------------------------------------------------------
+void SliceView::unblendSegmentation(Segmentation* seg)
+{
+  vtkSMProperty* p;
+  vtkSMIntVectorProperty* intVectProp;
+  vtkSMDoubleVectorProperty* doubleVectProp;
+  
+  pqPipelineSource *mapper = m_segMappers.take(seg);
+  
+  p = s_colouredSample->getProxy()->GetProperty("Input");
+  vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
+  if (input)
+  {
+    std::cout << "N. Consumers of mapper before " << mapper->getNumberOfConsumers() << std::endl;
+    std::cout << "N. Producers of blender before " << s_colouredSample->getProxy()->GetNumberOfProducers() << std::endl;
+    int idx = m_inputs.indexOf(mapper->getProxy());
+    m_inputs.remove(idx);
+    m_inputPorts.pop_back();//It doesn't matter which one
+    std::vector<vtkSMProxy *> stdInputs = m_inputs.toStdVector();
+    std::vector<unsigned int> stdInputPorts = m_inputPorts.toStdVector();
+    assert (m_inputs.size() == m_inputPorts.size());
+    input->SetProxies( static_cast<unsigned int>(m_inputs.size())
+    , &stdInputs[0]
+    , &stdInputPorts[0]);
+    s_colouredSample->getProxy()->UpdateVTKObjects();
+    std::cout << "N. Consumers of mapper after update vtk " << mapper->getNumberOfConsumers() << std::endl;
+    std::cout << "N. Producers of blender after update vtk " << s_colouredSample->getProxy()->GetNumberOfProducers() << std::endl;
+  }
+  pqApplicationCore *core = pqApplicationCore::instance();
+  pqObjectBuilder *ob = core->getObjectBuilder();
+  ob->destroy(mapper);
 }
