@@ -69,7 +69,8 @@ protected slots:
   void toggleVisibility(bool visible);
   virtual bool eventFilter(QObject* obj, QEvent* event);
   
-  void setProxyView(int idx);
+  void setGroupView(int idx);
+  void deleteSegmentations();
   
 private:
   EspinaMainWindow(const EspinaMainWindow&); // Not implemented.

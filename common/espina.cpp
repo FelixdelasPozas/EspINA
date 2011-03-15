@@ -128,7 +128,7 @@ int EspINA::rowCount(const QModelIndex& parent) const
   TaxonomyNode *taxItem = dynamic_cast<TaxonomyNode *>(parentItem);
   if (taxItem)
   {
-    std::cout << "Getting rows in source of " << taxItem->getName().toStdString() << std::endl;
+    //std::cout << "Getting rows in source of " << taxItem->getName().toStdString() << std::endl;
     return numOfSubTaxonomies(taxItem);// + numOfSegmentations(taxItem);
   }
   // Otherwise Samples and Segmentations have no children

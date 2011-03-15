@@ -116,6 +116,8 @@ EspinaMainWindow::EspinaMainWindow()
   SampleProxy *sampleProxy = new SampleProxy();
   sampleProxy->setSourceModel(m_espina);
   
+  connect(this->Internals->groupList,SIGNAL(currentIndexChanged(int)),this,SLOT(setGroupView(int)));
+  
   // Segmentation Manager
   m_groupingName << "None" << "Taxonomy" << "Sample";
   m_groupingModel << m_espina << taxProxy << sampleProxy;
@@ -127,14 +129,15 @@ EspinaMainWindow::EspinaMainWindow()
   this->Internals->groupList->setModel(groupList);
   
   this->Internals->segmentationView->installEventFilter(this);
+  connect(this->Internals->deleteSegmentation, SIGNAL(clicked()), this, SLOT(deleteSegmentations()));
+  connect(this->Internals->segmentationView, SIGNAL(doubleClicked(const QModelIndex &)), m_espina, SLOT(setUserDefindedTaxonomy(const QModelIndex&)));
   
-  setProxyView(0);
+  //setProxyView(0);
   
-
+  this->Internals->taxonomyView->setModel(m_espina);
+  this->Internals->taxonomyView->setRootIndex(m_espina->taxonomyRoot());
+  
   /*
-  this->Internals->taxonomyView->setModel(taxProxy);
-  this->Internals->taxonomyView->setRootIndex(taxProxy->mapFromSource(m_espina->taxonomyRoot()));
-  connect(this->Internals->taxonomyView, SIGNAL(doubleClicked(const QModelIndex &)), m_espina, SLOT(setUserDefindedTaxonomy(const QModelIndex&)));
   this->Internals->sampleView->setModel(m_espina);
   this->Internals->sampleView->setRootIndex(m_espina->sampleRoot());
   */
@@ -266,31 +269,36 @@ bool EspinaMainWindow::eventFilter(QObject* obj, QEvent* event)
       if (keyEvent->key() == Qt::Key_Delete
           || keyEvent->key() == Qt::Key_Backspace)
       {
-
-        TaxonomyProxy *taxModel = static_cast<TaxonomyProxy *>(this->Internals->segmentationView->model());
-        QItemSelectionModel *selection = this->Internals->segmentationView->selectionModel();
-        QModelIndex index;
-        foreach(index, selection->selectedIndexes())
-        {
-          IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
-          Segmentation *seg = dynamic_cast<Segmentation *>(item);
-	  //TODO: Handle segmentation and taxonomy deletions differently
-          if (seg)
-            m_espina->removeSegmentation(seg);
-        }
+	deleteSegmentations();
       }
     }
   }
   // Pass the event on to the parent class
   return QMainWindow::eventFilter(obj, event);
 }
+
 //-----------------------------------------------------------------------------
-void EspinaMainWindow::setProxyView(int idx)
+void EspinaMainWindow::setGroupView(int idx)
 {
   if (idx < m_groupingModel.size())
   {
     this->Internals->segmentationView->setModel(m_groupingModel[idx]);
     this->Internals->segmentationView->setRootIndex(m_groupingRoot[idx]);
+  }
+}
+
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::deleteSegmentations()
+{
+  QItemSelectionModel *selection = this->Internals->segmentationView->selectionModel();
+  foreach(QModelIndex index, selection->selectedIndexes())
+  {
+    IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+    Segmentation *seg = dynamic_cast<Segmentation *>(item);
+    //TODO: Handle segmentation and taxonomy deletions differently
+    if (seg)
+      m_espina->removeSegmentation(seg);
   }
 }
 
