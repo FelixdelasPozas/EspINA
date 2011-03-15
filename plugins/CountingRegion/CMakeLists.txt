@@ -32,9 +32,9 @@ include_directories(
   )
 
 
-#qt4_add_resources (RCC_BUILT_SOURCES 
-#  rsc/counting.qrc
-#  )
+qt4_add_resources (RCC_BUILT_SOURCES 
+  rsc/CountingRegion.qrc
+  )
 
 # We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
 qt4_wrap_cpp(MOC_SRCS 

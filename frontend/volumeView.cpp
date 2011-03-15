@@ -45,6 +45,7 @@
 #include <QDebug>
 #include <data/taxonomy.h>
 #include <traceNodes.h>
+#include <vtkSMRenderViewProxy.h>
 
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(QWidget* parent)
@@ -96,6 +97,9 @@ void VolumeView::connectToServer()
     pqRenderView::renderViewType(), server));
   m_viewWidget = m_view->getWidget();
   m_mainLayout->insertWidget(0,m_viewWidget);//To preserver view order
+    
+  double black[3] = {0,0,0};
+  m_view->getRenderViewProxy()->SetBackgroundColorCM(black);
 }
 
 //-----------------------------------------------------------------------------

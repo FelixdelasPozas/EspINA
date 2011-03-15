@@ -21,6 +21,7 @@
 #include <QLabel>
 #include <QHBoxLayout>
 #include <QWidgetAction>
+#include <QPushButton>
 
 CountingRegion::CountingRegion(QObject* parent): QActionGroup(parent)
 {
@@ -31,7 +32,8 @@ CountingRegion::CountingRegion(QObject* parent): QActionGroup(parent)
 void CountingRegion::buildUI()
 {
   //Threshold
-  QLabel *countingRegion = new QLabel(tr("Counting Region"));
+  //QLabel *countingRegion = new QLabel(tr("Counting Region"));
+  QPushButton *countingRegion = new QPushButton(QIcon(":/espina/applyCR"),tr("Apply"));
   
   QHBoxLayout *thresholdLayout = new QHBoxLayout();
   thresholdLayout->addWidget(countingRegion);

@@ -108,6 +108,9 @@ void SliceView::connectToServer()
   QObject::connect(m_viewWidget, SIGNAL(mouseEvent(QMouseEvent *)),
                    this, SLOT(vtkWidgetMouseEvent(QMouseEvent *)));
   m_mainLayout->insertWidget(0, m_viewWidget);//To preserve view order
+  
+  double black[3] = {0,0,0};
+  m_view->defaultBackgroundColor();
 }
 
 //-----------------------------------------------------------------------------
