@@ -179,20 +179,24 @@ EspinaMainWindow::EspinaMainWindow()
   connect(m_xy, SIGNAL(pointSelected(const Point)), m_selectionManager, SLOT(pointSelected(const Point)));
   m_xy->setModel(sampleProxy);
   m_xy->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
-
-  /*
-  m_yz = new SliceWidget(m_planes[SLICE_PLANE_XY]);
+  
+  m_yz = new SliceView();
+  m_yz->setPlane(SliceView::SLICE_PLANE_YZ);
   this->Internals->yzSliceDock->setWidget(m_yz);
   connect(server, SIGNAL(connectionCreated(vtkIdType)), m_yz, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), m_yz, SLOT(disconnectFromServer()));
   connect(m_yz, SIGNAL(pointSelected(const Point)), m_selectionManager, SLOT(pointSelected(const Point)));
+  m_yz->setModel(sampleProxy);
+  m_yz->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
 
-  m_xz = new SliceWidget(m_planes[SLICE_PLANE_YZ]);
+  m_xz = new SliceView();
+  m_xz->setPlane(SliceView::SLICE_PLANE_XZ);
   this->Internals->xzSliceDock->setWidget(m_xz);
   connect(server, SIGNAL(connectionCreated(vtkIdType)), m_xz, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), m_xz, SLOT(disconnectFromServer()));
-  */
-
+  m_xz->setModel(sampleProxy);
+  m_xz->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
+  
   m_3d = new VolumeView();
   m_3d->setModel(sampleProxy);
   m_3d->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
@@ -246,6 +250,9 @@ void EspinaMainWindow::toggleVisibility(bool visible)
     visible ? QIcon(":/espina/show_all.svg") : QIcon(":/espina/hide_all.svg")
   );
   m_xy->showSegmentations(visible);
+  //m_yz->showSegmentations(visible);
+  //m_xz->showSegmentations(visible);
+
 }
 
 //-----------------------------------------------------------------------------

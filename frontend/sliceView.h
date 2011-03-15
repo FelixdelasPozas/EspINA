@@ -37,8 +37,35 @@ class Segmentation;
 class Sample;
 class IRenderer;
 class vtkSMProxy;
+class IModelItem;
 
 #include "selectionManager.h"//TODO: Forward declare?
+///!TODO: Consider using a class to encapsulate the shared/static blender
+class Blender
+{
+public:
+  static Blender *instance();
+  
+  pqPipelineSource *source(){  return m_imageBlender;}
+  
+  //! Focus on a new sample, if previous segmentation were shown
+  //! their memory is freed.
+  void focusOnSample(Sample *sample);
+  //! Blends seg into the focused sample
+  void blendSegmentation(Segmentation *seg);
+  //! Unblends seg into the focused sample
+  void unblendSegmentation(Segmentation *seg);
+  
+protected:
+  void updateImageBlenderInput();
+  
+private:
+  Blender() : m_imageBlender(NULL) {}
+  static Blender *m_blender;
+  pqPipelineSource *m_imageBlender;
+  QMap<IModelItem *,pqPipelineSource *> m_mappers;
+};
+
 
 //! Displays a unique slice of a sample
 //! If segmentations are visible, then their slices are
@@ -101,8 +128,6 @@ protected:
 private:
   pqPipelineSource *blender();
   void slice(pqPipelineSource *source);
-  void blendSegmentation(Segmentation* seg);
-  void unblendSegmentation(Segmentation* seg);
 
 private:
   bool m_init;
@@ -111,14 +136,10 @@ private:
   SlicePlane m_plane;
   vtkSMIntVectorProperty *m_slice;
   pqPipelineSource *m_slicer;
-  QMap<Segmentation *,pqPipelineSource *> m_segMappers;
-  QVector<vtkSMProxy*> m_inputs;
-  QVector<unsigned int> m_inputPorts;
 
   //TODO: Reasign when reconecting to server
-  static Sample *s_focusedSample; // The sample which is being currently displayed
-  static pqPipelineSource *s_colouredSample; // A blending filter
-  pqPipelineSource *map2color;
+  Sample *s_focusedSample; // The sample which is being currently displayed
+  static Blender *s_blender; // A blending filter
 
   // GUI
   QWidget *m_viewWidget;
