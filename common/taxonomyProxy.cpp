@@ -188,7 +188,7 @@ QModelIndex TaxonomyProxy::mapToSource(const QModelIndex& proxyIndex) const
     EspINA *model = dynamic_cast<EspINA *>(sourceModel());
     return model->segmentationIndex(proxySeg);
   }
-  assert(false);
+  return QModelIndex();
 }
 
 //------------------------------------------------------------------------

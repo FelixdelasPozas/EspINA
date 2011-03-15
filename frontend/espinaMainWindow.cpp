@@ -85,6 +85,7 @@
 #include <sampleProxy.h>
 #include "sliceView.h"
 #include <QMouseEvent>
+#include <QStringListModel>
 
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
@@ -114,12 +115,29 @@ EspinaMainWindow::EspinaMainWindow()
   taxProxy->setSourceModel(m_espina);
   SampleProxy *sampleProxy = new SampleProxy();
   sampleProxy->setSourceModel(m_espina);
+  
+  // Segmentation Manager
+  m_groupingName << "None" << "Taxonomy" << "Sample";
+  m_groupingModel << m_espina << taxProxy << sampleProxy;
+  m_groupingRoot << m_espina->segmentationRoot() 
+  << taxProxy->mapFromSource(m_espina->taxonomyRoot()) 
+  << sampleProxy->mapFromSource(m_espina->sampleRoot());
+  
+  QStringListModel *groupList = new QStringListModel(m_groupingName);
+  this->Internals->groupList->setModel(groupList);
+  
+  this->Internals->segmentationView->installEventFilter(this);
+  
+  setProxyView(0);
+  
+
+  /*
   this->Internals->taxonomyView->setModel(taxProxy);
   this->Internals->taxonomyView->setRootIndex(taxProxy->mapFromSource(m_espina->taxonomyRoot()));
-  this->Internals->taxonomyView->installEventFilter(this);
   connect(this->Internals->taxonomyView, SIGNAL(doubleClicked(const QModelIndex &)), m_espina, SLOT(setUserDefindedTaxonomy(const QModelIndex&)));
   this->Internals->sampleView->setModel(m_espina);
   this->Internals->sampleView->setRootIndex(m_espina->sampleRoot());
+  */
 
   //Create File Menu
   buildFileMenu(*this->Internals->menu_File);
@@ -233,7 +251,7 @@ void EspinaMainWindow::toggleVisibility(bool visible)
 //-----------------------------------------------------------------------------
 bool EspinaMainWindow::eventFilter(QObject* obj, QEvent* event)
 {
-  if (obj == this->Internals->taxonomyView)
+  if (obj == this->Internals->segmentationView)
   {
     if (event->type() == QEvent::KeyPress)
     {
@@ -242,8 +260,8 @@ bool EspinaMainWindow::eventFilter(QObject* obj, QEvent* event)
           || keyEvent->key() == Qt::Key_Backspace)
       {
 
-        TaxonomyProxy *taxModel = static_cast<TaxonomyProxy *>(this->Internals->taxonomyView->model());
-        QItemSelectionModel *selection = this->Internals->taxonomyView->selectionModel();
+        TaxonomyProxy *taxModel = static_cast<TaxonomyProxy *>(this->Internals->segmentationView->model());
+        QItemSelectionModel *selection = this->Internals->segmentationView->selectionModel();
         QModelIndex index;
         foreach(index, selection->selectedIndexes())
         {
@@ -258,6 +276,15 @@ bool EspinaMainWindow::eventFilter(QObject* obj, QEvent* event)
   }
   // Pass the event on to the parent class
   return QMainWindow::eventFilter(obj, event);
+}
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::setProxyView(int idx)
+{
+  if (idx < m_groupingModel.size())
+  {
+    this->Internals->segmentationView->setModel(m_groupingModel[idx]);
+    this->Internals->segmentationView->setRootIndex(m_groupingRoot[idx]);
+  }
 }
 
 

@@ -179,7 +179,7 @@ QModelIndex SampleProxy::mapToSource(const QModelIndex& proxyIndex) const
   if (proxySeg)
     return model->segmentationIndex(proxySeg);
 
-  assert(false);
+  return QModelIndex();
 }
 
 

@@ -393,10 +393,6 @@ void EspINA::addSegmentation(Segmentation *seg)
   m_taxonomySegs[m_newSegType].push_back(seg);
   m_segmentations.push_back(seg);
   endInsertRows();
-  //endResetModel();
-  
-  emit render(seg);
-  emit sliceRender(seg);
 }
 
 //------------------------------------------------------------------------
@@ -405,6 +401,7 @@ void EspINA::removeSegmentation(Segmentation* seg)
   QModelIndex segIndex = segmentationIndex(seg);
   beginRemoveRows(segmentationRoot(),segIndex.row(),segIndex.row());
   m_segmentations.removeOne(seg);
+  m_taxonomySegs[seg->taxonomy()].removeOne(seg);
   endRemoveRows();
 }
 

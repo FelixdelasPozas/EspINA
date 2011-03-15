@@ -87,12 +87,6 @@ public slots:
     //! Set which is the taxonomy defined by the user
     void setUserDefindedTaxonomy(const QModelIndex &index);
   
-    
-
-signals:
-    void render(IRenderable *product);
-    void sliceRender(IRenderable *product);
-
 protected:
     explicit EspINA(QObject* parent = 0);
 
