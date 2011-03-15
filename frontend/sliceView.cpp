@@ -160,13 +160,13 @@ void Blender::blendSegmentation(Segmentation* seg)
 
   segMapper->getProxy()->UpdateVTKObjects();
   segMapper->updatePipeline();
-    p = m_imageBlender->getProxy()->GetProperty("Input");
-  vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
-  if (input)
-  {
-    input->AddProxy(segMapper->getProxy());
-  }
-  //updateImageBlenderInput();
+    //p = m_imageBlender->getProxy()->GetProperty("Input");
+  //vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
+  //if (input)
+  //{
+    //input->AddProxy(segMapper->getProxy());
+  //}
+  updateImageBlenderInput();
 }
 
 void Blender::unblendSegmentation(Segmentation* seg)
@@ -182,13 +182,13 @@ void Blender::unblendSegmentation(Segmentation* seg)
   
   std::cout << "N. Consumers of mapper before " << mapper->getNumberOfConsumers() << std::endl;
   std::cout << "N. Producers of blnder before " << m_imageBlender->getProxy()->GetNumberOfProducers() << std::endl;
-  p = m_imageBlender->getProxy()->GetProperty("Input");
-  vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
-  if (input)
-  {
-    input->RemoveProxy(mapper->getProxy());
-  }
-  //updateImageBlenderInput();
+  //p = m_imageBlender->getProxy()->GetProperty("Input");
+  //vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
+  //if (input)
+  //{
+    //input->RemoveProxy(mapper->getProxy());
+  //}
+  updateImageBlenderInput();
   std::cout << "N. Consumers of mapper after update vtk " << mapper->getNumberOfConsumers() << std::endl;
   std::cout << "N. Producers of blender after update vtk " << m_imageBlender->getProxy()->GetNumberOfProducers() << std::endl;
   
@@ -203,7 +203,6 @@ void Blender::updateImageBlenderInput()
 
   //TODO: Remove dependent maps
   std::cout << "Updating is Deprecated " << std::endl;
-  assert(false);
   
   vtkstd::vector<vtkSMProxy *> inputs;
   vtkstd::vector<unsigned int> ports;
@@ -218,11 +217,14 @@ void Blender::updateImageBlenderInput()
   vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
   if (input)
   {
+    input->RemoveAllProxies();
+    m_imageBlender->getProxy()->UpdateVTKObjects();
     input->SetProxies( static_cast<unsigned int>(inputs.size())
     , &inputs[0]
     , &ports[0]);
+    m_imageBlender->getProxy()->UpdateVTKObjects();
   }
-  m_imageBlender->getProxy()->UpdateVTKObjects();
+  //m_imageBlender->getProxy()->UpdateVTKObjects();
 }
 
 

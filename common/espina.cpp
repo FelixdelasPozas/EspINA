@@ -335,7 +335,7 @@ void EspINA::loadFile(QString filePath)
 {
   //TODO Check the type of file .mha, .trace, or .seg
   // .mha at the moment
-  if( filePath.endsWith(".mha") ) //TODO change it to parse with readers lists
+  if( filePath.endsWith(".pvd") ) //TODO change it to parse with readers lists
   {
     qDebug() << "MHA FILE: " << filePath;
     EspinaProxy* source = CachedObjectBuilder::instance()->createStack( filePath);

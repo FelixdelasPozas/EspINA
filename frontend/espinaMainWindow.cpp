@@ -115,28 +115,31 @@ EspinaMainWindow::EspinaMainWindow()
   taxProxy->setSourceModel(m_espina);
   SampleProxy *sampleProxy = new SampleProxy();
   sampleProxy->setSourceModel(m_espina);
-  
-  connect(this->Internals->groupList,SIGNAL(currentIndexChanged(int)),this,SLOT(setGroupView(int)));
-  
+
+  connect(this->Internals->groupList, SIGNAL(currentIndexChanged(int)),
+          this, SLOT(setGroupView(int)));
+
   // Segmentation Manager
   m_groupingName << "None" << "Taxonomy" << "Sample";
   m_groupingModel << m_espina << taxProxy << sampleProxy;
-  m_groupingRoot << m_espina->segmentationRoot() 
-  << taxProxy->mapFromSource(m_espina->taxonomyRoot()) 
+  m_groupingRoot << m_espina->segmentationRoot()
+  << taxProxy->mapFromSource(m_espina->taxonomyRoot())
   << sampleProxy->mapFromSource(m_espina->sampleRoot());
-  
+
   QStringListModel *groupList = new QStringListModel(m_groupingName);
   this->Internals->groupList->setModel(groupList);
-  
+  this->Internals->groupList->setCurrentIndex(1);
+
   this->Internals->segmentationView->installEventFilter(this);
-  connect(this->Internals->deleteSegmentation, SIGNAL(clicked()), this, SLOT(deleteSegmentations()));
-  connect(this->Internals->segmentationView, SIGNAL(doubleClicked(const QModelIndex &)), m_espina, SLOT(setUserDefindedTaxonomy(const QModelIndex&)));
-  
-  //setProxyView(0);
-  
+  connect(this->Internals->deleteSegmentation, SIGNAL(clicked()),
+          this, SLOT(deleteSegmentations()));
+  connect(this->Internals->segmentationView, SIGNAL(doubleClicked(const QModelIndex &)),
+          m_espina, SLOT(setUserDefindedTaxonomy(const QModelIndex&)));
+
+
   this->Internals->taxonomyView->setModel(m_espina);
   this->Internals->taxonomyView->setRootIndex(m_espina->taxonomyRoot());
-  
+
   /*
   this->Internals->sampleView->setModel(m_espina);
   this->Internals->sampleView->setRootIndex(m_espina->sampleRoot());
@@ -182,7 +185,7 @@ EspinaMainWindow::EspinaMainWindow()
   connect(m_xy, SIGNAL(pointSelected(const Point)), m_selectionManager, SLOT(pointSelected(const Point)));
   m_xy->setModel(sampleProxy);
   m_xy->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
-  
+
   m_yz = new SliceView();
   m_yz->setPlane(SliceView::SLICE_PLANE_YZ);
   this->Internals->yzSliceDock->setWidget(m_yz);
@@ -199,7 +202,7 @@ EspinaMainWindow::EspinaMainWindow()
   connect(server, SIGNAL(connectionClosed(vtkIdType)), m_xz, SLOT(disconnectFromServer()));
   m_xz->setModel(sampleProxy);
   m_xz->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
-  
+
   m_3d = new VolumeView();
   m_3d->setModel(sampleProxy);
   m_3d->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
@@ -229,7 +232,7 @@ void EspinaMainWindow::loadFile()
 {
   // GUI
   QString filePath = QFileDialog::getOpenFileName(this, tr("Open"), "",
-                     tr("Espina old files (*.mha);;Trace Files (*.trace)"));
+                     tr("Espina old files (*.pvd);;Trace Files (*.trace)"));
   if (!filePath.isEmpty())
   {
     qDebug() << "FILEPATH: " << filePath;
@@ -269,7 +272,7 @@ bool EspinaMainWindow::eventFilter(QObject* obj, QEvent* event)
       if (keyEvent->key() == Qt::Key_Delete
           || keyEvent->key() == Qt::Key_Backspace)
       {
-	deleteSegmentations();
+        deleteSegmentations();
       }
     }
   }
