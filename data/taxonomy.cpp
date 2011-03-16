@@ -2,6 +2,7 @@
 #include <stack>
 
 #include <QFile>
+#include <QPixmap>
 #include <QXmlStreamReader>
 
 #include <iostream>
@@ -161,9 +162,14 @@ QVariant TaxonomyNode::data(int role) const
   switch (role)
   {
     case Qt::DisplayRole:
+    case Qt::EditRole:
 	return getName();
     case Qt::DecorationRole:
-	return getColor();
+    {
+      QPixmap icon(16,16);
+      icon.fill(getColor());
+      return icon;
+    }
     default:
       return QVariant();
   }

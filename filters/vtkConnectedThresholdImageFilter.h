@@ -1,14 +1,14 @@
 #ifndef VTK_CONNECTED_THRESHOLD_IMAGE_FILTER_H
 #define VTK_CONNECTED_THRESHOLD_IMAGE_FILTER_H
 
-#include "vtkSimpleImageToImageFilter.h"
+#include "vtkImageAlgorithm.h"
 
 class VTK_IMAGING_EXPORT vtkConnectedThresholdImageFilter : 
-  public vtkSimpleImageToImageFilter
+  public vtkImageAlgorithm
 {
 public:
     static vtkConnectedThresholdImageFilter *New();
-	vtkTypeMacro(vtkConnectedThresholdImageFilter,vtkSimpleImageToImageFilter); 
+	vtkTypeMacro(vtkConnectedThresholdImageFilter,vtkImageAlgorithm); 
     
     //! Gray level segmentation threshlod
     vtkSetMacro(m_threshold,double);
@@ -20,15 +20,15 @@ public:
     void PrintSelf(ostream& os, vtkIndent indent);
     
 protected:
-    vtkConnectedThresholdImageFilter(){};
+    vtkConnectedThresholdImageFilter();
     ~vtkConnectedThresholdImageFilter(){};
     
-    virtual void SimpleExecute(vtkImageData* input, vtkImageData* output);
+    virtual int RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector);
     
   virtual int RequestInformation(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector);
     
 private:
-    vtkConnectedThresholdImageFilter(const vtkSimpleImageToImageFilter& );// Not implemented
+    vtkConnectedThresholdImageFilter(const vtkConnectedThresholdImageFilter& );// Not implemented
     void operator=(const vtkConnectedThresholdImageFilter&);// Not implemented
     
 private:

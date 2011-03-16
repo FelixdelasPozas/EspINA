@@ -26,13 +26,14 @@ int main(int argc, char **argv)
   
   segmentation->Setm_threshold(30);
   segmentation->Setm_seed(76,177,0);
+  segmentation->DebugOn();
   segmentation->Update();
   
-//   vtkSmartPointer<vtkMetaImageWriter> writer = vtkSmartPointer<vtkMetaImageWriter>::New();
-//   writer->SetFileName("Test2.mha");
-//   writer->SetRAWFileName("Test2.raw");
-//   writer->SetInputConnection(segmentation->GetOutputPort());
-//   writer->Write();
+  //vtkSmartPointer<vtkMetaImageWriter> writer = vtkSmartPointer<vtkMetaImageWriter>::New();
+  //writer->SetFileName("Test2.mha");
+  //writer->SetRAWFileName("Test2.raw");
+  //writer->SetInputConnection(segmentation->GetOutputPort());
+  //writer->Write();
   
   // El resto es igual
   vtkImageActor *imageActor = vtkImageActor::New();
