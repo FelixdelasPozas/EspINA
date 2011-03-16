@@ -407,18 +407,10 @@ void EspINA::removeSegmentation(Segmentation* seg)
 
 
 //------------------------------------------------------------------------
-void EspINA::setUserDefindedTaxonomy(const QModelIndex& index)
+void EspINA::setUserDefindedTaxonomy(const QString& taxName)
 {
-  IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
-  TaxonomyNode *node = dynamic_cast<TaxonomyNode *>(item);
-  if (!node)
-  {
-    Product *seg = dynamic_cast<Product *>(item);
-    if (seg)
-      node = seg->taxonomy();
-  }
-  assert(node);
-  m_newSegType = node;//->getName();//item->data(Qt::DisplayRole).toString();
+  m_newSegType = m_tax->getComponent(taxName);
+  assert(m_newSegType);
 }
 
 

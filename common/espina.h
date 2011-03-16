@@ -85,7 +85,7 @@ public slots:
     void removeSegmentation(Segmentation *seg);
     
     //! Set which is the taxonomy defined by the user
-    void setUserDefindedTaxonomy(const QModelIndex &index);
+    void setUserDefindedTaxonomy(const QString &taxName);
   
 protected:
     explicit EspINA(QObject* parent = 0);

@@ -138,7 +138,7 @@
   </widget>
   <widget class="QToolBar" name="toolBar">
    <property name="windowTitle">
-    <string>toolBar</string>
+    <string>ESPINA Toolbar</string>
    </property>
    <property name="movable">
     <bool>false</bool>
