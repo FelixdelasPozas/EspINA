@@ -68,19 +68,37 @@ QVariant EspINA::data(const QModelIndex& index, int role) const
   
   IModelItem *indexItem = static_cast<IModelItem *>(index.internalPointer());
   return indexItem->data(role);
-  
-  
-  //bool isSegmentation = isLeaf(indexNode);
-/*  
-  switch (role)
+}
+
+//------------------------------------------------------------------------
+bool EspINA::setData(const QModelIndex& index, const QVariant& value, int role)
+{
+  if (index.isValid())
   {
-    case Qt::DisplayRole:
-	return indexNode->getName();
-    case Qt::DecorationRole:
-	return indexNode->getColor();
-    default:
-      return QVariant();
-  }*/
+    if (role == Qt::EditRole)
+    {
+      IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+      Segmentation *seg = dynamic_cast<Segmentation *>(item);
+      if (seg)
+      {
+	seg->name = value.toString();
+      }
+      emit dataChanged(index, index);
+      return true;
+    }
+    if (role == Qt::CheckStateRole)
+    {
+      IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+      Segmentation *seg = dynamic_cast<Segmentation *>(item);
+      if (seg)
+      {
+	seg->setVisible(value.toBool());
+      }
+      emit dataChanged(index, index);
+      return true;
+    }
+  }
+  return false;
 }
 
 //------------------------------------------------------------------------
@@ -110,7 +128,7 @@ int EspINA::rowCount(const QModelIndex& parent) const
   TaxonomyNode *taxItem = dynamic_cast<TaxonomyNode *>(parentItem);
   if (taxItem)
   {
-    std::cout << "Getting rows in source of " << taxItem->getName().toStdString() << std::endl;
+    //std::cout << "Getting rows in source of " << taxItem->getName().toStdString() << std::endl;
     return numOfSubTaxonomies(taxItem);// + numOfSegmentations(taxItem);
   }
   // Otherwise Samples and Segmentations have no children
@@ -222,9 +240,20 @@ QVariant EspINA::headerData(int section, Qt::Orientation orientation, int role) 
 //------------------------------------------------------------------------
 Qt::ItemFlags EspINA::flags(const QModelIndex& index) const
 {
-  return QAbstractItemModel::flags(index);
+  if (!index.isValid())
+    return Qt::ItemIsEnabled;
+  
+  if (index == taxonomyRoot() || index == sampleRoot() || index == segmentationRoot())
+    return Qt::ItemIsEnabled;
+  
+  // Segmentation are read-only (TODO: Allow editing extent/spacing)
+  if (index.parent() == sampleRoot())
+    return Qt::ItemIsEnabled;
+  
+  return QAbstractItemModel::flags(index) | Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
 }
 
+ //------------------------------------------------------------------------
 
  //------------------------------------------------------------------------
 QModelIndex EspINA::taxonomyRoot() const
@@ -306,7 +335,7 @@ void EspINA::loadFile(QString filePath)
 {
   //TODO Check the type of file .mha, .trace, or .seg
   // .mha at the moment
-  if( filePath.endsWith(".mha") ) //TODO change it to parse with readers lists
+  if( filePath.endsWith(".pvd") ) //TODO change it to parse with readers lists
   {
     qDebug() << "MHA FILE: " << filePath;
     EspinaProxy* source = CachedObjectBuilder::instance()->createStack( filePath);
@@ -364,25 +393,24 @@ void EspINA::addSegmentation(Segmentation *seg)
   m_taxonomySegs[m_newSegType].push_back(seg);
   m_segmentations.push_back(seg);
   endInsertRows();
-  //endResetModel();
-  
-  emit render(seg);
-  emit sliceRender(seg);
 }
 
 //------------------------------------------------------------------------
-void EspINA::setUserDefindedTaxonomy(const QModelIndex& index)
+void EspINA::removeSegmentation(Segmentation* seg)
 {
-  IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
-  TaxonomyNode *node = dynamic_cast<TaxonomyNode *>(item);
-  if (!node)
-  {
-    Product *seg = dynamic_cast<Product *>(item);
-    if (seg)
-      node = seg->taxonomy();
-  }
-  assert(node);
-  m_newSegType = node;//->getName();//item->data(Qt::DisplayRole).toString();
+  QModelIndex segIndex = segmentationIndex(seg);
+  beginRemoveRows(segmentationRoot(),segIndex.row(),segIndex.row());
+  m_segmentations.removeOne(seg);
+  m_taxonomySegs[seg->taxonomy()].removeOne(seg);
+  endRemoveRows();
+}
+
+
+//------------------------------------------------------------------------
+void EspINA::setUserDefindedTaxonomy(const QString& taxName)
+{
+  m_newSegType = m_tax->getComponent(taxName);
+  assert(m_newSegType);
 }
 
 

@@ -95,7 +95,8 @@ public:
 class Segmentation : public Product
 {
 public:
-  Segmentation(pqPipelineSource *source, int portNumber, QString parentHash = "") : Product(source,portNumber, parentHash) {}
+  Segmentation(pqPipelineSource *source, int portNumber, QString parentHash = "") : Product(source,portNumber, parentHash) 
+  {name = "Segmentation";}
   
   virtual QVariant data(int role = Qt::UserRole + 1) const;
 };

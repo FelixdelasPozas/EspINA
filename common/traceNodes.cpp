@@ -148,9 +148,12 @@ QVariant Segmentation::data(int role) const
   switch (role)
   {
     case Qt::DisplayRole:
-      return "Segmentation";
+    case Qt::EditRole:
+      return name;
     case Qt::DecorationRole:
       return m_taxonomy->getColor();
+    case Qt::CheckStateRole:
+      return visible()?Qt::Checked:Qt::Unchecked;
     default:
       return QVariant();
   }

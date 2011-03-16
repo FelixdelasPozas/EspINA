@@ -21,12 +21,14 @@
 
 #include "interfaces.h"
 #include "renderer.h"
+
 // GUI
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QToolButton>
 #include <QMenu>
 #include <QAction>
+
 // ParaView
 #include "pqRenderView.h"
 #include "pqApplicationCore.h"
@@ -200,8 +202,50 @@ QModelIndex VolumeView::moveCursor(QAbstractItemView::CursorAction cursorAction,
 //-----------------------------------------------------------------------------
 void VolumeView::rowsInserted(const QModelIndex& parent, int start, int end)
 {
-    QAbstractItemView::rowsInserted(parent, start, end);
-    updateScene();
+  for (int r = start; r <= end; r++)
+  {
+    QModelIndex index = parent.child(r,0);
+    IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+    // Check for sample
+    Sample *sample = dynamic_cast<Sample *>(item);
+    if (sample && m_showSamples)
+    {
+      //TODO: Render planes
+      qDebug() << "Render planes";
+    } 
+    else if (!sample && m_showSegmentations)
+    {
+      Segmentation *seg = dynamic_cast<Segmentation *>(item);
+      assert(seg); // If not sample, it has to be a segmentation
+      m_renderer->render(seg,m_view);
+    }
+  }
+  m_view->render();
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end)
+{
+  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+  for (int r = start; r <= end; r++)
+  {
+    QModelIndex index = parent.child(r,0);
+    IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+    // Check for sample
+    Sample *sample = dynamic_cast<Sample *>(item);
+    if (sample && m_showSamples)
+    {
+      //TODO: Render planes
+      qDebug() << "Render planes";
+    } 
+    else if (!sample && m_showSegmentations)
+    {
+      Segmentation *seg = dynamic_cast<Segmentation *>(item);
+      assert(seg); // If not sample, it has to be a segmentation
+     dp->setRepresentationVisibility(seg->outputPort(), m_view, false);
+    }
+  }
+  m_view->render();
 }
 
 

@@ -30,7 +30,7 @@
 #include <iostream>
 //------------------------------------------------------------------------
 TaxonomyProxy::TaxonomyProxy(QObject* parent)
-: QAbstractProxyModel(parent)
+    : QAbstractProxyModel(parent)
 {
   updateSegmentations();
 }
@@ -43,32 +43,36 @@ TaxonomyProxy::~TaxonomyProxy()
 //------------------------------------------------------------------------
 void TaxonomyProxy::setSourceModel(QAbstractItemModel* sourceModel)
 {
-    QAbstractProxyModel::setSourceModel(sourceModel);
-    updateSegmentations();
-    connect(sourceModel,SIGNAL(rowsInserted(const QModelIndex&,int,int)),
-	    this,SLOT(sourceRowsInserted(const QModelIndex&,int,int)));
+  QAbstractProxyModel::setSourceModel(sourceModel);
+  updateSegmentations();
+  connect(sourceModel, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
+          this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
+  connect(sourceModel, SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
+          this, SLOT(sourceRowsRemoved(QModelIndex,int,int)));
+  connect(sourceModel, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
+          this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex,int,int)));
 }
 
 //------------------------------------------------------------------------
 int TaxonomyProxy::rowCount(const QModelIndex& parent) const
 {
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
-  
+
   updateSegmentations();
-  
+
   if (!parent.isValid())
     return 3;
-  
+
   if (parent == mapFromSource(model->taxonomyRoot()))
     return model->rowCount(model->taxonomyRoot());
-  
+
   if (parent == mapFromSource(model->sampleRoot()))
     return 0;
-  
+
   if (parent == mapFromSource(model->segmentationRoot()))
     return 0;
-  
-  // Cast to base type 
+
+  // Cast to base type
   IModelItem *parentItem = static_cast<IModelItem *>(parent.internalPointer());
   // Check if Taxonomy Item
   TaxonomyNode *parentTax = dynamic_cast<TaxonomyNode *>(parentItem);
@@ -86,12 +90,12 @@ QModelIndex TaxonomyProxy::index(int row, int column, const QModelIndex& parent)
 {
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
 
-  if (!hasIndex(row,column,parent))
+  if (!hasIndex(row, column, parent))
     return QModelIndex();
-  
+
   if (!parent.isValid())
   {
-    assert(row<3);
+    assert(row < 3);
     if (row == 0)
       return mapFromSource(model->taxonomyRoot());
     if (row == 1)
@@ -99,7 +103,7 @@ QModelIndex TaxonomyProxy::index(int row, int column, const QModelIndex& parent)
     if (row == 2)
       return mapFromSource(model->segmentationRoot());
   }
-  
+
   // Segmentation can't be parent index
   IModelItem *parentItem = static_cast<IModelItem *>(parent.internalPointer());
   // Checks if parent is Taxonomy
@@ -113,8 +117,8 @@ QModelIndex TaxonomyProxy::index(int row, int column, const QModelIndex& parent)
       element = parentTax->getSubElements()[row];
     else
       element = m_taxonomySegs[parentTax][row-subTaxonomies];
-   
-    return createIndex(row,column,element);
+
+    return createIndex(row, column, element);
   }
   // Otherwise, invalid index
   assert(false);
@@ -129,14 +133,14 @@ QModelIndex TaxonomyProxy::parent(const QModelIndex& child) const
 
   if (!child.isValid())
     return QModelIndex();
-  
-  if ( child == mapFromSource(model->taxonomyRoot()) 
-    || child == mapFromSource(model->sampleRoot()) 
-    || child == mapFromSource(model->segmentationRoot()))
+
+  if (child == mapFromSource(model->taxonomyRoot())
+      || child == mapFromSource(model->sampleRoot())
+      || child == mapFromSource(model->segmentationRoot()))
     return QModelIndex();
-  
+
   IModelItem *childItem = static_cast<IModelItem *>(child.internalPointer());
-  assert (childItem);
+  assert(childItem);
   // Checks if Taxonomy
   TaxonomyNode *childNode = dynamic_cast<TaxonomyNode *>(childItem);
   if (childNode)
@@ -149,12 +153,12 @@ QModelIndex TaxonomyProxy::parent(const QModelIndex& child) const
     TaxonomyNode *parentNode = tax->getParent(childNode->getName());
     //std::cout << "\tParent is " << parentNode->getName().toStdString() << std::endl;
   }
-  
+
   // Otherwise is a segmentation
   Segmentation *childSeg = dynamic_cast<Segmentation *>(childItem);
   if (childSeg)
     return mapFromSource(model->taxonomyIndex(childSeg->taxonomy()));
-  
+
   assert(false);
   return QModelIndex();
 }
@@ -164,8 +168,8 @@ QModelIndex TaxonomyProxy::mapFromSource(const QModelIndex& sourceIndex) const
 {
   if (!sourceIndex.isValid())
     return QModelIndex();
-  
-  return createIndex(sourceIndex.row(),sourceIndex.column(),sourceIndex.internalPointer());
+
+  return createIndex(sourceIndex.row(), sourceIndex.column(), sourceIndex.internalPointer());
 }
 
 //------------------------------------------------------------------------
@@ -173,32 +177,32 @@ QModelIndex TaxonomyProxy::mapToSource(const QModelIndex& proxyIndex) const
 {
   if (!proxyIndex.isValid())
     return QModelIndex();
-  
+
   IModelItem *proxyItem = static_cast<IModelItem *>(proxyIndex.internalPointer());
   TaxonomyNode *proxyTax = dynamic_cast<TaxonomyNode *>(proxyItem);
   if (proxyTax)
-    return sourceModel()->index(proxyIndex.row(),proxyIndex.column(),proxyIndex.parent());
+    return sourceModel()->index(proxyIndex.row(), proxyIndex.column(), proxyIndex.parent());
   Segmentation *proxySeg = dynamic_cast<Segmentation *>(proxyItem);
   if (proxySeg)
   {
     EspINA *model = dynamic_cast<EspINA *>(sourceModel());
     return model->segmentationIndex(proxySeg);
   }
-  assert(false);
+  return QModelIndex();
 }
 
 //------------------------------------------------------------------------
 void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start, int end)
 {
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
-  
+
   if (sourceParent == model->segmentationRoot())
   {
     updateSegmentations();
     //Look for modified segmentations
     for (int r = start; r <= end; r++)
     {
-      QModelIndex sourceIndex = model->index(r,0,sourceParent);
+      QModelIndex sourceIndex = model->index(r, 0, sourceParent);
       IModelItem *sourceItem = static_cast<IModelItem *>(sourceIndex.internalPointer());
       Segmentation *sourceSeg = dynamic_cast<Segmentation *>(sourceItem);
       assert(sourceSeg);
@@ -206,10 +210,39 @@ void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
       QModelIndex taxIndex = mapFromSource(model->taxonomyIndex(segTax));
       int begin = segTax->getSubElements().size();
       int end = rowCount(taxIndex) - 1;
-      beginInsertRows(taxIndex,end,end);
+      beginInsertRows(taxIndex, end, end);
       endInsertRows();
     }
   }
+}
+
+//------------------------------------------------------------------------
+void TaxonomyProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, int start, int end)
+{
+  EspINA *model = dynamic_cast<EspINA *>(sourceModel());
+
+  if (sourceParent == model->segmentationRoot())
+  {
+    for (int r = start; r <= end; r++)
+    {
+      // Need to find its parent before deletion
+      QModelIndex sourceIndex = model->index(r, 0, sourceParent);
+#ifdef ESPINA_DEBUG
+      IModelItem *sourceItem = static_cast<IModelItem *>(sourceIndex.internalPointer());
+      Segmentation *sourceSeg = dynamic_cast<Segmentation *>(sourceItem);
+      assert(sourceSeg);
+#endif
+      QModelIndex proxyIndex = mapFromSource(sourceIndex);
+      beginRemoveRows(proxyIndex.parent(),proxyIndex.row(),proxyIndex.row());
+      endRemoveRows();
+    }
+  }
+}
+
+//------------------------------------------------------------------------
+void TaxonomyProxy::sourceRowsRemoved(const QModelIndex& sourceParent, int start, int end)
+{
+  updateSegmentations();
 }
 
 //------------------------------------------------------------------------
@@ -218,12 +251,12 @@ void TaxonomyProxy::updateSegmentations() const
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
   if (!model)
     return;
-  
+
   m_taxonomySegs.clear();
   int rows = model->rowCount(model->segmentationRoot());
   for (int row = 0; row < rows; row++)
   {
-    QModelIndex segIndex = model->index(row,0,model->segmentationRoot());
+    QModelIndex segIndex = model->index(row, 0, model->segmentationRoot());
     IModelItem *segItem = static_cast<IModelItem *>(segIndex.internalPointer());
     assert(segItem);
     Segmentation *seg = dynamic_cast<Segmentation *>(segItem);

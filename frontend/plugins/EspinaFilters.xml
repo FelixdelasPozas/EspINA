@@ -149,17 +149,8 @@
      </Documentation>
      <InputProperty
         name="Input"
-        command="SetInputConnection">
-           <ProxyGroupDomain name="groups">
-             <Group name="sources"/>
-             <Group name="filters"/>
-           </ProxyGroupDomain>
-           <DataTypeDomain name="input_type">
-             <DataType value="vtkDataImage"/>
-           </DataTypeDomain>
-      </InputProperty>
-     <InputProperty
-        name="BlendInput"
+		immediate_update="1"
+		clean_command="RemoveAllInputs"
         command="AddInputConnection">
            <ProxyGroupDomain name="groups">
              <Group name="sources"/>
