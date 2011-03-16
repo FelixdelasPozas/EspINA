@@ -17,37 +17,30 @@
 */
 
 
-#include "CountingRegion.h"
-#include <QLabel>
-#include <QHBoxLayout>
-#include <QWidgetAction>
-#include <QPushButton>
-
 #include "CountingRegionsExtension.h"
-#include "espINAFactory.h"
 
-CountingRegion::CountingRegion(QObject* parent): QActionGroup(parent)
+#include <QDebug>
+#include <assert.h>
+
+void CountingRegionsExtension::initialize()
 {
-  buildUI();
-  
-  CountingRegionsExtension ext;
-  EspINAFactory::instance()->addSegmentationExtension(&ext);
+  // Create counting region filter
+  assert(!m_init);
+  qDebug() << "Creating a new counting region filter";
+  m_init = true;
 }
 
-
-void CountingRegion::buildUI()
+void CountingRegionsExtension::addInformation(InformationMap& map)
 {
-  //Threshold
-  //QLabel *countingRegion = new QLabel(tr("Counting Region"));
-  QPushButton *countingRegion = new QPushButton(QIcon(":/espina/applyCR"),tr("Apply"));
-  
-  QHBoxLayout *thresholdLayout = new QHBoxLayout();
-  thresholdLayout->addWidget(countingRegion);
-
-  QWidget *thresholdFrame = new QWidget();
-  thresholdFrame->setLayout(thresholdLayout);
-
-  QWidgetAction *threshold = new QWidgetAction(this);
-  threshold->setDefaultWidget(thresholdFrame);
+  qDebug() << "No extra information provided. This extension modifies visibity property";
 }
 
+void CountingRegionsExtension::addRepresentations(RepresentationMap& map)
+{
+  qDebug() << "No extra representation provided";
+}
+
+ISegmentationExtension* CountingRegionsExtension::clone()
+{
+  return new CountingRegionsExtension();
+}

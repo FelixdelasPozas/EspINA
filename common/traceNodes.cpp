@@ -159,6 +159,22 @@ QVariant Segmentation::data(int role) const
   }
 }
 
+void Segmentation::addExtension(ISegmentationExtension* ext)
+{
+  ISegmentationExtension *extAdded = ext->clone();
+  extAdded->initialize();
+  extAdded->addInformation(m_infoMap);
+  extAdded->addRepresentations(m_repMap);
+  m_extensions.append(extAdded);
+}
+
+ISegmentationExtension *Segmentation::extension()
+{
+  assert(m_extensions.size());
+  return m_extensions.first();
+}
+
+
 //-----------------------------------------------------------------------------
 // FILTER
 //-----------------------------------------------------------------------------

@@ -17,37 +17,37 @@
 */
 
 
-#include "CountingRegion.h"
-#include <QLabel>
-#include <QHBoxLayout>
-#include <QWidgetAction>
-#include <QPushButton>
-
-#include "CountingRegionsExtension.h"
 #include "espINAFactory.h"
 
-CountingRegion::CountingRegion(QObject* parent): QActionGroup(parent)
+#include "EspinaPlugin.h"
+#include "traceNodes.h"
+
+#include <QDebug>
+
+EspINAFactory *EspINAFactory::m_instance = NULL;
+
+EspINAFactory* EspINAFactory::instance()
 {
-  buildUI();
-  
-  CountingRegionsExtension ext;
-  EspINAFactory::instance()->addSegmentationExtension(&ext);
+  if (!m_instance)
+    m_instance = new EspINAFactory();
+  return m_instance;
+}
+
+Segmentation* EspINAFactory::CreateSegmentation(pqPipelineSource* source, int portNumber, QString parentHash)
+{
+  Segmentation *seg = new Segmentation(source,portNumber,parentHash);
+  foreach(ISegmentationExtension *ext, m_extensions)
+  {
+    seg->addExtension(ext);
+  }
+  return seg;
+}
+
+void EspINAFactory::addSegmentationExtension(ISegmentationExtension* ext)
+{
+  qDebug() << "New Extension registered in Factory";
+  m_extensions.append(ext->clone());
 }
 
 
-void CountingRegion::buildUI()
-{
-  //Threshold
-  //QLabel *countingRegion = new QLabel(tr("Counting Region"));
-  QPushButton *countingRegion = new QPushButton(QIcon(":/espina/applyCR"),tr("Apply"));
-  
-  QHBoxLayout *thresholdLayout = new QHBoxLayout();
-  thresholdLayout->addWidget(countingRegion);
-
-  QWidget *thresholdFrame = new QWidget();
-  thresholdFrame->setLayout(thresholdLayout);
-
-  QWidgetAction *threshold = new QWidgetAction(this);
-  threshold->setDefaultWidget(thresholdFrame);
-}
 

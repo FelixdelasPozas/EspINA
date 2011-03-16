@@ -59,7 +59,7 @@ set (PARAVIEW_ADDITIONAL_LIBRARIES
   ${PARAVIEW_ADDITIONAL_LIBRARIES}
   ${CAJAL_LIBRARIES}
   Espina
-  ITKCommon ITKBasicFilters ITKAlgorithms 
+  ITKCommon ITKBasicFilters ITKAlgorithms ITKIO
   ${Boost_LIBRARIES}
 )
 

@@ -57,6 +57,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <QDebug>
 #include "assert.h"
+#include <espINAFactory.h>
 
 
 #define DEFAULT_THRESHOLD 30
@@ -282,7 +283,7 @@ void SeedGrowingSegmentation::buildSubPipeline(Product* input, EspinaParamList a
   Product *product;
   foreach(product,grow->products())
   {
-    Segmentation *seg = new Segmentation(product->sourceData(),product->portNumber(), grow->id());
+    Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(product->sourceData(),product->portNumber(), grow->id());
     emit productCreated(seg);
   }
 }
