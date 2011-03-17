@@ -41,11 +41,16 @@ qt4_wrap_cpp(MOC_SRCS
   CountingRegion.h
   )
 
+# Create Interface files
+qt4_wrap_ui (UI_BUILT_SOURCES
+  CountingRegionPanel.ui
+  )
+
 # This is a macro for adding QActionGroup subclasses automatically as toolbars.
-ADD_PARAVIEW_ACTION_GROUP(
-  IFACES IFACE_SRCS 
+ADD_PARAVIEW_DOCK_WINDOW(
+  IFACES IFACE_SRCS
   CLASS_NAME CountingRegion 
-  GROUP_NAME "ToolBar/CountingRegion")
+  DOCK_AREA Left)
 
 file ( GLOB LOCAL_SOURCES *.cpp )
 
@@ -53,6 +58,7 @@ set (PLUGIN_SRCS
   ${LOCAL_SOURCES}
   ${MOC_SRCS} 
   ${RCC_BUILT_SOURCES} 
+  ${UI_BUILT_SOURCES}
   )
 
 set (PARAVIEW_ADDITIONAL_LIBRARIES

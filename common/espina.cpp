@@ -86,6 +86,8 @@ bool EspINA::setData(const QModelIndex& index, const QVariant& value, int role)
       emit dataChanged(index, index);
       return true;
     }
+    if (role == Qt::DecorationRole)
+      qDebug() << "Cambiando valor";
     if (role == Qt::CheckStateRole)
     {
       IModelItem *item = static_cast<IModelItem *>(index.internalPointer());

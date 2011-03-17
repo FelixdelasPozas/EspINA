@@ -26,28 +26,23 @@
 #include "CountingRegionExtension.h"
 #include "espINAFactory.h"
 
-CountingRegion::CountingRegion(QObject* parent): QActionGroup(parent)
+CountingRegion::CountingRegion(QWidget * parent): QDockWidget(parent)
 {
-  buildUI();
+  this->setWindowTitle(tr("Counting Brick"));
+  QWidget *dockWidget = new QWidget();
+  setupUi(dockWidget);
+  setWidget(dockWidget);
+  
+  connect(createRegion,SIGNAL(clicked()),
+    this, SLOT(createNewRegion()));
   
   CountingRegionExtension ext;
   EspINAFactory::instance()->addSegmentationExtension(&ext);
-}
-
-
-void CountingRegion::buildUI()
-{
-  //Threshold
-  //QLabel *countingRegion = new QLabel(tr("Counting Region"));
-  QPushButton *countingRegion = new QPushButton(QIcon(":/espina/applyCR"),tr("Apply"));
   
-  QHBoxLayout *thresholdLayout = new QHBoxLayout();
-  thresholdLayout->addWidget(countingRegion);
-
-  QWidget *thresholdFrame = new QWidget();
-  thresholdFrame->setLayout(thresholdLayout);
-
-  QWidgetAction *threshold = new QWidgetAction(this);
-  threshold->setDefaultWidget(thresholdFrame);
+  regions->setModel(&m_regionsModel);
 }
 
+void CountingRegion::createNewRegion()
+{
+  regions->addItem("Hola");
+}
