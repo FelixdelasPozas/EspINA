@@ -45,7 +45,7 @@ Segmentation* EspINAFactory::CreateSegmentation(pqPipelineSource* source, int po
 
 void EspINAFactory::addSegmentationExtension(ISegmentationExtension* ext)
 {
-  qDebug() << "New Extension registered in Factory";
+  qDebug() << ext->id() << "registered in Factory";
   m_extensions.append(ext->clone());
 }
 

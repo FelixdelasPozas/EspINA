@@ -3,6 +3,8 @@
 
 #include "data/cajalTypes.h"
 
+#include <QString>
+
 typedef NodeArg EspinaArg;
 typedef NodeParam EspinaParam;
 typedef NodeParamList EspinaParamList;
@@ -19,6 +21,7 @@ typedef Point ImagePixel;
 
 typedef int InformationMap;
 typedef int RepresentationMap;
+typedef QString ExtensionId;
 
 
 #endif// ESPINATYPES_H

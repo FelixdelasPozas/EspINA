@@ -17,20 +17,30 @@
 */
 
 
-#ifndef COUNTINGREGIONSEXTENSION_H
-#define COUNTINGREGIONSEXTENSION_H
+#include "CountingRegionExtension.h"
 
-#include "EspinaPlugin.h"
+#include <QDebug>
+#include <assert.h>
 
-class CountingRegionsExtension : public ISegmentationExtension
+void CountingRegionExtension::initialize()
 {
+  // Create counting region filter
+  assert(!m_init);
+  qDebug() << "Creating a new counting region filter";
+  m_init = true;
+}
 
-public:
-  virtual void initialize();
-  virtual void addInformation(InformationMap& map);
-  virtual void addRepresentations(RepresentationMap& map);
-  
-  virtual ISegmentationExtension* clone();
-};
+void CountingRegionExtension::addInformation(InformationMap& map)
+{
+  qDebug() << "No extra information provided. This extension modifies visibity property";
+}
 
-#endif // COUNTINGREGIONSEXTENSION_H
+void CountingRegionExtension::addRepresentations(RepresentationMap& map)
+{
+  qDebug() << "No extra representation provided";
+}
+
+ISegmentationExtension* CountingRegionExtension::clone()
+{
+  return new CountingRegionExtension();
+}

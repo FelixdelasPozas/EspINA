@@ -102,10 +102,10 @@ public:
   virtual QVariant data(int role = Qt::UserRole + 1) const;
   void addExtension(ISegmentationExtension *ext);
   //! Are supposed to be used for sort time
-  ISegmentationExtension *extension();
+  ISegmentationExtension *extension(ExtensionId extId);
   
 private:
-  QList<ISegmentationExtension *> m_extensions;
+  QMap<ExtensionId,ISegmentationExtension *> m_extensions;
   InformationMap m_infoMap;
   RepresentationMap m_repMap;
 };

@@ -165,13 +165,18 @@ void Segmentation::addExtension(ISegmentationExtension* ext)
   extAdded->initialize();
   extAdded->addInformation(m_infoMap);
   extAdded->addRepresentations(m_repMap);
-  m_extensions.append(extAdded);
+  if (m_extensions.contains(ext->id()))
+  {
+    qDebug() << "Extension already registered";
+    assert(false);
+  }
+  m_extensions[ext->id()] = extAdded;
 }
 
-ISegmentationExtension *Segmentation::extension()
+ISegmentationExtension *Segmentation::extension(ExtensionId extId)
 {
-  assert(m_extensions.size());
-  return m_extensions.first();
+  assert(m_extensions.contains(extId));
+  return m_extensions[extId];
 }
 
 

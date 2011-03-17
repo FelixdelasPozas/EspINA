@@ -23,14 +23,14 @@
 #include <QWidgetAction>
 #include <QPushButton>
 
-#include "CountingRegionsExtension.h"
+#include "CountingRegionExtension.h"
 #include "espINAFactory.h"
 
 CountingRegion::CountingRegion(QObject* parent): QActionGroup(parent)
 {
   buildUI();
   
-  CountingRegionsExtension ext;
+  CountingRegionExtension ext;
   EspINAFactory::instance()->addSegmentationExtension(&ext);
 }
 
