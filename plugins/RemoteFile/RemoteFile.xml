@@ -7,9 +7,9 @@
          short_help="Read a txt file.">
       </Documentation>
       <StringVectorProperty
-            name="FileName"
+            name="FilePath"
             animateable="0"
-            command="SetFileName"
+            command="SetFilePath"
             number_of_elements="1">
         <FileListDomain name="files"/>
         <Documentation>

@@ -21,9 +21,8 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   vtkSetStringMacro(FilePath);
-  /*
-  vtkGetStringMacro(FileName);
-  */
+
+  //vtkGetStringMacro(FileName);
 
   vtkFileContent* GetOutput();
   vtkFileContent* GetOutput(int port);
