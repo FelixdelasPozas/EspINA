@@ -16,48 +16,29 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//TODO: Add translation table
-//TODO: Write counting region algorithm
-//TODO: Show bounding regions in volume view
-//TODO: Show bounding regions in slice view
 
-#ifndef COUNTINGREGION_H
-#define COUNTINGREGION_H
+#ifndef CROSSHAIRS_H
+#define CROSSHAIRS_H
 
-#include "ui_CountingRegionPanel.h"
+#include "EspinaPlugin.h"
 
-#include <QDockWidget>
-#include <QMap>
-#include <QList>
-#include <QStringListModel>
-
-// Forward declaration
-class QAction;
-class Sample;
 class pqPipelineSource;
-class CountingRegionExtension;
 
-class CountingRegion : public QDockWidget, private Ui::CountingRegionPanel
+class Crosshairs : public IViewWidget
 {
   Q_OBJECT
-  
 public:
-  CountingRegion(QWidget* parent);
+  Crosshairs(QWidget* parent = 0);
+  virtual void renderInView(pqView* view);
   
-  void initializeExtension(CountingRegionExtension *ext);
+  void addPlane(int id, pqPipelineSource **output) {m_planes[id] = output;}
   
 public slots:
-  void focusSampleChanged(Sample *sample);
-  
-  void createNewRegion();
-  //void onAction(QAction *action);
+  virtual void updateState(bool checked);
+  void update(){emit updateRequired();}
   
 private:
-  bool updateRegions(Sample *sample);
-  
-private:
-  QMap<Sample *, QList<pqPipelineSource *> > m_regions;
-  QStringListModel m_regionsModel;
+  pqPipelineSource **m_planes[3];
 };
 
-#endif // COUNTINGREGION_H
+#endif // CROSSHAIRS_H

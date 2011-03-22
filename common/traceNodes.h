@@ -28,6 +28,9 @@
 
 #include <QString>
 #include <data/taxonomy.h>
+#include <../../../InsightToolkit-3.20.0/Utilities/vxl/vcl/iso/vcl_iostream.h>
+
+#include <QMutex>
 
 // Forward declarations
 class pqPipelineSource;
@@ -51,7 +54,7 @@ class Product
 {
 public:
   //Product(){}
-  Product(pqPipelineSource *source, int portNumber, QString traceName = "Product", QString parentHash = "");
+  Product(pqPipelineSource *source, int portNumber, const QString &traceName = "Product", const QString & parentHash = "");
   virtual ~Product(){}
 
   //! Implements ITraceNode interface
@@ -88,21 +91,38 @@ protected:
 class Sample : public Product
 {
 public:
-  Sample(pqPipelineSource *source, int portNumber, QString sampleName) : Product(source,portNumber, sampleName) {}
+  Sample(pqPipelineSource *source, int portNumber, const QString &sampleName="") 
+  : Product(source,portNumber, sampleName) 
+  , m_extent(NULL)
+  {}
+  //virtual QString id(){return name;}
   
   virtual QVariant data(int role = Qt::UserRole + 1) const;
+  
+  void extent(int *out);
+  void bounds(double *out);
+  void spacing(double *out);
+  
+private:
+  int *m_extent;
+  double *m_bounds, *m_spacing;
+  QMutex mutex;
 };
 
 class Segmentation : public Product
 {
 public:
-  Segmentation(pqPipelineSource *source, int portNumber, QString parentHash = "") : Product(source,portNumber, parentHash) 
-  {name = "Segmentation";}
+  //! WARNING: Note that Segmentation constructor hides 3rd paramater (productName)
+  Segmentation(pqPipelineSource *source, int portNumber, const QString &parentHash = "");
+  
+  virtual QString id() {return m_parentHash;}
   
   virtual QVariant data(int role = Qt::UserRole + 1) const;
+  
   void addExtension(ISegmentationExtension *ext);
-  //! Are supposed to be used for sort time
+  //! Are supposed to be used for sort time 
   ISegmentationExtension *extension(ExtensionId extId);
+  void initialize();
   
 private:
   QMap<ExtensionId,ISegmentationExtension *> m_extensions;

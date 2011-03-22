@@ -35,6 +35,7 @@ EspINAFactory* EspINAFactory::instance()
 
 Segmentation* EspINAFactory::CreateSegmentation(pqPipelineSource* source, int portNumber, QString parentHash)
 {
+  std::cout << "Factory is going to create a segmentation owned by " << parentHash.toStdString() << std::endl;
   Segmentation *seg = new Segmentation(source,portNumber,parentHash);
   foreach(ISegmentationExtension *ext, m_extensions)
   {

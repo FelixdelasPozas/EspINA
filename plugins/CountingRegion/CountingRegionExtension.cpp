@@ -19,14 +19,49 @@
 
 #include "CountingRegionExtension.h"
 
+#include "traceNodes.h"
+#include "CountingRegion.h"
+
+#include <cache/cachedObjectBuilder.h>
+#include <pqPipelineSource.h>
+
 #include <QDebug>
 #include <assert.h>
+#include <pqOutputPort.h>
+#include <vtkSMOutputPort.h>
+#include <vtkSMIntVectorProperty.h>
+#include <vtkSMInputProperty.h>
+#include <vtkSMStringVectorProperty.h>
 
-void CountingRegionExtension::initialize()
+
+const ExtensionId CountingRegionExtension::ID = "CountinRegionExtension";
+
+void CountingRegionExtension::initialize(Segmentation *seg)
 {
+  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+  
   // Create counting region filter
   assert(!m_init);
   qDebug() << "Creating a new counting region filter";
+  m_seg = seg;
+  // Configuration of Counting Region interface //TODO: This is too messy...
+  VtkParamList args;
+  VtkArg arg;
+  arg.name = "Input";
+  arg.type = INPUT;
+  VtkParam param;
+  param.first = arg;
+  param.second = m_seg->id();
+  args.push_back(param);
+  m_countingRegion = cob->createFilter("filters", "CountingRegion", args);
+  if (!m_countingRegion)
+  {
+    qDebug() << "Couldn't create Bounding Region Filter";
+    assert(false);
+  }
+  
+  m_manager->initializeExtension(this);
+  
   m_init = true;
 }
 
@@ -35,6 +70,7 @@ void CountingRegionExtension::addInformation(InformationMap& map)
   qDebug() << "No extra information provided. This extension modifies visibity property";
 }
 
+
 void CountingRegionExtension::addRepresentations(RepresentationMap& map)
 {
   qDebug() << "No extra representation provided";
@@ -42,5 +78,29 @@ void CountingRegionExtension::addRepresentations(RepresentationMap& map)
 
 ISegmentationExtension* CountingRegionExtension::clone()
 {
-  return new CountingRegionExtension();
+  return new CountingRegionExtension(m_manager);
 }
+
+
+void CountingRegionExtension::updateRegions(QList< pqPipelineSource* >& regions)
+{
+  vtkSMProperty *p;
+  vtkSMInputProperty *input;
+  m_countingRegion->updatePipeline();
+  m_countingRegion->getProxy()->UpdatePropertyInformation();
+  qDebug() << regions.size() << "regions updated";
+  foreach (pqPipelineSource *region, regions)
+  {
+    p = m_countingRegion->getProxy()->GetProperty("Regions");
+    input = vtkSMInputProperty::SafeDownCast(p);
+    input->SetProxy(0,region->getProxy());
+  }
+  m_countingRegion->updatePipeline();
+  m_countingRegion->getProxy()->UpdatePropertyInformation();
+  p = m_countingRegion->getProxy()->GetProperty("Discarted");
+  assert(p);
+  vtkSMIntVectorProperty *discarted = vtkSMIntVectorProperty::SafeDownCast(p);
+  int isDiscarted = discarted->GetElement(0);
+  m_seg->setVisible(!isDiscarted);
+}
+

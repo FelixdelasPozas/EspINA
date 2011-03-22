@@ -65,7 +65,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 //-----------------------------------------------------------------------------
-SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): EspinaPlugin(), ISegmentationPlugin(parent)
+SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): ISegmentationPlugin(parent), EspinaPlugin()
 {
   m_selector = new PixelSelector();
   
@@ -83,7 +83,9 @@ SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): EspinaPlugin(
   // Init Grow table
   // TODO: Make cleaner
   EspinaArg espina = "input";
-  VtkArg vtk = {INPUT,"input"};
+  VtkArg vtk;
+  vtk.type = INPUT;
+  vtk.name = "input";
   m_tableGrow.addTranslation(espina, vtk);
   espina = "Threshold";
   vtk.type = DOUBLEVECT;
@@ -96,7 +98,8 @@ SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): EspinaPlugin(
 
   // Init Blur table
   espina = "input";
-  vtk = {INPUT,"input"};
+  vtk.type = INPUT;
+  vtk.name = "input";
   m_tableGrow.addTranslation(espina, vtk);
   espina = "Kernel";
   vtk.type = INTVECT;

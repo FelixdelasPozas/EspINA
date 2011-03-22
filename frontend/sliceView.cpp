@@ -12,8 +12,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+    You shoulh this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "sliceView.h"
 
@@ -38,6 +37,7 @@
 #include "vtkPropCollection.h"
 #include "vtkPVDataInformation.h"
 #include "pqOutputPort.h"
+#include "vtkSMOutputPort.h"
 #include "selectionManager.h"
 
 // Qt includes
@@ -57,6 +57,9 @@
 #include <proxies/vtkSMRGBALookupTableProxy.h>
 #include <pqScalarsToColors.h>
 #include <pqLookupTableManager.h>
+#include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
+#include <vtkCamera.h>
 
 #define HINTWIDTH 40
 
@@ -75,7 +78,7 @@ Blender* Blender::instance()
 
 void Blender::focusOnSample(Sample* sample)
 {
-  if (m_mappers.contains(sample))
+  if (m_blendingMappers.contains(sample))
     return;
   ///TODO: Hay que ver bien como se gestionan los recursos para evitar memory leaks
   if (!m_imageBlender)
@@ -89,9 +92,13 @@ void Blender::focusOnSample(Sample* sample)
     
     //Map the background values using a lut
     // This filter is the output of the sliceBlender class when blending is off
-    pqPipelineSource *sampleMapper = ob->createFilter("filters", "ImageMapToColors", sample->sourceData(), 0);
-    assert(sampleMapper);
-    m_mappers[sample] = sampleMapper;
+    if (m_sampleMapper)
+    {
+      qDebug() << "Free previous state";
+      assert(false);
+    }
+    m_sampleMapper = ob->createFilter("filters", "ImageMapToColors", sample->sourceData(), 0);
+    assert(m_sampleMapper);
     
     // Get (or create if it doesn't exit) the lut for the background image
     pqScalarsToColors *greyLUT = lutManager->getLookupTable(server, QString("GreyLUT"), 4, 0);
@@ -109,16 +116,16 @@ void Blender::focusOnSample(Sample* sample)
     }
     
     // Set the greyLUT for the mapper
-    p = sampleMapper->getProxy()->GetProperty("LookupTable");
+    p = m_sampleMapper->getProxy()->GetProperty("LookupTable");
     vtkSMProxyProperty *lut = vtkSMProxyProperty::SafeDownCast(p);
     if (lut)
     {
       lut->SetProxy(0, greyLUT->getProxy());
     }
     
-    sampleMapper->getProxy()->UpdateVTKObjects();
+    m_sampleMapper->getProxy()->UpdateVTKObjects();
     
-    m_imageBlender = ob->createFilter("filters", "ImageBlend", sampleMapper);
+    m_imageBlender = ob->createFilter("filters", "ImageBlend", m_sampleMapper);
     assert(m_imageBlender);
   }
 }
@@ -126,7 +133,7 @@ void Blender::focusOnSample(Sample* sample)
 
 void Blender::blendSegmentation(Segmentation* seg)
 {
-  if (m_mappers.contains(seg))
+  if (m_blendingMappers.contains(seg))
     return;
   
   vtkSMProperty* p;
@@ -139,7 +146,7 @@ void Blender::blendSegmentation(Segmentation* seg)
   //Map segmentation values using a lut
   pqPipelineSource *segMapper = ob->createFilter("filters", "ImageMapToColors", seg->sourceData());
   assert(segMapper);
-  m_mappers[seg] = segMapper;
+  m_blendingMappers[seg] = segMapper;
 
   //TODO: Use smart pointers
   vtkSMRGBALookupTableProxy *segLUT = vtkSMRGBALookupTableProxy::New();
@@ -171,17 +178,17 @@ void Blender::blendSegmentation(Segmentation* seg)
 
 void Blender::unblendSegmentation(Segmentation* seg)
 {
-  if (!m_mappers.contains(seg))
+  if (!m_blendingMappers.contains(seg))
     return;
   
   vtkSMProperty* p;
   vtkSMIntVectorProperty* intVectProp;
   vtkSMDoubleVectorProperty* doubleVectProp;
   
-  pqPipelineSource *mapper = m_mappers.take(seg);
+  pqPipelineSource *mapper = m_blendingMappers.take(seg);
   
   std::cout << "N. Consumers of mapper before " << mapper->getNumberOfConsumers() << std::endl;
-  std::cout << "N. Producers of blnder before " << m_imageBlender->getProxy()->GetNumberOfProducers() << std::endl;
+  std::cout << "N. Producers of blender before " << m_imageBlender->getProxy()->GetNumberOfProducers() << std::endl;
   //p = m_imageBlender->getProxy()->GetProperty("Input");
   //vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
   //if (input)
@@ -201,16 +208,22 @@ void Blender::updateImageBlenderInput()
 {
   vtkSMProperty* p;
 
-  //TODO: Remove dependent maps
-  std::cout << "Updating is Deprecated " << std::endl;
-  
   vtkstd::vector<vtkSMProxy *> inputs;
   vtkstd::vector<unsigned int> ports;
   
-  foreach(pqPipelineSource *source, m_mappers)
+  // Ensure sample's mapper is the first input
+  inputs.push_back(m_sampleMapper->getProxy());
+  ports.push_back(0);
+  
+  foreach(pqPipelineSource *source, m_blendingMappers)
   {
-    inputs.push_back(source->getProxy());
-    ports.push_back(0);
+    IModelItem *item = m_blendingMappers.key(source);
+    Segmentation *seg = dynamic_cast<Segmentation *>(item);
+    if (seg->visible())
+    {
+      inputs.push_back(source->getProxy());
+      ports.push_back(0);
+    }
   }
   
   p = m_imageBlender->getProxy()->GetProperty("Input");
@@ -224,7 +237,6 @@ void Blender::updateImageBlenderInput()
     , &ports[0]);
     m_imageBlender->getProxy()->UpdateVTKObjects();
   }
-  //m_imageBlender->getProxy()->UpdateVTKObjects();
 }
 
 
@@ -282,7 +294,14 @@ SliceView::SliceView(QWidget* parent)
 
   m_mainLayout = new QVBoxLayout();
   m_mainLayout->addLayout(m_controlLayout);
+  this->setAutoFillBackground(true);
   setLayout(m_mainLayout);
+  
+  // Color background
+  QPalette pal = this->palette();
+  pal.setColor(QPalette::Base, pal.color(QPalette::Window));
+  this->setPalette(pal);
+  this->setStyleSheet("QSpinBox { background-color: white;}");
   
   s_blender = Blender::instance();
 }
@@ -300,8 +319,28 @@ void SliceView::connectToServer()
                    this, SLOT(vtkWidgetMouseEvent(QMouseEvent *)));
   m_mainLayout->insertWidget(0, m_viewWidget);//To preserve view order
   
+  vtkSMTwoDRenderViewProxy* view = vtkSMTwoDRenderViewProxy::SafeDownCast(
+    m_view->getProxy());
+  
+    
+  vtkCamera * cam = view->GetRenderView()->GetActiveCamera();
+  if (m_plane == SLICE_PLANE_XY)
+  {
+    cam->SetPosition(0,0,-50);
+    cam->SetFocalPoint(0,0,0);
+    cam->SetRoll(180);
+  }else if (m_plane == SLICE_PLANE_YZ)
+  {
+    cam->SetRoll(270);
+  } else
+  {
+    cam->SetRoll(-90);
+  }
+    
+  m_view->resetCamera();
+  
   double black[3] = {0,0,0};
-  m_view->defaultBackgroundColor();
+  view->GetRenderView()->SetBackgroundColorCM(black);
 }
 
 //-----------------------------------------------------------------------------
@@ -402,7 +441,7 @@ void SliceView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int e
     Sample *sample = dynamic_cast<Sample *>(item);
     if (sample)
     {
-      //TODO: Render planes
+      //TODO: Remove sample
       qDebug() << "Render planes";
     } 
     else if (!sample)
@@ -416,7 +455,12 @@ void SliceView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int e
   updateScene();
 }
 
-
+//-----------------------------------------------------------------------------
+void SliceView::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight)
+{
+  s_blender->updateImageBlenderInput();
+  updateScene();
+}
 
 //-----------------------------------------------------------------------------
 QModelIndex SliceView::indexAt(const QPoint& point) const
@@ -450,22 +494,28 @@ void SliceView::focusOnSample(Sample* sample)
     m_slicer = ob->createFilter("filters", "ImageSlicer", sample->sourceData(), 0);
     setPlane(m_plane);
     sample->sourceData()->updatePipeline();
+    /*
     vtkPVDataInformation *info = sample->outputPort()->getDataInformation();
     double *bounds = info->GetBounds();
     int *extent = info->GetExtent();
+    */
+    int mextent[6];
+    sample->extent(mextent);
     int normalCoorToPlane = (m_plane + 2) % 3;
-    int numSlices = extent[2*normalCoorToPlane+1];
+    int numSlices = mextent[2*normalCoorToPlane+1];
     m_scrollBar->setMaximum(numSlices);
     m_spinBox->setMaximum(numSlices);
     //memcpy(m_bounds,bounds,6*sizeof(double));
     //memcpy(m_extent,extent,6*sizeof(int));
 
     pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-    dp->setRepresentationVisibility(m_slicer->getOutputPort(0), m_view, true);
+    pqDataRepresentation *rep = dp->setRepresentationVisibility(m_slicer->getOutputPort(0), m_view, true);
+    
   }
   else
   {
     qDebug() << "Need to change slicer input";
+    //TODO: change slicer input
     assert(false);
   }
 }
@@ -496,6 +546,7 @@ void SliceView::setSlice(int value)
   slice = vtkSMIntVectorProperty::SafeDownCast(p);
   if (slice)
     slice->SetElements1(value);
+  emit sliceChanged();
   updateScene();
 }
 
@@ -528,22 +579,23 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
 
     //Change coordinates acording the plane
     picker->Pick(selection[0], selection[1], selection[2], renModule->GetRenderer());
-    qDebug() << selection[0] << " " << selection[1] << " " << selection[2];
-    picker->PrintSelf(std::cout, vtkIndent(0));
+    //picker->PrintSelf(std::cout, vtkIndent(0));
     double pos[3];//World coordinates
     picker->GetPickPosition(pos);
-    std::cout << pos[0] << " " << pos[1] << " " << m_spinBox->value() << "\n";
     //m_input->getOutput()->getDataInformation()->PrintSelf(std::cout,vtkIndent(0));
     //Get Spacing
-    double sx, sy, sz;//Image Spacing
+    s_focusedSample->sourceData()->getOutputPort(0)->getDataInformation()->PrintSelf(std::cout,vtkIndent(0));
+    double spacing[3];//Image Spacing
+    s_focusedSample->spacing(spacing);
     Point coord;
-    coord.x = pos[0];
-    coord.y = pos[1];
+    coord.x = pos[0] / spacing[0];
+    coord.y = pos[1] / spacing[1];
     coord.z = m_spinBox->value();
-
+    qDebug() << "Event Position" << selection[0] << " " << selection[1] << " " << selection[2];
+    qDebug() << "Pick Position" << pos[0] << " " << pos[1] << " " << m_spinBox->value();
+    qDebug() << "Real Position" << coord.x << " " << coord.y << " " << m_spinBox->value();
+    
     emit pointSelected(coord);
-
-    int i, j, k;//Image coordinates
   }
 }
 
@@ -556,6 +608,7 @@ void SliceView::updateScene()
   else
     slice(s_focusedSample->sourceData());
   
+    
   m_view->render();
 }
 

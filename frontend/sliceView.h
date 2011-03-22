@@ -40,7 +40,6 @@ class vtkSMProxy;
 class IModelItem;
 
 #include "selectionManager.h"//TODO: Forward declare?
-///!TODO: Consider using a class to encapsulate the shared/static blender
 class Blender
 {
 public:
@@ -56,14 +55,14 @@ public:
   //! Unblends seg into the focused sample
   void unblendSegmentation(Segmentation *seg);
   
-protected:
   void updateImageBlenderInput();
   
 private:
-  Blender() : m_imageBlender(NULL) {}
+  Blender() : m_sampleMapper(NULL), m_imageBlender(NULL) {}
   static Blender *m_blender;
+  pqPipelineSource *m_sampleMapper;
   pqPipelineSource *m_imageBlender;
-  QMap<IModelItem *,pqPipelineSource *> m_mappers;
+  QMap<IModelItem *,pqPipelineSource *> m_blendingMappers;
 };
 
 
@@ -106,6 +105,7 @@ protected:
   // Updating model changes
   virtual void rowsInserted(const QModelIndex& parent, int start, int end);
   virtual void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end);
+  virtual void dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight);
 
 public:
   virtual QModelIndex indexAt(const QPoint& point) const;
@@ -113,6 +113,8 @@ public:
   virtual QRect visualRect(const QModelIndex& index) const;
 
   void focusOnSample(Sample *sample);
+  
+  pqPipelineSource **output(){return &m_slicer;}
 
 public slots:
   //! Slicer configuration methods:
@@ -121,6 +123,9 @@ public slots:
   
   //! Selections
   void vtkWidgetMouseEvent(QMouseEvent *event);
+
+signals:
+  void sliceChanged();
 
 protected:
   void updateScene();

@@ -333,11 +333,18 @@ QList<Segmentation * > EspINA::segmentations(const TaxonomyNode* taxonomy, bool 
 }
 
 //------------------------------------------------------------------------
+//! Returns all the segmentations of a given sample
+QList< Segmentation* > EspINA::segmentations(const Sample* sample) const
+{
+  return m_sampleSegs[sample];
+}
+
+//------------------------------------------------------------------------
 void EspINA::loadFile(QString filePath)
 {
   //TODO Check the type of file .mha, .trace, or .seg
   // .mha at the moment
-  if( filePath.endsWith(".pvd") ) //TODO change it to parse with readers lists
+  if( filePath.endsWith(".mhd") ) //TODO change it to parse with readers lists
   {
     qDebug() << "MHA FILE: " << filePath;
     EspinaProxy* source = CachedObjectBuilder::instance()->createStack( filePath);
@@ -377,6 +384,8 @@ void EspINA::addSample(Sample* sample)
   m_activeSample = sample;
   m_samples.push_back(sample);
   endInsertRows();
+  
+  emit focusSampleChanged(sample);
 }
 
 
@@ -392,7 +401,10 @@ void EspINA::addSegmentation(Segmentation *seg)
   beginInsertRows(segmentationRoot(),lastRow,lastRow);
   seg->setTaxonomy(node);
   seg->setOrigin(m_activeSample);
+  seg->initialize();
   m_taxonomySegs[m_newSegType].push_back(seg);
+  m_sampleSegs[seg->origin()].push_back(seg);
+  qDebug() << "ORIGEN: " << seg->origin();
   m_segmentations.push_back(seg);
   endInsertRows();
 }
@@ -404,6 +416,7 @@ void EspINA::removeSegmentation(Segmentation* seg)
   beginRemoveRows(segmentationRoot(),segIndex.row(),segIndex.row());
   m_segmentations.removeOne(seg);
   m_taxonomySegs[seg->taxonomy()].removeOne(seg);
+  m_sampleSegs[seg->origin()].removeOne(seg);
   endRemoveRows();
 }
 

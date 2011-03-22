@@ -15,6 +15,7 @@ qt4_wrap_cpp(MOC_BUILT_SOURCES
   sampleProxy.h
   espina.h
   iPixelSelector.h
+  EspinaPlugin.h
 )
 
 source_group("Generated" FILES

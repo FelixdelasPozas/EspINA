@@ -88,6 +88,7 @@
 #include <QStringListModel>
 #include <QWidgetAction>
 #include "qTreeComboBox.h"
+#include "Crosshairs.h"
 
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
@@ -203,7 +204,9 @@ EspinaMainWindow::EspinaMainWindow()
   connect(server, SIGNAL(connectionClosed(vtkIdType)), m_xy, SLOT(disconnectFromServer()));
   connect(m_xy, SIGNAL(pointSelected(const Point)), m_selectionManager, SLOT(pointSelected(const Point)));
   this->setCentralWidget(m_xy);
-
+  
+#if 1
+  
   m_yz = new SliceView();
   m_yz->setPlane(SliceView::SLICE_PLANE_YZ);
   m_yz->setModel(sampleProxy);
@@ -216,6 +219,7 @@ EspinaMainWindow::EspinaMainWindow()
 	  m_selectionManager, SLOT(pointSelected(const Point)));
   this->Internals->yzSliceDock->setWidget(m_yz);
 
+ 
   m_xz = new SliceView();
   m_xz->setPlane(SliceView::SLICE_PLANE_XZ);
   m_xz->setModel(sampleProxy);
@@ -225,6 +229,16 @@ EspinaMainWindow::EspinaMainWindow()
   connect(server, SIGNAL(connectionClosed(vtkIdType)), 
 	  m_xz, SLOT(disconnectFromServer()));
   this->Internals->xzSliceDock->setWidget(m_xz);
+  
+#endif
+  
+  Crosshairs *cross = new Crosshairs();
+  cross->addPlane(0,m_xy->output());
+  cross->addPlane(1,m_yz->output());
+  cross->addPlane(2,m_xz->output());
+  connect(m_xy,SIGNAL(sliceChanged()),cross,SLOT(update()));
+  connect(m_yz,SIGNAL(sliceChanged()),cross,SLOT(update()));
+  connect(m_xz,SIGNAL(sliceChanged()),cross,SLOT(update()));
 
   m_3d = new VolumeView();
   m_3d->setModel(sampleProxy);
@@ -233,6 +247,7 @@ EspinaMainWindow::EspinaMainWindow()
 	  m_3d, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), 
 	  m_3d, SLOT(disconnectFromServer()));
+  m_3d->addWidget(cross);
   this->Internals->volumeDock->setWidget(m_3d);
 
   // Setup default GUI layout.
@@ -244,7 +259,6 @@ EspinaMainWindow::EspinaMainWindow()
   // Final step, define application behaviors. Since we want all ParaView
   // behaviors, we use this convenience method.
   new pqParaViewBehaviors(this, this);
-
 }
 
 
@@ -262,7 +276,7 @@ void EspinaMainWindow::loadFile()
 {
   // GUI
   QString filePath = QFileDialog::getOpenFileName(this, tr("Open"), "",
-                     tr("Espina old files (*.pvd);;Trace Files (*.trace)"));
+                     tr("Espina old files (*.mhd);;Trace Files (*.trace)"));
   if (!filePath.isEmpty())
   {
     qDebug() << "FILEPATH: " << filePath;

@@ -48,11 +48,11 @@
 #include <data/taxonomy.h>
 #include <traceNodes.h>
 #include <vtkSMRenderViewProxy.h>
+#include <pqPipelineSource.h>
 
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(QWidget* parent)
 : QAbstractItemView(parent)
-, m_showSamples(false)
 , m_showSegmentations(false)
 {
   m_controlLayout = new QHBoxLayout();
@@ -60,11 +60,6 @@ VolumeView::VolumeView(QWidget* parent)
   m_toggleActors = new QToolButton(this);
   m_toggleActors->setIcon(QIcon(":/espina/hide3D"));
   m_toggleActors->setCheckable(true);
-  
-  m_togglePlanes = new QToolButton(this);
-  m_togglePlanes->setIcon(QIcon(":/espina/hidePlanes"));
-  m_togglePlanes->setCheckable(true);
-  connect(m_togglePlanes,SIGNAL(toggled(bool)),this,SLOT(showPlanes(bool)));
   
   m_controlLayout->addStretch();
   m_controlLayout->addWidget(m_toggleActors);
@@ -75,15 +70,19 @@ VolumeView::VolumeView(QWidget* parent)
   renders->addAction(volumeRenderer);
   renders->addAction(meshRenderer);
   m_toggleActors->setMenu(renders);
-  connect(m_togglePlanes,SIGNAL(toggled(bool)),this,SLOT(showSamples(bool)));
   connect(m_toggleActors,SIGNAL(toggled(bool)),this,SLOT(showSegmentations(bool)));
   connect(volumeRenderer,SIGNAL(triggered()),this,SLOT(setVolumeRenderer()));
   connect(meshRenderer,SIGNAL(triggered()),this,SLOT(setMeshRenderer()));
-  m_controlLayout->addWidget(m_togglePlanes);
   
   m_mainLayout = new QVBoxLayout();
   m_mainLayout->addLayout(m_controlLayout);
   setLayout(m_mainLayout);
+
+  // Color background
+  QPalette pal = this->palette();
+  pal.setColor(QPalette::Base, pal.color(QPalette::Window));
+  this->setPalette(pal);
+  this->setStyleSheet("QSpinBox { background-color: white;}");
   
   m_renderer = VolumeRenderer::renderer();
 }
@@ -117,19 +116,6 @@ void VolumeView::disconnectFromServer()
     //pqApplicationCore::instance()->getObjectBuilder()->destroy(m_view);
   }
 }
-
-//-----------------------------------------------------------------------------
-void VolumeView::showSamples(bool value)
-{
-  if (m_showSamples == value)
-    return;
-  
-  m_showSamples = value;
-  m_togglePlanes->setIcon(m_showSamples?QIcon(":/espina/showPlanes"):QIcon(":/espina/hidePlanes"));
-  
-  updateScene();
-}
-
 
 //-----------------------------------------------------------------------------
 void VolumeView::showSegmentations(bool value)
@@ -208,10 +194,10 @@ void VolumeView::rowsInserted(const QModelIndex& parent, int start, int end)
     IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
     // Check for sample
     Sample *sample = dynamic_cast<Sample *>(item);
-    if (sample && m_showSamples)
+    if (sample)
     {
-      //TODO: Render planes
-      qDebug() << "Render planes";
+      //TODO: Render sample
+      qDebug() << "Render sample?";
     } 
     else if (!sample && m_showSegmentations)
     {
@@ -233,10 +219,10 @@ void VolumeView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int 
     IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
     // Check for sample
     Sample *sample = dynamic_cast<Sample *>(item);
-    if (sample && m_showSamples)
+    if (sample)
     {
-      //TODO: Render planes
-      qDebug() << "Render planes";
+      //TODO: Render sample
+      qDebug() << "Render sample?";
     } 
     else if (!sample && m_showSegmentations)
     {
@@ -248,6 +234,31 @@ void VolumeView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int 
   m_view->render();
 }
 
+//-----------------------------------------------------------------------------
+void VolumeView::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight)
+{
+  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+  
+  //TODO: Update to deal with hierarchy
+  assert(topLeft == bottomRight);
+  QModelIndex index = topLeft;
+  IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+  // Check for sample
+  Sample *sample = dynamic_cast<Sample *>(item);
+  if (sample)
+  {
+      //TODO: Render sample
+      qDebug() << "Render sample?";
+  } 
+  else if (!sample && m_showSegmentations)
+  {
+    Segmentation *seg = dynamic_cast<Segmentation *>(item);
+    assert(seg); // If not sample, it has to be a segmentation
+    dp->setRepresentationVisibility(seg->outputPort(), m_view, seg->visible());
+  }
+  
+  m_view->render();
+}
 
 
 //-----------------------------------------------------------------------------
@@ -267,6 +278,16 @@ QRect VolumeView::visualRect(const QModelIndex& index) const
 {
   return QRect();
 }
+
+//-----------------------------------------------------------------------------
+void VolumeView::addWidget(IViewWidget* widget)
+{
+  m_controlLayout->addWidget(widget);
+  connect(widget,SIGNAL(updateRequired()),this,SLOT(updateScene()));
+  connect(widget,SIGNAL(toggled(bool)),this,SLOT(updateScene()));
+  m_widgets.append(widget);
+}
+
 
 
 //-----------------------------------------------------------------------------
@@ -303,12 +324,16 @@ void VolumeView::updateScene()
     rep->setVisible(false);
   }
   
-  //if (m_showActors)
   render(rootIndex());
   
-  m_view->render();
-  
   //TODO: Center on selection bounding box or active stack if no selection
+  foreach (IViewWidget *widget, m_widgets)
+    if (widget->isChecked())
+      widget->renderInView(m_view);
+
+  //m_view->resetCamera();
+  
+  m_view->render();
   //if (m_showPlanes)
   //  dp->setRepresentationVisibility(m_planes[SLICE_AXIS_X]->getBgOutput(),m_view,true);
   
@@ -343,10 +368,10 @@ void VolumeView::render(const QModelIndex& index)
     IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
     // Check for sample
     Sample *sample = dynamic_cast<Sample *>(item);
-    if (sample && m_showSamples)
+    if (sample)
     {
-      //TODO: Render planes
-      qDebug() << "Render planes";
+      pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+      dp->setRepresentationVisibility(sample->sourceData()->getOutputPort(0),m_view,true);
     } 
     else if (!sample && m_showSegmentations)
     {

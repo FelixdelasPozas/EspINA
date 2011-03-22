@@ -39,6 +39,7 @@ qt4_add_resources (RCC_BUILT_SOURCES
 # We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
 qt4_wrap_cpp(MOC_SRCS 
   CountingRegion.h
+  RegionRenderer.h
   )
 
 # Create Interface files

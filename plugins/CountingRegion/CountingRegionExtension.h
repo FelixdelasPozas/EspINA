@@ -21,17 +21,38 @@
 #define COUNTINGREGIONEXTENSION_H
 
 #include "EspinaPlugin.h"
+#include <QList>
+
+// Forward declaration
+class CountingRegion;
+class Segmentation;
+class pqPipelineSource;
 
 class CountingRegionExtension : public ISegmentationExtension
 {
-
 public:
+  static const ExtensionId ID;
+  
+public:
+  //! Implement ISegmentationExtension 
   virtual ExtensionId id() {return "CountinRegionExtension";}
-  virtual void initialize();
+  virtual void initialize(Segmentation *seg); //TODO: Use Segmentation or pqPipelineSource
   virtual void addInformation(InformationMap& map);
   virtual void addRepresentations(RepresentationMap& map);
   
   virtual ISegmentationExtension* clone();
+  
+  void updateRegions(QList<pqPipelineSource *> &regions);
+  
+  //TODO: Make it private
+  CountingRegionExtension(CountingRegion *manager) 
+  : m_manager(manager)
+  , m_countingRegion(NULL)
+  {}
+  
+private:
+  CountingRegion *m_manager;
+  pqPipelineSource *m_countingRegion;
 };
 
 #endif // COUNTINGREGIONEXTENSION_H
