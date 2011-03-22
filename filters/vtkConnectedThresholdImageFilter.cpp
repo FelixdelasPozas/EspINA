@@ -126,6 +126,7 @@ int vtkConnectedThresholdImageFilter::RequestData(vtkInformation* request, vtkIn
   
   return 1;
 }
+	/*
 
 int vtkConnectedThresholdImageFilter::RequestInformation(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
@@ -147,10 +148,11 @@ int vtkConnectedThresholdImageFilter::RequestInformation(vtkInformation* request
   wholeExtent[4] = 0;
   wholeExtent[5] = 22;
   
-  outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),wholeExtent,6); 
+  //outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),wholeExtent,6); 
   
   return 1;
 }
+  */
 
 
 void vtkConnectedThresholdImageFilter::PrintSelf(ostream& os, vtkIndent indent)

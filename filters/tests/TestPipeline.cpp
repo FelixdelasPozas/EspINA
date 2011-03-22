@@ -26,7 +26,7 @@ int main(int argc, char **argv)
   
   segmentation->Setm_threshold(30);
   segmentation->Setm_seed(76,177,0);
-  segmentation->DebugOn();
+  //segmentation->DebugOn();
   segmentation->Update();
   
   //vtkSmartPointer<vtkMetaImageWriter> writer = vtkSmartPointer<vtkMetaImageWriter>::New();
@@ -48,9 +48,6 @@ int main(int argc, char **argv)
   renWin->AddRenderer( ren1 );
   renWin->SetSize( 600, 600 );
   renWin->Render();
-
-  char c;
-  c = getchar();
 
   return 0;
 }
