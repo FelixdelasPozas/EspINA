@@ -33,7 +33,7 @@
 #include "espinaMainWindow.h"
 #include "ui_espinaMainWindow.h"
 #include "slicer.h"
-#include "volumeView.h"
+#include "espINAFactory.h"
 #include "distance.h"
 #include "unitExplorer.h"
 #include "selectionManager.h"
@@ -89,6 +89,8 @@
 #include <QWidgetAction>
 #include "qTreeComboBox.h"
 #include "Crosshairs.h"
+#include <pqServerManagerModel.h>
+#include <pqServerDisconnectReaction.h>
 
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
@@ -187,6 +189,11 @@ EspinaMainWindow::EspinaMainWindow()
   taxonomySelector->setCurrentIndex(0);
   this->Internals->toolBar->addWidget(taxonomySelector);
   
+  // Final step, define application behaviors. Since we want all ParaView
+  // behaviors, we use this convenience method.
+  new pqParaViewBehaviors(this, this);
+  
+  std::cout << "Creating Views" << std::endl;
 
   // Label Editor
   this->Internals->taxonomyView->setModel(m_espina);
@@ -240,7 +247,7 @@ EspinaMainWindow::EspinaMainWindow()
   connect(m_yz,SIGNAL(sliceChanged()),cross,SLOT(update()));
   connect(m_xz,SIGNAL(sliceChanged()),cross,SLOT(update()));
 
-  m_3d = new VolumeView();
+  m_3d = EspINAFactory::instance()->CreateVolumeView();
   m_3d->setModel(sampleProxy);
   m_3d->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
   connect(server, SIGNAL(connectionCreated(vtkIdType)),
@@ -253,12 +260,8 @@ EspinaMainWindow::EspinaMainWindow()
   // Setup default GUI layout.
   connect(this->Internals->toggleVisibility, SIGNAL(toggled(bool)), 
 	  this, SLOT(toggleVisibility(bool)));
-  
+  pqServerDisconnectReaction::disconnectFromServer();
   // m_3d->setSelectionModel(this->Internals->taxonomyView->selectionModel());
-
-  // Final step, define application behaviors. Since we want all ParaView
-  // behaviors, we use this convenience method.
-  new pqParaViewBehaviors(this, this);
 }
 
 

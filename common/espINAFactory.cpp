@@ -50,5 +50,21 @@ void EspINAFactory::addSegmentationExtension(ISegmentationExtension* ext)
   m_extensions.append(ext->clone());
 }
 
+VolumeView* EspINAFactory::CreateVolumeView()
+{
+  VolumeView *view = new VolumeView();
+  foreach(IViewWidget *widget, m_widgets)
+  {
+    view->addWidget(widget);
+  }
+  return view;
+}
+
+void EspINAFactory::addViewWidget(IViewWidget* widget)
+{
+  qDebug() << "registered new widget in Factory";
+  m_widgets.append(widget->clone());
+}
+
 
 

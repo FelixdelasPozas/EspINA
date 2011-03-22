@@ -20,6 +20,8 @@
 #ifndef ESPINAFACTORY_H
 #define ESPINAFACTORY_H
 
+#include "ui/volumeView.h"
+
 class Segmentation;
 class pqPipelineSource;
 class ISegmentationExtension;
@@ -33,14 +35,17 @@ public:
   static EspINAFactory *instance();
   
   Segmentation *CreateSegmentation(pqPipelineSource* source, int portNumber, QString parentHash);
-  
   void addSegmentationExtension(ISegmentationExtension *ext);
+  
+  VolumeView *CreateVolumeView();
+  void addViewWidget(IViewWidget *widget);
   
 private:
   EspINAFactory(){};
   
   static EspINAFactory *m_instance;
   QList<ISegmentationExtension *> m_extensions;
+  QList<IViewWidget *> m_widgets;
 };
 
 #endif // ESPINAFACTORY_H

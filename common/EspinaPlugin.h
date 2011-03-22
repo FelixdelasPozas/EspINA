@@ -42,6 +42,9 @@ public:
   virtual ~IViewWidget(){}
   
   virtual void renderInView(pqView* view) = 0;
+
+  //! Prototype
+  virtual IViewWidget *clone() = 0;
   
 public slots:
   virtual void updateState(bool checked) = 0;

@@ -28,9 +28,8 @@ class UnitExplorer : public QWidget, private Ui::UnitExplorer
 {
  Q_OBJECT
 public:
-    UnitExplorer(QWidget* parent = 0, Qt::WindowFlags f = 0) : QWidget(parent,f)
-    {
-      setupUi(this);
-    }
+    UnitExplorer(QWidget* parent = 0, Qt::WindowFlags f = 0);
+    
+  virtual void setVisible(bool visible);
 };
 #endif // UNITEXPLORER_H

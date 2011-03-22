@@ -206,6 +206,7 @@ void Blender::unblendSegmentation(Segmentation* seg)
 
 void Blender::updateImageBlenderInput()
 {
+  m_mutex.lock();
   vtkSMProperty* p;
 
   vtkstd::vector<vtkSMProxy *> inputs;
@@ -230,13 +231,14 @@ void Blender::updateImageBlenderInput()
   vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
   if (input)
   {
-    input->RemoveAllProxies();
+    //input->RemoveAllProxies();
     m_imageBlender->getProxy()->UpdateVTKObjects();
     input->SetProxies( static_cast<unsigned int>(inputs.size())
     , &inputs[0]
     , &ports[0]);
     m_imageBlender->getProxy()->UpdateVTKObjects();
   }
+  m_mutex.unlock();
 }
 
 

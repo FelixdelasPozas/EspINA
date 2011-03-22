@@ -28,7 +28,6 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
   unitExplorer.h
   slicer.h
   sliceView.h
-  volumeView.h
   qTreeComboBox.h
   Crosshairs.h
   )

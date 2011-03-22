@@ -49,6 +49,9 @@
 #include <traceNodes.h>
 #include <vtkSMRenderViewProxy.h>
 #include <pqPipelineSource.h>
+#include <vtkRenderWindow.h>
+#include <vtkCamera.h>
+#include <vtkPVGenericRenderWindowInteractor.h>
 
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(QWidget* parent)
@@ -98,7 +101,7 @@ void VolumeView::connectToServer()
     pqRenderView::renderViewType(), server));
   m_viewWidget = m_view->getWidget();
   m_mainLayout->insertWidget(0,m_viewWidget);//To preserver view order
-    
+  m_view->setCenterAxesVisibility(false);
   double black[3] = {0,0,0};
   m_view->getRenderViewProxy()->SetBackgroundColorCM(black);
 }
@@ -317,47 +320,37 @@ void VolumeView::setVolumeRenderer()
 //-----------------------------------------------------------------------------
 void VolumeView::updateScene()
 {
-  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-  pqRepresentation *rep;
-  foreach(rep,m_view->getRepresentations())
-  {
-    rep->setVisible(false);
-  }
+//   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+//   pqRepresentation *rep;
+//   foreach(rep,m_view->getRepresentations())
+//   {
+//     rep->setVisible(false);
+//   }
+  vtkSMRenderViewProxy* view = vtkSMRenderViewProxy::SafeDownCast(
+    m_view->getProxy());
+  assert(view);
+  
+  double cor[3];
+  view->GetInteractor()->GetCenterOfRotation(cor);
+  
+  vtkCamera *cam = view->GetActiveCamera();
+  double pos[3], focus[3];
+  cam->GetPosition(pos);
+  cam->GetFocalPoint(focus);
   
   render(rootIndex());
   
   //TODO: Center on selection bounding box or active stack if no selection
   foreach (IViewWidget *widget, m_widgets)
-    if (widget->isChecked())
+  //  if (widget->isChecked())
       widget->renderInView(m_view);
 
-  //m_view->resetCamera();
+  cam->SetPosition(pos);
+  cam->SetFocalPoint(m_focus);
+  
+  view->GetInteractor()->SetCenterOfRotation(m_focus);
   
   m_view->render();
-  //if (m_showPlanes)
-  //  dp->setRepresentationVisibility(m_planes[SLICE_AXIS_X]->getBgOutput(),m_view,true);
-  
-  // Render renderable products
-  /*
-  foreach(actor,m_actors)
-  {
-    if (m_showActors)
-      m_renderer->render(actor,m_view);
-  }
-  */
-    /* XXX: Is really necessary? They should be already hidden by 
-     * initial foreach loop
-    else
-      m_renderer->hide(actor,m_view);
-  }
-    */
-  /*
-  // Render planes
-  for (SlicePlane plane = SLICE_PLANE_FIRST
-    ; plane <= SLICE_PLANE_LAST
-    ; plane = SlicePlane(plane+1))
-    dp->setRepresentationVisibility(m_planes[plane]->getOutput(),m_view,m_showPlanes);
-  */
 }
 
 
@@ -370,6 +363,11 @@ void VolumeView::render(const QModelIndex& index)
     Sample *sample = dynamic_cast<Sample *>(item);
     if (sample)
     {
+      double bounds[6];
+      sample->bounds(bounds);
+      m_focus[0] = (bounds[1]-bounds[0])/2.0;
+      m_focus[1] = (bounds[3]-bounds[2])/2.0;
+      m_focus[2] = (bounds[5]-bounds[4])/2.0;
       pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
       dp->setRepresentationVisibility(sample->sourceData()->getOutputPort(0),m_view,true);
     } 

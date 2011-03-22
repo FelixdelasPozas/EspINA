@@ -20,16 +20,27 @@
 #ifndef REGIONRENDERER_H
 #define REGIONRENDERER_H
 
-#include <../../home/jorge/proyectos/cbbp/espina/common/EspinaPlugin.h>
+#include "EspinaPlugin.h"
 
+#include <QMap>
+
+class Sample;
+class pqPipelineSource;
 
 class RegionRenderer : public IViewWidget
 {
   Q_OBJECT
 public:
-  RegionRenderer(QWidget* parent = 0);
+  RegionRenderer(QMap<Sample *, QList<pqPipelineSource *> > &regions, QWidget* parent = 0);
+  
+  virtual IViewWidget* clone();
+  
+public slots:
   virtual void updateState(bool checked);
   virtual void renderInView(pqView* view);
+  
+private:
+  QMap<Sample *, QList<pqPipelineSource *> > &m_regions;
 };
 
 #endif // REGIONRENDERER_H

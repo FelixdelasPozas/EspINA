@@ -35,6 +35,7 @@
 // Debug
 #include <QDebug>
 #include <assert.h>
+#include "RegionRenderer.h"
 
 CountingRegion::CountingRegion(QWidget * parent): QDockWidget(parent)
 {
@@ -48,12 +49,16 @@ CountingRegion::CountingRegion(QWidget * parent): QDockWidget(parent)
 
   CountingRegionExtension ext(this);
   EspINAFactory::instance()->addSegmentationExtension(&ext);
+  RegionRenderer widget(m_regions);
+  EspINAFactory::instance()->addViewWidget(&widget);
+  
 
   regions->setModel(&m_regionsModel);
 
   connect(EspINA::instance(), SIGNAL(focusSampleChanged(Sample*)),
           this, SLOT(focusSampleChanged(Sample *)));
 
+  std::cout << "Creating Plugin" << std::endl;
 }
 
 //! Add existing bounding areas to the new Counting Region Extension

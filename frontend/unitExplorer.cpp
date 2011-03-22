@@ -18,3 +18,31 @@
 */
 
 #include "unitExplorer.h"
+
+#include "espina.h"
+#include <traceNodes.h>
+
+UnitExplorer::UnitExplorer(QWidget* parent, Qt::WindowFlags f)
+: QWidget(parent, f)
+{
+  setupUi(this);
+  
+}
+
+
+void UnitExplorer::setVisible(bool visible)
+{
+  QWidget::setVisible(visible);
+  
+  double spacing[3];
+  
+  if (!EspINA::instance()->activeSample())
+    return;
+  
+  EspINA::instance()->activeSample()->spacing(spacing);
+  
+  m_xDist->setValue(spacing[0]);
+  m_yDist->setValue(spacing[1]);
+  m_zDist->setValue(spacing[2]);
+}
+

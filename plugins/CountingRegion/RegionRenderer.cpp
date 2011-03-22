@@ -19,18 +19,40 @@
 
 #include "RegionRenderer.h"
 
-RegionRenderer::RegionRenderer(QWidget* parent): IViewWidget(parent)
+#include <pqDisplayPolicy.h>
+#include <pqApplicationCore.h>
+#include <pqPipelineSource.h>
+#include <espina.h>
+
+#include <assert.h>
+#include <QDebug>
+
+RegionRenderer::RegionRenderer(QMap< Sample*, QList< pqPipelineSource* > >& regions, QWidget* parent)
+: IViewWidget(parent)
+, m_regions(regions)
 {
+  assert(m_regions.size() == regions.size());
   setIcon(QIcon(":/espina/applyCR"));
 }
 
+IViewWidget* RegionRenderer::clone()
+{
+  return new RegionRenderer(m_regions);
+}
+
+
 void RegionRenderer::updateState(bool checked)
 {
-
+  //setIcon(checked?QIcon(":/espina/showPlanes"):QIcon(":/espina/hidePlanes"));
 }
 
 void RegionRenderer::renderInView(pqView* view)
 {
-
+  qDebug() << "Regions to be painted" << m_regions[EspINA::instance()->activeSample()].size();
+  foreach (pqPipelineSource *region, m_regions[EspINA::instance()->activeSample()])
+  {
+    pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+    dp->setRepresentationVisibility(region->getOutputPort(0),view,isChecked());
+  }
 }
 

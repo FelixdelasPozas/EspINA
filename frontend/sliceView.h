@@ -40,6 +40,7 @@ class vtkSMProxy;
 class IModelItem;
 
 #include "selectionManager.h"//TODO: Forward declare?
+#include <QMutex>
 class Blender
 {
 public:
@@ -63,6 +64,7 @@ private:
   pqPipelineSource *m_sampleMapper;
   pqPipelineSource *m_imageBlender;
   QMap<IModelItem *,pqPipelineSource *> m_blendingMappers;
+  QMutex m_mutex;
 };
 
 

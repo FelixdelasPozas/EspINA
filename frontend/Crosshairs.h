@@ -31,6 +31,8 @@ public:
   Crosshairs(QWidget* parent = 0);
   virtual void renderInView(pqView* view);
   
+  virtual IViewWidget* clone();
+  
   void addPlane(int id, pqPipelineSource **output) {m_planes[id] = output;}
   
 public slots:

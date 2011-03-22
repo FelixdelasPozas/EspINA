@@ -80,6 +80,7 @@ private:
   bool m_init;
   bool m_showSegmentations;
   IRenderer *m_renderer;
+  double m_focus[3];
   
   // GUI
   QList<IViewWidget *> m_widgets;

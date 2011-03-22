@@ -21,19 +21,24 @@
 #include <pqDisplayPolicy.h>
 #include <pqApplicationCore.h>
 #include <pqPipelineSource.h>
+#include <pqView.h>
 
 Crosshairs::Crosshairs(QWidget* parent): IViewWidget(parent)
 {
   setIcon(QIcon(":/espina/hidePlanes"));
 }
 
+IViewWidget* Crosshairs::clone()
+{
+  return new Crosshairs();
+}
 
 void Crosshairs::renderInView(pqView* view)
 {
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-  dp->setRepresentationVisibility((*m_planes[0])->getOutputPort(0),view,true);
-  dp->setRepresentationVisibility((*m_planes[1])->getOutputPort(0),view,true);
-  dp->setRepresentationVisibility((*m_planes[2])->getOutputPort(0),view,true);
+  dp->setRepresentationVisibility((*m_planes[0])->getOutputPort(0),view,isChecked());
+  dp->setRepresentationVisibility((*m_planes[1])->getOutputPort(0),view,isChecked());
+  dp->setRepresentationVisibility((*m_planes[2])->getOutputPort(0),view,isChecked());
 }
 
 void Crosshairs::updateState(bool checked)
