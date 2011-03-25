@@ -52,6 +52,11 @@ int main(int argc, char **argv)
   vtkSmartPointer<vtkBoundingRegionFilter> region =
     vtkSmartPointer<vtkBoundingRegionFilter>::New();
 
+  int inclusion[3] = {0,150,2};
+  int exclusion[3] = {200,200,0};
+  
+  region->SetInclusion(inclusion);
+  region->SetExclusion(exclusion);
 
   region->SetInputConnection(reader->GetOutputPort());
 
@@ -72,8 +77,8 @@ int main(int argc, char **argv)
   imageActor->SetInput(reader->GetOutput());
   
   vtkSmartPointer<vtkRenderWindow> renderWindow = vtkSmartPointer<vtkRenderWindow>::New();
-  vtkSmartPointer<vtkRenderWindowInteractor> interactor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
-  interactor->SetRenderWindow(renderWindow);
+  //vtkSmartPointer<vtkRenderWindowInteractor> interactor = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+  //interactor->SetRenderWindow(renderWindow);
   vtkSmartPointer<vtkRenderer> renderer = vtkSmartPointer<vtkRenderer>::New();
   //renderer->AddActor(regionActor);
   double red[3] = {1.0,0,0};
@@ -83,7 +88,7 @@ int main(int argc, char **argv)
   renderWindow->Render();
   renderer->AddActor(imageActor);
   renderWindow->Render();
-  interactor->Start();
+  //interactor->Start();
   
   
   

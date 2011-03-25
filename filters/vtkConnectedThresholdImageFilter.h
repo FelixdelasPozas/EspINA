@@ -20,6 +20,7 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
     
 protected:
+
   vtkConnectedThresholdImageFilter();
   ~vtkConnectedThresholdImageFilter(){};
 

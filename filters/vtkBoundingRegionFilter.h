@@ -31,6 +31,12 @@
 
 #include <vtkPolyDataAlgorithm.h>
 
+#define Left Inclusion[0]
+#define Top Inclusion[1]
+#define Upper Inclusion[2]
+#define Right Exclusion[0]
+#define Bottom Exclusion[1]
+#define Lower Exclusion[2]
 
 class VTK_IMAGING_EXPORT vtkBoundingRegionFilter
       : public vtkPolyDataAlgorithm
@@ -39,6 +45,12 @@ public:
   static vtkBoundingRegionFilter *New();
   vtkTypeMacro(vtkBoundingRegionFilter, vtkPolyDataAlgorithm);
 
+  //! Inclusion Coordinates (Left, Top, Upper)
+  vtkSetVector3Macro(Inclusion,int);
+  vtkGetVector3Macro(Inclusion,int);
+  //! Exclusion Coordinates (Right, Bottom, Lower)
+  vtkSetVector3Macro(Exclusion,int);
+  vtkGetVector3Macro(Exclusion,int);
 protected:
   virtual int FillInputPortInformation(int port, vtkInformation* info);
   virtual int FillOutputPortInformation(int port, vtkInformation* info);
@@ -51,6 +63,8 @@ protected:
 private:
  // virtual vtkBoundingRegionFilter& operator=(const vtkBoundingRegionFilter& other); // Not implemented
  // virtual bool operator==(const vtkBoundingRegionFilter& other) const;// Not implemented
+ int Inclusion[3];
+ int Exclusion[3];
 };
 
 #endif // VTKBOUNDINGREGIONFILTER_H

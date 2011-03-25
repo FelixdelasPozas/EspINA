@@ -20,23 +20,30 @@
 #include <vtkImageData.h>
 #include <vtkInformation.h>
 
+#include <vtkDenseArray.h>
+
 
 int main(int argc, char **argv)
 {
-  vtkSmartPointer<vtkMetaImageReader> reader =
+  vtkSmartPointer<vtkMetaImageReader> sample =
     vtkSmartPointer<vtkMetaImageReader>::New();
+  sample->SetFileName(argv[1]);
+  
+  vtkSmartPointer<vtkMetaImageReader> seg =
+    vtkSmartPointer<vtkMetaImageReader>::New();
+  seg->SetFileName(argv[2]);
 
-  reader->SetFileName(argv[1]);
-
+  std::cout << argv[2] << std::endl;
   // Get the bounding region
   vtkSmartPointer<vtkBoundingRegionFilter> region =
     vtkSmartPointer<vtkBoundingRegionFilter>::New();
-  region->SetInputConnection(reader->GetOutputPort());
+  region->SetInputConnection(sample->GetOutputPort());
 
   vtkSmartPointer<vtkCountingRegionFilter> counting =
     vtkSmartPointer<vtkCountingRegionFilter>::New();
-  counting->SetInputConnection(0,reader->GetOutputPort());
+  counting->SetInputConnection(0,seg->GetOutputPort());
   counting->SetInputConnection(1,region->GetOutputPort());
+  counting->Update();
 
   // Display the  region
   vtkSmartPointer<vtkPolyDataMapper> regionMapper =
@@ -48,31 +55,34 @@ int main(int argc, char **argv)
   regionActor->GetProperty()->SetColor(1, 0, 0);
 
   // Display valid images
-  vtkSmartPointer<vtkImageActor> validActor =
+  vtkSmartPointer<vtkImageActor> segActor =
     vtkSmartPointer<vtkImageActor>::New();
-  validActor->SetInput(counting->GetOutput(0));
-  std::cout << "Number of valid inputs: " << counting->GetOutputPortInformation(0)->GetNumberOfKeys() << std::endl;
-
-  vtkSmartPointer<vtkImageActor> discartedActor =
-    vtkSmartPointer<vtkImageActor>::New();
-  discartedActor->SetInput(counting->GetOutput(1));
-  std::cout << "Number of discarted inputs: " << counting->GetOutputPortInformation(1)->GetNumberOfKeys() << std::endl;
+  segActor->SetInput(seg->GetOutput(0));
+  
+  vtkArrayData *res = vtkArrayData::SafeDownCast(counting->GetOutput());
+  vtkDenseArray<int> *discarted = vtkDenseArray<int>::SafeDownCast(res->GetArray(0));
+  std::cout << "Discarted: " << counting->GetDiscarted() << std::endl;
+  /*
+  res = vtkArrayData::SafeDownCast(counting->GetOutput());
+  discarted = vtkDenseArray<int>::SafeDownCast(res->GetArray(0));
+  std::cout << "Discarted: " << discarted->GetValue(0) << std::endl;
+  */
 
   vtkSmartPointer<vtkRenderWindow> renderWindow =
     vtkSmartPointer<vtkRenderWindow>::New();
-  vtkSmartPointer<vtkRenderWindowInteractor> interactor =
-    vtkSmartPointer<vtkRenderWindowInteractor>::New();
+  //vtkSmartPointer<vtkRenderWindowInteractor> interactor =
+  //  vtkSmartPointer<vtkRenderWindowInteractor>::New();
   vtkSmartPointer<vtkRenderer> renderer =
     vtkSmartPointer<vtkRenderer>::New();
 
-  interactor->SetRenderWindow(renderWindow);
+  //interactor->SetRenderWindow(renderWindow);
   renderWindow->AddRenderer(renderer);
   renderer->AddActor(regionActor);
   renderWindow->Render(); // Centers on region instead of image
-  renderer->AddActor(validActor);
+  renderer->AddActor(segActor);
   //renderer->AddActor(discartedActor);
   renderWindow->Render();
-  interactor->Start();
+  //interactor->Start();
 
   return 0;
 }

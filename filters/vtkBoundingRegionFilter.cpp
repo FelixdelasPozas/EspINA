@@ -125,6 +125,7 @@ int vtkBoundingRegionFilter::RequestData(vtkInformation* request, vtkInformation
   vtkInformation *imageInfo = inputVector[0]->GetInformationObject(0);
   vtkInformation *regionInfo = outputVector->GetInformationObject(0);
 
+  // Access to the input image (stack)
   vtkImageData *image = vtkImageData::SafeDownCast(
                           imageInfo->Get(vtkDataObject::DATA_OBJECT())
                         );
@@ -149,15 +150,18 @@ int vtkBoundingRegionFilter::RequestData(vtkInformation* request, vtkInformation
   int numComponets = image->GetNumberOfScalarComponents();
   unsigned char *imagePtr = static_cast<unsigned char *>(image->GetScalarPointer());
 
-  for (double z = 0; z < dim[2]; z++)
+  //TODO: Min values are 0 or given by extent???
+  int zMin = std::max(Exclusion[2], 0);
+  int zMax = std::min(Inclusion[2], dim[2]);
+  for (int z = zMin; z < zMax; z++)
   {
     // Look for images borders in slice Z
     vtkSmartPointer<vtkPoints> nonBlackPoints = vtkSmartPointer<vtkPoints>::New();
-    for (double y = 0; y < dim[1]; y++)
+    for (int y = 0; y < dim[1]; y++)
     {
       bool inside = false;
       double p1[3], p2[3];
-      for (double x = 0; x < dim[0]; x++)
+      for (int x = 0; x < dim[0]; x++)
       {
         bool regionPixel = false;
         int pxId = x + y * dim[0] + z * dim[0] * dim[1];
@@ -197,17 +201,35 @@ int vtkBoundingRegionFilter::RequestData(vtkInformation* request, vtkInformation
      vtkSmartPointer<vtkPoints> imgCorners = corners(corner,max,mid,min);
      assert(imgCorners->GetNumberOfPoints() == 4);
      double imgCorner[3];
-     for (int p = 0; p < 4; p++)
-     {
-       imgCorners->GetPoint(p,imgCorner);
-       vtkIdType id = points->InsertNextPoint(imgCorner);
-       vertex->InsertNextCell(1,&id);
-     }
-      
+     vtkIdType id;
+     // Bottom Left Corner
+     imgCorners->GetPoint(0,imgCorner);
+     imgCorner[0] += Left * spacing[0];
+     imgCorner[1] += Bottom * spacing[1];
+     id = points->InsertNextPoint(imgCorner);
+     vertex->InsertNextCell(1,&id);
+     // Bottom Right Corner
+     imgCorners->GetPoint(2,imgCorner);
+     imgCorner[0] -= Right * spacing[0];
+     imgCorner[1] += Bottom * spacing[1];
+     id = points->InsertNextPoint(imgCorner);
+     vertex->InsertNextCell(1,&id);
+     // Top Left Corner
+     imgCorners->GetPoint(1,imgCorner);
+     imgCorner[0] += Left * spacing[0];
+     imgCorner[1] -= Top * spacing[1];
+     id = points->InsertNextPoint(imgCorner);
+     vertex->InsertNextCell(1,&id);
+     // Top Right Corner
+     imgCorners->GetPoint(3,imgCorner);
+     imgCorner[0] -= Right * spacing[0];
+     imgCorner[1] -= Top * spacing[1];
+     id = points->InsertNextPoint(imgCorner);
+     vertex->InsertNextCell(1,&id);
   }
-  vtkPolyData *output = vtkPolyData::GetData(outputVector);
-  output->SetPoints(points);
-  output->SetVerts(vertex);
+  
+  region->SetPoints(points);
+  region->SetVerts(vertex);
   return 1;
 }
 

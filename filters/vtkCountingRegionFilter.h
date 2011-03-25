@@ -29,26 +29,21 @@
 #ifndef VTKCOUNTINGREGION_H
 #define VTKCOUNTINGREGION_H
 
-#include <vtkImageAlgorithm.h>
+#include <vtkArrayDataAlgorithm.h>
 #include <vtkDenseArray.h>
 
 class VTK_IMAGING_EXPORT vtkCountingRegionFilter
-: public vtkImageAlgorithm
+: public vtkArrayDataAlgorithm
 {
 public:
   static vtkCountingRegionFilter *New();
-  vtkTypeMacro(vtkCountingRegionFilter, vtkImageAlgorithm);
+  vtkTypeMacro(vtkCountingRegionFilter, vtkArrayDataAlgorithm);
   
-  //! User defined margins over bounding region
-  vtkSetMacro(BottonMargin,double);
-  vtkGetMacro(BottonMargin,double);
-  vtkSetMacro(RightMargin,double);
-  vtkGetMacro(RightMargin,double);
-  vtkSetMacro(TopMargin,double);
-  vtkGetMacro(TopMargin,double);
-  vtkSetMacro(LeftMargin,double);
-  vtkGetMacro(LeftMargin,double);
-  
+  //! Determine if input(0) has to be discarted or not
+  vtkSetMacro(Discarted,int);
+  vtkGetMacro(Discarted,int);
+  //int GetDiscarted();
+
   
 protected:
   virtual int FillInputPortInformation(int port, vtkInformation* info);
@@ -60,10 +55,7 @@ protected:
   virtual ~vtkCountingRegionFilter();
   
 private:
-  double BottonMargin;
-  double RightMargin;
-  double TopMargin;
-  double LeftMargin;
+  int Discarted;
 };
 
 #endif // VTKCOUNTINGREGION_H
