@@ -7,8 +7,6 @@
 #include "vtkCamera.h"
 #include "vtkRenderWindow.h"
 #include "vtkConnectedThresholdImageFilter.h"
-#include "vtkConnectedThresholdRegionGrowImageFilter.h"
-
 
 #include <cstdio>
 
