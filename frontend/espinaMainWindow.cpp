@@ -88,6 +88,7 @@
 #include <QStringListModel>
 #include <QWidgetAction>
 #include "qTreeComboBox.h"
+#include <pqPluginManager.h>
 
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
@@ -183,6 +184,11 @@ EspinaMainWindow::EspinaMainWindow()
   taxonomyView->expandAll();;
   connect(taxonomySelector, SIGNAL(currentIndexChanged(QString)),
           m_espina, SLOT(setUserDefindedTaxonomy(const QString&)));
+
+  connect(pqApplicationCore::instance()->getObjectBuilder(),
+            SIGNAL(proxyCreated (pqProxy *)),
+            m_espina,
+            SLOT(onProxyCreated(pqProxy*)));
   taxonomySelector->setCurrentIndex(0);
   this->Internals->toolBar->addWidget(taxonomySelector);
   

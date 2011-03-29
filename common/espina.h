@@ -26,6 +26,7 @@
 #include <QMap>
 #include <QList>
 #include <QString>
+#include <pqProxy.h>
 
 class IRenderable;
 class ProcessingTrace;
@@ -86,6 +87,9 @@ public slots:
     
     //! Set which is the taxonomy defined by the user
     void setUserDefindedTaxonomy(const QString &taxName);
+
+    //! Debug slot for plugins manage
+    void onProxyCreated(pqProxy* p);
   
 protected:
     explicit EspINA(QObject* parent = 0);

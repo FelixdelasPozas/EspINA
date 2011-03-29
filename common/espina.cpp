@@ -38,6 +38,11 @@ EspINA* EspINA::instance()
   return m_singleton;
 }
 
+void EspINA::onProxyCreated(pqProxy* p)
+{
+  qDebug() << "Proxy" << p->getSMGroup() << "::" << p->getSMName() << " created!";
+}
+
 //------------------------------------------------------------------------
 EspINA::~EspINA()
 {
