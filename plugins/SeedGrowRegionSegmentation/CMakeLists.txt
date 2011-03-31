@@ -1,4 +1,4 @@
-project (ESPINA_SEEDGROW_PLUGIN)
+project (ESPINA_SEEDGROWREGION_PLUGIN)
 
 cmake_minimum_required (VERSION 2.6)
 
@@ -33,19 +33,19 @@ include_directories(
 
 
 qt4_add_resources (RCC_BUILT_SOURCES 
-  rsc/segmentation.qrc
+  rsc/segmentationRegion.qrc
   )
 
 # We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
-qt4_wrap_cpp(MOC_SRCS 
-  SeedGrowingSegmentation.h
+qt4_wrap_cpp(MOC_SRCS
+  SeedGrowingRegionSegmentation.h
   )
 
 # This is a macro for adding QActionGroup subclasses automatically as toolbars.
 ADD_PARAVIEW_ACTION_GROUP(
   IFACES IFACE_SRCS 
-  CLASS_NAME SeedGrowingSegmentation 
-  GROUP_NAME "ToolBar/SeedGrowingSegmentation")
+  CLASS_NAME SeedGrowingRegionSegmentation
+  GROUP_NAME "ToolBar/SeedGrowingRegionSegmentation")#"ToolBar/SeedGrowingRegionSegmentation")
 
 file ( GLOB LOCAL_SOURCES *.cpp )
 
@@ -63,25 +63,26 @@ set (PARAVIEW_ADDITIONAL_LIBRARIES
   ${Boost_LIBRARIES}
 )
 
+
 # Now crete a plugin for the toolbar. Here we pass IFACES and IFACE_SRCS
 # which are filled up by the above macro with relevant entries
 ADD_PARAVIEW_PLUGIN(
-  Segmentation
-  "0.1" 
-  SERVER_MANAGER_XML SeedGrowSegmentation.xml
-  SERVER_MANAGER_SOURCES vtkConnectedThresholdImageFilter.cpp
+  SegmentationRegion
+  "0.1"
+  SERVER_MANAGER_XML SeedGrowRegionSegmentation.xml
+  SERVER_MANAGER_SOURCES vtkConnectedThresholdRegionGrowImageFilter.cpp
 	#According to: http://markmail.org/message/wj27wmlj6rjd7vg5
 	# - See the macro documentation in ParaView/CMake/ParaViewPlugins.cmake:~835
 	# - the parser doesn't work because it seems there is no vtkClass inside
 	#   thus we have to use a vtkXXXX class name for our filter, other wise,
 	#   we need to use SERVER_SOURCES instead of SERVER_MANAGER_SOURCES
-	#   SERVER_SOURCES SegmentationFilter.cpp 
+	#   SERVER_SOURCES SegmentationFilter.cpp
   SOURCES ${IFACE_SRCS} ${PLUGIN_SRCS}
-  GUI_INTERFACES ${IFACES} 
+  GUI_INTERFACES ${IFACES}
   )
 
 if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
-  set_target_properties(Segmentation PROPERTIES COMPILE_FLAGS "-fPIC")
+  set_target_properties(SegmentationRegion PROPERTIES COMPILE_FLAGS "-fPIC")
 endif( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
-target_link_libraries (Segmentation ${PARAVIEW_ADDITIONAL_LIBRARIES} )
+target_link_libraries (SegmentationRegion ${PARAVIEW_ADDITIONAL_LIBRARIES} )

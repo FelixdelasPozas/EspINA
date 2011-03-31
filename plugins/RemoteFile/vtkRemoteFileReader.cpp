@@ -119,7 +119,7 @@ int vtkTraceReader::RequestData(vtkInformation* request,
   vtkFileContent* outData = vtkFileContent::SafeDownCast(outInfo->Get(vtkFileContent::DATA_OBJECT()));
 
   std::string readed;
-  std::ifstream file(this->FileName);
+  std::ifstream file(this->GetFilePath());
   
   char buffer[256];
   while( !file.eof() ){

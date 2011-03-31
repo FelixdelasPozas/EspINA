@@ -17,10 +17,13 @@ include (${VTK_USE_FILE})
 # )
 
 
-ADD_PARAVIEW_PLUGIN(RemoteFile "1.0" 
+ADD_PARAVIEW_PLUGIN(
+  RemoteFile
+  "0.1"
   SERVER_MANAGER_XML RemoteFile.xml
   SERVER_MANAGER_SOURCES vtkRemoteFileReader.cpp
-  GUI_RESOURCE_FILES MyReaderGUI.xml)
+  GUI_RESOURCE_FILES MyReaderGUI.xml
+)
 
 
 ############################

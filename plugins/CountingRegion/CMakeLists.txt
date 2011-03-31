@@ -1,4 +1,4 @@
-project (ESPINA_SEEDGROW_PLUGIN)
+project (ESPINA_COUNTING_PLUGIN)
 
 cmake_minimum_required (VERSION 2.6)
 
@@ -17,7 +17,7 @@ include (${ITK_USE_FILE})
 find_package (Cajal REQUIRED)
 include (${ITK_USE_FILE})
 
-find_package(Boost REQUIRED COMPONENTS  system filesystem graph)
+find_package(Boost REQUIRED COMPONENTS  system filesystem)
 link_directories ( ${Boost_LIBRARY_DIRS} )
 
 
@@ -33,19 +33,19 @@ include_directories(
 
 
 qt4_add_resources (RCC_BUILT_SOURCES 
-  rsc/segmentation.qrc
+  rsc/CountingRegion.qrc
   )
 
 # We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
 qt4_wrap_cpp(MOC_SRCS 
-  SeedGrowingSegmentation.h
+  CountingRegion.h
   )
 
 # This is a macro for adding QActionGroup subclasses automatically as toolbars.
 ADD_PARAVIEW_ACTION_GROUP(
   IFACES IFACE_SRCS 
-  CLASS_NAME SeedGrowingSegmentation 
-  GROUP_NAME "ToolBar/SeedGrowingSegmentation")
+  CLASS_NAME CountingRegion 
+  GROUP_NAME "ToolBar/CountingRegion")
 
 file ( GLOB LOCAL_SOURCES *.cpp )
 
@@ -59,17 +59,17 @@ set (PARAVIEW_ADDITIONAL_LIBRARIES
   ${PARAVIEW_ADDITIONAL_LIBRARIES}
   ${CAJAL_LIBRARIES}
   Espina
-  ITKCommon ITKBasicFilters ITKAlgorithms ITKIO
+  ITKCommon ITKBasicFilters ITKAlgorithms 
   ${Boost_LIBRARIES}
 )
 
 # Now crete a plugin for the toolbar. Here we pass IFACES and IFACE_SRCS
 # which are filled up by the above macro with relevant entries
 ADD_PARAVIEW_PLUGIN(
-  Segmentation
+  CountingRegion
   "0.1" 
-  SERVER_MANAGER_XML SeedGrowSegmentation.xml
-  SERVER_MANAGER_SOURCES vtkConnectedThresholdImageFilter.cpp
+  SERVER_MANAGER_XML CountingRegionFilters.xml
+  SERVER_MANAGER_SOURCES vtkBoundingRegionFilter.cpp vtkCountingRegionFilter.cpp
 	#According to: http://markmail.org/message/wj27wmlj6rjd7vg5
 	# - See the macro documentation in ParaView/CMake/ParaViewPlugins.cmake:~835
 	# - the parser doesn't work because it seems there is no vtkClass inside
@@ -81,7 +81,7 @@ ADD_PARAVIEW_PLUGIN(
   )
 
 if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
-  set_target_properties(Segmentation PROPERTIES COMPILE_FLAGS "-fPIC")
+  set_target_properties(CountingRegion PROPERTIES COMPILE_FLAGS "-fPIC")
 endif( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
-target_link_libraries (Segmentation ${PARAVIEW_ADDITIONAL_LIBRARIES} )
+target_link_libraries (CountingRegion ${PARAVIEW_ADDITIONAL_LIBRARIES} )

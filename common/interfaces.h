@@ -29,12 +29,12 @@ class pqPipelineSource;
 class ISelectableObject
 {
 public:
-  ISelectableObject(){}
-  virtual ~ISelectableObject(){}
+  ISelectableObject() {}
+  virtual ~ISelectableObject() {}
 };
 
 //! Tuple containing the selected object and its selected coordinate
-struct Selection 
+struct Selection
 {
   ImagePixel coord;
   ISelectableObject *object;
@@ -43,9 +43,9 @@ struct Selection
 //! Interface to handle selections
 class ISelectionHandler
 {
-  
+
 public:
-  ISelectionHandler(){};
+  ISelectionHandler() {};
   virtual ~ISelectionHandler() = 0;
 
   //! Handles @sel
@@ -56,33 +56,42 @@ public:
 class IRenderable
 {
 public:
-  enum RENDER_STYLE 
-  { VISIBLE   = 2^0
-  , SELECTED  = 2^1
-  , DISCARTED = 2^2
+  enum RENDER_STYLE
+  { VISIBLE   = 1
+                , SELECTED  = 2
+                              , DISCARTED = 4
   };
-  
+
 // protected:
-//   enum RENDER_MASK 
+//   enum RENDER_MASK
 //   { isVISIBLE   = 1
 //   , isSELECTED  = 2^0
 //   , isDISCARTED = 2^1
 //   };
 public:
   IRenderable() : m_style(VISIBLE) {}
-  IRenderable(pqPipelineSource *source, int portNumber) 
-  : m_style(VISIBLE) 
-  , m_source(source)
-  , m_portNumber(portNumber)
+  IRenderable(pqPipelineSource *source, int portNumber)
+      : m_style(VISIBLE)
+      , m_source(source)
+      , m_portNumber(portNumber)
   {}
-  virtual bool visible(){return m_style & VISIBLE;}
-  virtual void setVisible(bool value) {m_style = RENDER_STYLE((m_style | !VISIBLE) & (value?1:0));}
-  virtual RENDER_STYLE style() {return m_style;}
+  virtual bool visible() const
+  {
+    return m_style & VISIBLE;
+  }
+  virtual void setVisible(bool value)
+  {
+    m_style = RENDER_STYLE((m_style & !VISIBLE) | (value ? 1 : 0));
+  }
+  virtual RENDER_STYLE style() const
+  {
+    return m_style;
+  }
   virtual pqOutputPort *outputPort() = 0;
   virtual pqPipelineSource *sourceData() = 0;
   virtual int portNumber() = 0;
   virtual void color(double *rgba) = 0;
-  
+
 protected:
   RENDER_STYLE m_style;
   pqPipelineSource *m_source;

@@ -20,10 +20,10 @@ public:
 
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  vtkSetStringMacro(FileName);
-  /*
-  vtkGetStringMacro(FileName);
-  */
+  vtkSetStringMacro(FilePath);
+  
+  vtkGetStringMacro(FilePath);
+  
 
   vtkFileContent* GetOutput();
   vtkFileContent* GetOutput(int port);
@@ -64,7 +64,7 @@ protected:
                                   vtkInformationVector** inputVector,
                                   vtkInformationVector* outputVector);
 
-  char* FileName;
+  char* FilePath;
 
 };
 

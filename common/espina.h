@@ -26,6 +26,7 @@
 #include <QMap>
 #include <QList>
 #include <QString>
+#include <pqProxy.h>
 
 class IRenderable;
 class ProcessingTrace;
@@ -47,12 +48,14 @@ public:
 
     //! Implement QAbstractItemModel Interface
     virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
+    virtual bool setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole);
     virtual int columnCount(const QModelIndex& parent = QModelIndex()) const;
     virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
     virtual QModelIndex parent(const QModelIndex& child) const;
     virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
     virtual Qt::ItemFlags flags(const QModelIndex& index) const;
+    
     // Special Nodes
     QModelIndex taxonomyRoot() const;
     QModelIndex sampleRoot() const;
@@ -80,16 +83,14 @@ public slots:
 
     //! Add a new segmentation (used by the plugins)
     void addSegmentation(Segmentation *seg);
+    void removeSegmentation(Segmentation *seg);
     
     //! Set which is the taxonomy defined by the user
-    void setUserDefindedTaxonomy(const QModelIndex &index);
+    void setUserDefindedTaxonomy(const QString &taxName);
+
+    //! Debug slot for plugins manage
+    void onProxyCreated(pqProxy* p);
   
-    
-
-signals:
-    void render(IRenderable *product);
-    void sliceRender(IRenderable *product);
-
 protected:
     explicit EspINA(QObject* parent = 0);
 

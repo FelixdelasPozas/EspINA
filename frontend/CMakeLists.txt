@@ -4,7 +4,7 @@ cmake_minimum_required (VERSION 2.6)
 
 #find_package(Cajal REQUIRED)
 
-find_package(Boost REQUIRED COMPONENTS  system filesystem)
+find_package(Boost REQUIRED COMPONENTS  system filesystem graph)
 
 link_directories ( ${Boost_LIBRARY_DIRS} )
 
@@ -29,6 +29,7 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
   slicer.h
   sliceView.h
   volumeView.h
+  qTreeComboBox.h
   )
 
 # Create Interface files

@@ -148,13 +148,37 @@ QVariant Segmentation::data(int role) const
   switch (role)
   {
     case Qt::DisplayRole:
-      return "Segmentation";
+    case Qt::EditRole:
+      return name;
     case Qt::DecorationRole:
       return m_taxonomy->getColor();
+    case Qt::CheckStateRole:
+      return visible()?Qt::Checked:Qt::Unchecked;
     default:
       return QVariant();
   }
 }
+
+void Segmentation::addExtension(ISegmentationExtension* ext)
+{
+  ISegmentationExtension *extAdded = ext->clone();
+  extAdded->initialize();
+  extAdded->addInformation(m_infoMap);
+  extAdded->addRepresentations(m_repMap);
+  if (m_extensions.contains(ext->id()))
+  {
+    qDebug() << "Extension already registered";
+    assert(false);
+  }
+  m_extensions[ext->id()] = extAdded;
+}
+
+ISegmentationExtension *Segmentation::extension(ExtensionId extId)
+{
+  assert(m_extensions.contains(extId));
+  return m_extensions[extId];
+}
+
 
 //-----------------------------------------------------------------------------
 // FILTER

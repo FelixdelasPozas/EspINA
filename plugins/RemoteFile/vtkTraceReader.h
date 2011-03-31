@@ -22,7 +22,7 @@ public:
 
   vtkSetStringMacro(FilePath);
 
-  //vtkGetStringMacro(FileName);
+  vtkGetStringMacro(FilePath);
 
   vtkFileContent* GetOutput();
   vtkFileContent* GetOutput(int port);

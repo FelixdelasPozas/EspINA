@@ -24,6 +24,7 @@
 #include "interfaces.h"
 #include "translatorTable.h"
 #include "data/modelItem.h"
+#include "EspinaPlugin.h"
 
 #include <QString>
 #include <data/taxonomy.h>
@@ -95,9 +96,18 @@ public:
 class Segmentation : public Product
 {
 public:
-  Segmentation(pqPipelineSource *source, int portNumber, QString parentHash = "") : Product(source,portNumber, parentHash) {}
+  Segmentation(pqPipelineSource *source, int portNumber, QString parentHash = "") : Product(source,portNumber, parentHash) 
+  {name = "Segmentation";}
   
   virtual QVariant data(int role = Qt::UserRole + 1) const;
+  void addExtension(ISegmentationExtension *ext);
+  //! Are supposed to be used for sort time
+  ISegmentationExtension *extension(ExtensionId extId);
+  
+private:
+  QMap<ExtensionId,ISegmentationExtension *> m_extensions;
+  InformationMap m_infoMap;
+  RepresentationMap m_repMap;
 };
 
 

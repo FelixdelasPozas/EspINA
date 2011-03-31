@@ -36,8 +36,35 @@ class pqOutputPort;
 class Segmentation;
 class Sample;
 class IRenderer;
+class vtkSMProxy;
+class IModelItem;
 
 #include "selectionManager.h"//TODO: Forward declare?
+///!TODO: Consider using a class to encapsulate the shared/static blender
+class Blender
+{
+public:
+  static Blender *instance();
+  
+  pqPipelineSource *source(){  return m_imageBlender;}
+  
+  //! Focus on a new sample, if previous segmentation were shown
+  //! their memory is freed.
+  void focusOnSample(Sample *sample);
+  //! Blends seg into the focused sample
+  void blendSegmentation(Segmentation *seg);
+  //! Unblends seg into the focused sample
+  void unblendSegmentation(Segmentation *seg);
+  
+protected:
+  void updateImageBlenderInput();
+  
+private:
+  Blender() : m_imageBlender(NULL) {}
+  static Blender *m_blender;
+  pqPipelineSource *m_imageBlender;
+  QMap<IModelItem *,pqPipelineSource *> m_mappers;
+};
 
 
 //! Displays a unique slice of a sample
@@ -78,6 +105,7 @@ protected:
   virtual QModelIndex moveCursor(QAbstractItemView::CursorAction cursorAction, Qt::KeyboardModifiers modifiers);
   // Updating model changes
   virtual void rowsInserted(const QModelIndex& parent, int start, int end);
+  virtual void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end);
 
 public:
   virtual QModelIndex indexAt(const QPoint& point) const;
@@ -96,12 +124,10 @@ public slots:
 
 protected:
   void updateScene();
-  void render(const QModelIndex &index);
 
 private:
   pqPipelineSource *blender();
   void slice(pqPipelineSource *source);
-  void updateBlending(Segmentation* seg);
 
 private:
   bool m_init;
@@ -112,8 +138,8 @@ private:
   pqPipelineSource *m_slicer;
 
   //TODO: Reasign when reconecting to server
-  static Sample *s_focusedSample; // The sample which is being currently displayed
-  static pqPipelineSource *s_colouredSample; // A blending filter
+  Sample *s_focusedSample; // The sample which is being currently displayed
+  static Blender *s_blender; // A blending filter
 
   // GUI
   QWidget *m_viewWidget;
