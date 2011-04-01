@@ -89,6 +89,7 @@
 #include <QWidgetAction>
 #include "qTreeComboBox.h"
 #include <pqPluginManager.h>
+#include <cache/cachedObjectBuilder.h>
 
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
@@ -251,6 +252,9 @@ EspinaMainWindow::EspinaMainWindow()
   // behaviors, we use this convenience method.
   new pqParaViewBehaviors(this, this);
 
+  // TODO debug load stack
+  QMetaObject::invokeMethod(this, "autoLoadStack", Qt::QueuedConnection);
+  
 }
 
 
@@ -267,19 +271,26 @@ EspinaMainWindow::~EspinaMainWindow()
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::loadData(pqPipelineSource *source)
 {
-  Sample *stack = new Sample(source, 0, "/home/jorge/Stacks/peque.mha");
-  //stack->name = "/home/jorge/Stacks/peque.mha";
-  stack->setVisible(false);
-  m_espina->addSample(stack);
-}
+  
+  pqApplicationCore* core = pqApplicationCore::instance();
+  QString filePath = core->serverResources().list().first().path();
+  qDebug() << "Data loaded: " << filePath;
 
+//   Sample *stack = new Sample(source, 0, "/home/jorge/Stacks/peque.mha");
+//   //stack->name = "/home/jorge/Stacks/peque.mha";
+//   stack->setVisible(false);
+  assert(NULL == CachedObjectBuilder::instance()->registerLoadedStack(filePath, source)); // TODO refactor inside espina
+  m_espina->addSample(source, 0, filePath);
+}
+  
 void EspinaMainWindow::loadFile()
 {
   // GUI 
   QString filePath = QFileDialog::getOpenFileName(this, tr("Open"), "", 
-		      tr("Espina old files (*.mha);;Espina trace files (*.trace);;Espina files(*.seg)"));
+		      //tr("Espina old files (*.mha);;Espina trace files (*.trace);;Espina files(*.seg)"));
+                      tr("Espina old files (*.pvd);;Trace Files (*.trace)"));
   if( !filePath.isEmpty() ){
-    qDebug() << "FILEPATH: " << filePath;
+    qDebug() << "Local file loaded: " << filePath;
     m_espina->loadFile(filePath);
   }
 }
@@ -349,6 +360,15 @@ void EspinaMainWindow::deleteSegmentations()
   }
 }
 
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::autoLoadStack()
+{
+  QString file("/home/jfernandez/workspace/bbp_workflow/data_experiments/Espina_files/peque.pvd");
+  this->loadData(m_loadReaction->loadData(QStringList(file))); // Paraview's open
+  //this->m_espina->loadFile( file );
+}
+
+
 
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::buildFileMenu(QMenu &menu)
@@ -357,10 +377,15 @@ void EspinaMainWindow::buildFileMenu(QMenu &menu)
  
   QAction *action = new QAction(icon,tr("Open - ParaView mode"),this);
   pqLoadDataReaction * loadReaction = new pqLoadDataReaction(action);
+  m_loadReaction = loadReaction; // TODO debug
   QObject::connect(loadReaction, SIGNAL(loadedData(pqPipelineSource *)),
 		    this, SLOT( loadData(pqPipelineSource *)));
   menu.addAction(action);
 
+  action = new QAction(icon, tr("Open - Local mode"), this);
+  QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT(loadFile()));
+  menu.addAction(action);
+  
   /* Import Trace from localhost  */
   action = new QAction(icon,tr("Import"),this);
   QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT( loadFile()));

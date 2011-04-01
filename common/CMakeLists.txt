@@ -22,9 +22,6 @@ source_group("Generated" FILES
   ${RCC_BUILT_SOURCES}
 )
 
-find_package (VTK REQUIRED)
-include (${VTK_USE_FILE})
-
 file (GLOB LOCAL_SOURCES *.cpp)
 file (GLOB CACHE_SOURCES cache/*.cpp )
 file (GLOB PROXIES_SOURCES proxies/*.cpp )
@@ -39,7 +36,7 @@ set(Espina_SOURCE_FILES
 
 add_library (Espina SHARED ${Espina_SOURCE_FILES})
 
-target_link_libraries (Espina ${CAJAL_LIBRARIES} vtkHybrid)
+target_link_libraries (Espina ${CAJAL_LIBRARIES})
 
 add_subdirectory(tests)
 

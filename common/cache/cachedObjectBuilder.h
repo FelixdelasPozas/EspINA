@@ -36,6 +36,13 @@ public:
   EspinaProxy *createFilter(QString group, QString name, VtkParamList args);
   EspinaProxy* createStack(QString filePath);
   
+  /**
+   * Insert a stack in the Espina Cache which has been already created in the server
+   *  The only difference with createStack is that the pqPipelineSource was already
+   *  created by ParaView system
+   */
+  EspinaProxy* registerLoadedStack(QString& filePath, EspinaProxy* source);
+
 private:
   CachedObjectBuilder();
   ~CachedObjectBuilder(){}

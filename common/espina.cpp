@@ -336,7 +336,7 @@ QList<Segmentation * > EspINA::segmentations(const TaxonomyNode* taxonomy, bool 
 }
 
 //------------------------------------------------------------------------
-void EspINA::loadFile(QString filePath)
+void EspINA::loadFile(QString& filePath)
 {
   //TODO Check the type of file .mha, .trace, or .seg
   // .mha at the moment
@@ -344,9 +344,7 @@ void EspINA::loadFile(QString filePath)
   {
     qDebug() << "MHA FILE: " << filePath;
     EspinaProxy* source = CachedObjectBuilder::instance()->createStack( filePath);
-    Sample *stack = new Sample(source, 0, filePath);
-    stack->setVisible(false);
-    this->addSample(stack);
+    this->addSample(source, 0, filePath);
   }
   else if( filePath.endsWith(".trace") ){
     qDebug() << "Error: .trace files not supported yet";
@@ -366,13 +364,12 @@ void EspINA::saveTrace(QString filePath)
 
 
 //------------------------------------------------------------------------
-void EspINA::addSample(Sample* sample)
+void EspINA::addSample(EspinaProxy* source, int portNumber, QString& filePath)
 {
-  /*Cache *cache = Cache::instance();
-  cache->insert(sample->id(),sample->sourceData());*/
+  Sample *sample = new Sample(source, portNumber, filePath);
+  sample->setVisible(false);
   /* If this is used to load samples when using .trace files. The next line must be uncommented*/
-  CachedObjectBuilder::instance()->createStack( sample->name );
-  
+  // Tracing graph
   m_analysis->addNode(sample);
   
   int lastRow = rowCount(sampleRoot());

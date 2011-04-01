@@ -27,6 +27,7 @@
 #include <QList>
 #include <QString>
 #include <pqProxy.h>
+#include "traceNodes.h"
 
 class IRenderable;
 class ProcessingTrace;
@@ -74,12 +75,12 @@ public:
     
     QModelIndex segmentationIndex(Segmentation *seg) const;
     //! Openning .mha, .trace or .seg (.trace + .mha) file (used by the UI)
-    void loadFile(QString filePath);
+    void loadFile(QString& filePath);
     void saveTrace(QString filePath);
     
 public slots:
     //! Add a new sample (used by the UI -> not anymore)
-    void addSample(Sample *sample);
+    void addSample(EspinaProxy* source, int portNumber, QString& filePath);
 
     //! Add a new segmentation (used by the plugins)
     void addSegmentation(Segmentation *seg);

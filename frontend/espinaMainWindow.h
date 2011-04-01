@@ -1,4 +1,3 @@
-
 /*=========================================================================
 
    Program: Espina
@@ -52,6 +51,7 @@ class UnitExplorer;
 class SelectionManager;
 class QAbstractItemModel;
 class QModelIndex;
+#include "pqLoadDataReaction.h" // TODO debug
 
 /// MainWindow for the default ParaView application.
 class EspinaMainWindow : public QMainWindow
@@ -62,6 +62,9 @@ public:
   EspinaMainWindow();
   ~EspinaMainWindow();
 
+  // TODO debug. to load automatically an stack
+  pqLoadDataReaction* m_loadReaction;
+  
 protected slots:
   void loadData(pqPipelineSource *source);
   void loadFile(); // Local load (Import)
@@ -72,6 +75,9 @@ protected slots:
   
   void setGroupView(int idx);
   void deleteSegmentations();
+
+  //TODO delete
+  void autoLoadStack();
   
 private:
   EspinaMainWindow(const EspinaMainWindow&); // Not implemented.
@@ -90,6 +96,7 @@ private:
   QStringList m_groupingName;
   QList<QAbstractItemModel *> m_groupingModel;
   QList<QModelIndex> m_groupingRoot;
+
 
 };
 
