@@ -8,47 +8,47 @@
 #include <iostream>
 #include <fstream>
 
-vtkStandardNewMacro(vtkTraceReader);
-vtkCxxRevisionMacro(vtkTraceReader, "$Revision: 1.1 $");
+vtkStandardNewMacro(vtkRemoteFileReader);
+vtkCxxRevisionMacro(vtkRemoteFileReader, "$Revision: 1.1 $");
 //---------------------------------------------------------------------------
-vtkTraceReader::vtkTraceReader()
+vtkRemoteFileReader::vtkRemoteFileReader()
 {
   this->SetNumberOfInputPorts(0);
   this->SetNumberOfOutputPorts(1);
   //this->FileName = NULL;
 }
 //---------------------------------------------------------------------------
-vtkTraceReader::~vtkTraceReader()
+vtkRemoteFileReader::~vtkRemoteFileReader()
 {
-  //this->SetFileName(0);
+  this->SetFilePath(0);
 }
 //---------------------------------------------------------------------------
-void vtkTraceReader::PrintSelf(ostream& os, vtkIndent indent)
+void vtkRemoteFileReader::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkAlgorithm::PrintSelf(os, indent);
 }
 
 //---------------------------------------------------------------------------
-vtkFileContent* vtkTraceReader::GetOutput()
+vtkFileContent* vtkRemoteFileReader::GetOutput()
 {
   return this->GetOutput(0);
 }
 
 //---------------------------------------------------------------------------
-vtkFileContent* vtkTraceReader::GetOutput(int port)
+vtkFileContent* vtkRemoteFileReader::GetOutput(int port)
 {
   //return (vtkStdString*)(this->GetOutputDataObject(port));
   return vtkFileContent::SafeDownCast(this->GetOutputDataObject(port));
 }
 
 //---------------------------------------------------------------------------
-void vtkTraceReader::SetOutput(vtkDataObject* d)
+void vtkRemoteFileReader::SetOutput(vtkDataObject* d)
 {
   this->GetExecutive()->SetOutputData(0, d);
 }
 
 //---------------------------------------------------------------------------
-int vtkTraceReader::ProcessRequest(vtkInformation* request,
+int vtkRemoteFileReader::ProcessRequest(vtkInformation* request,
                                    vtkInformationVector** inputVector,
                                    vtkInformationVector* outputVector)
 {
@@ -77,14 +77,14 @@ int vtkTraceReader::ProcessRequest(vtkInformation* request,
 }
 
 //----------------------------------------------------------------------------
-int vtkTraceReader::FillOutputPortInformation(int , vtkInformation* info)
+int vtkRemoteFileReader::FillOutputPortInformation(int , vtkInformation* info)
 {
   info->Set(vtkDataObject::DATA_TYPE_NAME(), "vtkFileContent");
   return 1;
 }
 
 //----------------------------------------------------------------------------
-int vtkTraceReader::RequestDataObject(vtkInformation* request,
+int vtkRemoteFileReader::RequestDataObject(vtkInformation* request,
                                       vtkInformationVector** inputVector,
                                       vtkInformationVector* outputVector)
 {
@@ -111,7 +111,7 @@ int vtkTraceReader::RequestDataObject(vtkInformation* request,
 //----------------------------------------------------------------------------
 // This is the superclasses style of Execute method.  Convert it into
 // an imaging style Execute method.
-int vtkTraceReader::RequestData(vtkInformation* request, 
+int vtkRemoteFileReader::RequestData(vtkInformation* request,
 				vtkInformationVector** inputVector, 
 				vtkInformationVector* outputVector)
 {
@@ -134,7 +134,7 @@ int vtkTraceReader::RequestData(vtkInformation* request,
 }
 
 //----------------------------------------------------------------------------
-int vtkTraceReader::RequestInformation(vtkInformation* request,
+int vtkRemoteFileReader::RequestInformation(vtkInformation* request,
                                        vtkInformationVector** inputVector,
                                        vtkInformationVector* outputVector)
 {
@@ -143,7 +143,7 @@ int vtkTraceReader::RequestInformation(vtkInformation* request,
 }
 
 //----------------------------------------------------------------------------
-int vtkTraceReader::RequestUpdateExtent(vtkInformation* request, 
+int vtkRemoteFileReader::RequestUpdateExtent(vtkInformation* request,
 					vtkInformationVector** inputVector, 
 					vtkInformationVector* outputVector)
 {

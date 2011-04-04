@@ -3,6 +3,7 @@
 
 
 #include <vtkAlgorithm.h>
+//#include <vtkPolyDataAlgorithm.h>
 #include <vtkInformation.h>
 #include <vtkInformationVector.h>
 //#include <vtkStdString.h>
@@ -11,19 +12,18 @@ class vtkDataSet;
 //class vtkFileContent;
 #include "vtkFileContent.h"
 
-class vtkTraceReader: public vtkAlgorithm
+
+class vtkRemoteFileReader: public vtkAlgorithm //vtkPolyDataAlgorithm //
 {
 
 public:
-  static vtkTraceReader* New();
-  vtkTypeRevisionMacro(vtkTraceReader, vtkAlgorithm);
+  static vtkRemoteFileReader* New();
+  vtkTypeRevisionMacro(vtkRemoteFileReader, vtkAlgorithm);//vtkPolyDataAlgorithm);//vtkAlgorithm);
 
   void PrintSelf(ostream& os, vtkIndent indent);
 
   vtkSetStringMacro(FilePath);
-  
   vtkGetStringMacro(FilePath);
-  
 
   vtkFileContent* GetOutput();
   vtkFileContent* GetOutput(int port);
@@ -37,8 +37,8 @@ public:
                              vtkInformationVector* outputVector);
 
 protected:
-  vtkTraceReader();
-  ~vtkTraceReader();
+  vtkRemoteFileReader();
+  ~vtkRemoteFileReader();
 
   virtual int FillOutputPortInformation(int, vtkInformation* info);
   virtual int RequestDataObject(vtkInformation* request,

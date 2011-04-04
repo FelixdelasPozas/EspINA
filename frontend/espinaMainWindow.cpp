@@ -286,7 +286,7 @@ void EspinaMainWindow::loadData(pqPipelineSource *source)
 void EspinaMainWindow::loadFile()
 {
   // GUI 
-  QString filePath = QFileDialog::getOpenFileName(this, tr("Open"), "", 
+  QString filePath = QFileDialog::getOpenFileName(this, tr("Import"), "",
 		      //tr("Espina old files (*.mha);;Espina trace files (*.trace);;Espina files(*.seg)"));
                       tr("Espina old files (*.pvd);;Trace Files (*.trace)"));
   if( !filePath.isEmpty() ){
@@ -382,10 +382,6 @@ void EspinaMainWindow::buildFileMenu(QMenu &menu)
 		    this, SLOT( loadData(pqPipelineSource *)));
   menu.addAction(action);
 
-  action = new QAction(icon, tr("Open - Local mode"), this);
-  QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT(loadFile()));
-  menu.addAction(action);
-  
   /* Import Trace from localhost  */
   action = new QAction(icon,tr("Import"),this);
   QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT( loadFile()));
