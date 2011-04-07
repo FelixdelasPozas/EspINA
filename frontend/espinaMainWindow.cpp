@@ -64,12 +64,7 @@
 #include "pqDisplayPolicy.h"
 
 //VTK Includes
-#include "vtkStructuredData.h"
-#include "vtkImageData.h"
-
-//New
-#include "vtkPVImageSlicer.h"
-#include "vtkSMIntVectorProperty.h"
+#include <vtkSMStringVectorProperty.h>
 
 //QT includes
 #include <QFileDialog>
@@ -80,7 +75,6 @@
 #include <QPushButton>
 #include <pqServerResources.h>
 
-
 #include <taxonomyProxy.h>
 #include <sampleProxy.h>
 #include "sliceView.h"
@@ -88,7 +82,6 @@
 #include <QStringListModel>
 #include <QWidgetAction>
 #include "qTreeComboBox.h"
-#include <pqPluginManager.h>
 #include <cache/cachedObjectBuilder.h>
 
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
@@ -252,8 +245,9 @@ EspinaMainWindow::EspinaMainWindow()
   // behaviors, we use this convenience method.
   new pqParaViewBehaviors(this, this);
 
-  // TODO debug load stack
+  // Debug load stack
   QMetaObject::invokeMethod(this, "autoLoadStack", Qt::QueuedConnection);
+  
   
 }
 
@@ -274,13 +268,29 @@ void EspinaMainWindow::loadData(pqPipelineSource *source)
   
   pqApplicationCore* core = pqApplicationCore::instance();
   QString filePath = core->serverResources().list().first().path();
-  qDebug() << "Data loaded: " << filePath;
+  qDebug() << "File loaded: " << filePath;
 
+  if( source->getSMName().endsWith(".trace") )
+  {
+    source->updatePipeline(); //Update the pipeline to obtain the content of the file
+//     vtkSMStringVectorProperty* StringProp =
+//         vtkSMStringVectorProperty::SafeDownCast(source->getProxy()->GetProperty("FileName"));
+//     qDebug() << "FileName\n" << StringProp->GetElement(0);
+    source->getProxy()->UpdatePropertyInformation();
+
+    vtkSMStringVectorProperty* StringProp2 =
+         vtkSMStringVectorProperty::SafeDownCast(source->getProxy()->GetProperty("Content"));
+    qDebug() << "Content:\n" << StringProp2->GetElement(0);
+      
+  }
+  else
+  {
 //   Sample *stack = new Sample(source, 0, "/home/jorge/Stacks/peque.mha");
 //   //stack->name = "/home/jorge/Stacks/peque.mha";
 //   stack->setVisible(false);
-  assert(NULL == CachedObjectBuilder::instance()->registerLoadedStack(filePath, source)); // TODO refactor inside espina
-  m_espina->addSample(source, 0, filePath);
+    assert(NULL == CachedObjectBuilder::instance()->registerLoadedStack(filePath, source)); // TODO refactor inside espina
+    m_espina->addSample(source, 0, filePath);
+  }
 }
   
 void EspinaMainWindow::loadFile()
@@ -363,12 +373,12 @@ void EspinaMainWindow::deleteSegmentations()
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::autoLoadStack()
 {
-  QString file("/home/jfernandez/workspace/bbp_workflow/data_experiments/Espina_files/peque.pvd");
-  this->loadData(m_loadReaction->loadData(QStringList(file))); // Paraview's open
-  //this->m_espina->loadFile( file );
+  QString filePath(getenv("ESPINA_FILE"));
+  if( filePath.size() > 0 )
+  {
+    this->loadData(m_loadReaction->loadData(QStringList(filePath))); // Paraview's open
+  }
 }
-
-
 
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::buildFileMenu(QMenu &menu)

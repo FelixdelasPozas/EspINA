@@ -1,18 +1,57 @@
-#ifndef VTKTRACEREADER_H
-#define VTKTRACEREADER_H
+#ifndef VTKREMOTEFILEREADER_H
+#define VTKREMOTEFILEREADER_H
 
-
-#include <vtkAlgorithm.h>
-//#include <vtkPolyDataAlgorithm.h>
+#include <vtkPolyDataAlgorithm.h>
 #include <vtkInformation.h>
 #include <vtkInformationVector.h>
-//#include <vtkStdString.h>
+#include <vtkStringArray.h>
 
-class vtkDataSet;
-//class vtkFileContent;
-#include "vtkFileContent.h"
+class vtkRemoteFileReader : public vtkPolyDataAlgorithm
+{
+public:
+    vtkTypeMacro(vtkRemoteFileReader,vtkPolyDataAlgorithm);
+    static vtkRemoteFileReader *New();
 
+    void PrintSelf(ostream& os, vtkIndent indent);
 
+//     int ProcessRequest(vtkInformation* request,
+//                        vtkInformationVector** inputVector,
+//                        vtkInformationVector* outputVector);
+// 
+//     int RequestInformation(vtkInformation* request,
+//                            vtkInformationVector** inputVector,
+//                            vtkInformationVector* outputVector);
+// 
+//     int RequestDataObject(vtkInformation* request,
+//                           vtkInformationVector** inputVector,
+//                           vtkInformationVector* outputVector);
+// 
+//     int FillOutputPortInformation(int , vtkInformation* info);
+    
+    //vtkStringArray* GetContent(){ return Content;}
+//     char* GetContent(){ return Content;}
+    
+    vtkSetStringMacro(FileName);
+    vtkGetStringMacro(FileName);
+
+    vtkSetStringMacro(Content);
+    vtkGetStringMacro(Content);
+
+protected:
+    vtkRemoteFileReader();
+    ~vtkRemoteFileReader() {}
+
+    int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+
+private:
+    vtkRemoteFileReader(const vtkRemoteFileReader&);  // Not implemented.
+    void operator=(const vtkRemoteFileReader&);  // Not implemented.
+
+    char* FileName;
+    char* Content;
+};
+
+/*
 class vtkRemoteFileReader: public vtkAlgorithm //vtkPolyDataAlgorithm //
 {
 
@@ -66,6 +105,6 @@ protected:
 
   char* FilePath;
 
-};
+};*/
 
-#endif // VTKTRACEREADER_H
+#endif // VTKREMOTEFILEREADER_H
