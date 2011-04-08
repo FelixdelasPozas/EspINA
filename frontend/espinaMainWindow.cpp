@@ -64,8 +64,6 @@
 #include "pqDisplayPolicy.h"
 
 //VTK Includes
-#include <vtkSMStringVectorProperty.h>
-
 //QT includes
 #include <QFileDialog>
 
@@ -268,29 +266,8 @@ void EspinaMainWindow::loadData(pqPipelineSource *source)
   
   pqApplicationCore* core = pqApplicationCore::instance();
   QString filePath = core->serverResources().list().first().path();
-  qDebug() << "File loaded: " << filePath;
+  m_espina->loadFile(source);
 
-  if( source->getSMName().endsWith(".trace") )
-  {
-    source->updatePipeline(); //Update the pipeline to obtain the content of the file
-//     vtkSMStringVectorProperty* StringProp =
-//         vtkSMStringVectorProperty::SafeDownCast(source->getProxy()->GetProperty("FileName"));
-//     qDebug() << "FileName\n" << StringProp->GetElement(0);
-    source->getProxy()->UpdatePropertyInformation();
-
-    vtkSMStringVectorProperty* StringProp2 =
-         vtkSMStringVectorProperty::SafeDownCast(source->getProxy()->GetProperty("Content"));
-    qDebug() << "Content:\n" << StringProp2->GetElement(0);
-      
-  }
-  else
-  {
-//   Sample *stack = new Sample(source, 0, "/home/jorge/Stacks/peque.mha");
-//   //stack->name = "/home/jorge/Stacks/peque.mha";
-//   stack->setVisible(false);
-    assert(NULL == CachedObjectBuilder::instance()->registerLoadedStack(filePath, source)); // TODO refactor inside espina
-    m_espina->addSample(source, 0, filePath);
-  }
 }
   
 void EspinaMainWindow::loadFile()
@@ -300,8 +277,8 @@ void EspinaMainWindow::loadFile()
 		      //tr("Espina old files (*.mha);;Espina trace files (*.trace);;Espina files(*.seg)"));
                       tr("Espina old files (*.pvd);;Trace Files (*.trace)"));
   if( !filePath.isEmpty() ){
-    qDebug() << "Local file loaded: " << filePath;
-    m_espina->loadFile(filePath);
+    qDebug() << "Local file loaded: " << filePath << "\nOn TODO ... ";
+    exit(-1); //TODO IMPORT
   }
 }
 

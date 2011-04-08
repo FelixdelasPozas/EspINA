@@ -96,7 +96,8 @@ SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): EspinaPlugin(
 
   // Init Blur table
   espina = "input";
-  vtk = {INPUT,"input"};
+  vtk.type = INPUT;
+  vtk.name = "input";
   m_tableGrow.addTranslation(espina, vtk);
   espina = "Kernel";
   vtk.type = INTVECT;
@@ -121,6 +122,7 @@ void SeedGrowingSegmentation::LoadAnalisys(EspinaParamList args)
     exit(-1);//throw Finalizar importacion
   }
   Product* input = dynamic_cast<Product*> (Cache::instance()->getEntry(InputId));
+  assert(input);
   this->buildSubPipeline(input, args);
 }
 
@@ -150,7 +152,7 @@ void SeedGrowingSegmentation::execute()
   // Initialize application context
   pqApplicationCore* core = pqApplicationCore::instance();
   pqUndoStack* undoStack = core->getUndoStack();
-  pqServerManagerModel* sm = core->getServerManagerModel();
+  //pqServerManagerModel* sm = core->getServerManagerModel();
   
   // make this operation undo-able if undo is enabled
   if (undoStack)

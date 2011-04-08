@@ -23,9 +23,13 @@
 #include "traceNodes.h"
 #include "cache/cachedObjectBuilder.h"
 
+#include <vtkSMStringVectorProperty.h>
+#include <vtkSMProxy.h>
+
 #include <QDebug>
 #include <iostream>
 #include <fstream>
+
 //------------------------------------------------------------------------
 EspINA *EspINA::m_singleton(NULL);
 
@@ -336,18 +340,28 @@ QList<Segmentation * > EspINA::segmentations(const TaxonomyNode* taxonomy, bool 
 }
 
 //------------------------------------------------------------------------
-void EspINA::loadFile(QString& filePath)
+void EspINA::loadFile(EspinaProxy* proxy)
 {
   //TODO Check the type of file .mha, .trace, or .seg
   // .mha at the moment
-  if( filePath.endsWith(".pvd") ) //TODO change it to parse with readers lists
+  QString filePath = proxy->getSMName();
+  qDebug() << "Loading file in server side: " << filePath;
+  if( filePath.endsWith(".pvd") || filePath.endsWith(".mha"))
   {
-    qDebug() << "MHA FILE: " << filePath;
-    EspinaProxy* source = CachedObjectBuilder::instance()->createStack( filePath);
-    this->addSample(source, 0, filePath);
+    //qDebug() << "MHA FILE: " << filePath;
+    //EspinaProxy* source = CachedObjectBuilder::instance()->createStack( filePath);
+    assert(NULL == CachedObjectBuilder::instance()->registerLoadedStack(filePath, proxy));
+    this->addSample(proxy, 0, filePath);
   }
   else if( filePath.endsWith(".trace") ){
-    qDebug() << "Error: .trace files not supported yet";
+        proxy->updatePipeline(); //Update the pipeline to obtain the content of the file
+    proxy->getProxy()->UpdatePropertyInformation();
+
+    vtkSMStringVectorProperty* StringProp2 =
+          vtkSMStringVectorProperty::SafeDownCast(proxy->getProxy()->GetProperty("Content"));
+    //qDebug() << "Content:\n" << StringProp2->GetElement(0);
+    std::istringstream trace(std::string(StringProp2->GetElement(0)));
+    ProcessingTrace::instance()->readTrace(trace);
   }
   else if( filePath.endsWith(".seg") )
     qDebug() << "Error: .seg files not supported yet";

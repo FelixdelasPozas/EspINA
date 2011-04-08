@@ -116,6 +116,8 @@ class ProcessingTrace
   typedef Graph::edge_descriptor EdgeId;
   
 public:
+  typedef enum {graphviz, debug} printFormat;
+  
   static ProcessingTrace* instance();
   ~ProcessingTrace(){}
   
@@ -133,12 +135,18 @@ public:
   std::vector<ITraceNode *> inputs(const ITraceNode *node);
   std::vector<ITraceNode *> outputs(const ITraceNode *node);
   */
-  void print(std::ostream& out);
+  void print(std::ostream& out, printFormat format = graphviz);
   
 private:
   ProcessingTrace();
   ProcessingTrace(const QString &name); // TODO delte. No tiene sentido sin subgraph
-  
+
+  //!Convert a string int the correct format "{argument:value;}+" in a NodeParamList
+  NodeParamList parseArgs( QString& raw );
+  /// Visit nodes by edges and return the root vertex id
+  QList<VertexId> rootVertices();
+
+  // attributes
   Graph m_trace;
   static ProcessingTrace* m_instnace;
 };

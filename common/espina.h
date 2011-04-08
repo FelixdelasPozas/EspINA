@@ -28,6 +28,7 @@
 #include <QString>
 #include <pqProxy.h>
 #include "traceNodes.h"
+#include "pqPipelineSource.h"
 
 class IRenderable;
 class ProcessingTrace;
@@ -75,7 +76,8 @@ public:
     
     QModelIndex segmentationIndex(Segmentation *seg) const;
     //! Openning .mha, .trace or .seg (.trace + .mha) file (used by the UI)
-    void loadFile(QString& filePath);
+    //! After a paraviews open.
+    void loadFile(EspinaProxy* proxy);
     void saveTrace(QString filePath);
     
 public slots:
