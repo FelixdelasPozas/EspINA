@@ -61,9 +61,6 @@ class EspinaMainWindow : public QMainWindow
 public:
   EspinaMainWindow();
   ~EspinaMainWindow();
-
-  // TODO debug. to load automatically an stack
-  pqLoadDataReaction* m_loadReaction;
   
 protected slots:
   void loadData(pqPipelineSource *source);

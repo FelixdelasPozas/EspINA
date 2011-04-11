@@ -32,10 +32,12 @@ typedef std::string ParamValue;
 typedef std::pair<EspinaArg, ParamValue> EspinaParam;
 typedef std::vector<EspinaParam> EspinaParamList;
 */
+#include <QMap>
 
 typedef unsigned int IndexType;
 //Forward declarations
 class ProcessingTrace;
+class EspinaPlugin;
 
 //! Interface to trace's nodes
 class ITraceNode
@@ -129,7 +131,8 @@ public:
   );
   
   void readTrace(std::istream& fileName);
-  
+
+  void registerPlugin(QString& groupName, QString& filterName, EspinaPlugin* filter);
   /*
   void addSubtrace(const ProcessingTrace *subTrace);
   std::vector<ITraceNode *> inputs(const ITraceNode *node);
@@ -143,12 +146,16 @@ private:
 
   //!Convert a string int the correct format "{argument:value;}+" in a NodeParamList
   NodeParamList parseArgs( QString& raw );
-  /// Visit nodes by edges and return the root vertex id
-  QList<VertexId> rootVertices();
+  //! Visit nodes by edges and return the root vertex id
+  //QList<VertexId> rootVertices();
+  //! Retrieve a map of the parents or predecessors of all the vertex in graph
+  QMap<VertexId, QList<VertexId> > predecessors( Graph& g);
 
   // attributes
   Graph m_trace;
   static ProcessingTrace* m_instnace;
+  QMap<QString, EspinaPlugin* > m_availablePlugins;
+  
 };
 
 #endif // TRACING_H

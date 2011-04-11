@@ -52,7 +52,7 @@ class SeedGrowingSegmentation : public ISegmentationPlugin, public EspinaPlugin,
 public:
   SeedGrowingSegmentation(QObject* parent);
   
-  virtual void LoadAnalisys(EspinaParamList args);
+  void LoadAnalisys(EspinaParamList& args);
   
   //! Implements ISelectionHandler interface
   void handle(const Selection sel);

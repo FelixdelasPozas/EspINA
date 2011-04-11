@@ -26,6 +26,9 @@
 #include <vtkSMStringVectorProperty.h>
 #include <vtkSMProxy.h>
 
+#include <pqApplicationCore.h>
+#include <pqServerResources.h>
+
 #include <QDebug>
 #include <iostream>
 #include <fstream>
@@ -344,8 +347,12 @@ void EspINA::loadFile(EspinaProxy* proxy)
 {
   //TODO Check the type of file .mha, .trace, or .seg
   // .mha at the moment
-  QString filePath = proxy->getSMName();
-  qDebug() << "Loading file in server side: " << filePath;
+  pqApplicationCore* core = pqApplicationCore::instance();
+  QString filePath = core->serverResources().list().first().path();
+  //QString filePath = proxy->getSMName();
+  
+  qDebug() << "Loading file in server side: " << filePath << "  " << proxy->getSMName();
+  
   if( filePath.endsWith(".pvd") || filePath.endsWith(".mha"))
   {
     //qDebug() << "MHA FILE: " << filePath;
@@ -354,7 +361,7 @@ void EspINA::loadFile(EspinaProxy* proxy)
     this->addSample(proxy, 0, filePath);
   }
   else if( filePath.endsWith(".trace") ){
-        proxy->updatePipeline(); //Update the pipeline to obtain the content of the file
+    proxy->updatePipeline(); //Update the pipeline to obtain the content of the file
     proxy->getProxy()->UpdatePropertyInformation();
 
     vtkSMStringVectorProperty* StringProp2 =

@@ -103,9 +103,14 @@ SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): EspinaPlugin(
   vtk.type = INTVECT;
   vtk.name = "KernelSize";
   m_tableGrow.addTranslation(espina, vtk);
+
+  m_groupName = "filters";
+  m_filterName =  "SeedGrowingSegmentationFilter";
+  // register in a plugin list
+  ProcessingTrace::instance()->registerPlugin(m_groupName, m_filterName, this);
 }
 
-void SeedGrowingSegmentation::LoadAnalisys(EspinaParamList args)
+void SeedGrowingSegmentation::LoadAnalisys(EspinaParamList& args)
 {
   QString InputId = "";
   EspinaParamList::iterator it;
@@ -121,9 +126,9 @@ void SeedGrowingSegmentation::LoadAnalisys(EspinaParamList args)
     qDebug("SeedGrowingSegmenation::LoadAnalisys: Error loading a tarce file. \"input\" argument not found");
     exit(-1);//throw Finalizar importacion
   }
-  Product* input = dynamic_cast<Product*> (Cache::instance()->getEntry(InputId));
-  assert(input);
-  this->buildSubPipeline(input, args);
+//   Product* input = dynamic_cast<Product*> (Cache::instance()->getEntry(InputId));
+//   assert(input);
+  this->buildSubPipeline(EspINA::instance()->activeSample(), args);
 }
 
 
@@ -274,8 +279,8 @@ void SeedGrowingSegmentation::buildSubPipeline(Product* input, EspinaParamList a
   ProcessingTrace *trace = ProcessingTrace::instance();//!X
 
   Filter *grow = new Filter(
-    "filters",
-    "SeedGrowingSegmentationFilter",
+    m_groupName,
+    m_filterName,
     args,
     m_tableGrow
   );

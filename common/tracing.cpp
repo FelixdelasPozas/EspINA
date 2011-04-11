@@ -18,6 +18,7 @@
 */
 
 #include "tracing.h"
+#include "graphHelper.h"
 
 #include <iostream>
 #include <boost/graph/graphviz.hpp>
@@ -27,6 +28,8 @@
 #include <QStringList>
 #include <pqApplicationCore.h>
 #include <pqObjectBuilder.h>
+#include <pqLoadDataReaction.h>
+#include "espina.h"
 
 using namespace boost;
 
@@ -107,86 +110,127 @@ void ProcessingTrace::connect(
 //-----------------------------------------------------------------------------
 void ProcessingTrace::readTrace(std::istream& fileName)
 {
-  m_trace.clear();
+  m_trace.clear(); // Reset the old trace
+  Graph schema;
   boost::dynamic_properties dp;
 //   boost::property_map<Graph, boost::vertex_index1_t>::type vIndex
 //     = boost::get(boost::vertex_index, m_trace);
-  dp.property("node_id", boost::get(boost::vertex_index1, m_trace));
+  dp.property("node_id", boost::get(boost::vertex_index1, schema));
 //   boost::property_map<Graph, std::string VertexProperty::*>::type vString;
 //   vString = boost::get(&VertexProperties::labelName, m_trace);
-  dp.property("label", boost::get(&VertexProperties::labelName, m_trace));
+  dp.property("label", boost::get(&VertexProperties::labelName, schema));
   //boost::property_map<Graph, std::string VertexProperty::*>::type vShape
   //vString = boost::get(&VertexProperties::shape, m_trace);
-  dp.property("shape", boost::get(&VertexProperties::shape, m_trace));
+  dp.property("shape", boost::get(&VertexProperties::shape, schema));
   //boost::property_map<Graph, std::string VertexProperty::*>::type vShape
   //vString = boost::get(&VertexProperties::args, m_trace);
-  dp.property("args", boost::get(&VertexProperties::args, m_trace));
+  dp.property("args", boost::get(&VertexProperties::args, schema));
   
-  dp.property("label", boost::get(boost::edge_name, m_trace));
+  dp.property("label", boost::get(boost::edge_name, schema));
 
-  boost::read_graphviz( fileName, m_trace, dp);
+  boost::read_graphviz( fileName, schema, dp);
 
-  //TODO build the pipeline
-  qDebug() << "After read the file I should build the pipeline ...";
-  // Take the nodes that do not have input arrows
-  // For i in them:
-
-  QList<VertexId> rootIds = rootVertices();
-  qDebug() << "The root ids" << rootIds;
-  
-
-  pqApplicationCore* core = pqApplicationCore::instance();
-
-  //Load Stack
-  /*
-  if (boost::filesystem::exists(index.toStdString().c_str()))
-    proxy = ob->createReader("sources","MetaImageReader",file,server);
-  */
-/*
-  QStringList qstrl;
-  NodeParamList args;
   // Retrieve vertex porperties
+  pqApplicationCore* core = pqApplicationCore::instance();
   boost::property_map<Graph, std::string VertexProperty::*>::type vLabel
-    = boost::get(&VertexProperty::labelName, m_trace);
+    = boost::get(&VertexProperty::labelName, schema);
   boost::property_map<Graph, std::string VertexProperty::*>::type vArgs
-    = boost::get(&VertexProperty::args, m_trace);
+    = boost::get(&VertexProperty::args, schema);
   boost::property_map<Graph, std::string VertexProperty::*>::type vShape
-    = boost::get(&VertexProperty::shape, m_trace);
+    = boost::get(&VertexProperty::shape, schema);
+  
+  // recorrer el grafo en anchura e ir cargando los plugins
+  // Initialize PipeLine with rootId
+  // while pipeline not empty
+  //    retieve their neighbors of the first element in the pipeline(Adacent_vertices) ¡¡Test!!
+  //    if pass all the dependecies  and it is a Filter type
+  //        build it
+  //    else
+  //        insert into the pipeline
 
-  // Iter upon vertices
-  boost::graph_traits<Graph>::vertex_iterator vi, vi_end;
-  for( boost::tie(vi, vi_end) = boost::vertices(m_trace); vi != vi_end; vi++)
+  QMap< VertexId, QList< VertexId > > parentsMap = this->predecessors(schema);
+  QList<VertexId> verticesToProcess(rootVertices<Graph, VertexId>(schema)); // The nodes not processed
+  QList<VertexId> processedVertices; 
+  
+  while( !verticesToProcess.empty() )
   {
-    // If it is a filter, it must parse the args
-    if( vShape[*vi].compare("box") == 0 )
+    VertexId vertexId = verticesToProcess.first();
+    qDebug() << "Processing the id: " << vertexId;
+    // ***** Process the vertex *****
+    // Retrieve all the parents by giving a VertexId TODO
+    bool parentsProcessed = true;
+    foreach(VertexId v, parentsMap.value( vertexId ))
     {
-      qstrl = QString(vLabel[*vi].c_str()).split("::");
-      assert(qstrl.size() == 2);
-      QString rawArgs( vArgs[*vi].c_str() );
-      args = parseArgs( rawArgs );
-      
-      core->getObjectBuilder()->createFilter(qstrl.at(0), qstrl.at(1),
-                                             );
-      
-      /*
-      foreach( NodeParam param, args){
-        qDebug() << "\t" << param.first << " = " << param.second;
+      if( ! processedVertices.contains( v ) )
+      {
+        parentsProcessed = false;
+        break;
       }
-      *
-    } // A stack or a product
-    else if( vShape[*vi].compare("ellipse") == 0 )
-    {
-      if( vLabel[*vi] != "Product" )
-        qDebug() << "\tPosible stack!";
     }
+    if( parentsProcessed )
+    {
+      QString label(vLabel[vertexId].c_str());
+      // Is a stack //TODO be more explicit
+      if( vShape[vertexId].compare("ellipse") == 0 && label.startsWith('/') )
+      {
+        qDebug() << "Loading the Stack " << label;
+        EspINA::instance()->loadFile(
+          pqLoadDataReaction::loadData(QStringList(label))
+        );
+        
+      } // A filter
+      else if( vShape[vertexId].compare("box") == 0 )
+      { // A filter that can be processed
+        qDebug() << "Creating the filter " << label;
+        //QStringList filterInfo = QString(vLabel[vertexId].c_str()).split("::");
+        //assert(filterInfo.size() == 2);
+        QString rawArgs( vArgs[vertexId].c_str() );
+        NodeParamList args = parseArgs( rawArgs );
+       // if( filterInfo.at(1) == "SeedGrowSegmentationFilter")
+        QString pluginName(vLabel[vertexId].c_str());
+        m_availablePlugins.value(pluginName)->LoadAnalisys(args);
+
+//        core->getObjectBuilder()->createFilter(qstrl.at(0), qstrl.at(1),
+ //                                              pqPipelineSource  );
+  //
+        //core->getObjectBuilder()->createSource()
+      } // A segmentation
+      else {
+        qDebug() << "Is a segmentation";
+      //  localPipe.push_back(*vi);
+      // check if is a filter and all of its dependecies exist
+      }
+      processedVertices.append( vertexId );
+      verticesToProcess.pop_front(); // Remove the processed element
+        
+      // ***** Retrieve the adjacet vertices *****
+      boost::graph_traits<Graph>::adjacency_iterator vi, vi_end;
+      for(boost::tie(vi, vi_end) = boost::adjacent_vertices(vertexId, schema);
+          vi != vi_end; vi++)
+      {
+        std::cout << "\tNear is:" << *vi << " - " << vLabel[*vi] << std::endl;
+        verticesToProcess.push_front(*vi);
+      }
+      
+    }
+    else // The node could not be processed. Swap it with the next one
+    {
+      verticesToProcess.swap(0,1);
+    }   
   }
-
-  
-  /**/
-
- 
-  
 }
+
+//-----------------------------------------------------------------------------
+void ProcessingTrace::registerPlugin(QString& groupName,
+                                     QString& filterName,
+                                     EspinaPlugin* filter)
+{
+  QString key(groupName);
+  key.append("::").append(filterName);
+  assert( m_availablePlugins.contains(key) == false );
+  m_availablePlugins.insert(key, filter);
+}
+
 
 //-----------------------------------------------------------------------------
 NodeParamList ProcessingTrace::parseArgs( QString& raw )
@@ -201,40 +245,32 @@ NodeParamList ProcessingTrace::parseArgs( QString& raw )
   return res;
 }
 
+//TODO refactor to helpers..
 //-----------------------------------------------------------------------------
-/// Visit nodes by edges and return the root vertex id
-QList<ProcessingTrace::VertexId> ProcessingTrace::rootVertices()
+QMap<ProcessingTrace::VertexId, QList<ProcessingTrace::VertexId> >
+ProcessingTrace::predecessors( Graph& g)
 {
-    VertexId v;
-    QList<VertexId> discardedVertices, posibleRootVertices;
+  QMap<VertexId, QList<VertexId> > res;
+  QList<VertexId> list;
+  VertexId vs, vt;
 
-    boost::graph_traits<Graph>::edge_iterator ei, ei_end;
-    for( boost::tie(ei, ei_end) = boost::edges(m_trace); ei != ei_end; ei++)
-    {
-      // std::cout << *ei;
-      v = boost::source(*ei, m_trace);
-      //std::cout << " v" << v;
-      if( !discardedVertices.contains(v) && !posibleRootVertices.contains(v)){
-        // std::cout << " a posible root vertex ";
-        posibleRootVertices.push_back(v);
-      }
-      // std::cout << std::endl;
-      v = boost::target(*ei, m_trace);
-      if( posibleRootVertices.contains(v) ){
-        // std::cout << "v" << v << " deleted from posibleRootVertices "<< std::endl;
-        posibleRootVertices.removeOne(v);
-      }
-      discardedVertices.push_back(v);
-      /*
-      qDebug() << "Discarded" << discardedVertices;
-      qDebug() << "Posible Root" << posibleRootVertices;
-      */
+  boost::graph_traits<Graph>::edge_iterator ei, ei_end;
+  for( boost::tie(ei, ei_end) = boost::edges(g); ei != ei_end; ei++)
+  {
+    vs = boost::source(*ei, g);
+    vt = boost::target(*ei, g);
+
+    if( !res.contains(vt) ){
+      list.clear();// = QList<VertexId>();
     }
-    assert(posibleRootVertices.size() >= 1 );//? posibleRootVertices.at(0) : -1;
-    return posibleRootVertices;
-
+    else
+      list = res.value(vt);
+    list.append(vs);
+    res.insert(vt, list);
+    //std::cout << vs << " (parentof) " << vt << std::endl;
+  }
+  return res;
 }
-
 //-----------------------------------------------------------------------------
 void ProcessingTrace::print( std::ostream& out, ProcessingTrace::printFormat format)
 {

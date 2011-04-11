@@ -24,7 +24,10 @@ class EspinaPlugin
 {
 public:
 
-  virtual void LoadAnalisys(EspinaParamList args) = 0;
+  virtual void LoadAnalisys(EspinaParamList& args) = 0;
+
+protected:
+  QString m_groupName, m_filterName;
 
 };
 

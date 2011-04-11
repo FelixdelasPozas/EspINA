@@ -264,8 +264,8 @@ EspinaMainWindow::~EspinaMainWindow()
 void EspinaMainWindow::loadData(pqPipelineSource *source)
 {
   
-  pqApplicationCore* core = pqApplicationCore::instance();
-  QString filePath = core->serverResources().list().first().path();
+//   pqApplicationCore* core = pqApplicationCore::instance();
+//   QString filePath = core->serverResources().list().first().path();
   m_espina->loadFile(source);
 
 }
@@ -353,7 +353,8 @@ void EspinaMainWindow::autoLoadStack()
   QString filePath(getenv("ESPINA_FILE"));
   if( filePath.size() > 0 )
   {
-    this->loadData(m_loadReaction->loadData(QStringList(filePath))); // Paraview's open
+    // Paraview's open
+    m_espina->loadFile(pqLoadDataReaction::loadData(QStringList(filePath)));
   }
 }
 
@@ -364,7 +365,6 @@ void EspinaMainWindow::buildFileMenu(QMenu &menu)
  
   QAction *action = new QAction(icon,tr("Open - ParaView mode"),this);
   pqLoadDataReaction * loadReaction = new pqLoadDataReaction(action);
-  m_loadReaction = loadReaction; // TODO debug
   QObject::connect(loadReaction, SIGNAL(loadedData(pqPipelineSource *)),
 		    this, SLOT( loadData(pqPipelineSource *)));
   menu.addAction(action);
