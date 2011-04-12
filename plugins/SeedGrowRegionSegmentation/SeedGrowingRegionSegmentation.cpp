@@ -137,7 +137,7 @@ void SeedGrowingRegionSegmentation::LoadAnalisys(EspinaParamList& args)
 void SeedGrowingRegionSegmentation::handle(const Selection sel)
 {
   
-  qDebug() << "Ejecutando Plugin";
+  qDebug() << "SeedGrowingRegionSegmenation: handling Plugin";
   
   //Depending on the pixel selector 
   ImagePixel realInputPixel = m_selector->pickPixel(sel);
@@ -219,7 +219,7 @@ void SeedGrowingRegionSegmentation::execute()
 void SeedGrowingRegionSegmentation::abortSelection()
 {
   m_addSeed->setChecked(false);
-  qDebug() << "Selection aborted";
+  qDebug() << "SeedGrowingRegionSegmentation: Selection aborted";
 }
 
 

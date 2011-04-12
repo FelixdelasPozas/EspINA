@@ -146,10 +146,6 @@ private:
 
   //!Convert a string int the correct format "{argument:value;}+" in a NodeParamList
   NodeParamList parseArgs( QString& raw );
-  //! Visit nodes by edges and return the root vertex id
-  //QList<VertexId> rootVertices();
-  //! Retrieve a map of the parents or predecessors of all the vertex in graph
-  QMap<VertexId, QList<VertexId> > predecessors( Graph& g);
 
   // attributes
   Graph m_trace;

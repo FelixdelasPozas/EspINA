@@ -148,14 +148,14 @@ void ProcessingTrace::readTrace(std::istream& fileName)
   //    else
   //        insert into the pipeline
 
-  QMap< VertexId, QList< VertexId > > parentsMap = this->predecessors(schema);
+  QMap< VertexId, QList< VertexId > > parentsMap = predecessors<Graph, VertexId>(schema);
   QList<VertexId> verticesToProcess(rootVertices<Graph, VertexId>(schema)); // The nodes not processed
   QList<VertexId> processedVertices; 
   
   while( !verticesToProcess.empty() )
   {
     VertexId vertexId = verticesToProcess.first();
-    qDebug() << "Processing the id: " << vertexId;
+    qDebug() << "ProcessingTrace: Processing the vertex with id: " << vertexId;
     // ***** Process the vertex *****
     // Retrieve all the parents by giving a VertexId TODO
     bool parentsProcessed = true;
@@ -173,7 +173,7 @@ void ProcessingTrace::readTrace(std::istream& fileName)
       // Is a stack //TODO be more explicit
       if( vShape[vertexId].compare("ellipse") == 0 && label.startsWith('/') )
       {
-        qDebug() << "Loading the Stack " << label;
+        qDebug() << "ProcessingTrace: Loading the Stack " << label;
         EspINA::instance()->loadFile(
           pqLoadDataReaction::loadData(QStringList(label))
         );
@@ -181,7 +181,7 @@ void ProcessingTrace::readTrace(std::istream& fileName)
       } // A filter
       else if( vShape[vertexId].compare("box") == 0 )
       { // A filter that can be processed
-        qDebug() << "Creating the filter " << label;
+        qDebug() << "ProcessingTrace: Creating the filter " << label;
         //QStringList filterInfo = QString(vLabel[vertexId].c_str()).split("::");
         //assert(filterInfo.size() == 2);
         QString rawArgs( vArgs[vertexId].c_str() );
@@ -196,7 +196,7 @@ void ProcessingTrace::readTrace(std::istream& fileName)
         //core->getObjectBuilder()->createSource()
       } // A segmentation
       else {
-        qDebug() << "Is a segmentation";
+        qDebug() << "ProcessingTrace: A segmentation ... ignored";
       //  localPipe.push_back(*vi);
       // check if is a filter and all of its dependecies exist
       }
@@ -208,7 +208,6 @@ void ProcessingTrace::readTrace(std::istream& fileName)
       for(boost::tie(vi, vi_end) = boost::adjacent_vertices(vertexId, schema);
           vi != vi_end; vi++)
       {
-        std::cout << "\tNear is:" << *vi << " - " << vLabel[*vi] << std::endl;
         verticesToProcess.push_front(*vi);
       }
       
@@ -245,32 +244,6 @@ NodeParamList ProcessingTrace::parseArgs( QString& raw )
   return res;
 }
 
-//TODO refactor to helpers..
-//-----------------------------------------------------------------------------
-QMap<ProcessingTrace::VertexId, QList<ProcessingTrace::VertexId> >
-ProcessingTrace::predecessors( Graph& g)
-{
-  QMap<VertexId, QList<VertexId> > res;
-  QList<VertexId> list;
-  VertexId vs, vt;
-
-  boost::graph_traits<Graph>::edge_iterator ei, ei_end;
-  for( boost::tie(ei, ei_end) = boost::edges(g); ei != ei_end; ei++)
-  {
-    vs = boost::source(*ei, g);
-    vt = boost::target(*ei, g);
-
-    if( !res.contains(vt) ){
-      list.clear();// = QList<VertexId>();
-    }
-    else
-      list = res.value(vt);
-    list.append(vs);
-    res.insert(vt, list);
-    //std::cout << vs << " (parentof) " << vt << std::endl;
-  }
-  return res;
-}
 //-----------------------------------------------------------------------------
 void ProcessingTrace::print( std::ostream& out, ProcessingTrace::printFormat format)
 {

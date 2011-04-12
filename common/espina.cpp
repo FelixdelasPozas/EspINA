@@ -47,7 +47,7 @@ EspINA* EspINA::instance()
 
 void EspINA::onProxyCreated(pqProxy* p)
 {
-  qDebug() << "Proxy" << p->getSMGroup() << "::" << p->getSMName() << " created!";
+  qDebug() << "EspINA: Proxy" << p->getSMGroup() << "::" << p->getSMName() << " created!";
 }
 
 //------------------------------------------------------------------------
@@ -351,7 +351,7 @@ void EspINA::loadFile(EspinaProxy* proxy)
   QString filePath = core->serverResources().list().first().path();
   //QString filePath = proxy->getSMName();
   
-  qDebug() << "Loading file in server side: " << filePath << "  " << proxy->getSMName();
+  qDebug() << "EspINA: Loading file in server side: " << filePath << "  " << proxy->getSMName();
   
   if( filePath.endsWith(".pvd") || filePath.endsWith(".mha"))
   {

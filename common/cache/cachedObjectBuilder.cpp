@@ -87,7 +87,7 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(
   pqApplicationCore* core = pqApplicationCore::instance();
   pqObjectBuilder* ob = core->getObjectBuilder();
   
-  qDebug() << "Create Filter: " << group << "::" << name;
+  qDebug() << "CachedObjectBuilder: Create Filter " << group << "::" << name;
   pqPipelineSource *filter; //= builder->createFilter(group, name,NULL);
   for (int p = 0; p < args.size(); p++)
   {

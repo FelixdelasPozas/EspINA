@@ -216,7 +216,7 @@ Filter::Filter(
     trace->connect(this,filterOutput,"segmentation");
     m_products.push_back(filterOutput);
   }
-  qDebug() << "Filter ID " << this->id();
+  qDebug() << "Filter: Created Filter with id " << this->id();
 }
 
 //-----------------------------------------------------------------------------
