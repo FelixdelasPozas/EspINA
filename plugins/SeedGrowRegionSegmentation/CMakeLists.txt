@@ -29,6 +29,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR} 
   ${ITK_VTK_GLUE}
   ${Boost_INCLUDE_DIRS}
+  ${ITK_DIR}/../
   )
 
 

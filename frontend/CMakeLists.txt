@@ -13,7 +13,9 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR} 
   ${CMAKE_CURRENT_BINARY_DIR}  #For wrap/ui files
   ${CAJAL_INCLUDE_DIRS}
-  ${Boost_INCLUDE_DIRS} 
+  ${Boost_INCLUDE_DIRS}
+#   "/opt/InsightToolkit-3.20.0/Utilities/vxl/vcl"
+  ${ITK_DIR}/../
   )
 
 #------------------------------------------------------------------------------

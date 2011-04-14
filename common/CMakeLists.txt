@@ -3,6 +3,9 @@ include_directories(
   proxies
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}  #For wrap/ui files
+  ${ITK_DIR}/../
+#   "/opt/InsightToolkit-3.20.0/Utilities/vxl/"
+#   "/opt/InsightToolkit-3.20.0/Utilities/vxl/vcl"
   )
 
 #------------------------------------------------------------------------------

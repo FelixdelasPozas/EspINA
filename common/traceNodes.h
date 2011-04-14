@@ -28,7 +28,7 @@
 
 #include <QString>
 #include <data/taxonomy.h>
-#include <../../../InsightToolkit-3.20.0/Utilities/vxl/vcl/iso/vcl_iostream.h>
+#include <Utilities/vxl/vcl/iso/vcl_iostream.h>
 
 #include <QMutex>
 
