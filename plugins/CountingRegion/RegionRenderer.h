@@ -17,35 +17,30 @@
 */
 
 
-#ifndef ESPINAFACTORY_H
-#define ESPINAFACTORY_H
+#ifndef REGIONRENDERER_H
+#define REGIONRENDERER_H
 
-#include "ui/volumeView.h"
+#include "EspinaPlugin.h"
 
-class Segmentation;
+#include <QMap>
+
+class Sample;
 class pqPipelineSource;
-class ISegmentationExtension;
 
-#include <QList>
-#include <QString>
-
-class EspINAFactory
+class RegionRenderer : public IViewWidget
 {
+  Q_OBJECT
 public:
-  static EspINAFactory *instance();
+  RegionRenderer(QMap<Sample *, QList<pqPipelineSource *> > &regions, QWidget* parent = 0);
   
-  Segmentation *CreateSegmentation(pqPipelineSource* source, int portNumber, QString parentHash);
-  void addSegmentationExtension(ISegmentationExtension *ext);
+  virtual IViewWidget* clone();
   
-  VolumeView *CreateVolumeView();
-  void addViewWidget(IViewWidget *widget);
+public slots:
+  virtual void updateState(bool checked);
+  virtual void renderInView(pqView* view);
   
 private:
-  EspINAFactory(){};
-  
-  static EspINAFactory *m_instance;
-  QList<ISegmentationExtension *> m_extensions;
-  QList<IViewWidget *> m_widgets;
+  QMap<Sample *, QList<pqPipelineSource *> > &m_regions;
 };
 
-#endif // ESPINAFACTORY_H
+#endif // REGIONRENDERER_H

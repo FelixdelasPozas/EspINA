@@ -50,6 +50,8 @@ void SampleProxy::setSourceModel(QAbstractItemModel* sourceModel)
           this, SLOT(sourceRowsRemoved(QModelIndex, int, int)));
   connect(sourceModel, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex, int, int)));
+  connect(sourceModel, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
+          this, SLOT(sourceRowsChanged(const QModelIndex &,const QModelIndex &)));
 }
 
 //------------------------------------------------------------------------
@@ -243,6 +245,12 @@ void SampleProxy::sourceRowsRemoved(const QModelIndex& sourceParent, int start, 
 {
   updateSegmentations();
 }
+
+void SampleProxy::sourceRowsChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight)
+{
+  emit dataChanged(topLeft,bottomRight);
+}
+
 
 
 //------------------------------------------------------------------------

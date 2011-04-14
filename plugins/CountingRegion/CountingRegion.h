@@ -16,27 +16,48 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+//TODO: Add translation table
+//TODO: Write counting region algorithm
+//TODO: Show bounding regions in volume view
+//TODO: Show bounding regions in slice view
 
 #ifndef COUNTINGREGION_H
 #define COUNTINGREGION_H
 
-#include <QActionGroup>
+#include "ui_CountingRegionPanel.h"
+
+#include <QDockWidget>
+#include <QMap>
+#include <QList>
+#include <QStringListModel>
 
 // Forward declaration
 class QAction;
+class Sample;
+class pqPipelineSource;
+class CountingRegionExtension;
 
-class CountingRegion : public QActionGroup
+class CountingRegion : public QDockWidget, private Ui::CountingRegionPanel
 {
   Q_OBJECT
   
 public:
-  CountingRegion(QObject* parent);
-
+  CountingRegion(QWidget* parent);
+  
+  void initializeExtension(CountingRegionExtension *ext);
+  
 public slots:
+  void focusSampleChanged(Sample *sample);
+  
+  void createNewRegion();
   //void onAction(QAction *action);
   
-  void buildUI();
-
+private:
+  bool updateRegions(Sample *sample);
+  
+private:
+  QMap<Sample *, QList<pqPipelineSource *> > m_regions;
+  QStringListModel m_regionsModel;
 };
 
 #endif // COUNTINGREGION_H

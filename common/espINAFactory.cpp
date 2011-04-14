@@ -35,6 +35,7 @@ EspINAFactory* EspINAFactory::instance()
 
 Segmentation* EspINAFactory::CreateSegmentation(pqPipelineSource* source, int portNumber, QString parentHash)
 {
+  std::cout << "Factory is going to create a segmentation owned by " << parentHash.toStdString() << std::endl;
   Segmentation *seg = new Segmentation(source,portNumber,parentHash);
   foreach(ISegmentationExtension *ext, m_extensions)
   {
@@ -47,6 +48,22 @@ void EspINAFactory::addSegmentationExtension(ISegmentationExtension* ext)
 {
   qDebug() << ext->id() << "registered in Factory";
   m_extensions.append(ext->clone());
+}
+
+VolumeView* EspINAFactory::CreateVolumeView()
+{
+  VolumeView *view = new VolumeView();
+  foreach(IViewWidget *widget, m_widgets)
+  {
+    view->addWidget(widget);
+  }
+  return view;
+}
+
+void EspINAFactory::addViewWidget(IViewWidget* widget)
+{
+  qDebug() << "registered new widget in Factory";
+  m_widgets.append(widget->clone());
 }
 
 

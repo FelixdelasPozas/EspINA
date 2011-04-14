@@ -33,7 +33,7 @@
 #include "espinaMainWindow.h"
 #include "ui_espinaMainWindow.h"
 #include "slicer.h"
-#include "volumeView.h"
+#include "espINAFactory.h"
 #include "distance.h"
 #include "unitExplorer.h"
 #include "selectionManager.h"
@@ -81,6 +81,9 @@
 #include <QWidgetAction>
 #include "qTreeComboBox.h"
 #include <cache/cachedObjectBuilder.h>
+#include "Crosshairs.h"
+#include <pqServerManagerModel.h>
+#include <pqServerDisconnectReaction.h>
 
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
@@ -184,6 +187,11 @@ EspinaMainWindow::EspinaMainWindow()
   taxonomySelector->setCurrentIndex(0);
   this->Internals->toolBar->addWidget(taxonomySelector);
   
+  // Final step, define application behaviors. Since we want all ParaView
+  // behaviors, we use this convenience method.
+  new pqParaViewBehaviors(this, this);
+  
+  std::cout << "Creating Views" << std::endl;
 
   // Label Editor
   this->Internals->taxonomyView->setModel(m_espina);
@@ -201,7 +209,9 @@ EspinaMainWindow::EspinaMainWindow()
   connect(server, SIGNAL(connectionClosed(vtkIdType)), m_xy, SLOT(disconnectFromServer()));
   connect(m_xy, SIGNAL(pointSelected(const Point)), m_selectionManager, SLOT(pointSelected(const Point)));
   this->setCentralWidget(m_xy);
-
+  
+#if 1
+  
   m_yz = new SliceView();
   m_yz->setPlane(SliceView::SLICE_PLANE_YZ);
   m_yz->setModel(sampleProxy);
@@ -214,6 +224,7 @@ EspinaMainWindow::EspinaMainWindow()
 	  m_selectionManager, SLOT(pointSelected(const Point)));
   this->Internals->yzSliceDock->setWidget(m_yz);
 
+ 
   m_xz = new SliceView();
   m_xz->setPlane(SliceView::SLICE_PLANE_XZ);
   m_xz->setModel(sampleProxy);
@@ -223,20 +234,31 @@ EspinaMainWindow::EspinaMainWindow()
   connect(server, SIGNAL(connectionClosed(vtkIdType)), 
 	  m_xz, SLOT(disconnectFromServer()));
   this->Internals->xzSliceDock->setWidget(m_xz);
+  
+#endif
+  
+  Crosshairs *cross = new Crosshairs();
+  cross->addPlane(0,m_xy->output());
+  cross->addPlane(1,m_yz->output());
+  cross->addPlane(2,m_xz->output());
+  connect(m_xy,SIGNAL(sliceChanged()),cross,SLOT(update()));
+  connect(m_yz,SIGNAL(sliceChanged()),cross,SLOT(update()));
+  connect(m_xz,SIGNAL(sliceChanged()),cross,SLOT(update()));
 
-  m_3d = new VolumeView();
+  m_3d = EspINAFactory::instance()->CreateVolumeView();
   m_3d->setModel(sampleProxy);
   m_3d->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
   connect(server, SIGNAL(connectionCreated(vtkIdType)),
 	  m_3d, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), 
 	  m_3d, SLOT(disconnectFromServer()));
+  m_3d->addWidget(cross);
   this->Internals->volumeDock->setWidget(m_3d);
 
   // Setup default GUI layout.
   connect(this->Internals->toggleVisibility, SIGNAL(toggled(bool)), 
 	  this, SLOT(toggleVisibility(bool)));
-  
+  pqServerDisconnectReaction::disconnectFromServer();
   // m_3d->setSelectionModel(this->Internals->taxonomyView->selectionModel());
 
   // Final step, define application behaviors. Since we want all ParaView
@@ -245,8 +267,7 @@ EspinaMainWindow::EspinaMainWindow()
 
   // Debug load stack
   QMetaObject::invokeMethod(this, "autoLoadStack", Qt::QueuedConnection);
-  
-  
+
 }
 
 

@@ -17,35 +17,30 @@
 */
 
 
-#ifndef ESPINAFACTORY_H
-#define ESPINAFACTORY_H
+#ifndef CROSSHAIRS_H
+#define CROSSHAIRS_H
 
-#include "ui/volumeView.h"
+#include "EspinaPlugin.h"
 
-class Segmentation;
 class pqPipelineSource;
-class ISegmentationExtension;
 
-#include <QList>
-#include <QString>
-
-class EspINAFactory
+class Crosshairs : public IViewWidget
 {
+  Q_OBJECT
 public:
-  static EspINAFactory *instance();
+  Crosshairs(QWidget* parent = 0);
+  virtual void renderInView(pqView* view);
   
-  Segmentation *CreateSegmentation(pqPipelineSource* source, int portNumber, QString parentHash);
-  void addSegmentationExtension(ISegmentationExtension *ext);
+  virtual IViewWidget* clone();
   
-  VolumeView *CreateVolumeView();
-  void addViewWidget(IViewWidget *widget);
+  void addPlane(int id, pqPipelineSource **output) {m_planes[id] = output;}
+  
+public slots:
+  virtual void updateState(bool checked);
+  void update(){emit updateRequired();}
   
 private:
-  EspINAFactory(){};
-  
-  static EspINAFactory *m_instance;
-  QList<ISegmentationExtension *> m_extensions;
-  QList<IViewWidget *> m_widgets;
+  pqPipelineSource **m_planes[3];
 };
 
-#endif // ESPINAFACTORY_H
+#endif // CROSSHAIRS_H

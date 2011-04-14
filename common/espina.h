@@ -69,12 +69,14 @@ public:
 
     // Segmentation managing
     QList<Segmentation *> segmentations(const TaxonomyNode* taxonomy, bool recursive = false) const;
+    QList<Segmentation *> segmentations(const Sample* sample) const;
     
     // Taxonomy managin
     TaxonomyNode *taxonomy() {return m_tax;}
     QModelIndex taxonomyIndex(TaxonomyNode *node) const;
     
     QModelIndex segmentationIndex(Segmentation *seg) const;
+    
     //! Openning .mha, .trace or .seg (.trace + .mha) file (used by the UI)
     //! After a paraviews open.
     void loadFile(EspinaProxy* proxy);
@@ -93,6 +95,9 @@ public slots:
 
     //! Debug slot for plugins manage
     void onProxyCreated(pqProxy* p);
+    
+signals:
+    void focusSampleChanged(Sample *);
   
 protected:
     explicit EspINA(QObject* parent = 0);

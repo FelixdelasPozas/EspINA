@@ -15,6 +15,8 @@ qt4_wrap_cpp(MOC_BUILT_SOURCES
   sampleProxy.h
   espina.h
   iPixelSelector.h
+  EspinaPlugin.h
+  ui/volumeView.h
 )
 
 source_group("Generated" FILES
@@ -25,11 +27,13 @@ source_group("Generated" FILES
 file (GLOB LOCAL_SOURCES *.cpp)
 file (GLOB CACHE_SOURCES cache/*.cpp )
 file (GLOB PROXIES_SOURCES proxies/*.cpp )
+file (GLOB UI_SOURCES ui/*.cpp )
 
 set(Espina_SOURCE_FILES
   ${LOCAL_SOURCES}
   ${CACHE_SOURCES}
   ${PROXIES_SOURCES}
+  ${UI_SOURCES}
   ${MOC_BUILT_SOURCES}
   ${RCC_BUILT_SOURCES}
   )

@@ -98,6 +98,8 @@ bool EspINA::setData(const QModelIndex& index, const QVariant& value, int role)
       emit dataChanged(index, index);
       return true;
     }
+    if (role == Qt::DecorationRole)
+      qDebug() << "Cambiando valor";
     if (role == Qt::CheckStateRole)
     {
       IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
@@ -342,6 +344,12 @@ QList<Segmentation * > EspINA::segmentations(const TaxonomyNode* taxonomy, bool 
   return segs;
 }
 
+//! Returns all the segmentations of a given sample
+QList< Segmentation* > EspINA::segmentations(const Sample* sample) const
+{
+  return m_sampleSegs[sample];
+}
+
 //------------------------------------------------------------------------
 void EspINA::loadFile(EspinaProxy* proxy)
 {
@@ -398,6 +406,8 @@ void EspINA::addSample(EspinaProxy* source, int portNumber, QString& filePath)
   m_activeSample = sample;
   m_samples.push_back(sample);
   endInsertRows();
+  
+  emit focusSampleChanged(sample);
 }
 
 
@@ -413,7 +423,10 @@ void EspINA::addSegmentation(Segmentation *seg)
   beginInsertRows(segmentationRoot(),lastRow,lastRow);
   seg->setTaxonomy(node);
   seg->setOrigin(m_activeSample);
+  seg->initialize();
   m_taxonomySegs[m_newSegType].push_back(seg);
+  m_sampleSegs[seg->origin()].push_back(seg);
+  qDebug() << "ORIGEN: " << seg->origin();
   m_segmentations.push_back(seg);
   endInsertRows();
 }
@@ -425,6 +438,7 @@ void EspINA::removeSegmentation(Segmentation* seg)
   beginRemoveRows(segmentationRoot(),segIndex.row(),segIndex.row());
   m_segmentations.removeOne(seg);
   m_taxonomySegs[seg->taxonomy()].removeOne(seg);
+  m_sampleSegs[seg->origin()].removeOne(seg);
   endRemoveRows();
 }
 
