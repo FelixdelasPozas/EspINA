@@ -17,7 +17,7 @@ include (${ITK_USE_FILE})
 find_package (Cajal REQUIRED)
 include (${ITK_USE_FILE})
 
-find_package(Boost REQUIRED COMPONENTS  system filesystem)
+find_package(Boost REQUIRED COMPONENTS  system filesystem graph)
 link_directories ( ${Boost_LIBRARY_DIRS} )
 
 
@@ -29,6 +29,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR} 
   ${ITK_VTK_GLUE}
   ${Boost_INCLUDE_DIRS}
+  ${ITK_DIR}/../
   )
 
 
@@ -59,7 +60,7 @@ set (PARAVIEW_ADDITIONAL_LIBRARIES
   ${PARAVIEW_ADDITIONAL_LIBRARIES}
   ${CAJAL_LIBRARIES}
   Espina
-  ITKCommon ITKBasicFilters ITKAlgorithms 
+  ITKCommon ITKBasicFilters ITKAlgorithms ITKIO
   ${Boost_LIBRARIES}
 )
 

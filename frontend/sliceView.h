@@ -36,8 +36,36 @@ class pqOutputPort;
 class Segmentation;
 class Sample;
 class IRenderer;
+class vtkSMProxy;
+class IModelItem;
 
 #include "selectionManager.h"//TODO: Forward declare?
+#include <QMutex>
+class Blender
+{
+public:
+  static Blender *instance();
+  
+  pqPipelineSource *source(){  return m_imageBlender;}
+  
+  //! Focus on a new sample, if previous segmentation were shown
+  //! their memory is freed.
+  void focusOnSample(Sample *sample);
+  //! Blends seg into the focused sample
+  void blendSegmentation(Segmentation *seg);
+  //! Unblends seg into the focused sample
+  void unblendSegmentation(Segmentation *seg);
+  
+  void updateImageBlenderInput();
+  
+private:
+  Blender() : m_sampleMapper(NULL), m_imageBlender(NULL) {}
+  static Blender *m_blender;
+  pqPipelineSource *m_sampleMapper;
+  pqPipelineSource *m_imageBlender;
+  QMap<IModelItem *,pqPipelineSource *> m_blendingMappers;
+  QMutex m_mutex;
+};
 
 
 //! Displays a unique slice of a sample
@@ -78,6 +106,8 @@ protected:
   virtual QModelIndex moveCursor(QAbstractItemView::CursorAction cursorAction, Qt::KeyboardModifiers modifiers);
   // Updating model changes
   virtual void rowsInserted(const QModelIndex& parent, int start, int end);
+  virtual void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end);
+  virtual void dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight);
 
 public:
   virtual QModelIndex indexAt(const QPoint& point) const;
@@ -85,6 +115,8 @@ public:
   virtual QRect visualRect(const QModelIndex& index) const;
 
   void focusOnSample(Sample *sample);
+  
+  pqPipelineSource **output(){return &m_slicer;}
 
 public slots:
   //! Slicer configuration methods:
@@ -94,14 +126,15 @@ public slots:
   //! Selections
   void vtkWidgetMouseEvent(QMouseEvent *event);
 
+signals:
+  void sliceChanged();
+
 protected:
   void updateScene();
-  void render(const QModelIndex &index);
 
 private:
   pqPipelineSource *blender();
   void slice(pqPipelineSource *source);
-  void updateBlending(Segmentation* seg);
 
 private:
   bool m_init;
@@ -112,8 +145,8 @@ private:
   pqPipelineSource *m_slicer;
 
   //TODO: Reasign when reconecting to server
-  static Sample *s_focusedSample; // The sample which is being currently displayed
-  static pqPipelineSource *s_colouredSample; // A blending filter
+  Sample *s_focusedSample; // The sample which is being currently displayed
+  static Blender *s_blender; // A blending filter
 
   // GUI
   QWidget *m_viewWidget;

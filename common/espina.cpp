@@ -23,9 +23,16 @@
 #include "traceNodes.h"
 #include "cache/cachedObjectBuilder.h"
 
+#include <vtkSMStringVectorProperty.h>
+#include <vtkSMProxy.h>
+
+#include <pqApplicationCore.h>
+#include <pqServerResources.h>
+
 #include <QDebug>
 #include <iostream>
 #include <fstream>
+
 //------------------------------------------------------------------------
 EspINA *EspINA::m_singleton(NULL);
 
@@ -36,6 +43,11 @@ EspINA* EspINA::instance()
     m_singleton = new EspINA();
   
   return m_singleton;
+}
+
+void EspINA::onProxyCreated(pqProxy* p)
+{
+  qDebug() << "EspINA: Proxy" << p->getSMGroup() << "::" << p->getSMName() << " created!";
 }
 
 //------------------------------------------------------------------------
@@ -68,19 +80,39 @@ QVariant EspINA::data(const QModelIndex& index, int role) const
   
   IModelItem *indexItem = static_cast<IModelItem *>(index.internalPointer());
   return indexItem->data(role);
-  
-  
-  //bool isSegmentation = isLeaf(indexNode);
-/*  
-  switch (role)
+}
+
+//------------------------------------------------------------------------
+bool EspINA::setData(const QModelIndex& index, const QVariant& value, int role)
+{
+  if (index.isValid())
   {
-    case Qt::DisplayRole:
-	return indexNode->getName();
-    case Qt::DecorationRole:
-	return indexNode->getColor();
-    default:
-      return QVariant();
-  }*/
+    if (role == Qt::EditRole)
+    {
+      IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+      Segmentation *seg = dynamic_cast<Segmentation *>(item);
+      if (seg)
+      {
+	seg->name = value.toString();
+      }
+      emit dataChanged(index, index);
+      return true;
+    }
+    if (role == Qt::DecorationRole)
+      qDebug() << "Cambiando valor";
+    if (role == Qt::CheckStateRole)
+    {
+      IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+      Segmentation *seg = dynamic_cast<Segmentation *>(item);
+      if (seg)
+      {
+	seg->setVisible(value.toBool());
+      }
+      emit dataChanged(index, index);
+      return true;
+    }
+  }
+  return false;
 }
 
 //------------------------------------------------------------------------
@@ -110,7 +142,7 @@ int EspINA::rowCount(const QModelIndex& parent) const
   TaxonomyNode *taxItem = dynamic_cast<TaxonomyNode *>(parentItem);
   if (taxItem)
   {
-    std::cout << "Getting rows in source of " << taxItem->getName().toStdString() << std::endl;
+    //std::cout << "Getting rows in source of " << taxItem->getName().toStdString() << std::endl;
     return numOfSubTaxonomies(taxItem);// + numOfSegmentations(taxItem);
   }
   // Otherwise Samples and Segmentations have no children
@@ -222,9 +254,20 @@ QVariant EspINA::headerData(int section, Qt::Orientation orientation, int role) 
 //------------------------------------------------------------------------
 Qt::ItemFlags EspINA::flags(const QModelIndex& index) const
 {
-  return QAbstractItemModel::flags(index);
+  if (!index.isValid())
+    return Qt::ItemIsEnabled;
+  
+  if (index == taxonomyRoot() || index == sampleRoot() || index == segmentationRoot())
+    return Qt::ItemIsEnabled;
+  
+  // Segmentation are read-only (TODO: Allow editing extent/spacing)
+  if (index.parent() == sampleRoot())
+    return Qt::ItemIsEnabled;
+  
+  return QAbstractItemModel::flags(index) | Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
 }
 
+ //------------------------------------------------------------------------
 
  //------------------------------------------------------------------------
 QModelIndex EspINA::taxonomyRoot() const
@@ -301,21 +344,39 @@ QList<Segmentation * > EspINA::segmentations(const TaxonomyNode* taxonomy, bool 
   return segs;
 }
 
+//! Returns all the segmentations of a given sample
+QList< Segmentation* > EspINA::segmentations(const Sample* sample) const
+{
+  return m_sampleSegs[sample];
+}
+
 //------------------------------------------------------------------------
-void EspINA::loadFile(QString filePath)
+void EspINA::loadFile(EspinaProxy* proxy)
 {
   //TODO Check the type of file .mha, .trace, or .seg
   // .mha at the moment
-  if( filePath.endsWith(".mha") ) //TODO change it to parse with readers lists
+  pqApplicationCore* core = pqApplicationCore::instance();
+  QString filePath = core->serverResources().list().first().path();
+  //QString filePath = proxy->getSMName();
+  
+  qDebug() << "EspINA: Loading file in server side: " << filePath << "  " << proxy->getSMName();
+  
+  if( filePath.endsWith(".pvd") || filePath.endsWith(".mha"))
   {
-    qDebug() << "MHA FILE: " << filePath;
-    EspinaProxy* source = CachedObjectBuilder::instance()->createStack( filePath);
-    Sample *stack = new Sample(source, 0, filePath);
-    stack->setVisible(false);
-    this->addSample(stack);
+    //qDebug() << "MHA FILE: " << filePath;
+    //EspinaProxy* source = CachedObjectBuilder::instance()->createStack( filePath);
+    assert(NULL == CachedObjectBuilder::instance()->registerLoadedStack(filePath, proxy));
+    this->addSample(proxy, 0, filePath);
   }
   else if( filePath.endsWith(".trace") ){
-    qDebug() << "Error: .trace files not supported yet";
+    proxy->updatePipeline(); //Update the pipeline to obtain the content of the file
+    proxy->getProxy()->UpdatePropertyInformation();
+
+    vtkSMStringVectorProperty* StringProp2 =
+          vtkSMStringVectorProperty::SafeDownCast(proxy->getProxy()->GetProperty("Content"));
+    //qDebug() << "Content:\n" << StringProp2->GetElement(0);
+    std::istringstream trace(std::string(StringProp2->GetElement(0)));
+    ProcessingTrace::instance()->readTrace(trace);
   }
   else if( filePath.endsWith(".seg") )
     qDebug() << "Error: .seg files not supported yet";
@@ -332,13 +393,12 @@ void EspINA::saveTrace(QString filePath)
 
 
 //------------------------------------------------------------------------
-void EspINA::addSample(Sample* sample)
+void EspINA::addSample(EspinaProxy* source, int portNumber, QString& filePath)
 {
-  /*Cache *cache = Cache::instance();
-  cache->insert(sample->id(),sample->sourceData());*/
+  Sample *sample = new Sample(source, portNumber, filePath);
+  sample->setVisible(false);
   /* If this is used to load samples when using .trace files. The next line must be uncommented*/
-  CachedObjectBuilder::instance()->createStack( sample->name );
-  
+  // Tracing graph
   m_analysis->addNode(sample);
   
   int lastRow = rowCount(sampleRoot());
@@ -346,6 +406,8 @@ void EspINA::addSample(Sample* sample)
   m_activeSample = sample;
   m_samples.push_back(sample);
   endInsertRows();
+  
+  emit focusSampleChanged(sample);
 }
 
 
@@ -361,28 +423,31 @@ void EspINA::addSegmentation(Segmentation *seg)
   beginInsertRows(segmentationRoot(),lastRow,lastRow);
   seg->setTaxonomy(node);
   seg->setOrigin(m_activeSample);
+  seg->initialize();
   m_taxonomySegs[m_newSegType].push_back(seg);
+  m_sampleSegs[seg->origin()].push_back(seg);
+  qDebug() << "ORIGEN: " << seg->origin();
   m_segmentations.push_back(seg);
   endInsertRows();
-  //endResetModel();
-  
-  emit render(seg);
-  emit sliceRender(seg);
 }
 
 //------------------------------------------------------------------------
-void EspINA::setUserDefindedTaxonomy(const QModelIndex& index)
+void EspINA::removeSegmentation(Segmentation* seg)
 {
-  IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
-  TaxonomyNode *node = dynamic_cast<TaxonomyNode *>(item);
-  if (!node)
-  {
-    Product *seg = dynamic_cast<Product *>(item);
-    if (seg)
-      node = seg->taxonomy();
-  }
-  assert(node);
-  m_newSegType = node;//->getName();//item->data(Qt::DisplayRole).toString();
+  QModelIndex segIndex = segmentationIndex(seg);
+  beginRemoveRows(segmentationRoot(),segIndex.row(),segIndex.row());
+  m_segmentations.removeOne(seg);
+  m_taxonomySegs[seg->taxonomy()].removeOne(seg);
+  m_sampleSegs[seg->origin()].removeOne(seg);
+  endRemoveRows();
+}
+
+
+//------------------------------------------------------------------------
+void EspINA::setUserDefindedTaxonomy(const QString& taxName)
+{
+  m_newSegType = m_tax->getComponent(taxName);
+  assert(m_newSegType);
 }
 
 

@@ -1,0 +1,77 @@
+<ServerManagerConfiguration>
+	<!-- This is the server manager configuration XML. It defines the interface to
+	   our new filter. As a rule of thumb, try to locate the configuration for
+	   a filter already in ParaView (in Servers/ServerManager/Resources/*.xml)
+	   that matches your filter and then model your xml on it -->
+  <ProxyGroup name="filters">
+	  <SourceProxy name="BoundingRegion" class="vtkBoundingRegionFilter" label="Bounding Region Filter" >
+		  <Documentation
+			  long_help="filter"
+			  short_help="filter">
+		  </Documentation>
+		  <InputProperty
+			  name="Input"
+			  command="SetInputConnection">
+			  <ProxyGroupDomain name="groups">
+				  <Group name="sources"/>
+				  <Group name="filters"/>
+			  </ProxyGroupDomain>
+			  <DataTypeDomain name="input_type">
+				  <DataType value="vtkImageData"/>
+			  </DataTypeDomain>
+		  </InputProperty>
+		  <IntVectorProperty
+			  name="Inclusion"
+			  number_of_elements="3"
+			  default_values="0 0 0"
+			  immediate_update="1"
+			  command="SetInclusion">
+		  </IntVectorProperty>
+		  <IntVectorProperty
+			  name="Exclusion"
+			  number_of_elements="3"
+			  default_values="0 0 0"
+			  immediate_update="1"
+			  command="SetExclusion">
+		  </IntVectorProperty>
+		  <!-- End Bounding Region Filter -->
+	  </SourceProxy>
+	  <SourceProxy name="CountingRegion" class="vtkCountingRegionFilter" label="Counting Region Filter" >
+		  <Documentation
+			  long_help="filter"
+			  short_help="filter">
+		  </Documentation>
+		  <InputProperty
+			  name="Input"
+			  command="SetInputConnection"
+			  port_index="0">
+			  <ProxyGroupDomain name="groups">
+				  <Group name="sources"/>
+				  <Group name="filters"/>
+			  </ProxyGroupDomain>
+			  <DataTypeDomain name="input_type">
+				  <DataType value="vtkImageData"/>
+			  </DataTypeDomain>
+		  </InputProperty>
+		  <InputProperty
+			  name="Regions"
+			  command="AddInputConnection"
+			  port_index="1">
+			  <ProxyGroupDomain name="groups">
+				  <Group name="sources"/>
+				  <Group name="filters"/>
+			  </ProxyGroupDomain>
+		  </InputProperty>
+		  <IntVectorProperty
+			  name="Discarted"
+			  number_of_elements="1"
+			  information_only="1"
+			  command="GetDiscarted">
+			  <SimpleIntInformationHelper/>
+		  </IntVectorProperty>
+		  <!-- End Counting Region Filter -->
+	  </SourceProxy>
+
+  </ProxyGroup>
+</ServerManagerConfiguration>
+

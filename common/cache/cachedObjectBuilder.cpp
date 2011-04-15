@@ -87,7 +87,7 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(
   pqApplicationCore* core = pqApplicationCore::instance();
   pqObjectBuilder* ob = core->getObjectBuilder();
   
-  qDebug() << "Create Filter: " << group << "::" << name;
+  qDebug() << "CachedObjectBuilder: Create Filter " << group << "::" << name;
   pqPipelineSource *filter; //= builder->createFilter(group, name,NULL);
   for (int p = 0; p < args.size(); p++)
   {
@@ -145,6 +145,10 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(
  return filter;
 }
 
+//-----------------------------------------------------------------------------
+/**
+ * For stacks loaded from the client-side
+ */
 EspinaProxy* CachedObjectBuilder::createStack(QString filePath)
 {
   QStringList v;
@@ -159,6 +163,32 @@ EspinaProxy* CachedObjectBuilder::createStack(QString filePath)
   return proxy;
 }
 
+/*
+TODO there are two ways to load sample files.
+  1.- ParaView way: it uses the default method of paraView to load files. It loads
+          data from the server's filesystem. It has it's own ParaView GUI
+          This uses EspinaMainWindow::loadData, insertLoadedStack, 
+  2.- Our way: our own GUI. Internaly it uses the ParaView load data system
+          This uses EspinaMainWindow::loadFile, insertLoadedStack,
+*/
+/**
+ * Insert a stack in the Espina Cache which has been already created in the server
+ * The only difference with createStack is that the pqPipelineSource was already
+ * created by ParaView system
+ * If it returns something different to NULL the element has been already registered
+ * in the cache
+ */
+EspinaProxy* CachedObjectBuilder::registerLoadedStack(QString& filePath, EspinaProxy* source)
+{
+  QStringList v;
+  v.push_back( filePath );
+  CacheIndex fileIndex = generateSha1(v);
+  CacheEntry* proxy = m_cache->getEntry(fileIndex);
+  if( proxy )
+    return proxy;
+  m_cache->insert(fileIndex, source);
+  return NULL;
+}
 
 
 // void CachedObjectBuilder::initFilter(pqPipelineSource* filter, ParamList args)

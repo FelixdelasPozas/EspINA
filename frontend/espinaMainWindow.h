@@ -1,4 +1,3 @@
-
 /*=========================================================================
 
    Program: Espina
@@ -40,7 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // Qt
 #include <QString>
-#include <QMap>
+#include <QList>
 
 //Forward declaration
 class EspINA;
@@ -50,6 +49,9 @@ class QMenu;
 class pqPipelineSource;
 class UnitExplorer;
 class SelectionManager;
+class QAbstractItemModel;
+class QModelIndex;
+#include "pqLoadDataReaction.h" // TODO debug
 
 /// MainWindow for the default ParaView application.
 class EspinaMainWindow : public QMainWindow
@@ -59,20 +61,26 @@ class EspinaMainWindow : public QMainWindow
 public:
   EspinaMainWindow();
   ~EspinaMainWindow();
-
+  
 protected slots:
-  void loadFile();
-  void saveTrace();
+  void loadData(pqPipelineSource *source);
+  void loadFile(); // Local load (Import)
+  void saveTrace();// Local save (Export)
   void importData(pqPipelineSource *source) {}//TODO
   void toggleVisibility(bool visible);
+  virtual bool eventFilter(QObject* obj, QEvent* event);
+  
+  void setGroupView(int idx);
+  void deleteSegmentations();
 
-
+  //TODO delete
+  void autoLoadStack();
+  
 private:
   EspinaMainWindow(const EspinaMainWindow&); // Not implemented.
   void operator=(const EspinaMainWindow&); // Not implemented.
 
   void buildFileMenu(QMenu &menu);
-  void buildTaxonomy();
 
   class pqInternals;
   pqInternals* Internals;
@@ -82,6 +90,11 @@ private:
   DistUnit m_unit;
   UnitExplorer *m_unitExplorer;
   SelectionManager *m_selectionManager;
+  QStringList m_groupingName;
+  QList<QAbstractItemModel *> m_groupingModel;
+  QList<QModelIndex> m_groupingRoot;
+
+
 };
 
 #endif //ESPINA_MAIN_WINDOW_H

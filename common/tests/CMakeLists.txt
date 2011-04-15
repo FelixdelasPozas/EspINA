@@ -12,9 +12,13 @@ include_directories ( ${Boost_INCLUDE_DIRS} )
 
 set(TESTS 
 	#ProcessingTrace
+#   RemoteFile
 )
 
-include_directories (..)
+include_directories (
+  ..
+  ../../plugins/RemoteFile
+)
 
 set(LIB_DEPENDECIES
 	Espina

@@ -4,7 +4,7 @@ cmake_minimum_required (VERSION 2.6)
 
 #find_package(Cajal REQUIRED)
 
-find_package(Boost REQUIRED COMPONENTS  system filesystem)
+find_package(Boost REQUIRED COMPONENTS  system filesystem graph)
 
 link_directories ( ${Boost_LIBRARY_DIRS} )
 
@@ -13,7 +13,9 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR} 
   ${CMAKE_CURRENT_BINARY_DIR}  #For wrap/ui files
   ${CAJAL_INCLUDE_DIRS}
-  ${Boost_INCLUDE_DIRS} 
+  ${Boost_INCLUDE_DIRS}
+#   "/opt/InsightToolkit-3.20.0/Utilities/vxl/vcl"
+  ${ITK_DIR}/../
   )
 
 #------------------------------------------------------------------------------
@@ -28,7 +30,8 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
   unitExplorer.h
   slicer.h
   sliceView.h
-  volumeView.h
+  qTreeComboBox.h
+  Crosshairs.h
   )
 
 # Create Interface files

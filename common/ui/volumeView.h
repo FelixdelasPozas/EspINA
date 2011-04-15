@@ -32,6 +32,7 @@ class QHBoxLayout;
 class pqOutputPort;
 class Segmentation;
 class IRenderer;
+class IViewWidget;
 
 class VolumeView : public QAbstractItemView
 {
@@ -43,9 +44,6 @@ public slots:
   void connectToServer();
   void disconnectFromServer();
   
-  //! Show/Hide axial planes
-  void showSamples(bool value);
-  
   //! Show/Hide scene actors
   void showSegmentations(bool value);
     
@@ -56,13 +54,18 @@ protected:
     virtual int verticalOffset() const;
     virtual int horizontalOffset() const;
     virtual QModelIndex moveCursor(QAbstractItemView::CursorAction cursorAction, Qt::KeyboardModifiers modifiers);
+    
     // Updating model changes
     virtual void rowsInserted(const QModelIndex& parent, int start, int end);
+    virtual void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end);
+    virtual void dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight);
 
 public:
     virtual QModelIndex indexAt(const QPoint& point) const;
     virtual void scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint = EnsureVisible);
     virtual QRect visualRect(const QModelIndex& index) const;
+    
+    void addWidget(IViewWidget *widget);
     
 protected slots:
   //! Select Mesh Rendering
@@ -75,14 +78,14 @@ protected slots:
   
 private:
   bool m_init;
-  bool m_showSamples;
   bool m_showSegmentations;
   IRenderer *m_renderer;
+  double m_focus[3];
   
   // GUI
+  QList<IViewWidget *> m_widgets;
   pqRenderView *m_view;
   QWidget *m_viewWidget;
-  QToolButton *m_togglePlanes;
   QToolButton *m_toggleActors;
   QVBoxLayout *m_mainLayout;
   QHBoxLayout *m_controlLayout;

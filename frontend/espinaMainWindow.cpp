@@ -33,7 +33,7 @@
 #include "espinaMainWindow.h"
 #include "ui_espinaMainWindow.h"
 #include "slicer.h"
-#include "volumeView.h"
+#include "espINAFactory.h"
 #include "distance.h"
 #include "unitExplorer.h"
 #include "selectionManager.h"
@@ -64,13 +64,6 @@
 #include "pqDisplayPolicy.h"
 
 //VTK Includes
-#include "vtkStructuredData.h"
-#include "vtkImageData.h"
-
-//New
-#include "vtkPVImageSlicer.h"
-#include "vtkSMIntVectorProperty.h"
-
 //QT includes
 #include <QFileDialog>
 
@@ -80,10 +73,17 @@
 #include <QPushButton>
 #include <pqServerResources.h>
 
-
 #include <taxonomyProxy.h>
 #include <sampleProxy.h>
 #include "sliceView.h"
+#include <QMouseEvent>
+#include <QStringListModel>
+#include <QWidgetAction>
+#include "qTreeComboBox.h"
+#include <cache/cachedObjectBuilder.h>
+#include "Crosshairs.h"
+#include <pqServerManagerModel.h>
+#include <pqServerDisconnectReaction.h>
 
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
@@ -101,22 +101,11 @@ EspinaMainWindow::EspinaMainWindow()
   this->Internals = new pqInternals();
   this->Internals->setupUi(this);
 
-  // Setup default GUI layout.
-  connect(this->Internals->toggleVisibility, SIGNAL(toggled(bool)), this, SLOT(toggleVisibility(bool)));
-
   // Set up the dock window corners to give the vertical docks more room.
   this->setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
   this->setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
-  m_espina = EspINA::instance();
-  TaxonomyProxy *taxProxy = new TaxonomyProxy();
-  taxProxy->setSourceModel(m_espina);
-  SampleProxy *sampleProxy = new SampleProxy();
-  sampleProxy->setSourceModel(m_espina);
-  this->Internals->objectTreeView->setModel(taxProxy);
-  this->Internals->objectTreeView->setRootIndex(taxProxy->mapFromSource(m_espina->taxonomyRoot()));
-  connect(this->Internals->objectTreeView, SIGNAL(doubleClicked(const QModelIndex &)), m_espina, SLOT(setUserDefindedTaxonomy(const QModelIndex&)));
-
+  // BUILDE ESPINA MENUS
   //Create File Menu
   buildFileMenu(*this->Internals->menu_File);
 
@@ -145,46 +134,142 @@ EspinaMainWindow::EspinaMainWindow()
   // ParaView Server
   pqServerManagerObserver *server = pqApplicationCore::instance()->getServerManagerObserver();
 
-  //Create ESPINA
-  m_selectionManager = SelectionManager::singleton();
-
-  //Create ESPINA views
-  m_xy = new SliceView();
-  m_xy->setPlane(SliceView::SLICE_PLANE_XY);
-  this->setCentralWidget(m_xy);
-  connect(server, SIGNAL(connectionCreated(vtkIdType)), m_xy, SLOT(connectToServer()));
-  connect(server, SIGNAL(connectionClosed(vtkIdType)), m_xy, SLOT(disconnectFromServer()));
-  connect(m_xy, SIGNAL(pointSelected(const Point)), m_selectionManager, SLOT(pointSelected(const Point)));
-  m_xy->setModel(sampleProxy);
-  m_xy->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
-
-  /*
-  m_yz = new SliceWidget(m_planes[SLICE_PLANE_XY]);
-  this->Internals->yzSliceDock->setWidget(m_yz);
-  connect(server, SIGNAL(connectionCreated(vtkIdType)), m_yz, SLOT(connectToServer()));
-  connect(server, SIGNAL(connectionClosed(vtkIdType)), m_yz, SLOT(disconnectFromServer()));
-  connect(m_yz, SIGNAL(pointSelected(const Point)), m_selectionManager, SLOT(pointSelected(const Point)));
-
-  m_xz = new SliceWidget(m_planes[SLICE_PLANE_YZ]);
-  this->Internals->xzSliceDock->setWidget(m_xz);
-  connect(server, SIGNAL(connectionCreated(vtkIdType)), m_xz, SLOT(connectToServer()));
-  connect(server, SIGNAL(connectionClosed(vtkIdType)), m_xz, SLOT(disconnectFromServer()));
-  */
   
-  m_3d = new VolumeView();
-  m_3d->setModel(sampleProxy);
-  m_3d->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
-  this->Internals->volumeDock->setWidget(m_3d);
-  connect(server, SIGNAL(connectionCreated(vtkIdType)), m_3d, SLOT(connectToServer()));
-  connect(server, SIGNAL(connectionClosed(vtkIdType)), m_3d, SLOT(disconnectFromServer()));
+  // BUILD ESPINA INTERNALS
+  m_espina = EspINA::instance();
 
-  // m_3d->setSelectionModel(this->Internals->objectTreeView->selectionModel());
+  // Segementation Grouping Proxies
+  TaxonomyProxy *taxProxy = new TaxonomyProxy();
+  taxProxy->setSourceModel(m_espina);
+  SampleProxy *sampleProxy = new SampleProxy();
+  sampleProxy->setSourceModel(m_espina);
+
+  m_groupingName << "None" << "Taxonomy" << "Sample";
+  m_groupingModel << m_espina << taxProxy << sampleProxy;
+  m_groupingRoot << m_espina->segmentationRoot()
+  << taxProxy->mapFromSource(m_espina->taxonomyRoot())
+  << sampleProxy->mapFromSource(m_espina->sampleRoot());
+
+  // Group by List
+  connect(this->Internals->groupList, SIGNAL(currentIndexChanged(int)),
+          this, SLOT(setGroupView(int)));
+  QStringListModel *groupListModel = new QStringListModel(m_groupingName);
+  this->Internals->groupList->setModel(groupListModel);
+  this->Internals->groupList->setCurrentIndex(1);
+  
+  // Segmentation Manager Panel
+  this->Internals->segmentationView->installEventFilter(this);
+  connect(this->Internals->deleteSegmentation, SIGNAL(clicked()),
+          this, SLOT(deleteSegmentations()));
+  
+  // Taxonomy Selection List
+  QComboBox *taxonomySelector = new QComboBox(this);
+  ///QTreeComboBox *treeCombo = new QTreeComboBox(this);
+  QTreeView *taxonomyView = new QTreeView(this);
+  taxonomyView->setHeaderHidden(true);
+  taxonomySelector->setView(taxonomyView); //Brutal!
+  taxonomySelector->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+  taxonomySelector->setMinimumWidth(160);
+  taxonomySelector->setModel(m_espina);
+  ///treeCombo->setModel(m_espina);
+  ///treeCombo->setRootModelIndex(m_espina->taxonomyRoot());
+  ///treeCombo->setCurrentIndex(0);
+  ///treeCombo->setMinimumWidth(200);
+  taxonomySelector->setRootModelIndex(m_espina->taxonomyRoot());
+  taxonomyView->expandAll();;
+  connect(taxonomySelector, SIGNAL(currentIndexChanged(QString)),
+          m_espina, SLOT(setUserDefindedTaxonomy(const QString&)));
+
+  connect(pqApplicationCore::instance()->getObjectBuilder(),
+            SIGNAL(proxyCreated (pqProxy *)),
+            m_espina,
+            SLOT(onProxyCreated(pqProxy*)));
+  taxonomySelector->setCurrentIndex(0);
+  this->Internals->toolBar->addWidget(taxonomySelector);
   
   // Final step, define application behaviors. Since we want all ParaView
   // behaviors, we use this convenience method.
   new pqParaViewBehaviors(this, this);
+  
+  std::cout << "Creating Views" << std::endl;
+
+  // Label Editor
+  this->Internals->taxonomyView->setModel(m_espina);
+  this->Internals->taxonomyView->setRootIndex(m_espina->taxonomyRoot());
+  
+  //Selection Manager
+  m_selectionManager = SelectionManager::singleton();
+
+  //Create ESPINA VIEWS
+  m_xy = new SliceView();
+  m_xy->setPlane(SliceView::SLICE_PLANE_XY);
+  m_xy->setModel(sampleProxy);
+  m_xy->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
+  connect(server, SIGNAL(connectionCreated(vtkIdType)), m_xy, SLOT(connectToServer()));
+  connect(server, SIGNAL(connectionClosed(vtkIdType)), m_xy, SLOT(disconnectFromServer()));
+  connect(m_xy, SIGNAL(pointSelected(const Point)), m_selectionManager, SLOT(pointSelected(const Point)));
+  this->setCentralWidget(m_xy);
+  
+#if 1
+  
+  m_yz = new SliceView();
+  m_yz->setPlane(SliceView::SLICE_PLANE_YZ);
+  m_yz->setModel(sampleProxy);
+  m_yz->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
+  connect(server, SIGNAL(connectionCreated(vtkIdType)), 
+	  m_yz, SLOT(connectToServer()));
+  connect(server, SIGNAL(connectionClosed(vtkIdType)), 
+	  m_yz, SLOT(disconnectFromServer()));
+  connect(m_yz, SIGNAL(pointSelected(const Point)), 
+	  m_selectionManager, SLOT(pointSelected(const Point)));
+  this->Internals->yzSliceDock->setWidget(m_yz);
+
+ 
+  m_xz = new SliceView();
+  m_xz->setPlane(SliceView::SLICE_PLANE_XZ);
+  m_xz->setModel(sampleProxy);
+  m_xz->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
+  connect(server, SIGNAL(connectionCreated(vtkIdType)), 
+	  m_xz, SLOT(connectToServer()));
+  connect(server, SIGNAL(connectionClosed(vtkIdType)), 
+	  m_xz, SLOT(disconnectFromServer()));
+  this->Internals->xzSliceDock->setWidget(m_xz);
+  
+#endif
+  
+  Crosshairs *cross = new Crosshairs();
+  cross->addPlane(0,m_xy->output());
+  cross->addPlane(1,m_yz->output());
+  cross->addPlane(2,m_xz->output());
+  connect(m_xy,SIGNAL(sliceChanged()),cross,SLOT(update()));
+  connect(m_yz,SIGNAL(sliceChanged()),cross,SLOT(update()));
+  connect(m_xz,SIGNAL(sliceChanged()),cross,SLOT(update()));
+
+  m_3d = EspINAFactory::instance()->CreateVolumeView();
+  m_3d->setModel(sampleProxy);
+  m_3d->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
+  connect(server, SIGNAL(connectionCreated(vtkIdType)),
+	  m_3d, SLOT(connectToServer()));
+  connect(server, SIGNAL(connectionClosed(vtkIdType)), 
+	  m_3d, SLOT(disconnectFromServer()));
+  m_3d->addWidget(cross);
+  this->Internals->volumeDock->setWidget(m_3d);
+
+  // Setup default GUI layout.
+  connect(this->Internals->toggleVisibility, SIGNAL(toggled(bool)), 
+	  this, SLOT(toggleVisibility(bool)));
+  pqServerDisconnectReaction::disconnectFromServer();
+  // m_3d->setSelectionModel(this->Internals->taxonomyView->selectionModel());
+
+  // Final step, define application behaviors. Since we want all ParaView
+  // behaviors, we use this convenience method.
+  new pqParaViewBehaviors(this, this);
+
+  // Debug load stack
+  QMetaObject::invokeMethod(this, "autoLoadStack", Qt::QueuedConnection);
 
 }
+
 
 //-----------------------------------------------------------------------------
 EspinaMainWindow::~EspinaMainWindow()
@@ -196,24 +281,35 @@ EspinaMainWindow::~EspinaMainWindow()
   // delete m_3d;
 }
 
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::loadData(pqPipelineSource *source)
+{
+  
+//   pqApplicationCore* core = pqApplicationCore::instance();
+//   QString filePath = core->serverResources().list().first().path();
+  m_espina->loadFile(source);
+
+}
+  
 void EspinaMainWindow::loadFile()
 {
   // GUI 
-  QString filePath = QFileDialog::getOpenFileName(this, tr("Open"), "", 
-		      tr("Espina old files (*.mha);;Trace Files (*.trace)"));
+  QString filePath = QFileDialog::getOpenFileName(this, tr("Import"), "",
+		      //tr("Espina old files (*.mha);;Espina trace files (*.trace);;Espina files(*.seg)"));
+                      tr("Espina old files (*.pvd);;Trace Files (*.trace)"));
   if( !filePath.isEmpty() ){
-    qDebug() << "FILEPATH: " << filePath;
-    m_espina->loadFile( filePath );
+    qDebug() << "Local file loaded: " << filePath << "\nOn TODO ... ";
+    exit(-1); //TODO IMPORT
   }
 }
 
 void EspinaMainWindow::saveTrace()
 {
+  // GUI  
   QString filePath = QFileDialog::getSaveFileName(this, tr("Save Trace"), "", 
 		      tr("Trace Files (*.trace)"));
   if( !filePath.isEmpty() )
     m_espina->saveTrace( filePath );
-
 }
 
 //-----------------------------------------------------------------------------
@@ -223,21 +319,85 @@ void EspinaMainWindow::toggleVisibility(bool visible)
     visible ? QIcon(":/espina/show_all.svg") : QIcon(":/espina/hide_all.svg")
   );
   m_xy->showSegmentations(visible);
+  //m_yz->showSegmentations(visible);
+  //m_xz->showSegmentations(visible);
+
 }
 
+//-----------------------------------------------------------------------------
+bool EspinaMainWindow::eventFilter(QObject* obj, QEvent* event)
+{
+  if (obj == this->Internals->segmentationView)
+  {
+    if (event->type() == QEvent::KeyPress)
+    {
+      QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+      if (keyEvent->key() == Qt::Key_Delete
+          || keyEvent->key() == Qt::Key_Backspace)
+      {
+        deleteSegmentations();
+      }
+    }
+  }
+  // Pass the event on to the parent class
+  return QMainWindow::eventFilter(obj, event);
+}
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::setGroupView(int idx)
+{
+  if (idx < m_groupingModel.size())
+  {
+    this->Internals->segmentationView->setModel(m_groupingModel[idx]);
+    this->Internals->segmentationView->setRootIndex(m_groupingRoot[idx]);
+  }
+}
+
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::deleteSegmentations()
+{
+  QItemSelectionModel *selection = this->Internals->segmentationView->selectionModel();
+  foreach(QModelIndex index, selection->selectedIndexes())
+  {
+    IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+    Segmentation *seg = dynamic_cast<Segmentation *>(item);
+    //TODO: Handle segmentation and taxonomy deletions differently
+    if (seg)
+      m_espina->removeSegmentation(seg);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::autoLoadStack()
+{
+  QString filePath(getenv("ESPINA_FILE"));
+  if( filePath.size() > 0 )
+  {
+    // Paraview's open
+    m_espina->loadFile(pqLoadDataReaction::loadData(QStringList(filePath)));
+  }
+}
 
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::buildFileMenu(QMenu &menu)
 {
   QIcon icon = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
+ 
+  QAction *action = new QAction(icon,tr("Open - ParaView mode"),this);
+  pqLoadDataReaction * loadReaction = new pqLoadDataReaction(action);
+  QObject::connect(loadReaction, SIGNAL(loadedData(pqPipelineSource *)),
+		    this, SLOT( loadData(pqPipelineSource *)));
+  menu.addAction(action);
 
-  QAction* action = new QAction(icon,tr("Open"),this);
+  /* Import Trace from localhost  */
+  action = new QAction(icon,tr("Import"),this);
   QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT( loadFile()));
   menu.addAction(action);
 
-  /* TODO Save Trace */
+  /* Export Trace to localhost */
   action = new QAction(qApp->style()->standardIcon(QStyle::SP_DialogSaveButton),
-			tr("Save trace"),this);
+			tr("Export trace"),this);
   QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT( saveTrace()) );
   menu.addAction(action);
 }

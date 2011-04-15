@@ -32,10 +32,12 @@ typedef std::string ParamValue;
 typedef std::pair<EspinaArg, ParamValue> EspinaParam;
 typedef std::vector<EspinaParam> EspinaParamList;
 */
+#include <QMap>
 
 typedef unsigned int IndexType;
 //Forward declarations
 class ProcessingTrace;
+class EspinaPlugin;
 
 //! Interface to trace's nodes
 class ITraceNode
@@ -116,6 +118,8 @@ class ProcessingTrace
   typedef Graph::edge_descriptor EdgeId;
   
 public:
+  typedef enum {graphviz, debug} printFormat;
+  
   static ProcessingTrace* instance();
   ~ProcessingTrace(){}
   
@@ -127,20 +131,27 @@ public:
   );
   
   void readTrace(std::istream& fileName);
-  
+
+  void registerPlugin(QString& groupName, QString& filterName, EspinaPlugin* filter);
   /*
   void addSubtrace(const ProcessingTrace *subTrace);
   std::vector<ITraceNode *> inputs(const ITraceNode *node);
   std::vector<ITraceNode *> outputs(const ITraceNode *node);
   */
-  void print(std::ostream& out);
+  void print(std::ostream& out, printFormat format = graphviz);
   
 private:
   ProcessingTrace();
   ProcessingTrace(const QString &name); // TODO delte. No tiene sentido sin subgraph
-  
+
+  //!Convert a string int the correct format "{argument:value;}+" in a NodeParamList
+  NodeParamList parseArgs( QString& raw );
+
+  // attributes
   Graph m_trace;
   static ProcessingTrace* m_instnace;
+  QMap<QString, EspinaPlugin* > m_availablePlugins;
+  
 };
 
 #endif // TRACING_H

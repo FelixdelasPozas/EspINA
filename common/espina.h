@@ -26,6 +26,9 @@
 #include <QMap>
 #include <QList>
 #include <QString>
+#include <pqProxy.h>
+#include "traceNodes.h"
+#include "pqPipelineSource.h"
 
 class IRenderable;
 class ProcessingTrace;
@@ -47,12 +50,14 @@ public:
 
     //! Implement QAbstractItemModel Interface
     virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
+    virtual bool setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole);
     virtual int columnCount(const QModelIndex& parent = QModelIndex()) const;
     virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
     virtual QModelIndex parent(const QModelIndex& child) const;
     virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
     virtual Qt::ItemFlags flags(const QModelIndex& index) const;
+    
     // Special Nodes
     QModelIndex taxonomyRoot() const;
     QModelIndex sampleRoot() const;
@@ -64,32 +69,36 @@ public:
 
     // Segmentation managing
     QList<Segmentation *> segmentations(const TaxonomyNode* taxonomy, bool recursive = false) const;
+    QList<Segmentation *> segmentations(const Sample* sample) const;
     
     // Taxonomy managin
     TaxonomyNode *taxonomy() {return m_tax;}
     QModelIndex taxonomyIndex(TaxonomyNode *node) const;
     
     QModelIndex segmentationIndex(Segmentation *seg) const;
+    
     //! Openning .mha, .trace or .seg (.trace + .mha) file (used by the UI)
-    void loadFile(QString filePath);
+    //! After a paraviews open.
+    void loadFile(EspinaProxy* proxy);
     void saveTrace(QString filePath);
     
 public slots:
     //! Add a new sample (used by the UI -> not anymore)
-    void addSample(Sample *sample);
+    void addSample(EspinaProxy* source, int portNumber, QString& filePath);
 
     //! Add a new segmentation (used by the plugins)
     void addSegmentation(Segmentation *seg);
+    void removeSegmentation(Segmentation *seg);
     
     //! Set which is the taxonomy defined by the user
-    void setUserDefindedTaxonomy(const QModelIndex &index);
-  
+    void setUserDefindedTaxonomy(const QString &taxName);
+
+    //! Debug slot for plugins manage
+    void onProxyCreated(pqProxy* p);
     
-
 signals:
-    void render(IRenderable *product);
-    void sliceRender(IRenderable *product);
-
+    void focusSampleChanged(Sample *);
+  
 protected:
     explicit EspINA(QObject* parent = 0);
 

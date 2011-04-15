@@ -57,6 +57,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <QDebug>
 #include "assert.h"
+#include <espINAFactory.h>
 
 
 #define DEFAULT_THRESHOLD 30
@@ -64,7 +65,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 //-----------------------------------------------------------------------------
-SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): EspinaPlugin(), ISegmentationPlugin(parent)
+SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): ISegmentationPlugin(parent), EspinaPlugin()
 {
   m_selector = new PixelSelector();
   
@@ -82,7 +83,9 @@ SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): EspinaPlugin(
   // Init Grow table
   // TODO: Make cleaner
   EspinaArg espina = "input";
-  VtkArg vtk = {INPUT,"input"};
+  VtkArg vtk;
+  vtk.type = INPUT;
+  vtk.name = "input";
   m_tableGrow.addTranslation(espina, vtk);
   espina = "Threshold";
   vtk.type = DOUBLEVECT;
@@ -95,15 +98,21 @@ SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): EspinaPlugin(
 
   // Init Blur table
   espina = "input";
-  vtk = {INPUT,"input"};
+  vtk.type = INPUT;
+  vtk.name = "input";
   m_tableGrow.addTranslation(espina, vtk);
   espina = "Kernel";
   vtk.type = INTVECT;
   vtk.name = "KernelSize";
   m_tableGrow.addTranslation(espina, vtk);
+
+  m_groupName = "filters";
+  m_filterName =  "SeedGrowingSegmentationFilter";
+  // register in a plugin list
+  ProcessingTrace::instance()->registerPlugin(m_groupName, m_filterName, this);
 }
 
-void SeedGrowingSegmentation::LoadAnalisys(EspinaParamList args)
+void SeedGrowingSegmentation::LoadAnalisys(EspinaParamList& args)
 {
   QString InputId = "";
   EspinaParamList::iterator it;
@@ -119,15 +128,16 @@ void SeedGrowingSegmentation::LoadAnalisys(EspinaParamList args)
     qDebug("SeedGrowingSegmenation::LoadAnalisys: Error loading a tarce file. \"input\" argument not found");
     exit(-1);//throw Finalizar importacion
   }
-  Product* input = dynamic_cast<Product*> (Cache::instance()->getEntry(InputId));
-  this->buildSubPipeline(input, args);
+//   Product* input = dynamic_cast<Product*> (Cache::instance()->getEntry(InputId));
+//   assert(input);
+  this->buildSubPipeline(EspINA::instance()->activeSample(), args);
 }
 
 
 void SeedGrowingSegmentation::handle(const Selection sel)
 {
   
-  qDebug() << "Ejecutando Plugin";
+  qDebug() << "SeedGrowingSegmenation: hanlding Plugin";
   
   //Depending on the pixel selector 
   ImagePixel realInputPixel = m_selector->pickPixel(sel);
@@ -149,7 +159,7 @@ void SeedGrowingSegmentation::execute()
   // Initialize application context
   pqApplicationCore* core = pqApplicationCore::instance();
   pqUndoStack* undoStack = core->getUndoStack();
-  pqServerManagerModel* sm = core->getServerManagerModel();
+  //pqServerManagerModel* sm = core->getServerManagerModel();
   
   // make this operation undo-able if undo is enabled
   if (undoStack)
@@ -209,7 +219,7 @@ void SeedGrowingSegmentation::execute()
 void SeedGrowingSegmentation::abortSelection()
 {
   m_addSeed->setChecked(false);
-  qDebug() << "Selection aborted";
+  qDebug() << "SeedGrowingSegmenation: Selection aborted";
 }
 
 
@@ -271,8 +281,8 @@ void SeedGrowingSegmentation::buildSubPipeline(Product* input, EspinaParamList a
   ProcessingTrace *trace = ProcessingTrace::instance();//!X
 
   Filter *grow = new Filter(
-    "filters",
-    "SeedGrowingSegmentationFilter",
+    m_groupName,
+    m_filterName,
     args,
     m_tableGrow
   );
@@ -282,7 +292,7 @@ void SeedGrowingSegmentation::buildSubPipeline(Product* input, EspinaParamList a
   Product *product;
   foreach(product,grow->products())
   {
-    Segmentation *seg = new Segmentation(product->sourceData(),product->portNumber(), grow->id());
+    Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(product->sourceData(),product->portNumber(), grow->id());
     emit productCreated(seg);
   }
 }

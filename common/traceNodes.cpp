@@ -32,17 +32,20 @@
 #include <QDebug>
 
 #include "data/hash.h"
+#include <pqOutputPort.h>
+#include <vtkPVDataInformation.h>
 using namespace std;
 
 //-----------------------------------------------------------------------------
 // PRODUCT
 //-----------------------------------------------------------------------------
-Product::Product(pqPipelineSource* source, int portNumber, QString traceName, QString parentHash)
+Product::Product(pqPipelineSource* source, int portNumber, const QString &traceName, const QString &parentHash)
 : IRenderable(source, portNumber), 
   m_parentHash(parentHash)
 {
   this->name = traceName;
   this->type = 0;
+  m_parentHash = parentHash;
 }
 /*
 vector< ITraceNode* > Product::inputs()
@@ -140,21 +143,106 @@ QVariant Sample::data(int role) const
   }
 }
 
+void Sample::extent(int *out)
+{
+  //if (!m_extent)
+  //{
+    mutex.lock();
+    sourceData()->updatePipeline();
+    sourceData()->getProxy()->UpdatePropertyInformation();
+    vtkPVDataInformation *info = outputPort()->getDataInformation();
+    m_extent = info->GetExtent();
+    mutex.unlock();
+  //}
+  memcpy(out,m_extent,6*sizeof(int));
+}
+
+void Sample::bounds(double *out)
+{
+  //if (!m_bounds)
+  //{
+    mutex.lock();
+    sourceData()->updatePipeline();
+    sourceData()->getProxy()->UpdatePropertyInformation();
+    vtkPVDataInformation *info = outputPort()->getDataInformation();
+    m_bounds = info->GetBounds();
+    mutex.unlock();
+  //}
+  memcpy(out,m_bounds,6*sizeof(double));
+}
+
+void Sample::spacing(double* out)
+{
+  //TODO: Sorry, but no time to make it better
+  double spacing[3];
+  int e[6];
+  double b[6];
+  extent(e);
+  bounds(b);
+  out[0] = b[1] / e[1];
+  out[1] = b[3] / e[3];
+  out[2] = b[5] / e[5];
+  qDebug() << "Spacing";
+  qDebug() << e[0] << e[1] << e[2] << e[3] << e[4] << e[5];
+  qDebug() << b[0] << b[1] << b[2] << b[3] << b[4] << b[5];
+  qDebug() << out[0] << out[1] << out[2];
+}
+
+
+
 //-----------------------------------------------------------------------------
 // Segmentation
 //-----------------------------------------------------------------------------
+Segmentation::Segmentation(pqPipelineSource* source, int portNumber, const QString& parentHash)
+: Product(source, portNumber, "Segmentation", parentHash)
+{ }
+
 QVariant Segmentation::data(int role) const
 {
   switch (role)
   {
     case Qt::DisplayRole:
-      return "Segmentation";
+    case Qt::EditRole:
+      return name;
     case Qt::DecorationRole:
       return m_taxonomy->getColor();
+    case Qt::CheckStateRole:
+      return visible()?Qt::Checked:Qt::Unchecked;
     default:
       return QVariant();
   }
 }
+
+void Segmentation::addExtension(ISegmentationExtension* ext)
+{
+  ISegmentationExtension *extAdded = ext->clone();
+  if (m_extensions.contains(ext->id()))
+  {
+    qDebug() << "Extension already registered";
+    assert(false);
+  }
+  m_extensions[ext->id()] = extAdded;
+}
+
+ISegmentationExtension *Segmentation::extension(ExtensionId extId)
+{
+  assert(m_extensions.contains(extId));
+  return m_extensions[extId];
+}
+
+//! TODO: Review where extensions should be initialized: at creation
+//! or when adding them to EspINA
+void Segmentation::initialize()
+{
+  foreach(ISegmentationExtension *ext, m_extensions)
+  {
+    ext->initialize(this);
+    ext->addInformation(m_infoMap);
+    ext->addRepresentations(m_repMap);
+  }
+}
+
+
 
 //-----------------------------------------------------------------------------
 // FILTER
@@ -192,7 +280,7 @@ Filter::Filter(
     trace->connect(this,filterOutput,"segmentation");
     m_products.push_back(filterOutput);
   }
-  qDebug() << "Filter ID " << this->id();
+  qDebug() << "Filter: Created Filter with id " << this->id();
 }
 
 //-----------------------------------------------------------------------------
