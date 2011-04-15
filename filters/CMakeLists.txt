@@ -24,8 +24,11 @@ endif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
 
 # Maybe the target_link_libraries command is optional...
 # (I think it depends if we use shared libraries)
-target_link_libraries (CajalFilters ITKCommon ITKBasicFilters ITKAlgorithms)
+target_link_libraries (CajalFilters ITKCommon ITKBasicFilters ITKAlgorithms ITKIO)
+
+SET (ENABLE_TESTS 1)
 
 if (ENABLE_TESTS)
 	add_subdirectory(tests)
 endif (ENABLE_TESTS)
+

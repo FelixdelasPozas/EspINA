@@ -16,7 +16,9 @@
 #include <itkLabelImageToShapeLabelMapFilter.h>
 #include <itkExtractImageFilter.h>
 #include <algorithm>
-
+#include <vtkInformation.h>
+#include <vtkInformationVector.h>
+#include <vtkStreamingDemandDrivenPipeline.h>
 
 vtkStandardNewMacro(vtkConnectedThresholdImageFilter);
 
@@ -124,6 +126,32 @@ int vtkConnectedThresholdImageFilter::RequestData(vtkInformation* request, vtkIn
   
   return 1;
 }
+
+// int vtkConnectedThresholdImageFilter::RequestInformation(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
+// {
+//   vtkInformation* inInfo = inputVector[0]->GetInformationObject(0);
+//   vtkInformation* outInfo = outputVector->GetInformationObject(0);
+//   
+//   int wholeExtent[6];
+//   double spacing[3];
+//   
+//   // Use the same input spacing
+//   inInfo->Get(vtkDataObject::SPACING(), spacing);
+//   outInfo->Set(vtkDataObject::SPACING(), spacing, 3);
+//   
+//   std::cout << "REQUEST EXTENT" << std::endl;
+//   wholeExtent[0] = 0;
+//   wholeExtent[1] = 82;
+//   wholeExtent[2] = 164;
+//   wholeExtent[3] = 420;
+//   wholeExtent[4] = 0;
+//   wholeExtent[5] = 22;
+//   
+//   outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),wholeExtent,6); 
+//   
+//   return 1;
+// }
+
 
 void vtkConnectedThresholdImageFilter::PrintSelf(ostream& os, vtkIndent indent)
 {
