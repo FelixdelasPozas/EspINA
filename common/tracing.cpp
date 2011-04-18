@@ -108,7 +108,7 @@ void ProcessingTrace::connect(
 }
 
 //-----------------------------------------------------------------------------
-void ProcessingTrace::readTrace(std::istream& fileName)
+void ProcessingTrace::readTrace(std::istream& content)
 {
   m_trace.clear(); // Reset the old trace
   Graph schema;
@@ -128,7 +128,7 @@ void ProcessingTrace::readTrace(std::istream& fileName)
   
   dp.property("label", boost::get(boost::edge_name, schema));
 
-  boost::read_graphviz( fileName, schema, dp);
+  boost::read_graphviz( content, schema, dp);
 
   // Retrieve vertex porperties
   pqApplicationCore* core = pqApplicationCore::instance();

@@ -301,8 +301,17 @@ void EspinaMainWindow::loadFile()
 		      //tr("Espina old files (*.mha);;Espina trace files (*.trace);;Espina files(*.seg)"));
                       tr("Espina old files (*.pvd);;Trace Files (*.trace)"));
   if( !filePath.isEmpty() ){
-    qDebug() << "Local file loaded: " << filePath << "\nOn TODO ... ";
-    exit(-1); //TODO IMPORT
+
+    if( filePath.endsWith(".trace") )
+    {
+      std::ifstream traceContent(filePath.toStdString().c_str());
+      ProcessingTrace::instance()->readTrace(traceContent);
+    }
+    else if( filePath.endsWith(".pvd") )
+    {
+      qDebug() << "Local file loaded: " << filePath << "\nOn TODO ... ";
+      exit(-1); //TODO IMPORT
+    }
   }
 }
 
