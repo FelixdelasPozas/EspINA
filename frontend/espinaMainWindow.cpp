@@ -84,6 +84,7 @@
 #include "Crosshairs.h"
 #include <pqServerManagerModel.h>
 #include <pqServerDisconnectReaction.h>
+#include "SegmentationExplorer.h"
 
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
@@ -126,6 +127,8 @@ EspinaMainWindow::EspinaMainWindow()
   //// have been created.
   m_unitExplorer = new UnitExplorer();
   connect(this->Internals->actionUnits, SIGNAL(triggered()), m_unitExplorer, SLOT(show()));
+  SegmentationExplorer *segExpl = new SegmentationExplorer();
+  connect(this->Internals->actionSegmentationExplorer, SIGNAL(triggered()), segExpl, SLOT(show()));
   pqParaViewMenuBuilders::buildViewMenu(*this->Internals->menu_View, *this);
 
   //// Setup the help menu.
@@ -319,9 +322,8 @@ void EspinaMainWindow::toggleVisibility(bool visible)
     visible ? QIcon(":/espina/show_all.svg") : QIcon(":/espina/hide_all.svg")
   );
   m_xy->showSegmentations(visible);
-  //m_yz->showSegmentations(visible);
-  //m_xz->showSegmentations(visible);
-
+  m_yz->showSegmentations(visible);
+  m_xz->showSegmentations(visible);
 }
 
 //-----------------------------------------------------------------------------

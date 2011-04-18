@@ -320,12 +320,6 @@ void VolumeView::setVolumeRenderer()
 //-----------------------------------------------------------------------------
 void VolumeView::updateScene()
 {
-//   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-//   pqRepresentation *rep;
-//   foreach(rep,m_view->getRepresentations())
-//   {
-//     rep->setVisible(false);
-//   }
   vtkSMRenderViewProxy* view = vtkSMRenderViewProxy::SafeDownCast(
     m_view->getProxy());
   assert(view);
@@ -337,6 +331,13 @@ void VolumeView::updateScene()
   double pos[3], focus[3];
   cam->GetPosition(pos);
   cam->GetFocalPoint(focus);
+  
+  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+  pqRepresentation *rep;
+  foreach(rep,m_view->getRepresentations())
+  {
+    rep->setVisible(false);
+  }
   
   render(rootIndex());
   

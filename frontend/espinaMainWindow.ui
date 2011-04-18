@@ -85,6 +85,7 @@
      <string>New</string>
     </property>
     <addaction name="actionUnits"/>
+    <addaction name="actionSegmentationExplorer"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Edit"/>
@@ -483,6 +484,11 @@
   <action name="actionUnits">
    <property name="text">
     <string>Units</string>
+   </property>
+  </action>
+  <action name="actionSegmentationExplorer">
+   <property name="text">
+    <string>Segmentation Explorer</string>
    </property>
   </action>
  </widget>

@@ -101,7 +101,7 @@ void Blender::focusOnSample(Sample* sample)
     assert(m_sampleMapper);
     
     // Get (or create if it doesn't exit) the lut for the background image
-    pqScalarsToColors *greyLUT = lutManager->getLookupTable(server, QString("GreyLUT"), 4, 0);
+    pqScalarsToColors *greyLUT = lutManager->getLookupTable(server, "Greyscale", 4, 0);
     if (greyLUT)
     {
       p = greyLUT->getProxy()->GetProperty("RGBPoints");

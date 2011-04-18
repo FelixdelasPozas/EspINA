@@ -15,10 +15,10 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QTreeView" name="treeView"/>
+    <widget class="QComboBox" name="regions"/>
    </item>
    <item>
-    <widget class="QComboBox" name="regions"/>
+    <widget class="QTreeView" name="treeView"/>
    </item>
    <item>
     <layout class="QGridLayout" name="gridLayout">
