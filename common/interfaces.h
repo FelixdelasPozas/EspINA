@@ -26,7 +26,7 @@
 class pqOutputPort;
 class pqPipelineSource;
 
-class ISelectableObject
+class ISelectableObject //TODO: Deprecated
 {
 public:
   ISelectableObject() {}
@@ -34,14 +34,14 @@ public:
 };
 
 //! Tuple containing the selected object and its selected coordinate
-struct Selection
+struct Selection //TODO: Deprecated
 {
   ImagePixel coord;
   ISelectableObject *object;
 };
 
 //! Interface to handle selections
-class ISelectionHandler
+class ISelectionHandler //TODO: Move to selection.h??
 {
 
 public:
@@ -49,44 +49,49 @@ public:
   virtual ~ISelectionHandler() = 0;
 
   //! Handles @sel
-  virtual void handle(const Selection sel) = 0;
+  //TODO: MouseDown
+  //TODO: MouseUp
+  //TODO: MouseMove
+  virtual void handle(const Selection sel) = 0;//TODO: Deprecated
   virtual void abortSelection() = 0;
 };
 
+//! Interface for Renderable objects:
+//! This interface allows the views to display an object 
+//! according to its properties
 class IRenderable
 {
 public:
   enum RENDER_STYLE
   { VISIBLE   = 1
-                , SELECTED  = 2
-                              , DISCARTED = 4
+  , SELECTED  = 2
+  , DISCARTED = 4
   };
 
-// protected:
-//   enum RENDER_MASK
-//   { isVISIBLE   = 1
-//   , isSELECTED  = 2^0
-//   , isDISCARTED = 2^1
-//   };
 public:
   IRenderable() : m_style(VISIBLE) {}
+  
   IRenderable(pqPipelineSource *source, int portNumber)
       : m_style(VISIBLE)
       , m_source(source)
       , m_portNumber(portNumber)
   {}
+  
   virtual bool visible() const
   {
     return m_style & VISIBLE;
   }
+  
   virtual void setVisible(bool value)
   {
     m_style = RENDER_STYLE((m_style & !VISIBLE) | (value ? 1 : 0));
   }
+  
   virtual RENDER_STYLE style() const
   {
     return m_style;
   }
+  
   virtual pqOutputPort *outputPort() = 0;
   virtual pqPipelineSource *sourceData() = 0;
   virtual int portNumber() = 0;

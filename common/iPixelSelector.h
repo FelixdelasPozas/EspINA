@@ -1,7 +1,7 @@
 #ifndef IPIXELSELECTOR_H_
 #define IPIXELSELECTOR_H_
 
-//TODO: Rename file
+//TODO: Change to implementations
 #include "interfaces.h"
 
 class IPixelSelector

@@ -38,13 +38,16 @@ class Sample;
 class Segmentation;
 
 //! Espina Interactive Neuron Analyzer
+//! The logic model for the application
 class EspINA : public QAbstractItemModel
 {
     Q_OBJECT
 public:
-    // Defines Factory Type
+    // Defines Factory Type: It should be use to configure the behaviour of some parts
+    // of the program
     typedef enum {ELECTRONE, OPTICAL} Microscopy;
 public:
+    //! Singleton Interface
     static EspINA *instance();
     virtual ~EspINA();
 
@@ -58,51 +61,64 @@ public:
     virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
     virtual Qt::ItemFlags flags(const QModelIndex& index) const;
     
-    // Special Nodes
+    // Special Nodes of the model to refer different roots
     QModelIndex taxonomyRoot() const;
     QModelIndex sampleRoot() const;
     QModelIndex segmentationRoot() const;
     
-    // Sample managing
+    //! Returns the active sample: Only one sample can be active at a time. This is the one
+    //! that is shown in the Slice Views (Plane Views)
     Sample *activeSample() {return m_activeSample;}
+    //! Returs the QModelIndex of a given @sample
     QModelIndex sampleIndex(Sample *sample) const;
 
     // Segmentation managing
+    //! Returns the list of segmentations belonging to @taxonomy. If @recursive returns also
+    //! the segmentations belonging to its subtaxonomies
     QList<Segmentation *> segmentations(const TaxonomyNode* taxonomy, bool recursive = false) const;
+    //! Returns the list of segmentations belonging to @sample.
     QList<Segmentation *> segmentations(const Sample* sample) const;
     
-    // Taxonomy managin
+    // Taxonomy managing
+    //! Returns the taxonomy used by the analyzer
     TaxonomyNode *taxonomy() {return m_tax;}
+    //! Returns the QModelIndex of a given @node
     QModelIndex taxonomyIndex(TaxonomyNode *node) const;
     
+    //! Returns the QModelIndex of a given @seg
     QModelIndex segmentationIndex(Segmentation *seg) const;
     
     //! Openning .mha, .trace or .seg (.trace + .mha) file (used by the UI)
     //! After a paraviews open.
     void loadFile(EspinaProxy* proxy);
+    //TODO: Guardar traza en el servidor
     void saveTrace(QString filePath);
     
 public slots:
-    //! Add a new sample (used by the UI -> not anymore)
+    //TODO: Check if private? Now it's only used by Espina
     void addSample(EspinaProxy* source, int portNumber, QString& filePath);
 
     //! Add a new segmentation (used by the plugins)
     void addSegmentation(Segmentation *seg);
+    //! Remove a segmentation (used by the UI)
     void removeSegmentation(Segmentation *seg);
     
-    //! Set which is the taxonomy defined by the user
+    //! Set which is the taxonomy that will be used for new segmentations
+    //! when plugins can't guess their type
     void setUserDefindedTaxonomy(const QString &taxName);
 
     //! Debug slot for plugins manage
     void onProxyCreated(pqProxy* p);
     
 signals:
+    //! 
     void focusSampleChanged(Sample *);
   
 protected:
     explicit EspINA(QObject* parent = 0);
 
 private:
+    //! 
     void loadTaxonomy();//TODO: Replace with factory
     //TaxonomyNode *indexNode(const QModelIndex &index) const;
     //! Returns wheter or not node is a taxonomy leaf node

@@ -29,7 +29,6 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
   espinaMainWindow.h
   unitExplorer.h
   SegmentationExplorer.h
-  slicer.h
   sliceView.h
   qTreeComboBox.h
   Crosshairs.h

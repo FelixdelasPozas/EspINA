@@ -133,33 +133,6 @@ private:
 
 class Filter : public ITraceNode, public ISingleton
 {
-//public:
-  
-//   class TranslatorTable{
-//   public: 
-//     //! Different Types of Vtk Properties
-//     enum VtkPropType
-//     { INPUT      = 0    
-//     , INTVECT    = 1
-//     , DOUBLEVECT = 2
-//     };
-//     
-//     //! Argument that can be interpreted as a vtk property
-//     typedef struct
-//     {
-//       VtkPropType type;
-//       std::string name;
-//     } VtkArg;
-//     
-//     typedef std::pair<VtkArg,ParamValue> VtkParam;
-//     typedef std::vector<VtkParam> VtkParamList;
-//     
-//   public:
-//     VtkParamList translate(EspinaParamList args) const;
-//     
-//   private:
-//     std::map<EspinaArg,VtkArg> m_table;
-//   };
   
 public:
   Filter(
@@ -174,10 +147,6 @@ public:
   );
   
   //! Implements ITraceNode interface
-  /*
-  virtual std::vector<ITraceNode *> inputs();
-  virtual std::vector<ITraceNode *> outputs();
-  */
   virtual void print(int indent = 0) const;
   virtual EspinaParamList getArguments();
   

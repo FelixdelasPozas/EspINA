@@ -26,6 +26,7 @@
 class Sample;
 class Segmentation;
 
+//! Group by Sample Espina Proxy
 class SampleProxy : public QAbstractProxyModel
 {
   Q_OBJECT

@@ -27,9 +27,10 @@ protected:
   
   Segmentation *m_seg;
   bool m_init; // Wheteher the extentation has been initialized or not
-	       // In other words; if it has linked to a segmentation
+	       // In other words; if it has been linked to a segmentation
 };
 
+//TODO: Revisar!!! XXX MUERTEEEE DESTRUCCIOOOON
 class IViewWidget : public QToolButton
 {
   Q_OBJECT
@@ -52,6 +53,7 @@ public slots:
 signals:
   void updateRequired();
 };
+
 
 class EspinaPlugin
 {
