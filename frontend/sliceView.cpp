@@ -521,34 +521,22 @@ void SliceView::focusOnSample(Sample* sample)
     assert(false);
   }
 
-  qDebug() << "PLANO: " << m_plane;
-  //vtkPVDataInformation *info = sample->outputPort()->getDataInformation();
-  //double *bounds = info->GetBounds();
   double camPoint[3], sampleBound[6];
-
   sample->bounds(sampleBound);
-  qDebug() << m_plane << "\nBOUNDS: " << sampleBound[0] << "," << sampleBound[1] << "," << sampleBound[2]<< "," <<sampleBound[3] << "," << sampleBound[4] << "," << sampleBound[5];
-  
+ 
   vtkSMTwoDRenderViewProxy* view = vtkSMTwoDRenderViewProxy::SafeDownCast(
       m_view->getProxy());
   vtkCamera * cam = view->GetRenderView()->GetActiveCamera();
-
-  cam->GetFocalPoint(camPoint);
-  qDebug() << "cam FocalPoint: "<<camPoint[0] <<","<< camPoint[1]<<"," << camPoint[2];
-  cam->GetPosition(camPoint);
-  qDebug() << "cam Position: "<<camPoint[0] <<","<< camPoint[1]<<"," << camPoint[2];
-
+  // Asoicate global x,y,z to local x,y 2D views
   int x_axis, y_axis; // Local x and y axis per view
-
   switch(m_plane)
   {
     case SLICE_PLANE_XY:
       x_axis = 0;
       y_axis = 1;
       break;
-    case SLICE_PLANE_XZ:/*
-  else if( m_plane == SLICE_PLANE_XZ)
-  {*/ x_axis = 2;
+    case SLICE_PLANE_XZ:
+      x_axis = 2;
       y_axis = 0;
       break;
     case SLICE_PLANE_YZ:
@@ -556,28 +544,23 @@ void SliceView::focusOnSample(Sample* sample)
       y_axis = 2;
       break;
   }
-  // 6 position per 
+  // 6 position per Bound
   x_axis *= 2;
   y_axis *= 2;
-//     aux1 = 
-//     aux2 = (sampleBound[y_axis+1] - sampleBound[y_axis]) / 2;
-//     qDebug() << aux1 << "  " << aux2;
-    camPoint[0] = (sampleBound[x_axis+1] - sampleBound[x_axis]) / 2;
-    camPoint[1] = (sampleBound[y_axis+1] - sampleBound[y_axis]) / 2;
-//     camPoint[2] = (sampleBound[5] - sampleBound[4]) / 2;
-    camPoint[2] = 0;
-    
-    cam->SetFocalPoint(camPoint);
-    camPoint[2] = cam->GetDistance();
-    cam->SetPosition(camPoint);
-//     cam->Zoom(1.2);
-    
-  
-  cam->GetFocalPoint(sampleBound);
-  qDebug() << "cam FocalPoint: "<<sampleBound[0] <<","<< sampleBound[1]<<"," << sampleBound[2];
-  cam->GetPosition(sampleBound);
-  qDebug() << "cam Position: "<<sampleBound[0] <<","<< sampleBound[1]<<"," << sampleBound[2];
+  // Retrive camera position to use the correct distance
+  cam->GetPosition(camPoint);
+  camPoint[0] = (sampleBound[x_axis+1] - sampleBound[x_axis]) / 2;
+  camPoint[1] = (sampleBound[y_axis+1] - sampleBound[y_axis]) / 2;
+  cam->SetPosition(camPoint);
+  camPoint[2] = 0;
+  cam->SetFocalPoint(camPoint);
+  cam->Zoom(0.9);
+//   cam->GetFocalPoint(camPoint);
+//   qDebug() << "cam FocalPoint: "<<camPoint[0] <<","<< camPoint[1]<<"," << camPoint[2];
+//   cam->GetPosition(camPoint);
+//   qDebug() << "cam Position: "<<camPoint[0] <<","<< camPoint[1]<<"," << camPoint[2];
 
+  
 }
 
 //-----------------------------------------------------------------------------
