@@ -130,7 +130,7 @@ public:
   , const std::string &description
   );
   
-  void readTrace(std::istream& fileName);
+  void readTrace(std::istream& content);
 
   void registerPlugin(QString& groupName, QString& filterName, EspinaPlugin* filter);
   /*
