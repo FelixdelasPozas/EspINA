@@ -32,7 +32,9 @@ private:
     
 private:
   double m_threshold;
+  
   int m_seed[3];
+  
 };
 
 #endif//VTK_CONNECTED_THRESHOLD_IMAGE_FILTER_H

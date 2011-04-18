@@ -115,7 +115,8 @@ int vtkCountingRegionFilter::RequestData(vtkInformation* request, vtkInformation
     regions = vtkPolyData::SafeDownCast(regionInfo->Get(vtkDataObject::DATA_OBJECT()));
     double bounds[6];
     regions->GetPoints()->GetBounds(bounds);
-    Discarted = 1;
+    if (numRegions > 1)
+      Discarted = 1;
   }
 /*
   vtkArrayData *result = vtkArrayData::SafeDownCast(

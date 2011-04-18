@@ -166,7 +166,7 @@ int vtkBoundingRegionFilter::RequestData(vtkInformation* request, vtkInformation
         bool regionPixel = false;
         int pxId = x + y * dim[0] + z * dim[0] * dim[1];
         for (int c = 0; c < numComponets; c++)
-          regionPixel = regionPixel || (imagePtr[pxId+c] != 0);
+          regionPixel = regionPixel || (imagePtr[pxId+c] > 10);
 
         if (regionPixel)
         {
@@ -201,35 +201,35 @@ int vtkBoundingRegionFilter::RequestData(vtkInformation* request, vtkInformation
      vtkSmartPointer<vtkPoints> imgCorners = corners(corner,max,mid,min);
      assert(imgCorners->GetNumberOfPoints() == 4);
      double imgCorner[3];
-     vtkIdType id;
+     vtkIdType id[4];
      // Bottom Left Corner
      imgCorners->GetPoint(0,imgCorner);
      imgCorner[0] += Left * spacing[0];
      imgCorner[1] += Bottom * spacing[1];
-     id = points->InsertNextPoint(imgCorner);
-     vertex->InsertNextCell(1,&id);
+     id[0] = points->InsertNextPoint(imgCorner);
+     //vertex->InsertNextCell(1,&id);
      // Bottom Right Corner
      imgCorners->GetPoint(2,imgCorner);
      imgCorner[0] -= Right * spacing[0];
      imgCorner[1] += Bottom * spacing[1];
-     id = points->InsertNextPoint(imgCorner);
-     vertex->InsertNextCell(1,&id);
+     id[3] = points->InsertNextPoint(imgCorner);
+     //vertex->InsertNextCell(1,&id);
      // Top Left Corner
      imgCorners->GetPoint(1,imgCorner);
      imgCorner[0] += Left * spacing[0];
      imgCorner[1] -= Top * spacing[1];
-     id = points->InsertNextPoint(imgCorner);
-     vertex->InsertNextCell(1,&id);
+     id[1] = points->InsertNextPoint(imgCorner);
+     //vertex->InsertNextCell(1,&id);
      // Top Right Corner
      imgCorners->GetPoint(3,imgCorner);
      imgCorner[0] -= Right * spacing[0];
      imgCorner[1] -= Top * spacing[1];
-     id = points->InsertNextPoint(imgCorner);
-     vertex->InsertNextCell(1,&id);
+     id[2] = points->InsertNextPoint(imgCorner);
+     vertex->InsertNextCell(4,id);
   }
   
   region->SetPoints(points);
-  region->SetVerts(vertex);
+  region->SetPolys(vertex);
   return 1;
 }
 

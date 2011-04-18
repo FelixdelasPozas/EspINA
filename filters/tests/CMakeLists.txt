@@ -1,8 +1,8 @@
 SET(TESTS 
   BoundingRegion
   CountingRegion
-#   GrowRegion
-	Pipeline
+  GrowRegion
+  Pipeline
 )
 
 

@@ -132,17 +132,14 @@ int vtkConnectedThresholdRegionGrowImageFilter::RequestData(vtkInformation* requ
   typedef itk::ImageToVTKImageFilter<OutputImageType> itk2vtkFilterType;
   itk2vtkFilterType::Pointer itk2vtk_filter = itk2vtkFilterType::New();
 
-  
   itk2vtk_filter->SetInput( ctrgif->GetOutput() );
   itk2vtk_filter->Update();
 
-
-  //output = itk2vtk_filter->GetOutput();
   output->DeepCopy( itk2vtk_filter->GetOutput() );
 
   vtkDebugMacro(<< "Updating Information");
-//
-//   // Without these lines, the output will appear real but will not work as the input to any other filters
+
+  // Without these lines, the output will appear real but will not work as the input to any other filters
   output->SetExtent(itk2vtk_filter->GetOutput()->GetExtent());
   output->SetSpacing(input->GetSpacing());
   output->SetUpdateExtent(output->GetExtent());
