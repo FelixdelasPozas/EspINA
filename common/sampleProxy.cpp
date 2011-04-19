@@ -21,7 +21,7 @@
 
 #include "espina.h"
 #include <data/modelItem.h>
-#include "traceNodes.h"
+#include "products.h"
 
 //Debug
 #include <assert.h>

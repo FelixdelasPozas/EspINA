@@ -19,7 +19,7 @@
 
 #include "CountingRegionExtension.h"
 
-#include "traceNodes.h"
+#include "filter.h"
 #include "CountingRegion.h"
 
 #include <cache/cachedObjectBuilder.h>

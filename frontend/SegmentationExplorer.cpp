@@ -18,12 +18,14 @@
 //TODO: ITS ONLY A PROTOTYPE
 
 #include "SegmentationExplorer.h"
+
+#include "filter.h"
+
 #include <pqObjectBuilder.h>
 #include <pqApplicationCore.h>
 #include <pqActiveObjects.h>
 #include <pqRenderView.h>
 #include <espina.h>
-#include "traceNodes.h"
 #include <pqDisplayPolicy.h>
 #include <pqDataRepresentation.h>
 #include <pqPipelineRepresentation.h>

@@ -22,7 +22,7 @@
 #include <data/modelItem.h>
 #include <data/taxonomy.h>
 #include "espina.h"
-#include "traceNodes.h"
+#include "products.h"
 
 //Debug
 #include <assert.h>

@@ -22,7 +22,8 @@
 
 #include "espINAFactory.h"
 #include "espina.h"
-#include <traceNodes.h>
+
+#include "filter.h"
 
 
 #include "cache/cachedObjectBuilder.h"

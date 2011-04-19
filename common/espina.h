@@ -27,7 +27,7 @@
 #include <QList>
 #include <QString>
 #include <pqProxy.h>
-#include "traceNodes.h"
+#include "products.h"
 #include "pqPipelineSource.h"
 
 class IRenderable;

@@ -17,7 +17,7 @@
 
 */
 
-#include "traceNodes.h"
+#include "products.h"
 
 // ESPINA
 #include "cache/cachedObjectBuilder.h"
@@ -241,91 +241,3 @@ void Segmentation::initialize()
     ext->addRepresentations(m_repMap);
   }
 }
-
-
-
-//-----------------------------------------------------------------------------
-// FILTER
-//-----------------------------------------------------------------------------
-Filter::Filter(
-  const QString& group
-, const QString& name
-, const EspinaParamList& args
-, const TranslatorTable &table
-  )
-  : m_args(args)
-  , m_translator(table)
-  //, m_filtertrace(name)
-{
-  this->name = QString(group).append("::").append(name);
-  this->type = 1;
-  
-  ProcessingTrace* trace = ProcessingTrace::instance();
-  trace->addNode(this);
-  
-  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-  
-  VtkParamList vtkArgs;
-  vtkArgs = m_translator.translate(args);
-  
-  m_proxy = cob->createFilter(group,name,vtkArgs);
-  
-  m_proxy->getProxy()->UpdateVTKObjects();
-  
-  for (int portNumber = 0; portNumber < m_proxy->getOutputPorts().size(); portNumber++)
-  {
-    Product *filterOutput = new Product(m_proxy,portNumber, this->id());
-    //filterOutput->m_parentHash = this->id(); //TODO modify the way it takes the parent hash, Maybe in the constructer (above line)
-    trace->addNode(filterOutput);
-    trace->connect(this,filterOutput,"segmentation");
-    m_products.push_back(filterOutput);
-  }
-  qDebug() << "Filter: Created Filter with id " << this->id();
-}
-
-//-----------------------------------------------------------------------------
-/*
-vector< ITraceNode* > Filter::inputs()
-{
- return m_filtertrace.inputs(this);
-}
-
-//-----------------------------------------------------------------------------
-vector< ITraceNode* > Filter::outputs()
-{
- return m_filtertrace.outputs(this);
-}
-*/
-//-----------------------------------------------------------------------------
-void Filter::print(int indent) const
-{
-  cout << name.toStdString().c_str() << endl;
-}
-
-//-----------------------------------------------------------------------------
-EspinaParamList Filter::getArguments()
-{
-  //EspinaParamList nullParamList;
-  return m_args;
-}
-
-//-----------------------------------------------------------------------------
-QString Filter::id()
-{
-  QStringList namesToHash;
-  namesToHash.push_back(name);
-  namesToHash.append( reduceArgs(m_args) );
-  return generateSha1(namesToHash);
-}
-
-
-vector<Product *> Filter::products()
-{
-  return m_products;
-}
-
-// ProcessingTrace* Filter::trace()
-// {
-//   return &m_filtertrace;
-// }
-

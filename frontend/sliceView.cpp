@@ -17,7 +17,7 @@
 #include "sliceView.h"
 
 #include "interfaces.h"
-#include "traceNodes.h"
+#include "filter.h"
 
 // ParaQ includes
 #include "pqTwoDRenderView.h"

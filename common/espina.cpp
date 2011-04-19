@@ -20,7 +20,7 @@
 #include "espina.h"
 //Espina
 #include <data/taxonomy.h>
-#include "traceNodes.h"
+#include "products.h"
 #include "cache/cachedObjectBuilder.h"
 
 #include <vtkSMStringVectorProperty.h>

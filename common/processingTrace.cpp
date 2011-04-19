@@ -17,8 +17,10 @@
 
 */
 
-#include "tracing.h"
+#include "processingTrace.h"
+
 #include "graphHelper.h"
+#include "espina.h"
 
 #include <iostream>
 #include <boost/graph/graphviz.hpp>
@@ -29,7 +31,6 @@
 #include <pqApplicationCore.h>
 #include <pqObjectBuilder.h>
 #include <pqLoadDataReaction.h>
-#include "espina.h"
 
 using namespace boost;
 

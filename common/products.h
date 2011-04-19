@@ -17,20 +17,22 @@
 
 */
 
-#ifndef FILTER_H
-#define FILTER_H
+#ifndef PRODUCTS_H
+#define PRODUCTS_H
 
-#include "tracing.h"
 #include "interfaces.h"
-#include "translatorTable.h"
-#include "data/modelItem.h"
+#include "processingTrace.h"
 #include "EspinaPlugin.h"
 
-#include <QString>
+// libCajal
+#include "data/modelItem.h"
 #include <data/taxonomy.h>
+
+#include <QString>
+#include <QMutex>
+
 #include <Utilities/vxl/vcl/iso/vcl_iostream.h>
 
-#include <QMutex>
 
 // Forward declarations
 class pqPipelineSource;
@@ -130,71 +132,4 @@ private:
   RepresentationMap m_repMap;
 };
 
-
-class Filter : public ITraceNode, public ISingleton
-{
-//public:
-  
-//   class TranslatorTable{
-//   public: 
-//     //! Different Types of Vtk Properties
-//     enum VtkPropType
-//     { INPUT      = 0    
-//     , INTVECT    = 1
-//     , DOUBLEVECT = 2
-//     };
-//     
-//     //! Argument that can be interpreted as a vtk property
-//     typedef struct
-//     {
-//       VtkPropType type;
-//       std::string name;
-//     } VtkArg;
-//     
-//     typedef std::pair<VtkArg,ParamValue> VtkParam;
-//     typedef std::vector<VtkParam> VtkParamList;
-//     
-//   public:
-//     VtkParamList translate(EspinaParamList args) const;
-//     
-//   private:
-//     std::map<EspinaArg,VtkArg> m_table;
-//   };
-  
-public:
-  Filter(
-    //! Paraview filter's group name
-    const QString &group
-    //! Paraview filter's name
-    , const QString &name
-    //! Espina Args list
-    , const EspinaParamList &args
-    //! Filter Translation Table
-  , const TranslatorTable &table  
-  );
-  
-  //! Implements ITraceNode interface
-  /*
-  virtual std::vector<ITraceNode *> inputs();
-  virtual std::vector<ITraceNode *> outputs();
-  */
-  virtual void print(int indent = 0) const;
-  virtual EspinaParamList getArguments();
-  
-  //! Implements ISingleton
-  virtual QString id();
-  
-  std::vector<Product *> products();
-  //ProcessingTrace *trace();
-  
-private:
-  //void createFilter();
-  
-  EspinaParamList m_args;
-  EspinaProxy *m_proxy;
-  const TranslatorTable &m_translator;
-  //ProcessingTrace m_filtertrace;
-  std::vector<Product *> m_products;
-};
-
-#endif // FILTER_H
+#endif // PRODUCTS_H

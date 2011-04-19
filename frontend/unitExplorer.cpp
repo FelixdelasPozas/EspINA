@@ -20,7 +20,7 @@
 #include "unitExplorer.h"
 
 #include "espina.h"
-#include <traceNodes.h>
+#include "products.h"
 
 UnitExplorer::UnitExplorer(QWidget* parent, Qt::WindowFlags f)
 : QWidget(parent, f)

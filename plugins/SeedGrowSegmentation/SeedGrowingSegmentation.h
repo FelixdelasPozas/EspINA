@@ -36,7 +36,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "EspinaPlugin.h"
 #include "iSegmentationPlugin.h"
 #include "interfaces.h"
-#include "traceNodes.h"
+#include "filter.h"
 
 //Forward declarations
 class QSpinBox;

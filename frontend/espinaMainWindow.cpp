@@ -37,7 +37,6 @@
 #include "distance.h"
 #include "unitExplorer.h"
 #include "selectionManager.h"
-#include "traceNodes.h"
 #include "data/taxonomy.h"
 #include "espina.h"
 

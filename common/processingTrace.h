@@ -16,8 +16,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-#ifndef TRACING_H
-#define TRACING_H
+#ifndef PROCESSINGTRACE_H
+#define PROCESSINGTRACE_H
 
 #include "espinaTypes.h"
 
@@ -154,4 +154,4 @@ private:
   
 };
 
-#endif // TRACING_H
+#endif // PROCESSINGTRACE_H

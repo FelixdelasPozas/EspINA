@@ -20,7 +20,7 @@
 #include "espINAFactory.h"
 
 #include "EspinaPlugin.h"
-#include "traceNodes.h"
+#include "products.h"
 
 #include <QDebug>
 

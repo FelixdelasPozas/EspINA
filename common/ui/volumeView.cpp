@@ -21,6 +21,7 @@
 
 #include "interfaces.h"
 #include "renderer.h"
+#include "products.h"
 
 // GUI
 #include <QVBoxLayout>
@@ -46,7 +47,6 @@
 
 #include <QDebug>
 #include <data/taxonomy.h>
-#include <traceNodes.h>
 #include <vtkSMRenderViewProxy.h>
 #include <pqPipelineSource.h>
 #include <vtkRenderWindow.h>

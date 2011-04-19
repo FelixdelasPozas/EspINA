@@ -35,7 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "espina.h"
 #include <cache/cachedObjectBuilder.h>
 #include "iPixelSelector.h"
-#include "traceNodes.h"
+#include "filter.h"
 
 //GUI includes
 #include <QApplication>
