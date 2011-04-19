@@ -16,14 +16,16 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef TAXONOMYPROXY_H
+#define TAXONOMYPROXY_H
+
 #include <QAbstractProxyModel>
 
 // Forward declaration
 class TaxonomyNode;
 class Segmentation;
 
-#ifndef TAXONOMYPROXY_H
-#define TAXONOMYPROXY_H
+//! Group by Taxonomy Espina Proxy
 class TaxonomyProxy : public QAbstractProxyModel
 {
   Q_OBJECT

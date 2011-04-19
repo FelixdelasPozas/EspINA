@@ -32,7 +32,6 @@
 // ESPINA includes
 #include "espinaMainWindow.h"
 #include "ui_espinaMainWindow.h"
-#include "slicer.h"
 #include "espINAFactory.h"
 #include "distance.h"
 #include "unitExplorer.h"

@@ -23,7 +23,6 @@
 #include <qabstractitemview.h>
 
 //Forward declaration
-class SliceBlender;
 class pqTwoDRenderView;
 class vtkSMImageSliceRepresentationProxy;
 class vtkSMIntVectorProperty;

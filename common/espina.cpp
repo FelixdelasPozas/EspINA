@@ -376,7 +376,7 @@ void EspINA::loadFile(EspinaProxy* proxy)
           vtkSMStringVectorProperty::SafeDownCast(proxy->getProxy()->GetProperty("Content"));
     //qDebug() << "Content:\n" << StringProp2->GetElement(0);
     std::istringstream trace(std::string(StringProp2->GetElement(0)));
-    ProcessingTrace::instance()->readTrace(trace);
+    m_analysis->readTrace(trace);
   }
   else if( filePath.endsWith(".seg") )
     qDebug() << "Error: .seg files not supported yet";

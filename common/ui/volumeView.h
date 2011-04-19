@@ -34,6 +34,7 @@ class Segmentation;
 class IRenderer;
 class IViewWidget;
 
+//! 
 class VolumeView : public QAbstractItemView
 {
   Q_OBJECT
@@ -44,23 +45,24 @@ public slots:
   void connectToServer();
   void disconnectFromServer();
   
-  //! Show/Hide scene actors
+  //! Show/Hide segmentations in the scene
   void showSegmentations(bool value);
     
 protected:
+  //! QAbstractItemView Interface
     virtual QRegion visualRegionForSelection(const QItemSelection& selection) const;
     virtual void setSelection(const QRect& rect, QItemSelectionModel::SelectionFlags command);
     virtual bool isIndexHidden(const QModelIndex& index) const;
     virtual int verticalOffset() const;
     virtual int horizontalOffset() const;
     virtual QModelIndex moveCursor(QAbstractItemView::CursorAction cursorAction, Qt::KeyboardModifiers modifiers);
-    
     // Updating model changes
     virtual void rowsInserted(const QModelIndex& parent, int start, int end);
     virtual void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end);
     virtual void dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight);
 
 public:
+  //! QAbstractItemView Interface
     virtual QModelIndex indexAt(const QPoint& point) const;
     virtual void scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint = EnsureVisible);
     virtual QRect visualRect(const QModelIndex& index) const;

@@ -15,7 +15,7 @@ enum RenderType
 , RENDERTYPE_LAST  = 1
 };
 
-//! Interface for renders
+//! Interface to render IRenderable classes
 class IRenderer
 {
 public:

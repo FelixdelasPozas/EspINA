@@ -40,12 +40,16 @@ public:
   VolumeView *CreateVolumeView();
   void addViewWidget(IViewWidget *widget);
   
+  //TODO: CreateSliceView
+  //TODO: AddPreprocessedView
+  
 private:
   EspINAFactory(){};
   
   static EspINAFactory *m_instance;
   QList<ISegmentationExtension *> m_extensions;
   QList<IViewWidget *> m_widgets;
+  //TODO: SliceViewExtension List
 };
 
 #endif // ESPINAFACTORY_H

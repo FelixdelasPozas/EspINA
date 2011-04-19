@@ -40,6 +40,9 @@ public slots:
   /*! Creates a list of selected objects and handles
   *  the selection.
   */
+  //TODO: Quitar signals y ponerlo como parte de la vista.Ademas hay que
+  // facilitar los metodos para los diferentes eventos del raton
+  // Es mas, esto tendria que formar parte del ISelectionHandler
   void pointSelected(const Point coord);
   
   //! Returns a SelectionManager singleton
