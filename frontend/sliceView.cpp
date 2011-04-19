@@ -599,6 +599,24 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
   if (event->type() == QMouseEvent::MouseButtonPress &&
       event->buttons() == Qt::LeftButton)
   {
+    SelectionManager::instance()->onMouseDown(event, m_view);
+  }
+  else if (event->type() == QMouseEvent::MouseMove &&
+      event->buttons() == Qt::LeftButton)
+  {
+    SelectionManager::instance()->onMouseMove(event, m_view);
+  }
+  else if (event->type() == QMouseEvent::MouseButtonRelease &&
+      event->buttons() == Qt::LeftButton)
+  {
+    SelectionManager::instance()->onMouseUp(event, m_view);
+  }
+  
+  return;
+  
+  if (event->type() == QMouseEvent::MouseButtonPress &&
+      event->buttons() == Qt::LeftButton)
+  {
     //Use Render Window Interactor's Picker to find the world coordinates
     //of the stack
     vtkSMTwoDRenderViewProxy* view = vtkSMTwoDRenderViewProxy::SafeDownCast(

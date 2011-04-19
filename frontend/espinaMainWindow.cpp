@@ -95,7 +95,7 @@ EspinaMainWindow::EspinaMainWindow()
     , m_xz(NULL)
     , m_3d(NULL)
     , m_unit(NM)
-    , m_selectionManager(NULL)
+    , m_selectionManager(NULL) //TODO: Revise if deprecated
 {
   this->Internals = new pqInternals();
   this->Internals->setupUi(this);
@@ -199,7 +199,7 @@ EspinaMainWindow::EspinaMainWindow()
   this->Internals->taxonomyView->setRootIndex(m_espina->taxonomyRoot());
   
   //Selection Manager
-  m_selectionManager = SelectionManager::singleton();
+  m_selectionManager = SelectionManager::instance();
 
   //Create ESPINA VIEWS
   m_xy = new SliceView();
@@ -208,7 +208,7 @@ EspinaMainWindow::EspinaMainWindow()
   m_xy->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
   connect(server, SIGNAL(connectionCreated(vtkIdType)), m_xy, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), m_xy, SLOT(disconnectFromServer()));
-  connect(m_xy, SIGNAL(pointSelected(const Point)), m_selectionManager, SLOT(pointSelected(const Point)));
+  //connect(m_xy, SIGNAL(pointSelected(const Point)), m_selectionManager, SLOT(pointSelected(const Point)));
   this->setCentralWidget(m_xy);
   
 #if 1
@@ -221,8 +221,8 @@ EspinaMainWindow::EspinaMainWindow()
 	  m_yz, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), 
 	  m_yz, SLOT(disconnectFromServer()));
-  connect(m_yz, SIGNAL(pointSelected(const Point)), 
-	  m_selectionManager, SLOT(pointSelected(const Point)));
+  //connect(m_yz, SIGNAL(pointSelected(const Point)), 
+	//  m_selectionManager, SLOT(pointSelected(const Point)));
   this->Internals->yzSliceDock->setWidget(m_yz);
 
  

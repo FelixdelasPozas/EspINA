@@ -40,18 +40,3 @@ void SelectionManager::setSelectionHandler(ISelectionHandler* sh)
     m_sh->abortSelection();
   m_sh = sh;
 }
-
-//------------------------------------------------------------------------
-void SelectionManager::pointSelected(const Point coord)
-{
-  //TODO: Create selection from coord information
-  Selection sel;
-  sel.coord = coord;
-  if (m_sh)
-  {
-    m_sh->handle(sel);
-    //qDebug() << "Selection managed";
-  }
-  //else
-    //qDebug() << "Selection ignored";
-}

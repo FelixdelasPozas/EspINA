@@ -23,30 +23,46 @@
 #include <qt4/QtCore/QObject>
 #include "interfaces.h"
 
+class pqTwoDRenderView;
+class QMouseEvent;
+
+//! Interface to handle selections
+class ISelectionHandler : public QObject
+{
+  Q_OBJECT
+  
+public:
+  ISelectionHandler() {};
+  virtual ~ISelectionHandler(){};
+
+  virtual void onMouseDown(QMouseEvent *event, pqTwoDRenderView *view) = 0;
+  virtual void onMouseMove(QMouseEvent *event, pqTwoDRenderView *view) = 0;
+  virtual void onMouseUp(QMouseEvent *event, pqTwoDRenderView *view) = 0;
+  
+  virtual void abortSelection() = 0;
+};
 
 
+//! Singleton instance to coordinate selections through different
+//! components such as views and plugins
 class SelectionManager : public QObject
 {
   Q_OBJECT
 
-private:
+public:
   SelectionManager();
   ~SelectionManager(){}
+  
+  void onMouseDown(QMouseEvent *event, pqTwoDRenderView *view) { if (m_sh) m_sh->onMouseDown(event, view);}
+  void onMouseMove(QMouseEvent *event, pqTwoDRenderView *view) { if (m_sh) m_sh->onMouseMove(event, view);}
+  void onMouseUp(QMouseEvent *event, pqTwoDRenderView *view) { if (m_sh) m_sh->onMouseUp(event, view);}
   
 public slots:
   //! Register @sh as active Selection Handler
   void setSelectionHandler(ISelectionHandler *sh);
   
-  /*! Creates a list of selected objects and handles
-  *  the selection.
-  */
-  //TODO: Quitar signals y ponerlo como parte de la vista.Ademas hay que
-  // facilitar los metodos para los diferentes eventos del raton
-  // Es mas, esto tendria que formar parte del ISelectionHandler
-  void pointSelected(const Point coord);
-  
   //! Returns a SelectionManager singleton
-  static SelectionManager *singleton(){return m_singleton;}
+  static SelectionManager *instance(){return m_singleton;}
   
 private:
   ISelectionHandler *m_sh;

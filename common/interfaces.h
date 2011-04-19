@@ -26,35 +26,7 @@
 class pqOutputPort;
 class pqPipelineSource;
 
-class ISelectableObject //TODO: Deprecated
-{
-public:
-  ISelectableObject() {}
-  virtual ~ISelectableObject() {}
-};
 
-//! Tuple containing the selected object and its selected coordinate
-struct Selection //TODO: Deprecated
-{
-  ImagePixel coord;
-  ISelectableObject *object;
-};
-
-//! Interface to handle selections
-class ISelectionHandler //TODO: Move to selection.h??
-{
-
-public:
-  ISelectionHandler() {};
-  virtual ~ISelectionHandler() = 0;
-
-  //! Handles @sel
-  //TODO: MouseDown
-  //TODO: MouseUp
-  //TODO: MouseMove
-  virtual void handle(const Selection sel) = 0;//TODO: Deprecated
-  virtual void abortSelection() = 0;
-};
 
 //! Interface for Renderable objects:
 //! This interface allows the views to display an object 

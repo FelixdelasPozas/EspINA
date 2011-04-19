@@ -17,7 +17,8 @@ qt4_wrap_cpp(MOC_BUILT_SOURCES
   taxonomyProxy.h
   sampleProxy.h
   espina.h
-  iPixelSelector.h
+  pixelSelector.h
+  selectionManager.h
   EspinaPlugin.h
   ui/volumeView.h
 )

@@ -48,8 +48,7 @@ public:
 };
 
 class Product 
-: public ISelectableObject
-, public ITraceNode
+: public ITraceNode
 , public ISingleton
 , public IRenderable
 , public IModelItem

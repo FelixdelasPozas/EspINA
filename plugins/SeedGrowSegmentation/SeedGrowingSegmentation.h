@@ -35,17 +35,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "EspinaPlugin.h"
 #include "iSegmentationPlugin.h"
-#include "interfaces.h"
 #include "filter.h"
+#include "selectionManager.h"
 
 //Forward declarations
 class QSpinBox;
 class QToolButton;
-class IPixelSelector;
 class Product;
 
 //! Seed Growing Segmenation Plugin
-class SeedGrowingSegmentation : public ISegmentationPlugin, public EspinaPlugin, public ISelectionHandler
+class SeedGrowingSegmentation 
+: public ISegmentationPlugin
+, public EspinaPlugin
 {
   Q_OBJECT
   
@@ -55,33 +56,40 @@ public:
   void LoadAnalisys(EspinaParamList& args);
   
   //! Implements ISelectionHandler interface
-  void handle(const Selection sel);
-  void abortSelection();
-  
-  //! Implements ISegmentationPlugin interface
-  void execute();
+  //void handle(const Selection sel);
   
 public slots:
-  /// Callback for each action triggerred.
+  //! Starts the segmentation filter putting a seed at @x, @y, @z.
+  void startSeed(int x, int y, int z);
+  
+  //void abortSelection();
+  //! Callback for each action triggerred.
   void onAction(QAction* action);
+  //! TODO: Se refiere a si el boton esta pulsado o no 
   void setActive(bool active);
   
+  virtual void execute(){} //TODO: Deprecated
 signals:
   void segmentationCreated(ProcessingTrace *);
   void productCreated(Segmentation *);
   void waitingSelection(ISelectionHandler *);
   void selectionAborted(ISelectionHandler *);
+
   
 private:
   void buildUI();
+  
+  void initBlurTable();
+  void initGrowTable();
+  
+  void addPixelSelector(ISelectionHandler *sel);
   
   void buildSubPipeline(Product* input, EspinaParamList args);
   
 private:
   QSpinBox *m_threshold;
   QToolButton *m_addSeed;
-  IPixelSelector *m_selector;
-  Selection m_sel;
+  QList<ISelectionHandler *> m_pixSelectors;
   TranslatorTable m_tableBlur;
   TranslatorTable m_tableGrow;
 };

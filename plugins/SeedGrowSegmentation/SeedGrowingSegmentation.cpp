@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //#include "objectManager.h"
 #include "espina.h"
 #include <cache/cachedObjectBuilder.h>
-#include "iPixelSelector.h"
+#include "pixelSelector.h"
 #include "filter.h"
 
 //GUI includes
@@ -65,53 +65,34 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 //-----------------------------------------------------------------------------
-SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent): ISegmentationPlugin(parent), EspinaPlugin()
+SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent)
+: ISegmentationPlugin(parent)
+, EspinaPlugin()
 {
-  m_selector = new PixelSelector();
+  //TODO: EspinaPlugin Constructor
+ m_groupName = "filters";
+ m_filterName = "SeedGrowingSegmentationFilter";
+  
+  addPixelSelector(new PixelSelector());
+  //addPixelSelector(new BestPixelSelector());
   
   buildUI();
   
-  connect(this,
-	  SIGNAL(waitingSelection(ISelectionHandler *)),
-	  SelectionManager::singleton(),
-	  SLOT(setSelectionHandler(ISelectionHandler*)));
   connect(this,
 	  SIGNAL(productCreated(Segmentation *)),
 	  EspINA::instance(),
 	  SLOT(addSegmentation(Segmentation*)));
   
-  // Init Grow table
-  // TODO: Make cleaner
-  EspinaArg espina = "input";
-  VtkArg vtk;
-  vtk.type = INPUT;
-  vtk.name = "input";
-  m_tableGrow.addTranslation(espina, vtk);
-  espina = "Threshold";
-  vtk.type = DOUBLEVECT;
-  vtk.name = "Threshold";
-  m_tableGrow.addTranslation(espina, vtk);
-  espina = "Seed";
-  vtk.type = INTVECT;
-  vtk.name = "Seed";
-  m_tableGrow.addTranslation(espina, vtk);
-
-  // Init Blur table
-  espina = "input";
-  vtk.type = INPUT;
-  vtk.name = "input";
-  m_tableGrow.addTranslation(espina, vtk);
-  espina = "Kernel";
-  vtk.type = INTVECT;
-  vtk.name = "KernelSize";
-  m_tableGrow.addTranslation(espina, vtk);
-
-  m_groupName = "filters";
-  m_filterName =  "SeedGrowingSegmentationFilter";
+  initBlurTable();
+  initGrowTable();
+  
   // register in a plugin list
+  //TODO: Simplify to THIS
   ProcessingTrace::instance()->registerPlugin(m_groupName, m_filterName, this);
 }
 
+
+//-----------------------------------------------------------------------------
 void SeedGrowingSegmentation::LoadAnalisys(EspinaParamList& args)
 {
   QString InputId = "";
@@ -133,28 +114,8 @@ void SeedGrowingSegmentation::LoadAnalisys(EspinaParamList& args)
   this->buildSubPipeline(EspINA::instance()->activeSample(), args);
 }
 
-
-void SeedGrowingSegmentation::handle(const Selection sel)
-{
-  
-  qDebug() << "SeedGrowingSegmenation: hanlding Plugin";
-  
-  //Depending on the pixel selector 
-  ImagePixel realInputPixel = m_selector->pickPixel(sel);
-  m_sel.coord = sel.coord;
-  m_sel.object = EspINA::instance()->activeSample();
-  
-  execute();
-  
-  //TODO: Search in the logic application to get the input
-  //for the algorithm
-  
- //SelectionManager *manager = SelectionManager::singleton();
-  //pqActiveObjects& activeObjects = pqActiveObjects::instance();
-  
-}
-
-void SeedGrowingSegmentation::execute()
+//-----------------------------------------------------------------------------
+void SeedGrowingSegmentation::startSeed(int x, int y, int z)
 {
   // Initialize application context
   pqApplicationCore* core = pqApplicationCore::instance();
@@ -167,9 +128,7 @@ void SeedGrowingSegmentation::execute()
     undoStack->beginUndoSet(QString("Create SeedGrowingSegmentation"));
   }
   
-  //ProcessingTrace *trace = ProcessingTrace::instance();//!X
-
-  Product *input = dynamic_cast<Product *>(m_sel.object);
+  Product *input = dynamic_cast<Product *>(EspINA::instance()->activeSample());
   assert (input);
 
 
@@ -187,7 +146,7 @@ void SeedGrowingSegmentation::execute()
 
   EspinaParamList growArgs;
   growArgs.push_back(EspinaParam(QString("input"), input->id()));
-  QString seed = QString("%1,%2,%3").arg(m_sel.coord.x).arg(m_sel.coord.y).arg(m_sel.coord.z);
+  QString seed = QString("%1,%2,%3").arg(x).arg(y).arg(z);
   growArgs.push_back(EspinaParam(QString("Seed"), seed));
 
   QString th = QString::number(m_threshold->value());
@@ -214,29 +173,28 @@ void SeedGrowingSegmentation::execute()
   //emit waitingSelection(NULL);
 }
 
-
-
-void SeedGrowingSegmentation::abortSelection()
-{
-  m_addSeed->setChecked(false);
-  qDebug() << "SeedGrowingSegmenation: Selection aborted";
-}
+// //-----------------------------------------------------------------------------
+// void SeedGrowingSegmentation::abortSelection()
+// {
+//   m_addSeed->setChecked(false);
+//   qDebug() << "SeedGrowingSegmenation: Selection aborted";
+// }
 
 
 //-----------------------------------------------------------------------------
 void SeedGrowingSegmentation::onAction(QAction* action)
 {
-  if (m_addSeed->isChecked())
-    emit waitingSelection(this);
-  m_addSeed->setIcon(QIcon(action->icon()));
+//   if (m_addSeed->isChecked())
+//     emit waitingSelection(this);
+//   m_addSeed->setIcon(QIcon(action->icon()));
 }
 
 void SeedGrowingSegmentation::setActive(bool active)
 {
-  if (active)
-    emit waitingSelection(this);
-  else
-    emit waitingSelection(NULL);
+//   if (active)
+//     emit waitingSelection(this);
+//   else
+//     emit waitingSelection(NULL);
 }
 
 
@@ -273,6 +231,46 @@ void SeedGrowingSegmentation::buildUI()
   QObject::connect(m_addSeed, SIGNAL(triggered(QAction*)), this, SLOT(onAction(QAction*)));
   QObject::connect(m_addSeed, SIGNAL(toggled(bool)), this, SLOT(setActive(bool)));
 }
+
+void SeedGrowingSegmentation::initBlurTable()
+{
+  EspinaArg espina = "input";
+  VtkArg vtk;
+  espina = "input";
+  vtk.type = INPUT;
+  vtk.name = "input";
+  m_tableGrow.addTranslation(espina, vtk);
+  espina = "Kernel";
+  vtk.type = INTVECT;
+  vtk.name = "KernelSize";
+  m_tableGrow.addTranslation(espina, vtk);
+}
+
+void SeedGrowingSegmentation::initGrowTable()
+{
+  EspinaArg espina = "input";
+  VtkArg vtk;
+  vtk.type = INPUT;
+  vtk.name = "input";
+  m_tableGrow.addTranslation(espina, vtk);
+  espina = "Threshold";
+  vtk.type = DOUBLEVECT;
+  vtk.name = "Threshold";
+  m_tableGrow.addTranslation(espina, vtk);
+  espina = "Seed";
+  vtk.type = INTVECT;
+  vtk.name = "Seed";
+  m_tableGrow.addTranslation(espina, vtk);
+}
+
+void SeedGrowingSegmentation::addPixelSelector(ISelectionHandler* sel)
+{
+  connect(this,
+	  SIGNAL(waitingSelection(ISelectionHandler *)),
+	  SelectionManager::instance(),
+	  SLOT(setSelectionHandler(ISelectionHandler*)));
+}
+
 
 
 //! Creates the corresponding Pipeline of the plugin (the Filters and the Products). It also updates the Trace of the system
