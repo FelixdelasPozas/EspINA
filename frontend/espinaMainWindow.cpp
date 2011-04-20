@@ -61,7 +61,7 @@
 #include "pqObjectBuilder.h"
 #include "pqObjectInspectorWidget.h"
 #include "pqDisplayPolicy.h"
-
+#include <pqFileDialog.h>
 
 //VTK Includes
 //QT includes
@@ -329,7 +329,7 @@ void EspinaMainWindow::exportFile()
   }
 }
 
-#include <pqFileDialog.h>
+
 void EspinaMainWindow::saveFile()
 {
   // GUI  
@@ -410,7 +410,7 @@ void EspinaMainWindow::autoLoadStack()
   if( filePath.size() > 0 )
   {
     // Paraview's open
-    m_espina->loadFile(pqLoadDataReaction::loadData(QStringList(filePath)));
+    m_espina->loadFile(filePath);
   }
 }
 

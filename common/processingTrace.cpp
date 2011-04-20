@@ -31,6 +31,7 @@
 #include <pqApplicationCore.h>
 #include <pqObjectBuilder.h>
 #include <pqLoadDataReaction.h>
+#include <cachedObjectBuilder.h>
 
 using namespace boost;
 
@@ -175,10 +176,9 @@ void ProcessingTrace::readTrace(std::istream& content)
       if( vShape[vertexId].compare("ellipse") == 0 && label.startsWith('/') )
       {
         qDebug() << "ProcessingTrace: Loading the Stack " << label;
-        EspINA::instance()->loadFile(
-          pqLoadDataReaction::loadData(QStringList(label))
-        );
-        
+        pqPipelineSource* proxy = pqLoadDataReaction::loadData(QStringList(label));
+        assert(NULL == CachedObjectBuilder::instance()->registerLoadedStack(label, proxy));
+        EspINA::instance()->addSample(proxy, 0, label);
       } // A filter
       else if( vShape[vertexId].compare("box") == 0 )
       { // A filter that can be processed
