@@ -225,12 +225,10 @@ void ProcessingTrace::readTrace(std::istream& content)
 }
 
 //-----------------------------------------------------------------------------
-void ProcessingTrace::registerPlugin(QString& groupName,
-                                     QString& filterName,
-                                     EspinaPlugin* filter)
+void ProcessingTrace::registerPlugin(EspinaPlugin* filter)
 {
-  QString key(groupName);
-  key.append("::").append(filterName);
+  QString key(filter->groupName());
+  key.append("::").append(filter->filterName());
   assert( m_availablePlugins.contains(key) == false );
   m_availablePlugins.insert(key, filter);
 }

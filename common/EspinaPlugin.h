@@ -60,6 +60,8 @@ class EspinaPlugin
 public:
 
   virtual void LoadAnalisys(EspinaParamList& args) = 0;
+  QString groupName() {return m_groupName;}
+  QString filterName() {return m_filterName;}
 
 protected:
   QString m_groupName, m_filterName;

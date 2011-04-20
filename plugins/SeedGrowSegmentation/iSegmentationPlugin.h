@@ -29,10 +29,10 @@ class ISegmentationPlugin : public QActionGroup
 {
 public:
     ISegmentationPlugin(QObject* parent) : QActionGroup(parent){}
-    virtual void execute() = 0;
+    //virtual void execute() = 0;
     
 public slots:
-  virtual void onAction(QAction* a) = 0;
+  //virtual void onAction(QAction* a) = 0;
   
 signals:
   virtual void segmentationCreated(ProcessingTrace *) = 0;

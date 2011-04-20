@@ -20,19 +20,20 @@
 #ifndef SELECTIONMANAGER_H
 #define SELECTIONMANAGER_H
 
-#include <qt4/QtCore/QObject>
+#include <QObject>
+#include <QAction>
 #include "interfaces.h"
 
 class pqTwoDRenderView;
 class QMouseEvent;
 
 //! Interface to handle selections
-class ISelectionHandler : public QObject
+class ISelectionHandler : public QAction
 {
   Q_OBJECT
   
 public:
-  ISelectionHandler() {};
+  explicit ISelectionHandler(QObject* parent) : QAction(parent) {}
   virtual ~ISelectionHandler(){};
 
   virtual void onMouseDown(QMouseEvent *event, pqTwoDRenderView *view) = 0;

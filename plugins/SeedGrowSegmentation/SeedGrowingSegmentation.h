@@ -38,10 +38,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "filter.h"
 #include "selectionManager.h"
 
+#include <QToolButton>
 //Forward declarations
 class QSpinBox;
-class QToolButton;
 class Product;
+
+
 
 //! Seed Growing Segmenation Plugin
 class SeedGrowingSegmentation 
@@ -55,28 +57,22 @@ public:
   
   void LoadAnalisys(EspinaParamList& args);
   
-  //! Implements ISelectionHandler interface
-  //void handle(const Selection sel);
-  
-public slots:
+protected slots:
+  //! Changes the method to select the input seed
+  void changeSeedSelector(QAction *seedSel);
+  //! Wait for Seed Selection
+  void waitSeedSelection(bool wait);
   //! Starts the segmentation filter putting a seed at @x, @y, @z.
-  void startSeed(int x, int y, int z);
+  void startSegmentation(int seed_x, int seed_y, int seed_z);
   
-  //void abortSelection();
-  //! Callback for each action triggerred.
-  void onAction(QAction* action);
-  //! TODO: Se refiere a si el boton esta pulsado o no 
-  void setActive(bool active);
-  
-  virtual void execute(){} //TODO: Deprecated
 signals:
   void segmentationCreated(ProcessingTrace *);
   void productCreated(Segmentation *);
-  void waitingSelection(ISelectionHandler *);
   void selectionAborted(ISelectionHandler *);
-
   
 private:
+  
+  void buildSelectors();
   void buildUI();
   
   void initBlurTable();
@@ -88,8 +84,10 @@ private:
   
 private:
   QSpinBox *m_threshold;
-  QToolButton *m_addSeed;
-  QList<ISelectionHandler *> m_pixSelectors;
+  QToolButton *m_segButton;
+  ISelectionHandler *m_seedSelector;
+  QList<ISelectionHandler *> m_seedSelectors;
+  
   TranslatorTable m_tableBlur;
   TranslatorTable m_tableGrow;
 };

@@ -132,7 +132,7 @@ public:
   
   void readTrace(std::istream& content);
 
-  void registerPlugin(QString& groupName, QString& filterName, EspinaPlugin* filter);
+  void registerPlugin(EspinaPlugin* filter);
   /*
   void addSubtrace(const ProcessingTrace *subTrace);
   std::vector<ITraceNode *> inputs(const ITraceNode *node);

@@ -601,12 +601,12 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
   {
     SelectionManager::instance()->onMouseDown(event, m_view);
   }
-  else if (event->type() == QMouseEvent::MouseMove &&
+  if (event->type() == QMouseEvent::MouseMove &&
       event->buttons() == Qt::LeftButton)
   {
     SelectionManager::instance()->onMouseMove(event, m_view);
   }
-  else if (event->type() == QMouseEvent::MouseButtonRelease &&
+  if (event->type() == QMouseEvent::MouseButtonRelease &&
       event->buttons() == Qt::LeftButton)
   {
     SelectionManager::instance()->onMouseUp(event, m_view);

@@ -34,7 +34,7 @@ include_directories(
 
 
 qt4_add_resources (RCC_BUILT_SOURCES 
-  rsc/segmentation.qrc
+  rsc/SeedGrowSegmentation.qrc
   )
 
 # We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
