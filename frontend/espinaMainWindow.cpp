@@ -45,6 +45,7 @@
 #include "pqParaViewBehaviors.h"
 #include "pqParaViewMenuBuilders.h"
 #include "pqLoadDataReaction.h"
+#include "pqSaveDataReaction.h"
 #include "pqPipelineSource.h"
 #include "vtkPVPlugin.h"
 #include "pqOutputPort.h"
@@ -60,6 +61,7 @@
 #include "pqObjectBuilder.h"
 #include "pqObjectInspectorWidget.h"
 #include "pqDisplayPolicy.h"
+
 
 //VTK Includes
 //QT includes
@@ -283,16 +285,18 @@ EspinaMainWindow::~EspinaMainWindow()
 }
 
 //-----------------------------------------------------------------------------
-void EspinaMainWindow::loadData(pqPipelineSource *source)
+void EspinaMainWindow::loadData(pqPipelineSource *source)//TODO Delete
 {
   
-//   pqApplicationCore* core = pqApplicationCore::instance();
-//   QString filePath = core->serverResources().list().first().path();
-  m_espina->loadFile(source);
+  pqApplicationCore* core = pqApplicationCore::instance();
+  QString filePath = core->serverResources().list().first().path();
 
+  m_espina->loadFile(filePath, core->getActiveServer());
+  //m_espina->loadFile(source);
 }
-  
-void EspinaMainWindow::loadFile()
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::importFile()
 {
   // GUI 
   QString filePath = QFileDialog::getOpenFileName(this, tr("Import"), "",
@@ -302,24 +306,46 @@ void EspinaMainWindow::loadFile()
 
     if( filePath.endsWith(".trace") )
     {
-      std::ifstream traceContent(filePath.toStdString().c_str());
-      ProcessingTrace::instance()->readTrace(traceContent);
+      m_espina->loadFile(filePath, NULL); // TODO remove NULL. Default value
+
     }
     else if( filePath.endsWith(".pvd") )
     {
-      qDebug() << "Local file loaded: " << filePath << "\nOn TODO ... ";
+      qDebug() << "Local file loaded: " << filePath << "\nTODO ... ";
       exit(-1); //TODO IMPORT
     }
   }
 }
 
-void EspinaMainWindow::saveTrace()
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::exportFile()
+{
+ // GUI
+  QString filePath = QFileDialog::getSaveFileName(this, tr("Export"), "",
+              tr("Trace Files (*.trace)"));
+  if( !filePath.isEmpty() )
+  {
+     m_espina->saveFile( filePath );
+  }
+}
+
+#include <pqFileDialog.h>
+void EspinaMainWindow::saveFile()
 {
   // GUI  
-  QString filePath = QFileDialog::getSaveFileName(this, tr("Save Trace"), "", 
-		      tr("Trace Files (*.trace)"));
-  if( !filePath.isEmpty() )
-    m_espina->saveTrace( filePath );
+//   QString filePath = QFileDialog::getSaveFileName(this, tr("Save Trace"), "", 
+// 		      tr("Trace Files (*.trace)"));
+
+//   pqFileDialog fileDialog(pqActiveObjects::instance().activeServer(), this,
+//                           tr("Save Trace"), "", tr("Trace Files (*.trace)"));
+  pqFileDialog fileDialog(pqActiveObjects::instance().activeServer(), this,
+                          tr("Save Trace"), "", tr("Trace Files (*.trace)"));
+  fileDialog.setFileMode(pqFileDialog::AnyFile);
+  if( fileDialog.exec() == QDialog::Accepted )
+  {
+    qDebug() << "Destination file " << fileDialog.getSelectedFiles()[0];
+    m_espina->saveFile(fileDialog.getSelectedFiles()[0], pqApplicationCore::instance()->getActiveServer());
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -391,22 +417,27 @@ void EspinaMainWindow::autoLoadStack()
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::buildFileMenu(QMenu &menu)
 {
-  QIcon icon = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
+  QIcon iconOpen = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
  
-  QAction *action = new QAction(icon,tr("Open - ParaView mode"),this);
+  QAction *action = new QAction(iconOpen,tr("Open - ParaView mode"),this);
   pqLoadDataReaction * loadReaction = new pqLoadDataReaction(action);
   QObject::connect(loadReaction, SIGNAL(loadedData(pqPipelineSource *)),
 		    this, SLOT( loadData(pqPipelineSource *)));
   menu.addAction(action);
 
+  QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
+  action = new QAction(iconSave, tr("Save - ParaView mode"), this);
+//  pqSaveDataReaction* saveReaction = new pqSaveDataReaction(action);
+  QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT(saveFile()));
+  menu.addAction(action);
+
   /* Import Trace from localhost  */
-  action = new QAction(icon,tr("Import"),this);
-  QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT( loadFile()));
+  action = new QAction(iconOpen,tr("Import"),this);
+  QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT( importFile()));
   menu.addAction(action);
 
   /* Export Trace to localhost */
-  action = new QAction(qApp->style()->standardIcon(QStyle::SP_DialogSaveButton),
-			tr("Export trace"),this);
-  QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT( saveTrace()) );
+  action = new QAction(iconSave,tr("Export"),this);
+  QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT( exportFile()) );
   menu.addAction(action);
 }

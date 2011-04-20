@@ -91,8 +91,11 @@ public:
     //! Openning .mha, .trace or .seg (.trace + .mha) file (used by the UI)
     //! After a paraviews open.
     void loadFile(EspinaProxy* proxy);
+    void loadFile(QString& filePath);
+    void loadFile(QString& filePath, pqServer* server = NULL);
     //TODO: Guardar traza en el servidor
-    void saveTrace(QString filePath);
+//     void saveTrace(QString& filePath);
+    void saveFile(QString& filePath, pqServer* server = NULL);
     
 public slots:
     //TODO: Check if private? Now it's only used by Espina

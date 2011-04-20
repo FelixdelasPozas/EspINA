@@ -28,10 +28,13 @@
 
 #include <pqApplicationCore.h>
 #include <pqServerResources.h>
+#include <pqLoadDataReaction.h>
+#include <pqObjectBuilder.h>
 
 #include <QDebug>
 #include <iostream>
 #include <fstream>
+
 
 //------------------------------------------------------------------------
 EspINA *EspINA::m_singleton(NULL);
@@ -351,7 +354,7 @@ QList< Segmentation* > EspINA::segmentations(const Sample* sample) const
 }
 
 //------------------------------------------------------------------------
-void EspINA::loadFile(EspinaProxy* proxy)
+void EspINA::loadFile(EspinaProxy* proxy) // Deprecated
 {
   //TODO Check the type of file .mha, .trace, or .seg
   // .mha at the moment
@@ -372,11 +375,12 @@ void EspINA::loadFile(EspinaProxy* proxy)
     proxy->updatePipeline(); //Update the pipeline to obtain the content of the file
     proxy->getProxy()->UpdatePropertyInformation();
 
-    vtkSMStringVectorProperty* StringProp2 =
+    vtkSMStringVectorProperty* filePathProp =
           vtkSMStringVectorProperty::SafeDownCast(proxy->getProxy()->GetProperty("Content"));
     //qDebug() << "Content:\n" << StringProp2->GetElement(0);
-    std::istringstream trace(std::string(StringProp2->GetElement(0)));
+    std::istringstream trace(std::string(filePathProp->GetElement(0)));
     m_analysis->readTrace(trace);
+    
   }
   else if( filePath.endsWith(".seg") )
     qDebug() << "Error: .seg files not supported yet";
@@ -385,11 +389,88 @@ void EspINA::loadFile(EspinaProxy* proxy)
   }
 }
 
-void EspINA::saveTrace(QString filePath)
+//-----------------------------------------------------------------------------
+//! Load content 
+void EspINA::loadFile(QString& content)
 {
-  std::ofstream file( filePath.toStdString().c_str(), std::_S_trunc );
-  m_analysis->print(file);
+  std::ifstream traceContent(content.toStdString().c_str());
+  m_analysis->readTrace(traceContent);
 }
+
+//-----------------------------------------------------------------------------
+void EspINA::loadFile(QString& filePath, pqServer* server)
+{
+  //QTextStream stream;
+  if( server ) // Read remote file
+  {
+     pqPipelineSource* source = pqLoadDataReaction::loadData(QStringList(filePath));
+     source->updatePipeline(); //Update the pipeline to obtain the content of the file
+     source->getProxy()->UpdatePropertyInformation();
+
+    vtkSMStringVectorProperty* contentProp =
+          vtkSMStringVectorProperty::SafeDownCast(source->getProxy()->GetProperty("Content"));
+    //qDebug() << "Content:\n" << StringProp2->GetElement(0);
+    
+    std::istringstream traceContent(std::string(contentProp->GetElement(0)));
+    //std::cout << "Prop content: " << contentProp->GetElement(0) << std::endl;
+    /*
+    QString path(filePathProp->GetElement(0));
+    stream.setString(&path);
+    */
+    m_analysis->readTrace(traceContent);
+  }
+  else // Read local file
+  {
+    /*
+    QFile file(filePath);
+    file.open(QIODevice::ReadOnly | QIODevice::Text);
+    stream.setDevice(&file);
+    */
+    std::fstream traceContent(filePath.toStdString().c_str());
+    //std::cout << "TraceContent: " << traceContent << std::endl;
+    m_analysis->readTrace(traceContent);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void EspINA::saveFile(QString& filePath, pqServer* server)
+{
+  if( server )
+  {
+    // Method to store remote files
+    pqPipelineSource* remoteWriter =
+      pqApplicationCore::instance()->getObjectBuilder()->
+      createFilter("filters", "remoteFileWriter",
+                   QMap<QString, QList< pqOutputPort*> >(),
+                   pqApplicationCore::instance()->getActiveServer() );
+
+    vtkSMStringVectorProperty* fileNameProp =
+          vtkSMStringVectorProperty::SafeDownCast(remoteWriter->getProxy()->GetProperty("FileName"));
+    fileNameProp->SetElement(0, filePath.toStdString().c_str());
+    vtkSMStringVectorProperty* contentProp =
+          vtkSMStringVectorProperty::SafeDownCast(remoteWriter->getProxy()->GetProperty("Content"));
+
+    std::stringstream content;
+    m_analysis->print(content);
+    contentProp->SetElement(0, content.str().c_str());
+    //Update the pipeline to obtain the content of the file
+    remoteWriter->getProxy()->UpdateVTKObjects();
+    remoteWriter->updatePipeline();
+  }
+  else
+  {
+    std::ofstream file( filePath.toStdString().c_str(), std::_S_trunc );
+    m_analysis->print(file);
+  }
+}
+
+
+//-----------------------------------------------------------------------------
+// void EspINA::saveTrace(QString& filePath)
+// {
+//   std::ofstream file( filePath.toStdString().c_str(), std::_S_trunc );
+//   m_analysis->print(file);
+// }
 
 
 //------------------------------------------------------------------------

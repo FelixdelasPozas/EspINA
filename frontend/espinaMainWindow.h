@@ -64,9 +64,11 @@ public:
   
 protected slots:
   void loadData(pqPipelineSource *source);
-  void loadFile(); // Local load (Import)
-  void saveTrace();// Local save (Export)
-  void importData(pqPipelineSource *source) {}//TODO
+  void saveFile();
+  //void loadFile(); // Local load (Import)
+  void importFile(); // Local load 
+  void exportFile(); // Local save
+  //void importData(pqPipelineSource *source) {}//TODO
   void toggleVisibility(bool visible);
   virtual bool eventFilter(QObject* obj, QEvent* event);
   
