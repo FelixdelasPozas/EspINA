@@ -4,37 +4,15 @@
 #include "selectionManager.h"
 
 class PixelSelector 
-: public ISelectionHandler
+: public IViewSelector
 {
-  Q_OBJECT
-  
 public:
-  PixelSelector(QObject* parent = 0) : ISelectionHandler(parent){}
+  PixelSelector() {}
   virtual ~PixelSelector(){}
   
-  virtual void onMouseDown(QMouseEvent* event, pqTwoDRenderView* view);
-  virtual void onMouseMove(QMouseEvent* event, pqTwoDRenderView* view);
-  virtual void onMouseUp(QMouseEvent* event, pqTwoDRenderView* view);
-  
-  virtual void abortSelection(){}
-  
-signals:
-  void pixelSelected(int /*x*/, int /*y*/, int/*z*/);
-protected:
-  int x, y, z;
-};
-
-class BestPixelSelector
-: public PixelSelector
-{
-  Q_OBJECT
-public:
-  BestPixelSelector(QObject* parent = 0) : PixelSelector(parent) {}
-  virtual ~BestPixelSelector() {};
-  
-  //virtual void onMouseDown(QMouseEvent* event, pqTwoDRenderView* view);
-  //virtual void onMouseMove(QMouseEvent* event, pqTwoDRenderView* view);
-  //virtual void onMouseUp(QMouseEvent* event, pqTwoDRenderView* view);
+    virtual void onMouseDown(QMouseEvent* event, ISelectableView* view);
+    virtual void onMouseMove(QMouseEvent* event, ISelectableView* view);
+    virtual void onMouseUp(QMouseEvent* event, ISelectableView* view);
 };
 
 #endif //PIXELSELECTOR_H_

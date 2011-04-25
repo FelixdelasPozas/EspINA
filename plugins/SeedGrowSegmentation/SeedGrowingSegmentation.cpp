@@ -74,7 +74,6 @@ SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent)
   initBlurTable();
   initGrowTable();
   
-  buildSelectors();
   buildUI();
   
   connect(this,
@@ -114,7 +113,7 @@ void SeedGrowingSegmentation::LoadAnalisys(EspinaParamList& args)
 void SeedGrowingSegmentation::changeSeedSelector(QAction *seedSel)
 {
   qDebug() << "EspINA::SeedGrowingSegmenation: Changing Seed Selector";
-  m_seedSelector = qobject_cast<ISelectionHandler *>(seedSel);
+  m_seedSelector = m_seedSelectors.value(seedSel);
   
   if (!m_seedSelector)
   {
@@ -134,13 +133,17 @@ void SeedGrowingSegmentation::waitSeedSelection(bool wait)
   {
     qDebug() << "EspINA::SeedGrowingSegmenation: Waiting for Seed Selection";
     SelectionManager::instance()->setSelectionHandler(m_seedSelector);
+  }else
+  {
+    SelectionManager::instance()->setSelectionHandler(NULL);
   }
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowingSegmentation::startSegmentation(int seed_x, int seed_y, int seed_z)
+void SeedGrowingSegmentation::startSegmentation(SelectionHandler::Selection sel, SelectionHandler::VtkRegions regions)
 {
   qDebug() << "EspINA::SeedGrowingSegmenation: Start Seed Growing Segmentation";
+  
   // Initialize application context
   pqApplicationCore* core = pqApplicationCore::instance();
   pqUndoStack* undoStack = core->getUndoStack();
@@ -152,9 +155,14 @@ void SeedGrowingSegmentation::startSegmentation(int seed_x, int seed_y, int seed
     undoStack->beginUndoSet(QString("Create SeedGrowingSegmentation"));
   }
   
-  Product *input = dynamic_cast<Product *>(EspINA::instance()->activeSample());
+  assert(sel.size() == 1);// Only one product
+  assert(regions.size() == 1); // Only one region
+  assert(regions.first().size() == 1); // with one pixel
+  
+  Product *input = sel.first();
   assert (input);
-
+  
+  Point seed = regions.first().first();
 
   // Crear los Filtros
   /*
@@ -170,11 +178,10 @@ void SeedGrowingSegmentation::startSegmentation(int seed_x, int seed_y, int seed
 
   EspinaParamList growArgs;
   growArgs.push_back(EspinaParam(QString("input"), input->id()));
-  QString seed = QString("%1,%2,%3").arg(seed_x).arg(seed_y).arg(seed_z);
-  growArgs.push_back(EspinaParam(QString("Seed"), seed));
-
-  QString th = QString::number(m_threshold->value());
-  growArgs.push_back(EspinaParam(QString("Threshold"), th));
+  QString seedArg = QString("%1,%2,%3").arg(seed.x).arg(seed.y).arg(seed.z);
+  growArgs.push_back(EspinaParam(QString("Seed"), seedArg));
+  QString thArg = QString::number(m_threshold->value());
+  growArgs.push_back(EspinaParam(QString("Threshold"), thArg));
 
   this->buildSubPipeline(input, growArgs);
 
@@ -182,38 +189,36 @@ void SeedGrowingSegmentation::startSegmentation(int seed_x, int seed_y, int seed
   {
     undoStack->endUndoSet();
   }
-  
-  /*
-//   ProcessingTrace* p = ProcessingTrace::instance();
-//   qDebug("TRACE PRINT 1");
-//   p->print(std::cout);
-//   fstream f1 ("/tmp/traza.dot", fstream::in | fstream::out | fstream::trunc );
-//   p->print(f1);
-//   
-//   f1.seekg(0);
-//   p->readTrace(f1);
-//   qDebug("TRACE PRINT 2");
-//   p->print(std::cout);
-  // Comment following line to allow several selections 
-  //emit waitingSelection(NULL);
-  */
 }
 
 
 //-----------------------------------------------------------------------------
 void SeedGrowingSegmentation::buildSelectors()
 {
+  SelectionHandler *handler;
+  QAction *action;
+  
   // Exact Pixel Selector
-  ISelectionHandler *selector = new PixelSelector();
-  selector->setIcon(QIcon(":/pixelSel"));
-  selector->setText(tr("Add synapse (Ctrl +). Exact Pixel"));
-  addPixelSelector(selector);
+  action = new QAction(
+    QIcon(":/pixelSel")
+    , tr("Add synapse (Ctrl +). Exact Pixel"),
+    m_selectors);
+  handler = new SelectionHandler;
+  handler->selectionMethod = new PixelSelector();
+  handler->multiSelection = false;
+  handler->productType = SAMPLE;
+  addPixelSelector(action, handler);
   
   // Best Pixel Selector
-  selector = new BestPixelSelector();
-  selector->setIcon(QIcon(":/bestPixelSel"));
-  selector->setText(tr("Add synapse (Ctrl +). Best Pixel"));
-  addPixelSelector(selector);
+  action = new QAction(
+    QIcon(":/bestPixelSel")
+    , tr("Add synapse (Ctrl +). Best Pixel"),
+    m_selectors);
+  handler = new SelectionHandler;
+  handler->selectionMethod = new PixelSelector();
+  handler->multiSelection = false;
+  handler->productType = SAMPLE;
+  addPixelSelector(action, handler);
 }
 
 
@@ -228,16 +233,13 @@ void SeedGrowingSegmentation::buildUI()
   //Segmentation Button
   m_segButton = new QToolButton();
   m_segButton->setCheckable(true);
-  QMenu *selectors = new QMenu();
+  m_selectors = new QMenu();
   
-  foreach(QAction *selector, m_seedSelectors)
-  {
-    selectors->addAction(selector);
-  }
+  buildSelectors();
   
-  m_seedSelector = m_seedSelectors.first();
-  m_segButton->setIcon(m_seedSelector->icon());
-  m_segButton->setMenu(selectors);
+  m_seedSelector = m_seedSelectors.value(m_seedSelectors.keys().first());
+  m_segButton->setIcon(m_seedSelectors.key(m_seedSelector)->icon());
+  m_segButton->setMenu(m_selectors);
   
   // Plugin's Widget Layout
   QHBoxLayout *thresholdLayout = new QHBoxLayout();
@@ -292,13 +294,14 @@ void SeedGrowingSegmentation::initGrowTable()
 
 
 //------------------------------------------------------------------------
-void SeedGrowingSegmentation::addPixelSelector(ISelectionHandler* sel)
+void SeedGrowingSegmentation::addPixelSelector(QAction* action, SelectionHandler* handler)
 {
-  m_seedSelectors.append(sel);
-  connect(sel,
-	  SIGNAL(pixelSelected(int, int, int)),
+  m_selectors->addAction(action);
+  connect(handler,
+	  SIGNAL(selectionChanged(SelectionHandler::Selection,SelectionHandler::VtkRegions)),
 	  this,
-	  SLOT(startSegmentation(int,int,int)));
+	  SLOT(startSegmentation(SelectionHandler::Selection,SelectionHandler::VtkRegions)));
+  m_seedSelectors.insert(action, handler);
 }
 
 

@@ -39,7 +39,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "selectionManager.h"
 
 #include <QToolButton>
-//Forward declarations
+
+class QMenu;//Forward declarations
 class QSpinBox;
 class Product;
 
@@ -63,12 +64,12 @@ protected slots:
   //! Wait for Seed Selection
   void waitSeedSelection(bool wait);
   //! Starts the segmentation filter putting a seed at @x, @y, @z.
-  void startSegmentation(int seed_x, int seed_y, int seed_z);
+  void startSegmentation(SelectionHandler::Selection sel, SelectionHandler::VtkRegions regions);
   
 signals:
   void segmentationCreated(ProcessingTrace *);
   void productCreated(Segmentation *);
-  void selectionAborted(ISelectionHandler *);
+  void selectionAborted(SelectionHandler *);
   
 private:
   
@@ -78,15 +79,16 @@ private:
   void initBlurTable();
   void initGrowTable();
   
-  void addPixelSelector(ISelectionHandler *sel);
+  void addPixelSelector(QAction *action, SelectionHandler *handler);
   
   void buildSubPipeline(Product* input, EspinaParamList args);
   
 private:
   QSpinBox *m_threshold;
   QToolButton *m_segButton;
-  ISelectionHandler *m_seedSelector;
-  QList<ISelectionHandler *> m_seedSelectors;
+  QMenu *m_selectors;
+  SelectionHandler *m_seedSelector;
+  QMap<QAction *, SelectionHandler *> m_seedSelectors;
   
   TranslatorTable m_tableBlur;
   TranslatorTable m_tableGrow;

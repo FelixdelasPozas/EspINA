@@ -23,20 +23,36 @@
 #include <QDebug>
 
 //------------------------------------------------------------------------
+// SELECTION HANDLER
+//------------------------------------------------------------------------
+void SelectionHandler::setSelection(SelectionHandler::Selection sel, SelectionHandler::VtkRegions regions)
+{
+  qDebug("Selection Changed");
+  emit selectionChanged(sel, regions);
+}
+
+void SelectionHandler::abortSelection()
+{
+  qDebug("Selection Aborted");
+  emit selectionAborted();
+}
+
+
+//------------------------------------------------------------------------
 // SELECTION MANAGER
 //------------------------------------------------------------------------
 SelectionManager *SelectionManager::m_singleton = new SelectionManager();
 
 SelectionManager::SelectionManager()
   : QObject()
-  , m_sh(NULL)
+  , m_handler(NULL)
 {
 }
 
 //------------------------------------------------------------------------
-void SelectionManager::setSelectionHandler(ISelectionHandler* sh)
+void SelectionManager::setSelectionHandler(SelectionHandler* sh)
 {
-  if (m_sh && m_sh != sh)
-    m_sh->abortSelection();
-  m_sh = sh;
+  if (m_handler && m_handler != sh)
+    m_handler->abortSelection();
+  m_handler = sh;
 }

@@ -70,7 +70,9 @@ private:
 //! Displays a unique slice of a sample
 //! If segmentations are visible, then their slices are
 //! blended 	over the sample slice
-class SliceView : public QAbstractItemView
+class SliceView 
+: public QAbstractItemView
+, public ISelectableView
 {
   Q_OBJECT
 public:
@@ -91,13 +93,13 @@ public slots:
   void disconnectFromServer();
 
   //! Show/Hide segmentations
+  // TODO: Use visualization layer schema
   void showSegmentations(bool value);
-
-signals:
-  void pointSelected(const Point);
+  
 
 protected:
   virtual QRegion visualRegionForSelection(const QItemSelection& selection) const;
+  // TODO: Convert QRect to Region and use ISelectable::setSelection
   virtual void setSelection(const QRect& rect, QItemSelectionModel::SelectionFlags command);
   virtual bool isIndexHidden(const QModelIndex& index) const;
   virtual int verticalOffset() const;
@@ -116,6 +118,14 @@ public:
   void focusOnSample(Sample *sample);
   
   pqPipelineSource **output(){return &m_slicer;}
+  
+  //! Interface of ISelectableView
+public:
+    void setSelection(ViewRegions *regions);
+  
+protected:
+  virtual pqTwoDRenderView* view();
+  virtual Point convert(const QPoint &point);
 
 public slots:
   //! Slicer configuration methods:

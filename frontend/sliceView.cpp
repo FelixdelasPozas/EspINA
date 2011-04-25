@@ -71,7 +71,7 @@ Blender* Blender::instance()
 {
   if (!m_blender)
     m_blender = new Blender();
-  
+
   return m_blender;
 }
 
@@ -84,12 +84,12 @@ void Blender::focusOnSample(Sample* sample)
   if (!m_imageBlender)
   {
     vtkSMProperty* p;
-    
+
     pqApplicationCore *core = pqApplicationCore::instance();
     pqServer *server =  core->getActiveServer();
     pqObjectBuilder *ob = core->getObjectBuilder();
     pqLookupTableManager *lutManager = core->getLookupTableManager();
-    
+
     //Map the background values using a lut
     // This filter is the output of the sliceBlender class when blending is off
     if (m_sampleMapper)
@@ -99,7 +99,7 @@ void Blender::focusOnSample(Sample* sample)
     }
     m_sampleMapper = ob->createFilter("filters", "ImageMapToColors", sample->sourceData(), 0);
     assert(m_sampleMapper);
-    
+
     // Get (or create if it doesn't exit) the lut for the background image
     pqScalarsToColors *greyLUT = lutManager->getLookupTable(server, "Greyscale", 4, 0);
     if (greyLUT)
@@ -108,13 +108,13 @@ void Blender::focusOnSample(Sample* sample)
       vtkSMDoubleVectorProperty *rgbs = vtkSMDoubleVectorProperty::SafeDownCast(p);
       if (rgbs)
       {
-       // TODO: Use segmentation's information
-       double colors[8] = {0, 0, 0, 0, 255, 1, 1, 1};
-       rgbs->SetElements(colors);
+        // TODO: Use segmentation's information
+        double colors[8] = {0, 0, 0, 0, 255, 1, 1, 1};
+        rgbs->SetElements(colors);
       }
       greyLUT->getProxy()->UpdateVTKObjects();
     }
-    
+
     // Set the greyLUT for the mapper
     p = m_sampleMapper->getProxy()->GetProperty("LookupTable");
     vtkSMProxyProperty *lut = vtkSMProxyProperty::SafeDownCast(p);
@@ -122,9 +122,9 @@ void Blender::focusOnSample(Sample* sample)
     {
       lut->SetProxy(0, greyLUT->getProxy());
     }
-    
+
     m_sampleMapper->getProxy()->UpdateVTKObjects();
-    
+
     m_imageBlender = ob->createFilter("filters", "ImageBlend", m_sampleMapper);
     assert(m_imageBlender);
   }
@@ -135,7 +135,7 @@ void Blender::blendSegmentation(Segmentation* seg)
 {
   if (m_blendingMappers.contains(seg))
     return;
-  
+
   vtkSMProperty* p;
   vtkSMIntVectorProperty* intVectProp;
   vtkSMDoubleVectorProperty* doubleVectProp;
@@ -167,11 +167,11 @@ void Blender::blendSegmentation(Segmentation* seg)
 
   segMapper->getProxy()->UpdateVTKObjects();
   segMapper->updatePipeline();
-    //p = m_imageBlender->getProxy()->GetProperty("Input");
+  //p = m_imageBlender->getProxy()->GetProperty("Input");
   //vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
   //if (input)
   //{
-    //input->AddProxy(segMapper->getProxy());
+  //input->AddProxy(segMapper->getProxy());
   //}
   updateImageBlenderInput();
 }
@@ -180,25 +180,25 @@ void Blender::unblendSegmentation(Segmentation* seg)
 {
   if (!m_blendingMappers.contains(seg))
     return;
-  
+
   vtkSMProperty* p;
   vtkSMIntVectorProperty* intVectProp;
   vtkSMDoubleVectorProperty* doubleVectProp;
-  
+
   pqPipelineSource *mapper = m_blendingMappers.take(seg);
-  
+
   std::cout << "N. Consumers of mapper before " << mapper->getNumberOfConsumers() << std::endl;
   std::cout << "N. Producers of blender before " << m_imageBlender->getProxy()->GetNumberOfProducers() << std::endl;
   //p = m_imageBlender->getProxy()->GetProperty("Input");
   //vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
   //if (input)
   //{
-    //input->RemoveProxy(mapper->getProxy());
+  //input->RemoveProxy(mapper->getProxy());
   //}
   updateImageBlenderInput();
   std::cout << "N. Consumers of mapper after update vtk " << mapper->getNumberOfConsumers() << std::endl;
   std::cout << "N. Producers of blender after update vtk " << m_imageBlender->getProxy()->GetNumberOfProducers() << std::endl;
-  
+
   pqApplicationCore *core = pqApplicationCore::instance();
   pqObjectBuilder *ob = core->getObjectBuilder();
   ob->destroy(mapper);
@@ -211,11 +211,11 @@ void Blender::updateImageBlenderInput()
 
   vtkstd::vector<vtkSMProxy *> inputs;
   vtkstd::vector<unsigned int> ports;
-  
+
   // Ensure sample's mapper is the first input
   inputs.push_back(m_sampleMapper->getProxy());
   ports.push_back(0);
-  
+
   foreach(pqPipelineSource *source, m_blendingMappers)
   {
     IModelItem *item = m_blendingMappers.key(source);
@@ -226,16 +226,16 @@ void Blender::updateImageBlenderInput()
       ports.push_back(0);
     }
   }
-  
+
   p = m_imageBlender->getProxy()->GetProperty("Input");
   vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
   if (input)
   {
     //input->RemoveAllProxies();
     m_imageBlender->getProxy()->UpdateVTKObjects();
-    input->SetProxies( static_cast<unsigned int>(inputs.size())
-    , &inputs[0]
-    , &ports[0]);
+    input->SetProxies(static_cast<unsigned int>(inputs.size())
+                      , &inputs[0]
+                      , &ports[0]);
     m_imageBlender->getProxy()->UpdateVTKObjects();
   }
   m_mutex.unlock();
@@ -298,13 +298,13 @@ SliceView::SliceView(QWidget* parent)
   m_mainLayout->addLayout(m_controlLayout);
   this->setAutoFillBackground(true);
   setLayout(m_mainLayout);
-  
+
   // Color background
   QPalette pal = this->palette();
   pal.setColor(QPalette::Base, pal.color(QPalette::Window));
   this->setPalette(pal);
   this->setStyleSheet("QSpinBox { background-color: white;}");
-  
+
   s_blender = Blender::instance();
 }
 
@@ -320,28 +320,31 @@ void SliceView::connectToServer()
   QObject::connect(m_viewWidget, SIGNAL(mouseEvent(QMouseEvent *)),
                    this, SLOT(vtkWidgetMouseEvent(QMouseEvent *)));
   m_mainLayout->insertWidget(0, m_viewWidget);//To preserve view order
-  
+
   vtkSMTwoDRenderViewProxy* view = vtkSMTwoDRenderViewProxy::SafeDownCast(
-    m_view->getProxy());
-  
-    
+                                     m_view->getProxy());
+
+
   vtkCamera * cam = view->GetRenderView()->GetActiveCamera();
   if (m_plane == SLICE_PLANE_XY)
   {
-    cam->SetPosition(0,0,-50);
-    cam->SetFocalPoint(0,0,0);
+    cam->SetPosition(0, 0, -50);
+    cam->SetFocalPoint(0, 0, 0);
     cam->SetRoll(180);
-  }else if (m_plane == SLICE_PLANE_YZ)
-  {
-    cam->SetRoll(270);
-  } else
-  {
-    cam->SetRoll(-90);
   }
-    
+  else
+    if (m_plane == SLICE_PLANE_YZ)
+    {
+      cam->SetRoll(270);
+    }
+    else
+    {
+      cam->SetRoll(-90);
+    }
+
   m_view->resetCamera();
-  
-  double black[3] = {0,0,0};
+
+  double black[3] = {0, 0, 0};
   view->GetRenderView()->SetBackgroundColorCM(black);
 }
 
@@ -437,7 +440,7 @@ void SliceView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int e
 {
   for (int r = start; r <= end; r++)
   {
-    QModelIndex index = parent.child(r,0);
+    QModelIndex index = parent.child(r, 0);
     IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
     // Check for sample
     Sample *sample = dynamic_cast<Sample *>(item);
@@ -445,14 +448,15 @@ void SliceView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int e
     {
       //TODO: Remove sample
       qDebug() << "Render planes";
-    } 
-    else if (!sample)
-    {
-      Segmentation *seg = dynamic_cast<Segmentation *>(item);
-      assert(seg); // If not sample, it has to be a segmentation
-      std::cout << seg->name.toStdString() << " about to be destroyed\n";
-      s_blender->unblendSegmentation(seg);
     }
+    else
+      if (!sample)
+      {
+        Segmentation *seg = dynamic_cast<Segmentation *>(item);
+        assert(seg); // If not sample, it has to be a segmentation
+        std::cout << seg->name.toStdString() << " about to be destroyed\n";
+        s_blender->unblendSegmentation(seg);
+      }
   }
   updateScene();
 }
@@ -512,7 +516,7 @@ void SliceView::focusOnSample(Sample* sample)
 
     pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
     pqDataRepresentation *rep = dp->setRepresentationVisibility(m_slicer->getOutputPort(0), m_view, true);
-    
+
   }
   else
   {
@@ -523,26 +527,26 @@ void SliceView::focusOnSample(Sample* sample)
 
   double camPoint[3], sampleBound[6];
   sample->bounds(sampleBound);
- 
+
   vtkSMTwoDRenderViewProxy* view = vtkSMTwoDRenderViewProxy::SafeDownCast(
-      m_view->getProxy());
+                                     m_view->getProxy());
   vtkCamera * cam = view->GetRenderView()->GetActiveCamera();
   // Asoicate global x,y,z to local x,y 2D views
   int x_axis, y_axis; // Local x and y axis per view
-  switch(m_plane)
+  switch (m_plane)
   {
-    case SLICE_PLANE_XY:
-      x_axis = 0;
-      y_axis = 1;
-      break;
-    case SLICE_PLANE_XZ:
-      x_axis = 2;
-      y_axis = 0;
-      break;
-    case SLICE_PLANE_YZ:
-      x_axis = 1;
-      y_axis = 2;
-      break;
+  case SLICE_PLANE_XY:
+    x_axis = 0;
+    y_axis = 1;
+    break;
+  case SLICE_PLANE_XZ:
+    x_axis = 2;
+    y_axis = 0;
+    break;
+  case SLICE_PLANE_YZ:
+    x_axis = 1;
+    y_axis = 2;
+    break;
   }
   // 6 position per Bound
   x_axis *= 2;
@@ -560,8 +564,89 @@ void SliceView::focusOnSample(Sample* sample)
 //   cam->GetPosition(camPoint);
 //   qDebug() << "cam Position: "<<camPoint[0] <<","<< camPoint[1]<<"," << camPoint[2];
 
-  
+
 }
+
+Point SliceView::convert(const QPoint& point)
+{
+  //Use Render Window Interactor's Picker to find the world coordinates
+  //of the stack
+  vtkSMTwoDRenderViewProxy* view = vtkSMTwoDRenderViewProxy::SafeDownCast(
+                                     m_view->getProxy());
+  vtkSMRenderViewProxy* renModule = view->GetRenderView();
+  vtkRenderWindowInteractor *rwi = vtkRenderWindowInteractor::SafeDownCast(
+                                     renModule->GetInteractor());
+  assert(rwi);
+  
+  // Because we display all slice planes in the same display coordinates
+  // it is necesary to translate the axis correspondence between the
+  // display coordinates and the plane coordinates
+    
+  int selection[3] = {0.0, 0.0, 0.0}; //Selection in plane coordinates
+  rwi->GetEventPosition(selection[0], selection[1]);
+  //rwi->GetEventPosition(selection[m_input->getAxisX()],selection[m_input->getAxisY()]);
+  //selection[m_input->getAxisZ()] = m_scroll->value();
+  vtkAbstractPicker *picker = rwi->GetPicker();
+  assert(picker);
+
+  //Change coordinates acording the plane
+  picker->Pick(selection[0], selection[1], selection[2], renModule->GetRenderer());
+  //picker->PrintSelf(std::cout, vtkIndent(0));
+  double pos[3];//World coordinates
+  picker->GetPickPosition(pos);
+  //m_input->getOutput()->getDataInformation()->PrintSelf(std::cout,vtkIndent(0));
+  
+  //Get Spacing
+  s_focusedSample->sourceData()->getOutputPort(0)->getDataInformation()->PrintSelf(std::cout, vtkIndent(0));
+  double spacing[3];//Image Spacing
+  s_focusedSample->spacing(spacing);
+  
+  Point result;
+  result.x = pos[0] / spacing[0];
+  result.y = pos[1] / spacing[1];
+  result.z = m_spinBox->value();
+  
+  qDebug() << "Event Position" << selection[0] << " " << selection[1] << " " << selection[2];
+  qDebug() << "Pick Position" << pos[0] << " " << pos[1] << " " << m_spinBox->value();
+  qDebug() << "Real Position" << result.x << " " << result.y << " " << result.z;
+  
+  return result;
+}
+
+
+//-----------------------------------------------------------------------------
+void SliceView::setSelection(ViewRegions* regions)
+{
+  SelectionHandler::Selection sel;
+  SelectionHandler::VtkRegions vtkRegions;
+  
+  qDebug() << "Translate ViewRegions coordinates into VtkRegions";
+  
+  // Translate view pixels into Vtk pixels
+  foreach(const QPolygon &region, *regions)
+  {
+    SelectionHandler::VtkRegion vtkRegion;
+    foreach(const QPoint &point, region)
+    {
+      vtkRegion << convert(point);
+    }
+    vtkRegions << vtkRegion;
+  }
+  
+  //TODO:  Seleccionar objectos que cumplan el filtro y caigan en las regiones seleccionadas
+  sel.append(s_focusedSample);
+  
+  //TODO: Update Qt selection
+  // Notify the manager about the new selection
+  //SelectionManager::instance()->setSelection(sel, vtkRegions);
+}
+
+//-----------------------------------------------------------------------------
+pqTwoDRenderView* SliceView::view()
+{
+  return m_view;
+}
+
 
 //-----------------------------------------------------------------------------
 void SliceView::setPlane(SlicePlane plane)
@@ -599,64 +684,18 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
   if (event->type() == QMouseEvent::MouseButtonPress &&
       event->buttons() == Qt::LeftButton)
   {
-    SelectionManager::instance()->onMouseDown(event, m_view);
+    SelectionManager::instance()->onMouseDown(event, this);
   }
+  //TODO: Only MouseButtonPress events are received
   if (event->type() == QMouseEvent::MouseMove &&
       event->buttons() == Qt::LeftButton)
   {
-    SelectionManager::instance()->onMouseMove(event, m_view);
+    SelectionManager::instance()->onMouseMove(event, this);
   }
   if (event->type() == QMouseEvent::MouseButtonRelease &&
       event->buttons() == Qt::LeftButton)
   {
-    SelectionManager::instance()->onMouseUp(event, m_view);
-  }
-  
-  return;
-  
-  if (event->type() == QMouseEvent::MouseButtonPress &&
-      event->buttons() == Qt::LeftButton)
-  {
-    //Use Render Window Interactor's Picker to find the world coordinates
-    //of the stack
-    vtkSMTwoDRenderViewProxy* view = vtkSMTwoDRenderViewProxy::SafeDownCast(
-                                       m_view->getProxy());
-    vtkSMRenderViewProxy* renModule = view->GetRenderView();
-    vtkRenderWindowInteractor *rwi = vtkRenderWindowInteractor::SafeDownCast(
-                                       renModule->GetInteractor());
-    if (!rwi)
-      return;
-
-    // Because we display all slice planes in the same display coordinates
-    // it is necesary to translate the axis correspondence between the
-    // display coordinates and the plane coordinates
-    int selection[3] = {0.0, 0.0, 0.0}; //Selection in plane coordinates
-    rwi->GetEventPosition(selection[0], selection[1]);
-    //rwi->GetEventPosition(selection[m_input->getAxisX()],selection[m_input->getAxisY()]);
-    //selection[m_input->getAxisZ()] = m_scroll->value();
-    vtkAbstractPicker *picker = rwi->GetPicker();
-    if (!picker)
-      return;
-
-    //Change coordinates acording the plane
-    picker->Pick(selection[0], selection[1], selection[2], renModule->GetRenderer());
-    //picker->PrintSelf(std::cout, vtkIndent(0));
-    double pos[3];//World coordinates
-    picker->GetPickPosition(pos);
-    //m_input->getOutput()->getDataInformation()->PrintSelf(std::cout,vtkIndent(0));
-    //Get Spacing
-    s_focusedSample->sourceData()->getOutputPort(0)->getDataInformation()->PrintSelf(std::cout,vtkIndent(0));
-    double spacing[3];//Image Spacing
-    s_focusedSample->spacing(spacing);
-    Point coord;
-    coord.x = pos[0] / spacing[0];
-    coord.y = pos[1] / spacing[1];
-    coord.z = m_spinBox->value();
-    qDebug() << "Event Position" << selection[0] << " " << selection[1] << " " << selection[2];
-    qDebug() << "Pick Position" << pos[0] << " " << pos[1] << " " << m_spinBox->value();
-    qDebug() << "Real Position" << coord.x << " " << coord.y << " " << m_spinBox->value();
-    
-    emit pointSelected(coord);
+    SelectionManager::instance()->onMouseUp(event, this);
   }
 }
 
@@ -668,8 +707,8 @@ void SliceView::updateScene()
     slice(s_blender->source());
   else
     slice(s_focusedSample->sourceData());
-  
-    
+
+
   m_view->render();
 }
 

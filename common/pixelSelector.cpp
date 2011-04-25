@@ -2,27 +2,25 @@
 
 #include <QDebug>
 
-void PixelSelector::onMouseDown(QMouseEvent* event, pqTwoDRenderView* view)
+void PixelSelector::onMouseDown(QMouseEvent* event, ISelectableView* view)
 {
   //TODO: Copy view's existing method
-  x = y = z = 5;
+  ViewRegions regions;
+  QPolygon singlePixel;
+  singlePixel << QPoint(5,5);
+  regions << singlePixel;
   
-  qDebug() << "EspINA::PixelSelector: Click on" << x << y << z;
-  emit pixelSelected(x,y,z);
+  qDebug() << "EspINA::PixelSelector: Click on";
+  view->setSelection(&regions);
 }
 
-void PixelSelector::onMouseMove(QMouseEvent* event, pqTwoDRenderView* view)
+void PixelSelector::onMouseMove(QMouseEvent* event, ISelectableView* view)
 {
   //Do nothing
   qDebug("Moving");
 }
 
-void PixelSelector::onMouseUp(QMouseEvent* event, pqTwoDRenderView* view)
+void PixelSelector::onMouseUp(QMouseEvent* event, ISelectableView* view)
 {
   qDebug() << "EspINA::PixelSelector: Mouse released";
-  emit pixelSelected(x,y,z);
 }
-
-
-
-
