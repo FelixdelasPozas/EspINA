@@ -518,7 +518,7 @@ void SliceView::focusOnSample(Sample* sample)
   {
     qDebug() << "Need to change slicer input";
     //TODO: change slicer input
-    assert(false);
+    //assert(false);
   }
 
   double camPoint[3], sampleBound[6];

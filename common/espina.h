@@ -91,7 +91,7 @@ public:
     //! Openning .trace In the future .seg (.trace + .mha) (used by the UI)
     void loadFile(QString& filePath, pqServer* server = NULL);
     void saveFile(QString& filePath, pqServer* server = NULL);
-    
+
 public slots:
     //TODO: Check if private? Now it's only used by Espina
     void addSample(EspinaProxy* source, int portNumber, QString& filePath);
@@ -107,6 +107,9 @@ public slots:
 
     //! Debug slot for plugins manage
     void onProxyCreated(pqProxy* p);
+
+    //! Manage the pqPipelineSources loaded with pqLoadReaction
+    void loadSource(pqPipelineSource* proxy);
     
 signals:
     //! 

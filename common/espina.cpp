@@ -354,54 +354,64 @@ QList< Segmentation* > EspINA::segmentations(const Sample* sample) const
 }
 
 //------------------------------------------------------------------------
-// void EspINA::loadFile(EspinaProxy* proxy) // Deprecated
-// {
-//   //TODO Check the type of file .mha, .trace, or .seg
-//   // .mha at the moment
-//   pqApplicationCore* core = pqApplicationCore::instance();
-//   QString filePath = core->serverResources().list().first().path();
-//   //QString filePath = proxy->getSMName();
-//   
-//   qDebug() << "EspINA: Loading file in server side: " << filePath << "  " << proxy->getSMName();
-//   
-//   if( filePath.endsWith(".pvd") || filePath.endsWith(".mha"))
-//   {
-//     //qDebug() << "MHA FILE: " << filePath;
-//     //EspinaProxy* source = CachedObjectBuilder::instance()->createStack( filePath);
-//     assert(NULL == CachedObjectBuilder::instance()->registerLoadedStack(filePath, proxy));
-//     this->addSample(proxy, 0, filePath);
-//   }
-//   else if( filePath.endsWith(".trace") ){
-//     proxy->updatePipeline(); //Update the pipeline to obtain the content of the file
-//     proxy->getProxy()->UpdatePropertyInformation();
-// 
-//     vtkSMStringVectorProperty* filePathProp =
-//           vtkSMStringVectorProperty::SafeDownCast(proxy->getProxy()->GetProperty("Content"));
-//     //qDebug() << "Content:\n" << StringProp2->GetElement(0);
-//     std::istringstream trace(std::string(filePathProp->GetElement(0)));
-//     m_analysis->readTrace(trace);
-//     
-//   }
-//   else if( filePath.endsWith(".seg") )
-//     qDebug() << "Error: .seg files not supported yet";
-//   else{
-//     qDebug() << QString("Error: %1 file not supported yet").arg(filePath.remove(0, filePath.lastIndexOf('.')));
-//   }
-// }
+void EspINA::loadSource(pqPipelineSource* proxy)
+{
+  //TODO Check the type of file .mha, .trace, or .seg
+  // .mha at the moment
+  pqApplicationCore* core = pqApplicationCore::instance();
+  QString filePath = core->serverResources().list().first().path();
+  //QString filePath = proxy->getSMName();
+  
+  qDebug() << "EspINA: Loading file in server side: " << filePath << "  " << proxy->getSMName();
+
+  if( filePath.endsWith(".pvd") || filePath.endsWith(".mha"))
+  {
+    //qDebug() << "MHA FILE: " << filePath;
+    //EspinaProxy* source = CachedObjectBuilder::instance()->createStack( filePath);
+    CachedObjectBuilder::instance()->registerLoadedStack(filePath, proxy);
+    this->addSample(proxy, 0, filePath);
+  }
+  else if( filePath.endsWith(".trace") ){
+
+    proxy->updatePipeline(); //Update the pipeline to obtain the content of the file
+    proxy->getProxy()->UpdatePropertyInformation();
+
+    vtkSMStringVectorProperty* filePathProp =
+          vtkSMStringVectorProperty::SafeDownCast(proxy->getProxy()->GetProperty("Content"));
+    //qDebug() << "Content:\n" << StringProp2->GetElement(0);
+    std::istringstream trace(std::string(filePathProp->GetElement(0)));
+    m_analysis->readTrace(trace);
+
+  }
+  else if( filePath.endsWith(".seg") )
+    qDebug() << "Error: .seg files not supported yet";
+  else{
+    qDebug() << QString("Error: %1 file not supported yet").arg(filePath.remove(0, filePath.lastIndexOf('.')));
+  }
+}
 
 
 //-----------------------------------------------------------------------------
 void EspINA::loadFile(QString& filePath, pqServer* server)
 {
   //QTextStream stream;
+  if( !m_samples.isEmpty() )
+  {
+    //m_activeSample;
+//     foreach(Sample* sample, m_samples)
+//     {
+//       delete sample;//->sourceData();
+//     }
+      qDebug() << "Delete the other samples"; //TODO
+  }
   if( server ) // Read remote file
   {
-     pqPipelineSource* source = pqLoadDataReaction::loadData(QStringList(filePath));
-     source->updatePipeline(); //Update the pipeline to obtain the content of the file
-     source->getProxy()->UpdatePropertyInformation();
+     pqPipelineSource* remoteFile = pqLoadDataReaction::loadData(QStringList(filePath));
+     remoteFile->updatePipeline(); //Update the pipeline to obtain the content of the file
+     remoteFile->getProxy()->UpdatePropertyInformation();
 
     vtkSMStringVectorProperty* contentProp =
-          vtkSMStringVectorProperty::SafeDownCast(source->getProxy()->GetProperty("Content"));
+          vtkSMStringVectorProperty::SafeDownCast(remoteFile->getProxy()->GetProperty("Content"));
     //qDebug() << "Content:\n" << StringProp2->GetElement(0);
     
     std::istringstream traceContent(std::string(contentProp->GetElement(0)));

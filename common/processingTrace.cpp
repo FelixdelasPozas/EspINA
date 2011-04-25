@@ -176,8 +176,10 @@ void ProcessingTrace::readTrace(std::istream& content)
       if( vShape[vertexId].compare("ellipse") == 0 && label.startsWith('/') )
       {
         qDebug() << "ProcessingTrace: Loading the Stack " << label;
-        pqPipelineSource* proxy = pqLoadDataReaction::loadData(QStringList(label));
-        assert(NULL == CachedObjectBuilder::instance()->registerLoadedStack(label, proxy));
+        //pqPipelineSource* proxy = pqLoadDataReaction::loadData(QStringList(label));
+        //assert(NULL == CachedObjectBuilder::instance()->registerLoadedStack(label, proxy));
+        EspinaProxy* proxy = CachedObjectBuilder::instance()->createStack(label);
+        assert(proxy);
         EspINA::instance()->addSample(proxy, 0, label);
       } // A filter
       else if( vShape[vertexId].compare("box") == 0 )
