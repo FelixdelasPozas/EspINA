@@ -1,13 +1,14 @@
 #include "pixelSelector.h"
 
 #include <QDebug>
+#include <QMouseEvent>
 
 void PixelSelector::onMouseDown(QMouseEvent* event, ISelectableView* view)
 {
   //TODO: Copy view's existing method
   ViewRegions regions;
   QPolygon singlePixel;
-  singlePixel << QPoint(5,5);
+  singlePixel << event->pos();
   regions << singlePixel;
   
   qDebug() << "EspINA::PixelSelector: Click on";

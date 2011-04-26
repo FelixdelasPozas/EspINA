@@ -258,9 +258,8 @@ void Blender::updateImageBlenderInput()
 
 
 
-
-
-
+#define LOWER(coord) (coord)
+#define UPPER(coord) ((coord) + 1)
 
 
 
@@ -531,6 +530,7 @@ void SliceView::focusOnSample(Sample* sample)
   vtkSMTwoDRenderViewProxy* view = vtkSMTwoDRenderViewProxy::SafeDownCast(
                                      m_view->getProxy());
   vtkCamera * cam = view->GetRenderView()->GetActiveCamera();
+  /*
   // Asoicate global x,y,z to local x,y 2D views
   int x_axis, y_axis; // Local x and y axis per view
   switch (m_plane)
@@ -553,12 +553,15 @@ void SliceView::focusOnSample(Sample* sample)
   y_axis *= 2;
   // Retrive camera position to use the correct distance
   cam->GetPosition(camPoint);
-  camPoint[0] = (sampleBound[x_axis+1] - sampleBound[x_axis]) / 2;
-  camPoint[1] = (sampleBound[y_axis+1] - sampleBound[y_axis]) / 2;
+  //camPoint[0] = (sampleBound[x_axis+1] - sampleBound[x_axis]) / 2;
+  //camPoint[1] = (sampleBound[y_axis+1] - sampleBound[y_axis]) / 2;
+  camPoint[0] = (sampleBound[UPPER(m_vAxeId)] - sampleBound[LOWER(m_vAxeId)]) / 2;
+  camPoint[1] = (sampleBound[UPPER(m_hAxeId)] - sampleBound[LOWER(m_hAxeId)]) / 2;
   cam->SetPosition(camPoint);
   camPoint[2] = 0;
   cam->SetFocalPoint(camPoint);
   cam->Zoom(0.9);
+  */
 //   cam->GetFocalPoint(camPoint);
 //   qDebug() << "cam FocalPoint: "<<camPoint[0] <<","<< camPoint[1]<<"," << camPoint[2];
 //   cam->GetPosition(camPoint);
@@ -569,6 +572,8 @@ void SliceView::focusOnSample(Sample* sample)
 
 Point SliceView::convert(const QPoint& point)
 {
+  
+  qDebug() << "EspINA::SliceView" << m_plane << ":Recived Position" << point.x() << " " << point.y();
   //Use Render Window Interactor's Picker to find the world coordinates
   //of the stack
   vtkSMTwoDRenderViewProxy* view = vtkSMTwoDRenderViewProxy::SafeDownCast(
@@ -582,18 +587,21 @@ Point SliceView::convert(const QPoint& point)
   // it is necesary to translate the axis correspondence between the
   // display coordinates and the plane coordinates
     
-  int selection[3] = {0.0, 0.0, 0.0}; //Selection in plane coordinates
-  rwi->GetEventPosition(selection[0], selection[1]);
+  int pickPos[3] = {0.0, 0.0, 0.0}; //Selection in display coordinates
+  rwi->GetEventPosition(pickPos[0], pickPos[1]);
+  qDebug() << "EspINA::SliceView" << m_plane << ": Pick Position" << pickPos[0] << " " << pickPos[1] << " " << pickPos[2];
   //rwi->GetEventPosition(selection[m_input->getAxisX()],selection[m_input->getAxisY()]);
   //selection[m_input->getAxisZ()] = m_scroll->value();
+  
   vtkAbstractPicker *picker = rwi->GetPicker();
   assert(picker);
 
   //Change coordinates acording the plane
-  picker->Pick(selection[0], selection[1], selection[2], renModule->GetRenderer());
-  //picker->PrintSelf(std::cout, vtkIndent(0));
+  picker->Pick(pickPos[0], pickPos[1], pickPos[2], renModule->GetRenderer());
   double pos[3];//World coordinates
   picker->GetPickPosition(pos);
+  qDebug() << "EspINA::SliceView" << m_plane << ": World Position" << pos[0] << " " << pos[1] << " " << pos[2];
+  //picker->PrintSelf(std::cout, vtkIndent(0));
   //m_input->getOutput()->getDataInformation()->PrintSelf(std::cout,vtkIndent(0));
   
   //Get Spacing
@@ -602,12 +610,35 @@ Point SliceView::convert(const QPoint& point)
   s_focusedSample->spacing(spacing);
   
   Point result;
-  result.x = pos[0] / spacing[0];
-  result.y = pos[1] / spacing[1];
-  result.z = m_spinBox->value();
+  int res[3];
   
-  qDebug() << "Event Position" << selection[0] << " " << selection[1] << " " << selection[2];
-  qDebug() << "Pick Position" << pos[0] << " " << pos[1] << " " << m_spinBox->value();
+  res[m_xAxisDisp] = pos[m_plane>SLICE_PLANE_XY?1:0] / spacing[m_xAxisDisp];
+  res[m_yAxisDisp] = pos[m_plane>SLICE_PLANE_XY?0:1] / spacing[m_yAxisDisp];
+  res[m_zAxisDisp] = m_spinBox->value();
+  
+  switch (m_plane)
+  {
+    case SLICE_PLANE_XY:
+      result.x = pos[0] / spacing[0];
+      result.y = pos[1] / spacing[1];
+      result.z = m_spinBox->value();
+      break;
+    case SLICE_PLANE_YZ:
+      result.x = m_spinBox->value();
+      result.y = pos[0] / spacing[1];
+      result.z = pos[1] / spacing[2];
+      break;
+    case SLICE_PLANE_XZ:
+      result.x = pos[1] / spacing[0];
+      result.y = m_spinBox->value();
+      result.z = pos[0] / spacing[2];
+      break;
+    default:
+      assert(false);
+  };
+  
+  assert(res[0] == result.x && res[1] == result.y && res[2] == result.z);
+  
   qDebug() << "Real Position" << result.x << " " << result.y << " " << result.z;
   
   return result;
@@ -638,7 +669,7 @@ void SliceView::setSelection(ViewRegions* regions)
   
   //TODO: Update Qt selection
   // Notify the manager about the new selection
-  //SelectionManager::instance()->setSelection(sel, vtkRegions);
+  SelectionManager::instance()->setSelection(sel, vtkRegions);
 }
 
 //-----------------------------------------------------------------------------
@@ -662,6 +693,30 @@ void SliceView::setPlane(SlicePlane plane)
   }
 
   m_plane = plane;
+  
+
+  const int X=0, Y=1, Z=2;
+  
+  switch (plane)
+  {
+    case SLICE_PLANE_XY:
+      m_xAxisDisp = X;
+      m_yAxisDisp = Y;
+      m_zAxisDisp = Z;
+      break;
+    case SLICE_PLANE_YZ:
+      m_xAxisDisp = Z;
+      m_yAxisDisp = Y;
+      m_zAxisDisp = X;
+      break;
+    case SLICE_PLANE_XZ:
+      m_xAxisDisp = X;
+      m_yAxisDisp = Z;
+      m_zAxisDisp = Y;
+      break;
+    default:
+      assert(false);
+  };
 }
 
 //-----------------------------------------------------------------------------

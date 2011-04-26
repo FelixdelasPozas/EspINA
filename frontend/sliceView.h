@@ -150,6 +150,8 @@ private:
   bool m_showSegmentations;
   vtkSMImageSliceRepresentationProxy *m_rep;
   SlicePlane m_plane;
+  //! Determine which scene axis correspond to display axis
+  int m_xAxisDisp, m_yAxisDisp, m_zAxisDisp;
   vtkSMIntVectorProperty *m_slice;
   pqPipelineSource *m_slicer;
 
