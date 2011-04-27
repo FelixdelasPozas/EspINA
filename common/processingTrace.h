@@ -33,6 +33,7 @@ typedef std::pair<EspinaArg, ParamValue> EspinaParam;
 typedef std::vector<EspinaParam> EspinaParamList;
 */
 #include <QMap>
+#include <qtextstream.h>
 
 typedef unsigned int IndexType;
 //Forward declarations
@@ -131,6 +132,7 @@ public:
   );
   
   void readTrace(std::istream& content);
+  void readTrace(QTextStream& stream);
 
   void registerPlugin(QString& groupName, QString& filterName, EspinaPlugin* filter);
   /*
