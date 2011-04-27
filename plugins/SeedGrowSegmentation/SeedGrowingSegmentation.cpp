@@ -82,7 +82,6 @@ SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent)
 	  SLOT(addSegmentation(Segmentation*)));
   
   // register in a plugin list
-  //TODO: Simplify to THIS
   ProcessingTrace::instance()->registerPlugin(this);
 }
 
@@ -133,10 +132,17 @@ void SeedGrowingSegmentation::waitSeedSelection(bool wait)
   {
     qDebug() << "EspINA::SeedGrowingSegmenation: Waiting for Seed Selection";
     SelectionManager::instance()->setSelectionHandler(m_seedSelector);
+    m_segButton->setChecked(true);
   }else
   {
     SelectionManager::instance()->setSelectionHandler(NULL);
   }
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowingSegmentation::abortSelection()
+{
+  m_segButton->setChecked(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -299,6 +305,10 @@ void SeedGrowingSegmentation::addPixelSelector(QAction* action, ISelectionHandle
 	  SIGNAL(selectionChanged(ISelectionHandler::Selection)),
 	  this,
 	  SLOT(startSegmentation(ISelectionHandler::Selection)));
+  connect(handler,
+	  SIGNAL(selectionAborted()),
+	  this,
+	  SLOT(abortSelection()));
   m_seedSelectors.insert(action, handler);
 }
 

@@ -37,7 +37,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../SeedGrowSegmentation/iSegmentationPlugin.h"
 #include "interfaces.h"
 #include "filter.h"
-#include "products.h"
+#include "selectionManager.h"
 
 //Forward declarations
 class QSpinBox;
@@ -45,8 +45,11 @@ class QToolButton;
 class IPixelSelector;
 class Product;
 
+//TODO: Refactorize with SeedGrowingSegmentation
 //! Seed Growing Region Segmenation Plugin
-class SeedGrowingRegionSegmentation : public ISegmentationPlugin, public EspinaPlugin, public ISelectionHandler
+class SeedGrowingRegionSegmentation 
+: public ISegmentationPlugin
+, public EspinaPlugin
 {
   Q_OBJECT
   
@@ -54,35 +57,38 @@ public:
   SeedGrowingRegionSegmentation(QObject* parent);
   
   void LoadAnalisys(EspinaParamList& args);
-  
-  //! Implements ISelectionHandler interface
-  void handle(const Selection sel);
+protected slots:
+  //! Changes the method to select the input seed
+  void changeSeedSelector(QAction *seedSel);
+  //! Wait for Seed Selection
+  void waitSeedSelection(bool wait);
+  //! Abort current selection
   void abortSelection();
-  
-  //! Implements ISegmentationPlugin interface
-  void execute();
-  
-public slots:
-  /// Callback for each action triggerred.
-  void onAction(QAction* action);
-  void setActive(bool active);
+  //! Starts the segmentation filter putting a seed at @x, @y, @z.
+  void startSegmentation(ISelectionHandler::Selection sel);
   
 signals:
   void segmentationCreated(ProcessingTrace *);
   void productCreated(Segmentation *);
-  void waitingSelection(ISelectionHandler *);
   void selectionAborted(ISelectionHandler *);
-  
 private:
+  void buildSelectors();
   void buildUI();
+    
+  void initBlurTable();
+  void initGrowTable();
+  
+  void addPixelSelector(QAction *action, ISelectionHandler *handler);
   
   void buildSubPipeline(Product* input, EspinaParamList args);
   
 private:
   QSpinBox *m_threshold;
-  QToolButton *m_addSeed;
-  IPixelSelector *m_selector;
-  Selection m_sel;
+  QToolButton *m_segButton;
+  QMenu *m_selectors;
+  ISelectionHandler *m_seedSelector;
+  QMap<QAction *, ISelectionHandler *> m_seedSelectors;
+  
   TranslatorTable m_tableBlur;
   TranslatorTable m_tableGrow;
 };

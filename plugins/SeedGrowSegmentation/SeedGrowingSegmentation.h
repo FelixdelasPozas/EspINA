@@ -63,6 +63,8 @@ protected slots:
   void changeSeedSelector(QAction *seedSel);
   //! Wait for Seed Selection
   void waitSeedSelection(bool wait);
+  //! Abort current selection
+  void abortSelection();
   //! Starts the segmentation filter putting a seed at @x, @y, @z.
   void startSegmentation(ISelectionHandler::Selection sel);
   
