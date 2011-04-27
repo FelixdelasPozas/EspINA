@@ -4,15 +4,15 @@
 #include "selectionManager.h"
 
 class PixelSelector 
-: public IViewSelector
+: public ISelectionHandler
 {
 public:
   PixelSelector() {}
   virtual ~PixelSelector(){}
   
-    virtual void onMouseDown(QMouseEvent* event, ISelectableView* view);
-    virtual void onMouseMove(QMouseEvent* event, ISelectableView* view);
-    virtual void onMouseUp(QMouseEvent* event, ISelectableView* view);
+    virtual void onMouseDown(QPointF &pos, ISelectableView* view);
+    virtual void onMouseMove(QPointF &pos, ISelectableView* view);
+    virtual void onMouseUp(QPointF &pos, ISelectableView* view);
 };
 
 #endif //PIXELSELECTOR_H_

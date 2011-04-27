@@ -3,25 +3,24 @@
 #include <QDebug>
 #include <QMouseEvent>
 
-void PixelSelector::onMouseDown(QMouseEvent* event, ISelectableView* view)
+void PixelSelector::onMouseDown(QPointF &pos, ISelectableView* view)
 {
   //TODO: Copy view's existing method
   ViewRegions regions;
-  QPolygon singlePixel;
-  singlePixel << event->pos();
+  QPolygonF singlePixel;
+  singlePixel << pos;
   regions << singlePixel;
   
-  qDebug() << "EspINA::PixelSelector: Click on";
-  view->setSelection(&regions);
+  view->setSelection(filters, regions);
 }
 
-void PixelSelector::onMouseMove(QMouseEvent* event, ISelectableView* view)
+void PixelSelector::onMouseMove(QPointF &pos, ISelectableView* view)
 {
   //Do nothing
-  qDebug("Moving");
+  qDebug("EspINA::PixelSelector: Mouse Moving");
 }
 
-void PixelSelector::onMouseUp(QMouseEvent* event, ISelectableView* view)
+void PixelSelector::onMouseUp(QPointF &pos, ISelectableView* view)
 {
   qDebug() << "EspINA::PixelSelector: Mouse released";
 }

@@ -15,6 +15,17 @@ struct Point
   int x;
   int y;
   int z;
+  
+  int& operator[] (int idx) {
+    if (0 > idx && idx > 2)
+      _exit(-1);
+    if (idx == 0)
+      return x;
+    if (idx == 1)
+      return y;
+    if (idx == 2)
+      return z;
+  }
 };
 
 typedef Point ImagePixel;

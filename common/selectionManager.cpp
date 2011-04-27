@@ -25,13 +25,13 @@
 //------------------------------------------------------------------------
 // SELECTION HANDLER
 //------------------------------------------------------------------------
-void SelectionHandler::setSelection(SelectionHandler::Selection sel, SelectionHandler::VtkRegions regions)
+void ISelectionHandler::setSelection(ISelectionHandler::Selection sel)
 {
   qDebug("Selection Changed");
-  emit selectionChanged(sel, regions);
+  emit selectionChanged(sel);
 }
 
-void SelectionHandler::abortSelection()
+void ISelectionHandler::abortSelection()
 {
   qDebug("Selection Aborted");
   emit selectionAborted();
@@ -50,7 +50,7 @@ SelectionManager::SelectionManager()
 }
 
 //------------------------------------------------------------------------
-void SelectionManager::setSelectionHandler(SelectionHandler* sh)
+void SelectionManager::setSelectionHandler(ISelectionHandler* sh)
 {
   if (m_handler && m_handler != sh)
     m_handler->abortSelection();

@@ -25,24 +25,21 @@
 #include "interfaces.h"
 
 #include <QVector3D>
-#include <QPolygon>
+#include <QPolygonF>
 
 class Product;
 class pqTwoDRenderView;
 class QMouseEvent;
 
 #include <assert.h>
+#include <QStringList>
+#include <QPair>
 
-typedef QList<QPolygon> ViewRegions;
+//! List of taxonomy ids which can be selected
+//! WARNING: Special EspINA_Sample taxonomy is used to refer to the sample itself
+typedef QStringList SelectionFilters;
+typedef QList<QPolygonF> ViewRegions;
 
-typedef int ProductType;
-
-enum ProductTypes //TODO: Need to be dynamic or use taxonomy value
-{
-    NONE   = 0
-  , SAMPLE = 1
-  , SEGMENTATION = 2
-};
 
 //! Interface for Views where user can select products
 class ISelectableView
@@ -50,56 +47,48 @@ class ISelectableView
 public:
   //! Set a selection to all elements which belong to regions
   //! and pass the filtering criteria
-  virtual void setSelection(ViewRegions *regions) = 0;
+  virtual void setSelection(SelectionFilters &filters, ViewRegions &regions) = 0;
   
 protected:
   virtual pqTwoDRenderView *view() = 0;
 };
 
 
-//! Interface to manage selections on views
-class IViewSelector
-{
-public:
-  virtual void onMouseDown(QMouseEvent *event, ISelectableView *view) = 0;
-  virtual void onMouseMove(QMouseEvent *event, ISelectableView *view) = 0;
-  virtual void onMouseUp(QMouseEvent *event, ISelectableView *view) = 0;
-};
-
 //! Interface to handle selections
 //! Plugin that implement this interface have to specify
 //! which selection method has to be used and which type of
 //! products must be selected
-class SelectionHandler
+class ISelectionHandler
 : public QObject
 {
   Q_OBJECT
-  
 public:
   typedef QList<Point> VtkRegion;
   typedef QList<VtkRegion> VtkRegions;
-  typedef QList<Product *> Selection;
+  typedef QPair<VtkRegion, Product *> SelElement;
+  typedef QList<SelElement> Selection;
   
 public:
-  explicit SelectionHandler()
-  : productType(0)
-  , selectionMethod(NULL)
+  explicit ISelectionHandler()
+  : filters()
   , multiSelection(false)
   {}
+  virtual ~ISelectionHandler(){};
   
-  virtual ~SelectionHandler(){};
+  virtual void onMouseDown(QPointF &pos, ISelectableView *view) = 0;
+  virtual void onMouseMove(QPointF &pos, ISelectableView *view) = 0;
+  virtual void onMouseUp(QPointF &pos, ISelectableView *view) = 0;
   
-  void setSelection(SelectionHandler::Selection sel, SelectionHandler::VtkRegions region);
+  void setSelection(ISelectionHandler::Selection sel);
   void abortSelection();
   
   //! The types of products which are requested for selection
-  ProductType productType;
-  IViewSelector *selectionMethod;
+  SelectionFilters filters;
   //! Determines if multiple products can be selected or not
   bool multiSelection;
   
 signals:
-  void selectionChanged(SelectionHandler::Selection, SelectionHandler::VtkRegions);
+  void selectionChanged(ISelectionHandler::Selection);
   void selectionAborted();
 };
 
@@ -115,21 +104,21 @@ public:
   ~SelectionManager(){}
   
   //! Delegates calls on active SelectionHandler
-  void onMouseDown(QMouseEvent *event, ISelectableView *view) { if (m_handler) m_handler->selectionMethod->onMouseDown(event, view);}
-  void onMouseMove(QMouseEvent *event, ISelectableView *view) { if (m_handler) m_handler->selectionMethod->onMouseMove(event, view);}
-  void onMouseUp(QMouseEvent *event, ISelectableView *view) { if (m_handler) m_handler->selectionMethod->onMouseUp(event, view);}
+  void onMouseDown(QPointF &pos, ISelectableView *view) { if (m_handler) m_handler->onMouseDown(pos, view);}
+  void onMouseMove(QPointF &pos, ISelectableView *view) { if (m_handler) m_handler->onMouseMove(pos, view);}
+  void onMouseUp(QPointF &pos, ISelectableView *view) { if (m_handler) m_handler->onMouseUp(pos, view);}
   
-  void setSelection(SelectionHandler::Selection sel, SelectionHandler::VtkRegions regions) {if (m_handler) m_handler->setSelection(sel, regions);}
+  void setSelection(ISelectionHandler::Selection sel) {if (m_handler) m_handler->setSelection(sel);}
   
 public slots:
   //! Register @sh as active Selection Handler
-  void setSelectionHandler(SelectionHandler *sh);
+  void setSelectionHandler(ISelectionHandler *sh);
   
   //! Returns a SelectionManager singleton
   static SelectionManager *instance(){return m_singleton;}
   
 private:
-  SelectionHandler *m_handler;
+  ISelectionHandler *m_handler;
   static SelectionManager *m_singleton;
 };
 

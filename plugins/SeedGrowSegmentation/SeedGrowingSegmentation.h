@@ -64,12 +64,12 @@ protected slots:
   //! Wait for Seed Selection
   void waitSeedSelection(bool wait);
   //! Starts the segmentation filter putting a seed at @x, @y, @z.
-  void startSegmentation(SelectionHandler::Selection sel, SelectionHandler::VtkRegions regions);
+  void startSegmentation(ISelectionHandler::Selection sel);
   
 signals:
   void segmentationCreated(ProcessingTrace *);
   void productCreated(Segmentation *);
-  void selectionAborted(SelectionHandler *);
+  void selectionAborted(ISelectionHandler *);
   
 private:
   
@@ -79,7 +79,7 @@ private:
   void initBlurTable();
   void initGrowTable();
   
-  void addPixelSelector(QAction *action, SelectionHandler *handler);
+  void addPixelSelector(QAction *action, ISelectionHandler *handler);
   
   void buildSubPipeline(Product* input, EspinaParamList args);
   
@@ -87,8 +87,8 @@ private:
   QSpinBox *m_threshold;
   QToolButton *m_segButton;
   QMenu *m_selectors;
-  SelectionHandler *m_seedSelector;
-  QMap<QAction *, SelectionHandler *> m_seedSelectors;
+  ISelectionHandler *m_seedSelector;
+  QMap<QAction *, ISelectionHandler *> m_seedSelectors;
   
   TranslatorTable m_tableBlur;
   TranslatorTable m_tableGrow;

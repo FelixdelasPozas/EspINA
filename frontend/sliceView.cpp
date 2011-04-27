@@ -258,8 +258,8 @@ void Blender::updateImageBlenderInput()
 
 
 
-#define LOWER(coord) (coord)
-#define UPPER(coord) ((coord) + 1)
+#define LOWER(coord) (2*(coord))
+#define UPPER(coord) (2*(coord) + 1)
 
 
 
@@ -570,10 +570,10 @@ void SliceView::focusOnSample(Sample* sample)
 
 }
 
-Point SliceView::convert(const QPoint& point)
+
+Point SliceView::convert(const QPointF& point)
 {
   
-  qDebug() << "EspINA::SliceView" << m_plane << ":Recived Position" << point.x() << " " << point.y();
   //Use Render Window Interactor's Picker to find the world coordinates
   //of the stack
   vtkSMTwoDRenderViewProxy* view = vtkSMTwoDRenderViewProxy::SafeDownCast(
@@ -583,39 +583,26 @@ Point SliceView::convert(const QPoint& point)
                                      renModule->GetInteractor());
   assert(rwi);
   
-  // Because we display all slice planes in the same display coordinates
-  // it is necesary to translate the axis correspondence between the
-  // display coordinates and the plane coordinates
-    
-  int pickPos[3] = {0.0, 0.0, 0.0}; //Selection in display coordinates
-  rwi->GetEventPosition(pickPos[0], pickPos[1]);
-  qDebug() << "EspINA::SliceView" << m_plane << ": Pick Position" << pickPos[0] << " " << pickPos[1] << " " << pickPos[2];
-  //rwi->GetEventPosition(selection[m_input->getAxisX()],selection[m_input->getAxisY()]);
-  //selection[m_input->getAxisZ()] = m_scroll->value();
-  
   vtkAbstractPicker *picker = rwi->GetPicker();
   assert(picker);
 
-  //Change coordinates acording the plane
-  picker->Pick(pickPos[0], pickPos[1], pickPos[2], renModule->GetRenderer());
+  picker->Pick(point.x(), point.y(), 0.0, renModule->GetRenderer());
+  
   double pos[3];//World coordinates
   picker->GetPickPosition(pos);
-  qDebug() << "EspINA::SliceView" << m_plane << ": World Position" << pos[0] << " " << pos[1] << " " << pos[2];
-  //picker->PrintSelf(std::cout, vtkIndent(0));
-  //m_input->getOutput()->getDataInformation()->PrintSelf(std::cout,vtkIndent(0));
   
-  //Get Spacing
-  s_focusedSample->sourceData()->getOutputPort(0)->getDataInformation()->PrintSelf(std::cout, vtkIndent(0));
-  double spacing[3];//Image Spacing
-  s_focusedSample->spacing(spacing);
   
   Point result;
-  int res[3];
+  bool isReflected = m_plane>SLICE_PLANE_XY;
+  result[m_xAxisDisp] = pos[isReflected?1:0];
+  result[m_yAxisDisp] = pos[isReflected?0:1];
+  result[m_zAxisDisp] = m_spinBox->value();
   
-  res[m_xAxisDisp] = pos[m_plane>SLICE_PLANE_XY?1:0] / spacing[m_xAxisDisp];
-  res[m_yAxisDisp] = pos[m_plane>SLICE_PLANE_XY?0:1] / spacing[m_yAxisDisp];
-  res[m_zAxisDisp] = m_spinBox->value();
+  qDebug() << "EspINA::SliceView" << m_plane << ": World Position" << result.x << " " << result.y << " " << result.z;
   
+  return result;
+  
+  /** 
   switch (m_plane)
   {
     case SLICE_PLANE_XY:
@@ -636,40 +623,73 @@ Point SliceView::convert(const QPoint& point)
     default:
       assert(false);
   };
-  
-  assert(res[0] == result.x && res[1] == result.y && res[2] == result.z);
-  
-  qDebug() << "Real Position" << result.x << " " << result.y << " " << result.z;
-  
-  return result;
+  **/
 }
 
-
 //-----------------------------------------------------------------------------
-void SliceView::setSelection(ViewRegions* regions)
+ISelectionHandler::VtkRegion SliceView::correctSpacing(ISelectionHandler::VtkRegion& region)
 {
-  SelectionHandler::Selection sel;
-  SelectionHandler::VtkRegions vtkRegions;
+  ISelectionHandler::VtkRegion correctedRegion;
   
-  qDebug() << "Translate ViewRegions coordinates into VtkRegions";
+  ///! All segmented objects shown in this view must belong to the focused sample
+  double spacing[3];//Image Spacing
+  s_focusedSample->spacing(spacing);
   
-  // Translate view pixels into Vtk pixels
-  foreach(const QPolygon &region, *regions)
+  foreach(Point point, region)
   {
-    SelectionHandler::VtkRegion vtkRegion;
-    foreach(const QPoint &point, region)
-    {
-      vtkRegion << convert(point);
-    }
-    vtkRegions << vtkRegion;
+    Point correctedPoint;
+    correctedPoint[m_xAxisDisp] = point[m_xAxisDisp] / spacing[m_xAxisDisp];;
+    correctedPoint[m_yAxisDisp] = point[m_yAxisDisp] / spacing[m_yAxisDisp];;
+    correctedPoint[m_zAxisDisp] = point[m_zAxisDisp];
+    correctedRegion << correctedPoint;
   }
+  return correctedRegion;
+}
+
+//! If several regions select the same object, consistently it will return
+//! the same number of (regions,elements) as selected objects. Thus, the client
+//! that decided such configuration has to resolve it
+//-----------------------------------------------------------------------------
+void SliceView::setSelection(SelectionFilters& filters, ViewRegions& regions)
+{
+  ISelectionHandler::Selection sel;
+  //ISelectionHandler::VtkRegions vtkRegions;
   
-  //TODO:  Seleccionar objectos que cumplan el filtro y caigan en las regiones seleccionadas
-  sel.append(s_focusedSample);
+  qDebug() << "EspINA::SliceView" << m_plane << ": Making selection";
+  // Select all products that belongs to all the regions
+  foreach(const QPolygonF &region, regions)
+  {
+    ISelectionHandler::VtkRegion vtkRegion;
+    // Translate view pixels into Vtk pixels
+    foreach(const QPointF &point, region)
+      vtkRegion << convert(point);
+    
+    //vtkRegions << vtkRegion;
+    // Apply filtering criteria at given region
+    foreach(QString filter, filters)
+    {
+      //! Special case, where sample is selected
+      if (filter == "EspINA_Sample")
+      {
+	ISelectionHandler::SelElement selSample;
+	selSample.first = correctSpacing(vtkRegion);
+	selSample.second = s_focusedSample;
+	sel.append(selSample);
+      }
+      //! Select all segmented objects
+      else 
+      {
+	// Find segmented objects inside regions
+	// Discard by filter
+	// Adjust spacing
+	assert(false); //TODO: Taxonomy selection NOTE: shall other filtering criterias be implemented?? Size??
+      }
+    }
+  }
   
   //TODO: Update Qt selection
   // Notify the manager about the new selection
-  SelectionManager::instance()->setSelection(sel, vtkRegions);
+  SelectionManager::instance()->setSelection(sel);
 }
 
 //-----------------------------------------------------------------------------
@@ -736,21 +756,35 @@ void SliceView::setSlice(int value)
 //-----------------------------------------------------------------------------
 void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
 {
+  
+  //Use Render Window Interactor's to obtain event's position
+  vtkSMTwoDRenderViewProxy* view = 
+    vtkSMTwoDRenderViewProxy::SafeDownCast(m_view->getProxy());
+  vtkSMRenderViewProxy* renModule = view->GetRenderView();
+  vtkRenderWindowInteractor *rwi =
+    vtkRenderWindowInteractor::SafeDownCast(renModule->GetInteractor());
+  assert(rwi);
+
+  int xPos, yPos;
+  rwi->GetEventPosition(xPos, yPos);
+  qDebug() << "EspINA::SliceView" << m_plane << ": Clicked Position" << xPos << " " << yPos;
+  QPointF pos(xPos,yPos);
+  
   if (event->type() == QMouseEvent::MouseButtonPress &&
       event->buttons() == Qt::LeftButton)
   {
-    SelectionManager::instance()->onMouseDown(event, this);
+    SelectionManager::instance()->onMouseDown(pos, this);
   }
-  //TODO: Only MouseButtonPress events are received
+  //BUG: Only MouseButtonPress events are received
   if (event->type() == QMouseEvent::MouseMove &&
       event->buttons() == Qt::LeftButton)
   {
-    SelectionManager::instance()->onMouseMove(event, this);
+    SelectionManager::instance()->onMouseMove(pos, this);
   }
   if (event->type() == QMouseEvent::MouseButtonRelease &&
       event->buttons() == Qt::LeftButton)
   {
-    SelectionManager::instance()->onMouseUp(event, this);
+    SelectionManager::instance()->onMouseUp(pos, this);
   }
 }
 

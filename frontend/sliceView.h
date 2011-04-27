@@ -121,11 +121,13 @@ public:
   
   //! Interface of ISelectableView
 public:
-    void setSelection(ViewRegions *regions);
+    void setSelection(SelectionFilters &filters, ViewRegions &regions);
   
 protected:
   virtual pqTwoDRenderView* view();
-  virtual Point convert(const QPoint &point);
+  //! Converts point from Display coordinates to World coordinates
+  virtual Point convert(const QPointF& point);
+  ISelectionHandler::VtkRegion correctSpacing(ISelectionHandler::VtkRegion& region);
 
 public slots:
   //! Slicer configuration methods:

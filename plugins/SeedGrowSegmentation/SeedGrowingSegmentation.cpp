@@ -140,7 +140,7 @@ void SeedGrowingSegmentation::waitSeedSelection(bool wait)
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowingSegmentation::startSegmentation(SelectionHandler::Selection sel, SelectionHandler::VtkRegions regions)
+void SeedGrowingSegmentation::startSegmentation(ISelectionHandler::Selection sel)
 {
   qDebug() << "EspINA::SeedGrowingSegmenation: Start Seed Growing Segmentation";
   
@@ -155,14 +155,14 @@ void SeedGrowingSegmentation::startSegmentation(SelectionHandler::Selection sel,
     undoStack->beginUndoSet(QString("Create SeedGrowingSegmentation"));
   }
   
-  assert(sel.size() == 1);// Only one product
-  assert(regions.size() == 1); // Only one region
-  assert(regions.first().size() == 1); // with one pixel
+  assert(sel.size() == 1);// Only one element selected
+  ISelectionHandler::SelElement element = sel.first();
   
-  Product *input = sel.first();
+  Product *input = element.second;
   assert (input);
   
-  Point seed = regions.first().first();
+  assert(element.first.size() == 1); // with one pixel
+  Point seed = element.first.first();
 
   // Crear los Filtros
   /*
@@ -195,7 +195,7 @@ void SeedGrowingSegmentation::startSegmentation(SelectionHandler::Selection sel,
 //-----------------------------------------------------------------------------
 void SeedGrowingSegmentation::buildSelectors()
 {
-  SelectionHandler *handler;
+  ISelectionHandler *handler;
   QAction *action;
   
   // Exact Pixel Selector
@@ -203,10 +203,9 @@ void SeedGrowingSegmentation::buildSelectors()
     QIcon(":/pixelSel")
     , tr("Add synapse (Ctrl +). Exact Pixel"),
     m_selectors);
-  handler = new SelectionHandler;
-  handler->selectionMethod = new PixelSelector();
+  handler = new PixelSelector();
   handler->multiSelection = false;
-  handler->productType = SAMPLE;
+  handler->filters << "EspINA_Sample";
   addPixelSelector(action, handler);
   
   // Best Pixel Selector
@@ -214,10 +213,9 @@ void SeedGrowingSegmentation::buildSelectors()
     QIcon(":/bestPixelSel")
     , tr("Add synapse (Ctrl +). Best Pixel"),
     m_selectors);
-  handler = new SelectionHandler;
-  handler->selectionMethod = new PixelSelector();
+  handler = new PixelSelector();
   handler->multiSelection = false;
-  handler->productType = SAMPLE;
+  handler->filters << "EspINA_Sample";
   addPixelSelector(action, handler);
 }
 
@@ -294,13 +292,13 @@ void SeedGrowingSegmentation::initGrowTable()
 
 
 //------------------------------------------------------------------------
-void SeedGrowingSegmentation::addPixelSelector(QAction* action, SelectionHandler* handler)
+void SeedGrowingSegmentation::addPixelSelector(QAction* action, ISelectionHandler* handler)
 {
   m_selectors->addAction(action);
   connect(handler,
-	  SIGNAL(selectionChanged(SelectionHandler::Selection,SelectionHandler::VtkRegions)),
+	  SIGNAL(selectionChanged(ISelectionHandler::Selection)),
 	  this,
-	  SLOT(startSegmentation(SelectionHandler::Selection,SelectionHandler::VtkRegions)));
+	  SLOT(startSegmentation(ISelectionHandler::Selection)));
   m_seedSelectors.insert(action, handler);
 }
 
