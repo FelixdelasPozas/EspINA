@@ -38,7 +38,7 @@ class QMouseEvent;
 //! List of taxonomy ids which can be selected
 //! WARNING: Special EspINA_Sample taxonomy is used to refer to the sample itself
 typedef QStringList SelectionFilters;
-typedef QList<QPolygonF> ViewRegions;
+typedef QList<QPolygon> ViewRegions;
 
 
 //! Interface for Views where user can select products
@@ -49,7 +49,6 @@ public:
   //! and pass the filtering criteria
   virtual void setSelection(SelectionFilters &filters, ViewRegions &regions) = 0;
   
-protected:
   virtual pqTwoDRenderView *view() = 0;
 };
 
@@ -75,9 +74,9 @@ public:
   {}
   virtual ~ISelectionHandler(){};
   
-  virtual void onMouseDown(QPointF &pos, ISelectableView *view) = 0;
-  virtual void onMouseMove(QPointF &pos, ISelectableView *view) = 0;
-  virtual void onMouseUp(QPointF &pos, ISelectableView *view) = 0;
+  virtual void onMouseDown(QPoint &pos, ISelectableView *view) = 0;
+  virtual void onMouseMove(QPoint &pos, ISelectableView *view) = 0;
+  virtual void onMouseUp(QPoint &pos, ISelectableView *view) = 0;
   
   void setSelection(ISelectionHandler::Selection sel);
   void abortSelection();
@@ -104,9 +103,9 @@ public:
   ~SelectionManager(){}
   
   //! Delegates calls on active SelectionHandler
-  void onMouseDown(QPointF &pos, ISelectableView *view) { if (m_handler) m_handler->onMouseDown(pos, view);}
-  void onMouseMove(QPointF &pos, ISelectableView *view) { if (m_handler) m_handler->onMouseMove(pos, view);}
-  void onMouseUp(QPointF &pos, ISelectableView *view) { if (m_handler) m_handler->onMouseUp(pos, view);}
+  void onMouseDown(QPoint &pos, ISelectableView *view) { if (m_handler) m_handler->onMouseDown(pos, view);}
+  void onMouseMove(QPoint &pos, ISelectableView *view) { if (m_handler) m_handler->onMouseMove(pos, view);}
+  void onMouseUp(QPoint &pos, ISelectableView *view) { if (m_handler) m_handler->onMouseUp(pos, view);}
   
   void setSelection(ISelectionHandler::Selection sel) {if (m_handler) m_handler->setSelection(sel);}
   

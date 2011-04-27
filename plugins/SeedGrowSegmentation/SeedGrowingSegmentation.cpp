@@ -213,7 +213,7 @@ void SeedGrowingSegmentation::buildSelectors()
     QIcon(":/bestPixelSel")
     , tr("Add synapse (Ctrl +). Best Pixel"),
     m_selectors);
-  handler = new PixelSelector();
+  handler = new BestPixelSelector();
   handler->multiSelection = false;
   handler->filters << "EspINA_Sample";
   addPixelSelector(action, handler);

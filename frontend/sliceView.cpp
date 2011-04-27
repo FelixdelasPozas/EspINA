@@ -768,7 +768,7 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
   int xPos, yPos;
   rwi->GetEventPosition(xPos, yPos);
   qDebug() << "EspINA::SliceView" << m_plane << ": Clicked Position" << xPos << " " << yPos;
-  QPointF pos(xPos,yPos);
+  QPoint pos(xPos,yPos);
   
   if (event->type() == QMouseEvent::MouseButtonPress &&
       event->buttons() == Qt::LeftButton)
