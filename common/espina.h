@@ -136,9 +136,12 @@ private:
 private:
     TaxonomyNode *m_newSegType; // The type for new segmentations
     Sample *m_activeSample;
+    
+    //! Initial node taxonomy
     TaxonomyNode *m_tax;
     QList<Sample *> m_samples;
     QList<Segmentation *> m_segmentations;
+    //! It contains all the pipeline of filters, segmentations and samples
     ProcessingTrace *m_analysis;
 
     QMap<const TaxonomyNode *, QList<Segmentation *> > m_taxonomySegs;

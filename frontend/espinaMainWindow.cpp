@@ -344,7 +344,7 @@ void EspinaMainWindow::saveFile()
 void EspinaMainWindow::exportFile()
 {
   // GUI
-  pqFileDialog fileDialog(NULL, this, tr("Export"), "", FILTERS);
+  pqFileDialog fileDialog(NULL, this, tr("Export"), "", "Seg Files (*.seg)");
   fileDialog.setFileMode(pqFileDialog::AnyFile);
   if( fileDialog.exec() == QDialog::Accepted )
   {
@@ -420,7 +420,7 @@ void EspinaMainWindow::autoLoadStack()
   QString filePath(getenv("ESPINA_FILE"));
   if( filePath.size() > 0 )
   {
-    // Paraview's open
+    // Import
     m_espina->loadFile(filePath);
   }
 }

@@ -35,6 +35,11 @@
 #include <iostream>
 #include <fstream>
 
+#include <zip.h>
+#include "FilePack.h"
+
+class IOTaxonomy;
+
 
 //------------------------------------------------------------------------
 EspINA *EspINA::m_singleton(NULL);
@@ -378,8 +383,11 @@ void EspINA::loadSource(pqPipelineSource* proxy)
 
     vtkSMStringVectorProperty* filePathProp =
           vtkSMStringVectorProperty::SafeDownCast(proxy->getProxy()->GetProperty("Content"));
-    //qDebug() << "Content:\n" << StringProp2->GetElement(0);
-    std::istringstream trace(std::string(filePathProp->GetElement(0)));
+    qDebug() << "Content:\n" << filePathProp->GetElement(0);
+    //std::istringstream trace(std::string(filePathProp->GetElement(0)));
+    QString content(filePathProp->GetElement(0));
+    QTextStream trace;
+    trace.setString(&content);
     m_analysis->readTrace(trace);
 
   }
@@ -394,7 +402,8 @@ void EspINA::loadSource(pqPipelineSource* proxy)
 //-----------------------------------------------------------------------------
 void EspINA::loadFile(QString& filePath, pqServer* server)
 {
-  //QTextStream stream;
+  //TODO cambiar el stream que usa porcessingTrace por QTextStream para homogeneizar 
+  QTextStream stream;
   if( !m_samples.isEmpty() )
   {
     //m_activeSample;
@@ -404,7 +413,7 @@ void EspINA::loadFile(QString& filePath, pqServer* server)
 //     }
       qDebug() << "Delete the other samples"; //TODO
   }
-  if( server ) // Read remote file
+  if( server ) // Not used. Remote files are loaded through paraview loadSource class
   {
      pqPipelineSource* remoteFile = pqLoadDataReaction::loadData(QStringList(filePath));
      remoteFile->updatePipeline(); //Update the pipeline to obtain the content of the file
@@ -414,31 +423,30 @@ void EspINA::loadFile(QString& filePath, pqServer* server)
           vtkSMStringVectorProperty::SafeDownCast(remoteFile->getProxy()->GetProperty("Content"));
     //qDebug() << "Content:\n" << StringProp2->GetElement(0);
     
-    std::istringstream traceContent(std::string(contentProp->GetElement(0)));
-    //std::cout << "Prop content: " << contentProp->GetElement(0) << std::endl;
-    /*
-    QString path(filePathProp->GetElement(0));
+    QString path(contentProp->GetElement(0));
     stream.setString(&path);
-    */
-    m_analysis->readTrace(traceContent);
+    m_analysis->readTrace(stream);
   }
   else // Read local file
   {
     /*
     QFile file(filePath);
-    file.open(QIODevice::ReadOnly | QIODevice::Text);
     stream.setDevice(&file);
     */
     std::fstream traceContent(filePath.toStdString().c_str());
-    //std::cout << "TraceContent: " << traceContent << std::endl;
-    m_analysis->readTrace(traceContent);
+    if( traceContent.is_open() )
+    {
+      std::cout << "TraceContent: " << filePath.toStdString().c_str() << " Count" << traceContent.gcount() << std::endl;
+      m_analysis->readTrace(traceContent);
+    }
   }
+
 }
 
 //-----------------------------------------------------------------------------
 void EspINA::saveFile(QString& filePath, pqServer* server)
 {
-  if( server )
+  if( server ) 
   {
     // Method to store remote files
     pqPipelineSource* remoteWriter =
@@ -462,8 +470,26 @@ void EspINA::saveFile(QString& filePath, pqServer* server)
   }
   else
   {
+    /*
     std::ofstream file( filePath.toStdString().c_str(), std::_S_trunc );
     m_analysis->print(file);
+    */
+    FilePack pack( filePath );
+    // Retrive ProcessingTrace
+    std::ostringstream trace_data;
+    m_analysis->print( trace_data );
+
+    QString s(trace_data.str().c_str());
+    pack.addTextSource("trace.dot", s);
+    // Retrive Taxonomy
+    if( m_tax )
+    {
+      QString tax_data;
+      IOTaxonomy::writeXMLTaxonomy(m_tax, tax_data);
+      pack.addTextSource("taxonomy.xml", tax_data);
+    }
+    pack.close();
+    
   }
 }
 
