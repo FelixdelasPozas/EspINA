@@ -35,7 +35,6 @@
 #include <iostream>
 #include <fstream>
 
-#include <zip.h>
 #include "FilePack.h"
 
 class IOTaxonomy;
@@ -402,8 +401,9 @@ void EspINA::loadSource(pqPipelineSource* proxy)
 //-----------------------------------------------------------------------------
 void EspINA::loadFile(QString& filePath, pqServer* server)
 {
-  //TODO cambiar el stream que usa porcessingTrace por QTextStream para homogeneizar 
-  QTextStream stream;
+  //TODO cambiar el stream que usa porcessingTrace por QTextStream para homogeneizar
+  QString content;
+  QTextStream stream(&content);
   if( !m_samples.isEmpty() )
   {
     //m_activeSample;
@@ -433,19 +433,58 @@ void EspINA::loadFile(QString& filePath, pqServer* server)
     QFile file(filePath);
     stream.setDevice(&file);
     */
+    /*
     std::fstream traceContent(filePath.toStdString().c_str());
     if( traceContent.is_open() )
     {
       std::cout << "TraceContent: " << filePath.toStdString().c_str() << " Count" << traceContent.gcount() << std::endl;
       m_analysis->readTrace(traceContent);
     }
+    */
+
+    FilePack zipFile( filePath, FilePack::READ );
+    // Read Taxonomy
+    zipFile.readFile(FilePack::TAXONOMY, stream);
+    qDebug() << "Tax: " << *stream.string();
+
+//     QModelIndex taxIndex = taxonomyIndex(m_tax);
+//     beginRemoveRows(taxonomyRoot(), taxIndex.row(),taxIndex.row());
+//     if( m_tax )
+//       delete m_tax;
+//     m_tax = IOTaxonomy::loadXMLTaxonomy(content);
+    m_sampleSegs.clear();
+//     endRemoveRows();
+    
+    content.clear();
+        
+    // Read Trace
+    zipFile.readFile(FilePack::TRACE, stream);
+    qDebug() << "Trace: " << *stream.string();
+    m_analysis->readTrace(stream);
+    // remove the Trace File content
+    content.clear();
+    
+    zipFile.close();
+
+  /*beginRemoveRows(segmentationRoot(),segIndex.row(),segIndex.row());      
+  m_segmentations.removeOne(seg);
+  m_taxonomySegs[seg->taxonomy()].removeOne(seg);
+  m_sampleSegs[seg->origin()].removeOne(seg);
+  endRemoveRows();
+  */
   }
 
 }
 
 //-----------------------------------------------------------------------------
+// PRE: m_tax and m_analysis must be pointers to correct data
 void EspINA::saveFile(QString& filePath, pqServer* server)
 {
+  if( !m_tax or !m_analysis )
+  {
+    qDebug() << "EspINA: Error taxonomy or analysis are NULL. Save aborted";
+    return;
+  }
   if( server ) 
   {
     // Method to store remote files
@@ -474,20 +513,19 @@ void EspINA::saveFile(QString& filePath, pqServer* server)
     std::ofstream file( filePath.toStdString().c_str(), std::_S_trunc );
     m_analysis->print(file);
     */
-    FilePack pack( filePath );
+    
+    FilePack pack( filePath, FilePack::WRITE );
     // Retrive ProcessingTrace
     std::ostringstream trace_data;
     m_analysis->print( trace_data );
 
     QString s(trace_data.str().c_str());
-    pack.addTextSource("trace.dot", s);
+    pack.addSource(FilePack::TRACE, s);
     // Retrive Taxonomy
-    if( m_tax )
-    {
-      QString tax_data;
-      IOTaxonomy::writeXMLTaxonomy(m_tax, tax_data);
-      pack.addTextSource("taxonomy.xml", tax_data);
-    }
+    QString tax_data;
+    IOTaxonomy::writeXMLTaxonomy(m_tax, tax_data);
+    pack.addSource(FilePack::TAXONOMY, tax_data);
+
     pack.close();
     
   }
@@ -567,13 +605,17 @@ EspINA::EspINA(QObject* parent)
 , m_activeSample(NULL)
 {
   loadTaxonomy();
-  m_newSegType = m_tax->getComponent("Symetric");
+  m_newSegType = NULL;//->getComponent("Symetric");
   m_analysis = ProcessingTrace::instance();
 }
 
 //------------------------------------------------------------------------
 void EspINA::loadTaxonomy()
 {
+//   m_tax = new TaxonomyNode("None");
+
+  m_tax = IOTaxonomy::openXMLTaxonomy("default_taxonomy.xml");
+/*  
   m_tax = new TaxonomyNode("FEM");
   TaxonomyNode *newNode;
   newNode = m_tax->addElement("Synapse","FEM");
@@ -582,6 +624,7 @@ void EspINA::loadTaxonomy()
   m_tax->addElement("Symetric","Synapse");
   newNode = m_tax->addElement("Asymetric","Synapse");
   newNode->setColor(QColor(Qt::yellow));
+  
   /* // DEBUG
   m_tax->addElement("A","Vesicles");
   m_tax->addElement("B","Vesicles");

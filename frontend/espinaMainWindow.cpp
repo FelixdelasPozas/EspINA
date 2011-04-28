@@ -87,6 +87,7 @@
 #include "SegmentationExplorer.h"
 
 QString FILTERS("Trace Files (*.trace)");
+QString SEG_FILTERS("Seg Files (*.seg)");
 QString DIRECTORY("");
 
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
@@ -318,7 +319,7 @@ void EspinaMainWindow::importFile()
 {
   // GUI
   //TODO .pvd .mha ....
-  pqFileDialog fileDialog(NULL, this, tr("Import"), "", FILTERS);
+  pqFileDialog fileDialog(NULL, this, tr("Import"), "", SEG_FILTERS);
   fileDialog.setFileMode(pqFileDialog::ExistingFile);
   if( fileDialog.exec() == QDialog::Accepted )
   {
@@ -344,7 +345,7 @@ void EspinaMainWindow::saveFile()
 void EspinaMainWindow::exportFile()
 {
   // GUI
-  pqFileDialog fileDialog(NULL, this, tr("Export"), "", "Seg Files (*.seg)");
+  pqFileDialog fileDialog(NULL, this, tr("Export"), "", SEG_FILTERS);
   fileDialog.setFileMode(pqFileDialog::AnyFile);
   if( fileDialog.exec() == QDialog::Accepted )
   {
