@@ -1,0 +1,100 @@
+<ServerManagerConfiguration>
+  <ProxyGroup name="filters">
+   <SourceProxy name="VOI" class="vtkExtractVOI" label="VOI">
+     <Documentation
+        long_help="Extract a VOI"
+	short_help="Extract a VOI">
+     </Documentation>
+       
+      <InputProperty
+       name="Input"
+       command="SetInputConnection">
+          <ProxyGroupDomain name="groups">
+            <Group name="sources"/>
+            <Group name="filters"/>
+          </ProxyGroupDomain>
+          <DataTypeDomain name="input_type">
+            <DataType value="vtkImageData"/>
+            <DataType value="vtkRectilinearGrid"/>
+            <DataType value="vtkStructuredPoints"/>
+            <DataType value="vtkStructuredGrid"/>
+          </DataTypeDomain>
+          <Documentation>
+            This property specifies the input to the Extract Grid filter.
+          </Documentation>
+     </InputProperty>
+      
+      <IntVectorProperty 
+        name="VOI" 
+        command="SetVOI"
+        number_of_elements="6"
+        default_values="0 0 0 0 0 0">
+       <ExtentDomain name="extent">
+         <RequiredProperties>
+            <Property name="Input" function="Input"/>
+         </RequiredProperties>
+       </ExtentDomain>
+       <Documentation>
+         This property specifies the minimum and maximum point indices along each of the I, J, and K axes; these values indicate the volume of interest (VOI). The output will have the (I,J,K) extent specified here.
+       </Documentation>
+     </IntVectorProperty>
+
+     <IntVectorProperty 
+        name="SampleRateI" 
+        command="SetSampleRateI"
+        animateable="1"
+        number_of_elements="1" default_values="1">
+       <IntRangeDomain name="range" min="1"/>
+       <Documentation>
+         This property indicates the sampling rate in the I dimension. A value grater than 1 results in subsampling; every nth index will be included in the output.
+       </Documentation>
+     </IntVectorProperty>
+
+     <IntVectorProperty 
+        name="SampleRateJ" 
+        command="SetSampleRateJ"
+        animateable="1"
+        number_of_elements="1" default_values="1">
+       <IntRangeDomain name="range" min="1"/>
+       <Documentation>
+         This property indicates the sampling rate in the J dimension. A value grater than 1 results in subsampling; every nth index will be included in the output.
+       </Documentation>
+     </IntVectorProperty>
+
+     <IntVectorProperty 
+        name="SampleRateK" 
+        animateable="1"
+        command="SetSampleRateK"
+        number_of_elements="1" default_values="1">
+       <IntRangeDomain name="range" min="1"/>
+       <Documentation>
+         This property indicates the sampling rate in the K dimension. A value grater than 1 results in subsampling; every nth index will be included in the output.
+       </Documentation>
+     </IntVectorProperty>
+
+     <IntVectorProperty 
+        name="IncludeBoundary" 
+        command="SetIncludeBoundary" 
+        number_of_elements="1"
+        default_values="0" >
+       <BooleanDomain name="bool"/>
+       <Documentation>
+         If the value of this property is 1, then if the sample rate in any dimension is greater than 1, the boundary indices of the input dataset will be passed to the output even if the boundary extent is not an even multiple of the sample rate in a given dimension.
+       </Documentation>
+     </IntVectorProperty>
+     <Hints>
+        <!-- Hints are metadata associated with the proxy.
+             As far as the ServerManager is concerned, Hints have no 
+             significance. GUI is free to interpret the hints as
+             it chooses. Hints provide a mechanism to add some GUI
+             pertinant information to the server manager XML.
+        -->
+        <PropertyGroup type="Box">
+          <Property name="VOI" function="PlaceWidget" />
+        </PropertyGroup>
+       <Visibility replace_input="0" />
+      </Hints>
+   </SourceProxy>
+ </ProxyGroup>
+</ServerManagerConfiguration>
+

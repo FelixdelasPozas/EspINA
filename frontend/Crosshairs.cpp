@@ -22,6 +22,11 @@
 #include <pqApplicationCore.h>
 #include <pqPipelineSource.h>
 #include <pqView.h>
+#include <pq3DWidget.h>
+#include <vtkSMPropertyHelper.h>
+
+#include <assert.h>
+#include <pqObjectBuilder.h>
 
 Crosshairs::Crosshairs(QWidget* parent): IViewWidget(parent)
 {
@@ -39,6 +44,23 @@ void Crosshairs::renderInView(pqView* view)
   dp->setRepresentationVisibility((*m_planes[0])->getOutputPort(0),view,isChecked());
   dp->setRepresentationVisibility((*m_planes[1])->getOutputPort(0),view,isChecked());
   dp->setRepresentationVisibility((*m_planes[2])->getOutputPort(0),view,isChecked());
+    
+  /*
+  QPointer<pq3DWidget> planeWidget;
+  pqObjectBuilder *builder =  pqApplicationCore::instance()->getObjectBuilder();
+  vtkSMProxy *box =  builder->createProxy("implicit_functions","Box",pqApplicationCore::instance()->getActiveServer(),"widgets");
+  
+
+  
+  //vtkSMProxy *slice = vtkSMPropertyHelper((*m_planes[0])->getProxy(), "Slice").GetAsProxy();
+  QList<pq3DWidget *> widgtes =  pq3DWidget::createWidgets((*m_planes[0])->getProxy(), box);
+  assert(widgtes.size() == 1);
+  
+  planeWidget = widgtes[0];
+  planeWidget->setView(view);
+  planeWidget->setWidgetVisible(true);
+  planeWidget->select();
+  */
 }
 
 void Crosshairs::updateState(bool checked)

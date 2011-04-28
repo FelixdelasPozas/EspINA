@@ -60,6 +60,9 @@
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkCamera.h>
+#include <vtkSMPropertyHelper.h>
+#include <pq3DWidget.h>
+#include <pqPipelineFilter.h>
 
 #define HINTWIDTH 40
 
@@ -745,10 +748,14 @@ void SliceView::setSlice(int value)
   vtkSMProperty *p;
   vtkSMIntVectorProperty *slice;
 
+  //WARNING: Use vtkSMPropertyHelper instead of basic properties
+  vtkSMPropertyHelper(m_slicer->getProxy(),"Slice").Set(value);
+  /*
   p = m_slicer->getProxy()->GetProperty("Slice");
   slice = vtkSMIntVectorProperty::SafeDownCast(p);
   if (slice)
     slice->SetElements1(value);
+  */
   emit sliceChanged();
   updateScene();
 }
@@ -796,7 +803,6 @@ void SliceView::updateScene()
     slice(s_blender->source());
   else
     slice(s_focusedSample->sourceData());
-
 
   m_view->render();
 }

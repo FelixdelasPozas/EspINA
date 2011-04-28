@@ -1,4 +1,4 @@
-project (ESPINA_SEEDGROW_PLUGIN)
+project (ESPINA_VOI_PLUGIN)
 
 cmake_minimum_required (VERSION 2.6)
 
@@ -23,7 +23,6 @@ link_directories ( ${Boost_LIBRARY_DIRS} )
 
 SET (ITK_VTK_GLUE "" CACHE PATH "Path to ItkVtkGlue external project")
 
-
 include_directories(
   ${CMAKE_SOURCE_DIR}/common
   ${CMAKE_CURRENT_SOURCE_DIR} 
@@ -32,21 +31,20 @@ include_directories(
   ${ITK_DIR}/../
   )
 
-
 qt4_add_resources (RCC_BUILT_SOURCES 
-  rsc/SeedGrowSegmentation.qrc
+  rsc/VolumeOfInterest.qrc
   )
 
 # We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
 qt4_wrap_cpp(MOC_SRCS 
-  SeedGrowingSegmentation.h
+  VolumeOfInterest.h
   )
 
 # This is a macro for adding QActionGroup subclasses automatically as toolbars.
 ADD_PARAVIEW_ACTION_GROUP(
   IFACES IFACE_SRCS 
-  CLASS_NAME SeedGrowingSegmentation 
-  GROUP_NAME "ToolBar/SeedGrowingSegmentation")
+  CLASS_NAME VolumeOfInterest 
+  GROUP_NAME "ToolBar/VolumeOfInterest")
 
 file ( GLOB LOCAL_SOURCES *.cpp )
 
@@ -60,17 +58,15 @@ set (PARAVIEW_ADDITIONAL_LIBRARIES
   ${PARAVIEW_ADDITIONAL_LIBRARIES}
   ${CAJAL_LIBRARIES}
   Espina
-  ITKCommon ITKBasicFilters ITKAlgorithms ITKIO
-  ${Boost_LIBRARIES}
 )
 
 # Now crete a plugin for the toolbar. Here we pass IFACES and IFACE_SRCS
 # which are filled up by the above macro with relevant entries
 ADD_PARAVIEW_PLUGIN(
-  Segmentation
+  VolumeOfInterest
   "0.1" 
-  SERVER_MANAGER_XML SeedGrowSegmentation.xml
-  SERVER_MANAGER_SOURCES vtkConnectedThresholdImageFilter.cpp
+  SERVER_MANAGER_XML VolumeOfInterestFilters.xml
+  #SERVER_MANAGER_SOURCES vtkConnectedThresholdImageFilter.cpp
 	#According to: http://markmail.org/message/wj27wmlj6rjd7vg5
 	# - See the macro documentation in ParaView/CMake/ParaViewPlugins.cmake:~835
 	# - the parser doesn't work because it seems there is no vtkClass inside
@@ -82,7 +78,7 @@ ADD_PARAVIEW_PLUGIN(
   )
 
 if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
-  set_target_properties(Segmentation PROPERTIES COMPILE_FLAGS "-fPIC")
+  set_target_properties(VolumeOfInterest PROPERTIES COMPILE_FLAGS "-fPIC")
 endif( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
-target_link_libraries (Segmentation ${PARAVIEW_ADDITIONAL_LIBRARIES} )
+target_link_libraries (VolumeOfInterest ${PARAVIEW_ADDITIONAL_LIBRARIES} )

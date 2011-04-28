@@ -15,7 +15,7 @@ find_package (ITK REQUIRED)
 include (${ITK_USE_FILE})
 
 find_package (Cajal REQUIRED)
-include (${ITK_USE_FILE})
+include (${CAJAL_USE_FILE})
 
 find_package(Boost REQUIRED COMPONENTS  system filesystem graph)
 link_directories ( ${Boost_LIBRARY_DIRS} )

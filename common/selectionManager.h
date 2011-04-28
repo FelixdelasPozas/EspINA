@@ -52,6 +52,13 @@ public:
   virtual pqTwoDRenderView *view() = 0;
 };
 
+class IVOI
+{
+public:
+  virtual void w2a() = 0;
+  virtual void a2w() = 0;
+};
+
 
 //! Interface to handle selections
 //! Plugin that implement this interface have to specify

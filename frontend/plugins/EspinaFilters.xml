@@ -112,8 +112,19 @@
          default_values="0"
 		 immediate_update="1"
         command="SetSlice">
+		<ProxyGroupDomain name="groups">
+			<Group name="implicit_functions"/>
+		</ProxyGroupDomain>
+		<ProxyListDomain name="proxy_list">
+			<Proxy group="implicit_functions" name="Plane" />
+		</ProxyListDomain>
+		<Documentation>
+			Set the parameters to the implicit function used for cutting.
+		</Documentation>
       </IntVectorProperty>
    </SourceProxy>
+
+
 
    <SourceProxy name="ImageMapToColors" class="vtkImageMapToColors" label="ImageMapToColors">
      <Documentation

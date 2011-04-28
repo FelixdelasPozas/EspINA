@@ -44,6 +44,7 @@
 #include "vtkSMProxyProperty.h"
 #include "vtkSMDoubleVectorProperty.h"
 #include "vtkSMStringVectorProperty.h"
+#include <pqBoxWidget.h>
 
 #include <QDebug>
 #include <data/taxonomy.h>
@@ -350,6 +351,7 @@ void VolumeView::updateScene()
   cam->SetFocalPoint(m_focus);
   
   view->GetInteractor()->SetCenterOfRotation(m_focus);
+
   
   m_view->render();
 }

@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file alias="voi">roi_go.svg</file>
+        <file>roi_out.svg</file>
+    </qresource>
+</RCC>
