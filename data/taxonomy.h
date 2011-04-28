@@ -7,7 +7,8 @@
 
 // Qt dependencies
 #include <QString>
-#include <QXmlStreamWriter>
+#include <QXmlStreamWriter> //TODO move to cpp
+#include <QTextStream>
 #include <QColor>
 
 class TaxonomyNode : public IModelItem
@@ -55,13 +56,16 @@ class IOTaxonomy
 {
 private:
   static void writeTaxonomyNode(TaxonomyNode* node, QXmlStreamWriter& stream);
-  
+  static TaxonomyNode* readXML( QXmlStreamReader& xmlStream );
 public:
   IOTaxonomy();
   ~IOTaxonomy();
-  
-  static TaxonomyNode* openXMLTaxonomy( QString& fileName);
-  static void writeXMLTaxonomy(TaxonomyNode& tax, QString fileName);
+
+  static TaxonomyNode* openXMLTaxonomy( QString fileName);
+  static TaxonomyNode* loadXMLTaxonomy( QString& content);
+
+  //static void writeXMLTaxonomy(TaxonomyNode& tax, QString fileName);
+  static void writeXMLTaxonomy(TaxonomyNode* tax, QString& destination);
 };
 
 #endif // _TAXONOMY_

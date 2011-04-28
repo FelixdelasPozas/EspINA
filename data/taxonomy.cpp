@@ -191,48 +191,131 @@ IOTaxonomy::~IOTaxonomy()
 
 }
 
-TaxonomyNode* IOTaxonomy::openXMLTaxonomy(QString& fileName)
+
+TaxonomyNode* IOTaxonomy::readXML(QXmlStreamReader& xmlStream)
 {
-  QFile file( fileName );
-  if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) 
-  {
-/*    QMessageBox::critical(this, "IOTaxonomy::openXMLTaxonomy", 
-			  "Couldn't open the file", 
-			  QMessageBox::Ok);*/
-    qDebug() <<"File could not be oppended";
-    return NULL;
-  }
-  QXmlStreamReader stream(&file);
+  // Read the XML
+//   QXmlStreamReader xmlStream(&file);
   QStringRef nodeName;
   TaxonomyNode* tax;
-
   std::stack<QString> taxHierarchy;
-  while(!stream.atEnd())
+  while(!xmlStream.atEnd())
   {
-    stream.readNextStartElement();
-    if( stream.name() == "node")
+    xmlStream.readNextStartElement();
+    if( xmlStream.name() == "node")
     {
-      if( stream.isStartElement() )
+      if( xmlStream.isStartElement() )
       {
-	nodeName = stream.attributes().value("name");
-	if( taxHierarchy.empty() )
-	{
-	  tax = new TaxonomyNode( nodeName.toString() );
-	}
-	else
-	{
-	  tax->addElement( nodeName.toString(), taxHierarchy.top() );
-	}
-	taxHierarchy.push( nodeName.toString() );
+        nodeName = xmlStream.attributes().value("name");
+        if( taxHierarchy.empty() )
+        {
+          tax = new TaxonomyNode( nodeName.toString() );
+        }
+        else
+        {
+          tax->addElement( nodeName.toString(), taxHierarchy.top() );
+        }
+        taxHierarchy.push( nodeName.toString() );
       }
-      else if( stream.isEndElement() )
+      else if( xmlStream.isEndElement() )
       {
-	taxHierarchy.pop();
+        taxHierarchy.pop();
       }
     }
   }
+  return tax;
+}
+
+
+TaxonomyNode* IOTaxonomy::openXMLTaxonomy(QString fileName)
+{
+  QFile file( fileName );
+  if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+  {
+//    QMessageBox::critical(this, "IOTaxonomy::openXMLTaxonomy",
+//               "Couldn't open the file",
+//               QMessageBox::Ok);
+    qDebug() <<"File could not be oppended";
+    return NULL;
+  }
+
+  // Read the XML
+  QXmlStreamReader xmlStream(&file);
+  /*
+  QStringRef nodeName;
+  TaxonomyNode* tax;
+  std::stack<QString> taxHierarchy;
+  while(!xmlStream.atEnd())
+  {
+    xmlStream.readNextStartElement();
+    if( xmlStream.name() == "node")
+    {
+      if( xmlStream.isStartElement() )
+      {
+        nodeName = xmlStream.attributes().value("name");
+        if( taxHierarchy.empty() )
+        {
+          tax = new TaxonomyNode( nodeName.toString() );
+        }
+        else
+        {
+          tax->addElement( nodeName.toString(), taxHierarchy.top() );
+        }
+        taxHierarchy.push( nodeName.toString() );
+      }
+      else if( xmlStream.isEndElement() )
+      {
+        taxHierarchy.pop();
+      }
+    }
+  }
+  */
+  TaxonomyNode* tax = readXML(xmlStream);
   file.close();
   return tax;
+}
+
+TaxonomyNode* IOTaxonomy::loadXMLTaxonomy(QString& content)
+{
+
+//   if( content.device() )
+//     xmlStream.setDevice( content.device() );
+//   else if( content.string() )
+//     xmlStream = QXmlStreamReader(*content.string());
+    
+  // Read the XML
+  QXmlStreamReader xmlStream(content);
+  /*
+  QStringRef nodeName;
+  TaxonomyNode* tax;
+  std::stack<QString> taxHierarchy;
+  while(!xmlStream.atEnd())
+  {
+    xmlStream.readNextStartElement();
+    if( xmlStream.name() == "node")
+    {
+      if( xmlStream.isStartElement() )
+      {
+        nodeName = xmlStream.attributes().value("name");
+        if( taxHierarchy.empty() )
+        {
+          tax = new TaxonomyNode( nodeName.toString() );
+        }
+        else
+        {
+          tax->addElement( nodeName.toString(), taxHierarchy.top() );
+        }
+        taxHierarchy.push( nodeName.toString() );
+      }
+      else if( xmlStream.isEndElement() )
+      {
+        taxHierarchy.pop();
+      }
+    }
+  }
+  return tax;
+  */
+  return readXML(xmlStream);
 }
 
 
@@ -244,10 +327,10 @@ void IOTaxonomy::writeTaxonomyNode(TaxonomyNode* node, QXmlStreamWriter& stream)
     stream.writeStartElement( "node" );
     stream.writeAttribute("name", node->getName());
     
-    TaxonomyNode *node;
-    foreach(node,node->getSubElements())
+    TaxonomyNode* subnode;
+    foreach(subnode, node->getSubElements())
     {
-      IOTaxonomy::writeTaxonomyNode(node, stream );
+      IOTaxonomy::writeTaxonomyNode(subnode, stream );
     }
 //     nodes = node->getSubElements();
 //     if( nodes )
@@ -262,7 +345,7 @@ void IOTaxonomy::writeTaxonomyNode(TaxonomyNode* node, QXmlStreamWriter& stream)
   }
 }
 
-
+/*
 void IOTaxonomy::writeXMLTaxonomy(TaxonomyNode& tax, QString fileName)
 {
   QFile fd (fileName);
@@ -279,4 +362,23 @@ void IOTaxonomy::writeXMLTaxonomy(TaxonomyNode& tax, QString fileName)
   stream.writeEndDocument();
   fd.close();
 }
+*/
 
+//-----------------------------------------------------------------------------
+void IOTaxonomy::writeXMLTaxonomy(TaxonomyNode* tax, QString& destination)
+{
+//   QFile fd (fileName);
+//   fd.open( QIODevice::WriteOnly | QIODevice::Truncate );
+  QXmlStreamWriter stream(&destination);
+
+  stream.setAutoFormatting(true);
+  stream.writeStartDocument();
+  stream.writeStartElement("Taxonomy");
+
+  IOTaxonomy::writeTaxonomyNode( tax, stream );
+
+  stream.writeEndElement();
+  stream.writeEndDocument();
+  
+  //fd.close();
+}

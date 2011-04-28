@@ -68,7 +68,7 @@ int main(int argc, const char* argv[]){
   QString fileName = "test_taxonomy.xml";
   if( argc > 1 )
     fileName = argv[1];
-  IOTaxonomy::writeXMLTaxonomy( *tax, fileName );
+  IOTaxonomy::writeXMLTaxonomy( tax, fileName );
   
   delete tax;
   
@@ -79,7 +79,7 @@ int main(int argc, const char* argv[]){
   QString fileName2 (fileName);
   fileName2.append("v2");
   
-  IOTaxonomy::writeXMLTaxonomy( *tax, fileName2 );
+  IOTaxonomy::writeXMLTaxonomy( tax, fileName2 );
   
   qDebug() << "diff " << fileName << " " << fileName2;
   assert( diff( fileName.toStdString(), fileName2.toStdString()) == 0 );
