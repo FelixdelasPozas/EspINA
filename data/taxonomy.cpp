@@ -20,10 +20,10 @@
 */
 
 //------------------------------------------------------------------------
-TaxonomyNode::TaxonomyNode(QString name) 
+TaxonomyNode::TaxonomyNode(QString name, QString RGBColor)
 : m_name(name)//, m_elements(NULL)
 , m_description(name)
-, m_color(0,255,0)
+, m_color(RGBColor)
 {
 }
 
@@ -72,17 +72,18 @@ void TaxonomyNode::addElement(QString subElement)
 */
 
 //------------------------------------------------------------------------
-TaxonomyNode* TaxonomyNode::addElement(QString subElement, QString supElement)
+TaxonomyNode* TaxonomyNode::addElement(QString subElement, QString supElement, QString RGBColor)
 {
   //ASSERT( this->getComponent(subElement)==NULL);
   if( this->getComponent(subElement) )
     throw "RepeatedElementException"; //TODO change exception
   TaxonomyNode* supNode = this->getComponent(supElement);
   TaxonomyNode *newElement = NULL;
+  QString newColor = ((RGBColor == "") ? supNode->getColor().name() : RGBColor);
   if( supNode )
   {
-    newElement = supNode->insertElement( subElement );
-    newElement->setColor(supNode->getColor());
+    newElement = supNode->insertElement( subElement, newColor );
+    //newElement->setColor(supNode->getColor());
   }
   else{
     std::cerr << "Error: " << supElement.toStdString() << " does not exist in the taxonomy" << std::endl;
@@ -148,11 +149,12 @@ QVector<TaxonomyNode *> TaxonomyNode::getSubElements() const
 }
 
 //------------------------------------------------------------------------
-TaxonomyNode* TaxonomyNode::insertElement(QString subElement)
+TaxonomyNode* TaxonomyNode::insertElement(QString subElement, QString RGBColor)
 {
   //if( !m_elements )
   //  m_elements = new std::vector<TaxonomyNode*>();
-  TaxonomyNode *newElement = new TaxonomyNode(subElement);
+  TaxonomyNode *newElement = new TaxonomyNode(subElement, RGBColor);
+  
   m_elements.push_back(newElement);
   return newElement;
 }
@@ -196,7 +198,7 @@ TaxonomyNode* IOTaxonomy::readXML(QXmlStreamReader& xmlStream)
 {
   // Read the XML
 //   QXmlStreamReader xmlStream(&file);
-  QStringRef nodeName;
+  QStringRef nodeName, color;
   TaxonomyNode* tax;
   std::stack<QString> taxHierarchy;
   while(!xmlStream.atEnd())
@@ -207,13 +209,14 @@ TaxonomyNode* IOTaxonomy::readXML(QXmlStreamReader& xmlStream)
       if( xmlStream.isStartElement() )
       {
         nodeName = xmlStream.attributes().value("name");
+        color = xmlStream.attributes().value("color");
         if( taxHierarchy.empty() )
         {
-          tax = new TaxonomyNode( nodeName.toString() );
+          tax = new TaxonomyNode( nodeName.toString(), color.toString() );
         }
         else
         {
-          tax->addElement( nodeName.toString(), taxHierarchy.top() );
+          tax->addElement( nodeName.toString(), taxHierarchy.top(), color.toString() );
         }
         taxHierarchy.push( nodeName.toString() );
       }
@@ -326,7 +329,7 @@ void IOTaxonomy::writeTaxonomyNode(TaxonomyNode* node, QXmlStreamWriter& stream)
     //QVector<TaxonomyNode*> nodes;
     stream.writeStartElement( "node" );
     stream.writeAttribute("name", node->getName());
-    
+    stream.writeAttribute("color", node->getColor().name());
     TaxonomyNode* subnode;
     foreach(subnode, node->getSubElements())
     {

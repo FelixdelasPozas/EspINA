@@ -15,7 +15,7 @@ class TaxonomyNode : public IModelItem
 {
  
 public:
-  TaxonomyNode( QString name );
+  TaxonomyNode( QString name, QString RGBColor = "#00FF00" );
   ~TaxonomyNode();
   
   void print(int level=0);   
@@ -25,7 +25,7 @@ public:
   // exists in all the tree that this object has it returns an Error.
   // Note that to check the existence of the subElement name, it is necesarry to insert all 
   // the elements through the TaxonoyNode object at the top of the tree.
-  TaxonomyNode* addElement( QString subElement, QString supElement );
+  TaxonomyNode* addElement( QString subElement, QString supElement, QString RGBColor = "");
  
   // Methods to explore the taxonomy
   TaxonomyNode* getParent( QString name );
@@ -44,7 +44,7 @@ public:
   virtual QVariant data(int role = Qt::UserRole + 1) const;
   
 private:
- TaxonomyNode *insertElement( QString subElement ); // Without checking 
+ TaxonomyNode *insertElement( QString subElement, QString RGBColor ); // Without checking
  
 private:
  QVector<TaxonomyNode *> m_elements;
