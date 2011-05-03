@@ -332,7 +332,7 @@ void EspinaMainWindow::saveFile()
 {
   // GUI
   pqServer* server = pqApplicationCore::instance()->getActiveServer();
-  pqFileDialog fileDialog(server, this, tr("Save Trace"), "", FILTERS);
+  pqFileDialog fileDialog(server, this, tr("Save Trace"), "", SEG_FILTERS);
   fileDialog.setFileMode(pqFileDialog::AnyFile);
   if( fileDialog.exec() == QDialog::Accepted )
   {
@@ -433,6 +433,7 @@ void EspinaMainWindow::buildFileMenu(QMenu &menu)
   QIcon iconOpen = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
  
   QAction *action = new QAction(iconOpen,tr("Open - ParaView mode"),this);
+  action->setShortcut(tr("Ctrl+O"));
   pqLoadDataReaction * loadReaction = new pqLoadDataReaction(action);
   QObject::connect(loadReaction, SIGNAL(loadedData(pqPipelineSource *)),
 		    m_espina, SLOT( loadSource(pqPipelineSource *)));
@@ -441,6 +442,7 @@ void EspinaMainWindow::buildFileMenu(QMenu &menu)
 
   QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
   action = new QAction(iconSave, tr("Save - ParaView mode"), this);
+  action->setShortcut(tr("Ctrl+S"));
 //  pqSaveDataReaction* saveReaction = new pqSaveDataReaction(action);
   QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT(saveFile()));
   menu.addAction(action);
@@ -448,11 +450,13 @@ void EspinaMainWindow::buildFileMenu(QMenu &menu)
   /* Import Trace from localhost  */
   action = new QAction(tr("Import"),this);
   QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT( importFile()));
+  action->setShortcut(tr("Ctrl+I"));
   //QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT( fileDialog(NULL, "Import")));
   menu.addAction(action);
 
   /* Export Trace to localhost */
   action = new QAction(tr("Export"),this);
+  action->setShortcut(tr("Ctrl+E"));
   QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT( exportFile()) );
   menu.addAction(action);
 }

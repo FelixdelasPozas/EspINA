@@ -6,6 +6,7 @@
 #include <QVector>
 #include <qtextstream.h>
 #include <boost/concept_check.hpp>
+#include <QList>
 
 class FilePack
 {
@@ -19,6 +20,7 @@ public:
     TAXONOMY,
     //SEGMENTATION
   };
+  
   
   FilePack(QString FilePackName, flags flag);
   ~FilePack();
@@ -36,7 +38,9 @@ private:
   struct zip* m_file;
   int m_error; // Error number
 
+  QList<QString> m_TmpFilesToRemove;
   QString getRealName(fileNames name);
+  
   
 };
 

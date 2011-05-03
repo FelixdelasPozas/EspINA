@@ -51,19 +51,26 @@ void FilePack::readFile(FilePack::fileNames name, QTextStream& data)
 //-----------------------------------------------------------------------------
 int FilePack::addSource(FilePack::fileNames name, QString& data)
 {
-  /*
-  QFile f("/tmp/"+fileName);
+  // zip_source_buffer corrupts the files ...
+  QString stdFileName = getRealName(name);
+  QString tmpFileName = "."+stdFileName;
+  QFile f(tmpFileName);
   f.open(QIODevice::WriteOnly | QIODevice::Truncate);
   f.write(data.toUtf8());
   f.close();
-  */
+
+  m_TmpFilesToRemove.append( tmpFileName );
+  
+  qDebug() << "FilePack: addSource: " << data;
   int index = -2;
   struct zip_source* s_buffer =
-    zip_source_buffer(m_file, data.toLocal8Bit(), data.size(), 0);
+    zip_source_file(m_file, tmpFileName.toUtf8(), 0, 0);
+    //zip_source_buffer(m_file, data.toStdString().c_str(), data.size(), 0);
   if( s_buffer )
-    index = zip_add(m_file, getRealName(name).toLocal8Bit(), s_buffer);
-  else
+    index = zip_add(m_file, stdFileName.toUtf8(), s_buffer);
+  if (index < 0)
     qDebug() << "FilePacker: Error while adding source:\n" << zip_strerror(m_file);
+  //f.remove();
   return index;
 }
 
@@ -73,7 +80,11 @@ bool FilePack::close()
   if(m_file)
   {
     bool ret = zip_close(m_file) == 0? true : false;
+    if( ! ret)
+      qDebug() << "FilePack: error while closing. " << zip_strerror(m_file);
     m_file = NULL;
+    foreach(QString file, m_TmpFilesToRemove)
+      QFile::remove(file);
     return ret;
   }  
   return false;

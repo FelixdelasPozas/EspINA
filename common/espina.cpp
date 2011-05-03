@@ -485,24 +485,35 @@ void EspINA::saveFile(QString& filePath, pqServer* server)
     qDebug() << "EspINA: Error taxonomy or analysis are NULL. Save aborted";
     return;
   }
+
+  // Retrive ProcessingTrace
+  std::ostringstream trace_data;
+  m_analysis->print( trace_data );
+  // Retrive Taxonomy
+  QString tax_data;
+  IOTaxonomy::writeXMLTaxonomy(m_tax, tax_data);
+  
   if( server ) 
   {
     // Method to store remote files
     pqPipelineSource* remoteWriter =
       pqApplicationCore::instance()->getObjectBuilder()->
-      createFilter("filters", "remoteFileWriter",
+      createFilter("filters", "segFileWriter",
                    QMap<QString, QList< pqOutputPort*> >(),
                    pqApplicationCore::instance()->getActiveServer() );
 
     vtkSMStringVectorProperty* fileNameProp =
           vtkSMStringVectorProperty::SafeDownCast(remoteWriter->getProxy()->GetProperty("FileName"));
     fileNameProp->SetElement(0, filePath.toStdString().c_str());
-    vtkSMStringVectorProperty* contentProp =
-          vtkSMStringVectorProperty::SafeDownCast(remoteWriter->getProxy()->GetProperty("Content"));
+    // Set Trace
+    vtkSMStringVectorProperty* traceProp =
+          vtkSMStringVectorProperty::SafeDownCast(remoteWriter->getProxy()->GetProperty("Trace"));
+    traceProp->SetElement(0, trace_data.str().c_str());
+    // Set Taxonomy
+    vtkSMStringVectorProperty* taxProp =
+          vtkSMStringVectorProperty::SafeDownCast(remoteWriter->getProxy()->GetProperty("Taxonomy"));
+    taxProp->SetElement(0, tax_data.toStdString().c_str());
 
-    std::stringstream content;
-    m_analysis->print(content);
-    contentProp->SetElement(0, content.str().c_str());
     //Update the pipeline to obtain the content of the file
     remoteWriter->getProxy()->UpdateVTKObjects();
     remoteWriter->updatePipeline();
@@ -515,17 +526,9 @@ void EspINA::saveFile(QString& filePath, pqServer* server)
     */
     
     FilePack pack( filePath, FilePack::WRITE );
-    // Retrive ProcessingTrace
-    std::ostringstream trace_data;
-    m_analysis->print( trace_data );
-
     QString s(trace_data.str().c_str());
     pack.addSource(FilePack::TRACE, s);
-    // Retrive Taxonomy
-    QString tax_data;
-    IOTaxonomy::writeXMLTaxonomy(m_tax, tax_data);
     pack.addSource(FilePack::TAXONOMY, tax_data);
-
     pack.close();
     
   }
