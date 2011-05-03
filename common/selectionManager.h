@@ -27,9 +27,12 @@
 #include <QVector3D>
 #include <QPolygonF>
 
+class pqProxy;
 class Product;
 class pqTwoDRenderView;
 class QMouseEvent;
+class IVOI;
+class pq3DWidget;
 
 #include <assert.h>
 #include <QStringList>
@@ -40,23 +43,40 @@ class QMouseEvent;
 typedef QStringList SelectionFilters;
 typedef QList<QPolygon> ViewRegions;
 
+class vtkSMProxy;
+class pq3DWidget;
 
 //! Interface for Views where user can select products
 class ISelectableView
 {
 public:
+  ISelectableView() : m_VOIWidget(NULL){}
   //! Set a selection to all elements which belong to regions
   //! and pass the filtering criteria
   virtual void setSelection(SelectionFilters &filters, ViewRegions &regions) = 0;
   
   virtual pqTwoDRenderView *view() = 0;
+  
+protected:
+  virtual void setVOI(IVOI *voi) = 0;
+  
+protected:
+  pq3DWidget *m_VOIWidget;
 };
 
 class IVOI
 {
 public:
+  virtual ~IVOI(){}
+  
   virtual void w2a() = 0;
   virtual void a2w() = 0;
+  
+  virtual vtkSMProxy * getProxy() = 0;
+  virtual pq3DWidget *widget() = 0;
+  virtual pq3DWidget *widget(int plane) = 0;
+  
+  virtual void cancelVOI() = 0;
 };
 
 
@@ -115,16 +135,22 @@ public:
   void onMouseUp(QPoint &pos, ISelectableView *view) { if (m_handler) m_handler->onMouseUp(pos, view);}
   
   void setSelection(ISelectionHandler::Selection sel) {if (m_handler) m_handler->setSelection(sel);}
+  void setVOI(IVOI *voi);
   
 public slots:
   //! Register @sh as active Selection Handler
   void setSelectionHandler(ISelectionHandler *sh);
   
+signals:
+  void VOIChanged(IVOI *voi);
+  
+public:
   //! Returns a SelectionManager singleton
   static SelectionManager *instance(){return m_singleton;}
   
 private:
   ISelectionHandler *m_handler;
+  IVOI *m_voi;
   static SelectionManager *m_singleton;
 };
 

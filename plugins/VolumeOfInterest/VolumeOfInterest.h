@@ -56,29 +56,29 @@ public:
   
   void LoadAnalisys(EspinaParamList& args);
 protected slots:
-  //! Changes the method to select the input seed
-  void changeSeedSelector(QAction *seedSel);
-  //! Wait for Seed Selection
-  void waitSeedSelection(bool wait);
-  //! Abort current selection
-  void abortSelection();
+  //! Changes VOI enable state
+  void enable(bool value);
+  //! Changes the VOI
+  void changeVOI(QAction *voi);
+  //! Cancel current VOI
+  void cancelVOI();
   
 signals:
-  void selectionAborted(ISelectionHandler *);
+  void voiCancelled(IVOI *);
   
 private:
-  void buildSelectors();
+  void buildVOIs();
   void buildUI();
   
-  void addPixelSelector(QAction *action, ISelectionHandler *handler);
+  void addVOI(QAction *action, IVOI *voi);
   
   void buildSubPipeline(Product* input, EspinaParamList args);
   
 private:
-  QToolButton *m_roiButton;
-  QMenu *m_selectors;
-  ISelectionHandler *m_seedSelector;
-  QMap<QAction *, ISelectionHandler *> m_seedSelectors;
+  QToolButton *m_voiButton;
+  QMenu *m_VOIMenu;
+  IVOI *m_activeVOI;
+  QMap<QAction *, IVOI *> m_VOIs;
 };
 
 #endif// VOLUMEOFINTEREST_H

@@ -31,7 +31,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =========================================================================*/
 #include "VolumeOfInterest.h"
 
-//#include "objectManager.h"
+#include "RectangularVOI.h"
+
 #include "espina.h"
 #include <cache/cachedObjectBuilder.h>
 
@@ -61,22 +62,22 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <espINAFactory.h>
 
 
+
 #define DEFAULT_THRESHOLD 30
 
 //-----------------------------------------------------------------------------
 VolumeOfInterest::VolumeOfInterest(QObject* parent)
 : QActionGroup(parent)
 , EspinaPlugin()
-, m_seedSelector(NULL)
+, m_activeVOI(NULL)
 {
-  m_groupName = "filters";
+  m_groupName = "filters";//TODO: group: plugins filterName-->pluginName
   m_filterName = "VolumeOfInterest"; //TODO: Review this
   
   buildUI();
   
   // register in a plugin list
   ProcessingTrace::instance()->registerPlugin(this);
-
 }
 
 void VolumeOfInterest::LoadAnalisys(EspinaParamList& args)
@@ -101,108 +102,98 @@ void VolumeOfInterest::LoadAnalisys(EspinaParamList& args)
   this->buildSubPipeline(EspINA::instance()->activeSample(), args);
 }
 
-//-----------------------------------------------------------------------------
-void VolumeOfInterest::changeSeedSelector(QAction* seedSel)
-{
-  assert(false);
-  qDebug() << "EspINA::SeedGrowingRegionSegmenation: Changing Seed Selector";
-  m_seedSelector = m_seedSelectors.value(seedSel);
-  
-  if (!m_seedSelector)
-  {
-    qDebug() << "EspINA::VolumeOfInterest FATAL ERROR: No valid Seed Selector";
-    assert(m_seedSelector);
-  }
-  
-  m_roiButton->setIcon(seedSel->icon());
-  
-  waitSeedSelection(m_roiButton->isChecked());
-}
 
 //-----------------------------------------------------------------------------
-void VolumeOfInterest::waitSeedSelection(bool wait)
+void VolumeOfInterest::enable(bool value)
 {
-  assert(false);
-  if (wait)
+  if (m_voiButton->isChecked())
   {
-    qDebug() << "EspINA::SeedGrowingRegionSegmenation: Waiting for Seed Selection";
-    SelectionManager::instance()->setSelectionHandler(m_seedSelector);
-    m_roiButton->setChecked(true);
+    qDebug() << "EspINA::VolumeOfInterest: Apply VOI";
+    SelectionManager::instance()->setVOI(m_activeVOI);
+    m_voiButton->setChecked(true);
   }else
   {
-    SelectionManager::instance()->setSelectionHandler(NULL);
+    SelectionManager::instance()->setVOI(NULL);
   }
 }
 
+
 //-----------------------------------------------------------------------------
-void VolumeOfInterest::abortSelection()
+void VolumeOfInterest::changeVOI(QAction* voi)
 {
-  m_roiButton->setChecked(false);
+  qDebug() << "EspINA::VolumeOfInterest: Changing VOI";
+  m_activeVOI = m_VOIs.value(voi);
+  
+  if (!m_activeVOI)
+  {
+    qDebug() << "EspINA::VolumeOfInterest FATAL ERROR: No valid VOI";
+    assert(m_activeVOI);
+  }
+  
+  m_voiButton->setIcon(voi->icon());
+  
+  enable(m_voiButton->isChecked());
+}
+
+//-----------------------------------------------------------------------------
+void VolumeOfInterest::cancelVOI()
+{
+  m_voiButton->setChecked(false);
 }
 
 
 //-----------------------------------------------------------------------------
-void VolumeOfInterest::buildSelectors()
+void VolumeOfInterest::buildVOIs()
 {
-  ISelectionHandler *handler;
+  IVOI *voi;
   QAction *action;
   
   // Exact Pixel Selector
   action = new QAction(
     QIcon(":/voi")
     , tr("Volume Of Interest"),
-    m_selectors);
-  handler = new PixelSelector();
-  handler->multiSelection = false;
-  handler->filters << "EspINA_Sample";
-  addPixelSelector(action, handler);
-  
-  // Best Pixel Selector
-  action = new QAction(
-    QIcon(":/voi")
-    , tr("Add synapse (Ctrl +). Best Pixel"),
-    m_selectors);
-  handler = new BestPixelSelector();
-  handler->multiSelection = false;
-  handler->filters << "EspINA_Sample";
-  addPixelSelector(action, handler);
+    m_VOIMenu);
+  voi = new RectangularVOI();
+  addVOI(action, voi);
 }
 
 void VolumeOfInterest::buildUI()
 {
   // VOI Button
-  m_roiButton = new QToolButton();
-  m_roiButton->setCheckable(true);
-  m_selectors = new QMenu();
+  m_voiButton = new QToolButton();
+  m_voiButton->setCheckable(true);
+  m_VOIMenu = new QMenu();
   
-  buildSelectors();
+  buildVOIs();
   
-  m_seedSelector = m_seedSelectors.value(m_seedSelectors.keys().first());
-  m_roiButton->setIcon(m_seedSelectors.key(m_seedSelector)->icon());
-  m_roiButton->setMenu(m_selectors);
+  m_activeVOI = m_VOIs.value(m_VOIs.keys().first());
+  m_voiButton->setIcon(m_VOIs.key(m_activeVOI)->icon());
+  m_voiButton->setMenu(m_VOIMenu);
   
   QWidgetAction *threshold = new QWidgetAction(this);
-  threshold->setDefaultWidget(m_roiButton);
+  threshold->setDefaultWidget(m_voiButton);
   
   // Interface connections
-  QObject::connect(m_roiButton, SIGNAL(triggered(QAction*)), this, SLOT(changeSeedSelector(QAction *)));
-  QObject::connect(m_roiButton, SIGNAL(toggled(bool)), this, SLOT(waitSeedSelection(bool)));
+  connect(m_voiButton, SIGNAL(triggered(QAction*)), this, SLOT(changeVOI(QAction*)));
+  connect(m_voiButton, SIGNAL(toggled(bool)), this, SLOT(enable(bool)));
 }
 
 
 //------------------------------------------------------------------------
-void VolumeOfInterest::addPixelSelector(QAction* action, ISelectionHandler* handler)
+void VolumeOfInterest::addVOI(QAction* action, IVOI* voi)
 {
-  m_selectors->addAction(action);
-  connect(handler,
+  m_VOIMenu->addAction(action);
+  /*
+  connect(voi,
 	  SIGNAL(selectionChanged(ISelectionHandler::Selection)),
 	  this,
 	  SLOT(startSegmentation(ISelectionHandler::Selection)));
-  connect(handler,
+  connect(voi,
 	  SIGNAL(selectionAborted()),
 	  this,
 	  SLOT(abortSelection()));
-  m_seedSelectors.insert(action, handler);
+	  */
+  m_VOIs.insert(action, voi);
 }
 
 

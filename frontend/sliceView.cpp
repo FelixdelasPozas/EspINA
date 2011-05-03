@@ -62,6 +62,8 @@
 #include <vtkCamera.h>
 #include <vtkSMPropertyHelper.h>
 #include <pq3DWidget.h>
+#include <vtkSMNewWidgetRepresentationProxy.h>
+
 #include <pqPipelineFilter.h>
 
 #define HINTWIDTH 40
@@ -293,6 +295,7 @@ SliceView::SliceView(QWidget* parent)
   QObject::connect(m_scrollBar, SIGNAL(valueChanged(int)), m_spinBox, SLOT(setValue(int)));
   QObject::connect(m_spinBox, SIGNAL(valueChanged(int)), m_scrollBar, SLOT(setValue(int)));
   QObject::connect(m_spinBox, SIGNAL(valueChanged(int)), this, SLOT(setSlice(int)));
+  connect(SelectionManager::instance(),SIGNAL(VOIChanged(IVOI*)),this,SLOT(setVOI(IVOI*)));
   m_controlLayout->addWidget(m_scrollBar);
   m_controlLayout->addWidget(m_spinBox);
 
@@ -373,6 +376,31 @@ void SliceView::showSegmentations(bool value)
   }
 }
 
+//-----------------------------------------------------------------------------
+void SliceView::setVOI(IVOI* voi)
+{
+  if (m_VOIWidget)
+  {
+    //TODO: Destroy previous declaration
+    assert(false);
+  }
+  
+  if (!voi)
+    return;
+  
+  m_VOIWidget = voi->widget(m_plane);
+  m_VOIWidget->setView(m_view);
+  m_VOIWidget->setWidgetVisible(true);
+  m_VOIWidget->select();
+  
+  /*
+  QList<pq3DWidget *> widgtes =  pq3DWidget::createWidgets(s_focusedSample->sourceData()->getProxy(), voi->getProxy());
+  assert(widgtes.size() == 1);
+  widgtes[0]->setView(m_view);
+  widgtes[0]->setWidgetVisible(true);
+  widgtes[0]->select();
+  */
+}
 
 //-----------------------------------------------------------------------------
 QRegion SliceView::visualRegionForSelection(const QItemSelection& selection) const
@@ -518,7 +546,6 @@ void SliceView::focusOnSample(Sample* sample)
 
     pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
     pqDataRepresentation *rep = dp->setRepresentationVisibility(m_slicer->getOutputPort(0), m_view, true);
-
   }
   else
   {

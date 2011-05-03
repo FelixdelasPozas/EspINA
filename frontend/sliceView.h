@@ -96,6 +96,8 @@ public slots:
   // TODO: Use visualization layer schema
   void showSegmentations(bool value);
   
+protected slots:
+  virtual void setVOI(IVOI *voi);
 
 protected:
   virtual QRegion visualRegionForSelection(const QItemSelection& selection) const;

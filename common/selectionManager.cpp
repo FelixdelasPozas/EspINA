@@ -19,8 +19,11 @@
 
 #include "selectionManager.h"
 
+#include <pqView.h>
+
 // Debug
 #include <QDebug>
+
 
 //------------------------------------------------------------------------
 // SELECTION HANDLER
@@ -56,3 +59,13 @@ void SelectionManager::setSelectionHandler(ISelectionHandler* sh)
     m_handler->abortSelection();
   m_handler = sh;
 }
+
+//------------------------------------------------------------------------
+void SelectionManager::setVOI(IVOI* voi)
+{
+  if (m_voi && m_voi != voi)
+    m_voi->cancelVOI();
+  m_voi = voi;
+  emit VOIChanged(m_voi);
+}
+
