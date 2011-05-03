@@ -335,15 +335,19 @@ void SliceView::connectToServer()
   {
     cam->SetPosition(0, 0, -50);
     cam->SetFocalPoint(0, 0, 0);
-    //cam->SetRoll(180);
+    cam->SetRoll(180);
   }
   else
     if (m_plane == SLICE_PLANE_YZ)
     {
-      //cam->SetRoll(270);
+    cam->SetPosition(50, 0, 0);
+    cam->SetFocalPoint(0, 0, 0);
+    //cam->SetRoll(270);
     }
     else
     {
+      cam->SetPosition(0, 50, 0);
+      cam->SetFocalPoint(0, 0, 0);
       //cam->SetRoll(-90);
     }
 
@@ -546,6 +550,20 @@ void SliceView::focusOnSample(Sample* sample)
 
     pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
     pqDataRepresentation *rep = dp->setRepresentationVisibility(m_slicer->getOutputPort(0), m_view, true);
+    
+    if (m_plane == SLICE_PLANE_YZ)
+    {
+      double dir[3] = {90,0,90};
+      vtkSMPropertyHelper(rep->getProxy(),"Orientation").Set(dir,3);
+      rep->getProxy()->UpdateVTKObjects();
+    }
+    if (m_plane == SLICE_PLANE_XZ)
+    {
+      double dir[3] = {0,-90,-90};
+      vtkSMPropertyHelper(rep->getProxy(),"Orientation").Set(dir,3);
+      rep->getProxy()->UpdateVTKObjects();
+    }
+    
   }
   else
   {

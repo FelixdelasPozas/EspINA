@@ -30,6 +30,7 @@
 #include <products.h>
 #include <vtkSMNewWidgetRepresentationProxy.h>
 
+#include <QDebug>
 
 RectangularVOI::RectangularVOI()
 : m_box(NULL)
@@ -64,7 +65,8 @@ pq3DWidget *RectangularVOI::widget()
   {
   QList<pq3DWidget *> widgtes =  pq3DWidget::createWidgets(EspINA::instance()->activeSample()->sourceData()->getProxy(), getProxy());
   assert(widgtes.size() == 1);
-  //m_widget[3] = widgtes[0];
+  m_widget[3] = widgtes[0];
+    connect(m_widget[3],SIGNAL(widgetEndInteraction()),this,SLOT(endInteraction()));
   }
   
   return m_widget[3];
@@ -81,16 +83,14 @@ pq3DWidget *RectangularVOI::widget(int plane)
     QList<pq3DWidget *> widgtes =  pq3DWidget::createWidgets(EspINA::instance()->activeSample()->sourceData()->getProxy(), getProxy());
     assert(widgtes.size() == 1);
     m_widget[plane] = widgtes[0];
-    if (plane == 1)
-    {
-      double rot[3] = {0,90,0};
-      vtkSMProxy *rep = m_widget[plane]->getWidgetProxy()->GetRepresentationProxy();
-      vtkSMPropertyHelper(rep,"Rotation").Set(rot,3);
-      rep->UpdateVTKObjects();
-      vtkSMPropertyHelper(rep,"Rotation").Set(rot,3);
-      rep->UpdateVTKObjects();
-    }
     connect(m_widget[plane],SIGNAL(widgetEndInteraction()),this,SLOT(endInteraction()));
+//     if (plane == 0)
+//     {
+//       double rot[3] = {0,0,45};
+//       vtkSMProxy *rep = m_widget[plane]->getWidgetProxy()->GetRepresentationProxy();
+//       vtkSMPropertyHelper(rep,"Rotation").Set(rot,3);
+//       rep->UpdateVTKObjects();
+//     }
   }
   
   return m_widget[plane];
@@ -105,22 +105,58 @@ void RectangularVOI::endInteraction()
   pq3DWidget *widget = qobject_cast<pq3DWidget *>(QObject::sender());
   
   int idx;
-  for (idx=0; idx<3; idx++)
+  for (idx=0; idx<4; idx++)
   {
     if (m_widget[idx] == widget)
       break;
   }
   
-  widget->accept();
   
-  for (idx=0;idx<3;idx++)
-    if (idx == 1)
-    {
-      double rot[3] = {0,90,0};
-      vtkSMProxy *rep = m_widget[idx]->getWidgetProxy()->GetRepresentationProxy();
-      vtkSMPropertyHelper(rep,"Rotation").Set(rot,3);
-      rep->UpdateVTKObjects();
-    }
+  widget->accept();
+//   widget->getControlledProxy()->UpdateProperty("Bounds");
+//   widget->getControlledProxy()->UpdateVTKObjects();
+//   widget->getControlledProxy()->UpdateProperty("Bounds");
+//   vtkSMPropertyHelper(widget->getControlledProxy(),"Bounds").Get(bounds,6);
+//   qDebug() << "Controlled Bounds" << bounds[0] << bounds[1] << bounds[2] << bounds[3] << bounds[4] << bounds[5];
+//   widget->getReferenceProxy()->UpdateProperty("Bounds");
+//   widget->getReferenceProxy()->UpdateVTKObjects();
+//   widget->getReferenceProxy()->UpdateProperty("Bounds");
+//   vtkSMPropertyHelper(widget->getReferenceProxy(),"Bounds").Get(bounds,6);
+//   qDebug() << "Reference Bounds" << bounds[0] << bounds[1] << bounds[2] << bounds[3] << bounds[4] << bounds[5];
+//   widget->getWidgetProxy()->GetRepresentationProxy()->UpdateProperty("Bounds");
+//   widget->getWidgetProxy()->GetRepresentationProxy()->UpdateVTKObjects();
+//   widget->getWidgetProxy()->GetRepresentationProxy()->UpdateProperty("Bounds");
+//   vtkSMPropertyHelper(widget->getWidgetProxy()->GetRepresentationProxy(),"Bounds").Get(bounds,6);
+//   qDebug() << "Representation Bounds" << bounds[0] << bounds[1] << bounds[2] << bounds[3] << bounds[4] << bounds[5];
+   double rot[3] = {0,0,0};
+   //double pos[3] = {0,0,0};
+   vtkSMProxy *rep = widget->getControlledProxy();
+   rep->PrintSelf(std::cout,vtkIndent(5));
+   vtkSMPropertyHelper(rep,"Rotation").Set(rot,3);
+   //vtkSMPropertyHelper(rep,"Position").Set(pos,3);
+   rep->UpdateVTKObjects();
+  
+//   double rot[3][3] = 
+//   {
+//     {0,0,0} ,
+//     {0,90,0} ,
+//     {0,90,0}
+//   };
+//   double pos[3][3] = 
+//   {
+//     {0,0,0} ,
+//     {0,0,0} ,
+//     {0,0,0}
+//   };
+//   for (idx=0;idx<3;idx++)
+//   {
+//     vtkSMProxy *rep = m_widget[idx]->getWidgetProxy()->GetRepresentationProxy();
+//     vtkSMPropertyHelper(rep,"Rotation").Set(rot[idx],3);
+//     vtkSMPropertyHelper(rep,"Position").Set(pos[idx],3);
+//     rep->UpdateVTKObjects();
+//   }
+ //     vtkSMPropertyHelper(m_widget[idx]->getControlledProxy(),"Bounds").Get(bounds,6);
+ //     qDebug() << "Bounds" << bounds[0] << bounds[1] << bounds[2] << bounds[3] << bounds[4] << bounds[5];
 }
 
 void RectangularVOI::cancelVOI()

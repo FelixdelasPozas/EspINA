@@ -77,6 +77,7 @@ VolumeView::VolumeView(QWidget* parent)
   connect(m_toggleActors,SIGNAL(toggled(bool)),this,SLOT(showSegmentations(bool)));
   connect(volumeRenderer,SIGNAL(triggered()),this,SLOT(setVolumeRenderer()));
   connect(meshRenderer,SIGNAL(triggered()),this,SLOT(setMeshRenderer()));
+  connect(SelectionManager::instance(),SIGNAL(VOIChanged(IVOI*)),this,SLOT(setVOI(IVOI*)));
   
   m_mainLayout = new QVBoxLayout();
   m_mainLayout->addLayout(m_controlLayout);
@@ -102,7 +103,7 @@ void VolumeView::connectToServer()
     pqRenderView::renderViewType(), server));
   m_viewWidget = m_view->getWidget();
   m_mainLayout->insertWidget(0,m_viewWidget);//To preserver view order
-  m_view->setCenterAxesVisibility(false);
+  m_view->setCenterAxesVisibility(true);
   double black[3] = {0,0,0};
   m_view->getRenderViewProxy()->SetBackgroundColorCM(black);
 }
@@ -141,6 +142,15 @@ void VolumeView::showSegmentations(bool value)
   }
   
   updateScene();
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::setVOI(IVOI* voi)
+{
+  pq3DWidget *m_VOIWidget = voi->widget();
+  m_VOIWidget->setView(m_view);
+  m_VOIWidget->setWidgetVisible(true);
+  m_VOIWidget->select();
 }
 
 
