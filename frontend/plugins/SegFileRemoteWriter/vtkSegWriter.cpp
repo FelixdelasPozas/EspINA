@@ -34,18 +34,21 @@ int vtkSegWriter::RequestData(
   vtkInformationVector *outputVector)
 {
 
-  FilePack pack( FileName, FilePack::WRITE );
+//   FilePack pack( FileName, FilePack::WRITE );
 
   // Retrive ProcessingTrace
-  QString s(Trace);
+  QString TraceAux(Trace);
+  QString taxAux(Taxonomy);
+  QString FileNameAux(FileName);
+  IOEspinaFile::saveFile(FileNameAux, TraceAux, taxAux);
 //   qDebug() << "Remote Trace " << s;
-  pack.addSource(FilePack::TRACE, s);
-  // Retrive Taxonomy
-  QString tax_data(Taxonomy);
-//   qDebug() << "Remote Taxonomy " << tax_data;
-  pack.addSource(FilePack::TAXONOMY, tax_data);
-
-  pack.close();
+//   pack.addSource(FilePack::TRACE, s);
+//   // Retrive Taxonomy
+//   
+// //   qDebug() << "Remote Taxonomy " << tax_data;
+//   pack.addSource(FilePack::TAXONOMY, tax_data);
+// 
+//   pack.close();
 
 /*  QFile file(this->GetFileName()); // File.seg
   file.open(QIODevice::Truncate | QIODevice::WriteOnly);

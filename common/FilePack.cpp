@@ -107,3 +107,33 @@ QString FilePack::getRealName(FilePack::fileNames name)
   }
 }
 
+
+//-----------------------------------------------------------------------------
+void IOEspinaFile::loadFile(QString filePath,
+                            QTextStream& TraceContent,
+                            QTextStream& TaxonomyContent)
+{
+  FilePack zipFile( filePath, FilePack::READ );
+  // Read Taxonomy
+  zipFile.readFile(FilePack::TAXONOMY, TaxonomyContent);
+  qDebug() << "Tax: " << *TaxonomyContent.string();
+
+
+  // Read Trace
+  zipFile.readFile(FilePack::TRACE, TraceContent);
+  qDebug() << "Trace: " << *TraceContent.string();
+
+  zipFile.close();
+
+}
+
+//-----------------------------------------------------------------------------
+void IOEspinaFile::saveFile(QString& filePath,
+                            QString& TraceContent,
+                            QString& TaxonomyContent)
+{
+  FilePack pack( filePath, FilePack::WRITE );
+  pack.addSource(FilePack::TRACE, TraceContent);
+  pack.addSource(FilePack::TAXONOMY, TaxonomyContent);
+  pack.close();
+}

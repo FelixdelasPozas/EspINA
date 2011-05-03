@@ -40,8 +40,19 @@ private:
 
   QList<QString> m_TmpFilesToRemove;
   QString getRealName(fileNames name);
-  
-  
 };
 
+
+class IOEspinaFile
+{
+public:
+  static void loadFile(QString filePath,
+                       QTextStream& TraceContent,
+                       QTextStream& TaxonomyContent);
+
+  static void saveFile(QString& filePath,
+                       QString& TraceContent,
+                       QString& TaxonomyContent);
+  
+};
 #endif // FILEPACKER_H
