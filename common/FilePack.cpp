@@ -65,12 +65,13 @@ int FilePack::addSource(FilePack::fileNames name, QString& data)
   int index = -2;
   struct zip_source* s_buffer =
     zip_source_file(m_file, tmpFileName.toUtf8(), 0, 0);
+    // zip_source_buffer corrupts the files ...
     //zip_source_buffer(m_file, data.toStdString().c_str(), data.size(), 0);
   if( s_buffer )
     index = zip_add(m_file, stdFileName.toUtf8(), s_buffer);
   if (index < 0)
     qDebug() << "FilePacker: Error while adding source:\n" << zip_strerror(m_file);
-  //f.remove();
+
   return index;
 }
 
@@ -85,6 +86,7 @@ bool FilePack::close()
     m_file = NULL;
     foreach(QString file, m_TmpFilesToRemove)
       QFile::remove(file);
+    m_TmpFilesToRemove.clear();
     return ret;
   }  
   return false;
