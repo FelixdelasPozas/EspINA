@@ -335,16 +335,16 @@ void SliceView::connectToServer()
   {
     cam->SetPosition(0, 0, -50);
     cam->SetFocalPoint(0, 0, 0);
-    cam->SetRoll(180);
+    //cam->SetRoll(180);
   }
   else
     if (m_plane == SLICE_PLANE_YZ)
     {
-      cam->SetRoll(270);
+      //cam->SetRoll(270);
     }
     else
     {
-      cam->SetRoll(-90);
+      //cam->SetRoll(-90);
     }
 
   m_view->resetCamera();

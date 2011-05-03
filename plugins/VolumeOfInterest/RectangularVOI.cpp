@@ -81,6 +81,15 @@ pq3DWidget *RectangularVOI::widget(int plane)
     QList<pq3DWidget *> widgtes =  pq3DWidget::createWidgets(EspINA::instance()->activeSample()->sourceData()->getProxy(), getProxy());
     assert(widgtes.size() == 1);
     m_widget[plane] = widgtes[0];
+    if (plane == 1)
+    {
+      double rot[3] = {0,90,0};
+      vtkSMProxy *rep = m_widget[plane]->getWidgetProxy()->GetRepresentationProxy();
+      vtkSMPropertyHelper(rep,"Rotation").Set(rot,3);
+      rep->UpdateVTKObjects();
+      vtkSMPropertyHelper(rep,"Rotation").Set(rot,3);
+      rep->UpdateVTKObjects();
+    }
     connect(m_widget[plane],SIGNAL(widgetEndInteraction()),this,SLOT(endInteraction()));
   }
   
@@ -95,41 +104,23 @@ void RectangularVOI::endInteraction()
   
   pq3DWidget *widget = qobject_cast<pq3DWidget *>(QObject::sender());
   
+  int idx;
+  for (idx=0; idx<3; idx++)
+  {
+    if (m_widget[idx] == widget)
+      break;
+  }
+  
   widget->accept();
   
-  //for (int w=0;w < 3; w++)
-  //{
-    /*if (w == 1)
+  for (idx=0;idx<3;idx++)
+    if (idx == 1)
     {
-      double rot[3] = {0,0,-90};
-      vtkSMProxy *rep = m_widget[w]->getWidgetProxy()->GetRepresentationProxy();
+      double rot[3] = {0,90,0};
+      vtkSMProxy *rep = m_widget[idx]->getWidgetProxy()->GetRepresentationProxy();
       vtkSMPropertyHelper(rep,"Rotation").Set(rot,3);
       rep->UpdateVTKObjects();
     }
-    */
-    //m_widget[w]->accept();
-    /*
-    if (w == 1)
-    {
-      double rot[3] = {0.0,90,0};
-      vtkSMProxy *rep = m_widget[w]->getWidgetProxy()->GetRepresentationProxy();
-      vtkSMPropertyHelper(rep,"Rotation").Set(rot,3);
-      rep->UpdateVTKObjects();
-    }
-    */
-  //}
-  
-  
-//   vtkSMPropertyHelper(m_box,"Bounds").Get(bounds,6);
-//   
-//   
-//   for (int w=0;w < 4; w++)
-//   {
-//     if (!m_widget[w])
-//       continue;
-//     
-//     m_widget[w]->resetBounds(bounds);
-//   }
 }
 
 void RectangularVOI::cancelVOI()
