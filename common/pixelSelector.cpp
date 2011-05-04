@@ -3,7 +3,7 @@
 #include <QDebug>
 #include <QMouseEvent>
 
-#include <pqTwoDRenderView.h>
+#include <pqRenderView.h>
 #include <vtkImageData.h>
 #include <QWidget>
 #include <QSize>
@@ -43,7 +43,7 @@ void PixelSelector::onMouseUp(QPoint &pos, ISelectableView* view)
 //-----------------------------------------------------------------------------
 void BestPixelSelector::onMouseDown(QPoint& pos, ISelectableView* view)
 {
-  pqTwoDRenderView *rw = dynamic_cast<pqTwoDRenderView *>(view->view());
+  pqRenderView *rw = dynamic_cast<pqRenderView *>(view->view());
   vtkImageData *img = rw->captureImage(1);
   
   int extent[6];

@@ -29,7 +29,7 @@
 
 class pqProxy;
 class Product;
-class pqTwoDRenderView;
+class pqRenderView;
 class QMouseEvent;
 class IVOI;
 class pq3DWidget;
@@ -55,7 +55,7 @@ public:
   //! and pass the filtering criteria
   virtual void setSelection(SelectionFilters &filters, ViewRegions &regions) = 0;
   
-  virtual pqTwoDRenderView *view() = 0;
+  virtual pqRenderView *view() = 0;
   
 protected:
   virtual void setVOI(IVOI *voi) = 0;

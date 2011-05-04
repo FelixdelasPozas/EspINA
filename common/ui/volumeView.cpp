@@ -358,7 +358,7 @@ void VolumeView::updateScene()
       widget->renderInView(m_view);
 
   cam->SetPosition(pos);
-  cam->SetFocalPoint(m_focus);
+  //cam->SetFocalPoint(m_focus);
   
   view->GetInteractor()->SetCenterOfRotation(m_focus);
 
@@ -393,5 +393,6 @@ void VolumeView::render(const QModelIndex& index)
   }
   for (int row = 0; row < model()->rowCount(index); row++)
     render(model()->index(row,0,index));
+
 }
 
