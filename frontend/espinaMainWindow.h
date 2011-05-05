@@ -51,7 +51,9 @@ class UnitExplorer;
 class SelectionManager;
 class QAbstractItemModel;
 class QModelIndex;
-#include "pqLoadDataReaction.h" // TODO debug
+class QString;
+class pqServer;
+// #include "pqLoadDataReaction.h" // TODO debug
 
 /// MainWindow for the default ParaView application.
 class EspinaMainWindow : public QMainWindow
@@ -63,10 +65,12 @@ public:
   ~EspinaMainWindow();
   
 protected slots:
-  void loadData(pqPipelineSource *source);
-  void loadFile(); // Local load (Import)
-  void saveTrace();// Local save (Export)
-  void importData(pqPipelineSource *source) {}//TODO
+//   void loadData(pqPipelineSource *source);
+//   void loadFile();
+  void saveFile();
+  void importFile(); // Local load 
+  void exportFile(); // Local save
+
   void toggleVisibility(bool visible);
   virtual bool eventFilter(QObject* obj, QEvent* event);
   
@@ -93,7 +97,6 @@ private:
   QStringList m_groupingName;
   QList<QAbstractItemModel *> m_groupingModel;
   QList<QModelIndex> m_groupingRoot;
-
 
 };
 

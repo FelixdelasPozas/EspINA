@@ -88,12 +88,10 @@ public:
     //! Returns the QModelIndex of a given @seg
     QModelIndex segmentationIndex(Segmentation *seg) const;
     
-    //! Openning .mha, .trace or .seg (.trace + .mha) file (used by the UI)
-    //! After a paraviews open.
-    void loadFile(EspinaProxy* proxy);
-    //TODO: Guardar traza en el servidor
-    void saveTrace(QString filePath);
-    
+    //! Openning .trace In the future .seg (.trace + .mha) (used by the UI)
+    void loadFile(QString& filePath, pqServer* server = NULL);
+    void saveFile(QString& filePath, pqServer* server = NULL);
+
 public slots:
     //TODO: Check if private? Now it's only used by Espina
     void addSample(EspinaProxy* source, int portNumber, QString& filePath);
@@ -109,6 +107,9 @@ public slots:
 
     //! Debug slot for plugins manage
     void onProxyCreated(pqProxy* p);
+
+    //! Manage the pqPipelineSources loaded with pqLoadReaction
+    void loadSource(pqPipelineSource* proxy);
     
 signals:
     //! 
@@ -135,9 +136,12 @@ private:
 private:
     TaxonomyNode *m_newSegType; // The type for new segmentations
     Sample *m_activeSample;
+    
+    //! Initial node taxonomy
     TaxonomyNode *m_tax;
     QList<Sample *> m_samples;
     QList<Segmentation *> m_segmentations;
+    //! It contains all the pipeline of filters, segmentations and samples
     ProcessingTrace *m_analysis;
 
     QMap<const TaxonomyNode *, QList<Segmentation *> > m_taxonomySegs;

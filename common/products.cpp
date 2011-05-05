@@ -41,11 +41,15 @@ using namespace std;
 //-----------------------------------------------------------------------------
 Product::Product(pqPipelineSource* source, int portNumber, const QString &traceName, const QString &parentHash)
 : IRenderable(source, portNumber), 
-  m_parentHash(parentHash)
+  m_hash(parentHash),
+  m_parentHash(parentHash),
+  m_taxonomy(NULL)
 {
   this->name = traceName;
   this->type = 0;
-  m_parentHash = parentHash;
+  QStringList v;
+  v.push_back( QString(portNumber) );
+  m_hash.append(generateSha1( v ));
 }
 /*
 vector< ITraceNode* > Product::inputs()
@@ -70,6 +74,8 @@ void Product::print(int indent) const
 EspinaParamList Product::getArguments()
 {
   EspinaParamList nullParamList;
+  if( m_taxonomy )
+    nullParamList.push_back(EspinaParam("Taxonomy", m_taxonomy->getName()));
   return nullParamList;
 }
 
@@ -78,10 +84,13 @@ EspinaParamList Product::getArguments()
 //! Returns the id of the Product composed with the parent id and its Product name
 QString Product::id()
 {
-  QStringList v;
-  v.push_back( name );
-  QString id = QString( m_parentHash );
-  return id.append(generateSha1( v ));
+//   QStringList v;
+//   v.push_back( name );
+//   QString id = m_hash;
+//   id.append(generateSha1( v ));
+// 
+//   return id;
+  return m_hash;
 }
 
 //-----------------------------------------------------------------------------

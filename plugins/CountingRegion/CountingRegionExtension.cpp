@@ -51,7 +51,7 @@ void CountingRegionExtension::initialize(Segmentation *seg)
   arg.type = INPUT;
   VtkParam param;
   param.first = arg;
-  param.second = m_seg->id();
+  param.second = m_seg->parentHash();
   args.push_back(param);
   m_countingRegion = cob->createFilter("filters", "CountingRegion", args);
   if (!m_countingRegion)

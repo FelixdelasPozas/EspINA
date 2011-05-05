@@ -150,7 +150,7 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(
 /**
  * For stacks loaded from the client-side
  */
-EspinaProxy* CachedObjectBuilder::createStack(QString filePath)
+EspinaProxy* CachedObjectBuilder::createStack(QString& filePath)
 {
   QStringList v;
   v.push_back( filePath );
