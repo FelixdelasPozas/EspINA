@@ -116,13 +116,10 @@ void IOEspinaFile::loadFile(QString filePath,
   FilePack zipFile( filePath, FilePack::READ );
   // Read Taxonomy
   zipFile.readFile(FilePack::TAXONOMY, TaxonomyContent);
-  qDebug() << "Tax: " << *TaxonomyContent.string();
-
-
+//   qDebug() << "Tax: " << *TaxonomyContent.string();
   // Read Trace
   zipFile.readFile(FilePack::TRACE, TraceContent);
-  qDebug() << "Trace: " << *TraceContent.string();
-
+//   qDebug() << "Trace: " << *TraceContent.string();
   zipFile.close();
 
 }

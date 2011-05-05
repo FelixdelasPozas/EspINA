@@ -82,10 +82,11 @@ public:
   virtual void setTaxonomy(TaxonomyNode *taxonomy){m_taxonomy = taxonomy;} 
   virtual void setOrigin(Sample *sample) {m_sample = sample;}
   virtual Sample *origin() {return m_sample;}
-  
+
+  virtual QString parentHash() {return m_parentHash;}
 protected:
   double m_rgba[4];
-  QString m_parentHash;
+  QString m_hash, m_parentHash;
   TaxonomyNode *m_taxonomy;
   Sample *m_sample;
 };
@@ -116,9 +117,7 @@ class Segmentation : public Product
 public:
   //! WARNING: Note that Segmentation constructor hides 3rd paramater (productName)
   Segmentation(pqPipelineSource *source, int portNumber, const QString &parentHash = "");
-  
-  virtual QString id() {return m_parentHash;}
-  
+
   virtual QVariant data(int role = Qt::UserRole + 1) const;
   
   void addExtension(ISegmentationExtension *ext);

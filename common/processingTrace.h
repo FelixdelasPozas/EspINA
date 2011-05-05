@@ -48,8 +48,10 @@ public:
   virtual std::vector<ITraceNode *> inputs() = 0;
   virtual std::vector<ITraceNode *> outputs() = 0;
   */
+ 
   virtual void print(int indent = 0) const = 0;
   virtual EspinaParamList getArguments() = 0;
+  //virtual int getType() = 0;
   
   //! Descriptive name of the node
   QString name;
@@ -57,6 +59,8 @@ public:
   IndexType vertexId;
   //! Type used to enhance the output of the graph....
   int type;// 0: Product 1: Filter
+  //! Taxonomy name
+//  QString taxElement;
 };
 
 

@@ -308,10 +308,10 @@ void ProcessingTrace::readTrace(QTextStream& stream)
         QString rawArgs( vArgs[vertexId].c_str() );
         NodeParamList args = parseArgs( rawArgs );
        // if( filterInfo.at(1) == "SeedGrowSegmentationFilter")
-        QString pluginName(vLabel[vertexId].c_str());
-        EspinaPlugin* plugin = m_availablePlugins.value(pluginName, NULL);
+        
+        EspinaPlugin* plugin = m_availablePlugins.value(label, NULL);
         if( plugin )
-          m_availablePlugins.value(pluginName)->LoadAnalisys(args);
+          m_availablePlugins.value(label)->LoadAnalisys(args);
         else
           qDebug() << "ProcessingTrace: the filter is not registered";
 

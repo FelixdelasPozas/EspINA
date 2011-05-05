@@ -395,8 +395,7 @@ void EspINA::loadSource(pqPipelineSource* proxy)
     // Taxonomy
     vtkSMStringVectorProperty* TaxProp =
           vtkSMStringVectorProperty::SafeDownCast(proxy->getProxy()->GetProperty("Taxonomy"));
-    qDebug() << "Taxonomy:\n" << TaxProp->GetElement(0);
-    //std::istringstream trace(std::string(filePathProp->GetElement(0)));
+    //qDebug() << "Taxonomy:\n" << TaxProp->GetElement(0);
     QString TaxContent(TaxProp->GetElement(0));
     QTextStream tax;
     tax.setString(&TaxContent);
@@ -404,8 +403,7 @@ void EspINA::loadSource(pqPipelineSource* proxy)
     // Trace
     vtkSMStringVectorProperty* TraceProp =
           vtkSMStringVectorProperty::SafeDownCast(proxy->getProxy()->GetProperty("Trace"));
-    qDebug() << "Trace:\n" << TraceProp->GetElement(0);
-    //std::istringstream trace(std::string(filePathProp->GetElement(0)));
+    //qDebug() << "Trace:\n" << TraceProp->GetElement(0);
     QString TraceContent(TraceProp->GetElement(0));
     QTextStream trace;
     trace.setString(&TraceContent);
@@ -604,8 +602,8 @@ void EspINA::loadTaxonomy()
 {
 //   m_tax = new TaxonomyNode("None");
 
-  m_tax = IOTaxonomy::openXMLTaxonomy("default_taxonomy.xml");
-/*  
+  //m_tax = IOTaxonomy::openXMLTaxonomy("default_taxonomy.xml");
+  
   m_tax = new TaxonomyNode("FEM");
   TaxonomyNode *newNode;
   newNode = m_tax->addElement("Synapse","FEM");
