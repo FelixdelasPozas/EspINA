@@ -56,7 +56,7 @@ class SeedGrowingRegionSegmentation
 public:
   SeedGrowingRegionSegmentation(QObject* parent);
   
-  void LoadAnalisys(EspinaParamList& args);
+  virtual void LoadAnalisys(QString& filter, EspinaParamList& args);
 protected slots:
   //! Changes the method to select the input seed
   void changeSeedSelector(QAction *seedSel);

@@ -67,7 +67,8 @@ Filter::Filter(
   
   for (int portNumber = 0; portNumber < m_proxy->getOutputPorts().size(); portNumber++)
   {
-    Product *filterOutput = new Product(m_proxy,portNumber, this->id());
+    //TODO:WARNING:Que hacer con los parametros que se pasan al producto
+    Product *filterOutput = new Product(m_proxy,portNumber, "Product" , this->id());
     //filterOutput->m_parentHash = this->id(); //TODO modify the way it takes the parent hash, Maybe in the constructer (above line)
     trace->addNode(filterOutput);
     trace->connect(this,filterOutput,"segmentation");

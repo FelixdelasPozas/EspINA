@@ -59,7 +59,7 @@ class EspinaPlugin
 {
 public:
 
-  virtual void LoadAnalisys(EspinaParamList& args) = 0;
+  virtual void LoadAnalisys(QString &filter, EspinaParamList& args) = 0;
   QString groupName() {return m_groupName;}
   QString filterName() {return m_filterName;}
 

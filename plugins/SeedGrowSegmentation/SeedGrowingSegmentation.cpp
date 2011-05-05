@@ -87,7 +87,7 @@ SeedGrowingSegmentation::SeedGrowingSegmentation(QObject* parent)
 
 
 //-----------------------------------------------------------------------------
-void SeedGrowingSegmentation::LoadAnalisys(EspinaParamList& args)
+void SeedGrowingSegmentation::LoadAnalisys(QString& filter, EspinaParamList& args)
 {
   QString InputId = "";
   EspinaParamList::iterator it;
@@ -103,9 +103,12 @@ void SeedGrowingSegmentation::LoadAnalisys(EspinaParamList& args)
     qDebug("SeedGrowingSegmenation::LoadAnalisys: Error loading a tarce file. \"input\" argument not found");
     exit(-1);//throw Finalizar importacion
   }
+  
+  //TODO: Fake input
 //   Product* input = dynamic_cast<Product*> (Cache::instance()->getEntry(InputId));
 //   assert(input);
-  this->buildSubPipeline(EspINA::instance()->activeSample(), args);
+  if (filter == "Grow")
+    this->buildGrowFilter(EspINA::instance()->activeSample(), args);
 }
 
 //-----------------------------------------------------------------------------
@@ -169,28 +172,38 @@ void SeedGrowingSegmentation::startSegmentation(ISelectionHandler::Selection sel
   
   assert(element.first.size() == 1); // with one pixel
   Point seed = element.first.first();
-
-  // Crear los Filtros
-  /*
+  
+  //! Executes VOI
+  input = SelectionManager::instance()->applyVOI(input);
+  
+  //! TODO: Execute Blur Filter
+  /**
   EspinaParamList blurArgs;
   blurArgs.push_back(EspinaParam("input",input->id()));
   QString kernel = QString("2,2,2");
   blurArgs.push_back(EspinaParam("Kernel",kernel.toStdString()));
-
-  Filter *blur = new Filter("filter","Median",blurArgs,m_tableBlur); 
+  **/
   
-  assert(blur->products().size() == 1);
-  */
-
+  //! Execute Grow Filter
   EspinaParamList growArgs;
   growArgs.push_back(EspinaParam(QString("input"), input->id()));
   QString seedArg = QString("%1,%2,%3").arg(seed.x).arg(seed.y).arg(seed.z);
   growArgs.push_back(EspinaParam(QString("Seed"), seedArg));
   QString thArg = QString::number(m_threshold->value());
   growArgs.push_back(EspinaParam(QString("Threshold"), thArg));
+  
+  Filter *grow = this->buildGrowFilter(input, growArgs);
 
-  this->buildSubPipeline(input, growArgs);
-
+  //! Create segmenations
+  Product *product;
+  foreach(product,grow->products())
+  {
+    //! Restore possible VOI transformation
+    Product *validProduct = SelectionManager::instance()->restoreVOITransformation(product);
+    Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(validProduct->sourceData(),validProduct->portNumber(), grow->id());
+    emit productCreated(seg);
+  }
+  
   if (undoStack)
   {
     undoStack->endUndoSet();
@@ -313,10 +326,7 @@ void SeedGrowingSegmentation::addPixelSelector(QAction* action, ISelectionHandle
 }
 
 
-
-//! Creates the corresponding Pipeline of the plugin (the Filters and the Products). It also updates the Trace of the system
-//------------------------------------------------------------------------
-void SeedGrowingSegmentation::buildSubPipeline(Product* input, EspinaParamList args)
+Filter* SeedGrowingSegmentation::buildGrowFilter(Product* input, EspinaParamList args)
 {
   ProcessingTrace *trace = ProcessingTrace::instance();//!X
 
@@ -328,11 +338,6 @@ void SeedGrowingSegmentation::buildSubPipeline(Product* input, EspinaParamList a
   );
   
   trace->connect(input, grow, "input");
-   
-  Product *product;
-  foreach(product,grow->products())
-  {
-    Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(product->sourceData(),product->portNumber(), grow->id());
-    emit productCreated(seg);
-  }
+  return grow;
 }
+

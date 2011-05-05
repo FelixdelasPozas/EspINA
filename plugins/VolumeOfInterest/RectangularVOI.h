@@ -22,6 +22,8 @@
 
 #include <selectionManager.h>
 
+#include "filter.h" // To use TranslatorTable
+
 class pq3DWidget;
 
 class RectangularVOI 
@@ -31,8 +33,8 @@ class RectangularVOI
 public:
   RectangularVOI();
   
-  virtual void a2w();
-  virtual void w2a();
+  virtual Product* applyVOI(Product* product);
+  virtual Product* restoreVOITransormation(Product* product);
 
   virtual vtkSMProxy *getProxy();
   virtual pq3DWidget *widget();
@@ -44,8 +46,15 @@ public slots:
   virtual void cancelVOI();
   
 private:
+  void buildRVOITable();
+  Filter *buildRectangularVOIFilter(Product *input, EspinaParamList args);
+  
+private:
   vtkSMProxy *m_box;
   pq3DWidget *m_widget[4];
+  
+  TranslatorTable m_tableRVOI;
+  double m_rvoi[6];
 };
 
 #endif // RECTANGULARVOI_H

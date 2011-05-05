@@ -57,6 +57,7 @@ public:
   
   virtual pqRenderView *view() = 0;
   
+  
 protected:
   virtual void setVOI(IVOI *voi) = 0;
   
@@ -64,13 +65,15 @@ protected:
   pq3DWidget *m_VOIWidget;
 };
 
+class Product;
+
 class IVOI
 {
 public:
   virtual ~IVOI(){}
   
-  virtual void w2a() = 0;
-  virtual void a2w() = 0;
+  virtual Product *applyVOI(Product *product) = 0;
+  virtual Product *restoreVOITransormation(Product* product) = 0;
   
   virtual vtkSMProxy * getProxy() = 0;
   virtual pq3DWidget *widget() = 0;
@@ -136,6 +139,10 @@ public:
   
   void setSelection(ISelectionHandler::Selection sel) {if (m_handler) m_handler->setSelection(sel);}
   void setVOI(IVOI *voi);
+  //! Applies active VOI to product
+  Product *applyVOI(Product *product);
+  //! Restores VOI transformations
+  Product *restoreVOITransformation(Product *product);
   
 public slots:
   //! Register @sh as active Selection Handler

@@ -19,6 +19,9 @@
 
 #include "RectangularVOI.h"
 
+#include "products.h"
+#include "filter.h"
+
 #include <pqApplicationCore.h>
 
 #include <pqObjectBuilder.h>
@@ -31,24 +34,82 @@
 #include <vtkSMNewWidgetRepresentationProxy.h>
 
 #include <QDebug>
+#include <assert.h>
 
+//-----------------------------------------------------------------------------
 RectangularVOI::RectangularVOI()
 : m_box(NULL)
 {
   bzero(m_widget,4*sizeof(pq3DWidget *));
+  buildRVOITable();
 }
 
 
-void RectangularVOI::a2w()
+//-----------------------------------------------------------------------------
+void RectangularVOI::buildRVOITable()
 {
-
+  EspinaArg arg = "input";
+  VtkArg vtkArg;
+  vtkArg.type = INPUT;
+  vtkArg.name = "input";
+  m_tableRVOI.addTranslation(arg, vtkArg);
+  arg = "Volume";
+  vtkArg.type = INTVECT;
+  vtkArg.name = "VOI";
+  m_tableRVOI.addTranslation(arg, vtkArg);
 }
 
-void RectangularVOI::w2a()
+//-----------------------------------------------------------------------------
+Filter* RectangularVOI::buildRectangularVOIFilter(Product* input, EspinaParamList args)
 {
+  ProcessingTrace *trace = ProcessingTrace::instance();//!X
 
+  Filter *rvoi = new Filter(
+    "filters",
+    "VOI",
+    args,
+    m_tableRVOI
+  );
+  
+  trace->connect(input, rvoi, "input");
+  return rvoi;
 }
 
+
+//-----------------------------------------------------------------------------
+Product* RectangularVOI::applyVOI(Product* product)
+{
+  // To apply widget bounds to vtkBox source
+  if (m_widget[0])
+    m_widget[0]->accept();
+  
+  vtkSMPropertyHelper(m_box,"Bounds").Get(m_rvoi,6);
+  //m_box->PrintSelf(std::cout,vtkIndent(5));
+  
+  qDebug() << "RectangularVOI Plugin::ApplyVOI on: "<< m_rvoi[0]<< m_rvoi[1]<< m_rvoi[2]<< m_rvoi[3]<< m_rvoi[4]<< m_rvoi[5];
+  
+  //! Execute Rectangula VOI Filter
+  EspinaParamList rvoiArgs;
+  rvoiArgs.push_back(EspinaParam(QString("input"), product->id()));
+  QString VolumeArg = QString("%1,%2,%3,%4,%5,%6")
+  .arg(m_rvoi[0]).arg(m_rvoi[1]).arg(m_rvoi[2]).arg(m_rvoi[3]).arg(m_rvoi[4]).arg(m_rvoi[5]);
+  rvoiArgs.push_back(EspinaParam(QString("Volume"), VolumeArg));
+  
+  Filter *rvoi = buildRectangularVOIFilter(product, rvoiArgs);
+  
+  assert(rvoi->products().size() == 1); //TODO: Maybe it could return NULL
+  
+  return rvoi->products()[0];
+}
+
+//-----------------------------------------------------------------------------
+Product* RectangularVOI::restoreVOITransormation(Product* product)
+{
+  return product;
+}
+
+
+//-----------------------------------------------------------------------------
 vtkSMProxy* RectangularVOI::getProxy()
 {
   if (!m_box)
@@ -59,6 +120,7 @@ vtkSMProxy* RectangularVOI::getProxy()
   return m_box;
 }
 
+//-----------------------------------------------------------------------------
 pq3DWidget *RectangularVOI::widget()
 {
   if (!m_widget[3])
@@ -70,11 +132,9 @@ pq3DWidget *RectangularVOI::widget()
   }
   
   return m_widget[3];
-  //m_VOIWidget->setView(m_view);
-  //m_VOIWidget->setWidgetVisible(true);
-  //m_VOIWidget->select();
 }
 
+//-----------------------------------------------------------------------------
 pq3DWidget *RectangularVOI::widget(int plane)
 {
   assert (plane < 3);
@@ -84,35 +144,29 @@ pq3DWidget *RectangularVOI::widget(int plane)
     assert(widgtes.size() == 1);
     m_widget[plane] = widgtes[0];
     connect(m_widget[plane],SIGNAL(widgetEndInteraction()),this,SLOT(endInteraction()));
-//     if (plane == 0)
-//     {
-//       double rot[3] = {0,0,45};
-//       vtkSMProxy *rep = m_widget[plane]->getWidgetProxy()->GetRepresentationProxy();
-//       vtkSMPropertyHelper(rep,"Rotation").Set(rot,3);
-//       rep->UpdateVTKObjects();
-//     }
   }
   
   return m_widget[plane];
 }
 
+//-----------------------------------------------------------------------------
 void RectangularVOI::endInteraction()
 {
   //Update all widgets with box proxy bounds
   assert(m_box);
-  double bounds[6];
   
   pq3DWidget *widget = qobject_cast<pq3DWidget *>(QObject::sender());
+  widget->accept();
   
+  /*
   int idx;
   for (idx=0; idx<4; idx++)
   {
     if (m_widget[idx] == widget)
       break;
   }
+  */
   
-  
-  widget->accept();
 //   widget->getControlledProxy()->UpdateProperty("Bounds");
 //   widget->getControlledProxy()->UpdateVTKObjects();
 //   widget->getControlledProxy()->UpdateProperty("Bounds");
@@ -128,14 +182,14 @@ void RectangularVOI::endInteraction()
 //   widget->getWidgetProxy()->GetRepresentationProxy()->UpdateProperty("Bounds");
 //   vtkSMPropertyHelper(widget->getWidgetProxy()->GetRepresentationProxy(),"Bounds").Get(bounds,6);
 //   qDebug() << "Representation Bounds" << bounds[0] << bounds[1] << bounds[2] << bounds[3] << bounds[4] << bounds[5];
-   double rot[3] = {0,0,0};
-   //double pos[3] = {0,0,0};
-   vtkSMProxy *rep = widget->getControlledProxy();
-   rep->PrintSelf(std::cout,vtkIndent(5));
-   vtkSMPropertyHelper(rep,"Rotation").Set(rot,3);
-   //vtkSMPropertyHelper(rep,"Position").Set(pos,3);
-   rep->UpdateVTKObjects();
-  
+//    double rot[3] = {0,0,0};
+//    //double pos[3] = {0,0,0};
+//    vtkSMProxy *rep = widget->getControlledProxy();
+//    rep->PrintSelf(std::cout,vtkIndent(5));
+//    vtkSMPropertyHelper(rep,"Rotation").Set(rot,3);
+//    //vtkSMPropertyHelper(rep,"Position").Set(pos,3);
+//    rep->UpdateVTKObjects();
+//   
 //   double rot[3][3] = 
 //   {
 //     {0,0,0} ,
@@ -159,6 +213,7 @@ void RectangularVOI::endInteraction()
  //     qDebug() << "Bounds" << bounds[0] << bounds[1] << bounds[2] << bounds[3] << bounds[4] << bounds[5];
 }
 
+//-----------------------------------------------------------------------------
 void RectangularVOI::cancelVOI()
 {
   

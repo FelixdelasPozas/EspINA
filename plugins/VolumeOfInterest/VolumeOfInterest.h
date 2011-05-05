@@ -54,7 +54,7 @@ class VolumeOfInterest
 public:
   VolumeOfInterest(QObject* parent);
   
-  void LoadAnalisys(EspinaParamList& args);
+  virtual void LoadAnalisys(QString& filter, EspinaParamList& args);
 protected slots:
   //! Changes VOI enable state
   void enable(bool value);

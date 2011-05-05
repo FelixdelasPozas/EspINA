@@ -80,26 +80,10 @@ VolumeOfInterest::VolumeOfInterest(QObject* parent)
   ProcessingTrace::instance()->registerPlugin(this);
 }
 
-void VolumeOfInterest::LoadAnalisys(EspinaParamList& args)
+//-----------------------------------------------------------------------------
+void VolumeOfInterest::LoadAnalisys(QString& filter, EspinaParamList& args)
 {
-  assert(false);
-  QString InputId = "";
-  EspinaParamList::iterator it;
-  for(it=args.begin(); it != args.end(); it++)
-  {
-    if( (*it).first == "input" ){
-      InputId = (*it).second;
-      break;
-    }
-  }
-  
-  if( InputId.isEmpty() ){
-    qDebug("VolumeOfInterest::LoadAnalisys: Error loading a tarce file. \"input\" argument not found");
-    exit(-1);//throw Finalizar importacion
-  }
-  //Product* input = dynamic_cast<Product*> (Cache::instance()->getEntry(InputId));
-  
-  this->buildSubPipeline(EspINA::instance()->activeSample(), args);
+
 }
 
 

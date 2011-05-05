@@ -49,6 +49,7 @@ SelectionManager *SelectionManager::m_singleton = new SelectionManager();
 SelectionManager::SelectionManager()
   : QObject()
   , m_handler(NULL)
+  , m_voi(NULL)
 {
 }
 
@@ -69,3 +70,24 @@ void SelectionManager::setVOI(IVOI* voi)
   emit VOIChanged(m_voi);
 }
 
+//------------------------------------------------------------------------
+Product* SelectionManager::applyVOI(Product* product)
+{
+  if (m_voi)
+  {
+    return m_voi->applyVOI(product);    
+  }
+  else
+    return product;
+}
+
+//------------------------------------------------------------------------
+Product* SelectionManager::restoreVOITransformation(Product* product)
+{
+  if (m_voi)
+  {
+    return m_voi->restoreVOITransormation(product);
+  }
+  else
+    return product;
+}

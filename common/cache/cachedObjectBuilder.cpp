@@ -97,6 +97,7 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(
       case INPUT:
       {
 	pqPipelineSource *inputProxy = m_cache->getEntry(args[p].second);
+	assert(inputProxy);
 	filter = ob->createFilter(group, name, inputProxy);
       }
       break;

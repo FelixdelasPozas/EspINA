@@ -43,6 +43,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 class QMenu;//Forward declarations
 class QSpinBox;
 class Product;
+class QString;
 
 
 
@@ -56,7 +57,7 @@ class SeedGrowingSegmentation
 public:
   SeedGrowingSegmentation(QObject* parent);
   
-  void LoadAnalisys(EspinaParamList& args);
+  void LoadAnalisys(QString &filter, EspinaParamList& args);
   
 protected slots:
   //! Changes the method to select the input seed
@@ -83,7 +84,9 @@ private:
   
   void addPixelSelector(QAction *action, ISelectionHandler *handler);
   
-  void buildSubPipeline(Product* input, EspinaParamList args);
+  //void buildSubPipeline(Qstring &filter, Product* input, EspinaParamList args);
+  
+  Filter *buildGrowFilter(Product *input, EspinaParamList args);
   
 private:
   QSpinBox *m_threshold;

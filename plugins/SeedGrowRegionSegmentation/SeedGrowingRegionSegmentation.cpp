@@ -89,7 +89,7 @@ SeedGrowingRegionSegmentation::SeedGrowingRegionSegmentation(QObject* parent)
 
 }
 
-void SeedGrowingRegionSegmentation::LoadAnalisys(EspinaParamList& args)
+void SeedGrowingRegionSegmentation::LoadAnalisys(QString& filter, EspinaParamList& args)
 {
   QString InputId = "";
   EspinaParamList::iterator it;
