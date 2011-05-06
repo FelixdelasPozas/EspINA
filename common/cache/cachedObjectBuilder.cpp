@@ -20,6 +20,8 @@
 #include "cachedObjectBuilder.h"
 #include "data/hash.h"
 
+#include "filter.h"
+
 // Qt
 #include <QString>
 #include <QStringList>
@@ -58,37 +60,31 @@ CachedObjectBuilder* CachedObjectBuilder::instance()
 }
 
 
-EspinaProxy* CachedObjectBuilder::createFilter(
-  QString group
-, QString name
-, VtkParamList args
-  )
+EspinaProxy* CachedObjectBuilder::createFilter(Filter *filter)
 {
   // Create cache entry
   QStringList namesToHash;
-  namesToHash.push_back( QString(group).append("::").append(name) );
-  namesToHash.append( reduceVtkArgs(args));
+  namesToHash.push_back(QString(filter->name));
+  namesToHash.append( reduceVtkArgs(filter->vtkArgs()) );
   CacheIndex entryIndex = generateSha1( namesToHash );//createIndex(group,name,args);
   
   EspinaProxy * proxy = m_cache->getEntry(entryIndex);
   if (proxy)
     return proxy;
   
-  proxy = createSMFilter(group, name, args);
-  m_cache->insert(entryIndex,proxy);
+  proxy = createSMFilter(filter);
+  m_cache->insert(filter->id(),entryIndex,proxy);
   return proxy;
 }
 
-pqPipelineSource *CachedObjectBuilder::createSMFilter(
-  QString group
-, QString name
-, VtkParamList args)
+pqPipelineSource *CachedObjectBuilder::createSMFilter(Filter *filter)
 {
   pqApplicationCore* core = pqApplicationCore::instance();
   pqObjectBuilder* ob = core->getObjectBuilder();
   
-  qDebug() << "CachedObjectBuilder: Create Filter " << group << "::" << name;
-  pqPipelineSource *filter; //= builder->createFilter(group, name,NULL);
+  qDebug() << "CachedObjectBuilder: Create Filter " << filter->name;
+  pqPipelineSource *proxy; //= builder->createFilter(group, name,NULL);
+  VtkParamList args = filter->vtkArgs();
   for (int p = 0; p < args.size(); p++)
   {
     VtkArg vtkArg = args[p].first;
@@ -96,16 +92,18 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(
     {
       case INPUT:
       {
-	pqPipelineSource *inputProxy = m_cache->getEntry(args[p].second);
+	QStringList input = args[p].second.split(":");
+	assert(input.size()==2);//(id,portNumber)
+	pqPipelineSource *inputProxy = m_cache->getEspinaEntry(input[0]);
 	assert(inputProxy);
-	filter = ob->createFilter(group, name, inputProxy);
+	proxy = ob->createFilter(filter->group(), filter->name, inputProxy, input[1].toInt());
       }
       break;
       case INTVECT:
-	assert(filter);
+	assert(proxy);
 	{
 	  vtkSMIntVectorProperty * prop = vtkSMIntVectorProperty::SafeDownCast(
-	    filter->getProxy()->GetProperty(vtkArg.name.toStdString().c_str())
+	    proxy->getProxy()->GetProperty(vtkArg.name.toStdString().c_str())
 	  );
 	  QStringList values = args[p].second.split(",");//   QString(args[p].second.c_str()).split(",");
 	  qDebug() << "Values" <<  values;
@@ -114,10 +112,10 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(
 	}
 	break;
       case DOUBLEVECT:
-	assert(filter);
+	assert(proxy);
 	{
 	  vtkSMDoubleVectorProperty * prop = vtkSMDoubleVectorProperty::SafeDownCast(
-	    filter->getProxy()->GetProperty(vtkArg.name.toStdString().c_str())
+	    proxy->getProxy()->GetProperty(vtkArg.name.toStdString().c_str())
 	  );
 	  QStringList values = args[p].second.split(","); //QString(args[p].second.c_str()).split(",");
 	  qDebug() << "Values" <<  values;
@@ -139,11 +137,11 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(
       qDebug() << "Unkown parameter";
     */
   }
-  assert(filter);
-  filter->getProxy()->UpdateVTKObjects();
-  filter->updatePipeline();
+  assert(proxy);
+  proxy->getProxy()->UpdateVTKObjects();
+  proxy->updatePipeline();
  // initFilter(filter,args);
- return filter;
+ return proxy;
 }
 
 //-----------------------------------------------------------------------------
@@ -154,13 +152,13 @@ EspinaProxy* CachedObjectBuilder::createStack(QString& filePath)
 {
   QStringList v;
   v.push_back( filePath );
-  CacheIndex fileIndex = generateSha1(v);
-  CacheEntry* proxy = m_cache->getEntry(fileIndex);
+  CacheIndex sampleHash = generateSha1(v);
+  CacheEntry* proxy = m_cache->getEntry(sampleHash);
   if( proxy )
     return proxy;
   
   proxy = pqLoadDataReaction::loadData( QStringList(filePath) );
-  m_cache->insert(fileIndex, proxy);
+  m_cache->insert(filePath, sampleHash, proxy);
   return proxy;
 }
 
@@ -183,11 +181,11 @@ EspinaProxy* CachedObjectBuilder::registerLoadedStack(QString& filePath, EspinaP
 {
   QStringList v;
   v.push_back( filePath );
-  CacheIndex fileIndex = generateSha1(v);
-  CacheEntry* proxy = m_cache->getEntry(fileIndex);
+  CacheIndex sampleHash = generateSha1(v);
+  CacheEntry* proxy = m_cache->getEntry(sampleHash);
   if( proxy )
     return proxy;
-  m_cache->insert(fileIndex, source);
+  m_cache->insert(filePath, sampleHash, source);
   return NULL;
 }
 

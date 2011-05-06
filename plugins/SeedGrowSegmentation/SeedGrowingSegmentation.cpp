@@ -173,6 +173,8 @@ void SeedGrowingSegmentation::startSegmentation(ISelectionHandler::Selection sel
   assert(element.first.size() == 1); // with one pixel
   Point seed = element.first.first();
   
+  ProcessingTrace* trace = ProcessingTrace::instance();
+    
   //! Executes VOI
   input = SelectionManager::instance()->applyVOI(input);
   
@@ -193,7 +195,8 @@ void SeedGrowingSegmentation::startSegmentation(ISelectionHandler::Selection sel
   growArgs.push_back(EspinaParam(QString("Threshold"), thArg));
   
   Filter *grow = this->buildGrowFilter(input, growArgs);
-
+  trace->connect(input, grow, "input"); //TODO: it should be connected to blur...
+  
   //! Create segmenations
   Product *product;
   foreach(product,grow->products())
@@ -201,6 +204,8 @@ void SeedGrowingSegmentation::startSegmentation(ISelectionHandler::Selection sel
     //! Restore possible VOI transformation
     Product *validProduct = SelectionManager::instance()->restoreVOITransformation(product);
     Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(validProduct->sourceData(),validProduct->portNumber(), grow->id());
+    trace->addNode(seg);
+    trace->connect(grow,seg,"segmentation");
     emit productCreated(seg);
   }
   
@@ -328,7 +333,7 @@ void SeedGrowingSegmentation::addPixelSelector(QAction* action, ISelectionHandle
 
 Filter* SeedGrowingSegmentation::buildGrowFilter(Product* input, EspinaParamList args)
 {
-  ProcessingTrace *trace = ProcessingTrace::instance();//!X
+  //ProcessingTrace *trace = ProcessingTrace::instance();//!X
 
   Filter *grow = new Filter(
     m_groupName,
@@ -337,7 +342,7 @@ Filter* SeedGrowingSegmentation::buildGrowFilter(Product* input, EspinaParamList
     m_tableGrow
   );
   
-  trace->connect(input, grow, "input");
+  //trace->connect(input, grow, "input");
   return grow;
 }
 

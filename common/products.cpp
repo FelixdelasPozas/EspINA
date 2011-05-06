@@ -39,17 +39,17 @@ using namespace std;
 //-----------------------------------------------------------------------------
 // PRODUCT
 //-----------------------------------------------------------------------------
-Product::Product(pqPipelineSource* source, int portNumber, const QString &traceName, const QString &parentHash)
+Product::Product(pqPipelineSource* source, int portNumber, const QString& traceName, const EspinaId& parentHash)
 : IRenderable(source, portNumber), 
-  m_hash(parentHash),
-  m_parentHash(parentHash),
+  m_parentHash(parentHash), //TODO: Deprecate?
   m_taxonomy(NULL)
 {
   this->name = traceName;
   this->type = 0;
-  QStringList v;
-  v.push_back( QString(portNumber) );
-  m_hash.append(generateSha1( v ));
+  m_hash = QString("%1:%2").arg(parentHash).arg(portNumber);
+  //QStringList v;
+  //v.push_back( QString(portNumber) );
+  //m_hash.append(generateSha1( v ));
 }
 /*
 vector< ITraceNode* > Product::inputs()
@@ -82,7 +82,7 @@ EspinaParamList Product::getArguments()
 
 //-----------------------------------------------------------------------------
 //! Returns the id of the Product composed with the parent id and its Product name
-QString Product::id()
+EspinaId Product::id()
 {
 //   QStringList v;
 //   v.push_back( name );

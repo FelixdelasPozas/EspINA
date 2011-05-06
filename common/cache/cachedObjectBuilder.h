@@ -24,6 +24,7 @@
 #include "translatorTable.h"
 
 class pqPipelineSource;
+class Filter;
 class Cache;
 
 //! A class to provide ParaView proxies, either using
@@ -33,7 +34,7 @@ class CachedObjectBuilder
 {
 public:
   static CachedObjectBuilder *instance();
-  EspinaProxy *createFilter(QString group, QString name, VtkParamList args);
+  EspinaProxy *createFilter(Filter *filter);
   EspinaProxy* createStack(QString& filePath);
   
   /**
@@ -49,7 +50,7 @@ private:
   
   CachedObjectBuilder(const CachedObjectBuilder&);//Not implemented
   void *operator=(const CachedObjectBuilder&);//Not implemented
-  pqPipelineSource *createSMFilter(QString group, QString name, VtkParamList args);
+  pqPipelineSource *createSMFilter(Filter *filter);
  // void initFilter(pqPipelineSource* filter, ParamList args);
   
   static CachedObjectBuilder *m_singleton;

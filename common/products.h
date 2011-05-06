@@ -41,10 +41,11 @@ class Sample;
 
 typedef pqPipelineSource EspinaProxy;
 
+typedef QString EspinaId;
 class ISingleton
 {
 public:
-  virtual QString id() = 0;
+  virtual EspinaId id() = 0;
 };
 
 class Product 
@@ -55,7 +56,7 @@ class Product
 {
 public:
   //Product(){}
-  Product(pqPipelineSource *source, int portNumber, const QString &traceName = "Product", const QString & parentHash = "");
+  Product(pqPipelineSource *source, int portNumber, const QString &traceName = "Product", const EspinaId & parentHash = "");
   virtual ~Product(){}
 
   //! Implements ITraceNode interface
@@ -67,7 +68,7 @@ public:
   virtual EspinaParamList getArguments();
   
   //! Implements ISingleton
-  virtual QString id();
+  virtual EspinaId id();
   
   
   //! Implements IRenderable
@@ -94,10 +95,10 @@ class Sample : public Product
 {
 public:
   Sample(pqPipelineSource *source, int portNumber, const QString &sampleName="") 
-  : Product(source,portNumber, sampleName) 
+  : Product(source,portNumber, "Sample" ,sampleName) 
   , m_extent(NULL)
   {}
-  //virtual QString id(){return name;}
+  //virtual EspinaId id(){return name;}
   
   virtual QVariant data(int role = Qt::UserRole + 1) const;
   

@@ -45,8 +45,9 @@ Cache* Cache::instance()
   return m_singleton;
 }
 
-void Cache::insert(const CacheIndex& index, CacheEntry* entry)
+void Cache::insert(const EspinaId& id, const CacheIndex& index, CacheEntry* entry)
 {
+  m_translator.insert(id,index);
   m_cachedProxies.insert(index,entry);
 }
 
@@ -69,6 +70,14 @@ CacheEntry* Cache::getEntry(const CacheIndex index) const
   
   return proxy;
 }
+
+CacheEntry* Cache::getEspinaEntry(const EspinaId& id) const
+{
+  CacheIndex index = m_translator.value(id,"");
+  assert(index != "");
+  return getEntry(index);
+}
+
 
 
 

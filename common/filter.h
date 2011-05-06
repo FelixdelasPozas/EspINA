@@ -58,15 +58,20 @@ public:
   virtual EspinaParamList getArguments();
   
   //! Implements ISingleton
-  virtual QString id();
+  virtual EspinaId id();
+  
+  QString group(){return m_group;}
+  VtkParamList vtkArgs(){return m_vtkArgs;}
   
   std::vector<Product *> products();
   //ProcessingTrace *trace();
   
 private:
   //void createFilter();
+  QString m_group;
   
   EspinaParamList m_args;
+  VtkParamList m_vtkArgs;
   EspinaProxy *m_proxy;
   const TranslatorTable &m_translator;
   //ProcessingTrace m_filtertrace;
