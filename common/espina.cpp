@@ -100,7 +100,7 @@ bool EspINA::setData(const QModelIndex& index, const QVariant& value, int role)
       Segmentation *seg = dynamic_cast<Segmentation *>(item);
       if (seg)
       {
-	seg->name = value.toString();
+	//TODO: uncomment and fix: seg->name = value.toString();
       }
       emit dataChanged(index, index);
       return true;
@@ -370,8 +370,9 @@ void EspINA::loadSource(pqPipelineSource* proxy)
 
   if( filePath.endsWith(".pvd") || filePath.endsWith(".mha"))
   {
-    CachedObjectBuilder::instance()->registerLoadedStack(filePath, proxy);
-    this->addSample(proxy, 0, filePath);
+    vtkFilter *sampleReader = CachedObjectBuilder::instance()->registerProductCreator(filePath, proxy);
+    Sample *sample= new Sample(sampleReader,0);
+    this->addSample(sample);
   }
   else if( filePath.endsWith(".trace") ){ // Deprecated
 
@@ -529,9 +530,8 @@ void EspINA::saveFile(QString& filePath, pqServer* server)
 
 
 //------------------------------------------------------------------------
-void EspINA::addSample(EspinaProxy* source, int portNumber, QString& filePath)
+void EspINA::addSample(Sample *sample)
 {
-  Sample *sample = new Sample(source, portNumber, filePath);
   sample->setVisible(false);
   /* If this is used to load samples when using .trace files. The next line must be uncommented*/
   // Tracing graph

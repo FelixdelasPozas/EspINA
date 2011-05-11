@@ -55,16 +55,19 @@ signals:
 };
 
 
+#include "processingTrace.h" //WARNING: Visibility?
+class IFilter;
+
 class EspinaPlugin
 {
 public:
-
-  virtual void LoadAnalisys(QString &filter, EspinaParamList& args) = 0;
-  QString groupName() {return m_groupName;}
-  QString filterName() {return m_filterName;}
+  virtual ~EspinaPlugin(){}
+  virtual IFilter* createFilter(QString filter, ITraceNode::Arguments &args) = 0;
+  
+  QString pluginName() {return m_pluginName;}
 
 protected:
-  QString m_groupName, m_filterName;
+  QString m_pluginName;
 
 };
 

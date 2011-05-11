@@ -1,6 +1,7 @@
 #include "renderer.h"
 
 #include "interfaces.h"
+#include "products.h"
 
 // ParaQ include files
 #include "pqDisplayPolicy.h"
@@ -21,6 +22,7 @@
 // Debug
 #include <assert.h>
 #include <QDebug>
+#include <filter.h>
 
 enum Rep3D 
 { POINTS  = 0
@@ -36,7 +38,7 @@ enum Rep3D
 //------------------------------------------------------------------------
 MeshRenderer *MeshRenderer::m_singleton(NULL);
 
-QMap<IRenderable *,pqPipelineSource *> MeshRenderer::m_contours;
+QMap<EspinaProduct *,pqPipelineSource *> MeshRenderer::m_contours;
 
 //------------------------------------------------------------------------
 IRenderer *MeshRenderer::renderer()
@@ -55,7 +57,7 @@ void MeshRenderer::hide ( Segmentation* seg, pqRenderView* view )
 */
 
 //------------------------------------------------------------------------
-void MeshRenderer::render( IRenderable* actor, pqRenderView* view)
+void MeshRenderer::render(EspinaProduct* actor, pqRenderView* view)
 {
   pqPipelineSource *contour = NULL;
   if (m_contours.contains(actor))
@@ -63,7 +65,7 @@ void MeshRenderer::render( IRenderable* actor, pqRenderView* view)
   else
   {
     pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
-    contour = ob->createFilter("filters","Contour",actor->sourceData());
+    contour = ob->createFilter("filters","Contour",actor->creator()->pipelineSource());
     vtkSMProperty *p = contour->getProxy()->GetProperty("ContourValues");
     vtkSMDoubleVectorProperty *values = vtkSMDoubleVectorProperty::SafeDownCast(p);
     values->SetElements1(255);
@@ -140,7 +142,7 @@ void VolumeRenderer::hide ( Segmentation* seg, pqRenderView* view )
 */
 
 //------------------------------------------------------------------------
-void VolumeRenderer::render ( IRenderable *actor, pqRenderView * view )
+void VolumeRenderer::render ( EspinaProduct *actor, pqRenderView * view )
 {
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
   pqDataRepresentation *dr = dp->setRepresentationVisibility(

@@ -21,28 +21,28 @@
 #define CACHEDOBJECTBUILDER_H
 #include "cache.h"
 
-#include "translatorTable.h"
+#include <filter.h>
 
 class pqPipelineSource;
-class Filter;
 class Cache;
 
-//! A class to provide ParaView proxies, either using
-//! ESPINA cache system or creating a new one if not
-//! available.
+//! A class to provide ParaView pqPipelineSources, either using
+//! ESPINA cache system or creating a new one if not available.
 class CachedObjectBuilder
 {
 public:
   static CachedObjectBuilder *instance();
-  EspinaProxy *createFilter(Filter *filter);
-  EspinaProxy* createStack(QString& filePath);
   
+  vtkFilter *createFilter(const QString group, const QString name, const vtkFilter::Arguments args);
+  vtkFilter *getFilter(Cache::Index &id) { return m_cache->getEntry(id); }
+
   /**
    * Insert a stack in the Espina Cache which has been already created in the server
    *  The only difference with createStack is that the pqPipelineSource was already
    *  created by ParaView system
    */
-  EspinaProxy* registerLoadedStack(QString& filePath, EspinaProxy* source);
+  //! Only used to load samples by pqPipelineDataReaction
+  vtkFilter* registerProductCreator(QString& id, pqPipelineSource* source);
 
 private:
   CachedObjectBuilder();
@@ -50,8 +50,9 @@ private:
   
   CachedObjectBuilder(const CachedObjectBuilder&);//Not implemented
   void *operator=(const CachedObjectBuilder&);//Not implemented
-  pqPipelineSource *createSMFilter(Filter *filter);
- // void initFilter(pqPipelineSource* filter, ParamList args);
+  
+  Cache::Index generateId(const QString group, const QString name, const vtkFilter::Arguments args);
+  pqPipelineSource *createSMFilter(const QString group, const QString name, const vtkFilter::Arguments args);
   
   static CachedObjectBuilder *m_singleton;
   Cache *m_cache;

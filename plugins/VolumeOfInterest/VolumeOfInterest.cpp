@@ -71,13 +71,13 @@ VolumeOfInterest::VolumeOfInterest(QObject* parent)
 , EspinaPlugin()
 , m_activeVOI(NULL)
 {
-  m_groupName = "filters";//TODO: group: plugins filterName-->pluginName
   m_filterName = "VolumeOfInterest"; //TODO: Review this
   
   buildUI();
   
   // register in a plugin list
-  ProcessingTrace::instance()->registerPlugin(this);
+  QString registerName = m_filterName + "::" + "RectangularVOIFilter";
+  ProcessingTrace::instance()->registerPlugin(registerName, this);
 }
 
 //-----------------------------------------------------------------------------

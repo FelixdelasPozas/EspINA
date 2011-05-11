@@ -102,7 +102,7 @@ void Blender::focusOnSample(Sample* sample)
       qDebug() << "Free previous state";
       assert(false);
     }
-    m_sampleMapper = ob->createFilter("filters", "ImageMapToColors", sample->sourceData(), 0);
+    m_sampleMapper = ob->createFilter("filters", "ImageMapToColors", sample->creator()->pipelineSource(),sample->portNumber());
     assert(m_sampleMapper);
 
     // Get (or create if it doesn't exit) the lut for the background image
@@ -149,7 +149,7 @@ void Blender::blendSegmentation(Segmentation* seg)
   pqObjectBuilder *ob = core->getObjectBuilder();
 
   //Map segmentation values using a lut
-  pqPipelineSource *segMapper = ob->createFilter("filters", "ImageMapToColors", seg->sourceData());
+  pqPipelineSource *segMapper = ob->createFilter("filters", "ImageMapToColors", seg->creator()->pipelineSource(),seg->portNumber());
   assert(segMapper);
   m_blendingMappers[seg] = segMapper;
 
@@ -432,7 +432,7 @@ bool SliceView::isIndexHidden(const QModelIndex& index) const
     return true;
 
   IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
-  Product *actor = dynamic_cast<Product *>(item);
+  EspinaProduct *actor = dynamic_cast<EspinaProduct *>(item);
   return !actor;
 }
 
@@ -492,7 +492,7 @@ void SliceView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int e
       {
         Segmentation *seg = dynamic_cast<Segmentation *>(item);
         assert(seg); // If not sample, it has to be a segmentation
-        std::cout << seg->name.toStdString() << " about to be destroyed\n";
+        std::cout << seg->label().toStdString() << " about to be destroyed\n";
         s_blender->unblendSegmentation(seg);
       }
   }
@@ -535,9 +535,9 @@ void SliceView::focusOnSample(Sample* sample)
   if (!m_slicer)
   {
     pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
-    m_slicer = ob->createFilter("filters", "ImageSlicer", sample->sourceData(), 0);
+    m_slicer = ob->createFilter("filters", "ImageSlicer", sample->creator()->pipelineSource(), sample->portNumber());
     setPlane(m_plane);
-    sample->sourceData()->updatePipeline();
+    sample->creator()->pipelineSource()->updatePipeline();
     /*
     vtkPVDataInformation *info = sample->outputPort()->getDataInformation();
     double *bounds = info->GetBounds();
@@ -798,7 +798,7 @@ void SliceView::updateScene()
   if (m_showSegmentations)
     slice(s_blender->source());
   else
-    slice(s_focusedSample->sourceData());
+    slice(s_focusedSample->creator()->pipelineSource());
 
   m_view->render();
 }

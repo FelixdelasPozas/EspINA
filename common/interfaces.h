@@ -43,12 +43,6 @@ public:
 public:
   IRenderable() : m_style(VISIBLE) {}
   
-  IRenderable(pqPipelineSource *source, int portNumber)
-      : m_style(VISIBLE)
-      , m_source(source)
-      , m_portNumber(portNumber)
-  {}
-  
   virtual bool visible() const
   {
     return m_style & VISIBLE;
@@ -64,15 +58,8 @@ public:
     return m_style;
   }
   
-  virtual pqOutputPort *outputPort() = 0;
-  virtual pqPipelineSource *sourceData() = 0;
-  virtual int portNumber() = 0;
-  virtual void color(double *rgba) = 0;
-
 protected:
   RENDER_STYLE m_style;
-  pqPipelineSource *m_source;
-  int m_portNumber;
 };
 
 

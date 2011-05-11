@@ -33,72 +33,91 @@
 
 #include <Utilities/vxl/vcl/iso/vcl_iostream.h>
 
-
 // Forward declarations
 class pqPipelineSource;
 class Sample;
 
+// typedef QString EspinaId;
+// class ISingleton
+// {
+// public:
+//   virtual EspinaId id() = 0;
+// };
+class vtkFilter;
 
-typedef pqPipelineSource EspinaProxy;
-
-typedef QString EspinaId;
-class ISingleton
+class vtkProduct
 {
 public:
-  virtual EspinaId id() = 0;
+  //! Creates a product for an already existing filter given its id
+  vtkProduct(const QString &id);
+  //! Creates a product for an already existing filter
+  vtkProduct(vtkFilter *creator, int portNumber);
+  
+  QString id(); //TODO: idc vtkfilter creator + : + puerto
+  vtkFilter *creator() {return m_creator;}
+  int portNumber() {return m_portNumber;}
+  pqOutputPort *outputPort();
+ 
+protected:
+  vtkFilter *m_creator;
+  int m_portNumber;
 };
 
-class Product 
-: public ITraceNode
-, public ISingleton
-, public IRenderable
+
+class EspinaProduct
+: public vtkProduct
+, public ITraceNode
+//, public IRenderable
 , public IModelItem
 {
 public:
-  //Product(){}
-  Product(pqPipelineSource *source, int portNumber, const QString &traceName = "Product", const EspinaId & parentHash = "");
-  virtual ~Product(){}
-
+  
+  enum RENDER_STYLE
+  { VISIBLE   = 1
+  , SELECTED  = 2
+  , DISCARTED = 4
+  };
+  
+public:
+  EspinaProduct(vtkFilter *creator, int portNumber);
+  
   //! Implements ITraceNode interface
-  /*
-  virtual std::vector<ITraceNode *> inputs();
-  virtual std::vector<ITraceNode *> outputs();
-  */
+  virtual QString getArguments() const;
   virtual void print(int indent = 0) const;
-  virtual EspinaParamList getArguments();
+  virtual QString label() const {return "Product";}
+
+  //! Implements deprecated IRenderable interface as part of its own interface
+  void color(double *color);
+  virtual bool visible() const { return m_style & VISIBLE; }
+  virtual void setVisible(bool value) { m_style = RENDER_STYLE((m_style & !VISIBLE) | (value ? 1 : 0)); }
+  virtual RENDER_STYLE style() const {return m_style;}
   
-  //! Implements ISingleton
-  virtual EspinaId id();
   
-  
-  //! Implements IRenderable
-  virtual pqOutputPort* outputPort();
-  virtual pqPipelineSource* sourceData();	
-  virtual int portNumber();
-  virtual void color(double* rgba);
-  
+  //! Implements IModelItem Interface
   virtual QVariant data(int role = Qt::UserRole + 1) const;
   virtual TaxonomyNode *taxonomy() {return m_taxonomy;}
-  virtual void setTaxonomy(TaxonomyNode *taxonomy){m_taxonomy = taxonomy;} 
-  virtual void setOrigin(Sample *sample) {m_sample = sample;}
-  virtual Sample *origin() {return m_sample;}
-
-  virtual QString parentHash() {return m_parentHash;}
+  virtual void setTaxonomy(TaxonomyNode *taxonomy) {m_taxonomy = taxonomy;} 
+  virtual void setOrigin(Sample *sample) {    m_origin = sample;}
+  virtual Sample *origin() {return m_origin;}
+  
 protected:
   double m_rgba[4];
-  QString m_hash, m_parentHash;
   TaxonomyNode *m_taxonomy;
-  Sample *m_sample;
+  Sample *m_origin;
+  RENDER_STYLE m_style;
 };
 
-class Sample : public Product
+
+class Sample : public EspinaProduct
 {
 public:
-  Sample(pqPipelineSource *source, int portNumber, const QString &sampleName="") 
-  : Product(source,portNumber, "Sample" ,sampleName) 
+  Sample(vtkFilter *creator, int portNumber) 
+  : EspinaProduct(creator, portNumber)
   , m_extent(NULL)
   {}
   //virtual EspinaId id(){return name;}
+  //! Reimplements ITraceNode Interface
+  virtual QString label() const {return "Segmentation";}
   
   virtual QVariant data(int role = Qt::UserRole + 1) const;
   
@@ -112,11 +131,18 @@ private:
   QMutex mutex;
 };
 
-class Segmentation : public Product
+class Segmentation : public EspinaProduct
 {
 public:
+  Segmentation(vtkFilter *creator, int portNumber);
+  //Segmentation(const vtkProduct &product);
+  //Segmentation(const Segmentation &seg);
+  
+  //! Reimplements ITraceNode Interface
+  virtual QString label() const {return "Segmentation";}
+  
   //! WARNING: Note that Segmentation constructor hides 3rd paramater (productName)
-  Segmentation(pqPipelineSource *source, int portNumber, const QString &parentHash = "");
+  //Segmentation(pqPipelineSource *source, int portNumber, const QString &parentHash = "");
 
   virtual QVariant data(int role = Qt::UserRole + 1) const;
   
@@ -132,3 +158,47 @@ private:
 };
 
 #endif // PRODUCTS_H
+
+// class Product 
+// : public ITraceNode
+// , public ISingleton
+// , public IRenderable
+// , public IModelItem
+// {
+// public:
+//   //Product(){}
+//   Product(pqPipelineSource *source, int portNumber, const QString &traceName = "Product", const EspinaId & parentHash = "");
+//   virtual ~Product(){}
+// 
+//   //! Implements ITraceNode interface
+//   /*
+//   virtual std::vector<ITraceNode *> inputs();
+//   virtual std::vector<ITraceNode *> outputs();
+//   /*
+//   virtual void print(int indent = 0) const;
+//   virtual EspinaParamList getArguments();
+//   */
+//   
+//   //! Implements ISingleton
+//   virtual EspinaId id();
+//   
+//   
+//   //! Implements IRenderable
+//   virtual pqOutputPort* outputPort();
+//   virtual pqPipelineSource* sourceData();	
+//   virtual int portNumber();
+//   virtual void color(double* rgba);
+//   
+//   virtual QVariant data(int role = Qt::UserRole + 1) const;
+//   virtual TaxonomyNode *taxonomy() {return m_taxonomy;}
+//   virtual void setTaxonomy(TaxonomyNode *taxonomy){m_taxonomy = taxonomy;} 
+//   virtual void setOrigin(Sample *sample) {m_sample = sample;}
+//   virtual Sample *origin() {return m_sample;}
+// 
+//   virtual QString parentHash() {return m_parentHash;}
+// protected:
+//   double m_rgba[4];
+//   QString m_hash, m_parentHash;
+//   TaxonomyNode *m_taxonomy;
+//   Sample *m_sample;
+// };

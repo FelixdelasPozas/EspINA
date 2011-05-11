@@ -37,6 +37,35 @@
 
 using namespace std;
 
+vtkFilter::vtkFilter(pqPipelineSource* source, QString& cacheId)
+: m_pipelineSource(source)
+, m_id(cacheId)
+{
+}
+
+int vtkFilter::numProducts()
+{
+  m_pipelineSource->getProxy()->UpdateVTKObjects();
+  return m_pipelineSource->getNumberOfOutputPorts();
+}
+
+vtkProduct* vtkFilter::product(int i)
+{
+  assert(false);
+  return NULL;
+}
+
+QList<vtkProduct *> vtkFilter::products()
+{
+  assert(false);
+  QList<vtkProduct *> p;
+  return p;
+}
+
+
+
+
+/*
 //-----------------------------------------------------------------------------
 // FILTER
 //-----------------------------------------------------------------------------
@@ -76,6 +105,7 @@ Filter::Filter(
   }
   qDebug() << "Filter: Created Filter with id " << this->id();
 }
+*/
 
 //-----------------------------------------------------------------------------
 /*
@@ -91,29 +121,29 @@ vector< ITraceNode* > Filter::outputs()
 }
 */
 //-----------------------------------------------------------------------------
-void Filter::print(int indent) const
-{
-  cout << name.toStdString().c_str() << endl;
-}
-
-//-----------------------------------------------------------------------------
-EspinaParamList Filter::getArguments()
-{
-  //EspinaParamList nullParamList;
-  return m_args;
-}
-
-//-----------------------------------------------------------------------------
-EspinaId Filter::id()
-{
-  QStringList namesToHash;
-  namesToHash.push_back(name);
-  namesToHash.append( reduceArgs(m_args) );
-  return generateSha1(namesToHash);
-}
-
-
-vector<Product *> Filter::products()
-{
-  return m_products;
-}
+// void Filter::print(int indent) const
+// {
+//   cout << name.toStdString().c_str() << endl;
+// }
+// 
+// //-----------------------------------------------------------------------------
+// EspinaParamList Filter::getArguments()
+// {
+//   //EspinaParamList nullParamList;
+//   return m_args;
+// }
+// 
+// //-----------------------------------------------------------------------------
+// EspinaId Filter::id()
+// {
+//   QStringList namesToHash;
+//   namesToHash.push_back(name);
+//   namesToHash.append( reduceArgs(m_args) );
+//   return generateSha1(namesToHash);
+// }
+// 
+// 
+// vector<Product *> Filter::products()
+// {
+//   return m_products;
+// }

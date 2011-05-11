@@ -176,7 +176,7 @@ bool VolumeView::isIndexHidden(const QModelIndex& index) const
     return true;
   
   IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
-  Product *actor = dynamic_cast<Product *>(item);
+  EspinaProduct *actor = dynamic_cast<EspinaProduct *>(item);
   return !actor;
 }
 
@@ -382,7 +382,7 @@ void VolumeView::render(const QModelIndex& index)
       m_focus[1] = (bounds[3]-bounds[2])/2.0;
       m_focus[2] = (bounds[5]-bounds[4])/2.0;
       pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-      dp->setRepresentationVisibility(sample->sourceData()->getOutputPort(0),m_view,true);
+      dp->setRepresentationVisibility(sample->outputPort(),m_view,true);
     } 
     else if (!sample && m_showSegmentations)
     {

@@ -45,19 +45,22 @@ Cache* Cache::instance()
   return m_singleton;
 }
 
-void Cache::insert(const EspinaId& id, const CacheIndex& index, CacheEntry* entry)
+void Cache::insert(const Index& index, vtkFilter* filter)
 {
-  m_translator.insert(id,index);
-  m_cachedProxies.insert(index,entry);
+  //m_translator.insert(id,index);
+  m_cachedProxies.insert(index,filter);
 }
 
 
-CacheEntry* Cache::getEntry(const CacheIndex index) const
+vtkFilter *Cache::getEntry(const Cache::Index index) const
 {
-  CacheEntry *proxy;
+  vtkFilter *filter;
   // First we try to recover the proxy from cache
-  if (proxy = m_cachedProxies.value(index,NULL))
-    return proxy;
+  if (!(filter = m_cachedProxies.value(index,NULL)))
+  {
+    
+    qDebug() << "Cache: Try to load from disk cache failed";
+  /*
   // If not available, try to read from disk/disk cache
   pqApplicationCore *core = pqApplicationCore::instance();
   pqObjectBuilder *ob = core->getObjectBuilder();
@@ -67,16 +70,19 @@ CacheEntry* Cache::getEntry(const CacheIndex index) const
   // TODO: Only works in local mode!!!!
   if (boost::filesystem::exists(index.toStdString().c_str()))
     proxy = ob->createReader("sources","MetaImageReader",file,server);
-  
+  }
   return proxy;
+  */
+  }
+  return filter;
 }
 
-CacheEntry* Cache::getEspinaEntry(const EspinaId& id) const
-{
-  CacheIndex index = m_translator.value(id,"");
-  assert(index != "");
-  return getEntry(index);
-}
+// CacheEntry* Cache::getEspinaEntry(const EspinaId& id) const
+// {
+//   CacheIndex index = m_translator.value(id,"");
+//   assert(index != "");
+//   return getEntry(index);
+// }
 
 
 

@@ -34,7 +34,7 @@ class EspINAFactory
 public:
   static EspINAFactory *instance();
   
-  Segmentation *CreateSegmentation(pqPipelineSource* source, int portNumber, QString parentHash);
+  Segmentation *CreateSegmentation(vtkProduct *vtkRef);
   void addSegmentationExtension(ISegmentationExtension *ext);
   
   VolumeView *CreateVolumeView();

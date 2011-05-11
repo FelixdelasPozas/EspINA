@@ -44,25 +44,25 @@ class EspinaPlugin;
 class ITraceNode
 {
 public:
-  /*
-  virtual std::vector<ITraceNode *> inputs() = 0;
-  virtual std::vector<ITraceNode *> outputs() = 0;
-  */
- 
-  virtual void print(int indent = 0) const = 0;
-  virtual EspinaParamList getArguments() = 0;
-  //virtual int getType() = 0;
+  typedef QMap<QString, QString> Arguments;
+  enum Shape
+  { PRODUCT = 0
+  , FILTER  = 1
+  };
   
+public:
+  virtual QString getArguments() const = 0;
   //! Descriptive name of the node
-  QString name;
+  virtual QString label() const = 0;
+  
   //! Node id in the graph
   IndexType vertexId;
   //! Type used to enhance the output of the graph....
-  int type;// 0: Product 1: Filter
-  //! Taxonomy name
-//  QString taxElement;
-};
+  Shape type;
 
+  //! Debug function
+  virtual void print(int indent = 0) const = 0;
+};
 
 //! A class to represent the working trace
 class ProcessingTrace
@@ -138,7 +138,8 @@ public:
 //   void readTrace(std::istream& content);
   void readTrace(QTextStream& stream);
 
-  void registerPlugin(EspinaPlugin* filter);
+  void registerPlugin(QString key, EspinaPlugin* filter);
+  EspinaPlugin* getRegistredPlugin(QString& key);
   /*
   void addSubtrace(const ProcessingTrace *subTrace);
   std::vector<ITraceNode *> inputs(const ITraceNode *node);
@@ -151,7 +152,7 @@ private:
   ProcessingTrace(const QString &name); // TODO delte. No tiene sentido sin subgraph
 
   //!Convert a string int the correct format "{argument:value;}+" in a NodeParamList
-  NodeParamList parseArgs( QString& raw );
+  ITraceNode::Arguments parseArgs( QString& raw );
 
   // attributes
   Graph m_trace;

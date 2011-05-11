@@ -8,7 +8,7 @@
    All rights reserved.
 
    ParaView is a free software; you can redistribute it and/or modify it
-   under the terms of the ParaView license version 1.2. 
+   under the terms of the ParaView license version 1.2.
 
    See License_v1.2.txt for the full ParaView license.
    A copy of this license can be obtained by contacting
@@ -34,8 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define SEEDGROWINGSEGMENTATION_H
 
 #include "EspinaPlugin.h"
-#include "iSegmentationPlugin.h"
-#include "filter.h"
+#include <iSegmentationPlugin.h>
 #include "selectionManager.h"
 
 #include <QToolButton>
@@ -48,17 +47,17 @@ class QString;
 
 
 //! Seed Growing Segmenation Plugin
-class SeedGrowingSegmentation 
-: public ISegmentationPlugin
-, public EspinaPlugin
+class SeedGrowSegmentation
+      : public ISegmentationPlugin
+      , public EspinaPlugin
 {
   Q_OBJECT
-  
+
 public:
-  SeedGrowingSegmentation(QObject* parent);
-  
-  void LoadAnalisys(QString &filter, EspinaParamList& args);
-  
+  SeedGrowSegmentation(QObject* parent);
+
+  IFilter *createFilter(QString filter, EspinaFilter::Arguments& args);
+
 protected slots:
   //! Changes the method to select the input seed
   void changeSeedSelector(QAction *seedSel);
@@ -68,35 +67,24 @@ protected slots:
   void abortSelection();
   //! Starts the segmentation filter putting a seed at @x, @y, @z.
   void startSegmentation(ISelectionHandler::Selection sel);
-  
+
 signals:
   void segmentationCreated(ProcessingTrace *);
   void productCreated(Segmentation *);
   void selectionAborted(ISelectionHandler *);
-  
+
 private:
-  
   void buildSelectors();
   void buildUI();
-  
-  void initBlurTable();
-  void initGrowTable();
-  
+
   void addPixelSelector(QAction *action, ISelectionHandler *handler);
-  
-  //void buildSubPipeline(Qstring &filter, Product* input, EspinaParamList args);
-  
-  Filter *buildGrowFilter(Product *input, EspinaParamList args);
-  
+
 private:
   QSpinBox *m_threshold;
   QToolButton *m_segButton;
   QMenu *m_selectors;
   ISelectionHandler *m_seedSelector;
   QMap<QAction *, ISelectionHandler *> m_seedSelectors;
-  
-  TranslatorTable m_tableBlur;
-  TranslatorTable m_tableGrow;
 };
 
 #endif// SEEDGROWINGSEGMENTATION_H

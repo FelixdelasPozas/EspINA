@@ -27,14 +27,15 @@
 class pq3DWidget;
 
 class RectangularVOI 
-: public QObject, public IVOI
+: public QObject
+, public IVOI
 {
   Q_OBJECT;
 public:
   RectangularVOI();
   
-  virtual Product* applyVOI(Product* product);
-  virtual Product* restoreVOITransormation(Product* product);
+  virtual vtkProduct applyVOI(vtkProduct* product);
+  virtual vtkProduct restoreVOITransormation(vtkProduct* product);
 
   virtual vtkSMProxy *getProxy();
   virtual pq3DWidget *widget();

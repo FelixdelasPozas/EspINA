@@ -23,12 +23,13 @@
 #include <QObject>
 
 #include "interfaces.h"
+#include "filter.h"
 
 #include <QVector3D>
 #include <QPolygonF>
 
 class pqProxy;
-class Product;
+class EspinaProduct;
 class pqRenderView;
 class QMouseEvent;
 class IVOI;
@@ -68,12 +69,18 @@ protected:
 class Product;
 
 class IVOI
+: public IFilter
 {
 public:
   virtual ~IVOI(){}
   
-  virtual Product *applyVOI(Product *product) = 0;
-  virtual Product *restoreVOITransormation(Product* product) = 0;
+  //! Implements IFilter Interface
+  virtual int numProducts();
+  virtual vtkProduct* products(int i);
+  virtual QList< vtkProduct* > products();
+  
+  virtual vtkProduct *applyVOI(vtkProduct *product) = 0;
+  virtual vtkProduct *restoreVOITransormation(vtkProduct* product) = 0;
   
   virtual vtkSMProxy * getProxy() = 0;
   virtual pq3DWidget *widget() = 0;
@@ -94,7 +101,7 @@ class ISelectionHandler
 public:
   typedef QList<Point> VtkRegion;
   typedef QList<VtkRegion> VtkRegions;
-  typedef QPair<VtkRegion, Product *> SelElement;
+  typedef QPair<VtkRegion, EspinaProduct *> SelElement;
   typedef QList<SelElement> Selection;
   
 public:

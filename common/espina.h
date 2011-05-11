@@ -94,7 +94,7 @@ public:
 
 public slots:
     //TODO: Check if private? Now it's only used by Espina
-    void addSample(EspinaProxy* source, int portNumber, QString& filePath);
+    void addSample(Sample *sample);
 
     //! Add a new segmentation (used by the plugins)
     void addSegmentation(Segmentation *seg);

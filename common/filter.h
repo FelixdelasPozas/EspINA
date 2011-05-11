@@ -35,12 +35,85 @@
 
 // Forward declarations
 class pqPipelineSource;
+class CachedObjectBuilder;
 class Sample;
 
+class vtkProduct;//TODO
 
+class IFilter
+{
+public:
+  //! Returns the number of products created by the filter
+  virtual int numProducts() = 0;
+  //! Returns the i-th product created by the filter
+  virtual vtkProduct *product(int i) = 0;
+  //! Returns all products created by the filter
+  virtual QList<vtkProduct *> products() = 0;
+};
+
+
+//! Represents a unique vtk filter
+class vtkFilter
+: public IFilter
+{
+public:
+  enum VtkPropType
+  { UNKOWN     = -1
+  , INPUT      = 0    
+  , INTVECT    = 1
+  , DOUBLEVECT = 2
+  };
+  
+  struct Argument
+  {
+    Argument(QString newName, VtkPropType newType, QString newValue)
+    : name(newName)
+    , type(newType)
+    , value(newValue){}
+    
+    QString name;
+    VtkPropType type;
+    QString value;
+  };
+  
+  typedef QList<Argument> Arguments;
+
+public:
+  //! Implements IFilter Interface
+  virtual int numProducts();
+  virtual vtkProduct *product(int i);
+  virtual QList<vtkProduct *> products();
+  
+  QString id(){return m_id;}
+  pqPipelineSource *pipelineSource(){return m_pipelineSource;}
+
+private:
+  vtkFilter(pqPipelineSource *source, QString &cacheId);
+  
+private:  
+  pqPipelineSource *m_pipelineSource;
+  QString m_id; //! Cache id
+  friend class CachedObjectBuilder;
+};
+
+
+//! Represents a filter that can be traced
+class EspinaFilter 
+: public IFilter
+, public ITraceNode
+{
+public:
+  //! Implements ITraceNode Interface
+  virtual QString getArguments() const {return QString("fake");}//TODO:
+  virtual void print(int indent = 0) const {};
+  virtual QString label() const {return "Filter";}
+};
+
+
+/*
+/// DEPRECATED: Old method
 class Filter : public ITraceNode, public ISingleton
 {
-  
 public:
   Filter(
     //! Paraview filter's group name
@@ -72,10 +145,32 @@ private:
   
   EspinaParamList m_args;
   VtkParamList m_vtkArgs;
-  EspinaProxy *m_proxy;
+  pqPipelineSource *m_proxy;
   const TranslatorTable &m_translator;
   //ProcessingTrace m_filtertrace;
   std::vector<Product *> m_products;
 };
+*/
+
+
+
+/*
+//! Represents a Filter from the VTK p.o.v.
+class vtkFilter : public ISingleton
+{
+public:
+  typedef QMap<QString, QString> Arguments;
+  
+  Arguments args();
+  
+private:
+  Arguments m_args;
+  QString m_group;
+  QString m_name;
+  
+  pqPipelineSource *m_proxy;
+};
+*/
+
 
 #endif // FILTER_H
