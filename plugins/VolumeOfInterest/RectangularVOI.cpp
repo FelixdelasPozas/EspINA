@@ -98,23 +98,30 @@ IFilter *RectangularVOI::applyVOI(vtkProduct* product)
   double pos[3];
   vtkSMPropertyHelper(m_box,"Position").Get(pos,3);
   
-  qDebug() << "RectangularVOI Plugin::Scale on: "<< scale[0]<< scale[1]<< scale[2];
-  qDebug() << "RectangularVOI Plugin::Pos on: "<< pos[0]<< pos[1]<< pos[2];
+  qDebug() << "RectangularVOI Plugin: Scale: "<< scale[0]<< scale[1]<< scale[2];
+  qDebug() << "RectangularVOI Plugin: Pos: "<< pos[0]<< pos[1]<< pos[2];
+  qDebug() << "RectangularVOI Plugin: Extent: "<< m_rvoi[0]<< m_rvoi[1]<< m_rvoi[2]<< m_rvoi[3]<< m_rvoi[4]<< m_rvoi[5];
   
   double productExtent[6] = {m_rvoi[0],m_rvoi[1],m_rvoi[2], m_rvoi[3], m_rvoi[4], m_rvoi[5]/2};
   double productSpacing[3] = {1,1,2};
   
- // CALCULAR LA NUEVA REGION
+ // CALCULAR LA NUEVA REGION 
+  double voiExtent[6];
   
-  m_rvoi[0] = std::max(productExtent[0], round(pos[0] + m_rvoi[0] * scale[0]/productSpacing[0]));
-  m_rvoi[1] = round(pos[0] + m_rvoi[1] * scale[0]);
-  m_rvoi[2] = round(pos[1] + m_rvoi[2] * scale[1]);
-  m_rvoi[3] = round(pos[1] + m_rvoi[3] * scale[1]);
-  m_rvoi[4] = round(pos[2] + m_rvoi[4] * scale[2]);
-  m_rvoi[5] = round((pos[2] + m_rvoi[5] * scale[2]/2));
+  for (int i=0; i<6; i++)
+    voiExtent[i] = round((pos[i/2] + m_rvoi[i]*scale[i/2])/productSpacing[i/2]);
   
-  qDebug() << "RectangularVOI Plugin::ApplyVOI on: "<< m_rvoi[0]<< m_rvoi[1]<< m_rvoi[2]<< m_rvoi[3]<< m_rvoi[4]<< m_rvoi[5];
-  EspinaFilter *rvoi = new ApplyFilter(product,m_rvoi);
+  //WARNING: How to deal with bounding boxes out of resources...
+  
+  //m_rvoi[0] = std::max(productExtent[0], round(pos[0] + m_rvoi[0] * scale[0]/productSpacing[0]));
+  //m_rvoi[1] = round(pos[0] + m_rvoi[1] * scale[0]);
+  //m_rvoi[2] = round(pos[1] + m_rvoi[2] * scale[1]);
+  //m_rvoi[3] = round(pos[1] + m_rvoi[3] * scale[1]);
+  //m_rvoi[4] = round(pos[2] + m_rvoi[4] * scale[2]);
+  //m_rvoi[5] = round((pos[2] + m_rvoi[5] * scale[2]/2));
+  
+  qDebug() << "RectangularVOI Plugin::ApplyVOI on: "<< voiExtent[0]<< voiExtent[1]<< voiExtent[2]<< voiExtent[3]<< voiExtent[4]<< voiExtent[5];
+  EspinaFilter *rvoi = new ApplyFilter(product,voiExtent);
   
   return rvoi;
 }

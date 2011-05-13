@@ -36,9 +36,6 @@
 #include <vtkSMIntVectorProperty.h>
 #include <vtkSMDoubleVectorProperty.h>
 
-// TODO: Boost??
-#include <boost/graph/graph_concepts.hpp>
-
 // Debug
 #include <QDebug>
 #include <assert.h>
@@ -189,11 +186,5 @@ vtkFilter* CachedObjectBuilder::registerProductCreator(QString& id, pqPipelineSo
   
   return filter;
 }
-
-
-// void CachedObjectBuilder::initFilter(pqPipelineSource* filter, ParamList args)
-// {
-// }
-
 
 
