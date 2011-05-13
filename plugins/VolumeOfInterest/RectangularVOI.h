@@ -29,26 +29,30 @@ class pq3DWidget;
 class RectangularVOI 
 : public QObject
 , public IVOI
+, IFilterFactory
 {
   class ApplyFilter: public EspinaFilter
   {
   public:
-    ApplyFilter(vtkProduct *input, double *bounds, );
+    ApplyFilter(vtkProduct *input, double *bounds);
+    ApplyFilter(ITraceNode::Arguments &args);
     virtual int numProducts() {return 1;}//Asser it is true :D
     virtual vtkProduct product(int i) {return vtkProduct(m_rvoi,0);}
     virtual QList< vtkProduct* > products() {QList<vtkProduct *> p; return p;}
     virtual QString getFilterArguments() const {return m_args;}
+    
+    static const QString FilterType;
   private:
     vtkFilter *m_rvoi;
   };
 
   Q_OBJECT;
 public:
-  RectangularVOI(EspinaPlugin* parent
-);
+  RectangularVOI();
   
+  virtual IFilter* createFilter(QString filter, ITraceNode::Arguments& args);
   virtual IFilter *createApplyFilter(){}
-  virtual IFilter *createRestoreFilter(){}
+  virtual IFilter *createRestoreFilter() {return NULL;}
   
   virtual IFilter *applyVOI(vtkProduct* product);
   virtual IFilter *restoreVOITransormation(vtkProduct* product);

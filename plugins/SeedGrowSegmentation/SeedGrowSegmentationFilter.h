@@ -31,17 +31,17 @@ class SeedGrowSegmentationFilter
 public:
   
   //! Constructor interactivo
-  SeedGrowSegmentationFilter(EspinaProduct *input, IVOI *voi, ITraceNode::Arguments &args, EspinaPlugin *parent);
+  SeedGrowSegmentationFilter(EspinaProduct *input, IVOI *voi, ITraceNode::Arguments &args);
   //! Constructor desde lista de argumentos
-  SeedGrowSegmentationFilter(ITraceNode::Arguments &args, EspinaPlugin *parent);
+  SeedGrowSegmentationFilter(ITraceNode::Arguments &args);
   
   //! Implements IFilter Interface
   virtual int numProducts() {return 1;}
   virtual vtkProduct product(int i) {return vtkProduct(m_finalFilter->product(i).creator(),i);}
   virtual QList<vtkProduct *> products() {QList<vtkProduct*> a; return a;}
   
-  virtual QString label() const {return m_plugin->pluginName() + "::SeedGrowSegmentationFilter";}
-    virtual QString getArgument(QString name) const {return "";}
+  virtual QString label() const {return getArgument("Type");}
+  virtual QString getArgument(QString name) const {return (name=="Type")?"SeedGrowSegmentation::SeedGrowSegmentationFilter":"";}
   virtual QString getArguments() const {return m_args;}
 
 private:
@@ -49,7 +49,6 @@ private:
   vtkFilter *m_grow;
   IFilter *m_restoreFilter;
   IFilter *m_finalFilter;
-  EspinaPlugin *m_plugin;
 };
 
 

@@ -68,11 +68,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
 VolumeOfInterest::VolumeOfInterest(QObject* parent)
 : QActionGroup(parent)
-, EspinaPlugin()
 , m_activeVOI(NULL)
 {
-  m_pluginName = "VolumeOfInterest";
-  
   buildUI();
   
   // register in a plugin list
@@ -81,27 +78,6 @@ VolumeOfInterest::VolumeOfInterest(QObject* parent)
   //registerName = m_pluginName + "::" + "RectangularVOIFilter::Restore";
   //ProcessingTrace::instance()->registerPlugin(registerName, this);
 }
-
-//-----------------------------------------------------------------------------
-IFilter* VolumeOfInterest::createFilter(QString filter, ITraceNode::Arguments& args)
-{
-  QStringList filterNames = filter.split("::");
-  if (filterNames[1] == "RectangularVOIFilter")
-  {
-    //m_VOIs[filterNames[1]
-    //! delegar en la estrategia que corresponda (m_VOIs)
-    //return m_VOIs[X]->createApplyFilter();
-//     CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-//     vtkFilter::Arguments filterArgs;
-//     filterArgs.push_back(vtkFilter::Argument(QString("Input"),vtkFilter::INPUT, args["input"]));
-//     filterArgs.push_back(vtkFilter::Argument(QString("VOI"),vtkFilter::INTVECT, args["VOI"]));
-//     vtkFilter *applyFilter = cob->createFilter("filters","VOI",filterArgs);
-  }else
-  { 
-    qDebug("SeedGrowSegmenation::LoadAnalisys: Error no such a Filter");
-  }
-}
-
 
 //-----------------------------------------------------------------------------
 void VolumeOfInterest::enable(bool value)
@@ -153,7 +129,7 @@ void VolumeOfInterest::buildVOIs()
     QIcon(":/voi")
     , tr("Volume Of Interest"),
     m_VOIMenu);
-  voi = new RectangularVOI(this);
+  voi = new RectangularVOI();
   addVOI(action, voi);
 }
 

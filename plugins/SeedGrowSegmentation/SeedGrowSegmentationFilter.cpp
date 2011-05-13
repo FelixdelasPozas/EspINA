@@ -30,10 +30,7 @@ QString stripName(QString args){return args.split(";")[0];}//FAKE
 QString stripArgs(QString args){return args.split(";")[1];}//FAKE
 
 
-SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVOI* voi, ITraceNode::Arguments& args, EspinaPlugin* parent
-
-)
-: m_plugin(parent)
+SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVOI* voi, ITraceNode::Arguments& args)
 {
   type = FILTER;
   ProcessingTrace* trace = ProcessingTrace::instance();
@@ -101,8 +98,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVO
 }
 
 
-SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ITraceNode::Arguments& args, EspinaPlugin* parent)
-: m_plugin(parent)
+SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ITraceNode::Arguments& args)
 {
   foreach(QString key, args.keys())
     m_args.append(ESPINA_ARG(key, args[key]));
@@ -116,20 +112,13 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ITraceNode::Arguments& ar
   //! Executes VOI
   if (args.contains("ApplyVOI") )
   {
-    
-    ITraceNode::Arguments VOIArgs = ITraceNode::parseArgs(args["ApplyVOI"]);
-    trace->getRegistredPlugin(VOIArgs["Type"])->createFilter(VOIArgs["Type"]);
-
-    m_applyFilter = 
-
-    //voi->applyVOI(input);
-
-    
+    ITraceNode::Arguments voiArgs = ITraceNode::parseArgs(args["ApplyVOI"]);
+    m_applyFilter = trace->getRegistredPlugin(voiArgs["Type"])->createFilter(voiArgs["Type"],voiArgs);
     if (m_applyFilter)
     {
       voiOutput = m_applyFilter->product(0);
       //m_args.append("ApplyVOI=" + applyFilter->getFileArguments());
-      m_args.append(ESPINA_ARG("ApplyVOI", "["+m_applyFilter->getFilterArguments() + "]"));
+      //m_args.append(ESPINA_ARG("ApplyVOI", "["+m_applyFilter->getFilterArguments() + "]"));
     }
   }
 

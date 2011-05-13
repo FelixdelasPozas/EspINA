@@ -61,35 +61,29 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define DEFAULT_THRESHOLD 30
 
+#define SGS "SeedGrowSegmentation"
+#define SGSF "SeedGrowSegmentation::SeedGrowSegmentationFilter"
+
 //-----------------------------------------------------------------------------
 SeedGrowSegmentation::SeedGrowSegmentation(QObject* parent)
 : ISegmentationPlugin(parent)
-, EspinaPlugin()
 , m_seedSelector(NULL)
 {
-  m_pluginName = "SeedGrowSegmentation";
+  m_factoryName = SGS;
+  // Register Factory's filters
+  ProcessingTrace::instance()->registerPlugin(SGSF, this);
   
   buildUI();
   
-  /*DEPRECATED
-  connect(this,
-	  SIGNAL(productCreated(Segmentation *)),
-	  EspINA::instance(),
-	  SLOT(addSegmentation(Segmentation*)));
-  */
-  
-  // register in a plugin list
-  QString registerName = m_pluginName + "::" + "SeedGrowSegmentationFilter";//TODO: Hacer estatico...
-  ProcessingTrace::instance()->registerPlugin(registerName, this);
 }
 
 
 //-----------------------------------------------------------------------------
 IFilter *SeedGrowSegmentation::createFilter(QString filter, ITraceNode::Arguments & args)
 {
-  if (filter == m_pluginName + "::" + "SeedGrowSegmentationFilter") 
+  if (filter == SGSF)
   {
-    SeedGrowSegmentationFilter *sgs_sgsf = new SeedGrowSegmentationFilter(args, this);
+    SeedGrowSegmentationFilter *sgs_sgsf = new SeedGrowSegmentationFilter(args);
     return sgs_sgsf;
   }else
   { 
@@ -182,11 +176,12 @@ void SeedGrowSegmentation::startSegmentation(ISelectionHandler::Selection sel)
   Point seed = element.first.first();
   
   ITraceNode::Arguments args;
+  args.insert("Type", SGSF);
   args.insert("Seed", QString("%1,%2,%3").arg(seed.x).arg(seed.y).arg(seed.z));
   args.insert("Threshold",QString::number(m_threshold->value()));
  // args.insert("VOI",SelectionManager::instance()->voi()->save());
   //createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);
-  SeedGrowSegmentationFilter *sgs_sgsf = new SeedGrowSegmentationFilter(input, SelectionManager::instance()->voi(),args, this);
+  SeedGrowSegmentationFilter *sgs_sgsf = new SeedGrowSegmentationFilter(input, SelectionManager::instance()->voi(),args);
   
   if (undoStack)
   {

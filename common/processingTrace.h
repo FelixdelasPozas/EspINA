@@ -38,7 +38,7 @@ typedef std::vector<EspinaParam> EspinaParamList;
 typedef unsigned int IndexType;
 //Forward declarations
 class ProcessingTrace;
-class EspinaPlugin;
+class IFilterFactory;
 
 #define ESPINA_ARG(name, value) QString("%1=%2;").arg(name).arg(value)
 
@@ -149,8 +149,8 @@ public:
 //   void readTrace(std::istream& content);
   void readTrace(QTextStream& stream);
 
-  void registerPlugin(QString key, EspinaPlugin* filter);
-  EspinaPlugin* getRegistredPlugin(QString& key);
+  void registerPlugin(QString key, IFilterFactory* factory);
+  IFilterFactory* getRegistredPlugin(QString& key);
   /*
   void addSubtrace(const ProcessingTrace *subTrace);
   std::vector<ITraceNode *> inputs(const ITraceNode *node);
@@ -169,7 +169,7 @@ private:
   // attributes
   Graph m_trace;
   static ProcessingTrace* m_instnace;
-  QMap<QString, EspinaPlugin* > m_availablePlugins;
+  QMap<QString, IFilterFactory *> m_availablePlugins;
   
 };
 

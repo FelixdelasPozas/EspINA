@@ -48,7 +48,7 @@ ITraceNode::Arguments ITraceNode::parseArgs(QString& raw)
 
   foreach(QChar c, raw)
   {
-    if( c == '=' )
+    if( c == '=' && balanceo == 0)
     {
       name = buffer;
       buffer = "";
@@ -65,7 +65,7 @@ ITraceNode::Arguments ITraceNode::parseArgs(QString& raw)
       if(balanceo > 0)
         buffer.append(c);
     }
-    else if( c == ';') 
+    else if( c == ';' && balanceo == 0)
     {
       value = buffer;
       buffer = "";
@@ -382,9 +382,9 @@ void ProcessingTrace::readTrace(QTextStream& stream)
         ITraceNode::Arguments args = ITraceNode::parseArgs( rawArgs ); //TODO: quien lo hace
        // if( filterInfo.at(1) == "SeedGrowSegmentationFilter")
         qDebug() << "Plugin Name:" << label;
-        EspinaPlugin* plugin = m_availablePlugins.value(label, NULL);
-        if( plugin )
-          m_availablePlugins.value(label)->createFilter(label, args);
+        IFilterFactory* factory = m_availablePlugins.value(label, NULL);
+        if( factory )
+          factory->createFilter(label, args);
         else
           qDebug() << "ProcessingTrace: the filter is not registered";
 
@@ -418,15 +418,15 @@ void ProcessingTrace::readTrace(QTextStream& stream)
 }
 
 //-----------------------------------------------------------------------------
-void ProcessingTrace::registerPlugin(QString key, EspinaPlugin* filter)
+void ProcessingTrace::registerPlugin(QString key, IFilterFactory* factory)
 {
   assert( m_availablePlugins.contains(key) == false );
-  m_availablePlugins.insert(key, filter);
+  m_availablePlugins.insert(key, factory);
 }
 
 
 //-----------------------------------------------------------------------------
-EspinaPlugin* ProcessingTrace::getRegistredPlugin(QString& key)
+IFilterFactory * ProcessingTrace::getRegistredPlugin(QString& key)
 {
   assert( m_availablePlugins.contains(key));
   return m_availablePlugins[key];

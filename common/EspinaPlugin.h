@@ -58,17 +58,16 @@ signals:
 #include "processingTrace.h" //WARNING: Visibility?
 class IFilter;
 
-class EspinaPlugin
+class IFilterFactory
 {
 public:
-  virtual ~EspinaPlugin(){}
+  virtual ~IFilterFactory(){}
   virtual IFilter* createFilter(QString filter, ITraceNode::Arguments &args) = 0;
   
-  QString pluginName() {return m_pluginName;}
+  //QString pluginName() {return m_pluginName;}
 
 protected:
-  QString m_pluginName;
-
+  QString m_factoryName;
 };
 
 #endif // ESPINAPLUGIN_H

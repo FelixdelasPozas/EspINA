@@ -49,7 +49,7 @@ class QString;
 //! Seed Growing Segmenation Plugin
 class SeedGrowSegmentation
       : public ISegmentationPlugin
-      , public EspinaPlugin
+      , public IFilterFactory
 {
   Q_OBJECT
 

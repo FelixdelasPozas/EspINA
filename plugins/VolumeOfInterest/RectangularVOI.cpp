@@ -37,7 +37,9 @@
 #include <assert.h>
 #include <cache/cachedObjectBuilder.h>
 
-RectangularVOI::ApplyFilter::ApplyFilter(vtkProduct* input, double* bounds, EspinaPlugin* parent)
+const QString RectangularVOI::ApplyFilter::FilterType = "RectangularVOI::ApplyFilter";
+
+RectangularVOI::ApplyFilter::ApplyFilter(vtkProduct* input, double* bounds)
 {
    CachedObjectBuilder *cob = CachedObjectBuilder::instance();
 
@@ -47,18 +49,41 @@ RectangularVOI::ApplyFilter::ApplyFilter(vtkProduct* input, double* bounds, Espi
    args.push_back(vtkFilter::Argument(QString("VOI"),vtkFilter::INTVECT, VolumeArg));
    m_rvoi = cob->createFilter("filters","RectangularVOI",args);
    
-   m_args.append(ESPINA_ARG("Type", parent->pluginName() + "::RectangularVOI::Apply")).append(ESPINA_ARG("Bound", VolumeArg));
+   m_args.append(ESPINA_ARG("Type",FilterType));
+   m_args.append(ESPINA_ARG("Input",input->id()));
+   m_args.append(ESPINA_ARG("Bound", VolumeArg));
 }
 
+//-----------------------------------------------------------------------------
+RectangularVOI::ApplyFilter::ApplyFilter(ITraceNode::Arguments &args)
+{
+   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
 
+   vtkFilter::Arguments vtkArgs;
+   vtkArgs.push_back(vtkFilter::Argument(QString("Input"),vtkFilter::INPUT, args["Input"]));
+   vtkArgs.push_back(vtkFilter::Argument(QString("VOI"),vtkFilter::INTVECT, args["Bound"]));
+   m_rvoi = cob->createFilter("filters","RectangularVOI", vtkArgs);
+
+   m_args.append(ESPINA_ARG("Type",FilterType));
+   m_args.append(ESPINA_ARG("Input",args["Input"]));
+   m_args.append(ESPINA_ARG("Bound", args["Bound"]));
+}
 
 //-----------------------------------------------------------------------------
-RectangularVOI::RectangularVOI(EspinaPlugin* parent)
+RectangularVOI::RectangularVOI()
 : m_box(NULL)
 {
   bzero(m_widget,4*sizeof(pq3DWidget *));
-  QString registerName = parent-> m_pluginName + "::" + "RectangularVOIFilter::Apply";
+  QString registerName = ApplyFilter::FilterType;
   ProcessingTrace::instance()->registerPlugin(registerName, this);
+}
+
+IFilter* RectangularVOI::createFilter(QString filter, ITraceNode::Arguments& args)
+{
+  if (filter == ApplyFilter::FilterType)
+    return new ApplyFilter(args);
+  else
+    return NULL;
 }
 
 //-----------------------------------------------------------------------------

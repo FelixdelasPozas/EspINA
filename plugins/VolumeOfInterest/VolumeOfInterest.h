@@ -47,14 +47,12 @@ class Product;
 //! Volume Of Interest Plugin
 class VolumeOfInterest 
 : public QActionGroup
-, public EspinaPlugin
 {
   Q_OBJECT
   
 public:
   VolumeOfInterest(QObject* parent);
   
-  virtual IFilter* createFilter(QString filter, ITraceNode::Arguments& args);
 protected slots:
   //! Changes VOI enable state
   void enable(bool value);
