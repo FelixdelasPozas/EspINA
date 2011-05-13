@@ -36,6 +36,51 @@
 
 using namespace boost;
 
+
+
+//-----------------------------------------------------------------------------
+ITraceNode::Arguments ITraceNode::parseArgs(QString& raw)
+{
+  ITraceNode::Arguments res;
+  QStringList argList;
+  QString name, value, buffer;
+  int balanceo = 0;
+
+  foreach(QChar c, raw)
+  {
+    if( c == '=' )
+    {
+      name = buffer;
+      buffer = "";
+    }    
+    else if( c == '[')
+    {
+      if(balanceo > 0)
+        buffer.append(c);
+      balanceo++;
+    }
+    else if( c== ']')
+    {
+      balanceo--;
+      if(balanceo > 0)
+        buffer.append(c);
+    }
+    else if( c == ';') 
+    {
+      value = buffer;
+      buffer = "";
+      res.insert(name, value);
+    }
+    else
+    {
+      buffer.append(c);
+    }      
+  }
+
+  return res;
+}
+
+
 ProcessingTrace* ProcessingTrace::m_instnace(NULL);
 
 //-----------------------------------------------------------------------------
@@ -71,21 +116,33 @@ void ProcessingTrace::addNode(ITraceNode* node)
   node->vertexId = v;
   //nodeMap[v] = node;
   m_trace[v].node = node;
-  m_trace[v].labelName = node->label().toStdString();
-  m_trace[v].args =  node->getArguments().toStdString();
-  switch (node->type)
-  {
-    case (ITraceNode::FILTER):
-      m_trace[v].shape = "box";
-      break;
-    case (ITraceNode::PRODUCT):
-      m_trace[v].shape = "ellipse";
-      break;
-    default:
-      assert(false);
-  }
+
   //nodeMap[v]->print();
   //m_trace[v].node->print();
+}
+
+
+//-----------------------------------------------------------------------------
+void ProcessingTrace::readNodes()
+{
+  boost::graph_traits<Graph>::vertex_iterator vi, vi_end;
+  for(boost::tie(vi, vi_end) = boost::vertices(m_trace); vi != vi_end; vi++)
+  {
+      ITraceNode* node = m_trace[*vi].node;
+      m_trace[*vi].labelName = node->label().toStdString();
+      m_trace[*vi].args =  node->getArguments().toStdString();
+      switch (node->type)
+      {
+      case (ITraceNode::FILTER):
+          m_trace[*vi].shape = "box";
+          break;
+      case (ITraceNode::PRODUCT):
+          m_trace[*vi].shape = "ellipse";
+          break;
+      default:
+          assert(false);
+      }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -104,6 +161,22 @@ void ProcessingTrace::connect(
   //Find the nodes corresponding the nodes
   // Add a new edge(origin,destination) with 
   // description property
+}
+
+//-----------------------------------------------------------------------------
+void ProcessingTrace::connect(QString& id,
+                              ITraceNode* destination,
+                              const std::string& description)
+{
+  boost::graph_traits<Graph>::vertex_iterator vi, vi_end;
+  for(boost::tie(vi, vi_end) = boost::vertices(m_trace); vi != vi_end; vi++)
+  {
+    if(m_trace[*vi].node->getArgument("Id") == id)
+    {
+      break;
+    }
+  }
+  connect(m_trace[*vi].node, destination, description);
 }
 
 /*
@@ -294,16 +367,11 @@ void ProcessingTrace::readTrace(QTextStream& stream)
       if( vShape[vertexId].compare("ellipse") == 0 && label.startsWith('/') )
       {
         qDebug() << "ProcessingTrace: Loading the Stack " << label;
-        //pqPipelineSource* proxy = pqLoadDataReaction::loadData(QStringList(label));
-        //assert(NULL == CachedObjectBuilder::instance()->registerLoadedStack(label, proxy));
-	assert(false);
-	/*
-        pqPipelineSource* proxy = CachedObjectBuilder::instance()->createProduct(label);
-        assert(proxy);
-	vtkFilter sampleReader(proxy, path);
-	Sample sample(sampleReader,0);
-        EspINA::instance()->addSample(sample);
-        */
+        pqPipelineSource* proxy = pqLoadDataReaction::loadData(QStringList(label));
+        vtkFilter* sampleReader = CachedObjectBuilder::instance()->registerProductCreator(label, proxy);
+        //pqPipelineSource* proxy = CachedObjectBuilder::instance()->createProduct(label);
+
+        EspINA::instance()->addSample(new Sample(sampleReader, 0));
       } // A filter
       else if( vShape[vertexId].compare("box") == 0 )
       { // A filter that can be processed
@@ -311,13 +379,12 @@ void ProcessingTrace::readTrace(QTextStream& stream)
         //QStringList filterInfo = QString(vLabel[vertexId].c_str()).split("::");
         //assert(filterInfo.size() == 2);
         QString rawArgs( vArgs[vertexId].c_str() );
-        ITraceNode::Arguments args = parseArgs( rawArgs ); //TODO: quien lo hace
+        ITraceNode::Arguments args = ITraceNode::parseArgs( rawArgs ); //TODO: quien lo hace
        // if( filterInfo.at(1) == "SeedGrowSegmentationFilter")
         qDebug() << "Plugin Name:" << label;
         EspinaPlugin* plugin = m_availablePlugins.value(label, NULL);
-        QString filter = "Grow";
         if( plugin )
-          m_availablePlugins.value(label)->createFilter(filter, args);
+          m_availablePlugins.value(label)->createFilter(label, args);
         else
           qDebug() << "ProcessingTrace: the filter is not registered";
 
@@ -345,7 +412,7 @@ void ProcessingTrace::readTrace(QTextStream& stream)
     }
     else // The node could not be processed. Swap it with the next one
     {
-      verticesToProcess.swap(0,1);
+      verticesToProcess.swap(0, verticesToProcess.size()-1);
     }
   }
 }
@@ -365,22 +432,11 @@ EspinaPlugin* ProcessingTrace::getRegistredPlugin(QString& key)
   return m_availablePlugins[key];
 }
 
-//-----------------------------------------------------------------------------
-ITraceNode::Arguments ProcessingTrace::parseArgs( QString& raw )
-{
-  ITraceNode::Arguments res;
-  QStringList argList;
-  foreach(QString arg, raw.split(";"))
-  {
-    argList = arg.split(":");
-    res.insert(argList[0], argList[1]);
-  }
-  return res;
-}
 
 //-----------------------------------------------------------------------------
 void ProcessingTrace::print( std::ostream& out, ProcessingTrace::printFormat format)
 {
+  this->readNodes();
   if( format == graphviz )
   {
     boost::dynamic_properties dp;

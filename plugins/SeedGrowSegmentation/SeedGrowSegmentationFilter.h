@@ -33,7 +33,7 @@ public:
   //! Constructor interactivo
   SeedGrowSegmentationFilter(EspinaProduct *input, IVOI *voi, ITraceNode::Arguments &args, EspinaPlugin *parent);
   //! Constructor desde lista de argumentos
-  SeedGrowSegmentationFilter(ITraceNode::Arguments &args);
+  SeedGrowSegmentationFilter(ITraceNode::Arguments &args, EspinaPlugin *parent);
   
   //! Implements IFilter Interface
   virtual int numProducts() {return 1;}
@@ -41,6 +41,7 @@ public:
   virtual QList<vtkProduct *> products() {QList<vtkProduct*> a; return a;}
   
   virtual QString label() const {return m_plugin->pluginName() + "::SeedGrowSegmentationFilter";}
+    virtual QString getArgument(QString name) const {return "";}
   virtual QString getArguments() const {return m_args;}
 
 private:

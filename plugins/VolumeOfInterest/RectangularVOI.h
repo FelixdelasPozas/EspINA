@@ -33,7 +33,7 @@ class RectangularVOI
   class ApplyFilter: public EspinaFilter
   {
   public:
-    ApplyFilter(vtkProduct *input, double *bounds);
+    ApplyFilter(vtkProduct *input, double *bounds, );
     virtual int numProducts() {return 1;}//Asser it is true :D
     virtual vtkProduct product(int i) {return vtkProduct(m_rvoi,0);}
     virtual QList< vtkProduct* > products() {QList<vtkProduct *> p; return p;}
@@ -44,7 +44,8 @@ class RectangularVOI
 
   Q_OBJECT;
 public:
-  RectangularVOI();
+  RectangularVOI(EspinaPlugin* parent
+);
   
   virtual IFilter *createApplyFilter(){}
   virtual IFilter *createRestoreFilter(){}

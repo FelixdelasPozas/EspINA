@@ -38,10 +38,12 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVO
   type = FILTER;
   ProcessingTrace* trace = ProcessingTrace::instance();
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-  
+
+  //m_args = QString("%1=%2;").arg("Sample").arg(input->label());
+  m_args = ESPINA_ARG("Sample", input->getArgument("Id"));
   foreach(QString argName, args.keys())
   {
-    m_args.append(QString("%1:%2;").arg(argName).arg(args[argName]));
+    m_args.append(ESPINA_ARG(argName, args[argName]));
   }
   
   vtkProduct voiOutput(input->creator(),input->portNumber());
@@ -52,8 +54,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVO
     if (m_applyFilter)
     {
       voiOutput = m_applyFilter->product(0);
-      //m_args.append("ApplyVOI=" + applyFilter->getFileArguments());
-      m_args += "Param=value;";
+      m_args.append(ESPINA_ARG("ApplyVOI", "["+m_applyFilter->getFilterArguments() + "]"));
     }
   }
 
@@ -78,7 +79,8 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVO
     {
       growOutput = m_restoreFilter->product(0);
       m_finalFilter = m_restoreFilter;
-      //Anadir args
+      //TODO Anadir args
+      
     }
   }
 
@@ -99,8 +101,79 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVO
 }
 
 
-SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ITraceNode::Arguments& args)
+SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ITraceNode::Arguments& args, EspinaPlugin* parent)
+: m_plugin(parent)
 {
+  foreach(QString key, args.keys())
+    m_args.append(ESPINA_ARG(key, args[key]));
+  type = FILTER;
+  ProcessingTrace* trace = ProcessingTrace::instance();
+  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+
+  vtkProduct input(args["Sample"]);
+
+  vtkProduct voiOutput(input.creator(),input.portNumber());
+  //! Executes VOI
+  if (args.contains("ApplyVOI") )
+  {
+    
+    ITraceNode::Arguments VOIArgs = ITraceNode::parseArgs(args["ApplyVOI"]);
+    trace->getRegistredPlugin(VOIArgs["Type"])->createFilter(VOIArgs["Type"]);
+
+    m_applyFilter = 
+
+    //voi->applyVOI(input);
+
+    
+    if (m_applyFilter)
+    {
+      voiOutput = m_applyFilter->product(0);
+      //m_args.append("ApplyVOI=" + applyFilter->getFileArguments());
+      m_args.append(ESPINA_ARG("ApplyVOI", "["+m_applyFilter->getFilterArguments() + "]"));
+    }
+  }
+
+  //! Execute Grow Filter
+  vtkFilter::Arguments growArgs;
+  growArgs.push_back(vtkFilter::Argument(QString("Input"),vtkFilter::INPUT, voiOutput.id()));
+  growArgs.push_back(vtkFilter::Argument(QString("Seed"),vtkFilter::INTVECT,args["Seed"]));
+  growArgs.push_back(vtkFilter::Argument(QString("Threshold"),vtkFilter::DOUBLEVECT,args["Threshold"]));
+  m_grow = cob->createFilter("filters","SeedGrowSegmentationFilter",growArgs);
+
+  //! Create segmenations. SeedGrowSegmentationFilter has only 1 output
+  assert(m_grow->numProducts() == 1);
+
+  m_finalFilter = m_grow;
+
+  vtkProduct growOutput = m_grow->product(0);
+  //! Restore possible VOI transformation
+  if (args.contains("RestoreVOI"))
+  {
+//     m_restoreFilter = voi->restoreVOITransormation(&growOutput);
+//     if (m_restoreFilter)
+//     {
+//       growOutput = m_restoreFilter->product(0);
+//       m_finalFilter = m_restoreFilter;
+//       //Anadir args
+//     }
+  }
+
+  assert(m_finalFilter->numProducts() == 1);
+
+  Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(&m_finalFilter->product(0));
+
+  // Trace EspinaFilter
+  trace->addNode(this);
+  // Connect input
+  trace->connect(args["Sample"],this,"Sample");
+  // Trace Segmentation
+  trace->addNode(seg);
+  // Trace connection
+  trace->connect(this, seg,"Segmentation");
+
+  EspINA::instance()->addSegmentation(seg);
+}
+
 /*
   //Invariante: input had already been created
   vtkProduct input(args["Sample"]);//ALERT: input.filter.filter is NULL. It should be managed by the constructor
@@ -152,4 +225,4 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ITraceNode::Arguments& ar
   
   EspINA::instance()->addSegmentation(seg);
   */
-}
+

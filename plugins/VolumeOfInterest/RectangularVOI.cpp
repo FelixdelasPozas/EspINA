@@ -37,7 +37,7 @@
 #include <assert.h>
 #include <cache/cachedObjectBuilder.h>
 
-RectangularVOI::ApplyFilter::ApplyFilter(vtkProduct* input, double* bounds)
+RectangularVOI::ApplyFilter::ApplyFilter(vtkProduct* input, double* bounds, EspinaPlugin* parent)
 {
    CachedObjectBuilder *cob = CachedObjectBuilder::instance();
 
@@ -47,16 +47,18 @@ RectangularVOI::ApplyFilter::ApplyFilter(vtkProduct* input, double* bounds)
    args.push_back(vtkFilter::Argument(QString("VOI"),vtkFilter::INTVECT, VolumeArg));
    m_rvoi = cob->createFilter("filters","RectangularVOI",args);
    
-   m_args.append("RectangularVOI::Apply=").append(VolumeArg);
+   m_args.append(ESPINA_ARG("Type", parent->pluginName() + "::RectangularVOI::Apply")).append(ESPINA_ARG("Bound", VolumeArg));
 }
 
 
 
 //-----------------------------------------------------------------------------
-RectangularVOI::RectangularVOI()
+RectangularVOI::RectangularVOI(EspinaPlugin* parent)
 : m_box(NULL)
 {
   bzero(m_widget,4*sizeof(pq3DWidget *));
+  QString registerName = parent-> m_pluginName + "::" + "RectangularVOIFilter::Apply";
+  ProcessingTrace::instance()->registerPlugin(registerName, this);
 }
 
 //-----------------------------------------------------------------------------

@@ -89,7 +89,7 @@ IFilter *SeedGrowSegmentation::createFilter(QString filter, ITraceNode::Argument
 {
   if (filter == m_pluginName + "::" + "SeedGrowSegmentationFilter") 
   {
-    SeedGrowSegmentationFilter *sgs_sgsf = new SeedGrowSegmentationFilter(args);
+    SeedGrowSegmentationFilter *sgs_sgsf = new SeedGrowSegmentationFilter(args, this);
     return sgs_sgsf;
   }else
   { 

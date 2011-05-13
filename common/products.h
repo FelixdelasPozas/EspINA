@@ -54,7 +54,7 @@ public:
   //! Creates a product for an already existing filter
   vtkProduct(vtkFilter *creator, int portNumber);
   
-  QString id(); //TODO: idc vtkfilter creator + : + puerto
+  QString id() const; //TODO: idc vtkfilter creator + : + puerto
   vtkFilter *creator() {return m_creator;}
   int portNumber() {return m_portNumber;}
   pqOutputPort *outputPort();
@@ -83,6 +83,7 @@ public:
   EspinaProduct(EspinaFilter *parent, vtkFilter *creator, int portNumber);
   
   //! Implements ITraceNode interface
+  virtual QString getArgument(QString name) const;
   virtual QString getArguments() const;
   virtual QString label() const {return "Product";}
 

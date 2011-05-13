@@ -40,6 +40,8 @@ typedef unsigned int IndexType;
 class ProcessingTrace;
 class EspinaPlugin;
 
+#define ESPINA_ARG(name, value) QString("%1=%2;").arg(name).arg(value)
+
 //! Interface to trace's nodes
 class ITraceNode
 {
@@ -51,6 +53,8 @@ public:
   };
   
 public:
+  static ITraceNode::Arguments parseArgs(QString &raw);
+  virtual QString getArgument(QString name) const = 0;
   virtual QString getArguments() const = 0;
   //! Descriptive name of the node
   virtual QString label() const = 0;
@@ -136,7 +140,12 @@ public:
   , ITraceNode *destination
   , const std::string &description
   );
-  
+  void connect(
+    QString& id,
+    ITraceNode *destination,
+    const std::string &description
+  );
+    
 //   void readTrace(std::istream& content);
   void readTrace(QTextStream& stream);
 
@@ -152,9 +161,10 @@ public:
 private:
   ProcessingTrace();
   ProcessingTrace(const QString &name); // TODO delte. No tiene sentido sin subgraph
-
+  //! It retrieves the information of the ITraceNodes to store the hold trace
+  void readNodes();
   //!Convert a string int the correct format "{argument:value;}+" in a NodeParamList
-  ITraceNode::Arguments parseArgs( QString& raw );
+  //ITraceNode::Arguments parseArgs( QString& raw );
 
   // attributes
   Graph m_trace;

@@ -63,7 +63,7 @@ vtkProduct::vtkProduct(vtkFilter *creator, int portNumber)
 }
 
 //-----------------------------------------------------------------------------
-QString vtkProduct::id()
+QString vtkProduct::id() const
 {
   return QString("%1:%2").arg(m_creator->id()).arg(m_portNumber);
 }
@@ -94,9 +94,18 @@ EspinaProduct::EspinaProduct(EspinaFilter *parent, vtkFilter* creator, int portN
 }
 
 //-----------------------------------------------------------------------------
+QString EspinaProduct::getArgument(QString name) const
+{
+  return id();
+}
+
+//-----------------------------------------------------------------------------
 QString EspinaProduct::getArguments() const
 {
-  return m_taxonomy?m_taxonomy->getName():"";
+  QString args;
+  args.append(ESPINA_ARG("Id", id()));
+  args.append(ESPINA_ARG("Taxonomy", m_taxonomy?m_taxonomy->getName():""));
+  return args;
 }
 
 

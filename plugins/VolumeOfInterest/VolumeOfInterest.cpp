@@ -76,10 +76,10 @@ VolumeOfInterest::VolumeOfInterest(QObject* parent)
   buildUI();
   
   // register in a plugin list
-  QString registerName = m_pluginName + "::" + "RectangularVOIFilter::Apply";
-  ProcessingTrace::instance()->registerPlugin(registerName, this);
-  registerName = m_pluginName + "::" + "RectangularVOIFilter::Restore";
-  ProcessingTrace::instance()->registerPlugin(registerName, this);
+  //QString registerName = m_pluginName + "::" + "RectangularVOIFilter::Apply";
+  //ProcessingTrace::instance()->registerPlugin(registerName, this);
+  //registerName = m_pluginName + "::" + "RectangularVOIFilter::Restore";
+  //ProcessingTrace::instance()->registerPlugin(registerName, this);
 }
 
 //-----------------------------------------------------------------------------
@@ -153,7 +153,7 @@ void VolumeOfInterest::buildVOIs()
     QIcon(":/voi")
     , tr("Volume Of Interest"),
     m_VOIMenu);
-  voi = new RectangularVOI();
+  voi = new RectangularVOI(this);
   addVOI(action, voi);
 }
 
