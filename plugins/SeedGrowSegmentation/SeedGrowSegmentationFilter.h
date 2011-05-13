@@ -26,21 +26,29 @@ class IVOI;
 
 class SeedGrowSegmentationFilter 
 : public EspinaFilter
+, public ITraceNode
 {
 public:
-  SeedGrowSegmentationFilter(EspinaFilter::Arguments &args);
+  
+  //! Constructor interactivo
+  SeedGrowSegmentationFilter(EspinaProduct *input, IVOI *voi, ITraceNode::Arguments &args, EspinaPlugin *parent);
+  //! Constructor desde lista de argumentos
+  SeedGrowSegmentationFilter(ITraceNode::Arguments &args);
   
   //! Implements IFilter Interface
   virtual int numProducts() {return 1;}
-  virtual vtkProduct *product(int i) {return NULL;}
+  virtual vtkProduct product(int i) {return vtkProduct(m_finalFilter->product(i).creator(),i);}
   virtual QList<vtkProduct *> products() {QList<vtkProduct*> a; return a;}
   
-  virtual QString label() {return "SeedGrowSegmentation";}
-  virtual QString getArguments() const;
+  virtual QString label() const {return m_plugin->pluginName() + "::SeedGrowSegmentationFilter";}
+  virtual QString getArguments() const {return m_args;}
 
 private:
-  IVOI *m_voi;
+  IFilter *m_applyFilter;
   vtkFilter *m_grow;
+  IFilter *m_restoreFilter;
+  IFilter *m_finalFilter;
+  EspinaPlugin *m_plugin;
 };
 
 

@@ -80,27 +80,25 @@ pqOutputPort* vtkProduct::outputPort()
 /// Espina PRODUCT
 ///----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-EspinaProduct::EspinaProduct(vtkFilter* creator, int portNumber)
+EspinaProduct::EspinaProduct(EspinaFilter *parent, vtkFilter* creator, int portNumber)
 : vtkProduct(creator, portNumber)
 //, IRenderable(creator->pipelineSource(),portNumber)
+, m_parent(parent)
 , m_taxonomy(NULL)
 , m_origin(NULL)
 , m_style(VISIBLE)
 {
+  //TODO: vetexId = 
+  type = PRODUCT;
   m_rgba[0] = m_rgba[1] = m_rgba[2] = m_rgba[3] = 0.0;
 }
 
 //-----------------------------------------------------------------------------
 QString EspinaProduct::getArguments() const
 {
-  return "Fake";
+  return m_taxonomy?m_taxonomy->getName():"";
 }
 
-//-----------------------------------------------------------------------------
-void EspinaProduct::print(int indent) const
-{
-
-}
 
 //-----------------------------------------------------------------------------
 QVariant EspinaProduct::data(int role) const
@@ -224,6 +222,12 @@ void EspinaProduct::color(double *rgba)
 //-----------------------------------------------------------------------------
 // Sample
 //-----------------------------------------------------------------------------
+QString Sample::label() const
+{
+  return m_creator->id().split(":")[0];
+}
+
+
 QVariant Sample::data(int role) const
 {
   switch (role)
@@ -288,7 +292,7 @@ void Sample::spacing(double* out)
 // Segmentation
 //-----------------------------------------------------------------------------
 Segmentation::Segmentation(vtkFilter* creator, int portNumber)
-: EspinaProduct(creator, portNumber)
+: EspinaProduct(NULL,creator, portNumber)
 {
 }
 

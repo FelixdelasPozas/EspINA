@@ -71,23 +71,23 @@ void SelectionManager::setVOI(IVOI* voi)
 }
 
 //------------------------------------------------------------------------
-Product* SelectionManager::applyVOI(Product* product)
-{
-  if (m_voi)
-  {
-    //return m_voi->applyVOI(product);    
-  }
-  else
-    return product;
-}
-
-//------------------------------------------------------------------------
-Product* SelectionManager::restoreVOITransformation(Product* product)
-{
-  if (m_voi)
-  {
-    //return m_voi->restoreVOITransormation(product);
-  }
-  else
-    return product;
-}
+// IFilter* SelectionManager::applyVOI(vtkProduct* product)
+// {
+//   if (m_voi)
+//   {
+//     //return m_voi->applyVOI(product);    
+//   }
+//   else
+//     return product;
+// }
+// 
+// //------------------------------------------------------------------------
+// Product* SelectionManager::restoreVOITransformation(Product* product)
+// {
+//   if (m_voi)
+//   {
+//     //return m_voi->restoreVOITransormation(product);
+//   }
+//   else
+//     return product;
+// }

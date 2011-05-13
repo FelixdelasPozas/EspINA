@@ -35,77 +35,67 @@
 
 #include <QDebug>
 #include <assert.h>
+#include <cache/cachedObjectBuilder.h>
+
+RectangularVOI::ApplyFilter::ApplyFilter(vtkProduct* input, double* bounds)
+{
+   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+
+   vtkFilter::Arguments args;
+   args.push_back(vtkFilter::Argument(QString("Input"),vtkFilter::INPUT, input->id()));
+   QString VolumeArg = QString("%1,%2,%3,%4,%5,%6").arg(bounds[0]).arg(bounds[1]).arg(bounds[2]).arg(bounds[3]).arg(bounds[4]).arg(bounds[5]);
+   args.push_back(vtkFilter::Argument(QString("VOI"),vtkFilter::INTVECT, VolumeArg));
+   m_rvoi = cob->createFilter("filters","RectangularVOI",args);
+   
+   m_args.append("RectangularVOI::Apply=").append(VolumeArg);
+}
+
+
 
 //-----------------------------------------------------------------------------
 RectangularVOI::RectangularVOI()
 : m_box(NULL)
 {
   bzero(m_widget,4*sizeof(pq3DWidget *));
-  buildRVOITable();
-}
-
-
-//-----------------------------------------------------------------------------
-void RectangularVOI::buildRVOITable()
-{
-  EspinaArg arg = "input";
-  VtkArg vtkArg;
-  vtkArg.type = INPUT;
-  vtkArg.name = "input";
-  m_tableRVOI.addTranslation(arg, vtkArg);
-  arg = "Volume";
-  vtkArg.type = INTVECT;
-  vtkArg.name = "VOI";
-  m_tableRVOI.addTranslation(arg, vtkArg);
 }
 
 //-----------------------------------------------------------------------------
-Filter* RectangularVOI::buildRectangularVOIFilter(Product* input, EspinaParamList args)
-{
-  ProcessingTrace *trace = ProcessingTrace::instance();//!X
-
-  Filter *rvoi = new Filter(
-    "filters",
-    "VOI",
-    args,
-    m_tableRVOI
-  );
-  
-  trace->connect(input, rvoi, "input");
-  return rvoi;
-}
-
-
-//-----------------------------------------------------------------------------
-Product* RectangularVOI::applyVOI(Product* product)
+IFilter *RectangularVOI::applyVOI(vtkProduct* product)
 {
   // To apply widget bounds to vtkBox source
   if (m_widget[0])
     m_widget[0]->accept();
-  
   vtkSMPropertyHelper(m_box,"Bounds").Get(m_rvoi,6);
-  //m_box->PrintSelf(std::cout,vtkIndent(5));
+  double scale[3];
+  vtkSMPropertyHelper(m_box,"Scale").Get(scale,3);
+  double pos[3];
+  vtkSMPropertyHelper(m_box,"Position").Get(pos,3);
+  
+  qDebug() << "RectangularVOI Plugin::Scale on: "<< scale[0]<< scale[1]<< scale[2];
+  qDebug() << "RectangularVOI Plugin::Pos on: "<< pos[0]<< pos[1]<< pos[2];
+  
+  double productExtent[6] = {m_rvoi[0],m_rvoi[1],m_rvoi[2], m_rvoi[3], m_rvoi[4], m_rvoi[5]/2};
+  double productSpacing[3] = {1,1,2};
+  
+ // CALCULAR LA NUEVA REGION
+  
+  m_rvoi[0] = std::max(productExtent[0], round(pos[0] + m_rvoi[0] * scale[0]/productSpacing[0]));
+  m_rvoi[1] = round(pos[0] + m_rvoi[1] * scale[0]);
+  m_rvoi[2] = round(pos[1] + m_rvoi[2] * scale[1]);
+  m_rvoi[3] = round(pos[1] + m_rvoi[3] * scale[1]);
+  m_rvoi[4] = round(pos[2] + m_rvoi[4] * scale[2]);
+  m_rvoi[5] = round((pos[2] + m_rvoi[5] * scale[2]/2));
   
   qDebug() << "RectangularVOI Plugin::ApplyVOI on: "<< m_rvoi[0]<< m_rvoi[1]<< m_rvoi[2]<< m_rvoi[3]<< m_rvoi[4]<< m_rvoi[5];
+  EspinaFilter *rvoi = new ApplyFilter(product,m_rvoi);
   
-  //! Execute Rectangula VOI Filter
-  EspinaParamList rvoiArgs;
-  rvoiArgs.push_back(EspinaParam(QString("input"), product->id()));
-  QString VolumeArg = QString("%1,%2,%3,%4,%5,%6")
-  .arg(m_rvoi[0]).arg(m_rvoi[1]).arg(m_rvoi[2]).arg(m_rvoi[3]).arg(m_rvoi[4]).arg(m_rvoi[5]);
-  rvoiArgs.push_back(EspinaParam(QString("Volume"), VolumeArg));
-  
-  Filter *rvoi = buildRectangularVOIFilter(product, rvoiArgs);
-  
-  assert(rvoi->products().size() == 1); //TODO: Maybe it could return NULL
-  
-  return rvoi->products()[0];
+  return rvoi;
 }
 
 //-----------------------------------------------------------------------------
-Product* RectangularVOI::restoreVOITransormation(Product* product)
+IFilter *RectangularVOI::restoreVOITransormation(vtkProduct* product)
 {
-  return product;
+  return NULL;
 }
 
 
@@ -125,7 +115,7 @@ pq3DWidget *RectangularVOI::widget()
 {
   if (!m_widget[3])
   {
-  QList<pq3DWidget *> widgtes =  pq3DWidget::createWidgets(EspINA::instance()->activeSample()->sourceData()->getProxy(), getProxy());
+  QList<pq3DWidget *> widgtes =  pq3DWidget::createWidgets(EspINA::instance()->activeSample()->creator()->pipelineSource()->getProxy(), getProxy());
   assert(widgtes.size() == 1);
   m_widget[3] = widgtes[0];
     connect(m_widget[3],SIGNAL(widgetEndInteraction()),this,SLOT(endInteraction()));
@@ -140,7 +130,7 @@ pq3DWidget *RectangularVOI::widget(int plane)
   assert (plane < 3);
   if (!m_widget[plane])
   {
-    QList<pq3DWidget *> widgtes =  pq3DWidget::createWidgets(EspINA::instance()->activeSample()->sourceData()->getProxy(), getProxy());
+    QList<pq3DWidget *> widgtes =  pq3DWidget::createWidgets(EspINA::instance()->activeSample()->creator()->pipelineSource()->getProxy(), getProxy());
     assert(widgtes.size() == 1);
     m_widget[plane] = widgtes[0];
     connect(m_widget[plane],SIGNAL(widgetEndInteraction()),this,SLOT(endInteraction()));
@@ -157,7 +147,13 @@ void RectangularVOI::endInteraction()
   
   pq3DWidget *widget = qobject_cast<pq3DWidget *>(QObject::sender());
   widget->accept();
+  double scale[3];
+  vtkSMPropertyHelper(m_box,"Scale").Get(scale,3);
+  double pos[3];
+  vtkSMPropertyHelper(m_box,"Position").Get(pos,3);
   
+  qDebug() << "Moving RectangularVOI Plugin::Scale on: "<< scale[0]<< scale[1]<< scale[2];
+  qDebug() << "Moving RectangularVOI Plugin::Pos on: "<< pos[0]<< pos[1]<< pos[2];
   /*
   int idx;
   for (idx=0; idx<4; idx++)

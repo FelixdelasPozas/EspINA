@@ -85,7 +85,7 @@ SeedGrowSegmentation::SeedGrowSegmentation(QObject* parent)
 
 
 //-----------------------------------------------------------------------------
-IFilter *SeedGrowSegmentation::createFilter(QString filter, EspinaFilter::Arguments & args)
+IFilter *SeedGrowSegmentation::createFilter(QString filter, ITraceNode::Arguments & args)
 {
   if (filter == m_pluginName + "::" + "SeedGrowSegmentationFilter") 
   {
@@ -122,12 +122,12 @@ IFilter *SeedGrowSegmentation::createFilter(QString filter, EspinaFilter::Argume
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentation::changeSeedSelector(QAction *seedSel)
 {
-  qDebug() << "EspINA::SeedGrowSegmenation: Changing Seed Selector";
+  qDebug() << "SeedGrowSegmenation: Changing Seed Selector";
   m_seedSelector = m_seedSelectors.value(seedSel);
   
   if (!m_seedSelector)
   {
-    qDebug() << "EspINA::SeedGrowSegmentation FATAL ERROR: No valid Seed Selector";
+    qDebug() << "SeedGrowSegmentation FATAL ERROR: No valid Seed Selector";
     assert(m_seedSelector);
   }
   
@@ -141,7 +141,7 @@ void SeedGrowSegmentation::waitSeedSelection(bool wait)
 {
   if (wait)
   {
-    qDebug() << "EspINA::SeedGrowSegmenation: Waiting for Seed Selection";
+    qDebug() << "SeedGrowSegmenation: Waiting for Seed Selection";
     SelectionManager::instance()->setSelectionHandler(m_seedSelector);
     m_segButton->setChecked(true);
   }else
@@ -159,7 +159,7 @@ void SeedGrowSegmentation::abortSelection()
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentation::startSegmentation(ISelectionHandler::Selection sel)
 {
-  qDebug() << "EspINA::SeedGrowSegmenation: Start Seed Growing Segmentation";
+  qDebug() << "SeedGrowSegmenation: Start Seed Growing Segmentation";
   
   // Initialize application context
   pqApplicationCore* core = pqApplicationCore::instance();
@@ -182,11 +182,11 @@ void SeedGrowSegmentation::startSegmentation(ISelectionHandler::Selection sel)
   Point seed = element.first.first();
   
   ITraceNode::Arguments args;
-  args.insert("Sample",input->id());
   args.insert("Seed", QString("%1,%2,%3").arg(seed.x).arg(seed.y).arg(seed.z));
   args.insert("Threshold",QString::number(m_threshold->value()));
  // args.insert("VOI",SelectionManager::instance()->voi()->save());
-  createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);
+  //createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);
+  SeedGrowSegmentationFilter *sgs_sgsf = new SeedGrowSegmentationFilter(input, SelectionManager::instance()->voi(),args, this);
   
   if (undoStack)
   {

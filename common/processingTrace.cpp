@@ -71,24 +71,14 @@ void ProcessingTrace::addNode(ITraceNode* node)
   node->vertexId = v;
   //nodeMap[v] = node;
   m_trace[v].node = node;
-  
-  ///WARNING: DANGER: BUG: ALERT
-//   QString args;  
-//   foreach(QString param, node->getArguments())
-//   {
-//     if( args.size() )
-//       args.append(";");
-//     args.append(param + ":" + node->getArguments()[param]);
-//   }
-  //HASTA AQUI
   m_trace[v].labelName = node->label().toStdString();
   m_trace[v].args =  node->getArguments().toStdString();
   switch (node->type)
   {
-    case (ITraceNode::PRODUCT):
+    case (ITraceNode::FILTER):
       m_trace[v].shape = "box";
       break;
-    case (ITraceNode::FILTER):
+    case (ITraceNode::PRODUCT):
       m_trace[v].shape = "ellipse";
       break;
     default:

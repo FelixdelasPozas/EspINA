@@ -46,9 +46,11 @@ public:
   //! Returns the number of products created by the filter
   virtual int numProducts() = 0;
   //! Returns the i-th product created by the filter
-  virtual vtkProduct *product(int i) = 0;
+  virtual vtkProduct product(int i) = 0;
   //! Returns all products created by the filter
   virtual QList<vtkProduct *> products() = 0;
+  
+  virtual QString getFilterArguments() const = 0;
 };
 
 
@@ -81,8 +83,9 @@ public:
 public:
   //! Implements IFilter Interface
   virtual int numProducts();
-  virtual vtkProduct *product(int i);
+  virtual vtkProduct product(int i);
   virtual QList<vtkProduct *> products();
+  virtual QString getFilterArguments() const {return "";}
   
   QString id(){return m_id;}
   pqPipelineSource *pipelineSource(){return m_pipelineSource;}
@@ -90,7 +93,7 @@ public:
 private:
   vtkFilter(pqPipelineSource *source, QString &cacheId);
   
-private:  
+protected:  
   pqPipelineSource *m_pipelineSource;
   QString m_id; //! Cache id
   friend class CachedObjectBuilder;
@@ -100,13 +103,16 @@ private:
 //! Represents a filter that can be traced
 class EspinaFilter 
 : public IFilter
-, public ITraceNode
+//, public ITraceNode
 {
 public:
-  //! Implements ITraceNode Interface
-  virtual QString getArguments() const {return QString("fake");}//TODO:
-  virtual void print(int indent = 0) const {};
-  virtual QString label() const {return "Filter";}
+  //virtual int numProducts() = 0;
+  //virtual vtkProduct* product(int i) = 0;
+  //virtual QList< vtkProduct* > products() = 0;
+  virtual QString getFilterArguments() const {return m_args;}
+  
+protected:
+  QString m_args;
 };
 
 

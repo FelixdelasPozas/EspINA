@@ -55,13 +55,15 @@ public:
   //! Descriptive name of the node
   virtual QString label() const = 0;
   
-  //! Node id in the graph
-  IndexType vertexId;
   //! Type used to enhance the output of the graph....
   Shape type;
 
   //! Debug function
-  virtual void print(int indent = 0) const = 0;
+  //virtual void print(int indent = 0) const {};
+private:
+  //! Node id in the graph
+  IndexType vertexId;
+  friend class ProcessingTrace;
 };
 
 //! A class to represent the working trace

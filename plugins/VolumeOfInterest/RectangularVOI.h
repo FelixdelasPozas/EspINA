@@ -22,7 +22,7 @@
 
 #include <selectionManager.h>
 
-#include "filter.h" // To use TranslatorTable
+#include "filter.h"
 
 class pq3DWidget;
 
@@ -30,12 +30,27 @@ class RectangularVOI
 : public QObject
 , public IVOI
 {
+  class ApplyFilter: public EspinaFilter
+  {
+  public:
+    ApplyFilter(vtkProduct *input, double *bounds);
+    virtual int numProducts() {return 1;}//Asser it is true :D
+    virtual vtkProduct product(int i) {return vtkProduct(m_rvoi,0);}
+    virtual QList< vtkProduct* > products() {QList<vtkProduct *> p; return p;}
+    virtual QString getFilterArguments() const {return m_args;}
+  private:
+    vtkFilter *m_rvoi;
+  };
+
   Q_OBJECT;
 public:
   RectangularVOI();
   
-  virtual vtkProduct applyVOI(vtkProduct* product);
-  virtual vtkProduct restoreVOITransormation(vtkProduct* product);
+  virtual IFilter *createApplyFilter(){}
+  virtual IFilter *createRestoreFilter(){}
+  
+  virtual IFilter *applyVOI(vtkProduct* product);
+  virtual IFilter *restoreVOITransormation(vtkProduct* product);
 
   virtual vtkSMProxy *getProxy();
   virtual pq3DWidget *widget();
@@ -47,14 +62,9 @@ public slots:
   virtual void cancelVOI();
   
 private:
-  void buildRVOITable();
-  Filter *buildRectangularVOIFilter(Product *input, EspinaParamList args);
-  
-private:
   vtkSMProxy *m_box;
   pq3DWidget *m_widget[4];
   
-  TranslatorTable m_tableRVOI;
   double m_rvoi[6];
 };
 

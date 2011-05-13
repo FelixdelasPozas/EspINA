@@ -29,8 +29,79 @@
 QString stripName(QString args){return args.split(";")[0];}//FAKE
 QString stripArgs(QString args){return args.split(";")[1];}//FAKE
 
-SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaFilter::Arguments& args)
+
+SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVOI* voi, ITraceNode::Arguments& args, EspinaPlugin* parent
+
+)
+: m_plugin(parent)
 {
+  type = FILTER;
+  ProcessingTrace* trace = ProcessingTrace::instance();
+  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+  
+  foreach(QString argName, args.keys())
+  {
+    m_args.append(QString("%1:%2;").arg(argName).arg(args[argName]));
+  }
+  
+  vtkProduct voiOutput(input->creator(),input->portNumber());
+  //! Executes VOI
+  if (voi)
+  {
+    m_applyFilter = voi->applyVOI(input);
+    if (m_applyFilter)
+    {
+      voiOutput = m_applyFilter->product(0);
+      //m_args.append("ApplyVOI=" + applyFilter->getFileArguments());
+      m_args += "Param=value;";
+    }
+  }
+
+  //! Execute Grow Filter
+  vtkFilter::Arguments growArgs;
+  growArgs.push_back(vtkFilter::Argument(QString("Input"),vtkFilter::INPUT, voiOutput.id()));
+  growArgs.push_back(vtkFilter::Argument(QString("Seed"),vtkFilter::INTVECT,args["Seed"]));
+  growArgs.push_back(vtkFilter::Argument(QString("Threshold"),vtkFilter::DOUBLEVECT,args["Threshold"]));
+  m_grow = cob->createFilter("filters","SeedGrowSegmentationFilter",growArgs);
+  
+  //! Create segmenations. SeedGrowSegmentationFilter has only 1 output
+  assert(m_grow->numProducts() == 1);
+  
+  m_finalFilter = m_grow;
+  
+  vtkProduct growOutput = m_grow->product(0);
+  //! Restore possible VOI transformation
+  if (voi)
+  {
+    m_restoreFilter = voi->restoreVOITransormation(&growOutput);
+    if (m_restoreFilter)
+    {
+      growOutput = m_restoreFilter->product(0);
+      m_finalFilter = m_restoreFilter;
+      //Anadir args
+    }
+  }
+
+  assert(m_finalFilter->numProducts() == 1);
+  
+  Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(&m_finalFilter->product(0));
+
+  // Trace EspinaFilter
+  trace->addNode(this);
+  // Connect input
+  trace->connect(input,this,"Sample");
+  // Trace Segmentation
+  trace->addNode(seg);
+  // Trace connection
+  trace->connect(this, seg,"Segmentation");
+  
+  EspINA::instance()->addSegmentation(seg);
+}
+
+
+SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ITraceNode::Arguments& args)
+{
+/*
   //Invariante: input had already been created
   vtkProduct input(args["Sample"]);//ALERT: input.filter.filter is NULL. It should be managed by the constructor
   
@@ -51,7 +122,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaFilter::Arguments& 
   QString kernel = QString("2,2,2");
   blurArgs.push_back(EspinaParam("Kernel",kernel.toStdString()));
   **/
-  
+  /*
   //! Execute Grow Filter
   vtkFilter::Arguments growArgs;
   growArgs.push_back(vtkFilter::Argument(QString("Input"),vtkFilter::INPUT, input.id()));
@@ -80,10 +151,5 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaFilter::Arguments& 
   trace->connect(this, seg,"Segmentation");
   
   EspINA::instance()->addSegmentation(seg);
+  */
 }
-
-QString SeedGrowSegmentationFilter::getArguments() const{
-  return "TextoAplanado";
-}
-
-

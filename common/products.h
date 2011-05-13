@@ -33,6 +33,7 @@
 
 #include <Utilities/vxl/vcl/iso/vcl_iostream.h>
 
+class EspinaFilter;
 // Forward declarations
 class pqPipelineSource;
 class Sample;
@@ -79,11 +80,10 @@ public:
   };
   
 public:
-  EspinaProduct(vtkFilter *creator, int portNumber);
+  EspinaProduct(EspinaFilter *parent, vtkFilter *creator, int portNumber);
   
   //! Implements ITraceNode interface
   virtual QString getArguments() const;
-  virtual void print(int indent = 0) const;
   virtual QString label() const {return "Product";}
 
   //! Implements deprecated IRenderable interface as part of its own interface
@@ -101,6 +101,7 @@ public:
   virtual Sample *origin() {return m_origin;}
   
 protected:
+  EspinaFilter *m_parent;
   double m_rgba[4];
   TaxonomyNode *m_taxonomy;
   Sample *m_origin;
@@ -112,12 +113,12 @@ class Sample : public EspinaProduct
 {
 public:
   Sample(vtkFilter *creator, int portNumber) 
-  : EspinaProduct(creator, portNumber)
+  : EspinaProduct(NULL, creator, portNumber)
   , m_extent(NULL)
   {}
   //virtual EspinaId id(){return name;}
   //! Reimplements ITraceNode Interface
-  virtual QString label() const {return "Segmentation";}
+  virtual QString label() const;
   
   virtual QVariant data(int role = Qt::UserRole + 1) const;
   

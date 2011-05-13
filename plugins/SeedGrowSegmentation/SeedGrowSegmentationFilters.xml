@@ -31,7 +31,7 @@
 		 immediate_update="1"
 		 command="Setm_seed">
       </IntVectorProperty>
-	  <DoubleVectorProperty
+      <DoubleVectorProperty
 		 name="Threshold"
          number_of_elements="1"
 		 default_values="30"

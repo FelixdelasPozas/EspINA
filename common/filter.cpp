@@ -49,10 +49,11 @@ int vtkFilter::numProducts()
   return m_pipelineSource->getNumberOfOutputPorts();
 }
 
-vtkProduct* vtkFilter::product(int i)
+vtkProduct vtkFilter::product(int i)
 {
-  assert(false);
-  return NULL;
+  //TODO: Check bounds
+  vtkProduct product(this,i);
+  return product;
 }
 
 QList<vtkProduct *> vtkFilter::products()

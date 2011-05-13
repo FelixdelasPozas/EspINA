@@ -1,6 +1,6 @@
 <ServerManagerConfiguration>
   <ProxyGroup name="filters">
-   <SourceProxy name="VOI" class="vtkExtractVOI" label="VOI">
+   <SourceProxy name="RectangularVOI" class="vtkExtractVOI" label="RectangularVOI">
      <Documentation
         long_help="Extract a VOI"
 	short_help="Extract a VOI">

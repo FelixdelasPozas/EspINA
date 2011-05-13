@@ -69,18 +69,12 @@ protected:
 class Product;
 
 class IVOI
-: public IFilter
 {
 public:
   virtual ~IVOI(){}
   
-  //! Implements IFilter Interface
-  virtual int numProducts();
-  virtual vtkProduct* products(int i);
-  virtual QList< vtkProduct* > products();
-  
-  virtual vtkProduct *applyVOI(vtkProduct *product) = 0;
-  virtual vtkProduct *restoreVOITransormation(vtkProduct* product) = 0;
+  virtual IFilter *applyVOI(vtkProduct *product) = 0;
+  virtual IFilter *restoreVOITransormation(vtkProduct* product) = 0;
   
   virtual vtkSMProxy * getProxy() = 0;
   virtual pq3DWidget *widget() = 0;
@@ -146,10 +140,11 @@ public:
   
   void setSelection(ISelectionHandler::Selection sel) {if (m_handler) m_handler->setSelection(sel);}
   void setVOI(IVOI *voi);
+  IVOI *voi() {return m_voi;}
   //! Applies active VOI to product
-  Product *applyVOI(Product *product);
+  //IFilter *applyVOI(vtkProduct *product);
   //! Restores VOI transformations
-  Product *restoreVOITransformation(Product *product);
+  //IFilter *restoreVOITransformation(vtkProduct *product);
   
 public slots:
   //! Register @sh as active Selection Handler

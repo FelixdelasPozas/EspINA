@@ -71,19 +71,35 @@ VolumeOfInterest::VolumeOfInterest(QObject* parent)
 , EspinaPlugin()
 , m_activeVOI(NULL)
 {
-  m_filterName = "VolumeOfInterest"; //TODO: Review this
+  m_pluginName = "VolumeOfInterest";
   
   buildUI();
   
   // register in a plugin list
-  QString registerName = m_filterName + "::" + "RectangularVOIFilter";
+  QString registerName = m_pluginName + "::" + "RectangularVOIFilter::Apply";
+  ProcessingTrace::instance()->registerPlugin(registerName, this);
+  registerName = m_pluginName + "::" + "RectangularVOIFilter::Restore";
   ProcessingTrace::instance()->registerPlugin(registerName, this);
 }
 
 //-----------------------------------------------------------------------------
-void VolumeOfInterest::LoadAnalisys(QString& filter, EspinaParamList& args)
+IFilter* VolumeOfInterest::createFilter(QString filter, ITraceNode::Arguments& args)
 {
-
+  QStringList filterNames = filter.split("::");
+  if (filterNames[1] == "RectangularVOIFilter")
+  {
+    //m_VOIs[filterNames[1]
+    //! delegar en la estrategia que corresponda (m_VOIs)
+    //return m_VOIs[X]->createApplyFilter();
+//     CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+//     vtkFilter::Arguments filterArgs;
+//     filterArgs.push_back(vtkFilter::Argument(QString("Input"),vtkFilter::INPUT, args["input"]));
+//     filterArgs.push_back(vtkFilter::Argument(QString("VOI"),vtkFilter::INTVECT, args["VOI"]));
+//     vtkFilter *applyFilter = cob->createFilter("filters","VOI",filterArgs);
+  }else
+  { 
+    qDebug("SeedGrowSegmenation::LoadAnalisys: Error no such a Filter");
+  }
 }
 
 
