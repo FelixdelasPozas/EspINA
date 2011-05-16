@@ -101,7 +101,12 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVO
 SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ITraceNode::Arguments& args)
 {
   foreach(QString key, args.keys())
-    m_args.append(ESPINA_ARG(key, args[key]));
+  {
+    if( key == "ApplyVOI" )
+      m_args.append(ESPINA_ARG("ApplyVOI", "["+ args[key] + "]"));
+    else
+      m_args.append(ESPINA_ARG(key, args[key]));
+  }
   type = FILTER;
   ProcessingTrace* trace = ProcessingTrace::instance();
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
