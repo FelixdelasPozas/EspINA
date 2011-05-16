@@ -21,6 +21,7 @@
 
 // ESPINA
 #include "cache/cachedObjectBuilder.h"
+#include "filter.h"
 
 // ParaQ
 #include "pqPipelineSource.h"
@@ -34,78 +35,87 @@
 #include "data/hash.h"
 #include <pqOutputPort.h>
 #include <vtkPVDataInformation.h>
+
 using namespace std;
 
+
+///-----------------------------------------------------------------------------
+/// VTK PRODUCT
+///----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-// PRODUCT
-//-----------------------------------------------------------------------------
-Product::Product(pqPipelineSource* source, int portNumber, const QString &traceName, const QString &parentHash)
-: IRenderable(source, portNumber), 
-  m_parentHash(parentHash)
+vtkProduct::vtkProduct(const QString &id)
 {
-  this->name = traceName;
-  this->type = 0;
-  m_parentHash = parentHash;
-}
-/*
-vector< ITraceNode* > Product::inputs()
-{
-  vector<ITraceNode *> nullVector;
-  return nullVector;
+  QStringList fields = id.split(":");
+  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+  m_creator =  cob->getFilter(fields[0]);
+  m_portNumber = fields[1].toInt();
+  assert(m_creator);
+  assert(m_portNumber >= 0);
 }
 
 //-----------------------------------------------------------------------------
-vector< ITraceNode* > Product::outputs()
+vtkProduct::vtkProduct(vtkFilter *creator, int portNumber)
+: m_creator(creator)
+, m_portNumber(portNumber)
 {
-  vector<ITraceNode *> nullVector;
-  return nullVector;
-}
-*/
-void Product::print(int indent) const
-{
-  cout << name.toStdString().c_str() << endl;
+  assert(m_creator);
+  assert(m_portNumber >= 0);
 }
 
 //-----------------------------------------------------------------------------
-EspinaParamList Product::getArguments()
+QString vtkProduct::id() const
 {
-  EspinaParamList nullParamList;
-  return nullParamList;
+  return QString("%1:%2").arg(m_creator->id()).arg(m_portNumber);
 }
 
 
 //-----------------------------------------------------------------------------
-//! Returns the id of the Product composed with the parent id and its Product name
-QString Product::id()
+pqOutputPort* vtkProduct::outputPort()
 {
-  QStringList v;
-  v.push_back( name );
-  QString id = QString( m_parentHash );
-  return id.append(generateSha1( v ));
+  return m_creator->pipelineSource()->getOutputPort(m_portNumber);
+}
+
+
+///-----------------------------------------------------------------------------
+/// Espina PRODUCT
+///----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+EspinaProduct::EspinaProduct(EspinaFilter *parent, vtkFilter* creator, int portNumber)
+: vtkProduct(creator, portNumber)
+//, IRenderable(creator->pipelineSource(),portNumber)
+, m_parent(parent)
+, m_taxonomy(NULL)
+, m_origin(NULL)
+, m_style(VISIBLE)
+{
+  //TODO: vetexId = 
+  type = PRODUCT;
+  m_rgba[0] = m_rgba[1] = m_rgba[2] = m_rgba[3] = 0.0;
 }
 
 //-----------------------------------------------------------------------------
-pqOutputPort* Product::outputPort()
+QString EspinaProduct::getArgument(QString name) const
 {
-  return IRenderable::outputPort();
+  return id();
+}
+
+//-----------------------------------------------------------------------------
+QString EspinaProduct::getArguments() const
+{
+  QString args;
+  args.append(ESPINA_ARG("Id", id()));
+  args.append(ESPINA_ARG("Taxonomy", m_taxonomy?m_taxonomy->getName():""));
+  return args;
 }
 
 
 //-----------------------------------------------------------------------------
-pqPipelineSource* Product::sourceData()
-{
-  return IRenderable::sourceData();
-}
-
-
-//-----------------------------------------------------------------------------
-int Product::portNumber()
+QVariant EspinaProduct::data(int role) const
 {
 
-  return IRenderable::portNumber();
 }
 
-void Product::color(double *rgba)
+void EspinaProduct::color(double *rgba)
 {
   QColor color = this->data(Qt::DecorationRole).value<QColor>();
   rgba[0] = color.red()/255.0;
@@ -114,28 +124,125 @@ void Product::color(double *rgba)
   rgba[3] = 1;
 }
 
-QVariant Product::data(int role) const
-{
-  switch (role)
-  {
-    case Qt::DisplayRole:
-	return "Generic Product";
-    case Qt::DecorationRole:
-	return QColor(Qt::darkMagenta);
-    default:
-      return QVariant();
-  }
-}
+
+
+
+
+// //-----------------------------------------------------------------------------
+// // PRODUCT
+// //-----------------------------------------------------------------------------
+// Product::Product(pqPipelineSource* source, int portNumber, const QString& traceName, const EspinaId& parentHash)
+// : IRenderable(source, portNumber), 
+//   m_parentHash(parentHash), //TODO: Deprecate?
+//   m_taxonomy(NULL)
+// {
+//   this->name = traceName;
+//   this->type = 0;
+//   m_hash = QString("%1:%2").arg(parentHash).arg(portNumber);
+//   //QStringList v;
+//   //v.push_back( QString(portNumber) );
+//   //m_hash.append(generateSha1( v ));
+// }
+// /*
+// vector< ITraceNode* > Product::inputs()
+// {
+//   vector<ITraceNode *> nullVector;
+//   return nullVector;
+// }
+// 
+// //-----------------------------------------------------------------------------
+// vector< ITraceNode* > Product::outputs()
+// {
+//   vector<ITraceNode *> nullVector;
+//   return nullVector;
+// }
+// */
+// void Product::print(int indent) const
+// {
+//   cout << name.toStdString().c_str() << endl;
+// }
+// 
+// //-----------------------------------------------------------------------------
+// EspinaParamList Product::getArguments()
+// {
+//   EspinaParamList nullParamList;
+//   if( m_taxonomy )
+//     nullParamList.push_back(EspinaParam("Taxonomy", m_taxonomy->getName()));
+//   return nullParamList;
+// }
+// 
+// 
+// //-----------------------------------------------------------------------------
+// //! Returns the id of the Product composed with the parent id and its Product name
+// EspinaId Product::id()
+// {
+// //   QStringList v;
+// //   v.push_back( name );
+// //   QString id = m_hash;
+// //   id.append(generateSha1( v ));
+// // 
+// //   return id;
+//   return m_hash;
+// }
+// 
+// //-----------------------------------------------------------------------------
+// pqOutputPort* Product::outputPort()
+// {
+//   return IRenderable::outputPort();
+// }
+// 
+// 
+// //-----------------------------------------------------------------------------
+// pqPipelineSource* Product::sourceData()
+// {
+//   return IRenderable::sourceData();
+// }
+// 
+// 
+// //-----------------------------------------------------------------------------
+// int Product::portNumber()
+// {
+// 
+//   return IRenderable::portNumber();
+// }
+// 
+// void Product::color(double *rgba)
+// {
+//   QColor color = this->data(Qt::DecorationRole).value<QColor>();
+//   rgba[0] = color.red()/255.0;
+//   rgba[1] = color.green()/255.0;
+//   rgba[2] = color.blue()/255.0;
+//   rgba[3] = 1;
+// }
+// 
+// QVariant Product::data(int role) const
+// {
+//   switch (role)
+//   {
+//     case Qt::DisplayRole:
+// 	return "Generic Product";
+//     case Qt::DecorationRole:
+// 	return QColor(Qt::darkMagenta);
+//     default:
+//       return QVariant();
+//   }
+// }
 
 //-----------------------------------------------------------------------------
 // Sample
 //-----------------------------------------------------------------------------
+QString Sample::label() const
+{
+  return m_creator->id().split(":")[0];
+}
+
+
 QVariant Sample::data(int role) const
 {
   switch (role)
   {
     case Qt::DisplayRole:
-      return name;
+      return label();
     case Qt::DecorationRole:
       return QColor(Qt::blue);
     default:
@@ -148,8 +255,8 @@ void Sample::extent(int *out)
   //if (!m_extent)
   //{
     mutex.lock();
-    sourceData()->updatePipeline();
-    sourceData()->getProxy()->UpdatePropertyInformation();
+    m_creator->pipelineSource()->updatePipeline();;
+    m_creator->pipelineSource()->getProxy()->UpdatePropertyInformation();
     vtkPVDataInformation *info = outputPort()->getDataInformation();
     m_extent = info->GetExtent();
     mutex.unlock();
@@ -162,8 +269,8 @@ void Sample::bounds(double *out)
   //if (!m_bounds)
   //{
     mutex.lock();
-    sourceData()->updatePipeline();
-    sourceData()->getProxy()->UpdatePropertyInformation();
+    m_creator->pipelineSource()->updatePipeline();;
+    m_creator->pipelineSource()->getProxy()->UpdatePropertyInformation();
     vtkPVDataInformation *info = outputPort()->getDataInformation();
     m_bounds = info->GetBounds();
     mutex.unlock();
@@ -193,9 +300,17 @@ void Sample::spacing(double* out)
 //-----------------------------------------------------------------------------
 // Segmentation
 //-----------------------------------------------------------------------------
-Segmentation::Segmentation(pqPipelineSource* source, int portNumber, const QString& parentHash)
-: Product(source, portNumber, "Segmentation", parentHash)
-{ }
+Segmentation::Segmentation(vtkFilter* creator, int portNumber)
+: EspinaProduct(NULL,creator, portNumber)
+{
+}
+
+// Segmentation::Segmentation(const vtkProduct& product)
+// : EspinaProduct(product)
+// {
+// }
+
+
 
 QVariant Segmentation::data(int role) const
 {
@@ -203,7 +318,7 @@ QVariant Segmentation::data(int role) const
   {
     case Qt::DisplayRole:
     case Qt::EditRole:
-      return name;
+      return label();
     case Qt::DecorationRole:
       return m_taxonomy->getColor();
     case Qt::CheckStateRole:

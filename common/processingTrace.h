@@ -33,31 +33,42 @@ typedef std::pair<EspinaArg, ParamValue> EspinaParam;
 typedef std::vector<EspinaParam> EspinaParamList;
 */
 #include <QMap>
+#include <qtextstream.h>
 
 typedef unsigned int IndexType;
 //Forward declarations
 class ProcessingTrace;
-class EspinaPlugin;
+class IFilterFactory;
+
+#define ESPINA_ARG(name, value) QString("%1=%2;").arg(name).arg(value)
 
 //! Interface to trace's nodes
 class ITraceNode
 {
 public:
-  /*
-  virtual std::vector<ITraceNode *> inputs() = 0;
-  virtual std::vector<ITraceNode *> outputs() = 0;
-  */
-  virtual void print(int indent = 0) const = 0;
-  virtual EspinaParamList getArguments() = 0;
+  typedef QMap<QString, QString> Arguments;
+  enum Shape
+  { PRODUCT = 0
+  , FILTER  = 1
+  };
   
+public:
+  static ITraceNode::Arguments parseArgs(QString &raw);
+  virtual QString getArgument(QString name) const = 0;
+  virtual QString getArguments() const = 0;
   //! Descriptive name of the node
-  QString name;
+  virtual QString label() const = 0;
+  
+  //! Type used to enhance the output of the graph....
+  Shape type;
+
+  //! Debug function
+  //virtual void print(int indent = 0) const {};
+private:
   //! Node id in the graph
   IndexType vertexId;
-  //! Type used to enhance the output of the graph....
-  int type;// 0: Product 1: Filter
+  friend class ProcessingTrace;
 };
-
 
 //! A class to represent the working trace
 class ProcessingTrace
@@ -129,10 +140,17 @@ public:
   , ITraceNode *destination
   , const std::string &description
   );
-  
-  void readTrace(std::istream& content);
+  void connect(
+    QString& id,
+    ITraceNode *destination,
+    const std::string &description
+  );
+    
+//   void readTrace(std::istream& content);
+  void readTrace(QTextStream& stream);
 
-  void registerPlugin(QString& groupName, QString& filterName, EspinaPlugin* filter);
+  void registerPlugin(QString key, IFilterFactory* factory);
+  IFilterFactory* getRegistredPlugin(QString& key);
   /*
   void addSubtrace(const ProcessingTrace *subTrace);
   std::vector<ITraceNode *> inputs(const ITraceNode *node);
@@ -143,14 +161,15 @@ public:
 private:
   ProcessingTrace();
   ProcessingTrace(const QString &name); // TODO delte. No tiene sentido sin subgraph
-
+  //! It retrieves the information of the ITraceNodes to store the hold trace
+  void readNodes();
   //!Convert a string int the correct format "{argument:value;}+" in a NodeParamList
-  NodeParamList parseArgs( QString& raw );
+  //ITraceNode::Arguments parseArgs( QString& raw );
 
   // attributes
   Graph m_trace;
   static ProcessingTrace* m_instnace;
-  QMap<QString, EspinaPlugin* > m_availablePlugins;
+  QMap<QString, IFilterFactory *> m_availablePlugins;
   
 };
 

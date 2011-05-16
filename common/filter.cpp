@@ -37,6 +37,36 @@
 
 using namespace std;
 
+vtkFilter::vtkFilter(pqPipelineSource* source, QString& cacheId)
+: m_pipelineSource(source)
+, m_id(cacheId)
+{
+}
+
+int vtkFilter::numProducts()
+{
+  m_pipelineSource->getProxy()->UpdateVTKObjects();
+  return m_pipelineSource->getNumberOfOutputPorts();
+}
+
+vtkProduct vtkFilter::product(int i)
+{
+  //TODO: Check bounds
+  vtkProduct product(this,i);
+  return product;
+}
+
+QList<vtkProduct *> vtkFilter::products()
+{
+  assert(false);
+  QList<vtkProduct *> p;
+  return p;
+}
+
+
+
+
+/*
 //-----------------------------------------------------------------------------
 // FILTER
 //-----------------------------------------------------------------------------
@@ -46,11 +76,12 @@ Filter::Filter(
 , const EspinaParamList& args
 , const TranslatorTable &table
   )
-  : m_args(args)
+  : m_group(group)
+  , m_args(args)
   , m_translator(table)
   //, m_filtertrace(name)
 {
-  this->name = QString(group).append("::").append(name);
+  this->name = name;
   this->type = 1;
   
   ProcessingTrace* trace = ProcessingTrace::instance();
@@ -58,23 +89,24 @@ Filter::Filter(
   
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   
-  VtkParamList vtkArgs;
-  vtkArgs = m_translator.translate(args);
+  m_vtkArgs = m_translator.translate(args);
   
-  m_proxy = cob->createFilter(group,name,vtkArgs);
+  m_proxy = cob->createFilter(this);
   
   m_proxy->getProxy()->UpdateVTKObjects();
   
   for (int portNumber = 0; portNumber < m_proxy->getOutputPorts().size(); portNumber++)
   {
-    Product *filterOutput = new Product(m_proxy,portNumber, this->id());
+    //TODO:WARNING:Que hacer con los parametros que se pasan al producto
+    Product *filterOutput = new Product(m_proxy,portNumber, "Product" , this->id());
     //filterOutput->m_parentHash = this->id(); //TODO modify the way it takes the parent hash, Maybe in the constructer (above line)
-    trace->addNode(filterOutput);
-    trace->connect(this,filterOutput,"segmentation");
+    //trace->addNode(filterOutput);
+    //trace->connect(this,filterOutput,"segmentation");
     m_products.push_back(filterOutput);
   }
   qDebug() << "Filter: Created Filter with id " << this->id();
 }
+*/
 
 //-----------------------------------------------------------------------------
 /*
@@ -90,29 +122,29 @@ vector< ITraceNode* > Filter::outputs()
 }
 */
 //-----------------------------------------------------------------------------
-void Filter::print(int indent) const
-{
-  cout << name.toStdString().c_str() << endl;
-}
-
-//-----------------------------------------------------------------------------
-EspinaParamList Filter::getArguments()
-{
-  //EspinaParamList nullParamList;
-  return m_args;
-}
-
-//-----------------------------------------------------------------------------
-QString Filter::id()
-{
-  QStringList namesToHash;
-  namesToHash.push_back(name);
-  namesToHash.append( reduceArgs(m_args) );
-  return generateSha1(namesToHash);
-}
-
-
-vector<Product *> Filter::products()
-{
-  return m_products;
-}
+// void Filter::print(int indent) const
+// {
+//   cout << name.toStdString().c_str() << endl;
+// }
+// 
+// //-----------------------------------------------------------------------------
+// EspinaParamList Filter::getArguments()
+// {
+//   //EspinaParamList nullParamList;
+//   return m_args;
+// }
+// 
+// //-----------------------------------------------------------------------------
+// EspinaId Filter::id()
+// {
+//   QStringList namesToHash;
+//   namesToHash.push_back(name);
+//   namesToHash.append( reduceArgs(m_args) );
+//   return generateSha1(namesToHash);
+// }
+// 
+// 
+// vector<Product *> Filter::products()
+// {
+//   return m_products;
+// }

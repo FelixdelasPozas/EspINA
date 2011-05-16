@@ -44,6 +44,7 @@
 #include "vtkSMProxyProperty.h"
 #include "vtkSMDoubleVectorProperty.h"
 #include "vtkSMStringVectorProperty.h"
+#include <pqBoxWidget.h>
 
 #include <QDebug>
 #include <data/taxonomy.h>
@@ -76,6 +77,7 @@ VolumeView::VolumeView(QWidget* parent)
   connect(m_toggleActors,SIGNAL(toggled(bool)),this,SLOT(showSegmentations(bool)));
   connect(volumeRenderer,SIGNAL(triggered()),this,SLOT(setVolumeRenderer()));
   connect(meshRenderer,SIGNAL(triggered()),this,SLOT(setMeshRenderer()));
+  connect(SelectionManager::instance(),SIGNAL(VOIChanged(IVOI*)),this,SLOT(setVOI(IVOI*)));
   
   m_mainLayout = new QVBoxLayout();
   m_mainLayout->addLayout(m_controlLayout);
@@ -101,7 +103,7 @@ void VolumeView::connectToServer()
     pqRenderView::renderViewType(), server));
   m_viewWidget = m_view->getWidget();
   m_mainLayout->insertWidget(0,m_viewWidget);//To preserver view order
-  m_view->setCenterAxesVisibility(false);
+  m_view->setCenterAxesVisibility(true);
   double black[3] = {0,0,0};
   m_view->getRenderViewProxy()->SetBackgroundColorCM(black);
 }
@@ -142,6 +144,15 @@ void VolumeView::showSegmentations(bool value)
   updateScene();
 }
 
+//-----------------------------------------------------------------------------
+void VolumeView::setVOI(IVOI* voi)
+{
+  pq3DWidget *m_VOIWidget = voi->widget();
+  m_VOIWidget->setView(m_view);
+  m_VOIWidget->setWidgetVisible(true);
+  m_VOIWidget->select();
+}
+
 
 //-----------------------------------------------------------------------------
 QRegion VolumeView::visualRegionForSelection(const QItemSelection& selection) const
@@ -165,7 +176,7 @@ bool VolumeView::isIndexHidden(const QModelIndex& index) const
     return true;
   
   IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
-  Product *actor = dynamic_cast<Product *>(item);
+  EspinaProduct *actor = dynamic_cast<EspinaProduct *>(item);
   return !actor;
 }
 
@@ -347,9 +358,10 @@ void VolumeView::updateScene()
       widget->renderInView(m_view);
 
   cam->SetPosition(pos);
-  cam->SetFocalPoint(m_focus);
+  //cam->SetFocalPoint(m_focus);
   
   view->GetInteractor()->SetCenterOfRotation(m_focus);
+
   
   m_view->render();
 }
@@ -370,7 +382,7 @@ void VolumeView::render(const QModelIndex& index)
       m_focus[1] = (bounds[3]-bounds[2])/2.0;
       m_focus[2] = (bounds[5]-bounds[4])/2.0;
       pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-      dp->setRepresentationVisibility(sample->sourceData()->getOutputPort(0),m_view,true);
+      dp->setRepresentationVisibility(sample->outputPort(),m_view,true);
     } 
     else if (!sample && m_showSegmentations)
     {
@@ -381,5 +393,6 @@ void VolumeView::render(const QModelIndex& index)
   }
   for (int row = 0; row < model()->rowCount(index); row++)
     render(model()->index(row,0,index));
+
 }
 

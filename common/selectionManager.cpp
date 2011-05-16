@@ -19,8 +19,27 @@
 
 #include "selectionManager.h"
 
+#include <pqView.h>
+
 // Debug
 #include <QDebug>
+
+
+//------------------------------------------------------------------------
+// SELECTION HANDLER
+//------------------------------------------------------------------------
+void ISelectionHandler::setSelection(ISelectionHandler::Selection sel)
+{
+  qDebug("Selection Changed");
+  emit selectionChanged(sel);
+}
+
+void ISelectionHandler::abortSelection()
+{
+  qDebug("Selection Aborted");
+  emit selectionAborted();
+}
+
 
 //------------------------------------------------------------------------
 // SELECTION MANAGER
@@ -29,29 +48,46 @@ SelectionManager *SelectionManager::m_singleton = new SelectionManager();
 
 SelectionManager::SelectionManager()
   : QObject()
-  , m_sh(NULL)
+  , m_handler(NULL)
+  , m_voi(NULL)
 {
 }
 
 //------------------------------------------------------------------------
 void SelectionManager::setSelectionHandler(ISelectionHandler* sh)
 {
-  if (m_sh && m_sh != sh)
-    m_sh->abortSelection();
-  m_sh = sh;
+  if (m_handler && m_handler != sh)
+    m_handler->abortSelection();
+  m_handler = sh;
 }
 
 //------------------------------------------------------------------------
-void SelectionManager::pointSelected(const Point coord)
+void SelectionManager::setVOI(IVOI* voi)
 {
-  //TODO: Create selection from coord information
-  Selection sel;
-  sel.coord = coord;
-  if (m_sh)
-  {
-    m_sh->handle(sel);
-    //qDebug() << "Selection managed";
-  }
-  //else
-    //qDebug() << "Selection ignored";
+  if (m_voi && m_voi != voi)
+    m_voi->cancelVOI();
+  m_voi = voi;
+  emit VOIChanged(m_voi);
 }
+
+//------------------------------------------------------------------------
+// IFilter* SelectionManager::applyVOI(vtkProduct* product)
+// {
+//   if (m_voi)
+//   {
+//     //return m_voi->applyVOI(product);    
+//   }
+//   else
+//     return product;
+// }
+// 
+// //------------------------------------------------------------------------
+// Product* SelectionManager::restoreVOITransformation(Product* product)
+// {
+//   if (m_voi)
+//   {
+//     //return m_voi->restoreVOITransormation(product);
+//   }
+//   else
+//     return product;
+// }

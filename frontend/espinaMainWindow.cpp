@@ -45,6 +45,7 @@
 #include "pqParaViewBehaviors.h"
 #include "pqParaViewMenuBuilders.h"
 #include "pqLoadDataReaction.h"
+#include "pqSaveDataReaction.h"
 #include "pqPipelineSource.h"
 #include "vtkPVPlugin.h"
 #include "pqOutputPort.h"
@@ -60,6 +61,7 @@
 #include "pqObjectBuilder.h"
 #include "pqObjectInspectorWidget.h"
 #include "pqDisplayPolicy.h"
+#include <pqFileDialog.h>
 
 //VTK Includes
 //QT includes
@@ -84,6 +86,10 @@
 #include <pqServerDisconnectReaction.h>
 #include "SegmentationExplorer.h"
 
+QString FILTERS("Trace Files (*.trace)");
+QString SEG_FILTERS("Seg Files (*.seg)");
+QString DIRECTORY("");
+
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
 };
@@ -95,8 +101,10 @@ EspinaMainWindow::EspinaMainWindow()
     , m_xz(NULL)
     , m_3d(NULL)
     , m_unit(NM)
-    , m_selectionManager(NULL)
+    , m_selectionManager(NULL) //TODO: Revise if deprecated
 {
+  m_espina = EspINA::instance();
+  
   this->Internals = new pqInternals();
   this->Internals->setupUi(this);
 
@@ -137,7 +145,7 @@ EspinaMainWindow::EspinaMainWindow()
 
   
   // BUILD ESPINA INTERNALS
-  m_espina = EspINA::instance();
+  
 
   // Segementation Grouping Proxies
   TaxonomyProxy *taxProxy = new TaxonomyProxy();
@@ -199,7 +207,7 @@ EspinaMainWindow::EspinaMainWindow()
   this->Internals->taxonomyView->setRootIndex(m_espina->taxonomyRoot());
   
   //Selection Manager
-  m_selectionManager = SelectionManager::singleton();
+  m_selectionManager = SelectionManager::instance();
 
   //Create ESPINA VIEWS
   m_xy = new SliceView();
@@ -208,7 +216,7 @@ EspinaMainWindow::EspinaMainWindow()
   m_xy->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
   connect(server, SIGNAL(connectionCreated(vtkIdType)), m_xy, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), m_xy, SLOT(disconnectFromServer()));
-  connect(m_xy, SIGNAL(pointSelected(const Point)), m_selectionManager, SLOT(pointSelected(const Point)));
+  //connect(m_xy, SIGNAL(pointSelected(const Point)), m_selectionManager, SLOT(pointSelected(const Point)));
   this->setCentralWidget(m_xy);
   
 #if 1
@@ -221,8 +229,8 @@ EspinaMainWindow::EspinaMainWindow()
 	  m_yz, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), 
 	  m_yz, SLOT(disconnectFromServer()));
-  connect(m_yz, SIGNAL(pointSelected(const Point)), 
-	  m_selectionManager, SLOT(pointSelected(const Point)));
+  //connect(m_yz, SIGNAL(pointSelected(const Point)), 
+	//  m_selectionManager, SLOT(pointSelected(const Point)));
   this->Internals->yzSliceDock->setWidget(m_yz);
 
  
@@ -282,45 +290,75 @@ EspinaMainWindow::~EspinaMainWindow()
   // delete m_3d;
 }
 
+// //-----------------------------------------------------------------------------
+// void EspinaMainWindow::loadData(pqPipelineSource *source)//TODO Delete
+// {
+//   
+// //   pqApplicationCore* core = pqApplicationCore::instance();
+// //   QString filePath = core->serverResources().list().first().path();
+// // 
+// //   m_espina->loadFile(filePath, core->getActiveServer());
+//   m_espina->loadSource(source);
+// }
+
 //-----------------------------------------------------------------------------
-void EspinaMainWindow::loadData(pqPipelineSource *source)
-{
-  
-//   pqApplicationCore* core = pqApplicationCore::instance();
-//   QString filePath = core->serverResources().list().first().path();
-  m_espina->loadFile(source);
+// void EspinaMainWindow::loadFile()
+// {
+//   // GUI
+//   pqServer* server = pqApplicationCore::instance()->getActiveServer();
+//   pqFileDialog fileDialog(server, this, tr("Import"), "", FILTERS);
+//   fileDialog.setFileMode(pqFileDialog::ExistingFile);
+//   if( fileDialog.exec() == QDialog::Accepted )
+//   {
+//     m_espina->loadFile( fileDialog.getSelectedFiles()[0], server );
+//   }
+// }
 
-}
-  
-void EspinaMainWindow::loadFile()
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::importFile()
 {
-  // GUI 
-  QString filePath = QFileDialog::getOpenFileName(this, tr("Import"), "",
-		      //tr("Espina old files (*.mha);;Espina trace files (*.trace);;Espina files(*.seg)"));
-                      tr("Espina old files (*.pvd);;Trace Files (*.trace)"));
-  if( !filePath.isEmpty() ){
-
-    if( filePath.endsWith(".trace") )
-    {
-      std::ifstream traceContent(filePath.toStdString().c_str());
-      ProcessingTrace::instance()->readTrace(traceContent);
-    }
-    else if( filePath.endsWith(".pvd") )
-    {
-      qDebug() << "Local file loaded: " << filePath << "\nOn TODO ... ";
-      exit(-1); //TODO IMPORT
-    }
+  // GUI
+  //TODO .pvd .mha ....
+  pqFileDialog fileDialog(NULL, this, tr("Import"), "", SEG_FILTERS);
+  fileDialog.setFileMode(pqFileDialog::ExistingFile);
+  if( fileDialog.exec() == QDialog::Accepted )
+  {
+    m_espina->loadFile( fileDialog.getSelectedFiles()[0] );
   }
 }
 
-void EspinaMainWindow::saveTrace()
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::saveFile()
 {
-  // GUI  
-  QString filePath = QFileDialog::getSaveFileName(this, tr("Save Trace"), "", 
-		      tr("Trace Files (*.trace)"));
-  if( !filePath.isEmpty() )
-    m_espina->saveTrace( filePath );
+  // GUI
+  pqServer* server = pqApplicationCore::instance()->getActiveServer();
+  pqFileDialog fileDialog(server, this, tr("Save Trace"), "", SEG_FILTERS);
+  fileDialog.setFileMode(pqFileDialog::AnyFile);
+  if( fileDialog.exec() == QDialog::Accepted )
+  {
+    //qDebug() << "Destination file " << fileDialog.getSelectedFiles()[0];
+    m_espina->saveFile(fileDialog.getSelectedFiles()[0], server);
+  }
 }
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::exportFile()
+{
+  // GUI
+  pqFileDialog fileDialog(NULL, this, tr("Export"), "", SEG_FILTERS);
+  fileDialog.setFileMode(pqFileDialog::AnyFile);
+  if( fileDialog.exec() == QDialog::Accepted )
+  {
+    m_espina->saveFile( fileDialog.getSelectedFiles()[0] );
+  }
+}
+
+// //-----------------------------------------------------------------------------
+// void EspinaMainWindow::fileDialog(bool server, QString& title)
+// {
+//   pqFileDialog fileDialog(pqActiveObjects::instance().activeServer(), this,
+//                           tr("Save Trace"), "", tr("Trace Files (*.trace)"));
+// }
 
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::toggleVisibility(bool visible)
@@ -383,30 +421,42 @@ void EspinaMainWindow::autoLoadStack()
   QString filePath(getenv("ESPINA_FILE"));
   if( filePath.size() > 0 )
   {
-    // Paraview's open
-    m_espina->loadFile(pqLoadDataReaction::loadData(QStringList(filePath)));
+    // Import
+    m_espina->loadFile(filePath);
   }
 }
 
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::buildFileMenu(QMenu &menu)
 {
-  QIcon icon = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
+  pqServer* server = pqApplicationCore::instance()->getActiveServer();
+  QIcon iconOpen = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
  
-  QAction *action = new QAction(icon,tr("Open - ParaView mode"),this);
+  QAction *action = new QAction(iconOpen,tr("Open - ParaView mode"),this);
+  action->setShortcut(tr("Ctrl+O"));
   pqLoadDataReaction * loadReaction = new pqLoadDataReaction(action);
   QObject::connect(loadReaction, SIGNAL(loadedData(pqPipelineSource *)),
-		    this, SLOT( loadData(pqPipelineSource *)));
+		    m_espina, SLOT( loadSource(pqPipelineSource *)));
+//   QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT( loadFile()));
+  menu.addAction(action);
+
+  QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
+  action = new QAction(iconSave, tr("Save - ParaView mode"), this);
+  action->setShortcut(tr("Ctrl+S"));
+//  pqSaveDataReaction* saveReaction = new pqSaveDataReaction(action);
+  QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT(saveFile()));
   menu.addAction(action);
 
   /* Import Trace from localhost  */
-  action = new QAction(icon,tr("Import"),this);
-  QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT( loadFile()));
+  action = new QAction(tr("Import"),this);
+  QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT( importFile()));
+  action->setShortcut(tr("Ctrl+I"));
+  //QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT( fileDialog(NULL, "Import")));
   menu.addAction(action);
 
   /* Export Trace to localhost */
-  action = new QAction(qApp->style()->standardIcon(QStyle::SP_DialogSaveButton),
-			tr("Export trace"),this);
-  QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT( saveTrace()) );
+  action = new QAction(tr("Export"),this);
+  action->setShortcut(tr("Ctrl+E"));
+  QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT( exportFile()) );
   menu.addAction(action);
 }

@@ -1,0 +1,56 @@
+<ServerManagerConfiguration>
+  <ProxyGroup name="filters">
+   <SourceProxy name="RectangularVOI" class="vtkExtractVOI" label="RectangularVOI">
+     <Documentation
+        long_help="Extract a VOI"
+	short_help="Extract a VOI">
+     </Documentation>
+       
+      <InputProperty
+       name="Input"
+       command="SetInputConnection">
+          <ProxyGroupDomain name="groups">
+            <Group name="sources"/>
+            <Group name="filters"/>
+          </ProxyGroupDomain>
+          <DataTypeDomain name="input_type">
+            <DataType value="vtkImageData"/>
+            <DataType value="vtkRectilinearGrid"/>
+            <DataType value="vtkStructuredPoints"/>
+            <DataType value="vtkStructuredGrid"/>
+          </DataTypeDomain>
+          <Documentation>
+            This property specifies the input to the Extract Grid filter.
+          </Documentation>
+     </InputProperty>
+      
+      <IntVectorProperty 
+        name="VOI" 
+        command="SetVOI"
+        number_of_elements="6"
+        default_values="0 0 0 0 0 0">
+       <ExtentDomain name="extent">
+         <RequiredProperties>
+            <Property name="Input" function="Input"/>
+         </RequiredProperties>
+       </ExtentDomain>
+       <Documentation>
+         This property specifies the minimum and maximum point indices along each of the I, J, and K axes; these values indicate the volume of interest (VOI). The output will have the (I,J,K) extent specified here.
+       </Documentation>
+     </IntVectorProperty>
+     <Hints>
+        <!-- Hints are metadata associated with the proxy.
+             As far as the ServerManager is concerned, Hints have no 
+             significance. GUI is free to interpret the hints as
+             it chooses. Hints provide a mechanism to add some GUI
+             pertinant information to the server manager XML.
+        -->
+        <PropertyGroup type="Box">
+          <Property name="VOI" function="PlaceWidget" />
+        </PropertyGroup>
+       <Visibility replace_input="0" />
+      </Hints>
+   </SourceProxy>
+ </ProxyGroup>
+</ServerManagerConfiguration>
+

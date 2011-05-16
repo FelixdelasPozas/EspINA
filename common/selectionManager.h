@@ -20,36 +20,149 @@
 #ifndef SELECTIONMANAGER_H
 #define SELECTIONMANAGER_H
 
-#include <qt4/QtCore/QObject>
+#include <QObject>
+
 #include "interfaces.h"
+#include "filter.h"
+
+#include <QVector3D>
+#include <QPolygonF>
+
+class pqProxy;
+class EspinaProduct;
+class pqRenderView;
+class QMouseEvent;
+class IVOI;
+class pq3DWidget;
+
+#include <assert.h>
+#include <QStringList>
+#include <QPair>
+
+//! List of taxonomy ids which can be selected
+//! WARNING: Special EspINA_Sample taxonomy is used to refer to the sample itself
+typedef QStringList SelectionFilters;
+typedef QList<QPolygon> ViewRegions;
+
+class vtkSMProxy;
+class pq3DWidget;
+
+//! Interface for Views where user can select products
+class ISelectableView
+{
+public:
+  ISelectableView() : m_VOIWidget(NULL){}
+  //! Set a selection to all elements which belong to regions
+  //! and pass the filtering criteria
+  virtual void setSelection(SelectionFilters &filters, ViewRegions &regions) = 0;
+  
+  virtual pqRenderView *view() = 0;
+  
+  
+protected:
+  virtual void setVOI(IVOI *voi) = 0;
+  
+protected:
+  pq3DWidget *m_VOIWidget;
+};
+
+class Product;
+
+class IVOI
+{
+public:
+  virtual ~IVOI(){}
+
+  virtual IFilter *createApplyFilter() = 0;
+  virtual IFilter *createRestoreFilter() = 0;
+  
+  virtual IFilter *applyVOI(vtkProduct *product) = 0;
+  virtual IFilter *restoreVOITransormation(vtkProduct* product) = 0;
+  
+  virtual vtkSMProxy * getProxy() = 0;
+  virtual pq3DWidget *widget() = 0;
+  virtual pq3DWidget *widget(int plane) = 0;
+  
+  virtual void cancelVOI() = 0;
+};
 
 
+//! Interface to handle selections
+//! Plugin that implement this interface have to specify
+//! which selection method has to be used and which type of
+//! products must be selected
+class ISelectionHandler
+: public QObject
+{
+  Q_OBJECT
+public:
+  typedef QList<Point> VtkRegion;
+  typedef QList<VtkRegion> VtkRegions;
+  typedef QPair<VtkRegion, EspinaProduct *> SelElement;
+  typedef QList<SelElement> Selection;
+  
+public:
+  explicit ISelectionHandler()
+  : filters()
+  , multiSelection(false)
+  {}
+  virtual ~ISelectionHandler(){};
+  
+  virtual void onMouseDown(QPoint &pos, ISelectableView *view) = 0;
+  virtual void onMouseMove(QPoint &pos, ISelectableView *view) = 0;
+  virtual void onMouseUp(QPoint &pos, ISelectableView *view) = 0;
+  
+  void setSelection(ISelectionHandler::Selection sel);
+  void abortSelection();
+  
+  //! The types of products which are requested for selection
+  SelectionFilters filters;
+  //! Determines if multiple products can be selected or not
+  bool multiSelection;
+  
+signals:
+  void selectionChanged(ISelectionHandler::Selection);
+  void selectionAborted();
+};
 
+
+//! Singleton instance to coordinate selections through different
+//! components such as views and plugins
 class SelectionManager : public QObject
 {
   Q_OBJECT
 
-private:
+public:
   SelectionManager();
   ~SelectionManager(){}
+  
+  //! Delegates calls on active SelectionHandler
+  void onMouseDown(QPoint &pos, ISelectableView *view) { if (m_handler) m_handler->onMouseDown(pos, view);}
+  void onMouseMove(QPoint &pos, ISelectableView *view) { if (m_handler) m_handler->onMouseMove(pos, view);}
+  void onMouseUp(QPoint &pos, ISelectableView *view) { if (m_handler) m_handler->onMouseUp(pos, view);}
+  
+  void setSelection(ISelectionHandler::Selection sel) {if (m_handler) m_handler->setSelection(sel);}
+  void setVOI(IVOI *voi);
+  IVOI *voi() {return m_voi;}
+  //! Applies active VOI to product
+  //IFilter *applyVOI(vtkProduct *product);
+  //! Restores VOI transformations
+  //IFilter *restoreVOITransformation(vtkProduct *product);
   
 public slots:
   //! Register @sh as active Selection Handler
   void setSelectionHandler(ISelectionHandler *sh);
   
-  /*! Creates a list of selected objects and handles
-  *  the selection.
-  */
-  //TODO: Quitar signals y ponerlo como parte de la vista.Ademas hay que
-  // facilitar los metodos para los diferentes eventos del raton
-  // Es mas, esto tendria que formar parte del ISelectionHandler
-  void pointSelected(const Point coord);
+signals:
+  void VOIChanged(IVOI *voi);
   
+public:
   //! Returns a SelectionManager singleton
-  static SelectionManager *singleton(){return m_singleton;}
+  static SelectionManager *instance(){return m_singleton;}
   
 private:
-  ISelectionHandler *m_sh;
+  ISelectionHandler *m_handler;
+  IVOI *m_voi;
   static SelectionManager *m_singleton;
 };
 

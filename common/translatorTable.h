@@ -48,10 +48,10 @@ typedef std::pair<VtkArg,ParamValue> VtkParam;
 typedef std::vector<VtkParam> VtkParamList;
 
 //! A function to translate from VtkParamList to vector
-inline QStringList reduceVtkArgs( VtkParamList& vl )
+inline QStringList reduceVtkArgs(const VtkParamList& vl )
 {
   QStringList v;
-  VtkParamList::iterator it;
+  VtkParamList::const_iterator it;
   for( it=vl.begin(); it != vl.end(); it++ )
   {
     v.push_back(it->first.name);

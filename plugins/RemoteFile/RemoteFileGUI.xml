@@ -1,5 +1,0 @@
-<ParaViewReaders>
-  <Reader name="FileReader" extensions="trace"
-	  file_description="Trace (.trace) files">
-  </Reader>
-</ParaViewReaders>

@@ -28,10 +28,17 @@
 
 #include <pqApplicationCore.h>
 #include <pqServerResources.h>
+#include <pqLoadDataReaction.h>
+#include <pqObjectBuilder.h>
 
 #include <QDebug>
 #include <iostream>
 #include <fstream>
+
+#include "FilePack.h"
+
+class IOTaxonomy;
+
 
 //------------------------------------------------------------------------
 EspINA *EspINA::m_singleton(NULL);
@@ -93,7 +100,7 @@ bool EspINA::setData(const QModelIndex& index, const QVariant& value, int role)
       Segmentation *seg = dynamic_cast<Segmentation *>(item);
       if (seg)
       {
-	seg->name = value.toString();
+	//TODO: uncomment and fix: seg->name = value.toString();
       }
       emit dataChanged(index, index);
       return true;
@@ -351,7 +358,7 @@ QList< Segmentation* > EspINA::segmentations(const Sample* sample) const
 }
 
 //------------------------------------------------------------------------
-void EspINA::loadFile(EspinaProxy* proxy)
+void EspINA::loadSource(pqPipelineSource* proxy)
 {
   //TODO Check the type of file .mha, .trace, or .seg
   // .mha at the moment
@@ -360,42 +367,171 @@ void EspINA::loadFile(EspinaProxy* proxy)
   //QString filePath = proxy->getSMName();
   
   qDebug() << "EspINA: Loading file in server side: " << filePath << "  " << proxy->getSMName();
-  
+
   if( filePath.endsWith(".pvd") || filePath.endsWith(".mha"))
   {
-    //qDebug() << "MHA FILE: " << filePath;
-    //EspinaProxy* source = CachedObjectBuilder::instance()->createStack( filePath);
-    assert(NULL == CachedObjectBuilder::instance()->registerLoadedStack(filePath, proxy));
-    this->addSample(proxy, 0, filePath);
+    vtkFilter *sampleReader = CachedObjectBuilder::instance()->registerProductCreator(filePath, proxy);
+    Sample *sample= new Sample(sampleReader,0);
+    this->addSample(sample);
   }
-  else if( filePath.endsWith(".trace") ){
+  else if( filePath.endsWith(".trace") ){ // Deprecated
+
     proxy->updatePipeline(); //Update the pipeline to obtain the content of the file
     proxy->getProxy()->UpdatePropertyInformation();
 
-    vtkSMStringVectorProperty* StringProp2 =
+    vtkSMStringVectorProperty* filePathProp =
           vtkSMStringVectorProperty::SafeDownCast(proxy->getProxy()->GetProperty("Content"));
-    //qDebug() << "Content:\n" << StringProp2->GetElement(0);
-    std::istringstream trace(std::string(StringProp2->GetElement(0)));
+    qDebug() << "Content:\n" << filePathProp->GetElement(0);
+    //std::istringstream trace(std::string(filePathProp->GetElement(0)));
+    QString content(filePathProp->GetElement(0));
+    QTextStream trace;
+    trace.setString(&content);
     m_analysis->readTrace(trace);
+
   }
   else if( filePath.endsWith(".seg") )
-    qDebug() << "Error: .seg files not supported yet";
+  {
+    proxy->updatePipeline(); //Update the pipeline to obtain the content of the file
+    proxy->getProxy()->UpdatePropertyInformation();
+    // Taxonomy
+    vtkSMStringVectorProperty* TaxProp =
+          vtkSMStringVectorProperty::SafeDownCast(proxy->getProxy()->GetProperty("Taxonomy"));
+    //qDebug() << "Taxonomy:\n" << TaxProp->GetElement(0);
+    QString TaxContent(TaxProp->GetElement(0));
+    QTextStream tax;
+    tax.setString(&TaxContent);
+    // TODO Load Tax (try catch)
+    // Trace
+    vtkSMStringVectorProperty* TraceProp =
+          vtkSMStringVectorProperty::SafeDownCast(proxy->getProxy()->GetProperty("Trace"));
+    //qDebug() << "Trace:\n" << TraceProp->GetElement(0);
+    QString TraceContent(TraceProp->GetElement(0));
+    QTextStream trace;
+    trace.setString(&TraceContent);
+
+    try{
+        m_analysis->readTrace(trace);
+    } catch (...) {
+      qDebug() << "Espina: Unable to load File " << __FILE__ << __LINE__;
+    }
+  }
   else{
     qDebug() << QString("Error: %1 file not supported yet").arg(filePath.remove(0, filePath.lastIndexOf('.')));
   }
 }
 
-void EspINA::saveTrace(QString filePath)
+
+//-----------------------------------------------------------------------------
+void EspINA::loadFile(QString& filePath, pqServer* server)
 {
-  std::ofstream file( filePath.toStdString().c_str(), std::_S_trunc );
-  m_analysis->print(file);
+  //TODO cambiar el stream que usa porcessingTrace por QTextStream para homogeneizar
+  QString TraceContent, TaxonomyContent;
+  QTextStream TraceStream(&TraceContent), TaxonomyStream(&TaxonomyContent);
+  if( !m_samples.isEmpty() )
+  {
+    //m_activeSample;
+//     foreach(Sample* sample, m_samples)
+//     {
+//       delete sample;//->sourceData();
+//     }
+      qDebug() << "Delete the other samples"; //TODO
+  }
+  if( server ) // Not used. Remote files are loaded through paraview loadSource class
+  {
+    /*
+     pqPipelineSource* remoteFile = pqLoadDataReaction::loadData(QStringList(filePath));
+     remoteFile->updatePipeline(); //Update the pipeline to obtain the content of the file
+     remoteFile->getProxy()->UpdatePropertyInformation();
+
+    vtkSMStringVectorProperty* contentProp =
+          vtkSMStringVectorProperty::SafeDownCast(remoteFile->getProxy()->GetProperty("Content"));
+    //qDebug() << "Content:\n" << StringProp2->GetElement(0);
+    
+    QString path(contentProp->GetElement(0));
+    stream.setString(&path);
+    m_analysis->readTrace(stream);
+    */
+  }
+  else // Read local file
+  {
+    try{
+      IOEspinaFile::loadFile(filePath, TraceStream, TaxonomyStream);
+      // TODO Load TaxonomyStream
+      m_analysis->readTrace(TraceStream);
+    }
+    catch (...)
+    {
+      qDebug() << "Espina: Unable to load File " << __FILE__ << __LINE__;
+    }
+  }
+
+}
+
+//-----------------------------------------------------------------------------
+// PRE: m_tax and m_analysis must be pointers to correct data
+void EspINA::saveFile(QString& filePath, pqServer* server)
+{
+  if( !m_tax or !m_analysis )
+  {
+    qDebug() << "EspINA: Error taxonomy or analysis are NULL. Save aborted";
+    return;
+  }
+
+  // Retrive ProcessingTrace
+  std::ostringstream trace_data;
+  m_analysis->print( trace_data );
+  // Retrive Taxonomy
+  QString tax_data;
+  IOTaxonomy::writeXMLTaxonomy(m_tax, tax_data);
+  
+  if( server ) 
+  {
+    // Method to store remote files
+    pqPipelineSource* remoteWriter =
+      pqApplicationCore::instance()->getObjectBuilder()->
+      createFilter("filters", "segFileWriter",
+                   QMap<QString, QList< pqOutputPort*> >(),
+                   pqApplicationCore::instance()->getActiveServer() );
+
+    vtkSMStringVectorProperty* fileNameProp =
+          vtkSMStringVectorProperty::SafeDownCast(remoteWriter->getProxy()->GetProperty("FileName"));
+    fileNameProp->SetElement(0, filePath.toStdString().c_str());
+    // Set Trace
+    vtkSMStringVectorProperty* traceProp =
+          vtkSMStringVectorProperty::SafeDownCast(remoteWriter->getProxy()->GetProperty("Trace"));
+    traceProp->SetElement(0, trace_data.str().c_str());
+    // Set Taxonomy
+    vtkSMStringVectorProperty* taxProp =
+          vtkSMStringVectorProperty::SafeDownCast(remoteWriter->getProxy()->GetProperty("Taxonomy"));
+    taxProp->SetElement(0, tax_data.toStdString().c_str());
+
+    //Update the pipeline to obtain the content of the file
+    remoteWriter->getProxy()->UpdateVTKObjects();
+    remoteWriter->updatePipeline();
+  }
+  else
+  {
+    /*
+    std::ofstream file( filePath.toStdString().c_str(), std::_S_trunc );
+    m_analysis->print(file);
+    */
+    QString auxTraceData(trace_data.str().c_str());
+    IOEspinaFile::saveFile( filePath, auxTraceData, tax_data);
+  }
 }
 
 
+//-----------------------------------------------------------------------------
+// void EspINA::saveTrace(QString& filePath)
+// {
+//   std::ofstream file( filePath.toStdString().c_str(), std::_S_trunc );
+//   m_analysis->print(file);
+// }
+
+
 //------------------------------------------------------------------------
-void EspINA::addSample(EspinaProxy* source, int portNumber, QString& filePath)
+void EspINA::addSample(Sample *sample)
 {
-  Sample *sample = new Sample(source, portNumber, filePath);
   sample->setVisible(false);
   /* If this is used to load samples when using .trace files. The next line must be uncommented*/
   // Tracing graph
@@ -457,13 +593,17 @@ EspINA::EspINA(QObject* parent)
 , m_activeSample(NULL)
 {
   loadTaxonomy();
-  m_newSegType = m_tax->getComponent("Symetric");
+  m_newSegType = NULL;//->getComponent("Symetric");
   m_analysis = ProcessingTrace::instance();
 }
 
 //------------------------------------------------------------------------
 void EspINA::loadTaxonomy()
 {
+//   m_tax = new TaxonomyNode("None");
+
+  //m_tax = IOTaxonomy::openXMLTaxonomy("default_taxonomy.xml");
+  
   m_tax = new TaxonomyNode("FEM");
   TaxonomyNode *newNode;
   newNode = m_tax->addElement("Synapse","FEM");
@@ -472,6 +612,7 @@ void EspINA::loadTaxonomy()
   m_tax->addElement("Symetric","Synapse");
   newNode = m_tax->addElement("Asymetric","Synapse");
   newNode->setColor(QColor(Qt::yellow));
+  
   /* // DEBUG
   m_tax->addElement("A","Vesicles");
   m_tax->addElement("B","Vesicles");

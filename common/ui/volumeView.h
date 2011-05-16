@@ -21,6 +21,7 @@
 #define VOLUMEVIEW_H
 
 #include <qabstractitemview.h>
+#include <selectionManager.h>
 
 //Forward declaration
 class SliceBlender;
@@ -47,6 +48,7 @@ public slots:
   
   //! Show/Hide segmentations in the scene
   void showSegmentations(bool value);
+  void setVOI(IVOI *voi);
     
 protected:
   //! QAbstractItemView Interface

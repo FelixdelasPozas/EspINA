@@ -4,7 +4,7 @@
 #include <QMap>
 
 class pqRenderView;
-class IRenderable;
+class EspinaProduct;
 class pqPipelineSource;
 
 
@@ -15,7 +15,7 @@ enum RenderType
 , RENDERTYPE_LAST  = 1
 };
 
-//! Interface to render IRenderable classes
+//! Interface to render EspinaProduct classes
 class IRenderer
 {
 public:
@@ -25,7 +25,7 @@ public:
   virtual RenderType type() = 0;
   
   //virtual void hide(Segmentation *seg, pqRenderView *view) = 0;
-  virtual void render(IRenderable *actor, pqRenderView *view) = 0;
+  virtual void render(EspinaProduct *actor, pqRenderView *view) = 0;
   //virtual void renderSelection(Segmentation *seg, pqRenderView *view) = 0;
   //virtual void renderDiscarted(Segmentation *seg, pqRenderView *view) = 0;
 };
@@ -42,13 +42,13 @@ public:
   RenderType type() {return MESH_RENDERER;}
   
   //void hide(Segmentation *seg, pqRenderView *view);
-  void render(IRenderable *actor, pqRenderView *view);
+  void render(EspinaProduct *actor, pqRenderView *view);
   //void renderSelection(Segmentation *seg, pqRenderView *view);
   //void renderDiscarted(Segmentation *seg, pqRenderView *view);
   
 private:
   static MeshRenderer *m_singleton;
-  static QMap<IRenderable *,pqPipelineSource *> m_contours;
+  static QMap<EspinaProduct *,pqPipelineSource *> m_contours;
   
 };
 
@@ -64,7 +64,7 @@ public:
   RenderType type() {return VOLUME_RENDERER;}
   
   //void hide(Segmentation *seg, pqRenderView *view);
-  void render(IRenderable *actor, pqRenderView *view);
+  void render(EspinaProduct *actor, pqRenderView *view);
   //void renderSelection(Segmentation *seg, pqRenderView *view);
   //void renderDiscarted(Segmentation *seg, pqRenderView *view);
   

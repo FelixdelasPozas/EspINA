@@ -20,6 +20,8 @@
 #include "cachedObjectBuilder.h"
 #include "data/hash.h"
 
+#include "filter.h"
+
 // Qt
 #include <QString>
 #include <QStringList>
@@ -33,9 +35,6 @@
 #include <vtkSMProperty.h>
 #include <vtkSMIntVectorProperty.h>
 #include <vtkSMDoubleVectorProperty.h>
-
-// TODO: Boost??
-#include <boost/graph/graph_concepts.hpp>
 
 // Debug
 #include <QDebug>
@@ -57,57 +56,65 @@ CachedObjectBuilder* CachedObjectBuilder::instance()
   return m_singleton;
 }
 
-
-EspinaProxy* CachedObjectBuilder::createFilter(
-  QString group
-, QString name
-, VtkParamList args
-  )
+vtkFilter* CachedObjectBuilder::createFilter(const QString group, const QString name, const vtkFilter::Arguments args)
 {
   // Create cache entry
-  QStringList namesToHash;
-  namesToHash.push_back( QString(group).append("::").append(name) );
-  namesToHash.append( reduceVtkArgs(args));
-  CacheIndex entryIndex = generateSha1( namesToHash );//createIndex(group,name,args);
+  Cache::Index id = generateId(group, name, args);
   
-  EspinaProxy * proxy = m_cache->getEntry(entryIndex);
-  if (proxy)
-    return proxy;
+  vtkFilter *filter = getFilter(id);
+  if (filter)
+    return filter;
   
-  proxy = createSMFilter(group, name, args);
-  m_cache->insert(entryIndex,proxy);
-  return proxy;
+  pqPipelineSource *proxy = createSMFilter(group, name, args);
+  filter = new vtkFilter(proxy, id);
+  m_cache->insert(id,filter);
+  return filter;
 }
 
-pqPipelineSource *CachedObjectBuilder::createSMFilter(
-  QString group
-, QString name
-, VtkParamList args)
+Cache::Index CachedObjectBuilder::generateId(const QString group, const QString name, const vtkFilter::Arguments args)
+{
+  QStringList namesToHash;
+  namesToHash.push_back( QString(name) );
+  
+  foreach(vtkFilter::Argument arg, args)
+  {
+    namesToHash.push_back( QString(arg.type));
+    namesToHash.push_back(arg.name);
+    namesToHash.push_back(arg.value);
+  }
+  
+  return generateSha1(namesToHash);
+}
+
+
+pqPipelineSource *CachedObjectBuilder::createSMFilter(const QString group, const QString name, const vtkFilter::Arguments args)
 {
   pqApplicationCore* core = pqApplicationCore::instance();
   pqObjectBuilder* ob = core->getObjectBuilder();
   
-  qDebug() << "CachedObjectBuilder: Create Filter " << group << "::" << name;
+  qDebug() << "CachedObjectBuilder: Create Filter " << name;
   pqPipelineSource *filter; //= builder->createFilter(group, name,NULL);
-  for (int p = 0; p < args.size(); p++)
+  vtkSMProperty *p;
+  foreach (vtkFilter::Argument arg, args)
   {
-    VtkArg vtkArg = args[p].first;
-    switch (vtkArg.type)
+    switch (arg.type)
     {
       case INPUT:
       {
-	pqPipelineSource *inputProxy = m_cache->getEntry(args[p].second);
-	filter = ob->createFilter(group, name, inputProxy);
+	QStringList input = arg.value.split(":");
+	assert(input.size()==2);
+	vtkFilter *inputCreator = m_cache->getEntry(input[0]);
+	assert(inputCreator);
+	filter = ob->createFilter(group, name, inputCreator->pipelineSource(), input[1].toInt());
       }
       break;
       case INTVECT:
 	assert(filter);
 	{
-	  vtkSMIntVectorProperty * prop = vtkSMIntVectorProperty::SafeDownCast(
-	    filter->getProxy()->GetProperty(vtkArg.name.toStdString().c_str())
-	  );
-	  QStringList values = args[p].second.split(",");//   QString(args[p].second.c_str()).split(",");
-	  qDebug() << "Values" <<  values;
+	  p = filter->getProxy()->GetProperty( arg.name.toStdString().c_str() );
+	  vtkSMIntVectorProperty * prop = vtkSMIntVectorProperty::SafeDownCast(p);
+	  QStringList values = arg.value.split(",");
+	  qDebug() << "CachedObjectBuilder:" << arg.name << "Values" <<  values;
 	  for (int i = 0; i < values.size(); i++)
 	    prop->SetElement(i, values[i].toInt());
 	}
@@ -115,11 +122,10 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(
       case DOUBLEVECT:
 	assert(filter);
 	{
-	  vtkSMDoubleVectorProperty * prop = vtkSMDoubleVectorProperty::SafeDownCast(
-	    filter->getProxy()->GetProperty(vtkArg.name.toStdString().c_str())
-	  );
-	  QStringList values = args[p].second.split(","); //QString(args[p].second.c_str()).split(",");
-	  qDebug() << "Values" <<  values;
+	  p = filter->getProxy()->GetProperty( arg.name.toStdString().c_str() );
+	  vtkSMDoubleVectorProperty * prop = vtkSMDoubleVectorProperty::SafeDownCast(p);
+	  QStringList values = arg.value.split(",");
+	  qDebug() << "CachedObjectBuilder:" << arg.name << "Values" <<  values;
 	  for (int i = 0; i < values.size(); i++)
 	    prop->SetElement(i, values[i].toDouble());
 	}
@@ -128,20 +134,11 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(
 	qDebug() << "Unkown parameter type";
 	assert(false);
     };
-    /*
-    if (args[p] == "input")
-    {
-      pqPipelineSource *proxy = m_cache->getEntry(args[p].second.c_str());
-      filter = ob->createFilter(group.c_str(),name.c_str(),proxy);
-    }
-    else
-      qDebug() << "Unkown parameter";
-    */
   }
   assert(filter);
+  //TODO: Review if needed here
   filter->getProxy()->UpdateVTKObjects();
   filter->updatePipeline();
- // initFilter(filter,args);
  return filter;
 }
 
@@ -149,19 +146,19 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(
 /**
  * For stacks loaded from the client-side
  */
-EspinaProxy* CachedObjectBuilder::createStack(QString filePath)
-{
-  QStringList v;
-  v.push_back( filePath );
-  CacheIndex fileIndex = generateSha1(v);
-  CacheEntry* proxy = m_cache->getEntry(fileIndex);
-  if( proxy )
-    return proxy;
-  
-  proxy = pqLoadDataReaction::loadData( QStringList(filePath) );
-  m_cache->insert(fileIndex, proxy);
-  return proxy;
-}
+// EspinaProxy* CachedObjectBuilder::createStack(QString& filePath)
+// {
+//   QStringList v;
+//   v.push_back( filePath );
+//   CacheIndex sampleHash = generateSha1(v);
+//   CacheEntry* proxy = m_cache->getEntry(sampleHash);
+//   if( proxy )
+//     return proxy;
+//   
+//   proxy = pqLoadDataReaction::loadData( QStringList(filePath) );
+//   m_cache->insert(filePath, sampleHash, proxy);
+//   return proxy;
+// }
 
 /*
 TODO there are two ways to load sample files.
@@ -178,22 +175,16 @@ TODO there are two ways to load sample files.
  * If it returns something different to NULL the element has been already registered
  * in the cache
  */
-EspinaProxy* CachedObjectBuilder::registerLoadedStack(QString& filePath, EspinaProxy* source)
+vtkFilter* CachedObjectBuilder::registerProductCreator(QString& id, pqPipelineSource* source)
 {
-  QStringList v;
-  v.push_back( filePath );
-  CacheIndex fileIndex = generateSha1(v);
-  CacheEntry* proxy = m_cache->getEntry(fileIndex);
-  if( proxy )
-    return proxy;
-  m_cache->insert(fileIndex, source);
-  return NULL;
+  vtkFilter* filter = m_cache->getEntry(id);
+  if( !filter )
+  {
+    filter = new vtkFilter(source, id);
+    m_cache->insert(id, filter);
+  }
+  
+  return filter;
 }
-
-
-// void CachedObjectBuilder::initFilter(pqPipelineSource* filter, ParamList args)
-// {
-// }
-
 
 

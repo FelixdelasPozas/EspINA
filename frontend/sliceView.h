@@ -20,26 +20,22 @@
 #ifndef SLICEVIEW_H
 #define SLICEVIEW_H
 
-#include <qabstractitemview.h>
-
-//Forward declaration
-class pqTwoDRenderView;
-class vtkSMImageSliceRepresentationProxy;
-class vtkSMIntVectorProperty;
-class QWidget;
-class QScrollBar;
-class QSpinBox;
-class QVBoxLayout;
-class QHBoxLayout;
-class pqOutputPort;
-class Segmentation;
-class Sample;
-class IRenderer;
-class vtkSMProxy;
-class IModelItem;
+#include <QMutex>
+#include <QMap>
 
 #include "selectionManager.h"//TODO: Forward declare?
-#include <QMutex>
+
+class vtkCamera;
+class vtkSMRenderViewProxy;
+//Forward declaration
+class Sample;
+class Segmentation;
+class IModelItem;
+class pqPipelineSource;
+
+
+//! Blends Segmentations in a given Sample
+//! TODO: Make it private to Slice View Class
 class Blender
 {
 public:
@@ -67,10 +63,29 @@ private:
 };
 
 
+#include <QAbstractItemView>
+
+// Interface
+class QWidget;
+class QScrollBar;
+class QSpinBox;
+class QVBoxLayout;
+class QHBoxLayout;
+class pqOutputPort;
+class IRenderer;
+class vtkSMProxy;
+class pqRenderView;
+class vtkSMImageSliceRepresentationProxy;
+class vtkSMIntVectorProperty;
+class vtkRenderWindowInteractor;
+
+
 //! Displays a unique slice of a sample
 //! If segmentations are visible, then their slices are
 //! blended 	over the sample slice
-class SliceView : public QAbstractItemView
+class SliceView 
+: public QAbstractItemView
+, public ISelectableView
 {
   Q_OBJECT
 public:
@@ -84,20 +99,44 @@ public:
     SLICE_PLANE_XZ    = 2,
     SLICE_PLANE_LAST  = 2
   };
+  
+public:
+  virtual QModelIndex indexAt(const QPoint& point) const;
+  virtual void scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint = EnsureVisible);
+  virtual QRect visualRect(const QModelIndex& index) const;
 
+  void focusOnSample(Sample *sample);
+  
+  pqPipelineSource **output(){return &m_slicer;}
+  
+  //! Interface of ISelectableView
+  void setSelection(SelectionFilters &filters, ViewRegions &regions);
+  
 
 public slots:
   void connectToServer();
   void disconnectFromServer();
 
   //! Show/Hide segmentations
+  // TODO: Use visualization layer schema
   void showSegmentations(bool value);
-
+  
+  //! Slicer configuration methods:
+  void setPlane(SlicePlane plane);
+  void setSlice(int value);
+  
+  //! Selections
+  void vtkWidgetMouseEvent(QMouseEvent *event);
+  
+protected slots:
+  virtual void setVOI(IVOI *voi);
+  
 signals:
-  void pointSelected(const Point);
+  void sliceChanged();
 
 protected:
   virtual QRegion visualRegionForSelection(const QItemSelection& selection) const;
+  // TODO: Convert QRect to Region and use ISelectable::setSelection
   virtual void setSelection(const QRect& rect, QItemSelectionModel::SelectionFlags command);
   virtual bool isIndexHidden(const QModelIndex& index) const;
   virtual int verticalOffset() const;
@@ -108,27 +147,14 @@ protected:
   virtual void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end);
   virtual void dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight);
 
-public:
-  virtual QModelIndex indexAt(const QPoint& point) const;
-  virtual void scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint = EnsureVisible);
-  virtual QRect visualRect(const QModelIndex& index) const;
+  virtual pqRenderView* view();
+  //! Converts point from Display coordinates to World coordinates
+  ISelectionHandler::VtkRegion display2vtk(const QPolygonF &region);
+  /** DEPRECATED
+  virtual Point convert(const QPointF& point);
+  ISelectionHandler::VtkRegion correctSpacing(ISelectionHandler::VtkRegion& region);
+  **/
 
-  void focusOnSample(Sample *sample);
-  
-  pqPipelineSource **output(){return &m_slicer;}
-
-public slots:
-  //! Slicer configuration methods:
-  void setPlane(SlicePlane plane);
-  void setSlice(int value);
-  
-  //! Selections
-  void vtkWidgetMouseEvent(QMouseEvent *event);
-
-signals:
-  void sliceChanged();
-
-protected:
   void updateScene();
 
 private:
@@ -140,6 +166,8 @@ private:
   bool m_showSegmentations;
   vtkSMImageSliceRepresentationProxy *m_rep;
   SlicePlane m_plane;
+  //! Determine which scene axis correspond to display axis
+  int m_xAxisDisp, m_yAxisDisp, m_zAxisDisp;
   vtkSMIntVectorProperty *m_slice;
   pqPipelineSource *m_slicer;
 
@@ -147,9 +175,14 @@ private:
   Sample *s_focusedSample; // The sample which is being currently displayed
   static Blender *s_blender; // A blending filter
 
+  //
+  pqRenderView *m_view;
+  vtkSMRenderViewProxy *m_viewProxy;
+  vtkRenderWindowInteractor *m_rwi;
+  vtkCamera *m_cam;
+  
   // GUI
   QWidget *m_viewWidget;
-  pqTwoDRenderView *m_view;
   QScrollBar *m_scrollBar;
   QSpinBox *m_spinBox;
   QVBoxLayout *m_mainLayout;

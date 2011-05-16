@@ -4,9 +4,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}  #For wrap/ui files
   ${ITK_DIR}/../
-#   "/opt/InsightToolkit-3.20.0/Utilities/vxl/"
-#   "/opt/InsightToolkit-3.20.0/Utilities/vxl/vcl"
-  )
+)
 
 #------------------------------------------------------------------------------
 # Add Qt Resource files
@@ -17,7 +15,8 @@ qt4_wrap_cpp(MOC_BUILT_SOURCES
   taxonomyProxy.h
   sampleProxy.h
   espina.h
-  iPixelSelector.h
+  pixelSelector.h
+  selectionManager.h
   EspinaPlugin.h
   ui/volumeView.h
 )
@@ -41,9 +40,11 @@ set(Espina_SOURCE_FILES
   ${RCC_BUILT_SOURCES}
   )
 
+set(EXTERNAL_LIBS zip)
+
 add_library (Espina SHARED ${Espina_SOURCE_FILES})
 
-target_link_libraries (Espina ${CAJAL_LIBRARIES})
+target_link_libraries (Espina ${CAJAL_LIBRARIES} ${EXTERNAL_LIBS})
 
 add_subdirectory(tests)
 
