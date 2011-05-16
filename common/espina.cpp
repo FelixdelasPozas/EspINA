@@ -570,12 +570,15 @@ void EspINA::addSegmentation(Segmentation *seg)
 //------------------------------------------------------------------------
 void EspINA::removeSegmentation(Segmentation* seg)
 {
+  // Update model
   QModelIndex segIndex = segmentationIndex(seg);
   beginRemoveRows(segmentationRoot(),segIndex.row(),segIndex.row());
   m_segmentations.removeOne(seg);
   m_taxonomySegs[seg->taxonomy()].removeOne(seg);
   m_sampleSegs[seg->origin()].removeOne(seg);
   endRemoveRows();
+  // Free internal memory
+  m_analysis->removeNode(seg);
 }
 
 

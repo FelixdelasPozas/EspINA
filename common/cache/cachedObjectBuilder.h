@@ -33,7 +33,8 @@ class CachedObjectBuilder
 public:
   static CachedObjectBuilder *instance();
   
-  vtkFilter *createFilter(const QString group, const QString name, const vtkFilter::Arguments args);
+  vtkFilter *createFilter(const QString group, const QString name, const vtkFilter::Arguments args, bool persistent=false);
+  void removeFilter(vtkFilter *filter);
   vtkFilter *getFilter(Cache::Index &id) { return m_cache->getEntry(id); }
 
   /**

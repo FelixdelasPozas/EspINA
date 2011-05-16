@@ -56,20 +56,29 @@ CachedObjectBuilder* CachedObjectBuilder::instance()
   return m_singleton;
 }
 
-vtkFilter* CachedObjectBuilder::createFilter(const QString group, const QString name, const vtkFilter::Arguments args)
+vtkFilter* CachedObjectBuilder::createFilter(const QString group, const QString name, const vtkFilter::Arguments args, bool persistent)
 {
   // Create cache entry
   Cache::Index id = generateId(group, name, args);
   
   vtkFilter *filter = getFilter(id);
   if (filter)
+  {
+    m_cache->reference(filter->id());
     return filter;
+  }
   
   pqPipelineSource *proxy = createSMFilter(group, name, args);
   filter = new vtkFilter(proxy, id);
-  m_cache->insert(id,filter);
+  m_cache->insert(id,filter, persistent);
   return filter;
 }
+
+void CachedObjectBuilder::removeFilter(vtkFilter* filter)
+{
+  m_cache->remove(filter->id());
+}
+
 
 Cache::Index CachedObjectBuilder::generateId(const QString group, const QString name, const vtkFilter::Arguments args)
 {

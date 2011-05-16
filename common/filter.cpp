@@ -23,6 +23,8 @@
 #include "cache/cachedObjectBuilder.h"
 
 // ParaQ
+#include <pqApplicationCore.h>
+#include <pqObjectBuilder.h>
 #include "pqPipelineSource.h"
 #include "vtkSMProxy.h"
 
@@ -41,6 +43,13 @@ vtkFilter::vtkFilter(pqPipelineSource* source, QString& cacheId)
 : m_pipelineSource(source)
 , m_id(cacheId)
 {
+}
+vtkFilter::~vtkFilter()
+{
+   pqApplicationCore *core = pqApplicationCore::instance();
+   pqObjectBuilder *ob = core->getObjectBuilder();
+   
+   ob->destroy(m_pipelineSource);
 }
 
 int vtkFilter::numProducts()

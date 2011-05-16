@@ -70,6 +70,21 @@ RectangularVOI::ApplyFilter::ApplyFilter(ITraceNode::Arguments &args)
 }
 
 //-----------------------------------------------------------------------------
+RectangularVOI::ApplyFilter::~ApplyFilter()
+{
+   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+   
+   cob->removeFilter(m_rvoi);
+}
+
+
+//-----------------------------------------------------------------------------
+void RectangularVOI::ApplyFilter::removeProduct(vtkProduct* product)
+{
+  assert(false);
+}
+
+//-----------------------------------------------------------------------------
 RectangularVOI::RectangularVOI()
 : m_box(NULL)
 {
@@ -78,7 +93,8 @@ RectangularVOI::RectangularVOI()
   ProcessingTrace::instance()->registerPlugin(registerName, this);
 }
 
-IFilter* RectangularVOI::createFilter(QString filter, ITraceNode::Arguments& args)
+//-----------------------------------------------------------------------------
+EspinaFilter* RectangularVOI::createFilter(QString filter, ITraceNode::Arguments& args)
 {
   if (filter == ApplyFilter::FilterType)
     return new ApplyFilter(args);
@@ -87,7 +103,7 @@ IFilter* RectangularVOI::createFilter(QString filter, ITraceNode::Arguments& arg
 }
 
 //-----------------------------------------------------------------------------
-IFilter *RectangularVOI::applyVOI(vtkProduct* product)
+EspinaFilter *RectangularVOI::applyVOI(vtkProduct* product)
 {
   // To apply widget bounds to vtkBox source
   if (m_widget[0])
@@ -98,16 +114,14 @@ IFilter *RectangularVOI::applyVOI(vtkProduct* product)
   double pos[3];
   vtkSMPropertyHelper(m_box,"Position").Get(pos,3);
   
-  qDebug() << "RectangularVOI Plugin: Scale: "<< scale[0]<< scale[1]<< scale[2];
-  qDebug() << "RectangularVOI Plugin: Pos: "<< pos[0]<< pos[1]<< pos[2];
-  qDebug() << "RectangularVOI Plugin: Extent: "<< m_rvoi[0]<< m_rvoi[1]<< m_rvoi[2]<< m_rvoi[3]<< m_rvoi[4]<< m_rvoi[5];
+  //qDebug() << "RectangularVOI Plugin: Scale: "<< scale[0]<< scale[1]<< scale[2];
+  //qDebug() << "RectangularVOI Plugin: Pos: "<< pos[0]<< pos[1]<< pos[2];
+  //qDebug() << "RectangularVOI Plugin: Extent: "<< m_rvoi[0]<< m_rvoi[1]<< m_rvoi[2]<< m_rvoi[3]<< m_rvoi[4]<< m_rvoi[5];
   
   double productExtent[6] = {m_rvoi[0],m_rvoi[1],m_rvoi[2], m_rvoi[3], m_rvoi[4], m_rvoi[5]/2};
   double productSpacing[3] = {1,1,2};
   
- // CALCULAR LA NUEVA REGION 
   double voiExtent[6];
-  
   for (int i=0; i<6; i++)
     voiExtent[i] = round((pos[i/2] + m_rvoi[i]*scale[i/2])/productSpacing[i/2]);
   
@@ -120,14 +134,14 @@ IFilter *RectangularVOI::applyVOI(vtkProduct* product)
   //m_rvoi[4] = round(pos[2] + m_rvoi[4] * scale[2]);
   //m_rvoi[5] = round((pos[2] + m_rvoi[5] * scale[2]/2));
   
-  qDebug() << "RectangularVOI Plugin::ApplyVOI on: "<< voiExtent[0]<< voiExtent[1]<< voiExtent[2]<< voiExtent[3]<< voiExtent[4]<< voiExtent[5];
+  //qDebug() << "RectangularVOI Plugin::ApplyVOI on: "<< voiExtent[0]<< voiExtent[1]<< voiExtent[2]<< voiExtent[3]<< voiExtent[4]<< voiExtent[5];
   EspinaFilter *rvoi = new ApplyFilter(product,voiExtent);
   
   return rvoi;
 }
 
 //-----------------------------------------------------------------------------
-IFilter *RectangularVOI::restoreVOITransormation(vtkProduct* product)
+EspinaFilter *RectangularVOI::restoreVOITransormation(vtkProduct* product)
 {
   return NULL;
 }

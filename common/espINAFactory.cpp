@@ -33,10 +33,10 @@ EspINAFactory* EspINAFactory::instance()
   return m_instance;
 }
 
-Segmentation* EspINAFactory::CreateSegmentation(vtkProduct *vtkRef)
+Segmentation* EspINAFactory::CreateSegmentation(EspinaFilter *parent, vtkProduct *vtkRef)
 {
   std::cout << "Factory is going to create a segmentation for vtkObject: " << vtkRef->id().toStdString() << std::endl;
-  Segmentation *seg = new Segmentation(vtkRef->creator(),vtkRef->portNumber());
+  Segmentation *seg = new Segmentation(parent, vtkRef->creator(),vtkRef->portNumber());
   foreach(ISegmentationExtension *ext, m_extensions)
   {
     seg->addExtension(ext);

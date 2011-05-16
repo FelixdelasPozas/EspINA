@@ -19,6 +19,8 @@
 
 #include "cache.h"
 
+#include <filter.h>
+
 // Qt
 #include <QStringList>
 
@@ -35,6 +37,7 @@
 
 // Debug
 #include <QDebug>
+#include <assert.h>
 
 Cache *Cache::m_singleton = NULL;
 
@@ -45,37 +48,56 @@ Cache* Cache::instance()
   return m_singleton;
 }
 
-void Cache::insert(const Index& index, vtkFilter* filter)
+void Cache::insert(const Index& index, vtkFilter* filter, bool persistent)
 {
   //m_translator.insert(id,index);
-  m_cachedProxies.insert(index,filter);
+  if (m_cachedProxies.contains(index))
+  {
+    m_cachedProxies[index].refCounter++;
+  }else{
+    Entry newEntry;
+    newEntry.refCounter = 1 + persistent?1:0;
+    newEntry.filter = filter;
+    m_cachedProxies.insert(index,newEntry);
+  }
 }
 
+void Cache::reference(const Cache::Index& index)
+{
+  m_cachedProxies[index].refCounter++;
+}
 
 vtkFilter *Cache::getEntry(const Cache::Index index) const
 {
-  vtkFilter *filter;
   // First we try to recover the proxy from cache
-  if (!(filter = m_cachedProxies.value(index,NULL)))
+  if (m_cachedProxies.contains(index))
   {
-    
-    qDebug() << "Cache: Try to load from disk cache failed";
-  /*
-  // If not available, try to read from disk/disk cache
-  pqApplicationCore *core = pqApplicationCore::instance();
-  pqObjectBuilder *ob = core->getObjectBuilder();
-  pqServer * server= pqActiveObjects::instance().activeServer();
-  QStringList file;
-  file << index;
-  // TODO: Only works in local mode!!!!
-  if (boost::filesystem::exists(index.toStdString().c_str()))
-    proxy = ob->createReader("sources","MetaImageReader",file,server);
+    qDebug() << "Cache: " << index << " HIT";
+    return m_cachedProxies[index].filter;
   }
-  return proxy;
-  */
+  else
+  {
+    if (bool tryDiskCache = false)
+    {
+      qDebug() << "Cache: " << index << "Load from disk";
+      assert(false);
+    }else{
+      qDebug() << "Cache: " << index << "Failed to found entry";
+      return NULL;
+    }
   }
-  return filter;
 }
+
+void Cache::remove(const Cache::Index& index)
+{
+  assert(m_cachedProxies.contains(index));
+  if (--m_cachedProxies[index].refCounter == 0)
+  {
+    delete m_cachedProxies[index].filter;
+    m_cachedProxies.remove(index);
+  }
+}
+
 
 // CacheEntry* Cache::getEspinaEntry(const EspinaId& id) const
 // {

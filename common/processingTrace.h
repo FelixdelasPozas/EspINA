@@ -53,6 +53,8 @@ public:
   };
   
 public:
+  virtual ~ITraceNode(){}
+  
   static ITraceNode::Arguments parseArgs(QString &raw);
   virtual QString getArgument(QString name) const = 0;
   virtual QString getArguments() const = 0;
@@ -69,6 +71,7 @@ private:
   IndexType vertexId;
   friend class ProcessingTrace;
 };
+
 
 //! A class to represent the working trace
 class ProcessingTrace
@@ -145,6 +148,10 @@ public:
     ITraceNode *destination,
     const std::string &description
   );
+  
+  //! Remove a segmentation and the filter which created it if no more
+  //! segmentations exist
+  void removeNode(ITraceNode* node);
     
 //   void readTrace(std::istream& content);
   void readTrace(QTextStream& stream);

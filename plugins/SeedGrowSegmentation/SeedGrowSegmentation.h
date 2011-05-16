@@ -56,7 +56,7 @@ class SeedGrowSegmentation
 public:
   SeedGrowSegmentation(QObject* parent);
 
-  IFilter *createFilter(QString filter, ITraceNode::Arguments& args);
+  EspinaFilter *createFilter(QString filter, ITraceNode::Arguments& args);
 
 protected slots:
   //! Changes the method to select the input seed

@@ -73,11 +73,8 @@ class IVOI
 public:
   virtual ~IVOI(){}
 
-  virtual IFilter *createApplyFilter() = 0;
-  virtual IFilter *createRestoreFilter() = 0;
-  
-  virtual IFilter *applyVOI(vtkProduct *product) = 0;
-  virtual IFilter *restoreVOITransormation(vtkProduct* product) = 0;
+  virtual EspinaFilter *applyVOI(vtkProduct *product) = 0;
+  virtual EspinaFilter *restoreVOITransormation(vtkProduct* product) = 0;
   
   virtual vtkSMProxy * getProxy() = 0;
   virtual pq3DWidget *widget() = 0;

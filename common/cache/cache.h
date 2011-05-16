@@ -28,11 +28,18 @@ class vtkFilter;
 
 class Cache
 {
+  struct Entry
+  {
+    int refCounter;
+    vtkFilter *filter;
+  };
 public:
   typedef QString Index;
   static Cache *instance();
-  void insert(const Index& index, vtkFilter *filter);
+  void insert(const Index& index, vtkFilter *filter, bool persistent=false);
+  void reference(const Index& index);
   vtkFilter *getEntry(const Index index) const;
+  void remove(const Index& index);
   //CacheEntry *getEspinaEntry(const EspinaId &id) const;
   
 protected:
@@ -41,7 +48,7 @@ protected:
 private:
   static Cache *m_singleton;
   //QMap<EspinaId, CacheIndex> m_translator;// Relation between EspinaId and CacheIndex
-  QMap<Index, vtkFilter *> m_cachedProxies;
+  QMap<Index, Entry> m_cachedProxies;
   QString m_diskCachePath; 
 };
 

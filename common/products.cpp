@@ -300,8 +300,8 @@ void Sample::spacing(double* out)
 //-----------------------------------------------------------------------------
 // Segmentation
 //-----------------------------------------------------------------------------
-Segmentation::Segmentation(vtkFilter* creator, int portNumber)
-: EspinaProduct(NULL,creator, portNumber)
+Segmentation::Segmentation(EspinaFilter* parent, vtkFilter* creator, int portNumber)
+: EspinaProduct(parent,creator, portNumber)
 {
 }
 

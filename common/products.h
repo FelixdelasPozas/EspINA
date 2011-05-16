@@ -54,7 +54,7 @@ public:
   //! Creates a product for an already existing filter
   vtkProduct(vtkFilter *creator, int portNumber);
   
-  QString id() const; //TODO: idc vtkfilter creator + : + puerto
+  QString id() const;
   vtkFilter *creator() {return m_creator;}
   int portNumber() {return m_portNumber;}
   pqOutputPort *outputPort();
@@ -86,6 +86,7 @@ public:
   virtual QString getArgument(QString name) const;
   virtual QString getArguments() const;
   virtual QString label() const {return "Product";}
+  EspinaFilter *parent() const {return m_parent;}
 
   //! Implements deprecated IRenderable interface as part of its own interface
   void color(double *color);
@@ -136,7 +137,7 @@ private:
 class Segmentation : public EspinaProduct
 {
 public:
-  Segmentation(vtkFilter *creator, int portNumber);
+  Segmentation(EspinaFilter *parent, vtkFilter *creator, int portNumber);
   //Segmentation(const vtkProduct &product);
   //Segmentation(const Segmentation &seg);
   

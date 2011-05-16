@@ -179,6 +179,24 @@ void ProcessingTrace::connect(QString& id,
   connect(m_trace[*vi].node, destination, description);
 }
 
+//-----------------------------------------------------------------------------
+void ProcessingTrace::removeNode(ITraceNode* node)
+{
+  Segmentation *seg = dynamic_cast<Segmentation *>(node);
+  assert(seg); // We only remove segmentations
+  EspinaFilter *parentFilter = seg->parent();
+  
+  parentFilter->removeProduct(seg);
+  // Delete node from trace
+  if (parentFilter->numProducts() == 0)
+  {
+    //Delete parent filter and remove from trace
+    delete parentFilter;
+  }
+}
+
+
+
 /*
 //-----------------------------------------------------------------------------
 void ProcessingTrace::readTrace(std::istream& content)
@@ -379,7 +397,7 @@ void ProcessingTrace::readTrace(QTextStream& stream)
         //QStringList filterInfo = QString(vLabel[vertexId].c_str()).split("::");
         //assert(filterInfo.size() == 2);
         QString rawArgs( vArgs[vertexId].c_str() );
-        ITraceNode::Arguments args = ITraceNode::parseArgs( rawArgs ); //TODO: quien lo hace
+        ITraceNode::Arguments args = ITraceNode::parseArgs( rawArgs );
        // if( filterInfo.at(1) == "SeedGrowSegmentationFilter")
         qDebug() << "Plugin Name:" << label;
         IFilterFactory* factory = m_availablePlugins.value(label, NULL);

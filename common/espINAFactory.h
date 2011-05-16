@@ -34,7 +34,7 @@ class EspINAFactory
 public:
   static EspINAFactory *instance();
   
-  Segmentation *CreateSegmentation(vtkProduct *vtkRef);
+  Segmentation *CreateSegmentation(EspinaFilter *parent, vtkProduct *vtkRef);
   void addSegmentationExtension(ISegmentationExtension *ext);
   
   VolumeView *CreateVolumeView();

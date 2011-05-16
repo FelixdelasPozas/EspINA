@@ -35,20 +35,24 @@ public:
   //! Constructor desde lista de argumentos
   SeedGrowSegmentationFilter(ITraceNode::Arguments &args);
   
+  virtual ~SeedGrowSegmentationFilter();
+  
   //! Implements IFilter Interface
-  virtual int numProducts() {return 1;}
+  virtual int numProducts() {return m_numSeg;}
   virtual vtkProduct product(int i) {return vtkProduct(m_finalFilter->product(i).creator(),i);}
   virtual QList<vtkProduct *> products() {QList<vtkProduct*> a; return a;}
+  virtual void removeProduct(vtkProduct* product);
   
   virtual QString label() const {return getArgument("Type");}
   virtual QString getArgument(QString name) const {return (name=="Type")?"SeedGrowSegmentation::SeedGrowSegmentationFilter":"";}
   virtual QString getArguments() const {return m_args;}
 
 private:
-  IFilter *m_applyFilter;
+  EspinaFilter *m_applyFilter;
   vtkFilter *m_grow;
-  IFilter *m_restoreFilter;
+  EspinaFilter *m_restoreFilter;
   IFilter *m_finalFilter;
+  int m_numSeg;
 };
 
 

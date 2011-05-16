@@ -4,6 +4,7 @@
 #include "espinaTypes.h"
 #include <QToolButton>
 
+class EspinaFilter;
 class Segmentation;
 class pqView;
 
@@ -62,7 +63,7 @@ class IFilterFactory
 {
 public:
   virtual ~IFilterFactory(){}
-  virtual IFilter* createFilter(QString filter, ITraceNode::Arguments &args) = 0;
+  virtual EspinaFilter* createFilter(QString filter, ITraceNode::Arguments &args) = 0;
   
   //QString pluginName() {return m_pluginName;}
 

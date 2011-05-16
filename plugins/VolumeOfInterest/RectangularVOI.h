@@ -34,12 +34,14 @@ class RectangularVOI
   class ApplyFilter: public EspinaFilter
   {
   public:
+    virtual ~ApplyFilter();
     ApplyFilter(vtkProduct *input, double *bounds);
     ApplyFilter(ITraceNode::Arguments &args);
     virtual int numProducts() {return 1;}//Asser it is true :D
     virtual vtkProduct product(int i) {return vtkProduct(m_rvoi,0);}
     virtual QList< vtkProduct* > products() {QList<vtkProduct *> p; return p;}
     virtual QString getFilterArguments() const {return m_args;}
+    virtual void removeProduct(vtkProduct* product);
     
     static const QString FilterType;
   private:
@@ -50,12 +52,10 @@ class RectangularVOI
 public:
   RectangularVOI();
   
-  virtual IFilter* createFilter(QString filter, ITraceNode::Arguments& args);
-  virtual IFilter *createApplyFilter(){}
-  virtual IFilter *createRestoreFilter() {return NULL;}
+  virtual EspinaFilter *createFilter(QString filter, ITraceNode::Arguments& args);
   
-  virtual IFilter *applyVOI(vtkProduct* product);
-  virtual IFilter *restoreVOITransormation(vtkProduct* product);
+  virtual EspinaFilter *applyVOI(vtkProduct* product);
+  virtual EspinaFilter *restoreVOITransormation(vtkProduct* product);
 
   virtual vtkSMProxy *getProxy();
   virtual pq3DWidget *widget();

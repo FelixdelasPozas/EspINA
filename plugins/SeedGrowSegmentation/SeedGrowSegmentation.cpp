@@ -79,7 +79,7 @@ SeedGrowSegmentation::SeedGrowSegmentation(QObject* parent)
 
 
 //-----------------------------------------------------------------------------
-IFilter *SeedGrowSegmentation::createFilter(QString filter, ITraceNode::Arguments & args)
+EspinaFilter *SeedGrowSegmentation::createFilter(QString filter, ITraceNode::Arguments & args)
 {
   if (filter == SGSF)
   {
