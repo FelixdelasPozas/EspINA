@@ -62,7 +62,7 @@ int SampleProxy::rowCount(const QModelIndex& parent) const
   updateSegmentations();
 
   if (!parent.isValid())
-    return 3;
+    return 0;
 
   if (parent == mapFromSource(model->taxonomyRoot()))
     return 0;

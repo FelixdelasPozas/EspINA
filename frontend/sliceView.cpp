@@ -397,14 +397,20 @@ void SliceView::setVOI(IVOI* voi)
 {
   if (m_VOIWidget)
   {
-    //TODO: Destroy previous declaration
-    assert(false);
+    m_VOIWidget->deselect();
+    m_VOIWidget->setVisible(false);
+    m_voi->deleteWidget(m_VOIWidget);
   }
+  
+  if(!s_focusedSample)
+    return;
+  
+  m_voi = voi;
   
   if (!voi)
     return;
   
-  m_VOIWidget = voi->widget(m_plane);
+  m_VOIWidget = voi->newWidget();
   m_VOIWidget->setView(m_view);
   m_VOIWidget->setWidgetVisible(true);
   m_VOIWidget->select();

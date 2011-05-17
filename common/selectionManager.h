@@ -64,6 +64,7 @@ protected:
   
 protected:
   pq3DWidget *m_VOIWidget;
+  IVOI *m_voi;
 };
 
 class Product;
@@ -79,6 +80,8 @@ public:
   virtual vtkSMProxy * getProxy() = 0;
   virtual pq3DWidget *widget() = 0;
   virtual pq3DWidget *widget(int plane) = 0;
+  virtual pq3DWidget *newWidget() = 0;
+  virtual void deleteWidget(pq3DWidget *&widget) = 0;
   
   virtual void cancelVOI() = 0;
 };

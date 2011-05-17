@@ -60,6 +60,10 @@ public:
   virtual vtkSMProxy *getProxy();
   virtual pq3DWidget *widget();
   virtual pq3DWidget *widget(int plane);
+  virtual pq3DWidget* newWidget();
+  virtual void deleteWidget(pq3DWidget* &widget);
+
+
   
 public slots:
   virtual void endInteraction();
@@ -68,7 +72,7 @@ public slots:
   
 private:
   vtkSMProxy *m_box;
-  pq3DWidget *m_widget[4];
+  QList<pq3DWidget *> m_widgets;
   
   double m_rvoi[6];
 };

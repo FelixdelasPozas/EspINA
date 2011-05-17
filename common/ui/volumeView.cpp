@@ -58,6 +58,7 @@
 VolumeView::VolumeView(QWidget* parent)
 : QAbstractItemView(parent)
 , m_showSegmentations(false)
+, m_VOIWidget(NULL)
 {
   m_controlLayout = new QHBoxLayout();
   
@@ -147,7 +148,23 @@ void VolumeView::showSegmentations(bool value)
 //-----------------------------------------------------------------------------
 void VolumeView::setVOI(IVOI* voi)
 {
-  pq3DWidget *m_VOIWidget = voi->widget();
+  return;
+  if (m_VOIWidget)
+  {
+    m_VOIWidget->deselect();
+    m_VOIWidget->setVisible(false);
+    delete m_VOIWidget;
+    m_VOIWidget = NULL;
+  }
+  
+  qDebug()<< "VolumeView: elemets" << model()->rowCount();
+  if (model()->rowCount() == 0)
+    return;
+     
+  if (!voi)
+    return;
+    
+  m_VOIWidget = voi->newWidget();
   m_VOIWidget->setView(m_view);
   m_VOIWidget->setWidgetVisible(true);
   m_VOIWidget->select();

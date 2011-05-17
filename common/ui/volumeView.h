@@ -93,6 +93,7 @@ private:
   QToolButton *m_toggleActors;
   QVBoxLayout *m_mainLayout;
   QHBoxLayout *m_controlLayout;
+  pq3DWidget *m_VOIWidget;//Because it doesn't implement ISelectableView
 };
 
 #endif // VOLUMEVIEW_H

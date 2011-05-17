@@ -88,7 +88,7 @@ void RectangularVOI::ApplyFilter::removeProduct(vtkProduct* product)
 RectangularVOI::RectangularVOI()
 : m_box(NULL)
 {
-  bzero(m_widget,4*sizeof(pq3DWidget *));
+  //bzero(m_widget,4*sizeof(pq3DWidget *));
   QString registerName = ApplyFilter::FilterType;
   ProcessingTrace::instance()->registerPlugin(registerName, this);
 }
@@ -106,8 +106,9 @@ EspinaFilter* RectangularVOI::createFilter(QString filter, ITraceNode::Arguments
 EspinaFilter *RectangularVOI::applyVOI(vtkProduct* product)
 {
   // To apply widget bounds to vtkBox source
-  if (m_widget[0])
-    m_widget[0]->accept();
+  assert(m_widgets.size() > 0);
+  m_widgets.first()->accept();
+  
   vtkSMPropertyHelper(m_box,"Bounds").Get(m_rvoi,6);
   double scale[3];
   vtkSMPropertyHelper(m_box,"Scale").Get(scale,3);
@@ -161,30 +162,52 @@ vtkSMProxy* RectangularVOI::getProxy()
 //-----------------------------------------------------------------------------
 pq3DWidget *RectangularVOI::widget()
 {
-  if (!m_widget[3])
-  {
-  QList<pq3DWidget *> widgtes =  pq3DWidget::createWidgets(EspINA::instance()->activeSample()->creator()->pipelineSource()->getProxy(), getProxy());
-  assert(widgtes.size() == 1);
-  m_widget[3] = widgtes[0];
-    connect(m_widget[3],SIGNAL(widgetEndInteraction()),this,SLOT(endInteraction()));
-  }
-  
-  return m_widget[3];
+//   if (!m_widget[3])
+//   {
+//   QList<pq3DWidget *> widgtes =  pq3DWidget::createWidgets(EspINA::instance()->activeSample()->creator()->pipelineSource()->getProxy(), getProxy());
+//   assert(widgtes.size() == 1);
+//   m_widget[3] = widgtes[0];
+//     connect(m_widget[3],SIGNAL(widgetEndInteraction()),this,SLOT(endInteraction()));
+//   }
+//   
+//   return m_widget[3];
+return NULL;
 }
 
 //-----------------------------------------------------------------------------
 pq3DWidget *RectangularVOI::widget(int plane)
 {
-  assert (plane < 3);
-  if (!m_widget[plane])
-  {
-    QList<pq3DWidget *> widgtes =  pq3DWidget::createWidgets(EspINA::instance()->activeSample()->creator()->pipelineSource()->getProxy(), getProxy());
-    assert(widgtes.size() == 1);
-    m_widget[plane] = widgtes[0];
-    connect(m_widget[plane],SIGNAL(widgetEndInteraction()),this,SLOT(endInteraction()));
-  }
+//   assert (plane < 3);
+//   if (!m_widget[plane])
+//   {
+//     QList<pq3DWidget *> widgtes =  pq3DWidget::createWidgets(EspINA::instance()->activeSample()->creator()->pipelineSource()->getProxy(), getProxy());
+//     assert(widgtes.size() == 1);
+//     m_widget[plane] = widgtes[0];
+//     connect(m_widget[plane],SIGNAL(widgetEndInteraction()),this,SLOT(endInteraction()));
+//   }
+//   
+//   return m_widget[plane];
+return NULL;
+}
+
+//-----------------------------------------------------------------------------
+pq3DWidget* RectangularVOI::newWidget()//NOTE: It could be itneresting to specify the proxy reference
+{
+  QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(EspINA::instance()->activeSample()->creator()->pipelineSource()->getProxy(), getProxy());
+  assert(widgets.size() == 1);
+  connect(widgets[0],SIGNAL(widgetEndInteraction()),this,SLOT(endInteraction()));
   
-  return m_widget[plane];
+  m_widgets.push_back(widgets[0]);
+  return widgets[0];
+}
+
+//-----------------------------------------------------------------------------
+void RectangularVOI::deleteWidget(pq3DWidget*& widget)
+{
+  m_widgets.removeOne(widget);
+  qDebug() << "Active Widgets" << m_widgets.size();
+  delete widget;
+  widget = NULL;
 }
 
 //-----------------------------------------------------------------------------
