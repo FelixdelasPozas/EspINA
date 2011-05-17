@@ -34,6 +34,7 @@ public:
   
   // Taxonomy information methods
   QString getName() const {return m_name;}
+  void setName(QString name) {m_name = name;}
   QString getDescription() const 
     {return m_description;}
   void setDescription(const QString &desc) {m_description = desc;}

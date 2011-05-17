@@ -142,6 +142,8 @@ TaxonomyNode* TaxonomyNode::getComponent(QString name)
 }
 
 //------------------------------------------------------------------------
+
+//------------------------------------------------------------------------
 //! Returns a vector with the subelements of a node
 QVector<TaxonomyNode *> TaxonomyNode::getSubElements() const
 {

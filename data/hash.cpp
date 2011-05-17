@@ -10,7 +10,7 @@ QString generateSha1( QStringList& v )
   foreach(QString str, v)
     hasher->addData(str.toStdString().c_str(), str.size());
 
-  QString outputHash = QString::QString(hasher->result().toHex());
+  QString outputHash = QString(hasher->result().toHex());
   delete hasher;
   return outputHash;
 }
