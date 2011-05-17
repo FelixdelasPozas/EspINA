@@ -226,8 +226,8 @@ EspinaMainWindow::EspinaMainWindow()
   
   m_yz = new SliceView();
   m_yz->setPlane(SliceView::SLICE_PLANE_YZ);
-  //m_yz->setModel(sampleProxy);
-  //m_yz->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
+  m_yz->setModel(sampleProxy);
+  m_yz->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
   connect(server, SIGNAL(connectionCreated(vtkIdType)), 
 	  m_yz, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), 
@@ -239,8 +239,8 @@ EspinaMainWindow::EspinaMainWindow()
  
   m_xz = new SliceView();
   m_xz->setPlane(SliceView::SLICE_PLANE_XZ);
-  //m_xz->setModel(sampleProxy);
-  //m_xz->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
+  m_xz->setModel(sampleProxy);
+  m_xz->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
   connect(server, SIGNAL(connectionCreated(vtkIdType)), 
 	  m_xz, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), 

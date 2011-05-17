@@ -502,8 +502,8 @@ void SliceView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int e
 //-----------------------------------------------------------------------------
 void SliceView::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight)
 {
-  if (!topLeft.isValid() || !bottomRight.isValid())
-    return;
+  //if (!topLeft.isValid() || !bottomRight.isValid())
+    //return;
   
   if (!s_focusedSample)
     return;

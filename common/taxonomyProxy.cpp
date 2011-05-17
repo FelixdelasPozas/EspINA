@@ -197,7 +197,9 @@ QModelIndex TaxonomyProxy::mapToSource(const QModelIndex& proxyIndex) const
 void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start, int end)
 {
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
-
+  
+  if (sourceParent.internalId() == model->sampleRoot().internalId())
+    return;
   if (sourceParent == model->segmentationRoot())
   {
     updateSegmentations();
@@ -215,11 +217,18 @@ void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
       beginInsertRows(taxIndex, end, end);
       endInsertRows();
     }
+    return;
   }
-  else{
-    beginInsertRows(sourceParent,start,end);
-    endInsertRows();
+  if (sourceParent.internalPointer() != model->taxonomyRoot().internalPointer())
+  {
+    IModelItem *sourceItem = static_cast<IModelItem *>(sourceParent.internalPointer());
+    TaxonomyNode * tax = dynamic_cast<TaxonomyNode *>(sourceItem);
+    if (!tax)
+      return;
   }
+  const QModelIndex parent = mapFromSource(sourceParent);
+  beginInsertRows(parent,start,end);
+  endInsertRows();
 }
 
 //------------------------------------------------------------------------
