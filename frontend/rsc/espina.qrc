@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="espina">
+    <file alias="addChild">add_child.svg</file>
     <file alias="rainbow">rainbow.svg</file>
     <file alias="add">add.svg</file>
     <file alias="remove">remove.svg</file>

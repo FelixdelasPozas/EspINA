@@ -47,7 +47,7 @@ protected slots:
   void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
   void sourceRowsAboutToBeRemoved(const QModelIndex & sourceParent, int start, int end);
   void sourceRowsRemoved(const QModelIndex & sourceParent, int start, int end);
-  void sourceRowsChanged(const QModelIndex &topLeft, const QModelIndex & bottomRight);
+  void sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight);
   
 protected:
   void updateSegmentations() const;

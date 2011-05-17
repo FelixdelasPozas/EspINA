@@ -51,7 +51,7 @@ void SampleProxy::setSourceModel(QAbstractItemModel* sourceModel)
   connect(sourceModel, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex, int, int)));
   connect(sourceModel, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
-          this, SLOT(sourceRowsChanged(const QModelIndex &,const QModelIndex &)));
+          this, SLOT(sourceDataChanged(const QModelIndex &,const QModelIndex &)));
 }
 
 //------------------------------------------------------------------------
@@ -162,6 +162,18 @@ QModelIndex SampleProxy::mapFromSource(const QModelIndex& sourceIndex) const
 {
   if (!sourceIndex.isValid())
     return QModelIndex();
+  
+   if (sourceIndex.internalPointer() == EspINA::instance()->taxonomyRoot().internalPointer())
+    return QModelIndex();
+   
+   if (sourceIndex.internalId() != EspINA::instance()->sampleRoot().internalId() &&
+     sourceIndex.internalId() != EspINA::instance()->segmentationRoot().internalId())
+   {
+     IModelItem *sourceItem = static_cast<IModelItem *>(sourceIndex.internalPointer());
+     TaxonomyNode * tax = dynamic_cast<TaxonomyNode *>(sourceItem);
+     if (tax)
+       return QModelIndex();
+   }
 
   return createIndex(sourceIndex.row(), sourceIndex.column(), sourceIndex.internalPointer());
 }
@@ -246,9 +258,12 @@ void SampleProxy::sourceRowsRemoved(const QModelIndex& sourceParent, int start, 
   updateSegmentations();
 }
 
-void SampleProxy::sourceRowsChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight)
+void SampleProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight)
 {
-  emit dataChanged(topLeft,bottomRight);
+  const QModelIndex proxyTopLeft = mapFromSource(sourceTopLeft);
+  const QModelIndex proxyBottomRight = mapFromSource(sourceBottomRight);
+  
+  emit dataChanged(proxyTopLeft, proxyBottomRight);
 }
 
 

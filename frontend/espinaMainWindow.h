@@ -71,6 +71,9 @@ protected slots:
   void importFile(); // Local load 
   void exportFile(); // Local save
 
+  void addTaxonomyElement();
+  void addTaxonomyChildElement();
+  void removeTaxonomyElement();
   void toggleVisibility(bool visible);
   virtual bool eventFilter(QObject* obj, QEvent* event);
   
@@ -97,6 +100,7 @@ private:
   QStringList m_groupingName;
   QList<QAbstractItemModel *> m_groupingModel;
   QList<QModelIndex> m_groupingRoot;
+  int m_lastTaxonomyId;
 
 };
 

@@ -97,6 +97,16 @@ bool EspINA::setData(const QModelIndex& index, const QVariant& value, int role)
     if (role == Qt::EditRole)
     {
       IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+      TaxonomyNode *tax = dynamic_cast<TaxonomyNode *>(item);
+      if (tax)
+      {
+	if (!m_tax->getComponent(value.toString()))
+	{
+	  tax->setName(value.toString());
+	  emit dataChanged(index, index);
+	  return true;
+	}
+      }
       Segmentation *seg = dynamic_cast<Segmentation *>(item);
       if (seg)
       {
@@ -323,6 +333,17 @@ QModelIndex EspINA::taxonomyIndex(TaxonomyNode* node) const
   IModelItem *internalPtr = node;
   return createIndex(row,0,internalPtr);
 }
+
+//------------------------------------------------------------------------
+void EspINA::addTaxonomy(QString name, QString parentName)
+{
+  QModelIndex parentIndex = taxonomyIndex(m_tax->getComponent(parentName));
+  int lastRow = rowCount(parentIndex);
+  beginInsertRows(parentIndex, lastRow, lastRow);
+  m_tax->addElement(name, parentName);
+  endInsertRows();
+}
+
 
 //------------------------------------------------------------------------
 QModelIndex EspINA::segmentationIndex(Segmentation* seg) const

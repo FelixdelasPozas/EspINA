@@ -502,6 +502,12 @@ void SliceView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int e
 //-----------------------------------------------------------------------------
 void SliceView::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight)
 {
+  if (!topLeft.isValid() || !bottomRight.isValid())
+    return;
+  
+  if (!s_focusedSample)
+    return;
+  
   s_blender->updateImageBlenderInput();
   updateScene();
 }
@@ -795,6 +801,8 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
 //-----------------------------------------------------------------------------
 void SliceView::updateScene()
 {
+  if (!s_focusedSample)
+    return;
   if (m_showSegmentations)
     slice(s_blender->source());
   else

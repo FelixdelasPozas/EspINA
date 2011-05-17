@@ -51,6 +51,8 @@ void TaxonomyProxy::setSourceModel(QAbstractItemModel* sourceModel)
           this, SLOT(sourceRowsRemoved(QModelIndex,int,int)));
   connect(sourceModel, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex,int,int)));
+  connect(sourceModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+	  this,SLOT(sourceDataChanged(QModelIndex,QModelIndex)));
 }
 
 //------------------------------------------------------------------------
@@ -214,6 +216,10 @@ void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
       endInsertRows();
     }
   }
+  else{
+    beginInsertRows(sourceParent,start,end);
+    endInsertRows();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -244,6 +250,16 @@ void TaxonomyProxy::sourceRowsRemoved(const QModelIndex& sourceParent, int start
 {
   updateSegmentations();
 }
+
+//------------------------------------------------------------------------
+void TaxonomyProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight)
+{
+  const QModelIndex proxyTopLeft = mapFromSource(sourceTopLeft);
+  const QModelIndex proxyBottomRight = mapFromSource(sourceBottomRight);
+  
+  emit dataChanged(proxyTopLeft, proxyBottomRight);
+}
+
 
 //------------------------------------------------------------------------
 void TaxonomyProxy::updateSegmentations() const

@@ -262,9 +262,9 @@
     </layout>
    </widget>
   </widget>
-  <widget class="QDockWidget" name="labelEditor">
+  <widget class="QDockWidget" name="taxonomyEditor">
    <property name="windowTitle">
-    <string>Label Editor</string>
+    <string>Taxonomy Editor</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
@@ -294,7 +294,7 @@
         </spacer>
        </item>
        <item>
-        <widget class="QPushButton" name="deleteTax">
+        <widget class="QPushButton" name="taxonomyColorSelector">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -338,7 +338,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="deleteTax_3">
+        <widget class="QPushButton" name="addTaxonomy">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -382,7 +382,51 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="deleteTax_2">
+        <widget class="QPushButton" name="addTaxonomyChild">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
+         <property name="baseSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="rsc/espina.qrc">
+           <normaloff>:/espina/addChild</normaloff>:/espina/addChild</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>22</width>
+           <height>22</height>
+          </size>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="removeTaxonomy">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>

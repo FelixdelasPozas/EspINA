@@ -84,6 +84,7 @@ public:
     TaxonomyNode *taxonomy() {return m_tax;}
     //! Returns the QModelIndex of a given @node
     QModelIndex taxonomyIndex(TaxonomyNode *node) const;
+    void addTaxonomy(QString name, QString parentName);
     
     //! Returns the QModelIndex of a given @seg
     QModelIndex segmentationIndex(Segmentation *seg) const;

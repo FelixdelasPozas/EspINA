@@ -72,6 +72,7 @@
 #include <iostream>
 #include <QPushButton>
 #include <pqServerResources.h>
+#include <QMessageBox>
 
 #include <taxonomyProxy.h>
 #include <sampleProxy.h>
@@ -102,6 +103,7 @@ EspinaMainWindow::EspinaMainWindow()
     , m_3d(NULL)
     , m_unit(NM)
     , m_selectionManager(NULL) //TODO: Revise if deprecated
+    , m_lastTaxonomyId(0)
 {
   m_espina = EspINA::instance();
   
@@ -144,8 +146,7 @@ EspinaMainWindow::EspinaMainWindow()
   pqServerManagerObserver *server = pqApplicationCore::instance()->getServerManagerObserver();
 
   
-  // BUILD ESPINA INTERNALS
-  
+  //! BUILD ESPINA INTERNALS
 
   // Segementation Grouping Proxies
   TaxonomyProxy *taxProxy = new TaxonomyProxy();
@@ -171,7 +172,7 @@ EspinaMainWindow::EspinaMainWindow()
   connect(this->Internals->deleteSegmentation, SIGNAL(clicked()),
           this, SLOT(deleteSegmentations()));
   
-  // Taxonomy Selection List
+  // User selected Taxonomy Selection List
   QComboBox *taxonomySelector = new QComboBox(this);
   ///QTreeComboBox *treeCombo = new QTreeComboBox(this);
   QTreeView *taxonomyView = new QTreeView(this);
@@ -188,23 +189,25 @@ EspinaMainWindow::EspinaMainWindow()
   taxonomyView->expandAll();;
   connect(taxonomySelector, SIGNAL(currentIndexChanged(QString)),
           m_espina, SLOT(setUserDefindedTaxonomy(const QString&)));
+  taxonomySelector->setCurrentIndex(0);
+  this->Internals->toolBar->addWidget(taxonomySelector);
 
+  // WARNING: Debug
   connect(pqApplicationCore::instance()->getObjectBuilder(),
             SIGNAL(proxyCreated (pqProxy *)),
             m_espina,
             SLOT(onProxyCreated(pqProxy*)));
-  taxonomySelector->setCurrentIndex(0);
-  this->Internals->toolBar->addWidget(taxonomySelector);
   
   // Final step, define application behaviors. Since we want all ParaView
   // behaviors, we use this convenience method.
   new pqParaViewBehaviors(this, this);
   
-  std::cout << "Creating Views" << std::endl;
-
-  // Label Editor
+  // Taxonomy Editor Editor
   this->Internals->taxonomyView->setModel(m_espina);
   this->Internals->taxonomyView->setRootIndex(m_espina->taxonomyRoot());
+  connect(this->Internals->addTaxonomy,SIGNAL(clicked()),this,SLOT(addTaxonomyElement()));
+  connect(this->Internals->addTaxonomyChild,SIGNAL(clicked()),this,SLOT(addTaxonomyChildElement()));
+  connect(this->Internals->removeTaxonomy,SIGNAL(clicked()),this,SLOT(removeTaxonomyElement()));
   
   //Selection Manager
   m_selectionManager = SelectionManager::instance();
@@ -223,8 +226,8 @@ EspinaMainWindow::EspinaMainWindow()
   
   m_yz = new SliceView();
   m_yz->setPlane(SliceView::SLICE_PLANE_YZ);
-  m_yz->setModel(sampleProxy);
-  m_yz->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
+  //m_yz->setModel(sampleProxy);
+  //m_yz->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
   connect(server, SIGNAL(connectionCreated(vtkIdType)), 
 	  m_yz, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), 
@@ -236,8 +239,8 @@ EspinaMainWindow::EspinaMainWindow()
  
   m_xz = new SliceView();
   m_xz->setPlane(SliceView::SLICE_PLANE_XZ);
-  m_xz->setModel(sampleProxy);
-  m_xz->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
+  //m_xz->setModel(sampleProxy);
+  //m_xz->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
   connect(server, SIGNAL(connectionCreated(vtkIdType)), 
 	  m_xz, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), 
@@ -359,6 +362,44 @@ void EspinaMainWindow::exportFile()
 //   pqFileDialog fileDialog(pqActiveObjects::instance().activeServer(), this,
 //                           tr("Save Trace"), "", tr("Trace Files (*.trace)"));
 // }
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::addTaxonomyElement()
+{
+  try
+  {
+    IModelItem *parentItem = static_cast<IModelItem *>(this->Internals->taxonomyView->currentIndex().parent().internalPointer());
+    TaxonomyNode *parent = dynamic_cast<TaxonomyNode *>(parentItem);
+    m_espina->addTaxonomy("Undefined",parent->getName());
+  }catch (...)
+  {
+    QMessageBox box;
+    box.setText("New taxonomy already undefined. Please, define it before creating a new one");
+    box.exec();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::addTaxonomyChildElement()
+{ 
+  try
+  {
+    IModelItem *parentItem = static_cast<IModelItem *>(this->Internals->taxonomyView->currentIndex().internalPointer());
+    TaxonomyNode *parent = dynamic_cast<TaxonomyNode *>(parentItem);
+    m_espina->addTaxonomy("Undefined",parent->getName());
+  }catch (...)
+  {
+    QMessageBox box;
+    box.setText("New taxonomy already undefined. Please, define it before creating a new one");
+    box.exec();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::removeTaxonomyElement()
+{
+
+}
 
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::toggleVisibility(bool visible)
