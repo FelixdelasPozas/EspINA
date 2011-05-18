@@ -268,8 +268,13 @@ void VolumeView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int 
 //-----------------------------------------------------------------------------
 void VolumeView::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight)
 {
-  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+  if (!topLeft.isValid() || !bottomRight.isValid())
+    return;
+        
+  qDebug()<< "Updating " << topLeft;
   
+  
+  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
   //TODO: Update to deal with hierarchy
   assert(topLeft == bottomRight);
   QModelIndex index = topLeft;

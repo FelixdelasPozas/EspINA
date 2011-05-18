@@ -73,6 +73,7 @@
 #include <QPushButton>
 #include <pqServerResources.h>
 #include <QMessageBox>
+#include <QColorDialog>
 
 #include <taxonomyProxy.h>
 #include <sampleProxy.h>
@@ -208,6 +209,7 @@ EspinaMainWindow::EspinaMainWindow()
   connect(this->Internals->addTaxonomy,SIGNAL(clicked()),this,SLOT(addTaxonomyElement()));
   connect(this->Internals->addTaxonomyChild,SIGNAL(clicked()),this,SLOT(addTaxonomyChildElement()));
   connect(this->Internals->removeTaxonomy,SIGNAL(clicked()),this,SLOT(removeTaxonomyElement()));
+  connect(this->Internals->taxonomyColorSelector,SIGNAL(clicked()),this,SLOT(changeTaxonomyColor()));
   
   //Selection Manager
   m_selectionManager = SelectionManager::instance();
@@ -398,7 +400,18 @@ void EspinaMainWindow::addTaxonomyChildElement()
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::removeTaxonomyElement()
 {
+  IModelItem *currentItem = static_cast<IModelItem *>(this->Internals->taxonomyView->currentIndex().internalPointer());
+  TaxonomyNode *currentNode = dynamic_cast<TaxonomyNode *>(currentItem);
+  m_espina->removeTaxonomy(currentNode->getName());
+}
 
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::changeTaxonomyColor()
+{
+  QColorDialog colorSelector;
+  colorSelector.exec();
+  m_espina->setData(this->Internals->taxonomyView->currentIndex(),colorSelector.selectedColor(),Qt::DecorationRole);
 }
 
 //-----------------------------------------------------------------------------

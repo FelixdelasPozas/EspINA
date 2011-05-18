@@ -71,9 +71,12 @@ protected slots:
   void importFile(); // Local load 
   void exportFile(); // Local save
 
+  // Manage Taxonomy Editor
   void addTaxonomyElement();
   void addTaxonomyChildElement();
   void removeTaxonomyElement();
+  void changeTaxonomyColor();
+  
   void toggleVisibility(bool visible);
   virtual bool eventFilter(QObject* obj, QEvent* event);
   

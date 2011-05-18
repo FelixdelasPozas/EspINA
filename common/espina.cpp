@@ -36,6 +36,7 @@
 #include <fstream>
 
 #include "FilePack.h"
+#include <QMessageBox>
 
 class IOTaxonomy;
 
@@ -116,7 +117,25 @@ bool EspINA::setData(const QModelIndex& index, const QVariant& value, int role)
       return true;
     }
     if (role == Qt::DecorationRole)
-      qDebug() << "Cambiando valor";
+    {
+      IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+      TaxonomyNode *tax = dynamic_cast<TaxonomyNode *>(item);
+      if (tax)
+      {
+	if (!m_tax->getComponent(value.toString()))
+	{
+	  tax->setColor(value.value<QColor>());
+	  emit dataChanged(index, index);
+	  return true;
+	}
+      }
+      Segmentation *seg = dynamic_cast<Segmentation *>(item);
+      if (seg)
+      {
+	//TODO: uncomment and fix: seg->name = value.toString();
+      }
+      
+    }
     if (role == Qt::CheckStateRole)
     {
       IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
@@ -125,6 +144,7 @@ bool EspINA::setData(const QModelIndex& index, const QVariant& value, int role)
       {
 	seg->setVisible(value.toBool());
       }
+      qDebug()<< "Changed " << index;
       emit dataChanged(index, index);
       return true;
     }
@@ -159,7 +179,7 @@ int EspINA::rowCount(const QModelIndex& parent) const
   TaxonomyNode *taxItem = dynamic_cast<TaxonomyNode *>(parentItem);
   if (taxItem)
   {
-    //std::cout << "Getting rows in source of " << taxItem->getName().toStdString() << std::endl;
+    //qDebug() << taxItem->getName() <<"Number of subtaxonomies" << numOfSubTaxonomies(taxItem);
     return numOfSubTaxonomies(taxItem);// + numOfSegmentations(taxItem);
   }
   // Otherwise Samples and Segmentations have no children
@@ -219,6 +239,8 @@ QModelIndex EspINA::index(int row, int column, const QModelIndex& parent) const
       return segmentationRoot();
   }
   
+  if (row >= 2)
+    qDebug() << "ESPINA: Index Row >= 2";
   IModelItem *internalPtr;
   
   // Checks if parent is Sample's root
@@ -242,7 +264,9 @@ QModelIndex EspINA::index(int row, int column, const QModelIndex& parent) const
       TaxonomyNode *taxItem = dynamic_cast<TaxonomyNode *>(parentItem);
       assert(taxItem);
       int subTaxonomies = numOfSubTaxonomies(taxItem);
-      assert(row < subTaxonomies);
+      if (row >= subTaxonomies)//NOTE: Don't know why, but when removing taxonomy node, wrong row number is gotten
+	return QModelIndex();
+      //assert(row < subaxonomies);
       internalPtr = taxItem->getSubElements()[row];
     }
   }
@@ -328,6 +352,8 @@ QModelIndex EspINA::taxonomyIndex(TaxonomyNode* node) const
     return taxonomyRoot();
   
   TaxonomyNode *parentNode = m_tax->getParent(node->getName());
+  if (!parentNode)
+    qDebug() << "Child" << node->getName() << "without parent";
   assert(parentNode);
   int row = parentNode->getSubElements().indexOf(node);
   IModelItem *internalPtr = node;
@@ -342,6 +368,28 @@ void EspINA::addTaxonomy(QString name, QString parentName)
   beginInsertRows(parentIndex, lastRow, lastRow);
   m_tax->addElement(name, parentName);
   endInsertRows();
+}
+
+//------------------------------------------------------------------------
+void EspINA::removeTaxonomy(QString name)
+{
+  TaxonomyNode *toRemove =  m_tax->getComponent(name);
+  if (toRemove)
+  {
+    if (m_taxonomySegs[toRemove].size() == 0 && toRemove->getSubElements().size() == 0)
+    {
+      QModelIndex removeIndex = taxonomyIndex(toRemove);
+      int row  = removeIndex.row();
+      beginRemoveRows(removeIndex.parent(),row,row);
+      m_taxonomySegs.remove(toRemove);
+      m_tax->removeElement(toRemove->getName());
+      endRemoveRows();
+    }else{
+      QMessageBox box;
+      box.setText("Unable to remove other taxonomies/segmentations are using it.");
+      box.exec();
+    }
+  }
 }
 
 
