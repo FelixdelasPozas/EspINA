@@ -501,6 +501,10 @@ void SliceView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int e
         std::cout << seg->label().toStdString() << " about to be destroyed\n";
         s_blender->unblendSegmentation(seg);
       }
+      else
+      {
+        // TODO Disconnect the Sample from de la views
+      }
   }
   updateScene();
 }

@@ -98,6 +98,10 @@ public slots:
     //TODO: Check if private? Now it's only used by Espina
     void addSample(Sample *sample);
 
+    //! It removes the Sample specify by @param sample and all the Segmentations
+    //! that it has.
+    void removeSample(Sample *sample);
+    
     //! Add a new segmentation (used by the plugins)
     void addSegmentation(Segmentation *seg);
     //! Remove a segmentation (used by the UI)
@@ -112,6 +116,10 @@ public slots:
 
     //! Manage the pqPipelineSources loaded with pqLoadReaction
     void loadSource(pqPipelineSource* proxy);
+
+    //! Clear all the Espina Model. It removes the Samples, Segmentations
+    //! and the Taxonomy.
+    void clear();
     
 signals:
     //! 

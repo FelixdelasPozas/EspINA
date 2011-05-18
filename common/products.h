@@ -118,6 +118,9 @@ public:
   : EspinaProduct(NULL, creator, portNumber)
   , m_extent(NULL)
   {}
+  
+  virtual ~Sample();
+  
   //virtual EspinaId id(){return name;}
   //! Reimplements ITraceNode Interface
   virtual QString label() const;

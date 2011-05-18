@@ -53,9 +53,14 @@ EspINA* EspINA::instance()
   return m_singleton;
 }
 
-void EspINA::onProxyCreated(pqProxy* p)
+//------------------------------------------------------------------------
+EspINA::EspINA(QObject* parent)
+: QAbstractItemModel(parent)
+, m_activeSample(NULL)
 {
-  qDebug() << "EspINA: Proxy" << p->getSMGroup() << "::" << p->getSMName() << " created!";
+  loadTaxonomy();
+  m_newSegType = NULL;//->getComponent("Symetric");
+  m_analysis = ProcessingTrace::instance();
 }
 
 //------------------------------------------------------------------------
@@ -64,13 +69,19 @@ EspINA::~EspINA()
   
 }
 
-
+//-----------------------------------------------------------------------------
 QVariant EspINA::data(const QModelIndex& index, int role) const
 {
   if (!index.isValid())
     return QVariant();
-  
-  if (index.internalId() == 1)
+  if (index.internalId() == 0)
+  {
+    if (role == Qt::DisplayRole)
+      return "Taxonomy";
+    else
+      return QVariant();
+  }
+ if (index.internalId() == 1)
   {
     if (role == Qt::DisplayRole)
       return "Samples";
@@ -164,7 +175,7 @@ int EspINA::rowCount(const QModelIndex& parent) const
   if (!parent.isValid())
     return 3;
   
-  if (parent.internalPointer() == taxonomyRoot().internalPointer())
+  if (parent.internalId() == taxonomyRoot().internalId())
     return numOfSubTaxonomies(m_tax);
   
   if (parent.internalId() == sampleRoot().internalId())
@@ -192,7 +203,7 @@ QModelIndex EspINA::parent(const QModelIndex& child) const
   if (!child.isValid())
     return QModelIndex();
   
-  if ( child.internalPointer() == taxonomyRoot().internalPointer() 
+  if ( child.internalId() == taxonomyRoot().internalId()
     || child.internalId() == sampleRoot().internalId() 
     || child.internalId() == segmentationRoot().internalId())
     return QModelIndex();
@@ -259,9 +270,17 @@ QModelIndex EspINA::index(int row, int column, const QModelIndex& parent) const
     }
     else
     {
-      // Neither Samples nor Segmentations have children
-      IModelItem *parentItem = static_cast<IModelItem *>(parent.internalPointer());
-      TaxonomyNode *taxItem = dynamic_cast<TaxonomyNode *>(parentItem);
+      TaxonomyNode *taxItem;
+      if(parent.internalId() == taxonomyRoot().internalId())
+      {
+        taxItem = m_tax;
+      }
+      else
+      {
+        // Neither Samples nor Segmentations have children
+        IModelItem *parentItem = static_cast<IModelItem *>(parent.internalPointer());
+        taxItem = dynamic_cast<TaxonomyNode *>(parentItem);
+      }
       assert(taxItem);
       int subTaxonomies = numOfSubTaxonomies(taxItem);
       if (row >= subTaxonomies)//NOTE: Don't know why, but when removing taxonomy node, wrong row number is gotten
@@ -276,7 +295,9 @@ QModelIndex EspINA::index(int row, int column, const QModelIndex& parent) const
 //------------------------------------------------------------------------
 int EspINA::numOfSubTaxonomies(TaxonomyNode* tax) const
 {
-  return tax->getSubElements().size();
+  if (tax)
+    return tax->getSubElements().size();
+  return 0;
 }
 
 //------------------------------------------------------------------------
@@ -313,8 +334,10 @@ Qt::ItemFlags EspINA::flags(const QModelIndex& index) const
  //------------------------------------------------------------------------
 QModelIndex EspINA::taxonomyRoot() const
 {
-
-  return createIndex(0,0,m_tax);
+  return createIndex(1,0,0);
+  if( m_tax )
+    return createIndex(0,0,m_tax);
+  return QModelIndex();
 }
 
 //------------------------------------------------------------------------
@@ -380,10 +403,10 @@ void EspINA::removeTaxonomy(QString name)
     {
       QModelIndex removeIndex = taxonomyIndex(toRemove);
       int row  = removeIndex.row();
-      beginRemoveRows(removeIndex.parent(),row,row);
-      m_taxonomySegs.remove(toRemove);
-      m_tax->removeElement(toRemove->getName());
-      endRemoveRows();
+//       beginRemoveRows(removeIndex.parent(),row,row);
+//       m_taxonomySegs.remove(toRemove);
+//       m_tax->removeElement(toRemove->getName());
+//       endRemoveRows();
     }else{
       QMessageBox box;
       box.setText("Unable to remove other taxonomies/segmentations are using it.");
@@ -426,69 +449,6 @@ QList< Segmentation* > EspINA::segmentations(const Sample* sample) const
   return m_sampleSegs[sample];
 }
 
-//------------------------------------------------------------------------
-void EspINA::loadSource(pqPipelineSource* proxy)
-{
-  //TODO Check the type of file .mha, .trace, or .seg
-  // .mha at the moment
-  pqApplicationCore* core = pqApplicationCore::instance();
-  QString filePath = core->serverResources().list().first().path();
-  //QString filePath = proxy->getSMName();
-  
-  qDebug() << "EspINA: Loading file in server side: " << filePath << "  " << proxy->getSMName();
-
-  if( filePath.endsWith(".pvd") || filePath.endsWith(".mha"))
-  {
-    vtkFilter *sampleReader = CachedObjectBuilder::instance()->registerProductCreator(filePath, proxy);
-    Sample *sample= new Sample(sampleReader,0);
-    this->addSample(sample);
-  }
-  else if( filePath.endsWith(".trace") ){ // Deprecated
-
-    proxy->updatePipeline(); //Update the pipeline to obtain the content of the file
-    proxy->getProxy()->UpdatePropertyInformation();
-
-    vtkSMStringVectorProperty* filePathProp =
-          vtkSMStringVectorProperty::SafeDownCast(proxy->getProxy()->GetProperty("Content"));
-    qDebug() << "Content:\n" << filePathProp->GetElement(0);
-    //std::istringstream trace(std::string(filePathProp->GetElement(0)));
-    QString content(filePathProp->GetElement(0));
-    QTextStream trace;
-    trace.setString(&content);
-    m_analysis->readTrace(trace);
-
-  }
-  else if( filePath.endsWith(".seg") )
-  {
-    proxy->updatePipeline(); //Update the pipeline to obtain the content of the file
-    proxy->getProxy()->UpdatePropertyInformation();
-    // Taxonomy
-    vtkSMStringVectorProperty* TaxProp =
-          vtkSMStringVectorProperty::SafeDownCast(proxy->getProxy()->GetProperty("Taxonomy"));
-    //qDebug() << "Taxonomy:\n" << TaxProp->GetElement(0);
-    QString TaxContent(TaxProp->GetElement(0));
-    QTextStream tax;
-    tax.setString(&TaxContent);
-    // TODO Load Tax (try catch)
-    // Trace
-    vtkSMStringVectorProperty* TraceProp =
-          vtkSMStringVectorProperty::SafeDownCast(proxy->getProxy()->GetProperty("Trace"));
-    //qDebug() << "Trace:\n" << TraceProp->GetElement(0);
-    QString TraceContent(TraceProp->GetElement(0));
-    QTextStream trace;
-    trace.setString(&TraceContent);
-
-    try{
-        m_analysis->readTrace(trace);
-    } catch (...) {
-      qDebug() << "Espina: Unable to load File " << __FILE__ << __LINE__;
-    }
-  }
-  else{
-    qDebug() << QString("Error: %1 file not supported yet").arg(filePath.remove(0, filePath.lastIndexOf('.')));
-  }
-}
-
 
 //-----------------------------------------------------------------------------
 void EspINA::loadFile(QString& filePath, pqServer* server)
@@ -507,6 +467,7 @@ void EspINA::loadFile(QString& filePath, pqServer* server)
   }
   if( server ) // Not used. Remote files are loaded through paraview loadSource class
   {
+    assert(false);
     /*
      pqPipelineSource* remoteFile = pqLoadDataReaction::loadData(QStringList(filePath));
      remoteFile->updatePipeline(); //Update the pipeline to obtain the content of the file
@@ -590,12 +551,78 @@ void EspINA::saveFile(QString& filePath, pqServer* server)
 }
 
 
-//-----------------------------------------------------------------------------
-// void EspINA::saveTrace(QString& filePath)
+// //-----------------------------------------------------------------------------
+// // void EspINA::saveTrace(QString& filePath)//------------------------------------------------------------------------
+// void EspINA::loadSource(pqPipelineSource* proxy)
 // {
-//   std::ofstream file( filePath.toStdString().c_str(), std::_S_trunc );
-//   m_analysis->print(file);
+//   //TODO Check the type of file .mha, .trace, or .seg
+//   // .mha at the moment
+//   pqApplicationCore* core = pqApplicationCore::instance();
+//   QString filePath = core->serverResources().list().first().path();
+//   //QString filePath = proxy->getSMName();
+// 
+//   qDebug() << "EspINA: Loading file in server side: " << filePath << "  " << proxy->getSMName();
+// 
+//   if( filePath.endsWith(".pvd") || filePath.endsWith(".mha"))
+//   {
+//     vtkFilter *sampleReader = CachedObjectBuilder::instance()->registerProductCreator(filePath, proxy);
+//     Sample *sample= new Sample(sampleReader,0);
+//     this->addSample(sample);
+//   }
+//   else if( filePath.endsWith(".trace") ){ // DEPRECATED
+// 
+//     proxy->updatePipeline(); //Update the pipeline to obtain the content of the file
+//     proxy->getProxy()->UpdatePropertyInformation();
+// 
+//     vtkSMStringVectorProperty* filePathProp =
+//           vtkSMStringVectorProperty::SafeDownCast(proxy->getProxy()->GetProperty("Content"));
+//     qDebug() << "Content:\n" << filePathProp->GetElement(0);
+//     //std::istringstream trace(std::string(filePathProp->GetElement(0)));
+//     QString content(filePathProp->GetElement(0));
+//     QTextStream trace;
+//     trace.setString(&content);
+//     m_analysis->readTrace(trace);
+// 
+//   }
+//   else if( filePath.endsWith(".seg") )
+//   {
+//     // TODO not supported for multiple Smaples
+//     this->removeSample(m_activeSample);
+// 
+//     proxy->updatePipeline(); //Update the pipeline to obtain the content of the file
+//     proxy->getProxy()->UpdatePropertyInformation();
+//     // Taxonomy
+//     vtkSMStringVectorProperty* TaxProp =
+//           vtkSMStringVectorProperty::SafeDownCast(proxy->getProxy()->GetProperty("Taxonomy"));
+//     //qDebug() << "Taxonomy:\n" << TaxProp->GetElement(0);
+//     QString TaxContent(TaxProp->GetElement(0));
+//     QTextStream tax;
+//     tax.setString(&TaxContent);
+//     // TODO Load Tax (try catch)
+//     // Trace
+//     vtkSMStringVectorProperty* TraceProp =
+//           vtkSMStringVectorProperty::SafeDownCast(proxy->getProxy()->GetProperty("Trace"));
+//     //qDebug() << "Trace:\n" << TraceProp->GetElement(0);
+//     QString TraceContent(TraceProp->GetElement(0));
+//     QTextStream trace;
+//     trace.setString(&TraceContent);
+// 
+//     try{
+//         m_analysis->readTrace(trace);
+//     } catch (...) {
+//       qDebug() << "Espina: Unable to load File " << __FILE__ << __LINE__;
+//     }
+//   }
+//   else{
+//     qDebug() << QString("Error: %1 file not supported yet").arg(filePath.remove(0, filePath.lastIndexOf('.')));
+//   }
 // }
+// 
+// 
+// // {
+// //   std::ofstream file( filePath.toStdString().c_str(), std::_S_trunc );
+// //   m_analysis->print(file);
+// // }
 
 
 //------------------------------------------------------------------------
@@ -613,6 +640,27 @@ void EspINA::addSample(Sample *sample)
   endInsertRows();
   
   emit focusSampleChanged(sample);
+}
+
+//------------------------------------------------------------------------
+void EspINA::removeSample(Sample* sample)
+{
+  if( m_samples.contains(sample) )
+  {
+    // Remove the Segmentations associated
+    foreach(Segmentation* seg, m_sampleSegs[sample])
+    {
+      removeSegmentation(seg);
+    }
+    // Remove it from analysis
+    //m_analysis->
+    //m_analysis->removeNode(sample);
+    QModelIndex index = sampleIndex(sample);
+    beginRemoveRows(index.parent(), index.row(), index.row());
+    m_samples.removeOne(sample);
+    delete sample;
+    endRemoveRows();
+  }
 }
 
 
@@ -659,15 +707,99 @@ void EspINA::setUserDefindedTaxonomy(const QString& taxName)
 }
 
 
-//------------------------------------------------------------------------
-EspINA::EspINA(QObject* parent)
-: QAbstractItemModel(parent)
-, m_activeSample(NULL)
+void EspINA::onProxyCreated(pqProxy* p)
 {
-  loadTaxonomy();
-  m_newSegType = NULL;//->getComponent("Symetric");
-  m_analysis = ProcessingTrace::instance();
+  qDebug() << "EspINA: Proxy" << p->getSMGroup() << "::" << p->getSMName() << " created!";
 }
+
+//------------------------------------------------------------------------
+void EspINA::loadSource(pqPipelineSource* proxy)
+{
+  //TODO Check the type of file .mha, .trace, or .seg
+  // .mha at the moment
+  pqApplicationCore* core = pqApplicationCore::instance();
+  QString filePath = core->serverResources().list().first().path();
+  //QString filePath = proxy->getSMName();
+
+  qDebug() << "EspINA: Loading file in server side: " << filePath << "  " << proxy->getSMName();
+
+  if( filePath.endsWith(".pvd") || filePath.endsWith(".mha"))
+  {
+    // TODO not supported for multiple Smaples
+    this->removeSample(m_activeSample);
+    
+    vtkFilter *sampleReader = CachedObjectBuilder::instance()->registerProductCreator(filePath, proxy);
+    Sample *sample= new Sample(sampleReader,0);
+    this->addSample(sample);
+  }
+  else if( filePath.endsWith(".trace") ){ // DEPRECATED
+
+    proxy->updatePipeline(); //Update the pipeline to obtain the content of the file
+    proxy->getProxy()->UpdatePropertyInformation();
+
+    vtkSMStringVectorProperty* filePathProp =
+          vtkSMStringVectorProperty::SafeDownCast(proxy->getProxy()->GetProperty("Content"));
+    qDebug() << "Content:\n" << filePathProp->GetElement(0);
+    //std::istringstream trace(std::string(filePathProp->GetElement(0)));
+    QString content(filePathProp->GetElement(0));
+    QTextStream trace;
+    trace.setString(&content);
+    m_analysis->readTrace(trace);
+
+  }
+  else if( filePath.endsWith(".seg") )
+  {
+    // TODO not supported for multiple Smaples
+    this->clear();
+
+    proxy->updatePipeline(); //Update the pipeline to obtain the content of the file
+    proxy->getProxy()->UpdatePropertyInformation();
+    // Taxonomy
+    vtkSMStringVectorProperty* TaxProp =
+          vtkSMStringVectorProperty::SafeDownCast(proxy->getProxy()->GetProperty("Taxonomy"));
+    //qDebug() << "Taxonomy:\n" << TaxProp->GetElement(0);
+    QString TaxContent(TaxProp->GetElement(0));
+    QTextStream tax;
+    tax.setString(&TaxContent);
+    // TODO Load Tax (try catch)
+    // Trace
+    vtkSMStringVectorProperty* TraceProp =
+          vtkSMStringVectorProperty::SafeDownCast(proxy->getProxy()->GetProperty("Trace"));
+    //qDebug() << "Trace:\n" << TraceProp->GetElement(0);
+    QString TraceContent(TraceProp->GetElement(0));
+    QTextStream trace;
+    trace.setString(&TraceContent);
+
+    try{
+        m_analysis->readTrace(trace);
+        // TODO Load TaxonomyStream
+        m_tax = IOTaxonomy::loadXMLTaxonomy(TaxContent);
+    } catch (...) {
+      qDebug() << "Espina: Unable to load File " << __FILE__ << __LINE__;
+    }
+  }
+  else{
+    qDebug() << QString("Error: %1 file not supported yet").arg(filePath.remove(0, filePath.lastIndexOf('.')));
+  }
+}
+
+//-----------------------------------------------------------------------------
+void EspINA::clear()
+{
+  // Delete Samples (and their segmentations)
+  foreach(Sample* sample, m_samples)
+  {
+    this->removeSample(sample);
+  }
+  m_activeSample = NULL;
+  
+  // TODO Delete taxonomy
+  beginRemoveRows(QModelIndex(), 0, 2);
+  delete m_tax;
+  m_tax = NULL;
+  endRemoveRows();
+}
+
 
 //------------------------------------------------------------------------
 void EspINA::loadTaxonomy()

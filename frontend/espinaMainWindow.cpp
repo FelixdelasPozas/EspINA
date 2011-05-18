@@ -205,7 +205,7 @@ EspinaMainWindow::EspinaMainWindow()
   
   // Taxonomy Editor Editor
   this->Internals->taxonomyView->setModel(m_espina);
-  this->Internals->taxonomyView->setRootIndex(m_espina->taxonomyRoot());
+//   this->Internals->taxonomyView->setRootIndex(m_espina->taxonomyRoot());
   connect(this->Internals->addTaxonomy,SIGNAL(clicked()),this,SLOT(addTaxonomyElement()));
   connect(this->Internals->addTaxonomyChild,SIGNAL(clicked()),this,SLOT(addTaxonomyChildElement()));
   connect(this->Internals->removeTaxonomy,SIGNAL(clicked()),this,SLOT(removeTaxonomyElement()));
@@ -213,7 +213,8 @@ EspinaMainWindow::EspinaMainWindow()
   
   //Selection Manager
   m_selectionManager = SelectionManager::instance();
-
+#if 0
+  
   //Create ESPINA VIEWS
   m_xy = new SliceView();
   m_xy->setPlane(SliceView::SLICE_PLANE_XY);
@@ -224,7 +225,7 @@ EspinaMainWindow::EspinaMainWindow()
   //connect(m_xy, SIGNAL(pointSelected(const Point)), m_selectionManager, SLOT(pointSelected(const Point)));
   this->setCentralWidget(m_xy);
   
-#if 1
+
   
   m_yz = new SliceView();
   m_yz->setPlane(SliceView::SLICE_PLANE_YZ);
@@ -449,8 +450,8 @@ void EspinaMainWindow::setGroupView(int idx)
 {
   if (idx < m_groupingModel.size())
   {
-    this->Internals->segmentationView->setModel(m_groupingModel[idx]);
-    this->Internals->segmentationView->setRootIndex(m_groupingRoot[idx]);
+//     this->Internals->segmentationView->setModel(m_groupingModel[idx]);
+//     this->Internals->segmentationView->setRootIndex(m_groupingRoot[idx]);
   }
 }
 

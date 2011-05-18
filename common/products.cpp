@@ -231,6 +231,13 @@ void EspinaProduct::color(double *rgba)
 //-----------------------------------------------------------------------------
 // Sample
 //-----------------------------------------------------------------------------
+Sample::~Sample()
+{
+  CachedObjectBuilder::instance()->removeFilter(this->creator());  
+}
+
+
+//-----------------------------------------------------------------------------
 QString Sample::label() const
 {
   return m_creator->id().split(":")[0];
