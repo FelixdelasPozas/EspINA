@@ -93,6 +93,22 @@ TaxonomyNode* TaxonomyNode::addElement(QString subElement, QString supElement, Q
 }
 
 //------------------------------------------------------------------------
+void TaxonomyNode::removeElement(QString subElement)
+{
+  TaxonomyNode *element;
+  if( element = this->getComponent(subElement) )
+  {
+    TaxonomyNode *parent = this->getParent(subElement);
+    int index = parent->m_elements.indexOf(element);
+    parent->m_elements.remove(index);
+  }
+  else{
+    std::cerr << "Error: " << subElement.toStdString() << " does not exist in the taxonomy" << std::endl;
+  }
+}
+
+
+//------------------------------------------------------------------------
 TaxonomyNode* TaxonomyNode::getParent(QString name)
 {
   TaxonomyNode *parent = NULL;
@@ -161,6 +177,7 @@ TaxonomyNode* TaxonomyNode::insertElement(QString subElement, QString RGBColor)
   return newElement;
 }
 
+//------------------------------------------------------------------------
 QVariant TaxonomyNode::data(int role) const
 {
   switch (role)
@@ -178,6 +195,23 @@ QVariant TaxonomyNode::data(int role) const
       return QVariant();
   }
 }
+
+//------------------------------------------------------------------------
+bool TaxonomyNode::setData(const QVariant& value, int role)
+{
+  if (role == Qt::EditRole)
+  {
+    setName(value.toString());
+    return true;
+  }
+  if (role == Qt::DecorationRole)
+  {
+    setColor(value.value<QColor>());
+    return true;
+  }
+  return false;
+}
+
 
 
 

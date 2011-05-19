@@ -29,6 +29,7 @@ public:
     virtual ~IModelItem();
     
     virtual QVariant data(int role = Qt::UserRole + 1)const = 0;
+    virtual bool setData(const QVariant& value, int role = Qt::UserRole +1) = 0;
 };
 
 #endif // IMODELITEM_H

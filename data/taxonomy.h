@@ -26,6 +26,7 @@ public:
   // Note that to check the existence of the subElement name, it is necesarry to insert all 
   // the elements through the TaxonoyNode object at the top of the tree.
   TaxonomyNode* addElement( QString subElement, QString supElement, QString RGBColor = "");
+  void removeElement(QString subElement);
  
   // Methods to explore the taxonomy
   TaxonomyNode* getParent( QString name );
@@ -43,6 +44,7 @@ public:
   
   //! Implements IModelItem
   virtual QVariant data(int role = Qt::UserRole + 1) const;
+  virtual bool setData(const QVariant& value, int role = Qt::UserRole + 1);
   
 private:
  TaxonomyNode *insertElement( QString subElement, QString RGBColor ); // Without checking
