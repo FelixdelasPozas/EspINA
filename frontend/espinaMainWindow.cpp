@@ -203,17 +203,21 @@ EspinaMainWindow::EspinaMainWindow()
   // behaviors, we use this convenience method.
   new pqParaViewBehaviors(this, this);
   
-  // Taxonomy Editor Editor
+  // Taxonomy Editor
   this->Internals->taxonomyView->setModel(m_espina);
 //   this->Internals->taxonomyView->setRootIndex(m_espina->taxonomyRoot());
   connect(this->Internals->addTaxonomy,SIGNAL(clicked()),this,SLOT(addTaxonomyElement()));
   connect(this->Internals->addTaxonomyChild,SIGNAL(clicked()),this,SLOT(addTaxonomyChildElement()));
   connect(this->Internals->removeTaxonomy,SIGNAL(clicked()),this,SLOT(removeTaxonomyElement()));
   connect(this->Internals->taxonomyColorSelector,SIGNAL(clicked()),this,SLOT(changeTaxonomyColor()));
+
+  // Sample Explorer
+  this->Internals->sampleView->setModel(m_espina);
+  this->Internals->sampleView->setRootIndex(m_espina->sampleRoot());
+  connect(this->Internals->makeActiveSample,SIGNAL(clicked()),this,SLOT(focusOnSample()));
   
   //Selection Manager
   m_selectionManager = SelectionManager::instance();
-#if 1
   
   //Create ESPINA VIEWS
   m_xy = new SliceView();
@@ -226,6 +230,7 @@ EspinaMainWindow::EspinaMainWindow()
   this->setCentralWidget(m_xy);
   
 
+#if 0
   
   m_yz = new SliceView();
   m_yz->setPlane(SliceView::SLICE_PLANE_YZ);
@@ -252,6 +257,7 @@ EspinaMainWindow::EspinaMainWindow()
   
 #endif
   
+#if 0
   Crosshairs *cross = new Crosshairs();
   cross->addPlane(0,m_xy->output());
   cross->addPlane(1,m_yz->output());
@@ -269,6 +275,7 @@ EspinaMainWindow::EspinaMainWindow()
 	  m_3d, SLOT(disconnectFromServer()));
   m_3d->addWidget(cross);
   this->Internals->volumeDock->setWidget(m_3d);
+#endif
 
   // Setup default GUI layout.
   connect(this->Internals->toggleVisibility, SIGNAL(toggled(bool)), 
@@ -410,9 +417,17 @@ void EspinaMainWindow::removeTaxonomyElement()
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::changeTaxonomyColor()
 {
+  //m_espina->clear();
+  //return;
   QColorDialog colorSelector;
   colorSelector.exec();
   m_espina->setData(this->Internals->taxonomyView->currentIndex(),colorSelector.selectedColor(),Qt::DecorationRole);
+}
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::focusOnSample()
+{
+  
 }
 
 //-----------------------------------------------------------------------------

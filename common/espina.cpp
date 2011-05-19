@@ -340,7 +340,7 @@ Qt::ItemFlags EspINA::flags(const QModelIndex& index) const
   
   // Samples are read-only (TODO: Allow editing extent/spacing)
   if (index.parent() == sampleRoot())
-    return Qt::ItemIsEnabled;
+    return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
   
   return QAbstractItemModel::flags(index) | Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
 }
@@ -794,10 +794,9 @@ void EspINA::loadSource(pqPipelineSource* proxy)
     trace.setString(&TraceContent);
 
     try{
-        m_analysis->readTrace(trace);
-        // TODO Load TaxonomyStream
         m_tax = IOTaxonomy::loadXMLTaxonomy(TaxContent);
 	setUserDefindedTaxonomy(m_tax->getSubElements()[0]->getName());
+        m_analysis->readTrace(trace);
     } catch (...) {
       qDebug() << "Espina: Unable to load File " << __FILE__ << __LINE__;
     }

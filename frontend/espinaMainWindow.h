@@ -77,6 +77,9 @@ protected slots:
   void removeTaxonomyElement();
   void changeTaxonomyColor();
   
+  // Manage Sample Explorer
+  void focusOnSample();
+  
   void toggleVisibility(bool visible);
   virtual bool eventFilter(QObject* obj, QEvent* event);
   

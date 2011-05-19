@@ -17,9 +17,15 @@ qt4_wrap_cpp(MOC_BUILT_SOURCES
   espina.h
   pixelSelector.h
   selectionManager.h
+  unitExplorer.h
   EspinaPlugin.h
   ui/volumeView.h
 )
+
+# Create Interface files
+qt4_wrap_ui (UI_BUILT_SOURCES
+  unitExplorer.ui
+  )
 
 source_group("Generated" FILES
   ${MOC_BUILT_SOURCES}
@@ -38,6 +44,7 @@ set(Espina_SOURCE_FILES
   ${UI_SOURCES}
   ${MOC_BUILT_SOURCES}
   ${RCC_BUILT_SOURCES}
+  ${UI_BUILT_SOURCES}
   )
 
 set(EXTERNAL_LIBS zip)

@@ -35,6 +35,7 @@
 #include "data/hash.h"
 #include <pqOutputPort.h>
 #include <vtkPVDataInformation.h>
+#include "unitExplorer.h"
 
 using namespace std;
 
