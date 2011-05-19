@@ -105,7 +105,11 @@ QModelIndex TaxonomyProxy::index(int row, int column, const QModelIndex& parent)
     if (row == 2)
       return mapFromSource(model->segmentationRoot());
   }
-
+  
+  // No segmentation can belong to Taxonomy Root Index
+  if (parent == mapFromSource(model->taxonomyRoot()))
+    return mapFromSource(model->index(row,column,model->taxonomyRoot()));
+  
   // Segmentation can't be parent index
   IModelItem *parentItem = static_cast<IModelItem *>(parent.internalPointer());
   // Checks if parent is Taxonomy
@@ -236,6 +240,11 @@ void TaxonomyProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, 
 {
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
 
+  if (sourceParent == model->taxonomyRoot())
+  {
+      beginRemoveRows(mapFromSource(sourceParent), start, end);
+      endRemoveRows();
+  }
   if (sourceParent == model->segmentationRoot())
   {
     for (int r = start; r <= end; r++)

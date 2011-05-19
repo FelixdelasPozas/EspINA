@@ -244,6 +244,7 @@ QString Sample::label() const
 }
 
 
+//------------------------------------------------------------------------
 QVariant Sample::data(int role) const
 {
   switch (role)
@@ -257,6 +258,18 @@ QVariant Sample::data(int role) const
   }
 }
 
+
+//------------------------------------------------------------------------
+bool Sample::setData(const QVariant& value, int role)
+{
+  if (role == Qt::EditRole)
+  {
+  }
+  return false;
+}
+
+
+//------------------------------------------------------------------------
 void Sample::extent(int *out)
 {
   //if (!m_extent)
@@ -271,6 +284,7 @@ void Sample::extent(int *out)
   memcpy(out,m_extent,6*sizeof(int));
 }
 
+//------------------------------------------------------------------------
 void Sample::bounds(double *out)
 {
   //if (!m_bounds)
@@ -285,6 +299,7 @@ void Sample::bounds(double *out)
   memcpy(out,m_bounds,6*sizeof(double));
 }
 
+//------------------------------------------------------------------------
 void Sample::spacing(double* out)
 {
   //TODO: Sorry, but no time to make it better
@@ -312,13 +327,7 @@ Segmentation::Segmentation(EspinaFilter* parent, vtkFilter* creator, int portNum
 {
 }
 
-// Segmentation::Segmentation(const vtkProduct& product)
-// : EspinaProduct(product)
-// {
-// }
-
-
-
+//------------------------------------------------------------------------
 QVariant Segmentation::data(int role) const
 {
   switch (role)
@@ -335,6 +344,23 @@ QVariant Segmentation::data(int role) const
   }
 }
 
+//------------------------------------------------------------------------
+bool Segmentation::setData(const QVariant& value, int role)
+{
+ if (role == Qt::EditRole)
+    {
+      //TODO: change segmentation name
+      return true;
+    }
+    if (role == Qt::CheckStateRole)
+    {
+      setVisible(value.toBool());
+      return true;
+    }
+    return false;
+}
+
+//------------------------------------------------------------------------
 void Segmentation::addExtension(ISegmentationExtension* ext)
 {
   ISegmentationExtension *extAdded = ext->clone();
@@ -346,6 +372,7 @@ void Segmentation::addExtension(ISegmentationExtension* ext)
   m_extensions[ext->id()] = extAdded;
 }
 
+//------------------------------------------------------------------------
 ISegmentationExtension *Segmentation::extension(ExtensionId extId)
 {
   assert(m_extensions.contains(extId));

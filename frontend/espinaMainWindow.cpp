@@ -213,7 +213,7 @@ EspinaMainWindow::EspinaMainWindow()
   
   //Selection Manager
   m_selectionManager = SelectionManager::instance();
-#if 0
+#if 1
   
   //Create ESPINA VIEWS
   m_xy = new SliceView();
@@ -371,9 +371,9 @@ void EspinaMainWindow::addTaxonomyElement()
 {
   try
   {
-    IModelItem *parentItem = static_cast<IModelItem *>(this->Internals->taxonomyView->currentIndex().parent().internalPointer());
-    TaxonomyNode *parent = dynamic_cast<TaxonomyNode *>(parentItem);
-    m_espina->addTaxonomy("Undefined",parent->getName());
+    IModelItem *taxItem = static_cast<IModelItem *>(this->Internals->taxonomyView->currentIndex().internalPointer());
+    TaxonomyNode *taxNode = dynamic_cast<TaxonomyNode *>(taxItem);
+    m_espina->addTaxonomy("Undefined",m_espina->taxonomyParent(taxNode)->getName());
   }catch (...)
   {
     QMessageBox box;
@@ -450,8 +450,8 @@ void EspinaMainWindow::setGroupView(int idx)
 {
   if (idx < m_groupingModel.size())
   {
-//     this->Internals->segmentationView->setModel(m_groupingModel[idx]);
-//     this->Internals->segmentationView->setRootIndex(m_groupingRoot[idx]);
+     this->Internals->segmentationView->setModel(m_groupingModel[idx]);
+     this->Internals->segmentationView->setRootIndex(m_groupingRoot[idx]);
   }
 }
 

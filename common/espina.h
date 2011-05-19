@@ -86,6 +86,7 @@ public:
     QModelIndex taxonomyIndex(TaxonomyNode *node) const;
     void addTaxonomy(QString name, QString parentName);
     void removeTaxonomy(QString name);
+    TaxonomyNode *taxonomyParent(TaxonomyNode *node);
     
     //! Returns the QModelIndex of a given @seg
     QModelIndex segmentationIndex(Segmentation *seg) const;

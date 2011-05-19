@@ -126,6 +126,7 @@ public:
   virtual QString label() const;
   
   virtual QVariant data(int role = Qt::UserRole + 1) const;
+  virtual bool setData(const QVariant& value, int role = Qt::UserRole + 1);
   
   void extent(int *out);
   void bounds(double *out);
@@ -151,6 +152,7 @@ public:
   //Segmentation(pqPipelineSource *source, int portNumber, const QString &parentHash = "");
 
   virtual QVariant data(int role = Qt::UserRole + 1) const;
+  virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
   
   void addExtension(ISegmentationExtension *ext);
   //! Are supposed to be used for sort time 
