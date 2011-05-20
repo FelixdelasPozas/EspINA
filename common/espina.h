@@ -92,16 +92,18 @@ public:
     QModelIndex segmentationIndex(Segmentation *seg) const;
     
     //! Openning .trace In the future .seg (.trace + .mha) (used by the UI)
-    void loadFile(QString& filePath, pqServer* server = NULL);
-    void saveFile(QString& filePath, pqServer* server = NULL);
+        void saveFile(QString& filePath, pqServer* server = NULL);
 
 public slots:
+    void loadFile(QString filePath, QString method);
     //TODO: Check if private? Now it's only used by Espina
     void addSample(Sample *sample);
 
     //! It removes the Sample specify by @param sample and all the Segmentations
     //! that it has.
     void removeSample(Sample *sample);
+
+    void removeSamples();
     
     //! Add a new segmentation (used by the plugins)
     void addSegmentation(Segmentation *seg);
