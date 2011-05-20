@@ -233,7 +233,7 @@ void SampleProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, in
 {
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
 
-  if (sourceParent == model->segmentationRoot())
+  if (sourceParent == model->sampleRoot() || sourceParent == model->segmentationRoot())
   {
     for (int r = start; r <= end; r++)
     {

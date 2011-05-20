@@ -77,7 +77,7 @@
 
 #include <taxonomyProxy.h>
 #include <sampleProxy.h>
-#include "sliceView.h"
+#include "ui/sliceView.h"
 #include <QMouseEvent>
 #include <QStringListModel>
 #include <QWidgetAction>
@@ -88,8 +88,8 @@
 #include <pqServerDisconnectReaction.h>
 #include "SegmentationExplorer.h"
 
-QString FILTERS("Trace Files (*.trace)");
-QString SEG_FILTERS("Seg Files (*.seg)");
+const QString FILTERS("Trace Files (*.trace)");
+const QString SEG_FILTERS("Seg Files (*.seg)");
 QString DIRECTORY("");
 
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
@@ -223,14 +223,15 @@ EspinaMainWindow::EspinaMainWindow()
   m_xy = new SliceView();
   m_xy->setPlane(SliceView::SLICE_PLANE_XY);
   m_xy->setModel(sampleProxy);
-  m_xy->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
+  m_xy->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleIndex(m_espina->activeSample())));
   connect(server, SIGNAL(connectionCreated(vtkIdType)), m_xy, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), m_xy, SLOT(disconnectFromServer()));
+  connect(this->Internals->toggleVisibility, SIGNAL(toggled(bool)),m_xy, SLOT(showSegmentations(bool)));
   //connect(m_xy, SIGNAL(pointSelected(const Point)), m_selectionManager, SLOT(pointSelected(const Point)));
   this->setCentralWidget(m_xy);
   
 
-#if 0
+#if 1
   
   m_yz = new SliceView();
   m_yz->setPlane(SliceView::SLICE_PLANE_YZ);
@@ -240,6 +241,7 @@ EspinaMainWindow::EspinaMainWindow()
 	  m_yz, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), 
 	  m_yz, SLOT(disconnectFromServer()));
+  connect(this->Internals->toggleVisibility, SIGNAL(toggled(bool)),m_yz, SLOT(showSegmentations(bool)));
   //connect(m_yz, SIGNAL(pointSelected(const Point)), 
 	//  m_selectionManager, SLOT(pointSelected(const Point)));
   this->Internals->yzSliceDock->setWidget(m_yz);
@@ -253,6 +255,7 @@ EspinaMainWindow::EspinaMainWindow()
 	  m_xz, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), 
 	  m_xz, SLOT(disconnectFromServer()));
+  connect(this->Internals->toggleVisibility, SIGNAL(toggled(bool)),m_xz, SLOT(showSegmentations(bool)));
   this->Internals->xzSliceDock->setWidget(m_xz);
   
 #endif
@@ -417,8 +420,8 @@ void EspinaMainWindow::removeTaxonomyElement()
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::changeTaxonomyColor()
 {
-  //m_espina->clear();
-  //return;
+  m_espina->clear();
+  return;
   QColorDialog colorSelector;
   colorSelector.exec();
   m_espina->setData(this->Internals->taxonomyView->currentIndex(),colorSelector.selectedColor(),Qt::DecorationRole);
@@ -436,9 +439,6 @@ void EspinaMainWindow::toggleVisibility(bool visible)
   this->Internals->toggleVisibility->setIcon(
     visible ? QIcon(":/espina/show_all.svg") : QIcon(":/espina/hide_all.svg")
   );
-  m_xy->showSegmentations(visible);
-  m_yz->showSegmentations(visible);
-  m_xz->showSegmentations(visible);
 }
 
 //-----------------------------------------------------------------------------

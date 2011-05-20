@@ -138,23 +138,21 @@ private:
   QMutex mutex;
 };
 
+
 class Segmentation : public EspinaProduct
 {
 public:
   Segmentation(EspinaFilter *parent, vtkFilter *creator, int portNumber);
-  //Segmentation(const vtkProduct &product);
-  //Segmentation(const Segmentation &seg);
   
   //! Reimplements ITraceNode Interface
   virtual QString label() const {return "Segmentation";}
   
-  //! WARNING: Note that Segmentation constructor hides 3rd paramater (productName)
-  //Segmentation(pqPipelineSource *source, int portNumber, const QString &parentHash = "");
 
   virtual QVariant data(int role = Qt::UserRole + 1) const;
   virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
   
   void addExtension(ISegmentationExtension *ext);
+  vtkProduct *representation(QString name) {return m_repMap[name];}
   //! Are supposed to be used for sort time 
   ISegmentationExtension *extension(ExtensionId extId);
   void initialize();
@@ -166,47 +164,3 @@ private:
 };
 
 #endif // PRODUCTS_H
-
-// class Product 
-// : public ITraceNode
-// , public ISingleton
-// , public IRenderable
-// , public IModelItem
-// {
-// public:
-//   //Product(){}
-//   Product(pqPipelineSource *source, int portNumber, const QString &traceName = "Product", const EspinaId & parentHash = "");
-//   virtual ~Product(){}
-// 
-//   //! Implements ITraceNode interface
-//   /*
-//   virtual std::vector<ITraceNode *> inputs();
-//   virtual std::vector<ITraceNode *> outputs();
-//   /*
-//   virtual void print(int indent = 0) const;
-//   virtual EspinaParamList getArguments();
-//   */
-//   
-//   //! Implements ISingleton
-//   virtual EspinaId id();
-//   
-//   
-//   //! Implements IRenderable
-//   virtual pqOutputPort* outputPort();
-//   virtual pqPipelineSource* sourceData();	
-//   virtual int portNumber();
-//   virtual void color(double* rgba);
-//   
-//   virtual QVariant data(int role = Qt::UserRole + 1) const;
-//   virtual TaxonomyNode *taxonomy() {return m_taxonomy;}
-//   virtual void setTaxonomy(TaxonomyNode *taxonomy){m_taxonomy = taxonomy;} 
-//   virtual void setOrigin(Sample *sample) {m_sample = sample;}
-//   virtual Sample *origin() {return m_sample;}
-// 
-//   virtual QString parentHash() {return m_parentHash;}
-// protected:
-//   double m_rgba[4];
-//   QString m_hash, m_parentHash;
-//   TaxonomyNode *m_taxonomy;
-//   Sample *m_sample;
-// };

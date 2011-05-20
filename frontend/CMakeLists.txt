@@ -28,7 +28,6 @@ qt4_add_resources(RCC_BUILT_SOURCES
 qt4_wrap_cpp (MOC_BUILT_SOURCES
   espinaMainWindow.h
   SegmentationExplorer.h
-  sliceView.h
   qTreeComboBox.h
   Crosshairs.h
   )

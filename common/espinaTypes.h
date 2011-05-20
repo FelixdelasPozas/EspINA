@@ -4,6 +4,10 @@
 #include "data/cajalTypes.h"
 
 #include <QString>
+#include <QMap>
+#include <QVariant>
+
+class vtkProduct;
 
 typedef NodeArg EspinaArg;
 typedef NodeParam EspinaParam;
@@ -30,8 +34,8 @@ struct Point
 
 typedef Point ImagePixel;
 
-typedef int InformationMap;
-typedef int RepresentationMap;
+typedef QMap<QString, QVariant> InformationMap;
+typedef QMap<QString, vtkProduct *> RepresentationMap;
 typedef QString ExtensionId;
 
 

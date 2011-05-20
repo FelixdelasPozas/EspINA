@@ -128,61 +128,6 @@ bool EspINA::setData(const QModelIndex& index, const QVariant& value, int role)
     result = indexItem->setData(value, role);
     if (result)
       emit dataChanged(index,index);
-    /*
-    if (role == Qt::EditRole)
-    {
-      IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
-      TaxonomyNode *tax = dynamic_cast<TaxonomyNode *>(item);
-      if (tax)
-      {
-	if (!m_tax->getComponent(value.toString()))
-	{
-	  tax->setName(value.toString());
-	  emit dataChanged(index, index);
-	  return true;
-	}
-      }
-      Segmentation *seg = dynamic_cast<Segmentation *>(item);
-      if (seg)
-      {
-	//TODO: uncomment and fix: seg->name = value.toString();
-      }
-      emit dataChanged(index, index);
-      return true;
-    }
-    if (role == Qt::DecorationRole)
-    {
-      IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
-      TaxonomyNode *tax = dynamic_cast<TaxonomyNode *>(item);
-      if (tax)
-      {
-	if (!m_tax->getComponent(value.toString()))
-	{
-	  tax->setColor(value.value<QColor>());
-	  emit dataChanged(index, index);
-	  return true;
-	}
-      }
-      Segmentation *seg = dynamic_cast<Segmentation *>(item);
-      if (seg)
-      {
-	//TODO: uncomment and fix: seg->name = value.toString();
-      }
-      
-    }
-    if (role == Qt::CheckStateRole)
-    {
-      IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
-      Segmentation *seg = dynamic_cast<Segmentation *>(item);
-      if (seg)
-      {
-	seg->setVisible(value.toBool());
-      }
-      qDebug()<< "Changed " << index;
-      emit dataChanged(index, index);
-      return true;
-    }
-  */
   }
   return result;
 }
