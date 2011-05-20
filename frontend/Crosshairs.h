@@ -29,7 +29,7 @@ class Crosshairs : public IViewWidget
   Q_OBJECT
 public:
   Crosshairs(QWidget* parent = 0);
-  virtual void renderInView(pqView* view);
+  virtual void renderInView(QModelIndex index, pqView* view);
   
   virtual IViewWidget* clone();
   

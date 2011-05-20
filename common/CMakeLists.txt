@@ -21,6 +21,7 @@ qt4_wrap_cpp(MOC_BUILT_SOURCES
   EspinaPlugin.h
   ui/volumeView.h
   ui/sliceView.h
+  volumeRenderer.h
 )
 
 # Create Interface files

@@ -85,32 +85,9 @@ EspinaFilter *SeedGrowSegmentation::createFilter(QString filter, ITraceNode::Arg
   {
     SeedGrowSegmentationFilter *sgs_sgsf = new SeedGrowSegmentationFilter(args);
     return sgs_sgsf;
-  }else
-  { 
-    qDebug("SeedGrowSegmenation::LoadAnalisys: Error no such a Filter");
   }
-  /*
-  QString InputId = "";
-  EspinaParamList::iterator it;
-  for(it=args.begin(); it != args.end(); it++)
-  {
-    if( (*it).first == "input" ){
-      InputId = (*it).second;
-      break;
-    }
-  }
-  
-  if( InputId.isEmpty() ){
-    qDebug("SeedGrowSegmenation::LoadAnalisys: Error loading a tarce file. \"input\" argument not found");
-    exit(-1);//throw Finalizar importacion
-  }
-  
-  //TODO: Fake input
-//   Product* input = dynamic_cast<Product*> (Cache::instance()->getEntry(InputId));
-//   assert(input);
-  if (filter == "Grow")
-    this->buildGrowFilter(EspINA::instance()->activeSample(), args);
-  */
+  qDebug("SeedGrowSegmenation::LoadAnalisys: Error no such a Filter");
+  return NULL;
 }
 
 //-----------------------------------------------------------------------------

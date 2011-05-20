@@ -436,16 +436,6 @@ void SliceView::setPlane(SlicePlane plane)
     vtkSMPropertyHelper(m_slicer->getProxy(),"SliceMode").Set(5+plane);
   
   m_plane = plane;
-    /*DEPRECATED:
-  {
-    vtkSMProperty* p;
-    vtkSMIntVectorProperty* sliceMode;
-    p = m_slicer->getProxy()->GetProperty("SliceMode");
-    sliceMode = vtkSMIntVectorProperty::SafeDownCast(p);
-    if (sliceMode)
-      sliceMode->SetElements1(5 + plane);
-  }
-    */
 }
 
 //-----------------------------------------------------------------------------
@@ -506,6 +496,9 @@ QModelIndex SliceView::moveCursor(QAbstractItemView::CursorAction cursorAction, 
 void SliceView::rowsInserted(const QModelIndex& parent, int start, int end)
 {
   QAbstractItemView::rowsInserted(parent, start, end);
+  
+  if (parent != rootIndex())
+    return;
   
   assert(start == end);// Only 1-row-at-a-time inserts are allowed
   

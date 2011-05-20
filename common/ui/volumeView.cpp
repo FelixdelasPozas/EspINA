@@ -57,27 +57,12 @@
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(QWidget* parent)
 : QAbstractItemView(parent)
-, m_showSegmentations(false)
 , m_VOIWidget(NULL)
 {
   m_controlLayout = new QHBoxLayout();
   
-  m_toggleActors = new QToolButton(this);
-  m_toggleActors->setIcon(QIcon(":/espina/hide3D"));
-  m_toggleActors->setCheckable(true);
-  
   m_controlLayout->addStretch();
-  m_controlLayout->addWidget(m_toggleActors);
   
-  QMenu *renders = new QMenu();
-  QAction *volumeRenderer = new QAction(QIcon(":/espina/hide3D"),tr("Volume"),renders);
-  QAction *meshRenderer = new QAction(QIcon(":/espina/hidePlanes"),tr("Mesh"),renders);
-  renders->addAction(volumeRenderer);
-  renders->addAction(meshRenderer);
-  m_toggleActors->setMenu(renders);
-  connect(m_toggleActors,SIGNAL(toggled(bool)),this,SLOT(showSegmentations(bool)));
-  connect(volumeRenderer,SIGNAL(triggered()),this,SLOT(setVolumeRenderer()));
-  connect(meshRenderer,SIGNAL(triggered()),this,SLOT(setMeshRenderer()));
   connect(SelectionManager::instance(),SIGNAL(VOIChanged(IVOI*)),this,SLOT(setVOI(IVOI*)));
   
   m_mainLayout = new QVBoxLayout();
@@ -89,8 +74,6 @@ VolumeView::VolumeView(QWidget* parent)
   pal.setColor(QPalette::Base, pal.color(QPalette::Window));
   this->setPalette(pal);
   this->setStyleSheet("QSpinBox { background-color: white;}");
-  
-  m_renderer = VolumeRenderer::renderer();
 }
 
 //-----------------------------------------------------------------------------
@@ -121,28 +104,6 @@ void VolumeView::disconnectFromServer()
     //TODO: BugFix -> destroy previous instance of m_view
     //pqApplicationCore::instance()->getObjectBuilder()->destroy(m_view);
   }
-}
-
-//-----------------------------------------------------------------------------
-void VolumeView::showSegmentations(bool value)
-{
-  if (m_showSegmentations == value)
-    return;
-  
-  m_showSegmentations = value;
-  switch (m_renderer->type())
-  {
-    case MESH_RENDERER:
-      m_toggleActors->setIcon(m_showSegmentations?QIcon(":/espina/showPlanes"):QIcon(":/espina/hidePlanes"));
-      break;
-    case VOLUME_RENDERER:
-      m_toggleActors->setIcon(m_showSegmentations?QIcon(":/espina/show3D"):QIcon(":/espina/hide3D"));
-      break;
-    default:
-      assert(false);
-  }
-  
-  updateScene();
 }
 
 //-----------------------------------------------------------------------------
@@ -230,14 +191,13 @@ void VolumeView::rowsInserted(const QModelIndex& parent, int start, int end)
       //TODO: Render sample
       qDebug() << "Render sample?";
     } 
-    else if (!sample && m_showSegmentations)
+    else if (!sample)
     {
       Segmentation *seg = dynamic_cast<Segmentation *>(item);
       assert(seg); // If not sample, it has to be a segmentation
-      m_renderer->render(seg,m_view);
     }
   }
-  m_view->render();
+  updateScene();
 }
 
 //-----------------------------------------------------------------------------
@@ -255,7 +215,7 @@ void VolumeView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int 
       //TODO: Render sample
       qDebug() << "Render sample?";
     } 
-    else if (!sample && m_showSegmentations)
+    else if (!sample)
     {
       Segmentation *seg = dynamic_cast<Segmentation *>(item);
       assert(seg); // If not sample, it has to be a segmentation
@@ -286,7 +246,7 @@ void VolumeView::dataChanged(const QModelIndex& topLeft, const QModelIndex& bott
       //TODO: Render sample
       qDebug() << "Render sample?";
   } 
-  else if (!sample && m_showSegmentations)
+  else if (!sample)
   {
     Segmentation *seg = dynamic_cast<Segmentation *>(item);
     assert(seg); // If not sample, it has to be a segmentation
@@ -324,32 +284,6 @@ void VolumeView::addWidget(IViewWidget* widget)
   m_widgets.append(widget);
 }
 
-
-
-//-----------------------------------------------------------------------------
-void VolumeView::setMeshRenderer()
-{
-  m_renderer = MeshRenderer::renderer();
-  // Which one is easier to read/understand? This one or the VolumeRenderer one?
-  m_toggleActors->setIcon(
-    m_showSegmentations?
-      QIcon(":/espina/showPlanes")
-    :
-      QIcon(":/espina/hidePlanes")
-	);
-  
-  updateScene();
-}
-
-//-----------------------------------------------------------------------------
-void VolumeView::setVolumeRenderer()
-{
-  m_renderer = VolumeRenderer::renderer();
-  m_toggleActors->setIcon(m_showSegmentations?QIcon(":/espina/show3D"):QIcon(":/espina/hide3D"));
-  
-  updateScene();
-}
-
 //-----------------------------------------------------------------------------
 void VolumeView::updateScene()
 {
@@ -372,16 +306,15 @@ void VolumeView::updateScene()
     rep->setVisible(false);
   }
   
-  render(rootIndex());
-  
   //TODO: Center on selection bounding box or active stack if no selection
   foreach (IViewWidget *widget, m_widgets)
-  //  if (widget->isChecked())
-      widget->renderInView(m_view);
+  {
+    if (widget->isChecked())
+      widget->renderInView(rootIndex(),m_view);
+  }
 
   cam->SetPosition(pos);
   //cam->SetFocalPoint(m_focus);
-  
   view->GetInteractor()->SetCenterOfRotation(m_focus);
 
   
@@ -389,6 +322,7 @@ void VolumeView::updateScene()
 }
 
 
+// DEPRECATED
 void VolumeView::render(const QModelIndex& index)
 {
   if (!isIndexHidden(index))
@@ -406,15 +340,13 @@ void VolumeView::render(const QModelIndex& index)
       pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
       dp->setRepresentationVisibility(sample->outputPort(),m_view,true);
     } 
-    else if (!sample && m_showSegmentations)
+    else if (!sample)
     {
       Segmentation *seg = dynamic_cast<Segmentation *>(item);
       assert(seg); // If not sample, it has to be a segmentation
-      m_renderer->render(seg,m_view);
     }
   }
   for (int row = 0; row < model()->rowCount(index); row++)
     render(model()->index(row,0,index));
 
 }
-

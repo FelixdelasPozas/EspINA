@@ -38,7 +38,7 @@ IViewWidget* Crosshairs::clone()
   return new Crosshairs();
 }
 
-void Crosshairs::renderInView(pqView* view)
+void Crosshairs::renderInView(QModelIndex index, pqView* view)
 {
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
   dp->setRepresentationVisibility((*m_planes[0])->getOutputPort(0),view,isChecked());

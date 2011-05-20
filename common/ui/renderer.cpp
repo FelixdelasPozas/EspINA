@@ -123,13 +123,13 @@ void MeshRenderer::renderDiscarted ( Segmentation* seg, pqRenderView* view )
 */
 
 //------------------------------------------------------------------------
-VolumeRenderer *VolumeRenderer::m_singleton = NULL;
+VolumetricRenderer *VolumetricRenderer::m_singleton = NULL;
 
 //------------------------------------------------------------------------
-IRenderer *VolumeRenderer::renderer()
+IRenderer *VolumetricRenderer::renderer()
 {
   if (!m_singleton)
-    m_singleton = new VolumeRenderer();
+    m_singleton = new VolumetricRenderer();
   return m_singleton;
 }
 
@@ -142,7 +142,7 @@ void VolumeRenderer::hide ( Segmentation* seg, pqRenderView* view )
 */
 
 //------------------------------------------------------------------------
-void VolumeRenderer::render ( EspinaProduct *actor, pqRenderView * view )
+void VolumetricRenderer::render ( EspinaProduct *actor, pqRenderView * view )
 {
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
   pqDataRepresentation *dr = dp->setRepresentationVisibility(

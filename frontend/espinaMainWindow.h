@@ -41,6 +41,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QString>
 #include <QList>
 
+class SampleProxy;
 //Forward declaration
 class EspINA;
 class SliceView;
@@ -107,9 +108,7 @@ private:
   QList<QAbstractItemModel *> m_groupingModel;
   QList<QModelIndex> m_groupingRoot;
   int m_lastTaxonomyId;
-
-public slots:
-    void si(bool);
+  SampleProxy *sampleProxy;
 };
 
 #endif //ESPINA_MAIN_WINDOW_H

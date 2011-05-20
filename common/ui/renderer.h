@@ -53,11 +53,11 @@ private:
 };
 
 //! A Volume Renderer Class
-class VolumeRenderer : public IRenderer
+class VolumetricRenderer : public IRenderer
 {
 public:
-  VolumeRenderer() : IRenderer(){}
-  ~VolumeRenderer(){}
+  VolumetricRenderer() : IRenderer(){}
+  ~VolumetricRenderer(){}
   
   static IRenderer *renderer();
   
@@ -69,7 +69,7 @@ public:
   //void renderDiscarted(Segmentation *seg, pqRenderView *view);
   
 private:
-  static VolumeRenderer *m_singleton;
+  static VolumetricRenderer *m_singleton;
 };
 
 

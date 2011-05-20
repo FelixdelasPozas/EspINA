@@ -3,6 +3,7 @@
 
 #include "espinaTypes.h"
 #include <QToolButton>
+#include <QModelIndex>
 
 class EspinaFilter;
 class Segmentation;
@@ -43,7 +44,7 @@ public:
   }
   virtual ~IViewWidget(){}
   
-  virtual void renderInView(pqView* view) = 0;
+  virtual void renderInView(QModelIndex index, pqView* view) = 0;
 
   //! Prototype
   virtual IViewWidget *clone() = 0;

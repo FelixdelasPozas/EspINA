@@ -92,6 +92,7 @@
 #include <pqServerManagerModel.h>
 #include <pqServerDisconnectReaction.h>
 #include "SegmentationExplorer.h"
+#include <volumeRenderer.h>
 
 const QString FILTERS("Trace Files (*.trace)");
 const QString SEG_FILTERS("Seg Files (*.seg)");
@@ -152,12 +153,16 @@ EspinaMainWindow::EspinaMainWindow()
   pqServerManagerObserver *server = pqApplicationCore::instance()->getServerManagerObserver();
 
   
+  VolumetricRenderer *volumetric = new VolumetricRenderer();
+  EspINAFactory::instance()->addViewWidget(volumetric);
+
+  
   //! BUILD ESPINA INTERNALS
 
   // Segementation Grouping Proxies
   TaxonomyProxy *taxProxy = new TaxonomyProxy();
   taxProxy->setSourceModel(m_espina);
-  SampleProxy *sampleProxy = new SampleProxy();
+  sampleProxy = new SampleProxy();
   sampleProxy->setSourceModel(m_espina);
 
   m_groupingName << "None" << "Taxonomy" << "Sample";
@@ -228,7 +233,7 @@ EspinaMainWindow::EspinaMainWindow()
   m_xy = new SliceView();
   m_xy->setPlane(SliceView::SLICE_PLANE_XY);
   m_xy->setModel(sampleProxy);
-  m_xy->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleIndex(m_espina->activeSample())));
+  m_xy->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
   connect(server, SIGNAL(connectionCreated(vtkIdType)), m_xy, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), m_xy, SLOT(disconnectFromServer()));
   connect(this->Internals->toggleVisibility, SIGNAL(toggled(bool)),m_xy, SLOT(showSegmentations(bool)));
@@ -265,7 +270,7 @@ EspinaMainWindow::EspinaMainWindow()
   
 #endif
   
-#if 0
+#if 1
   Crosshairs *cross = new Crosshairs();
   cross->addPlane(0,m_xy->output());
   cross->addPlane(1,m_yz->output());
@@ -353,6 +358,15 @@ void EspinaMainWindow::loadFile(QString method)
   if (fileDialog.exec() == QDialog::Accepted)
   {
     m_espina->loadFile(fileDialog.getSelectedFiles()[0], method);
+  }
+  static int counter = 0;
+  if (counter == 0)//TODO
+  {
+    counter++;
+    m_xy->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleIndex(m_espina->activeSample())));
+    m_yz->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleIndex(m_espina->activeSample())));
+    m_xz->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleIndex(m_espina->activeSample())));
+    m_3d->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleIndex(m_espina->activeSample())));
   }
 }
 
@@ -446,8 +460,8 @@ void EspinaMainWindow::removeTaxonomyElement()
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::changeTaxonomyColor()
 {
-  m_espina->clear();
-  return;
+  //m_espina->clear();
+  //return;
   QColorDialog colorSelector;
   colorSelector.exec();
   m_espina->setData(this->Internals->taxonomyView->currentIndex(),colorSelector.selectedColor(),Qt::DecorationRole);
