@@ -66,7 +66,7 @@ public:
   
 protected slots:
 //   void loadData(pqPipelineSource *source);
-//   void loadFile();
+  void loadFile(QString method);
   void saveFile();
   void importFile(); // Local load 
   void exportFile(); // Local save
@@ -108,6 +108,8 @@ private:
   QList<QModelIndex> m_groupingRoot;
   int m_lastTaxonomyId;
 
+public slots:
+    void si(bool);
 };
 
 #endif //ESPINA_MAIN_WINDOW_H

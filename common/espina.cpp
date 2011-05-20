@@ -470,52 +470,35 @@ QList< Segmentation* > EspINA::segmentations(const Sample* sample) const
 
 
 //-----------------------------------------------------------------------------
-void EspINA::loadFile(QString& filePath, pqServer* server)
+void EspINA::loadFile(QString filePath, QString method)
 {
-  //TODO cambiar el stream que usa porcessingTrace por QTextStream para homogeneizar
+  // GUI -> Remote opens
   QString TraceContent, TaxonomyContent;
   QTextStream TraceStream(&TraceContent), TaxonomyStream(&TaxonomyContent);
-  if( !m_samples.isEmpty() )
-  {
-    //m_activeSample;
-//     foreach(Sample* sample, m_samples)
-//     {
-//       delete sample;//->sourceData();
-//     }
-      qDebug() << "Delete the other samples"; //TODO
-  }
-  if( server ) // Not used. Remote files are loaded through paraview loadSource class
-  {
-    assert(false);
-    /*
-     pqPipelineSource* remoteFile = pqLoadDataReaction::loadData(QStringList(filePath));
-     remoteFile->updatePipeline(); //Update the pipeline to obtain the content of the file
-     remoteFile->getProxy()->UpdatePropertyInformation();
+  if( method == "open")
+    this->clear();
+    // Remote files are loaded through paraview loadSource class
 
-    vtkSMStringVectorProperty* contentProp =
-          vtkSMStringVectorProperty::SafeDownCast(remoteFile->getProxy()->GetProperty("Content"));
-    //qDebug() << "Content:\n" << StringProp2->GetElement(0);
+  pqPipelineSource* remoteFile = pqLoadDataReaction::loadData(QStringList(filePath));
+  loadSource(remoteFile);
+  
+      
     
-    QString path(contentProp->GetElement(0));
-    stream.setString(&path);
-    m_analysis->readTrace(stream);
-    */
-  }
-  else // Read local file
-  {
-    try{
-      IOEspinaFile::loadFile(filePath, TraceStream, TaxonomyStream);
-      // TODO Load TaxonomyStream
-      this->clear();
-      return;
-      m_analysis->readTrace(TraceStream);
-    }
-    catch (...)
+    /*
+    else // Read local file
     {
-      qDebug() << "Espina: Unable to load File " << __FILE__ << __LINE__;
+      try{
+        IOEspinaFile::loadFile(filePath, TraceStream, TaxonomyStream);
+        // TODO Load TaxonomyStream
+        //this->clear();
+        m_analysis->readTrace(TraceStream);
+      }
+      catch (...)
+      {
+        qDebug() << "Espina: Unable to load File " << __FILE__ << __LINE__;
+      }
     }
-  }
-
+    */
 }
 
 //-----------------------------------------------------------------------------
@@ -684,6 +667,15 @@ void EspINA::removeSample(Sample* sample)
   }
 }
 
+//------------------------------------------------------------------------
+void EspINA::removeSamples()
+{
+  foreach(Sample* sample, m_samples)
+  {
+    this->removeSample(sample);
+  }
+  m_activeSample = NULL;
+}
 
 //------------------------------------------------------------------------
 void EspINA::addSegmentation(Segmentation *seg)
@@ -749,7 +741,7 @@ void EspINA::loadSource(pqPipelineSource* proxy)
   if( filePath.endsWith(".pvd") || filePath.endsWith(".mha"))
   {
     // TODO not supported for multiple Smaples
-    this->removeSample(m_activeSample);
+    //this->removeSamples();
     
     vtkFilter *sampleReader = CachedObjectBuilder::instance()->registerProductCreator(filePath, proxy);
     Sample *sample= new Sample(sampleReader,0);
@@ -772,8 +764,7 @@ void EspINA::loadSource(pqPipelineSource* proxy)
   }
   else if( filePath.endsWith(".seg") )
   {
-    // TODO not supported for multiple Smaples
-    this->clear();
+    //this->clear();
 
     proxy->updatePipeline(); //Update the pipeline to obtain the content of the file
     proxy->getProxy()->UpdatePropertyInformation();
@@ -810,11 +801,7 @@ void EspINA::loadSource(pqPipelineSource* proxy)
 void EspINA::clear()
 {
   // Delete Samples (and their segmentations)
-  foreach(Sample* sample, m_samples)
-  {
-    this->removeSample(sample);
-  }
-  m_activeSample = NULL;
+  this->removeSamples();
   
   // TODO Delete taxonomy
   beginRemoveRows(taxonomyRoot(), 0, rowCount(taxonomyRoot())-1);
