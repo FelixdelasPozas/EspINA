@@ -291,13 +291,13 @@ void VolumeView::updateScene()
     m_view->getProxy());
   assert(view);
   
-  double cor[3];
-  view->GetInteractor()->GetCenterOfRotation(cor);
+  //double cor[3];
+  //view->GetInteractor()->GetCenterOfRotation(cor);
   
-  vtkCamera *cam = view->GetActiveCamera();
-  double pos[3], focus[3];
-  cam->GetPosition(pos);
-  cam->GetFocalPoint(focus);
+  //vtkCamera *cam = view->GetActiveCamera();
+  //double pos[3], focus[3];
+  //cam->GetPosition(pos);
+  //cam->GetFocalPoint(focus);
   
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
   pqRepresentation *rep;
@@ -313,9 +313,9 @@ void VolumeView::updateScene()
       widget->renderInView(rootIndex(),m_view);
   }
 
-  cam->SetPosition(pos);
+  //cam->SetPosition(pos);
   //cam->SetFocalPoint(m_focus);
-  view->GetInteractor()->SetCenterOfRotation(m_focus);
+  //view->GetInteractor()->SetCenterOfRotation(m_focus);
 
   
   m_view->render();

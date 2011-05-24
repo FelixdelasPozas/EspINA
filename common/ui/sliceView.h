@@ -25,6 +25,7 @@
 
 #include "selectionManager.h"//TODO: Forward declare?
 
+class Crosshairs;
 class vtkCamera;
 class vtkSMRenderViewProxy;
 //Forward declaration
@@ -32,7 +33,6 @@ class Sample;
 class Segmentation;
 class IModelItem;
 class pqPipelineSource;
-
 
 //! Blends Segmentations in a given Sample
 class Blender
@@ -112,7 +112,11 @@ public:
   
   //! Interface of ISelectableView
   void setSelection(SelectionFilters &filters, ViewRegions &regions);
+
+  // TODO: Refactoring
+  Crosshairs *cross;
   
+  virtual bool eventFilter(QObject* obj, QEvent* event);
 
 public slots:
   void connectToServer();
@@ -125,14 +129,19 @@ public slots:
   void setPlane(SlicePlane plane);
   void setSlice(int value);
   
+  void centerViewOn(int x, int y, int z);
+  
   //! Selections
   void vtkWidgetMouseEvent(QMouseEvent *event);
+
+  void updateScene();
   
 protected slots:
   virtual void setVOI(IVOI *voi);
   
 signals:
   void sliceChanged();
+  void pointSelected(int, int, int);
 
 protected:
   //! AbstractItemView Interfacec
@@ -153,7 +162,6 @@ protected:
   //! Converts point from Display coordinates to World coordinates
   ISelectionHandler::VtkRegion display2vtk(const QPolygonF &region);
   
-  void updateScene();
 
 private:
   pqPipelineSource *blender();

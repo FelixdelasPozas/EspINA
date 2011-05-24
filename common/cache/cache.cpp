@@ -95,6 +95,7 @@ void Cache::remove(const Cache::Index& index)
   {
     delete m_cachedProxies[index].filter;
     m_cachedProxies.remove(index);
+    assert(!m_cachedProxies.contains(index));
   }
 }
 
