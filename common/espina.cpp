@@ -19,6 +19,7 @@
 
 #include "espina.h"
 //Espina
+#include "Config.h"
 #include <data/taxonomy.h>
 #include "products.h"
 #include "cache/cachedObjectBuilder.h"
@@ -427,6 +428,7 @@ void EspINA::loadFile(QString filePath, QString method)
   pqPipelineSource* remoteFile = pqLoadDataReaction::loadData(QStringList(filePath));
   loadSource(remoteFile);
   
+  
       
     
     /*
@@ -691,6 +693,13 @@ void EspINA::loadSource(pqPipelineSource* proxy)
     vtkFilter *sampleReader = CachedObjectBuilder::instance()->registerProductCreator(filePath, proxy);
     Sample *sample= new Sample(sampleReader,0);
     this->addSample(sample);
+
+    if( !m_tax )
+    {
+      beginInsertRows(taxonomyRoot(), 0, 0);
+      loadTaxonomy();
+      endInsertRows();
+    }
   }
   else if( filePath.endsWith(".trace") ){ // DEPRECATED
 
@@ -730,8 +739,11 @@ void EspINA::loadSource(pqPipelineSource* proxy)
     trace.setString(&TraceContent);
 
     try{
+      beginInsertRows(taxonomyRoot(), 0, 0);
         m_tax = IOTaxonomy::loadXMLTaxonomy(TaxContent);
-	setUserDefindedTaxonomy(m_tax->getSubElements()[0]->getName());
+        endInsertRows();
+        setUserDefindedTaxonomy(m_tax->getSubElements()[0]->getName());
+        
         m_analysis->readTrace(trace);
     } catch (...) {
       qDebug() << "Espina: Unable to load File " << __FILE__ << __LINE__;
@@ -759,10 +771,10 @@ void EspINA::clear()
 //------------------------------------------------------------------------
 void EspINA::loadTaxonomy()
 {
-//   m_tax = new TaxonomyNode("None");
+  m_tax = IOTaxonomy::openXMLTaxonomy(DEFAULT_TAXONOMY_PATH);
+  setUserDefindedTaxonomy(m_tax->getSubElements()[0]->getName());
 
-  //m_tax = IOTaxonomy::openXMLTaxonomy("default_taxonomy.xml");
-  
+  /*
   m_tax = new TaxonomyNode("FEM");
   TaxonomyNode *newNode;
   newNode = m_tax->addElement("Synapse","FEM");
