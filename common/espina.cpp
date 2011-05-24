@@ -428,9 +428,7 @@ void EspINA::loadFile(QString filePath, QString method)
   pqPipelineSource* remoteFile = pqLoadDataReaction::loadData(QStringList(filePath));
   loadSource(remoteFile);
   
-  
-      
-    
+   
     /*
     else // Read local file
     {
@@ -446,6 +444,7 @@ void EspINA::loadFile(QString filePath, QString method)
       }
     }
     */
+
 }
 
 //-----------------------------------------------------------------------------
@@ -745,6 +744,10 @@ void EspINA::loadSource(pqPipelineSource* proxy)
         setUserDefindedTaxonomy(m_tax->getSubElements()[0]->getName());
         
         m_analysis->readTrace(trace);
+        // Remove the proxy of the .seg file
+        pqObjectBuilder* ob = pqApplicationCore::instance()->getObjectBuilder();
+        ob->destroy(proxy);
+       
     } catch (...) {
       qDebug() << "Espina: Unable to load File " << __FILE__ << __LINE__;
     }
