@@ -278,6 +278,18 @@ EspinaMainWindow::EspinaMainWindow()
   connect(m_xy,SIGNAL(sliceChanged()),cross,SLOT(update()));
   connect(m_yz,SIGNAL(sliceChanged()),cross,SLOT(update()));
   connect(m_xz,SIGNAL(sliceChanged()),cross,SLOT(update()));
+  m_xy->cross = cross;
+  connect(cross,SIGNAL(updateRequired()),m_xy,SLOT(updateScene()));
+  connect(m_xy,SIGNAL(pointSelected(int,int,int)),m_yz,SLOT(centerViewOn(int,int,int)));
+  connect(m_xy,SIGNAL(pointSelected(int,int,int)),m_xz,SLOT(centerViewOn(int,int,int)));
+  m_yz->cross = cross;
+  connect(cross,SIGNAL(updateRequired()),m_yz,SLOT(updateScene()));
+  connect(m_yz,SIGNAL(pointSelected(int,int,int)),m_xy,SLOT(centerViewOn(int,int,int)));
+  connect(m_yz,SIGNAL(pointSelected(int,int,int)),m_xz,SLOT(centerViewOn(int,int,int)));
+  m_xz->cross = cross;
+  connect(cross,SIGNAL(updateRequired()),m_xz,SLOT(updateScene()));
+  connect(m_xz,SIGNAL(pointSelected(int,int,int)),m_xy,SLOT(centerViewOn(int,int,int)));
+  connect(m_xz,SIGNAL(pointSelected(int,int,int)),m_yz,SLOT(centerViewOn(int,int,int)));
 
   m_3d = EspINAFactory::instance()->CreateVolumeView();
   m_3d->setModel(sampleProxy);
@@ -451,6 +463,7 @@ void EspinaMainWindow::addTaxonomyChildElement()
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::removeTaxonomyElement()
 {
+  
   IModelItem *currentItem = static_cast<IModelItem *>(this->Internals->taxonomyView->currentIndex().internalPointer());
   TaxonomyNode *currentNode = dynamic_cast<TaxonomyNode *>(currentItem);
   m_espina->removeTaxonomy(currentNode->getName());

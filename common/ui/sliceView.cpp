@@ -39,7 +39,9 @@
 #include "pqOutputPort.h"
 #include "vtkSMOutputPort.h"
 #include "selectionManager.h"
-
+#include <vtkInteractorObserver.h>
+#include <vtkInteractorStyleImage.h>
+#include <vtkPVInteractorStyle.h>
 // Qt includes
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -63,8 +65,10 @@
 #include <vtkSMPropertyHelper.h>
 #include <pq3DWidget.h>
 #include <vtkSMNewWidgetRepresentationProxy.h>
+#include <vtkObjectFactory.h>
 
 #include <pqPipelineFilter.h>
+#include "../frontend/Crosshairs.h"
 
 #define HINTWIDTH 40
 
@@ -226,7 +230,17 @@ void Blender::updateImageBlenderInput()
 }
 
 
+class vtkInteractorStyleEspina : public vtkInteractorStyleImage
+{
+public:
+  static vtkInteractorStyleEspina *New();
+  vtkTypeMacro(vtkInteractorStyleEspina,vtkInteractorStyleImage);
+  
+  virtual void OnMouseWheelForward(){}
+  virtual void OnMouseWheelBackward(){}
+};
 
+vtkStandardNewMacro(vtkInteractorStyleEspina);
 
 
 #define LOWER(coord) (2*(coord))
@@ -246,6 +260,7 @@ SliceView::SliceView(QWidget* parent)
     , m_focusedSample(NULL)
     , m_viewWidget(NULL)
     , m_view(NULL)
+    , cross(NULL)
 {
   m_controlLayout = new QHBoxLayout();
   m_scrollBar = new QScrollBar(Qt::Horizontal);
@@ -341,6 +356,20 @@ void SliceView::setSelection(SelectionFilters& filters, ViewRegions& regions)
   SelectionManager::instance()->setSelection(sel);
 }
 
+
+bool SliceView::eventFilter(QObject* obj, QEvent* event)
+{
+  if (event->type() == QEvent::Wheel)
+  {
+    QWheelEvent *we = static_cast<QWheelEvent *>(event);
+    int numSteps = we->delta()/8/15;
+    m_spinBox->setValue(m_spinBox->value() + numSteps);
+    event->ignore();
+  }
+  return QObject::eventFilter(obj, event);
+}
+
+
 //-----------------------------------------------------------------------------
 void SliceView::connectToServer()
 {
@@ -351,6 +380,7 @@ void SliceView::connectToServer()
   m_view = qobject_cast<pqRenderView*>(ob->createView(
              pqRenderView::renderViewType(), server));
   m_viewWidget = m_view->getWidget();
+  m_viewWidget->installEventFilter(this);
   QObject::connect(m_viewWidget, SIGNAL(mouseEvent(QMouseEvent *)),
                    this, SLOT(vtkWidgetMouseEvent(QMouseEvent *)));
   
@@ -363,6 +393,10 @@ void SliceView::connectToServer()
   m_rwi = vtkRenderWindowInteractor::SafeDownCast(
     m_viewProxy->GetRenderWindow()->GetInteractor());
   assert(m_rwi);
+  
+  
+  vtkInteractorStyleEspina *style = vtkInteractorStyleEspina::New();
+  m_rwi->SetInteractorStyle(style);
   
   m_cam = m_viewProxy->GetActiveCamera();
   assert(m_cam);
@@ -446,6 +480,25 @@ void SliceView::setSlice(int value)
   emit sliceChanged();
   
   updateScene();
+}
+
+void SliceView::centerViewOn(int x, int y, int z)
+{
+  switch (m_plane)
+  {
+    case SLICE_PLANE_XY:
+      m_scrollBar->setValue(z);
+      break;
+    case SLICE_PLANE_YZ:
+      m_scrollBar->setValue(x);
+      break;
+    case SLICE_PLANE_XZ:
+      m_scrollBar->setValue(y);
+      break;
+    default:
+      assert(false);
+  };
+    
 }
 
 //-----------------------------------------------------------------------------
@@ -687,13 +740,23 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
 
   int xPos, yPos;
   rwi->GetEventPosition(xPos, yPos);
-  qDebug() << "EspINA::SliceView" << m_plane << ": Clicked Position" << xPos << " " << yPos;
+  //qDebug() << "EspINA::SliceView" << m_plane << ": Clicked Position" << xPos << " " << yPos;
   QPoint pos(xPos,yPos);
   
   if (event->type() == QMouseEvent::MouseButtonPress &&
       event->buttons() == Qt::LeftButton)
   {
+    vtkAbstractPicker *picker = m_rwi->GetPicker();
+    assert(picker);
+    double pickPos[3];//World coordinates
+    double spacing[3];//Image Spacing
+    m_focusedSample->spacing(spacing);
+  
+    picker->Pick(xPos, yPos, 0.0, m_viewProxy->GetRenderer());
+    picker->GetPickPosition(pickPos);
+   
     SelectionManager::instance()->onMouseDown(pos, this);
+    emit pointSelected(pickPos[0] / spacing[0],pickPos[1] / spacing[1],pickPos[2] / spacing[2]);
   }
   //BUG: Only MouseButtonPress events are received
   if (event->type() == QMouseEvent::MouseMove &&
@@ -743,6 +806,8 @@ void SliceView::updateScene()
     {
       slice(m_focusedSample->creator()->pipelineSource());
     }
+    if (cross && cross->isValid())
+      cross->renderInView(m_plane, m_view);
   }
 
   m_view->render();

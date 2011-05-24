@@ -30,9 +30,11 @@ class Crosshairs : public IViewWidget
 public:
   Crosshairs(QWidget* parent = 0);
   virtual void renderInView(QModelIndex index, pqView* view);
+  virtual void renderInView(int plane, pqView *view);
   
   virtual IViewWidget* clone();
   
+  bool isValid() {return *m_planes[0] != NULL && *m_planes[1] != NULL && *m_planes[2] != NULL;}
   void addPlane(int id, pqPipelineSource **output) {m_planes[id] = output;}
   
 public slots:

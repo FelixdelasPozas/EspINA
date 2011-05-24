@@ -27,9 +27,12 @@
 
 #include <assert.h>
 #include <pqObjectBuilder.h>
+#include <pqDataRepresentation.h>
+#include <pqPipelineRepresentation.h>
 
 Crosshairs::Crosshairs(QWidget* parent): IViewWidget(parent)
 {
+  m_planes[0] = m_planes[1] = m_planes[2] = NULL;
   setIcon(QIcon(":/espina/hidePlanes"));
 }
 
@@ -40,6 +43,9 @@ IViewWidget* Crosshairs::clone()
 
 void Crosshairs::renderInView(QModelIndex index, pqView* view)
 {
+  if (!isValid())
+    return;
+  
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
   dp->setRepresentationVisibility((*m_planes[0])->getOutputPort(0),view,isChecked());
   dp->setRepresentationVisibility((*m_planes[1])->getOutputPort(0),view,isChecked());
@@ -62,6 +68,25 @@ void Crosshairs::renderInView(QModelIndex index, pqView* view)
   planeWidget->select();
   */
 }
+
+void Crosshairs::renderInView(int plane, pqView* view)
+{
+  if (!isValid())
+    return;
+  
+  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+  for (int p= 0; p < 3; p++)
+  {
+    if (p == plane)
+      continue;
+    
+    pqDataRepresentation *dr = dp->setRepresentationVisibility((*m_planes[p])->getOutputPort(0),view,true);  //dr1->setVisible(true);
+    pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
+    assert(rep);
+    rep->setRepresentation(3);
+  }
+}
+
 
 void Crosshairs::updateState(bool checked)
 {
