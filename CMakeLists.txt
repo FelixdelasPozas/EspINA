@@ -14,3 +14,10 @@ include(${CAJAL_USE_FILE})
 add_subdirectory (common)
 add_subdirectory (plugins)
 add_subdirectory (frontend)
+
+file(COPY "${PROJECT_SOURCE_DIR}/default_taxonomy.xml" DESTINATION "${CMAKE_BINARY_DIR}")
+set( DEFAULT_TAXONOMY_PATH "${CMAKE_BINARY_DIR}/default_taxonomy.xml" )
+configure_file(
+  "${PROJECT_SOURCE_DIR}/common/Config.h.in"
+  "${PROJECT_SOURCE_DIR}/common/Config.h"
+)

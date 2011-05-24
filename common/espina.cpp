@@ -38,6 +38,7 @@
 
 #include "FilePack.h"
 #include <QMessageBox>
+#include <qfile.h>
 
 class IOTaxonomy;
 
@@ -488,6 +489,8 @@ void EspINA::saveFile(QString& filePath, pqServer* server)
     //Update the pipeline to obtain the content of the file
     remoteWriter->getProxy()->UpdateVTKObjects();
     remoteWriter->updatePipeline();
+    // Destroy de segFileWriter object
+    pqApplicationCore::instance()->getObjectBuilder()->destroy(remoteWriter);
   }
   else
   {
@@ -774,7 +777,17 @@ void EspINA::clear()
 //------------------------------------------------------------------------
 void EspINA::loadTaxonomy()
 {
-  m_tax = IOTaxonomy::openXMLTaxonomy(DEFAULT_TAXONOMY_PATH);
+  if( QFile::exists(DEFAULT_TAXONOMY_PATH) )
+  {
+    m_tax = IOTaxonomy::openXMLTaxonomy(DEFAULT_TAXONOMY_PATH);
+  }
+  else
+  {
+    qDebug() << "EspINA: Default taxonomy file not founded at" << DEFAULT_TAXONOMY_PATH;
+    m_tax = new TaxonomyNode("Unclassified");
+    TaxonomyNode *node = m_tax->addElement("Unknown", "Unclassified");
+    node->setColor(QColor(Qt::black));
+  }
   setUserDefindedTaxonomy(m_tax->getSubElements()[0]->getName());
 
   /*

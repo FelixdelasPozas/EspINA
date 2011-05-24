@@ -562,7 +562,7 @@ void EspinaMainWindow::buildFileMenu(QMenu &menu)
 //   QObject::connect(loadReaction, SIGNAL(loadedData(pqPipelineSource *)),
 // 		    m_espina, SLOT( loadSource(pqPipelineSource *)));
   signalMapper->setMapping(action, QString("open"));
-  qDebug() << connect(action, SIGNAL(triggered(bool)), signalMapper, SLOT(map()));
+  connect(action, SIGNAL(triggered(bool)), signalMapper, SLOT(map()));
   menu.addAction(action);
 
   QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
@@ -578,10 +578,10 @@ void EspinaMainWindow::buildFileMenu(QMenu &menu)
 
   action = new QAction(tr("Add"),this);
   signalMapper->setMapping(action, QString("add"));
-  qDebug() << connect(action, SIGNAL(triggered(bool)), signalMapper, SLOT(map()));
+  connect(action, SIGNAL(triggered(bool)), signalMapper, SLOT(map()));
   menu.addAction(action);
 
-  qDebug() << connect(signalMapper, SIGNAL(mapped(QString)), this, SLOT(loadFile(QString)));
+  connect(signalMapper, SIGNAL(mapped(QString)), this, SLOT(loadFile(QString)));
   /*
   // Import Trace from localhost
   action = new QAction(tr("Import"),this);
