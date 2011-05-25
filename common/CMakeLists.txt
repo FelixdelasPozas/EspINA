@@ -21,7 +21,8 @@ qt4_wrap_cpp(MOC_BUILT_SOURCES
   EspinaPlugin.h
   ui/volumeView.h
   ui/sliceView.h
-  volumeRenderer.h
+  volumetricRenderer.h
+  meshRenderer.h
 )
 
 # Create Interface files
@@ -57,7 +58,7 @@ target_link_libraries (Espina ${CAJAL_LIBRARIES} ${EXTERNAL_LIBS})
 
 add_subdirectory(tests)
 
-set( DEFAULT_TAXONOMY_PATH "/home/jfernandez/workspace/bbp_espina/espina/build/frontend/default_taxonomy.xml" )
+set( DEFAULT_TAXONOMY_PATH "/home/jorge/proyectos/cbbp/espina/build/frontend/default_taxonomy.xml" )
 configure_file(
   "${PROJECT_SOURCE_DIR}/common/Config.h.in"
   "${PROJECT_SOURCE_DIR}/common/Config.h"

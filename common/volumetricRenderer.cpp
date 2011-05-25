@@ -17,7 +17,7 @@
 */
 
 
-#include "volumeRenderer.h"
+#include "volumetricRenderer.h"
 #include "products.h"
 
 // Para View
@@ -57,6 +57,16 @@ void VolumetricRenderer::renderInView(QModelIndex index, pqView* view)
     IModelItem *item = static_cast<IModelItem *>(index.child(row,0).internalPointer());
     Segmentation *seg = dynamic_cast<Segmentation *>(item);
      
+    /** TO 1UNDO:
+    pqDataRepresentation *dr = dp->setRepresentationVisibility(seg->representation("Volumetric")->outputPort(),view,true);
+    pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
+    assert(rep);
+    rep->setRepresentation(4);
+    rep->getProxy()->UpdateVTKObjects();
+    */
+    
+    continue;
+    /*
     pqDataRepresentation *dr = dp->setRepresentationVisibility(seg->outputPort(),view,true);
     pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
     assert(rep);
@@ -89,6 +99,7 @@ void VolumetricRenderer::renderInView(QModelIndex index, pqView* view)
     
     
     rep->getProxy()->UpdateVTKObjects();
+    */
   }
 }
 

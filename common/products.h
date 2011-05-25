@@ -152,7 +152,7 @@ public:
   virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
   
   void addExtension(ISegmentationExtension *ext);
-  vtkProduct *representation(QString name) {return m_repMap[name];}
+  ISegmentationRepresentation *representation(QString name) {return m_repMap[name];}
   //! Are supposed to be used for sort time 
   ISegmentationExtension *extension(ExtensionId extId);
   void initialize();

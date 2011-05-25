@@ -132,12 +132,12 @@ void Blender::blend(Segmentation* seg)
   if (m_blendingMappers.contains(seg))
     return;
   
-  vtkProduct *segMapper = seg->representation("Volumetric");
+  ISegmentationRepresentation *segMapper = seg->representation("Color");
 
-  segMapper->creator()->pipelineSource()->getProxy()->UpdateVTKObjects();
-  segMapper->creator()->pipelineSource()->updatePipeline();
+  segMapper->pipelineSource()->getProxy()->UpdateVTKObjects();
+  segMapper->pipelineSource()->updatePipeline();
   
-  m_blendingMappers[seg] = segMapper->creator()->pipelineSource();
+  m_blendingMappers[seg] = segMapper;
   
   updateImageBlenderInput();
 }
@@ -152,7 +152,7 @@ void Blender::unblend(Segmentation* seg)
   vtkSMIntVectorProperty* intVectProp;
   vtkSMDoubleVectorProperty* doubleVectProp;
 
-  pqPipelineSource *mapper = m_blendingMappers.take(seg);
+  pqPipelineSource *mapper = m_blendingMappers.take(seg)->pipelineSource();
 
   //std::cout << "N. Consumers of mapper before " << mapper->getNumberOfConsumers() << std::endl;
   //std::cout << "N. Producers of blender before " << m_imageBlender->getProxy()->GetNumberOfProducers() << std::endl;
@@ -204,13 +204,13 @@ void Blender::updateImageBlenderInput()
   inputs.push_back(m_bgMapper->getProxy());
   ports.push_back(0);
 
-  foreach(pqPipelineSource *source, m_blendingMappers)
+  foreach(ISegmentationRepresentation *rep, m_blendingMappers)
   {
-    IModelItem *item = m_blendingMappers.key(source);
+    IModelItem *item = m_blendingMappers.key(rep);
     Segmentation *seg = dynamic_cast<Segmentation *>(item);
     if (seg->visible())
     {
-      inputs.push_back(source->getProxy());
+      inputs.push_back(rep->pipelineSource()->getProxy());
       ports.push_back(0);
     }
   }
@@ -362,7 +362,7 @@ bool SliceView::eventFilter(QObject* obj, QEvent* event)
   if (event->type() == QEvent::Wheel)
   {
     QWheelEvent *we = static_cast<QWheelEvent *>(event);
-    int numSteps = we->delta()/8/15;
+    int numSteps = we->delta()/8/15;//Refer to QWheelEvent doc.
     m_spinBox->setValue(m_spinBox->value() + numSteps);
     event->ignore();
   }
@@ -641,7 +641,7 @@ void SliceView::dataChanged(const QModelIndex& topLeft, const QModelIndex& botto
   if (!topLeft.isValid() || !bottomRight.isValid())
     return;
   
-  //s_blender->updateImageBlenderInput();
+  s_blender->updateImageBlenderInput();
   updateScene();
 }
 

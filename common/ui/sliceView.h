@@ -57,7 +57,7 @@ private:
   Sample *m_currentSample;
   pqPipelineSource *m_bgMapper;
   pqPipelineSource *m_imageBlender;
-  QMap<IModelItem *,pqPipelineSource *> m_blendingMappers;
+  QMap<IModelItem *,ISegmentationRepresentation *> m_blendingMappers;
   QMutex m_mutex;
 };
 

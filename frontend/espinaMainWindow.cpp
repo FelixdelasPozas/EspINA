@@ -34,10 +34,12 @@
 #include "ui_espinaMainWindow.h"
 #include "espINAFactory.h"
 #include "distance.h"
-#include "unitExplorer.h"
 #include "selectionManager.h"
 #include "data/taxonomy.h"
 #include "espina.h"
+#include "SegmentationExplorer.h"
+#include "meshRenderer.h"
+#include "volumetricRenderer.h"
 
 //ParaQ includes
 #include "pqHelpReaction.h"
@@ -91,8 +93,7 @@
 #include "Crosshairs.h"
 #include <pqServerManagerModel.h>
 #include <pqServerDisconnectReaction.h>
-#include "SegmentationExplorer.h"
-#include <volumeRenderer.h>
+#include <colorExtension.h>
 
 const QString FILTERS("Trace Files (*.trace)");
 const QString SEG_FILTERS("Seg Files (*.seg)");
@@ -140,8 +141,8 @@ EspinaMainWindow::EspinaMainWindow()
 
   //// Setup the View menu. This must be setup after all toolbars and dockwidgets
   //// have been created.
-  m_unitExplorer = new UnitExplorer();
-  connect(this->Internals->actionUnits, SIGNAL(triggered()), m_unitExplorer, SLOT(show()));
+  //TODO:m_unitExplorer = new UnitExplorer();
+  //TODO:connect(this->Internals->actionUnits, SIGNAL(triggered()), m_unitExplorer, SLOT(show()));
   SegmentationExplorer *segExpl = new SegmentationExplorer();
   connect(this->Internals->actionSegmentationExplorer, SIGNAL(triggered()), segExpl, SLOT(show()));
   pqParaViewMenuBuilders::buildViewMenu(*this->Internals->menu_View, *this);
@@ -153,9 +154,14 @@ EspinaMainWindow::EspinaMainWindow()
   pqServerManagerObserver *server = pqApplicationCore::instance()->getServerManagerObserver();
 
   
-  VolumetricRenderer *volumetric = new VolumetricRenderer();
-  EspINAFactory::instance()->addViewWidget(volumetric);
+  //MeshRenderer *mesh = new MeshRenderer();
+  //EspINAFactory::instance()->addViewWidget(mesh);
+  //VolumetricRenderer *volumetric = new VolumetricRenderer();
+  //EspINAFactory::instance()->addViewWidget(volumetric);
 
+  ColorExtension colorExt;
+  EspINAFactory::instance()->addSegmentationExtension(&colorExt);
+  
   
   //! BUILD ESPINA INTERNALS
 
@@ -215,7 +221,7 @@ EspinaMainWindow::EspinaMainWindow()
   
   // Taxonomy Editor
   this->Internals->taxonomyView->setModel(m_espina);
-//   this->Internals->taxonomyView->setRootIndex(m_espina->taxonomyRoot());
+  this->Internals->taxonomyView->setRootIndex(m_espina->taxonomyRoot());
   connect(this->Internals->addTaxonomy,SIGNAL(clicked()),this,SLOT(addTaxonomyElement()));
   connect(this->Internals->addTaxonomyChild,SIGNAL(clicked()),this,SLOT(addTaxonomyChildElement()));
   connect(this->Internals->removeTaxonomy,SIGNAL(clicked()),this,SLOT(removeTaxonomyElement()));
@@ -313,7 +319,7 @@ EspinaMainWindow::EspinaMainWindow()
   new pqParaViewBehaviors(this, this);
 
   // Debug load stack
-  QMetaObject::invokeMethod(this, "autoLoadStack", Qt::QueuedConnection);
+  //QMetaObject::invokeMethod(this, "autoLoadStack", Qt::QueuedConnection);
 
 }
 

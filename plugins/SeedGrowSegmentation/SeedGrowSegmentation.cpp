@@ -69,6 +69,7 @@ SeedGrowSegmentation::SeedGrowSegmentation(QObject* parent)
 : ISegmentationPlugin(parent)
 , m_seedSelector(NULL)
 {
+  qDebug("Constructor");
   m_factoryName = SGS;
   // Register Factory's filters
   ProcessingTrace::instance()->registerPlugin(SGSF, this);

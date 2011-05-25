@@ -67,7 +67,7 @@ set (PARAVIEW_ADDITIONAL_LIBRARIES
 # Now crete a plugin for the toolbar. Here we pass IFACES and IFACE_SRCS
 # which are filled up by the above macro with relevant entries
 ADD_PARAVIEW_PLUGIN(
-  SeedGrowSegmentation
+  SeedGrowSegmentationPlugin
   "0.1" 
   SERVER_MANAGER_XML SeedGrowSegmentationFilters.xml
   SERVER_MANAGER_SOURCES vtkConnectedThresholdImageFilter.cpp
@@ -77,12 +77,12 @@ ADD_PARAVIEW_PLUGIN(
 	#   thus we have to use a vtkXXXX class name for our filter, other wise,
 	#   we need to use SERVER_SOURCES instead of SERVER_MANAGER_SOURCES
 	#   SERVER_SOURCES SegmentationFilter.cpp 
-  SOURCES ${IFACE_SRCS} ${PLUGIN_SRCS}
+  GUI_SOURCES ${IFACE_SRCS} ${PLUGIN_SRCS}
   GUI_INTERFACES ${IFACES} 
   )
 
 if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
-  set_target_properties(SeedGrowSegmentation PROPERTIES COMPILE_FLAGS "-fPIC")
+  set_target_properties(SeedGrowSegmentationPlugin PROPERTIES COMPILE_FLAGS "-fPIC")
 endif( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
-target_link_libraries (SeedGrowSegmentation ${PARAVIEW_ADDITIONAL_LIBRARIES} )
+target_link_libraries (SeedGrowSegmentationPlugin ${PARAVIEW_ADDITIONAL_LIBRARIES} )
