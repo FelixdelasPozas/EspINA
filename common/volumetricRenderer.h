@@ -23,12 +23,6 @@
 #include <EspinaPlugin.h>
 
 
-class VolumetricRepresentation : public ISegmentationRepresentation
-{
-public:
-    virtual void render(pqView* view);
-    virtual pqPipelineSource* pipelineSource();
-};
 
 class VolumetricRenderer : public IViewWidget
 {

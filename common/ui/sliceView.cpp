@@ -165,10 +165,6 @@ void Blender::unblend(Segmentation* seg)
   updateImageBlenderInput();
   //std::cout << "N. Consumers of mapper after update vtk " << mapper->getNumberOfConsumers() << std::endl;
   //std::cout << "N. Producers of blender after update vtk " << m_imageBlender->getProxy()->GetNumberOfProducers() << std::endl;
-
-  pqApplicationCore *core = pqApplicationCore::instance();
-  pqObjectBuilder *ob = core->getObjectBuilder();
-  ob->destroy(mapper);
 }
 
 //-----------------------------------------------------------------------------

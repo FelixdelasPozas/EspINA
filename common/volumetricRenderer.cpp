@@ -51,55 +51,15 @@ IViewWidget* VolumetricRenderer::clone()
 void VolumetricRenderer::renderInView(QModelIndex index, pqView* view)
 {
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+ 
+  IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+  Segmentation *seg = dynamic_cast<Segmentation *>(item);
+  if (seg)
+    seg->representation("Volumetric")->render(view);
 
   for (int row = 0; row < index.model()->rowCount(index); row++)
   {
-    IModelItem *item = static_cast<IModelItem *>(index.child(row,0).internalPointer());
-    Segmentation *seg = dynamic_cast<Segmentation *>(item);
-     
-    /** TO 1UNDO:
-    pqDataRepresentation *dr = dp->setRepresentationVisibility(seg->representation("Volumetric")->outputPort(),view,true);
-    pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
-    assert(rep);
-    rep->setRepresentation(4);
-    rep->getProxy()->UpdateVTKObjects();
-    */
-    
-    continue;
-    /*
-    pqDataRepresentation *dr = dp->setRepresentationVisibility(seg->outputPort(),view,true);
-    pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
-    assert(rep);
-    rep->setRepresentation(4);
-    
-    vtkSMProxy *repProxy = rep->getProxy();
-  
-    // Get (or create if it doesn't exit) the lut for the segmentations' images
-    pqServer *server =  pqApplicationCore::instance()->getActiveServer();
-    pqScalarsToColors *segLUT = pqApplicationCore::instance()->getLookupTableManager()->getLookupTable(server,seg->taxonomy()->getName(),4,0);
-    if (segLUT)
-    {
-      //std::cout << "ScalarToColors\n";
-      vtkSMDoubleVectorProperty *rgbs = vtkSMDoubleVectorProperty::SafeDownCast(
-	segLUT->getProxy()->GetProperty("RGBPoints"));
-      if (rgbs)
-      {
-	double rgba[4];
-	seg->color(rgba);
-	double colors[8] = {0,0,0,0,1,rgba[0],rgba[1],rgba[2]};
-	rgbs->SetElements(colors);
-      }
-      segLUT->getProxy()->UpdateVTKObjects();
-    }
-    vtkSMProxyProperty *lut = vtkSMProxyProperty::SafeDownCast(repProxy->GetProperty("LookupTable"));
-    if (lut)
-    {
-      lut->SetProxy(0,segLUT->getProxy());
-    }
-    
-    
-    rep->getProxy()->UpdateVTKObjects();
-    */
+    renderInView(index.child(row,0),view);
   }
 }
 

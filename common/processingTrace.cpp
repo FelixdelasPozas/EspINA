@@ -187,6 +187,7 @@ void ProcessingTrace::removeNode(ITraceNode* node)
   EspinaFilter *parentFilter = seg->parent();
   
   parentFilter->removeProduct(seg);
+  delete seg;//TODO: Remove here, delegate to filters or to espina Model.
   // Delete node from trace
   if (parentFilter->numProducts() == 0)
   {

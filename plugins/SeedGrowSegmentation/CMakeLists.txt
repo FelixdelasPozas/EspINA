@@ -1,4 +1,4 @@
-project (ESPINA_SEEDGROW_PLUGIN)
+project (ESPINA_SEEDGROWSEGMENTATION_PLUGIN)
 
 cmake_minimum_required (VERSION 2.6)
 
@@ -48,10 +48,11 @@ ADD_PARAVIEW_ACTION_GROUP(
   CLASS_NAME SeedGrowSegmentation 
   GROUP_NAME "ToolBar/SeedGrowingSegmentation")
 
-file ( GLOB LOCAL_SOURCES *.cpp )
+#file ( GLOB LOCAL_SOURCES *.cpp )
 
 set (PLUGIN_SRCS
-  ${LOCAL_SOURCES}
+  SeedGrowSegmentation.cpp
+  SeedGrowSegmentationFilter.cpp
   ${MOC_SRCS} 
   ${RCC_BUILT_SOURCES} 
   )
@@ -77,8 +78,8 @@ ADD_PARAVIEW_PLUGIN(
 	#   thus we have to use a vtkXXXX class name for our filter, other wise,
 	#   we need to use SERVER_SOURCES instead of SERVER_MANAGER_SOURCES
 	#   SERVER_SOURCES SegmentationFilter.cpp 
-  GUI_SOURCES ${IFACE_SRCS} ${PLUGIN_SRCS}
   GUI_INTERFACES ${IFACES} 
+  GUI_SOURCES ${IFACE_SRCS} ${PLUGIN_SRCS}
   )
 
 if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )

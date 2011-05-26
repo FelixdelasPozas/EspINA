@@ -40,6 +40,9 @@
 #include "SegmentationExplorer.h"
 #include "meshRenderer.h"
 #include "volumetricRenderer.h"
+#include "colorExtension.h"
+#include "meshExtension.h"
+#include "volumetricExtension.h"
 
 //ParaQ includes
 #include "pqHelpReaction.h"
@@ -93,7 +96,6 @@
 #include "Crosshairs.h"
 #include <pqServerManagerModel.h>
 #include <pqServerDisconnectReaction.h>
-#include <colorExtension.h>
 
 const QString FILTERS("Trace Files (*.trace)");
 const QString SEG_FILTERS("Seg Files (*.seg)");
@@ -154,13 +156,17 @@ EspinaMainWindow::EspinaMainWindow()
   pqServerManagerObserver *server = pqApplicationCore::instance()->getServerManagerObserver();
 
   
-  //MeshRenderer *mesh = new MeshRenderer();
-  //EspINAFactory::instance()->addViewWidget(mesh);
-  //VolumetricRenderer *volumetric = new VolumetricRenderer();
-  //EspINAFactory::instance()->addViewWidget(volumetric);
+  MeshRenderer *mesh = new MeshRenderer();
+  EspINAFactory::instance()->addViewWidget(mesh);
+  VolumetricRenderer *volumetric = new VolumetricRenderer();
+  EspINAFactory::instance()->addViewWidget(volumetric);
 
   ColorExtension colorExt;
   EspINAFactory::instance()->addSegmentationExtension(&colorExt);
+  MeshExtension meshExt;
+  EspINAFactory::instance()->addSegmentationExtension(&meshExt);
+  VolumetricExtension volExt;
+  EspINAFactory::instance()->addSegmentationExtension(&volExt);
   
   
   //! BUILD ESPINA INTERNALS
@@ -214,10 +220,6 @@ EspinaMainWindow::EspinaMainWindow()
             SIGNAL(proxyCreated (pqProxy *)),
             m_espina,
             SLOT(onProxyCreated(pqProxy*)));
-  
-  // Final step, define application behaviors. Since we want all ParaView
-  // behaviors, we use this convenience method.
-  new pqParaViewBehaviors(this, this);
   
   // Taxonomy Editor
   this->Internals->taxonomyView->setModel(m_espina);

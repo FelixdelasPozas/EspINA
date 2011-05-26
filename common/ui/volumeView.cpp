@@ -195,6 +195,7 @@ void VolumeView::rowsInserted(const QModelIndex& parent, int start, int end)
     {
       Segmentation *seg = dynamic_cast<Segmentation *>(item);
       assert(seg); // If not sample, it has to be a segmentation
+      seg->representation("Mesh")->render(m_view);
     }
   }
   updateScene();
@@ -250,7 +251,11 @@ void VolumeView::dataChanged(const QModelIndex& topLeft, const QModelIndex& bott
   {
     Segmentation *seg = dynamic_cast<Segmentation *>(item);
     assert(seg); // If not sample, it has to be a segmentation
-    dp->setRepresentationVisibility(seg->outputPort(), m_view, seg->visible());
+    foreach (IViewWidget *widget, m_widgets)
+    {
+      if (widget->isChecked())
+	widget->renderInView(index,m_view);
+    }
   }
   
   m_view->render();

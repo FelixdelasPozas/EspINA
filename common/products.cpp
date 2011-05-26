@@ -332,6 +332,16 @@ Segmentation::Segmentation(EspinaFilter* parent, vtkFilter* creator, int portNum
 }
 
 //------------------------------------------------------------------------
+Segmentation::~Segmentation()
+{
+  foreach(ISegmentationExtension *ext, m_extensions)
+    delete ext;
+  
+  foreach(ISegmentationRepresentation *rep, m_repMap)
+    delete rep;
+}
+
+//------------------------------------------------------------------------
 QVariant Segmentation::data(int role) const
 {
   switch (role)

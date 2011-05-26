@@ -143,6 +143,7 @@ class Segmentation : public EspinaProduct
 {
 public:
   Segmentation(EspinaFilter *parent, vtkFilter *creator, int portNumber);
+  virtual ~Segmentation();
   
   //! Reimplements ITraceNode Interface
   virtual QString label() const {return "Segmentation";}
