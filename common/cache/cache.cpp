@@ -65,6 +65,7 @@ void Cache::insert(const Index& index, vtkFilter* filter, bool persistent)
 void Cache::reference(const Cache::Index& index)
 {
   m_cachedProxies[index].refCounter++;
+  qDebug() << index << m_cachedProxies[index].refCounter;
 }
 
 vtkFilter *Cache::getEntry(const Cache::Index index) const
@@ -91,7 +92,9 @@ vtkFilter *Cache::getEntry(const Cache::Index index) const
 void Cache::remove(const Cache::Index& index)
 {
   assert(m_cachedProxies.contains(index));
-  if (--m_cachedProxies[index].refCounter == 0)
+  m_cachedProxies[index].refCounter--;
+  qDebug() << index << m_cachedProxies[index].refCounter;
+  if (m_cachedProxies[index].refCounter == 0)
   {
     delete m_cachedProxies[index].filter;
     m_cachedProxies.remove(index);

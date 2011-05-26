@@ -62,7 +62,9 @@ ColorRepresentation::ColorRepresentation(Segmentation* seg)
 
 ColorRepresentation::~ColorRepresentation()
 {
-  delete m_rep;
+  qDebug() << "Deleted Color Representation from " << m_seg->id();
+  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+  cob->removeFilter(m_rep);
 }
 
 

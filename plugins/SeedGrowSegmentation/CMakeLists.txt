@@ -71,7 +71,7 @@ ADD_PARAVIEW_PLUGIN(
   SeedGrowSegmentationPlugin
   "0.1" 
   SERVER_MANAGER_XML SeedGrowSegmentationFilters.xml
-  #SERVER_MANAGER_SOURCES vtkConnectedThresholdImageFilter.cpp
+  SERVER_MANAGER_SOURCES vtkConnectedThresholdImageFilter.cpp
 	#According to: http://markmail.org/message/wj27wmlj6rjd7vg5
 	# - See the macro documentation in ParaView/CMake/ParaViewPlugins.cmake:~835
 	# - the parser doesn't work because it seems there is no vtkClass inside

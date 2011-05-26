@@ -2,6 +2,9 @@
 <Taxonomy>
     <node name="FEM" color="#00ff00">
         <node name="Synapse" color="#ff0000">
+            <node name="Symetric" color="#ff0000"/>
+            <node name="Asymetric" color="#ffff00"/>
+        </node>
         <node name="Vesicles" color="#00ff00"/>
     </node>
 </Taxonomy>

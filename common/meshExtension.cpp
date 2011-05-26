@@ -42,7 +42,6 @@
 MeshRepresentation::MeshRepresentation(Segmentation* seg)
 : ISegmentationRepresentation(seg)
 {
-  // Create Default Volumetric Representation
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   
   vtkFilter::Arguments contourArgs;
@@ -57,7 +56,9 @@ MeshRepresentation::MeshRepresentation(Segmentation* seg)
 
 MeshRepresentation::~MeshRepresentation()
 {
-  delete m_rep->creator();//vtkProduct default beheaviour doesn't delete its filter
+  qDebug() << "Deleted Mesh Representation from " << m_seg->id();
+  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+  cob->removeFilter(m_rep->creator());//vtkProduct default beheaviour doesn't delete its filter
   delete m_rep;
 }
 
