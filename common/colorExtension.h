@@ -17,24 +17,42 @@
 */
 
 
-#ifndef SEGMENTATIONEXPLORER_H
-#define SEGMENTATIONEXPLORER_H
+#ifndef COLORREPRESENTATION_H
+#define COLORREPRESENTATION_H
 
-#include <QWidget>
-#include "ui_segmentationExplorer.h"
+#include <EspinaPlugin.h>
 
-class Segmentation;
-class pqRenderView;
+class vtkFilter;
+class vtkSMRGBALookupTableProxy;
 
-class SegmentationExplorer : public QWidget, public Ui::SegmentationExplorer
+class ColorRepresentation : public ISegmentationRepresentation
 {
-  Q_OBJECT
+
 public:
-  SegmentationExplorer(Segmentation *seg, QWidget* parent = 0, Qt::WindowFlags f = 0);
-  virtual ~SegmentationExplorer();
+  ColorRepresentation(Segmentation* seg);
+  virtual ~ColorRepresentation();
   
+  virtual pqPipelineSource* pipelineSource();
+  virtual void render(pqView* view);
+
 private:
-  pqRenderView *view;
+  vtkSMRGBALookupTableProxy *m_LUT;
+  vtkFilter *m_rep;
 };
 
-#endif // SEGMENTATIONEXPLORER_H
+
+class ColorExtension : public ISegmentationExtension
+{
+public:
+  static const ExtensionId ID;
+  
+public:
+  virtual ExtensionId id();
+  virtual void initialize(Segmentation* seg);
+  virtual void addInformation(InformationMap& map);
+  virtual void addRepresentations(RepresentationMap& map);
+  
+  virtual ISegmentationExtension* clone();
+};
+
+#endif // COLORREPRESENTATION_H

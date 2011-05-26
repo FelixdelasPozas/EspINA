@@ -22,6 +22,8 @@
 #include "espina.h"
 #include "products.h"
 
+#include <QDebug>
+
 UnitExplorer::UnitExplorer(QWidget* parent, Qt::WindowFlags f)
 : QWidget(parent, f)
 {
@@ -29,20 +31,14 @@ UnitExplorer::UnitExplorer(QWidget* parent, Qt::WindowFlags f)
   
 }
 
-
-void UnitExplorer::setVisible(bool visible)
+void UnitExplorer::setSample(Sample* sample)
 {
-  QWidget::setVisible(visible);
-  
   double spacing[3];
   
-  if (!EspINA::instance()->activeSample())
-    return;
+  sample->spacing(spacing);
   
-  EspINA::instance()->activeSample()->spacing(spacing);
-  
-  m_xDist->setValue(spacing[0]);
-  m_yDist->setValue(spacing[1]);
-  m_zDist->setValue(spacing[2]);
+  m_xSize->setValue(spacing[0]);
+  m_ySize->setValue(spacing[1]);
+  m_zSize->setValue(spacing[2]);
 }
 

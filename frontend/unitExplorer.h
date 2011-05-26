@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
+    Copyright (C) <year>  <name of author>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -14,27 +14,23 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 */
 
-
-#ifndef SEGMENTATIONEXPLORER_H
-#define SEGMENTATIONEXPLORER_H
+#ifndef UNITEXPLORER_H
+#define UNITEXPLORER_H
 
 #include <QWidget>
-#include "ui_segmentationExplorer.h"
+#include "ui_unitExplorer.h"
 
-class Segmentation;
-class pqRenderView;
+class Sample;
 
-class SegmentationExplorer : public QWidget, public Ui::SegmentationExplorer
+class UnitExplorer : public QWidget, private Ui::UnitExplorer
 {
-  Q_OBJECT
+ Q_OBJECT
 public:
-  SegmentationExplorer(Segmentation *seg, QWidget* parent = 0, Qt::WindowFlags f = 0);
-  virtual ~SegmentationExplorer();
-  
-private:
-  pqRenderView *view;
+  UnitExplorer(QWidget* parent = 0, Qt::WindowFlags f = 0);
+    
+  virtual void setSample(Sample *sample);
 };
-
-#endif // SEGMENTATIONEXPLORER_H
+#endif // UNITEXPLORER_H

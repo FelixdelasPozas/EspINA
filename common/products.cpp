@@ -35,7 +35,6 @@
 #include "data/hash.h"
 #include <pqOutputPort.h>
 #include <vtkPVDataInformation.h>
-#include "unitExplorer.h"
 #include <vtkSMRGBALookupTableProxy.h>
 #include <vtkSMProperty.h>
 #include <vtkSMProxyProperty.h>
@@ -306,8 +305,6 @@ void Sample::bounds(double *out)
 //------------------------------------------------------------------------
 void Sample::spacing(double* out)
 {
-  //TODO: Sorry, but no time to make it better
-  double spacing[3];
   int e[6];
   double b[6];
   extent(e);
@@ -315,10 +312,10 @@ void Sample::spacing(double* out)
   out[0] = b[1] / e[1];
   out[1] = b[3] / e[3];
   out[2] = b[5] / e[5];
-  qDebug() << "Spacing";
-  qDebug() << e[0] << e[1] << e[2] << e[3] << e[4] << e[5];
-  qDebug() << b[0] << b[1] << b[2] << b[3] << b[4] << b[5];
-  qDebug() << out[0] << out[1] << out[2];
+//   qDebug() << "Spacing";
+//   qDebug() << e[0] << e[1] << e[2] << e[3] << e[4] << e[5];
+//   qDebug() << b[0] << b[1] << b[2] << b[3] << b[4] << b[5];
+//   qDebug() << out[0] << out[1] << out[2];
 }
 
 
@@ -347,7 +344,7 @@ QVariant Segmentation::data(int role) const
   switch (role)
   {
     case Qt::DisplayRole:
-    case Qt::EditRole:
+    //case Qt::EditRole:
       return label();
     case Qt::DecorationRole:
       return m_taxonomy->getColor();
@@ -364,7 +361,6 @@ bool Segmentation::setData(const QVariant& value, int role)
  if (role == Qt::EditRole)
     {
       //TODO: change segmentation name
-      return true;
     }
     if (role == Qt::CheckStateRole)
     {

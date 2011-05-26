@@ -15,44 +15,49 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-//TODO: ITS ONLY A PROTOTYPE
 
-#include "SegmentationExplorer.h"
 
+#include "meshRenderer.h"
 #include "products.h"
 
-#include <pqObjectBuilder.h>
+// Para View
 #include <pqApplicationCore.h>
-#include <pqActiveObjects.h>
-#include <pqRenderView.h>
-#include <espina.h>
 #include <pqDisplayPolicy.h>
-#include <pqDataRepresentation.h>
 #include <pqPipelineRepresentation.h>
+#include <vtkSMProxy.h>
+#include <pqServer.h>
+#include <pqScalarsToColors.h>
+#include <vtkSMDoubleVectorProperty.h>
+#include <vtkSMProxyProperty.h>
+#include <pqLookupTableManager.h>
 
-
-SegmentationExplorer::SegmentationExplorer(Segmentation *seg, QWidget* parent, Qt::WindowFlags f)
-: QWidget(parent, f)
-, view(NULL)
+MeshRenderer::MeshRenderer(QWidget* parent)
+: IViewWidget(parent)
 {
-  setupUi(this);
-  
-  if (!view)
+
+}
+
+
+void MeshRenderer::updateState(bool checked)
+{
+
+}
+
+IViewWidget* MeshRenderer::clone()
+{
+
+}
+
+void MeshRenderer::renderInView(QModelIndex index, pqView* view)
+{
+  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+
+  for (int row = 0; row < index.model()->rowCount(index); row++)
   {
-    pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
-    pqServer * server= pqActiveObjects::instance().activeServer();
-    view = qobject_cast<pqRenderView*>(ob->createView( pqRenderView::renderViewType(), server));
-    
-    this->viewLayout->addWidget(view->getWidget());
-    view->setCenterAxesVisibility(false);
+    IModelItem *item = static_cast<IModelItem *>(index.child(row,0).internalPointer());
+    Segmentation *seg = dynamic_cast<Segmentation *>(item);
     
     seg->representation("Mesh")->render(view);
   }
-}
-
-SegmentationExplorer::~SegmentationExplorer()
-{
-  pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
-  ob->destroy(view);
 }
 

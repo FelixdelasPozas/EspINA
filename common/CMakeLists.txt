@@ -17,18 +17,12 @@ qt4_wrap_cpp(MOC_BUILT_SOURCES
   espina.h
   pixelSelector.h
   selectionManager.h
-  unitExplorer.h
   EspinaPlugin.h
   ui/volumeView.h
   ui/sliceView.h
   volumetricRenderer.h
   meshRenderer.h
 )
-
-# Create Interface files
-qt4_wrap_ui (UI_BUILT_SOURCES
-  unitExplorer.ui
-  )
 
 source_group("Generated" FILES
   ${MOC_BUILT_SOURCES}

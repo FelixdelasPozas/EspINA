@@ -10,12 +10,22 @@
     <height>300</height>
    </rect>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>400</width>
+    <height>300</height>
+   </size>
+  </property>
   <property name="windowTitle">
    <string>Segmentation Exporer</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
-    <layout class="QHBoxLayout" name="viewLayout"/>
+    <layout class="QHBoxLayout" name="viewLayout">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetDefaultConstraint</enum>
+     </property>
+    </layout>
    </item>
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">

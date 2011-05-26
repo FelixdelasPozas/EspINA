@@ -43,33 +43,35 @@
 #include "colorExtension.h"
 #include "meshExtension.h"
 #include "volumetricExtension.h"
+#include "sampleEditor.h"
+#include "segmentationEditor.h"
 
 //ParaQ includes
-#include "pqHelpReaction.h"
-#include "pqObjectInspectorWidget.h"
-#include "pqParaViewBehaviors.h"
-#include "pqParaViewMenuBuilders.h"
-#include "pqLoadDataReaction.h"
-#include "pqSaveDataReaction.h"
-#include "pqPipelineSource.h"
-#include "vtkPVPlugin.h"
-#include "pqOutputPort.h"
-#include "pqServerManagerObserver.h"
-#include "vtkSMOutputPort.h"
-#include "vtkSMProperty.h"
+#include <pqHelpReaction.h>
+#include <pqObjectInspectorWidget.h>
+#include <pqParaViewBehaviors.h>
+#include <pqParaViewMenuBuilders.h>
+#include <pqLoadDataReaction.h>
+#include <pqSaveDataReaction.h>
+#include <pqPipelineSource.h>
+#include <vtkPVPlugin.h>
+#include <pqOutputPort.h>
+#include <pqServerManagerObserver.h>
+#include <vtkSMOutputPort.h>
+#include <vtkSMProperty.h>
 #include <vtkSMReaderFactory.h>
 #include <vtkSMProxyManager.h>
 #include <pqCoreUtilities.h>
 #include <pqServer.h>
 
-#include "pqRenderView.h"
-#include "pqTwoDRenderView.h"
-#include "pqRepresentation.h"
-#include "pqApplicationCore.h"
-#include "pqActiveObjects.h"
-#include "pqObjectBuilder.h"
-#include "pqObjectInspectorWidget.h"
-#include "pqDisplayPolicy.h"
+#include <pqRenderView.h>
+#include <pqTwoDRenderView.h>
+#include <pqRepresentation.h>
+#include <pqApplicationCore.h>
+#include <pqActiveObjects.h>
+#include <pqObjectBuilder.h>
+#include <pqObjectInspectorWidget.h>
+#include <pqDisplayPolicy.h>
 #include <pqFileDialog.h>
 
 //VTK Includes
@@ -143,10 +145,6 @@ EspinaMainWindow::EspinaMainWindow()
 
   //// Setup the View menu. This must be setup after all toolbars and dockwidgets
   //// have been created.
-  //TODO:m_unitExplorer = new UnitExplorer();
-  //TODO:connect(this->Internals->actionUnits, SIGNAL(triggered()), m_unitExplorer, SLOT(show()));
-  SegmentationExplorer *segExpl = new SegmentationExplorer();
-  connect(this->Internals->actionSegmentationExplorer, SIGNAL(triggered()), segExpl, SLOT(show()));
   pqParaViewMenuBuilders::buildViewMenu(*this->Internals->menu_View, *this);
 
   //// Setup the help menu.
@@ -191,6 +189,8 @@ EspinaMainWindow::EspinaMainWindow()
   this->Internals->groupList->setCurrentIndex(1);
   
   // Segmentation Manager Panel
+  SegmentationEditor *segEditor = new SegmentationEditor();
+  this->Internals->segmentationView->setItemDelegate(segEditor);
   this->Internals->segmentationView->installEventFilter(this);
   connect(this->Internals->deleteSegmentation, SIGNAL(clicked()),
           this, SLOT(deleteSegmentations()));
@@ -230,6 +230,8 @@ EspinaMainWindow::EspinaMainWindow()
   connect(this->Internals->taxonomyColorSelector,SIGNAL(clicked()),this,SLOT(changeTaxonomyColor()));
 
   // Sample Explorer
+  SampleEditor *sed = new SampleEditor();
+  this->Internals->sampleView->setItemDelegate(sed);
   this->Internals->sampleView->setModel(m_espina);
   this->Internals->sampleView->setRootIndex(m_espina->sampleRoot());
   connect(this->Internals->makeActiveSample,SIGNAL(clicked()),this,SLOT(focusOnSample()));

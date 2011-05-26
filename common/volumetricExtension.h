@@ -17,24 +17,37 @@
 */
 
 
-#ifndef SEGMENTATIONEXPLORER_H
-#define SEGMENTATIONEXPLORER_H
+#ifndef VOLUMETRICEXTENSION_H
+#define VOLUMETRICEXTENSION_H
 
-#include <QWidget>
-#include "ui_segmentationExplorer.h"
+#include <EspinaPlugin.h>
 
-class Segmentation;
-class pqRenderView;
+class pqScalarsToColors;
 
-class SegmentationExplorer : public QWidget, public Ui::SegmentationExplorer
+class VolumetricRepresentation : public ISegmentationRepresentation
 {
-  Q_OBJECT
 public:
-  SegmentationExplorer(Segmentation *seg, QWidget* parent = 0, Qt::WindowFlags f = 0);
-  virtual ~SegmentationExplorer();
+  VolumetricRepresentation(Segmentation* seg);
+  
+  virtual pqPipelineSource* pipelineSource();
+  virtual void render(pqView* view);
   
 private:
-  pqRenderView *view;
+  pqScalarsToColors *m_LUT;  
 };
 
-#endif // SEGMENTATIONEXPLORER_H
+class VolumetricExtension : public ISegmentationExtension
+{
+public:
+  static const ExtensionId ID;
+  
+public:
+  virtual ExtensionId id();
+  virtual void initialize(Segmentation* seg);
+  virtual void addInformation(InformationMap& map);
+  virtual void addRepresentations(RepresentationMap& map);
+  
+  virtual ISegmentationExtension* clone();
+};
+
+#endif // VOLUMETRICEXTENSION_H

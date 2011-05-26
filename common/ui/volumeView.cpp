@@ -20,7 +20,6 @@
 #include "volumeView.h"
 
 #include "interfaces.h"
-#include "renderer.h"
 #include "products.h"
 
 // GUI
@@ -95,14 +94,12 @@ void VolumeView::connectToServer()
 //-----------------------------------------------------------------------------
 void VolumeView::disconnectFromServer()
 {
-  // TODO: Review
+  pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
   if (m_view)
   {
-    //qDebug() << "Deleting Widget";
     m_mainLayout->removeWidget(m_viewWidget);
-    //qDebug() << "Deleting View";
-    //TODO: BugFix -> destroy previous instance of m_view
-    //pqApplicationCore::instance()->getObjectBuilder()->destroy(m_view);
+    ob->destroy(m_view);
+    m_view = NULL;
   }
 }
 
