@@ -17,20 +17,42 @@
 */
 
 
-#ifndef VOLUMETRICRENDERER_H
-#define VOLUMETRICRENDERER_H
+#ifndef COLORREPRESENTATION_H
+#define COLORREPRESENTATION_H
 
 #include <EspinaPlugin.h>
 
+class vtkFilter;
+class vtkSMRGBALookupTableProxy;
 
-class VolumetricRenderer : public IViewWidget
+class ColorRepresentation : public ISegmentationRepresentation
 {
 
 public:
-  VolumetricRenderer(QWidget* parent = 0);
-  virtual void updateState(bool checked);
-  virtual IViewWidget* clone();
-  virtual void renderInView(QModelIndex index, pqView* view);
+  ColorRepresentation(Segmentation* seg);
+  virtual ~ColorRepresentation();
+  
+  virtual pqPipelineSource* pipelineSource();
+  virtual void render(pqView* view);
+
+private:
+  vtkSMRGBALookupTableProxy *m_LUT;
+  vtkFilter *m_rep;
 };
 
-#endif // VOLUMETRICRENDERER_H
+
+class ColorExtension : public ISegmentationExtension
+{
+public:
+  static const ExtensionId ID;
+  
+public:
+  virtual ExtensionId id();
+  virtual void initialize(Segmentation* seg);
+  virtual void addInformation(InformationMap& map);
+  virtual void addRepresentations(RepresentationMap& map);
+  
+  virtual ISegmentationExtension* clone();
+};
+
+#endif // COLORREPRESENTATION_H

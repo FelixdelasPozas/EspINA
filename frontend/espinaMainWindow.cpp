@@ -34,37 +34,44 @@
 #include "ui_espinaMainWindow.h"
 #include "espINAFactory.h"
 #include "distance.h"
-#include "unitExplorer.h"
 #include "selectionManager.h"
 #include "data/taxonomy.h"
 #include "espina.h"
+#include "SegmentationExplorer.h"
+#include "meshRenderer.h"
+#include "volumetricRenderer.h"
+#include "colorExtension.h"
+#include "meshExtension.h"
+#include "volumetricExtension.h"
+#include "sampleEditor.h"
+#include "segmentationEditor.h"
 
 //ParaQ includes
-#include "pqHelpReaction.h"
-#include "pqObjectInspectorWidget.h"
-#include "pqParaViewBehaviors.h"
-#include "pqParaViewMenuBuilders.h"
-#include "pqLoadDataReaction.h"
-#include "pqSaveDataReaction.h"
-#include "pqPipelineSource.h"
-#include "vtkPVPlugin.h"
-#include "pqOutputPort.h"
-#include "pqServerManagerObserver.h"
-#include "vtkSMOutputPort.h"
-#include "vtkSMProperty.h"
+#include <pqHelpReaction.h>
+#include <pqObjectInspectorWidget.h>
+#include <pqParaViewBehaviors.h>
+#include <pqParaViewMenuBuilders.h>
+#include <pqLoadDataReaction.h>
+#include <pqSaveDataReaction.h>
+#include <pqPipelineSource.h>
+#include <vtkPVPlugin.h>
+#include <pqOutputPort.h>
+#include <pqServerManagerObserver.h>
+#include <vtkSMOutputPort.h>
+#include <vtkSMProperty.h>
 #include <vtkSMReaderFactory.h>
 #include <vtkSMProxyManager.h>
 #include <pqCoreUtilities.h>
 #include <pqServer.h>
 
-#include "pqRenderView.h"
-#include "pqTwoDRenderView.h"
-#include "pqRepresentation.h"
-#include "pqApplicationCore.h"
-#include "pqActiveObjects.h"
-#include "pqObjectBuilder.h"
-#include "pqObjectInspectorWidget.h"
-#include "pqDisplayPolicy.h"
+#include <pqRenderView.h>
+#include <pqTwoDRenderView.h>
+#include <pqRepresentation.h>
+#include <pqApplicationCore.h>
+#include <pqActiveObjects.h>
+#include <pqObjectBuilder.h>
+#include <pqObjectInspectorWidget.h>
+#include <pqDisplayPolicy.h>
 #include <pqFileDialog.h>
 
 //VTK Includes
@@ -91,8 +98,6 @@
 #include "Crosshairs.h"
 #include <pqServerManagerModel.h>
 #include <pqServerDisconnectReaction.h>
-#include "SegmentationExplorer.h"
-#include <volumeRenderer.h>
 
 const QString FILTERS("Trace Files (*.trace)");
 const QString SEG_FILTERS("Seg Files (*.seg)");
@@ -140,10 +145,6 @@ EspinaMainWindow::EspinaMainWindow()
 
   //// Setup the View menu. This must be setup after all toolbars and dockwidgets
   //// have been created.
-  m_unitExplorer = new UnitExplorer();
-  connect(this->Internals->actionUnits, SIGNAL(triggered()), m_unitExplorer, SLOT(show()));
-  SegmentationExplorer *segExpl = new SegmentationExplorer();
-  connect(this->Internals->actionSegmentationExplorer, SIGNAL(triggered()), segExpl, SLOT(show()));
   pqParaViewMenuBuilders::buildViewMenu(*this->Internals->menu_View, *this);
 
   //// Setup the help menu.
@@ -153,9 +154,18 @@ EspinaMainWindow::EspinaMainWindow()
   pqServerManagerObserver *server = pqApplicationCore::instance()->getServerManagerObserver();
 
   
+  MeshRenderer *mesh = new MeshRenderer();
+  EspINAFactory::instance()->addViewWidget(mesh);
   VolumetricRenderer *volumetric = new VolumetricRenderer();
   EspINAFactory::instance()->addViewWidget(volumetric);
 
+  ColorExtension colorExt;
+  EspINAFactory::instance()->addSegmentationExtension(&colorExt);
+  MeshExtension meshExt;
+  EspINAFactory::instance()->addSegmentationExtension(&meshExt);
+  VolumetricExtension volExt;
+  EspINAFactory::instance()->addSegmentationExtension(&volExt);
+  
   
   //! BUILD ESPINA INTERNALS
 
@@ -179,6 +189,8 @@ EspinaMainWindow::EspinaMainWindow()
   this->Internals->groupList->setCurrentIndex(1);
   
   // Segmentation Manager Panel
+  SegmentationEditor *segEditor = new SegmentationEditor();
+  this->Internals->segmentationView->setItemDelegate(segEditor);
   this->Internals->segmentationView->installEventFilter(this);
   connect(this->Internals->deleteSegmentation, SIGNAL(clicked()),
           this, SLOT(deleteSegmentations()));
@@ -209,19 +221,17 @@ EspinaMainWindow::EspinaMainWindow()
             m_espina,
             SLOT(onProxyCreated(pqProxy*)));
   
-  // Final step, define application behaviors. Since we want all ParaView
-  // behaviors, we use this convenience method.
-  new pqParaViewBehaviors(this, this);
-  
   // Taxonomy Editor
   this->Internals->taxonomyView->setModel(m_espina);
-//   this->Internals->taxonomyView->setRootIndex(m_espina->taxonomyRoot());
+  this->Internals->taxonomyView->setRootIndex(m_espina->taxonomyRoot());
   connect(this->Internals->addTaxonomy,SIGNAL(clicked()),this,SLOT(addTaxonomyElement()));
   connect(this->Internals->addTaxonomyChild,SIGNAL(clicked()),this,SLOT(addTaxonomyChildElement()));
   connect(this->Internals->removeTaxonomy,SIGNAL(clicked()),this,SLOT(removeTaxonomyElement()));
   connect(this->Internals->taxonomyColorSelector,SIGNAL(clicked()),this,SLOT(changeTaxonomyColor()));
 
   // Sample Explorer
+  SampleEditor *sed = new SampleEditor();
+  this->Internals->sampleView->setItemDelegate(sed);
   this->Internals->sampleView->setModel(m_espina);
   this->Internals->sampleView->setRootIndex(m_espina->sampleRoot());
   connect(this->Internals->makeActiveSample,SIGNAL(clicked()),this,SLOT(focusOnSample()));
@@ -313,7 +323,7 @@ EspinaMainWindow::EspinaMainWindow()
   new pqParaViewBehaviors(this, this);
 
   // Debug load stack
-  QMetaObject::invokeMethod(this, "autoLoadStack", Qt::QueuedConnection);
+  //QMetaObject::invokeMethod(this, "autoLoadStack", Qt::QueuedConnection);
 
 }
 

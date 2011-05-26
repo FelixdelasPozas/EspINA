@@ -17,7 +17,7 @@
 */
 
 
-#include "volumeRenderer.h"
+#include "meshRenderer.h"
 #include "products.h"
 
 // Para View
@@ -31,24 +31,24 @@
 #include <vtkSMProxyProperty.h>
 #include <pqLookupTableManager.h>
 
-VolumetricRenderer::VolumetricRenderer(QWidget* parent)
+MeshRenderer::MeshRenderer(QWidget* parent)
 : IViewWidget(parent)
 {
 
 }
 
 
-void VolumetricRenderer::updateState(bool checked)
+void MeshRenderer::updateState(bool checked)
 {
 
 }
 
-IViewWidget* VolumetricRenderer::clone()
+IViewWidget* MeshRenderer::clone()
 {
 
 }
 
-void VolumetricRenderer::renderInView(QModelIndex index, pqView* view)
+void MeshRenderer::renderInView(QModelIndex index, pqView* view)
 {
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
 
@@ -56,39 +56,8 @@ void VolumetricRenderer::renderInView(QModelIndex index, pqView* view)
   {
     IModelItem *item = static_cast<IModelItem *>(index.child(row,0).internalPointer());
     Segmentation *seg = dynamic_cast<Segmentation *>(item);
-     
-    pqDataRepresentation *dr = dp->setRepresentationVisibility(seg->outputPort(),view,true);
-    pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
-    assert(rep);
-    rep->setRepresentation(4);
     
-    vtkSMProxy *repProxy = rep->getProxy();
-  
-    // Get (or create if it doesn't exit) the lut for the segmentations' images
-    pqServer *server =  pqApplicationCore::instance()->getActiveServer();
-    pqScalarsToColors *segLUT = pqApplicationCore::instance()->getLookupTableManager()->getLookupTable(server,seg->taxonomy()->getName(),4,0);
-    if (segLUT)
-    {
-      //std::cout << "ScalarToColors\n";
-      vtkSMDoubleVectorProperty *rgbs = vtkSMDoubleVectorProperty::SafeDownCast(
-	segLUT->getProxy()->GetProperty("RGBPoints"));
-      if (rgbs)
-      {
-	double rgba[4];
-	seg->color(rgba);
-	double colors[8] = {0,0,0,0,1,rgba[0],rgba[1],rgba[2]};
-	rgbs->SetElements(colors);
-      }
-      segLUT->getProxy()->UpdateVTKObjects();
-    }
-    vtkSMProxyProperty *lut = vtkSMProxyProperty::SafeDownCast(repProxy->GetProperty("LookupTable"));
-    if (lut)
-    {
-      lut->SetProxy(0,segLUT->getProxy());
-    }
-    
-    
-    rep->getProxy()->UpdateVTKObjects();
+    seg->representation("Mesh")->render(view);
   }
 }
 

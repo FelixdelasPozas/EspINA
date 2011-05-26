@@ -17,24 +17,20 @@
 */
 
 
-#ifndef SEGMENTATIONEXPLORER_H
-#define SEGMENTATIONEXPLORER_H
+#ifndef MESHRENDERER_H
+#define MESHRENDERER_H
 
-#include <QWidget>
-#include "ui_segmentationExplorer.h"
+#include <EspinaPlugin.h>
 
-class Segmentation;
-class pqRenderView;
 
-class SegmentationExplorer : public QWidget, public Ui::SegmentationExplorer
+class MeshRenderer : public IViewWidget
 {
-  Q_OBJECT
+
 public:
-  SegmentationExplorer(Segmentation *seg, QWidget* parent = 0, Qt::WindowFlags f = 0);
-  virtual ~SegmentationExplorer();
-  
-private:
-  pqRenderView *view;
+  MeshRenderer(QWidget* parent = 0);
+  virtual void updateState(bool checked);
+  virtual IViewWidget* clone();
+  virtual void renderInView(QModelIndex index, pqView* view);
 };
 
-#endif // SEGMENTATIONEXPLORER_H
+#endif // MESHRENDERER_H

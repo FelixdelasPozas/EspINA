@@ -5,13 +5,32 @@
 #include <QToolButton>
 #include <QModelIndex>
 
+class pqPipelineSource;
 class EspinaFilter;
 class Segmentation;
 class pqView;
 
+class ISegmentationRepresentation
+{
+public:
+  ISegmentationRepresentation(Segmentation *seg) : m_seg(seg) {}
+  virtual ~ISegmentationRepresentation(){}
+  
+  //! Create a new representation in the given view
+  virtual void render(pqView *view) = 0;
+  //! Returns the output port needed to connect it to other filters
+  //! NOTE: This method must update internal properties if needed
+  virtual pqPipelineSource *pipelineSource() = 0;
+
+protected:
+  Segmentation *m_seg;
+};
+
 //! Interface to extend segmentation behaviour
 class ISegmentationExtension {
 public:
+  
+  virtual ~ISegmentationExtension(){}
   
   virtual ExtensionId id() = 0;
   virtual void initialize(Segmentation *seg) = 0;
@@ -25,7 +44,6 @@ public:
   
 protected:
   ISegmentationExtension() : m_seg(NULL), m_init(false){}
-  virtual ~ISegmentationExtension(){}
   
   Segmentation *m_seg;
   bool m_init; // Wheteher the extentation has been initialized or not

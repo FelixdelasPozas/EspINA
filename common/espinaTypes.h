@@ -7,7 +7,7 @@
 #include <QMap>
 #include <QVariant>
 
-class vtkProduct;
+class ISegmentationRepresentation;
 
 typedef NodeArg EspinaArg;
 typedef NodeParam EspinaParam;
@@ -35,7 +35,7 @@ struct Point
 typedef Point ImagePixel;
 
 typedef QMap<QString, QVariant> InformationMap;
-typedef QMap<QString, vtkProduct *> RepresentationMap;
+typedef QMap<QString, ISegmentationRepresentation *> RepresentationMap;
 typedef QString ExtensionId;
 
 

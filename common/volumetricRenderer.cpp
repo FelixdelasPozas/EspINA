@@ -15,44 +15,51 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-//TODO: ITS ONLY A PROTOTYPE
 
-#include "SegmentationExplorer.h"
 
+#include "volumetricRenderer.h"
 #include "products.h"
 
-#include <pqObjectBuilder.h>
+// Para View
 #include <pqApplicationCore.h>
-#include <pqActiveObjects.h>
-#include <pqRenderView.h>
-#include <espina.h>
 #include <pqDisplayPolicy.h>
-#include <pqDataRepresentation.h>
 #include <pqPipelineRepresentation.h>
+#include <vtkSMProxy.h>
+#include <pqServer.h>
+#include <pqScalarsToColors.h>
+#include <vtkSMDoubleVectorProperty.h>
+#include <vtkSMProxyProperty.h>
+#include <pqLookupTableManager.h>
 
-
-SegmentationExplorer::SegmentationExplorer(Segmentation *seg, QWidget* parent, Qt::WindowFlags f)
-: QWidget(parent, f)
-, view(NULL)
+VolumetricRenderer::VolumetricRenderer(QWidget* parent)
+: IViewWidget(parent)
 {
-  setupUi(this);
-  
-  if (!view)
-  {
-    pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
-    pqServer * server= pqActiveObjects::instance().activeServer();
-    view = qobject_cast<pqRenderView*>(ob->createView( pqRenderView::renderViewType(), server));
-    
-    this->viewLayout->addWidget(view->getWidget());
-    view->setCenterAxesVisibility(false);
-    
-    seg->representation("Mesh")->render(view);
-  }
+
 }
 
-SegmentationExplorer::~SegmentationExplorer()
+
+void VolumetricRenderer::updateState(bool checked)
 {
-  pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
-  ob->destroy(view);
+
+}
+
+IViewWidget* VolumetricRenderer::clone()
+{
+
+}
+
+void VolumetricRenderer::renderInView(QModelIndex index, pqView* view)
+{
+  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+ 
+  IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+  Segmentation *seg = dynamic_cast<Segmentation *>(item);
+  if (seg)
+    seg->representation("Volumetric")->render(view);
+
+  for (int row = 0; row < index.model()->rowCount(index); row++)
+  {
+    renderInView(index.child(row,0),view);
+  }
 }
 

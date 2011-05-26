@@ -17,24 +17,40 @@
 */
 
 
-#ifndef SEGMENTATIONEXPLORER_H
-#define SEGMENTATIONEXPLORER_H
+#ifndef MESHEXTENSION_H
+#define MESHEXTENSION_H
 
-#include <QWidget>
-#include "ui_segmentationExplorer.h"
+#include <EspinaPlugin.h>
 
-class Segmentation;
-class pqRenderView;
+class pqScalarsToColors;
+class vtkProduct;
 
-class SegmentationExplorer : public QWidget, public Ui::SegmentationExplorer
+class MeshRepresentation : public ISegmentationRepresentation
 {
-  Q_OBJECT
 public:
-  SegmentationExplorer(Segmentation *seg, QWidget* parent = 0, Qt::WindowFlags f = 0);
-  virtual ~SegmentationExplorer();
+  MeshRepresentation(Segmentation* seg);
+  virtual ~MeshRepresentation();
+  
+  virtual pqPipelineSource* pipelineSource();
+  virtual void render(pqView* view);
   
 private:
-  pqRenderView *view;
+  pqScalarsToColors *m_LUT;  
+  vtkProduct *m_rep;
 };
 
-#endif // SEGMENTATIONEXPLORER_H
+class MeshExtension : public ISegmentationExtension
+{
+public:
+  static const ExtensionId ID;
+  
+public:
+  virtual ExtensionId id();
+  virtual void initialize(Segmentation* seg);
+  virtual void addInformation(InformationMap& map);
+  virtual void addRepresentations(RepresentationMap& map);
+  
+  virtual ISegmentationExtension* clone();
+};
+
+#endif // MESHEXTENSION_H

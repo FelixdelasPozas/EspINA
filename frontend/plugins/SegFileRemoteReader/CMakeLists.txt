@@ -14,4 +14,4 @@ ADD_PARAVIEW_PLUGIN(
   GUI_RESOURCE_FILES RemoteFileGUI.xml
 )
 
-target_link_libraries(RemoteFile)
+#target_link_libraries(RemoteFile)

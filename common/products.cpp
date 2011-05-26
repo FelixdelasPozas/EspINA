@@ -35,7 +35,6 @@
 #include "data/hash.h"
 #include <pqOutputPort.h>
 #include <vtkPVDataInformation.h>
-#include "unitExplorer.h"
 #include <vtkSMRGBALookupTableProxy.h>
 #include <vtkSMProperty.h>
 #include <vtkSMProxyProperty.h>
@@ -306,8 +305,6 @@ void Sample::bounds(double *out)
 //------------------------------------------------------------------------
 void Sample::spacing(double* out)
 {
-  //TODO: Sorry, but no time to make it better
-  double spacing[3];
   int e[6];
   double b[6];
   extent(e);
@@ -315,10 +312,10 @@ void Sample::spacing(double* out)
   out[0] = b[1] / e[1];
   out[1] = b[3] / e[3];
   out[2] = b[5] / e[5];
-  qDebug() << "Spacing";
-  qDebug() << e[0] << e[1] << e[2] << e[3] << e[4] << e[5];
-  qDebug() << b[0] << b[1] << b[2] << b[3] << b[4] << b[5];
-  qDebug() << out[0] << out[1] << out[2];
+//   qDebug() << "Spacing";
+//   qDebug() << e[0] << e[1] << e[2] << e[3] << e[4] << e[5];
+//   qDebug() << b[0] << b[1] << b[2] << b[3] << b[4] << b[5];
+//   qDebug() << out[0] << out[1] << out[2];
 }
 
 
@@ -332,12 +329,22 @@ Segmentation::Segmentation(EspinaFilter* parent, vtkFilter* creator, int portNum
 }
 
 //------------------------------------------------------------------------
+Segmentation::~Segmentation()
+{
+  foreach(ISegmentationExtension *ext, m_extensions)
+    delete ext;
+  
+  foreach(ISegmentationRepresentation *rep, m_repMap)
+    delete rep;
+}
+
+//------------------------------------------------------------------------
 QVariant Segmentation::data(int role) const
 {
   switch (role)
   {
     case Qt::DisplayRole:
-    case Qt::EditRole:
+    //case Qt::EditRole:
       return label();
     case Qt::DecorationRole:
       return m_taxonomy->getColor();
@@ -354,7 +361,6 @@ bool Segmentation::setData(const QVariant& value, int role)
  if (role == Qt::EditRole)
     {
       //TODO: change segmentation name
-      return true;
     }
     if (role == Qt::CheckStateRole)
     {
@@ -387,35 +393,6 @@ ISegmentationExtension *Segmentation::extension(ExtensionId extId)
 //! or when adding them to EspINA
 void Segmentation::initialize()
 {
-  // Create Default Volumetric Representation
-  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-  
-  vtkFilter::Arguments volArgs;
-  volArgs.push_back(vtkFilter::Argument(QString("Input"),vtkFilter::INPUT, id()));
-  vtkFilter *m_volRep = cob->createFilter("filters", "ImageMapToColors", volArgs);
-  assert(m_volRep->numProducts() == 1);
-  
-  vtkSMProperty* p;
-
-  //TODO: Use smart pointers
-  vtkSMRGBALookupTableProxy *segLUT = vtkSMRGBALookupTableProxy::New();
-  segLUT->SetTableValue(0,0,0,0,0);
-  double rgba[4];
-  color(rgba);
-  //TODO: change to binary segmentation images
-  segLUT->SetTableValue(255, rgba[0], rgba[1], rgba[2], 0.6);
-  segLUT->UpdateVTKObjects();
-
-  // Set the greyLUT for the slicemapper
-  p = m_volRep->pipelineSource()->getProxy()->GetProperty("LookupTable");
-  vtkSMProxyProperty *lut = vtkSMProxyProperty::SafeDownCast(p);
-  if (lut)
-  {
-    lut->SetProxy(0, segLUT);
-  }
-  vtkProduct *product = new vtkProduct(m_volRep->product(0).creator(),m_volRep->product(0).portNumber());
-  m_repMap["Volumetric"] = product;
-
   foreach(ISegmentationExtension *ext, m_extensions)
   {
     ext->initialize(this);

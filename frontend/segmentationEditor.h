@@ -17,24 +17,19 @@
 */
 
 
-#ifndef SEGMENTATIONEXPLORER_H
-#define SEGMENTATIONEXPLORER_H
+#ifndef SEGMENTATIONEDITOR_H
+#define SEGMENTATIONEDITOR_H
 
-#include <QWidget>
-#include "ui_segmentationExplorer.h"
+#include <QStyledItemDelegate>
 
-class Segmentation;
-class pqRenderView;
 
-class SegmentationExplorer : public QWidget, public Ui::SegmentationExplorer
+class SegmentationEditor : public QStyledItemDelegate
 {
-  Q_OBJECT
+
 public:
-  SegmentationExplorer(Segmentation *seg, QWidget* parent = 0, Qt::WindowFlags f = 0);
-  virtual ~SegmentationExplorer();
-  
-private:
-  pqRenderView *view;
+    virtual QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const;
+    virtual void setEditorData(QWidget* editor, const QModelIndex& index) const;
+    virtual void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const;
 };
 
-#endif // SEGMENTATIONEXPLORER_H
+#endif // SEGMENTATIONEDITOR_H
