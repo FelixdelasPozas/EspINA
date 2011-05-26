@@ -69,6 +69,7 @@
 
 #include <pqPipelineFilter.h>
 #include "../frontend/Crosshairs.h"
+#include <QApplication>
 
 #define HINTWIDTH 40
 
@@ -793,6 +794,7 @@ void SliceView::setVOI(IVOI* voi)
 //-----------------------------------------------------------------------------
 void SliceView::updateScene()
 {
+  QApplication::setOverrideCursor(Qt::WaitCursor);
   if (m_focusedSample)
   {
     if (m_showSegmentations)
@@ -806,6 +808,7 @@ void SliceView::updateScene()
   }
 
   m_view->render();
+  QApplication::restoreOverrideCursor();
 }
 
 //-----------------------------------------------------------------------------

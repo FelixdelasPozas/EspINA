@@ -112,7 +112,7 @@ void SeedGrowSegmentation::waitSeedSelection(bool wait)
 {
   if (wait)
   {
-    qDebug() << "SeedGrowSegmenation: Waiting for Seed Selection";
+    QApplication::setOverrideCursor(Qt::CrossCursor);
     SelectionManager::instance()->setSelectionHandler(m_seedSelector);
     m_segButton->setChecked(true);
   }else
@@ -124,6 +124,7 @@ void SeedGrowSegmentation::waitSeedSelection(bool wait)
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentation::abortSelection()
 {
+  QApplication::restoreOverrideCursor();
   m_segButton->setChecked(false);
 }
 
@@ -131,6 +132,7 @@ void SeedGrowSegmentation::abortSelection()
 void SeedGrowSegmentation::startSegmentation(ISelectionHandler::Selection sel)
 {
   qDebug() << "SeedGrowSegmenation: Start Seed Growing Segmentation";
+  QApplication::setOverrideCursor(Qt::WaitCursor);
   
   // Initialize application context
   pqApplicationCore* core = pqApplicationCore::instance();
@@ -159,7 +161,7 @@ void SeedGrowSegmentation::startSegmentation(ISelectionHandler::Selection sel)
  // args.insert("VOI",SelectionManager::instance()->voi()->save());
   //createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);
   SeedGrowSegmentationFilter *sgs_sgsf = new SeedGrowSegmentationFilter(input, SelectionManager::instance()->voi(),args);
-  
+  QApplication::restoreOverrideCursor();
   if (undoStack)
   {
     undoStack->endUndoSet();
