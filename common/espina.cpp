@@ -668,6 +668,7 @@ void EspINA::setUserDefindedTaxonomy(const QString& taxName)
     return;
   m_newSegType = m_tax->getComponent(taxName);
   assert(m_newSegType);
+  emit resetTaxonomy();
 }
 
 

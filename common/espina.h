@@ -127,6 +127,8 @@ public slots:
 signals:
     //! 
     void focusSampleChanged(Sample *);
+
+    void resetTaxonomy();
   
 protected:
     explicit EspINA(QObject* parent = 0);

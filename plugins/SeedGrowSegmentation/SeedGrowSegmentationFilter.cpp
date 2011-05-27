@@ -25,6 +25,8 @@
 #include <pqPipelineSource.h>
 #include <espINAFactory.h>
 #include <espina.h>
+#include <QDebug>
+
 
 QString stripName(QString args){return args.split(";")[0];}//FAKE
 QString stripArgs(QString args){return args.split(";")[1];}//FAKE
@@ -191,7 +193,9 @@ SeedGrowSegmentationFilter::~SeedGrowSegmentationFilter()
     delete m_applyFilter;
 }
 
-void SeedGrowSegmentationFilter::removeProduct(vtkProduct *product)
+void SeedGrowSegmentationFilter::removeProduct(EspinaProduct* product)
 {
   m_numSeg = 0;
+  // ProcessingTrace remove me
+  ProcessingTrace::instance()->removeNode(this);
 }

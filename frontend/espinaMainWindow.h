@@ -41,6 +41,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QString>
 #include <QList>
 
+class QComboBox;
+class TaxonomyNode;
 class SampleProxy;
 //Forward declaration
 class EspINA;
@@ -77,6 +79,7 @@ protected slots:
   void addTaxonomyChildElement();
   void removeTaxonomyElement();
   void changeTaxonomyColor();
+  void resetTaxonomy();
   
   // Manage Sample Explorer
   void focusOnSample();
@@ -109,6 +112,7 @@ private:
   QList<QModelIndex> m_groupingRoot;
   int m_lastTaxonomyId;
   SampleProxy *sampleProxy;
+  QComboBox* m_taxonomySelector;
 };
 
 #endif //ESPINA_MAIN_WINDOW_H

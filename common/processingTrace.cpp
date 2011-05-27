@@ -33,6 +33,7 @@
 #include <pqObjectBuilder.h>
 #include <pqLoadDataReaction.h>
 #include <cachedObjectBuilder.h>
+#include "../plugins/SeedGrowSegmentation/SeedGrowSegmentationFilter.h"
 
 using namespace boost;
 
@@ -183,17 +184,14 @@ void ProcessingTrace::connect(QString& id,
 void ProcessingTrace::removeNode(ITraceNode* node)
 {
   Segmentation *seg = dynamic_cast<Segmentation *>(node);
-  assert(seg); // We only remove segmentations
-  EspinaFilter *parentFilter = seg->parent();
-  
-  parentFilter->removeProduct(seg);
-  delete seg;//TODO: Remove here, delegate to filters or to espina Model.
-  // Delete node from trace
-  if (parentFilter->numProducts() == 0)
+  //assert(seg); // We only remove segmentations
+  if( seg )
   {
-    //Delete parent filter and remove from trace
-    delete parentFilter;
+    assert( node->type == ITraceNode::PRODUCT );
+    seg->parent()->removeProduct(seg);
   }
+  clear_vertex(node->vertexId, m_trace);
+  remove_vertex(node->vertexId, m_trace);
 }
 
 

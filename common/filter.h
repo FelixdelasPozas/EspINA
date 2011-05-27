@@ -113,7 +113,7 @@ public:
   //virtual vtkProduct* product(int i) = 0;
   //virtual QList< vtkProduct* > products() = 0;
   virtual QString getFilterArguments() const {return m_args;}
-  virtual void removeProduct(vtkProduct *product) = 0;
+  virtual void removeProduct(EspinaProduct *product) {} ;
   
 protected:
   QString m_args;

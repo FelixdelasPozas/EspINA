@@ -196,25 +196,27 @@ EspinaMainWindow::EspinaMainWindow()
           this, SLOT(deleteSegmentations()));
   
   // User selected Taxonomy Selection List
-  QComboBox *taxonomySelector = new QComboBox(this);
+  m_taxonomySelector = new QComboBox(this);
   ///QTreeComboBox *treeCombo = new QTreeComboBox(this);
   QTreeView *taxonomyView = new QTreeView(this);
   taxonomyView->setHeaderHidden(true);
-  taxonomySelector->setView(taxonomyView); //Brutal!
-  taxonomySelector->setSizeAdjustPolicy(QComboBox::AdjustToContents);
-  taxonomySelector->setMinimumWidth(160);
-  taxonomySelector->setModel(m_espina);
+  m_taxonomySelector->setView(taxonomyView); //Brutal!
+  m_taxonomySelector->setSizeAdjustPolicy(QComboBox::AdjustToContents);
+  m_taxonomySelector->setMinimumWidth(160);
+  m_taxonomySelector->setModel(m_espina);
   ///treeCombo->setModel(m_espina);
   ///treeCombo->setRootModelIndex(m_espina->taxonomyRoot());
   ///treeCombo->setCurrentIndex(0);
   ///treeCombo->setMinimumWidth(200);
-  taxonomySelector->setRootModelIndex(m_espina->taxonomyRoot());
+  m_taxonomySelector->setRootModelIndex(m_espina->taxonomyRoot());
   taxonomyView->expandAll();;
-  connect(taxonomySelector, SIGNAL(currentIndexChanged(QString)),
+  connect(m_taxonomySelector, SIGNAL(currentIndexChanged(QString)),
           m_espina, SLOT(setUserDefindedTaxonomy(const QString&)));
-  taxonomySelector->setCurrentIndex(0);
-  this->Internals->toolBar->addWidget(taxonomySelector);
+  m_taxonomySelector->setCurrentIndex(0);
+  this->Internals->toolBar->addWidget(m_taxonomySelector);
 
+  connect(m_espina, SIGNAL(resetTaxonomy()),
+          this, SLOT(resetTaxonomy()));
   // WARNING: Debug
   connect(pqApplicationCore::instance()->getObjectBuilder(),
             SIGNAL(proxyCreated (pqProxy *)),
@@ -488,6 +490,12 @@ void EspinaMainWindow::changeTaxonomyColor()
   QColorDialog colorSelector;
   colorSelector.exec();
   m_espina->setData(this->Internals->taxonomyView->currentIndex(),colorSelector.selectedColor(),Qt::DecorationRole);
+}
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::resetTaxonomy()
+{
+  m_taxonomySelector->setCurrentIndex(0);
 }
 
 //-----------------------------------------------------------------------------
