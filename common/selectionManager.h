@@ -69,24 +69,6 @@ protected:
 
 class Product;
 
-class IVOI
-{
-public:
-  virtual ~IVOI(){}
-
-  virtual EspinaFilter *applyVOI(vtkProduct *product) = 0;
-  virtual EspinaFilter *restoreVOITransormation(vtkProduct* product) = 0;
-  
-  virtual vtkSMProxy * getProxy() = 0;
-  virtual pq3DWidget *widget() = 0;
-  virtual pq3DWidget *widget(int plane) = 0;
-  virtual pq3DWidget *newWidget() = 0;
-  virtual void deleteWidget(pq3DWidget *&widget) = 0;
-  
-  virtual void cancelVOI() = 0;
-};
-
-
 //! Interface to handle selections
 //! Plugin that implement this interface have to specify
 //! which selection method has to be used and which type of
@@ -124,6 +106,25 @@ signals:
   void selectionChanged(ISelectionHandler::Selection);
   void selectionAborted();
 };
+
+class IVOI
+{
+public:
+  virtual ~IVOI(){}
+
+  virtual EspinaFilter *applyVOI(vtkProduct *product) = 0;
+  virtual EspinaFilter *restoreVOITransormation(vtkProduct* product) = 0;
+  
+  virtual vtkSMProxy * getProxy() = 0;
+  virtual pq3DWidget *newWidget() = 0;
+  virtual void deleteWidget(pq3DWidget *&widget) = 0;
+  
+  virtual bool contains(ISelectionHandler::VtkRegion region) = 0;
+  
+  virtual void cancelVOI() = 0;
+};
+
+
 
 
 //! Singleton instance to coordinate selections through different

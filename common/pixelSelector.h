@@ -20,7 +20,7 @@ class BestPixelSelector
 {
 public:
   BestPixelSelector() 
-  : window(20,20)
+  : window(14,14)
   {}
   virtual ~BestPixelSelector(){}
   

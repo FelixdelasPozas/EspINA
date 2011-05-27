@@ -109,23 +109,8 @@ EspinaFilter *RectangularVOI::applyVOI(vtkProduct* product)
   assert(m_widgets.size() > 0);
   m_widgets.first()->accept();
   
-  vtkSMPropertyHelper(m_box,"Bounds").Get(m_rvoi,6);
-  double scale[3];
-  vtkSMPropertyHelper(m_box,"Scale").Get(scale,3);
-  double pos[3];
-  vtkSMPropertyHelper(m_box,"Position").Get(pos,3);
-  
-  //qDebug() << "RectangularVOI Plugin: Scale: "<< scale[0]<< scale[1]<< scale[2];
-  //qDebug() << "RectangularVOI Plugin: Pos: "<< pos[0]<< pos[1]<< pos[2];
-  //qDebug() << "RectangularVOI Plugin: Extent: "<< m_rvoi[0]<< m_rvoi[1]<< m_rvoi[2]<< m_rvoi[3]<< m_rvoi[4]<< m_rvoi[5];
-  
-  double productExtent[6] = {m_rvoi[0],m_rvoi[1],m_rvoi[2], m_rvoi[3], m_rvoi[4], m_rvoi[5]/2};
-  double productSpacing[3] = {1,1,2};
-  
   double voiExtent[6];
-  for (int i=0; i<6; i++)
-    voiExtent[i] = round((pos[i/2] + m_rvoi[i]*scale[i/2])/productSpacing[i/2]);
-  
+  rvoiExtent(voiExtent);
   //WARNING: How to deal with bounding boxes out of resources...
   
   //m_rvoi[0] = std::max(productExtent[0], round(pos[0] + m_rvoi[0] * scale[0]/productSpacing[0]));
@@ -160,37 +145,6 @@ vtkSMProxy* RectangularVOI::getProxy()
 }
 
 //-----------------------------------------------------------------------------
-pq3DWidget *RectangularVOI::widget()
-{
-//   if (!m_widget[3])
-//   {
-//   QList<pq3DWidget *> widgtes =  pq3DWidget::createWidgets(EspINA::instance()->activeSample()->creator()->pipelineSource()->getProxy(), getProxy());
-//   assert(widgtes.size() == 1);
-//   m_widget[3] = widgtes[0];
-//     connect(m_widget[3],SIGNAL(widgetEndInteraction()),this,SLOT(endInteraction()));
-//   }
-//   
-//   return m_widget[3];
-return NULL;
-}
-
-//-----------------------------------------------------------------------------
-pq3DWidget *RectangularVOI::widget(int plane)
-{
-//   assert (plane < 3);
-//   if (!m_widget[plane])
-//   {
-//     QList<pq3DWidget *> widgtes =  pq3DWidget::createWidgets(EspINA::instance()->activeSample()->creator()->pipelineSource()->getProxy(), getProxy());
-//     assert(widgtes.size() == 1);
-//     m_widget[plane] = widgtes[0];
-//     connect(m_widget[plane],SIGNAL(widgetEndInteraction()),this,SLOT(endInteraction()));
-//   }
-//   
-//   return m_widget[plane];
-return NULL;
-}
-
-//-----------------------------------------------------------------------------
 pq3DWidget* RectangularVOI::newWidget()//NOTE: It could be itneresting to specify the proxy reference
 {
   QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(EspINA::instance()->activeSample()->creator()->pipelineSource()->getProxy(), getProxy());
@@ -209,6 +163,24 @@ void RectangularVOI::deleteWidget(pq3DWidget*& widget)
   delete widget;
   widget = NULL;
 }
+
+//-----------------------------------------------------------------------------
+bool RectangularVOI::contains(ISelectionHandler::VtkRegion region)
+{
+  foreach(Point p, region)
+  {
+    double voiExtent[6];
+    rvoiExtent(voiExtent);
+    if (p.x < voiExtent[0] || voiExtent[1] < p.x)
+      return false;
+    if (p.y < voiExtent[2] || voiExtent[3] < p.y)
+      return false;
+    if (p.z < voiExtent[4] || voiExtent[5] < p.z)
+      return false;
+  }
+  return true;
+}
+
 
 //-----------------------------------------------------------------------------
 void RectangularVOI::endInteraction()
@@ -284,4 +256,24 @@ void RectangularVOI::endInteraction()
 void RectangularVOI::cancelVOI()
 {
   
+}
+
+void RectangularVOI::rvoiExtent(double* rvoi)
+{
+  double bounds[6];
+  vtkSMPropertyHelper(m_box,"Bounds").Get(bounds,6);
+  double scale[3];
+  vtkSMPropertyHelper(m_box,"Scale").Get(scale,3);
+  double pos[3];
+  vtkSMPropertyHelper(m_box,"Position").Get(pos,3);
+  
+  //qDebug() << "RectangularVOI Plugin: Scale: "<< scale[0]<< scale[1]<< scale[2];
+  //qDebug() << "RectangularVOI Plugin: Pos: "<< pos[0]<< pos[1]<< pos[2];
+  //qDebug() << "RectangularVOI Plugin: Extent: "<< m_rvoi[0]<< m_rvoi[1]<< m_rvoi[2]<< m_rvoi[3]<< m_rvoi[4]<< m_rvoi[5];
+  
+  //double productExtent[6] = {bounds[0],bounds[1],bounds[2], bounds[3], bounds[4], bounds[5]/2};
+  double productSpacing[3] = {1,1,2};//TODO: Get real spacing
+  
+  for (int i=0; i<6; i++)
+    rvoi[i] = round((pos[i/2] + bounds[i]*scale[i/2])/productSpacing[i/2]);
 }

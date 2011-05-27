@@ -58,10 +58,10 @@ public:
   virtual EspinaFilter *restoreVOITransormation(vtkProduct* product);
 
   virtual vtkSMProxy *getProxy();
-  virtual pq3DWidget *widget();
-  virtual pq3DWidget *widget(int plane);
   virtual pq3DWidget* newWidget();
   virtual void deleteWidget(pq3DWidget* &widget);
+
+  virtual bool contains(ISelectionHandler::VtkRegion region);
 
 
   
@@ -69,12 +69,13 @@ public slots:
   virtual void endInteraction();
   
   virtual void cancelVOI();
+
+private:
+  void rvoiExtent(double *rvoi);
   
 private:
   vtkSMProxy *m_box;
   QList<pq3DWidget *> m_widgets;
-  
-  double m_rvoi[6];
 };
 
 #endif // RECTANGULARVOI_H

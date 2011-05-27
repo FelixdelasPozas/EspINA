@@ -86,7 +86,7 @@ void VolumeView::connectToServer()
     pqRenderView::renderViewType(), server));
   m_viewWidget = m_view->getWidget();
   m_mainLayout->insertWidget(0,m_viewWidget);//To preserver view order
-  m_view->setCenterAxesVisibility(true);
+  m_view->setCenterAxesVisibility(false);
   double black[3] = {0,0,0};
   m_view->getRenderViewProxy()->SetBackgroundColorCM(black);
 }
@@ -185,7 +185,11 @@ void VolumeView::rowsInserted(const QModelIndex& parent, int start, int end)
     Sample *sample = dynamic_cast<Sample *>(item);
     if (sample)
     {
-      //TODO: Render sample
+      double bounds[6];
+      sample->bounds(bounds);
+      m_focus[0] = (bounds[1]-bounds[0])/2.0;
+      m_focus[1] = (bounds[3]-bounds[2])/2.0;
+      m_focus[2] = (bounds[5]-bounds[4])/2.0;
       qDebug() << "Render sample?";
     } 
     else if (!sample)
@@ -293,13 +297,13 @@ void VolumeView::updateScene()
     m_view->getProxy());
   assert(view);
   
-  //double cor[3];
-  //view->GetInteractor()->GetCenterOfRotation(cor);
-  
-  //vtkCamera *cam = view->GetActiveCamera();
-  //double pos[3], focus[3];
-  //cam->GetPosition(pos);
-  //cam->GetFocalPoint(focus);
+//   double cor[3];
+//   view->GetInteractor()->GetCenterOfRotation(cor);
+//   
+  vtkCamera *cam = view->GetActiveCamera();
+  double pos[3], focus[3];
+  cam->GetPosition(pos);
+//   cam->GetFocalPoint(focus);
   
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
   pqRepresentation *rep;
@@ -308,16 +312,23 @@ void VolumeView::updateScene()
     rep->setVisible(false);
   }
   
-  //TODO: Center on selection bounding box or active stack if no selection
+//   if (selectionModel()->selection().size() == 0)
+//   {
+//     focus[0] = m_focus[0];
+//     focus[1] = m_focus[1];
+//     focus[1] = m_focus[2];
+//   }
+
   foreach (IViewWidget *widget, m_widgets)
   {
     if (widget->isChecked())
       widget->renderInView(rootIndex(),m_view);
   }
 
-  //cam->SetPosition(pos);
-  //cam->SetFocalPoint(m_focus);
-  //view->GetInteractor()->SetCenterOfRotation(m_focus);
+  //cam->SetFocalPoint(focus);
+  //view->GetInteractor()->SetCenterOfRotation(focus);
+  m_view->resetCamera();
+  cam->SetPosition(pos);
 
   
   m_view->render();

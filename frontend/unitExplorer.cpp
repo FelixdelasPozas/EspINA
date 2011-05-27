@@ -28,7 +28,8 @@ UnitExplorer::UnitExplorer(QWidget* parent, Qt::WindowFlags f)
 : QWidget(parent, f)
 {
   setupUi(this);
-  
+    
+  connect(m_unit,SIGNAL(currentIndexChanged(int)),this,SLOT(unitChanged(int)));
 }
 
 void UnitExplorer::setSample(Sample* sample)
@@ -42,3 +43,10 @@ void UnitExplorer::setSample(Sample* sample)
   m_zSize->setValue(spacing[2]);
 }
 
+
+void UnitExplorer::unitChanged(int unitIndex)
+{
+  m_xSize->setSuffix(m_unit->currentText());
+  m_ySize->setSuffix(m_unit->currentText());
+  m_zSize->setSuffix(m_unit->currentText());
+}

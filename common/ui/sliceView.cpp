@@ -326,6 +326,9 @@ void SliceView::setSelection(SelectionFilters& filters, ViewRegions& regions)
     // Translate view pixels into Vtk pixels
     vtkRegion = display2vtk(region);
     
+    if (SelectionManager::instance()->voi() && !SelectionManager::instance()->voi()->contains(vtkRegion))
+      return;
+    
     // Apply filtering criteria at given region
     foreach(QString filter, filters)
     {
@@ -750,6 +753,12 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
   
     picker->Pick(xPos, yPos, 0.0, m_viewProxy->GetRenderer());
     picker->GetPickPosition(pickPos);
+    
+    if (pickPos[0] == 0 && pickPos[1] == 0 && pickPos[2] == 0)
+    {
+      qDebug() << "Ignoring picking outside sample";
+      return;
+    }
    
     SelectionManager::instance()->onMouseDown(pos, this);
     emit pointSelected(pickPos[0] / spacing[0],pickPos[1] / spacing[1],pickPos[2] / spacing[2]);
