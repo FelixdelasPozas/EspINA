@@ -90,6 +90,13 @@ public:
     
     //! Returns the QModelIndex of a given @seg
     QModelIndex segmentationIndex(Segmentation *seg) const;
+
+    
+    void changeTaxonomy(Segmentation* seg, QString& taxName);
+
+    Segmentation* segmentation(QString& segId);
+    
+    //void assignTaxonomy(QString& taxName, QString& segId);
     
     //! Openning .trace In the future .seg (.trace + .mha) (used by the UI)
         void saveFile(QString& filePath, pqServer* server = NULL);

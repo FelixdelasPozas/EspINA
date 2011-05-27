@@ -390,6 +390,33 @@ QModelIndex EspINA::segmentationIndex(Segmentation* seg) const
 }
 
 //------------------------------------------------------------------------
+void EspINA::changeTaxonomy(Segmentation* seg, QString& taxName)
+{
+  // locate the real segmentation pointer registered
+  const TaxonomyNode* oldTax = seg->taxonomy();
+  assert(m_taxonomySegs[oldTax].contains(seg));
+  TaxonomyNode* newTax = m_tax->getComponent(taxName);
+  assert(newTax);
+
+  m_taxonomySegs[oldTax].removeOne(seg);
+  seg->setTaxonomy(newTax);
+  m_taxonomySegs[newTax].push_back(seg);
+  emit dataChanged(segmentationIndex(seg),segmentationIndex(seg));
+}
+
+//-----------------------------------------------------------------------------
+Segmentation* EspINA::segmentation(QString& segId)
+{
+  foreach(Segmentation* realSeg, m_segmentations)
+  {
+    if( realSeg->id() == segId )
+      return realSeg;
+  }
+  assert(false);     
+}
+
+
+//------------------------------------------------------------------------
 QList<Segmentation * > EspINA::segmentations(const TaxonomyNode* taxonomy, bool recursive) const
 {
   // Get all segmentations that belong to taxonomy
@@ -668,7 +695,6 @@ void EspINA::setUserDefindedTaxonomy(const QString& taxName)
     return;
   m_newSegType = m_tax->getComponent(taxName);
   assert(m_newSegType);
-  emit resetTaxonomy();
 }
 
 
@@ -790,7 +816,7 @@ void EspINA::loadTaxonomy()
     node->setColor(QColor(Qt::black));
   }
   setUserDefindedTaxonomy(m_tax->getSubElements()[0]->getName());
-
+  emit resetTaxonomy();
   /*
   m_tax = new TaxonomyNode("FEM");
   TaxonomyNode *newNode;
