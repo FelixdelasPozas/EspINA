@@ -1,18 +1,19 @@
 <RCC>
-  <qresource prefix="espina">
-    <file alias="addChild">add_child.svg</file>
-    <file alias="rainbow">rainbow.svg</file>
-    <file alias="add">add.svg</file>
-    <file alias="remove">remove.svg</file>
-    <file alias="trashSeg">trash-full.svg</file>
-    <file alias="hide3D">hide_3D.svg</file>
-    <file alias="hidePlanes">hide_planes.svg</file>
-    <file alias="show3D">show_3D.svg</file>
-    <file alias="showPlanes">show_planes.svg</file>
-    <file>edit-redo.svg</file>
-    <file>edit-undo.svg</file>
-    <file>editor.ico</file>
-    <file>show_all.svg</file>
-    <file>hide_all.svg</file>
-  </qresource>
+    <qresource prefix="/espina">
+        <file alias="addChild">add_child.svg</file>
+        <file alias="rainbow">rainbow.svg</file>
+        <file alias="add">add.svg</file>
+        <file alias="remove">remove.svg</file>
+        <file alias="trashSeg">trash-full.svg</file>
+        <file alias="hide3D">hide_3D.svg</file>
+        <file alias="hidePlanes">hide_planes.svg</file>
+        <file alias="show3D">show_3D.svg</file>
+        <file alias="showPlanes">show_planes.svg</file>
+        <file>edit-redo.svg</file>
+        <file>edit-undo.svg</file>
+        <file>editor.ico</file>
+        <file>show_all.svg</file>
+        <file>hide_all.svg</file>
+        <file alias="showMesh">show_Mesh.svg</file>
+    </qresource>
 </RCC>

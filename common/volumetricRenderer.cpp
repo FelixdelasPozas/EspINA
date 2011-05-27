@@ -34,7 +34,7 @@
 VolumetricRenderer::VolumetricRenderer(QWidget* parent)
 : IViewWidget(parent)
 {
-
+  setIcon(QIcon(":/espina/show3D"));
 }
 
 
