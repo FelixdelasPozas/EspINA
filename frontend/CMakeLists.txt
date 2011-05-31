@@ -90,4 +90,7 @@ build_paraview_client(espina
 
 target_link_libraries (espina ${Espina_LIBRARIES})
 
+install (TARGETS espina RUNTIME DESTINATION /home/jorge/tmp)
+
+
 add_subdirectory (plugins)

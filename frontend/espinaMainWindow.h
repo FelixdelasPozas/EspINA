@@ -49,13 +49,9 @@ class EspINA;
 class SliceView;
 class VolumeView;
 class QMenu;
-class pqPipelineSource;
-class UnitExplorer;
 class SelectionManager;
 class QAbstractItemModel;
 class QModelIndex;
-class QString;
-class pqServer;
 // #include "pqLoadDataReaction.h" // TODO debug
 
 /// MainWindow for the default ParaView application.
@@ -63,6 +59,7 @@ class EspinaMainWindow : public QMainWindow
 {
   Q_OBJECT
   typedef QMainWindow Superclass;
+  class pqInternals;
 public:
   EspinaMainWindow();
   ~EspinaMainWindow();
@@ -99,20 +96,20 @@ private:
 
   void buildFileMenu(QMenu &menu);
 
-  class pqInternals;
-  pqInternals* Internals;
   EspINA *m_espina;
+  DistUnit m_unit;
+  
+  // GUI
+  pqInternals* Internals;
+  QComboBox* m_taxonomySelector;
   SliceView *m_xy, *m_yz, *m_xz;;
   VolumeView *m_3d;
-  DistUnit m_unit;
-  UnitExplorer *m_unitExplorer;
   SelectionManager *m_selectionManager;
   QStringList m_groupingName;
   QList<QAbstractItemModel *> m_groupingModel;
   QList<QModelIndex> m_groupingRoot;
   int m_lastTaxonomyId;
   SampleProxy *sampleProxy;
-  QComboBox* m_taxonomySelector;
 };
 
 #endif //ESPINA_MAIN_WINDOW_H

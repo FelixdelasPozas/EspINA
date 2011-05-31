@@ -42,7 +42,7 @@ public:
     
 protected:
     vtkRemoteFileReader();
-    ~vtkRemoteFileReader() {}
+    ~vtkRemoteFileReader();
 
     int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
 

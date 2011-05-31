@@ -46,6 +46,7 @@ void FilePack::readFile(FilePack::fileNames name, QTextStream& data)
     while( zip_fread(zFile, buffer, 1) > 0  )
       data << buffer[0];
   }
+  zip_fclose(zFile);
 }
 
 //-----------------------------------------------------------------------------
@@ -121,7 +122,6 @@ void IOEspinaFile::loadFile(QString filePath,
   zipFile.readFile(FilePack::TRACE, TraceContent);
 //   qDebug() << "Trace: " << *TraceContent.string();
   zipFile.close();
-
 }
 
 //-----------------------------------------------------------------------------

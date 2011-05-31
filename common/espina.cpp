@@ -286,7 +286,6 @@ Qt::ItemFlags EspINA::flags(const QModelIndex& index) const
   if (index == taxonomyRoot() || index == sampleRoot() || index == segmentationRoot())
     return Qt::ItemIsEnabled;
   
-  // Samples are read-only (TODO: Allow editing extent/spacing)
   if (index.parent() == sampleRoot())
     return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
   
@@ -559,12 +558,16 @@ void EspINA::removeSample(Sample* sample)
     {
       removeSegmentation(seg);
     }
+    assert(m_sampleSegs[sample].size() == 0);
+    m_sampleSegs.remove(sample);
+    assert(!m_sampleSegs.contains(sample));
     // Remove it from analysis
-    //m_analysis->
-    //m_analysis->removeNode(sample);
     QModelIndex index = sampleIndex(sample);
     beginRemoveRows(index.parent(), index.row(), index.row());
     m_samples.removeOne(sample);
+    assert(!m_samples.contains(sample));
+    //WARNING: use removeNode instead of delete Sample!
+    //m_analysis->removeNode(sample);
     delete sample;
     endRemoveRows();
   }
@@ -577,6 +580,8 @@ void EspINA::removeSamples()
   {
     this->removeSample(sample);
   }
+  assert(m_samples.size() == 0);
+  assert(m_sampleSegs.keys().size() == 0);
   m_activeSample = NULL;
 }
 
@@ -595,7 +600,6 @@ void EspINA::addSegmentation(Segmentation *seg)
   seg->initialize();
   m_taxonomySegs[m_newSegType].push_back(seg);
   m_sampleSegs[seg->origin()].push_back(seg);
-  qDebug() << "ORIGEN: " << seg->origin();
   m_segmentations.push_back(seg);
   endInsertRows();
 }
@@ -606,7 +610,6 @@ void EspINA::removeSegmentation(Segmentation* seg)
   // Update model
   QModelIndex segIndex = segmentationIndex(seg);
   beginRemoveRows(segmentationRoot(),segIndex.row(),segIndex.row());
-  //qDebug() << "Vamos a borrá" << segIndex;
   m_segmentations.removeOne(seg);
   m_taxonomySegs[seg->taxonomy()].removeOne(seg);
   m_sampleSegs[seg->origin()].removeOne(seg);
@@ -696,16 +699,19 @@ void EspINA::loadSource(pqPipelineSource* proxy)
     trace.setString(&TraceContent);
 
     try{
-      beginInsertRows(taxonomyRoot(), 0, 0);
-        m_tax = IOTaxonomy::loadXMLTaxonomy(TaxContent);
-        endInsertRows();
-        setUserDefindedTaxonomy(m_tax->getSubElements()[0]->getName());
-        
-        m_analysis->readTrace(trace);
-        // Remove the proxy of the .seg file
-        pqObjectBuilder* ob = pqApplicationCore::instance()->getObjectBuilder();
-        ob->destroy(proxy);
-       
+      if (!m_tax)//TODO: Decide wether to mix, override or check compability
+      {
+	beginInsertRows(taxonomyRoot(), 0, 0);
+	m_tax = IOTaxonomy::loadXMLTaxonomy(TaxContent);
+	endInsertRows();
+	setUserDefindedTaxonomy(m_tax->getSubElements()[0]->getName());
+      }
+      
+      m_analysis->readTrace(trace);
+      // Remove the proxy of the .seg file
+      pqObjectBuilder* ob = pqApplicationCore::instance()->getObjectBuilder();
+      ob->destroy(proxy);
+      
     } catch (...) {
       qDebug() << "Espina: Unable to load File " << __FILE__ << __LINE__;
     }
@@ -721,7 +727,7 @@ void EspINA::clear()
   // Delete Samples (and their segmentations)
   this->removeSamples();
   
-  // TODO Delete taxonomy
+  // Delete taxonomy
   beginRemoveRows(taxonomyRoot(), 0, rowCount(taxonomyRoot())-1);
   delete m_tax;
   m_tax = NULL;

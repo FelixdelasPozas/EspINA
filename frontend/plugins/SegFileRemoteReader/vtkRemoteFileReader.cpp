@@ -23,6 +23,16 @@ vtkRemoteFileReader::vtkRemoteFileReader()
   this->SetNumberOfInputPorts(0);
   this->SetNumberOfOutputPorts(1);
 }
+
+//---------------------------------------------------------------------------
+vtkRemoteFileReader::~vtkRemoteFileReader()
+{
+  //delete [] Taxonomy;
+  //delete [] Trace;
+}
+
+
+
 /*
 //---------------------------------------------------------------------------
 int vtkRemoteFileReader::ProcessRequest(vtkInformation* request,

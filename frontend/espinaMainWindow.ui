@@ -80,19 +80,11 @@
      <string>&amp;File</string>
     </property>
    </widget>
-   <widget class="QMenu" name="menuNew">
-    <property name="title">
-     <string>New</string>
-    </property>
-    <addaction name="actionUnits"/>
-    <addaction name="actionSegmentationExplorer"/>
-   </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Edit"/>
    <addaction name="menu_View"/>
    <addaction name="menuTools"/>
    <addaction name="menu_Help"/>
-   <addaction name="menuNew"/>
   </widget>
   <widget class="QDockWidget" name="pipelineBrowserDock">
    <property name="allowedAreas">

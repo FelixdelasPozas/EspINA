@@ -32,6 +32,7 @@
 // ESPINA includes
 #include "espinaMainWindow.h"
 #include "ui_espinaMainWindow.h"
+
 #include "espINAFactory.h"
 #include "distance.h"
 #include "selectionManager.h"
@@ -47,31 +48,21 @@
 #include "segmentationEditor.h"
 
 //ParaQ includes
-#include <pqHelpReaction.h>
-#include <pqObjectInspectorWidget.h>
 #include <pqParaViewBehaviors.h>
 #include <pqParaViewMenuBuilders.h>
 #include <pqLoadDataReaction.h>
 #include <pqSaveDataReaction.h>
-#include <pqPipelineSource.h>
 #include <vtkPVPlugin.h>
-#include <pqOutputPort.h>
 #include <pqServerManagerObserver.h>
 #include <vtkSMOutputPort.h>
-#include <vtkSMProperty.h>
 #include <vtkSMReaderFactory.h>
 #include <vtkSMProxyManager.h>
 #include <pqCoreUtilities.h>
 #include <pqServer.h>
 
-#include <pqRenderView.h>
-#include <pqTwoDRenderView.h>
-#include <pqRepresentation.h>
 #include <pqApplicationCore.h>
 #include <pqActiveObjects.h>
 #include <pqObjectBuilder.h>
-#include <pqObjectInspectorWidget.h>
-#include <pqDisplayPolicy.h>
 #include <pqFileDialog.h>
 
 //VTK Includes
@@ -345,11 +336,8 @@ EspinaMainWindow::EspinaMainWindow()
 //-----------------------------------------------------------------------------
 EspinaMainWindow::~EspinaMainWindow()
 {
-  //delete this->Internals;
-  //delete m_xy;
-  //delete m_yz;
-  //delete m_xz;
-  // delete m_3d;
+  delete sampleProxy;
+  delete Internals;
 }
 
 // //-----------------------------------------------------------------------------
@@ -502,8 +490,8 @@ void EspinaMainWindow::removeTaxonomyElement()
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::changeTaxonomyColor()
 {
-  //m_espina->clear();
-  //return;
+  m_espina->clear();
+  return;
   QColorDialog colorSelector;
   colorSelector.exec();
   m_espina->setData(this->Internals->taxonomyView->currentIndex(),colorSelector.selectedColor(),Qt::DecorationRole);
