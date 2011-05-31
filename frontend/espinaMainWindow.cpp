@@ -328,7 +328,7 @@ EspinaMainWindow::EspinaMainWindow()
   new pqParaViewBehaviors(this, this);
 
   // Debug load stack
-  //QMetaObject::invokeMethod(this, "autoLoadStack", Qt::QueuedConnection);
+  QMetaObject::invokeMethod(this, "autoLoadStack", Qt::QueuedConnection);
 
 }
 

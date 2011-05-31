@@ -566,9 +566,7 @@ void EspINA::removeSample(Sample* sample)
     beginRemoveRows(index.parent(), index.row(), index.row());
     m_samples.removeOne(sample);
     assert(!m_samples.contains(sample));
-    //WARNING: use removeNode instead of delete Sample!
-    //m_analysis->removeNode(sample);
-    delete sample;
+    m_analysis->removeNode(sample);
     endRemoveRows();
   }
 }

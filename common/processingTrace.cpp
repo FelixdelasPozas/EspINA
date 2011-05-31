@@ -110,16 +110,8 @@ ProcessingTrace::ProcessingTrace(const QString& name)
 void ProcessingTrace::addNode(ITraceNode* node)
 {
   VertexId v = add_vertex(m_trace);
-  /*
-  property_map<Graph, ITraceNode * VertexProperty::*>::type nodeMap =
-    get(&VertexProperty::node,m_trace);
-  */
-  node->vertexId = v;
-  //nodeMap[v] = node;
+  //node->vertexId = v;
   m_trace[v].node = node;
-
-  //nodeMap[v]->print();
-  //m_trace[v].node->print();
 }
 
 
@@ -129,21 +121,37 @@ void ProcessingTrace::readNodes()
   boost::graph_traits<Graph>::vertex_iterator vi, vi_end;
   for(boost::tie(vi, vi_end) = boost::vertices(m_trace); vi != vi_end; vi++)
   {
-      ITraceNode* node = m_trace[*vi].node;
-      m_trace[*vi].labelName = node->label().toStdString();
-      m_trace[*vi].args =  node->getArguments().toStdString();
-      switch (node->type)
-      {
-      case (ITraceNode::FILTER):
-          m_trace[*vi].shape = "box";
-          break;
-      case (ITraceNode::PRODUCT):
-          m_trace[*vi].shape = "ellipse";
-          break;
-      default:
-          assert(false);
-      }
+    qDebug() << "ProcessingTrace::readNodes:" << *vi << m_trace[*vi].node;
+    ITraceNode* node = m_trace[*vi].node;
+    assert(node);
+    m_trace[*vi].labelName = node->label().toStdString();
+    m_trace[*vi].args =  node->getArguments().toStdString();
+    switch (node->type)
+    {
+    case (ITraceNode::FILTER):
+        m_trace[*vi].shape = "box";
+        break;
+    case (ITraceNode::PRODUCT):
+        m_trace[*vi].shape = "ellipse";
+        break;
+    default:
+        assert(false);
+    }
   }
+}
+
+//-----------------------------------------------------------------------------
+graph_traits< ProcessingTrace::Graph >::vertex_descriptor
+ProcessingTrace::vertexIndex(ITraceNode* arg1)
+{
+  boost::graph_traits<Graph>::vertex_iterator vi, vi_end;
+  for(boost::tie(vi, vi_end) = boost::vertices(m_trace); vi != vi_end; vi++)
+  {
+    if( m_trace[*vi].node == arg1 )
+      return *vi;
+  }
+  
+  assert(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -153,7 +161,8 @@ void ProcessingTrace::connect(
 , const std::string& description
 )
 {
-  boost::add_edge(origin->vertexId, destination->vertexId, description, m_trace);
+  //boost::add_edge(origin->vertexId, destination->vertexId, description, m_trace);
+  boost::add_edge(vertexIndex(origin), vertexIndex(destination), description, m_trace);
   
   //property_map<Graph, std::string EdgeProperty::*>::type descMap =
   //  get(&EdgeProperty::relationship,m_trace);
@@ -183,21 +192,30 @@ void ProcessingTrace::connect(QString& id,
 //-----------------------------------------------------------------------------
 void ProcessingTrace::removeNode(ITraceNode* node)
 {
+  EspinaFilter *parent = NULL;
+  graph_traits< ProcessingTrace::Graph >::vertex_descriptor indexNode = vertexIndex(node);
+  qDebug() << "PT:removeNode:" << indexNode << node;
+  //this->print(std::cout);
+  clear_vertex(indexNode, m_trace);
+  //this->print(std::cout);
+  remove_vertex(indexNode, m_trace);
+  //this->print(std::cout);
   Segmentation *seg = dynamic_cast<Segmentation *>(node);
-  //assert(seg); // We only remove segmentations
-  clear_vertex(node->vertexId, m_trace);
-  remove_vertex(node->vertexId, m_trace);
   if( seg )
   {
     assert( node->type == ITraceNode::PRODUCT );
-    EspinaFilter *parent = seg->parent();
+    parent = seg->parent();
     parent->removeProduct(seg);
-    if (parent->numProducts() == 0)
+    if (parent->numProducts() != 0)
     {
-      removeNode(dynamic_cast<ITraceNode *>(parent));
-      delete parent;
+      parent = NULL;
     }
   }
+  delete node;
+  // The parent must be deleted after childs
+  if( parent )
+    removeNode(dynamic_cast<ITraceNode*>(parent));
+  
 }
 
 

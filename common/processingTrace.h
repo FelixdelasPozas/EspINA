@@ -68,7 +68,7 @@ public:
   //virtual void print(int indent = 0) const {};
 private:
   //! Node id in the graph
-  IndexType vertexId;
+  //IndexType vertexId;
   friend class ProcessingTrace;
 };
 
@@ -115,7 +115,7 @@ class ProcessingTrace
   
   //! SubGraphs REQUIRE vertex and edge properties
   typedef boost::adjacency_list<
-  boost::vecS,
+  boost::listS,
   boost::vecS,
   boost::directedS,
   VertexProperties,
@@ -170,6 +170,8 @@ private:
   ProcessingTrace(const QString &name); // TODO delte. No tiene sentido sin subgraph
   //! It retrieves the information of the ITraceNodes to store the hold trace
   void readNodes();
+  //! It retrieves the current vertex index of a ITraceNode
+  boost::graph_traits< Graph >::vertex_descriptor vertexIndex(ITraceNode* arg1);
   //!Convert a string int the correct format "{argument:value;}+" in a NodeParamList
   //ITraceNode::Arguments parseArgs( QString& raw );
 

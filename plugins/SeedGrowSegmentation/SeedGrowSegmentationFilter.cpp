@@ -196,5 +196,4 @@ SeedGrowSegmentationFilter::~SeedGrowSegmentationFilter()
 void SeedGrowSegmentationFilter::removeProduct(EspinaProduct* product)
 {
   m_numSeg = 0;
-  delete product;
 }
