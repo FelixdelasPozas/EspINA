@@ -556,6 +556,24 @@
     </layout>
    </widget>
   </widget>
+  <widget class="QDockWidget" name="dockWidget">
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_3">
+    <layout class="QVBoxLayout" name="verticalLayout_4">
+     <item>
+      <widget class="QTreeView" name="modelo"/>
+     </item>
+     <item>
+      <widget class="QTreeView" name="taxonomias"/>
+     </item>
+     <item>
+      <widget class="QTreeView" name="samples"/>
+     </item>
+    </layout>
+   </widget>
+  </widget>
   <action name="toggleVisibility">
    <property name="checkable">
     <bool>true</bool>

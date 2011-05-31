@@ -103,6 +103,11 @@ const QString FILTERS("Trace Files (*.trace)");
 const QString SEG_FILTERS("Seg Files (*.seg)");
 QString DIRECTORY("");
 
+#define XY_VIEW 0
+#define YZ_VIEW 0
+#define XZ_VIEW 0
+#define VOL_VIEW 0
+
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
 };
@@ -174,12 +179,19 @@ EspinaMainWindow::EspinaMainWindow()
   taxProxy->setSourceModel(m_espina);
   sampleProxy = new SampleProxy();
   sampleProxy->setSourceModel(m_espina);
+  
 
   m_groupingName << "None" << "Taxonomy" << "Sample";
   m_groupingModel << m_espina << taxProxy << sampleProxy;
   m_groupingRoot << m_espina->segmentationRoot()
   << taxProxy->mapFromSource(m_espina->taxonomyRoot())
   << sampleProxy->mapFromSource(m_espina->sampleRoot());
+  
+  //!DEBUG
+  this->Internals->modelo->setModel(m_espina);
+  this->Internals->taxonomias->setModel(taxProxy);
+  this->Internals->samples->setModel(sampleProxy);
+  //!DEBUG
 
   // Group by List
   connect(this->Internals->groupList, SIGNAL(currentIndexChanged(int)),
@@ -241,20 +253,20 @@ EspinaMainWindow::EspinaMainWindow()
   //Selection Manager
   m_selectionManager = SelectionManager::instance();
   
+#if XY_VIEW
   //Create ESPINA VIEWS
   m_xy = new SliceView();
   m_xy->setPlane(SliceView::SLICE_PLANE_XY);
   m_xy->setModel(sampleProxy);
-  m_xy->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
   connect(server, SIGNAL(connectionCreated(vtkIdType)), m_xy, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), m_xy, SLOT(disconnectFromServer()));
   connect(this->Internals->toggleVisibility, SIGNAL(toggled(bool)),m_xy, SLOT(showSegmentations(bool)));
   //connect(m_xy, SIGNAL(pointSelected(const Point)), m_selectionManager, SLOT(pointSelected(const Point)));
   this->setCentralWidget(m_xy);
+#endif
   
 
-#if 1
-  
+#if YZ_VIEW
   m_yz = new SliceView();
   m_yz->setPlane(SliceView::SLICE_PLANE_YZ);
   m_yz->setModel(sampleProxy);
@@ -267,8 +279,9 @@ EspinaMainWindow::EspinaMainWindow()
   //connect(m_yz, SIGNAL(pointSelected(const Point)), 
 	//  m_selectionManager, SLOT(pointSelected(const Point)));
   this->Internals->yzSliceDock->setWidget(m_yz);
+#endif
 
- 
+#if XZ_VIEW
   m_xz = new SliceView();
   m_xz->setPlane(SliceView::SLICE_PLANE_XZ);
   m_xz->setModel(sampleProxy);
@@ -279,10 +292,9 @@ EspinaMainWindow::EspinaMainWindow()
 	  m_xz, SLOT(disconnectFromServer()));
   connect(this->Internals->toggleVisibility, SIGNAL(toggled(bool)),m_xz, SLOT(showSegmentations(bool)));
   this->Internals->xzSliceDock->setWidget(m_xz);
-  
 #endif
   
-#if 1
+#if VOL_VIEW
   Crosshairs *cross = new Crosshairs();
   cross->addPlane(0,m_xy->output());
   cross->addPlane(1,m_yz->output());
@@ -381,17 +393,22 @@ void EspinaMainWindow::loadFile(QString method)
   fileDialog.setFileMode(pqFileDialog::ExistingFiles);
   if (fileDialog.exec() == QDialog::Accepted)
   {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     m_espina->loadFile(fileDialog.getSelectedFiles()[0], method);
+    QApplication::restoreOverrideCursor();
   }
-  static int counter = 0;
-  if (counter == 0)//TODO
-  {
-    counter++;
-    m_xy->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleIndex(m_espina->activeSample())));
-    m_yz->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleIndex(m_espina->activeSample())));
-    m_xz->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleIndex(m_espina->activeSample())));
-    m_3d->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleIndex(m_espina->activeSample())));
-  }
+#if XY_VIEW
+  m_xy->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleIndex(m_espina->activeSample())));
+#endif
+#if YZ_VIEW
+  m_yz->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleIndex(m_espina->activeSample())));
+#endif
+#if XZ_VIEW
+  m_xz->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleIndex(m_espina->activeSample())));
+#endif
+#if VOL_VIEW
+  m_3d->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleIndex(m_espina->activeSample())));
+#endif
 }
 
 //-----------------------------------------------------------------------------
@@ -552,7 +569,9 @@ void EspinaMainWindow::deleteSegmentations()
     Segmentation *seg = dynamic_cast<Segmentation *>(item);
     //TODO: Handle segmentation and taxonomy deletions differently
     if (seg)
+    {
       m_espina->removeSegmentation(seg);
+    }
   }
 }
 

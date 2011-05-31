@@ -185,13 +185,19 @@ void ProcessingTrace::removeNode(ITraceNode* node)
 {
   Segmentation *seg = dynamic_cast<Segmentation *>(node);
   //assert(seg); // We only remove segmentations
+  clear_vertex(node->vertexId, m_trace);
+  remove_vertex(node->vertexId, m_trace);
   if( seg )
   {
     assert( node->type == ITraceNode::PRODUCT );
-    seg->parent()->removeProduct(seg);
+    EspinaFilter *parent = seg->parent();
+    parent->removeProduct(seg);
+    if (parent->numProducts() == 0)
+    {
+      removeNode(dynamic_cast<ITraceNode *>(parent));
+      delete parent;
+    }
   }
-  clear_vertex(node->vertexId, m_trace);
-  remove_vertex(node->vertexId, m_trace);
 }
 
 

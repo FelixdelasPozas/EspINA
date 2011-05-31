@@ -549,12 +549,13 @@ void SliceView::rowsInserted(const QModelIndex& parent, int start, int end)
 {
   QAbstractItemView::rowsInserted(parent, start, end);
   
-  if (parent != rootIndex())
-    return;
+//   TODO: Needed if multi samples
+//   if (parent != rootIndex())
+//     return;
   
   assert(start == end);// Only 1-row-at-a-time inserts are allowed
   
-  QModelIndex newIndex  = parent.child(start, 0);
+  QModelIndex newIndex  = model()->index(start, 0, parent);
   IModelItem *newItem = static_cast<IModelItem *>(newIndex.internalPointer());
   Sample *newSample = dynamic_cast<Sample *>(newItem);
   if (newSample)
@@ -602,7 +603,7 @@ void SliceView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int e
   
   for (int r = start; r <= end; r++)
   {
-    QModelIndex index = parent.child(r, 0);
+    QModelIndex index = model()->index(r, 0, parent);
     IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
     // Check for sample
     Sample *sample = dynamic_cast<Sample *>(item);
