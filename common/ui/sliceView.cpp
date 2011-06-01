@@ -152,8 +152,10 @@ void Blender::unblend(Segmentation* seg)
   vtkSMProperty* p;
   vtkSMIntVectorProperty* intVectProp;
   vtkSMDoubleVectorProperty* doubleVectProp;
-
-  pqPipelineSource *mapper = m_blendingMappers.take(seg)->pipelineSource();
+  ISegmentationRepresentation* rep = m_blendingMappers.take(seg);
+  assert(rep);
+  pqPipelineSource *mapper = rep->pipelineSource();
+  assert(mapper);
 
   //std::cout << "N. Consumers of mapper before " << mapper->getNumberOfConsumers() << std::endl;
   //std::cout << "N. Producers of blender before " << m_imageBlender->getProxy()->GetNumberOfProducers() << std::endl;
@@ -211,12 +213,12 @@ void Blender::updateImageBlenderInput()
       ports.push_back(0);
     }
   }
-
+  
   p = m_imageBlender->getProxy()->GetProperty("Input");
   vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
   if (input)
   {
-    //input->RemoveAllProxies();
+        //input->RemoveAllProxies();
     m_imageBlender->getProxy()->UpdateVTKObjects();
     input->SetProxies(static_cast<unsigned int>(inputs.size())
                       , &inputs[0]
@@ -626,7 +628,7 @@ void SliceView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int e
     {
       Segmentation *seg = dynamic_cast<Segmentation *>(item);
       assert(seg); // If not sample, it has to be a segmentation
-      qDebug() << seg->label() << " about to be destroyed";
+      qDebug() << "SliceView:" << seg->taxonomy()->getName() << "-" << seg->label() << " about to be destroyed";
       m_mutex.lock();
       s_blender->unblend(seg);
       m_mutex.unlock();

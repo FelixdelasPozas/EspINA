@@ -65,6 +65,7 @@ ColorRepresentation::~ColorRepresentation()
   qDebug() << "Deleted Color Representation from " << m_seg->id();
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   cob->removeFilter(m_rep);
+  m_LUT->Delete();
 }
 
 

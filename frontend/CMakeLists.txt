@@ -80,7 +80,7 @@ build_paraview_client(espina
 	#  ${CMAKE_CURRENT_SOURCE_DIR}/ParaViewSources.xml
 	#  ${CMAKE_CURRENT_SOURCE_DIR}/plugins/EspinaFilters.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/rsc/EspinaReaders.xml
-	#  ${CMAKE_CURRENT_SOURCE_DIR}/ParaViewWriters.xml
+  ${CMAKE_CURRENT_SOURCE_DIR}/rsc/EspinaWriters.xml
 	#  ${PARAVIEW_EXTRA_GUI_RESOURCES} # Add any compiled in GUI configuration xmls
   COMPRESSED_HELP_FILE "${ParaView_BINARY_DIR}/Documentation/paraview.qch"
   SOURCES ${Espina_SOURCE_FILES}

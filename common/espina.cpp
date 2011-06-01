@@ -39,6 +39,10 @@
 #include "FilePack.h"
 #include <QMessageBox>
 #include <qfile.h>
+#include <qfileinfo.h>
+#include <qdir.h>
+#include <vtkStringList.h>
+
 
 class IOTaxonomy;
 
@@ -455,24 +459,7 @@ void EspINA::loadFile(QString filePath, QString method)
 
   pqPipelineSource* remoteFile = pqLoadDataReaction::loadData(QStringList(filePath));
   loadSource(remoteFile);
-  
-   
-    /*
-    else // Read local file
-    {
-      try{
-        IOEspinaFile::loadFile(filePath, TraceStream, TaxonomyStream);
-        // TODO Load TaxonomyStream
-        //this->clear();
-        m_analysis->readTrace(TraceStream);
-      }
-      catch (...)
-      {
-        qDebug() << "Espina: Unable to load File " << __FILE__ << __LINE__;
-      }
-    }
-    */
-
+  // TODO cache
 }
 
 //-----------------------------------------------------------------------------
@@ -500,7 +487,7 @@ void EspINA::saveFile(QString& filePath, pqServer* server)
       createFilter("filters", "segFileWriter",
                    QMap<QString, QList< pqOutputPort*> >(),
                    pqApplicationCore::instance()->getActiveServer() );
-
+    // Set the file name
     vtkSMStringVectorProperty* fileNameProp =
           vtkSMStringVectorProperty::SafeDownCast(remoteWriter->getProxy()->GetProperty("FileName"));
     fileNameProp->SetElement(0, filePath.toStdString().c_str());
@@ -512,7 +499,18 @@ void EspINA::saveFile(QString& filePath, pqServer* server)
     vtkSMStringVectorProperty* taxProp =
           vtkSMStringVectorProperty::SafeDownCast(remoteWriter->getProxy()->GetProperty("Taxonomy"));
     taxProp->SetElement(0, tax_data.toStdString().c_str());
-
+    
+     QDir path = QFileInfo(filePath).dir();
+     // Save the segmentations in different files
+    foreach(Segmentation* seg, m_segmentations)
+    {
+      QString filePath = path.filePath(seg->id()+".mhd");
+      this->saveSegmentation(seg, filePath); // salva el fichero en el servidor
+      //segmentationFiles->SetElements()
+      // insertar el/los nombre/s del fichero/s en algun campo del remoteWriter
+    }
+    
+    
     //Update the pipeline to obtain the content of the file
     remoteWriter->getProxy()->UpdateVTKObjects();
     remoteWriter->updatePipeline();
@@ -774,3 +772,19 @@ void EspINA::loadTaxonomy()
   */
 }
 
+#include <vtkSMWriterFactory.h>
+#include <vtkSmartPointer.h>
+#include <vtkSMProxyManager.h>
+#include <vtkSMSourceProxy.h>
+
+#include <pqActiveObjects.h>
+#include <pqSaveDataReaction.h>
+#include <pqOutputPort.h>
+//-----------------------------------------------------------------------------
+bool EspINA::saveSegmentation ( Segmentation* seg, QString& filePath )
+{
+  pqActiveObjects::instance().setActivePort(seg->outputPort());
+  
+  qDebug() << "EspINA::saveSegementation" << seg->id() << filePath;
+  return pqSaveDataReaction::saveActiveData(filePath);
+}
