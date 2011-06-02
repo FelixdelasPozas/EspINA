@@ -153,8 +153,10 @@ void Blender::unblend(Segmentation* seg)
   vtkSMProperty* p;
   vtkSMIntVectorProperty* intVectProp;
   vtkSMDoubleVectorProperty* doubleVectProp;
-
-  pqPipelineSource *mapper = m_blendingMappers.take(seg)->pipelineSource();
+  ISegmentationRepresentation* rep = m_blendingMappers.take(seg);
+  assert(rep);
+  pqPipelineSource *mapper = rep->pipelineSource();
+  assert(mapper);
 
   //std::cout << "N. Consumers of mapper before " << mapper->getNumberOfConsumers() << std::endl;
   //std::cout << "N. Producers of blender before " << m_imageBlender->getProxy()->GetNumberOfProducers() << std::endl;
@@ -213,12 +215,12 @@ void Blender::updateImageBlenderInput()
       ports.push_back(0);
     }
   }
-
+  
   p = m_imageBlender->getProxy()->GetProperty("Input");
   vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
   if (input)
   {
-    //input->RemoveAllProxies();
+        //input->RemoveAllProxies();
     m_imageBlender->getProxy()->UpdateVTKObjects();
     input->SetProxies(static_cast<unsigned int>(inputs.size())
                       , &inputs[0]

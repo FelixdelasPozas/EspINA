@@ -45,14 +45,15 @@ public:
   //! Only used to load samples by pqPipelineDataReaction
   vtkFilter* registerProductCreator(QString& id, pqPipelineSource* source);
 
+  static Cache::Index generateId(const QString group, const QString name, const vtkFilter::Arguments args);
+  
 private:
   CachedObjectBuilder();
   ~CachedObjectBuilder(){}
   
   CachedObjectBuilder(const CachedObjectBuilder&);//Not implemented
   void *operator=(const CachedObjectBuilder&);//Not implemented
-  
-  Cache::Index generateId(const QString group, const QString name, const vtkFilter::Arguments args);
+    
   pqPipelineSource *createSMFilter(const QString group, const QString name, const vtkFilter::Arguments args);
   
   static CachedObjectBuilder *m_singleton;

@@ -37,7 +37,6 @@ private:
     char* FileName;
     char* Trace;
     char* Taxonomy;
-  
 };
 
 #endif // VTKSEGWRITER_H

@@ -34,10 +34,10 @@ bool FilePack::fileCreated()
 }
 
 //-----------------------------------------------------------------------------
-void FilePack::readFile(FilePack::fileNames name, QTextStream& data)
+void FilePack::readFile(QString name, QTextStream& data)
 {
   zip_file* zFile =
-    zip_fopen(m_file, getRealName(name).toStdString().c_str(), 0);
+    zip_fopen(m_file, name.toStdString().c_str(), 0);
   if (zFile)
   {
     //int buffSize = 512;
@@ -50,30 +50,19 @@ void FilePack::readFile(FilePack::fileNames name, QTextStream& data)
 }
 
 //-----------------------------------------------------------------------------
-int FilePack::addSource(FilePack::fileNames name, QString& data)
+int FilePack::addSource(QString fileName, QString& source)
 {
-  // zip_source_buffer corrupts the files ...
-  QString stdFileName = getRealName(name);
-  QString tmpFileName = "."+stdFileName;
-  QFile f(tmpFileName);
+  // zip_source_buffer corrupts the files, so the only way is to store the data
+  // in a file of the file system and store it with addFile
+  QFile f( fileName);
   f.open(QIODevice::WriteOnly | QIODevice::Truncate);
-  f.write(data.toUtf8());
+  f.write( source.toUtf8());
   f.close();
 
-  m_TmpFilesToRemove.append( tmpFileName );
+  m_TmpFilesToRemove.append( fileName );
   
-  qDebug() << "FilePack: addSource: " << data;
-  int index = -2;
-  struct zip_source* s_buffer =
-    zip_source_file(m_file, tmpFileName.toUtf8(), 0, 0);
-    // zip_source_buffer corrupts the files ...
-    //zip_source_buffer(m_file, data.toStdString().c_str(), data.size(), 0);
-  if( s_buffer )
-    index = zip_add(m_file, stdFileName.toUtf8(), s_buffer);
-  if (index < 0)
-    qDebug() << "FilePacker: Error while adding source:\n" << zip_strerror(m_file);
-
-  return index;
+  qDebug() << "FilePack: addSource: " << source;
+  return addFile( QFileInfo(fileName) );
 }
 
 //-----------------------------------------------------------------------------
@@ -94,20 +83,46 @@ bool FilePack::close()
 }
 
 //-----------------------------------------------------------------------------
-QString FilePack::getRealName(FilePack::fileNames name)
+int FilePack::addFile ( QFileInfo file )
 {
-  switch(name)
+  int index = -2;
+  struct zip_source* s_buffer =
+    zip_source_file(m_file, file.filePath().toUtf8(), 0, 0);
+    // zip_source_buffer corrupts the files ...
+    //zip_source_buffer(m_file, data.toStdString().c_str(), data.size(), 0);
+  if( s_buffer )
+    index = zip_add(m_file, file.fileName().toUtf8(), s_buffer);
+  if (index < 0)
+    qDebug() << "FilePacker: Error while adding source:\n" << zip_strerror(m_file);
+
+  return index;
+}
+
+//-----------------------------------------------------------------------------
+void FilePack::ExtractFiles()
+{
+  int numFiles = zip_get_num_files(m_file);
+  QTextStream stream;
+  qDebug() << numFiles;
+  for(int i=0; i < numFiles; i++)
   {
-    case TRACE:
-      return "trace.dot";
-    case TAXONOMY:
-      return "taxonomy.xml";
-    default:
-      qDebug() << "FilePack: Error in " << __FILE__ << ":"<< __LINE__ << ". Unknown name";
-      return "";
+    QString fileName(zip_get_name(m_file, i, 0));
+    QFile f("/tmp/"+fileName); //TODO change the path of the disk cache
+    qDebug() << f.open(QFile::WriteOnly | QFile::Truncate);
+    stream.setDevice(&f);
+    qDebug() << "Unpacking" << fileName;
+    this->readFile(fileName, stream);
+    f.close();
   }
 }
 
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+
+#define TRACE "trace.dot"
+#define TAXONOMY "taxonomy.xml"
 
 //-----------------------------------------------------------------------------
 void IOEspinaFile::loadFile(QString filePath,
@@ -116,21 +131,28 @@ void IOEspinaFile::loadFile(QString filePath,
 {
   FilePack zipFile( filePath, FilePack::READ );
   // Read Taxonomy
-  zipFile.readFile(FilePack::TAXONOMY, TaxonomyContent);
+  zipFile.readFile(TAXONOMY, TaxonomyContent);
 //   qDebug() << "Tax: " << *TaxonomyContent.string();
   // Read Trace
-  zipFile.readFile(FilePack::TRACE, TraceContent);
+  zipFile.readFile(TRACE, TraceContent);
 //   qDebug() << "Trace: " << *TraceContent.string();
+  // TODO unpack the .mhd .zraw
+  zipFile.ExtractFiles();
   zipFile.close();
 }
 
 //-----------------------------------------------------------------------------
 void IOEspinaFile::saveFile(QString& filePath,
                             QString& TraceContent,
-                            QString& TaxonomyContent)
+                            QString& TaxonomyContent,
+                            QStringList& segmentationPaths)
 {
   FilePack pack( filePath, FilePack::WRITE );
-  pack.addSource(FilePack::TRACE, TraceContent);
-  pack.addSource(FilePack::TAXONOMY, TaxonomyContent);
+  pack.addSource(TRACE, TraceContent);
+  pack.addSource(TAXONOMY, TaxonomyContent);
+  foreach(QString fileName, segmentationPaths)
+  {
+    pack.addFile(QFileInfo(fileName));
+  }
   pack.close();
 }

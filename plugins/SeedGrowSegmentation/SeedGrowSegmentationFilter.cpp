@@ -66,6 +66,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVO
   growArgs.push_back(vtkFilter::Argument(QString("Input"),vtkFilter::INPUT, voiOutput.id()));
   growArgs.push_back(vtkFilter::Argument(QString("Seed"),vtkFilter::INTVECT,args["Seed"]));
   growArgs.push_back(vtkFilter::Argument(QString("Threshold"),vtkFilter::DOUBLEVECT,args["Threshold"]));
+  //growArgs.push_back(vtkFilter::Argument(QString("ProductPorts"),vtkFilter::INTVECT, "0"));
   m_grow = cob->createFilter("filters","SeedGrowSegmentationFilter",growArgs);
   
   //! Create segmenations. SeedGrowSegmentationFilter has only 1 output
@@ -143,8 +144,13 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ITraceNode::Arguments& ar
   growArgs.push_back(vtkFilter::Argument(QString("Input"),vtkFilter::INPUT, voiOutput.id()));
   growArgs.push_back(vtkFilter::Argument(QString("Seed"),vtkFilter::INTVECT,args["Seed"]));
   growArgs.push_back(vtkFilter::Argument(QString("Threshold"),vtkFilter::DOUBLEVECT,args["Threshold"]));
-  m_grow = cob->createFilter("filters","SeedGrowSegmentationFilter",growArgs);
-
+  //growArgs.push_back(vtkFilter::Argument(QString("ProductPorts"),vtkFilter::INTVECT, "0"));
+  // Disk cache. If the .seg contains .mhd files now it try to load them
+  Cache::Index id = cob->generateId("filter", "SeedGrowSegmentationFilter", growArgs);
+  m_grow = cob->getFilter(id);
+  if( !m_grow )
+    m_grow = cob->createFilter("filters","SeedGrowSegmentationFilter",growArgs);
+  
   //! Create segmenations. SeedGrowSegmentationFilter has only 1 output
   assert(m_grow->numProducts() == 1);
 

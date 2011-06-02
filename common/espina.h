@@ -29,6 +29,7 @@
 #include <pqProxy.h>
 #include "products.h"
 #include "pqPipelineSource.h"
+#include <QDir>
 
 class IRenderable;
 class ProcessingTrace;
@@ -155,6 +156,10 @@ private:
     int numOfSegmentations(TaxonomyNode *tax) const;
     //! Return the number of subtaxonomies which belong to tax
     int numOfSubTaxonomies(TaxonomyNode *tax) const;
+
+    //! Save a segmentation in the active server in a file which name
+    //! corresponds to the id of the segmentation
+    bool saveSegmentation( Segmentation* seg, QDir prefixFilePath);
 
 private:
     TaxonomyNode *m_newSegType; // The type for new segmentations

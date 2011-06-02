@@ -38,7 +38,7 @@ public:
   static Cache *instance();
   void insert(const Index& index, vtkFilter *filter, bool persistent=false);
   void reference(const Index& index);
-  vtkFilter *getEntry(const Index index) const;
+  vtkFilter *getEntry(const Index index);
   void remove(const Index& index);
   //CacheEntry *getEspinaEntry(const EspinaId &id) const;
   

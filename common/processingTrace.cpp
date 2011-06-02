@@ -122,7 +122,6 @@ void ProcessingTrace::readNodes()
   boost::graph_traits<Graph>::vertex_iterator vi, vi_end;
   for(boost::tie(vi, vi_end) = boost::vertices(m_trace); vi != vi_end; vi++)
   {
-    qDebug() << "ProcessingTrace::readNodes:" << *vi << m_trace[*vi].node;
     ITraceNode* node = m_trace[*vi].node;
     assert(node);
     m_trace[*vi].labelName = node->label().toStdString();
@@ -195,12 +194,8 @@ void ProcessingTrace::removeNode(ITraceNode* node)
 {
   EspinaFilter *parent = NULL;
   graph_traits< ProcessingTrace::Graph >::vertex_descriptor indexNode = vertexIndex(node);
-  qDebug() << "PT:removeNode:" << indexNode << node;
-  //this->print(std::cout);
   clear_vertex(indexNode, m_trace);
-  //this->print(std::cout);
   remove_vertex(indexNode, m_trace);
-  //this->print(std::cout);
   Segmentation *seg = dynamic_cast<Segmentation *>(node);
   if( seg )
   {
@@ -240,7 +235,7 @@ void ProcessingTrace::readTrace(QTextStream& stream)
   dp.property("args", boost::get(&VertexProperties::args, schema));
 
   dp.property("label", boost::get(boost::edge_name, schema));
-  //qDebug() <<  stream.string();
+
   boost::read_graphviz( stream.string()->toStdString(), schema, dp);
 
   // Retrieve vertex porperties
@@ -303,7 +298,6 @@ void ProcessingTrace::readTrace(QTextStream& stream)
         
         args = ITraceNode::parseArgs( rawArgs );
        // if( filterInfo.at(1) == "SeedGrowSegmentationFilter")
-        qDebug() << "Plugin Name:" << label;
         IFilterFactory* factory = m_availablePlugins.value(label, NULL);
         if( factory )
           factory->createFilter(label, args);
@@ -317,7 +311,6 @@ void ProcessingTrace::readTrace(QTextStream& stream)
       } // A segmentation
       else {
         args = ITraceNode::parseArgs( rawArgs );
-        qDebug() << rawArgs;
         qDebug() << "ProcessingTrace: segmentation " << args["Id"] << args["Taxonomy"];
         EspINA* espina = EspINA::instance();
         espina->changeTaxonomy(espina->segmentation(args["Id"]), args["Taxonomy"]);
