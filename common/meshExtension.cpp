@@ -62,12 +62,11 @@ MeshRepresentation::~MeshRepresentation()
   delete m_rep;
 }
 
-
-pqPipelineSource* MeshRepresentation::pipelineSource()
+QString MeshRepresentation::id()
 {
-  qDebug() << "Mesh Representation: Invalid pipeline (raw input).";
-  return m_rep->creator()->pipelineSource();
+  return m_rep->id()+":0";
 }
+
 
 void MeshRepresentation::render(pqView* view)
 {
@@ -96,8 +95,14 @@ void MeshRepresentation::render(pqView* view)
   repProxy->UpdateVTKObjects();
 }
 
+pqPipelineSource* MeshRepresentation::pipelineSource()
+{
+  qDebug() << "Mesh Representation: Invalid pipeline (raw input).";
+  return m_rep->creator()->pipelineSource();
+}
 
-const ExtensionId MeshExtension::ID  = "MeshExtension";
+
+const ExtensionId MeshExtension::ID  = "01_MeshExtension";
 
 ExtensionId MeshExtension::id()
 {

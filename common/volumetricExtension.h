@@ -29,8 +29,9 @@ class VolumetricRepresentation : public ISegmentationRepresentation
 public:
   VolumetricRepresentation(Segmentation* seg);
   
-  virtual pqPipelineSource* pipelineSource();
+  virtual QString id();
   virtual void render(pqView* view);
+  virtual pqPipelineSource* pipelineSource();
   
 private:
   pqScalarsToColors *m_LUT;  

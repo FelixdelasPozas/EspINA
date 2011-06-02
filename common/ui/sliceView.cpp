@@ -68,11 +68,12 @@
 #include <vtkObjectFactory.h>
 
 #include <pqPipelineFilter.h>
-#include "../frontend/Crosshairs.h"
 #include <QApplication>
+#include <crosshairExtension.h>
 
 #define HINTWIDTH 40
 
+/*
 //-----------------------------------------------------------------------------
 void Blender::setBackground(Sample* product)
 {
@@ -176,6 +177,7 @@ void Blender::clear()
   if (m_imageBlender->getNumberOfConsumers() > 0)
     return;
   
+  qDebug() << "Blender: Destroying blender";
   pqApplicationCore *core = pqApplicationCore::instance();
   pqObjectBuilder *ob = core->getObjectBuilder();
   
@@ -225,6 +227,7 @@ void Blender::updateImageBlenderInput()
   }
   m_mutex.unlock();
 }
+*/
 
 
 class vtkInteractorStyleEspina : public vtkInteractorStyleImage
@@ -243,21 +246,17 @@ vtkStandardNewMacro(vtkInteractorStyleEspina);
 #define LOWER(coord) (2*(coord))
 #define UPPER(coord) (2*(coord) + 1)
 
-Blender *SliceView::s_blender = NULL;
+//Blender *SliceView::s_blender = NULL;
 
 //-----------------------------------------------------------------------------
 SliceView::SliceView(QWidget* parent)
     : QAbstractItemView(parent)
-    , m_init(false)
     , m_showSegmentations(true)
-    , m_rep(NULL)
-    , m_plane(SLICE_PLANE_XY)
-    , m_slice(NULL)
-    , m_slicer(NULL)
+    , m_plane(VIEW_PLANE_XY)
+    , m_sampleRep(NULL)
     , m_focusedSample(NULL)
     , m_viewWidget(NULL)
     , m_view(NULL)
-    , cross(NULL)
 {
   m_controlLayout = new QHBoxLayout();
   m_scrollBar = new QScrollBar(Qt::Horizontal);
@@ -285,6 +284,12 @@ SliceView::SliceView(QWidget* parent)
   this->setPalette(pal);
   this->setStyleSheet("QSpinBox { background-color: white;}");
 }
+
+SliceView::~SliceView()
+{
+  disconnectFromServer();
+}
+
 
 //-----------------------------------------------------------------------------
 QModelIndex SliceView::indexAt(const QPoint& point) const
@@ -395,8 +400,8 @@ void SliceView::connectToServer()
   assert(m_rwi);
   
   
-  vtkInteractorStyleEspina *style = vtkInteractorStyleEspina::New();
-  m_rwi->SetInteractorStyle(style);
+  m_style = vtkInteractorStyleEspina::New();
+  m_rwi->SetInteractorStyle(m_style);
   
   m_cam = m_viewProxy->GetActiveCamera();
   assert(m_cam);
@@ -405,17 +410,17 @@ void SliceView::connectToServer()
   
   switch (m_plane)
   {
-    case SLICE_PLANE_XY:
+    case VIEW_PLANE_XY:
       m_cam->SetPosition(0, 0, -1);
       m_cam->SetFocalPoint(0, 0, 0);
       m_cam->SetRoll(180);
       break;
-    case SLICE_PLANE_YZ:
+    case VIEW_PLANE_YZ:
       m_cam->SetPosition(1, 0, 0);
       m_cam->SetFocalPoint(0, 0, 0);
       m_cam->SetRoll(-90);
       break;
-    case SLICE_PLANE_XZ:
+    case VIEW_PLANE_XZ:
       m_cam->SetPosition(0, 1, 0);
       m_cam->SetFocalPoint(0, 0, 0);
       m_cam->SetRoll(-90);
@@ -430,23 +435,18 @@ void SliceView::connectToServer()
   //TODO: Change style
   m_view->setCenterAxesVisibility(false);
   m_view->resetCamera();
-  
-  m_mutex.lock();
-  if (!s_blender)
-  {
-    s_blender = new Blender();
-  }
-  m_mutex.unlock();
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::disconnectFromServer()
 {
+  qDebug() << "Disconnecting from the server";
   pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
   if (m_view)
   {
     m_mainLayout->removeWidget(m_viewWidget);
     ob->destroy(m_view);
+    m_style->Delete();
     m_view = NULL;
   }
 }
@@ -463,41 +463,24 @@ void SliceView::showSegmentations(bool value)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::setPlane(SlicePlane plane)
+void SliceView::setPlane(ViewType plane)
 {
-  if (m_slicer)
-    vtkSMPropertyHelper(m_slicer->getProxy(),"SliceMode").Set(5+plane);
-  
   m_plane = plane;
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::setSlice(int value)
 {
-  vtkSMPropertyHelper(m_slicer->getProxy(),"Slice").Set(value);
-  
-  emit sliceChanged();
+  if (m_sampleRep)
+    m_sampleRep->setSlice(value, m_plane);
   
   updateScene();
 }
 
 void SliceView::centerViewOn(int x, int y, int z)
 {
-  switch (m_plane)
-  {
-    case SLICE_PLANE_XY:
-      m_scrollBar->setValue(z);
-      break;
-    case SLICE_PLANE_YZ:
-      m_scrollBar->setValue(x);
-      break;
-    case SLICE_PLANE_XZ:
-      m_scrollBar->setValue(y);
-      break;
-    default:
-      assert(false);
-  };
-    
+  if (m_sampleRep)
+    m_sampleRep->centerOn(x,y,z);
 }
 
 //-----------------------------------------------------------------------------
@@ -547,90 +530,81 @@ QModelIndex SliceView::moveCursor(QAbstractItemView::CursorAction cursorAction, 
 //-----------------------------------------------------------------------------
 void SliceView::rowsInserted(const QModelIndex& parent, int start, int end)
 {
-  QAbstractItemView::rowsInserted(parent, start, end);
+  //QAbstractItemView::rowsInserted(parent, start, end);
   
-//   TODO: Needed if multi samples
-//   if (parent != rootIndex())
-//     return;
+  //TODO: Multi samples
   
   assert(start == end);// Only 1-row-at-a-time inserts are allowed
   
-  QModelIndex newIndex  = model()->index(start, 0, parent);
+  //QModelIndex index = parent.child(r,0);
+  QModelIndex index  = model()->index(start, 0, parent);
+  IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+  // Check for sample
+  Sample *sample = dynamic_cast<Sample *>(item);
+  if (sample)
+  {
+    //Use croshairs representation
+    qDebug() << "Slice View"<< m_plane << ": Renders Sample";
+    int mextent[6];
+    sample->extent(mextent);
+    int normalCoorToPlane = (m_plane + 2) % 3;
+    int numSlices = mextent[2*normalCoorToPlane+1];
+    m_scrollBar->setMaximum(numSlices);
+    m_spinBox->setMaximum(numSlices);
+
+    m_sampleRep = dynamic_cast<CrosshairRepresentation *>(sample->representation("03_Crosshair"));
+    connect(m_sampleRep,SIGNAL(representationUpdated()),this,SLOT(updateScene()));
+    m_sampleRep->render(m_view,m_plane);
+    
+    m_focusedSample = sample;
+    m_view->resetCamera();
+  }  
+  updateScene();
+}
+/** DEPRECATED:
   IModelItem *newItem = static_cast<IModelItem *>(newIndex.internalPointer());
   Sample *newSample = dynamic_cast<Sample *>(newItem);
   if (newSample)
   {
     qDebug("SliceView: New sample Inserted");
-    //TODO: Check for children
-    m_mutex.lock();
-    s_blender->setBackground(newSample);
-    m_mutex.unlock();
     
     assert(!m_slicer);
     pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
     m_slicer = ob->createFilter("filters", "ImageSlicer", newSample->creator()->pipelineSource(), newSample->portNumber());
     setPlane(m_plane);
     newSample->creator()->pipelineSource()->updatePipeline();
-    int mextent[6];
-    newSample->extent(mextent);
-    int normalCoorToPlane = (m_plane + 2) % 3;
-    int numSlices = mextent[2*normalCoorToPlane+1];
-    m_scrollBar->setMaximum(numSlices);
-    m_spinBox->setMaximum(numSlices);
-
-    pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-    pqDataRepresentation *rep = dp->setRepresentationVisibility(m_slicer->getOutputPort(0), m_view, true);
-    
-    m_focusedSample = newSample;
-    m_view->resetCamera();
   }
   else
   {
     Segmentation *newSeg = dynamic_cast<Segmentation *>(newItem);
     assert(newSeg); // If not sample, it has to be a segmentation
-    m_mutex.lock();
-    s_blender->blend(newSeg);
-    m_mutex.unlock();
   }
   updateScene();
 }
+**/
 
 //-----------------------------------------------------------------------------
 void SliceView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end)
 {
-  QAbstractItemView::rowsAboutToBeRemoved(parent, start, end);
-  pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
-  
-  for (int r = start; r <= end; r++)
+  //QAbstractItemView::rowsAboutToBeRemoved(parent, start, end);
+  pqApplicationCore *core = pqApplicationCore::instance();
+  pqObjectBuilder *ob = core->getObjectBuilder();
+  assert(start == end);
+
+  QModelIndex index = model()->index(start, 0, parent);
+  IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+  // Check for sample
+  Sample *sample = dynamic_cast<Sample *>(item);
+  if (sample)
   {
-    QModelIndex index = model()->index(r, 0, parent);
-    IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
-    // Check for sample
-    Sample *sample = dynamic_cast<Sample *>(item);
-    if (sample)
+    m_focusedSample = NULL;
+    m_sampleRep = NULL;
+    foreach(pqRepresentation *rep, m_view->getRepresentations())
     {
-      m_focusedSample = NULL;
-      pqRepresentation *rep;
-      foreach(rep,m_view->getRepresentations())
-      {
-	rep->setVisible(false);
-	delete rep;//NOTE: Not sure if needed
-      }
-      ob->destroy(m_slicer);
-      m_slicer = NULL;
-      m_mutex.lock();
-      s_blender->clear();
-      m_mutex.unlock();
+      rep->setVisible(false);
+      ob->destroy(rep);
     }
-    else
-    {
-      Segmentation *seg = dynamic_cast<Segmentation *>(item);
-      assert(seg); // If not sample, it has to be a segmentation
-      qDebug() << seg->label() << " about to be destroyed";
-      m_mutex.lock();
-      s_blender->unblend(seg);
-      m_mutex.unlock();
-    }
+    qDebug() << "Remaining representations" << m_view->getNumberOfRepresentations();
   }
   updateScene();
 }
@@ -641,7 +615,6 @@ void SliceView::dataChanged(const QModelIndex& topLeft, const QModelIndex& botto
   if (!topLeft.isValid() || !bottomRight.isValid())
     return;
   
-  s_blender->updateImageBlenderInput();
   updateScene();
 }
 
@@ -728,6 +701,7 @@ pqRenderView* SliceView::view()
 void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
 {
   
+  //BUG:return;
   //Use Render Window Interactor's to obtain event's position
   vtkSMRenderViewProxy* view = 
     vtkSMRenderViewProxy::SafeDownCast(m_view->getProxy());
@@ -762,7 +736,7 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
     }
    
     SelectionManager::instance()->onMouseDown(pos, this);
-    emit pointSelected(pickPos[0] / spacing[0],pickPos[1] / spacing[1],pickPos[2] / spacing[2]);
+    centerViewOn(pickPos[0] / spacing[0],pickPos[1] / spacing[1],pickPos[2] / spacing[2]);
   }
   //BUG: Only MouseButtonPress events are received
   if (event->type() == QMouseEvent::MouseMove &&
@@ -807,14 +781,6 @@ void SliceView::updateScene()
   QApplication::setOverrideCursor(Qt::WaitCursor);
   if (m_focusedSample)
   {
-    if (m_showSegmentations)
-      slice(s_blender->source());
-    else
-    {
-      slice(m_focusedSample->creator()->pipelineSource());
-    }
-    if (cross && cross->isValid())
-      cross->renderInView(m_plane, m_view);
   }
 
   m_view->render();
@@ -822,14 +788,14 @@ void SliceView::updateScene()
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::slice(pqPipelineSource* source)
-{
-  vtkSMProperty* p;
-  vtkSMInputProperty *inputProp;
-
-  p = m_slicer->getProxy()->GetProperty("Input");
-  inputProp = vtkSMInputProperty::SafeDownCast(p);
-
-  inputProp->SetInputConnection(0, source->getProxy(), 0);
-  m_slicer->getProxy()->UpdateVTKObjects();
-}
+// void SliceView::slice(pqPipelineSource* source)
+// {
+//   vtkSMProperty* p;
+//   vtkSMInputProperty *inputProp;
+// 
+//   p = m_slicer->getProxy()->GetProperty("Input");
+//   inputProp = vtkSMInputProperty::SafeDownCast(p);
+// 
+//   inputProp->SetInputConnection(0, source->getProxy(), 0);
+//   m_slicer->getProxy()->UpdateVTKObjects();
+// }

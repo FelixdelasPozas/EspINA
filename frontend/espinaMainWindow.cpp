@@ -86,18 +86,19 @@
 #include <QWidgetAction>
 #include "qTreeComboBox.h"
 #include <cache/cachedObjectBuilder.h>
-#include "Crosshairs.h"
 #include <pqServerManagerModel.h>
 #include <pqServerDisconnectReaction.h>
+#include <labelMapExtension.h>
+#include <crosshairExtension.h>
 
 const QString FILTERS("Trace Files (*.trace)");
 const QString SEG_FILTERS("Seg Files (*.seg)");
 QString DIRECTORY("");
 
-#define XY_VIEW 0
-#define YZ_VIEW 0
-#define XZ_VIEW 0
-#define VOL_VIEW 0
+#define XY_VIEW 1
+#define YZ_VIEW 1
+#define XZ_VIEW 1
+#define VOL_VIEW 1
 
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
@@ -155,8 +156,14 @@ EspinaMainWindow::EspinaMainWindow()
   VolumetricRenderer *volumetric = new VolumetricRenderer();
   EspINAFactory::instance()->addViewWidget(volumetric);
 
-  ColorExtension colorExt;
-  EspINAFactory::instance()->addSegmentationExtension(&colorExt);
+  ColorExtension::SegmentationExtension segColorExt;
+  EspINAFactory::instance()->addSegmentationExtension(&segColorExt);
+  ColorExtension::SampleExtension sampleColorExt;
+  EspINAFactory::instance()->addSampleExtension(&sampleColorExt);
+  LabelMapExtension::SampleExtension sampleLabelMapExt;
+  EspINAFactory::instance()->addSampleExtension(&sampleLabelMapExt);
+  CrosshairExtension CrossExt;
+  EspINAFactory::instance()->addSampleExtension(&CrossExt);
   MeshExtension meshExt;
   EspINAFactory::instance()->addSegmentationExtension(&meshExt);
   VolumetricExtension volExt;
@@ -225,6 +232,11 @@ EspinaMainWindow::EspinaMainWindow()
             SIGNAL(proxyCreated (pqProxy *)),
             m_espina,
             SLOT(onProxyCreated(pqProxy*)));
+  connect(pqApplicationCore::instance()->getObjectBuilder(),
+	  SIGNAL(destroying(pqProxy*)),
+	  m_espina,
+	  SLOT(destroyingProxy(pqProxy*)));
+  
   
   // Taxonomy Editor
   this->Internals->taxonomyView->setModel(m_espina);
@@ -247,19 +259,18 @@ EspinaMainWindow::EspinaMainWindow()
 #if XY_VIEW
   //Create ESPINA VIEWS
   m_xy = new SliceView();
-  m_xy->setPlane(SliceView::SLICE_PLANE_XY);
+  m_xy->setPlane(VIEW_PLANE_XY);
   m_xy->setModel(sampleProxy);
   connect(server, SIGNAL(connectionCreated(vtkIdType)), m_xy, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), m_xy, SLOT(disconnectFromServer()));
   connect(this->Internals->toggleVisibility, SIGNAL(toggled(bool)),m_xy, SLOT(showSegmentations(bool)));
-  //connect(m_xy, SIGNAL(pointSelected(const Point)), m_selectionManager, SLOT(pointSelected(const Point)));
   this->setCentralWidget(m_xy);
 #endif
   
 
 #if YZ_VIEW
   m_yz = new SliceView();
-  m_yz->setPlane(SliceView::SLICE_PLANE_YZ);
+  m_yz->setPlane(VIEW_PLANE_YZ);
   m_yz->setModel(sampleProxy);
   m_yz->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
   connect(server, SIGNAL(connectionCreated(vtkIdType)), 
@@ -267,14 +278,12 @@ EspinaMainWindow::EspinaMainWindow()
   connect(server, SIGNAL(connectionClosed(vtkIdType)), 
 	  m_yz, SLOT(disconnectFromServer()));
   connect(this->Internals->toggleVisibility, SIGNAL(toggled(bool)),m_yz, SLOT(showSegmentations(bool)));
-  //connect(m_yz, SIGNAL(pointSelected(const Point)), 
-	//  m_selectionManager, SLOT(pointSelected(const Point)));
   this->Internals->yzSliceDock->setWidget(m_yz);
 #endif
 
 #if XZ_VIEW
   m_xz = new SliceView();
-  m_xz->setPlane(SliceView::SLICE_PLANE_XZ);
+  m_xz->setPlane(VIEW_PLANE_XZ);
   m_xz->setModel(sampleProxy);
   m_xz->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
   connect(server, SIGNAL(connectionCreated(vtkIdType)), 
@@ -286,25 +295,26 @@ EspinaMainWindow::EspinaMainWindow()
 #endif
   
 #if VOL_VIEW
-  Crosshairs *cross = new Crosshairs();
-  cross->addPlane(0,m_xy->output());
-  cross->addPlane(1,m_yz->output());
-  cross->addPlane(2,m_xz->output());
-  connect(m_xy,SIGNAL(sliceChanged()),cross,SLOT(update()));
-  connect(m_yz,SIGNAL(sliceChanged()),cross,SLOT(update()));
-  connect(m_xz,SIGNAL(sliceChanged()),cross,SLOT(update()));
-  m_xy->cross = cross;
-  connect(cross,SIGNAL(updateRequired()),m_xy,SLOT(updateScene()));
-  connect(m_xy,SIGNAL(pointSelected(int,int,int)),m_yz,SLOT(centerViewOn(int,int,int)));
-  connect(m_xy,SIGNAL(pointSelected(int,int,int)),m_xz,SLOT(centerViewOn(int,int,int)));
-  m_yz->cross = cross;
-  connect(cross,SIGNAL(updateRequired()),m_yz,SLOT(updateScene()));
-  connect(m_yz,SIGNAL(pointSelected(int,int,int)),m_xy,SLOT(centerViewOn(int,int,int)));
-  connect(m_yz,SIGNAL(pointSelected(int,int,int)),m_xz,SLOT(centerViewOn(int,int,int)));
-  m_xz->cross = cross;
-  connect(cross,SIGNAL(updateRequired()),m_xz,SLOT(updateScene()));
-  connect(m_xz,SIGNAL(pointSelected(int,int,int)),m_xy,SLOT(centerViewOn(int,int,int)));
-  connect(m_xz,SIGNAL(pointSelected(int,int,int)),m_yz,SLOT(centerViewOn(int,int,int)));
+  ///DEPRECATED:
+//   Crosshairs *cross = new Crosshairs();
+//   cross->addPlane(0,m_xy->output());
+//   cross->addPlane(1,m_yz->output());
+//   cross->addPlane(2,m_xz->output());
+//   connect(m_xy,SIGNAL(sliceChanged()),cross,SLOT(update()));
+//   connect(m_yz,SIGNAL(sliceChanged()),cross,SLOT(update()));
+//   connect(m_xz,SIGNAL(sliceChanged()),cross,SLOT(update()));
+//   m_xy->cross = cross;
+//   connect(cross,SIGNAL(updateRequired()),m_xy,SLOT(updateScene()));
+//   connect(m_xy,SIGNAL(pointSelected(int,int,int)),m_yz,SLOT(centerViewOn(int,int,int)));
+//   connect(m_xy,SIGNAL(pointSelected(int,int,int)),m_xz,SLOT(centerViewOn(int,int,int)));
+//   m_yz->cross = cross;
+//   connect(cross,SIGNAL(updateRequired()),m_yz,SLOT(updateScene()));
+//   connect(m_yz,SIGNAL(pointSelected(int,int,int)),m_xy,SLOT(centerViewOn(int,int,int)));
+//   connect(m_yz,SIGNAL(pointSelected(int,int,int)),m_xz,SLOT(centerViewOn(int,int,int)));
+//   m_xz->cross = cross;
+//   connect(cross,SIGNAL(updateRequired()),m_xz,SLOT(updateScene()));
+//   connect(m_xz,SIGNAL(pointSelected(int,int,int)),m_xy,SLOT(centerViewOn(int,int,int)));
+//   connect(m_xz,SIGNAL(pointSelected(int,int,int)),m_yz,SLOT(centerViewOn(int,int,int)));
 
   m_3d = EspINAFactory::instance()->CreateVolumeView();
   m_3d->setModel(sampleProxy);
@@ -313,7 +323,7 @@ EspinaMainWindow::EspinaMainWindow()
 	  m_3d, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), 
 	  m_3d, SLOT(disconnectFromServer()));
-  m_3d->addWidget(cross);
+  //m_3d->addWidget(cross);
   this->Internals->volumeDock->setWidget(m_3d);
 #endif
 

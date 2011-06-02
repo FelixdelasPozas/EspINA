@@ -121,8 +121,9 @@ public slots:
     //! when plugins can't guess their type
     void setUserDefindedTaxonomy(const QString &taxName);
 
-    //! Debug slot for plugins manage
+    //! Debug slot to manage plugins
     void onProxyCreated(pqProxy* p);
+    void destroyingProxy(pqProxy* p);
 
     //! Manage the pqPipelineSources loaded with pqLoadReaction
     void loadSource(pqPipelineSource* proxy);

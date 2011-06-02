@@ -22,6 +22,7 @@ qt4_wrap_cpp(MOC_BUILT_SOURCES
   ui/sliceView.h
   volumetricRenderer.h
   meshRenderer.h
+  EspinaPlugin.h
 )
 
 source_group("Generated" FILES
@@ -49,6 +50,10 @@ set(EXTERNAL_LIBS zip)
 add_library (Espina SHARED ${Espina_SOURCE_FILES})
 
 target_link_libraries (Espina ${CAJAL_LIBRARIES} ${EXTERNAL_LIBS})
+
+MESSAGE (STATUS "Paraview Libraries:" ${PARAVIEW_LIBRARIES})
+
+install (TARGETS Espina ${PARAVIEW_LIBRARIES} LIBRARY DESTINATION lib)
 
 add_subdirectory(tests)
 

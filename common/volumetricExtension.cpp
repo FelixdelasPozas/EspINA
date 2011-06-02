@@ -43,11 +43,11 @@ VolumetricRepresentation::VolumetricRepresentation(Segmentation* seg)
 {
 }
 
-pqPipelineSource* VolumetricRepresentation::pipelineSource()
+QString VolumetricRepresentation::id()
 {
-  qDebug() << "Volumetric Representation: Invalid pipeline (raw input).";
-  return m_seg->creator()->pipelineSource();
+  return m_seg->id();
 }
+
 
 void VolumetricRepresentation::render(pqView* view)
 {
@@ -86,8 +86,15 @@ void VolumetricRepresentation::render(pqView* view)
     rep->getProxy()->UpdateVTKObjects();
 }
 
+pqPipelineSource* VolumetricRepresentation::pipelineSource()
+{
+  qDebug() << "Volumetric Representation: Invalid pipeline (raw input).";
+  return m_seg->creator()->pipelineSource();
+}
 
-const ExtensionId VolumetricExtension::ID  = "VolumetricExtension";
+
+
+const ExtensionId VolumetricExtension::ID  = "01_VolumetricExtension";
 
 ExtensionId VolumetricExtension::id()
 {

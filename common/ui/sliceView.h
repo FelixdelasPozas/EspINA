@@ -25,7 +25,8 @@
 
 #include "selectionManager.h"//TODO: Forward declare?
 
-class Crosshairs;
+class CrosshairRepresentation;
+class vtkInteractorStyleEspina;
 class vtkCamera;
 class vtkSMRenderViewProxy;
 //Forward declaration
@@ -34,6 +35,7 @@ class Segmentation;
 class IModelItem;
 class pqPipelineSource;
 
+/*
 //! Blends Segmentations in a given Sample
 class Blender
 {
@@ -60,7 +62,7 @@ private:
   QMap<IModelItem *,ISegmentationRepresentation *> m_blendingMappers;
   QMutex m_mutex;
 };
-
+*/
 
 #include <QAbstractItemView>
 
@@ -88,34 +90,19 @@ class SliceView
 {
   Q_OBJECT
 public:
-  enum SlicePlane
-  {
-    SLICE_PLANE_FIRST = 0,
-    SLICE_PLANE_XY    = 0,
-    SLICE_PLANE_YZ    = 1,
-    SLICE_PLANE_XZ    = 2,
-    SLICE_PLANE_LAST  = 2
-  };
-  
-public:
   SliceView(QWidget* parent = 0);
+  virtual ~SliceView();
 
   //! AbstractItemView Interface
   virtual QModelIndex indexAt(const QPoint& point) const;
   virtual void scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint = EnsureVisible);
   virtual QRect visualRect(const QModelIndex& index) const;
-
-  //void focusOnSample(Sample *sample);
   
-  //WARNING: Review this method
-  pqPipelineSource **output(){return &m_slicer;}
+  //void focusOnSample(Sample *sample);
   
   //! Interface of ISelectableView
   void setSelection(SelectionFilters &filters, ViewRegions &regions);
 
-  // TODO: Refactoring
-  Crosshairs *cross;
-  
   virtual bool eventFilter(QObject* obj, QEvent* event);
 
 public slots:
@@ -126,7 +113,7 @@ public slots:
   void showSegmentations(bool value);
   
   //! Slicer configuration methods:
-  void setPlane(SlicePlane plane);
+  void setPlane(ViewType plane);
   void setSlice(int value);
   
   void centerViewOn(int x, int y, int z);
@@ -141,7 +128,7 @@ protected slots:
   
 signals:
   void sliceChanged();
-  void pointSelected(int, int, int);
+//  void pointSelected(int, int, int);
 
 protected:
   //! AbstractItemView Interfacec
@@ -162,37 +149,25 @@ protected:
   //! Converts point from Display coordinates to World coordinates
   ISelectionHandler::VtkRegion display2vtk(const QPolygonF &region);
   
-
 private:
-  pqPipelineSource *blender();
-  void slice(pqPipelineSource *source);
-
-private:
-  bool m_init;
   bool m_showSegmentations;
-  vtkSMImageSliceRepresentationProxy *m_rep;
-  SlicePlane m_plane;
+  ViewType m_plane;
+  CrosshairRepresentation *m_sampleRep;
   
-  //! Attributes in charge of the slicing
-  vtkSMIntVectorProperty *m_slice;
-  pqPipelineSource *m_slicer;
-
   Sample *m_focusedSample; // The sample which is being currently displayed
-  static Blender *s_blender; // A blending filter
   
   pqRenderView *m_view;
   vtkSMRenderViewProxy *m_viewProxy;
   vtkRenderWindowInteractor *m_rwi;
   vtkCamera *m_cam;
 
-  QMutex m_mutex;
-  
   // GUI
   QWidget *m_viewWidget;
   QScrollBar *m_scrollBar;
   QSpinBox *m_spinBox;
   QVBoxLayout *m_mainLayout;
   QHBoxLayout *m_controlLayout;
+  vtkInteractorStyleEspina *m_style;
 };
 
 #endif // SLICEVIEW_H

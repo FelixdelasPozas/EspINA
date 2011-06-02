@@ -132,10 +132,21 @@ public:
   void bounds(double *out);
   void spacing(double *out);
   
+  void addExtension(ISampleExtension *ext);
+  ISampleRepresentation *representation(QString name) {return m_repMap[name];}
+  //! Are supposed to be used for sort time 
+  ISampleExtension *extension(ExtensionId extId);
+  void initialize();
+  
 private:
   int *m_extent;
   double *m_bounds, *m_spacing;
   QMutex mutex;
+  
+private:
+  QMap<ExtensionId,ISampleExtension *> m_extensions;
+  ISampleExtension::InformationMap m_infoMap;
+  ISampleExtension::RepresentationMap m_repMap;
 };
 
 
@@ -160,8 +171,8 @@ public:
   
 private:
   QMap<ExtensionId,ISegmentationExtension *> m_extensions;
-  InformationMap m_infoMap;
-  RepresentationMap m_repMap;
+  ISegmentationExtension::InformationMap m_infoMap;
+  ISegmentationExtension::RepresentationMap m_repMap;
 };
 
 #endif // PRODUCTS_H

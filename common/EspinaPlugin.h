@@ -5,31 +5,93 @@
 #include <QToolButton>
 #include <QModelIndex>
 
-class pqPipelineSource;
 class EspinaFilter;
 class Segmentation;
+class Sample;
 class pqView;
+class pqPipelineSource;
 
-class ISegmentationRepresentation
+
+class ISampleRepresentation : public QObject
 {
+  Q_OBJECT
+  
+public:
+  ISampleRepresentation(Sample *sample) : m_sample(sample) {}
+  virtual ~ISampleRepresentation(){}
+  
+  virtual QString id() = 0;
+  //! Create a new representation in the given view
+  virtual void render(pqView *view, ViewType type = VIEW_3D) = 0;
+  //! Returns the output port needed to connect it to other filters
+  //! NOTE: This method must update internal properties if needed
+  virtual pqPipelineSource *pipelineSource() = 0;
+  
+signals:
+  void representationUpdated();
+
+protected:
+  Sample *m_sample;
+};
+
+//! Interface to extend sample behaviour
+class ISampleExtension 
+{
+public:
+  typedef QMap<QString, QVariant> InformationMap;
+  typedef QMap<QString, ISampleRepresentation *> RepresentationMap;
+  
+public:
+  virtual ~ISampleExtension(){}
+  
+  virtual ExtensionId id() = 0;
+  virtual void initialize(Sample *sample) = 0;
+  virtual void addInformation(InformationMap &map) = 0;
+  virtual void addRepresentations(RepresentationMap &map) = 0;
+  
+  virtual Sample *sample() {return m_sample;}
+  
+  //! Prototype
+  virtual ISampleExtension *clone() = 0;
+  
+protected:
+  ISampleExtension() : m_sample(NULL), m_init(false){}
+  
+  Sample *m_sample;
+  bool m_init; // Wheteher the extentation has been initialized or not
+	       // In other words; if it has been linked to a segmentation
+};
+
+class ISegmentationRepresentation : public QObject
+{
+  Q_OBJECT
+  
 public:
   ISegmentationRepresentation(Segmentation *seg) : m_seg(seg) {}
   virtual ~ISegmentationRepresentation(){}
   
+  virtual QString id() = 0;
   //! Create a new representation in the given view
   virtual void render(pqView *view) = 0;
   //! Returns the output port needed to connect it to other filters
   //! NOTE: This method must update internal properties if needed
   virtual pqPipelineSource *pipelineSource() = 0;
+  
+signals:
+  void representationUpdated();
 
 protected:
   Segmentation *m_seg;
 };
 
 //! Interface to extend segmentation behaviour
-class ISegmentationExtension {
+class ISegmentationExtension 
+{
 public:
+  typedef QMap<QString, QVariant> InformationMap;
+  typedef QMap<QString, ISegmentationRepresentation *> RepresentationMap;
   
+public:
   virtual ~ISegmentationExtension(){}
   
   virtual ExtensionId id() = 0;

@@ -30,7 +30,6 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
   unitExplorer.h
   SegmentationExplorer.h
   qTreeComboBox.h
-  Crosshairs.h
   )
 
 # Create Interface files
@@ -90,7 +89,7 @@ build_paraview_client(espina
 
 target_link_libraries (espina ${Espina_LIBRARIES})
 
-install (TARGETS espina RUNTIME DESTINATION /home/jorge/tmp)
+install (TARGETS espina RUNTIME DESTINATION bin)
 
 
 add_subdirectory (plugins)

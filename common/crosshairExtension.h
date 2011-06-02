@@ -17,41 +17,41 @@
 */
 
 
-#ifndef MESHEXTENSION_H
-#define MESHEXTENSION_H
+#ifndef CROSSHAIREXTENSION_H
+#define CROSSHAIREXTENSION_H
 
 #include <EspinaPlugin.h>
 
-class pqScalarsToColors;
-class vtkProduct;
+class vtkFilter;
 
-class MeshRepresentation : public ISegmentationRepresentation
+class CrosshairRepresentation : public ISampleRepresentation
 {
 public:
-  MeshRepresentation(Segmentation* seg);
-  virtual ~MeshRepresentation();
+  CrosshairRepresentation(Sample* sample);
+  virtual ~CrosshairRepresentation();
   
   virtual QString id();
-  virtual void render(pqView* view);
+  virtual void render(pqView* view, ViewType type = VIEW_3D);
   virtual pqPipelineSource* pipelineSource();
   
+  void setSlice(int slice, ViewType type);
+  void centerOn(int x, int y, int z);
+  
 private:
-  pqScalarsToColors *m_LUT;  
-  vtkProduct *m_rep;
+  vtkFilter *m_planes[3];
 };
 
-class MeshExtension : public ISegmentationExtension
+
+class CrosshairExtension : public ISampleExtension
 {
-public:
   static const ExtensionId ID;
-  
 public:
-  virtual ExtensionId id();
-  virtual void initialize(Segmentation* seg);
-  virtual void addInformation(InformationMap& map);
-  virtual void addRepresentations(RepresentationMap& map);
+  virtual ExtensionId id() {return ID;}
+  virtual void initialize(Sample* sample);
+  virtual void addInformation(ISampleExtension::InformationMap& map);
+  virtual void addRepresentations(ISampleExtension::RepresentationMap& map);
   
-  virtual ISegmentationExtension* clone();
+  virtual ISampleExtension* clone();
 };
 
-#endif // MESHEXTENSION_H
+#endif // CROSSHAIREXTENSION_H

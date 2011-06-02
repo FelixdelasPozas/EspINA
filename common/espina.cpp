@@ -39,6 +39,7 @@
 #include "FilePack.h"
 #include <QMessageBox>
 #include <qfile.h>
+#include "espINAFactory.h"
 
 class IOTaxonomy;
 
@@ -543,6 +544,7 @@ void EspINA::addSample(Sample *sample)
   beginInsertRows(sampleRoot(),lastRow,lastRow);
   m_activeSample = sample;
   m_samples.push_back(sample);
+  sample->initialize();
   endInsertRows();
   
   emit focusSampleChanged(sample);
@@ -632,6 +634,10 @@ void EspINA::onProxyCreated(pqProxy* p)
   qDebug() << "EspINA: Proxy" << p->getSMGroup() << "::" << p->getSMName() << " created!";
 }
 
+void EspINA::destroyingProxy(pqProxy* p)
+{
+  qDebug() << "EspINA: Proxy" << p->getSMGroup() << "::" << p->getSMName() << " is being destroyed!";
+}
 //------------------------------------------------------------------------
 void EspINA::loadSource(pqPipelineSource* proxy)
 {
@@ -649,8 +655,8 @@ void EspINA::loadSource(pqPipelineSource* proxy)
     //this->removeSamples();
     
     vtkFilter *sampleReader = CachedObjectBuilder::instance()->registerProductCreator(filePath, proxy);
-    Sample *sample= new Sample(sampleReader,0);
-    this->addSample(sample);
+    Sample *sample = EspINAFactory::instance()->CreateSample(sampleReader,0);
+    this->addSample(sample); 
 
     if( !m_tax )
     {

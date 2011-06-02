@@ -34,6 +34,7 @@
 #include <pqLoadDataReaction.h>
 #include <cachedObjectBuilder.h>
 #include "../plugins/SeedGrowSegmentation/SeedGrowSegmentationFilter.h"
+#include "espINAFactory.h"
 
 using namespace boost;
 
@@ -292,7 +293,7 @@ void ProcessingTrace::readTrace(QTextStream& stream)
         vtkFilter* sampleReader = CachedObjectBuilder::instance()->registerProductCreator(label, proxy);
         //pqPipelineSource* proxy = CachedObjectBuilder::instance()->createProduct(label);
 
-        EspINA::instance()->addSample(new Sample(sampleReader, 0));
+        EspINA::instance()->addSample(EspINAFactory::instance()->CreateSample(sampleReader, 0));
       } // A filter
       else if( vShape[vertexId].compare("box") == 0 )
       { // A filter that can be processed

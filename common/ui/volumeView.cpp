@@ -179,7 +179,7 @@ void VolumeView::rowsInserted(const QModelIndex& parent, int start, int end)
 {
   for (int r = start; r <= end; r++)
   {
-    QModelIndex index = parent.child(r,0);
+    QModelIndex index = model()->index(r,0,parent);
     IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
     // Check for sample
     Sample *sample = dynamic_cast<Sample *>(item);
@@ -191,12 +191,15 @@ void VolumeView::rowsInserted(const QModelIndex& parent, int start, int end)
       m_focus[1] = (bounds[3]-bounds[2])/2.0;
       m_focus[2] = (bounds[5]-bounds[4])/2.0;
       qDebug() << "Render sample?";
+      sample->representation("03_Crosshair")->render(m_view);
+      connect(sample->representation("03_Crosshair"),SIGNAL(representationUpdated()),this,SLOT(updateScene()));
+
     } 
-    else if (!sample)
+    else 
     {
-      Segmentation *seg = dynamic_cast<Segmentation *>(item);
-      assert(seg); // If not sample, it has to be a segmentation
-      seg->representation("Mesh")->render(m_view);
+//       Segmentation *seg = dynamic_cast<Segmentation *>(item);
+//       assert(seg); // If not sample, it has to be a segmentation
+//       seg->representation("Mesh")->render(m_view);
     }
   }
   updateScene();
@@ -205,10 +208,12 @@ void VolumeView::rowsInserted(const QModelIndex& parent, int start, int end)
 //-----------------------------------------------------------------------------
 void VolumeView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end)
 {
+  pqApplicationCore *core = pqApplicationCore::instance();
+  pqObjectBuilder *ob = core->getObjectBuilder();
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
   for (int r = start; r <= end; r++)
   {
-    QModelIndex index = parent.child(r,0);
+    QModelIndex index = model()->index(r,0,parent);
     IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
     // Check for sample
     Sample *sample = dynamic_cast<Sample *>(item);
@@ -217,11 +222,16 @@ void VolumeView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int 
       //TODO: Render sample
       qDebug() << "Render sample?";
     } 
-    else if (!sample)
+    else
     {
       Segmentation *seg = dynamic_cast<Segmentation *>(item);
       assert(seg); // If not sample, it has to be a segmentation
-     dp->setRepresentationVisibility(seg->outputPort(), m_view, false);
+      pqRepresentation *rep = dp->setRepresentationVisibility(seg->outputPort(), m_view, false);
+      if (rep)
+      {
+	qDebug() << seg->label() << " destroyed";
+	ob->destroy(rep);
+      }
     }
   }
   m_view->render();
@@ -305,12 +315,12 @@ void VolumeView::updateScene()
   cam->GetPosition(pos);
 //   cam->GetFocalPoint(focus);
   
-  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-  pqRepresentation *rep;
-  foreach(rep,m_view->getRepresentations())
-  {
-    rep->setVisible(false);
-  }
+//   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+//   pqRepresentation *rep;
+//   foreach(rep,m_view->getRepresentations())
+//   {
+//     rep->setVisible(false);
+//   }
   
 //   if (selectionModel()->selection().size() == 0)
 //   {
@@ -319,11 +329,11 @@ void VolumeView::updateScene()
 //     focus[1] = m_focus[2];
 //   }
 
-  foreach (IViewWidget *widget, m_widgets)
-  {
-    if (widget->isChecked())
-      widget->renderInView(rootIndex(),m_view);
-  }
+//   foreach (IViewWidget *widget, m_widgets)
+//   {
+//     if (widget->isChecked())
+//       widget->renderInView(rootIndex(),m_view);
+//   }
 
   //cam->SetFocalPoint(focus);
   //view->GetInteractor()->SetCenterOfRotation(focus);

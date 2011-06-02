@@ -22,15 +22,117 @@
 #include "cache/cachedObjectBuilder.h"
 #include "proxies/vtkSMRGBALookupTableProxy.h"
 
+#include <pqApplicationCore.h>
+#include <pqDisplayPolicy.h>
 #include <vtkSMProperty.h>
 #include <vtkSMProxyProperty.h>
+#include <vtkSMPropertyHelper.h>
 #include <pqPipelineSource.h>
+#include <pqScalarsToColors.h>
+#include <pqLookupTableManager.h>
 
 //DEBUG
 #include <QDebug>
 #include <assert.h>
 
-ColorRepresentation::ColorRepresentation(Segmentation* seg)
+using namespace ColorExtension;
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+SampleRepresentation::SampleRepresentation(Sample* sample): ISampleRepresentation(sample)
+{
+  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+  pqServer *server =  pqApplicationCore::instance()->getActiveServer();
+  pqLookupTableManager *lutManager = pqApplicationCore::instance()->getLookupTableManager();
+  
+  vtkFilter::Arguments volArgs;
+  volArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT, m_sample->id()));
+  m_rep = cob->createFilter("filters", "ImageMapToColors", volArgs);
+  assert(m_rep->numProducts() == 1);
+  
+  vtkSMProperty* p;
+  // Get (or create if it doesn't exit) the lut for the background image
+  m_LUT = lutManager->getLookupTable(server, "Greyscale", 4, 0);
+  assert(m_LUT);
+  double gray[8] = {0, 0, 0, 0, 255, 1, 1, 1};
+  vtkSMPropertyHelper(m_LUT->getProxy(),"RGBPoints").Set(gray,8);
+  m_LUT->getProxy()->UpdateVTKObjects();
+  
+  // Set the greyLUT for the mapper
+  p = m_rep->pipelineSource()->getProxy()->GetProperty("LookupTable");
+  vtkSMProxyProperty *lut = vtkSMProxyProperty::SafeDownCast(p);
+  if (lut)
+  {
+    lut->SetProxy(0, m_LUT->getProxy());
+  }
+  
+  //m_rep->pipelineSource()->getProxy()->UpdateVTKObjects();
+}
+
+//-----------------------------------------------------------------------------
+SampleRepresentation::~SampleRepresentation()
+{
+  qDebug() << "Deleted Color Representation from " << m_sample->id();
+  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+  cob->removeFilter(m_rep);
+//   m_LUT->Delete();
+}
+
+//-----------------------------------------------------------------------------
+QString SampleRepresentation::id()
+{
+  return m_rep->id()+":0";
+}
+
+//-----------------------------------------------------------------------------
+void SampleRepresentation::render(pqView* view, ViewType type)
+{
+  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+
+  dp->setRepresentationVisibility(pipelineSource()->getOutputPort(0),view,true);
+}
+
+//-----------------------------------------------------------------------------
+pqPipelineSource* SampleRepresentation::pipelineSource()
+{
+  return m_rep->pipelineSource();
+}
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+void SampleExtension::initialize(Sample* sample)
+{
+  m_sample = sample;
+}
+
+//-----------------------------------------------------------------------------
+void SampleExtension::addInformation(ISampleExtension::InformationMap& map)
+{
+  qDebug() << "Sample" << ID << ": No extra information provided.";
+}
+
+//-----------------------------------------------------------------------------
+void SampleExtension::addRepresentations(ISampleExtension::RepresentationMap& map)
+{
+  SampleRepresentation *rep = new SampleRepresentation(m_sample);
+  map.insert("01_Color", rep);
+  qDebug() << "Sample"<< ID << ": Color Representation Added";
+}
+
+//-----------------------------------------------------------------------------
+ISampleExtension* SampleExtension::clone()
+{
+  return new SampleExtension();
+}
+
+
+
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+SegmentationRepresentation::SegmentationRepresentation(Segmentation* seg)
 : ISegmentationRepresentation(seg)
 {
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
@@ -60,16 +162,30 @@ ColorRepresentation::ColorRepresentation(Segmentation* seg)
   }
 }
 
-ColorRepresentation::~ColorRepresentation()
+//-----------------------------------------------------------------------------
+SegmentationRepresentation::~SegmentationRepresentation()
 {
   qDebug() << "Deleted Color Representation from " << m_seg->id();
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   cob->removeFilter(m_rep);
+  m_LUT->Delete();
 }
 
 
+//-----------------------------------------------------------------------------
+QString SegmentationRepresentation::id()
+{
+  return m_rep->id()+":0";
+}
 
-pqPipelineSource* ColorRepresentation::pipelineSource()
+//-----------------------------------------------------------------------------
+void SegmentationRepresentation::render(pqView* view)
+{
+  qDebug() << "Color Representation: Invalid rendering";
+}
+
+//-----------------------------------------------------------------------------
+pqPipelineSource* SegmentationRepresentation::pipelineSource()
 {
   double rgba[4];
   m_seg->color(rgba);
@@ -79,39 +195,31 @@ pqPipelineSource* ColorRepresentation::pipelineSource()
   return m_rep->pipelineSource();
 }
 
-void ColorRepresentation::render(pqView* view)
-{
-  qDebug() << "Color Representation: Invalid rendering";
-}
 
-
-const ExtensionId ColorExtension::ID = "ColorExtension";
-
-ExtensionId ColorExtension::id()
-{
-  return ID;
-}
-
-void ColorExtension::initialize(Segmentation* seg)
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+void SegmentationExtension::initialize(Segmentation* seg)
 {
   m_seg = seg;
 }
 
-
-void ColorExtension::addInformation(InformationMap& map)
+//-----------------------------------------------------------------------------
+void SegmentationExtension::addInformation(InformationMap& map)
 {
   qDebug() << "Color Extension: No extra information provided.";
 }
 
-void ColorExtension::addRepresentations(RepresentationMap& map)
+//-----------------------------------------------------------------------------
+void SegmentationExtension::addRepresentations(RepresentationMap& map)
 {
-  ColorRepresentation *rep = new ColorRepresentation(m_seg);
-  map.insert("Color", rep);
+  SegmentationRepresentation *rep = new SegmentationRepresentation(m_seg);
+  map.insert("01_Color", rep);
   qDebug() << "Color Extension: Color Representation Added";
 }
 
-ISegmentationExtension* ColorExtension::clone()
+//-----------------------------------------------------------------------------
+ISegmentationExtension* SegmentationExtension::clone()
 {
-  return new ColorExtension();
+  return new SegmentationExtension();
 }
 

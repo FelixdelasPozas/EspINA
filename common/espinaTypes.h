@@ -7,8 +7,6 @@
 #include <QMap>
 #include <QVariant>
 
-class ISegmentationRepresentation;
-
 typedef NodeArg EspinaArg;
 typedef NodeParam EspinaParam;
 typedef NodeParamList EspinaParamList;
@@ -34,9 +32,17 @@ struct Point
 
 typedef Point ImagePixel;
 
-typedef QMap<QString, QVariant> InformationMap;
-typedef QMap<QString, ISegmentationRepresentation *> RepresentationMap;
 typedef QString ExtensionId;
+
+enum ViewType
+{
+  VIEW_PLANE_FIRST = 0,
+  VIEW_PLANE_XY    = 0,
+  VIEW_PLANE_YZ    = 1,
+  VIEW_PLANE_XZ    = 2,
+  VIEW_PLANE_LAST  = 2,
+  VIEW_3D = 3
+};
 
 
 #endif// ESPINATYPES_H

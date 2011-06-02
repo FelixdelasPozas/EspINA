@@ -96,6 +96,7 @@ void Cache::remove(const Cache::Index& index)
   qDebug() << index << m_cachedProxies[index].refCounter;
   if (m_cachedProxies[index].refCounter == 0)
   {
+    qDebug() << "Cache: "<< index << "removed";
     delete m_cachedProxies[index].filter;
     m_cachedProxies.remove(index);
     assert(!m_cachedProxies.contains(index));

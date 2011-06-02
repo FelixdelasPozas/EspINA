@@ -21,3 +21,8 @@ configure_file(
   "${PROJECT_SOURCE_DIR}/common/Config.h.in"
   "${PROJECT_SOURCE_DIR}/common/Config.h"
 )
+
+SET(CPACK_GENERATOR "DEB")
+SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "CeSViMa") #required
+
+include (CPack)

@@ -17,19 +17,17 @@
 */
 
 
-#ifndef COLORREPRESENTATION_H
-#define COLORREPRESENTATION_H
+#ifndef LABELMAPEXTENSION_H
+#define LABELMAPEXTENSION_H
 
-#include <EspinaPlugin.h>
+#include "EspinaPlugin.h"
 
 class vtkFilter;
-class pqScalarsToColors;
-class vtkSMRGBALookupTableProxy;
-
-namespace ColorExtension
+class Sample;
+namespace LabelMapExtension
 {
-
-  static const ExtensionId ID = "01_ColorExtension";
+  static const ExtensionId ID = "02_LabelMapExtension";
+  
   
   class SampleRepresentation : public ISampleRepresentation
   {
@@ -38,33 +36,18 @@ namespace ColorExtension
     virtual ~SampleRepresentation();
     
     virtual QString id();
-  virtual void render(pqView* view, ViewType type = VIEW_3D);
     virtual pqPipelineSource* pipelineSource();
-    
+    virtual void render(pqView* view, ViewType type = VIEW_3D);
+  
   private:
-    pqScalarsToColors *m_LUT;
-    vtkFilter *m_rep;
-  };
-
-  class SegmentationRepresentation : public ISegmentationRepresentation
-  {
-  public:
-    SegmentationRepresentation(Segmentation* seg);
-    virtual ~SegmentationRepresentation();
-    
-    virtual QString id();
-    virtual void render(pqView* view);
-    virtual pqPipelineSource* pipelineSource();
-    
-  private:
-    vtkSMRGBALookupTableProxy *m_LUT;
     vtkFilter *m_rep;
   };
   
   class SampleExtension : public ISampleExtension
   {
+    
   public:
-    virtual ExtensionId id(){return ID;}
+    virtual ExtensionId id() {return ID;}
     virtual void initialize(Sample* sample);
     virtual void addInformation(InformationMap& map);
     virtual void addRepresentations(RepresentationMap& map);
@@ -72,18 +55,6 @@ namespace ColorExtension
     virtual ISampleExtension* clone();
   };
 
+}//namespace LabelMapExtension
 
-  class SegmentationExtension : public ISegmentationExtension
-  {
-  public:
-    virtual ExtensionId id() {return ID;}
-    virtual void initialize(Segmentation* seg);
-    virtual void addInformation(InformationMap& map);
-    virtual void addRepresentations(RepresentationMap& map);
-    
-    virtual ISegmentationExtension* clone();
-  };
-  
-}//namespace ColorExtension
-
-#endif // COLORREPRESENTATION_H
+#endif // LABELMAPEXTENSION_H
