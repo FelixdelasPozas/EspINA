@@ -13,6 +13,7 @@
 #include <qdebug.h>
 #include <qfile.h>
 #include "FilePack.h"
+#include <QDir>
 
 vtkStandardNewMacro(vtkSegWriter);
 
@@ -33,27 +34,31 @@ int vtkSegWriter::RequestData(
   vtkInformationVector **vtkNotUsed(inputVector),
   vtkInformationVector *outputVector)
 {
-
-//   FilePack pack( FileName, FilePack::WRITE );
-
-  // Retrive ProcessingTrace
+  // Retrive Trace
   QString TraceAux(Trace);
+  // Retrive Taxonomy
   QString taxAux(Taxonomy);
+  // Retrive path of the new file
   QString FileNameAux(FileName);
-  IOEspinaFile::saveFile(FileNameAux, TraceAux, taxAux);
-//   qDebug() << "Remote Trace " << s;
-//   pack.addSource(FilePack::TRACE, s);
-//   // Retrive Taxonomy
-//   
-// //   qDebug() << "Remote Taxonomy " << tax_data;
-//   pack.addSource(FilePack::TAXONOMY, tax_data);
-// 
-//   pack.close();
+  
+  // Retrive the files of the segmentations
+  QStringList filters;
+  //filters << "*.mhd" << "*.zraw";
+  filters << "*.pvd";
+  QDir segDir(FileName);
+  segDir.cdUp();
 
-/*  QFile file(this->GetFileName()); // File.seg
-  file.open(QIODevice::Truncate | QIODevice::WriteOnly);
-  file.write(this->GetContent());
-  file.close();*/
+  QStringList segFiles = segDir.entryList(filters);
+  for(int i=0; i < segFiles.count(); i++)
+  {
+    segFiles[i] = segDir.filePath(segFiles[i]);
+  }
+  qDebug() << segFiles;
+  IOEspinaFile::saveFile(FileNameAux, TraceAux, taxAux, segFiles);
+
+  // Delete the segmentation files
+/*  foreach( FileNameAux, segFiles)
+    QFile::remove(FileNameAux);*/
   
   return 1;
 }

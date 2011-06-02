@@ -94,7 +94,7 @@ const QString FILTERS("Trace Files (*.trace)");
 const QString SEG_FILTERS("Seg Files (*.seg)");
 QString DIRECTORY("");
 
-#define XY_VIEW 0
+#define XY_VIEW 1
 #define YZ_VIEW 0
 #define XZ_VIEW 0
 #define VOL_VIEW 0

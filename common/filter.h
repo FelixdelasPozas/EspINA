@@ -93,12 +93,13 @@ public:
   pqPipelineSource *pipelineSource(){return m_pipelineSource;}
 
 private:
-  vtkFilter(pqPipelineSource *source, QString &cacheId);
+  vtkFilter( pqPipelineSource* source, const QString& cacheId);
   
 protected:  
   pqPipelineSource *m_pipelineSource;
   QString m_id; //! Cache id
   friend class CachedObjectBuilder;
+  friend class Cache;
 };
 
 

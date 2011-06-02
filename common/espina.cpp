@@ -31,6 +31,8 @@
 #include <pqServerResources.h>
 #include <pqLoadDataReaction.h>
 #include <pqObjectBuilder.h>
+#include <pqActiveObjects.h>
+#include <pqSaveDataReaction.h>
 
 #include <QDebug>
 #include <iostream>
@@ -500,16 +502,9 @@ void EspINA::saveFile(QString& filePath, pqServer* server)
           vtkSMStringVectorProperty::SafeDownCast(remoteWriter->getProxy()->GetProperty("Taxonomy"));
     taxProp->SetElement(0, tax_data.toStdString().c_str());
     
-     QDir path = QFileInfo(filePath).dir();
      // Save the segmentations in different files
     foreach(Segmentation* seg, m_segmentations)
-    {
-      QString filePath = path.filePath(seg->id()+".mhd");
-      this->saveSegmentation(seg, filePath); // salva el fichero en el servidor
-      //segmentationFiles->SetElements()
-      // insertar el/los nombre/s del fichero/s en algun campo del remoteWriter
-    }
-    
+      this->saveSegmentation(seg, QFileInfo(filePath).dir()); // salva el fichero en el servidor
     
     //Update the pipeline to obtain the content of the file
     remoteWriter->getProxy()->UpdateVTKObjects();
@@ -524,7 +519,8 @@ void EspINA::saveFile(QString& filePath, pqServer* server)
     m_analysis->print(file);
     */
     QString auxTraceData(trace_data.str().c_str());
-    IOEspinaFile::saveFile( filePath, auxTraceData, tax_data);
+    QStringList emptyList; //TODO include the segmentations
+    IOEspinaFile::saveFile( filePath, auxTraceData, tax_data, emptyList);
   }
 }
 
@@ -641,7 +637,7 @@ void EspINA::loadSource(pqPipelineSource* proxy)
 
   qDebug() << "EspINA: Loading file in server side: " << filePath << "  " << proxy->getSMName();
 
-  if( filePath.endsWith(".pvd") || filePath.endsWith(".mha"))
+  if( filePath.endsWith(".pvd") || filePath.endsWith(".mha") || filePath.endsWith(".mhd"))
   {
     // TODO not supported for multiple Smaples
     //this->removeSamples();
@@ -747,44 +743,15 @@ void EspINA::loadTaxonomy()
   }
   setUserDefindedTaxonomy(m_tax->getSubElements()[0]->getName());
   emit resetTaxonomy();
-  /*
-  m_tax = new TaxonomyNode("FEM");
-  TaxonomyNode *newNode;
-  newNode = m_tax->addElement("Synapse","FEM");
-  newNode->setColor(QColor(255,0,0));
-  m_tax->addElement("Vesicles","FEM");
-  m_tax->addElement("Symetric","Synapse");
-  newNode = m_tax->addElement("Asymetric","Synapse");
-  newNode->setColor(QColor(Qt::yellow));
-  
-  /* // DEBUG
-  m_tax->addElement("A","Vesicles");
-  m_tax->addElement("B","Vesicles");
-  m_tax->addElement("B1","B");
-  m_tax->addElement("B2","B");
-  m_tax->addElement("B21","B2");
-  m_tax->addElement("B22","B2");
-  m_tax->addElement("B23","B2");
-  m_tax->addElement("B24","B2");
-  m_tax->addElement("B3","B");
-  m_tax->addElement("C","Vesicles");
-  m_tax->print();
-  */
 }
 
-#include <vtkSMWriterFactory.h>
-#include <vtkSmartPointer.h>
-#include <vtkSMProxyManager.h>
-#include <vtkSMSourceProxy.h>
-
-#include <pqActiveObjects.h>
-#include <pqSaveDataReaction.h>
-#include <pqOutputPort.h>
 //-----------------------------------------------------------------------------
-bool EspINA::saveSegmentation ( Segmentation* seg, QString& filePath )
+bool EspINA::saveSegmentation ( Segmentation* seg, QDir prefixFilePath )
 {
+  QString tmpfilePath(seg->creator()->id() + ".pvd");
+  tmpfilePath = prefixFilePath.filePath(tmpfilePath);
   pqActiveObjects::instance().setActivePort(seg->outputPort());
   
-  qDebug() << "EspINA::saveSegementation" << seg->id() << filePath;
-  return pqSaveDataReaction::saveActiveData(filePath);
+  qDebug() << "EspINA::saveSegementation" << tmpfilePath;
+  return pqSaveDataReaction::saveActiveData(tmpfilePath);
 }

@@ -158,7 +158,7 @@ private:
 
     //! Save a segmentation in the active server in a file which name
     //! corresponds to the id of the segmentation
-    bool saveSegmentation( Segmentation* seg, QString& filePath);
+    bool saveSegmentation( Segmentation* seg, QDir prefixFilePath);
 
 private:
     TaxonomyNode *m_newSegType; // The type for new segmentations

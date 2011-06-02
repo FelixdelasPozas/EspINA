@@ -39,7 +39,7 @@
 
 using namespace std;
 
-vtkFilter::vtkFilter(pqPipelineSource* source, QString& cacheId)
+vtkFilter::vtkFilter(pqPipelineSource* source, const QString& cacheId)
 : m_pipelineSource(source)
 , m_id(cacheId)
 {

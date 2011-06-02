@@ -34,10 +34,10 @@
 #include "pqServer.h"
 
 #include "vtkSMProxy.h"
-
 // Debug
 #include <QDebug>
 #include <assert.h>
+#include <pqLoadDataReaction.h>
 
 Cache *Cache::m_singleton = NULL;
 
@@ -50,6 +50,8 @@ Cache* Cache::instance()
 
 void Cache::insert(const Index& index, vtkFilter* filter, bool persistent)
 {
+  if ( index == filter->id())
+    qWarning() << "Inserting... different id";
   //m_translator.insert(id,index);
   if (m_cachedProxies.contains(index))
   {
@@ -68,7 +70,7 @@ void Cache::reference(const Cache::Index& index)
   qDebug() << index << m_cachedProxies[index].refCounter;
 }
 
-vtkFilter *Cache::getEntry(const Cache::Index index) const
+vtkFilter *Cache::getEntry(const Cache::Index index)
 {
   // First we try to recover the proxy from cache
   if (m_cachedProxies.contains(index))
@@ -78,12 +80,18 @@ vtkFilter *Cache::getEntry(const Cache::Index index) const
   }
   else
   {
-    if (bool tryDiskCache = false)
+    // Try to load from cache disk
+    QStringList fileName("/tmp/" + index + ".pvd"); //TODO set a workdirectory
+    pqPipelineSource *diskSource = pqLoadDataReaction::loadData(fileName);
+    if( diskSource )
     {
-      qDebug() << "Cache: " << index << "Load from disk";
-      assert(false);
+      qDebug() << "DiskCache: " << index << " HIT";
+      // insert it in the cache
+      vtkFilter* diskEntryFilter = new vtkFilter(diskSource, index);
+      insert(index, diskEntryFilter);
+      return diskEntryFilter;
     }else{
-      qDebug() << "Cache: " << index << "Failed to found entry";
+      qWarning() << "Cache: " << index << "Failed to found entry";
       return NULL;
     }
   }
