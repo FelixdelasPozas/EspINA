@@ -32,7 +32,8 @@
 #include <pqLoadDataReaction.h>
 #include <pqObjectBuilder.h>
 #include <pqActiveObjects.h>
-#include <pqSaveDataReaction.h>
+//#include <pqSaveDataReaction.h>
+#include <EspinaSaveDataReaction.h>
 
 #include <QDebug>
 #include <iostream>
@@ -449,7 +450,6 @@ QList< Segmentation* > EspINA::segmentations(const Sample* sample) const
   return m_sampleSegs[sample];
 }
 
-
 //-----------------------------------------------------------------------------
 void EspINA::loadFile(QString filePath, QString method)
 {
@@ -462,7 +462,6 @@ void EspINA::loadFile(QString filePath, QString method)
 
   pqPipelineSource* remoteFile = pqLoadDataReaction::loadData(QStringList(filePath));
   loadSource(remoteFile);
-  // TODO cache
 }
 
 //-----------------------------------------------------------------------------
@@ -504,8 +503,9 @@ void EspINA::saveFile(QString& filePath, pqServer* server)
     taxProp->SetElement(0, tax_data.toStdString().c_str());
     
      // Save the segmentations in different files
+    filePath.remove(QRegExp("\\..*$"));
     foreach(Segmentation* seg, m_segmentations)
-      this->saveSegmentation(seg, QFileInfo(filePath).dir()); // salva el fichero en el servidor
+      this->saveSegmentation(seg, QDir(filePath)); // salva el fichero en el servidor
     
     //Update the pipeline to obtain the content of the file
     remoteWriter->getProxy()->UpdateVTKObjects();
@@ -515,6 +515,7 @@ void EspINA::saveFile(QString& filePath, pqServer* server)
   }
   else
   {
+    assert(false);
     /*
     std::ofstream file( filePath.toStdString().c_str(), std::_S_trunc );
     m_analysis->print(file);
@@ -643,7 +644,7 @@ void EspINA::loadSource(pqPipelineSource* proxy)
 
   qDebug() << "EspINA: Loading file in server side: " << filePath << "  " << proxy->getSMName();
 
-  if( filePath.endsWith(".pvd") || filePath.endsWith(".mha") || filePath.endsWith(".mhd"))
+  if( filePath.endsWith(".pvd") || filePath.endsWith(".mha"))
   {
     // TODO not supported for multiple Smaples
     //this->removeSamples();
@@ -677,7 +678,8 @@ void EspINA::loadSource(pqPipelineSource* proxy)
   else if( filePath.endsWith(".seg") )
   {
     //this->clear();
-
+    QFileInfo path(filePath.remove(QRegExp("\\..*$")));
+    Cache::instance()->setWorkingDirectory(path);
     proxy->updatePipeline(); //Update the pipeline to obtain the content of the file
     proxy->getProxy()->UpdatePropertyInformation();
     // Taxonomy
@@ -759,5 +761,5 @@ bool EspINA::saveSegmentation ( Segmentation* seg, QDir prefixFilePath )
   pqActiveObjects::instance().setActivePort(seg->outputPort());
   
   qDebug() << "EspINA::saveSegementation" << tmpfilePath;
-  return pqSaveDataReaction::saveActiveData(tmpfilePath);
+  return EspinaSaveDataReaction::saveActiveData(tmpfilePath);
 }

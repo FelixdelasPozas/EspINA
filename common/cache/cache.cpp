@@ -50,8 +50,8 @@ Cache* Cache::instance()
 
 void Cache::insert(const Index& index, vtkFilter* filter, bool persistent)
 {
-  if ( index == filter->id())
-    qWarning() << "Inserting... different id";
+  if ( index != filter->id())
+    qWarning() << "Inserting ... different id";
   //m_translator.insert(id,index);
   if (m_cachedProxies.contains(index))
   {
@@ -81,7 +81,7 @@ vtkFilter *Cache::getEntry(const Cache::Index index)
   else
   {
     // Try to load from cache disk
-    QStringList fileName("/tmp/" + index + ".pvd"); //TODO set a workdirectory
+    QStringList fileName(m_diskCachePath.filePath(index + ".pvd"));//"/tmp/" + index + ".pvd"); //TODO set a workdirectory
     pqPipelineSource *diskSource = pqLoadDataReaction::loadData(fileName);
     if( diskSource )
     {
@@ -111,7 +111,6 @@ void Cache::remove(const Cache::Index& index)
   }
 }
 
-
 // CacheEntry* Cache::getEspinaEntry(const EspinaId& id) const
 // {
 //   CacheIndex index = m_translator.value(id,"");
@@ -119,6 +118,11 @@ void Cache::remove(const Cache::Index& index)
 //   return getEntry(index);
 // }
 
+//-----------------------------------------------------------------------------
+void Cache::setWorkingDirectory(QFileInfo& sample)
+{
+  m_diskCachePath = sample.filePath();
+}
 
 
 

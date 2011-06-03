@@ -146,10 +146,10 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ITraceNode::Arguments& ar
   growArgs.push_back(vtkFilter::Argument(QString("Threshold"),vtkFilter::DOUBLEVECT,args["Threshold"]));
   //growArgs.push_back(vtkFilter::Argument(QString("ProductPorts"),vtkFilter::INTVECT, "0"));
   // Disk cache. If the .seg contains .mhd files now it try to load them
-  Cache::Index id = cob->generateId("filter", "SeedGrowSegmentationFilter", growArgs);
-  m_grow = cob->getFilter(id);
-  if( !m_grow )
-    m_grow = cob->createFilter("filters","SeedGrowSegmentationFilter",growArgs);
+//   Cache::Index id = cob->generateId("filter", "SeedGrowSegmentationFilter", growArgs);
+//   m_grow = cob->getFilter(id);
+//   if( !m_grow )
+  m_grow = cob->createFilter("filters","SeedGrowSegmentationFilter",growArgs);
   
   //! Create segmenations. SeedGrowSegmentationFilter has only 1 output
   assert(m_grow->numProducts() == 1);

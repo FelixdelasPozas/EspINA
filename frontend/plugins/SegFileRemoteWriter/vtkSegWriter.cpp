@@ -42,11 +42,10 @@ int vtkSegWriter::RequestData(
   QString FileNameAux(FileName);
   
   // Retrive the files of the segmentations
+  
   QStringList filters;
-  //filters << "*.mhd" << "*.zraw";
   filters << "*.pvd";
-  QDir segDir(FileName);
-  segDir.cdUp();
+  QDir segDir(QString(FileName).remove(QRegExp("\\..*$")));
 
   QStringList segFiles = segDir.entryList(filters);
   for(int i=0; i < segFiles.count(); i++)
@@ -57,8 +56,8 @@ int vtkSegWriter::RequestData(
   IOEspinaFile::saveFile(FileNameAux, TraceAux, taxAux, segFiles);
 
   // Delete the segmentation files
-/*  foreach( FileNameAux, segFiles)
-    QFile::remove(FileNameAux);*/
+  foreach( FileNameAux, segFiles)
+    QFile::remove(FileNameAux);
   
   return 1;
 }

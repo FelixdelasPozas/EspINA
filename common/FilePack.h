@@ -31,8 +31,8 @@ public:
   bool close();
   //! Insert the file @param filePath inside the pack-file
   int addFile( QFileInfo file);
-  
-  void ExtractFiles();
+  //! Extract the files which has the product of a filter. For disk cache
+  void ExtractFiles(QDir& filePath);
   
 private:
   struct zip* m_file;

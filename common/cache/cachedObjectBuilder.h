@@ -43,7 +43,7 @@ public:
    *  created by ParaView system
    */
   //! Only used to load samples by pqPipelineDataReaction
-  vtkFilter* registerProductCreator(QString& id, pqPipelineSource* source);
+  vtkFilter* registerProductCreator(QString& sampleFile, pqPipelineSource* source);
 
   static Cache::Index generateId(const QString group, const QString name, const vtkFilter::Arguments args);
   

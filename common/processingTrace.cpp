@@ -285,10 +285,16 @@ void ProcessingTrace::readTrace(QTextStream& stream)
       {
         qDebug() << "ProcessingTrace: Loading the Stack " << label;
         pqPipelineSource* proxy = pqLoadDataReaction::loadData(QStringList(label));
-        vtkFilter* sampleReader = CachedObjectBuilder::instance()->registerProductCreator(label, proxy);
-        //pqPipelineSource* proxy = CachedObjectBuilder::instance()->createProduct(label);
-
-        EspINA::instance()->addSample(EspINAFactory::instance()->CreateSample(sampleReader, 0));
+        if( proxy )
+        {
+          vtkFilter* sampleReader = CachedObjectBuilder::instance()->registerProductCreator(label, proxy);
+          EspINA::instance()->addSample(EspINAFactory::instance()->CreateSample(sampleReader, 0));
+        }
+        else
+        {
+          qWarning() << __FILE__ << ":" << __LINE__ << "File" << label << "not found.";
+          return;
+        }
       } // A filter
       else if( vShape[vertexId].compare("box") == 0 )
       { // A filter that can be processed

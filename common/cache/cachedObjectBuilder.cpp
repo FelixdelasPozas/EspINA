@@ -184,13 +184,13 @@ TODO there are two ways to load sample files.
  * If it returns something different to NULL the element has been already registered
  * in the cache
  */
-vtkFilter* CachedObjectBuilder::registerProductCreator(QString& id, pqPipelineSource* source)
+vtkFilter* CachedObjectBuilder::registerProductCreator(QString& sampleFile, pqPipelineSource* source)
 {
-  vtkFilter* filter = m_cache->getEntry(id);
+  vtkFilter* filter = m_cache->getEntry(sampleFile);
   if( !filter )
   {
-    filter = new vtkFilter(source, id);
-    m_cache->insert(id, filter);
+    filter = new vtkFilter(source, sampleFile);
+    m_cache->insert(sampleFile, filter);
   }
   
   return filter;

@@ -67,7 +67,6 @@
 
 //VTK Includes
 //QT includes
-#include <QFileDialog>
 
 //Debug includes
 #include <QDebug>

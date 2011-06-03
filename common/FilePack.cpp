@@ -2,6 +2,9 @@
 #include <QDebug>
 #include <QFile>
 
+#define TRACE "trace.dot"
+#define TAXONOMY "taxonomy.xml"
+
 //-----------------------------------------------------------------------------
 FilePack::FilePack(QString FilePackName, FilePack::flags flag)
 {
@@ -99,20 +102,23 @@ int FilePack::addFile ( QFileInfo file )
 }
 
 //-----------------------------------------------------------------------------
-void FilePack::ExtractFiles()
+void FilePack::ExtractFiles(QDir& filePath)
 {
   int numFiles = zip_get_num_files(m_file);
   QTextStream stream;
-  qDebug() << numFiles;
+
   for(int i=0; i < numFiles; i++)
   {
     QString fileName(zip_get_name(m_file, i, 0));
-    QFile f("/tmp/"+fileName); //TODO change the path of the disk cache
-    qDebug() << f.open(QFile::WriteOnly | QFile::Truncate);
-    stream.setDevice(&f);
-    qDebug() << "Unpacking" << fileName;
-    this->readFile(fileName, stream);
-    f.close();
+    if( fileName != TAXONOMY && fileName != TRACE )
+    {
+      QFile f(filePath.filePath(fileName)); //TODO change the path of the disk cache
+      f.open(QFile::WriteOnly | QFile::Truncate);
+      stream.setDevice(&f);
+      qDebug() << "Unpacking" << fileName;
+      this->readFile(fileName, stream);
+      f.close();
+    }
   }
 }
 
@@ -120,9 +126,6 @@ void FilePack::ExtractFiles()
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-
-#define TRACE "trace.dot"
-#define TAXONOMY "taxonomy.xml"
 
 //-----------------------------------------------------------------------------
 void IOEspinaFile::loadFile(QString filePath,
@@ -132,12 +135,13 @@ void IOEspinaFile::loadFile(QString filePath,
   FilePack zipFile( filePath, FilePack::READ );
   // Read Taxonomy
   zipFile.readFile(TAXONOMY, TaxonomyContent);
-//   qDebug() << "Tax: " << *TaxonomyContent.string();
   // Read Trace
   zipFile.readFile(TRACE, TraceContent);
-//   qDebug() << "Trace: " << *TraceContent.string();
-  // TODO unpack the .mhd .zraw
-  zipFile.ExtractFiles();
+  QDir path(filePath.remove(QRegExp("\\..*$")));
+  // If the directory does not exist, it must be created
+  if( !path.exists() )
+    path.mkpath(path.absolutePath());
+  zipFile.ExtractFiles(path);
   zipFile.close();
 }
 
