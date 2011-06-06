@@ -444,10 +444,10 @@ QList<Segmentation * > EspINA::segmentations(const TaxonomyNode* taxonomy, bool 
   return segs;
 }
 
-//! Returns all the segmentations of a given sample
+//! Returns all the segmentations of a given sample //TODO: depreacte?
 QList< Segmentation* > EspINA::segmentations(const Sample* sample) const
 {
-  return m_sampleSegs[sample];
+  return sample->segmentations();
 }
 
 //-----------------------------------------------------------------------------
@@ -551,13 +551,13 @@ void EspINA::removeSample(Sample* sample)
   if( m_samples.contains(sample) )
   {
     // Remove the Segmentations associated
-    foreach(Segmentation* seg, m_sampleSegs[sample])
+    foreach(Segmentation* seg, sample->segmentations())
     {
       removeSegmentation(seg);
     }
-    assert(m_sampleSegs[sample].size() == 0);
-    m_sampleSegs.remove(sample);
-    assert(!m_sampleSegs.contains(sample));
+//     assert(m_sampleSegs[sample].size() == 0);
+//     m_sampleSegs.remove(sample);
+//     assert(!m_sampleSegs.contains(sample));
     // Remove it from analysis
     QModelIndex index = sampleIndex(sample);
     beginRemoveRows(index.parent(), index.row(), index.row());
@@ -576,7 +576,7 @@ void EspINA::removeSamples()
     this->removeSample(sample);
   }
   assert(m_samples.size() == 0);
-  assert(m_sampleSegs.keys().size() == 0);
+//   assert(m_sampleSegs.keys().size() == 0);
   m_activeSample = NULL;
 }
 
@@ -594,7 +594,8 @@ void EspINA::addSegmentation(Segmentation *seg)
   seg->setOrigin(m_activeSample);
   seg->initialize();
   m_taxonomySegs[m_newSegType].push_back(seg);
-  m_sampleSegs[seg->origin()].push_back(seg);
+  seg->origin()->addSegmentation(seg);
+  //m_sampleSegs[seg->origin()].push_back(seg);
   m_segmentations.push_back(seg);
   endInsertRows();
 }
@@ -607,7 +608,8 @@ void EspINA::removeSegmentation(Segmentation* seg)
   beginRemoveRows(segmentationRoot(),segIndex.row(),segIndex.row());
   m_segmentations.removeOne(seg);
   m_taxonomySegs[seg->taxonomy()].removeOne(seg);
-  m_sampleSegs[seg->origin()].removeOne(seg);
+  seg->origin()->removeSegmentation(seg);
+  //m_sampleSegs[seg->origin()].removeOne(seg);
   // Free internal memory
   m_analysis->removeNode(seg);
   endRemoveRows();

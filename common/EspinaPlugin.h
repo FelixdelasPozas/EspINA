@@ -26,6 +26,7 @@ public:
   //! Returns the output port needed to connect it to other filters
   //! NOTE: This method must update internal properties if needed
   virtual pqPipelineSource *pipelineSource() = 0;
+  virtual void updateRepresentation() {};
   
 signals:
   void representationUpdated();

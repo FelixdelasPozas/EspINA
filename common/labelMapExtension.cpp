@@ -24,6 +24,10 @@
 
 //DEBUG
 #include <QDebug>
+#include <vtkSMProperty.h>
+#include <pqPipelineSource.h>
+#include <vtkSMInputProperty.h>
+#include <vtkSMProxy.h>
 
 using namespace LabelMapExtension;
 
@@ -63,6 +67,38 @@ void SampleRepresentation::render(pqView* view, ViewType type)
 {
 }
 
+void SampleRepresentation::updateRepresentation()
+{
+  vtkSMProperty* p;
+
+  vtkstd::vector<vtkSMProxy *> inputs;
+  vtkstd::vector<unsigned int> ports;
+
+  // Ensure sample's mapper is the first input
+  inputs.push_back(m_sample->representation("01_Color")->pipelineSource()->getProxy());
+  ports.push_back(0);
+
+  foreach(Segmentation *seg, m_sample->segmentations())
+  {
+    if (seg->visible())
+    {
+      inputs.push_back(seg->representation("01_Color")->pipelineSource()->getProxy());
+      ports.push_back(0);
+    }
+  }
+  
+  p = m_rep->pipelineSource()->getProxy()->GetProperty("Input");
+  vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
+  if (input)
+  {
+        //input->RemoveAllProxies();
+    m_rep->pipelineSource()->getProxy()->UpdateVTKObjects();
+    input->SetProxies(static_cast<unsigned int>(inputs.size())
+                      , &inputs[0]
+                      , &ports[0]);
+    m_rep->pipelineSource()->getProxy()->UpdateVTKObjects();
+  }
+}
 
 
 void SampleExtension::initialize(Sample* sample)

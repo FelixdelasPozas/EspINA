@@ -67,7 +67,7 @@ SampleRepresentation::SampleRepresentation(Sample* sample): ISampleRepresentatio
     lut->SetProxy(0, m_LUT->getProxy());
   }
   
-  //m_rep->pipelineSource()->getProxy()->UpdateVTKObjects();
+  m_rep->pipelineSource()->getProxy()->UpdateVTKObjects();
 }
 
 //-----------------------------------------------------------------------------
@@ -149,6 +149,9 @@ SegmentationRepresentation::SegmentationRepresentation(Segmentation* seg)
   m_LUT->SetTableValue(0,0,0,0,0);
   double rgba[4];
   m_seg->color(rgba);
+  rgba[0] = 1;
+  rgba[1] = 0;
+  rgba[2] = 0;
   //TODO: change to binary segmentation images
   m_LUT->SetTableValue(255, rgba[0], rgba[1], rgba[2], 0.6);
   m_LUT->UpdateVTKObjects();
@@ -160,6 +163,7 @@ SegmentationRepresentation::SegmentationRepresentation(Segmentation* seg)
   {
     lut->SetProxy(0, m_LUT);
   }
+  m_rep->pipelineSource()->getProxy()->UpdateVTKObjects();
 }
 
 //-----------------------------------------------------------------------------
@@ -190,8 +194,9 @@ pqPipelineSource* SegmentationRepresentation::pipelineSource()
   double rgba[4];
   m_seg->color(rgba);
   //TODO: change to binary segmentation images
-  m_LUT->SetTableValue(255, rgba[0], rgba[1], rgba[2], 0.6);
-  m_LUT->UpdateVTKObjects();
+  //m_LUT->SetTableValue(255, rgba[0], rgba[1], rgba[2], 0.6);
+  //m_LUT->UpdateVTKObjects();
+  //m_rep->pipelineSource()->updatePipeline();
   return m_rep->pipelineSource();
 }
 

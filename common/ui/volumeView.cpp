@@ -328,12 +328,12 @@ void VolumeView::updateScene()
 //     focus[1] = m_focus[1];
 //     focus[1] = m_focus[2];
 //   }
-
-//   foreach (IViewWidget *widget, m_widgets)
-//   {
-//     if (widget->isChecked())
-//       widget->renderInView(rootIndex(),m_view);
-//   }
+  
+  foreach (IViewWidget *widget, m_widgets)
+  {
+    if (widget->isChecked())
+      widget->renderInView(rootIndex(),m_view);
+  }
 
   //cam->SetFocalPoint(focus);
   //view->GetInteractor()->SetCenterOfRotation(focus);

@@ -38,6 +38,7 @@ namespace LabelMapExtension
     virtual QString id();
     virtual pqPipelineSource* pipelineSource();
     virtual void render(pqView* view, ViewType type = VIEW_3D);
+    virtual void updateRepresentation();
   
   private:
     vtkFilter *m_rep;

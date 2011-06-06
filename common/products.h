@@ -118,7 +118,6 @@ public:
   : EspinaProduct(NULL, creator, portNumber)
   , m_extent(NULL)
   {}
-  
   virtual ~Sample();
   
   //virtual EspinaId id(){return name;}
@@ -131,6 +130,10 @@ public:
   void extent(int *out);
   void bounds(double *out);
   void spacing(double *out);
+  
+  QList<Segmentation *> segmentations() const {return m_segs;}
+  void addSegmentation(Segmentation *seg);
+  void removeSegmentation(Segmentation *seg);
   
   void addExtension(ISampleExtension *ext);
   ISampleRepresentation *representation(QString name) {return m_repMap[name];}
@@ -147,6 +150,7 @@ private:
   QMap<ExtensionId,ISampleExtension *> m_extensions;
   ISampleExtension::InformationMap m_infoMap;
   ISampleExtension::RepresentationMap m_repMap;
+  QList<Segmentation *> m_segs;
 };
 
 

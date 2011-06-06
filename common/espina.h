@@ -173,7 +173,6 @@ private:
     ProcessingTrace *m_analysis;
 
     QMap<const TaxonomyNode *, QList<Segmentation *> > m_taxonomySegs;
-    QMap<const Sample *, QList<Segmentation *> > m_sampleSegs;
 
     static EspINA *m_singleton;
 };

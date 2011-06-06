@@ -224,6 +224,23 @@ void Sample::spacing(double* out)
 //   qDebug() << out[0] << out[1] << out[2];
 }
 
+void Sample::addSegmentation(Segmentation* seg)
+{
+  m_segs.push_back(seg);
+  foreach(ISampleRepresentation *rep, m_repMap)
+  {
+    rep->updateRepresentation();
+  }
+}
+
+void Sample::removeSegmentation(Segmentation* seg)
+{
+  m_segs.removeOne(seg);
+  foreach(ISampleRepresentation *rep, m_repMap)
+  {
+    rep->updateRepresentation();
+  }
+}
 
 void Sample::addExtension(ISampleExtension* ext)
 {
