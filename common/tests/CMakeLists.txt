@@ -6,7 +6,7 @@ if (QT4_FOUND)
 	include (${QT_USE_FILE})
 endif (QT4_FOUND)
 
-find_package(Boost REQUIRED COMPONENTS  system filesystem)
+#find_package(Boost REQUIRED COMPONENTS  system filesystem)
 link_directories ( ${Boost_LIBRARY_DIRS} )
 include_directories ( ${Boost_INCLUDE_DIRS} )
 

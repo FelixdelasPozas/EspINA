@@ -91,13 +91,18 @@ void SampleRepresentation::updateRepresentation()
   vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
   if (input)
   {
-        //input->RemoveAllProxies();
+    /* TODO INICIO no estaba */
+    input->RemoveAllProxies();
+    m_rep->pipelineSource()->getProxy()->UpdateVTKObjects();
+    m_rep->pipelineSource()->updatePipeline();
+    /* FIN no estaba */
     m_rep->pipelineSource()->getProxy()->UpdateVTKObjects();
     input->SetProxies(static_cast<unsigned int>(inputs.size())
                       , &inputs[0]
                       , &ports[0]);
     m_rep->pipelineSource()->getProxy()->UpdateVTKObjects();
   }
+  m_rep->pipelineSource()->updatePipeline(); //TODO tampoco estaba
 }
 
 

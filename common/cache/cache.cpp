@@ -89,6 +89,9 @@ vtkFilter *Cache::getEntry(const Cache::Index index)
       // insert it in the cache
       vtkFilter* diskEntryFilter = new vtkFilter(diskSource, index);
       insert(index, diskEntryFilter);
+      // The last vtkFilter inserted has increments the refCounter in one
+      // because intialization. But it is not used yet by anyone.
+      m_cachedProxies[index].refCounter--;
       return diskEntryFilter;
     }else{
       qWarning() << "Cache: " << index << "Failed to found entry";
@@ -102,7 +105,7 @@ void Cache::remove(const Cache::Index& index)
   assert(m_cachedProxies.contains(index));
   m_cachedProxies[index].refCounter--;
   qDebug() << index << m_cachedProxies[index].refCounter;
-  if (m_cachedProxies[index].refCounter == 0)
+  if (m_cachedProxies[index].refCounter <= 0)
   {
     qDebug() << "Cache: "<< index << "removed";
     delete m_cachedProxies[index].filter;

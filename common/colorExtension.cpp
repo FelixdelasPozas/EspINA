@@ -194,8 +194,8 @@ pqPipelineSource* SegmentationRepresentation::pipelineSource()
   double rgba[4];
   m_seg->color(rgba);
   //TODO: change to binary segmentation images
-  //m_LUT->SetTableValue(255, rgba[0], rgba[1], rgba[2], 0.6);
-  //m_LUT->UpdateVTKObjects();
+  m_LUT->SetTableValue(255, rgba[0], rgba[1], rgba[2], 0.6);
+  m_LUT->UpdateVTKObjects();
   //m_rep->pipelineSource()->updatePipeline();
   return m_rep->pipelineSource();
 }
