@@ -35,6 +35,7 @@
 #include <cachedObjectBuilder.h>
 #include "../plugins/SeedGrowSegmentation/SeedGrowSegmentationFilter.h"
 #include "espINAFactory.h"
+#include "labelMapExtension.h"
 
 using namespace boost;
 
@@ -259,6 +260,8 @@ void ProcessingTrace::readTrace(QTextStream& stream)
   QMap< VertexId, QList< VertexId > > parentsMap = predecessors<Graph, VertexId>(schema);
   QList<VertexId> verticesToProcess(rootVertices<Graph, VertexId>(schema)); // The nodes not processed
   QList<VertexId> processedVertices;
+  
+  Sample *newSample;
 
   while( !verticesToProcess.empty() )
   {
@@ -288,7 +291,11 @@ void ProcessingTrace::readTrace(QTextStream& stream)
         if( proxy )
         {
           vtkFilter* sampleReader = CachedObjectBuilder::instance()->registerProductCreator(label, proxy);
-          EspINA::instance()->addSample(EspINAFactory::instance()->CreateSample(sampleReader, 0));
+	  newSample = EspINAFactory::instance()->CreateSample(sampleReader, 0);
+          EspINA::instance()->addSample(newSample);
+	  //ALERT: newSample is not initialize until added to espina model
+	  assert(newSample->representation("02_LabelMap"));
+	  dynamic_cast<LabelMapExtension::SampleRepresentation *>(newSample->representation("02_LabelMap"))->setDisabled(true);
         }
         else
         {
@@ -341,6 +348,8 @@ void ProcessingTrace::readTrace(QTextStream& stream)
       verticesToProcess.swap(0, verticesToProcess.size()-1);
     }
   }
+  if (newSample)
+    dynamic_cast<LabelMapExtension::SampleRepresentation *>(newSample->representation("02_LabelMap"))->setDisabled(false);
 }
 
 //-----------------------------------------------------------------------------

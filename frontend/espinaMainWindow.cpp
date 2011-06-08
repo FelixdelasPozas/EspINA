@@ -97,7 +97,7 @@ QString DIRECTORY("");
 #define XY_VIEW 1
 #define YZ_VIEW 1
 #define XZ_VIEW 1
-#define VOL_VIEW 1
+#define VOL_VIEW 0
 
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
 {

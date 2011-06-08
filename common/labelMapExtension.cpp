@@ -32,7 +32,9 @@
 using namespace LabelMapExtension;
 
 
-SampleRepresentation::SampleRepresentation(Sample* sample): ISampleRepresentation(sample)
+SampleRepresentation::SampleRepresentation(Sample* sample)
+: ISampleRepresentation(sample)
+, m_disabled(false)
 {
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   
@@ -54,13 +56,19 @@ SampleRepresentation::~SampleRepresentation()
 
 QString SampleRepresentation::id()
 {
-  return m_rep->id()+":0";
+  if (m_disabled)
+    return m_sample->id();
+  else
+    return m_rep->id()+":0";
 }
 
 
 pqPipelineSource* SampleRepresentation::pipelineSource()
 {
-  return m_rep->pipelineSource();
+  if (m_disabled)
+    return m_sample->creator()->pipelineSource();
+  else
+    return m_rep->pipelineSource();
 }
 
 void SampleRepresentation::render(pqView* view, ViewType type)
@@ -70,20 +78,20 @@ void SampleRepresentation::render(pqView* view, ViewType type)
 void SampleRepresentation::updateRepresentation()
 {
   vtkSMProperty* p;
-
+  
   vtkstd::vector<vtkSMProxy *> inputs;
   vtkstd::vector<unsigned int> ports;
-
+  
   // Ensure sample's mapper is the first input
   inputs.push_back(m_sample->representation("01_Color")->pipelineSource()->getProxy());
   ports.push_back(0);
-
+  
   foreach(Segmentation *seg, m_sample->segmentations())
   {
     if (seg->visible())
     {
       inputs.push_back(seg->representation("01_Color")->pipelineSource()->getProxy());
-      ports.push_back(0);
+  ports.push_back(0);
     }
   }
   
@@ -94,15 +102,26 @@ void SampleRepresentation::updateRepresentation()
     /* TODO INICIO no estaba */
     input->RemoveAllProxies();
     m_rep->pipelineSource()->getProxy()->UpdateVTKObjects();
-    m_rep->pipelineSource()->updatePipeline();
+    //m_rep->pipelineSource()->updatePipeline();
     /* FIN no estaba */
     m_rep->pipelineSource()->getProxy()->UpdateVTKObjects();
     input->SetProxies(static_cast<unsigned int>(inputs.size())
-                      , &inputs[0]
-                      , &ports[0]);
+    , &inputs[0]
+    , &ports[0]);
     m_rep->pipelineSource()->getProxy()->UpdateVTKObjects();
   }
-  m_rep->pipelineSource()->updatePipeline(); //TODO tampoco estaba
+  //m_rep->pipelineSource()->updatePipeline(); //TODO tampoco estaba
+  
+  emit representationUpdated();
+}
+
+void SampleRepresentation::setDisabled(bool value)
+{
+  if (m_disabled != value)
+  {
+    m_disabled = value;
+    updateRepresentation();
+  }
 }
 
 

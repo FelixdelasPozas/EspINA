@@ -15,3 +15,5 @@ ADD_PARAVIEW_PLUGIN(
 )
 
 #target_link_libraries(RemoteFile)
+
+install (TARGETS FileReader LIBRARY DESTINATION /usr/bin/plugins)

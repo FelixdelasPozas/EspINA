@@ -32,22 +32,31 @@
 #include <QDebug>
 #include <assert.h>
 #include <vtkSMPropertyHelper.h>
+#include <vtkSMInputProperty.h>
+#include <vtkSMProxy.h>
+#include "labelMapExtension.h"
 
 
-CrosshairRepresentation::CrosshairRepresentation(Sample* sample): ISampleRepresentation(sample)
+CrosshairRepresentation::CrosshairRepresentation(Sample* sample)
+: ISampleRepresentation(sample)
+, m_disabled(true)
 {
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   
   assert(m_sample->representation("02_LabelMap"));
+  
+  m_internalRep = dynamic_cast<LabelMapExtension::SampleRepresentation *>(m_sample->representation("02_LabelMap"));
 
   for(ViewType plane = VIEW_PLANE_FIRST; plane <= VIEW_PLANE_LAST; plane = ViewType(plane+1))
   {
     vtkFilter::Arguments filterArgs;
-    filterArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT, m_sample->representation("02_LabelMap")->id()));
+    filterArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT, m_internalRep->id()));
     QString mode = QString("%1").arg(5+ plane);
     filterArgs.push_back(vtkFilter::Argument("SliceMode",vtkFilter::INTVECT,mode));
     m_planes[plane] = cob->createFilter("filters", "ImageSlicer", filterArgs);
   }
+  
+  connect(m_internalRep,SIGNAL(representationUpdated()),this,SLOT(internalRepresentationUpdated()));
 }
 
 CrosshairRepresentation::~CrosshairRepresentation()
@@ -111,7 +120,19 @@ void CrosshairRepresentation::centerOn(int x, int y, int z)
   setSlice(z,VIEW_PLANE_XY);
 }
 
-
+void CrosshairRepresentation::internalRepresentationUpdated()
+{
+  vtkSMProperty* p;
+  vtkSMInputProperty *inputProp;
+  
+  for(ViewType plane = VIEW_PLANE_FIRST; plane <= VIEW_PLANE_LAST; plane = ViewType(plane+1))
+  {
+    p = m_planes[plane]->pipelineSource()->getProxy()->GetProperty("Input");
+    inputProp = vtkSMInputProperty::SafeDownCast(p);
+    inputProp->SetInputConnection(0, m_internalRep->pipelineSource()->getProxy(), 0);
+    m_planes[plane]->pipelineSource()->getProxy()->UpdateVTKObjects();
+  }
+}
 
 
 const ExtensionId CrosshairExtension::ID = "03_CrosshairExtension";

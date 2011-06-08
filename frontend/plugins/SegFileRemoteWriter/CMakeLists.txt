@@ -8,3 +8,5 @@ ADD_PARAVIEW_PLUGIN(
   SERVER_MANAGER_SOURCES vtkSegWriter.cpp
   SERVER_MANAGER_XML segWriter.xml
 )
+
+install (TARGETS SegFileWriter LIBRARY DESTINATION /usr/bin/plugins)
