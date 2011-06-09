@@ -552,12 +552,12 @@ void EspINA::removeSample(Sample* sample)
   if( m_samples.contains(sample) )
   {
     // Remove the Segmentations associated
-    dynamic_cast<LabelMapExtension::SampleRepresentation *>(sample->representation("02_LabelMap"))->setDisabled(true);
+    dynamic_cast<LabelMapExtension::SampleRepresentation *>(sample->representation("02_LabelMap"))->setEnable(false);
     foreach(Segmentation* seg, sample->segmentations())
     {
       removeSegmentation(seg);
     }
-    dynamic_cast<LabelMapExtension::SampleRepresentation *>(sample->representation("02_LabelMap"))->setDisabled(false);
+    dynamic_cast<LabelMapExtension::SampleRepresentation *>(sample->representation("02_LabelMap"))->setEnable(true);
 //     assert(m_sampleSegs[sample].size() == 0);
 //     m_sampleSegs.remove(sample);
 //     assert(!m_sampleSegs.contains(sample));

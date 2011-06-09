@@ -159,7 +159,7 @@ EspinaMainWindow::EspinaMainWindow()
   EspINAFactory::instance()->addSegmentationExtension(&segColorExt);
   ColorExtension::SampleExtension sampleColorExt;
   EspINAFactory::instance()->addSampleExtension(&sampleColorExt);
-  LabelMapExtension::SampleExtension sampleLabelMapExt;
+  LabelMapExtension::SampleExtension sampleLabelMapExt(this->Internals->toggleVisibility);
   EspINAFactory::instance()->addSampleExtension(&sampleLabelMapExt);
   CrosshairExtension CrossExt;
   EspINAFactory::instance()->addSampleExtension(&CrossExt);

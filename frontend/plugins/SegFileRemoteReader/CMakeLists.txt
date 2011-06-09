@@ -14,6 +14,6 @@ ADD_PARAVIEW_PLUGIN(
   GUI_RESOURCE_FILES RemoteFileGUI.xml
 )
 
-#target_link_libraries(RemoteFile)
+target_link_libraries(FileReader Espina) #Required to be used in server mode
 
 install (TARGETS FileReader LIBRARY DESTINATION /usr/bin/plugins)

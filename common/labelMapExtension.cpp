@@ -28,13 +28,15 @@
 #include <pqPipelineSource.h>
 #include <vtkSMInputProperty.h>
 #include <vtkSMProxy.h>
+#include <QAction>
 
 using namespace LabelMapExtension;
 
 
 SampleRepresentation::SampleRepresentation(Sample* sample)
 : ISampleRepresentation(sample)
-, m_disabled(false)
+, m_enable(true)
+, m_numberOfBlendedSeg(0)
 {
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   
@@ -56,19 +58,19 @@ SampleRepresentation::~SampleRepresentation()
 
 QString SampleRepresentation::id()
 {
-  if (m_disabled)
-    return m_sample->id();
-  else
+  if (m_enable)
     return m_rep->id()+":0";
+  else
+    return m_sample->id();
 }
 
 
 pqPipelineSource* SampleRepresentation::pipelineSource()
 {
-  if (m_disabled)
-    return m_sample->creator()->pipelineSource();
-  else
+  if (m_enable)
     return m_rep->pipelineSource();
+  else
+    return m_sample->creator()->pipelineSource();
 }
 
 void SampleRepresentation::render(pqView* view, ViewType type)
@@ -77,51 +79,60 @@ void SampleRepresentation::render(pqView* view, ViewType type)
 
 void SampleRepresentation::updateRepresentation()
 {
-  vtkSMProperty* p;
-  
-  vtkstd::vector<vtkSMProxy *> inputs;
-  vtkstd::vector<unsigned int> ports;
-  
-  // Ensure sample's mapper is the first input
-  inputs.push_back(m_sample->representation("01_Color")->pipelineSource()->getProxy());
-  ports.push_back(0);
-  
-  foreach(Segmentation *seg, m_sample->segmentations())
+  if (m_numberOfBlendedSeg != m_sample->segmentations().size())
   {
-    if (seg->visible())
+    m_numberOfBlendedSeg = m_sample->segmentations().size();
+    
+    vtkSMProperty* p;
+    
+    vtkstd::vector<vtkSMProxy *> inputs;
+    vtkstd::vector<unsigned int> ports;
+    
+    // Ensure sample's mapper is the first input
+    inputs.push_back(m_sample->representation("01_Color")->pipelineSource()->getProxy());
+    ports.push_back(0);
+    
+    foreach(Segmentation *seg, m_sample->segmentations())
     {
-      inputs.push_back(seg->representation("01_Color")->pipelineSource()->getProxy());
-  ports.push_back(0);
+      if (seg->visible())
+      {
+	inputs.push_back(seg->representation("01_Color")->pipelineSource()->getProxy());
+	ports.push_back(0);
+      }
+    }
+    
+    p = m_rep->pipelineSource()->getProxy()->GetProperty("Input");
+    vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
+    if (input)
+    {
+      input->RemoveAllProxies();
+      m_rep->pipelineSource()->getProxy()->UpdateVTKObjects();
+      input->SetProxies(static_cast<unsigned int>(inputs.size())
+      , &inputs[0]
+      , &ports[0]);
+      m_rep->pipelineSource()->getProxy()->UpdateVTKObjects();
     }
   }
-  
-  p = m_rep->pipelineSource()->getProxy()->GetProperty("Input");
-  vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
-  if (input)
-  {
-    /* TODO INICIO no estaba */
-    input->RemoveAllProxies();
-    m_rep->pipelineSource()->getProxy()->UpdateVTKObjects();
-    //m_rep->pipelineSource()->updatePipeline();
-    /* FIN no estaba */
-    m_rep->pipelineSource()->getProxy()->UpdateVTKObjects();
-    input->SetProxies(static_cast<unsigned int>(inputs.size())
-    , &inputs[0]
-    , &ports[0]);
-    m_rep->pipelineSource()->getProxy()->UpdateVTKObjects();
-  }
-  //m_rep->pipelineSource()->updatePipeline(); //TODO tampoco estaba
   
   emit representationUpdated();
 }
 
-void SampleRepresentation::setDisabled(bool value)
+void SampleRepresentation::setEnable(bool value)
 {
-  if (m_disabled != value)
+  if (m_enable != value)
   {
-    m_disabled = value;
+    m_enable = value;
     updateRepresentation();
   }
+}
+
+SampleExtension::SampleExtension(QAction* toggleVisibility)
+: m_toggleVisibility(toggleVisibility)
+{
+}
+
+SampleExtension::~SampleExtension()
+{
 }
 
 
@@ -139,10 +150,11 @@ void SampleExtension::addRepresentations(ISampleExtension::RepresentationMap& ma
 {
   SampleRepresentation *rep = new SampleRepresentation(m_sample);
   map.insert("02_LabelMap", rep);
+  QObject::connect(m_toggleVisibility,SIGNAL(toggled(bool)),rep,SLOT(setEnable(bool)));
   qDebug() << ID << "Label Map Representation Added";
 }
 
 ISampleExtension* SampleExtension::clone()
 {
-  return new SampleExtension();
+  return new SampleExtension(m_toggleVisibility);
 }

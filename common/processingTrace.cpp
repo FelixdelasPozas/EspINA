@@ -295,7 +295,7 @@ void ProcessingTrace::readTrace(QTextStream& stream)
           EspINA::instance()->addSample(newSample);
 	  //ALERT: newSample is not initialize until added to espina model
 	  assert(newSample->representation("02_LabelMap"));
-	  dynamic_cast<LabelMapExtension::SampleRepresentation *>(newSample->representation("02_LabelMap"))->setDisabled(true);
+	  dynamic_cast<LabelMapExtension::SampleRepresentation *>(newSample->representation("02_LabelMap"))->setEnable(false);
         }
         else
         {
@@ -349,7 +349,7 @@ void ProcessingTrace::readTrace(QTextStream& stream)
     }
   }
   if (newSample)
-    dynamic_cast<LabelMapExtension::SampleRepresentation *>(newSample->representation("02_LabelMap"))->setDisabled(false);
+    dynamic_cast<LabelMapExtension::SampleRepresentation *>(newSample->representation("02_LabelMap"))->setEnable(true);
 }
 
 //-----------------------------------------------------------------------------
