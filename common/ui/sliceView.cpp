@@ -71,6 +71,9 @@
 #include <QApplication>
 #include <crosshairExtension.h>
 
+#include <vtkWorldPointPicker.h>
+#include <vtkPropPicker.h>
+
 #define HINTWIDTH 40
 
 /*
@@ -443,6 +446,7 @@ void SliceView::connectToServer()
 void SliceView::disconnectFromServer()
 {
   qDebug() << "Disconnecting from the server";
+  /*
   pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
   if (m_view)
   {
@@ -451,6 +455,7 @@ void SliceView::disconnectFromServer()
     m_style->Delete();
     m_view = NULL;
   }
+  */
 }
 
 
@@ -667,23 +672,21 @@ ISelectionHandler::VtkRegion SliceView::display2vtk(const QPolygonF &region)
   //Use Render Window Interactor's Picker to find the world coordinates
   //of the stack
   //vtkSMRenderViewProxy* renModule = view->GetRenderWindow()->GetInteractor()->GetRenderView();
-  vtkAbstractPicker *picker = m_rwi->GetPicker();
-  assert(picker);
-  
   ISelectionHandler::VtkRegion vtkRegion;
   
   //! thus, use its spacing
-  double pos[3];//World coordinates
   double spacing[3];//Image Spacing
   m_focusedSample->spacing(spacing);
   
+  double pickPos[3];//World coordinates
+  vtkPropPicker *wpicker = vtkPropPicker::New();
   foreach(QPointF point, region)
   {  
-    picker->Pick(point.x(), point.y(), 0.0, m_viewProxy->GetRenderer());
-    picker->GetPickPosition(pos);
+    wpicker->Pick(point.x(), point.y(), 0.0, m_viewProxy->GetRenderer());
+    wpicker->GetPickPosition(pickPos);
     Point vtkPoint;
     for (int i=0; i<3; i++)
-      vtkPoint[i] = pos[i] / spacing[i];
+      vtkPoint[i] = pickPos[i] / spacing[i];
     vtkRegion << vtkPoint;
   }
   return vtkRegion;
@@ -722,14 +725,13 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
   if (event->type() == QMouseEvent::MouseButtonPress &&
       event->buttons() == Qt::LeftButton)
   {
-    vtkAbstractPicker *picker = m_rwi->GetPicker();
-    assert(picker);
-    double pickPos[3];//World coordinates
     double spacing[3];//Image Spacing
     m_focusedSample->spacing(spacing);
   
-    picker->Pick(xPos, yPos, 0.0, m_viewProxy->GetRenderer());
-    picker->GetPickPosition(pickPos);
+    double pickPos[3];//World coordinates
+    vtkWorldPointPicker *wpicker = vtkWorldPointPicker::New();
+    wpicker->Pick(xPos, yPos, 0.0, m_viewProxy->GetRenderer());
+    wpicker->GetPickPosition(pickPos);
     
     if (pickPos[0] == 0 && pickPos[1] == 0 && pickPos[2] == 0)
     {

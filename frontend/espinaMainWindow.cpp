@@ -97,7 +97,7 @@ QString DIRECTORY("");
 #define XY_VIEW 1
 #define YZ_VIEW 1
 #define XZ_VIEW 1
-#define VOL_VIEW 1
+#define VOL_VIEW 0
 
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
@@ -159,7 +159,7 @@ EspinaMainWindow::EspinaMainWindow()
   EspINAFactory::instance()->addSegmentationExtension(&segColorExt);
   ColorExtension::SampleExtension sampleColorExt;
   EspINAFactory::instance()->addSampleExtension(&sampleColorExt);
-  LabelMapExtension::SampleExtension sampleLabelMapExt;
+  LabelMapExtension::SampleExtension sampleLabelMapExt(this->Internals->toggleVisibility);
   EspINAFactory::instance()->addSampleExtension(&sampleLabelMapExt);
   CrosshairExtension CrossExt;
   EspINAFactory::instance()->addSampleExtension(&CrossExt);

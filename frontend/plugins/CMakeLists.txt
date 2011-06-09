@@ -10,3 +10,4 @@ ADD_PARAVIEW_PLUGIN(
 	SERVER_MANAGER_XML EspinaFilters.xml
 	)
 
+install (TARGETS EspinaFilters LIBRARY DESTINATION /usr/bin/plugins)

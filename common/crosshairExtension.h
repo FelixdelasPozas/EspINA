@@ -22,10 +22,16 @@
 
 #include <EspinaPlugin.h>
 
+namespace LabelMapExtension {
+class SampleRepresentation;
+}
+
 class vtkFilter;
 
 class CrosshairRepresentation : public ISampleRepresentation
 {
+  Q_OBJECT
+  
 public:
   CrosshairRepresentation(Sample* sample);
   virtual ~CrosshairRepresentation();
@@ -37,8 +43,13 @@ public:
   void setSlice(int slice, ViewType type);
   void centerOn(int x, int y, int z);
   
+protected slots:
+  void internalRepresentationUpdated();
+  
 private:
   vtkFilter *m_planes[3];
+  LabelMapExtension::SampleRepresentation *m_internalRep;
+  bool m_disabled;
 };
 
 

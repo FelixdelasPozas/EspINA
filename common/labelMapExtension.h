@@ -31,6 +31,7 @@ namespace LabelMapExtension
   
   class SampleRepresentation : public ISampleRepresentation
   {
+    Q_OBJECT
   public:
     SampleRepresentation(Sample* sample);
     virtual ~SampleRepresentation();
@@ -40,20 +41,30 @@ namespace LabelMapExtension
     virtual void render(pqView* view, ViewType type = VIEW_3D);
     virtual void updateRepresentation();
   
+  public slots:
+    void setEnable(bool value);
+  
   private:
     vtkFilter *m_rep;
+    bool m_enable;
+    int m_numberOfBlendedSeg;
   };
   
   class SampleExtension : public ISampleExtension
   {
-    
   public:
+    SampleExtension(QAction *toggleVisibility);
+    virtual ~SampleExtension();
     virtual ExtensionId id() {return ID;}
     virtual void initialize(Sample* sample);
     virtual void addInformation(InformationMap& map);
     virtual void addRepresentations(RepresentationMap& map);
     
     virtual ISampleExtension* clone();
+    
+  private:
+    
+    QAction *m_toggleVisibility;
   };
 
 }//namespace LabelMapExtension

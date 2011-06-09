@@ -549,6 +549,9 @@
    </widget>
   </widget>
   <widget class="QDockWidget" name="dockWidget">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <attribute name="dockWidgetArea">
     <number>2</number>
    </attribute>
@@ -566,27 +569,6 @@
     </layout>
    </widget>
   </widget>
-  <action name="toggleVisibility">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="rsc/espina.qrc">
-     <normaloff>:/espina/show_all.svg</normaloff>:/espina/show_all.svg</iconset>
-   </property>
-   <property name="text">
-    <string>Visibility</string>
-   </property>
-   <property name="toolTip">
-    <string>Turn Visibility On/Off</string>
-   </property>
-   <property name="shortcut">
-    <string>Space</string>
-   </property>
-  </action>
   <action name="actionUndo">
    <property name="icon">
     <iconset resource="rsc/espina.qrc">
@@ -625,6 +607,27 @@
   <action name="actionSegmentationExplorer">
    <property name="text">
     <string>Segmentation Explorer</string>
+   </property>
+  </action>
+  <action name="toggleVisibility">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="rsc/espina.qrc">
+     <normaloff>:/espina/show_all.svg</normaloff>:/espina/show_all.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Visibility</string>
+   </property>
+   <property name="toolTip">
+    <string>Turn Visibility On/Off</string>
+   </property>
+   <property name="shortcut">
+    <string>Space</string>
    </property>
   </action>
  </widget>

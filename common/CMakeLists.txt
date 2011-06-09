@@ -23,6 +23,8 @@ qt4_wrap_cpp(MOC_BUILT_SOURCES
   volumetricRenderer.h
   meshRenderer.h
   EspinaPlugin.h
+  labelMapExtension.h
+  crosshairExtension.h
 )
 
 source_group("Generated" FILES
