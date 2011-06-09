@@ -192,8 +192,8 @@ void VolumeView::rowsInserted(const QModelIndex& parent, int start, int end)
       m_focus[2] = (bounds[5]-bounds[4])/2.0;
       qDebug() << "Render sample?";
       sample->representation("03_Crosshair")->render(m_view);
+      connect(sample->representation("02_LabelMap"),SIGNAL(representationUpdated()),this,SLOT(updateScene()));
       connect(sample->representation("03_Crosshair"),SIGNAL(representationUpdated()),this,SLOT(updateScene()));
-
     } 
     else 
     {
@@ -243,7 +243,7 @@ void VolumeView::dataChanged(const QModelIndex& topLeft, const QModelIndex& bott
   if (!topLeft.isValid() || !bottomRight.isValid())
     return;
         
-  qDebug()<< "Updating " << topLeft;
+  //qDebug()<< "Updating " << topLeft;
   
   
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
@@ -255,10 +255,9 @@ void VolumeView::dataChanged(const QModelIndex& topLeft, const QModelIndex& bott
   Sample *sample = dynamic_cast<Sample *>(item);
   if (sample)
   {
-      //TODO: Render sample
-      qDebug() << "Render sample?";
+    sample->representation("03_Crosshair")->render(m_view);
   } 
-  else if (!sample)
+  else
   {
     Segmentation *seg = dynamic_cast<Segmentation *>(item);
     assert(seg); // If not sample, it has to be a segmentation
@@ -315,12 +314,12 @@ void VolumeView::updateScene()
   cam->GetPosition(pos);
 //   cam->GetFocalPoint(focus);
   
-//   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-//   pqRepresentation *rep;
-//   foreach(rep,m_view->getRepresentations())
-//   {
-//     rep->setVisible(false);
-//   }
+  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+  pqRepresentation *rep;
+  foreach(rep,m_view->getRepresentations())
+  {
+    rep->setVisible(false);
+  }
   
 //   if (selectionModel()->selection().size() == 0)
 //   {

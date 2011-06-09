@@ -23,10 +23,12 @@ configure_file(
 )
 
 
-file (GLOB LIBFILES ${ParaView_BINARY_DIR}/bin/*.so*)
-MESSAGE (STATUS "Library Files:" ${LIBFILES})
+file (GLOB PARAVIEWFILES ${ParaView_BINARY_DIR}/bin/*.so*)
+file (GLOB ITKFILES ${ITK_DIR}/bin/*.so*)
+MESSAGE (STATUS "Library Files:" ${PARAVIEWFILES} ${ITKFILES})
 
-install (FILES ${LIBFILES} DESTINATION lib/espina)
+install (FILES ${PARAVIEWFILES} DESTINATION lib/espina)
+install (FILES ${ITKFILES} DESTINATION lib/espina)
 install (FILES espina.conf DESTINATION /etc/ld.so.conf.d/)
 install (FILES ${PROJECT_SOURCE_DIR}/default_taxonomy.xml DESTINATION /usr/share/espina/)
 
@@ -39,5 +41,6 @@ SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libboost-system1.42.0,
 	libqt4-xmlpatterns,
 	libopenmpi1.3,
 	libzip1")
+set( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/CMake/debian/postinst;")
 
 include (CPack)

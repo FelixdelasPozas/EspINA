@@ -17,7 +17,8 @@
 */
 
 
-#include "meshRenderer.h"
+#include "crosshairRenderer.h"
+
 #include "products.h"
 
 // Para View
@@ -31,33 +32,34 @@
 #include <vtkSMProxyProperty.h>
 #include <pqLookupTableManager.h>
 
-MeshRenderer::MeshRenderer(QWidget* parent)
+CrosshairRenderer::CrosshairRenderer(QWidget* parent)
 : IViewWidget(parent)
 {
-  setIcon(QIcon(":/espina/showMesh"));
+  setIcon(QIcon(":/espina/showPlanes"));
 }
 
 
-void MeshRenderer::updateState(bool checked)
+void CrosshairRenderer::updateState(bool checked)
 {
 
 }
 
-IViewWidget* MeshRenderer::clone()
+IViewWidget* CrosshairRenderer::clone()
 {
 
 }
 
-void MeshRenderer::renderInView(QModelIndex index, pqView* view)
+void CrosshairRenderer::renderInView(QModelIndex index, pqView* view)
 {
   if (!index.isValid())
     return;
+  
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
  
   IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
-  Segmentation *seg = dynamic_cast<Segmentation *>(item);
-  if (seg)
-    seg->representation("Mesh")->render(view);
+  Sample *sample = dynamic_cast<Sample *>(item);
+  if (sample)
+    sample->representation("03_Crosshair")->render(view);
 
   for (int row = 0; row < index.model()->rowCount(index); row++)
   {

@@ -89,6 +89,7 @@
 #include <pqServerDisconnectReaction.h>
 #include <labelMapExtension.h>
 #include <crosshairExtension.h>
+#include <crosshairRenderer.h>
 
 const QString FILTERS("Trace Files (*.trace)");
 const QString SEG_FILTERS("Seg Files (*.seg)");
@@ -97,7 +98,7 @@ QString DIRECTORY("");
 #define XY_VIEW 1
 #define YZ_VIEW 1
 #define XZ_VIEW 1
-#define VOL_VIEW 0
+#define VOL_VIEW 1
 
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
@@ -154,6 +155,8 @@ EspinaMainWindow::EspinaMainWindow()
   EspINAFactory::instance()->addViewWidget(mesh);
   VolumetricRenderer *volumetric = new VolumetricRenderer();
   EspINAFactory::instance()->addViewWidget(volumetric);
+  CrosshairRenderer *crosshairs = new CrosshairRenderer();
+  EspINAFactory::instance()->addViewWidget(crosshairs);
 
   ColorExtension::SegmentationExtension segColorExt;
   EspINAFactory::instance()->addSegmentationExtension(&segColorExt);

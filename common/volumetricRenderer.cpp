@@ -50,6 +50,8 @@ IViewWidget* VolumetricRenderer::clone()
 
 void VolumetricRenderer::renderInView(QModelIndex index, pqView* view)
 {
+  if (!index.isValid())
+    return;
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
  
   IModelItem *item = static_cast<IModelItem *>(index.internalPointer());

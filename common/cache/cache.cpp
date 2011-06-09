@@ -19,6 +19,8 @@
 
 #include "cache.h"
 
+#include "espina_debug.h"
+
 #include <filter.h>
 
 // Qt
@@ -34,9 +36,6 @@
 #include "pqServer.h"
 
 #include "vtkSMProxy.h"
-// Debug
-#include <QDebug>
-#include <assert.h>
 #include <pqLoadDataReaction.h>
 
 Cache *Cache::m_singleton = NULL;
@@ -57,7 +56,7 @@ void Cache::insert(const Index& index, vtkFilter* filter, bool persistent)
   {
     m_cachedProxies[index].refCounter++;
   }else{
-    qDebug() << "Cache: inserting" << index;
+    CACHE_DEBUG("Inserting" << index);
     Entry newEntry;
     newEntry.refCounter = 1 + persistent?1:0;
     newEntry.filter = filter;
@@ -68,7 +67,7 @@ void Cache::insert(const Index& index, vtkFilter* filter, bool persistent)
 void Cache::reference(const Cache::Index& index)
 {
   m_cachedProxies[index].refCounter++;
-  qDebug() << index << m_cachedProxies[index].refCounter;
+  CACHE_DEBUG(index << "already has" << m_cachedProxies[index].refCounter << "references");
 }
 
 vtkFilter *Cache::getEntry(const Cache::Index index)
@@ -76,7 +75,7 @@ vtkFilter *Cache::getEntry(const Cache::Index index)
   // First we try to recover the proxy from cache
   if (m_cachedProxies.contains(index))
   {
-    qDebug() << "Cache: " << index << " HIT";
+    CACHE_DEBUG(index << " HIT");
     return m_cachedProxies[index].filter;
   }
   else
@@ -86,7 +85,7 @@ vtkFilter *Cache::getEntry(const Cache::Index index)
     pqPipelineSource *diskSource = pqLoadDataReaction::loadData(fileName);
     if( diskSource )
     {
-      qDebug() << "DiskCache: " << index << " HIT";
+      CACHE_DEBUG(index << " HIT Disk Cache");
       // insert it in the cache
       vtkFilter* diskEntryFilter = new vtkFilter(diskSource, index);
       insert(index, diskEntryFilter);
@@ -105,10 +104,10 @@ void Cache::remove(const Cache::Index& index)
 {
   assert(m_cachedProxies.contains(index));
   m_cachedProxies[index].refCounter--;
-  qDebug() << index << m_cachedProxies[index].refCounter;
+  CACHE_DEBUG(index << "already has" << m_cachedProxies[index].refCounter << "references");
   if (m_cachedProxies[index].refCounter <= 0)
   {
-    qDebug() << "Cache: "<< index << "removed";
+    CACHE_DEBUG(index << "removed");
     delete m_cachedProxies[index].filter;
     m_cachedProxies.remove(index);
     assert(!m_cachedProxies.contains(index));

@@ -22,6 +22,7 @@ qt4_wrap_cpp(MOC_BUILT_SOURCES
   ui/sliceView.h
   volumetricRenderer.h
   meshRenderer.h
+  crosshairRenderer.h
   EspinaPlugin.h
   labelMapExtension.h
   crosshairExtension.h

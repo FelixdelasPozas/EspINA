@@ -71,7 +71,6 @@
 #include <QApplication>
 #include <crosshairExtension.h>
 
-#include <vtkWorldPointPicker.h>
 #include <vtkPropPicker.h>
 
 #define HINTWIDTH 40
@@ -729,7 +728,7 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
     m_focusedSample->spacing(spacing);
   
     double pickPos[3];//World coordinates
-    vtkWorldPointPicker *wpicker = vtkWorldPointPicker::New();
+    vtkPropPicker *wpicker = vtkPropPicker::New();
     wpicker->Pick(xPos, yPos, 0.0, m_viewProxy->GetRenderer());
     wpicker->GetPickPosition(pickPos);
     
