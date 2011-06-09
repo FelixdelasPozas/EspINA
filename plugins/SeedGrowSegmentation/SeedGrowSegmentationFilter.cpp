@@ -66,6 +66,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVO
   growArgs.push_back(vtkFilter::Argument(QString("Input"),vtkFilter::INPUT, voiOutput.id()));
   growArgs.push_back(vtkFilter::Argument(QString("Seed"),vtkFilter::INTVECT,args["Seed"]));
   growArgs.push_back(vtkFilter::Argument(QString("Threshold"),vtkFilter::DOUBLEVECT,args["Threshold"]));
+  m_threshold = args["Threshold"].toInt();
   //growArgs.push_back(vtkFilter::Argument(QString("ProductPorts"),vtkFilter::INTVECT, "0"));
   m_grow = cob->createFilter("filters","SeedGrowSegmentationFilter",growArgs);
   

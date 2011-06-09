@@ -29,6 +29,7 @@
 #include <pqDisplayPolicy.h>
 #include <pqDataRepresentation.h>
 #include <pqPipelineRepresentation.h>
+//#include "../plugins/SeedGrowSegmentation/SeedGrowSegmentationFilter.h"
 
 
 SegmentationExplorer::SegmentationExplorer(Segmentation *seg, QWidget* parent, Qt::WindowFlags f)
@@ -47,6 +48,8 @@ SegmentationExplorer::SegmentationExplorer(Segmentation *seg, QWidget* parent, Q
     view->setCenterAxesVisibility(false);
     
     seg->representation("Mesh")->render(view);
+    //SeedGrowSegmentationFilter *filter = dynamic_cast<SeedGrowSegmentationFilter*>(seg->parent());
+    //this->m_threshold->setValue(filter->threshold());
   }
 }
 

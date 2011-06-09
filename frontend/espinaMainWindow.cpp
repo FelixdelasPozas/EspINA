@@ -33,6 +33,8 @@
 #include "espinaMainWindow.h"
 #include "ui_espinaMainWindow.h"
 
+#include "espina_debug.h"
+
 #include "espINAFactory.h"
 #include "distance.h"
 #include "selectionManager.h"
@@ -69,7 +71,6 @@
 //QT includes
 
 //Debug includes
-#include <QDebug>
 #include <iostream>
 #include <QPushButton>
 #include <pqServerResources.h>
@@ -127,14 +128,18 @@ EspinaMainWindow::EspinaMainWindow()
   //Create File Menu
   buildFileMenu(*this->Internals->menu_File);
 
+#ifdef DEBUG_GUI
   //// Populate application menus with actions.
   pqParaViewMenuBuilders::buildFileMenu(*this->Internals->menu_File);
+#endif
 
   //// Populate filters menu.
   //pqParaViewMenuBuilders::buildFiltersMenu(*this->Internals->menuTools, this);
 
+#ifdef DEBUG_GUI
   //// Populate Tools menu.
   pqParaViewMenuBuilders::buildToolsMenu(*this->Internals->menuTools);
+#endif
 
   //// setup the context menu for the pipeline browser.
   //pqParaViewMenuBuilders::buildPipelineBrowserContextMenu(
@@ -187,11 +192,11 @@ EspinaMainWindow::EspinaMainWindow()
   << taxProxy->mapFromSource(m_espina->taxonomyRoot())
   << sampleProxy->mapFromSource(m_espina->sampleRoot());
   
-  //!DEBUG
+//#if DEBUG_GUI
   this->Internals->modelo->setModel(m_espina);
   this->Internals->taxonomias->setModel(taxProxy);
   this->Internals->samples->setModel(sampleProxy);
-  //!DEBUG
+//#endif
 
   // Group by List
   connect(this->Internals->groupList, SIGNAL(currentIndexChanged(int)),
@@ -210,9 +215,9 @@ EspinaMainWindow::EspinaMainWindow()
   // User selected Taxonomy Selection List
   m_taxonomySelector = new QComboBox(this);
   ///QTreeComboBox *treeCombo = new QTreeComboBox(this);
-  QTreeView *taxonomyView = new QTreeView(this);
-  taxonomyView->setHeaderHidden(true);
-  m_taxonomySelector->setView(taxonomyView); //Brutal!
+  m_taxonomyView = new QTreeView(this);
+  m_taxonomyView->setHeaderHidden(true);
+  m_taxonomySelector->setView(m_taxonomyView); //Brutal!
   m_taxonomySelector->setSizeAdjustPolicy(QComboBox::AdjustToContents);
   m_taxonomySelector->setMinimumWidth(160);
   m_taxonomySelector->setModel(m_espina);
@@ -221,7 +226,7 @@ EspinaMainWindow::EspinaMainWindow()
   ///treeCombo->setCurrentIndex(0);
   ///treeCombo->setMinimumWidth(200);
   m_taxonomySelector->setRootModelIndex(m_espina->taxonomyRoot());
-  taxonomyView->expandAll();;
+  m_taxonomyView->expandAll();;
   connect(m_taxonomySelector, SIGNAL(currentIndexChanged(QString)),
           m_espina, SLOT(setUserDefindedTaxonomy(const QString&)));
   m_taxonomySelector->setCurrentIndex(0);
@@ -297,26 +302,6 @@ EspinaMainWindow::EspinaMainWindow()
 #endif
   
 #if VOL_VIEW
-  ///DEPRECATED:
-//   Crosshairs *cross = new Crosshairs();
-//   cross->addPlane(0,m_xy->output());
-//   cross->addPlane(1,m_yz->output());
-//   cross->addPlane(2,m_xz->output());
-//   connect(m_xy,SIGNAL(sliceChanged()),cross,SLOT(update()));
-//   connect(m_yz,SIGNAL(sliceChanged()),cross,SLOT(update()));
-//   connect(m_xz,SIGNAL(sliceChanged()),cross,SLOT(update()));
-//   m_xy->cross = cross;
-//   connect(cross,SIGNAL(updateRequired()),m_xy,SLOT(updateScene()));
-//   connect(m_xy,SIGNAL(pointSelected(int,int,int)),m_yz,SLOT(centerViewOn(int,int,int)));
-//   connect(m_xy,SIGNAL(pointSelected(int,int,int)),m_xz,SLOT(centerViewOn(int,int,int)));
-//   m_yz->cross = cross;
-//   connect(cross,SIGNAL(updateRequired()),m_yz,SLOT(updateScene()));
-//   connect(m_yz,SIGNAL(pointSelected(int,int,int)),m_xy,SLOT(centerViewOn(int,int,int)));
-//   connect(m_yz,SIGNAL(pointSelected(int,int,int)),m_xz,SLOT(centerViewOn(int,int,int)));
-//   m_xz->cross = cross;
-//   connect(cross,SIGNAL(updateRequired()),m_xz,SLOT(updateScene()));
-//   connect(m_xz,SIGNAL(pointSelected(int,int,int)),m_xy,SLOT(centerViewOn(int,int,int)));
-//   connect(m_xz,SIGNAL(pointSelected(int,int,int)),m_yz,SLOT(centerViewOn(int,int,int)));
 
   m_3d = EspINAFactory::instance()->CreateVolumeView();
   m_3d->setModel(sampleProxy);
@@ -332,7 +317,8 @@ EspinaMainWindow::EspinaMainWindow()
   // Setup default GUI layout.
   connect(this->Internals->toggleVisibility, SIGNAL(toggled(bool)), 
 	  this, SLOT(toggleVisibility(bool)));
-  pqServerDisconnectReaction::disconnectFromServer();
+  //pqServerDisconnectReaction::disconnectFromServer();
+  
   // m_3d->setSelectionModel(this->Internals->taxonomyView->selectionModel());
 
   // Final step, define application behaviors. Since we want all ParaView
@@ -502,8 +488,8 @@ void EspinaMainWindow::removeTaxonomyElement()
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::changeTaxonomyColor()
 {
-  m_espina->clear();
-  return;
+  //m_espina->clear();
+  //return;
   QColorDialog colorSelector;
   colorSelector.exec();
   m_espina->setData(this->Internals->taxonomyView->currentIndex(),colorSelector.selectedColor(),Qt::DecorationRole);
@@ -512,6 +498,7 @@ void EspinaMainWindow::changeTaxonomyColor()
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::resetTaxonomy()
 {
+  m_taxonomyView->expandAll();
   m_taxonomySelector->setCurrentIndex(0);
 }
 
@@ -608,12 +595,10 @@ void EspinaMainWindow::buildFileMenu(QMenu &menu)
 //  pqSaveDataReaction* saveReaction = new pqSaveDataReaction(action);
   QObject::connect(action, SIGNAL(triggered(bool)), this, SLOT(saveFile()));
   menu.addAction(action);
-
-  
   
   //signalMapper->setMapping(accountFileButton, QString("open"));
 
-  action = new QAction(tr("Add"),this);
+  action = new QAction(QIcon(":espina/add"),tr("Add"),this);
   signalMapper->setMapping(action, QString("add"));
   connect(action, SIGNAL(triggered(bool)), signalMapper, SLOT(map()));
   menu.addAction(action);

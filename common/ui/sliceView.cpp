@@ -782,10 +782,6 @@ void SliceView::setVOI(IVOI* voi)
 void SliceView::updateScene()
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);
-  if (m_focusedSample)
-  {
-  }
-
   m_view->render();
   QApplication::restoreOverrideCursor();
 }

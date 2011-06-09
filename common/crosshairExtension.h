@@ -40,6 +40,9 @@ public:
   virtual void render(pqView* view, ViewType type = VIEW_3D);
   virtual pqPipelineSource* pipelineSource();
   
+public slots:
+  virtual void requestUpdate(bool force){}
+  
   void setSlice(int slice, ViewType type);
   void centerOn(int x, int y, int z);
   

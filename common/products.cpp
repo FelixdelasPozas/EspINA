@@ -229,7 +229,7 @@ void Sample::addSegmentation(Segmentation* seg)
   m_segs.push_back(seg);
   foreach(ISampleRepresentation *rep, m_repMap)
   {
-    rep->updateRepresentation();
+    rep->requestUpdate();
   }
 }
 
@@ -238,7 +238,7 @@ void Sample::removeSegmentation(Segmentation* seg)
   m_segs.removeOne(seg);
   foreach(ISampleRepresentation *rep, m_repMap)
   {
-    rep->updateRepresentation();
+    rep->requestUpdate();
   }
 }
 
@@ -310,16 +310,19 @@ QVariant Segmentation::data(int role) const
 //------------------------------------------------------------------------
 bool Segmentation::setData(const QVariant& value, int role)
 {
- if (role == Qt::EditRole)
-    {
-      //TODO: change segmentation name
-    }
-    if (role == Qt::CheckStateRole)
-    {
+  switch (role)
+  {
+    case Qt::EditRole:
+      return true;
+    case Qt::CheckStateRole:
       setVisible(value.toBool());
       return true;
-    }
-    return false;
+    //case Qt::DecorationRole:
+      //m_repMap["01_Color"]->requestUpdate();
+      //return true;
+    default:
+      return false;
+  }
 }
 
 //------------------------------------------------------------------------

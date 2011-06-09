@@ -26,7 +26,9 @@ public:
   //! Returns the output port needed to connect it to other filters
   //! NOTE: This method must update internal properties if needed
   virtual pqPipelineSource *pipelineSource() = 0;
-  virtual void updateRepresentation() {};
+  
+public slots:
+  virtual void requestUpdate(bool force = false) = 0;
   
 signals:
   void representationUpdated();
@@ -77,6 +79,9 @@ public:
   //! Returns the output port needed to connect it to other filters
   //! NOTE: This method must update internal properties if needed
   virtual pqPipelineSource *pipelineSource() = 0;
+  
+public slots:
+  virtual void requestUpdate(bool force=false) = 0;
   
 signals:
   void representationUpdated();

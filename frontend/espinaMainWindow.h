@@ -41,6 +41,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QString>
 #include <QList>
 
+class QTreeView;
 class QComboBox;
 class TaxonomyNode;
 class SampleProxy;
@@ -102,6 +103,7 @@ private:
   // GUI
   pqInternals* Internals;
   QComboBox* m_taxonomySelector;
+  QTreeView *m_taxonomyView;
   SliceView *m_xy, *m_yz, *m_xz;;
   VolumeView *m_3d;
   SelectionManager *m_selectionManager;

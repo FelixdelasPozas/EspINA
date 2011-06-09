@@ -138,7 +138,34 @@ bool EspINA::setData(const QModelIndex& index, const QVariant& value, int role)
     IModelItem *indexItem = static_cast<IModelItem *>(index.internalPointer());
     result = indexItem->setData(value, role);
     if (result)
+    {
+      if (role == Qt::CheckStateRole)
+      {
+	Segmentation *seg = dynamic_cast<Segmentation *>(indexItem);
+	if (seg)
+	{
+	  seg->origin()->representation("02_LabelMap")->requestUpdate(true);
+	  QModelIndex segIndex = segmentationIndex(seg);
+	  emit dataChanged(segIndex,segIndex);
+	}
+	  
+      }
+      TaxonomyNode *taxItem = dynamic_cast<TaxonomyNode *>(indexItem);
+      if (taxItem && role == Qt::DecorationRole)
+      {
+	foreach(Segmentation *seg, m_taxonomySegs[taxItem])
+	{
+	  QModelIndex segIndex = segmentationIndex(seg);
+	  //seg->setData(value, role);
+	  emit dataChanged(segIndex,segIndex);
+	}
+	if (m_taxonomySegs[taxItem].size())
+	{
+	  m_taxonomySegs[taxItem].first()->origin()->representation("02_LabelMap")->requestUpdate(true);
+	}
+      }
       emit dataChanged(index,index);
+    }
   }
   return result;
 }
@@ -710,6 +737,7 @@ void EspINA::loadSource(pqPipelineSource* proxy)
 	m_tax = IOTaxonomy::loadXMLTaxonomy(TaxContent);
 	endInsertRows();
 	setUserDefindedTaxonomy(m_tax->getSubElements()[0]->getName());
+	emit resetTaxonomy();
       }
       
       m_analysis->readTrace(trace);
@@ -755,6 +783,7 @@ void EspINA::loadTaxonomy()
     node->setColor(QColor(Qt::black));
   }
   setUserDefindedTaxonomy(m_tax->getSubElements()[0]->getName());
+  
   emit resetTaxonomy();
 }
 

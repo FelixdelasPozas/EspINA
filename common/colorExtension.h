@@ -41,6 +41,9 @@ namespace ColorExtension
   virtual void render(pqView* view, ViewType type = VIEW_3D);
     virtual pqPipelineSource* pipelineSource();
     
+  public slots:
+    virtual void requestUpdate(bool force=false){}
+    
   private:
     pqScalarsToColors *m_LUT;
     vtkFilter *m_rep;
@@ -55,6 +58,9 @@ namespace ColorExtension
     virtual QString id();
     virtual void render(pqView* view);
     virtual pqPipelineSource* pipelineSource();
+    
+  public slots:
+    virtual void requestUpdate(bool force=false);
     
   private:
     vtkSMRGBALookupTableProxy *m_LUT;

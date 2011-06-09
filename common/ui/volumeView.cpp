@@ -106,7 +106,6 @@ void VolumeView::disconnectFromServer()
 //-----------------------------------------------------------------------------
 void VolumeView::setVOI(IVOI* voi)
 {
-  return;
   if (m_VOIWidget)
   {
     m_VOIWidget->deselect();

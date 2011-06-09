@@ -77,9 +77,9 @@ void SampleRepresentation::render(pqView* view, ViewType type)
 {
 }
 
-void SampleRepresentation::updateRepresentation()
+void SampleRepresentation::requestUpdate(bool force)
 {
-  if (m_numberOfBlendedSeg != m_sample->segmentations().size())
+  if (m_numberOfBlendedSeg != m_sample->segmentations().size() || force) 
   {
     m_numberOfBlendedSeg = m_sample->segmentations().size();
     
@@ -122,7 +122,7 @@ void SampleRepresentation::setEnable(bool value)
   if (m_enable != value)
   {
     m_enable = value;
-    updateRepresentation();
+    requestUpdate();
   }
 }
 

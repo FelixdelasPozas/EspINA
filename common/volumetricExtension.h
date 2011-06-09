@@ -33,6 +33,9 @@ public:
   virtual void render(pqView* view);
   virtual pqPipelineSource* pipelineSource();
   
+public slots:
+  virtual void requestUpdate(bool force=false) {};
+  
 private:
   pqScalarsToColors *m_LUT;  
 };

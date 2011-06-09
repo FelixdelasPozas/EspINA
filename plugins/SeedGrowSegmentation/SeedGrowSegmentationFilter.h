@@ -43,6 +43,8 @@ public:
   virtual QList<vtkProduct *> products() {QList<vtkProduct*> a; return a;}
   virtual void removeProduct(EspinaProduct* product);
   
+  int threshold(){return m_threshold;}
+  
   virtual QString label() const {return getArgument("Type");}
   virtual QString getArgument(QString name) const {return (name=="Type")?"SeedGrowSegmentation::SeedGrowSegmentationFilter":"";}
   virtual QString getArguments() const {return m_args;}
@@ -52,6 +54,7 @@ private:
   vtkFilter *m_grow;
   EspinaFilter *m_restoreFilter;
   IFilter *m_finalFilter;
+  int m_threshold;
   int m_numSeg;
 };
 

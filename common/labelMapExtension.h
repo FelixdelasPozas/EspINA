@@ -39,7 +39,9 @@ namespace LabelMapExtension
     virtual QString id();
     virtual pqPipelineSource* pipelineSource();
     virtual void render(pqView* view, ViewType type = VIEW_3D);
-    virtual void updateRepresentation();
+    
+  public slots:
+    virtual void requestUpdate(bool force=false);
   
   public slots:
     void setEnable(bool value);

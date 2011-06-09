@@ -200,6 +200,12 @@ pqPipelineSource* SegmentationRepresentation::pipelineSource()
   return m_rep->pipelineSource();
 }
 
+//-----------------------------------------------------------------------------
+void SegmentationRepresentation::requestUpdate(bool force)
+{
+  emit representationUpdated();
+}
+
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
