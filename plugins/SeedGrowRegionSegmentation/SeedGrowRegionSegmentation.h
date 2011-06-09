@@ -34,7 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define SEEDGROWINGREGIONSEGMENTATION_H
 
 #include "EspinaPlugin.h"
-#include "../SeedGrowSegmentation/iSegmentationPlugin.h"
+#include "iSegmentationPlugin.h"
 #include "interfaces.h"
 #include "filter.h"
 #include "selectionManager.h"
@@ -47,16 +47,18 @@ class Product;
 
 //TODO: Refactorize with SeedGrowingSegmentation
 //! Seed Growing Region Segmenation Plugin
-class SeedGrowingRegionSegmentation 
+class SeedGrowRegionSegmentation 
 : public ISegmentationPlugin
-, public EspinaPlugin
+, public IFilterFactory
 {
   Q_OBJECT
   
 public:
-  SeedGrowingRegionSegmentation(QObject* parent);
+  SeedGrowRegionSegmentation(QObject* parent);
   
-  virtual void LoadAnalisys(QString& filter, EspinaParamList& args);
+  EspinaFilter *createFilter(QString filter, ITraceNode::Arguments& args);
+  
+  //virtual void LoadAnalisys(QString& filter, EspinaParamList& args);
 protected slots:
   //! Changes the method to select the input seed
   void changeSeedSelector(QAction *seedSel);
@@ -74,13 +76,13 @@ signals:
 private:
   void buildSelectors();
   void buildUI();
-    
+  /*  
   void initBlurTable();
   void initGrowTable();
-  
+  */
   void addPixelSelector(QAction *action, ISelectionHandler *handler);
   
-  void buildSubPipeline(Product* input, EspinaParamList args);
+  //void buildSubPipeline(Product* input, EspinaParamList args);
   
 private:
   QSpinBox *m_threshold;

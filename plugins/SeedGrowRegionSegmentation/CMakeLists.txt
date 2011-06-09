@@ -39,14 +39,14 @@ qt4_add_resources (RCC_BUILT_SOURCES
 
 # We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
 qt4_wrap_cpp(MOC_SRCS
-  SeedGrowingRegionSegmentation.h
+  SeedGrowRegionSegmentation.h
   )
 
 # This is a macro for adding QActionGroup subclasses automatically as toolbars.
 ADD_PARAVIEW_ACTION_GROUP(
   IFACES IFACE_SRCS 
-  CLASS_NAME SeedGrowingRegionSegmentation
-  GROUP_NAME "ToolBar/SeedGrowingRegionSegmentation")#"ToolBar/SeedGrowingRegionSegmentation")
+  CLASS_NAME SeedGrowRegionSegmentation
+  GROUP_NAME "ToolBar/SeedGrowRegionSegmentation")#"ToolBar/SeedGrowingRegionSegmentation")
 
 file ( GLOB LOCAL_SOURCES *.cpp )
 

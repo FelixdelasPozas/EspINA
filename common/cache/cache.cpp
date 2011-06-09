@@ -51,12 +51,13 @@ Cache* Cache::instance()
 void Cache::insert(const Index& index, vtkFilter* filter, bool persistent)
 {
   if ( index != filter->id())
-    qWarning() << "Inserting ... different id";
+    qWarning() << "Cache: Inserting ... different id";
   //m_translator.insert(id,index);
   if (m_cachedProxies.contains(index))
   {
     m_cachedProxies[index].refCounter++;
   }else{
+    qDebug() << "Cache: inserting" << index;
     Entry newEntry;
     newEntry.refCounter = 1 + persistent?1:0;
     newEntry.filter = filter;

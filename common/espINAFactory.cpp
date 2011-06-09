@@ -80,7 +80,7 @@ VolumeView* EspINAFactory::CreateVolumeView()
 void EspINAFactory::addViewWidget(IViewWidget* widget)
 {
   qDebug() << "registered new widget in Factory";
-  m_widgets.append(widget->clone());
+  m_widgets.append(widget/*->clone()*/); //TODO clone method hasn't an implementation
 }
 
 

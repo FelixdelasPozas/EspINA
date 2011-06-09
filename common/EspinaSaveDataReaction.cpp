@@ -88,5 +88,6 @@ bool EspinaSaveDataReaction::saveActiveData(const QString& filename)
     }*/
   writer->UpdateVTKObjects();
   writer->UpdatePipeline();
+  
   return true;
 }

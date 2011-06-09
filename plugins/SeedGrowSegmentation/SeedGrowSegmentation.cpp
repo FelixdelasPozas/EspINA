@@ -86,7 +86,7 @@ EspinaFilter *SeedGrowSegmentation::createFilter(QString filter, ITraceNode::Arg
     SeedGrowSegmentationFilter *sgs_sgsf = new SeedGrowSegmentationFilter(args);
     return sgs_sgsf;
   }
-  qDebug("SeedGrowSegmenation::LoadAnalisys: Error no such a Filter");
+  qWarning("SeedGrowSegmenation::createFilter: Error no such a Filter");
   return NULL;
 }
 
@@ -158,7 +158,7 @@ void SeedGrowSegmentation::startSegmentation(ISelectionHandler::Selection sel)
   args.insert("Type", SGSF);
   args.insert("Seed", QString("%1,%2,%3").arg(seed.x).arg(seed.y).arg(seed.z));
   args.insert("Threshold",QString::number(m_threshold->value()));
- // args.insert("VOI",SelectionManager::instance()->voi()->save());
+  // args.insert("VOI",SelectionManager::instance()->voi()->save());
   //createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);
   SeedGrowSegmentationFilter *sgs_sgsf = new SeedGrowSegmentationFilter(input, SelectionManager::instance()->voi(),args);
   QApplication::restoreOverrideCursor();
@@ -233,7 +233,6 @@ void SeedGrowSegmentation::buildUI()
   QObject::connect(m_segButton, SIGNAL(toggled(bool)), this, SLOT(waitSeedSelection(bool)));
   //QObject::connect(m_segButton, SIGNAL(clicked(bool)), this, SLOT(setActive(bool)));
 }
-
 
 
 //------------------------------------------------------------------------

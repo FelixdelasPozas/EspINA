@@ -29,7 +29,7 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 =========================================================================*/
-#include "SeedGrowingRegionSegmentation.h"
+#include "SeedGrowRegionSegmentation.h"
 #include "selectionManager.h"
 //#include "objectManager.h"
 #include "espina.h"
@@ -60,35 +60,41 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "assert.h"
 #include <espINAFactory.h>
 
+#include "SeedGrowRegionSegmentationFilter.h"
 
 #define DEFAULT_THRESHOLD 30
 
 
+#define SGRS "SeedGrowRegionSegmentation"
+#define SGRSF "SeedGrowRegionSegmentation::SeedGrowRegionSegmentationFilter"
 
 //-----------------------------------------------------------------------------
-SeedGrowingRegionSegmentation::SeedGrowingRegionSegmentation(QObject* parent)
+SeedGrowRegionSegmentation::SeedGrowRegionSegmentation(QObject* parent)
 : ISegmentationPlugin(parent)
-, EspinaPlugin()
 , m_seedSelector(NULL)
 {
-  m_groupName = "filters";
-  m_filterName = "SeedGrowRegionSegmentationFilter";
-  
-  initBlurTable();
-  initGrowTable();
-  
+  m_factoryName = SGRS;
+  ProcessingTrace::instance()->registerPlugin(SGRSF, this);
+
   buildUI();
   
-  connect(this,
-	  SIGNAL(productCreated(Segmentation *)),
-	  EspINA::instance(),
-	  SLOT(addSegmentation(Segmentation*)));
-  
-  // register in a plugin list
-  ProcessingTrace::instance()->registerPlugin(this);
+}
+
+
+//-----------------------------------------------------------------------------
+EspinaFilter* SeedGrowRegionSegmentation::createFilter ( QString filter, ITraceNode::Arguments& args )
+{
+  if (filter == SGRSF )
+  {
+    SeedGrowRegionSegmentationFilter* sgrgf = new SeedGrowRegionSegmentationFilter(args);
+    return sgrgf;
+  }
+  qWarning("SeedGrowingRegionSegmentation::createFilter: Error no such a Filter");
+  return NULL;
 
 }
 
+/*
 void SeedGrowingRegionSegmentation::LoadAnalisys(QString& filter, EspinaParamList& args)
 {
   QString InputId = "";
@@ -108,10 +114,10 @@ void SeedGrowingRegionSegmentation::LoadAnalisys(QString& filter, EspinaParamLis
   //Product* input = dynamic_cast<Product*> (Cache::instance()->getEntry(InputId));
   
   this->buildSubPipeline(EspINA::instance()->activeSample(), args);
-}
+}*/
 
 //-----------------------------------------------------------------------------
-void SeedGrowingRegionSegmentation::changeSeedSelector(QAction* seedSel)
+void SeedGrowRegionSegmentation::changeSeedSelector(QAction* seedSel)
 {
   qDebug() << "EspINA::SeedGrowingRegionSegmenation: Changing Seed Selector";
   m_seedSelector = m_seedSelectors.value(seedSel);
@@ -128,11 +134,11 @@ void SeedGrowingRegionSegmentation::changeSeedSelector(QAction* seedSel)
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowingRegionSegmentation::waitSeedSelection(bool wait)
+void SeedGrowRegionSegmentation::waitSeedSelection(bool wait)
 {
   if (wait)
   {
-    qDebug() << "EspINA::SeedGrowingRegionSegmenation: Waiting for Seed Selection";
+    QApplication::setOverrideCursor(Qt::CrossCursor);
     SelectionManager::instance()->setSelectionHandler(m_seedSelector);
     m_segButton->setChecked(true);
   }else
@@ -142,15 +148,17 @@ void SeedGrowingRegionSegmentation::waitSeedSelection(bool wait)
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowingRegionSegmentation::abortSelection()
+void SeedGrowRegionSegmentation::abortSelection()
 {
+  QApplication::restoreOverrideCursor();
   m_segButton->setChecked(false);
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowingRegionSegmentation::startSegmentation(ISelectionHandler::Selection sel)
+void SeedGrowRegionSegmentation::startSegmentation(ISelectionHandler::Selection sel)
 {
   qDebug() << "EspINA::SeedGrowRegionSegmenation: Start Segmentation";
+  QApplication::setOverrideCursor(Qt::WaitCursor);
   
   // Initialize application context
   pqApplicationCore* core = pqApplicationCore::instance();
@@ -160,63 +168,35 @@ void SeedGrowingRegionSegmentation::startSegmentation(ISelectionHandler::Selecti
   // make this operation undo-able if undo is enabled
   if (undoStack)
   {
-    undoStack->beginUndoSet(QString("Create SeedGrowingRegionSegmentation"));
+    undoStack->beginUndoSet(QString("Create SeedGrowRegionSegmentation"));
   }
   
   assert(sel.size() == 1);// Only one element selected
   ISelectionHandler::SelElement element = sel.first();
   
-  Product *input = element.second;
+  EspinaProduct *input = element.second;
   assert (input);
   
   assert(element.first.size() == 1); // with one pixel
   Point seed = element.first.first();
 
-  // Crear los Filtros
-  /*
-  EspinaParamList blurArgs;
-  blurArgs.push_back(EspinaParam("input",input->id()));
-  QString kernel = QString("2,2,2");
-  blurArgs.push_back(EspinaParam("Kernel",kernel.toStdString()));
-
-  Filter *blur = new Filter("filter","Median",blurArgs,m_tableBlur); 
-  
-  assert(blur->products().size() == 1);
-  */
-
-  EspinaParamList growArgs;
-  growArgs.push_back(EspinaParam(QString("input"), input->id()));
-  QString seedArg = QString("%1,%2,%3").arg(seed.x).arg(seed.y).arg(seed.z);
-  growArgs.push_back(EspinaParam(QString("Seed"), seedArg));
-
-  QString thArg = QString::number(m_threshold->value());
-  growArgs.push_back(EspinaParam(QString("Threshold"), thArg));
-
-  this->buildSubPipeline(input, growArgs);
-
+  ITraceNode::Arguments args;
+  args.insert("Type", SGRSF);
+  args.insert("Seed", QString("%1,%2,%3").arg(seed.x).arg(seed.y).arg(seed.z));
+  args.insert("Threshold",QString::number(m_threshold->value()));
+  // args.insert("VOI",SelectionManager::instance()->voi()->save());
+  //createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);
+  SeedGrowRegionSegmentationFilter *sgs_sgsf = new SeedGrowRegionSegmentationFilter(input, SelectionManager::instance()->voi(),args);
+  QApplication::restoreOverrideCursor();
   if (undoStack)
   {
     undoStack->endUndoSet();
   }
-  
-//   ProcessingTrace* p = ProcessingTrace::instance();
-//   qDebug("TRACE PRINT 1");
-//   p->print(std::cout);
-//   fstream f1 ("/tmp/traza.dot", fstream::in | fstream::out | fstream::trunc );
-//   p->print(f1);
-//   
-//   f1.seekg(0);
-//   p->readTrace(f1);
-//   qDebug("TRACE PRINT 2");
-//   p->print(std::cout);
-  // Comment following line to allow several selections 
-  //emit waitingSelection(NULL);
 }
 
 
-
 //-----------------------------------------------------------------------------
-void SeedGrowingRegionSegmentation::buildSelectors()
+void SeedGrowRegionSegmentation::buildSelectors()
 {
   ISelectionHandler *handler;
   QAction *action;
@@ -242,7 +222,8 @@ void SeedGrowingRegionSegmentation::buildSelectors()
   addPixelSelector(action, handler);
 }
 
-void SeedGrowingRegionSegmentation::buildUI()
+//-----------------------------------------------------------------------------
+void SeedGrowRegionSegmentation::buildUI()
 {
   //Threshold Widget
   QLabel *thresholdLabel = new QLabel(tr("Region Threshold"));
@@ -279,40 +260,7 @@ void SeedGrowingRegionSegmentation::buildUI()
 
 
 //------------------------------------------------------------------------
-void SeedGrowingRegionSegmentation::initBlurTable()
-{
-  EspinaArg espina = "input";
-  VtkArg vtk;
-  espina = "input";
-  vtk.type = INPUT;
-  vtk.name = "input";
-  m_tableGrow.addTranslation(espina, vtk);
-  espina = "Kernel";
-  vtk.type = INTVECT;
-  vtk.name = "KernelSize";
-  m_tableGrow.addTranslation(espina, vtk);
-}
-
-//------------------------------------------------------------------------
-void SeedGrowingRegionSegmentation::initGrowTable()
-{
-  EspinaArg espina = "input";
-  VtkArg vtk;
-  vtk.type = INPUT;
-  vtk.name = "input";
-  m_tableGrow.addTranslation(espina, vtk);
-  espina = "Threshold";
-  vtk.type = DOUBLEVECT;
-  vtk.name = "Threshold";
-  m_tableGrow.addTranslation(espina, vtk);
-  espina = "Seed";
-  vtk.type = INTVECT;
-  vtk.name = "Seed";
-  m_tableGrow.addTranslation(espina, vtk);
-}
-
-//------------------------------------------------------------------------
-void SeedGrowingRegionSegmentation::addPixelSelector(QAction* action, ISelectionHandler* handler)
+void SeedGrowRegionSegmentation::addPixelSelector(QAction* action, ISelectionHandler* handler)
 {
   m_selectors->addAction(action);
   connect(handler,
@@ -326,7 +274,7 @@ void SeedGrowingRegionSegmentation::addPixelSelector(QAction* action, ISelection
   m_seedSelectors.insert(action, handler);
 }
 
-
+/*
 //------------------------------------------------------------------------
 //! Creates the corresponding Pipeline of the plugin (the Filters and the Products). It also updates the Trace of the system
 void SeedGrowingRegionSegmentation::buildSubPipeline(Product* input, EspinaParamList args)
@@ -348,4 +296,4 @@ void SeedGrowingRegionSegmentation::buildSubPipeline(Product* input, EspinaParam
     Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(product->sourceData(),product->portNumber(), grow->id());
     emit productCreated(seg);
   }
-}
+}*/
