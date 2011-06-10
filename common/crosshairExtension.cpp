@@ -109,9 +109,23 @@ void CrosshairRepresentation::setSlice(int slice, ViewType type)
   if (type != VIEW_3D)
   {
     vtkSMPropertyHelper(m_planes[type]->pipelineSource()->getProxy(),"Slice").Set(slice);
+    m_planes[type]->pipelineSource()->getProxy()->UpdateVTKObjects();
     emit representationUpdated();
   }
 }
+
+int CrosshairRepresentation::slice ( ViewType type )
+{
+  if (type != VIEW_3D)
+  {
+    int numSlice;
+    m_planes[type]->pipelineSource()->getProxy()->UpdateVTKObjects();
+    vtkSMPropertyHelper(m_planes[type]->pipelineSource()->getProxy(),"Slice").Get(&numSlice, 1);
+    return numSlice;
+  }
+  return -1; 
+}
+
 
 void CrosshairRepresentation::centerOn(int x, int y, int z)
 {

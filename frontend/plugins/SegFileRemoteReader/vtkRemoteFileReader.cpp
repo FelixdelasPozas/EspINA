@@ -73,7 +73,7 @@ int vtkRemoteFileReader::RequestInformation(vtkInformation* request,
   return 1;
 }
 */
-
+#include "qdebug.h"
 //---------------------------------------------------------------------------
 int vtkRemoteFileReader::RequestData(
   vtkInformation *vtkNotUsed(request),
@@ -88,6 +88,8 @@ int vtkRemoteFileReader::RequestData(
 
   IOEspinaFile::loadFile(this->GetFileName(), TraceStream, TaxonomyStream);
 
+  qDebug() << TaxonomyStream.string()->toStdString().c_str() << "\n" << TraceStream.string()->toStdString().c_str();
+  
   this->SetTaxonomy(TaxonomyStream.string()->toUtf8());
   this->SetTrace(TraceStream.string()->toUtf8());
   /*

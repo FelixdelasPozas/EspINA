@@ -466,7 +466,8 @@ void EspinaMainWindow::addTaxonomyChildElement()
   {
     IModelItem *parentItem = static_cast<IModelItem *>(this->Internals->taxonomyView->currentIndex().internalPointer());
     TaxonomyNode *parent = dynamic_cast<TaxonomyNode *>(parentItem);
-    m_espina->addTaxonomy("Undefined",parent->getName());
+    if( parent )
+      m_espina->addTaxonomy("Undefined",parent->getName());
   }catch (...)
   {
     QMessageBox box;
@@ -481,17 +482,19 @@ void EspinaMainWindow::removeTaxonomyElement()
   
   IModelItem *currentItem = static_cast<IModelItem *>(this->Internals->taxonomyView->currentIndex().internalPointer());
   TaxonomyNode *currentNode = dynamic_cast<TaxonomyNode *>(currentItem);
-  m_espina->removeTaxonomy(currentNode->getName());
+  if( currentNode )
+    m_espina->removeTaxonomy(currentNode->getName());
 }
 
 
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::changeTaxonomyColor()
 {
+
   //m_espina->clear();
   //return;
   QColorDialog colorSelector;
-  colorSelector.exec();
+  if( colorSelector.exec() == QDialog::Accepted);
   m_espina->setData(this->Internals->taxonomyView->currentIndex(),colorSelector.selectedColor(),Qt::DecorationRole);
 }
 

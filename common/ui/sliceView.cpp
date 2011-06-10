@@ -485,6 +485,7 @@ void SliceView::setSlice(int value)
 
 void SliceView::centerViewOn(int x, int y, int z)
 {
+  qDebug() << x << y << z;
   if (m_sampleRep)
     m_sampleRep->centerOn(x,y,z);
 }
@@ -739,6 +740,9 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
     }
    
     SelectionManager::instance()->onMouseDown(pos, this);
+    qDebug() << "Pos" << pickPos[0] << pickPos[1] << pickPos[2];
+    qDebug() << "Pos" << spacing[0] << spacing[1] << spacing[2];
+    
     centerViewOn(pickPos[0] / spacing[0],pickPos[1] / spacing[1],pickPos[2] / spacing[2]);
   }
   //BUG: Only MouseButtonPress events are received
@@ -782,6 +786,10 @@ void SliceView::setVOI(IVOI* voi)
 void SliceView::updateScene()
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);
+  if (m_sampleRep)
+  {
+    m_scrollBar->setValue(m_sampleRep->slice(m_plane));
+  }
   m_view->render();
   QApplication::restoreOverrideCursor();
 }

@@ -29,10 +29,13 @@ public:
   int addSource( QString fileName, QString& source);
   //! Create the file in the filesystem and close it. Return if there had been errors or not.
   bool close();
+  //! Insert a new directory in the pack-file
+  void addDir ( QDir path );
   //! Insert the file @param filePath inside the pack-file
-  int addFile( QFileInfo file);
+  int addFile( QFileInfo file, QString fileNameInPack = "");
   //! Extract the files which has the product of a filter. For disk cache
   void ExtractFiles(QDir& filePath);
+    
   
 private:
   struct zip* m_file;

@@ -86,17 +86,33 @@ bool FilePack::close()
 }
 
 //-----------------------------------------------------------------------------
-int FilePack::addFile ( QFileInfo file )
+void FilePack::addDir ( QDir path )
 {
+  qDebug() << "AddDir:" << path << path.dirName();
+  if(int i = zip_add_dir(m_file, path.dirName().toUtf8()) != -1)
+  {
+    //foreach(
+    qDebug() << "ADDFILE:" << path.filePath(path.dirName());
+    this->addFile(path.filePath(path.dirName().append("_0.vti")), path.dirName().append("/"+path.dirName().append("_0.vti")));
+  }
+  else
+    qWarning() << "FilePacker: Error while adding dir\n" << zip_strerror(m_file);
+}
+
+//-----------------------------------------------------------------------------
+int FilePack::addFile ( QFileInfo file, QString fileNameInPack )
+{
+  if( fileNameInPack == "" )
+    fileNameInPack = file.fileName();
   int index = -2;
   struct zip_source* s_buffer =
     zip_source_file(m_file, file.filePath().toUtf8(), 0, 0);
     // zip_source_buffer corrupts the files ...
     //zip_source_buffer(m_file, data.toStdString().c_str(), data.size(), 0);
   if( s_buffer )
-    index = zip_add(m_file, file.fileName().toUtf8(), s_buffer);
+    index = zip_add(m_file, fileNameInPack.toUtf8(), s_buffer);
   if (index < 0)
-    qDebug() << "FilePacker: Error while adding source:\n" << zip_strerror(m_file);
+    qDebug() << "FilePacker: Error while adding source:" << fileNameInPack << zip_strerror(m_file);
 
   return index;
 }
@@ -112,12 +128,18 @@ void FilePack::ExtractFiles(QDir& filePath)
     QString fileName(zip_get_name(m_file, i, 0));
     if( fileName != TAXONOMY && fileName != TRACE )
     {
-      QFile f(filePath.filePath(fileName)); //TODO change the path of the disk cache
-      f.open(QFile::WriteOnly | QFile::Truncate);
-      stream.setDevice(&f);
-      qDebug() << "Unpacking" << fileName;
-      this->readFile(fileName, stream);
-      f.close();
+      //TODO Review the method to diffs with files and dirs
+      if( fileName.endsWith("/") )
+        filePath.mkdir(fileName);
+      else
+      {
+        QFile f(filePath.filePath(fileName)); //TODO change the path of the disk cache
+        f.open(QFile::WriteOnly | QFile::Truncate);
+        stream.setDevice(&f);
+        qDebug() << "Unpacking" << fileName;
+        this->readFile(fileName, stream);
+        f.close();
+      }
     }
   }
 }
@@ -137,12 +159,18 @@ void IOEspinaFile::loadFile(QString filePath,
   zipFile.readFile(TAXONOMY, TaxonomyContent);
   // Read Trace
   zipFile.readFile(TRACE, TraceContent);
-  QDir path(filePath.remove(QRegExp("\\..*$")));
+  QDir path(QString(filePath).remove(QRegExp("\\..*$")));
   // If the directory does not exist, it must be created
   if( !path.exists() )
     path.mkpath(path.absolutePath());
-  zipFile.ExtractFiles(path);
+  //zipFile.ExtractFiles(path);
   zipFile.close();
+  // TODO reimplements ExtractFiles
+  QString com = QString("unzip -o -d %1 %2").arg(path.path()).arg(filePath);
+  qDebug() << "Exec:" << com;
+  system(com.toUtf8());
+  QFile::remove(path.filePath("taxonomy.xml"));
+  QFile::remove(path.filePath("trace.dot"));
 }
 
 //-----------------------------------------------------------------------------
@@ -156,7 +184,8 @@ void IOEspinaFile::saveFile(QString& filePath,
   pack.addSource(TAXONOMY, TaxonomyContent);
   foreach(QString fileName, segmentationPaths)
   {
-    pack.addFile(QFileInfo(fileName));
+    pack.addDir(QDir(fileName));
+    pack.addFile(QFileInfo(fileName.append(".pvd")));
   }
   pack.close();
 }

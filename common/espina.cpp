@@ -414,7 +414,10 @@ void EspINA::removeTaxonomy(QString name)
 //------------------------------------------------------------------------
 TaxonomyNode* EspINA::taxonomyParent(TaxonomyNode* node)
 {
-  return m_tax->getParent(node->getName());
+  if( node )
+    return m_tax->getParent(node->getName());
+  else
+    return m_tax;
 }
 
 

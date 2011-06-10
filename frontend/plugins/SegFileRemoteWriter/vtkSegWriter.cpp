@@ -51,12 +51,12 @@ int vtkSegWriter::RequestData(
   QStringList segFiles = rootFileDir.entryList(filters);
   for(int i=0; i < segFiles.count(); i++)
   {
-    segFiles[i] = rootFileDir.filePath(segFiles[i]);
+    segFiles[i] = rootFileDir.filePath(segFiles[i].remove(extensionRE));
   }
-  qDebug() << "vtkSegWriter: segmentation files" << segFiles;
+  //qDebug() << "vtkSegWriter: segmentation files" << segFiles;
   // Save Trace, Tax and Segmentation files
   IOEspinaFile::saveFile(FileNameAux, TraceAux, taxAux, segFiles);
-  qDebug() << "vtkSegWriter: File "<< FileNameAux << "saved. Removing temporary files";
+  qDebug() << "vtkSegWriter: File "<< FileNameAux << ". Removing temporary files";
   // Delete the segmentation files after Save
   foreach( FileNameAux, segFiles)
   {
