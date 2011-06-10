@@ -48,28 +48,29 @@ int vtkSegWriter::RequestData(
   QDir rootFileDir(QString(FileName).remove(extensionRE));
 
   // Obtain all the files with the segmentation information
-  QStringList segFiles = rootFileDir.entryList(filters);
-  for(int i=0; i < segFiles.count(); i++)
+  QStringList segmentationGenericPaths = rootFileDir.entryList(filters);
+  for(int i=0; i < segmentationGenericPaths.count(); i++)
   {
-    segFiles[i] = rootFileDir.filePath(segFiles[i].remove(extensionRE));
+    segmentationGenericPaths[i] = rootFileDir.filePath( segmentationGenericPaths[i].remove(extensionRE));
   }
   //qDebug() << "vtkSegWriter: segmentation files" << segFiles;
   // Save Trace, Tax and Segmentation files
-  IOEspinaFile::saveFile(FileNameAux, TraceAux, taxAux, segFiles);
+  IOEspinaFile::saveFile(FileNameAux, TraceAux, taxAux, segmentationGenericPaths);
   qDebug() << "vtkSegWriter: File "<< FileNameAux << ". Removing temporary files";
-  // Delete the segmentation files after Save
-  foreach( FileNameAux, segFiles)
+  // Delete the segmentation files after Save: name.pvd, name/name_0.vti, name/
+  foreach( QString SegGenericPath, segmentationGenericPaths)
   {
     // Remove the file
-    QFile::remove(FileNameAux);
+    qDebug() << "vtkSegWriter: Removing" << SegGenericPath << ".pvd" <<
+    QFile::remove(QString( SegGenericPath).append(".pvd"));
     // Retrieve the directory with extra information to remove it
-    QDir segDir(FileNameAux.remove(extensionRE));
+    QDir segmentationDir( SegGenericPath.remove(extensionRE));
     // delete all the files inside and the root directory
     filters.clear();
     filters << "*.vti"; // With the .pvd files, vti files are allways generated
-    foreach(QString f, segDir.entryList(filters) )
-      segDir.remove(f);
-    segDir.rmdir(segDir.path());
+    foreach(QString f, segmentationDir.entryList(filters) )
+      qDebug() << "vtkSegWriter: Removing" << f << segmentationDir.remove(f);
+    segmentationDir.rmdir( segmentationDir.path());
   }
   // Delete de root file if it is possible
   rootFileDir.rmdir(rootFileDir.path());
