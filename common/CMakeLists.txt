@@ -48,7 +48,7 @@ set(Espina_SOURCE_FILES
   ${UI_BUILT_SOURCES}
   )
 
-set(EXTERNAL_LIBS zip)
+set(EXTERNAL_LIBS zip quazip)
 
 add_library (Espina SHARED ${Espina_SOURCE_FILES})
 

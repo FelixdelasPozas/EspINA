@@ -485,8 +485,8 @@ QList< Segmentation* > EspINA::segmentations(const Sample* sample) const
 void EspINA::loadFile(QString filePath, QString method)
 {
   // GUI -> Remote opens
-  QString TraceContent, TaxonomyContent;
-  QTextStream TraceStream(&TraceContent), TaxonomyStream(&TaxonomyContent);
+  /*QString TraceContent, TaxonomyContent;
+  QTextStream TraceStream(&TraceContent), TaxonomyStream(&TaxonomyContent);*/
   if( method == "open")
     this->clear();
     // Remote files are loaded through paraview loadSource class

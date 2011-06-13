@@ -1,6 +1,7 @@
 #include "FilePack.h"
 #include <QDebug>
 #include <QFile>
+#include "espina_debug.h"
 
 #define TRACE "trace.dot"
 #define TAXONOMY "taxonomy.xml"
@@ -148,29 +149,63 @@ void FilePack::ExtractFiles(QDir& filePath)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-
+#include </include/quazip/quazipfile.h>
 //-----------------------------------------------------------------------------
-void IOEspinaFile::loadFile(QString filePath,
+/**
+ * It set the @param TraceContent and @param TaxonomyContent with trace.dot and 
+ * taxonomy.xml files inside @param filePath file.
+ * If there are extra files (for the cached disk). They are extracted in a 
+ * directory with the same name as seg file (without the extension).
+ */
+bool IOEspinaFile::loadFile(QString filePath,
                             QTextStream& TraceContent,
                             QTextStream& TaxonomyContent)
 {
-  FilePack zipFile( filePath, FilePack::READ );
-  // Read Taxonomy
-  zipFile.readFile(TAXONOMY, TaxonomyContent);
-  // Read Trace
-  zipFile.readFile(TRACE, TraceContent);
-  QDir path(QString(filePath).remove(QRegExp("\\..*$")));
-  // If the directory does not exist, it must be created
-  if( !path.exists() )
-    path.mkpath(path.absolutePath());
-  //zipFile.ExtractFiles(path);
-  zipFile.close();
-  // TODO reimplements ExtractFiles
-  QString com = QString("unzip -o -d %1 %2").arg(path.path()).arg(filePath);
-  qDebug() << "Exec:" << com;
-  system(com.toUtf8());
-  QFile::remove(path.filePath("taxonomy.xml"));
-  QFile::remove(path.filePath("trace.dot"));
+  // directory of the cached disk files
+  QDir dir(QString(filePath).remove(QRegExp("\\..*$")));
+  if( !dir.exists() )
+    dir.mkpath(dir.absolutePath());
+  
+  QuaZip zip(filePath);
+  if( !zip.open(QuaZip::mdUnzip) )
+  {
+    qWarning() << "IOEspinaFile: Could not open the file" << filePath;
+    return false;
+  }
+  
+  QuaZipFile file(&zip);
+  for(bool more=zip.goToFirstFile(); more; more=zip.goToNextFile()) {
+    QString actualFileName = file.getActualFileName();
+    if( !file.open(QIODevice::ReadOnly) )
+    {
+      qWarning() << "IOEspinaFile: Could not extract the file" << actualFileName;
+      if( actualFileName == TAXONOMY || actualFileName == TRACE )
+        return false;
+      continue;
+    }
+    qDebug() << "IOEspinaFile::loadFile: extracting" << actualFileName; //TODO espina_debug
+    if( actualFileName == TAXONOMY )
+      TaxonomyContent << file.readAll();
+    else if( actualFileName == TRACE )
+      TraceContent << file.readAll();
+    else { // Cache Disk files
+      // Is a directory
+      if( actualFileName.endsWith(QDir::separator()) )
+        dir.mkpath(actualFileName);
+      else {// or a file
+        QFile destination(dir.filePath(actualFileName));
+        if(!destination.open(QIODevice::WriteOnly | QIODevice::Truncate))
+        {
+          qWarning() << "IOEspinaFile::loadFile: could not create file " << actualFileName;
+        }
+        destination.write(file.readAll());
+        destination.close();  
+      }
+    }
+    file.close();
+  }
+  zip.close();
+  return true;
 }
 
 //-----------------------------------------------------------------------------

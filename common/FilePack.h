@@ -48,7 +48,7 @@ class IOEspinaFile
 {
   
 public:
-  static void loadFile(QString filePath,
+  static bool loadFile(QString filePath,
                        QTextStream& TraceContent,
                        QTextStream& TaxonomyContent);
 
