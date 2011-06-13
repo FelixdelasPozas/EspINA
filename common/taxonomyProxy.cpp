@@ -232,11 +232,7 @@ void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
 void TaxonomyProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, int start, int end)
 {
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
-
-  if (sourceParent == model->taxonomyRoot())
-  {
-    beginRemoveRows(mapFromSource(sourceParent), start, end);
-  } else if (sourceParent == model->segmentationRoot())
+  if (sourceParent == model->segmentationRoot())
   {
     assert(start == end);
     // Need to find its parent before deletion
@@ -244,9 +240,18 @@ void TaxonomyProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, 
     IModelItem *sourceItem = static_cast<IModelItem *>(sourceIndex.internalPointer());
     Segmentation *sourceSeg = dynamic_cast<Segmentation *>(sourceItem);
     TaxonomyNode *segParent = sourceSeg->taxonomy();
-    int row = m_taxonomySegs[segParent].indexOf(sourceSeg);
+    int row = segParent->getSubElements().size() + m_taxonomySegs[segParent].indexOf(sourceSeg);
     QModelIndex proxyIndex = mapFromSource(sourceIndex);
     beginRemoveRows(proxyIndex.parent(),row,row);
+  } else if (sourceParent == model->taxonomyRoot())
+  {
+    beginRemoveRows(mapFromSource(sourceParent), start, end);
+  } else
+  {
+    IModelItem* taxItem = static_cast<IModelItem*>(sourceParent.internalPointer());
+    TaxonomyNode* taxNode = dynamic_cast<TaxonomyNode*>(taxItem);
+    if(taxNode)
+      beginRemoveRows(mapFromSource(sourceParent), start, end);
   }
 }
 
@@ -257,12 +262,19 @@ void TaxonomyProxy::sourceRowsRemoved(const QModelIndex& sourceParent, int start
   
   if (sourceParent == model->taxonomyRoot())
     endRemoveRows();
-  
+  else
+  {
+    IModelItem* taxItem = static_cast<IModelItem*>(sourceParent.internalPointer());
+    TaxonomyNode* taxNode = dynamic_cast<TaxonomyNode*>(taxItem);
+    if(taxNode)
+      endRemoveRows();
+  }
   if (sourceParent == model->segmentationRoot())
   {
     updateSegmentations();
     endRemoveRows();
   }
+  
 }
 
 //------------------------------------------------------------------------

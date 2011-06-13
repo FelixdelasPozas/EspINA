@@ -679,7 +679,12 @@ void EspINA::loadSource(pqPipelineSource* proxy)
 
   qDebug() << "EspINA: Loading file in server side: " << filePath << "  " << proxy->getSMName();
 
-  if( filePath.endsWith(".pvd") || filePath.endsWith(".mha"))
+  if( filePath.endsWith(".pvd") || 
+      filePath.endsWith(".mha") || 
+      filePath.endsWith(".mhd") ||
+      filePath.endsWith(".tif") ||
+      filePath.endsWith(".tiff") )
+    
   {
     // TODO not supported for multiple Smaples
     //this->removeSamples();
