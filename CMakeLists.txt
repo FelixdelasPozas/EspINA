@@ -34,14 +34,15 @@ install (FILES ${PROJECT_SOURCE_DIR}/default_taxonomy.xml DESTINATION /usr/share
 
 SET(CPACK_GENERATOR "DEB")
 SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "CeSViMa") #required
-SET(CPACK_DEBIAN_PACKAGE_DEPENDS "amarok,
+SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libzip1,
 	libboost-system1.42.0,
 	libboost-filesystem1.42.0,
 	libboost-graph1.42.0,
+	libqt4-webkit,
+	libqt4-svg,
 	libqt4-help,
 	libqt4-xmlpatterns,
-	libopenmpi1.3,
-	libzip1")
+	libopenmpi1.3")
 set( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/CMake/debian/postinst;")
 
 include (CPack)

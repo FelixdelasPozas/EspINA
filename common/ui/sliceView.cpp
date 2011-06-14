@@ -270,8 +270,7 @@ SliceView::SliceView(QWidget* parent)
   m_spinBox->setMaximum(0);
   m_spinBox->setMinimumWidth(HINTWIDTH);
   m_spinBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
-  QObject::connect(m_scrollBar, SIGNAL(valueChanged(int)), m_spinBox, SLOT(setValue(int)));
-  QObject::connect(m_spinBox, SIGNAL(valueChanged(int)), m_scrollBar, SLOT(setValue(int)));
+  QObject::connect(m_scrollBar, SIGNAL(valueChanged(int)), this, SLOT(setSlice(int)));
   QObject::connect(m_spinBox, SIGNAL(valueChanged(int)), this, SLOT(setSlice(int)));
   connect(SelectionManager::instance(),SIGNAL(VOIChanged(IVOI*)),this,SLOT(setVOI(IVOI*)));
   m_controlLayout->addWidget(m_scrollBar);
@@ -422,12 +421,10 @@ void SliceView::connectToServer()
     case VIEW_PLANE_YZ:
       m_cam->SetPosition(1, 0, 0);
       m_cam->SetFocalPoint(0, 0, 0);
-      m_cam->SetRoll(-90);
       break;
     case VIEW_PLANE_XZ:
       m_cam->SetPosition(0, 1, 0);
       m_cam->SetFocalPoint(0, 0, 0);
-      m_cam->SetRoll(-90);
       break;
     default:
       assert(false);
@@ -435,10 +432,8 @@ void SliceView::connectToServer()
     
   double black[3] = {0, 0, 0};
   m_viewProxy->SetBackgroundColorCM(black);
-  
-  //TODO: Change style
   m_view->setCenterAxesVisibility(false);
-  m_view->resetCamera();
+  //m_view->resetCamera();
 }
 
 //-----------------------------------------------------------------------------
@@ -474,21 +469,6 @@ void SliceView::setPlane(ViewType plane)
   m_plane = plane;
 }
 
-//-----------------------------------------------------------------------------
-void SliceView::setSlice(int value)
-{
-  if (m_sampleRep)
-    m_sampleRep->setSlice(value, m_plane);
-  
-  updateScene();
-}
-
-void SliceView::centerViewOn(int x, int y, int z)
-{
-  //qDebug() << x << y << z;
-  if (m_sampleRep)
-    m_sampleRep->centerOn(x,y,z);
-}
 
 //-----------------------------------------------------------------------------
 QRegion SliceView::visualRegionForSelection(const QItemSelection& selection) const
@@ -555,9 +535,13 @@ void SliceView::rowsInserted(const QModelIndex& parent, int start, int end)
     int mextent[6];
     sample->extent(mextent);
     int normalCoorToPlane = (m_plane + 2) % 3;
-    int numSlices = mextent[2*normalCoorToPlane+1];
-    m_scrollBar->setMaximum(numSlices);
-    m_spinBox->setMaximum(numSlices);
+    int sliceOffset = m_plane==VIEW_PLANE_XY?1:0;
+    int minSlices = mextent[2*normalCoorToPlane] + sliceOffset;
+    int maxSlices = mextent[2*normalCoorToPlane+1] + sliceOffset;
+    m_scrollBar->setMinimum(minSlices);
+    m_spinBox->setMinimum(minSlices);
+    m_scrollBar->setMaximum(maxSlices);
+    m_spinBox->setMaximum(maxSlices);
 
     m_sampleRep = dynamic_cast<CrosshairRepresentation *>(sample->representation("03_Crosshair"));
     connect(m_sampleRep,SIGNAL(representationUpdated()),this,SLOT(updateScene()));
@@ -667,6 +651,14 @@ void SliceView::dataChanged(const QModelIndex& topLeft, const QModelIndex& botto
 
 
 //-----------------------------------------------------------------------------
+void SliceView::centerViewOn(int x, int y, int z)
+{
+  //qDebug() << "Center view on" << x << y << z;
+  if (m_sampleRep)
+    m_sampleRep->centerOn(x,y,z);
+}
+
+//-----------------------------------------------------------------------------
 ISelectionHandler::VtkRegion SliceView::display2vtk(const QPolygonF &region)
 {
   //Use Render Window Interactor's Picker to find the world coordinates
@@ -686,7 +678,7 @@ ISelectionHandler::VtkRegion SliceView::display2vtk(const QPolygonF &region)
     wpicker->GetPickPosition(pickPos);
     Point vtkPoint;
     for (int i=0; i<3; i++)
-      vtkPoint[i] = pickPos[i] / spacing[i];
+      vtkPoint[i] = round(pickPos[i] / spacing[i]);
     vtkRegion << vtkPoint;
   }
   return vtkRegion;
@@ -708,7 +700,6 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
   if (!m_sampleRep)
     return;
   
-  //BUG:return;
   //Use Render Window Interactor's to obtain event's position
   vtkSMRenderViewProxy* view = 
     vtkSMRenderViewProxy::SafeDownCast(m_view->getProxy());
@@ -732,7 +723,7 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
   
     double pickPos[3];//World coordinates
     vtkPropPicker *wpicker = vtkPropPicker::New();
-    wpicker->Pick(xPos, yPos, 0.0, m_viewProxy->GetRenderer());
+    wpicker->Pick(xPos, yPos, 0.1, m_viewProxy->GetRenderer());
     wpicker->GetPickPosition(pickPos);
     
     if (pickPos[0] == 0 && pickPos[1] == 0 && pickPos[2] == 0)
@@ -742,10 +733,8 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
     }
    
     SelectionManager::instance()->onMouseDown(pos, this);
-    //qDebug() << "Pos" << pickPos[0] << pickPos[1] << pickPos[2];
-    //qDebug() << "Pos" << spacing[0] << spacing[1] << spacing[2];
-    
-    centerViewOn(pickPos[0] / spacing[0],pickPos[1] / spacing[1],pickPos[2] / spacing[2]);
+    //qDebug() << "Pick Position:" << pickPos[0] << pickPos[1] << pickPos[2];
+    centerViewOn(round(pickPos[0] / spacing[0]),round(pickPos[1] / spacing[1]),round(pickPos[2] / spacing[2]));
   }
   //BUG: Only MouseButtonPress events are received
   if (event->type() == QMouseEvent::MouseMove &&
@@ -758,6 +747,18 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
   {
     SelectionManager::instance()->onMouseUp(pos, this);
   }
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::setSlice(int slice)
+{
+  if (m_spinBox->value() != slice)
+    m_spinBox->setValue(slice);
+  if (m_scrollBar->value() != slice)
+    m_scrollBar->setValue(slice);
+  int sliceOffset = m_plane==VIEW_PLANE_XY?1:0;
+  if (m_sampleRep)
+    m_sampleRep->setSlice(slice-sliceOffset,m_plane);
 }
 
 //-----------------------------------------------------------------------------
@@ -790,7 +791,8 @@ void SliceView::updateScene()
   QApplication::setOverrideCursor(Qt::WaitCursor);
   if (m_sampleRep)
   {
-    m_scrollBar->setValue(m_sampleRep->slice(m_plane));
+    int sliceOffset = m_plane==VIEW_PLANE_XY?1:0;
+    setSlice(m_sampleRep->slice(m_plane)+sliceOffset);
   }
   m_view->render();
   QApplication::restoreOverrideCursor();

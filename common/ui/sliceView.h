@@ -114,9 +114,6 @@ public slots:
   
   //! Slicer configuration methods:
   void setPlane(ViewType plane);
-  void setSlice(int value);
-  
-  void centerViewOn(int x, int y, int z);
   
   //! Selections
   void vtkWidgetMouseEvent(QMouseEvent *event);
@@ -124,6 +121,7 @@ public slots:
   void updateScene();
   
 protected slots:
+  void setSlice(int slice);
   virtual void setVOI(IVOI *voi);
   
 signals:
@@ -146,6 +144,7 @@ protected:
 
   virtual pqRenderView* view();
   
+  void centerViewOn(int x, int y, int z);
   //! Converts point from Display coordinates to World coordinates
   ISelectionHandler::VtkRegion display2vtk(const QPolygonF &region);
   

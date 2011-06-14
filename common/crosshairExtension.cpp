@@ -60,7 +60,9 @@ CrosshairRepresentation::CrosshairRepresentation(Sample* sample)
     QString mode = QString("%1").arg(5+ plane);
     filterArgs.push_back(vtkFilter::Argument("SliceMode",vtkFilter::INTVECT,mode));
     m_planes[plane] = cob->createFilter("filters", "ImageSlicer", filterArgs);
+    m_center[plane] = 0;
   }
+  m_center[VIEW_3D] = -1; // there is no single coordinate to refer all 3D image
   
   connect(m_internalRep,SIGNAL(representationUpdated()),this,SLOT(internalRepresentationUpdated()));
 }
@@ -80,6 +82,86 @@ QString CrosshairRepresentation::id()
   return "";
 }
 
+bool exist(vtkActor *actor, vtkActorCollection *collection)
+{
+  collection->InitTraversal();
+  while (vtkActor *oldActor = collection->GetNextActor())
+  {
+    if (oldActor == actor)
+      return true;
+  }
+  return false;
+}
+
+
+vtkActorCollection *findNewActors(vtkActorCollection *before, vtkActorCollection *after)
+{
+  vtkActorCollection *newActors = vtkActorCollection::New();
+  //qDebug() << "Actors before adding rep:" << before->GetNumberOfItems();
+  //qDebug() << "Actors after adding rep:" << after->GetNumberOfItems();
+  after->InitTraversal();
+  while (vtkActor *actor = after->GetNextActor())
+  {
+    if (!exist(actor, before))
+    {
+      newActors->AddItem(actor);
+    }
+  }
+  return newActors;
+}
+
+void copyActors(vtkActorCollection *source, vtkActorCollection *destination)
+{
+  //qDebug() << "Actors before copying:" << destination->GetNumberOfItems();
+  source->InitTraversal();
+  while(vtkActor *actor = source->GetNextActor())
+  {
+    destination->AddItem(actor);
+  }
+  //qDebug() << "Actors after copying:" << destination->GetNumberOfItems();
+  
+}
+
+
+void createRepresentation(pqView *view, pqOutputPort *port, bool isCrossHair)
+{
+  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+  vtkSMRenderViewProxy* viewProxy = vtkSMRenderViewProxy::SafeDownCast(view->getProxy());
+//   vtkActorCollection *rendererActors =   viewProxy->GetRenderer()->GetActors();
+//   
+//   vtkActorCollection *actorsBeforeRep = vtkActorCollection::New();
+//   //qDebug() << "Actors before adding rep:" << rendererActors->GetNumberOfItems();
+//   copyActors(rendererActors, actorsBeforeRep);
+  
+  pqDataRepresentation *dr = dp->setRepresentationVisibility(port,view,true);
+  if (isCrossHair)
+  {
+      pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
+      assert(rep);
+      rep->setRepresentation(3);
+  }
+/*
+  vtkActorCollection *actorsAfterRep = vtkActorCollection::New();
+  rendererActors = viewProxy->GetRenderer()->GetActors();
+  //qDebug() << "Actors after adding rep:" << rendererActors->GetNumberOfItems();
+  copyActors(rendererActors, actorsAfterRep);
+  
+  vtkActorCollection *newRendererActors = findNewActors(actorsBeforeRep, actorsAfterRep);
+  
+  if (isCrossHair)
+  {
+      newRendererActors->InitTraversal();
+      while(vtkActor *actor = newRendererActors->GetNextActor())
+      {
+	actor->SetPickable(false);
+      }
+  }
+  
+  actorsBeforeRep->Delete();
+  actorsAfterRep->Delete();
+  newRendererActors->Delete();*/
+}
+
 void CrosshairRepresentation::render(pqView* view, ViewType type)
 {
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
@@ -91,42 +173,10 @@ void CrosshairRepresentation::render(pqView* view, ViewType type)
   }
   else
   {
-    vtkSMRenderViewProxy* viewProxy = vtkSMRenderViewProxy::SafeDownCast(view->getProxy());
-    
-    
     for(ViewType plane = VIEW_PLANE_FIRST; plane <= VIEW_PLANE_LAST; plane = ViewType(plane+1))
     {
-      vtkActorCollection *existentActors = viewProxy->GetRenderer()->GetActors();
-      qDebug() << existentActors->GetNumberOfItems();
-      pqDataRepresentation *dr = dp->setRepresentationVisibility(m_planes[plane]->pipelineSource()->getOutputPort(0),view,true);
-      qDebug() << "Plane" << type << "==>" << plane << viewProxy->GetRenderer()->GetActors()->GetNumberOfItems();
-      
-      vtkSmartPointer<vtkActorCollection> newActors = vtkSmartPointer<vtkActorCollection>::New();
-      vtkActorCollection *actors = viewProxy->GetRenderer()->GetActors();
-      actors->InitTraversal();
-      while (vtkActor *actor = actors->GetNextActor())
-      {
-	existentActors->InitTraversal();
-	bool alreadyExist = false;
-	while(vtkActor *existentActor = existentActors->GetNextActor())
-	{
-	  if (existentActor == actor)
-	  {
-	    alreadyExist = true;
-	    break;
-	  }
-	}
-	if (!alreadyExist)
-	{
-	  newActors->AddItem(actor);
-	}
-      }
-      
-      if (type == plane)
-	continue;
-      pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
-      assert(rep);
-      rep->setRepresentation(3);
+      bool isCrosshair = (type != plane);
+      createRepresentation(view,m_planes[plane]->pipelineSource()->getOutputPort(0),isCrosshair);
     }
   }
 }
@@ -137,18 +187,24 @@ pqPipelineSource* CrosshairRepresentation::pipelineSource()
   return NULL;
 }
 
-void CrosshairRepresentation::setSlice(int slice, ViewType type)
+void CrosshairRepresentation::setSlice(int slice, ViewType type, bool update)
 {
+  if (slice == m_center[type])
+    return; //Update is not needed
   if (type != VIEW_3D)
   {
     vtkSMPropertyHelper(m_planes[type]->pipelineSource()->getProxy(),"Slice").Set(slice);
     m_planes[type]->pipelineSource()->getProxy()->UpdateVTKObjects();
-    emit representationUpdated();
+    m_center[type] = slice;
+    if (update)
+      emit representationUpdated();
   }
 }
 
 int CrosshairRepresentation::slice ( ViewType type )
 {
+  return m_center[type];
+  
   if (type != VIEW_3D)
   {
     int numSlice;
@@ -162,9 +218,18 @@ int CrosshairRepresentation::slice ( ViewType type )
 
 void CrosshairRepresentation::centerOn(int x, int y, int z)
 {
-  setSlice(x,VIEW_PLANE_YZ);
-  setSlice(y,VIEW_PLANE_XZ);
-  setSlice(z,VIEW_PLANE_XY);
+  int extent[6];
+  m_sample->extent(extent);
+  if (x < extent[0] || extent[1] < x)
+    return;
+  if (y < extent[2] || extent[3] < y)
+    return;
+  if (z < extent[4] || extent[5] < z)
+    return;
+  setSlice(x,VIEW_PLANE_YZ,false);
+  setSlice(y,VIEW_PLANE_XZ,false);
+  setSlice(z,VIEW_PLANE_XY,false);
+  emit representationUpdated();
 }
 
 void CrosshairRepresentation::internalRepresentationUpdated()
