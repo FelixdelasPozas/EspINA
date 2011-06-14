@@ -108,14 +108,14 @@ void VolumetricExtension::initialize(Segmentation* seg)
 
 void VolumetricExtension::addInformation(InformationMap& map)
 {
-  qDebug() << ID << ": No extra information provided.";
+//   qDebug() << ID << ": No extra information provided.";
 }
 
 void VolumetricExtension::addRepresentations(RepresentationMap& map)
 {
    VolumetricRepresentation *rep = new VolumetricRepresentation(m_seg);
    map.insert("Volumetric", rep);
-   qDebug() << ID <<": Volumetric Representation Added";
+//    qDebug() << ID <<": Volumetric Representation Added";
 }
 
 

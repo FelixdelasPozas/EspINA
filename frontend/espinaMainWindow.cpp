@@ -61,6 +61,7 @@
 #include <vtkSMProxyManager.h>
 #include <pqCoreUtilities.h>
 #include <pqServer.h>
+#include <pqSetName.h>
 
 #include <pqApplicationCore.h>
 #include <pqActiveObjects.h>
@@ -91,6 +92,7 @@
 #include <labelMapExtension.h>
 #include <crosshairExtension.h>
 #include <crosshairRenderer.h>
+#include <pqManagePluginsReaction.h>
 
 const QString FILTERS("Trace Files (*.trace)");
 const QString SEG_FILTERS("Seg Files (*.seg)");
@@ -128,7 +130,7 @@ EspinaMainWindow::EspinaMainWindow()
   //Create File Menu
   buildFileMenu(*this->Internals->menu_File);
 
-#ifdef DEBUG_GUI
+#if DEBUG_GUI
   //// Populate application menus with actions.
   pqParaViewMenuBuilders::buildFileMenu(*this->Internals->menu_File);
 #endif
@@ -136,9 +138,11 @@ EspinaMainWindow::EspinaMainWindow()
   //// Populate filters menu.
   //pqParaViewMenuBuilders::buildFiltersMenu(*this->Internals->menuTools, this);
 
-#ifdef DEBUG_GUI
+#if DEBUG_GUI
   //// Populate Tools menu.
   pqParaViewMenuBuilders::buildToolsMenu(*this->Internals->menuTools);
+#else
+  new pqManagePluginsReaction(this->Internals->menuTools->addAction("Manage Plugins") << pqSetName("actionManage_Plugins"));
 #endif
 
   //// setup the context menu for the pipeline browser.
@@ -234,7 +238,8 @@ EspinaMainWindow::EspinaMainWindow()
 
   connect(m_espina, SIGNAL(resetTaxonomy()),
           this, SLOT(resetTaxonomy()));
-  // WARNING: Debug
+  
+#if DEBUG_GUI
   connect(pqApplicationCore::instance()->getObjectBuilder(),
             SIGNAL(proxyCreated (pqProxy *)),
             m_espina,
@@ -243,7 +248,7 @@ EspinaMainWindow::EspinaMainWindow()
 	  SIGNAL(destroying(pqProxy*)),
 	  m_espina,
 	  SLOT(destroyingProxy(pqProxy*)));
-  
+#endif
   
   // Taxonomy Editor
   this->Internals->taxonomyView->setModel(m_espina);

@@ -14,11 +14,11 @@
 
     You shoulh this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+// NOTE: vtkRenderer::RemoveAllViewProps()  maybe free the memory of the representations...
 #include "sliceView.h"
 
 #include "interfaces.h"
 #include "filter.h"
-
 // ParaQ includes
 #include "pqRenderView.h"
 #include "pqApplicationCore.h"
@@ -485,7 +485,7 @@ void SliceView::setSlice(int value)
 
 void SliceView::centerViewOn(int x, int y, int z)
 {
-  qDebug() << x << y << z;
+  //qDebug() << x << y << z;
   if (m_sampleRep)
     m_sampleRep->centerOn(x,y,z);
 }
@@ -705,6 +705,8 @@ pqRenderView* SliceView::view()
 //-----------------------------------------------------------------------------
 void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
 {
+  if (!m_sampleRep)
+    return;
   
   //BUG:return;
   //Use Render Window Interactor's to obtain event's position
@@ -740,8 +742,8 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
     }
    
     SelectionManager::instance()->onMouseDown(pos, this);
-    qDebug() << "Pos" << pickPos[0] << pickPos[1] << pickPos[2];
-    qDebug() << "Pos" << spacing[0] << spacing[1] << spacing[2];
+    //qDebug() << "Pos" << pickPos[0] << pickPos[1] << pickPos[2];
+    //qDebug() << "Pos" << spacing[0] << spacing[1] << spacing[2];
     
     centerViewOn(pickPos[0] / spacing[0],pickPos[1] / spacing[1],pickPos[2] / spacing[2]);
   }

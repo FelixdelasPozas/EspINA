@@ -35,6 +35,12 @@
 #include <vtkSMInputProperty.h>
 #include <vtkSMProxy.h>
 #include "labelMapExtension.h"
+#include <pqView.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkSMRenderViewProxy.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderer.h>
+#include <vtkSmartPointer.h>
 
 
 CrosshairRepresentation::CrosshairRepresentation(Sample* sample)
@@ -61,7 +67,7 @@ CrosshairRepresentation::CrosshairRepresentation(Sample* sample)
 
 CrosshairRepresentation::~CrosshairRepresentation()
 {
-  qDebug() << "Deleting Crosshair Representation from " << m_sample->id();
+  //qDebug() << "Deleting Crosshair Representation from " << m_sample->id();
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   
   for(ViewType plane = VIEW_PLANE_FIRST; plane <= VIEW_PLANE_LAST; plane = ViewType(plane+1))
@@ -85,16 +91,43 @@ void CrosshairRepresentation::render(pqView* view, ViewType type)
   }
   else
   {
+    vtkSMRenderViewProxy* viewProxy = vtkSMRenderViewProxy::SafeDownCast(view->getProxy());
+    
+    
     for(ViewType plane = VIEW_PLANE_FIRST; plane <= VIEW_PLANE_LAST; plane = ViewType(plane+1))
     {
+      vtkActorCollection *existentActors = viewProxy->GetRenderer()->GetActors();
+      qDebug() << existentActors->GetNumberOfItems();
       pqDataRepresentation *dr = dp->setRepresentationVisibility(m_planes[plane]->pipelineSource()->getOutputPort(0),view,true);
+      qDebug() << "Plane" << type << "==>" << plane << viewProxy->GetRenderer()->GetActors()->GetNumberOfItems();
+      
+      vtkSmartPointer<vtkActorCollection> newActors = vtkSmartPointer<vtkActorCollection>::New();
+      vtkActorCollection *actors = viewProxy->GetRenderer()->GetActors();
+      actors->InitTraversal();
+      while (vtkActor *actor = actors->GetNextActor())
+      {
+	existentActors->InitTraversal();
+	bool alreadyExist = false;
+	while(vtkActor *existentActor = existentActors->GetNextActor())
+	{
+	  if (existentActor == actor)
+	  {
+	    alreadyExist = true;
+	    break;
+	  }
+	}
+	if (!alreadyExist)
+	{
+	  newActors->AddItem(actor);
+	}
+      }
+      
       if (type == plane)
 	continue;
       pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
       assert(rep);
       rep->setRepresentation(3);
     }
-    
   }
 }
 
@@ -158,14 +191,14 @@ void CrosshairExtension::initialize(Sample* sample)
 
 void CrosshairExtension::addInformation(ISampleExtension::InformationMap& map)
 {
-  qDebug() << ID << ": No extra information provided.";
+  //qDebug() << ID << ": No extra information provided.";
 }
 
 void CrosshairExtension::addRepresentations(ISampleExtension::RepresentationMap& map)
 {
    CrosshairRepresentation *rep = new CrosshairRepresentation(m_sample);
    map.insert("03_Crosshair", rep);
-   qDebug() << ID <<": Crosshair Representation Added";
+   //qDebug() << ID <<": Crosshair Representation Added";
 }
 
 ISampleExtension* CrosshairExtension::clone()

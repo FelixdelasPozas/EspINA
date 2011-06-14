@@ -19,6 +19,8 @@
 
 #include "products.h"
 
+#include "espina_debug.h"
+
 // ESPINA
 #include "cache/cachedObjectBuilder.h"
 #include "filter.h"
@@ -29,8 +31,6 @@
 
 // Debug
 #include <iostream>
-#include <assert.h>
-#include <QDebug>
 
 #include "data/hash.h"
 #include <pqOutputPort.h>

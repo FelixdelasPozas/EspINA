@@ -34,7 +34,8 @@ install (FILES ${PROJECT_SOURCE_DIR}/default_taxonomy.xml DESTINATION /usr/share
 
 SET(CPACK_GENERATOR "DEB")
 SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "CeSViMa") #required
-SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libboost-system1.42.0,
+SET(CPACK_DEBIAN_PACKAGE_DEPENDS "amarok,
+	libboost-system1.42.0,
 	libboost-filesystem1.42.0,
 	libboost-graph1.42.0,
 	libqt4-help,
