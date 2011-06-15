@@ -88,4 +88,4 @@ endif( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
 target_link_libraries (SeedGrowSegmentationPlugin ${PARAVIEW_ADDITIONAL_LIBRARIES} )
 
-install (TARGETS SeedGrowSegmentationPlugin LIBRARY DESTINATION /usr/bin/plugins)
+install (TARGETS SeedGrowSegmentationPlugin LIBRARY DESTINATION bin/plugins)

@@ -93,7 +93,7 @@ EspinaFilter *SeedGrowSegmentation::createFilter(QString filter, ITraceNode::Arg
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentation::changeSeedSelector(QAction *seedSel)
 {
-  qDebug() << "SeedGrowSegmenation: Changing Seed Selector";
+  //qDebug() << "SeedGrowSegmenation: Changing Seed Selector";
   m_seedSelector = m_seedSelectors.value(seedSel);
   
   if (!m_seedSelector)
@@ -177,7 +177,7 @@ void SeedGrowSegmentation::buildSelectors()
   
   // Exact Pixel Selector
   action = new QAction(
-    QIcon(":/pixelSel")
+    QIcon(":pixelSelector.svg")
     , tr("Add synapse (Ctrl +). Exact Pixel"),
     m_selectors);
   handler = new PixelSelector();
@@ -187,7 +187,7 @@ void SeedGrowSegmentation::buildSelectors()
   
   // Best Pixel Selector
   action = new QAction(
-    QIcon(":/bestPixelSel")
+    QIcon(":bestPixelSelector.svg")
     , tr("Add synapse (Ctrl +). Best Pixel"),
     m_selectors);
   handler = new BestPixelSelector();

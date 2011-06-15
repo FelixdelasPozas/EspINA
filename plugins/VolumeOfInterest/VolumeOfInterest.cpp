@@ -126,7 +126,7 @@ void VolumeOfInterest::buildVOIs()
   
   // Exact Pixel Selector
   action = new QAction(
-    QIcon(":/voi")
+    QIcon(":roi_go.svg")
     , tr("Volume Of Interest"),
     m_VOIMenu);
   voi = new RectangularVOI();

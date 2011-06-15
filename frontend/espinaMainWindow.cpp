@@ -133,12 +133,10 @@ EspinaMainWindow::EspinaMainWindow()
 #if DEBUG_GUI
   //// Populate application menus with actions.
   pqParaViewMenuBuilders::buildFileMenu(*this->Internals->menu_File);
-#endif
-
+  
   //// Populate filters menu.
   //pqParaViewMenuBuilders::buildFiltersMenu(*this->Internals->menuTools, this);
 
-#if DEBUG_GUI
   //// Populate Tools menu.
   pqParaViewMenuBuilders::buildToolsMenu(*this->Internals->menuTools);
 #else
@@ -155,7 +153,7 @@ EspinaMainWindow::EspinaMainWindow()
 
   //// Setup the help menu.
   pqParaViewMenuBuilders::buildHelpMenu(*this->Internals->menu_Help);
-
+  
   // ParaView Server
   pqServerManagerObserver *server = pqApplicationCore::instance()->getServerManagerObserver();
 
@@ -196,11 +194,11 @@ EspinaMainWindow::EspinaMainWindow()
   << taxProxy->mapFromSource(m_espina->taxonomyRoot())
   << sampleProxy->mapFromSource(m_espina->sampleRoot());
   
-//#if DEBUG_GUI
+#if DEBUG_GUI
   this->Internals->modelo->setModel(m_espina);
   this->Internals->taxonomias->setModel(taxProxy);
   this->Internals->samples->setModel(sampleProxy);
-//#endif
+#endif
 
   // Group by List
   connect(this->Internals->groupList, SIGNAL(currentIndexChanged(int)),
@@ -263,7 +261,8 @@ EspinaMainWindow::EspinaMainWindow()
   this->Internals->sampleView->setItemDelegate(sed);
   this->Internals->sampleView->setModel(m_espina);
   this->Internals->sampleView->setRootIndex(m_espina->sampleRoot());
-  connect(this->Internals->makeActiveSample,SIGNAL(clicked()),this,SLOT(focusOnSample()));
+  
+  //connect(this->Internals->makeActiveSample,SIGNAL(clicked()),this,SLOT(focusOnSample()));
   
   //Selection Manager
   m_selectionManager = SelectionManager::instance();
@@ -307,7 +306,6 @@ EspinaMainWindow::EspinaMainWindow()
 #endif
   
 #if VOL_VIEW
-
   m_3d = EspINAFactory::instance()->CreateVolumeView();
   m_3d->setModel(sampleProxy);
   m_3d->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
@@ -317,7 +315,7 @@ EspinaMainWindow::EspinaMainWindow()
 	  m_3d, SLOT(disconnectFromServer()));
   //m_3d->addWidget(cross);
   this->Internals->volumeDock->setWidget(m_3d);
-#endif
+#endif //VOL_VIEW
 
   // Setup default GUI layout.
   connect(this->Internals->toggleVisibility, SIGNAL(toggled(bool)), 
@@ -330,9 +328,19 @@ EspinaMainWindow::EspinaMainWindow()
   // behaviors, we use this convenience method.
   new pqParaViewBehaviors(this, this);
 
-  // Debug load stack
+#if DEBUG_GUI
   QMetaObject::invokeMethod(this, "autoLoadStack", Qt::QueuedConnection);
+#endif// DEBUG_GUI
 
+#if DEBUG_GUI
+  this->Internals->pipelineBrowserDock->setVisible(true);
+  this->Internals->statisticsDock->setVisible(true);
+  this->Internals->modelsDock->setVisible(true);
+#else
+  this->Internals->pipelineBrowserDock->setVisible(false);
+  this->Internals->statisticsDock->setVisible(false);
+  this->Internals->modelsDock->setVisible(false);
+#endif
 }
 
 
@@ -606,7 +614,7 @@ void EspinaMainWindow::buildFileMenu(QMenu &menu)
   
   //signalMapper->setMapping(accountFileButton, QString("open"));
 
-  action = new QAction(QIcon(":espina/add"),tr("Add"),this);
+  action = new QAction(QIcon(":espina/add.svg"),tr("Add"),this);
   signalMapper->setMapping(action, QString("add"));
   connect(action, SIGNAL(triggered(bool)), signalMapper, SLOT(map()));
   menu.addAction(action);

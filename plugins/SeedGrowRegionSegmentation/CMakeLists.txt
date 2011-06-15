@@ -88,4 +88,4 @@ endif( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
 target_link_libraries (SegmentationRegion ${PARAVIEW_ADDITIONAL_LIBRARIES} )
 
-install (TARGETS SegmentationRegion LIBRARY DESTINATION /usr/bin/plugins)
+#install (TARGETS SegmentationRegion LIBRARY DESTINATION /usr/bin/plugins)

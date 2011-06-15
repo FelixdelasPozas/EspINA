@@ -35,7 +35,7 @@
 CrosshairRenderer::CrosshairRenderer(QWidget* parent)
 : IViewWidget(parent)
 {
-  setIcon(QIcon(":/espina/showPlanes"));
+  setIcon(QIcon(":espina/show_planes.svg"));
 }
 
 
