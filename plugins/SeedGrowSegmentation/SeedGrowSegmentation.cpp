@@ -57,6 +57,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QDebug>
 #include "assert.h"
 #include <espINAFactory.h>
+#include <QBitmap>
 
 
 #define DEFAULT_THRESHOLD 30
@@ -112,7 +113,11 @@ void SeedGrowSegmentation::waitSeedSelection(bool wait)
 {
   if (wait)
   {
-    QApplication::setOverrideCursor(Qt::CrossCursor);
+    if (dynamic_cast<BestPixelSelector*>(m_seedSelector))
+      QApplication::setOverrideCursor(QCursor(QPixmap(":crossRegion.svg")));
+    else
+      QApplication::setOverrideCursor(Qt::CrossCursor);
+    
     SelectionManager::instance()->setSelectionHandler(m_seedSelector);
     m_segButton->setChecked(true);
   }else

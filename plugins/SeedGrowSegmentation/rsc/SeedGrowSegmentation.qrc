@@ -2,5 +2,6 @@
     <qresource prefix="/">
         <file>bestPixelSelector.svg</file>
         <file>pixelSelector.svg</file>
+        <file>crossRegion.svg</file>
     </qresource>
 </RCC>

@@ -260,21 +260,22 @@ void TaxonomyProxy::sourceRowsRemoved(const QModelIndex& sourceParent, int start
 {
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
   
-  if (sourceParent == model->taxonomyRoot())
-    endRemoveRows();
-  else
-  {
-    IModelItem* taxItem = static_cast<IModelItem*>(sourceParent.internalPointer());
-    TaxonomyNode* taxNode = dynamic_cast<TaxonomyNode*>(taxItem);
-    if(taxNode)
-      endRemoveRows();
-  }
   if (sourceParent == model->segmentationRoot())
   {
     updateSegmentations();
     endRemoveRows();
+  } else
+  {
+    if (sourceParent == model->taxonomyRoot())
+      endRemoveRows();
+    else
+    {
+      IModelItem* taxItem = static_cast<IModelItem*>(sourceParent.internalPointer());
+      TaxonomyNode* taxNode = dynamic_cast<TaxonomyNode*>(taxItem);
+      if(taxNode)
+	endRemoveRows();
+    }
   }
-  
 }
 
 //------------------------------------------------------------------------
