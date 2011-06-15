@@ -2,6 +2,12 @@ project (ESPINA)
 
 cmake_minimum_required (VERSION 2.6)
 
+# Version Number
+set (ESPINA_VERSION_MAJOR 0)
+set (ESPINA_VERSION_MINOR 1)
+set (ESPINA_VERSION_PATCH 2)
+
+
 find_package (Qt4 REQUIRED)
 include (${QT_USE_FILE})
 
@@ -32,9 +38,13 @@ install (FILES ${ITKFILES} DESTINATION lib/espina)
 install (FILES espina.conf DESTINATION /etc/ld.so.conf.d/)
 install (FILES ${PROJECT_SOURCE_DIR}/default_taxonomy.xml DESTINATION /usr/share/espina/)
 
-SET(CPACK_GENERATOR "DEB")
-SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "CeSViMa") #required
-SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libzip1,
+set (CPACK_PACKAGE_VERSION_MAJOR ${ESPINA_VERSION_MAJOR})
+set (CPACK_PACKAGE_VERSION_MINOR ${ESPINA_VERSION_MINOR})
+set (CPACK_PACKAGE_VERSION_PATCH ${ESPINA_VERSION_PATCH})
+set (CPACK_PACKAGE_NAME espina_amd64 )
+set (CPACK_GENERATOR "DEB")
+set (CPACK_DEBIAN_PACKAGE_MAINTAINER "CeSViMa") #required
+set (CPACK_DEBIAN_PACKAGE_DEPENDS "libzip1,
 	libboost-system1.42.0,
 	libboost-filesystem1.42.0,
 	libboost-graph1.42.0,
