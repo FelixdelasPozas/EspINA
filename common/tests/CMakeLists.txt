@@ -13,6 +13,7 @@ include_directories ( ${Boost_INCLUDE_DIRS} )
 set(TESTS 
 	#ProcessingTrace
 #   RemoteFile
+  #FilePack
 )
 
 include_directories (

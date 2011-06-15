@@ -149,7 +149,7 @@ void FilePack::ExtractFiles(QDir& filePath)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-#include </include/quazip/quazipfile.h>
+#include <quazip/quazipfile.h>
 //-----------------------------------------------------------------------------
 /**
  * It set the @param TraceContent and @param TaxonomyContent with trace.dot and 
@@ -161,6 +161,7 @@ bool IOEspinaFile::loadFile(QString filePath,
                             QTextStream& TraceContent,
                             QTextStream& TaxonomyContent)
 {
+
   // directory of the cached disk files
   QDir dir(QString(filePath).remove(QRegExp("\\..*$")));
   if( !dir.exists() )

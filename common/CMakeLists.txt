@@ -48,9 +48,13 @@ set(Espina_SOURCE_FILES
   ${UI_BUILT_SOURCES}
   )
 
-set(EXTERNAL_LIBS zip quazip)
+include_directories(/home/jfernandez/tmp/quazip-0.4.1/)
+
+set(EXTERNAL_LIBS zip /home/jfernandez/tmp/quazip-0.4.1/quazip/libquazip.so)
 
 add_library (Espina SHARED ${Espina_SOURCE_FILES})
+
+include_directories(/home/jfernandez/tmp/quazip-0.4.1/quazip/)
 
 target_link_libraries (Espina ${CAJAL_LIBRARIES} ${EXTERNAL_LIBS})
 
