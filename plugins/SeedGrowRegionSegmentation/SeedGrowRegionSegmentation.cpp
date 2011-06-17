@@ -138,12 +138,11 @@ void SeedGrowRegionSegmentation::waitSeedSelection(bool wait)
 {
   if (wait)
   {
-    QApplication::setOverrideCursor(Qt::CrossCursor);
-    SelectionManager::instance()->setSelectionHandler(m_seedSelector);
+    SelectionManager::instance()->setSelectionHandler(m_seedSelector,Qt::CrossCursor);
     m_segButton->setChecked(true);
   }else
   {
-    SelectionManager::instance()->setSelectionHandler(NULL);
+    SelectionManager::instance()->setSelectionHandler(NULL, Qt::ArrowCursor);
   }
 }
 

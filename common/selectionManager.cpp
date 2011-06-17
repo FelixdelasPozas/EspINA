@@ -55,11 +55,12 @@ SelectionManager::SelectionManager()
 }
 
 //------------------------------------------------------------------------
-void SelectionManager::setSelectionHandler(ISelectionHandler* sh)
+void SelectionManager::setSelectionHandler(ISelectionHandler* sh, QCursor cursor)
 {
   if (m_handler && m_handler != sh)
     m_handler->abortSelection();
   m_handler = sh;
+  m_handlerCursor = cursor;
 }
 
 //------------------------------------------------------------------------

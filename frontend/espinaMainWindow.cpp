@@ -94,6 +94,7 @@
 #include <spatialExtension.h>
 #include <crosshairRenderer.h>
 #include <pqManagePluginsReaction.h>
+#include <pqQtMessageHandlerBehavior.h>
 
 const QString FILTERS("Trace Files (*.trace)");
 const QString SEG_FILTERS("Seg Files (*.seg)");
@@ -231,7 +232,6 @@ EspinaMainWindow::EspinaMainWindow()
   ///treeCombo->setCurrentIndex(0);
   ///treeCombo->setMinimumWidth(200);
   m_taxonomySelector->setRootModelIndex(m_espina->taxonomyRoot());
-  m_taxonomyView->expandAll();;
   connect(m_taxonomySelector, SIGNAL(currentIndexChanged(QString)),
           m_espina, SLOT(setUserDefindedTaxonomy(const QString&)));
   m_taxonomySelector->setCurrentIndex(0);
@@ -250,6 +250,10 @@ EspinaMainWindow::EspinaMainWindow()
 	  m_espina,
 	  SLOT(destroyingProxy(pqProxy*)));
 #endif
+  
+  tabifyDockWidget(this->Internals->segmentationEditor,this->Internals->sampleEditor);
+  tabifyDockWidget(this->Internals->segmentationEditor,this->Internals->taxonomyEditor);
+  this->Internals->segmentationEditor->raise();
   
   // Taxonomy Editor
   this->Internals->taxonomyView->setModel(m_espina);
@@ -319,6 +323,8 @@ EspinaMainWindow::EspinaMainWindow()
   //m_3d->addWidget(cross);
   this->Internals->volumeDock->setWidget(m_3d);
 #endif //VOL_VIEW
+  
+  resetTaxonomy();
 
   // Setup default GUI layout.
   connect(this->Internals->toggleVisibility, SIGNAL(toggled(bool)), 
@@ -340,6 +346,7 @@ EspinaMainWindow::EspinaMainWindow()
   this->Internals->statisticsDock->setVisible(true);
   this->Internals->modelsDock->setVisible(true);
 #else
+  pqApplicationCore::instance()->disableOutputWindow();
   this->Internals->pipelineBrowserDock->setVisible(false);
   this->Internals->statisticsDock->setVisible(false);
   this->Internals->modelsDock->setVisible(false);
@@ -411,6 +418,7 @@ void EspinaMainWindow::loadFile(QString method)
 #if VOL_VIEW
   m_3d->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleIndex(m_espina->activeSample())));
 #endif
+  this->Internals->segmentationView->expandAll();
 }
 
 //-----------------------------------------------------------------------------
@@ -519,6 +527,7 @@ void EspinaMainWindow::resetTaxonomy()
 {
   m_taxonomyView->expandAll();
   m_taxonomySelector->setCurrentIndex(0);
+  this->Internals->taxonomyView->expandAll();
 }
 
 //-----------------------------------------------------------------------------
