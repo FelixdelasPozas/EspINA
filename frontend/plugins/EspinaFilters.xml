@@ -82,6 +82,7 @@
 
 		</LookupTableProxy>
 	</ProxyGroup>
+        
   <ProxyGroup name="filters">
    <SourceProxy name="ImageSlicer" class="vtkPVImageSlicer" label="ImageSlicer">
      <Documentation
@@ -123,8 +124,32 @@
 		</Documentation>
       </IntVectorProperty>
    </SourceProxy>
-
-
+   
+   <SourceProxy name="ImageChangeInformation"
+                class="vtkImageChangeInformation"
+                label="Change Image Information">
+    <InputProperty
+        name="Input"
+        command="SetInputConnection">
+        <ProxyGroupDomain name="groups">
+          <Group name="sources"/>
+            <Group name="filters"/>
+          </ProxyGroupDomain>
+          <DataTypeDomain name="input_type">
+            <DataType value="vtkDataSet"/>
+          </DataTypeDomain>
+    </InputProperty>
+    <DoubleVectorProperty
+        name="OutputSpacing"
+        command="SetOutputSpacing"
+        immediate_update="1"
+        default_values="1.0 1.0 1.0"
+        number_of_elements="3"
+        number_elements_per_command="3"
+        repeat_command="0"
+     >
+    </DoubleVectorProperty>
+   </SourceProxy> 
 
    <SourceProxy name="ImageMapToColors" class="vtkImageMapToColors" label="ImageMapToColors">
      <Documentation

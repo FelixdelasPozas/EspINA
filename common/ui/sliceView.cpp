@@ -788,6 +788,7 @@ void SliceView::setVOI(IVOI* voi)
 //-----------------------------------------------------------------------------
 void SliceView::updateScene()
 {
+  qDebug("Updating scene ...");
   QApplication::setOverrideCursor(Qt::WaitCursor);
   if (m_sampleRep)
   {

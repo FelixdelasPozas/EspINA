@@ -24,6 +24,12 @@
 #include <data/modelItem.h>
 
 #include <assert.h>
+/*
+SampleEditor::SampleEditor(QObject* parent):
+  QStyledItemDelegate(parent)
+{
+}
+*/
 
 QWidget* SampleEditor::createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {

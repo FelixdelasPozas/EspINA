@@ -47,7 +47,8 @@ SampleRepresentation::SampleRepresentation(Sample* sample): ISampleRepresentatio
   pqLookupTableManager *lutManager = pqApplicationCore::instance()->getLookupTableManager();
   
   vtkFilter::Arguments volArgs;
-  volArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT, m_sample->id()));
+  volArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT, sample->representation("00_Spatial")->id()));
+                                        //m_sample->id()));
   m_rep = cob->createFilter("filters", "ImageMapToColors", volArgs);
   assert(m_rep->numProducts() == 1);
   

@@ -91,6 +91,7 @@
 #include <pqServerDisconnectReaction.h>
 #include <labelMapExtension.h>
 #include <crosshairExtension.h>
+#include <spatialExtension.h>
 #include <crosshairRenderer.h>
 #include <pqManagePluginsReaction.h>
 
@@ -167,6 +168,8 @@ EspinaMainWindow::EspinaMainWindow()
   CrosshairRenderer *crosshairs = new CrosshairRenderer();
   EspINAFactory::instance()->addViewWidget(crosshairs);
 
+  SpatialExtension::SampleExtension sampleSpatialExt;
+  EspINAFactory::instance()->addSampleExtension(&sampleSpatialExt);
   ColorExtension::SegmentationExtension segColorExt;
   EspINAFactory::instance()->addSegmentationExtension(&segColorExt);
   ColorExtension::SampleExtension sampleColorExt;
@@ -550,6 +553,7 @@ void EspinaMainWindow::setGroupView(int idx)
   {
      this->Internals->segmentationView->setModel(m_groupingModel[idx]);
      this->Internals->segmentationView->setRootIndex(m_groupingRoot[idx]);
+     this->Internals->segmentationView->expandAll();
   }
 }
 

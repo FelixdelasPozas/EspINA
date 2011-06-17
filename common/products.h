@@ -84,7 +84,7 @@ public:
   
   //! Implements ITraceNode interface
   virtual QString getArgument(QString name) const;
-  virtual QString getArguments() const;
+  virtual QString getArguments();
   virtual QString label() const {return "Product";}
   EspinaFilter *parent() const {return m_parent;}
 
@@ -122,6 +122,7 @@ public:
   
   //virtual EspinaId id(){return name;}
   //! Reimplements ITraceNode Interface
+  virtual QString getArguments();
   virtual QString label() const;
   
   virtual QVariant data(int role = Qt::UserRole + 1) const;
@@ -129,7 +130,9 @@ public:
   
   void extent(int *out);
   void bounds(double *out);
-  void spacing(double *out);
+  void spacing(double* out);
+  
+  void setSpacing(double x, double y, double z);
   
   QList<Segmentation *> segmentations() const {return m_segs;}
   void addSegmentation(Segmentation *seg);

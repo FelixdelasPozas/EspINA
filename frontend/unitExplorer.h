@@ -32,8 +32,11 @@ public:
   UnitExplorer(QWidget* parent = 0, Qt::WindowFlags f = 0);
     
   virtual void setSample(Sample *sample);
-  
+
 public slots:
   void unitChanged(int unitIndex);
+  void updateSpacing();
+private:
+  Sample* m_sample;
 };
 #endif // UNITEXPLORER_H

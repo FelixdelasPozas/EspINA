@@ -25,7 +25,7 @@ public:
 
   virtual QString label() const {return getArgument("Type");}
   virtual QString getArgument ( QString name ) const  {return (name=="Type")?"SeedGrowRegionSegmentation::SeedGrowRegionSegmentationFilter":"";}
-  virtual QString getArguments() const {return m_args;}
+  virtual QString getArguments() {return m_args;}
   
 private:
   EspinaFilter *m_applyFilter;

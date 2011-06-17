@@ -179,20 +179,19 @@ TODO there are two ways to load sample files.
 */
 /**
  * Insert a stack in the Espina Cache which has been already created in the server
- * The only difference with createStack is that the pqPipelineSource was already
- * created by ParaView system
- * If it returns something different to NULL the element has been already registered
- * in the cache
+ * If it exists it will be overwrited by the nwe pqPipelineSource
  */
 vtkFilter* CachedObjectBuilder::registerProductCreator(QString& sampleFile, pqPipelineSource* source)
 {
   vtkFilter* filter = m_cache->getEntry(sampleFile);
-  if( !filter )
+  if( filter )
   {
-    filter = new vtkFilter(source, sampleFile);
-    m_cache->insert(sampleFile, filter);
+    m_cache->remove(sampleFile);
+    assert(!m_cache->getEntry(sampleFile));
   }
   
+  filter = new vtkFilter(source, sampleFile);
+  m_cache->insert(sampleFile, filter);
   return filter;
 }
 
