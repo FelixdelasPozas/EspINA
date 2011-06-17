@@ -504,8 +504,8 @@ void EspinaMainWindow::removeTaxonomyElement()
 void EspinaMainWindow::changeTaxonomyColor()
 {
 
-  //m_espina->clear();
-  //return;
+  m_espina->clear();
+  return;
   QColorDialog colorSelector;
   if( colorSelector.exec() == QDialog::Accepted)
     m_espina->setData(this->Internals->taxonomyView->currentIndex(),colorSelector.selectedColor(),Qt::DecorationRole);

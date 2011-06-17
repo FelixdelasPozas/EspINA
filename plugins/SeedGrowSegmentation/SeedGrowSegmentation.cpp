@@ -208,6 +208,8 @@ void SeedGrowSegmentation::buildUI()
   //Threshold Widget
   QLabel *thresholdLabel = new QLabel(tr("Threshold"));
   m_threshold = new QSpinBox();
+  m_threshold->setMinimum(0);
+  m_threshold->setMaximum(255);
   m_threshold->setValue(DEFAULT_THRESHOLD);
   
   //Segmentation Button
