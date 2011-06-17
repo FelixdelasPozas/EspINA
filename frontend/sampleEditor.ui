@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>UnitExplorer</class>
- <widget class="QWidget" name="UnitExplorer">
+ <class>SampleEditor</class>
+ <widget class="QWidget" name="SampleEditor">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>115</width>
+    <width>294</width>
     <height>150</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Unit Explorer</string>
+   <string>Sample Editor</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>

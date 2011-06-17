@@ -46,7 +46,7 @@
 #include "colorExtension.h"
 #include "meshExtension.h"
 #include "volumetricExtension.h"
-#include "sampleEditor.h"
+#include "sampleDelegate.h"
 #include "segmentationEditor.h"
 
 //ParaQ includes
@@ -260,8 +260,8 @@ EspinaMainWindow::EspinaMainWindow()
   connect(this->Internals->taxonomyColorSelector,SIGNAL(clicked()),this,SLOT(changeTaxonomyColor()));
 
   // Sample Explorer
-  SampleEditor *sed = new SampleEditor();
-  this->Internals->sampleView->setItemDelegate(sed);
+  SampleDelegate *sampleDelegate = new SampleDelegate();
+  this->Internals->sampleView->setItemDelegate(sampleDelegate);
   this->Internals->sampleView->setModel(m_espina);
   this->Internals->sampleView->setRootIndex(m_espina->sampleRoot());
   

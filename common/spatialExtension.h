@@ -20,12 +20,14 @@ namespace SpatialExtension
     virtual pqPipelineSource *pipelineSource();
     
     void setSpacing(double x, double y, double z);
+    void spacing(double value[3]);
 
   public slots:
     virtual void requestUpdate(bool force = false){};
     
   private:
     vtkFilter *m_rep;
+    double m_spacing[3];
   };
 
   class SampleExtension : public ISampleExtension

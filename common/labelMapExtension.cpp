@@ -70,7 +70,7 @@ pqPipelineSource* SampleRepresentation::pipelineSource()
   if (m_enable)
     return m_rep->pipelineSource();
   else
-    return m_sample->creator()->pipelineSource();
+    return m_sample->representation("01_Color")->pipelineSource();
 }
 
 void SampleRepresentation::render(pqView* view, ViewType type)

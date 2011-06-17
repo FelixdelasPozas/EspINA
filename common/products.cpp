@@ -224,13 +224,21 @@ void Sample::bounds( double* out)
 //------------------------------------------------------------------------
 void Sample::spacing( double* out)
 {
-  int e[6];
-  double b[6];
-  extent(e);
-  bounds(b);
-  out[0] = b[1] / e[1];
-  out[1] = b[3] / e[3];
-  out[2] = b[5] / e[5];
+  if (m_repMap.contains("00_Spatial"))
+  {
+    SpatialExtension::SampleRepresentation* rep = 
+      dynamic_cast<SpatialExtension::SampleRepresentation*>(m_repMap["00_Spatial"]);
+    rep->spacing(out);
+  }else
+  {
+    int e[6];
+    double b[6];
+    extent(e);
+    bounds(b);
+    out[0] = b[1] / e[1];
+    out[1] = b[3] / e[3];
+    out[2] = b[5] / e[5];
+  }
 //   qDebug() << "Spacing";
 //   qDebug() << e[0] << e[1] << e[2] << e[3] << e[4] << e[5];
 //   qDebug() << b[0] << b[1] << b[2] << b[3] << b[4] << b[5];
@@ -240,14 +248,14 @@ void Sample::spacing( double* out)
 //-----------------------------------------------------------------------------
 void Sample::setSpacing(double x, double y, double z)
 {
+  SpatialExtension::SampleRepresentation* rep = 
+    dynamic_cast<SpatialExtension::SampleRepresentation*>(m_repMap["00_Spatial"]);
   double spacing[3];
-  this->spacing(spacing);
+  rep->spacing(spacing);
   if(spacing[0] != x || spacing[1] != y || spacing[2] != z)
   {
     assert(m_segs.empty());
     qDebug() << m_extensions.keys();
-    SpatialExtension::SampleRepresentation* rep = 
-      dynamic_cast<SpatialExtension::SampleRepresentation*>(m_repMap["00_Spatial"]);
     rep->setSpacing(x, y, z);
   }
 }

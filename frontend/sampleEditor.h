@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
+    Copyright (C) <year>  <name of author>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -14,23 +14,31 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
 
+*/
 
 #ifndef SAMPLEEDITOR_H
 #define SAMPLEEDITOR_H
 
-#include <QStyledItemDelegate>
+#include <QDialog>
+#include "ui_sampleEditor.h"
 
-class SampleEditor : public QStyledItemDelegate
+class Sample;
+
+class SampleEditor : public QDialog, private Ui::SampleEditor
 {
+ Q_OBJECT
 public:
- /*
-  SampleEditor(QObject* parent):QStyledItemDelegate(parent){};
-  SampleEditor(){};*/
-  virtual QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const;
-  virtual void setEditorData(QWidget* editor, const QModelIndex& index) const;
-  virtual void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const;
-};
+  SampleEditor(QWidget* parent = 0, Qt::WindowFlags f = 0);
+    
+  virtual void setSample(Sample *sample);
+  void spacing(double value[3]);
 
+public slots:
+  void unitChanged(int unitIndex);
+  void updateSpacing();
+  
+private:
+  Sample* m_sample;
+};
 #endif // SAMPLEEDITOR_H

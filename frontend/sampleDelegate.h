@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) <year>  <name of author>
+    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -14,29 +14,20 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 */
 
-#ifndef UNITEXPLORER_H
-#define UNITEXPLORER_H
 
-#include <QWidget>
-#include "ui_unitExplorer.h"
+#ifndef SAMPLEDELEGATE_H
+#define SAMPLEDELEGATE_H
 
-class Sample;
+#include <QStyledItemDelegate>
 
-class UnitExplorer : public QWidget, private Ui::UnitExplorer
+class SampleDelegate : public QStyledItemDelegate
 {
- Q_OBJECT
 public:
-  UnitExplorer(QWidget* parent = 0, Qt::WindowFlags f = 0);
-    
-  virtual void setSample(Sample *sample);
-
-public slots:
-  void unitChanged(int unitIndex);
-  void updateSpacing();
-private:
-  Sample* m_sample;
+  virtual QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const;
+  virtual void setEditorData(QWidget* editor, const QModelIndex& index) const;
+  virtual void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const;
 };
-#endif // UNITEXPLORER_H
+
+#endif // SAMPLEDELEGATE_H
