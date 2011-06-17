@@ -43,6 +43,9 @@
        <property name="prefix">
         <string/>
        </property>
+       <property name="minimum">
+        <number>1</number>
+       </property>
       </widget>
      </item>
     </layout>
@@ -73,6 +76,9 @@
        <property name="suffix">
         <string>nm</string>
        </property>
+       <property name="minimum">
+        <number>1</number>
+       </property>
       </widget>
      </item>
     </layout>
@@ -102,6 +108,9 @@
        </property>
        <property name="suffix">
         <string>nm</string>
+       </property>
+       <property name="minimum">
+        <number>1</number>
        </property>
       </widget>
      </item>

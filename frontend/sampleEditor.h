@@ -38,6 +38,10 @@ public slots:
   void unitChanged(int unitIndex);
   void updateSpacing();
   
+protected:
+  virtual void enterEvent(QEvent *event);
+  virtual void leaveEvent(QEvent *event);
+  
 private:
   Sample* m_sample;
 };

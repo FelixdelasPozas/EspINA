@@ -76,5 +76,16 @@ void SampleEditor::updateSpacing()
   accept();
 }
 
+void SampleEditor::enterEvent(QEvent* event)
+{
+  QWidget::enterEvent(event);
+  QApplication::setOverrideCursor(Qt::ArrowCursor);
+}
+
+void SampleEditor::leaveEvent(QEvent* event)
+{
+  QWidget::leaveEvent(event);
+  QApplication::restoreOverrideCursor();
+}
 
 

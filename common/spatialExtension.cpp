@@ -11,11 +11,14 @@ using namespace SpatialExtension;
 SampleRepresentation::SampleRepresentation(Sample* sample): ISampleRepresentation(sample)
 {
   //TODO create VTK filter
+  m_sample->spacing(m_spacing);
+  
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   vtkFilter::Arguments volArgs;
   volArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT, m_sample->id()));
+  QString spacing = QString("%1,%2,%3").arg(m_spacing[0]).arg(m_spacing[1]).arg(m_spacing[2]);
+  volArgs.push_back(vtkFilter::Argument("OutputSpacing",vtkFilter::DOUBLEVECT, spacing));
   m_rep = cob->createFilter("filters", "ImageChangeInformation", volArgs);
-  m_sample->spacing(m_spacing);
   assert(m_rep->numProducts() == 1);
 }
 
