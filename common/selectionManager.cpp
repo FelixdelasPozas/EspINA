@@ -20,6 +20,7 @@
 #include "selectionManager.h"
 
 #include <pqView.h>
+#include "espina.h"
 
 // Debug
 #include <QDebug>
@@ -67,6 +68,8 @@ void SelectionManager::setVOI(IVOI* voi)
   if (m_voi && m_voi != voi)
     m_voi->cancelVOI();
   m_voi = voi;
+  if (m_voi)
+    m_voi->setSource(EspINA::instance()->activeSample());
   emit VOIChanged(m_voi);
 }
 

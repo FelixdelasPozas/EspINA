@@ -57,6 +57,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QDebug>
 #include "assert.h"
 #include <espINAFactory.h>
+#include <QBitmap>
 
 
 #define DEFAULT_THRESHOLD 30
@@ -93,7 +94,7 @@ EspinaFilter *SeedGrowSegmentation::createFilter(QString filter, ITraceNode::Arg
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentation::changeSeedSelector(QAction *seedSel)
 {
-  qDebug() << "SeedGrowSegmenation: Changing Seed Selector";
+  //qDebug() << "SeedGrowSegmenation: Changing Seed Selector";
   m_seedSelector = m_seedSelectors.value(seedSel);
   
   if (!m_seedSelector)
@@ -112,7 +113,11 @@ void SeedGrowSegmentation::waitSeedSelection(bool wait)
 {
   if (wait)
   {
-    QApplication::setOverrideCursor(Qt::CrossCursor);
+    if (dynamic_cast<BestPixelSelector*>(m_seedSelector))
+      QApplication::setOverrideCursor(QCursor(QPixmap(":crossRegion.svg")));
+    else
+      QApplication::setOverrideCursor(Qt::CrossCursor);
+    
     SelectionManager::instance()->setSelectionHandler(m_seedSelector);
     m_segButton->setChecked(true);
   }else
@@ -177,7 +182,7 @@ void SeedGrowSegmentation::buildSelectors()
   
   // Exact Pixel Selector
   action = new QAction(
-    QIcon(":/pixelSel")
+    QIcon(":pixelSelector.svg")
     , tr("Add synapse (Ctrl +). Exact Pixel"),
     m_selectors);
   handler = new PixelSelector();
@@ -187,7 +192,7 @@ void SeedGrowSegmentation::buildSelectors()
   
   // Best Pixel Selector
   action = new QAction(
-    QIcon(":/bestPixelSel")
+    QIcon(":bestPixelSelector.svg")
     , tr("Add synapse (Ctrl +). Best Pixel"),
     m_selectors);
   handler = new BestPixelSelector();
@@ -203,6 +208,8 @@ void SeedGrowSegmentation::buildUI()
   //Threshold Widget
   QLabel *thresholdLabel = new QLabel(tr("Threshold"));
   m_threshold = new QSpinBox();
+  m_threshold->setMinimum(0);
+  m_threshold->setMaximum(255);
   m_threshold->setValue(DEFAULT_THRESHOLD);
   
   //Segmentation Button

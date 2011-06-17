@@ -195,11 +195,10 @@ void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
 {
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
 
-  if (sourceParent == model->taxonomyRoot())
-  {
-    beginInsertRows(mapFromSource(sourceParent),start,end);
-    endInsertRows();
-  } else if (sourceParent == model->segmentationRoot())
+  if (sourceParent == model->sampleRoot())
+    return;
+
+  if (sourceParent == model->segmentationRoot())
   {
     updateSegmentations();
     
@@ -213,18 +212,10 @@ void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
     int row = m_taxonomySegs[segParent].indexOf(sourceSeg);
     beginInsertRows(parentIndex, row, row);
     endInsertRows();
-  } else 
+  } else // In case sourceParent is taxonomyRoot, proxyParent will be an invalid index
   {
-    QModelIndex proxyParent = mapFromSource(sourceParent);
-    if (!proxyParent.isValid())
-      return; //Sample or SampleRoot
-    
-    IModelItem *sourceItem = static_cast<IModelItem *>(sourceParent.internalPointer());
-    assert(sourceItem);
-    TaxonomyNode * tax = dynamic_cast<TaxonomyNode *>(sourceItem);
-    assert(tax);
-    beginInsertRows(proxyParent, start, end);
-    endInsertRows();
+      beginInsertRows(mapFromSource(sourceParent),start,end);
+      endInsertRows();
   }
 }
 
@@ -232,6 +223,10 @@ void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
 void TaxonomyProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, int start, int end)
 {
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
+  
+  if (sourceParent == model->sampleRoot())
+    return;
+  
   if (sourceParent == model->segmentationRoot())
   {
     assert(start == end);
@@ -243,14 +238,8 @@ void TaxonomyProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, 
     int row = segParent->getSubElements().size() + m_taxonomySegs[segParent].indexOf(sourceSeg);
     QModelIndex proxyIndex = mapFromSource(sourceIndex);
     beginRemoveRows(proxyIndex.parent(),row,row);
-  } else if (sourceParent == model->taxonomyRoot())
+  } else // In case sourceParent is taxonomyRoot, proxyParent will be an invalid index
   {
-    beginRemoveRows(mapFromSource(sourceParent), start, end);
-  } else
-  {
-    IModelItem* taxItem = static_cast<IModelItem*>(sourceParent.internalPointer());
-    TaxonomyNode* taxNode = dynamic_cast<TaxonomyNode*>(taxItem);
-    if(taxNode)
       beginRemoveRows(mapFromSource(sourceParent), start, end);
   }
 }
@@ -259,22 +248,16 @@ void TaxonomyProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, 
 void TaxonomyProxy::sourceRowsRemoved(const QModelIndex& sourceParent, int start, int end)
 {
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
+    
+  if (sourceParent == model->sampleRoot())
+    return;
   
-  if (sourceParent == model->taxonomyRoot())
-    endRemoveRows();
-  else
-  {
-    IModelItem* taxItem = static_cast<IModelItem*>(sourceParent.internalPointer());
-    TaxonomyNode* taxNode = dynamic_cast<TaxonomyNode*>(taxItem);
-    if(taxNode)
-      endRemoveRows();
-  }
+  // If we added new segmentations we have to update our segmentation map
   if (sourceParent == model->segmentationRoot())
-  {
     updateSegmentations();
-    endRemoveRows();
-  }
   
+  //Finally, notify views we removed requested rows
+  endRemoveRows();
 }
 
 //------------------------------------------------------------------------

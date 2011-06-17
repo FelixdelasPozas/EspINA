@@ -84,4 +84,4 @@ endif( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
 target_link_libraries (VolumeOfInterest ${PARAVIEW_ADDITIONAL_LIBRARIES} )
 
-install (TARGETS VolumeOfInterest LIBRARY DESTINATION /usr/bin/plugins)
+install (TARGETS VolumeOfInterest LIBRARY DESTINATION bin/plugins)

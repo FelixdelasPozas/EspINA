@@ -35,8 +35,8 @@ MESSAGE (STATUS "Library Files:" ${PARAVIEWFILES} ${ITKFILES})
 
 install (FILES ${PARAVIEWFILES} DESTINATION lib/espina)
 install (FILES ${ITKFILES} DESTINATION lib/espina)
-install (FILES espina.conf DESTINATION /etc/ld.so.conf.d/)
-install (FILES ${PROJECT_SOURCE_DIR}/default_taxonomy.xml DESTINATION /usr/share/espina/)
+install (FILES espina.conf DESTINATION ../etc/ld.so.conf.d/)
+install (FILES ${PROJECT_SOURCE_DIR}/default_taxonomy.xml DESTINATION share/espina/)
 
 set (CPACK_PACKAGE_VERSION_MAJOR ${ESPINA_VERSION_MAJOR})
 set (CPACK_PACKAGE_VERSION_MINOR ${ESPINA_VERSION_MINOR})

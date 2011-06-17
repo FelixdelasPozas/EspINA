@@ -122,6 +122,11 @@ public:
   virtual bool contains(ISelectionHandler::VtkRegion region) = 0;
   
   virtual void cancelVOI() = 0;
+  
+  virtual void setSource(Sample *product) { m_product  = product;}
+  
+protected:
+  Sample *m_product;
 };
 
 

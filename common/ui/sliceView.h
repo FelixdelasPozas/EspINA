@@ -25,46 +25,14 @@
 
 #include "selectionManager.h"//TODO: Forward declare?
 
+#include <QAbstractItemView>
+
+//Forward declaration
 class CrosshairRepresentation;
 class vtkInteractorStyleEspina;
 class vtkCamera;
 class vtkSMRenderViewProxy;
-//Forward declaration
 class Sample;
-class Segmentation;
-class IModelItem;
-class pqPipelineSource;
-
-/*
-//! Blends Segmentations in a given Sample
-class Blender
-{
-public:
-  Blender() : m_currentSample(NULL), m_bgMapper(NULL), m_imageBlender(NULL) {}
-  pqPipelineSource *source(){  return m_imageBlender;}
-  
-  //! Focus on a new sample, if previous segmentation were shown
-  //! their memory is freed.
-  void setBackground(Sample *product);
-  //! Blends seg into the focused sample
-  void blend(Segmentation *seg);
-  //! Unblends seg from the focused sample
-  void unblend(Segmentation *seg);
-  
-  // Free all internal memory and paraview proxies
-  void clear();
-  
-  void updateImageBlenderInput();
-private:
-  Sample *m_currentSample;
-  pqPipelineSource *m_bgMapper;
-  pqPipelineSource *m_imageBlender;
-  QMap<IModelItem *,ISegmentationRepresentation *> m_blendingMappers;
-  QMutex m_mutex;
-};
-*/
-
-#include <QAbstractItemView>
 
 // Interface
 class QWidget;
@@ -72,12 +40,7 @@ class QScrollBar;
 class QSpinBox;
 class QVBoxLayout;
 class QHBoxLayout;
-class pqOutputPort;
-class IRenderer;
-class vtkSMProxy;
 class pqRenderView;
-class vtkSMImageSliceRepresentationProxy;
-class vtkSMIntVectorProperty;
 class vtkRenderWindowInteractor;
 
 
