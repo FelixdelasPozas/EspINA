@@ -27,8 +27,7 @@
 class pq3DWidget;
 
 class RectangularVOI 
-: public QObject
-, public IVOI
+: public IVOI
 , IFilterFactory
 {
   class ApplyFilter: public EspinaFilter
@@ -69,7 +68,7 @@ public slots:
   virtual void endInteraction();
   
   virtual void cancelVOI();
-
+  
 private:
   void rvoiExtent(double *rvoi);
   

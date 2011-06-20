@@ -107,8 +107,9 @@ signals:
   void selectionAborted();
 };
 
-class IVOI
+class IVOI : public QObject
 {
+  Q_OBJECT
 public:
   virtual ~IVOI(){}
 
@@ -124,6 +125,10 @@ public:
   virtual void cancelVOI() = 0;
   
   virtual void setSource(Sample *product) { m_product  = product;}
+
+signals:
+  void voiCancelled();
+
   
 protected:
   Sample *m_product;

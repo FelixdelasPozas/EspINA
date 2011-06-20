@@ -147,7 +147,8 @@ vtkSMProxy* RectangularVOI::getProxy()
 //-----------------------------------------------------------------------------
 pq3DWidget* RectangularVOI::newWidget()
 {
-  QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(m_product->creator()->pipelineSource()->getProxy(), getProxy());
+  QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(m_product->representation("01_Color")->pipelineSource()->getProxy(), getProxy());
+  
   assert(widgets.size() == 1);
   connect(widgets[0],SIGNAL(widgetEndInteraction()),this,SLOT(endInteraction()));
   
@@ -204,7 +205,7 @@ void RectangularVOI::endInteraction()
 //-----------------------------------------------------------------------------
 void RectangularVOI::cancelVOI()
 {
-  
+  emit voiCancelled();
 }
 
 void RectangularVOI::rvoiExtent(double* rvoi)
