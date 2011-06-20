@@ -1,0 +1,6 @@
+<RCC>
+  <qresource>
+    <file>puntero_mas.svg</file>
+    <file>puntero_menos.svg</file>
+  </qresource>
+</RCC>
