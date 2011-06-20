@@ -64,28 +64,10 @@ protected:
   
 protected:
   pq3DWidget *m_VOIWidget;
+  IVOI *m_voi;
 };
 
 class Product;
-
-class IVOI
-{
-public:
-  virtual ~IVOI(){}
-
-  virtual IFilter *createApplyFilter() = 0;
-  virtual IFilter *createRestoreFilter() = 0;
-  
-  virtual IFilter *applyVOI(vtkProduct *product) = 0;
-  virtual IFilter *restoreVOITransormation(vtkProduct* product) = 0;
-  
-  virtual vtkSMProxy * getProxy() = 0;
-  virtual pq3DWidget *widget() = 0;
-  virtual pq3DWidget *widget(int plane) = 0;
-  
-  virtual void cancelVOI() = 0;
-};
-
 
 //! Interface to handle selections
 //! Plugin that implement this interface have to specify
@@ -125,6 +107,35 @@ signals:
   void selectionAborted();
 };
 
+class IVOI : public QObject
+{
+  Q_OBJECT
+public:
+  virtual ~IVOI(){}
+
+  virtual EspinaFilter *applyVOI(vtkProduct *product) = 0;
+  virtual EspinaFilter *restoreVOITransormation(vtkProduct* product) = 0;
+  
+  virtual vtkSMProxy * getProxy() = 0;
+  virtual pq3DWidget *newWidget() = 0;
+  virtual void deleteWidget(pq3DWidget *&widget) = 0;
+  
+  virtual bool contains(ISelectionHandler::VtkRegion region) = 0;
+  
+  virtual void cancelVOI() = 0;
+  
+  virtual void setSource(Sample *product) { m_product  = product;}
+
+signals:
+  void voiCancelled();
+
+  
+protected:
+  Sample *m_product;
+};
+
+
+
 
 //! Singleton instance to coordinate selections through different
 //! components such as views and plugins
@@ -148,10 +159,18 @@ public:
   //IFilter *applyVOI(vtkProduct *product);
   //! Restores VOI transformations
   //IFilter *restoreVOITransformation(vtkProduct *product);
+  QCursor cursor()
+  {
+    if (m_handler)
+      return m_handlerCursor;
+    else
+      return QCursor(Qt::ArrowCursor);
+    
+  }
   
 public slots:
   //! Register @sh as active Selection Handler
-  void setSelectionHandler(ISelectionHandler *sh);
+  void setSelectionHandler(ISelectionHandler *sh, QCursor cursor);
   
 signals:
   void VOIChanged(IVOI *voi);
@@ -162,6 +181,7 @@ public:
   
 private:
   ISelectionHandler *m_handler;
+  QCursor m_handlerCursor;
   IVOI *m_voi;
   static SelectionManager *m_singleton;
 };

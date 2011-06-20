@@ -17,24 +17,30 @@
 
 */
 
-#include "products.h"
-
 // ESPINA
 #include "cache/cachedObjectBuilder.h"
 #include "filter.h"
-
-// ParaQ
-#include "pqPipelineSource.h"
-#include "vtkSMProxy.h"
+#include "products.h"
+#include "espina_debug.h"
+#include "data/hash.h"
 
 // Debug
 #include <iostream>
-#include <assert.h>
-#include <QDebug>
 
-#include "data/hash.h"
+// ParaQ
+#include <pqApplicationCore.h>
+#include <pqObjectBuilder.h>
 #include <pqOutputPort.h>
+#include <pqPipelineSource.h>
+
+#include <vtkSMProxy.h>
 #include <vtkPVDataInformation.h>
+#include <vtkSMRGBALookupTableProxy.h>
+#include <vtkSMProperty.h>
+#include <vtkSMProxyProperty.h>
+#include <vtkSMPropertyHelper.h>
+#include "spatialExtension.h"
+
 
 using namespace std;
 
@@ -100,7 +106,7 @@ QString EspinaProduct::getArgument(QString name) const
 }
 
 //-----------------------------------------------------------------------------
-QString EspinaProduct::getArguments() const
+QString EspinaProduct::getArguments()
 {
   QString args;
   args.append(ESPINA_ARG("Id", id()));
@@ -124,112 +130,34 @@ void EspinaProduct::color(double *rgba)
   rgba[3] = 1;
 }
 
-
-
-
-
-// //-----------------------------------------------------------------------------
-// // PRODUCT
-// //-----------------------------------------------------------------------------
-// Product::Product(pqPipelineSource* source, int portNumber, const QString& traceName, const EspinaId& parentHash)
-// : IRenderable(source, portNumber), 
-//   m_parentHash(parentHash), //TODO: Deprecate?
-//   m_taxonomy(NULL)
-// {
-//   this->name = traceName;
-//   this->type = 0;
-//   m_hash = QString("%1:%2").arg(parentHash).arg(portNumber);
-//   //QStringList v;
-//   //v.push_back( QString(portNumber) );
-//   //m_hash.append(generateSha1( v ));
-// }
-// /*
-// vector< ITraceNode* > Product::inputs()
-// {
-//   vector<ITraceNode *> nullVector;
-//   return nullVector;
-// }
-// 
-// //-----------------------------------------------------------------------------
-// vector< ITraceNode* > Product::outputs()
-// {
-//   vector<ITraceNode *> nullVector;
-//   return nullVector;
-// }
-// */
-// void Product::print(int indent) const
-// {
-//   cout << name.toStdString().c_str() << endl;
-// }
-// 
-// //-----------------------------------------------------------------------------
-// EspinaParamList Product::getArguments()
-// {
-//   EspinaParamList nullParamList;
-//   if( m_taxonomy )
-//     nullParamList.push_back(EspinaParam("Taxonomy", m_taxonomy->getName()));
-//   return nullParamList;
-// }
-// 
-// 
-// //-----------------------------------------------------------------------------
-// //! Returns the id of the Product composed with the parent id and its Product name
-// EspinaId Product::id()
-// {
-// //   QStringList v;
-// //   v.push_back( name );
-// //   QString id = m_hash;
-// //   id.append(generateSha1( v ));
-// // 
-// //   return id;
-//   return m_hash;
-// }
-// 
-// //-----------------------------------------------------------------------------
-// pqOutputPort* Product::outputPort()
-// {
-//   return IRenderable::outputPort();
-// }
-// 
-// 
-// //-----------------------------------------------------------------------------
-// pqPipelineSource* Product::sourceData()
-// {
-//   return IRenderable::sourceData();
-// }
-// 
-// 
-// //-----------------------------------------------------------------------------
-// int Product::portNumber()
-// {
-// 
-//   return IRenderable::portNumber();
-// }
-// 
-// void Product::color(double *rgba)
-// {
-//   QColor color = this->data(Qt::DecorationRole).value<QColor>();
-//   rgba[0] = color.red()/255.0;
-//   rgba[1] = color.green()/255.0;
-//   rgba[2] = color.blue()/255.0;
-//   rgba[3] = 1;
-// }
-// 
-// QVariant Product::data(int role) const
-// {
-//   switch (role)
-//   {
-//     case Qt::DisplayRole:
-// 	return "Generic Product";
-//     case Qt::DecorationRole:
-// 	return QColor(Qt::darkMagenta);
-//     default:
-//       return QVariant();
-//   }
-// }
-
 //-----------------------------------------------------------------------------
 // Sample
+//-----------------------------------------------------------------------------
+Sample::~Sample()
+{
+  QStringList extList = m_extensions.keys();
+  extList.sort();
+  for (int ext = extList.size()-1; ext>=0; ext--)
+    delete m_extensions[extList[ext]];
+  
+  QStringList repList = m_repMap.keys();
+  repList.sort();
+  for (int rep = repList.size()-1; rep>=0; rep--)
+    delete m_repMap[repList[rep]];
+  
+  CachedObjectBuilder::instance()->removeFilter(this->creator());  
+}
+
+//-----------------------------------------------------------------------------
+QString Sample::getArguments()
+{
+  double sp[3];
+  spacing(sp);
+  return EspinaProduct::getArguments().append(
+    ESPINA_ARG("Spacing", QString("%1,%2,%3").arg(sp[0]).arg(sp[1]).arg(sp[2]))
+    );
+}
+
 //-----------------------------------------------------------------------------
 QString Sample::label() const
 {
@@ -237,6 +165,7 @@ QString Sample::label() const
 }
 
 
+//------------------------------------------------------------------------
 QVariant Sample::data(int role) const
 {
   switch (role)
@@ -250,7 +179,20 @@ QVariant Sample::data(int role) const
   }
 }
 
-void Sample::extent(int *out)
+
+//------------------------------------------------------------------------
+bool Sample::setData(const QVariant& value, int role)
+{
+  if (role == Qt::EditRole)
+  {
+    return true;
+  }
+  return false;
+}
+
+
+//------------------------------------------------------------------------
+void Sample::extent( int* out)
 {
   //if (!m_extent)
   //{
@@ -264,7 +206,8 @@ void Sample::extent(int *out)
   memcpy(out,m_extent,6*sizeof(int));
 }
 
-void Sample::bounds(double *out)
+//------------------------------------------------------------------------
+void Sample::bounds( double* out)
 {
   //if (!m_bounds)
   //{
@@ -278,46 +221,119 @@ void Sample::bounds(double *out)
   memcpy(out,m_bounds,6*sizeof(double));
 }
 
-void Sample::spacing(double* out)
+//------------------------------------------------------------------------
+void Sample::spacing( double* out)
 {
-  //TODO: Sorry, but no time to make it better
-  double spacing[3];
-  int e[6];
-  double b[6];
-  extent(e);
-  bounds(b);
-  out[0] = b[1] / e[1];
-  out[1] = b[3] / e[3];
-  out[2] = b[5] / e[5];
-  qDebug() << "Spacing";
-  qDebug() << e[0] << e[1] << e[2] << e[3] << e[4] << e[5];
-  qDebug() << b[0] << b[1] << b[2] << b[3] << b[4] << b[5];
-  qDebug() << out[0] << out[1] << out[2];
+  if (m_repMap.contains("00_Spatial"))
+  {
+    SpatialExtension::SampleRepresentation* rep = 
+      dynamic_cast<SpatialExtension::SampleRepresentation*>(m_repMap["00_Spatial"]);
+    rep->spacing(out);
+  }else
+  {
+    int e[6];
+    double b[6];
+    extent(e);
+    bounds(b);
+    out[0] = b[1] / e[1];
+    out[1] = b[3] / e[3];
+    out[2] = b[5] / e[5];
+  }
+//   qDebug() << "Spacing";
+//   qDebug() << e[0] << e[1] << e[2] << e[3] << e[4] << e[5];
+//   qDebug() << b[0] << b[1] << b[2] << b[3] << b[4] << b[5];
+//   qDebug() << out[0] << out[1] << out[2];
 }
+
+//-----------------------------------------------------------------------------
+void Sample::setSpacing(double x, double y, double z)
+{
+  SpatialExtension::SampleRepresentation* rep = 
+    dynamic_cast<SpatialExtension::SampleRepresentation*>(m_repMap["00_Spatial"]);
+  double spacing[3];
+  rep->spacing(spacing);
+  if(spacing[0] != x || spacing[1] != y || spacing[2] != z)
+  {
+    assert(m_segs.empty());
+    qDebug() << m_extensions.keys();
+    rep->setSpacing(x, y, z);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void Sample::addSegmentation(Segmentation* seg)
+{
+  m_segs.push_back(seg);
+  foreach(ISampleRepresentation *rep, m_repMap)
+  {
+    rep->requestUpdate();
+  }
+}
+
+void Sample::removeSegmentation(Segmentation* seg)
+{
+  m_segs.removeOne(seg);
+  foreach(ISampleRepresentation *rep, m_repMap)
+  {
+    rep->requestUpdate();
+  }
+}
+
+void Sample::addExtension(ISampleExtension* ext)
+{
+  ISampleExtension *extAdded = ext->clone();
+  if (m_extensions.contains(ext->id()))
+  {
+    qDebug() << "Sample Extensions:" << ext->id() << "already registered";
+    assert(false);
+  }
+  m_extensions[ext->id()] = extAdded;
+}
+
+ISampleExtension* Sample::extension(ExtensionId extId)
+{
+  assert(m_extensions.contains(extId));
+  return m_extensions[extId];
+}
+
+void Sample::initialize()
+{
+  foreach(ISampleExtension *ext, m_extensions)
+  {
+    ext->initialize(this);
+    ext->addInformation(m_infoMap);
+    ext->addRepresentations(m_repMap);
+  }
+}
+
 
 
 
 //-----------------------------------------------------------------------------
 // Segmentation
 //-----------------------------------------------------------------------------
-Segmentation::Segmentation(vtkFilter* creator, int portNumber)
-: EspinaProduct(NULL,creator, portNumber)
+Segmentation::Segmentation(EspinaFilter* parent, vtkFilter* creator, int portNumber)
+: EspinaProduct(parent,creator, portNumber)
 {
 }
 
-// Segmentation::Segmentation(const vtkProduct& product)
-// : EspinaProduct(product)
-// {
-// }
+//------------------------------------------------------------------------
+Segmentation::~Segmentation()
+{
+  foreach(ISegmentationExtension *ext, m_extensions)
+    delete ext;
+  
+  foreach(ISegmentationRepresentation *rep, m_repMap)
+    delete rep;
+}
 
-
-
+//------------------------------------------------------------------------
 QVariant Segmentation::data(int role) const
 {
   switch (role)
   {
     case Qt::DisplayRole:
-    case Qt::EditRole:
+    //case Qt::EditRole:
       return label();
     case Qt::DecorationRole:
       return m_taxonomy->getColor();
@@ -328,6 +344,25 @@ QVariant Segmentation::data(int role) const
   }
 }
 
+//------------------------------------------------------------------------
+bool Segmentation::setData(const QVariant& value, int role)
+{
+  switch (role)
+  {
+    case Qt::EditRole:
+      return true;
+    case Qt::CheckStateRole:
+      setVisible(value.toBool());
+      return true;
+    //case Qt::DecorationRole:
+      //m_repMap["01_Color"]->requestUpdate();
+      //return true;
+    default:
+      return false;
+  }
+}
+
+//------------------------------------------------------------------------
 void Segmentation::addExtension(ISegmentationExtension* ext)
 {
   ISegmentationExtension *extAdded = ext->clone();
@@ -339,6 +374,7 @@ void Segmentation::addExtension(ISegmentationExtension* ext)
   m_extensions[ext->id()] = extAdded;
 }
 
+//------------------------------------------------------------------------
 ISegmentationExtension *Segmentation::extension(ExtensionId extId)
 {
   assert(m_extensions.contains(extId));

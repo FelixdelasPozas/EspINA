@@ -49,18 +49,10 @@
      <height>20</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menu_Edit">
-    <property name="title">
-     <string>&amp;Edit</string>
-    </property>
-    <addaction name="actionUndo"/>
-    <addaction name="actionRedo"/>
-   </widget>
    <widget class="QMenu" name="menu_View">
     <property name="title">
      <string>&amp;View</string>
     </property>
-    <addaction name="actionUnits"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="tearOffEnabled">
@@ -80,21 +72,15 @@
      <string>&amp;File</string>
     </property>
    </widget>
-   <widget class="QMenu" name="menuNew">
-    <property name="title">
-     <string>New</string>
-    </property>
-    <addaction name="actionUnits"/>
-    <addaction name="actionSegmentationExplorer"/>
-   </widget>
    <addaction name="menu_File"/>
-   <addaction name="menu_Edit"/>
    <addaction name="menu_View"/>
    <addaction name="menuTools"/>
    <addaction name="menu_Help"/>
-   <addaction name="menuNew"/>
   </widget>
   <widget class="QDockWidget" name="pipelineBrowserDock">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="allowedAreas">
     <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
    </property>
@@ -152,9 +138,9 @@
    </attribute>
    <addaction name="toggleVisibility"/>
   </widget>
-  <widget class="QDockWidget" name="objectInspector">
+  <widget class="QDockWidget" name="segmentationEditor">
    <property name="windowTitle">
-    <string>Object Inspector</string>
+    <string>Segmentations</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
@@ -190,6 +176,12 @@
      </item>
      <item>
       <widget class="QTreeView" name="segmentationView">
+       <property name="dragEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="dragDropMode">
+        <enum>QAbstractItemView::InternalMove</enum>
+       </property>
        <property name="animated">
         <bool>true</bool>
        </property>
@@ -244,7 +236,7 @@
          </property>
          <property name="icon">
           <iconset resource="rsc/espina.qrc">
-           <normaloff>:/espina/trashSeg</normaloff>:/espina/trashSeg</iconset>
+           <normaloff>:/espina/trash-full.svg</normaloff>:/espina/trash-full.svg</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -262,9 +254,9 @@
     </layout>
    </widget>
   </widget>
-  <widget class="QDockWidget" name="labelEditor">
+  <widget class="QDockWidget" name="taxonomyEditor">
    <property name="windowTitle">
-    <string>Label Editor</string>
+    <string>Taxonomies</string>
    </property>
    <attribute name="dockWidgetArea">
     <number>1</number>
@@ -294,7 +286,7 @@
         </spacer>
        </item>
        <item>
-        <widget class="QPushButton" name="deleteTax">
+        <widget class="QPushButton" name="taxonomyColorSelector">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -324,7 +316,7 @@
          </property>
          <property name="icon">
           <iconset resource="rsc/espina.qrc">
-           <normaloff>:/espina/rainbow</normaloff>:/espina/rainbow</iconset>
+           <normaloff>:/espina/rainbow.svg</normaloff>:/espina/rainbow.svg</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -338,7 +330,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="deleteTax_3">
+        <widget class="QPushButton" name="addTaxonomy">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -368,7 +360,7 @@
          </property>
          <property name="icon">
           <iconset resource="rsc/espina.qrc">
-           <normaloff>:/espina/add</normaloff>:/espina/add</iconset>
+           <normaloff>:/espina/add.svg</normaloff>:/espina/add.svg</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -382,7 +374,7 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="deleteTax_2">
+        <widget class="QPushButton" name="addTaxonomyChild">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
            <horstretch>0</horstretch>
@@ -412,7 +404,51 @@
          </property>
          <property name="icon">
           <iconset resource="rsc/espina.qrc">
-           <normaloff>:/espina/remove</normaloff>:/espina/remove</iconset>
+           <normaloff>:/espina/add_child.svg</normaloff>:/espina/add_child.svg</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>22</width>
+           <height>22</height>
+          </size>
+         </property>
+         <property name="flat">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="removeTaxonomy">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="minimumSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
+         <property name="baseSize">
+          <size>
+           <width>32</width>
+           <height>32</height>
+          </size>
+         </property>
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset resource="rsc/espina.qrc">
+           <normaloff>:/espina/remove.svg</normaloff>:/espina/remove.svg</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -430,27 +466,59 @@
     </layout>
    </widget>
   </widget>
-  <action name="toggleVisibility">
-   <property name="checkable">
+  <widget class="QDockWidget" name="sampleEditor">
+   <property name="windowTitle">
+    <string>Samples</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="QWidget" name="sampleEditorDock">
+    <layout class="QVBoxLayout" name="verticalLayout_3">
+     <item>
+      <widget class="QListView" name="sampleView"/>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_4">
+       <item>
+        <spacer name="horizontalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+  <widget class="QDockWidget" name="modelsDock">
+   <property name="enabled">
     <bool>true</bool>
    </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="rsc/espina.qrc">
-     <normaloff>:/espina/show_all.svg</normaloff>:/espina/show_all.svg</iconset>
-   </property>
-   <property name="text">
-    <string>Visibility</string>
-   </property>
-   <property name="toolTip">
-    <string>Turn Visibility On/Off</string>
-   </property>
-   <property name="shortcut">
-    <string>Space</string>
-   </property>
-  </action>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="QWidget" name="dockWidgetContents_3">
+    <layout class="QVBoxLayout" name="verticalLayout_4">
+     <item>
+      <widget class="QTreeView" name="modelo"/>
+     </item>
+     <item>
+      <widget class="QTreeView" name="taxonomias"/>
+     </item>
+     <item>
+      <widget class="QTreeView" name="samples"/>
+     </item>
+    </layout>
+   </widget>
+  </widget>
   <action name="actionUndo">
    <property name="icon">
     <iconset resource="rsc/espina.qrc">
@@ -481,14 +549,25 @@
     <string>Ctrl+Y</string>
    </property>
   </action>
-  <action name="actionUnits">
-   <property name="text">
-    <string>Units</string>
+  <action name="toggleVisibility">
+   <property name="checkable">
+    <bool>true</bool>
    </property>
-  </action>
-  <action name="actionSegmentationExplorer">
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="rsc/espina.qrc">
+     <normaloff>:/espina/show_all.svg</normaloff>:/espina/show_all.svg</iconset>
+   </property>
    <property name="text">
-    <string>Segmentation Explorer</string>
+    <string>Visibility</string>
+   </property>
+   <property name="toolTip">
+    <string>Turn Visibility On/Off</string>
+   </property>
+   <property name="shortcut">
+    <string>Space</string>
    </property>
   </action>
  </widget>

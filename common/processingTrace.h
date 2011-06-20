@@ -53,9 +53,11 @@ public:
   };
   
 public:
+  virtual ~ITraceNode(){}
+  
   static ITraceNode::Arguments parseArgs(QString &raw);
   virtual QString getArgument(QString name) const = 0;
-  virtual QString getArguments() const = 0;
+  virtual QString getArguments() = 0;
   //! Descriptive name of the node
   virtual QString label() const = 0;
   
@@ -66,9 +68,10 @@ public:
   //virtual void print(int indent = 0) const {};
 private:
   //! Node id in the graph
-  IndexType vertexId;
+  //IndexType vertexId;
   friend class ProcessingTrace;
 };
+
 
 //! A class to represent the working trace
 class ProcessingTrace
@@ -112,7 +115,7 @@ class ProcessingTrace
   
   //! SubGraphs REQUIRE vertex and edge properties
   typedef boost::adjacency_list<
-  boost::vecS,
+  boost::listS,
   boost::vecS,
   boost::directedS,
   VertexProperties,
@@ -145,6 +148,10 @@ public:
     ITraceNode *destination,
     const std::string &description
   );
+  
+  //! Remove a segmentation and the filter which created it if no more
+  //! segmentations exist
+  void removeNode(ITraceNode* node);
     
 //   void readTrace(std::istream& content);
   void readTrace(QTextStream& stream);
@@ -163,6 +170,8 @@ private:
   ProcessingTrace(const QString &name); // TODO delte. No tiene sentido sin subgraph
   //! It retrieves the information of the ITraceNodes to store the hold trace
   void readNodes();
+  //! It retrieves the current vertex index of a ITraceNode
+  boost::graph_traits< Graph >::vertex_descriptor vertexIndex(ITraceNode* arg1);
   //!Convert a string int the correct format "{argument:value;}+" in a NodeParamList
   //ITraceNode::Arguments parseArgs( QString& raw );
 

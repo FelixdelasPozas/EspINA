@@ -29,6 +29,7 @@
 #include <pqProxy.h>
 #include "products.h"
 #include "pqPipelineSource.h"
+#include <QDir>
 
 class IRenderable;
 class ProcessingTrace;
@@ -84,18 +85,34 @@ public:
     TaxonomyNode *taxonomy() {return m_tax;}
     //! Returns the QModelIndex of a given @node
     QModelIndex taxonomyIndex(TaxonomyNode *node) const;
+    void addTaxonomy(QString name, QString parentName);
+    void removeTaxonomy(QString name);
+    TaxonomyNode *taxonomyParent(TaxonomyNode *node);
     
     //! Returns the QModelIndex of a given @seg
     QModelIndex segmentationIndex(Segmentation *seg) const;
+
+    
+    void changeTaxonomy(Segmentation* seg, QString& taxName);
+
+    Segmentation* segmentation(QString& segId);
+    
+    //void assignTaxonomy(QString& taxName, QString& segId);
     
     //! Openning .trace In the future .seg (.trace + .mha) (used by the UI)
-    void loadFile(QString& filePath, pqServer* server = NULL);
-    void saveFile(QString& filePath, pqServer* server = NULL);
+        void saveFile(QString& filePath, pqServer* server = NULL);
 
 public slots:
+    void loadFile(QString filePath, QString method);
     //TODO: Check if private? Now it's only used by Espina
     void addSample(Sample *sample);
 
+    //! It removes the Sample specify by @param sample and all the Segmentations
+    //! that it has.
+    void removeSample(Sample *sample);
+
+    void removeSamples();
+    
     //! Add a new segmentation (used by the plugins)
     void addSegmentation(Segmentation *seg);
     //! Remove a segmentation (used by the UI)
@@ -105,15 +122,22 @@ public slots:
     //! when plugins can't guess their type
     void setUserDefindedTaxonomy(const QString &taxName);
 
-    //! Debug slot for plugins manage
+    //! Debug slot to manage plugins
     void onProxyCreated(pqProxy* p);
+    void destroyingProxy(pqProxy* p);
 
     //! Manage the pqPipelineSources loaded with pqLoadReaction
     void loadSource(pqPipelineSource* proxy);
+
+    //! Clear all the Espina Model. It removes the Samples, Segmentations
+    //! and the Taxonomy.
+    void clear();
     
 signals:
     //! 
     void focusSampleChanged(Sample *);
+
+    void resetTaxonomy();
   
 protected:
     explicit EspINA(QObject* parent = 0);
@@ -133,6 +157,10 @@ private:
     //! Return the number of subtaxonomies which belong to tax
     int numOfSubTaxonomies(TaxonomyNode *tax) const;
 
+    //! Save a segmentation in the active server in a file which name
+    //! corresponds to the id of the segmentation
+    bool saveSegmentation( Segmentation* seg, QDir prefixFilePath);
+
 private:
     TaxonomyNode *m_newSegType; // The type for new segmentations
     Sample *m_activeSample;
@@ -145,7 +173,6 @@ private:
     ProcessingTrace *m_analysis;
 
     QMap<const TaxonomyNode *, QList<Segmentation *> > m_taxonomySegs;
-    QMap<const Sample *, QList<Segmentation *> > m_sampleSegs;
 
     static EspINA *m_singleton;
 };

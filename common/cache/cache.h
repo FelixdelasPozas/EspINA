@@ -22,27 +22,39 @@
 
 #include <QMap>
 #include <QString>
+#include <QDir>
 
 class vtkFilter;
 //typedef QString EspinaId;
 
 class Cache
 {
+  struct Entry
+  {
+    int refCounter;
+    vtkFilter *filter;
+  };
 public:
   typedef QString Index;
   static Cache *instance();
-  void insert(const Index& index, vtkFilter *filter);
-  vtkFilter *getEntry(const Index index) const;
+  void insert(const Index& index, vtkFilter *filter, bool persistent=false);
+  void reference(const Index& index);
+  vtkFilter *getEntry(const Index index);
+  void remove(const Index& index);
+  /** Set the working directory of to the current Sample. It is used to find posible
+   *  files for the cache disk
+   */
+  void setWorkingDirectory(QFileInfo& sample);
   //CacheEntry *getEspinaEntry(const EspinaId &id) const;
   
 protected:
-  Cache(const QString &path="cache") : m_diskCachePath(path) {};
+  Cache(const QDir &path=QDir::tempPath()) : m_diskCachePath(path) {};
   
 private:
   static Cache *m_singleton;
   //QMap<EspinaId, CacheIndex> m_translator;// Relation between EspinaId and CacheIndex
-  QMap<Index, vtkFilter *> m_cachedProxies;
-  QString m_diskCachePath; 
+  QMap<Index, Entry> m_cachedProxies;
+  QDir m_diskCachePath;
 };
 
 #endif // CACHE_H

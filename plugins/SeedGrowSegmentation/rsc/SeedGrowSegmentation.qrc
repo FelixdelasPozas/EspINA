@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/">
-        <file alias="bestPixelSel">bestPixelSelector_add.svg</file>
-        <file alias="pixelSel">pixelSelector_add.svg</file>
+        <file>bestPixelSelector.svg</file>
+        <file>pixelSelector.svg</file>
+        <file>crossRegion.svg</file>
     </qresource>
 </RCC>

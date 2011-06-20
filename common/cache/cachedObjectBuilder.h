@@ -33,7 +33,8 @@ class CachedObjectBuilder
 public:
   static CachedObjectBuilder *instance();
   
-  vtkFilter *createFilter(const QString group, const QString name, const vtkFilter::Arguments args);
+  vtkFilter *createFilter(const QString group, const QString name, const vtkFilter::Arguments args, bool persistent=false);
+  void removeFilter(vtkFilter *filter);
   vtkFilter *getFilter(Cache::Index &id) { return m_cache->getEntry(id); }
 
   /**
@@ -42,16 +43,17 @@ public:
    *  created by ParaView system
    */
   //! Only used to load samples by pqPipelineDataReaction
-  vtkFilter* registerProductCreator(QString& id, pqPipelineSource* source);
+  vtkFilter* registerProductCreator(QString& sampleFile, pqPipelineSource* source);
 
+  static Cache::Index generateId(const QString group, const QString name, const vtkFilter::Arguments args);
+  
 private:
   CachedObjectBuilder();
   ~CachedObjectBuilder(){}
   
   CachedObjectBuilder(const CachedObjectBuilder&);//Not implemented
   void *operator=(const CachedObjectBuilder&);//Not implemented
-  
-  Cache::Index generateId(const QString group, const QString name, const vtkFilter::Arguments args);
+    
   pqPipelineSource *createSMFilter(const QString group, const QString name, const vtkFilter::Arguments args);
   
   static CachedObjectBuilder *m_singleton;

@@ -4,6 +4,8 @@
 #include "data/cajalTypes.h"
 
 #include <QString>
+#include <QMap>
+#include <QVariant>
 
 typedef NodeArg EspinaArg;
 typedef NodeParam EspinaParam;
@@ -30,9 +32,17 @@ struct Point
 
 typedef Point ImagePixel;
 
-typedef int InformationMap;
-typedef int RepresentationMap;
 typedef QString ExtensionId;
+
+enum ViewType
+{
+  VIEW_PLANE_FIRST = 0,
+  VIEW_PLANE_XY    = 0,
+  VIEW_PLANE_YZ    = 1,
+  VIEW_PLANE_XZ    = 2,
+  VIEW_PLANE_LAST  = 2,
+  VIEW_3D = 3
+};
 
 
 #endif// ESPINATYPES_H

@@ -38,11 +38,12 @@ class pqPipelineSource;
 class CachedObjectBuilder;
 class Sample;
 
-class vtkProduct;//TODO
+class vtkProduct;
 
 class IFilter
 {
 public:
+  virtual ~IFilter(){}
   //! Returns the number of products created by the filter
   virtual int numProducts() = 0;
   //! Returns the i-th product created by the filter
@@ -81,6 +82,7 @@ public:
   typedef QList<Argument> Arguments;
 
 public:
+  virtual ~vtkFilter();
   //! Implements IFilter Interface
   virtual int numProducts();
   virtual vtkProduct product(int i);
@@ -91,12 +93,13 @@ public:
   pqPipelineSource *pipelineSource(){return m_pipelineSource;}
 
 private:
-  vtkFilter(pqPipelineSource *source, QString &cacheId);
+  vtkFilter( pqPipelineSource* source, const QString& cacheId);
   
 protected:  
   pqPipelineSource *m_pipelineSource;
   QString m_id; //! Cache id
   friend class CachedObjectBuilder;
+  friend class Cache;
 };
 
 
@@ -106,10 +109,12 @@ class EspinaFilter
 //, public ITraceNode
 {
 public:
+  virtual ~EspinaFilter(){}
   //virtual int numProducts() = 0;
   //virtual vtkProduct* product(int i) = 0;
   //virtual QList< vtkProduct* > products() = 0;
   virtual QString getFilterArguments() const {return m_args;}
+  virtual void removeProduct(EspinaProduct *product) {} ;
   
 protected:
   QString m_args;

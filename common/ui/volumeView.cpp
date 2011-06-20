@@ -20,7 +20,6 @@
 #include "volumeView.h"
 
 #include "interfaces.h"
-#include "renderer.h"
 #include "products.h"
 
 // GUI
@@ -57,26 +56,12 @@
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(QWidget* parent)
 : QAbstractItemView(parent)
-, m_showSegmentations(false)
+, m_VOIWidget(NULL)
 {
   m_controlLayout = new QHBoxLayout();
   
-  m_toggleActors = new QToolButton(this);
-  m_toggleActors->setIcon(QIcon(":/espina/hide3D"));
-  m_toggleActors->setCheckable(true);
-  
   m_controlLayout->addStretch();
-  m_controlLayout->addWidget(m_toggleActors);
   
-  QMenu *renders = new QMenu();
-  QAction *volumeRenderer = new QAction(QIcon(":/espina/hide3D"),tr("Volume"),renders);
-  QAction *meshRenderer = new QAction(QIcon(":/espina/hidePlanes"),tr("Mesh"),renders);
-  renders->addAction(volumeRenderer);
-  renders->addAction(meshRenderer);
-  m_toggleActors->setMenu(renders);
-  connect(m_toggleActors,SIGNAL(toggled(bool)),this,SLOT(showSegmentations(bool)));
-  connect(volumeRenderer,SIGNAL(triggered()),this,SLOT(setVolumeRenderer()));
-  connect(meshRenderer,SIGNAL(triggered()),this,SLOT(setMeshRenderer()));
   connect(SelectionManager::instance(),SIGNAL(VOIChanged(IVOI*)),this,SLOT(setVOI(IVOI*)));
   
   m_mainLayout = new QVBoxLayout();
@@ -88,8 +73,6 @@ VolumeView::VolumeView(QWidget* parent)
   pal.setColor(QPalette::Base, pal.color(QPalette::Window));
   this->setPalette(pal);
   this->setStyleSheet("QSpinBox { background-color: white;}");
-  
-  m_renderer = VolumeRenderer::renderer();
 }
 
 //-----------------------------------------------------------------------------
@@ -103,7 +86,7 @@ void VolumeView::connectToServer()
     pqRenderView::renderViewType(), server));
   m_viewWidget = m_view->getWidget();
   m_mainLayout->insertWidget(0,m_viewWidget);//To preserver view order
-  m_view->setCenterAxesVisibility(true);
+  m_view->setCenterAxesVisibility(false);
   double black[3] = {0,0,0};
   m_view->getRenderViewProxy()->SetBackgroundColorCM(black);
 }
@@ -111,43 +94,34 @@ void VolumeView::connectToServer()
 //-----------------------------------------------------------------------------
 void VolumeView::disconnectFromServer()
 {
-  // TODO: Review
+  pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
   if (m_view)
   {
-    //qDebug() << "Deleting Widget";
     m_mainLayout->removeWidget(m_viewWidget);
-    //qDebug() << "Deleting View";
-    //TODO: BugFix -> destroy previous instance of m_view
-    //pqApplicationCore::instance()->getObjectBuilder()->destroy(m_view);
+    ob->destroy(m_view);
+    m_view = NULL;
   }
-}
-
-//-----------------------------------------------------------------------------
-void VolumeView::showSegmentations(bool value)
-{
-  if (m_showSegmentations == value)
-    return;
-  
-  m_showSegmentations = value;
-  switch (m_renderer->type())
-  {
-    case MESH_RENDERER:
-      m_toggleActors->setIcon(m_showSegmentations?QIcon(":/espina/showPlanes"):QIcon(":/espina/hidePlanes"));
-      break;
-    case VOLUME_RENDERER:
-      m_toggleActors->setIcon(m_showSegmentations?QIcon(":/espina/show3D"):QIcon(":/espina/hide3D"));
-      break;
-    default:
-      assert(false);
-  }
-  
-  updateScene();
 }
 
 //-----------------------------------------------------------------------------
 void VolumeView::setVOI(IVOI* voi)
 {
-  pq3DWidget *m_VOIWidget = voi->widget();
+  if (m_VOIWidget)
+  {
+    m_VOIWidget->deselect();
+    m_VOIWidget->setVisible(false);
+    delete m_VOIWidget;
+    m_VOIWidget = NULL;
+  }
+  
+  qDebug()<< "VolumeView: elemets" << model()->rowCount();
+  if (model()->rowCount() == 0)
+    return;
+     
+  if (!voi)
+    return;
+    
+  m_VOIWidget = voi->newWidget();
   m_VOIWidget->setView(m_view);
   m_VOIWidget->setWidgetVisible(true);
   m_VOIWidget->select();
@@ -204,32 +178,41 @@ void VolumeView::rowsInserted(const QModelIndex& parent, int start, int end)
 {
   for (int r = start; r <= end; r++)
   {
-    QModelIndex index = parent.child(r,0);
+    QModelIndex index = model()->index(r,0,parent);
     IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
     // Check for sample
     Sample *sample = dynamic_cast<Sample *>(item);
     if (sample)
     {
-      //TODO: Render sample
+      double bounds[6];
+      sample->bounds(bounds);
+      m_focus[0] = (bounds[1]-bounds[0])/2.0;
+      m_focus[1] = (bounds[3]-bounds[2])/2.0;
+      m_focus[2] = (bounds[5]-bounds[4])/2.0;
       qDebug() << "Render sample?";
+      sample->representation("03_Crosshair")->render(m_view);
+      connect(sample->representation("02_LabelMap"),SIGNAL(representationUpdated()),this,SLOT(updateScene()));
+      connect(sample->representation("03_Crosshair"),SIGNAL(representationUpdated()),this,SLOT(updateScene()));
     } 
-    else if (!sample && m_showSegmentations)
+    else 
     {
-      Segmentation *seg = dynamic_cast<Segmentation *>(item);
-      assert(seg); // If not sample, it has to be a segmentation
-      m_renderer->render(seg,m_view);
+//       Segmentation *seg = dynamic_cast<Segmentation *>(item);
+//       assert(seg); // If not sample, it has to be a segmentation
+//       seg->representation("Mesh")->render(m_view);
     }
   }
-  m_view->render();
+  updateScene();
 }
 
 //-----------------------------------------------------------------------------
 void VolumeView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end)
 {
+  pqApplicationCore *core = pqApplicationCore::instance();
+  pqObjectBuilder *ob = core->getObjectBuilder();
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
   for (int r = start; r <= end; r++)
   {
-    QModelIndex index = parent.child(r,0);
+    QModelIndex index = model()->index(r,0,parent);
     IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
     // Check for sample
     Sample *sample = dynamic_cast<Sample *>(item);
@@ -238,11 +221,16 @@ void VolumeView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int 
       //TODO: Render sample
       qDebug() << "Render sample?";
     } 
-    else if (!sample && m_showSegmentations)
+    else
     {
       Segmentation *seg = dynamic_cast<Segmentation *>(item);
       assert(seg); // If not sample, it has to be a segmentation
-     dp->setRepresentationVisibility(seg->outputPort(), m_view, false);
+      pqRepresentation *rep = dp->setRepresentationVisibility(seg->outputPort(), m_view, false);
+      if (rep)
+      {
+	qDebug() << seg->label() << " destroyed";
+	ob->destroy(rep);
+      }
     }
   }
   m_view->render();
@@ -251,8 +239,13 @@ void VolumeView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int 
 //-----------------------------------------------------------------------------
 void VolumeView::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight)
 {
-  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+  if (!topLeft.isValid() || !bottomRight.isValid())
+    return;
+        
+  //qDebug()<< "Updating " << topLeft;
   
+  
+  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
   //TODO: Update to deal with hierarchy
   assert(topLeft == bottomRight);
   QModelIndex index = topLeft;
@@ -261,14 +254,17 @@ void VolumeView::dataChanged(const QModelIndex& topLeft, const QModelIndex& bott
   Sample *sample = dynamic_cast<Sample *>(item);
   if (sample)
   {
-      //TODO: Render sample
-      qDebug() << "Render sample?";
+    sample->representation("03_Crosshair")->render(m_view);
   } 
-  else if (!sample && m_showSegmentations)
+  else
   {
     Segmentation *seg = dynamic_cast<Segmentation *>(item);
     assert(seg); // If not sample, it has to be a segmentation
-    dp->setRepresentationVisibility(seg->outputPort(), m_view, seg->visible());
+    foreach (IViewWidget *widget, m_widgets)
+    {
+      if (widget->isChecked())
+	widget->renderInView(index,m_view);
+    }
   }
   
   m_view->render();
@@ -302,32 +298,6 @@ void VolumeView::addWidget(IViewWidget* widget)
   m_widgets.append(widget);
 }
 
-
-
-//-----------------------------------------------------------------------------
-void VolumeView::setMeshRenderer()
-{
-  m_renderer = MeshRenderer::renderer();
-  // Which one is easier to read/understand? This one or the VolumeRenderer one?
-  m_toggleActors->setIcon(
-    m_showSegmentations?
-      QIcon(":/espina/showPlanes")
-    :
-      QIcon(":/espina/hidePlanes")
-	);
-  
-  updateScene();
-}
-
-//-----------------------------------------------------------------------------
-void VolumeView::setVolumeRenderer()
-{
-  m_renderer = VolumeRenderer::renderer();
-  m_toggleActors->setIcon(m_showSegmentations?QIcon(":/espina/show3D"):QIcon(":/espina/hide3D"));
-  
-  updateScene();
-}
-
 //-----------------------------------------------------------------------------
 void VolumeView::updateScene()
 {
@@ -335,13 +305,13 @@ void VolumeView::updateScene()
     m_view->getProxy());
   assert(view);
   
-  double cor[3];
-  view->GetInteractor()->GetCenterOfRotation(cor);
-  
+//   double cor[3];
+//   view->GetInteractor()->GetCenterOfRotation(cor);
+//   
   vtkCamera *cam = view->GetActiveCamera();
   double pos[3], focus[3];
   cam->GetPosition(pos);
-  cam->GetFocalPoint(focus);
+//   cam->GetFocalPoint(focus);
   
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
   pqRepresentation *rep;
@@ -350,23 +320,30 @@ void VolumeView::updateScene()
     rep->setVisible(false);
   }
   
-  render(rootIndex());
+//   if (selectionModel()->selection().size() == 0)
+//   {
+//     focus[0] = m_focus[0];
+//     focus[1] = m_focus[1];
+//     focus[1] = m_focus[2];
+//   }
   
-  //TODO: Center on selection bounding box or active stack if no selection
   foreach (IViewWidget *widget, m_widgets)
-  //  if (widget->isChecked())
-      widget->renderInView(m_view);
+  {
+    if (widget->isChecked())
+      widget->renderInView(rootIndex(),m_view);
+  }
 
+  //cam->SetFocalPoint(focus);
+  //view->GetInteractor()->SetCenterOfRotation(focus);
+  m_view->resetCamera();
   cam->SetPosition(pos);
-  //cam->SetFocalPoint(m_focus);
-  
-  view->GetInteractor()->SetCenterOfRotation(m_focus);
 
   
   m_view->render();
 }
 
 
+// DEPRECATED
 void VolumeView::render(const QModelIndex& index)
 {
   if (!isIndexHidden(index))
@@ -384,15 +361,13 @@ void VolumeView::render(const QModelIndex& index)
       pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
       dp->setRepresentationVisibility(sample->outputPort(),m_view,true);
     } 
-    else if (!sample && m_showSegmentations)
+    else if (!sample)
     {
       Segmentation *seg = dynamic_cast<Segmentation *>(item);
       assert(seg); // If not sample, it has to be a segmentation
-      m_renderer->render(seg,m_view);
     }
   }
   for (int row = 0; row < model()->rowCount(index); row++)
     render(model()->index(row,0,index));
 
 }
-

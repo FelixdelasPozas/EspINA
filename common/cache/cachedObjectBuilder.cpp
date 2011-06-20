@@ -56,20 +56,29 @@ CachedObjectBuilder* CachedObjectBuilder::instance()
   return m_singleton;
 }
 
-vtkFilter* CachedObjectBuilder::createFilter(const QString group, const QString name, const vtkFilter::Arguments args)
+vtkFilter* CachedObjectBuilder::createFilter(const QString group, const QString name, const vtkFilter::Arguments args, bool persistent)
 {
   // Create cache entry
   Cache::Index id = generateId(group, name, args);
   
   vtkFilter *filter = getFilter(id);
   if (filter)
+  {
+    m_cache->reference(filter->id());
     return filter;
+  }
   
   pqPipelineSource *proxy = createSMFilter(group, name, args);
   filter = new vtkFilter(proxy, id);
-  m_cache->insert(id,filter);
+  m_cache->insert(id,filter, persistent);
   return filter;
 }
+
+void CachedObjectBuilder::removeFilter(vtkFilter* filter)
+{
+  m_cache->remove(filter->id());
+}
+
 
 Cache::Index CachedObjectBuilder::generateId(const QString group, const QString name, const vtkFilter::Arguments args)
 {
@@ -170,20 +179,19 @@ TODO there are two ways to load sample files.
 */
 /**
  * Insert a stack in the Espina Cache which has been already created in the server
- * The only difference with createStack is that the pqPipelineSource was already
- * created by ParaView system
- * If it returns something different to NULL the element has been already registered
- * in the cache
+ * If it exists it will be overwrited by the nwe pqPipelineSource
  */
-vtkFilter* CachedObjectBuilder::registerProductCreator(QString& id, pqPipelineSource* source)
+vtkFilter* CachedObjectBuilder::registerProductCreator(QString& sampleFile, pqPipelineSource* source)
 {
-  vtkFilter* filter = m_cache->getEntry(id);
-  if( !filter )
+  vtkFilter* filter = m_cache->getEntry(sampleFile);
+  if( filter )
   {
-    filter = new vtkFilter(source, id);
-    m_cache->insert(id, filter);
+    m_cache->remove(sampleFile);
+    assert(!m_cache->getEntry(sampleFile));
   }
   
+  filter = new vtkFilter(source, sampleFile);
+  m_cache->insert(sampleFile, filter);
   return filter;
 }
 

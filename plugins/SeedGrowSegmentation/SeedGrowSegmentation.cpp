@@ -57,6 +57,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QDebug>
 #include "assert.h"
 #include <espINAFactory.h>
+#include <QBitmap>
 
 
 #define DEFAULT_THRESHOLD 30
@@ -79,44 +80,21 @@ SeedGrowSegmentation::SeedGrowSegmentation(QObject* parent)
 
 
 //-----------------------------------------------------------------------------
-IFilter *SeedGrowSegmentation::createFilter(QString filter, ITraceNode::Arguments & args)
+EspinaFilter *SeedGrowSegmentation::createFilter(QString filter, ITraceNode::Arguments & args)
 {
   if (filter == SGSF)
   {
     SeedGrowSegmentationFilter *sgs_sgsf = new SeedGrowSegmentationFilter(args);
     return sgs_sgsf;
-  }else
-  { 
-    qDebug("SeedGrowSegmenation::LoadAnalisys: Error no such a Filter");
   }
-  /*
-  QString InputId = "";
-  EspinaParamList::iterator it;
-  for(it=args.begin(); it != args.end(); it++)
-  {
-    if( (*it).first == "input" ){
-      InputId = (*it).second;
-      break;
-    }
-  }
-  
-  if( InputId.isEmpty() ){
-    qDebug("SeedGrowSegmenation::LoadAnalisys: Error loading a tarce file. \"input\" argument not found");
-    exit(-1);//throw Finalizar importacion
-  }
-  
-  //TODO: Fake input
-//   Product* input = dynamic_cast<Product*> (Cache::instance()->getEntry(InputId));
-//   assert(input);
-  if (filter == "Grow")
-    this->buildGrowFilter(EspINA::instance()->activeSample(), args);
-  */
+  qWarning("SeedGrowSegmenation::createFilter: Error no such a Filter");
+  return NULL;
 }
 
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentation::changeSeedSelector(QAction *seedSel)
 {
-  qDebug() << "SeedGrowSegmenation: Changing Seed Selector";
+  //qDebug() << "SeedGrowSegmenation: Changing Seed Selector";
   m_seedSelector = m_seedSelectors.value(seedSel);
   
   if (!m_seedSelector)
@@ -135,18 +113,21 @@ void SeedGrowSegmentation::waitSeedSelection(bool wait)
 {
   if (wait)
   {
-    qDebug() << "SeedGrowSegmenation: Waiting for Seed Selection";
-    SelectionManager::instance()->setSelectionHandler(m_seedSelector);
+    if (dynamic_cast<BestPixelSelector*>(m_seedSelector))
+      SelectionManager::instance()->setSelectionHandler(m_seedSelector, QCursor(QPixmap(":crossRegion.svg")));
+    else
+      SelectionManager::instance()->setSelectionHandler(m_seedSelector, Qt::CrossCursor);
     m_segButton->setChecked(true);
   }else
   {
-    SelectionManager::instance()->setSelectionHandler(NULL);
+    SelectionManager::instance()->setSelectionHandler(NULL, Qt::ArrowCursor);
   }
 }
 
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentation::abortSelection()
 {
+  QApplication::restoreOverrideCursor();
   m_segButton->setChecked(false);
 }
 
@@ -154,6 +135,7 @@ void SeedGrowSegmentation::abortSelection()
 void SeedGrowSegmentation::startSegmentation(ISelectionHandler::Selection sel)
 {
   qDebug() << "SeedGrowSegmenation: Start Seed Growing Segmentation";
+  QApplication::setOverrideCursor(Qt::WaitCursor);
   
   // Initialize application context
   pqApplicationCore* core = pqApplicationCore::instance();
@@ -179,10 +161,10 @@ void SeedGrowSegmentation::startSegmentation(ISelectionHandler::Selection sel)
   args.insert("Type", SGSF);
   args.insert("Seed", QString("%1,%2,%3").arg(seed.x).arg(seed.y).arg(seed.z));
   args.insert("Threshold",QString::number(m_threshold->value()));
- // args.insert("VOI",SelectionManager::instance()->voi()->save());
+  // args.insert("VOI",SelectionManager::instance()->voi()->save());
   //createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);
   SeedGrowSegmentationFilter *sgs_sgsf = new SeedGrowSegmentationFilter(input, SelectionManager::instance()->voi(),args);
-  
+  QApplication::restoreOverrideCursor();
   if (undoStack)
   {
     undoStack->endUndoSet();
@@ -198,7 +180,7 @@ void SeedGrowSegmentation::buildSelectors()
   
   // Exact Pixel Selector
   action = new QAction(
-    QIcon(":/pixelSel")
+    QIcon(":pixelSelector.svg")
     , tr("Add synapse (Ctrl +). Exact Pixel"),
     m_selectors);
   handler = new PixelSelector();
@@ -208,13 +190,16 @@ void SeedGrowSegmentation::buildSelectors()
   
   // Best Pixel Selector
   action = new QAction(
-    QIcon(":/bestPixelSel")
+    QIcon(":bestPixelSelector.svg")
     , tr("Add synapse (Ctrl +). Best Pixel"),
     m_selectors);
   handler = new BestPixelSelector();
   handler->multiSelection = false;
   handler->filters << "EspINA_Sample";
   addPixelSelector(action, handler);
+  
+  m_seedSelector = handler;
+  m_segButton->setIcon(action->icon());
 }
 
 
@@ -224,17 +209,19 @@ void SeedGrowSegmentation::buildUI()
   //Threshold Widget
   QLabel *thresholdLabel = new QLabel(tr("Threshold"));
   m_threshold = new QSpinBox();
+  m_threshold->setMinimum(0);
+  m_threshold->setMaximum(255);
   m_threshold->setValue(DEFAULT_THRESHOLD);
   
   //Segmentation Button
   m_segButton = new QToolButton();
   m_segButton->setCheckable(true);
   m_selectors = new QMenu();
+  m_segButton->setAutoRaise(true);
+  m_segButton->setIconSize(QSize(20,20));
   
   buildSelectors();
-  
-  m_seedSelector = m_seedSelectors.value(m_seedSelectors.keys().first());
-  m_segButton->setIcon(m_seedSelectors.key(m_seedSelector)->icon());
+
   m_segButton->setMenu(m_selectors);
   
   // Plugin's Widget Layout
@@ -254,7 +241,6 @@ void SeedGrowSegmentation::buildUI()
   QObject::connect(m_segButton, SIGNAL(toggled(bool)), this, SLOT(waitSeedSelection(bool)));
   //QObject::connect(m_segButton, SIGNAL(clicked(bool)), this, SLOT(setActive(bool)));
 }
-
 
 
 //------------------------------------------------------------------------

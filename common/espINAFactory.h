@@ -34,7 +34,10 @@ class EspINAFactory
 public:
   static EspINAFactory *instance();
   
-  Segmentation *CreateSegmentation(vtkProduct *vtkRef);
+  Sample *CreateSample(vtkFilter *creator, int portNumber);
+  void addSampleExtension(ISampleExtension *ext);
+  
+  Segmentation *CreateSegmentation(EspinaFilter *parent, vtkProduct *vtkRef);
   void addSegmentationExtension(ISegmentationExtension *ext);
   
   VolumeView *CreateVolumeView();
@@ -47,7 +50,8 @@ private:
   EspINAFactory(){};
   
   static EspINAFactory *m_instance;
-  QList<ISegmentationExtension *> m_extensions;
+  QList<ISegmentationExtension *> m_segExtensions;
+  QList<ISampleExtension *> m_sampleExtensions;
   QList<IViewWidget *> m_widgets;
   //TODO: SliceViewExtension List
 };

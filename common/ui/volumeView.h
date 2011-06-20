@@ -46,8 +46,6 @@ public slots:
   void connectToServer();
   void disconnectFromServer();
   
-  //! Show/Hide segmentations in the scene
-  void showSegmentations(bool value);
   void setVOI(IVOI *voi);
     
 protected:
@@ -72,27 +70,21 @@ public:
     void addWidget(IViewWidget *widget);
     
 protected slots:
-  //! Select Mesh Rendering
-  void setMeshRenderer(); 
-  //! Select Volume Rendering
-  void setVolumeRenderer(); 
-
   void updateScene();
   void render(const QModelIndex &index);
   
 private:
   bool m_init;
-  bool m_showSegmentations;
-  IRenderer *m_renderer;
   double m_focus[3];
   
   // GUI
   QList<IViewWidget *> m_widgets;
+  QMap<QString, IViewWidget *> m_representations;
   pqRenderView *m_view;
   QWidget *m_viewWidget;
-  QToolButton *m_toggleActors;
   QVBoxLayout *m_mainLayout;
   QHBoxLayout *m_controlLayout;
+  pq3DWidget *m_VOIWidget;//Because it doesn't implement ISelectableView
 };
 
 #endif // VOLUMEVIEW_H

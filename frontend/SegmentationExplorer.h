@@ -23,15 +23,17 @@
 #include <QWidget>
 #include "ui_segmentationExplorer.h"
 
+class Segmentation;
 class pqRenderView;
+
 class SegmentationExplorer : public QWidget, public Ui::SegmentationExplorer
 {
   Q_OBJECT
 public:
-  SegmentationExplorer(QWidget* parent = 0, Qt::WindowFlags f = 0);
+  SegmentationExplorer(Segmentation *seg, QWidget* parent = 0, Qt::WindowFlags f = 0);
+  virtual ~SegmentationExplorer();
   
-  virtual void setVisible(bool visible);
-  
+private:
   pqRenderView *view;
 };
 

@@ -54,7 +54,7 @@ public:
   //! Creates a product for an already existing filter
   vtkProduct(vtkFilter *creator, int portNumber);
   
-  QString id() const; //TODO: idc vtkfilter creator + : + puerto
+  QString id() const;
   vtkFilter *creator() {return m_creator;}
   int portNumber() {return m_portNumber;}
   pqOutputPort *outputPort();
@@ -84,8 +84,9 @@ public:
   
   //! Implements ITraceNode interface
   virtual QString getArgument(QString name) const;
-  virtual QString getArguments() const;
+  virtual QString getArguments();
   virtual QString label() const {return "Product";}
+  EspinaFilter *parent() const {return m_parent;}
 
   //! Implements deprecated IRenderable interface as part of its own interface
   void color(double *color);
@@ -117,90 +118,68 @@ public:
   : EspinaProduct(NULL, creator, portNumber)
   , m_extent(NULL)
   {}
+  virtual ~Sample();
+  
   //virtual EspinaId id(){return name;}
   //! Reimplements ITraceNode Interface
+  virtual QString getArguments();
   virtual QString label() const;
   
   virtual QVariant data(int role = Qt::UserRole + 1) const;
+  virtual bool setData(const QVariant& value, int role = Qt::UserRole + 1);
   
   void extent(int *out);
   void bounds(double *out);
-  void spacing(double *out);
+  void spacing(double* out);
+  
+  void setSpacing(double x, double y, double z);
+  
+  QList<Segmentation *> segmentations() const {return m_segs;}
+  void addSegmentation(Segmentation *seg);
+  void removeSegmentation(Segmentation *seg);
+  
+  void addExtension(ISampleExtension *ext);
+  ISampleRepresentation *representation(QString name) {return m_repMap[name];}
+  //! Are supposed to be used for sort time 
+  ISampleExtension *extension(ExtensionId extId);
+  void initialize();
   
 private:
   int *m_extent;
   double *m_bounds, *m_spacing;
   QMutex mutex;
+  
+private:
+  QMap<ExtensionId,ISampleExtension *> m_extensions;
+  ISampleExtension::InformationMap m_infoMap;
+  ISampleExtension::RepresentationMap m_repMap;
+  QList<Segmentation *> m_segs;
 };
+
 
 class Segmentation : public EspinaProduct
 {
 public:
-  Segmentation(vtkFilter *creator, int portNumber);
-  //Segmentation(const vtkProduct &product);
-  //Segmentation(const Segmentation &seg);
+  Segmentation(EspinaFilter *parent, vtkFilter *creator, int portNumber);
+  virtual ~Segmentation();
   
   //! Reimplements ITraceNode Interface
   virtual QString label() const {return "Segmentation";}
   
-  //! WARNING: Note that Segmentation constructor hides 3rd paramater (productName)
-  //Segmentation(pqPipelineSource *source, int portNumber, const QString &parentHash = "");
 
   virtual QVariant data(int role = Qt::UserRole + 1) const;
+  virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
   
   void addExtension(ISegmentationExtension *ext);
+  ISegmentationRepresentation *representation(QString name) {return m_repMap[name];}
   //! Are supposed to be used for sort time 
   ISegmentationExtension *extension(ExtensionId extId);
   void initialize();
   
 private:
   QMap<ExtensionId,ISegmentationExtension *> m_extensions;
-  InformationMap m_infoMap;
-  RepresentationMap m_repMap;
+  ISegmentationExtension::InformationMap m_infoMap;
+  ISegmentationExtension::RepresentationMap m_repMap;
 };
 
 #endif // PRODUCTS_H
-
-// class Product 
-// : public ITraceNode
-// , public ISingleton
-// , public IRenderable
-// , public IModelItem
-// {
-// public:
-//   //Product(){}
-//   Product(pqPipelineSource *source, int portNumber, const QString &traceName = "Product", const EspinaId & parentHash = "");
-//   virtual ~Product(){}
-// 
-//   //! Implements ITraceNode interface
-//   /*
-//   virtual std::vector<ITraceNode *> inputs();
-//   virtual std::vector<ITraceNode *> outputs();
-//   /*
-//   virtual void print(int indent = 0) const;
-//   virtual EspinaParamList getArguments();
-//   */
-//   
-//   //! Implements ISingleton
-//   virtual EspinaId id();
-//   
-//   
-//   //! Implements IRenderable
-//   virtual pqOutputPort* outputPort();
-//   virtual pqPipelineSource* sourceData();	
-//   virtual int portNumber();
-//   virtual void color(double* rgba);
-//   
-//   virtual QVariant data(int role = Qt::UserRole + 1) const;
-//   virtual TaxonomyNode *taxonomy() {return m_taxonomy;}
-//   virtual void setTaxonomy(TaxonomyNode *taxonomy){m_taxonomy = taxonomy;} 
-//   virtual void setOrigin(Sample *sample) {m_sample = sample;}
-//   virtual Sample *origin() {return m_sample;}
-// 
-//   virtual QString parentHash() {return m_parentHash;}
-// protected:
-//   double m_rgba[4];
-//   QString m_hash, m_parentHash;
-//   TaxonomyNode *m_taxonomy;
-//   Sample *m_sample;
-// };

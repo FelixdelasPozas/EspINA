@@ -19,6 +19,10 @@
 
 #include "cache.h"
 
+#include "espina_debug.h"
+
+#include <filter.h>
+
 // Qt
 #include <QStringList>
 
@@ -32,9 +36,7 @@
 #include "pqServer.h"
 
 #include "vtkSMProxy.h"
-
-// Debug
-#include <QDebug>
+#include <pqLoadDataReaction.h>
 
 Cache *Cache::m_singleton = NULL;
 
@@ -45,36 +47,71 @@ Cache* Cache::instance()
   return m_singleton;
 }
 
-void Cache::insert(const Index& index, vtkFilter* filter)
+void Cache::insert(const Index& index, vtkFilter* filter, bool persistent)
 {
+  if ( index != filter->id())
+    qWarning() << "Cache: Inserting ... different id";
   //m_translator.insert(id,index);
-  m_cachedProxies.insert(index,filter);
+  if (m_cachedProxies.contains(index))
+  {
+    m_cachedProxies[index].refCounter++;
+  }else{
+    CACHE_DEBUG("Inserting" << index);
+    Entry newEntry;
+    newEntry.refCounter = 1 + persistent?1:0;
+    newEntry.filter = filter;
+    m_cachedProxies.insert(index,newEntry);
+  }
 }
 
-
-vtkFilter *Cache::getEntry(const Cache::Index index) const
+void Cache::reference(const Cache::Index& index)
 {
-  vtkFilter *filter;
+  m_cachedProxies[index].refCounter++;
+  CACHE_DEBUG(index << "already has" << m_cachedProxies[index].refCounter << "references");
+}
+
+vtkFilter *Cache::getEntry(const Cache::Index index)
+{
   // First we try to recover the proxy from cache
-  if (!(filter = m_cachedProxies.value(index,NULL)))
+  if (m_cachedProxies.contains(index))
   {
-    
-    qDebug() << "Cache: Try to load from disk cache failed";
-  /*
-  // If not available, try to read from disk/disk cache
-  pqApplicationCore *core = pqApplicationCore::instance();
-  pqObjectBuilder *ob = core->getObjectBuilder();
-  pqServer * server= pqActiveObjects::instance().activeServer();
-  QStringList file;
-  file << index;
-  // TODO: Only works in local mode!!!!
-  if (boost::filesystem::exists(index.toStdString().c_str()))
-    proxy = ob->createReader("sources","MetaImageReader",file,server);
+    CACHE_DEBUG(index << " HIT");
+    return m_cachedProxies[index].filter;
   }
-  return proxy;
-  */
+  else
+  {
+    // Try to load from cache disk
+    QStringList fileName(m_diskCachePath.filePath(index + ".pvd"));//"/tmp/" + index + ".pvd"); //TODO set a workdirectory
+    pqPipelineSource *diskSource = pqLoadDataReaction::loadData(fileName);
+    if( diskSource )
+    {
+      CACHE_DEBUG(index << " HIT Disk Cache");
+      // insert it in the cache
+      vtkFilter* diskEntryFilter = new vtkFilter(diskSource, index);
+      insert(index, diskEntryFilter);
+      // The last vtkFilter inserted has increments the refCounter in one
+      // because intialization. But it is not used yet by anyone.
+      m_cachedProxies[index].refCounter--;
+      return diskEntryFilter;
+    }else{
+      qWarning() << "Cache: " << index << "Failed to found entry";
+      return NULL;
+    }
   }
-  return filter;
+}
+
+void Cache::remove(const Cache::Index& index)
+{
+  assert(m_cachedProxies.contains(index));
+  m_cachedProxies[index].refCounter--;
+  CACHE_DEBUG(index << "already has" << m_cachedProxies[index].refCounter << "references");
+  if (m_cachedProxies[index].refCounter <= 0)
+  {
+    CACHE_DEBUG(index << "removed");
+    delete m_cachedProxies[index].filter;
+    m_cachedProxies.remove(index);
+    assert(!m_cachedProxies.contains(index));
+  }
 }
 
 // CacheEntry* Cache::getEspinaEntry(const EspinaId& id) const
@@ -84,6 +121,11 @@ vtkFilter *Cache::getEntry(const Cache::Index index) const
 //   return getEntry(index);
 // }
 
+//-----------------------------------------------------------------------------
+void Cache::setWorkingDirectory(QFileInfo& sample)
+{
+  m_diskCachePath = sample.filePath();
+}
 
 
 

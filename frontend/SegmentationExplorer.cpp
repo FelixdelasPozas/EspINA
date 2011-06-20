@@ -19,7 +19,7 @@
 
 #include "SegmentationExplorer.h"
 
-#include "filter.h"
+#include "products.h"
 
 #include <pqObjectBuilder.h>
 #include <pqApplicationCore.h>
@@ -29,32 +29,33 @@
 #include <pqDisplayPolicy.h>
 #include <pqDataRepresentation.h>
 #include <pqPipelineRepresentation.h>
+//#include "../plugins/SeedGrowSegmentation/SeedGrowSegmentationFilter.h"
 
 
-SegmentationExplorer::SegmentationExplorer(QWidget* parent, Qt::WindowFlags f)
+SegmentationExplorer::SegmentationExplorer(Segmentation *seg, QWidget* parent, Qt::WindowFlags f)
 : QWidget(parent, f)
 , view(NULL)
 {
   setupUi(this);
-}
-
-void SegmentationExplorer::setVisible(bool visible)
-{
+  
   if (!view)
   {
-    pqObjectBuilder *builder = pqApplicationCore::instance()->getObjectBuilder();
+    pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
     pqServer * server= pqActiveObjects::instance().activeServer();
-    view = qobject_cast<pqRenderView*>(builder->createView( pqRenderView::renderViewType(), server));
+    view = qobject_cast<pqRenderView*>(ob->createView( pqRenderView::renderViewType(), server));
+    
     this->viewLayout->addWidget(view->getWidget());
     view->setCenterAxesVisibility(false);
     
-    pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-    pqDataRepresentation *dr = dp->setRepresentationVisibility(
-      EspINA::instance()->segmentations(EspINA::instance()->activeSample()).first()->outputPort()
-      ,view,true);
-    pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
-    assert(rep);
-    rep->setRepresentation(4);
+    seg->representation("Mesh")->render(view);
+    //SeedGrowSegmentationFilter *filter = dynamic_cast<SeedGrowSegmentationFilter*>(seg->parent());
+    //this->m_threshold->setValue(filter->threshold());
   }
-  QWidget::setVisible(visible);
 }
+
+SegmentationExplorer::~SegmentationExplorer()
+{
+  pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
+  ob->destroy(view);
+}
+

@@ -16,6 +16,7 @@ void PixelSelector::onMouseDown(QPoint &pos, ISelectableView* view)
   singlePixel << pos;
   regions << singlePixel;
   
+  qDebug() << "Clicked on screen pixel" << pos.x() << pos.y();
   view->setSelection(filters, regions);
 }
 
@@ -53,7 +54,7 @@ void BestPixelSelector::onMouseDown(QPoint& pos, ISelectableView* view)
   if (leftPixel < extent[0])
     leftPixel = extent[0];
   
-  int rightPixel = pos.y() + window.width()/2;
+  int rightPixel = pos.x() + window.width()/2;
   if (rightPixel > extent[1]) 
     rightPixel = extent[1];
   

@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) <year>  <name of author>
+    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -14,35 +14,24 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 */
 
-#include "unitExplorer.h"
 
-#include "espina.h"
-#include "products.h"
+#ifndef VOLUMETRICRENDERER_H
+#define VOLUMETRICRENDERER_H
 
-UnitExplorer::UnitExplorer(QWidget* parent, Qt::WindowFlags f)
-: QWidget(parent, f)
+#include <EspinaPlugin.h>
+
+
+
+class VolumetricRenderer : public IViewWidget
 {
-  setupUi(this);
-  
-}
 
+public:
+  VolumetricRenderer(QWidget* parent = 0);
+  virtual void updateState(bool checked);
+  virtual IViewWidget* clone();
+  virtual void renderInView(QModelIndex index, pqView* view);
+};
 
-void UnitExplorer::setVisible(bool visible)
-{
-  QWidget::setVisible(visible);
-  
-  double spacing[3];
-  
-  if (!EspINA::instance()->activeSample())
-    return;
-  
-  EspINA::instance()->activeSample()->spacing(spacing);
-  
-  m_xDist->setValue(spacing[0]);
-  m_yDist->setValue(spacing[1]);
-  m_zDist->setValue(spacing[2]);
-}
-
+#endif // VOLUMETRICRENDERER_H

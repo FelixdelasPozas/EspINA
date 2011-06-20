@@ -41,18 +41,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QString>
 #include <QList>
 
+class QTreeView;
+class QComboBox;
+class TaxonomyNode;
+class SampleProxy;
 //Forward declaration
 class EspINA;
 class SliceView;
 class VolumeView;
 class QMenu;
-class pqPipelineSource;
-class UnitExplorer;
 class SelectionManager;
 class QAbstractItemModel;
 class QModelIndex;
-class QString;
-class pqServer;
 // #include "pqLoadDataReaction.h" // TODO debug
 
 /// MainWindow for the default ParaView application.
@@ -60,17 +60,28 @@ class EspinaMainWindow : public QMainWindow
 {
   Q_OBJECT
   typedef QMainWindow Superclass;
+  class pqInternals;
 public:
   EspinaMainWindow();
   ~EspinaMainWindow();
   
 protected slots:
 //   void loadData(pqPipelineSource *source);
-//   void loadFile();
+  void loadFile(QString method);
   void saveFile();
   void importFile(); // Local load 
   void exportFile(); // Local save
 
+  // Manage Taxonomy Editor
+  void addTaxonomyElement();
+  void addTaxonomyChildElement();
+  void removeTaxonomyElement();
+  void changeTaxonomyColor();
+  void resetTaxonomy();
+  
+  // Manage Sample Explorer
+  void focusOnSample();
+  
   void toggleVisibility(bool visible);
   virtual bool eventFilter(QObject* obj, QEvent* event);
   
@@ -86,18 +97,21 @@ private:
 
   void buildFileMenu(QMenu &menu);
 
-  class pqInternals;
-  pqInternals* Internals;
   EspINA *m_espina;
+  DistUnit m_unit;
+  
+  // GUI
+  pqInternals* Internals;
+  QComboBox* m_taxonomySelector;
+  QTreeView *m_taxonomyView;
   SliceView *m_xy, *m_yz, *m_xz;;
   VolumeView *m_3d;
-  DistUnit m_unit;
-  UnitExplorer *m_unitExplorer;
   SelectionManager *m_selectionManager;
   QStringList m_groupingName;
   QList<QAbstractItemModel *> m_groupingModel;
   QList<QModelIndex> m_groupingRoot;
-
+  int m_lastTaxonomyId;
+  SampleProxy *sampleProxy;
 };
 
 #endif //ESPINA_MAIN_WINDOW_H

@@ -25,12 +25,18 @@
 #include <pqPipelineSource.h>
 #include <espINAFactory.h>
 #include <espina.h>
+#include <QDebug>
+
 
 QString stripName(QString args){return args.split(";")[0];}//FAKE
 QString stripArgs(QString args){return args.split(";")[1];}//FAKE
 
 
 SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVOI* voi, ITraceNode::Arguments& args)
+: m_applyFilter(NULL)
+, m_grow(NULL)
+, m_restoreFilter(NULL)
+, m_finalFilter(NULL)
 {
   type = FILTER;
   ProcessingTrace* trace = ProcessingTrace::instance();
@@ -60,6 +66,8 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVO
   growArgs.push_back(vtkFilter::Argument(QString("Input"),vtkFilter::INPUT, voiOutput.id()));
   growArgs.push_back(vtkFilter::Argument(QString("Seed"),vtkFilter::INTVECT,args["Seed"]));
   growArgs.push_back(vtkFilter::Argument(QString("Threshold"),vtkFilter::DOUBLEVECT,args["Threshold"]));
+  m_threshold = args["Threshold"].toInt();
+  //growArgs.push_back(vtkFilter::Argument(QString("ProductPorts"),vtkFilter::INTVECT, "0"));
   m_grow = cob->createFilter("filters","SeedGrowSegmentationFilter",growArgs);
   
   //! Create segmenations. SeedGrowSegmentationFilter has only 1 output
@@ -82,8 +90,9 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVO
   }
 
   assert(m_finalFilter->numProducts() == 1);
+  m_numSeg = m_finalFilter->numProducts();
   
-  Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(&m_finalFilter->product(0));
+  Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(this, &m_finalFilter->product(0));
 
   // Trace EspinaFilter
   trace->addNode(this);
@@ -99,11 +108,15 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVO
 
 
 SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ITraceNode::Arguments& args)
+: m_applyFilter(NULL)
+, m_grow(NULL)
+, m_restoreFilter(NULL)
+, m_finalFilter(NULL)
 {
   foreach(QString key, args.keys())
   {
     if( key == "ApplyVOI" )
-      m_args.append(ESPINA_ARG("ApplyVOI", "["+ args[key] + "]"));
+      m_args.append(ESPINA_ARG(key, "["+ args[key] + "]"));
     else
       m_args.append(ESPINA_ARG(key, args[key]));
   }
@@ -132,8 +145,13 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ITraceNode::Arguments& ar
   growArgs.push_back(vtkFilter::Argument(QString("Input"),vtkFilter::INPUT, voiOutput.id()));
   growArgs.push_back(vtkFilter::Argument(QString("Seed"),vtkFilter::INTVECT,args["Seed"]));
   growArgs.push_back(vtkFilter::Argument(QString("Threshold"),vtkFilter::DOUBLEVECT,args["Threshold"]));
+  //growArgs.push_back(vtkFilter::Argument(QString("ProductPorts"),vtkFilter::INTVECT, "0"));
+  // Disk cache. If the .seg contains .mhd files now it try to load them
+//   Cache::Index id = cob->generateId("filter", "SeedGrowSegmentationFilter", growArgs);
+//   m_grow = cob->getFilter(id);
+//   if( !m_grow )
   m_grow = cob->createFilter("filters","SeedGrowSegmentationFilter",growArgs);
-
+  
   //! Create segmenations. SeedGrowSegmentationFilter has only 1 output
   assert(m_grow->numProducts() == 1);
 
@@ -143,6 +161,8 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ITraceNode::Arguments& ar
   //! Restore possible VOI transformation
   if (args.contains("RestoreVOI"))
   {
+    
+    //TODO: Restore
 //     m_restoreFilter = voi->restoreVOITransormation(&growOutput);
 //     if (m_restoreFilter)
 //     {
@@ -153,8 +173,9 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ITraceNode::Arguments& ar
   }
 
   assert(m_finalFilter->numProducts() == 1);
+  m_numSeg = m_finalFilter->numProducts();
 
-  Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(&m_finalFilter->product(0));
+  Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(this, &m_finalFilter->product(0));
 
   // Trace EspinaFilter
   trace->addNode(this);
@@ -168,55 +189,18 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ITraceNode::Arguments& ar
   EspINA::instance()->addSegmentation(seg);
 }
 
-/*
-  //Invariante: input had already been created
-  vtkProduct input(args["Sample"]);//ALERT: input.filter.filter is NULL. It should be managed by the constructor
-  
-  ProcessingTrace* trace = ProcessingTrace::instance();
-  
-  //! Executes VOI
-  //QString voiFilterName = stripName(args["VOI"]);
-  //QString voiFilterArgs = stripArgs(args["VOI"]);
-  //EspinaPlugin *voiPlugin = trace->getRegistredPlugin(voiFilterName);
-  //m_voi = dynamic_cast<IVOI *>(voiPlugin->createFilter(voiFilterName,voiFilterArgs));
-  //vtkProduct tmpProduct = m_voi->applyVOI(input);
-  
+SeedGrowSegmentationFilter::~SeedGrowSegmentationFilter()
+{
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-  //! TODO: Execute Blur Filter
-  /**
-  EspinaParamList blurArgs;
-  blurArgs.push_back(EspinaParam("input",input->id()));
-  QString kernel = QString("2,2,2");
-  blurArgs.push_back(EspinaParam("Kernel",kernel.toStdString()));
-  **/
-  /*
-  //! Execute Grow Filter
-  vtkFilter::Arguments growArgs;
-  growArgs.push_back(vtkFilter::Argument(QString("Input"),vtkFilter::INPUT, input.id()));
-  growArgs.push_back(vtkFilter::Argument(QString("Seed"),vtkFilter::INTVECT,args["Seed"]));
-  growArgs.push_back(vtkFilter::Argument(QString("Threshold"),vtkFilter::INTVECT,args["Threshold"]));
-  
-  m_grow = cob->createFilter("filters","SeedGrowSegmentationFilter",growArgs);
-  
-  //! Create segmenations. SeedGrowSegmentationFilter has only 1 output
-  assert(m_grow->numProducts() == 1);
-  //! Restore possible VOI transformation
-  //vtkProduct newSeg = m_voi->restoreVOITransormation(m_grow.products(0));
-  ////!IFilter *restoreFilter = m_voi->restoreVOITransormation(m_grow.products(0));
-  ////! In this case, there should be only 1 product
-  ////!(restoreFilter->numProducts() == 0);
-  
-  Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(m_grow->product(0));
+  if (m_restoreFilter)
+    delete m_restoreFilter;
+  if (m_grow)
+    cob->removeFilter(m_grow);
+  if (m_applyFilter)
+    delete m_applyFilter;
+}
 
-  // Trace EspinaFilter
-  trace->addNode(this);
-  // Connect input
-  //TODO:trace->connect(input.id,this,"Sample");
-  // Trace Segmentation
-  trace->addNode(seg);
-  // Trace connection
-  trace->connect(this, seg,"Segmentation");
-  
-  EspINA::instance()->addSegmentation(seg);
-  */
-
+void SeedGrowSegmentationFilter::removeProduct(EspinaProduct* product)
+{
+  m_numSeg = 0;
+}

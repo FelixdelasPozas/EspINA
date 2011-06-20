@@ -27,17 +27,15 @@ qt4_add_resources(RCC_BUILT_SOURCES
 # Create header's MOC files
 qt4_wrap_cpp (MOC_BUILT_SOURCES
   espinaMainWindow.h
-  unitExplorer.h
+  sampleEditor.h
   SegmentationExplorer.h
-  sliceView.h
   qTreeComboBox.h
-  Crosshairs.h
   )
 
 # Create Interface files
 qt4_wrap_ui (UI_BUILT_SOURCES
   espinaMainWindow.ui
-  unitExplorer.ui
+  sampleEditor.ui
   segmentationExplorer.ui
   )
 
@@ -66,12 +64,12 @@ set (Espina_LIBRARIES
 #------------------------------------------------------------------------------
 # Build the client
 build_paraview_client(espina
-  APPLICATION_NAME "ESPINA"
+  APPLICATION_NAME "EspINA"
   TITLE "Espina"
-  ORGANIZATION  "CesViMa"
-  VERSION_MAJOR 0
-  VERSION_MINOR 1
-  VERSION_PATCH 0
+  ORGANIZATION  "CeSViMa"
+  VERSION_MAJOR ${ESPINA_VERSION_MAJOR}
+  VERSION_MINOR ${ESPINA_VERSION_MINOR}
+  VERSION_PATCH ${ESPINA_VERSION_PATCH}
   SPLASH_IMAGE "${CMAKE_CURRENT_SOURCE_DIR}/rsc/SplashScreen.png"
   PVMAIN_WINDOW EspinaMainWindow
   PVMAIN_WINDOW_INCLUDE espinaMainWindow.h
@@ -81,7 +79,7 @@ build_paraview_client(espina
 	#  ${CMAKE_CURRENT_SOURCE_DIR}/ParaViewSources.xml
 	#  ${CMAKE_CURRENT_SOURCE_DIR}/plugins/EspinaFilters.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/rsc/EspinaReaders.xml
-	#  ${CMAKE_CURRENT_SOURCE_DIR}/ParaViewWriters.xml
+  ${CMAKE_CURRENT_SOURCE_DIR}/rsc/EspinaWriters.xml
 	#  ${PARAVIEW_EXTRA_GUI_RESOURCES} # Add any compiled in GUI configuration xmls
   COMPRESSED_HELP_FILE "${ParaView_BINARY_DIR}/Documentation/paraview.qch"
   SOURCES ${Espina_SOURCE_FILES}
@@ -90,5 +88,8 @@ build_paraview_client(espina
   )
 
 target_link_libraries (espina ${Espina_LIBRARIES})
+
+install (TARGETS espina RUNTIME DESTINATION bin)
+
 
 add_subdirectory (plugins)

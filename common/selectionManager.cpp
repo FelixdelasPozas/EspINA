@@ -20,6 +20,7 @@
 #include "selectionManager.h"
 
 #include <pqView.h>
+#include "espina.h"
 
 // Debug
 #include <QDebug>
@@ -54,11 +55,12 @@ SelectionManager::SelectionManager()
 }
 
 //------------------------------------------------------------------------
-void SelectionManager::setSelectionHandler(ISelectionHandler* sh)
+void SelectionManager::setSelectionHandler(ISelectionHandler* sh, QCursor cursor)
 {
   if (m_handler && m_handler != sh)
     m_handler->abortSelection();
   m_handler = sh;
+  m_handlerCursor = cursor;
 }
 
 //------------------------------------------------------------------------
@@ -67,6 +69,8 @@ void SelectionManager::setVOI(IVOI* voi)
   if (m_voi && m_voi != voi)
     m_voi->cancelVOI();
   m_voi = voi;
+  if (m_voi)
+    m_voi->setSource(EspINA::instance()->activeSample());
   emit VOIChanged(m_voi);
 }
 

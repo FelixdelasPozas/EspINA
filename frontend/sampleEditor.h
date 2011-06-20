@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
+    Copyright (C) <year>  <name of author>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -14,33 +14,35 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 */
 
+#ifndef SAMPLEEDITOR_H
+#define SAMPLEEDITOR_H
 
-#ifndef CROSSHAIRS_H
-#define CROSSHAIRS_H
+#include <QDialog>
+#include "ui_sampleEditor.h"
 
-#include "EspinaPlugin.h"
+class Sample;
 
-class pqPipelineSource;
-
-class Crosshairs : public IViewWidget
+class SampleEditor : public QDialog, private Ui::SampleEditor
 {
-  Q_OBJECT
+ Q_OBJECT
 public:
-  Crosshairs(QWidget* parent = 0);
-  virtual void renderInView(pqView* view);
-  
-  virtual IViewWidget* clone();
-  
-  void addPlane(int id, pqPipelineSource **output) {m_planes[id] = output;}
-  
+  SampleEditor(QWidget* parent = 0, Qt::WindowFlags f = 0);
+    
+  virtual void setSample(Sample *sample);
+  void spacing(double value[3]);
+
 public slots:
-  virtual void updateState(bool checked);
-  void update(){emit updateRequired();}
+  void unitChanged(int unitIndex);
+  void updateSpacing();
+  
+protected:
+  virtual void enterEvent(QEvent *event);
+  virtual void leaveEvent(QEvent *event);
   
 private:
-  pqPipelineSource **m_planes[3];
+  Sample* m_sample;
 };
-
-#endif // CROSSHAIRS_H
+#endif // SAMPLEEDITOR_H
