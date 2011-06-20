@@ -20,9 +20,20 @@ include (${ITK_USE_FILE})
 find_package(Boost REQUIRED COMPONENTS  system filesystem)
 link_directories ( ${Boost_LIBRARY_DIRS} )
 
-
-SET (ITK_VTK_GLUE "" CACHE PATH "Path to ItkVtkGlue external project")
-
+foreach(FILE 
+  vtkBoundingRegionFilter.h
+  vtkBoundingRegionFilter.cpp
+  vtkCountingRegionFilter.h
+  vtkCountingRegionFilter.cpp
+)
+  add_custom_command(
+    OUTPUT ${FILE}
+    COMMAND ${CMAKE_COMMAND}
+    ARGS -E create_symlink ${CAJAL_INCLUDE_DIR}/filters/${FILE} ${FILE}
+    DEPENDS ${CAJAL_LIBRARIES}
+    COMMENT "Creating symbolic link for ${FILE}"
+  )
+endforeach(FILE)
 
 include_directories(
   ${CMAKE_SOURCE_DIR}/common
@@ -77,7 +88,8 @@ ADD_PARAVIEW_PLUGIN(
   CountingRegion
   "0.1" 
   SERVER_MANAGER_XML CountingRegionFilters.xml
-  SERVER_MANAGER_SOURCES vtkBoundingRegionFilter.cpp vtkCountingRegionFilter.cpp
+  SERVER_MANAGER_SOURCES vtkBoundingRegionFilter.h vtkBoundingRegionFilter.cpp 
+                         vtkCountingRegionFilter.h vtkCountingRegionFilter.cpp
 	#According to: http://markmail.org/message/wj27wmlj6rjd7vg5
 	# - See the macro documentation in ParaView/CMake/ParaViewPlugins.cmake:~835
 	# - the parser doesn't work because it seems there is no vtkClass inside

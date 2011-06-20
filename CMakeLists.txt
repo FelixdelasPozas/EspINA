@@ -17,6 +17,8 @@ include(${PARAVIEW_USE_FILE})
 find_package(Cajal REQUIRED)
 include(${CAJAL_USE_FILE})
 
+SET (ITK_VTK_GLUE ${ITK_DIR}/../Wrapping/WrapITK/ExternalProjects/ItkVtkGlue/src)
+
 add_subdirectory (common)
 add_subdirectory (plugins)
 add_subdirectory (frontend)

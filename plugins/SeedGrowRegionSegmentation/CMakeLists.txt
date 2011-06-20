@@ -20,9 +20,20 @@ include (${CAJAL_USE_FILE})
 find_package(Boost REQUIRED COMPONENTS  system filesystem graph)
 link_directories ( ${Boost_LIBRARY_DIRS} )
 
-
-SET (ITK_VTK_GLUE "" CACHE PATH "Path to ItkVtkGlue external project")
-
+foreach(FILE 
+  itkConnectedThresholdRegionGrowImageFilter.h
+  itkConnectedThresholdRegionGrowImageFilter.cpp
+  vtkConnectedThresholdRegionGrowImageFilter.h
+  vtkConnectedThresholdRegionGrowImageFilter.cpp
+)
+  add_custom_command(
+    OUTPUT ${FILE}
+    COMMAND ${CMAKE_COMMAND}
+    ARGS -E create_symlink ${CAJAL_INCLUDE_DIR}/filters/${FILE} ${FILE}
+    DEPENDS ${CAJAL_LIBRARIES}
+    COMMENT "Creating symbolic link for ${FILE}"
+  )
+endforeach(FILE)
 
 include_directories(
   ${CMAKE_SOURCE_DIR}/common
@@ -71,7 +82,10 @@ ADD_PARAVIEW_PLUGIN(
   SegmentationRegion
   "0.1"
   SERVER_MANAGER_XML SeedGrowRegionSegmentation.xml
-  SERVER_MANAGER_SOURCES vtkConnectedThresholdRegionGrowImageFilter.cpp
+  SERVER_MANAGER_SOURCES vtkConnectedThresholdRegionGrowImageFilter.h 
+                         vtkConnectedThresholdRegionGrowImageFilter.cpp
+                         itkConnectedThresholdRegionGrowImageFilter.h
+                         itkConnectedThresholdRegionGrowImageFilter.cpp
 	#According to: http://markmail.org/message/wj27wmlj6rjd7vg5
 	# - See the macro documentation in ParaView/CMake/ParaViewPlugins.cmake:~835
 	# - the parser doesn't work because it seems there is no vtkClass inside
