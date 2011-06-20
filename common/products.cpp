@@ -17,27 +17,30 @@
 
 */
 
-#include "products.h"
-
 // ESPINA
 #include "cache/cachedObjectBuilder.h"
 #include "filter.h"
-
-// ParaQ
-#include "pqPipelineSource.h"
-#include "vtkSMProxy.h"
+#include "products.h"
+#include "espina_debug.h"
+#include "data/hash.h"
 
 // Debug
 #include <iostream>
-#include <assert.h>
-#include <QDebug>
 
-#include "data/hash.h"
+// ParaQ
+#include <pqApplicationCore.h>
+#include <pqObjectBuilder.h>
 #include <pqOutputPort.h>
+#include <pqPipelineSource.h>
+
+#include <vtkSMProxy.h>
 #include <vtkPVDataInformation.h>
 #include <vtkSMRGBALookupTableProxy.h>
 #include <vtkSMProperty.h>
 #include <vtkSMProxyProperty.h>
+#include <vtkSMPropertyHelper.h>
+#include "spatialExtension.h"
+
 
 using namespace std;
 
@@ -103,7 +106,7 @@ QString EspinaProduct::getArgument(QString name) const
 }
 
 //-----------------------------------------------------------------------------
-QString EspinaProduct::getArguments() const
+QString EspinaProduct::getArguments()
 {
   QString args;
   args.append(ESPINA_ARG("Id", id()));
@@ -145,6 +148,15 @@ Sample::~Sample()
   CachedObjectBuilder::instance()->removeFilter(this->creator());  
 }
 
+//-----------------------------------------------------------------------------
+QString Sample::getArguments()
+{
+  double sp[3];
+  spacing(sp);
+  return EspinaProduct::getArguments().append(
+    ESPINA_ARG("Spacing", QString("%1,%2,%3").arg(sp[0]).arg(sp[1]).arg(sp[2]))
+    );
+}
 
 //-----------------------------------------------------------------------------
 QString Sample::label() const
@@ -173,13 +185,14 @@ bool Sample::setData(const QVariant& value, int role)
 {
   if (role == Qt::EditRole)
   {
+    return true;
   }
   return false;
 }
 
 
 //------------------------------------------------------------------------
-void Sample::extent(int *out)
+void Sample::extent( int* out)
 {
   //if (!m_extent)
   //{
@@ -194,7 +207,7 @@ void Sample::extent(int *out)
 }
 
 //------------------------------------------------------------------------
-void Sample::bounds(double *out)
+void Sample::bounds( double* out)
 {
   //if (!m_bounds)
   //{
@@ -209,7 +222,7 @@ void Sample::bounds(double *out)
 }
 
 //------------------------------------------------------------------------
-void Sample::spacing(double* out)
+void Sample::spacing( double* out)
 {
   int e[6];
   double b[6];
@@ -224,6 +237,22 @@ void Sample::spacing(double* out)
 //   qDebug() << out[0] << out[1] << out[2];
 }
 
+//-----------------------------------------------------------------------------
+void Sample::setSpacing(double x, double y, double z)
+{
+  double spacing[3];
+  this->spacing(spacing);
+  if(spacing[0] != x || spacing[1] != y || spacing[2] != z)
+  {
+    assert(m_segs.empty());
+    qDebug() << m_extensions.keys();
+    SpatialExtension::SampleRepresentation* rep = 
+      dynamic_cast<SpatialExtension::SampleRepresentation*>(m_repMap["00_Spatial"]);
+    rep->setSpacing(x, y, z);
+  }
+}
+
+//-----------------------------------------------------------------------------
 void Sample::addSegmentation(Segmentation* seg)
 {
   m_segs.push_back(seg);

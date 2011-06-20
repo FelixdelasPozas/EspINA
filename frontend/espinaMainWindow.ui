@@ -49,18 +49,10 @@
      <height>20</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menu_Edit">
-    <property name="title">
-     <string>&amp;Edit</string>
-    </property>
-    <addaction name="actionUndo"/>
-    <addaction name="actionRedo"/>
-   </widget>
    <widget class="QMenu" name="menu_View">
     <property name="title">
      <string>&amp;View</string>
     </property>
-    <addaction name="actionUnits"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="tearOffEnabled">
@@ -81,12 +73,14 @@
     </property>
    </widget>
    <addaction name="menu_File"/>
-   <addaction name="menu_Edit"/>
    <addaction name="menu_View"/>
    <addaction name="menuTools"/>
    <addaction name="menu_Help"/>
   </widget>
   <widget class="QDockWidget" name="pipelineBrowserDock">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="allowedAreas">
     <set>Qt::LeftDockWidgetArea|Qt::RightDockWidgetArea</set>
    </property>
@@ -242,7 +236,7 @@
          </property>
          <property name="icon">
           <iconset resource="rsc/espina.qrc">
-           <normaloff>:/espina/trashSeg</normaloff>:/espina/trashSeg</iconset>
+           <normaloff>:/espina/trash-full.svg</normaloff>:/espina/trash-full.svg</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -322,7 +316,7 @@
          </property>
          <property name="icon">
           <iconset resource="rsc/espina.qrc">
-           <normaloff>:/espina/rainbow</normaloff>:/espina/rainbow</iconset>
+           <normaloff>:/espina/rainbow.svg</normaloff>:/espina/rainbow.svg</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -366,7 +360,7 @@
          </property>
          <property name="icon">
           <iconset resource="rsc/espina.qrc">
-           <normaloff>:/espina/add</normaloff>:/espina/add</iconset>
+           <normaloff>:/espina/add.svg</normaloff>:/espina/add.svg</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -410,7 +404,7 @@
          </property>
          <property name="icon">
           <iconset resource="rsc/espina.qrc">
-           <normaloff>:/espina/addChild</normaloff>:/espina/addChild</iconset>
+           <normaloff>:/espina/add_child.svg</normaloff>:/espina/add_child.svg</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -454,7 +448,7 @@
          </property>
          <property name="icon">
           <iconset resource="rsc/espina.qrc">
-           <normaloff>:/espina/remove</normaloff>:/espina/remove</iconset>
+           <normaloff>:/espina/remove.svg</normaloff>:/espina/remove.svg</iconset>
          </property>
          <property name="iconSize">
           <size>
@@ -499,56 +493,12 @@
          </property>
         </spacer>
        </item>
-       <item>
-        <widget class="QPushButton" name="makeActiveSample">
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="minimumSize">
-          <size>
-           <width>32</width>
-           <height>32</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>32</width>
-           <height>32</height>
-          </size>
-         </property>
-         <property name="baseSize">
-          <size>
-           <width>32</width>
-           <height>32</height>
-          </size>
-         </property>
-         <property name="text">
-          <string/>
-         </property>
-         <property name="icon">
-          <iconset resource="rsc/espina.qrc">
-           <normaloff>:/espina/rainbow</normaloff>:/espina/rainbow</iconset>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>22</width>
-           <height>22</height>
-          </size>
-         </property>
-         <property name="flat">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
       </layout>
      </item>
     </layout>
    </widget>
   </widget>
-  <widget class="QDockWidget" name="dockWidget">
+  <widget class="QDockWidget" name="modelsDock">
    <property name="enabled">
     <bool>true</bool>
    </property>
@@ -597,16 +547,6 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Y</string>
-   </property>
-  </action>
-  <action name="actionUnits">
-   <property name="text">
-    <string>Units</string>
-   </property>
-  </action>
-  <action name="actionSegmentationExplorer">
-   <property name="text">
-    <string>Segmentation Explorer</string>
    </property>
   </action>
   <action name="toggleVisibility">

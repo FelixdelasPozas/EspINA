@@ -47,7 +47,8 @@ SampleRepresentation::SampleRepresentation(Sample* sample): ISampleRepresentatio
   pqLookupTableManager *lutManager = pqApplicationCore::instance()->getLookupTableManager();
   
   vtkFilter::Arguments volArgs;
-  volArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT, m_sample->id()));
+  volArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT, sample->representation("00_Spatial")->id()));
+                                        //m_sample->id()));
   m_rep = cob->createFilter("filters", "ImageMapToColors", volArgs);
   assert(m_rep->numProducts() == 1);
   
@@ -73,7 +74,7 @@ SampleRepresentation::SampleRepresentation(Sample* sample): ISampleRepresentatio
 //-----------------------------------------------------------------------------
 SampleRepresentation::~SampleRepresentation()
 {
-  qDebug() << "Deleted Color Representation from " << m_sample->id();
+  //qDebug() << "Deleted Color Representation from " << m_sample->id();
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   cob->removeFilter(m_rep);
 //   m_LUT->Delete();
@@ -110,7 +111,7 @@ void SampleExtension::initialize(Sample* sample)
 //-----------------------------------------------------------------------------
 void SampleExtension::addInformation(ISampleExtension::InformationMap& map)
 {
-  qDebug() << "Sample" << ID << ": No extra information provided.";
+  //qDebug() << "Sample" << ID << ": No extra information provided.";
 }
 
 //-----------------------------------------------------------------------------
@@ -118,7 +119,7 @@ void SampleExtension::addRepresentations(ISampleExtension::RepresentationMap& ma
 {
   SampleRepresentation *rep = new SampleRepresentation(m_sample);
   map.insert("01_Color", rep);
-  qDebug() << "Sample"<< ID << ": Color Representation Added";
+  //qDebug() << "Sample"<< ID << ": Color Representation Added";
 }
 
 //-----------------------------------------------------------------------------
@@ -169,7 +170,7 @@ SegmentationRepresentation::SegmentationRepresentation(Segmentation* seg)
 //-----------------------------------------------------------------------------
 SegmentationRepresentation::~SegmentationRepresentation()
 {
-  qDebug() << "Deleted Color Representation from " << m_seg->id();
+  //qDebug() << "Deleted Color Representation from " << m_seg->id();
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   cob->removeFilter(m_rep);
   m_LUT->Delete();
@@ -217,7 +218,7 @@ void SegmentationExtension::initialize(Segmentation* seg)
 //-----------------------------------------------------------------------------
 void SegmentationExtension::addInformation(InformationMap& map)
 {
-  qDebug() << "Color Extension: No extra information provided.";
+  //qDebug() << "Color Extension: No extra information provided.";
 }
 
 //-----------------------------------------------------------------------------
@@ -225,7 +226,7 @@ void SegmentationExtension::addRepresentations(RepresentationMap& map)
 {
   SegmentationRepresentation *rep = new SegmentationRepresentation(m_seg);
   map.insert("01_Color", rep);
-  qDebug() << "Color Extension: Color Representation Added";
+  //qDebug() << "Color Extension: Color Representation Added";
 }
 
 //-----------------------------------------------------------------------------

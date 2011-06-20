@@ -25,28 +25,51 @@
 #include <QDebug>
 
 UnitExplorer::UnitExplorer(QWidget* parent, Qt::WindowFlags f)
-: QWidget(parent, f)
+        : QWidget(parent, f)
 {
-  setupUi(this);
-    
-  connect(m_unit,SIGNAL(currentIndexChanged(int)),this,SLOT(unitChanged(int)));
+    setupUi(this);
+
+    connect(m_unit,SIGNAL(currentIndexChanged(int)),this,SLOT(unitChanged(int)));
+    connect(pushButton, SIGNAL(clicked(bool)), this, SLOT(updateSpacing()));
+   /* connect(EspINA::instance(), SIGNAL(segmentationCreated(Segmentation*)), 
+            this, SLOT(close()));*/
 }
 
 void UnitExplorer::setSample(Sample* sample)
 {
-  double spacing[3];
-  
-  sample->spacing(spacing);
-  
-  m_xSize->setValue(spacing[0]);
-  m_ySize->setValue(spacing[1]);
-  m_zSize->setValue(spacing[2]);
+    m_sample = sample;
+    double spacing[3];
+
+    sample->spacing(spacing);
+
+    m_xSize->setValue(spacing[0]);
+    m_ySize->setValue(spacing[1]);
+    m_zSize->setValue(spacing[2]);
+
+    // If the Sample has segmentations the spacing cannot change
+    if ( !sample->segmentations().empty() && pushButton->isEnabled())
+    {
+        pushButton->setDisabled(true);
+        pushButton->setToolTip("The spacing could not be changed if the sample has segmentations");
+    }
 }
 
 
 void UnitExplorer::unitChanged(int unitIndex)
 {
-  m_xSize->setSuffix(m_unit->currentText());
-  m_ySize->setSuffix(m_unit->currentText());
-  m_zSize->setSuffix(m_unit->currentText());
+    m_xSize->setSuffix(m_unit->currentText());
+    m_ySize->setSuffix(m_unit->currentText());
+    m_zSize->setSuffix(m_unit->currentText());
 }
+
+void UnitExplorer::updateSpacing()
+{
+    if ( m_sample )
+        m_sample->setSpacing(m_xSize->cleanText().toFloat(),
+                             m_ySize->cleanText().toFloat(),
+                             m_zSize->cleanText().toFloat()
+                            );
+}
+
+
+

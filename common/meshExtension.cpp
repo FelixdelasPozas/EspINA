@@ -56,7 +56,7 @@ MeshRepresentation::MeshRepresentation(Segmentation* seg)
 
 MeshRepresentation::~MeshRepresentation()
 {
-  qDebug() << "Deleted Mesh Representation from " << m_seg->id();
+//   qDebug() << "Deleted Mesh Representation from " << m_seg->id();
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   cob->removeFilter(m_rep->creator());//vtkProduct default beheaviour doesn't delete its filter
   delete m_rep;
@@ -116,14 +116,14 @@ void MeshExtension::initialize(Segmentation* seg)
 
 void MeshExtension::addInformation(InformationMap& map)
 {
-  qDebug() << ID << ": No extra information provided.";
+//   qDebug() << ID << ": No extra information provided.";
 }
 
 void MeshExtension::addRepresentations(RepresentationMap& map)
 {
    MeshRepresentation *rep = new MeshRepresentation(m_seg);
    map.insert("Mesh", rep);
-   qDebug() << ID <<": Mesh Representation Added";
+//    qDebug() << ID <<": Mesh Representation Added";
 }
 
 

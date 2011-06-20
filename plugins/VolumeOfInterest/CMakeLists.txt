@@ -20,9 +20,6 @@ include (${CAJAL_USE_FILE})
 find_package(Boost REQUIRED COMPONENTS  system filesystem graph)
 link_directories ( ${Boost_LIBRARY_DIRS} )
 
-
-SET (ITK_VTK_GLUE "" CACHE PATH "Path to ItkVtkGlue external project")
-
 include_directories(
   ${CMAKE_SOURCE_DIR}/common
   ${CMAKE_CURRENT_SOURCE_DIR} 
@@ -84,4 +81,4 @@ endif( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
 target_link_libraries (VolumeOfInterest ${PARAVIEW_ADDITIONAL_LIBRARIES} )
 
-install (TARGETS VolumeOfInterest LIBRARY DESTINATION /usr/bin/plugins)
+install (TARGETS VolumeOfInterest LIBRARY DESTINATION bin/plugins)

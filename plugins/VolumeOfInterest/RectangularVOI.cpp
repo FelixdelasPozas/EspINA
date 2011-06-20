@@ -145,9 +145,9 @@ vtkSMProxy* RectangularVOI::getProxy()
 }
 
 //-----------------------------------------------------------------------------
-pq3DWidget* RectangularVOI::newWidget()//NOTE: It could be itneresting to specify the proxy reference
+pq3DWidget* RectangularVOI::newWidget()
 {
-  QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(EspINA::instance()->activeSample()->creator()->pipelineSource()->getProxy(), getProxy());
+  QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(m_product->creator()->pipelineSource()->getProxy(), getProxy());
   assert(widgets.size() == 1);
   connect(widgets[0],SIGNAL(widgetEndInteraction()),this,SLOT(endInteraction()));
   
@@ -195,61 +195,10 @@ void RectangularVOI::endInteraction()
   double pos[3];
   vtkSMPropertyHelper(m_box,"Position").Get(pos,3);
   
-  qDebug() << "Moving RectangularVOI Plugin::Scale on: "<< scale[0]<< scale[1]<< scale[2];
-  qDebug() << "Moving RectangularVOI Plugin::Pos on: "<< pos[0]<< pos[1]<< pos[2];
-  /*
-  int idx;
-  for (idx=0; idx<4; idx++)
-  {
-    if (m_widget[idx] == widget)
-      break;
-  }
-  */
+  //qDebug() << "Moving RectangularVOI Plugin::Scale on: "<< scale[0]<< scale[1]<< scale[2];
+  //qDebug() << "Moving RectangularVOI Plugin::Pos on: "<< pos[0]<< pos[1]<< pos[2];
   
-//   widget->getControlledProxy()->UpdateProperty("Bounds");
-//   widget->getControlledProxy()->UpdateVTKObjects();
-//   widget->getControlledProxy()->UpdateProperty("Bounds");
-//   vtkSMPropertyHelper(widget->getControlledProxy(),"Bounds").Get(bounds,6);
-//   qDebug() << "Controlled Bounds" << bounds[0] << bounds[1] << bounds[2] << bounds[3] << bounds[4] << bounds[5];
-//   widget->getReferenceProxy()->UpdateProperty("Bounds");
-//   widget->getReferenceProxy()->UpdateVTKObjects();
-//   widget->getReferenceProxy()->UpdateProperty("Bounds");
-//   vtkSMPropertyHelper(widget->getReferenceProxy(),"Bounds").Get(bounds,6);
-//   qDebug() << "Reference Bounds" << bounds[0] << bounds[1] << bounds[2] << bounds[3] << bounds[4] << bounds[5];
-//   widget->getWidgetProxy()->GetRepresentationProxy()->UpdateProperty("Bounds");
-//   widget->getWidgetProxy()->GetRepresentationProxy()->UpdateVTKObjects();
-//   widget->getWidgetProxy()->GetRepresentationProxy()->UpdateProperty("Bounds");
-//   vtkSMPropertyHelper(widget->getWidgetProxy()->GetRepresentationProxy(),"Bounds").Get(bounds,6);
-//   qDebug() << "Representation Bounds" << bounds[0] << bounds[1] << bounds[2] << bounds[3] << bounds[4] << bounds[5];
-//    double rot[3] = {0,0,0};
-//    //double pos[3] = {0,0,0};
-//    vtkSMProxy *rep = widget->getControlledProxy();
-//    rep->PrintSelf(std::cout,vtkIndent(5));
-//    vtkSMPropertyHelper(rep,"Rotation").Set(rot,3);
-//    //vtkSMPropertyHelper(rep,"Position").Set(pos,3);
-//    rep->UpdateVTKObjects();
-//   
-//   double rot[3][3] = 
-//   {
-//     {0,0,0} ,
-//     {0,90,0} ,
-//     {0,90,0}
-//   };
-//   double pos[3][3] = 
-//   {
-//     {0,0,0} ,
-//     {0,0,0} ,
-//     {0,0,0}
-//   };
-//   for (idx=0;idx<3;idx++)
-//   {
-//     vtkSMProxy *rep = m_widget[idx]->getWidgetProxy()->GetRepresentationProxy();
-//     vtkSMPropertyHelper(rep,"Rotation").Set(rot[idx],3);
-//     vtkSMPropertyHelper(rep,"Position").Set(pos[idx],3);
-//     rep->UpdateVTKObjects();
-//   }
- //     vtkSMPropertyHelper(m_widget[idx]->getControlledProxy(),"Bounds").Get(bounds,6);
- //     qDebug() << "Bounds" << bounds[0] << bounds[1] << bounds[2] << bounds[3] << bounds[4] << bounds[5];
+//     qDebug() << "Bounds" << bounds[0] << bounds[1] << bounds[2] << bounds[3] << bounds[4] << bounds[5];
 }
 
 //-----------------------------------------------------------------------------
@@ -272,7 +221,8 @@ void RectangularVOI::rvoiExtent(double* rvoi)
   //qDebug() << "RectangularVOI Plugin: Extent: "<< m_rvoi[0]<< m_rvoi[1]<< m_rvoi[2]<< m_rvoi[3]<< m_rvoi[4]<< m_rvoi[5];
   
   //double productExtent[6] = {bounds[0],bounds[1],bounds[2], bounds[3], bounds[4], bounds[5]/2};
-  double productSpacing[3] = {1,1,2};//TODO: Get real spacing
+  double productSpacing[3];
+  m_product->spacing(productSpacing);
   
   for (int i=0; i<6; i++)
     rvoi[i] = round((pos[i/2] + bounds[i]*scale[i/2])/productSpacing[i/2]);

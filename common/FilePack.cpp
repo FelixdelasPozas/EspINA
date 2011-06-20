@@ -65,7 +65,7 @@ int FilePack::addSource(QString fileName, QString& source)
 
   m_TmpFilesToRemove.append( fileName );
   
-  qDebug() << "FilePack: addSource: " << source;
+  //qDebug() << "FilePack: addSource: " << source;
   return addFile( QFileInfo(fileName) );
 }
 
@@ -89,11 +89,11 @@ bool FilePack::close()
 //-----------------------------------------------------------------------------
 void FilePack::addDir ( QDir path )
 {
-  qDebug() << "AddDir:" << path << path.dirName();
+  //qDebug() << "AddDir:" << path << path.dirName();
   if(int i = zip_add_dir(m_file, path.dirName().toUtf8()) != -1)
   {
     //foreach(
-    qDebug() << "ADDFILE:" << path.filePath(path.dirName());
+    //qDebug() << "ADDFILE:" << path.filePath(path.dirName());
     this->addFile(path.filePath(path.dirName().append("_0.vti")), path.dirName().append("/"+path.dirName().append("_0.vti")));
   }
   else

@@ -43,7 +43,7 @@ public:
 public slots:
   virtual void requestUpdate(bool force){}
   
-  void setSlice(int slice, ViewType type);
+  void setSlice(int slice, ViewType type, bool update=true);
   int slice(ViewType type);
   void centerOn(int x, int y, int z);
   
@@ -54,7 +54,7 @@ private:
   vtkFilter *m_planes[3];
   LabelMapExtension::SampleRepresentation *m_internalRep;
   bool m_disabled;
-  int m_center;
+  int m_center[4];
 };
 
 

@@ -16,6 +16,7 @@ void PixelSelector::onMouseDown(QPoint &pos, ISelectableView* view)
   singlePixel << pos;
   regions << singlePixel;
   
+  qDebug() << "Clicked on screen pixel" << pos.x() << pos.y();
   view->setSelection(filters, regions);
 }
 

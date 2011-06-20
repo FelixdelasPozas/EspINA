@@ -282,9 +282,9 @@ void ProcessingTrace::readTrace(QTextStream& stream)
     {
       QString label(vLabel[vertexId].c_str());
       QString rawArgs( vArgs[vertexId].c_str() );
-      ITraceNode::Arguments args;
+      ITraceNode::Arguments args = ITraceNode::parseArgs( rawArgs );
       // Is a stack //TODO be more explicit
-      if( vShape[vertexId].compare("ellipse") == 0 && label.startsWith('/') )
+      if( vShape[vertexId].compare("ellipse") == 0 && label.contains(QDir::separator()) )
       {
         qDebug() << "ProcessingTrace: Loading the Stack " << label;
         pqPipelineSource* proxy = pqLoadDataReaction::loadData(QStringList(label));
@@ -293,6 +293,12 @@ void ProcessingTrace::readTrace(QTextStream& stream)
           vtkFilter* sampleReader = CachedObjectBuilder::instance()->registerProductCreator(label, proxy);
 	  newSample = EspINAFactory::instance()->CreateSample(sampleReader, 0);
           EspINA::instance()->addSample(newSample);
+          // TODO same code like cachedObjectBuilder::createSMFilter() - DOUBLEVECT
+          QStringList values = args["Spacing"].split(",");
+          if(values.size() == 3)
+          {
+            newSample->setSpacing(values[0].toDouble(), values[1].toDouble(), values[2].toDouble());
+          }
 	  //ALERT: newSample is not initialize until added to espina model
 	  assert(newSample->representation("02_LabelMap"));
 	  dynamic_cast<LabelMapExtension::SampleRepresentation *>(newSample->representation("02_LabelMap"))->setEnable(false);
@@ -309,7 +315,7 @@ void ProcessingTrace::readTrace(QTextStream& stream)
         //QStringList filterInfo = QString(vLabel[vertexId].c_str()).split("::");
         //assert(filterInfo.size() == 2);
         
-        args = ITraceNode::parseArgs( rawArgs );
+        
        // if( filterInfo.at(1) == "SeedGrowSegmentationFilter")
         IFilterFactory* factory = m_availablePlugins.value(label, NULL);
         if( factory )
@@ -323,7 +329,6 @@ void ProcessingTrace::readTrace(QTextStream& stream)
         //core->getObjectBuilder()->createSource()
       } // A segmentation
       else {
-        args = ITraceNode::parseArgs( rawArgs );
         qDebug() << "ProcessingTrace: segmentation " << args["Id"] << args["Taxonomy"];
         EspINA* espina = EspINA::instance();
         espina->changeTaxonomy(espina->segmentation(args["Id"]), args["Taxonomy"]);

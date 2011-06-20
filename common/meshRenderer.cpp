@@ -34,7 +34,7 @@
 MeshRenderer::MeshRenderer(QWidget* parent)
 : IViewWidget(parent)
 {
-  setIcon(QIcon(":/espina/showMesh"));
+  setIcon(QIcon(":espina/show_Mesh.svg"));
 }
 
 

@@ -9,4 +9,4 @@ ADD_PARAVIEW_PLUGIN(
   SERVER_MANAGER_XML segWriter.xml
 )
 
-install (TARGETS SegFileWriter LIBRARY DESTINATION /usr/bin/plugins)
+install (TARGETS SegFileWriter LIBRARY DESTINATION bin/plugins)

@@ -51,7 +51,7 @@ SampleRepresentation::SampleRepresentation(Sample* sample)
 
 SampleRepresentation::~SampleRepresentation()
 {
-  qDebug() << "Deleted LabelMap Representation from " << m_sample->id();
+  //qDebug() << "Deleted LabelMap Representation from " << m_sample->id();
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   cob->removeFilter(m_rep);
 }
@@ -151,7 +151,7 @@ void SampleExtension::addRepresentations(ISampleExtension::RepresentationMap& ma
   SampleRepresentation *rep = new SampleRepresentation(m_sample);
   map.insert("02_LabelMap", rep);
   QObject::connect(m_toggleVisibility,SIGNAL(toggled(bool)),rep,SLOT(setEnable(bool)));
-  qDebug() << ID << "Label Map Representation Added";
+  //qDebug() << ID << "Label Map Representation Added";
 }
 
 ISampleExtension* SampleExtension::clone()
