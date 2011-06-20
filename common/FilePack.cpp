@@ -210,11 +210,43 @@ bool IOEspinaFile::loadFile(QString filePath,
 }
 
 //-----------------------------------------------------------------------------
-void IOEspinaFile::saveFile(QString& filePath,
+bool IOEspinaFile::saveFile(QString& filePath,
                             QString& TraceContent,
                             QString& TaxonomyContent,
                             QStringList& segmentationPaths)
 {
+  QFile zipFile(filePath);
+  QuaZip zip(&zipFile);
+  if(!zip.open(QuaZip::mdCreate)) 
+  {
+    qWarning() << "IOEspinaFile::saveFile" << filePath << "error while creating file";
+    return false;
+  }
+  QFileInfoList files=QDir().entryInfoList(segmentationPaths);
+  QFile inFile;
+  QuaZipFile outFile(&zip);
+  
+  // zip files
+  foreach(QFileInfo file, files) 
+  {
+    qDebug() << file.fileName();
+    if( file.isFile())
+      qDebug() << "and is a file";
+  }
+
+  // Close file  
+  if(outFile.getZipError()!=UNZ_OK) 
+  {
+    qWarning("testCreate(): outFile.putChar(): %d", outFile.getZipError());
+    return false;
+  }
+  outFile.close();
+  if(outFile.getZipError()!=UNZ_OK) {
+    qWarning("testCreate(): outFile.close(): %d", outFile.getZipError());
+    return false;
+  }
+  inFile.close();  
+  /*
   FilePack pack( filePath, FilePack::WRITE );
   pack.addSource(TRACE, TraceContent);
   pack.addSource(TAXONOMY, TaxonomyContent);
@@ -224,4 +256,5 @@ void IOEspinaFile::saveFile(QString& filePath,
     pack.addFile(QFileInfo(fileName.append(".pvd")));
   }
   pack.close();
+  */
 }

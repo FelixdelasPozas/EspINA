@@ -53,7 +53,7 @@ public:
                        QTextStream& TraceContent,
                        QTextStream& TaxonomyContent);
 
-  static void saveFile(QString& filePath,
+  static bool saveFile(QString& filePath,
                        QString& TraceContent,
                        QString& TaxonomyContent,
                        QStringList& segmentationPaths
