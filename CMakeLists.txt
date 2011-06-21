@@ -28,3 +28,4 @@ configure_file (
   )
 
 ## TODO: To create installation .cmake, refer to Mastering CMake p.120
+include (CPack)

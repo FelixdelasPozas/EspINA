@@ -22,6 +22,9 @@ if (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
           set_target_properties(CajalFilters PROPERTIES COMPILE_FLAGS "-fPIC")
 endif (CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
 
+
+set_target_properties(CajalFilters PROPERTIES VERSION 0.1)
+
 # Maybe the target_link_libraries command is optional...
 # (I think it depends if we use shared libraries)
 target_link_libraries (CajalFilters ITKCommon ITKBasicFilters ITKAlgorithms ITKIO)
@@ -32,3 +35,9 @@ if (ENABLE_TESTS)
 	add_subdirectory(tests)
 endif (ENABLE_TESTS)
 
+
+# INSTALL
+
+install (TARGETS CajalFilters
+	ARCHIVE DESTINATION /lib
+	)
