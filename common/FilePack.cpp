@@ -6,6 +6,7 @@
 #define TRACE "trace.dot"
 #define TAXONOMY "taxonomy.xml"
 
+/*
 //-----------------------------------------------------------------------------
 FilePack::FilePack(QString FilePackName, FilePack::flags flag)
 {
@@ -145,7 +146,7 @@ void FilePack::ExtractFiles(QDir& filePath)
   }
 }
 
-
+*/
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -191,17 +192,29 @@ bool IOEspinaFile::loadFile(QString filePath,
       TraceContent << file.readAll();
     else { // Cache Disk files
       // Is a directory
-      if( actualFileName.endsWith(QDir::separator()) )
-        dir.mkpath(actualFileName);
-      else {// or a file
-        QFile destination(dir.filePath(actualFileName));
-        if(!destination.open(QIODevice::WriteOnly | QIODevice::Truncate))
-        {
-          qWarning() << "IOEspinaFile::loadFile: could not create file " << actualFileName;
-        }
-        destination.write(file.readAll());
-        destination.close();  
+      QFileInfo fileInfo(actualFileName);
+      qDebug() << actualFileName << "has path" << fileInfo.path();
+      if( fileInfo.path() != "." )
+      {
+        dir.mkpath(fileInfo.path());
+        /*
+        QFile::setPermissions(dir.filePath(fileInfo.path()),
+            QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner |
+            QFile::ReadGroup | QFile::ExeGroup |
+            QFile::ReadOther | QFile::ExeOther);
+            */
       }
+      
+      QFile destination(dir.filePath(actualFileName));
+      /*qDebug()<< "Permissions set" << 
+      destination.setPermissions(QFile::ReadOwner | QFile::WriteOwner | 
+                                 QFile::ReadGroup | QFile::ReadOther);*/
+      if(!destination.open(QIODevice::WriteOnly | QIODevice::Truncate))
+      {
+        qWarning() << "IOEspinaFile::loadFile: could not create file " << actualFileName;
+      }
+      destination.write(file.readAll());
+      destination.close();
     }
     file.close();
   }
@@ -213,48 +226,67 @@ bool IOEspinaFile::loadFile(QString filePath,
 bool IOEspinaFile::saveFile(QString& filePath,
                             QString& TraceContent,
                             QString& TaxonomyContent,
-                            QStringList& segmentationPaths)
+                            QStringList& segmentationPaths,
+                            QString commonPathToRemove
+                           )
 {
-  QFile zipFile(filePath);
-  QuaZip zip(&zipFile);
+  QFile zFile(filePath);
+  QuaZip zip(&zFile);
   if(!zip.open(QuaZip::mdCreate)) 
   {
     qWarning() << "IOEspinaFile::saveFile" << filePath << "error while creating file";
     return false;
   }
   QFileInfoList files=QDir().entryInfoList(segmentationPaths);
-  QFile inFile;
   QuaZipFile outFile(&zip);
-  
-  // zip files
-  foreach(QFileInfo file, files) 
+  // zip taxonomy and trace files
+  if( !IOEspinaFile::zipFile(QString(TRACE), TraceContent, outFile) )
+    return false;
+  if( !IOEspinaFile::zipFile(QString(TAXONOMY), TaxonomyContent, outFile) )
+    return false;
+  // zip the segmentation files
+  QByteArray buffer;
+  foreach(QString pathName, segmentationPaths) 
   {
-    qDebug() << file.fileName();
-    if( file.isFile())
-      qDebug() << "and is a file";
+    QFile inFile(pathName);
+    qDebug() << "SaveFile: Processing" << pathName;
+/*    qDebug() << "mkpath" << pathName << 
+      QDir().mkpath(pathName);*/
+    qDebug() << "SaveFile: Opening files"
+      << inFile.open(QIODevice::ReadOnly);
+    QString content(inFile.readAll());
+    IOEspinaFile::zipFile(inFile.fileName().remove(commonPathToRemove), content, outFile);
+    inFile.close();
   }
+  return true;
+}
 
-  // Close file  
-  if(outFile.getZipError()!=UNZ_OK) 
+//-----------------------------------------------------------------------------
+bool IOEspinaFile::zipFile(QString fileName, QString& content, QuaZipFile& zFile)
+{
+  QuaZipNewInfo zFileInfo = QuaZipNewInfo(fileName, fileName);
+  zFileInfo.externalAttr = 0xFFFF0000;
+  if( !zFile.open(QIODevice::WriteOnly, zFileInfo) )
   {
-    qWarning("testCreate(): outFile.putChar(): %d", outFile.getZipError());
+    qWarning() << "IOEspinaFile::zipFile(): Could not open " << fileName 
+              << "inside" << zFile.getFileName() 
+              << ". Code error:" << zFile.getZipError();
     return false;
   }
-  outFile.close();
-  if(outFile.getZipError()!=UNZ_OK) {
-    qWarning("testCreate(): outFile.close(): %d", outFile.getZipError());
+  zFile.write(content.toUtf8());
+  if(zFile.getZipError()!=UNZ_OK) 
+  {
+    qWarning() << "IOEspinaFile::zipFile(): Could not store the content in" << fileName
+            << "inside" << zFile.getFileName() 
+            << ". Code error:" << zFile.getZipError();
     return false;
   }
-  inFile.close();  
-  /*
-  FilePack pack( filePath, FilePack::WRITE );
-  pack.addSource(TRACE, TraceContent);
-  pack.addSource(TAXONOMY, TaxonomyContent);
-  foreach(QString fileName, segmentationPaths)
-  {
-    pack.addDir(QDir(fileName));
-    pack.addFile(QFileInfo(fileName.append(".pvd")));
+  zFile.close();
+  if(zFile.getZipError()!=UNZ_OK) {
+    qWarning() << "IOEspinaFile::zipFile(): Could not close the file" << fileName
+           << "inside" << zFile.getFileName() 
+           << ". Code error:" << zFile.getZipError();
+    return false;
   }
-  pack.close();
-  */
+  return true;
 }

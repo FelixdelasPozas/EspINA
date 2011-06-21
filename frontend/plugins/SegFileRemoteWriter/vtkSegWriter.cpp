@@ -43,37 +43,53 @@ int vtkSegWriter::RequestData(
   
   // Retrive the files of the segmentations
   QStringList filters;
-  QRegExp extensionRE("\\..*$");
   filters << "*.pvd";
-  QDir rootFileDir(QString(FileName).remove(extensionRE));
+  QRegExp extensionRE("\\..*$");
+  QDir fileRootDir(QString(FileName).remove(extensionRE));
 
   // Obtain all the files with the segmentation information
-  QStringList segmentationGenericPaths = rootFileDir.entryList(filters);
-  for(int i=0; i < segmentationGenericPaths.count(); i++)
+  QStringList segmentationPaths = fileRootDir.entryList(filters);
+  // Retrive the vti files. The structure of the directories are for a given
+  // fileName.pvd there is a directory called fileName/ and 1 or more files
+  // fileName_\d+.vti inside fileName/ dir.
+  filters.clear();
+  filters << "*.vti";
+  foreach(QString path, segmentationPaths)
   {
-    segmentationGenericPaths[i] = rootFileDir.filePath( segmentationGenericPaths[i].remove(extensionRE));
+    path.remove(extensionRE);
+    QDir d(fileRootDir.filePath(path));
+    QStringList vtiFiles = d.entryList(filters);
+    for(int i=0; i < vtiFiles.count(); i++)
+      vtiFiles[i] = QDir(path).filePath(vtiFiles[i]);
+    segmentationPaths.append(vtiFiles);
   }
-  //qDebug() << "vtkSegWriter: segmentation files" << segFiles;
+  
+  // Add at the beginning the path
+  for(int i=0; i < segmentationPaths.count(); i++)
+    segmentationPaths[i] = fileRootDir.filePath( segmentationPaths[i]);
+  qDebug() << "vtkSegWriter: Segmentation paths" << segmentationPaths;
+  
   // Save Trace, Tax and Segmentation files
-  IOEspinaFile::saveFile(FileNameAux, TraceAux, taxAux, segmentationGenericPaths);
+  IOEspinaFile::saveFile(FileNameAux, TraceAux, taxAux, segmentationPaths, fileRootDir.filePath("").append("/"));
+  
   qDebug() << "vtkSegWriter: File "<< FileNameAux << ". Removing temporary files";
   // Delete the segmentation files after Save: name.pvd, name/name_0.vti, name/
-  foreach( QString SegGenericPath, segmentationGenericPaths)
+  foreach( QString segPath, segmentationPaths)
   {
-    // Remove the file
-    qDebug() << "vtkSegWriter: Removing" << SegGenericPath << ".pvd" <<
-    QFile::remove(QString( SegGenericPath).append(".pvd"));
-    // Retrieve the directory with extra information to remove it
-    QDir segmentationDir( SegGenericPath.remove(extensionRE));
+    // Remove the files
+    qDebug() << "vtkSegWriter: Removing" << segPath <<
+    QFile::remove(QString( segPath));
     // delete all the files inside and the root directory
-    filters.clear();
-    filters << "*.vti"; // With the .pvd files, vti files are allways generated
-    foreach(QString f, segmentationDir.entryList(filters) )
-      qDebug() << "vtkSegWriter: Removing" << f << segmentationDir.remove(f);
-    segmentationDir.rmdir( segmentationDir.path());
+    if( segPath.endsWith(".vti") )
+    {
+      QDir segmentationDir( segPath );
+      segmentationDir.cdUp();
+      qDebug() << "Removing dir" << segmentationDir.path();
+      segmentationDir.rmdir( segmentationDir.path());
+    }
   }
   // Delete de root file if it is possible
-  rootFileDir.rmdir(rootFileDir.path());
+  fileRootDir.rmdir(fileRootDir.path());
   return 1;
 }
 

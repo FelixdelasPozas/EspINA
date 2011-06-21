@@ -553,7 +553,7 @@ void EspINA::saveFile(QString& filePath, pqServer* server)
     */
     QString auxTraceData(trace_data.str().c_str());
     QStringList emptyList; //TODO include the segmentations
-    IOEspinaFile::saveFile( filePath, auxTraceData, tax_data, emptyList);
+    //IOEspinaFile::saveFile( filePath, auxTraceData, tax_data, emptyList);
   }
 }
 

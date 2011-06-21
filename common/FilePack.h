@@ -1,15 +1,16 @@
 #ifndef FILEPACKER_H
 #define FILEPACKER_H
 
-#include </usr/include/zip.h>
+// #include </usr/include/zip.h>
 #include <QString>
 #include <QVector>
 #include <qtextstream.h>
 #include <boost/concept_check.hpp>
 #include <QStringList>
 #include <qdir.h>
+#include </include/quazip/quazipfile.h>
 
-
+/*
 class FilePack
 {
 public:
@@ -44,7 +45,7 @@ private:
 
   QList<QString> m_TmpFilesToRemove;
 };
-
+*/
 class IOEspinaFile
 {
   
@@ -56,8 +57,12 @@ public:
   static bool saveFile(QString& filePath,
                        QString& TraceContent,
                        QString& TaxonomyContent,
-                       QStringList& segmentationPaths
+                       QStringList& segmentationPaths,
+                       QString commonPathToRemove
                       );
+  
+private:
+  static bool zipFile(QString fileName, QString& content, QuaZipFile& zFile);
   
 };
 #endif // FILEPACKER_H
