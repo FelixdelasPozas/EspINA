@@ -741,20 +741,21 @@ void EspINA::loadSource(pqPipelineSource* proxy)
     try{
       if (!m_tax)//TODO: Decide wether to mix, override or check compability
       {
+        qDebug("EspINA: Reading taxonomy ...");
 	beginInsertRows(taxonomyRoot(), 0, 0);
 	m_tax = IOTaxonomy::loadXMLTaxonomy(TaxContent);
 	endInsertRows();
 	setUserDefindedTaxonomy(m_tax->getSubElements()[0]->getName());
 	emit resetTaxonomy();
       }
-      
+      qDebug("EspINA: Reading trace ...");
       m_analysis->readTrace(trace);
       // Remove the proxy of the .seg file
       pqObjectBuilder* ob = pqApplicationCore::instance()->getObjectBuilder();
       ob->destroy(proxy);
       
     } catch (...) {
-      qDebug() << "Espina: Unable to load File " << __FILE__ << __LINE__;
+      qDebug() << "Espina: Unable to load File. " << __FILE__ << __LINE__;
     }
   }
   else{

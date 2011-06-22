@@ -174,7 +174,7 @@ bool IOEspinaFile::loadFile(QString filePath,
     qWarning() << "IOEspinaFile: Could not open the file" << filePath;
     return false;
   }
-  
+  bool taxPorcessed = false, traceProcess = false;
   QuaZipFile file(&zip);
   for(bool more=zip.goToFirstFile(); more; more=zip.goToNextFile()) {
     QString actualFileName = file.getActualFileName();
@@ -186,14 +186,18 @@ bool IOEspinaFile::loadFile(QString filePath,
       continue;
     }
     qDebug() << "IOEspinaFile::loadFile: extracting" << actualFileName; //TODO espina_debug
-    if( actualFileName == TAXONOMY )
-      TaxonomyContent << file.readAll();
-    else if( actualFileName == TRACE )
-      TraceContent << file.readAll();
-    else { // Cache Disk files
+    if( actualFileName == TAXONOMY ) {
+      if( !taxPorcessed )
+        TaxonomyContent << file.readAll();
+      taxPorcessed = true;
+    } else if( actualFileName == TRACE ) {
+      if( !traceProcess )
+        TraceContent << file.readAll();
+      traceProcess = true;
+    } else { // Cache Disk files
       // Is a directory
       QFileInfo fileInfo(actualFileName);
-      qDebug() << actualFileName << "has path" << fileInfo.path();
+      //qDebug() << actualFileName << "has path" << fileInfo.path();
       if( fileInfo.path() != "." )
       {
         dir.mkpath(fileInfo.path());
