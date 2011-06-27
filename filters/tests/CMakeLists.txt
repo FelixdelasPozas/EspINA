@@ -24,3 +24,5 @@ FOREACH(TEST ${TESTS})
 	ADD_TEST(Cajal-${TEST} ${EXECUTABLE_OUTPUT_PATH}/${EXE_NAME} ${STACK_DIR})
 ENDFOREACH(TEST)
 
+
+add_subdirectory(ConnectedThresholdImageFilter)
