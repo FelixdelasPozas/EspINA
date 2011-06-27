@@ -67,11 +67,12 @@ bool testSimpleSaveFile(QString fileName)
   QTextStream taxContent(&fTax);
 
   QStringList paths = recursiveFilePaths(QDir("test"));
+  paths.removeAll("trace.dot");
+  paths.removeAll("taxonomy.xml");
   qDebug() << paths;
-  QString a(traceContent.readAll());
-  qDebug() << a;
-  QString b(taxContent.readAll());
-  bool res = IOEspinaFile::saveFile(filePath, a, b,
+  QString trace(traceContent.readAll());
+  QString tax(taxContent.readAll());
+  bool res = IOEspinaFile::saveFile(filePath, trace, tax,
                                 paths, QString("test/"));
   
   fTax.close();
@@ -85,6 +86,6 @@ bool testSimpleSaveFile(QString fileName)
 int main(int argc, char** argv)
 {
   qDebug() << testSimpleSaveFile("test.seg");
-  qDebug() << system("zipcmp test.seg save.seg");
+  //qDebug() << system("zipcmp test.seg save.seg");
   return 0;
 }

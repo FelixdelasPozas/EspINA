@@ -150,7 +150,7 @@ void FilePack::ExtractFiles(QDir& filePath)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-#include <quazip/quazipfile.h>
+#include <quazipfile.h>
 //-----------------------------------------------------------------------------
 /**
  * It set the @param TraceContent and @param TaxonomyContent with trace.dot and 
@@ -244,9 +244,10 @@ bool IOEspinaFile::saveFile(QString& filePath,
   QFileInfoList files=QDir().entryInfoList(segmentationPaths);
   QuaZipFile outFile(&zip);
   // zip taxonomy and trace files
-  if( !IOEspinaFile::zipFile(QString(TRACE), TraceContent, outFile) )
+//   QByteArray(TraceContent.toStdString().c_str());
+  if( !IOEspinaFile::zipFile(QString(TRACE),  TraceContent.toStdString().c_str(), outFile) )
     return false;
-  if( !IOEspinaFile::zipFile(QString(TAXONOMY), TaxonomyContent, outFile) )
+  if( !IOEspinaFile::zipFile(QString(TAXONOMY), TaxonomyContent.toStdString().c_str(), outFile) )
     return false;
   // zip the segmentation files
   QByteArray buffer;
@@ -254,22 +255,19 @@ bool IOEspinaFile::saveFile(QString& filePath,
   {
     QFile inFile(pathName);
     qDebug() << "SaveFile: Processing" << pathName;
-/*    qDebug() << "mkpath" << pathName << 
-      QDir().mkpath(pathName);*/
     qDebug() << "SaveFile: Opening files"
       << inFile.open(QIODevice::ReadOnly);
-    QString content(inFile.readAll());
-    IOEspinaFile::zipFile(inFile.fileName().remove(commonPathToRemove), content, outFile);
+    IOEspinaFile::zipFile(inFile.fileName().remove(commonPathToRemove), inFile.readAll(), outFile);
     inFile.close();
   }
   return true;
 }
 
 //-----------------------------------------------------------------------------
-bool IOEspinaFile::zipFile(QString fileName, QString& content, QuaZipFile& zFile)
+bool IOEspinaFile::zipFile(QString fileName, QByteArray content, QuaZipFile& zFile)
 {
   QuaZipNewInfo zFileInfo = QuaZipNewInfo(fileName, fileName);
-  zFileInfo.externalAttr = 0xFFFF0000;
+  zFileInfo.externalAttr = 0x01A40000; // Permissions of the files 644
   if( !zFile.open(QIODevice::WriteOnly, zFileInfo) )
   {
     qWarning() << "IOEspinaFile::zipFile(): Could not open " << fileName 
@@ -277,7 +275,7 @@ bool IOEspinaFile::zipFile(QString fileName, QString& content, QuaZipFile& zFile
               << ". Code error:" << zFile.getZipError();
     return false;
   }
-  zFile.write(content.toUtf8());
+  zFile.write(content);
   if(zFile.getZipError()!=UNZ_OK) 
   {
     qWarning() << "IOEspinaFile::zipFile(): Could not store the content in" << fileName

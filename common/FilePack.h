@@ -62,7 +62,7 @@ public:
                       );
   
 private:
-  static bool zipFile(QString fileName, QString& content, QuaZipFile& zFile);
+  static bool zipFile(QString fileName, QByteArray content, QuaZipFile& zFile);
   
 };
 #endif // FILEPACKER_H
