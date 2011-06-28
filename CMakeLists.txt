@@ -6,10 +6,18 @@ cmake_minimum_required (VERSION 2.6)
 set (CAJAL_VERSION_MAJOR 0)
 set (CAJAL_VERSION_MINOR 2)
 
+include (CTest)
+ENABLE_TESTING()
+IF(BUILD_TESTING)
+  SET(BUILDNAME "${BUILDNAME}" CACHE STRING "Name of build on the dashboard")
+  MARK_AS_ADVANCED(BUILDNAME)
+ENDIF(BUILD_TESTING)
+
+
 #Has to be in the CMakeLists that declares a project
 #may subprojects should be done and thus this move to
 #the corresponding CMakeLists
-ENABLE_TESTING()
+include (CPack)
 
 add_subdirectory (filters)
 add_subdirectory (data)
@@ -28,4 +36,3 @@ configure_file (
   )
 
 ## TODO: To create installation .cmake, refer to Mastering CMake p.120
-include (CPack)
