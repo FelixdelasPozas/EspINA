@@ -6,25 +6,23 @@
 #include "vtkRenderer.h"
 #include "vtkCamera.h"
 #include "vtkRenderWindow.h"
-#include "vtkConnectedThresholdImageFilter.h"
+#include "vtkConnectedThresholdRegionGrowImageFilter.h"
 
-#include <cstdio>
-
-int main(int argc, char **argv)
+int pipeline(int argc, char **argv)
 {
   vtkSmartPointer<vtkMetaImageReader> reader =
     vtkSmartPointer<vtkMetaImageReader>::New();
 
   reader->SetFileName(argv[1]);
   // Pasarle el filtro que queremos probar
-  vtkSmartPointer<vtkConnectedThresholdImageFilter> segmentation =
-    vtkSmartPointer<vtkConnectedThresholdImageFilter>::New();
+  vtkSmartPointer<vtkConnectedThresholdRegionGrowImageFilter> segmentation =
+    vtkSmartPointer<vtkConnectedThresholdRegionGrowImageFilter>::New();
     
   segmentation->SetInputConnection(reader->GetOutputPort());
   
   segmentation->Setm_threshold(30);
   segmentation->Setm_seed(76,177,0);
-  //segmentation->DebugOn();
+  segmentation->DebugOn();
   segmentation->Update();
   
   //vtkSmartPointer<vtkMetaImageWriter> writer = vtkSmartPointer<vtkMetaImageWriter>::New();

@@ -37,7 +37,6 @@ endif (ENABLE_TESTS)
 
 
 # INSTALL
-
 install (TARGETS CajalFilters
 	ARCHIVE DESTINATION /lib
 	)

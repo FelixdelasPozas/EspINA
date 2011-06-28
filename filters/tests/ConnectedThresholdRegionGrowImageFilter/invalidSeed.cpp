@@ -6,13 +6,9 @@
 #include "vtkRenderer.h"
 #include "vtkCamera.h"
 #include "vtkRenderWindow.h"
-// #include "vtkConnectedThresholdImageFilter.h"
 #include "vtkConnectedThresholdRegionGrowImageFilter.h"
 
-
-#include <cstdio>
-
-int main(int argc, char **argv)
+int invalidSeed(int argc, char **argv)
 {
   vtkSmartPointer<vtkMetaImageReader> reader =
     vtkSmartPointer<vtkMetaImageReader>::New();
@@ -25,7 +21,7 @@ int main(int argc, char **argv)
   segmentation->SetInputConnection(reader->GetOutputPort());
   
   segmentation->Setm_threshold(30);
-  segmentation->Setm_seed(76,177,0);
+  segmentation->Setm_seed(700,177,0);
   segmentation->DebugOn();
   segmentation->Update();
   
@@ -48,9 +44,6 @@ int main(int argc, char **argv)
   renWin->AddRenderer( ren1 );
   renWin->SetSize( 600, 600 );
   renWin->Render();
-
-  char c;
-  c = getchar();
 
   return 0;
 }

@@ -24,8 +24,12 @@ protected:
   vtkConnectedThresholdImageFilter();
   ~vtkConnectedThresholdImageFilter(){};
 
-  virtual int RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector);
-//   virtual int RequestInformation(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector);
+  virtual int RequestInformation(vtkInformation* request,
+				 vtkInformationVector** inputVector,
+				 vtkInformationVector* outputVector);
+  virtual int RequestData(vtkInformation* request,
+			  vtkInformationVector** inputVector,
+			  vtkInformationVector* outputVector);
     
 private:
   vtkConnectedThresholdImageFilter(const vtkConnectedThresholdImageFilter& );// Not implemented
