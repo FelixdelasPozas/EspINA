@@ -1,4 +1,4 @@
-#include "vtkConnectedThresholdImageFilter.h"
+#include "vtkConnectedThresholdStencilFilter.h"
 
 // VTK
 #include "vtkImageData.h"
@@ -20,14 +20,10 @@
 #include <vtkInformationVector.h>
 #include <vtkStreamingDemandDrivenPipeline.h>
 
-//#include "vtkMultiProcessController.h"
-
-#include <iostream>
-
-vtkStandardNewMacro(vtkConnectedThresholdImageFilter);
+vtkStandardNewMacro(vtkConnectedThresholdStencilFilter);
 
 
-vtkConnectedThresholdImageFilter::vtkConnectedThresholdImageFilter()
+vtkConnectedThresholdStencilFilter::vtkConnectedThresholdStencilFilter()
 {
   this->SetNumberOfInputPorts(1);
   this->SetNumberOfOutputPorts(1);
@@ -36,53 +32,7 @@ vtkConnectedThresholdImageFilter::vtkConnectedThresholdImageFilter()
 
 #define LABEL_VALUE 255
 
-int vtkConnectedThresholdImageFilter::RequestInformation(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
-{
-  //Get the info objects
-  vtkInformation* inInfo = inputVector[0]->GetInformationObject(0);
-  vtkInformation* outInfo = outputVector->GetInformationObject(0);
-  
-//   int updateExtent[6];
-//   outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(), updateExtent);
-// 
-//   std::cout << "\tOutput Update Extent: " << updateExtent[0] << " " << updateExtent[1] << " " <<  updateExtent[2] <<  " " <<  updateExtent[3] <<  " " <<  updateExtent[4]<<  " " <<  updateExtent[5] << std::endl;
-//   
-//   bool noSeed = m_seed[0] < updateExtent[0] || m_seed[0] > updateExtent[1] ||
-// 	        m_seed[1] < updateExtent[2] || m_seed[1] > updateExtent[3] ||
-// 	        m_seed[2] < updateExtent[4] || m_seed[2] > updateExtent[5];
-//     
-//   if (noSeed)
-//   {
-//     vtkDebugMacro(<< "Request Information: No Seed");
-//     outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),
-// 		 0,-1,0,-1,0,-1);
-//     return 1;
-//   }
-  return vtkImageAlgorithm::RequestInformation(request,inputVector,outputVector);
-  
-//   
-//   int wholeExtent[6];
-//   double spacing[3];
-//   
-//   // Use the same input spacing
-//   inInfo->Get(vtkDataObject::SPACING(), spacing);
-//   outInfo->Set(vtkDataObject::SPACING(), spacing, 3);
-//   
-//   std::cout << "REQUEST EXTENT" << std::endl;
-//   wholeExtent[0] = 0;
-//   wholeExtent[1] = 82;
-//   wholeExtent[2] = 164;
-//   wholeExtent[3] = 420;
-//   wholeExtent[4] = 0;
-//   wholeExtent[5] = 22;
-//   
-//   outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),wholeExtent,6); 
-//   
-}
-
-
-
-int vtkConnectedThresholdImageFilter::RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
+int vtkConnectedThresholdStencilFilter::RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
   vtkInformation *inInfo = inputVector[0]->GetInformationObject(0);
   vtkInformation *outInfo = outputVector->GetInformationObject(0);
@@ -91,31 +41,6 @@ int vtkConnectedThresholdImageFilter::RequestData(vtkInformation* request, vtkIn
   vtkImageData *output = vtkImageData::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
   
   vtkDebugMacro(<< "Request Data");
-
-  int wholeExtent[6];
-  const vtkTypeInt32* inExtent;
-  int outUpdateExtent[6];
-  
-  inInfo->Get(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),wholeExtent);
-  inExtent = input->GetExtent();
-  outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(),outUpdateExtent);
-  
-  //std::cout << "Process "<< vtkMultiProcessController::GetGlobalController()->GetLocalProcessId() << std::endl;
-  std::cout << "\tSeed: " << m_seed[0] << m_seed[1] << m_seed[2] << std::endl;
-  std::cout << "\tInput Extent: " << inExtent[0] << " " << inExtent[1] << " " <<  inExtent[2] <<  " " <<  inExtent[3] <<  " " <<  inExtent[4]<<  " " <<  inExtent[5] << std::endl;
-  std::cout << "\tWhole Extent: " << wholeExtent[0] << " " << wholeExtent[1] << " " <<  wholeExtent[2] <<  " " <<  wholeExtent[3] <<  " " <<  wholeExtent[4]<<  " " <<  wholeExtent[5] << std::endl;
-  std::cout << "\tOutput Update Extent: " << outUpdateExtent[0] << " " << outUpdateExtent[1] << " " <<  outUpdateExtent[2] <<  " " <<  outUpdateExtent[3] <<  " " <<  outUpdateExtent[4]<<  " " <<  outUpdateExtent[5] << std::endl;
-  bool noSeed = m_seed[0] < outUpdateExtent[0] || m_seed[0] > outUpdateExtent[1] ||
-	        m_seed[1] < outUpdateExtent[2] || m_seed[1] > outUpdateExtent[3] ||
-	        m_seed[2] < outUpdateExtent[4] || m_seed[2] > outUpdateExtent[5];
-    
-  if (noSeed)
-  {
-    vtkDebugMacro(<< "Request Data: No Seed");
-    outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),
-		 0,-1,0,-1,0,-1);
-    return 1;
-  }
   
   typedef unsigned short SegPixel;
   typedef unsigned char InputPixelType;
@@ -202,7 +127,33 @@ int vtkConnectedThresholdImageFilter::RequestData(vtkInformation* request, vtkIn
   return 1;
 }
 
-void vtkConnectedThresholdImageFilter::PrintSelf(ostream& os, vtkIndent indent)
+// int vtkConnectedThresholdStencilFilter::RequestInformation(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
+// {
+//   vtkInformation* inInfo = inputVector[0]->GetInformationObject(0);
+//   vtkInformation* outInfo = outputVector->GetInformationObject(0);
+//   
+//   int wholeExtent[6];
+//   double spacing[3];
+//   
+//   // Use the same input spacing
+//   inInfo->Get(vtkDataObject::SPACING(), spacing);
+//   outInfo->Set(vtkDataObject::SPACING(), spacing, 3);
+//   
+//   std::cout << "REQUEST EXTENT" << std::endl;
+//   wholeExtent[0] = 0;
+//   wholeExtent[1] = 82;
+//   wholeExtent[2] = 164;
+//   wholeExtent[3] = 420;
+//   wholeExtent[4] = 0;
+//   wholeExtent[5] = 22;
+//   
+//   outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),wholeExtent,6); 
+//   
+//   return 1;
+// }
+
+
+void vtkConnectedThresholdStencilFilter::PrintSelf(ostream& os, vtkIndent indent)
 {
     vtkImageAlgorithm::PrintSelf(os, indent);
     os << indent << "Threshold: " << m_threshold << endl;

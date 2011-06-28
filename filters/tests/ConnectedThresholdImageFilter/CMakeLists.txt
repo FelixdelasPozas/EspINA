@@ -1,0 +1,23 @@
+SET(TESTS 
+  pipeline
+  invalidSeed
+)
+
+# Include libCajal header files
+INCLUDE_DIRECTORIES (../..)
+
+SET(LIB_DEPENDECIES
+  vtkRendering
+  CajalFilters
+)
+
+SET (STACK_DIR "" CACHE PATH "Path to test Stack's folder")
+
+get_filename_component( COMPONENT_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+
+FOREACH(TEST ${TESTS})
+	SET(EXE_NAME "${COMPONENT_NAME}${TEST}")
+	ADD_EXECUTABLE(${EXE_NAME} ${TEST}.cpp)
+	TARGET_LINK_LIBRARIES(${EXE_NAME} ${LIB_DEPENDECIES})
+	ADD_TEST("${COMPONENT_NAME}-${TEST}" ${EXECUTABLE_OUTPUT_PATH}/${EXE_NAME} ${STACK_DIR})
+ENDFOREACH(TEST)
