@@ -1,3 +1,2 @@
 add_subdirectory(ConnectedThresholdImageFilter)
 add_subdirectory(ConnectedThresholdRegionGrowImageFilter)
-add_subdirectory(ConnectedThresholdStencilFilter)
