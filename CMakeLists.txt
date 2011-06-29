@@ -13,6 +13,7 @@ IF(BUILD_TESTING)
   MARK_AS_ADVANCED(BUILDNAME)
 ENDIF(BUILD_TESTING)
 
+SET (ITK_VTK_GLUE ${ITK_DIR}/../Wrapping/WrapITK/ExternalProjects/ItkVtkGlue/src)
 
 #Has to be in the CMakeLists that declares a project
 #may subprojects should be done and thus this move to
