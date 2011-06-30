@@ -107,8 +107,9 @@ signals:
   void selectionAborted();
 };
 
-class IVOI
+class IVOI : public QObject
 {
+  Q_OBJECT
 public:
   virtual ~IVOI(){}
 
@@ -124,6 +125,10 @@ public:
   virtual void cancelVOI() = 0;
   
   virtual void setSource(Sample *product) { m_product  = product;}
+
+signals:
+  void voiCancelled();
+
   
 protected:
   Sample *m_product;
@@ -154,10 +159,18 @@ public:
   //IFilter *applyVOI(vtkProduct *product);
   //! Restores VOI transformations
   //IFilter *restoreVOITransformation(vtkProduct *product);
+  QCursor cursor()
+  {
+    if (m_handler)
+      return m_handlerCursor;
+    else
+      return QCursor(Qt::ArrowCursor);
+    
+  }
   
 public slots:
   //! Register @sh as active Selection Handler
-  void setSelectionHandler(ISelectionHandler *sh);
+  void setSelectionHandler(ISelectionHandler *sh, QCursor cursor);
   
 signals:
   void VOIChanged(IVOI *voi);
@@ -168,6 +181,7 @@ public:
   
 private:
   ISelectionHandler *m_handler;
+  QCursor m_handlerCursor;
   IVOI *m_voi;
   static SelectionManager *m_singleton;
 };

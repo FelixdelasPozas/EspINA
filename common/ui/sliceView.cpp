@@ -220,6 +220,16 @@ bool SliceView::eventFilter(QObject* obj, QEvent* event)
     int numSteps = we->delta()/8/15;//Refer to QWheelEvent doc.
     m_spinBox->setValue(m_spinBox->value() + numSteps);
     event->ignore();
+  }else if (event->type() == QEvent::Enter)
+  {
+    QWidget::enterEvent(event);
+    QApplication::setOverrideCursor(SelectionManager::instance()->cursor());
+    event->accept();
+  }else if (event->type() == QEvent::Leave)
+  {
+    QWidget::leaveEvent(event);
+    QApplication::restoreOverrideCursor();
+    event->accept();
   }
   return QObject::eventFilter(obj, event);
 }
@@ -630,7 +640,7 @@ void SliceView::setVOI(IVOI* voi)
 //-----------------------------------------------------------------------------
 void SliceView::updateScene()
 {
-  qDebug("Updating scene ...");
+  //qDebug("Updating scene ...");
   QApplication::setOverrideCursor(Qt::WaitCursor);
   if (m_sampleRep)
   {

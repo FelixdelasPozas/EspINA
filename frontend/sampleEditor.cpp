@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
+    Copyright (C) <year>  <name of author>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -14,47 +14,78 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
 
+*/
 
 #include "sampleEditor.h"
 
-#include "unitExplorer.h"
+#include "espina.h"
 #include "products.h"
-#include <data/modelItem.h>
 
-#include <assert.h>
-/*
-SampleEditor::SampleEditor(QObject* parent):
-  QStyledItemDelegate(parent)
-{
-}
-*/
+#include <QDebug>
 
-QWidget* SampleEditor::createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const
+SampleEditor::SampleEditor(QWidget* parent, Qt::WindowFlags f)
+        : QDialog(parent, f)
 {
-  UnitExplorer *unitExplorer = new UnitExplorer();
-  unitExplorer->setFocusPolicy(Qt::StrongFocus);
-  return unitExplorer;
+    setupUi(this);
+
+    connect(m_unit,SIGNAL(currentIndexChanged(int)),this,SLOT(unitChanged(int)));
+    connect(pushButton, SIGNAL(clicked(bool)), this, SLOT(updateSpacing()));
+   /* connect(EspINA::instance(), SIGNAL(segmentationCreated(Segmentation*)), 
+            this, SLOT(close()));*/
 }
 
-void SampleEditor::setEditorData(QWidget* editor, const QModelIndex& index) const
+void SampleEditor::setSample(Sample* sample)
 {
-  UnitExplorer *sed = dynamic_cast<UnitExplorer *>(editor);
-  IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
-  Sample *sample = dynamic_cast<Sample *>(item);
-  assert(sample);
-  sed->setWindowTitle(index.data(Qt::DisplayRole).toString());
-  sed->setSample(sample);
+    m_sample = sample;
+    double spacing[3];
+
+    sample->spacing(spacing);
+
+    m_xSize->setValue(spacing[0]);
+    m_ySize->setValue(spacing[1]);
+    m_zSize->setValue(spacing[2]);
+
+    // If the Sample has segmentations the spacing cannot change
+    if ( !sample->segmentations().empty() && pushButton->isEnabled())
+    {
+        pushButton->setDisabled(true);
+        pushButton->setToolTip("The spacing could not be changed if the sample has segmentations");
+    }
 }
 
-void SampleEditor::setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const
+void SampleEditor::spacing(double value[3])
 {
-  QStyledItemDelegate::setModelData(editor, model, index);
+  value[0] = m_xSize->cleanText().toFloat();
+  value[1] = m_ySize->cleanText().toFloat();
+  value[2] = m_zSize->cleanText().toFloat();
 }
 
 
 
+void SampleEditor::unitChanged(int unitIndex)
+{
+    m_xSize->setSuffix(m_unit->currentText());
+    m_ySize->setSuffix(m_unit->currentText());
+    m_zSize->setSuffix(m_unit->currentText());
+}
 
+void SampleEditor::updateSpacing()
+{
+  setResult(QDialog::Accepted);
+  accept();
+}
+
+void SampleEditor::enterEvent(QEvent* event)
+{
+  QWidget::enterEvent(event);
+  QApplication::setOverrideCursor(Qt::ArrowCursor);
+}
+
+void SampleEditor::leaveEvent(QEvent* event)
+{
+  QWidget::leaveEvent(event);
+  QApplication::restoreOverrideCursor();
+}
 
 

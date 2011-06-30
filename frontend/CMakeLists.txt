@@ -27,7 +27,7 @@ qt4_add_resources(RCC_BUILT_SOURCES
 # Create header's MOC files
 qt4_wrap_cpp (MOC_BUILT_SOURCES
   espinaMainWindow.h
-  unitExplorer.h
+  sampleEditor.h
   SegmentationExplorer.h
   qTreeComboBox.h
   )
@@ -35,7 +35,7 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
 # Create Interface files
 qt4_wrap_ui (UI_BUILT_SOURCES
   espinaMainWindow.ui
-  unitExplorer.ui
+  sampleEditor.ui
   segmentationExplorer.ui
   )
 

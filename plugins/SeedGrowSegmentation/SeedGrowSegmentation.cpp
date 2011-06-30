@@ -114,15 +114,13 @@ void SeedGrowSegmentation::waitSeedSelection(bool wait)
   if (wait)
   {
     if (dynamic_cast<BestPixelSelector*>(m_seedSelector))
-      QApplication::setOverrideCursor(QCursor(QPixmap(":crossRegion.svg")));
+      SelectionManager::instance()->setSelectionHandler(m_seedSelector, QCursor(QPixmap(":crossRegion.svg")));
     else
-      QApplication::setOverrideCursor(Qt::CrossCursor);
-    
-    SelectionManager::instance()->setSelectionHandler(m_seedSelector);
+      SelectionManager::instance()->setSelectionHandler(m_seedSelector, Qt::CrossCursor);
     m_segButton->setChecked(true);
   }else
   {
-    SelectionManager::instance()->setSelectionHandler(NULL);
+    SelectionManager::instance()->setSelectionHandler(NULL, Qt::ArrowCursor);
   }
 }
 
@@ -199,6 +197,9 @@ void SeedGrowSegmentation::buildSelectors()
   handler->multiSelection = false;
   handler->filters << "EspINA_Sample";
   addPixelSelector(action, handler);
+  
+  m_seedSelector = handler;
+  m_segButton->setIcon(action->icon());
 }
 
 
@@ -216,11 +217,11 @@ void SeedGrowSegmentation::buildUI()
   m_segButton = new QToolButton();
   m_segButton->setCheckable(true);
   m_selectors = new QMenu();
+  m_segButton->setAutoRaise(true);
+  m_segButton->setIconSize(QSize(20,20));
   
   buildSelectors();
-  
-  m_seedSelector = m_seedSelectors.value(m_seedSelectors.keys().first());
-  m_segButton->setIcon(m_seedSelectors.key(m_seedSelector)->icon());
+
   m_segButton->setMenu(m_selectors);
   
   // Plugin's Widget Layout

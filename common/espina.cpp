@@ -765,8 +765,11 @@ void EspINA::loadSource(pqPipelineSource* proxy)
 //-----------------------------------------------------------------------------
 void EspINA::clear()
 {
+  SelectionManager::instance()->setVOI(NULL);
+  SelectionManager::instance()->setSelectionHandler(NULL,Qt::ArrowCursor);
   // Delete Samples (and their segmentations)
   this->removeSamples();
+  
   
   // Delete taxonomy
   beginRemoveRows(taxonomyRoot(), 0, rowCount(taxonomyRoot())-1);

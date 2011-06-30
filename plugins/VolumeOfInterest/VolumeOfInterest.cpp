@@ -131,6 +131,7 @@ void VolumeOfInterest::buildVOIs()
     m_VOIMenu);
   voi = new RectangularVOI();
   addVOI(action, voi);
+  connect(voi, SIGNAL(voiCancelled()),this,SLOT(cancelVOI()));
 }
 
 void VolumeOfInterest::buildUI()

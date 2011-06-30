@@ -138,7 +138,7 @@
    </attribute>
    <addaction name="toggleVisibility"/>
   </widget>
-  <widget class="QDockWidget" name="objectInspector">
+  <widget class="QDockWidget" name="segmentationEditor">
    <property name="windowTitle">
     <string>Segmentations</string>
    </property>

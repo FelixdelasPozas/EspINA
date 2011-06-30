@@ -4,14 +4,20 @@
 #include <pqApplicationCore.h>
 #include <pqPipelineSource.h>
 
+#include "espina_debug.h"
+
 using namespace SpatialExtension;
 //-----------------------------------------------------------------------------
 SampleRepresentation::SampleRepresentation(Sample* sample): ISampleRepresentation(sample)
 {
   //TODO create VTK filter
+  m_sample->spacing(m_spacing);
+  
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   vtkFilter::Arguments volArgs;
   volArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT, m_sample->id()));
+  QString spacing = QString("%1,%2,%3").arg(m_spacing[0]).arg(m_spacing[1]).arg(m_spacing[2]);
+  volArgs.push_back(vtkFilter::Argument("OutputSpacing",vtkFilter::DOUBLEVECT, spacing));
   m_rep = cob->createFilter("filters", "ImageChangeInformation", volArgs);
   assert(m_rep->numProducts() == 1);
 }
@@ -47,24 +53,24 @@ pqPipelineSource* SampleRepresentation::pipelineSource()
 //-----------------------------------------------------------------------------
 void SampleRepresentation::setSpacing(double x, double y, double z)
 {
-  double spacing[3];
   pqPipelineSource* changeInformationFilter = m_rep->pipelineSource();
 //   changeInformationFilter->updatePipeline();
-  spacing[0] = x;
-  spacing[1] = y;
-  spacing[2] = z;
+  m_spacing[0] = x;
+  m_spacing[1] = y;
+  m_spacing[2] = z;
   
-  vtkSMPropertyHelper(changeInformationFilter->getProxy(), "OutputSpacing" ).Set(spacing, 3);
+  vtkSMPropertyHelper(changeInformationFilter->getProxy(), "OutputSpacing" ).Set(m_spacing, 3);
   //   mutex.lock();
   changeInformationFilter->getProxy()->UpdateVTKObjects();
-//   QString id(m_sample->id());
-//   m_creator = CachedObjectBuilder::instance()->
-//               registerProductCreator(id, changeInformationFilter);
-//   
-//   this->spacing(spacing);
-//   qDebug() << "Spacing: " << spacing[0] << spacing[1] << spacing[2];
-//   changeInformationFilter->updatePipeline();  
 }
+
+void SampleRepresentation::spacing(double value[3])
+{
+  value[0] = m_spacing[0];
+  value[1] = m_spacing[1];
+  value[2] = m_spacing[2];
+}
+
 
 /*
 //-----------------------------------------------------------------------------
