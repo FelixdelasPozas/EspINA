@@ -13,7 +13,11 @@ set (TEST_NAME ${COMPONENT_NAME}_test)
 create_test_sourcelist(TESTS  
   ${TEST_NAME}.cpp
   pipeline.cpp
-  invalidSeed.cpp
+  SingleInputSameExtent
+  SingleInputSameExtent_Stepped
+  SingleInputReducedExtent
+  SingleInputReducedExtent_Stepped
+  SeveralInputReducedExtent.cpp
   )
 
 add_executable(${TEST_NAME} ${TESTS})
