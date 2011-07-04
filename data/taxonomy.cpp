@@ -79,9 +79,9 @@ TaxonomyNode* TaxonomyNode::addElement(QString subElement, QString supElement, Q
     throw "RepeatedElementException"; //TODO change exception
   TaxonomyNode* supNode = this->getComponent(supElement);
   TaxonomyNode *newElement = NULL;
-  QString newColor = ((RGBColor == "") ? supNode->getColor().name() : RGBColor);
   if( supNode )
   {
+    QString newColor = ((RGBColor == "") ? supNode->getColor().name() : RGBColor);
     newElement = supNode->insertElement( subElement, newColor );
     //newElement->setColor(supNode->getColor());
   }
