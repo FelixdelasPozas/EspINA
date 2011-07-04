@@ -6,6 +6,13 @@ cmake_minimum_required (VERSION 2.6)
 set (CAJAL_VERSION_MAJOR 0)
 set (CAJAL_VERSION_MINOR 2)
 
+SET (CTEST_INITIAL_CACHE  "
+  CXXFLAGS:STRING=-g -O0 -Wall -Wshadow -Wunused-function -Wunused -Wno-system-headers -Wno-deprecated -Woverloaded-virtual -Wwrite-strings -fprofile-arcs -ftest-coverage
+  CFLAGS:STRING=-g -O0 -Wall -W -fprofile-arcs -ftest-coverage
+  LDFLAGS:STRING=-fprofile-arcs -ftest-coverage
+  "
+  )
+
 include (CTest)
 ENABLE_TESTING()
 IF(BUILD_TESTING)
