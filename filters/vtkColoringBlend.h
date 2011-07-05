@@ -13,6 +13,7 @@ class vtkAlgorithmOutput;
 class VTK_IMAGING_EXPORT vtkColoringBlend : 
   public vtkImageAlgorithm
 {
+  //BTX
   typedef unsigned char InputPixelType;
   typedef unsigned char OutputPixelType;
   
@@ -27,6 +28,7 @@ class VTK_IMAGING_EXPORT vtkColoringBlend :
     double spacing[3];
     OutputPixelType color[3];
   };
+  //ETX
   
 public:
   static vtkColoringBlend *New();
@@ -58,10 +60,12 @@ private:
   void operator=(const vtkColoringBlend&);// Not implemented
     
 private:
+  //BTX
   bool m_init;
   int m_numBlendedInputs;
   int m_requestedArea[6];
   std::vector<Input> m_inputs;
+  //ETX
 };
 
 #endif//VTK_COLORING_BLEND_H

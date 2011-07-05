@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <vtkInformation.h>
 #include <vtkInformationVector.h>
-#include <vtkStreamingDemandDrivenPipeline.h>
+#include <vtkPointData.h>
 //#include "vtkMultiProcessController.h"
 
 #include <cmath>
@@ -78,6 +78,7 @@ int vtkColoringBlend::RequestData(vtkInformation* request, vtkInformationVector*
 //     inInfo[i] = inputVector[0]->GetInformationObject(i);
 //     input[i]  = vtkImageData::SafeDownCast(inInfo[i]->Get(vtkDataObject::DATA_OBJECT()));
     m_inputs[i].ptr = (InputPixelType *)(m_inputs[i].image->GetScalarPointer());
+    std::cout << "Scalar type: " << m_inputs[i].image->GetScalarType() << std::endl;
   }
   
   vtkInformation *outInfo = outputVector->GetInformationObject(0);
@@ -85,15 +86,17 @@ int vtkColoringBlend::RequestData(vtkInformation* request, vtkInformationVector*
 
   vtkDebugMacro(<< "Creating Output Image Dimensions");
   
-  output->SetDimensions(m_inputs[0].image->GetDimensions());
-  output->SetSpacing(m_inputs[0].image->GetSpacing());
+  output->SetDimensions(m_inputs[0].dims);
+  output->SetSpacing(m_inputs[0].spacing);
   output->SetOrigin(m_inputs[0].image->GetOrigin());
   
-  output->SetScalarTypeToUnsignedChar();
-  output->SetNumberOfScalarComponents(3);
-  output->AllocateScalars();
+  //output->SetScalarTypeToUnsignedChar();
+  //output->SetNumberOfScalarComponents(3);
+  //output->AllocateScalars();
   
   OutputPixelType *outPtr = (OutputPixelType *)(output->GetScalarPointer());
+  
+  
   
   if (!m_init)
   {
@@ -116,6 +119,7 @@ int vtkColoringBlend::RequestData(vtkInformation* request, vtkInformationVector*
 	m_init = true;
   }
   
+  
   for(int i = m_numBlendedInputs; i < m_inputs.size(); i++)
   {
     int updateRegion[6];
@@ -124,7 +128,7 @@ int vtkColoringBlend::RequestData(vtkInformation* request, vtkInformationVector*
       updateRegion[2*dim] = std::max(m_requestedArea[2*dim],m_inputs[i].requestedArea[2*dim]);
       updateRegion[2*dim+1] = std::min(m_requestedArea[2*dim+1],m_inputs[i].requestedArea[2*dim+1]);
     }
-    m_inputs[i].color[0] = 255;
+    m_inputs[i].color[0] = 255;//(255*rand())%255;
     m_inputs[i].color[1] = m_inputs[i].color[2] = 0;
     for (int x = updateRegion[0]; x < updateRegion[1]; x++)
       for (int y = updateRegion[2]; y < updateRegion[3]; y++)
@@ -147,6 +151,9 @@ int vtkColoringBlend::RequestData(vtkInformation* request, vtkInformationVector*
 	}
   }
   
+  output->GetPointData()->GetScalars()->SetName(m_inputs[0].image->GetPointData()->GetScalars()->GetName());
+  //output->GetPointData()->SetScalars(output->GetPointData()->GetScalars());
+  
   m_numBlendedInputs = m_inputs.size();
   invalidateRequestArea();
   
@@ -156,10 +163,12 @@ int vtkColoringBlend::RequestData(vtkInformation* request, vtkInformationVector*
 int vtkColoringBlend::RequestInformation(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
   // get the info objects
-  vtkInformation *inInfo = inputVector[0]->GetInformationObject(0); 
-  vtkInformation* outInfo = outputVector->GetInformationObject(0);  
+  //   vtkInformation *inInfo = inputVector[0]->GetInformationObject(0); 
+  vtkInformation* outInfo = 
+    outputVector->GetInformationObject(0);  
+  vtkDataObject::SetPointDataActiveScalarInfo(
+    outInfo, VTK_UNSIGNED_CHAR, 3);
   
-  vtkDataObject::SetPointDataActiveScalarInfo(outInfo, VTK_UNSIGNED_CHAR, 4);
   return 1;
 }
 
@@ -183,6 +192,15 @@ void vtkColoringBlend::requestArea(vtkImageData *inputImage)
   Input input;
   
   inputImage->Update();
+  
+  for (int i = 0; i < m_inputs.size();i++)
+  {
+    if (m_inputs[i].image == inputImage)
+    {
+      vtkDebugMacro(<< "Input already added");
+      return;
+    }
+  }
   
   input.image = inputImage;
   inputImage->GetBounds(input.bounds);

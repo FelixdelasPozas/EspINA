@@ -43,7 +43,7 @@ int SingleInputReducedExtent(int argc, char **argv)
   std::string outFileName("SingleInputReducedExtent_out.mhd");
   writer->SetFileName(outFileName.c_str());
   writer->SetInputConnection(blender->GetOutputPort());
-//   writer->Write();
+  writer->Write();
   
   // El resto es igual
   vtkImageActor *imageActor = vtkImageActor::New();
@@ -63,7 +63,7 @@ int SingleInputReducedExtent(int argc, char **argv)
   renWin->AddRenderer( ren1 );
   renWin->SetSize( 600, 600 );
   renWin->Render();
-//   interactor->Start();
+  interactor->Start();
 
   return 0;
 }

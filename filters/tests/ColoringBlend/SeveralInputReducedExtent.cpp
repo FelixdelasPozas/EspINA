@@ -67,7 +67,7 @@ int SeveralInputReducedExtent(int argc, char **argv)
   renWin->AddRenderer( ren1 );
   renWin->SetSize( 600, 600 );
   renWin->Render();
-//   interactor->Start();
+  interactor->Start();
 
   return 0;
 }
