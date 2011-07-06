@@ -1,3 +1,6 @@
+find_package(Quazip REQUIRED)
+include(${QUAZIP_USE_FILE})
+
 include_directories(
   cache
   proxies
@@ -48,7 +51,9 @@ set(Espina_SOURCE_FILES
   ${UI_BUILT_SOURCES}
   )
 
-set(EXTERNAL_LIBS zip)
+include_directories({${QUAZIP_INCLUDE_DIR})
+
+set(EXTERNAL_LIBS ${QUAZIP_LIBRARIES})
 
 add_library (Espina SHARED ${Espina_SOURCE_FILES})
 

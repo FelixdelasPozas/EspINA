@@ -24,6 +24,8 @@ IF(BUILD_TESTING)
   MARK_AS_ADVANCED(BUILDNAME)
 ENDIF(BUILD_TESTING)
 
+SET (ITK_VTK_GLUE ${ITK_DIR}/../Wrapping/WrapITK/ExternalProjects/ItkVtkGlue/src)
+
 add_subdirectory (common)
 add_subdirectory (plugins)
 add_subdirectory (frontend)

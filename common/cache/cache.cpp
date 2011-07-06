@@ -81,7 +81,7 @@ vtkFilter *Cache::getEntry(const Cache::Index index)
   else
   {
     // Try to load from cache disk
-    QStringList fileName(m_diskCachePath.filePath(index + ".pvd"));//"/tmp/" + index + ".pvd"); //TODO set a workdirectory
+    QStringList fileName(m_diskCachePath.filePath(index + ".pvd"));
     pqPipelineSource *diskSource = pqLoadDataReaction::loadData(fileName);
     if( diskSource )
     {

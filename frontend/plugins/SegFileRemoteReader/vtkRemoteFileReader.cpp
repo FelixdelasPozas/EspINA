@@ -86,12 +86,11 @@ int vtkRemoteFileReader::RequestData(
   QString TraceContent, TaxonomyContent;
   QTextStream TraceStream(&TraceContent), TaxonomyStream(&TaxonomyContent);
 
-  IOEspinaFile::loadFile(this->GetFileName(), TraceStream, TaxonomyStream);
-
-  qDebug() << TaxonomyStream.string()->toStdString().c_str() << "\n" << TraceStream.string()->toStdString().c_str();
-  
-  this->SetTaxonomy(TaxonomyStream.string()->toUtf8());
-  this->SetTrace(TraceStream.string()->toUtf8());
+  if(IOEspinaFile::loadFile(this->GetFileName(), TraceStream, TaxonomyStream))
+  {
+    this->SetTaxonomy(TaxonomyStream.string()->toUtf8());
+    this->SetTrace(TraceStream.string()->toUtf8());
+  }
   /*
   std::string readed;
   std::ifstream file(this->GetFileName());
