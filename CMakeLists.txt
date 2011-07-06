@@ -17,6 +17,13 @@ include(${PARAVIEW_USE_FILE})
 find_package(Cajal REQUIRED)
 include(${CAJAL_USE_FILE})
 
+include (CTest)
+ENABLE_TESTING()
+IF(BUILD_TESTING)
+  SET(BUILDNAME "${BUILDNAME}" CACHE STRING "Name of build on the dashboard")
+  MARK_AS_ADVANCED(BUILDNAME)
+ENDIF(BUILD_TESTING)
+
 add_subdirectory (common)
 add_subdirectory (plugins)
 add_subdirectory (frontend)
@@ -31,7 +38,6 @@ configure_file(
 
 file (GLOB PARAVIEWFILES ${ParaView_BINARY_DIR}/bin/*.so*)
 file (GLOB ITKFILES ${ITK_DIR}/bin/*.so*)
-MESSAGE (STATUS "Library Files:" ${PARAVIEWFILES} ${ITKFILES})
 
 install (FILES ${PARAVIEWFILES} DESTINATION lib/espina)
 install (FILES ${ITKFILES} DESTINATION lib/espina)
@@ -56,3 +62,4 @@ set (CPACK_DEBIAN_PACKAGE_DEPENDS "libzip1,
 set( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/CMake/debian/postinst;")
 
 include (CPack)
+

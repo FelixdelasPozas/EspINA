@@ -36,3 +36,4 @@ foreach(TEST ${TESTS})
 	add_test(Espina-${TEST} ${EXECUTABLE_OUTPUT_PATH}/${EXE_NAME})
 endforeach(TEST)
 
+add_subdirectory(IOEspinaFile)
