@@ -40,12 +40,10 @@ SampleRepresentation::SampleRepresentation(Sample* sample)
 {
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   
-  assert(sample->representation("01_Color"));
-  
   vtkFilter::Arguments filterArgs;
-  filterArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT, sample->representation("01_Color")->id()));
+  filterArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT, sample->id()));
   
-  m_rep = cob->createFilter("filters", "ImageBlend", filterArgs);
+  m_rep = cob->createFilter("filters", "ImageCBlend", filterArgs);
   assert(m_rep);
 }
 
@@ -70,7 +68,7 @@ pqPipelineSource* SampleRepresentation::pipelineSource()
   if (m_enable)
     return m_rep->pipelineSource();
   else
-    return m_sample->representation("01_Color")->pipelineSource();
+    return m_sample->creator()->pipelineSource();
 }
 
 void SampleRepresentation::render(pqView* view, ViewType type)
@@ -79,11 +77,23 @@ void SampleRepresentation::render(pqView* view, ViewType type)
 
 void SampleRepresentation::requestUpdate(bool force)
 {
+  vtkSMProperty* p;
+  p = m_rep->pipelineSource()->getProxy()->GetProperty("Input");
+  vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
+  foreach(Segmentation *seg, m_sample->segmentations())
+  {
+    if (seg->visible())
+    {
+      input->AddInputConnection(seg->creator()->pipelineSource()->getProxy(),0);
+    }
+  }
+  emit representationUpdated();//DEBUG
+  return;//DEBUG
+  
   if (m_numberOfBlendedSeg != m_sample->segmentations().size() || force) 
   {
     m_numberOfBlendedSeg = m_sample->segmentations().size();
     
-    vtkSMProperty* p;
     
     vtkstd::vector<vtkSMProxy *> inputs;
     vtkstd::vector<unsigned int> ports;
@@ -102,7 +112,7 @@ void SampleRepresentation::requestUpdate(bool force)
     }
     
     p = m_rep->pipelineSource()->getProxy()->GetProperty("Input");
-    vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
+    //vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
     if (input)
     {
       input->RemoveAllProxies();

@@ -8,6 +8,7 @@ ADD_PARAVIEW_PLUGIN(
 	EspinaFilters "0.1" 
 	REQUIRED_ON_SERVER
 	SERVER_MANAGER_XML EspinaFilters.xml
+	SERVER_MANAGER_SOURCES vtkColoringBlend.cpp
 	)
 
 install (TARGETS EspinaFilters LIBRARY DESTINATION /usr/bin/plugins)
