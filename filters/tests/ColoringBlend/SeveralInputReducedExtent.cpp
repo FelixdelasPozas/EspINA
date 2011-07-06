@@ -35,6 +35,7 @@ int SeveralInputReducedExtent(int argc, char **argv)
   vtkSmartPointer<vtkColoringBlend> blender =
     vtkSmartPointer<vtkColoringBlend>::New();
     
+  blender->SetNumberOfThreads(3);
   blender->AddInputConnection(0, bgImage->GetOutputPort());
   blender->AddInputConnection(0,input1->GetOutputPort());
   blender->AddInputConnection(0,input2->GetOutputPort());
@@ -67,7 +68,7 @@ int SeveralInputReducedExtent(int argc, char **argv)
   renWin->AddRenderer( ren1 );
   renWin->SetSize( 600, 600 );
   renWin->Render();
-  interactor->Start();
+//   interactor->Start();
 
   return 0;
 }

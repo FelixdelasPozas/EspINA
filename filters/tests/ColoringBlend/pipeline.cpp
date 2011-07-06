@@ -23,6 +23,7 @@ int pipeline(int argc, char **argv)
   vtkSmartPointer<vtkColoringBlend> blender =
     vtkSmartPointer<vtkColoringBlend>::New();
     
+  blender->SetNumberOfThreads(3);
   blender->AddInputConnection(0,bgImage->GetOutputPort());
   
   blender->DebugOn();

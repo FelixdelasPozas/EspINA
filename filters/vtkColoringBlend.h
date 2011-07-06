@@ -1,8 +1,10 @@
 #ifndef VTK_COLORING_BLEND_H
 #define VTK_COLORING_BLEND_H
 
-#include "vtkImageAlgorithm.h"
+#include "vtkThreadedImageAlgorithm.h"
+
 #include <vector>
+#include <vtkImageProgressIterator.h>
 
 //! Blend images together using alpha and coloring
 //! inputs according to reference colors
@@ -11,7 +13,7 @@
   
 class vtkAlgorithmOutput;
 class VTK_IMAGING_EXPORT vtkColoringBlend : 
-  public vtkImageAlgorithm
+  public vtkThreadedImageAlgorithm
 {
   //BTX
   typedef unsigned char InputPixelType;
@@ -20,10 +22,9 @@ class VTK_IMAGING_EXPORT vtkColoringBlend :
   struct Input
   {
     vtkImageData *image;
-    InputPixelType *ptr;
-    int dims[3];
-    int extent[6];
-    int requestedArea[6];
+//     int dims[3];
+    int extent[6]; //Image pixel limits
+    int requestedAreaExtent[6]; //
     double bounds[6];
     double spacing[3];
     OutputPixelType color[3];
@@ -32,7 +33,7 @@ class VTK_IMAGING_EXPORT vtkColoringBlend :
   
 public:
   static vtkColoringBlend *New();
-  vtkTypeMacro(vtkColoringBlend,vtkImageAlgorithm);
+  vtkTypeMacro(vtkColoringBlend,vtkThreadedImageAlgorithm);
     
   virtual void AddInputConnection(int port, vtkAlgorithmOutput* input);
   
@@ -45,15 +46,35 @@ protected:
   
 
   virtual int FillInputPortInformation(int port, vtkInformation* info);
-  virtual int RequestData(vtkInformation* request,
-			  vtkInformationVector** inputVector,
-			  vtkInformationVector* outputVector);
+//   virtual int RequestData(vtkInformation* request,
+// 			  vtkInformationVector** inputVector,
+// 			  vtkInformationVector* outputVector);
+  
   virtual int RequestInformation(vtkInformation* request,
 				 vtkInformationVector** inputVector,
 				 vtkInformationVector* outputVector);
+  
+  virtual int RequestUpdateExtent(vtkInformation* request,
+				  vtkInformationVector** inputVector,
+				  vtkInformationVector* outputVector);  
+  
+  virtual void ThreadedRequestData(vtkInformation* request,
+				   vtkInformationVector** inputVector,
+				   vtkInformationVector* outputVector,
+				   vtkImageData*** inData,
+				   vtkImageData** outData,
+				   int extent[6],
+				   int threadId);
+  virtual int RequestData(vtkInformation* request,
+			  vtkInformationVector** inputVector,
+			  vtkInformationVector* outputVector);
+  
 private:
-  void invalidateRequestArea();
   void requestArea(vtkImageData* inputImage);
+  //BTX
+  void copyInput(vtkImageIterator<InputPixelType> &inIt, vtkImageIterator<OutputPixelType> &outIt);
+  void blendInputs(vtkImageIterator<InputPixelType> &inIt, vtkImageIterator<OutputPixelType> &outIt, OutputPixelType *color=NULL);
+  //ETX
     
 private:
   vtkColoringBlend(const vtkColoringBlend& );// Not implemented
@@ -62,9 +83,9 @@ private:
 private:
   //BTX
   bool m_init;
-  int m_numBlendedInputs;
-  int m_requestedArea[6];
-  std::vector<Input> m_inputs;
+  std::vector<Input> m_newInputs;
+  std::vector<Input> m_blendedInputs;
+  std::vector<Input> m_removeInputs;
   //ETX
 };
 

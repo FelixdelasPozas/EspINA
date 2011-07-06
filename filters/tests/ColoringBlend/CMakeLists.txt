@@ -12,12 +12,13 @@ set (TEST_NAME ${COMPONENT_NAME}_test)
 
 create_test_sourcelist(TESTS  
   ${TEST_NAME}.cpp
-  pipeline.cpp
-  SingleInputSameExtent
-  SingleInputSameExtent_Stepped
+  pipeline
+  #SingleInputSameExtent
+  #  SingleInputSameExtent_Stepped
   SingleInputReducedExtent
   SingleInputReducedExtent_Stepped
-  SeveralInputReducedExtent.cpp
+  SeveralInputReducedExtent
+  vtkBlendSeveralInputReducedExtent
   )
 
 add_executable(${TEST_NAME} ${TESTS})
