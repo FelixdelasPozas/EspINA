@@ -18,6 +18,7 @@ create_test_sourcelist(TESTS
   SingleInputReducedExtent
   SingleInputReducedExtent_Stepped
   SeveralInputReducedExtent
+  SeveralInputReducedExtent_Stepped
   vtkBlendSeveralInputReducedExtent
   )
 

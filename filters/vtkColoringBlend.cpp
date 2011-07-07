@@ -40,6 +40,36 @@ vtkColoringBlend::vtkColoringBlend()
   m_blendedInputs.clear();
 }
 
+bool intersect(int *reg1, int *reg2, int *intersection = NULL)
+{
+  int intExt[6];
+  
+  for (int i = 0; i < 3; i++)
+  {
+    intExt[i*2] = std::max(reg1[i*2],reg2[i*2]);
+    intExt[1+i*2] = std::min(reg1[1+i*2],reg2[1+i*2]);
+  }
+  
+  if (intersection)
+    memcpy(intersection,intExt,6*sizeof(int));
+  
+  return intExt[0] <= intExt[1] && intExt[2] <=intExt[3] && intExt[4] <= intExt[5];
+}
+
+void correctExtent(int *area, vtkColoringBlend::Input &input, int *extent)
+{
+  //NOTE: Loading segmentations from mhd and pvd files give different extent values
+  // if that's the case, we have to correct the resulting extent
+  bool differentExtent = false;
+  for (int i = 0; i < 6; i++)
+    differentExtent = differentExtent || input.extent[i] != input.requestedAreaExtent[i];
+  
+  for (int i = 0; i < 6; i++)
+    extent[i] = area[i]- (differentExtent?input.requestedAreaExtent[(i/2)*2]:0);
+}
+
+
+
 void vtkColoringBlend::AddInputConnection(int port, vtkAlgorithmOutput* input)
 {
   vtkImageData *inputImage = vtkImageData::SafeDownCast(input->GetProducer()->GetOutputDataObject(0));
@@ -96,14 +126,9 @@ int vtkColoringBlend::RequestUpdateExtent(vtkInformation* request, vtkInformatio
     vtkInformation* inInfo = inputVector[0]->GetInformationObject(i);
     
     //WARNING: Maybe with threads/mpi we shpuld clip the extent
-    inInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(), inInfo->Get(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT()),6);
-    
-//     if (i > 0)// Some inputs are not required to be updated //TODO
-//     {
-//       requestedUpdateExt[0] = requestedUpdateExt[2] = requestedUpdateExt[4] = 0;
-//       requestedUpdateExt[1] = requestedUpdateExt[3] = requestedUpdateExt[5] = -1;
-//       inInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(),requestedUpdateExt, 6);
-//     }
+    int updateExtent[6];
+    intersect(requestedUpdateExt,inInfo->Get(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT()),updateExtent);
+    inInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(), updateExtent,6);
   }
   return 1;
 }
@@ -169,39 +194,6 @@ void vtkColoringBlend::blendInputs(vtkImageIterator<InputPixelType> &inIt, vtkIm
   }
 }
 
-bool intersect(int *reg1, int *reg2, int *intersection = NULL)
-{
-  int intExt[6];
-  
-  for (int i = 0; i < 3; i++)
-  {
-    intExt[i*2] = std::max(reg1[i*2],reg2[i*2]);
-    intExt[1+i*2] = std::min(reg1[1+i*2],reg2[1+i*2]);
-  }
-//   intExt[0] = std::max(reg1[0],reg2[0]);
-//   intExt[2] = std::max(reg1[2],reg2[2]);
-//   intExt[4] = std::max(reg1[4],reg2[4]);
-//   intExt[1] = std::min(reg1[1],reg1[1]);
-//   intExt[3] = std::min(reg1[3],reg1[3]);
-//   intExt[5] = std::min(reg1[5],reg1[5]);
-  
-  if (intersection)
-    memcpy(intersection,intExt,6*sizeof(int));
-  
-  return intExt[0] <= intExt[1] && intExt[2] <=intExt[3] && intExt[4] <= intExt[5];
-}
-
-void transformAreaToExtent(int *area, int *areExtent, int *extent)
-{
-  extent[0] = area[0] - areExtent[0];
-  extent[1] = area[1] - areExtent[0];
-  extent[2] = area[2] - areExtent[2];
-  extent[3] = area[3] - areExtent[2];
-  extent[4] = area[4] - areExtent[4];
-  extent[5] = area[5] - areExtent[4];
-}
-
-
 void vtkColoringBlend::ThreadedRequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector, vtkImageData*** inData, vtkImageData** outData, int extent[6], int threadId)
 {
   vtkInformation *inInfo = 
@@ -235,9 +227,9 @@ void vtkColoringBlend::ThreadedRequestData(vtkInformation* request, vtkInformati
 // 	std::cout << res;
 	int inputRemoveExtent[6];
 	// We need to update only the interesecting area
-	transformAreaToExtent(inputRemoveAreaExtent, m_blendedInputs[i].requestedAreaExtent, inputRemoveExtent);
+	correctExtent(inputRemoveAreaExtent, m_blendedInputs[i], inputRemoveExtent);
 	vtkImageData *input  = m_removeInputs[r].image;//vtkImageData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
-	vtkImageIterator<InputPixelType> inIt(input, inputRemoveAreaExtent); //WARNING: Problems with vtkreaders...
+	vtkImageIterator<InputPixelType> inIt(input, inputRemoveExtent);
 	vtkImageProgressIterator<OutputPixelType> outIt(output, inputRemoveAreaExtent,this,threadId);
 	
 	if (i == 0) // First input
@@ -259,11 +251,10 @@ void vtkColoringBlend::ThreadedRequestData(vtkInformation* request, vtkInformati
     
 //     sprintf(res, "Thread ID: %d: InputArea %d: %d %d %d %d %d %d\n",threadId, i, inputAreaExtent[0], inputAreaExtent[1], inputAreaExtent[2], inputAreaExtent[3],inputAreaExtent[4],inputAreaExtent[5]);
 //     std::cout << res;
-    
     int inputExtent[6];
-    transformAreaToExtent(inputAreaExtent,m_newInputs[i].requestedAreaExtent,inputExtent);
+    correctExtent(inputAreaExtent,m_newInputs[i],inputExtent);
     vtkImageData *input  = m_newInputs[i].image;//vtkImageData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
-    vtkImageIterator<InputPixelType> inIt(input,inputAreaExtent); //WARNING: Problems with vtkreaders...
+    vtkImageIterator<InputPixelType> inIt(input,inputExtent);
     vtkImageIterator<OutputPixelType> outIt(output,inputAreaExtent);
     
     blendInputs(inIt, outIt, m_newInputs[i].color);
@@ -331,114 +322,4 @@ void vtkColoringBlend::requestArea(vtkImageData *inputImage)
   {
     m_newInputs.push_back(input);
   }
-  
-//   if (!validExtent(m_requestedArea))
-//     memcpy(m_requestedArea,input.requestedArea,6*sizeof(int));
-//   else
-//   {
-//     for (int dim = 0; dim < 3; dim++)
-//     {
-//       m_requestedArea[2*dim] = std::min(m_requestedArea[2*dim],input.requestedArea[2*dim]);
-//       m_requestedArea[2*dim+1] = std::max(m_requestedArea[2*dim+1],input.requestedArea[2*dim+1]);
-//     }
-//   }
 }
-
-
-/*
-int vtkColoringBlend::RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
-{
-  
-  //m_numInputs = inputVector[0]->GetNumberOfInformationObjects();
-  
-//   vtkInformation **inInfo = (vtkInformation**)malloc(m_numInputs*sizeof(vtkInformation*));
-//   vtkImageData **input = (vtkImageData**)malloc(m_numInputs*sizeof(vtkImageData*));
-//   InputPixelType **inPtr = (InputPixelType**)malloc(m_numInputs*sizeof(InputPixelType*));
-//   
-  for (int i  = 0; i < m_inputs.size(); i++)
-  {
-//     inInfo[i] = inputVector[0]->GetInformationObject(i);
-//     input[i]  = vtkImageData::SafeDownCast(inInfo[i]->Get(vtkDataObject::DATA_OBJECT()));
-    m_inputs[i].ptr = (InputPixelType *)(m_inputs[i].image->GetScalarPointer());
-    std::cout << "Scalar type: " << m_inputs[i].image->GetScalarType() << std::endl;
-  }
-  
-  vtkInformation *outInfo = outputVector->GetInformationObject(0);
-  vtkImageData *output = vtkImageData::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
-
-  vtkDebugMacro(<< "Creating Output Image Dimensions");
-  
-  output->SetDimensions(m_inputs[0].dims);
-  output->SetSpacing(m_inputs[0].spacing);
-  output->SetOrigin(m_inputs[0].image->GetOrigin());
-  
-  //output->SetScalarTypeToUnsignedChar();
-  //output->SetNumberOfScalarComponents(3);
-  //output->AllocateScalars();
-  
-  OutputPixelType *outPtr = (OutputPixelType *)(output->GetScalarPointer());
-  
-  
-  
-  if (!m_init)
-  {
-    vtkDebugMacro(<< "Copying first input image");
-    vtkDebugMacro(<< "Dimensions " << m_inputs[0].dims[0] << " " << m_inputs[0].dims[1] << " " << m_inputs[0].dims[2]);
-    
-    int *extent = m_inputs[0].extent;
-    
-    for (int x = extent[0]; x < extent[1]; x++)
-      for (int y = extent[2]; y < extent[3]; y++)
-	for (int z = extent[4]; z < extent[5]; z++)
-	{
-	  int px = x+y*m_inputs[0].dims[0]+z*m_inputs[0].dims[0]*m_inputs[0].dims[1];
-	  // Blend other images over first input
-	  outPtr[3*px] = m_inputs[0].ptr[px];
-	  outPtr[3*px+1] = m_inputs[0].ptr[px];
-	  outPtr[3*px+2] = m_inputs[0].ptr[px];
-	}
-	m_numBlendedInputs = 1;
-	m_init = true;
-  }
-  
-  
-  for(int i = m_numBlendedInputs; i < m_inputs.size(); i++)
-  {
-    int updateRegion[6];
-    for (int dim = 0; dim < 3; dim++)
-    {
-      updateRegion[2*dim] = std::max(m_requestedArea[2*dim],m_inputs[i].requestedArea[2*dim]);
-      updateRegion[2*dim+1] = std::min(m_requestedArea[2*dim+1],m_inputs[i].requestedArea[2*dim+1]);
-    }
-    m_inputs[i].color[0] = 255;//(255*rand())%255;
-    m_inputs[i].color[1] = m_inputs[i].color[2] = 0;
-    for (int x = updateRegion[0]; x < updateRegion[1]; x++)
-      for (int y = updateRegion[2]; y < updateRegion[3]; y++)
-	for (int z = updateRegion[4]; z < updateRegion[5]; z++)
-	{
-	  int px = x+y*m_inputs[0].dims[0]+z*m_inputs[0].dims[0]*m_inputs[0].dims[1];
-	  int rpx = (x-m_inputs[i].requestedArea[0]) 
-	    + (y-m_inputs[i].requestedArea[2])*m_inputs[i].dims[0]
-	    + (z-m_inputs[i].requestedArea[4])*m_inputs[i].dims[0]*m_inputs[i].dims[1];
-	  int colored = m_inputs[i].ptr[rpx];
-	  if (colored)
-	  {
-	    for (int c = 0; c < 3; c++)
-	    {
-	      double r = (m_inputs[i].color[c]*0.8)/255;//Alpha
-	      double f = 1.0 - r;
-	      outPtr[3*px+c] = outPtr[3*px+c]*f + m_inputs[i].color[c]*0.8*r;
-	    }
-	  }
-	}
-  }
-  
-  output->GetPointData()->GetScalars()->SetName(m_inputs[0].image->GetPointData()->GetScalars()->GetName());
-  //output->GetPointData()->SetScalars(output->GetPointData()->GetScalars());
-  
-  m_numBlendedInputs = m_inputs.size();
-  invalidateRequestArea();
-  
-  return 1;
-}
-*/

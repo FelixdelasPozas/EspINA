@@ -6,34 +6,35 @@
 #include "vtkRenderer.h"
 #include "vtkCamera.h"
 #include "vtkRenderWindow.h"
-#include "vtkColoringBlend.h"
+#include "vtkImageBlend.h"
 #include <QString>
 #include <QDir>
 #include <vtkRenderWindowInteractor.h>
 
-int SeveralInputReducedExtent(int argc, char **argv)
+int vtkBlendSeveralInputReducedExtent(int argc, char **argv)
 {
   QDir stackPath(argv[1]);
   
   vtkSmartPointer<vtkMetaImageReader> bgImage =
     vtkSmartPointer<vtkMetaImageReader>::New();
-  bgImage->SetFileName((stackPath.filePath("peque.mhd")).toUtf8());
+  bgImage->SetFileName((stackPath.filePath("peque.mha")).toUtf8());
 
   vtkSmartPointer<vtkMetaImageReader> input1 =
     vtkSmartPointer<vtkMetaImageReader>::New();
-  input1->SetFileName((stackPath.filePath("reducedSeg1.mhd")).toUtf8());
+  input1->SetFileName((stackPath.filePath("reducedExtentSegmentation.mhd")).toUtf8());
   
   vtkSmartPointer<vtkMetaImageReader> input2 =
     vtkSmartPointer<vtkMetaImageReader>::New();
-  input2->SetFileName((stackPath.filePath("reducedSeg2.mhd")).toUtf8());
+  input2->SetFileName((stackPath.filePath("reducedExtentSegmentation2.mhd")).toUtf8());
 //   vtkSmartPointer<vtkMetaImageReader> bgImage =
 // //     vtkSmartPointer<vtkMetaImageReader>::New();
 //   bgImage->SetFileName((stackPath.filePath("peque.mha")).toUtf8());
   
   
   // Pasarle el filtro que queremos probar
-  vtkSmartPointer<vtkColoringBlend> blender =
-    vtkSmartPointer<vtkColoringBlend>::New();
+  vtkSmartPointer<vtkImageBlend> blender =
+    vtkSmartPointer<vtkImageBlend>::New();
+    
     
   blender->SetNumberOfThreads(3);
   blender->AddInputConnection(0, bgImage->GetOutputPort());

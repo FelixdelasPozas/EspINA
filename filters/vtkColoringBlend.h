@@ -19,6 +19,7 @@ class VTK_IMAGING_EXPORT vtkColoringBlend :
   typedef unsigned char InputPixelType;
   typedef unsigned char OutputPixelType;
   
+public:
   struct Input
   {
     vtkImageData *image;

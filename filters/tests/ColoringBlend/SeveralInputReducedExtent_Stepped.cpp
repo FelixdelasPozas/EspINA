@@ -11,7 +11,7 @@
 #include <QDir>
 #include <vtkRenderWindowInteractor.h>
 
-int SeveralInputReducedExtent(int argc, char **argv)
+int SeveralInputReducedExtent_Stepped(int argc, char **argv)
 {
   QDir stackPath(argv[1]);
   
@@ -37,10 +37,14 @@ int SeveralInputReducedExtent(int argc, char **argv)
     
   blender->SetNumberOfThreads(3);
   blender->AddInputConnection(0, bgImage->GetOutputPort());
-  blender->AddInputConnection(0,input1->GetOutputPort());
-  blender->AddInputConnection(0,input2->GetOutputPort());
   
   blender->DebugOn();
+  blender->Update();
+
+  blender->AddInputConnection(0,input1->GetOutputPort());
+  blender->Update();
+   
+  blender->AddInputConnection(0,input2->GetOutputPort());
   blender->Update();
   
   vtkSmartPointer<vtkMetaImageWriter> writer =
