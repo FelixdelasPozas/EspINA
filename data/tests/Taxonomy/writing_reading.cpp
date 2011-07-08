@@ -1,6 +1,7 @@
 #include <taxonomy.h>
 #include <fstream>
 #include <QDebug>
+#include <qfile.h>
 
 int diff( std::string file1, std::string file2)
 {
@@ -68,11 +69,23 @@ int main(int argc, const char* argv[])
     return 1;
   
   
-  /*
-  fileContent = "extra_format_tax.xml";
-//   qDebug() << " -- Reading different format file " << fileName << " --";
-  if(IOTaxonomy::openXMLTaxonomy( fileContent ) == NULL)
+  QFile f("test.xml");
+  if( f.open(QIODevice::WriteOnly | QIODevice::Truncate) ) 
+  {
+    f.write(fileContent.toUtf8());
+    f.close();
+  } else
     return 1;
-  */
+  
+  if((tax = IOTaxonomy::openXMLTaxonomy( "test.xml" )) == NULL)
+    return 1;
+  
+  fileName2.clear();
+  IOTaxonomy::writeXMLTaxonomy(tax, fileName2);
+  if( fileContent.compare(fileName2) != 0 )
+    return 1;
+  
+  tax->print();
+  delete tax;
   return 0;
 }

@@ -28,5 +28,7 @@ int main(int argc, const char* argv[])
   
   if( tax->addElement("Cangrejo", "Crustáceo") != NULL )
     return 1;
+  tax->print();
+  delete tax;
   return 0;
 }

@@ -34,5 +34,7 @@ int main(int argc, const char* argv[])
 //     qDebug() << " -- Exception "<< e << " throwed --";
     return 0;
   }
+  tax->print();
+  delete tax;
   return 1; // ERROR !!!
 }
