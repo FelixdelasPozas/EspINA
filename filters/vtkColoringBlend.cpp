@@ -40,6 +40,8 @@ vtkColoringBlend::vtkColoringBlend()
   m_blendedInputs.clear();
 }
 
+//! Determine if two regions intersect, and if @intersection array is
+//! prodived, return the intersection region
 bool intersect(int *reg1, int *reg2, int *intersection = NULL)
 {
   int intExt[6];
@@ -56,10 +58,10 @@ bool intersect(int *reg1, int *reg2, int *intersection = NULL)
   return intExt[0] <= intExt[1] && intExt[2] <=intExt[3] && intExt[4] <= intExt[5];
 }
 
+//!NOTE: Loading segmentations from mhd and pvd files give different extent values
+//! if that's the case, we have to correct the resulting extent
 void correctExtent(int *area, vtkColoringBlend::Input &input, int *extent)
 {
-  //NOTE: Loading segmentations from mhd and pvd files give different extent values
-  // if that's the case, we have to correct the resulting extent
   bool differentExtent = false;
   for (int i = 0; i < 6; i++)
     differentExtent = differentExtent || input.extent[i] != input.requestedAreaExtent[i];
@@ -67,7 +69,6 @@ void correctExtent(int *area, vtkColoringBlend::Input &input, int *extent)
   for (int i = 0; i < 6; i++)
     extent[i] = area[i]- (differentExtent?input.requestedAreaExtent[(i/2)*2]:0);
 }
-
 
 
 void vtkColoringBlend::AddInputConnection(int port, vtkAlgorithmOutput* input)
@@ -103,12 +104,12 @@ int vtkColoringBlend::FillInputPortInformation(int port, vtkInformation* info)
 int vtkColoringBlend::RequestInformation(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
   // get the info objects
-  //   vtkInformation *inInfo = inputVector[0]->GetInformationObject(0); 
   vtkInformation* outInfo = 
     outputVector->GetInformationObject(0);  
+  
+  // Specify output scalar data type
   vtkDataObject::SetPointDataActiveScalarInfo(
     outInfo, VTK_UNSIGNED_CHAR, 3);
-  
   
   return 1;
 }
@@ -125,14 +126,15 @@ int vtkColoringBlend::RequestUpdateExtent(vtkInformation* request, vtkInformatio
   {
     vtkInformation* inInfo = inputVector[0]->GetInformationObject(i);
     
-    //WARNING: Maybe with threads/mpi we shpuld clip the extent
     int updateExtent[6];
     intersect(requestedUpdateExt,inInfo->Get(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT()),updateExtent);
     inInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(), updateExtent,6);
   }
+  
   return 1;
 }
 
+//! Copies input pixels to output
 void vtkColoringBlend::copyInput(vtkImageIterator< vtkColoringBlend::InputPixelType >& inIt, vtkImageIterator< vtkColoringBlend::OutputPixelType >& outIt)
 {
   InputPixelType *inPtr;
@@ -160,6 +162,7 @@ void vtkColoringBlend::copyInput(vtkImageIterator< vtkColoringBlend::InputPixelT
 
 }
 
+//! Blend input color into output color whenever input pixel is not 0
 void vtkColoringBlend::blendInputs(vtkImageIterator<InputPixelType> &inIt, vtkImageIterator<OutputPixelType> &outIt, OutputPixelType *color)
 {
   InputPixelType *inPtr;// = (InputPixelType*)input->GetScalarPointer();
@@ -174,7 +177,7 @@ void vtkColoringBlend::blendInputs(vtkImageIterator<InputPixelType> &inIt, vtkIm
     
     while (outPtr != outEndPtr)
     {
-      if (*inPtr)
+      if (*inPtr)// Non 0 pixel
       {
 	for (int c = 0; c < 3; c++)
 	{
@@ -194,6 +197,7 @@ void vtkColoringBlend::blendInputs(vtkImageIterator<InputPixelType> &inIt, vtkIm
   }
 }
 
+//! Run blending algorithm in the requested extent 
 void vtkColoringBlend::ThreadedRequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector, vtkImageData*** inData, vtkImageData** outData, int extent[6], int threadId)
 {
   vtkInformation *inInfo = 
@@ -207,10 +211,11 @@ void vtkColoringBlend::ThreadedRequestData(vtkInformation* request, vtkInformati
 //   char res[250];
 //   sprintf(res, "Thread ID: %d: %d %d %d %d %d %d\n",threadId, extent[0], extent[1], extent[2], extent[3],extent[4],extent[5]);
 //   std::cout << res;
-    
+  
+  // First of all we have to regenerate the removed area using all already 
+  // blended inputs in the area
   for (int r = 0; r < m_removeInputs.size(); r++)
   {
-    // We have to reset the removed area
     int removeAreaExtent[6];
     if (!intersect(m_removeInputs[r].requestedAreaExtent,extent, removeAreaExtent))
       continue;
@@ -225,21 +230,23 @@ void vtkColoringBlend::ThreadedRequestData(vtkInformation* request, vtkInformati
 // 	std::cout << res;
 // 	sprintf(res, "Thread ID: %d: InputRemoveArea %d: %d %d %d %d %d %d\n",threadId, i, inputRemoveAreaExtent[0], inputRemoveAreaExtent[1], inputRemoveAreaExtent[2], inputRemoveAreaExtent[3],inputRemoveAreaExtent[4],inputRemoveAreaExtent[5]);
 // 	std::cout << res;
-	int inputRemoveExtent[6];
+
 	// We need to update only the interesecting area
+	int inputRemoveExtent[6];
 	correctExtent(inputRemoveAreaExtent, m_blendedInputs[i], inputRemoveExtent);
 	vtkImageData *input  = m_removeInputs[r].image;//vtkImageData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
 	vtkImageIterator<InputPixelType> inIt(input, inputRemoveExtent);
 	vtkImageProgressIterator<OutputPixelType> outIt(output, inputRemoveAreaExtent,this,threadId);
 	
-	if (i == 0) // First input
+	if (i == 0) // First input has to be copied, not blended
 	  copyInput(inIt,outIt);
 	else
 	  blendInputs(inIt,outIt);
       }
     }
   }
-  
+
+  // Then, after all removed areas have been regenerated, new inputs have to be blended
   for (int i = 0; i < m_newInputs.size(); i++)
   {
     m_newInputs[i].color[0] = 255;//(255*rand())%255;//TODO: Get actual colors
@@ -263,8 +270,11 @@ void vtkColoringBlend::ThreadedRequestData(vtkInformation* request, vtkInformati
 
 int vtkColoringBlend::RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
+  // Start threaded execution
   int res = vtkThreadedImageAlgorithm::RequestData(request, inputVector, outputVector);
-
+  // End of thredaed execution
+  
+  // Internal state of inputs if updated
   m_removeInputs.clear();
   m_blendedInputs.insert(m_blendedInputs.end(),m_newInputs.begin(),m_newInputs.end());
   m_newInputs.clear();
@@ -273,12 +283,10 @@ int vtkColoringBlend::RequestData(vtkInformation* request, vtkInformationVector*
 }
 
 
-
 void vtkColoringBlend::PrintSelf(ostream& os, vtkIndent indent)
 {
     vtkImageAlgorithm::PrintSelf(os, indent);
 }
-
 
 void vtkColoringBlend::requestArea(vtkImageData *inputImage)
 {
@@ -294,32 +302,32 @@ void vtkColoringBlend::requestArea(vtkImageData *inputImage)
       return;
     }
     
-  for (int i = 0; i < m_newInputs.size();i++)
-    if (m_newInputs[i].image == inputImage)
-    {
-      vtkDebugMacro(<< "Input already added");
-      return;
-    }
-  
-  // Get input information
-  input.image = inputImage;
-  inputImage->GetBounds(input.bounds);
-  inputImage->GetSpacing(input.spacing);
-  inputImage->GetExtent(input.extent);
-//   inputImage->GetDimensions(input.dims);
-//   input.blended = false;
-  for (int i = 0; i<6; i++)
-    input.requestedAreaExtent[i] = input.bounds[i] / input.spacing[i/2];
-  
-  // To force blending of initial image
-  if (m_newInputs.size() == 0 && m_blendedInputs.size() == 0 && m_removeInputs.size() == 0)
-  {
-    // NOTE:Usually, the same input cannot be in two vectors
-    m_blendedInputs.push_back(input); 
-    m_removeInputs.push_back(input);
-  }
-  else
-  {
-    m_newInputs.push_back(input);
-  }
+    for (int i = 0; i < m_newInputs.size();i++)
+      if (m_newInputs[i].image == inputImage)
+      {
+	vtkDebugMacro(<< "Input already added");
+	return;
+      }
+      
+      // Get input information
+      input.image = inputImage;
+    inputImage->GetBounds(input.bounds);
+    inputImage->GetSpacing(input.spacing);
+    inputImage->GetExtent(input.extent);
+    //   inputImage->GetDimensions(input.dims);
+    //   input.blended = false;
+    for (int i = 0; i<6; i++)
+      input.requestedAreaExtent[i] = input.bounds[i] / input.spacing[i/2];
+    
+    // To force blending of initial image
+      if (m_newInputs.size() == 0 && m_blendedInputs.size() == 0 && m_removeInputs.size() == 0)
+      {
+	// NOTE:Usually, the same input cannot be in two vectors
+	m_blendedInputs.push_back(input); 
+	m_removeInputs.push_back(input);
+      }
+      else
+      {
+	m_newInputs.push_back(input);
+      }
 }
