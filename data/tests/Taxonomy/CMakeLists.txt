@@ -21,6 +21,7 @@ set( TestToRun
   insertInANonExistentSupElement.cpp  
   repeatedElement.cpp
   writing_reading.cpp
+  remove_parent.cpp
 #   ${TESTS} 
 )
 

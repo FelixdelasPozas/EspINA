@@ -1,6 +1,5 @@
-#include <taxonomy.h>
+#include "taxonomy.h"
 
-// int insertInANonExistentSupElement(int argc, const char* argv[])
 int main(int argc, const char* argv[])
 {
   TaxonomyNode* tax;
@@ -26,9 +25,15 @@ int main(int argc, const char* argv[])
   tax->addElement("Manzana", sup);
   tax->addElement("Pera", sup);
   
-  if( tax->addElement("Cangrejo", "Crustáceo") != NULL )
+  // Remove an element
+  tax->removeElement("Pera");
+  // Remove a non existent element
+  tax->removeElement("Pera");
+  if( tax->getParent("Pera") || tax->getComponent("Pera") )
     return 1;
+  
+  
   tax->print();
   delete tax;
-  return 0;
+  return 0; // ERROR !!!
 }
