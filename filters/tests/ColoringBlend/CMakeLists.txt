@@ -20,6 +20,8 @@ create_test_sourcelist(TESTS
   SeveralInputReducedExtent
   SeveralInputReducedExtent_Stepped
   vtkBlendSeveralInputReducedExtent
+  RemoveInput
+  RemoveInput_Stepped
   )
 
 add_executable(${TEST_NAME} ${TESTS})

@@ -32,7 +32,7 @@ vtkColoringBlend::vtkColoringBlend()
 {
   //! Port 0: Blending inputs
   //! Port 1: Reference colors
-  this->SetNumberOfInputPorts(2);
+  this->SetNumberOfInputPorts(3);
   this->SetNumberOfOutputPorts(1);
 //   invalidateRequestArea();
   m_newInputs.clear();
@@ -73,11 +73,62 @@ void correctExtent(int *area, vtkColoringBlend::Input &input, int *extent)
 
 void vtkColoringBlend::AddInputConnection(int port, vtkAlgorithmOutput* input)
 {
-  vtkImageData *inputImage = vtkImageData::SafeDownCast(input->GetProducer()->GetOutputDataObject(0));
-  
-  requestArea(inputImage);
-  vtkAlgorithm::AddInputConnection(port, input);
+  if (port == 0)
+  {
+    vtkImageData *inputImage = vtkImageData::SafeDownCast(input->GetProducer()->GetOutputDataObject(0));
+    
+    if (requestArea(inputImage))
+      vtkAlgorithm::AddInputConnection(port, input);
+  }else if (port == 2)
+  {
+    std::cout << "\t\t\tRemove Input\n\n\n";
+    RemoveInputConnection(0, input);
+  }
 }
+
+void vtkColoringBlend::RemoveInputConnection(int port, vtkAlgorithmOutput* input)
+{
+  if (port == 0)
+  {
+    vtkImageData *inputImage = vtkImageData::SafeDownCast(input->GetProducer()->GetOutputDataObject(0));
+    
+    // Find inputs and move to removeInputs vector
+    std::vector<Input>::iterator it;
+    int numDeletions = 0;
+    
+    it = m_blendedInputs.begin();
+    while (it != m_blendedInputs.end())
+    { 
+      if ((*it).image == inputImage)
+      {
+	m_removeInputs.push_back(*it);
+	it = m_blendedInputs.erase(it);
+	numDeletions++;
+      }
+      else
+	it++;
+    }
+
+    it = m_newInputs.begin();
+    while (it != m_newInputs.end())
+    { 
+      if ((*it).image == inputImage)
+      {
+	m_removeInputs.push_back(*it);
+	it = m_newInputs.erase(it);
+	numDeletions++;
+      }
+      else
+	it++;
+    }
+    
+    if (numDeletions != 1)
+      vtkDebugMacro(<< "WARNING: Input has been removed " << numDeletions << " times.");
+  }
+  
+  vtkAlgorithm::RemoveInputConnection(port, input);
+}
+
 
 
 int vtkColoringBlend::FillInputPortInformation(int port, vtkInformation* info)
@@ -88,16 +139,22 @@ int vtkColoringBlend::FillInputPortInformation(int port, vtkInformation* info)
     info->Set(vtkAlgorithm::INPUT_IS_REPEATABLE(), 1);
     return 1;
   }
-  else 
-    if (port == 1)// Reference Colors
-    {
-      info->Set(vtkAlgorithm::INPUT_IS_OPTIONAL(), 1); //WARNING: Make it mandatory?
-      info->Set(vtkAlgorithm::INPUT_IS_REPEATABLE(), 1);
-      info->Set(vtkDataObject::DATA_TYPE_NAME(), "vtkPolyData");
-      return 1;
-    }
+  else if (port == 1)// Reference Colors
+  {
+    info->Set(vtkAlgorithm::INPUT_IS_OPTIONAL(), 1); //WARNING: Make it mandatory?
+    info->Set(vtkAlgorithm::INPUT_IS_REPEATABLE(), 1);
+    info->Set(vtkDataObject::DATA_TYPE_NAME(), "vtkPolyData");
+    return 1;
+  }
+  else
+  {
+    info->Set(vtkAlgorithm::INPUT_IS_OPTIONAL(), 1); //WARNING: Make it mandatory?
+    info->Set(vtkDataObject::DATA_TYPE_NAME(), "vtkImageData");
+    info->Set(vtkAlgorithm::INPUT_IS_REPEATABLE(), 1);
+    return 1;
+  }
 
-  vtkErrorMacro("This filter does not have more than 2 input port!");
+  vtkErrorMacro("This filter does not have more than 3 input port!");
   return 0;
 }
 
@@ -234,7 +291,7 @@ void vtkColoringBlend::ThreadedRequestData(vtkInformation* request, vtkInformati
 	// We need to update only the interesecting area
 	int inputRemoveExtent[6];
 	correctExtent(inputRemoveAreaExtent, m_blendedInputs[i], inputRemoveExtent);
-	vtkImageData *input  = m_removeInputs[r].image;//vtkImageData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
+	vtkImageData *input  = m_blendedInputs[i].image;//vtkImageData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
 	vtkImageIterator<InputPixelType> inIt(input, inputRemoveExtent);
 	vtkImageProgressIterator<OutputPixelType> outIt(output, inputRemoveAreaExtent,this,threadId);
 	
@@ -282,13 +339,12 @@ int vtkColoringBlend::RequestData(vtkInformation* request, vtkInformationVector*
   return res;
 }
 
-
 void vtkColoringBlend::PrintSelf(ostream& os, vtkIndent indent)
 {
-    vtkImageAlgorithm::PrintSelf(os, indent);
+  vtkImageAlgorithm::PrintSelf(os, indent);
 }
 
-void vtkColoringBlend::requestArea(vtkImageData *inputImage)
+bool vtkColoringBlend::requestArea(vtkImageData *inputImage)
 {
   Input input;
   
@@ -299,35 +355,36 @@ void vtkColoringBlend::requestArea(vtkImageData *inputImage)
     if (m_blendedInputs[i].image == inputImage)
     {
       vtkDebugMacro(<< "Input already added");
-      return;
+      return false;
     }
-    
-    for (int i = 0; i < m_newInputs.size();i++)
-      if (m_newInputs[i].image == inputImage)
-      {
-	vtkDebugMacro(<< "Input already added");
-	return;
-      }
-      
-      // Get input information
-      input.image = inputImage;
-    inputImage->GetBounds(input.bounds);
-    inputImage->GetSpacing(input.spacing);
-    inputImage->GetExtent(input.extent);
-    //   inputImage->GetDimensions(input.dims);
-    //   input.blended = false;
-    for (int i = 0; i<6; i++)
-      input.requestedAreaExtent[i] = input.bounds[i] / input.spacing[i/2];
-    
-    // To force blending of initial image
-      if (m_newInputs.size() == 0 && m_blendedInputs.size() == 0 && m_removeInputs.size() == 0)
-      {
-	// NOTE:Usually, the same input cannot be in two vectors
-	m_blendedInputs.push_back(input); 
-	m_removeInputs.push_back(input);
-      }
-      else
-      {
-	m_newInputs.push_back(input);
-      }
+  
+  for (int i = 0; i < m_newInputs.size();i++)
+    if (m_newInputs[i].image == inputImage)
+    {
+      vtkDebugMacro(<< "Input already added");
+      return false;
+    }
+  
+  // Get input information
+  input.image = inputImage;
+  inputImage->GetBounds(input.bounds);
+  inputImage->GetSpacing(input.spacing);
+  inputImage->GetExtent(input.extent);
+  //   inputImage->GetDimensions(input.dims);
+  //   input.blended = false;
+  for (int i = 0; i<6; i++)
+    input.requestedAreaExtent[i] = input.bounds[i] / input.spacing[i/2];
+  
+  // To force blending of initial image
+    if (m_newInputs.size() == 0 && m_blendedInputs.size() == 0 && m_removeInputs.size() == 0)
+    {
+      // NOTE:Usually, the same input cannot be in two vectors
+      m_blendedInputs.push_back(input); 
+      m_removeInputs.push_back(input);
+    }
+    else
+    {
+      m_newInputs.push_back(input);
+    }
+    return true;
 }

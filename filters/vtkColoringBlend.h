@@ -37,6 +37,7 @@ public:
   vtkTypeMacro(vtkColoringBlend,vtkThreadedImageAlgorithm);
     
   virtual void AddInputConnection(int port, vtkAlgorithmOutput* input);
+  virtual void RemoveInputConnection(int port, vtkAlgorithmOutput* input);
   
   void PrintSelf(ostream& os, vtkIndent indent);
     
@@ -71,7 +72,7 @@ protected:
 			  vtkInformationVector* outputVector);
   
 private:
-  void requestArea(vtkImageData* inputImage);
+  bool requestArea(vtkImageData* inputImage);
   //BTX
   void copyInput(vtkImageIterator<InputPixelType> &inIt, vtkImageIterator<OutputPixelType> &outIt);
   void blendInputs(vtkImageIterator<InputPixelType> &inIt, vtkImageIterator<OutputPixelType> &outIt, OutputPixelType *color=NULL);
