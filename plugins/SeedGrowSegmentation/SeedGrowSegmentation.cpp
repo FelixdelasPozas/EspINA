@@ -42,6 +42,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QSpinBox>
+#include <QCheckBox>
 #include <QWidgetAction>
 #include <QToolButton>
 #include <QMenu>
@@ -163,7 +164,12 @@ void SeedGrowSegmentation::startSegmentation(ISelectionHandler::Selection sel)
   args.insert("Threshold",QString::number(m_threshold->value()));
   // args.insert("VOI",SelectionManager::instance()->voi()->save());
   //createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);
-  SeedGrowSegmentationFilter *sgs_sgsf = new SeedGrowSegmentationFilter(input, SelectionManager::instance()->voi(),args);
+  
+  IVOI *voi = SelectionManager::instance()->voi();
+  if (!voi && m_useDefaultVOI)
+    voi = m_defaultVOI;
+  
+  SeedGrowSegmentationFilter *sgs_sgsf = new SeedGrowSegmentationFilter(input, voi, args);
   QApplication::restoreOverrideCursor();
   if (undoStack)
   {
@@ -206,14 +212,18 @@ void SeedGrowSegmentation::buildSelectors()
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentation::buildUI()
 {
-  //Threshold Widget
+  // Threshold Widget
   QLabel *thresholdLabel = new QLabel(tr("Threshold"));
   m_threshold = new QSpinBox();
   m_threshold->setMinimum(0);
   m_threshold->setMaximum(255);
   m_threshold->setValue(DEFAULT_THRESHOLD);
   
-  //Segmentation Button
+  // Use default VOI
+  m_useDefaultVOI = new QCheckBox(tr("Default VOI"));
+  m_useDefaultVOI->setCheckState(Qt::Checked);
+  
+  // Segmentation Button
   m_segButton = new QToolButton();
   m_segButton->setCheckable(true);
   m_selectors = new QMenu();
@@ -228,6 +238,7 @@ void SeedGrowSegmentation::buildUI()
   QHBoxLayout *thresholdLayout = new QHBoxLayout();
   thresholdLayout->addWidget(thresholdLabel);
   thresholdLayout->addWidget(m_threshold);
+  thresholdLayout->addWidget(m_useDefaultVOI);
   thresholdLayout->addWidget(m_segButton);
   
   QWidget *thresholdFrame = new QWidget();
