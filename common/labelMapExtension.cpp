@@ -78,17 +78,17 @@ void SampleRepresentation::render(pqView* view, ViewType type)
 void SampleRepresentation::requestUpdate(bool force)
 {
   vtkSMProperty* p;
-  p = m_rep->pipelineSource()->getProxy()->GetProperty("Input");
-  vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
-  foreach(Segmentation *seg, m_sample->segmentations())
-  {
-    if (seg->visible())
-    {
-      input->AddInputConnection(seg->creator()->pipelineSource()->getProxy(),0);
-    }
-  }
-  emit representationUpdated();//DEBUG
-  return;//DEBUG
+//   p = m_rep->pipelineSource()->getProxy()->GetProperty("Input");
+//   vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
+//   foreach(Segmentation *seg, m_sample->segmentations())
+//   {
+//     if (seg->visible())
+//     {
+//       input->AddInputConnection(seg->creator()->pipelineSource()->getProxy(),0);
+//     }
+//   }
+//   emit representationUpdated();//DEBUG
+//   return;//DEBUG
   
   if (m_numberOfBlendedSeg != m_sample->segmentations().size() || force) 
   {
@@ -99,20 +99,20 @@ void SampleRepresentation::requestUpdate(bool force)
     vtkstd::vector<unsigned int> ports;
     
     // Ensure sample's mapper is the first input
-    inputs.push_back(m_sample->representation("01_Color")->pipelineSource()->getProxy());
+    inputs.push_back(m_sample->creator()->pipelineSource()->getProxy());
     ports.push_back(0);
     
     foreach(Segmentation *seg, m_sample->segmentations())
     {
       if (seg->visible())
       {
-	inputs.push_back(seg->representation("01_Color")->pipelineSource()->getProxy());
+	inputs.push_back(seg->creator()->pipelineSource()->getProxy());
 	ports.push_back(0);
       }
     }
     
     p = m_rep->pipelineSource()->getProxy()->GetProperty("Input");
-    //vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
+    vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
     if (input)
     {
       input->RemoveAllProxies();
