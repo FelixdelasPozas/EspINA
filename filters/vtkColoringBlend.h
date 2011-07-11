@@ -38,6 +38,7 @@ public:
     
   virtual void AddInputConnection(int port, vtkAlgorithmOutput* input);
   virtual void RemoveInputConnection(int port, vtkAlgorithmOutput* input);
+  void RemoveAllInputs();
   
   void PrintSelf(ostream& os, vtkIndent indent);
     

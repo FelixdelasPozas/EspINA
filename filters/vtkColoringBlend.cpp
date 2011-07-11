@@ -22,19 +22,18 @@
 
 vtkStandardNewMacro(vtkColoringBlend);
 
-bool validExtent(int *ext)
-{
- return ext[1] > ext[0];
-}
+// bool validExtent(int *ext)
+// {
+//  return ext[1] > ext[0];
+// }
 
 vtkColoringBlend::vtkColoringBlend()
 : m_init(false)
 {
   //! Port 0: Blending inputs
   //! Port 1: Reference colors
-  this->SetNumberOfInputPorts(3);
+  this->SetNumberOfInputPorts(2);
   this->SetNumberOfOutputPorts(1);
-//   invalidateRequestArea();
   m_newInputs.clear();
   m_removeInputs.clear();
   m_blendedInputs.clear();
@@ -75,14 +74,11 @@ void vtkColoringBlend::AddInputConnection(int port, vtkAlgorithmOutput* input)
 {
   if (port == 0)
   {
-    vtkImageData *inputImage = vtkImageData::SafeDownCast(input->GetProducer()->GetOutputDataObject(0));
+    vtkImageData *inputImage = vtkImageData::SafeDownCast(
+      input->GetProducer()->GetOutputDataObject(0));
     
     if (requestArea(inputImage))
       vtkAlgorithm::AddInputConnection(port, input);
-  }else if (port == 2)
-  {
-    std::cout << "\t\t\tRemove Input\n\n\n";
-    RemoveInputConnection(0, input);
   }
 }
 
@@ -90,7 +86,8 @@ void vtkColoringBlend::RemoveInputConnection(int port, vtkAlgorithmOutput* input
 {
   if (port == 0)
   {
-    vtkImageData *inputImage = vtkImageData::SafeDownCast(input->GetProducer()->GetOutputDataObject(0));
+    vtkImageData *inputImage = vtkImageData::SafeDownCast(
+      input->GetProducer()->GetOutputDataObject(0));
     
     // Find inputs and move to removeInputs vector
     std::vector<Input>::iterator it;
@@ -128,6 +125,18 @@ void vtkColoringBlend::RemoveInputConnection(int port, vtkAlgorithmOutput* input
   
   vtkAlgorithm::RemoveInputConnection(port, input);
 }
+
+void vtkColoringBlend::RemoveAllInputs()
+{
+  // If there were already blended areas, those should be marked to be removed
+  m_removeInputs.insert(m_removeInputs.end(),m_blendedInputs.begin(),m_blendedInputs.end());
+  m_blendedInputs.clear();
+  // New inputs haven't already been blended so we can discard them safely
+  m_newInputs.clear();
+  vtkThreadedImageAlgorithm::RemoveAllInputs();
+}
+
+
 
 
 
@@ -363,6 +372,15 @@ bool vtkColoringBlend::requestArea(vtkImageData *inputImage)
     {
       vtkDebugMacro(<< "Input already added");
       return false;
+    }
+  
+  for (std::vector<Input>::iterator it = m_removeInputs.begin(); it != m_removeInputs.end(); it++)
+    if ((*it).image == inputImage)
+    {
+      vtkDebugMacro(<< "Input was previously blended");
+      m_blendedInputs.push_back(*it);
+      m_removeInputs.erase(it);
+      return true;
     }
   
   // Get input information
