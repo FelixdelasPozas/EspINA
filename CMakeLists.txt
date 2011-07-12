@@ -37,7 +37,18 @@ configure_file(
   "${PROJECT_SOURCE_DIR}/common/Config.h"
 )
 
+set( DEFAULT_TRANSLATION_DIR "/usr/share/espina/translations/" )
+configure_file(
+  "${PROJECT_SOURCE_DIR}/frontend/Config.h.in"
+  "${PROJECT_SOURCE_DIR}/frontend/Config.h"
+)
 
+add_custom_command( OUTPUT es_ES.qm #TARGET DEFAULT_TRANSLATION_DIR POST_BUILD 
+  COMMAND lrelease ${PROJECT_SOURCE_DIR}/frontend/translationFiles/translation_es.ts -qm ${DEFAULT_TRANSLATION_DIR}es_ES.qm
+)
+add_custom_target(es DEPENDS es_ES.qm)
+add_dependencies(Espina es)
+  
 file (GLOB PARAVIEWFILES ${ParaView_BINARY_DIR}/bin/*.so*)
 file (GLOB ITKFILES ${ITK_DIR}/bin/*.so*)
 
@@ -45,6 +56,7 @@ install (FILES ${PARAVIEWFILES} DESTINATION lib/espina)
 install (FILES ${ITKFILES} DESTINATION lib/espina)
 install (FILES espina.conf DESTINATION ../etc/ld.so.conf.d/)
 install (FILES ${PROJECT_SOURCE_DIR}/default_taxonomy.xml DESTINATION share/espina/)
+install (FILES ${PROJECT_SOURCE_DIR}/frontend/translationFiles/es.qm DESTINATION share/espina/)
 
 set (CPACK_PACKAGE_VERSION_MAJOR ${ESPINA_VERSION_MAJOR})
 set (CPACK_PACKAGE_VERSION_MINOR ${ESPINA_VERSION_MINOR})

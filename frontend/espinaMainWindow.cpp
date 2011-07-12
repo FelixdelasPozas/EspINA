@@ -95,6 +95,8 @@
 #include <crosshairRenderer.h>
 #include <pqManagePluginsReaction.h>
 #include <pqQtMessageHandlerBehavior.h>
+#include <QTranslator>
+#include "Config.h"
 
 const QString FILTERS("Trace Files (*.trace)");
 const QString SEG_FILTERS("Seg Files (*.seg)");
@@ -120,6 +122,13 @@ EspinaMainWindow::EspinaMainWindow()
     , m_lastTaxonomyId(0)
 {
   m_espina = EspINA::instance();
+  
+  QTranslator translator;
+  QDir translationDir(TRANSLATION_DIR);
+  translator.load( translationDir.filePath( QLocale::system().name()) );
+  QCoreApplication::installTranslator(&translator);  
+  
+  
   
   this->Internals = new pqInternals();
   this->Internals->setupUi(this);
@@ -220,6 +229,7 @@ EspinaMainWindow::EspinaMainWindow()
   
   // User selected Taxonomy Selection List
   m_taxonomySelector = new QComboBox(this);
+  m_taxonomySelector->setToolTip(tr("Type of new segmentation"));
   ///QTreeComboBox *treeCombo = new QTreeComboBox(this);
   m_taxonomyView = new QTreeView(this);
   m_taxonomyView->setHeaderHidden(true);
