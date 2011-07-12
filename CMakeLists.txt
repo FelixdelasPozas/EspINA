@@ -36,13 +36,13 @@ configure_file(
   "${PROJECT_SOURCE_DIR}/common/Config.h.in"
   "${PROJECT_SOURCE_DIR}/common/Config.h"
 )
-
+# TRANSLATIONS
 set( DEFAULT_TRANSLATION_DIR "/usr/share/espina/translations/" )
 configure_file(
   "${PROJECT_SOURCE_DIR}/frontend/Config.h.in"
   "${PROJECT_SOURCE_DIR}/frontend/Config.h"
 )
-
+# Generate translation file
 add_custom_command( OUTPUT es_ES.qm #TARGET DEFAULT_TRANSLATION_DIR POST_BUILD 
   COMMAND lrelease ${PROJECT_SOURCE_DIR}/frontend/translationFiles/translation_es.ts -qm ${DEFAULT_TRANSLATION_DIR}es_ES.qm
 )

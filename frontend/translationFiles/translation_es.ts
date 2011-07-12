@@ -225,11 +225,11 @@
     </message>
     <message>
         <source>Add subtaxonomy node</source>
-        <translation type="obsolete">Añadir un nodo taxonómico hijo</translation>
+        <translation>Añadir un nodo taxonómico hijo</translation>
     </message>
     <message>
         <source>Remove taxonomy node</source>
-        <translation type="obsolete">Eliminar nodo taxonómico</translation>
+        <translation>Eliminar nodo taxonómico</translation>
     </message>
     <message>
         <source>Samples</source>
@@ -310,6 +310,18 @@
     <message>
         <source>Ctrl+Y</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Delete selected segmentation</source>
+        <translation>Elimnar segmentacion seleccionada</translation>
+    </message>
+    <message>
+        <source>Change taxomy node color</source>
+        <translation>Cambiar el color de la taxonomía</translation>
+    </message>
+    <message>
+        <source>Add taxonomy node</source>
+        <translation>Añadir elemento taxonómico</translation>
     </message>
 </context>
 </TS>
