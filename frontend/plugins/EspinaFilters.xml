@@ -201,10 +201,10 @@
       </InputProperty>
    </SourceProxy>
 
-   <SourceProxy name="ImageCBlend" class="vtkColoringBlend" label="ImageCBlend">
+   <SourceProxy name="ImageLabelMapBlend" class="vtkImageLabelMapBlend" label="ImageLabelMapBlend">
      <Documentation
-        long_help="Blends images together using alph or opacity"
-		short_help="Blends images together using alph or opacity">
+        long_help="Blends images together using alpha or opacity"
+		short_help="Blends images together using alpha or opacity">
      </Documentation>
      <InputProperty
         name="Input"
@@ -222,8 +222,14 @@
              <DataType value="vtkDataImage"/>
            </DataTypeDomain>
       </InputProperty>
-   </SourceProxy>
-
+      <DoubleVectorProperty
+	name="InputColor"
+	number_of_elements="4"
+	immediate_update="1"
+	command="SetLabelMapColor">
+      </DoubleVectorProperty>
+      </SourceProxy>
+      
 
 
    <SourceProxy name="MyWindowLevelLookupTable" class="vtkWindowLevelLookupTable" label="WindowLevelLookupTable">

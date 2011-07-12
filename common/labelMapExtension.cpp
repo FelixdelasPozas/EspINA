@@ -29,6 +29,7 @@
 #include <vtkSMInputProperty.h>
 #include <vtkSMProxy.h>
 #include <QAction>
+#include <vtkSMPropertyHelper.h>
 
 using namespace LabelMapExtension;
 
@@ -43,7 +44,7 @@ SampleRepresentation::SampleRepresentation(Sample* sample)
   vtkFilter::Arguments filterArgs;
   filterArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT, sample->id()));
   
-  m_rep = cob->createFilter("filters", "ImageCBlend", filterArgs);
+  m_rep = cob->createFilter("filters", "ImageLabelMapBlend", filterArgs);
   assert(m_rep);
 }
 
@@ -121,6 +122,19 @@ void SampleRepresentation::requestUpdate(bool force)
       , &inputs[0]
       , &ports[0]);
       m_rep->pipelineSource()->getProxy()->UpdateVTKObjects();
+    }
+    
+    int ci = 1;//colorinput
+    foreach(Segmentation *seg, m_sample->segmentations())
+    {
+      if (seg->visible())
+      {
+	double segColor[4];
+	seg->color(segColor);
+	double c[4] = {ci, segColor[0],segColor[1],segColor[2]};
+	vtkSMPropertyHelper(m_rep->pipelineSource()->getProxy(),"InputColor").Set(c,4);
+	ci++;
+      }
     }
   }
   
