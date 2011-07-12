@@ -220,6 +220,7 @@ void vtkColoringBlend::copyInput(vtkImageIterator< vtkColoringBlend::InputPixelT
 	*outPtr = *inPtr;
 	++outPtr;
       }
+      m_debugProcessedPixels++;
       ++inPtr;
     }
     inIt.NextSpan();
@@ -256,6 +257,7 @@ void vtkColoringBlend::blendInputs(vtkImageIterator<InputPixelType> &inIt, vtkIm
       {
 	outPtr += 3;
       }
+      m_debugProcessedPixels++;
       ++inPtr;
     }
     inIt.NextSpan();
@@ -274,6 +276,7 @@ void vtkColoringBlend::ThreadedRequestData(vtkInformation* request, vtkInformati
     outputVector->GetInformationObject(0); 
   vtkImageData *output = vtkImageData::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
   
+  m_debugProcessedPixels = 0;
 //   char res[250];
 //   sprintf(res, "Thread ID: %d: %d %d %d %d %d %d\n",threadId, extent[0], extent[1], extent[2], extent[3],extent[4],extent[5]);
 //   std::cout << res;
@@ -307,7 +310,7 @@ void vtkColoringBlend::ThreadedRequestData(vtkInformation* request, vtkInformati
 	if (i == 0) // First input has to be copied, not blended
 	  copyInput(inIt,outIt);
 	else
-	  blendInputs(inIt,outIt);
+	  blendInputs(inIt,outIt,m_blendedInputs[i].color);
       }
     }
   }
@@ -332,6 +335,8 @@ void vtkColoringBlend::ThreadedRequestData(vtkInformation* request, vtkInformati
     
     blendInputs(inIt, outIt, m_newInputs[i].color);
   }
+  
+  std::cout << "\n\t\tCOLORING BLENDER: " << m_debugProcessedPixels << " pixel processed\n\n" << std::endl;
 }
 
 int vtkColoringBlend::RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
@@ -339,6 +344,8 @@ int vtkColoringBlend::RequestData(vtkInformation* request, vtkInformationVector*
   // Start threaded execution
   int res = vtkThreadedImageAlgorithm::RequestData(request, inputVector, outputVector);
   // End of thredaed execution
+  
+//   std::cout << "\t\t\t\tUpdating\n";
   
   // Internal state of inputs if updated
   m_removeInputs.clear();

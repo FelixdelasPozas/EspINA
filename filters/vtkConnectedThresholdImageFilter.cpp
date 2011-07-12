@@ -105,12 +105,14 @@ int vtkConnectedThresholdImageFilter::RequestData(vtkInformation* request, vtkIn
   std::cout << "\tInput Extent: " << inExtent[0] << " " << inExtent[1] << " " <<  inExtent[2] <<  " " <<  inExtent[3] <<  " " <<  inExtent[4]<<  " " <<  inExtent[5] << std::endl;
   std::cout << "\tWhole Extent: " << wholeExtent[0] << " " << wholeExtent[1] << " " <<  wholeExtent[2] <<  " " <<  wholeExtent[3] <<  " " <<  wholeExtent[4]<<  " " <<  wholeExtent[5] << std::endl;
   std::cout << "\tOutput Update Extent: " << outUpdateExtent[0] << " " << outUpdateExtent[1] << " " <<  outUpdateExtent[2] <<  " " <<  outUpdateExtent[3] <<  " " <<  outUpdateExtent[4]<<  " " <<  outUpdateExtent[5] << std::endl;
-  bool noSeed = m_seed[0] < outUpdateExtent[0] || m_seed[0] > outUpdateExtent[1] ||
-	        m_seed[1] < outUpdateExtent[2] || m_seed[1] > outUpdateExtent[3] ||
-	        m_seed[2] < outUpdateExtent[4] || m_seed[2] > outUpdateExtent[5];
+  bool noSeed = m_seed[0] < inExtent[0] || m_seed[0] > inExtent[1] ||
+	        m_seed[1] < inExtent[2] || m_seed[1] > inExtent[3] ||
+	        m_seed[2] < inExtent[4] || m_seed[2] > inExtent[5];
     
   if (noSeed)
   {
+    std::cout << "\tNo Seed" << std::endl;
+    
     vtkDebugMacro(<< "Request Data: No Seed");
     outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),
 		 0,-1,0,-1,0,-1);
@@ -196,7 +198,7 @@ int vtkConnectedThresholdImageFilter::RequestData(vtkInformation* request, vtkIn
   // Without these lines, the output will appear real but will not work as the input to any other filters
   output->SetExtent(itk2vtk_filter->GetOutput()->GetExtent());
   output->SetSpacing(input->GetSpacing());
-  output->SetUpdateExtent(output->GetExtent());
+//   output->SetUpdateExtent(output->GetExtent());//WARNING: TODO: Review this
   output->SetWholeExtent(output->GetExtent());
   
   return 1;

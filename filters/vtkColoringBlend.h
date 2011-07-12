@@ -86,6 +86,7 @@ private:
 private:
   //BTX
   bool m_init;
+  double m_debugProcessedPixels;
   std::vector<Input> m_newInputs;
   std::vector<Input> m_blendedInputs;
   std::vector<Input> m_removeInputs;
