@@ -83,6 +83,9 @@ public slots:
 
   void updateScene();
   
+  void beginRender();
+  void endRender();
+  
 protected slots:
   void setSlice(int slice);
   virtual void setVOI(IVOI *voi);

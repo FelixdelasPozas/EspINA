@@ -54,11 +54,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqPipelineFilter.h"
 #include "vtkSMProxy.h"
 #include "vtkSMInputProperty.h"
+#include <vtkSMPropertyHelper.h>
 
 #include <QDebug>
 #include "assert.h"
 #include <espINAFactory.h>
 #include <QBitmap>
+#include <RectangularVOI.h>
 
 
 #define DEFAULT_THRESHOLD 30
@@ -70,10 +72,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 SeedGrowSegmentation::SeedGrowSegmentation(QObject* parent)
 : ISegmentationPlugin(parent)
 , m_seedSelector(NULL)
+, m_defaultVOI(NULL)
 {
   m_factoryName = SGS;
   // Register Factory's filters
   ProcessingTrace::instance()->registerPlugin(SGSF, this);
+  
+  m_defaultVOI = new RectangularVOI(false);
   
   buildUI();
   
@@ -135,7 +140,6 @@ void SeedGrowSegmentation::abortSelection()
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentation::startSegmentation(ISelectionHandler::Selection sel)
 {
-  qDebug() << "SeedGrowSegmenation: Start Seed Growing Segmentation";
   QApplication::setOverrideCursor(Qt::WaitCursor);
   
   // Initialize application context
@@ -166,8 +170,24 @@ void SeedGrowSegmentation::startSegmentation(ISelectionHandler::Selection sel)
   //createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);
   
   IVOI *voi = SelectionManager::instance()->voi();
-  if (!voi && m_useDefaultVOI)
+  if (!voi && m_useDefaultVOI->isChecked())
+  {
     voi = m_defaultVOI;
+    Sample *input = EspINA::instance()->activeSample();
+    voi->setSource(input);
+    double spacing[3];
+    input->spacing(spacing);
+    double defVOI[6] = {(seed.x - 30)*spacing[0],
+			(seed.x + 30)*spacing[0],
+			(seed.y - 30)*spacing[1],
+			(seed.y + 30)*spacing[1],
+			(seed.z - 30)*spacing[2],
+			(seed.z + 30)*spacing[2]};
+    vtkSMPropertyHelper(voi->getProxy(),"Bounds").Set(defVOI,6);
+    voi->getProxy()->UpdateVTKObjects();
+    double checkBounds[6];
+    vtkSMPropertyHelper(voi->getProxy(),"Bounds").Get(defVOI,6);
+  }
   
   SeedGrowSegmentationFilter *sgs_sgsf = new SeedGrowSegmentationFilter(input, voi, args);
   QApplication::restoreOverrideCursor();
