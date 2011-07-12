@@ -1,3 +1,4 @@
+
 find_package (Qt4 REQUIRED)
 include (${QT_USE_FILE})
 
@@ -24,7 +25,6 @@ set( TestToRun ${TESTS} )
 list (REMOVE_ITEM TestToRun ${TEST_NAME}.cpp)
 
 # add tests
-message(STATUS "STACKDIR " ${STACK_DIR})
 FOREACH(TEST ${TestToRun})
   get_filename_component(TName ${TEST} NAME_WE)
   add_test("${COMPONENT_NAME}-${TName}" ${TEST_NAME} ${TName} ${STACK_DIR})

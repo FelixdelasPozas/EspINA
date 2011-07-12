@@ -8,10 +8,11 @@ include(${VTK_USE_FILE})
 find_package(ITK REQUIRED)
 include(${ITK_USE_FILE})
 
-set (ITK_VTK_GLUE "" CACHE PATH "Path to ItkVtkGlue external project")
+set (ITK_VTK_GLUE ${ITK_DIR}/../Wrapping/WrapITK/ExternalProjects/ItkVtkGlue/src)
 
 include_directories (
 	${ITK_VTK_GLUE}
+        ${ITK_DIR}/../Code/Review/
 	)
 
 file ( GLOB FILTER_SOURCES *.cpp )

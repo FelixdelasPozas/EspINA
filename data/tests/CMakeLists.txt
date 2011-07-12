@@ -1,8 +1,8 @@
-SET(TESTS 
-#	CreateGraph
-#	ProcessingTrace
-	Taxonomy
-)
+# SET(TESTS 
+# #	CreateGraph
+# #	ProcessingTrace
+# # 	Taxonomy
+# )
 
 # find_package (Qt4 REQUIRED)
 # if (QT4_FOUND)
@@ -23,11 +23,12 @@ SET(LIB_DEPENDECIES
 )
 
 #SET (STACK_DIR "" CACHE PATH "Path to test Stack's folder")
+# 
+# FOREACH(TEST ${TESTS})
+# 	SET(EXE_NAME Cajal${TEST})
+# 	ADD_EXECUTABLE(${EXE_NAME} Test${TEST}.cpp)
+# 	TARGET_LINK_LIBRARIES(${EXE_NAME} ${LIB_DEPENDECIES})
+# 	ADD_TEST(Cajal-${TEST} ${EXECUTABLE_OUTPUT_PATH}/${EXE_NAME})
+# ENDFOREACH(TEST)
 
-FOREACH(TEST ${TESTS})
-	SET(EXE_NAME Cajal${TEST})
-	ADD_EXECUTABLE(${EXE_NAME} Test${TEST}.cpp)
-	TARGET_LINK_LIBRARIES(${EXE_NAME} ${LIB_DEPENDECIES})
-	ADD_TEST(Cajal-${TEST} ${EXECUTABLE_OUTPUT_PATH}/${EXE_NAME})
-ENDFOREACH(TEST)
-
+add_subdirectory(Taxonomy)
