@@ -1,3 +1,6 @@
+//Testing ImageLabelMapBlend
+#include "vtkImageLabelMapBlend.h"
+
 #include "vtkSmartPointer.h"
 #include "vtkMetaImageReader.h"
 #include "vtkMetaImageWriter.h"
@@ -6,7 +9,6 @@
 #include "vtkRenderer.h"
 #include "vtkCamera.h"
 #include "vtkRenderWindow.h"
-#include "vtkColoringBlend.h"
 #include <QString>
 #include <QDir>
 #include <vtkRenderWindowInteractor.h>
@@ -20,8 +22,8 @@ int pipeline(int argc, char **argv)
   bgImage->SetFileName((stackPath.filePath("peque.mha")).toUtf8());
   
   // Pasarle el filtro que queremos probar
-  vtkSmartPointer<vtkColoringBlend> blender =
-    vtkSmartPointer<vtkColoringBlend>::New();
+  vtkSmartPointer<vtkImageLabelMapBlend> blender =
+    vtkSmartPointer<vtkImageLabelMapBlend>::New();
     
   blender->SetNumberOfThreads(3);
   blender->AddInputConnection(0,bgImage->GetOutputPort());

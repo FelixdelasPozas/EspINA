@@ -1,4 +1,4 @@
-#include "vtkColoringBlend.h"
+#include "vtkImageLabelMapBlend.h"
 
 // VTK
 #include "vtkImageData.h"
@@ -20,14 +20,14 @@
 #include <cassert>
 #include <vtkStreamingDemandDrivenPipeline.h>
 
-vtkStandardNewMacro(vtkColoringBlend);
+vtkStandardNewMacro(vtkImageLabelMapBlend);
 
 // bool validExtent(int *ext)
 // {
 //  return ext[1] > ext[0];
 // }
 
-vtkColoringBlend::vtkColoringBlend()
+vtkImageLabelMapBlend::vtkImageLabelMapBlend()
 : m_init(false)
 {
   //! Port 0: Blending inputs
@@ -59,7 +59,7 @@ bool intersect(int *reg1, int *reg2, int *intersection = NULL)
 
 //!NOTE: Loading segmentations from mhd and pvd files give different extent values
 //! if that's the case, we have to correct the resulting extent
-void correctExtent(int *area, vtkColoringBlend::Input &input, int *extent)
+void correctExtent(int *area, vtkImageLabelMapBlend::Input &input, int *extent)
 {
   bool differentExtent = false;
   for (int i = 0; i < 6; i++)
@@ -70,7 +70,7 @@ void correctExtent(int *area, vtkColoringBlend::Input &input, int *extent)
 }
 
 
-void vtkColoringBlend::AddInputConnection(int port, vtkAlgorithmOutput* input)
+void vtkImageLabelMapBlend::AddInputConnection(int port, vtkAlgorithmOutput* input)
 {
   if (port == 0)
   {
@@ -82,7 +82,7 @@ void vtkColoringBlend::AddInputConnection(int port, vtkAlgorithmOutput* input)
   }
 }
 
-void vtkColoringBlend::RemoveInputConnection(int port, vtkAlgorithmOutput* input)
+void vtkImageLabelMapBlend::RemoveInputConnection(int port, vtkAlgorithmOutput* input)
 {
   if (port == 0)
   {
@@ -126,7 +126,7 @@ void vtkColoringBlend::RemoveInputConnection(int port, vtkAlgorithmOutput* input
   vtkAlgorithm::RemoveInputConnection(port, input);
 }
 
-void vtkColoringBlend::RemoveAllInputs()
+void vtkImageLabelMapBlend::RemoveAllInputs()
 {
   // If there were already blended areas, those should be marked to be removed
   m_removeInputs.insert(m_removeInputs.end(),m_blendedInputs.begin(),m_blendedInputs.end());
@@ -136,11 +136,31 @@ void vtkColoringBlend::RemoveAllInputs()
   vtkThreadedImageAlgorithm::RemoveAllInputs();
 }
 
+void vtkImageLabelMapBlend::SetLabelMapColor(double id, double r, double g, double b)
+{
+  unsigned int bi = m_blendedInputs.size();
+  unsigned int input = (unsigned int)id;
+  if (input < bi)
+  {
+    assert(input < m_blendedInputs.size());
+    m_blendedInputs[input].color[0] = r*255;
+    m_blendedInputs[input].color[1] = g*255;
+    m_blendedInputs[input].color[2] = b*255;
+  }
+  else
+  {
+    assert(input - bi < m_newInputs.size());
+    m_newInputs[input - bi].color[0] = r*255;
+    m_newInputs[input - bi].color[1] = g*255;
+    m_newInputs[input - bi].color[2] = b*255;
+  }
+}
 
 
 
 
-int vtkColoringBlend::FillInputPortInformation(int port, vtkInformation* info)
+
+int vtkImageLabelMapBlend::FillInputPortInformation(int port, vtkInformation* info)
 {
   if (port == 0) // Any number volume volume images
   {
@@ -167,7 +187,7 @@ int vtkColoringBlend::FillInputPortInformation(int port, vtkInformation* info)
   return 0;
 }
 
-int vtkColoringBlend::RequestInformation(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
+int vtkImageLabelMapBlend::RequestInformation(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
   // get the info objects
   vtkInformation* outInfo = 
@@ -181,7 +201,7 @@ int vtkColoringBlend::RequestInformation(vtkInformation* request, vtkInformation
 }
 
 // This method computes the input necessary to generate the output
-int vtkColoringBlend::RequestUpdateExtent(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
+int vtkImageLabelMapBlend::RequestUpdateExtent(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
   vtkInformation* outInfo = outputVector->GetInformationObject(0);
   
@@ -201,7 +221,7 @@ int vtkColoringBlend::RequestUpdateExtent(vtkInformation* request, vtkInformatio
 }
 
 //! Copies input pixels to output
-void vtkColoringBlend::copyInput(vtkImageIterator< vtkColoringBlend::InputPixelType >& inIt, vtkImageIterator< vtkColoringBlend::OutputPixelType >& outIt)
+void vtkImageLabelMapBlend::copyInput(vtkImageIterator< vtkImageLabelMapBlend::InputPixelType >& inIt, vtkImageIterator< vtkImageLabelMapBlend::OutputPixelType >& outIt)
 {
   InputPixelType *inPtr;
   OutputPixelType *outPtr;
@@ -230,7 +250,7 @@ void vtkColoringBlend::copyInput(vtkImageIterator< vtkColoringBlend::InputPixelT
 }
 
 //! Blend input color into output color whenever input pixel is not 0
-void vtkColoringBlend::blendInputs(vtkImageIterator<InputPixelType> &inIt, vtkImageIterator<OutputPixelType> &outIt, OutputPixelType *color)
+void vtkImageLabelMapBlend::blendInputs(vtkImageIterator<InputPixelType> &inIt, vtkImageIterator<OutputPixelType> &outIt, OutputPixelType *color)
 {
   InputPixelType *inPtr;// = (InputPixelType*)input->GetScalarPointer();
   OutputPixelType *outPtr;// = (OutputPixelType *)(output->GetScalarPointer());
@@ -266,7 +286,7 @@ void vtkColoringBlend::blendInputs(vtkImageIterator<InputPixelType> &inIt, vtkIm
 }
 
 //! Run blending algorithm in the requested extent 
-void vtkColoringBlend::ThreadedRequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector, vtkImageData*** inData, vtkImageData** outData, int extent[6], int threadId)
+void vtkImageLabelMapBlend::ThreadedRequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector, vtkImageData*** inData, vtkImageData** outData, int extent[6], int threadId)
 {
   vtkInformation *inInfo = 
     inputVector[0]->GetInformationObject(0); 
@@ -283,13 +303,13 @@ void vtkColoringBlend::ThreadedRequestData(vtkInformation* request, vtkInformati
   
   // First of all we have to regenerate the removed area using all already 
   // blended inputs in the area
-  for (int r = 0; r < m_removeInputs.size(); r++)
+  for (unsigned int r = 0; r < m_removeInputs.size(); r++)
   {
     int removeAreaExtent[6];
     if (!intersect(m_removeInputs[r].requestedAreaExtent,extent, removeAreaExtent))
       continue;
     
-    for (int i = 0; i < m_blendedInputs.size(); i++)
+    for (unsigned int i = 0; i < m_blendedInputs.size(); i++)
     {
       // Check if removed area intersect current input
       int inputRemoveAreaExtent[6];
@@ -316,11 +336,8 @@ void vtkColoringBlend::ThreadedRequestData(vtkInformation* request, vtkInformati
   }
 
   // Then, after all removed areas have been regenerated, new inputs have to be blended
-  for (int i = 0; i < m_newInputs.size(); i++)
+  for (unsigned int i = 0; i < m_newInputs.size(); i++)
   {
-    m_newInputs[i].color[0] = 255;//(255*rand())%255;//TODO: Get actual colors
-    m_newInputs[i].color[1] = m_newInputs[i].color[2] = 0;
-    
     int inputAreaExtent[6];
     if (!intersect(m_newInputs[i].requestedAreaExtent, extent, inputAreaExtent))
       continue;
@@ -336,10 +353,10 @@ void vtkColoringBlend::ThreadedRequestData(vtkInformation* request, vtkInformati
     blendInputs(inIt, outIt, m_newInputs[i].color);
   }
   
-  std::cout << "\n\t\tCOLORING BLENDER: " << m_debugProcessedPixels << " pixel processed\n\n" << std::endl;
+//   std::cout << "\n\t\tCOLORING BLENDER: " << m_debugProcessedPixels << " pixel processed\n\n" << std::endl;
 }
 
-int vtkColoringBlend::RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
+int vtkImageLabelMapBlend::RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
   // Start threaded execution
   int res = vtkThreadedImageAlgorithm::RequestData(request, inputVector, outputVector);
@@ -355,12 +372,12 @@ int vtkColoringBlend::RequestData(vtkInformation* request, vtkInformationVector*
   return res;
 }
 
-void vtkColoringBlend::PrintSelf(ostream& os, vtkIndent indent)
+void vtkImageLabelMapBlend::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkImageAlgorithm::PrintSelf(os, indent);
 }
 
-bool vtkColoringBlend::requestArea(vtkImageData *inputImage)
+bool vtkImageLabelMapBlend::requestArea(vtkImageData *inputImage)
 {
   Input input;
   

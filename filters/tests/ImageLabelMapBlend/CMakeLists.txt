@@ -13,13 +13,13 @@ set (TEST_NAME ${COMPONENT_NAME}_test)
 create_test_sourcelist(TESTS  
   ${TEST_NAME}.cpp
   pipeline
-  #SingleInputSameExtent
-  #  SingleInputSameExtent_Stepped
-  SingleInputReducedExtent
-  SingleInputReducedExtent_Stepped
-  SeveralInputReducedExtent
-  SeveralInputReducedExtent_Stepped
-  vtkBlendSeveralInputReducedExtent
+  SeveralColoredInputs
+  SeveralColoredInputs_Stepped
+  SingleInput
+  SingleInput_Stepped
+  SeveralInputs
+  SeveralInputs_Stepped
+  vtkBlendSeveralInputs
   RemoveInput
   RemoveInput_Stepped
   )

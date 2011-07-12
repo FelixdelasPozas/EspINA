@@ -5,4 +5,4 @@ SET(LIB_DEPENDECIES
 
 add_subdirectory(ConnectedThresholdImageFilter)
 add_subdirectory(ConnectedThresholdRegionGrowImageFilter)
-add_subdirectory(ColoringBlend)
+add_subdirectory(ImageLabelMapBlend)

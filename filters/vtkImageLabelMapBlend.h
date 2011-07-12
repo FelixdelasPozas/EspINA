@@ -6,13 +6,17 @@
 #include <vector>
 #include <vtkImageProgressIterator.h>
 
-//! Blend images together using alpha and coloring
-//! inputs according to reference colors
-
 //BUG: Fails when using SetInputConnection instead of AddInputConnection
-  
+
+//! This filter blends several label maps into a background image
+//! if color are assigned to the label maps, that color is used instead of white.
+//! Port 0: Background Image
+//! Port 1: Label Maps
+//! Label maps images interpret non-zero pixels as foreground and zero pixels as
+//! background. Only foreground pixels are blended.
+//TODO: Add suppor to several type of input images
 class vtkAlgorithmOutput;
-class VTK_IMAGING_EXPORT vtkColoringBlend : 
+class VTK_IMAGING_EXPORT vtkImageLabelMapBlend : 
   public vtkThreadedImageAlgorithm
 {
   //BTX
@@ -33,25 +37,24 @@ public:
   //ETX
   
 public:
-  static vtkColoringBlend *New();
-  vtkTypeMacro(vtkColoringBlend,vtkThreadedImageAlgorithm);
-    
+  static vtkImageLabelMapBlend *New();
+  vtkTypeMacro(vtkImageLabelMapBlend,vtkThreadedImageAlgorithm);
+  
   virtual void AddInputConnection(int port, vtkAlgorithmOutput* input);
   virtual void RemoveInputConnection(int port, vtkAlgorithmOutput* input);
   void RemoveAllInputs();
   
+  //! r,g,b : [0,1]
+  void SetLabelMapColor(double input, double r, double g, double b);
+  
   void PrintSelf(ostream& os, vtkIndent indent);
     
 protected:
-
-  vtkColoringBlend();
-  virtual ~vtkColoringBlend(){};
+  vtkImageLabelMapBlend();
+  virtual ~vtkImageLabelMapBlend(){};
   
 
   virtual int FillInputPortInformation(int port, vtkInformation* info);
-//   virtual int RequestData(vtkInformation* request,
-// 			  vtkInformationVector** inputVector,
-// 			  vtkInformationVector* outputVector);
   
   virtual int RequestInformation(vtkInformation* request,
 				 vtkInformationVector** inputVector,
@@ -68,6 +71,7 @@ protected:
 				   vtkImageData** outData,
 				   int extent[6],
 				   int threadId);
+  
   virtual int RequestData(vtkInformation* request,
 			  vtkInformationVector** inputVector,
 			  vtkInformationVector* outputVector);
@@ -80,13 +84,14 @@ private:
   //ETX
     
 private:
-  vtkColoringBlend(const vtkColoringBlend& );// Not implemented
-  void operator=(const vtkColoringBlend&);// Not implemented
+  vtkImageLabelMapBlend(const vtkImageLabelMapBlend& );// Not implemented
+  void operator=(const vtkImageLabelMapBlend&);// Not implemented
     
 private:
   //BTX
   bool m_init;
   double m_debugProcessedPixels;
+  Input m_background;
   std::vector<Input> m_newInputs;
   std::vector<Input> m_blendedInputs;
   std::vector<Input> m_removeInputs;
