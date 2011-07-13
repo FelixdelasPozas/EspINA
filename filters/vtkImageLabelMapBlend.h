@@ -44,6 +44,9 @@ public:
   virtual void RemoveInputConnection(int port, vtkAlgorithmOutput* input);
   void RemoveAllInputs();
   
+  //! Blending opacity
+  vtkSetMacro(Opacity,double);
+  vtkGetMacro(Opacity,double);
   //! r,g,b : [0,1]
   void SetLabelMapColor(double input, double r, double g, double b);
   
@@ -89,12 +92,14 @@ private:
     
 private:
   //BTX
+  double Opacity;
   bool m_init;
   double m_debugProcessedPixels;
   Input m_background;
-  std::vector<Input> m_newInputs;
-  std::vector<Input> m_blendedInputs;
-  std::vector<Input> m_removeInputs;
+  std::vector<Input *> m_newInputs;
+  std::vector<Input *> m_blendedInputs;
+  std::vector<Input *> m_removeInputs;
+  std::vector<Input *> m_inputs;
   //ETX
 };
 

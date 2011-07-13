@@ -13,6 +13,7 @@
 //#include "vtkMultiProcessController.h"
 
 #include <cmath>
+#include <algorithm>
 
 #include <iostream>
 #include <vtkAlgorithmOutput.h>
@@ -29,6 +30,7 @@ vtkStandardNewMacro(vtkImageLabelMapBlend);
 
 vtkImageLabelMapBlend::vtkImageLabelMapBlend()
 : m_init(false)
+, Opacity(0.8)
 {
   //! Port 0: Blending inputs
   //! Port 1: Reference colors
@@ -37,6 +39,7 @@ vtkImageLabelMapBlend::vtkImageLabelMapBlend()
   m_newInputs.clear();
   m_removeInputs.clear();
   m_blendedInputs.clear();
+  m_inputs.clear();
 }
 
 //! Determine if two regions intersect, and if @intersection array is
@@ -90,13 +93,25 @@ void vtkImageLabelMapBlend::RemoveInputConnection(int port, vtkAlgorithmOutput* 
       input->GetProducer()->GetOutputDataObject(0));
     
     // Find inputs and move to removeInputs vector
-    std::vector<Input>::iterator it;
     int numDeletions = 0;
+    
+    std::vector<Input *>::iterator it;
+    it = m_inputs.begin();
+    while (it != m_inputs.end())
+    { 
+      if ((*it)->image == inputImage)
+      {
+	it = m_inputs.erase(it);
+	numDeletions++;
+      }
+      else
+	it++;
+    }
     
     it = m_blendedInputs.begin();
     while (it != m_blendedInputs.end())
     { 
-      if ((*it).image == inputImage)
+      if ((*it)->image == inputImage)
       {
 	m_removeInputs.push_back(*it);
 	it = m_blendedInputs.erase(it);
@@ -109,7 +124,7 @@ void vtkImageLabelMapBlend::RemoveInputConnection(int port, vtkAlgorithmOutput* 
     it = m_newInputs.begin();
     while (it != m_newInputs.end())
     { 
-      if ((*it).image == inputImage)
+      if ((*it)->image == inputImage)
       {
 	m_removeInputs.push_back(*it);
 	it = m_newInputs.erase(it);
@@ -118,8 +133,7 @@ void vtkImageLabelMapBlend::RemoveInputConnection(int port, vtkAlgorithmOutput* 
       else
 	it++;
     }
-    
-    if (numDeletions != 1)
+    if (numDeletions != 2)
       vtkDebugMacro(<< "WARNING: Input has been removed " << numDeletions << " times.");
   }
   
@@ -129,31 +143,21 @@ void vtkImageLabelMapBlend::RemoveInputConnection(int port, vtkAlgorithmOutput* 
 void vtkImageLabelMapBlend::RemoveAllInputs()
 {
   // If there were already blended areas, those should be marked to be removed
+  //TODO: Memory leak...
   m_removeInputs.insert(m_removeInputs.end(),m_blendedInputs.begin(),m_blendedInputs.end());
   m_blendedInputs.clear();
   // New inputs haven't already been blended so we can discard them safely
   m_newInputs.clear();
+  m_inputs.clear();
   vtkThreadedImageAlgorithm::RemoveAllInputs();
 }
 
 void vtkImageLabelMapBlend::SetLabelMapColor(double id, double r, double g, double b)
 {
-  unsigned int bi = m_blendedInputs.size();
-  unsigned int input = (unsigned int)id;
-  if (input < bi)
-  {
-    assert(input < m_blendedInputs.size());
-    m_blendedInputs[input].color[0] = r*255;
-    m_blendedInputs[input].color[1] = g*255;
-    m_blendedInputs[input].color[2] = b*255;
-  }
-  else
-  {
-    assert(input - bi < m_newInputs.size());
-    m_newInputs[input - bi].color[0] = r*255;
-    m_newInputs[input - bi].color[1] = g*255;
-    m_newInputs[input - bi].color[2] = b*255;
-  }
+  assert(id < m_inputs.size());
+  m_inputs[id]->color[0] = r*255;
+  m_inputs[id]->color[1] = g*255;
+  m_inputs[id]->color[2] = b*255;
 }
 
 
@@ -268,9 +272,9 @@ void vtkImageLabelMapBlend::blendInputs(vtkImageIterator<InputPixelType> &inIt, 
       {
 	for (int c = 0; c < 3; c++)
 	{
-	  double r = (color[c]*0.8)/255;//Alpha
+	  double r = Opacity;//constant opacity
 	  double f = 1.0 - r;
-	  *outPtr = *outPtr*f + color[c]*0.8*r;
+	  *outPtr = *outPtr*f + color[c]*r;
 	  ++outPtr;
 	}
       }else
@@ -306,14 +310,14 @@ void vtkImageLabelMapBlend::ThreadedRequestData(vtkInformation* request, vtkInfo
   for (unsigned int r = 0; r < m_removeInputs.size(); r++)
   {
     int removeAreaExtent[6];
-    if (!intersect(m_removeInputs[r].requestedAreaExtent,extent, removeAreaExtent))
+    if (!intersect(m_removeInputs[r]->requestedAreaExtent,extent, removeAreaExtent))
       continue;
     
     for (unsigned int i = 0; i < m_blendedInputs.size(); i++)
     {
       // Check if removed area intersect current input
       int inputRemoveAreaExtent[6];
-      if (intersect(removeAreaExtent, m_blendedInputs[i].requestedAreaExtent, inputRemoveAreaExtent))
+      if (intersect(removeAreaExtent, m_blendedInputs[i]->requestedAreaExtent, inputRemoveAreaExtent))
       {
 // 	sprintf(res, "Thread ID: %d: RemoveArea: %d %d %d %d %d %d\n",threadId, removeAreaExtent[0], removeAreaExtent[1], removeAreaExtent[2], removeAreaExtent[3],removeAreaExtent[4],removeAreaExtent[5]);
 // 	std::cout << res;
@@ -322,15 +326,15 @@ void vtkImageLabelMapBlend::ThreadedRequestData(vtkInformation* request, vtkInfo
 
 	// We need to update only the interesecting area
 	int inputRemoveExtent[6];
-	correctExtent(inputRemoveAreaExtent, m_blendedInputs[i], inputRemoveExtent);
-	vtkImageData *input  = m_blendedInputs[i].image;//vtkImageData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
+	correctExtent(inputRemoveAreaExtent, *m_blendedInputs[i], inputRemoveExtent);
+	vtkImageData *input  = m_blendedInputs[i]->image;//vtkImageData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
 	vtkImageIterator<InputPixelType> inIt(input, inputRemoveExtent);
 	vtkImageProgressIterator<OutputPixelType> outIt(output, inputRemoveAreaExtent,this,threadId);
 	
 	if (i == 0) // First input has to be copied, not blended
 	  copyInput(inIt,outIt);
 	else
-	  blendInputs(inIt,outIt,m_blendedInputs[i].color);
+	  blendInputs(inIt,outIt,m_blendedInputs[i]->color);
       }
     }
   }
@@ -339,18 +343,18 @@ void vtkImageLabelMapBlend::ThreadedRequestData(vtkInformation* request, vtkInfo
   for (unsigned int i = 0; i < m_newInputs.size(); i++)
   {
     int inputAreaExtent[6];
-    if (!intersect(m_newInputs[i].requestedAreaExtent, extent, inputAreaExtent))
+    if (!intersect(m_newInputs[i]->requestedAreaExtent, extent, inputAreaExtent))
       continue;
     
 //     sprintf(res, "Thread ID: %d: InputArea %d: %d %d %d %d %d %d\n",threadId, i, inputAreaExtent[0], inputAreaExtent[1], inputAreaExtent[2], inputAreaExtent[3],inputAreaExtent[4],inputAreaExtent[5]);
 //     std::cout << res;
     int inputExtent[6];
-    correctExtent(inputAreaExtent,m_newInputs[i],inputExtent);
-    vtkImageData *input  = m_newInputs[i].image;//vtkImageData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
+    correctExtent(inputAreaExtent,*m_newInputs[i],inputExtent);
+    vtkImageData *input  = m_newInputs[i]->image;//vtkImageData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
     vtkImageIterator<InputPixelType> inIt(input,inputExtent);
     vtkImageIterator<OutputPixelType> outIt(output,inputAreaExtent);
     
-    blendInputs(inIt, outIt, m_newInputs[i].color);
+    blendInputs(inIt, outIt, m_newInputs[i]->color);
   }
   
 //   std::cout << "\n\t\tCOLORING BLENDER: " << m_debugProcessedPixels << " pixel processed\n\n" << std::endl;
@@ -379,54 +383,56 @@ void vtkImageLabelMapBlend::PrintSelf(ostream& os, vtkIndent indent)
 
 bool vtkImageLabelMapBlend::requestArea(vtkImageData *inputImage)
 {
-  Input input;
+  Input *input = new Input();;
   
   inputImage->Update();
   
   // Check for duplicate inputs
   for (int i = 0; i < m_blendedInputs.size();i++)
-    if (m_blendedInputs[i].image == inputImage)
+    if (m_blendedInputs[i]->image == inputImage)
     {
       vtkDebugMacro(<< "Input already added");
       return false;
     }
   
   for (int i = 0; i < m_newInputs.size();i++)
-    if (m_newInputs[i].image == inputImage)
+    if (m_newInputs[i]->image == inputImage)
     {
       vtkDebugMacro(<< "Input already added");
       return false;
     }
   
-  for (std::vector<Input>::iterator it = m_removeInputs.begin(); it != m_removeInputs.end(); it++)
-    if ((*it).image == inputImage)
+  for (std::vector<Input *>::iterator it = m_removeInputs.begin(); it != m_removeInputs.end(); it++)
+    if ((*it)->image == inputImage)
     {
       vtkDebugMacro(<< "Input was previously blended");
       m_blendedInputs.push_back(*it);
+      m_inputs.push_back(*it);
       m_removeInputs.erase(it);
       return true;
     }
   
   // Get input information
-  input.image = inputImage;
-  inputImage->GetBounds(input.bounds);
-  inputImage->GetSpacing(input.spacing);
-  inputImage->GetExtent(input.extent);
+  input->image = inputImage;
+  inputImage->GetBounds(input->bounds);
+  inputImage->GetSpacing(input->spacing);
+  inputImage->GetExtent(input->extent);
   //   inputImage->GetDimensions(input.dims);
   //   input.blended = false;
   for (int i = 0; i<6; i++)
-    input.requestedAreaExtent[i] = input.bounds[i] / input.spacing[i/2];
+    input->requestedAreaExtent[i] = input->bounds[i] / input->spacing[i/2];
   
   // To force blending of initial image
-    if (m_newInputs.size() == 0 && m_blendedInputs.size() == 0 && m_removeInputs.size() == 0)
-    {
-      // NOTE:Usually, the same input cannot be in two vectors
-      m_blendedInputs.push_back(input); 
-      m_removeInputs.push_back(input);
-    }
-    else
-    {
-      m_newInputs.push_back(input);
-    }
-    return true;
+ if (m_newInputs.size() == 0 && m_blendedInputs.size() == 0 && m_removeInputs.size() == 0)
+ {
+   // NOTE:Usually, the same input cannot be in two vectors
+   m_blendedInputs.push_back(input); 
+   m_removeInputs.push_back(input);
+ }
+ else
+ {
+   m_newInputs.push_back(input);
+ }
+ m_inputs.push_back(input);
+ return true;
 }
