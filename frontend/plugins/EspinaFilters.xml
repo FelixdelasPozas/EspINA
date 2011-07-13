@@ -186,6 +186,7 @@
      <InputProperty
         name="Input"
 		immediate_update="1"
+		port_index="0"
 		clean_command="RemoveAllInputs"
 		command="AddInputConnection"
 		repeatable="1"
@@ -199,6 +200,36 @@
            </DataTypeDomain>
       </InputProperty>
    </SourceProxy>
+
+   <SourceProxy name="ImageLabelMapBlend" class="vtkImageLabelMapBlend" label="ImageLabelMapBlend">
+     <Documentation
+        long_help="Blends images together using alpha or opacity"
+		short_help="Blends images together using alpha or opacity">
+     </Documentation>
+     <InputProperty
+        name="Input"
+		port_index="0"
+		immediate_update="1"
+		clean_command="RemoveAllInputs"
+		command="AddInputConnection"
+		repeatable="1"
+		>
+           <ProxyGroupDomain name="groups">
+             <Group name="sources"/>
+             <Group name="filters"/>
+           </ProxyGroupDomain>
+           <DataTypeDomain name="input_type">
+             <DataType value="vtkDataImage"/>
+           </DataTypeDomain>
+      </InputProperty>
+      <DoubleVectorProperty
+	name="InputColor"
+	number_of_elements="4"
+	immediate_update="1"
+	command="SetLabelMapColor">
+      </DoubleVectorProperty>
+      </SourceProxy>
+      
 
 
    <SourceProxy name="MyWindowLevelLookupTable" class="vtkWindowLevelLookupTable" label="WindowLevelLookupTable">

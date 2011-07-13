@@ -244,6 +244,8 @@ void SliceView::connectToServer()
   
   m_view = qobject_cast<pqRenderView*>(ob->createView(
              pqRenderView::renderViewType(), server));
+  connect(m_view,SIGNAL(beginRender()),this,SLOT(beginRender()));
+  connect(m_view,SIGNAL(endRender()),this,SLOT(endRender()));
   m_viewWidget = m_view->getWidget();
   m_viewWidget->installEventFilter(this);
   QObject::connect(m_viewWidget, SIGNAL(mouseEvent(QMouseEvent *)),
@@ -251,7 +253,6 @@ void SliceView::connectToServer()
   
   m_mainLayout->insertWidget(0, m_viewWidget);//To preserve view order
 
-  
   m_viewProxy = vtkSMRenderViewProxy::SafeDownCast(m_view->getProxy());
   assert(m_viewProxy);
   
@@ -296,17 +297,14 @@ void SliceView::connectToServer()
 //-----------------------------------------------------------------------------
 void SliceView::disconnectFromServer()
 {
-  qDebug() << "Disconnecting from the server";
-  /*
   pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
   if (m_view)
   {
     m_mainLayout->removeWidget(m_viewWidget);
-    ob->destroy(m_view);
     m_style->Delete();
     m_view = NULL;
+    m_viewWidget = NULL;
   }
-  */
 }
 
 
@@ -377,7 +375,6 @@ void SliceView::rowsInserted(const QModelIndex& parent, int start, int end)
   //QAbstractItemView::rowsInserted(parent, start, end);
   
   //TODO: Multi samples
-  
   assert(start == end);// Only 1-row-at-a-time inserts are allowed
   
   //QModelIndex index = parent.child(r,0);
@@ -554,7 +551,6 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
   if (event->type() == QMouseEvent::MouseButtonPress &&
       event->buttons() == Qt::LeftButton)
   {
-    qDebug() << "Entra";
     double spacing[3];//Image Spacing
     m_focusedSample->spacing(spacing);
   
@@ -569,7 +565,7 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
       return;
     }
    
-   qDebug() << "Picked pixel" << pickPos[0] << pickPos[1] << pickPos[2];
+//    qDebug() << "Picked pixel" << pickPos[0] << pickPos[1] << pickPos[2];
     SelectionManager::instance()->onMouseDown(pos, this);
     //qDebug() << "Pick Position:" << pickPos[0] << pickPos[1] << pickPos[2];
     centerViewOn(round(pickPos[0] / spacing[0]),round(pickPos[1] / spacing[1]),round(pickPos[2] / spacing[2]));
@@ -641,12 +637,23 @@ void SliceView::setVOI(IVOI* voi)
 void SliceView::updateScene()
 {
   //qDebug("Updating scene ...");
-  QApplication::setOverrideCursor(Qt::WaitCursor);
   if (m_sampleRep)
   {
     int sliceOffset = m_plane==VIEW_PLANE_XY?1:0;
     setSlice(m_sampleRep->slice(m_plane)+sliceOffset);
   }
   m_view->render();
+//   m_view->forceRender();
+}
+
+void SliceView::beginRender()
+{
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+}
+
+
+void SliceView::endRender()
+{
   QApplication::restoreOverrideCursor();
 }
+

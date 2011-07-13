@@ -42,6 +42,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QSpinBox>
+#include <QCheckBox>
 #include <QWidgetAction>
 #include <QToolButton>
 #include <QMenu>
@@ -53,11 +54,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqPipelineFilter.h"
 #include "vtkSMProxy.h"
 #include "vtkSMInputProperty.h"
+#include <vtkSMPropertyHelper.h>
 
 #include <QDebug>
 #include "assert.h"
 #include <espINAFactory.h>
 #include <QBitmap>
+#include <RectangularVOI.h>
 
 
 #define DEFAULT_THRESHOLD 30
@@ -69,10 +72,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 SeedGrowSegmentation::SeedGrowSegmentation(QObject* parent)
 : ISegmentationPlugin(parent)
 , m_seedSelector(NULL)
+, m_defaultVOI(NULL)
 {
   m_factoryName = SGS;
   // Register Factory's filters
   ProcessingTrace::instance()->registerPlugin(SGSF, this);
+  
+  m_defaultVOI = new RectangularVOI(false);
   
   buildUI();
   
@@ -134,7 +140,6 @@ void SeedGrowSegmentation::abortSelection()
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentation::startSegmentation(ISelectionHandler::Selection sel)
 {
-  qDebug() << "SeedGrowSegmenation: Start Seed Growing Segmentation";
   QApplication::setOverrideCursor(Qt::WaitCursor);
   
   // Initialize application context
@@ -163,7 +168,28 @@ void SeedGrowSegmentation::startSegmentation(ISelectionHandler::Selection sel)
   args.insert("Threshold",QString::number(m_threshold->value()));
   // args.insert("VOI",SelectionManager::instance()->voi()->save());
   //createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);
-  SeedGrowSegmentationFilter *sgs_sgsf = new SeedGrowSegmentationFilter(input, SelectionManager::instance()->voi(),args);
+  
+  IVOI *voi = SelectionManager::instance()->voi();
+  if (!voi && m_useDefaultVOI->isChecked())
+  {
+    voi = m_defaultVOI;
+    Sample *input = EspINA::instance()->activeSample();
+    voi->setSource(input);
+    double spacing[3];
+    input->spacing(spacing);
+    double defVOI[6] = {(seed.x - 30)*spacing[0],
+			(seed.x + 30)*spacing[0],
+			(seed.y - 30)*spacing[1],
+			(seed.y + 30)*spacing[1],
+			(seed.z - 30)*spacing[2],
+			(seed.z + 30)*spacing[2]};
+    vtkSMPropertyHelper(voi->getProxy(),"Bounds").Set(defVOI,6);
+    voi->getProxy()->UpdateVTKObjects();
+    double checkBounds[6];
+    vtkSMPropertyHelper(voi->getProxy(),"Bounds").Get(defVOI,6);
+  }
+  
+  SeedGrowSegmentationFilter *sgs_sgsf = new SeedGrowSegmentationFilter(input, voi, args);
   QApplication::restoreOverrideCursor();
   if (undoStack)
   {
@@ -206,14 +232,18 @@ void SeedGrowSegmentation::buildSelectors()
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentation::buildUI()
 {
-  //Threshold Widget
+  // Threshold Widget
   QLabel *thresholdLabel = new QLabel(tr("Threshold"));
   m_threshold = new QSpinBox();
   m_threshold->setMinimum(0);
   m_threshold->setMaximum(255);
   m_threshold->setValue(DEFAULT_THRESHOLD);
   
-  //Segmentation Button
+  // Use default VOI
+  m_useDefaultVOI = new QCheckBox(tr("Default VOI"));
+  m_useDefaultVOI->setCheckState(Qt::Checked);
+  
+  // Segmentation Button
   m_segButton = new QToolButton();
   m_segButton->setCheckable(true);
   m_selectors = new QMenu();
@@ -228,6 +258,7 @@ void SeedGrowSegmentation::buildUI()
   QHBoxLayout *thresholdLayout = new QHBoxLayout();
   thresholdLayout->addWidget(thresholdLabel);
   thresholdLayout->addWidget(m_threshold);
+  thresholdLayout->addWidget(m_useDefaultVOI);
   thresholdLayout->addWidget(m_segButton);
   
   QWidget *thresholdFrame = new QWidget();

@@ -94,6 +94,7 @@ void VolumeView::connectToServer()
 //-----------------------------------------------------------------------------
 void VolumeView::disconnectFromServer()
 {
+  return;
   pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
   if (m_view)
   {
