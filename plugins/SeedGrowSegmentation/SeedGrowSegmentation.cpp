@@ -238,6 +238,7 @@ void SeedGrowSegmentation::buildUI()
   m_threshold->setMinimum(0);
   m_threshold->setMaximum(255);
   m_threshold->setValue(DEFAULT_THRESHOLD);
+  m_threshold->setToolTip(tr("Determine the size of color value range for a given pixel"));
   
   // Use default VOI
   m_useDefaultVOI = new QCheckBox(tr("Default VOI"));
@@ -253,6 +254,7 @@ void SeedGrowSegmentation::buildUI()
   buildSelectors();
 
   m_segButton->setMenu(m_selectors);
+  m_segButton->setToolTip(tr("Pixel selector"));
   
   // Plugin's Widget Layout
   QHBoxLayout *thresholdLayout = new QHBoxLayout();
