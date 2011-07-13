@@ -43,11 +43,11 @@ configure_file(
   "${PROJECT_SOURCE_DIR}/frontend/Config.h"
 )
 # Generate translation file
-add_custom_command( OUTPUT es_ES.qm #TARGET DEFAULT_TRANSLATION_DIR POST_BUILD 
-  COMMAND lrelease ${PROJECT_SOURCE_DIR}/frontend/translationFiles/translation_es.ts -qm ${DEFAULT_TRANSLATION_DIR}es_ES.qm
-)
-add_custom_target(es DEPENDS es_ES.qm)
-add_dependencies(Espina es)
+# add_custom_command( OUTPUT es_ES.qm #TARGET DEFAULT_TRANSLATION_DIR POST_BUILD 
+#   COMMAND lrelease ${PROJECT_SOURCE_DIR}/frontend/translationFiles/translation_es.ts -qm ${DEFAULT_TRANSLATION_DIR}es_ES.qm
+# )
+# add_custom_target(es DEPENDS es_ES.qm)
+# add_dependencies(Espina es)
   
 file (GLOB PARAVIEWFILES ${ParaView_BINARY_DIR}/bin/*.so*)
 file (GLOB ITKFILES ${ITK_DIR}/bin/*.so*)

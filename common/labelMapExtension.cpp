@@ -131,8 +131,15 @@ void SampleRepresentation::requestUpdate(bool force)
       {
 	double segColor[4];
 	seg->color(segColor);
-	double c[4] = {ci, segColor[0],segColor[1],segColor[2]};
-	vtkSMPropertyHelper(m_rep->pipelineSource()->getProxy(),"InputColor").Set(c,4);
+	std::cout << "Input " << ci << "_" << seg << " has COLOR: " << segColor[0] << segColor[1] << segColor[2] << std::endl;
+	double labelColor[4] = {ci, segColor[0],segColor[1],segColor[2]};
+	//TODO: NOTE: Each time we remove all inputs we have to re-assign colors
+	// to labelmaps, nevertheless, paraview proxy somehow caches previous calls
+	// to the Set method, and because parameters doesn't change, it doesn't update
+	// the server component. Thus we change to a fake color and then to the good one.
+	double fakeLabelColor[4] = {ci, -1, -1, -1};
+	vtkSMPropertyHelper(m_rep->pipelineSource()->getProxy(),"InputColor").Set(fakeLabelColor,4);
+	vtkSMPropertyHelper(m_rep->pipelineSource()->getProxy(),"InputColor").Set(labelColor,4);
 	ci++;
       }
     }

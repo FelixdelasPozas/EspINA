@@ -52,8 +52,6 @@ set(Espina_SOURCE_FILES
   ${UI_BUILT_SOURCES}
   )
 
-include_directories({${QUAZIP_INCLUDE_DIR})
-
 set(EXTERNAL_LIBS ${QUAZIP_LIBRARIES})
 
 add_library (Espina SHARED ${Espina_SOURCE_FILES})

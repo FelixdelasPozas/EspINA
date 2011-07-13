@@ -8,8 +8,7 @@
 #include <boost/concept_check.hpp>
 #include <QStringList>
 #include <qdir.h>
-#include </include/quazip/quazipfile.h>
-
+#include <quazipfile.h>
 /*
 class FilePack
 {
