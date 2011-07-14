@@ -5,7 +5,7 @@ cmake_minimum_required (VERSION 2.6)
 # Version Number
 set (ESPINA_VERSION_MAJOR 0)
 set (ESPINA_VERSION_MINOR 1)
-set (ESPINA_VERSION_PATCH 3)
+set (ESPINA_VERSION_PATCH 4)
 
 
 find_package (Qt4 REQUIRED)
@@ -37,17 +37,17 @@ configure_file(
   "${PROJECT_SOURCE_DIR}/common/Config.h"
 )
 # TRANSLATIONS
-set( DEFAULT_TRANSLATION_DIR "/usr/share/espina/translations/" )
+#set( DEFAULT_TRANSLATION_DIR "/usr/share/espina/translations/" )
 configure_file(
   "${PROJECT_SOURCE_DIR}/frontend/Config.h.in"
   "${PROJECT_SOURCE_DIR}/frontend/Config.h"
 )
 # Generate translation file
-# add_custom_command( OUTPUT es_ES.qm #TARGET DEFAULT_TRANSLATION_DIR POST_BUILD 
-#   COMMAND lrelease ${PROJECT_SOURCE_DIR}/frontend/translationFiles/translation_es.ts -qm ${DEFAULT_TRANSLATION_DIR}es_ES.qm
-# )
-# add_custom_target(es DEPENDS es_ES.qm)
-# add_dependencies(Espina es)
+add_custom_command( OUTPUT es_ES.qm #TARGET DEFAULT_TRANSLATION_DIR POST_BUILD 
+	COMMAND lrelease ${PROJECT_SOURCE_DIR}/frontend/translationFiles/translation_es.ts -qm ${CMAKE_BINARY_DIR}/es_ES.qm
+)
+add_custom_target(es DEPENDS es_ES.qm)
+add_dependencies(Espina es)
   
 file (GLOB PARAVIEWFILES ${ParaView_BINARY_DIR}/bin/*.so*)
 file (GLOB ITKFILES ${ITK_DIR}/bin/*.so*)
@@ -56,7 +56,7 @@ install (FILES ${PARAVIEWFILES} DESTINATION lib/espina)
 install (FILES ${ITKFILES} DESTINATION lib/espina)
 install (FILES espina.conf DESTINATION ../etc/ld.so.conf.d/)
 install (FILES ${PROJECT_SOURCE_DIR}/default_taxonomy.xml DESTINATION share/espina/)
-install (FILES ${PROJECT_SOURCE_DIR}/frontend/translationFiles/es.qm DESTINATION share/espina/)
+#install (FILES ${PROJECT_SOURCE_DIR}/frontend/translationFiles/es.qm DESTINATION share/espina/)
 
 set (CPACK_PACKAGE_VERSION_MAJOR ${ESPINA_VERSION_MAJOR})
 set (CPACK_PACKAGE_VERSION_MINOR ${ESPINA_VERSION_MINOR})

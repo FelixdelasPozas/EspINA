@@ -124,9 +124,11 @@ EspinaMainWindow::EspinaMainWindow()
   m_espina = EspINA::instance();
   
   QTranslator translator;
-  QDir translationDir(TRANSLATION_DIR);
-  translator.load( translationDir.filePath( QLocale::system().name()) );
+  //QDir translationDir(TRANSLATION_DIR);
+//   translator.load( translationDir.filePath( QLocale::system().name()) );
+  translator.load(":/espina/es_ES.qm");
   QCoreApplication::installTranslator(&translator);  
+  this->Internals->menu_File->setTitle(tr("&File"));
   
   
   

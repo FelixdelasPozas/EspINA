@@ -15,5 +15,6 @@
         <file>show_all.svg</file>
         <file>hide_all.svg</file>
         <file>show_Mesh.svg</file>
+        <file>es_ES.qm</file>
     </qresource>
 </RCC>
