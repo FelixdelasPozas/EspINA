@@ -12,6 +12,7 @@
 #include <qdir.h>
 #include <qstring.h>
 #include <QtCore/qdebug.h>
+#include <QProcess>
 
 int invalidSeed(int argc, char **argv)
 {
@@ -32,11 +33,21 @@ int invalidSeed(int argc, char **argv)
   
   vtkSmartPointer<vtkMetaImageWriter> writer =
   vtkSmartPointer<vtkMetaImageWriter>::New();
-  std::string outFileName("invalidSeed_out.mhd");
-  writer->SetFileName(outFileName.c_str());
+  QString outFileName("invalidSeed_output.mhd");
+  writer->SetFileName(outFileName.toUtf8());
   writer->SetInputConnection(segmentation->GetOutputPort());
   writer->Write();
   
+  // Image comparison
+  QProcess diffProcess;
+  diffProcess.start("diff", QStringList() << QString(outFileName).remove(QRegExp("\\..*$")).append(".zraw") << "invalidSeed_reference.zraw");
+  if( diffProcess.waitForFinished() )
+  {
+    if( diffProcess.readAllStandardOutput().size() != 0 )
+      return 1;
+  } else
+    return 1;
+
   //vtkSmartPointer<vtkMetaImageWriter> writer = vtkSmartPointer<vtkMetaImageWriter>::New();
   //writer->SetFileName("Test2.mha");
   //writer->SetRAWFileName("Test2.raw");

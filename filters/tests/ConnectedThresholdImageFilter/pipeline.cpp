@@ -9,6 +9,7 @@
 #include "vtkConnectedThresholdImageFilter.h"
 #include <QString>
 #include <QDir>
+#include <QProcess>
 
 int pipeline(int argc, char **argv)
 {
@@ -29,10 +30,20 @@ int pipeline(int argc, char **argv)
   
   vtkSmartPointer<vtkMetaImageWriter> writer =
   vtkSmartPointer<vtkMetaImageWriter>::New();
-  std::string outFileName("pipeline_out.mhd");
-  writer->SetFileName(outFileName.c_str());
+  QString outFileName("pipeline_out.mhd");
+  writer->SetFileName(outFileName.toUtf8());
   writer->SetInputConnection(segmentation->GetOutputPort());
   writer->Write();
+  
+    // Image comparison
+  QProcess diffProcess;
+  diffProcess.start("diff", QStringList() << QString(outFileName).remove(QRegExp("\\..*$")).append(".zraw") << "pipeline_reference.zraw");
+  if( diffProcess.waitForFinished() )
+  {
+    if( diffProcess.readAllStandardOutput().size() != 0 )
+      return 1;
+  } else
+    return 1;
   //vtkSmartPointer<vtkMetaImageWriter> writer = vtkSmartPointer<vtkMetaImageWriter>::New();
   //writer->SetFileName("Test2.mha");
   //writer->SetRAWFileName("Test2.raw");
