@@ -222,6 +222,11 @@ bool IOEspinaFile::loadFile(QString filePath,
     }
     file.close();
   }
+  if( !taxPorcessed || !traceProcess )
+  {
+    qWarning() << "IOEspinaFile::loadFile: could not find taxonomy and/or trace files";
+    return false;
+  }
   zip.close();
   return true;
 }
