@@ -19,13 +19,12 @@ create_test_sourcelist(TESTS
   SingleInput_Stepped
   SeveralInputs
   SeveralInputs_Stepped
-  vtkBlendSeveralInputs
   RemoveInput
   RemoveInput_Stepped
   )
 
 add_executable(${TEST_NAME} ${TESTS})
-target_link_libraries(${TEST_NAME} ${LIB_DEPENDECIES} ${QT_QTCORE_LIBRARY})
+target_link_libraries(${TEST_NAME} ${LIB_DEPENDECIES} ${QT_QTCORE_LIBRARY} CajalTests)
 
 # Remove the test driver source file
 set( TestToRun ${TESTS} )

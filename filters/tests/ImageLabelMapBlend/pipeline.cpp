@@ -10,8 +10,9 @@
 #include "vtkCamera.h"
 #include "vtkRenderWindow.h"
 #include <QString>
-#include <QDir>
 #include <vtkRenderWindowInteractor.h>
+
+#include "../../../tests/fileTests.h"
 
 int pipeline(int argc, char **argv)
 {
@@ -19,13 +20,15 @@ int pipeline(int argc, char **argv)
   
   vtkSmartPointer<vtkMetaImageReader> bgImage =
     vtkSmartPointer<vtkMetaImageReader>::New();
-  bgImage->SetFileName((stackPath.filePath("peque.mha")).toUtf8());
+    
+  QString inputFileName = stackPath.filePath("peque.mhd");
+  bgImage->SetFileName(inputFileName.toUtf8());
   
   // Pasarle el filtro que queremos probar
   vtkSmartPointer<vtkImageLabelMapBlend> blender =
     vtkSmartPointer<vtkImageLabelMapBlend>::New();
     
-  blender->SetNumberOfThreads(3);
+//   blender->SetNumberOfThreads(3);
   blender->AddInputConnection(0,bgImage->GetOutputPort());
   
   blender->DebugOn();
@@ -33,10 +36,22 @@ int pipeline(int argc, char **argv)
   
   vtkSmartPointer<vtkMetaImageWriter> writer =
     vtkSmartPointer<vtkMetaImageWriter>::New();
-  std::string outFileName("pipeline_out.mhd");
-  writer->SetFileName(outFileName.c_str());
+  writer->SetFileName("pipeline_out.mhd");
   writer->SetInputConnection(blender->GetOutputPort());
-//   writer->Write();
+  writer->Write();
+  
+  
+  bool failed = fileDiff(stackPath.filePath("tests/ImageLabelMapBlend/pipeline_out.mhd"),
+		  "pipeline_out.mhd") ||
+	fileDiff(stackPath.filePath("tests/ImageLabelMapBlend/pipeline_out.zraw"),
+		 "pipeline_out.zraw");
+	
+  // In case the test fails, we may want to analyze the output
+  if (!failed)
+  {
+    remove("pipeline_out.mhd");
+    remove("pipeline_out.zraw");
+  }
   
   // El resto es igual
 //   vtkImageActor *imageActor = vtkImageActor::New();
@@ -58,5 +73,5 @@ int pipeline(int argc, char **argv)
 //   renWin->Render();
 //   interactor->Start();
 
-  return 0;
+  return failed;
 }

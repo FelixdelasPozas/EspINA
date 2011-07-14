@@ -13,6 +13,8 @@
 #include <QDir>
 #include <vtkRenderWindowInteractor.h>
 
+#include "../../../tests/fileTests.h"
+
 int RemoveInput_Stepped(int argc, char **argv)
 {
   QDir stackPath(argv[1]);
@@ -37,11 +39,12 @@ int RemoveInput_Stepped(int argc, char **argv)
   vtkSmartPointer<vtkImageLabelMapBlend> blender =
     vtkSmartPointer<vtkImageLabelMapBlend>::New();
     
-  blender->SetNumberOfThreads(3);
+//   blender->SetNumberOfThreads(3);
   blender->AddInputConnection(0, bgImage->GetOutputPort());
   blender->AddInputConnection(0,input1->GetOutputPort());
+  blender->SetLabelMapColor(1,1,0,0);
   blender->AddInputConnection(0,input2->GetOutputPort());
-  
+  blender->SetLabelMapColor(2,0,1,0);
   blender->DebugOn();
   blender->Update();
   
@@ -50,30 +53,42 @@ int RemoveInput_Stepped(int argc, char **argv)
   
   vtkSmartPointer<vtkMetaImageWriter> writer =
     vtkSmartPointer<vtkMetaImageWriter>::New();
-  std::string outFileName("SingleInputReducedExtent_out.mhd");
+  std::string outFileName("SingleInput.mhd");
   writer->SetFileName(outFileName.c_str());
   writer->SetInputConnection(blender->GetOutputPort());
-//   writer->Write();
-  
-  // El resto es igual
-  vtkImageActor *imageActor = vtkImageActor::New();
-  imageActor->SetInput(blender->GetOutput());
-  //imageActor->SetInput( imageMapper );
-  
-  vtkRenderer *ren1= vtkRenderer::New();
-  ren1->AddActor( imageActor );
-  ren1->SetBackground( 0.1, 0.2, 0.4 );
-  
-  vtkSmartPointer<vtkRenderWindowInteractor> interactor =
-   vtkSmartPointer<vtkRenderWindowInteractor>::New();
-   
-  vtkRenderWindow *renWin = vtkRenderWindow::New();
+  writer->Write();
+    
+  bool failed = fileDiff(stackPath.filePath("tests/ImageLabelMapBlend/SingleInput.mhd"),
+			 "SingleInput.mhd") ||
+		fileDiff(stackPath.filePath("tests/ImageLabelMapBlend/SingleInput.zraw"),
+			 "SingleInput.zraw");
 
-  interactor->SetRenderWindow(renWin);
-  renWin->AddRenderer( ren1 );
-  renWin->SetSize( 600, 600 );
-  renWin->Render();
+  // In case the test fails, we may want to analyze the output
+  if (!failed)
+  {
+    remove("SingleInput.mhd");
+    remove("SingleInput.zraw");
+  }
+  
+//   // El resto es igual
+//   vtkImageActor *imageActor = vtkImageActor::New();
+//   imageActor->SetInput(blender->GetOutput());
+//   //imageActor->SetInput( imageMapper );
+//   
+//   vtkRenderer *ren1= vtkRenderer::New();
+//   ren1->AddActor( imageActor );
+//   ren1->SetBackground( 0.1, 0.2, 0.4 );
+//   
+//   vtkSmartPointer<vtkRenderWindowInteractor> interactor =
+//    vtkSmartPointer<vtkRenderWindowInteractor>::New();
+//    
+//   vtkRenderWindow *renWin = vtkRenderWindow::New();
+// 
+//   interactor->SetRenderWindow(renWin);
+//   renWin->AddRenderer( ren1 );
+//   renWin->SetSize( 600, 600 );
+//   renWin->Render();
 //   interactor->Start();
 
-  return 0;
+  return failed;
 }
