@@ -85,12 +85,13 @@ void RectangularVOI::ApplyFilter::removeProduct(vtkProduct* product)
 }
 
 //-----------------------------------------------------------------------------
-RectangularVOI::RectangularVOI()
+RectangularVOI::RectangularVOI(bool registerPlugin)
 : m_box(NULL)
 {
   //bzero(m_widget,4*sizeof(pq3DWidget *));
   QString registerName = ApplyFilter::FilterType;
-  ProcessingTrace::instance()->registerPlugin(registerName, this);
+  if (registerPlugin)
+    ProcessingTrace::instance()->registerPlugin(registerName, this);
 }
 
 //-----------------------------------------------------------------------------
@@ -106,8 +107,8 @@ EspinaFilter* RectangularVOI::createFilter(QString filter, ITraceNode::Arguments
 EspinaFilter *RectangularVOI::applyVOI(vtkProduct* product)
 {
   // To apply widget bounds to vtkBox source
-  assert(m_widgets.size() > 0);
-  m_widgets.first()->accept();
+  if (m_widgets.size() > 0)
+    m_widgets.first()->accept();
   
   double voiExtent[6];
   rvoiExtent(voiExtent);
@@ -147,7 +148,7 @@ vtkSMProxy* RectangularVOI::getProxy()
 //-----------------------------------------------------------------------------
 pq3DWidget* RectangularVOI::newWidget()
 {
-  QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(m_product->representation("01_Color")->pipelineSource()->getProxy(), getProxy());
+  QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(m_product->creator()->pipelineSource()->getProxy(), getProxy());
   
   assert(widgets.size() == 1);
   connect(widgets[0],SIGNAL(widgetEndInteraction()),this,SLOT(endInteraction()));

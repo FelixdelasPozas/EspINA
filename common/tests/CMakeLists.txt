@@ -18,3 +18,11 @@ set(LIB_DEPENDECIES
 )
 
 add_subdirectory(IOEspinaFile)
+
+foreach(TEST ${TESTS})
+	set(EXE_NAME Espina${TEST})
+	add_executable(${EXE_NAME} Test${TEST}.cpp)
+	target_link_libraries(${EXE_NAME} ${LIB_DEPENDECIES})
+	add_test(Espina-${TEST} ${EXECUTABLE_OUTPUT_PATH}/${EXE_NAME})
+endforeach(TEST)
+

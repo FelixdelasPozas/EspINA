@@ -29,6 +29,7 @@ qt4_wrap_cpp(MOC_BUILT_SOURCES
   EspinaPlugin.h
   labelMapExtension.h
   crosshairExtension.h
+  RectangularVOI.h
 )
 
 source_group("Generated" FILES
@@ -50,8 +51,6 @@ set(Espina_SOURCE_FILES
   ${RCC_BUILT_SOURCES}
   ${UI_BUILT_SOURCES}
   )
-
-include_directories({${QUAZIP_INCLUDE_DIR})
 
 set(EXTERNAL_LIBS ${QUAZIP_LIBRARIES})
 

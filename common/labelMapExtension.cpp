@@ -29,6 +29,7 @@
 #include <vtkSMInputProperty.h>
 #include <vtkSMProxy.h>
 #include <QAction>
+#include <vtkSMPropertyHelper.h>
 
 using namespace LabelMapExtension;
 
@@ -40,12 +41,10 @@ SampleRepresentation::SampleRepresentation(Sample* sample)
 {
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   
-  assert(sample->representation("01_Color"));
-  
   vtkFilter::Arguments filterArgs;
-  filterArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT, sample->representation("01_Color")->id()));
+  filterArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT, sample->id()));
   
-  m_rep = cob->createFilter("filters", "ImageBlend", filterArgs);
+  m_rep = cob->createFilter("filters", "ImageLabelMapBlend", filterArgs);
   assert(m_rep);
 }
 
@@ -70,7 +69,7 @@ pqPipelineSource* SampleRepresentation::pipelineSource()
   if (m_enable)
     return m_rep->pipelineSource();
   else
-    return m_sample->representation("01_Color")->pipelineSource();
+    return m_sample->creator()->pipelineSource();
 }
 
 void SampleRepresentation::render(pqView* view, ViewType type)
@@ -79,24 +78,36 @@ void SampleRepresentation::render(pqView* view, ViewType type)
 
 void SampleRepresentation::requestUpdate(bool force)
 {
+  vtkSMProperty* p;
+//   p = m_rep->pipelineSource()->getProxy()->GetProperty("Input");
+//   vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
+//   foreach(Segmentation *seg, m_sample->segmentations())
+//   {
+//     if (seg->visible())
+//     {
+//       input->AddInputConnection(seg->creator()->pipelineSource()->getProxy(),0);
+//     }
+//   }
+//   emit representationUpdated();//DEBUG
+//   return;//DEBUG
+  
   if (m_numberOfBlendedSeg != m_sample->segmentations().size() || force) 
   {
     m_numberOfBlendedSeg = m_sample->segmentations().size();
     
-    vtkSMProperty* p;
     
     vtkstd::vector<vtkSMProxy *> inputs;
     vtkstd::vector<unsigned int> ports;
     
     // Ensure sample's mapper is the first input
-    inputs.push_back(m_sample->representation("01_Color")->pipelineSource()->getProxy());
+    inputs.push_back(m_sample->creator()->pipelineSource()->getProxy());
     ports.push_back(0);
     
     foreach(Segmentation *seg, m_sample->segmentations())
     {
       if (seg->visible())
       {
-	inputs.push_back(seg->representation("01_Color")->pipelineSource()->getProxy());
+	inputs.push_back(seg->creator()->pipelineSource()->getProxy());
 	ports.push_back(0);
       }
     }
@@ -111,6 +122,26 @@ void SampleRepresentation::requestUpdate(bool force)
       , &inputs[0]
       , &ports[0]);
       m_rep->pipelineSource()->getProxy()->UpdateVTKObjects();
+    }
+    
+    int ci = 1;//colorinput
+    foreach(Segmentation *seg, m_sample->segmentations())
+    {
+      if (seg->visible())
+      {
+	double segColor[4];
+	seg->color(segColor);
+	std::cout << "Input " << ci << "_" << seg << " has COLOR: " << segColor[0] << segColor[1] << segColor[2] << std::endl;
+	double labelColor[4] = {ci, segColor[0],segColor[1],segColor[2]};
+	//TODO: NOTE: Each time we remove all inputs we have to re-assign colors
+	// to labelmaps, nevertheless, paraview proxy somehow caches previous calls
+	// to the Set method, and because parameters doesn't change, it doesn't update
+	// the server component. Thus we change to a fake color and then to the good one.
+	double fakeLabelColor[4] = {ci, -1, -1, -1};
+	vtkSMPropertyHelper(m_rep->pipelineSource()->getProxy(),"InputColor").Set(fakeLabelColor,4);
+	vtkSMPropertyHelper(m_rep->pipelineSource()->getProxy(),"InputColor").Set(labelColor,4);
+	ci++;
+      }
     }
   }
   
