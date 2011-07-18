@@ -101,17 +101,17 @@ int vtkConnectedThresholdImageFilter::RequestData(vtkInformation* request, vtkIn
   outInfo->Get(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(),outUpdateExtent);
   
   //std::cout << "Process "<< vtkMultiProcessController::GetGlobalController()->GetLocalProcessId() << std::endl;
-  std::cout << "\tSeed: " << m_seed[0] << m_seed[1] << m_seed[2] << std::endl;
-  std::cout << "\tInput Extent: " << inExtent[0] << " " << inExtent[1] << " " <<  inExtent[2] <<  " " <<  inExtent[3] <<  " " <<  inExtent[4]<<  " " <<  inExtent[5] << std::endl;
-  std::cout << "\tWhole Extent: " << wholeExtent[0] << " " << wholeExtent[1] << " " <<  wholeExtent[2] <<  " " <<  wholeExtent[3] <<  " " <<  wholeExtent[4]<<  " " <<  wholeExtent[5] << std::endl;
-  std::cout << "\tOutput Update Extent: " << outUpdateExtent[0] << " " << outUpdateExtent[1] << " " <<  outUpdateExtent[2] <<  " " <<  outUpdateExtent[3] <<  " " <<  outUpdateExtent[4]<<  " " <<  outUpdateExtent[5] << std::endl;
+//   std::cout << "\tSeed: " << m_seed[0] << m_seed[1] << m_seed[2] << std::endl;
+//   std::cout << "\tInput Extent: " << inExtent[0] << " " << inExtent[1] << " " <<  inExtent[2] <<  " " <<  inExtent[3] <<  " " <<  inExtent[4]<<  " " <<  inExtent[5] << std::endl;
+//   std::cout << "\tWhole Extent: " << wholeExtent[0] << " " << wholeExtent[1] << " " <<  wholeExtent[2] <<  " " <<  wholeExtent[3] <<  " " <<  wholeExtent[4]<<  " " <<  wholeExtent[5] << std::endl;
+//   std::cout << "\tOutput Update Extent: " << outUpdateExtent[0] << " " << outUpdateExtent[1] << " " <<  outUpdateExtent[2] <<  " " <<  outUpdateExtent[3] <<  " " <<  outUpdateExtent[4]<<  " " <<  outUpdateExtent[5] << std::endl;
   bool noSeed = m_seed[0] < inExtent[0] || m_seed[0] > inExtent[1] ||
 	        m_seed[1] < inExtent[2] || m_seed[1] > inExtent[3] ||
 	        m_seed[2] < inExtent[4] || m_seed[2] > inExtent[5];
     
   if (noSeed)
   {
-    std::cout << "\tNo Seed" << std::endl;
+//     std::cout << "\tNo Seed" << std::endl;
     
     vtkDebugMacro(<< "Request Data: No Seed");
     outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),

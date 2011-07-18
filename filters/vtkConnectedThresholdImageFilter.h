@@ -1,7 +1,7 @@
 #ifndef VTK_CONNECTED_THRESHOLD_IMAGE_FILTER_H
 #define VTK_CONNECTED_THRESHOLD_IMAGE_FILTER_H
 
-#include "vtkImageAlgorithm.h"
+#include <vtkImageAlgorithm.h>
 
 class VTK_IMAGING_EXPORT vtkConnectedThresholdImageFilter : 
   public vtkImageAlgorithm
