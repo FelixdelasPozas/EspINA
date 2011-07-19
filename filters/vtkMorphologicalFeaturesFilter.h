@@ -42,9 +42,14 @@ public:
   vtkTypeMacro(vtkMorphologicalFeaturesFilter, vtkImageAlgorithm);
   
   // Morphological Features
-  void GetSize(int *size);
+  void GetSize(unsigned long *size);
   void GetPhysicalSize(double* phySize);
-  void GetCentroid(int *centroid);
+  void GetCentroid(double *centroid);
+  void GetRegion(int* region);
+  void GetBinaryPrincipalMoments(double* bpm);
+  void GetBinaryPrincipalAxes(double* bpa);
+  void GetFeretDiameter(double *feret);
+  void GetEquivalentEllipsoidSize(double *ees);
   
 protected:
   vtkMorphologicalFeaturesFilter(){}
