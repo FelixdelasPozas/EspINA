@@ -19,9 +19,16 @@
 
 #include "colorExtension.h"
 
+#include "sample.h"
+#include "segmentation.h"
+
 #include "cache/cachedObjectBuilder.h"
 #include "proxies/vtkSMRGBALookupTableProxy.h"
 
+// Debug
+#include "espina_debug.h"
+
+// Paraview
 #include <pqApplicationCore.h>
 #include <pqDisplayPolicy.h>
 #include <vtkSMProperty.h>
@@ -31,12 +38,8 @@
 #include <pqScalarsToColors.h>
 #include <pqLookupTableManager.h>
 
-//DEBUG
-#include <QDebug>
-#include <assert.h>
 
 using namespace ColorExtension;
-
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -216,18 +219,16 @@ void SegmentationExtension::initialize(Segmentation* seg)
 }
 
 //-----------------------------------------------------------------------------
-void SegmentationExtension::addInformation(InformationMap& map)
+ISegmentationRepresentation* SegmentationExtension::representation(QString rep)
 {
-  //qDebug() << "Color Extension: No extra information provided.";
+  assert(false);
 }
 
-//-----------------------------------------------------------------------------
-void SegmentationExtension::addRepresentations(RepresentationMap& map)
+QVariant SegmentationExtension::information(QString info)
 {
-  SegmentationRepresentation *rep = new SegmentationRepresentation(m_seg);
-  map.insert("01_Color", rep);
-  //qDebug() << "Color Extension: Color Representation Added";
+  assert(false);
 }
+
 
 //-----------------------------------------------------------------------------
 ISegmentationExtension* SegmentationExtension::clone()

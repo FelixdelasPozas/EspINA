@@ -19,15 +19,18 @@
 
 #include "taxonomyProxy.h"
 
+// Debug
+#include "espina_debug.h"
+
+// EspINA
+#include "espina.h"
+#include "sample.h"
+#include "segmentation.h"
+
 #include <data/modelItem.h>
 #include <data/taxonomy.h>
-#include "espina.h"
-#include "products.h"
 
-//Debug
-#include <assert.h>
-#include <QDebug>
-#include <iostream>
+
 //------------------------------------------------------------------------
 TaxonomyProxy::TaxonomyProxy(QObject* parent)
     : QAbstractProxyModel(parent)

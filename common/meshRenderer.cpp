@@ -18,7 +18,8 @@
 
 
 #include "meshRenderer.h"
-#include "products.h"
+
+#include "segmentation.h"
 
 // Para View
 #include <pqApplicationCore.h>

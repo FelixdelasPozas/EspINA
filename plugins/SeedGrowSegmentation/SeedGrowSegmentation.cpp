@@ -31,7 +31,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =========================================================================*/
 #include "SeedGrowSegmentation.h"
 
+// Debug
+#include "espina_debug.h"
+
+// EspINA
 #include "espina.h"
+#include "sample.h"
 #include "pixelSelector.h"
 
 #include "SeedGrowSegmentationFilter.h"
@@ -56,8 +61,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkSMInputProperty.h"
 #include <vtkSMPropertyHelper.h>
 
-#include <QDebug>
-#include "assert.h"
 #include <espINAFactory.h>
 #include <QBitmap>
 #include <RectangularVOI.h>
@@ -71,8 +74,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //-----------------------------------------------------------------------------
 SeedGrowSegmentation::SeedGrowSegmentation(QObject* parent)
 : ISegmentationPlugin(parent)
-, m_seedSelector(NULL)
 , m_defaultVOI(NULL)
+, m_seedSelector(NULL)
 {
   m_factoryName = SGS;
   // Register Factory's filters
@@ -185,11 +188,14 @@ void SeedGrowSegmentation::startSegmentation(ISelectionHandler::Selection sel)
 			(seed.z + 30)*spacing[2]};
     vtkSMPropertyHelper(voi->getProxy(),"Bounds").Set(defVOI,6);
     voi->getProxy()->UpdateVTKObjects();
-    double checkBounds[6];
+//     double checkBounds[6];
     vtkSMPropertyHelper(voi->getProxy(),"Bounds").Get(defVOI,6);
   }
   
   SeedGrowSegmentationFilter *sgs_sgsf = new SeedGrowSegmentationFilter(input, voi, args);
+  if (!sgs_sgsf)
+    qWarning() << "SeedGrowSegmentation: Failed to create new segmentation";
+  
   QApplication::restoreOverrideCursor();
   if (undoStack)
   {

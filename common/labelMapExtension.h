@@ -28,7 +28,6 @@ namespace LabelMapExtension
 {
   static const ExtensionId ID = "02_LabelMapExtension";
   
-  
   class SampleRepresentation : public ISampleRepresentation
   {
     Q_OBJECT

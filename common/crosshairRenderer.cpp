@@ -19,7 +19,7 @@
 
 #include "crosshairRenderer.h"
 
-#include "products.h"
+#include "sample.h"
 
 // Para View
 #include <pqApplicationCore.h>

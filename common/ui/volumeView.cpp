@@ -19,8 +19,16 @@
 
 #include "volumeView.h"
 
+// Debug
+#include "espina_debug.h"
+
+// libCajal
+#include <data/taxonomy.h>
+
+// EspINA
 #include "interfaces.h"
-#include "products.h"
+#include "sample.h"
+#include "segmentation.h"
 
 // GUI
 #include <QVBoxLayout>
@@ -44,9 +52,6 @@
 #include "vtkSMDoubleVectorProperty.h"
 #include "vtkSMStringVectorProperty.h"
 #include <pqBoxWidget.h>
-
-#include <QDebug>
-#include <data/taxonomy.h>
 #include <vtkSMRenderViewProxy.h>
 #include <pqPipelineSource.h>
 #include <vtkRenderWindow.h>

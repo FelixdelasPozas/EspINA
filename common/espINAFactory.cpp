@@ -19,10 +19,14 @@
 
 #include "espINAFactory.h"
 
-#include "EspinaPlugin.h"
-#include "products.h"
+// Debug
+#include "espina_debug.h"
 
-#include <QDebug>
+// EspINA
+#include "EspinaPlugin.h"
+#include "sample.h"
+#include "segmentation.h"
+
 
 EspINAFactory *EspINAFactory::m_instance = NULL;
 
@@ -56,7 +60,7 @@ Segmentation* EspINAFactory::CreateSegmentation(EspinaFilter *parent, vtkProduct
   Segmentation *seg = new Segmentation(parent, vtkRef->creator(),vtkRef->portNumber());
   foreach(ISegmentationExtension *ext, m_segExtensions)
   {
-    seg->addExtension(ext);
+    seg->addExtension(ext->clone());
   }
   return seg;
 }

@@ -2,13 +2,37 @@
 add_subdirectory(SegFileRemoteWriter)
 add_subdirectory( SegFileRemoteReader )
 
+find_package (ITK REQUIRED)
+include (${ITK_USE_FILE})
+
+include_directories(
+  ${ITK_VTK_GLUE}
+  ${ITK_DIR}/../
+  )
+
+set (PLUGIN_SRCS
+  vtkImageLabelMapBlend.cpp
+  vtkMorphologicalFeaturesFilter.cpp
+  )
+
+set (PARAVIEW_ADDITIONAL_LIBRARIES
+  ${CAJAL_LIBRARIES}
+  ITKCommon ITKBasicFilters ITKAlgorithms ITKIO
+)
+
 # Now crete a plugin for the toolbar. Here we pass IFACES and IFACE_SRCS
 # which are filled up by the above macro with relevant entries
 ADD_PARAVIEW_PLUGIN( 
-	EspinaFilters "0.1" 
+	EspinaFilters "0.2" 
 	REQUIRED_ON_SERVER
 	SERVER_MANAGER_XML EspinaFilters.xml
-	SERVER_MANAGER_SOURCES vtkImageLabelMapBlend.cpp
+	SERVER_MANAGER_SOURCES ${PLUGIN_SRCS} 
 	)
+
+if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+  set_target_properties(EspinaFilters PROPERTIES COMPILE_FLAGS "-fPIC")
+endif( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+
+target_link_libraries (EspinaFilters ${PARAVIEW_ADDITIONAL_LIBRARIES} )
 
 install (TARGETS EspinaFilters LIBRARY DESTINATION /usr/bin/plugins)

@@ -231,7 +231,34 @@
       </DoubleVectorProperty>
       </SourceProxy>
       
-
+     <SourceProxy name="MorphologicalFeatures" class="vtkMorphologicalFeaturesFilter" label="MorphologicalFeatures">
+     <Documentation
+       short_help="Extract morphological features from its input"
+       long_help="Extract morphological features from its input">
+     </Documentation>
+     <InputProperty
+        name="Input"
+		port_index="0"
+		immediate_update="1"
+		command="SetInputConnection"
+		>
+           <ProxyGroupDomain name="groups">
+             <Group name="sources"/>
+             <Group name="filters"/>
+           </ProxyGroupDomain>
+           <DataTypeDomain name="input_type">
+             <DataType value="vtkDataImage"/>
+           </DataTypeDomain>
+      </InputProperty>
+      <DoubleVectorProperty
+	name="Centroid"
+	number_of_elements="3"
+	immediate_update="1"
+	information_only="1"
+	command="GetCentroid">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
+      </SourceProxy>
 
    <SourceProxy name="MyWindowLevelLookupTable" class="vtkWindowLevelLookupTable" label="WindowLevelLookupTable">
      <Documentation

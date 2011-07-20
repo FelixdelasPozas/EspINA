@@ -19,11 +19,14 @@
 
 #include "labelMapExtension.h"
 
-#include "products.h"
+// Debug
+#include "espina_debug.h"
+
+// EspINA
+#include "sample.h"
+#include "segmentation.h"
 #include "cache/cachedObjectBuilder.h"
 
-//DEBUG
-#include <QDebug>
 #include <vtkSMProperty.h>
 #include <pqPipelineSource.h>
 #include <vtkSMInputProperty.h>

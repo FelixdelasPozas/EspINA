@@ -33,9 +33,11 @@
 #include "espinaMainWindow.h"
 #include "ui_espinaMainWindow.h"
 
+// Debug
 #include "espina_debug.h"
 
 #include "espINAFactory.h"
+#include "segmentation.h"
 #include "distance.h"
 #include "selectionManager.h"
 #include "data/taxonomy.h"
@@ -46,6 +48,7 @@
 #include "colorExtension.h"
 #include "meshExtension.h"
 #include "volumetricExtension.h"
+#include "morphologicalExtension.h"
 #include "sampleDelegate.h"
 #include "segmentationEditor.h"
 
@@ -71,9 +74,7 @@
 //VTK Includes
 //QT includes
 
-//Debug includes
 #include <iostream>
-#include <QPushButton>
 #include <pqServerResources.h>
 #include <QMessageBox>
 #include <QColorDialog>
@@ -190,6 +191,8 @@ EspinaMainWindow::EspinaMainWindow()
   EspINAFactory::instance()->addSegmentationExtension(&meshExt);
   VolumetricExtension volExt;
   EspINAFactory::instance()->addSegmentationExtension(&volExt);
+  MorphologicalExtension morphExt;
+  EspINAFactory::instance()->addSegmentationExtension(&morphExt);
   
   
   //! BUILD ESPINA INTERNALS

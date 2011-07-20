@@ -17,50 +17,35 @@
 */
 
 
-#ifndef VOLUMETRICEXTENSION_H
-#define VOLUMETRICEXTENSION_H
+#ifndef MORPHOLOGICALEXTENSION_H
+#define MORPHOLOGICALHEXTENSION_H
 
 #include <EspinaPlugin.h>
 
+class vtkFilter;
 class pqScalarsToColors;
+class vtkProduct;
 
-class VolumetricRepresentation : public ISegmentationRepresentation
-{
-public:
-  static const ISegmentationRepresentation::RepresentationId ID;
-  
-  VolumetricRepresentation(Segmentation* seg);
-  virtual ~VolumetricRepresentation();
-  
-  virtual QString id();
-  virtual void render(pqView* view);
-  virtual pqPipelineSource* pipelineSource();
-  
-public slots:
-  virtual void requestUpdate(bool force=false) {};
-  
-private:
-  pqScalarsToColors *m_LUT;  
-};
-
-class VolumetricExtension : public ISegmentationExtension
+class MorphologicalExtension : public ISegmentationExtension
 {
 public:
   static const ExtensionId ID;
   
 public:
-  VolumetricExtension();
-  virtual ~VolumetricExtension();
+  MorphologicalExtension();
+  virtual ~MorphologicalExtension();
   
   virtual ExtensionId id();
   virtual void initialize(Segmentation* seg);
-  virtual ISegmentationRepresentation* representation(QString rep);
+  virtual ISegmentationRepresentation *representation(QString rep);
   virtual QVariant information(QString info);
   
   virtual ISegmentationExtension* clone();
   
 private:
-  VolumetricRepresentation *m_volRep;
+  vtkFilter *m_features;
+  double m_centroid[3];
+  bool m_init;
 };
 
-#endif // VOLUMETRICEXTENSION_H
+#endif // MORPHOLOGICALEXTENSION_H

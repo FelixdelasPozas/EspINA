@@ -18,10 +18,15 @@
 
 
 #include "espina.h"
+
+// Debug
+#include "espina_debug.h"
+
 //Espina
 #include "Config.h"
 #include <data/taxonomy.h>
-#include "products.h"
+#include "sample.h"
+#include "segmentation.h"
 #include "cache/cachedObjectBuilder.h"
 
 #include <vtkSMStringVectorProperty.h>
@@ -35,8 +40,6 @@
 //#include <pqSaveDataReaction.h>
 #include <EspinaSaveDataReaction.h>
 
-#include <QDebug>
-#include <iostream>
 #include <fstream>
 
 #include "FilePack.h"
@@ -132,7 +135,8 @@ QVariant EspINA::data(const QModelIndex& index, int role) const
       
       Segmentation *seg = dynamic_cast<Segmentation *>(indexItem);
       assert(seg);
-      return seg->information(index.column()-1);
+      QStringList availableInfo = seg->availableInformations();
+      return seg->information(availableInfo[index.column()-1]);
     }
     return indexItem->data(role);
 }
@@ -184,8 +188,9 @@ int EspINA::columnCount(const QModelIndex& parent) const
 {
   if (parent == segmentationRoot() && m_segmentations.size() > 0)
   {
-    qDebug() << m_segmentations.first()->informationCount();
-    return m_segmentations.first()->informationCount() + 1;
+    int infoSize = m_segmentations.first()->availableInformations().size();
+    qDebug() << "Available Information:" << infoSize;
+    return infoSize + 1;
   }
   else
     return 1;

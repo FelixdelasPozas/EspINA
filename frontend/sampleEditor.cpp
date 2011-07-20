@@ -19,10 +19,13 @@
 
 #include "sampleEditor.h"
 
-#include "espina.h"
-#include "products.h"
+// Debug
+#include "espina_debug.h"
 
-#include <QDebug>
+// EspINA
+#include "espina.h"
+#include "sample.h"
+
 
 SampleEditor::SampleEditor(QWidget* parent, Qt::WindowFlags f)
         : QDialog(parent, f)

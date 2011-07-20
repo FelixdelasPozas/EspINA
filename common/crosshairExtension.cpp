@@ -19,8 +19,14 @@
 
 #include "crosshairExtension.h"
 
+// Debug
+#include "espina_debug.h"
+
+// EspINA
+#include "sample.h"
 #include "filter.h"
 #include "cache/cachedObjectBuilder.h"
+#include "labelMapExtension.h"
 
 #include <pqApplicationCore.h>
 #include <pqDisplayPolicy.h>
@@ -28,13 +34,9 @@
 #include <pqPipelineRepresentation.h>
 #include <pqPipelineSource.h>
 
-//DEBUG
-#include <QDebug>
-#include <assert.h>
 #include <vtkSMPropertyHelper.h>
 #include <vtkSMInputProperty.h>
 #include <vtkSMProxy.h>
-#include "labelMapExtension.h"
 #include <pqView.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSMRenderViewProxy.h>
