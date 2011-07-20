@@ -13,7 +13,8 @@ set (TEST_NAME ${COMPONENT_NAME}_test)
 create_test_sourcelist(TESTS  
   ${TEST_NAME}.cpp
   pipeline
-  features
+  Features
+  ComputedFeatures
 )
 
 add_executable(${TEST_NAME} ${TESTS})

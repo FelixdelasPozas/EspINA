@@ -16,7 +16,7 @@
 
 #include "../../../tests/fileTests.h"
 
-int features(int argc, char **argv)
+int Features(int argc, char **argv)
 {
   QDir stackPath(argv[1]);
   
@@ -40,12 +40,12 @@ int features(int argc, char **argv)
   std::cout << "Features Computed: "  << std::endl;
   
   unsigned long size = -1;
-  features->GetSize(&size);  
+  size = features->GetSize();  
   std::cout << "\tSize\t\t" << size << std::endl;
   failed = failed || size == -1;
 
   double phySize = -1;
-  features->GetPhysicalSize(&phySize);  
+  phySize = features->GetPhysicalSize();  
   std::cout << "\tPhysicalSize\t" << phySize << std::endl;
   failed = failed || phySize == -1;
 
@@ -79,7 +79,7 @@ int features(int argc, char **argv)
   failed = failed || bpa[6] == -1 || bpa[7] == -1 || bpa[8] == -1;
   
   double feret = -1;
-  features->GetFeretDiameter(&feret);  
+  feret = features->GetFeretDiameter();  
   std::cout << "\tFeret Diameter\t" << feret << std::endl;
   failed = failed || feret == -1;
 

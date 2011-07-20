@@ -30,29 +30,32 @@
 class VTK_IMAGING_EXPORT vtkMorphologicalFeaturesFilter :
 public vtkImageAlgorithm
 {
+  //BTX
   typedef unsigned char InputPixelType;
   typedef itk::Image<InputPixelType,3> InputImageType;
   // Convert label image to label map
   typedef itk::StatisticsLabelObject<unsigned int, 3> LabelObjectType;
   typedef itk::LabelMap<LabelObjectType> LabelMapType;
   typedef itk::LabelImageToShapeLabelMapFilter<InputImageType, LabelMapType> Image2LabelFilterType;
+  //ETX
   
 public:
   static vtkMorphologicalFeaturesFilter *New();
   vtkTypeMacro(vtkMorphologicalFeaturesFilter, vtkImageAlgorithm);
   
+  
   // Morphological Features
-  void GetSize(unsigned long *size);
-  void GetPhysicalSize(double* phySize);
-  void GetCentroid(double *centroid);
-  void GetRegion(int* region);
-  void GetBinaryPrincipalMoments(double* bpm);
-  void GetBinaryPrincipalAxes(double* bpa);
-  void GetFeretDiameter(double *feret);
-  void GetEquivalentEllipsoidSize(double *ees);
+  vtkGetMacro(Size, double); //Should be unsigned long
+  vtkGetMacro(PhysicalSize, double);
+  vtkGetVector3Macro(Centroid, double);
+  vtkGetVector3Macro(Region, int);
+  vtkGetVector3Macro(BinaryPrincipalMoments, double);
+  vtkGetVectorMacro(BinaryPrincipalAxes, double, 9);
+  vtkGetMacro(FeretDiameter,double);
+  vtkGetVector3Macro(EquivalentEllipsoidSize, double);
   
 protected:
-  vtkMorphologicalFeaturesFilter(){}
+  vtkMorphologicalFeaturesFilter();
   virtual ~vtkMorphologicalFeaturesFilter(){}
 
   virtual int RequestInformation(vtkInformation* request,
@@ -66,7 +69,19 @@ private:
   vtkMorphologicalFeaturesFilter(const vtkImageAlgorithm&);//Not implemented
   void operator=(const vtkImageAlgorithm&);//Not implemented
   
+  bool ComputeFeret;
+  double Size;
+  double PhysicalSize;
+  double Centroid[3];
+  int Region[3];
+  double BinaryPrincipalMoments[3];
+  double BinaryPrincipalAxes[9];
+  double FeretDiameter;
+  double EquivalentEllipsoidSize[3];
+ 
+  //BTX
   Image2LabelFilterType::Pointer image2label;
+  //ETX
 };
 
 #endif // VTKMORPHOLOGICALFEATURESFILTER_H

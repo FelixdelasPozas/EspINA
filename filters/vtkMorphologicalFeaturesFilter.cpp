@@ -29,6 +29,20 @@
 
 vtkStandardNewMacro(vtkMorphologicalFeaturesFilter);
 
+vtkMorphologicalFeaturesFilter::vtkMorphologicalFeaturesFilter()
+: ComputeFeret(true)
+, Size(0)
+, PhysicalSize(0)
+, FeretDiameter(0)
+{
+  bzero(Centroid, 3*sizeof(double));
+  bzero(Region, 3*sizeof(int));
+  bzero(BinaryPrincipalMoments, 3*sizeof(double));
+  bzero(BinaryPrincipalAxes, 9*sizeof(double));
+  bzero(EquivalentEllipsoidSize, 3*sizeof(double));
+}
+
+
 int vtkMorphologicalFeaturesFilter::RequestInformation(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
   return vtkImageAlgorithm::RequestInformation(request, inputVector, outputVector);
@@ -52,81 +66,43 @@ int vtkMorphologicalFeaturesFilter::RequestData(vtkInformation* request, vtkInfo
   
   image2label = Image2LabelFilterType::New();
   image2label->SetInput(vtk2itk_filter->GetOutput());
-  image2label->SetComputeFeretDiameter(true);
+  image2label->SetComputeFeretDiameter(ComputeFeret);
   image2label->Update();//TODO: Check if needed
  
+  LabelMapType *labelMap = image2label->GetOutput();
+  LabelObjectType *object = labelMap->GetLabelObject(LABEL_VALUE);
+
+  Size = object->GetSize();
+
+  PhysicalSize = object->GetPhysicalSize();
+  
+  Centroid[0] = object->GetCentroid()[0];
+  Centroid[1] = object->GetCentroid()[1];
+  Centroid[2] = object->GetCentroid()[2];
+
+  Region[0] = object->GetRegion().GetSize()[0];
+  Region[1] = object->GetRegion().GetSize()[1];
+  Region[2] = object->GetRegion().GetSize()[2];
+
+  BinaryPrincipalMoments[0] = object->GetBinaryPrincipalMoments()[0];
+  BinaryPrincipalMoments[1] = object->GetBinaryPrincipalMoments()[1];
+  BinaryPrincipalMoments[2] = object->GetBinaryPrincipalMoments()[2];
+
+  BinaryPrincipalAxes[0] = object->GetBinaryPrincipalAxes()[0][0];
+  BinaryPrincipalAxes[1] = object->GetBinaryPrincipalAxes()[0][1];
+  BinaryPrincipalAxes[2] = object->GetBinaryPrincipalAxes()[0][2];
+  BinaryPrincipalAxes[3] = object->GetBinaryPrincipalAxes()[1][0];
+  BinaryPrincipalAxes[4] = object->GetBinaryPrincipalAxes()[1][1];
+  BinaryPrincipalAxes[5] = object->GetBinaryPrincipalAxes()[1][2];
+  BinaryPrincipalAxes[6] = object->GetBinaryPrincipalAxes()[2][0];
+  BinaryPrincipalAxes[7] = object->GetBinaryPrincipalAxes()[2][1];
+  BinaryPrincipalAxes[8] = object->GetBinaryPrincipalAxes()[2][2];
+
+  FeretDiameter = ComputeFeret? object->GetFeretDiameter() : 0;
+  
+  EquivalentEllipsoidSize[0] = object->GetEquivalentEllipsoidSize()[0];
+  EquivalentEllipsoidSize[1] = object->GetEquivalentEllipsoidSize()[1];
+  EquivalentEllipsoidSize[2] = object->GetEquivalentEllipsoidSize()[2];
+
   return 1;
-}
-
-void vtkMorphologicalFeaturesFilter::GetSize(long unsigned int* size)
-{
-  LabelMapType *labelMap = image2label->GetOutput();
-  LabelObjectType *object = labelMap->GetLabelObject(LABEL_VALUE);
-  *size = object->GetSize();
-}
-
-void vtkMorphologicalFeaturesFilter::GetPhysicalSize(double* phySize)
-{
-  LabelMapType *labelMap = image2label->GetOutput();
-  LabelObjectType *object = labelMap->GetLabelObject(LABEL_VALUE);
-  *phySize = object->GetPhysicalSize();
-}
-
-
-void vtkMorphologicalFeaturesFilter::GetCentroid(double* centroid)
-{
-  LabelMapType *labelMap = image2label->GetOutput();
-  LabelObjectType *object = labelMap->GetLabelObject(LABEL_VALUE);
-  centroid[0] = object->GetCentroid()[0];
-  centroid[1] = object->GetCentroid()[1];
-  centroid[2] = object->GetCentroid()[2];
-}
-
-void vtkMorphologicalFeaturesFilter::GetRegion(int* region)
-{
-  LabelMapType *labelMap = image2label->GetOutput();
-  LabelObjectType *object = labelMap->GetLabelObject(LABEL_VALUE);
-  region[0] = object->GetRegion().GetSize()[0];
-  region[1] = object->GetRegion().GetSize()[1];
-  region[2] = object->GetRegion().GetSize()[2];
-}
-
-void vtkMorphologicalFeaturesFilter::GetBinaryPrincipalMoments(double* bpm)
-{
-  LabelMapType *labelMap = image2label->GetOutput();
-  LabelObjectType *object = labelMap->GetLabelObject(LABEL_VALUE);
-  bpm[0] = object->GetBinaryPrincipalMoments()[0];
-  bpm[1] = object->GetBinaryPrincipalMoments()[1];
-  bpm[2] = object->GetBinaryPrincipalMoments()[2];
-}
-
-void vtkMorphologicalFeaturesFilter::GetBinaryPrincipalAxes(double* bpa)
-{
-  LabelMapType *labelMap = image2label->GetOutput();
-  LabelObjectType *object = labelMap->GetLabelObject(LABEL_VALUE);
-  bpa[0] = object->GetBinaryPrincipalAxes()[0][0];
-  bpa[1] = object->GetBinaryPrincipalAxes()[0][1];
-  bpa[2] = object->GetBinaryPrincipalAxes()[0][2];
-  bpa[3] = object->GetBinaryPrincipalAxes()[1][0];
-  bpa[4] = object->GetBinaryPrincipalAxes()[1][1];
-  bpa[5] = object->GetBinaryPrincipalAxes()[1][2];
-  bpa[6] = object->GetBinaryPrincipalAxes()[2][0];
-  bpa[7] = object->GetBinaryPrincipalAxes()[2][1];
-  bpa[8] = object->GetBinaryPrincipalAxes()[2][2];
-}
-
-void vtkMorphologicalFeaturesFilter::GetFeretDiameter(double* feret)
-{
-  LabelMapType *labelMap = image2label->GetOutput();
-  LabelObjectType *object = labelMap->GetLabelObject(LABEL_VALUE);
-  *feret = object->GetFeretDiameter();
-}
-
-void vtkMorphologicalFeaturesFilter::GetEquivalentEllipsoidSize(double* ees)
-{
-  LabelMapType *labelMap = image2label->GetOutput();
-  LabelObjectType *object = labelMap->GetLabelObject(LABEL_VALUE); 
-  ees[0] = object->GetEquivalentEllipsoidSize()[0];
-  ees[1] = object->GetEquivalentEllipsoidSize()[1];
-  ees[2] = object->GetEquivalentEllipsoidSize()[2];
 }
