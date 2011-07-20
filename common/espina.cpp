@@ -125,6 +125,15 @@ QVariant EspINA::data(const QModelIndex& index, int role) const
     
     // Other elements can display their own data
     IModelItem *indexItem = static_cast<IModelItem *>(index.internalPointer());
+    if (index.column() > 0)
+    {
+      if (role != Qt::DisplayRole)
+	return QVariant();
+      
+      Segmentation *seg = dynamic_cast<Segmentation *>(indexItem);
+      assert(seg);
+      return seg->information(index.column()-1);
+    }
     return indexItem->data(role);
 }
 
@@ -173,7 +182,13 @@ bool EspINA::setData(const QModelIndex& index, const QVariant& value, int role)
 //------------------------------------------------------------------------
 int EspINA::columnCount(const QModelIndex& parent) const
 {
-  return 1;
+  if (parent == segmentationRoot() && m_segmentations.size() > 0)
+  {
+    qDebug() << m_segmentations.first()->informationCount();
+    return m_segmentations.first()->informationCount() + 1;
+  }
+  else
+    return 1;
 }
 
 //------------------------------------------------------------------------

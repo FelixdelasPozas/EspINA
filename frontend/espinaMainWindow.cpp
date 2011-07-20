@@ -123,13 +123,11 @@ EspinaMainWindow::EspinaMainWindow()
 {
   m_espina = EspINA::instance();
   
-  QTranslator translator;
-  //QDir translationDir(TRANSLATION_DIR);
-//   translator.load( translationDir.filePath( QLocale::system().name()) );
-  translator.load(":/espina/es_ES.qm");
-  QCoreApplication::installTranslator(&translator);  
-  this->Internals->menu_File->setTitle(tr("&File"));
-  
+//   QTranslator translator;
+//   //QDir translationDir(TRANSLATION_DIR);
+//   //translator.load( translationDir.filePath( QLocale::system().name()) );
+//   translator.load(":/espina/es_ES.qm");
+//   QCoreApplication::installTranslator(&translator);  
   
   
   this->Internals = new pqInternals();
@@ -195,7 +193,6 @@ EspinaMainWindow::EspinaMainWindow()
   
   
   //! BUILD ESPINA INTERNALS
-
   // Segementation Grouping Proxies
   TaxonomyProxy *taxProxy = new TaxonomyProxy();
   taxProxy->setSourceModel(m_espina);
@@ -251,6 +248,11 @@ EspinaMainWindow::EspinaMainWindow()
 
   connect(m_espina, SIGNAL(resetTaxonomy()),
           this, SLOT(resetTaxonomy()));
+  
+  // Data view Dock
+  connect(this->Internals->refreshView,SIGNAL(clicked()),this,SLOT(extractInformation()));
+//   this->Internals->dataView->setModel(m_espina);
+//   this->Internals->dataView->setRootIndex(m_espina->segmentationRoot());
   
 #if DEBUG_GUI
   connect(pqApplicationCore::instance()->getObjectBuilder(),
@@ -602,6 +604,14 @@ void EspinaMainWindow::deleteSegmentations()
     }
   }
 }
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::extractInformation()
+{
+  Internals->dataView->setModel(m_espina);
+  Internals->dataView->setRootIndex(m_espina->segmentationRoot());
+}
+
 
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::autoLoadStack()

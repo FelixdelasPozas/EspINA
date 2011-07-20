@@ -381,6 +381,13 @@ ISegmentationExtension *Segmentation::extension(ExtensionId extId)
   return m_extensions[extId];
 }
 
+//------------------------------------------------------------------------
+QVariant Segmentation::information(int index)
+{
+  return m_infoMap[m_infoMap.keys()[index]];
+}
+
+//------------------------------------------------------------------------
 //! TODO: Review where extensions should be initialized: at creation
 //! or when adding them to EspINA
 void Segmentation::initialize()

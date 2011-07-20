@@ -174,6 +174,9 @@ public:
   ISegmentationRepresentation *representation(QString name) {return m_repMap[name];}
   //! Are supposed to be used for sort time 
   ISegmentationExtension *extension(ExtensionId extId);
+  //! Return the number of information elements provided by its extensions
+  int informationCount() {return m_infoMap.size();}
+  QVariant information(int index);
   void initialize();
   
 private:

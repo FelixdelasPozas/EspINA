@@ -116,6 +116,7 @@ void MeshExtension::initialize(Segmentation* seg)
 
 void MeshExtension::addInformation(InformationMap& map)
 {
+  map.insert("Taxonomy",m_seg->taxonomy()->getName());
 //   qDebug() << ID << ": No extra information provided.";
 }
 
