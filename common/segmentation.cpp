@@ -52,7 +52,8 @@ Segmentation::Segmentation(EspinaFilter* parent, vtkFilter* creator, int portNum
 //------------------------------------------------------------------------
 Segmentation::~Segmentation()
 {
-  for (unsigned int i = m_insertionOrderedExtensions.size()-1; i >= 0; i--)
+  int size = m_insertionOrderedExtensions.size()-1;
+  for (int i = size; i >= 0; i--)
     delete m_insertionOrderedExtensions[i];
   
   foreach(ISegmentationExtension *ext, m_pendingExtensions)
