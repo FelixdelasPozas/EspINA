@@ -39,7 +39,7 @@ using namespace LabelMapExtension;
 
 SampleRepresentation::SampleRepresentation(Sample* sample)
 : ISampleRepresentation(sample)
-, m_enable(true)
+, m_enabled(true)
 , m_numberOfBlendedSeg(0)
 {
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
@@ -60,7 +60,7 @@ SampleRepresentation::~SampleRepresentation()
 
 QString SampleRepresentation::id()
 {
-  if (m_enable)
+  if (m_enabled)
     return m_rep->id()+":0";
   else
     return m_sample->id();
@@ -69,7 +69,7 @@ QString SampleRepresentation::id()
 
 pqPipelineSource* SampleRepresentation::pipelineSource()
 {
-  if (m_enable)
+  if (m_enabled)
     return m_rep->pipelineSource();
   else
     return m_sample->creator()->pipelineSource();
@@ -94,10 +94,9 @@ void SampleRepresentation::requestUpdate(bool force)
 //   emit representationUpdated();//DEBUG
 //   return;//DEBUG
   
-  if (m_numberOfBlendedSeg != m_sample->segmentations().size() || force) 
+  if (m_enabled && (m_numberOfBlendedSeg != m_sample->segmentations().size() || force)) 
   {
     m_numberOfBlendedSeg = m_sample->segmentations().size();
-    
     
     vtkstd::vector<vtkSMProxy *> inputs;
     vtkstd::vector<unsigned int> ports;
@@ -110,6 +109,7 @@ void SampleRepresentation::requestUpdate(bool force)
     {
       if (seg->visible())
       {
+	seg->creator()->pipelineSource()->updatePipeline();
 	inputs.push_back(seg->creator()->pipelineSource()->getProxy());
 	ports.push_back(0);
       }
@@ -134,7 +134,7 @@ void SampleRepresentation::requestUpdate(bool force)
       {
 	double segColor[4];
 	seg->color(segColor);
-	std::cout << "Input " << ci << "_" << seg << " has COLOR: " << segColor[0] << segColor[1] << segColor[2] << std::endl;
+// 	std::cout << "Input " << ci << "_" << seg << " has COLOR: " << segColor[0] << segColor[1] << segColor[2] << std::endl;
 	double labelColor[4] = {ci, segColor[0],segColor[1],segColor[2]};
 	//TODO: NOTE: Each time we remove all inputs we have to re-assign colors
 	// to labelmaps, nevertheless, paraview proxy somehow caches previous calls
@@ -153,9 +153,9 @@ void SampleRepresentation::requestUpdate(bool force)
 
 void SampleRepresentation::setEnable(bool value)
 {
-  if (m_enable != value)
+  if (m_enabled != value)
   {
-    m_enable = value;
+    m_enabled = value;
     requestUpdate();
   }
 }

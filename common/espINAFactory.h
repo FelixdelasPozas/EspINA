@@ -39,6 +39,7 @@ public:
   
   Segmentation *CreateSegmentation(EspinaFilter *parent, vtkProduct *vtkRef);
   void addSegmentationExtension(ISegmentationExtension *ext);
+  QStringList segmentationAvailableInformations();
   
   VolumeView *CreateVolumeView();
   void addViewWidget(IViewWidget *widget);

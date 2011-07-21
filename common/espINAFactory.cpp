@@ -71,6 +71,17 @@ void EspINAFactory::addSegmentationExtension(ISegmentationExtension* ext)
   m_segExtensions.append(ext->clone());
 }
 
+QStringList EspINAFactory::segmentationAvailableInformations()
+{
+  QStringList informations;
+  informations << "Name" << "Taxonomy";
+  foreach (ISegmentationExtension *ext, m_segExtensions)
+    informations << ext->availableInformations();
+  
+  return informations;
+}
+
+
 VolumeView* EspINAFactory::CreateVolumeView()
 {
   VolumeView *view = new VolumeView();

@@ -44,7 +44,14 @@ public:
   
 private:
   vtkFilter *m_features;
-  double m_centroid[3];
+  double m_Size;
+  double m_PhysicalSize;
+  double m_Centroid[3];
+  int m_Region[3];
+  double m_BinaryPrincipalMoments[3];
+  double m_BinaryPrincipalAxes[9];
+  double m_FeretDiameter;
+  double m_EquivalentEllipsoidSize[3];
   bool m_init;
 };
 

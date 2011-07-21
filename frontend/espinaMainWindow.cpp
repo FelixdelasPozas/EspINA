@@ -76,9 +76,12 @@
 
 #include <iostream>
 #include <pqServerResources.h>
+
 #include <QMessageBox>
 #include <QColorDialog>
 #include <QSignalMapper>
+#include <QTranslator>
+#include <QFileDialog>
 
 #include <taxonomyProxy.h>
 #include <sampleProxy.h>
@@ -96,7 +99,6 @@
 #include <crosshairRenderer.h>
 #include <pqManagePluginsReaction.h>
 #include <pqQtMessageHandlerBehavior.h>
-#include <QTranslator>
 #include "Config.h"
 
 const QString FILTERS("Trace Files (*.trace)");
@@ -253,9 +255,13 @@ EspinaMainWindow::EspinaMainWindow()
           this, SLOT(resetTaxonomy()));
   
   // Data view Dock
-  connect(this->Internals->refreshView,SIGNAL(clicked()),this,SLOT(extractInformation()));
-//   this->Internals->dataView->setModel(m_espina);
-//   this->Internals->dataView->setRootIndex(m_espina->segmentationRoot());
+  QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
+  Internals->writeDataToFile->setIcon(iconSave);
+  Internals->refreshView->setVisible(false);
+//   connect(Internals->refreshView,SIGNAL(clicked()),this,SLOT(extractInformation()));
+  connect(Internals->writeDataToFile,SIGNAL(clicked()),this,SLOT(extractInformation()));
+  Internals->dataView->setModel(m_espina);
+  Internals->dataView->setRootIndex(m_espina->segmentationRoot());
   
 #if DEBUG_GUI
   connect(pqApplicationCore::instance()->getObjectBuilder(),
@@ -419,6 +425,9 @@ void EspinaMainWindow::loadFile(QString method)
   fileDialog.setFileMode(pqFileDialog::ExistingFiles);
   if (fileDialog.exec() == QDialog::Accepted)
   {
+    Internals->dataDock->setHidden(true);
+    this->update();
+    this->repaint();
     QApplication::setOverrideCursor(Qt::WaitCursor);
     m_espina->loadFile(fileDialog.getSelectedFiles()[0], method);
     QApplication::restoreOverrideCursor();
@@ -611,8 +620,25 @@ void EspinaMainWindow::deleteSegmentations()
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::extractInformation()
 {
-  Internals->dataView->setModel(m_espina);
-  Internals->dataView->setRootIndex(m_espina->segmentationRoot());
+//   Internals->dataView->setModel(m_espina);
+//   Internals->dataView->setRootIndex(m_espina->segmentationRoot());
+  QString fileName = QFileDialog::getSaveFileName(this,
+     tr("Save Data"), "", tr("CSV Text (*.csv)"));
+  QFile file(fileName);
+  file.open(QIODevice::WriteOnly |  QIODevice::Text);
+  QTextStream out(&file);
+  out << EspINAFactory::instance()->segmentationAvailableInformations().join(",") << "\n";
+  for (int r = 0; r < m_espina->rowCount(m_espina->segmentationRoot()); r++)
+  {
+    for (int c = 0; c < m_espina->columnCount(m_espina->segmentationRoot()); c++)
+    {
+      if (c)
+	out << ",";
+      out << m_espina->index(r,c,m_espina->segmentationRoot()).data().toString();
+    }
+    out << "\n";
+  }
+  file.close();
 }
 
 

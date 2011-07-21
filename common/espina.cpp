@@ -136,7 +136,7 @@ QVariant EspINA::data(const QModelIndex& index, int role) const
       Segmentation *seg = dynamic_cast<Segmentation *>(indexItem);
       assert(seg);
       QStringList availableInfo = seg->availableInformations();
-      return seg->information(availableInfo[index.column()-1]);
+      return seg->information(availableInfo[index.column()]);
     }
     return indexItem->data(role);
 }
@@ -186,11 +186,10 @@ bool EspINA::setData(const QModelIndex& index, const QVariant& value, int role)
 //------------------------------------------------------------------------
 int EspINA::columnCount(const QModelIndex& parent) const
 {
-  if (parent == segmentationRoot() && m_segmentations.size() > 0)
+  if (parent == segmentationRoot())
   {
-    int infoSize = m_segmentations.first()->availableInformations().size();
-    qDebug() << "Available Information:" << infoSize;
-    return infoSize + 1;
+    int infoSize = EspINAFactory::instance()->segmentationAvailableInformations().size();
+    return infoSize;
   }
   else
     return 1;
@@ -330,6 +329,10 @@ int EspINA::numOfSegmentations(TaxonomyNode* tax) const
 //------------------------------------------------------------------------
 QVariant EspINA::headerData(int section, Qt::Orientation orientation, int role) const
 {
+  if (orientation == Qt::Horizontal && role == Qt::DisplayRole && section >= 0)
+  {
+    return EspINAFactory::instance()->segmentationAvailableInformations()[section];
+  }
   return QVariant();
 }
 

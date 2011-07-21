@@ -251,11 +251,67 @@
            </DataTypeDomain>
       </InputProperty>
       <DoubleVectorProperty
+	name="Size"
+	number_of_elements="1"
+	immediate_update="1"
+	information_only="1"
+	command="GetSize">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty> 
+      <DoubleVectorProperty
+	name="PhysicalSize"
+	number_of_elements="1"
+	immediate_update="1"
+	information_only="1"
+	command="GetPhysicalSize">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty
 	name="Centroid"
 	number_of_elements="3"
 	immediate_update="1"
 	information_only="1"
 	command="GetCentroid">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
+      <IntVectorProperty
+	name="Region"
+	number_of_elements="3"
+	immediate_update="1"
+	information_only="1"
+	command="GetRegion">
+	<SimpleIntInformationHelper/>
+      </IntVectorProperty>
+      <DoubleVectorProperty
+	name="BinaryPrincipalMoments"
+	number_of_elements="3"
+	immediate_update="1"
+	information_only="1"
+	command="GetBinaryPrincipalMoments">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty
+	name="BinaryPrincipalAxes"
+	number_of_elements="9"
+	immediate_update="1"
+	information_only="1"
+	command="GetBinaryPrincipalAxes">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty
+	name="FeretDiameter"
+	number_of_elements="1"
+	immediate_update="1"
+	information_only="1"
+	command="GetFeretDiameter">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty
+	name="EquivalentEllipsoidSize"
+	number_of_elements="3"
+	immediate_update="1"
+	information_only="1"
+	command="GetEquivalentEllipsoidSize">
 	<SimpleDoubleInformationHelper/>
       </DoubleVectorProperty>
       </SourceProxy>

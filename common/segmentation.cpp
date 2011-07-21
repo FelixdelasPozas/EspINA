@@ -163,6 +163,7 @@ ISegmentationRepresentation* Segmentation::representation(QString rep)
 QStringList Segmentation::availableInformations()
 {
   QStringList informations;
+  informations << "Name" << "Taxonomy";
   foreach (ISegmentationExtension *ext, m_insertionOrderedExtensions)
     informations << ext->availableInformations();
   
@@ -172,6 +173,11 @@ QStringList Segmentation::availableInformations()
 //------------------------------------------------------------------------
 QVariant Segmentation::information(QString info)
 {
+  if (info == "Name")
+    return data(Qt::DisplayRole);
+  if (info == "Taxonomy")
+    return m_taxonomy->getName();
+    
   return m_informations[info]->information(info);
 }
 

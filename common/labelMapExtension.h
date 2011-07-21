@@ -47,7 +47,7 @@ namespace LabelMapExtension
   
   private:
     vtkFilter *m_rep;
-    bool m_enable;
+    bool m_enabled;
     int m_numberOfBlendedSeg;
   };
   
