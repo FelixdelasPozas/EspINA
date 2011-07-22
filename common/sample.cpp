@@ -46,15 +46,18 @@ using namespace std;
 //-----------------------------------------------------------------------------
 Sample::~Sample()
 {
-  QStringList extList = m_extensions.keys();
-  extList.sort();
-  for (int ext = extList.size()-1; ext>=0; ext--)
-    delete m_extensions[extList[ext]];
+  int size = m_insertionOrderedExtensions.size()-1;
+  for (int i = size; i >= 0; i--)
+    delete m_insertionOrderedExtensions[i];
   
-  QStringList repList = m_repMap.keys();
-  repList.sort();
-  for (int rep = repList.size()-1; rep>=0; rep--)
-    delete m_repMap[repList[rep]];
+  foreach(ISampleExtension *ext, m_pendingExtensions)
+    delete ext;
+  
+  m_extensions.clear();
+  m_pendingExtensions.clear();
+  m_insertionOrderedExtensions.clear();
+  m_representations.clear();
+  m_informations.clear();
   
   CachedObjectBuilder::instance()->removeFilter(this->creator());  
 }
@@ -135,10 +138,11 @@ void Sample::bounds( double* out)
 //------------------------------------------------------------------------
 void Sample::spacing( double* out)
 {
-  if (m_repMap.contains("00_Spatial"))
+  ISampleRepresentation *spatialRep;
+  if ((spatialRep =  representation(SpatialExtension::SampleRepresentation::ID)))
   {
     SpatialExtension::SampleRepresentation* rep = 
-      dynamic_cast<SpatialExtension::SampleRepresentation*>(m_repMap["00_Spatial"]);
+      dynamic_cast<SpatialExtension::SampleRepresentation*>(spatialRep);
     rep->spacing(out);
   }else
   {
@@ -160,7 +164,7 @@ void Sample::spacing( double* out)
 void Sample::setSpacing(double x, double y, double z)
 {
   SpatialExtension::SampleRepresentation* rep = 
-    dynamic_cast<SpatialExtension::SampleRepresentation*>(m_repMap["00_Spatial"]);
+    dynamic_cast<SpatialExtension::SampleRepresentation*>(m_representations[SpatialExtension::SampleRepresentation::ID]);
   double spacing[3];
   rep->spacing(spacing);
   if(spacing[0] != x || spacing[1] != y || spacing[2] != z)
@@ -175,44 +179,104 @@ void Sample::setSpacing(double x, double y, double z)
 void Sample::addSegmentation(Segmentation* seg)
 {
   m_segs.push_back(seg);
-  foreach(ISampleRepresentation *rep, m_repMap)
+  foreach(ISampleRepresentation::RepresentationId rep, availableRepresentations())
   {
-    rep->requestUpdate();
+    representation(rep)->requestUpdate();
   }
 }
 
+//------------------------------------------------------------------------
 void Sample::removeSegmentation(Segmentation* seg)
 {
   m_segs.removeOne(seg);
-  foreach(ISampleRepresentation *rep, m_repMap)
+  foreach(ISampleRepresentation::RepresentationId rep, availableRepresentations())
   {
-    rep->requestUpdate();
+    representation(rep)->requestUpdate();
   }
 }
 
+//------------------------------------------------------------------------
 void Sample::addExtension(ISampleExtension* ext)
 {
-  ISampleExtension *extAdded = ext->clone();
+  EXTENSION_DEBUG("Added " << ext->id() << " to sample " << id());
   if (m_extensions.contains(ext->id()))
   {
-    qDebug() << "Sample Extensions:" << ext->id() << "already registered";
-    assert(false);
+     qWarning() << "Sample: Extension already registered";
+     assert(false);
   }
-  m_extensions[ext->id()] = extAdded;
+  
+  bool hasDependencies = true;
+  foreach(QString reqExtId, ext->dependencies())
+    hasDependencies = hasDependencies && m_extensions.contains(reqExtId);
+  
+  if (hasDependencies)
+  {
+    m_extensions.insert(ext->id(),ext);
+    m_insertionOrderedExtensions.push_back(ext);
+    foreach(ISampleRepresentation::RepresentationId rep, ext->availableRepresentations())
+      m_representations.insert(rep, ext);
+    foreach(QString info, ext->availableInformations())
+    {
+      m_informations.insert(info, ext);
+      EXTENSION_DEBUG("New Information: " << info);
+    }
+    // Try to satisfy pending extensions
+    foreach(ISampleExtension *pending, m_pendingExtensions)
+      addExtension(pending);
+  } 
+  else
+  {
+    if (!m_pendingExtensions.contains(ext->id()))
+      m_pendingExtensions.insert(ext->id(),ext);
+  }
 }
 
+//------------------------------------------------------------------------
 ISampleExtension* Sample::extension(ExtensionId extId)
 {
   assert(m_extensions.contains(extId));
   return m_extensions[extId];
 }
 
+//------------------------------------------------------------------------
+QStringList Sample::availableRepresentations()
+{
+  QStringList represnetations;
+  foreach (ISampleExtension *ext, m_insertionOrderedExtensions)
+    represnetations << ext->availableRepresentations();
+  
+  return represnetations;
+}
+
+//------------------------------------------------------------------------
+ISampleRepresentation* Sample::representation(QString rep)
+{
+  return m_representations[rep]->representation(rep);
+}
+
+//------------------------------------------------------------------------
+QStringList Sample::availableInformations()
+{
+  QStringList informations;
+  informations << "Name";
+  foreach (ISampleExtension *ext, m_insertionOrderedExtensions)
+    informations << ext->availableInformations();
+  
+  return informations;
+}
+
+//------------------------------------------------------------------------
+QVariant Sample::information(QString info)
+{
+  if (info == "Name")
+    return data(Qt::DisplayRole);
+    
+  return m_informations[info]->information(info);
+}
+
+//------------------------------------------------------------------------
 void Sample::initialize()
 {
-  foreach(ISampleExtension *ext, m_extensions)
-  {
+  foreach(ISampleExtension *ext, m_insertionOrderedExtensions)
     ext->initialize(this);
-    ext->addInformation(m_infoMap);
-    ext->addRepresentations(m_repMap);
-  }
 }

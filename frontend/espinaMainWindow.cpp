@@ -45,7 +45,6 @@
 #include "SegmentationExplorer.h"
 #include "meshRenderer.h"
 #include "volumetricRenderer.h"
-#include "colorExtension.h"
 #include "meshExtension.h"
 #include "volumetricExtension.h"
 #include "morphologicalExtension.h"
@@ -187,7 +186,7 @@ EspinaMainWindow::EspinaMainWindow()
 //   EspINAFactory::instance()->addSampleExtension(&sampleColorExt);
   LabelMapExtension::SampleExtension sampleLabelMapExt(this->Internals->toggleVisibility);
   EspINAFactory::instance()->addSampleExtension(&sampleLabelMapExt);
-  CrosshairExtension CrossExt;
+  CrosshairExtension::SampleExtension CrossExt;
   EspINAFactory::instance()->addSampleExtension(&CrossExt);
   MeshExtension meshExt;
   EspINAFactory::instance()->addSegmentationExtension(&meshExt);
@@ -375,7 +374,6 @@ EspinaMainWindow::EspinaMainWindow()
   Internals->modelsDock->setVisible(false);
   foreach(QAction *action, Internals->menu_View->actions())
   {
-    std::cout << action->text().toStdString() << std::endl;
     if (action->text() == "Model View" 
      ||action->text() == "Pipeline Browser" 
      ||action->text() == "Statistics Inspector" 

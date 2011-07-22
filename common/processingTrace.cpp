@@ -303,8 +303,8 @@ void ProcessingTrace::readTrace(QTextStream& stream)
             newSample->setSpacing(values[0].toDouble(), values[1].toDouble(), values[2].toDouble());
           }
 	  //ALERT: newSample is not initialize until added to espina model
-	  assert(newSample->representation("02_LabelMap"));
-	  dynamic_cast<LabelMapExtension::SampleRepresentation *>(newSample->representation("02_LabelMap"))->setEnable(false);
+	  assert(newSample->representation(LabelMapExtension::SampleRepresentation::ID));
+	  dynamic_cast<LabelMapExtension::SampleRepresentation *>(newSample->representation(LabelMapExtension::SampleRepresentation::ID))->setEnable(false);
         }
         else
         {
@@ -357,7 +357,7 @@ void ProcessingTrace::readTrace(QTextStream& stream)
     }
   }
   if (newSample)
-    dynamic_cast<LabelMapExtension::SampleRepresentation *>(newSample->representation("02_LabelMap"))->setEnable(true);
+    dynamic_cast<LabelMapExtension::SampleRepresentation *>(newSample->representation(LabelMapExtension::SampleRepresentation::ID))->setEnable(true);
 }
 
 //-----------------------------------------------------------------------------

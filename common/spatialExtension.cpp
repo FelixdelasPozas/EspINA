@@ -1,19 +1,31 @@
 #include "spatialExtension.h"
 
-#include "sample.h"
-#include "cache/cachedObjectBuilder.h"
-
 // Debug
 #include "espina_debug.h"
+
+#include "sample.h"
+#include "cache/cachedObjectBuilder.h"
 
 // Paraview
 #include <pqDisplayPolicy.h>
 #include <pqApplicationCore.h>
 #include <pqPipelineSource.h>
 
+#include <vtkSMPropertyHelper.h>
+#include <vtkSMProxy.h>
+
 
 using namespace SpatialExtension;
+
+//!-----------------------------------------------------------------------
+//! SPATIAL SAMPLE REPRESENTATION
+//!-----------------------------------------------------------------------
+//! Sample's Spatial representation using vtkImagechangeInformation to
+//! change input image spacing to the one specified by the user
 //-----------------------------------------------------------------------------
+
+const ISampleRepresentation::RepresentationId SampleRepresentation::ID  = "Spatial";
+
 SampleRepresentation::SampleRepresentation(Sample* sample): ISampleRepresentation(sample)
 {
   //TODO create VTK filter
@@ -54,8 +66,6 @@ pqPipelineSource* SampleRepresentation::pipelineSource()
   return m_rep->pipelineSource();
 }
 
-#include <vtkSMPropertyHelper.h>
-#include <vtkSMProxy.h>
 //-----------------------------------------------------------------------------
 void SampleRepresentation::setSpacing(double x, double y, double z)
 {
@@ -77,25 +87,50 @@ void SampleRepresentation::spacing(double value[3])
   value[2] = m_spacing[2];
 }
 
-
-/*
+//!-----------------------------------------------------------------------
+//! SPATIAL EXTENSION
+//!-----------------------------------------------------------------------
+//! Provides:
+//! - Spatial Representation
 //-----------------------------------------------------------------------------
-void SampleRepresentation::requestUpdate(bool force)
+SampleExtension::SampleExtension()
+: m_spatialRep(NULL)
 {
-  emit representationUpdated();
-}
-*/
-//-----------------------------------------------------------------------------
-void SampleExtension::addInformation(ISampleExtension::InformationMap& map)
-{
-
+  m_availableRepresentations << SampleRepresentation::ID;
 }
 
 //-----------------------------------------------------------------------------
-void SampleExtension::addRepresentations(ISampleExtension::RepresentationMap& map)
+SampleExtension::~SampleExtension()
 {
-  SampleRepresentation *rep = new SampleRepresentation(m_sample);
-  map.insert("00_Spatial", rep);
+  if (m_spatialRep)
+    delete m_spatialRep;
+}
+
+//-----------------------------------------------------------------------------
+void SampleExtension::initialize(Sample* sample)
+{
+  EXTENSION_DEBUG(ID << " Initialized");
+  m_sample = sample;
+  m_spatialRep = new SampleRepresentation(m_sample);
+}
+
+//-----------------------------------------------------------------------------
+ISampleRepresentation* SampleExtension::representation(QString rep)
+{
+  if (rep == SampleRepresentation::ID)
+    return m_spatialRep;
+  
+  qWarning() << ID << ":" << rep << " is not provided";
+  assert(false);
+  return NULL;
+}
+
+//-----------------------------------------------------------------------------
+QVariant SampleExtension::information(QString info)
+{
+  qWarning() << ID << ":"  << info << " is not provided";
+  assert(false);
+  return QVariant();
 }
 
 //-----------------------------------------------------------------------------
@@ -104,8 +139,3 @@ ISampleExtension* SampleExtension::clone()
   return new SampleExtension();
 }
 
-//-----------------------------------------------------------------------------
-void SampleExtension::initialize(Sample* sample)
-{
-  m_sample = sample;
-}

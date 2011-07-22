@@ -36,7 +36,15 @@
 
 using namespace LabelMapExtension;
 
+//!-----------------------------------------------------------------------
+//! LABELMAP SAMPLE REPRESENTATION
+//!-----------------------------------------------------------------------
+//! Sample's LabelMap representation using vtkImageLabelMapBlend to
+//! blend all segmentations into the sample
 
+const ISegmentationRepresentation::RepresentationId SampleRepresentation::ID  = "LabelMap";
+
+//------------------------------------------------------------------------
 SampleRepresentation::SampleRepresentation(Sample* sample)
 : ISampleRepresentation(sample)
 , m_enabled(true)
@@ -51,13 +59,15 @@ SampleRepresentation::SampleRepresentation(Sample* sample)
   assert(m_rep);
 }
 
+//------------------------------------------------------------------------
 SampleRepresentation::~SampleRepresentation()
 {
-  //qDebug() << "Deleted LabelMap Representation from " << m_sample->id();
+  EXTENSION_DEBUG("Deleted " << ID << " Representation from " << m_sample->id());
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   cob->removeFilter(m_rep);
 }
 
+//------------------------------------------------------------------------
 QString SampleRepresentation::id()
 {
   if (m_enabled)
@@ -66,7 +76,7 @@ QString SampleRepresentation::id()
     return m_sample->id();
 }
 
-
+//------------------------------------------------------------------------
 pqPipelineSource* SampleRepresentation::pipelineSource()
 {
   if (m_enabled)
@@ -75,24 +85,16 @@ pqPipelineSource* SampleRepresentation::pipelineSource()
     return m_sample->creator()->pipelineSource();
 }
 
+//------------------------------------------------------------------------
 void SampleRepresentation::render(pqView* view, ViewType type)
 {
+  assert(false);
 }
 
+//------------------------------------------------------------------------
 void SampleRepresentation::requestUpdate(bool force)
 {
   vtkSMProperty* p;
-//   p = m_rep->pipelineSource()->getProxy()->GetProperty("Input");
-//   vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
-//   foreach(Segmentation *seg, m_sample->segmentations())
-//   {
-//     if (seg->visible())
-//     {
-//       input->AddInputConnection(seg->creator()->pipelineSource()->getProxy(),0);
-//     }
-//   }
-//   emit representationUpdated();//DEBUG
-//   return;//DEBUG
   
   if (m_enabled && (m_numberOfBlendedSeg != m_sample->segmentations().size() || force)) 
   {
@@ -151,6 +153,7 @@ void SampleRepresentation::requestUpdate(bool force)
   emit representationUpdated();
 }
 
+//------------------------------------------------------------------------
 void SampleRepresentation::setEnable(bool value)
 {
   if (m_enabled != value)
@@ -160,34 +163,56 @@ void SampleRepresentation::setEnable(bool value)
   }
 }
 
+//!-----------------------------------------------------------------------
+//! LABELMAP EXTENSION
+//!-----------------------------------------------------------------------
+//! Provides:
+//! - LabelMap Representation
+//------------------------------------------------------------------------
 SampleExtension::SampleExtension(QAction* toggleVisibility)
 : m_toggleVisibility(toggleVisibility)
+, m_labelRep(NULL)
 {
+    m_availableRepresentations << SampleRepresentation::ID;
 }
 
+//------------------------------------------------------------------------
 SampleExtension::~SampleExtension()
 {
+  if (m_labelRep)
+    delete m_labelRep;
 }
 
-
+//------------------------------------------------------------------------
 void SampleExtension::initialize(Sample* sample)
 {
+  EXTENSION_DEBUG(ID << " Initialized");
   m_sample = sample;
+  m_labelRep = new SampleRepresentation(m_sample);
+  QObject::connect(m_toggleVisibility,SIGNAL(toggled(bool)),m_labelRep,SLOT(setEnable(bool)));
 }
 
-void SampleExtension::addInformation(ISampleExtension::InformationMap& map)
+//------------------------------------------------------------------------
+ISampleRepresentation* SampleExtension::representation(QString rep)
 {
-  qDebug() << ID << "No extra information provided.";
+  if (rep == SampleRepresentation::ID)
+    return m_labelRep;
+  
+  qWarning() << ID << ":" << rep << " is not provided";
+  assert(false);
+  return NULL;
 }
 
-void SampleExtension::addRepresentations(ISampleExtension::RepresentationMap& map)
+//------------------------------------------------------------------------
+QVariant SampleExtension::information(QString info)
 {
-  SampleRepresentation *rep = new SampleRepresentation(m_sample);
-  map.insert("02_LabelMap", rep);
-  QObject::connect(m_toggleVisibility,SIGNAL(toggled(bool)),rep,SLOT(setEnable(bool)));
-  //qDebug() << ID << "Label Map Representation Added";
+  qWarning() << ID << ":"  << info << " is not provided";
+  assert(false);
+  return QVariant();
 }
 
+
+//------------------------------------------------------------------------
 ISampleExtension* SampleExtension::clone()
 {
   return new SampleExtension(m_toggleVisibility);

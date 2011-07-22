@@ -44,16 +44,26 @@
 #include <vtkRenderer.h>
 #include <vtkSmartPointer.h>
 
+using namespace CrosshairExtension;
 
-CrosshairRepresentation::CrosshairRepresentation(Sample* sample)
+//!-----------------------------------------------------------------------
+//! CROSSHAIR SAMPLE REPRESENTATION
+//!-----------------------------------------------------------------------
+//! Represent a sample as 3-crossing planes.
+//! It supports both 3D and 2D representations
+
+const ISampleRepresentation::RepresentationId SampleRepresentation::ID  = "Crosshairs";
+
+//------------------------------------------------------------------------
+SampleRepresentation::SampleRepresentation(Sample* sample)
 : ISampleRepresentation(sample)
 , m_disabled(true)
 {
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   
-  assert(m_sample->representation("02_LabelMap"));
+  assert(m_sample->representation(LabelMapExtension::SampleRepresentation::ID));
   
-  m_internalRep = dynamic_cast<LabelMapExtension::SampleRepresentation *>(m_sample->representation("02_LabelMap"));
+  m_internalRep = dynamic_cast<LabelMapExtension::SampleRepresentation *>(m_sample->representation(LabelMapExtension::SampleRepresentation::ID));
 
   for(ViewType plane = VIEW_PLANE_FIRST; plane <= VIEW_PLANE_LAST; plane = ViewType(plane+1))
   {
@@ -69,7 +79,8 @@ CrosshairRepresentation::CrosshairRepresentation(Sample* sample)
   connect(m_internalRep,SIGNAL(representationUpdated()),this,SLOT(internalRepresentationUpdated()));
 }
 
-CrosshairRepresentation::~CrosshairRepresentation()
+//------------------------------------------------------------------------
+SampleRepresentation::~SampleRepresentation()
 {
   //qDebug() << "Deleting Crosshair Representation from " << m_sample->id();
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
@@ -78,12 +89,14 @@ CrosshairRepresentation::~CrosshairRepresentation()
     cob->removeFilter(m_planes[plane]);
 }
 
-QString CrosshairRepresentation::id()
+//------------------------------------------------------------------------
+QString SampleRepresentation::id()
 {
-  assert(false); // We can use a crosshair as input for another filter
+  assert(false); // We can't use a crosshair as input for another filter
   return "";
 }
 
+//------------------------------------------------------------------------
 bool exist(vtkActor *actor, vtkActorCollection *collection)
 {
   collection->InitTraversal();
@@ -95,7 +108,7 @@ bool exist(vtkActor *actor, vtkActorCollection *collection)
   return false;
 }
 
-
+//------------------------------------------------------------------------
 vtkActorCollection *findNewActors(vtkActorCollection *before, vtkActorCollection *after)
 {
   vtkActorCollection *newActors = vtkActorCollection::New();
@@ -112,6 +125,7 @@ vtkActorCollection *findNewActors(vtkActorCollection *before, vtkActorCollection
   return newActors;
 }
 
+//------------------------------------------------------------------------
 void copyActors(vtkActorCollection *source, vtkActorCollection *destination)
 {
   //qDebug() << "Actors before copying:" << destination->GetNumberOfItems();
@@ -124,7 +138,7 @@ void copyActors(vtkActorCollection *source, vtkActorCollection *destination)
   
 }
 
-
+//------------------------------------------------------------------------
 void createRepresentation(pqView *view, pqOutputPort *port, bool isCrossHair)
 {
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
@@ -164,7 +178,8 @@ void createRepresentation(pqView *view, pqOutputPort *port, bool isCrossHair)
   newRendererActors->Delete();*/
 }
 
-void CrosshairRepresentation::render(pqView* view, ViewType type)
+//------------------------------------------------------------------------
+void SampleRepresentation::render(pqView* view, ViewType type)
 {
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
   if (type == VIEW_3D)
@@ -183,13 +198,15 @@ void CrosshairRepresentation::render(pqView* view, ViewType type)
   }
 }
 
-pqPipelineSource* CrosshairRepresentation::pipelineSource()
+//------------------------------------------------------------------------
+pqPipelineSource* SampleRepresentation::pipelineSource()
 {
   assert(false); // We can use a crosshair as input for another filter
   return NULL;
 }
 
-void CrosshairRepresentation::setSlice(int slice, ViewType type, bool update)
+//------------------------------------------------------------------------
+void SampleRepresentation::setSlice(int slice, ViewType type, bool update)
 {
   if (slice == m_center[type])
     return; //Update is not needed
@@ -203,7 +220,8 @@ void CrosshairRepresentation::setSlice(int slice, ViewType type, bool update)
   }
 }
 
-int CrosshairRepresentation::slice ( ViewType type )
+//------------------------------------------------------------------------
+int SampleRepresentation::slice ( ViewType type )
 {
   return m_center[type];
   
@@ -218,7 +236,8 @@ int CrosshairRepresentation::slice ( ViewType type )
 }
 
 
-void CrosshairRepresentation::centerOn(int x, int y, int z)
+//------------------------------------------------------------------------
+void SampleRepresentation::centerOn(int x, int y, int z)
 {
   int extent[6];
   m_sample->extent(extent);
@@ -234,7 +253,8 @@ void CrosshairRepresentation::centerOn(int x, int y, int z)
   emit representationUpdated();
 }
 
-void CrosshairRepresentation::internalRepresentationUpdated()
+//------------------------------------------------------------------------
+void SampleRepresentation::internalRepresentationUpdated()
 {
   vtkSMProperty* p;
   vtkSMInputProperty *inputProp;
@@ -248,28 +268,69 @@ void CrosshairRepresentation::internalRepresentationUpdated()
   }
 }
 
-
-const ExtensionId CrosshairExtension::ID = "03_CrosshairExtension";
-
-void CrosshairExtension::initialize(Sample* sample)
+//!-----------------------------------------------------------------------
+//! CROSSHAIR EXTENSION
+//!-----------------------------------------------------------------------
+//! Provides:
+//! - Crosshair Representation
+//------------------------------------------------------------------------
+SampleExtension::SampleExtension()
+: m_crossRep(NULL)
 {
+  m_availableRepresentations << SampleRepresentation::ID;
+}
+
+//------------------------------------------------------------------------
+SampleExtension::~SampleExtension()
+{
+  if (m_crossRep)
+    delete m_crossRep;
+}
+
+//------------------------------------------------------------------------
+void SampleExtension::initialize(Sample* sample)
+{
+   EXTENSION_DEBUG(ID << " Initialized");
   m_sample = sample;
+  m_crossRep = new SampleRepresentation(m_sample);
 }
 
-void CrosshairExtension::addInformation(ISampleExtension::InformationMap& map)
+//------------------------------------------------------------------------
+QStringList SampleExtension::dependencies()
 {
-  //qDebug() << ID << ": No extra information provided.";
+  QStringList deps;
+  deps << LabelMapExtension::ID;
+  
+  return deps;
 }
 
-void CrosshairExtension::addRepresentations(ISampleExtension::RepresentationMap& map)
+//------------------------------------------------------------------------
+ISampleRepresentation* SampleExtension::representation(QString rep)
 {
-   CrosshairRepresentation *rep = new CrosshairRepresentation(m_sample);
-   map.insert("03_Crosshair", rep);
-   //qDebug() << ID <<": Crosshair Representation Added";
+  if (rep == SampleRepresentation::ID)
+    return m_crossRep;
+  
+  qWarning() << ID << ":" << rep << " is not provided";
+  assert(false);
+  return NULL;
 }
 
-ISampleExtension* CrosshairExtension::clone()
+//------------------------------------------------------------------------
+QVariant SampleExtension::information(QString info)
 {
-  return new CrosshairExtension();
+  qWarning() << ID << ":"  << info << " is not provided";
+  assert(false);
+  return QVariant();
 }
 
+//------------------------------------------------------------------------
+ISampleExtension* SampleExtension::clone()
+{
+  return new SampleExtension();
+}
+
+//!-----------------------------------------------------------------------
+// SampleRepresentation *SampleRepresentation(Sample *sample)
+// {
+//   return dynamic_cast<SampleRepresentation *>(sample->representation(SampleRepresentation::ID));
+// }

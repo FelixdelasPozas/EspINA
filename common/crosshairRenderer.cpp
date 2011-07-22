@@ -20,6 +20,7 @@
 #include "crosshairRenderer.h"
 
 #include "sample.h"
+#include "crosshairExtension.h"
 
 // Para View
 #include <pqApplicationCore.h>
@@ -60,7 +61,7 @@ void CrosshairRenderer::renderInView(QModelIndex index, pqView* view)
   IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
   Sample *sample = dynamic_cast<Sample *>(item);
   if (sample)
-    sample->representation("03_Crosshair")->render(view);
+    sample->representation(CrosshairExtension::SampleRepresentation::ID)->render(view);
 
   for (int row = 0; row < index.model()->rowCount(index); row++)
   {

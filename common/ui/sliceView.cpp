@@ -398,7 +398,7 @@ void SliceView::rowsInserted(const QModelIndex& parent, int start, int end)
     m_scrollBar->setMaximum(maxSlices);
     m_spinBox->setMaximum(maxSlices);
 
-    m_sampleRep = dynamic_cast<CrosshairRepresentation *>(sample->representation("03_Crosshair"));
+    m_sampleRep = dynamic_cast<CrosshairExtension::SampleRepresentation *>(sample->representation("Crosshairs"));
     connect(m_sampleRep,SIGNAL(representationUpdated()),this,SLOT(updateScene()));
     m_sampleRep->render(m_view,m_plane);
     

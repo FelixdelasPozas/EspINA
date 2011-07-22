@@ -27,6 +27,11 @@
 
 #include <QAbstractItemView>
 
+namespace CrosshairExtension
+{
+class SampleRepresentation;
+}
+
 //Forward declaration
 class CrosshairRepresentation;
 class vtkInteractorStyleEspina;
@@ -117,7 +122,7 @@ protected:
 private:
   bool m_showSegmentations;
   ViewType m_plane;
-  CrosshairRepresentation *m_sampleRep;
+  CrosshairExtension::SampleRepresentation *m_sampleRep;
   
   Sample *m_focusedSample; // The sample which is being currently displayed
   

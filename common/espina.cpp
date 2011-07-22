@@ -159,7 +159,7 @@ bool EspINA::setData(const QModelIndex& index, const QVariant& value, int role)
 	Segmentation *seg = dynamic_cast<Segmentation *>(indexItem);
 	if (seg)
 	{
-	  seg->origin()->representation("02_LabelMap")->requestUpdate(true);
+	  seg->origin()->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
 	  QModelIndex segIndex = segmentationIndex(seg);
 	  emit dataChanged(segIndex,segIndex);
 	}
@@ -176,7 +176,7 @@ bool EspINA::setData(const QModelIndex& index, const QVariant& value, int role)
 	}
 	if (m_taxonomySegs[taxItem].size())
 	{
-	  m_taxonomySegs[taxItem].first()->origin()->representation("02_LabelMap")->requestUpdate(true);
+	  m_taxonomySegs[taxItem].first()->origin()->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
 	}
       }
       emit dataChanged(index,index);
@@ -607,12 +607,12 @@ void EspINA::removeSample(Sample* sample)
   if( m_samples.contains(sample) )
   {
     // Remove the Segmentations associated
-    dynamic_cast<LabelMapExtension::SampleRepresentation *>(sample->representation("02_LabelMap"))->setEnable(false);
+    dynamic_cast<LabelMapExtension::SampleRepresentation *>(sample->representation(LabelMapExtension::SampleRepresentation::ID))->setEnable(false);
     foreach(Segmentation* seg, sample->segmentations())
     {
       removeSegmentation(seg);
     }
-    dynamic_cast<LabelMapExtension::SampleRepresentation *>(sample->representation("02_LabelMap"))->setEnable(true);
+    dynamic_cast<LabelMapExtension::SampleRepresentation *>(sample->representation(LabelMapExtension::SampleRepresentation::ID))->setEnable(true);
 //     assert(m_sampleSegs[sample].size() == 0);
 //     m_sampleSegs.remove(sample);
 //     assert(!m_sampleSegs.contains(sample));

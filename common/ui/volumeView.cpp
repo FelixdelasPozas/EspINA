@@ -29,6 +29,8 @@
 #include "interfaces.h"
 #include "sample.h"
 #include "segmentation.h"
+#include "labelMapExtension.h"
+#include "crosshairExtension.h"
 
 // GUI
 #include <QVBoxLayout>
@@ -196,9 +198,9 @@ void VolumeView::rowsInserted(const QModelIndex& parent, int start, int end)
       m_focus[1] = (bounds[3]-bounds[2])/2.0;
       m_focus[2] = (bounds[5]-bounds[4])/2.0;
       qDebug() << "Render sample?";
-      sample->representation("03_Crosshair")->render(m_view);
-      connect(sample->representation("02_LabelMap"),SIGNAL(representationUpdated()),this,SLOT(updateScene()));
-      connect(sample->representation("03_Crosshair"),SIGNAL(representationUpdated()),this,SLOT(updateScene()));
+      sample->representation(CrosshairExtension::SampleRepresentation::ID)->render(m_view);
+      connect(sample->representation(LabelMapExtension::SampleRepresentation::ID),SIGNAL(representationUpdated()),this,SLOT(updateScene()));
+      connect(sample->representation(CrosshairExtension::SampleRepresentation::ID),SIGNAL(representationUpdated()),this,SLOT(updateScene()));
     } 
     else 
     {
@@ -260,7 +262,7 @@ void VolumeView::dataChanged(const QModelIndex& topLeft, const QModelIndex& bott
   Sample *sample = dynamic_cast<Sample *>(item);
   if (sample)
   {
-    sample->representation("03_Crosshair")->render(m_view);
+    sample->representation(CrosshairExtension::SampleRepresentation::ID)->render(m_view);
   } 
   else
   {

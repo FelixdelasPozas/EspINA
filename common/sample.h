@@ -52,10 +52,19 @@ public:
   void addSegmentation(Segmentation *seg);
   void removeSegmentation(Segmentation *seg);
   
+  //! Add a new extension to the sample
+  //! If extension dependencies are not satisfied it won't be available
+  //! until all of them are satisfied
   void addExtension(ISampleExtension *ext);
-  ISampleRepresentation *representation(QString name) {return m_repMap[name];}
   //! Are supposed to be used for sort time 
   ISampleExtension *extension(ExtensionId extId);
+    
+  QStringList availableRepresentations();
+  ISampleRepresentation *representation(QString rep);
+  
+  QStringList availableInformations();
+  QVariant information(QString info);
+  
   void initialize();
   
 private:
@@ -64,10 +73,13 @@ private:
   QMutex mutex;
   
 private:
-  QMap<ExtensionId,ISampleExtension *> m_extensions;
-  ISampleExtension::InformationMap m_infoMap;
-  ISampleExtension::RepresentationMap m_repMap;
   QList<Segmentation *> m_segs;
+  
+  QMap<ExtensionId, ISampleExtension *> m_extensions;
+  QMap<ExtensionId, ISampleExtension *> m_pendingExtensions;
+  QList<ISampleExtension *> m_insertionOrderedExtensions;
+  QMap<ISampleRepresentation::RepresentationId, ISampleExtension *> m_representations;
+  QMap<QString, ISampleExtension *> m_informations;
 };
 
 #endif // SAMPLE_H

@@ -7,11 +7,13 @@ class vtkFilter;
 namespace SpatialExtension
 {
 
-  static const ExtensionId ID = "00_SpatialExtension";
+  static const QString ID = "SpatialExtension";
   
   class SampleRepresentation : public ISampleRepresentation
   {
   public:
+    static const ISampleRepresentation::RepresentationId ID;
+  
     SampleRepresentation(Sample* sample);
     virtual ~SampleRepresentation();
 
@@ -33,12 +35,17 @@ namespace SpatialExtension
   class SampleExtension : public ISampleExtension
   {
   public:
+    SampleExtension();
+    virtual ~SampleExtension();
     virtual ExtensionId id(){return ID;}
     virtual void initialize(Sample* sample);
-    virtual void addInformation(InformationMap& map);
-    virtual void addRepresentations(RepresentationMap& map);
+    virtual ISampleRepresentation* representation(QString rep);
+    virtual QVariant information(QString info);
     
     virtual ISampleExtension* clone();
+   
+  private:
+    SampleRepresentation *m_spatialRep;
   };
 
 }

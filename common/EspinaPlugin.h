@@ -17,6 +17,8 @@ class ISampleRepresentation : public QObject
   Q_OBJECT
   
 public:
+  typedef QString RepresentationId;
+  
   ISampleRepresentation(Sample *sample) : m_sample(sample) {}
   virtual ~ISampleRepresentation(){}
   
@@ -40,17 +42,20 @@ protected:
 //! Interface to extend sample behaviour
 class ISampleExtension 
 {
-public:
-  typedef QMap<QString, QVariant> InformationMap;
-  typedef QMap<QString, ISampleRepresentation *> RepresentationMap;
+// public:
+//   typedef QMap<QString, QVariant> InformationMap;
+//   typedef QMap<QString, ISampleRepresentation *> RepresentationMap;
   
 public:
   virtual ~ISampleExtension(){}
   
   virtual ExtensionId id() = 0;
   virtual void initialize(Sample *sample) = 0;
-  virtual void addInformation(InformationMap &map) = 0;
-  virtual void addRepresentations(RepresentationMap &map) = 0;
+  virtual QStringList dependencies() {return QStringList();}
+  virtual QStringList availableRepresentations() {return m_availableRepresentations;}
+  virtual ISampleRepresentation *representation(QString rep) = 0;
+  virtual QStringList availableInformations() {return m_availableInformations;}
+  virtual QVariant information(QString info) = 0;
   
   virtual Sample *sample() {return m_sample;}
   
@@ -63,6 +68,8 @@ protected:
   Sample *m_sample;
   bool m_init; // Wheteher the extentation has been initialized or not
 	       // In other words; if it has been linked to a segmentation
+  QStringList m_availableRepresentations;
+  QStringList m_availableInformations;
 };
 
 class ISegmentationRepresentation : public QObject
@@ -71,6 +78,7 @@ class ISegmentationRepresentation : public QObject
   
 public:
   typedef QString RepresentationId;
+  
   ISegmentationRepresentation(Segmentation *seg) : m_seg(seg) {}
   virtual ~ISegmentationRepresentation(){}
   
@@ -94,9 +102,9 @@ protected:
 //! Interface to extend segmentation behaviour
 class ISegmentationExtension 
 {
-public:
-  typedef QMap<QString, QVariant> InformationMap;
-  typedef QMap<QString, ISegmentationRepresentation *> RepresentationMap;
+// public:
+//   typedef QMap<QString, QVariant> InformationMap;
+//   typedef QMap<QString, ISegmentationRepresentation *> RepresentationMap;
   
 public:
   virtual ~ISegmentationExtension(){}
