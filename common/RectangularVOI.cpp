@@ -19,7 +19,7 @@
 
 #include "RectangularVOI.h"
 
-#include "products.h"
+#include "sample.h"
 #include "filter.h"
 
 #include <pqApplicationCore.h>

@@ -19,11 +19,12 @@
 
 #include "volumetricExtension.h"
 
-#include "filter.h"
+// Debug
+#include "espina_debug.h"
 
-//DEBUG
-#include <QDebug>
-#include <assert.h>
+// EspINA
+#include "filter.h"
+#include "segmentation.h"
 
 //ParaView
 #include <pqApplicationCore.h>
@@ -37,18 +38,32 @@
 #include <vtkSMProxyProperty.h>
 #include <pqLookupTableManager.h>
 
+//!-----------------------------------------------------------------------
+//! VOLUMETRIC REPRESENTATION
+//!-----------------------------------------------------------------------
+//! Segmentation's Volumetric representation using LUT 
 
+const ISegmentationRepresentation::RepresentationId VolumetricRepresentation::ID  = "Volumetric";
+
+//------------------------------------------------------------------------
 VolumetricRepresentation::VolumetricRepresentation(Segmentation* seg)
 : ISegmentationRepresentation(seg)
 {
 }
 
+//------------------------------------------------------------------------
+VolumetricRepresentation::~VolumetricRepresentation()
+{
+}
+
+
+//------------------------------------------------------------------------
 QString VolumetricRepresentation::id()
 {
   return m_seg->id();
 }
 
-
+//------------------------------------------------------------------------
 void VolumetricRepresentation::render(pqView* view)
 {
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
@@ -86,39 +101,67 @@ void VolumetricRepresentation::render(pqView* view)
     rep->getProxy()->UpdateVTKObjects();
 }
 
+//------------------------------------------------------------------------
 pqPipelineSource* VolumetricRepresentation::pipelineSource()
 {
-  qDebug() << "Volumetric Representation: Invalid pipeline (raw input).";
   return m_seg->creator()->pipelineSource();
 }
 
 
+//!-----------------------------------------------------------------------
+//! VOLUMETRIC EXTENSION
+//!-----------------------------------------------------------------------
+//! Segmentation's Volume representation using LUT
 
-const ExtensionId VolumetricExtension::ID  = "01_VolumetricExtension";
+const ExtensionId VolumetricExtension::ID  = "VolumetricExtension";
 
+//------------------------------------------------------------------------
+VolumetricExtension::VolumetricExtension()
+: m_volRep(NULL)
+{
+  m_availableRepresentations << VolumetricRepresentation::ID;
+}
+
+//------------------------------------------------------------------------
+VolumetricExtension::~VolumetricExtension()
+{
+  if (m_volRep)
+    delete m_volRep;
+}
+
+//------------------------------------------------------------------------
 ExtensionId VolumetricExtension::id()
 {
   return ID;
 }
 
+//------------------------------------------------------------------------
 void VolumetricExtension::initialize(Segmentation* seg)
 {
   m_seg = seg;
+  m_volRep = new VolumetricRepresentation(seg);
 }
 
-void VolumetricExtension::addInformation(InformationMap& map)
+//------------------------------------------------------------------------
+ISegmentationRepresentation* VolumetricExtension::representation(QString rep)
 {
-//   qDebug() << ID << ": No extra information provided.";
+  if (rep == VolumetricRepresentation::ID)
+    return m_volRep;
+
+  qWarning() << ID << ":" << rep << " is not provided";
+  assert(false);
+  return NULL;
 }
 
-void VolumetricExtension::addRepresentations(RepresentationMap& map)
+//------------------------------------------------------------------------
+QVariant VolumetricExtension::information(QString info)
 {
-   VolumetricRepresentation *rep = new VolumetricRepresentation(m_seg);
-   map.insert("Volumetric", rep);
-//    qDebug() << ID <<": Volumetric Representation Added";
+  qWarning() << ID << ":"  << info << " is not provided";
+  assert(false);
+  return QVariant();
 }
 
-
+//------------------------------------------------------------------------
 ISegmentationExtension* VolumetricExtension::clone()
 {
   return new VolumetricExtension();

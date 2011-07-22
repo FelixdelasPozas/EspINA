@@ -19,13 +19,18 @@
 
 #include "SeedGrowSegmentationFilter.h"
 
-#include <selectionManager.h>
-#include <cache/cachedObjectBuilder.h>
+// Debug
+#include "espina_debug.h"
+
+// EspINA
+#include "espINAFactory.h"
+#include "espina.h"
+#include "sample.h"
+#include "segmentation.h"
+#include "selectionManager.h"
+#include "cache/cachedObjectBuilder.h"
 
 #include <pqPipelineSource.h>
-#include <espINAFactory.h>
-#include <espina.h>
-#include <QDebug>
 
 
 QString stripName(QString args){return args.split(";")[0];}//FAKE
@@ -92,6 +97,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVO
   assert(m_finalFilter->numProducts() == 1);
   m_numSeg = m_finalFilter->numProducts();
   
+  //WARNING: taking address of temporary => &m_finalFilter->product(0) ==> Need review
   Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(this, &m_finalFilter->product(0));
 
   // Trace EspinaFilter

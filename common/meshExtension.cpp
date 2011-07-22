@@ -19,11 +19,12 @@
 
 #include "meshExtension.h"
 
-#include "cache/cachedObjectBuilder.h"
+// Debug
+#include "espina_debug.h"
 
-//DEBUG
-#include <QDebug>
-#include <assert.h>
+// EspINA
+#include "cache/cachedObjectBuilder.h"
+#include "segmentation.h"
 
 //ParaView
 #include <pqApplicationCore.h>
@@ -38,7 +39,14 @@
 #include <pqLookupTableManager.h>
 #include <vtkSMPropertyHelper.h>
 
+//!-----------------------------------------------------------------------
+//! MESH REPRESENTATION
+//!-----------------------------------------------------------------------
+//! Segmentation's Mesh representation using vtkContour filter
 
+const ISegmentationRepresentation::RepresentationId MeshRepresentation::ID  = "Mesh";
+
+//------------------------------------------------------------------------
 MeshRepresentation::MeshRepresentation(Segmentation* seg)
 : ISegmentationRepresentation(seg)
 {
@@ -54,20 +62,23 @@ MeshRepresentation::MeshRepresentation(Segmentation* seg)
   m_rep = new vtkProduct(m_contour->product(0).creator(),m_contour->product(0).portNumber());
 }
 
+//------------------------------------------------------------------------
 MeshRepresentation::~MeshRepresentation()
 {
-//   qDebug() << "Deleted Mesh Representation from " << m_seg->id();
+  EXTENSION_DEBUG("Deleted " << ID << " Representation from " << m_seg->id());
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   cob->removeFilter(m_rep->creator());//vtkProduct default beheaviour doesn't delete its filter
   delete m_rep;
 }
 
+//------------------------------------------------------------------------
 QString MeshRepresentation::id()
 {
   return m_rep->id()+":0";
 }
 
 
+//------------------------------------------------------------------------
 void MeshRepresentation::render(pqView* view)
 {
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
@@ -97,36 +108,66 @@ void MeshRepresentation::render(pqView* view)
 
 pqPipelineSource* MeshRepresentation::pipelineSource()
 {
-  qDebug() << "Mesh Representation: Invalid pipeline (raw input).";
   return m_rep->creator()->pipelineSource();
 }
 
 
-const ExtensionId MeshExtension::ID  = "01_MeshExtension";
+//!-----------------------------------------------------------------------
+//! MESH EXTENSION
+//!-----------------------------------------------------------------------
+//! Provides:
+//! - Mesh Representation
 
+const ExtensionId MeshExtension::ID  = "MeshExtension";
+
+//------------------------------------------------------------------------
+MeshExtension::MeshExtension() 
+: m_meshRep(NULL)
+{
+  m_availableRepresentations << MeshRepresentation::ID;
+}
+
+//------------------------------------------------------------------------
+MeshExtension::~MeshExtension()
+{
+  if (m_meshRep)
+    delete m_meshRep;
+}
+
+//------------------------------------------------------------------------
 ExtensionId MeshExtension::id()
 {
   return ID;
 }
 
+//------------------------------------------------------------------------
 void MeshExtension::initialize(Segmentation* seg)
 {
   m_seg = seg;
+  m_meshRep = new MeshRepresentation(seg);
 }
 
-void MeshExtension::addInformation(InformationMap& map)
+
+//------------------------------------------------------------------------
+ISegmentationRepresentation* MeshExtension::representation(QString rep)
 {
-//   qDebug() << ID << ": No extra information provided.";
+  if (rep == MeshRepresentation::ID)
+    return m_meshRep;
+  
+  qWarning() << ID << ":" << rep << " is not provided";
+  assert(false);
+  return NULL;
 }
 
-void MeshExtension::addRepresentations(RepresentationMap& map)
+//------------------------------------------------------------------------
+QVariant MeshExtension::information(QString info)
 {
-   MeshRepresentation *rep = new MeshRepresentation(m_seg);
-   map.insert("Mesh", rep);
-//    qDebug() << ID <<": Mesh Representation Added";
+  qWarning() << ID << ":"  << info << " is not provided";
+  assert(false);
+  return QVariant();
 }
 
-
+//------------------------------------------------------------------------
 ISegmentationExtension* MeshExtension::clone()
 {
   return new MeshExtension();

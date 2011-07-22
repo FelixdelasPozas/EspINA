@@ -19,9 +19,11 @@
 
 #include "segmentationEditor.h"
 
-#include "SegmentationExplorer.h"
 #include <data/modelItem.h>
-#include <products.h>
+
+#include "SegmentationExplorer.h"
+#include "sample.h"
+#include "segmentation.h"
 
 #include <QDebug>
 

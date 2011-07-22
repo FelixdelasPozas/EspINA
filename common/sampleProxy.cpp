@@ -20,13 +20,14 @@
 #include "sampleProxy.h"
 
 #include "espina.h"
+#include "sample.h"
+#include "segmentation.h"
+
+// libCajal
 #include <data/modelItem.h>
-#include "products.h"
 
 //Debug
-#include <assert.h>
-#include <QDebug>
-#include <iostream>
+#include "espina_debug.h"
 
 SampleProxy::SampleProxy(QObject* parent)
     : QAbstractProxyModel(parent)

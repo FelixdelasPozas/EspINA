@@ -1,10 +1,16 @@
 #include "spatialExtension.h"
+
+#include "sample.h"
 #include "cache/cachedObjectBuilder.h"
+
+// Debug
+#include "espina_debug.h"
+
+// Paraview
 #include <pqDisplayPolicy.h>
 #include <pqApplicationCore.h>
 #include <pqPipelineSource.h>
 
-#include "espina_debug.h"
 
 using namespace SpatialExtension;
 //-----------------------------------------------------------------------------

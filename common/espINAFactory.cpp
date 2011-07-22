@@ -19,10 +19,14 @@
 
 #include "espINAFactory.h"
 
-#include "EspinaPlugin.h"
-#include "products.h"
+// Debug
+#include "espina_debug.h"
 
-#include <QDebug>
+// EspINA
+#include "EspinaPlugin.h"
+#include "sample.h"
+#include "segmentation.h"
+
 
 EspINAFactory *EspINAFactory::m_instance = NULL;
 
@@ -56,7 +60,7 @@ Segmentation* EspINAFactory::CreateSegmentation(EspinaFilter *parent, vtkProduct
   Segmentation *seg = new Segmentation(parent, vtkRef->creator(),vtkRef->portNumber());
   foreach(ISegmentationExtension *ext, m_segExtensions)
   {
-    seg->addExtension(ext);
+    seg->addExtension(ext->clone());
   }
   return seg;
 }
@@ -66,6 +70,17 @@ void EspINAFactory::addSegmentationExtension(ISegmentationExtension* ext)
   qDebug() << ext->id() << "registered in Factory";
   m_segExtensions.append(ext->clone());
 }
+
+QStringList EspINAFactory::segmentationAvailableInformations()
+{
+  QStringList informations;
+  informations << "Name" << "Taxonomy";
+  foreach (ISegmentationExtension *ext, m_segExtensions)
+    informations << ext->availableInformations();
+  
+  return informations;
+}
+
 
 VolumeView* EspINAFactory::CreateVolumeView()
 {

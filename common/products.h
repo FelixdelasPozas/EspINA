@@ -37,15 +37,9 @@ class EspinaFilter;
 // Forward declarations
 class pqPipelineSource;
 class Sample;
-
-// typedef QString EspinaId;
-// class ISingleton
-// {
-// public:
-//   virtual EspinaId id() = 0;
-// };
 class vtkFilter;
 
+//! Represent a output in the pqPipeline which is produced by creator
 class vtkProduct
 {
 public:
@@ -94,9 +88,9 @@ public:
   virtual void setVisible(bool value) { m_style = RENDER_STYLE((m_style & !VISIBLE) | (value ? 1 : 0)); }
   virtual RENDER_STYLE style() const {return m_style;}
   
-  
   //! Implements IModelItem Interface
   virtual QVariant data(int role = Qt::UserRole + 1) const;
+  
   virtual TaxonomyNode *taxonomy() {return m_taxonomy;}
   virtual void setTaxonomy(TaxonomyNode *taxonomy) {m_taxonomy = taxonomy;} 
   virtual void setOrigin(Sample *sample) {    m_origin = sample;}
@@ -108,78 +102,6 @@ protected:
   TaxonomyNode *m_taxonomy;
   Sample *m_origin;
   RENDER_STYLE m_style;
-};
-
-
-class Sample : public EspinaProduct
-{
-public:
-  Sample(vtkFilter *creator, int portNumber) 
-  : EspinaProduct(NULL, creator, portNumber)
-  , m_extent(NULL)
-  {}
-  virtual ~Sample();
-  
-  //virtual EspinaId id(){return name;}
-  //! Reimplements ITraceNode Interface
-  virtual QString getArguments();
-  virtual QString label() const;
-  
-  virtual QVariant data(int role = Qt::UserRole + 1) const;
-  virtual bool setData(const QVariant& value, int role = Qt::UserRole + 1);
-  
-  void extent(int *out);
-  void bounds(double *out);
-  void spacing(double* out);
-  
-  void setSpacing(double x, double y, double z);
-  
-  QList<Segmentation *> segmentations() const {return m_segs;}
-  void addSegmentation(Segmentation *seg);
-  void removeSegmentation(Segmentation *seg);
-  
-  void addExtension(ISampleExtension *ext);
-  ISampleRepresentation *representation(QString name) {return m_repMap[name];}
-  //! Are supposed to be used for sort time 
-  ISampleExtension *extension(ExtensionId extId);
-  void initialize();
-  
-private:
-  int *m_extent;
-  double *m_bounds, *m_spacing;
-  QMutex mutex;
-  
-private:
-  QMap<ExtensionId,ISampleExtension *> m_extensions;
-  ISampleExtension::InformationMap m_infoMap;
-  ISampleExtension::RepresentationMap m_repMap;
-  QList<Segmentation *> m_segs;
-};
-
-
-class Segmentation : public EspinaProduct
-{
-public:
-  Segmentation(EspinaFilter *parent, vtkFilter *creator, int portNumber);
-  virtual ~Segmentation();
-  
-  //! Reimplements ITraceNode Interface
-  virtual QString label() const {return "Segmentation";}
-  
-
-  virtual QVariant data(int role = Qt::UserRole + 1) const;
-  virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
-  
-  void addExtension(ISegmentationExtension *ext);
-  ISegmentationRepresentation *representation(QString name) {return m_repMap[name];}
-  //! Are supposed to be used for sort time 
-  ISegmentationExtension *extension(ExtensionId extId);
-  void initialize();
-  
-private:
-  QMap<ExtensionId,ISegmentationExtension *> m_extensions;
-  ISegmentationExtension::InformationMap m_infoMap;
-  ISegmentationExtension::RepresentationMap m_repMap;
 };
 
 #endif // PRODUCTS_H

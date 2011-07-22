@@ -19,13 +19,14 @@
 
 #include "SegmentationExplorer.h"
 
-#include "products.h"
+// EspINA
+#include "espina.h"
+#include "segmentation.h"
 
 #include <pqObjectBuilder.h>
 #include <pqApplicationCore.h>
 #include <pqActiveObjects.h>
 #include <pqRenderView.h>
-#include <espina.h>
 #include <pqDisplayPolicy.h>
 #include <pqDataRepresentation.h>
 #include <pqPipelineRepresentation.h>

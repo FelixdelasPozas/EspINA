@@ -147,7 +147,7 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(const QString group, const
   assert(filter);
   //TODO: Review if needed here
   filter->getProxy()->UpdateVTKObjects();
-  filter->updatePipeline();
+//   filter->updatePipeline();
  return filter;
 }
 

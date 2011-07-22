@@ -87,6 +87,8 @@ protected slots:
   
   void setGroupView(int idx);
   void deleteSegmentations();
+  
+  void extractInformation();
 
   //TODO delete
   void autoLoadStack();

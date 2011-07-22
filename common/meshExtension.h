@@ -28,6 +28,8 @@ class vtkProduct;
 class MeshRepresentation : public ISegmentationRepresentation
 {
 public:
+  static const ISegmentationRepresentation::RepresentationId ID;
+  
   MeshRepresentation(Segmentation* seg);
   virtual ~MeshRepresentation();
   
@@ -49,12 +51,19 @@ public:
   static const ExtensionId ID;
   
 public:
+  MeshExtension();
+  virtual ~MeshExtension();
+  
   virtual ExtensionId id();
   virtual void initialize(Segmentation* seg);
-  virtual void addInformation(InformationMap& map);
-  virtual void addRepresentations(RepresentationMap& map);
+  
+  virtual ISegmentationRepresentation* representation(QString rep);
+  virtual QVariant information(QString info);
   
   virtual ISegmentationExtension* clone();
+  
+private:
+  MeshRepresentation *m_meshRep;
 };
 
 #endif // MESHEXTENSION_H

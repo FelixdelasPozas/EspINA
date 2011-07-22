@@ -17,8 +17,22 @@
 // NOTE: vtkRenderer::RemoveAllViewProps()  maybe free the memory of the representations...
 #include "sliceView.h"
 
+// Debug
+#include "espina_debug.h"
+
+// EspINA
 #include "interfaces.h"
 #include "filter.h"
+#include "sample.h"
+#include "segmentation.h"
+
+// Qt includes
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QScrollBar>
+#include <QSpinBox>
+#include <QMouseEvent>
+
 // ParaQ includes
 #include "pqRenderView.h"
 #include "pqApplicationCore.h"
@@ -42,12 +56,7 @@
 #include <vtkInteractorObserver.h>
 #include <vtkInteractorStyleImage.h>
 #include <vtkPVInteractorStyle.h>
-// Qt includes
-#include <QVBoxLayout>
-#include <QHBoxLayout>
-#include <QScrollBar>
-#include <QSpinBox>
-#include <QMouseEvent>
+
 
 #include <pqPipelineSource.h>
 #include <vtkSMInputProperty.h>
@@ -71,13 +80,6 @@
 #include <crosshairExtension.h>
 
 #include <vtkPropPicker.h>
-
-// DEBUG
-#include "espina_debug.h"
-
-#define DEBUG_PICKING 0
-#define PICKING_DEBUG(exp) if (DEBUG_PICKING)      \
-			  qDebug() << "Slice View:" Picked: << exp;
 
 #define HINTWIDTH 40
 

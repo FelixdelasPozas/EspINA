@@ -19,11 +19,16 @@
 
 #include "sampleDelegate.h"
 
-#include "sampleEditor.h"
-#include "products.h"
+// Debug
+#include "espina_debug.h"
+
+// libCajal
 #include <data/modelItem.h>
 
-#include "espina_debug.h"
+// EspINA
+#include "sampleEditor.h"
+#include "sample.h"
+
 
 QWidget* SampleDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {

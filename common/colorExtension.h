@@ -25,6 +25,7 @@
 class vtkFilter;
 class pqScalarsToColors;
 class vtkSMRGBALookupTableProxy;
+class Sample;
 
 namespace ColorExtension
 {
@@ -84,8 +85,8 @@ namespace ColorExtension
   public:
     virtual ExtensionId id() {return ID;}
     virtual void initialize(Segmentation* seg);
-    virtual void addInformation(InformationMap& map);
-    virtual void addRepresentations(RepresentationMap& map);
+    virtual ISegmentationRepresentation* representation(QString rep);
+    virtual QVariant information(QString info);
     
     virtual ISegmentationExtension* clone();
   };

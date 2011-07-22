@@ -18,10 +18,15 @@
 
 
 #include "espina.h"
+
+// Debug
+#include "espina_debug.h"
+
 //Espina
 #include "Config.h"
 #include <data/taxonomy.h>
-#include "products.h"
+#include "sample.h"
+#include "segmentation.h"
 #include "cache/cachedObjectBuilder.h"
 
 #include <vtkSMStringVectorProperty.h>
@@ -35,8 +40,6 @@
 //#include <pqSaveDataReaction.h>
 #include <EspinaSaveDataReaction.h>
 
-#include <QDebug>
-#include <iostream>
 #include <fstream>
 
 #include "FilePack.h"
@@ -125,6 +128,16 @@ QVariant EspINA::data(const QModelIndex& index, int role) const
     
     // Other elements can display their own data
     IModelItem *indexItem = static_cast<IModelItem *>(index.internalPointer());
+    if (index.column() > 0)
+    {
+      if (role != Qt::DisplayRole)
+	return QVariant();
+      
+      Segmentation *seg = dynamic_cast<Segmentation *>(indexItem);
+      assert(seg);
+      QStringList availableInfo = seg->availableInformations();
+      return seg->information(availableInfo[index.column()]);
+    }
     return indexItem->data(role);
 }
 
@@ -173,7 +186,13 @@ bool EspINA::setData(const QModelIndex& index, const QVariant& value, int role)
 //------------------------------------------------------------------------
 int EspINA::columnCount(const QModelIndex& parent) const
 {
-  return 1;
+  if (parent == segmentationRoot())
+  {
+    int infoSize = EspINAFactory::instance()->segmentationAvailableInformations().size();
+    return infoSize;
+  }
+  else
+    return 1;
 }
 
 //------------------------------------------------------------------------
@@ -310,6 +329,10 @@ int EspINA::numOfSegmentations(TaxonomyNode* tax) const
 //------------------------------------------------------------------------
 QVariant EspINA::headerData(int section, Qt::Orientation orientation, int role) const
 {
+  if (orientation == Qt::Horizontal && role == Qt::DisplayRole && section >= 0)
+  {
+    return EspINAFactory::instance()->segmentationAvailableInformations()[section];
+  }
   return QVariant();
 }
 

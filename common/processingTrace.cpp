@@ -19,8 +19,11 @@
 
 #include "processingTrace.h"
 
-#include "graphHelper.h"
 #include "espina.h"
+#include "sample.h"
+#include "segmentation.h"
+
+#include "graphHelper.h"
 #include "EspinaPlugin.h"
 
 #include <iostream>

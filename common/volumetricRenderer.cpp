@@ -18,7 +18,9 @@
 
 
 #include "volumetricRenderer.h"
-#include "products.h"
+
+// EspINA
+#include "segmentation.h"
 
 // Para View
 #include <pqApplicationCore.h>
