@@ -186,10 +186,11 @@ SampleExtension::~SampleExtension()
 //------------------------------------------------------------------------
 void SampleExtension::initialize(Sample* sample)
 {
-  EXTENSION_DEBUG(ID << " Initialized");
+  EXTENSION_DEBUG(ID << " Initializing");
   m_sample = sample;
   m_labelRep = new SampleRepresentation(m_sample);
   QObject::connect(m_toggleVisibility,SIGNAL(toggled(bool)),m_labelRep,SLOT(setEnable(bool)));
+  EXTENSION_DEBUG(ID << " Initialized");
 }
 
 //------------------------------------------------------------------------

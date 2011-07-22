@@ -6,29 +6,17 @@ find_package (ITK REQUIRED)
 include (${ITK_USE_FILE})
 
 include_directories(
+  ${CAJAL_INCLUDE_DIR}/filters
   ${ITK_VTK_GLUE}
   ${ITK_DIR}/../
   ${CMAKE_CURRENT_SOURCE_DIR} 
   )
 
-set (PLUGIN_SRCS
-  vtkImageLabelMapBlend.h
-  vtkImageLabelMapBlend.cpp
-  vtkMorphologicalFeaturesFilter.h
-  vtkMorphologicalFeaturesFilter.cpp
+set (VTKFILTER_SRCS
+	${CAJAL_INCLUDE_DIR}/filters/vtkImageLabelMapBlend.cpp
+	${CAJAL_INCLUDE_DIR}/filters/vtkMorphologicalFeaturesFilter.cpp
   )
 
-foreach(FILE 
-		${PLUGIN_SRCS}
-)
-  add_custom_command(
-    OUTPUT ${FILE}
-    COMMAND ${CMAKE_COMMAND}
-    ARGS -E create_symlink ${CAJAL_INCLUDE_DIR}/filters/${FILE} ${FILE}
-    DEPENDS ${CAJAL_LIBRARIES}
-    COMMENT "Creating symbolic link for ${FILE}"
-  )
-endforeach(FILE)
 
 set (PARAVIEW_ADDITIONAL_LIBRARIES
   ${CAJAL_LIBRARIES}
@@ -41,7 +29,7 @@ ADD_PARAVIEW_PLUGIN(
 	EspinaFilters "0.2" 
 	REQUIRED_ON_SERVER
 	SERVER_MANAGER_XML EspinaFilters.xml
-	SERVER_MANAGER_SOURCES ${PLUGIN_SRCS} 
+	SERVER_MANAGER_SOURCES ${VTKFILTER_SRCS} 
 	)
 
 if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )

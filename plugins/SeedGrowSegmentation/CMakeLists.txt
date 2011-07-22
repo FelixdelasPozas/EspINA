@@ -21,20 +21,9 @@ find_package(Boost REQUIRED COMPONENTS  system filesystem graph)
 link_directories ( ${Boost_LIBRARY_DIRS} )
 
 
-foreach(FILE 
-  vtkConnectedThresholdImageFilter.h
-  vtkConnectedThresholdImageFilter.cpp
-)
-  add_custom_command(
-    OUTPUT ${FILE}
-    COMMAND ${CMAKE_COMMAND}
-    ARGS -E create_symlink ${CAJAL_INCLUDE_DIR}/filters/${FILE} ${FILE}
-    DEPENDS ${CAJAL_LIBRARIES}
-    COMMENT "Creating symbolic link for ${FILE}"
-  )
-endforeach(FILE)
 
 include_directories(
+  ${CAJAL_INCLUDE_DIR}/filters
   ${CMAKE_SOURCE_DIR}/common
   ${CMAKE_CURRENT_SOURCE_DIR} 
   ${ITK_VTK_GLUE}
@@ -60,12 +49,18 @@ ADD_PARAVIEW_ACTION_GROUP(
 
 #file ( GLOB LOCAL_SOURCES *.cpp )
 
+MESSAGE (STATUS ${CAJAL_INCLUDE_DIR})
+
 set (PLUGIN_SRCS
   SeedGrowSegmentation.cpp
   SeedGrowSegmentationFilter.cpp
   ${MOC_SRCS} 
   ${RCC_BUILT_SOURCES} 
   )
+
+set (VTKFILTER_SRCS
+	${CAJAL_INCLUDE_DIR}/filters/vtkConnectedThresholdImageFilter.cpp
+	)
 
 set (PARAVIEW_ADDITIONAL_LIBRARIES
   ${PARAVIEW_ADDITIONAL_LIBRARIES}
@@ -81,7 +76,7 @@ ADD_PARAVIEW_PLUGIN(
   SeedGrowSegmentationPlugin
   "0.1" 
   SERVER_MANAGER_XML SeedGrowSegmentationFilters.xml
-  SERVER_MANAGER_SOURCES vtkConnectedThresholdImageFilter.h vtkConnectedThresholdImageFilter.cpp
+  SERVER_MANAGER_SOURCES ${VTKFILTER_SRCS}
 	#According to: http://markmail.org/message/wj27wmlj6rjd7vg5
 	# - See the macro documentation in ParaView/CMake/ParaViewPlugins.cmake:~835
 	# - the parser doesn't work because it seems there is no vtkClass inside
