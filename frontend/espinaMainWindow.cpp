@@ -212,23 +212,23 @@ EspinaMainWindow::EspinaMainWindow()
   << sampleProxy->mapFromSource(m_espina->sampleRoot());
   
 #if DEBUG_GUI
-  this->Internals->modelo->setModel(m_espina);
-  this->Internals->taxonomias->setModel(taxProxy);
-  this->Internals->samples->setModel(sampleProxy);
+  Internals->modelo->setModel(m_espina);
+  Internals->taxonomias->setModel(taxProxy);
+  Internals->samples->setModel(sampleProxy);
 #endif
 
   // Group by List
-  connect(this->Internals->groupList, SIGNAL(currentIndexChanged(int)),
+  connect(Internals->groupList, SIGNAL(currentIndexChanged(int)),
           this, SLOT(setGroupView(int)));
   QStringListModel *groupListModel = new QStringListModel(m_groupingName);
-  this->Internals->groupList->setModel(groupListModel);
-  this->Internals->groupList->setCurrentIndex(1);
+  Internals->groupList->setModel(groupListModel);
+  Internals->groupList->setCurrentIndex(1);
   
   // Segmentation Manager Panel
   SegmentationEditor *segEditor = new SegmentationEditor();
-  this->Internals->segmentationView->setItemDelegate(segEditor);
-  this->Internals->segmentationView->installEventFilter(this);
-  connect(this->Internals->deleteSegmentation, SIGNAL(clicked()),
+  Internals->segmentationView->setItemDelegate(segEditor);
+  Internals->segmentationView->installEventFilter(this);
+  connect(Internals->deleteSegmentation, SIGNAL(clicked()),
           this, SLOT(deleteSegmentations()));
   
   // User selected Taxonomy Selection List
@@ -249,7 +249,7 @@ EspinaMainWindow::EspinaMainWindow()
   connect(m_taxonomySelector, SIGNAL(currentIndexChanged(QString)),
           m_espina, SLOT(setUserDefindedTaxonomy(const QString&)));
   m_taxonomySelector->setCurrentIndex(0);
-  this->Internals->toolBar->addWidget(m_taxonomySelector);
+  Internals->toolBar->addWidget(m_taxonomySelector);
 
   connect(m_espina, SIGNAL(resetTaxonomy()),
           this, SLOT(resetTaxonomy()));
@@ -274,23 +274,23 @@ EspinaMainWindow::EspinaMainWindow()
 	  SLOT(destroyingProxy(pqProxy*)));
 #endif
   
-  tabifyDockWidget(this->Internals->segmentationEditor,this->Internals->sampleEditor);
-  tabifyDockWidget(this->Internals->segmentationEditor,this->Internals->taxonomyEditor);
-  this->Internals->segmentationEditor->raise();
+  tabifyDockWidget(Internals->segmentationEditor,Internals->sampleEditor);
+  tabifyDockWidget(Internals->segmentationEditor,Internals->taxonomyEditor);
+  Internals->segmentationEditor->raise();
   
   // Taxonomy Editor
-  this->Internals->taxonomyView->setModel(m_espina);
-  this->Internals->taxonomyView->setRootIndex(m_espina->taxonomyRoot());
-  connect(this->Internals->addTaxonomy,SIGNAL(clicked()),this,SLOT(addTaxonomyElement()));
-  connect(this->Internals->addTaxonomyChild,SIGNAL(clicked()),this,SLOT(addTaxonomyChildElement()));
-  connect(this->Internals->removeTaxonomy,SIGNAL(clicked()),this,SLOT(removeTaxonomyElement()));
-  connect(this->Internals->taxonomyColorSelector,SIGNAL(clicked()),this,SLOT(changeTaxonomyColor()));
+  Internals->taxonomyView->setModel(m_espina);
+  Internals->taxonomyView->setRootIndex(m_espina->taxonomyRoot());
+  connect(Internals->addTaxonomy,SIGNAL(clicked()),this,SLOT(addTaxonomyElement()));
+  connect(Internals->addTaxonomyChild,SIGNAL(clicked()),this,SLOT(addTaxonomyChildElement()));
+  connect(Internals->removeTaxonomy,SIGNAL(clicked()),this,SLOT(removeTaxonomyElement()));
+  connect(Internals->taxonomyColorSelector,SIGNAL(clicked()),this,SLOT(changeTaxonomyColor()));
 
   // Sample Explorer
   SampleDelegate *sampleDelegate = new SampleDelegate();
-  this->Internals->sampleView->setItemDelegate(sampleDelegate);
-  this->Internals->sampleView->setModel(m_espina);
-  this->Internals->sampleView->setRootIndex(m_espina->sampleRoot());
+  Internals->sampleView->setItemDelegate(sampleDelegate);
+  Internals->sampleView->setModel(m_espina);
+  Internals->sampleView->setRootIndex(m_espina->sampleRoot());
   
   //connect(this->Internals->makeActiveSample,SIGNAL(clicked()),this,SLOT(focusOnSample()));
   
@@ -304,8 +304,8 @@ EspinaMainWindow::EspinaMainWindow()
   m_xy->setModel(sampleProxy);
   connect(server, SIGNAL(connectionCreated(vtkIdType)), m_xy, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), m_xy, SLOT(disconnectFromServer()));
-  connect(this->Internals->toggleVisibility, SIGNAL(toggled(bool)),m_xy, SLOT(showSegmentations(bool)));
-  this->setCentralWidget(m_xy);
+  connect(Internals->toggleVisibility, SIGNAL(toggled(bool)),m_xy, SLOT(showSegmentations(bool)));
+  setCentralWidget(m_xy);
 #endif
   
 
@@ -318,8 +318,8 @@ EspinaMainWindow::EspinaMainWindow()
 	  m_yz, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), 
 	  m_yz, SLOT(disconnectFromServer()));
-  connect(this->Internals->toggleVisibility, SIGNAL(toggled(bool)),m_yz, SLOT(showSegmentations(bool)));
-  this->Internals->yzSliceDock->setWidget(m_yz);
+  connect(Internals->toggleVisibility, SIGNAL(toggled(bool)),m_yz, SLOT(showSegmentations(bool)));
+  Internals->yzSliceDock->setWidget(m_yz);
 #endif
 
 #if XZ_VIEW
@@ -331,8 +331,8 @@ EspinaMainWindow::EspinaMainWindow()
 	  m_xz, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), 
 	  m_xz, SLOT(disconnectFromServer()));
-  connect(this->Internals->toggleVisibility, SIGNAL(toggled(bool)),m_xz, SLOT(showSegmentations(bool)));
-  this->Internals->xzSliceDock->setWidget(m_xz);
+  connect(Internals->toggleVisibility, SIGNAL(toggled(bool)),m_xz, SLOT(showSegmentations(bool)));
+  Internals->xzSliceDock->setWidget(m_xz);
 #endif
   
 #if VOL_VIEW
@@ -344,13 +344,13 @@ EspinaMainWindow::EspinaMainWindow()
   connect(server, SIGNAL(connectionClosed(vtkIdType)), 
 	  m_3d, SLOT(disconnectFromServer()));
   //m_3d->addWidget(cross);
-  this->Internals->volumeDock->setWidget(m_3d);
+  Internals->volumeDock->setWidget(m_3d);
 #endif //VOL_VIEW
   
   resetTaxonomy();
 
   // Setup default GUI layout.
-  connect(this->Internals->toggleVisibility, SIGNAL(toggled(bool)), 
+  connect(Internals->toggleVisibility, SIGNAL(toggled(bool)), 
 	  this, SLOT(toggleVisibility(bool)));
   //pqServerDisconnectReaction::disconnectFromServer();
   
@@ -365,14 +365,23 @@ EspinaMainWindow::EspinaMainWindow()
 #endif// DEBUG_GUI
 
 #if DEBUG_GUI
-  this->Internals->pipelineBrowserDock->setVisible(true);
-  this->Internals->statisticsDock->setVisible(true);
-  this->Internals->modelsDock->setVisible(true);
+  Internals->pipelineBrowserDock->setVisible(true);
+  Internals->statisticsDock->setVisible(true);
+  Internals->modelsDock->setVisible(true);
 #else
   pqApplicationCore::instance()->disableOutputWindow();
-  this->Internals->pipelineBrowserDock->setVisible(false);
-  this->Internals->statisticsDock->setVisible(false);
-  this->Internals->modelsDock->setVisible(false);
+  Internals->pipelineBrowserDock->setVisible(false);
+  Internals->statisticsDock->setVisible(false);
+  Internals->modelsDock->setVisible(false);
+  foreach(QAction *action, Internals->menu_View->actions())
+  {
+    std::cout << action->text().toStdString() << std::endl;
+    if (action->text() == "Model View" 
+     ||action->text() == "Pipeline Browser" 
+     ||action->text() == "Statistics Inspector" 
+    )
+      action->setVisible(false);
+  }
 #endif
 }
 

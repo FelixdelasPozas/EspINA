@@ -126,8 +126,8 @@ QVariant EspINA::data(const QModelIndex& index, int role) const
 	return QVariant();
     }
     
-    // Other elements can display their own data
     IModelItem *indexItem = static_cast<IModelItem *>(index.internalPointer());
+    // Only segmentations have multiple info
     if (index.column() > 0)
     {
       if (role != Qt::DisplayRole)
@@ -138,6 +138,8 @@ QVariant EspINA::data(const QModelIndex& index, int role) const
       QStringList availableInfo = seg->availableInformations();
       return seg->information(availableInfo[index.column()]);
     }
+    
+    // Other elements can display their own data
     return indexItem->data(role);
 }
 

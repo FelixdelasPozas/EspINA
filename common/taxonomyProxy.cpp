@@ -194,6 +194,24 @@ QModelIndex TaxonomyProxy::mapToSource(const QModelIndex& proxyIndex) const
 }
 
 //------------------------------------------------------------------------
+QVariant TaxonomyProxy::data(const QModelIndex& proxyIndex, int role) const
+{
+  if (role != Qt::DisplayRole)
+    return QAbstractProxyModel::data(proxyIndex, role);
+  
+  IModelItem *proxyItem = static_cast<IModelItem *>(proxyIndex.internalPointer());
+  
+  TaxonomyNode *proxyTax = dynamic_cast<TaxonomyNode *>(proxyItem);
+  if (proxyTax)
+  {
+    return QString("%1 (%2)").arg(proxyTax->getName()).arg(m_taxonomySegs[proxyTax].size());
+  }
+  else
+    return QAbstractProxyModel::data(proxyIndex, role);
+}
+
+
+//------------------------------------------------------------------------
 void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start, int end)
 {
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
@@ -215,6 +233,7 @@ void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
     int row = m_taxonomySegs[segParent].indexOf(sourceSeg);
     beginInsertRows(parentIndex, row, row);
     endInsertRows();
+    emit dataChanged(parentIndex,parentIndex);
   } else // In case sourceParent is taxonomyRoot, proxyParent will be an invalid index
   {
       beginInsertRows(mapFromSource(sourceParent),start,end);

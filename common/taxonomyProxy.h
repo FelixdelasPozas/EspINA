@@ -41,6 +41,8 @@ public:
   virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
   virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
   virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
+    
+  virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;
   
 protected slots:
   void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
