@@ -43,14 +43,14 @@ Sample* EspINAFactory::CreateSample(vtkFilter *creator, int portNumber)
   Sample *sample = new Sample(creator, portNumber);
   foreach(ISampleExtension *ext, m_sampleExtensions)
   {
-    sample->addExtension(ext);
+    sample->addExtension(ext->clone());
   }
   return sample;
 }
 
 void EspINAFactory::addSampleExtension(ISampleExtension* ext)
 {
-  qDebug() << ext->id() << "registered in Factory";
+  qDebug() << ext->id() << "registered in Sample Factory";
   m_sampleExtensions.append(ext->clone());
 }
 
@@ -67,7 +67,7 @@ Segmentation* EspINAFactory::CreateSegmentation(EspinaFilter *parent, vtkProduct
 
 void EspINAFactory::addSegmentationExtension(ISegmentationExtension* ext)
 {
-  qDebug() << ext->id() << "registered in Factory";
+  qDebug() << ext->id() << "registered in Segmentation Factory";
   m_segExtensions.append(ext->clone());
 }
 

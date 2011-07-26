@@ -30,7 +30,7 @@ class MorphologicalExtension : public ISegmentationExtension
 {
 public:
   static const ExtensionId ID;
-  
+
 public:
   MorphologicalExtension();
   virtual ~MorphologicalExtension();

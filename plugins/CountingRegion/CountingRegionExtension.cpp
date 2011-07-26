@@ -19,88 +19,396 @@
 
 #include "CountingRegionExtension.h"
 
+// Debug
+#include "espina_debug.h"
+
 #include "filter.h"
-#include "CountingRegion.h"
+#include "sample.h"
+#include "segmentation.h"
+#include "cache/cachedObjectBuilder.h"
 
-#include <cache/cachedObjectBuilder.h>
 #include <pqPipelineSource.h>
-
-#include <QDebug>
-#include <assert.h>
 #include <pqOutputPort.h>
 #include <vtkSMOutputPort.h>
 #include <vtkSMIntVectorProperty.h>
 #include <vtkSMInputProperty.h>
 #include <vtkSMStringVectorProperty.h>
+#include <vtkSMPropertyHelper.h>
+#include <pqDisplayPolicy.h>
+#include <pqApplicationCore.h>
+#include <pqPipelineRepresentation.h>
+#include <pqObjectBuilder.h>
+#include <pq3DWidget.h>
 
-
-const ExtensionId CountingRegionExtension::ID = "CountinRegionExtension";
-
-void CountingRegionExtension::initialize(Segmentation *seg)
+//!-----------------------------------------------------------------------
+//! COUNTING REGION SEGMENTATION EXTENSION
+//!-----------------------------------------------------------------------
+//! Information Provided:
+//! - Discarted
+//------------------------------------------------------------------------
+CountingRegion::SegmentationExtension::SegmentationExtension()
+: m_discarted(NULL)
 {
+  m_availableInformations << "Discarted";
+}
+
+//------------------------------------------------------------------------
+CountingRegion::SegmentationExtension::~SegmentationExtension()
+{
+  if (m_discarted)
+  {
+    EXTENSION_DEBUG("Deleted " << ID << " from " << m_seg->id());
+    CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+    cob->removeFilter(m_discarted);
+    m_discarted = NULL;
+  }
+}
+
+//------------------------------------------------------------------------
+ExtensionId CountingRegion::SegmentationExtension::id()
+{
+  return ID;
+}
+
+//------------------------------------------------------------------------
+void CountingRegion::SegmentationExtension::initialize(Segmentation* seg)
+{
+  m_seg = seg;
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   
-  // Create counting region filter
-  assert(!m_init);
-  qDebug() << "Creating a new counting region filter";
-  m_seg = seg;
-  // Configuration of Counting Region interface //TODO: This is too messy...
-  VtkParamList args;
-  VtkArg arg;
-  arg.name = "Input";
-  arg.type = INPUT;
-  VtkParam param;
-  param.first = arg;
-  param.second = m_seg->parentHash();
-  args.push_back(param);
-  m_countingRegion = cob->createFilter("filters", "CountingRegion", args);
-  if (!m_countingRegion)
+  vtkFilter::Arguments featuresArgs;
+  featuresArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT,m_seg->id()));
+  m_discarted = cob->createFilter("filters","CountingRegion", featuresArgs);
+  assert(m_discarted);
+  
+  SampleExtension *sampleExt = dynamic_cast<SampleExtension *>(m_seg->origin()->extension(CountingRegion::ID));
+  updateRegions(sampleExt->regions());
+}
+
+//------------------------------------------------------------------------
+ISegmentationRepresentation* CountingRegion::SegmentationExtension::representation(QString rep)
+{
+  qWarning() << ID << ":" << rep << " is not provided";
+  assert(false);
+  return NULL;
+}
+
+//------------------------------------------------------------------------
+QVariant CountingRegion::SegmentationExtension::information(QString info)
+{
+  if (info == "Discarted")
+  {
+    int isDiscarted = 0;
+    m_discarted->pipelineSource()->updatePipeline();
+    vtkSMPropertyHelper(m_discarted->pipelineSource()->getProxy(),"Discarted").UpdateValueFromServer();
+    vtkSMPropertyHelper(m_discarted->pipelineSource()->getProxy(),"Discarted").Get(&isDiscarted,1);
+    m_seg->setVisible(!isDiscarted);
+    return (bool)isDiscarted;
+  }
+  
+  qWarning() << ID << ":"  << info << " is not provided";
+  assert(false);
+  return QVariant();
+}
+
+//------------------------------------------------------------------------
+void CountingRegion::SegmentationExtension::updateRegions(QList<BoundingRegion *>& regions)
+{
+  EXTENSION_DEBUG("Updating " << m_seg->id() << " bounding regions...");
+  EXTENSION_DEBUG("\tNumber of regions applied:" << regions.size());
+  
+  vtkSMProperty *p;
+  
+  vtkstd::vector<vtkSMProxy *> inputs;
+  vtkstd::vector<unsigned int> ports;
+    
+  foreach(BoundingRegion *region, regions)
+  {
+    region->pipelineSource()->updatePipeline();
+    inputs.push_back(region->pipelineSource()->getProxy());
+    ports.push_back(0);
+  }
+    
+  p = m_discarted->pipelineSource()->getProxy()->GetProperty("Regions");
+  vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
+  if (input)
+  {
+    input->SetProxies(static_cast<unsigned int>(inputs.size())
+    , &inputs[0]
+    , &ports[0]);
+    m_discarted->pipelineSource()->getProxy()->UpdateVTKObjects();
+  }
+}
+
+//------------------------------------------------------------------------
+ISegmentationExtension* CountingRegion::SegmentationExtension::clone()
+{
+  return new SegmentationExtension();
+}
+
+//!-----------------------------------------------------------------------
+//! BOUNDING REGION SAMPLE REPRESENTATION
+//!-----------------------------------------------------------------------
+//! Base class for counting region's Bounding Region representations
+
+const ISampleRepresentation::RepresentationId CountingRegion::BoundingRegion::ID  = "CountingRegion";
+
+//------------------------------------------------------------------------
+CountingRegion::BoundingRegion::BoundingRegion(Sample* sample)
+: ISampleRepresentation(sample)
+, m_boundigRegion(NULL)
+{
+  m_sample = sample;
+}
+
+//------------------------------------------------------------------------
+CountingRegion::BoundingRegion::~BoundingRegion()
+{
+  if (m_boundigRegion)
+  {
+    EXTENSION_DEBUG("Deleted " << " bounded area " << " from " << m_sample->id());
+    CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+    cob->removeFilter(m_boundigRegion);
+    m_boundigRegion = NULL;
+  }
+
+}
+
+//------------------------------------------------------------------------
+QString CountingRegion::BoundingRegion::id()
+{
+  return ID;
+}
+
+//------------------------------------------------------------------------
+void CountingRegion::BoundingRegion::render(pqView* view, ViewType type)
+{
+
+}
+
+//------------------------------------------------------------------------
+pqPipelineSource* CountingRegion::BoundingRegion::pipelineSource()
+{
+  assert(m_boundigRegion);
+  return  m_boundigRegion->pipelineSource();
+}
+
+//!-----------------------------------------------------------------------
+//! RECTANGULAR REGION SAMPLE REPRESENTATION
+//!-----------------------------------------------------------------------
+//! Represent a Bounding Region applied to the sample
+
+//------------------------------------------------------------------------
+RectangularRegion::RectangularRegion(Sample* sample,
+  int left, int top, int upper,
+  int right, int bottom, int lower) 
+: BoundingRegion(sample)
+{
+  EXTENSION_DEBUG("Rectangular Region: (" <<  
+  left << "," <<
+  top << "," <<
+  upper << "," <<
+  right << "," <<
+  bottom << "," <<
+  lower << ") Initialized");
+  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+  
+  // Configuration of Bounding Region interface
+  vtkFilter::Arguments regionArgs;
+  regionArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT,m_sample->id()));
+  regionArgs.push_back(vtkFilter::Argument("Inclusion",vtkFilter::INTVECT,QString("%1,%2,%3").arg(left).arg(top).arg(upper)));
+  regionArgs.push_back(vtkFilter::Argument("Exclusion",vtkFilter::INTVECT,QString("%1,%2,%3").arg(right).arg(bottom).arg(lower)));
+  m_boundigRegion = cob->createFilter("filters","BoundingRegion", regionArgs);
+  
+  if (!m_boundigRegion)
   {
     qDebug() << "Couldn't create Bounding Region Filter";
     assert(false);
   }
+  pqObjectBuilder *builder =  pqApplicationCore::instance()->getObjectBuilder();
+  m_box =  builder->createProxy("implicit_functions","Box",pqApplicationCore::instance()->getActiveServer(),"widgets");
   
-  m_manager->initializeExtension(this);
+  QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(m_sample->creator()->pipelineSource()->getProxy(), m_box);
+  m_widget = widgets.first();
+}
+
+//------------------------------------------------------------------------
+RectangularRegion::~RectangularRegion()
+{
+}
+
+//------------------------------------------------------------------------
+void RectangularRegion::render(pqView* view, ViewType type)
+{
+  m_widget->setView(view);
+  m_widget->setWidgetVisible(true);
+  m_widget->select();
+}
+
+//------------------------------------------------------------------------
+void RectangularRegion::setInclusive(int left, int top, int upper)
+{
+
+}
+
+
+//------------------------------------------------------------------------
+void RectangularRegion::setExclusive(int right, int bottom, int lower)
+{
+
+}
+
+//!-----------------------------------------------------------------------
+//! ADAPTATIVE REGION SAMPLE REPRESENTATION
+//!-----------------------------------------------------------------------
+//! Represent a Bounding Region applied to the sample
+//------------------------------------------------------------------------
+AdaptativeRegion::AdaptativeRegion(Sample* sample, int left, int top, int upper, int right, int bottom, int lower)
+: BoundingRegion(sample)
+{
+  EXTENSION_DEBUG("Adaptative Region: (" <<  
+  left << "," <<
+  top << "," <<
+  upper << "," <<
+  right << "," <<
+  bottom << "," <<
+  lower << ") Initialized");
+  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   
-  m_init = true;
-}
-
-void CountingRegionExtension::addInformation(InformationMap& map)
-{
-  qDebug() << "No extra information provided. This extension modifies visibity property";
-}
-
-
-void CountingRegionExtension::addRepresentations(RepresentationMap& map)
-{
-  qDebug() << "No extra representation provided";
-}
-
-ISegmentationExtension* CountingRegionExtension::clone()
-{
-  return new CountingRegionExtension(m_manager);
-}
-
-
-void CountingRegionExtension::updateRegions(QList< pqPipelineSource* >& regions)
-{
-  vtkSMProperty *p;
-  vtkSMInputProperty *input;
-  m_countingRegion->updatePipeline();
-  m_countingRegion->getProxy()->UpdatePropertyInformation();
-  qDebug() << regions.size() << "regions updated";
-  foreach (pqPipelineSource *region, regions)
+  // Configuration of Bounding Region interface
+  vtkFilter::Arguments regionArgs;
+  regionArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT,m_sample->id()));
+  regionArgs.push_back(vtkFilter::Argument("Inclusion",vtkFilter::INTVECT,QString("%1,%2,%3").arg(left).arg(top).arg(upper)));
+  regionArgs.push_back(vtkFilter::Argument("Exclusion",vtkFilter::INTVECT,QString("%1,%2,%3").arg(right).arg(bottom).arg(lower)));
+  m_boundigRegion = cob->createFilter("filters","BoundingRegion", regionArgs);
+  
+  if (!m_boundigRegion)
   {
-    p = m_countingRegion->getProxy()->GetProperty("Regions");
-    input = vtkSMInputProperty::SafeDownCast(p);
-    input->SetProxy(0,region->getProxy());
+    qDebug() << "Couldn't create Bounding Region Filter";
+    assert(false);
   }
-  m_countingRegion->updatePipeline();
-  m_countingRegion->getProxy()->UpdatePropertyInformation();
-  p = m_countingRegion->getProxy()->GetProperty("Discarted");
-  assert(p);
-  vtkSMIntVectorProperty *discarted = vtkSMIntVectorProperty::SafeDownCast(p);
-  int isDiscarted = discarted->GetElement(0);
-  m_seg->setVisible(!isDiscarted);
 }
+
+
+//------------------------------------------------------------------------
+AdaptativeRegion::~AdaptativeRegion()
+{
+}
+
+void AdaptativeRegion::render(pqView* view, ViewType type)
+{
+  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+  pqDataRepresentation *dr = dp->setRepresentationVisibility(pipelineSource()->getOutputPort(0),view,true);
+  pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
+  
+  double opacity = 0.5;
+  vtkSMPropertyHelper(rep->getProxy(),"Opacity").Set(opacity);
+  rep->getProxy()->UpdateVTKObjects();
+}
+
+//------------------------------------------------------------------------
+void AdaptativeRegion::setInclusive(int left, int top, int upper)
+{
+
+}
+
+//------------------------------------------------------------------------
+void AdaptativeRegion::setExclusive(int right, int bottom, int lower)
+{
+
+}
+
+
+//!-----------------------------------------------------------------------
+//! CROSSHAIR EXTENSION
+//!-----------------------------------------------------------------------
+//! Provides:
+//! - CountingRegion Representation
+
+//------------------------------------------------------------------------
+CountingRegion::SampleExtension::SampleExtension()
+{
+  m_availableRepresentations << "BoundingRegion";
+}
+
+//------------------------------------------------------------------------
+CountingRegion::SampleExtension::~SampleExtension()
+{
+
+}
+
+//------------------------------------------------------------------------
+void CountingRegion::SampleExtension::initialize(Sample* sample)
+{
+  EXTENSION_DEBUG(ID << " Initialized");
+  m_sample = sample;
+}
+
+//------------------------------------------------------------------------
+ISampleRepresentation* CountingRegion::SampleExtension::representation(QString rep)
+{
+  if (rep == "BoundingRegion")
+    return m_regions.first();
+  
+  qWarning() << ID << ":" << rep << " is not provided";
+  assert(false);
+  return NULL;
+}
+
+//------------------------------------------------------------------------
+QVariant CountingRegion::SampleExtension::information(QString info)
+{
+  qWarning() << ID << ":"  << info << " is not provided";
+  assert(false);
+  return QVariant();
+}
+
+//------------------------------------------------------------------------
+void CountingRegion::SampleExtension::createAdaptativeRegion(int left, int top, int upper, int right, int bottom, int lower)
+{
+  AdaptativeRegion *region = new AdaptativeRegion(m_sample, left, top, upper, right, bottom, lower);
+  assert(region);
+  
+  m_regions.push_back(region);
+  
+  foreach(Segmentation *seg, m_sample->segmentations())
+  {
+    SegmentationExtension *ext = dynamic_cast<SegmentationExtension *>(seg->extension(CountingRegion::ID));
+    if (!ext)
+    {
+      qDebug() << "Failed to load Counting Brick Extension on " << seg->id();
+      assert(false);
+    }
+    ext->updateRegions(m_regions);
+  }
+}
+
+
+//------------------------------------------------------------------------
+void CountingRegion::SampleExtension::createRectangularRegion(int left, int top, int upper, int right, int bottom, int lower)
+{
+  RectangularRegion *region = new RectangularRegion(m_sample, left, top, upper, right, bottom, lower);
+  assert(region);
+  
+  m_regions.push_back(region);
+  
+  foreach(Segmentation *seg, m_sample->segmentations())
+  {
+    SegmentationExtension *ext = dynamic_cast<SegmentationExtension *>(seg->extension(CountingRegion::ID));
+    if (!ext)
+    {
+      qDebug() << "Failed to load Counting Brick Extension on " << seg->id();
+      assert(false);
+    }
+    ext->updateRegions(m_regions);
+  }
+}
+
+//------------------------------------------------------------------------
+ISampleExtension* CountingRegion::SampleExtension::clone()
+{
+  return new SampleExtension();
+}
+
+
 

@@ -686,12 +686,12 @@ void EspINA::setUserDefindedTaxonomy(const QString& taxName)
 
 void EspINA::onProxyCreated(pqProxy* p)
 {
-  qDebug() << "EspINA: Proxy" << p->getSMGroup() << "::" << p->getSMName() << " created!";
+//   qDebug() << "EspINA: Proxy" << p->getSMGroup() << "::" << p->getSMName() << " created!";
 }
 
 void EspINA::destroyingProxy(pqProxy* p)
 {
-  qDebug() << "EspINA: Proxy" << p->getSMGroup() << "::" << p->getSMName() << " is being destroyed!";
+//   qDebug() << "EspINA: Proxy" << p->getSMGroup() << "::" << p->getSMName() << " is being destroyed!";
 }
 //------------------------------------------------------------------------
 void EspINA::loadSource(pqPipelineSource* proxy)

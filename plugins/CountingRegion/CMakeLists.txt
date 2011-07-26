@@ -20,22 +20,8 @@ include (${ITK_USE_FILE})
 find_package(Boost REQUIRED COMPONENTS  system filesystem)
 link_directories ( ${Boost_LIBRARY_DIRS} )
 
-foreach(FILE 
-  vtkBoundingRegionFilter.h
-  vtkBoundingRegionFilter.cpp
-  vtkCountingRegionFilter.h
-  vtkCountingRegionFilter.cpp
-)
-  add_custom_command(
-    OUTPUT ${FILE}
-    COMMAND ${CMAKE_COMMAND}
-    ARGS -E create_symlink ${CAJAL_INCLUDE_DIR}/filters/${FILE} ${FILE}
-    DEPENDS ${CAJAL_LIBRARIES}
-    COMMENT "Creating symbolic link for ${FILE}"
-  )
-endforeach(FILE)
-
 include_directories(
+  ${CAJAL_INCLUDE_DIR}/filters
   ${CMAKE_SOURCE_DIR}/common
   ${CMAKE_CURRENT_SOURCE_DIR} 
   ${ITK_VTK_GLUE}
@@ -51,6 +37,7 @@ qt4_add_resources (RCC_BUILT_SOURCES
 # We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
 qt4_wrap_cpp(MOC_SRCS 
   CountingRegion.h
+  CountingRegionExtension.h
   RegionRenderer.h
   )
 
@@ -66,6 +53,11 @@ ADD_PARAVIEW_DOCK_WINDOW(
   DOCK_AREA Left)
 
 file ( GLOB LOCAL_SOURCES *.cpp )
+
+set (VTKFILTER_SRCS
+  ${CAJAL_INCLUDE_DIR}/filters/vtkBoundingRegionFilter.cpp
+  ${CAJAL_INCLUDE_DIR}/filters/vtkCountingRegionFilter.cpp
+)
 
 set (PLUGIN_SRCS
   ${LOCAL_SOURCES}
@@ -88,8 +80,7 @@ ADD_PARAVIEW_PLUGIN(
   CountingRegion
   "0.1" 
   SERVER_MANAGER_XML CountingRegionFilters.xml
-  SERVER_MANAGER_SOURCES vtkBoundingRegionFilter.h vtkBoundingRegionFilter.cpp 
-                         vtkCountingRegionFilter.h vtkCountingRegionFilter.cpp
+  SERVER_MANAGER_SOURCES ${VTKFILTER_SRCS}
 	#According to: http://markmail.org/message/wj27wmlj6rjd7vg5
 	# - See the macro documentation in ParaView/CMake/ParaViewPlugins.cmake:~835
 	# - the parser doesn't work because it seems there is no vtkClass inside

@@ -57,7 +57,6 @@ const ISampleRepresentation::RepresentationId SampleRepresentation::ID  = "Cross
 //------------------------------------------------------------------------
 SampleRepresentation::SampleRepresentation(Sample* sample)
 : ISampleRepresentation(sample)
-, m_disabled(true)
 {
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   

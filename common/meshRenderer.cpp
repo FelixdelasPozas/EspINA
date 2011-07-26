@@ -31,6 +31,7 @@
 #include <vtkSMDoubleVectorProperty.h>
 #include <vtkSMProxyProperty.h>
 #include <pqLookupTableManager.h>
+#include "meshExtension.h"
 
 MeshRenderer::MeshRenderer(QWidget* parent)
 : IViewWidget(parent)
@@ -59,7 +60,7 @@ void MeshRenderer::renderInView(QModelIndex index, pqView* view)
   IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
   Segmentation *seg = dynamic_cast<Segmentation *>(item);
   if (seg)
-    seg->representation("Mesh")->render(view);
+    seg->representation(MeshRepresentation::ID)->render(view);
 
   for (int row = 0; row < index.model()->rowCount(index); row++)
   {

@@ -255,6 +255,7 @@
 	number_of_elements="1"
 	immediate_update="1"
 	information_only="1"
+	default_values="0"
 	command="GetSize">
 	<SimpleDoubleInformationHelper/>
       </DoubleVectorProperty> 
@@ -263,6 +264,7 @@
 	number_of_elements="1"
 	immediate_update="1"
 	information_only="1"
+	default_values="0"
 	command="GetPhysicalSize">
 	<SimpleDoubleInformationHelper/>
       </DoubleVectorProperty>
@@ -271,6 +273,7 @@
 	number_of_elements="3"
 	immediate_update="1"
 	information_only="1"
+	default_values="0 0 0"
 	command="GetCentroid">
 	<SimpleDoubleInformationHelper/>
       </DoubleVectorProperty>
@@ -279,6 +282,7 @@
 	number_of_elements="3"
 	immediate_update="1"
 	information_only="1"
+	default_values="0 0 0"
 	command="GetRegion">
 	<SimpleIntInformationHelper/>
       </IntVectorProperty>
@@ -287,6 +291,7 @@
 	number_of_elements="3"
 	immediate_update="1"
 	information_only="1"
+	default_values="0 0 0"
 	command="GetBinaryPrincipalMoments">
 	<SimpleDoubleInformationHelper/>
       </DoubleVectorProperty>
@@ -295,6 +300,7 @@
 	number_of_elements="9"
 	immediate_update="1"
 	information_only="1"
+	default_values="0 0 0 0 0 0 0 0 0"
 	command="GetBinaryPrincipalAxes">
 	<SimpleDoubleInformationHelper/>
       </DoubleVectorProperty>
@@ -303,6 +309,7 @@
 	number_of_elements="1"
 	immediate_update="1"
 	information_only="1"
+	default_values="0"
 	command="GetFeretDiameter">
 	<SimpleDoubleInformationHelper/>
       </DoubleVectorProperty>
@@ -311,6 +318,7 @@
 	number_of_elements="3"
 	immediate_update="1"
 	information_only="1"
+	default_values="0 0 0"
 	command="GetEquivalentEllipsoidSize">
 	<SimpleDoubleInformationHelper/>
       </DoubleVectorProperty>

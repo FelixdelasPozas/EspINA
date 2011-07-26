@@ -31,16 +31,13 @@ class RegionRenderer : public IViewWidget
 {
   Q_OBJECT
 public:
-  RegionRenderer(QMap<Sample *, QList<pqPipelineSource *> > &regions, QWidget* parent = 0);
+  RegionRenderer(QWidget* parent = 0);
   
   virtual IViewWidget* clone();
   
 public slots:
   virtual void updateState(bool checked);
-  virtual void renderInView(pqView* view);
-  
-private:
-  QMap<Sample *, QList<pqPipelineSource *> > &m_regions;
+  virtual void renderInView(QModelIndex index, pqView* view);
 };
 
 #endif // REGIONRENDERER_H

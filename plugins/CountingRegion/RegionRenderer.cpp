@@ -19,6 +19,8 @@
 
 #include "RegionRenderer.h"
 
+#include "sample.h"
+
 #include <pqDisplayPolicy.h>
 #include <pqApplicationCore.h>
 #include <pqPipelineSource.h>
@@ -26,18 +28,17 @@
 
 #include <assert.h>
 #include <QDebug>
+#include "CountingRegion.h"
 
-RegionRenderer::RegionRenderer(QMap< Sample*, QList< pqPipelineSource* > >& regions, QWidget* parent)
+RegionRenderer::RegionRenderer(QWidget* parent)
 : IViewWidget(parent)
-, m_regions(regions)
 {
-  assert(m_regions.size() == regions.size());
   setIcon(QIcon(":/espina/applyCR"));
 }
 
 IViewWidget* RegionRenderer::clone()
 {
-  return new RegionRenderer(m_regions);
+  return new RegionRenderer();
 }
 
 
@@ -46,13 +47,20 @@ void RegionRenderer::updateState(bool checked)
   //setIcon(checked?QIcon(":/espina/showPlanes"):QIcon(":/espina/hidePlanes"));
 }
 
-void RegionRenderer::renderInView(pqView* view)
+void RegionRenderer::renderInView(QModelIndex index, pqView* view)
 {
-  qDebug() << "Regions to be painted" << m_regions[EspINA::instance()->activeSample()].size();
-  foreach (pqPipelineSource *region, m_regions[EspINA::instance()->activeSample()])
+  if (!index.isValid())
+    return;
+  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+ 
+  IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+  Sample *sample = dynamic_cast<Sample *>(item);
+  if (sample)
+    sample->representation("BoundingRegion")->render(view);
+
+  for (int row = 0; row < index.model()->rowCount(index); row++)
   {
-    pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-    dp->setRepresentationVisibility(region->getOutputPort(0),view,isChecked());
+    renderInView(index.child(row,0),view);
   }
 }
 

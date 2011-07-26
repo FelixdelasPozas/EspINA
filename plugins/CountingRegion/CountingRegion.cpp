@@ -15,16 +15,23 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-
 #include "CountingRegion.h"
 #include "CountingRegionExtension.h"
 
-#include "espINAFactory.h"
+#include "RegionRenderer.h"
+
+// Debug
+#include "espina_debug.h"
+
+// EspINA
+// #include "CountingRegionExtension.h"
+
 #include "espina.h"
+#include "espINAFactory.h"
 
 #include "filter.h"
-
+#include "sample.h"
+#include "segmentation.h"
 
 #include "cache/cachedObjectBuilder.h"
 
@@ -33,10 +40,7 @@
 #include <pqObjectBuilder.h>
 #include <pqPipelineSource.h>
 
-// Debug
-#include <QDebug>
-#include <assert.h>
-#include "RegionRenderer.h"
+const QString CountingRegion::ID = "CountingRegionExtension";
 
 CountingRegion::CountingRegion(QWidget * parent): QDockWidget(parent)
 {
@@ -45,29 +49,33 @@ CountingRegion::CountingRegion(QWidget * parent): QDockWidget(parent)
   setupUi(dockWidget);
   setWidget(dockWidget);
 
-  connect(createRegion, SIGNAL(clicked()),
-          this, SLOT(createNewRegion()));
+  connect(rectangularRegion, SIGNAL(clicked()),
+          this, SLOT(createRectangularRegion()));
+  connect(adaptativeRegion, SIGNAL(clicked()),
+          this, SLOT(createAdaptativeRegion()));
 
-  CountingRegionExtension ext(this);
-  EspINAFactory::instance()->addSegmentationExtension(&ext);
-  RegionRenderer widget(m_regions);
-  EspINAFactory::instance()->addViewWidget(&widget);
-  
-
+  SegmentationExtension segExt;
+  EspINAFactory::instance()->addSegmentationExtension(&segExt);
+  SampleExtension sampleExt;
+  EspINAFactory::instance()->addSampleExtension(&sampleExt);
+  RegionRenderer region;
+  EspINAFactory::instance()->addViewWidget(region.clone());
+//   
   regions->setModel(&m_regionsModel);
 
   connect(EspINA::instance(), SIGNAL(focusSampleChanged(Sample*)),
           this, SLOT(focusSampleChanged(Sample *)));
-
-  std::cout << "Creating Plugin" << std::endl;
+//   EXTENSION_DEBUG(<< "Counting Region Panel created");
 }
 
 //! Add existing bounding areas to the new Counting Region Extension
-void CountingRegion::initializeExtension(CountingRegionExtension* ext)
+void CountingRegion::initializeExtension(SegmentationExtension* ext)
 {
-  qDebug() << "Initializing Managed Extensions";
-  qDebug() << ext->segmentation()->name << " of " << ext->segmentation()->origin()->id();
-  ext->updateRegions(m_regions[ext->segmentation()->origin()]);
+  
+//   EXTENSION_DEBUG(<< "Adding existing bounding areas to new counting region");
+//   EXTENSION_DEBUG(<< ext->segmentation()->name << " of " << ext->segmentation()->origin()->id());
+  
+//   ext->updateRegions(m_regions[ext->segmentation()->origin()]);
 }
 
 
@@ -75,8 +83,9 @@ void CountingRegion::initializeExtension(CountingRegionExtension* ext)
 //! focused selection
 void CountingRegion::focusSampleChanged(Sample* sample)
 {
-  createRegion->setEnabled(sample != NULL);
-  if (createRegion->isEnabled())
+  rectangularRegion->setEnabled(sample != NULL);
+  adaptativeRegion->setEnabled(sample != NULL);
+  if (rectangularRegion->isEnabled())
   {
     int extent[6];
     sample->extent(extent);
@@ -93,55 +102,18 @@ void CountingRegion::focusSampleChanged(Sample* sample)
     upperSlice->setValue(extent[5]);
     lowerSlice->setMinimum(extent[4]);
     lowerSlice->setMaximum(extent[5]);
+    m_focusedSample = sample;
   }
 }
 
-//! Creates a bounding region on the current focused/active
-//! sample and update all their segmentations counting
-//! regions extension
-void CountingRegion::createNewRegion()
+void CountingRegion::createAdaptativeRegion()
 {
-  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-  Sample *sample = EspINA::instance()->activeSample();
-
-  // Configuration of Bounding Region interface
-  VtkParamList args;
-  VtkArg arg;
-  arg.name = "Input";
-  arg.type = INPUT;
-  VtkParam param;
-  param.first = arg;
-  param.second = sample->id();
-  args.push_back(param);
-  arg.name = "Inclusion";
-  arg.type = INTVECT;
-  param.first = arg;
-  param.second = QString("%1,%2,%3")
-                 .arg(leftMargin->value())
-                 .arg(topMargin->value())
-                 .arg(upperSlice->value());
-  args.push_back(param);
-  arg.name = "Exclusion";
-  arg.type = INTVECT;
-  param.first = arg;
-  param.second = QString("%1,%2,%3")
-                 .arg(rightMargin->value())
-                 .arg(bottomMargin->value())
-                 .arg(lowerSlice->value());
-  args.push_back(param);
-
-  pqPipelineSource *region = cob->createFilter("filters", "BoundingRegion", args);
-  if (!region)
-  {
-    qDebug()
-    << "Couldn't create Bounding Region Filter";
-    assert(false);
-  }
-  m_regions[sample].push_back(region);
-
-  bool updateOk = updateRegions(sample);
-
-  regions->addItem(QString("Counting Brick (%1,%2,%3,%4,%5,%6)")
+  SampleExtension *ext = dynamic_cast<SampleExtension *>(m_focusedSample->extension(CountingRegion::ID));
+  assert(ext); 
+  
+  ext->createAdaptativeRegion(leftMargin->value(),topMargin->value(), upperSlice->value(),
+		       rightMargin->value(), bottomMargin->value(), lowerSlice->value());
+  regions->addItem(QString("Adaptative Counting Brick (%1,%2,%3,%4,%5,%6)")
                    .arg(leftMargin->value())
                    .arg(topMargin->value())
                    .arg(upperSlice->value())
@@ -151,20 +123,25 @@ void CountingRegion::createNewRegion()
                   );
 }
 
-//! Update all sample's segmentations' filter with the new set of
-//! bounding regions
-bool CountingRegion::updateRegions(Sample* sample)
+
+//! Creates a bounding region on the current focused/active
+//! sample and update all their segmentations counting
+//! regions extension
+void CountingRegion::createRectangularRegion()
 {
-  foreach(Segmentation *seg, EspINA::instance()->segmentations(sample))
-  {
-    CountingRegionExtension *ext = dynamic_cast<CountingRegionExtension *>(
-                                     seg->extension(CountingRegionExtension::ID));
-    if (!ext)
-    {
-      qDebug() << "Failed to load Counting Brick Extension on " << seg->name;
-      assert(false);
-    }
-    ext->updateRegions(m_regions[sample]);
-  }
+  SampleExtension *ext = dynamic_cast<SampleExtension *>(m_focusedSample->extension(CountingRegion::ID));
+  assert(ext); 
+  
+  ext->createRectangularRegion(leftMargin->value(),topMargin->value(), upperSlice->value(),
+		       rightMargin->value(), bottomMargin->value(), lowerSlice->value());
+  regions->addItem(QString("Rectangular Counting Brick (%1,%2,%3,%4,%5,%6)")
+                   .arg(leftMargin->value())
+                   .arg(topMargin->value())
+                   .arg(upperSlice->value())
+                   .arg(rightMargin->value())
+                   .arg(bottomMargin->value())
+                   .arg(lowerSlice->value())
+                  );
 }
+
 

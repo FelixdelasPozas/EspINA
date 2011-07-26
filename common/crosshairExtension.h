@@ -60,7 +60,6 @@ namespace CrosshairExtension {
   private:
     vtkFilter *m_planes[3];
     LabelMapExtension::SampleRepresentation *m_internalRep;
-    bool m_disabled;
     int m_center[4];
   };
   

@@ -18,6 +18,10 @@
 */
 
 #include "cachedObjectBuilder.h"
+
+// Debug
+#include "espina_debug.h"
+
 #include "data/hash.h"
 
 #include "filter.h"
@@ -35,11 +39,6 @@
 #include <vtkSMProperty.h>
 #include <vtkSMIntVectorProperty.h>
 #include <vtkSMDoubleVectorProperty.h>
-
-// Debug
-#include <QDebug>
-#include <assert.h>
-
 
 
 CachedObjectBuilder * CachedObjectBuilder::m_singleton = NULL;
@@ -101,7 +100,7 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(const QString group, const
   pqApplicationCore* core = pqApplicationCore::instance();
   pqObjectBuilder* ob = core->getObjectBuilder();
   
-  qDebug() << "CachedObjectBuilder: Create Filter " << name;
+  CACHE_DEBUG("CachedObjectBuilder: Create Filter " << name);
   pqPipelineSource *filter; //= builder->createFilter(group, name,NULL);
   vtkSMProperty *p;
   foreach (vtkFilter::Argument arg, args)
@@ -123,7 +122,7 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(const QString group, const
 	  p = filter->getProxy()->GetProperty( arg.name.toStdString().c_str() );
 	  vtkSMIntVectorProperty * prop = vtkSMIntVectorProperty::SafeDownCast(p);
 	  QStringList values = arg.value.split(",");
-	  qDebug() << "CachedObjectBuilder:" << arg.name << "Values" <<  values;
+	  CACHE_DEBUG("CachedObjectBuilder:" << arg.name << "Values" <<  values);
 	  for (int i = 0; i < values.size(); i++)
 	    prop->SetElement(i, values[i].toInt());
 	}

@@ -20,7 +20,7 @@
 //! Information Provided:
 //! - Centroid
 
-const ExtensionId MorphologicalExtension::ID  = "Morphological";
+const ExtensionId MorphologicalExtension::ID = "MorphologicalExtension";
 
 //------------------------------------------------------------------------
 MorphologicalExtension::MorphologicalExtension()
@@ -44,7 +44,7 @@ MorphologicalExtension::~MorphologicalExtension()
 {
   if (m_features)
   {
-    EXTENSION_DEBUG("Deleted " << ID << " Representation from " << m_seg->id());
+    EXTENSION_DEBUG("Deleted " << ID << " Extension from " << m_seg->id());
     CachedObjectBuilder *cob = CachedObjectBuilder::instance();
     cob->removeFilter(m_features);
     m_features = NULL;

@@ -20,39 +20,107 @@
 #ifndef COUNTINGREGIONEXTENSION_H
 #define COUNTINGREGIONEXTENSION_H
 
+#include "CountingRegion.h"
 #include "EspinaPlugin.h"
-#include <QList>
 
+class vtkSMProxy;
 // Forward declaration
-class CountingRegion;
 class Segmentation;
 class pqPipelineSource;
+class vtkFilter;
+class pq3DWidget;
 
-class CountingRegionExtension : public ISegmentationExtension
+class CountingRegion::SegmentationExtension : public ISegmentationExtension
 {
 public:
-  static const ExtensionId ID;
+  SegmentationExtension();
+  virtual ~SegmentationExtension();
   
-public:
+  
   //! Implement ISegmentationExtension 
-  virtual ExtensionId id() {return "CountinRegionExtension";}
-  virtual void initialize(Segmentation *seg); //TODO: Use Segmentation or pqPipelineSource
-  virtual void addInformation(InformationMap& map);
-  virtual void addRepresentations(RepresentationMap& map);
+  virtual ExtensionId id();
+  virtual void initialize(Segmentation *seg);
+  virtual ISegmentationRepresentation* representation(QString rep);
+  virtual QVariant information(QString info);
+  
+  void updateRegions(QList< CountingRegion::BoundingRegion* >& regions);
   
   virtual ISegmentationExtension* clone();
   
-  void updateRegions(QList<pqPipelineSource *> &regions);
+private:
+  vtkFilter *m_discarted;
+};
+
+class CountingRegion::BoundingRegion : public ISampleRepresentation
+{
+  Q_OBJECT
+public:
+  static const ISampleRepresentation::RepresentationId ID;
+      
+  BoundingRegion(Sample* sample);
+  virtual ~BoundingRegion();
   
-  //TODO: Make it private
-  CountingRegionExtension(CountingRegion *manager) 
-  : m_manager(manager)
-  , m_countingRegion(NULL)
-  {}
+  virtual QString id();
+  virtual void render(pqView* view, ViewType type = VIEW_3D);
+  virtual pqPipelineSource* pipelineSource();
+  
+  virtual void setInclusive(int left, int top, int upper) = 0;
+  virtual void setExclusive(int right, int bottom, int lower) = 0;
+  
+public slots:
+  virtual void requestUpdate(bool force = false){}
+  
+protected:
+  vtkFilter *m_boundigRegion;
+};
+
+class RectangularRegion : public CountingRegion::BoundingRegion
+{
+public:
+  RectangularRegion(Sample* sample, int left, int top, int upper, int right, int bottom, int lower);
+  virtual ~RectangularRegion();
+  
+  virtual void render(pqView* view, ViewType type = VIEW_3D);
+  
+  virtual void setInclusive(int left, int top, int upper);
+  virtual void setExclusive(int right, int bottom, int lower);
   
 private:
-  CountingRegion *m_manager;
-  pqPipelineSource *m_countingRegion;
+  vtkSMProxy *m_box;
+  pq3DWidget *m_widget;
+};
+
+class AdaptativeRegion : public CountingRegion::BoundingRegion
+{
+public:
+  AdaptativeRegion(Sample* sample, int left, int top, int upper, int right, int bottom, int lower);
+  virtual ~AdaptativeRegion();
+  
+  virtual void render(pqView* view, ViewType type = VIEW_3D);
+  
+  virtual void setInclusive(int left, int top, int upper);
+  virtual void setExclusive(int right, int bottom, int lower);
+};
+
+class CountingRegion::SampleExtension : public ISampleExtension
+{
+public:
+    SampleExtension();
+    virtual ~SampleExtension();
+    
+    virtual ExtensionId id() {return ID;}
+    virtual void initialize(Sample* sample);
+    virtual ISampleRepresentation* representation(QString rep);
+    virtual QVariant information(QString info);
+    
+    void createAdaptativeRegion(int left, int top, int upper, int right, int bottom, int lower);
+    void createRectangularRegion(int left, int top, int upper, int right, int bottom, int lower);
+    
+    QList<BoundingRegion *> &regions() {return m_regions;}
+    
+    virtual ISampleExtension* clone();
+private:
+  QList<BoundingRegion *> m_regions;
 };
 
 #endif // COUNTINGREGIONEXTENSION_H

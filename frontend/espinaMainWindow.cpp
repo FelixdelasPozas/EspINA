@@ -296,6 +296,10 @@ EspinaMainWindow::EspinaMainWindow()
   //Selection Manager
   m_selectionManager = SelectionManager::instance();
   
+  // Final step, define application behaviors. Since we want all ParaView
+  // behaviors, we use this convenience method.
+  new pqParaViewBehaviors(this, this);
+  
 #if XY_VIEW
   //Create ESPINA VIEWS
   m_xy = new SliceView();
@@ -305,6 +309,7 @@ EspinaMainWindow::EspinaMainWindow()
   connect(server, SIGNAL(connectionClosed(vtkIdType)), m_xy, SLOT(disconnectFromServer()));
   connect(Internals->toggleVisibility, SIGNAL(toggled(bool)),m_xy, SLOT(showSegmentations(bool)));
   setCentralWidget(m_xy);
+  m_xy->connectToServer();
 #endif
   
 
@@ -319,6 +324,7 @@ EspinaMainWindow::EspinaMainWindow()
 	  m_yz, SLOT(disconnectFromServer()));
   connect(Internals->toggleVisibility, SIGNAL(toggled(bool)),m_yz, SLOT(showSegmentations(bool)));
   Internals->yzSliceDock->setWidget(m_yz);
+  m_yz->connectToServer();
 #endif
 
 #if XZ_VIEW
@@ -332,6 +338,7 @@ EspinaMainWindow::EspinaMainWindow()
 	  m_xz, SLOT(disconnectFromServer()));
   connect(Internals->toggleVisibility, SIGNAL(toggled(bool)),m_xz, SLOT(showSegmentations(bool)));
   Internals->xzSliceDock->setWidget(m_xz);
+  m_xz->connectToServer();
 #endif
   
 #if VOL_VIEW
@@ -344,6 +351,7 @@ EspinaMainWindow::EspinaMainWindow()
 	  m_3d, SLOT(disconnectFromServer()));
   //m_3d->addWidget(cross);
   Internals->volumeDock->setWidget(m_3d);
+  m_3d->connectToServer();
 #endif //VOL_VIEW
   
   resetTaxonomy();
@@ -355,9 +363,6 @@ EspinaMainWindow::EspinaMainWindow()
   
   // m_3d->setSelectionModel(this->Internals->taxonomyView->selectionModel());
 
-  // Final step, define application behaviors. Since we want all ParaView
-  // behaviors, we use this convenience method.
-  new pqParaViewBehaviors(this, this);
 
 #if DEBUG_GUI
   QMetaObject::invokeMethod(this, "autoLoadStack", Qt::QueuedConnection);

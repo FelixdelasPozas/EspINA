@@ -20,5 +20,4 @@
 #define PICKING_DEBUG(exp) if (DEBUG_PICKING)      \
 			  qDebug() << "Slice View:" Picked: << exp;
 
-
 #endif// ESPINA_DEBUG_H
