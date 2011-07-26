@@ -155,9 +155,34 @@ void vtkImageLabelMapBlend::RemoveAllInputs()
 void vtkImageLabelMapBlend::SetLabelMapColor(double id, double r, double g, double b)
 {
   assert(id < m_inputs.size());
-  m_inputs[id]->color[0] = r*255;
-  m_inputs[id]->color[1] = g*255;
-  m_inputs[id]->color[2] = b*255;
+  double rComponent = r*255;
+  double gComponent = g*255;
+  double bComponent = b*255;
+  if ((m_inputs[id]->color[0] != rComponent 
+    || m_inputs[id]->color[1] != gComponent 
+    || m_inputs[id]->color[2] != bComponent)
+    && rComponent >= 0)
+  {
+    m_inputs[id]->color[0] = rComponent;
+    m_inputs[id]->color[1] = gComponent;
+    m_inputs[id]->color[2] = bComponent;
+    
+    // If it was already blended we have to reset its area
+    std::vector<Input *>::iterator it = m_blendedInputs.begin();
+    while (it != m_blendedInputs.end())
+    { 
+      if ((*it)->image ==  m_inputs[id]->image)
+      {
+	// Regenerate all its region
+	m_removeInputs.push_back(*it);
+	// and we want to paint it as well
+	m_newInputs.push_back(*it);
+	m_blendedInputs.erase(it);
+	break;
+      }
+      it++;
+    }
+  }
 }
 
 
