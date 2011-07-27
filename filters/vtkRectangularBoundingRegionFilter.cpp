@@ -99,7 +99,7 @@ int vtkRectangularBoundingRegionFilter::RequestData(vtkInformation* request, vtk
   upper[2] = vertex->InsertNextPoint(Right,Top,Upper);
   upper[3] = vertex->InsertNextPoint(Right,Bottom,Upper);
   faces->InsertNextCell(4, upper);
-  faceData->InsertNextValue(1);
+  faceData->InsertNextValue(255);
   
   // Lower Exclusion Face
   lower[0] = vertex->InsertNextPoint(Left,Bottom,Lower);
@@ -115,7 +115,7 @@ int vtkRectangularBoundingRegionFilter::RequestData(vtkInformation* request, vtk
   left[2] = lower[1];
   left[3] = lower[0];
   faces->InsertNextCell(4, left);
-  faceData->InsertNextValue(1);
+  faceData->InsertNextValue(255);
 
   // Right Exclusion Face
   right[0] = upper[3];
@@ -131,7 +131,7 @@ int vtkRectangularBoundingRegionFilter::RequestData(vtkInformation* request, vtk
   top[2] = lower[2];
   top[3] = lower[1];
   faces->InsertNextCell(4, top);
-  faceData->InsertNextValue(1);
+  faceData->InsertNextValue(255);
 
   // Bottom Exclusion Face
   bottom[0] = upper[0];
@@ -145,6 +145,7 @@ int vtkRectangularBoundingRegionFilter::RequestData(vtkInformation* request, vtk
   region->SetPolys(faces);
   vtkCellData *data = region->GetCellData();
   data->SetScalars(faceData);
+  data->GetScalars()->SetName("Type");
   return 1;
 }
 
