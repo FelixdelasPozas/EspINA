@@ -50,6 +50,9 @@
 #define Bottom Exclusion[1]
 #define Lower Exclusion[2]
 
+const int INCLUSION_FACE = 255;
+const int EXCLUSION_FACE = 0;
+
 vtkStandardNewMacro(vtkRectangularBoundingRegionFilter);
 
 vtkRectangularBoundingRegionFilter::vtkRectangularBoundingRegionFilter()
@@ -99,7 +102,7 @@ int vtkRectangularBoundingRegionFilter::RequestData(vtkInformation* request, vtk
   upper[2] = vertex->InsertNextPoint(Right,Top,Upper);
   upper[3] = vertex->InsertNextPoint(Right,Bottom,Upper);
   faces->InsertNextCell(4, upper);
-  faceData->InsertNextValue(255);
+  faceData->InsertNextValue(INCLUSION_FACE);
   
   // Lower Exclusion Face
   lower[0] = vertex->InsertNextPoint(Left,Bottom,Lower);
@@ -107,7 +110,7 @@ int vtkRectangularBoundingRegionFilter::RequestData(vtkInformation* request, vtk
   lower[2] = vertex->InsertNextPoint(Right,Top,Lower);
   lower[3] = vertex->InsertNextPoint(Right,Bottom,Lower);
   faces->InsertNextCell(4, lower);
-  faceData->InsertNextValue(0);
+  faceData->InsertNextValue(EXCLUSION_FACE);
   
   // Left Inclusion Face
   left[0] = upper[0];
@@ -115,7 +118,7 @@ int vtkRectangularBoundingRegionFilter::RequestData(vtkInformation* request, vtk
   left[2] = lower[1];
   left[3] = lower[0];
   faces->InsertNextCell(4, left);
-  faceData->InsertNextValue(255);
+  faceData->InsertNextValue(INCLUSION_FACE);
 
   // Right Exclusion Face
   right[0] = upper[3];
@@ -123,7 +126,7 @@ int vtkRectangularBoundingRegionFilter::RequestData(vtkInformation* request, vtk
   right[2] = lower[2];
   right[3] = lower[3];
   faces->InsertNextCell(4, right);
-  faceData->InsertNextValue(0);
+  faceData->InsertNextValue(EXCLUSION_FACE);
   
   // Top Inclusion Face
   top[0] = upper[1];
@@ -131,7 +134,7 @@ int vtkRectangularBoundingRegionFilter::RequestData(vtkInformation* request, vtk
   top[2] = lower[2];
   top[3] = lower[1];
   faces->InsertNextCell(4, top);
-  faceData->InsertNextValue(255);
+  faceData->InsertNextValue(INCLUSION_FACE);
 
   // Bottom Exclusion Face
   bottom[0] = upper[0];
@@ -139,7 +142,7 @@ int vtkRectangularBoundingRegionFilter::RequestData(vtkInformation* request, vtk
   bottom[2] = lower[3];
   bottom[3] = lower[0];
   faces->InsertNextCell(4, bottom);
-  faceData->InsertNextValue(0);
+  faceData->InsertNextValue(EXCLUSION_FACE);
   
   region->SetPoints(vertex);
   region->SetPolys(faces);

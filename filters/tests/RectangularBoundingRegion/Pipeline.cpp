@@ -28,16 +28,16 @@ int Pipeline(int argc, char **argv)
   region->SetExclusion(100,0,0);
   region->Update();
 
-  // Display the  region
-  vtkSmartPointer<vtkPolyDataMapper> regionMapper =
-    vtkSmartPointer<vtkPolyDataMapper>::New();
-  vtkSmartPointer<vtkActor> regionActor =
-    vtkSmartPointer<vtkActor>::New();
-    
+//   // Display the  region
+//   vtkSmartPointer<vtkPolyDataMapper> regionMapper =
+//     vtkSmartPointer<vtkPolyDataMapper>::New();
+//   vtkSmartPointer<vtkActor> regionActor =
+//     vtkSmartPointer<vtkActor>::New();
+//     
 //   regionMapper->SetInputConnection(region->GetOutputPort());
 //   regionActor->SetMapper(regionMapper);
 //   regionActor->GetProperty()->SetColor(1, 0, 0);
-
+// 
 //   vtkSmartPointer<vtkRenderWindow> renderWindow =
 //     vtkSmartPointer<vtkRenderWindow>::New();
 //   vtkSmartPointer<vtkRenderWindowInteractor> interactor =
@@ -48,7 +48,6 @@ int Pipeline(int argc, char **argv)
 //   interactor->SetRenderWindow(renderWindow);
 //   renderWindow->AddRenderer(renderer);
 //   renderer->AddActor(regionActor);
-//   renderer->AddActor(discartedActor);
 //   renderWindow->Render();
 //   interactor->Start();
 
