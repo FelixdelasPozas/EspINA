@@ -40,19 +40,25 @@
 #include <pqObjectBuilder.h>
 #include <pqPipelineSource.h>
 
+const int ADAPTIVE = 0;
+const int RECTANGULAR = 1;
+
 const QString CountingRegion::ID = "CountingRegionExtension";
 
 CountingRegion::CountingRegion(QWidget * parent): QDockWidget(parent)
+, m_model(0,5)
 {
   this->setWindowTitle(tr("Counting Brick"));
   QWidget *dockWidget = new QWidget();
   setupUi(dockWidget);
   setWidget(dockWidget);
 
-  connect(rectangularRegion, SIGNAL(clicked()),
-          this, SLOT(createRectangularRegion()));
-  connect(adaptativeRegion, SIGNAL(clicked()),
-          this, SLOT(createAdaptativeRegion()));
+  connect(createRegion, SIGNAL(clicked()),
+          this, SLOT(createBoundingRegion()));
+  connect(removeRegion, SIGNAL(clicked()),
+          this, SLOT(removeRegion()));
+  connect(regionType, SIGNAL(currentIndexChanged(int)),
+	  this, SLOT(regionTypeChanged(int)));
 
   SegmentationExtension segExt;
   EspINAFactory::instance()->addSegmentationExtension(&segExt);
@@ -60,11 +66,14 @@ CountingRegion::CountingRegion(QWidget * parent): QDockWidget(parent)
   EspINAFactory::instance()->addSampleExtension(&sampleExt);
   RegionRenderer region;
   EspINAFactory::instance()->addViewWidget(region.clone());
-//   
-  regions->setModel(&m_regionsModel);
-
-  regionView->setModel(&m_model);
+  
+  m_model.setHorizontalHeaderItem(0, new QStandardItem(tr("Name")));
+  m_model.setHorizontalHeaderItem(1, new QStandardItem(tr("XY")));
+  m_model.setHorizontalHeaderItem(2, new QStandardItem(tr("YZ")));
+  m_model.setHorizontalHeaderItem(3, new QStandardItem(tr("XZ")));
+  m_model.setHorizontalHeaderItem(4, new QStandardItem(tr("3D")));
   m_parentItem = m_model.invisibleRootItem();
+  regionView->setModel(&m_model);
 
   connect(EspINA::instance(), SIGNAL(focusSampleChanged(Sample*)),
           this, SLOT(focusSampleChanged(Sample *)));
@@ -86,9 +95,8 @@ void CountingRegion::initializeExtension(SegmentationExtension* ext)
 //! focused selection
 void CountingRegion::focusSampleChanged(Sample* sample)
 {
-  rectangularRegion->setEnabled(sample != NULL);
-  adaptativeRegion->setEnabled(sample != NULL);
-  if (rectangularRegion->isEnabled())
+  createRegion->setEnabled(sample != NULL);
+  if (createRegion->isEnabled())
   {
     int extent[6];
     sample->extent(extent);
@@ -105,48 +113,59 @@ void CountingRegion::focusSampleChanged(Sample* sample)
     upperSlice->setValue(extent[5]);
     lowerSlice->setMinimum(extent[4]);
     lowerSlice->setMaximum(extent[5]);
+    regionTypeChanged(regionType->currentIndex());
     m_focusedSample = sample;
     
     QStandardItem *sampleItem = new QStandardItem(sample->data(Qt::DisplayRole).toString());
     m_parentItem->appendRow(sampleItem);
     m_parentItem = sampleItem;
+    m_parentItem->setColumnCount(3);
   }
 }
 
-void CountingRegion::createAdaptativeRegion()
+void CountingRegion::regionTypeChanged(int type)
 {
-  SampleExtension *ext = dynamic_cast<SampleExtension *>(m_focusedSample->extension(CountingRegion::ID));
-  assert(ext); 
-  
-  ext->createAdaptativeRegion(leftMargin->value(),topMargin->value(), upperSlice->value(),
-		       rightMargin->value(), bottomMargin->value(), lowerSlice->value());
-  
-  QStandardItem *regionItem = new QStandardItem(
-    QString("Adaptative Counting Brick (%1,%2,%3,%4,%5,%6)")
-    .arg(leftMargin->value())
-    .arg(topMargin->value())
-    .arg(upperSlice->value())
-    .arg(rightMargin->value())
-    .arg(bottomMargin->value())
-    .arg(lowerSlice->value())
-  );
-  m_parentItem->appendRow(regionItem);
+  switch (type)
+  {
+    case ADAPTIVE:
+      leftMargin->setValue(0);
+      rightMargin->setValue(0);
+      topMargin->setValue(0);
+      bottomMargin->setValue(0);
+      break;
+    case RECTANGULAR:
+      leftMargin->setValue(leftMargin->minimum());
+      rightMargin->setValue(rightMargin->maximum());
+      topMargin->setValue(topMargin->maximum());
+      bottomMargin->setValue(bottomMargin->minimum());
+      break;
+    default:
+      assert(false);
+  };
 }
 
 
 //! Creates a bounding region on the current focused/active
 //! sample and update all their segmentations counting
 //! regions extension
-void CountingRegion::createRectangularRegion()
+void CountingRegion::createBoundingRegion()
 {
   SampleExtension *ext = dynamic_cast<SampleExtension *>(m_focusedSample->extension(CountingRegion::ID));
   assert(ext); 
   
-  ext->createRectangularRegion(leftMargin->value(),topMargin->value(), upperSlice->value(),
+  if (regionType->currentIndex() == ADAPTIVE)
+  {
+    ext->createAdaptiveRegion(leftMargin->value(),topMargin->value(), upperSlice->value(),
+				rightMargin->value(), bottomMargin->value(), lowerSlice->value());
+  } else 
+  {
+    ext->createRectangularRegion(leftMargin->value(),topMargin->value(), upperSlice->value(),
 		       rightMargin->value(), bottomMargin->value(), lowerSlice->value());
-    
+  }
+  
   QStandardItem *regionItem = new QStandardItem(
-    QString("Rectangular Counting Brick (%1,%2,%3,%4,%5,%6)")
+    QString("%1 (%2,%3,%4,%5,%6,%7)")
+    .arg(regionType->currentText())
     .arg(leftMargin->value())
     .arg(topMargin->value())
     .arg(upperSlice->value())
@@ -155,12 +174,15 @@ void CountingRegion::createRectangularRegion()
     .arg(lowerSlice->value())
   );
   
-  QList<QStandardItem *> list;
-  list << new QStandardItem("hola");
-  list << new QStandardItem("que");
-  list << new QStandardItem("tal");
-  regionItem->appendColumn(list);
-  m_parentItem->appendRow(regionItem);
+  QStandardItem * renderInXY = new QStandardItem("true");
+  QStandardItem * renderInYZ = new QStandardItem("true");
+  QStandardItem * renderInXZ = new QStandardItem("true");
+  QStandardItem * renderIn3D = new QStandardItem("true");
+  QList<QStandardItem *> row;
+  row << regionItem << renderInXY << renderInYZ << renderInXZ << renderIn3D;
+  m_parentItem->appendRow(row);
+  
+  removeRegion->setEnabled(true);
 }
 
 

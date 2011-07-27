@@ -216,11 +216,15 @@ RectangularRegion::RectangularRegion(Sample* sample,
   lower << ") Initialized");
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   
+  double spacing[3]; 
+  m_sample->spacing(spacing);
   // Configuration of Bounding Region interface
   vtkFilter::Arguments regionArgs;
   regionArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT,""));
-  regionArgs.push_back(vtkFilter::Argument("Inclusion",vtkFilter::INTVECT,QString("%1,%2,%3").arg(left).arg(top).arg(upper)));
-  regionArgs.push_back(vtkFilter::Argument("Exclusion",vtkFilter::INTVECT,QString("%1,%2,%3").arg(right).arg(bottom).arg(lower)));
+  regionArgs.push_back(vtkFilter::Argument("Inclusion",vtkFilter::INTVECT, QString("%1,%2,%3")
+					   .arg(left*spacing[0]).arg(top*spacing[1]).arg(upper*spacing[2])));
+  regionArgs.push_back(vtkFilter::Argument("Exclusion",vtkFilter::INTVECT, QString("%1,%2,%3")
+					   .arg(right*spacing[0]).arg(bottom*spacing[1]).arg(lower*spacing[2])));
   m_boundigRegion = cob->createFilter("filters","RectangularBoundingRegion", regionArgs);
   
   if (!m_boundigRegion)
@@ -270,14 +274,14 @@ void RectangularRegion::setExclusive(int right, int bottom, int lower)
 }
 
 //!-----------------------------------------------------------------------
-//! ADAPTATIVE REGION SAMPLE REPRESENTATION
+//! ADAPTIVE REGION SAMPLE REPRESENTATION
 //!-----------------------------------------------------------------------
 //! Represent a Bounding Region applied to the sample
 //------------------------------------------------------------------------
-AdaptativeRegion::AdaptativeRegion(Sample* sample, int left, int top, int upper, int right, int bottom, int lower)
+AdaptiveRegion::AdaptiveRegion(Sample* sample, int left, int top, int upper, int right, int bottom, int lower)
 : BoundingRegion(sample)
 {
-  EXTENSION_DEBUG("Adaptative Region: (" <<  
+  EXTENSION_DEBUG("Adaptive Region: (" <<  
   left << "," <<
   top << "," <<
   upper << "," <<
@@ -291,7 +295,7 @@ AdaptativeRegion::AdaptativeRegion(Sample* sample, int left, int top, int upper,
   regionArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT,m_sample->id()));
   regionArgs.push_back(vtkFilter::Argument("Inclusion",vtkFilter::INTVECT,QString("%1,%2,%3").arg(left).arg(top).arg(upper)));
   regionArgs.push_back(vtkFilter::Argument("Exclusion",vtkFilter::INTVECT,QString("%1,%2,%3").arg(right).arg(bottom).arg(lower)));
-  m_boundigRegion = cob->createFilter("filters","BoundingRegion", regionArgs);
+  m_boundigRegion = cob->createFilter("filters","AdaptiveBoundingRegion", regionArgs);
   
   if (!m_boundigRegion)
   {
@@ -302,11 +306,11 @@ AdaptativeRegion::AdaptativeRegion(Sample* sample, int left, int top, int upper,
 
 
 //------------------------------------------------------------------------
-AdaptativeRegion::~AdaptativeRegion()
+AdaptiveRegion::~AdaptiveRegion()
 {
 }
 
-void AdaptativeRegion::render(pqView* view, ViewType type)
+void AdaptiveRegion::render(pqView* view, ViewType type)
 {
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
   pqDataRepresentation *dr = dp->setRepresentationVisibility(pipelineSource()->getOutputPort(0),view,true);
@@ -318,13 +322,13 @@ void AdaptativeRegion::render(pqView* view, ViewType type)
 }
 
 //------------------------------------------------------------------------
-void AdaptativeRegion::setInclusive(int left, int top, int upper)
+void AdaptiveRegion::setInclusive(int left, int top, int upper)
 {
 
 }
 
 //------------------------------------------------------------------------
-void AdaptativeRegion::setExclusive(int right, int bottom, int lower)
+void AdaptiveRegion::setExclusive(int right, int bottom, int lower)
 {
 
 }
@@ -378,9 +382,9 @@ QVariant CountingRegion::SampleExtension::information(QString info)
 }
 
 //------------------------------------------------------------------------
-void CountingRegion::SampleExtension::createAdaptativeRegion(int left, int top, int upper, int right, int bottom, int lower)
+void CountingRegion::SampleExtension::createAdaptiveRegion(int left, int top, int upper, int right, int bottom, int lower)
 {
-  AdaptativeRegion *region = new AdaptativeRegion(m_sample, left, top, upper, right, bottom, lower);
+  AdaptiveRegion *region = new AdaptiveRegion(m_sample, left, top, upper, right, bottom, lower);
   assert(region);
   
   QString repName =  QString("BoundingRegion%1").arg(m_numRepresentations);

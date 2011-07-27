@@ -25,7 +25,7 @@
 		  </IntVectorProperty>
 		  <!-- End Bounding Region Filter -->
 	  </SourceProxy>
-	  <SourceProxy name="BoundingRegion" class="vtkBoundingRegionFilter" label="Bounding Region Filter" >
+	  <SourceProxy name="AdaptiveBoundingRegion" class="vtkAdaptiveBoundingRegionFilter" label="Adaptive Bounding Region Filter" >
 		  <Documentation
 			  long_help="filter"
 			  short_help="filter">

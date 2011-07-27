@@ -33,7 +33,7 @@
 RegionRenderer::RegionRenderer(QWidget* parent)
 : IViewWidget(parent)
 {
-  setIcon(QIcon(":/espina/applyCR"));
+  setIcon(QIcon(":/espina/apply.svg"));
 }
 
 IViewWidget* RegionRenderer::clone()
@@ -51,7 +51,6 @@ void RegionRenderer::renderInView(QModelIndex index, pqView* view)
 {
   if (!index.isValid())
     return;
-  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
  
   IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
   Sample *sample = dynamic_cast<Sample *>(item);
@@ -61,10 +60,7 @@ void RegionRenderer::renderInView(QModelIndex index, pqView* view)
     assert(ext);
     
     foreach(QString rep, ext->availableRepresentations())
-    {
-      qDebug() << "\nrendering " << rep << "\n";
       sample->representation(rep)->render(view);
-    }
   }
 
   for (int row = 0; row < index.model()->rowCount(index); row++)

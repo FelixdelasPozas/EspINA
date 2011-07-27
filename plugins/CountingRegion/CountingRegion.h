@@ -54,13 +54,13 @@ public:
 public slots:
   void focusSampleChanged(Sample *sample);
   
-  void createAdaptativeRegion();
-  void createRectangularRegion();
+  void regionTypeChanged(int type);
+  
+  void createBoundingRegion();
   //void onAction(QAction *action);
   
 private:
   Sample *m_focusedSample;
-  QMap<Sample *, QList<pqPipelineSource *> > m_regions;
   QStringListModel m_regionsModel;
   QStandardItemModel m_model;
   

@@ -90,11 +90,11 @@ private:
   pq3DWidget *m_widget;
 };
 
-class AdaptativeRegion : public CountingRegion::BoundingRegion
+class AdaptiveRegion : public CountingRegion::BoundingRegion
 {
 public:
-  AdaptativeRegion(Sample* sample, int left, int top, int upper, int right, int bottom, int lower);
-  virtual ~AdaptativeRegion();
+  AdaptiveRegion(Sample* sample, int left, int top, int upper, int right, int bottom, int lower);
+  virtual ~AdaptiveRegion();
   
   virtual void render(pqView* view, ViewType type = VIEW_3D);
   
@@ -114,7 +114,7 @@ public:
     virtual QStringList availableRepresentations() {return m_regions.keys();}
     virtual QVariant information(QString info);
     
-    void createAdaptativeRegion(int left, int top, int upper, int right, int bottom, int lower);
+    void createAdaptiveRegion(int left, int top, int upper, int right, int bottom, int lower);
     void createRectangularRegion(int left, int top, int upper, int right, int bottom, int lower);
     
     QMap<QString, BoundingRegion *> &regions() {return m_regions;}

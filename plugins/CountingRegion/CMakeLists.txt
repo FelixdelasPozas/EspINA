@@ -55,8 +55,8 @@ ADD_PARAVIEW_DOCK_WINDOW(
 file ( GLOB LOCAL_SOURCES *.cpp )
 
 set (VTKFILTER_SRCS
+  ${CAJAL_INCLUDE_DIR}/filters/vtkAdaptiveBoundingRegionFilter.cpp
   ${CAJAL_INCLUDE_DIR}/filters/vtkRectangularBoundingRegionFilter.cpp
-  ${CAJAL_INCLUDE_DIR}/filters/vtkBoundingRegionFilter.cpp
   ${CAJAL_INCLUDE_DIR}/filters/vtkCountingRegionFilter.cpp
 )
 

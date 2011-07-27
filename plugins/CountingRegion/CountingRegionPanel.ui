@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
+    <width>315</width>
     <height>348</height>
    </rect>
   </property>
@@ -15,14 +15,24 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QComboBox" name="regions"/>
+    <widget class="QComboBox" name="regionType">
+     <property name="currentIndex">
+      <number>1</number>
+     </property>
+     <item>
+      <property name="text">
+       <string>Adaptative Region</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Rectangular Region</string>
+      </property>
+     </item>
+    </widget>
    </item>
    <item>
-    <widget class="QTreeView" name="regionView">
-     <property name="headerHidden">
-      <bool>true</bool>
-     </property>
-    </widget>
+    <widget class="QTreeView" name="regionView"/>
    </item>
    <item>
     <layout class="QGridLayout" name="gridLayout">
@@ -131,7 +141,7 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="rectangularRegion">
+      <widget class="QPushButton" name="createRegion">
        <property name="enabled">
         <bool>false</bool>
        </property>
@@ -152,7 +162,7 @@
        </property>
        <property name="icon">
         <iconset resource="rsc/CountingRegion.qrc">
-         <normaloff>:/espina/applyCR</normaloff>:/espina/applyCR</iconset>
+         <normaloff>:/espina/apply.svg</normaloff>:/espina/apply.svg</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -166,7 +176,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QPushButton" name="adaptativeRegion">
+      <widget class="QPushButton" name="removeRegion">
        <property name="enabled">
         <bool>false</bool>
        </property>
@@ -187,7 +197,7 @@
        </property>
        <property name="icon">
         <iconset resource="rsc/CountingRegion.qrc">
-         <normaloff>:/espina/applyCR</normaloff>:/espina/applyCR</iconset>
+         <normaloff>:/espina/trash-full.svg</normaloff>:/espina/trash-full.svg</iconset>
        </property>
        <property name="iconSize">
         <size>

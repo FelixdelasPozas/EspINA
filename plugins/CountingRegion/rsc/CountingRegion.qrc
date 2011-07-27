@@ -1,5 +1,6 @@
 <RCC>
-    <qresource prefix="/espina">
-        <file alias="applyCR">apply.svg</file>
-    </qresource>
+  <qresource prefix="/espina">
+    <file>trash-full.svg</file>
+    <file>apply.svg</file>
+  </qresource>
 </RCC>
