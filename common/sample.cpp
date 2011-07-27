@@ -251,6 +251,20 @@ QStringList Sample::availableRepresentations()
 //------------------------------------------------------------------------
 ISampleRepresentation* Sample::representation(QString rep)
 {
+  if (!m_representations.contains(rep))
+  {
+    // Update extensions
+    foreach(ISampleExtension *ext, m_insertionOrderedExtensions)
+    {
+      foreach(ISampleRepresentation::RepresentationId rep, ext->availableRepresentations())
+	m_representations.insert(rep, ext);
+    }
+    if (!m_representations.contains(rep))
+    {
+      qWarning() << "FATAL ERROR: Representation not available after update";
+      assert(false);
+    }
+  }
   return m_representations[rep]->representation(rep);
 }
 

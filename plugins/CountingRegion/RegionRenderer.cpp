@@ -56,7 +56,16 @@ void RegionRenderer::renderInView(QModelIndex index, pqView* view)
   IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
   Sample *sample = dynamic_cast<Sample *>(item);
   if (sample)
-    sample->representation("BoundingRegion")->render(view);
+  {
+    ISampleExtension *ext = sample->extension(CountingRegion::ID);
+    assert(ext);
+    
+    foreach(QString rep, ext->availableRepresentations())
+    {
+      qDebug() << "\nrendering " << rep << "\n";
+      sample->representation(rep)->render(view);
+    }
+  }
 
   for (int row = 0; row < index.model()->rowCount(index); row++)
   {

@@ -63,6 +63,9 @@ CountingRegion::CountingRegion(QWidget * parent): QDockWidget(parent)
 //   
   regions->setModel(&m_regionsModel);
 
+  regionView->setModel(&m_model);
+  m_parentItem = m_model.invisibleRootItem();
+
   connect(EspINA::instance(), SIGNAL(focusSampleChanged(Sample*)),
           this, SLOT(focusSampleChanged(Sample *)));
 //   EXTENSION_DEBUG(<< "Counting Region Panel created");
@@ -103,6 +106,10 @@ void CountingRegion::focusSampleChanged(Sample* sample)
     lowerSlice->setMinimum(extent[4]);
     lowerSlice->setMaximum(extent[5]);
     m_focusedSample = sample;
+    
+    QStandardItem *sampleItem = new QStandardItem(sample->data(Qt::DisplayRole).toString());
+    m_parentItem->appendRow(sampleItem);
+    m_parentItem = sampleItem;
   }
 }
 
@@ -113,14 +120,17 @@ void CountingRegion::createAdaptativeRegion()
   
   ext->createAdaptativeRegion(leftMargin->value(),topMargin->value(), upperSlice->value(),
 		       rightMargin->value(), bottomMargin->value(), lowerSlice->value());
-  regions->addItem(QString("Adaptative Counting Brick (%1,%2,%3,%4,%5,%6)")
-                   .arg(leftMargin->value())
-                   .arg(topMargin->value())
-                   .arg(upperSlice->value())
-                   .arg(rightMargin->value())
-                   .arg(bottomMargin->value())
-                   .arg(lowerSlice->value())
-                  );
+  
+  QStandardItem *regionItem = new QStandardItem(
+    QString("Adaptative Counting Brick (%1,%2,%3,%4,%5,%6)")
+    .arg(leftMargin->value())
+    .arg(topMargin->value())
+    .arg(upperSlice->value())
+    .arg(rightMargin->value())
+    .arg(bottomMargin->value())
+    .arg(lowerSlice->value())
+  );
+  m_parentItem->appendRow(regionItem);
 }
 
 
@@ -134,14 +144,23 @@ void CountingRegion::createRectangularRegion()
   
   ext->createRectangularRegion(leftMargin->value(),topMargin->value(), upperSlice->value(),
 		       rightMargin->value(), bottomMargin->value(), lowerSlice->value());
-  regions->addItem(QString("Rectangular Counting Brick (%1,%2,%3,%4,%5,%6)")
-                   .arg(leftMargin->value())
-                   .arg(topMargin->value())
-                   .arg(upperSlice->value())
-                   .arg(rightMargin->value())
-                   .arg(bottomMargin->value())
-                   .arg(lowerSlice->value())
-                  );
+    
+  QStandardItem *regionItem = new QStandardItem(
+    QString("Rectangular Counting Brick (%1,%2,%3,%4,%5,%6)")
+    .arg(leftMargin->value())
+    .arg(topMargin->value())
+    .arg(upperSlice->value())
+    .arg(rightMargin->value())
+    .arg(bottomMargin->value())
+    .arg(lowerSlice->value())
+  );
+  
+  QList<QStandardItem *> list;
+  list << new QStandardItem("hola");
+  list << new QStandardItem("que");
+  list << new QStandardItem("tal");
+  regionItem->appendColumn(list);
+  m_parentItem->appendRow(regionItem);
 }
 
 

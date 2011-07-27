@@ -18,7 +18,11 @@
     <widget class="QComboBox" name="regions"/>
    </item>
    <item>
-    <widget class="QTreeView" name="treeView"/>
+    <widget class="QTreeView" name="regionView">
+     <property name="headerHidden">
+      <bool>true</bool>
+     </property>
+    </widget>
    </item>
    <item>
     <layout class="QGridLayout" name="gridLayout">

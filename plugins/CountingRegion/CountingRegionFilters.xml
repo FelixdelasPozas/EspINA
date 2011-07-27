@@ -4,6 +4,27 @@
 	   a filter already in ParaView (in Servers/ServerManager/Resources/*.xml)
 	   that matches your filter and then model your xml on it -->
   <ProxyGroup name="filters">
+    	  <SourceProxy name="RectangularBoundingRegion" class="vtkRectangularBoundingRegionFilter" label="Rectangular Bounding Region Filter" >
+		  <Documentation
+			  long_help="filter"
+			  short_help="filter">
+		  </Documentation>
+		  <IntVectorProperty
+			  name="Inclusion"
+			  number_of_elements="3"
+			  default_values="0 0 0"
+			  immediate_update="1"
+			  command="SetInclusion">
+		  </IntVectorProperty>
+		  <IntVectorProperty
+			  name="Exclusion"
+			  number_of_elements="3"
+			  default_values="0 0 0"
+			  immediate_update="1"
+			  command="SetExclusion">
+		  </IntVectorProperty>
+		  <!-- End Bounding Region Filter -->
+	  </SourceProxy>
 	  <SourceProxy name="BoundingRegion" class="vtkBoundingRegionFilter" label="Bounding Region Filter" >
 		  <Documentation
 			  long_help="filter"

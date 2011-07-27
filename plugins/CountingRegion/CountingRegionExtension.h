@@ -43,7 +43,7 @@ public:
   virtual ISegmentationRepresentation* representation(QString rep);
   virtual QVariant information(QString info);
   
-  void updateRegions(QList< CountingRegion::BoundingRegion* >& regions);
+  void updateRegions(QMap<QString, BoundingRegion* >& regions);
   
   virtual ISegmentationExtension* clone();
   
@@ -111,16 +111,18 @@ public:
     virtual ExtensionId id() {return ID;}
     virtual void initialize(Sample* sample);
     virtual ISampleRepresentation* representation(QString rep);
+    virtual QStringList availableRepresentations() {return m_regions.keys();}
     virtual QVariant information(QString info);
     
     void createAdaptativeRegion(int left, int top, int upper, int right, int bottom, int lower);
     void createRectangularRegion(int left, int top, int upper, int right, int bottom, int lower);
     
-    QList<BoundingRegion *> &regions() {return m_regions;}
+    QMap<QString, BoundingRegion *> &regions() {return m_regions;}
     
     virtual ISampleExtension* clone();
 private:
-  QList<BoundingRegion *> m_regions;
+  QMap<QString, BoundingRegion *> m_regions;
+  int m_numRepresentations;
 };
 
 #endif // COUNTINGREGIONEXTENSION_H

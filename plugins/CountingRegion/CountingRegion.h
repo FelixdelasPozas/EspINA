@@ -28,6 +28,7 @@
 #include <QMap>
 #include <QList>
 #include <QStringListModel>
+#include <QStandardItemModel>
 
 // Forward declaration
 class QAction;
@@ -61,6 +62,9 @@ private:
   Sample *m_focusedSample;
   QMap<Sample *, QList<pqPipelineSource *> > m_regions;
   QStringListModel m_regionsModel;
+  QStandardItemModel m_model;
+  
+  QStandardItem *m_parentItem;
 };
   
 

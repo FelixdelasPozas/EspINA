@@ -112,10 +112,13 @@ QVariant CountingRegion::SegmentationExtension::information(QString info)
 }
 
 //------------------------------------------------------------------------
-void CountingRegion::SegmentationExtension::updateRegions(QList<BoundingRegion *>& regions)
+void CountingRegion::SegmentationExtension::updateRegions(QMap<QString, BoundingRegion *>& regions)
 {
   EXTENSION_DEBUG("Updating " << m_seg->id() << " bounding regions...");
   EXTENSION_DEBUG("\tNumber of regions applied:" << regions.size());
+  
+  if (regions.isEmpty())
+    return;
   
   vtkSMProperty *p;
   
@@ -215,10 +218,10 @@ RectangularRegion::RectangularRegion(Sample* sample,
   
   // Configuration of Bounding Region interface
   vtkFilter::Arguments regionArgs;
-  regionArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT,m_sample->id()));
+  regionArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT,""));
   regionArgs.push_back(vtkFilter::Argument("Inclusion",vtkFilter::INTVECT,QString("%1,%2,%3").arg(left).arg(top).arg(upper)));
   regionArgs.push_back(vtkFilter::Argument("Exclusion",vtkFilter::INTVECT,QString("%1,%2,%3").arg(right).arg(bottom).arg(lower)));
-  m_boundigRegion = cob->createFilter("filters","BoundingRegion", regionArgs);
+  m_boundigRegion = cob->createFilter("filters","RectangularBoundingRegion", regionArgs);
   
   if (!m_boundigRegion)
   {
@@ -243,6 +246,14 @@ void RectangularRegion::render(pqView* view, ViewType type)
   m_widget->setView(view);
   m_widget->setWidgetVisible(true);
   m_widget->select();
+  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+  pqDataRepresentation *dr = dp->setRepresentationVisibility(pipelineSource()->getOutputPort(0),view,true);
+  pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
+  rep->setColorField("Type");
+  
+  double opacity = 0.7;
+  vtkSMPropertyHelper(rep->getProxy(),"Opacity").Set(opacity);
+  rep->getProxy()->UpdateVTKObjects();
 }
 
 //------------------------------------------------------------------------
@@ -327,14 +338,17 @@ void AdaptativeRegion::setExclusive(int right, int bottom, int lower)
 
 //------------------------------------------------------------------------
 CountingRegion::SampleExtension::SampleExtension()
+: m_numRepresentations(0)
 {
-  m_availableRepresentations << "BoundingRegion";
 }
 
 //------------------------------------------------------------------------
 CountingRegion::SampleExtension::~SampleExtension()
 {
-
+  foreach(BoundingRegion *region, m_regions)
+    delete region;
+  
+  m_regions.clear();
 }
 
 //------------------------------------------------------------------------
@@ -347,8 +361,8 @@ void CountingRegion::SampleExtension::initialize(Sample* sample)
 //------------------------------------------------------------------------
 ISampleRepresentation* CountingRegion::SampleExtension::representation(QString rep)
 {
-  if (rep == "BoundingRegion")
-    return m_regions.first();
+  if (m_regions.contains(rep))
+    return m_regions[rep];
   
   qWarning() << ID << ":" << rep << " is not provided";
   assert(false);
@@ -369,7 +383,9 @@ void CountingRegion::SampleExtension::createAdaptativeRegion(int left, int top, 
   AdaptativeRegion *region = new AdaptativeRegion(m_sample, left, top, upper, right, bottom, lower);
   assert(region);
   
-  m_regions.push_back(region);
+  QString repName =  QString("BoundingRegion%1").arg(m_numRepresentations);
+  m_regions[repName] = region;
+  m_numRepresentations++;
   
   foreach(Segmentation *seg, m_sample->segmentations())
   {
@@ -390,7 +406,9 @@ void CountingRegion::SampleExtension::createRectangularRegion(int left, int top,
   RectangularRegion *region = new RectangularRegion(m_sample, left, top, upper, right, bottom, lower);
   assert(region);
   
-  m_regions.push_back(region);
+  QString repName =  QString("BoundingRegion%1").arg(m_numRepresentations);
+  m_regions[repName] = region;
+  m_numRepresentations++;
   
   foreach(Segmentation *seg, m_sample->segmentations())
   {

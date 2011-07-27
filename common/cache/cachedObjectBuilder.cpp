@@ -109,11 +109,19 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(const QString group, const
     {
       case INPUT:
       {
-	QStringList input = arg.value.split(":");
-	assert(input.size()==2);
-	vtkFilter *inputCreator = m_cache->getEntry(input[0]);
-	assert(inputCreator);
-	filter = ob->createFilter(group, name, inputCreator->pipelineSource(), input[1].toInt());
+	// Filter is a source
+	if (arg.value == "")
+	{
+	  filter = ob->createSource(group, name, pqApplicationCore::instance()->getActiveServer());
+	}
+	else
+	{
+	  QStringList input = arg.value.split(":");
+	  assert(input.size()==2);
+	  vtkFilter *inputCreator = m_cache->getEntry(input[0]);
+	  assert(inputCreator);
+	  filter = ob->createFilter(group, name, inputCreator->pipelineSource(), input[1].toInt());
+	}
       }
       break;
       case INTVECT:
