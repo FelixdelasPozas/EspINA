@@ -33,6 +33,10 @@ public:
   SegmentationExplorer(Segmentation *seg, QWidget* parent = 0, Qt::WindowFlags f = 0);
   virtual ~SegmentationExplorer();
   
+public slots:
+  void takeSnapshot();
+  void exportScene();
+  
 private:
   pqRenderView *view;
 };

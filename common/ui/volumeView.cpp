@@ -375,6 +375,7 @@ void VolumeView::exportScene()
   QString fileName = QFileDialog::getSaveFileName(this,
      tr("Save Scene"), "", tr("3D Scene (*.x3d *.pov *.vrml)"));
   exporter->write(fileName);
+  delete exporter;
 //   m_view->saveImage(1024,768,"/home/jorge/scene.jpg");
 }
 

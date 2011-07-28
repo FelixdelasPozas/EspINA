@@ -23,6 +23,8 @@
 #include "espina.h"
 #include "segmentation.h"
 
+#include <QFileDialog>
+
 #include <pqObjectBuilder.h>
 #include <pqApplicationCore.h>
 #include <pqActiveObjects.h>
@@ -30,6 +32,8 @@
 #include <pqDisplayPolicy.h>
 #include <pqDataRepresentation.h>
 #include <pqPipelineRepresentation.h>
+#include <pqViewExporterManager.h>
+#include <vtkSMRenderViewProxy.h>
 //#include "../plugins/SeedGrowSegmentation/SeedGrowSegmentationFilter.h"
 
 
@@ -45,8 +49,13 @@ SegmentationExplorer::SegmentationExplorer(Segmentation *seg, QWidget* parent, Q
     pqServer * server= pqActiveObjects::instance().activeServer();
     view = qobject_cast<pqRenderView*>(ob->createView( pqRenderView::renderViewType(), server));
     
-    this->viewLayout->addWidget(view->getWidget());
+    this->viewLayout->insertWidget(0,view->getWidget());
     view->setCenterAxesVisibility(false);
+    double black[3] = {0,0,0};
+    view->getRenderViewProxy()->SetBackgroundColorCM(black);
+  
+    connect(m_snapshot,SIGNAL(clicked(bool)),this,SLOT(takeSnapshot()));
+    connect(m_export,SIGNAL(clicked(bool)),this,SLOT(exportScene()));
     
     seg->representation("Mesh")->render(view);
     //SeedGrowSegmentationFilter *filter = dynamic_cast<SeedGrowSegmentationFilter*>(seg->parent());
@@ -58,5 +67,23 @@ SegmentationExplorer::~SegmentationExplorer()
 {
   pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
   ob->destroy(view);
+}
+
+void SegmentationExplorer::takeSnapshot()
+{
+  QString fileName = QFileDialog::getSaveFileName(this,
+     tr("Save Scene"), "", tr("Image Files (*.jpg *.png)"));
+  view->saveImage(1024,768,fileName);
+}
+
+
+void SegmentationExplorer::exportScene()
+{
+  pqViewExporterManager *exporter = new pqViewExporterManager();
+  exporter->setView(view);
+  QString fileName = QFileDialog::getSaveFileName(this,
+     tr("Save Scene"), "", tr("3D Scene (*.x3d *.pov *.vrml)"));
+  exporter->write(fileName);
+  delete exporter;
 }
 
