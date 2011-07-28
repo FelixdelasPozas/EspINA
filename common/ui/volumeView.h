@@ -72,6 +72,8 @@ public:
 protected slots:
   void updateScene();
   void render(const QModelIndex &index);
+  void exportScene();
+  void takeSnapshot();
   
 private:
   bool m_init;
@@ -83,6 +85,8 @@ private:
   pqRenderView *m_view;
   QWidget *m_viewWidget;
   QVBoxLayout *m_mainLayout;
+  QToolButton m_snapshot;
+  QToolButton m_export;
   QHBoxLayout *m_controlLayout;
   pq3DWidget *m_VOIWidget;//Because it doesn't implement ISelectableView
 };

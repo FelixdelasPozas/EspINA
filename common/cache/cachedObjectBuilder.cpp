@@ -111,21 +111,7 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(const QString group, const
       case INPUT:
       {
 	// Filter is a source
-	if (name == "CountingRegion")
-	{
-	  QStringList input = arg.value.split(":");
-	  assert(input.size()==2);
-	  vtkFilter *inputCreator = m_cache->getEntry(input[0]);
-	  assert(inputCreator);
-	  QMap<QString, QList<pqOutputPort *> > namedInputs;
-	  QList<pqOutputPort *> inputs;
-	  inputs.push_back(inputCreator->pipelineSource()->getOutputPort(0));
-	  namedInputs["Input"] = inputs;
-// 	  QList<pqOutputPort *> regions;
-// 	  regions.push_back(inputCreator->pipelineSource()->getOutputPort(0));
-// 	  namedInputs["Regions"] = inputs;
-	  filter = ob->createFilter(group, name, namedInputs, pqApplicationCore::instance()->getActiveServer());
-	}else if (arg.value == "")
+	if (arg.value == "")
 	{
 	  filter = ob->createSource(group, name, pqApplicationCore::instance()->getActiveServer());
 	}

@@ -66,28 +66,17 @@
 		name="Input"
 		port_index="0"
 		immediate_update="1"
-		command="SetInputConnection"
-		default_values="0"
+		clean_command="RemoveAllInputs"
+		command="AddInputConnection"
+		repeatable="1"
 		  >
 		    <ProxyGroupDomain name="groups">
 		      <Group name="sources"/>
 		      <Group name="filters"/>
 		    </ProxyGroupDomain>
-		    <DataTypeDomain name="input_type">
-		      <DataType value="vtkDataImage"/>
-		    </DataTypeDomain>
-		</InputProperty>
-		<InputProperty
-		name="Regions"
-		port_index="1"
-		clean_command="RemoveAllInputs"
-		command="AddInputConnection"
-		default_values="0"
-		>
-		  <ProxyGroupDomain name="groups">
-		    <Group name="sources"/>
-		    <Group name="filters"/>
-		  </ProxyGroupDomain>
+<!-- 		    <DataTypeDomain name="input_type"> -->
+<!-- 		      <DataType value="vtkDataImage"/> -->
+<!-- 		    </DataTypeDomain> -->
 		</InputProperty>
 		<IntVectorProperty
 			  name="Discarted"

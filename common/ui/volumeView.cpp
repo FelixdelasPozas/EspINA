@@ -38,6 +38,8 @@
 #include <QToolButton>
 #include <QMenu>
 #include <QAction>
+#include <QPushButton>
+#include <QFileDialog>
 
 // ParaView
 #include "pqRenderView.h"
@@ -59,6 +61,8 @@
 #include <vtkRenderWindow.h>
 #include <vtkCamera.h>
 #include <vtkPVGenericRenderWindowInteractor.h>
+#include <pqViewExporterManager.h>
+#include <qlayoutitem.h>
 
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(QWidget* parent)
@@ -74,6 +78,20 @@ VolumeView::VolumeView(QWidget* parent)
   m_mainLayout = new QVBoxLayout();
   m_mainLayout->addLayout(m_controlLayout);
   setLayout(m_mainLayout);
+  
+  m_snapshot.setIcon(QIcon(":/espina/snapshot_scene.svg"));
+  m_snapshot.setToolTip(tr("Save Scene as Image"));
+  connect(&m_snapshot,SIGNAL(clicked(bool)),this,SLOT(takeSnapshot()));
+  
+  m_export.setIcon(QIcon(":/espina/export_scene.svg"));
+  m_export.setToolTip(tr("Export 3D Scene"));
+  connect(&m_export,SIGNAL(clicked(bool)),this,SLOT(exportScene()));
+  
+  m_controlLayout->addWidget(&m_snapshot);
+  m_controlLayout->addWidget(&m_export);
+  
+  QSpacerItem * horizontalSpacer = new QSpacerItem(4000, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+  m_controlLayout->addItem(horizontalSpacer);
 
   // Color background
   QPalette pal = this->palette();
@@ -348,6 +366,23 @@ void VolumeView::updateScene()
 
   
   m_view->render();
+}
+
+void VolumeView::exportScene()
+{
+  pqViewExporterManager *exporter = new pqViewExporterManager();
+  exporter->setView(m_view);
+  QString fileName = QFileDialog::getSaveFileName(this,
+     tr("Save Scene"), "", tr("3D Scene (*.x3d *.pov *.vrml)"));
+  exporter->write(fileName);
+//   m_view->saveImage(1024,768,"/home/jorge/scene.jpg");
+}
+
+void VolumeView::takeSnapshot()
+{
+  QString fileName = QFileDialog::getSaveFileName(this,
+     tr("Save Scene"), "", tr("Image Files (*.jpg *.png)"));
+  m_view->saveImage(1024,768,fileName);
 }
 
 

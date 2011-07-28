@@ -39,6 +39,8 @@
 #include <pqPipelineRepresentation.h>
 #include <pqObjectBuilder.h>
 #include <pq3DWidget.h>
+#include <vtkBoxWidget2.h>
+#include <vtkSMNewWidgetRepresentationProxy.h>
 
 //!-----------------------------------------------------------------------
 //! COUNTING REGION SEGMENTATION EXTENSION
@@ -126,6 +128,10 @@ void CountingRegion::SegmentationExtension::updateRegions(QMap<QString, Bounding
   
   vtkstd::vector<vtkSMProxy *> inputs;
   vtkstd::vector<unsigned int> ports;
+  
+  // First input is the segmentation object
+  inputs.push_back(m_seg->creator()->pipelineSource()->getProxy());
+  ports.push_back(0);
     
   foreach(BoundingRegion *region, regions)
   {
@@ -134,7 +140,7 @@ void CountingRegion::SegmentationExtension::updateRegions(QMap<QString, Bounding
     ports.push_back(0);
   }
     
-  p = m_discarted->pipelineSource()->getProxy()->GetProperty("Regions");
+  p = m_discarted->pipelineSource()->getProxy()->GetProperty("Input");
   vtkSMInputProperty *inputRegions = vtkSMInputProperty::SafeDownCast(p);
   assert(inputRegions);
   if (inputRegions)
@@ -144,13 +150,6 @@ void CountingRegion::SegmentationExtension::updateRegions(QMap<QString, Bounding
     , &ports[0]);
   }
   
-  p = m_discarted->pipelineSource()->getProxy()->GetProperty("Input");
-  vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
-  if (input)
-  {
-    input->SetInputConnection(0,m_seg->creator()->pipelineSource()->getProxy(),0);
-    m_discarted->pipelineSource()->getProxy()->UpdateVTKObjects();
-  }
 }
 
 //------------------------------------------------------------------------
@@ -257,9 +256,9 @@ RectangularRegion::~RectangularRegion()
 //------------------------------------------------------------------------
 void RectangularRegion::render(pqView* view, ViewType type)
 {
-  m_widget->setView(view);
-  m_widget->setWidgetVisible(true);
-  m_widget->select();
+//   m_widget->setView(view);
+//   m_widget->setWidgetVisible(true);
+//   m_widget->select();
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
   pqDataRepresentation *dr = dp->setRepresentationVisibility(pipelineSource()->getOutputPort(0),view,true);
   pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
