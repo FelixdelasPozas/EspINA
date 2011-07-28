@@ -76,6 +76,7 @@ void CountingRegion::SegmentationExtension::initialize(Segmentation* seg)
   m_seg = seg;
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   
+  m_seg->creator()->pipelineSource()->updatePipeline();
   vtkFilter::Arguments featuresArgs;
   featuresArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT,m_seg->id()));
   m_discarted = cob->createFilter("filters","CountingRegion", featuresArgs);
@@ -120,6 +121,7 @@ void CountingRegion::SegmentationExtension::updateRegions(QMap<QString, Bounding
   if (regions.isEmpty())
     return;
   
+  
   vtkSMProperty *p;
   
   vtkstd::vector<vtkSMProxy *> inputs;
@@ -133,12 +135,20 @@ void CountingRegion::SegmentationExtension::updateRegions(QMap<QString, Bounding
   }
     
   p = m_discarted->pipelineSource()->getProxy()->GetProperty("Regions");
+  vtkSMInputProperty *inputRegions = vtkSMInputProperty::SafeDownCast(p);
+  assert(inputRegions);
+  if (inputRegions)
+  {
+    inputRegions->SetProxies(static_cast<unsigned int>(inputs.size())
+    , &inputs[0]
+    , &ports[0]);
+  }
+  
+  p = m_discarted->pipelineSource()->getProxy()->GetProperty("Input");
   vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
   if (input)
   {
-    input->SetProxies(static_cast<unsigned int>(inputs.size())
-    , &inputs[0]
-    , &ports[0]);
+    input->SetInputConnection(0,m_seg->creator()->pipelineSource()->getProxy(),0);
     m_discarted->pipelineSource()->getProxy()->UpdateVTKObjects();
   }
 }

@@ -121,8 +121,8 @@ void SampleRepresentation::requestUpdate(bool force)
     vtkSMInputProperty *input = vtkSMInputProperty::SafeDownCast(p);
     if (input)
     {
-      input->RemoveAllProxies();
-      m_rep->pipelineSource()->getProxy()->UpdateVTKObjects();
+//       input->RemoveAllProxies();
+//       m_rep->pipelineSource()->getProxy()->UpdateVTKObjects();
       input->SetProxies(static_cast<unsigned int>(inputs.size())
       , &inputs[0]
       , &ports[0]);
