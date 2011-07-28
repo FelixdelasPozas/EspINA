@@ -164,7 +164,7 @@ void Sample::spacing( double* out)
 void Sample::setSpacing(double x, double y, double z)
 {
   SpatialExtension::SampleRepresentation* rep = 
-    dynamic_cast<SpatialExtension::SampleRepresentation*>(m_representations[SpatialExtension::SampleRepresentation::ID]);
+    dynamic_cast<SpatialExtension::SampleRepresentation*>(representation(SpatialExtension::SampleRepresentation::ID));
   double spacing[3];
   rep->spacing(spacing);
   if(spacing[0] != x || spacing[1] != y || spacing[2] != z)
