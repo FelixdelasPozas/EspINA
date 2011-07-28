@@ -29,23 +29,22 @@
 #ifndef VTKCOUNTINGREGION_H
 #define VTKCOUNTINGREGION_H
 
-#include <vtkArrayDataAlgorithm.h>
-#include <vtkDenseArray.h>
+#include <vtkImageAlgorithm.h>
 
 class VTK_IMAGING_EXPORT vtkCountingRegionFilter
-: public vtkArrayDataAlgorithm
+: public vtkImageAlgorithm
 {
 public:
   static vtkCountingRegionFilter *New();
-  vtkTypeMacro(vtkCountingRegionFilter, vtkArrayDataAlgorithm);
+  vtkTypeMacro(vtkCountingRegionFilter, vtkImageAlgorithm);
   
   //! Determine if input(0) has to be discarted or not
-  vtkSetMacro(Discarted,int);
   vtkGetMacro(Discarted,int);
   //int GetDiscarted();
 
   
 protected:
+//   virtual int RequestInformation(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector);
   virtual int FillInputPortInformation(int port, vtkInformation* info);
   //virtual int FillOutputPortInformation(int port, vtkInformation* info);
   virtual int RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector);
