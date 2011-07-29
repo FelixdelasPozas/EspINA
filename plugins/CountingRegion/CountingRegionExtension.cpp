@@ -231,9 +231,9 @@ RectangularRegion::RectangularRegion(Sample* sample,
   vtkFilter::Arguments regionArgs;
   regionArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT,""));
   regionArgs.push_back(vtkFilter::Argument("Inclusion",vtkFilter::INTVECT, QString("%1,%2,%3")
-					   .arg(left*spacing[0]).arg(top*spacing[1]).arg(upper*spacing[2])));
+					   .arg(int(left*spacing[0])).arg(int(top*spacing[1])).arg(int(upper*spacing[2]))));
   regionArgs.push_back(vtkFilter::Argument("Exclusion",vtkFilter::INTVECT, QString("%1,%2,%3")
-					   .arg(right*spacing[0]).arg(bottom*spacing[1]).arg(lower*spacing[2])));
+					   .arg(int(right*spacing[0])).arg(int(bottom*spacing[1])).arg(int(lower*spacing[2]))));
   m_boundigRegion = cob->createFilter("filters","RectangularBoundingRegion", regionArgs);
   
   if (!m_boundigRegion)
