@@ -33,7 +33,7 @@ public:
   virtual ~Segmentation();
   
   //! Reimplement ITraceNode Interface
-  virtual QString label() const {return "Segmentation";}
+  virtual QString label() const {return QString("Segmentation %1").arg(m_id);}
   
   //! Reimplement IModelItem Interface
   virtual QVariant data(int role = Qt::UserRole + 1) const;
@@ -60,6 +60,8 @@ private:
   QList<ISegmentationExtension *> m_insertionOrderedExtensions;
   QMap<ISegmentationRepresentation::RepresentationId, ISegmentationExtension *> m_representations;
   QMap<QString, ISegmentationExtension *> m_informations;
+  int m_id;
+  static int s_newId;
 //   ISegmentationExtension::InformationMap m_infoMap;
 //   ISegmentationExtension::RepresentationMap m_repMap;
 };
