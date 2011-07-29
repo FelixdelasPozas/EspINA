@@ -81,6 +81,7 @@ protected slots:
   
   // Manage Sample Explorer
   void focusOnSample();
+  void focusOnSegmentation();
   
   void toggleVisibility(bool visible);
   virtual bool eventFilter(QObject* obj, QEvent* event);

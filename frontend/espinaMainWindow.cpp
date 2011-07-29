@@ -99,6 +99,7 @@
 #include <pqManagePluginsReaction.h>
 #include <pqQtMessageHandlerBehavior.h>
 #include "Config.h"
+#include <sample.h>
 
 const QString FILTERS("Trace Files (*.trace)");
 const QString SEG_FILTERS("Seg Files (*.seg)");
@@ -229,6 +230,8 @@ EspinaMainWindow::EspinaMainWindow()
   Internals->segmentationView->installEventFilter(this);
   connect(Internals->deleteSegmentation, SIGNAL(clicked()),
           this, SLOT(deleteSegmentations()));
+  connect(Internals->segmentationView, SIGNAL(clicked(QModelIndex)),
+	  this, SLOT(focusOnSegmentation()));
   
   // User selected Taxonomy Selection List
   m_taxonomySelector = new QComboBox(this);
@@ -573,6 +576,28 @@ void EspinaMainWindow::focusOnSample()
 {
   
 }
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::focusOnSegmentation()
+{
+  QModelIndex selectedIndex = Internals->segmentationView->currentIndex();
+  IModelItem *item = static_cast<IModelItem *>(selectedIndex.internalPointer());
+  Segmentation *seg = dynamic_cast<Segmentation *>(item);
+  
+  if (seg)
+  {
+    Sample *origin = seg->origin();
+    CrosshairExtension::SampleRepresentation *cross = dynamic_cast<CrosshairExtension::SampleRepresentation *>(origin->representation(CrosshairExtension::SampleRepresentation::ID));
+    assert(cross);
+    double spacing[3];
+    origin->spacing(spacing);
+    int x = seg->information("Centroid X").toInt() / spacing[0];
+    int y = seg->information("Centroid Y").toInt() / spacing[1];
+    int z = seg->information("Centroid Z").toInt() / spacing[2];
+    cross->centerOn(x,y,z);
+  }
+}
+
 
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::toggleVisibility(bool visible)
