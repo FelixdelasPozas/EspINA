@@ -97,3 +97,5 @@ if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 endif( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
 target_link_libraries (CountingRegion ${PARAVIEW_ADDITIONAL_LIBRARIES} )
+
+install (TARGETS CountingRegion LIBRARY DESTINATION bin/plugins)

@@ -39,7 +39,7 @@ EspINAFactory* EspINAFactory::instance()
 
 Sample* EspINAFactory::CreateSample(vtkFilter *creator, int portNumber)
 {
-  std::cout << "Factory is going to create sample: " << creator->id().toStdString() << std::endl;
+//   std::cout << "Factory is going to create sample: " << creator->id().toStdString() << std::endl;
   Sample *sample = new Sample(creator, portNumber);
   foreach(ISampleExtension *ext, m_sampleExtensions)
   {
@@ -50,13 +50,13 @@ Sample* EspINAFactory::CreateSample(vtkFilter *creator, int portNumber)
 
 void EspINAFactory::addSampleExtension(ISampleExtension* ext)
 {
-  qDebug() << ext->id() << "registered in Sample Factory";
+//   qDebug() << ext->id() << "registered in Sample Factory";
   m_sampleExtensions.append(ext->clone());
 }
 
 Segmentation* EspINAFactory::CreateSegmentation(EspinaFilter *parent, vtkProduct *vtkRef)
 {
-  std::cout << "Factory is going to create a segmentation for vtkObject: " << vtkRef->id().toStdString() << std::endl;
+//   std::cout << "Factory is going to create a segmentation for vtkObject: " << vtkRef->id().toStdString() << std::endl;
   Segmentation *seg = new Segmentation(parent, vtkRef->creator(),vtkRef->portNumber());
   foreach(ISegmentationExtension *ext, m_segExtensions)
   {
@@ -67,7 +67,7 @@ Segmentation* EspINAFactory::CreateSegmentation(EspinaFilter *parent, vtkProduct
 
 void EspINAFactory::addSegmentationExtension(ISegmentationExtension* ext)
 {
-  qDebug() << ext->id() << "registered in Segmentation Factory";
+//   qDebug() << ext->id() << "registered in Segmentation Factory";
   m_segExtensions.append(ext->clone());
 }
 
@@ -94,7 +94,7 @@ VolumeView* EspINAFactory::CreateVolumeView()
 
 void EspINAFactory::addViewWidget(IViewWidget* widget)
 {
-  qDebug() << "registered new widget in Factory";
+//   qDebug() << "registered new widget in Factory";
   m_widgets.append(widget/*->clone()*/); //TODO clone method hasn't an implementation
 }
 
