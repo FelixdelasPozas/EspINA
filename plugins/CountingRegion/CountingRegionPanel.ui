@@ -15,23 +15,6 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QComboBox" name="regionType">
-     <property name="currentIndex">
-      <number>1</number>
-     </property>
-     <item>
-      <property name="text">
-       <string>Adaptative Region</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>Rectangular Region</string>
-      </property>
-     </item>
-    </widget>
-   </item>
-   <item>
     <widget class="QTreeView" name="regionView"/>
    </item>
    <item>
@@ -139,6 +122,23 @@
         </size>
        </property>
       </spacer>
+     </item>
+     <item>
+      <widget class="QComboBox" name="regionType">
+       <property name="currentIndex">
+        <number>1</number>
+       </property>
+       <item>
+        <property name="text">
+         <string>Adaptative Region</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>Rectangular Region</string>
+        </property>
+       </item>
+      </widget>
      </item>
      <item>
       <widget class="QPushButton" name="createRegion">
