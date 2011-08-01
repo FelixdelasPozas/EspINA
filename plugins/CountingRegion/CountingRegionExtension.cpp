@@ -41,6 +41,7 @@
 #include <pq3DWidget.h>
 #include <vtkBoxWidget2.h>
 #include <vtkSMNewWidgetRepresentationProxy.h>
+#include <pqScalarsToColors.h>
 
 //!-----------------------------------------------------------------------
 //! COUNTING REGION SEGMENTATION EXTENSION
@@ -267,6 +268,11 @@ void RectangularRegion::render(pqView* view, ViewType type)
   pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
   rep->setColorField("Type");
   
+  vtkSMProxy * lut = rep->getLookupTableProxy();
+  double colors[8] = {0,1,0,0,255,0,1,0};
+  vtkSMPropertyHelper(lut,"RGBPoints").Set(colors,8);
+  lut->UpdateVTKObjects();
+  
   double opacity = 0.7;
   vtkSMPropertyHelper(rep->getProxy(),"Opacity").Set(opacity);
   rep->getProxy()->UpdateVTKObjects();
@@ -327,6 +333,12 @@ void AdaptiveRegion::render(pqView* view, ViewType type)
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
   pqDataRepresentation *dr = dp->setRepresentationVisibility(pipelineSource()->getOutputPort(0),view,true);
   pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
+  
+  vtkSMProxy * lut = rep->getLookupTableProxy();
+  double colors[8] = {0,1,0,0,255,0,1,0};
+  vtkSMPropertyHelper(lut,"RGBPoints").Set(colors,8);
+  lut->UpdateVTKObjects();
+  
   
   double opacity = 0.5;
   vtkSMPropertyHelper(rep->getProxy(),"Opacity").Set(opacity);
