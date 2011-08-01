@@ -1,5 +1,5 @@
 // Testing Counting Region
-#include "vtkAdaptiveBoundingRegionFilter.h"
+#include "vtkRectangularBoundingRegionFilter.h"
 #include "vtkCountingRegionFilter.h"
 
 // VTK
@@ -18,14 +18,9 @@
 
 #include "../../../tests/fileTests.h"
 
-int Pipeline(int argc, char **argv)
+int LeftOut(int argc, char **argv)
 {
   QDir stackPath(argv[1]);
-  
-  vtkSmartPointer<vtkMetaImageReader> sample =
-    vtkSmartPointer<vtkMetaImageReader>::New();
-  QString inputFileName = stackPath.filePath("peque.mhd");
-    sample->SetFileName(inputFileName.toUtf8());
   
   vtkSmartPointer<vtkMetaImageReader> seg =
     vtkSmartPointer<vtkMetaImageReader>::New();
@@ -33,47 +28,50 @@ int Pipeline(int argc, char **argv)
   QString segFileName = stackPath.filePath("reducedSeg1.mhd");
     seg->SetFileName(segFileName.toUtf8());
     
-  // Get the bounding region
-  vtkSmartPointer<vtkAdaptiveBoundingRegionFilter> region =
-    vtkSmartPointer<vtkAdaptiveBoundingRegionFilter>::New();
-  region->SetInputConnection(sample->GetOutputPort());
-  region->SetInclusion(0,0,114);
+  // Get the bounding region 1
+  vtkSmartPointer<vtkRectangularBoundingRegionFilter> region1 =
+    vtkSmartPointer<vtkRectangularBoundingRegionFilter>::New();
+  region1->SetInclusion(150,535,114);
+  region1->SetExclusion(698,0,0);
 
   vtkSmartPointer<vtkCountingRegionFilter> counting =
     vtkSmartPointer<vtkCountingRegionFilter>::New();
   counting->SetInputConnection(0,seg->GetOutputPort());
-  counting->AddInputConnection(0,region->GetOutputPort());
+  counting->AddInputConnection(0,region1->GetOutputPort());
   counting->Update();
 
+  int discarted = counting->GetDiscarted();
+  bool failed = discarted != 1;
+  
 //   // Display the  region
-//   vtkSmartPointer<vtkPolyDataMapper> regionMapper =
+//   vtkSmartPointer<vtkPolyDataMapper> regionMapper1 =
 //     vtkSmartPointer<vtkPolyDataMapper>::New();
 //   vtkSmartPointer<vtkActor> regionActor =
 //     vtkSmartPointer<vtkActor>::New();
-//   regionMapper->SetInputConnection(region->GetOutputPort());
-//   regionActor->SetMapper(regionMapper);
-//   regionActor->GetProperty()->SetColor(1, 0, 0);
+//   regionMapper1->SetInputConnection(region1->GetOutputPort());
+//   regionActor->SetMapper(regionMapper1);
+// //   regionActor->GetProperty()->SetColor(1, 0, 0);
 // 
-//   // Display valid images
+//   // Display Segmentation
 //   vtkSmartPointer<vtkImageActor> segActor =
 //     vtkSmartPointer<vtkImageActor>::New();
 //   segActor->SetInput(seg->GetOutput(0));
 //   
 //   vtkSmartPointer<vtkRenderWindow> renderWindow =
 //     vtkSmartPointer<vtkRenderWindow>::New();
-//   //vtkSmartPointer<vtkRenderWindowInteractor> interactor =
-//   //  vtkSmartPointer<vtkRenderWindowInteractor>::New();
+//   vtkSmartPointer<vtkRenderWindowInteractor> interactor =
+//    vtkSmartPointer<vtkRenderWindowInteractor>::New();
 //   vtkSmartPointer<vtkRenderer> renderer =
 //     vtkSmartPointer<vtkRenderer>::New();
 // 
-//   //interactor->SetRenderWindow(renderWindow);
+//   interactor->SetRenderWindow(renderWindow);
 //   renderWindow->AddRenderer(renderer);
 //   renderer->AddActor(regionActor);
 //   renderWindow->Render(); // Centers on region instead of image
 //   renderer->AddActor(segActor);
-//   //renderer->AddActor(discartedActor);
+// //   //renderer->AddActor(discartedActor);
 //   renderWindow->Render();
-// //   interactor->Start();
+//   interactor->Start();
 
-  return 0;
+  return failed;
 }

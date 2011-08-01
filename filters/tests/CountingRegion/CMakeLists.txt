@@ -13,6 +13,9 @@ set (TEST_NAME ${COMPONENT_NAME}_test)
 create_test_sourcelist(TESTS  
   ${TEST_NAME}.cpp
   Pipeline
+  LeftOut
+  LeftIn
+  Inside
   TwoBoundingRegions
 )
 

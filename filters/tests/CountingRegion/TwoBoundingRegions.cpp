@@ -68,7 +68,7 @@ int TwoBoundingRegions(int argc, char **argv)
 //     vtkSmartPointer<vtkImageActor>::New();
 //   segActor->SetInput(seg->GetOutput(0));
   
-  std::cout << "Discarted: " << counting->GetDiscarted() << std::endl;
+//   std::cout << "Discarted: " << counting->GetDiscarted() << std::endl;
 
 //   vtkSmartPointer<vtkRenderWindow> renderWindow =
 //     vtkSmartPointer<vtkRenderWindow>::New();
