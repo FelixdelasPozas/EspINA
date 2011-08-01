@@ -166,7 +166,7 @@ QModelIndex TaxonomyProxy::mapFromSource(const QModelIndex& sourceIndex) const
   if (seg)
   {
     TaxonomyNode *parent = seg->taxonomy();
-    int row = m_taxonomySegs[parent].indexOf(seg);
+    int row = parent->getSubElements().size() + m_taxonomySegs[parent].indexOf(seg);
     return createIndex(row,0,sourceIndex.internalPointer());
   }
 }
@@ -289,6 +289,7 @@ void TaxonomyProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QM
   const QModelIndex proxyBottomRight = mapFromSource(sourceBottomRight);
   
   updateSegmentations();
+  emit dataChanged(proxyTopLeft, proxyBottomRight);
   if (proxyTopLeft.isValid())
   {
     emit dataChanged(proxyTopLeft.parent(),proxyTopLeft.parent());
