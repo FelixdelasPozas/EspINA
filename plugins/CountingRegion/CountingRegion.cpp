@@ -56,7 +56,7 @@ CountingRegion::CountingRegion(QWidget * parent): QDockWidget(parent)
   connect(createRegion, SIGNAL(clicked()),
           this, SLOT(createBoundingRegion()));
   connect(removeRegion, SIGNAL(clicked()),
-          this, SLOT(removeRegion()));
+          this, SLOT(removeBoundingRegion()));
   connect(regionType, SIGNAL(currentIndexChanged(int)),
 	  this, SLOT(regionTypeChanged(int)));
 
@@ -153,27 +153,18 @@ void CountingRegion::createBoundingRegion()
   SampleExtension *ext = dynamic_cast<SampleExtension *>(m_focusedSample->extension(CountingRegion::ID));
   assert(ext); 
   
+  QString regionName;
   if (regionType->currentIndex() == ADAPTIVE)
   {
-    ext->createAdaptiveRegion(leftMargin->value(),topMargin->value(), upperSlice->value(),
+    regionName = ext->createAdaptiveRegion(leftMargin->value(),topMargin->value(), upperSlice->value(),
 				rightMargin->value(), bottomMargin->value(), lowerSlice->value());
   } else 
   {
-    ext->createRectangularRegion(leftMargin->value(),topMargin->value(), upperSlice->value(),
+    regionName = ext->createRectangularRegion(leftMargin->value(),topMargin->value(), upperSlice->value(),
 		       rightMargin->value(), bottomMargin->value(), lowerSlice->value());
   }
   
-  QStandardItem *regionItem = new QStandardItem(
-    QString("%1 (%2,%3,%4,%5,%6,%7)")
-    .arg(regionType->currentText())
-    .arg(leftMargin->value())
-    .arg(topMargin->value())
-    .arg(upperSlice->value())
-    .arg(rightMargin->value())
-    .arg(bottomMargin->value())
-    .arg(lowerSlice->value())
-  );
-  
+  QStandardItem * regionItem = new QStandardItem(regionName);
   QStandardItem * renderInXY = new QStandardItem();
   renderInXY->setData(true,Qt::CheckStateRole);
   QStandardItem * renderInYZ = new QStandardItem();
@@ -187,6 +178,35 @@ void CountingRegion::createBoundingRegion()
   m_parentItem->appendRow(row);
   
   removeRegion->setEnabled(true);
+  
+  regionView->expandAll();
 }
+
+//------------------------------------------------------------------------
+void CountingRegion::removeBoundingRegion()
+{
+  SampleExtension *ext = dynamic_cast<SampleExtension *>(m_focusedSample->extension(CountingRegion::ID));
+  assert(ext); 
+  
+  QModelIndex region = regionView->currentIndex().sibling(regionView->currentIndex().row(),0);
+  if (!region.parent().isValid()) 
+    return;// Sample Node
+    
+  QString regionName = region.data(Qt::DisplayRole).toString();
+  ext->removeRegion(regionName);
+  m_model.removeRow(region.row(),region.parent());
+  
+  removeRegion->setEnabled(false);
+ 
+  for (int r = 0; r < m_model.rowCount(); r++)
+  {
+    QModelIndex sample = m_model.index(r,0);
+    if (m_model.rowCount(sample))
+      removeRegion->setEnabled(true);
+  }
+}
+
+
+
 
 

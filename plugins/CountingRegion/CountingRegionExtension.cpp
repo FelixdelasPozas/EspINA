@@ -120,10 +120,6 @@ void CountingRegion::SegmentationExtension::updateRegions(QMap<QString, Bounding
   EXTENSION_DEBUG("Updating " << m_seg->id() << " bounding regions...");
   EXTENSION_DEBUG("\tNumber of regions applied:" << regions.size());
   
-  if (regions.isEmpty())
-    return;
-  
-  
   vtkSMProperty *p;
   
   vtkstd::vector<vtkSMProxy *> inputs;
@@ -150,8 +146,9 @@ void CountingRegion::SegmentationExtension::updateRegions(QMap<QString, Bounding
     , &ports[0]);
   }
   
-  int isDiscarted = 0;
   m_discarted->pipelineSource()->updatePipeline();
+  
+  int isDiscarted = 0;
   vtkSMPropertyHelper(m_discarted->pipelineSource()->getProxy(),"Discarted").UpdateValueFromServer();
   vtkSMPropertyHelper(m_discarted->pipelineSource()->getProxy(),"Discarted").Get(&isDiscarted,1);
   m_seg->setVisible(!isDiscarted);
@@ -397,49 +394,85 @@ QVariant CountingRegion::SampleExtension::information(QString info)
 }
 
 //------------------------------------------------------------------------
-void CountingRegion::SampleExtension::createAdaptiveRegion(int left, int top, int upper, int right, int bottom, int lower)
+QString CountingRegion::SampleExtension::createAdaptiveRegion(int left, int top, int upper, int right, int bottom, int lower)
 {
   AdaptiveRegion *region = new AdaptiveRegion(m_sample, left, top, upper, right, bottom, lower);
   assert(region);
   
-  QString repName =  QString("BoundingRegion%1").arg(m_numRepresentations);
-  m_regions[repName] = region;
-  m_numRepresentations++;
-  
-  foreach(Segmentation *seg, m_sample->segmentations())
+  QString repName = QString("Adaptative Region (%1,%2,%3,%4,%5,%6)") 
+    .arg(left).arg(top).arg(upper).arg(right).arg(bottom).arg(lower);
+    
+  if (!m_regions.contains(repName))
   {
-    SegmentationExtension *ext = dynamic_cast<SegmentationExtension *>(seg->extension(CountingRegion::ID));
-    if (!ext)
+    m_regions[repName] = region;
+    m_numRepresentations++;
+    
+    foreach(Segmentation *seg, m_sample->segmentations())
     {
-      qDebug() << "Failed to load Counting Brick Extension on " << seg->id();
-      assert(false);
+      SegmentationExtension *ext = dynamic_cast<SegmentationExtension *>(seg->extension(CountingRegion::ID));
+      if (!ext)
+      {
+	qDebug() << "Failed to load Counting Brick Extension on " << seg->id();
+	assert(false);
+      }
+      ext->updateRegions(m_regions);
     }
-    ext->updateRegions(m_regions);
   }
+  return repName;
 }
 
 
 //------------------------------------------------------------------------
-void CountingRegion::SampleExtension::createRectangularRegion(int left, int top, int upper, int right, int bottom, int lower)
+QString CountingRegion::SampleExtension::createRectangularRegion(int left, int top, int upper, int right, int bottom, int lower)
 {
   RectangularRegion *region = new RectangularRegion(m_sample, left, top, upper, right, bottom, lower);
   assert(region);
   
-  QString repName =  QString("BoundingRegion%1").arg(m_numRepresentations);
-  m_regions[repName] = region;
-  m_numRepresentations++;
-  
-  foreach(Segmentation *seg, m_sample->segmentations())
-  {
-    SegmentationExtension *ext = dynamic_cast<SegmentationExtension *>(seg->extension(CountingRegion::ID));
-    if (!ext)
+  QString repName = QString("Rectangular Region (%1,%2,%3,%4,%5,%6)") 
+    .arg(left).arg(top).arg(upper).arg(right).arg(bottom).arg(lower);
+    
+    if (!m_regions.contains(repName))
     {
-      qDebug() << "Failed to load Counting Brick Extension on " << seg->id();
-      assert(false);
+      m_regions[repName] = region;
+      m_numRepresentations++;
+      
+      foreach(Segmentation *seg, m_sample->segmentations())
+      {
+	SegmentationExtension *ext = dynamic_cast<SegmentationExtension *>(seg->extension(CountingRegion::ID));
+	if (!ext)
+	{
+	  qDebug() << "Failed to load Counting Brick Extension on " << seg->id();
+	  assert(false);
+	}
+	ext->updateRegions(m_regions);
+      }
     }
-    ext->updateRegions(m_regions);
+  return repName;
+}
+
+//------------------------------------------------------------------------
+void CountingRegion::SampleExtension::removeRegion(QString& name)
+{
+  if (m_regions.contains(name))
+  {
+    BoundingRegion *region = m_regions[name];
+    m_regions.remove(name);
+    m_numRepresentations--;
+    
+    foreach(Segmentation *seg, m_sample->segmentations())
+    {
+      SegmentationExtension *ext = dynamic_cast<SegmentationExtension *>(seg->extension(CountingRegion::ID));
+      if (!ext)
+      {
+	qDebug() << "Failed to load Counting Brick Extension on " << seg->id();
+	assert(false);
+      }
+      ext->updateRegions(m_regions);
+    }
+    delete region;
   }
 }
+
 
 //------------------------------------------------------------------------
 ISampleExtension* CountingRegion::SampleExtension::clone()

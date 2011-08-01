@@ -114,8 +114,9 @@ public:
     virtual QStringList availableRepresentations() {return m_regions.keys();}
     virtual QVariant information(QString info);
     
-    void createAdaptiveRegion(int left, int top, int upper, int right, int bottom, int lower);
-    void createRectangularRegion(int left, int top, int upper, int right, int bottom, int lower);
+    QString createAdaptiveRegion(int left, int top, int upper, int right, int bottom, int lower);
+    QString createRectangularRegion(int left, int top, int upper, int right, int bottom, int lower);
+    void removeRegion(QString &name);
     
     QMap<QString, BoundingRegion *> &regions() {return m_regions;}
     

@@ -638,7 +638,6 @@ void SliceView::setVOI(IVOI* voi)
 //-----------------------------------------------------------------------------
 void SliceView::updateScene()
 {
-  //qDebug("Updating scene ...");
   if (m_sampleRep)
   {
     int sliceOffset = m_plane==VIEW_PLANE_XY?1:0;

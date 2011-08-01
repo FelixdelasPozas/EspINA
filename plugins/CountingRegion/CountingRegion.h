@@ -57,11 +57,11 @@ public slots:
   void regionTypeChanged(int type);
   
   void createBoundingRegion();
+  void removeBoundingRegion();
   //void onAction(QAction *action);
   
 private:
   Sample *m_focusedSample;
-  QStringListModel m_regionsModel;
   QStandardItemModel m_model;
   
   QStandardItem *m_parentItem;

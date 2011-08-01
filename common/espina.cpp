@@ -354,8 +354,6 @@ Qt::ItemFlags EspINA::flags(const QModelIndex& index) const
 }
 
  //------------------------------------------------------------------------
-
- //------------------------------------------------------------------------
 QModelIndex EspINA::taxonomyRoot() const
 {
   return createIndex(0,0,0);
