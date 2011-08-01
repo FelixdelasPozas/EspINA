@@ -41,6 +41,12 @@ qt4_wrap_cpp(MOC_SRCS
   SeedGrowSegmentation.h
   )
 
+# Create Interface files
+qt4_wrap_ui (UI_BUILT_SOURCES
+  SeedGrowSegmentationFilterSetup.ui
+  )
+
+
 # This is a macro for adding QActionGroup subclasses automatically as toolbars.
 ADD_PARAVIEW_ACTION_GROUP(
   IFACES IFACE_SRCS 
@@ -56,6 +62,7 @@ set (PLUGIN_SRCS
   SeedGrowSegmentationFilter.cpp
   ${MOC_SRCS} 
   ${RCC_BUILT_SOURCES} 
+  ${UI_BUILT_SOURCES} 
   )
 
 set (VTKFILTER_SRCS

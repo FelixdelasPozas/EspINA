@@ -34,6 +34,7 @@
 #include <pqPipelineRepresentation.h>
 #include <pqViewExporterManager.h>
 #include <vtkSMRenderViewProxy.h>
+#include <filter.h>
 //#include "../plugins/SeedGrowSegmentation/SeedGrowSegmentationFilter.h"
 
 
@@ -53,7 +54,12 @@ SegmentationExplorer::SegmentationExplorer(Segmentation *seg, QWidget* parent, Q
     view->setCenterAxesVisibility(false);
     double black[3] = {0,0,0};
     view->getRenderViewProxy()->SetBackgroundColorCM(black);
-  
+    
+//     m_informationView->setModel(EspINA::instance());
+//     m_informationView->setRootIndex(EspINA::instance()->segmentationIndex(seg));
+   
+    this->pluginLayout->insertWidget(0,seg->parent()->createSetupWidget());
+    
     connect(m_snapshot,SIGNAL(clicked(bool)),this,SLOT(takeSnapshot()));
     connect(m_export,SIGNAL(clicked(bool)),this,SLOT(exportScene()));
     

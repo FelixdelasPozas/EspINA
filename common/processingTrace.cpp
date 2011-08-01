@@ -36,7 +36,6 @@
 #include <pqObjectBuilder.h>
 #include <pqLoadDataReaction.h>
 #include <cachedObjectBuilder.h>
-#include "../plugins/SeedGrowSegmentation/SeedGrowSegmentationFilter.h"
 #include "espINAFactory.h"
 #include "labelMapExtension.h"
 

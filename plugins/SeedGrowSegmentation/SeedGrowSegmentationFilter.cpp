@@ -31,6 +31,21 @@
 #include "cache/cachedObjectBuilder.h"
 
 #include <pqPipelineSource.h>
+#include <QSpinBox>
+#include <QLayout>
+
+
+
+SeedGrowSegmentationFilter::SetupWidget::SetupWidget(EspinaFilter *parent)
+: QWidget()
+{
+  setupUi(this);
+  SeedGrowSegmentationFilter *filter = dynamic_cast<SeedGrowSegmentationFilter *>(parent);
+  m_xSeed->setText(QString("%1").arg(filter->m_seed[0]));
+  m_ySeed->setText(QString("%1").arg(filter->m_seed[1]));
+  m_zSeed->setText(QString("%1").arg(filter->m_seed[2]));
+  m_threshold->setValue(filter->m_threshold);
+}
 
 
 QString stripName(QString args){return args.split(";")[0];}//FAKE
@@ -70,6 +85,11 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVO
   vtkFilter::Arguments growArgs;
   growArgs.push_back(vtkFilter::Argument(QString("Input"),vtkFilter::INPUT, voiOutput.id()));
   growArgs.push_back(vtkFilter::Argument(QString("Seed"),vtkFilter::INTVECT,args["Seed"]));
+  QStringList seed = args["Seed"].split(",");
+  m_seed[0] = seed[0].toInt();
+  m_seed[1] = seed[1].toInt();
+  m_seed[2] = seed[2].toInt();
+  
   growArgs.push_back(vtkFilter::Argument(QString("Threshold"),vtkFilter::DOUBLEVECT,args["Threshold"]));
   m_threshold = args["Threshold"].toInt();
   //growArgs.push_back(vtkFilter::Argument(QString("ProductPorts"),vtkFilter::INTVECT, "0"));
@@ -150,7 +170,13 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ITraceNode::Arguments& ar
   vtkFilter::Arguments growArgs;
   growArgs.push_back(vtkFilter::Argument(QString("Input"),vtkFilter::INPUT, voiOutput.id()));
   growArgs.push_back(vtkFilter::Argument(QString("Seed"),vtkFilter::INTVECT,args["Seed"]));
+  QStringList seed = args["Seed"].split(",");
+  m_seed[0] = seed[0].toInt();
+  m_seed[1] = seed[1].toInt();
+  m_seed[2] = seed[2].toInt();
+  
   growArgs.push_back(vtkFilter::Argument(QString("Threshold"),vtkFilter::DOUBLEVECT,args["Threshold"]));
+  m_threshold = args["Threshold"].toInt();
   //growArgs.push_back(vtkFilter::Argument(QString("ProductPorts"),vtkFilter::INTVECT, "0"));
   // Disk cache. If the .seg contains .mhd files now it try to load them
 //   Cache::Index id = cob->generateId("filter", "SeedGrowSegmentationFilter", growArgs);
@@ -209,4 +235,9 @@ SeedGrowSegmentationFilter::~SeedGrowSegmentationFilter()
 void SeedGrowSegmentationFilter::removeProduct(EspinaProduct* product)
 {
   m_numSeg = 0;
+}
+
+QWidget* SeedGrowSegmentationFilter::createSetupWidget()
+{
+  return new SetupWidget(this);
 }

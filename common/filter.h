@@ -115,6 +115,7 @@ public:
   //virtual QList< vtkProduct* > products() = 0;
   virtual QString getFilterArguments() const {return m_args;}
   virtual void removeProduct(EspinaProduct *product) {} ;
+  virtual QWidget *createSetupWidget() = 0;
   
 protected:
   QString m_args;

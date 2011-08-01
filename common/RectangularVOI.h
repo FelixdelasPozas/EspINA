@@ -41,6 +41,8 @@ class RectangularVOI
     virtual QList< vtkProduct* > products() {QList<vtkProduct *> p; return p;}
     virtual QString getFilterArguments() const {return m_args;}
     virtual void removeProduct(vtkProduct* product);
+    virtual QWidget* createSetupWidget() {return NULL;}
+
     
     static const QString FilterType;
   private:
