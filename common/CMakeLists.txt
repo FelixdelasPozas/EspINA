@@ -30,6 +30,7 @@ qt4_wrap_cpp(MOC_BUILT_SOURCES
   labelMapExtension.h
   crosshairExtension.h
   RectangularVOI.h
+  segmentation.h
 )
 
 source_group("Generated" FILES

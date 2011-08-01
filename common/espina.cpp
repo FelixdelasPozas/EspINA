@@ -653,6 +653,7 @@ void EspINA::addSegmentation(Segmentation *seg)
   seg->initialize();
   m_taxonomySegs[m_newSegType].push_back(seg);
   seg->origin()->addSegmentation(seg);
+  connect(seg, SIGNAL(updated(Segmentation*)), this, SLOT(internalSegmentationUpdate(Segmentation*)));
   //m_sampleSegs[seg->origin()].push_back(seg);
   m_segmentations.push_back(seg);
   endInsertRows();
@@ -802,6 +803,14 @@ void EspINA::clear()
   delete m_tax;
   m_tax = NULL;
   endRemoveRows();
+}
+
+
+//------------------------------------------------------------------------
+void EspINA::internalSegmentationUpdate(Segmentation* seg)
+{
+  QModelIndex segIndex = segmentationIndex(seg);
+  emit dataChanged(segIndex,segIndex);
 }
 
 

@@ -193,4 +193,8 @@ void Segmentation::initialize()
     ext->initialize(this);
 }
 
-
+//------------------------------------------------------------------------
+void Segmentation::notifyInternalUpdate()
+{
+  emit updated(this);
+}

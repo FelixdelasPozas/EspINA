@@ -79,9 +79,9 @@ void CountingRegion::SegmentationExtension::initialize(Segmentation* seg)
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   
   m_seg->creator()->pipelineSource()->updatePipeline();
-  vtkFilter::Arguments featuresArgs;
-  featuresArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT,m_seg->id()));
-  m_discarted = cob->createFilter("filters","CountingRegion", featuresArgs);
+  vtkFilter::Arguments countingArgs;
+  countingArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT,m_seg->id()));
+  m_discarted = cob->createFilter("filters","CountingRegion", countingArgs);
   assert(m_discarted);
   
   SampleExtension *sampleExt = dynamic_cast<SampleExtension *>(m_seg->origin()->extension(CountingRegion::ID));
@@ -150,6 +150,12 @@ void CountingRegion::SegmentationExtension::updateRegions(QMap<QString, Bounding
     , &ports[0]);
   }
   
+  int isDiscarted = 0;
+  m_discarted->pipelineSource()->updatePipeline();
+  vtkSMPropertyHelper(m_discarted->pipelineSource()->getProxy(),"Discarted").UpdateValueFromServer();
+  vtkSMPropertyHelper(m_discarted->pipelineSource()->getProxy(),"Discarted").Get(&isDiscarted,1);
+  m_seg->setVisible(!isDiscarted);
+  m_seg->notifyInternalUpdate();
 }
 
 //------------------------------------------------------------------------

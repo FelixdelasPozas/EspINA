@@ -174,10 +174,14 @@ void CountingRegion::createBoundingRegion()
     .arg(lowerSlice->value())
   );
   
-  QStandardItem * renderInXY = new QStandardItem("true");
-  QStandardItem * renderInYZ = new QStandardItem("true");
-  QStandardItem * renderInXZ = new QStandardItem("true");
-  QStandardItem * renderIn3D = new QStandardItem("true");
+  QStandardItem * renderInXY = new QStandardItem();
+  renderInXY->setData(true,Qt::CheckStateRole);
+  QStandardItem * renderInYZ = new QStandardItem();
+  renderInYZ->setData(true,Qt::CheckStateRole);
+  QStandardItem * renderInXZ = new QStandardItem();
+  renderInXZ->setData(true,Qt::CheckStateRole);
+  QStandardItem * renderIn3D = new QStandardItem();
+  renderIn3D->setData(true,Qt::CheckStateRole);
   QList<QStandardItem *> row;
   row << regionItem << renderInXY << renderInYZ << renderInXZ << renderIn3D;
   m_parentItem->appendRow(row);

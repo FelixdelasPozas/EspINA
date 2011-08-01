@@ -28,6 +28,8 @@ class Sample;
 
 class Segmentation : public EspinaProduct
 {
+  Q_OBJECT
+  
 public:
   Segmentation(EspinaFilter *parent, vtkFilter *creator, int portNumber);
   virtual ~Segmentation();
@@ -53,6 +55,11 @@ public:
   QVariant information(QString info);
   
   void initialize();
+  
+  void notifyInternalUpdate();
+  
+signals:
+  void updated(Segmentation *);
   
 private:
   QMap<ExtensionId, ISegmentationExtension *> m_extensions;

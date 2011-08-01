@@ -138,6 +138,9 @@ signals:
     void focusSampleChanged(Sample *);
 
     void resetTaxonomy();
+    
+protected slots:
+  void internalSegmentationUpdate(Segmentation *seg);
   
 protected:
     explicit EspINA(QObject* parent = 0);

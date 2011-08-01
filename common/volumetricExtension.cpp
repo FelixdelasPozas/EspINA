@@ -69,6 +69,8 @@ void VolumetricRepresentation::render(pqView* view)
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
 
   pqDataRepresentation *dr = dp->setRepresentationVisibility(m_seg->outputPort(),view,m_seg->visible());
+  if (!dr)
+    return;
   pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
   assert(rep);
   rep->setRepresentation(4);//VOLUME
