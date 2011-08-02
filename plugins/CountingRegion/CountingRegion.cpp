@@ -116,6 +116,16 @@ void CountingRegion::focusSampleChanged(Sample* sample)
     regionTypeChanged(regionType->currentIndex());
     m_focusedSample = sample;
     
+    //TODO: Manage load events/unload
+    m_model.clear();
+    m_model.setHorizontalHeaderItem(0, new QStandardItem(tr("Name")));
+    m_model.setHorizontalHeaderItem(1, new QStandardItem(tr("XY")));
+    m_model.setHorizontalHeaderItem(2, new QStandardItem(tr("YZ")));
+    m_model.setHorizontalHeaderItem(3, new QStandardItem(tr("XZ")));
+    m_model.setHorizontalHeaderItem(4, new QStandardItem(tr("3D")));
+    m_parentItem = m_model.invisibleRootItem();
+    // END_ToDo
+  
     QStandardItem *sampleItem = new QStandardItem(sample->data(Qt::DisplayRole).toString());
     m_parentItem->appendRow(sampleItem);
     m_parentItem = sampleItem;
