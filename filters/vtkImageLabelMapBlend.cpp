@@ -284,14 +284,15 @@ void vtkImageLabelMapBlend::blendInputs(vtkImageIterator<InputPixelType> &inIt, 
   InputPixelType *inPtr;// = (InputPixelType*)input->GetScalarPointer();
   OutputPixelType *outPtr;// = (OutputPixelType *)(output->GetScalarPointer());
   
-  while (!outIt.IsAtEnd())
+  while (!inIt.IsAtEnd() && !outIt.IsAtEnd())
   {
     // Process one row of pixles at a time
     inPtr = inIt.BeginSpan();
+    InputPixelType *inEndPtr = inIt.EndSpan();
     outPtr = outIt.BeginSpan();
     OutputPixelType *outEndPtr = outIt.EndSpan();
     
-    while (outPtr != outEndPtr)
+    while (inPtr && inPtr != inEndPtr && outPtr != outEndPtr)
     {
       if (*inPtr)// Non 0 pixel
       {
@@ -446,6 +447,12 @@ bool vtkImageLabelMapBlend::requestArea(vtkImageData *inputImage)
   //   input.blended = false;
   for (int i = 0; i<6; i++)
     input->requestedAreaExtent[i] = input->bounds[i] / input->spacing[i/2];
+   
+//   for (int i = 0; i<3; i++)
+//   {
+//     input->requestedAreaExtent[2*i] = std::max(int(input->bounds[2*i] / input->spacing[i]), input->extent[2*i]);
+//     input->requestedAreaExtent[2*i+1] = std::min(int(input->bounds[2*i+1] / input->spacing[i]), input->extent[2*i+1]);
+//   }
   
   // To force blending of initial image
  if (m_newInputs.size() == 0 && m_blendedInputs.size() == 0 && m_removeInputs.size() == 0)
