@@ -38,6 +38,7 @@
 #include <vtkSMProxyProperty.h>
 #include <pqLookupTableManager.h>
 #include <vtkSMPropertyHelper.h>
+#include <vtkSMPVRepresentationProxy.h>
 
 //!-----------------------------------------------------------------------
 //! MESH REPRESENTATION
@@ -89,7 +90,7 @@ void MeshRepresentation::render(pqView* view)
   
   pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
   assert(rep);
-  rep->setRepresentation(2);//SURFACE
+  rep->setRepresentation(vtkSMPVRepresentationProxy::SURFACE);
     
   vtkSMProxy *repProxy = rep->getProxy();
   

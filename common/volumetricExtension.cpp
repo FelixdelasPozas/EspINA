@@ -37,6 +37,7 @@
 #include <vtkSMDoubleVectorProperty.h>
 #include <vtkSMProxyProperty.h>
 #include <pqLookupTableManager.h>
+#include <vtkSMPVRepresentationProxy.h>
 
 //!-----------------------------------------------------------------------
 //! VOLUMETRIC REPRESENTATION
@@ -73,7 +74,7 @@ void VolumetricRepresentation::render(pqView* view)
     return;
   pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
   assert(rep);
-  rep->setRepresentation(4);//VOLUME
+  rep->setRepresentation(vtkSMPVRepresentationProxy::VOLUME);
     
   vtkSMProxy *repProxy = rep->getProxy();
   
