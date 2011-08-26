@@ -94,6 +94,7 @@ public slots:
 protected slots:
   void setSlice(int slice);
   virtual void setVOI(IVOI *voi);
+  void updateVOIVisibility();
   
 signals:
   void sliceChanged();

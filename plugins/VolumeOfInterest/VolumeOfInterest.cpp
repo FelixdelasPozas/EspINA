@@ -60,6 +60,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QDebug>
 #include "assert.h"
 #include <espINAFactory.h>
+#include <sample.h>
 
 
 
@@ -117,6 +118,28 @@ void VolumeOfInterest::cancelVOI()
   m_voiButton->setChecked(false);
 }
 
+//-----------------------------------------------------------------------------
+void VolumeOfInterest::focusSampleChanged(Sample* sample)
+{
+  if (sample)
+  {
+    m_voiButton->setEnabled(true);
+    // Update limits
+    int mextent[6];
+    sample->extent(mextent);
+    int sliceOffset = 1;
+    int minSlices = mextent[4] + sliceOffset;
+    int maxSlices = mextent[5] + sliceOffset;
+    m_fromSlice->setMinimum(minSlices);
+    m_fromSlice->setMaximum(maxSlices);
+    m_toSlice->setMinimum(minSlices);
+    m_toSlice->setMaximum(maxSlices);
+  }
+  else
+  {
+    m_voiButton->setEnabled(false);
+  }
+}
 
 //-----------------------------------------------------------------------------
 void VolumeOfInterest::buildVOIs()
@@ -126,7 +149,7 @@ void VolumeOfInterest::buildVOIs()
   
   // Exact Pixel Selector
   action = new QAction(
-    QIcon(":roi_go.svg")
+    QIcon(":roi.svg")
     , tr("Volume Of Interest"),
     m_VOIMenu);
   voi = new RectangularVOI();
@@ -140,6 +163,9 @@ void VolumeOfInterest::buildUI()
   m_voiButton = new QToolButton();
   m_voiButton->setCheckable(true);
   m_VOIMenu = new QMenu();
+  m_voiButton->setAutoRaise(true);
+  m_voiButton->setIconSize(QSize(22,22));
+  m_voiButton->setEnabled(false);
   
   buildVOIs();
   
@@ -147,12 +173,43 @@ void VolumeOfInterest::buildUI()
   m_voiButton->setIcon(m_VOIs.key(m_activeVOI)->icon());
   m_voiButton->setMenu(m_VOIMenu);
   
-  QWidgetAction *threshold = new QWidgetAction(this);
-  threshold->setDefaultWidget(m_voiButton);
+  QToolButton *updateFront = new QToolButton();
+  updateFront->setText(tr("From"));
+  updateFront->setAutoRaise(true);
+
+  m_fromSlice = new QSpinBox();
+  m_fromSlice->setMinimum(0);
+  m_fromSlice->setMaximum(0);
+  m_fromSlice->setToolTip(tr("Determine which is the first slice included in the VOI"));
+  
+  QToolButton *updateTo = new QToolButton();
+  updateTo->setText(tr("To"));
+  updateTo->setAutoRaise(true);
+
+  m_toSlice = new QSpinBox();
+  m_toSlice->setMinimum(0);
+  m_toSlice->setMaximum(0);
+  m_toSlice->setToolTip(tr("Determine which is the last slice included in the VOI"));
+  
+  // Plugin's Widget Layout
+  QHBoxLayout *toolbarLayout = new QHBoxLayout();
+  toolbarLayout->addWidget(updateFront);
+  toolbarLayout->addWidget(m_fromSlice);
+  toolbarLayout->addWidget(updateTo);
+  toolbarLayout->addWidget(m_toSlice);
+  toolbarLayout->addWidget(m_voiButton);
+    
+  QWidget *toolbar = new QWidget();
+  toolbar->setLayout(toolbarLayout);
+
+  QWidgetAction *toolbarAdaptor = new QWidgetAction(this);
+  toolbarAdaptor->setDefaultWidget(toolbar);
   
   // Interface connections
   connect(m_voiButton, SIGNAL(triggered(QAction*)), this, SLOT(changeVOI(QAction*)));
   connect(m_voiButton, SIGNAL(toggled(bool)), this, SLOT(enable(bool)));
+  connect(EspINA::instance(), SIGNAL(focusSampleChanged(Sample*)),
+          this, SLOT(focusSampleChanged(Sample *)));
 }
 
 

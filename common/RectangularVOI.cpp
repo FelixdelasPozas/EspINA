@@ -36,6 +36,9 @@
 #include <QDebug>
 #include <assert.h>
 #include <cache/cachedObjectBuilder.h>
+#include <vtkBoxWidget2.h>
+#include <vtkBoxRepresentation.h>
+#include <vtkProperty.h>
 
 const QString RectangularVOI::ApplyFilter::FilterType = "RectangularVOI::ApplyFilter";
 
@@ -154,6 +157,18 @@ pq3DWidget* RectangularVOI::newWidget()
   connect(widgets[0],SIGNAL(widgetEndInteraction()),this,SLOT(endInteraction()));
   
   m_widgets.push_back(widgets[0]);
+  
+  vtkBoxWidget2 *boxwidget = dynamic_cast<vtkBoxWidget2*>(widgets[0]->getWidgetProxy()->GetWidget());
+  assert(boxwidget);
+//   vtkWidgetEventTranslator *et = boxwidget->GetEventTranslator();
+  
+  
+  vtkBoxRepresentation *repbox =  dynamic_cast<vtkBoxRepresentation*>(boxwidget->GetRepresentation());
+  repbox->HandlesOff();
+  repbox->OutlineCursorWiresOff();
+  vtkProperty *outline = repbox->GetOutlineProperty();
+  outline->SetColor(1.0,1.0,0);
+  
   return widgets[0];
 }
 

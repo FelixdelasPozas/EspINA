@@ -61,6 +61,8 @@ protected slots:
   //! Cancel current VOI
   void cancelVOI();
   
+  void focusSampleChanged(Sample *sample);
+  
 signals:
   void voiCancelled(IVOI *);
   
@@ -74,6 +76,8 @@ private:
   
 private:
   QToolButton *m_voiButton;
+  QSpinBox *m_fromSlice;
+  QSpinBox *m_toSlice;
   QMenu *m_VOIMenu;
   IVOI *m_activeVOI;
   QMap<QAction *, IVOI *> m_VOIs;

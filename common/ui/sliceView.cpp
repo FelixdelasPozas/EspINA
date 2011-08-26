@@ -74,12 +74,14 @@
 #include <vtkBoxWidget2.h>
 #include <vtkObjectFactory.h>
 #include <vtkBoxRepresentation.h>
+#include <vtkWidgetEventTranslator.h>
 
 #include <pqPipelineFilter.h>
 #include <QApplication>
 #include <crosshairExtension.h>
 
 #include <vtkPropPicker.h>
+#include <vtkProperty.h>
 
 #define HINTWIDTH 40
 
@@ -220,7 +222,7 @@ bool SliceView::eventFilter(QObject* obj, QEvent* event)
   {
     QWheelEvent *we = static_cast<QWheelEvent *>(event);
     int numSteps = we->delta()/8/15;//Refer to QWheelEvent doc.
-    m_spinBox->setValue(m_spinBox->value() + numSteps);
+    m_spinBox->setValue(m_spinBox->value() - numSteps);
     event->ignore();
   }else if (event->type() == QEvent::Enter)
   {
@@ -595,6 +597,8 @@ void SliceView::setSlice(int slice)
   int sliceOffset = m_plane==VIEW_PLANE_XY?1:0;
   if (m_sampleRep)
     m_sampleRep->setSlice(slice-sliceOffset,m_plane);
+  
+  updateVOIVisibility();
 }
 
 //-----------------------------------------------------------------------------
@@ -614,26 +618,55 @@ void SliceView::setVOI(IVOI* voi)
   
   if (!voi)
     return;
+ 
   
   m_VOIWidget = voi->newWidget();
   m_VOIWidget->setView(m_view);
   m_VOIWidget->setWidgetVisible(true);
+  
   vtkBoxWidget2 *boxwidget = dynamic_cast<vtkBoxWidget2*>(m_VOIWidget->getWidgetProxy()->GetWidget());
   assert(boxwidget);
-  boxwidget->SetTranslationEnabled(false);
-  boxwidget->SetRotationEnabled(false);
+//   vtkWidgetEventTranslator *et = boxwidget->GetEventTranslator();
+  
+  
+//   vtkBoxRepresentation *repbox =  dynamic_cast<vtkBoxRepresentation*>(boxwidget->GetRepresentation());
+//   vtkProperty *outline = repbox->GetOutlineProperty();
+//   outline->SetColor(1.0,1.0,0);
+//   repbox->HandlesOff();
+//   repbox->OutlineCursorWiresOff();
+  
+  
+//   boxwidget->SetTranslationEnabled(false);
   boxwidget->RotationEnabledOff();
-  boxwidget->TranslationEnabledOff();
+  bool rotEnabled = boxwidget->GetRotationEnabled();
+  if (rotEnabled == false)
+    std::cout << "ROT DISABLED" << std::endl;
+  m_VOIWidget->getWidgetProxy()->UpdateVTKObjects();
+  
   //boxwidget->ProcessEventsOff();
   //boxwidget->SetEnabled(false);
-  vtkSMBoxRepresentationProxy * boxrep = dynamic_cast<vtkSMBoxRepresentationProxy*>(m_VOIWidget->getWidgetProxy()->GetRepresentationProxy());
-  assert(boxrep);
-  vtkBoxRepresentation *box = dynamic_cast<vtkBoxRepresentation*>(boxrep->GetClientSideObject());
-  assert(box);
-  box->SetPickable(false);
-  box->OutlineFaceWiresOff();
-  m_VOIWidget->select();
+//   vtkSMBoxRepresentationProxy * boxrep = dynamic_cast<vtkSMBoxRepresentationProxy*>(m_VOIWidget->getWidgetProxy()->GetRepresentationProxy());
+//   assert(boxrep);
+//   vtkBoxRepresentation *box = dynamic_cast<vtkBoxRepresentation*>(boxrep->GetClientSideObject());
+//   assert(box);
+//   box->SetPickable(false);
+//   box->SetDragable(false);
+//   box->HandlesOff();
+  updateVOIVisibility();
 }
+
+//-----------------------------------------------------------------------------
+void SliceView::updateVOIVisibility()
+{
+  if (m_VOIWidget)
+    if (m_scrollBar->value() < 30)
+      m_VOIWidget->deselect();
+    else
+      m_VOIWidget->select();
+  
+    
+}
+
 
 //-----------------------------------------------------------------------------
 void SliceView::updateScene()
