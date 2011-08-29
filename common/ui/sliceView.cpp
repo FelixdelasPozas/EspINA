@@ -560,6 +560,7 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
   
     double pickPos[3];//World coordinates
     vtkPropPicker *wpicker = vtkPropPicker::New();
+    //TODO: Check this--> wpicker->AddPickList();
     wpicker->Pick(xPos, yPos, 0.1, m_viewProxy->GetRenderer());
     wpicker->GetPickPosition(pickPos);
     
