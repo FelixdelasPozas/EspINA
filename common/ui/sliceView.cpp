@@ -624,8 +624,8 @@ void SliceView::setVOI(IVOI* voi)
   m_VOIWidget->setView(m_view);
   m_VOIWidget->setWidgetVisible(true);
   
-  vtkBoxWidget2 *boxwidget = dynamic_cast<vtkBoxWidget2*>(m_VOIWidget->getWidgetProxy()->GetWidget());
-  assert(boxwidget);
+//   vtkBoxWidget2 *boxwidget = dynamic_cast<vtkBoxWidget2*>(m_VOIWidget->getWidgetProxy()->GetWidget());
+//   assert(boxwidget);
 //   vtkWidgetEventTranslator *et = boxwidget->GetEventTranslator();
   
   
@@ -637,11 +637,11 @@ void SliceView::setVOI(IVOI* voi)
   
   
 //   boxwidget->SetTranslationEnabled(false);
-  boxwidget->RotationEnabledOff();
-  bool rotEnabled = boxwidget->GetRotationEnabled();
-  if (rotEnabled == false)
-    std::cout << "ROT DISABLED" << std::endl;
-  m_VOIWidget->getWidgetProxy()->UpdateVTKObjects();
+//   boxwidget->RotationEnabledOff();
+//   bool rotEnabled = boxwidget->GetRotationEnabled();
+//   if (rotEnabled == false)
+//     std::cout << "ROT DISABLED" << std::endl;
+//   m_VOIWidget->getWidgetProxy()->UpdateVTKObjects();
   
   //boxwidget->ProcessEventsOff();
   //boxwidget->SetEnabled(false);
@@ -652,7 +652,8 @@ void SliceView::setVOI(IVOI* voi)
 //   box->SetPickable(false);
 //   box->SetDragable(false);
 //   box->HandlesOff();
-  updateVOIVisibility();
+  m_VOIWidget->select();
+//   updateVOIVisibility();
 }
 
 //-----------------------------------------------------------------------------
