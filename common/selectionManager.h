@@ -125,6 +125,10 @@ public:
   virtual void cancelVOI() = 0;
   
   virtual void setSource(Sample *product) { m_product  = product;}
+  
+  virtual void setFromSlice(int value) = 0;
+
+  virtual void setToSlice(int value) = 0;
 
 signals:
   void voiCancelled();

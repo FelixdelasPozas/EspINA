@@ -71,6 +71,11 @@ public slots:
   
   virtual void cancelVOI();
   
+  virtual void setFromSlice(int value);
+  
+  virtual void setToSlice(int value);
+
+  
 private:
   void rvoiExtent(double *rvoi);
   

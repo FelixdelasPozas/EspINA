@@ -19,6 +19,8 @@
 
 #include "RectangularVOI.h"
 
+#include "espina_debug.h"
+
 #include "sample.h"
 #include "filter.h"
 
@@ -378,16 +380,19 @@ vtkSMProxy* RectangularVOI::getProxy()
 }
 
 //-----------------------------------------------------------------------------
+//WARNING: m_box representation's property values are invalid until accept
+//         on widget after it has been added to a view and selected.
 pq3DWidget* RectangularVOI::newWidget()
 {
   QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(m_product->creator()->pipelineSource()->getProxy(), getProxy());
   
   assert(widgets.size() == 1);
-  connect(widgets[0],SIGNAL(widgetEndInteraction()),this,SLOT(endInteraction()));
   // By default ParaView doesn't "Apply" the changes to the widget. So we set 
   // up a slot to "Apply" when the interaction ends. 
-  //QObject::connect(this->PlaneWidget, SIGNAL(widgetEndInteraction()), 
-  //  this->PlaneWidget, SLOT(accept()));
+  QObject::connect(widgets[0], SIGNAL(widgetEndInteraction()),
+		   widgets[0], SLOT(accept()));
+  QObject::connect(widgets[0], SIGNAL(widgetEndInteraction()),
+		   this, SLOT(endInteraction()));
   //QObject::connect(this->PlaneWidget, SIGNAL(widgetEndInteraction()),
   //  this->View, SLOT(render())); 
   
@@ -431,8 +436,7 @@ bool RectangularVOI::contains(ISelectionHandler::VtkRegion region)
   return true;
 }
 
-
-//-------------e---------------------------------------------------------------
+//----------------------------------------------------------------------------
 void RectangularVOI::endInteraction()
 {
   //Update all widgets with box proxy bounds
@@ -440,15 +444,16 @@ void RectangularVOI::endInteraction()
   
   pq3DWidget *widget = qobject_cast<pq3DWidget *>(QObject::sender());
   widget->accept();
+  
   double scale[3];
   vtkSMPropertyHelper(m_box,"Scale").Get(scale,3);
   double pos[3];
   vtkSMPropertyHelper(m_box,"Position").Get(pos,3);
-  
-  //qDebug() << "Moving RectangularVOI Plugin::Scale on: "<< scale[0]<< scale[1]<< scale[2];
-  //qDebug() << "Moving RectangularVOI Plugin::Pos on: "<< pos[0]<< pos[1]<< pos[2];
-  
-//     qDebug() << "Bounds" << bounds[0] << bounds[1] << bounds[2] << bounds[3] << bounds[4] << bounds[5];
+  double bounds[6];
+  vtkSMPropertyHelper(m_box,"Bounds").Get(bounds,6);
+  qDebug() << "Moving RectangularVOI Plugin::Scale on: "<< scale[0]<< scale[1]<< scale[2];
+  qDebug() << "Moving RectangularVOI Plugin::Pos on: "<< pos[0]<< pos[1]<< pos[2];
+  qDebug() << "Bounds" << bounds[0] << bounds[1] << bounds[2] << bounds[3] << bounds[4] << bounds[5];
 }
 
 //-----------------------------------------------------------------------------
@@ -457,23 +462,79 @@ void RectangularVOI::cancelVOI()
   emit voiCancelled();
 }
 
+//-----------------------------------------------------------------------------
+void RectangularVOI::setFromSlice(int value)
+{
+  if (!m_box)
+    return;
+  
+  double productSpacing[3];
+  m_product->spacing(productSpacing);
+  double extent[6];
+  rvoiExtent(extent);
+  for (int i=0; i<6; i++)
+  {
+    extent[i] = extent[i]*productSpacing[i/2];
+  }
+  extent[4] = value*productSpacing[2];
+  vtkSMPropertyHelper(m_box,"Bounds").Set(extent,6);
+  double pos[3] = {0, 0, 0};
+  vtkSMPropertyHelper(m_box,"Position").Set(pos,3);
+  double scale[3] = {1, 1, 1};
+  vtkSMPropertyHelper(m_box,"Scale").Set(scale,3);
+  m_box->UpdateVTKObjects();
+  foreach(pq3DWidget *widget, m_widgets)
+  {
+    widget->reset();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void RectangularVOI::setToSlice(int value)
+{
+  if (!m_box)
+    return;
+  
+  double productSpacing[3];
+  m_product->spacing(productSpacing);
+  double extent[6];
+  rvoiExtent(extent);
+  for (int i=0; i<6; i++)
+  {
+    extent[i] = extent[i]*productSpacing[i/2];
+  }
+  extent[5] = value*productSpacing[2];
+  vtkSMPropertyHelper(m_box,"Bounds").Set(extent,6);
+  double pos[3] = {0, 0, 0};
+  vtkSMPropertyHelper(m_box,"Position").Set(pos,3);
+  double scale[3] = {1, 1, 1};
+  vtkSMPropertyHelper(m_box,"Scale").Set(scale,3);
+  m_box->UpdateVTKObjects();
+  foreach(pq3DWidget *widget, m_widgets)
+  {
+    widget->reset();
+  }
+}
+
+
+//-----------------------------------------------------------------------------
 void RectangularVOI::rvoiExtent(double* rvoi)
 {
+  double productSpacing[3];
+  m_product->spacing(productSpacing);
+  
   double bounds[6];
   vtkSMPropertyHelper(m_box,"Bounds").Get(bounds,6);
   double scale[3];
   vtkSMPropertyHelper(m_box,"Scale").Get(scale,3);
   double pos[3];
   vtkSMPropertyHelper(m_box,"Position").Get(pos,3);
-  
   //qDebug() << "RectangularVOI Plugin: Scale: "<< scale[0]<< scale[1]<< scale[2];
   //qDebug() << "RectangularVOI Plugin: Pos: "<< pos[0]<< pos[1]<< pos[2];
   //qDebug() << "RectangularVOI Plugin: Extent: "<< m_rvoi[0]<< m_rvoi[1]<< m_rvoi[2]<< m_rvoi[3]<< m_rvoi[4]<< m_rvoi[5];
   
   //double productExtent[6] = {bounds[0],bounds[1],bounds[2], bounds[3], bounds[4], bounds[5]/2};
-  double productSpacing[3];
-  m_product->spacing(productSpacing);
-  
   for (int i=0; i<6; i++)
     rvoi[i] = round((pos[i/2] + bounds[i]*scale[i/2])/productSpacing[i/2]);
+  COUT_6VECT(rvoi);
 }

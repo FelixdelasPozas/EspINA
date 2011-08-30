@@ -62,6 +62,8 @@ protected slots:
   void cancelVOI();
   
   void focusSampleChanged(Sample *sample);
+  void changeMinSlice(int value);
+  void changeMaxSlice(int value);
   
 signals:
   void voiCancelled(IVOI *);
@@ -81,6 +83,8 @@ private:
   QMenu *m_VOIMenu;
   IVOI *m_activeVOI;
   QMap<QAction *, IVOI *> m_VOIs;
+  
+  static const int SliceOffset = 1;
 };
 
 #endif// VOLUMEOFINTEREST_H

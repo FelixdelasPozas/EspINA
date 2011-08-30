@@ -127,18 +127,32 @@ void VolumeOfInterest::focusSampleChanged(Sample* sample)
     // Update limits
     int mextent[6];
     sample->extent(mextent);
-    int sliceOffset = 1;
-    int minSlices = mextent[4] + sliceOffset;
-    int maxSlices = mextent[5] + sliceOffset;
+    int minSlices = mextent[4] + SliceOffset;
+    int maxSlices = mextent[5] + SliceOffset;
     m_fromSlice->setMinimum(minSlices);
     m_fromSlice->setMaximum(maxSlices);
     m_toSlice->setMinimum(minSlices);
     m_toSlice->setMaximum(maxSlices);
+    m_toSlice->setValue(maxSlices);
   }
   else
   {
     m_voiButton->setEnabled(false);
   }
+}
+
+//-----------------------------------------------------------------------------
+void VolumeOfInterest::changeMinSlice(int value)
+{
+  if (m_activeVOI && m_voiButton->isChecked())
+    m_activeVOI->setFromSlice(value-SliceOffset);
+}
+
+//-----------------------------------------------------------------------------
+void VolumeOfInterest::changeMaxSlice(int value)
+{
+  if (m_activeVOI && m_voiButton->isChecked())
+    m_activeVOI->setToSlice(value-SliceOffset);
 }
 
 //-----------------------------------------------------------------------------
@@ -181,6 +195,7 @@ void VolumeOfInterest::buildUI()
   m_fromSlice->setMinimum(0);
   m_fromSlice->setMaximum(0);
   m_fromSlice->setToolTip(tr("Determine which is the first slice included in the VOI"));
+  connect(m_fromSlice,SIGNAL(valueChanged(int)),this,SLOT(changeMinSlice(int)));
   
   QToolButton *updateTo = new QToolButton();
   updateTo->setText(tr("To"));
@@ -190,6 +205,7 @@ void VolumeOfInterest::buildUI()
   m_toSlice->setMinimum(0);
   m_toSlice->setMaximum(0);
   m_toSlice->setToolTip(tr("Determine which is the last slice included in the VOI"));
+  connect(m_toSlice,SIGNAL(valueChanged(int)),this,SLOT(changeMaxSlice(int)));
   
   // Plugin's Widget Layout
   QHBoxLayout *toolbarLayout = new QHBoxLayout();

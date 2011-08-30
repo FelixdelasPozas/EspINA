@@ -93,9 +93,19 @@ public:
   
   virtual void OnMouseWheelForward(){}
   virtual void OnMouseWheelBackward(){}
+  virtual void OnMouseMove();
 };
 
 vtkStandardNewMacro(vtkInteractorStyleEspina);
+
+void vtkInteractorStyleEspina::OnMouseMove()
+{
+  if (Interactor->GetControlKey())
+    return;
+  
+  vtkInteractorStyleImage::OnMouseMove();
+}
+
 
 
 #define LOWER(coord) (2*(coord))
@@ -573,7 +583,8 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
 //    qDebug() << "Picked pixel" << pickPos[0] << pickPos[1] << pickPos[2];
     SelectionManager::instance()->onMouseDown(pos, this);
     //qDebug() << "Pick Position:" << pickPos[0] << pickPos[1] << pickPos[2];
-    centerViewOn(round(pickPos[0] / spacing[0]),round(pickPos[1] / spacing[1]),round(pickPos[2] / spacing[2]));
+    if (rwi->GetControlKey())
+      centerViewOn(round(pickPos[0] / spacing[0]),round(pickPos[1] / spacing[1]),round(pickPos[2] / spacing[2]));
   }
   //BUG: Only MouseButtonPress events are received
   if (event->type() == QMouseEvent::MouseMove &&
@@ -624,42 +635,16 @@ void SliceView::setVOI(IVOI* voi)
   m_VOIWidget = voi->newWidget();
   m_VOIWidget->setView(m_view);
   m_VOIWidget->setWidgetVisible(true);
-  
-//   vtkBoxWidget2 *boxwidget = dynamic_cast<vtkBoxWidget2*>(m_VOIWidget->getWidgetProxy()->GetWidget());
-//   assert(boxwidget);
-//   vtkWidgetEventTranslator *et = boxwidget->GetEventTranslator();
-  
-  
-//   vtkBoxRepresentation *repbox =  dynamic_cast<vtkBoxRepresentation*>(boxwidget->GetRepresentation());
-//   vtkProperty *outline = repbox->GetOutlineProperty();
-//   outline->SetColor(1.0,1.0,0);
-//   repbox->HandlesOff();
-//   repbox->OutlineCursorWiresOff();
-  
-  
-//   boxwidget->SetTranslationEnabled(false);
-//   boxwidget->RotationEnabledOff();
-//   bool rotEnabled = boxwidget->GetRotationEnabled();
-//   if (rotEnabled == false)
-//     std::cout << "ROT DISABLED" << std::endl;
-//   m_VOIWidget->getWidgetProxy()->UpdateVTKObjects();
-  
-  //boxwidget->ProcessEventsOff();
-  //boxwidget->SetEnabled(false);
-//   vtkSMBoxRepresentationProxy * boxrep = dynamic_cast<vtkSMBoxRepresentationProxy*>(m_VOIWidget->getWidgetProxy()->GetRepresentationProxy());
-//   assert(boxrep);
-//   vtkBoxRepresentation *box = dynamic_cast<vtkBoxRepresentation*>(boxrep->GetClientSideObject());
-//   assert(box);
-//   box->SetPickable(false);
-//   box->SetDragable(false);
-//   box->HandlesOff();
   m_VOIWidget->select();
-//   updateVOIVisibility();
+  m_VOIWidget->accept();
+  
+  updateVOIVisibility();
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::updateVOIVisibility()
 {
+  return;
   if (m_VOIWidget)
     if (m_scrollBar->value() < 30)
       m_VOIWidget->deselect();
