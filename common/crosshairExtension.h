@@ -48,7 +48,7 @@ namespace CrosshairExtension {
     virtual pqPipelineSource* pipelineSource();
     
   public slots:
-    virtual void requestUpdate(bool force){}
+    virtual void requestUpdate(bool force=false){emit representationUpdated();}
     
     void setSlice(int slice, ViewType type, bool update=true);
     int slice(ViewType type);

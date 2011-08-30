@@ -63,11 +63,11 @@ public:
   virtual void deleteWidget(pq3DWidget* &widget);
 
   virtual bool contains(ISelectionHandler::VtkRegion region);
-
-
+  virtual bool intersectPlane(ViewType plane, int slice);
   
 public slots:
-  virtual void endInteraction();
+//   virtual void endInteraction();
+  virtual void modifyVOI();
   
   virtual void cancelVOI();
   
@@ -75,7 +75,6 @@ public slots:
   
   virtual void setToSlice(int value);
 
-  
 private:
   void rvoiExtent(double *rvoi);
   

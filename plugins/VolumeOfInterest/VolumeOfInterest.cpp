@@ -35,6 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "espina.h"
 #include <cache/cachedObjectBuilder.h>
+#include "crosshairExtension.h"
 
 #include "pixelSelector.h"
 #include "filter.h"
@@ -70,6 +71,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 VolumeOfInterest::VolumeOfInterest(QObject* parent)
 : QActionGroup(parent)
 , m_activeVOI(NULL)
+, m_focusedSample(NULL)
 {
   buildUI();
   
@@ -139,17 +141,46 @@ void VolumeOfInterest::focusSampleChanged(Sample* sample)
   {
     m_voiButton->setEnabled(false);
   }
+  m_focusedSample = sample;
 }
 
 //-----------------------------------------------------------------------------
-void VolumeOfInterest::changeMinSlice(int value)
+void VolumeOfInterest::setFromCurrentSlice()
+{
+  if (m_focusedSample)
+  {
+    CrosshairExtension::SampleRepresentation *rep =
+      dynamic_cast<CrosshairExtension::SampleRepresentation *>(
+	m_focusedSample->representation(CrosshairExtension::SampleRepresentation::ID)
+	);
+    assert(rep);
+    m_fromSlice->setValue(rep->slice(VIEW_PLANE_XY)+SliceOffset);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void VolumeOfInterest::setToCurrentSlice()
+{
+  if (m_focusedSample)
+  {
+    CrosshairExtension::SampleRepresentation *rep =
+      dynamic_cast<CrosshairExtension::SampleRepresentation *>(
+	m_focusedSample->representation(CrosshairExtension::SampleRepresentation::ID)
+	);
+    assert(rep);
+    m_toSlice->setValue(rep->slice(VIEW_PLANE_XY)+SliceOffset);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void VolumeOfInterest::setFromSlice(int value)
 {
   if (m_activeVOI && m_voiButton->isChecked())
     m_activeVOI->setFromSlice(value-SliceOffset);
 }
 
 //-----------------------------------------------------------------------------
-void VolumeOfInterest::changeMaxSlice(int value)
+void VolumeOfInterest::setToSlice(int value)
 {
   if (m_activeVOI && m_voiButton->isChecked())
     m_activeVOI->setToSlice(value-SliceOffset);
@@ -187,29 +218,31 @@ void VolumeOfInterest::buildUI()
   m_voiButton->setIcon(m_VOIs.key(m_activeVOI)->icon());
   m_voiButton->setMenu(m_VOIMenu);
   
-  QToolButton *updateFront = new QToolButton();
-  updateFront->setText(tr("From"));
-  updateFront->setAutoRaise(true);
+  QToolButton *updateFrom = new QToolButton();
+  updateFrom->setText(tr("From"));
+  updateFrom->setAutoRaise(true);
+  connect(updateFrom,SIGNAL(clicked(bool)),this,SLOT(setFromCurrentSlice()));
 
   m_fromSlice = new QSpinBox();
   m_fromSlice->setMinimum(0);
   m_fromSlice->setMaximum(0);
   m_fromSlice->setToolTip(tr("Determine which is the first slice included in the VOI"));
-  connect(m_fromSlice,SIGNAL(valueChanged(int)),this,SLOT(changeMinSlice(int)));
+  connect(m_fromSlice,SIGNAL(valueChanged(int)),this,SLOT(setFromSlice(int)));
   
   QToolButton *updateTo = new QToolButton();
   updateTo->setText(tr("To"));
   updateTo->setAutoRaise(true);
+  connect(updateTo,SIGNAL(clicked(bool)),this,SLOT(setToCurrentSlice()));
 
   m_toSlice = new QSpinBox();
   m_toSlice->setMinimum(0);
   m_toSlice->setMaximum(0);
   m_toSlice->setToolTip(tr("Determine which is the last slice included in the VOI"));
-  connect(m_toSlice,SIGNAL(valueChanged(int)),this,SLOT(changeMaxSlice(int)));
+  connect(m_toSlice,SIGNAL(valueChanged(int)),this,SLOT(setToSlice(int)));
   
   // Plugin's Widget Layout
   QHBoxLayout *toolbarLayout = new QHBoxLayout();
-  toolbarLayout->addWidget(updateFront);
+  toolbarLayout->addWidget(updateFrom);
   toolbarLayout->addWidget(m_fromSlice);
   toolbarLayout->addWidget(updateTo);
   toolbarLayout->addWidget(m_toSlice);

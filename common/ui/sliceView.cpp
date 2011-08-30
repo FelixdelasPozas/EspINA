@@ -602,15 +602,24 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
 //-----------------------------------------------------------------------------
 void SliceView::setSlice(int slice)
 {
-  if (m_spinBox->value() != slice)
-    m_spinBox->setValue(slice);
-  if (m_scrollBar->value() != slice)
-    m_scrollBar->setValue(slice);
-  int sliceOffset = m_plane==VIEW_PLANE_XY?1:0;
-  if (m_sampleRep)
-    m_sampleRep->setSlice(slice-sliceOffset,m_plane);
   
-  updateVOIVisibility();
+  if (m_spinBox->value() != slice)
+  {
+    m_spinBox->setValue(slice);
+    updateVOIVisibility();
+  }
+  if (m_scrollBar->value() != slice)
+  {
+    m_scrollBar->setValue(slice);
+    updateVOIVisibility();
+  }
+
+  if (m_sampleRep)
+  {
+    int sliceOffset = m_plane==VIEW_PLANE_XY?1:0;
+    m_sampleRep->setSlice(slice-sliceOffset,m_plane);
+  }
+  
 }
 
 //-----------------------------------------------------------------------------
@@ -636,7 +645,9 @@ void SliceView::setVOI(IVOI* voi)
   m_VOIWidget->setView(m_view);
   m_VOIWidget->setWidgetVisible(true);
   m_VOIWidget->select();
-  m_VOIWidget->accept();
+  m_VOIWidget->accept(); //Required to initialize internal proxy properties
+  
+  connect(m_voi,SIGNAL(voiModified()),this,SLOT(updateVOIVisibility()));
   
   updateVOIVisibility();
 }
@@ -644,14 +655,15 @@ void SliceView::setVOI(IVOI* voi)
 //-----------------------------------------------------------------------------
 void SliceView::updateVOIVisibility()
 {
-  return;
-  if (m_VOIWidget)
-    if (m_scrollBar->value() < 30)
-      m_VOIWidget->deselect();
-    else
-      m_VOIWidget->select();
-  
-    
+//   std::cout << "updating voi in plane: " << m_plane << std::endl;
+  if (!m_VOIWidget)
+    return;
+
+  int sliceOffset = m_plane==VIEW_PLANE_XY?1:0;
+  if (m_voi->intersectPlane(m_plane,m_spinBox->value()-sliceOffset))
+    m_VOIWidget->setWidgetVisible(true);
+  else
+    m_VOIWidget->setWidgetVisible(false);
 }
 
 
