@@ -480,7 +480,10 @@ void RectangularVOI::setEnabled(bool value)
   {
     vtkNonRotatingBoxWidget *boxwidget = dynamic_cast<vtkNonRotatingBoxWidget*>(widget.widget->getWidgetProxy()->GetWidget());
     assert(boxwidget);
-    boxwidget->SetProcessEvents(value?widget.viewType!=VIEW_3D:false);
+    bool isEnabled = value?widget.viewType!=VIEW_3D:false;
+    boxwidget->SetProcessEvents(isEnabled);
+    vtkBoxRepresentation *repbox =  dynamic_cast<vtkBoxRepresentation*>(boxwidget->GetRepresentation());
+    repbox->SetPickable(isEnabled);
   }
 }
 
