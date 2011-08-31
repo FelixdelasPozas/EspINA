@@ -123,6 +123,8 @@ public:
   virtual bool contains(ISelectionHandler::VtkRegion region) = 0;
   virtual bool intersectPlane(ViewType plane, int slice) = 0;
   
+  virtual void setEnabled(bool value) = 0;
+  
   virtual void cancelVOI() = 0;
   
   virtual void setSource(Sample *product) { m_product  = product;}

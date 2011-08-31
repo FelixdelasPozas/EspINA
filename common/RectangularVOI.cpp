@@ -342,7 +342,7 @@ EspinaFilter *RectangularVOI::applyVOI(vtkProduct* product)
 {
   // To apply widget bounds to vtkBox source
   if (m_widgets.size() > 0)
-    m_widgets.first()->accept();
+    m_widgets.first().widget->accept();
   
   double voiExtent[6];
   rvoiExtent(voiExtent);
@@ -398,7 +398,10 @@ pq3DWidget* RectangularVOI::newWidget(ViewType viewType)
   //QObject::connect(this->PlaneWidget, SIGNAL(widgetEndInteraction()),
   //  this->View, SLOT(render())); 
   
-  m_widgets.push_back(widgets[0]);
+  Widget newWidget;
+  newWidget.widget = widgets[0];
+  newWidget.viewType = viewType;
+  m_widgets.push_back(newWidget);
   
   vtkNonRotatingBoxWidget *boxwidget = dynamic_cast<vtkNonRotatingBoxWidget*>(widgets[0]->getWidgetProxy()->GetWidget());
   assert(boxwidget);
@@ -419,10 +422,20 @@ pq3DWidget* RectangularVOI::newWidget(ViewType viewType)
 //-----------------------------------------------------------------------------
 void RectangularVOI::deleteWidget(pq3DWidget*& widget)
 {
-  m_widgets.removeOne(widget);
-  qDebug() << "Active Widgets" << m_widgets.size();
-  delete widget;
-  widget = NULL;
+//   int i;
+//   for (i=0; i<m_widgets.size(); i++)
+//   {
+//     if (m_widgets[i].widget == widget)
+//       break;
+//   }
+//   
+//   if (i < m_widgets.size())
+//   {
+//     m_widgets.removeAt(i);
+//     qDebug() << "Active Widgets" << m_widgets.size();
+    delete widget;
+    widget = NULL;
+//   }
 }
 
 //-----------------------------------------------------------------------------
@@ -442,7 +455,7 @@ bool RectangularVOI::contains(ISelectionHandler::VtkRegion region)
   return true;
 }
 
-//----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 bool RectangularVOI::intersectPlane(ViewType plane, int slice)
 {
   double voiExtent[6];
@@ -459,6 +472,18 @@ bool RectangularVOI::intersectPlane(ViewType plane, int slice)
       return false;
   };
 }
+
+//-----------------------------------------------------------------------------
+void RectangularVOI::setEnabled(bool value)
+{
+  foreach(Widget widget, m_widgets)
+  {
+    vtkNonRotatingBoxWidget *boxwidget = dynamic_cast<vtkNonRotatingBoxWidget*>(widget.widget->getWidgetProxy()->GetWidget());
+    assert(boxwidget);
+    boxwidget->SetProcessEvents(value?widget.viewType!=VIEW_3D:false);
+  }
+}
+
 
 //-----------------------------------------------------------------------------
 void RectangularVOI::modifyVOI()
@@ -490,6 +515,7 @@ void RectangularVOI::modifyVOI()
 //-----------------------------------------------------------------------------
 void RectangularVOI::cancelVOI()
 {
+  m_widgets.clear();
   emit voiCancelled();
 }
 
@@ -537,10 +563,10 @@ void RectangularVOI::setToSlice(int value)
   double scale[3] = {1, 1, 1};
   vtkSMPropertyHelper(m_box,"Scale").Set(scale,3);
   m_box->UpdateVTKObjects();
-  foreach(pq3DWidget *widget, m_widgets)
-  {
-    widget->reset();
-  }
+//   foreach(pq3DWidget *widget, m_widgets)
+//   {
+//     widget->reset();
+//   }
   emit voiModified();
 }
 

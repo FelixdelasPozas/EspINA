@@ -48,6 +48,12 @@ class RectangularVOI
   private:
     vtkFilter *m_rvoi;
   };
+  
+  struct Widget
+  {
+    pq3DWidget *widget;
+    ViewType viewType;
+  };
 
   Q_OBJECT;
 public:
@@ -65,6 +71,8 @@ public:
   virtual bool contains(ISelectionHandler::VtkRegion region);
   virtual bool intersectPlane(ViewType plane, int slice);
   
+  virtual void setEnabled(bool value);
+  
 public slots:
 //   virtual void endInteraction();
   virtual void modifyVOI();
@@ -80,7 +88,7 @@ private:
   
 private:
   vtkSMProxy *m_box;
-  QList<pq3DWidget *> m_widgets;
+  QList<Widget> m_widgets;
 };
 
 #endif // RECTANGULARVOI_H
