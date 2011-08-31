@@ -230,8 +230,8 @@ EspinaMainWindow::EspinaMainWindow()
   Internals->segmentationView->installEventFilter(this);
   connect(Internals->deleteSegmentation, SIGNAL(clicked()),
           this, SLOT(deleteSegmentations()));
-  connect(Internals->segmentationView, SIGNAL(clicked(QModelIndex)),
-	  this, SLOT(focusOnSegmentation()));
+//   connect(Internals->segmentationView, SIGNAL(clicked(QModelIndex)),
+// 	  this, SLOT(focusOnSegmentation()));
   
   // User selected Taxonomy Selection List
   m_taxonomySelector = new QComboBox(this);
@@ -620,6 +620,13 @@ bool EspinaMainWindow::eventFilter(QObject* obj, QEvent* event)
       {
         deleteSegmentations();
       }
+    }
+    if (event->type() == QEvent::MouseButtonPress)
+    {
+      QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
+      if (mouseEvent->modifiers() == Qt::Key_Control)
+	focusOnSegmentation();
+      return false;
     }
   }
   // Pass the event on to the parent class

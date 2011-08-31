@@ -78,13 +78,28 @@ QVariant Segmentation::data(int role) const
     //case Qt::EditRole:
       return label();
     case Qt::DecorationRole:
-      return m_taxonomy->getColor();
+    {
+      QPixmap segIcon(3,16);
+      segIcon.fill(m_taxonomy->getColor());
+      return segIcon;
+    }
     case Qt::CheckStateRole:
       return visible()?Qt::Checked:Qt::Unchecked;
     default:
       return QVariant();
   }
 }
+
+//------------------------------------------------------------------------
+void Segmentation::color(double* rgba)
+{
+  QColor color = m_taxonomy->getColor();
+  rgba[0] = color.red()/255.0;
+  rgba[1] = color.green()/255.0;
+  rgba[2] = color.blue()/255.0;
+  rgba[3] = 1;
+}
+
 
 //------------------------------------------------------------------------
 bool Segmentation::setData(const QVariant& value, int role)

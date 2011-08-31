@@ -215,10 +215,9 @@ void VolumeView::rowsInserted(const QModelIndex& parent, int start, int end)
       m_focus[0] = (bounds[1]-bounds[0])/2.0;
       m_focus[1] = (bounds[3]-bounds[2])/2.0;
       m_focus[2] = (bounds[5]-bounds[4])/2.0;
-      qDebug() << "Render sample?";
-      sample->representation(CrosshairExtension::SampleRepresentation::ID)->render(m_view);
       connect(sample->representation(LabelMapExtension::SampleRepresentation::ID),SIGNAL(representationUpdated()),this,SLOT(updateScene()));
       connect(sample->representation(CrosshairExtension::SampleRepresentation::ID),SIGNAL(representationUpdated()),this,SLOT(updateScene()));
+      sample->representation(CrosshairExtension::SampleRepresentation::ID)->render(m_view);
     } 
     else 
     {
@@ -268,8 +267,7 @@ void VolumeView::dataChanged(const QModelIndex& topLeft, const QModelIndex& bott
   if (!topLeft.isValid() || !bottomRight.isValid())
     return;
         
-  //qDebug()<< "Updating " << topLeft;
-  
+//   qDebug()<< "Update Request " << topLeft;
   
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
   //TODO: Update to deal with hierarchy
@@ -295,6 +293,16 @@ void VolumeView::dataChanged(const QModelIndex& topLeft, const QModelIndex& bott
   
   m_view->render();
 }
+
+//-----------------------------------------------------------------------------
+void VolumeView::setRootIndex(const QModelIndex& index)
+{
+  QAbstractItemView::setRootIndex(index);
+  if (index.isValid())
+    updateScene();
+}
+
+
 
 
 //-----------------------------------------------------------------------------

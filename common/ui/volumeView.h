@@ -60,9 +60,11 @@ protected:
     virtual void rowsInserted(const QModelIndex& parent, int start, int end);
     virtual void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end);
     virtual void dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight);
+    
 
 public:
   //! QAbstractItemView Interface
+    virtual void setRootIndex(const QModelIndex& index);
     virtual QModelIndex indexAt(const QPoint& point) const;
     virtual void scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint = EnsureVisible);
     virtual QRect visualRect(const QModelIndex& index) const;

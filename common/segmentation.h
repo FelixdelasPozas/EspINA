@@ -37,6 +37,8 @@ public:
   //! Reimplement ITraceNode Interface
   virtual QString label() const {return QString("Segmentation %1").arg(m_id);}
   
+  virtual void color(double* rgba);
+  
   //! Reimplement IModelItem Interface
   virtual QVariant data(int role = Qt::UserRole + 1) const;
   virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);

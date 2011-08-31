@@ -121,7 +121,7 @@ QVariant EspinaProduct::data(int role) const
 
 }
 
-void EspinaProduct::color(double *rgba)
+void EspinaProduct::color(double* rgba)
 {
   QColor color = this->data(Qt::DecorationRole).value<QColor>();
   rgba[0] = color.red()/255.0;

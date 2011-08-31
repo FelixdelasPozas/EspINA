@@ -29,6 +29,7 @@
 
 #include <data/modelItem.h>
 #include <data/taxonomy.h>
+#include <qmimedata.h>
 
 
 //------------------------------------------------------------------------
@@ -194,6 +195,79 @@ QModelIndex TaxonomyProxy::mapToSource(const QModelIndex& proxyIndex) const
 }
 
 //------------------------------------------------------------------------
+Qt::ItemFlags TaxonomyProxy::flags(const QModelIndex& index) const
+{
+  IModelItem *sourceItem = static_cast<IModelItem *>(index.internalPointer());
+  Segmentation *seg = dynamic_cast<Segmentation *>(sourceItem);
+  if (seg)
+  {
+    return QAbstractProxyModel::flags(index)  | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
+  }else{
+     return QAbstractProxyModel::flags(index) | Qt::ItemIsDropEnabled;
+  }
+}
+
+//------------------------------------------------------------------------
+
+//------------------------------------------------------------------------
+bool TaxonomyProxy::dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent)
+{
+  
+  IModelItem *parentItem = static_cast<IModelItem *>(parent.internalPointer());
+  TaxonomyNode *newTax = dynamic_cast<TaxonomyNode *>(parentItem);
+  if (!newTax)
+  {
+    Segmentation *parentSeg = dynamic_cast<Segmentation *>(parentItem);
+    if (!parentSeg)
+      return true;//Unkown type
+    newTax = parentSeg->taxonomy();
+  }
+  
+  // Recover dragged item information
+  QByteArray encoded = data->data("application/x-qabstractitemmodeldatalist");
+  QDataStream stream(&encoded, QIODevice::ReadOnly);
+  
+  while (!stream.atEnd())
+  {
+    int row, col;
+    QMap<int,  QVariant> roleDataMap;
+    stream >> row >> col >> roleDataMap;
+    
+    Segmentation *draggedSeg = NULL;
+    
+    QString segName = roleDataMap[Qt::DisplayRole].toString();
+    foreach (const TaxonomyNode *tax, m_taxonomySegs.keys())
+    {
+      foreach (Segmentation *seg, m_taxonomySegs[tax])
+      {
+	if (seg->data(Qt::DisplayRole) == segName)
+	{
+	  draggedSeg = seg;
+	  break;
+	}
+      }
+      if (draggedSeg)
+	break;
+    }
+    
+   if (draggedSeg)
+   {
+     EspINA *model = dynamic_cast<EspINA *>(sourceModel());
+     QModelIndex oldTaxonomyIndex = mapFromSource(model->taxonomyIndex(draggedSeg->taxonomy()));
+     int row = m_taxonomySegs[draggedSeg->taxonomy()].indexOf(draggedSeg);
+     beginRemoveRows(oldTaxonomyIndex,row,row);
+     model->changeTaxonomy(draggedSeg, newTax);
+     endRemoveRows();
+     beginInsertRows(parent,row,row);
+     endInsertRows();
+   }
+  }
+
+  return true;
+}
+
+
+//------------------------------------------------------------------------
 QVariant TaxonomyProxy::data(const QModelIndex& proxyIndex, int role) const
 {
   if (role != Qt::DisplayRole)
@@ -226,7 +300,7 @@ void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
     QModelIndex sourceIndex = model->index(start, 0, sourceParent);
     IModelItem *sourceItem = static_cast<IModelItem *>(sourceIndex.internalPointer());
     Segmentation *sourceSeg = dynamic_cast<Segmentation *>(sourceItem);
-    qDebug() << sourceSeg->taxonomy()->getName() << " Inserted";
+//     qDebug() << sourceSeg->taxonomy()->getName() << " Inserted";
     assert(sourceSeg);
     TaxonomyNode *segParent = sourceSeg->taxonomy();
     QModelIndex parentIndex = mapFromSource(model->taxonomyIndex(segParent));

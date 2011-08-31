@@ -50,6 +50,7 @@
 #include <qdir.h>
 #include <vtkStringList.h>
 #include "labelMapExtension.h"
+#include <qmimedata.h>
 
 
 class IOTaxonomy;
@@ -353,6 +354,13 @@ Qt::ItemFlags EspINA::flags(const QModelIndex& index) const
   return QAbstractItemModel::flags(index) | Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
 }
 
+//  //------------------------------------------------------------------------
+// bool EspINA::dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent)
+// {
+//   qDebug("Dropping Data");
+//   return QAbstractItemModel::dropMimeData(data, action, row, column, parent);
+// }
+ 
  //------------------------------------------------------------------------
 QModelIndex EspINA::taxonomyRoot() const
 {
@@ -502,6 +510,16 @@ QList<Segmentation * > EspINA::segmentations(const TaxonomyNode* taxonomy, bool 
 QList< Segmentation* > EspINA::segmentations(const Sample* sample) const
 {
   return sample->segmentations();
+}
+
+//-----------------------------------------------------------------------------
+void EspINA::changeTaxonomy(Segmentation* seg, TaxonomyNode* newTaxonomy)
+{
+     m_taxonomySegs[seg->taxonomy()].removeOne(seg);
+     seg->setTaxonomy(newTaxonomy);
+     seg->origin()->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
+     QModelIndex segIndex = segmentationIndex(seg);
+     emit dataChanged(segIndex,segIndex);
 }
 
 //-----------------------------------------------------------------------------
