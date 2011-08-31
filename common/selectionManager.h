@@ -117,16 +117,24 @@ public:
   virtual EspinaFilter *restoreVOITransormation(vtkProduct* product) = 0;
   
   virtual vtkSMProxy * getProxy() = 0;
-  virtual pq3DWidget *newWidget() = 0;
+  virtual pq3DWidget *newWidget(ViewType viewType) = 0;
   virtual void deleteWidget(pq3DWidget *&widget) = 0;
   
   virtual bool contains(ISelectionHandler::VtkRegion region) = 0;
+  virtual bool intersectPlane(ViewType plane, int slice) = 0;
+  
+  virtual void setEnabled(bool value) = 0;
   
   virtual void cancelVOI() = 0;
   
   virtual void setSource(Sample *product) { m_product  = product;}
+  
+  virtual void setFromSlice(int value) = 0;
+
+  virtual void setToSlice(int value) = 0;
 
 signals:
+  void voiModified();
   void voiCancelled();
 
   

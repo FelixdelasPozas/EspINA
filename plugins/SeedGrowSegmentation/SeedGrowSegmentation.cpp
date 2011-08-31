@@ -255,7 +255,7 @@ void SeedGrowSegmentation::buildUI()
   m_segButton->setCheckable(true);
   m_selectors = new QMenu();
   m_segButton->setAutoRaise(true);
-  m_segButton->setIconSize(QSize(20,20));
+  m_segButton->setIconSize(QSize(22,22));
   
   buildSelectors();
 

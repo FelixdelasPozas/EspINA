@@ -15,6 +15,8 @@ include_directories(
 set (VTKFILTER_SRCS
 	${CAJAL_INCLUDE_DIR}/filters/vtkImageLabelMapBlend.cpp
 	${CAJAL_INCLUDE_DIR}/filters/vtkMorphologicalFeaturesFilter.cpp
+	../../common/vtkNonRotatingBoxRepresentation.cpp
+	../../common/vtkNonRotatingBoxWidget.cpp
   )
 
 

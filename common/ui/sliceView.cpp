@@ -74,12 +74,14 @@
 #include <vtkBoxWidget2.h>
 #include <vtkObjectFactory.h>
 #include <vtkBoxRepresentation.h>
+#include <vtkWidgetEventTranslator.h>
 
 #include <pqPipelineFilter.h>
 #include <QApplication>
 #include <crosshairExtension.h>
 
 #include <vtkPropPicker.h>
+#include <vtkProperty.h>
 
 #define HINTWIDTH 40
 
@@ -91,9 +93,19 @@ public:
   
   virtual void OnMouseWheelForward(){}
   virtual void OnMouseWheelBackward(){}
+  virtual void OnMouseMove();
 };
 
 vtkStandardNewMacro(vtkInteractorStyleEspina);
+
+void vtkInteractorStyleEspina::OnMouseMove()
+{
+  if (Interactor->GetControlKey())
+    return;
+  
+  vtkInteractorStyleImage::OnMouseMove();
+}
+
 
 
 #define LOWER(coord) (2*(coord))
@@ -220,7 +232,7 @@ bool SliceView::eventFilter(QObject* obj, QEvent* event)
   {
     QWheelEvent *we = static_cast<QWheelEvent *>(event);
     int numSteps = we->delta()/8/15;//Refer to QWheelEvent doc.
-    m_spinBox->setValue(m_spinBox->value() + numSteps);
+    m_spinBox->setValue(m_spinBox->value() - numSteps);
     event->ignore();
   }else if (event->type() == QEvent::Enter)
   {
@@ -558,6 +570,7 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
   
     double pickPos[3];//World coordinates
     vtkPropPicker *wpicker = vtkPropPicker::New();
+    //TODO: Check this--> wpicker->AddPickList();
     wpicker->Pick(xPos, yPos, 0.1, m_viewProxy->GetRenderer());
     wpicker->GetPickPosition(pickPos);
     
@@ -570,7 +583,8 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
 //    qDebug() << "Picked pixel" << pickPos[0] << pickPos[1] << pickPos[2];
     SelectionManager::instance()->onMouseDown(pos, this);
     //qDebug() << "Pick Position:" << pickPos[0] << pickPos[1] << pickPos[2];
-    centerViewOn(round(pickPos[0] / spacing[0]),round(pickPos[1] / spacing[1]),round(pickPos[2] / spacing[2]));
+    if (rwi->GetControlKey())
+      centerViewOn(round(pickPos[0] / spacing[0]),round(pickPos[1] / spacing[1]),round(pickPos[2] / spacing[2]));
   }
   //BUG: Only MouseButtonPress events are received
   if (event->type() == QMouseEvent::MouseMove &&
@@ -588,13 +602,24 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
 //-----------------------------------------------------------------------------
 void SliceView::setSlice(int slice)
 {
+  
   if (m_spinBox->value() != slice)
+  {
     m_spinBox->setValue(slice);
+    updateVOIVisibility();
+  }
   if (m_scrollBar->value() != slice)
+  {
     m_scrollBar->setValue(slice);
-  int sliceOffset = m_plane==VIEW_PLANE_XY?1:0;
+    updateVOIVisibility();
+  }
+
   if (m_sampleRep)
+  {
+    int sliceOffset = m_plane==VIEW_PLANE_XY?1:0;
     m_sampleRep->setSlice(slice-sliceOffset,m_plane);
+  }
+  
 }
 
 //-----------------------------------------------------------------------------
@@ -614,26 +639,33 @@ void SliceView::setVOI(IVOI* voi)
   
   if (!voi)
     return;
+ 
   
-  m_VOIWidget = voi->newWidget();
+  m_VOIWidget = voi->newWidget(m_plane);
   m_VOIWidget->setView(m_view);
   m_VOIWidget->setWidgetVisible(true);
-  vtkBoxWidget2 *boxwidget = dynamic_cast<vtkBoxWidget2*>(m_VOIWidget->getWidgetProxy()->GetWidget());
-  assert(boxwidget);
-  boxwidget->SetTranslationEnabled(false);
-  boxwidget->SetRotationEnabled(false);
-  boxwidget->RotationEnabledOff();
-  boxwidget->TranslationEnabledOff();
-  //boxwidget->ProcessEventsOff();
-  //boxwidget->SetEnabled(false);
-  vtkSMBoxRepresentationProxy * boxrep = dynamic_cast<vtkSMBoxRepresentationProxy*>(m_VOIWidget->getWidgetProxy()->GetRepresentationProxy());
-  assert(boxrep);
-  vtkBoxRepresentation *box = dynamic_cast<vtkBoxRepresentation*>(boxrep->GetClientSideObject());
-  assert(box);
-  box->SetPickable(false);
-  box->OutlineFaceWiresOff();
   m_VOIWidget->select();
+  m_VOIWidget->accept(); //Required to initialize internal proxy properties
+  
+  connect(m_voi,SIGNAL(voiModified()),this,SLOT(updateVOIVisibility()));
+  
+  updateVOIVisibility();
 }
+
+//-----------------------------------------------------------------------------
+void SliceView::updateVOIVisibility()
+{
+//   std::cout << "updating voi in plane: " << m_plane << std::endl;
+  if (!m_VOIWidget)
+    return;
+
+  int sliceOffset = m_plane==VIEW_PLANE_XY?1:0;
+  if (m_voi->intersectPlane(m_plane,m_spinBox->value()-sliceOffset))
+    m_VOIWidget->setWidgetVisible(true);
+  else
+    m_VOIWidget->setWidgetVisible(false);
+}
+
 
 //-----------------------------------------------------------------------------
 void SliceView::updateScene()

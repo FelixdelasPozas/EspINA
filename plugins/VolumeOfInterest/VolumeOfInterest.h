@@ -61,6 +61,13 @@ protected slots:
   //! Cancel current VOI
   void cancelVOI();
   
+  void focusSampleChanged(Sample *sample);
+  void setFromCurrentSlice();
+  void setToCurrentSlice();
+  void setFromSlice(int value);
+  void setToSlice(int value);
+  
+  
 signals:
   void voiCancelled(IVOI *);
   
@@ -74,9 +81,15 @@ private:
   
 private:
   QToolButton *m_voiButton;
+  QSpinBox *m_fromSlice;
+  QSpinBox *m_toSlice;
   QMenu *m_VOIMenu;
   IVOI *m_activeVOI;
   QMap<QAction *, IVOI *> m_VOIs;
+  
+  Sample *m_focusedSample;
+  
+  static const int SliceOffset = 1;
 };
 
 #endif// VOLUMEOFINTEREST_H
