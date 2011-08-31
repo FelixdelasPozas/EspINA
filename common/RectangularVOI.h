@@ -59,7 +59,7 @@ public:
   virtual EspinaFilter *restoreVOITransormation(vtkProduct* product);
 
   virtual vtkSMProxy *getProxy();
-  virtual pq3DWidget* newWidget();
+  virtual pq3DWidget* newWidget(ViewType viewType);
   virtual void deleteWidget(pq3DWidget* &widget);
 
   virtual bool contains(ISelectionHandler::VtkRegion region);

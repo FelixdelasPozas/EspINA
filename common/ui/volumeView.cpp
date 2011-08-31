@@ -147,7 +147,7 @@ void VolumeView::setVOI(IVOI* voi)
   if (!voi)
     return;
     
-  m_VOIWidget = voi->newWidget();
+  m_VOIWidget = voi->newWidget(VIEW_3D);
   m_VOIWidget->setView(m_view);
   m_VOIWidget->setWidgetVisible(true);
   m_VOIWidget->select();

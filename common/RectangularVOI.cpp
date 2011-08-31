@@ -38,7 +38,6 @@
 #include <QDebug>
 #include <assert.h>
 #include <cache/cachedObjectBuilder.h>
-#include <vtkBoxWidget2.h>
 #include <vtkBoxRepresentation.h>
 #include <vtkProperty.h>
 
@@ -49,6 +48,7 @@
 #include <vtkAssemblyPath.h>
 #include <vtkPolyData.h>
 #include <vtkIdList.h>
+#include "vtkNonRotatingBoxWidget.h"
 
 /*
 class VTK_WIDGETS_EXPORT VOIRepresentation : public vtkBoxRepresentation
@@ -382,7 +382,7 @@ vtkSMProxy* RectangularVOI::getProxy()
 //-----------------------------------------------------------------------------
 //WARNING: m_box representation's property values are invalid until accept
 //         on widget after it has been added to a view and selected.
-pq3DWidget* RectangularVOI::newWidget()
+pq3DWidget* RectangularVOI::newWidget(ViewType viewType)
 {
   QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(m_product->creator()->pipelineSource()->getProxy(), getProxy());
   
@@ -400,8 +400,12 @@ pq3DWidget* RectangularVOI::newWidget()
   
   m_widgets.push_back(widgets[0]);
   
-  vtkBoxWidget2 *boxwidget = dynamic_cast<vtkBoxWidget2*>(widgets[0]->getWidgetProxy()->GetWidget());
+  vtkNonRotatingBoxWidget *boxwidget = dynamic_cast<vtkNonRotatingBoxWidget*>(widgets[0]->getWidgetProxy()->GetWidget());
   assert(boxwidget);
+  if (viewType == VIEW_PLANE_YZ)
+    boxwidget->SetInvertZCursor(true);
+  if (viewType == VIEW_3D)
+    boxwidget->SetProcessEvents(false);
   
   vtkBoxRepresentation *repbox =  dynamic_cast<vtkBoxRepresentation*>(boxwidget->GetRepresentation());
   repbox->HandlesOff();

@@ -641,7 +641,7 @@ void SliceView::setVOI(IVOI* voi)
     return;
  
   
-  m_VOIWidget = voi->newWidget();
+  m_VOIWidget = voi->newWidget(m_plane);
   m_VOIWidget->setView(m_view);
   m_VOIWidget->setWidgetVisible(true);
   m_VOIWidget->select();

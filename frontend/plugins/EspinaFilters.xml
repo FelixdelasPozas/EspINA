@@ -407,6 +407,16 @@
     </BoxRepresentationProxy>
  </ProxyGroup>
 
+ <ProxyGroup name="3d_widgets">
+    <Proxy name="NonRotatingBoxWidget" class="vtkNonRotatingBoxWidget"
+      base_proxygroup="3d_widgets" base_proxyname="WidgetBase">
+	<Documentation>
+	  Proxy for vtkBoxWidget2.
+	</Documentation>
+    </Proxy>
+  </ProxyGroup>
+ 
+
  <ProxyGroup name="representations">
     <NewWidgetRepresentationProxy name="NonRotatingBoxWidgetRepresentation">
       <Documentation>
@@ -432,7 +442,7 @@
 
       <SubProxy>
         <Proxy name="Widget"
-          proxygroup="3d_widgets" proxyname="BoxWidget2">
+          proxygroup="3d_widgets" proxyname="NonRotatingBoxWidget">
         </Proxy>
         <ExposedProperties>
           <Property name="Enabled" />
