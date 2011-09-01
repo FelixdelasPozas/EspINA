@@ -40,7 +40,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Qt
 #include <QString>
 #include <QList>
+#include <qitemselectionmodel.h>
 
+class QItemSelectionModel;
 class QTreeView;
 class QComboBox;
 class TaxonomyNode;
@@ -71,7 +73,11 @@ protected slots:
   void saveFile();
   void importFile(); // Local load 
   void exportFile(); // Local save
-
+  
+  // Synchronize view selections
+  void shyncSelection(QItemSelectionModel *model);
+  void updateSelection (const QItemSelection & selected, const QItemSelection & deselected);
+  
   // Manage Taxonomy Editor
   void addTaxonomyElement();
   void addTaxonomyChildElement();
@@ -115,6 +121,8 @@ private:
   QList<QModelIndex> m_groupingRoot;
   int m_lastTaxonomyId;
   SampleProxy *sampleProxy;
+  
+  QList<QItemSelectionModel *>m_selectionModels;
 };
 
 #endif //ESPINA_MAIN_WINDOW_H

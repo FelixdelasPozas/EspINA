@@ -70,6 +70,8 @@ public:
   
   //! Interface of ISelectableView
   void setSelection(SelectionFilters &filters, ViewRegions &regions);
+  
+  void selectSegmentations(int x, int y, int z);
 
   virtual bool eventFilter(QObject* obj, QEvent* event);
 

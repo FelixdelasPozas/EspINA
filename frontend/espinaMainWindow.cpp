@@ -308,6 +308,7 @@ EspinaMainWindow::EspinaMainWindow()
   m_xy = new SliceView();
   m_xy->setPlane(VIEW_PLANE_XY);
   m_xy->setModel(sampleProxy);
+  shyncSelection(m_xy->selectionModel());
   connect(server, SIGNAL(connectionCreated(vtkIdType)), m_xy, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), m_xy, SLOT(disconnectFromServer()));
   connect(Internals->toggleVisibility, SIGNAL(toggled(bool)),m_xy, SLOT(showSegmentations(bool)));
@@ -501,6 +502,53 @@ void EspinaMainWindow::exportFile()
   }
 }
 
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::shyncSelection(QItemSelectionModel* model)
+{
+//   qDebug() << "shync'ing model";
+//   if (!m_selectionModels.contains(model))
+//   {
+//     m_selectionModels.push_back(model);
+    connect(model,SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+	    this, SLOT(updateSelection(QItemSelection,QItemSelection)));
+//   }
+}
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::updateSelection(const QItemSelection& selected, const QItemSelection& deselected)
+{
+  
+//   qDebug() << "Updating Seg";
+  m_selectionModels.clear();
+  m_selectionModels.push_back(Internals->segmentationView->selectionModel());
+  m_selectionModels.push_back(m_xy->selectionModel());
+  
+  QModelIndexList sourceSelection;
+  if (!selected.isEmpty())
+  {
+    const QAbstractProxyModel *sourceModel = dynamic_cast<const QAbstractProxyModel*>(selected.indexes().first().model());
+    
+    foreach(QModelIndex index, selected.indexes())
+    {
+      sourceSelection.append(sourceModel->mapToSource(index));
+    }
+  }
+  
+  foreach(QItemSelectionModel *selModel, m_selectionModels)
+  {
+    const QAbstractProxyModel *proxyModel = dynamic_cast<const QAbstractProxyModel*>(selModel->model());
+    
+    foreach(QModelIndex sourceIndex, sourceSelection)
+    {
+      QModelIndex proxyIndex = proxyModel->mapFromSource(sourceIndex);
+      if (proxyIndex.isValid())
+	selModel->select(proxyIndex,QItemSelectionModel::ClearAndSelect);
+      else
+	selModel->clearSelection();
+    }
+  }
+}
+
 // //-----------------------------------------------------------------------------
 // void EspinaMainWindow::fileDialog(bool server, QString& title)
 // {
@@ -638,7 +686,9 @@ void EspinaMainWindow::setGroupView(int idx)
 {
   if (idx < m_groupingModel.size())
   {
+    m_selectionModels.removeOne(Internals->segmentationView->selectionModel());
      this->Internals->segmentationView->setModel(m_groupingModel[idx]);
+     shyncSelection(Internals->segmentationView->selectionModel());
      this->Internals->segmentationView->setRootIndex(m_groupingRoot[idx]);
      this->Internals->segmentationView->expandAll();
   }
