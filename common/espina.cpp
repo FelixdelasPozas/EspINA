@@ -169,6 +169,7 @@ bool EspINA::setData(const QModelIndex& index, const QVariant& value, int role)
       TaxonomyNode *taxItem = dynamic_cast<TaxonomyNode *>(indexItem);
       if (taxItem && role == Qt::DecorationRole)
       {
+	qDebug() << "Change color to" << taxItem->getName();
 	foreach(Segmentation *seg, m_taxonomySegs[taxItem])
 	{
 	  QModelIndex segIndex = segmentationIndex(seg);
@@ -177,6 +178,7 @@ bool EspINA::setData(const QModelIndex& index, const QVariant& value, int role)
 	}
 	if (m_taxonomySegs[taxItem].size())
 	{
+	  qDebug() << "Request segmentation update";
 	  m_taxonomySegs[taxItem].first()->origin()->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
 	}
       }
@@ -515,11 +517,14 @@ QList< Segmentation* > EspINA::segmentations(const Sample* sample) const
 //-----------------------------------------------------------------------------
 void EspINA::changeTaxonomy(Segmentation* seg, TaxonomyNode* newTaxonomy)
 {
-     m_taxonomySegs[seg->taxonomy()].removeOne(seg);
-     seg->setTaxonomy(newTaxonomy);
-     seg->origin()->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
-     QModelIndex segIndex = segmentationIndex(seg);
-     emit dataChanged(segIndex,segIndex);
+  assert(m_taxonomySegs[seg->taxonomy()].contains(seg));
+  m_taxonomySegs[seg->taxonomy()].removeOne(seg);
+  seg->setTaxonomy(newTaxonomy);
+  m_taxonomySegs[newTaxonomy].push_back(seg);
+  seg->origin()->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
+  
+  QModelIndex segIndex = segmentationIndex(seg);
+  emit dataChanged(segIndex,segIndex);
 }
 
 //-----------------------------------------------------------------------------
