@@ -28,6 +28,7 @@ vtkStandardNewMacro(vtkConnectedThresholdImageFilter);
 
 
 vtkConnectedThresholdImageFilter::vtkConnectedThresholdImageFilter()
+: m_data(NULL)
 {
   this->SetNumberOfInputPorts(1);
   this->SetNumberOfOutputPorts(1);
@@ -201,8 +202,42 @@ int vtkConnectedThresholdImageFilter::RequestData(vtkInformation* request, vtkIn
 //   output->SetUpdateExtent(output->GetExtent());//WARNING: TODO: Review this
   output->SetWholeExtent(output->GetExtent());
   
+  // Keep a pointer for furhter reference
+  m_data = output;
+  
   return 1;
 }
+
+// int *vtkConnectedThresholdImageFilter::SetCheckPixel()
+// { 
+//   std::cout << "Using this" << std::endl;
+//   //vtkDebugMacro(<< this->GetClassName() << " (" << this << "): returning " << #name " pointer " << this->name); 
+//   return this->PixelValue; 
+// } 
+
+void vtkConnectedThresholdImageFilter::SetCheckPixel(int x, int y, int z, int value)
+{
+  vtkDebugMacro(<< this->GetClassName() << " (" << this << "): returning " << "PixelValue  = (" << x << "," << y << "," << z << "," << value << ")");
+  if ((this->CheckPixel[0] != x)||(this->CheckPixel[1] != y)||(this->CheckPixel[2] != z)||(this->CheckPixel[3] != value)) 
+  { 
+    this->CheckPixel[0] = x; 
+    this->CheckPixel[1] = y;
+    this->CheckPixel[2] = z; 
+    this->CheckPixel[3] = value; 
+//     this->Modified(); 
+//     std::cout << "GETTING PIXEL: " << x << " " << y << " " << z << std::endl;
+  } 
+  if (!m_data)
+    return;
+  
+  PixelValue = m_data->GetScalarComponentAsDouble(x,y,z,0);
+}
+
+void vtkConnectedThresholdImageFilter::SetCheckPixel(int arg[4])
+{
+  this->SetCheckPixel(arg[0], arg[1], arg[2], arg[3]);
+}
+
 
 void vtkConnectedThresholdImageFilter::PrintSelf(ostream& os, vtkIndent indent)
 {
