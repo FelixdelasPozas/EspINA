@@ -41,7 +41,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QString>
 #include <QList>
 #include <qitemselectionmodel.h>
+#include <selectionManager.h>
 
+class ISelectionHandler;
 class QItemSelectionModel;
 class QTreeView;
 class QComboBox;
@@ -73,6 +75,11 @@ protected slots:
   void saveFile();
   void importFile(); // Local load 
   void exportFile(); // Local save
+  
+  // Toolbar
+  void removeSegmentationClicked(bool checked);
+  void removeSelectedSegmentation(ISelectionHandler::Selection sel);
+  void stopRemovingSegmentations();
   
   // Synchronize view selections
   void shyncSelection(QItemSelectionModel *model);
@@ -121,6 +128,8 @@ private:
   QList<QModelIndex> m_groupingRoot;
   int m_lastTaxonomyId;
   SampleProxy *sampleProxy;
+  
+  ISelectionHandler *m_removeSegmentationSelector;
   
   QList<QItemSelectionModel *>m_selectionModels;
 };

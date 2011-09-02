@@ -100,6 +100,7 @@
 #include <pqQtMessageHandlerBehavior.h>
 #include "Config.h"
 #include <sample.h>
+#include <pixelSelector.h>
 
 const QString FILTERS("Trace Files (*.trace)");
 const QString SEG_FILTERS("Seg Files (*.seg)");
@@ -123,6 +124,7 @@ EspinaMainWindow::EspinaMainWindow()
     , m_unit(NM)
     , m_selectionManager(NULL) //TODO: Revise if deprecated
     , m_lastTaxonomyId(0)
+    , m_removeSegmentationSelector(NULL)
 {
   m_espina = EspINA::instance();
   
@@ -228,6 +230,8 @@ EspinaMainWindow::EspinaMainWindow()
   SegmentationEditor *segEditor = new SegmentationEditor();
   Internals->segmentationView->setItemDelegate(segEditor);
   Internals->segmentationView->installEventFilter(this);
+  connect(Internals->segmentationView,SIGNAL(doubleClicked(QModelIndex)),
+	  this,SLOT(focusOnSegmentation()));
   connect(Internals->deleteSegmentation, SIGNAL(clicked()),
           this, SLOT(deleteSegmentations()));
 //   connect(Internals->segmentationView, SIGNAL(clicked(QModelIndex)),
@@ -250,9 +254,12 @@ EspinaMainWindow::EspinaMainWindow()
   m_taxonomySelector->setRootModelIndex(m_espina->taxonomyRoot());
   connect(m_taxonomySelector, SIGNAL(currentIndexChanged(QString)),
           m_espina, SLOT(setUserDefindedTaxonomy(const QString&)));
-  m_taxonomySelector->setCurrentIndex(0);
+  m_taxonomySelector->setCurrentIndex(0); 
   Internals->toolBar->addWidget(m_taxonomySelector);
-
+  Internals->toolBar->addAction(Internals->actionRemoveSegmentation);
+  connect(Internals->actionRemoveSegmentation,SIGNAL(toggled(bool)),
+	  this,SLOT(removeSegmentationClicked(bool)));
+  
   connect(m_espina, SIGNAL(resetTaxonomy()),
           this, SLOT(resetTaxonomy()));
   
@@ -308,6 +315,7 @@ EspinaMainWindow::EspinaMainWindow()
   m_xy = new SliceView();
   m_xy->setPlane(VIEW_PLANE_XY);
   m_xy->setModel(sampleProxy);
+  m_xy->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
   shyncSelection(m_xy->selectionModel());
   connect(server, SIGNAL(connectionCreated(vtkIdType)), m_xy, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), m_xy, SLOT(disconnectFromServer()));
@@ -322,6 +330,7 @@ EspinaMainWindow::EspinaMainWindow()
   m_yz->setPlane(VIEW_PLANE_YZ);
   m_yz->setModel(sampleProxy);
   m_yz->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
+  shyncSelection(m_yz->selectionModel());
   connect(server, SIGNAL(connectionCreated(vtkIdType)), 
 	  m_yz, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), 
@@ -336,6 +345,7 @@ EspinaMainWindow::EspinaMainWindow()
   m_xz->setPlane(VIEW_PLANE_XZ);
   m_xz->setModel(sampleProxy);
   m_xz->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
+  shyncSelection(m_xz->selectionModel());
   connect(server, SIGNAL(connectionCreated(vtkIdType)), 
 	  m_xz, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), 
@@ -503,6 +513,52 @@ void EspinaMainWindow::exportFile()
 }
 
 //-----------------------------------------------------------------------------
+void EspinaMainWindow::removeSegmentationClicked(bool checked)
+{
+  if (!m_removeSegmentationSelector)
+  {
+    m_removeSegmentationSelector = new PixelSelector();
+    m_removeSegmentationSelector->multiSelection = false;
+    m_removeSegmentationSelector->filters << "EspINA_Segmentation";
+    connect(m_removeSegmentationSelector,
+	  SIGNAL(selectionChanged(ISelectionHandler::Selection)),
+	  this,
+	  SLOT(removeSelectedSegmentation(ISelectionHandler::Selection)));
+    connect(m_removeSegmentationSelector,
+	  SIGNAL(selectionAborted()),
+	  this,
+	  SLOT(stopRemovingSegmentations()));
+  }
+  
+  if (checked)
+  {
+    m_selectionManager->setSelectionHandler(m_removeSegmentationSelector,Qt::CrossCursor);
+  }else{
+    m_selectionManager->setSelectionHandler(NULL,Qt::ArrowCursor);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::removeSelectedSegmentation(ISelectionHandler::Selection sel)
+{
+  foreach(ISelectionHandler::SelElement elem, sel)
+  {
+    Segmentation *seg = dynamic_cast<Segmentation *>(elem.second);
+    assert(seg);
+    m_espina->removeSegmentation(seg);
+  }
+}
+
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::stopRemovingSegmentations()
+{
+  qDebug() << "Stop Removing Segmentations";
+  Internals->actionRemoveSegmentation->setChecked(false);
+}
+
+
+//-----------------------------------------------------------------------------
 void EspinaMainWindow::shyncSelection(QItemSelectionModel* model)
 {
 //   qDebug() << "shync'ing model";
@@ -522,6 +578,8 @@ void EspinaMainWindow::updateSelection(const QItemSelection& selected, const QIt
   m_selectionModels.clear();
   m_selectionModels.push_back(Internals->segmentationView->selectionModel());
   m_selectionModels.push_back(m_xy->selectionModel());
+  m_selectionModels.push_back(m_yz->selectionModel());
+  m_selectionModels.push_back(m_xz->selectionModel());
   
   QModelIndexList sourceSelection;
   if (!selected.isEmpty())
@@ -668,13 +726,6 @@ bool EspinaMainWindow::eventFilter(QObject* obj, QEvent* event)
       {
         deleteSegmentations();
       }
-    }
-    if (event->type() == QEvent::MouseButtonPress)
-    {
-      QMouseEvent *mouseEvent = static_cast<QMouseEvent *>(event);
-      if (mouseEvent->modifiers() == Qt::Key_Control)
-	focusOnSegmentation();
-      return false;
     }
   }
   // Pass the event on to the parent class

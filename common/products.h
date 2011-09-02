@@ -94,7 +94,7 @@ public:
   virtual TaxonomyNode *taxonomy() {return m_taxonomy;}
   virtual void setTaxonomy(TaxonomyNode *taxonomy) {m_taxonomy = taxonomy;} 
   virtual void setOrigin(Sample *sample) {    m_origin = sample;}
-  virtual Sample *origin() {return m_origin;}
+  virtual Sample *origin() const {return m_origin;}
   
 protected:
   EspinaFilter *m_parent;

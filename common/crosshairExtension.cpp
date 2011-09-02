@@ -155,6 +155,9 @@ void createRepresentation(pqView *view, pqOutputPort *port, int crossHairPlane)
       pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
       assert(rep);
       rep->setRepresentation(vtkSMPVRepresentationProxy::OUTLINE);
+      int pickable= crossHairPlane >= 0;
+      vtkSMPropertyHelper(rep->getRepresentationProxy(),"Pickable").Set(pickable);;
+      rep->getRepresentationProxy()->UpdateVTKObjects();
           
       vtkSMProxy *repProxy = rep->getProxy();
       

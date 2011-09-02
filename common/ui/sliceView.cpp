@@ -210,10 +210,17 @@ void SliceView::setSelection(SelectionFilters& filters, ViewRegions& regions)
 	selSample.first = vtkRegion;
 	selSample.second = m_focusedSample;
 	sel.append(selSample);
-      } else if (filter == "EspINA_Segmentation")
+      } //! Select all segmented objects
+      else if (filter == "EspINA_Segmentation")
       {
+	foreach(Segmentation *seg, pickSegmentationsAt(vtkRegion))
+	{
+	  ISelectionHandler::SelElement selSegmentaion;
+	  selSegmentaion.first = vtkRegion;
+	  selSegmentaion.second = seg;
+	  sel.append(selSegmentaion);
+	}
       }
-      //! Select all segmented objects
       else 
       {
 	// Find segmented objects inside regions
@@ -228,6 +235,58 @@ void SliceView::setSelection(SelectionFilters& filters, ViewRegions& regions)
   // Notify the manager about the new selection
   SelectionManager::instance()->setSelection(sel);
 }
+
+//-----------------------------------------------------------------------------
+QList<Segmentation* > SliceView::pickSegmentationsAt(int x, int y, int z)
+{
+  QList<Segmentation *> res;
+  
+  if (m_focusedSample)
+  {
+    for (int i=0; i < m_focusedSample->segmentations().size(); i++)
+    {
+      Segmentation *seg = m_focusedSample->segmentations()[i];
+      assert(seg);
+      
+      seg->creator()->pipelineSource()->updatePipeline();;
+      seg->creator()->pipelineSource()->getProxy()->UpdatePropertyInformation();
+      vtkPVDataInformation *info = seg->outputPort()->getDataInformation();
+      int extent[6];
+      info->GetExtent(extent);
+      if ((extent[0] <= x && x <= extent[1]) &&
+	(extent[2] <= y && y <= extent[3]) &&
+	(extent[4] <= z && z <= extent[5]))
+      {
+	double pixelValue[4]; //NOTE: hack to redefine vtkVectorMacro so Paraview can find it
+	pixelValue[0] = x;
+	pixelValue[1] = y;
+	pixelValue[2] = z;
+	pixelValue[3] = 4;
+	vtkSMPropertyHelper(seg->creator()->pipelineSource()->getProxy(),"CheckPixel").Set(pixelValue,4);
+	seg->creator()->pipelineSource()->getProxy()->UpdateVTKObjects();
+	int value;
+	seg->creator()->pipelineSource()->getProxy()->UpdatePropertyInformation();
+	vtkSMPropertyHelper(seg->creator()->pipelineSource()->getProxy(),"PixelValue").Get(&value,1);
+// 	qDebug() << "Pixel Value" << value;
+	if (value == 255)
+	  res.append(seg);
+      }
+    }
+  }
+  return res;
+}
+
+//-----------------------------------------------------------------------------
+QList< Segmentation* > SliceView::pickSegmentationsAt(ISelectionHandler::VtkRegion region)
+{
+  QList<Segmentation *> res;
+  foreach(Point p, region)
+  {
+    res.append(pickSegmentationsAt(p.x,p.y,p.z));
+  }
+  return res;
+}
+
 
 
 //-----------------------------------------------------------------------------
@@ -265,7 +324,7 @@ void SliceView::selectSegmentations(int x, int y, int z)
 	int value;
 	seg->creator()->pipelineSource()->getProxy()->UpdatePropertyInformation();
 	vtkSMPropertyHelper(seg->creator()->pipelineSource()->getProxy(),"PixelValue").Get(&value,1);
-	qDebug() << "Pixel Value" << value;
+// 	qDebug() << "Pixel Value" << value;
 	if (value == 255)
 	  selectionModel()->select(segIndex,QItemSelectionModel::Select);
       }

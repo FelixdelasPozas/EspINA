@@ -353,7 +353,7 @@ Qt::ItemFlags EspINA::flags(const QModelIndex& index) const
   if (index.parent() == sampleRoot())
     return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
   
-  return QAbstractItemModel::flags(index) | Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
+  return QAbstractItemModel::flags(index) | Qt::ItemIsUserCheckable | Qt::ItemIsEditable ;
 }
 
 //  //------------------------------------------------------------------------

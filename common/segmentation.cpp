@@ -39,6 +39,7 @@
 #include <vtkSMProxyProperty.h>
 #include <vtkSMPropertyHelper.h>
 #include "spatialExtension.h"
+#include "sample.h"
 
 
 using namespace std;
@@ -83,6 +84,19 @@ QVariant Segmentation::data(int role) const
       segIcon.fill(m_taxonomy->getColor());
       return segIcon;
     }
+    case Qt::ToolTipRole:
+      return QString(
+	"<b>Name:</b> %1<br>"
+	"<b>Taxonomy:</b> %2<br>"
+	"<b>Sample:</b> %3<br>"
+	"<b>Created by:</b><br>"
+	"%4"
+      )
+      .arg(label())
+      .arg(m_taxonomy->getName())
+      .arg(origin()->label())
+      .arg(m_parent->getFilterArguments())
+      ;
     case Qt::CheckStateRole:
       return visible()?Qt::Checked:Qt::Unchecked;
     default:
