@@ -23,6 +23,9 @@
 #include <qabstractitemview.h>
 #include <selectionManager.h>
 
+class Sample;
+class Sample;
+class Segmentation;
 //Forward declaration
 class SliceBlender;
 class pqRenderView;
@@ -71,7 +74,13 @@ public:
     
     void addWidget(IViewWidget *widget);
     
+private:
+  QList<Segmentation* > selectSegmentations(int x, int y, int z);
+  
 protected slots:
+  //! Selections
+  void vtkWidgetMouseEvent(QMouseEvent *event);
+  
   void updateScene();
   void render(const QModelIndex &index);
   void exportScene();
@@ -91,6 +100,7 @@ private:
   QToolButton m_export;
   QHBoxLayout *m_controlLayout;
   pq3DWidget *m_VOIWidget;//Because it doesn't implement ISelectableView
+  Sample *m_lastSample;
 };
 
 #endif // VOLUMEVIEW_H

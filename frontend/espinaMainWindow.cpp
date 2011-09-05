@@ -359,6 +359,7 @@ EspinaMainWindow::EspinaMainWindow()
   m_3d = EspINAFactory::instance()->CreateVolumeView();
   m_3d->setModel(sampleProxy);
   m_3d->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
+  shyncSelection(m_3d->selectionModel());
   connect(server, SIGNAL(connectionCreated(vtkIdType)),
 	  m_3d, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), 
@@ -585,6 +586,9 @@ void EspinaMainWindow::updateSelection(const QItemSelection& selected, const QIt
 #endif
 #if XZ_VIEW
   m_selectionModels.push_back(m_xz->selectionModel());
+#endif
+#if VOL_VIEW
+  m_selectionModels.push_back(m_3d->selectionModel());
 #endif
   
   Segmentation *lastModified = NULL;
