@@ -276,6 +276,7 @@ void SampleRepresentation::internalRepresentationUpdated()
     inputProp->SetInputConnection(0, m_internalRep->pipelineSource()->getProxy(), 0);
     m_planes[plane]->pipelineSource()->getProxy()->UpdateVTKObjects();
   }
+  emit representationUpdated();
 }
 
 //!-----------------------------------------------------------------------

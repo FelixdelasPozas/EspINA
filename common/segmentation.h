@@ -38,6 +38,8 @@ public:
   virtual QString label() const {return QString("Segmentation %1").arg(m_id);}
   
   virtual void color(double* rgba);
+  virtual void setSelected(bool value) {m_isSelected = value;}
+  virtual bool isSelected() {return m_isSelected;}
   
   //! Reimplement IModelItem Interface
   virtual QVariant data(int role = Qt::UserRole + 1) const;
@@ -71,6 +73,8 @@ private:
   QMap<QString, ISegmentationExtension *> m_informations;
   int m_id;
   static int s_newId;
+  
+  bool m_isSelected;
 //   ISegmentationExtension::InformationMap m_infoMap;
 //   ISegmentationExtension::RepresentationMap m_repMap;
 };

@@ -49,6 +49,7 @@ int Segmentation::s_newId = 1;
 //-----------------------------------------------------------------------------
 Segmentation::Segmentation(EspinaFilter* parent, vtkFilter* creator, int portNumber)
 : EspinaProduct(parent,creator, portNumber)
+, m_isSelected(false)
 {
   m_id = s_newId++;
 }

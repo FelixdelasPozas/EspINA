@@ -131,7 +131,9 @@ private:
   
   ISelectionHandler *m_removeSegmentationSelector;
   
+  // Model/View Selection Model
   QList<QItemSelectionModel *>m_selectionModels;
+  QModelIndexList m_sourceSelection;
 };
 
 #endif //ESPINA_MAIN_WINDOW_H

@@ -224,7 +224,7 @@
       </InputProperty>
       <DoubleVectorProperty
 	name="InputColor"
-	number_of_elements="4"
+	number_of_elements="5"
 	immediate_update="1"
 	repeatable="1"
 	command="SetLabelMapColor">

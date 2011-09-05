@@ -295,6 +295,7 @@ void SliceView::selectSegmentations(int x, int y, int z)
   QItemSelection selection;
   if (m_focusedSample)
   {
+    QModelIndex selIndex;
     for (int i=0; i < m_focusedSample->segmentations().size(); i++)
     {
       QModelIndex segIndex = rootIndex().child(i,0);
@@ -326,9 +327,13 @@ void SliceView::selectSegmentations(int x, int y, int z)
 	vtkSMPropertyHelper(seg->creator()->pipelineSource()->getProxy(),"PixelValue").Get(&value,1);
 // 	qDebug() << "Pixel Value" << value;
 	if (value == 255)
-	  selectionModel()->select(segIndex,QItemSelectionModel::Select);
+	  selIndex = segIndex;
       }
     }
+    if (selIndex.isValid())
+      selectionModel()->select(selIndex,QItemSelectionModel::ClearAndSelect);
+    else
+      selectionModel()->clearSelection();
   }
 }
 
@@ -789,8 +794,11 @@ void SliceView::updateScene()
   if (m_sampleRep)
   {
     int sliceOffset = m_plane==VIEW_PLANE_XY?1:0;
-    setSlice(m_sampleRep->slice(m_plane)+sliceOffset);
+    int newSlice = m_sampleRep->slice(m_plane)+sliceOffset;
+    if (newSlice != m_spinBox->value())
+      setSlice(m_sampleRep->slice(m_plane)+sliceOffset);
   }
+  std::cout << "Render in SliceView" << std::endl;
   m_view->render();
 //   m_view->forceRender();
 }

@@ -51,6 +51,7 @@
 #include <vtkStringList.h>
 #include "labelMapExtension.h"
 #include <qmimedata.h>
+#include <QElapsedTimer>
 
 
 class IOTaxonomy;
@@ -160,11 +161,13 @@ bool EspINA::setData(const QModelIndex& index, const QVariant& value, int role)
 	Segmentation *seg = dynamic_cast<Segmentation *>(indexItem);
 	if (seg)
 	{
+	  QElapsedTimer timer;
+	  timer.start();
 	  seg->origin()->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
+	  qDebug() << "Updating Check took: " << timer.elapsed();
 	  QModelIndex segIndex = segmentationIndex(seg);
 	  emit dataChanged(segIndex,segIndex);
 	}
-	  
       }
       TaxonomyNode *taxItem = dynamic_cast<TaxonomyNode *>(indexItem);
       if (taxItem && role == Qt::DecorationRole)

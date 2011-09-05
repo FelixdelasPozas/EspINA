@@ -577,34 +577,85 @@ void EspinaMainWindow::updateSelection(const QItemSelection& selected, const QIt
 //   qDebug() << "Updating Seg";
   m_selectionModels.clear();
   m_selectionModels.push_back(Internals->segmentationView->selectionModel());
+#if XY_VIEW
   m_selectionModels.push_back(m_xy->selectionModel());
+#endif
+#if YZ_VIEW
   m_selectionModels.push_back(m_yz->selectionModel());
+#endif
+#if XZ_VIEW
   m_selectionModels.push_back(m_xz->selectionModel());
+#endif
   
-  QModelIndexList sourceSelection;
+  Segmentation *lastModified = NULL;
+  bool needUpdate = false;
+  
+  // Select Items
   if (!selected.isEmpty())
   {
     const QAbstractProxyModel *sourceModel = dynamic_cast<const QAbstractProxyModel*>(selected.indexes().first().model());
     
     foreach(QModelIndex index, selected.indexes())
     {
-      sourceSelection.append(sourceModel->mapToSource(index));
+      QModelIndex sourceIndex =  sourceModel->mapToSource(index);
+      if (!m_sourceSelection.contains(sourceIndex))
+      {
+	IModelItem *item = static_cast<IModelItem *>(sourceIndex.internalPointer());
+	qDebug() << item->data(Qt::DisplayRole).toString() << " item has been selected";
+	Segmentation *seg = dynamic_cast<Segmentation *>(item);
+	if (seg)
+	{
+	  seg->setSelected(true);
+	  lastModified = seg;
+	}
+	m_sourceSelection.append(sourceIndex);
+	needUpdate = true;
+      }
     }
   }
   
+  // Unselect Items
+  if (!deselected.isEmpty())
+  {
+    const QAbstractProxyModel *sourceModel = dynamic_cast<const QAbstractProxyModel*>(deselected.indexes().first().model());
+    
+    foreach(QModelIndex index, deselected.indexes())
+    {
+      QModelIndex sourceIndex = sourceModel->mapToSource(index);
+      if (m_sourceSelection.contains(sourceIndex))
+      {
+	IModelItem *item = static_cast<IModelItem *>(sourceIndex.internalPointer());
+	qDebug() << item->data(Qt::DisplayRole).toString() << " item has been unselected";
+	Segmentation *seg = dynamic_cast<Segmentation *>(item);
+	if (seg)
+	{
+	  seg->setSelected(false);
+	  lastModified = seg;
+	}
+	m_sourceSelection.removeOne(sourceIndex);
+	needUpdate = true;
+      }
+    }
+  }
+  
+  // Update Selection Models for other views
   foreach(QItemSelectionModel *selModel, m_selectionModels)
   {
     const QAbstractProxyModel *proxyModel = dynamic_cast<const QAbstractProxyModel*>(selModel->model());
     
-    foreach(QModelIndex sourceIndex, sourceSelection)
+    QItemSelection proxySelection;
+    foreach(QModelIndex sourceIndex, m_sourceSelection)
     {
       QModelIndex proxyIndex = proxyModel->mapFromSource(sourceIndex);
       if (proxyIndex.isValid())
-	selModel->select(proxyIndex,QItemSelectionModel::ClearAndSelect);
-      else
-	selModel->clearSelection();
+      {
+	proxySelection.append(QItemSelectionRange(proxyIndex,proxyIndex));
+      }
     }
+    selModel->select(proxySelection,QItemSelectionModel::ClearAndSelect);
   }
+  if (lastModified)
+    lastModified->origin()->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
 }
 
 // //-----------------------------------------------------------------------------
