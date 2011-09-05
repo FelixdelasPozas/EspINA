@@ -24,27 +24,18 @@
       </widget>
      </item>
      <item>
-      <widget class="QSpinBox" name="m_xSize">
+      <widget class="QDoubleSpinBox" name="m_xSize">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="layoutDirection">
-        <enum>Qt::LeftToRight</enum>
-       </property>
        <property name="alignment">
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
        <property name="suffix">
         <string>nm</string>
-       </property>
-       <property name="prefix">
-        <string/>
-       </property>
-       <property name="minimum">
-        <number>1</number>
        </property>
       </widget>
      </item>
@@ -60,24 +51,18 @@
       </widget>
      </item>
      <item>
-      <widget class="QSpinBox" name="m_ySize">
+      <widget class="QDoubleSpinBox" name="m_ySize">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="layoutDirection">
-        <enum>Qt::LeftToRight</enum>
-       </property>
        <property name="alignment">
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
        <property name="suffix">
         <string>nm</string>
-       </property>
-       <property name="minimum">
-        <number>1</number>
        </property>
       </widget>
      </item>
@@ -93,24 +78,18 @@
       </widget>
      </item>
      <item>
-      <widget class="QSpinBox" name="m_zSize">
+      <widget class="QDoubleSpinBox" name="m_zSize">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
-       <property name="layoutDirection">
-        <enum>Qt::LeftToRight</enum>
-       </property>
        <property name="alignment">
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
        <property name="suffix">
         <string>nm</string>
-       </property>
-       <property name="minimum">
-        <number>1</number>
        </property>
       </widget>
      </item>

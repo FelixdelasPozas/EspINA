@@ -155,7 +155,7 @@ void createRepresentation(pqView *view, pqOutputPort *port, int crossHairPlane)
       pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
       assert(rep);
       rep->setRepresentation(vtkSMPVRepresentationProxy::OUTLINE);
-      int pickable= crossHairPlane >= 0;
+      int pickable = 0; 
       vtkSMPropertyHelper(rep->getRepresentationProxy(),"Pickable").Set(pickable);;
       rep->getRepresentationProxy()->UpdateVTKObjects();
           
@@ -164,6 +164,7 @@ void createRepresentation(pqView *view, pqOutputPort *port, int crossHairPlane)
       double color[4] = {0,0,0.0,1.0};
       color[crossHairPlane] = 1.0;
       vtkSMPropertyHelper(repProxy,"AmbientColor").Set(color,3);
+      vtkSMPropertyHelper(repProxy,"Pickable").Set(pickable);;
       repProxy->UpdateVTKObjects();
   }
 /*

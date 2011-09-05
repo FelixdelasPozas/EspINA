@@ -195,6 +195,9 @@ void SliceView::setSelection(SelectionFilters& filters, ViewRegions& regions)
     // Translate view pixels into Vtk pixels
     vtkRegion = display2vtk(region);
     
+    if (vtkRegion.isEmpty())
+      return;
+    
     if (SelectionManager::instance()->voi() && !SelectionManager::instance()->voi()->contains(vtkRegion))
     {
       return;
@@ -637,7 +640,10 @@ ISelectionHandler::VtkRegion SliceView::display2vtk(const QPolygonF &region)
   {  
     wpicker->Pick(point.x(), point.y(), 0.1, m_viewProxy->GetRenderer());
     wpicker->GetPickPosition(pickPos);
-   qDebug() << "Second Picked pixel" << pickPos[0] << pickPos[1] << pickPos[2];
+    qDebug() << "Second Picked pixel" << pickPos[0] << pickPos[1] << pickPos[2];
+    if (round(pickPos[2]) < 0)
+      return vtkRegion;
+    
     Point vtkPoint;
     for (int i=0; i<3; i++)
       vtkPoint[i] = round(pickPos[i] / spacing[i]);
