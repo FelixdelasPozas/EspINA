@@ -32,7 +32,7 @@ public:
     int requestedAreaExtent[6]; //
     double bounds[6];
     double spacing[3];
-    OutputPixelType color[3];
+    OutputPixelType color[4];
   };
   //ETX
   
@@ -48,7 +48,7 @@ public:
   vtkSetMacro(Opacity,double);
   vtkGetMacro(Opacity,double);
   //! r,g,b : [0,1]
-  void SetLabelMapColor(double input, double r, double g, double b);
+  void SetLabelMapColor(double id, double r, double g, double b, double selected=0);
   
   void PrintSelf(ostream& os, vtkIndent indent);
     
@@ -82,8 +82,14 @@ protected:
 private:
   bool requestArea(vtkImageData* inputImage);
   //BTX
+  // Old version, using iterators (couldn't get it to work with modified update_extent)
   void copyInput(vtkImageIterator<InputPixelType> &inIt, vtkImageIterator<OutputPixelType> &outIt);
+  // New version using image pointer
+  void copyInput(Input *input, vtkImageData *output, int updateArea[6]);
+  // Old version, using iterators (couldn't get it to work with modified update_extent)
   void blendInputs(vtkImageIterator<InputPixelType> &inIt, vtkImageIterator<OutputPixelType> &outIt, OutputPixelType *color=NULL);
+  // New version using image pointer
+  void blendInput(Input *input, vtkImageData *output, int updateArea[6]);
   //ETX
     
 private:
