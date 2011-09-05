@@ -184,7 +184,7 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
       for (int x = 0; x < dim[0]; x++)
       {
 	bool nonBlackPixel = false;
-	int pxId = x + y * dim[0] + z * dim[0] * dim[1];
+	int pxId = x*numComponets + y * dim[0]*numComponets + z * dim[0] * dim[1]*numComponets; //check numComponents
 	for (int c = 0; c < numComponets; c++)
 	  nonBlackPixel = nonBlackPixel || (imagePtr[pxId+c] > blackThreshold);
 	
