@@ -38,6 +38,7 @@
 #include <vtkSMProxyProperty.h>
 #include <pqLookupTableManager.h>
 #include <vtkSMPropertyHelper.h>
+#include <vtkSMPVRepresentationProxy.h>
 
 //!-----------------------------------------------------------------------
 //! MESH REPRESENTATION
@@ -89,12 +90,19 @@ void MeshRepresentation::render(pqView* view)
   
   pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
   assert(rep);
-  rep->setRepresentation(2);//SURFACE
+  rep->setRepresentation(vtkSMPVRepresentationProxy::SURFACE);
     
   vtkSMProxy *repProxy = rep->getProxy();
   
+  double color[4];
   double rgba[4];
-  m_seg->color(rgba);
+  rgba[3] = 1;
+  m_seg->color(color);
+  bool isSelected = m_seg->isSelected();
+  for(int c=0; c<3; c++)
+  {
+    rgba[c] = color[c]*(isSelected?1:0.7);
+  }
   vtkSMPropertyHelper(repProxy,"DiffuseColor").Set(rgba,3);
     
   // 	//TODO: Create individual properties?

@@ -37,6 +37,7 @@
 #include <vtkSMDoubleVectorProperty.h>
 #include <vtkSMProxyProperty.h>
 #include <pqLookupTableManager.h>
+#include <vtkSMPVRepresentationProxy.h>
 
 //!-----------------------------------------------------------------------
 //! VOLUMETRIC REPRESENTATION
@@ -73,21 +74,33 @@ void VolumetricRepresentation::render(pqView* view)
     return;
   pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
   assert(rep);
-  rep->setRepresentation(4);//VOLUME
+  rep->setRepresentation(vtkSMPVRepresentationProxy::VOLUME);
     
   vtkSMProxy *repProxy = rep->getProxy();
   
   // Get (or create if it doesn't exit) the lut for the segmentations' images
   pqServer *server =  pqApplicationCore::instance()->getActiveServer();
-  m_LUT = pqApplicationCore::instance()->getLookupTableManager()->getLookupTable(server,m_seg->taxonomy()->getName(),4,0);
+  QString lutName = m_seg->taxonomy()->getName();
+  if (m_seg->isSelected())
+    lutName.append("_selected");
+  
+  m_LUT = pqApplicationCore::instance()->getLookupTableManager()->getLookupTable(server,lutName,4,0);
   if (m_LUT)
   {
     vtkSMDoubleVectorProperty *rgbs = vtkSMDoubleVectorProperty::SafeDownCast(
       m_LUT->getProxy()->GetProperty("RGBPoints"));
     if (rgbs)
     {
+      
+      double color[4];
       double rgba[4];
-      m_seg->color(rgba);
+      rgba[3] = 1;
+      m_seg->color(color);
+      bool isSelected = m_seg->isSelected();
+      for(int c=0; c<3; c++)
+      {
+	rgba[c] = color[c]*(isSelected?1:0.7);
+      }
       double colors[8] = {0,0,0,0,1,rgba[0],rgba[1],rgba[2]};
       rgbs->SetElements(colors);
       }

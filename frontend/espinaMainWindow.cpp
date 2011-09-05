@@ -100,6 +100,7 @@
 #include <pqQtMessageHandlerBehavior.h>
 #include "Config.h"
 #include <sample.h>
+#include <pixelSelector.h>
 
 const QString FILTERS("Trace Files (*.trace)");
 const QString SEG_FILTERS("Seg Files (*.seg)");
@@ -123,6 +124,7 @@ EspinaMainWindow::EspinaMainWindow()
     , m_unit(NM)
     , m_selectionManager(NULL) //TODO: Revise if deprecated
     , m_lastTaxonomyId(0)
+    , m_removeSegmentationSelector(NULL)
 {
   m_espina = EspINA::instance();
   
@@ -228,10 +230,12 @@ EspinaMainWindow::EspinaMainWindow()
   SegmentationEditor *segEditor = new SegmentationEditor();
   Internals->segmentationView->setItemDelegate(segEditor);
   Internals->segmentationView->installEventFilter(this);
+  connect(Internals->segmentationView,SIGNAL(doubleClicked(QModelIndex)),
+	  this,SLOT(focusOnSegmentation()));
   connect(Internals->deleteSegmentation, SIGNAL(clicked()),
           this, SLOT(deleteSegmentations()));
-  connect(Internals->segmentationView, SIGNAL(clicked(QModelIndex)),
-	  this, SLOT(focusOnSegmentation()));
+//   connect(Internals->segmentationView, SIGNAL(clicked(QModelIndex)),
+// 	  this, SLOT(focusOnSegmentation()));
   
   // User selected Taxonomy Selection List
   m_taxonomySelector = new QComboBox(this);
@@ -250,9 +254,12 @@ EspinaMainWindow::EspinaMainWindow()
   m_taxonomySelector->setRootModelIndex(m_espina->taxonomyRoot());
   connect(m_taxonomySelector, SIGNAL(currentIndexChanged(QString)),
           m_espina, SLOT(setUserDefindedTaxonomy(const QString&)));
-  m_taxonomySelector->setCurrentIndex(0);
+  m_taxonomySelector->setCurrentIndex(0); 
   Internals->toolBar->addWidget(m_taxonomySelector);
-
+  Internals->toolBar->addAction(Internals->actionRemoveSegmentation);
+  connect(Internals->actionRemoveSegmentation,SIGNAL(toggled(bool)),
+	  this,SLOT(removeSegmentationClicked(bool)));
+  
   connect(m_espina, SIGNAL(resetTaxonomy()),
           this, SLOT(resetTaxonomy()));
   
@@ -308,6 +315,8 @@ EspinaMainWindow::EspinaMainWindow()
   m_xy = new SliceView();
   m_xy->setPlane(VIEW_PLANE_XY);
   m_xy->setModel(sampleProxy);
+  m_xy->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
+  shyncSelection(m_xy->selectionModel());
   connect(server, SIGNAL(connectionCreated(vtkIdType)), m_xy, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), m_xy, SLOT(disconnectFromServer()));
   connect(Internals->toggleVisibility, SIGNAL(toggled(bool)),m_xy, SLOT(showSegmentations(bool)));
@@ -321,6 +330,7 @@ EspinaMainWindow::EspinaMainWindow()
   m_yz->setPlane(VIEW_PLANE_YZ);
   m_yz->setModel(sampleProxy);
   m_yz->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
+  shyncSelection(m_yz->selectionModel());
   connect(server, SIGNAL(connectionCreated(vtkIdType)), 
 	  m_yz, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), 
@@ -335,6 +345,7 @@ EspinaMainWindow::EspinaMainWindow()
   m_xz->setPlane(VIEW_PLANE_XZ);
   m_xz->setModel(sampleProxy);
   m_xz->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
+  shyncSelection(m_xz->selectionModel());
   connect(server, SIGNAL(connectionCreated(vtkIdType)), 
 	  m_xz, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), 
@@ -348,6 +359,7 @@ EspinaMainWindow::EspinaMainWindow()
   m_3d = EspINAFactory::instance()->CreateVolumeView();
   m_3d->setModel(sampleProxy);
   m_3d->setRootIndex(sampleProxy->mapFromSource(m_espina->sampleRoot()));
+  shyncSelection(m_3d->selectionModel());
   connect(server, SIGNAL(connectionCreated(vtkIdType)),
 	  m_3d, SLOT(connectToServer()));
   connect(server, SIGNAL(connectionClosed(vtkIdType)), 
@@ -501,6 +513,155 @@ void EspinaMainWindow::exportFile()
   }
 }
 
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::removeSegmentationClicked(bool checked)
+{
+  if (!m_removeSegmentationSelector)
+  {
+    m_removeSegmentationSelector = new PixelSelector();
+    m_removeSegmentationSelector->multiSelection = false;
+    m_removeSegmentationSelector->filters << "EspINA_Segmentation";
+    connect(m_removeSegmentationSelector,
+	  SIGNAL(selectionChanged(ISelectionHandler::Selection)),
+	  this,
+	  SLOT(removeSelectedSegmentation(ISelectionHandler::Selection)));
+    connect(m_removeSegmentationSelector,
+	  SIGNAL(selectionAborted()),
+	  this,
+	  SLOT(stopRemovingSegmentations()));
+  }
+  
+  if (checked)
+  {
+    m_selectionManager->setSelectionHandler(m_removeSegmentationSelector,Qt::CrossCursor);
+  }else{
+    m_selectionManager->setSelectionHandler(NULL,Qt::ArrowCursor);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::removeSelectedSegmentation(ISelectionHandler::Selection sel)
+{
+  foreach(ISelectionHandler::SelElement elem, sel)
+  {
+    Segmentation *seg = dynamic_cast<Segmentation *>(elem.second);
+    assert(seg);
+    m_espina->removeSegmentation(seg);
+  }
+}
+
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::stopRemovingSegmentations()
+{
+  qDebug() << "Stop Removing Segmentations";
+  Internals->actionRemoveSegmentation->setChecked(false);
+}
+
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::shyncSelection(QItemSelectionModel* model)
+{
+//   qDebug() << "shync'ing model";
+//   if (!m_selectionModels.contains(model))
+//   {
+//     m_selectionModels.push_back(model);
+    connect(model,SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+	    this, SLOT(updateSelection(QItemSelection,QItemSelection)));
+//   }
+}
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::updateSelection(const QItemSelection& selected, const QItemSelection& deselected)
+{
+  
+//   qDebug() << "Updating Seg";
+  m_selectionModels.clear();
+  m_selectionModels.push_back(Internals->segmentationView->selectionModel());
+#if XY_VIEW
+  m_selectionModels.push_back(m_xy->selectionModel());
+#endif
+#if YZ_VIEW
+  m_selectionModels.push_back(m_yz->selectionModel());
+#endif
+#if XZ_VIEW
+  m_selectionModels.push_back(m_xz->selectionModel());
+#endif
+#if VOL_VIEW
+  m_selectionModels.push_back(m_3d->selectionModel());
+#endif
+  
+  Segmentation *lastModified = NULL;
+  bool needUpdate = false;
+  
+  // Select Items
+  if (!selected.isEmpty())
+  {
+    const QAbstractProxyModel *sourceModel = dynamic_cast<const QAbstractProxyModel*>(selected.indexes().first().model());
+    
+    foreach(QModelIndex index, selected.indexes())
+    {
+      QModelIndex sourceIndex =  sourceModel->mapToSource(index);
+      if (!m_sourceSelection.contains(sourceIndex))
+      {
+	IModelItem *item = static_cast<IModelItem *>(sourceIndex.internalPointer());
+	qDebug() << item->data(Qt::DisplayRole).toString() << " item has been selected";
+	Segmentation *seg = dynamic_cast<Segmentation *>(item);
+	if (seg)
+	{
+	  seg->setSelected(true);
+	  lastModified = seg;
+	}
+	m_sourceSelection.append(sourceIndex);
+	needUpdate = true;
+      }
+    }
+  }
+  
+  // Unselect Items
+  if (!deselected.isEmpty())
+  {
+    const QAbstractProxyModel *sourceModel = dynamic_cast<const QAbstractProxyModel*>(deselected.indexes().first().model());
+    
+    foreach(QModelIndex index, deselected.indexes())
+    {
+      QModelIndex sourceIndex = sourceModel->mapToSource(index);
+      if (m_sourceSelection.contains(sourceIndex))
+      {
+	IModelItem *item = static_cast<IModelItem *>(sourceIndex.internalPointer());
+	qDebug() << item->data(Qt::DisplayRole).toString() << " item has been unselected";
+	Segmentation *seg = dynamic_cast<Segmentation *>(item);
+	if (seg)
+	{
+	  seg->setSelected(false);
+	  lastModified = seg;
+	}
+	m_sourceSelection.removeOne(sourceIndex);
+	needUpdate = true;
+      }
+    }
+  }
+  
+  // Update Selection Models for other views
+  foreach(QItemSelectionModel *selModel, m_selectionModels)
+  {
+    const QAbstractProxyModel *proxyModel = dynamic_cast<const QAbstractProxyModel*>(selModel->model());
+    
+    QItemSelection proxySelection;
+    foreach(QModelIndex sourceIndex, m_sourceSelection)
+    {
+      QModelIndex proxyIndex = proxyModel->mapFromSource(sourceIndex);
+      if (proxyIndex.isValid())
+      {
+	proxySelection.append(QItemSelectionRange(proxyIndex,proxyIndex));
+      }
+    }
+    selModel->select(proxySelection,QItemSelectionModel::ClearAndSelect);
+  }
+  if (lastModified)
+    lastModified->origin()->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
+}
+
 // //-----------------------------------------------------------------------------
 // void EspinaMainWindow::fileDialog(bool server, QString& title)
 // {
@@ -631,7 +792,9 @@ void EspinaMainWindow::setGroupView(int idx)
 {
   if (idx < m_groupingModel.size())
   {
+    m_selectionModels.removeOne(Internals->segmentationView->selectionModel());
      this->Internals->segmentationView->setModel(m_groupingModel[idx]);
+     shyncSelection(Internals->segmentationView->selectionModel());
      this->Internals->segmentationView->setRootIndex(m_groupingRoot[idx]);
      this->Internals->segmentationView->expandAll();
   }

@@ -176,11 +176,23 @@
      </item>
      <item>
       <widget class="QTreeView" name="segmentationView">
+       <property name="acceptDrops">
+        <bool>true</bool>
+       </property>
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
+       </property>
        <property name="dragEnabled">
         <bool>true</bool>
        </property>
        <property name="dragDropMode">
         <enum>QAbstractItemView::InternalMove</enum>
+       </property>
+       <property name="defaultDropAction">
+        <enum>Qt::MoveAction</enum>
+       </property>
+       <property name="selectionMode">
+        <enum>QAbstractItemView::ExtendedSelection</enum>
        </property>
        <property name="animated">
         <bool>true</bool>
@@ -526,7 +538,20 @@
    <widget class="QWidget" name="dockWidgetContents_3">
     <layout class="QVBoxLayout" name="verticalLayout_4">
      <item>
-      <widget class="QTreeView" name="modelo"/>
+      <widget class="QTreeView" name="modelo">
+       <property name="acceptDrops">
+        <bool>true</bool>
+       </property>
+       <property name="dragEnabled">
+        <bool>true</bool>
+       </property>
+       <property name="dragDropMode">
+        <enum>QAbstractItemView::InternalMove</enum>
+       </property>
+       <property name="defaultDropAction">
+        <enum>Qt::MoveAction</enum>
+       </property>
+      </widget>
      </item>
      <item>
       <widget class="QTreeView" name="taxonomias"/>
@@ -715,6 +740,21 @@
    </property>
    <property name="shortcut">
     <string>Space</string>
+   </property>
+  </action>
+  <action name="actionRemoveSegmentation">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="rsc/espina.qrc">
+     <normaloff>:/espina/removeSeg.svg</normaloff>:/espina/removeSeg.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Remove Segmentation</string>
+   </property>
+   <property name="toolTip">
+    <string>Remove Segmentation on click</string>
    </property>
   </action>
  </widget>

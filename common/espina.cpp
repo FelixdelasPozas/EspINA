@@ -50,6 +50,8 @@
 #include <qdir.h>
 #include <vtkStringList.h>
 #include "labelMapExtension.h"
+#include <qmimedata.h>
+#include <QElapsedTimer>
 
 
 class IOTaxonomy;
@@ -159,15 +161,18 @@ bool EspINA::setData(const QModelIndex& index, const QVariant& value, int role)
 	Segmentation *seg = dynamic_cast<Segmentation *>(indexItem);
 	if (seg)
 	{
+	  QElapsedTimer timer;
+	  timer.start();
 	  seg->origin()->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
+	  qDebug() << "Updating Check took: " << timer.elapsed();
 	  QModelIndex segIndex = segmentationIndex(seg);
 	  emit dataChanged(segIndex,segIndex);
 	}
-	  
       }
       TaxonomyNode *taxItem = dynamic_cast<TaxonomyNode *>(indexItem);
       if (taxItem && role == Qt::DecorationRole)
       {
+	qDebug() << "Change color to" << taxItem->getName();
 	foreach(Segmentation *seg, m_taxonomySegs[taxItem])
 	{
 	  QModelIndex segIndex = segmentationIndex(seg);
@@ -176,6 +181,7 @@ bool EspINA::setData(const QModelIndex& index, const QVariant& value, int role)
 	}
 	if (m_taxonomySegs[taxItem].size())
 	{
+	  qDebug() << "Request segmentation update";
 	  m_taxonomySegs[taxItem].first()->origin()->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
 	}
       }
@@ -350,9 +356,16 @@ Qt::ItemFlags EspINA::flags(const QModelIndex& index) const
   if (index.parent() == sampleRoot())
     return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
   
-  return QAbstractItemModel::flags(index) | Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
+  return QAbstractItemModel::flags(index) | Qt::ItemIsUserCheckable | Qt::ItemIsEditable ;
 }
 
+//  //------------------------------------------------------------------------
+// bool EspINA::dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent)
+// {
+//   qDebug("Dropping Data");
+//   return QAbstractItemModel::dropMimeData(data, action, row, column, parent);
+// }
+ 
  //------------------------------------------------------------------------
 QModelIndex EspINA::taxonomyRoot() const
 {
@@ -502,6 +515,19 @@ QList<Segmentation * > EspINA::segmentations(const TaxonomyNode* taxonomy, bool 
 QList< Segmentation* > EspINA::segmentations(const Sample* sample) const
 {
   return sample->segmentations();
+}
+
+//-----------------------------------------------------------------------------
+void EspINA::changeTaxonomy(Segmentation* seg, TaxonomyNode* newTaxonomy)
+{
+  assert(m_taxonomySegs[seg->taxonomy()].contains(seg));
+  m_taxonomySegs[seg->taxonomy()].removeOne(seg);
+  seg->setTaxonomy(newTaxonomy);
+  m_taxonomySegs[newTaxonomy].push_back(seg);
+  seg->origin()->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
+  
+  QModelIndex segIndex = segmentationIndex(seg);
+  emit dataChanged(segIndex,segIndex);
 }
 
 //-----------------------------------------------------------------------------

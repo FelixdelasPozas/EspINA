@@ -83,7 +83,7 @@ public:
   EspinaFilter *parent() const {return m_parent;}
 
   //! Implements deprecated IRenderable interface as part of its own interface
-  void color(double *color);
+  virtual void color(double* rgba);
   virtual bool visible() const { return m_style & VISIBLE; }
   virtual void setVisible(bool value) { m_style = RENDER_STYLE((m_style & !VISIBLE) | (value ? 1 : 0)); }
   virtual RENDER_STYLE style() const {return m_style;}
@@ -94,7 +94,7 @@ public:
   virtual TaxonomyNode *taxonomy() {return m_taxonomy;}
   virtual void setTaxonomy(TaxonomyNode *taxonomy) {m_taxonomy = taxonomy;} 
   virtual void setOrigin(Sample *sample) {    m_origin = sample;}
-  virtual Sample *origin() {return m_origin;}
+  virtual Sample *origin() const {return m_origin;}
   
 protected:
   EspinaFilter *m_parent;

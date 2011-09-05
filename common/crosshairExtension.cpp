@@ -43,6 +43,7 @@
 #include <vtkRenderWindow.h>
 #include <vtkRenderer.h>
 #include <vtkSmartPointer.h>
+#include <vtkSMPVRepresentationProxy.h>
 
 using namespace CrosshairExtension;
 
@@ -138,7 +139,7 @@ void copyActors(vtkActorCollection *source, vtkActorCollection *destination)
 }
 
 //------------------------------------------------------------------------
-void createRepresentation(pqView *view, pqOutputPort *port, bool isCrossHair)
+void createRepresentation(pqView *view, pqOutputPort *port, int crossHairPlane)
 {
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
   vtkSMRenderViewProxy* viewProxy = vtkSMRenderViewProxy::SafeDownCast(view->getProxy());
@@ -149,11 +150,22 @@ void createRepresentation(pqView *view, pqOutputPort *port, bool isCrossHair)
 //   copyActors(rendererActors, actorsBeforeRep);
   
   pqDataRepresentation *dr = dp->setRepresentationVisibility(port,view,true);
-  if (isCrossHair)
+  if (crossHairPlane >= 0 && crossHairPlane <= 2)
   {
       pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
       assert(rep);
-      rep->setRepresentation(3);
+      rep->setRepresentation(vtkSMPVRepresentationProxy::OUTLINE);
+      int pickable = 0; 
+      vtkSMPropertyHelper(rep->getRepresentationProxy(),"Pickable").Set(pickable);;
+      rep->getRepresentationProxy()->UpdateVTKObjects();
+          
+      vtkSMProxy *repProxy = rep->getProxy();
+      
+      double color[4] = {0,0,0.0,1.0};
+      color[crossHairPlane] = 1.0;
+      vtkSMPropertyHelper(repProxy,"AmbientColor").Set(color,3);
+      vtkSMPropertyHelper(repProxy,"Pickable").Set(pickable);;
+      repProxy->UpdateVTKObjects();
   }
 /*
   vtkActorCollection *actorsAfterRep = vtkActorCollection::New();
@@ -192,7 +204,7 @@ void SampleRepresentation::render(pqView* view, ViewType type)
     for(ViewType plane = VIEW_PLANE_FIRST; plane <= VIEW_PLANE_LAST; plane = ViewType(plane+1))
     {
       bool isCrosshair = (type != plane);
-      createRepresentation(view,m_planes[plane]->pipelineSource()->getOutputPort(0),isCrosshair);
+      createRepresentation(view,m_planes[plane]->pipelineSource()->getOutputPort(0),isCrosshair?plane:-1);
     }
   }
 }
@@ -265,6 +277,7 @@ void SampleRepresentation::internalRepresentationUpdated()
     inputProp->SetInputConnection(0, m_internalRep->pipelineSource()->getProxy(), 0);
     m_planes[plane]->pipelineSource()->getProxy()->UpdateVTKObjects();
   }
+  emit representationUpdated();
 }
 
 //!-----------------------------------------------------------------------

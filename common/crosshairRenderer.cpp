@@ -38,6 +38,7 @@ CrosshairRenderer::CrosshairRenderer(QWidget* parent)
 {
   setIcon(QIcon(":espina/show_planes.svg"));
   setToolTip(tr("Show planes"));
+  setChecked(true);
 }
 
 

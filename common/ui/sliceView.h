@@ -70,6 +70,10 @@ public:
   
   //! Interface of ISelectableView
   void setSelection(SelectionFilters &filters, ViewRegions &regions);
+  
+  QList<Segmentation *> pickSegmentationsAt(int x, int y, int z);
+  QList<Segmentation *> pickSegmentationsAt(ISelectionHandler::VtkRegion region);
+  void selectSegmentations(int x, int y, int z);
 
   virtual bool eventFilter(QObject* obj, QEvent* event);
 

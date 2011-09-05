@@ -39,6 +39,7 @@
 #include <vtkSMProxyProperty.h>
 #include <vtkSMPropertyHelper.h>
 #include "spatialExtension.h"
+#include "sample.h"
 
 
 using namespace std;
@@ -48,6 +49,7 @@ int Segmentation::s_newId = 1;
 //-----------------------------------------------------------------------------
 Segmentation::Segmentation(EspinaFilter* parent, vtkFilter* creator, int portNumber)
 : EspinaProduct(parent,creator, portNumber)
+, m_isSelected(false)
 {
   m_id = s_newId++;
 }
@@ -78,13 +80,41 @@ QVariant Segmentation::data(int role) const
     //case Qt::EditRole:
       return label();
     case Qt::DecorationRole:
-      return m_taxonomy->getColor();
+    {
+      QPixmap segIcon(3,16);
+      segIcon.fill(m_taxonomy->getColor());
+      return segIcon;
+    }
+    case Qt::ToolTipRole:
+      return QString(
+	"<b>Name:</b> %1<br>"
+	"<b>Taxonomy:</b> %2<br>"
+	"<b>Sample:</b> %3<br>"
+	"<b>Created by:</b><br>"
+	"%4"
+      )
+      .arg(label())
+      .arg(m_taxonomy->getName())
+      .arg(origin()->label())
+      .arg(m_parent->getFilterArguments())
+      ;
     case Qt::CheckStateRole:
       return visible()?Qt::Checked:Qt::Unchecked;
     default:
       return QVariant();
   }
 }
+
+//------------------------------------------------------------------------
+void Segmentation::color(double* rgba)
+{
+  QColor color = m_taxonomy->getColor();
+  rgba[0] = color.red()/255.0;
+  rgba[1] = color.green()/255.0;
+  rgba[2] = color.blue()/255.0;
+  rgba[3] = 1;
+}
+
 
 //------------------------------------------------------------------------
 bool Segmentation::setData(const QVariant& value, int role)

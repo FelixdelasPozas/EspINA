@@ -19,5 +19,6 @@
         <file>es_ES.qm</file>
         <file>export_scene.svg</file>
         <file>snapshot_scene.svg</file>
+        <file>removeSeg.svg</file>
     </qresource>
 </RCC>

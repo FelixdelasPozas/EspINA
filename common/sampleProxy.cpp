@@ -255,6 +255,7 @@ void SampleProxy::sourceRowsRemoved(const QModelIndex& sourceParent, int start, 
 
 void SampleProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight)
 {
+//   qDebug() << "Sample source request update: " << sourceTopLeft;
   const QModelIndex proxyTopLeft = mapFromSource(sourceTopLeft);
   const QModelIndex proxyBottomRight = mapFromSource(sourceBottomRight);
   

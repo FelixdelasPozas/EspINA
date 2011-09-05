@@ -23,6 +23,9 @@
 #include <qabstractitemview.h>
 #include <selectionManager.h>
 
+class Sample;
+class Sample;
+class Segmentation;
 //Forward declaration
 class SliceBlender;
 class pqRenderView;
@@ -60,16 +63,24 @@ protected:
     virtual void rowsInserted(const QModelIndex& parent, int start, int end);
     virtual void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end);
     virtual void dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight);
+    
 
 public:
   //! QAbstractItemView Interface
+    virtual void setRootIndex(const QModelIndex& index);
     virtual QModelIndex indexAt(const QPoint& point) const;
     virtual void scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint = EnsureVisible);
     virtual QRect visualRect(const QModelIndex& index) const;
     
     void addWidget(IViewWidget *widget);
     
+private:
+  QList<Segmentation* > selectSegmentations(int x, int y, int z);
+  
 protected slots:
+  //! Selections
+  void vtkWidgetMouseEvent(QMouseEvent *event);
+  
   void updateScene();
   void render(const QModelIndex &index);
   void exportScene();
@@ -89,6 +100,7 @@ private:
   QToolButton m_export;
   QHBoxLayout *m_controlLayout;
   pq3DWidget *m_VOIWidget;//Because it doesn't implement ISelectableView
+  Sample *m_lastSample;
 };
 
 #endif // VOLUMEVIEW_H

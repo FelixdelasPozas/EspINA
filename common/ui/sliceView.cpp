@@ -156,12 +156,14 @@ SliceView::~SliceView()
 //-----------------------------------------------------------------------------
 QModelIndex SliceView::indexAt(const QPoint& point) const
 {
+//   qDebug() << "Selected " << "FAKE" << " segmentation";
   return QModelIndex();
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint)
 {
+  qDebug() << "Scroll to Sample";
   IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
   Sample * sample = dynamic_cast<Sample *>(item);
   if (sample)
@@ -193,6 +195,9 @@ void SliceView::setSelection(SelectionFilters& filters, ViewRegions& regions)
     // Translate view pixels into Vtk pixels
     vtkRegion = display2vtk(region);
     
+    if (vtkRegion.isEmpty())
+      return;
+    
     if (SelectionManager::instance()->voi() && !SelectionManager::instance()->voi()->contains(vtkRegion))
     {
       return;
@@ -208,8 +213,17 @@ void SliceView::setSelection(SelectionFilters& filters, ViewRegions& regions)
 	selSample.first = vtkRegion;
 	selSample.second = m_focusedSample;
 	sel.append(selSample);
+      } //! Select all segmented objects
+      else if (filter == "EspINA_Segmentation")
+      {
+	foreach(Segmentation *seg, pickSegmentationsAt(vtkRegion))
+	{
+	  ISelectionHandler::SelElement selSegmentaion;
+	  selSegmentaion.first = vtkRegion;
+	  selSegmentaion.second = seg;
+	  sel.append(selSegmentaion);
+	}
       }
-      //! Select all segmented objects
       else 
       {
 	// Find segmented objects inside regions
@@ -225,7 +239,110 @@ void SliceView::setSelection(SelectionFilters& filters, ViewRegions& regions)
   SelectionManager::instance()->setSelection(sel);
 }
 
+//-----------------------------------------------------------------------------
+QList<Segmentation* > SliceView::pickSegmentationsAt(int x, int y, int z)
+{
+  QList<Segmentation *> res;
+  
+  if (m_focusedSample)
+  {
+    for (int i=0; i < m_focusedSample->segmentations().size(); i++)
+    {
+      Segmentation *seg = m_focusedSample->segmentations()[i];
+      assert(seg);
+      
+      seg->creator()->pipelineSource()->updatePipeline();;
+      seg->creator()->pipelineSource()->getProxy()->UpdatePropertyInformation();
+      vtkPVDataInformation *info = seg->outputPort()->getDataInformation();
+      int extent[6];
+      info->GetExtent(extent);
+      if ((extent[0] <= x && x <= extent[1]) &&
+	(extent[2] <= y && y <= extent[3]) &&
+	(extent[4] <= z && z <= extent[5]))
+      {
+	double pixelValue[4]; //NOTE: hack to redefine vtkVectorMacro so Paraview can find it
+	pixelValue[0] = x;
+	pixelValue[1] = y;
+	pixelValue[2] = z;
+	pixelValue[3] = 4;
+	vtkSMPropertyHelper(seg->creator()->pipelineSource()->getProxy(),"CheckPixel").Set(pixelValue,4);
+	seg->creator()->pipelineSource()->getProxy()->UpdateVTKObjects();
+	int value;
+	seg->creator()->pipelineSource()->getProxy()->UpdatePropertyInformation();
+	vtkSMPropertyHelper(seg->creator()->pipelineSource()->getProxy(),"PixelValue").Get(&value,1);
+// 	qDebug() << "Pixel Value" << value;
+	if (value == 255)
+	  res.append(seg);
+      }
+    }
+  }
+  return res;
+}
 
+//-----------------------------------------------------------------------------
+QList< Segmentation* > SliceView::pickSegmentationsAt(ISelectionHandler::VtkRegion region)
+{
+  QList<Segmentation *> res;
+  foreach(Point p, region)
+  {
+    res.append(pickSegmentationsAt(p.x,p.y,p.z));
+  }
+  return res;
+}
+
+
+
+//-----------------------------------------------------------------------------
+void SliceView::selectSegmentations(int x, int y, int z)
+{
+  QItemSelection selection;
+  if (m_focusedSample)
+  {
+    QModelIndex selIndex;
+    for (int i=0; i < m_focusedSample->segmentations().size(); i++)
+    {
+      QModelIndex segIndex = rootIndex().child(i,0);
+      IModelItem *segItem = static_cast<IModelItem *>(segIndex.internalPointer());
+      Segmentation *seg = dynamic_cast<Segmentation *>(segItem);
+      assert(seg);
+      
+
+      seg->creator()->pipelineSource()->updatePipeline();;
+      seg->creator()->pipelineSource()->getProxy()->UpdatePropertyInformation();
+      vtkPVDataInformation *info = seg->outputPort()->getDataInformation();
+      int extent[6];
+      info->GetExtent(extent);
+      if ((extent[0] <= x && x <= extent[1]) &&
+	(extent[2] <= y && y <= extent[3]) &&
+	(extent[4] <= z && z <= extent[5]))
+      {
+// 	seg->outputPort()->getDataInformation()->GetPointDataInformation();
+	//selection.indexes().append(segIndex);
+	double pixelValue[4];
+	pixelValue[0] = x;
+	pixelValue[1] = y;
+	pixelValue[2] = z;
+	pixelValue[3] = 4;
+	vtkSMPropertyHelper(seg->creator()->pipelineSource()->getProxy(),"CheckPixel").Set(pixelValue,4);
+	seg->creator()->pipelineSource()->getProxy()->UpdateVTKObjects();
+	int value;
+	seg->creator()->pipelineSource()->getProxy()->UpdatePropertyInformation();
+	vtkSMPropertyHelper(seg->creator()->pipelineSource()->getProxy(),"PixelValue").Get(&value,1);
+// 	qDebug() << "Pixel Value" << value;
+	if (value == 255)
+	  selIndex = segIndex;
+      }
+    }
+    if (selIndex.isValid())
+      selectionModel()->select(selIndex,QItemSelectionModel::ClearAndSelect);
+    else
+      selectionModel()->clearSelection();
+  }
+}
+
+
+
+//-----------------------------------------------------------------------------
 bool SliceView::eventFilter(QObject* obj, QEvent* event)
 {
   if (event->type() == QEvent::Wheel)
@@ -342,13 +459,14 @@ void SliceView::setPlane(ViewType plane)
 //-----------------------------------------------------------------------------
 QRegion SliceView::visualRegionForSelection(const QItemSelection& selection) const
 {
+//   qDebug() << "Visual region required";
   return QRect();
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::setSelection(const QRect& rect, QItemSelectionModel::SelectionFlags command)
 {
-  qDebug() << "Selection";
+  qDebug() << "Selection in sliceview";
 }
 
 //-----------------------------------------------------------------------------
@@ -522,7 +640,10 @@ ISelectionHandler::VtkRegion SliceView::display2vtk(const QPolygonF &region)
   {  
     wpicker->Pick(point.x(), point.y(), 0.1, m_viewProxy->GetRenderer());
     wpicker->GetPickPosition(pickPos);
-   qDebug() << "Second Picked pixel" << pickPos[0] << pickPos[1] << pickPos[2];
+    qDebug() << "Second Picked pixel" << pickPos[0] << pickPos[1] << pickPos[2];
+    if (round(pickPos[2]) < 0)
+      return vtkRegion;
+    
     Point vtkPoint;
     for (int i=0; i<3; i++)
       vtkPoint[i] = round(pickPos[i] / spacing[i]);
@@ -583,8 +704,14 @@ void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
 //    qDebug() << "Picked pixel" << pickPos[0] << pickPos[1] << pickPos[2];
     SelectionManager::instance()->onMouseDown(pos, this);
     //qDebug() << "Pick Position:" << pickPos[0] << pickPos[1] << pickPos[2];
+    int selectedPixel[3];
+    for(int dim = 0; dim < 3; dim++)
+      selectedPixel[dim] = round(pickPos[dim]/spacing[dim]);
     if (rwi->GetControlKey())
-      centerViewOn(round(pickPos[0] / spacing[0]),round(pickPos[1] / spacing[1]),round(pickPos[2] / spacing[2]));
+      centerViewOn(selectedPixel[0], selectedPixel[1], selectedPixel[2]);
+    
+    selectSegmentations(selectedPixel[0], selectedPixel[1], selectedPixel[2]);
+    
   }
   //BUG: Only MouseButtonPress events are received
   if (event->type() == QMouseEvent::MouseMove &&
@@ -673,8 +800,11 @@ void SliceView::updateScene()
   if (m_sampleRep)
   {
     int sliceOffset = m_plane==VIEW_PLANE_XY?1:0;
-    setSlice(m_sampleRep->slice(m_plane)+sliceOffset);
+    int newSlice = m_sampleRep->slice(m_plane)+sliceOffset;
+    if (newSlice != m_spinBox->value())
+      setSlice(m_sampleRep->slice(m_plane)+sliceOffset);
   }
+  std::cout << "Render in SliceView" << std::endl;
   m_view->render();
 //   m_view->forceRender();
 }
