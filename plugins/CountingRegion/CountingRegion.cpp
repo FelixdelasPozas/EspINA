@@ -52,6 +52,13 @@ CountingRegion::CountingRegion(QWidget * parent): QDockWidget(parent)
   QWidget *dockWidget = new QWidget();
   setupUi(dockWidget);
   setWidget(dockWidget);
+  
+  leftMargin->installEventFilter(this);
+  rightMargin->installEventFilter(this);
+  topMargin->installEventFilter(this);
+  bottomMargin->installEventFilter(this);
+  lowerSlice->installEventFilter(this);
+  upperSlice->installEventFilter(this);
 
   connect(createRegion, SIGNAL(clicked()),
           this, SLOT(createBoundingRegion()));
@@ -88,6 +95,31 @@ void CountingRegion::initializeExtension(SegmentationExtension* ext)
 //   EXTENSION_DEBUG(<< ext->segmentation()->name << " of " << ext->segmentation()->origin()->id());
   
 //   ext->updateRegions(m_regions[ext->segmentation()->origin()]);
+}
+
+
+bool CountingRegion::eventFilter(QObject* object, QEvent* event)
+{
+  if (event->type() == QEvent::FocusIn)
+  {
+    if (object == leftMargin)
+      preview->setPixmap(QPixmap(":/espina/left.png"));
+    else if (object == rightMargin)
+      preview->setPixmap(QPixmap(":/espina/right.png"));
+    else if (object == topMargin)
+      preview->setPixmap(QPixmap(":/espina/top.png"));
+    else if (object == bottomMargin)
+      preview->setPixmap(QPixmap(":/espina/bottom.png"));
+    else if (object == upperSlice)
+      preview->setPixmap(QPixmap(":/espina/upper.png"));
+    else if (object == lowerSlice)
+      preview->setPixmap(QPixmap(":/espina/lower.png"));
+      
+  }else if (event->type() == QEvent::FocusOut)
+  {
+      preview->setPixmap(QPixmap(":/espina/allPlanes.png"));
+  }
+  return QObject::eventFilter(object, event);
 }
 
 
@@ -215,8 +247,3 @@ void CountingRegion::removeBoundingRegion()
       removeRegion->setEnabled(true);
   }
 }
-
-
-
-
-

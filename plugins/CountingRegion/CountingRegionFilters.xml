@@ -3,6 +3,106 @@
 	   our new filter. As a rule of thumb, try to locate the configuration for
 	   a filter already in ParaView (in Servers/ServerManager/Resources/*.xml)
 	   that matches your filter and then model your xml on it -->
+
+  <ProxyGroup name="props">
+    <Proxy name="RectangularBoundingRegionRepresentation" class="vtkRectangularBoundingRegionRepresentation">
+      <Documentation>
+		  Proxy for vtkNonRotatingBoxRepresentation. 
+	  </Documentation>
+
+      <IntVectorProperty
+        name="Visibility"
+        command="SetVisibility"
+        number_of_elements="1"
+        default_values="1"
+        animateable="1">
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
+
+      <DoubleVectorProperty
+        name="PlaceWidget"
+        command="PlaceWidget"
+        number_of_elements="6"
+        argument_is_array="1"
+        default_values="none">
+        <DoubleRangeDomain name="range"/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty
+        name="PlaceFactor"
+        command="SetPlaceFactor"
+        number_of_elements="1"
+        default_values="1.0">
+        <DoubleRangeDomain name="range" min="0.01" />
+      </DoubleVectorProperty>
+
+      <ProxyProperty name="Renderer" command="SetRenderer">
+        <ProxyGroupDomain name="groups">
+          <Group name="renderers"/>
+        </ProxyGroupDomain>
+      </ProxyProperty>
+
+      <SubProxy>
+        <Proxy name="Transform"
+          proxygroup="extended_sources" proxyname="Transform2">
+        </Proxy>
+        <ExposedProperties>
+          <Property name="Position" />
+          <Property name="PositionInfo" />
+          <Property name="Scale" />
+          <Property name="ScaleInfo" />
+        </ExposedProperties>
+      </SubProxy>
+
+      <!-- End of BoxRepresentation -->
+    </Proxy>
+  </ProxyGroup>
+
+  <ProxyGroup name="3d_widgets">
+    <Proxy name="RectangularBoundingRegionWidget" class="vtkRectangularBoundingRegionWidget"
+      base_proxygroup="3d_widgets" base_proxyname="WidgetBase">
+	<Documentation>
+	  Proxy for vtkBoxWidget2.
+	</Documentation>
+    </Proxy>
+  </ProxyGroup>
+  
+ <ProxyGroup name="representations">
+    <NewWidgetRepresentationProxy name="RectangularBoundingRegionWidgetRepresentation">
+      <Documentation>
+        Representation proxy for the the rectangular bounding region widget. 
+	This includes the widget/representation proxies for the box 3D widget.
+	This is created by the pqRectangularBoundingRegionWidget.
+      </Documentation>
+
+      <SubProxy>
+        <Proxy name="Prop"
+          proxygroup="props" proxyname="RectangularBoundingRegionRepresentation">
+        </Proxy>
+        <ExposedProperties>
+          <Property name="PlaceFactor" />
+          <Property name="PlaceWidget" />
+          <Property name="Visibility" />
+          <Property name="Position" />
+          <Property name="PositionInfo" />
+          <Property name="Scale" />
+          <Property name="ScaleInfo" />
+        </ExposedProperties>
+      </SubProxy>
+
+      <SubProxy>
+        <Proxy name="Widget"
+          proxygroup="3d_widgets" proxyname="RectangularBoundingRegionWidget">
+        </Proxy>
+        <ExposedProperties>
+          <Property name="Enabled" />
+        </ExposedProperties>
+      </SubProxy>
+
+      <!-- End of BoxWidgetRepresentation -->
+    </NewWidgetRepresentationProxy>
+ </ProxyGroup>
+
   <ProxyGroup name="filters">
     	  <SourceProxy name="RectangularBoundingRegion" class="vtkRectangularBoundingRegionFilter" label="Rectangular Bounding Region Filter" >
 		  <Documentation
@@ -23,6 +123,19 @@
 			  immediate_update="1"
 			  command="SetExclusion">
 		  </IntVectorProperty>
+		  <Hints>
+		    <!-- Hints are metadata associated with the proxy.
+		    As far as the ServerManager is concerned, Hints have no 
+		    significance. GUI is free to interpret the hints as
+		    it chooses. Hints provide a mechanism to add some GUI
+		    pertinant information to the server manager XML.
+		      -->
+		    <PropertyGroup type="RectangularBoundingRegion"> <!-- The name delcared in the cmake macro ADD_3DWIDGET -->
+			  <!--Property name="Position" function="Position" />
+			  <Property name="Scale" function="Scale" />
+			  <Property name="Bounds" function="PlaceWidget" /-->
+		     </PropertyGroup> 
+		  </Hints>
 		  <!-- End Bounding Region Filter -->
 	  </SourceProxy>
 	  <SourceProxy name="AdaptiveBoundingRegion" class="vtkAdaptiveBoundingRegionFilter" label="Adaptive Bounding Region Filter" >

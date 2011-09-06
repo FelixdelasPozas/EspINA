@@ -39,11 +39,19 @@ qt4_wrap_cpp(MOC_SRCS
   CountingRegion.h
   CountingRegionExtension.h
   RegionRenderer.h
+  pqRectangularBoundingRegionWidget.h
   )
 
 # Create Interface files
 qt4_wrap_ui (UI_BUILT_SOURCES
   CountingRegionPanel.ui
+  pqRectangularBoundingRegionWidget.ui
+  )
+
+ADD_3DWIDGET(
+  OUTIFACES OUTSRCS
+  CLASS_NAME pqRectangularBoundingRegionWidget
+  WIDGET_TYPE RectangularBoundingRegion
   )
 
 # This is a macro for adding QActionGroup subclasses automatically as toolbars.
@@ -58,6 +66,8 @@ set (VTKFILTER_SRCS
   ${CAJAL_INCLUDE_DIR}/filters/vtkAdaptiveBoundingRegionFilter.cpp
   ${CAJAL_INCLUDE_DIR}/filters/vtkRectangularBoundingRegionFilter.cpp
   ${CAJAL_INCLUDE_DIR}/filters/vtkCountingRegionFilter.cpp
+  vtkRectangularBoundingRegionRepresentation.cpp
+  vtkRectangularBoundingRegionWidget.cpp
 )
 
 set (PLUGIN_SRCS
@@ -88,8 +98,8 @@ ADD_PARAVIEW_PLUGIN(
 	#   thus we have to use a vtkXXXX class name for our filter, other wise,
 	#   we need to use SERVER_SOURCES instead of SERVER_MANAGER_SOURCES
 	#   SERVER_SOURCES SegmentationFilter.cpp 
-  SOURCES ${IFACE_SRCS} ${PLUGIN_SRCS}
-  GUI_INTERFACES ${IFACES} 
+  SOURCES ${IFACE_SRCS} ${PLUGIN_SRCS} ${OUTSRCS}
+  GUI_INTERFACES ${IFACES} ${OUTIFACES}
   )
 
 if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )

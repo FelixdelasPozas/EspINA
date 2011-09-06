@@ -120,6 +120,7 @@ SliceView::SliceView(QWidget* parent)
     , m_focusedSample(NULL)
     , m_viewWidget(NULL)
     , m_view(NULL)
+    , m_regionCut(NULL)
 {
   m_controlLayout = new QHBoxLayout();
   m_scrollBar = new QScrollBar(Qt::Horizontal);
@@ -805,6 +806,12 @@ void SliceView::updateScene()
       setSlice(m_sampleRep->slice(m_plane)+sliceOffset);
   }
   std::cout << "Render in SliceView" << std::endl;
+  ISampleExtension *ext = m_focusedSample->extension("CountingRegionExtension");
+  if (ext)
+  {
+    foreach(QString rep, ext->availableRepresentations())
+        m_focusedSample->representation(rep)->render(m_view,m_plane);
+  }
   m_view->render();
 //   m_view->forceRender();
 }

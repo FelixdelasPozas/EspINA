@@ -42,6 +42,7 @@
 #include <vtkBoxWidget2.h>
 #include <vtkSMNewWidgetRepresentationProxy.h>
 #include <pqScalarsToColors.h>
+#include <vtkSMPVRepresentationProxy.h>
 
 //!-----------------------------------------------------------------------
 //! COUNTING REGION SEGMENTATION EXTENSION
@@ -245,10 +246,10 @@ RectangularRegion::RectangularRegion(Sample* sample,
     qDebug() << "Couldn't create Bounding Region Filter";
     assert(false);
   }
-  pqObjectBuilder *builder =  pqApplicationCore::instance()->getObjectBuilder();
-  m_box =  builder->createProxy("implicit_functions","Box",pqApplicationCore::instance()->getActiveServer(),"widgets");
+//   pqObjectBuilder *builder =  pqApplicationCore::instance()->getObjectBuilder();
+//   m_box =  builder->createProxy("implicit_functions","NonRotatingBox",pqApplicationCore::instance()->getActiveServer(),"widgets");
   
-  QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(m_sample->creator()->pipelineSource()->getProxy(), m_box);
+  QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(m_sample->creator()->pipelineSource()->getProxy(), m_boundigRegion->pipelineSource()->getProxy());
   m_widget = widgets.first();
 }
 
@@ -260,22 +261,29 @@ RectangularRegion::~RectangularRegion()
 //------------------------------------------------------------------------
 void RectangularRegion::render(pqView* view, ViewType type)
 {
-//   m_widget->setView(view);
-//   m_widget->setWidgetVisible(true);
-//   m_widget->select();
-  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-  pqDataRepresentation *dr = dp->setRepresentationVisibility(pipelineSource()->getOutputPort(0),view,true);
-  pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
-  rep->setColorField("Type");
-  
-  vtkSMProxy * lut = rep->getLookupTableProxy();
-  double colors[8] = {0,1,0,0,255,0,1,0};
-  vtkSMPropertyHelper(lut,"RGBPoints").Set(colors,8);
-  lut->UpdateVTKObjects();
-  
-  double opacity = 0.7;
-  vtkSMPropertyHelper(rep->getProxy(),"Opacity").Set(opacity);
-  rep->getProxy()->UpdateVTKObjects();
+    if (type == VIEW_3D && m_widget)
+    {
+      pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+      pqDataRepresentation *dr = dp->setRepresentationVisibility(pipelineSource()->getOutputPort(0),view,true);
+      pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
+      rep->setRepresentation(vtkSMPVRepresentationProxy::SURFACE);
+      rep->setColorField("Type");
+      vtkSMProxy * lut = rep->getLookupTableProxy();
+      double colors[8] = {0,1,0,0,255,0,1,0};
+      vtkSMPropertyHelper(lut,"RGBPoints").Set(colors,8);
+      lut->UpdateVTKObjects();
+      
+      double opacity = 0.7;
+      vtkSMPropertyHelper(rep->getProxy(),"Opacity").Set(opacity);
+      rep->getProxy()->UpdateVTKObjects();
+    }
+    else
+    {
+      m_widget->setView(view);
+      m_widget->select();
+    }
+    
+    
 }
 
 //------------------------------------------------------------------------
@@ -333,7 +341,7 @@ void AdaptiveRegion::render(pqView* view, ViewType type)
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
   pqDataRepresentation *dr = dp->setRepresentationVisibility(pipelineSource()->getOutputPort(0),view,true);
   pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
-  
+  rep->setRepresentation(vtkSMPVRepresentationProxy::WIREFRAME);
   vtkSMProxy * lut = rep->getLookupTableProxy();
   double colors[8] = {0,1,0,0,255,0,1,0};
   vtkSMPropertyHelper(lut,"RGBPoints").Set(colors,8);
