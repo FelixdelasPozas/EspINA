@@ -87,7 +87,7 @@ public:
   
 private:
   vtkSMProxy *m_box;
-  pq3DWidget *m_widget;
+  pq3DWidget *m_widget[4];
 };
 
 class AdaptiveRegion : public CountingRegion::BoundingRegion
@@ -100,6 +100,9 @@ public:
   
   virtual void setInclusive(int left, int top, int upper);
   virtual void setExclusive(int right, int bottom, int lower);
+  
+private:
+  pq3DWidget *m_widget[4];
 };
 
 class CountingRegion::SampleExtension : public ISampleExtension

@@ -3,6 +3,7 @@
 
 #include "vtkWidgetRepresentation.h"
 
+class vtkPolyDataAlgorithm;
 class vtkActor;
 class vtkPolyDataMapper;
 class vtkLineSource;
@@ -69,8 +70,17 @@ public:
   // Get the outline properties (the outline of the box). The 
   // properties of the outline when selected and normal can be 
   // set.
-  vtkGetObjectMacro(OutlineProperty,vtkProperty);
+//   vtkGetObjectMacro(OutlineProperty,vtkProperty);
   vtkGetObjectMacro(SelectedOutlineProperty,vtkProperty);
+
+  // Description:
+  // Get the view type properties. In which plane it is been shown
+  // and which slice (in case of planar views) is selected
+//   vtkSetMacro(ViewType,int);
+//   vtkSetMacro(Slice,int);
+  virtual void SetViewType(int type);
+  virtual void SetSlice(int slice);
+  virtual void SetRegion(vtkPolyDataAlgorithm *region);
   
   // Description:
   // These are methods that satisfy vtkWidgetRepresentation's API.
@@ -112,15 +122,15 @@ protected:
   vtkPoints         *Points;  //used by others as well
   double             N[6][3]; //the normals of the faces
   
-  // inclusion faces (3 faces)
+  // bounding region
   vtkActor          *InclusionActor;
   vtkPolyDataMapper *InclusionMapper;
   vtkPolyData       *InclusionPolyData;
 
-  // exclusion faces (3 faces)
-  vtkActor          *ExclusionActor;
-  vtkPolyDataMapper *ExclusionMapper;
-  vtkPolyData       *ExclusionPolyData;
+  // bounding face (4 lines)
+  vtkPoints         *BoundingFacePoints;
+  vtkPolyDataMapper *BoundingFaceMapper;
+  vtkPolyData       *BoundingFacePolyData;
 
   // A face of the hexahedron
   vtkActor          *HexFace;
@@ -148,11 +158,17 @@ protected:
   // the manipulator in general.
   vtkProperty *FaceProperty;
   vtkProperty *SelectedFaceProperty;
-  vtkProperty *OutlineProperty;
-  vtkProperty *InOutlineProperty;
-  vtkProperty *ExOutlineProperty;
+  vtkProperty *InclusionProperty;
+  vtkProperty *BoundingFaceProperty;
+  vtkProperty *InvisibleProperty;
   vtkProperty *SelectedOutlineProperty;
   virtual void CreateDefaultProperties();
+  
+  // Helper methods to create face representations
+  virtual void CreateXYFace();
+  virtual void CreateYZFace();
+  virtual void CreateXZFace();
+  
   
   // Helper methods
   virtual void Translate(double *p1, double *p2);
@@ -178,6 +194,10 @@ protected:
   //Handles special cases where some of the scale factors are 0.
   void GetDirection(const double Nx[3],const double Ny[3], 
                     const double Nz[3], double dir[3]);
+  
+  int ViewType;
+  int Slice;
+  vtkPolyDataAlgorithm *Region;
 
 
 private:

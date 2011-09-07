@@ -34,6 +34,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "pq3DWidget.h"
 
+class vtkSMProxy;
 class pqServer;
 
 /// Provides UI for Box Widget.
@@ -77,10 +78,13 @@ private slots:
 
   void showHandles();
   void hideHandles();
+  
+  void setViewType(int type);
 private:
   pqRectangularBoundingRegionWidget(const pqRectangularBoundingRegionWidget&); // Not implemented.
   void operator=(const pqRectangularBoundingRegionWidget&); // Not implemented.
-
+  
+  vtkSMProxy *InternalProxy;
   class pqImplementation;
   pqImplementation* Implementation;
 };

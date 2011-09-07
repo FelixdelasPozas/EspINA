@@ -92,6 +92,7 @@
 
 #include "vtkAbstractWidget.h"
 
+class vtkPolyDataAlgorithm;
 class vtkRectangularBoundingRegionRepresentation;
 class vtkHandleWidget;
 
@@ -125,9 +126,6 @@ public:
   vtkSetMacro(ScalingEnabled,int);
   vtkGetMacro(ScalingEnabled,int);
   vtkBooleanMacro(ScalingEnabled,int);
-  vtkSetMacro(RotationEnabled,int);
-  vtkGetMacro(RotationEnabled,int);
-  vtkBooleanMacro(RotationEnabled,int);
   vtkSetMacro(InvertXCursor,int);
   vtkGetMacro(InvertXCursor,int);
   vtkBooleanMacro(InvertXCursor,int);
@@ -137,6 +135,10 @@ public:
   vtkSetMacro(InvertZCursor,int);
   vtkGetMacro(InvertZCursor,int);
   vtkBooleanMacro(InvertZCursor,int);
+  
+  virtual void SetViewType(int type);
+  virtual void SetSlice(int slice);
+  virtual void SetRegion(vtkPolyDataAlgorithm *region);
 
   // Description:
   // Create the default widget representation if one is not set. By default,
@@ -170,6 +172,8 @@ protected:
   int InvertXCursor;
   int InvertYCursor;
   int InvertZCursor;
+  
+  vtkPolyDataAlgorithm *Region;
 private:
   vtkRectangularBoundingRegionWidget(const vtkRectangularBoundingRegionWidget&);  //Not implemented
   void operator=(const vtkRectangularBoundingRegionWidget&);  //Not implemented

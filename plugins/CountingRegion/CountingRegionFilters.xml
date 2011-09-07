@@ -18,6 +18,22 @@
         animateable="1">
         <BooleanDomain name="bool" />
       </IntVectorProperty>
+      
+      <!--IntVectorProperty
+        name="ViewType"
+        command="SetView"
+        number_of_elements="1"
+        default_values="3"
+        animateable="1">
+      </IntVectorProperty>
+
+      <IntVectorProperty
+        name="Slice"
+        command="SetView"
+        number_of_elements="1"
+        default_values="0"
+        animateable="1">
+      </IntVectorProperty-->
 
       <DoubleVectorProperty
         name="PlaceWidget"
@@ -168,6 +184,19 @@
 			  immediate_update="1"
 			  command="SetExclusion">
 		  </IntVectorProperty>
+  		  <Hints>
+		    <!-- Hints are metadata associated with the proxy.
+		    As far as the ServerManager is concerned, Hints have no 
+		    significance. GUI is free to interpret the hints as
+		    it chooses. Hints provide a mechanism to add some GUI
+		    pertinant information to the server manager XML.
+		      -->
+		    <PropertyGroup type="RectangularBoundingRegion"> <!-- The name delcared in the cmake macro ADD_3DWIDGET -->
+			  <!--Property name="Position" function="Position" />
+			  <Property name="Scale" function="Scale" />
+			  <Property name="Bounds" function="PlaceWidget" /-->
+		     </PropertyGroup> 
+		  </Hints>
 		  <!-- End Bounding Region Filter -->
 	  </SourceProxy>
 	  <SourceProxy name="CountingRegion" class="vtkCountingRegionFilter" label="Counting Region Filter" >

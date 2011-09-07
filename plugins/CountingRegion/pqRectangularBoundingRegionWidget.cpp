@@ -46,6 +46,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
 #include "pqSMAdaptor.h"
+#include "vtkRectangularBoundingRegionWidget.h"
+#include <vtkPolyDataAlgorithm.h>
 
 class pqRectangularBoundingRegionWidget::pqImplementation : public Ui::pqRectangularBoundingRegionWidget
 {
@@ -123,9 +125,20 @@ void pqRectangularBoundingRegionWidget::createWidget(pqServer* server)
     pqApplicationCore::instance()->get3DWidgetFactory()->
     get3DWidget("RectangularBoundingRegionWidgetRepresentation", server);
   this->setWidgetProxy(widget);
-
+  
+  std::cout << "Create Widget" << std::endl;
+  getControlledProxy()->UpdateSelfAndAllInputs();
+  vtkPolyDataAlgorithm *region = vtkPolyDataAlgorithm::SafeDownCast(getControlledProxy()->GetClientSideObject());
+  
   widget->UpdateVTKObjects();
   widget->UpdatePropertyInformation();
+
+  if (region)
+  {
+    std::cout << "Set Region" << std::endl;
+    vtkAbstractWidget *miwidget = widget->GetWidget();
+    vtkRectangularBoundingRegionWidget::SafeDownCast(miwidget)->SetRegion(region);
+  }
 
   PVBOXWIDGET_LINK(positionX, "Position", 0);
   PVBOXWIDGET_LINK(positionY, "Position", 1);

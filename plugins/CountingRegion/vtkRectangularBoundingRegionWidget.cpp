@@ -25,6 +25,7 @@
 #include "vtkRenderWindow.h"
 #include "vtkRenderer.h"
 #include "vtkRectangularBoundingRegionRepresentation.h"
+#include <vtkPolyDataAlgorithm.h>
 
 
 vtkStandardNewMacro(vtkRectangularBoundingRegionWidget);
@@ -42,7 +43,7 @@ vtkRectangularBoundingRegionWidget::vtkRectangularBoundingRegionWidget()
   this->InvertXCursor = 0;
   this->InvertYCursor = 0;
   this->InvertZCursor = 0;
-
+  
   // Define widget events
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
                                           vtkEvent::NoModifier,
@@ -150,7 +151,7 @@ void vtkRectangularBoundingRegionWidget::TranslateAction(vtkAbstractWidget *w)
   // Get the event position
   int X = self->Interactor->GetEventPosition()[0];
   int Y = self->Interactor->GetEventPosition()[1];
-  
+
   // Okay, make sure that the pick is in the current renderer
   if ( !self->CurrentRenderer || 
        !self->CurrentRenderer->IsInViewport(X,Y) )
@@ -230,12 +231,13 @@ void vtkRectangularBoundingRegionWidget::ScaleAction(vtkAbstractWidget *w)
 //----------------------------------------------------------------------
 void vtkRectangularBoundingRegionWidget::MoveAction(vtkAbstractWidget *w)
 {
+  
   vtkRectangularBoundingRegionWidget *self = reinterpret_cast<vtkRectangularBoundingRegionWidget*>(w);
 
   // compute some info we need for all cases
   int X = self->Interactor->GetEventPosition()[0];
   int Y = self->Interactor->GetEventPosition()[1];
-  
+
   // See whether we're active
   if ( self->WidgetState == vtkRectangularBoundingRegionWidget::Start )
   {
@@ -319,11 +321,37 @@ void vtkRectangularBoundingRegionWidget::EndSelectAction(vtkAbstractWidget *w)
 }
 
 //----------------------------------------------------------------------
+void vtkRectangularBoundingRegionWidget::SetViewType(int type)
+{
+  reinterpret_cast<vtkRectangularBoundingRegionRepresentation*>(this->WidgetRep)->
+    SetViewType(type);
+}
+
+//----------------------------------------------------------------------
+void vtkRectangularBoundingRegionWidget::SetSlice(int slice)
+{
+  reinterpret_cast<vtkRectangularBoundingRegionRepresentation*>(this->WidgetRep)->
+    SetSlice(slice);
+}
+
+//----------------------------------------------------------------------
+void vtkRectangularBoundingRegionWidget::SetRegion(vtkPolyDataAlgorithm *region)
+{
+  Region = region;
+  if (WidgetRep)
+    reinterpret_cast<vtkRectangularBoundingRegionRepresentation*>(this->WidgetRep)->SetRegion(region);
+  else
+    std::cout << "There is no representation" << std::endl;
+}
+
+  
+//----------------------------------------------------------------------
 void vtkRectangularBoundingRegionWidget::CreateDefaultRepresentation()
 {
   if ( ! this->WidgetRep )
     {
     this->WidgetRep = vtkRectangularBoundingRegionRepresentation::New();
+    reinterpret_cast<vtkRectangularBoundingRegionRepresentation*>(this->WidgetRep)->SetRegion(Region);
     }
 }
 
