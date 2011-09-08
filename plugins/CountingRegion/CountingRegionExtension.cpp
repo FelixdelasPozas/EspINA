@@ -45,6 +45,7 @@
 #include <vtkSMPVRepresentationProxy.h>
 #include "vtkRectangularBoundingRegionWidget.h"
 #include <crosshairExtension.h>
+#include <pqView.h>
 
 //!-----------------------------------------------------------------------
 //! COUNTING REGION SEGMENTATION EXTENSION
@@ -293,11 +294,20 @@ void RectangularRegion::render(pqView* view, ViewType type)
   vtkRectangularBoundingRegionWidget *regionwidget = dynamic_cast<vtkRectangularBoundingRegionWidget*>(m_widget[type]->getWidgetProxy()->GetWidget());
   assert(regionwidget);
   CrosshairExtension::SampleRepresentation *samRep = dynamic_cast<CrosshairExtension::SampleRepresentation *>(m_sample->representation("Crosshairs"));
+//   if (type == VIEW_3D)
+//   {
+//     regionwidget->SetViewType(VIEW_PLANE_XZ);
+//     regionwidget->SetSlice(samRep->slice(VIEW_PLANE_XZ));
+//   }
+//   else
+//   {
+//     regionwidget->SetViewType(type);
+//     regionwidget->SetSlice(samRep->slice(type));
+//   }
+  double spacing[3];
+  m_sample->spacing(spacing);
   regionwidget->SetViewType(type);
-  regionwidget->SetSlice(samRep->slice(type));
-  //     }
-    
-    
+  regionwidget->SetSlice(samRep->slice(type)*spacing[type]);
 }
 
 //------------------------------------------------------------------------
@@ -372,13 +382,26 @@ void AdaptiveRegion::render(pqView* view, ViewType type)
 //   double opacity = 0.5;
 //   vtkSMPropertyHelper(rep->getProxy(),"Opacity").Set(opacity);
 //   rep->getProxy()->UpdateVTKObjects();
-vtkRectangularBoundingRegionWidget *regionwidget = dynamic_cast<vtkRectangularBoundingRegionWidget*>(m_widget[type]->getWidgetProxy()->GetWidget());
-assert(regionwidget);
-CrosshairExtension::SampleRepresentation *samRep = dynamic_cast<CrosshairExtension::SampleRepresentation *>(m_sample->representation("Crosshairs"));
-regionwidget->SetSlice(samRep->slice(type));
-regionwidget->SetViewType(type);
-m_widget[type]->setView(view);
-m_widget[type]->select();
+// vtkRectangularBoundingRegionWidget *regionwidget = dynamic_cast<vtkRectangularBoundingRegionWidget*>(m_widget[type]->getWidgetProxy()->GetWidget());
+// assert(regionwidget);
+// CrosshairExtension::SampleRepresentation *samRep = dynamic_cast<CrosshairExtension::SampleRepresentation *>(m_sample->representation("Crosshairs"));
+// regionwidget->SetSlice(samRep->slice(type));
+// regionwidget->SetViewType(type);
+// m_widget[type]->setView(view);
+// m_widget[type]->select();
+
+if (!m_widget[type]->isVisible())
+  {
+    m_widget[type]->setView(view);
+    m_widget[type]->select();
+  }
+  vtkRectangularBoundingRegionWidget *regionwidget = dynamic_cast<vtkRectangularBoundingRegionWidget*>(m_widget[type]->getWidgetProxy()->GetWidget());
+  assert(regionwidget);
+  CrosshairExtension::SampleRepresentation *samRep = dynamic_cast<CrosshairExtension::SampleRepresentation *>(m_sample->representation("Crosshairs"));
+  double spacing[3];
+  m_sample->spacing(spacing);
+  regionwidget->SetViewType(type);
+  regionwidget->SetSlice(samRep->slice(type)*spacing[type]);
 }
 
 //------------------------------------------------------------------------
