@@ -44,10 +44,10 @@
 #include <vtkCellData.h>
 
 #define Left Inclusion[0]
-#define Top Inclusion[1]
+#define Bottom Inclusion[1]
 #define Upper Inclusion[2]
 #define Right Exclusion[0]
-#define Bottom Exclusion[1]
+#define Top Exclusion[1]
 #define Lower Exclusion[2]
 
 const int INCLUSION_FACE = 255;
@@ -165,7 +165,7 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
   
   //TODO: Min values are 0 or given by extent???
   int zMin = std::max(Exclusion[2], 0);
-  int zMax = std::min(Inclusion[2], dim[2]);
+  int zMax = std::min(Inclusion[2], dim[2]);//BUG
   
   const int blackThreshold = 10;
     vtkIdType lastCell[4];
@@ -220,28 +220,49 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
     vtkSmartPointer<vtkPoints> face = plane(corner,max,mid,min);
     assert(face->GetNumberOfPoints() == 4);
     
+    double leftBottom[3], rightBottom[3], rightTop[3], leftTop[3];
+    
     double point[3];
     vtkIdType cell[4];
-    // Bottom Left Corner
+    // Left Bottom Corner
     face->GetPoint(0, point);
+    face->GetPoint(0, leftBottom);
     point[0] += Left * spacing[0];
     point[1] += Bottom * spacing[1];
+    point[0] = round(point[0]); point[1] = abs(round(point[1])); point[2] = round(point[2]);
     cell[0] = vertex->InsertNextPoint(point);
-    // Bottom Right Corner
+//     std::cout << "Point " << cell[0] << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
+    // Right Bottom Corner
     face->GetPoint(2, point);
+    face->GetPoint(2, rightBottom);
     point[0] -= Right * spacing[0];
     point[1] += Bottom * spacing[1];
-    cell[3] = vertex->InsertNextPoint(point);
-    // Top Left Corner
-    face->GetPoint(1, point);
-    point[0] += Left * spacing[0];
-    point[1] -= Top * spacing[1];
+    point[0] = round(point[0]); point[1] = abs(round(point[1]));  point[2] = round(point[2]);
     cell[1] = vertex->InsertNextPoint(point);
-    // Top Right Corner
+//     std::cout << "Point " << cell[1] << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
+    // Right Top Corner
     face->GetPoint(3, point);
+    face->GetPoint(3, rightTop);
     point[0] -= Right * spacing[0];
     point[1] -= Top * spacing[1];
+    point[0] = round(point[0]); point[1] = abs(round(point[1]));  point[2] = round(point[2]);
     cell[2] = vertex->InsertNextPoint(point);
+//     std::cout << "Point " << cell[2] << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
+    // Left Top Corner
+    face->GetPoint(1, point);
+    face->GetPoint(1, leftTop);
+    point[0] += Left * spacing[0];
+    point[1] -= Top * spacing[1];
+    point[0] = round(point[0]); point[1] = abs(round(point[1]));  point[2] = round(point[2]);
+    cell[3] = vertex->InsertNextPoint(point);
+//     std::cout << "Point " << cell[3] << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
+    
+//     std::cout << "Face: " << cell[0] << " " << cell[1] << " " << cell[2] << " " << cell[3] << std::endl;
+    
+    assert(leftBottom[0] < rightBottom[0]);
+    assert(leftTop[0] < rightTop[0]);
+    assert(leftBottom[1] < leftTop[1]);
+    assert(rightBottom[1] < rightTop[1]);
     
     if (z == zMax-1)
     { 
