@@ -28,9 +28,18 @@ vtkStandardNewMacro(vtkImageLabelMapBlend);
 //  return ext[1] > ext[0];
 // }
 
+void printExtent(int extent[6])
+{
+    std::cout << 
+    extent[0] <<  " " << extent[1] <<  " " << 
+    extent[2] <<  " " << extent[3] <<  " " << 
+    extent[4] <<  " " << extent[5] <<  " " << 
+    std::endl;
+}
+
 vtkImageLabelMapBlend::vtkImageLabelMapBlend()
 : m_init(false)
-, Opacity(0.8)
+, Opacity(0.6)
 {
   //! Port 0: Blending inputs
   //! Port 1: Reference colors
@@ -152,20 +161,24 @@ void vtkImageLabelMapBlend::RemoveAllInputs()
   vtkThreadedImageAlgorithm::RemoveAllInputs();
 }
 
-void vtkImageLabelMapBlend::SetLabelMapColor(double id, double r, double g, double b)
+void vtkImageLabelMapBlend::SetLabelMapColor(double id, double r, double g, double b, double selected)
 {
   assert(id < m_inputs.size());
   double rComponent = r*255;
   double gComponent = g*255;
   double bComponent = b*255;
+  bool isSelected = selected;
   if ((m_inputs[id]->color[0] != rComponent 
     || m_inputs[id]->color[1] != gComponent 
-    || m_inputs[id]->color[2] != bComponent)
+    || m_inputs[id]->color[2] != bComponent
+    || m_inputs[id]->color[3] != isSelected
+  )
     && rComponent >= 0)
   {
     m_inputs[id]->color[0] = rComponent;
     m_inputs[id]->color[1] = gComponent;
     m_inputs[id]->color[2] = bComponent;
+    m_inputs[id]->color[3] = isSelected;
     
     // If it was already blended we have to reset its area
     std::vector<Input *>::iterator it = m_blendedInputs.begin();
@@ -218,6 +231,7 @@ int vtkImageLabelMapBlend::FillInputPortInformation(int port, vtkInformation* in
 
 int vtkImageLabelMapBlend::RequestInformation(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
+    std::cout << "Request Info" << std::endl;
   // get the info objects
   vtkInformation* outInfo = 
     outputVector->GetInformationObject(0);  
@@ -232,6 +246,7 @@ int vtkImageLabelMapBlend::RequestInformation(vtkInformation* request, vtkInform
 // This method computes the input necessary to generate the output
 int vtkImageLabelMapBlend::RequestUpdateExtent(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
+    std::cout << "Request Update Extent" << std::endl;
   vtkInformation* outInfo = outputVector->GetInformationObject(0);
   
   int requestedUpdateExt[6];
@@ -245,6 +260,47 @@ int vtkImageLabelMapBlend::RequestUpdateExtent(vtkInformation* request, vtkInfor
     intersect(requestedUpdateExt,inInfo->Get(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT()),updateExtent);
     inInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(), updateExtent,6);
   }
+  
+  int requiredUpdateArea[6];
+  bool validArea = false;
+  
+  if (m_newInputs.size() > 0)
+  {
+    Input *input = m_newInputs[0];
+    memcpy(requiredUpdateArea,input->requestedAreaExtent,6*sizeof(int));
+    for (int i=1; i < m_newInputs.size(); i++)
+    {
+      for (int d=0; d<3; d++)
+      {
+	requiredUpdateArea[2*d] = std::min(requiredUpdateArea[2*d],m_newInputs[i]->requestedAreaExtent[2*d]);
+	requiredUpdateArea[2*d+1] = std::max(requiredUpdateArea[2*d+1],m_newInputs[i]->requestedAreaExtent[2*d+1]);
+      }
+    }
+    validArea = true;
+  } else if (m_removeInputs.size() > 0)
+  {
+    if (!validArea)
+    {
+      Input *input = m_removeInputs[0];
+      memcpy(requiredUpdateArea,input->requestedAreaExtent,6*sizeof(int));
+    }
+    for (int i=1; i < m_removeInputs.size(); i++)
+    {
+      for (int d=0; d<3; d++)
+      {
+	requiredUpdateArea[2*d] = std::min(requiredUpdateArea[2*d],m_removeInputs[i]->requestedAreaExtent[2*d]);
+	requiredUpdateArea[2*d+1] = std::max(requiredUpdateArea[2*d+1],m_removeInputs[i]->requestedAreaExtent[2*d+1]);
+      }
+    }
+    validArea = true;
+  } else if (m_blendedInputs.size() > 0 && !validArea)
+  {
+    Input *input = m_blendedInputs[0];
+    memcpy(requiredUpdateArea,input->requestedAreaExtent,6*sizeof(int));
+  }
+  outInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(),
+	       requiredUpdateArea,
+	       6);
   
   return 1;
 }
@@ -278,28 +334,61 @@ void vtkImageLabelMapBlend::copyInput(vtkImageIterator< vtkImageLabelMapBlend::I
 
 }
 
+void vtkImageLabelMapBlend::copyInput(vtkImageLabelMapBlend::Input* input, vtkImageData* output, int updateArea[6])
+{
+  int outDim[3], inDim[3];
+  //output->GetDimensions(dim); //dimensions of defined update_extent
+  Input *mainInput = m_blendedInputs[0];
+  for (int d = 0; d < 3; d++)
+  {
+    outDim[d] = mainInput->extent[2*d+1] - mainInput->extent[2*d] + 1;
+    inDim[d] = input->extent[2*d+1] - input->extent[2*d] + 1;
+  }
+  
+  int numComponets = output->GetNumberOfScalarComponents();
+  
+  unsigned char *outputPtr = static_cast<unsigned char *>(output->GetScalarPointer());
+  unsigned char *inputPtr = static_cast<unsigned char *>(input->image->GetScalarPointer());
+  
+  for (int z = updateArea[4]; z <= updateArea[5]; z++)
+    for (int y = updateArea[2]; y <= updateArea[3]; y++)
+      for (int x = updateArea[0]; x <= updateArea[1]; x++)
+      {
+	int outPix = x*numComponets + y* outDim[0]*numComponets + z* outDim[0]* outDim[1]*numComponets;
+	int inPix = (x-input->extent[0]) + (y-input->extent[2])* inDim[0] + (z-input->extent[4])* inDim[0]* inDim[1];//Inputs are monocrome
+	
+	for (int c = 0; c < numComponets; c++)
+	  outputPtr[outPix+c] = inputPtr[inPix];
+      }
+}
+
+
 //! Blend input color into output color whenever input pixel is not 0
 void vtkImageLabelMapBlend::blendInputs(vtkImageIterator<InputPixelType> &inIt, vtkImageIterator<OutputPixelType> &outIt, OutputPixelType *color)
 {
   InputPixelType *inPtr;// = (InputPixelType*)input->GetScalarPointer();
   OutputPixelType *outPtr;// = (OutputPixelType *)(output->GetScalarPointer());
   
-  while (!outIt.IsAtEnd())
+  while (!inIt.IsAtEnd() && !outIt.IsAtEnd())
   {
     // Process one row of pixles at a time
     inPtr = inIt.BeginSpan();
+    InputPixelType *inEndPtr = inIt.EndSpan();
     outPtr = outIt.BeginSpan();
     OutputPixelType *outEndPtr = outIt.EndSpan();
     
-    while (outPtr != outEndPtr)
+    int spacing = 0;
+    while (inPtr && inPtr != inEndPtr && outPtr != outEndPtr)
     {
       if (*inPtr)// Non 0 pixel
       {
+	spacing = (spacing+1)%2;
 	for (int c = 0; c < 3; c++)
 	{
+	  int shiftComponent = (spacing == 0 && color[3])?(c+1)%4:c;
 	  double r = Opacity;//constant opacity
 	  double f = 1.0 - r;
-	  *outPtr = *outPtr*f + color[c]*r;
+	  *outPtr = *outPtr*f + color[shiftComponent]*r;
 	  ++outPtr;
 	}
       }else
@@ -314,12 +403,54 @@ void vtkImageLabelMapBlend::blendInputs(vtkImageIterator<InputPixelType> &inIt, 
   }
 }
 
+bool isBorderPixel(int x, int y, int z, int dim[3], int extent[6])
+{
+}
+
+void vtkImageLabelMapBlend::blendInput(vtkImageLabelMapBlend::Input* input, vtkImageData* output, int updateArea[6])
+{
+  int outDim[3], inDim[3];
+  //output->GetDimensions(dim); //dimensions of defined update_extent
+  Input *mainInput = m_blendedInputs[0];
+  for (int d = 0; d < 3; d++)
+  {
+    outDim[d] = mainInput->extent[2*d+1] - mainInput->extent[2*d] + 1;
+    inDim[d] = input->extent[2*d+1] - input->extent[2*d] + 1;
+  }
+  
+  int numComponets = output->GetNumberOfScalarComponents();
+  
+  unsigned char *outputPtr = static_cast<unsigned char *>(output->GetScalarPointer());
+  unsigned char *inputPtr = static_cast<unsigned char *>(input->image->GetScalarPointer());
+  
+  bool isSelected = input->color[3];
+  
+  for (int z = updateArea[4]; z <= updateArea[5]; z++)
+    for (int y = updateArea[2]; y <= updateArea[3]; y++)
+      for (int x = updateArea[0]; x <= updateArea[1]; x++)
+      {
+	int outPix = x*numComponets + y* outDim[0]*numComponets + z* outDim[0]* outDim[1]*numComponets;
+	int inPix = (x-input->extent[0]) + (y-input->extent[2])* inDim[0] + (z-input->extent[4])* inDim[0]* inDim[1];//Inputs are monocrome
+	
+	if (inputPtr[inPix]) //Non 0 pixel
+	{
+	  for (int c = 0; c < numComponets; c++)
+	  {
+	    double r = Opacity + (isSelected?0.4:0);//constant opacity
+	    double f = 1.0 - r;
+	    outputPtr[outPix+c] = outputPtr[outPix+c]*f + input->color[c]*r;
+	  }
+	}
+      }
+}
+
+
 //! Run blending algorithm in the requested extent 
 void vtkImageLabelMapBlend::ThreadedRequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector, vtkImageData*** inData, vtkImageData** outData, int extent[6], int threadId)
 {
+  std::cout << "Request Threaded Data" << std::endl;
   vtkInformation *inInfo = 
     inputVector[0]->GetInformationObject(0); 
-  
   
   vtkInformation* outInfo = 
     outputVector->GetInformationObject(0); 
@@ -334,6 +465,7 @@ void vtkImageLabelMapBlend::ThreadedRequestData(vtkInformation* request, vtkInfo
   // blended inputs in the area
   for (unsigned int r = 0; r < m_removeInputs.size(); r++)
   {
+    std::cout << "Regenerate Blender" << std::endl;
     int removeAreaExtent[6];
     if (!intersect(m_removeInputs[r]->requestedAreaExtent,extent, removeAreaExtent))
       continue;
@@ -356,10 +488,14 @@ void vtkImageLabelMapBlend::ThreadedRequestData(vtkInformation* request, vtkInfo
 	vtkImageIterator<InputPixelType> inIt(input, inputRemoveExtent);
 	vtkImageProgressIterator<OutputPixelType> outIt(output, inputRemoveAreaExtent,this,threadId);
 	
+	std::cout << "Regenerating area ";
+	printExtent(inputRemoveAreaExtent);
+	
 	if (i == 0) // First input has to be copied, not blended
-	  copyInput(inIt,outIt);
+	  copyInput(m_blendedInputs[0],output,inputRemoveAreaExtent);
 	else
-	  blendInputs(inIt,outIt,m_blendedInputs[i]->color);
+	  blendInput(m_blendedInputs[i],output,inputRemoveAreaExtent);
+// 	  blendInputs(inIt,outIt,m_blendedInputs[i]->color);
       }
     }
   }
@@ -367,6 +503,7 @@ void vtkImageLabelMapBlend::ThreadedRequestData(vtkInformation* request, vtkInfo
   // Then, after all removed areas have been regenerated, new inputs have to be blended
   for (unsigned int i = 0; i < m_newInputs.size(); i++)
   {
+    std::cout << "Update Blender" << std::endl;
     int inputAreaExtent[6];
     if (!intersect(m_newInputs[i]->requestedAreaExtent, extent, inputAreaExtent))
       continue;
@@ -377,16 +514,40 @@ void vtkImageLabelMapBlend::ThreadedRequestData(vtkInformation* request, vtkInfo
     correctExtent(inputAreaExtent,*m_newInputs[i],inputExtent);
     vtkImageData *input  = m_newInputs[i]->image;//vtkImageData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
     vtkImageIterator<InputPixelType> inIt(input,inputExtent);
-    vtkImageIterator<OutputPixelType> outIt(output,inputAreaExtent);
+    //vtkImageIterator<OutputPixelType> outIt(output,inputAreaExtent);//Doesn't work if we change the update extent...
     
-    blendInputs(inIt, outIt, m_newInputs[i]->color);
+    std::cout << "Updating area ";
+    printExtent(inputAreaExtent);
+	
+//     blendInputs(inIt, outIt, m_newInputs[i]->color);
+    blendInput(m_newInputs[i], output,inputAreaExtent);
+    
   }
+  
+  
   
 //   std::cout << "\n\t\tCOLORING BLENDER: " << m_debugProcessedPixels << " pixel processed\n\n" << std::endl;
 }
 
 int vtkImageLabelMapBlend::RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
+  std::cout << "Request Data" << std::endl;
+/*  
+  vtkInformation* outInfo = outputVector->GetInformationObject(0); 
+  if (m_newInputs.size() > 0)
+  {
+    std::cout << "Updating new Extent ";
+    Input *input = m_newInputs[0];
+    outInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(),
+		 input->requestedAreaExtent,
+		 6);
+  } else if (m_blendedInputs.size() > 0)
+  {
+    std::cout << "Updating zero Extent ";
+    outInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(),
+		 m_blendedInputs[0]->requestedAreaExtent,
+		 6);
+  }*/
   // Start threaded execution
   int res = vtkThreadedImageAlgorithm::RequestData(request, inputVector, outputVector);
   // End of thredaed execution
@@ -446,6 +607,12 @@ bool vtkImageLabelMapBlend::requestArea(vtkImageData *inputImage)
   //   input.blended = false;
   for (int i = 0; i<6; i++)
     input->requestedAreaExtent[i] = input->bounds[i] / input->spacing[i/2];
+   
+//   for (int i = 0; i<3; i++)
+//   {
+//     input->requestedAreaExtent[2*i] = std::max(int(input->bounds[2*i] / input->spacing[i]), input->extent[2*i]);
+//     input->requestedAreaExtent[2*i+1] = std::min(int(input->bounds[2*i+1] / input->spacing[i]), input->extent[2*i+1]);
+//   }
   
   // To force blending of initial image
  if (m_newInputs.size() == 0 && m_blendedInputs.size() == 0 && m_removeInputs.size() == 0)

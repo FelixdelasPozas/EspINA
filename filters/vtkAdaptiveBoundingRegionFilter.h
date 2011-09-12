@@ -26,24 +26,18 @@
 */
 
 
-#ifndef VTKBOUNDINGREGIONFILTER_H
-#define VTKBOUNDINGREGIONFILTER_H
+#ifndef VTKADAPTATIVEBOUNDINGREGIONFILTER_H
+#define VTKADAPTATIVEBOUNDINGREGIONFILTER_H
 
 #include <vtkPolyDataAlgorithm.h>
 
-#define Left Inclusion[0]
-#define Top Inclusion[1]
-#define Upper Inclusion[2]
-#define Right Exclusion[0]
-#define Bottom Exclusion[1]
-#define Lower Exclusion[2]
 
-class VTK_IMAGING_EXPORT vtkBoundingRegionFilter
+class VTK_IMAGING_EXPORT vtkAdaptiveBoundingRegionFilter
       : public vtkPolyDataAlgorithm
 {
 public:
-  static vtkBoundingRegionFilter *New();
-  vtkTypeMacro(vtkBoundingRegionFilter, vtkPolyDataAlgorithm);
+  static vtkAdaptiveBoundingRegionFilter *New();
+  vtkTypeMacro(vtkAdaptiveBoundingRegionFilter, vtkPolyDataAlgorithm);
 
   //! Inclusion Coordinates (Left, Top, Upper)
   vtkSetVector3Macro(Inclusion,int);
@@ -57,8 +51,8 @@ protected:
   virtual int RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector);
 
 protected:
-  vtkBoundingRegionFilter();
-  virtual ~vtkBoundingRegionFilter();
+  vtkAdaptiveBoundingRegionFilter();
+  virtual ~vtkAdaptiveBoundingRegionFilter();
 
 private:
  // virtual vtkBoundingRegionFilter& operator=(const vtkBoundingRegionFilter& other); // Not implemented
@@ -67,4 +61,4 @@ private:
  int Exclusion[3];
 };
 
-#endif // VTKBOUNDINGREGIONFILTER_H
+#endif // VTKADAPTATIVEBOUNDINGREGIONFILTER_H

@@ -26,35 +26,39 @@
 */
 
 
-#ifndef VTKCOUNTINGREGION_H
-#define VTKCOUNTINGREGION_H
+#ifndef VTKRECTANGULARBOUNDINGREGIONFILTER_H
+#define VTKRECTANGULARBOUNDINGREGIONFILTER_H
 
-#include <vtkImageAlgorithm.h>
+#include <vtkPolyDataAlgorithm.h>
 
-class VTK_IMAGING_EXPORT vtkCountingRegionFilter
-: public vtkImageAlgorithm
+
+class VTK_IMAGING_EXPORT vtkRectangularBoundingRegionFilter
+      : public vtkPolyDataAlgorithm
 {
 public:
-  static vtkCountingRegionFilter *New();
-  vtkTypeMacro(vtkCountingRegionFilter, vtkImageAlgorithm);
-  
-  //! Determine if input(0) has to be discarted or not
-  vtkGetMacro(Discarted,int);
-  //int GetDiscarted();
+  static vtkRectangularBoundingRegionFilter *New();
+  vtkTypeMacro(vtkRectangularBoundingRegionFilter, vtkPolyDataAlgorithm);
 
-  
+  //! Inclusion Coordinates (Left, Top, Upper)
+  vtkSetVector3Macro(Inclusion,int);
+  vtkGetVector3Macro(Inclusion,int);
+  //! Exclusion Coordinates (Right, Bottom, Lower)
+  vtkSetVector3Macro(Exclusion,int);
+  vtkGetVector3Macro(Exclusion,int);
 protected:
-//   virtual int RequestInformation(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector);
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
-  //virtual int FillOutputPortInformation(int port, vtkInformation* info);
+//   virtual int FillInputPortInformation(int port, vtkInformation* info);
+  virtual int FillOutputPortInformation(int port, vtkInformation* info);
   virtual int RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector);
 
 protected:
-  vtkCountingRegionFilter();
-  virtual ~vtkCountingRegionFilter();
-  
+  vtkRectangularBoundingRegionFilter();
+  virtual ~vtkRectangularBoundingRegionFilter();
+
 private:
-  int Discarted;
+ // virtual vtkBoundingRegionFilter& operator=(const vtkBoundingRegionFilter& other); // Not implemented
+ // virtual bool operator==(const vtkBoundingRegionFilter& other) const;// Not implemented
+ int Inclusion[3];
+ int Exclusion[3];
 };
 
-#endif // VTKCOUNTINGREGION_H
+#endif // VTKRECTANGULARBOUNDINGREGIONFILTER_H

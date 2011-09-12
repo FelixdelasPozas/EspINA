@@ -38,13 +38,72 @@
 
 #include <assert.h>
 #include <vtkPolyData.h>
+#include <vtkStreamingDemandDrivenPipeline.h>
+#include <vtkCellArray.h>
+#include <vtkCellData.h>
+
+#include <math.h>
+
+class BoundingBox
+{
+  double xMin, xMax;
+  double yMin, yMax;
+  double zMin, zMax;
+  
+public:
+  BoundingBox(vtkPoints *points);
+  BoundingBox(vtkImageData *image);
+  bool intersect(BoundingBox &bb);
+};
+
+BoundingBox::BoundingBox(vtkPoints* points)
+{
+  assert(points->GetNumberOfPoints());
+  // Init Bounding Box
+  xMax = xMin = points->GetPoint(0)[0];
+  yMax = yMin = points->GetPoint(0)[1];
+  zMax = zMin = points->GetPoint(0)[2];
+  
+  for (int p=1; p < points->GetNumberOfPoints(); p++)
+  {
+    xMin = std::min(xMin, points->GetPoint(p)[0]);
+    xMax = std::max(xMax, points->GetPoint(p)[0]);
+    yMin = std::min(yMin, points->GetPoint(p)[1]);
+    yMax = std::max(yMax, points->GetPoint(p)[1]);
+    zMin = std::min(zMin, points->GetPoint(p)[2]);
+    zMax = std::max(zMax, points->GetPoint(p)[2]);
+  }
+}
+
+BoundingBox::BoundingBox(vtkImageData* image)
+{
+  double bounds[6];
+  image->GetBounds(bounds);
+  xMin = bounds[0];
+  xMax = bounds[1];
+  yMin = bounds[2];
+  yMax = bounds[3];
+  zMin = bounds[4];
+  zMax = bounds[5];
+}
+
+
+bool BoundingBox::intersect(BoundingBox& bb)
+{
+  bool xOverlap = xMin < bb.xMax && xMax > bb.xMin;
+  bool yOverlap = yMin < bb.yMax && yMax > bb.yMin;
+  bool zOverlap = zMin < bb.zMax && zMax > bb.zMin;
+  
+  return xOverlap && yOverlap && zOverlap;
+}
+
+
 
 vtkStandardNewMacro(vtkCountingRegionFilter);
 
 vtkCountingRegionFilter::vtkCountingRegionFilter()
 {
-  this->SetNumberOfInputPorts(2);
-  this->SetNumberOfOutputPorts(1);
+  this->SetNumberOfInputPorts(1);
 }
 
 vtkCountingRegionFilter::~vtkCountingRegionFilter()
@@ -52,21 +111,39 @@ vtkCountingRegionFilter::~vtkCountingRegionFilter()
 
 }
 
+// int vtkCountingRegionFilter::RequestInformation(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
+// {
+//   // get the info objects
+//   vtkInformation* outInfo = outputVector->GetInformationObject(0);
+//   vtkInformation *inInfo = inputVector[0]->GetInformationObject(0);
+// //   vtkInformation *inInfo2 = inputVector[1]->GetInformationObject(0);
+// 
+//   int ext[6], ext2[6], idx;
+// 
+//   inInfo->Get(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),ext);
+//   outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(),ext,6);
+// 
+//   return 1;
+// 
+// }
+
+
 int vtkCountingRegionFilter::FillInputPortInformation(int port, vtkInformation* info)
 {
   if (port == 0) // Any number volume volume images
   {
-    info->Set(vtkDataObject::DATA_TYPE_NAME(), "vtkImageData");
+//     info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkImageData");
+      info->Set(vtkAlgorithm::INPUT_IS_REPEATABLE(), 1);
     return 1;
   }
   else 
-    if (port == 1)// The bounding regions which defines valid/invalid inputs
-    {
-      info->Set(vtkAlgorithm::INPUT_IS_OPTIONAL(), 1);
-      info->Set(vtkAlgorithm::INPUT_IS_REPEATABLE(), 1);
-      info->Set(vtkDataObject::DATA_TYPE_NAME(), "vtkPolyData");
-      return 1;
-    }
+//     if (port == 1)// The bounding regions which defines valid/invalid inputs
+//     {
+//       info->Set(vtkAlgorithm::INPUT_IS_OPTIONAL(), 1);
+//       info->Set(vtkAlgorithm::INPUT_IS_REPEATABLE(), 1);
+//       info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkPolyData");
+//       return 1;
+//     }
 
   vtkErrorMacro("This filter does not have more than 2 input port!");
   return 0;
@@ -91,46 +168,80 @@ int vtkCountingRegionFilter::FillOutputPortInformation(int port, vtkInformation*
 }
 */
 
+bool realCollision(vtkImageData *input, vtkPoints *face)
+{
+  return true;
+}
+
+bool discartedByRegion(vtkImageData *input, BoundingBox &inputBB, vtkPolyData *region)
+{
+  vtkPoints *regionPoints = region->GetPoints();
+  vtkCellArray *regionFaces = region->GetPolys();
+  vtkCellData *faceData = region->GetCellData();
+  
+  BoundingBox regionBB(regionPoints);
+  
+  // If there is no intersection (nor is inside), then it is discarted
+  if (!inputBB.intersect(regionBB))
+    return true;
+  
+  // Otherwise, we have to test all faces collisions
+  int numOfCells = regionFaces->GetNumberOfCells();
+  regionFaces->InitTraversal();
+  for(int f=0; f < numOfCells; f++)
+  {
+    vtkIdType npts, *pts;
+    regionFaces->GetNextCell(npts, pts);
+    
+    vtkSmartPointer<vtkPoints> facePoints = vtkSmartPointer<vtkPoints>::New();
+    for (int i=0; i < npts; i++)
+      facePoints->InsertNextPoint(regionPoints->GetPoint(pts[i]));
+    
+    BoundingBox faceBB(facePoints);
+    if (inputBB.intersect(faceBB) && realCollision(input, facePoints))
+      if (faceData->GetScalars()->GetComponent(f,0) == 255)
+	return false;
+      else
+	return true;
+  }
+  
+  // If no collision was detected we have to check for inclusion
+  for (int p=0; p < regionPoints->GetNumberOfPoints(); p +=8)
+  {
+    vtkSmartPointer<vtkPoints> slicePoints = vtkSmartPointer<vtkPoints>::New();
+    for (int i=0; i < 8; i++)
+	slicePoints->InsertNextPoint(regionPoints->GetPoint(p+i));
+    
+    BoundingBox sliceBB(slicePoints);
+    if (inputBB.intersect(sliceBB))
+      return false;//!realCollision(input, slicePoints);
+  }
+  
+  // If no internal collision was detected, then the input was indeed outside our 
+  // bounding region
+  return true;
+}
 
 int vtkCountingRegionFilter::RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
-  vtkInformation *inInfo0 = inputVector[0]->GetInformationObject(0);
-  vtkInformation *outInfo = outputVector->GetInformationObject(0);
-  
-  //int numConnections = outputVector->GetNumberOfInformationObjects();
-  //vtkInformation *outInfo1 = outputVector->GetInformationObject(0);
+  vtkInformation *inputInfo = inputVector[0]->GetInformationObject(0);
   int numSeg = inputVector[0]->GetNumberOfInformationObjects();
-  int numRegions = inputVector[1]->GetNumberOfInformationObjects();
 
-  vtkImageData *input0 = NULL;
+  vtkImageData *input = NULL;
   if (numSeg)
-    input0 = vtkImageData::SafeDownCast(inInfo0->Get(vtkDataObject::DATA_OBJECT()));
+    input = vtkImageData::SafeDownCast(inputInfo->Get(vtkDataObject::DATA_OBJECT()));
+
+  BoundingBox inputBB(input);
   
   Discarted = 0;
-  vtkPolyData *regions = NULL;
-  vtkInformation *regionInfo = NULL;
-  for (int r = 0; r < numRegions; r++)
-  {
-    regionInfo = inputVector[1]->GetInformationObject(r);
-    regions = vtkPolyData::SafeDownCast(regionInfo->Get(vtkDataObject::DATA_OBJECT()));
-    double bounds[6];
-    regions->GetPoints()->GetBounds(bounds);
-    if (numRegions > 1)
-      Discarted = 1;
-  }
-/*
-  vtkArrayData *result = vtkArrayData::SafeDownCast(
-    outInfo->Get(vtkDataObject::DATA_OBJECT())
-  );
-  //vtkIntArray *output1 = vtkIntArray::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
-  
-  //vtkIntArray *output = vtkIntArray::GetData(outputVector);
-  assert(!result->GetNumberOfArrays());
-  vtkDenseArray<int> *array = vtkDenseArray<int>::New();
-  array->Resize(1);
-  
-  array->SetValue(0,1);
+  for (int r = 1; r < numSeg; r++)
+  { 
+    vtkInformation *regionInfo =  inputVector[0]->GetInformationObject(r);
+    vtkPolyData *region= vtkPolyData::SafeDownCast(regionInfo->Get(vtkDataObject::DATA_OBJECT()));
     
-  result->AddArray(array);*/
+    if (Discarted = discartedByRegion(input, inputBB, region))
+      break;
+  }
+  
   return 1;
 }

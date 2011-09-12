@@ -22,7 +22,7 @@
 
 #include <QVariant>
 
-class IModelItem
+class IModelItem : public QObject
 {
 public:
     IModelItem();
