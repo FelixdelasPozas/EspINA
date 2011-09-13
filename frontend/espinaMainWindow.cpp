@@ -230,10 +230,15 @@ EspinaMainWindow::EspinaMainWindow()
   SegmentationEditor *segEditor = new SegmentationEditor();
   Internals->segmentationView->setItemDelegate(segEditor);
   Internals->segmentationView->installEventFilter(this);
+  Internals->segmentationInformation->setIcon(qApp->style()->standardIcon(QStyle::SP_MessageBoxInformation));
   connect(Internals->segmentationView,SIGNAL(doubleClicked(QModelIndex)),
 	  this,SLOT(focusOnSegmentation()));
   connect(Internals->deleteSegmentation, SIGNAL(clicked()),
           this, SLOT(deleteSegmentations()));
+  connect(Internals->segmentationInformation,SIGNAL(clicked(bool)),
+	  this,SLOT(showSegmentationInformation()));
+//   connect(Internals->segmentationView,SIGNAL(clicked(QModelIndex)),
+// 	  this, SLOT(()));
 //   connect(Internals->segmentationView, SIGNAL(clicked(QModelIndex)),
 // 	  this, SLOT(focusOnSegmentation()));
   
@@ -751,12 +756,10 @@ void EspinaMainWindow::focusOnSegmentation()
     CrosshairExtension::SampleRepresentation *cross = dynamic_cast<CrosshairExtension::SampleRepresentation *>(origin->representation(CrosshairExtension::SampleRepresentation::ID));
     assert(cross);
     QString args = seg->parent()->getFilterArguments();
-    qDebug() << "Args" << args;
     int startArg = args.indexOf("Seed");
     int endArg = args.indexOf(";",startArg);
     startArg += 5; // To remove Seed= from the string
     QString seedArg = args.mid(startArg,endArg-startArg);
-    qDebug() << seedArg;
     QStringList seed = seedArg.split(",");
 //     double spacing[3];
 //     origin->spacing(spacing);
@@ -768,6 +771,36 @@ void EspinaMainWindow::focusOnSegmentation()
     int z = seed[2].toInt();
     cross->centerOn(x,y,z);
   }
+}
+
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::showSegmentationInformation()
+{
+  foreach(QModelIndex index, 
+    Internals->segmentationView->selectionModel()->selectedIndexes())
+  {
+    IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+    Segmentation *seg = dynamic_cast<Segmentation *>(item);
+    if (seg)
+    {
+      if (!m_segDialogs.contains(seg))
+      {
+	SegmentationExplorer *explorer = new SegmentationExplorer(seg);
+	connect(explorer,SIGNAL(segmentationInformationHiden(Segmentation*)),
+		this, SLOT(hideSegmentationInformation(Segmentation*)));
+	m_segDialogs.insert(seg,explorer);
+      }
+      m_segDialogs[seg]->show();
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::hideSegmentationInformation(Segmentation *seg)
+{
+  delete m_segDialogs[seg];
+  m_segDialogs.remove(seg);
 }
 
 

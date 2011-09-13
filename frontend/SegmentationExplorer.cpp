@@ -41,6 +41,7 @@
 SegmentationExplorer::SegmentationExplorer(Segmentation *seg, QWidget* parent, Qt::WindowFlags f)
 : QWidget(parent, f)
 , view(NULL)
+, m_seg(NULL)
 {
   setupUi(this);
   
@@ -66,11 +67,13 @@ SegmentationExplorer::SegmentationExplorer(Segmentation *seg, QWidget* parent, Q
     seg->representation("Mesh")->render(view);
     //SeedGrowSegmentationFilter *filter = dynamic_cast<SeedGrowSegmentationFilter*>(seg->parent());
     //this->m_threshold->setValue(filter->threshold());
+    m_seg = seg;
   }
 }
 
 SegmentationExplorer::~SegmentationExplorer()
 {
+  emit segmentationInformationHiden(m_seg);
   pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
   ob->destroy(view);
 }
