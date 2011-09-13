@@ -51,6 +51,8 @@ public:
   
   void initializeExtension(SegmentationExtension *ext);
   
+  bool eventFilter(QObject *object, QEvent *event);
+  
 public slots:
   void focusSampleChanged(Sample *sample);
   
@@ -58,6 +60,7 @@ public slots:
   
   void createBoundingRegion();
   void removeBoundingRegion();
+  
   //void onAction(QAction *action);
   
 private:

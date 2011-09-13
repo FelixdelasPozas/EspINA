@@ -610,10 +610,10 @@ void EspinaMainWindow::updateSelection(const QItemSelection& selected, const QIt
 	if (seg)
 	{
 	  seg->setSelected(true);
+	  needUpdate = needUpdate || seg->visible();
 	  lastModified = seg;
 	}
 	m_sourceSelection.append(sourceIndex);
-	needUpdate = true;
       }
     }
   }
@@ -635,9 +635,9 @@ void EspinaMainWindow::updateSelection(const QItemSelection& selected, const QIt
 	{
 	  seg->setSelected(false);
 	  lastModified = seg;
+	  needUpdate = needUpdate || seg->visible();
 	}
 	m_sourceSelection.removeOne(sourceIndex);
-	needUpdate = true;
       }
     }
   }
@@ -658,7 +658,7 @@ void EspinaMainWindow::updateSelection(const QItemSelection& selected, const QIt
     }
     selModel->select(proxySelection,QItemSelectionModel::ClearAndSelect);
   }
-  if (lastModified)
+  if (lastModified && needUpdate)
     lastModified->origin()->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
 }
 

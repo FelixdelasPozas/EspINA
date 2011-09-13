@@ -143,6 +143,7 @@ private:
   QVBoxLayout *m_mainLayout;
   QHBoxLayout *m_controlLayout;
   vtkInteractorStyleEspina *m_style;
+  pqPipelineSource *m_regionCut;
 };
 
 #endif // SLICEVIEW_H

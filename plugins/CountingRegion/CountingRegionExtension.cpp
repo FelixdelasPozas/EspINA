@@ -42,6 +42,10 @@
 #include <vtkBoxWidget2.h>
 #include <vtkSMNewWidgetRepresentationProxy.h>
 #include <pqScalarsToColors.h>
+#include <vtkSMPVRepresentationProxy.h>
+#include "vtkRectangularBoundingRegionWidget.h"
+#include <crosshairExtension.h>
+#include <pqView.h>
 
 //!-----------------------------------------------------------------------
 //! COUNTING REGION SEGMENTATION EXTENSION
@@ -245,11 +249,15 @@ RectangularRegion::RectangularRegion(Sample* sample,
     qDebug() << "Couldn't create Bounding Region Filter";
     assert(false);
   }
-  pqObjectBuilder *builder =  pqApplicationCore::instance()->getObjectBuilder();
-  m_box =  builder->createProxy("implicit_functions","Box",pqApplicationCore::instance()->getActiveServer(),"widgets");
+//   pqObjectBuilder *builder =  pqApplicationCore::instance()->getObjectBuilder();
+//   m_box =  builder->createProxy("implicit_functions","NonRotatingBox",pqApplicationCore::instance()->getActiveServer(),"widgets");
   
-  QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(m_sample->creator()->pipelineSource()->getProxy(), m_box);
-  m_widget = widgets.first();
+  m_boundigRegion->pipelineSource()->updatePipeline();
+  for (int i=0; i<4; i++)
+  {
+    QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(m_boundigRegion->pipelineSource()->getProxy(), m_boundigRegion->pipelineSource()->getProxy());
+    m_widget[i] = widgets.first();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -260,22 +268,46 @@ RectangularRegion::~RectangularRegion()
 //------------------------------------------------------------------------
 void RectangularRegion::render(pqView* view, ViewType type)
 {
-//   m_widget->setView(view);
-//   m_widget->setWidgetVisible(true);
-//   m_widget->select();
-  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-  pqDataRepresentation *dr = dp->setRepresentationVisibility(pipelineSource()->getOutputPort(0),view,true);
-  pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
-  rep->setColorField("Type");
-  
-  vtkSMProxy * lut = rep->getLookupTableProxy();
-  double colors[8] = {0,1,0,0,255,0,1,0};
-  vtkSMPropertyHelper(lut,"RGBPoints").Set(colors,8);
-  lut->UpdateVTKObjects();
-  
-  double opacity = 0.7;
-  vtkSMPropertyHelper(rep->getProxy(),"Opacity").Set(opacity);
-  rep->getProxy()->UpdateVTKObjects();
+    if (type == VIEW_3D && m_widget)
+    {
+//       pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+//       pqDataRepresentation *dr = dp->setRepresentationVisibility(pipelineSource()->getOutputPort(0),view,true);
+//       pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
+//       rep->setRepresentation(vtkSMPVRepresentationProxy::SURFACE);
+//       rep->setColorField("Type");
+//       vtkSMProxy * lut = rep->getLookupTableProxy();
+//       double colors[8] = {0,1,0,0,255,0,1,0};
+//       vtkSMPropertyHelper(lut,"RGBPoints").Set(colors,8);
+//       lut->UpdateVTKObjects();
+//       
+//       double opacity = 0.7;
+//       vtkSMPropertyHelper(rep->getProxy(),"Opacity").Set(opacity);
+//       rep->getProxy()->UpdateVTKObjects();
+    }
+//     else
+//     {
+  if (!m_widget[type]->isVisible())
+  {
+    m_widget[type]->setView(view);
+    m_widget[type]->select();
+  }
+  vtkRectangularBoundingRegionWidget *regionwidget = dynamic_cast<vtkRectangularBoundingRegionWidget*>(m_widget[type]->getWidgetProxy()->GetWidget());
+  assert(regionwidget);
+  CrosshairExtension::SampleRepresentation *samRep = dynamic_cast<CrosshairExtension::SampleRepresentation *>(m_sample->representation("Crosshairs"));
+//   if (type == VIEW_3D)
+//   {
+//     regionwidget->SetViewType(VIEW_PLANE_XZ);
+//     regionwidget->SetSlice(samRep->slice(VIEW_PLANE_XZ));
+//   }
+//   else
+//   {
+//     regionwidget->SetViewType(type);
+//     regionwidget->SetSlice(samRep->slice(type));
+//   }
+  double spacing[3];
+  m_sample->spacing(spacing);
+  regionwidget->SetViewType(type);
+  regionwidget->SetSlice(samRep->slice(type)*spacing[type]);
 }
 
 //------------------------------------------------------------------------
@@ -320,6 +352,13 @@ AdaptiveRegion::AdaptiveRegion(Sample* sample, int left, int top, int upper, int
     qDebug() << "Couldn't create Bounding Region Filter";
     assert(false);
   }
+    
+  m_boundigRegion->pipelineSource()->updatePipeline();
+  for (int i=0; i<4; i++)
+  {
+    QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(m_boundigRegion->pipelineSource()->getProxy(), m_boundigRegion->pipelineSource()->getProxy());
+    m_widget[i] = widgets.first();
+  }
 }
 
 
@@ -330,19 +369,39 @@ AdaptiveRegion::~AdaptiveRegion()
 
 void AdaptiveRegion::render(pqView* view, ViewType type)
 {
-  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-  pqDataRepresentation *dr = dp->setRepresentationVisibility(pipelineSource()->getOutputPort(0),view,true);
-  pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
-  
-  vtkSMProxy * lut = rep->getLookupTableProxy();
-  double colors[8] = {0,1,0,0,255,0,1,0};
-  vtkSMPropertyHelper(lut,"RGBPoints").Set(colors,8);
-  lut->UpdateVTKObjects();
-  
-  
-  double opacity = 0.5;
-  vtkSMPropertyHelper(rep->getProxy(),"Opacity").Set(opacity);
-  rep->getProxy()->UpdateVTKObjects();
+//   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+//   pqDataRepresentation *dr = dp->setRepresentationVisibility(pipelineSource()->getOutputPort(0),view,true);
+//   pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
+//   rep->setRepresentation(vtkSMPVRepresentationProxy::WIREFRAME);
+//   vtkSMProxy * lut = rep->getLookupTableProxy();
+//   double colors[8] = {0,1,0,0,255,0,1,0};
+//   vtkSMPropertyHelper(lut,"RGBPoints").Set(colors,8);
+//   lut->UpdateVTKObjects();
+//   
+//   
+//   double opacity = 0.5;
+//   vtkSMPropertyHelper(rep->getProxy(),"Opacity").Set(opacity);
+//   rep->getProxy()->UpdateVTKObjects();
+// vtkRectangularBoundingRegionWidget *regionwidget = dynamic_cast<vtkRectangularBoundingRegionWidget*>(m_widget[type]->getWidgetProxy()->GetWidget());
+// assert(regionwidget);
+// CrosshairExtension::SampleRepresentation *samRep = dynamic_cast<CrosshairExtension::SampleRepresentation *>(m_sample->representation("Crosshairs"));
+// regionwidget->SetSlice(samRep->slice(type));
+// regionwidget->SetViewType(type);
+// m_widget[type]->setView(view);
+// m_widget[type]->select();
+
+if (!m_widget[type]->isVisible())
+  {
+    m_widget[type]->setView(view);
+    m_widget[type]->select();
+  }
+  vtkRectangularBoundingRegionWidget *regionwidget = dynamic_cast<vtkRectangularBoundingRegionWidget*>(m_widget[type]->getWidgetProxy()->GetWidget());
+  assert(regionwidget);
+  CrosshairExtension::SampleRepresentation *samRep = dynamic_cast<CrosshairExtension::SampleRepresentation *>(m_sample->representation("Crosshairs"));
+  double spacing[3];
+  m_sample->spacing(spacing);
+  regionwidget->SetViewType(type);
+  regionwidget->SetSlice(samRep->slice(type)*spacing[type]);
 }
 
 //------------------------------------------------------------------------
