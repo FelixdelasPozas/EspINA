@@ -750,11 +750,22 @@ void EspinaMainWindow::focusOnSegmentation()
     Sample *origin = seg->origin();
     CrosshairExtension::SampleRepresentation *cross = dynamic_cast<CrosshairExtension::SampleRepresentation *>(origin->representation(CrosshairExtension::SampleRepresentation::ID));
     assert(cross);
-    double spacing[3];
-    origin->spacing(spacing);
-    int x = seg->information("Centroid X").toInt() / spacing[0];
-    int y = seg->information("Centroid Y").toInt() / spacing[1];
-    int z = seg->information("Centroid Z").toInt() / spacing[2];
+    QString args = seg->parent()->getFilterArguments();
+    qDebug() << "Args" << args;
+    int startArg = args.indexOf("Seed");
+    int endArg = args.indexOf(";",startArg);
+    startArg += 5; // To remove Seed= from the string
+    QString seedArg = args.mid(startArg,endArg-startArg);
+    qDebug() << seedArg;
+    QStringList seed = seedArg.split(",");
+//     double spacing[3];
+//     origin->spacing(spacing);
+// //     int x = seg->information("Centroid X").toInt() / spacing[0];
+//     int y = seg->information("Centroid Y").toInt() / spacing[1];
+//     int z = seg->information("Centroid Z").toInt() / spacing[2];
+    int x = seed[0].toInt();
+    int y = seed[1].toInt();
+    int z = seed[2].toInt();
     cross->centerOn(x,y,z);
   }
 }
