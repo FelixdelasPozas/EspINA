@@ -116,7 +116,14 @@ void VolumeView::connectToServer()
     pqRenderView::renderViewType(), server));
   m_viewWidget = m_view->getWidget();
   m_mainLayout->insertWidget(0,m_viewWidget);//To preserver view order
+  
   m_view->setCenterAxesVisibility(false);
+  vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast(m_view->getProxy());
+  assert(viewProxy);
+  vtkCamera *cam = viewProxy->GetActiveCamera();
+  cam->Azimuth(180);
+  cam->Roll(180);
+  
   double black[3] = {0,0,0};
   m_view->getRenderViewProxy()->SetBackgroundColorCM(black);
   

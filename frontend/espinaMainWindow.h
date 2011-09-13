@@ -43,6 +43,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <qitemselectionmodel.h>
 #include <selectionManager.h>
 
+class SegmentationExplorer;
 class ISelectionHandler;
 class QItemSelectionModel;
 class QTreeView;
@@ -95,6 +96,8 @@ protected slots:
   // Manage Sample Explorer
   void focusOnSample();
   void focusOnSegmentation();
+  void showSegmentationInformation();
+  void hideSegmentationInformation(Segmentation* seg);
   
   void toggleVisibility(bool visible);
   virtual bool eventFilter(QObject* obj, QEvent* event);
@@ -134,6 +137,8 @@ private:
   // Model/View Selection Model
   QList<QItemSelectionModel *>m_selectionModels;
   QModelIndexList m_sourceSelection;
+  
+  QMap<Segmentation *,SegmentationExplorer *> m_segDialogs;
 };
 
 #endif //ESPINA_MAIN_WINDOW_H

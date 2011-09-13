@@ -411,10 +411,15 @@ void SliceView::connectToServer()
     case VIEW_PLANE_YZ:
       m_cam->SetPosition(1, 0, 0);
       m_cam->SetFocalPoint(0, 0, 0);
+      m_cam->SetRoll(180);
       break;
     case VIEW_PLANE_XZ:
-      m_cam->SetPosition(0, 1, 0);
-      m_cam->SetFocalPoint(0, 0, 0);
+//       m_cam->SetPosition(0, 1, 0);
+//       m_cam->SetFocalPoint(0, 0, 0);
+      m_cam->Roll(90);
+      m_cam->Azimuth(90);
+      m_cam->Roll(90);
+      m_cam->Elevation(180);
       break;
     default:
       assert(false);
