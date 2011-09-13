@@ -46,6 +46,7 @@
 #include "vtkRectangularBoundingRegionWidget.h"
 #include <crosshairExtension.h>
 #include <pqView.h>
+#include <vtkWidgetRepresentation.h>
 
 //!-----------------------------------------------------------------------
 //! COUNTING REGION SEGMENTATION EXTENSION

@@ -162,7 +162,12 @@ void createRepresentation(pqView *view, pqOutputPort *port, int crossHairPlane)
       vtkSMProxy *repProxy = rep->getProxy();
       
       double color[4] = {0,0,0.0,1.0};
-      color[crossHairPlane] = 1.0;
+      if (crossHairPlane == VIEW_PLANE_XY)
+	color[1] = color[2] = 1.0;
+      if (crossHairPlane == VIEW_PLANE_YZ)
+	color[2] = color[0] = 1.0;
+      if (crossHairPlane == VIEW_PLANE_XZ)
+	color[2] = color[2] = 1.0;
       vtkSMPropertyHelper(repProxy,"AmbientColor").Set(color,3);
       vtkSMPropertyHelper(repProxy,"Pickable").Set(pickable);;
       repProxy->UpdateVTKObjects();

@@ -3,6 +3,7 @@
 
 #include "vtkWidgetRepresentation.h"
 
+class vtkLookupTable;
 class vtkPolyDataAlgorithm;
 class vtkActor;
 class vtkPolyDataMapper;
@@ -126,6 +127,7 @@ protected:
   vtkActor          *InclusionActor;
   vtkPolyDataMapper *InclusionMapper;
   vtkPolyData       *InclusionPolyData;
+  vtkLookupTable    *InclusionLUT;
 
   // bounding face (4 lines)
   vtkPoints         *BoundingFacePoints;
@@ -159,7 +161,6 @@ protected:
   vtkProperty *FaceProperty;
   vtkProperty *SelectedFaceProperty;
   vtkProperty *InclusionProperty;
-  vtkProperty *BoundingFaceProperty;
   vtkProperty *InvisibleProperty;
   vtkProperty *SelectedOutlineProperty;
   virtual void CreateDefaultProperties();

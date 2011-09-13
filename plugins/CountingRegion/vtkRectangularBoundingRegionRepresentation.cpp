@@ -27,6 +27,7 @@
 #include <vtkPolyDataAlgorithm.h>
 #include <vtkCellData.h>
 #include <vtkPoints.h>
+#include <vtkLookupTable.h>
 
 
 vtkStandardNewMacro(vtkRectangularBoundingRegionRepresentation);
@@ -47,8 +48,15 @@ vtkRectangularBoundingRegionRepresentation::vtkRectangularBoundingRegionRepresen
 
   // Construct the poly data representing the bounding region
   this->InclusionPolyData = vtkPolyData::New();
+  this->InclusionLUT = vtkLookupTable::New();
+  this->InclusionLUT->SetNumberOfTableValues(2);
+  this->InclusionLUT->Build();
+  InclusionLUT->SetTableValue(0,1,0,0);
+  InclusionLUT->SetTableValue(1,0,1,0);
+  
   this->InclusionMapper = vtkPolyDataMapper::New();
   this->InclusionMapper->SetInput(InclusionPolyData);
+  this->InclusionMapper->SetLookupTable(this->InclusionLUT);
   this->InclusionActor = vtkActor::New();
   this->InclusionActor->SetMapper(this->InclusionMapper);
   this->InclusionActor->SetProperty(this->InclusionProperty);
@@ -57,9 +65,7 @@ vtkRectangularBoundingRegionRepresentation::vtkRectangularBoundingRegionRepresen
   this->BoundingFacePolyData = vtkPolyData::New();
   this->BoundingFaceMapper = vtkPolyDataMapper::New();
   this->BoundingFaceMapper->SetInput(BoundingFacePolyData);
-//   this->BoundingFaceActor = vtkActor::New();
-//   this->BoundingFaceActor->SetMapper(this->BoundingFaceMapper);
-//   this->BoundingFaceActor->SetProperty(this->BoundingFaceProperty);
+  this->BoundingFaceMapper->SetLookupTable(InclusionLUT);
 
   // Construct initial points
   this->Points = vtkPoints::New(VTK_DOUBLE);
@@ -193,7 +199,6 @@ vtkRectangularBoundingRegionRepresentation::~vtkRectangularBoundingRegionReprese
   this->FaceProperty->Delete();
   this->SelectedFaceProperty->Delete();
   this->InclusionProperty->Delete();
-  this->BoundingFaceProperty->Delete();
   this->SelectedOutlineProperty->Delete();
 }
 
@@ -582,22 +587,13 @@ void vtkRectangularBoundingRegionRepresentation::CreateDefaultProperties()
   
   // Inclusive Outline properties
   this->InclusionProperty = vtkProperty::New();
-//   this->InclusionProperty->SetRepresentationToWireframe();
   this->InclusionProperty->SetRepresentationToSurface();
   this->InclusionProperty->SetOpacity(0.7);
 //   this->InclusionProperty->SetAmbient(1.0);
   this->InclusionProperty->SetDiffuse(1.0);
 //   this->InclusionProperty->SetAmbientColor(0.0,1.0,0.0);
 //   this->InclusionProperty->SetDiffuseColor(0.0,1.0,0.0);
-  this->InclusionProperty->SetLineWidth(2.0);
-
-  // Exclusive Outline properties
-  this->BoundingFaceProperty = vtkProperty::New();
-  this->BoundingFaceProperty->SetRepresentationToWireframe();
-  this->BoundingFaceProperty->SetAmbient(1.0);
-  this->BoundingFaceProperty->SetAmbientColor(1.0,0.0,1.0);
-  this->BoundingFaceProperty->SetDiffuseColor(1.0,0.0,1.0);
-  this->BoundingFaceProperty->SetLineWidth(2.0);
+  this->InclusionProperty->SetLineWidth(1.0);
 
   this->InvisibleProperty = vtkProperty::New();
   this->InvisibleProperty->SetRepresentationToWireframe();
@@ -724,7 +720,6 @@ void vtkRectangularBoundingRegionRepresentation::CreateYZFace()
   inLines->InsertNextCell(line);
   lineData->InsertNextValue(0);
   
-//   this->BoundingFacePolyData->SetPoints(this->BoundingFacePoints);
   this->BoundingFacePolyData->SetLines(inLines);
   this->BoundingFacePolyData->GetCellData()->SetScalars(lineData);
   this->BoundingFacePolyData->Modified();
@@ -791,7 +786,6 @@ void vtkRectangularBoundingRegionRepresentation::CreateXZFace()
   inLines->InsertNextCell(line);
   lineData->InsertNextValue(0);
   
-//   this->BoundingFacePolyData->SetPoints(this->BoundingFacePoints);
   this->BoundingFacePolyData->SetLines(inLines);
   this->BoundingFacePolyData->GetCellData()->SetScalars(lineData);
   this->BoundingFacePolyData->Modified();
@@ -814,7 +808,7 @@ void vtkRectangularBoundingRegionRepresentation::SetViewType(int type)
   if (viewType == VOL)
   {
     assert(false);
-      InclusionActor->SetMapper(InclusionMapper);
+    InclusionActor->SetMapper(InclusionMapper);
   }else
   {
       if (viewType == XY)
@@ -825,6 +819,7 @@ void vtkRectangularBoundingRegionRepresentation::SetViewType(int type)
 	CreateXZFace();
       else
 	assert(false);
+      InclusionProperty->SetOpacity(1.0);
       InclusionActor->SetMapper(BoundingFaceMapper);
   }
 }
