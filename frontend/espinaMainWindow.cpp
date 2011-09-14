@@ -101,6 +101,7 @@
 #include "Config.h"
 #include <sample.h>
 #include <pixelSelector.h>
+#include "preferencesDialog.h"
 
 const QString FILTERS("Trace Files (*.trace)");
 const QString SEG_FILTERS("Seg Files (*.seg)");
@@ -134,7 +135,6 @@ EspinaMainWindow::EspinaMainWindow()
 //   translator.load(":/espina/es_ES.qm");
 //   QCoreApplication::installTranslator(&translator);  
   
-  
   this->Internals = new pqInternals();
   this->Internals->setupUi(this);
 
@@ -144,11 +144,12 @@ EspinaMainWindow::EspinaMainWindow()
 
   // BUILDE ESPINA MENUS
   //Create File Menu
-  buildFileMenu(*this->Internals->menu_File);
+  buildFileMenu(*this->Internals->menuFile);
+  buildSettingsMenu(*this->Internals->menuSettings);
 
 #if DEBUG_GUI
   //// Populate application menus with actions.
-  pqParaViewMenuBuilders::buildFileMenu(*this->Internals->menu_File);
+  pqParaViewMenuBuilders::buildFileMenu(*this->Internals->menuFile);
   
   //// Populate filters menu.
   //pqParaViewMenuBuilders::buildFiltersMenu(*this->Internals->menuTools, this);
@@ -944,3 +945,22 @@ void EspinaMainWindow::buildFileMenu(QMenu &menu)
   */
   
 }
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::buildSettingsMenu(QMenu& menu)
+{
+  QAction *action = new QAction(tr("Preferences"), this);
+  
+  menu.addAction(action);
+  connect(action, SIGNAL(triggered(bool)), 
+	  this, SLOT(showPreferencesDialog()));
+}
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::showPreferencesDialog()
+{
+  PreferencesDialog dialog;
+  dialog.exec();
+}
+
+

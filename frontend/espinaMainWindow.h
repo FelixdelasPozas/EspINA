@@ -82,6 +82,8 @@ protected slots:
   void removeSelectedSegmentation(ISelectionHandler::Selection sel);
   void stopRemovingSegmentations();
   
+  void showPreferencesDialog();
+  
   // Synchronize view selections
   void shyncSelection(QItemSelectionModel *model);
   void updateSelection (const QItemSelection & selected, const QItemSelection & deselected);
@@ -115,6 +117,7 @@ private:
   void operator=(const EspinaMainWindow&); // Not implemented.
 
   void buildFileMenu(QMenu &menu);
+  void buildSettingsMenu(QMenu &menu);
 
   EspINA *m_espina;
   DistUnit m_unit;

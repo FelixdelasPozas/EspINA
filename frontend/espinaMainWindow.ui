@@ -67,14 +67,20 @@
      <string>&amp;Help</string>
     </property>
    </widget>
-   <widget class="QMenu" name="menu_File">
+   <widget class="QMenu" name="menuFile">
     <property name="title">
      <string>&amp;File</string>
     </property>
    </widget>
-   <addaction name="menu_File"/>
+   <widget class="QMenu" name="menuSettings">
+    <property name="title">
+     <string>&amp;Settings</string>
+    </property>
+   </widget>
+   <addaction name="menuFile"/>
    <addaction name="menu_View"/>
    <addaction name="menuTools"/>
+   <addaction name="menuSettings"/>
    <addaction name="menu_Help"/>
   </widget>
   <widget class="QDockWidget" name="pipelineBrowserDock">
