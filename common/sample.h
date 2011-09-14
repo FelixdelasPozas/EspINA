@@ -28,9 +28,10 @@ class pqPipelineSource;
 class Sample : public EspinaProduct
 {
 public:
-  Sample(vtkFilter *creator, int portNumber) 
+  Sample(vtkFilter *creator, int portNumber, const QString &path=QString()) 
   : EspinaProduct(NULL, creator, portNumber)
   , m_extent(NULL)
+  , m_path(path)
   {}
   virtual ~Sample();
   
@@ -73,6 +74,7 @@ private:
   QMutex mutex;
   
 private:
+  QString m_path;
   QList<Segmentation *> m_segs;
   
   QMap<ExtensionId, ISampleExtension *> m_extensions;

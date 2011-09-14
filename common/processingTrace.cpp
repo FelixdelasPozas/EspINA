@@ -39,6 +39,9 @@
 #include "espINAFactory.h"
 #include "labelMapExtension.h"
 
+#include <QSettings>
+#include <QFileDialog>
+
 using namespace boost;
 
 
@@ -286,14 +289,41 @@ void ProcessingTrace::readTrace(QTextStream& stream)
       QString rawArgs( vArgs[vertexId].c_str() );
       ITraceNode::Arguments args = ITraceNode::parseArgs( rawArgs );
       // Is a stack //TODO be more explicit
-      if( vShape[vertexId].compare("ellipse") == 0 && label.contains(QDir::separator()) )
+      if( vShape[vertexId].compare("ellipse") == 0 && label.contains(".") ) //Samples contains extension's dot
       {
         qDebug() << "ProcessingTrace: Loading the Stack " << label;
-        pqPipelineSource* proxy = pqLoadDataReaction::loadData(QStringList(label));
+	//NOTE: I call load reaction data to be sure it is also in the server
+	//TODO: review and clean
+	// First we try to find the sample in the current directory
+	QString path = label.section('/',0,-2);
+	QString sampleId = label.section('/', -1);
+	QString sampleFile = label;
+        pqPipelineSource* proxy = pqLoadDataReaction::loadData(QStringList(sampleFile));
+	if (!proxy) // Try to find the sample in configuration directory
+	{
+	  QDir workingDirectory = Cache::instance()->workingDirectory();
+	  workingDirectory.cdUp();
+	  path = workingDirectory.absolutePath();
+	  sampleFile = path + '/' + sampleId;
+	  proxy = pqLoadDataReaction::loadData(QStringList(sampleFile));
+	  if (!proxy)
+	  {
+	    QSettings settings;
+	    path = settings.value("samplePath").toString();;
+	    sampleFile = path + '/' + sampleId;
+	    proxy = pqLoadDataReaction::loadData(QStringList(sampleFile));
+	    if (!proxy)
+	    {      
+	      sampleFile =  QFileDialog::getOpenFileName(0, "Select Sample", ".", "Sample Files (*.mha *.mhd)");
+	      path = sampleFile.section('/',0,-2);
+	      proxy = pqLoadDataReaction::loadData(QStringList(sampleFile));
+	    }
+	  }
+	}
         if( proxy )
         {
-          vtkFilter* sampleReader = CachedObjectBuilder::instance()->registerProductCreator(label, proxy);
-	  newSample = EspINAFactory::instance()->CreateSample(sampleReader, 0);
+          vtkFilter* sampleReader = CachedObjectBuilder::instance()->registerProductCreator(sampleId, proxy);
+	  newSample = EspINAFactory::instance()->CreateSample(sampleReader, 0,path);
           EspINA::instance()->addSample(newSample);
           // TODO same code like cachedObjectBuilder::createSMFilter() - DOUBLEVECT
           QStringList values = args["Spacing"].split(",");

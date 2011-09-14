@@ -37,10 +37,10 @@ EspINAFactory* EspINAFactory::instance()
   return m_instance;
 }
 
-Sample* EspINAFactory::CreateSample(vtkFilter *creator, int portNumber)
+Sample* EspINAFactory::CreateSample(vtkFilter* creator, int portNumber, const QString& path)
 {
 //   std::cout << "Factory is going to create sample: " << creator->id().toStdString() << std::endl;
-  Sample *sample = new Sample(creator, portNumber);
+  Sample *sample = new Sample(creator, portNumber, path);
   foreach(ISampleExtension *ext, m_sampleExtensions)
   {
     sample->addExtension(ext->clone());

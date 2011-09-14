@@ -739,8 +739,9 @@ void EspINA::loadSource(pqPipelineSource* proxy)
     // TODO not supported for multiple Smaples
     //this->removeSamples();
     
-    vtkFilter *sampleReader = CachedObjectBuilder::instance()->registerProductCreator(filePath, proxy);
-    Sample *sample = EspINAFactory::instance()->CreateSample(sampleReader,0);
+    QString sampleId = filePath.section('/', -1);
+    vtkFilter *sampleReader = CachedObjectBuilder::instance()->registerProductCreator(sampleId, proxy);
+    Sample *sample = EspINAFactory::instance()->CreateSample(sampleReader,0, filePath.section('/',0,-2));
     this->addSample(sample); 
 
     if( !m_tax )

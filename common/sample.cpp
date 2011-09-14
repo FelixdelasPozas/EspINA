@@ -75,7 +75,7 @@ QString Sample::getArguments()
 //-----------------------------------------------------------------------------
 QString Sample::label() const
 {
-  return m_creator->id().split(":")[0];
+  return m_path + "/" + m_creator->id().split(":")[0];
 }
 
 
