@@ -20,6 +20,7 @@
 #include "preferencesDialog.h"
 
 #include <QSettings>
+#include <QDir>
 
 const QString SAMPLE_PATH("samplePath");
 
@@ -31,7 +32,7 @@ PreferencesDialog::PreferencesDialog(QWidget* parent, Qt::WindowFlags f): QDialo
   
   if (!settings.allKeys().contains(SAMPLE_PATH))
   {
-    settings.setValue(SAMPLE_PATH,"~/espina_workdirectory");
+    settings.setValue(SAMPLE_PATH,QDir::homePath()+"/Stacks");
   }
   
   samplePath->setText(settings.value(SAMPLE_PATH).toString());

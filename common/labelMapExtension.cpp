@@ -119,7 +119,7 @@ void SampleRepresentation::requestUpdate(bool force)
       {
 // 	seg->creator()->pipelineSource()->updatePipeline();
 	inputs.push_back(seg->creator()->pipelineSource()->getProxy());
-	ports.push_back(0);
+	ports.push_back(seg->portNumber());
       }
     }
     

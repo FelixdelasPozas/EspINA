@@ -1,0 +1,5 @@
+<ParaViewReaders>
+  <Reader name="SegmhaFileReader" extensions="segmha"
+	  file_description="Espina Python's Segmentation Files">
+  </Reader>
+</ParaViewReaders>

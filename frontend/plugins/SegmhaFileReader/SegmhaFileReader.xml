@@ -1,0 +1,27 @@
+<ServerManagerConfiguration>
+  <ProxyGroup name="sources">
+    <!-- ================================================================== -->
+    <SourceProxy name="SegmhaFileReader" class="vtkSegmhaFileReader" label="Segmha File Reader">
+      <Documentation
+         long_help="Read .segmha files produced by the previous version of EspINA."
+         short_help="Read .segmha files.">
+      </Documentation>
+      <StringVectorProperty
+            name="FileName"
+            animateable="0"
+            command="SetFileName"
+            number_of_elements="1">
+        <FileListDomain name="files"/>
+        <Documentation>
+        </Documentation>
+      </StringVectorProperty>
+      
+  <!--    <Hints>
+        <ReaderFactory extensions="trace"
+                        file_description="Trace file format" />
+      </Hints>-->
+    </SourceProxy>
+    <!-- End PTXReader -->
+  </ProxyGroup>
+  <!-- End Filters Group -->
+</ServerManagerConfiguration>

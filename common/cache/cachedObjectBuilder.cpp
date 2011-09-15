@@ -189,7 +189,7 @@ TODO there are two ways to load sample files.
  * Insert a stack in the Espina Cache which has been already created in the server
  * If it exists it will be overwrited by the nwe pqPipelineSource
  */
-vtkFilter* CachedObjectBuilder::registerProductCreator(QString& sampleFile, pqPipelineSource* source)
+vtkFilter* CachedObjectBuilder::registerProductCreator(const QString& sampleFile, pqPipelineSource* source)
 {
   vtkFilter* filter = m_cache->getEntry(sampleFile);
   if( filter )

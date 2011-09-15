@@ -52,6 +52,7 @@
 #include "labelMapExtension.h"
 #include <qmimedata.h>
 #include <QElapsedTimer>
+#include "SegmhaImporterFilter.h"
 
 
 class IOTaxonomy;
@@ -728,7 +729,7 @@ void EspINA::loadSource(pqPipelineSource* proxy)
   //QString filePath = proxy->getSMName();
 
   qDebug() << "EspINA: Loading file in server side: " << filePath << "  " << proxy->getSMName();
-
+  
   if( filePath.endsWith(".pvd") || 
       filePath.endsWith(".mha") || 
       filePath.endsWith(".mhd") ||
@@ -738,7 +739,6 @@ void EspINA::loadSource(pqPipelineSource* proxy)
   {
     // TODO not supported for multiple Smaples
     //this->removeSamples();
-    
     QString sampleId = filePath.section('/', -1);
     vtkFilter *sampleReader = CachedObjectBuilder::instance()->registerProductCreator(sampleId, proxy);
     Sample *sample = EspINAFactory::instance()->CreateSample(sampleReader,0, filePath.section('/',0,-2));
@@ -751,21 +751,21 @@ void EspINA::loadSource(pqPipelineSource* proxy)
       endInsertRows();
     }
   }
-  else if( filePath.endsWith(".trace") ){ // DEPRECATED
-
-    proxy->updatePipeline(); //Update the pipeline to obtain the content of the file
-    proxy->getProxy()->UpdatePropertyInformation();
-
-    vtkSMStringVectorProperty* filePathProp =
-          vtkSMStringVectorProperty::SafeDownCast(proxy->getProxy()->GetProperty("Content"));
-    qDebug() << "Content:\n" << filePathProp->GetElement(0);
-    //std::istringstream trace(std::string(filePathProp->GetElement(0)));
-    QString content(filePathProp->GetElement(0));
-    QTextStream trace;
-    trace.setString(&content);
-    m_analysis->readTrace(trace);
-
-  }
+//   else if( filePath.endsWith(".trace") ){ // DEPRECATED
+// 
+//     proxy->updatePipeline(); //Update the pipeline to obtain the content of the file
+//     proxy->getProxy()->UpdatePropertyInformation();
+// 
+//     vtkSMStringVectorProperty* filePathProp =
+//           vtkSMStringVectorProperty::SafeDownCast(proxy->getProxy()->GetProperty("Content"));
+//     qDebug() << "Content:\n" << filePathProp->GetElement(0);
+//     //std::istringstream trace(std::string(filePathProp->GetElement(0)));
+//     QString content(filePathProp->GetElement(0));
+//     QTextStream trace;
+//     trace.setString(&content);
+//     m_analysis->readTrace(trace);
+// 
+//   }
   else if( filePath.endsWith(".seg") )
   {
     //this->clear();
@@ -808,6 +808,11 @@ void EspINA::loadSource(pqPipelineSource* proxy)
     } catch (...) {
       qDebug() << "Espina: Unable to load File. " << __FILE__ << __LINE__;
     }
+  }
+  else if (filePath.endsWith(".segmha"))
+  {
+    proxy->updatePipeline();
+    SegmhaImporterFilter *segmhaImporter = new SegmhaImporterFilter(proxy,filePath.section('/', -1));
   }
   else{
     qDebug() << QString("Error: %1 file not supported yet").arg(filePath.remove(0, filePath.lastIndexOf('.')));
