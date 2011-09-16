@@ -41,11 +41,10 @@ public:
   static const QString ID;
   
 public:
+  //! Constructor interactivo
   SegmhaImporterFilter(pqPipelineSource *reader, const QString &id);
-//   //! Constructor interactivo
-//   SegmhaImporterFilter(EspinaProduct *input, IVOI *voi, ITraceNode::Arguments &args);
-//   //! Constructor desde lista de argumentos
-//   SegmhaImporterFilter(ITraceNode::Arguments &args);
+  //! Constructor desde lista de argumentos
+  SegmhaImporterFilter(ITraceNode::Arguments &args);
   
   virtual ~SegmhaImporterFilter();
   
@@ -56,7 +55,7 @@ public:
   virtual void removeProduct(EspinaProduct* product);
   
   virtual QString label() const {return getArgument("Type");}
-  virtual QString getArgument(QString name) const {return (name=="Type")?"SegmhaImporter::SegmhaImporterFilter":"";}
+  virtual QString getArgument(QString name) const {return (name=="Type")?"SegmhaReader::SegmhaImporterFilter":"";}
   virtual QString getArguments() {return m_args;}
   
   virtual QWidget* createSetupWidget();

@@ -43,16 +43,16 @@ class Product;
 class SegmhaReader
       : public QObject
       , public IFilterFactory
+      , public IFileReader
 {
-  Q_OBJECT
-
 public:
   SegmhaReader(QObject* parent=0);
   
   void onStartup();
   void onShutdown(){}
 
-  EspinaFilter *createFilter(QString filter, ITraceNode::Arguments& args);
+  virtual EspinaFilter* createFilter(QString filter, ITraceNode::Arguments& args);
+  virtual void readFile(pqPipelineSource* proxy, const QString& filePath);
 };
 
 #endif// SEGMHAFILEREADER_H

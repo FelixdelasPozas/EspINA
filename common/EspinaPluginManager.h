@@ -27,6 +27,7 @@
 
 class pqPipelineSource;
 class IFilterFactory;
+class IFileReader;
 class EspinaFilter;
 
 class EspinaPluginManager
@@ -46,8 +47,8 @@ public:
   void registerFilter(const QString &filter, IFilterFactory *factory);
   EspinaFilter *createFilter(const QString& filter, ITraceNode::Arguments& args);
   
-  void registerReader(const QString &extension, IFilterFactory *factory);
-  void readFile(pqPipelineSource *proxy, const QString &extension);
+  void registerReader(const QString &extension, IFileReader *reader);
+  void readFile(pqPipelineSource *proxy, const QString &filePath);
     
 private:
   EspinaPluginManager(const EspinaPluginManager &);// Disable copy constructor
@@ -56,7 +57,7 @@ private:
   static EspinaPluginManager *m_singleton;
   
   QMap<QString, IFilterFactory *> m_filters;
-  QMap<QString, IFilterFactory *> m_readers;
+  QMap<QString, IFileReader *> m_readers;
 };
 
 #endif // ESPINAPLUGINMANAGER_H

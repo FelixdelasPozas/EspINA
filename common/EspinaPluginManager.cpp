@@ -44,16 +44,22 @@ EspinaFilter* EspinaPluginManager::createFilter(const QString& filter, ITraceNod
 }
 
 //-----------------------------------------------------------------------------
-void EspinaPluginManager::registerReader(const QString& extension, IFilterFactory* factory)
+void EspinaPluginManager::registerReader(const QString& extension, IFileReader* reader)
 {
   assert( m_readers.contains(extension) == false );
-  m_readers.insert(extension, factory);
+  m_readers.insert(extension, reader);
 }
 
 //-----------------------------------------------------------------------------
-void EspinaPluginManager::readFile(pqPipelineSource* proxy, const QString& extension)
+void EspinaPluginManager::readFile(pqPipelineSource* proxy, const QString& filePath)
 {
-
+  const QString extension = filePath.section('.',-1);
+  
+  if (!m_readers.contains(extension))
+    return;
+  
+  IFileReader *reader = m_readers[extension];
+  reader->readFile(proxy,filePath);
 }
 
 

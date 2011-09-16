@@ -46,7 +46,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <EspinaPluginManager.h>
 
 #define SFR "SegmhaReader"
-#define SFRF "SegmhaReader::SegmhaReaderFilter"
+#define SFRF "SegmhaReader::SegmhaImporterFilter"
 
 //-----------------------------------------------------------------------------
 SegmhaReader::SegmhaReader(QObject* parent)
@@ -57,11 +57,13 @@ SegmhaReader::SegmhaReader(QObject* parent)
 void SegmhaReader::onStartup()
 {
   // Register Factory's filters
-  QString filter("%1::%2");
-  filter.arg(m_factoryName);
-  filter.arg(SegmhaImporterFilter::ID);
+  QString filter = QString("%1::%2")
+    .arg(m_factoryName)
+    .arg(SegmhaImporterFilter::ID);
 //   ProcessingTrace::instance()->registerPlugin(filter, this);
-  EspinaPluginManager::instance()->registerFilter(filter,this);
+  EspinaPluginManager *manager = EspinaPluginManager::instance();
+  manager->registerFilter(filter,this);
+  manager->registerReader("segmha",this);
 }
 
 
@@ -71,11 +73,23 @@ EspinaFilter *SegmhaReader::createFilter(QString filter, ITraceNode::Arguments &
 {
   if (filter == SFRF)
   {
-//     SegmhaReaderFilter *sgs_sgsf = new SegmhaReaderFilter(args);
-//     return sgs_sgsf;
-    assert(false);
-    return NULL;
+    SegmhaImporterFilter *sr_sif = new SegmhaImporterFilter(args);
+    return sr_sif;
   }
   qWarning("::createFilter: Error no such a Filter");
   return NULL;
+}
+
+//-----------------------------------------------------------------------------
+void SegmhaReader::readFile(pqPipelineSource* proxy, const QString& filePath)
+{
+  const QString extension = filePath.section('.',-1);
+  
+  if (extension == "segmha")
+  {
+    proxy->updatePipeline();
+    SegmhaImporterFilter *segmhaImporter = new SegmhaImporterFilter(proxy,filePath.section('/', -1));
+  }
+  else
+    qWarning("::createFilter: Error no such a Filter");
 }

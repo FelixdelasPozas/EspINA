@@ -27,13 +27,18 @@
 #include "espina.h"
 #include "sample.h"
 #include "segmentation.h"
-#include "selectionManager.h"
 #include "cache/cachedObjectBuilder.h"
 
-#include <pqPipelineSource.h>
+#include <pqActiveObjects.h>
+#include <pqCoreUtilities.h>
+#include <pqServer.h>
+#include <pqFileDialog.h>
 #include <vtkSMProxy.h>
+#include <vtkSMProxyManager.h>
+#include <vtkSMReaderFactory.h>
 #include <vtkSMPropertyHelper.h>
-
+#include <QApplication>
+#include <QLabel>
 
 // SegmhaImporterFilter::SetupWidget::SetupWidget(EspinaFilter *parent)
 // : QWidget()
@@ -46,12 +51,13 @@
 //   m_threshold->setValue(filter->m_threshold);
 // }
 
-const QString SegmhaImporterFilter::ID = "SegmhaImporterFiler";
+const QString SegmhaImporterFilter::ID = "SegmhaImporterFilter";
 
 QString stripName(QString args){return args.split(";")[0];}//FAKE
 QString stripArgs(QString args){return args.split(";")[1];}//FAKE
 
 
+//-----------------------------------------------------------------------------
 SegmhaImporterFilter::SegmhaImporterFilter(pqPipelineSource* reader, const QString &id)
 : m_applyFilter(NULL)
 , m_segReader(NULL)
@@ -64,26 +70,115 @@ SegmhaImporterFilter::SegmhaImporterFilter(pqPipelineSource* reader, const QStri
   ProcessingTrace* trace = ProcessingTrace::instance();
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   
+  if (!EspINA::instance()->activeSample())
+  {
+    pqServer* server = pqActiveObjects::instance().activeServer();
+    vtkSMReaderFactory* readerFactory = 
+      vtkSMProxyManager::GetProxyManager()->GetReaderFactory();
+      
+//     QString filters = readerFactory->GetSupportedFileTypes(server->GetConnectionID());
+      QString filters = "MetaImage File (*.mha, *.mhd)";
+    
+      if (!filters.isEmpty())
+      {
+	filters += ";;";
+      }
+      filters += "All files (*)";
+      
+      pqFileDialog fileDialog(server, pqCoreUtilities::mainWidget(), 
+			      QObject::tr("Open File:"), QString(), filters);
+      fileDialog.setObjectName("FileOpenDialog");
+      fileDialog.setFileMode(pqFileDialog::ExistingFiles);
+      
+      QApplication::setOverrideCursor(Qt::ArrowCursor);
+      if (fileDialog.exec() == QDialog::Rejected)
+      {
+	assert(false);
+      }
+      QApplication::restoreOverrideCursor();
+      EspINA::instance()->loadFile(fileDialog.getSelectedFiles()[0], "add");
+  }
+  
+    
+  m_args = ESPINA_ARG("Sample",EspINA::instance()->activeSample()->id());
   QString readerId = id + ":0";
+  m_args.append(ESPINA_ARG("File",readerId));
+  
   m_segReader = CachedObjectBuilder::instance()->registerProductCreator(id, reader);
   reader->updatePipeline();
   
   reader->getProxy()->UpdatePropertyInformation();
   vtkSMPropertyHelper(reader->getProxy(),"NumSegmentations").Get(&m_numSeg,1);
+
+  QStringList blockNos;
   
   // Trace EspinaFilter
   trace->addNode(this);
     // Connect input
-  QString inputId = "peque.mhd:0";
-   trace->connect(inputId,this,"Sample");
+  QString inputId = "peque.mhd:0"; //BUG
+  trace->connect(inputId,this,"Sample");
   
   for (int p=0; p<m_numSeg; p++)
   {
     //! Extract Seg Filter
-    vtkFilter::Arguments growArgs;
-    growArgs.push_back(vtkFilter::Argument(QString("Input"),vtkFilter::INPUT, readerId));
-    growArgs.push_back(vtkFilter::Argument(QString("Block"),vtkFilter::INTVECT,QString("%1").arg(p)));
-    vtkFilter *segImage = cob->createFilter("filters","ExtractBlockAsImage",growArgs);
+    vtkFilter::Arguments extractArgs;
+    extractArgs.push_back(vtkFilter::Argument(QString("Input"),vtkFilter::INPUT, readerId));
+    extractArgs.push_back(vtkFilter::Argument(QString("Block"),vtkFilter::INTVECT,QString("%1").arg(p)));
+    vtkFilter *segImage = cob->createFilter("filters","ExtractBlockAsImage",extractArgs);
+    blockNos.append(QString("%1").arg(p));
+    
+    Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(this, &segImage->product(0));
+    
+    // Trace Segmentation
+    trace->addNode(seg);
+    // Trace connection
+    trace->connect(this, seg,"Segmentation");
+    
+    EspINA::instance()->addSegmentation(seg);
+  }
+  
+  QString blockList = blockNos.join(",");
+  m_args.append(ESPINA_ARG("Blocks",blockList));
+}
+
+//-----------------------------------------------------------------------------
+SegmhaImporterFilter::SegmhaImporterFilter(ITraceNode::Arguments& args)
+: m_applyFilter(NULL)
+, m_segReader(NULL)
+, m_restoreFilter(NULL)
+, m_finalFilter(NULL)
+, m_numSeg(0)
+{
+  type = FILTER;
+  
+  ProcessingTrace* trace = ProcessingTrace::instance();
+  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+  
+  foreach(QString key, args.keys())
+  {
+    m_args.append(ESPINA_ARG(key, args[key]));
+  }
+  
+  QStringList blockNos = args["Blocks"].split(",");
+  m_numSeg = blockNos.size();
+
+  //BUG: Read file
+//   reader->getProxy()->UpdatePropertyInformation();
+//   vtkSMPropertyHelper(reader->getProxy(),"NumSegmentations").Get(&m_numSeg,1);
+  
+  // Trace EspinaFilter
+  trace->addNode(this);
+    // Connect input
+  QString inputId = "peque.mhd:0"; //BUG
+  trace->connect(inputId,this,"Sample");
+  
+  for (int p=0; p<m_numSeg; p++)
+  {
+    //! Extract Seg Filter
+    vtkFilter::Arguments extractArgs;
+    extractArgs.push_back(vtkFilter::Argument(QString("Input"),vtkFilter::INPUT, args["File"]));
+    extractArgs.push_back(vtkFilter::Argument(QString("Block"),vtkFilter::INTVECT,blockNos[p]));
+    vtkFilter *segImage = cob->createFilter("filters","ExtractBlockAsImage",extractArgs);
     
     Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(this, &segImage->product(0));
     
@@ -97,177 +192,7 @@ SegmhaImporterFilter::SegmhaImporterFilter(pqPipelineSource* reader, const QStri
 }
 
 
-/*
-SegmhaImporterFilter::SegmhaImporterFilter(EspinaProduct* input, IVOI* voi, ITraceNode::Arguments& args)
-: m_applyFilter(NULL)
-, m_grow(NULL)
-, m_restoreFilter(NULL)
-, m_finalFilter(NULL)
-{
-  type = FILTER;
-  ProcessingTrace* trace = ProcessingTrace::instance();
-  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-
-  //m_args = QString("%1=%2;").arg("Sample").arg(input->label());
-  m_args = ESPINA_ARG("Sample", input->getArgument("Id"));
-  foreach(QString argName, args.keys())
-  {
-    m_args.append(ESPINA_ARG(argName, args[argName]));
-  }
-  
-  vtkProduct voiOutput(input->creator(),input->portNumber());
-  //! Executes VOI
-  if (voi)
-  {
-    m_applyFilter = voi->applyVOI(input);
-    if (m_applyFilter)
-    {
-      voiOutput = m_applyFilter->product(0);
-      m_args.append(ESPINA_ARG("ApplyVOI", "["+m_applyFilter->getFilterArguments() + "]"));
-    }
-  }
-
-  //! Execute Grow Filter
-  vtkFilter::Arguments growArgs;
-  growArgs.push_back(vtkFilter::Argument(QString("Input"),vtkFilter::INPUT, voiOutput.id()));
-  growArgs.push_back(vtkFilter::Argument(QString("Seed"),vtkFilter::INTVECT,args["Seed"]));
-  QStringList seed = args["Seed"].split(",");
-  m_seed[0] = seed[0].toInt();
-  m_seed[1] = seed[1].toInt();
-  m_seed[2] = seed[2].toInt();
-  
-  growArgs.push_back(vtkFilter::Argument(QString("Threshold"),vtkFilter::DOUBLEVECT,args["Threshold"]));
-  m_threshold = args["Threshold"].toInt();
-  //growArgs.push_back(vtkFilter::Argument(QString("ProductPorts"),vtkFilter::INTVECT, "0"));
-  m_grow = cob->createFilter("filters","SegmhaImporterFilter",growArgs);
-  
-  //! Create segmenations. SegmhaImporterFilter has only 1 output
-  assert(m_grow->numProducts() == 1);
-  
-  m_finalFilter = m_grow;
-  
-  vtkProduct growOutput = m_grow->product(0);
-  //! Restore possible VOI transformation
-  if (voi)
-  {
-    m_restoreFilter = voi->restoreVOITransormation(&growOutput);
-    if (m_restoreFilter)
-    {
-      growOutput = m_restoreFilter->product(0);
-      m_finalFilter = m_restoreFilter;
-      //TODO Anadir args
-      
-    }
-  }
-
-  assert(m_finalFilter->numProducts() == 1);
-  m_numSeg = m_finalFilter->numProducts();
-  
-  //WARNING: taking address of temporary => &m_finalFilter->product(0) ==> Need review
-  Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(this, &m_finalFilter->product(0));
-
-  // Trace EspinaFilter
-  trace->addNode(this);
-  // Connect input
-  trace->connect(input,this,"Sample");
-  // Trace Segmentation
-  trace->addNode(seg);
-  // Trace connection
-  trace->connect(this, seg,"Segmentation");
-  
-  EspINA::instance()->addSegmentation(seg);
-}
-
-
-SegmhaImporterFilter::SegmhaImporterFilter(ITraceNode::Arguments& args)
-: m_applyFilter(NULL)
-, m_grow(NULL)
-, m_restoreFilter(NULL)
-, m_finalFilter(NULL)
-{
-  foreach(QString key, args.keys())
-  {
-    if( key == "ApplyVOI" )
-      m_args.append(ESPINA_ARG(key, "["+ args[key] + "]"));
-    else
-      m_args.append(ESPINA_ARG(key, args[key]));
-  }
-  type = FILTER;
-  ProcessingTrace* trace = ProcessingTrace::instance();
-  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-
-  vtkProduct input(args["Sample"]);
-
-  vtkProduct voiOutput(input.creator(),input.portNumber());
-  //! Executes VOI
-  if (args.contains("ApplyVOI") )
-  {
-    ITraceNode::Arguments voiArgs = ITraceNode::parseArgs(args["ApplyVOI"]);
-    m_applyFilter = trace->getRegistredPlugin(voiArgs["Type"])->createFilter(voiArgs["Type"],voiArgs);
-    if (m_applyFilter)
-    {
-      voiOutput = m_applyFilter->product(0);
-      //m_args.append("ApplyVOI=" + applyFilter->getFileArguments());
-      //m_args.append(ESPINA_ARG("ApplyVOI", "["+m_applyFilter->getFilterArguments() + "]"));
-    }
-  }
-
-  //! Execute Grow Filter
-  vtkFilter::Arguments growArgs;
-  growArgs.push_back(vtkFilter::Argument(QString("Input"),vtkFilter::INPUT, voiOutput.id()));
-  growArgs.push_back(vtkFilter::Argument(QString("Seed"),vtkFilter::INTVECT,args["Seed"]));
-  QStringList seed = args["Seed"].split(",");
-  m_seed[0] = seed[0].toInt();
-  m_seed[1] = seed[1].toInt();
-  m_seed[2] = seed[2].toInt();
-  
-  growArgs.push_back(vtkFilter::Argument(QString("Threshold"),vtkFilter::DOUBLEVECT,args["Threshold"]));
-  m_threshold = args["Threshold"].toInt();
-  //growArgs.push_back(vtkFilter::Argument(QString("ProductPorts"),vtkFilter::INTVECT, "0"));
-  // Disk cache. If the .seg contains .mhd files now it try to load them
-//   Cache::Index id = cob->generateId("filter", "SegmhaImporterFilter", growArgs);
-//   m_grow = cob->getFilter(id);
-//   if( !m_grow )
-  m_grow = cob->createFilter("filters","SegmhaImporterFilter",growArgs);
-  
-  //! Create segmenations. SegmhaImporterFilter has only 1 output
-  assert(m_grow->numProducts() == 1);
-
-  m_finalFilter = m_grow;
-
-  vtkProduct growOutput = m_grow->product(0);
-  //! Restore possible VOI transformation
-  if (args.contains("RestoreVOI"))
-  {
-    
-    //TODO: Restore
-//     m_restoreFilter = voi->restoreVOITransormation(&growOutput);
-//     if (m_restoreFilter)
-//     {
-//       growOutput = m_restoreFilter->product(0);
-//       m_finalFilter = m_restoreFilter;
-//       //Anadir args
-//     }
-  }
-
-  assert(m_finalFilter->numProducts() == 1);
-  m_numSeg = m_finalFilter->numProducts();
-
-  Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(this, &m_finalFilter->product(0));
-
-  // Trace EspinaFilter
-  trace->addNode(this);
-  // Connect input
-  trace->connect(args["Sample"],this,"Sample");
-  // Trace Segmentation
-  trace->addNode(seg);
-  // Trace connection
-  trace->connect(this, seg,"Segmentation");
-
-  EspINA::instance()->addSegmentation(seg);
-}
-*/
-
+//-----------------------------------------------------------------------------
 SegmhaImporterFilter::~SegmhaImporterFilter()
 {
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
@@ -279,6 +204,7 @@ SegmhaImporterFilter::~SegmhaImporterFilter()
     delete m_applyFilter;
 }
 
+//-----------------------------------------------------------------------------
 void SegmhaImporterFilter::removeProduct(EspinaProduct* product)
 {
   assert(false);//TODO
@@ -287,6 +213,5 @@ void SegmhaImporterFilter::removeProduct(EspinaProduct* product)
 
 QWidget* SegmhaImporterFilter::createSetupWidget()
 {
-  assert(false);//TODO
-  return new QPushButton("Fake");//SetupWidget(this);
+  return new QLabel("There is no information available for imported segmentations");
 }

@@ -165,12 +165,17 @@ class IFilterFactory
 public:
   virtual ~IFilterFactory(){}
   virtual EspinaFilter* createFilter(QString filter, ITraceNode::Arguments &args) = 0;
-  virtual EspinaFilter* createFilter(QString filter, void * arg) {}
   
   //QString pluginName() {return m_pluginName;}
-
 protected:
   QString m_factoryName;
+};
+
+class IFileReader
+{
+public:
+  virtual ~IFileReader(){}
+  virtual void readFile(pqPipelineSource *proxy, const QString &filePath) = 0;
 };
 
 #endif // ESPINAPLUGIN_H

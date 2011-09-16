@@ -795,7 +795,7 @@ void EspINA::loadSource(pqPipelineSource* proxy)
   }
   else 
   {
-    EspinaPluginManager::instance()->readFile(proxy,extension);
+    EspinaPluginManager::instance()->readFile(proxy,filePath);
 //     if (filePath.endsWith(".segmha"))
 //   {
 //     proxy->updatePipeline();

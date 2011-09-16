@@ -20,7 +20,7 @@ set (PARAVIEW_ADDITIONAL_LIBRARIES
 
 QT4_WRAP_CPP(MOC_SRCS 
   SegmhaReader.h
-  SegmhaImporterFilter.h
+#   SegmhaImporterFilter.h
 )
 
 ADD_PARAVIEW_AUTO_START(IFACES IFACE_SRCS
