@@ -62,6 +62,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vtkSMPropertyHelper.h>
 
 #include <espINAFactory.h>
+#include <EspinaPluginManager.h>
 #include <QBitmap>
 #include <RectangularVOI.h>
 
@@ -79,7 +80,8 @@ SeedGrowSegmentation::SeedGrowSegmentation(QObject* parent)
 {
   m_factoryName = SGS;
   // Register Factory's filters
-  ProcessingTrace::instance()->registerPlugin(SGSF, this);
+//   ProcessingTrace::instance()->registerPlugin(SGSF, this);
+  EspinaPluginManager::instance()->registerFilter(SGSF,this);
   
   m_defaultVOI = new RectangularVOI(false);
   

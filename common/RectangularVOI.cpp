@@ -49,6 +49,7 @@
 #include <vtkPolyData.h>
 #include <vtkIdList.h>
 #include "vtkNonRotatingBoxWidget.h"
+#include "EspinaPluginManager.h"
 
 /*
 class VTK_WIDGETS_EXPORT VOIRepresentation : public vtkBoxRepresentation
@@ -325,7 +326,8 @@ RectangularVOI::RectangularVOI(bool registerPlugin)
   //bzero(m_widget,4*sizeof(pq3DWidget *));
   QString registerName = ApplyFilter::FilterType;
   if (registerPlugin)
-    ProcessingTrace::instance()->registerPlugin(registerName, this);
+    EspinaPluginManager::instance()->registerFilter(registerName,this);
+//     ProcessingTrace::instance()->registerPlugin(registerName, this);
 }
 
 //-----------------------------------------------------------------------------

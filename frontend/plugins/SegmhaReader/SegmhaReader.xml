@@ -1,0 +1,64 @@
+<ServerManagerConfiguration>
+  <ProxyGroup name="sources">
+    <!-- ================================================================== -->
+    <SourceProxy name="SegmhaReader" class="vtkSegmhaReader" label="Segmha File Reader">
+      <Documentation
+         long_help="Read .segmha files produced by the previous version of EspINA."
+         short_help="Read .segmha files.">
+      </Documentation>
+      <StringVectorProperty
+            name="FileName"
+            animateable="0"
+            command="SetFileName"
+            number_of_elements="1">
+        <FileListDomain name="files"/>
+        <Documentation>
+        </Documentation>
+      </StringVectorProperty>
+      <IntVectorProperty
+	name="NumSegmentations"
+	number_of_elements="1"
+	immediate_update="1"
+	information_only="1"
+	default_values="0"
+	command="GetNumSegmentations">
+	<SimpleIntInformationHelper/>
+      </IntVectorProperty>
+  <!--    <Hints>
+        <ReaderFactory extensions="trace"
+                        file_description="Trace file format" />
+      </Hints>-->
+    </SourceProxy>
+    <!-- End SegmhaReader -->
+  </ProxyGroup>
+  <!-- End Sources Group -->
+  
+  <ProxyGroup name="filters">
+   <SourceProxy name="ExtractBlockAsImage" class="vtkExtractBlockAsImage" label="Extract Block As Image">
+     <Documentation
+        long_help="Extract nth block from a multiBlockDataSet as a single vtkImage"
+        short_help="Extract nth block as vtkImage">
+     </Documentation>
+     <InputProperty
+        name="Input"
+        command="SetInputConnection">
+           <ProxyGroupDomain name="groups">
+             <Group name="sources"/>
+             <Group name="filters"/>
+           </ProxyGroupDomain>
+           <DataTypeDomain name="input_type">
+             <DataType value="vtkMultiBlockDataSet"/>
+           </DataTypeDomain>
+      </InputProperty>
+     <IntVectorProperty
+       name="Block"
+       number_of_elements="1"
+       default_values="0"
+       immediate_update="1"
+       command="SetExtractBlock">
+     </IntVectorProperty>
+   </SourceProxy>
+   <!-- End ExtractBlockAsImage -->
+  </ProxyGroup>
+  <!-- End Filters Group -->
+</ServerManagerConfiguration>

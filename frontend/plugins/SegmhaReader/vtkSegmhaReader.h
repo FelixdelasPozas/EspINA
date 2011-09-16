@@ -1,7 +1,7 @@
 #ifndef VTKSEGMHAFILEREADER_H
 #define VTKSEGMHAFILEREADER_H
 
-#include <vtkImageAlgorithm.h>
+#include <vtkMultiBlockDataSetAlgorithm.h>
 
 
 //BTX
@@ -11,7 +11,7 @@ class QString;
 //ETX
 
 
-class vtkSegmhaFileReader : public vtkImageAlgorithm
+class vtkSegmhaReader : public vtkMultiBlockDataSetAlgorithm
 {
   //BTX
   struct SegmentationObject
@@ -25,8 +25,8 @@ class vtkSegmhaFileReader : public vtkImageAlgorithm
   //ETX
   
 public:
-    vtkTypeMacro(vtkSegmhaFileReader, vtkImageAlgorithm);
-    static vtkSegmhaFileReader *New();
+    vtkTypeMacro(vtkSegmhaReader, vtkMultiBlockDataSetAlgorithm);
+    static vtkSegmhaReader *New();
 
     void PrintSelf(ostream& os, vtkIndent indent);
 
@@ -41,16 +41,16 @@ public:
 //     vtkGetStringMacro(Taxonomy);
     
 protected:
-  vtkSegmhaFileReader();
-  virtual ~vtkSegmhaFileReader();
+  vtkSegmhaReader();
+  virtual ~vtkSegmhaReader();
 
   int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
   
   
   
 private:
-  vtkSegmhaFileReader(const vtkSegmhaFileReader&);  // Not implemented.
-  void operator=(const vtkSegmhaFileReader&);  // Not implemented.
+  vtkSegmhaReader(const vtkSegmhaReader&);  // Not implemented.
+  void operator=(const vtkSegmhaReader&);  // Not implemented.
   
   char* FileName;
   int NumSegmentations;

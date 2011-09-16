@@ -41,6 +41,7 @@
 
 #include <QSettings>
 #include <QFileDialog>
+#include "EspinaPluginManager.h"
 
 using namespace boost;
 
@@ -346,19 +347,18 @@ void ProcessingTrace::readTrace(QTextStream& stream)
         qDebug() << "ProcessingTrace: Creating the filter " << label;
         //QStringList filterInfo = QString(vLabel[vertexId].c_str()).split("::");
         //assert(filterInfo.size() == 2);
-        
-        
-       // if( filterInfo.at(1) == "SeedGrowSegmentationFilter")
-        IFilterFactory* factory = m_availablePlugins.value(label, NULL);
-        if( factory )
-          factory->createFilter(label, args);
-        else
-          qDebug() << "ProcessingTrace: the filter is not registered";
+	// if( filterInfo.at(1) == "SeedGrowSegmentationFilter")
+	
+	EspinaFilter *filter = EspinaPluginManager::instance()->createFilter(label,args);
+	if (!filter)
+	  qDebug() << "ProcessingTrace: the filter is not registered";
+	  
+//         IFilterFactory* factory = m_availablePlugins.value(label, NULL);
+//         if( factory )
+//           factory->createFilter(label, args);
+//         else
+//           qDebug() << "ProcessingTrace: the filter is not registered";
 
-//        core->getObjectBuilder()->createFilter(qstrl.at(0), qstrl.at(1),
- //                                              pqPipelineSource  );
-  //
-        //core->getObjectBuilder()->createSource()
       } // A segmentation
       else {
         qDebug() << "ProcessingTrace: segmentation " << args["Id"] << args["Taxonomy"];
@@ -389,20 +389,20 @@ void ProcessingTrace::readTrace(QTextStream& stream)
     dynamic_cast<LabelMapExtension::SampleRepresentation *>(newSample->representation(LabelMapExtension::SampleRepresentation::ID))->setEnable(true);
 }
 
-//-----------------------------------------------------------------------------
-void ProcessingTrace::registerPlugin(QString key, IFilterFactory* factory)
-{
-  assert( m_availablePlugins.contains(key) == false );
-  m_availablePlugins.insert(key, factory);
-}
-
-
-//-----------------------------------------------------------------------------
-IFilterFactory * ProcessingTrace::getRegistredPlugin(QString& key)
-{
-  assert( m_availablePlugins.contains(key));
-  return m_availablePlugins[key];
-}
+// //-----------------------------------------------------------------------------
+// void ProcessingTrace::registerPlugin(QString key, IFilterFactory* factory)
+// {
+//   assert( m_availablePlugins.contains(key) == false );
+//   m_availablePlugins.insert(key, factory);
+// }
+// 
+// 
+// //-----------------------------------------------------------------------------
+// IFilterFactory * ProcessingTrace::getRegistredPlugin(QString& key)
+// {
+//   assert( m_availablePlugins.contains(key));
+//   return m_availablePlugins[key];
+// }
 
 
 //-----------------------------------------------------------------------------

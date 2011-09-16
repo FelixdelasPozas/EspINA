@@ -17,7 +17,7 @@
 */
 
 
-#include "SeedGrowSegmentationFilter.h"
+#include "SegmhaImporterFilter.h"
 
 // Debug
 #include "espina_debug.h"
@@ -31,29 +31,74 @@
 #include "cache/cachedObjectBuilder.h"
 
 #include <pqPipelineSource.h>
-#include <QSpinBox>
-#include <QLayout>
-#include <EspinaPluginManager.h>
+#include <vtkSMProxy.h>
+#include <vtkSMPropertyHelper.h>
 
 
+// SegmhaImporterFilter::SetupWidget::SetupWidget(EspinaFilter *parent)
+// : QWidget()
+// {
+//   setupUi(this);
+//   SegmhaImporterFilter *filter = dynamic_cast<SegmhaImporterFilter *>(parent);
+//   m_xSeed->setText(QString("%1").arg(filter->m_seed[0]));
+//   m_ySeed->setText(QString("%1").arg(filter->m_seed[1]));
+//   m_zSeed->setText(QString("%1").arg(filter->m_seed[2]));
+//   m_threshold->setValue(filter->m_threshold);
+// }
 
-SeedGrowSegmentationFilter::SetupWidget::SetupWidget(EspinaFilter *parent)
-: QWidget()
-{
-  setupUi(this);
-  SeedGrowSegmentationFilter *filter = dynamic_cast<SeedGrowSegmentationFilter *>(parent);
-  m_xSeed->setText(QString("%1").arg(filter->m_seed[0]));
-  m_ySeed->setText(QString("%1").arg(filter->m_seed[1]));
-  m_zSeed->setText(QString("%1").arg(filter->m_seed[2]));
-  m_threshold->setValue(filter->m_threshold);
-}
-
+const QString SegmhaImporterFilter::ID = "SegmhaImporterFiler";
 
 QString stripName(QString args){return args.split(";")[0];}//FAKE
 QString stripArgs(QString args){return args.split(";")[1];}//FAKE
 
 
-SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVOI* voi, ITraceNode::Arguments& args)
+SegmhaImporterFilter::SegmhaImporterFilter(pqPipelineSource* reader, const QString &id)
+: m_applyFilter(NULL)
+, m_segReader(NULL)
+, m_restoreFilter(NULL)
+, m_finalFilter(NULL)
+, m_numSeg(0)
+{
+  type = FILTER;
+  
+  ProcessingTrace* trace = ProcessingTrace::instance();
+  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+  
+  QString readerId = id + ":0";
+  m_segReader = CachedObjectBuilder::instance()->registerProductCreator(id, reader);
+  reader->updatePipeline();
+  
+  reader->getProxy()->UpdatePropertyInformation();
+  vtkSMPropertyHelper(reader->getProxy(),"NumSegmentations").Get(&m_numSeg,1);
+  
+  // Trace EspinaFilter
+  trace->addNode(this);
+    // Connect input
+  QString inputId = "peque.mhd:0";
+   trace->connect(inputId,this,"Sample");
+  
+  for (int p=0; p<m_numSeg; p++)
+  {
+    //! Extract Seg Filter
+    vtkFilter::Arguments growArgs;
+    growArgs.push_back(vtkFilter::Argument(QString("Input"),vtkFilter::INPUT, readerId));
+    growArgs.push_back(vtkFilter::Argument(QString("Block"),vtkFilter::INTVECT,QString("%1").arg(p)));
+    vtkFilter *segImage = cob->createFilter("filters","ExtractBlockAsImage",growArgs);
+    
+    Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(this, &segImage->product(0));
+    
+    // Trace Segmentation
+    trace->addNode(seg);
+    // Trace connection
+    trace->connect(this, seg,"Segmentation");
+    
+    EspINA::instance()->addSegmentation(seg);
+  }
+}
+
+
+/*
+SegmhaImporterFilter::SegmhaImporterFilter(EspinaProduct* input, IVOI* voi, ITraceNode::Arguments& args)
 : m_applyFilter(NULL)
 , m_grow(NULL)
 , m_restoreFilter(NULL)
@@ -94,9 +139,9 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVO
   growArgs.push_back(vtkFilter::Argument(QString("Threshold"),vtkFilter::DOUBLEVECT,args["Threshold"]));
   m_threshold = args["Threshold"].toInt();
   //growArgs.push_back(vtkFilter::Argument(QString("ProductPorts"),vtkFilter::INTVECT, "0"));
-  m_grow = cob->createFilter("filters","SeedGrowSegmentationFilter",growArgs);
+  m_grow = cob->createFilter("filters","SegmhaImporterFilter",growArgs);
   
-  //! Create segmenations. SeedGrowSegmentationFilter has only 1 output
+  //! Create segmenations. SegmhaImporterFilter has only 1 output
   assert(m_grow->numProducts() == 1);
   
   m_finalFilter = m_grow;
@@ -134,7 +179,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVO
 }
 
 
-SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ITraceNode::Arguments& args)
+SegmhaImporterFilter::SegmhaImporterFilter(ITraceNode::Arguments& args)
 : m_applyFilter(NULL)
 , m_grow(NULL)
 , m_restoreFilter(NULL)
@@ -158,8 +203,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ITraceNode::Arguments& ar
   if (args.contains("ApplyVOI") )
   {
     ITraceNode::Arguments voiArgs = ITraceNode::parseArgs(args["ApplyVOI"]);
-    m_applyFilter = EspinaPluginManager::instance()->createFilter(voiArgs["Type"],voiArgs);
-//     m_applyFilter = trace->getRegistredPlugin(voiArgs["Type"])->createFilter(voiArgs["Type"],voiArgs); // 
+    m_applyFilter = trace->getRegistredPlugin(voiArgs["Type"])->createFilter(voiArgs["Type"],voiArgs);
     if (m_applyFilter)
     {
       voiOutput = m_applyFilter->product(0);
@@ -181,12 +225,12 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ITraceNode::Arguments& ar
   m_threshold = args["Threshold"].toInt();
   //growArgs.push_back(vtkFilter::Argument(QString("ProductPorts"),vtkFilter::INTVECT, "0"));
   // Disk cache. If the .seg contains .mhd files now it try to load them
-//   Cache::Index id = cob->generateId("filter", "SeedGrowSegmentationFilter", growArgs);
+//   Cache::Index id = cob->generateId("filter", "SegmhaImporterFilter", growArgs);
 //   m_grow = cob->getFilter(id);
 //   if( !m_grow )
-  m_grow = cob->createFilter("filters","SeedGrowSegmentationFilter",growArgs);
+  m_grow = cob->createFilter("filters","SegmhaImporterFilter",growArgs);
   
-  //! Create segmenations. SeedGrowSegmentationFilter has only 1 output
+  //! Create segmenations. SegmhaImporterFilter has only 1 output
   assert(m_grow->numProducts() == 1);
 
   m_finalFilter = m_grow;
@@ -222,24 +266,27 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ITraceNode::Arguments& ar
 
   EspINA::instance()->addSegmentation(seg);
 }
+*/
 
-SeedGrowSegmentationFilter::~SeedGrowSegmentationFilter()
+SegmhaImporterFilter::~SegmhaImporterFilter()
 {
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   if (m_restoreFilter)
     delete m_restoreFilter;
-  if (m_grow)
-    cob->removeFilter(m_grow);
+  if (m_segReader)
+    cob->removeFilter(m_segReader);
   if (m_applyFilter)
     delete m_applyFilter;
 }
 
-void SeedGrowSegmentationFilter::removeProduct(EspinaProduct* product)
+void SegmhaImporterFilter::removeProduct(EspinaProduct* product)
 {
+  assert(false);//TODO
   m_numSeg = 0;
 }
 
-QWidget* SeedGrowSegmentationFilter::createSetupWidget()
+QWidget* SegmhaImporterFilter::createSetupWidget()
 {
-  return new SetupWidget(this);
+  assert(false);//TODO
+  return new QPushButton("Fake");//SetupWidget(this);
 }

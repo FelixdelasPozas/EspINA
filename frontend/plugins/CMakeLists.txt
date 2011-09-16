@@ -1,7 +1,7 @@
 
 add_subdirectory(SegFileRemoteWriter)
 add_subdirectory( SegFileRemoteReader )
-add_subdirectory(SegmhaFileReader)
+add_subdirectory( SegmhaReader )
 
 find_package (ITK REQUIRED)
 include (${ITK_USE_FILE})

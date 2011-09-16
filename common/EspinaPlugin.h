@@ -165,6 +165,7 @@ class IFilterFactory
 public:
   virtual ~IFilterFactory(){}
   virtual EspinaFilter* createFilter(QString filter, ITraceNode::Arguments &args) = 0;
+  virtual EspinaFilter* createFilter(QString filter, void * arg) {}
   
   //QString pluginName() {return m_pluginName;}
 
