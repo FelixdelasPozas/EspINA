@@ -177,11 +177,11 @@ int vtkSegmhaReader::RequestData(
     vtkSmartPointer<vtkImageData> segImage = 
       vtkSmartPointer<vtkImageData>::New();
     segImage->DeepCopy( itk2vtk_filter->GetOutput() );
-    
-    // Without these lines, the output will appear real but will not work as the input to any other filters
-    segImage->SetExtent(itk2vtk_filter->GetOutput()->GetExtent());
+    segImage->CopyInformation(itk2vtk_filter->GetOutput());//WARNING: don't forget!
+//     segImage->SetExtent(itk2vtk_filter->GetOutput()->GetExtent());
 //     segImage->SetSpacing(imageReader->GetOutput()->gets->GetSpacing());
-    segImage->SetWholeExtent(segImage->GetExtent());
+//     segImage->SetSpacing(1,1,2);
+//     segImage->SetWholeExtent(segImage->GetExtent());
     output->SetBlock(blockNo,segImage);
     
     blockNo++;

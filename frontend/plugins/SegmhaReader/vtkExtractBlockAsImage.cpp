@@ -74,8 +74,24 @@ int vtkExtractBlockAsImage::RequestData(
     outputInfo->Get(vtkDataObject::DATA_OBJECT())
   );
   
-  output->ShallowCopy(input->GetBlock(ExtractBlock));
-    
+  vtkImageData *inputImage = vtkImageData::SafeDownCast(input->GetBlock(ExtractBlock));
+  
+  int ext[6];
+  inputImage->GetExtent(ext);
+  std::cout << "Input Extent:  " << ext[0] << " "  << ext[1] << " " << ext[2] << " " << ext[3] << " " << ext[4] << " " << ext[5] << std::endl;
+  double spa[3];
+  inputImage->GetSpacing(spa);
+  std::cout << "Input Spacing:  " << spa[0] << " "  << spa[1] << " " << spa[2] << std::endl;
+  
+  output->ShallowCopy(inputImage);
+  output->CopyInformation(inputImage);
+  output->SetOrigin(0,0,0);
+  
+  // Without these lines, the output will appear real but will not work as the input to any other filters
+//   output->SetExtent(ext);
+//   output->SetSpacing(spa);
+//   output->SetWholeExtent(ext);
+  
   return 1;
 }
 
