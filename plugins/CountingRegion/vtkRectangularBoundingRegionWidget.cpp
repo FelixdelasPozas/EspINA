@@ -328,10 +328,10 @@ void vtkRectangularBoundingRegionWidget::SetViewType(int type)
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularBoundingRegionWidget::SetSlice(int slice)
+void vtkRectangularBoundingRegionWidget::SetSlice(int slice, double spacing)
 {
   reinterpret_cast<vtkRectangularBoundingRegionRepresentation*>(this->WidgetRep)->
-    SetSlice(slice);
+    SetSlice(slice,spacing);
 }
 
 //----------------------------------------------------------------------

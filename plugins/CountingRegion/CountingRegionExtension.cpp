@@ -314,7 +314,8 @@ void RectangularRegion::render(pqView* view, ViewType type)
   double spacing[3];
   m_sample->spacing(spacing);
   regionwidget->SetViewType(type);
-  regionwidget->SetSlice(samRep->slice(type)*spacing[type]);
+  if (type != VIEW_3D)
+    regionwidget->SetSlice(samRep->slice(type),spacing[type]);
 }
 
 //------------------------------------------------------------------------
@@ -434,7 +435,8 @@ void AdaptiveRegion::render(pqView* view, ViewType type)
   double spacing[3];
   m_sample->spacing(spacing);
   regionwidget->SetViewType(type);
-  regionwidget->SetSlice(samRep->slice(type)*spacing[type]);
+  if (type != VIEW_3D)
+    regionwidget->SetSlice(samRep->slice(type),spacing[type]);
 }
 
 //------------------------------------------------------------------------
@@ -517,7 +519,7 @@ QString CountingRegion::SampleExtension::createAdaptiveRegion(int left, int top,
 //   for(ViewType view = VIEW_PLANE_FIRST; view <= VIEW_3D; view = ViewType(view+1))
 //     region->setViewVisibility(view,true);
   
-  QString repName = QString("Adaptative Region (%1,%2,%3,%4,%5,%6)") 
+  QString repName = QString("Adaptive Region (%1,%2,%3,%4,%5,%6)") 
     .arg(left).arg(top).arg(upper).arg(right).arg(bottom).arg(lower);
   
   info.first()->setData(repName,Qt::DisplayRole);

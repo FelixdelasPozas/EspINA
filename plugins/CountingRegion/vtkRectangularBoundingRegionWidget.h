@@ -137,7 +137,7 @@ public:
   vtkBooleanMacro(InvertZCursor,int);
   
   virtual void SetViewType(int type);
-  virtual void SetSlice(int slice);
+  virtual void SetSlice(int slice, double spacing);
   virtual void SetRegion(vtkPolyDataAlgorithm *region);
 
   // Description:

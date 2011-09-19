@@ -825,9 +825,10 @@ void vtkRectangularBoundingRegionRepresentation::SetViewType(int type)
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::SetSlice(int slice)
+void vtkRectangularBoundingRegionRepresentation::SetSlice(int slice, double spacing)
 {
   Slice = slice;
+  spacing = spacing;
 //   return;
   
   if (ViewType == VOL)
@@ -850,12 +851,16 @@ void vtkRectangularBoundingRegionRepresentation::SetSlice(int slice)
     double point[3];
     for (int p=0; p<this->BoundingFacePoints->GetNumberOfPoints(); p++)
     {
-//       if (slice < Region->GetOutput()->GetPoints()->GetNumberOfPoints()/)
-//       {
-// 	Region->GetOutput()->GetPoint(slice*4+p,point);
+      int numFaces = Region->GetOutput()->GetPoints()->GetNumberOfPoints()/4;
+      int validSlice = numFaces==2?0:slice;
+      
+      Region->GetOutput()->GetPoint(validSlice*4+p,point);
+      
+      pts[3*p+0] = point[0];
+      pts[3*p+1] = point[1];
+      pts[3*p+2] = point[2];
 // 	BoundingFacePoints->SetPoint(p,point);
-// // 	pts[3*p] = slice; //BUG: get real spacing
-//       }
+// 	pts[3*p] = slice; //BUG: get real spacing
     }
     
   }else
@@ -867,7 +872,7 @@ void vtkRectangularBoundingRegionRepresentation::SetSlice(int slice)
       normalDirection = 1;
     for (int p=0; p<this->BoundingFacePoints->GetNumberOfPoints(); p++)
     {
-      pts[3*p+normalDirection] = slice; //BUG: get real spacing
+      pts[3*p+normalDirection] = slice*spacing;
     }
   }
 //   std::cout << "View " << ViewType <<  " : " << BoundingFacePoints->GetNumberOfPoints() << std::endl;

@@ -80,7 +80,7 @@ public:
 //   vtkSetMacro(ViewType,int);
 //   vtkSetMacro(Slice,int);
   virtual void SetViewType(int type);
-  virtual void SetSlice(int slice);
+  virtual void SetSlice(int slice, double spacing);
   virtual void SetRegion(vtkPolyDataAlgorithm *region);
   
   // Description:
@@ -198,6 +198,7 @@ protected:
   
   int ViewType;
   int Slice;
+  double Spacing;
   vtkPolyDataAlgorithm *Region;
 
 
