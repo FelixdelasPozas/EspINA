@@ -86,9 +86,10 @@ SegmhaImporterFilter::SegmhaImporterFilter(pqPipelineSource* reader, const QStri
       filters += "All files (*)";
       
       pqFileDialog fileDialog(server, pqCoreUtilities::mainWidget(), 
-			      QObject::tr("Open File:"), QString(), filters);
+			      QObject::tr("Open Sample File:"), QString(), filters);
       fileDialog.setObjectName("FileOpenDialog");
       fileDialog.setFileMode(pqFileDialog::ExistingFiles);
+      
       
       QApplication::setOverrideCursor(Qt::ArrowCursor);
       if (fileDialog.exec() == QDialog::Rejected)
@@ -115,7 +116,7 @@ SegmhaImporterFilter::SegmhaImporterFilter(pqPipelineSource* reader, const QStri
   // Trace EspinaFilter
   trace->addNode(this);
     // Connect input
-  QString inputId = "peque.mhd:0"; //BUG
+  QString inputId = EspINA::instance()->activeSample()->id();
   trace->connect(inputId,this,"Sample");
   
   for (int p=0; p<m_numSeg; p++)
@@ -162,14 +163,10 @@ SegmhaImporterFilter::SegmhaImporterFilter(ITraceNode::Arguments& args)
   QStringList blockNos = args["Blocks"].split(",");
   m_numSeg = blockNos.size();
 
-  //BUG: Read file
-//   reader->getProxy()->UpdatePropertyInformation();
-//   vtkSMPropertyHelper(reader->getProxy(),"NumSegmentations").Get(&m_numSeg,1);
-  
   // Trace EspinaFilter
   trace->addNode(this);
     // Connect input
-  QString inputId = "peque.mhd:0"; //BUG
+  QString inputId = args["Sample"];
   trace->connect(inputId,this,"Sample");
   
   for (int p=0; p<m_numSeg; p++)
@@ -213,5 +210,5 @@ void SegmhaImporterFilter::removeProduct(EspinaProduct* product)
 
 QWidget* SegmhaImporterFilter::createSetupWidget()
 {
-  return new QLabel("There is no information available for imported segmentations");
+  return new QLabel("There is no information\n available for imported\n segmentations");
 }

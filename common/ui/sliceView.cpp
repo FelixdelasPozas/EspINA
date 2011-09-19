@@ -810,7 +810,7 @@ void SliceView::updateScene()
     if (newSlice != m_spinBox->value())
       setSlice(m_sampleRep->slice(m_plane)+sliceOffset);
   }
-  std::cout << "Render in SliceView" << std::endl;
+//   std::cout << "Render in SliceView" << std::endl;
   ISampleExtension *ext = m_focusedSample->extension("CountingRegionExtension");
   if (ext)
   {

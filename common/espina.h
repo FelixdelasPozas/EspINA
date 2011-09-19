@@ -128,6 +128,7 @@ public slots:
     void destroyingProxy(pqProxy* p);
 
     //! Manage the pqPipelineSources loaded with pqLoadReaction
+    //TODO: Refactor
     void loadSource(pqPipelineSource* proxy);
 
     //! Clear all the Espina Model. It removes the Samples, Segmentations

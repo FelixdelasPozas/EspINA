@@ -85,7 +85,7 @@ int vtkExtractBlockAsImage::RequestData(
   
   output->ShallowCopy(inputImage);
   output->CopyInformation(inputImage);
-  output->SetOrigin(0,0,0);
+  output->PrintSelf(std::cout,vtkIndent(0));
   
   // Without these lines, the output will appear real but will not work as the input to any other filters
 //   output->SetExtent(ext);
