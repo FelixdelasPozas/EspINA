@@ -84,6 +84,8 @@ CountingRegion::CountingRegion(QWidget * parent): QDockWidget(parent)
 
   connect(EspINA::instance(), SIGNAL(focusSampleChanged(Sample*)),
           this, SLOT(focusSampleChanged(Sample *)));
+  connect(&m_model,SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+	  this, SLOT(visibilityModified()));
 //   EXTENSION_DEBUG(<< "Counting Region Panel created");
 }
 
@@ -196,27 +198,36 @@ void CountingRegion::createBoundingRegion()
   assert(ext); 
   
   QString regionName;
+  QList<QStandardItem *> row;
   if (regionType->currentIndex() == ADAPTIVE)
   {
     regionName = ext->createAdaptiveRegion(leftMargin->value(),topMargin->value(), upperSlice->value(),
-				rightMargin->value(), bottomMargin->value(), lowerSlice->value());
-  } else 
+				rightMargin->value(), bottomMargin->value(), lowerSlice->value(), row);
+  } else
   {
     regionName = ext->createRectangularRegion(leftMargin->value(),topMargin->value(), upperSlice->value(),
-		       rightMargin->value(), bottomMargin->value(), lowerSlice->value());
+		       rightMargin->value(), bottomMargin->value(), lowerSlice->value(), row);
   }
   
+/*  
   QStandardItem * regionItem = new QStandardItem(regionName);
   QStandardItem * renderInXY = new QStandardItem();
   renderInXY->setData(true,Qt::CheckStateRole);
+  renderInXY->setCheckState(Qt::Checked);
+  renderInXY->setFlags(renderInXY->flags() |  Qt::ItemIsUserCheckable| Qt::ItemIsEditable);
   QStandardItem * renderInYZ = new QStandardItem();
   renderInYZ->setData(true,Qt::CheckStateRole);
+  renderInYZ->setCheckState(Qt::Checked);
+  renderInYZ->setFlags(renderInXY->flags());
   QStandardItem * renderInXZ = new QStandardItem();
   renderInXZ->setData(true,Qt::CheckStateRole);
+  renderInXZ->setCheckState(Qt::Checked);
+  renderInXZ->setFlags(renderInXY->flags());
   QStandardItem * renderIn3D = new QStandardItem();
   renderIn3D->setData(true,Qt::CheckStateRole);
-  QList<QStandardItem *> row;
-  row << regionItem << renderInXY << renderInYZ << renderInXZ << renderIn3D;
+  renderIn3D->setCheckState(Qt::Checked);
+  renderIn3D->setFlags(renderInXY->flags());
+  row << regionItem << renderInXY << renderInYZ << renderInXZ << renderIn3D;*/
   m_parentItem->appendRow(row);
   
   removeRegion->setEnabled(true);
@@ -246,4 +257,10 @@ void CountingRegion::removeBoundingRegion()
     if (m_model.rowCount(sample))
       removeRegion->setEnabled(true);
   }
+}
+
+//------------------------------------------------------------------------
+void CountingRegion::visibilityModified()
+{
+  EspINA::instance()->activeSample()->notifyInternalUpdate();
 }

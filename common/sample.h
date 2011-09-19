@@ -27,6 +27,8 @@ class pqPipelineSource;
 
 class Sample : public EspinaProduct
 {
+  Q_OBJECT
+  
 public:
   Sample(vtkFilter *creator, int portNumber, const QString &path=QString()) 
   : EspinaProduct(NULL, creator, portNumber)
@@ -67,6 +69,11 @@ public:
   QVariant information(QString info);
   
   void initialize();
+  
+  void notifyInternalUpdate() {emit updated(this);}
+  
+signals:
+  void updated(Sample *);
   
 private:
   int *m_extent;

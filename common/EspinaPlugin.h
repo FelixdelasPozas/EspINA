@@ -25,6 +25,7 @@ public:
   virtual QString id() = 0;
   //! Create a new representation in the given view
   virtual void render(pqView *view, ViewType type = VIEW_3D) = 0;
+  virtual void clear(pqView *view, ViewType type = VIEW_3D) {}
   //! Returns the output port needed to connect it to other filters
   //! NOTE: This method must update internal properties if needed
   virtual pqPipelineSource *pipelineSource() = 0;

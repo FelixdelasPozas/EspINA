@@ -54,6 +54,9 @@ IViewWidget* CrosshairRenderer::clone()
 
 void CrosshairRenderer::renderInView(QModelIndex index, pqView* view)
 {
+  if (!isChecked())
+    return;
+    
   if (!index.isValid())
     return;
   

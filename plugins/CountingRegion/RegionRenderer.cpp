@@ -59,8 +59,15 @@ void RegionRenderer::renderInView(QModelIndex index, pqView* view)
     ISampleExtension *ext = sample->extension(CountingRegion::ID);
     assert(ext);
     
-    foreach(QString rep, ext->availableRepresentations())
-      sample->representation(rep)->render(view);
+    if (isChecked())
+    {
+      foreach(QString rep, ext->availableRepresentations())
+	sample->representation(rep)->render(view);
+    }else
+    {
+      foreach(QString rep, ext->availableRepresentations())
+	sample->representation(rep)->clear(view);
+    }
   }
 
   for (int row = 0; row < index.model()->rowCount(index); row++)

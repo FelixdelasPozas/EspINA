@@ -536,6 +536,7 @@ void SliceView::rowsInserted(const QModelIndex& parent, int start, int end)
 
     m_sampleRep = dynamic_cast<CrosshairExtension::SampleRepresentation *>(sample->representation("Crosshairs"));
     connect(m_sampleRep,SIGNAL(representationUpdated()),this,SLOT(updateScene()));
+    connect(sample,SIGNAL(updated(Sample*)),this,SLOT(updateScene()));
     m_sampleRep->render(m_view,m_plane);
     
     m_focusedSample = sample;

@@ -233,6 +233,7 @@ void VolumeView::rowsInserted(const QModelIndex& parent, int start, int end)
       m_focus[2] = (bounds[5]-bounds[4])/2.0;
       connect(sample->representation(LabelMapExtension::SampleRepresentation::ID),SIGNAL(representationUpdated()),this,SLOT(updateScene()));
       connect(sample->representation(CrosshairExtension::SampleRepresentation::ID),SIGNAL(representationUpdated()),this,SLOT(updateScene()));
+      connect(sample,SIGNAL(updated(Sample*)),this,SLOT(updateScene()));
       sample->representation(CrosshairExtension::SampleRepresentation::ID)->render(m_view);
     } 
     else 
@@ -468,7 +469,7 @@ void VolumeView::updateScene()
   
   foreach (IViewWidget *widget, m_widgets)
   {
-    if (widget->isChecked())
+//     if (widget->isChecked())
       widget->renderInView(rootIndex(),m_view);
   }
 

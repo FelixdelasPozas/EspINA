@@ -66,21 +66,26 @@ public:
   
   virtual void setInclusive(int left, int top, int upper) = 0;
   virtual void setExclusive(int right, int bottom, int lower) = 0;
+//   virtual void setViewVisibility(ViewType type, bool visible) {m_visible[type] = visible;}
   
 public slots:
   virtual void requestUpdate(bool force = false){}
   
 protected:
   vtkFilter *m_boundigRegion;
+  QList<QStandardItem *> m_modelInfo;
 };
 
 class RectangularRegion : public CountingRegion::BoundingRegion
 {
 public:
-  RectangularRegion(Sample* sample, int left, int top, int upper, int right, int bottom, int lower);
+  RectangularRegion(Sample* sample, int left, int top, int upper,
+		    int right, int bottom, int lower,
+		    QList<QStandardItem *> &info);
   virtual ~RectangularRegion();
   
   virtual void render(pqView* view, ViewType type = VIEW_3D);
+  virtual void clear(pqView* view, ViewType type = VIEW_3D);
   
   virtual void setInclusive(int left, int top, int upper);
   virtual void setExclusive(int right, int bottom, int lower);
@@ -93,10 +98,13 @@ private:
 class AdaptiveRegion : public CountingRegion::BoundingRegion
 {
 public:
-  AdaptiveRegion(Sample* sample, int left, int top, int upper, int right, int bottom, int lower);
+  AdaptiveRegion(Sample* sample, int left, int top, int upper,
+		 int right, int bottom, int lower,
+		 QList< QStandardItem* >& info);
   virtual ~AdaptiveRegion();
   
   virtual void render(pqView* view, ViewType type = VIEW_3D);
+  virtual void clear(pqView* view, ViewType type = VIEW_3D);
   
   virtual void setInclusive(int left, int top, int upper);
   virtual void setExclusive(int right, int bottom, int lower);
@@ -117,8 +125,12 @@ public:
     virtual QStringList availableRepresentations() {return m_regions.keys();}
     virtual QVariant information(QString info);
     
-    QString createAdaptiveRegion(int left, int top, int upper, int right, int bottom, int lower);
-    QString createRectangularRegion(int left, int top, int upper, int right, int bottom, int lower);
+    QString createAdaptiveRegion(int left, int top, int upper,
+				 int right, int bottom, int lower,
+				 QList<QStandardItem *> &info);
+    QString createRectangularRegion(int left, int top, int upper,
+				    int right, int bottom, int lower,
+				    QList<QStandardItem *> &info);
     void removeRegion(QString &name);
     
     QMap<QString, BoundingRegion *> &regions() {return m_regions;}

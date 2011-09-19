@@ -61,6 +61,8 @@ public slots:
   void createBoundingRegion();
   void removeBoundingRegion();
   
+  void visibilityModified();
+  
   //void onAction(QAction *action);
   
 private:

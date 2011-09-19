@@ -158,6 +158,7 @@ void CountingRegion::SegmentationExtension::updateRegions(QMap<QString, Bounding
   vtkSMPropertyHelper(m_discarted->pipelineSource()->getProxy(),"Discarted").UpdateValueFromServer();
   vtkSMPropertyHelper(m_discarted->pipelineSource()->getProxy(),"Discarted").Get(&isDiscarted,1);
   m_seg->setVisible(!isDiscarted);
+  EXTENSION_DEBUG("Counting Region Extension request Segmentation Update");
   m_seg->notifyInternalUpdate();
 }
 
@@ -180,6 +181,24 @@ CountingRegion::BoundingRegion::BoundingRegion(Sample* sample)
 , m_boundigRegion(NULL)
 {
   m_sample = sample;
+  QStandardItem * regionItem = new QStandardItem("Bounding Region");
+  QStandardItem * renderInXY = new QStandardItem();
+  renderInXY->setData(true,Qt::CheckStateRole);
+  renderInXY->setCheckState(Qt::Checked);
+  renderInXY->setFlags(renderInXY->flags() |  Qt::ItemIsUserCheckable| Qt::ItemIsEditable);
+  QStandardItem * renderInYZ = new QStandardItem();
+  renderInYZ->setData(true,Qt::CheckStateRole);
+  renderInYZ->setCheckState(Qt::Checked);
+  renderInYZ->setFlags(renderInXY->flags());
+  QStandardItem * renderInXZ = new QStandardItem();
+  renderInXZ->setData(true,Qt::CheckStateRole);
+  renderInXZ->setCheckState(Qt::Checked);
+  renderInXZ->setFlags(renderInXY->flags());
+  QStandardItem * renderIn3D = new QStandardItem();
+  renderIn3D->setData(true,Qt::CheckStateRole);
+  renderIn3D->setCheckState(Qt::Checked);
+  renderIn3D->setFlags(renderInXY->flags());
+  m_modelInfo << regionItem << renderInXY << renderInYZ << renderInXZ << renderIn3D;
 }
 
 //------------------------------------------------------------------------
@@ -222,7 +241,8 @@ pqPipelineSource* CountingRegion::BoundingRegion::pipelineSource()
 //------------------------------------------------------------------------
 RectangularRegion::RectangularRegion(Sample* sample,
   int left, int top, int upper,
-  int right, int bottom, int lower) 
+  int right, int bottom, int lower,
+  QList<QStandardItem *> &info) 
 : BoundingRegion(sample)
 {
   EXTENSION_DEBUG("Rectangular Region: (" <<  
@@ -259,57 +279,52 @@ RectangularRegion::RectangularRegion(Sample* sample,
     QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(m_boundigRegion->pipelineSource()->getProxy(), m_boundigRegion->pipelineSource()->getProxy());
     m_widget[i] = widgets.first();
   }
+  info = m_modelInfo;
 }
 
 //------------------------------------------------------------------------
 RectangularRegion::~RectangularRegion()
 {
+  for(int i=0; i<4; i++)
+  {
+    if (m_widget[i])
+    {
+      m_widget[i]->deselect();
+      delete m_widget[i];
+      m_widget[i] = NULL;
+    }
+  }
 }
 
 //------------------------------------------------------------------------
 void RectangularRegion::render(pqView* view, ViewType type)
 {
-    if (type == VIEW_3D && m_widget)
-    {
-//       pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-//       pqDataRepresentation *dr = dp->setRepresentationVisibility(pipelineSource()->getOutputPort(0),view,true);
-//       pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
-//       rep->setRepresentation(vtkSMPVRepresentationProxy::SURFACE);
-//       rep->setColorField("Type");
-//       vtkSMProxy * lut = rep->getLookupTableProxy();
-//       double colors[8] = {0,1,0,0,255,0,1,0};
-//       vtkSMPropertyHelper(lut,"RGBPoints").Set(colors,8);
-//       lut->UpdateVTKObjects();
-//       
-//       double opacity = 0.7;
-//       vtkSMPropertyHelper(rep->getProxy(),"Opacity").Set(opacity);
-//       rep->getProxy()->UpdateVTKObjects();
-    }
-//     else
-//     {
-  if (!m_widget[type]->isVisible())
-  {
+  if (m_widget[type]->view() != view)
     m_widget[type]->setView(view);
+
+  if (m_modelInfo[1+type]->data(Qt::CheckStateRole) == Qt::Checked)
     m_widget[type]->select();
-  }
+  else
+    m_widget[type]->deselect();
+  
   vtkRectangularBoundingRegionWidget *regionwidget = dynamic_cast<vtkRectangularBoundingRegionWidget*>(m_widget[type]->getWidgetProxy()->GetWidget());
   assert(regionwidget);
   CrosshairExtension::SampleRepresentation *samRep = dynamic_cast<CrosshairExtension::SampleRepresentation *>(m_sample->representation("Crosshairs"));
-//   if (type == VIEW_3D)
-//   {
-//     regionwidget->SetViewType(VIEW_PLANE_XZ);
-//     regionwidget->SetSlice(samRep->slice(VIEW_PLANE_XZ));
-//   }
-//   else
-//   {
-//     regionwidget->SetViewType(type);
-//     regionwidget->SetSlice(samRep->slice(type));
-//   }
+  
   double spacing[3];
   m_sample->spacing(spacing);
   regionwidget->SetViewType(type);
   regionwidget->SetSlice(samRep->slice(type)*spacing[type]);
 }
+
+//------------------------------------------------------------------------
+void RectangularRegion::clear(pqView* view, ViewType type)
+{
+  if (m_widget[type])
+    m_widget[type]->deselect();
+}
+
+
 
 //------------------------------------------------------------------------
 void RectangularRegion::setInclusive(int left, int top, int upper)
@@ -329,7 +344,10 @@ void RectangularRegion::setExclusive(int right, int bottom, int lower)
 //!-----------------------------------------------------------------------
 //! Represent a Bounding Region applied to the sample
 //------------------------------------------------------------------------
-AdaptiveRegion::AdaptiveRegion(Sample* sample, int left, int top, int upper, int right, int bottom, int lower)
+AdaptiveRegion::AdaptiveRegion(Sample* sample, int left, int top, int upper,
+			       int right, int bottom, int lower,
+			       QList<QStandardItem *> &info
+			      )
 : BoundingRegion(sample)
 {
   EXTENSION_DEBUG("Adaptive Region: (" <<  
@@ -360,12 +378,22 @@ AdaptiveRegion::AdaptiveRegion(Sample* sample, int left, int top, int upper, int
     QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(m_boundigRegion->pipelineSource()->getProxy(), m_boundigRegion->pipelineSource()->getProxy());
     m_widget[i] = widgets.first();
   }
+  info = m_modelInfo;
 }
 
 
 //------------------------------------------------------------------------
 AdaptiveRegion::~AdaptiveRegion()
 {
+  for(int i=0; i<4; i++)
+  {
+    if (m_widget[i])
+    {
+      m_widget[i]->deselect();
+      delete m_widget[i];
+      m_widget[i] = NULL;
+    }
+  }
 }
 
 void AdaptiveRegion::render(pqView* view, ViewType type)
@@ -390,12 +418,16 @@ void AdaptiveRegion::render(pqView* view, ViewType type)
 // regionwidget->SetViewType(type);
 // m_widget[type]->setView(view);
 // m_widget[type]->select();
-
-if (!m_widget[type]->isVisible())
-  {
+// m_widget[type]->setVisible(m_visible[type]);
+  if (m_widget[type]->view() != view)
     m_widget[type]->setView(view);
+
+//   if (m_visible[type])
+  if (m_modelInfo[1+type]->data(Qt::CheckStateRole) == Qt::Checked)
     m_widget[type]->select();
-  }
+  else
+    m_widget[type]->deselect();
+  
   vtkRectangularBoundingRegionWidget *regionwidget = dynamic_cast<vtkRectangularBoundingRegionWidget*>(m_widget[type]->getWidgetProxy()->GetWidget());
   assert(regionwidget);
   CrosshairExtension::SampleRepresentation *samRep = dynamic_cast<CrosshairExtension::SampleRepresentation *>(m_sample->representation("Crosshairs"));
@@ -404,6 +436,14 @@ if (!m_widget[type]->isVisible())
   regionwidget->SetViewType(type);
   regionwidget->SetSlice(samRep->slice(type)*spacing[type]);
 }
+
+//------------------------------------------------------------------------
+void AdaptiveRegion::clear(pqView* view, ViewType type)
+{
+  if (m_widget[type])
+    m_widget[type]->deselect();
+}
+
 
 //------------------------------------------------------------------------
 void AdaptiveRegion::setInclusive(int left, int top, int upper)
@@ -466,14 +506,21 @@ QVariant CountingRegion::SampleExtension::information(QString info)
 }
 
 //------------------------------------------------------------------------
-QString CountingRegion::SampleExtension::createAdaptiveRegion(int left, int top, int upper, int right, int bottom, int lower)
+QString CountingRegion::SampleExtension::createAdaptiveRegion(int left, int top, int upper,
+							      int right, int bottom, int lower,
+							      QList<QStandardItem *> &info)
 {
-  AdaptiveRegion *region = new AdaptiveRegion(m_sample, left, top, upper, right, bottom, lower);
+  AdaptiveRegion *region = new AdaptiveRegion(m_sample, left, top, upper,
+					      right, bottom, lower, info);
   assert(region);
+  
+//   for(ViewType view = VIEW_PLANE_FIRST; view <= VIEW_3D; view = ViewType(view+1))
+//     region->setViewVisibility(view,true);
   
   QString repName = QString("Adaptative Region (%1,%2,%3,%4,%5,%6)") 
     .arg(left).arg(top).arg(upper).arg(right).arg(bottom).arg(lower);
-    
+  
+  info.first()->setData(repName,Qt::DisplayRole);
   if (!m_regions.contains(repName))
   {
     m_regions[repName] = region;
@@ -490,19 +537,25 @@ QString CountingRegion::SampleExtension::createAdaptiveRegion(int left, int top,
       ext->updateRegions(m_regions);
     }
   }
+  sample()->notifyInternalUpdate();
   return repName;
 }
 
 
 //------------------------------------------------------------------------
-QString CountingRegion::SampleExtension::createRectangularRegion(int left, int top, int upper, int right, int bottom, int lower)
+QString CountingRegion::SampleExtension::createRectangularRegion(int left, int top, int upper,
+								 int right, int bottom, int lower,
+								 QList<QStandardItem *> &info)
 {
-  RectangularRegion *region = new RectangularRegion(m_sample, left, top, upper, right, bottom, lower);
+  RectangularRegion *region = new RectangularRegion(m_sample, left, top, upper,
+						    right, bottom, lower, info);
   assert(region);
+  
   
   QString repName = QString("Rectangular Region (%1,%2,%3,%4,%5,%6)") 
     .arg(left).arg(top).arg(upper).arg(right).arg(bottom).arg(lower);
     
+    info.first()->setData(repName,Qt::DisplayRole);
     if (!m_regions.contains(repName))
     {
       m_regions[repName] = region;
@@ -519,6 +572,7 @@ QString CountingRegion::SampleExtension::createRectangularRegion(int left, int t
 	ext->updateRegions(m_regions);
       }
     }
+  sample()->notifyInternalUpdate();
   return repName;
 }
 
