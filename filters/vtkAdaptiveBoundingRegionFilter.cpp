@@ -165,11 +165,11 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
   
   //TODO: Min values are 0 or given by extent???
   int zMin = std::max(Exclusion[2], 0);
-  int zMax = std::min(Inclusion[2], dim[2]);//BUG
+  int zMax = std::min(Inclusion[2], dim[2]-1);
   
   const int blackThreshold = 10;
     vtkIdType lastCell[4];
-  for (int z = zMin; z < zMax; z++)
+  for (int z = zMin; z <= zMax; z++)
   {
     // Look for images borders in z slice:
     // We are going to take all bordering pixels (almost black) and then extract its oriented

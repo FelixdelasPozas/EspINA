@@ -38,8 +38,9 @@ void printExtent(int extent[6])
 }
 
 vtkImageLabelMapBlend::vtkImageLabelMapBlend()
-: m_init(false)
-, Opacity(0.6)
+: Opacity(0.6)
+, m_init(false)
+, m_debugProcessedPixels(0)
 {
   //! Port 0: Blending inputs
   //! Port 1: Reference colors
@@ -86,8 +87,9 @@ void vtkImageLabelMapBlend::AddInputConnection(int port, vtkAlgorithmOutput* inp
 {
   if (port == 0)
   {
+    
     vtkImageData *inputImage = vtkImageData::SafeDownCast(
-      input->GetProducer()->GetOutputDataObject(0));
+      input->GetProducer()->GetOutputDataObject(input->GetIndex()));
     
     if (requestArea(inputImage))
       vtkAlgorithm::AddInputConnection(port, input);
@@ -268,7 +270,7 @@ int vtkImageLabelMapBlend::RequestUpdateExtent(vtkInformation* request, vtkInfor
   {
     Input *input = m_newInputs[0];
     memcpy(requiredUpdateArea,input->requestedAreaExtent,6*sizeof(int));
-    for (int i=1; i < m_newInputs.size(); i++)
+    for (std::size_t i=1; i < m_newInputs.size(); i++)
     {
       for (int d=0; d<3; d++)
       {
@@ -574,14 +576,14 @@ bool vtkImageLabelMapBlend::requestArea(vtkImageData *inputImage)
   inputImage->Update();
   
   // Check for duplicate inputs
-  for (int i = 0; i < m_blendedInputs.size();i++)
+  for (std::size_t i = 0; i < m_blendedInputs.size();i++)
     if (m_blendedInputs[i]->image == inputImage)
     {
       vtkDebugMacro(<< "Input already added");
       return false;
     }
   
-  for (int i = 0; i < m_newInputs.size();i++)
+  for (unsigned int i = 0; i < m_newInputs.size();i++)
     if (m_newInputs[i]->image == inputImage)
     {
       vtkDebugMacro(<< "Input already added");
