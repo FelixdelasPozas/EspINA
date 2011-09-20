@@ -102,6 +102,7 @@
 #include <sample.h>
 #include <pixelSelector.h>
 #include "preferencesDialog.h"
+#include <EspinaPluginManager.h>
 
 const QString FILTERS("Trace Files (*.trace)");
 const QString SEG_FILTERS("Seg Files (*.seg)");
@@ -960,6 +961,12 @@ void EspinaMainWindow::buildSettingsMenu(QMenu& menu)
 void EspinaMainWindow::showPreferencesDialog()
 {
   PreferencesDialog dialog;
+  
+  foreach(IPreferencePanel *panel, EspinaPluginManager::instance()->preferencePanels())
+  {
+    dialog.addPanel(panel);
+  }
+  
   dialog.exec();
 }
 

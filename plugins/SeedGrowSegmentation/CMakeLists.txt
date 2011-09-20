@@ -59,6 +59,7 @@ MESSAGE (STATUS ${CAJAL_INCLUDE_DIR})
 
 set (PLUGIN_SRCS
   SeedGrowSegmentation.cpp
+  SeedGrowSegmentationPreferences.cpp
   SeedGrowSegmentationFilter.cpp
   ${MOC_SRCS} 
   ${RCC_BUILT_SOURCES} 

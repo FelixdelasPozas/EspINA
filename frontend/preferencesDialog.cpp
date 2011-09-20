@@ -21,13 +21,22 @@
 
 #include <QSettings>
 #include <QDir>
+#include <QTime>
+#include <QPushButton>
 
 const QString SAMPLE_PATH("samplePath");
 
-PreferencesDialog::PreferencesDialog(QWidget* parent, Qt::WindowFlags f): QDialog(parent, f)
+//------------------------------------------------------------------------
+GeneralPreferences::GeneralPreferences()
 {
-  setupUi(this);
-  
+}
+
+//------------------------------------------------------------------------
+QWidget* GeneralPreferences::widget()
+{
+  QWidget *widget = new QWidget();
+  setupUi(widget);
+
   QSettings settings;
   
   if (!settings.allKeys().contains(SAMPLE_PATH))
@@ -36,4 +45,55 @@ PreferencesDialog::PreferencesDialog(QWidget* parent, Qt::WindowFlags f): QDialo
   }
   
   samplePath->setText(settings.value(SAMPLE_PATH).toString());
+  
+  return widget;
 }
+
+//------------------------------------------------------------------------
+ViewPreferences::ViewPreferences()
+{
+
+}
+
+//------------------------------------------------------------------------
+QWidget* ViewPreferences::widget()
+{
+  QWidget *widget = new QWidget();
+  setupUi(widget);
+  return widget;
+}
+
+//------------------------------------------------------------------------
+PreferencesDialog::PreferencesDialog(QWidget* parent, Qt::WindowFlags f): QDialog(parent, f)
+{
+  setupUi(this);
+  
+  GeneralPreferences *general = new GeneralPreferences();
+  addPanel(general);
+
+  ViewPreferences *view = new ViewPreferences();
+  addPanel(view);
+  
+  connect(components,SIGNAL(currentRowChanged(int)),
+	  this, SLOT(changePreferencePanel(int)));
+}
+
+//------------------------------------------------------------------------
+void PreferencesDialog::addPanel(IPreferencePanel* panel)
+{
+  QListWidgetItem *item = new QListWidgetItem();
+  item->setData(Qt::DisplayRole,panel->shortDescription());
+  item->setData(Qt::DecorationRole,panel->icon());
+
+  components->addItem(item);
+  m_panels.push_back(panel);
+}
+
+//------------------------------------------------------------------------
+void PreferencesDialog::changePreferencePanel(int panel)
+{
+  longDescription->setText( m_panels[panel]->longDescription() );
+  icon->setPixmap( m_panels[panel]->icon().pixmap(icon->size()) );
+  scrollArea->setWidget(m_panels[panel]->widget());
+}
+

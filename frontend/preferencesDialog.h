@@ -21,13 +21,62 @@
 #define PREFERENCESDIALOG_H
 
 #include <QDialog>
-#include "ui_preferencesDialog.h"
+#include "IPreferencePanel.h"
 
+#include "ui_GeneralPreferences.h"
+#include "ui_ViewPreferences.h"
+#include "ui_preferencesDialog.h"
+/*
+class IPreferencePanel : public QWidget
+{
+public:
+  virtual ~IPreferencePanel(){}
+  
+  virtual const QString shortDescription() = 0;
+  virtual const QString longDescription() = 0;
+  virtual const QIcon icon() = 0;  
+  
+  virtual QWidget *widget() = 0;
+};*/
+
+class GeneralPreferences : public IPreferencePanel, Ui::GeneralPreferences
+{
+public:
+  GeneralPreferences();
+  
+  virtual const QString shortDescription() {return "General";}
+  virtual const QString longDescription() {return "General";}
+  virtual const QIcon icon() {return QIcon(":/espina/editor.ico");}
+  
+  virtual QWidget* widget();
+};
+
+class ViewPreferences : public IPreferencePanel, Ui::ViewPreferences
+{
+public:
+  ViewPreferences();
+  
+  virtual const QString shortDescription() {return "View";}
+  virtual const QString longDescription() {return "View";}
+  virtual const QIcon icon() {return QIcon(":/espina/show_all.svg");}
+  
+  virtual QWidget* widget();
+};
 
 class PreferencesDialog : public QDialog, Ui::PreferencesDialog
 {
+  Q_OBJECT
+  
 public:
   explicit PreferencesDialog(QWidget* parent = 0, Qt::WindowFlags f = 0);
+  
+  void addPanel(IPreferencePanel* panel);
+  
+public slots:
+  void changePreferencePanel(int panel);
+  
+private:
+  QList<IPreferencePanel *> m_panels;
 };
 
 #endif // PREFERENCESDIALOG_H

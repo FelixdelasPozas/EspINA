@@ -65,6 +65,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <EspinaPluginManager.h>
 #include <QBitmap>
 #include <RectangularVOI.h>
+#include "SeedGrowSegmentationPreferences.h"
 
 
 #define DEFAULT_THRESHOLD 30
@@ -86,6 +87,10 @@ SeedGrowSegmentation::SeedGrowSegmentation(QObject* parent)
   m_defaultVOI = new RectangularVOI(false);
   
   buildUI();
+  
+  SeedGrowSegmentationPreferences *preferences = new SeedGrowSegmentationPreferences();
+  
+  EspinaPluginManager::instance()->registerPreferencePanel(preferences);
   
 }
 

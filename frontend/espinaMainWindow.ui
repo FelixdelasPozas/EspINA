@@ -250,7 +250,7 @@
           </size>
          </property>
          <property name="toolTip">
-          <string>Add taxonomy node</string>
+          <string>Show Segmentation Information</string>
          </property>
          <property name="text">
           <string/>

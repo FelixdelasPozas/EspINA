@@ -33,24 +33,6 @@
        <property name="uniformItemSizes">
         <bool>false</bool>
        </property>
-       <item>
-        <property name="text">
-         <string>General</string>
-        </property>
-        <property name="icon">
-         <iconset resource="rsc/espina.qrc">
-          <normaloff>:/espina/editor.ico</normaloff>:/espina/editor.ico</iconset>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>Views</string>
-        </property>
-        <property name="icon">
-         <iconset resource="rsc/espina.qrc">
-          <normaloff>:/espina/show_all.svg</normaloff>:/espina/show_all.svg</iconset>
-        </property>
-       </item>
       </widget>
      </item>
      <item>
@@ -58,7 +40,7 @@
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
-          <widget class="QLabel" name="label_2">
+          <widget class="QLabel" name="longDescription">
            <property name="font">
             <font>
              <weight>75</weight>
@@ -74,7 +56,7 @@
           </widget>
          </item>
          <item>
-          <widget class="QLabel" name="label">
+          <widget class="QLabel" name="icon">
            <property name="maximumSize">
             <size>
              <width>32</width>
@@ -85,7 +67,7 @@
             <string/>
            </property>
            <property name="pixmap">
-            <pixmap resource="rsc/espina.qrc">:/espina/editor.ico</pixmap>
+            <pixmap>:/espina/editor.ico</pixmap>
            </property>
            <property name="scaledContents">
             <bool>true</bool>
@@ -111,35 +93,6 @@
             <height>215</height>
            </rect>
           </property>
-          <layout class="QVBoxLayout" name="verticalLayout_3">
-           <item>
-            <widget class="QLabel" name="label_3">
-             <property name="text">
-              <string>Path</string>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <widget class="QLineEdit" name="samplePath">
-             <property name="text">
-              <string/>
-             </property>
-            </widget>
-           </item>
-           <item>
-            <spacer name="verticalSpacer">
-             <property name="orientation">
-              <enum>Qt::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>40</height>
-              </size>
-             </property>
-            </spacer>
-           </item>
-          </layout>
          </widget>
         </widget>
        </item>

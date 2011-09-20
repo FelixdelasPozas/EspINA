@@ -25,6 +25,7 @@
 #include <QMap>
 #include <processingTrace.h>
 
+class IPreferencePanel;
 class pqPipelineSource;
 class IFilterFactory;
 class IFileReader;
@@ -49,6 +50,9 @@ public:
   
   void registerReader(const QString &extension, IFileReader *reader);
   void readFile(pqPipelineSource *proxy, const QString &filePath);
+  
+  void registerPreferencePanel(IPreferencePanel *panel);
+  QList<IPreferencePanel *> preferencePanels() {return m_panels;}
     
 private:
   EspinaPluginManager(const EspinaPluginManager &);// Disable copy constructor
@@ -58,6 +62,7 @@ private:
   
   QMap<QString, IFilterFactory *> m_filters;
   QMap<QString, IFileReader *> m_readers;
+  QList<IPreferencePanel *> m_panels;
 };
 
 #endif // ESPINAPLUGINMANAGER_H

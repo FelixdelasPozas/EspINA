@@ -637,7 +637,7 @@ void vtkRectangularBoundingRegionRepresentation::CreateXYFace()
   line->GetPointIds()->SetId(0,0);
   line->GetPointIds()->SetId(1,1);
   inLines->InsertNextCell(line);
-  lineData->InsertNextValue(255);
+  lineData->InsertNextValue(0);
   
   Region->GetOutput()->GetPoint(0*4+2,point);
   this->BoundingFacePoints->SetPoint(2, point);
@@ -651,7 +651,7 @@ void vtkRectangularBoundingRegionRepresentation::CreateXYFace()
   line->GetPointIds()->SetId(0,3);
   line->GetPointIds()->SetId(1,2);
   inLines->InsertNextCell(line);
-  lineData->InsertNextValue(0);
+  lineData->InsertNextValue(255);
   
   this->BoundingFacePolyData->SetLines(inLines);
   this->BoundingFacePolyData->GetCellData()->SetScalars(lineData);
@@ -703,7 +703,7 @@ void vtkRectangularBoundingRegionRepresentation::CreateYZFace()
     line->GetPointIds()->SetId(0,id-2);
     line->GetPointIds()->SetId(1,id);
     inLines->InsertNextCell(line);
-    lineData->InsertNextValue(255);
+    lineData->InsertNextValue(0);
     Region->GetOutput()->GetPoint(f*4+3,point);
     this->BoundingFacePoints->SetPoint(++id, point);
 //     std::cout << "Connecting point " << id << " with " << (id-2) << std::endl;
@@ -711,7 +711,7 @@ void vtkRectangularBoundingRegionRepresentation::CreateYZFace()
     line->GetPointIds()->SetId(0,id-2);
     line->GetPointIds()->SetId(1,id);
     inLines->InsertNextCell(line);
-    lineData->InsertNextValue(0);
+    lineData->InsertNextValue(255);
   }
 
   // Create Max X Line

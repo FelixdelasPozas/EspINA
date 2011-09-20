@@ -234,8 +234,10 @@ void Sample::addExtension(ISampleExtension* ext)
 //------------------------------------------------------------------------
 ISampleExtension* Sample::extension(ExtensionId extId)
 {
-  assert(m_extensions.contains(extId));
-  return m_extensions[extId];
+  if (m_extensions.contains(extId))
+    return m_extensions[extId];
+  else
+    return NULL;
 }
 
 //------------------------------------------------------------------------

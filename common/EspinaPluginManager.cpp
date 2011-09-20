@@ -62,6 +62,11 @@ void EspinaPluginManager::readFile(pqPipelineSource* proxy, const QString& fileP
   reader->readFile(proxy,filePath);
 }
 
+//-----------------------------------------------------------------------------
+void EspinaPluginManager::registerPreferencePanel(IPreferencePanel* panel)
+{
+  m_panels.push_back(panel);
+}
 
 
 
