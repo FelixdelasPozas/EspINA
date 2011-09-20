@@ -268,12 +268,12 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
     { 
       // Upper Inclusion Face
       faces->InsertNextCell(4, cell);
-      faceData->InsertNextValue(INCLUSION_FACE);
+      faceData->InsertNextValue(EXCLUSION_FACE);
     } else if (z == zMin)
     {
       // Lower Inclusion Face
       faces->InsertNextCell(4, cell);
-      faceData->InsertNextValue(EXCLUSION_FACE);
+      faceData->InsertNextValue(INCLUSION_FACE);
     } else
     {
       // Create lateral faces
