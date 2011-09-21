@@ -13,6 +13,7 @@ public:
   virtual const QString longDescription() = 0;
   virtual const QIcon icon() = 0;  
   
+  virtual void addPanel(IPreferencePanel *panel){}
   virtual QWidget *widget() = 0;
 };
 

@@ -83,6 +83,7 @@
 #include <vtkPropPicker.h>
 #include <vtkProperty.h>
 #include <QSettings>
+#include <QCheckBox>
 
 #define HINTWIDTH 40
 
@@ -99,6 +100,7 @@ public:
 
 vtkStandardNewMacro(vtkInteractorStyleEspina);
 
+//-----------------------------------------------------------------------------
 void vtkInteractorStyleEspina::OnMouseMove()
 {
   if (Interactor->GetControlKey())
@@ -107,6 +109,137 @@ void vtkInteractorStyleEspina::OnMouseMove()
   vtkInteractorStyleImage::OnMouseMove();
 }
 
+
+//-----------------------------------------------------------------------------
+SliceViewPreferencesPanel::SliceViewPreferencesPanel(SliceViewPreferences* preferences)
+: QWidget(preferences)
+, m_pref(preferences)
+{
+  QVBoxLayout *layout = new QVBoxLayout();
+
+  QCheckBox *invertWheel = new QCheckBox(tr("Invert Wheel"));
+  invertWheel->setChecked(m_pref->invertWheel());
+  connect(invertWheel,SIGNAL(toggled(bool)),
+	  this, SLOT(setInvertWheel(bool)));
+  
+//   QCheckBox *invertNormal = new QCheckBox(tr("Invert Normal"));
+//   invertNormal->setChecked(m_pref->invertNormal());
+//   connect(invertNormal,SIGNAL(toggled(bool)),
+// 	  this, SLOT(setInvertNormal(bool)));
+
+  QCheckBox *showAxis = new QCheckBox(tr("Show Axis"));
+  showAxis->setChecked(m_pref->showAxis());
+  connect(showAxis,SIGNAL(toggled(bool)),
+	  this, SLOT(setShowAxis(bool)));
+  
+  layout->addWidget(invertWheel);
+//   layout->addWidget(invertNormal);
+  layout->addWidget(showAxis);
+  QSpacerItem *spacer = new QSpacerItem(10,10,QSizePolicy::Expanding,QSizePolicy::Expanding);
+  layout->addSpacerItem(spacer);
+  setLayout(layout);
+}
+
+//-----------------------------------------------------------------------------
+void SliceViewPreferencesPanel::setInvertWheel(bool value)
+{
+  m_pref->setInvertWheel(value);
+}
+
+//-----------------------------------------------------------------------------
+void SliceViewPreferencesPanel::setInvertNormal(bool value)
+{
+  m_pref->setInvertNormal(value);
+}
+
+//-----------------------------------------------------------------------------
+void SliceViewPreferencesPanel::setShowAxis(bool value)
+{
+  m_pref->setShowAxis(value);
+}
+
+
+//-----------------------------------------------------------------------------
+SliceViewPreferences::SliceViewPreferences(ViewType plane)
+: m_plane(plane)
+{
+  QSettings settings;
+  
+  switch (plane)
+  {
+    case VIEW_PLANE_XY:
+      viewSettings = "XYSliceView";    
+      break;
+    case VIEW_PLANE_YZ:
+      viewSettings = "YZSliceView";    
+      break;
+    case VIEW_PLANE_XZ:
+      viewSettings = "XZSliceView";    
+      break;
+    default:
+      assert(false);
+  };
+  
+  const QString wheelSettings = QString(viewSettings+"::invertWheel");
+  if (!settings.contains(wheelSettings))
+    settings.setValue(wheelSettings,false);
+  m_InvertWheel = settings.value(wheelSettings).toBool();
+
+  const QString normalSettings = QString(viewSettings+"::invertNormal");
+  if (!settings.contains(normalSettings))
+    settings.setValue(normalSettings,false);
+  m_InvertNormal = settings.value(normalSettings).toBool();
+  
+  const QString axisSettings = QString(viewSettings+"::showAxis");
+  if (!settings.contains(axisSettings))
+    settings.setValue(axisSettings,false);
+  m_ShowAxis = settings.value(axisSettings).toBool();
+}
+
+//-----------------------------------------------------------------------------
+const QString SliceViewPreferences::shortDescription()
+{
+  switch (m_plane)
+  {
+    case VIEW_PLANE_XY:
+      return "XY View";
+    case VIEW_PLANE_YZ:
+      return "YZ View";
+    case VIEW_PLANE_XZ:
+      return "XZ View";
+    default:
+      return "";
+  };
+}
+
+//-----------------------------------------------------------------------------
+void SliceViewPreferences::setInvertWheel(bool value)
+{
+  QSettings settings;
+  
+  const QString wheelSettings = QString(viewSettings+"::invertWheel");
+  m_InvertWheel = value;
+  settings.setValue(wheelSettings,value);
+}
+
+//-----------------------------------------------------------------------------
+void SliceViewPreferences::setInvertNormal(bool value)
+{
+  QSettings settings;
+  
+  const QString normalSettings = QString(viewSettings+"::invertNormal");
+  m_InvertNormal = value;
+  settings.setValue(normalSettings,value);
+}
+//-----------------------------------------------------------------------------
+void SliceViewPreferences::setShowAxis(bool value)
+{
+  QSettings settings;
+  
+  const QString axisSettings = QString(viewSettings+"::showAxis");
+  m_ShowAxis = value;
+  settings.setValue(axisSettings,value);
+}
 
 
 #define LOWER(coord) (2*(coord))
@@ -147,6 +280,8 @@ SliceView::SliceView(QWidget* parent)
   pal.setColor(QPalette::Base, pal.color(QPalette::Window));
   this->setPalette(pal);
   this->setStyleSheet("QSpinBox { background-color: white;}");
+  
+  m_preferences = new SliceViewPreferences(m_plane);
 }
 
 SliceView::~SliceView()
@@ -347,12 +482,10 @@ void SliceView::selectSegmentations(int x, int y, int z)
 //-----------------------------------------------------------------------------
 bool SliceView::eventFilter(QObject* obj, QEvent* event)
 {
-  QSettings settings;
-  
   if (event->type() == QEvent::Wheel)
   {
     QWheelEvent *we = static_cast<QWheelEvent *>(event);
-    int numSteps = we->delta()/8/15;//Refer to QWheelEvent doc.
+    int numSteps = we->delta()/8/15*(m_preferences->invertWheel()?-1:1);//Refer to QWheelEvent doc.
     m_spinBox->setValue(m_spinBox->value() - numSteps);
     event->ignore();
   }else if (event->type() == QEvent::Enter)
@@ -431,6 +564,7 @@ void SliceView::connectToServer()
   double black[3] = {0, 0, 0};
   m_viewProxy->SetBackgroundColorCM(black);
   m_view->setCenterAxesVisibility(false);
+  m_view->setOrientationAxesVisibility(m_preferences->showAxis());
   //m_view->resetCamera();
 }
 
@@ -462,6 +596,8 @@ void SliceView::showSegmentations(bool value)
 void SliceView::setPlane(ViewType plane)
 {
   m_plane = plane;
+  delete m_preferences;
+  m_preferences = new SliceViewPreferences(m_plane);
 }
 
 
@@ -835,4 +971,3 @@ void SliceView::endRender()
 {
   QApplication::restoreOverrideCursor();
 }
-

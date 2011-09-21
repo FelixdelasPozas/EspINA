@@ -962,10 +962,10 @@ void EspinaMainWindow::showPreferencesDialog()
 {
   PreferencesDialog dialog;
   
-  foreach(IPreferencePanel *panel, EspinaPluginManager::instance()->preferencePanels())
-  {
-    dialog.addPanel(panel);
-  }
+  IPreferencePanel *viewPanel = dialog.panel("View");
+  viewPanel->addPanel(m_xy->preferences());
+  viewPanel->addPanel(m_yz->preferences());
+  viewPanel->addPanel(m_xz->preferences());
   
   dialog.exec();
 }

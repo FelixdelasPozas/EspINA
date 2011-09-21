@@ -60,7 +60,10 @@ public:
   virtual const QString longDescription() {return "View";}
   virtual const QIcon icon() {return QIcon(":/espina/show_all.svg");}
   
+  virtual void addPanel(IPreferencePanel* panel);
   virtual QWidget* widget();
+private:
+  QList<IPreferencePanel *> panels;
 };
 
 class PreferencesDialog : public QDialog, Ui::PreferencesDialog
@@ -71,6 +74,7 @@ public:
   explicit PreferencesDialog(QWidget* parent = 0, Qt::WindowFlags f = 0);
   
   void addPanel(IPreferencePanel* panel);
+  IPreferencePanel * panel(const QString &shortDesc);
   
 public slots:
   void changePreferencePanel(int panel);
