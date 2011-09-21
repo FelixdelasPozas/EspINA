@@ -37,6 +37,10 @@ protected:
   vtkSegmentationSelectionFilter();
   virtual ~vtkSegmentationSelectionFilter(){}
 
+  virtual int RequestUpdateExtent(vtkInformation* request,
+				  vtkInformationVector** inputVector,
+				  vtkInformationVector* outputVector);
+  
   virtual int RequestData(vtkInformation* request,
 			  vtkInformationVector** inputVector,
 			  vtkInformationVector* outputVector);

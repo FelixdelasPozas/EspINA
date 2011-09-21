@@ -24,8 +24,7 @@
 #include <vtkInformation.h>
 #include <vtkImageData.h>
 #include <vtkInformationVector.h>
-
-#define LABEL_VALUE 255
+#include <vtkStreamingDemandDrivenPipeline.h>
 
 vtkStandardNewMacro(vtkSegmentationSelectionFilter);
 
@@ -34,6 +33,27 @@ vtkSegmentationSelectionFilter::vtkSegmentationSelectionFilter()
 {
   bzero(CheckPixel, 3*sizeof(int));
 }
+
+int vtkSegmentationSelectionFilter::RequestUpdateExtent(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
+{
+  vtkInformation* outInfo = outputVector->GetInformationObject(0);
+  vtkInformation* inInfo = inputVector[0]->GetInformationObject(0);
+  
+  //Only update requested pixel extent
+  int pixelExtent[6] = {CheckPixel[0], CheckPixel[0],
+		     CheckPixel[1], CheckPixel[1],
+		     CheckPixel[2], CheckPixel[2]};
+
+  inInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(),
+	      pixelExtent,
+	      6);
+  outInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(),
+	      pixelExtent,
+	      6);
+    
+    return 1;
+}
+
 
 int vtkSegmentationSelectionFilter::RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
