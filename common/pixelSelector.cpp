@@ -68,10 +68,11 @@ void BestPixelSelector::onMouseDown(QPoint& pos, ISelectableView* view)
   
   QPoint bestPixel = pos;
   unsigned char * pixel;
-  double bestValue;
+  unsigned char pixelValue;
+  unsigned char bestValue;
   
   pixel = ((unsigned char *)img->GetScalarPointer(pos.x(),pos.y(),0));
-  bestValue = pixel[0];
+  bestValue = abs(pixel[0]-m_bestPixel);
   
   //qDebug() << "EspINA::BestPixelSelector: Scalar componets:" <<img->GetNumberOfScalarComponents();
   
@@ -79,9 +80,10 @@ void BestPixelSelector::onMouseDown(QPoint& pos, ISelectableView* view)
     for (int y = topPixel; y <= bottomPixel; y++)
     {
       pixel = ((unsigned char *)img->GetScalarPointer(x,y,0));
-      if (pixel[0] < bestValue)
+      pixelValue = abs(pixel[0] - m_bestPixel);
+      if (pixelValue < bestValue)
       {
-	bestValue = pixel[0];
+	bestValue = pixelValue;
 	bestPixel = QPoint(x,y);
       }
       //qDebug() << "Pixel(" << x << "," << y<< ") value :" << pixel[0] << pixel[1] << pixel[2];

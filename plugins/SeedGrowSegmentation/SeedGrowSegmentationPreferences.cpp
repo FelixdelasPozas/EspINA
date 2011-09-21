@@ -16,13 +16,59 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "SeedGrowSegmentationPreferences.h"
+
+
+#include <QSettings>
+#include <QString>
+#include <pixelSelector.h>
+
+// const QString BEST_PIXEL("SeedGrowSegmentation::BestPixel");
+
+//------------------------------------------------------------------------
+SeedGrowSegmentationPanel::SeedGrowSegmentationPanel(BestPixelSelector *selector)
+: m_selector(selector)
+{
+  setupUi(this);
+  
+  connect(pixelValue,SIGNAL(valueChanged(int)),
+	  this, SLOT(setBestPixelValue(int)));
+
+  QSettings settings;
+  
+  if (!settings.allKeys().contains(BEST_PIXEL))
+  {
+    settings.setValue(BEST_PIXEL,0);
+  }
+  
+  int bestPixel = settings.value(BEST_PIXEL).toInt();
+  pixelValue->setValue(bestPixel);
+  setBestPixelValue(bestPixel); //To prevent non initialization of black
+}
+
+//------------------------------------------------------------------------
+SeedGrowSegmentationPanel::~SeedGrowSegmentationPanel()
+{
+}
+
+//------------------------------------------------------------------------
+void SeedGrowSegmentationPanel::setBestPixelValue(int value)
+{
+  QSettings settings;
+  
+  settings.setValue(BEST_PIXEL, value);  
+  QPixmap pic(32,32);
+  pic.fill(QColor(value,value,value));
+  colorSample->setPixmap(pic);
+  m_selector->setBestPixelValue(value);
+  colorSample->setToolTip(QString("Pixel Value: %1").arg(value));
+  pixelValue->setToolTip(QString("Pixel Value: %1").arg(value));
+}
+
 
 QWidget* SeedGrowSegmentationPreferences::widget()
 {
-  QWidget *widget = new QWidget();
-  
-  return widget;
+  SeedGrowSegmentationPanel *panel = new SeedGrowSegmentationPanel(m_selector);
+  return panel;
 }
 

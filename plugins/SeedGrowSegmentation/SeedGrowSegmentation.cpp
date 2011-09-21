@@ -66,6 +66,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QBitmap>
 #include <RectangularVOI.h>
 #include "SeedGrowSegmentationPreferences.h"
+#include <QSettings>
 
 
 #define DEFAULT_THRESHOLD 30
@@ -87,10 +88,6 @@ SeedGrowSegmentation::SeedGrowSegmentation(QObject* parent)
   m_defaultVOI = new RectangularVOI(false);
   
   buildUI();
-  
-  SeedGrowSegmentationPreferences *preferences = new SeedGrowSegmentationPreferences();
-  
-  EspinaPluginManager::instance()->registerPreferencePanel(preferences);
   
 }
 
@@ -232,7 +229,13 @@ void SeedGrowSegmentation::buildSelectors()
     QIcon(":bestPixelSelector.svg")
     , tr("Add synapse (Ctrl +). Best Pixel"),
     m_selectors);
-  handler = new BestPixelSelector();
+  BestPixelSelector *bestSelector = new BestPixelSelector();
+  SeedGrowSegmentationPreferences *preferences = new SeedGrowSegmentationPreferences(bestSelector);
+  EspinaPluginManager::instance()->registerPreferencePanel(preferences);
+  QSettings settings;
+  if (settings.contains(BEST_PIXEL))
+    bestSelector->setBestPixelValue(settings.value(BEST_PIXEL).toInt());
+  handler = bestSelector;
   handler->multiSelection = false;
   handler->filters << "EspINA_Sample";
   addPixelSelector(action, handler);

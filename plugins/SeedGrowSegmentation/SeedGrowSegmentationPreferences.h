@@ -21,17 +21,38 @@
 #define SEEDGROWSEGMENTATIONPREFERENCES_H
 
 #include <../frontend/IPreferencePanel.h>
+#include "ui_SeedGrowSegmentationPreferences.h"
 
+const QString BEST_PIXEL("SeedGrowSegmentation::BestPixel");
+
+class BestPixelSelector;
+class SeedGrowSegmentationPanel : public QWidget, public Ui::SeedGrowSegmentationPreferences
+{
+  Q_OBJECT
+public:
+  explicit SeedGrowSegmentationPanel(BestPixelSelector *selector);
+  virtual ~SeedGrowSegmentationPanel();
+  
+public slots:
+  void setBestPixelValue(int value);
+  
+private:
+  BestPixelSelector *m_selector;
+};
 
 class SeedGrowSegmentationPreferences : public IPreferencePanel
 {
-
 public:
+  SeedGrowSegmentationPreferences(BestPixelSelector *sel) : m_selector(sel){}
+  
   virtual const QString shortDescription() {return "Seed Grow Segmentation";}
   virtual const QString longDescription() {return "Seed Grow Segmentation Preferences";}
   virtual const QIcon icon() {return QIcon(":/bestPixelSelector.svg");}
 
   virtual QWidget* widget();
+  
+private:
+  BestPixelSelector *m_selector;
 };
 
 #endif // SEEDGROWSEGMENTATIONPREFERENCES_H

@@ -82,6 +82,7 @@
 
 #include <vtkPropPicker.h>
 #include <vtkProperty.h>
+#include <QSettings>
 
 #define HINTWIDTH 40
 
@@ -346,6 +347,8 @@ void SliceView::selectSegmentations(int x, int y, int z)
 //-----------------------------------------------------------------------------
 bool SliceView::eventFilter(QObject* obj, QEvent* event)
 {
+  QSettings settings;
+  
   if (event->type() == QEvent::Wheel)
   {
     QWheelEvent *we = static_cast<QWheelEvent *>(event);
