@@ -75,7 +75,7 @@ public:
     void addWidget(IViewWidget *widget);
     
 private:
-  QList<Segmentation* > selectSegmentations(int x, int y, int z);
+  void selectSegmentations(int x, int y, int z);
   
 protected slots:
   //! Selections

@@ -352,7 +352,7 @@ void VolumeView::addWidget(IViewWidget* widget)
 
 
 //-----------------------------------------------------------------------------
-QList< Segmentation* > VolumeView::selectSegmentations(int x, int y, int z)
+void VolumeView::selectSegmentations(int x, int y, int z)
 {
   QItemSelection selection;
   
