@@ -67,6 +67,7 @@
 #include <vtkPropPicker.h>
 #include <vtkSMPropertyHelper.h>
 #include <vtkPVDataInformation.h>
+#include <SegmentationSelectionExtension.h>
 
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(QWidget* parent)
@@ -374,21 +375,26 @@ void VolumeView::selectSegmentations(int x, int y, int z)
       (extent[2] <= y && y <= extent[3]) &&
       (extent[4] <= z && z <= extent[5]))
     {
+      SegmentationSelectionExtension *selector = dynamic_cast<SegmentationSelectionExtension *>(
+	seg->extension(SegmentationSelectionExtension::ID));
+      
+      if (selector->isSegmentationPixel(x,y,z))
+	selIndex = segIndex;
       // 	seg->outputPort()->getDataInformation()->GetPointDataInformation();
       //selection.indexes().append(segIndex);
-      double pixelValue[4];
-      pixelValue[0] = x;
-      pixelValue[1] = y;
-      pixelValue[2] = z;
-      pixelValue[3] = 4;
-      vtkSMPropertyHelper(seg->creator()->pipelineSource()->getProxy(),"CheckPixel").Set(pixelValue,4);
-      seg->creator()->pipelineSource()->getProxy()->UpdateVTKObjects();
-      int value;
-      seg->creator()->pipelineSource()->getProxy()->UpdatePropertyInformation();
-      vtkSMPropertyHelper(seg->creator()->pipelineSource()->getProxy(),"PixelValue").Get(&value,1);
-      	qDebug() << "Pixel Value" << value;
-      if (value == 255)
-	selIndex = segIndex;
+//       double pixelValue[4];
+//       pixelValue[0] = x;
+//       pixelValue[1] = y;
+//       pixelValue[2] = z;
+//       pixelValue[3] = 4;
+//       vtkSMPropertyHelper(seg->creator()->pipelineSource()->getProxy(),"CheckPixel").Set(pixelValue,4);
+//       seg->creator()->pipelineSource()->getProxy()->UpdateVTKObjects();
+//       int value;
+//       seg->creator()->pipelineSource()->getProxy()->UpdatePropertyInformation();
+//       vtkSMPropertyHelper(seg->creator()->pipelineSource()->getProxy(),"PixelValue").Get(&value,1);
+//       	qDebug() << "Pixel Value" << value;
+//       if (value == 255)
+// 	selIndex = segIndex;
     }
     if (selIndex.isValid())
       selectionModel()->select(selIndex,QItemSelectionModel::ClearAndSelect);

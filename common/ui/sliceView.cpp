@@ -84,6 +84,7 @@
 #include <vtkProperty.h>
 #include <QSettings>
 #include <QCheckBox>
+#include <SegmentationSelectionExtension.h>
 
 #define HINTWIDTH 40
 
@@ -397,6 +398,12 @@ QList<Segmentation* > SliceView::pickSegmentationsAt(int x, int y, int z)
 	(extent[2] <= y && y <= extent[3]) &&
 	(extent[4] <= z && z <= extent[5]))
       {
+	SegmentationSelectionExtension *selector = dynamic_cast<SegmentationSelectionExtension *>(
+	  seg->extension(SegmentationSelectionExtension::ID));
+	
+	if (selector->isSegmentationPixel(x,y,z))
+	  res.append(seg);
+	/*
 	double pixelValue[4]; //NOTE: hack to redefine vtkVectorMacro so Paraview can find it
 	pixelValue[0] = x;
 	pixelValue[1] = y;
@@ -410,6 +417,7 @@ QList<Segmentation* > SliceView::pickSegmentationsAt(int x, int y, int z)
 // 	qDebug() << "Pixel Value" << value;
 	if (value == 255)
 	  res.append(seg);
+	*/
       }
     }
   }
@@ -453,9 +461,14 @@ void SliceView::selectSegmentations(int x, int y, int z)
 	(extent[2] <= y && y <= extent[3]) &&
 	(extent[4] <= z && z <= extent[5]))
       {
+	SegmentationSelectionExtension *selector = dynamic_cast<SegmentationSelectionExtension *>(
+	  seg->extension(SegmentationSelectionExtension::ID));
+	
+	if (selector->isSegmentationPixel(x,y,z))
+	  selIndex = segIndex;
 // 	seg->outputPort()->getDataInformation()->GetPointDataInformation();
 	//selection.indexes().append(segIndex);
-	double pixelValue[4];
+	/*double pixelValue[4];
 	pixelValue[0] = x;
 	pixelValue[1] = y;
 	pixelValue[2] = z;
@@ -468,6 +481,7 @@ void SliceView::selectSegmentations(int x, int y, int z)
 // 	qDebug() << "Pixel Value" << value;
 	if (value == 255)
 	  selIndex = segIndex;
+	*/
       }
     }
     if (selIndex.isValid())

@@ -48,6 +48,7 @@
 #include "meshExtension.h"
 #include "volumetricExtension.h"
 #include "morphologicalExtension.h"
+#include "SegmentationSelectionExtension.h"
 #include "sampleDelegate.h"
 #include "segmentationEditor.h"
 
@@ -199,6 +200,8 @@ EspinaMainWindow::EspinaMainWindow()
   EspINAFactory::instance()->addSegmentationExtension(&volExt);
   MorphologicalExtension morphExt;
   EspINAFactory::instance()->addSegmentationExtension(&morphExt);
+  SegmentationSelectionExtension segSelExt;
+  EspINAFactory::instance()->addSegmentationExtension(&segSelExt);
   
   
   //! BUILD ESPINA INTERNALS

@@ -17,40 +17,36 @@
 */
 
 
-#ifndef MORPHOLOGICALEXTENSION_H
-#define MORPHOLOGICALHEXTENSION_H
+#ifndef VTKSEGMENTATIONSELECTIONFILTER_H
+#define VTKSEGMENTATIONSELECTIONFILTER_H
 
-#include <EspinaPlugin.h>
+#include <vtkImageAlgorithm.h>
 
-class vtkFilter;
-
-class MorphologicalExtension : public ISegmentationExtension
+class VTK_IMAGING_EXPORT vtkSegmentationSelectionFilter :
+public vtkImageAlgorithm
 {
 public:
-  static const ExtensionId ID;
+  static vtkSegmentationSelectionFilter *New();
+  vtkTypeMacro(vtkSegmentationSelectionFilter, vtkImageAlgorithm);
+  
+  
+  vtkSetVector3Macro(CheckPixel,int);
+  vtkGetMacro(PixelValue,int);
+  
+protected:
+  vtkSegmentationSelectionFilter();
+  virtual ~vtkSegmentationSelectionFilter(){}
 
-public:
-  MorphologicalExtension();
-  virtual ~MorphologicalExtension();
-  
-  virtual ExtensionId id();
-  virtual void initialize(Segmentation* seg);
-  virtual ISegmentationRepresentation *representation(QString rep);
-  virtual QVariant information(QString info);
-  
-  virtual ISegmentationExtension* clone();
+  virtual int RequestData(vtkInformation* request,
+			  vtkInformationVector** inputVector,
+			  vtkInformationVector* outputVector);
   
 private:
-  vtkFilter *m_features;
-  double m_Size;
-  double m_PhysicalSize;
-  double m_Centroid[3];
-  int m_Region[3];
-  double m_BinaryPrincipalMoments[3];
-  double m_BinaryPrincipalAxes[9];
-  double m_FeretDiameter;
-  double m_EquivalentEllipsoidSize[3];
-  bool m_init;
+  vtkSegmentationSelectionFilter(const vtkImageAlgorithm&);//Not implemented
+  void operator=(const vtkImageAlgorithm&);//Not implemented
+  
+  int CheckPixel[3];
+  int PixelValue;
 };
 
-#endif // MORPHOLOGICALEXTENSION_H
+#endif // VTKSEGMENTATIONSELECTIONFILTER_H

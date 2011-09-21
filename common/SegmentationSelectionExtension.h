@@ -17,40 +17,33 @@
 */
 
 
-#ifndef MORPHOLOGICALEXTENSION_H
-#define MORPHOLOGICALHEXTENSION_H
+#ifndef SEGMENTATIONSELECTIONEXTENSION_H
+#define SEGMENTATIONSELECTIONEXTENSION_H
 
 #include <EspinaPlugin.h>
 
 class vtkFilter;
 
-class MorphologicalExtension : public ISegmentationExtension
+class SegmentationSelectionExtension : public ISegmentationExtension
 {
 public:
   static const ExtensionId ID;
-
-public:
-  MorphologicalExtension();
-  virtual ~MorphologicalExtension();
+  
+  explicit SegmentationSelectionExtension();
+  virtual ~SegmentationSelectionExtension();
   
   virtual ExtensionId id();
   virtual void initialize(Segmentation* seg);
-  virtual ISegmentationRepresentation *representation(QString rep);
+  virtual ISegmentationRepresentation* representation(QString rep);
   virtual QVariant information(QString info);
   
-  virtual ISegmentationExtension* clone();
+  virtual bool isSegmentationPixel(int x, int y, int z);
+  virtual bool isSegmentationPixel(int pixel[3]);
   
+  virtual ISegmentationExtension* clone();
+
 private:
-  vtkFilter *m_features;
-  double m_Size;
-  double m_PhysicalSize;
-  double m_Centroid[3];
-  int m_Region[3];
-  double m_BinaryPrincipalMoments[3];
-  double m_BinaryPrincipalAxes[9];
-  double m_FeretDiameter;
-  double m_EquivalentEllipsoidSize[3];
-  bool m_init;
+  vtkFilter * m_selection;
 };
 
-#endif // MORPHOLOGICALEXTENSION_H
+#endif // SEGMENTATIONSELECTIONEXTENSION_H
