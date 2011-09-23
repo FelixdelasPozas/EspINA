@@ -24,6 +24,9 @@ class vtkMatrix4x4;
 
 class VTK_WIDGETS_EXPORT vtkRectangularBoundingRegionRepresentation : public vtkWidgetRepresentation
 {
+  //BTX
+  enum MARGIN {LEFT, TOP, UPPER, RIGHT, BOTTOM, LOWER, VOLUME};
+  //ETX
 public:
   // Description:
   // Instantiate the class.
@@ -123,21 +126,19 @@ protected:
   vtkPoints         *Points;  //used by others as well
   double             N[6][3]; //the normals of the faces
   
-  // bounding region
-  vtkActor          *InclusionActor;
-  vtkPolyDataMapper *InclusionMapper;
-  vtkPolyData       *InclusionPolyData;
   vtkLookupTable    *InclusionLUT;
-
-  // bounding face (4 lines)
-  vtkPoints         *BoundingFacePoints;
-  vtkPolyDataMapper *BoundingFaceMapper;
-  vtkPolyData       *BoundingFacePolyData;
-
-  // A face of the hexahedron
-  vtkActor          *HexFace;
-  vtkPolyDataMapper *HexFaceMapper;
-  vtkPolyData       *HexFacePolyData;
+  
+  // Inclusin Margin
+  vtkActor 	    *MarginActor[7]; 
+  vtkPolyDataMapper *MarginMapper[7];
+  vtkPolyData 	    *MarginPolyData[7];
+  vtkPoints	    *MarginPoints;
+  
+  // 3D Region
+  vtkActor 	    *RegionActor;    // Exclusion Actor
+  vtkPolyDataMapper *RegionMapper;
+  vtkPolyData 	    *RegionPolyData;
+  vtkPoints	    *RegionPoints;
 
 //   int HighlightHandle(vtkProp *prop); //returns cell id
   void HighlightFace(int cellId);
@@ -145,7 +146,7 @@ protected:
   virtual void ComputeNormals();
   
   // Do the picking
-  vtkCellPicker *HexPicker;
+  vtkCellPicker *RegionPicker;
   vtkActor *CurrentHandle;
   int      CurrentHexFace;
   vtkCellPicker *LastPicker;

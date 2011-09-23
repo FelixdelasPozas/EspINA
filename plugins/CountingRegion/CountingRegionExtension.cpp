@@ -256,13 +256,23 @@ RectangularRegion::RectangularRegion(Sample* sample,
   
   double spacing[3]; 
   m_sample->spacing(spacing);
+  int extent[6];
+  m_sample->extent(extent);
+  
+  int leftPoint   = (extent[0] +  left  ) * spacing[0];
+  int topPoint    = (extent[2] +  top   ) * spacing[1];
+  int upperPoint  = (extent[4] +  upper ) * spacing[2];
+  int rightPoint  = (extent[1] -  right ) * spacing[0];
+  int bottomPoint = (extent[3] -  bottom) * spacing[1];
+  int lowerPoint  = (extent[5] -  lower ) * spacing[2];
+  
   // Configuration of Bounding Region interface
   vtkFilter::Arguments regionArgs;
   regionArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT,""));
   regionArgs.push_back(vtkFilter::Argument("Inclusion",vtkFilter::INTVECT, QString("%1,%2,%3")
-					   .arg(int(left*spacing[0])).arg(int(top*spacing[1])).arg(int(upper*spacing[2]))));
+					   .arg(leftPoint).arg(topPoint).arg(upperPoint)));
   regionArgs.push_back(vtkFilter::Argument("Exclusion",vtkFilter::INTVECT, QString("%1,%2,%3")
-					   .arg(int(right*spacing[0])).arg(int(bottom*spacing[1])).arg(int(lower*spacing[2]))));
+					   .arg(rightPoint).arg(bottomPoint).arg(lowerPoint)));
   m_boundigRegion = cob->createFilter("filters","RectangularBoundingRegion", regionArgs);
   
   if (!m_boundigRegion)

@@ -172,17 +172,19 @@ void CountingRegion::regionTypeChanged(int type)
   switch (type)
   {
     case ADAPTIVE:
+    case RECTANGULAR:
       leftMargin->setValue(0);
       rightMargin->setValue(0);
+      upperSlice->setValue(0);
       topMargin->setValue(0);
       bottomMargin->setValue(0);
+      lowerSlice->setValue(0);
       break;
-    case RECTANGULAR:
-      leftMargin->setValue(leftMargin->minimum());
-      rightMargin->setValue(rightMargin->maximum());
-      topMargin->setValue(topMargin->maximum());
-      bottomMargin->setValue(bottomMargin->minimum());
-      break;
+//       leftMargin->setValue(leftMargin->minimum());
+//       rightMargin->setValue(rightMargin->maximum());
+//       topMargin->setValue(topMargin->maximum());
+//       bottomMargin->setValue(bottomMargin->minimum());
+//       break;
     default:
       assert(false);
   };

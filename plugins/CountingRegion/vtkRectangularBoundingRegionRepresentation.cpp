@@ -46,102 +46,43 @@ vtkRectangularBoundingRegionRepresentation::vtkRectangularBoundingRegionRepresen
   // Set up the initial properties
   this->CreateDefaultProperties();
 
+  
   // Construct the poly data representing the bounding region
-  this->InclusionPolyData = vtkPolyData::New();
+  this->RegionPolyData = vtkPolyData::New();
   this->InclusionLUT = vtkLookupTable::New();
   this->InclusionLUT->SetNumberOfTableValues(2);
   this->InclusionLUT->Build();
   InclusionLUT->SetTableValue(0,1,0,0);
   InclusionLUT->SetTableValue(1,0,1,0);
   
-  this->InclusionMapper = vtkPolyDataMapper::New();
-  this->InclusionMapper->SetInput(InclusionPolyData);
-  this->InclusionMapper->SetLookupTable(this->InclusionLUT);
-  this->InclusionActor = vtkActor::New();
-  this->InclusionActor->SetMapper(this->InclusionMapper);
-  this->InclusionActor->SetProperty(this->InclusionProperty);
-
-  // Construct the poly data representing a bounding face
-  this->BoundingFacePolyData = vtkPolyData::New();
-  this->BoundingFaceMapper = vtkPolyDataMapper::New();
-  this->BoundingFaceMapper->SetInput(BoundingFacePolyData);
-  this->BoundingFaceMapper->SetLookupTable(InclusionLUT);
+  this->MarginPoints   = vtkPoints::New(VTK_DOUBLE);
+  this->MarginPoints->SetNumberOfPoints(4);//line sides;
+  for (unsigned int i=0; i<6; i++)
+  {
+    // Construct the poly data representing the margins
+    this->MarginPolyData[i] = vtkPolyData::New();
+    this->MarginMapper[i]   = vtkPolyDataMapper::New();
+    this->MarginActor[i]    = vtkActor::New();
+    
+    this->MarginPolyData[i]->SetPoints(this->MarginPoints);
+    this->MarginMapper[i]->SetInput(this->MarginPolyData[i]);
+    this->MarginMapper[i]->SetLookupTable(this->InclusionLUT);
+    this->MarginActor[i]->SetMapper(this->MarginMapper[i]);
+    this->MarginActor[i]->SetProperty(this->InclusionProperty);
+  }
+  
+  this->RegionMapper = vtkPolyDataMapper::New();
+  this->RegionMapper->SetInput(this->RegionPolyData);
+  this->RegionMapper->SetLookupTable(this->InclusionLUT);
+  this->RegionActor = vtkActor::New();
+  this->RegionActor->SetMapper(this->RegionMapper);
+  this->RegionActor->SetProperty(this->InclusionProperty);
 
   // Construct initial points
   this->Points = vtkPoints::New(VTK_DOUBLE);
   this->Points->SetNumberOfPoints(8);//8 corners;
-  this->BoundingFacePoints = vtkPoints::New(VTK_DOUBLE);
-  this->BoundingFacePoints->SetNumberOfPoints(4);
-  this->InclusionPolyData->SetPoints(this->Points);
-  this->BoundingFacePolyData->SetPoints(this->BoundingFacePoints);
+  this->RegionPolyData->SetPoints(this->Points);
   
-  // Construct connectivity for the faces. These are used to perform
-  // the picking.
-  vtkIdType pts[4];
-  vtkCellArray *inCells = vtkCellArray::New();
-  inCells->Allocate(inCells->EstimateSize(3,4));
-  vtkCellArray *exCells = vtkCellArray::New();
-  exCells->Allocate(exCells->EstimateSize(3,4));
-  pts[0] = 3; pts[1] = 0; pts[2] = 4; pts[3] = 7;
-  exCells->InsertNextCell(4,pts);
-  pts[0] = 1; pts[1] = 2; pts[2] = 6; pts[3] = 5;
-  inCells->InsertNextCell(4,pts);
-  pts[0] = 0; pts[1] = 1; pts[2] = 5; pts[3] = 4;
-  inCells->InsertNextCell(4,pts);
-  pts[0] = 2; pts[1] = 3; pts[2] = 7; pts[3] = 6;
-  exCells->InsertNextCell(4,pts);
-  pts[0] = 0; pts[1] = 3; pts[2] = 2; pts[3] = 1;
-  inCells->InsertNextCell(4,pts);
-  pts[0] = 4; pts[1] = 5; pts[2] = 6; pts[3] = 7;
-  exCells->InsertNextCell(4,pts);
-//   this->InclusionPolyData->SetPolys(inCells);
-//   this->ExclusionPolyData->SetPolys(exCells);
-  inCells->Delete();
-  exCells->Delete();
-//   this->InclusionPolyData->BuildCells();
-//   this->BoundingFacePolyData->BuildCells();
-  
-//   // Construct connectivity for the bounding face (the one shown in planes).
-//   //TODO: These are used to perform the picking
-//   vtkCellArray *inLines = vtkCellArray::New();
-//   inLines->Allocate(inLines->EstimateSize(4,2));
-//   vtkSmartPointer<vtkIntArray> lineData = vtkSmartPointer<vtkIntArray>::New();
-//   vtkSmartPointer<vtkLine> inLine0 = vtkSmartPointer<vtkLine>::New();
-//   vtkSmartPointer<vtkLine> inLine1 = vtkSmartPointer<vtkLine>::New();
-//   vtkSmartPointer<vtkLine> exLine0 = vtkSmartPointer<vtkLine>::New();
-//   vtkSmartPointer<vtkLine> exLine1 = vtkSmartPointer<vtkLine>::New();
-//   inLine0->GetPointIds()->SetId(0,0);
-//   inLine0->GetPointIds()->SetId(1,3);
-//   lineData->InsertNextValue(255);
-//   inLine1->GetPointIds()->SetId(0,0);
-//   inLine1->GetPointIds()->SetId(1,1);
-//   lineData->InsertNextValue(255);
-//   exLine0->GetPointIds()->SetId(0,1);
-//   exLine0->GetPointIds()->SetId(1,2);
-//   lineData->InsertNextValue(0);
-//   exLine1->GetPointIds()->SetId(0,3);
-//   exLine1->GetPointIds()->SetId(1,2);
-//   lineData->InsertNextValue(0);
-//   inLines->InsertNextCell(inLine0);
-//   inLines->InsertNextCell(inLine1);
-//   inLines->InsertNextCell(exLine0);
-//   inLines->InsertNextCell(exLine1);
-//   this->BoundingFacePolyData->SetLines(inLines);
-//   this->BoundingFacePolyData->GetCellData()->SetScalars(lineData);
-  
-  // The face of the hexahedra
-  vtkCellArray *cells = vtkCellArray::New();
-  cells->Allocate(cells->EstimateSize(1,4));
-  cells->InsertNextCell(4,pts); //temporary, replaced later
-  this->HexFacePolyData = vtkPolyData::New();
-  this->HexFacePolyData->SetPoints(this->Points);
-  this->HexFacePolyData->SetPolys(cells);
-  this->HexFaceMapper = vtkPolyDataMapper::New();
-  this->HexFaceMapper->SetInput(HexFacePolyData);
-  this->HexFace = vtkActor::New();
-  this->HexFace->SetMapper(this->HexFaceMapper);
-  this->HexFace->SetProperty(this->FaceProperty);
-  cells->Delete();
 
   // Define the point coordinates
   double bounds[6];
@@ -156,10 +97,11 @@ vtkRectangularBoundingRegionRepresentation::vtkRectangularBoundingRegionRepresen
   this->PlaceWidget(bounds);
 
   //Manage the picking stuff
-  this->HexPicker = vtkCellPicker::New();
-  this->HexPicker->SetTolerance(0.001);
-//   this->HexPicker->AddPickList(InclusionActor);
-  this->HexPicker->PickFromListOn();
+  this->RegionPicker = vtkCellPicker::New();
+  this->RegionPicker->SetTolerance(0.001);
+  for (unsigned int i=0; i<6; i++)
+    this->RegionPicker->AddPickList(this->MarginActor[i]);
+  this->RegionPicker->PickFromListOn();
   
   this->CurrentHandle = NULL;
 
@@ -176,19 +118,15 @@ vtkRectangularBoundingRegionRepresentation::vtkRectangularBoundingRegionRepresen
 //----------------------------------------------------------------------------
 vtkRectangularBoundingRegionRepresentation::~vtkRectangularBoundingRegionRepresentation()
 {  
-  this->InclusionActor->Delete();
-  this->InclusionMapper->Delete();
-  this->InclusionPolyData->Delete();
+  this->RegionActor->Delete();
+  this->RegionMapper->Delete();
+  this->RegionPolyData->Delete();
 //   this->BoundingFaceActor->Delete();
-  this->BoundingFaceMapper->Delete();
-  this->BoundingFacePolyData->Delete();
   this->Points->Delete();
 
-  this->HexFace->Delete();
-  this->HexFaceMapper->Delete();
-  this->HexFacePolyData->Delete();
+  //BUG: Deletions
 
-  this->HexPicker->Delete();
+  this->RegionPicker->Delete();
 
   this->Transform->Delete();
   this->BoundingBox->Delete();
@@ -205,8 +143,8 @@ vtkRectangularBoundingRegionRepresentation::~vtkRectangularBoundingRegionReprese
 //----------------------------------------------------------------------
 void vtkRectangularBoundingRegionRepresentation::GetPolyData(vtkPolyData *pd)
 {
-  pd->SetPoints(this->InclusionPolyData->GetPoints());
-  pd->SetPolys(this->InclusionPolyData->GetPolys());
+  pd->SetPoints(this->RegionPolyData->GetPoints());
+  pd->SetPolys(this->RegionPolyData->GetPolys());
 }
 
 //----------------------------------------------------------------------
@@ -240,9 +178,9 @@ void vtkRectangularBoundingRegionRepresentation::WidgetInteraction(double e[2])
 
   // Compute the two points defining the motion vector
   double pos[3];
-  if ( this->LastPicker == this->HexPicker )
+  if ( this->LastPicker == this->RegionPicker )
     {
-    this->HexPicker->GetPickPosition(pos);
+    this->RegionPicker->GetPickPosition(pos);
     }
   vtkInteractorObserver::ComputeWorldToDisplay(this->Renderer,
                                                pos[0], pos[1], pos[2],
@@ -614,48 +552,76 @@ void vtkRectangularBoundingRegionRepresentation::CreateXYFace()
   std::cout << "Created XY FACE" << std::endl;
   Region->UpdateWholeExtent();
   
-//   // Construct connectivity for the bounding face (the one shown in planes).
-//   //TODO: These are used to perform the picking
-  vtkCellArray *inLines = vtkCellArray::New();
-  inLines->Allocate(inLines->EstimateSize(4,2));
-  vtkSmartPointer<vtkIntArray> lineData = vtkSmartPointer<vtkIntArray>::New();
+  double point[3];
+  vtkCellArray *inLines;
+  vtkSmartPointer<vtkIntArray> lineData;
   vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
   
-  this->BoundingFacePoints->SetNumberOfPoints(4);
+  this->MarginPoints->SetNumberOfPoints(4);
   
-  double point[3];
-  
+  // Top Inclusion Line
+  inLines = vtkCellArray::New();
+  inLines->Allocate(inLines->EstimateSize(1,2));
+  lineData = vtkSmartPointer<vtkIntArray>::New();
   Region->GetOutput()->GetPoint(0*4+0,point);
-  this->BoundingFacePoints->SetPoint(0, point);
-  line->GetPointIds()->SetId(0,0);
-  line->GetPointIds()->SetId(1,3);
-  inLines->InsertNextCell(line);
-  lineData->InsertNextValue(255);
-  
+  this->MarginPoints->SetPoint(0, point);
   Region->GetOutput()->GetPoint(0*4+1,point);
-  this->BoundingFacePoints->SetPoint(1, point);
+  this->MarginPoints->SetPoint(1, point);
   line->GetPointIds()->SetId(0,0);
   line->GetPointIds()->SetId(1,1);
   inLines->InsertNextCell(line);
-  lineData->InsertNextValue(0);
+  lineData->InsertNextValue(255);
   
+  this->MarginPolyData[TOP]->SetLines(inLines);
+  this->MarginPolyData[TOP]->GetCellData()->SetScalars(lineData);
+  this->MarginPolyData[TOP]->Modified();
+ 
+  // Right Inclusion Line
+  inLines = vtkCellArray::New();
+  inLines->Allocate(inLines->EstimateSize(1,2));
+  lineData = vtkSmartPointer<vtkIntArray>::New();
   Region->GetOutput()->GetPoint(0*4+2,point);
-  this->BoundingFacePoints->SetPoint(2, point);
+  this->MarginPoints->SetPoint(2, point);
   line->GetPointIds()->SetId(0,1);
   line->GetPointIds()->SetId(1,2);
   inLines->InsertNextCell(line);
   lineData->InsertNextValue(0);
   
+  this->MarginPolyData[RIGHT]->SetLines(inLines);
+  this->MarginPolyData[RIGHT]->GetCellData()->SetScalars(lineData);
+  this->MarginPolyData[RIGHT]->Modified();
+
+  // Left Inclusion Line
+  inLines = vtkCellArray::New();
+  inLines->Allocate(inLines->EstimateSize(1,2));
+  lineData = vtkSmartPointer<vtkIntArray>::New();
   Region->GetOutput()->GetPoint(0*4+3,point);
-  this->BoundingFacePoints->SetPoint(3, point);
+  this->MarginPoints->SetPoint(3, point);
   line->GetPointIds()->SetId(0,3);
-  line->GetPointIds()->SetId(1,2);
+  line->GetPointIds()->SetId(1,0);
   inLines->InsertNextCell(line);
   lineData->InsertNextValue(255);
   
-  this->BoundingFacePolyData->SetLines(inLines);
-  this->BoundingFacePolyData->GetCellData()->SetScalars(lineData);
-  this->BoundingFacePolyData->Modified();
+  this->MarginPolyData[LEFT]->SetLines(inLines);
+  this->MarginPolyData[LEFT]->GetCellData()->SetScalars(lineData);
+  this->MarginPolyData[LEFT]->Modified();
+  
+  
+  
+
+  // Bottomo Inclusion Line
+  inLines = vtkCellArray::New();
+  inLines->Allocate(inLines->EstimateSize(1,2));
+  lineData = vtkSmartPointer<vtkIntArray>::New();
+  line->GetPointIds()->SetId(0,2);
+  line->GetPointIds()->SetId(1,3);
+  inLines->InsertNextCell(line);
+  lineData->InsertNextValue(0);
+  
+  this->MarginPolyData[BOTTOM]->SetLines(inLines);
+  this->MarginPolyData[BOTTOM]->GetCellData()->SetScalars(lineData);
+  this->MarginPolyData[BOTTOM]->Modified();
+  
   BuildRepresentation();
 }
 
@@ -666,63 +632,88 @@ void vtkRectangularBoundingRegionRepresentation::CreateYZFace()
   Region->UpdateWholeExtent();
   
   int numPoints = Region->GetOutput()->GetPoints()->GetNumberOfPoints();  
-  int numLines = numPoints/2;
   int numSlices = numPoints/4;
-   
-  vtkCellArray *inLines = vtkCellArray::New();
-  inLines->Allocate(inLines->EstimateSize(numLines,2));
-  vtkSmartPointer<vtkIntArray> lineData = vtkSmartPointer<vtkIntArray>::New();
-  vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
-  //every 2 lines share 1 point, thus, only half are needed
-//   this->BoundingFacePoints->SetNumberOfPoints(numLines);
-  this->BoundingFacePoints->SetNumberOfPoints(numLines);
+  int numSideLines = numSlices - 1;
   
   double point[3], prevPoint[3];
-  vtkIdType id = 0;
+  vtkCellArray *inLines;
+  vtkSmartPointer<vtkIntArray> lineData;
+  vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
+
+  this->MarginPoints->SetNumberOfPoints(numSlices*2);
   
-  // Create Min X Line
-  Region->GetOutput()->GetPoint(0*4+0,point);
-  this->BoundingFacePoints->SetPoint(id, point);
-//   std::cout << "Point " << 0 << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
+  // Upper Margin
+  inLines = vtkCellArray::New();
+  inLines->Allocate(inLines->EstimateSize(1,2));
+  lineData = vtkSmartPointer<vtkIntArray>::New();
   Region->GetOutput()->GetPoint(0*4+3,point);
-  this->BoundingFacePoints->SetPoint(++id, point);
-//   std::cout << "Point " << 1 << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
-//   std::cout << "Connecting point " << 0 << " with " << 1 << std::endl;
+  this->MarginPoints->SetPoint(0, point);
+  Region->GetOutput()->GetPoint(0*4+0,point);
+  this->MarginPoints->SetPoint(1, point);
   line->GetPointIds()->SetId(0,0);
   line->GetPointIds()->SetId(1,1);
   inLines->InsertNextCell(line);
   lineData->InsertNextValue(255);
+    
+  this->MarginPolyData[UPPER]->SetLines(inLines);
+  this->MarginPolyData[UPPER]->GetCellData()->SetScalars(lineData);
+  this->MarginPolyData[UPPER]->Modified();
   
   // Loop over slices and create Top/Bottom Lines
-  for (int f=1; f< numSlices; f++)
+  vtkCellArray *topLines = vtkCellArray::New();
+  topLines->Allocate(topLines->EstimateSize(numSideLines,2));
+  vtkSmartPointer<vtkIntArray> topLineData = vtkSmartPointer<vtkIntArray>::New();
+  topLineData->Allocate(numSideLines);
+  
+  vtkCellArray *bottomLines = vtkCellArray::New();
+  bottomLines->Allocate(bottomLines->EstimateSize(numSideLines,2));
+  vtkSmartPointer<vtkIntArray> bottomLineData = vtkSmartPointer<vtkIntArray>::New();
+  bottomLineData->Allocate(numSideLines);
+  
+  for (unsigned int slice=1; slice< numSlices; slice++)
   {
-    Region->GetOutput()->GetPoint(f*4+0,point);
-    this->BoundingFacePoints->SetPoint(++id, point);
-//     std::cout << "Connecting point " << id << " with " << (id-2) << std::endl;
-//     std::cout << "Point " << id << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
-    line->GetPointIds()->SetId(0,id-2);
-    line->GetPointIds()->SetId(1,id);
-    inLines->InsertNextCell(line);
-    lineData->InsertNextValue(0);
-    Region->GetOutput()->GetPoint(f*4+3,point);
-    this->BoundingFacePoints->SetPoint(++id, point);
-//     std::cout << "Connecting point " << id << " with " << (id-2) << std::endl;
-//     std::cout << "Point " << id << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
-    line->GetPointIds()->SetId(0,id-2);
-    line->GetPointIds()->SetId(1,id);
-    inLines->InsertNextCell(line);
-    lineData->InsertNextValue(255);
+    int prevSlice = slice - 1;
+    // Add new points
+    Region->GetOutput()->GetPoint(slice*4+3,point);
+    this->MarginPoints->SetPoint(2*slice, point);//BOTTOM
+    Region->GetOutput()->GetPoint(slice*4+0,point);
+    this->MarginPoints->SetPoint(2*slice+1, point);//TOP
+    
+    // Bottom Margin
+    line->GetPointIds()->SetId(0,2*prevSlice);
+    line->GetPointIds()->SetId(1,2*slice);
+    bottomLines->InsertNextCell(line);
+    bottomLineData->InsertNextValue(0);
+    
+    // Top Margin
+    line->GetPointIds()->SetId(0,2*prevSlice+1);
+    line->GetPointIds()->SetId(1,2*slice+1);
+    topLines->InsertNextCell(line);
+    topLineData->InsertNextValue(255);
+    
   }
-
-  // Create Max X Line
-  line->GetPointIds()->SetId(0,id-1);
-  line->GetPointIds()->SetId(1,id);
+  this->MarginPolyData[TOP]->SetLines(topLines);
+  this->MarginPolyData[TOP]->GetCellData()->SetScalars(topLineData);
+  this->MarginPolyData[TOP]->Modified();
+  
+  this->MarginPolyData[BOTTOM]->SetLines(bottomLines);
+  this->MarginPolyData[BOTTOM]->GetCellData()->SetScalars(bottomLineData);
+  this->MarginPolyData[BOTTOM]->Modified();
+  
+  
+  // Lower Margin
+  inLines = vtkCellArray::New();
+  inLines->Allocate(inLines->EstimateSize(1,2));
+  lineData = vtkSmartPointer<vtkIntArray>::New();
+  line->GetPointIds()->SetId(0,2*(numSlices-1));
+  line->GetPointIds()->SetId(1,2*(numSlices-1)+1);
   inLines->InsertNextCell(line);
   lineData->InsertNextValue(0);
+    
+  this->MarginPolyData[LOWER]->SetLines(inLines);
+  this->MarginPolyData[LOWER]->GetCellData()->SetScalars(lineData);
+  this->MarginPolyData[LOWER]->Modified();
   
-  this->BoundingFacePolyData->SetLines(inLines);
-  this->BoundingFacePolyData->GetCellData()->SetScalars(lineData);
-  this->BoundingFacePolyData->Modified();
   BuildRepresentation();
 }
 
@@ -733,63 +724,88 @@ void vtkRectangularBoundingRegionRepresentation::CreateXZFace()
   Region->UpdateWholeExtent();
   
   int numPoints = Region->GetOutput()->GetPoints()->GetNumberOfPoints();  
-  int numLines = numPoints/2;
   int numSlices = numPoints/4;
-   
-  vtkCellArray *inLines = vtkCellArray::New();
-  inLines->Allocate(inLines->EstimateSize(numLines,2));
-  vtkSmartPointer<vtkIntArray> lineData = vtkSmartPointer<vtkIntArray>::New();
-  vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
-  //every 2 lines share 1 point, thus, only half are needed
-//   this->BoundingFacePoints->SetNumberOfPoints(numLines);
-  this->BoundingFacePoints->SetNumberOfPoints(numLines);
-  double point[3], prevPoint[3];
-  vtkIdType id = 0;
+  int numSideLines = numSlices - 1;
   
-  // Create Min X Line
+  double point[3], prevPoint[3];
+  vtkCellArray *inLines;
+  vtkSmartPointer<vtkIntArray> lineData;
+  vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
+  
+  this->MarginPoints->SetNumberOfPoints(numSlices*2);
+  
+  // Upper Margin
+  inLines = vtkCellArray::New();
+  inLines->Allocate(inLines->EstimateSize(1,2));
+  lineData = vtkSmartPointer<vtkIntArray>::New();
   Region->GetOutput()->GetPoint(0*4+0,point);
-  this->BoundingFacePoints->SetPoint(id, point);
-//   std::cout << "Point " << 0 << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
+  this->MarginPoints->SetPoint(0, point);
   Region->GetOutput()->GetPoint(0*4+1,point);
-  this->BoundingFacePoints->SetPoint(++id, point);
-//   std::cout << "Point " << 1 << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
-//   std::cout << "Connecting point " << 0 << " with " << 1 << std::endl;
+  this->MarginPoints->SetPoint(1, point);
   line->GetPointIds()->SetId(0,0);
   line->GetPointIds()->SetId(1,1);
   inLines->InsertNextCell(line);
   lineData->InsertNextValue(255);
+    
+  this->MarginPolyData[UPPER]->SetLines(inLines);
+  this->MarginPolyData[UPPER]->GetCellData()->SetScalars(lineData);
+  this->MarginPolyData[UPPER]->Modified();
   
   // Loop over slices and create Top/Bottom Lines
-  for (int f=1; f< numSlices; f++)
+  vtkCellArray *topLines = vtkCellArray::New();
+  topLines->Allocate(topLines->EstimateSize(numSideLines,2));
+  vtkSmartPointer<vtkIntArray> topLineData = vtkSmartPointer<vtkIntArray>::New();
+  topLineData->Allocate(numSideLines);
+  
+  vtkCellArray *bottomLines = vtkCellArray::New();
+  bottomLines->Allocate(bottomLines->EstimateSize(numSideLines,2));
+  vtkSmartPointer<vtkIntArray> bottomLineData = vtkSmartPointer<vtkIntArray>::New();
+  bottomLineData->Allocate(numSideLines);
+  
+  for (unsigned int slice=1; slice< numSlices; slice++)
   {
-    Region->GetOutput()->GetPoint(f*4+0,point);
-    this->BoundingFacePoints->SetPoint(++id, point);
-//     std::cout << "Connecting point " << id << " with " << (id-2) << std::endl;
-//     std::cout << "Point " << id << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
-    line->GetPointIds()->SetId(0,id-2);
-    line->GetPointIds()->SetId(1,id);
-    inLines->InsertNextCell(line);
-    lineData->InsertNextValue(255);
-    Region->GetOutput()->GetPoint(f*4+1,point);
-    this->BoundingFacePoints->SetPoint(++id, point);
-//     std::cout << "Connecting point " << id << " with " << (id-2) << std::endl;
-//     std::cout << "Point " << id << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
-    line->GetPointIds()->SetId(0,id-2);
-    line->GetPointIds()->SetId(1,id);
-    inLines->InsertNextCell(line);
-    lineData->InsertNextValue(0);
+    int prevSlice = slice - 1;
+	
+    // Add new points
+    Region->GetOutput()->GetPoint(slice*4+0,point);
+    this->MarginPoints->SetPoint(2*slice, point);//TOP
+    Region->GetOutput()->GetPoint(slice*4+1,point);
+    this->MarginPoints->SetPoint(2*slice+1, point);//RIGHT
+    
+    // Left Margin
+    line->GetPointIds()->SetId(0,2*prevSlice);
+    line->GetPointIds()->SetId(1,2*slice);
+    topLines->InsertNextCell(line);
+    topLineData->InsertNextValue(255);
+    
+    // Right Margin
+    line->GetPointIds()->SetId(0,2*prevSlice+1);
+    line->GetPointIds()->SetId(1,2*slice+1);
+    bottomLines->InsertNextCell(line);
+    bottomLineData->InsertNextValue(0);
+    
   }
-
-  // Create Max X Line
-  line->GetPointIds()->SetId(0,id-1);
-  line->GetPointIds()->SetId(1,id);
+  this->MarginPolyData[LEFT]->SetLines(topLines);
+  this->MarginPolyData[LEFT]->GetCellData()->SetScalars(topLineData);
+  this->MarginPolyData[LEFT]->Modified();
+  
+  this->MarginPolyData[RIGHT]->SetLines(bottomLines);
+  this->MarginPolyData[RIGHT]->GetCellData()->SetScalars(bottomLineData);
+  this->MarginPolyData[RIGHT]->Modified();
+  
+  
+  // Lower Margin
+  inLines = vtkCellArray::New();
+  inLines->Allocate(inLines->EstimateSize(1,2));
+  lineData = vtkSmartPointer<vtkIntArray>::New();
+  line->GetPointIds()->SetId(0,2*(numSlices-1));
+  line->GetPointIds()->SetId(1,2*(numSlices-1)+1);
   inLines->InsertNextCell(line);
   lineData->InsertNextValue(0);
-  
-  this->BoundingFacePolyData->SetLines(inLines);
-  this->BoundingFacePolyData->GetCellData()->SetScalars(lineData);
-  this->BoundingFacePolyData->Modified();
-  BuildRepresentation();
+    
+  this->MarginPolyData[LOWER]->SetLines(inLines);
+  this->MarginPolyData[LOWER]->GetCellData()->SetScalars(lineData);
+  this->MarginPolyData[LOWER]->Modified();
 }
 
 
@@ -808,7 +824,6 @@ void vtkRectangularBoundingRegionRepresentation::SetViewType(int type)
   if (viewType == VOL)
   {
     assert(false);
-    InclusionActor->SetMapper(InclusionMapper);
   }else
   {
       if (viewType == XY)
@@ -820,7 +835,6 @@ void vtkRectangularBoundingRegionRepresentation::SetViewType(int type)
       else
 	assert(false);
       InclusionProperty->SetOpacity(1.0);
-      InclusionActor->SetMapper(BoundingFaceMapper);
   }
 }
 
@@ -844,12 +858,12 @@ void vtkRectangularBoundingRegionRepresentation::SetSlice(int slice, double spac
 //   }
   
   double *pts =
-    static_cast<vtkDoubleArray *>(this->BoundingFacePoints->GetData())->GetPointer(0);
+    static_cast<vtkDoubleArray *>(this->MarginPoints->GetData())->GetPointer(0);
 
   if (ViewType == XY)
   {
     double point[3];
-    for (int p=0; p<this->BoundingFacePoints->GetNumberOfPoints(); p++)
+    for (int p=0; p<this->MarginPoints->GetNumberOfPoints(); p++)
     {
       int numFaces = Region->GetOutput()->GetPoints()->GetNumberOfPoints()/4;
       int validSlice = numFaces==2?0:slice;
@@ -859,10 +873,8 @@ void vtkRectangularBoundingRegionRepresentation::SetSlice(int slice, double spac
       pts[3*p+0] = point[0];
       pts[3*p+1] = point[1];
       pts[3*p+2] = point[2];
-// 	BoundingFacePoints->SetPoint(p,point);
 // 	pts[3*p] = slice; //BUG: get real spacing
     }
-    
   }else
   {
     int normalDirection;
@@ -870,13 +882,14 @@ void vtkRectangularBoundingRegionRepresentation::SetSlice(int slice, double spac
       normalDirection = 0;
     else
       normalDirection = 1;
-    for (int p=0; p<this->BoundingFacePoints->GetNumberOfPoints(); p++)
+    for (int p=0; p<this->MarginPoints->GetNumberOfPoints(); p++)
     {
       pts[3*p+normalDirection] = slice*spacing;
     }
   }
+  for(unsigned int i=0; i<6; i++)
+    this->MarginPolyData[i]->Modified();
 //   std::cout << "View " << ViewType <<  " : " << BoundingFacePoints->GetNumberOfPoints() << std::endl;
-  BoundingFacePolyData->Modified();
 }
 
 //----------------------------------------------------------------------------
@@ -884,9 +897,9 @@ void vtkRectangularBoundingRegionRepresentation::SetRegion(vtkPolyDataAlgorithm 
 {
   Region = region;
   region->Update();
-  InclusionPolyData->SetPoints(region->GetOutput()->GetPoints());
-  InclusionPolyData->SetPolys(region->GetOutput()->GetPolys());
-  InclusionPolyData->GetCellData()->SetScalars(region->GetOutput()->GetCellData()->GetScalars("Type"));
+  RegionPolyData->SetPoints(region->GetOutput()->GetPoints());
+  RegionPolyData->SetPolys(region->GetOutput()->GetPolys());
+  RegionPolyData->GetCellData()->SetScalars(region->GetOutput()->GetCellData()->GetScalars("Type"));
 }
 
 
@@ -908,10 +921,15 @@ void vtkRectangularBoundingRegionRepresentation::PlaceWidget(double bds[6])
   this->Points->SetPoint(6, bounds[1], bounds[3], bounds[5]);
   this->Points->SetPoint(7, bounds[0], bounds[3], bounds[5]);
 
+//   this->TopPoints->SetPoint(0, bounds[0], bounds[2], bounds[4]);
+//   this->TopPoints->SetPoint(1, bounds[1], bounds[2], bounds[4]);
+  
+  /*
   this->BoundingFacePoints->SetPoint(0, bounds[0], bounds[2], bounds[4]);
   this->BoundingFacePoints->SetPoint(1, bounds[1], bounds[2], bounds[4]);
   this->BoundingFacePoints->SetPoint(2, bounds[1], bounds[3], bounds[4]);
   this->BoundingFacePoints->SetPoint(3, bounds[0], bounds[3], bounds[4]);
+  */
 
   for (i=0; i<6; i++)
     {
@@ -1053,26 +1071,17 @@ int vtkRectangularBoundingRegionRepresentation::ComputeInteractionState(int X, i
     return this->InteractionState;
     }
   
-  return this->InteractionState;
   vtkAssemblyPath *path;
   // Try and pick a handle first
   this->LastPicker = NULL;
   this->CurrentHandle = NULL;
-  this->HexPicker->Pick(X,Y,0.0,this->Renderer);
-  path = this->HexPicker->GetPath();
+  this->RegionPicker->Pick(X,Y,0.0,this->Renderer);
+  path = this->RegionPicker->GetPath();
   if ( path != NULL )
   {
-    this->LastPicker = this->HexPicker;
+    this->LastPicker = this->RegionPicker;
     this->ValidPick = 1;
-    if ( !modify )
-    {
-//       this->InteractionState = vtkRectangularBoundingRegionRepresentation::Rotating;
-    }
-    else
-    {
-//       this->CurrentHandle = this->Handle[6];
       this->InteractionState = vtkRectangularBoundingRegionRepresentation::Translating;
-    }
   }
   else
   {
@@ -1107,7 +1116,7 @@ void vtkRectangularBoundingRegionRepresentation::SetInteractionState(int state)
     case vtkRectangularBoundingRegionRepresentation::Rotating:
       this->HighlightOutline(0);
 //       this->HighlightHandle(NULL);
-      this->HighlightFace(this->HexPicker->GetCellId());
+      this->HighlightFace(this->RegionPicker->GetCellId());
       break;
     case vtkRectangularBoundingRegionRepresentation::Translating:
     case vtkRectangularBoundingRegionRepresentation::Scaling:
@@ -1126,7 +1135,7 @@ void vtkRectangularBoundingRegionRepresentation::SetInteractionState(int state)
 double *vtkRectangularBoundingRegionRepresentation::GetBounds()
 {
   this->BuildRepresentation();
-  this->BoundingBox->SetBounds(this->InclusionActor->GetBounds());
+  this->BoundingBox->SetBounds(this->RegionActor->GetBounds());
   return this->BoundingBox->GetBounds();
 }
 
@@ -1146,9 +1155,11 @@ void vtkRectangularBoundingRegionRepresentation::BuildRepresentation()
 //----------------------------------------------------------------------------
 void vtkRectangularBoundingRegionRepresentation::ReleaseGraphicsResources(vtkWindow *w)
 {
-  this->InclusionActor->ReleaseGraphicsResources(w);
+  this->RegionActor->ReleaseGraphicsResources(w);
+  for (unsigned int i=0; i<6; i++)
+    this->MarginActor[i]->ReleaseGraphicsResources(w);
 //   this->BoundingFaceActor->ReleaseGraphicsResources(w);
-  this->HexFace->ReleaseGraphicsResources(w);
+//   this->HexFace->ReleaseGraphicsResources(w);
 
 }
 
@@ -1158,9 +1169,11 @@ int vtkRectangularBoundingRegionRepresentation::RenderOpaqueGeometry(vtkViewport
   int count=0;
   this->BuildRepresentation();
   
-  count += this->InclusionActor->RenderOpaqueGeometry(v);
-//   count += this->BoundingFaceActor->RenderOpaqueGeometry(v);
-  count += this->HexFace->RenderOpaqueGeometry(v);
+  if (ViewType != VOL)
+    for (unsigned int i=0; i<6; i++)
+      count += this->MarginActor[i]->RenderOpaqueGeometry(v);
+  else
+    count += this->RegionActor->RenderOpaqueGeometry(v);
 
   return count;
 }
@@ -1171,9 +1184,11 @@ int vtkRectangularBoundingRegionRepresentation::RenderTranslucentPolygonalGeomet
   int count=0;
   this->BuildRepresentation();
   
-  count += this->InclusionActor->RenderTranslucentPolygonalGeometry(v);
-//   count += this->BoundingFaceActor->RenderTranslucentPolygonalGeometry(v);
-  count += this->HexFace->RenderTranslucentPolygonalGeometry(v);
+  if (ViewType != VOL)
+    for (unsigned int i=0; i<6; i++)
+      count += this->MarginActor[i]->RenderTranslucentPolygonalGeometry(v);
+  else
+    count += this->RegionActor->RenderTranslucentPolygonalGeometry(v);
 
   return count;
 }
@@ -1184,16 +1199,16 @@ int vtkRectangularBoundingRegionRepresentation::HasTranslucentPolygonalGeometry(
   int result=0;
   this->BuildRepresentation();
 
-  result |= this->InclusionActor->HasTranslucentPolygonalGeometry();
-//   result |= this->BoundingFaceActor->HasTranslucentPolygonalGeometry();
+  result |= this->RegionActor->HasTranslucentPolygonalGeometry();
+  result |= this->MarginActor[TOP]->HasTranslucentPolygonalGeometry();
 
-  // If the face is not selected, we are not really rendering translucent faces,
-  // hence don't bother taking it's opacity into consideration.
-  // Look at BUG #7301.
-  if (this->HexFace->GetProperty() == this->SelectedFaceProperty)
-    {
-    result |= this->HexFace->HasTranslucentPolygonalGeometry();
-    }
+//   // If the face is not selected, we are not really rendering translucent faces,
+//   // hence don't bother taking it's opacity into consideration.
+//   // Look at BUG #7301.
+//   if (this->HexFace->GetProperty() == this->SelectedFaceProperty)
+//     {
+//     result |= this->HexFace->HasTranslucentPolygonalGeometry();
+//     }
 
   return result;
 }
@@ -1234,26 +1249,26 @@ int vtkRectangularBoundingRegionRepresentation::HasTranslucentPolygonalGeometry(
 //----------------------------------------------------------------------------
 void vtkRectangularBoundingRegionRepresentation::HighlightFace(int cellId)
 {
-  if ( cellId >= 0 )
-    {
-    vtkIdType npts;
-    vtkIdType *pts;
-    vtkCellArray *cells = this->HexFacePolyData->GetPolys();
-    this->InclusionPolyData->GetCellPoints(cellId, npts, pts);
-    this->HexFacePolyData->Modified();
-    cells->ReplaceCell(0,npts,pts);
-    this->CurrentHexFace = cellId;
-    this->HexFace->SetProperty(this->SelectedFaceProperty);
-    if ( !this->CurrentHandle )
-      {
-      this->CurrentHandle = this->HexFace;
-      }
-    }
-  else
-    {
-    this->HexFace->SetProperty(this->FaceProperty);
-    this->CurrentHexFace = -1;
-    }
+//   if ( cellId >= 0 )
+//     {
+//     vtkIdType npts;
+//     vtkIdType *pts;
+//     vtkCellArray *cells = this->HexFacePolyData->GetPolys();
+//     this->InclusionPolyData->GetCellPoints(cellId, npts, pts);
+//     this->HexFacePolyData->Modified();
+//     cells->ReplaceCell(0,npts,pts);
+//     this->CurrentHexFace = cellId;
+//     this->HexFace->SetProperty(this->SelectedFaceProperty);
+//     if ( !this->CurrentHandle )
+//       {
+//       this->CurrentHandle = this->HexFace;
+//       }
+//     }
+//   else
+//     {
+//     this->HexFace->SetProperty(this->FaceProperty);
+//     this->CurrentHexFace = -1;
+//     }
 }
 
 //----------------------------------------------------------------------------
@@ -1261,12 +1276,14 @@ void vtkRectangularBoundingRegionRepresentation::HighlightOutline(int highlight)
 {
   if ( highlight )
     {
-    this->InclusionActor->SetProperty(this->SelectedOutlineProperty);
+    this->RegionActor->SetProperty(this->SelectedOutlineProperty);
+    this->MarginActor[TOP]->SetProperty(this->SelectedOutlineProperty);
 //     this->BoundingFaceActor->SetProperty(this->SelectedOutlineProperty);
     }
   else
     {
-    this->InclusionActor->SetProperty(this->InclusionProperty);
+    this->RegionActor->SetProperty(this->InclusionProperty);
+    this->MarginActor[TOP]->SetProperty(this->InclusionProperty);
 //     this->BoundingFaceActor->SetProperty(this->BoundingFaceProperty);
     }
 }
