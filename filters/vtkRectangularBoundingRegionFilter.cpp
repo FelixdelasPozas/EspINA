@@ -44,10 +44,10 @@
 #include <vtkOBBTree.h>
 
 #define Left Inclusion[0]
-#define Bottom Inclusion[1]
+#define Top Inclusion[1]
 #define Upper Inclusion[2]
 #define Right Exclusion[0]
-#define Top Exclusion[1]
+#define Bottom Exclusion[1]
 #define Lower Exclusion[2]
 
 const int INCLUSION_FACE = 255;
@@ -79,12 +79,11 @@ int vtkRectangularBoundingRegionFilter::FillOutputPortInformation(int port, vtkI
   return 1;
 }
 
-
+// NOTE: Lower/Upper are z-inverted. This is because of cajal specifications of what a stack is
 int vtkRectangularBoundingRegionFilter::RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
   vtkInformation *regionInfo = outputVector->GetInformationObject(0);
 
-  // Access to the input image (stack)
   vtkPolyData* region = vtkPolyData::SafeDownCast(
                           regionInfo->Get(vtkDataObject::DATA_OBJECT())
                         );
@@ -96,36 +95,36 @@ int vtkRectangularBoundingRegionFilter::RequestData(vtkInformation* request, vtk
   vtkIdType lower[4], right[4], bottom[4];
   vtkIdType upper[4], left[4], top[4];
   
-  // Lower Exclusion Face
-  lower[0] = vertex->InsertNextPoint(Left,Bottom,Lower);
-  lower[1] = vertex->InsertNextPoint(Right,Bottom,Lower);
-  lower[2] = vertex->InsertNextPoint(Right,Top,Lower);
-  lower[3] = vertex->InsertNextPoint(Left,Top,Lower);
-  faces->InsertNextCell(4, lower);
+  // Upper Inclusion Face
+  upper[0] = vertex->InsertNextPoint(Left,Top,Upper);
+  upper[1] = vertex->InsertNextPoint(Right,Top,Upper);
+  upper[2] = vertex->InsertNextPoint(Right,Bottom,Upper);
+  upper[3] = vertex->InsertNextPoint(Left,Bottom,Upper);
+  faces->InsertNextCell(4, upper);
   faceData->InsertNextValue(INCLUSION_FACE);
   
-  // Upper Inclusion Face
-  upper[0] = vertex->InsertNextPoint(Left,Bottom,Upper);
-  upper[1] = vertex->InsertNextPoint(Right,Bottom,Upper);
-  upper[2] = vertex->InsertNextPoint(Right,Top,Upper);
-  upper[3] = vertex->InsertNextPoint(Left,Top,Upper);
-  faces->InsertNextCell(4, upper);
+  // Lower Exclusion Face
+  lower[0] = vertex->InsertNextPoint(Left,Top,Lower);
+  lower[1] = vertex->InsertNextPoint(Right,Top,Lower);
+  lower[2] = vertex->InsertNextPoint(Right,Bottom,Lower);
+  lower[3] = vertex->InsertNextPoint(Left,Bottom,Lower);
+  faces->InsertNextCell(4, lower);
   faceData->InsertNextValue(EXCLUSION_FACE);
   
   
   // Bottom Exclusion Face
-  bottom[0] = upper[0];
-  bottom[1] = upper[1];
-  bottom[2] = lower[1];
-  bottom[3] = lower[0];
+  bottom[0] = upper[2];
+  bottom[1] = upper[3];
+  bottom[2] = lower[3];
+  bottom[3] = lower[2];
   faces->InsertNextCell(4, bottom);
   faceData->InsertNextValue(EXCLUSION_FACE);
 
   // Top Inclusion Face
-  top[0] = upper[3];
-  top[1] = upper[2];
-  top[2] = lower[2];
-  top[3] = lower[3];
+  top[0] = upper[0];
+  top[1] = upper[1];
+  top[2] = lower[1];
+  top[3] = lower[0];
   faces->InsertNextCell(4, top);
   faceData->InsertNextValue(INCLUSION_FACE);
   
@@ -138,10 +137,10 @@ int vtkRectangularBoundingRegionFilter::RequestData(vtkInformation* request, vtk
   faceData->InsertNextValue(EXCLUSION_FACE);
 
   // Left Inclusion Face
-  left[0] = upper[0];
-  left[1] = upper[3];
-  left[2] = lower[3];
-  left[3] = lower[0];
+  left[0] = upper[3];
+  left[1] = upper[0];
+  left[2] = lower[0];
+  left[3] = lower[3];
   faces->InsertNextCell(4, left);
   faceData->InsertNextValue(INCLUSION_FACE);
   

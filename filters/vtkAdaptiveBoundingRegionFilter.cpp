@@ -44,10 +44,10 @@
 #include <vtkCellData.h>
 
 #define Left Inclusion[0]
-#define Bottom Inclusion[1]
+#define Top Inclusion[1]
 #define Upper Inclusion[2]
 #define Right Exclusion[0]
-#define Top Exclusion[1]
+#define Bottom Exclusion[1]
 #define Lower Exclusion[2]
 
 const int INCLUSION_FACE = 255;
@@ -155,6 +155,8 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
   
   double spacing[3];
   image->GetSpacing(spacing);
+  int extent[6];
+  image->GetExtent(extent);
   
   vtkDebugMacro(<< "Dim: " << dim[0] << "," << dim[1] << "," << dim[2]);
   vtkDebugMacro(<< "Spacing: " << spacing[0] << "," << spacing[1] << "," << spacing[2]);
@@ -163,12 +165,16 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
   int numComponets = image->GetNumberOfScalarComponents();
   unsigned char *imagePtr = static_cast<unsigned char *>(image->GetScalarPointer());
   
+  assert(extent[5] == dim[2]-1);
   //TODO: Min values are 0 or given by extent???
-  int zMin = std::max(Exclusion[2], 0);
-  int zMax = std::min(Inclusion[2], dim[2]-1);
+//   int zMin = std::max(Inclusion[2], 0);
+//   int zMax = std::min(Inclusion[2], dim[2]-1);
+  assert(Inclusion[2] >= 0 && Exclusion[2] >= 0);
+  int zMin = std::min(extent[4] + Inclusion[2], extent[5]);
+  int zMax = std::max(extent[5] - Exclusion[2], extent[4]);
   
   const int blackThreshold = 10;
-    vtkIdType lastCell[4];
+  vtkIdType lastCell[4];
   for (int z = zMin; z <= zMax; z++)
   {
     // Look for images borders in z slice:
@@ -184,6 +190,7 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
       for (int x = 0; x < dim[0]; x++)
       {
 	bool nonBlackPixel = false;
+	//BUG: overflows with big images
 	int pxId = x*numComponets + y * dim[0]*numComponets + z * dim[0] * dim[1]*numComponets; //check numComponents
 	for (int c = 0; c < numComponets; c++)
 	  nonBlackPixel = nonBlackPixel || (imagePtr[pxId+c] > blackThreshold);
@@ -224,36 +231,39 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
     
     double point[3];
     vtkIdType cell[4];
-    // Left Bottom Corner
+    // Left Top Corner
     face->GetPoint(0, point);
-    face->GetPoint(0, leftBottom);
+    face->GetPoint(0, leftTop);
     point[0] += Left * spacing[0];
-    point[1] += Bottom * spacing[1];
-    point[0] = round(point[0]); point[1] = abs(round(point[1])); point[2] = round(point[2]);
+    point[1] += Top * spacing[1];
+    point[0] = round(point[0]); point[1] = abs(round(point[1]));  point[2] = round(point[2]);
     cell[0] = vertex->InsertNextPoint(point);
 //     std::cout << "Point " << cell[0] << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
-    // Right Bottom Corner
-    face->GetPoint(2, point);
-    face->GetPoint(2, rightBottom);
+
+    // Right Top Corner
+    face->GetPoint(2, point); 
+    face->GetPoint(2, rightTop);
     point[0] -= Right * spacing[0];
-    point[1] += Bottom * spacing[1];
+    point[1] += Top * spacing[1];
     point[0] = round(point[0]); point[1] = abs(round(point[1]));  point[2] = round(point[2]);
     cell[1] = vertex->InsertNextPoint(point);
 //     std::cout << "Point " << cell[1] << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
-    // Right Top Corner
-    face->GetPoint(3, point);
-    face->GetPoint(3, rightTop);
+    
+    // Right Bottom Corner
+    face->GetPoint(3, point);//WARNING: I use clockwise order from 0,0,0 according to espina's view
+    face->GetPoint(3, rightBottom);
     point[0] -= Right * spacing[0];
-    point[1] -= Top * spacing[1];
+    point[1] -= Bottom * spacing[1];
     point[0] = round(point[0]); point[1] = abs(round(point[1]));  point[2] = round(point[2]);
     cell[2] = vertex->InsertNextPoint(point);
 //     std::cout << "Point " << cell[2] << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
-    // Left Top Corner
-    face->GetPoint(1, point);
-    face->GetPoint(1, leftTop);
+    
+    // Left Bottom Corner
+    face->GetPoint(1, point);//WARNING: I use clockwise order from 0,0,0 according to espina's view
+    face->GetPoint(1, leftBottom);
     point[0] += Left * spacing[0];
-    point[1] -= Top * spacing[1];
-    point[0] = round(point[0]); point[1] = abs(round(point[1]));  point[2] = round(point[2]);
+    point[1] -= Bottom * spacing[1];
+    point[0] = round(point[0]); point[1] = abs(round(point[1])); point[2] = round(point[2]);
     cell[3] = vertex->InsertNextPoint(point);
 //     std::cout << "Point " << cell[3] << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
     
@@ -261,56 +271,55 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
     
     assert(leftBottom[0] < rightBottom[0]);
     assert(leftTop[0] < rightTop[0]);
-    assert(leftBottom[1] < leftTop[1]);
-    assert(rightBottom[1] < rightTop[1]);
+    assert(leftBottom[1] > leftTop[1]);
+    assert(rightBottom[1] > rightTop[1]);
     
-    if (z == zMax-1)
+    if (z == zMin)
     { 
       // Upper Inclusion Face
       faces->InsertNextCell(4, cell);
-      faceData->InsertNextValue(EXCLUSION_FACE);
-    } else if (z == zMin)
+      faceData->InsertNextValue(INCLUSION_FACE);
+    } else if (z == zMax)
     {
       // Lower Inclusion Face
       faces->InsertNextCell(4, cell);
-      faceData->InsertNextValue(INCLUSION_FACE);
+      faceData->InsertNextValue(EXCLUSION_FACE);
     } else
-    {
-      // Create lateral faces
+    { // Create lateral faces
       
       // Left Inclusion Face
       vtkIdType left[4];
-      left[0] = lastCell[0];
-      left[1] = lastCell[1];
-      left[2] = cell[1];
-      left[3] = cell[0];
+      left[0] = lastCell[3];
+      left[1] = lastCell[0];
+      left[2] = cell[0];
+      left[3] = cell[3];
       faces->InsertNextCell(4, left);
       faceData->InsertNextValue(INCLUSION_FACE);
       
       // Right Exclusion Face
       vtkIdType right[4];
-      right[0] = lastCell[3];
+      right[0] = lastCell[1];
       right[1] = lastCell[2];
       right[2] = cell[2];
-      right[3] = cell[3];
+      right[3] = cell[1];
       faces->InsertNextCell(4, right);
       faceData->InsertNextValue(EXCLUSION_FACE);
       
       // Top Inclusion Face
       vtkIdType top[4];
-      top[0] = lastCell[1];
-      top[1] = lastCell[2];
-      top[2] = cell[2];
-      top[3] = cell[1];
+      top[0] = lastCell[0];
+      top[1] = lastCell[1];
+      top[2] = cell[1];
+      top[3] = cell[0];
       faces->InsertNextCell(4, top);
       faceData->InsertNextValue(INCLUSION_FACE);
       
       // Bottom Exclusion Face
       vtkIdType bottom[4];
-      bottom[0] = lastCell[0];
+      bottom[0] = lastCell[2];
       bottom[1] = lastCell[3];
       bottom[2] = cell[3];
-      bottom[3] = cell[0];
+      bottom[3] = cell[2];
       faces->InsertNextCell(4, bottom);
       faceData->InsertNextValue(EXCLUSION_FACE);
       
