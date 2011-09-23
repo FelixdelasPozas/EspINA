@@ -21,6 +21,8 @@
 #include <cassert>
 #include <vtkStreamingDemandDrivenPipeline.h>
 
+typedef unsigned long long ImageOffset;
+
 vtkStandardNewMacro(vtkImageLabelMapBlend);
 
 // bool validExtent(int *ext)
@@ -308,6 +310,7 @@ int vtkImageLabelMapBlend::RequestUpdateExtent(vtkInformation* request, vtkInfor
 }
 
 //! Copies input pixels to output
+//! DEPRECATED: Problems while changing update extent
 void vtkImageLabelMapBlend::copyInput(vtkImageIterator< vtkImageLabelMapBlend::InputPixelType >& inIt, vtkImageIterator< vtkImageLabelMapBlend::OutputPixelType >& outIt)
 {
   InputPixelType *inPtr;
@@ -336,6 +339,7 @@ void vtkImageLabelMapBlend::copyInput(vtkImageIterator< vtkImageLabelMapBlend::I
 
 }
 
+//! Copies input pixels to output
 void vtkImageLabelMapBlend::copyInput(vtkImageLabelMapBlend::Input* input, vtkImageData* output, int updateArea[6])
 {
   int outDim[3], inDim[3];
@@ -347,25 +351,35 @@ void vtkImageLabelMapBlend::copyInput(vtkImageLabelMapBlend::Input* input, vtkIm
     inDim[d] = input->extent[2*d+1] - input->extent[2*d] + 1;
   }
   
+  // Input must be monocrome, thus we don't need numComponents
   int numComponets = output->GetNumberOfScalarComponents();
   
   unsigned char *outputPtr = static_cast<unsigned char *>(output->GetScalarPointer());
   unsigned char *inputPtr = static_cast<unsigned char *>(input->image->GetScalarPointer());
   
-  for (int z = updateArea[4]; z <= updateArea[5]; z++)
-    for (int y = updateArea[2]; y <= updateArea[3]; y++)
-      for (int x = updateArea[0]; x <= updateArea[1]; x++)
+  for (unsigned int z = updateArea[4]; z <= updateArea[5]; z++)
+  {
+    ImageOffset zInOffset = (z-input->extent[4])* inDim[0]* inDim[1]; 
+    ImageOffset zOutOffset = numComponets * z * outDim[0] * outDim[1];
+    for (unsigned int y = updateArea[2]; y <= updateArea[3]; y++)
+    {
+      ImageOffset yInOffset = (y-input->extent[2])* inDim[0];
+      ImageOffset yOutOffset = numComponets * y * outDim[0];
+      for (unsigned int x = updateArea[0]; x <= updateArea[1]; x++)
       {
-	int outPix = x*numComponets + y* outDim[0]*numComponets + z* outDim[0]* outDim[1]*numComponets;
-	int inPix = (x-input->extent[0]) + (y-input->extent[2])* inDim[0] + (z-input->extent[4])* inDim[0]* inDim[1];//Inputs are monocrome
+	ImageOffset inPix = (x-input->extent[0]) + yInOffset + zInOffset;
+	ImageOffset outPix = numComponets*x + yOutOffset + zOutOffset;
 	
 	for (int c = 0; c < numComponets; c++)
 	  outputPtr[outPix+c] = inputPtr[inPix];
       }
+    }
+  }
 }
 
 
 //! Blend input color into output color whenever input pixel is not 0
+//! DEPRECATED: Problems while changing update extent
 void vtkImageLabelMapBlend::blendInputs(vtkImageIterator<InputPixelType> &inIt, vtkImageIterator<OutputPixelType> &outIt, OutputPixelType *color)
 {
   InputPixelType *inPtr;// = (InputPixelType*)input->GetScalarPointer();
@@ -405,10 +419,11 @@ void vtkImageLabelMapBlend::blendInputs(vtkImageIterator<InputPixelType> &inIt, 
   }
 }
 
-bool isBorderPixel(int x, int y, int z, int dim[3], int extent[6])
-{
-}
+// bool isBorderPixel(int x, int y, int z, int dim[3], int extent[6])
+// {
+// }
 
+//! Blend input color into output color whenever input pixel is not 0
 void vtkImageLabelMapBlend::blendInput(vtkImageLabelMapBlend::Input* input, vtkImageData* output, int updateArea[6])
 {
   int outDim[3], inDim[3];
@@ -427,12 +442,18 @@ void vtkImageLabelMapBlend::blendInput(vtkImageLabelMapBlend::Input* input, vtkI
   
   bool isSelected = input->color[3];
   
-  for (int z = updateArea[4]; z <= updateArea[5]; z++)
-    for (int y = updateArea[2]; y <= updateArea[3]; y++)
-      for (int x = updateArea[0]; x <= updateArea[1]; x++)
+  for (unsigned int z = updateArea[4]; z <= updateArea[5]; z++)
+  {
+    ImageOffset zInOffset = (z-input->extent[4])* inDim[0]* inDim[1]; 
+    ImageOffset zOutOffset = numComponets * z * outDim[0] * outDim[1];
+    for (unsigned int y = updateArea[2]; y <= updateArea[3]; y++)
+    {
+      ImageOffset yInOffset = (y-input->extent[2])* inDim[0];
+      ImageOffset yOutOffset = numComponets * y * outDim[0];
+      for (unsigned int x = updateArea[0]; x <= updateArea[1]; x++)
       {
-	int outPix = x*numComponets + y* outDim[0]*numComponets + z* outDim[0]* outDim[1]*numComponets;
-	int inPix = (x-input->extent[0]) + (y-input->extent[2])* inDim[0] + (z-input->extent[4])* inDim[0]* inDim[1];//Inputs are monocrome
+	ImageOffset inPix = (x-input->extent[0]) + yInOffset + zInOffset;
+	ImageOffset outPix = numComponets*x + yOutOffset + zOutOffset;
 	
 	if (inputPtr[inPix]) //Non 0 pixel
 	{
@@ -443,7 +464,9 @@ void vtkImageLabelMapBlend::blendInput(vtkImageLabelMapBlend::Input* input, vtkI
 	    outputPtr[outPix+c] = outputPtr[outPix+c]*f + input->color[c]*r;
 	  }
 	}
-      }
+      }// X loop
+    }// Y loop
+  }// Z loop
 }
 
 
