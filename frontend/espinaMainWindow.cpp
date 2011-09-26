@@ -281,6 +281,8 @@ EspinaMainWindow::EspinaMainWindow()
   connect(Internals->writeDataToFile,SIGNAL(clicked()),this,SLOT(extractInformation()));
   Internals->dataView->setModel(m_espina);
   Internals->dataView->setRootIndex(m_espina->segmentationRoot());
+  Internals->dataView->setSortingEnabled(true);
+  Internals->dataView->sortByColumn(0);
   
 #if DEBUG_GUI
   connect(pqApplicationCore::instance()->getObjectBuilder(),
@@ -760,20 +762,20 @@ void EspinaMainWindow::focusOnSegmentation()
     Sample *origin = seg->origin();
     CrosshairExtension::SampleRepresentation *cross = dynamic_cast<CrosshairExtension::SampleRepresentation *>(origin->representation(CrosshairExtension::SampleRepresentation::ID));
     assert(cross);
-    QString args = seg->parent()->getFilterArguments();
-    int startArg = args.indexOf("Seed");
-    int endArg = args.indexOf(";",startArg);
-    startArg += 5; // To remove Seed= from the string
-    QString seedArg = args.mid(startArg,endArg-startArg);
-    QStringList seed = seedArg.split(",");
-//     double spacing[3];
-//     origin->spacing(spacing);
-// //     int x = seg->information("Centroid X").toInt() / spacing[0];
-//     int y = seg->information("Centroid Y").toInt() / spacing[1];
-//     int z = seg->information("Centroid Z").toInt() / spacing[2];
-    int x = seed[0].toInt();
-    int y = seed[1].toInt();
-    int z = seed[2].toInt();
+//     QString args = seg->parent()->getFilterArguments();
+//     int startArg = args.indexOf("Seed");
+//     int endArg = args.indexOf(";",startArg);
+//     startArg += 5; // To remove Seed= from the string
+//     QString seedArg = args.mid(startArg,endArg-startArg);
+//     QStringList seed = seedArg.split(",");
+//     int x = seed[0].toInt();
+//     int y = seed[1].toInt();
+//     int z = seed[2].toInt();
+    double spacing[3];
+    origin->spacing(spacing);
+    int x = seg->information("Centroid X").toInt() / spacing[0];
+    int y = seg->information("Centroid Y").toInt() / spacing[1];
+    int z = seg->information("Centroid Z").toInt() / spacing[2];
     cross->centerOn(x,y,z);
   }
 }

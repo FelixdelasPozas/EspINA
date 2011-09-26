@@ -50,7 +50,7 @@ private:
   double m_BinaryPrincipalAxes[9];
   double m_FeretDiameter;
   double m_EquivalentEllipsoidSize[3];
-  bool m_init;
+  bool m_init, m_validFeret;
 };
 
 #endif // MORPHOLOGICALEXTENSION_H

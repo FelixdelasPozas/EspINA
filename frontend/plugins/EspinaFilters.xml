@@ -304,6 +304,13 @@
 	command="GetBinaryPrincipalAxes">
 	<SimpleDoubleInformationHelper/>
       </DoubleVectorProperty>
+      <IntVectorProperty
+	name="ComputeFeret"
+	number_of_elements="1"
+	immediate_update="1"
+	default_values="0"
+	command="SetComputeFeret">
+      </IntVectorProperty>
       <DoubleVectorProperty
 	name="FeretDiameter"
 	number_of_elements="1"
