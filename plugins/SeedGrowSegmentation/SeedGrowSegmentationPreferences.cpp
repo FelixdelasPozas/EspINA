@@ -26,24 +26,30 @@
 // const QString BEST_PIXEL("SeedGrowSegmentation::BestPixel");
 
 //------------------------------------------------------------------------
-SeedGrowSegmentationPanel::SeedGrowSegmentationPanel(BestPixelSelector *selector)
-: m_selector(selector)
+SeedGrowSegmentationPanel::SeedGrowSegmentationPanel(SeedGrowSegmentationSettings* pref)
 {
   setupUi(this);
   
+  connect(pixelValue,SIGNAL(valueChanged(int)),
+	  pref, SLOT(setBestPixelValue(int)));
+  connect(xSize,SIGNAL(valueChanged(int)),
+	  pref, SLOT(setXSize(int)));
+  connect(ySize,SIGNAL(valueChanged(int)),
+	  pref, SLOT(setYSize(int)));
+  connect(zSize,SIGNAL(valueChanged(int)),
+	  pref, SLOT(setZSize(int)));
   connect(pixelValue,SIGNAL(valueChanged(int)),
 	  this, SLOT(setBestPixelValue(int)));
 
   QSettings settings;
   
-  if (!settings.allKeys().contains(BEST_PIXEL))
-  {
-    settings.setValue(BEST_PIXEL,0);
-  }
-  
   int bestPixel = settings.value(BEST_PIXEL).toInt();
   pixelValue->setValue(bestPixel);
   setBestPixelValue(bestPixel); //To prevent non initialization of black
+  
+  xSize->setValue(pref->xSize());
+  ySize->setValue(pref->ySize());
+  zSize->setValue(pref->zSize());
 }
 
 //------------------------------------------------------------------------
@@ -60,15 +66,67 @@ void SeedGrowSegmentationPanel::setBestPixelValue(int value)
   QPixmap pic(32,32);
   pic.fill(QColor(value,value,value));
   colorSample->setPixmap(pic);
-  m_selector->setBestPixelValue(value);
   colorSample->setToolTip(QString("Pixel Value: %1").arg(value));
   pixelValue->setToolTip(QString("Pixel Value: %1").arg(value));
+  
+}
+
+SeedGrowSegmentationSettings::SeedGrowSegmentationSettings(BestPixelSelector* sel)
+: m_selector(sel)
+{
+  QSettings settings;
+  
+  if (!settings.allKeys().contains(BEST_PIXEL))
+    settings.setValue(BEST_PIXEL,0);
+  if (!settings.allKeys().contains(DEFAULT_VOI_X))
+    settings.setValue(DEFAULT_VOI_X,60);
+  if (!settings.allKeys().contains(DEFAULT_VOI_Y))
+    settings.setValue(DEFAULT_VOI_Y,60);
+  if (!settings.allKeys().contains(DEFAULT_VOI_Z))
+    settings.setValue(DEFAULT_VOI_Z,60);
+
+  m_selector->setBestPixelValue(settings.value(BEST_PIXEL).toInt());
+  m_xSize = settings.value(DEFAULT_VOI_X).toInt();
+  m_ySize = settings.value(DEFAULT_VOI_Y).toInt();
+  m_zSize = settings.value(DEFAULT_VOI_Z).toInt();
 }
 
 
-QWidget* SeedGrowSegmentationPreferences::widget()
+void SeedGrowSegmentationSettings::setXSize(int value)
 {
-  SeedGrowSegmentationPanel *panel = new SeedGrowSegmentationPanel(m_selector);
+  QSettings settings;
+  
+  settings.setValue(DEFAULT_VOI_X,value);
+  m_xSize = value;
+  
+}
+
+void SeedGrowSegmentationSettings::setYSize(int value)
+{
+  QSettings settings;
+  
+  settings.setValue(DEFAULT_VOI_Y,value);
+  m_ySize = value;
+}
+
+void SeedGrowSegmentationSettings::setZSize(int value)
+{
+  QSettings settings;
+  
+  settings.setValue(DEFAULT_VOI_Z,value);
+  m_zSize = value;
+}
+
+
+void SeedGrowSegmentationSettings::setBestPixelValue(int value)
+{
+  m_selector->setBestPixelValue(value);
+}
+
+
+QWidget* SeedGrowSegmentationSettings::widget()
+{
+  SeedGrowSegmentationPanel *panel = new SeedGrowSegmentationPanel(this);
   return panel;
 }
 

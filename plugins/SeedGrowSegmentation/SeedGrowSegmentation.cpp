@@ -79,6 +79,7 @@ SeedGrowSegmentation::SeedGrowSegmentation(QObject* parent)
 : ISegmentationPlugin(parent)
 , m_defaultVOI(NULL)
 , m_seedSelector(NULL)
+, m_preferences(NULL)
 {
   m_factoryName = SGS;
   // Register Factory's filters
@@ -184,12 +185,12 @@ void SeedGrowSegmentation::startSegmentation(ISelectionHandler::Selection sel)
     voi->setSource(input);
     double spacing[3];
     input->spacing(spacing);
-    double defVOI[6] = {(seed.x - 30)*spacing[0],
-			(seed.x + 30)*spacing[0],
-			(seed.y - 30)*spacing[1],
-			(seed.y + 30)*spacing[1],
-			(seed.z - 30)*spacing[2],
-			(seed.z + 30)*spacing[2]};
+    double defVOI[6] = {(seed.x - m_preferences->xSize())*spacing[0],
+			(seed.x + m_preferences->xSize())*spacing[0],
+			(seed.y - m_preferences->ySize())*spacing[1],
+			(seed.y + m_preferences->ySize())*spacing[1],
+			(seed.z - m_preferences->zSize())*spacing[2],
+			(seed.z + m_preferences->zSize())*spacing[2]};
     vtkSMPropertyHelper(voi->getProxy(),"Bounds").Set(defVOI,6);
     voi->getProxy()->UpdateVTKObjects();
 //     double checkBounds[6];
@@ -230,8 +231,8 @@ void SeedGrowSegmentation::buildSelectors()
     , tr("Add synapse (Ctrl +). Best Pixel"),
     m_selectors);
   BestPixelSelector *bestSelector = new BestPixelSelector();
-  SeedGrowSegmentationPreferences *preferences = new SeedGrowSegmentationPreferences(bestSelector);
-  EspinaPluginManager::instance()->registerPreferencePanel(preferences);
+  m_preferences = new SeedGrowSegmentationSettings(bestSelector);
+  EspinaPluginManager::instance()->registerPreferencePanel(m_preferences);
   QSettings settings;
   if (settings.contains(BEST_PIXEL))
     bestSelector->setBestPixelValue(settings.value(BEST_PIXEL).toInt());
