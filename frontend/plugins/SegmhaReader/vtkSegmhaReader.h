@@ -3,7 +3,6 @@
 
 #include <vtkMultiBlockDataSetAlgorithm.h>
 
-
 //BTX
 class vtkInformation;
 class vtkInformationVector;
@@ -16,11 +15,21 @@ class vtkSegmhaReader : public vtkMultiBlockDataSetAlgorithm
   //BTX
   struct SegmentationObject
   {
-    unsigned char label;
-    unsigned char taxonomyId;
+    unsigned int label;
+    unsigned int taxonomyId;
     unsigned char selected;
     
     SegmentationObject(const QString &line);
+  };
+  
+  struct TaxonomyObject
+  {
+    QString *name;
+    unsigned int label;
+    unsigned char color[3];
+    
+    TaxonomyObject(const QString &line);
+    QString &toString();
   };
   //ETX
   
@@ -37,8 +46,11 @@ public:
 //     vtkSetStringMacro(Trace);
 //     vtkGetStringMacro(Trace);
 
-//     vtkSetStringMacro(Taxonomy);
-//     vtkGetStringMacro(Taxonomy);
+    vtkSetStringMacro(Taxonomy);
+    vtkGetStringMacro(Taxonomy);
+    
+    vtkSetStringMacro(SegTaxonomies);
+    vtkGetStringMacro(SegTaxonomies);
     
 protected:
   vtkSegmhaReader();
@@ -52,10 +64,11 @@ private:
   vtkSegmhaReader(const vtkSegmhaReader&);  // Not implemented.
   void operator=(const vtkSegmhaReader&);  // Not implemented.
   
-  char* FileName;
-  int NumSegmentations;
+  char *FileName;
+  int   NumSegmentations;
+  char *Taxonomy;
+  char *SegTaxonomies; 
 //   char* Trace;
-//   char* Taxonomy;
 };
 
 #endif // VTKSEGMHAFILEREADER_H

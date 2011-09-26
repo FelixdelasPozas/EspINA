@@ -39,6 +39,7 @@
 #include <vtkSMPropertyHelper.h>
 #include <QApplication>
 #include <QLabel>
+#include <vtkSMStringVectorProperty.h>
 
 // SegmhaImporterFilter::SetupWidget::SetupWidget(EspinaFilter *parent)
 // : QWidget()
@@ -108,9 +109,38 @@ SegmhaImporterFilter::SegmhaImporterFilter(pqPipelineSource* reader, const QStri
   m_segReader = CachedObjectBuilder::instance()->registerProductCreator(id, reader);
   reader->updatePipeline();
   
+  // Load Taxonomy
+  reader->getProxy()->UpdatePropertyInformation();
+  
+  vtkSMStringVectorProperty* TaxProp =
+    vtkSMStringVectorProperty::SafeDownCast(reader->getProxy()->GetProperty("Taxonomy"));
+  QString taxonomyFile(TaxProp->GetElement(0));
+  
+  QStringList taxonomies = taxonomyFile.split(";");
+  
+  TaxonomyNode *root = new TaxonomyNode("Segmha");
+  QStringList availableTaxonomies;
+  foreach(QString taxonomy, taxonomies)
+  {
+    if (taxonomy == "")
+      continue;
+    
+    QStringList values = taxonomy.split(" ");
+    QChar zero = '0';
+    QString color = QString("#%1%2%3")
+    .arg(values[2].toInt(),2,16,zero)
+    .arg(values[3].toInt(),2,16,zero)
+    .arg(values[4].toInt(),2,16,zero);
+    
+    root->addElement(values[1],"Segmha",color); 
+    availableTaxonomies.append(values[1]);
+  }
+  EspINA::instance()->loadTaxonomy(root);
+//   std::cout << "Taxonomy read: " << taxonomyFile.toStdString() << std::endl;
+  
   reader->getProxy()->UpdatePropertyInformation();
   vtkSMPropertyHelper(reader->getProxy(),"NumSegmentations").Get(&m_numSeg,1);
-
+  
   QStringList blockNos;
   
   // Trace EspinaFilter
@@ -118,6 +148,13 @@ SegmhaImporterFilter::SegmhaImporterFilter(pqPipelineSource* reader, const QStri
     // Connect input
   QString inputId = EspINA::instance()->activeSample()->id();
   trace->connect(inputId,this,"Sample");
+  
+  // Create segmentation's taxonomy list
+  vtkSMStringVectorProperty* SegTaxProp =
+    vtkSMStringVectorProperty::SafeDownCast(reader->getProxy()->GetProperty("SegTaxonomies"));
+  QString segTaxonomiesProp(SegTaxProp->GetElement(0));
+
+  QStringList segTaxonomies = segTaxonomiesProp.split(";");
   
   for (int p=0; p<m_numSeg; p++)
   {
@@ -134,6 +171,11 @@ SegmhaImporterFilter::SegmhaImporterFilter(pqPipelineSource* reader, const QStri
     trace->addNode(seg);
     // Trace connection
     trace->connect(this, seg,"Segmentation");
+    
+    std::cout << "Getting taxonomy "<< segTaxonomies[p].toStdString() << ": " << availableTaxonomies[segTaxonomies[p].toInt()-1].toStdString() << std::endl;
+    seg->setTaxonomy(root->getComponent(availableTaxonomies[segTaxonomies[p].toInt()-1]));
+    
+    std::cout << "Adding " << seg->taxonomy()->getName().toStdString() << " segmentation" << std::endl;
     
     EspINA::instance()->addSegmentation(seg);
   }

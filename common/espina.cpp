@@ -673,7 +673,8 @@ void EspINA::addSegmentation(Segmentation *seg)
   
   //beginResetModel();
   beginInsertRows(segmentationRoot(),lastRow,lastRow);
-  seg->setTaxonomy(node);
+  if (!seg->taxonomy())
+    seg->setTaxonomy(node);
   seg->setOrigin(m_activeSample);
   seg->initialize();
   m_taxonomySegs[m_newSegType].push_back(seg);
@@ -777,11 +778,12 @@ void EspINA::loadSource(pqPipelineSource* proxy)
       if (!m_tax)//TODO: Decide wether to mix, override or check compability
       {
         qDebug("EspINA: Reading taxonomy ...");
-	beginInsertRows(taxonomyRoot(), 0, 0);
-	m_tax = IOTaxonomy::loadXMLTaxonomy(TaxContent);
-	endInsertRows();
-	setUserDefindedTaxonomy(m_tax->getSubElements()[0]->getName());
-	emit resetTaxonomy();
+// 	beginInsertRows(taxonomyRoot(), 0, 0);
+// 	m_tax = IOTaxonomy::loadXMLTaxonomy(TaxContent);
+// 	endInsertRows();
+// 	setUserDefindedTaxonomy(m_tax->getSubElements()[0]->getName());
+// 	emit resetTaxonomy();
+	loadTaxonomy(IOTaxonomy::loadXMLTaxonomy(TaxContent));
       }
       qDebug("EspINA: Reading trace ...");
       m_analysis->readTrace(trace);
@@ -813,12 +815,7 @@ void EspINA::clear()
   // Delete Samples (and their segmentations)
   this->removeSamples();
   
-  
-  // Delete taxonomy
-  beginRemoveRows(taxonomyRoot(), 0, rowCount(taxonomyRoot())-1);
-  delete m_tax;
-  m_tax = NULL;
-  endRemoveRows();
+  this->removeTaxonomy();
 }
 
 
@@ -829,6 +826,16 @@ void EspINA::internalSegmentationUpdate(Segmentation* seg)
   emit dataChanged(segIndex,segIndex);
 }
 
+
+//------------------------------------------------------------------------
+void EspINA::removeTaxonomy()
+{
+  // Delete taxonomy
+  beginRemoveRows(taxonomyRoot(), 0, rowCount(taxonomyRoot())-1);
+  delete m_tax;
+  m_tax = NULL;
+  endRemoveRows();
+}
 
 //------------------------------------------------------------------------
 void EspINA::loadTaxonomy()

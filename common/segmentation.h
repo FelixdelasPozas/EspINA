@@ -35,7 +35,7 @@ public:
   virtual ~Segmentation();
   
   //! Reimplement ITraceNode Interface
-  virtual QString label() const {return QString("Segmentation %1").arg(m_id);}
+  virtual QString label() const {return QString("%1 %2").arg(m_taxonomy->getName()).arg(m_id);}
   
   virtual void color(double* rgba);
   virtual void setSelected(bool value) {m_isSelected = value;}

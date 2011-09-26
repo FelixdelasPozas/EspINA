@@ -83,6 +83,14 @@ public:
     
     // Taxonomy managing
     //! Returns the taxonomy used by the analyzer
+    void loadTaxonomy(TaxonomyNode *root) 
+    {
+      beginInsertRows(taxonomyRoot(), 0, 0);
+      m_tax = root;
+      endInsertRows();
+      setUserDefindedTaxonomy(m_tax->getSubElements()[0]->getName());
+      emit resetTaxonomy();
+    }
     TaxonomyNode *taxonomy() {return m_tax;}
     //! Returns the QModelIndex of a given @node
     QModelIndex taxonomyIndex(TaxonomyNode *node) const;
@@ -149,7 +157,8 @@ protected:
 
 private:
     //! 
-    void loadTaxonomy();//TODO: Replace with factory
+    void removeTaxonomy();
+    void loadTaxonomy();//TODO: Replace with factor
     //TaxonomyNode *indexNode(const QModelIndex &index) const;
     //! Returns wheter or not node is a taxonomy leaf node
     bool isLeaf(TaxonomyNode *node) const;
