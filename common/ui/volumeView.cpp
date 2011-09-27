@@ -156,7 +156,7 @@ void VolumeView::setVOI(IVOI* voi)
     m_VOIWidget = NULL;
   }
   
-  qDebug()<< "VolumeView: elemets" << model()->rowCount();
+//   qDebug()<< "VolumeView: elemets" << model()->rowCount();
   if (model()->rowCount() == 0)
     return;
      
@@ -167,6 +167,8 @@ void VolumeView::setVOI(IVOI* voi)
   m_VOIWidget->setView(m_view);
   m_VOIWidget->setWidgetVisible(true);
   m_VOIWidget->select();
+  m_VOIWidget->accept();
+  voi->resizeToDefaultSize();
 }
 
 

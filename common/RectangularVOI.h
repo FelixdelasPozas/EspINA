@@ -63,6 +63,8 @@ public:
   
   virtual EspinaFilter *applyVOI(vtkProduct* product);
   virtual EspinaFilter *restoreVOITransormation(vtkProduct* product);
+  virtual void setDefaultBounds(double bounds[6]);
+  virtual void resizeToDefaultSize();
 
   virtual vtkSMProxy *getProxy();
   virtual pq3DWidget* newWidget(ViewType viewType);
