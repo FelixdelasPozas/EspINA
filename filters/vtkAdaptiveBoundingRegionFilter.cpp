@@ -56,6 +56,11 @@ const int EXCLUSION_FACE = 0;
 vtkStandardNewMacro(vtkAdaptiveBoundingRegionFilter);
 
 vtkAdaptiveBoundingRegionFilter::vtkAdaptiveBoundingRegionFilter()
+: TotalVolume(0)
+, TotalAdaptiveVolume(0)
+, InclusionVolume(0)
+, ExclusionVolume(0)
+, ExclusionAdaptiveVolume(0)
 {
   bzero(Inclusion,3*sizeof(int));
   bzero(Exclusion,3*sizeof(int));
@@ -332,6 +337,8 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
   vtkCellData *data = region->GetCellData();
   data->SetScalars(faceData);
   data->GetScalars()->SetName("Type");
+  
+  TotalVolume = (extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1);
   
   return 1;
 }
