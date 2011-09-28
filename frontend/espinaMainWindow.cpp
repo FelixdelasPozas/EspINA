@@ -281,8 +281,8 @@ EspinaMainWindow::EspinaMainWindow()
   connect(Internals->writeDataToFile,SIGNAL(clicked()),this,SLOT(extractInformation()));
   Internals->dataView->setModel(m_espina);
   Internals->dataView->setRootIndex(m_espina->segmentationRoot());
-  Internals->dataView->setSortingEnabled(true);
-  Internals->dataView->sortByColumn(0);
+//   Internals->dataView->setSortingEnabled(true);
+//   Internals->dataView->sortByColumn(0);
   
 #if DEBUG_GUI
   connect(pqApplicationCore::instance()->getObjectBuilder(),

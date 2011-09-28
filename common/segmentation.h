@@ -52,11 +52,11 @@ public:
   //! Are supposed to be used for sort time 
   ISegmentationExtension *extension(ExtensionId extId);
   
-  QStringList availableRepresentations();
+  QStringList availableRepresentations() const;
   ISegmentationRepresentation *representation(QString rep);
   
-  QStringList availableInformations();
-  QVariant information(QString info);
+  QStringList availableInformations() const;
+  QVariant information(QString info) const;
   
   void initialize();
   

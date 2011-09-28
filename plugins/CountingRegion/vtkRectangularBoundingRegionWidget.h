@@ -136,6 +136,11 @@ public:
   vtkGetMacro(InvertZCursor,int);
   vtkBooleanMacro(InvertZCursor,int);
   
+  vtkSetVector3Macro(Inclusion,int);
+  vtkGetVector3Macro(Inclusion,int);
+  vtkSetVector3Macro(Exclusion,int);
+  vtkGetVector3Macro(Exclusion,int);
+  
   virtual void SetViewType(int type);
   virtual void SetSlice(int slice, double spacing);
   virtual void SetRegion(vtkPolyDataAlgorithm *region);
@@ -172,6 +177,12 @@ protected:
   int InvertXCursor;
   int InvertYCursor;
   int InvertZCursor;
+  
+  int Inclusion[3];
+  int Exclusion[3];
+  
+  int Slice;
+  int View;
   
   vtkPolyDataAlgorithm *Region;
 private:

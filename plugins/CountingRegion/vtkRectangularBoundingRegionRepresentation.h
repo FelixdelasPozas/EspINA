@@ -62,6 +62,8 @@ public:
   // or EndInteractionEvent events are invoked. The user provides the
   // vtkPolyData and the points and cells are added to it.
   void GetPolyData(vtkPolyData *pd);
+  
+  void reset();
 
   // Description:
   // Get the face properties (the faces of the box). The 
@@ -87,6 +89,13 @@ public:
   virtual void SetRegion(vtkPolyDataAlgorithm *region);
   
   // Description:
+  // These are methods to communicate with the 3d_widget
+  vtkSetVector3Macro(Inclusion,int);
+  vtkGetVector3Macro(Inclusion,int);
+  vtkSetVector3Macro(Exclusion,int);
+  vtkGetVector3Macro(Exclusion,int);
+  
+  // Description:
   // These are methods that satisfy vtkWidgetRepresentation's API.
   virtual void PlaceWidget(double bounds[6]);
   virtual void BuildRepresentation();
@@ -103,7 +112,10 @@ public:
   virtual int  HasTranslucentPolygonalGeometry();
   
 //BTX - used to manage the state of the widget
-  enum {Outside=0,MoveF0,MoveF1,MoveF2,MoveF3,MoveF4,MoveF5,Translating,Rotating,Scaling};
+  enum {Outside=0,MoveF0,MoveF1,MoveF2,MoveF3,MoveF4,MoveF5,
+    MoveLeft, MoveRight, MoveTop, MoveBottom, MoveUpper, MoveLower,
+    Translating,Rotating,Scaling
+  };
 //ETX
 
   // Description:
@@ -123,7 +135,6 @@ protected:
   // Manage how the representation appears
   double LastEventPosition[3];
   
-  vtkPoints         *Points;  //used by others as well
   double             N[6][3]; //the normals of the faces
   
   vtkLookupTable    *InclusionLUT;
@@ -140,8 +151,8 @@ protected:
   vtkPolyData 	    *RegionPolyData;
   vtkPoints	    *RegionPoints;
 
-//   int HighlightHandle(vtkProp *prop); //returns cell id
-  void HighlightFace(int cellId);
+  void HighlightMargin(vtkActor *actor);
+//   void HighlightFace(int cellId);
   void HighlightOutline(int highlight);
   virtual void ComputeNormals();
   
@@ -175,12 +186,18 @@ protected:
   // Helper methods
   virtual void Translate(double *p1, double *p2);
   virtual void Scale(double *p1, double *p2, int X, int Y);
-  void MovePlusXFace(double *p1, double *p2);
-  void MoveMinusXFace(double *p1, double *p2);
-  void MovePlusYFace(double *p1, double *p2);
-  void MoveMinusYFace(double *p1, double *p2);
-  void MovePlusZFace(double *p1, double *p2);
-  void MoveMinusZFace(double *p1, double *p2);
+  void MoveLeftMargin(double *p1, double *p2);
+  void MoveRightMargin(double *p1, double *p2);
+  void MoveTopMargin(double *p1, double *p2);
+  void MoveBottomMargin(double *p1, double *p2);
+  void MoveUpperMargin(double *p1, double *p2);
+  void MoveLowerMargin(double *p1, double *p2);
+//   void MovePlusXFace(double *p1, double *p2);
+//   void MoveMinusXFace(double *p1, double *p2);
+//   void MovePlusYFace(double *p1, double *p2);
+//   void MoveMinusYFace(double *p1, double *p2);
+//   void MovePlusZFace(double *p1, double *p2);
+//   void MoveMinusZFace(double *p1, double *p2);
 
   // Internal ivars for performance
   vtkPoints      *PlanePoints;
@@ -206,6 +223,8 @@ protected:
 private:
   vtkRectangularBoundingRegionRepresentation(const vtkRectangularBoundingRegionRepresentation&);  //Not implemented
   void operator=(const vtkRectangularBoundingRegionRepresentation&);  //Not implemented
+  int Inclusion[3];
+  int Exclusion[3];
 };
 
 #endif

@@ -40,6 +40,7 @@
 #include <vtkSMPropertyHelper.h>
 #include "spatialExtension.h"
 #include "sample.h"
+#include "labelMapExtension.h"
 
 
 using namespace std;
@@ -100,6 +101,15 @@ QVariant Segmentation::data(int role) const
       ;
     case Qt::CheckStateRole:
       return visible()?Qt::Checked:Qt::Unchecked;
+    case Qt::FontRole:
+    {
+      QFont myFont;
+//       if (this->availableInformations().contains("Discarted"))
+//       {
+	myFont.setStrikeOut(!visible());
+//       }
+      return myFont;
+    }
     default:
       return QVariant();
   }
@@ -177,7 +187,7 @@ ISegmentationExtension *Segmentation::extension(ExtensionId extId)
 }
 
 //------------------------------------------------------------------------
-QStringList Segmentation::availableRepresentations()
+QStringList Segmentation::availableRepresentations() const
 {
   QStringList represnetations;
   foreach (ISegmentationExtension *ext, m_insertionOrderedExtensions)
@@ -193,7 +203,7 @@ ISegmentationRepresentation* Segmentation::representation(QString rep)
 }
 
 //------------------------------------------------------------------------
-QStringList Segmentation::availableInformations()
+QStringList Segmentation::availableInformations() const
 {
   QStringList informations;
   informations << "Name" << "Taxonomy";
@@ -204,7 +214,7 @@ QStringList Segmentation::availableInformations()
 }
 
 //------------------------------------------------------------------------
-QVariant Segmentation::information(QString info)
+QVariant Segmentation::information(QString info) const
 {
   if (info == "Name")
     return data(Qt::DisplayRole);
@@ -226,5 +236,7 @@ void Segmentation::initialize()
 //------------------------------------------------------------------------
 void Segmentation::notifyInternalUpdate()
 {
+//   std::cout << "Notifying update" << std::endl;
+//   this->origin()->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
   emit updated(this);
 }

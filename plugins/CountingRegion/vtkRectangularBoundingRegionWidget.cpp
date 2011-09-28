@@ -44,6 +44,9 @@ vtkRectangularBoundingRegionWidget::vtkRectangularBoundingRegionWidget()
   this->InvertYCursor = 0;
   this->InvertZCursor = 0;
   
+  bzero(Inclusion,3*sizeof(int));
+  bzero(Exclusion,3*sizeof(int));
+  
   // Define widget events
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
                                           vtkEvent::NoModifier,
@@ -188,6 +191,7 @@ void vtkRectangularBoundingRegionWidget::TranslateAction(vtkAbstractWidget *w)
 //----------------------------------------------------------------------
 void vtkRectangularBoundingRegionWidget::ScaleAction(vtkAbstractWidget *w)
 {
+  return; //NOTE: Disabled
   // We are in a static method, cast to ourself
   vtkRectangularBoundingRegionWidget *self = reinterpret_cast<vtkRectangularBoundingRegionWidget*>(w);
 
@@ -254,6 +258,13 @@ void vtkRectangularBoundingRegionWidget::MoveAction(vtkAbstractWidget *w)
   e[1] = static_cast<double>(Y);
   self->WidgetRep->WidgetInteraction(e);
 
+  vtkRectangularBoundingRegionRepresentation *rep =
+    vtkRectangularBoundingRegionRepresentation::SafeDownCast(self->WidgetRep);
+  if (rep)
+  {
+    rep->GetInclusion(self->Inclusion);
+    rep->GetExclusion(self->Exclusion);
+  }
   // moving something
   self->EventCallbackCommand->SetAbortFlag(1);
   self->InvokeEvent(vtkCommand::InteractionEvent,NULL);
@@ -268,22 +279,22 @@ void vtkRectangularBoundingRegionWidget::SetCursor(int state)
       case vtkRectangularBoundingRegionRepresentation::Translating:
 	this->RequestCursorShape(VTK_CURSOR_SIZEALL);
 	break;
-      case vtkRectangularBoundingRegionRepresentation::MoveF0:
-      case vtkRectangularBoundingRegionRepresentation::MoveF1:
+      case vtkRectangularBoundingRegionRepresentation::MoveLeft:
+      case vtkRectangularBoundingRegionRepresentation::MoveRight:
 	if (this->InvertXCursor)
 	  this->RequestCursorShape(VTK_CURSOR_SIZENS);
 	else
 	  this->RequestCursorShape(VTK_CURSOR_SIZEWE);
 	break;
-      case vtkRectangularBoundingRegionRepresentation::MoveF2:
-      case vtkRectangularBoundingRegionRepresentation::MoveF3:
+      case vtkRectangularBoundingRegionRepresentation::MoveTop:
+      case vtkRectangularBoundingRegionRepresentation::MoveBottom:
 	if (this->InvertYCursor)
 	  this->RequestCursorShape(VTK_CURSOR_SIZEWE);
 	else
 	  this->RequestCursorShape(VTK_CURSOR_SIZENS);
 	break;
-      case vtkRectangularBoundingRegionRepresentation::MoveF4:
-      case vtkRectangularBoundingRegionRepresentation::MoveF5:
+      case vtkRectangularBoundingRegionRepresentation::MoveUpper:
+      case vtkRectangularBoundingRegionRepresentation::MoveLower:
 	if (this->InvertZCursor)
 	  this->RequestCursorShape(VTK_CURSOR_SIZEWE);
 	else
@@ -325,13 +336,23 @@ void vtkRectangularBoundingRegionWidget::SetViewType(int type)
 {
   reinterpret_cast<vtkRectangularBoundingRegionRepresentation*>(this->WidgetRep)->
     SetViewType(type);
+    
+  if (type == 1)
+    InvertZCursorOn();
+  
+  View = type;
 }
 
 //----------------------------------------------------------------------
 void vtkRectangularBoundingRegionWidget::SetSlice(int slice, double spacing)
 {
+  int normalDir = (View+2)%3;
+  bool isInside = slice >= (Inclusion[normalDir]/spacing) && slice <= (Exclusion[normalDir]/spacing);
+  
+  
   reinterpret_cast<vtkRectangularBoundingRegionRepresentation*>(this->WidgetRep)->
-    SetSlice(slice,spacing);
+    SetSlice(isInside?slice:-1,spacing);
+  Slice = slice;
 }
 
 //----------------------------------------------------------------------
@@ -339,7 +360,12 @@ void vtkRectangularBoundingRegionWidget::SetRegion(vtkPolyDataAlgorithm *region)
 {
   Region = region;
   if (WidgetRep)
-    reinterpret_cast<vtkRectangularBoundingRegionRepresentation*>(this->WidgetRep)->SetRegion(region);
+  {
+    vtkRectangularBoundingRegionRepresentation *rep =
+      reinterpret_cast<vtkRectangularBoundingRegionRepresentation*>(this->WidgetRep);
+    rep->SetRegion(region);
+    rep->reset();
+  }
   else
     std::cout << "There is no representation" << std::endl;
 }

@@ -78,6 +78,7 @@ protected:
 
 class RectangularRegion : public CountingRegion::BoundingRegion
 {
+  Q_OBJECT
 public:
   RectangularRegion(Sample* sample, int left, int top, int upper,
 		    int right, int bottom, int lower,
@@ -90,9 +91,16 @@ public:
   virtual void setInclusive(int left, int top, int upper);
   virtual void setExclusive(int right, int bottom, int lower);
   
+public slots:
+  void reset();
+  
+signals:
+  void regionChanged(BoundingRegion *);
+  
 private:
   vtkSMProxy *m_box;
   pq3DWidget *m_widget[4];
+  QStandardItem *m_item;
 };
 
 class AdaptiveRegion : public CountingRegion::BoundingRegion
@@ -113,8 +121,9 @@ private:
   pq3DWidget *m_widget[4];
 };
 
-class CountingRegion::SampleExtension : public ISampleExtension
+class CountingRegion::SampleExtension :public QObject, public ISampleExtension
 {
+  Q_OBJECT
 public:
     SampleExtension();
     virtual ~SampleExtension();
@@ -136,6 +145,10 @@ public:
     QMap<QString, BoundingRegion *> &regions() {return m_regions;}
     
     virtual ISampleExtension* clone();
+    
+public slots:
+  void updateSegmentations(BoundingRegion *region);
+  
 private:
   QMap<QString, BoundingRegion *> m_regions;
   int m_numRepresentations;

@@ -42,6 +42,8 @@ vtkRectangularBoundingRegionRepresentation::vtkRectangularBoundingRegionRepresen
   this->ViewType = VOL; //Default 3D View
   this->Slice = 0;
   this->Region = NULL;
+  bzero(this->Inclusion,3*sizeof(int));
+  bzero(this->Exclusion,3*sizeof(int));
 
   // Set up the initial properties
   this->CreateDefaultProperties();
@@ -78,12 +80,6 @@ vtkRectangularBoundingRegionRepresentation::vtkRectangularBoundingRegionRepresen
   this->RegionActor->SetMapper(this->RegionMapper);
   this->RegionActor->SetProperty(this->InclusionProperty);
 
-  // Construct initial points
-  this->Points = vtkPoints::New(VTK_DOUBLE);
-  this->Points->SetNumberOfPoints(8);//8 corners;
-  this->RegionPolyData->SetPoints(this->Points);
-  
-
   // Define the point coordinates
   double bounds[6];
   bounds[0] = -0.5;
@@ -98,7 +94,7 @@ vtkRectangularBoundingRegionRepresentation::vtkRectangularBoundingRegionRepresen
 
   //Manage the picking stuff
   this->RegionPicker = vtkCellPicker::New();
-  this->RegionPicker->SetTolerance(0.001);
+  this->RegionPicker->SetTolerance(0.01);
   for (unsigned int i=0; i<6; i++)
     this->RegionPicker->AddPickList(this->MarginActor[i]);
   this->RegionPicker->PickFromListOn();
@@ -121,8 +117,6 @@ vtkRectangularBoundingRegionRepresentation::~vtkRectangularBoundingRegionReprese
   this->RegionActor->Delete();
   this->RegionMapper->Delete();
   this->RegionPolyData->Delete();
-//   this->BoundingFaceActor->Delete();
-  this->Points->Delete();
 
   //BUG: Deletions
 
@@ -146,6 +140,18 @@ void vtkRectangularBoundingRegionRepresentation::GetPolyData(vtkPolyData *pd)
   pd->SetPoints(this->RegionPolyData->GetPoints());
   pd->SetPolys(this->RegionPolyData->GetPolys());
 }
+
+//----------------------------------------------------------------------
+void vtkRectangularBoundingRegionRepresentation::reset()
+{
+  if (ViewType == XY)
+    CreateXYFace();
+  else if (ViewType == YZ)
+    CreateYZFace();
+  else if (ViewType == XZ)
+    CreateXZFace();
+}
+
 
 //----------------------------------------------------------------------
 void vtkRectangularBoundingRegionRepresentation::StartWidgetInteraction(double e[2])
@@ -191,34 +197,34 @@ void vtkRectangularBoundingRegionRepresentation::WidgetInteraction(double e[2])
   vtkInteractorObserver::ComputeDisplayToWorld(this->Renderer, e[0], e[1], z, pickPoint);
 
   // Process the motion
-  if ( this->InteractionState == vtkRectangularBoundingRegionRepresentation::MoveF0 )
+  if ( this->InteractionState == vtkRectangularBoundingRegionRepresentation::MoveLeft )
     {
-    this->MoveMinusXFace(prevPickPoint,pickPoint);
+    this->MoveLeftMargin(prevPickPoint,pickPoint);
     }
 
-  else if ( this->InteractionState == vtkRectangularBoundingRegionRepresentation::MoveF1 )
+  else if ( this->InteractionState == vtkRectangularBoundingRegionRepresentation::MoveRight )
     {
-    this->MovePlusXFace(prevPickPoint,pickPoint);
+    this->MoveRightMargin(prevPickPoint,pickPoint);
     }
 
-  else if ( this->InteractionState == vtkRectangularBoundingRegionRepresentation::MoveF2 )
+  else if ( this->InteractionState == vtkRectangularBoundingRegionRepresentation::MoveTop )
     {
-    this->MoveMinusYFace(prevPickPoint,pickPoint);
+    this->MoveTopMargin(prevPickPoint,pickPoint);
     }
 
-  else if ( this->InteractionState == vtkRectangularBoundingRegionRepresentation::MoveF3 )
+  else if ( this->InteractionState == vtkRectangularBoundingRegionRepresentation::MoveBottom )
     {
-    this->MovePlusYFace(prevPickPoint,pickPoint);
+    this->MoveBottomMargin(prevPickPoint,pickPoint);
     }
 
-  else if ( this->InteractionState == vtkRectangularBoundingRegionRepresentation::MoveF4 )
+  else if ( this->InteractionState == vtkRectangularBoundingRegionRepresentation::MoveUpper )
     {
-    this->MoveMinusZFace(prevPickPoint,pickPoint);
+    this->MoveUpperMargin(prevPickPoint,pickPoint);
     }
 
-  else if ( this->InteractionState == vtkRectangularBoundingRegionRepresentation::MoveF5 )
+  else if ( this->InteractionState == vtkRectangularBoundingRegionRepresentation::MoveLower)
     {
-    this->MovePlusZFace(prevPickPoint,pickPoint);
+    this->MoveLowerMargin(prevPickPoint,pickPoint);
     }
 
   else if ( this->InteractionState == vtkRectangularBoundingRegionRepresentation::Translating )
@@ -312,6 +318,217 @@ void vtkRectangularBoundingRegionRepresentation::GetDirection(const double Nx[3]
     }
 }
 
+//----------------------------------------------------------------------------
+void vtkRectangularBoundingRegionRepresentation::MoveLeftMargin(double* p1, double* p2)
+{
+  double *pts =
+    static_cast<vtkDoubleArray *>(this->MarginPoints->GetData())->GetPointer(0);
+
+  int shift = round(p2[0] - p1[0]);
+  Inclusion[0] += shift;
+  
+  int contBorder1, contBorder2; // Contiguous borders
+  
+  const int COORD_X = 0;
+  if (ViewType == XY)
+  {
+    pts[3*3 + COORD_X] += shift; 
+    pts[3*0 + COORD_X] += shift; 
+    contBorder1 = TOP;
+    contBorder2 = BOTTOM;
+  }else if (ViewType == XZ)
+  {
+    pts[3*0 + COORD_X] += shift;
+    pts[3*2 + COORD_X] += shift;
+    contBorder1 = UPPER;
+    contBorder2 = LOWER;
+  }else
+    assert(false);
+//   std::cout << "Moving 0: " << x1[0] <<" "<< x1[1] <<" "<< x1[2] << std::endl;
+//   std::cout << "Moving 3: " << x2[0] <<" "<< x2[1] <<" "<< x2[2] << std::endl;
+//   std::cout << "Moving X: Inclusion " << Inclusion[0] << std::endl;
+  this->MarginPolyData[LEFT]->Modified();
+  this->MarginPolyData[contBorder1]->Modified();
+  this->MarginPolyData[contBorder2]->Modified();
+//   this->ComputeNormals();
+//   this->GetDirection(this->N[1],this->N[3],this->N[5],dir);
+//   this->MoveFace(p1,p2,dir,x1,x2,x3,x4,h1);
+}
+
+//----------------------------------------------------------------------------
+void vtkRectangularBoundingRegionRepresentation::MoveRightMargin(double* p1, double* p2)
+{
+  double *pts =
+    static_cast<vtkDoubleArray *>(this->MarginPoints->GetData())->GetPointer(0);
+
+  int shift = round(p2[0] - p1[0]);
+  Exclusion[0] += shift;
+  
+  int contBorder1, contBorder2; // Contiguous borders
+  
+  const int COORD_X = 0;
+  if (ViewType == XY)
+  {
+    pts[3*1 + COORD_X] += shift; 
+    pts[3*2 + COORD_X] += shift; 
+    contBorder1 = TOP;
+    contBorder2 = BOTTOM;
+  }else if (ViewType == XZ)
+  {
+    pts[3*3 + COORD_X] += shift;
+    pts[3*1 + COORD_X] += shift;
+    contBorder1 = UPPER;
+    contBorder2 = LOWER;
+  }else
+    assert(false);
+//   std::cout << "Moving 0: " << x1[0] <<" "<< x1[1] <<" "<< x1[2] << std::endl;
+//   std::cout << "Moving 3: " << x2[0] <<" "<< x2[1] <<" "<< x2[2] << std::endl;
+//   std::cout << "Moving X: Exclusion " << Exclusion[0] << std::endl;
+  this->MarginPolyData[RIGHT]->Modified();
+  this->MarginPolyData[contBorder1]->Modified();
+  this->MarginPolyData[contBorder2]->Modified();
+//   this->ComputeNormals();
+//   this->GetDirection(this->N[1],this->N[3],this->N[5],dir);
+//   this->MoveFace(p1,p2,dir,x1,x2,x3,x4,h1);
+}
+//----------------------------------------------------------------------------
+void vtkRectangularBoundingRegionRepresentation::MoveTopMargin(double* p1, double* p2)
+{
+  double *pts =
+    static_cast<vtkDoubleArray *>(this->MarginPoints->GetData())->GetPointer(0);
+
+  const int COORD_Y = 1;
+  
+  int shift = round(p2[COORD_Y] - p1[COORD_Y]);
+  Inclusion[1] += shift;
+  
+  int contBorder1, contBorder2; // Contiguous borders
+  
+  if (ViewType == XY)
+  {
+    pts[3*0 + COORD_Y] += shift; 
+    pts[3*1 + COORD_Y] += shift; 
+    contBorder1 = LEFT;
+    contBorder2 = RIGHT;
+  }else if (ViewType == YZ)
+  {
+    pts[3*1 + COORD_Y] += shift;
+    pts[3*3 + COORD_Y] += shift;
+    contBorder1 = UPPER;
+    contBorder2 = LOWER;
+  }else
+    assert(false);
+//   std::cout << "Moving 0: " << x1[0] <<" "<< x1[1] <<" "<< x1[2] << std::endl;
+//   std::cout << "Moving 3: " << x2[0] <<" "<< x2[1] <<" "<< x2[2] << std::endl;
+//   std::cout << "Moving X: Inclusion " << Inclusion[0] << std::endl;
+  this->MarginPolyData[TOP]->Modified();
+  this->MarginPolyData[contBorder1]->Modified();
+  this->MarginPolyData[contBorder2]->Modified();
+}
+//----------------------------------------------------------------------------
+void vtkRectangularBoundingRegionRepresentation::MoveBottomMargin(double* p1, double* p2)
+{
+  double *pts =
+    static_cast<vtkDoubleArray *>(this->MarginPoints->GetData())->GetPointer(0);
+
+  const int COORD_Y = 1;
+  
+  int shift = round(p2[COORD_Y] - p1[COORD_Y]);
+  Exclusion[1] += shift;
+  
+  int contBorder1, contBorder2; // Contiguous borders
+  
+  if (ViewType == XY)
+  {
+    pts[3*2 + COORD_Y] += shift; 
+    pts[3*3 + COORD_Y] += shift; 
+    contBorder1 = LEFT;
+    contBorder2 = RIGHT;
+  }else if (ViewType == YZ)
+  {
+    pts[3*0 + COORD_Y] += shift;
+    pts[3*2 + COORD_Y] += shift;
+    contBorder1 = UPPER;
+    contBorder2 = LOWER;
+  }else
+    assert(false);
+//   std::cout << "Moving 0: " << x1[0] <<" "<< x1[1] <<" "<< x1[2] << std::endl;
+//   std::cout << "Moving 3: " << x2[0] <<" "<< x2[1] <<" "<< x2[2] << std::endl;
+//   std::cout << "Moving X: Inclusion " << Inclusion[0] << std::endl;
+  this->MarginPolyData[BOTTOM]->Modified();
+  this->MarginPolyData[contBorder1]->Modified();
+  this->MarginPolyData[contBorder2]->Modified();
+}
+//----------------------------------------------------------------------------
+void vtkRectangularBoundingRegionRepresentation::MoveUpperMargin(double* p1, double* p2)
+{
+  double *pts =
+    static_cast<vtkDoubleArray *>(this->MarginPoints->GetData())->GetPointer(0);
+
+  const int COORD_Z = 2;
+  
+  int shift = round(p2[COORD_Z] - p1[COORD_Z]);
+  Inclusion[2] += shift;
+  
+  int contBorder1, contBorder2; // Contiguous borders
+  
+  if (ViewType == YZ)
+  {
+    pts[3*0 + COORD_Z] += shift; 
+    pts[3*1 + COORD_Z] += shift; 
+    contBorder1 = TOP;
+    contBorder2 = BOTTOM;
+  }else if (ViewType == XZ)
+  {
+    pts[3*0 + COORD_Z] += shift;
+    pts[3*1 + COORD_Z] += shift;
+    contBorder1 = LEFT;
+    contBorder2 = RIGHT;
+  }else
+    assert(false);
+//   std::cout << "Moving 0: " << x1[0] <<" "<< x1[1] <<" "<< x1[2] << std::endl;
+//   std::cout << "Moving 3: " << x2[0] <<" "<< x2[1] <<" "<< x2[2] << std::endl;
+//   std::cout << "Moving X: Inclusion " << Inclusion[0] << std::endl;
+  this->MarginPolyData[UPPER]->Modified();
+  this->MarginPolyData[contBorder1]->Modified();
+  this->MarginPolyData[contBorder2]->Modified();
+}
+//----------------------------------------------------------------------------
+void vtkRectangularBoundingRegionRepresentation::MoveLowerMargin(double* p1, double* p2)
+{
+  double *pts =
+    static_cast<vtkDoubleArray *>(this->MarginPoints->GetData())->GetPointer(0);
+
+  const int COORD_Z = 2;
+  
+  int shift = round(p2[COORD_Z] - p1[COORD_Z]);
+  Exclusion[2] += shift;
+  
+  int contBorder1, contBorder2; // Contiguous borders
+  
+  if (ViewType == YZ)
+  {
+    pts[3*2 + COORD_Z] += shift; 
+    pts[3*3 + COORD_Z] += shift; 
+    contBorder1 = TOP;
+    contBorder2 = BOTTOM;
+  }else if (ViewType == XZ)
+  {
+    pts[3*2 + COORD_Z] += shift;
+    pts[3*3 + COORD_Z] += shift;
+    contBorder1 = LEFT;
+    contBorder2 = RIGHT;
+  }else
+    assert(false);
+//   std::cout << "Moving 0: " << x1[0] <<" "<< x1[1] <<" "<< x1[2] << std::endl;
+//   std::cout << "Moving 3: " << x2[0] <<" "<< x2[1] <<" "<< x2[2] << std::endl;
+//   std::cout << "Moving X: Inclusion " << Inclusion[0] << std::endl;
+  this->MarginPolyData[LOWER]->Modified();
+  this->MarginPolyData[contBorder1]->Modified();
+  this->MarginPolyData[contBorder2]->Modified();
+}
+
+/*
 //----------------------------------------------------------------------------
 void vtkRectangularBoundingRegionRepresentation::MovePlusXFace(double *p1, double *p2)
 {
@@ -430,11 +647,14 @@ void vtkRectangularBoundingRegionRepresentation::MoveMinusZFace(double *p1, doub
 
   this->MoveFace(p1,p2,dir,x1,x2,x3,x4,h1);
 }
+*/
 
 //----------------------------------------------------------------------------
 // Loop through all points and translate them
 void vtkRectangularBoundingRegionRepresentation::Translate(double *p1, double *p2)
 {
+  assert(false);
+  /*
   double *pts =
     static_cast<vtkDoubleArray *>(this->Points->GetData())->GetPointer(0);
   double v[3];
@@ -450,6 +670,7 @@ void vtkRectangularBoundingRegionRepresentation::Translate(double *p1, double *p
     *pts++ += v[1];
     *pts++ += v[2];
     }
+    */
 }
 
 //----------------------------------------------------------------------------
@@ -458,6 +679,8 @@ void vtkRectangularBoundingRegionRepresentation::Scale(double *vtkNotUsed(p1),
                                  int vtkNotUsed(X),
                                  int Y)
 {
+  assert(false);
+  /*
   double *pts =
       static_cast<vtkDoubleArray *>(this->Points->GetData())->GetPointer(0);
   double *center 
@@ -480,11 +703,14 @@ void vtkRectangularBoundingRegionRepresentation::Scale(double *vtkNotUsed(p1),
     pts[1] = sf * (pts[1] - center[1]) + center[1];
     pts[2] = sf * (pts[2] - center[2]) + center[2];
     }
+    */
 }
 
 //----------------------------------------------------------------------------
 void vtkRectangularBoundingRegionRepresentation::ComputeNormals()
 {
+//   assert(false);
+  /*
   double *pts =
      static_cast<vtkDoubleArray *>(this->Points->GetData())->GetPointer(0);
   double *p0 = pts;
@@ -508,6 +734,7 @@ void vtkRectangularBoundingRegionRepresentation::ComputeNormals()
     this->N[3][i] = -this->N[2][i];
     this->N[5][i] = -this->N[4][i];
     }
+    */
 }
 
   
@@ -549,7 +776,7 @@ void vtkRectangularBoundingRegionRepresentation::CreateDefaultProperties()
 //----------------------------------------------------------------------------
 void vtkRectangularBoundingRegionRepresentation::CreateXYFace()
 {
-  std::cout << "Created XY FACE" << std::endl;
+//   std::cout << "Created XY FACE" << std::endl;
   Region->UpdateWholeExtent();
   
   double point[3];
@@ -628,7 +855,7 @@ void vtkRectangularBoundingRegionRepresentation::CreateXYFace()
 //----------------------------------------------------------------------------
 void vtkRectangularBoundingRegionRepresentation::CreateYZFace()
 {
-  std::cout << "Created YZ FACE" << std::endl;
+//   std::cout << "Created YZ FACE" << std::endl;
   Region->UpdateWholeExtent();
   
   int numPoints = Region->GetOutput()->GetPoints()->GetNumberOfPoints();  
@@ -720,7 +947,7 @@ void vtkRectangularBoundingRegionRepresentation::CreateYZFace()
 //----------------------------------------------------------------------------
 void vtkRectangularBoundingRegionRepresentation::CreateXZFace()
 {
-  std::cout << "Created XZ FACE" << std::endl;
+//   std::cout << "Created XZ FACE" << std::endl;
   Region->UpdateWholeExtent();
   
   int numPoints = Region->GetOutput()->GetPoints()->GetNumberOfPoints();  
@@ -752,15 +979,15 @@ void vtkRectangularBoundingRegionRepresentation::CreateXZFace()
   this->MarginPolyData[UPPER]->Modified();
   
   // Loop over slices and create Top/Bottom Lines
-  vtkCellArray *topLines = vtkCellArray::New();
-  topLines->Allocate(topLines->EstimateSize(numSideLines,2));
-  vtkSmartPointer<vtkIntArray> topLineData = vtkSmartPointer<vtkIntArray>::New();
-  topLineData->Allocate(numSideLines);
+  vtkCellArray *leftLines = vtkCellArray::New();
+  leftLines->Allocate(leftLines->EstimateSize(numSideLines,2));
+  vtkSmartPointer<vtkIntArray> leftLineData = vtkSmartPointer<vtkIntArray>::New();
+  leftLineData->Allocate(numSideLines);
   
-  vtkCellArray *bottomLines = vtkCellArray::New();
-  bottomLines->Allocate(bottomLines->EstimateSize(numSideLines,2));
-  vtkSmartPointer<vtkIntArray> bottomLineData = vtkSmartPointer<vtkIntArray>::New();
-  bottomLineData->Allocate(numSideLines);
+  vtkCellArray *rightLines = vtkCellArray::New();
+  rightLines->Allocate(rightLines->EstimateSize(numSideLines,2));
+  vtkSmartPointer<vtkIntArray> rightLineData = vtkSmartPointer<vtkIntArray>::New();
+  rightLineData->Allocate(numSideLines);
   
   for (unsigned int slice=1; slice< numSlices; slice++)
   {
@@ -775,22 +1002,22 @@ void vtkRectangularBoundingRegionRepresentation::CreateXZFace()
     // Left Margin
     line->GetPointIds()->SetId(0,2*prevSlice);
     line->GetPointIds()->SetId(1,2*slice);
-    topLines->InsertNextCell(line);
-    topLineData->InsertNextValue(255);
+    leftLines->InsertNextCell(line);
+    leftLineData->InsertNextValue(255);
     
     // Right Margin
     line->GetPointIds()->SetId(0,2*prevSlice+1);
     line->GetPointIds()->SetId(1,2*slice+1);
-    bottomLines->InsertNextCell(line);
-    bottomLineData->InsertNextValue(0);
+    rightLines->InsertNextCell(line);
+    rightLineData->InsertNextValue(0);
     
   }
-  this->MarginPolyData[LEFT]->SetLines(topLines);
-  this->MarginPolyData[LEFT]->GetCellData()->SetScalars(topLineData);
+  this->MarginPolyData[LEFT]->SetLines(leftLines);
+  this->MarginPolyData[LEFT]->GetCellData()->SetScalars(leftLineData);
   this->MarginPolyData[LEFT]->Modified();
   
-  this->MarginPolyData[RIGHT]->SetLines(bottomLines);
-  this->MarginPolyData[RIGHT]->GetCellData()->SetScalars(bottomLineData);
+  this->MarginPolyData[RIGHT]->SetLines(rightLines);
+  this->MarginPolyData[RIGHT]->GetCellData()->SetScalars(rightLineData);
   this->MarginPolyData[RIGHT]->Modified();
   
   
@@ -842,20 +1069,22 @@ void vtkRectangularBoundingRegionRepresentation::SetViewType(int type)
 void vtkRectangularBoundingRegionRepresentation::SetSlice(int slice, double spacing)
 {
   Slice = slice;
-  spacing = spacing;
+  Spacing = spacing;
 //   return;
   
   if (ViewType == VOL)
     return;
   
-//   if (slice < 60)
-//   {
-//     InclusionActor->SetProperty(InvisibleProperty);
-//     return;
-//   }else
-//   {
-//     InclusionActor->SetProperty(InclusionProperty);
-//   }
+   if (slice == -1)
+  {
+    for (int i=0; i<6; i++)
+      MarginActor[i]->SetProperty(InvisibleProperty);
+    return;
+  }else
+  {
+    for (int i=0; i<6; i++)
+      MarginActor[i]->SetProperty(InclusionProperty);
+  }
   
   double *pts =
     static_cast<vtkDoubleArray *>(this->MarginPoints->GetData())->GetPointer(0);
@@ -870,6 +1099,7 @@ void vtkRectangularBoundingRegionRepresentation::SetSlice(int slice, double spac
       
       Region->GetOutput()->GetPoint(validSlice*4+p,point);
       
+//       pts[3*p+0] = (p==3||p==0)?Inclusion[0]:point[0];
       pts[3*p+0] = point[0];
       pts[3*p+1] = point[1];
       pts[3*p+2] = point[2];
@@ -906,30 +1136,18 @@ void vtkRectangularBoundingRegionRepresentation::SetRegion(vtkPolyDataAlgorithm 
 //----------------------------------------------------------------------------
 void vtkRectangularBoundingRegionRepresentation::PlaceWidget(double bds[6])
 {
-  std::cout << "Place Widget" << std::endl;
+//   std::cout << "Place Widget: ";
   int i;
   double bounds[6], center[3];
   
   this->AdjustBounds(bds,bounds,center);
+//   std::cout << bds[0] << " "<< bds[1] << " "<< bds[2] << " "<< bds[3] << " "<< bds[4] << " "<< bds[5] << std::endl;
+//   std::cout << bounds[0] << " "<< bounds[1] << " "<< bounds[2] << " "<< bounds[3] << " "<< bounds[4] << " "<< bounds[5] << std::endl;
   
-  this->Points->SetPoint(0, bounds[0], bounds[2], bounds[4]);
-  this->Points->SetPoint(1, bounds[1], bounds[2], bounds[4]);
-  this->Points->SetPoint(2, bounds[1], bounds[3], bounds[4]);
-  this->Points->SetPoint(3, bounds[0], bounds[3], bounds[4]);
-  this->Points->SetPoint(4, bounds[0], bounds[2], bounds[5]);
-  this->Points->SetPoint(5, bounds[1], bounds[2], bounds[5]);
-  this->Points->SetPoint(6, bounds[1], bounds[3], bounds[5]);
-  this->Points->SetPoint(7, bounds[0], bounds[3], bounds[5]);
-
-//   this->TopPoints->SetPoint(0, bounds[0], bounds[2], bounds[4]);
-//   this->TopPoints->SetPoint(1, bounds[1], bounds[2], bounds[4]);
-  
-  /*
-  this->BoundingFacePoints->SetPoint(0, bounds[0], bounds[2], bounds[4]);
-  this->BoundingFacePoints->SetPoint(1, bounds[1], bounds[2], bounds[4]);
-  this->BoundingFacePoints->SetPoint(2, bounds[1], bounds[3], bounds[4]);
-  this->BoundingFacePoints->SetPoint(3, bounds[0], bounds[3], bounds[4]);
-  */
+  this->MarginPoints->SetPoint(0, bounds[0], bounds[2], bounds[4]);
+  this->MarginPoints->SetPoint(1, bounds[1], bounds[2], bounds[4]);
+  this->MarginPoints->SetPoint(2, bounds[1], bounds[3], bounds[4]);
+  this->MarginPoints->SetPoint(3, bounds[0], bounds[3], bounds[4]);
 
   for (i=0; i<6; i++)
     {
@@ -947,6 +1165,7 @@ void vtkRectangularBoundingRegionRepresentation::PlaceWidget(double bds[6])
 void vtkRectangularBoundingRegionRepresentation::GetTransform(vtkTransform *t)
 {
   std::cout << "GetTransform" << std::endl;
+  /*
   double *pts =
     static_cast<vtkDoubleArray *>(this->Points->GetData())->GetPointer(0);
   double *p0 = pts;
@@ -1012,12 +1231,15 @@ void vtkRectangularBoundingRegionRepresentation::GetTransform(vtkTransform *t)
   
   // Add back in the contribution due to non-origin center
   t->Translate(-InitialCenter[0], -InitialCenter[1], -InitialCenter[2]);
+  
+  */
 }
 
 //----------------------------------------------------------------------------
 void vtkRectangularBoundingRegionRepresentation::SetTransform(vtkTransform* t)
 {
   std::cout << "SetTransform" << std::endl;
+  /*
   if (!t)
     {
     vtkErrorMacro(<<"vtkTransform t must be non-NULL");
@@ -1057,7 +1279,7 @@ void vtkRectangularBoundingRegionRepresentation::SetTransform(vtkTransform* t)
 
   xIn[0] = bounds[0]; xIn[1]= bounds[3]; xIn[2] = bounds[5];
   t->InternalTransformPoint(xIn,pts+21);
-
+*/
 }
 
 //----------------------------------------------------------------------------
@@ -1081,13 +1303,42 @@ int vtkRectangularBoundingRegionRepresentation::ComputeInteractionState(int X, i
   {
     this->LastPicker = this->RegionPicker;
     this->ValidPick = 1;
-      this->InteractionState = vtkRectangularBoundingRegionRepresentation::Translating;
+    
+    this->CurrentHandle = 
+      reinterpret_cast<vtkActor *>(path->GetFirstNode()->GetViewProp());
+    if (this->CurrentHandle == this->MarginActor[LEFT])
+    {
+      this->InteractionState = vtkRectangularBoundingRegionRepresentation::MoveLeft;
+    }
+    else if (this->CurrentHandle == this->MarginActor[RIGHT])
+    {
+      this->InteractionState = vtkRectangularBoundingRegionRepresentation::MoveRight;
+    } 
+    else if (this->CurrentHandle == this->MarginActor[TOP])
+    {
+      this->InteractionState = vtkRectangularBoundingRegionRepresentation::MoveTop;
+    } 
+    else if (this->CurrentHandle == this->MarginActor[BOTTOM])
+    {
+      this->InteractionState = vtkRectangularBoundingRegionRepresentation::MoveBottom;
+    }
+    else if (this->CurrentHandle == this->MarginActor[UPPER])
+    {
+      this->InteractionState = vtkRectangularBoundingRegionRepresentation::MoveUpper;
+    } 
+    else if (this->CurrentHandle == this->MarginActor[LOWER])
+    {
+      this->InteractionState = vtkRectangularBoundingRegionRepresentation::MoveLower;
+    }
+    else
+    {
+      assert(false);
+    }
   }
   else
   {
     this->InteractionState = vtkRectangularBoundingRegionRepresentation::Outside;
   }
-  
   return this->InteractionState;
 }
 
@@ -1103,31 +1354,25 @@ void vtkRectangularBoundingRegionRepresentation::SetInteractionState(int state)
   this->InteractionState = state;
   switch (state)
     {
-    case vtkRectangularBoundingRegionRepresentation::MoveF0:
-    case vtkRectangularBoundingRegionRepresentation::MoveF1:
-    case vtkRectangularBoundingRegionRepresentation::MoveF2:
-    case vtkRectangularBoundingRegionRepresentation::MoveF3:
-    case vtkRectangularBoundingRegionRepresentation::MoveF4:
-    case vtkRectangularBoundingRegionRepresentation::MoveF5:
-      this->HighlightOutline(0);
-//       handle = this->HighlightHandle(this->CurrentHandle);
-//       this->HighlightFace(handle);
-      break;
-    case vtkRectangularBoundingRegionRepresentation::Rotating:
-      this->HighlightOutline(0);
-//       this->HighlightHandle(NULL);
-      this->HighlightFace(this->RegionPicker->GetCellId());
+    case vtkRectangularBoundingRegionRepresentation::MoveLeft:
+    case vtkRectangularBoundingRegionRepresentation::MoveRight:
+    case vtkRectangularBoundingRegionRepresentation::MoveTop:
+    case vtkRectangularBoundingRegionRepresentation::MoveBottom:
+    case vtkRectangularBoundingRegionRepresentation::MoveUpper:
+    case vtkRectangularBoundingRegionRepresentation::MoveLower:
+      this->HighlightMargin(this->CurrentHandle);
       break;
     case vtkRectangularBoundingRegionRepresentation::Translating:
     case vtkRectangularBoundingRegionRepresentation::Scaling:
       this->HighlightOutline(1);
 //       this->HighlightHandle(this->Handle[6]);
-      this->HighlightFace(-1);
+//       this->HighlightFace(-1);
       break;
     default:
-      this->HighlightOutline(0);
+//       this->HighlightOutline(0);
+      this->HighlightMargin(NULL);
 //       this->HighlightHandle(NULL);
-      this->HighlightFace(-1);
+//       this->HighlightFace(-1);
     }
 }
 
@@ -1135,7 +1380,9 @@ void vtkRectangularBoundingRegionRepresentation::SetInteractionState(int state)
 double *vtkRectangularBoundingRegionRepresentation::GetBounds()
 {
   this->BuildRepresentation();
-  this->BoundingBox->SetBounds(this->RegionActor->GetBounds());
+  double bounds[6] = {0,70,0,70,0,70};
+  this->BoundingBox->SetBounds(bounds);
+//   this->BoundingBox->SetBounds(this->RegionActor->GetBounds());
   return this->BoundingBox->GetBounds();
 }
 
@@ -1247,8 +1494,19 @@ int vtkRectangularBoundingRegionRepresentation::HasTranslucentPolygonalGeometry(
 // }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::HighlightFace(int cellId)
+void vtkRectangularBoundingRegionRepresentation::HighlightMargin(vtkActor* actor)
 {
+  for(unsigned char margin=0; margin < 6; margin++)
+  {
+    if (this->MarginActor[margin] == actor)
+      this->MarginActor[margin]->SetProperty(this->SelectedOutlineProperty);
+    else
+      this->MarginActor[margin]->SetProperty(this->InclusionProperty);
+  }
+}
+//----------------------------------------------------------------------------
+// void vtkRectangularBoundingRegionRepresentation::HighlightFace(int cellId)
+// {
 //   if ( cellId >= 0 )
 //     {
 //     vtkIdType npts;
@@ -1269,7 +1527,7 @@ void vtkRectangularBoundingRegionRepresentation::HighlightFace(int cellId)
 //     this->HexFace->SetProperty(this->FaceProperty);
 //     this->CurrentHexFace = -1;
 //     }
-}
+// }
 
 //----------------------------------------------------------------------------
 void vtkRectangularBoundingRegionRepresentation::HighlightOutline(int highlight)

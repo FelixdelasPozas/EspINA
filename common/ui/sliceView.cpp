@@ -932,7 +932,7 @@ void SliceView::setVOI(IVOI* voi)
   m_VOIWidget->setView(m_view);
   m_VOIWidget->setWidgetVisible(true);
   m_VOIWidget->select();
-  m_VOIWidget->accept();
+//   m_VOIWidget->accept();
   m_voi->resizeToDefaultSize();
 //   m_VOIWidget->accept(); //Required to initialize internal proxy properties
   

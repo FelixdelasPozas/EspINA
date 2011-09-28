@@ -71,6 +71,9 @@ protected:
   
   /// Internal method to cleanup widget.
   void cleanupWidget();
+  
+  void updateControlledMargins();
+  void updateWidgetMargins();
 
 private slots:
   /// Called when the user changes widget visibility

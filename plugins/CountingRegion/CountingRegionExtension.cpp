@@ -47,6 +47,7 @@
 #include <crosshairExtension.h>
 #include <pqView.h>
 #include <vtkWidgetRepresentation.h>
+#include <labelMapExtension.h>
 
 //!-----------------------------------------------------------------------
 //! COUNTING REGION SEGMENTATION EXTENSION
@@ -112,6 +113,7 @@ QVariant CountingRegion::SegmentationExtension::information(QString info)
     vtkSMPropertyHelper(m_discarted->pipelineSource()->getProxy(),"Discarted").UpdateValueFromServer();
     vtkSMPropertyHelper(m_discarted->pipelineSource()->getProxy(),"Discarted").Get(&isDiscarted,1);
     m_seg->setVisible(!isDiscarted);
+    m_seg->notifyInternalUpdate();
     return (bool)isDiscarted;
   }
   
@@ -252,6 +254,7 @@ RectangularRegion::RectangularRegion(Sample* sample,
   right << "," <<
   bottom << "," <<
   lower << ") Initialized");
+  
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   
   double spacing[3]; 
@@ -288,8 +291,21 @@ RectangularRegion::RectangularRegion(Sample* sample,
   {
     QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(m_boundigRegion->pipelineSource()->getProxy(), m_boundigRegion->pipelineSource()->getProxy());
     m_widget[i] = widgets.first();
+    QObject::connect(m_widget[i], SIGNAL(widgetEndInteraction()),
+		     m_widget[i], SLOT(accept()));
+    QObject::connect(m_widget[i], SIGNAL(widgetEndInteraction()),
+		     this, SLOT(reset()));
+//     QObject::connect(widgets[i], SIGNAL(widgetEndInteraction()),
+// 		     this, SLOT(modifyVOI()));
   }
   info = m_modelInfo;
+  m_item = info.first();
+  
+  QString repName = QString("Rectangular Region (%1,%2,%3,%4,%5,%6)") 
+  .arg(left).arg(top).arg(upper).arg(right).arg(bottom).arg(lower);
+  
+  m_item->setData(repName,Qt::DisplayRole);
+  
 }
 
 //------------------------------------------------------------------------
@@ -309,6 +325,8 @@ RectangularRegion::~RectangularRegion()
 //------------------------------------------------------------------------
 void RectangularRegion::render(pqView* view, ViewType type)
 {
+//   if (type != VIEW_PLANE_XY)
+//     return;
   if (m_widget[type]->view() != view)
     m_widget[type]->setView(view);
 
@@ -321,11 +339,18 @@ void RectangularRegion::render(pqView* view, ViewType type)
   assert(regionwidget);
   CrosshairExtension::SampleRepresentation *samRep = dynamic_cast<CrosshairExtension::SampleRepresentation *>(m_sample->representation("Crosshairs"));
   
+//   m_widget[type]->reset();
   double spacing[3];
   m_sample->spacing(spacing);
   regionwidget->SetViewType(type);
   if (type != VIEW_3D)
-    regionwidget->SetSlice(samRep->slice(type),spacing[type]);
+  {
+    int normalDir = (type + 2) % 3;
+    regionwidget->SetSlice(samRep->slice(type),spacing[normalDir]);
+  }
+  
+//   m_widget[type]->setWidgetVisible(true);
+//   m_widget[type]->accept();
 }
 
 //------------------------------------------------------------------------
@@ -348,6 +373,42 @@ void RectangularRegion::setInclusive(int left, int top, int upper)
 void RectangularRegion::setExclusive(int right, int bottom, int lower)
 {
 
+}
+
+//------------------------------------------------------------------------
+void RectangularRegion::reset()
+{
+  double spacing[3];
+  m_sample->spacing(spacing);
+  for (int i=0; i<4; i++)
+    if (m_widget[i])
+    {
+      m_widget[i]->reset();
+      if (i < 3)//NOTE: To force repaint on other views in case
+		// the counting region visibility changes    
+      {
+	  vtkRectangularBoundingRegionWidget *regionwidget = dynamic_cast<vtkRectangularBoundingRegionWidget*>(m_widget[i]->getWidgetProxy()->GetWidget());
+	  assert(regionwidget);
+	  CrosshairExtension::SampleRepresentation *samRep = dynamic_cast<CrosshairExtension::SampleRepresentation *>(m_sample->representation("Crosshairs"));
+  
+	  int normalDir = (i + 2) % 3;
+	  regionwidget->SetSlice(samRep->slice(ViewType(i)),spacing[normalDir]);
+      }
+    }
+    int inclusion[3], exclusion[3];
+    vtkSMPropertyHelper(m_boundigRegion->pipelineSource()->getProxy(),"Inclusion").Get(inclusion,3);
+    vtkSMPropertyHelper(m_boundigRegion->pipelineSource()->getProxy(),"Exclusion").Get(exclusion,3);
+    QString repName = QString("Rectangular Region (%1,%2,%3,%4,%5,%6)") 
+    .arg(inclusion[0]/spacing[0])
+    .arg(exclusion[0]/spacing[0])
+    .arg(inclusion[1]/spacing[1])
+    .arg(exclusion[1]/spacing[1])
+    .arg(int(inclusion[2]/spacing[2])+1)
+    .arg(int(exclusion[2]/spacing[2])+1);
+    
+    m_item->setData(repName,Qt::DisplayRole);
+   
+ emit regionChanged(this);
 }
 
 //!-----------------------------------------------------------------------
@@ -446,7 +507,10 @@ void AdaptiveRegion::render(pqView* view, ViewType type)
   m_sample->spacing(spacing);
   regionwidget->SetViewType(type);
   if (type != VIEW_3D)
-    regionwidget->SetSlice(samRep->slice(type),spacing[type]);
+  {
+    int normalDir = (type + 2) % 3;
+    regionwidget->SetSlice(samRep->slice(type),spacing[normalDir]);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -526,6 +590,7 @@ QString CountingRegion::SampleExtension::createAdaptiveRegion(int left, int top,
 					      right, bottom, lower, info);
   assert(region);
   
+  
 //   for(ViewType view = VIEW_PLANE_FIRST; view <= VIEW_3D; view = ViewType(view+1))
 //     region->setViewVisibility(view,true);
   
@@ -562,12 +627,10 @@ QString CountingRegion::SampleExtension::createRectangularRegion(int left, int t
   RectangularRegion *region = new RectangularRegion(m_sample, left, top, upper,
 						    right, bottom, lower, info);
   assert(region);
+  connect(region,SIGNAL(regionChanged(BoundingRegion *)),this,SLOT(updateSegmentations(BoundingRegion *)));
   
-  
-  QString repName = QString("Rectangular Region (%1,%2,%3,%4,%5,%6)") 
-    .arg(left).arg(top).arg(upper).arg(right).arg(bottom).arg(lower);
-    
-    info.first()->setData(repName,Qt::DisplayRole);
+  QStandardItem *regionItem = info.first();
+    QString repName = info.first()->data(Qt::DisplayRole).toString();
     if (!m_regions.contains(repName))
     {
       m_regions[repName] = region;
@@ -616,6 +679,22 @@ void CountingRegion::SampleExtension::removeRegion(QString& name)
 ISampleExtension* CountingRegion::SampleExtension::clone()
 {
   return new SampleExtension();
+}
+
+//------------------------------------------------------------------------
+void CountingRegion::SampleExtension::updateSegmentations(CountingRegion::BoundingRegion* reg)
+{
+  foreach(Segmentation *seg, m_sample->segmentations())
+  {
+    SegmentationExtension *ext = dynamic_cast<SegmentationExtension *>(seg->extension(CountingRegion::ID));
+    if (!ext)
+    {
+      qDebug() << "Failed to load Counting Brick Extension on " << seg->id();
+      assert(false);
+    }
+    ext->information("Discarted");
+  }
+  m_sample->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
 }
 
 
