@@ -87,6 +87,14 @@ int vtkRectangularBoundingRegionFilter::RequestData(vtkInformation* request, vtk
   vtkPolyData* region = vtkPolyData::SafeDownCast(
                           regionInfo->Get(vtkDataObject::DATA_OBJECT())
                         );
+  
+//   std::cout << "Rectangular Filter: \n";
+//   std::cout << "\tInclusion[0]: " << Inclusion[0] << std::endl;
+//   std::cout << "\tInclusion[1]: " << Inclusion[1] << std::endl;
+//   std::cout << "\tInclusion[2]: " << Inclusion[2] << std::endl;
+//   std::cout << "\tExclusion[0]: " << Exclusion[0] << std::endl;
+//   std::cout << "\tExclusion[1]: " << Exclusion[1] << std::endl;
+//   std::cout << "\tExclusion[2]: " << Exclusion[2] << std::endl;
 
   vtkSmartPointer<vtkPoints> vertex = vtkSmartPointer<vtkPoints>::New();
   vtkSmartPointer<vtkCellArray> faces = vtkSmartPointer<vtkCellArray>::New();
