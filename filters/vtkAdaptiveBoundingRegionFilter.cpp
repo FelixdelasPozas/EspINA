@@ -239,6 +239,8 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
     // Left Top Corner
     face->GetPoint(0, point);
     face->GetPoint(0, leftTop);
+    int leftMargin = point[0];
+    int topMargin = point[1];
     point[0] += Left * spacing[0];
     point[1] += Top * spacing[1];
     point[0] = round(point[0]); point[1] = abs(round(point[1]));  point[2] = round(point[2]);
@@ -257,6 +259,8 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
     // Right Bottom Corner
     face->GetPoint(3, point);//WARNING: I use clockwise order from 0,0,0 according to espina's view
     face->GetPoint(3, rightBottom);
+    int rightMargin = point[0];
+    int bottomMargin = point[1];
     point[0] -= Right * spacing[0];
     point[1] -= Bottom * spacing[1];
     point[0] = round(point[0]); point[1] = abs(round(point[1]));  point[2] = round(point[2]);
@@ -273,6 +277,10 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
 //     std::cout << "Point " << cell[3] << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
     
 //     std::cout << "Face: " << cell[0] << " " << cell[1] << " " << cell[2] << " " << cell[3] << std::endl;
+    
+    TotalAdaptiveVolume += ((rightMargin - leftMargin + 1)*(bottomMargin - topMargin+1));
+    if (z != zMax) // Don't include last exclusion face
+      InclusionVolume += (((rightMargin - Right) - (leftMargin + Left))*((bottomMargin - Bottom) - (topMargin + Top)));
     
     assert(leftBottom[0] < rightBottom[0]);
     assert(leftTop[0] < rightTop[0]);
@@ -339,6 +347,8 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
   data->GetScalars()->SetName("Type");
   
   TotalVolume = (extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1);
+  ExclusionVolume = TotalVolume - InclusionVolume;
+  ExclusionAdaptiveVolume = TotalAdaptiveVolume - InclusionVolume;
   
   return 1;
 }

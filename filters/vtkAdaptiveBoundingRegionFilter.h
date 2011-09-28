@@ -45,6 +45,13 @@ public:
   //! Exclusion Coordinates (Right, Bottom, Lower)
   vtkSetVector3Macro(Exclusion,int);
   vtkGetVector3Macro(Exclusion,int);
+  
+  vtkGetMacro(TotalVolume,int);
+  vtkGetMacro(TotalAdaptiveVolume,int);
+  vtkGetMacro(InclusionVolume,int);
+  vtkGetMacro(ExclusionVolume,int);
+  vtkGetMacro(ExclusionAdaptiveVolume,int);
+
 protected:
   virtual int FillInputPortInformation(int port, vtkInformation* info);
   virtual int FillOutputPortInformation(int port, vtkInformation* info);
@@ -59,6 +66,11 @@ private:
  // virtual bool operator==(const vtkBoundingRegionFilter& other) const;// Not implemented
  int Inclusion[3];
  int Exclusion[3];
+ int TotalVolume;
+ int TotalAdaptiveVolume;
+ int InclusionVolume;
+ int ExclusionVolume;
+ int ExclusionAdaptiveVolume;
 };
 
 #endif // VTKADAPTATIVEBOUNDINGREGIONFILTER_H
