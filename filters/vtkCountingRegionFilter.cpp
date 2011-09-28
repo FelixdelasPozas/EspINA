@@ -46,14 +46,18 @@
 
 class BoundingBox
 {
+public:
   double xMin, xMax;
   double yMin, yMax;
   double zMin, zMax;
   
-public:
   BoundingBox(vtkPoints *points);
   BoundingBox(vtkImageData *image);
   bool intersect(BoundingBox &bb);
+  BoundingBox intersection(BoundingBox &bb);
+  
+private:
+  BoundingBox(){}
 };
 
 BoundingBox::BoundingBox(vtkPoints* points)
@@ -95,6 +99,18 @@ bool BoundingBox::intersect(BoundingBox& bb)
   bool zOverlap = zMin < bb.zMax && zMax > bb.zMin;
   
   return xOverlap && yOverlap && zOverlap;
+}
+
+BoundingBox BoundingBox::intersection(BoundingBox& bb)
+{
+  BoundingBox res;
+  res.xMin = std::max(xMin, bb.xMin);
+  res.xMax = std::min(xMax, bb.xMax);
+  res.yMin = std::max(yMin, bb.yMin);
+  res.yMax = std::min(yMax, bb.yMax);
+  res.zMin = std::max(zMin, bb.zMin);
+  res.zMax = std::min(zMax, bb.zMax);
+  return res;
 }
 
 
@@ -168,9 +184,17 @@ int vtkCountingRegionFilter::FillOutputPortInformation(int port, vtkInformation*
 }
 */
 
-bool realCollision(vtkImageData *input, vtkPoints *face)
+bool realCollision(vtkImageData *input, BoundingBox interscetion)
 {
-  return true;
+  for (int z = interscetion.zMin; z <= interscetion.zMax; z++)
+    for (int y = interscetion.yMin; y <= interscetion.yMax; y++)
+      for (int x = interscetion.xMin; x <= interscetion.xMax; x++)
+      {
+	if (input->GetScalarComponentAsDouble(x,y,z,0))
+	  return true;
+      }
+  
+  return false;
 }
 
 bool discartedByRegion(vtkImageData *input, BoundingBox &inputBB, vtkPolyData *region)
@@ -198,7 +222,7 @@ bool discartedByRegion(vtkImageData *input, BoundingBox &inputBB, vtkPolyData *r
       facePoints->InsertNextPoint(regionPoints->GetPoint(pts[i]));
     
     BoundingBox faceBB(facePoints);
-    if (inputBB.intersect(faceBB) && realCollision(input, facePoints))
+    if (inputBB.intersect(faceBB) && realCollision(input, inputBB.intersection(faceBB)))
       if (faceData->GetScalars()->GetComponent(f,0) == 255)
 	return false;
       else
@@ -214,7 +238,7 @@ bool discartedByRegion(vtkImageData *input, BoundingBox &inputBB, vtkPolyData *r
     
     BoundingBox sliceBB(slicePoints);
     if (inputBB.intersect(sliceBB))
-      return false;//!realCollision(input, slicePoints);
+      return !realCollision(input, inputBB.intersection(sliceBB));
   }
   
   // If no internal collision was detected, then the input was indeed outside our 
