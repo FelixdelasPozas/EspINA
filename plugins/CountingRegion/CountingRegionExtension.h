@@ -125,6 +125,11 @@ public:
   virtual void render(pqView* view, ViewType type = VIEW_3D);
   virtual void clear(pqView* view, ViewType type = VIEW_3D);
   
+  //! Return total adaptive volume in pixels
+  int totalAdaptiveVolume();
+  //! Return exclusion adaptive volume in pixels
+  int exclusionAdaptiveVolume();
+  
   virtual void setInclusive(int left, int top, int upper);
   virtual void setExclusive(int right, int bottom, int lower);
   virtual QString description();

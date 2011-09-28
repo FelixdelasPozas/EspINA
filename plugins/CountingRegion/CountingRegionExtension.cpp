@@ -599,6 +599,28 @@ void AdaptiveRegion::clear(pqView* view, ViewType type)
 
 
 //------------------------------------------------------------------------
+int AdaptiveRegion::totalAdaptiveVolume()
+{
+  int vol;
+  m_boundigRegion->pipelineSource()->updatePipeline();
+  vtkSMProxy *proxy = m_boundigRegion->pipelineSource()->getProxy();
+  proxy->UpdatePropertyInformation();
+  vtkSMPropertyHelper(proxy,"TotalAdaptiveVolume").Get(&vol,1);
+  return vol;
+}
+
+//------------------------------------------------------------------------
+int AdaptiveRegion::exclusionAdaptiveVolume()
+{
+  int vol;
+  m_boundigRegion->pipelineSource()->updatePipeline();
+  vtkSMProxy *proxy = m_boundigRegion->pipelineSource()->getProxy();
+  proxy->UpdatePropertyInformation();
+  vtkSMPropertyHelper(proxy,"ExclusionAdaptiveVolume").Get(&vol,1);
+  return vol;
+}
+
+//------------------------------------------------------------------------
 void AdaptiveRegion::setInclusive(int left, int top, int upper)
 {
 
@@ -613,12 +635,23 @@ void AdaptiveRegion::setExclusive(int right, int bottom, int lower)
 //------------------------------------------------------------------------
 QString AdaptiveRegion::description()
 {
-  QString desc("Type: Rectangular Region\n"
+  QString desc("Type: Adaptive Region\n"
 	       "Volume Information:\n"
 	       "  Total Volume:\n"
 	       "    %1 px\n"
 	       "    %2 %3\n"
-	       "  Total Volume:\n"
+	       "  Total Adaptive Volume:\n"
+	       "    %4 px\n"
+	       "    %5 %3\n"
+	       "  Inclusion Volume:\n"
+	       "    %6 px\n"
+	       "    %7 %3\n"
+	       "  Exclusion Volume:\n"
+	       "    %8 px\n"
+	       "    %9 %3\n"
+	       "  Exclusion Adaptive Volume:\n"
+	       "    %10 px\n"
+	       "    %11 %3\n"
 	      );
   
   int extent[6];
@@ -626,9 +659,30 @@ QString AdaptiveRegion::description()
   double spacing[3];
   m_sample->spacing(spacing);
   double volPixel = spacing[0]*spacing[1]*spacing[2]; //Volume of 1 pixel
-  unsigned int totalVolInPixel = (extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1);
-  double totalVolInUnits = totalVolInPixel*volPixel;
-  desc = desc.arg(totalVolInPixel).arg(totalVolInUnits).arg(m_sample->units());
+  
+  unsigned int volumeInPixel;
+  double volumeInUnits;
+  
+  volumeInPixel = totalVolume();
+  volumeInUnits = volumeInPixel*volPixel;
+  desc = desc.arg(volumeInPixel,0).arg(volumeInUnits,0,'f',2).arg(m_sample->units());
+
+  volumeInPixel = totalAdaptiveVolume();
+  volumeInUnits = volumeInPixel*volPixel;
+  desc = desc.arg(volumeInPixel,0).arg(volumeInUnits,0,'f',2);
+  
+  volumeInPixel = inclusionVolume();
+  volumeInUnits = volumeInPixel*volPixel;
+  desc = desc.arg(volumeInPixel,0).arg(volumeInUnits,0,'f',2);
+  
+  volumeInPixel = exclusionVolume();
+  volumeInUnits = volumeInPixel*volPixel;
+  desc = desc.arg(volumeInPixel,0).arg(volumeInUnits,0,'f',2);
+  
+  volumeInPixel = exclusionAdaptiveVolume();
+  volumeInUnits = volumeInPixel*volPixel;
+  desc = desc.arg(volumeInPixel,0).arg(volumeInUnits,0,'f',2);
+  
   return desc;
 }
 

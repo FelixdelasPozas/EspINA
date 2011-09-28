@@ -250,6 +250,51 @@
 			  immediate_update="1"
 			  command="SetExclusion">
 		  </IntVectorProperty>
+		  <IntVectorProperty
+			  name="TotalVolume"
+			  number_of_elements="1"
+			  default_values="0"
+			  immediate_update="1"
+			  information_only="1"
+			  command="GetTotalVolume">
+		          <SimpleIntInformationHelper/>
+		  </IntVectorProperty>
+		  <IntVectorProperty
+			  name="TotalAdaptiveVolume"
+			  number_of_elements="1"
+			  default_values="0"
+			  immediate_update="1"
+			  information_only="1"
+			  command="GetTotalAdaptiveVolume">
+		          <SimpleIntInformationHelper/>
+		  </IntVectorProperty>
+		  <IntVectorProperty
+			  name="InclusionVolume"
+			  number_of_elements="1"
+			  default_values="0"
+			  immediate_update="1"
+			  information_only="1"
+			  command="GetInclusionVolume">
+		          <SimpleIntInformationHelper/>
+		  </IntVectorProperty>
+		  <IntVectorProperty
+			  name="ExclusionVolume"
+			  number_of_elements="1"
+			  default_values="0"
+			  immediate_update="1"
+			  information_only="1"
+			  command="GetExclusionVolume">
+		          <SimpleIntInformationHelper/>
+		  </IntVectorProperty>
+		  <IntVectorProperty
+			  name="ExclusionAdaptiveVolume"
+			  number_of_elements="1"
+			  default_values="0"
+			  immediate_update="1"
+			  information_only="1"
+			  command="GetExclusionAdaptiveVolume">
+		          <SimpleIntInformationHelper/>
+		  </IntVectorProperty>
   		  <Hints>
 		    <!-- Hints are metadata associated with the proxy.
 		    As far as the ServerManager is concerned, Hints have no 
