@@ -36,7 +36,7 @@
    <item>
     <widget class="QToolBox" name="toolBox">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="page">
       <property name="geometry">
@@ -44,29 +44,15 @@
         <x>0</x>
         <y>0</y>
         <width>240</width>
-        <height>238</height>
+        <height>162</height>
        </rect>
       </property>
       <attribute name="label">
-       <string>Define</string>
+       <string>Define Region Margin</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
         <layout class="QGridLayout" name="gridLayout">
-         <item row="3" column="1">
-          <widget class="QSpinBox" name="leftMargin">
-           <property name="styleSheet">
-            <string notr="true">background-color:rgb(192, 255, 192)</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="1">
-          <widget class="QSpinBox" name="rightMargin">
-           <property name="styleSheet">
-            <string notr="true">background-color:rgb(255, 192, 192)</string>
-           </property>
-          </widget>
-         </item>
          <item row="1" column="1">
           <widget class="QLabel" name="label">
            <property name="text">
@@ -74,15 +60,22 @@
            </property>
           </widget>
          </item>
-         <item row="4" column="1">
-          <widget class="QLabel" name="label_4">
+         <item row="1" column="2">
+          <widget class="QLabel" name="label_3">
            <property name="text">
-            <string>Right Margin</string>
+            <string>Top Margin</string>
            </property>
           </widget>
          </item>
-         <item row="3" column="3">
-          <widget class="QSpinBox" name="upperSlice">
+         <item row="1" column="3">
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>Upper Slice</string>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QSpinBox" name="leftMargin">
            <property name="styleSheet">
             <string notr="true">background-color:rgb(192, 255, 192)</string>
            </property>
@@ -98,24 +91,24 @@
            </property>
           </widget>
          </item>
-         <item row="1" column="3">
-          <widget class="QLabel" name="label_2">
-           <property name="text">
-            <string>Upper Slice</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="2">
-          <widget class="QLabel" name="label_3">
-           <property name="text">
-            <string>Top Margin</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="3">
-          <widget class="QSpinBox" name="lowerSlice">
+         <item row="3" column="3">
+          <widget class="QSpinBox" name="upperSlice">
            <property name="styleSheet">
-            <string notr="true">background-color:rgb(255, 192, 192)</string>
+            <string notr="true">background-color:rgb(192, 255, 192)</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QLabel" name="label_4">
+           <property name="text">
+            <string>Right Margin</string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="2">
+          <widget class="QLabel" name="label_6">
+           <property name="text">
+            <string>Bottom Margin</string>
            </property>
           </widget>
          </item>
@@ -126,6 +119,13 @@
            </property>
           </widget>
          </item>
+         <item row="5" column="1">
+          <widget class="QSpinBox" name="rightMargin">
+           <property name="styleSheet">
+            <string notr="true">background-color:rgb(255, 192, 192)</string>
+           </property>
+          </widget>
+         </item>
          <item row="5" column="2">
           <widget class="QSpinBox" name="bottomMargin">
            <property name="styleSheet">
@@ -133,10 +133,10 @@
            </property>
           </widget>
          </item>
-         <item row="4" column="2">
-          <widget class="QLabel" name="label_6">
-           <property name="text">
-            <string>Bottom Margin</string>
+         <item row="5" column="3">
+          <widget class="QSpinBox" name="lowerSlice">
+           <property name="styleSheet">
+            <string notr="true">background-color:rgb(255, 192, 192)</string>
            </property>
           </widget>
          </item>
@@ -209,6 +209,60 @@
            </property>
           </widget>
          </item>
+        </layout>
+       </item>
+       <item>
+        <spacer name="verticalSpacer">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="page_2">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>240</width>
+        <height>238</height>
+       </rect>
+      </property>
+      <attribute name="label">
+       <string>Description</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="QComboBox" name="regionCombo"/>
+       </item>
+       <item>
+        <widget class="QTreeView" name="regionView"/>
+       </item>
+       <item>
+        <widget class="QTextEdit" name="regionDescription"/>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <spacer name="horizontalSpacer_2">
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+           <property name="sizeHint" stdset="0">
+            <size>
+             <width>40</width>
+             <height>20</height>
+            </size>
+           </property>
+          </spacer>
+         </item>
          <item>
           <widget class="QPushButton" name="removeRegion">
            <property name="enabled">
@@ -246,23 +300,7 @@
          </item>
         </layout>
        </item>
-       <item>
-        <widget class="QTreeView" name="regionView"/>
-       </item>
       </layout>
-     </widget>
-     <widget class="QWidget" name="page_2">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>240</width>
-        <height>238</height>
-       </rect>
-      </property>
-      <attribute name="label">
-       <string>Description</string>
-      </attribute>
      </widget>
     </widget>
    </item>
@@ -276,9 +314,6 @@
   <tabstop>lowerSlice</tabstop>
   <tabstop>bottomMargin</tabstop>
   <tabstop>regionType</tabstop>
-  <tabstop>createRegion</tabstop>
-  <tabstop>regionView</tabstop>
-  <tabstop>removeRegion</tabstop>
  </tabstops>
  <resources>
   <include location="rsc/CountingRegion.qrc"/>

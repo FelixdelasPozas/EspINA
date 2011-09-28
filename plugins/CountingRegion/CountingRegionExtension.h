@@ -36,7 +36,6 @@ public:
   SegmentationExtension();
   virtual ~SegmentationExtension();
   
-  
   //! Implement ISegmentationExtension 
   virtual ExtensionId id();
   virtual void initialize(Segmentation *seg);
@@ -51,11 +50,13 @@ private:
   vtkFilter *m_discarted;
 };
 
+//! Base class for all Bounding Regions
 class CountingRegion::BoundingRegion : public ISampleRepresentation
 {
   Q_OBJECT
 public:
   static const ISampleRepresentation::RepresentationId ID;
+  static int newId;
       
   BoundingRegion(Sample* sample);
   virtual ~BoundingRegion();
@@ -64,9 +65,16 @@ public:
   virtual void render(pqView* view, ViewType type = VIEW_3D);
   virtual pqPipelineSource* pipelineSource();
   
-  virtual void setInclusive(int left, int top, int upper) = 0;
-  virtual void setExclusive(int right, int bottom, int lower) = 0;
-//   virtual void setViewVisibility(ViewType type, bool visible) {m_visible[type] = visible;}
+  //! Return total volume in pixels
+  int totalVolume();
+  //! Return inclusion volume in pixels
+  virtual int inclusionVolume();
+  //! Return exclusion volume in pixels
+  virtual int exclusionVolume();
+  
+  void setInclusive(int left, int top, int upper);
+  void setExclusive(int right, int bottom, int lower);
+  virtual QString description() = 0;
   
 public slots:
   virtual void requestUpdate(bool force = false){}
@@ -74,8 +82,11 @@ public slots:
 protected:
   vtkFilter *m_boundigRegion;
   QList<QStandardItem *> m_modelInfo;
+  int m_regionId;
 };
 
+//! A Rectangular Bounding Region
+//! Its bounds are given by @sample
 class RectangularRegion : public CountingRegion::BoundingRegion
 {
   Q_OBJECT
@@ -90,6 +101,7 @@ public:
   
   virtual void setInclusive(int left, int top, int upper);
   virtual void setExclusive(int right, int bottom, int lower);
+  virtual QString description();
   
 public slots:
   void reset();
@@ -100,7 +112,6 @@ signals:
 private:
   vtkSMProxy *m_box;
   pq3DWidget *m_widget[4];
-  QStandardItem *m_item;
 };
 
 class AdaptiveRegion : public CountingRegion::BoundingRegion
@@ -116,6 +127,7 @@ public:
   
   virtual void setInclusive(int left, int top, int upper);
   virtual void setExclusive(int right, int bottom, int lower);
+  virtual QString description();
   
 private:
   pq3DWidget *m_widget[4];

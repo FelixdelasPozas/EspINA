@@ -65,6 +65,9 @@ public slots:
   
   //void onAction(QAction *action);
   
+protected:
+  void resetRegionsModel();
+  
 private:
   Sample *m_focusedSample;
   QStandardItemModel m_model;

@@ -145,6 +145,22 @@
 			  short_help="filter">
 		  </Documentation>
 		  <IntVectorProperty
+			  name="Extent"
+			  number_of_elements="6"
+			  default_values="0 0 0 1 1 1"
+			  immediate_update="1"
+			  command="SetExtent">
+<!-- 		          <SimpleIntInformationHelper/> -->
+		  </IntVectorProperty>
+		  <DoubleVectorProperty
+			  name="Spacing"
+			  number_of_elements="3"
+			  default_values="0 0 0"
+			  immediate_update="1"
+			  command="SetSpacing">
+<!-- 		          <SimpleDoubleInformationHelper/> -->
+		  </DoubleVectorProperty>
+		  <IntVectorProperty
 			  name="Inclusion"
 			  number_of_elements="3"
 			  default_values="0 0 0"
@@ -158,6 +174,33 @@
 			  default_values="0 0 0"
 			  immediate_update="1"
 			  command="SetExclusion">
+		          <SimpleIntInformationHelper/>
+		  </IntVectorProperty>
+		  <IntVectorProperty
+			  name="TotalVolume"
+			  number_of_elements="1"
+			  default_values="0"
+			  immediate_update="1"
+			  information_only="1"
+			  command="GetTotalVolume">
+		          <SimpleIntInformationHelper/>
+		  </IntVectorProperty>
+		  <IntVectorProperty
+			  name="InclusionVolume"
+			  number_of_elements="1"
+			  default_values="0"
+			  immediate_update="1"
+			  information_only="1"
+			  command="GetInclusionVolume">
+		          <SimpleIntInformationHelper/>
+		  </IntVectorProperty>
+		  <IntVectorProperty
+			  name="ExclusionVolume"
+			  number_of_elements="1"
+			  default_values="0"
+			  immediate_update="1"
+			  information_only="1"
+			  command="GetExclusionVolume">
 		          <SimpleIntInformationHelper/>
 		  </IntVectorProperty>
 		  <Hints>

@@ -170,6 +170,7 @@ ISegmentationExtension* CountingRegion::SegmentationExtension::clone()
   return new SegmentationExtension();
 }
 
+
 //!-----------------------------------------------------------------------
 //! BOUNDING REGION SAMPLE REPRESENTATION
 //!-----------------------------------------------------------------------
@@ -177,13 +178,17 @@ ISegmentationExtension* CountingRegion::SegmentationExtension::clone()
 
 const ISampleRepresentation::RepresentationId CountingRegion::BoundingRegion::ID  = "CountingRegion";
 
+int CountingRegion::BoundingRegion::newId = 0;
+
 //------------------------------------------------------------------------
 CountingRegion::BoundingRegion::BoundingRegion(Sample* sample)
 : ISampleRepresentation(sample)
 , m_boundigRegion(NULL)
 {
-  m_sample = sample;
-  QStandardItem * regionItem = new QStandardItem("Bounding Region");
+  m_regionId = newId++;
+  
+  // Create a standard item model to represent the region
+  QStandardItem * name = new QStandardItem("Bounding Region");
   QStandardItem * renderInXY = new QStandardItem();
   renderInXY->setData(true,Qt::CheckStateRole);
   renderInXY->setCheckState(Qt::Checked);
@@ -200,7 +205,8 @@ CountingRegion::BoundingRegion::BoundingRegion(Sample* sample)
   renderIn3D->setData(true,Qt::CheckStateRole);
   renderIn3D->setCheckState(Qt::Checked);
   renderIn3D->setFlags(renderInXY->flags());
-  m_modelInfo << regionItem << renderInXY << renderInYZ << renderInXZ << renderIn3D;
+  QStandardItem * description = new QStandardItem("");
+  m_modelInfo << name << renderInXY << renderInYZ << renderInXZ << renderIn3D << description;
 }
 
 //------------------------------------------------------------------------
@@ -235,6 +241,40 @@ pqPipelineSource* CountingRegion::BoundingRegion::pipelineSource()
   return  m_boundigRegion->pipelineSource();
 }
 
+//------------------------------------------------------------------------
+int CountingRegion::BoundingRegion::totalVolume()
+{
+  int vol;
+  m_boundigRegion->pipelineSource()->updatePipeline();
+  vtkSMProxy *proxy = m_boundigRegion->pipelineSource()->getProxy();
+  proxy->UpdatePropertyInformation();
+  vtkSMPropertyHelper(proxy,"TotalVolume").Get(&vol,1);
+  return vol;
+}
+
+//------------------------------------------------------------------------
+int CountingRegion::BoundingRegion::inclusionVolume()
+{
+  int vol;
+  m_boundigRegion->pipelineSource()->updatePipeline();
+  vtkSMProxy *proxy = m_boundigRegion->pipelineSource()->getProxy();
+  proxy->UpdatePropertyInformation();
+  vtkSMPropertyHelper(proxy,"InclusionVolume").Get(&vol,1);
+  return vol;
+}
+
+
+//------------------------------------------------------------------------
+int CountingRegion::BoundingRegion::exclusionVolume()
+{
+  int vol;
+  m_boundigRegion->pipelineSource()->updatePipeline();
+  vtkSMProxy *proxy = m_boundigRegion->pipelineSource()->getProxy();
+  proxy->UpdatePropertyInformation();
+  vtkSMPropertyHelper(proxy,"ExclusionVolume").Get(&vol,1);
+  return vol;
+}
+
 //!-----------------------------------------------------------------------
 //! RECTANGULAR REGION SAMPLE REPRESENTATION
 //!-----------------------------------------------------------------------
@@ -262,20 +302,25 @@ RectangularRegion::RectangularRegion(Sample* sample,
   int extent[6];
   m_sample->extent(extent);
   
-  int leftPoint   = (extent[0] +  left  ) * spacing[0];
-  int topPoint    = (extent[2] +  top   ) * spacing[1];
-  int upperPoint  = (extent[4] +  upper ) * spacing[2];
-  int rightPoint  = (extent[1] -  right ) * spacing[0];
-  int bottomPoint = (extent[3] -  bottom) * spacing[1];
-  int lowerPoint  = (extent[5] -  lower ) * spacing[2];
+//   int leftPoint   = (extent[0] +  left  ) * spacing[0];
+//   int topPoint    = (extent[2] +  top   ) * spacing[1];
+//   int upperPoint  = (extent[4] +  upper ) * spacing[2];
+//   int rightPoint  = (extent[1] -  right ) * spacing[0];
+//   int bottomPoint = (extent[3] -  bottom) * spacing[1];
+//   int lowerPoint  = (extent[5] -  lower ) * spacing[2];
   
   // Configuration of Bounding Region interface
   vtkFilter::Arguments regionArgs;
   regionArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT,""));
+  regionArgs.push_back(vtkFilter::Argument("Extent",vtkFilter::INTVECT, QString("%1,%2,%3,%4,%5,%6")
+		  .arg(extent[0]).arg(extent[1]).arg(extent[2])
+		  .arg(extent[3]).arg(extent[4]).arg(extent[5])));
+  regionArgs.push_back(vtkFilter::Argument("Spacing",vtkFilter::DOUBLEVECT, QString("%1,%2,%3")
+					   .arg(spacing[0]).arg(spacing[1]).arg(spacing[2])));
   regionArgs.push_back(vtkFilter::Argument("Inclusion",vtkFilter::INTVECT, QString("%1,%2,%3")
-					   .arg(leftPoint).arg(topPoint).arg(upperPoint)));
+					   .arg(left).arg(top).arg(upper)));
   regionArgs.push_back(vtkFilter::Argument("Exclusion",vtkFilter::INTVECT, QString("%1,%2,%3")
-					   .arg(rightPoint).arg(bottomPoint).arg(lowerPoint)));
+					   .arg(right).arg(bottom).arg(lower)));
   m_boundigRegion = cob->createFilter("filters","RectangularBoundingRegion", regionArgs);
   
   if (!m_boundigRegion)
@@ -299,12 +344,11 @@ RectangularRegion::RectangularRegion(Sample* sample,
 // 		     this, SLOT(modifyVOI()));
   }
   info = m_modelInfo;
-  m_item = info.first();
   
   QString repName = QString("Rectangular Region (%1,%2,%3,%4,%5,%6)") 
   .arg(left).arg(top).arg(upper).arg(right).arg(bottom).arg(lower);
   
-  m_item->setData(repName,Qt::DisplayRole);
+  m_modelInfo.first()->setData(repName,Qt::DisplayRole);
   
 }
 
@@ -368,12 +412,45 @@ void RectangularRegion::setInclusive(int left, int top, int upper)
 
 }
 
-
 //------------------------------------------------------------------------
 void RectangularRegion::setExclusive(int right, int bottom, int lower)
 {
 
 }
+
+//------------------------------------------------------------------------
+QString RectangularRegion::description()
+{
+  QString desc("Type: Rectangular Region\n"
+	       "Volume Information:\n"
+	       "  Total Volume:\n"
+	       "    %1 px\n"
+	       "    %2 %3\n"
+	       "  Inclusion Volume:\n"
+	       "    %4 px\n"
+	       "    %5 %3\n"
+	       "  Exclusion Volume:\n"
+	       "    %6 px\n"
+	       "    %7 %3\n"
+	      );
+  
+  int extent[6];
+  m_sample->extent(extent);
+  double spacing[3];
+  m_sample->spacing(spacing);
+  double volPixel = spacing[0]*spacing[1]*spacing[2]; //Volume of 1 pixel
+  unsigned int totalVolInPixel = totalVolume();//(extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1);
+  int totalVolInUnits = totalVolInPixel*volPixel;
+  unsigned int inclusionVolInPixel = inclusionVolume();
+  int inclusionVolInUnits = inclusionVolInPixel*volPixel;
+  unsigned int exclusionVolInPixel = exclusionVolume();
+  int exclusionVolInUnits = exclusionVolInPixel*volPixel;
+  desc = desc.arg(totalVolInPixel,0).arg(totalVolInUnits,0,'f',2).arg(m_sample->units());
+  desc = desc.arg(inclusionVolInPixel,0).arg(inclusionVolInUnits,0,'f',2);
+  desc = desc.arg(exclusionVolInPixel,0).arg(exclusionVolInUnits,0,'f',2);
+  return desc;
+}
+
 
 //------------------------------------------------------------------------
 void RectangularRegion::reset()
@@ -406,7 +483,7 @@ void RectangularRegion::reset()
     .arg(int(inclusion[2]/spacing[2])+1)
     .arg(int(exclusion[2]/spacing[2])+1);
     
-    m_item->setData(repName,Qt::DisplayRole);
+    m_modelInfo.first()->setData(repName,Qt::DisplayRole);
    
  emit regionChanged(this);
 }
@@ -533,6 +610,29 @@ void AdaptiveRegion::setExclusive(int right, int bottom, int lower)
 
 }
 
+//------------------------------------------------------------------------
+QString AdaptiveRegion::description()
+{
+  QString desc("Type: Rectangular Region\n"
+	       "Volume Information:\n"
+	       "  Total Volume:\n"
+	       "    %1 px\n"
+	       "    %2 %3\n"
+	       "  Total Volume:\n"
+	      );
+  
+  int extent[6];
+  m_sample->extent(extent);
+  double spacing[3];
+  m_sample->spacing(spacing);
+  double volPixel = spacing[0]*spacing[1]*spacing[2]; //Volume of 1 pixel
+  unsigned int totalVolInPixel = (extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1);
+  double totalVolInUnits = totalVolInPixel*volPixel;
+  desc = desc.arg(totalVolInPixel).arg(totalVolInUnits).arg(m_sample->units());
+  return desc;
+}
+
+
 
 //!-----------------------------------------------------------------------
 //! CROSSHAIR EXTENSION
@@ -589,6 +689,7 @@ QString CountingRegion::SampleExtension::createAdaptiveRegion(int left, int top,
   AdaptiveRegion *region = new AdaptiveRegion(m_sample, left, top, upper,
 					      right, bottom, lower, info);
   assert(region);
+  info.last()->setData(region->description(),Qt::DisplayRole);
   
   
 //   for(ViewType view = VIEW_PLANE_FIRST; view <= VIEW_3D; view = ViewType(view+1))
@@ -627,6 +728,7 @@ QString CountingRegion::SampleExtension::createRectangularRegion(int left, int t
   RectangularRegion *region = new RectangularRegion(m_sample, left, top, upper,
 						    right, bottom, lower, info);
   assert(region);
+  info.last()->setData(region->description(),Qt::DisplayRole);
   connect(region,SIGNAL(regionChanged(BoundingRegion *)),this,SLOT(updateSegmentations(BoundingRegion *)));
   
   QStandardItem *regionItem = info.first();
