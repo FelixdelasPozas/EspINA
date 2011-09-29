@@ -116,6 +116,7 @@ private:
 
 class AdaptiveRegion : public CountingRegion::BoundingRegion
 {
+  Q_OBJECT
 public:
   AdaptiveRegion(Sample* sample, int left, int top, int upper,
 		 int right, int bottom, int lower,
@@ -133,6 +134,13 @@ public:
   virtual void setInclusive(int left, int top, int upper);
   virtual void setExclusive(int right, int bottom, int lower);
   virtual QString description();
+  
+    
+public slots:
+  void reset();
+  
+signals:
+  void regionChanged(BoundingRegion *);
   
 private:
   pq3DWidget *m_widget[4];

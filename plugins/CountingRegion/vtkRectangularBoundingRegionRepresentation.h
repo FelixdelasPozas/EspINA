@@ -85,7 +85,7 @@ public:
 //   vtkSetMacro(ViewType,int);
 //   vtkSetMacro(Slice,int);
   virtual void SetViewType(int type);
-  virtual void SetSlice(int slice, double spacing);
+  virtual void SetSlice(int slice, double spacing[3]);
   virtual void SetRegion(vtkPolyDataAlgorithm *region);
   
   // Description:
@@ -112,7 +112,7 @@ public:
   virtual int  HasTranslucentPolygonalGeometry();
   
 //BTX - used to manage the state of the widget
-  enum {Outside=0,MoveF0,MoveF1,MoveF2,MoveF3,MoveF4,MoveF5,
+  enum {Outside=0,
     MoveLeft, MoveRight, MoveTop, MoveBottom, MoveUpper, MoveLower,
     Translating,Rotating,Scaling
   };
@@ -216,7 +216,7 @@ protected:
   
   int ViewType;
   int Slice;
-  double Spacing;
+  double Spacing[3];
   vtkPolyDataAlgorithm *Region;
 
 
@@ -225,6 +225,12 @@ private:
   void operator=(const vtkRectangularBoundingRegionRepresentation&);  //Not implemented
   int Inclusion[3];
   int Exclusion[3];
+  
+  int m_numSlices;
+  int m_prevExclusion[3];
+  int m_prevInclusion[3];
+  double m_prevExclusionCoord[3];
+  double m_prevInclusionCoord[3];
 };
 
 #endif

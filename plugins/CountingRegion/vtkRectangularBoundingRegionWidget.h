@@ -142,7 +142,7 @@ public:
   vtkGetVector3Macro(Exclusion,int);
   
   virtual void SetViewType(int type);
-  virtual void SetSlice(int slice, double spacing);
+  virtual void SetSlice(int slice, double spacing[3]);
   virtual void SetRegion(vtkPolyDataAlgorithm *region);
 
   // Description:

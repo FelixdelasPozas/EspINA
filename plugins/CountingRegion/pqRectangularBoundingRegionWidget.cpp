@@ -204,6 +204,7 @@ void pqRectangularBoundingRegionWidget::updateControlledMargins()
 //-----------------------------------------------------------------------------
 void pqRectangularBoundingRegionWidget::updateWidgetMargins()
 {
+  std::cout << "Update Widget Margins" << std::endl;
   vtkSMNewWidgetRepresentationProxy* widget = this->getWidgetProxy();
   vtkAbstractWidget *miwidget = widget->GetWidget();
   vtkRectangularBoundingRegionWidget *rrbw = vtkRectangularBoundingRegionWidget::SafeDownCast(miwidget);
@@ -238,11 +239,11 @@ void pqRectangularBoundingRegionWidget::onWidgetVisibilityChanged(bool visible)
 //-----------------------------------------------------------------------------
 void pqRectangularBoundingRegionWidget::accept()
 {
+  std::cout << "Update Controlled Region" << std::endl;
   updateControlledMargins();
 //   vtkPolyDataAlgorithm *region = vtkPolyDataAlgorithm::SafeDownCast(getControlledProxy()->GetClientSideObject());
 //   if (region)
 //   {
-//     std::cout << "Change Region" << std::endl;
 //     vtkAbstractWidget *miwidget = widget->GetWidget();
 //     vtkRectangularBoundingRegionWidget::SafeDownCast(miwidget)->SetRegion(region);
 //   }

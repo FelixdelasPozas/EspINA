@@ -324,35 +324,31 @@ void vtkRectangularBoundingRegionRepresentation::MoveLeftMargin(double* p1, doub
   double *pts =
     static_cast<vtkDoubleArray *>(this->MarginPoints->GetData())->GetPointer(0);
 
-  int shift = round(p2[0] - p1[0]);
-  Inclusion[0] += shift;
+  const int X = 0;
+    
+  assert(ViewType == XY || ViewType == XZ);
+  int contBorder1 = ViewType == XY?TOP:UPPER;
+  int contBorder2 = ViewType == XY?BOTTOM:LOWER;
   
-  int contBorder1, contBorder2; // Contiguous borders
-  
-  const int COORD_X = 0;
   if (ViewType == XY)
   {
-    pts[3*3 + COORD_X] += shift; 
-    pts[3*0 + COORD_X] += shift; 
-    contBorder1 = TOP;
-    contBorder2 = BOTTOM;
+    pts[3*3 + X] = p2[X]; 
+    pts[3*0 + X] = p2[X]; 
   }else if (ViewType == XZ)
   {
-    pts[3*0 + COORD_X] += shift;
-    pts[3*2 + COORD_X] += shift;
-    contBorder1 = UPPER;
-    contBorder2 = LOWER;
-  }else
-    assert(false);
-//   std::cout << "Moving 0: " << x1[0] <<" "<< x1[1] <<" "<< x1[2] << std::endl;
-//   std::cout << "Moving 3: " << x2[0] <<" "<< x2[1] <<" "<< x2[2] << std::endl;
-//   std::cout << "Moving X: Inclusion " << Inclusion[0] << std::endl;
+    double shift = (p2[X] - p1[X]);
+    for (int s=0; s < m_numSlices; s++)
+    {
+      pts[3*2*s + X] += shift;
+    }
+  }
+  
+  Inclusion[X] = (p2[X] - m_prevInclusionCoord[X])/Spacing[X] + m_prevInclusion[X];
+  std::cout << "Moving X: Inclusion " << Inclusion[0] << std::endl;
+  
   this->MarginPolyData[LEFT]->Modified();
   this->MarginPolyData[contBorder1]->Modified();
   this->MarginPolyData[contBorder2]->Modified();
-//   this->ComputeNormals();
-//   this->GetDirection(this->N[1],this->N[3],this->N[5],dir);
-//   this->MoveFace(p1,p2,dir,x1,x2,x3,x4,h1);
 }
 
 //----------------------------------------------------------------------------
@@ -361,35 +357,31 @@ void vtkRectangularBoundingRegionRepresentation::MoveRightMargin(double* p1, dou
   double *pts =
     static_cast<vtkDoubleArray *>(this->MarginPoints->GetData())->GetPointer(0);
 
-  int shift = round(p2[0] - p1[0]);
-  Exclusion[0] += shift;
+  const int X = 0;
   
-  int contBorder1, contBorder2; // Contiguous borders
+  assert(ViewType == XY || ViewType == XZ);
+  int contBorder1 = ViewType == XY?TOP:UPPER;
+  int contBorder2 = ViewType == XY?BOTTOM:LOWER;
   
-  const int COORD_X = 0;
   if (ViewType == XY)
   {
-    pts[3*1 + COORD_X] += shift; 
-    pts[3*2 + COORD_X] += shift; 
-    contBorder1 = TOP;
-    contBorder2 = BOTTOM;
+    pts[3*1 + X] = p2[X];
+    pts[3*2 + X] = p2[X];
   }else if (ViewType == XZ)
   {
-    pts[3*3 + COORD_X] += shift;
-    pts[3*1 + COORD_X] += shift;
-    contBorder1 = UPPER;
-    contBorder2 = LOWER;
-  }else
-    assert(false);
-//   std::cout << "Moving 0: " << x1[0] <<" "<< x1[1] <<" "<< x1[2] << std::endl;
-//   std::cout << "Moving 3: " << x2[0] <<" "<< x2[1] <<" "<< x2[2] << std::endl;
-//   std::cout << "Moving X: Exclusion " << Exclusion[0] << std::endl;
+    double shift = (p2[X] - p1[X]);
+    for (int s=0; s < m_numSlices; s++)
+    {
+      pts[3*(2*s+1) + X] += shift;
+    }
+  }
+  
+  Exclusion[X] = (m_prevExclusionCoord[X] - p2[X])/Spacing[X] + m_prevExclusion[X];
+  std::cout << "Moving X: Exclusion " << Exclusion[0] << std::endl;
+  
   this->MarginPolyData[RIGHT]->Modified();
   this->MarginPolyData[contBorder1]->Modified();
   this->MarginPolyData[contBorder2]->Modified();
-//   this->ComputeNormals();
-//   this->GetDirection(this->N[1],this->N[3],this->N[5],dir);
-//   this->MoveFace(p1,p2,dir,x1,x2,x3,x4,h1);
 }
 //----------------------------------------------------------------------------
 void vtkRectangularBoundingRegionRepresentation::MoveTopMargin(double* p1, double* p2)
@@ -397,30 +389,28 @@ void vtkRectangularBoundingRegionRepresentation::MoveTopMargin(double* p1, doubl
   double *pts =
     static_cast<vtkDoubleArray *>(this->MarginPoints->GetData())->GetPointer(0);
 
-  const int COORD_Y = 1;
+  const int Y = 1;
   
-  int shift = round(p2[COORD_Y] - p1[COORD_Y]);
-  Inclusion[1] += shift;
-  
-  int contBorder1, contBorder2; // Contiguous borders
+  assert(ViewType == XY || ViewType == YZ);
+  int contBorder1 = ViewType == XY?LEFT:UPPER;
+  int contBorder2 = ViewType == XY?RIGHT:LOWER;
   
   if (ViewType == XY)
   {
-    pts[3*0 + COORD_Y] += shift; 
-    pts[3*1 + COORD_Y] += shift; 
-    contBorder1 = LEFT;
-    contBorder2 = RIGHT;
-  }else if (ViewType == YZ)
-  {
-    pts[3*1 + COORD_Y] += shift;
-    pts[3*3 + COORD_Y] += shift;
-    contBorder1 = UPPER;
-    contBorder2 = LOWER;
+    pts[3*0 + Y] = p2[Y]; 
+    pts[3*1 + Y] = p2[Y]; 
   }else
-    assert(false);
-//   std::cout << "Moving 0: " << x1[0] <<" "<< x1[1] <<" "<< x1[2] << std::endl;
-//   std::cout << "Moving 3: " << x2[0] <<" "<< x2[1] <<" "<< x2[2] << std::endl;
-//   std::cout << "Moving X: Inclusion " << Inclusion[0] << std::endl;
+  {
+    double shift = (p2[Y] - p1[Y]);
+    for (int s=0; s < m_numSlices; s++)
+    {
+      pts[3*(2*s+1) + Y] += shift;
+    }
+  }
+
+  Inclusion[Y] = (p2[Y] - m_prevInclusionCoord[Y])/Spacing[Y] + m_prevInclusion[Y];
+  std::cout << "Moving Y: Inclusion " << Inclusion[Y] << std::endl;
+  
   this->MarginPolyData[TOP]->Modified();
   this->MarginPolyData[contBorder1]->Modified();
   this->MarginPolyData[contBorder2]->Modified();
@@ -431,30 +421,29 @@ void vtkRectangularBoundingRegionRepresentation::MoveBottomMargin(double* p1, do
   double *pts =
     static_cast<vtkDoubleArray *>(this->MarginPoints->GetData())->GetPointer(0);
 
-  const int COORD_Y = 1;
-  
-  int shift = round(p2[COORD_Y] - p1[COORD_Y]);
-  Exclusion[1] += shift;
-  
-  int contBorder1, contBorder2; // Contiguous borders
+  const int Y = 1;
+   
+  assert(ViewType == XY || ViewType == YZ);
+  int contBorder1 = ViewType == XY?LEFT:UPPER;
+  int contBorder2 = ViewType == XY?RIGHT:LOWER;
   
   if (ViewType == XY)
   {
-    pts[3*2 + COORD_Y] += shift; 
-    pts[3*3 + COORD_Y] += shift; 
-    contBorder1 = LEFT;
-    contBorder2 = RIGHT;
+    pts[3*2 + Y] = p2[Y]; 
+    pts[3*3 + Y] = p2[Y]; 
   }else if (ViewType == YZ)
   {
-    pts[3*0 + COORD_Y] += shift;
-    pts[3*2 + COORD_Y] += shift;
-    contBorder1 = UPPER;
-    contBorder2 = LOWER;
+    double shift = (p2[Y] - p1[Y]);
+    for (int s=0; s < m_numSlices; s++)
+    {
+      pts[3*2*s + Y] += shift;
+    }
   }else
     assert(false);
-//   std::cout << "Moving 0: " << x1[0] <<" "<< x1[1] <<" "<< x1[2] << std::endl;
-//   std::cout << "Moving 3: " << x2[0] <<" "<< x2[1] <<" "<< x2[2] << std::endl;
-//   std::cout << "Moving X: Inclusion " << Inclusion[0] << std::endl;
+  
+  Exclusion[Y] = (m_prevExclusionCoord[Y] - p2[Y])/Spacing[Y] + m_prevExclusion[Y];
+  std::cout << "Moving Y: Exclusion " << Exclusion[Y] << std::endl;
+  
   this->MarginPolyData[BOTTOM]->Modified();
   this->MarginPolyData[contBorder1]->Modified();
   this->MarginPolyData[contBorder2]->Modified();
@@ -465,64 +454,43 @@ void vtkRectangularBoundingRegionRepresentation::MoveUpperMargin(double* p1, dou
   double *pts =
     static_cast<vtkDoubleArray *>(this->MarginPoints->GetData())->GetPointer(0);
 
-  const int COORD_Z = 2;
+  const int Z = 2;
   
-  int shift = round(p2[COORD_Z] - p1[COORD_Z]);
-  Inclusion[2] += shift;
+  assert(ViewType == YZ || ViewType == XZ);
+  int contBorder1 = ViewType == YZ?TOP:LEFT;
+  int contBorder2 = ViewType == YZ?BOTTOM:RIGHT;
   
-  int contBorder1, contBorder2; // Contiguous borders
+  pts[3*0 + Z] = p2[Z]; 
+  pts[3*1 + Z] = p2[Z]; 
   
-  if (ViewType == YZ)
-  {
-    pts[3*0 + COORD_Z] += shift; 
-    pts[3*1 + COORD_Z] += shift; 
-    contBorder1 = TOP;
-    contBorder2 = BOTTOM;
-  }else if (ViewType == XZ)
-  {
-    pts[3*0 + COORD_Z] += shift;
-    pts[3*1 + COORD_Z] += shift;
-    contBorder1 = LEFT;
-    contBorder2 = RIGHT;
-  }else
-    assert(false);
-//   std::cout << "Moving 0: " << x1[0] <<" "<< x1[1] <<" "<< x1[2] << std::endl;
-//   std::cout << "Moving 3: " << x2[0] <<" "<< x2[1] <<" "<< x2[2] << std::endl;
-//   std::cout << "Moving X: Inclusion " << Inclusion[0] << std::endl;
+  Inclusion[Z] = (p2[Z] - m_prevInclusionCoord[Z])/Spacing[Z] + m_prevInclusion[Z];
+  std::cout << "Moving Z: Inclusion " << Inclusion[Z] << std::endl;
+  
   this->MarginPolyData[UPPER]->Modified();
   this->MarginPolyData[contBorder1]->Modified();
   this->MarginPolyData[contBorder2]->Modified();
 }
+
 //----------------------------------------------------------------------------
 void vtkRectangularBoundingRegionRepresentation::MoveLowerMargin(double* p1, double* p2)
 {
   double *pts =
     static_cast<vtkDoubleArray *>(this->MarginPoints->GetData())->GetPointer(0);
 
-  const int COORD_Z = 2;
+  const int Z = 2;
   
-  int shift = round(p2[COORD_Z] - p1[COORD_Z]);
-  Exclusion[2] += shift;
+  assert(ViewType == YZ || ViewType == XZ);
+  int contBorder1 = ViewType == YZ?TOP:LEFT;
+  int contBorder2 = ViewType == YZ?BOTTOM:RIGHT;
   
-  int contBorder1, contBorder2; // Contiguous borders
+  int lastSlice = m_numSlices - 1;
+  int lastMarginPoint = lastSlice*2;
+  pts[3*(lastMarginPoint) + Z] = p2[Z];
+  pts[3*(lastMarginPoint+1) + Z] = p2[Z];
   
-  if (ViewType == YZ)
-  {
-    pts[3*2 + COORD_Z] += shift; 
-    pts[3*3 + COORD_Z] += shift; 
-    contBorder1 = TOP;
-    contBorder2 = BOTTOM;
-  }else if (ViewType == XZ)
-  {
-    pts[3*2 + COORD_Z] += shift;
-    pts[3*3 + COORD_Z] += shift;
-    contBorder1 = LEFT;
-    contBorder2 = RIGHT;
-  }else
-    assert(false);
-//   std::cout << "Moving 0: " << x1[0] <<" "<< x1[1] <<" "<< x1[2] << std::endl;
-//   std::cout << "Moving 3: " << x2[0] <<" "<< x2[1] <<" "<< x2[2] << std::endl;
-//   std::cout << "Moving X: Inclusion " << Inclusion[0] << std::endl;
+  Exclusion[Z] = (m_prevExclusionCoord[Z] - p2[Z])/Spacing[Z] + m_prevExclusion[Z];
+  std::cout << "Moving Z: Exclusion " << Exclusion[Z] << std::endl;
+  
   this->MarginPolyData[LOWER]->Modified();
   this->MarginPolyData[contBorder1]->Modified();
   this->MarginPolyData[contBorder2]->Modified();
@@ -778,6 +746,11 @@ void vtkRectangularBoundingRegionRepresentation::CreateXYFace()
 {
 //   std::cout << "Created XY FACE" << std::endl;
   Region->UpdateWholeExtent();
+    
+  m_prevInclusion[0] = Inclusion[0]; // Use in Move Left Margin
+  m_prevExclusion[0] = Exclusion[0]; // Use in Move Right Margin
+  m_prevInclusion[1] = Inclusion[1]; // Use in Move Top Margin
+  m_prevExclusion[1] = Exclusion[1]; // Use in Move Bottom Margin
   
   double point[3];
   vtkCellArray *inLines;
@@ -786,16 +759,23 @@ void vtkRectangularBoundingRegionRepresentation::CreateXYFace()
   
   this->MarginPoints->SetNumberOfPoints(4);
   
-  // Top Inclusion Line
+  /// Top Inclusion Margin (0 - 1)
+  line->GetPointIds()->SetId(0,0);
+  line->GetPointIds()->SetId(1,1);
+  
   inLines = vtkCellArray::New();
   inLines->Allocate(inLines->EstimateSize(1,2));
   lineData = vtkSmartPointer<vtkIntArray>::New();
+  
+  // Point 0
   Region->GetOutput()->GetPoint(0*4+0,point);
   this->MarginPoints->SetPoint(0, point);
+  
+  //Point 1
   Region->GetOutput()->GetPoint(0*4+1,point);
   this->MarginPoints->SetPoint(1, point);
-  line->GetPointIds()->SetId(0,0);
-  line->GetPointIds()->SetId(1,1);
+  m_prevInclusionCoord[1] = point[1];
+  
   inLines->InsertNextCell(line);
   lineData->InsertNextValue(255);
   
@@ -803,14 +783,19 @@ void vtkRectangularBoundingRegionRepresentation::CreateXYFace()
   this->MarginPolyData[TOP]->GetCellData()->SetScalars(lineData);
   this->MarginPolyData[TOP]->Modified();
  
-  // Right Inclusion Line
+  /// Right Inclusion Margin (1 - 2)
+  line->GetPointIds()->SetId(0,1);
+  line->GetPointIds()->SetId(1,2);
+  
   inLines = vtkCellArray::New();
   inLines->Allocate(inLines->EstimateSize(1,2));
   lineData = vtkSmartPointer<vtkIntArray>::New();
+  
+  // Point 2
   Region->GetOutput()->GetPoint(0*4+2,point);
   this->MarginPoints->SetPoint(2, point);
-  line->GetPointIds()->SetId(0,1);
-  line->GetPointIds()->SetId(1,2);
+  m_prevExclusionCoord[0] = point[0];
+  
   inLines->InsertNextCell(line);
   lineData->InsertNextValue(0);
   
@@ -818,14 +803,20 @@ void vtkRectangularBoundingRegionRepresentation::CreateXYFace()
   this->MarginPolyData[RIGHT]->GetCellData()->SetScalars(lineData);
   this->MarginPolyData[RIGHT]->Modified();
 
-  // Left Inclusion Line
+  /// Left Inclusion Margin (3 - 0)
+  line->GetPointIds()->SetId(0,3);
+  line->GetPointIds()->SetId(1,0);
+  
   inLines = vtkCellArray::New();
   inLines->Allocate(inLines->EstimateSize(1,2));
   lineData = vtkSmartPointer<vtkIntArray>::New();
+  
+  // Point 3
   Region->GetOutput()->GetPoint(0*4+3,point);
   this->MarginPoints->SetPoint(3, point);
-  line->GetPointIds()->SetId(0,3);
-  line->GetPointIds()->SetId(1,0);
+  m_prevInclusionCoord[0] = point[0];
+  m_prevExclusionCoord[1] = point[1];
+  
   inLines->InsertNextCell(line);
   lineData->InsertNextValue(255);
   
@@ -833,15 +824,14 @@ void vtkRectangularBoundingRegionRepresentation::CreateXYFace()
   this->MarginPolyData[LEFT]->GetCellData()->SetScalars(lineData);
   this->MarginPolyData[LEFT]->Modified();
   
+  /// Bottom Inclusion Margin (2 - 3)
+  line->GetPointIds()->SetId(0,2);
+  line->GetPointIds()->SetId(1,3);
   
-  
-
-  // Bottomo Inclusion Line
   inLines = vtkCellArray::New();
   inLines->Allocate(inLines->EstimateSize(1,2));
   lineData = vtkSmartPointer<vtkIntArray>::New();
-  line->GetPointIds()->SetId(0,2);
-  line->GetPointIds()->SetId(1,3);
+  
   inLines->InsertNextCell(line);
   lineData->InsertNextValue(0);
   
@@ -856,11 +846,17 @@ void vtkRectangularBoundingRegionRepresentation::CreateXYFace()
 void vtkRectangularBoundingRegionRepresentation::CreateYZFace()
 {
 //   std::cout << "Created YZ FACE" << std::endl;
-  Region->UpdateWholeExtent();
+  this->Region->UpdateWholeExtent();
   
-  int numPoints = Region->GetOutput()->GetPoints()->GetNumberOfPoints();  
+  m_prevInclusion[1] = Inclusion[1]; // Use in Move Top Margin
+  m_prevExclusion[1] = Exclusion[1]; // Use in Move Bottom Margin
+  m_prevInclusion[2] = Inclusion[2]; // Use in Move Upper Margin
+  m_prevExclusion[2] = Exclusion[2]; // Use in Move Lower Margin
+  
+  int numPoints = this->Region->GetOutput()->GetPoints()->GetNumberOfPoints();  
   int numSlices = numPoints/4;
-  int numSideLines = numSlices - 1;
+  int numLateralMargins = numSlices - 1;
+  m_numSlices = numSlices;
   
   double point[3], prevPoint[3];
   vtkCellArray *inLines;
@@ -869,16 +865,23 @@ void vtkRectangularBoundingRegionRepresentation::CreateYZFace()
 
   this->MarginPoints->SetNumberOfPoints(numSlices*2);
   
-  // Upper Margin
+  /// Upper Margin (0 - 1) // Point index refer to MarginPoint indices
+  line->GetPointIds()->SetId(0,0);
+  line->GetPointIds()->SetId(1,1);
+  
   inLines = vtkCellArray::New();
   inLines->Allocate(inLines->EstimateSize(1,2));
   lineData = vtkSmartPointer<vtkIntArray>::New();
-  Region->GetOutput()->GetPoint(0*4+3,point);
+  
+  // Point 0
+  this->Region->GetOutput()->GetPoint(0*4+3,point);
   this->MarginPoints->SetPoint(0, point);
-  Region->GetOutput()->GetPoint(0*4+0,point);
+  
+  // Point 1
+  this->Region->GetOutput()->GetPoint(0*4+0,point);
   this->MarginPoints->SetPoint(1, point);
-  line->GetPointIds()->SetId(0,0);
-  line->GetPointIds()->SetId(1,1);
+  m_prevInclusionCoord[2] = point[2];
+  
   inLines->InsertNextCell(line);
   lineData->InsertNextValue(255);
     
@@ -886,33 +889,39 @@ void vtkRectangularBoundingRegionRepresentation::CreateYZFace()
   this->MarginPolyData[UPPER]->GetCellData()->SetScalars(lineData);
   this->MarginPolyData[UPPER]->Modified();
   
-  // Loop over slices and create Top/Bottom Lines
+  /// Loop over slices and create Top/Bottom Margins
   vtkCellArray *topLines = vtkCellArray::New();
-  topLines->Allocate(topLines->EstimateSize(numSideLines,2));
+  topLines->Allocate(topLines->EstimateSize(numLateralMargins,2));
   vtkSmartPointer<vtkIntArray> topLineData = vtkSmartPointer<vtkIntArray>::New();
-  topLineData->Allocate(numSideLines);
+  topLineData->Allocate(numLateralMargins);
   
   vtkCellArray *bottomLines = vtkCellArray::New();
-  bottomLines->Allocate(bottomLines->EstimateSize(numSideLines,2));
+  bottomLines->Allocate(bottomLines->EstimateSize(numLateralMargins,2));
   vtkSmartPointer<vtkIntArray> bottomLineData = vtkSmartPointer<vtkIntArray>::New();
-  bottomLineData->Allocate(numSideLines);
+  bottomLineData->Allocate(numLateralMargins);
   
   for (unsigned int slice=1; slice< numSlices; slice++)
   {
     int prevSlice = slice - 1;
+    
     // Add new points
+    // Point Slice_0
     Region->GetOutput()->GetPoint(slice*4+3,point);
     this->MarginPoints->SetPoint(2*slice, point);//BOTTOM
+    m_prevExclusionCoord[1] = point[1];
+    // Point Slice_1
     Region->GetOutput()->GetPoint(slice*4+0,point);
     this->MarginPoints->SetPoint(2*slice+1, point);//TOP
+    m_prevInclusionCoord[1] = point[1];
+    m_prevExclusionCoord[2] = point[2];
     
-    // Bottom Margin
+    /// Bottom Margin (prevSlice_0 - Slice_0)
     line->GetPointIds()->SetId(0,2*prevSlice);
     line->GetPointIds()->SetId(1,2*slice);
     bottomLines->InsertNextCell(line);
     bottomLineData->InsertNextValue(0);
     
-    // Top Margin
+    /// Top Margin (prevSlice_1 - Slice_1)
     line->GetPointIds()->SetId(0,2*prevSlice+1);
     line->GetPointIds()->SetId(1,2*slice+1);
     topLines->InsertNextCell(line);
@@ -950,9 +959,15 @@ void vtkRectangularBoundingRegionRepresentation::CreateXZFace()
 //   std::cout << "Created XZ FACE" << std::endl;
   Region->UpdateWholeExtent();
   
+  m_prevInclusion[0] = Inclusion[0]; // Use in Move Left Margin
+  m_prevExclusion[0] = Exclusion[0]; // Use in Move Right Margin
+  m_prevInclusion[2] = Inclusion[2]; // Use in Move Upper Margin
+  m_prevExclusion[2] = Exclusion[2]; // Use in Move Lower Margin
+  
   int numPoints = Region->GetOutput()->GetPoints()->GetNumberOfPoints();  
   int numSlices = numPoints/4;
-  int numSideLines = numSlices - 1;
+  int numLateralMargins = numSlices - 1;
+  m_numSlices = numSlices;
   
   double point[3], prevPoint[3];
   vtkCellArray *inLines;
@@ -961,16 +976,23 @@ void vtkRectangularBoundingRegionRepresentation::CreateXZFace()
   
   this->MarginPoints->SetNumberOfPoints(numSlices*2);
   
-  // Upper Margin
+  /// Upper Margin (0 - 1)
+  line->GetPointIds()->SetId(0,0);
+  line->GetPointIds()->SetId(1,1);
+  
   inLines = vtkCellArray::New();
   inLines->Allocate(inLines->EstimateSize(1,2));
   lineData = vtkSmartPointer<vtkIntArray>::New();
+  
+  // Point 0
   Region->GetOutput()->GetPoint(0*4+0,point);
   this->MarginPoints->SetPoint(0, point);
+  
+  // Point 1
   Region->GetOutput()->GetPoint(0*4+1,point);
   this->MarginPoints->SetPoint(1, point);
-  line->GetPointIds()->SetId(0,0);
-  line->GetPointIds()->SetId(1,1);
+  m_prevInclusionCoord[2] = point[2];
+  
   inLines->InsertNextCell(line);
   lineData->InsertNextValue(255);
     
@@ -978,34 +1000,39 @@ void vtkRectangularBoundingRegionRepresentation::CreateXZFace()
   this->MarginPolyData[UPPER]->GetCellData()->SetScalars(lineData);
   this->MarginPolyData[UPPER]->Modified();
   
-  // Loop over slices and create Top/Bottom Lines
+  /// Loop over slices and create Top/Bottom Margins
   vtkCellArray *leftLines = vtkCellArray::New();
-  leftLines->Allocate(leftLines->EstimateSize(numSideLines,2));
+  leftLines->Allocate(leftLines->EstimateSize(numLateralMargins,2));
   vtkSmartPointer<vtkIntArray> leftLineData = vtkSmartPointer<vtkIntArray>::New();
-  leftLineData->Allocate(numSideLines);
+  leftLineData->Allocate(numLateralMargins);
   
   vtkCellArray *rightLines = vtkCellArray::New();
-  rightLines->Allocate(rightLines->EstimateSize(numSideLines,2));
+  rightLines->Allocate(rightLines->EstimateSize(numLateralMargins,2));
   vtkSmartPointer<vtkIntArray> rightLineData = vtkSmartPointer<vtkIntArray>::New();
-  rightLineData->Allocate(numSideLines);
+  rightLineData->Allocate(numLateralMargins);
   
   for (unsigned int slice=1; slice< numSlices; slice++)
   {
     int prevSlice = slice - 1;
 	
     // Add new points
+    // Point Slice_0
     Region->GetOutput()->GetPoint(slice*4+0,point);
-    this->MarginPoints->SetPoint(2*slice, point);//TOP
+    this->MarginPoints->SetPoint(2*slice+0, point);//TOP
+    m_prevInclusionCoord[0] = point[0];
+    // Point Slice_1
     Region->GetOutput()->GetPoint(slice*4+1,point);
     this->MarginPoints->SetPoint(2*slice+1, point);//RIGHT
+    m_prevExclusionCoord[0] = point[0];
+    m_prevExclusionCoord[2] = point[2];
     
-    // Left Margin
-    line->GetPointIds()->SetId(0,2*prevSlice);
-    line->GetPointIds()->SetId(1,2*slice);
+    /// Left Margin (prevSlice_0 - Slice_0)
+    line->GetPointIds()->SetId(0,2*prevSlice+0);
+    line->GetPointIds()->SetId(1,2*slice+0);
     leftLines->InsertNextCell(line);
     leftLineData->InsertNextValue(255);
     
-    // Right Margin
+    /// Right Margin (prevSlice_1 - Slice_1)
     line->GetPointIds()->SetId(0,2*prevSlice+1);
     line->GetPointIds()->SetId(1,2*slice+1);
     rightLines->InsertNextCell(line);
@@ -1066,10 +1093,10 @@ void vtkRectangularBoundingRegionRepresentation::SetViewType(int type)
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::SetSlice(int slice, double spacing)
+void vtkRectangularBoundingRegionRepresentation::SetSlice(int slice, double spacing[3])
 {
   Slice = slice;
-  Spacing = spacing;
+  memcpy(Spacing,spacing,3*sizeof(double));
 //   return;
   
   if (ViewType == VOL)
@@ -1114,7 +1141,7 @@ void vtkRectangularBoundingRegionRepresentation::SetSlice(int slice, double spac
       normalDirection = 1;
     for (int p=0; p<this->MarginPoints->GetNumberOfPoints(); p++)
     {
-      pts[3*p+normalDirection] = slice*spacing;
+      pts[3*p+normalDirection] = slice*spacing[normalDirection];
     }
   }
   for(unsigned int i=0; i<6; i++)

@@ -344,10 +344,10 @@ void vtkRectangularBoundingRegionWidget::SetViewType(int type)
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularBoundingRegionWidget::SetSlice(int slice, double spacing)
+void vtkRectangularBoundingRegionWidget::SetSlice(int slice, double spacing[3])
 {
   int normalDir = (View+2)%3;
-  bool isInside = slice >= (Inclusion[normalDir]/spacing) && slice <= (Exclusion[normalDir]/spacing);
+  bool isInside = true;//slice >= Inclusion[normalDir] && slice <= Exclusion[normalDir];
   
   
   reinterpret_cast<vtkRectangularBoundingRegionRepresentation*>(this->WidgetRep)->

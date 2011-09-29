@@ -389,8 +389,8 @@ void RectangularRegion::render(pqView* view, ViewType type)
   regionwidget->SetViewType(type);
   if (type != VIEW_3D)
   {
-    int normalDir = (type + 2) % 3;
-    regionwidget->SetSlice(samRep->slice(type),spacing[normalDir]);
+//     int normalDir = (type + 2) % 3;
+    regionwidget->SetSlice(samRep->slice(type),spacing);
   }
   
 //   m_widget[type]->setWidgetVisible(true);
@@ -461,16 +461,16 @@ void RectangularRegion::reset()
     if (m_widget[i])
     {
       m_widget[i]->reset();
-      if (i < 3)//NOTE: To force repaint on other views in case
-		// the counting region visibility changes    
-      {
-	  vtkRectangularBoundingRegionWidget *regionwidget = dynamic_cast<vtkRectangularBoundingRegionWidget*>(m_widget[i]->getWidgetProxy()->GetWidget());
-	  assert(regionwidget);
-	  CrosshairExtension::SampleRepresentation *samRep = dynamic_cast<CrosshairExtension::SampleRepresentation *>(m_sample->representation("Crosshairs"));
-  
-	  int normalDir = (i + 2) % 3;
-	  regionwidget->SetSlice(samRep->slice(ViewType(i)),spacing[normalDir]);
-      }
+//       if (i < 3)//NOTE: To force repaint on other views in case
+// 		// the counting region visibility changes    
+//       {
+// 	  vtkRectangularBoundingRegionWidget *regionwidget = dynamic_cast<vtkRectangularBoundingRegionWidget*>(m_widget[i]->getWidgetProxy()->GetWidget());
+// 	  assert(regionwidget);
+// 	  CrosshairExtension::SampleRepresentation *samRep = dynamic_cast<CrosshairExtension::SampleRepresentation *>(m_sample->representation("Crosshairs"));
+//   
+// // 	  int normalDir = (i + 2) % 3;
+// 	  regionwidget->SetSlice(samRep->slice(ViewType(i)),spacing);
+//       }
     }
     int inclusion[3], exclusion[3];
     vtkSMPropertyHelper(m_boundigRegion->pipelineSource()->getProxy(),"Inclusion").Get(inclusion,3);
@@ -526,6 +526,11 @@ AdaptiveRegion::AdaptiveRegion(Sample* sample, int left, int top, int upper,
   {
     QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(m_boundigRegion->pipelineSource()->getProxy(), m_boundigRegion->pipelineSource()->getProxy());
     m_widget[i] = widgets.first();
+    QObject::connect(m_widget[i], SIGNAL(widgetEndInteraction()),
+		     m_widget[i], SLOT(accept()));
+    QObject::connect(m_widget[i], SIGNAL(widgetEndInteraction()),
+		     this, SLOT(reset()));
+    
   }
   info = m_modelInfo;
 }
@@ -585,8 +590,8 @@ void AdaptiveRegion::render(pqView* view, ViewType type)
   regionwidget->SetViewType(type);
   if (type != VIEW_3D)
   {
-    int normalDir = (type + 2) % 3;
-    regionwidget->SetSlice(samRep->slice(type),spacing[normalDir]);
+//     int normalDir = (type + 2) % 3;
+    regionwidget->SetSlice(samRep->slice(type),spacing);
   }
 }
 
@@ -687,6 +692,43 @@ QString AdaptiveRegion::description()
 }
 
 
+void AdaptiveRegion::reset()
+{
+  double spacing[3];
+  m_sample->spacing(spacing);
+  for (int i=0; i<4; i++)
+    if (m_widget[i])
+    {
+      m_widget[i]->reset();
+      if (i < 3)//NOTE: To force repaint on other views in case
+		// the counting region visibility changes    
+      {
+	  vtkRectangularBoundingRegionWidget *regionwidget = dynamic_cast<vtkRectangularBoundingRegionWidget*>(m_widget[i]->getWidgetProxy()->GetWidget());
+	  assert(regionwidget);
+	  CrosshairExtension::SampleRepresentation *samRep = dynamic_cast<CrosshairExtension::SampleRepresentation *>(m_sample->representation("Crosshairs"));
+  
+// 	  int normalDir = (i + 2) % 3;
+	  regionwidget->SetSlice(samRep->slice(ViewType(i)),spacing);
+      }
+    }
+    int inclusion[3], exclusion[3];
+    vtkSMPropertyHelper(m_boundigRegion->pipelineSource()->getProxy(),"Inclusion").Get(inclusion,3);
+    vtkSMPropertyHelper(m_boundigRegion->pipelineSource()->getProxy(),"Exclusion").Get(exclusion,3);
+    QString repName = QString("Adaptive Region (%1,%2,%3,%4,%5,%6)") 
+    .arg(inclusion[0])
+    .arg(exclusion[0])
+    .arg(inclusion[1])
+    .arg(exclusion[1])
+    .arg(inclusion[2])
+    .arg(exclusion[2]);
+    
+    m_modelInfo.first()->setData(repName,Qt::DisplayRole);
+   
+ emit regionChanged(this);
+}
+
+
+
 
 //!-----------------------------------------------------------------------
 //! CROSSHAIR EXTENSION
@@ -744,6 +786,7 @@ QString CountingRegion::SampleExtension::createAdaptiveRegion(int left, int top,
 					      right, bottom, lower, info);
   assert(region);
   info.last()->setData(region->description(),Qt::DisplayRole);
+//   connect(region,SIGNAL(regionChanged(BoundingRegion *)),this,SLOT(updateSegmentations(BoundingRegion *)));
   
   
 //   for(ViewType view = VIEW_PLANE_FIRST; view <= VIEW_3D; view = ViewType(view+1))
@@ -783,7 +826,7 @@ QString CountingRegion::SampleExtension::createRectangularRegion(int left, int t
 						    right, bottom, lower, info);
   assert(region);
   info.last()->setData(region->description(),Qt::DisplayRole);
-  connect(region,SIGNAL(regionChanged(BoundingRegion *)),this,SLOT(updateSegmentations(BoundingRegion *)));
+//   connect(region,SIGNAL(regionChanged(BoundingRegion *)),this,SLOT(updateSegmentations(BoundingRegion *)));
   
   QStandardItem *regionItem = info.first();
     QString repName = info.first()->data(Qt::DisplayRole).toString();
