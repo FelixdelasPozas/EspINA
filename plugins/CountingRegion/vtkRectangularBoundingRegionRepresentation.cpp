@@ -757,6 +757,11 @@ void vtkRectangularBoundingRegionRepresentation::CreateXYFace()
   vtkSmartPointer<vtkIntArray> lineData;
   vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
   
+  // We need it to get lower limits
+  int numPoints = this->Region->GetOutput()->GetPoints()->GetNumberOfPoints();
+  this->Region->GetOutput()->GetPoint(numPoints-1,point);
+  m_prevExclusionCoord[2] = point[2];
+  
   this->MarginPoints->SetNumberOfPoints(4);
   
   /// Top Inclusion Margin (0 - 1)
@@ -775,6 +780,7 @@ void vtkRectangularBoundingRegionRepresentation::CreateXYFace()
   Region->GetOutput()->GetPoint(0*4+1,point);
   this->MarginPoints->SetPoint(1, point);
   m_prevInclusionCoord[1] = point[1];
+  m_prevInclusionCoord[2] = point[2];
   
   inLines->InsertNextCell(line);
   lineData->InsertNextValue(255);
@@ -863,6 +869,15 @@ void vtkRectangularBoundingRegionRepresentation::CreateYZFace()
   vtkSmartPointer<vtkIntArray> lineData;
   vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
 
+  // We need it to get right limits
+  this->Region->GetOutput()->GetPoint(2,point);
+  m_prevExclusionCoord[0] = point[0];
+  for (int s=1; s < numSlices; s++)
+  {
+    this->Region->GetOutput()->GetPoint(s*4+2,point);
+    m_prevExclusionCoord[0] = std::max(m_prevExclusionCoord[0], point[0]);
+  }
+  
   this->MarginPoints->SetNumberOfPoints(numSlices*2);
   
   /// Upper Margin (0 - 1) // Point index refer to MarginPoint indices
@@ -880,6 +895,7 @@ void vtkRectangularBoundingRegionRepresentation::CreateYZFace()
   // Point 1
   this->Region->GetOutput()->GetPoint(0*4+0,point);
   this->MarginPoints->SetPoint(1, point);
+  m_prevInclusionCoord[0] = point[0];
   m_prevInclusionCoord[2] = point[2];
   
   inLines->InsertNextCell(line);
@@ -909,6 +925,7 @@ void vtkRectangularBoundingRegionRepresentation::CreateYZFace()
     Region->GetOutput()->GetPoint(slice*4+3,point);
     this->MarginPoints->SetPoint(2*slice, point);//BOTTOM
     m_prevExclusionCoord[1] = point[1];
+    
     // Point Slice_1
     Region->GetOutput()->GetPoint(slice*4+0,point);
     this->MarginPoints->SetPoint(2*slice+1, point);//TOP
@@ -973,6 +990,19 @@ void vtkRectangularBoundingRegionRepresentation::CreateXZFace()
   vtkCellArray *inLines;
   vtkSmartPointer<vtkIntArray> lineData;
   vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
+  
+  // We need it to get right limits
+  this->Region->GetOutput()->GetPoint(0,point);
+  m_prevInclusionCoord[1] = point[1];
+  this->Region->GetOutput()->GetPoint(3,point);
+  m_prevExclusionCoord[1] = point[1];
+  for (int s=1; s < numSlices; s++)
+  {
+    this->Region->GetOutput()->GetPoint(s*4+0,point);
+    m_prevInclusionCoord[1] = std::min(m_prevInclusionCoord[1], point[1]);
+    this->Region->GetOutput()->GetPoint(s*4+3,point);
+    m_prevExclusionCoord[1] = std::max(m_prevExclusionCoord[1], point[1]);
+  }
   
   this->MarginPoints->SetNumberOfPoints(numSlices*2);
   
@@ -1102,15 +1132,20 @@ void vtkRectangularBoundingRegionRepresentation::SetSlice(int slice, double spac
   if (ViewType == VOL)
     return;
   
-   if (slice == -1)
+  int normalDir = (ViewType+2)%3;
+  int slicePosition = slice*spacing[normalDir];
+  bool showRegion = m_prevInclusionCoord[normalDir] <= slicePosition &&
+		    slicePosition <= m_prevExclusionCoord[normalDir];
+  std::cout << "Exclusion on " << normalDir << ": " << m_prevExclusionCoord[normalDir] << std::endl;
+  if (showRegion)
+  {
+    for (int i=0; i<6; i++)
+      MarginActor[i]->SetProperty(InclusionProperty);
+  }else
   {
     for (int i=0; i<6; i++)
       MarginActor[i]->SetProperty(InvisibleProperty);
     return;
-  }else
-  {
-    for (int i=0; i<6; i++)
-      MarginActor[i]->SetProperty(InclusionProperty);
   }
   
   double *pts =
