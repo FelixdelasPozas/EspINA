@@ -67,9 +67,19 @@ QString Sample::getArguments()
 {
   double sp[3];
   spacing(sp);
-  return EspinaProduct::getArguments().append(
+  QString args = EspinaProduct::getArguments();
+  args.append(
     ESPINA_ARG("Spacing", QString("%1,%2,%3").arg(sp[0]).arg(sp[1]).arg(sp[2]))
-    );
+  );
+  
+  foreach(ISampleExtension *ext, m_extensions)
+  {
+    QString extArgs = ext->getArguments();
+    if (!extArgs.isEmpty())
+      args.append(ESPINA_ARG(ext->id(),"["+extArgs+"]"));
+  }
+  
+  return args;
 }
 
 //-----------------------------------------------------------------------------

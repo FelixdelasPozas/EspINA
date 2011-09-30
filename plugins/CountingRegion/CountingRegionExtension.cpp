@@ -275,10 +275,22 @@ int CountingRegion::BoundingRegion::exclusionVolume()
   return vol;
 }
 
+//------------------------------------------------------------------------
+QString CountingRegion::BoundingRegion::getArguments()
+{
+  return QString("%1,%2,%3,%4,%5,%6;")
+    .arg(m_inclusion[0]).arg(m_exclusion[0])
+    .arg(m_inclusion[1]).arg(m_exclusion[1])
+    .arg(m_inclusion[2]).arg(m_exclusion[2]);
+}
+
+
 //!-----------------------------------------------------------------------
 //! RECTANGULAR REGION SAMPLE REPRESENTATION
 //!-----------------------------------------------------------------------
 //! Represent a Bounding Region applied to the sample
+
+const ISampleRepresentation::RepresentationId RectangularRegion::ID  = "RectangularRegion";
 
 //------------------------------------------------------------------------
 RectangularRegion::RectangularRegion(Sample* sample,
@@ -296,6 +308,9 @@ RectangularRegion::RectangularRegion(Sample* sample,
   lower << ") Initialized");
   
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+  m_inclusion[0] = left;  m_exclusion[0] = right;
+  m_inclusion[1] = top;   m_exclusion[1] = bottom;
+  m_inclusion[2] = upper; m_exclusion[2] = lower;
   
   double spacing[3]; 
   m_sample->spacing(spacing);
@@ -440,11 +455,11 @@ QString RectangularRegion::description()
   m_sample->spacing(spacing);
   double volPixel = spacing[0]*spacing[1]*spacing[2]; //Volume of 1 pixel
   unsigned int totalVolInPixel = totalVolume();//(extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1);
-  int totalVolInUnits = totalVolInPixel*volPixel;
+  double totalVolInUnits = totalVolInPixel*volPixel;
   unsigned int inclusionVolInPixel = inclusionVolume();
-  int inclusionVolInUnits = inclusionVolInPixel*volPixel;
+  double inclusionVolInUnits = inclusionVolInPixel*volPixel;
   unsigned int exclusionVolInPixel = exclusionVolume();
-  int exclusionVolInUnits = exclusionVolInPixel*volPixel;
+  double exclusionVolInUnits = exclusionVolInPixel*volPixel;
   desc = desc.arg(totalVolInPixel,0).arg(totalVolInUnits,0,'f',2).arg(m_sample->units());
   desc = desc.arg(inclusionVolInPixel,0).arg(inclusionVolInUnits,0,'f',2);
   desc = desc.arg(exclusionVolInPixel,0).arg(exclusionVolInUnits,0,'f',2);
@@ -472,16 +487,15 @@ void RectangularRegion::reset()
 // 	  regionwidget->SetSlice(samRep->slice(ViewType(i)),spacing);
 //       }
     }
-    int inclusion[3], exclusion[3];
-    vtkSMPropertyHelper(m_boundigRegion->pipelineSource()->getProxy(),"Inclusion").Get(inclusion,3);
-    vtkSMPropertyHelper(m_boundigRegion->pipelineSource()->getProxy(),"Exclusion").Get(exclusion,3);
+    vtkSMPropertyHelper(m_boundigRegion->pipelineSource()->getProxy(),"Inclusion").Get(m_inclusion,3);
+    vtkSMPropertyHelper(m_boundigRegion->pipelineSource()->getProxy(),"Exclusion").Get(m_exclusion,3);
     QString repName = QString("Rectangular Region (%1,%2,%3,%4,%5,%6)") 
-    .arg(inclusion[0]/spacing[0])
-    .arg(exclusion[0]/spacing[0])
-    .arg(inclusion[1]/spacing[1])
-    .arg(exclusion[1]/spacing[1])
-    .arg(int(inclusion[2]/spacing[2])+1)
-    .arg(int(exclusion[2]/spacing[2])+1);
+    .arg(m_inclusion[0])
+    .arg(m_exclusion[0])
+    .arg(m_inclusion[1])
+    .arg(m_exclusion[1])
+    .arg(m_inclusion[2])
+    .arg(m_exclusion[2]);
     
     m_modelInfo.first()->setData(repName,Qt::DisplayRole);
    
@@ -493,6 +507,8 @@ void RectangularRegion::reset()
 //!-----------------------------------------------------------------------
 //! Represent a Bounding Region applied to the sample
 //------------------------------------------------------------------------
+const ISampleRepresentation::RepresentationId AdaptiveRegion::ID  = "AdaptiveRegion";
+
 AdaptiveRegion::AdaptiveRegion(Sample* sample, int left, int top, int upper,
 			       int right, int bottom, int lower,
 			       QList<QStandardItem *> &info
@@ -506,7 +522,11 @@ AdaptiveRegion::AdaptiveRegion(Sample* sample, int left, int top, int upper,
   right << "," <<
   bottom << "," <<
   lower << ") Initialized");
+  
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+  m_inclusion[0] = left;  m_exclusion[0] = right;
+  m_inclusion[1] = top;   m_exclusion[1] = bottom;
+  m_inclusion[2] = upper; m_exclusion[2] = lower;
   
   // Configuration of Bounding Region interface
   vtkFilter::Arguments regionArgs;
@@ -711,16 +731,15 @@ void AdaptiveRegion::reset()
 	  regionwidget->SetSlice(samRep->slice(ViewType(i)),spacing);
       }
     }
-    int inclusion[3], exclusion[3];
-    vtkSMPropertyHelper(m_boundigRegion->pipelineSource()->getProxy(),"Inclusion").Get(inclusion,3);
-    vtkSMPropertyHelper(m_boundigRegion->pipelineSource()->getProxy(),"Exclusion").Get(exclusion,3);
+    vtkSMPropertyHelper(m_boundigRegion->pipelineSource()->getProxy(),"Inclusion").Get(m_inclusion,3);
+    vtkSMPropertyHelper(m_boundigRegion->pipelineSource()->getProxy(),"Exclusion").Get(m_exclusion,3);
     QString repName = QString("Adaptive Region (%1,%2,%3,%4,%5,%6)") 
-    .arg(inclusion[0])
-    .arg(exclusion[0])
-    .arg(inclusion[1])
-    .arg(exclusion[1])
-    .arg(inclusion[2])
-    .arg(exclusion[2]);
+    .arg(m_inclusion[0])
+    .arg(m_exclusion[0])
+    .arg(m_inclusion[1])
+    .arg(m_exclusion[1])
+    .arg(m_inclusion[2])
+    .arg(m_exclusion[2]);
     
     m_modelInfo.first()->setData(repName,Qt::DisplayRole);
    
@@ -778,15 +797,60 @@ QVariant CountingRegion::SampleExtension::information(QString info)
 }
 
 //------------------------------------------------------------------------
+void CountingRegion::SampleExtension::setArguments(QString args)
+{
+  QStringList regions = args.split(";");
+  
+  foreach (QString region, regions)
+  {
+    std::cout << "Number of regions: " << m_regions.size() << std::endl;
+    if (region.isEmpty())
+      continue;
+    
+    QString type = region.section('=',0,0);
+    QStringList margins = region.section('=',-1).split(',');
+    int inclusion[3], exclusion[3];
+    QList<QStandardItem *> row;
+    for (int i=0; i<3; i++)
+    {
+      inclusion[i] = margins[2*i].toInt();
+      exclusion[i] = margins[2*i+1].toInt();
+    }
+    if (type == RectangularRegion::ID)
+      createRectangularRegion(inclusion[0],inclusion[1],inclusion[2],
+	exclusion[0], exclusion[1], exclusion[2], row);
+    else if (type == AdaptiveRegion::ID)
+      createAdaptiveRegion(inclusion[0],inclusion[1],inclusion[2],
+	exclusion[0], exclusion[1], exclusion[2], row);
+  }
+  std::cout << "Number of regions: " << m_regions.size() << std::endl;
+}
+
+//------------------------------------------------------------------------
+QString CountingRegion::SampleExtension::getArguments()
+{
+  QString args;
+  
+  foreach(BoundingRegion *r, m_regions)
+  {
+    args.append(r->id()+"="+r->getArguments());
+  }
+  
+  return args;
+}
+
+
+//------------------------------------------------------------------------
 QString CountingRegion::SampleExtension::createAdaptiveRegion(int left, int top, int upper,
 							      int right, int bottom, int lower,
 							      QList<QStandardItem *> &info)
 {
+  assert(m_sample);
   AdaptiveRegion *region = new AdaptiveRegion(m_sample, left, top, upper,
 					      right, bottom, lower, info);
   assert(region);
   info.last()->setData(region->description(),Qt::DisplayRole);
-//   connect(region,SIGNAL(regionChanged(BoundingRegion *)),this,SLOT(updateSegmentations(BoundingRegion *)));
+  connect(region,SIGNAL(regionChanged(BoundingRegion *)),this,SLOT(updateSegmentations(BoundingRegion *)));
   
   
 //   for(ViewType view = VIEW_PLANE_FIRST; view <= VIEW_3D; view = ViewType(view+1))
@@ -826,7 +890,7 @@ QString CountingRegion::SampleExtension::createRectangularRegion(int left, int t
 						    right, bottom, lower, info);
   assert(region);
   info.last()->setData(region->description(),Qt::DisplayRole);
-//   connect(region,SIGNAL(regionChanged(BoundingRegion *)),this,SLOT(updateSegmentations(BoundingRegion *)));
+  connect(region,SIGNAL(regionChanged(BoundingRegion *)),this,SLOT(updateSegmentations(BoundingRegion *)));
   
   QStandardItem *regionItem = info.first();
     QString repName = info.first()->data(Qt::DisplayRole).toString();

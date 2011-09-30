@@ -57,6 +57,8 @@ public:
   virtual ISampleRepresentation *representation(QString rep) = 0;
   virtual QStringList availableInformations() {return m_availableInformations;}
   virtual QVariant information(QString info) = 0;
+  virtual void setArguments(QString args) {}
+  virtual QString getArguments() {return QString();};
   
   virtual Sample *sample() {return m_sample;}
   

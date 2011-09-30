@@ -332,6 +332,18 @@ void ProcessingTrace::readTrace(QTextStream& stream)
           {
             newSample->setSpacing(values[0].toDouble(), values[1].toDouble(), values[2].toDouble());
           }
+          foreach(QString argName, args.keys())
+	  {
+	    if (argName != "Id" && argName != "Taxonomy" && argName != "Spacing")
+	    {
+	      if (!newSample->extension(argName))
+	      {
+		std::cout << "ERROR: Extension " << argName.toStdString() << " doesn't exist" << std::endl;
+		assert(false);
+	      }
+	      newSample->extension(argName)->setArguments(args[argName]);
+	    }
+	  }
 	  //ALERT: newSample is not initialize until added to espina model
 	  assert(newSample->representation(LabelMapExtension::SampleRepresentation::ID));
 	  dynamic_cast<LabelMapExtension::SampleRepresentation *>(newSample->representation(LabelMapExtension::SampleRepresentation::ID))->setEnable(false);

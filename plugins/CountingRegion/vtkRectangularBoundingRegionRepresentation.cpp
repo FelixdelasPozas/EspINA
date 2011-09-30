@@ -344,7 +344,7 @@ void vtkRectangularBoundingRegionRepresentation::MoveLeftMargin(double* p1, doub
   }
   
   Inclusion[X] = (p2[X] - m_prevInclusionCoord[X])/Spacing[X] + m_prevInclusion[X];
-  std::cout << "Moving X: Inclusion " << Inclusion[0] << std::endl;
+//   std::cout << "Moving X: Inclusion " << Inclusion[0] << std::endl;
   
   this->MarginPolyData[LEFT]->Modified();
   this->MarginPolyData[contBorder1]->Modified();
@@ -377,7 +377,7 @@ void vtkRectangularBoundingRegionRepresentation::MoveRightMargin(double* p1, dou
   }
   
   Exclusion[X] = (m_prevExclusionCoord[X] - p2[X])/Spacing[X] + m_prevExclusion[X];
-  std::cout << "Moving X: Exclusion " << Exclusion[0] << std::endl;
+//   std::cout << "Moving X: Exclusion " << Exclusion[0] << std::endl;
   
   this->MarginPolyData[RIGHT]->Modified();
   this->MarginPolyData[contBorder1]->Modified();
@@ -409,7 +409,7 @@ void vtkRectangularBoundingRegionRepresentation::MoveTopMargin(double* p1, doubl
   }
 
   Inclusion[Y] = (p2[Y] - m_prevInclusionCoord[Y])/Spacing[Y] + m_prevInclusion[Y];
-  std::cout << "Moving Y: Inclusion " << Inclusion[Y] << std::endl;
+//   std::cout << "Moving Y: Inclusion " << Inclusion[Y] << std::endl;
   
   this->MarginPolyData[TOP]->Modified();
   this->MarginPolyData[contBorder1]->Modified();
@@ -442,7 +442,7 @@ void vtkRectangularBoundingRegionRepresentation::MoveBottomMargin(double* p1, do
     assert(false);
   
   Exclusion[Y] = (m_prevExclusionCoord[Y] - p2[Y])/Spacing[Y] + m_prevExclusion[Y];
-  std::cout << "Moving Y: Exclusion " << Exclusion[Y] << std::endl;
+//   std::cout << "Moving Y: Exclusion " << Exclusion[Y] << std::endl;
   
   this->MarginPolyData[BOTTOM]->Modified();
   this->MarginPolyData[contBorder1]->Modified();
@@ -464,7 +464,7 @@ void vtkRectangularBoundingRegionRepresentation::MoveUpperMargin(double* p1, dou
   pts[3*1 + Z] = p2[Z]; 
   
   Inclusion[Z] = (p2[Z] - m_prevInclusionCoord[Z])/Spacing[Z] + m_prevInclusion[Z];
-  std::cout << "Moving Z: Inclusion " << Inclusion[Z] << std::endl;
+//   std::cout << "Moving Z: Inclusion " << Inclusion[Z] << std::endl;
   
   this->MarginPolyData[UPPER]->Modified();
   this->MarginPolyData[contBorder1]->Modified();
@@ -489,7 +489,7 @@ void vtkRectangularBoundingRegionRepresentation::MoveLowerMargin(double* p1, dou
   pts[3*(lastMarginPoint+1) + Z] = p2[Z];
   
   Exclusion[Z] = (m_prevExclusionCoord[Z] - p2[Z])/Spacing[Z] + m_prevExclusion[Z];
-  std::cout << "Moving Z: Exclusion " << Exclusion[Z] << std::endl;
+//   std::cout << "Moving Z: Exclusion " << Exclusion[Z] << std::endl;
   
   this->MarginPolyData[LOWER]->Modified();
   this->MarginPolyData[contBorder1]->Modified();
@@ -1136,7 +1136,7 @@ void vtkRectangularBoundingRegionRepresentation::SetSlice(int slice, double spac
   int slicePosition = slice*spacing[normalDir];
   bool showRegion = m_prevInclusionCoord[normalDir] <= slicePosition &&
 		    slicePosition <= m_prevExclusionCoord[normalDir];
-  std::cout << "Exclusion on " << normalDir << ": " << m_prevExclusionCoord[normalDir] << std::endl;
+//   std::cout << "Exclusion on " << normalDir << ": " << m_prevExclusionCoord[normalDir] << std::endl;
   if (showRegion)
   {
     for (int i=0; i<6; i++)

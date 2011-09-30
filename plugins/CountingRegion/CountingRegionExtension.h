@@ -75,6 +75,7 @@ public:
   void setInclusive(int left, int top, int upper);
   void setExclusive(int right, int bottom, int lower);
   virtual QString description() = 0;
+  virtual QString getArguments();
   
 public slots:
   virtual void requestUpdate(bool force = false){}
@@ -83,6 +84,8 @@ protected:
   vtkFilter *m_boundigRegion;
   QList<QStandardItem *> m_modelInfo;
   int m_regionId;
+  int m_inclusion[3];
+  int m_exclusion[3];
 };
 
 //! A Rectangular Bounding Region
@@ -91,10 +94,14 @@ class RectangularRegion : public CountingRegion::BoundingRegion
 {
   Q_OBJECT
 public:
+  static const ISampleRepresentation::RepresentationId ID;
+  
   RectangularRegion(Sample* sample, int left, int top, int upper,
 		    int right, int bottom, int lower,
 		    QList<QStandardItem *> &info);
   virtual ~RectangularRegion();
+  
+  virtual QString id() {return ID;}
   
   virtual void render(pqView* view, ViewType type = VIEW_3D);
   virtual void clear(pqView* view, ViewType type = VIEW_3D);
@@ -118,10 +125,14 @@ class AdaptiveRegion : public CountingRegion::BoundingRegion
 {
   Q_OBJECT
 public:
+  static const ISampleRepresentation::RepresentationId ID;
+  
   AdaptiveRegion(Sample* sample, int left, int top, int upper,
 		 int right, int bottom, int lower,
 		 QList< QStandardItem* >& info);
   virtual ~AdaptiveRegion();
+  
+  virtual QString id() {return ID;}
   
   virtual void render(pqView* view, ViewType type = VIEW_3D);
   virtual void clear(pqView* view, ViewType type = VIEW_3D);
@@ -158,6 +169,8 @@ public:
     virtual ISampleRepresentation* representation(QString rep);
     virtual QStringList availableRepresentations() {return m_regions.keys();}
     virtual QVariant information(QString info);
+    virtual void setArguments(QString args);
+    virtual QString getArguments();
     
     QString createAdaptiveRegion(int left, int top, int upper,
 				 int right, int bottom, int lower,
