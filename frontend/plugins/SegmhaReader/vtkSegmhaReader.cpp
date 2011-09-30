@@ -33,14 +33,14 @@ typedef itk::Image<unsigned  char,3> 			EspinaImageType;
 typedef itk::ImageFileReader<SegmhaImageType> 		ImageReaderType;
 typedef itk::ImageToVTKImageFilter<SegmhaImageType> 	SegmhaToVTKImageFilterType;
 typedef itk::VTKImageToImageFilter<SegmhaImageType> 	VTKImageToImageFilterType;
-typedef itk::StatisticsLabelObject<unsigned long, 3> 	LabelObjectType;
+typedef itk::StatisticsLabelObject<unsigned int, 3> 	LabelObjectType;
 typedef itk::LabelMap<LabelObjectType> LabelMapType;
 typedef itk::LabelImageToShapeLabelMapFilter< 
 	      SegmhaImageType, LabelMapType> 		Image2LabelFilterType;
 typedef itk::LabelMapToLabelImageFilter<
-	      LabelMapType, SegmhaImageType> 		Label2ImageFilterType;
+	      LabelMapType, EspinaImageType> 		Label2ImageFilterType;
 typedef itk::ExtractImageFilter<
-	      SegmhaImageType, EspinaImageType> 	ExtractFilterType;
+	      EspinaImageType, EspinaImageType> 	ExtractFilterType;
 typedef itk::ImageToVTKImageFilter<EspinaImageType> 	ImageToVTKImageFilterType;
   
 
@@ -206,10 +206,12 @@ int vtkSegmhaReader::RequestData(
     tmpLabelMap->CopyInformation(labelMap);
     object->SetLabel(255);
     tmpLabelMap->AddLabelObject(object);
+    tmpLabelMap->Update();
     
     Label2ImageFilterType::Pointer label2image =
       Label2ImageFilterType::New();
     label2image->SetInput(tmpLabelMap);
+    label2image->Update();
   
     ExtractFilterType::Pointer extract =
       ExtractFilterType::New();
@@ -227,10 +229,7 @@ int vtkSegmhaReader::RequestData(
       vtkSmartPointer<vtkImageData>::New();
     segImage->DeepCopy( itk2vtk_filter->GetOutput() );
     segImage->CopyInformation(itk2vtk_filter->GetOutput());//WARNING: don't forget!
-//     segImage->SetExtent(itk2vtk_filter->GetOutput()->GetExtent());
-//     segImage->SetSpacing(imageReader->GetOutput()->gets->GetSpacing());
-//     segImage->SetSpacing(1,1,2);
-//     segImage->SetWholeExtent(segImage->GetExtent());
+
     output->SetBlock(blockNo,segImage);
     
     blockNo++;

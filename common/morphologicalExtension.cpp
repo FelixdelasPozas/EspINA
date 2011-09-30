@@ -13,10 +13,10 @@
 #include <vtkSMProperty.h>
 #include <vtkSMDoubleVectorProperty.h>
 #include <QApplication>
+#include "sample.h"
 
 //!-----------------------------------------------------------------------
-//! MORPHOLOGICAL EXTENSION
-//!-----------------------------------------------------------------------
+//! MORPHOLOGICAL EXTENSION--------------------------------------
 //! Information Provided:
 //! - Centroid
 
@@ -106,11 +106,14 @@ QVariant MorphologicalExtension::information(QString info)
     vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"EquivalentEllipsoidSize").Get(m_EquivalentEllipsoidSize,3);
     QApplication::restoreOverrideCursor();
   }
+
+  double spacing[3];
+  m_seg->origin()->spacing(spacing);
   
   if (info == "Size")
       return m_Size;
   if (info == "Physical Size")
-      return m_PhysicalSize;
+    return m_PhysicalSize;
   if (info == "Centroid X")
       return m_Centroid[0];
   if (info == "Centroid Y")
@@ -118,11 +121,11 @@ QVariant MorphologicalExtension::information(QString info)
   if (info == "Centroid Z")
       return m_Centroid[2];
   if (info == "Region X")
-      return m_Region[0];
+      return m_Region[0]*spacing[0];
   if (info == "Region Y")
-      return m_Region[1];
+      return m_Region[1]*spacing[1];
   if (info == "Region Z")
-      return m_Region[2];
+    return m_Region[2]*spacing[2];
   if (info == "Binary Principal Moments X")
       return m_BinaryPrincipalMoments[0];
   if (info == "Binary Principal Moments Y")
