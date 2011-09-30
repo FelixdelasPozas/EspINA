@@ -93,7 +93,7 @@ public:
     }
     TaxonomyNode *taxonomy() {return m_tax;}
     //! Returns the QModelIndex of a given @node
-    QModelIndex taxonomyIndex(TaxonomyNode *node) const;
+    QModelIndex taxonomyIndex(TaxonomyNode* node) const;
     void addTaxonomy(QString name, QString parentName);
     void removeTaxonomy(QString name);
     TaxonomyNode *taxonomyParent(TaxonomyNode *node);

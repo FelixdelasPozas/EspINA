@@ -359,15 +359,54 @@ void TaxonomyProxy::sourceRowsRemoved(const QModelIndex& sourceParent, int start
 //------------------------------------------------------------------------
 void TaxonomyProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight)
 {
+  EspINA *model = dynamic_cast<EspINA *>(sourceModel());
+  if (!model)
+    return;
+  
   const QModelIndex proxyTopLeft = mapFromSource(sourceTopLeft);
   const QModelIndex proxyBottomRight = mapFromSource(sourceBottomRight);
   
+  IModelItem *segItem = static_cast<IModelItem *>(proxyTopLeft.internalPointer());
+  assert(segItem);
+  Segmentation *seg = dynamic_cast<Segmentation *>(segItem);
+  if (seg);
+  {
+    foreach(const TaxonomyNode *tax, m_taxonomySegs.keys())
+    {
+      int row = m_taxonomySegs[tax].indexOf(seg);
+      if (row >= 0)
+      {
+	QModelIndex taxIndex = mapFromSource(model->taxonomyIndex(const_cast<TaxonomyNode*>(tax)));
+	beginRemoveRows(taxIndex,row,row);
+      }
+    }
+  }
+  
   updateSegmentations();
+  
+  if (seg)
+  {
+    foreach(const TaxonomyNode *tax, m_taxonomySegs.keys())
+    {
+      int row = m_taxonomySegs[tax].indexOf(seg);
+      if (row >= 0)
+      {
+	QModelIndex taxIndex = mapFromSource(model->taxonomyIndex(const_cast<TaxonomyNode *>(tax)));
+	beginInsertRows(taxIndex,row,row);
+      }
+    }
+  }
   emit dataChanged(proxyTopLeft, proxyBottomRight);
   if (proxyTopLeft.isValid())
   {
     emit dataChanged(proxyTopLeft.parent(),proxyTopLeft.parent());
     emit dataChanged(proxyTopLeft, proxyBottomRight);
+  }
+  
+  if (seg)
+  {
+    endInsertRows();
+    endRemoveRows();
   }
 }
 

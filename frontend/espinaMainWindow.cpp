@@ -235,6 +235,9 @@ EspinaMainWindow::EspinaMainWindow()
   SegmentationEditor *segEditor = new SegmentationEditor();
   Internals->segmentationView->setItemDelegate(segEditor);
   Internals->segmentationView->installEventFilter(this);
+  Internals->segmentationView->setContextMenuPolicy(Qt::DefaultContextMenu);
+  connect(Internals->segmentationView, SIGNAL(customContextMenuRequested(QPoint)), 
+	  this, SLOT(showContextMenu(QPoint)));
   Internals->segmentationInformation->setIcon(qApp->style()->standardIcon(QStyle::SP_MessageBoxInformation));
   connect(Internals->segmentationView,SIGNAL(doubleClicked(QModelIndex)),
 	  this,SLOT(focusOnSegmentation()));
@@ -832,6 +835,35 @@ bool EspinaMainWindow::eventFilter(QObject* obj, QEvent* event)
       {
         deleteSegmentations();
       }
+    } else if (event->type() == QEvent::ContextMenu)
+    {
+      QContextMenuEvent *menuEvent = static_cast<QContextMenuEvent *>(event);
+      
+      QMenu *menu = new QMenu();
+      
+      
+      QMenu *changeMenu = new QMenu(tr("Change Taxonomy"));
+      QWidgetAction *taxonomyList = new QWidgetAction(changeMenu);
+      
+      QTreeView *taxonomyWidget = new QTreeView();
+      taxonomyWidget->header()->setVisible(false);
+      taxonomyWidget->setModel(m_espina);
+      taxonomyWidget->setRootIndex(m_espina->taxonomyRoot());
+      taxonomyWidget->expandAll();
+      connect(taxonomyWidget,SIGNAL(clicked(QModelIndex)),
+	      this, SLOT(changeTaxonomy(QModelIndex)));
+      
+      taxonomyList->setDefaultWidget(taxonomyWidget);
+      changeMenu->addAction(taxonomyList);
+      
+      QAction *deleteSeg = new QAction(tr("Delete"),this);
+      connect(deleteSeg,SIGNAL(triggered(bool)),
+	      this,SLOT(deleteSegmentations()));
+      
+      menu->addMenu(changeMenu);
+      menu->addAction(deleteSeg);
+      
+      menu->exec(menuEvent->globalPos());
     }
   }
   // Pass the event on to the parent class
@@ -855,8 +887,9 @@ void EspinaMainWindow::setGroupView(int idx)
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::deleteSegmentations()
 {
-  QItemSelectionModel *selection = this->Internals->segmentationView->selectionModel();
-  foreach(QModelIndex index, selection->selectedIndexes())
+  QModelIndexList prevSelected = m_sourceSelection;
+  Internals->segmentationView->clearSelection();
+  foreach(QModelIndex index, prevSelected)
   {
     IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
     Segmentation *seg = dynamic_cast<Segmentation *>(item);
@@ -864,6 +897,25 @@ void EspinaMainWindow::deleteSegmentations()
     if (seg)
     {
       m_espina->removeSegmentation(seg);
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::changeTaxonomy(const QModelIndex& taxIndex)
+{
+  QModelIndexList prevSelected = m_sourceSelection;
+  Internals->segmentationView->clearSelection();
+  foreach(QModelIndex index, prevSelected)
+  {
+    IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+    Segmentation *seg = dynamic_cast<Segmentation *>(item);
+    //TODO: Handle segmentation and taxonomy deletions differently
+    if (seg)
+    {
+      QString taxonomyName = taxIndex.data(Qt::DisplayRole).toString();
+      std::cout << "Change Taxonomy to " << taxonomyName.toStdString() << std::endl;
+      m_espina->changeTaxonomy(seg,taxonomyName);
     }
   }
 }
@@ -891,6 +943,8 @@ void EspinaMainWindow::extractInformation()
   }
   file.close();
 }
+
+
 
 
 //-----------------------------------------------------------------------------
