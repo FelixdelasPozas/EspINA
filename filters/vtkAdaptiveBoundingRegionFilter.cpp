@@ -178,7 +178,7 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
   int zMin = std::min(extent[4] + Inclusion[2], extent[5]);
   int zMax = std::max(extent[5] - Exclusion[2], extent[4]);
   
-  const int blackThreshold = 10;
+  const int blackThreshold = 50;
   vtkIdType lastCell[4];
   for (int z = zMin; z <= zMax; z++)
   {
@@ -192,11 +192,11 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
     {
       bool nonBlackPixelDetected = false;
       double p1[3], p2[3];
+      bool singlePixel = true;;
       for (int x = 0; x < dim[0]; x++)
       {
 	bool nonBlackPixel = false;
-	//BUG: overflows with big images
-	int pxId = x*numComponets + y * dim[0]*numComponets + z * dim[0] * dim[1]*numComponets; //check numComponents
+	unsigned long pxId = x*numComponets + y * dim[0]*numComponets + z * dim[0] * dim[1]*numComponets; //check numComponents
 	for (int c = 0; c < numComponets; c++)
 	  nonBlackPixel = nonBlackPixel || (imagePtr[pxId+c] > blackThreshold);
 	
@@ -208,6 +208,7 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
 	    p2[0] = x * spacing[0];
 	    p2[1] = y * spacing[1];
 	    p2[2] = z * spacing[2];
+	    singlePixel = false;
 	  }
 	  else
 	  {
@@ -220,10 +221,11 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
 	  }
 	}
       }
-      if (nonBlackPixelDetected)
+      if (nonBlackPixelDetected && !singlePixel)
+      {
 	nonBlackPixels->InsertNextPoint(p2);
+      }
     }
-    
     // Now we have to simplify the slice's borders to 4
     double corner[3], max[3], mid[3], min[3], size[3];
     vtkSmartPointer<vtkOBBTree> obb_tree = vtkSmartPointer<vtkOBBTree>::New();
