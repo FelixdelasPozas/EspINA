@@ -43,8 +43,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>240</width>
-        <height>162</height>
+        <width>214</width>
+        <height>136</height>
        </rect>
       </property>
       <attribute name="label">
@@ -240,10 +240,21 @@
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
-        <widget class="QComboBox" name="regionCombo"/>
+        <widget class="QLabel" name="label_8">
+         <property name="text">
+          <string>Defined Regions:</string>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QTreeView" name="regionView"/>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_7">
+         <property name="text">
+          <string>Information:</string>
+         </property>
+        </widget>
        </item>
        <item>
         <widget class="QTextEdit" name="regionDescription"/>

@@ -101,13 +101,31 @@ SegmhaImporterFilter::SegmhaImporterFilter(pqPipelineSource* reader, const QStri
       EspINA::instance()->loadFile(fileDialog.getSelectedFiles()[0], "add");
   }
   
+  reader->updatePipeline();
+  
+  Sample *stack = EspINA::instance()->activeSample();
+  
+  if (stack->extension("CountingRegionExtension"))
+  {
+    int margins[6];
+    
+    reader->getProxy()->UpdatePropertyInformation();
+    vtkSMPropertyHelper(reader->getProxy(),"CountingBrick").Get(margins,6);
+  
+    // NOTE: Counting Region margin's order 
+    QString rcb = QString("RectangularRegion=%1,%2,%3,%4,%5,%6;")
+      .arg(margins[0]).arg(margins[3])
+      .arg(margins[1]).arg(margins[4])
+      .arg(margins[2]).arg(margins[5]);
+    stack->extension("CountingRegionExtension")->setArguments(rcb);
+  }
+  
     
   m_args = ESPINA_ARG("Sample",EspINA::instance()->activeSample()->id());
   QString readerId = id + ":0";
   m_args.append(ESPINA_ARG("File",readerId));
   
   m_segReader = CachedObjectBuilder::instance()->registerProductCreator(id, reader);
-  reader->updatePipeline();
   
   // Load Taxonomy
   reader->getProxy()->UpdatePropertyInformation();
@@ -137,6 +155,8 @@ SegmhaImporterFilter::SegmhaImporterFilter(pqPipelineSource* reader, const QStri
   }
   EspINA::instance()->loadTaxonomy(root);
 //   std::cout << "Taxonomy read: " << taxonomyFile.toStdString() << std::endl;
+  
+  
   
   reader->getProxy()->UpdatePropertyInformation();
   vtkSMPropertyHelper(reader->getProxy(),"NumSegmentations").Get(&m_numSeg,1);

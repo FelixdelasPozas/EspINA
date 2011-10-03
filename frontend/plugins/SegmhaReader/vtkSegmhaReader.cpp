@@ -99,6 +99,20 @@ vtkSegmhaReader::~vtkSegmhaReader()
 }
 
 
+void parseCountingBrick(QString line, int cb[6])
+{
+  QStringList margins = line.split('=');
+  QStringList inclusive = margins[1].split(',');
+  QStringList exclusive = margins[2].split(',');
+  
+  cb[0] = inclusive[0].section('[',-1).toInt();
+  cb[1] = inclusive[1].toInt();
+  cb[2] = inclusive[2].section(']',0,0).toInt();
+  
+  cb[3] = exclusive[0].section('[',-1).toInt();
+  cb[3] = exclusive[1].toInt();
+  cb[4] = exclusive[2].section(']',0,0).toInt();
+}
 
 //---------------------------------------------------------------------------
 int vtkSegmhaReader::RequestData(
@@ -134,6 +148,12 @@ int vtkSegmhaReader::RequestData(
       TaxonomyObject tax(line);
       taxonomies.append(tax.toString());
       std::cout << tax.toString().toStdString() << std::endl;
+    }
+    else if (infoType == "Counting Brick")
+    {
+      int cb[6];
+      parseCountingBrick(line,cb);   
+      this->SetCountingBrick(cb);
     }
   }
   metaDataReader.close();

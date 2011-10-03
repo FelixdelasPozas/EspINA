@@ -43,14 +43,15 @@ public:
     vtkGetStringMacro(FileName);
 
     vtkGetMacro(NumSegmentations,int);
-//     vtkSetStringMacro(Trace);
-//     vtkGetStringMacro(Trace);
 
     vtkSetStringMacro(Taxonomy);
     vtkGetStringMacro(Taxonomy);
     
     vtkSetStringMacro(SegTaxonomies);
     vtkGetStringMacro(SegTaxonomies);
+    
+    vtkSetVector6Macro(CountingBrick,int);
+    vtkGetVector6Macro(CountingBrick,int);
     
 protected:
   vtkSegmhaReader();
@@ -68,6 +69,7 @@ private:
   int   NumSegmentations;
   char *Taxonomy;
   char *SegTaxonomies; 
+  int CountingBrick[6];
 //   char* Trace;
 };
 

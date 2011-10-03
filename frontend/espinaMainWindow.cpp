@@ -236,8 +236,6 @@ EspinaMainWindow::EspinaMainWindow()
   Internals->segmentationView->setItemDelegate(segEditor);
   Internals->segmentationView->installEventFilter(this);
   Internals->segmentationView->setContextMenuPolicy(Qt::DefaultContextMenu);
-  connect(Internals->segmentationView, SIGNAL(customContextMenuRequested(QPoint)), 
-	  this, SLOT(showContextMenu(QPoint)));
   Internals->segmentationInformation->setIcon(qApp->style()->standardIcon(QStyle::SP_MessageBoxInformation));
   connect(Internals->segmentationView,SIGNAL(doubleClicked(QModelIndex)),
 	  this,SLOT(focusOnSegmentation()));

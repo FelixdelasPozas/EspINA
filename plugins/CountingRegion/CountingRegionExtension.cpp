@@ -123,7 +123,7 @@ QVariant CountingRegion::SegmentationExtension::information(QString info)
 }
 
 //------------------------------------------------------------------------
-void CountingRegion::SegmentationExtension::updateRegions(QMap<QString, BoundingRegion *>& regions)
+void CountingRegion::SegmentationExtension::updateRegions(QMap<int, BoundingRegion *>& regions)
 {
   EXTENSION_DEBUG("Updating " << m_seg->id() << " bounding regions...");
   EXTENSION_DEBUG("\tNumber of regions applied:" << regions.size());
@@ -189,6 +189,7 @@ CountingRegion::BoundingRegion::BoundingRegion(Sample* sample)
   
   // Create a standard item model to represent the region
   QStandardItem * name = new QStandardItem("Bounding Region");
+  QStandardItem * id = new QStandardItem(QString::number(m_regionId));
   QStandardItem * renderInXY = new QStandardItem();
   renderInXY->setData(true,Qt::CheckStateRole);
   renderInXY->setCheckState(Qt::Checked);
@@ -206,7 +207,7 @@ CountingRegion::BoundingRegion::BoundingRegion(Sample* sample)
   renderIn3D->setCheckState(Qt::Checked);
   renderIn3D->setFlags(renderInXY->flags());
   QStandardItem * description = new QStandardItem("");
-  m_modelInfo << name << renderInXY << renderInYZ << renderInXZ << renderIn3D << description;
+  m_modelInfo << name << id << renderInXY << renderInYZ << renderInXZ << renderIn3D << description;
 }
 
 //------------------------------------------------------------------------
@@ -284,6 +285,40 @@ QString CountingRegion::BoundingRegion::getArguments()
     .arg(m_inclusion[2]).arg(m_exclusion[2]);
 }
 
+//------------------------------------------------------------------------
+const QList< QStandardItem* > CountingRegion::BoundingRegion::getModelItem()
+{
+  QList<QStandardItem *> cr;
+  QString repName = QString("%1 (%2,%3,%4,%5,%6,%7)") 
+  .arg(id())
+  .arg(m_inclusion[0]).arg(m_inclusion[1]).arg(m_inclusion[2])
+  .arg(m_exclusion[0]).arg(m_exclusion[1]).arg(m_exclusion[2]);
+  // Create a standard item model to represent the region
+  QStandardItem * name = new QStandardItem(repName); 
+  QStandardItem * id = new QStandardItem(QString::number(m_regionId));
+  QStandardItem * renderInXY = new QStandardItem();
+  renderInXY->setData(true,Qt::CheckStateRole);
+  renderInXY->setCheckState(Qt::Checked);
+  renderInXY->setFlags(renderInXY->flags() |  Qt::ItemIsUserCheckable| Qt::ItemIsEditable);
+  QStandardItem * renderInYZ = new QStandardItem();
+  renderInYZ->setData(true,Qt::CheckStateRole);
+  renderInYZ->setCheckState(Qt::Checked);
+  renderInYZ->setFlags(renderInXY->flags());
+  QStandardItem * renderInXZ = new QStandardItem();
+  renderInXZ->setData(true,Qt::CheckStateRole);
+  renderInXZ->setCheckState(Qt::Checked);
+  renderInXZ->setFlags(renderInXY->flags());
+  QStandardItem * renderIn3D = new QStandardItem();
+  renderIn3D->setData(true,Qt::CheckStateRole);
+  renderIn3D->setCheckState(Qt::Checked);
+  renderIn3D->setFlags(renderInXY->flags());
+  QStandardItem * description = new QStandardItem("");
+
+  cr <<name << id << renderInXY << renderInYZ << renderInXZ << renderIn3D << description;
+  
+  return cr;
+}
+
 
 //!-----------------------------------------------------------------------
 //! RECTANGULAR REGION SAMPLE REPRESENTATION
@@ -317,12 +352,6 @@ RectangularRegion::RectangularRegion(Sample* sample,
   int extent[6];
   m_sample->extent(extent);
   
-//   int leftPoint   = (extent[0] +  left  ) * spacing[0];
-//   int topPoint    = (extent[2] +  top   ) * spacing[1];
-//   int upperPoint  = (extent[4] +  upper ) * spacing[2];
-//   int rightPoint  = (extent[1] -  right ) * spacing[0];
-//   int bottomPoint = (extent[3] -  bottom) * spacing[1];
-//   int lowerPoint  = (extent[5] -  lower ) * spacing[2];
   
   // Configuration of Bounding Region interface
   vtkFilter::Arguments regionArgs;
@@ -343,8 +372,6 @@ RectangularRegion::RectangularRegion(Sample* sample,
     qDebug() << "Couldn't create Bounding Region Filter";
     assert(false);
   }
-//   pqObjectBuilder *builder =  pqApplicationCore::instance()->getObjectBuilder();
-//   m_box =  builder->createProxy("implicit_functions","NonRotatingBox",pqApplicationCore::instance()->getActiveServer(),"widgets");
   
   m_boundigRegion->pipelineSource()->updatePipeline();
   for (int i=0; i<4; i++)
@@ -358,13 +385,13 @@ RectangularRegion::RectangularRegion(Sample* sample,
 //     QObject::connect(widgets[i], SIGNAL(widgetEndInteraction()),
 // 		     this, SLOT(modifyVOI()));
   }
-  info = m_modelInfo;
   
   QString repName = QString("Rectangular Region (%1,%2,%3,%4,%5,%6)") 
   .arg(left).arg(top).arg(upper).arg(right).arg(bottom).arg(lower);
   
-  m_modelInfo.first()->setData(repName,Qt::DisplayRole);
+  m_modelInfo[0]->setData(repName,Qt::DisplayRole);
   
+  info = m_modelInfo;
 }
 
 //------------------------------------------------------------------------
@@ -389,7 +416,7 @@ void RectangularRegion::render(pqView* view, ViewType type)
   if (m_widget[type]->view() != view)
     m_widget[type]->setView(view);
 
-  if (m_modelInfo[1+type]->data(Qt::CheckStateRole) == Qt::Checked)
+  if (m_modelInfo[2+type]->data(Qt::CheckStateRole) == Qt::Checked)
     m_widget[type]->select();
   else
     m_widget[type]->deselect();
@@ -497,7 +524,7 @@ void RectangularRegion::reset()
     .arg(m_inclusion[2])
     .arg(m_exclusion[2]);
     
-    m_modelInfo.first()->setData(repName,Qt::DisplayRole);
+    m_modelInfo[0]->setData(repName,Qt::DisplayRole);
    
  emit regionChanged(this);
 }
@@ -597,7 +624,7 @@ void AdaptiveRegion::render(pqView* view, ViewType type)
     m_widget[type]->setView(view);
 
 //   if (m_visible[type])
-  if (m_modelInfo[1+type]->data(Qt::CheckStateRole) == Qt::Checked)
+  if (m_modelInfo[2+type]->data(Qt::CheckStateRole) == Qt::Checked)
     m_widget[type]->select();
   else
     m_widget[type]->deselect();
@@ -780,13 +807,26 @@ void CountingRegion::SampleExtension::initialize(Sample* sample)
 //------------------------------------------------------------------------
 ISampleRepresentation* CountingRegion::SampleExtension::representation(QString rep)
 {
-  if (m_regions.contains(rep))
-    return m_regions[rep];
+  int id = rep.split(" ")[2].toInt();
+  if (m_regions.contains(id))
+    return m_regions[id];
   
   qWarning() << ID << ":" << rep << " is not provided";
   assert(false);
   return NULL;
 }
+
+//------------------------------------------------------------------------
+QStringList CountingRegion::SampleExtension::availableRepresentations()
+{
+  QStringList reps;
+  foreach(int id, m_regions.keys())
+  {
+    reps << QString("Counting Region %1").arg(id);
+  }
+  return reps;
+}
+
 
 //------------------------------------------------------------------------
 QVariant CountingRegion::SampleExtension::information(QString info)
@@ -824,6 +864,7 @@ void CountingRegion::SampleExtension::setArguments(QString args)
 	exclusion[0], exclusion[1], exclusion[2], row);
   }
   std::cout << "Number of regions: " << m_regions.size() << std::endl;
+  emit regionsModified(this);
 }
 
 //------------------------------------------------------------------------
@@ -841,7 +882,7 @@ QString CountingRegion::SampleExtension::getArguments()
 
 
 //------------------------------------------------------------------------
-QString CountingRegion::SampleExtension::createAdaptiveRegion(int left, int top, int upper,
+void CountingRegion::SampleExtension::createAdaptiveRegion(int left, int top, int upper,
 							      int right, int bottom, int lower,
 							      QList<QStandardItem *> &info)
 {
@@ -860,9 +901,10 @@ QString CountingRegion::SampleExtension::createAdaptiveRegion(int left, int top,
     .arg(left).arg(top).arg(upper).arg(right).arg(bottom).arg(lower);
   
   info.first()->setData(repName,Qt::DisplayRole);
-  if (!m_regions.contains(repName))
+  
+  if (!m_regions.contains(region->regionId()))
   {
-    m_regions[repName] = region;
+    m_regions[region->regionId()] = region;
     m_numRepresentations++;
     
     foreach(Segmentation *seg, m_sample->segmentations())
@@ -877,12 +919,12 @@ QString CountingRegion::SampleExtension::createAdaptiveRegion(int left, int top,
     }
   }
   sample()->notifyInternalUpdate();
-  return repName;
+  emit regionsModified(this);
 }
 
 
 //------------------------------------------------------------------------
-QString CountingRegion::SampleExtension::createRectangularRegion(int left, int top, int upper,
+void CountingRegion::SampleExtension::createRectangularRegion(int left, int top, int upper,
 								 int right, int bottom, int lower,
 								 QList<QStandardItem *> &info)
 {
@@ -893,34 +935,35 @@ QString CountingRegion::SampleExtension::createRectangularRegion(int left, int t
   connect(region,SIGNAL(regionChanged(BoundingRegion *)),this,SLOT(updateSegmentations(BoundingRegion *)));
   
   QStandardItem *regionItem = info.first();
-    QString repName = info.first()->data(Qt::DisplayRole).toString();
-    if (!m_regions.contains(repName))
+  QString repName = info.first()->data(Qt::DisplayRole).toString();
+  
+  if (!m_regions.contains(region->regionId()))
+  {
+    m_regions[region->regionId()] = region;
+    m_numRepresentations++;
+    
+    foreach(Segmentation *seg, m_sample->segmentations())
     {
-      m_regions[repName] = region;
-      m_numRepresentations++;
-      
-      foreach(Segmentation *seg, m_sample->segmentations())
+      SegmentationExtension *ext = dynamic_cast<SegmentationExtension *>(seg->extension(CountingRegion::ID));
+      if (!ext)
       {
-	SegmentationExtension *ext = dynamic_cast<SegmentationExtension *>(seg->extension(CountingRegion::ID));
-	if (!ext)
-	{
-	  qDebug() << "Failed to load Counting Brick Extension on " << seg->id();
-	  assert(false);
-	}
-	ext->updateRegions(m_regions);
+	qDebug() << "Failed to load Counting Brick Extension on " << seg->id();
+	assert(false);
       }
+      ext->updateRegions(m_regions);
     }
+  }
   sample()->notifyInternalUpdate();
-  return repName;
+  emit regionsModified(this);
 }
 
 //------------------------------------------------------------------------
-void CountingRegion::SampleExtension::removeRegion(QString& name)
+void CountingRegion::SampleExtension::removeRegion(int regionId)
 {
-  if (m_regions.contains(name))
+  if (m_regions.contains(regionId))
   {
-    BoundingRegion *region = m_regions[name];
-    m_regions.remove(name);
+    BoundingRegion *region = m_regions[regionId];
+    m_regions.remove(regionId);
     m_numRepresentations--;
     
     foreach(Segmentation *seg, m_sample->segmentations())
@@ -935,6 +978,7 @@ void CountingRegion::SampleExtension::removeRegion(QString& name)
     }
     delete region;
   }
+  emit regionsModified(this);
 }
 
 
@@ -958,6 +1002,7 @@ void CountingRegion::SampleExtension::updateSegmentations(CountingRegion::Boundi
     ext->information("Discarted");
   }
   m_sample->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
+  emit regionsModified(this);
 }
 
 

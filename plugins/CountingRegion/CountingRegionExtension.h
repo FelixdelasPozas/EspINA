@@ -42,7 +42,7 @@ public:
   virtual ISegmentationRepresentation* representation(QString rep);
   virtual QVariant information(QString info);
   
-  void updateRegions(QMap<QString, BoundingRegion* >& regions);
+  void updateRegions(QMap< int, CountingRegion::BoundingRegion* >& regions);
   
   virtual ISegmentationExtension* clone();
   
@@ -72,10 +72,15 @@ public:
   //! Return exclusion volume in pixels
   virtual int exclusionVolume();
   
+  int regionId() {return m_regionId;}
+  
   void setInclusive(int left, int top, int upper);
   void setExclusive(int right, int bottom, int lower);
   virtual QString description() = 0;
   virtual QString getArguments();
+  
+  const QList<QStandardItem *> getModelItem();
+//   operator const QList<QStandardItem *> &() const {return m_modelInfo;}
   
 public slots:
   virtual void requestUpdate(bool force = false){}
@@ -167,28 +172,31 @@ public:
     virtual ExtensionId id() {return ID;}
     virtual void initialize(Sample* sample);
     virtual ISampleRepresentation* representation(QString rep);
-    virtual QStringList availableRepresentations() {return m_regions.keys();}
+    virtual QStringList availableRepresentations();
     virtual QVariant information(QString info);
     virtual void setArguments(QString args);
     virtual QString getArguments();
     
-    QString createAdaptiveRegion(int left, int top, int upper,
+    void createAdaptiveRegion(int left, int top, int upper,
 				 int right, int bottom, int lower,
 				 QList<QStandardItem *> &info);
-    QString createRectangularRegion(int left, int top, int upper,
+    void createRectangularRegion(int left, int top, int upper,
 				    int right, int bottom, int lower,
 				    QList<QStandardItem *> &info);
-    void removeRegion(QString &name);
+    void removeRegion(int regionId);
     
-    QMap<QString, BoundingRegion *> &regions() {return m_regions;}
+    QMap<int, BoundingRegion *> &regions() {return m_regions;}
     
     virtual ISampleExtension* clone();
     
 public slots:
   void updateSegmentations(BoundingRegion *region);
   
+signals:
+  void regionsModified(SampleExtension *);
+  
 private:
-  QMap<QString, BoundingRegion *> m_regions;
+  QMap<int, BoundingRegion *> m_regions;
   int m_numRepresentations;
 };
 

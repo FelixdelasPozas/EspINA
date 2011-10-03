@@ -64,6 +64,9 @@ public slots:
   void visibilityModified();
   
   //void onAction(QAction *action);
+  void displayRegions(SampleExtension *ext);
+  
+  void showInfo(const QModelIndex& index);
   
 protected:
   void resetRegionsModel();
