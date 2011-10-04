@@ -128,6 +128,9 @@ void VolumeView::connectToServer()
   double black[3] = {0,0,0};
   m_view->getRenderViewProxy()->SetBackgroundColorCM(black);
   
+  // Disable menu
+  m_view->getWidget()->removeAction(m_view->getWidget()->actions().first());
+
   QObject::connect(m_viewWidget, SIGNAL(mouseEvent(QMouseEvent *)),
                    this, SLOT(vtkWidgetMouseEvent(QMouseEvent *)));
 }

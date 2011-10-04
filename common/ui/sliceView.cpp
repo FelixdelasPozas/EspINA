@@ -580,6 +580,9 @@ void SliceView::connectToServer()
   m_view->setCenterAxesVisibility(false);
   m_view->setOrientationAxesVisibility(m_preferences->showAxis());
   //m_view->resetCamera();
+
+  // Disable menu
+  m_view->getWidget()->removeAction(m_view->getWidget()->actions().first());
 }
 
 //-----------------------------------------------------------------------------
