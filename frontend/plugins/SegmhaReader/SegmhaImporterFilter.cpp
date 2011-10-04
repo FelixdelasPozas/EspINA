@@ -186,7 +186,8 @@ SegmhaImporterFilter::SegmhaImporterFilter(pqPipelineSource* reader, const QStri
     blockNos.append(QString("%1").arg(p));
     
     Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(this, &segImage->product(0));
-    
+    m_blocks[seg] = blockNos[p];
+
     // Trace Segmentation
     trace->addNode(seg);
     // Trace connection
@@ -240,6 +241,7 @@ SegmhaImporterFilter::SegmhaImporterFilter(ITraceNode::Arguments& args)
     vtkFilter *segImage = cob->createFilter("filters","ExtractBlockAsImage",extractArgs);
     
     Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(this, &segImage->product(0));
+    m_blocks[seg] = blockNos[p];
     
     // Trace Segmentation
     trace->addNode(seg);
@@ -266,8 +268,21 @@ SegmhaImporterFilter::~SegmhaImporterFilter()
 //-----------------------------------------------------------------------------
 void SegmhaImporterFilter::removeProduct(EspinaProduct* product)
 {
-  assert(false);//TODO
-  m_numSeg = 0;
+  assert(m_numSeg > 0);
+  m_blocks.remove(product);
+  m_numSeg--;
+  assert(m_blocks.size() == m_numSeg);
+
+  QStringList prevArgs = m_args.split(';',QString::SkipEmptyParts);
+  QStringList newBlocks;
+  foreach(QString blockNo, m_blocks)
+    newBlocks.append(blockNo);
+
+  QString blockList = newBlocks.join(",");
+  prevArgs[0] = "Blocks="+blockList;
+
+  m_args = prevArgs.join(";");
+  m_args.append(';');
 }
 
 QWidget* SegmhaImporterFilter::createSetupWidget()

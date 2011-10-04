@@ -209,7 +209,7 @@ void ProcessingTrace::removeNode(ITraceNode* node)
     assert( node->type == ITraceNode::PRODUCT );
     parent = seg->parent();
     parent->removeProduct(seg);
-    if (parent->numProducts() != 0)
+    if (parent->numProducts() > 0)
     {
       parent = NULL;
     }

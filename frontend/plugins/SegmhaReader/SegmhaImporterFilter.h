@@ -66,6 +66,7 @@ private:
   EspinaFilter *m_restoreFilter;
   IFilter *m_finalFilter;
   int m_numSeg;
+  QMap<EspinaProduct *, QString> m_blocks;
   
   friend class SetupWidget;
 };
