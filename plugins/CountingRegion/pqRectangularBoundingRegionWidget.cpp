@@ -204,7 +204,7 @@ void pqRectangularBoundingRegionWidget::updateControlledMargins()
 //-----------------------------------------------------------------------------
 void pqRectangularBoundingRegionWidget::updateWidgetMargins()
 {
-  std::cout << "Update Widget Margins" << std::endl;
+//   std::cout << "Update Widget Margins" << std::endl;
   vtkSMNewWidgetRepresentationProxy* widget = this->getWidgetProxy();
   vtkAbstractWidget *miwidget = widget->GetWidget();
   vtkRectangularBoundingRegionWidget *rrbw = vtkRectangularBoundingRegionWidget::SafeDownCast(miwidget);

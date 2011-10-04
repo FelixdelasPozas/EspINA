@@ -101,7 +101,9 @@ public:
     //! Returns the QModelIndex of a given @seg
     QModelIndex segmentationIndex(Segmentation *seg) const;
 
+    int requestId(int suggestedId);
     
+    void changeId(Segmentation *seg, int id);
     void changeTaxonomy(Segmentation* seg, QString& taxName);
 
     Segmentation* segmentation(QString& segId);
@@ -175,6 +177,8 @@ private:
     //! corresponds to the id of the segmentation
     bool saveSegmentation( Segmentation* seg, QDir prefixFilePath);
 
+    int nextSegmentationId() {return m_nextValidSegId++;}
+
 private:
     TaxonomyNode *m_newSegType; // The type for new segmentations
     Sample *m_activeSample;
@@ -189,6 +193,8 @@ private:
     QMap<const TaxonomyNode *, QList<Segmentation *> > m_taxonomySegs;
 
     static EspINA *m_singleton;
+
+    int m_nextValidSegId;
 };
 
 #endif // ESPINA_H

@@ -375,7 +375,10 @@ void ProcessingTrace::readTrace(QTextStream& stream)
       else {
         qDebug() << "ProcessingTrace: segmentation " << args["Id"] << args["Taxonomy"];
         EspINA* espina = EspINA::instance();
-        espina->changeTaxonomy(espina->segmentation(args["Id"]), args["Taxonomy"]);
+	Segmentation *seg = espina->segmentation(args["Id"]);
+	assert(seg);
+	espina->changeId(seg, label.section(' ',-1).toInt());
+        espina->changeTaxonomy(seg, args["Taxonomy"]);
         
       //  localPipe.push_back(*vi);
       // check if is a filter and all of its dependecies exist

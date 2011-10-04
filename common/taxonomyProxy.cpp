@@ -256,9 +256,9 @@ bool TaxonomyProxy::dropMimeData(const QMimeData* data, Qt::DropAction action, i
      QModelIndex oldTaxonomyIndex = mapFromSource(model->taxonomyIndex(draggedSeg->taxonomy()));
      int row = m_taxonomySegs[draggedSeg->taxonomy()].indexOf(draggedSeg);
      beginRemoveRows(oldTaxonomyIndex,row,row);
+     beginInsertRows(parent,row,row);
      model->changeTaxonomy(draggedSeg, newTax);
      endRemoveRows();
-     beginInsertRows(parent,row,row);
      endInsertRows();
    }
   }
@@ -410,6 +410,12 @@ void TaxonomyProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QM
   }
 }
 
+bool idOrdered(Segmentation *seg1, Segmentation *seg2)
+{
+  int id1 = seg1->label().section(' ',-1).toInt();
+  int id2 = seg2->label().section(' ',-1).toInt();
+  return id1 < id2;
+}
 
 //------------------------------------------------------------------------
 void TaxonomyProxy::updateSegmentations() const
@@ -429,6 +435,12 @@ void TaxonomyProxy::updateSegmentations() const
     assert(seg);
     m_taxonomySegs[seg->taxonomy()].push_back(seg);
   }
+  
+  foreach(const TaxonomyNode *tax, m_taxonomySegs.keys())
+  {
+    qSort(m_taxonomySegs[tax].begin(),m_taxonomySegs[tax].end(),idOrdered);
+  }
+  
 }
 
 

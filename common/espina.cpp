@@ -85,6 +85,7 @@ EspINA* EspINA::instance()
 EspINA::EspINA(QObject* parent)
 : QAbstractItemModel(parent)
 , m_activeSample(NULL)
+, m_nextValidSegId(1)
 {
   loadTaxonomy();
   m_newSegType = NULL;//->getComponent("Symetric");
@@ -466,6 +467,25 @@ QModelIndex EspINA::segmentationIndex(Segmentation* seg) const
 }
 
 //------------------------------------------------------------------------
+int EspINA::requestId(int suggestedId)
+{
+  m_nextValidSegId--;
+  if (m_nextValidSegId <= suggestedId)
+    m_nextValidSegId = suggestedId+1;
+
+  return suggestedId;
+}
+
+
+//------------------------------------------------------------------------
+void EspINA::changeId(Segmentation* seg, int id)
+{
+  seg->setId(requestId(id));
+  emit dataChanged(segmentationIndex(seg),segmentationIndex(seg));
+}
+
+
+//------------------------------------------------------------------------
 void EspINA::changeTaxonomy(Segmentation* seg, QString& taxName)
 {
   // lcate the real segmentation pointer registered
@@ -473,6 +493,9 @@ void EspINA::changeTaxonomy(Segmentation* seg, QString& taxName)
   assert(m_taxonomySegs[oldTax].contains(seg));
   TaxonomyNode* newTax = m_tax->getComponent(taxName);
   assert(newTax);
+
+  if (oldTax == newTax)
+    return;
 
   m_taxonomySegs[oldTax].removeOne(seg);
   seg->setTaxonomy(newTax);
@@ -676,6 +699,8 @@ void EspINA::addSegmentation(Segmentation *seg)
   if (!seg->taxonomy())
     seg->setTaxonomy(node);
   seg->setOrigin(m_activeSample);
+  if (!seg->validId())
+    seg->setId(nextSegmentationId());
   seg->initialize();
   m_taxonomySegs[m_newSegType].push_back(seg);
   seg->origin()->addSegmentation(seg);
@@ -816,6 +841,8 @@ void EspINA::clear()
   this->removeSamples();
   
   this->removeTaxonomy();
+
+  m_nextValidSegId = 1;
 }
 
 
