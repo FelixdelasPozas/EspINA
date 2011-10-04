@@ -195,12 +195,13 @@ int vtkConnectedThresholdImageFilter::RequestData(vtkInformation* request, vtkIn
   output->DeepCopy( itk2vtk_filter->GetOutput() );
 
   vtkDebugMacro(<< "Updating Information");
+  output->CopyInformation(itk2vtk_filter->GetOutput());
   
-  // Without these lines, the output will appear real but will not work as the input to any other filters
-  output->SetExtent(itk2vtk_filter->GetOutput()->GetExtent());
-  output->SetSpacing(input->GetSpacing());
-//   output->SetUpdateExtent(output->GetExtent());//WARNING: TODO: Review this
-  output->SetWholeExtent(output->GetExtent());
+//   // Without these lines, the output will appear real but will not work as the input to any other filters
+//   output->SetExtent(itk2vtk_filter->GetOutput()->GetExtent());
+//   output->SetSpacing(input->GetSpacing());
+// //   output->SetUpdateExtent(output->GetExtent());//WARNING: TODO: Review this
+//   output->SetWholeExtent(output->GetExtent());
   
   // Keep a pointer for furhter reference
   m_data = output;

@@ -223,9 +223,7 @@ bool discartedByRegion(vtkImageData *input, BoundingBox &inputBB, vtkPolyData *r
     
     BoundingBox faceBB(facePoints);
     if (inputBB.intersect(faceBB) && realCollision(input, inputBB.intersection(faceBB)))
-      if (faceData->GetScalars()->GetComponent(f,0) == 255)
-	return false;
-      else
+      if (faceData->GetScalars()->GetComponent(f,0) == 0)
 	return true;
   }
   
