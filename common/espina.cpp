@@ -500,6 +500,7 @@ void EspINA::changeTaxonomy(Segmentation* seg, QString& taxName)
   m_taxonomySegs[oldTax].removeOne(seg);
   seg->setTaxonomy(newTax);
   m_taxonomySegs[newTax].push_back(seg);
+  seg->origin()->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
   emit dataChanged(segmentationIndex(seg),segmentationIndex(seg));
 }
 
