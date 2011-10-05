@@ -121,7 +121,7 @@ void Sample::extent( int* out)
   //if (!m_extent)
   //{
     mutex.lock();
-    m_creator->pipelineSource()->updatePipeline();;
+    m_creator->pipelineSource()->updatePipeline();
     m_creator->pipelineSource()->getProxy()->UpdatePropertyInformation();
     vtkPVDataInformation *info = outputPort()->getDataInformation();
     m_extent = info->GetExtent();

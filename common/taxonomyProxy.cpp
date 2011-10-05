@@ -213,54 +213,55 @@ Qt::ItemFlags TaxonomyProxy::flags(const QModelIndex& index) const
 bool TaxonomyProxy::dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent)
 {
   
+  // To clear selection previous to drop items
+  // NOTE: if not cleared sometimes the model is broken
+  emit itemsDropped();
+
   IModelItem *parentItem = static_cast<IModelItem *>(parent.internalPointer());
   TaxonomyNode *newTax = dynamic_cast<TaxonomyNode *>(parentItem);
   if (!newTax)
   {
     Segmentation *parentSeg = dynamic_cast<Segmentation *>(parentItem);
     if (!parentSeg)
-      return true;//Unkown type
+      return false;//Unkown type
     newTax = parentSeg->taxonomy();
   }
-  
+  assert(newTax);
   // Recover dragged item information
   QByteArray encoded = data->data("application/x-qabstractitemmodeldatalist");
   QDataStream stream(&encoded, QIODevice::ReadOnly);
   
+  QList<Segmentation *> draggedSegs;
+
   while (!stream.atEnd())
   {
     int row, col;
     QMap<int,  QVariant> roleDataMap;
     stream >> row >> col >> roleDataMap;
     
-    Segmentation *draggedSeg = NULL;
-    
     QString segName = roleDataMap[Qt::DisplayRole].toString();
     foreach (const TaxonomyNode *tax, m_taxonomySegs.keys())
     {
+      bool segFound = false;
       foreach (Segmentation *seg, m_taxonomySegs[tax])
       {
 	if (seg->data(Qt::DisplayRole) == segName)
 	{
-	  draggedSeg = seg;
+	  draggedSegs.append(seg);
+	  segFound = true;
 	  break;
 	}
       }
-      if (draggedSeg)
+      if (segFound)
 	break;
     }
-    
-   if (draggedSeg)
-   {
-     EspINA *model = dynamic_cast<EspINA *>(sourceModel());
-     QModelIndex oldTaxonomyIndex = mapFromSource(model->taxonomyIndex(draggedSeg->taxonomy()));
-     int row = m_taxonomySegs[draggedSeg->taxonomy()].indexOf(draggedSeg);
-     beginRemoveRows(oldTaxonomyIndex,row,row);
-     beginInsertRows(parent,row,row);
-     model->changeTaxonomy(draggedSeg, newTax);
-     endRemoveRows();
-     endInsertRows();
-   }
+  }
+
+  EspINA *model = dynamic_cast<EspINA *>(sourceModel());
+  foreach(Segmentation *seg, draggedSegs)
+  {
+    std::cout << "Dropping " << seg->label().toStdString() << std::endl;
+      model->changeTaxonomy(seg, newTax);
   }
 
   return true;
@@ -288,6 +289,7 @@ QVariant TaxonomyProxy::data(const QModelIndex& proxyIndex, int role) const
 //------------------------------------------------------------------------
 void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start, int end)
 {
+  assert(start==end);
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
 
   if (sourceParent == model->sampleRoot())

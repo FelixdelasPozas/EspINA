@@ -243,6 +243,7 @@ EspinaMainWindow::EspinaMainWindow()
           this, SLOT(deleteSegmentations()));
   connect(Internals->segmentationInformation,SIGNAL(clicked(bool)),
 	  this,SLOT(showSegmentationInformation()));
+  connect(taxProxy,SIGNAL(itemsDropped()),Internals->segmentationView,SLOT(clearSelection()));
 //   connect(Internals->segmentationView,SIGNAL(clicked(QModelIndex)),
 // 	  this, SLOT(()));
 //   connect(Internals->segmentationView, SIGNAL(clicked(QModelIndex)),

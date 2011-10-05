@@ -485,25 +485,6 @@ void EspINA::changeId(Segmentation* seg, int id)
 }
 
 
-//------------------------------------------------------------------------
-void EspINA::changeTaxonomy(Segmentation* seg, QString& taxName)
-{
-  // lcate the real segmentation pointer registered
-  const TaxonomyNode* oldTax = seg->taxonomy();
-  assert(m_taxonomySegs[oldTax].contains(seg));
-  TaxonomyNode* newTax = m_tax->getComponent(taxName);
-  assert(newTax);
-
-  if (oldTax == newTax)
-    return;
-
-  m_taxonomySegs[oldTax].removeOne(seg);
-  seg->setTaxonomy(newTax);
-  m_taxonomySegs[newTax].push_back(seg);
-  seg->origin()->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
-  emit dataChanged(segmentationIndex(seg),segmentationIndex(seg));
-}
-
 //-----------------------------------------------------------------------------
 Segmentation* EspINA::segmentation(QString& segId)
 {
@@ -545,15 +526,27 @@ QList< Segmentation* > EspINA::segmentations(const Sample* sample) const
 //-----------------------------------------------------------------------------
 void EspINA::changeTaxonomy(Segmentation* seg, TaxonomyNode* newTaxonomy)
 {
+  if (seg->taxonomy() == newTaxonomy)
+    return;
+
   assert(m_taxonomySegs[seg->taxonomy()].contains(seg));
   m_taxonomySegs[seg->taxonomy()].removeOne(seg);
   seg->setTaxonomy(newTaxonomy);
   m_taxonomySegs[newTaxonomy].push_back(seg);
-  seg->origin()->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
-  
+
   QModelIndex segIndex = segmentationIndex(seg);
   emit dataChanged(segIndex,segIndex);
+  seg->origin()->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
 }
+
+//------------------------------------------------------------------------
+void EspINA::changeTaxonomy(Segmentation* seg, QString& taxName)
+{
+  TaxonomyNode* newTax = m_tax->getComponent(taxName);
+
+  changeTaxonomy(seg, newTax);
+}
+
 
 //-----------------------------------------------------------------------------
 void EspINA::loadFile(QString filePath, QString method)

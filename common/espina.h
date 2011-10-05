@@ -79,7 +79,9 @@ public:
     QList<Segmentation *> segmentations(const TaxonomyNode* taxonomy, bool recursive = false) const;
     //! Returns the list of segmentations belonging to @sample.
     QList<Segmentation *> segmentations(const Sample* sample) const;
+
     void changeTaxonomy(Segmentation *seg, TaxonomyNode *newTaxonomy);
+    void changeTaxonomy(Segmentation* seg, QString& taxName);
     
     // Taxonomy managing
     //! Returns the taxonomy used by the analyzer
@@ -110,7 +112,6 @@ public:
     int requestId(int suggestedId);
     
     void changeId(Segmentation *seg, int id);
-    void changeTaxonomy(Segmentation* seg, QString& taxName);
 
     Segmentation* segmentation(QString& segId);
     
