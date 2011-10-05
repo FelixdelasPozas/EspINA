@@ -186,11 +186,16 @@ int vtkCountingRegionFilter::FillOutputPortInformation(int port, vtkInformation*
 
 bool realCollision(vtkImageData *input, BoundingBox interscetion)
 {
+  double spacing[3];
+  input->GetSpacing(spacing);
   for (int z = interscetion.zMin; z <= interscetion.zMax; z++)
     for (int y = interscetion.yMin; y <= interscetion.yMax; y++)
       for (int x = interscetion.xMin; x <= interscetion.xMax; x++)
       {
-	if (input->GetScalarComponentAsDouble(x,y,z,0))
+	int px = x/spacing[0];
+	int py = y/spacing[1];
+	int pz = z/spacing[2];
+	if (input->GetScalarComponentAsDouble(px,py,pz,0))
 	  return true;
       }
   
@@ -208,7 +213,8 @@ bool discartedByRegion(vtkImageData *input, BoundingBox &inputBB, vtkPolyData *r
   // If there is no intersection (nor is inside), then it is discarted
   if (!inputBB.intersect(regionBB))
     return true;
-  
+
+  bool collisionDected = false;
   // Otherwise, we have to test all faces collisions
   int numOfCells = regionFaces->GetNumberOfCells();
   regionFaces->InitTraversal();
@@ -223,9 +229,15 @@ bool discartedByRegion(vtkImageData *input, BoundingBox &inputBB, vtkPolyData *r
     
     BoundingBox faceBB(facePoints);
     if (inputBB.intersect(faceBB) && realCollision(input, inputBB.intersection(faceBB)))
+    {
       if (faceData->GetScalars()->GetComponent(f,0) == 0)
 	return true;
+      collisionDected = true;
+    }
   }
+
+  if (collisionDected)
+    return false;
   
   // If no collision was detected we have to check for inclusion
   for (int p=0; p < regionPoints->GetNumberOfPoints(); p +=8)
@@ -235,8 +247,8 @@ bool discartedByRegion(vtkImageData *input, BoundingBox &inputBB, vtkPolyData *r
 	slicePoints->InsertNextPoint(regionPoints->GetPoint(p+i));
     
     BoundingBox sliceBB(slicePoints);
-    if (inputBB.intersect(sliceBB))
-      return !realCollision(input, inputBB.intersection(sliceBB));
+    if (inputBB.intersect(sliceBB) &&  realCollision(input, inputBB.intersection(sliceBB)))
+      return false;//;
   }
   
   // If no internal collision was detected, then the input was indeed outside our 
