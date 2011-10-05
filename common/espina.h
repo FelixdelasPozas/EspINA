@@ -85,6 +85,12 @@ public:
     //! Returns the taxonomy used by the analyzer
     void loadTaxonomy(TaxonomyNode *root) 
     {
+      if (m_tax)
+      {
+	beginRemoveRows(taxonomyRoot(),0,rowCount(taxonomyRoot()));
+	m_tax = NULL;
+	endRemoveRows();
+      }
       beginInsertRows(taxonomyRoot(), 0, 0);
       m_tax = root;
       endInsertRows();
