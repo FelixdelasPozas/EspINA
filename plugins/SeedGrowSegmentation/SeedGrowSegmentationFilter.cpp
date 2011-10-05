@@ -34,6 +34,10 @@
 #include <QSpinBox>
 #include <QLayout>
 #include <EspinaPluginManager.h>
+#include <pqOutputPort.h>
+#include <vtkPVDataInformation.h>
+#include <vtkSMProxy.h>
+#include <QMessageBox>
 
 
 
@@ -120,7 +124,35 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVO
   
   //WARNING: taking address of temporary => &m_finalFilter->product(0) ==> Need review
   Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(this, &m_finalFilter->product(0));
-
+  
+  if (voi)
+  {
+    int extent[6];
+    seg->creator()->pipelineSource()->updatePipeline();
+    seg->creator()->pipelineSource()->getProxy()->UpdatePropertyInformation();
+    seg->outputPort()->getDataInformation()->GetExtent(extent);
+    QStringList voiArgs = m_applyFilter->getFilterArguments().split(';');
+    QStringList bounds = voiArgs[2].section('=',-1).split(',');
+    for (int i=0; i < 6; i++)
+    {
+//       std::cout << extent[i] << " - " << bounds[i].toInt() << std::endl;
+      if (extent[i] == bounds[i].toInt())
+      {
+	QString title("Seed Grow Segmentation Filter Information");
+	QString text("New segmentation may be incomplete due to VOI restriction.");
+	
+	QApplication::setOverrideCursor(Qt::ArrowCursor);
+	QApplication::setOverrideCursor(Qt::ArrowCursor);
+	QMessageBox msgBox(QMessageBox::Information,title,text);
+	msgBox.exec();
+	QApplication::restoreOverrideCursor();
+	QApplication::restoreOverrideCursor();
+	break;
+	//"Seed Grow Segmentation Filter Information",
+      }
+    }
+  }
+  
   // Trace EspinaFilter
   trace->addNode(this);
   // Connect input
