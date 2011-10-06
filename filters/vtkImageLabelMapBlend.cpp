@@ -235,7 +235,7 @@ int vtkImageLabelMapBlend::FillInputPortInformation(int port, vtkInformation* in
 
 int vtkImageLabelMapBlend::RequestInformation(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
-    std::cout << "Request Info" << std::endl;
+//     std::cout << "Request Info" << std::endl;
   // get the info objects
   vtkInformation* outInfo = 
     outputVector->GetInformationObject(0);  
@@ -250,7 +250,7 @@ int vtkImageLabelMapBlend::RequestInformation(vtkInformation* request, vtkInform
 // This method computes the input necessary to generate the output
 int vtkImageLabelMapBlend::RequestUpdateExtent(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
-    std::cout << "Request Update Extent" << std::endl;
+//     std::cout << "Request Update Extent" << std::endl;
   vtkInformation* outInfo = outputVector->GetInformationObject(0);
   
   int requestedUpdateExt[6];
@@ -358,7 +358,7 @@ void vtkImageLabelMapBlend::copyInput(vtkImageLabelMapBlend::Input* input, vtkIm
   unsigned char *inputPtr = static_cast<unsigned char *>(input->image->GetScalarPointer());
   
 //   std::cout << "Copying Image with Lower Extent: " << input->extent[0] << " " << input->extent[1] << " " << input->extent[2] << " " << std::endl;
-  std::cout << "Copying Image with Update Area: " << updateArea[0] << " " << updateArea[1] << " " << updateArea[2] << " " << std::endl;
+//   std::cout << "Copying Image with Update Area: " << updateArea[0] << " " << updateArea[1] << " " << updateArea[2] << " " << std::endl;
   
   
   for (unsigned int z = updateArea[4]; z <= updateArea[5]; z++)
@@ -447,7 +447,7 @@ void vtkImageLabelMapBlend::blendInput(vtkImageLabelMapBlend::Input* input, vtkI
   bool isSelected = input->color[3];
   
 //   std::cout << "Blending Image with Lower Extent: " << input->extent[0] << " " << input->extent[1] << " " << input->extent[2] << " " << std::endl;
-  std::cout << "Blending Image with Update Area: " << updateArea[0] << " " << updateArea[1] << " " << updateArea[2] << " " << std::endl;
+//   std::cout << "Blending Image with Update Area: " << updateArea[0] << " " << updateArea[1] << " " << updateArea[2] << " " << std::endl;
   
   for (unsigned int z = updateArea[4]; z <= updateArea[5]; z++)
   {
@@ -480,7 +480,7 @@ void vtkImageLabelMapBlend::blendInput(vtkImageLabelMapBlend::Input* input, vtkI
 //! Run blending algorithm in the requested extent 
 void vtkImageLabelMapBlend::ThreadedRequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector, vtkImageData*** inData, vtkImageData** outData, int extent[6], int threadId)
 {
-  std::cout << "Request Threaded Data" << std::endl;
+//   std::cout << "Request Threaded Data" << std::endl;
   vtkInformation *inInfo = 
     inputVector[0]->GetInformationObject(0); 
   
@@ -497,7 +497,7 @@ void vtkImageLabelMapBlend::ThreadedRequestData(vtkInformation* request, vtkInfo
   // blended inputs in the area
   for (unsigned int r = 0; r < m_removeInputs.size(); r++)
   {
-    std::cout << "Regenerate Blender" << std::endl;
+//     std::cout << "Regenerate Blender" << std::endl;
     int removeAreaExtent[6];
     if (!intersect(m_removeInputs[r]->requestedAreaExtent,extent, removeAreaExtent))
       continue;
@@ -520,8 +520,8 @@ void vtkImageLabelMapBlend::ThreadedRequestData(vtkInformation* request, vtkInfo
 	vtkImageIterator<InputPixelType> inIt(input, inputRemoveExtent);
 	vtkImageProgressIterator<OutputPixelType> outIt(output, inputRemoveAreaExtent,this,threadId);
 	
-	std::cout << "Regenerating area ";
-	printExtent(inputRemoveAreaExtent);
+// 	std::cout << "Regenerating area ";
+// 	printExtent(inputRemoveAreaExtent);
 	
 	if (i == 0) // First input has to be copied, not blended
 	  copyInput(m_blendedInputs[0],output,inputRemoveAreaExtent);
@@ -535,7 +535,7 @@ void vtkImageLabelMapBlend::ThreadedRequestData(vtkInformation* request, vtkInfo
   // Then, after all removed areas have been regenerated, new inputs have to be blended
   for (unsigned int i = 0; i < m_newInputs.size(); i++)
   {
-    std::cout << "Update Blender" << std::endl;
+//     std::cout << "Update Blender" << std::endl;
     int inputAreaExtent[6];
 //     std::cout << "New Input area ";
 //     printExtent(m_newInputs[i]->requestedAreaExtent);
@@ -568,7 +568,7 @@ void vtkImageLabelMapBlend::ThreadedRequestData(vtkInformation* request, vtkInfo
 
 int vtkImageLabelMapBlend::RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
-  std::cout << "Request Data" << std::endl;
+//   std::cout << "Request Data" << std::endl;
 /*  
   vtkInformation* outInfo = outputVector->GetInformationObject(0); 
   if (m_newInputs.size() > 0)
