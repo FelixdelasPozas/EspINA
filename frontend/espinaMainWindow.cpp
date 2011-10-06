@@ -48,6 +48,7 @@
 #include "meshExtension.h"
 #include "volumetricExtension.h"
 #include "morphologicalExtension.h"
+#include "SegmentationSelectionExtension.h"
 #include "sampleDelegate.h"
 #include "segmentationEditor.h"
 
@@ -170,7 +171,7 @@ EspinaMainWindow::EspinaMainWindow()
   pqParaViewMenuBuilders::buildViewMenu(*this->Internals->menu_View, *this);
 
   //// Setup the help menu.
-  pqParaViewMenuBuilders::buildHelpMenu(*this->Internals->menu_Help);
+//   pqParaViewMenuBuilders::buildHelpMenu(*this->Internals->menu_Help);
   
   // ParaView Server
   pqServerManagerObserver *server = pqApplicationCore::instance()->getServerManagerObserver();
@@ -199,6 +200,8 @@ EspinaMainWindow::EspinaMainWindow()
   EspINAFactory::instance()->addSegmentationExtension(&volExt);
   MorphologicalExtension morphExt;
   EspINAFactory::instance()->addSegmentationExtension(&morphExt);
+  SegmentationSelectionExtension segSelExt;
+  EspINAFactory::instance()->addSegmentationExtension(&segSelExt);
   
   
   //! BUILD ESPINA INTERNALS
@@ -232,6 +235,7 @@ EspinaMainWindow::EspinaMainWindow()
   SegmentationEditor *segEditor = new SegmentationEditor();
   Internals->segmentationView->setItemDelegate(segEditor);
   Internals->segmentationView->installEventFilter(this);
+  Internals->segmentationView->setContextMenuPolicy(Qt::DefaultContextMenu);
   Internals->segmentationInformation->setIcon(qApp->style()->standardIcon(QStyle::SP_MessageBoxInformation));
   connect(Internals->segmentationView,SIGNAL(doubleClicked(QModelIndex)),
 	  this,SLOT(focusOnSegmentation()));
@@ -239,6 +243,7 @@ EspinaMainWindow::EspinaMainWindow()
           this, SLOT(deleteSegmentations()));
   connect(Internals->segmentationInformation,SIGNAL(clicked(bool)),
 	  this,SLOT(showSegmentationInformation()));
+  connect(taxProxy,SIGNAL(itemsDropped()),Internals->segmentationView,SLOT(clearSelection()));
 //   connect(Internals->segmentationView,SIGNAL(clicked(QModelIndex)),
 // 	  this, SLOT(()));
 //   connect(Internals->segmentationView, SIGNAL(clicked(QModelIndex)),
@@ -278,6 +283,8 @@ EspinaMainWindow::EspinaMainWindow()
   connect(Internals->writeDataToFile,SIGNAL(clicked()),this,SLOT(extractInformation()));
   Internals->dataView->setModel(m_espina);
   Internals->dataView->setRootIndex(m_espina->segmentationRoot());
+//   Internals->dataView->setSortingEnabled(true);
+//   Internals->dataView->sortByColumn(0);
   
 #if DEBUG_GUI
   connect(pqApplicationCore::instance()->getObjectBuilder(),
@@ -432,6 +439,7 @@ EspinaMainWindow::~EspinaMainWindow()
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::loadFile(QString method)
 {
+  Internals->segmentationView->clearSelection();//To prevent segmentation fault
   // GUI
 //   pqServer* server = pqApplicationCore::instance()->getActiveServer();
 //   pqFileDialog fileDialog(server, this, tr("Import"), "", FILTERS);
@@ -549,6 +557,7 @@ void EspinaMainWindow::removeSegmentationClicked(bool checked)
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::removeSelectedSegmentation(ISelectionHandler::Selection sel)
 {
+  Internals->segmentationView->clearSelection();
   foreach(ISelectionHandler::SelElement elem, sel)
   {
     Segmentation *seg = dynamic_cast<Segmentation *>(elem.second);
@@ -606,9 +615,9 @@ void EspinaMainWindow::updateSelection(const QItemSelection& selected, const QIt
   {
     const QAbstractProxyModel *sourceModel = dynamic_cast<const QAbstractProxyModel*>(selected.indexes().first().model());
     
-    foreach(QModelIndex index, selected.indexes())
+    foreach(QModelIndex proxyIndex, selected.indexes())
     {
-      QModelIndex sourceIndex =  sourceModel->mapToSource(index);
+      QModelIndex sourceIndex =  sourceModel->mapToSource(proxyIndex);
       if (!m_sourceSelection.contains(sourceIndex))
       {
 	IModelItem *item = static_cast<IModelItem *>(sourceIndex.internalPointer());
@@ -630,9 +639,9 @@ void EspinaMainWindow::updateSelection(const QItemSelection& selected, const QIt
   {
     const QAbstractProxyModel *sourceModel = dynamic_cast<const QAbstractProxyModel*>(deselected.indexes().first().model());
     
-    foreach(QModelIndex index, deselected.indexes())
+    foreach(QModelIndex proxyIndex, deselected.indexes())
     {
-      QModelIndex sourceIndex = sourceModel->mapToSource(index);
+      QModelIndex sourceIndex = sourceModel->mapToSource(proxyIndex);
       if (m_sourceSelection.contains(sourceIndex))
       {
 	IModelItem *item = static_cast<IModelItem *>(sourceIndex.internalPointer());
@@ -712,7 +721,6 @@ void EspinaMainWindow::addTaxonomyChildElement()
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::removeTaxonomyElement()
 {
-  
   IModelItem *currentItem = static_cast<IModelItem *>(this->Internals->taxonomyView->currentIndex().internalPointer());
   TaxonomyNode *currentNode = dynamic_cast<TaxonomyNode *>(currentItem);
   if( currentNode )
@@ -757,20 +765,20 @@ void EspinaMainWindow::focusOnSegmentation()
     Sample *origin = seg->origin();
     CrosshairExtension::SampleRepresentation *cross = dynamic_cast<CrosshairExtension::SampleRepresentation *>(origin->representation(CrosshairExtension::SampleRepresentation::ID));
     assert(cross);
-    QString args = seg->parent()->getFilterArguments();
-    int startArg = args.indexOf("Seed");
-    int endArg = args.indexOf(";",startArg);
-    startArg += 5; // To remove Seed= from the string
-    QString seedArg = args.mid(startArg,endArg-startArg);
-    QStringList seed = seedArg.split(",");
-//     double spacing[3];
-//     origin->spacing(spacing);
-// //     int x = seg->information("Centroid X").toInt() / spacing[0];
-//     int y = seg->information("Centroid Y").toInt() / spacing[1];
-//     int z = seg->information("Centroid Z").toInt() / spacing[2];
-    int x = seed[0].toInt();
-    int y = seed[1].toInt();
-    int z = seed[2].toInt();
+//     QString args = seg->parent()->getFilterArguments();
+//     int startArg = args.indexOf("Seed");
+//     int endArg = args.indexOf(";",startArg);
+//     startArg += 5; // To remove Seed= from the string
+//     QString seedArg = args.mid(startArg,endArg-startArg);
+//     QStringList seed = seedArg.split(",");
+//     int x = seed[0].toInt();
+//     int y = seed[1].toInt();
+//     int z = seed[2].toInt();
+    double spacing[3];
+    origin->spacing(spacing);
+    int x = seg->information("Centroid X").toInt() / spacing[0];
+    int y = seg->information("Centroid Y").toInt() / spacing[1];
+    int z = seg->information("Centroid Z").toInt() / spacing[2];
     cross->centerOn(x,y,z);
   }
 }
@@ -827,6 +835,37 @@ bool EspinaMainWindow::eventFilter(QObject* obj, QEvent* event)
       {
         deleteSegmentations();
       }
+    } else if (event->type() == QEvent::ContextMenu)
+    {
+      QContextMenuEvent *menuEvent = static_cast<QContextMenuEvent *>(event);
+      
+      QMenu *menu = new QMenu();
+      
+      
+      QMenu *changeMenu = new QMenu(tr("Change Taxonomy"));
+      QWidgetAction *taxonomyList = new QWidgetAction(changeMenu);
+      
+      QTreeView *taxonomyWidget = new QTreeView();
+      taxonomyWidget->header()->setVisible(false);
+      taxonomyWidget->setModel(m_espina);
+      taxonomyWidget->setRootIndex(m_espina->taxonomyRoot());
+      taxonomyWidget->expandAll();
+      connect(taxonomyWidget,SIGNAL(clicked(QModelIndex)),
+	      this, SLOT(changeTaxonomy(QModelIndex)));
+      connect(taxonomyWidget,SIGNAL(clicked(QModelIndex)),
+	      menu, SLOT(hide()));
+      
+      taxonomyList->setDefaultWidget(taxonomyWidget);
+      changeMenu->addAction(taxonomyList);
+      
+      QAction *deleteSeg = new QAction(tr("Delete"),this);
+      connect(deleteSeg,SIGNAL(triggered(bool)),
+	      this,SLOT(deleteSegmentations()));
+      
+      menu->addMenu(changeMenu);
+      menu->addAction(deleteSeg);
+            
+      menu->exec(menuEvent->globalPos());
     }
   }
   // Pass the event on to the parent class
@@ -850,8 +889,11 @@ void EspinaMainWindow::setGroupView(int idx)
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::deleteSegmentations()
 {
-  QItemSelectionModel *selection = this->Internals->segmentationView->selectionModel();
-  foreach(QModelIndex index, selection->selectedIndexes())
+  QModelIndexList prevSelected = m_sourceSelection;
+//   std::cout << "Selected Items: " << m_sourceSelection.size() << std::endl;
+//   m_sourceSelection.clear();
+  Internals->segmentationView->clearSelection();
+  foreach(QModelIndex index, prevSelected)
   {
     IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
     Segmentation *seg = dynamic_cast<Segmentation *>(item);
@@ -859,6 +901,25 @@ void EspinaMainWindow::deleteSegmentations()
     if (seg)
     {
       m_espina->removeSegmentation(seg);
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::changeTaxonomy(const QModelIndex& taxIndex)
+{
+  QModelIndexList prevSelected = m_sourceSelection;
+  Internals->segmentationView->clearSelection();
+  foreach(QModelIndex index, prevSelected)
+  {
+    IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+    Segmentation *seg = dynamic_cast<Segmentation *>(item);
+    //TODO: Handle segmentation and taxonomy deletions differently
+    if (seg)
+    {
+      QString taxonomyName = taxIndex.data(Qt::DisplayRole).toString();
+//       std::cout << "Change Taxonomy to " << taxonomyName.toStdString() << std::endl;
+      m_espina->changeTaxonomy(seg,taxonomyName);
     }
   }
 }
@@ -886,6 +947,8 @@ void EspinaMainWindow::extractInformation()
   }
   file.close();
 }
+
+
 
 
 //-----------------------------------------------------------------------------
@@ -924,11 +987,11 @@ void EspinaMainWindow::buildFileMenu(QMenu &menu)
   
   //signalMapper->setMapping(accountFileButton, QString("open"));
 
-  action = new QAction(QIcon(":espina/add.svg"),tr("Add"),this);
-  signalMapper->setMapping(action, QString("add"));
-  connect(action, SIGNAL(triggered(bool)), signalMapper, SLOT(map()));
-  menu.addAction(action);
-
+//   action = new QAction(QIcon(":espina/add.svg"),tr("Add"),this);
+//   signalMapper->setMapping(action, QString("add"));
+//   connect(action, SIGNAL(triggered(bool)), signalMapper, SLOT(map()));
+//   menu.addAction(action);
+// 
   connect(signalMapper, SIGNAL(mapped(QString)), this, SLOT(loadFile(QString)));
   /*
   // Import Trace from localhost
@@ -962,10 +1025,10 @@ void EspinaMainWindow::showPreferencesDialog()
 {
   PreferencesDialog dialog;
   
-  foreach(IPreferencePanel *panel, EspinaPluginManager::instance()->preferencePanels())
-  {
-    dialog.addPanel(panel);
-  }
+  IPreferencePanel *viewPanel = dialog.panel("View");
+  viewPanel->addPanel(m_xy->preferences());
+  viewPanel->addPanel(m_yz->preferences());
+  viewPanel->addPanel(m_xz->preferences());
   
   dialog.exec();
 }

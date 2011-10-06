@@ -369,6 +369,18 @@ EspinaFilter *RectangularVOI::restoreVOITransormation(vtkProduct* product)
   return NULL;
 }
 
+//-----------------------------------------------------------------------------
+void RectangularVOI::setDefaultBounds(double bounds[6])
+{
+  memcpy(m_bounds,bounds,6*sizeof(double));
+}
+
+//-----------------------------------------------------------------------------
+void RectangularVOI::resizeToDefaultSize()
+{
+  vtkSMPropertyHelper(m_box,"Bounds").Set(m_bounds,6);
+  m_box->UpdateVTKObjects();
+}
 
 //-----------------------------------------------------------------------------
 vtkSMProxy* RectangularVOI::getProxy()

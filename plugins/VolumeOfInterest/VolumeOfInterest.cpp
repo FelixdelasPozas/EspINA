@@ -62,6 +62,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "assert.h"
 #include <espINAFactory.h>
 #include <sample.h>
+#include "VolumeOfInterestPreferences.h"
+#include <EspinaPluginManager.h>
 
 
 
@@ -73,6 +75,16 @@ VolumeOfInterest::VolumeOfInterest(QObject* parent)
 , m_activeVOI(NULL)
 , m_focusedSample(NULL)
 {
+  m_selector = new PixelSelector();
+  m_selector->multiSelection = false;
+  m_selector->filters << "EspINA_Sample";
+  
+  connect(m_selector,SIGNAL(selectionAborted()),
+	  this, SLOT(cancelVOI()));
+  connect(m_selector,SIGNAL(selectionChanged(ISelectionHandler::Selection)),
+	  this, SLOT(applyVOI(ISelectionHandler::Selection)));
+  
+  
   buildUI();
   
   // register in a plugin list
@@ -80,18 +92,49 @@ VolumeOfInterest::VolumeOfInterest(QObject* parent)
   //ProcessingTrace::instance()->registerPlugin(registerName, this);
   //registerName = m_pluginName + "::" + "RectangularVOIFilter::Restore";
   //ProcessingTrace::instance()->registerPlugin(registerName, this);
+  m_preferences = new VolumeOfInterestPreferences();
+  EspinaPluginManager::instance()->registerPreferencePanel(m_preferences);
+
 }
+
+//-----------------------------------------------------------------------------
+void VolumeOfInterest::applyVOI(ISelectionHandler::Selection sel)
+{
+  QApplication::restoreOverrideCursor();
+  qDebug() << "EspINA::VolumeOfInterest: Apply VOI";
+  SelectionManager::instance()->unsetSelectionHandler(m_selector);
+  
+  // Compute default bounds
+  assert(sel.size() == 1); // At least one sample was selected
+  ISelectionHandler::SelElement selSample = sel.first();
+  assert(selSample.first.size() == 1); // with one pixel
+  Point clickedPixel = selSample.first.first();
+  Sample *input = dynamic_cast<Sample *>(selSample.second);
+  double spacing[3];
+  input->spacing(spacing);
+  double bounds[6] = {
+     (clickedPixel.x - m_preferences->xSize())*spacing[0],
+     (clickedPixel.x + m_preferences->xSize())*spacing[0],
+     (clickedPixel.y - m_preferences->ySize())*spacing[1],
+     (clickedPixel.y + m_preferences->ySize())*spacing[1],
+     (clickedPixel.z - m_preferences->zSize())*spacing[2],
+     (clickedPixel.z + m_preferences->zSize())*spacing[2]};
+  m_activeVOI->setDefaultBounds(bounds);
+  SelectionManager::instance()->setVOI(m_activeVOI);
+}
+
 
 //-----------------------------------------------------------------------------
 void VolumeOfInterest::enable(bool value)
 {
-  if (m_voiButton->isChecked())
+  if (value)
   {
-    qDebug() << "EspINA::VolumeOfInterest: Apply VOI";
-    SelectionManager::instance()->setVOI(m_activeVOI);
     m_voiButton->setChecked(true);
+    SelectionManager::instance()->setSelectionHandler(m_selector, QCursor(QPixmap(":roi_go.svg").scaled(32,32)));
+    qDebug() << "EspINA::VolumeOfInterest: Waiting VOI's placing point";
   }else
   {
+    SelectionManager::instance()->setSelectionHandler(NULL, Qt::ArrowCursor);
     SelectionManager::instance()->setVOI(NULL);
   }
 }

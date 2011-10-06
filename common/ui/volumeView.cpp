@@ -67,6 +67,9 @@
 #include <vtkPropPicker.h>
 #include <vtkSMPropertyHelper.h>
 #include <vtkPVDataInformation.h>
+#include <SegmentationSelectionExtension.h>
+#include <vtkInteractorStyleTrackballCamera.h>
+#include <QApplication>
 
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(QWidget* parent)
@@ -86,10 +89,18 @@ VolumeView::VolumeView(QWidget* parent)
   
   m_snapshot.setIcon(QIcon(":/espina/snapshot_scene.svg"));
   m_snapshot.setToolTip(tr("Save Scene as Image"));
+  m_snapshot.setFlat(true);
+  m_snapshot.setIconSize(QSize(22,22));
+  m_snapshot.setMaximumSize(QSize(32,32));
   connect(&m_snapshot,SIGNAL(clicked(bool)),this,SLOT(takeSnapshot()));
   
-  m_export.setIcon(QIcon(":/espina/export_scene.svg"));
+  QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
+  //m_export.setIcon(QIcon(":/espina/export_scene.svg"));
+  m_export.setIcon(iconSave);
   m_export.setToolTip(tr("Export 3D Scene"));
+  m_export.setFlat(true);
+  m_export.setIconSize(QSize(22,22));
+  m_export.setMaximumSize(QSize(32,32));
   connect(&m_export,SIGNAL(clicked(bool)),this,SLOT(exportScene()));
   
   m_controlLayout->addWidget(&m_snapshot);
@@ -124,9 +135,20 @@ void VolumeView::connectToServer()
   cam->Azimuth(180);
   cam->Roll(180);
   
+  vtkRenderWindowInteractor *rwi = vtkRenderWindowInteractor::SafeDownCast(
+    viewProxy->GetRenderWindow()->GetInteractor());
+  assert(rwi);
+
+  vtkInteractorStyleTrackballCamera *style = vtkInteractorStyleTrackballCamera::New();
+  rwi->SetInteractorStyle(style);
+
+
   double black[3] = {0,0,0};
   m_view->getRenderViewProxy()->SetBackgroundColorCM(black);
   
+  // Disable menu
+  m_view->getWidget()->removeAction(m_view->getWidget()->actions().first());
+
   QObject::connect(m_viewWidget, SIGNAL(mouseEvent(QMouseEvent *)),
                    this, SLOT(vtkWidgetMouseEvent(QMouseEvent *)));
 }
@@ -155,7 +177,7 @@ void VolumeView::setVOI(IVOI* voi)
     m_VOIWidget = NULL;
   }
   
-  qDebug()<< "VolumeView: elemets" << model()->rowCount();
+//   qDebug()<< "VolumeView: elemets" << model()->rowCount();
   if (model()->rowCount() == 0)
     return;
      
@@ -166,6 +188,8 @@ void VolumeView::setVOI(IVOI* voi)
   m_VOIWidget->setView(m_view);
   m_VOIWidget->setWidgetVisible(true);
   m_VOIWidget->select();
+  m_VOIWidget->accept();
+  voi->resizeToDefaultSize();
 }
 
 
@@ -352,7 +376,7 @@ void VolumeView::addWidget(IViewWidget* widget)
 
 
 //-----------------------------------------------------------------------------
-QList< Segmentation* > VolumeView::selectSegmentations(int x, int y, int z)
+void VolumeView::selectSegmentations(int x, int y, int z)
 {
   QItemSelection selection;
   
@@ -374,21 +398,26 @@ QList< Segmentation* > VolumeView::selectSegmentations(int x, int y, int z)
       (extent[2] <= y && y <= extent[3]) &&
       (extent[4] <= z && z <= extent[5]))
     {
+      SegmentationSelectionExtension *selector = dynamic_cast<SegmentationSelectionExtension *>(
+	seg->extension(SegmentationSelectionExtension::ID));
+      
+      if (selector->isSegmentationPixel(x,y,z))
+	selIndex = segIndex;
       // 	seg->outputPort()->getDataInformation()->GetPointDataInformation();
       //selection.indexes().append(segIndex);
-      double pixelValue[4];
-      pixelValue[0] = x;
-      pixelValue[1] = y;
-      pixelValue[2] = z;
-      pixelValue[3] = 4;
-      vtkSMPropertyHelper(seg->creator()->pipelineSource()->getProxy(),"CheckPixel").Set(pixelValue,4);
-      seg->creator()->pipelineSource()->getProxy()->UpdateVTKObjects();
-      int value;
-      seg->creator()->pipelineSource()->getProxy()->UpdatePropertyInformation();
-      vtkSMPropertyHelper(seg->creator()->pipelineSource()->getProxy(),"PixelValue").Get(&value,1);
-      	qDebug() << "Pixel Value" << value;
-      if (value == 255)
-	selIndex = segIndex;
+//       double pixelValue[4];
+//       pixelValue[0] = x;
+//       pixelValue[1] = y;
+//       pixelValue[2] = z;
+//       pixelValue[3] = 4;
+//       vtkSMPropertyHelper(seg->creator()->pipelineSource()->getProxy(),"CheckPixel").Set(pixelValue,4);
+//       seg->creator()->pipelineSource()->getProxy()->UpdateVTKObjects();
+//       int value;
+//       seg->creator()->pipelineSource()->getProxy()->UpdatePropertyInformation();
+//       vtkSMPropertyHelper(seg->creator()->pipelineSource()->getProxy(),"PixelValue").Get(&value,1);
+//       	qDebug() << "Pixel Value" << value;
+//       if (value == 255)
+// 	selIndex = segIndex;
     }
     if (selIndex.isValid())
       selectionModel()->select(selIndex,QItemSelectionModel::ClearAndSelect);

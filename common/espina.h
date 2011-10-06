@@ -79,13 +79,29 @@ public:
     QList<Segmentation *> segmentations(const TaxonomyNode* taxonomy, bool recursive = false) const;
     //! Returns the list of segmentations belonging to @sample.
     QList<Segmentation *> segmentations(const Sample* sample) const;
+
     void changeTaxonomy(Segmentation *seg, TaxonomyNode *newTaxonomy);
+    void changeTaxonomy(Segmentation* seg, QString& taxName);
     
     // Taxonomy managing
     //! Returns the taxonomy used by the analyzer
+    void loadTaxonomy(TaxonomyNode *root) 
+    {
+      if (m_tax)
+      {
+	beginRemoveRows(taxonomyRoot(),0,rowCount(taxonomyRoot()));
+	m_tax = NULL;
+	endRemoveRows();
+      }
+      beginInsertRows(taxonomyRoot(), 0, 0);
+      m_tax = root;
+      endInsertRows();
+      setUserDefindedTaxonomy(m_tax->getSubElements()[0]->getName());
+      emit resetTaxonomy();
+    }
     TaxonomyNode *taxonomy() {return m_tax;}
     //! Returns the QModelIndex of a given @node
-    QModelIndex taxonomyIndex(TaxonomyNode *node) const;
+    QModelIndex taxonomyIndex(TaxonomyNode* node) const;
     void addTaxonomy(QString name, QString parentName);
     void removeTaxonomy(QString name);
     TaxonomyNode *taxonomyParent(TaxonomyNode *node);
@@ -93,8 +109,9 @@ public:
     //! Returns the QModelIndex of a given @seg
     QModelIndex segmentationIndex(Segmentation *seg) const;
 
+    int requestId(int suggestedId);
     
-    void changeTaxonomy(Segmentation* seg, QString& taxName);
+    void changeId(Segmentation *seg, int id);
 
     Segmentation* segmentation(QString& segId);
     
@@ -149,7 +166,8 @@ protected:
 
 private:
     //! 
-    void loadTaxonomy();//TODO: Replace with factory
+    void removeTaxonomy();
+    void loadTaxonomy();//TODO: Replace with factor
     //TaxonomyNode *indexNode(const QModelIndex &index) const;
     //! Returns wheter or not node is a taxonomy leaf node
     bool isLeaf(TaxonomyNode *node) const;
@@ -166,6 +184,8 @@ private:
     //! corresponds to the id of the segmentation
     bool saveSegmentation( Segmentation* seg, QDir prefixFilePath);
 
+    int nextSegmentationId() {return m_nextValidSegId++;}
+
 private:
     TaxonomyNode *m_newSegType; // The type for new segmentations
     Sample *m_activeSample;
@@ -180,6 +200,8 @@ private:
     QMap<const TaxonomyNode *, QList<Segmentation *> > m_taxonomySegs;
 
     static EspINA *m_singleton;
+
+    int m_nextValidSegId;
 };
 
 #endif // ESPINA_H

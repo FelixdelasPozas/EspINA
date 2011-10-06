@@ -213,54 +213,55 @@ Qt::ItemFlags TaxonomyProxy::flags(const QModelIndex& index) const
 bool TaxonomyProxy::dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent)
 {
   
+  // To clear selection previous to drop items
+  // NOTE: if not cleared sometimes the model is broken
+  emit itemsDropped();
+
   IModelItem *parentItem = static_cast<IModelItem *>(parent.internalPointer());
   TaxonomyNode *newTax = dynamic_cast<TaxonomyNode *>(parentItem);
   if (!newTax)
   {
     Segmentation *parentSeg = dynamic_cast<Segmentation *>(parentItem);
     if (!parentSeg)
-      return true;//Unkown type
+      return false;//Unkown type
     newTax = parentSeg->taxonomy();
   }
-  
+  assert(newTax);
   // Recover dragged item information
   QByteArray encoded = data->data("application/x-qabstractitemmodeldatalist");
   QDataStream stream(&encoded, QIODevice::ReadOnly);
   
+  QList<Segmentation *> draggedSegs;
+
   while (!stream.atEnd())
   {
     int row, col;
     QMap<int,  QVariant> roleDataMap;
     stream >> row >> col >> roleDataMap;
     
-    Segmentation *draggedSeg = NULL;
-    
     QString segName = roleDataMap[Qt::DisplayRole].toString();
     foreach (const TaxonomyNode *tax, m_taxonomySegs.keys())
     {
+      bool segFound = false;
       foreach (Segmentation *seg, m_taxonomySegs[tax])
       {
 	if (seg->data(Qt::DisplayRole) == segName)
 	{
-	  draggedSeg = seg;
+	  draggedSegs.append(seg);
+	  segFound = true;
 	  break;
 	}
       }
-      if (draggedSeg)
+      if (segFound)
 	break;
     }
-    
-   if (draggedSeg)
-   {
-     EspINA *model = dynamic_cast<EspINA *>(sourceModel());
-     QModelIndex oldTaxonomyIndex = mapFromSource(model->taxonomyIndex(draggedSeg->taxonomy()));
-     int row = m_taxonomySegs[draggedSeg->taxonomy()].indexOf(draggedSeg);
-     beginRemoveRows(oldTaxonomyIndex,row,row);
-     model->changeTaxonomy(draggedSeg, newTax);
-     endRemoveRows();
-     beginInsertRows(parent,row,row);
-     endInsertRows();
-   }
+  }
+
+  EspINA *model = dynamic_cast<EspINA *>(sourceModel());
+  foreach(Segmentation *seg, draggedSegs)
+  {
+    std::cout << "Dropping " << seg->label().toStdString() << std::endl;
+      model->changeTaxonomy(seg, newTax);
   }
 
   return true;
@@ -288,6 +289,7 @@ QVariant TaxonomyProxy::data(const QModelIndex& proxyIndex, int role) const
 //------------------------------------------------------------------------
 void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start, int end)
 {
+  assert(start==end);
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
 
   if (sourceParent == model->sampleRoot())
@@ -359,18 +361,63 @@ void TaxonomyProxy::sourceRowsRemoved(const QModelIndex& sourceParent, int start
 //------------------------------------------------------------------------
 void TaxonomyProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight)
 {
+  EspINA *model = dynamic_cast<EspINA *>(sourceModel());
+  if (!model)
+    return;
+  
   const QModelIndex proxyTopLeft = mapFromSource(sourceTopLeft);
   const QModelIndex proxyBottomRight = mapFromSource(sourceBottomRight);
   
+  IModelItem *segItem = static_cast<IModelItem *>(proxyTopLeft.internalPointer());
+  assert(segItem);
+  Segmentation *seg = dynamic_cast<Segmentation *>(segItem);
+  if (seg);
+  {
+    foreach(const TaxonomyNode *tax, m_taxonomySegs.keys())
+    {
+      int row = m_taxonomySegs[tax].indexOf(seg);
+      if (row >= 0)
+      {
+	QModelIndex taxIndex = mapFromSource(model->taxonomyIndex(const_cast<TaxonomyNode*>(tax)));
+	beginRemoveRows(taxIndex,row,row);
+      }
+    }
+  }
+  
   updateSegmentations();
+  
+  if (seg)
+  {
+    foreach(const TaxonomyNode *tax, m_taxonomySegs.keys())
+    {
+      int row = m_taxonomySegs[tax].indexOf(seg);
+      if (row >= 0)
+      {
+	QModelIndex taxIndex = mapFromSource(model->taxonomyIndex(const_cast<TaxonomyNode *>(tax)));
+	beginInsertRows(taxIndex,row,row);
+      }
+    }
+  }
   emit dataChanged(proxyTopLeft, proxyBottomRight);
   if (proxyTopLeft.isValid())
   {
     emit dataChanged(proxyTopLeft.parent(),proxyTopLeft.parent());
     emit dataChanged(proxyTopLeft, proxyBottomRight);
   }
+  
+  if (seg)
+  {
+    endInsertRows();
+    endRemoveRows();
+  }
 }
 
+bool idOrdered(Segmentation *seg1, Segmentation *seg2)
+{
+  int id1 = seg1->label().section(' ',-1).toInt();
+  int id2 = seg2->label().section(' ',-1).toInt();
+  return id1 < id2;
+}
 
 //------------------------------------------------------------------------
 void TaxonomyProxy::updateSegmentations() const
@@ -390,6 +437,12 @@ void TaxonomyProxy::updateSegmentations() const
     assert(seg);
     m_taxonomySegs[seg->taxonomy()].push_back(seg);
   }
+  
+  foreach(const TaxonomyNode *tax, m_taxonomySegs.keys())
+  {
+    qSort(m_taxonomySegs[tax].begin(),m_taxonomySegs[tax].end(),idOrdered);
+  }
+  
 }
 
 

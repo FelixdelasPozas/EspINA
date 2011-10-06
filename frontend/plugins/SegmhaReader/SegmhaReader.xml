@@ -24,6 +24,37 @@
 	command="GetNumSegmentations">
 	<SimpleIntInformationHelper/>
       </IntVectorProperty>
+      <StringVectorProperty
+        name="Taxonomy"
+        command="GetTaxonomy"
+        number_of_elements="1"
+        information_only="1"
+        default_values="">
+        <SimpleStringInformationHelper/>
+        <Documentation>
+          This property retrieve the taxonomy content of the file specified by FileName
+        </Documentation>
+      </StringVectorProperty>
+      <StringVectorProperty
+        name="SegTaxonomies"
+        command="GetSegTaxonomies"
+        number_of_elements="1"
+	immediate_update="1"
+        information_only="1"
+        default_values="">
+        <SimpleStringInformationHelper/>
+        <Documentation>
+          This property retrieve the list of segmentation taxonomies of the file specified by FileName
+        </Documentation>
+      </StringVectorProperty>
+     <IntVectorProperty
+       name="CountingBrick"
+       number_of_elements="6"
+       default_values="0 0 0 1 1 1"
+       information_only="1"
+       command="GetCountingBrick">
+       <SimpleIntInformationHelper/>
+     </IntVectorProperty>
   <!--    <Hints>
         <ReaderFactory extensions="trace"
                         file_description="Trace file format" />

@@ -36,12 +36,14 @@ qt4_add_resources (RCC_BUILT_SOURCES
 qt4_wrap_cpp(MOC_SRCS 
   VolumeOfInterest.h
   pqNonRotatingBoxWidget.h
+  VolumeOfInterestPreferences.h
 #   RectangularVOI.h
   )
 
 # Create Interface files
 qt4_wrap_ui (UI_BUILT_SOURCES
   pqNonRotatingBoxWidget.ui
+  VOIPreferences.ui
 )
 
 ADD_3DWIDGET(

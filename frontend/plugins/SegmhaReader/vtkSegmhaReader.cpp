@@ -28,17 +28,20 @@
 #include <QString>
 #include <QStringList>
 
-typedef itk::Image<unsigned char,3> 			ImageType;
-typedef itk::ImageFileReader<ImageType> 		ImageReaderType;
-typedef itk::ImageToVTKImageFilter<ImageType> 		ImageToVTKImageFilterType;
-typedef itk::VTKImageToImageFilter<ImageType> 		VTKImageToImageFilterType;
+typedef itk::Image<unsigned short,3> 			SegmhaImageType;
+typedef itk::Image<unsigned  char,3> 			EspinaImageType;
+typedef itk::ImageFileReader<SegmhaImageType> 		ImageReaderType;
+typedef itk::ImageToVTKImageFilter<SegmhaImageType> 	SegmhaToVTKImageFilterType;
+typedef itk::VTKImageToImageFilter<SegmhaImageType> 	VTKImageToImageFilterType;
 typedef itk::StatisticsLabelObject<unsigned int, 3> 	LabelObjectType;
 typedef itk::LabelMap<LabelObjectType> LabelMapType;
-typedef itk::LabelImageToShapeLabelMapFilter<ImageType,
-	      LabelMapType> 				Image2LabelFilterType;
-typedef itk::LabelMapToLabelImageFilter<LabelMapType,
-	      ImageType> 				Label2ImageFilterType;
-typedef itk::ExtractImageFilter<ImageType,ImageType> 	ExtractFilterType;
+typedef itk::LabelImageToShapeLabelMapFilter< 
+	      SegmhaImageType, LabelMapType> 		Image2LabelFilterType;
+typedef itk::LabelMapToLabelImageFilter<
+	      LabelMapType, EspinaImageType> 		Label2ImageFilterType;
+typedef itk::ExtractImageFilter<
+	      EspinaImageType, EspinaImageType> 	ExtractFilterType;
+typedef itk::ImageToVTKImageFilter<EspinaImageType> 	ImageToVTKImageFilterType;
   
 
 
@@ -48,16 +51,44 @@ vtkSegmhaReader::SegmentationObject::SegmentationObject(const QString& line)
 {
   QStringList elements = line.split(" ");
   
-  label 	= elements[1].split("=")[1].toInt();
-  taxonomyId 	= elements[2].split("=")[1].toInt();
-  selected 	= elements[3].split("=")[1].toInt();
+  label 	= elements[1].split("=")[1].toUInt();
+  taxonomyId 	= elements[2].split("=")[1].toUInt();
+  selected 	= elements[3].split("=")[1].toUInt();
 }
+
+vtkSegmhaReader::TaxonomyObject::TaxonomyObject(const QString& line)
+{
+  QStringList elements = line.split(" ");
+  
+  name     = new QString();
+  *name    = elements[1].split("=")[1].replace("\"","");
+  label    = elements[2].split("=")[1].toInt();
+  color[0] = elements[4].replace(',',"").toInt();
+  color[1] = elements[5].replace(',',"").toInt();
+  color[2] = elements[6].toInt();
+}
+
+QString& vtkSegmhaReader::TaxonomyObject::toString()
+{
+  QString *string = new QString(QString("%1 %2 %3 %4 %5;")
+  .arg(label)
+  .arg(*name)
+  .arg(color[0])
+  .arg(color[1])
+  .arg(color[2]))
+  ;
+  return *string;
+}
+
 
 
 //---------------------------------------------------------------------------
 vtkSegmhaReader::vtkSegmhaReader()
 {
   this->FileName = NULL;
+  this->NumSegmentations = 0;
+  this->Taxonomy = NULL;
+  this->SegTaxonomies = NULL;
   this->SetNumberOfInputPorts(0);
   this->SetNumberOfOutputPorts(1);
 }
@@ -68,6 +99,20 @@ vtkSegmhaReader::~vtkSegmhaReader()
 }
 
 
+void parseCountingBrick(QString line, int cb[6])
+{
+  QStringList margins = line.split('=');
+  QStringList inclusive = margins[1].split(',');
+  QStringList exclusive = margins[2].split(',');
+  
+  cb[0] = inclusive[0].section('[',-1).toInt();
+  cb[1] = inclusive[1].toInt();
+  cb[2] = inclusive[2].section(']',0,0).toInt();
+  
+  cb[3] = exclusive[0].section('[',-1).toInt();
+  cb[3] = exclusive[1].toInt();
+  cb[4] = exclusive[2].section(']',0,0).toInt();
+}
 
 //---------------------------------------------------------------------------
 int vtkSegmhaReader::RequestData(
@@ -86,18 +131,38 @@ int vtkSegmhaReader::RequestData(
   QTextStream stream(&metaDataReader);
   
   QString line;
+  QString taxonomies;
+  QString segTaxonomies;
   while (!(line = stream.readLine()).isNull())
   {
     QString infoType = line.split(":")[0];
     
     if (infoType == "Object")
-      metaData.push_back(SegmentationObject(line));
+    {
+      SegmentationObject seg(line);
+      metaData.push_back(seg);
+      segTaxonomies.append(QString::number(seg.taxonomyId)).append(";");
+    }
     else if (infoType == "Segment")
-      std::cout << line.toStdString() << std::endl;
+    {
+      TaxonomyObject tax(line);
+      taxonomies.append(tax.toString());
+      std::cout << tax.toString().toStdString() << std::endl;
+    }
+    else if (infoType == "Counting Brick")
+    {
+      int cb[6];
+      parseCountingBrick(line,cb);   
+      this->SetCountingBrick(cb);
+    }
   }
   metaDataReader.close();
+  this->NumSegmentations = metaData.size();
+  this->SetSegTaxonomies(segTaxonomies.toUtf8());
+//   std::cout << "Total Number of Segmentations: " << NumSegmentations << std::endl;
+  this->SetTaxonomy(taxonomies.toUtf8());
+//   std::cout << "Total Number of Taxonomies: " << taxonomies.split(";").size() << std::endl;
   
-  NumSegmentations = metaData.size();
   
   vtkDebugMacro(<< "Reading ITK image from file");
   // Read the original image, whose pixels are indeed labelmap object ids
@@ -107,8 +172,8 @@ int vtkSegmhaReader::RequestData(
 
   vtkDebugMacro(<< "Invert ITK image's slices");
   // EspINA python used an inversed representation of the samples
-  ImageToVTKImageFilterType::Pointer originalImage =
-    ImageToVTKImageFilterType::New();
+  SegmhaToVTKImageFilterType::Pointer originalImage =
+    SegmhaToVTKImageFilterType::New();
   originalImage->SetInput(imageReader->GetOutput());
   originalImage->Update();
   
@@ -148,7 +213,11 @@ int vtkSegmhaReader::RequestData(
   int blockNo = 0;
   foreach(SegmentationObject seg, metaData)
   {
+    std::cout << "Loading Segmentations " << blockNo << "..." << std::endl;
+//     std::cout << "\tLabel: " << QString::number(seg.label).toStdString() << std::endl;
+//     std::cout << "\tSegment: " << QString::number(seg.taxonomyId).toStdString() << std::endl;
     LabelMapType *    labelMap = image2label->GetOutput();
+//     std::cout << "Number of labels: " << labelMap->GetNumberOfLabelObjects() << std::endl;
     LabelObjectType * object   = labelMap->GetLabelObject(seg.label);
     LabelObjectType::RegionType region = object->GetRegion();
     
@@ -157,10 +226,12 @@ int vtkSegmhaReader::RequestData(
     tmpLabelMap->CopyInformation(labelMap);
     object->SetLabel(255);
     tmpLabelMap->AddLabelObject(object);
+    tmpLabelMap->Update();
     
     Label2ImageFilterType::Pointer label2image =
       Label2ImageFilterType::New();
     label2image->SetInput(tmpLabelMap);
+    label2image->Update();
   
     ExtractFilterType::Pointer extract =
       ExtractFilterType::New();
@@ -178,10 +249,7 @@ int vtkSegmhaReader::RequestData(
       vtkSmartPointer<vtkImageData>::New();
     segImage->DeepCopy( itk2vtk_filter->GetOutput() );
     segImage->CopyInformation(itk2vtk_filter->GetOutput());//WARNING: don't forget!
-//     segImage->SetExtent(itk2vtk_filter->GetOutput()->GetExtent());
-//     segImage->SetSpacing(imageReader->GetOutput()->gets->GetSpacing());
-//     segImage->SetSpacing(1,1,2);
-//     segImage->SetWholeExtent(segImage->GetExtent());
+
     output->SetBlock(blockNo,segImage);
     
     blockNo++;

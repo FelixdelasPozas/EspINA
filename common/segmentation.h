@@ -35,7 +35,9 @@ public:
   virtual ~Segmentation();
   
   //! Reimplement ITraceNode Interface
-  virtual QString label() const {return QString("Segmentation %1").arg(m_id);}
+  virtual QString label() const {return QString("%1 %2").arg(m_taxonomy->getName()).arg(m_id);}
+  void setId(int id) {m_id = id;}
+  bool validId() {return m_id != -1;}
   
   virtual void color(double* rgba);
   virtual void setSelected(bool value) {m_isSelected = value;}
@@ -52,11 +54,11 @@ public:
   //! Are supposed to be used for sort time 
   ISegmentationExtension *extension(ExtensionId extId);
   
-  QStringList availableRepresentations();
+  QStringList availableRepresentations() const;
   ISegmentationRepresentation *representation(QString rep);
   
-  QStringList availableInformations();
-  QVariant information(QString info);
+  QStringList availableInformations() const;
+  QVariant information(QString info) const;
   
   void initialize();
   
@@ -72,7 +74,6 @@ private:
   QMap<ISegmentationRepresentation::RepresentationId, ISegmentationExtension *> m_representations;
   QMap<QString, ISegmentationExtension *> m_informations;
   int m_id;
-  static int s_newId;
   
   bool m_isSelected;
 //   ISegmentationExtension::InformationMap m_infoMap;

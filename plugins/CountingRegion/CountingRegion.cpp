@@ -46,8 +46,11 @@ const int RECTANGULAR = 1;
 const QString CountingRegion::ID = "CountingRegionExtension";
 
 CountingRegion::CountingRegion(QWidget * parent): QDockWidget(parent)
+, m_focusedSample(NULL)
 , m_model(0,5)
+, m_parentItem(NULL)
 {
+  // Create UI
   this->setWindowTitle(tr("Counting Brick"));
   QWidget *dockWidget = new QWidget();
   setupUi(dockWidget);
@@ -60,6 +63,12 @@ CountingRegion::CountingRegion(QWidget * parent): QDockWidget(parent)
   lowerSlice->installEventFilter(this);
   upperSlice->installEventFilter(this);
 
+  regionView->setModel(&m_model);
+  connect(regionView, SIGNAL(clicked(QModelIndex)),
+	  this, SLOT(showInfo(QModelIndex)));
+  
+  resetRegionsModel();
+
   connect(createRegion, SIGNAL(clicked()),
           this, SLOT(createBoundingRegion()));
   connect(removeRegion, SIGNAL(clicked()),
@@ -67,25 +76,18 @@ CountingRegion::CountingRegion(QWidget * parent): QDockWidget(parent)
   connect(regionType, SIGNAL(currentIndexChanged(int)),
 	  this, SLOT(regionTypeChanged(int)));
 
+  connect(EspINA::instance(), SIGNAL(focusSampleChanged(Sample*)),
+          this, SLOT(focusSampleChanged(Sample *)));
+  connect(&m_model,SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+	  this, SLOT(visibilityModified()));
+
+  // Register Counting Brick extensions
   SegmentationExtension segExt;
   EspINAFactory::instance()->addSegmentationExtension(&segExt);
   SampleExtension sampleExt;
   EspINAFactory::instance()->addSampleExtension(&sampleExt);
   RegionRenderer region;
   EspINAFactory::instance()->addViewWidget(region.clone());
-  
-  m_model.setHorizontalHeaderItem(0, new QStandardItem(tr("Name")));
-  m_model.setHorizontalHeaderItem(1, new QStandardItem(tr("XY")));
-  m_model.setHorizontalHeaderItem(2, new QStandardItem(tr("YZ")));
-  m_model.setHorizontalHeaderItem(3, new QStandardItem(tr("XZ")));
-  m_model.setHorizontalHeaderItem(4, new QStandardItem(tr("3D")));
-  m_parentItem = m_model.invisibleRootItem();
-  regionView->setModel(&m_model);
-
-  connect(EspINA::instance(), SIGNAL(focusSampleChanged(Sample*)),
-          this, SLOT(focusSampleChanged(Sample *)));
-  connect(&m_model,SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-	  this, SLOT(visibilityModified()));
 //   EXTENSION_DEBUG(<< "Counting Region Panel created");
 }
 
@@ -99,7 +101,7 @@ void CountingRegion::initializeExtension(SegmentationExtension* ext)
 //   ext->updateRegions(m_regions[ext->segmentation()->origin()]);
 }
 
-
+//! Changes the image displayed to show which plane is being modified
 bool CountingRegion::eventFilter(QObject* object, QEvent* event)
 {
   if (event->type() == QEvent::FocusIn)
@@ -129,6 +131,13 @@ bool CountingRegion::eventFilter(QObject* object, QEvent* event)
 //! focused selection
 void CountingRegion::focusSampleChanged(Sample* sample)
 {
+  SampleExtension *ext =
+    dynamic_cast<SampleExtension *>(sample->extension(ID));
+    
+//   if (m_focusedSample)
+//     disconnect(ext,SIGNAL(regionModified(SampleExtension*)),
+// 	    this, SLOT(displayRegions(SampleExtension*)));
+  
   createRegion->setEnabled(sample != NULL);
   if (createRegion->isEnabled())
   {
@@ -150,20 +159,17 @@ void CountingRegion::focusSampleChanged(Sample* sample)
     regionTypeChanged(regionType->currentIndex());
     m_focusedSample = sample;
     
-    //TODO: Manage load events/unload
-    m_model.clear();
-    m_model.setHorizontalHeaderItem(0, new QStandardItem(tr("Name")));
-    m_model.setHorizontalHeaderItem(1, new QStandardItem(tr("XY")));
-    m_model.setHorizontalHeaderItem(2, new QStandardItem(tr("YZ")));
-    m_model.setHorizontalHeaderItem(3, new QStandardItem(tr("XZ")));
-    m_model.setHorizontalHeaderItem(4, new QStandardItem(tr("3D")));
-    m_parentItem = m_model.invisibleRootItem();
-    // END_ToDo
+    connect(ext,SIGNAL(regionsModified(SampleExtension*)),
+	    this, SLOT(displayRegions(SampleExtension*)));
+    
+    resetRegionsModel();
+    
+    displayRegions(ext);
   
-    QStandardItem *sampleItem = new QStandardItem(sample->data(Qt::DisplayRole).toString());
-    m_parentItem->appendRow(sampleItem);
-    m_parentItem = sampleItem;
-    m_parentItem->setColumnCount(3);
+//     QStandardItem *sampleItem = new QStandardItem(sample->data(Qt::DisplayRole).toString());
+//     m_parentItem->appendRow(sampleItem);
+//     m_parentItem = sampleItem;
+//     m_parentItem->setColumnCount(3);
   }
 }
 
@@ -172,17 +178,19 @@ void CountingRegion::regionTypeChanged(int type)
   switch (type)
   {
     case ADAPTIVE:
+    case RECTANGULAR:
       leftMargin->setValue(0);
       rightMargin->setValue(0);
+      upperSlice->setValue(0);
       topMargin->setValue(0);
       bottomMargin->setValue(0);
+      lowerSlice->setValue(0);
       break;
-    case RECTANGULAR:
-      leftMargin->setValue(leftMargin->minimum());
-      rightMargin->setValue(rightMargin->maximum());
-      topMargin->setValue(topMargin->maximum());
-      bottomMargin->setValue(bottomMargin->minimum());
-      break;
+//       leftMargin->setValue(leftMargin->minimum());
+//       rightMargin->setValue(rightMargin->maximum());
+//       topMargin->setValue(topMargin->maximum());
+//       bottomMargin->setValue(bottomMargin->minimum());
+//       break;
     default:
       assert(false);
   };
@@ -190,49 +198,41 @@ void CountingRegion::regionTypeChanged(int type)
 
 
 //! Creates a bounding region on the current focused/active
-//! sample and update all their segmentations counting
-//! regions extension
+//! sample and update all their segmentations counting regions
+//! extension discarting those that are out of the region
 void CountingRegion::createBoundingRegion()
 {
-  SampleExtension *ext = dynamic_cast<SampleExtension *>(m_focusedSample->extension(CountingRegion::ID));
+  SampleExtension *ext = dynamic_cast<SampleExtension *>(
+    m_focusedSample->extension(CountingRegion::ID));
   assert(ext); 
   
-  QString regionName;
   QList<QStandardItem *> row;
   if (regionType->currentIndex() == ADAPTIVE)
   {
-    regionName = ext->createAdaptiveRegion(leftMargin->value(),topMargin->value(), upperSlice->value(),
-				rightMargin->value(), bottomMargin->value(), lowerSlice->value(), row);
-  } else
+    ext->createAdaptiveRegion(
+      leftMargin->value(),  topMargin->value(),    upperSlice->value(),
+      rightMargin->value(), bottomMargin->value(), lowerSlice->value(),
+      row);
+  } else if (regionType->currentIndex() == RECTANGULAR)
   {
-    regionName = ext->createRectangularRegion(leftMargin->value(),topMargin->value(), upperSlice->value(),
-		       rightMargin->value(), bottomMargin->value(), lowerSlice->value(), row);
-  }
+    ext->createRectangularRegion(
+      leftMargin->value(),  topMargin->value(),    upperSlice->value(),
+      rightMargin->value(), bottomMargin->value(), lowerSlice->value(),
+      row);
+  } else
+    assert(false);
   
-/*  
-  QStandardItem * regionItem = new QStandardItem(regionName);
-  QStandardItem * renderInXY = new QStandardItem();
-  renderInXY->setData(true,Qt::CheckStateRole);
-  renderInXY->setCheckState(Qt::Checked);
-  renderInXY->setFlags(renderInXY->flags() |  Qt::ItemIsUserCheckable| Qt::ItemIsEditable);
-  QStandardItem * renderInYZ = new QStandardItem();
-  renderInYZ->setData(true,Qt::CheckStateRole);
-  renderInYZ->setCheckState(Qt::Checked);
-  renderInYZ->setFlags(renderInXY->flags());
-  QStandardItem * renderInXZ = new QStandardItem();
-  renderInXZ->setData(true,Qt::CheckStateRole);
-  renderInXZ->setCheckState(Qt::Checked);
-  renderInXZ->setFlags(renderInXY->flags());
-  QStandardItem * renderIn3D = new QStandardItem();
-  renderIn3D->setData(true,Qt::CheckStateRole);
-  renderIn3D->setCheckState(Qt::Checked);
-  renderIn3D->setFlags(renderInXY->flags());
-  row << regionItem << renderInXY << renderInYZ << renderInXZ << renderIn3D;*/
-  m_parentItem->appendRow(row);
   
-  removeRegion->setEnabled(true);
+  displayRegions(ext);
   
-  regionView->expandAll();
+//   m_parentItem->appendRow(row);
+  
+//   removeRegion->setEnabled(true);
+  
+  // Update information displayed in the dock
+//   regionView->expandAll();
+//   QStandardItem *descItem = row.last();
+//   regionDescription->setText(descItem->data(Qt::DisplayRole).toString());
 }
 
 //------------------------------------------------------------------------
@@ -241,22 +241,27 @@ void CountingRegion::removeBoundingRegion()
   SampleExtension *ext = dynamic_cast<SampleExtension *>(m_focusedSample->extension(CountingRegion::ID));
   assert(ext); 
   
-  QModelIndex region = regionView->currentIndex().sibling(regionView->currentIndex().row(),0);
-  if (!region.parent().isValid()) 
+  QModelIndex RegionIdCol = regionView->currentIndex().sibling(regionView->currentIndex().row(),1);
+  if (!RegionIdCol.parent().isValid()) 
     return;// Sample Node
     
-  QString regionName = region.data(Qt::DisplayRole).toString();
-  ext->removeRegion(regionName);
-  m_model.removeRow(region.row(),region.parent());
+  int regionId = RegionIdCol.data().toInt();
+  ext->removeRegion(regionId);
   
-  removeRegion->setEnabled(false);
+  displayRegions(ext);
+  
+  if (!removeRegion->isEnabled())
+    regionDescription->setText("");
+//   m_model.removeRow(RegionIdCol.row(), RegionIdCol.parent());
+  
+//   removeRegion->setEnabled(false);
  
-  for (int r = 0; r < m_model.rowCount(); r++)
-  {
-    QModelIndex sample = m_model.index(r,0);
-    if (m_model.rowCount(sample))
-      removeRegion->setEnabled(true);
-  }
+//   for (int r = 0; r < m_model.rowCount(); r++)
+//   {
+//     QModelIndex sample = m_model.index(r,0);
+//     if (m_model.rowCount(sample))
+//       removeRegion->setEnabled(true);
+//   }
 }
 
 //------------------------------------------------------------------------
@@ -264,3 +269,62 @@ void CountingRegion::visibilityModified()
 {
   EspINA::instance()->activeSample()->notifyInternalUpdate();
 }
+
+//------------------------------------------------------------------------
+void CountingRegion::displayRegions(CountingRegion::SampleExtension* ext)
+{
+  resetRegionsModel();
+  
+  foreach(BoundingRegion *region, ext->regions())
+  {
+    QList<QStandardItem *> row = region->getModelItem();
+    row.removeLast();
+    m_parentItem->appendRow(row);
+  }
+  
+  bool enableRegions = ext->regions().size() > 0;
+  removeRegion->setEnabled(enableRegions);
+  
+  // Update information displayed in the dock
+  regionView->expandAll();
+//   QStandardItem *descItem = row.last();
+//   regionDescription->setText(descItem->data(Qt::DisplayRole).toString());
+}
+
+//------------------------------------------------------------------------
+void CountingRegion::showInfo(const QModelIndex &index)
+{
+  if (!index.parent().isValid())
+    return;
+  SampleExtension *ext 
+    = dynamic_cast<SampleExtension *>(m_focusedSample->extension(CountingRegion::ID));
+  assert(ext); 
+  
+  int regionId = index.sibling(index.row(),1).data(Qt::DisplayRole).toInt();
+ regionDescription->setText(ext->regions()[regionId]->description());
+}
+
+
+//------------------------------------------------------------------------
+void CountingRegion::resetRegionsModel()
+{
+  //TODO: Manage load events/unload
+  m_model.clear();
+  m_model.setHorizontalHeaderItem(0, new QStandardItem(tr("Name")));
+  m_model.setHorizontalHeaderItem(1, new QStandardItem(tr("ID")));
+  m_model.setHorizontalHeaderItem(2, new QStandardItem(tr("XY")));
+  m_model.setHorizontalHeaderItem(3, new QStandardItem(tr("YZ")));
+  m_model.setHorizontalHeaderItem(4, new QStandardItem(tr("XZ")));
+  m_model.setHorizontalHeaderItem(5, new QStandardItem(tr("3D")));
+  m_parentItem = m_model.invisibleRootItem();
+  // END_ToDo
+  
+  if (m_focusedSample)
+  {
+    QStandardItem *sampleItem = new QStandardItem(m_focusedSample->data(Qt::DisplayRole).toString());
+    m_parentItem->appendRow(sampleItem);
+    m_parentItem = sampleItem;
+    m_parentItem->setColumnCount(3);
+  }
+}
+

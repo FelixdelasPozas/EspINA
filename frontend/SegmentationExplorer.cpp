@@ -45,6 +45,8 @@ SegmentationExplorer::SegmentationExplorer(Segmentation *seg, QWidget* parent, Q
 {
   setupUi(this);
   
+  QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
+  m_export->setIcon(iconSave);
   if (!view)
   {
     pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();

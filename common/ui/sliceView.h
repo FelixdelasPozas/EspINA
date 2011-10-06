@@ -26,6 +26,8 @@
 #include "selectionManager.h"//TODO: Forward declare?
 
 #include <QAbstractItemView>
+#include "../frontend/IPreferencePanel.h"
+
 
 namespace CrosshairExtension
 {
@@ -48,6 +50,50 @@ class QHBoxLayout;
 class pqRenderView;
 class vtkRenderWindowInteractor;
 
+class SliceViewPreferences;
+
+class SliceViewPreferencesPanel : public QWidget
+{
+  Q_OBJECT
+  
+public:
+  explicit SliceViewPreferencesPanel(SliceViewPreferences *preferences);
+  
+public slots:
+  void setInvertWheel(bool value);
+  void setInvertNormal(bool value);
+  void setShowAxis(bool value);
+private:
+  SliceViewPreferences *m_pref;
+};
+
+class SliceViewPreferences : public IPreferencePanel
+{
+public:
+  explicit SliceViewPreferences(ViewType plane);
+  
+  virtual const QString shortDescription();
+  virtual const QString longDescription() {return shortDescription();} 
+  virtual const QIcon icon() {return QIcon();}
+  
+  virtual QWidget* widget() {return new SliceViewPreferencesPanel(this);}
+  
+  void setInvertWheel(bool value);
+  bool invertWheel(){return m_InvertWheel;}
+  void setInvertNormal(bool value);
+  bool invertNormal() {return m_InvertNormal;}
+  void setShowAxis(bool value);
+  bool showAxis() {return m_ShowAxis;}
+  
+private:
+  bool m_InvertWheel;
+  bool m_InvertNormal;
+  bool m_ShowAxis;
+  
+private:
+  ViewType m_plane;
+  QString viewSettings;
+};
 
 //! Displays a unique slice of a sample
 //! If segmentations are visible, then their slices are
@@ -61,6 +107,8 @@ public:
   SliceView(QWidget* parent = 0);
   virtual ~SliceView();
 
+  IPreferencePanel *preferences() {return m_preferences;}
+  
   //! AbstractItemView Interface
   virtual QModelIndex indexAt(const QPoint& point) const;
   virtual void scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint = EnsureVisible);
@@ -144,6 +192,9 @@ private:
   QHBoxLayout *m_controlLayout;
   vtkInteractorStyleEspina *m_style;
   pqPipelineSource *m_regionCut;
+  
+private:
+  SliceViewPreferences *m_preferences;
 };
 
 #endif // SLICEVIEW_H

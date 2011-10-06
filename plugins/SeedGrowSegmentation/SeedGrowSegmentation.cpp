@@ -66,6 +66,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QBitmap>
 #include <RectangularVOI.h>
 #include "SeedGrowSegmentationPreferences.h"
+#include <QSettings>
 
 
 #define DEFAULT_THRESHOLD 30
@@ -78,6 +79,7 @@ SeedGrowSegmentation::SeedGrowSegmentation(QObject* parent)
 : ISegmentationPlugin(parent)
 , m_defaultVOI(NULL)
 , m_seedSelector(NULL)
+, m_preferences(NULL)
 {
   m_factoryName = SGS;
   // Register Factory's filters
@@ -87,10 +89,6 @@ SeedGrowSegmentation::SeedGrowSegmentation(QObject* parent)
   m_defaultVOI = new RectangularVOI(false);
   
   buildUI();
-  
-  SeedGrowSegmentationPreferences *preferences = new SeedGrowSegmentationPreferences();
-  
-  EspinaPluginManager::instance()->registerPreferencePanel(preferences);
   
 }
 
@@ -187,12 +185,12 @@ void SeedGrowSegmentation::startSegmentation(ISelectionHandler::Selection sel)
     voi->setSource(input);
     double spacing[3];
     input->spacing(spacing);
-    double defVOI[6] = {(seed.x - 30)*spacing[0],
-			(seed.x + 30)*spacing[0],
-			(seed.y - 30)*spacing[1],
-			(seed.y + 30)*spacing[1],
-			(seed.z - 30)*spacing[2],
-			(seed.z + 30)*spacing[2]};
+    double defVOI[6] = {(seed.x - m_preferences->xSize())*spacing[0],
+			(seed.x + m_preferences->xSize())*spacing[0],
+			(seed.y - m_preferences->ySize())*spacing[1],
+			(seed.y + m_preferences->ySize())*spacing[1],
+			(seed.z - m_preferences->zSize())*spacing[2],
+			(seed.z + m_preferences->zSize())*spacing[2]};
     vtkSMPropertyHelper(voi->getProxy(),"Bounds").Set(defVOI,6);
     voi->getProxy()->UpdateVTKObjects();
 //     double checkBounds[6];
@@ -232,7 +230,13 @@ void SeedGrowSegmentation::buildSelectors()
     QIcon(":bestPixelSelector.svg")
     , tr("Add synapse (Ctrl +). Best Pixel"),
     m_selectors);
-  handler = new BestPixelSelector();
+  BestPixelSelector *bestSelector = new BestPixelSelector();
+  m_preferences = new SeedGrowSegmentationSettings(bestSelector);
+  EspinaPluginManager::instance()->registerPreferencePanel(m_preferences);
+  QSettings settings;
+  if (settings.contains(BEST_PIXEL))
+    bestSelector->setBestPixelValue(settings.value(BEST_PIXEL).toInt());
+  handler = bestSelector;
   handler->multiSelection = false;
   handler->filters << "EspINA_Sample";
   addPixelSelector(action, handler);

@@ -36,14 +36,13 @@ public:
   SegmentationExtension();
   virtual ~SegmentationExtension();
   
-  
   //! Implement ISegmentationExtension 
   virtual ExtensionId id();
   virtual void initialize(Segmentation *seg);
   virtual ISegmentationRepresentation* representation(QString rep);
   virtual QVariant information(QString info);
   
-  void updateRegions(QMap<QString, BoundingRegion* >& regions);
+  void updateRegions(QMap< int, CountingRegion::BoundingRegion* >& regions);
   
   virtual ISegmentationExtension* clone();
   
@@ -51,11 +50,13 @@ private:
   vtkFilter *m_discarted;
 };
 
+//! Base class for all Bounding Regions
 class CountingRegion::BoundingRegion : public ISampleRepresentation
 {
   Q_OBJECT
 public:
   static const ISampleRepresentation::RepresentationId ID;
+  static int newId;
       
   BoundingRegion(Sample* sample);
   virtual ~BoundingRegion();
@@ -64,9 +65,22 @@ public:
   virtual void render(pqView* view, ViewType type = VIEW_3D);
   virtual pqPipelineSource* pipelineSource();
   
-  virtual void setInclusive(int left, int top, int upper) = 0;
-  virtual void setExclusive(int right, int bottom, int lower) = 0;
-//   virtual void setViewVisibility(ViewType type, bool visible) {m_visible[type] = visible;}
+  //! Return total volume in pixels
+  int totalVolume();
+  //! Return inclusion volume in pixels
+  virtual int inclusionVolume();
+  //! Return exclusion volume in pixels
+  virtual int exclusionVolume();
+  
+  int regionId() {return m_regionId;}
+  
+  void setInclusive(int left, int top, int upper);
+  void setExclusive(int right, int bottom, int lower);
+  virtual QString description() = 0;
+  virtual QString getArguments();
+  
+  const QList<QStandardItem *> getModelItem();
+//   operator const QList<QStandardItem *> &() const {return m_modelInfo;}
   
 public slots:
   virtual void requestUpdate(bool force = false){}
@@ -74,21 +88,38 @@ public slots:
 protected:
   vtkFilter *m_boundigRegion;
   QList<QStandardItem *> m_modelInfo;
+  int m_regionId;
+  int m_inclusion[3];
+  int m_exclusion[3];
 };
 
+//! A Rectangular Bounding Region
+//! Its bounds are given by @sample
 class RectangularRegion : public CountingRegion::BoundingRegion
 {
+  Q_OBJECT
 public:
+  static const ISampleRepresentation::RepresentationId ID;
+  
   RectangularRegion(Sample* sample, int left, int top, int upper,
 		    int right, int bottom, int lower,
 		    QList<QStandardItem *> &info);
   virtual ~RectangularRegion();
+  
+  virtual QString id() {return ID;}
   
   virtual void render(pqView* view, ViewType type = VIEW_3D);
   virtual void clear(pqView* view, ViewType type = VIEW_3D);
   
   virtual void setInclusive(int left, int top, int upper);
   virtual void setExclusive(int right, int bottom, int lower);
+  virtual QString description();
+  
+public slots:
+  void reset();
+  
+signals:
+  void regionChanged(BoundingRegion *);
   
 private:
   vtkSMProxy *m_box;
@@ -97,24 +128,43 @@ private:
 
 class AdaptiveRegion : public CountingRegion::BoundingRegion
 {
+  Q_OBJECT
 public:
+  static const ISampleRepresentation::RepresentationId ID;
+  
   AdaptiveRegion(Sample* sample, int left, int top, int upper,
 		 int right, int bottom, int lower,
 		 QList< QStandardItem* >& info);
   virtual ~AdaptiveRegion();
   
+  virtual QString id() {return ID;}
+  
   virtual void render(pqView* view, ViewType type = VIEW_3D);
   virtual void clear(pqView* view, ViewType type = VIEW_3D);
   
+  //! Return total adaptive volume in pixels
+  int totalAdaptiveVolume();
+  //! Return exclusion adaptive volume in pixels
+  int exclusionAdaptiveVolume();
+  
   virtual void setInclusive(int left, int top, int upper);
   virtual void setExclusive(int right, int bottom, int lower);
+  virtual QString description();
+  
+    
+public slots:
+  void reset();
+  
+signals:
+  void regionChanged(BoundingRegion *);
   
 private:
   pq3DWidget *m_widget[4];
 };
 
-class CountingRegion::SampleExtension : public ISampleExtension
+class CountingRegion::SampleExtension :public QObject, public ISampleExtension
 {
+  Q_OBJECT
 public:
     SampleExtension();
     virtual ~SampleExtension();
@@ -122,22 +172,31 @@ public:
     virtual ExtensionId id() {return ID;}
     virtual void initialize(Sample* sample);
     virtual ISampleRepresentation* representation(QString rep);
-    virtual QStringList availableRepresentations() {return m_regions.keys();}
+    virtual QStringList availableRepresentations();
     virtual QVariant information(QString info);
+    virtual void setArguments(QString args);
+    virtual QString getArguments();
     
-    QString createAdaptiveRegion(int left, int top, int upper,
+    void createAdaptiveRegion(int left, int top, int upper,
 				 int right, int bottom, int lower,
 				 QList<QStandardItem *> &info);
-    QString createRectangularRegion(int left, int top, int upper,
+    void createRectangularRegion(int left, int top, int upper,
 				    int right, int bottom, int lower,
 				    QList<QStandardItem *> &info);
-    void removeRegion(QString &name);
+    void removeRegion(int regionId);
     
-    QMap<QString, BoundingRegion *> &regions() {return m_regions;}
+    QMap<int, BoundingRegion *> &regions() {return m_regions;}
     
     virtual ISampleExtension* clone();
+    
+public slots:
+  void updateSegmentations(BoundingRegion *region);
+  
+signals:
+  void regionsModified(SampleExtension *);
+  
 private:
-  QMap<QString, BoundingRegion *> m_regions;
+  QMap<int, BoundingRegion *> m_regions;
   int m_numRepresentations;
 };
 

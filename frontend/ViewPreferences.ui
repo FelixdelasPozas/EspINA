@@ -21,21 +21,21 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <item>
-       <widget class="QCheckBox" name="checkBox">
+       <widget class="QCheckBox" name="xyInvertNormal">
         <property name="text">
          <string>Invert Z</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="checkBox_2">
+       <widget class="QCheckBox" name="xyInvertWheel">
         <property name="text">
          <string>Invert Wheel</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QCheckBox" name="checkBox_3">
+       <widget class="QCheckBox" name="xyShowAxis">
         <property name="text">
          <string>Show Axis</string>
         </property>
@@ -66,7 +66,7 @@
       <item>
        <widget class="QCheckBox" name="checkBox_4">
         <property name="text">
-         <string>Invert Z</string>
+         <string>Invert X</string>
         </property>
        </widget>
       </item>
@@ -109,7 +109,7 @@
       <item>
        <widget class="QCheckBox" name="checkBox_7">
         <property name="text">
-         <string>Invert Z</string>
+         <string>Invert Y</string>
         </property>
        </widget>
       </item>

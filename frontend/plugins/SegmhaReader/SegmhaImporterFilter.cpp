@@ -39,6 +39,7 @@
 #include <vtkSMPropertyHelper.h>
 #include <QApplication>
 #include <QLabel>
+#include <vtkSMStringVectorProperty.h>
 
 // SegmhaImporterFilter::SetupWidget::SetupWidget(EspinaFilter *parent)
 // : QWidget()
@@ -94,10 +95,31 @@ SegmhaImporterFilter::SegmhaImporterFilter(pqPipelineSource* reader, const QStri
       QApplication::setOverrideCursor(Qt::ArrowCursor);
       if (fileDialog.exec() == QDialog::Rejected)
       {
-	assert(false);
+	EspINA::instance()->clear();
+	QApplication::restoreOverrideCursor();
+	return;
       }
       QApplication::restoreOverrideCursor();
       EspINA::instance()->loadFile(fileDialog.getSelectedFiles()[0], "add");
+  }
+  
+  reader->updatePipeline();
+  
+  Sample *stack = EspINA::instance()->activeSample();
+  
+  if (stack->extension("CountingRegionExtension"))
+  {
+    int margins[6];
+    
+    reader->getProxy()->UpdatePropertyInformation();
+    vtkSMPropertyHelper(reader->getProxy(),"CountingBrick").Get(margins,6);
+  
+    // NOTE: Counting Region margin's order 
+    QString rcb = QString("RectangularRegion=%1,%2,%3,%4,%5,%6;")
+      .arg(margins[0]).arg(margins[3])
+      .arg(margins[1]).arg(margins[4])
+      .arg(margins[2]).arg(margins[5]);
+    stack->extension("CountingRegionExtension")->setArguments(rcb);
   }
   
     
@@ -106,11 +128,41 @@ SegmhaImporterFilter::SegmhaImporterFilter(pqPipelineSource* reader, const QStri
   m_args.append(ESPINA_ARG("File",readerId));
   
   m_segReader = CachedObjectBuilder::instance()->registerProductCreator(id, reader);
-  reader->updatePipeline();
+  
+  // Load Taxonomy
+  reader->getProxy()->UpdatePropertyInformation();
+  
+  vtkSMStringVectorProperty* TaxProp =
+    vtkSMStringVectorProperty::SafeDownCast(reader->getProxy()->GetProperty("Taxonomy"));
+  QString taxonomyFile(TaxProp->GetElement(0));
+  
+  QStringList taxonomies = taxonomyFile.split(";");
+  
+  TaxonomyNode *root = new TaxonomyNode("Segmha");
+  QStringList availableTaxonomies;
+  foreach(QString taxonomy, taxonomies)
+  {
+    if (taxonomy == "")
+      continue;
+    
+    QStringList values = taxonomy.split(" ");
+    QChar zero = '0';
+    QString color = QString("#%1%2%3")
+    .arg(values[2].toInt(),2,16,zero)
+    .arg(values[3].toInt(),2,16,zero)
+    .arg(values[4].toInt(),2,16,zero);
+    
+    root->addElement(values[1],"Segmha",color); 
+    availableTaxonomies.append(values[1]);
+  }
+  EspINA::instance()->loadTaxonomy(root);
+//   std::cout << "Taxonomy read: " << taxonomyFile.toStdString() << std::endl;
+  
+  
   
   reader->getProxy()->UpdatePropertyInformation();
   vtkSMPropertyHelper(reader->getProxy(),"NumSegmentations").Get(&m_numSeg,1);
-
+  
   QStringList blockNos;
   
   // Trace EspinaFilter
@@ -118,6 +170,13 @@ SegmhaImporterFilter::SegmhaImporterFilter(pqPipelineSource* reader, const QStri
     // Connect input
   QString inputId = EspINA::instance()->activeSample()->id();
   trace->connect(inputId,this,"Sample");
+  
+  // Create segmentation's taxonomy list
+  vtkSMStringVectorProperty* SegTaxProp =
+    vtkSMStringVectorProperty::SafeDownCast(reader->getProxy()->GetProperty("SegTaxonomies"));
+  QString segTaxonomiesProp(SegTaxProp->GetElement(0));
+
+  QStringList segTaxonomies = segTaxonomiesProp.split(";");
   
   for (int p=0; p<m_numSeg; p++)
   {
@@ -129,11 +188,17 @@ SegmhaImporterFilter::SegmhaImporterFilter(pqPipelineSource* reader, const QStri
     blockNos.append(QString("%1").arg(p));
     
     Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(this, &segImage->product(0));
-    
+    m_blocks[seg] = blockNos[p];
+
     // Trace Segmentation
     trace->addNode(seg);
     // Trace connection
     trace->connect(this, seg,"Segmentation");
+    
+//     std::cout << "Getting taxonomy "<< segTaxonomies[p].toStdString() << ": " << availableTaxonomies[segTaxonomies[p].toInt()-1].toStdString() << std::endl;
+    seg->setTaxonomy(root->getComponent(availableTaxonomies[segTaxonomies[p].toInt()-1]));
+    
+//     std::cout << "Adding " << seg->taxonomy()->getName().toStdString() << " segmentation" << std::endl;
     
     EspINA::instance()->addSegmentation(seg);
   }
@@ -178,6 +243,7 @@ SegmhaImporterFilter::SegmhaImporterFilter(ITraceNode::Arguments& args)
     vtkFilter *segImage = cob->createFilter("filters","ExtractBlockAsImage",extractArgs);
     
     Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(this, &segImage->product(0));
+    m_blocks[seg] = blockNos[p];
     
     // Trace Segmentation
     trace->addNode(seg);
@@ -204,8 +270,21 @@ SegmhaImporterFilter::~SegmhaImporterFilter()
 //-----------------------------------------------------------------------------
 void SegmhaImporterFilter::removeProduct(EspinaProduct* product)
 {
-  assert(false);//TODO
-  m_numSeg = 0;
+  assert(m_numSeg > 0);
+  m_blocks.remove(product);
+  m_numSeg--;
+  assert(m_blocks.size() == m_numSeg);
+
+  QStringList prevArgs = m_args.split(';',QString::SkipEmptyParts);
+  QStringList newBlocks;
+  foreach(QString blockNo, m_blocks)
+    newBlocks.append(blockNo);
+
+  QString blockList = newBlocks.join(",");
+  prevArgs[0] = "Blocks="+blockList;
+
+  m_args = prevArgs.join(";");
+  m_args.append(';');
 }
 
 QWidget* SegmhaImporterFilter::createSetupWidget()

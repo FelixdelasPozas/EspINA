@@ -68,6 +68,14 @@ void SelectionManager::setSelectionHandler(ISelectionHandler* sh, QCursor cursor
 }
 
 //------------------------------------------------------------------------
+void SelectionManager::unsetSelectionHandler(ISelectionHandler* sh)
+{
+  assert(m_handler == sh);
+  
+  m_handler = NULL;
+}
+
+//------------------------------------------------------------------------
 void SelectionManager::setVOI(IVOI* voi)
 {
   if (m_voi && m_voi != voi)

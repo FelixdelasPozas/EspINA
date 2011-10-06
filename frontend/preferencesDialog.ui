@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>545</width>
-    <height>300</height>
+    <width>521</width>
+    <height>410</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -19,10 +19,16 @@
      <item>
       <widget class="QListWidget" name="components">
        <property name="sizePolicy">
-        <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+        <sizepolicy hsizetype="Maximum" vsizetype="Expanding">
          <horstretch>0</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>150</width>
+         <height>16777215</height>
+        </size>
        </property>
        <property name="iconSize">
         <size>
@@ -78,6 +84,12 @@
        </item>
        <item>
         <widget class="QScrollArea" name="scrollArea">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="frameShadow">
           <enum>QFrame::Plain</enum>
          </property>
@@ -89,8 +101,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>267</width>
-            <height>215</height>
+            <width>349</width>
+            <height>325</height>
            </rect>
           </property>
          </widget>

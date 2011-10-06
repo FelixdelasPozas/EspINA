@@ -23,6 +23,7 @@
 #include <QDir>
 #include <QTime>
 #include <QPushButton>
+#include <EspinaPluginManager.h>
 
 const QString SAMPLE_PATH("samplePath");
 
@@ -55,11 +56,29 @@ ViewPreferences::ViewPreferences()
 
 }
 
+void ViewPreferences::addPanel(IPreferencePanel* panel)
+{
+  panels.push_back(panel);
+}
+
 //------------------------------------------------------------------------
 QWidget* ViewPreferences::widget()
 {
+  if (panels.isEmpty())
+    return new QWidget();
+  
+  QVBoxLayout *layout = new QVBoxLayout();
+  foreach(IPreferencePanel *panel, panels)
+  {
+    QVBoxLayout *groupLayout = new QVBoxLayout();
+    QGroupBox *group = new QGroupBox(panel->shortDescription());
+    groupLayout->addWidget(panel->widget());
+    group->setLayout(groupLayout);
+    layout->addWidget(group);
+  }
   QWidget *widget = new QWidget();
-  setupUi(widget);
+  widget->setLayout(layout);
+  
   return widget;
 }
 
@@ -76,6 +95,12 @@ PreferencesDialog::PreferencesDialog(QWidget* parent, Qt::WindowFlags f): QDialo
   
   connect(components,SIGNAL(currentRowChanged(int)),
 	  this, SLOT(changePreferencePanel(int)));
+  
+  
+  foreach(IPreferencePanel *panel, EspinaPluginManager::instance()->preferencePanels())
+  {
+    addPanel(panel);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -88,6 +113,18 @@ void PreferencesDialog::addPanel(IPreferencePanel* panel)
   components->addItem(item);
   m_panels.push_back(panel);
 }
+
+//------------------------------------------------------------------------
+IPreferencePanel* PreferencesDialog::panel(const QString& shortDesc)
+{
+  foreach(IPreferencePanel *panel, m_panels)
+  {
+    if (panel->shortDescription() == shortDesc)
+      return panel;
+  }
+  return NULL;
+}
+
 
 //------------------------------------------------------------------------
 void PreferencesDialog::changePreferencePanel(int panel)

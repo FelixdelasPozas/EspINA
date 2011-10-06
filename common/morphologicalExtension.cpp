@@ -13,10 +13,10 @@
 #include <vtkSMProperty.h>
 #include <vtkSMDoubleVectorProperty.h>
 #include <QApplication>
+#include "sample.h"
 
 //!-----------------------------------------------------------------------
-//! MORPHOLOGICAL EXTENSION
-//!-----------------------------------------------------------------------
+//! MORPHOLOGICAL EXTENSION--------------------------------------
 //! Information Provided:
 //! - Centroid
 
@@ -26,6 +26,7 @@ const ExtensionId MorphologicalExtension::ID = "MorphologicalExtension";
 MorphologicalExtension::MorphologicalExtension()
 : m_features(NULL)
 , m_init(false)
+, m_validFeret(0)
 {
   m_availableInformations << "Size";
   m_availableInformations << "Physical Size";
@@ -99,17 +100,20 @@ QVariant MorphologicalExtension::information(QString info)
     vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"BinaryPrincipalMoments").Get(m_BinaryPrincipalMoments,3);
     vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"BinaryPrincipalAxes").UpdateValueFromServer();
     vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"BinaryPrincipalAxes").Get(m_BinaryPrincipalAxes,9);
-    vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"FeretDiameter").UpdateValueFromServer();
-    vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"FeretDiameter").Get(&m_FeretDiameter,1);
+//     vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"FeretDiameter").UpdateValueFromServer();
+//     vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"FeretDiameter").Get(&m_FeretDiameter,1);
     vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"EquivalentEllipsoidSize").UpdateValueFromServer();
     vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"EquivalentEllipsoidSize").Get(m_EquivalentEllipsoidSize,3);
     QApplication::restoreOverrideCursor();
   }
+
+  double spacing[3];
+  m_seg->origin()->spacing(spacing);
   
   if (info == "Size")
       return m_Size;
   if (info == "Physical Size")
-      return m_PhysicalSize;
+    return m_PhysicalSize;
   if (info == "Centroid X")
       return m_Centroid[0];
   if (info == "Centroid Y")
@@ -117,11 +121,11 @@ QVariant MorphologicalExtension::information(QString info)
   if (info == "Centroid Z")
       return m_Centroid[2];
   if (info == "Region X")
-      return m_Region[0];
+      return m_Region[0]*spacing[0];
   if (info == "Region Y")
-      return m_Region[1];
+      return m_Region[1]*spacing[1];
   if (info == "Region Z")
-      return m_Region[2];
+    return m_Region[2]*spacing[2];
   if (info == "Binary Principal Moments X")
       return m_BinaryPrincipalMoments[0];
   if (info == "Binary Principal Moments Y")
@@ -147,7 +151,21 @@ QVariant MorphologicalExtension::information(QString info)
   if (info == "Binary Principal Axes (2 2)")
       return m_BinaryPrincipalAxes[8];
   if (info == "Feret Diameter")
-      return m_FeretDiameter;
+  {
+    if (!m_validFeret)
+    {
+      m_validFeret = true;
+      int compute = 1;
+      QApplication::setOverrideCursor(Qt::WaitCursor);
+      vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"ComputeFeret").Set(compute);
+      m_features->pipelineSource()->getProxy()->UpdateVTKObjects();
+      m_features->pipelineSource()->updatePipeline();
+      vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"FeretDiameter").UpdateValueFromServer();
+      vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"FeretDiameter").Get(&m_FeretDiameter,1);
+      QApplication::restoreOverrideCursor();
+    }
+    return m_FeretDiameter;
+  }
   if (info == "Equivalent Ellipsoid Size X")
       return m_EquivalentEllipsoidSize[0];
   if (info == "Equivalent Ellipsoid Size Y")

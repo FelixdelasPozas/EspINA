@@ -85,6 +85,7 @@ EspINA* EspINA::instance()
 EspINA::EspINA(QObject* parent)
 : QAbstractItemModel(parent)
 , m_activeSample(NULL)
+, m_nextValidSegId(1)
 {
   loadTaxonomy();
   m_newSegType = NULL;//->getComponent("Symetric");
@@ -466,19 +467,23 @@ QModelIndex EspINA::segmentationIndex(Segmentation* seg) const
 }
 
 //------------------------------------------------------------------------
-void EspINA::changeTaxonomy(Segmentation* seg, QString& taxName)
+int EspINA::requestId(int suggestedId)
 {
-  // lcate the real segmentation pointer registered
-  const TaxonomyNode* oldTax = seg->taxonomy();
-  assert(m_taxonomySegs[oldTax].contains(seg));
-  TaxonomyNode* newTax = m_tax->getComponent(taxName);
-  assert(newTax);
+  m_nextValidSegId--;
+  if (m_nextValidSegId <= suggestedId)
+    m_nextValidSegId = suggestedId+1;
 
-  m_taxonomySegs[oldTax].removeOne(seg);
-  seg->setTaxonomy(newTax);
-  m_taxonomySegs[newTax].push_back(seg);
+  return suggestedId;
+}
+
+
+//------------------------------------------------------------------------
+void EspINA::changeId(Segmentation* seg, int id)
+{
+  seg->setId(requestId(id));
   emit dataChanged(segmentationIndex(seg),segmentationIndex(seg));
 }
+
 
 //-----------------------------------------------------------------------------
 Segmentation* EspINA::segmentation(QString& segId)
@@ -521,15 +526,27 @@ QList< Segmentation* > EspINA::segmentations(const Sample* sample) const
 //-----------------------------------------------------------------------------
 void EspINA::changeTaxonomy(Segmentation* seg, TaxonomyNode* newTaxonomy)
 {
+  if (seg->taxonomy() == newTaxonomy)
+    return;
+
   assert(m_taxonomySegs[seg->taxonomy()].contains(seg));
   m_taxonomySegs[seg->taxonomy()].removeOne(seg);
   seg->setTaxonomy(newTaxonomy);
   m_taxonomySegs[newTaxonomy].push_back(seg);
-  seg->origin()->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
-  
+
   QModelIndex segIndex = segmentationIndex(seg);
   emit dataChanged(segIndex,segIndex);
+  seg->origin()->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
 }
+
+//------------------------------------------------------------------------
+void EspINA::changeTaxonomy(Segmentation* seg, QString& taxName)
+{
+  TaxonomyNode* newTax = m_tax->getComponent(taxName);
+
+  changeTaxonomy(seg, newTax);
+}
+
 
 //-----------------------------------------------------------------------------
 void EspINA::loadFile(QString filePath, QString method)
@@ -673,8 +690,11 @@ void EspINA::addSegmentation(Segmentation *seg)
   
   //beginResetModel();
   beginInsertRows(segmentationRoot(),lastRow,lastRow);
-  seg->setTaxonomy(node);
+  if (!seg->taxonomy())
+    seg->setTaxonomy(node);
   seg->setOrigin(m_activeSample);
+  if (!seg->validId())
+    seg->setId(nextSegmentationId());
   seg->initialize();
   m_taxonomySegs[m_newSegType].push_back(seg);
   seg->origin()->addSegmentation(seg);
@@ -777,11 +797,12 @@ void EspINA::loadSource(pqPipelineSource* proxy)
       if (!m_tax)//TODO: Decide wether to mix, override or check compability
       {
         qDebug("EspINA: Reading taxonomy ...");
-	beginInsertRows(taxonomyRoot(), 0, 0);
-	m_tax = IOTaxonomy::loadXMLTaxonomy(TaxContent);
-	endInsertRows();
-	setUserDefindedTaxonomy(m_tax->getSubElements()[0]->getName());
-	emit resetTaxonomy();
+// 	beginInsertRows(taxonomyRoot(), 0, 0);
+// 	m_tax = IOTaxonomy::loadXMLTaxonomy(TaxContent);
+// 	endInsertRows();
+// 	setUserDefindedTaxonomy(m_tax->getSubElements()[0]->getName());
+// 	emit resetTaxonomy();
+	loadTaxonomy(IOTaxonomy::loadXMLTaxonomy(TaxContent));
       }
       qDebug("EspINA: Reading trace ...");
       m_analysis->readTrace(trace);
@@ -813,12 +834,9 @@ void EspINA::clear()
   // Delete Samples (and their segmentations)
   this->removeSamples();
   
-  
-  // Delete taxonomy
-  beginRemoveRows(taxonomyRoot(), 0, rowCount(taxonomyRoot())-1);
-  delete m_tax;
-  m_tax = NULL;
-  endRemoveRows();
+  this->removeTaxonomy();
+
+  m_nextValidSegId = 1;
 }
 
 
@@ -829,6 +847,16 @@ void EspINA::internalSegmentationUpdate(Segmentation* seg)
   emit dataChanged(segIndex,segIndex);
 }
 
+
+//------------------------------------------------------------------------
+void EspINA::removeTaxonomy()
+{
+  // Delete taxonomy
+  beginRemoveRows(taxonomyRoot(), 0, rowCount(taxonomyRoot())-1);
+  delete m_tax;
+  m_tax = NULL;
+  endRemoveRows();
+}
 
 //------------------------------------------------------------------------
 void EspINA::loadTaxonomy()

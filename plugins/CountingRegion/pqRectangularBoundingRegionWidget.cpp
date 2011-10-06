@@ -156,11 +156,13 @@ void pqRectangularBoundingRegionWidget::select()
   vtkSMNewWidgetRepresentationProxy* widget = this->getWidgetProxy();
   double input_bounds[6];
   if (widget  && this->getReferenceInputBounds(input_bounds))
-    {
+  {
     vtkSMPropertyHelper(widget, "PlaceWidget").Set(input_bounds, 6);
     widget->UpdateVTKObjects();
-    }
-
+    
+    updateWidgetMargins();
+  }
+  
   this->Superclass::select();
 }
 
@@ -185,6 +187,48 @@ void pqRectangularBoundingRegionWidget::cleanupWidget()
 }
 
 //-----------------------------------------------------------------------------
+void pqRectangularBoundingRegionWidget::updateControlledMargins()
+{
+  vtkSMNewWidgetRepresentationProxy* widget = this->getWidgetProxy();
+  vtkAbstractWidget *miwidget = widget->GetWidget();
+  vtkRectangularBoundingRegionWidget *rrbw = vtkRectangularBoundingRegionWidget::SafeDownCast(miwidget);
+  int margins[3];
+  rrbw->GetInclusion(margins);
+  vtkSMPropertyHelper(getControlledProxy(), "Inclusion").Set(margins, 3);
+  rrbw->GetExclusion(margins);
+  vtkSMPropertyHelper(getControlledProxy(), "Exclusion").Set(margins, 3);
+  getControlledProxy()->UpdateVTKObjects();
+  getControlledProxy()->UpdateSelfAndAllInputs();
+}
+
+//-----------------------------------------------------------------------------
+void pqRectangularBoundingRegionWidget::updateWidgetMargins()
+{
+//   std::cout << "Update Widget Margins" << std::endl;
+  vtkSMNewWidgetRepresentationProxy* widget = this->getWidgetProxy();
+  vtkAbstractWidget *miwidget = widget->GetWidget();
+  vtkRectangularBoundingRegionWidget *rrbw = vtkRectangularBoundingRegionWidget::SafeDownCast(miwidget);
+  int margins[3];
+  getControlledProxy()->UpdateSelfAndAllInputs();
+  getControlledProxy()->UpdatePropertyInformation();
+  vtkSMPropertyHelper(getControlledProxy(), "Inclusion").Get(margins, 3);
+  vtkSMPropertyHelper(widget, "Inclusion").Set(margins, 3);
+  rrbw->SetInclusion(margins);
+  vtkSMPropertyHelper(getControlledProxy(), "Exclusion").Get(margins, 3);
+  vtkSMPropertyHelper(widget, "Exclusion").Set(margins, 3);
+  rrbw->SetExclusion(margins);
+  widget->UpdateVTKObjects();
+  vtkPolyDataAlgorithm *region = vtkPolyDataAlgorithm::SafeDownCast(getControlledProxy()->GetClientSideObject());
+  if (region)
+  {
+    vtkAbstractWidget *miwidget = widget->GetWidget();
+    vtkRectangularBoundingRegionWidget::SafeDownCast(miwidget)->SetRegion(region);
+  }
+}
+
+
+
+//-----------------------------------------------------------------------------
 void pqRectangularBoundingRegionWidget::onWidgetVisibilityChanged(bool visible)
 {
   this->Implementation->show3DWidget->blockSignals(true);
@@ -195,6 +239,14 @@ void pqRectangularBoundingRegionWidget::onWidgetVisibilityChanged(bool visible)
 //-----------------------------------------------------------------------------
 void pqRectangularBoundingRegionWidget::accept()
 {
+  std::cout << "Update Controlled Region" << std::endl;
+  updateControlledMargins();
+//   vtkPolyDataAlgorithm *region = vtkPolyDataAlgorithm::SafeDownCast(getControlledProxy()->GetClientSideObject());
+//   if (region)
+//   {
+//     vtkAbstractWidget *miwidget = widget->GetWidget();
+//     vtkRectangularBoundingRegionWidget::SafeDownCast(miwidget)->SetRegion(region);
+//   }
   this->Superclass::accept();
   this->hideHandles();
 }
@@ -202,8 +254,9 @@ void pqRectangularBoundingRegionWidget::accept()
 //-----------------------------------------------------------------------------
 void pqRectangularBoundingRegionWidget::reset()
 {
+  updateWidgetMargins();
   this->Superclass::reset();
-  this->hideHandles();
+//   this->hideHandles();
 }
 
 //-----------------------------------------------------------------------------

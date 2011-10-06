@@ -304,6 +304,13 @@
 	command="GetBinaryPrincipalAxes">
 	<SimpleDoubleInformationHelper/>
       </DoubleVectorProperty>
+      <IntVectorProperty
+	name="ComputeFeret"
+	number_of_elements="1"
+	immediate_update="1"
+	default_values="0"
+	command="SetComputeFeret">
+      </IntVectorProperty>
       <DoubleVectorProperty
 	name="FeretDiameter"
 	number_of_elements="1"
@@ -324,6 +331,44 @@
       </DoubleVectorProperty>
       </SourceProxy>
 
+     <SourceProxy name="SegmentationSelection" class="vtkSegmentationSelectionFilter" label="Segmentation Selection">
+     <Documentation
+       short_help="Select Segmentations"
+       long_help="Select Segmentations">
+     </Documentation>
+     <InputProperty
+        name="Input"
+		port_index="0"
+		immediate_update="1"
+		command="SetInputConnection"
+		>
+           <ProxyGroupDomain name="groups">
+             <Group name="sources"/>
+             <Group name="filters"/>
+           </ProxyGroupDomain>
+           <DataTypeDomain name="input_type">
+             <DataType value="vtkDataImage"/>
+           </DataTypeDomain>
+      </InputProperty>
+      <IntVectorProperty
+	name="CheckPixel"
+	number_of_elements="3"
+	immediate_update="1"
+	default_values="0 0 0"
+	command="SetCheckPixel">
+	<SimpleIntInformationHelper/>
+      </IntVectorProperty>
+      <IntVectorProperty
+	name="PixelValue"
+	number_of_elements="1"
+	information_only="1"
+	default_values="0"
+	command="GetPixelValue">
+	<SimpleIntInformationHelper/>
+      </IntVectorProperty>
+   <!-- End SegmentationSelectionFilter -->
+   </SourceProxy>
+   
    <SourceProxy name="MyWindowLevelLookupTable" class="vtkWindowLevelLookupTable" label="WindowLevelLookupTable">
      <Documentation
         long_help="Map scalar values into colors or colors to scalars; generate color table"

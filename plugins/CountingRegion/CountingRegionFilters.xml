@@ -7,8 +7,8 @@
   <ProxyGroup name="props">
     <Proxy name="RectangularBoundingRegionRepresentation" class="vtkRectangularBoundingRegionRepresentation">
       <Documentation>
-		  Proxy for vtkNonRotatingBoxRepresentation. 
-	  </Documentation>
+		  Proxy for vtkRectangularBoundingRegionxRepresentation. 
+      </Documentation>
 
       <IntVectorProperty
         name="Visibility"
@@ -34,7 +34,22 @@
         default_values="0"
         animateable="1">
       </IntVectorProperty-->
-
+      <IntVectorProperty
+	name="Inclusion"
+	number_of_elements="3"
+	default_values="0 0 0"
+	immediate_update="1"
+	command="SetInclusion">
+        <SimpleIntInformationHelper/>
+      </IntVectorProperty>
+      <IntVectorProperty
+	name="Exclusion"
+	number_of_elements="3"
+	default_values="0 0 0"
+	immediate_update="1"
+	command="SetExclusion">
+        <SimpleIntInformationHelper/>
+      </IntVectorProperty>
       <DoubleVectorProperty
         name="PlaceWidget"
         command="PlaceWidget"
@@ -95,7 +110,11 @@
         <Proxy name="Prop"
           proxygroup="props" proxyname="RectangularBoundingRegionRepresentation">
         </Proxy>
-        <ExposedProperties>
+        <ExposedProperties> 	  
+          <Property name="Inclusion">
+	            <SimpleIntInformationHelper/>
+		  </Property>
+          <Property name="Exclusion" />
           <Property name="PlaceFactor" />
           <Property name="PlaceWidget" />
           <Property name="Visibility" />
@@ -126,11 +145,28 @@
 			  short_help="filter">
 		  </Documentation>
 		  <IntVectorProperty
+			  name="Extent"
+			  number_of_elements="6"
+			  default_values="0 0 0 1 1 1"
+			  immediate_update="1"
+			  command="SetExtent">
+<!-- 		          <SimpleIntInformationHelper/> -->
+		  </IntVectorProperty>
+		  <DoubleVectorProperty
+			  name="Spacing"
+			  number_of_elements="3"
+			  default_values="0 0 0"
+			  immediate_update="1"
+			  command="SetSpacing">
+<!-- 		          <SimpleDoubleInformationHelper/> -->
+		  </DoubleVectorProperty>
+		  <IntVectorProperty
 			  name="Inclusion"
 			  number_of_elements="3"
 			  default_values="0 0 0"
 			  immediate_update="1"
 			  command="SetInclusion">
+		          <SimpleIntInformationHelper/>
 		  </IntVectorProperty>
 		  <IntVectorProperty
 			  name="Exclusion"
@@ -138,6 +174,34 @@
 			  default_values="0 0 0"
 			  immediate_update="1"
 			  command="SetExclusion">
+		          <SimpleIntInformationHelper/>
+		  </IntVectorProperty>
+		  <IntVectorProperty
+			  name="TotalVolume"
+			  number_of_elements="1"
+			  default_values="0"
+			  immediate_update="1"
+			  information_only="1"
+			  command="GetTotalVolume">
+		          <SimpleIntInformationHelper/>
+		  </IntVectorProperty>
+		  <IntVectorProperty
+			  name="InclusionVolume"
+			  number_of_elements="1"
+			  default_values="0"
+			  immediate_update="1"
+			  information_only="1"
+			  command="GetInclusionVolume">
+		          <SimpleIntInformationHelper/>
+		  </IntVectorProperty>
+		  <IntVectorProperty
+			  name="ExclusionVolume"
+			  number_of_elements="1"
+			  default_values="0"
+			  immediate_update="1"
+			  information_only="1"
+			  command="GetExclusionVolume">
+		          <SimpleIntInformationHelper/>
 		  </IntVectorProperty>
 		  <Hints>
 		    <!-- Hints are metadata associated with the proxy.
@@ -148,8 +212,10 @@
 		      -->
 		    <PropertyGroup type="RectangularBoundingRegion"> <!-- The name delcared in the cmake macro ADD_3DWIDGET -->
 			  <!--Property name="Position" function="Position" />
-			  <Property name="Scale" function="Scale" />
-			  <Property name="Bounds" function="PlaceWidget" /-->
+			  <Property name="Scale" function="Scale" /-->
+<!-- 			  <Property name="Inclusion" function="Inclusion" /> -->
+<!-- 			  <Property name="Exclusion" function="Exclusion" /> -->
+<!-- 			  <Property name="InclusionExclusion" function="PlaceWidget" /> -->
 		     </PropertyGroup> 
 		  </Hints>
 		  <!-- End Bounding Region Filter -->
@@ -183,6 +249,51 @@
 			  default_values="0 0 0"
 			  immediate_update="1"
 			  command="SetExclusion">
+		  </IntVectorProperty>
+		  <IntVectorProperty
+			  name="TotalVolume"
+			  number_of_elements="1"
+			  default_values="0"
+			  immediate_update="1"
+			  information_only="1"
+			  command="GetTotalVolume">
+		          <SimpleIntInformationHelper/>
+		  </IntVectorProperty>
+		  <IntVectorProperty
+			  name="TotalAdaptiveVolume"
+			  number_of_elements="1"
+			  default_values="0"
+			  immediate_update="1"
+			  information_only="1"
+			  command="GetTotalAdaptiveVolume">
+		          <SimpleIntInformationHelper/>
+		  </IntVectorProperty>
+		  <IntVectorProperty
+			  name="InclusionVolume"
+			  number_of_elements="1"
+			  default_values="0"
+			  immediate_update="1"
+			  information_only="1"
+			  command="GetInclusionVolume">
+		          <SimpleIntInformationHelper/>
+		  </IntVectorProperty>
+		  <IntVectorProperty
+			  name="ExclusionVolume"
+			  number_of_elements="1"
+			  default_values="0"
+			  immediate_update="1"
+			  information_only="1"
+			  command="GetExclusionVolume">
+		          <SimpleIntInformationHelper/>
+		  </IntVectorProperty>
+		  <IntVectorProperty
+			  name="ExclusionAdaptiveVolume"
+			  number_of_elements="1"
+			  default_values="0"
+			  immediate_update="1"
+			  information_only="1"
+			  command="GetExclusionAdaptiveVolume">
+		          <SimpleIntInformationHelper/>
 		  </IntVectorProperty>
   		  <Hints>
 		    <!-- Hints are metadata associated with the proxy.

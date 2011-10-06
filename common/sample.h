@@ -48,6 +48,7 @@ public:
   void extent(int *out);
   void bounds(double *out);
   void spacing(double* out);
+  QString units() {return "nm";}
   
   void setSpacing(double x, double y, double z);
   

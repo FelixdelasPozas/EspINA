@@ -55,6 +55,9 @@ protected slots:
   void sourceRowsRemoved(const QModelIndex & sourceParent, int start, int end);
   void sourceDataChanged(const QModelIndex &sourceTopLeft, const QModelIndex &sourceBottomRight);
   
+signals:
+  void itemsDropped();
+  
 protected:
   void updateSegmentations() const;
   

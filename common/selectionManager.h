@@ -115,6 +115,8 @@ public:
 
   virtual EspinaFilter *applyVOI(vtkProduct *product) = 0;
   virtual EspinaFilter *restoreVOITransormation(vtkProduct* product) = 0;
+  virtual void setDefaultBounds(double bounds[6]) = 0;
+  virtual void resizeToDefaultSize() = 0;
   
   virtual vtkSMProxy * getProxy() = 0;
   virtual pq3DWidget *newWidget(ViewType viewType) = 0;
@@ -140,6 +142,7 @@ signals:
   
 protected:
   Sample *m_product;
+  double m_bounds[6];
 };
 
 
@@ -179,6 +182,8 @@ public:
 public slots:
   //! Register @sh as active Selection Handler
   void setSelectionHandler(ISelectionHandler *sh, QCursor cursor);
+  //! Unregister @sh as active Selection Handler
+  void unsetSelectionHandler(ISelectionHandler *sh);
   
 signals:
   void VOIChanged(IVOI *voi);
