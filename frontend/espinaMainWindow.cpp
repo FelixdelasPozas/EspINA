@@ -556,6 +556,7 @@ void EspinaMainWindow::removeSegmentationClicked(bool checked)
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::removeSelectedSegmentation(ISelectionHandler::Selection sel)
 {
+  Internals->segmentationView->clearSelection();
   foreach(ISelectionHandler::SelElement elem, sel)
   {
     Segmentation *seg = dynamic_cast<Segmentation *>(elem.second);
@@ -613,9 +614,9 @@ void EspinaMainWindow::updateSelection(const QItemSelection& selected, const QIt
   {
     const QAbstractProxyModel *sourceModel = dynamic_cast<const QAbstractProxyModel*>(selected.indexes().first().model());
     
-    foreach(QModelIndex index, selected.indexes())
+    foreach(QModelIndex proxyIndex, selected.indexes())
     {
-      QModelIndex sourceIndex =  sourceModel->mapToSource(index);
+      QModelIndex sourceIndex =  sourceModel->mapToSource(proxyIndex);
       if (!m_sourceSelection.contains(sourceIndex))
       {
 	IModelItem *item = static_cast<IModelItem *>(sourceIndex.internalPointer());
@@ -637,9 +638,9 @@ void EspinaMainWindow::updateSelection(const QItemSelection& selected, const QIt
   {
     const QAbstractProxyModel *sourceModel = dynamic_cast<const QAbstractProxyModel*>(deselected.indexes().first().model());
     
-    foreach(QModelIndex index, deselected.indexes())
+    foreach(QModelIndex proxyIndex, deselected.indexes())
     {
-      QModelIndex sourceIndex = sourceModel->mapToSource(index);
+      QModelIndex sourceIndex = sourceModel->mapToSource(proxyIndex);
       if (m_sourceSelection.contains(sourceIndex))
       {
 	IModelItem *item = static_cast<IModelItem *>(sourceIndex.internalPointer());
@@ -719,7 +720,6 @@ void EspinaMainWindow::addTaxonomyChildElement()
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::removeTaxonomyElement()
 {
-  
   IModelItem *currentItem = static_cast<IModelItem *>(this->Internals->taxonomyView->currentIndex().internalPointer());
   TaxonomyNode *currentNode = dynamic_cast<TaxonomyNode *>(currentItem);
   if( currentNode )
@@ -887,6 +887,8 @@ void EspinaMainWindow::setGroupView(int idx)
 void EspinaMainWindow::deleteSegmentations()
 {
   QModelIndexList prevSelected = m_sourceSelection;
+//   std::cout << "Selected Items: " << m_sourceSelection.size() << std::endl;
+//   m_sourceSelection.clear();
   Internals->segmentationView->clearSelection();
   foreach(QModelIndex index, prevSelected)
   {

@@ -95,7 +95,9 @@ SegmhaImporterFilter::SegmhaImporterFilter(pqPipelineSource* reader, const QStri
       QApplication::setOverrideCursor(Qt::ArrowCursor);
       if (fileDialog.exec() == QDialog::Rejected)
       {
-	assert(false);
+	EspINA::instance()->clear();
+	QApplication::restoreOverrideCursor();
+	return;
       }
       QApplication::restoreOverrideCursor();
       EspINA::instance()->loadFile(fileDialog.getSelectedFiles()[0], "add");
