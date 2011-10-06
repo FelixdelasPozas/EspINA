@@ -143,12 +143,12 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVO
 	
 	QApplication::setOverrideCursor(Qt::ArrowCursor);
 	QApplication::setOverrideCursor(Qt::ArrowCursor);
-	QMessageBox msgBox(QMessageBox::Information,title,text);
-	msgBox.exec();
+	QMessageBox *msgBox = new QMessageBox(QMessageBox::Information,title,text);
+	msgBox->show();// using exec make views loose focus
+	QMessageBox::connect(msgBox,SIGNAL(accepted()),msgBox,SLOT(deleteLater()));
 	QApplication::restoreOverrideCursor();
 	QApplication::restoreOverrideCursor();
 	break;
-	//"Seed Grow Segmentation Filter Information",
       }
     }
   }
