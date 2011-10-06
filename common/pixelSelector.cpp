@@ -33,6 +33,12 @@ void PixelSelector::onMouseUp(QPoint &pos, ISelectableView* view)
   qDebug() << "EspINA::PixelSelector: Mouse released";
 }
 
+
+int quadDist(int cx, int cy, int x, int y)
+{
+  return ((x-cx)*(x-cx)+(y-cy)*(y-cy));
+}
+
 //! Coordinates:
 //! TL   ^
 //!      |
@@ -82,6 +88,11 @@ void BestPixelSelector::onMouseDown(QPoint& pos, ISelectableView* view)
       pixel = ((unsigned char *)img->GetScalarPointer(x,y,0));
       pixelValue = abs(pixel[0] - m_bestPixel);
       if (pixelValue < bestValue)
+      {
+	bestValue = pixelValue;
+	bestPixel = QPoint(x,y);
+      } else if (pixelValue == bestValue && 
+	quadDist(pos.x(),pos.y(),x,y) < quadDist(pos.x(),pos.y(),bestPixel.x(),bestPixel.y()))
       {
 	bestValue = pixelValue;
 	bestPixel = QPoint(x,y);
