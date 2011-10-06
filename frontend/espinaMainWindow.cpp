@@ -852,6 +852,8 @@ bool EspinaMainWindow::eventFilter(QObject* obj, QEvent* event)
       taxonomyWidget->expandAll();
       connect(taxonomyWidget,SIGNAL(clicked(QModelIndex)),
 	      this, SLOT(changeTaxonomy(QModelIndex)));
+      connect(taxonomyWidget,SIGNAL(clicked(QModelIndex)),
+	      menu, SLOT(hide()));
       
       taxonomyList->setDefaultWidget(taxonomyWidget);
       changeMenu->addAction(taxonomyList);
@@ -862,7 +864,7 @@ bool EspinaMainWindow::eventFilter(QObject* obj, QEvent* event)
       
       menu->addMenu(changeMenu);
       menu->addAction(deleteSeg);
-      
+            
       menu->exec(menuEvent->globalPos());
     }
   }
@@ -916,7 +918,7 @@ void EspinaMainWindow::changeTaxonomy(const QModelIndex& taxIndex)
     if (seg)
     {
       QString taxonomyName = taxIndex.data(Qt::DisplayRole).toString();
-      std::cout << "Change Taxonomy to " << taxonomyName.toStdString() << std::endl;
+//       std::cout << "Change Taxonomy to " << taxonomyName.toStdString() << std::endl;
       m_espina->changeTaxonomy(seg,taxonomyName);
     }
   }
