@@ -439,6 +439,7 @@ EspinaMainWindow::~EspinaMainWindow()
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::loadFile(QString method)
 {
+  Internals->segmentationView->clearSelection();//To prevent segmentation fault
   // GUI
 //   pqServer* server = pqApplicationCore::instance()->getActiveServer();
 //   pqFileDialog fileDialog(server, this, tr("Import"), "", FILTERS);
