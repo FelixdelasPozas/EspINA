@@ -46,14 +46,18 @@
 
 class BoundingBox
 {
+public:
   double xMin, xMax;
   double yMin, yMax;
   double zMin, zMax;
   
-public:
   BoundingBox(vtkPoints *points);
   BoundingBox(vtkImageData *image);
   bool intersect(BoundingBox &bb);
+  BoundingBox intersection(BoundingBox &bb);
+  
+private:
+  BoundingBox(){}
 };
 
 BoundingBox::BoundingBox(vtkPoints* points)
@@ -90,11 +94,23 @@ BoundingBox::BoundingBox(vtkImageData* image)
 
 bool BoundingBox::intersect(BoundingBox& bb)
 {
-  bool xOverlap = xMin < bb.xMax && xMax > bb.xMin;
-  bool yOverlap = yMin < bb.yMax && yMax > bb.yMin;
-  bool zOverlap = zMin < bb.zMax && zMax > bb.zMin;
+  bool xOverlap = xMin <= bb.xMax && xMax >= bb.xMin;
+  bool yOverlap = yMin <= bb.yMax && yMax >= bb.yMin;
+  bool zOverlap = zMin <= bb.zMax && zMax >= bb.zMin;
   
   return xOverlap && yOverlap && zOverlap;
+}
+
+BoundingBox BoundingBox::intersection(BoundingBox& bb)
+{
+  BoundingBox res;
+  res.xMin = std::max(xMin, bb.xMin);
+  res.xMax = std::min(xMax, bb.xMax);
+  res.yMin = std::max(yMin, bb.yMin);
+  res.yMax = std::min(yMax, bb.yMax);
+  res.zMin = std::max(zMin, bb.zMin);
+  res.zMax = std::min(zMax, bb.zMax);
+  return res;
 }
 
 
@@ -168,9 +184,22 @@ int vtkCountingRegionFilter::FillOutputPortInformation(int port, vtkInformation*
 }
 */
 
-bool realCollision(vtkImageData *input, vtkPoints *face)
+bool realCollision(vtkImageData *input, BoundingBox interscetion)
 {
-  return true;
+  double spacing[3];
+  input->GetSpacing(spacing);
+  for (int z = interscetion.zMin; z <= interscetion.zMax; z++)
+    for (int y = interscetion.yMin; y <= interscetion.yMax; y++)
+      for (int x = interscetion.xMin; x <= interscetion.xMax; x++)
+      {
+	int px = x/spacing[0];
+	int py = y/spacing[1];
+	int pz = z/spacing[2];
+	if (input->GetScalarComponentAsDouble(px,py,pz,0))
+	  return true;
+      }
+  
+  return false;
 }
 
 bool discartedByRegion(vtkImageData *input, BoundingBox &inputBB, vtkPolyData *region)
@@ -184,7 +213,8 @@ bool discartedByRegion(vtkImageData *input, BoundingBox &inputBB, vtkPolyData *r
   // If there is no intersection (nor is inside), then it is discarted
   if (!inputBB.intersect(regionBB))
     return true;
-  
+
+  bool collisionDected = false;
   // Otherwise, we have to test all faces collisions
   int numOfCells = regionFaces->GetNumberOfCells();
   regionFaces->InitTraversal();
@@ -198,12 +228,16 @@ bool discartedByRegion(vtkImageData *input, BoundingBox &inputBB, vtkPolyData *r
       facePoints->InsertNextPoint(regionPoints->GetPoint(pts[i]));
     
     BoundingBox faceBB(facePoints);
-    if (inputBB.intersect(faceBB) && realCollision(input, facePoints))
-      if (faceData->GetScalars()->GetComponent(f,0) == 255)
-	return false;
-      else
+    if (inputBB.intersect(faceBB) && realCollision(input, inputBB.intersection(faceBB)))
+    {
+      if (faceData->GetScalars()->GetComponent(f,0) == 0)
 	return true;
+      collisionDected = true;
+    }
   }
+
+  if (collisionDected)
+    return false;
   
   // If no collision was detected we have to check for inclusion
   for (int p=0; p < regionPoints->GetNumberOfPoints(); p +=8)
@@ -213,8 +247,8 @@ bool discartedByRegion(vtkImageData *input, BoundingBox &inputBB, vtkPolyData *r
 	slicePoints->InsertNextPoint(regionPoints->GetPoint(p+i));
     
     BoundingBox sliceBB(slicePoints);
-    if (inputBB.intersect(sliceBB))
-      return false;//!realCollision(input, slicePoints);
+    if (inputBB.intersect(sliceBB) &&  realCollision(input, inputBB.intersection(sliceBB)))
+      return false;//;
   }
   
   // If no internal collision was detected, then the input was indeed outside our 

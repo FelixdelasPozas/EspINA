@@ -45,6 +45,8 @@ public:
   
   
   // Morphological Features
+  vtkSetMacro(ComputeFeret,bool);
+  vtkGetMacro(ComputeFeret,bool);
   vtkGetMacro(Size, double); //Should be unsigned long
   vtkGetMacro(PhysicalSize, double);
   vtkGetVector3Macro(Centroid, double);

@@ -38,6 +38,9 @@ class VTK_IMAGING_EXPORT vtkRectangularBoundingRegionFilter
 public:
   static vtkRectangularBoundingRegionFilter *New();
   vtkTypeMacro(vtkRectangularBoundingRegionFilter, vtkPolyDataAlgorithm);
+  
+  vtkSetVector6Macro(Extent,int);
+  vtkSetVector3Macro(Spacing,double);
 
   //! Inclusion Coordinates (Left, Top, Upper)
   vtkSetVector3Macro(Inclusion,int);
@@ -45,20 +48,45 @@ public:
   //! Exclusion Coordinates (Right, Bottom, Lower)
   vtkSetVector3Macro(Exclusion,int);
   vtkGetVector3Macro(Exclusion,int);
+  
+  vtkGetMacro(TotalVolume,int);
+  vtkGetMacro(InclusionVolume,int);
+  vtkGetMacro(ExclusionVolume,int);
+  
 protected:
 //   virtual int FillInputPortInformation(int port, vtkInformation* info);
   virtual int FillOutputPortInformation(int port, vtkInformation* info);
   virtual int RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector);
-
+  
 protected:
   vtkRectangularBoundingRegionFilter();
   virtual ~vtkRectangularBoundingRegionFilter();
+  
+private:
+  int left()  {return Extent[0]+Inclusion[0];}
+  int top()   {return Extent[2]+Inclusion[1];}
+  int upper() {return Extent[4]+Inclusion[2];}
+  int right() {return Extent[1]-Exclusion[0];}
+  int bottom(){return Extent[3]-Exclusion[1];}
+  int lower() {return Extent[5]-Exclusion[2];}
+  
+  int leftInclusion()  {return left()*Spacing[0];}
+  int topInclusion()   {return top()*Spacing[1];}
+  int upperInclusion() {return upper()*Spacing[2];}
+  int rightInclusion() {return right()*Spacing[0];}
+  int bottomInclusion(){return bottom()*Spacing[1];}
+  int lowerInclusion() {return lower()*Spacing[2];}
 
 private:
  // virtual vtkBoundingRegionFilter& operator=(const vtkBoundingRegionFilter& other); // Not implemented
  // virtual bool operator==(const vtkBoundingRegionFilter& other) const;// Not implemented
+ int Extent[6];
+ double Spacing[3];
  int Inclusion[3];
  int Exclusion[3];
+ int TotalVolume;
+ int InclusionVolume;
+ int ExclusionVolume;
 };
 
 #endif // VTKRECTANGULARBOUNDINGREGIONFILTER_H

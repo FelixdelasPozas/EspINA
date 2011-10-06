@@ -30,7 +30,7 @@
 vtkStandardNewMacro(vtkMorphologicalFeaturesFilter);
 
 vtkMorphologicalFeaturesFilter::vtkMorphologicalFeaturesFilter()
-: ComputeFeret(true)
+: ComputeFeret(false)
 , Size(0)
 , PhysicalSize(0)
 , FeretDiameter(0)

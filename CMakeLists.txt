@@ -4,7 +4,7 @@ cmake_minimum_required (VERSION 2.6)
 
 # Version Number
 set (CAJAL_VERSION_MAJOR 0)
-set (CAJAL_VERSION_MINOR 3)
+set (CAJAL_VERSION_MINOR 4)
 
 # SET (CTEST_INITIAL_CACHE  "
 #   CXXFLAGS:STRING=-g -O0 -Wall -Wshadow -Wunused-function -Wunused -Wno-system-headers -Wno-deprecated -Woverloaded-virtual -Wwrite-strings -fprofile-arcs -ftest-coverage

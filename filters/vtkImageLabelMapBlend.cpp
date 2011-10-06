@@ -21,6 +21,8 @@
 #include <cassert>
 #include <vtkStreamingDemandDrivenPipeline.h>
 
+typedef unsigned long long ImageOffset;
+
 vtkStandardNewMacro(vtkImageLabelMapBlend);
 
 // bool validExtent(int *ext)
@@ -233,7 +235,7 @@ int vtkImageLabelMapBlend::FillInputPortInformation(int port, vtkInformation* in
 
 int vtkImageLabelMapBlend::RequestInformation(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
-    std::cout << "Request Info" << std::endl;
+//     std::cout << "Request Info" << std::endl;
   // get the info objects
   vtkInformation* outInfo = 
     outputVector->GetInformationObject(0);  
@@ -248,7 +250,7 @@ int vtkImageLabelMapBlend::RequestInformation(vtkInformation* request, vtkInform
 // This method computes the input necessary to generate the output
 int vtkImageLabelMapBlend::RequestUpdateExtent(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
-    std::cout << "Request Update Extent" << std::endl;
+//     std::cout << "Request Update Extent" << std::endl;
   vtkInformation* outInfo = outputVector->GetInformationObject(0);
   
   int requestedUpdateExt[6];
@@ -308,6 +310,7 @@ int vtkImageLabelMapBlend::RequestUpdateExtent(vtkInformation* request, vtkInfor
 }
 
 //! Copies input pixels to output
+//! DEPRECATED: Problems while changing update extent
 void vtkImageLabelMapBlend::copyInput(vtkImageIterator< vtkImageLabelMapBlend::InputPixelType >& inIt, vtkImageIterator< vtkImageLabelMapBlend::OutputPixelType >& outIt)
 {
   InputPixelType *inPtr;
@@ -336,6 +339,7 @@ void vtkImageLabelMapBlend::copyInput(vtkImageIterator< vtkImageLabelMapBlend::I
 
 }
 
+//! Copies input pixels to output
 void vtkImageLabelMapBlend::copyInput(vtkImageLabelMapBlend::Input* input, vtkImageData* output, int updateArea[6])
 {
   int outDim[3], inDim[3];
@@ -347,25 +351,39 @@ void vtkImageLabelMapBlend::copyInput(vtkImageLabelMapBlend::Input* input, vtkIm
     inDim[d] = input->extent[2*d+1] - input->extent[2*d] + 1;
   }
   
+  // Input must be monocrome, thus we don't need numComponents
   int numComponets = output->GetNumberOfScalarComponents();
   
   unsigned char *outputPtr = static_cast<unsigned char *>(output->GetScalarPointer());
   unsigned char *inputPtr = static_cast<unsigned char *>(input->image->GetScalarPointer());
   
-  for (int z = updateArea[4]; z <= updateArea[5]; z++)
-    for (int y = updateArea[2]; y <= updateArea[3]; y++)
-      for (int x = updateArea[0]; x <= updateArea[1]; x++)
+//   std::cout << "Copying Image with Lower Extent: " << input->extent[0] << " " << input->extent[1] << " " << input->extent[2] << " " << std::endl;
+//   std::cout << "Copying Image with Update Area: " << updateArea[0] << " " << updateArea[1] << " " << updateArea[2] << " " << std::endl;
+  
+  
+  for (unsigned int z = updateArea[4]; z <= updateArea[5]; z++)
+  {
+    ImageOffset zInOffset = (z-input->extent[4])* inDim[0]* inDim[1]; 
+    ImageOffset zOutOffset = numComponets * z * outDim[0] * outDim[1];
+    for (unsigned int y = updateArea[2]; y <= updateArea[3]; y++)
+    {
+      ImageOffset yInOffset = (y-input->extent[2])* inDim[0];
+      ImageOffset yOutOffset = numComponets * y * outDim[0];
+      for (unsigned int x = updateArea[0]; x <= updateArea[1]; x++)
       {
-	int outPix = x*numComponets + y* outDim[0]*numComponets + z* outDim[0]* outDim[1]*numComponets;
-	int inPix = (x-input->extent[0]) + (y-input->extent[2])* inDim[0] + (z-input->extent[4])* inDim[0]* inDim[1];//Inputs are monocrome
+	ImageOffset inPix = (x-input->extent[0]) + yInOffset + zInOffset;
+	ImageOffset outPix = numComponets*x + yOutOffset + zOutOffset;
 	
 	for (int c = 0; c < numComponets; c++)
 	  outputPtr[outPix+c] = inputPtr[inPix];
       }
+    }
+  }
 }
 
 
 //! Blend input color into output color whenever input pixel is not 0
+//! DEPRECATED: Problems while changing update extent
 void vtkImageLabelMapBlend::blendInputs(vtkImageIterator<InputPixelType> &inIt, vtkImageIterator<OutputPixelType> &outIt, OutputPixelType *color)
 {
   InputPixelType *inPtr;// = (InputPixelType*)input->GetScalarPointer();
@@ -405,10 +423,11 @@ void vtkImageLabelMapBlend::blendInputs(vtkImageIterator<InputPixelType> &inIt, 
   }
 }
 
-bool isBorderPixel(int x, int y, int z, int dim[3], int extent[6])
-{
-}
+// bool isBorderPixel(int x, int y, int z, int dim[3], int extent[6])
+// {
+// }
 
+//! Blend input color into output color whenever input pixel is not 0
 void vtkImageLabelMapBlend::blendInput(vtkImageLabelMapBlend::Input* input, vtkImageData* output, int updateArea[6])
 {
   int outDim[3], inDim[3];
@@ -427,12 +446,21 @@ void vtkImageLabelMapBlend::blendInput(vtkImageLabelMapBlend::Input* input, vtkI
   
   bool isSelected = input->color[3];
   
-  for (int z = updateArea[4]; z <= updateArea[5]; z++)
-    for (int y = updateArea[2]; y <= updateArea[3]; y++)
-      for (int x = updateArea[0]; x <= updateArea[1]; x++)
+//   std::cout << "Blending Image with Lower Extent: " << input->extent[0] << " " << input->extent[1] << " " << input->extent[2] << " " << std::endl;
+//   std::cout << "Blending Image with Update Area: " << updateArea[0] << " " << updateArea[1] << " " << updateArea[2] << " " << std::endl;
+  
+  for (unsigned int z = updateArea[4]; z <= updateArea[5]; z++)
+  {
+    ImageOffset zInOffset = (z-input->extent[4])* inDim[0]* inDim[1]; 
+    ImageOffset zOutOffset = numComponets * z * outDim[0] * outDim[1];
+    for (unsigned int y = updateArea[2]; y <= updateArea[3]; y++)
+    {
+      ImageOffset yInOffset = (y-input->extent[2])* inDim[0];
+      ImageOffset yOutOffset = numComponets * y * outDim[0];
+      for (unsigned int x = updateArea[0]; x <= updateArea[1]; x++)
       {
-	int outPix = x*numComponets + y* outDim[0]*numComponets + z* outDim[0]* outDim[1]*numComponets;
-	int inPix = (x-input->extent[0]) + (y-input->extent[2])* inDim[0] + (z-input->extent[4])* inDim[0]* inDim[1];//Inputs are monocrome
+	ImageOffset inPix = (x-input->extent[0]) + yInOffset + zInOffset;
+	ImageOffset outPix = numComponets*x + yOutOffset + zOutOffset;
 	
 	if (inputPtr[inPix]) //Non 0 pixel
 	{
@@ -443,14 +471,16 @@ void vtkImageLabelMapBlend::blendInput(vtkImageLabelMapBlend::Input* input, vtkI
 	    outputPtr[outPix+c] = outputPtr[outPix+c]*f + input->color[c]*r;
 	  }
 	}
-      }
+      }// X loop
+    }// Y loop
+  }// Z loop
 }
 
 
 //! Run blending algorithm in the requested extent 
 void vtkImageLabelMapBlend::ThreadedRequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector, vtkImageData*** inData, vtkImageData** outData, int extent[6], int threadId)
 {
-  std::cout << "Request Threaded Data" << std::endl;
+//   std::cout << "Request Threaded Data" << std::endl;
   vtkInformation *inInfo = 
     inputVector[0]->GetInformationObject(0); 
   
@@ -467,7 +497,7 @@ void vtkImageLabelMapBlend::ThreadedRequestData(vtkInformation* request, vtkInfo
   // blended inputs in the area
   for (unsigned int r = 0; r < m_removeInputs.size(); r++)
   {
-    std::cout << "Regenerate Blender" << std::endl;
+//     std::cout << "Regenerate Blender" << std::endl;
     int removeAreaExtent[6];
     if (!intersect(m_removeInputs[r]->requestedAreaExtent,extent, removeAreaExtent))
       continue;
@@ -490,8 +520,8 @@ void vtkImageLabelMapBlend::ThreadedRequestData(vtkInformation* request, vtkInfo
 	vtkImageIterator<InputPixelType> inIt(input, inputRemoveExtent);
 	vtkImageProgressIterator<OutputPixelType> outIt(output, inputRemoveAreaExtent,this,threadId);
 	
-	std::cout << "Regenerating area ";
-	printExtent(inputRemoveAreaExtent);
+// 	std::cout << "Regenerating area ";
+// 	printExtent(inputRemoveAreaExtent);
 	
 	if (i == 0) // First input has to be copied, not blended
 	  copyInput(m_blendedInputs[0],output,inputRemoveAreaExtent);
@@ -505,10 +535,18 @@ void vtkImageLabelMapBlend::ThreadedRequestData(vtkInformation* request, vtkInfo
   // Then, after all removed areas have been regenerated, new inputs have to be blended
   for (unsigned int i = 0; i < m_newInputs.size(); i++)
   {
-    std::cout << "Update Blender" << std::endl;
+//     std::cout << "Update Blender" << std::endl;
     int inputAreaExtent[6];
+//     std::cout << "New Input area ";
+//     printExtent(m_newInputs[i]->requestedAreaExtent);
+//     std::cout << "New Input Extent ";
+//     printExtent(m_newInputs[i]->extent);
+//     std::cout << "Request Data Extent ";
+//     printExtent(extent);
     if (!intersect(m_newInputs[i]->requestedAreaExtent, extent, inputAreaExtent))
       continue;
+//     std::cout << "Updating area ";
+//     printExtent(inputAreaExtent);
     
 //     sprintf(res, "Thread ID: %d: InputArea %d: %d %d %d %d %d %d\n",threadId, i, inputAreaExtent[0], inputAreaExtent[1], inputAreaExtent[2], inputAreaExtent[3],inputAreaExtent[4],inputAreaExtent[5]);
 //     std::cout << res;
@@ -517,9 +555,6 @@ void vtkImageLabelMapBlend::ThreadedRequestData(vtkInformation* request, vtkInfo
     vtkImageData *input  = m_newInputs[i]->image;//vtkImageData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
     vtkImageIterator<InputPixelType> inIt(input,inputExtent);
     //vtkImageIterator<OutputPixelType> outIt(output,inputAreaExtent);//Doesn't work if we change the update extent...
-    
-    std::cout << "Updating area ";
-    printExtent(inputAreaExtent);
 	
 //     blendInputs(inIt, outIt, m_newInputs[i]->color);
     blendInput(m_newInputs[i], output,inputAreaExtent);
@@ -533,7 +568,7 @@ void vtkImageLabelMapBlend::ThreadedRequestData(vtkInformation* request, vtkInfo
 
 int vtkImageLabelMapBlend::RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
-  std::cout << "Request Data" << std::endl;
+//   std::cout << "Request Data" << std::endl;
 /*  
   vtkInformation* outInfo = outputVector->GetInformationObject(0); 
   if (m_newInputs.size() > 0)
@@ -608,7 +643,7 @@ bool vtkImageLabelMapBlend::requestArea(vtkImageData *inputImage)
   //   inputImage->GetDimensions(input.dims);
   //   input.blended = false;
   for (int i = 0; i<6; i++)
-    input->requestedAreaExtent[i] = input->bounds[i] / input->spacing[i/2];
+    input->requestedAreaExtent[i] = input->extent[i];// NOTE: before: input->bounds[i] / input->spacing[i/2]; but it crashed due to rounding
    
 //   for (int i = 0; i<3; i++)
 //   {
