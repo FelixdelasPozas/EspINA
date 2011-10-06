@@ -621,7 +621,7 @@ void vtkRectangularBoundingRegionRepresentation::MoveMinusZFace(double *p1, doub
 // Loop through all points and translate them
 void vtkRectangularBoundingRegionRepresentation::Translate(double *p1, double *p2)
 {
-  assert(false);
+//   assert(false);
   /*
   double *pts =
     static_cast<vtkDoubleArray *>(this->Points->GetData())->GetPointer(0);
@@ -647,7 +647,7 @@ void vtkRectangularBoundingRegionRepresentation::Scale(double *vtkNotUsed(p1),
                                  int vtkNotUsed(X),
                                  int Y)
 {
-  assert(false);
+//   assert(false);
   /*
   double *pts =
       static_cast<vtkDoubleArray *>(this->Points->GetData())->GetPointer(0);
@@ -1300,7 +1300,7 @@ void vtkRectangularBoundingRegionRepresentation::GetTransform(vtkTransform *t)
 //----------------------------------------------------------------------------
 void vtkRectangularBoundingRegionRepresentation::SetTransform(vtkTransform* t)
 {
-  std::cout << "SetTransform" << std::endl;
+//   std::cout << "SetTransform" << std::endl;
   /*
   if (!t)
     {
@@ -1442,9 +1442,7 @@ void vtkRectangularBoundingRegionRepresentation::SetInteractionState(int state)
 double *vtkRectangularBoundingRegionRepresentation::GetBounds()
 {
   this->BuildRepresentation();
-  double bounds[6] = {0,70,0,70,0,70};
-  this->BoundingBox->SetBounds(bounds);
-//   this->BoundingBox->SetBounds(this->RegionActor->GetBounds());
+  this->BoundingBox->SetBounds(this->RegionActor->GetBounds());
   return this->BoundingBox->GetBounds();
 }
 
