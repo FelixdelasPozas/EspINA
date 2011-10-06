@@ -3,9 +3,9 @@ project (ESPINA)
 cmake_minimum_required (VERSION 2.6)
 
 # Version Number
-set (ESPINA_VERSION_MAJOR 0) 
-set (ESPINA_VERSION_MINOR 99 ) #Beta version
-set (ESPINA_VERSION_PATCH 2)
+set (ESPINA_VERSION_MAJOR 1) 
+set (ESPINA_VERSION_MINOR 0)
+set (ESPINA_VERSION_PATCH 0)
 
 
 find_package (Qt4 REQUIRED)
