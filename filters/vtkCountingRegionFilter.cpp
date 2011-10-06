@@ -94,9 +94,9 @@ BoundingBox::BoundingBox(vtkImageData* image)
 
 bool BoundingBox::intersect(BoundingBox& bb)
 {
-  bool xOverlap = xMin < bb.xMax && xMax > bb.xMin;
-  bool yOverlap = yMin < bb.yMax && yMax > bb.yMin;
-  bool zOverlap = zMin < bb.zMax && zMax > bb.zMin;
+  bool xOverlap = xMin <= bb.xMax && xMax >= bb.xMin;
+  bool yOverlap = yMin <= bb.yMax && yMax >= bb.yMin;
+  bool zOverlap = zMin <= bb.zMax && zMax >= bb.zMin;
   
   return xOverlap && yOverlap && zOverlap;
 }
