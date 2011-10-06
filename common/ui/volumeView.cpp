@@ -68,6 +68,7 @@
 #include <vtkSMPropertyHelper.h>
 #include <vtkPVDataInformation.h>
 #include <SegmentationSelectionExtension.h>
+#include <vtkInteractorStyleTrackballCamera.h>
 
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(QWidget* parent)
@@ -125,6 +126,14 @@ void VolumeView::connectToServer()
   cam->Azimuth(180);
   cam->Roll(180);
   
+  vtkRenderWindowInteractor *rwi = vtkRenderWindowInteractor::SafeDownCast(
+    viewProxy->GetRenderWindow()->GetInteractor());
+  assert(rwi);
+
+  vtkInteractorStyleTrackballCamera *style = vtkInteractorStyleTrackballCamera::New();
+  rwi->SetInteractorStyle(style);
+
+
   double black[3] = {0,0,0};
   m_view->getRenderViewProxy()->SetBackgroundColorCM(black);
   
