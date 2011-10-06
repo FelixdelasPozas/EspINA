@@ -69,6 +69,7 @@
 #include <vtkPVDataInformation.h>
 #include <SegmentationSelectionExtension.h>
 #include <vtkInteractorStyleTrackballCamera.h>
+#include <QApplication>
 
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(QWidget* parent)
@@ -88,10 +89,18 @@ VolumeView::VolumeView(QWidget* parent)
   
   m_snapshot.setIcon(QIcon(":/espina/snapshot_scene.svg"));
   m_snapshot.setToolTip(tr("Save Scene as Image"));
+  m_snapshot.setFlat(true);
+  m_snapshot.setIconSize(QSize(22,22));
+  m_snapshot.setMaximumSize(QSize(32,32));
   connect(&m_snapshot,SIGNAL(clicked(bool)),this,SLOT(takeSnapshot()));
   
-  m_export.setIcon(QIcon(":/espina/export_scene.svg"));
+  QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
+  //m_export.setIcon(QIcon(":/espina/export_scene.svg"));
+  m_export.setIcon(iconSave);
   m_export.setToolTip(tr("Export 3D Scene"));
+  m_export.setFlat(true);
+  m_export.setIconSize(QSize(22,22));
+  m_export.setMaximumSize(QSize(32,32));
   connect(&m_export,SIGNAL(clicked(bool)),this,SLOT(exportScene()));
   
   m_controlLayout->addWidget(&m_snapshot);

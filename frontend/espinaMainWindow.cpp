@@ -171,7 +171,7 @@ EspinaMainWindow::EspinaMainWindow()
   pqParaViewMenuBuilders::buildViewMenu(*this->Internals->menu_View, *this);
 
   //// Setup the help menu.
-  pqParaViewMenuBuilders::buildHelpMenu(*this->Internals->menu_Help);
+//   pqParaViewMenuBuilders::buildHelpMenu(*this->Internals->menu_Help);
   
   // ParaView Server
   pqServerManagerObserver *server = pqApplicationCore::instance()->getServerManagerObserver();
@@ -984,11 +984,11 @@ void EspinaMainWindow::buildFileMenu(QMenu &menu)
   
   //signalMapper->setMapping(accountFileButton, QString("open"));
 
-  action = new QAction(QIcon(":espina/add.svg"),tr("Add"),this);
-  signalMapper->setMapping(action, QString("add"));
-  connect(action, SIGNAL(triggered(bool)), signalMapper, SLOT(map()));
-  menu.addAction(action);
-
+//   action = new QAction(QIcon(":espina/add.svg"),tr("Add"),this);
+//   signalMapper->setMapping(action, QString("add"));
+//   connect(action, SIGNAL(triggered(bool)), signalMapper, SLOT(map()));
+//   menu.addAction(action);
+// 
   connect(signalMapper, SIGNAL(mapped(QString)), this, SLOT(loadFile(QString)));
   /*
   // Import Trace from localhost

@@ -99,15 +99,15 @@ QVariant Segmentation::data(int role) const
       ;
     case Qt::CheckStateRole:
       return visible()?Qt::Checked:Qt::Unchecked;
-    case Qt::FontRole:
-    {
-      QFont myFont;
-//       if (this->availableInformations().contains("Discarted"))
-//       {
-	myFont.setStrikeOut(!visible());
-//       }
-      return myFont;
-    }
+//     case Qt::FontRole:
+//     {
+//       QFont myFont;
+// //       if (this->availableInformations().contains("Discarted"))
+// //       {
+// 	myFont.setStrikeOut(!visible());
+// //       }
+//       return myFont;
+//     }
     default:
       return QVariant();
   }

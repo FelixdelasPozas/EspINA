@@ -22,6 +22,7 @@
 
 #include <qabstractitemview.h>
 #include <selectionManager.h>
+#include <QPushButton>
 
 class Sample;
 class Sample;
@@ -96,8 +97,8 @@ private:
   pqRenderView *m_view;
   QWidget *m_viewWidget;
   QVBoxLayout *m_mainLayout;
-  QToolButton m_snapshot;
-  QToolButton m_export;
+  QPushButton m_snapshot;
+  QPushButton m_export;
   QHBoxLayout *m_controlLayout;
   pq3DWidget *m_VOIWidget;//Because it doesn't implement ISelectableView
   Sample *m_lastSample;

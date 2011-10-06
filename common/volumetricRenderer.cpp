@@ -36,7 +36,7 @@
 VolumetricRenderer::VolumetricRenderer(QWidget* parent)
 : IViewWidget(parent)
 {
-  setIcon(QIcon(":espina/show_3D.svg"));
+  setIcon(QIcon(":espina/voxel.png"));
   setToolTip(tr("Volumetric render"));
 }
 

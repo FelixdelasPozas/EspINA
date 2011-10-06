@@ -4,6 +4,7 @@
 #include "espinaTypes.h"
 #include <QToolButton>
 #include <QModelIndex>
+#include <QPushButton>
 
 class EspinaFilter;
 class Segmentation;
@@ -136,13 +137,16 @@ protected:
 };
 
 //TODO: Revisar!!! XXX MUERTEEEE DESTRUCCIOOOON
-class IViewWidget : public QToolButton
+class IViewWidget : public QPushButton
 {
   Q_OBJECT
 public:
-  IViewWidget(QWidget* parent = 0) : QToolButton(parent) 
+  IViewWidget(QWidget* parent = 0) : QPushButton(parent) 
   {
     setCheckable(true);
+    setFlat(true);
+    setIconSize(QSize(22,22));
+    setMaximumSize(QSize(32,32));
     connect(this,SIGNAL(toggled(bool)),this,SLOT(updateState(bool)));
   }
   virtual ~IViewWidget(){}
