@@ -19,8 +19,11 @@
 
 #include "processingTrace.h"
 
-#include "graphHelper.h"
 #include "espina.h"
+#include "sample.h"
+#include "segmentation.h"
+
+#include "graphHelper.h"
 #include "EspinaPlugin.h"
 
 #include <iostream>
@@ -33,9 +36,12 @@
 #include <pqObjectBuilder.h>
 #include <pqLoadDataReaction.h>
 #include <cachedObjectBuilder.h>
-#include "../plugins/SeedGrowSegmentation/SeedGrowSegmentationFilter.h"
 #include "espINAFactory.h"
 #include "labelMapExtension.h"
+
+#include <QSettings>
+#include <QFileDialog>
+#include "EspinaPluginManager.h"
 
 using namespace boost;
 
@@ -203,7 +209,7 @@ void ProcessingTrace::removeNode(ITraceNode* node)
     assert( node->type == ITraceNode::PRODUCT );
     parent = seg->parent();
     parent->removeProduct(seg);
-    if (parent->numProducts() != 0)
+    if (parent->numProducts() > 0)
     {
       parent = NULL;
     }
@@ -284,14 +290,41 @@ void ProcessingTrace::readTrace(QTextStream& stream)
       QString rawArgs( vArgs[vertexId].c_str() );
       ITraceNode::Arguments args = ITraceNode::parseArgs( rawArgs );
       // Is a stack //TODO be more explicit
-      if( vShape[vertexId].compare("ellipse") == 0 && label.contains(QDir::separator()) )
+      if( vShape[vertexId].compare("ellipse") == 0 && label.contains(".") ) //Samples contains extension's dot
       {
         qDebug() << "ProcessingTrace: Loading the Stack " << label;
-        pqPipelineSource* proxy = pqLoadDataReaction::loadData(QStringList(label));
+	//NOTE: I call load reaction data to be sure it is also in the server
+	//TODO: review and clean
+	// First we try to find the sample in the current directory
+	QString path = label.section('/',0,-2);
+	QString sampleId = label.section('/', -1);
+	QString sampleFile = label;
+        pqPipelineSource* proxy = pqLoadDataReaction::loadData(QStringList(sampleFile));
+	if (!proxy) // Try to find the sample in configuration directory
+	{
+	  QDir workingDirectory = Cache::instance()->workingDirectory();
+	  workingDirectory.cdUp();
+	  path = workingDirectory.absolutePath();
+	  sampleFile = path + '/' + sampleId;
+	  proxy = pqLoadDataReaction::loadData(QStringList(sampleFile));
+	  if (!proxy)
+	  {
+	    QSettings settings;
+	    path = settings.value("samplePath").toString();;
+	    sampleFile = path + '/' + sampleId;
+	    proxy = pqLoadDataReaction::loadData(QStringList(sampleFile));
+	    if (!proxy)
+	    {      
+	      sampleFile =  QFileDialog::getOpenFileName(0, "Select Sample", ".", "Sample Files (*.mha *.mhd)");
+	      path = sampleFile.section('/',0,-2);
+	      proxy = pqLoadDataReaction::loadData(QStringList(sampleFile));
+	    }
+	  }
+	}
         if( proxy )
         {
-          vtkFilter* sampleReader = CachedObjectBuilder::instance()->registerProductCreator(label, proxy);
-	  newSample = EspINAFactory::instance()->CreateSample(sampleReader, 0);
+          vtkFilter* sampleReader = CachedObjectBuilder::instance()->registerProductCreator(sampleId, proxy);
+	  newSample = EspINAFactory::instance()->CreateSample(sampleReader, 0,path);
           EspINA::instance()->addSample(newSample);
           // TODO same code like cachedObjectBuilder::createSMFilter() - DOUBLEVECT
           QStringList values = args["Spacing"].split(",");
@@ -299,9 +332,21 @@ void ProcessingTrace::readTrace(QTextStream& stream)
           {
             newSample->setSpacing(values[0].toDouble(), values[1].toDouble(), values[2].toDouble());
           }
+          foreach(QString argName, args.keys())
+	  {
+	    if (argName != "Id" && argName != "Taxonomy" && argName != "Spacing")
+	    {
+	      if (!newSample->extension(argName))
+	      {
+		std::cout << "ERROR: Extension " << argName.toStdString() << " doesn't exist" << std::endl;
+		assert(false);
+	      }
+	      newSample->extension(argName)->setArguments(args[argName]);
+	    }
+	  }
 	  //ALERT: newSample is not initialize until added to espina model
-	  assert(newSample->representation("02_LabelMap"));
-	  dynamic_cast<LabelMapExtension::SampleRepresentation *>(newSample->representation("02_LabelMap"))->setEnable(false);
+	  assert(newSample->representation(LabelMapExtension::SampleRepresentation::ID));
+	  dynamic_cast<LabelMapExtension::SampleRepresentation *>(newSample->representation(LabelMapExtension::SampleRepresentation::ID))->setEnable(false);
         }
         else
         {
@@ -314,24 +359,26 @@ void ProcessingTrace::readTrace(QTextStream& stream)
         qDebug() << "ProcessingTrace: Creating the filter " << label;
         //QStringList filterInfo = QString(vLabel[vertexId].c_str()).split("::");
         //assert(filterInfo.size() == 2);
-        
-        
-       // if( filterInfo.at(1) == "SeedGrowSegmentationFilter")
-        IFilterFactory* factory = m_availablePlugins.value(label, NULL);
-        if( factory )
-          factory->createFilter(label, args);
-        else
-          qDebug() << "ProcessingTrace: the filter is not registered";
+	// if( filterInfo.at(1) == "SeedGrowSegmentationFilter")
+	
+	EspinaFilter *filter = EspinaPluginManager::instance()->createFilter(label,args);
+	if (!filter)
+	  qDebug() << "ProcessingTrace: the filter is not registered";
+	  
+//         IFilterFactory* factory = m_availablePlugins.value(label, NULL);
+//         if( factory )
+//           factory->createFilter(label, args);
+//         else
+//           qDebug() << "ProcessingTrace: the filter is not registered";
 
-//        core->getObjectBuilder()->createFilter(qstrl.at(0), qstrl.at(1),
- //                                              pqPipelineSource  );
-  //
-        //core->getObjectBuilder()->createSource()
       } // A segmentation
       else {
         qDebug() << "ProcessingTrace: segmentation " << args["Id"] << args["Taxonomy"];
         EspINA* espina = EspINA::instance();
-        espina->changeTaxonomy(espina->segmentation(args["Id"]), args["Taxonomy"]);
+	Segmentation *seg = espina->segmentation(args["Id"]);
+	assert(seg);
+	espina->changeId(seg, label.section(' ',-1).toInt());
+        espina->changeTaxonomy(seg, args["Taxonomy"]);
         
       //  localPipe.push_back(*vi);
       // check if is a filter and all of its dependecies exist
@@ -354,23 +401,23 @@ void ProcessingTrace::readTrace(QTextStream& stream)
     }
   }
   if (newSample)
-    dynamic_cast<LabelMapExtension::SampleRepresentation *>(newSample->representation("02_LabelMap"))->setEnable(true);
+    dynamic_cast<LabelMapExtension::SampleRepresentation *>(newSample->representation(LabelMapExtension::SampleRepresentation::ID))->setEnable(true);
 }
 
-//-----------------------------------------------------------------------------
-void ProcessingTrace::registerPlugin(QString key, IFilterFactory* factory)
-{
-  assert( m_availablePlugins.contains(key) == false );
-  m_availablePlugins.insert(key, factory);
-}
-
-
-//-----------------------------------------------------------------------------
-IFilterFactory * ProcessingTrace::getRegistredPlugin(QString& key)
-{
-  assert( m_availablePlugins.contains(key));
-  return m_availablePlugins[key];
-}
+// //-----------------------------------------------------------------------------
+// void ProcessingTrace::registerPlugin(QString key, IFilterFactory* factory)
+// {
+//   assert( m_availablePlugins.contains(key) == false );
+//   m_availablePlugins.insert(key, factory);
+// }
+// 
+// 
+// //-----------------------------------------------------------------------------
+// IFilterFactory * ProcessingTrace::getRegistredPlugin(QString& key)
+// {
+//   assert( m_availablePlugins.contains(key));
+//   return m_availablePlugins[key];
+// }
 
 
 //-----------------------------------------------------------------------------

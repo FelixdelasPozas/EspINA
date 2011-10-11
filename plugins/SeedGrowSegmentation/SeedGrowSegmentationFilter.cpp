@@ -19,13 +19,38 @@
 
 #include "SeedGrowSegmentationFilter.h"
 
-#include <selectionManager.h>
-#include <cache/cachedObjectBuilder.h>
+// Debug
+#include "espina_debug.h"
+
+// EspINA
+#include "espINAFactory.h"
+#include "espina.h"
+#include "sample.h"
+#include "segmentation.h"
+#include "selectionManager.h"
+#include "cache/cachedObjectBuilder.h"
 
 #include <pqPipelineSource.h>
-#include <espINAFactory.h>
-#include <espina.h>
-#include <QDebug>
+#include <QSpinBox>
+#include <QLayout>
+#include <EspinaPluginManager.h>
+#include <pqOutputPort.h>
+#include <vtkPVDataInformation.h>
+#include <vtkSMProxy.h>
+#include <QMessageBox>
+
+
+
+SeedGrowSegmentationFilter::SetupWidget::SetupWidget(EspinaFilter *parent)
+: QWidget()
+{
+  setupUi(this);
+  SeedGrowSegmentationFilter *filter = dynamic_cast<SeedGrowSegmentationFilter *>(parent);
+  m_xSeed->setText(QString("%1").arg(filter->m_seed[0]));
+  m_ySeed->setText(QString("%1").arg(filter->m_seed[1]));
+  m_zSeed->setText(QString("%1").arg(filter->m_seed[2]));
+  m_threshold->setValue(filter->m_threshold);
+}
 
 
 QString stripName(QString args){return args.split(";")[0];}//FAKE
@@ -65,6 +90,11 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVO
   vtkFilter::Arguments growArgs;
   growArgs.push_back(vtkFilter::Argument(QString("Input"),vtkFilter::INPUT, voiOutput.id()));
   growArgs.push_back(vtkFilter::Argument(QString("Seed"),vtkFilter::INTVECT,args["Seed"]));
+  QStringList seed = args["Seed"].split(",");
+  m_seed[0] = seed[0].toInt();
+  m_seed[1] = seed[1].toInt();
+  m_seed[2] = seed[2].toInt();
+  
   growArgs.push_back(vtkFilter::Argument(QString("Threshold"),vtkFilter::DOUBLEVECT,args["Threshold"]));
   m_threshold = args["Threshold"].toInt();
   //growArgs.push_back(vtkFilter::Argument(QString("ProductPorts"),vtkFilter::INTVECT, "0"));
@@ -92,8 +122,37 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVO
   assert(m_finalFilter->numProducts() == 1);
   m_numSeg = m_finalFilter->numProducts();
   
+  //WARNING: taking address of temporary => &m_finalFilter->product(0) ==> Need review
   Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(this, &m_finalFilter->product(0));
-
+  
+  if (voi)
+  {
+    int extent[6];
+    seg->creator()->pipelineSource()->updatePipeline();
+    seg->creator()->pipelineSource()->getProxy()->UpdatePropertyInformation();
+    seg->outputPort()->getDataInformation()->GetExtent(extent);
+    QStringList voiArgs = m_applyFilter->getFilterArguments().split(';');
+    QStringList bounds = voiArgs[2].section('=',-1).split(',');
+    for (int i=0; i < 6; i++)
+    {
+//       std::cout << extent[i] << " - " << bounds[i].toInt() << std::endl;
+      if (extent[i] == bounds[i].toInt())
+      {
+	QString title("Seed Grow Segmentation Filter Information");
+	QString text("New segmentation may be incomplete due to VOI restriction.");
+	
+	QApplication::setOverrideCursor(Qt::ArrowCursor);
+	QApplication::setOverrideCursor(Qt::ArrowCursor);
+	QMessageBox *msgBox = new QMessageBox(QMessageBox::Information,title,text);
+	msgBox->show();// using exec make views loose focus
+	QMessageBox::connect(msgBox,SIGNAL(accepted()),msgBox,SLOT(deleteLater()));
+	QApplication::restoreOverrideCursor();
+	QApplication::restoreOverrideCursor();
+	break;
+      }
+    }
+  }
+  
   // Trace EspinaFilter
   trace->addNode(this);
   // Connect input
@@ -131,7 +190,8 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ITraceNode::Arguments& ar
   if (args.contains("ApplyVOI") )
   {
     ITraceNode::Arguments voiArgs = ITraceNode::parseArgs(args["ApplyVOI"]);
-    m_applyFilter = trace->getRegistredPlugin(voiArgs["Type"])->createFilter(voiArgs["Type"],voiArgs);
+    m_applyFilter = EspinaPluginManager::instance()->createFilter(voiArgs["Type"],voiArgs);
+//     m_applyFilter = trace->getRegistredPlugin(voiArgs["Type"])->createFilter(voiArgs["Type"],voiArgs); // 
     if (m_applyFilter)
     {
       voiOutput = m_applyFilter->product(0);
@@ -144,7 +204,13 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ITraceNode::Arguments& ar
   vtkFilter::Arguments growArgs;
   growArgs.push_back(vtkFilter::Argument(QString("Input"),vtkFilter::INPUT, voiOutput.id()));
   growArgs.push_back(vtkFilter::Argument(QString("Seed"),vtkFilter::INTVECT,args["Seed"]));
+  QStringList seed = args["Seed"].split(",");
+  m_seed[0] = seed[0].toInt();
+  m_seed[1] = seed[1].toInt();
+  m_seed[2] = seed[2].toInt();
+  
   growArgs.push_back(vtkFilter::Argument(QString("Threshold"),vtkFilter::DOUBLEVECT,args["Threshold"]));
+  m_threshold = args["Threshold"].toInt();
   //growArgs.push_back(vtkFilter::Argument(QString("ProductPorts"),vtkFilter::INTVECT, "0"));
   // Disk cache. If the .seg contains .mhd files now it try to load them
 //   Cache::Index id = cob->generateId("filter", "SeedGrowSegmentationFilter", growArgs);
@@ -203,4 +269,9 @@ SeedGrowSegmentationFilter::~SeedGrowSegmentationFilter()
 void SeedGrowSegmentationFilter::removeProduct(EspinaProduct* product)
 {
   m_numSeg = 0;
+}
+
+QWidget* SeedGrowSegmentationFilter::createSetupWidget()
+{
+  return new SetupWidget(this);
 }

@@ -19,6 +19,7 @@
 
 #include "cache.h"
 
+// Debug
 #include "espina_debug.h"
 
 #include <filter.h>
@@ -50,7 +51,7 @@ Cache* Cache::instance()
 void Cache::insert(const Index& index, vtkFilter* filter, bool persistent)
 {
   if ( index != filter->id())
-    qWarning() << "Cache: Inserting ... different id";
+    CACHE_DEBUG("Cache: Inserting ... different id");
   //m_translator.insert(id,index);
   if (m_cachedProxies.contains(index))
   {
@@ -81,7 +82,7 @@ vtkFilter *Cache::getEntry(const Cache::Index index)
   else
   {
     // Try to load from cache disk
-    QStringList fileName(m_diskCachePath.filePath(index + ".pvd"));//"/tmp/" + index + ".pvd"); //TODO set a workdirectory
+    QStringList fileName(m_diskCachePath.filePath(index + ".pvd"));
     pqPipelineSource *diskSource = pqLoadDataReaction::loadData(fileName);
     if( diskSource )
     {
@@ -94,7 +95,7 @@ vtkFilter *Cache::getEntry(const Cache::Index index)
       m_cachedProxies[index].refCounter--;
       return diskEntryFilter;
     }else{
-      qWarning() << "Cache: " << index << "Failed to found entry";
+      CACHE_DEBUG("Cache: " << index << "Failed to found entry");
       return NULL;
     }
   }

@@ -38,9 +38,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "selectionManager.h"
 
 #include <QToolButton>
+#include "SeedGrowSegmentationPreferences.h"
 
 class QMenu;//Forward declarations
 class QSpinBox;
+class QCheckBox;
 class Product;
 class QString;
 
@@ -81,10 +83,14 @@ private:
 
 private:
   QSpinBox *m_threshold;
+  QCheckBox *m_useDefaultVOI;
+  IVOI *m_defaultVOI;
   QToolButton *m_segButton;
   QMenu *m_selectors;
   ISelectionHandler *m_seedSelector;
   QMap<QAction *, ISelectionHandler *> m_seedSelectors;
+  
+  SeedGrowSegmentationSettings *m_preferences;
 };
 
 #endif// SEEDGROWINGSEGMENTATION_H

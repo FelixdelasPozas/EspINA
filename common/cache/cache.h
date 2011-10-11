@@ -45,6 +45,7 @@ public:
    *  files for the cache disk
    */
   void setWorkingDirectory(QFileInfo& sample);
+  QDir workingDirectory() const {return m_diskCachePath;}
   //CacheEntry *getEspinaEntry(const EspinaId &id) const;
   
 protected:

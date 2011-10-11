@@ -20,13 +20,14 @@
 #include "sampleProxy.h"
 
 #include "espina.h"
+#include "sample.h"
+#include "segmentation.h"
+
+// libCajal
 #include <data/modelItem.h>
-#include "products.h"
 
 //Debug
-#include <assert.h>
-#include <QDebug>
-#include <iostream>
+#include "espina_debug.h"
 
 SampleProxy::SampleProxy(QObject* parent)
     : QAbstractProxyModel(parent)
@@ -254,6 +255,7 @@ void SampleProxy::sourceRowsRemoved(const QModelIndex& sourceParent, int start, 
 
 void SampleProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight)
 {
+//   qDebug() << "Sample source request update: " << sourceTopLeft;
   const QModelIndex proxyTopLeft = mapFromSource(sourceTopLeft);
   const QModelIndex proxyBottomRight = mapFromSource(sourceBottomRight);
   

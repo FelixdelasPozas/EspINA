@@ -40,7 +40,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // Qt
 #include <QString>
 #include <QList>
+#include <qitemselectionmodel.h>
+#include <selectionManager.h>
 
+class SegmentationExplorer;
+class ISelectionHandler;
+class QItemSelectionModel;
 class QTreeView;
 class QComboBox;
 class TaxonomyNode;
@@ -71,7 +76,18 @@ protected slots:
   void saveFile();
   void importFile(); // Local load 
   void exportFile(); // Local save
-
+  
+  // Toolbar
+  void removeSegmentationClicked(bool checked);
+  void removeSelectedSegmentation(ISelectionHandler::Selection sel);
+  void stopRemovingSegmentations();
+  
+  void showPreferencesDialog();
+  
+  // Synchronize view selections
+  void shyncSelection(QItemSelectionModel *model);
+  void updateSelection (const QItemSelection & selected, const QItemSelection & deselected);
+  
   // Manage Taxonomy Editor
   void addTaxonomyElement();
   void addTaxonomyChildElement();
@@ -81,13 +97,19 @@ protected slots:
   
   // Manage Sample Explorer
   void focusOnSample();
+  void focusOnSegmentation();
+  void showSegmentationInformation();
+  void hideSegmentationInformation(Segmentation* seg);
   
   void toggleVisibility(bool visible);
   virtual bool eventFilter(QObject* obj, QEvent* event);
   
   void setGroupView(int idx);
   void deleteSegmentations();
-
+  void changeTaxonomy(const QModelIndex &taxIndex);
+  
+  void extractInformation();
+  
   //TODO delete
   void autoLoadStack();
   
@@ -96,6 +118,7 @@ private:
   void operator=(const EspinaMainWindow&); // Not implemented.
 
   void buildFileMenu(QMenu &menu);
+  void buildSettingsMenu(QMenu &menu);
 
   EspINA *m_espina;
   DistUnit m_unit;
@@ -112,6 +135,14 @@ private:
   QList<QModelIndex> m_groupingRoot;
   int m_lastTaxonomyId;
   SampleProxy *sampleProxy;
+  
+  ISelectionHandler *m_removeSegmentationSelector;
+  
+  // Model/View Selection Model
+  QList<QItemSelectionModel *>m_selectionModels;
+  QModelIndexList m_sourceSelection;
+  
+  QMap<Segmentation *,SegmentationExplorer *> m_segDialogs;
 };
 
 #endif //ESPINA_MAIN_WINDOW_H

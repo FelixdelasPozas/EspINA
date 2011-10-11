@@ -20,11 +20,8 @@ include (${ITK_USE_FILE})
 find_package(Boost REQUIRED COMPONENTS  system filesystem)
 link_directories ( ${Boost_LIBRARY_DIRS} )
 
-
-SET (ITK_VTK_GLUE "" CACHE PATH "Path to ItkVtkGlue external project")
-
-
 include_directories(
+  ${CAJAL_INCLUDE_DIR}/filters
   ${CMAKE_SOURCE_DIR}/common
   ${CMAKE_CURRENT_SOURCE_DIR} 
   ${ITK_VTK_GLUE}
@@ -40,12 +37,21 @@ qt4_add_resources (RCC_BUILT_SOURCES
 # We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
 qt4_wrap_cpp(MOC_SRCS 
   CountingRegion.h
+  CountingRegionExtension.h
   RegionRenderer.h
+  pqRectangularBoundingRegionWidget.h
   )
 
 # Create Interface files
 qt4_wrap_ui (UI_BUILT_SOURCES
   CountingRegionPanel.ui
+  pqRectangularBoundingRegionWidget.ui
+  )
+
+ADD_3DWIDGET(
+  OUTIFACES OUTSRCS
+  CLASS_NAME pqRectangularBoundingRegionWidget
+  WIDGET_TYPE RectangularBoundingRegion
   )
 
 # This is a macro for adding QActionGroup subclasses automatically as toolbars.
@@ -55,6 +61,14 @@ ADD_PARAVIEW_DOCK_WINDOW(
   DOCK_AREA Left)
 
 file ( GLOB LOCAL_SOURCES *.cpp )
+
+set (VTKFILTER_SRCS
+  ${CAJAL_INCLUDE_DIR}/filters/vtkAdaptiveBoundingRegionFilter.cpp
+  ${CAJAL_INCLUDE_DIR}/filters/vtkRectangularBoundingRegionFilter.cpp
+  ${CAJAL_INCLUDE_DIR}/filters/vtkCountingRegionFilter.cpp
+  vtkRectangularBoundingRegionRepresentation.cpp
+  vtkRectangularBoundingRegionWidget.cpp
+)
 
 set (PLUGIN_SRCS
   ${LOCAL_SOURCES}
@@ -77,15 +91,15 @@ ADD_PARAVIEW_PLUGIN(
   CountingRegion
   "0.1" 
   SERVER_MANAGER_XML CountingRegionFilters.xml
-  SERVER_MANAGER_SOURCES vtkBoundingRegionFilter.cpp vtkCountingRegionFilter.cpp
+  SERVER_MANAGER_SOURCES ${VTKFILTER_SRCS}
 	#According to: http://markmail.org/message/wj27wmlj6rjd7vg5
 	# - See the macro documentation in ParaView/CMake/ParaViewPlugins.cmake:~835
 	# - the parser doesn't work because it seems there is no vtkClass inside
 	#   thus we have to use a vtkXXXX class name for our filter, other wise,
 	#   we need to use SERVER_SOURCES instead of SERVER_MANAGER_SOURCES
 	#   SERVER_SOURCES SegmentationFilter.cpp 
-  SOURCES ${IFACE_SRCS} ${PLUGIN_SRCS}
-  GUI_INTERFACES ${IFACES} 
+  SOURCES ${IFACE_SRCS} ${PLUGIN_SRCS} ${OUTSRCS}
+  GUI_INTERFACES ${IFACES} ${OUTIFACES}
   )
 
 if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
@@ -93,3 +107,5 @@ if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 endif( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
 target_link_libraries (CountingRegion ${PARAVIEW_ADDITIONAL_LIBRARIES} )
+
+install (TARGETS CountingRegion LIBRARY DESTINATION bin/plugins)

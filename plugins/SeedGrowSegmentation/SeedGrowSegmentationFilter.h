@@ -21,6 +21,9 @@
 #define SEEDGROWSEGMENTATIONFILTER_H
 
 #include <filter.h>
+#include <QPushButton>
+
+#include "ui_SeedGrowSegmentationFilterSetup.h"
 
 class IVOI;
 
@@ -28,6 +31,12 @@ class SeedGrowSegmentationFilter
 : public EspinaFilter
 , public ITraceNode
 {
+  class SetupWidget : public QWidget, public Ui_SeedGrowSegmentationFilterSetup
+  {
+  public:
+    SetupWidget(EspinaFilter *filter);
+  };
+  
 public:
   
   //! Constructor interactivo
@@ -48,14 +57,19 @@ public:
   virtual QString label() const {return getArgument("Type");}
   virtual QString getArgument(QString name) const {return (name=="Type")?"SeedGrowSegmentation::SeedGrowSegmentationFilter":"";}
   virtual QString getArguments() {return m_args;}
+  
+  virtual QWidget* createSetupWidget();
 
 private:
   EspinaFilter *m_applyFilter;
   vtkFilter *m_grow;
   EspinaFilter *m_restoreFilter;
   IFilter *m_finalFilter;
+  int m_seed[3];
   int m_threshold;
   int m_numSeg;
+  
+  friend class SetupWidget;
 };
 
 

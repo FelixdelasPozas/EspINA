@@ -38,6 +38,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "interfaces.h"
 #include "selectionManager.h"
 
+class PixelSelector;
+class VolumeOfInterestPreferences;
 //Forward declarations
 class QSpinBox;
 class QToolButton;
@@ -52,14 +54,22 @@ class VolumeOfInterest
   
 public:
   VolumeOfInterest(QObject* parent);
+  void element();
   
 protected slots:
+  void applyVOI(ISelectionHandler::Selection sel);
   //! Changes VOI enable state
   void enable(bool value);
   //! Changes the VOI
   void changeVOI(QAction *voi);
   //! Cancel current VOI
   void cancelVOI();
+  
+  void focusSampleChanged(Sample *sample);
+  void setFromCurrentSlice();
+  void setToCurrentSlice();
+  void setFromSlice(int value);
+  void setToSlice(int value);
   
 signals:
   void voiCancelled(IVOI *);
@@ -74,9 +84,18 @@ private:
   
 private:
   QToolButton *m_voiButton;
+  QSpinBox *m_fromSlice;
+  QSpinBox *m_toSlice;
   QMenu *m_VOIMenu;
   IVOI *m_activeVOI;
   QMap<QAction *, IVOI *> m_VOIs;
+  PixelSelector *m_selector;
+  
+  Sample *m_focusedSample;
+  
+  VolumeOfInterestPreferences *m_preferences;
+  
+  static const int SliceOffset = 1;
 };
 
 #endif// VOLUMEOFINTEREST_H

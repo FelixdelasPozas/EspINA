@@ -41,12 +41,22 @@ public:
   virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
   virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
   virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
+  //! Drag & Drop support
+  virtual Qt::ItemFlags flags(const QModelIndex& index) const;
+  virtual Qt::DropActions supportedDropActions() const {return Qt::MoveAction;}
+//   virtual QMimeData* mimeData(const QModelIndexList& indexes) const;
+  virtual bool dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent);
+    
+  virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;
   
 protected slots:
   void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
   void sourceRowsAboutToBeRemoved(const QModelIndex & sourceParent, int start, int end);
   void sourceRowsRemoved(const QModelIndex & sourceParent, int start, int end);
   void sourceDataChanged(const QModelIndex &sourceTopLeft, const QModelIndex &sourceBottomRight);
+  
+signals:
+  void itemsDropped();
   
 protected:
   void updateSegmentations() const;

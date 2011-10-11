@@ -30,6 +30,7 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
   sampleEditor.h
   SegmentationExplorer.h
   qTreeComboBox.h
+  preferencesDialog.h
   )
 
 # Create Interface files
@@ -37,6 +38,9 @@ qt4_wrap_ui (UI_BUILT_SOURCES
   espinaMainWindow.ui
   sampleEditor.ui
   segmentationExplorer.ui
+  preferencesDialog.ui
+  GeneralPreferences.ui
+  ViewPreferences.ui
   )
 
 

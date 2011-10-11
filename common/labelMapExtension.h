@@ -26,13 +26,14 @@ class vtkFilter;
 class Sample;
 namespace LabelMapExtension
 {
-  static const ExtensionId ID = "02_LabelMapExtension";
-  
+  static const QString ID = "LabelMapExtension";
   
   class SampleRepresentation : public ISampleRepresentation
   {
     Q_OBJECT
   public:
+    static const ISampleRepresentation::RepresentationId ID;
+  
     SampleRepresentation(Sample* sample);
     virtual ~SampleRepresentation();
     
@@ -48,7 +49,7 @@ namespace LabelMapExtension
   
   private:
     vtkFilter *m_rep;
-    bool m_enable;
+    bool m_enabled;
     int m_numberOfBlendedSeg;
   };
   
@@ -59,14 +60,14 @@ namespace LabelMapExtension
     virtual ~SampleExtension();
     virtual ExtensionId id() {return ID;}
     virtual void initialize(Sample* sample);
-    virtual void addInformation(InformationMap& map);
-    virtual void addRepresentations(RepresentationMap& map);
+    virtual ISampleRepresentation* representation(QString rep);
+    virtual QVariant information(QString info);
     
     virtual ISampleExtension* clone();
     
   private:
-    
     QAction *m_toggleVisibility;
+    SampleRepresentation *m_labelRep;
   };
 
 }//namespace LabelMapExtension

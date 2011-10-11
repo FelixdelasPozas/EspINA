@@ -1,20 +1,20 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    <one line to give the program's name and a brief idea of what it does.>
+ *    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
+ * 
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ * 
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ * 
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 
 #ifndef CROSSHAIREXTENSION_H
@@ -23,51 +23,67 @@
 #include <EspinaPlugin.h>
 
 namespace LabelMapExtension {
-class SampleRepresentation;
+  class SampleRepresentation;
 }
 
 class vtkFilter;
 
-class CrosshairRepresentation : public ISampleRepresentation
-{
-  Q_OBJECT
+namespace CrosshairExtension {
   
-public:
-  CrosshairRepresentation(Sample* sample);
-  virtual ~CrosshairRepresentation();
+  static const QString ID = "CrosshairExtensionExtension";
   
-  virtual QString id();
-  virtual void render(pqView* view, ViewType type = VIEW_3D);
-  virtual pqPipelineSource* pipelineSource();
+  class SampleRepresentation : public ISampleRepresentation
+  {
+    Q_OBJECT
+    
+  public:
+    static const ISampleRepresentation::RepresentationId ID;
+    
   
-public slots:
-  virtual void requestUpdate(bool force){}
+    SampleRepresentation(Sample* sample);
+    virtual ~SampleRepresentation();
+    
+    virtual QString id();
+    virtual void render(pqView* view, ViewType type = VIEW_3D);
+    virtual pqPipelineSource* pipelineSource();
+    
+  public slots:
+    virtual void requestUpdate(bool force=false){emit representationUpdated();}
+    
+    void setSlice(int slice, ViewType type, bool update=true);
+    int slice(ViewType type);
+    void centerOn(int x, int y, int z);
+    
+  protected slots:
+    void internalRepresentationUpdated();
+    
+  private:
+    vtkFilter *m_planes[3];
+    LabelMapExtension::SampleRepresentation *m_internalRep;
+    int m_center[4];
+  };
   
-  void setSlice(int slice, ViewType type, bool update=true);
-  int slice(ViewType type);
-  void centerOn(int x, int y, int z);
   
-protected slots:
-  void internalRepresentationUpdated();
+  class SampleExtension : public ISampleExtension
+  {
+  public:
+    SampleExtension();
+    virtual ~SampleExtension();
+    
+    virtual ExtensionId id() {return ID;}
+    virtual void initialize(Sample* sample);
+    virtual QStringList dependencies();
+    virtual ISampleRepresentation* representation(QString rep);
+    virtual QVariant information(QString info);
+    
+    virtual ISampleExtension* clone();
   
-private:
-  vtkFilter *m_planes[3];
-  LabelMapExtension::SampleRepresentation *m_internalRep;
-  bool m_disabled;
-  int m_center[4];
-};
+  private:
+    SampleRepresentation *m_crossRep;
+  };
 
-
-class CrosshairExtension : public ISampleExtension
-{
-  static const ExtensionId ID;
-public:
-  virtual ExtensionId id() {return ID;}
-  virtual void initialize(Sample* sample);
-  virtual void addInformation(ISampleExtension::InformationMap& map);
-  virtual void addRepresentations(ISampleExtension::RepresentationMap& map);
+//   static SampleRepresentation *SampleRepresentation(Sample *sample);
   
-  virtual ISampleExtension* clone();
-};
+} // namespace CrosshairExtension
 
 #endif // CROSSHAIREXTENSION_H

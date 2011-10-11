@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <Taxonomy>
-    <node name="FEM" color="#00ff00">
-        <node name="Synapse" color="#ff0000">
-            <node name="Symetric" color="#ff0000"/>
-            <node name="Asymetric" color="#ffff00"/>
+    <node name="FEM" color="#00FF00">
+        <node name="Synapse" color="#FF7F7F">
+            <node name="Asymetric" color="#00FF00"/>
+            <node name="Symetric" color="#FF0000"/>
         </node>
-        <node name="Vesicles" color="#00ff00"/>
+        <node name="Vesicles" color="#A5E024"/>
     </node>
 </Taxonomy>

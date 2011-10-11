@@ -61,6 +61,18 @@ void SelectionManager::setSelectionHandler(ISelectionHandler* sh, QCursor cursor
     m_handler->abortSelection();
   m_handler = sh;
   m_handlerCursor = cursor;
+  if (m_voi)
+  {
+    m_voi->setEnabled(!m_handler);
+  }
+}
+
+//------------------------------------------------------------------------
+void SelectionManager::unsetSelectionHandler(ISelectionHandler* sh)
+{
+  assert(m_handler == sh);
+  
+  m_handler = NULL;
 }
 
 //------------------------------------------------------------------------
@@ -72,6 +84,12 @@ void SelectionManager::setVOI(IVOI* voi)
   if (m_voi)
     m_voi->setSource(EspINA::instance()->activeSample());
   emit VOIChanged(m_voi);
+  
+  if (m_handler && m_voi)
+  {
+    m_handler->abortSelection();
+    m_handler = NULL;
+  }
 }
 
 //------------------------------------------------------------------------

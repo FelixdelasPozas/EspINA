@@ -34,11 +34,12 @@ class EspINAFactory
 public:
   static EspINAFactory *instance();
   
-  Sample *CreateSample(vtkFilter *creator, int portNumber);
+  Sample *CreateSample(vtkFilter *creator, int portNumber, const QString &path=QString());
   void addSampleExtension(ISampleExtension *ext);
   
   Segmentation *CreateSegmentation(EspinaFilter *parent, vtkProduct *vtkRef);
   void addSegmentationExtension(ISegmentationExtension *ext);
+  QStringList segmentationAvailableInformations();
   
   VolumeView *CreateVolumeView();
   void addViewWidget(IViewWidget *widget);

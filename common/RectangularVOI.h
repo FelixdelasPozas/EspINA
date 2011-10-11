@@ -36,45 +36,61 @@ class RectangularVOI
     virtual ~ApplyFilter();
     ApplyFilter(vtkProduct *input, double *bounds);
     ApplyFilter(ITraceNode::Arguments &args);
-    virtual int numProducts() {return 1;}//Asser it is true :D
+    virtual int numProducts() {return 1;}//Assert it is true :D
     virtual vtkProduct product(int i) {return vtkProduct(m_rvoi,0);}
     virtual QList< vtkProduct* > products() {QList<vtkProduct *> p; return p;}
     virtual QString getFilterArguments() const {return m_args;}
     virtual void removeProduct(vtkProduct* product);
+    virtual QWidget* createSetupWidget() {return NULL;}
+
     
     static const QString FilterType;
   private:
     vtkFilter *m_rvoi;
   };
+  
+  struct Widget
+  {
+    pq3DWidget *widget;
+    ViewType viewType;
+  };
 
   Q_OBJECT;
 public:
-  RectangularVOI();
+  RectangularVOI(bool registerPlugin = true);
   
   virtual EspinaFilter *createFilter(QString filter, ITraceNode::Arguments& args);
   
   virtual EspinaFilter *applyVOI(vtkProduct* product);
   virtual EspinaFilter *restoreVOITransormation(vtkProduct* product);
+  virtual void setDefaultBounds(double bounds[6]);
+  virtual void resizeToDefaultSize();
 
   virtual vtkSMProxy *getProxy();
-  virtual pq3DWidget* newWidget();
+  virtual pq3DWidget* newWidget(ViewType viewType);
   virtual void deleteWidget(pq3DWidget* &widget);
 
   virtual bool contains(ISelectionHandler::VtkRegion region);
-
-
+  virtual bool intersectPlane(ViewType plane, int slice);
+  
+  virtual void setEnabled(bool value);
   
 public slots:
-  virtual void endInteraction();
+//   virtual void endInteraction();
+  virtual void modifyVOI();
   
   virtual void cancelVOI();
   
+  virtual void setFromSlice(int value);
+  
+  virtual void setToSlice(int value);
+
 private:
   void rvoiExtent(double *rvoi);
   
 private:
   vtkSMProxy *m_box;
-  QList<pq3DWidget *> m_widgets;
+  QList<Widget> m_widgets;
 };
 
 #endif // RECTANGULARVOI_H

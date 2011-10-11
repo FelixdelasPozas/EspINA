@@ -18,6 +18,10 @@
 */
 
 #include "cachedObjectBuilder.h"
+
+// Debug
+#include "espina_debug.h"
+
 #include "data/hash.h"
 
 #include "filter.h"
@@ -35,11 +39,7 @@
 #include <vtkSMProperty.h>
 #include <vtkSMIntVectorProperty.h>
 #include <vtkSMDoubleVectorProperty.h>
-
-// Debug
-#include <QDebug>
-#include <assert.h>
-
+#include <pqOutputPort.h>
 
 
 CachedObjectBuilder * CachedObjectBuilder::m_singleton = NULL;
@@ -101,7 +101,7 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(const QString group, const
   pqApplicationCore* core = pqApplicationCore::instance();
   pqObjectBuilder* ob = core->getObjectBuilder();
   
-  qDebug() << "CachedObjectBuilder: Create Filter " << name;
+  CACHE_DEBUG("CachedObjectBuilder: Create Filter " << name);
   pqPipelineSource *filter; //= builder->createFilter(group, name,NULL);
   vtkSMProperty *p;
   foreach (vtkFilter::Argument arg, args)
@@ -110,11 +110,19 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(const QString group, const
     {
       case INPUT:
       {
-	QStringList input = arg.value.split(":");
-	assert(input.size()==2);
-	vtkFilter *inputCreator = m_cache->getEntry(input[0]);
-	assert(inputCreator);
-	filter = ob->createFilter(group, name, inputCreator->pipelineSource(), input[1].toInt());
+	// Filter is a source
+	if (arg.value == "")
+	{
+	  filter = ob->createSource(group, name, pqApplicationCore::instance()->getActiveServer());
+	}
+	else
+	{
+	  QStringList input = arg.value.split(":");
+	  assert(input.size()==2);
+	  vtkFilter *inputCreator = m_cache->getEntry(input[0]);
+	  assert(inputCreator);
+	  filter = ob->createFilter(group, name, inputCreator->pipelineSource(), input[1].toInt());
+	}
       }
       break;
       case INTVECT:
@@ -123,7 +131,7 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(const QString group, const
 	  p = filter->getProxy()->GetProperty( arg.name.toStdString().c_str() );
 	  vtkSMIntVectorProperty * prop = vtkSMIntVectorProperty::SafeDownCast(p);
 	  QStringList values = arg.value.split(",");
-	  qDebug() << "CachedObjectBuilder:" << arg.name << "Values" <<  values;
+	  CACHE_DEBUG("CachedObjectBuilder:" << arg.name << "Values" <<  values);
 	  for (int i = 0; i < values.size(); i++)
 	    prop->SetElement(i, values[i].toInt());
 	}
@@ -147,7 +155,7 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(const QString group, const
   assert(filter);
   //TODO: Review if needed here
   filter->getProxy()->UpdateVTKObjects();
-  filter->updatePipeline();
+//   filter->updatePipeline();
  return filter;
 }
 
@@ -181,7 +189,7 @@ TODO there are two ways to load sample files.
  * Insert a stack in the Espina Cache which has been already created in the server
  * If it exists it will be overwrited by the nwe pqPipelineSource
  */
-vtkFilter* CachedObjectBuilder::registerProductCreator(QString& sampleFile, pqPipelineSource* source)
+vtkFilter* CachedObjectBuilder::registerProductCreator(const QString& sampleFile, pqPipelineSource* source)
 {
   vtkFilter* filter = m_cache->getEntry(sampleFile);
   if( filter )

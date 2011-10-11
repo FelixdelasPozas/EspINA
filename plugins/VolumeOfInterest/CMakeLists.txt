@@ -20,9 +20,6 @@ include (${CAJAL_USE_FILE})
 find_package(Boost REQUIRED COMPONENTS  system filesystem graph)
 link_directories ( ${Boost_LIBRARY_DIRS} )
 
-
-SET (ITK_VTK_GLUE "" CACHE PATH "Path to ItkVtkGlue external project")
-
 include_directories(
   ${CMAKE_SOURCE_DIR}/common
   ${CMAKE_CURRENT_SOURCE_DIR} 
@@ -38,7 +35,21 @@ qt4_add_resources (RCC_BUILT_SOURCES
 # We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
 qt4_wrap_cpp(MOC_SRCS 
   VolumeOfInterest.h
-  RectangularVOI.h
+  pqNonRotatingBoxWidget.h
+  VolumeOfInterestPreferences.h
+#   RectangularVOI.h
+  )
+
+# Create Interface files
+qt4_wrap_ui (UI_BUILT_SOURCES
+  pqNonRotatingBoxWidget.ui
+  VOIPreferences.ui
+)
+
+ADD_3DWIDGET(
+  OUTIFACES OUTSRCS
+  CLASS_NAME pqNonRotatingBoxWidget
+  WIDGET_TYPE NonRotatingBox
   )
 
 # This is a macro for adding QActionGroup subclasses automatically as toolbars.
@@ -53,6 +64,7 @@ set (PLUGIN_SRCS
   ${LOCAL_SOURCES}
   ${MOC_SRCS} 
   ${RCC_BUILT_SOURCES} 
+  ${UI_BUILT_SOURCES}
   )
 
 set (PARAVIEW_ADDITIONAL_LIBRARIES
@@ -74,8 +86,8 @@ ADD_PARAVIEW_PLUGIN(
 	#   thus we have to use a vtkXXXX class name for our filter, other wise,
 	#   we need to use SERVER_SOURCES instead of SERVER_MANAGER_SOURCES
 	#   SERVER_SOURCES SegmentationFilter.cpp 
-  SOURCES ${IFACE_SRCS} ${PLUGIN_SRCS}
-  GUI_INTERFACES ${IFACES} 
+  SOURCES ${IFACE_SRCS} ${PLUGIN_SRCS} ${OUTSRCS}
+  GUI_INTERFACES ${IFACES} ${OUTIFACES}
   )
 
 if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )

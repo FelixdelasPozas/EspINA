@@ -21,12 +21,17 @@ class BestPixelSelector
 public:
   BestPixelSelector() 
   : window(14,14)
+  , m_bestPixel(0)
   {}
   virtual ~BestPixelSelector(){}
+  
+  void setBestPixelValue(int value) {m_bestPixel = value;}
   
   virtual void onMouseDown(QPoint& pos, ISelectableView* view);
   
   QSize window;
+private:
+  int m_bestPixel;
 };
 
 #endif //PIXELSELECTOR_H_

@@ -19,10 +19,14 @@
 
 #include "espINAFactory.h"
 
-#include "EspinaPlugin.h"
-#include "products.h"
+// Debug
+#include "espina_debug.h"
 
-#include <QDebug>
+// EspINA
+#include "EspinaPlugin.h"
+#include "sample.h"
+#include "segmentation.h"
+
 
 EspINAFactory *EspINAFactory::m_instance = NULL;
 
@@ -33,39 +37,50 @@ EspINAFactory* EspINAFactory::instance()
   return m_instance;
 }
 
-Sample* EspINAFactory::CreateSample(vtkFilter *creator, int portNumber)
+Sample* EspINAFactory::CreateSample(vtkFilter* creator, int portNumber, const QString& path)
 {
-  std::cout << "Factory is going to create sample: " << creator->id().toStdString() << std::endl;
-  Sample *sample = new Sample(creator, portNumber);
+//   std::cout << "Factory is going to create sample: " << creator->id().toStdString() << std::endl;
+  Sample *sample = new Sample(creator, portNumber, path);
   foreach(ISampleExtension *ext, m_sampleExtensions)
   {
-    sample->addExtension(ext);
+    sample->addExtension(ext->clone());
   }
   return sample;
 }
 
 void EspINAFactory::addSampleExtension(ISampleExtension* ext)
 {
-  qDebug() << ext->id() << "registered in Factory";
+//   qDebug() << ext->id() << "registered in Sample Factory";
   m_sampleExtensions.append(ext->clone());
 }
 
 Segmentation* EspINAFactory::CreateSegmentation(EspinaFilter *parent, vtkProduct *vtkRef)
 {
-  std::cout << "Factory is going to create a segmentation for vtkObject: " << vtkRef->id().toStdString() << std::endl;
+//   std::cout << "Factory is going to create a segmentation for vtkObject: " << vtkRef->id().toStdString() << std::endl;
   Segmentation *seg = new Segmentation(parent, vtkRef->creator(),vtkRef->portNumber());
   foreach(ISegmentationExtension *ext, m_segExtensions)
   {
-    seg->addExtension(ext);
+    seg->addExtension(ext->clone());
   }
   return seg;
 }
 
 void EspINAFactory::addSegmentationExtension(ISegmentationExtension* ext)
 {
-  qDebug() << ext->id() << "registered in Factory";
+//   qDebug() << ext->id() << "registered in Segmentation Factory";
   m_segExtensions.append(ext->clone());
 }
+
+QStringList EspINAFactory::segmentationAvailableInformations()
+{
+  QStringList informations;
+  informations << "Name" << "Taxonomy";
+  foreach (ISegmentationExtension *ext, m_segExtensions)
+    informations << ext->availableInformations();
+  
+  return informations;
+}
+
 
 VolumeView* EspINAFactory::CreateVolumeView()
 {
@@ -79,7 +94,7 @@ VolumeView* EspINAFactory::CreateVolumeView()
 
 void EspINAFactory::addViewWidget(IViewWidget* widget)
 {
-  qDebug() << "registered new widget in Factory";
+//   qDebug() << "registered new widget in Factory";
   m_widgets.append(widget/*->clone()*/); //TODO clone method hasn't an implementation
 }
 

@@ -19,8 +19,18 @@
 
 #include "volumeView.h"
 
+// Debug
+#include "espina_debug.h"
+
+// libCajal
+#include <data/taxonomy.h>
+
+// EspINA
 #include "interfaces.h"
-#include "products.h"
+#include "sample.h"
+#include "segmentation.h"
+#include "labelMapExtension.h"
+#include "crosshairExtension.h"
 
 // GUI
 #include <QVBoxLayout>
@@ -28,6 +38,8 @@
 #include <QToolButton>
 #include <QMenu>
 #include <QAction>
+#include <QPushButton>
+#include <QFileDialog>
 
 // ParaView
 #include "pqRenderView.h"
@@ -44,19 +56,26 @@
 #include "vtkSMDoubleVectorProperty.h"
 #include "vtkSMStringVectorProperty.h"
 #include <pqBoxWidget.h>
-
-#include <QDebug>
-#include <data/taxonomy.h>
 #include <vtkSMRenderViewProxy.h>
 #include <pqPipelineSource.h>
 #include <vtkRenderWindow.h>
 #include <vtkCamera.h>
 #include <vtkPVGenericRenderWindowInteractor.h>
+#include <pqViewExporterManager.h>
+#include <qlayoutitem.h>
+#include <QMouseEvent>
+#include <vtkPropPicker.h>
+#include <vtkSMPropertyHelper.h>
+#include <vtkPVDataInformation.h>
+#include <SegmentationSelectionExtension.h>
+#include <vtkInteractorStyleTrackballCamera.h>
+#include <QApplication>
 
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(QWidget* parent)
 : QAbstractItemView(parent)
 , m_VOIWidget(NULL)
+, m_lastSample(NULL)
 {
   m_controlLayout = new QHBoxLayout();
   
@@ -67,6 +86,28 @@ VolumeView::VolumeView(QWidget* parent)
   m_mainLayout = new QVBoxLayout();
   m_mainLayout->addLayout(m_controlLayout);
   setLayout(m_mainLayout);
+  
+  m_snapshot.setIcon(QIcon(":/espina/snapshot_scene.svg"));
+  m_snapshot.setToolTip(tr("Save Scene as Image"));
+  m_snapshot.setFlat(true);
+  m_snapshot.setIconSize(QSize(22,22));
+  m_snapshot.setMaximumSize(QSize(32,32));
+  connect(&m_snapshot,SIGNAL(clicked(bool)),this,SLOT(takeSnapshot()));
+  
+  QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
+  //m_export.setIcon(QIcon(":/espina/export_scene.svg"));
+  m_export.setIcon(iconSave);
+  m_export.setToolTip(tr("Export 3D Scene"));
+  m_export.setFlat(true);
+  m_export.setIconSize(QSize(22,22));
+  m_export.setMaximumSize(QSize(32,32));
+  connect(&m_export,SIGNAL(clicked(bool)),this,SLOT(exportScene()));
+  
+  m_controlLayout->addWidget(&m_snapshot);
+  m_controlLayout->addWidget(&m_export);
+  
+  QSpacerItem * horizontalSpacer = new QSpacerItem(4000, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
+  m_controlLayout->addItem(horizontalSpacer);
 
   // Color background
   QPalette pal = this->palette();
@@ -86,14 +127,36 @@ void VolumeView::connectToServer()
     pqRenderView::renderViewType(), server));
   m_viewWidget = m_view->getWidget();
   m_mainLayout->insertWidget(0,m_viewWidget);//To preserver view order
+  
   m_view->setCenterAxesVisibility(false);
+  vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast(m_view->getProxy());
+  assert(viewProxy);
+  vtkCamera *cam = viewProxy->GetActiveCamera();
+  cam->Azimuth(180);
+  cam->Roll(180);
+  
+  vtkRenderWindowInteractor *rwi = vtkRenderWindowInteractor::SafeDownCast(
+    viewProxy->GetRenderWindow()->GetInteractor());
+  assert(rwi);
+
+  vtkInteractorStyleTrackballCamera *style = vtkInteractorStyleTrackballCamera::New();
+  rwi->SetInteractorStyle(style);
+
+
   double black[3] = {0,0,0};
   m_view->getRenderViewProxy()->SetBackgroundColorCM(black);
+  
+  // Disable menu
+  m_view->getWidget()->removeAction(m_view->getWidget()->actions().first());
+
+  QObject::connect(m_viewWidget, SIGNAL(mouseEvent(QMouseEvent *)),
+                   this, SLOT(vtkWidgetMouseEvent(QMouseEvent *)));
 }
 
 //-----------------------------------------------------------------------------
 void VolumeView::disconnectFromServer()
 {
+  return;
   pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
   if (m_view)
   {
@@ -114,17 +177,19 @@ void VolumeView::setVOI(IVOI* voi)
     m_VOIWidget = NULL;
   }
   
-  qDebug()<< "VolumeView: elemets" << model()->rowCount();
+//   qDebug()<< "VolumeView: elemets" << model()->rowCount();
   if (model()->rowCount() == 0)
     return;
      
   if (!voi)
     return;
     
-  m_VOIWidget = voi->newWidget();
+  m_VOIWidget = voi->newWidget(VIEW_3D);
   m_VOIWidget->setView(m_view);
   m_VOIWidget->setWidgetVisible(true);
   m_VOIWidget->select();
+  m_VOIWidget->accept();
+  voi->resizeToDefaultSize();
 }
 
 
@@ -184,15 +249,16 @@ void VolumeView::rowsInserted(const QModelIndex& parent, int start, int end)
     Sample *sample = dynamic_cast<Sample *>(item);
     if (sample)
     {
+      m_lastSample = sample;
       double bounds[6];
       sample->bounds(bounds);
       m_focus[0] = (bounds[1]-bounds[0])/2.0;
       m_focus[1] = (bounds[3]-bounds[2])/2.0;
       m_focus[2] = (bounds[5]-bounds[4])/2.0;
-      qDebug() << "Render sample?";
-      sample->representation("03_Crosshair")->render(m_view);
-      connect(sample->representation("02_LabelMap"),SIGNAL(representationUpdated()),this,SLOT(updateScene()));
-      connect(sample->representation("03_Crosshair"),SIGNAL(representationUpdated()),this,SLOT(updateScene()));
+      connect(sample->representation(LabelMapExtension::SampleRepresentation::ID),SIGNAL(representationUpdated()),this,SLOT(updateScene()));
+      connect(sample->representation(CrosshairExtension::SampleRepresentation::ID),SIGNAL(representationUpdated()),this,SLOT(updateScene()));
+      connect(sample,SIGNAL(updated(Sample*)),this,SLOT(updateScene()));
+      sample->representation(CrosshairExtension::SampleRepresentation::ID)->render(m_view);
     } 
     else 
     {
@@ -242,8 +308,7 @@ void VolumeView::dataChanged(const QModelIndex& topLeft, const QModelIndex& bott
   if (!topLeft.isValid() || !bottomRight.isValid())
     return;
         
-  //qDebug()<< "Updating " << topLeft;
-  
+//   qDebug()<< "Update Request " << topLeft;
   
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
   //TODO: Update to deal with hierarchy
@@ -254,7 +319,8 @@ void VolumeView::dataChanged(const QModelIndex& topLeft, const QModelIndex& bott
   Sample *sample = dynamic_cast<Sample *>(item);
   if (sample)
   {
-    sample->representation("03_Crosshair")->render(m_view);
+    sample->representation(CrosshairExtension::SampleRepresentation::ID)->render(m_view);
+    m_lastSample = sample;
   } 
   else
   {
@@ -269,6 +335,16 @@ void VolumeView::dataChanged(const QModelIndex& topLeft, const QModelIndex& bott
   
   m_view->render();
 }
+
+//-----------------------------------------------------------------------------
+void VolumeView::setRootIndex(const QModelIndex& index)
+{
+  QAbstractItemView::setRootIndex(index);
+  if (index.isValid())
+    updateScene();
+}
+
+
 
 
 //-----------------------------------------------------------------------------
@@ -297,6 +373,99 @@ void VolumeView::addWidget(IViewWidget* widget)
   connect(widget,SIGNAL(toggled(bool)),this,SLOT(updateScene()));
   m_widgets.append(widget);
 }
+
+
+//-----------------------------------------------------------------------------
+void VolumeView::selectSegmentations(int x, int y, int z)
+{
+  QItemSelection selection;
+  
+  QModelIndex selIndex;
+  for (int i=0; i < model()->rowCount(rootIndex()); i++)
+  {
+    QModelIndex segIndex = rootIndex().child(i,0);
+    IModelItem *segItem = static_cast<IModelItem *>(segIndex.internalPointer());
+    Segmentation *seg = dynamic_cast<Segmentation *>(segItem);
+    assert(seg);
+    
+    
+    seg->creator()->pipelineSource()->updatePipeline();;
+    seg->creator()->pipelineSource()->getProxy()->UpdatePropertyInformation();
+    vtkPVDataInformation *info = seg->outputPort()->getDataInformation();
+    int extent[6];
+    info->GetExtent(extent);
+    if ((extent[0] <= x && x <= extent[1]) &&
+      (extent[2] <= y && y <= extent[3]) &&
+      (extent[4] <= z && z <= extent[5]))
+    {
+      SegmentationSelectionExtension *selector = dynamic_cast<SegmentationSelectionExtension *>(
+	seg->extension(SegmentationSelectionExtension::ID));
+      
+      if (selector->isSegmentationPixel(x,y,z))
+	selIndex = segIndex;
+      // 	seg->outputPort()->getDataInformation()->GetPointDataInformation();
+      //selection.indexes().append(segIndex);
+//       double pixelValue[4];
+//       pixelValue[0] = x;
+//       pixelValue[1] = y;
+//       pixelValue[2] = z;
+//       pixelValue[3] = 4;
+//       vtkSMPropertyHelper(seg->creator()->pipelineSource()->getProxy(),"CheckPixel").Set(pixelValue,4);
+//       seg->creator()->pipelineSource()->getProxy()->UpdateVTKObjects();
+//       int value;
+//       seg->creator()->pipelineSource()->getProxy()->UpdatePropertyInformation();
+//       vtkSMPropertyHelper(seg->creator()->pipelineSource()->getProxy(),"PixelValue").Get(&value,1);
+//       	qDebug() << "Pixel Value" << value;
+//       if (value == 255)
+// 	selIndex = segIndex;
+    }
+    if (selIndex.isValid())
+      selectionModel()->select(selIndex,QItemSelectionModel::ClearAndSelect);
+    else
+      selectionModel()->clearSelection();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::vtkWidgetMouseEvent(QMouseEvent* event)
+{
+  if (!m_lastSample)
+    return;
+  
+  //Use Render Window Interactor's to obtain event's position
+  vtkSMRenderViewProxy* view = 
+    vtkSMRenderViewProxy::SafeDownCast(m_view->getProxy());
+  //vtkSMRenderViewProxy* renModule = view->GetRenderView();
+  vtkRenderWindowInteractor *rwi =
+    vtkRenderWindowInteractor::SafeDownCast(
+      view->GetRenderWindow()->GetInteractor());
+      //renModule->GetInteractor());
+  assert(rwi);
+  
+  vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast(m_view->getProxy());
+  
+  int xPos, yPos;
+  rwi->GetEventPosition(xPos, yPos);
+  
+  if (event->type() == QMouseEvent::MouseButtonPress &&
+    event->buttons() == Qt::LeftButton)
+  {
+    double spacing[3];//Image Spacing
+    m_lastSample->spacing(spacing);
+    
+    double pickPos[3];//World coordinates
+    vtkPropPicker *wpicker = vtkPropPicker::New();
+    //TODO: Check this--> wpicker->AddPickList();
+    wpicker->Pick(xPos, yPos, 0.1, viewProxy->GetRenderer());
+    wpicker->GetPickPosition(pickPos);
+    
+    int selectedPixel[3];
+    for(int dim = 0; dim < 3; dim++)
+      selectedPixel[dim] = round(pickPos[dim]/spacing[dim]);
+    selectSegmentations(selectedPixel[0], selectedPixel[1], selectedPixel[2]);
+  }
+}
+
 
 //-----------------------------------------------------------------------------
 void VolumeView::updateScene()
@@ -329,7 +498,7 @@ void VolumeView::updateScene()
   
   foreach (IViewWidget *widget, m_widgets)
   {
-    if (widget->isChecked())
+//     if (widget->isChecked())
       widget->renderInView(rootIndex(),m_view);
   }
 
@@ -340,6 +509,24 @@ void VolumeView::updateScene()
 
   
   m_view->render();
+}
+
+void VolumeView::exportScene()
+{
+  pqViewExporterManager *exporter = new pqViewExporterManager();
+  exporter->setView(m_view);
+  QString fileName = QFileDialog::getSaveFileName(this,
+     tr("Save Scene"), "", tr("3D Scene (*.x3d *.pov *.vrml)"));
+  exporter->write(fileName);
+  delete exporter;
+//   m_view->saveImage(1024,768,"/home/jorge/scene.jpg");
+}
+
+void VolumeView::takeSnapshot()
+{
+  QString fileName = QFileDialog::getSaveFileName(this,
+     tr("Save Scene"), "", tr("Image Files (*.jpg *.png)"));
+  m_view->saveImage(1024,768,fileName);
 }
 
 

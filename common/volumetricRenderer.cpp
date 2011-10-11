@@ -18,7 +18,9 @@
 
 
 #include "volumetricRenderer.h"
-#include "products.h"
+
+// EspINA
+#include "segmentation.h"
 
 // Para View
 #include <pqApplicationCore.h>
@@ -34,7 +36,8 @@
 VolumetricRenderer::VolumetricRenderer(QWidget* parent)
 : IViewWidget(parent)
 {
-  setIcon(QIcon(":espina/show_3D.svg"));
+  setIcon(QIcon(":espina/voxel.png"));
+  setToolTip(tr("Volumetric render"));
 }
 
 
@@ -50,6 +53,9 @@ IViewWidget* VolumetricRenderer::clone()
 
 void VolumetricRenderer::renderInView(QModelIndex index, pqView* view)
 {
+  if (!isChecked())
+    return;
+  
   if (!index.isValid())
     return;
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();

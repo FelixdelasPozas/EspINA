@@ -35,6 +35,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "espina.h"
 #include <cache/cachedObjectBuilder.h>
+#include "crosshairExtension.h"
 
 #include "pixelSelector.h"
 #include "filter.h"
@@ -60,6 +61,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <QDebug>
 #include "assert.h"
 #include <espINAFactory.h>
+#include <sample.h>
+#include "VolumeOfInterestPreferences.h"
+#include <EspinaPluginManager.h>
 
 
 
@@ -69,7 +73,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 VolumeOfInterest::VolumeOfInterest(QObject* parent)
 : QActionGroup(parent)
 , m_activeVOI(NULL)
+, m_focusedSample(NULL)
 {
+  m_selector = new PixelSelector();
+  m_selector->multiSelection = false;
+  m_selector->filters << "EspINA_Sample";
+  
+  connect(m_selector,SIGNAL(selectionAborted()),
+	  this, SLOT(cancelVOI()));
+  connect(m_selector,SIGNAL(selectionChanged(ISelectionHandler::Selection)),
+	  this, SLOT(applyVOI(ISelectionHandler::Selection)));
+  
+  
   buildUI();
   
   // register in a plugin list
@@ -77,18 +92,49 @@ VolumeOfInterest::VolumeOfInterest(QObject* parent)
   //ProcessingTrace::instance()->registerPlugin(registerName, this);
   //registerName = m_pluginName + "::" + "RectangularVOIFilter::Restore";
   //ProcessingTrace::instance()->registerPlugin(registerName, this);
+  m_preferences = new VolumeOfInterestPreferences();
+  EspinaPluginManager::instance()->registerPreferencePanel(m_preferences);
+
 }
+
+//-----------------------------------------------------------------------------
+void VolumeOfInterest::applyVOI(ISelectionHandler::Selection sel)
+{
+  QApplication::restoreOverrideCursor();
+  qDebug() << "EspINA::VolumeOfInterest: Apply VOI";
+  SelectionManager::instance()->unsetSelectionHandler(m_selector);
+  
+  // Compute default bounds
+  assert(sel.size() == 1); // At least one sample was selected
+  ISelectionHandler::SelElement selSample = sel.first();
+  assert(selSample.first.size() == 1); // with one pixel
+  Point clickedPixel = selSample.first.first();
+  Sample *input = dynamic_cast<Sample *>(selSample.second);
+  double spacing[3];
+  input->spacing(spacing);
+  double bounds[6] = {
+     (clickedPixel.x - m_preferences->xSize())*spacing[0],
+     (clickedPixel.x + m_preferences->xSize())*spacing[0],
+     (clickedPixel.y - m_preferences->ySize())*spacing[1],
+     (clickedPixel.y + m_preferences->ySize())*spacing[1],
+     (clickedPixel.z - m_preferences->zSize())*spacing[2],
+     (clickedPixel.z + m_preferences->zSize())*spacing[2]};
+  m_activeVOI->setDefaultBounds(bounds);
+  SelectionManager::instance()->setVOI(m_activeVOI);
+}
+
 
 //-----------------------------------------------------------------------------
 void VolumeOfInterest::enable(bool value)
 {
-  if (m_voiButton->isChecked())
+  if (value)
   {
-    qDebug() << "EspINA::VolumeOfInterest: Apply VOI";
-    SelectionManager::instance()->setVOI(m_activeVOI);
     m_voiButton->setChecked(true);
+    SelectionManager::instance()->setSelectionHandler(m_selector, QCursor(QPixmap(":roi_go.svg").scaled(32,32)));
+    qDebug() << "EspINA::VolumeOfInterest: Waiting VOI's placing point";
   }else
   {
+    SelectionManager::instance()->setSelectionHandler(NULL, Qt::ArrowCursor);
     SelectionManager::instance()->setVOI(NULL);
   }
 }
@@ -117,6 +163,71 @@ void VolumeOfInterest::cancelVOI()
   m_voiButton->setChecked(false);
 }
 
+//-----------------------------------------------------------------------------
+void VolumeOfInterest::focusSampleChanged(Sample* sample)
+{
+  if (sample)
+  {
+    m_voiButton->setEnabled(true);
+    // Update limits
+    int mextent[6];
+    sample->extent(mextent);
+    int minSlices = mextent[4] + SliceOffset;
+    int maxSlices = mextent[5] + SliceOffset;
+    m_fromSlice->setMinimum(minSlices);
+    m_fromSlice->setMaximum(maxSlices);
+    m_toSlice->setMinimum(minSlices);
+    m_toSlice->setMaximum(maxSlices);
+    m_toSlice->setValue(maxSlices);
+  }
+  else
+  {
+    m_voiButton->setEnabled(false);
+  }
+  m_focusedSample = sample;
+}
+
+//-----------------------------------------------------------------------------
+void VolumeOfInterest::setFromCurrentSlice()
+{
+  if (m_focusedSample)
+  {
+    CrosshairExtension::SampleRepresentation *rep =
+      dynamic_cast<CrosshairExtension::SampleRepresentation *>(
+	m_focusedSample->representation(CrosshairExtension::SampleRepresentation::ID)
+	);
+    assert(rep);
+    m_fromSlice->setValue(rep->slice(VIEW_PLANE_XY)+SliceOffset);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void VolumeOfInterest::setToCurrentSlice()
+{
+  if (m_focusedSample)
+  {
+    CrosshairExtension::SampleRepresentation *rep =
+      dynamic_cast<CrosshairExtension::SampleRepresentation *>(
+	m_focusedSample->representation(CrosshairExtension::SampleRepresentation::ID)
+	);
+    assert(rep);
+    m_toSlice->setValue(rep->slice(VIEW_PLANE_XY)+SliceOffset);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void VolumeOfInterest::setFromSlice(int value)
+{
+  if (m_activeVOI && m_voiButton->isChecked())
+    m_activeVOI->setFromSlice(value-SliceOffset);
+}
+
+//-----------------------------------------------------------------------------
+void VolumeOfInterest::setToSlice(int value)
+{
+  if (m_activeVOI && m_voiButton->isChecked())
+    m_activeVOI->setToSlice(value-SliceOffset);
+}
 
 //-----------------------------------------------------------------------------
 void VolumeOfInterest::buildVOIs()
@@ -126,7 +237,7 @@ void VolumeOfInterest::buildVOIs()
   
   // Exact Pixel Selector
   action = new QAction(
-    QIcon(":roi_go.svg")
+    QIcon(":roi.svg")
     , tr("Volume Of Interest"),
     m_VOIMenu);
   voi = new RectangularVOI();
@@ -140,6 +251,9 @@ void VolumeOfInterest::buildUI()
   m_voiButton = new QToolButton();
   m_voiButton->setCheckable(true);
   m_VOIMenu = new QMenu();
+  m_voiButton->setAutoRaise(true);
+  m_voiButton->setIconSize(QSize(22,22));
+  m_voiButton->setEnabled(false);
   
   buildVOIs();
   
@@ -147,12 +261,47 @@ void VolumeOfInterest::buildUI()
   m_voiButton->setIcon(m_VOIs.key(m_activeVOI)->icon());
   m_voiButton->setMenu(m_VOIMenu);
   
-  QWidgetAction *threshold = new QWidgetAction(this);
-  threshold->setDefaultWidget(m_voiButton);
+  QToolButton *updateFrom = new QToolButton();
+  updateFrom->setText(tr("From"));
+  updateFrom->setAutoRaise(true);
+  connect(updateFrom,SIGNAL(clicked(bool)),this,SLOT(setFromCurrentSlice()));
+
+  m_fromSlice = new QSpinBox();
+  m_fromSlice->setMinimum(0);
+  m_fromSlice->setMaximum(0);
+  m_fromSlice->setToolTip(tr("Determine which is the first slice included in the VOI"));
+  connect(m_fromSlice,SIGNAL(valueChanged(int)),this,SLOT(setFromSlice(int)));
+  
+  QToolButton *updateTo = new QToolButton();
+  updateTo->setText(tr("To"));
+  updateTo->setAutoRaise(true);
+  connect(updateTo,SIGNAL(clicked(bool)),this,SLOT(setToCurrentSlice()));
+
+  m_toSlice = new QSpinBox();
+  m_toSlice->setMinimum(0);
+  m_toSlice->setMaximum(0);
+  m_toSlice->setToolTip(tr("Determine which is the last slice included in the VOI"));
+  connect(m_toSlice,SIGNAL(valueChanged(int)),this,SLOT(setToSlice(int)));
+  
+  // Plugin's Widget Layout
+  QHBoxLayout *toolbarLayout = new QHBoxLayout();
+  toolbarLayout->addWidget(updateFrom);
+  toolbarLayout->addWidget(m_fromSlice);
+  toolbarLayout->addWidget(updateTo);
+  toolbarLayout->addWidget(m_toSlice);
+  toolbarLayout->addWidget(m_voiButton);
+    
+  QWidget *toolbar = new QWidget();
+  toolbar->setLayout(toolbarLayout);
+
+  QWidgetAction *toolbarAdaptor = new QWidgetAction(this);
+  toolbarAdaptor->setDefaultWidget(toolbar);
   
   // Interface connections
   connect(m_voiButton, SIGNAL(triggered(QAction*)), this, SLOT(changeVOI(QAction*)));
   connect(m_voiButton, SIGNAL(toggled(bool)), this, SLOT(enable(bool)));
+  connect(EspINA::instance(), SIGNAL(focusSampleChanged(Sample*)),
+          this, SLOT(focusSampleChanged(Sample *)));
 }
 
 

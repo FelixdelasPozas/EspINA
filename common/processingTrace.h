@@ -156,8 +156,8 @@ public:
 //   void readTrace(std::istream& content);
   void readTrace(QTextStream& stream);
 
-  void registerPlugin(QString key, IFilterFactory* factory);
-  IFilterFactory* getRegistredPlugin(QString& key);
+//   void registerPlugin(QString key, IFilterFactory* factory);
+//   IFilterFactory* getRegistredPlugin(QString& key);
   /*
   void addSubtrace(const ProcessingTrace *subTrace);
   std::vector<ITraceNode *> inputs(const ITraceNode *node);
@@ -178,7 +178,7 @@ private:
   // attributes
   Graph m_trace;
   static ProcessingTrace* m_instnace;
-  QMap<QString, IFilterFactory *> m_availablePlugins;
+//   QMap<QString, IFilterFactory *> m_availablePlugins;
   
 };
 

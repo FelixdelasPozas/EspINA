@@ -228,10 +228,12 @@ void SeedGrowRegionSegmentation::buildUI()
   QLabel *thresholdLabel = new QLabel(tr("Region Threshold"));
   m_threshold = new QSpinBox();
   m_threshold->setValue(DEFAULT_THRESHOLD);
-  
+  m_threshold->setToolTip(tr("Determine the size of color value range for a given pixel"));
+    
   //Segmentation Button
   m_segButton = new QToolButton();
   m_segButton->setCheckable(true);
+
   m_selectors = new QMenu();
   
   buildSelectors();
@@ -239,6 +241,8 @@ void SeedGrowRegionSegmentation::buildUI()
   m_seedSelector = m_seedSelectors.value(m_seedSelectors.keys().first());
   m_segButton->setIcon(m_seedSelectors.key(m_seedSelector)->icon());
   m_segButton->setMenu(m_selectors);
+  m_segButton->setToolTip(tr("Pixel selector"));
+  
   
   // Plugin's Widget Layout
   QHBoxLayout *thresholdLayout = new QHBoxLayout();

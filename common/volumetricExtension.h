@@ -27,7 +27,10 @@ class pqScalarsToColors;
 class VolumetricRepresentation : public ISegmentationRepresentation
 {
 public:
+  static const ISegmentationRepresentation::RepresentationId ID;
+  
   VolumetricRepresentation(Segmentation* seg);
+  virtual ~VolumetricRepresentation();
   
   virtual QString id();
   virtual void render(pqView* view);
@@ -46,12 +49,18 @@ public:
   static const ExtensionId ID;
   
 public:
+  VolumetricExtension();
+  virtual ~VolumetricExtension();
+  
   virtual ExtensionId id();
   virtual void initialize(Segmentation* seg);
-  virtual void addInformation(InformationMap& map);
-  virtual void addRepresentations(RepresentationMap& map);
+  virtual ISegmentationRepresentation* representation(QString rep);
+  virtual QVariant information(QString info);
   
   virtual ISegmentationExtension* clone();
+  
+private:
+  VolumetricRepresentation *m_volRep;
 };
 
 #endif // VOLUMETRICEXTENSION_H

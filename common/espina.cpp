@@ -18,11 +18,17 @@
 
 
 #include "espina.h"
+
+// Debug
+#include "espina_debug.h"
+
 //Espina
 #include "Config.h"
 #include <data/taxonomy.h>
-#include "products.h"
+#include "sample.h"
+#include "segmentation.h"
 #include "cache/cachedObjectBuilder.h"
+#include "EspinaPluginManager.h"
 
 #include <vtkSMStringVectorProperty.h>
 #include <vtkSMProxy.h>
@@ -35,8 +41,6 @@
 //#include <pqSaveDataReaction.h>
 #include <EspinaSaveDataReaction.h>
 
-#include <QDebug>
-#include <iostream>
 #include <fstream>
 
 #include "FilePack.h"
@@ -47,6 +51,8 @@
 #include <qdir.h>
 #include <vtkStringList.h>
 #include "labelMapExtension.h"
+#include <qmimedata.h>
+#include <QElapsedTimer>
 
 
 class IOTaxonomy;
@@ -79,6 +85,7 @@ EspINA* EspINA::instance()
 EspINA::EspINA(QObject* parent)
 : QAbstractItemModel(parent)
 , m_activeSample(NULL)
+, m_nextValidSegId(1)
 {
   loadTaxonomy();
   m_newSegType = NULL;//->getComponent("Symetric");
@@ -123,8 +130,20 @@ QVariant EspINA::data(const QModelIndex& index, int role) const
 	return QVariant();
     }
     
-    // Other elements can display their own data
     IModelItem *indexItem = static_cast<IModelItem *>(index.internalPointer());
+    // Only segmentations have multiple info
+    if (index.column() > 0)
+    {
+      if (role != Qt::DisplayRole)
+	return QVariant();
+      
+      Segmentation *seg = dynamic_cast<Segmentation *>(indexItem);
+      assert(seg);
+      QStringList availableInfo = seg->availableInformations();
+      return seg->information(availableInfo[index.column()]);
+    }
+    
+    // Other elements can display their own data
     return indexItem->data(role);
 }
 
@@ -144,15 +163,18 @@ bool EspINA::setData(const QModelIndex& index, const QVariant& value, int role)
 	Segmentation *seg = dynamic_cast<Segmentation *>(indexItem);
 	if (seg)
 	{
-	  seg->origin()->representation("02_LabelMap")->requestUpdate(true);
+	  QElapsedTimer timer;
+	  timer.start();
+	  seg->origin()->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
+	  qDebug() << "Updating Check took: " << timer.elapsed();
 	  QModelIndex segIndex = segmentationIndex(seg);
 	  emit dataChanged(segIndex,segIndex);
 	}
-	  
       }
       TaxonomyNode *taxItem = dynamic_cast<TaxonomyNode *>(indexItem);
       if (taxItem && role == Qt::DecorationRole)
       {
+	qDebug() << "Change color to" << taxItem->getName();
 	foreach(Segmentation *seg, m_taxonomySegs[taxItem])
 	{
 	  QModelIndex segIndex = segmentationIndex(seg);
@@ -161,7 +183,8 @@ bool EspINA::setData(const QModelIndex& index, const QVariant& value, int role)
 	}
 	if (m_taxonomySegs[taxItem].size())
 	{
-	  m_taxonomySegs[taxItem].first()->origin()->representation("02_LabelMap")->requestUpdate(true);
+	  qDebug() << "Request segmentation update";
+	  m_taxonomySegs[taxItem].first()->origin()->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
 	}
       }
       emit dataChanged(index,index);
@@ -173,7 +196,13 @@ bool EspINA::setData(const QModelIndex& index, const QVariant& value, int role)
 //------------------------------------------------------------------------
 int EspINA::columnCount(const QModelIndex& parent) const
 {
-  return 1;
+  if (parent == segmentationRoot())
+  {
+    int infoSize = EspINAFactory::instance()->segmentationAvailableInformations().size();
+    return infoSize;
+  }
+  else
+    return 1;
 }
 
 //------------------------------------------------------------------------
@@ -310,6 +339,10 @@ int EspINA::numOfSegmentations(TaxonomyNode* tax) const
 //------------------------------------------------------------------------
 QVariant EspINA::headerData(int section, Qt::Orientation orientation, int role) const
 {
+  if (orientation == Qt::Horizontal && role == Qt::DisplayRole && section >= 0)
+  {
+    return EspINAFactory::instance()->segmentationAvailableInformations()[section];
+  }
   return QVariant();
 }
 
@@ -325,11 +358,16 @@ Qt::ItemFlags EspINA::flags(const QModelIndex& index) const
   if (index.parent() == sampleRoot())
     return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
   
-  return QAbstractItemModel::flags(index) | Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
+  return QAbstractItemModel::flags(index) | Qt::ItemIsUserCheckable | Qt::ItemIsEditable ;
 }
 
- //------------------------------------------------------------------------
-
+//  //------------------------------------------------------------------------
+// bool EspINA::dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent)
+// {
+//   qDebug("Dropping Data");
+//   return QAbstractItemModel::dropMimeData(data, action, row, column, parent);
+// }
+ 
  //------------------------------------------------------------------------
 QModelIndex EspINA::taxonomyRoot() const
 {
@@ -429,19 +467,23 @@ QModelIndex EspINA::segmentationIndex(Segmentation* seg) const
 }
 
 //------------------------------------------------------------------------
-void EspINA::changeTaxonomy(Segmentation* seg, QString& taxName)
+int EspINA::requestId(int suggestedId)
 {
-  // lcate the real segmentation pointer registered
-  const TaxonomyNode* oldTax = seg->taxonomy();
-  assert(m_taxonomySegs[oldTax].contains(seg));
-  TaxonomyNode* newTax = m_tax->getComponent(taxName);
-  assert(newTax);
+  m_nextValidSegId--;
+  if (m_nextValidSegId <= suggestedId)
+    m_nextValidSegId = suggestedId+1;
 
-  m_taxonomySegs[oldTax].removeOne(seg);
-  seg->setTaxonomy(newTax);
-  m_taxonomySegs[newTax].push_back(seg);
+  return suggestedId;
+}
+
+
+//------------------------------------------------------------------------
+void EspINA::changeId(Segmentation* seg, int id)
+{
+  seg->setId(requestId(id));
   emit dataChanged(segmentationIndex(seg),segmentationIndex(seg));
 }
+
 
 //-----------------------------------------------------------------------------
 Segmentation* EspINA::segmentation(QString& segId)
@@ -482,11 +524,36 @@ QList< Segmentation* > EspINA::segmentations(const Sample* sample) const
 }
 
 //-----------------------------------------------------------------------------
+void EspINA::changeTaxonomy(Segmentation* seg, TaxonomyNode* newTaxonomy)
+{
+  if (seg->taxonomy() == newTaxonomy)
+    return;
+
+  assert(m_taxonomySegs[seg->taxonomy()].contains(seg));
+  m_taxonomySegs[seg->taxonomy()].removeOne(seg);
+  seg->setTaxonomy(newTaxonomy);
+  m_taxonomySegs[newTaxonomy].push_back(seg);
+
+  QModelIndex segIndex = segmentationIndex(seg);
+  emit dataChanged(segIndex,segIndex);
+  seg->origin()->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
+}
+
+//------------------------------------------------------------------------
+void EspINA::changeTaxonomy(Segmentation* seg, QString& taxName)
+{
+  TaxonomyNode* newTax = m_tax->getComponent(taxName);
+
+  changeTaxonomy(seg, newTax);
+}
+
+
+//-----------------------------------------------------------------------------
 void EspINA::loadFile(QString filePath, QString method)
 {
   // GUI -> Remote opens
-  QString TraceContent, TaxonomyContent;
-  QTextStream TraceStream(&TraceContent), TaxonomyStream(&TaxonomyContent);
+  /*QString TraceContent, TaxonomyContent;
+  QTextStream TraceStream(&TraceContent), TaxonomyStream(&TaxonomyContent);*/
   if( method == "open")
     this->clear();
     // Remote files are loaded through paraview loadSource class
@@ -553,7 +620,7 @@ void EspINA::saveFile(QString& filePath, pqServer* server)
     */
     QString auxTraceData(trace_data.str().c_str());
     QStringList emptyList; //TODO include the segmentations
-    IOEspinaFile::saveFile( filePath, auxTraceData, tax_data, emptyList);
+    //IOEspinaFile::saveFile( filePath, auxTraceData, tax_data, emptyList);
   }
 }
 
@@ -582,12 +649,12 @@ void EspINA::removeSample(Sample* sample)
   if( m_samples.contains(sample) )
   {
     // Remove the Segmentations associated
-    dynamic_cast<LabelMapExtension::SampleRepresentation *>(sample->representation("02_LabelMap"))->setEnable(false);
+    dynamic_cast<LabelMapExtension::SampleRepresentation *>(sample->representation(LabelMapExtension::SampleRepresentation::ID))->setEnable(false);
     foreach(Segmentation* seg, sample->segmentations())
     {
       removeSegmentation(seg);
     }
-    dynamic_cast<LabelMapExtension::SampleRepresentation *>(sample->representation("02_LabelMap"))->setEnable(true);
+    dynamic_cast<LabelMapExtension::SampleRepresentation *>(sample->representation(LabelMapExtension::SampleRepresentation::ID))->setEnable(true);
 //     assert(m_sampleSegs[sample].size() == 0);
 //     m_sampleSegs.remove(sample);
 //     assert(!m_sampleSegs.contains(sample));
@@ -623,11 +690,15 @@ void EspINA::addSegmentation(Segmentation *seg)
   
   //beginResetModel();
   beginInsertRows(segmentationRoot(),lastRow,lastRow);
-  seg->setTaxonomy(node);
+  if (!seg->taxonomy())
+    seg->setTaxonomy(node);
   seg->setOrigin(m_activeSample);
+  if (!seg->validId())
+    seg->setId(nextSegmentationId());
   seg->initialize();
   m_taxonomySegs[m_newSegType].push_back(seg);
   seg->origin()->addSegmentation(seg);
+  connect(seg, SIGNAL(updated(Segmentation*)), this, SLOT(internalSegmentationUpdate(Segmentation*)));
   //m_sampleSegs[seg->origin()].push_back(seg);
   m_segmentations.push_back(seg);
   endInsertRows();
@@ -661,12 +732,12 @@ void EspINA::setUserDefindedTaxonomy(const QString& taxName)
 
 void EspINA::onProxyCreated(pqProxy* p)
 {
-  qDebug() << "EspINA: Proxy" << p->getSMGroup() << "::" << p->getSMName() << " created!";
+//   qDebug() << "EspINA: Proxy" << p->getSMGroup() << "::" << p->getSMName() << " created!";
 }
 
 void EspINA::destroyingProxy(pqProxy* p)
 {
-  qDebug() << "EspINA: Proxy" << p->getSMGroup() << "::" << p->getSMName() << " is being destroyed!";
+//   qDebug() << "EspINA: Proxy" << p->getSMGroup() << "::" << p->getSMName() << " is being destroyed!";
 }
 //------------------------------------------------------------------------
 void EspINA::loadSource(pqPipelineSource* proxy)
@@ -678,19 +749,18 @@ void EspINA::loadSource(pqPipelineSource* proxy)
   //QString filePath = proxy->getSMName();
 
   qDebug() << "EspINA: Loading file in server side: " << filePath << "  " << proxy->getSMName();
-
-  if( filePath.endsWith(".pvd") || 
-      filePath.endsWith(".mha") || 
-      filePath.endsWith(".mhd") ||
-      filePath.endsWith(".tif") ||
-      filePath.endsWith(".tiff") )
-    
+  
+  const QString extension = filePath.section('.',-1);
+  
+  if( extension == "pvd" || 
+      extension == "mha" || extension == "mhd" ||
+      extension == "tif" || extension == "tiff" )
   {
-    // TODO not supported for multiple Smaples
+    // TODO not supported for multiple Samples
     //this->removeSamples();
-    
-    vtkFilter *sampleReader = CachedObjectBuilder::instance()->registerProductCreator(filePath, proxy);
-    Sample *sample = EspINAFactory::instance()->CreateSample(sampleReader,0);
+    QString sampleId = filePath.section('/', -1);
+    vtkFilter *sampleReader = CachedObjectBuilder::instance()->registerProductCreator(sampleId, proxy);
+    Sample *sample = EspINAFactory::instance()->CreateSample(sampleReader,0, filePath.section('/',0,-2));
     this->addSample(sample); 
 
     if( !m_tax )
@@ -700,22 +770,7 @@ void EspINA::loadSource(pqPipelineSource* proxy)
       endInsertRows();
     }
   }
-  else if( filePath.endsWith(".trace") ){ // DEPRECATED
-
-    proxy->updatePipeline(); //Update the pipeline to obtain the content of the file
-    proxy->getProxy()->UpdatePropertyInformation();
-
-    vtkSMStringVectorProperty* filePathProp =
-          vtkSMStringVectorProperty::SafeDownCast(proxy->getProxy()->GetProperty("Content"));
-    qDebug() << "Content:\n" << filePathProp->GetElement(0);
-    //std::istringstream trace(std::string(filePathProp->GetElement(0)));
-    QString content(filePathProp->GetElement(0));
-    QTextStream trace;
-    trace.setString(&content);
-    m_analysis->readTrace(trace);
-
-  }
-  else if( filePath.endsWith(".seg") )
+  else if( extension == "seg" )
   {
     //this->clear();
     QFileInfo path(filePath.remove(QRegExp("\\..*$")));
@@ -741,24 +796,33 @@ void EspINA::loadSource(pqPipelineSource* proxy)
     try{
       if (!m_tax)//TODO: Decide wether to mix, override or check compability
       {
-	beginInsertRows(taxonomyRoot(), 0, 0);
-	m_tax = IOTaxonomy::loadXMLTaxonomy(TaxContent);
-	endInsertRows();
-	setUserDefindedTaxonomy(m_tax->getSubElements()[0]->getName());
-	emit resetTaxonomy();
+        qDebug("EspINA: Reading taxonomy ...");
+// 	beginInsertRows(taxonomyRoot(), 0, 0);
+// 	m_tax = IOTaxonomy::loadXMLTaxonomy(TaxContent);
+// 	endInsertRows();
+// 	setUserDefindedTaxonomy(m_tax->getSubElements()[0]->getName());
+// 	emit resetTaxonomy();
+	loadTaxonomy(IOTaxonomy::loadXMLTaxonomy(TaxContent));
       }
-      
+      qDebug("EspINA: Reading trace ...");
       m_analysis->readTrace(trace);
       // Remove the proxy of the .seg file
       pqObjectBuilder* ob = pqApplicationCore::instance()->getObjectBuilder();
       ob->destroy(proxy);
       
     } catch (...) {
-      qDebug() << "Espina: Unable to load File " << __FILE__ << __LINE__;
+      qDebug() << "Espina: Unable to load File. " << __FILE__ << __LINE__;
     }
   }
-  else{
-    qDebug() << QString("Error: %1 file not supported yet").arg(filePath.remove(0, filePath.lastIndexOf('.')));
+  else 
+  {
+    EspinaPluginManager::instance()->readFile(proxy,filePath);
+//     if (filePath.endsWith(".segmha"))
+//   {
+//     proxy->updatePipeline();
+//     SegmhaImporterFilter *segmhaImporter = new SegmhaImporterFilter(proxy,filePath.section('/', -1));
+//   else{
+//     qDebug() << QString("Error: %1 file not supported yet").arg(filePath.remove(0, filePath.lastIndexOf('.')));
   }
 }
 
@@ -770,14 +834,29 @@ void EspINA::clear()
   // Delete Samples (and their segmentations)
   this->removeSamples();
   
-  
+  this->removeTaxonomy();
+
+  m_nextValidSegId = 1;
+}
+
+
+//------------------------------------------------------------------------
+void EspINA::internalSegmentationUpdate(Segmentation* seg)
+{
+  QModelIndex segIndex = segmentationIndex(seg);
+  emit dataChanged(segIndex,segIndex);
+}
+
+
+//------------------------------------------------------------------------
+void EspINA::removeTaxonomy()
+{
   // Delete taxonomy
   beginRemoveRows(taxonomyRoot(), 0, rowCount(taxonomyRoot())-1);
   delete m_tax;
   m_tax = NULL;
   endRemoveRows();
 }
-
 
 //------------------------------------------------------------------------
 void EspINA::loadTaxonomy()

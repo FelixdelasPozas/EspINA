@@ -1,3 +1,6 @@
+find_package(Quazip REQUIRED)
+include(${QUAZIP_USE_FILE})
+
 include_directories(
   cache
   proxies
@@ -26,6 +29,9 @@ qt4_wrap_cpp(MOC_BUILT_SOURCES
   EspinaPlugin.h
   labelMapExtension.h
   crosshairExtension.h
+  RectangularVOI.h
+  sample.h
+  segmentation.h
 )
 
 source_group("Generated" FILES
@@ -45,16 +51,13 @@ set(Espina_SOURCE_FILES
   ${UI_SOURCES}
   ${MOC_BUILT_SOURCES}
   ${RCC_BUILT_SOURCES}
-  ${UI_BUILT_SOURCES}
   )
 
-set(EXTERNAL_LIBS zip)
+set(EXTERNAL_LIBS ${QUAZIP_LIBRARIES})
 
 add_library (Espina SHARED ${Espina_SOURCE_FILES})
 
 target_link_libraries (Espina ${CAJAL_LIBRARIES} ${EXTERNAL_LIBS})
-
-MESSAGE (STATUS "Paraview Libraries:" ${PARAVIEW_LIBRARIES})
 
 install (TARGETS Espina ${PARAVIEW_LIBRARIES} LIBRARY DESTINATION lib)
 

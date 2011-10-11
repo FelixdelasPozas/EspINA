@@ -21,10 +21,9 @@ find_package(Boost REQUIRED COMPONENTS  system filesystem graph)
 link_directories ( ${Boost_LIBRARY_DIRS} )
 
 
-SET (ITK_VTK_GLUE "" CACHE PATH "Path to ItkVtkGlue external project")
-
 
 include_directories(
+  ${CAJAL_INCLUDE_DIR}/filters
   ${CMAKE_SOURCE_DIR}/common
   ${CMAKE_CURRENT_SOURCE_DIR} 
   ${ITK_VTK_GLUE}
@@ -40,7 +39,15 @@ qt4_add_resources (RCC_BUILT_SOURCES
 # We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
 qt4_wrap_cpp(MOC_SRCS 
   SeedGrowSegmentation.h
+  SeedGrowSegmentationPreferences.h
   )
+
+# Create Interface files
+qt4_wrap_ui (UI_BUILT_SOURCES
+  SeedGrowSegmentationFilterSetup.ui
+  SeedGrowSegmentationPreferences.ui
+  )
+
 
 # This is a macro for adding QActionGroup subclasses automatically as toolbars.
 ADD_PARAVIEW_ACTION_GROUP(
@@ -50,12 +57,20 @@ ADD_PARAVIEW_ACTION_GROUP(
 
 #file ( GLOB LOCAL_SOURCES *.cpp )
 
+MESSAGE (STATUS ${CAJAL_INCLUDE_DIR})
+
 set (PLUGIN_SRCS
   SeedGrowSegmentation.cpp
+  SeedGrowSegmentationPreferences.cpp
   SeedGrowSegmentationFilter.cpp
   ${MOC_SRCS} 
   ${RCC_BUILT_SOURCES} 
+  ${UI_BUILT_SOURCES} 
   )
+
+set (VTKFILTER_SRCS
+	${CAJAL_INCLUDE_DIR}/filters/vtkConnectedThresholdImageFilter.cpp
+	)
 
 set (PARAVIEW_ADDITIONAL_LIBRARIES
   ${PARAVIEW_ADDITIONAL_LIBRARIES}
@@ -71,7 +86,7 @@ ADD_PARAVIEW_PLUGIN(
   SeedGrowSegmentationPlugin
   "0.1" 
   SERVER_MANAGER_XML SeedGrowSegmentationFilters.xml
-  SERVER_MANAGER_SOURCES vtkConnectedThresholdImageFilter.cpp
+  SERVER_MANAGER_SOURCES ${VTKFILTER_SRCS}
 	#According to: http://markmail.org/message/wj27wmlj6rjd7vg5
 	# - See the macro documentation in ParaView/CMake/ParaViewPlugins.cmake:~835
 	# - the parser doesn't work because it seems there is no vtkClass inside

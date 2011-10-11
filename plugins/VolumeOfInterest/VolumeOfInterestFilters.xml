@@ -1,4 +1,5 @@
 <ServerManagerConfiguration>
+  
   <ProxyGroup name="filters">
    <SourceProxy name="RectangularVOI" class="vtkExtractVOI" label="RectangularVOI">
      <Documentation
@@ -52,5 +53,50 @@
       </Hints>
    </SourceProxy>
  </ProxyGroup>
+ 
+ <ProxyGroup name="implicit_functions">
+     <BoxProxy name="NonRotatingBox" class="vtkBox">
+      <DoubleVectorProperty
+        name="Bounds"
+        command="SetBounds"
+        number_of_elements="6"
+        default_values="none" >
+      </DoubleVectorProperty>
+      <DoubleVectorProperty
+        name="Position"
+        command="SetPosition"
+        number_of_elements="3"
+        update_self="1"
+        animateable="1"
+        default_values="0.0 0.0 0.0" >
+        <DoubleRangeDomain name="range" />
+      </DoubleVectorProperty>
+      <DoubleVectorProperty
+        name="Scale"
+        command="SetScale"
+        number_of_elements="3"
+        animateable="1"
+        update_self="1"
+        default_values="1.0 1.0 1.0" >
+        <DoubleRangeDomain name="range" />
+      </DoubleVectorProperty>
+      <Hints>
+        <!-- Hints are metadata associated with the proxy.
+             As far as the ServerManager is concerned, Hints have no 
+             significance. GUI is free to interpret the hints as
+             it chooses. Hints provide a mechanism to add some GUI
+             pertinant information to the server manager XML.
+        -->
+        <PropertyGroup type="NonRotatingBox">
+          <Property name="Position" function="Position" />
+          <Property name="Scale" function="Scale" />
+          <Property name="Bounds" function="PlaceWidget" />
+        </PropertyGroup>
+
+      </Hints>
+      <!-- End of Box -->
+    </BoxProxy>
+  </ProxyGroup>
+  
 </ServerManagerConfiguration>
 
