@@ -35,6 +35,7 @@
 #include <vtkSMPropertyHelper.h>
 
 #include <QElapsedTimer>
+#include "spatialExtension.h"
 
 using namespace LabelMapExtension;
 
@@ -55,8 +56,17 @@ SampleRepresentation::SampleRepresentation(Sample* sample)
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   
   vtkFilter::Arguments filterArgs;
-  filterArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT, sample->id()));
   
+  ISampleRepresentation *spatialRep;
+  if ((spatialRep =  m_sample->representation(SpatialExtension::SampleRepresentation::ID)))
+  {
+    SpatialExtension::SampleRepresentation* rep = 
+    dynamic_cast<SpatialExtension::SampleRepresentation*>(spatialRep);
+    filterArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT, spatialRep->id()));
+  } else
+  {
+    filterArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT, sample->id()));
+  }
   m_rep = cob->createFilter("filters", "ImageLabelMapBlend", filterArgs);
   assert(m_rep);
 }
@@ -110,7 +120,16 @@ void SampleRepresentation::requestUpdate(bool force)
     vtkstd::vector<unsigned int> ports;
     
     // Ensure sample's mapper is the first input
-    inputs.push_back(m_sample->creator()->pipelineSource()->getProxy());
+    ISampleRepresentation *spatialRep;
+    if ((spatialRep =  m_sample->representation(SpatialExtension::SampleRepresentation::ID)))
+    {
+      SpatialExtension::SampleRepresentation* rep = 
+      dynamic_cast<SpatialExtension::SampleRepresentation*>(spatialRep);
+      inputs.push_back(spatialRep->pipelineSource()->getProxy());
+    } else
+    {
+      inputs.push_back(m_sample->creator()->pipelineSource()->getProxy());
+    }
     ports.push_back(0);
     
     foreach(Segmentation *seg, m_sample->segmentations())
