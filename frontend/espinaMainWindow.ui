@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>EspINA</string>
   </property>
   <property name="windowIcon">
    <iconset resource="rsc/espina.qrc">

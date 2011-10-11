@@ -43,6 +43,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <qitemselectionmodel.h>
 #include <selectionManager.h>
 
+class Sample;
 class SegmentationExplorer;
 class ISelectionHandler;
 class QItemSelectionModel;
@@ -96,7 +97,7 @@ protected slots:
   void resetTaxonomy();
   
   // Manage Sample Explorer
-  void focusOnSample();
+  void focusOnSample(Sample* sample);
   void focusOnSegmentation();
   void showSegmentationInformation();
   void hideSegmentationInformation(Segmentation* seg);

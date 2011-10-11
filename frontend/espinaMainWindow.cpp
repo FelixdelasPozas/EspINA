@@ -52,7 +52,7 @@
 #include "sampleDelegate.h"
 #include "segmentationEditor.h"
 
-//ParaQ includes
+//ParaQ include
 #include <pqParaViewBehaviors.h>
 #include <pqParaViewMenuBuilders.h>
 #include <pqLoadDataReaction.h>
@@ -130,6 +130,8 @@ EspinaMainWindow::EspinaMainWindow()
     , m_removeSegmentationSelector(NULL)
 {
   m_espina = EspINA::instance();
+  connect(m_espina,SIGNAL(focusSampleChanged(Sample*)),
+	  this, SLOT(focusOnSample(Sample *)));
   
 //   QTranslator translator;
 //   //QDir translationDir(TRANSLATION_DIR);
@@ -748,9 +750,12 @@ void EspinaMainWindow::resetTaxonomy()
 }
 
 //-----------------------------------------------------------------------------
-void EspinaMainWindow::focusOnSample()
-{
-  
+void EspinaMainWindow::focusOnSample(Sample *sample)
+{ 
+  if (sample)
+    setWindowTitle(sample->label());
+  else
+    setWindowTitle("EspINA");
 }
 
 //-----------------------------------------------------------------------------

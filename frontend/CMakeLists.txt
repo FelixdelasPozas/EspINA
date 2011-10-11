@@ -69,7 +69,7 @@ set (Espina_LIBRARIES
 # Build the client
 build_paraview_client(espina
   APPLICATION_NAME "EspINA"
-  TITLE "Espina"
+  TITLE "EspINA"
   ORGANIZATION  "CeSViMa"
   VERSION_MAJOR ${ESPINA_VERSION_MAJOR}
   VERSION_MINOR ${ESPINA_VERSION_MINOR}
