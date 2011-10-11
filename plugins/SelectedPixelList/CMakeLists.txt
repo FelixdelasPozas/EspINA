@@ -14,24 +14,8 @@ include (${VTK_USE_FILE})
 find_package (ITK REQUIRED)
 include (${ITK_USE_FILE})
 
-find_package (Cajal REQUIRED)
-include (${CAJAL_USE_FILE})
-
 find_package(Boost REQUIRED COMPONENTS  system filesystem graph)
 link_directories ( ${Boost_LIBRARY_DIRS} )
-
-# foreach(FILE 
-#   vtkSelectedPixelList.h
-#   vtkSelectedPixelList.cpp
-# )
-#   add_custom_command(
-#     OUTPUT ${FILE}
-#     COMMAND ${CMAKE_COMMAND}
-#     ARGS -E create_symlink ${CAJAL_INCLUDE_DIR}/filters/${FILE} ${FILE}
-#     DEPENDS ${CAJAL_LIBRARIES}
-#     COMMENT "Creating symbolic link for ${FILE}"
-#   )
-# endforeach(FILE)
 
 include_directories(
   ${CMAKE_SOURCE_DIR}/common
@@ -56,6 +40,10 @@ ADD_PARAVIEW_ACTION_GROUP(
   CLASS_NAME SelectedPixelList 
   GROUP_NAME "ToolBar/SelectedPixelList")
 
+set (VTKFILTER_SRCS
+  vtkCrossSource.cpp
+)
+
 set (PLUGIN_SRCS
   SelectedPixelList.cpp
   ${MOC_SRCS} 
@@ -74,15 +62,9 @@ set (PARAVIEW_ADDITIONAL_LIBRARIES
 # which are filled up by the above macro with relevant entries
 ADD_PARAVIEW_PLUGIN(
   SelectedPixelListPlugin
-  "0.1" 
-  #SERVER_MANAGER_XML SelectedPixelList.xml
-  #SERVER_MANAGER_SOURCES vtkSelectedPixelList.h vtkSelectedPixelList.cpp
-        #According to: http://markmail.org/message/wj27wmlj6rjd7vg5
-        # - See the macro documentation in ParaView/CMake/ParaViewPlugins.cmake:~835
-        # - the parser doesn't work because it seems there is no vtkClass inside
-        #   thus we have to use a vtkXXXX class name for our filter, other wise,
-        #   we need to use SERVER_SOURCES instead of SERVER_MANAGER_SOURCES
-        #   SERVER_SOURCES SegmentationFilter.cpp 
+  "0.2" 
+  SERVER_MANAGER_XML SelectedPixelList.xml
+  SERVER_MANAGER_SOURCES ${VTKFILTER_SRCS}
   GUI_INTERFACES ${IFACES} 
   GUI_SOURCES ${IFACE_SRCS} ${PLUGIN_SRCS}
 )
@@ -94,3 +76,5 @@ endif( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 target_link_libraries (SelectedPixelListPlugin ${PARAVIEW_ADDITIONAL_LIBRARIES} )
 
 install (TARGETS SelectedPixelListPlugin LIBRARY DESTINATION bin/plugins)
+
+add_subdirectory( tests )
