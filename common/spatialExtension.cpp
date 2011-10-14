@@ -80,7 +80,7 @@ void SampleRepresentation::setSpacing(double x, double y, double z)
   changeInformationFilter->getProxy()->UpdateVTKObjects();
 }
 
-void SampleRepresentation::spacing(double value[3])
+void SampleRepresentation::spacing( double value[3]) const
 {
   value[0] = m_spacing[0];
   value[1] = m_spacing[1];

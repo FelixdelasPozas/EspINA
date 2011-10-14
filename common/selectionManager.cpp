@@ -29,10 +29,10 @@
 //------------------------------------------------------------------------
 // SELECTION HANDLER
 //------------------------------------------------------------------------
-void ISelectionHandler::setSelection(ISelectionHandler::Selection sel)
+void ISelectionHandler::setSelection(ISelectionHandler::MultiSelection msel)
 {
   qDebug("Selection Changed");
-  emit selectionChanged(sel);
+  emit selectionChanged(msel);
 }
 
 void ISelectionHandler::abortSelection()

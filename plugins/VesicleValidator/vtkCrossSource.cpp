@@ -24,6 +24,7 @@ void printExtent(int extent[6])
 
 vtkCrossSource::vtkCrossSource()
 : Radius(3)
+, Width(1)
 {
   bzero(Center,3*sizeof(int));
   
@@ -58,15 +59,14 @@ int vtkCrossSource::RequestData(vtkInformation* request,
   for (int x = xMin; x <= xMax; x++)
     for (int y = yMin; y <= yMax; y++)
       for (int z = zMin; z <= zMax; z++)
-	  if (x == Center[0] || y == Center[1])
+	  if (Center[0] - Width <= x && x <= Center[0] + Width
+	  ||  Center[1] - Width <= y && y <= Center[1] + Width)
 	    cross->SetScalarComponentFromDouble(x,y,z,0,255);
 	  else
 	    cross->SetScalarComponentFromDouble(x,y,z,0,0);
 	
   output->ShallowCopy(cross);
   output->CopyInformation(cross);
-//   output->SetScalarTypeToUnsignedChar();
-//   output->SetNumberOfScalarComponents(1);
 //   output->SetExtent(cross->GetExtent());
   output->SetUpdateExtent(output->GetExtent());
   output->SetWholeExtent(output->GetExtent());

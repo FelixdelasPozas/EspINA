@@ -76,7 +76,7 @@ QString vtkProduct::id() const
 
 
 //-----------------------------------------------------------------------------
-pqOutputPort* vtkProduct::outputPort()
+pqOutputPort* vtkProduct::outputPort() const
 {
   return m_creator->pipelineSource()->getOutputPort(m_portNumber);
 }
@@ -100,17 +100,24 @@ EspinaProduct::EspinaProduct(EspinaFilter *parent, vtkFilter* creator, int portN
 }
 
 //-----------------------------------------------------------------------------
+void EspinaProduct::addArgument ( QString name, QString argValue )
+{
+  m_args.append(ESPINA_ARG(name,argValue));
+}
+
+//-----------------------------------------------------------------------------
 QString EspinaProduct::getArgument(QString name) const
 {
   return id();
 }
 
 //-----------------------------------------------------------------------------
-QString EspinaProduct::getArguments()
+QString EspinaProduct::getArguments() const
 {
   QString args;
   args.append(ESPINA_ARG("Id", id()));
   args.append(ESPINA_ARG("Taxonomy", m_taxonomy?m_taxonomy->getName():""));
+  args.append(m_args);
   return args;
 }
 

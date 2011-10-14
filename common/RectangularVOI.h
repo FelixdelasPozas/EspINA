@@ -36,12 +36,15 @@ class RectangularVOI
     virtual ~ApplyFilter();
     ApplyFilter(vtkProduct *input, double *bounds);
     ApplyFilter(ITraceNode::Arguments &args);
-    virtual int numProducts() {return 1;}//Assert it is true :D
+    
+    /// Implement IFilter Interface
+    virtual int numProducts() {return 1;}
     virtual vtkProduct product(int i) {return vtkProduct(m_rvoi,0);}
     virtual QList< vtkProduct* > products() {QList<vtkProduct *> p; return p;}
-    virtual QString getFilterArguments() const {return m_args;}
+    virtual QString getFilterArguments() const {return EspinaFilter::getFilterArguments();}
+//     virtual QString getFilterArguments() const {return m_args;}
     virtual void removeProduct(vtkProduct* product);
-    virtual QWidget* createSetupWidget() {return NULL;}
+    virtual QWidget* createWidget();
 
     
     static const QString FilterType;
@@ -65,6 +68,7 @@ public:
   virtual EspinaFilter *restoreVOITransormation(vtkProduct* product);
   virtual void setDefaultBounds(double bounds[6]);
   virtual void resizeToDefaultSize();
+  void bounds ( double bounds[6] );
 
   virtual vtkSMProxy *getProxy();
   virtual pq3DWidget* newWidget(ViewType viewType);

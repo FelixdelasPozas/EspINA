@@ -539,9 +539,9 @@ void EspinaMainWindow::removeSegmentationClicked(bool checked)
     m_removeSegmentationSelector->multiSelection = false;
     m_removeSegmentationSelector->filters << "EspINA_Segmentation";
     connect(m_removeSegmentationSelector,
-	  SIGNAL(selectionChanged(ISelectionHandler::Selection)),
+	  SIGNAL(selectionChanged(ISelectionHandler::MultiSelection)),
 	  this,
-	  SLOT(removeSelectedSegmentation(ISelectionHandler::Selection)));
+	  SLOT(removeSelectedSegmentation(ISelectionHandler::MultiSelection)));
     connect(m_removeSegmentationSelector,
 	  SIGNAL(selectionAborted()),
 	  this,
@@ -557,12 +557,12 @@ void EspinaMainWindow::removeSegmentationClicked(bool checked)
 }
 
 //-----------------------------------------------------------------------------
-void EspinaMainWindow::removeSelectedSegmentation(ISelectionHandler::Selection sel)
+void EspinaMainWindow::removeSelectedSegmentation( ISelectionHandler::MultiSelection msel)
 {
   Internals->segmentationView->clearSelection();
-  foreach(ISelectionHandler::SelElement elem, sel)
+  foreach(ISelectionHandler::Selelection sel, msel)
   {
-    Segmentation *seg = dynamic_cast<Segmentation *>(elem.second);
+    Segmentation *seg = dynamic_cast<Segmentation *>( sel.second);
     assert(seg);
     m_espina->removeSegmentation(seg);
   }

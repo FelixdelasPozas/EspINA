@@ -50,6 +50,7 @@
 #include <vtkIdList.h>
 #include "vtkNonRotatingBoxWidget.h"
 #include "EspinaPluginManager.h"
+#include <QLabel>
 
 /*
 class VTK_WIDGETS_EXPORT VOIRepresentation : public vtkBoxRepresentation
@@ -320,6 +321,14 @@ void RectangularVOI::ApplyFilter::removeProduct(vtkProduct* product)
 }
 
 //-----------------------------------------------------------------------------
+QWidget* RectangularVOI::ApplyFilter::createWidget()
+{
+  QString info(tr("VOI Size:"));
+  return new QLabel(info); 
+}
+
+
+//-----------------------------------------------------------------------------
 RectangularVOI::RectangularVOI(bool registerPlugin)
 : m_box(NULL)
 {
@@ -381,6 +390,14 @@ void RectangularVOI::resizeToDefaultSize()
   vtkSMPropertyHelper(m_box,"Bounds").Set(m_bounds,6);
   m_box->UpdateVTKObjects();
 }
+
+//-----------------------------------------------------------------------------
+void RectangularVOI::bounds ( double bounds[6] )
+{
+  m_box->UpdatePropertyInformation();
+  vtkSMPropertyHelper(m_box,"Bounds").Get(bounds,6);
+}
+
 
 //-----------------------------------------------------------------------------
 vtkSMProxy* RectangularVOI::getProxy()

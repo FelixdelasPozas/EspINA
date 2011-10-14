@@ -51,7 +51,7 @@ public:
   QString id() const;
   vtkFilter *creator() {return m_creator;}
   int portNumber() {return m_portNumber;}
-  pqOutputPort *outputPort();
+  pqOutputPort *outputPort() const;
  
 protected:
   vtkFilter *m_creator;
@@ -76,9 +76,10 @@ public:
 public:
   EspinaProduct(EspinaFilter *parent, vtkFilter *creator, int portNumber);
   
+  void addArgument(QString name, QString argValue);
   //! Implements ITraceNode interface
   virtual QString getArgument(QString name) const;
-  virtual QString getArguments();
+  virtual QString getArguments() const;
   virtual QString label() const {return "Product";}
   EspinaFilter *parent() const {return m_parent;}
 
@@ -102,6 +103,7 @@ protected:
   TaxonomyNode *m_taxonomy;
   Sample *m_origin;
   RENDER_STYLE m_style;
+  QString m_args;
 };
 
 #endif // PRODUCTS_H

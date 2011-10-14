@@ -39,6 +39,7 @@ private:
 private:
   int Center[3];
   int Radius;
+  int Width;
 };
 
 #endif//VTK_CROSS_SOURCE_H

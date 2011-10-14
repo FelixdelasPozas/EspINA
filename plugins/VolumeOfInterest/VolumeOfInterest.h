@@ -57,7 +57,7 @@ public:
   void element();
   
 protected slots:
-  void applyVOI(ISelectionHandler::Selection sel);
+  void applyVOI(ISelectionHandler::MultiSelection sel);
   //! Changes VOI enable state
   void enable(bool value);
   //! Changes the VOI

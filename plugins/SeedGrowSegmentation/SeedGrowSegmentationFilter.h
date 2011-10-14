@@ -49,16 +49,17 @@ public:
   //! Implements IFilter Interface
   virtual int numProducts() {return m_numSeg;}
   virtual vtkProduct product(int i) {return vtkProduct(m_finalFilter->product(i).creator(),i);}
-  virtual QList<vtkProduct *> products() {QList<vtkProduct*> a; return a;}
-  virtual void removeProduct(EspinaProduct* product);
+  virtual QList<vtkProduct *> products() {return m_finalFilter->products();}
+  virtual QString getFilterArguments() const {return EspinaFilter::getFilterArguments();}
+  virtual void removeProduct(vtkProduct* product);
   
   int threshold(){return m_threshold;}
   
   virtual QString label() const {return getArgument("Type");}
   virtual QString getArgument(QString name) const {return (name=="Type")?"SeedGrowSegmentation::SeedGrowSegmentationFilter":"";}
-  virtual QString getArguments() {return m_args;}
+  virtual QString getArguments() const {return m_args;}
   
-  virtual QWidget* createSetupWidget();
+  virtual QWidget* createWidget();
 
 private:
   EspinaFilter *m_applyFilter;

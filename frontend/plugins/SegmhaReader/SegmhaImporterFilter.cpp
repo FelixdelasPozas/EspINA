@@ -74,8 +74,8 @@ SegmhaImporterFilter::SegmhaImporterFilter(pqPipelineSource* reader, const QStri
   if (!EspINA::instance()->activeSample())
   {
     pqServer* server = pqActiveObjects::instance().activeServer();
-    vtkSMReaderFactory* readerFactory = 
-      vtkSMProxyManager::GetProxyManager()->GetReaderFactory();
+//     vtkSMReaderFactory* readerFactory = 
+//       vtkSMProxyManager::GetProxyManager()->GetReaderFactory();
       
 //     QString filters = readerFactory->GetSupportedFileTypes(server->GetConnectionID());
       QString filters = "MetaImage File (*.mha, *.mhd)";
@@ -268,7 +268,8 @@ SegmhaImporterFilter::~SegmhaImporterFilter()
 }
 
 //-----------------------------------------------------------------------------
-void SegmhaImporterFilter::removeProduct(EspinaProduct* product)
+void SegmhaImporterFilter::removeProduct(vtkProduct* product
+)
 {
   assert(m_numSeg > 0);
   m_blocks.remove(product);
@@ -287,7 +288,7 @@ void SegmhaImporterFilter::removeProduct(EspinaProduct* product)
   m_args.append(';');
 }
 
-QWidget* SegmhaImporterFilter::createSetupWidget()
+QWidget* SegmhaImporterFilter::createWidget()
 {
   return new QLabel("There is no information\n available for imported\n segmentations");
 }

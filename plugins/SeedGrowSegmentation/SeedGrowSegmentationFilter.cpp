@@ -41,6 +41,7 @@
 
 
 
+//-----------------------------------------------------------------------------
 SeedGrowSegmentationFilter::SetupWidget::SetupWidget(EspinaFilter *parent)
 : QWidget()
 {
@@ -57,6 +58,7 @@ QString stripName(QString args){return args.split(";")[0];}//FAKE
 QString stripArgs(QString args){return args.split(";")[1];}//FAKE
 
 
+//-----------------------------------------------------------------------------
 SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVOI* voi, ITraceNode::Arguments& args)
 : m_applyFilter(NULL)
 , m_grow(NULL)
@@ -166,6 +168,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVO
 }
 
 
+//-----------------------------------------------------------------------------
 SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ITraceNode::Arguments& args)
 : m_applyFilter(NULL)
 , m_grow(NULL)
@@ -255,6 +258,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ITraceNode::Arguments& ar
   EspINA::instance()->addSegmentation(seg);
 }
 
+//-----------------------------------------------------------------------------
 SeedGrowSegmentationFilter::~SeedGrowSegmentationFilter()
 {
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
@@ -266,12 +270,14 @@ SeedGrowSegmentationFilter::~SeedGrowSegmentationFilter()
     delete m_applyFilter;
 }
 
-void SeedGrowSegmentationFilter::removeProduct(EspinaProduct* product)
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationFilter::removeProduct(vtkProduct *product)
 {
   m_numSeg = 0;
 }
 
-QWidget* SeedGrowSegmentationFilter::createSetupWidget()
+//-----------------------------------------------------------------------------
+QWidget* SeedGrowSegmentationFilter::createWidget()
 {
   return new SetupWidget(this);
 }

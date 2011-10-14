@@ -16,7 +16,7 @@ SET(LIB_DEPENDECIES
 
 get_filename_component( COMPONENT_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 
-set (TEST_NAME SelectedPixelList_test)
+set (TEST_NAME VesicleValidator_test)
 
 create_test_sourcelist(TESTS  
   ../vtkCrossSource.cpp

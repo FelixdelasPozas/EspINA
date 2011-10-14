@@ -88,6 +88,7 @@ void SegmhaReader::readFile(pqPipelineSource* proxy, const QString& filePath)
   if (extension == "segmha")
   {
     proxy->updatePipeline();
+    //TODO: How to manage these kind of filters
     SegmhaImporterFilter *segmhaImporter = new SegmhaImporterFilter(proxy,filePath.section('/', -1));
   }
   else

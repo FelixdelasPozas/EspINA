@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) <year>  <name of author>
+    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -14,29 +14,12 @@
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 */
 
-#ifndef ISEGMENTATIONPLUGIN_H
-#define ISEGMENTATIONPLUGIN_H
 
-#include <QActionGroup>
+#include "VesicleValidatorSettings.h"
 
-class ProcessingTrace;
-
-//! Interface for Segmentation Plugins
-class ISegmentationPlugin : public QActionGroup
+QWidget* VesicleValidatorSettings::widget()
 {
-public:
-    ISegmentationPlugin(QObject* parent) : QActionGroup(parent){}
-    //virtual void execute() = 0;
-    
-public slots:
-  //virtual void onAction(QAction* a) = 0;
-  
-signals:
-  void segmentationCreated(ProcessingTrace *);
-  
-};
-
-#endif // ISEGMENTATIONPLUGIN_H
+  return new QWidget();
+}
