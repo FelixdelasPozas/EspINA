@@ -198,6 +198,7 @@ void VolumeOfInterest::setFromCurrentSlice()
 	);
     assert(rep);
     m_fromSlice->setValue(rep->slice(VIEW_PLANE_XY)+SliceOffset);
+    setFromSlice(m_fromSlice->value());
   }
 }
 
@@ -212,6 +213,7 @@ void VolumeOfInterest::setToCurrentSlice()
 	);
     assert(rep);
     m_toSlice->setValue(rep->slice(VIEW_PLANE_XY)+SliceOffset);
+    setToSlice(m_toSlice->value());
   }
 }
 
