@@ -23,8 +23,8 @@ void printExtent(int extent[6])
 }
 
 vtkCrossSource::vtkCrossSource()
-: Radius(3)
-, Width(1)
+: Radius(1)
+, Width(0)
 {
   bzero(Center,3*sizeof(int));
   
