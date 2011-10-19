@@ -34,7 +34,10 @@ public:
   
   virtual ExtensionId id();
   virtual void initialize(Segmentation* seg);
+  virtual QStringList dependencies() {return ISegmentationExtension::dependencies();}
+  virtual QStringList availableRepresentations() {return ISegmentationExtension::availableRepresentations();}
   virtual ISegmentationRepresentation* representation(QString rep);
+  virtual QStringList availableInformations() {return ISegmentationExtension::availableInformations();}
   virtual QVariant information(QString info);
   
   virtual bool isSegmentationPixel(int x, int y, int z);

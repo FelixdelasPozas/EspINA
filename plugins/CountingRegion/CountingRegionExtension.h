@@ -39,7 +39,10 @@ public:
   //! Implement ISegmentationExtension 
   virtual ExtensionId id();
   virtual void initialize(Segmentation *seg);
+  virtual QStringList dependencies() {return ISegmentationExtension::dependencies();}
+  virtual QStringList availableRepresentations() {return ISegmentationExtension::availableRepresentations();}
   virtual ISegmentationRepresentation* representation(QString rep);
+  virtual QStringList availableInformations() {return ISegmentationExtension::availableInformations();}
   virtual QVariant information(QString info);
   
   void updateRegions(QMap< int, CountingRegion::BoundingRegion* >& regions);

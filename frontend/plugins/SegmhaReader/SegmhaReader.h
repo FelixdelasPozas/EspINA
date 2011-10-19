@@ -39,7 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 class Product;
 
-//! Seed Growing Segmenation Plugin
+//! Segmha Reader Plugin
 class SegmhaReader
       : public QObject
       , public IFilterFactory
