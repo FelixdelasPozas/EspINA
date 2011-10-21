@@ -59,13 +59,19 @@ vtkSegmhaReader::SegmentationObject::SegmentationObject(const QString& line)
 vtkSegmhaReader::TaxonomyObject::TaxonomyObject(const QString& line)
 {
   QStringList elements = line.split(" ");
+  QStringList rgb;
   
-  name     = new QString();
-  *name    = elements[1].split("=")[1].replace("\"","");
-  label    = elements[2].split("=")[1].toInt();
-  color[0] = elements[4].replace(',',"").toInt();
-  color[1] = elements[5].replace(',',"").toInt();
-  color[2] = elements[6].toInt();
+  int nameIdx  = line.indexOf("name=")+6;
+  int valueIdx = line.indexOf("value=")+6;
+  int colorIdx = line.indexOf("color=")+6;
+  
+  name  = new QString();
+  *name = line.mid(nameIdx,valueIdx-2-nameIdx-6);
+  label = line.mid(valueIdx, colorIdx-valueIdx-6).toInt();
+  rgb = line.mid(colorIdx).split(",");
+  color[0] = rgb[0].replace(',',"").toInt();
+  color[1] = rgb[1].replace(',',"").toInt();
+  color[2] = rgb[2].toInt();
 }
 
 QString& vtkSegmhaReader::TaxonomyObject::toString()
@@ -213,46 +219,53 @@ int vtkSegmhaReader::RequestData(
   int blockNo = 0;
   foreach(SegmentationObject seg, metaData)
   {
-    std::cout << "Loading Segmentations " << blockNo << "..." << std::endl;
-//     std::cout << "\tLabel: " << QString::number(seg.label).toStdString() << std::endl;
-//     std::cout << "\tSegment: " << QString::number(seg.taxonomyId).toStdString() << std::endl;
-    LabelMapType *    labelMap = image2label->GetOutput();
-//     std::cout << "Number of labels: " << labelMap->GetNumberOfLabelObjects() << std::endl;
-    LabelObjectType * object   = labelMap->GetLabelObject(seg.label);
-    LabelObjectType::RegionType region = object->GetRegion();
-    
-    LabelMapType::Pointer tmpLabelMap = 
+    try
+    {
+      std::cout << "Loading Segmentations " << blockNo << "..." << std::endl;
+      //     std::cout << "\tLabel: " << QString::number(seg.label).toStdString() << std::endl;
+      //     std::cout << "\tSegment: " << QString::number(seg.taxonomyId).toStdString() << std::endl;
+      LabelMapType *    labelMap = image2label->GetOutput();
+      //     std::cout << "Number of labels: " << labelMap->GetNumberOfLabelObjects() << std::endl;
+      LabelObjectType * object   = labelMap->GetLabelObject(seg.label);
+      LabelObjectType::RegionType region = object->GetRegion();
+      
+      LabelMapType::Pointer tmpLabelMap = 
       LabelMapType::New();
-    tmpLabelMap->CopyInformation(labelMap);
-    object->SetLabel(255);
-    tmpLabelMap->AddLabelObject(object);
-    tmpLabelMap->Update();
-    
-    Label2ImageFilterType::Pointer label2image =
+      tmpLabelMap->CopyInformation(labelMap);
+      object->SetLabel(255);
+      tmpLabelMap->AddLabelObject(object);
+      tmpLabelMap->Update();
+      
+      Label2ImageFilterType::Pointer label2image =
       Label2ImageFilterType::New();
-    label2image->SetInput(tmpLabelMap);
-    label2image->Update();
-  
-    ExtractFilterType::Pointer extract =
+      label2image->SetInput(tmpLabelMap);
+      label2image->Update();
+      
+      ExtractFilterType::Pointer extract =
       ExtractFilterType::New();
-    extract->SetInput(label2image->GetOutput());
-    extract->SetExtractionRegion(region);
-    extract->Update();
-    
-    // Convert each object to vtk image
-    ImageToVTKImageFilterType::Pointer itk2vtk_filter =
+      extract->SetInput(label2image->GetOutput());
+      extract->SetExtractionRegion(region);
+      extract->Update();
+      
+      // Convert each object to vtk image
+      ImageToVTKImageFilterType::Pointer itk2vtk_filter =
       ImageToVTKImageFilterType::New();
-    itk2vtk_filter->SetInput( extract->GetOutput() );
-    itk2vtk_filter->Update();
-  
-    vtkSmartPointer<vtkImageData> segImage = 
+      itk2vtk_filter->SetInput( extract->GetOutput() );
+      itk2vtk_filter->Update();
+      
+      vtkSmartPointer<vtkImageData> segImage = 
       vtkSmartPointer<vtkImageData>::New();
-    segImage->DeepCopy( itk2vtk_filter->GetOutput() );
-    segImage->CopyInformation(itk2vtk_filter->GetOutput());//WARNING: don't forget!
-
-    output->SetBlock(blockNo,segImage);
-    
-    blockNo++;
+      segImage->DeepCopy( itk2vtk_filter->GetOutput() );
+      segImage->CopyInformation(itk2vtk_filter->GetOutput());//WARNING: don't forget!
+      
+      output->SetBlock(blockNo,segImage);
+      
+      blockNo++;
+    } catch (...)
+    {
+      std::cerr << "Couldn't import segmentation " << seg.label << std::endl;
+      NumSegmentations--;
+    }
   }
 
   return 1;

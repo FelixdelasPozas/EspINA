@@ -42,4 +42,4 @@ endif( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
 target_link_libraries (EspinaFilters ${PARAVIEW_ADDITIONAL_LIBRARIES} )
 
-install (TARGETS EspinaFilters LIBRARY DESTINATION /usr/bin/plugins)
+install (TARGETS EspinaFilters LIBRARY DESTINATION bin/plugins)
