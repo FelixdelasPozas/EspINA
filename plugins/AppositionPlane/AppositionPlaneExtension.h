@@ -15,23 +15,41 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-
-#ifndef MORPHOLOGICALEXTENSION_H
-#define MORPHOLOGICALHEXTENSION_H
+#ifndef APPOSITIONPLANEXTENSION_H
+#define APPOSITIONPLANEXTENSION_H
 
 #include <EspinaPlugin.h>
 
+class vtkProduct;
 class vtkFilter;
 
-class MorphologicalExtension : public ISegmentationExtension
+class AppositionPlaneRepresentation : public ISegmentationRepresentation
+{
+public:
+  static const ISegmentationRepresentation::RepresentationId ID;
+  
+  AppositionPlaneRepresentation(Segmentation* seg);
+  virtual ~AppositionPlaneRepresentation();
+  
+  virtual QString id();
+  virtual void render(pqView* view);
+  virtual pqPipelineSource* pipelineSource();
+  
+public slots:
+  virtual void requestUpdate(bool force = false);
+  
+private:
+  vtkProduct *m_rep;
+};
+
+class AppositionPlaneExtension : public ISegmentationExtension
 {
 public:
   static const ExtensionId ID;
 
 public:
-  MorphologicalExtension();
-  virtual ~MorphologicalExtension();
+  AppositionPlaneExtension();
+  virtual ~AppositionPlaneExtension();
   
   virtual ExtensionId id();
   virtual void initialize(Segmentation* seg);
@@ -46,14 +64,9 @@ public:
 private:
   vtkFilter *m_features;
   double m_Size;
-  double m_PhysicalSize;
-  double m_Centroid[3];
-  int m_Region[3];
-  double m_BinaryPrincipalMoments[3];
-  double m_BinaryPrincipalAxes[9];
-  double m_FeretDiameter;
-  double m_EquivalentEllipsoidSize[3];
-  bool m_init, m_validFeret;
+  bool m_init;
+  AppositionPlaneRepresentation *m_planeRep;
+  
 };
 
-#endif // MORPHOLOGICALEXTENSION_H
+#endif // APPOSITIONPLANEEXTENSION_H

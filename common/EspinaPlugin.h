@@ -115,10 +115,10 @@ public:
   
   virtual ExtensionId id() = 0;
   virtual void initialize(Segmentation *seg) = 0;
-  virtual QStringList dependencies() {return QStringList();}
-  virtual QStringList availableRepresentations() {return m_availableRepresentations;}
+  virtual QStringList dependencies() = 0;
+  virtual QStringList availableRepresentations() = 0;
   virtual ISegmentationRepresentation *representation(QString rep) = 0;
-  virtual QStringList availableInformations() {return m_availableInformations;}
+  virtual QStringList availableInformations() = 0;
   virtual QVariant information(QString info) = 0;
   
   virtual Segmentation *segmentation() {return m_seg;}
