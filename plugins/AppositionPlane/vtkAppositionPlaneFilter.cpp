@@ -25,7 +25,7 @@
  *    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "vtkAppositionPlane.h"
+#include "vtkAppositionPlaneFilter.h"
 
 #include <vtkObjectFactory.h>
 #include <vtkInformation.h>
@@ -308,8 +308,6 @@ vtkAppositionPlaneFilter::vtkAppositionPlaneFilter()
 , NumIterations(5)
 , Converge(true)
 {
-  bzero(Inclusion,3*sizeof(int));
-  bzero(Exclusion,3*sizeof(int));
   this->SetNumberOfInputPorts(1);
   this->SetNumberOfOutputPorts(1);
 }

@@ -8,17 +8,118 @@
 #include <segmentation.h>
 #include <sample.h>
 
+
 #include <vtkSMPropertyHelper.h>
 #include <pqPipelineSource.h>
 #include <vtkSMProxy.h>
 #include <vtkSMProperty.h>
 #include <vtkSMDoubleVectorProperty.h>
 #include <QApplication>
+#include <pqDisplayPolicy.h>
+#include <pqApplicationCore.h>
+#include <pqPipelineRepresentation.h>
+#include <vtkSMPVRepresentationProxy.h>
 
-//!-----------------------------------------------------------------------
-//! MORPHOLOGICAL EXTENSION--------------------------------------
-//! Information Provided:
-//! - Centroid
+///-----------------------------------------------------------------------
+/// APPOSITION PLANE REPRESENTATION
+///-----------------------------------------------------------------------
+/// Segmentation's Apposition Plane representation using 
+///  vtkAppositionPlane
+
+const ISegmentationRepresentation::RepresentationId 
+  AppositionPlaneRepresentation::ID = "AppositionPlane";
+
+//------------------------------------------------------------------------
+AppositionPlaneRepresentation::AppositionPlaneRepresentation(Segmentation* seg)
+: ISegmentationRepresentation(seg)
+{
+  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+  
+  vtkFilter::Arguments appPlaneArgs;
+  appPlaneArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT,m_seg->id()));
+  vtkFilter *appPlane = cob->createFilter("filters","AppositionPlane",appPlaneArgs);
+  
+  assert(appPlane->numProducts() == 1);
+  
+  m_rep = new vtkProduct(appPlane->product(0).creator(),appPlane->product(0).portNumber());
+}
+
+  
+//------------------------------------------------------------------------
+AppositionPlaneRepresentation::~AppositionPlaneRepresentation()
+{
+  EXTENSION_DEBUG("Deleted " << ID << " Representation from " << m_seg->id());
+  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+  cob->removeFilter(m_rep->creator());//vtkProduct default beheaviour doesn't delete its filter
+  delete m_rep;
+}
+
+//------------------------------------------------------------------------
+QString AppositionPlaneRepresentation::id()
+{
+  return m_rep->id() + ":0";
+}
+
+//------------------------------------------------------------------------
+void AppositionPlaneRepresentation::render(pqView* view)
+{
+  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+  
+  pqDataRepresentation *dr = 
+    dp->setRepresentationVisibility(m_rep->outputPort(),view,m_seg->visible());
+    
+  if (!dr)
+    return;
+  
+  pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
+  assert(rep);
+  rep->setRepresentation(vtkSMPVRepresentationProxy::SURFACE);
+  
+  vtkSMProxy *repProxy = rep->getProxy();
+  
+  double color[4] = {1,0,0,1};
+  double rgba[4];
+  rgba[3] = 1;
+//   m_seg->color(color);
+  bool isSelected = m_seg->isSelected();
+  for(int c=0; c<3; c++)
+  {
+    rgba[c] = color[c]*(isSelected?1:0.7);
+  }
+  vtkSMPropertyHelper(repProxy,"DiffuseColor").Set(rgba,3);
+  
+  // 	//TODO: Create individual properties?
+  // 	// Opacity
+  // 	vtkSMDoubleVectorProperty *opacity = vtkSMDoubleVectorProperty::SafeDownCast(
+  // 	  rep->getProxy()->GetProperty("Opacity"));
+  // 	if (opacity)
+  // 	{
+    // 	  opacity->SetElements1(0.2); 
+  // 	}
+  
+  repProxy->UpdateVTKObjects();
+}
+
+//------------------------------------------------------------------------
+pqPipelineSource* AppositionPlaneRepresentation::pipelineSource()
+{
+  return m_rep->creator()->pipelineSource();
+}
+
+//------------------------------------------------------------------------
+void AppositionPlaneRepresentation::requestUpdate(bool force)
+{
+
+}
+
+
+
+///-----------------------------------------------------------------------
+/// APPOSITION PLANE EXTENSION-
+///-----------------------------------------------------------------------
+/// Information Provided:
+/// - AS Area
+/// - AS Perimeter
 
 const ExtensionId AppositionPlaneExtension::ID = "AppositionPlaneExtension";
 
@@ -27,6 +128,7 @@ AppositionPlaneExtension::AppositionPlaneExtension()
 : m_features(NULL)
 , m_init(false)
 {
+  m_availableRepresentations << AppositionPlaneRepresentation::ID;
   m_availableInformations << "AS Area" << "AS Perimeter";
 }
 
@@ -59,11 +161,17 @@ void AppositionPlaneExtension::initialize(Segmentation* seg)
   featuresArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT,m_seg->id()));
   m_features = cob->createFilter("filters","MorphologicalFeatures", featuresArgs);
   assert(m_features);
+  
+  m_planeRep = new AppositionPlaneRepresentation(seg);
+  
 }
 
 //------------------------------------------------------------------------
 ISegmentationRepresentation* AppositionPlaneExtension::representation(QString rep)
 {
+  if (rep == AppositionPlaneRepresentation::ID)
+    return m_planeRep;
+  
   qWarning() << ID << ":" << rep << " is not provided";
   assert(false);
   return NULL;

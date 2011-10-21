@@ -20,7 +20,27 @@
 
 #include <EspinaPlugin.h>
 
+class vtkProduct;
 class vtkFilter;
+
+class AppositionPlaneRepresentation : public ISegmentationRepresentation
+{
+public:
+  static const ISegmentationRepresentation::RepresentationId ID;
+  
+  AppositionPlaneRepresentation(Segmentation* seg);
+  virtual ~AppositionPlaneRepresentation();
+  
+  virtual QString id();
+  virtual void render(pqView* view);
+  virtual pqPipelineSource* pipelineSource();
+  
+public slots:
+  virtual void requestUpdate(bool force = false);
+  
+private:
+  vtkProduct *m_rep;
+};
 
 class AppositionPlaneExtension : public ISegmentationExtension
 {
@@ -45,6 +65,8 @@ private:
   vtkFilter *m_features;
   double m_Size;
   bool m_init;
+  AppositionPlaneRepresentation *m_planeRep;
+  
 };
 
 #endif // APPOSITIONPLANEEXTENSION_H

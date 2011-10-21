@@ -25,7 +25,7 @@ create_test_sourcelist(TESTS
   Pipeline
 )
 
-add_executable(${TEST_NAME} ${TESTS} ../vtkAppositionPlane.cpp) 
+add_executable(${TEST_NAME} ${TESTS} ../vtkAppositionPlaneFilter.cpp) 
 target_link_libraries(${TEST_NAME} ${LIB_DEPENDECIES} ${QT_QTCORE_LIBRARY})
 
 # Remove the test driver source file

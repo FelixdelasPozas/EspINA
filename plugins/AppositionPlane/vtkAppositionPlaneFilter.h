@@ -41,12 +41,9 @@ public:
   static vtkAppositionPlaneFilter *New();
   vtkTypeMacro(vtkAppositionPlaneFilter, vtkPolyDataAlgorithm);
 
-  //! Inclusion Coordinates (Left, Top, Upper)
-  vtkSetVector3Macro(Inclusion,int);
-  vtkGetVector3Macro(Inclusion,int);
-  //! Exclusion Coordinates (Right, Bottom, Lower)
-  vtkSetVector3Macro(Exclusion,int);
-  vtkGetVector3Macro(Exclusion,int);
+  /// Apposition Plane Resolution
+  vtkSetMacro(Resolution,int);
+  vtkGetMacro(Resolution,int);
   
 protected:
   virtual int FillInputPortInformation(int port, vtkInformation* info);
@@ -60,11 +57,9 @@ protected:
 private:
  // virtual vtkBoundingRegionFilter& operator=(const vtkBoundingRegionFilter& other); // Not implemented
  // virtual bool operator==(const vtkBoundingRegionFilter& other) const;// Not implemented
- int Inclusion[3];
- int Exclusion[3];
- int Resolution;//TODO: BUG Default value
- int NumIterations;//TODO: BUG Default value (and change to unsigned if possible)
- bool Converge;//TODO: BUG Default value
+ int Resolution;
+ int NumIterations;//TODO: change to unsigned if possible
+ bool Converge;
 };
 
 #endif // VTKAPPOSITIONPLANEFILTER_H

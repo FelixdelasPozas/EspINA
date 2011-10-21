@@ -19,6 +19,8 @@
 
 #include "SegmentationExplorer.h"
 
+#include "espina_debug.h"
+
 // EspINA
 #include "espina.h"
 #include "segmentation.h"
@@ -40,23 +42,23 @@
 
 SegmentationExplorer::SegmentationExplorer(Segmentation *seg, QWidget* parent, Qt::WindowFlags f)
 : QWidget(parent, f)
-, view(NULL)
+, m_view(NULL)
 , m_seg(NULL)
 {
   setupUi(this);
   
   QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
   m_export->setIcon(iconSave);
-  if (!view)
+  if (!m_view)
   {
     pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
     pqServer * server= pqActiveObjects::instance().activeServer();
-    view = qobject_cast<pqRenderView*>(ob->createView( pqRenderView::renderViewType(), server));
+    m_view = qobject_cast<pqRenderView*>(ob->createView( pqRenderView::renderViewType(), server));
     
-    this->viewLayout->insertWidget(0,view->getWidget());
-    view->setCenterAxesVisibility(false);
+    this->viewLayout->insertWidget(0,m_view->getWidget());
+    m_view->setCenterAxesVisibility(false);
     double black[3] = {0,0,0};
-    view->getRenderViewProxy()->SetBackgroundColorCM(black);
+    m_view->getRenderViewProxy()->SetBackgroundColorCM(black);
     
 //     m_informationView->setModel(EspINA::instance());
 //     m_informationView->setRootIndex(EspINA::instance()->segmentationIndex(seg));
@@ -65,36 +67,55 @@ SegmentationExplorer::SegmentationExplorer(Segmentation *seg, QWidget* parent, Q
     
     connect(m_snapshot,SIGNAL(clicked(bool)),this,SLOT(takeSnapshot()));
     connect(m_export,SIGNAL(clicked(bool)),this,SLOT(exportScene()));
+    connect(m_renderMesh,SIGNAL(clicked(bool)),this,SLOT(updateScene()));
+    connect(m_renderPlane,SIGNAL(clicked(bool)),this,SLOT(updateScene()));
     
-    seg->representation("Mesh")->render(view);
+    m_renderMesh->setChecked(true);
+    m_renderPlane->setChecked(false);
+    
     //SeedGrowSegmentationFilter *filter = dynamic_cast<SeedGrowSegmentationFilter*>(seg->parent());
     //this->m_threshold->setValue(filter->threshold());
     m_seg = seg;
   }
+  updateScene();
 }
 
 SegmentationExplorer::~SegmentationExplorer()
 {
   emit segmentationInformationHiden(m_seg);
   pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
-  ob->destroy(view);
+  ob->destroy(m_view);
 }
 
 void SegmentationExplorer::takeSnapshot()
 {
   QString fileName = QFileDialog::getSaveFileName(this,
      tr("Save Scene"), "", tr("Image Files (*.jpg *.png)"));
-  view->saveImage(1024,768,fileName);
+  m_view->saveImage(1024,768,fileName);
 }
 
 
 void SegmentationExplorer::exportScene()
 {
   pqViewExporterManager *exporter = new pqViewExporterManager();
-  exporter->setView(view);
+  exporter->setView(m_view);
   QString fileName = QFileDialog::getSaveFileName(this,
      tr("Save Scene"), "", tr("3D Scene (*.x3d *.pov *.vrml)"));
   exporter->write(fileName);
   delete exporter;
 }
 
+void SegmentationExplorer::updateScene()
+{
+  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+  pqRepresentation *rep;
+  foreach(rep,m_view->getRepresentations())
+  {
+    rep->setVisible(false);
+  }
+  if (m_renderMesh->isChecked())
+    m_seg->representation("Mesh")->render(m_view);
+  if (m_renderPlane->isChecked())
+    m_seg->representation("AppositionPlane")->render(m_view);
+  m_view->render();
+}

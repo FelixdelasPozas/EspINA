@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 
 
-
 find_package (ParaView REQUIRED)
 include (${PARAVIEW_USE_FILE})
 
@@ -33,6 +32,9 @@ ADD_PARAVIEW_AUTO_START(IFACES IFACE_SRCS
   STARTUP    onStartup
   SHUTDOWN   onShutdown
 )
+set (VTKFILTER_SRCS
+  vtkAppositionPlaneFilter.cpp
+)
 
 set (PLUGIN_SRCS 
   AppositionPlane.cpp
@@ -41,11 +43,11 @@ set (PLUGIN_SRCS
 
 ADD_PARAVIEW_PLUGIN(
   AppositionPlane "1.0"
-  SERVER_MANAGER_SOURCES #vtkSegmhaReader.cpp vtkExtractBlockAsImage.cpp
+  SERVER_MANAGER_SOURCES ${VTKFILTER_SRCS}
   SERVER_MANAGER_XML AppositionPlane.xml
 #   SOURCES ${LOCAL_SOURCES}
 #   GUI_RESOURCES RemoteFilel.qrc
-  GUI_RESOURCE_FILES AppositionPlaneGUI.xml
+#  GUI_RESOURCE_FILES AppositionPlaneGUI.xml
   GUI_INTERFACES ${IFACES}
   SOURCES ${PLUGIN_SRCS} ${MOC_SRCS} ${IFACE_SRCS}
 )

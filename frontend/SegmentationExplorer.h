@@ -36,12 +36,13 @@ public:
 public slots:
   void takeSnapshot();
   void exportScene();
+  void updateScene();
  
 signals:
   void segmentationInformationHiden(Segmentation *);
   
 private:
-  pqRenderView *view;
+  pqRenderView *m_view;
   Segmentation *m_seg;
 };
 

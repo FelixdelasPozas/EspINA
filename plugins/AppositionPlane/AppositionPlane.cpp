@@ -11,7 +11,7 @@
 #include "AppositionPlaneExtension.h"
 
 //-----------------------------------------------------------------------------
-AppositionPlane::AppositionPlane(QObject* parent): QObject(parent)
+AppositionPlane::AppositionPlane(QObject* parent)
 {
 }
 

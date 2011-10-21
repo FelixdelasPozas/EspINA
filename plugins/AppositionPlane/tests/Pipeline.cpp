@@ -1,5 +1,5 @@
 // Testing Counting Region
-#include "vtkAppositionPlane.h"
+#include "vtkAppositionPlaneFilter.h"
 
 // VTK
 #include <vtkSmartPointer.h>
