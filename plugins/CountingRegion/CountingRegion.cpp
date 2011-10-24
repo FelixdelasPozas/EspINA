@@ -206,6 +206,7 @@ void CountingRegion::createBoundingRegion()
     m_focusedSample->extension(CountingRegion::ID));
   assert(ext); 
   
+  QApplication::setOverrideCursor(Qt::WaitCursor);
   QList<QStandardItem *> row;
   if (regionType->currentIndex() == ADAPTIVE)
   {
@@ -221,6 +222,7 @@ void CountingRegion::createBoundingRegion()
       row);
   } else
     assert(false);
+  QApplication::restoreOverrideCursor();
   
   
   displayRegions(ext);
