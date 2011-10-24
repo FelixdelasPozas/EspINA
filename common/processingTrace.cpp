@@ -268,6 +268,8 @@ void ProcessingTrace::readTrace(QTextStream& stream)
   QList<VertexId> processedVertices;
   
   Sample *newSample;
+  
+  int lastId = 0;
 
   while( !verticesToProcess.empty() )
   {
@@ -377,7 +379,9 @@ void ProcessingTrace::readTrace(QTextStream& stream)
         EspINA* espina = EspINA::instance();
 	Segmentation *seg = espina->segmentation(args["Id"]);
 	assert(seg);
-	espina->changeId(seg, label.section(' ',-1).toInt());
+	int segId = label.section(' ',-1).toInt();
+	lastId = std::max(lastId, segId);
+	espina->changeId(seg, segId);
         espina->changeTaxonomy(seg, args["Taxonomy"]);
         
       //  localPipe.push_back(*vi);
@@ -400,6 +404,9 @@ void ProcessingTrace::readTrace(QTextStream& stream)
       verticesToProcess.swap(0, verticesToProcess.size()-1);
     }
   }
+  
+  EspINA::instance()->setLastUsedId(lastId);
+  
   if (newSample)
     dynamic_cast<LabelMapExtension::SampleRepresentation *>(newSample->representation(LabelMapExtension::SampleRepresentation::ID))->setEnable(true);
 }

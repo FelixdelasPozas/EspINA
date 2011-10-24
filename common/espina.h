@@ -112,6 +112,7 @@ public:
     int requestId(int suggestedId);
     
     void changeId(Segmentation *seg, int id);
+    void setLastUsedId(int id) {m_nextValidSegId = id+1;}
 
     Segmentation* segmentation(QString& segId);
     

@@ -469,7 +469,7 @@ QModelIndex EspINA::segmentationIndex(Segmentation* seg) const
 //------------------------------------------------------------------------
 int EspINA::requestId(int suggestedId)
 {
-  m_nextValidSegId--;
+//   m_nextValidSegId--;
   if (m_nextValidSegId <= suggestedId)
     m_nextValidSegId = suggestedId+1;
 
@@ -480,7 +480,7 @@ int EspINA::requestId(int suggestedId)
 //------------------------------------------------------------------------
 void EspINA::changeId(Segmentation* seg, int id)
 {
-  seg->setId(requestId(id));
+  seg->setId(id);
   emit dataChanged(segmentationIndex(seg),segmentationIndex(seg));
 }
 
