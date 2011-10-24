@@ -346,9 +346,23 @@ int vtkAppositionPlaneFilter::RequestData(vtkInformation* request, vtkInformatio
     appPlaneInfo->Get(vtkDataObject::DATA_OBJECT())
   );
   
+  image->Update();
+  
   double origin[3];
   image->GetOrigin(origin);
+//   double imgSpacing[3];
+//   int imgExtent[6];
+//   double imgBounds[6];
+//   
+//   image->GetSpacing(imgSpacing);
+//   image->GetExtent(imgExtent);
+//   image->GetBounds(imgBounds);
   vtkDebugMacro( << "Origin " << origin);
+//   std::cout << "Seg Origin: " << origin[0] << " " << origin[1] << " " << origin[2] << std::endl;
+//   std::cout << "Seg Spacing: " << imgSpacing[0] << " " << imgSpacing[1] << " " << imgSpacing[2] << std::endl;
+//   std::cout << "Seg Extent: " << imgExtent[0] << " " << imgExtent[1] << " " << imgExtent[2] << " " << imgExtent[3] << " " << imgExtent[4] << " " << imgExtent[5] <<std::endl;
+//   std::cout << "Seg Bounds: " << imgBounds[0] << " " << imgBounds[1] << " " << imgBounds[2] << " " << imgBounds[3] << " " << imgBounds[4] << " " << imgBounds[5] <<std::endl;
+//   
   
   vtkDebugMacro( << "Convet from VTK to ITK");
   

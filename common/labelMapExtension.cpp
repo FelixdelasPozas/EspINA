@@ -91,7 +91,7 @@ QString SampleRepresentation::id()
 //------------------------------------------------------------------------
 pqPipelineSource* SampleRepresentation::pipelineSource()
 {
-  qDebug() << "[LabelMapExtension]: Pipeline requested";
+//   qDebug() << "[LabelMapExtension]: Pipeline requested";
   if (m_enabled)
     return m_rep->pipelineSource();
   else

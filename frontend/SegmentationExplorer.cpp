@@ -67,9 +67,11 @@ SegmentationExplorer::SegmentationExplorer(Segmentation *seg, QWidget* parent, Q
     
     connect(m_snapshot,SIGNAL(clicked(bool)),this,SLOT(takeSnapshot()));
     connect(m_export,SIGNAL(clicked(bool)),this,SLOT(exportScene()));
+    connect(m_renderVolumetric,SIGNAL(clicked(bool)),this,SLOT(updateScene()));
     connect(m_renderMesh,SIGNAL(clicked(bool)),this,SLOT(updateScene()));
     connect(m_renderPlane,SIGNAL(clicked(bool)),this,SLOT(updateScene()));
     
+    m_renderVolumetric->setChecked(false);
     m_renderMesh->setChecked(true);
     m_renderPlane->setChecked(false);
     
@@ -113,6 +115,8 @@ void SegmentationExplorer::updateScene()
   {
     rep->setVisible(false);
   }
+  if (m_renderVolumetric->isChecked())
+    m_seg->representation("Volumetric")->render(m_view);
   if (m_renderMesh->isChecked())
     m_seg->representation("Mesh")->render(m_view);
   if (m_renderPlane->isChecked())
