@@ -217,15 +217,15 @@ void maxDistancePoint(DistanceMapType::Pointer map, Points points, double avgMax
 //-----------------------------------------------------------------------------
 Plane clipPlane(Plane plane, vtkImageData* image)
 {
-    vtkSmartPointer<vtkImplicitVolume> implicVolFilter =
+    vtkSmartPointer<vtkImplicitVolume> implicitVolFilter =
             vtkSmartPointer<vtkImplicitVolume>::New();
-    implicVolFilter->SetVolume(image);
-    implicVolFilter->SetOutValue(0);
+    implicitVolFilter->SetVolume(image);
+    implicitVolFilter->SetOutValue(0);
     //vtk_image->Print(std::cout);
 
     vtkSmartPointer<vtkClipPolyData> clipper =
             vtkSmartPointer<vtkClipPolyData>::New();
-    clipper->SetClipFunction(implicVolFilter);
+    clipper->SetClipFunction(implicitVolFilter);
     clipper->SetInput(plane);
     clipper->SetValue(0);
     clipper->Update();
@@ -387,6 +387,11 @@ int vtkAppositionPlaneFilter::RequestData(vtkInformation* request, vtkInformatio
   region.SetIndex(region.GetIndex() + bounds);
   padImage->SetRegions(region);
   
+  ItkToVtkFilterType::Pointer itk2vtk_filter = ItkToVtkFilterType::New();
+  itk2vtk_filter->SetInput(padImage);
+  itk2vtk_filter->Update();
+
+vtkSmartPointer<vtkImageData> object_vtk_image = itk2vtk_filter->GetOutput();
   
   vtkDebugMacro( << "Compute Distamce Map");
   
@@ -459,7 +464,7 @@ int vtkAppositionPlaneFilter::RequestData(vtkInformation* request, vtkInformatio
     NumIterations = std::max( 1, int(floor(sqrt(vtkMath::Norm(min_in_pixels)))));
   }   
   
-  std::cerr << "Number of iterations: " << NumIterations << std::endl;
+  // std::cerr << "Number of iterations: " << NumIterations << std::endl;
   
   transformer->SetTransform(grid_transform);
   for (int i =0; i <= NumIterations; i++) {
@@ -470,7 +475,11 @@ int vtkAppositionPlaneFilter::RequestData(vtkInformation* request, vtkInformatio
     auxPlane->DeepCopy(transformer->GetOutput());
   }
   
-  Plane clippedPlane = clipPlane(transformer->GetOutput(), image);
+  // std::cout << "Number of Cells wo clip: " << auxPlane->GetNumberOfCells() << std::endl;
+  
+  Plane clippedPlane = clipPlane(transformer->GetOutput(), itk2vtk_filter->GetOutput());
+  
+  // std::cout << "Number of Cells w clip: " << clippedPlane->GetNumberOfCells() << std::endl;
 
   vtkDebugMacro( << "Correct Plane's visualization and cell area's computation");
   vtkSmartPointer<vtkTriangleFilter> triangle_filter =
