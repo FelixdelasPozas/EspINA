@@ -843,7 +843,7 @@ void CountingRegion::SampleExtension::setArguments(QString args)
   
   foreach (QString region, regions)
   {
-    std::cout << "Number of regions: " << m_regions.size() << std::endl;
+//     std::cout << "Number of regions: " << m_regions.size() << std::endl;
     if (region.isEmpty())
       continue;
     
@@ -863,7 +863,7 @@ void CountingRegion::SampleExtension::setArguments(QString args)
       createAdaptiveRegion(inclusion[0],inclusion[1],inclusion[2],
 	exclusion[0], exclusion[1], exclusion[2], row);
   }
-  std::cout << "Number of regions: " << m_regions.size() << std::endl;
+//   std::cout << "Number of regions: " << m_regions.size() << std::endl;
   emit regionsModified(this);
 }
 

@@ -1,5 +1,6 @@
-// Testing Apposition Plane
+// Testing Apposition Plane Features
 #include "vtkAppositionPlaneFilter.h"
+#include "vtkAppositionPlaneFeatures.h"
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -21,7 +22,7 @@
 
 #include <QDir>
 
-int Pipeline(int argc, char **argv)
+int AppPlaneFeatures(int argc, char **argv)
 {
   QDir stackPath(argv[1]);
     
@@ -38,6 +39,16 @@ int Pipeline(int argc, char **argv)
   appPlane->DebugOn();
   appPlane->SetInputConnection(seg->GetOutputPort());
   appPlane->Update();
+  
+  vtkSmartPointer<vtkAppositionPlaneFeatures> appPlaneFeatures = 
+    vtkSmartPointer<vtkAppositionPlaneFeatures>::New();
+  appPlaneFeatures->DebugOn();
+  appPlaneFeatures->SetInput(appPlane->GetOutput());
+  appPlaneFeatures->Update();
+  
+  std::cout << "Area: " << appPlaneFeatures->GetArea() << std::endl;
+  std::cout << "Perimeter: " << appPlaneFeatures->GetPerimeter() << std::endl;
+  
   
   // Display the  region
   vtkSmartPointer<vtkPolyDataMapper> planeMapper =
@@ -86,7 +97,7 @@ int Pipeline(int argc, char **argv)
   interactor->SetRenderWindow(renderWindow);
   renderWindow->AddRenderer(renderer);
   renderer->AddActor(planeActor);
-  renderer->AddViewProp(volume);
+//   renderer->AddViewProp(volume);
   renderWindow->Render();
   interactor->Start();
   
