@@ -24,6 +24,7 @@ create_test_sourcelist(TESTS
   ${TEST_NAME}.cpp
   Pipeline
   AppPlaneFeatures
+  DecimalPlane
 )
 
 add_executable(${TEST_NAME} ${TESTS} 
