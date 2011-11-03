@@ -60,6 +60,7 @@
 #include <itkSignedDanielssonDistanceMapImageFilter.h>
 #include <itkGradientImageFilter.h>
 #include <vtkClipPolyData.h>
+#include <vtkMetaImageWriter.h>
 
 typedef unsigned char				     SegPixelType;
 typedef itk::Image<SegPixelType, 3> 		     SegImageType;
@@ -67,7 +68,8 @@ typedef itk::ImageRegionConstIterator<SegImageType>  SegPixelIterator;
 
 typedef float					     DistanceType;
 typedef itk::Image<DistanceType,3>		     DistanceMapType;
-typedef itk::ImageRegionConstIterator<DistanceMapType> DistanceIterator;
+typedef itk::ImageRegionConstIterator
+                    <DistanceMapType>                DistanceIterator;
 
 typedef vtkSmartPointer<vtkPolyData> Plane;
 
@@ -81,13 +83,21 @@ typedef itk::ConstantPadImageFilter<SegImageType,
 typedef vtkSmartPointer<vtkPoints>  		     Points;
 typedef vtkSmartPointer<vtkOBBTree>		     OBBTreeType;
 typedef itk::SignedDanielssonDistanceMapImageFilter
-  <SegImageType, DistanceMapType> SDDistanceMapFilterType;
+                    <SegImageType, DistanceMapType>  SDDistanceMapFilterType;
 typedef vtkSmartPointer<vtkPlaneSource>		     PlaneSourceType;
-typedef itk::GradientImageFilter<DistanceMapType, float>  GradientFilterType;
-typedef itk::CovariantVector<float, 3> CovariantVectorType;
-typedef itk::Image<CovariantVectorType,3> CovariantVectorImageType;
-typedef vtkSmartPointer<vtkGridTransform> GridTransform;
-typedef vtkSmartPointer<vtkTransformPolyDataFilter> TransformPolyDataFilter;
+typedef itk::GradientImageFilter
+         <DistanceMapType, float>                    GradientFilterType;
+typedef itk::CovariantVector<float, 3>               CovariantVectorType;
+typedef itk::Image<CovariantVectorType,3>            CovariantVectorImageType;
+typedef vtkSmartPointer<vtkGridTransform>            GridTransform;
+typedef vtkSmartPointer<vtkTransformPolyDataFilter>  TransformPolyDataFilter;
+
+#define DEBUG_AP 0
+
+#define ESPINA_DEBUG(exp) \
+  if (DEBUG_AP) \
+    std::cout << "Apposition Plane: " << exp << std::endl;
+
 
 //-----------------------------------------------------------------------------
 /// Return a cloud of points representing the segmentation
@@ -96,12 +106,8 @@ typedef vtkSmartPointer<vtkTransformPolyDataFilter> TransformPolyDataFilter;
 /// Nevertheless, non-0 pixels are also considered foreground.
 Points segmentationPoints(SegImageType::Pointer seg)
 {
-  //SegImageType::SpacingType sp = seg->GetSpacing();
-  itk::Vector<double, 3> spacing = seg->GetSpacing();
-    double spcx, spcy, spcz;                          
-    spcx = spacing[0];                                
-    spcy = spacing[1];                                
-    spcz = spacing[2];     
+  SegImageType::PointType   origin  = seg->GetOrigin();
+  SegImageType::SpacingType spacing = seg->GetSpacing();
   
   Points points = Points::New();
   
@@ -110,8 +116,13 @@ Points segmentationPoints(SegImageType::Pointer seg)
   {
     SegPixelType val = it.Get();
     SegImageType::IndexType index = it.GetIndex();
-    if (val > 0) 
-      points->InsertNextPoint(index[0]*spcx, index[1]*spcy, index[2]*spcz);
+    if (val != 0)
+    {
+      double segPoint[3];
+      for (int i=0; i<3; i++)
+	segPoint[i] = origin[i]+index[i]*spacing[i];
+      points->InsertNextPoint(segPoint);
+    }
     ++it;
   }
   return points;
@@ -185,17 +196,28 @@ DistanceMapType::Pointer computeDistanceMap(SegImageType::Pointer seg)
 void maxDistancePoint(DistanceMapType::Pointer map, Points points, double avgMaxDistPoint[3])
 {
   DistanceType maxDist = 0;
+  DistanceMapType::PointType origin = map->GetOrigin();
   DistanceMapType::SpacingType spacing = map->GetSpacing();
   
   DistanceIterator it(map, map->GetLargestPossibleRegion());
+  ESPINA_DEBUG("DistanceMap");
+
+#ifdef DEBUG_AP_FILES
+    ofstream distanceFile;
+    distanceFile.open("decDistFile");
+#endif
+
   while (!it.IsAtEnd())
   {
     DistanceType dist = it.Get();                                           
+#ifdef DEBUG_AP_FILES
+    distanceFile << dist << std::endl;
+#endif
     if (dist > maxDist) {                                                            
       DistanceMapType::IndexType index = it.GetIndex();                     
       maxDist = dist; 
       for (unsigned int i = 0; i < 3; i++)
-	avgMaxDistPoint[i] = index[i] * spacing[i];
+	avgMaxDistPoint[i] = origin[i] + index[i]*spacing[i];
       
       points->Initialize();
       points->InsertNextPoint(avgMaxDistPoint);                                           
@@ -203,12 +225,17 @@ void maxDistancePoint(DistanceMapType::Pointer map, Points points, double avgMax
     else if (dist == maxDist) {
       DistanceMapType::IndexType index = it.GetIndex();                     
       for (unsigned int i = 0; i < 3; i++)
-	avgMaxDistPoint[i] += index[i] * spacing[i];
+	avgMaxDistPoint[i] += origin[i] + index[i]*spacing[i];
       
-      points->InsertNextPoint(index[0]*spacing[0], index[1]*spacing[1], index[2]*spacing[2]);
+      points->InsertNextPoint(origin[0] + index[0]*spacing[0],
+			      origin[1] + index[1]*spacing[1],
+			      origin[2] + index[2]*spacing[2]);
     }                                                                                 
     ++it;
   }
+#ifdef DEBUG_AP_FILES
+  distanceFile.close();
+#endif
   
   for (unsigned int i = 0; i < 3; i++)
     avgMaxDistPoint[i] /= points->GetNumberOfPoints();                                      
@@ -221,7 +248,6 @@ Plane clipPlane(Plane plane, vtkImageData* image)
             vtkSmartPointer<vtkImplicitVolume>::New();
     implicitVolFilter->SetVolume(image);
     implicitVolFilter->SetOutValue(0);
-    //vtk_image->Print(std::cout);
 
     vtkSmartPointer<vtkClipPolyData> clipper =
             vtkSmartPointer<vtkClipPolyData>::New();
@@ -238,7 +264,7 @@ Plane clipPlane(Plane plane, vtkImageData* image)
 
 //-----------------------------------------------------------------------------
 /// Find the projection of A on B
-void project(const double A[3], const double B[3], double Projection[3])
+void project(const double *A, const double *B, double *Projection)
 {
     double scale = vtkMath::Dot(A,B)/pow(vtkMath::Norm(B), 2);
     for(unsigned int i = 0; i < 3; i++)
@@ -248,22 +274,36 @@ void project(const double A[3], const double B[3], double Projection[3])
 //-----------------------------------------------------------------------------
 void vectorImageToVTKImage(CovariantVectorImageType::Pointer vectorImage, vtkImageData* image)
 {
+  CovariantVectorImageType::PointType origin = vectorImage->GetOrigin();
+  ESPINA_DEBUG("CovariantVectorMap Origin " << origin[0] << " " << origin[1] << " " << origin[2]);
   CovariantVectorImageType::RegionType region = vectorImage->GetLargestPossibleRegion();
-  CovariantVectorImageType::SizeType imageSize = region.GetSize();
-  image->SetExtent(0, imageSize[0] -1, 0, imageSize[1] - 1, 0, imageSize[2] - 1);
+//   region.Print(std::cout);
   CovariantVectorImageType::SpacingType spacing = vectorImage->GetSpacing();
-  image->SetSpacing(spacing[0], spacing[1], spacing[2]);
-//   image->SetSpacing(vectorImage->GetSpacing()[0], vectorImage->GetSpacing()[1], vectorImage->GetSpacing()[2]);
+  CovariantVectorImageType::SizeType imageSize = region.GetSize();
+  CovariantVectorImageType::IndexType originIndex = region.GetIndex();
 
+  image->SetOrigin(origin[0], origin[1], origin[2]);
+  image->SetExtent(originIndex[0], originIndex[0] + imageSize[0] - 1,
+		   originIndex[1], originIndex[1] + imageSize[1] - 1,
+		   originIndex[2], originIndex[2] + imageSize[2] - 1);
+  image->SetSpacing(spacing[0], spacing[1], spacing[2]);
+  //   image->SetSpacing(vectorImage->GetSpacing()[0], vectorImage->GetSpacing()[1], vectorImage->GetSpacing()[2]);
+
+  image->Print(std::cout);
   vtkSmartPointer<vtkFloatArray> vectors = vtkSmartPointer<vtkFloatArray>::New();
   vectors->SetNumberOfComponents(3);
   vectors->SetNumberOfTuples(imageSize[0] * imageSize[1] * imageSize[2]);
   vectors->SetName("GradientVectors");
 
+#ifdef DEBUG_AP_FILES
+  std::ofstream covarianceFile;
+  covarianceFile.open("decCovarianceFile");
+#endif
+
   int counter = 0;
-  for(unsigned int k = 0; k < imageSize[2]; k++)
-    for(unsigned int j = 0; j < imageSize[1]; j++)
-      for(unsigned int i = 0; i < imageSize[0]; i++)
+  for(unsigned int k = originIndex[2]; k < originIndex[2] + imageSize[2]; k++)
+    for(unsigned int j = originIndex[1]; j < originIndex[1] + imageSize[1]; j++)
+      for(unsigned int i = originIndex[0]; i < originIndex[0] + imageSize[0]; i++)
       {
 	CovariantVectorImageType::IndexType index;
 	index[0] = i;
@@ -275,11 +315,17 @@ void vectorImageToVTKImage(CovariantVectorImageType::Pointer vectorImage, vtkIma
 	val[0] = pixel[0];
 	val[1] = pixel[1];
 	val[2] = pixel[2];
-	
+
+#ifdef DEBUG_AP_FILES
+	covarianceFile << val[0] << " " << val[1] << " " << val[2] << std::endl;
+#endif
 	vectors->InsertTupleValue(counter, val);
 	counter++;
       }
-  //std::cout << region << std::endl;
+
+#ifdef DEBUG_AP_FILES
+  covarianceFile.close();
+#endif
 
   image->GetPointData()->SetVectors(vectors);
   image->GetPointData()->SetScalars(vectors);
@@ -289,13 +335,28 @@ void vectorImageToVTKImage(CovariantVectorImageType::Pointer vectorImage, vtkIma
 void projectVectors(vtkImageData * vectors_image, double * unitary)
 {
   vtkSmartPointer<vtkDataArray> vectors = vectors_image->GetPointData()->GetVectors();
-  int number_of_tuples = vectors->GetNumberOfTuples();
+  int numTuples = vectors->GetNumberOfTuples();
+
+#ifdef DEBUG_AP_FILES
+  std::ofstream gradientFile;
+  gradientFile.open("decGradientFile");
+  gradientFile << "Unitary: " << unitary[0] << " " << unitary[1] << " " << unitary[2] << std::endl;
+#endif
+
   double projv[3];
-  for (int i = 0; i < number_of_tuples; i++) {
-    double * v = vectors->GetTuple(i);
+  for (int i = 0; i < numTuples; i++) {
+    double *v = vectors->GetTuple(i);
     project(v, unitary, projv);
     vectors->SetTuple(i, projv);
+
+#ifdef DEBUG_AP_FILES
+    gradientFile << projv[0] << " " << projv[1] << " " << projv[2] << std::endl;
+#endif
   }
+
+#ifdef DEBUG_AP_FILES
+  gradientFile.close();
+#endif
 }
 
 
@@ -305,7 +366,7 @@ vtkStandardNewMacro(vtkAppositionPlaneFilter);
 //-----------------------------------------------------------------------------
 vtkAppositionPlaneFilter::vtkAppositionPlaneFilter()
 : Resolution(50)
-, NumIterations(5)
+, NumIterations(10)
 , Converge(true)
 {
   this->SetNumberOfInputPorts(1);
@@ -348,23 +409,17 @@ int vtkAppositionPlaneFilter::RequestData(vtkInformation* request, vtkInformatio
   
   image->Update();
   
-  double origin[3];
-  image->GetOrigin(origin);
-//   double imgSpacing[3];
-//   int imgExtent[6];
-//   double imgBounds[6];
-//   
-//   image->GetSpacing(imgSpacing);
-//   image->GetExtent(imgExtent);
-//   image->GetBounds(imgBounds);
-  vtkDebugMacro( << "Origin " << origin);
-//   std::cout << "Seg Origin: " << origin[0] << " " << origin[1] << " " << origin[2] << std::endl;
-//   std::cout << "Seg Spacing: " << imgSpacing[0] << " " << imgSpacing[1] << " " << imgSpacing[2] << std::endl;
-//   std::cout << "Seg Extent: " << imgExtent[0] << " " << imgExtent[1] << " " << imgExtent[2] << " " << imgExtent[3] << " " << imgExtent[4] << " " << imgExtent[5] <<std::endl;
-//   std::cout << "Seg Bounds: " << imgBounds[0] << " " << imgBounds[1] << " " << imgBounds[2] << " " << imgBounds[3] << " " << imgBounds[4] << " " << imgBounds[5] <<std::endl;
-//   
-  
-  vtkDebugMacro( << "Convet from VTK to ITK");
+//   vtkSmartPointer<vtkMetaImageWriter> writer = vtkSmartPointer<vtkMetaImageWriter>::New();
+//   char mhd[256], raw[256];
+//   static int id = 0 ;
+//   sprintf(mhd,"DecimalPlane-%d.mhd",id);
+//   sprintf(raw,"DecimalPlane-%d.raw",id++);
+//   writer->SetFileName(mhd);
+//   writer->SetRAWFileName(raw);
+//   writer->SetInput(image);
+//   writer->Write();
+
+  vtkDebugMacro( << "Convert from VTK to ITK");
   
   VtkToItkFilterType::Pointer vtk2itk_filter = VtkToItkFilterType::New();
   vtk2itk_filter->SetInput(image);
@@ -390,52 +445,59 @@ int vtkAppositionPlaneFilter::RequestData(vtkInformation* request, vtkInformatio
   ItkToVtkFilterType::Pointer itk2vtk_filter = ItkToVtkFilterType::New();
   itk2vtk_filter->SetInput(padImage);
   itk2vtk_filter->Update();
+  vtkSmartPointer<vtkImageData> vtk_padImage = itk2vtk_filter->GetOutput();
 
-vtkSmartPointer<vtkImageData> object_vtk_image = itk2vtk_filter->GetOutput();
-  
   vtkDebugMacro( << "Compute Distamce Map");
   
   Points points = segmentationPoints(padImage);
+  ESPINA_DEBUG(points->GetNumberOfPoints() << " segmentation points");
   OBBTreeType obbTree = OBBTreeType::New();
   
   double corner[3], max[3], mid[3], min[3], size[3];
   obbTree->ComputeOBB(points, corner, max, mid, min, size);
+  ESPINA_DEBUG(corner[0] << " " << corner[1] << " " << corner[2] << " plane corner");
   Points obbCorners = corners(corner, max, mid, min);
   DistanceMapType::Pointer distanceMap = computeDistanceMap(padImage);
+//   ESPINA_DEBUG("Original Distance Map");
+//   distanceMap.Print(std::cout);
 
-  
   vtkDebugMacro( << "Build and move the plane to Avg Max Distance");
-  
   Points maxPoints = Points::New();
   double avgMaxDistPoint[3];
   maxDistancePoint(distanceMap, maxPoints, avgMaxDistPoint);
+
   PlaneSourceType planeSource = PlaneSourceType::New();
   planeSource->SetOrigin(obbCorners->GetPoint(0));
   planeSource->SetPoint1(obbCorners->GetPoint(1));
   planeSource->SetPoint2(obbCorners->GetPoint(2));
   planeSource->SetResolution(Resolution, Resolution);
   planeSource->Update();
-  
-  
+
   vtkDebugMacro( << "Create Path with point + min and update min\n"
 		    "Fill vtkthinPlatesplineTransform");
-  double normal[3];
-  planeSource->GetNormal(normal);
+
+  double *normal = planeSource->GetNormal();
   vtkMath::Normalize(normal);
-  
+  ESPINA_DEBUG(normal[0] << " " << normal[1] << " " << normal[2] << " normal");
+
   double v[3], displacement[3];
   for (int i = 0; i < 3; i++) {
     v[i] = avgMaxDistPoint[i] - obbCorners->GetPoint(0)[i];
   }
-  
+
   project(v, normal, displacement);
-  int sign = vtkMath::Dot(displacement, normal) > 0?1:-1;
-  planeSource->Push( sign * vtkMath::Norm(displacement));
-  planeSource->Update();
+  ESPINA_DEBUG("(" << displacement[0] << "," << displacement[1] << "," << displacement[2] << ") displacement");
+  if (vtkMath::Dot(displacement, normal) > 0)
+    planeSource->Push(vtkMath::Norm(displacement));
+  else
+    planeSource->Push(- vtkMath::Norm(displacement));
+
+//   planeSource->Update();
   Plane sourcePlane = planeSource->GetOutput();
 
   // Plane is only transformed in its normal direction
   vtkDebugMacro( << "Compute transformation matrix from distance map gradient");
+
   GradientFilterType::Pointer gradientFilter = GradientFilterType::New();
   gradientFilter->SetInput(distanceMap);
   gradientFilter->Update();
@@ -444,7 +506,6 @@ vtkSmartPointer<vtkImageData> object_vtk_image = itk2vtk_filter->GetOutput();
   vtkSmartPointer<vtkImageData>::New();
   vectorImageToVTKImage(gradientFilter->GetOutput(), gradientVectorGrid);
   //gradientVectorGrid->Print(std::cout);
-  
   
   projectVectors(gradientVectorGrid, normal);
   
@@ -456,7 +517,7 @@ vtkSmartPointer<vtkImageData> object_vtk_image = itk2vtk_filter->GetOutput();
   Plane auxPlane = sourcePlane;
 
   if (Converge) {
-    double *spacing = image->GetSpacing();
+    double *spacing = vtk_padImage->GetSpacing();
     double min_in_pixels[3] = {0,0,0};
     for (unsigned int i=0; i < 3; i++) {
       min_in_pixels[i] = min[i] / spacing[i];
@@ -464,7 +525,7 @@ vtkSmartPointer<vtkImageData> object_vtk_image = itk2vtk_filter->GetOutput();
     NumIterations = std::max( 1, int(floor(sqrt(vtkMath::Norm(min_in_pixels)))));
   }   
   
-  // std::cerr << "Number of iterations: " << NumIterations << std::endl;
+  ESPINA_DEBUG(NumIterations << " iterations");
   
   transformer->SetTransform(grid_transform);
   for (int i =0; i <= NumIterations; i++) {
@@ -475,11 +536,9 @@ vtkSmartPointer<vtkImageData> object_vtk_image = itk2vtk_filter->GetOutput();
     auxPlane->DeepCopy(transformer->GetOutput());
   }
   
-  // std::cout << "Number of Cells wo clip: " << auxPlane->GetNumberOfCells() << std::endl;
-  
-  Plane clippedPlane = clipPlane(transformer->GetOutput(), itk2vtk_filter->GetOutput());
-  
-  // std::cout << "Number of Cells w clip: " << clippedPlane->GetNumberOfCells() << std::endl;
+  Plane clippedPlane = clipPlane(transformer->GetOutput(), vtk_padImage);
+//   Plane clippedPlane = auxPlane;
+  ESPINA_DEBUG(clippedPlane->GetNumberOfCells() << " cells after clip");
 
   vtkDebugMacro( << "Correct Plane's visualization and cell area's computation");
   vtkSmartPointer<vtkTriangleFilter> triangle_filter =
@@ -494,10 +553,10 @@ vtkSmartPointer<vtkImageData> object_vtk_image = itk2vtk_filter->GetOutput();
   normals->Update();
   
   vtkSmartPointer<vtkPolyData> appositionPlane = normals->GetOutput();
-  
+  ESPINA_DEBUG(appositionPlane->GetNumberOfCells() << " cells in apppositionPlane");
   
   vtkDebugMacro( << "Create Mesh");
   plane->DeepCopy(appositionPlane);
-  
+//   plane->DeepCopy(sourcePlane);
   return 1;
 }

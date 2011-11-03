@@ -30,6 +30,11 @@ int AppPlaneFeatures(int argc, char **argv)
     vtkSmartPointer<vtkMetaImageReader>::New();
 //   QString inputFileName = stackPath.filePath("object44_OUTPUT.mha");
 //   QString inputFileName = stackPath.filePath("reducedSeg1.mhd");
+//   QString inputFileName = stackPath.filePath("Plane-1893.mhd");
+//   QString inputFileName = stackPath.filePath("Plane-1144.mhd");
+//   QString inputFileName = stackPath.filePath("Plane-1068.mhd");
+//   QString inputFileName = stackPath.filePath("Plane-1611.mhd");
+//   QString inputFileName = stackPath.filePath("Plane-1619.mhd");
   QString inputFileName = stackPath.filePath("object35.mha");
   seg->SetFileName(inputFileName.toUtf8());
   seg->Update();
@@ -97,9 +102,14 @@ int AppPlaneFeatures(int argc, char **argv)
   interactor->SetRenderWindow(renderWindow);
   renderWindow->AddRenderer(renderer);
   renderer->AddActor(planeActor);
-//   renderer->AddViewProp(volume);
+  renderer->AddViewProp(volume);
   renderWindow->Render();
   interactor->Start();
   
-  return 0;
+  // For object35
+  bool testFails = false;
+  testFails = testFails || fabs(appPlaneFeatures->GetArea() - 6533.32) > 0.01;
+  testFails = testFails || fabs(appPlaneFeatures->GetPerimeter() - 345.52) > 0.01;
+  
+  return testFails;
 }
