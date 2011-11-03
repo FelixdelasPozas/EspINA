@@ -160,7 +160,7 @@ void AppositionPlaneExtension::initialize(Segmentation* seg)
   seg->creator()->pipelineSource()->updatePipeline();
   
   m_planeRep = new AppositionPlaneRepresentation(seg);
-  m_planeRep->pipelineSource()->updatePipeline();
+  // m_planeRep->pipelineSource()->updatePipeline();
   
   vtkFilter::Arguments featuresArgs;
   featuresArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT,m_planeRep->id()));
@@ -185,6 +185,7 @@ QVariant AppositionPlaneExtension::information(QString info)
   if (!m_init)
   {
     QApplication::setOverrideCursor(Qt::WaitCursor);
+
     m_init = true;
     m_features->pipelineSource()->updatePipeline();
     

@@ -289,7 +289,7 @@ void vectorImageToVTKImage(CovariantVectorImageType::Pointer vectorImage, vtkIma
   image->SetSpacing(spacing[0], spacing[1], spacing[2]);
   //   image->SetSpacing(vectorImage->GetSpacing()[0], vectorImage->GetSpacing()[1], vectorImage->GetSpacing()[2]);
 
-  image->Print(std::cout);
+//   image->Print(std::cout);
   vtkSmartPointer<vtkFloatArray> vectors = vtkSmartPointer<vtkFloatArray>::New();
   vectors->SetNumberOfComponents(3);
   vectors->SetNumberOfTuples(imageSize[0] * imageSize[1] * imageSize[2]);
