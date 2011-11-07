@@ -19,8 +19,10 @@ set_target_properties(CajalData PROPERTIES VERSION 0.1)
 # Maybe the target_link_libraries command is optional...
 # (I think it depends if we use shared libraries)
 #TARGET_LINK_LIBRARIES (Cajal ITKCommon ITKBasicFilters ITKAlgorithms )
-
-add_subdirectory(tests)
+SET (ENABLE_TESTS 1)
+if (ENABLE_TESTS)
+  add_subdirectory(tests)
+endif (ENABLE_TESTS)
 
 
 # INSTALL

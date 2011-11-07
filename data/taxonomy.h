@@ -11,12 +11,23 @@
 #include <QTextStream>
 #include <QColor>
 
+static const QString RED = "#00FF00";
+
 class TaxonomyNode : public IModelItem
 {
- 
 public:
-  TaxonomyNode( QString name, QString RGBColor = "#00FF00" );
+  TaxonomyNode(const QString &name, const QString &RGBColor = RED );
   ~TaxonomyNode();
+  
+  TaxonomyNode *addElement(const QString& qualifiedName);
+  /// Return taxonomy node for qualified taxonomy elements
+  TaxonomyNode* element(const QString &name);
+  TaxonomyNode *parentNode();
+  
+  const QString name();
+  /// Return node's qualified name
+  const QString qualifiedName();
+  
   
   void print(int level=0);   
   //void addElement( QString subElement ); // With checking. TO DELTE. No tiene sentido estando el otro addElement
@@ -29,13 +40,18 @@ public:
   void removeElement(QString subElement);
  
   // Methods to explore the taxonomy
+  /// DEPRECATED
   TaxonomyNode* getParent( QString name );
+  /// DEPRECATED
   QVector<TaxonomyNode*> getSubElements() const;
+  /// DEPRECATED
   TaxonomyNode* getComponent( QString name ); 
   
   // Taxonomy information methods
+  /// DEPRECATED
   QString getName() const {return m_name;}
   void setName(QString name) {m_name = name;}
+  
   QString getDescription() const 
     {return m_description;}
   void setDescription(const QString &desc) {m_description = desc;}
@@ -47,12 +63,29 @@ public:
   virtual bool setData(const QVariant& value, int role = Qt::UserRole + 1);
   
 private:
+ /// DEPRECATED
  TaxonomyNode *insertElement( QString subElement, QString RGBColor ); // Without checking
+ TaxonomyNode *insertNode(const QString &name);
  
 private:
+ TaxonomyNode *m_parent;
  QVector<TaxonomyNode *> m_elements;
  QString m_name, m_description;
  QColor m_color;
+};
+
+class Taxonomy
+{
+public:
+  Taxonomy(const QString &name);
+  ~Taxonomy();
+  
+  TaxonomyNode *addElement(const QString& name, const QString& parent = QString());
+  TaxonomyNode *element(const QString&qualifiedName);
+  
+  void print(int indent = 0);  
+private:
+  TaxonomyNode *m_root;
 };
 
 class IOTaxonomy

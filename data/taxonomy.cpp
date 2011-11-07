@@ -20,8 +20,9 @@
 */
 
 //------------------------------------------------------------------------
-TaxonomyNode::TaxonomyNode(QString name, QString RGBColor)
-: m_name(name)//, m_elements(NULL)
+TaxonomyNode::TaxonomyNode(const QString& name, const QString& RGBColor)
+: m_parent(NULL)
+, m_name(name)//, m_elements(NULL)
 , m_description(name)
 , m_color(RGBColor)
 {
@@ -31,15 +32,67 @@ TaxonomyNode::TaxonomyNode(QString name, QString RGBColor)
 TaxonomyNode::~TaxonomyNode()
 {
   TaxonomyNode *node;
-  foreach(node,m_elements)
+  foreach(node, m_elements)
   {
     delete node;
   }
-//   if( m_elements )
-//     for(std::vector< TaxonomyNode* >::iterator it = m_elements->begin(); it < m_elements->end(); it++)
-//       delete (*it);
-//     
-//     delete( m_elements );
+}
+
+//------------------------------------------------------------------------
+TaxonomyNode* TaxonomyNode::addElement(const QString& qualifiedName)
+{
+  TaxonomyNode *parent = this;
+  QString name;
+  foreach(name, qualifiedName.split("/",QString::SkipEmptyParts))
+  {
+    TaxonomyNode *child = parent->element(name);
+    if (!child)
+      child = parent->insertNode(name);
+    parent = child;
+  }
+  
+  return parent;
+}
+
+//------------------------------------------------------------------------
+TaxonomyNode* TaxonomyNode::element(const QString& qualifiedName)
+{
+  QString::SectionFlag flag = QString::SectionSkipEmpty;
+  QString node = qualifiedName.section("/",0,0,flag);
+  QString subNodes = qualifiedName.section("/",1,-1,flag);
+  
+  TaxonomyNode *child;
+  foreach(child, m_elements)
+  {
+    if (node == child->m_name)
+      if (subNodes.isEmpty())
+	return child;
+      else
+	return child->element(qualifiedName.section("/",1));
+  }
+  
+  return NULL;
+}
+
+//------------------------------------------------------------------------
+TaxonomyNode* TaxonomyNode::parentNode()
+{
+  return m_parent;
+}
+
+//------------------------------------------------------------------------
+const QString TaxonomyNode::name()
+{
+  return m_name;
+}
+
+//------------------------------------------------------------------------
+const QString TaxonomyNode::qualifiedName()
+{
+  if (m_parent)
+    return m_parent->qualifiedName() + "/" + m_name;
+  else
+    return m_name;
 }
 
 //------------------------------------------------------------------------
@@ -63,13 +116,8 @@ void TaxonomyNode::print(int level)
 }
 
 
-/*
-void TaxonomyNode::addElement(QString subElement)
-{
-  assert( this->getComponent(subElement)==NULL);
-  this->insertElement( subElement );
-}
-*/
+
+//------------------------------------------------------------------------
 
 //------------------------------------------------------------------------
 TaxonomyNode* TaxonomyNode::addElement(QString subElement, QString supElement, QString RGBColor)
@@ -157,6 +205,8 @@ TaxonomyNode* TaxonomyNode::getComponent(QString name)
   return taxNode;
 }
 
+
+
 //------------------------------------------------------------------------
 
 //------------------------------------------------------------------------
@@ -176,6 +226,17 @@ TaxonomyNode* TaxonomyNode::insertElement(QString subElement, QString RGBColor)
   m_elements.push_back(newElement);
   return newElement;
 }
+
+//------------------------------------------------------------------------
+TaxonomyNode* TaxonomyNode::insertNode(const QString& name)
+{
+  TaxonomyNode *node = new TaxonomyNode(name);
+  m_elements.append(node);
+  node->m_parent = this;
+
+  return node;
+}
+
 
 //------------------------------------------------------------------------
 QVariant TaxonomyNode::data(int role) const
@@ -210,6 +271,56 @@ bool TaxonomyNode::setData(const QVariant& value, int role)
     return true;
   }
   return false;
+}
+
+//-----------------------------------------------------------------------------
+// TAXONOMY
+//-----------------------------------------------------------------------------
+Taxonomy::Taxonomy(const QString &name)
+: m_root(new TaxonomyNode(name))
+{
+}
+
+//-----------------------------------------------------------------------------
+Taxonomy::~Taxonomy()
+{
+  if (m_root)
+    delete m_root;
+}
+
+//-----------------------------------------------------------------------------
+TaxonomyNode* Taxonomy::addElement(const QString &name, const QString &parent)
+{
+  TaxonomyNode *node = NULL;
+
+  if (parent.isEmpty() || parent == m_root->name())
+    node = m_root->addElement(name);
+  else
+  {
+    TaxonomyNode *parentNode = element(parent);
+    if (parentNode)
+      node = parentNode->addElement(name);
+  }
+
+  return node;
+}
+
+//-----------------------------------------------------------------------------
+TaxonomyNode* Taxonomy::element(const QString& qualifiedName)
+{
+  QString::SectionFlag flag = QString::SectionSkipEmpty;
+  QString rootName = qualifiedName.section("/",0,0,flag);
+  if (rootName != m_root->name())
+    return NULL;
+
+  QString subName = qualifiedName.section("/",1,-1,flag);
+  return m_root->element(subName);
+}
+
+//-----------------------------------------------------------------------------
+void Taxonomy::print(int indent)
+{
+  m_root->print(indent);
 }
 
 
