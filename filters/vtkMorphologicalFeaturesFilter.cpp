@@ -71,7 +71,8 @@ int vtkMorphologicalFeaturesFilter::RequestData(vtkInformation* request, vtkInfo
  
   LabelMapType *labelMap = image2label->GetOutput();
   labelMap->Update();
-  std::cout << labelMap->GetNumberOfLabelObjects() << std::endl;
+  assert(labelMap->GetNumberOfLabelObjects() > 0);
+  // std::cout << labelMap->GetNumberOfLabelObjects() << std::endl;
   LabelObjectType *object = labelMap->GetNthLabelObject(0);
 
   Size = object->GetSize();

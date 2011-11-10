@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <QDebug>
+#include <assert.h>
 
 //#include <assert.h>
 /*
@@ -20,9 +21,9 @@
 */
 
 //------------------------------------------------------------------------
-TaxonomyNode::TaxonomyNode(QString name, QString RGBColor)
-: m_name(name)//, m_elements(NULL)
-, m_description(name)
+TaxonomyNode::TaxonomyNode(const QString& name, const QString& RGBColor)
+: m_parent(NULL)
+, m_name(name)//, m_elements(NULL)
 , m_color(RGBColor)
 {
 }
@@ -31,24 +32,117 @@ TaxonomyNode::TaxonomyNode(QString name, QString RGBColor)
 TaxonomyNode::~TaxonomyNode()
 {
   TaxonomyNode *node;
-  foreach(node,m_elements)
+  foreach(node, m_elements)
   {
     delete node;
   }
-//   if( m_elements )
-//     for(std::vector< TaxonomyNode* >::iterator it = m_elements->begin(); it < m_elements->end(); it++)
-//       delete (*it);
-//     
-//     delete( m_elements );
 }
+
+//------------------------------------------------------------------------
+TaxonomyNode* TaxonomyNode::addElement(const QString& qualifiedName)
+{
+  TaxonomyNode *parent = this;
+  QString name;
+  foreach(name, qualifiedName.split("/",QString::SkipEmptyParts))
+  {
+    TaxonomyNode *child = parent->element(name);
+    if (!child)
+      child = parent->insertNode(name);
+    parent = child;
+  }
+  
+  return parent;
+}
+
+//------------------------------------------------------------------------
+TaxonomyNode* TaxonomyNode::element(const QString& qualifiedName)
+{
+  QString::SectionFlag flag = QString::SectionSkipEmpty;
+  QString node = qualifiedName.section("/",0,0,flag);
+  QString subNodes = qualifiedName.section("/",1,-1,flag);
+  
+  TaxonomyNode *child;
+  foreach(child, m_elements)
+  {
+    if (node == child->m_name)
+      if (subNodes.isEmpty())
+	return child;
+      else
+	return child->element(qualifiedName.section("/",1));
+  }
+  
+  return NULL;
+}
+
+//------------------------------------------------------------------------
+TaxonomyNode* TaxonomyNode::parentNode()
+{
+  return m_parent;
+}
+
+//------------------------------------------------------------------------
+void TaxonomyNode::setName(QString name)
+{
+  bool exits = false;
+  foreach(TaxonomyNode *sibling, m_parent->m_elements)
+  {
+    exits = exits || sibling->name() == name;
+  }
+  if (!exits)
+    m_name = name;
+}
+
+//------------------------------------------------------------------------
+const QString TaxonomyNode::name() const
+{
+  return m_name;
+}
+
+//------------------------------------------------------------------------
+const QString TaxonomyNode::qualifiedName() const
+{
+  if (m_parent)
+    return m_parent->qualifiedName() + "/" + m_name;
+  else
+    return m_name;
+}
+
+//------------------------------------------------------------------------
+void TaxonomyNode::addProperty(const QString& prop, const QVariant& value)
+{
+  m_properties[prop] = value;
+}
+
+//------------------------------------------------------------------------
+void TaxonomyNode::removeProperty(const QString& prop)
+{
+  if (m_properties.contains(prop))
+    m_properties.remove(prop);
+}
+
+//------------------------------------------------------------------------
+QVariant TaxonomyNode::property(const QString& prop) const
+{
+  return m_properties.value(prop,QVariant());
+}
+
 
 //------------------------------------------------------------------------
 void TaxonomyNode::print(int level)
 {
   std::cout << 
-  std::string(level*2, ' ') <<
-  m_name.toStdString() <<
-  std::endl;
+  std::string(level*2, ' ') << m_name.toStdString() << std::endl;
+  if (m_properties.size() > 0)
+  {
+    std::cout << std::string(level*2, ' ') << "<" << std::endl;
+    foreach(QString key, m_properties.keys())
+    {
+      std::cout << std::string((level+1)*2, ' ') 
+      << key.toStdString() << ": " << m_properties[key].toString().toStdString() 
+      << std::endl;
+    }
+    std::cout << std::string(level*2, ' ') << ">" << std::endl;
+  }
 
   TaxonomyNode *node;
   foreach (node, m_elements)
@@ -63,26 +157,21 @@ void TaxonomyNode::print(int level)
 }
 
 
-/*
-void TaxonomyNode::addElement(QString subElement)
-{
-  assert( this->getComponent(subElement)==NULL);
-  this->insertElement( subElement );
-}
-*/
 
 //------------------------------------------------------------------------
-TaxonomyNode* TaxonomyNode::addElement(QString subElement, QString supElement, QString RGBColor)
+
+//------------------------------------------------------------------------
+TaxonomyNode* TaxonomyNode::addElement(QString subElement, QString supElement)//, QString RGBColor)
 {
   //ASSERT( this->getComponent(subElement)==NULL);
-  if( this->getComponent(subElement) )
+  if( this->element(subElement) )
     throw "RepeatedElementException"; //TODO change exception
-  TaxonomyNode* supNode = this->getComponent(supElement);
+  TaxonomyNode* supNode = this->element(supElement);
   TaxonomyNode *newElement = NULL;
   if( supNode )
   {
-    QString newColor = ((RGBColor == "") ? supNode->getColor().name() : RGBColor);
-    newElement = supNode->insertElement( subElement, newColor );
+//     QString newColor = ((RGBColor == "") ? supNode->color().name() : RGBColor);
+    newElement = supNode->insertNode( subElement );
     //newElement->setColor(supNode->getColor());
   }
   else{
@@ -93,89 +182,103 @@ TaxonomyNode* TaxonomyNode::addElement(QString subElement, QString supElement, Q
 }
 
 //------------------------------------------------------------------------
-void TaxonomyNode::removeElement(QString subElement)
+void TaxonomyNode::removeChild(QString name)
 {
-  TaxonomyNode *element;
-  if( element = this->getComponent(subElement) )
+  TaxonomyNode *node;
+  if( node = element(name) )
   {
-    TaxonomyNode *parent = this->getParent(subElement);
-    int index = parent->m_elements.indexOf(element);
-    parent->m_elements.remove(index);
+//     TaxonomyNode *parent = node->parentNode();
+    int index = m_elements.indexOf(node);
+    m_elements.remove(index);
   }
   else{
-    std::cerr << "Error: " << subElement.toStdString() << " does not exist in the taxonomy" << std::endl;
+    std::cerr << "Error: " << name.toStdString() << " does not exist in the taxonomy" << std::endl;
   }
 }
 
 
 //------------------------------------------------------------------------
-TaxonomyNode* TaxonomyNode::getParent(QString name)
-{
-  TaxonomyNode *parent = NULL;
-  
-  for (int i = 0; i < getSubElements().size(); i++)
-  {
-    if (getSubElements()[i]->getName() == name)
-	parent = this;
-    else
-      parent = getSubElements()[i]->getParent(name);
-    if (parent)
-     return parent;
-  }
-  
-  return parent;
-}
-
-
-
-//------------------------------------------------------------------------
-TaxonomyNode* TaxonomyNode::getComponent(QString name)
-{
-  TaxonomyNode* taxNode = NULL;
-  if (m_name == name)
-    return this;
-  
-  TaxonomyNode *node;
-  foreach(node,m_elements)
-  {
-    taxNode = node->getComponent(name);
-    if (taxNode)
-      break;
-  }
-    
-//   if( m_name.compare(name) != 0 ){
-//     if (m_elements){ 
-//       for( std::vector< TaxonomyNode* >::iterator it = m_elements->begin(); it < m_elements->end(); it++){
-// 	taxNode = (*it)->getComponent( name );
-// 	if( taxNode )
-// 	  break;
-//       }
-//     }
+// TaxonomyNode* TaxonomyNode::getParent(QString name)
+// {
+//   TaxonomyNode *parent = NULL;
+//   
+//   for (int i = 0; i < getSubElements().size(); i++)
+//   {
+//     if (getSubElements()[i]->name() == name)
+// 	parent = this;
+//     else
+//       parent = getSubElements()[i]->getParent(name);
+//     if (parent)
+//      return parent;
 //   }
-//   else
+//   
+//   return parent;
+// }
+
+
+
+// //------------------------------------------------------------------------
+// TaxonomyNode* TaxonomyNode::getComponent(QString name)
+// {
+//   TaxonomyNode* taxNode = NULL;
+//   if (m_name == name)
 //     return this;
-  return taxNode;
-}
+//   
+//   TaxonomyNode *node;
+//   foreach(node,m_elements)
+//   {
+//     taxNode = node->getComponent(name);
+//     if (taxNode)
+//       break;
+//   }
+//     
+// //   if( m_name.compare(name) != 0 ){
+// //     if (m_elements){ 
+// //       for( std::vector< TaxonomyNode* >::iterator it = m_elements->begin(); it < m_elements->end(); it++){
+// // 	taxNode = (*it)->getComponent( name );
+// // 	if( taxNode )
+// // 	  break;
+// //       }
+// //     }
+// //   }
+// //   else
+// //     return this;
+//   return taxNode;
+// }
+
+
 
 //------------------------------------------------------------------------
 
 //------------------------------------------------------------------------
 //! Returns a vector with the subelements of a node
-QVector<TaxonomyNode *> TaxonomyNode::getSubElements() const
-{
-  return m_elements;
-}
+// QVector<TaxonomyNode *> TaxonomyNode::getSubElements() const
+// {
+//   return m_elements;
+// }
+
+// //------------------------------------------------------------------------
+// TaxonomyNode* TaxonomyNode::insertElement(QString subElement, QString RGBColor)
+// {
+//   //if( !m_elements )
+//   //  m_elements = new std::vector<TaxonomyNode*>();
+//   TaxonomyNode *newElement = new TaxonomyNode(subElement, RGBColor);
+//   
+//   m_elements.push_back(newElement);
+//   return newElement;
+// }
 
 //------------------------------------------------------------------------
-TaxonomyNode* TaxonomyNode::insertElement(QString subElement, QString RGBColor)
+TaxonomyNode* TaxonomyNode::insertNode(const QString& name)
 {
-  //if( !m_elements )
-  //  m_elements = new std::vector<TaxonomyNode*>();
-  TaxonomyNode *newElement = new TaxonomyNode(subElement, RGBColor);
-  
-  m_elements.push_back(newElement);
-  return newElement;
+  TaxonomyNode *node = new TaxonomyNode(name);
+  m_elements.append(node);
+  node->m_parent = this;
+  node->setColor(this->color());
+
+  return node;
 }
+
 
 //------------------------------------------------------------------------
 QVariant TaxonomyNode::data(int role) const
@@ -184,11 +287,11 @@ QVariant TaxonomyNode::data(int role) const
   {
     case Qt::DisplayRole:
     case Qt::EditRole:
-	return getName();
+	return name();
     case Qt::DecorationRole:
     {
       QPixmap icon(16,16);
-      icon.fill(getColor());
+      icon.fill(color());
       return icon;
     }
     default:
@@ -212,6 +315,71 @@ bool TaxonomyNode::setData(const QVariant& value, int role)
   return false;
 }
 
+//-----------------------------------------------------------------------------
+// TAXONOMY
+//-----------------------------------------------------------------------------
+Taxonomy::Taxonomy(const QString &name)
+: m_root(new TaxonomyNode(name))
+{
+}
+
+//-----------------------------------------------------------------------------
+Taxonomy::~Taxonomy()
+{
+  if (m_root)
+    delete m_root;
+}
+
+//-----------------------------------------------------------------------------
+TaxonomyNode* Taxonomy::addElement(const QString &name, const QString &parent)
+{
+  TaxonomyNode *node = NULL;
+
+  if (parent.isEmpty() || parent == m_root->name() || parent == QString(m_root->name()+"/"))
+    node = m_root->addElement(name);
+  else
+  {
+    TaxonomyNode *parentNode = element(parent);
+    if (parentNode)
+      node = parentNode->addElement(name);
+  }
+
+  return node;
+}
+
+//-----------------------------------------------------------------------------
+void Taxonomy::removeElement(const QString& qualifiedName)
+{
+  TaxonomyNode *node = element(qualifiedName);
+  assert(node);
+  TaxonomyNode *parent = node->parentNode();
+  assert(parent);
+  
+  parent->removeChild(node->name());
+}
+
+//-----------------------------------------------------------------------------
+TaxonomyNode* Taxonomy::element(const QString& qualifiedName)
+{
+  QString::SectionFlag flag = QString::SectionSkipEmpty;
+  QString rootName = qualifiedName.section("/",0,0,flag);
+    
+  if (rootName != m_root->name())
+    return NULL;
+  
+  QString subName = qualifiedName.section("/",1,-1,flag);
+  if (subName.isEmpty())
+    return m_root;
+  else
+    return m_root->element(subName);
+}
+
+//-----------------------------------------------------------------------------
+void Taxonomy::print(int indent)
+{
+  m_root->print(indent);
+}
+
 
 
 
@@ -229,13 +397,23 @@ IOTaxonomy::~IOTaxonomy()
 
 }
 
+QString concatenate(std::stack<QString> hierarchy)
+{
+  QString res;
+  while (!hierarchy.empty())
+  {
+    res = QString(hierarchy.top()) + "/" + res;
+    hierarchy.pop();
+  }
+  return res;
+}
 
-TaxonomyNode* IOTaxonomy::readXML(QXmlStreamReader& xmlStream)
+Taxonomy* IOTaxonomy::readXML(QXmlStreamReader& xmlStream)
 {
   // Read the XML
 //   QXmlStreamReader xmlStream(&file);
   QStringRef nodeName, color;
-  TaxonomyNode* tax;
+  Taxonomy* tax;
   std::stack<QString> taxHierarchy;
   while(!xmlStream.atEnd())
   {
@@ -248,11 +426,20 @@ TaxonomyNode* IOTaxonomy::readXML(QXmlStreamReader& xmlStream)
         color = xmlStream.attributes().value("color");
         if( taxHierarchy.empty() )
         {
-          tax = new TaxonomyNode( nodeName.toString(), color.toString() );
+          tax = new Taxonomy( nodeName.toString());
         }
         else
         {
-          tax->addElement( nodeName.toString(), taxHierarchy.top(), color.toString() );
+	  QString qualified = concatenate(taxHierarchy);
+          TaxonomyNode *node = tax->addElement( nodeName.toString(), qualified);
+	  node->setColor(color.toString());
+	  QXmlStreamAttribute attrib;
+	  foreach(attrib, xmlStream.attributes())
+	  {
+	    if (attrib.name() == "name" || attrib.name() == "color")
+	      continue;
+	    node->addProperty(attrib.name().toString(), attrib.value().toString());
+	  }
         }
         taxHierarchy.push( nodeName.toString() );
       }
@@ -262,11 +449,13 @@ TaxonomyNode* IOTaxonomy::readXML(QXmlStreamReader& xmlStream)
       }
     }
   }
+  std::cout << "Taxonomy Loaded: " << std::endl;
+  tax->print();
   return tax;
 }
 
 
-TaxonomyNode* IOTaxonomy::openXMLTaxonomy(QString fileName)
+Taxonomy* IOTaxonomy::openXMLTaxonomy(QString fileName)
 {
   QFile file( fileName );
   if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -309,12 +498,12 @@ TaxonomyNode* IOTaxonomy::openXMLTaxonomy(QString fileName)
     }
   }
   */
-  TaxonomyNode* tax = readXML(xmlStream);
+  Taxonomy* tax = readXML(xmlStream);
   file.close();
   return tax;
 }
 
-TaxonomyNode* IOTaxonomy::loadXMLTaxonomy(QString& content)
+Taxonomy* IOTaxonomy::loadXMLTaxonomy(QString& content)
 {
 
 //   if( content.device() )
@@ -357,6 +546,33 @@ TaxonomyNode* IOTaxonomy::loadXMLTaxonomy(QString& content)
   return readXML(xmlStream);
 }
 
+void IOTaxonomy::writeTaxonomy(Taxonomy* tax, QXmlStreamWriter& stream)
+{
+  if( tax )
+  {
+    TaxonomyNode *child = tax->elements()[0];
+    TaxonomyNode *parent = child->parentNode();
+    //QVector<TaxonomyNode*> nodes;
+    stream.writeStartElement( "node" );
+    stream.writeAttribute("name", parent->name());
+    stream.writeAttribute("color", parent->color().name());
+    TaxonomyNode* subnode;
+    foreach(subnode, tax->elements())
+    {
+      IOTaxonomy::writeTaxonomyNode(subnode, stream );
+    }
+//     nodes = node->getSubElements();
+//     if( nodes )
+//     {
+// 	std::vector<TaxonomyNode*>::iterator itNodes;
+// 	for( itNodes=nodes->begin(); itNodes < nodes->end(); itNodes++ )
+// 	{
+// 	  IOTaxonomy::writeTaxonomyNode( (*itNodes), stream );
+// 	}
+//     }
+    stream.writeEndElement();
+  }
+}
 
 void IOTaxonomy::writeTaxonomyNode(TaxonomyNode* node, QXmlStreamWriter& stream)
 {
@@ -364,10 +580,14 @@ void IOTaxonomy::writeTaxonomyNode(TaxonomyNode* node, QXmlStreamWriter& stream)
   {
     //QVector<TaxonomyNode*> nodes;
     stream.writeStartElement( "node" );
-    stream.writeAttribute("name", node->getName());
-    stream.writeAttribute("color", node->getColor().name());
+    stream.writeAttribute("name", node->name());
+    stream.writeAttribute("color", node->color().name());
+    foreach(QString prop, node->properties())
+    {
+      stream.writeAttribute(prop, node->property(prop).toString());
+    }
     TaxonomyNode* subnode;
-    foreach(subnode, node->getSubElements())
+    foreach(subnode, node->subElements())
     {
       IOTaxonomy::writeTaxonomyNode(subnode, stream );
     }
@@ -404,7 +624,7 @@ void IOTaxonomy::writeXMLTaxonomy(TaxonomyNode& tax, QString fileName)
 */
 
 //-----------------------------------------------------------------------------
-void IOTaxonomy::writeXMLTaxonomy(TaxonomyNode* tax, QString& destination)
+void IOTaxonomy::writeXMLTaxonomy(Taxonomy* tax, QString& destination)
 {
 //   QFile fd (fileName);
 //   fd.open( QIODevice::WriteOnly | QIODevice::Truncate );
@@ -414,7 +634,7 @@ void IOTaxonomy::writeXMLTaxonomy(TaxonomyNode* tax, QString& destination)
   stream.writeStartDocument();
   stream.writeStartElement("Taxonomy");
 
-  IOTaxonomy::writeTaxonomyNode( tax, stream );
+  IOTaxonomy::writeTaxonomy( tax, stream );
 
   stream.writeEndElement();
   stream.writeEndDocument();
