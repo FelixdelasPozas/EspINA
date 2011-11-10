@@ -1,5 +1,6 @@
-// Testing Apposition Plane
+// Testing Apposition Plane Features
 #include "vtkAppositionPlaneFilter.h"
+#include "vtkAppositionPlaneFeatures.h"
 
 // VTK
 #include <vtkSmartPointer.h>
@@ -21,15 +22,19 @@
 
 #include <QDir>
 
-int Pipeline(int argc, char **argv)
+int DecimalPlane(int argc, char **argv)
 {
   QDir stackPath(argv[1]);
     
   vtkSmartPointer<vtkMetaImageReader> seg =
     vtkSmartPointer<vtkMetaImageReader>::New();
-//   QString inputFileName = stackPath.filePath("object44_OUTPUT.mha");
-//   QString inputFileName = stackPath.filePath("reducedSeg1.mhd");
-  QString inputFileName = stackPath.filePath("object35.mha");
+//   QString inputFileName = stackPath.filePath("DecimalPlane-0.mhd");
+//   QString inputFileName = stackPath.filePath("DecimalPlane-1.mhd");
+//   QString inputFileName = stackPath.filePath("DecimalPlane-2.mhd");
+  QString inputFileName = stackPath.filePath("DecimalPlane-3.mhd");
+//   QString inputFileName = stackPath.filePath("DecimalPlane-30.mhd");
+//   QString inputFileName = stackPath.filePath("DecimalPlane-4.mhd");
+//   QString inputFileName = stackPath.filePath("DecimalPlane-00.mhd");
   seg->SetFileName(inputFileName.toUtf8());
   seg->Update();
     
@@ -38,6 +43,16 @@ int Pipeline(int argc, char **argv)
   appPlane->DebugOn();
   appPlane->SetInputConnection(seg->GetOutputPort());
   appPlane->Update();
+  
+  vtkSmartPointer<vtkAppositionPlaneFeatures> appPlaneFeatures = 
+    vtkSmartPointer<vtkAppositionPlaneFeatures>::New();
+  appPlaneFeatures->DebugOn();
+  appPlaneFeatures->SetInput(appPlane->GetOutput());
+  appPlaneFeatures->Update();
+  
+  std::cout << "Area: " << appPlaneFeatures->GetArea() << std::endl;
+  std::cout << "Perimeter: " << appPlaneFeatures->GetPerimeter() << std::endl;
+  
   
   // Display the  region
   vtkSmartPointer<vtkPolyDataMapper> planeMapper =
@@ -83,12 +98,17 @@ int Pipeline(int argc, char **argv)
   vtkSmartPointer<vtkRenderer> renderer =
     vtkSmartPointer<vtkRenderer>::New();
 
-//   interactor->SetRenderWindow(renderWindow);
-//   renderWindow->AddRenderer(renderer);
-//   renderer->AddActor(planeActor);
-//   renderer->AddViewProp(volume);
-//   renderWindow->Render();
-//   interactor->Start();
+  interactor->SetRenderWindow(renderWindow);
+  renderWindow->AddRenderer(renderer);
+  renderer->AddActor(planeActor);
+  renderer->AddViewProp(volume);
+  renderWindow->Render();
+  interactor->Start();
   
-  return 0;
+  // For object35
+  bool testFails = false;
+  testFails = testFails || fabs(appPlaneFeatures->GetArea() - 6533.32) > 0.01;
+  testFails = testFails || fabs(appPlaneFeatures->GetPerimeter() - 345.52) > 0.01;
+  
+  return testFails;
 }

@@ -11,7 +11,7 @@ INCLUDE_DIRECTORIES (
   )
 
 SET(LIB_DEPENDECIES
-  vtkRendering
+  vtkRendering vtkInfovis
   ITKBasicFilters ITKIO ITKCommon 
   vtkHybrid vtkVolumeRendering
 )
@@ -23,9 +23,14 @@ set (TEST_NAME AppositionPlane_test)
 create_test_sourcelist(TESTS  
   ${TEST_NAME}.cpp
   Pipeline
+  AppPlaneFeatures
+  DecimalPlane
 )
 
-add_executable(${TEST_NAME} ${TESTS} ../vtkAppositionPlaneFilter.cpp) 
+add_executable(${TEST_NAME} ${TESTS} 
+  ../vtkAppositionPlaneFilter.cpp
+  ../vtkAppositionPlaneFeatures.cpp
+) 
 target_link_libraries(${TEST_NAME} ${LIB_DEPENDECIES} ${QT_QTCORE_LIBRARY})
 
 # Remove the test driver source file

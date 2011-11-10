@@ -24,7 +24,43 @@
        command="SetResolution">
      </IntVectorProperty>
    </SourceProxy>
-   <!-- End ExtractBlockAsImage -->
+   <!-- End AppositionPlane -->
+   <SourceProxy name="AppositionPlaneFeatures" class="vtkAppositionPlaneFeatures" label="Apposition Plane Features">
+     <Documentation
+        long_help="Extract Morphological Features from Apposition Planes"
+        short_help="Extract Morphological Features from Apposition Planes">
+     </Documentation>
+     <InputProperty
+        name="Input"
+        command="SetInputConnection">
+           <ProxyGroupDomain name="groups">
+             <Group name="sources"/>
+             <Group name="filters"/>
+           </ProxyGroupDomain>
+           <DataTypeDomain name="input_type">
+             <DataType value="vtkPolyData"/>
+           </DataTypeDomain>
+      </InputProperty>
+     <DoubleVectorProperty
+       name="Area"
+       number_of_elements="1"
+       default_values="0"
+       immediate_update="1"
+       information_only="1"
+       command="GetArea">
+       <SimpleDoubleInformationHelper/>
+     </DoubleVectorProperty>
+     <DoubleVectorProperty
+       name="Perimeter"
+       number_of_elements="1"
+       default_values="0"
+       immediate_update="1"
+       information_only="1"
+       command="GetPerimeter">
+       <SimpleDoubleInformationHelper/>
+     </DoubleVectorProperty>
+   </SourceProxy>
+   <!-- End AppositionPlaneFeatures -->
   </ProxyGroup>
   <!-- End Filters Group -->
 </ServerManagerConfiguration>

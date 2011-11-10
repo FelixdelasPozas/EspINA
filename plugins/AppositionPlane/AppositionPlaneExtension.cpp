@@ -57,7 +57,7 @@ AppositionPlaneRepresentation::~AppositionPlaneRepresentation()
 //------------------------------------------------------------------------
 QString AppositionPlaneRepresentation::id()
 {
-  return m_rep->id() + ":0";
+  return m_rep->creator()->id() + ":0";
 }
 
 //------------------------------------------------------------------------
@@ -157,13 +157,15 @@ void AppositionPlaneExtension::initialize(Segmentation* seg)
   m_seg = seg;
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   
-  vtkFilter::Arguments featuresArgs;
-  featuresArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT,m_seg->id()));
-  m_features = cob->createFilter("filters","MorphologicalFeatures", featuresArgs);
-  assert(m_features);
+  seg->creator()->pipelineSource()->updatePipeline();
   
   m_planeRep = new AppositionPlaneRepresentation(seg);
+  // m_planeRep->pipelineSource()->updatePipeline();
   
+  vtkFilter::Arguments featuresArgs;
+  featuresArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT,m_planeRep->id()));
+  m_features = cob->createFilter("filters","AppositionPlaneFeatures", featuresArgs);
+  assert(m_features);
 }
 
 //------------------------------------------------------------------------
@@ -183,10 +185,16 @@ QVariant AppositionPlaneExtension::information(QString info)
   if (!m_init)
   {
     QApplication::setOverrideCursor(Qt::WaitCursor);
+
     m_init = true;
     m_features->pipelineSource()->updatePipeline();
     
-    vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"Size").UpdateValueFromServer();
+    vtkSMProxy *proxy = m_features->pipelineSource()->getProxy();
+    
+    vtkSMPropertyHelper(proxy, "Area").UpdateValueFromServer();
+    vtkSMPropertyHelper(proxy, "Area").Get(&m_Area, 1);
+    vtkSMPropertyHelper(proxy, "Perimeter").UpdateValueFromServer();
+    vtkSMPropertyHelper(proxy, "Perimeter").Get(&m_Perimeter, 1);
     QApplication::restoreOverrideCursor();
   }
 
@@ -194,9 +202,9 @@ QVariant AppositionPlaneExtension::information(QString info)
   m_seg->origin()->spacing(spacing);
   
   if (info == "AS Area")
-      return 5;
+      return m_Area;
   if (info == "AS Perimeter")
-      return 7;
+      return m_Perimeter;
  
   qWarning() << ID << ":"  << info << " is not provided";
   assert(false);

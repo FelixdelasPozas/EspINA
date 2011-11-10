@@ -126,7 +126,7 @@ void pqRectangularBoundingRegionWidget::createWidget(pqServer* server)
     get3DWidget("RectangularBoundingRegionWidgetRepresentation", server);
   this->setWidgetProxy(widget);
   
-  std::cout << "Create Widget" << std::endl;
+//   std::cout << "Create Widget" << std::endl;
   getControlledProxy()->UpdateSelfAndAllInputs();
   vtkPolyDataAlgorithm *region = vtkPolyDataAlgorithm::SafeDownCast(getControlledProxy()->GetClientSideObject());
   
@@ -135,7 +135,7 @@ void pqRectangularBoundingRegionWidget::createWidget(pqServer* server)
 
   if (region)
   {
-    std::cout << "Set Region" << std::endl;
+//     std::cout << "Set Region" << std::endl;
     vtkAbstractWidget *miwidget = widget->GetWidget();
     vtkRectangularBoundingRegionWidget::SafeDownCast(miwidget)->SetRegion(region);
   }

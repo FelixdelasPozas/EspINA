@@ -19,6 +19,7 @@ include_directories (
 set (PARAVIEW_ADDITIONAL_LIBRARIES
   ${PARAVIEW_ADDITIONAL_LIBRARIES}
   Espina
+  vtkInfovis
   ITKCommon ITKBasicFilters ITKAlgorithms ITKIO
 )
 
@@ -34,6 +35,7 @@ ADD_PARAVIEW_AUTO_START(IFACES IFACE_SRCS
 )
 set (VTKFILTER_SRCS
   vtkAppositionPlaneFilter.cpp
+  vtkAppositionPlaneFeatures.cpp
 )
 
 set (PLUGIN_SRCS 

@@ -65,8 +65,9 @@ private:
   vtkFilter *m_features;
   double m_Size;
   bool m_init;
+  double m_Area;
+  double m_Perimeter;
   AppositionPlaneRepresentation *m_planeRep;
-  
 };
 
 #endif // APPOSITIONPLANEEXTENSION_H
