@@ -14,6 +14,7 @@ set (TEST_NAME ${COMPONENT_NAME}_test)
 create_test_sourcelist(TESTS
    ${TEST_NAME}.cpp
    CreateTaxonomy
+   TaxonomyProperties
 )
 #   insertInANonExistentSupElement.cpp  
 #   repeatedElement.cpp
