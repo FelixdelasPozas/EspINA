@@ -74,8 +74,8 @@ SegmhaImporterFilter::SegmhaImporterFilter(pqPipelineSource* reader, const QStri
   if (!EspINA::instance()->activeSample())
   {
     pqServer* server = pqActiveObjects::instance().activeServer();
-    vtkSMReaderFactory* readerFactory = 
-      vtkSMProxyManager::GetProxyManager()->GetReaderFactory();
+//     vtkSMReaderFactory* readerFactory = 
+//       vtkSMProxyManager::GetProxyManager()->GetReaderFactory();
       
 //     QString filters = readerFactory->GetSupportedFileTypes(server->GetConnectionID());
       QString filters = "MetaImage File (*.mha, *.mhd)";
@@ -138,7 +138,7 @@ SegmhaImporterFilter::SegmhaImporterFilter(pqPipelineSource* reader, const QStri
   
   QStringList taxonomies = taxonomyFile.split(";");
   
-  TaxonomyNode *root = new TaxonomyNode("Segmha");
+  Taxonomy *tax = new Taxonomy("Segmha");
   QStringList availableTaxonomies;
   foreach(QString taxonomy, taxonomies)
   {
@@ -152,10 +152,11 @@ SegmhaImporterFilter::SegmhaImporterFilter(pqPipelineSource* reader, const QStri
     .arg(values[3].toInt(),2,16,zero)
     .arg(values[4].toInt(),2,16,zero);
     
-    root->addElement(values[1],"Segmha",color); 
+    TaxonomyNode *node = tax->addElement(values[1]); 
+    node->setColor(QColor(color));
     availableTaxonomies.append(values[1]);
   }
-  EspINA::instance()->loadTaxonomy(root);
+  EspINA::instance()->loadTaxonomy(tax);
 //   std::cout << "Taxonomy read: " << taxonomyFile.toStdString() << std::endl;
   
   
@@ -196,7 +197,7 @@ SegmhaImporterFilter::SegmhaImporterFilter(pqPipelineSource* reader, const QStri
     trace->connect(this, seg,"Segmentation");
     
 //     std::cout << "Getting taxonomy "<< segTaxonomies[p].toStdString() << ": " << availableTaxonomies[segTaxonomies[p].toInt()-1].toStdString() << std::endl;
-    seg->setTaxonomy(root->getComponent(availableTaxonomies[segTaxonomies[p].toInt()-1]));
+    seg->setTaxonomy(tax->element(availableTaxonomies[segTaxonomies[p].toInt()-1]));
     
 //     std::cout << "Adding " << seg->taxonomy()->getName().toStdString() << " segmentation" << std::endl;
     
@@ -268,7 +269,8 @@ SegmhaImporterFilter::~SegmhaImporterFilter()
 }
 
 //-----------------------------------------------------------------------------
-void SegmhaImporterFilter::removeProduct(EspinaProduct* product)
+void SegmhaImporterFilter::removeProduct(vtkProduct* product
+)
 {
   assert(m_numSeg > 0);
   m_blocks.remove(product);
@@ -287,7 +289,7 @@ void SegmhaImporterFilter::removeProduct(EspinaProduct* product)
   m_args.append(';');
 }
 
-QWidget* SegmhaImporterFilter::createSetupWidget()
+QWidget* SegmhaImporterFilter::createWidget()
 {
   return new QLabel("There is no information\n available for imported\n segmentations");
 }

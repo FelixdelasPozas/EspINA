@@ -81,8 +81,8 @@ VolumeOfInterest::VolumeOfInterest(QObject* parent)
   
   connect(m_selector,SIGNAL(selectionAborted()),
 	  this, SLOT(cancelVOI()));
-  connect(m_selector,SIGNAL(selectionChanged(ISelectionHandler::Selection)),
-	  this, SLOT(applyVOI(ISelectionHandler::Selection)));
+  connect(m_selector,SIGNAL(selectionChanged(ISelectionHandler::MultiSelection)),
+	  this, SLOT(applyVOI(ISelectionHandler::MultiSelection)));
   
   
   buildUI();
@@ -98,15 +98,15 @@ VolumeOfInterest::VolumeOfInterest(QObject* parent)
 }
 
 //-----------------------------------------------------------------------------
-void VolumeOfInterest::applyVOI(ISelectionHandler::Selection sel)
+void VolumeOfInterest::applyVOI(ISelectionHandler::MultiSelection msel)
 {
   QApplication::restoreOverrideCursor();
   qDebug() << "EspINA::VolumeOfInterest: Apply VOI";
   SelectionManager::instance()->unsetSelectionHandler(m_selector);
   
   // Compute default bounds
-  assert(sel.size() == 1); // At least one sample was selected
-  ISelectionHandler::SelElement selSample = sel.first();
+  assert(msel.size() == 1); // At least one sample was selected
+  ISelectionHandler::Selelection selSample = msel.first();
   assert(selSample.first.size() == 1); // with one pixel
   Point clickedPixel = selSample.first.first();
   Sample *input = dynamic_cast<Sample *>(selSample.second);
@@ -198,6 +198,7 @@ void VolumeOfInterest::setFromCurrentSlice()
 	);
     assert(rep);
     m_fromSlice->setValue(rep->slice(VIEW_PLANE_XY)+SliceOffset);
+    setFromSlice(m_fromSlice->value());
   }
 }
 
@@ -212,6 +213,7 @@ void VolumeOfInterest::setToCurrentSlice()
 	);
     assert(rep);
     m_toSlice->setValue(rep->slice(VIEW_PLANE_XY)+SliceOffset);
+    setToSlice(m_toSlice->value());
   }
 }
 

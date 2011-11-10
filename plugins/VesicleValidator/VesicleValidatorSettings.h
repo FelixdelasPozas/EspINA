@@ -17,35 +17,20 @@
 */
 
 
-#ifndef VOLUMEOFINTERESTPREFERENCES_H
-#define VOLUMEOFINTERESTPREFERENCES_H
+#ifndef VESICLEVALIDATORSETTINGS_H
+#define VESICLEVALIDATORSETTINGS_H
 
-#include <../frontend/IPreferencePanel.h>
-#include "ui_VOIPreferences.h"
+#include <IPreferencePanel.h>
 
-const QString DEFAULT_VOI_X("VolumeOfInterest::DefaultVOI::X");
-const QString DEFAULT_VOI_Y("VolumeOfInterest::DefaultVOI::Y");
-const QString DEFAULT_VOI_Z("VolumeOfInterest::DefaultVOI::Z");
-
-class VolumeOfInterestPreferences;
-
-class VolumeOfInterestPanel : public QWidget, public Ui::VOIPreferences
+class VesicleValidatorSettings : public IPreferencePanel
 {
   Q_OBJECT
 public:
-  explicit VolumeOfInterestPanel(VolumeOfInterestPreferences* pref);
-  virtual ~VolumeOfInterestPanel();
-};
-
-class VolumeOfInterestPreferences : public IPreferencePanel
-{
-    Q_OBJECT
-public:
-  VolumeOfInterestPreferences();
-  virtual const QString shortDescription() {return "VOI";}
-  virtual const QString longDescription() {return "Volume Of Interest Preferences";}
-  virtual const QIcon icon() {return QIcon(":/roi.svg");}
-
+  explicit VesicleValidatorSettings();
+  virtual const QString longDescription()  {return "Vesicle Validator Settings";}
+  virtual const QString shortDescription() {return "Vesicle Validator";}
+  virtual const QIcon icon()               {return QIcon(":/validateVesicle.svg");}
+  
   virtual QWidget* widget();
   
   int xSize(){return m_xSize;}
@@ -55,9 +40,9 @@ public slots:
   void setXSize(int value);
   void setYSize(int value);
   void setZSize(int value);
-    
+  
 protected:
   int m_xSize, m_ySize, m_zSize;
 };
 
-#endif // VOLUMEOFINTERESTPREFERENCES_H
+#endif // VESICLEVALIDATORSETTINGS_H

@@ -81,7 +81,7 @@ QVariant Segmentation::data(int role) const
     case Qt::DecorationRole:
     {
       QPixmap segIcon(3,16);
-      segIcon.fill(m_taxonomy->getColor());
+      segIcon.fill(m_taxonomy->color());
       return segIcon;
     }
     case Qt::ToolTipRole:
@@ -93,7 +93,7 @@ QVariant Segmentation::data(int role) const
 	"%4"
       )
       .arg(label())
-      .arg(m_taxonomy->getName())
+      .arg(m_taxonomy->qualifiedName())
       .arg(origin()->label())
       .arg(m_parent->getFilterArguments())
       ;
@@ -116,7 +116,7 @@ QVariant Segmentation::data(int role) const
 //------------------------------------------------------------------------
 void Segmentation::color(double* rgba)
 {
-  QColor color = m_taxonomy->getColor();
+  QColor color = m_taxonomy->color();
   rgba[0] = color.red()/255.0;
   rgba[1] = color.green()/255.0;
   rgba[2] = color.blue()/255.0;
@@ -217,7 +217,7 @@ QVariant Segmentation::information(QString info) const
   if (info == "Name")
     return data(Qt::DisplayRole);
   if (info == "Taxonomy")
-    return m_taxonomy->getName();
+    return m_taxonomy->qualifiedName();
     
   return m_informations[info]->information(info);
 }

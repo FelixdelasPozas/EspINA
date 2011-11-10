@@ -35,7 +35,7 @@ public slots:
   //virtual void onAction(QAction* a) = 0;
   
 signals:
-  virtual void segmentationCreated(ProcessingTrace *) = 0;
+  void segmentationCreated(ProcessingTrace *);
   
 };
 

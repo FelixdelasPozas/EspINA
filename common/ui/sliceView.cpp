@@ -86,6 +86,9 @@
 #include <QCheckBox>
 #include <SegmentationSelectionExtension.h>
 
+#include <vtkCubeSource.h>
+#include <vtkPolyDataMapper.h>
+
 #define HINTWIDTH 40
 
 class vtkInteractorStyleEspina : public vtkInteractorStyleImage
@@ -323,7 +326,7 @@ void SliceView::setSelection(SelectionFilters& filters, ViewRegions& regions)
 {
   //TODO: Discuss if we apply VOI at application level or at plugin level
   // i.e. whether clicks out of VOI are discarted or not
-  ISelectionHandler::Selection sel;
+  ISelectionHandler::MultiSelection msel;
   
   //qDebug() << "EspINA::SliceView" << m_plane << ": Making selection";
   // Select all products that belongs to all the regions
@@ -347,19 +350,19 @@ void SliceView::setSelection(SelectionFilters& filters, ViewRegions& regions)
       //! Special case, where sample is selected
       if (filter == "EspINA_Sample")
       {
-	ISelectionHandler::SelElement selSample;
+	ISelectionHandler::Selelection selSample;
 	selSample.first = vtkRegion;
 	selSample.second = m_focusedSample;
-	sel.append(selSample);
+	msel.append(selSample);
       } //! Select all segmented objects
       else if (filter == "EspINA_Segmentation")
       {
 	foreach(Segmentation *seg, pickSegmentationsAt(vtkRegion))
 	{
-	  ISelectionHandler::SelElement selSegmentaion;
+	  ISelectionHandler::Selelection selSegmentaion;
 	  selSegmentaion.first = vtkRegion;
 	  selSegmentaion.second = seg;
-	  sel.append(selSegmentaion);
+	  msel.append(selSegmentaion);
 	}
       }
       else 
@@ -374,7 +377,7 @@ void SliceView::setSelection(SelectionFilters& filters, ViewRegions& regions)
   }
   //TODO: Update Qt selection
   // Notify the manager about the new selection
-  SelectionManager::instance()->setSelection(sel);
+  SelectionManager::instance()->setSelection( msel);
 }
 
 //-----------------------------------------------------------------------------
@@ -545,6 +548,23 @@ void SliceView::connectToServer()
   
   m_style = vtkInteractorStyleEspina::New();
   m_rwi->SetInteractorStyle(m_style);
+  
+//   vtkRenderWindow *clientRW = m_view->getRenderViewProxy()->GetRenderWindow();
+//   vtkSmartPointer<vtkRenderer> clientRenderer = vtkSmartPointer<vtkRenderer>::New();
+//   
+//   vtkSmartPointer<vtkCubeSource> cube = vtkSmartPointer<vtkCubeSource>::New();
+//   vtkPolyDataMapper *cubeMapper = vtkPolyDataMapper::New();
+//   cubeMapper->SetInput(cube->GetOutput());
+//   vtkActor * cubeActor = vtkActor::New();
+//   cubeActor->SetMapper(cubeMapper);
+//   clientRenderer->AddActor(cubeActor);
+//   clientRenderer->SetViewport(0.5,0,1,0.5);
+//   
+//   clientRW->AddRenderer(clientRenderer);
+//   clientRW->AlphaBitPlanesOn();
+//   clientRW->SetDoubleBuffer(true);
+//   clientRW->SetNumberOfLayers(2);
+//   clientRenderer->SetLayer(1);
   
   m_cam = m_viewProxy->GetActiveCamera();
   assert(m_cam);

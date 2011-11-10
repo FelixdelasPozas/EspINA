@@ -39,7 +39,7 @@ public:
   
   //virtual EspinaId id(){return name;}
   //! Reimplements ITraceNode Interface
-  virtual QString getArguments();
+  virtual QString getArguments() const;
   virtual QString label() const;
   
   virtual QVariant data(int role = Qt::UserRole + 1) const;

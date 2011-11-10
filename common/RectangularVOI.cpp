@@ -50,6 +50,7 @@
 #include <vtkIdList.h>
 #include "vtkNonRotatingBoxWidget.h"
 #include "EspinaPluginManager.h"
+#include <QLabel>
 
 /*
 class VTK_WIDGETS_EXPORT VOIRepresentation : public vtkBoxRepresentation
@@ -320,6 +321,14 @@ void RectangularVOI::ApplyFilter::removeProduct(vtkProduct* product)
 }
 
 //-----------------------------------------------------------------------------
+QWidget* RectangularVOI::ApplyFilter::createWidget()
+{
+  QString info(tr("VOI Size:"));
+  return new QLabel(info); 
+}
+
+
+//-----------------------------------------------------------------------------
 RectangularVOI::RectangularVOI(bool registerPlugin)
 : m_box(NULL)
 {
@@ -378,9 +387,24 @@ void RectangularVOI::setDefaultBounds(double bounds[6])
 //-----------------------------------------------------------------------------
 void RectangularVOI::resizeToDefaultSize()
 {
-  vtkSMPropertyHelper(m_box,"Bounds").Set(m_bounds,6);
-  m_box->UpdateVTKObjects();
+  vtkSMPropertyHelper(getProxy(),"Bounds").Set(m_bounds,6);
+  getProxy()->UpdateVTKObjects();
 }
+
+//-----------------------------------------------------------------------------
+void RectangularVOI::bounds ( double bounds[6] )
+{
+  getProxy()->UpdatePropertyInformation();
+  vtkSMPropertyHelper(m_box,"Bounds").Get(bounds,6);
+  double scale[3];
+  vtkSMPropertyHelper(m_box,"Scale").Get(scale,3);
+  double pos[3];
+  vtkSMPropertyHelper(m_box,"Position").Get(pos,3);
+  
+  for (int i=0; i<6; i++)
+    bounds[i] = pos[i/2] + bounds[i]*scale[i/2];
+}
+
 
 //-----------------------------------------------------------------------------
 vtkSMProxy* RectangularVOI::getProxy()

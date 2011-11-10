@@ -174,7 +174,7 @@ bool EspINA::setData(const QModelIndex& index, const QVariant& value, int role)
       TaxonomyNode *taxItem = dynamic_cast<TaxonomyNode *>(indexItem);
       if (taxItem && role == Qt::DecorationRole)
       {
-	qDebug() << "Change color to" << taxItem->getName();
+	qDebug() << "Change color to" << taxItem->qualifiedName();
 	foreach(Segmentation *seg, m_taxonomySegs[taxItem])
 	{
 	  QModelIndex segIndex = segmentationIndex(seg);
@@ -213,7 +213,7 @@ int EspINA::rowCount(const QModelIndex& parent) const
     return 3;
   
   if (parent.internalId() == taxonomyRoot().internalId())
-    return numOfSubTaxonomies(m_tax);
+    return m_tax?m_tax->elements().size():0;
   
   if (parent.internalId() == sampleRoot().internalId())
     return m_samples.size();
@@ -252,7 +252,7 @@ QModelIndex EspINA::parent(const QModelIndex& child) const
   TaxonomyNode *childNode = dynamic_cast<TaxonomyNode *>(childItem);
   if (childNode)
   {
-    TaxonomyNode *parentNode = m_tax->getParent(childNode->getName());
+    TaxonomyNode *parentNode = childNode->parentNode();
     return taxonomyIndex(parentNode);//NOTE: It's ok with TaxonomyRoot
   }
   // Checks if Sample
@@ -305,7 +305,9 @@ QModelIndex EspINA::index(int row, int column, const QModelIndex& parent) const
   }
   TaxonomyNode *parentTax;
   if(parent.internalId() == taxonomyRoot().internalId())
-    parentTax = m_tax;
+  {
+    parentTax = m_tax->elements()[0]->parentNode();//recover root node...
+  }
   else
   {
     // Neither Samples nor Segmentations have children
@@ -317,7 +319,7 @@ QModelIndex EspINA::index(int row, int column, const QModelIndex& parent) const
   if (row >= subTaxonomies)//NOTE: Don't know why, but when removing taxonomy node, wrong row number is gotten
 	return QModelIndex();
   //assert(row < subaxonomies);
-  internalPtr = parentTax->getSubElements()[row];
+  internalPtr = parentTax->subElements()[row];
   return createIndex(row,column,internalPtr);
 }
 
@@ -325,7 +327,7 @@ QModelIndex EspINA::index(int row, int column, const QModelIndex& parent) const
 int EspINA::numOfSubTaxonomies(TaxonomyNode* tax) const
 {
   if (tax)
-    return tax->getSubElements().size();
+    return tax->subElements().size();
   return 0;
 }
 
@@ -398,21 +400,21 @@ QModelIndex EspINA::sampleIndex(Sample* sample) const
 //------------------------------------------------------------------------
 bool EspINA::isLeaf(TaxonomyNode* node) const
 {
-  return node->getSubElements().size() == 0;
+  return node->subElements().size() == 0;
 }
 
 //------------------------------------------------------------------------
 QModelIndex EspINA::taxonomyIndex(TaxonomyNode* node) const
 {
   // We avoid setting the Taxonomy descriptor as parent of an index
-  if (!m_tax || node->getName() == m_tax->getName())
+  if (!m_tax || node->name() == m_tax->name())
     return taxonomyRoot();
   
-  TaxonomyNode *parentNode = m_tax->getParent(node->getName());
+  TaxonomyNode *parentNode = node->parentNode();
   if (!parentNode)
-    qDebug() << "Child" << node->getName() << "without parent";
+    qDebug() << "Child" << node->qualifiedName() << "without parent";
   assert(parentNode);
-  int row = parentNode->getSubElements().indexOf(node);
+  int row = parentNode->subElements().indexOf(node);
   IModelItem *internalPtr = node;
   return createIndex(row,0,internalPtr);
 }
@@ -420,7 +422,7 @@ QModelIndex EspINA::taxonomyIndex(TaxonomyNode* node) const
 //------------------------------------------------------------------------
 void EspINA::addTaxonomy(QString name, QString parentName)
 {
-  QModelIndex parentIndex = taxonomyIndex(m_tax->getComponent(parentName));
+  QModelIndex parentIndex = taxonomyIndex(m_tax->element(parentName));
   int lastRow = rowCount(parentIndex);
   beginInsertRows(parentIndex, lastRow, lastRow);
   m_tax->addElement(name, parentName);
@@ -430,16 +432,16 @@ void EspINA::addTaxonomy(QString name, QString parentName)
 //------------------------------------------------------------------------
 void EspINA::removeTaxonomy(QString name)
 {
-  TaxonomyNode *toRemove =  m_tax->getComponent(name);
+  TaxonomyNode *toRemove =  m_tax->element(name);
   if (toRemove)
   {
-    if (m_taxonomySegs[toRemove].size() == 0 && toRemove->getSubElements().size() == 0)
+    if (m_taxonomySegs[toRemove].size() == 0 && toRemove->subElements().size() == 0)
     {
       QModelIndex removeIndex = taxonomyIndex(toRemove);
       int row  = removeIndex.row();
        beginRemoveRows(removeIndex.parent(),row,row);
        m_taxonomySegs.remove(toRemove);
-       m_tax->removeElement(toRemove->getName());
+       m_tax->removeElement(toRemove->qualifiedName());
        endRemoveRows();
     }else{
       QMessageBox box;
@@ -453,9 +455,9 @@ void EspINA::removeTaxonomy(QString name)
 TaxonomyNode* EspINA::taxonomyParent(TaxonomyNode* node)
 {
   if( node )
-    return m_tax->getParent(node->getName());
+    return node->parentNode();
   else
-    return m_tax;
+    assert(false);//return m_tax;
 }
 
 
@@ -509,7 +511,7 @@ QList<Segmentation * > EspINA::segmentations(const TaxonomyNode* taxonomy, bool 
   {
     // Get all segmentations that belong to taxonomy's children
     TaxonomyNode *child;
-    foreach(child,taxonomy->getSubElements())
+    foreach(child,taxonomy->subElements())
     {
       segs.append(segmentations(child,recursive));
     }
@@ -540,9 +542,9 @@ void EspINA::changeTaxonomy(Segmentation* seg, TaxonomyNode* newTaxonomy)
 }
 
 //------------------------------------------------------------------------
-void EspINA::changeTaxonomy(Segmentation* seg, QString& taxName)
+void EspINA::changeTaxonomy(Segmentation* seg, const QString& taxName)
 {
-  TaxonomyNode* newTax = m_tax->getComponent(taxName);
+  TaxonomyNode* newTax = m_tax->element(taxName);
 
   changeTaxonomy(seg, newTax);
 }
@@ -725,7 +727,7 @@ void EspINA::setUserDefindedTaxonomy(const QString& taxName)
 {
   if (!m_tax)//WARNING:setUserDefindedTaxonomy with no m_tax
     return;
-  m_newSegType = m_tax->getComponent(taxName);
+  m_newSegType = m_tax->element(taxName);
   assert(m_newSegType);
 }
 
@@ -800,7 +802,7 @@ void EspINA::loadSource(pqPipelineSource* proxy)
 // 	beginInsertRows(taxonomyRoot(), 0, 0);
 // 	m_tax = IOTaxonomy::loadXMLTaxonomy(TaxContent);
 // 	endInsertRows();
-// 	setUserDefindedTaxonomy(m_tax->getSubElements()[0]->getName());
+// 	setUserDefindedTaxonomy(m_tax->subElements()[0]->getName());
 // 	emit resetTaxonomy();
 	loadTaxonomy(IOTaxonomy::loadXMLTaxonomy(TaxContent));
       }
@@ -868,11 +870,11 @@ void EspINA::loadTaxonomy()
   else
   {
     qDebug() << "EspINA: Default taxonomy file not founded at" << DEFAULT_TAXONOMY_PATH;
-    m_tax = new TaxonomyNode("Unclassified");
-    TaxonomyNode *node = m_tax->addElement("Unknown", "Unclassified");
+    m_tax = new Taxonomy("Unclassified");
+    TaxonomyNode *node = m_tax->addElement("Unknown");
     node->setColor(QColor(Qt::black));
   }
-  setUserDefindedTaxonomy(m_tax->getSubElements()[0]->getName());
+  setUserDefindedTaxonomy(m_tax->elements()[0]->qualifiedName());
   
   emit resetTaxonomy();
 }

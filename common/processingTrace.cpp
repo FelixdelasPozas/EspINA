@@ -181,7 +181,7 @@ void ProcessingTrace::connect(
 }
 
 //-----------------------------------------------------------------------------
-void ProcessingTrace::connect(QString& id,
+void ProcessingTrace::connect(const QString& id,
                               ITraceNode* destination,
                               const std::string& description)
 {

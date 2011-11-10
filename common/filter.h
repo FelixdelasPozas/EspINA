@@ -43,19 +43,25 @@ class vtkProduct;
 class IFilter
 {
 public:
+  IFilter(){};
   virtual ~IFilter(){}
-  //! Returns the number of products created by the filter
+  
+  /// Returns the number of products created by the filter
   virtual int numProducts() = 0;
-  //! Returns the i-th product created by the filter
+  /// Returns the i-th product created by the filter
   virtual vtkProduct product(int i) = 0;
-  //! Returns all products created by the filter
+  /// Returns all products created by the filter
   virtual QList<vtkProduct *> products() = 0;
   
   virtual QString getFilterArguments() const = 0;
+  
+private:
+  IFilter(const IFilter &);        // Disable copy constructor
+  void operator=(const IFilter &); // Disable copy operator
 };
 
 
-//! Represents a unique vtk filter
+/// Represents a unique vtk filter
 class vtkFilter
 : public IFilter
 {
@@ -106,16 +112,15 @@ protected:
 //! Represents a filter that can be traced
 class EspinaFilter 
 : public IFilter
-//, public ITraceNode
 {
 public:
   virtual ~EspinaFilter(){}
   //virtual int numProducts() = 0;
   //virtual vtkProduct* product(int i) = 0;
   //virtual QList< vtkProduct* > products() = 0;
-  virtual QString getFilterArguments() const {return m_args;}
-  virtual void removeProduct(EspinaProduct *product) {} ;
-  virtual QWidget *createSetupWidget() = 0;
+  virtual QString getFilterArguments() const = 0;
+  virtual void removeProduct(vtkProduct *product) = 0;
+  virtual QWidget *createWidget() = 0;
   
 protected:
   QString m_args;

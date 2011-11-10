@@ -63,7 +63,7 @@ SegmentationExplorer::SegmentationExplorer(Segmentation *seg, QWidget* parent, Q
 //     m_informationView->setModel(EspINA::instance());
 //     m_informationView->setRootIndex(EspINA::instance()->segmentationIndex(seg));
    
-    this->pluginLayout->insertWidget(0,seg->parent()->createSetupWidget());
+    this->pluginLayout->insertWidget(0,seg->parent()->createWidget());
     
     connect(m_snapshot,SIGNAL(clicked(bool)),this,SLOT(takeSnapshot()));
     connect(m_export,SIGNAL(clicked(bool)),this,SLOT(exportScene()));

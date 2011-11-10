@@ -68,10 +68,9 @@ protected slots:
   //! Abort current selection
   void abortSelection();
   //! Starts the segmentation filter putting a seed at @x, @y, @z.
-  void startSegmentation(ISelectionHandler::Selection sel);
+  void startSegmentation(ISelectionHandler::MultiSelection msel);
 
 signals:
-  void segmentationCreated(ProcessingTrace *);
   void productCreated(Segmentation *);
   void selectionAborted(ISelectionHandler *);
 

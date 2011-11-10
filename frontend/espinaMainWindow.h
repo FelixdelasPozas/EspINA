@@ -71,6 +71,10 @@ public:
   EspinaMainWindow();
   ~EspinaMainWindow();
   
+  static EspinaMainWindow *instance() {return m_singleton;}
+  
+  void clearSelection();
+  
 protected slots:
 //   void loadData(pqPipelineSource *source);
   void loadFile(QString method);
@@ -80,7 +84,7 @@ protected slots:
   
   // Toolbar
   void removeSegmentationClicked(bool checked);
-  void removeSelectedSegmentation(ISelectionHandler::Selection sel);
+  void removeSelectedSegmentation(ISelectionHandler::MultiSelection msel);
   void stopRemovingSegmentations();
   
   void showPreferencesDialog();
@@ -108,6 +112,7 @@ protected slots:
   void setGroupView(int idx);
   void deleteSegmentations();
   void changeTaxonomy(const QModelIndex &taxIndex);
+  void setUserDefinedTaxonomy(const QModelIndex &taxIndex);
   
   void extractInformation();
   
@@ -144,6 +149,8 @@ private:
   QModelIndexList m_sourceSelection;
   
   QMap<Segmentation *,SegmentationExplorer *> m_segDialogs;
+  
+  static EspinaMainWindow *m_singleton;
 };
 
 #endif //ESPINA_MAIN_WINDOW_H

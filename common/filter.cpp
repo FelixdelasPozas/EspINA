@@ -73,6 +73,13 @@ QList<vtkProduct *> vtkFilter::products()
 }
 
 
+//-----------------------------------------------------------------------------
+// ESPINA FILTER
+//-----------------------------------------------------------------------------
+QString EspinaFilter::getFilterArguments() const
+{
+  return m_args;
+}
 
 
 /*

@@ -114,6 +114,8 @@ QString DIRECTORY("");
 #define XZ_VIEW 1
 #define VOL_VIEW 1
 
+EspinaMainWindow * EspinaMainWindow::m_singleton = NULL;
+
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
 };
@@ -129,6 +131,7 @@ EspinaMainWindow::EspinaMainWindow()
     , m_lastTaxonomyId(0)
     , m_removeSegmentationSelector(NULL)
 {
+  m_singleton = this;
   m_espina = EspINA::instance();
   connect(m_espina,SIGNAL(focusSampleChanged(Sample*)),
 	  this, SLOT(focusOnSample(Sample *)));
@@ -266,8 +269,8 @@ EspinaMainWindow::EspinaMainWindow()
   ///treeCombo->setCurrentIndex(0);
   ///treeCombo->setMinimumWidth(200);
   m_taxonomySelector->setRootModelIndex(m_espina->taxonomyRoot());
-  connect(m_taxonomySelector, SIGNAL(currentIndexChanged(QString)),
-          m_espina, SLOT(setUserDefindedTaxonomy(const QString&)));
+  connect(m_taxonomyView, SIGNAL(entered(QModelIndex)),
+          this, SLOT(setUserDefinedTaxonomy(QModelIndex)));
   m_taxonomySelector->setCurrentIndex(0); 
   Internals->toolBar->addWidget(m_taxonomySelector);
   Internals->toolBar->addAction(Internals->actionRemoveSegmentation);
@@ -439,6 +442,12 @@ EspinaMainWindow::~EspinaMainWindow()
 // }
 
 //-----------------------------------------------------------------------------
+void EspinaMainWindow::clearSelection()
+{
+  Internals->segmentationView->clearSelection();
+}
+
+//-----------------------------------------------------------------------------
 void EspinaMainWindow::loadFile(QString method)
 {
   Internals->segmentationView->clearSelection();//To prevent segmentation fault
@@ -539,9 +548,9 @@ void EspinaMainWindow::removeSegmentationClicked(bool checked)
     m_removeSegmentationSelector->multiSelection = false;
     m_removeSegmentationSelector->filters << "EspINA_Segmentation";
     connect(m_removeSegmentationSelector,
-	  SIGNAL(selectionChanged(ISelectionHandler::Selection)),
+	  SIGNAL(selectionChanged(ISelectionHandler::MultiSelection)),
 	  this,
-	  SLOT(removeSelectedSegmentation(ISelectionHandler::Selection)));
+	  SLOT(removeSelectedSegmentation(ISelectionHandler::MultiSelection)));
     connect(m_removeSegmentationSelector,
 	  SIGNAL(selectionAborted()),
 	  this,
@@ -557,12 +566,12 @@ void EspinaMainWindow::removeSegmentationClicked(bool checked)
 }
 
 //-----------------------------------------------------------------------------
-void EspinaMainWindow::removeSelectedSegmentation(ISelectionHandler::Selection sel)
+void EspinaMainWindow::removeSelectedSegmentation( ISelectionHandler::MultiSelection msel)
 {
   Internals->segmentationView->clearSelection();
-  foreach(ISelectionHandler::SelElement elem, sel)
+  foreach(ISelectionHandler::Selelection sel, msel)
   {
-    Segmentation *seg = dynamic_cast<Segmentation *>(elem.second);
+    Segmentation *seg = dynamic_cast<Segmentation *>( sel.second);
     assert(seg);
     m_espina->removeSegmentation(seg);
   }
@@ -694,7 +703,7 @@ void EspinaMainWindow::addTaxonomyElement()
   {
     IModelItem *taxItem = static_cast<IModelItem *>(this->Internals->taxonomyView->currentIndex().internalPointer());
     TaxonomyNode *taxNode = dynamic_cast<TaxonomyNode *>(taxItem);
-    m_espina->addTaxonomy("Undefined",m_espina->taxonomyParent(taxNode)->getName());
+    m_espina->addTaxonomy("Undefined",taxNode->parentNode()->qualifiedName());
   }catch (...)
   {
     QMessageBox box;
@@ -711,7 +720,7 @@ void EspinaMainWindow::addTaxonomyChildElement()
     IModelItem *parentItem = static_cast<IModelItem *>(this->Internals->taxonomyView->currentIndex().internalPointer());
     TaxonomyNode *parent = dynamic_cast<TaxonomyNode *>(parentItem);
     if( parent )
-      m_espina->addTaxonomy("Undefined",parent->getName());
+      m_espina->addTaxonomy("Undefined",parent->qualifiedName());
   }catch (...)
   {
     QMessageBox box;
@@ -726,7 +735,7 @@ void EspinaMainWindow::removeTaxonomyElement()
   IModelItem *currentItem = static_cast<IModelItem *>(this->Internals->taxonomyView->currentIndex().internalPointer());
   TaxonomyNode *currentNode = dynamic_cast<TaxonomyNode *>(currentItem);
   if( currentNode )
-    m_espina->removeTaxonomy(currentNode->getName());
+    m_espina->removeTaxonomy(currentNode->qualifiedName());
 }
 
 
@@ -747,6 +756,7 @@ void EspinaMainWindow::resetTaxonomy()
   m_taxonomyView->expandAll();
   m_taxonomySelector->setCurrentIndex(0);
   this->Internals->taxonomyView->expandAll();
+  this->Internals->segmentationView->expandAll();
 }
 
 //-----------------------------------------------------------------------------
@@ -922,11 +932,20 @@ void EspinaMainWindow::changeTaxonomy(const QModelIndex& taxIndex)
     //TODO: Handle segmentation and taxonomy deletions differently
     if (seg)
     {
-      QString taxonomyName = taxIndex.data(Qt::DisplayRole).toString();
-//       std::cout << "Change Taxonomy to " << taxonomyName.toStdString() << std::endl;
-      m_espina->changeTaxonomy(seg,taxonomyName);
+      IModelItem *taxItem = static_cast<IModelItem *>(taxIndex.internalPointer());
+      TaxonomyNode *tax = dynamic_cast<TaxonomyNode *>(taxItem);
+      assert(tax);
+      m_espina->changeTaxonomy(seg,tax->qualifiedName());
     }
   }
+}
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::setUserDefinedTaxonomy(const QModelIndex& taxIndex)
+{
+  IModelItem *taxItem = static_cast<IModelItem *>(taxIndex.internalPointer());
+  TaxonomyNode *tax = dynamic_cast<TaxonomyNode *>(taxItem);
+  m_espina->setUserDefindedTaxonomy(tax->qualifiedName());
 }
 
 //-----------------------------------------------------------------------------

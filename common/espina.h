@@ -81,11 +81,11 @@ public:
     QList<Segmentation *> segmentations(const Sample* sample) const;
 
     void changeTaxonomy(Segmentation *seg, TaxonomyNode *newTaxonomy);
-    void changeTaxonomy(Segmentation* seg, QString& taxName);
+    void changeTaxonomy(Segmentation* seg, const QString& taxName);
     
     // Taxonomy managing
     //! Returns the taxonomy used by the analyzer
-    void loadTaxonomy(TaxonomyNode *root) 
+    void loadTaxonomy(Taxonomy *tax) 
     {
       if (m_tax)
       {
@@ -94,12 +94,13 @@ public:
 	endRemoveRows();
       }
       beginInsertRows(taxonomyRoot(), 0, 0);
-      m_tax = root;
+      m_tax = tax;
       endInsertRows();
-      setUserDefindedTaxonomy(m_tax->getSubElements()[0]->getName());
+      setUserDefindedTaxonomy(m_tax->elements()[0]->qualifiedName());
       emit resetTaxonomy();
     }
-    TaxonomyNode *taxonomy() {return m_tax;}
+    Taxonomy *taxonomy() {return m_tax;}
+    
     //! Returns the QModelIndex of a given @node
     QModelIndex taxonomyIndex(TaxonomyNode* node) const;
     void addTaxonomy(QString name, QString parentName);
@@ -179,7 +180,7 @@ private:
     //! Return the number of segmentations which belong to tax
     int numOfSegmentations(TaxonomyNode *tax) const;
     //! Return the number of subtaxonomies which belong to tax
-    int numOfSubTaxonomies(TaxonomyNode *tax) const;
+    int numOfSubTaxonomies(TaxonomyNode* tax) const;
 
     //! Save a segmentation in the active server in a file which name
     //! corresponds to the id of the segmentation
@@ -192,7 +193,8 @@ private:
     Sample *m_activeSample;
     
     //! Initial node taxonomy
-    TaxonomyNode *m_tax;
+    //TaxonomyNode *m_tax;
+    Taxonomy *m_tax;
     QList<Sample *> m_samples;
     QList<Segmentation *> m_segmentations;
     //! It contains all the pipeline of filters, segmentations and samples

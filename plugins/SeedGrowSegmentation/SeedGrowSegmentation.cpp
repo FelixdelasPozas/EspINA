@@ -146,7 +146,7 @@ void SeedGrowSegmentation::abortSelection()
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentation::startSegmentation(ISelectionHandler::Selection sel)
+void SeedGrowSegmentation::startSegmentation(ISelectionHandler::MultiSelection sel)
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);
   
@@ -162,7 +162,7 @@ void SeedGrowSegmentation::startSegmentation(ISelectionHandler::Selection sel)
   }
   
   assert(sel.size() == 1);// Only one element selected
-  ISelectionHandler::SelElement element = sel.first();
+  ISelectionHandler::Selelection element = sel.first();
   
   EspinaProduct *input = element.second;
   assert (input);
@@ -298,9 +298,9 @@ void SeedGrowSegmentation::addPixelSelector(QAction* action, ISelectionHandler* 
 {
   m_selectors->addAction(action);
   connect(handler,
-	  SIGNAL(selectionChanged(ISelectionHandler::Selection)),
+	  SIGNAL(selectionChanged(ISelectionHandler::MultiSelection)),
 	  this,
-	  SLOT(startSegmentation(ISelectionHandler::Selection)));
+	  SLOT(startSegmentation(ISelectionHandler::MultiSelection)));
   connect(handler,
 	  SIGNAL(selectionAborted()),
 	  this,

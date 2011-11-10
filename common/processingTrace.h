@@ -57,7 +57,7 @@ public:
   
   static ITraceNode::Arguments parseArgs(QString &raw);
   virtual QString getArgument(QString name) const = 0;
-  virtual QString getArguments() = 0;
+  virtual QString getArguments() const = 0;
   //! Descriptive name of the node
   virtual QString label() const = 0;
   
@@ -144,7 +144,7 @@ public:
   , const std::string &description
   );
   void connect(
-    QString& id,
+    const QString& id,
     ITraceNode *destination,
     const std::string &description
   );

@@ -80,8 +80,8 @@ class ISelectionHandler
 public:
   typedef QList<Point> VtkRegion;
   typedef QList<VtkRegion> VtkRegions;
-  typedef QPair<VtkRegion, EspinaProduct *> SelElement;
-  typedef QList<SelElement> Selection;
+  typedef QPair<VtkRegion, EspinaProduct *> Selelection;
+  typedef QList<Selelection> MultiSelection;
   
 public:
   explicit ISelectionHandler()
@@ -94,7 +94,7 @@ public:
   virtual void onMouseMove(QPoint &pos, ISelectableView *view) = 0;
   virtual void onMouseUp(QPoint &pos, ISelectableView *view) = 0;
   
-  void setSelection(ISelectionHandler::Selection sel);
+  void setSelection( ISelectionHandler::MultiSelection msel);
   void abortSelection();
   
   //! The types of products which are requested for selection
@@ -103,7 +103,7 @@ public:
   bool multiSelection;
   
 signals:
-  void selectionChanged(ISelectionHandler::Selection);
+  void selectionChanged(ISelectionHandler::MultiSelection);
   void selectionAborted();
 };
 
@@ -117,6 +117,8 @@ public:
   virtual EspinaFilter *restoreVOITransormation(vtkProduct* product) = 0;
   virtual void setDefaultBounds(double bounds[6]) = 0;
   virtual void resizeToDefaultSize() = 0;
+  void defaultBounds(double bounds[6])  {memcpy(bounds,m_bounds,6*sizeof(double));}
+  virtual void bounds(double bounds[6]) = 0;
   
   virtual vtkSMProxy * getProxy() = 0;
   virtual pq3DWidget *newWidget(ViewType viewType) = 0;
@@ -163,7 +165,7 @@ public:
   void onMouseMove(QPoint &pos, ISelectableView *view) { if (m_handler) m_handler->onMouseMove(pos, view);}
   void onMouseUp(QPoint &pos, ISelectableView *view) { if (m_handler) m_handler->onMouseUp(pos, view);}
   
-  void setSelection(ISelectionHandler::Selection sel) {if (m_handler) m_handler->setSelection(sel);}
+  void setSelection(ISelectionHandler::MultiSelection sel) {if (m_handler) m_handler->setSelection(sel);}
   void setVOI(IVOI *voi);
   IVOI *voi() {return m_voi;}
   //! Applies active VOI to product
