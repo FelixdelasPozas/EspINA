@@ -16,6 +16,13 @@
 	immediate_update="1"
 	command="SetCenter">
       </IntVectorProperty>
+      <DoubleVectorProperty
+	name="Spacing"
+	number_of_elements="3"
+	default_values="1 1 1"
+	immediate_update="1"
+	command="SetSpacing">
+      </DoubleVectorProperty>
    </SourceProxy>
  </ProxyGroup>
 </ServerManagerConfiguration>

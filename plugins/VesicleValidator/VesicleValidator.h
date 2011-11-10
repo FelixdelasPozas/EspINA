@@ -34,6 +34,12 @@ class VesicleValidator
 {
   Q_OBJECT
   
+  struct Region
+  {
+    IVOI *sva;
+    TaxonomyNode *taxonomy;
+  };
+  
   enum STATE {NONE, DEFINING_SVA, REMOVING_SVA, VALIDATING};
   
 public:
@@ -51,14 +57,19 @@ private slots:
   void abortSelection();
   void changeVOI(IVOI *voi);
   
+  void updateBounds();
+  
 private:
   void buildUI();
-  void updateTaxonomy();
+  
+  Region region(const QString &name) const;
+  void updateRegions();
   void initSelector();
   void changeState(const STATE state);
   
-  void defineSVA( const Point& pos, EspinaProduct* sample);
-  void removeSVA(const Point& pos);
+  Region searchSVG(const Point &pos, double spacing[3]);
+  void   defineSVA(const Point& pos, EspinaProduct* sample);
+  void   removeSVA(const Point& pos);
   void validateVesicle(const ISelectionHandler::Selelection &selection);
   
   void showSVAs();
@@ -73,10 +84,12 @@ private:
   STATE m_state;
   ISelectionHandler *m_selector;
   
-  IVOI *m_SVA;
+  Region m_SVA;
   QList<VesicleValidatorFilter *> m_validators;
   VesicleValidatorFilter *m_activeValidator;
   VesicleValidatorSettings *m_settings;
+  
+  QVector<Region> m_regions;
 };
 
 #endif// VESICLEVALIDATOR_H

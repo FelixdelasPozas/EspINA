@@ -80,7 +80,7 @@ void VolumetricRepresentation::render(pqView* view)
   
   // Get (or create if it doesn't exit) the lut for the segmentations' images
   pqServer *server =  pqApplicationCore::instance()->getActiveServer();
-  QString lutName = m_seg->taxonomy()->getName();
+  QString lutName = m_seg->taxonomy()->qualifiedName();
   if (m_seg->isSelected())
     lutName.append("_selected");
   

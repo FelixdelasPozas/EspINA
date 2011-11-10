@@ -86,6 +86,9 @@
 #include <QCheckBox>
 #include <SegmentationSelectionExtension.h>
 
+#include <vtkCubeSource.h>
+#include <vtkPolyDataMapper.h>
+
 #define HINTWIDTH 40
 
 class vtkInteractorStyleEspina : public vtkInteractorStyleImage
@@ -545,6 +548,23 @@ void SliceView::connectToServer()
   
   m_style = vtkInteractorStyleEspina::New();
   m_rwi->SetInteractorStyle(m_style);
+  
+//   vtkRenderWindow *clientRW = m_view->getRenderViewProxy()->GetRenderWindow();
+//   vtkSmartPointer<vtkRenderer> clientRenderer = vtkSmartPointer<vtkRenderer>::New();
+//   
+//   vtkSmartPointer<vtkCubeSource> cube = vtkSmartPointer<vtkCubeSource>::New();
+//   vtkPolyDataMapper *cubeMapper = vtkPolyDataMapper::New();
+//   cubeMapper->SetInput(cube->GetOutput());
+//   vtkActor * cubeActor = vtkActor::New();
+//   cubeActor->SetMapper(cubeMapper);
+//   clientRenderer->AddActor(cubeActor);
+//   clientRenderer->SetViewport(0.5,0,1,0.5);
+//   
+//   clientRW->AddRenderer(clientRenderer);
+//   clientRW->AlphaBitPlanesOn();
+//   clientRW->SetDoubleBuffer(true);
+//   clientRW->SetNumberOfLayers(2);
+//   clientRenderer->SetLayer(1);
   
   m_cam = m_viewProxy->GetActiveCamera();
   assert(m_cam);

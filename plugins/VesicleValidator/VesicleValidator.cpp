@@ -23,6 +23,7 @@
 #include "VesicleValidatorSettings.h"
 
 #include <pixelSelector.h>
+#include <RectangularVOI.h>
 
 // Qt
 #include <QHBoxLayout>
@@ -32,7 +33,9 @@
 #include <RectangularVOI.h>
 #include <espina.h>
 #include <EspinaPluginManager.h>
+#include <vtkSMProxy.h>
 
+#include <QDebug>
 
 //-----------------------------------------------------------------------------
 VesicleValidator::VesicleValidator(QObject* parent)
@@ -44,7 +47,6 @@ VesicleValidator::VesicleValidator(QObject* parent)
 , m_selector(new PixelSelector())
 , m_activeValidator(NULL)
 , m_settings(new VesicleValidatorSettings())
-, m_SVA(NULL)
 {
   buildUI();
 
@@ -75,7 +77,7 @@ void initButton(QToolButton *button, const QString &icon)
   button->setIcon(QIcon(icon));
   button->setIconSize(QSize(22,22));
   button->setAutoRaise(true);
-  button->setEnabled(false);
+//   button->setEnabled(false);
 }
 
 //-----------------------------------------------------------------------------
@@ -94,8 +96,8 @@ void VesicleValidator::buildUI()
   
   // Plugin's Widget Layout
   QHBoxLayout *layout = new QHBoxLayout();
-  //layout->addWidget(m_defineArea);
-  //layout->addWidget(m_removeArea);
+  layout->addWidget(m_defineArea);
+  layout->addWidget(m_removeArea);
   layout->addWidget(m_validateVesicles);
   
   QWidget *widget = new QWidget();
@@ -106,33 +108,48 @@ void VesicleValidator::buildUI()
 }
 
 //-----------------------------------------------------------------------------
-void VesicleValidator::updateTaxonomy()
+VesicleValidator::Region VesicleValidator::region(const QString& name) const
 {
-  EspINA *espina = EspINA::instance();
-  TaxonomyNode *tax = espina->taxonomy();
-  TaxonomyNode *vesicleTax = tax->getComponent("Vesicles");
-  
-  if (!vesicleTax)
+  Region region;
+  foreach(region, m_regions)
   {
-    espina->addTaxonomy("Vesicle",tax->getName());
-    vesicleTax = tax->getComponent("Vesicle");
+    if (region.taxonomy->name() == name)
+      return region;
+  }
+    
+  region.sva = NULL;
+  region.taxonomy = NULL;
+  return region;
+}
+
+
+//-----------------------------------------------------------------------------
+void VesicleValidator::updateRegions()
+{
+  Taxonomy *tax = EspINA::instance()->taxonomy();
+  TaxonomyNode *vesicles = tax->element(tax->name()+"/Vesicles");
+  
+  TaxonomyNode *taxonomy;
+  foreach(taxonomy, vesicles->subElements())
+  {
+    if (!taxonomy->name().contains("Region"))
+      continue;
+    
+    Region r = region(taxonomy->name());
+    if (r.sva && r.taxonomy)
+      continue;
+    
+    r.taxonomy = taxonomy;
+    r.sva = new RectangularVOI(false);
+    QStringList savedBounds = taxonomy->property("SVA").toString().split(",");
+    double bounds[6] = {savedBounds[0].toDouble(), savedBounds[1].toDouble(),
+		        savedBounds[2].toDouble(), savedBounds[3].toDouble(),
+		        savedBounds[4].toDouble(), savedBounds[5].toDouble()};
+    r.sva->setDefaultBounds(bounds);
+        
+    m_regions.append(r);
   }
   
-  TaxonomyNode *likely = vesicleTax->getComponent("Likely");
-  if (!likely)
-  {
-    espina->addTaxonomy("Likely",vesicleTax->getName());
-    likely = vesicleTax->getComponent("Likely");
-    likely->setColor(QColor(Qt::green));
-  }
-  
-  TaxonomyNode *unlikely = vesicleTax->getComponent("Unlikely");
-  if (!unlikely)
-  {
-    espina->addTaxonomy("Unlikely",vesicleTax->getName());
-    unlikely = vesicleTax->getComponent("Unlikely");
-    unlikely->setColor(QColor(Qt::red));
-  }
 }
 
 
@@ -177,13 +194,15 @@ void VesicleValidator::changeState(const STATE state)
   switch (m_state)
   {
     case DEFINING_SVA:
-      updateTaxonomy();
+      updateRegions();
+      SelectionManager::instance()->setVOI(NULL);
       SelectionManager::instance()->setSelectionHandler(
 	m_selector,
 	QCursor(QPixmap(":/defineArea.svg").scaled(32,32)));
       showSVAs();
       break;
     case REMOVING_SVA:
+      updateRegions();
       SelectionManager::instance()->setSelectionHandler(
 	m_selector,
 	QCursor(QPixmap(":/removeArea.svg").scaled(32,32)));
@@ -214,6 +233,35 @@ void VesicleValidator::defineSVAClicked(bool active)
 }
 
 //-----------------------------------------------------------------------------
+VesicleValidator::Region VesicleValidator::searchSVG(const Point& pos, double spacing[3])
+{
+  Region region;
+  foreach(region, m_regions)
+  {
+    // Use taxonomy region instead of voi region
+    double bounds[6];
+    QStringList regBounds = region.taxonomy->property("SVA").toString().split(",");
+    for (int i=0; i < 6; i++)
+      bounds[i] = regBounds[i].toDouble();
+    
+//     region.sva->bounds(bounds);
+    double point[3];
+    point[0] = pos.x*spacing[0];
+    point[1] = pos.y*spacing[1];
+    point[2] = pos.z*spacing[2];
+    
+    if ((bounds[0] <= point[0] && point[0] <= bounds[1]) &&
+        (bounds[2] <= point[1] && point[1] <= bounds[3]) &&
+        (bounds[4] <= point[2] && point[2] <= bounds[5]))
+      return region;
+  }
+  
+  region.sva = NULL;
+  region.taxonomy = NULL;
+  return region;
+}
+
+//-----------------------------------------------------------------------------
 void VesicleValidator::defineSVA(const Point& pos, EspinaProduct *sample)
 {
   double spacing[3];
@@ -226,9 +274,53 @@ void VesicleValidator::defineSVA(const Point& pos, EspinaProduct *sample)
     (pos.z - m_settings->zSize())*spacing[2],
     (pos.z + m_settings->zSize())*spacing[2]};
   
-//     m_activeValidator = new VesicleValidatorFilter(sample, bounds);
-//   m_validators.append(m_activeValidator);
-  changeState(VALIDATING);
+  Taxonomy *tax = EspINA::instance()->taxonomy();
+//   tax->addElement("Vesicles/Region 1");
+  TaxonomyNode *vesicles = tax->addElement("Vesicles");
+  
+  Region existingRegion = searchSVG(pos, spacing);
+  if (existingRegion.sva && existingRegion.taxonomy)
+  {
+    m_SVA = existingRegion;
+    double prevBounds[6];
+    QStringList regBounds = existingRegion.taxonomy->property("SVA").toString().split(",");
+    for (int i=0; i < 6; i++)
+      prevBounds[i] = regBounds[i].toDouble();
+//     m_SVA.sva->bounds(prevBounds);
+    m_SVA.sva->setDefaultBounds(prevBounds);
+    m_SVA.sva->resizeToDefaultSize();
+    TaxonomyNode *likely = m_SVA.taxonomy->element("Likely");
+    EspINA::instance()->setUserDefindedTaxonomy(likely->qualifiedName());
+    connect(m_SVA.sva,SIGNAL(voiModified()),
+	    this,SLOT(updateBounds()));
+  }
+  else
+  {
+    TaxonomyNode *region   = tax->addElement(QString("Region %1").arg(m_regions.size()+1),
+    vesicles->qualifiedName());
+    region->addProperty("SVA",
+    QString("%1,%2,%3,%4,%5,%6")
+    .arg(bounds[0]).arg(bounds[1])
+    .arg(bounds[2]).arg(bounds[3])
+    .arg(bounds[4]).arg(bounds[5])
+    );
+    TaxonomyNode *likely   = tax->addElement("Likely",region->qualifiedName());
+    TaxonomyNode *unlikely = tax->addElement("Unlikely",region->qualifiedName());
+    likely->setColor(Qt::green);
+    unlikely->setColor(Qt::red);
+    EspINA::instance()->loadTaxonomy(tax);
+    EspINA::instance()->setUserDefindedTaxonomy(likely->qualifiedName());
+    
+    m_SVA.sva = new RectangularVOI(false);
+    m_SVA.sva->setDefaultBounds(bounds);
+    m_SVA.taxonomy = region;
+    m_regions.append(m_SVA);
+    connect(m_SVA.sva,SIGNAL(voiModified()),
+	    this,SLOT(updateBounds()));
+  }
+  
+  changeState(NONE);
+  SelectionManager::instance()->setVOI(m_SVA.sva);
 }
 
 
@@ -252,7 +344,7 @@ void VesicleValidator::validateVesiclesClicked(bool active)
 {
   if (active)
 //     if (m_activeValidator)
-    if (m_SVA)
+    if (m_SVA.sva)
       changeState(VALIDATING);
     else
     {
@@ -271,7 +363,7 @@ void VesicleValidator::validateVesiclesClicked(bool active)
 //-----------------------------------------------------------------------------
 void VesicleValidator::validateVesicle( const ISelectionHandler::Selelection& selection)
 {
-  assert(m_SVA);
+  assert(m_SVA.sva);
   
   Sample *sample = dynamic_cast<Sample*>(selection.second);
   assert(sample);
@@ -279,7 +371,7 @@ void VesicleValidator::validateVesicle( const ISelectionHandler::Selelection& se
   assert(selection.first.size() == 1); // with one pixel
   Point pos = selection.first.first();
   double bounds[6];
-  m_SVA->bounds(bounds);
+  m_SVA.sva->bounds(bounds);
   m_activeValidator = new VesicleValidatorFilter(sample, pos, bounds);
   m_validators.append(m_activeValidator);
   
@@ -313,32 +405,46 @@ void VesicleValidator::abortSelection()
 //-----------------------------------------------------------------------------
 void VesicleValidator::changeVOI ( IVOI* voi )
 {
-  m_SVA = voi;
-  if (m_SVA) 
+  m_SVA.sva = voi;
+  if (m_SVA.sva) 
   {
-    updateTaxonomy();
+//     updateTaxonomy();
   } else {
     m_activeValidator = NULL;
   }
-  m_validateVesicles->setEnabled(m_SVA != NULL);
+  m_validateVesicles->setEnabled(m_SVA.sva != NULL);
 }
 
+
+//-----------------------------------------------------------------------------
+void VesicleValidator::updateBounds()
+{
+  double bounds[6];
+  m_SVA.sva->bounds(bounds);
+  m_SVA.taxonomy->addProperty("SVA",
+		     QString("%1,%2,%3,%4,%5,%6")
+		     .arg(bounds[0]).arg(bounds[1])
+		     .arg(bounds[2]).arg(bounds[3])
+		     .arg(bounds[4]).arg(bounds[5])
+  );
+  qDebug() << m_SVA.taxonomy->property("SVA").toString();
+}
 
 //-----------------------------------------------------------------------------
 void VesicleValidator::handleSelection(const ISelectionHandler::MultiSelection& msel)
 {
   assert( msel.size() == 1);
   ISelectionHandler::Selelection sel = msel.first();
-//   EspinaProduct *sample = element.second;// Only one element is selected
-//   assert(sample);
+  EspinaProduct *sample = sel.second;// Only one element is selected
+  assert(sample);
   
-//   assert(element.first.size() == 1); // with one pixel
-//   Point pos = element.first.first();
+  assert(sel.first.size() == 1); // with one pixel
+  Point pos = sel.first.first();
   
   switch (m_state)
   {
     case DEFINING_SVA:
-//       defineSVA(pos, sample);
+      defineSVA(pos, sample);
       break;
     case REMOVING_SVA:
 //       removeSVA(pos);

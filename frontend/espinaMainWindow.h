@@ -108,6 +108,7 @@ protected slots:
   void setGroupView(int idx);
   void deleteSegmentations();
   void changeTaxonomy(const QModelIndex &taxIndex);
+  void setUserDefinedTaxonomy(const QModelIndex &taxIndex);
   
   void extractInformation();
   

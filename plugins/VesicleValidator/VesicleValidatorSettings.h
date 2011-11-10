@@ -26,6 +26,7 @@ class VesicleValidatorSettings : public IPreferencePanel
 {
   Q_OBJECT
 public:
+  explicit VesicleValidatorSettings();
   virtual const QString longDescription()  {return "Vesicle Validator Settings";}
   virtual const QString shortDescription() {return "Vesicle Validator";}
   virtual const QIcon icon()               {return QIcon(":/validateVesicle.svg");}

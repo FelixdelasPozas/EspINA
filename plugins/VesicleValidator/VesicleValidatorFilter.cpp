@@ -23,6 +23,7 @@
 #include <espINAFactory.h>
 #include <espina.h>
 #include <segmentation.h>
+#include <sample.h>
 
 // ParaQ
 #include <pqApplicationCore.h>
@@ -32,7 +33,7 @@
 #include <QLabel>
 
 //-----------------------------------------------------------------------------
-VesicleValidatorFilter::VesicleValidatorFilter (EspinaProduct *sample, const Point &pos, double SVA[6])
+VesicleValidatorFilter::VesicleValidatorFilter (Sample *sample, const Point &pos, double SVA[6])
 {
   memcpy(m_SVA,SVA,6*sizeof(double));
   type = FILTER;
@@ -41,26 +42,29 @@ VesicleValidatorFilter::VesicleValidatorFilter (EspinaProduct *sample, const Poi
 //   m_SVA2 = builder->createProxy("implicit_functions","NonRotatingBox",pqApplicationCore::instance()->getActiveServer(),"widgets");
 //   vtkSMPropertyHelper(m_SVA2,"Bounds").Set(SVA,6);
 //   m_SVA2->UpdateVTKObjects();
-  QString center(QString("%1,%2,%3").arg(pos.x).arg(pos.y).arg(pos.z));
+  double spacing[3];
+  sample->spacing(spacing);
+  QString centerArg(QString("%1,%2,%3").arg(pos.x).arg(pos.y).arg(pos.z));
+  QString spacingArg(QString("%1,%2,%3").arg(spacing[0]).arg(spacing[1]).arg(spacing[2]));
   
   m_args = ESPINA_ARG("Sample", sample->id());
   m_args.append(ESPINA_ARG("Type","VesicleValidator::VesicleValidatorFilter"));
-  QString region = QString("%1,%2,%3,%4,%5,%6")
-		  .arg(SVA[0]).arg(SVA[1]).arg(SVA[2])
-		  .arg(SVA[3]).arg(SVA[4]).arg(SVA[5]);
-  m_args.append(ESPINA_ARG("SVA",region));
-  m_args.append(ESPINA_ARG("Center",center));
+//   m_args.append(ESPINA_ARG("SVA",region));
+  m_args.append(ESPINA_ARG("Center",centerArg));
+  m_args.append(ESPINA_ARG("Spacing",spacingArg));
   
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
 
   vtkFilter::Arguments pointArgs;
   pointArgs.push_back(vtkFilter::Argument(QString("Input"),vtkFilter::INPUT, ""));
-  pointArgs.push_back(vtkFilter::Argument(QString("Center"),vtkFilter::INTVECT, center));
+  pointArgs.push_back(vtkFilter::Argument(QString("Center"),vtkFilter::INTVECT, centerArg));
+  pointArgs.push_back(vtkFilter::Argument(QString("Spacing"),vtkFilter::DOUBLEVECT, spacingArg));
   vtkFilter *point = cob->createFilter("sources","CrossSource", pointArgs);
   
   Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(this, &(point->product(0)));
-  seg->addArgument("SVA",region);
-  seg->addArgument("Center",center);
+//   seg->addArgument("SVA",region);
+  seg->addArgument("Center",centerArg);
+//   seg->addArgument("Spacing",spacingArg);
   
   ProcessingTrace* trace = ProcessingTrace::instance();
   // Trace EspinaFilter
@@ -89,6 +93,7 @@ VesicleValidatorFilter::VesicleValidatorFilter (const ITraceNode::Arguments& arg
   vtkFilter::Arguments pointArgs;
   pointArgs.push_back(vtkFilter::Argument(QString("Input"),vtkFilter::INPUT, ""));
   pointArgs.push_back(vtkFilter::Argument(QString("Center"),vtkFilter::INTVECT, args["Center"]));
+  pointArgs.push_back(vtkFilter::Argument(QString("Spacing"),vtkFilter::DOUBLEVECT, args["Spacing"]));
   vtkFilter *point = cob->createFilter("sources","CrossSource", pointArgs);
     
   Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(this, &(point->product(0)));

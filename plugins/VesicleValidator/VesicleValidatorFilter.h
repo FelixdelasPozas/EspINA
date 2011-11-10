@@ -25,13 +25,14 @@
 
 class vtkSMProxy;
 class RectangularVOI;
+class Sample;
 
 class VesicleValidatorFilter 
 : public EspinaFilter
 , public ITraceNode
 {
 public:
-  explicit VesicleValidatorFilter(EspinaProduct *sample, const Point &pos, double SVA[6]);
+  explicit VesicleValidatorFilter(Sample *sample, const Point &pos, double SVA[6]);
   explicit VesicleValidatorFilter(const ITraceNode::Arguments &args);
 //   explicit VesicleValidatorFilter(const RectangularVOI &SVA);
   // Implement IFilter interface

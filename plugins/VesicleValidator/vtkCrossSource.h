@@ -22,6 +22,8 @@ public:
   vtkGetVector3Macro(Center,int);
   vtkSetVector3Macro(Center,int);
   
+  vtkSetVector3Macro(Spacing,double);
+  
   void PrintSelf(ostream& os, vtkIndent indent);
     
 protected:
@@ -40,6 +42,7 @@ private:
   int Center[3];
   int Radius;
   int Width;
+  double Spacing[3];
 };
 
 #endif//VTK_CROSS_SOURCE_H

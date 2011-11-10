@@ -27,6 +27,7 @@ vtkCrossSource::vtkCrossSource()
 , Width(0)
 {
   bzero(Center,3*sizeof(int));
+  Spacing[0] = Spacing[1] = Spacing[2] = 1;
   
   this->SetNumberOfInputPorts(0);
   this->SetNumberOfOutputPorts(1);
@@ -70,6 +71,8 @@ int vtkCrossSource::RequestData(vtkInformation* request,
 //   output->SetExtent(cross->GetExtent());
   output->SetUpdateExtent(output->GetExtent());
   output->SetWholeExtent(output->GetExtent());
+  output->SetSpacing(Spacing);
+  outInfo->Set(vtkDataObject::SPACING(), Spacing, 3);
   
   return 1;
 }

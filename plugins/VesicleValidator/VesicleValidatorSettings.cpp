@@ -19,6 +19,58 @@
 
 #include "VesicleValidatorSettings.h"
 
+#include <QSettings>
+
+const QString DEFAULT_SVA_X("VesicleValidator::DefaultSVA::X");
+const QString DEFAULT_SVA_Y("VesicleValidator::DefaultSVA::Y");
+const QString DEFAULT_SVA_Z("VesicleValidator::DefaultSVA::Z");
+
+//-----------------------------------------------------------------------------
+VesicleValidatorSettings::VesicleValidatorSettings()
+{
+  QSettings settings;
+  
+  if (!settings.allKeys().contains(DEFAULT_SVA_X))
+    settings.setValue(DEFAULT_SVA_X,60);
+  if (!settings.allKeys().contains(DEFAULT_SVA_Y))
+    settings.setValue(DEFAULT_SVA_Y,60);
+  if (!settings.allKeys().contains(DEFAULT_SVA_Z))
+    settings.setValue(DEFAULT_SVA_Z,1);
+
+  m_xSize = settings.value(DEFAULT_SVA_X).toInt();
+  m_ySize = settings.value(DEFAULT_SVA_Y).toInt();
+  m_zSize = settings.value(DEFAULT_SVA_Z).toInt();
+}
+
+//-----------------------------------------------------------------------------
+void VesicleValidatorSettings::setXSize(int value)
+{
+  QSettings settings;
+  
+  settings.setValue(DEFAULT_SVA_X,value);
+  m_xSize = value;
+}
+
+//-----------------------------------------------------------------------------
+void VesicleValidatorSettings::setYSize(int value)
+{
+  QSettings settings;
+  
+  settings.setValue(DEFAULT_SVA_Y,value);
+  m_ySize = value;
+}
+
+//-----------------------------------------------------------------------------
+void VesicleValidatorSettings::setZSize(int value)
+{
+  QSettings settings;
+  
+  settings.setValue(DEFAULT_SVA_Z,value);
+  m_zSize = value;
+}
+
+
+//-----------------------------------------------------------------------------
 QWidget* VesicleValidatorSettings::widget()
 {
   return new QWidget();

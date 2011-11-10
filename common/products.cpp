@@ -116,7 +116,7 @@ QString EspinaProduct::getArguments() const
 {
   QString args;
   args.append(ESPINA_ARG("Id", id()));
-  args.append(ESPINA_ARG("Taxonomy", m_taxonomy?m_taxonomy->getName():""));
+  args.append(ESPINA_ARG("Taxonomy", m_taxonomy?m_taxonomy->qualifiedName():""));
   args.append(m_args);
   return args;
 }

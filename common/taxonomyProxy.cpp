@@ -73,7 +73,7 @@ int TaxonomyProxy::rowCount(const QModelIndex& parent) const
   if (parentTax)
   {
     int numSegs = m_taxonomySegs[parentTax].size();
-    return parentTax->getSubElements().size() + numSegs;
+    return parentTax->subElements().size() + numSegs;
   }
   // Otherwise Samples and Segmentations have no children
   return 0;
@@ -95,9 +95,9 @@ QModelIndex TaxonomyProxy::index(int row, int column, const QModelIndex& parent)
   if (parentTax)
   {
     IModelItem *element;
-    int subTaxonomies = parentTax->getSubElements().size();
+    int subTaxonomies = parentTax->subElements().size();
     if (row < subTaxonomies)
-      element = parentTax->getSubElements()[row];
+      element = parentTax->subElements()[row];
     else
       element = m_taxonomySegs[parentTax][row-subTaxonomies];
 
@@ -167,7 +167,7 @@ QModelIndex TaxonomyProxy::mapFromSource(const QModelIndex& sourceIndex) const
   if (seg)
   {
     TaxonomyNode *parent = seg->taxonomy();
-    int row = parent->getSubElements().size() + m_taxonomySegs[parent].indexOf(seg);
+    int row = parent->subElements().size() + m_taxonomySegs[parent].indexOf(seg);
     return createIndex(row,0,sourceIndex.internalPointer());
   }
 }
@@ -279,7 +279,7 @@ QVariant TaxonomyProxy::data(const QModelIndex& proxyIndex, int role) const
   TaxonomyNode *proxyTax = dynamic_cast<TaxonomyNode *>(proxyItem);
   if (proxyTax)
   {
-    return QString("%1 (%2)").arg(proxyTax->getName()).arg(m_taxonomySegs[proxyTax].size());
+    return QString("%1 (%2)").arg(proxyTax->name()).arg(m_taxonomySegs[proxyTax].size());
   }
   else
     return QAbstractProxyModel::data(proxyIndex, role);
@@ -333,7 +333,7 @@ void TaxonomyProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, 
     IModelItem *sourceItem = static_cast<IModelItem *>(sourceIndex.internalPointer());
     Segmentation *sourceSeg = dynamic_cast<Segmentation *>(sourceItem);
     TaxonomyNode *segParent = sourceSeg->taxonomy();
-    int row = segParent->getSubElements().size() + m_taxonomySegs[segParent].indexOf(sourceSeg);
+    int row = segParent->subElements().size() + m_taxonomySegs[segParent].indexOf(sourceSeg);
     QModelIndex proxyIndex = mapFromSource(sourceIndex);
     beginRemoveRows(proxyIndex.parent(),row,row);
   } else // In case sourceParent is taxonomyRoot, proxyParent will be an invalid index

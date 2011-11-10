@@ -35,7 +35,7 @@ public:
   virtual ~Segmentation();
   
   //! Reimplement ITraceNode Interface
-  virtual QString label() const {return QString("%1 %2").arg(m_taxonomy->getName()).arg(m_id);}
+  virtual QString label() const {return QString("%1 %2").arg(m_taxonomy->name()).arg(m_id);}
   void setId(int id) {m_id = id;}
   bool validId() {return m_id != -1;}
   
