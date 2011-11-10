@@ -114,6 +114,8 @@ QString DIRECTORY("");
 #define XZ_VIEW 1
 #define VOL_VIEW 1
 
+EspinaMainWindow * EspinaMainWindow::m_singleton = NULL;
+
 class EspinaMainWindow::pqInternals : public Ui::pqClientMainWindow
 {
 };
@@ -129,6 +131,7 @@ EspinaMainWindow::EspinaMainWindow()
     , m_lastTaxonomyId(0)
     , m_removeSegmentationSelector(NULL)
 {
+  m_singleton = this;
   m_espina = EspINA::instance();
   connect(m_espina,SIGNAL(focusSampleChanged(Sample*)),
 	  this, SLOT(focusOnSample(Sample *)));
@@ -437,6 +440,12 @@ EspinaMainWindow::~EspinaMainWindow()
 // //   m_espina->loadFile(filePath, core->getActiveServer());
 //   m_espina->loadSource(source);
 // }
+
+//-----------------------------------------------------------------------------
+void EspinaMainWindow::clearSelection()
+{
+  Internals->segmentationView->clearSelection();
+}
 
 //-----------------------------------------------------------------------------
 void EspinaMainWindow::loadFile(QString method)

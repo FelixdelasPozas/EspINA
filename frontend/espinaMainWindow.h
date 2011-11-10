@@ -71,6 +71,10 @@ public:
   EspinaMainWindow();
   ~EspinaMainWindow();
   
+  static EspinaMainWindow *instance() {return m_singleton;}
+  
+  void clearSelection();
+  
 protected slots:
 //   void loadData(pqPipelineSource *source);
   void loadFile(QString method);
@@ -145,6 +149,8 @@ private:
   QModelIndexList m_sourceSelection;
   
   QMap<Segmentation *,SegmentationExplorer *> m_segDialogs;
+  
+  static EspinaMainWindow *m_singleton;
 };
 
 #endif //ESPINA_MAIN_WINDOW_H

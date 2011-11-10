@@ -38,6 +38,7 @@ class VesicleValidator
   {
     IVOI *sva;
     TaxonomyNode *taxonomy;
+    bool operator==(const Region&rhs);
   };
   
   enum STATE {NONE, DEFINING_SVA, REMOVING_SVA, VALIDATING};
@@ -69,7 +70,7 @@ private:
   
   Region searchSVG(const Point &pos, double spacing[3]);
   void   defineSVA(const Point& pos, EspinaProduct* sample);
-  void   removeSVA(const Point& pos);
+  void   removeSVA(const Point& pos, EspinaProduct* sample);
   void validateVesicle(const ISelectionHandler::Selelection &selection);
   
   void showSVAs();
@@ -85,6 +86,7 @@ private:
   ISelectionHandler *m_selector;
   
   Region m_SVA;
+  int m_lastId;
   QList<VesicleValidatorFilter *> m_validators;
   VesicleValidatorFilter *m_activeValidator;
   VesicleValidatorSettings *m_settings;
