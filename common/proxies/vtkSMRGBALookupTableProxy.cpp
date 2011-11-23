@@ -58,12 +58,13 @@ void vtkSMRGBALookupTableProxy::CreateVTKObjects()
 //---------------------------------------------------------------------------
 void vtkSMRGBALookupTableProxy::UpdateVTKObjects(vtkClientServerStream& stream)
 {
-    this->Superclass::UpdateVTKObjects(stream);
+    //TODO: OLDVERISON: this->Superclass::UpdateVTKObjects(stream);
     this->Build();
 }
 
 void vtkSMRGBALookupTableProxy::SetTableValue(int id, double r, double g, double b, double a)
 {
+  /*TODO: OLDVERISON
   vtkClientServerStream stream;
 
   stream << vtkClientServerStream::Invoke                                                                                            
@@ -78,6 +79,7 @@ void vtkSMRGBALookupTableProxy::SetTableValue(int id, double r, double g, double
   
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   pm->SendStream(this->ConnectionID, this->Servers, stream);
+  */
 }
 
 void vtkSMRGBALookupTableProxy::SetTableValue(int id, double rgba[4])
@@ -90,6 +92,7 @@ void vtkSMRGBALookupTableProxy::SetTableValue(int id, double rgba[4])
 //---------------------------------------------------------------------------
 void vtkSMRGBALookupTableProxy::Build()
 {
+  /* TODO: OLDVERISON
   vtkClientServerStream stream;
 
   vtkSMProperty* p;
@@ -99,6 +102,7 @@ void vtkSMRGBALookupTableProxy::Build()
   stream << vtkClientServerStream::Invoke << this->GetID() 
   << "SetRampToLinear" 
   << vtkClientServerStream::End;
+  */
   
   // Background color
   //stream << vtkClientServerStream::Invoke
@@ -111,8 +115,10 @@ void vtkSMRGBALookupTableProxy::Build()
   << vtkClientServerStream::End;
   */
   
+  /*TODO: OLDVERISON
   vtkProcessModule* pm = vtkProcessModule::GetProcessModule();
   pm->SendStream(this->ConnectionID, this->Servers, stream);
+  */
 }
 
 void vtkSMRGBALookupTableProxy::PrintSelf(ostream& os, vtkIndent indent)

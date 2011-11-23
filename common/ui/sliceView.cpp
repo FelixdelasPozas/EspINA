@@ -40,7 +40,7 @@
 #include "pqDisplayPolicy.h"
 #include "pqObjectBuilder.h"
 #include "pqPipelineRepresentation.h"
-#include "vtkSMImageSliceRepresentationProxy.h"
+//TODO: OLDVERSION #include "vtkSMImageSliceRepresentationProxy.h"
 #include "vtkSMIntVectorProperty.h"
 #include "vtkSMViewProxy.h"
 #include "vtkSMRenderViewProxy.h"
@@ -596,13 +596,13 @@ void SliceView::connectToServer()
   };
     
   double black[3] = {0, 0, 0};
-  m_viewProxy->SetBackgroundColorCM(black);
+  m_view->getRenderViewProxy()->GetRenderer()->SetBackground(black);
   m_view->setCenterAxesVisibility(false);
   m_view->setOrientationAxesVisibility(m_preferences->showAxis());
   //m_view->resetCamera();
 
   // Disable menu
-  m_view->getWidget()->removeAction(m_view->getWidget()->actions().first());
+  // TODO: OLDVERSION m_view->getWidget()->removeAction(m_view->getWidget()->actions().first());
 }
 
 //-----------------------------------------------------------------------------

@@ -60,13 +60,12 @@
         name="Bounds"
         command="SetBounds"
         number_of_elements="6"
-        default_values="none" >
+        default_values="0 1 0 1 0 1" >
       </DoubleVectorProperty>
       <DoubleVectorProperty
         name="Position"
         command="SetPosition"
         number_of_elements="3"
-        update_self="1"
         animateable="1"
         default_values="0.0 0.0 0.0" >
         <DoubleRangeDomain name="range" />
@@ -76,7 +75,6 @@
         command="SetScale"
         number_of_elements="3"
         animateable="1"
-        update_self="1"
         default_values="1.0 1.0 1.0" >
         <DoubleRangeDomain name="range" />
       </DoubleVectorProperty>

@@ -226,10 +226,10 @@
 	name="InputColor"
 	number_of_elements="5"
 	immediate_update="1"
-	repeatable="1"
+	default_values="-1 0 0 0 0"
 	command="SetLabelMapColor">
       </DoubleVectorProperty>
-      </SourceProxy>
+     </SourceProxy>
       
      <SourceProxy name="MorphologicalFeatures" class="vtkMorphologicalFeaturesFilter" label="MorphologicalFeatures">
      <Documentation
@@ -472,7 +472,7 @@
 
       <SubProxy>
         <Proxy name="Prop"
-          proxygroup="props" proxyname="NonRotatingBoxRepresentation">
+          proxygroup="3d_widget_representations" proxyname="NonRotatingBoxRepresentation">
         </Proxy>
         <ExposedProperties>
           <Property name="PlaceFactor" />

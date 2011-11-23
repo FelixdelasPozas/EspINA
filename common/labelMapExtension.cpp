@@ -68,6 +68,7 @@ SampleRepresentation::SampleRepresentation(Sample* sample)
     filterArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT, sample->id()));
   }
   m_rep = cob->createFilter("filters", "ImageLabelMapBlend", filterArgs);
+  m_rep->pipelineSource()->updatePipeline();
   assert(m_rep);
 }
 
@@ -137,6 +138,8 @@ void SampleRepresentation::requestUpdate(bool force)
       if (seg->visible())
       {
 // 	seg->creator()->pipelineSource()->updatePipeline();
+	seg->creator()->pipelineSource()->updatePipeline();
+	seg->creator()->pipelineSource()->updatePipeline();
 	inputs.push_back(seg->creator()->pipelineSource()->getProxy());
 	ports.push_back(seg->portNumber());
       }

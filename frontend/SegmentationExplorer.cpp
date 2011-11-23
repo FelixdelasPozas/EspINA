@@ -58,7 +58,7 @@ SegmentationExplorer::SegmentationExplorer(Segmentation *seg, QWidget* parent, Q
     this->viewLayout->insertWidget(0,m_view->getWidget());
     m_view->setCenterAxesVisibility(false);
     double black[3] = {0,0,0};
-    m_view->getRenderViewProxy()->SetBackgroundColorCM(black);
+    //TODO: OLDVERSION m_view->getRenderViewProxy()->SetBackgroundColorCM(black);
     
 //     m_informationView->setModel(EspINA::instance());
 //     m_informationView->setRootIndex(EspINA::instance()->segmentationIndex(seg));

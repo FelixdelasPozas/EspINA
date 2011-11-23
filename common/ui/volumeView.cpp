@@ -49,7 +49,7 @@
 #include "pqObjectBuilder.h"
 #include "pqOutputPort.h"
 #include "pqPipelineRepresentation.h"
-#include "vtkSMUniformGridVolumeRepresentationProxy.h"
+//TODO: OLDVERSION #include "vtkSMUniformGridVolumeRepresentationProxy.h"
 #include "vtkSMPVRepresentationProxy.h"
 #include "vtkSMIntVectorProperty.h"
 #include "vtkSMProxyProperty.h"
@@ -70,6 +70,7 @@
 #include <SegmentationSelectionExtension.h>
 #include <vtkInteractorStyleTrackballCamera.h>
 #include <QApplication>
+#include <vtkRenderer.h>
 
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(QWidget* parent)
@@ -144,13 +145,13 @@ void VolumeView::connectToServer()
 
 
   double black[3] = {0,0,0};
-  m_view->getRenderViewProxy()->SetBackgroundColorCM(black);
+  m_view->getRenderViewProxy()->GetRenderer()->SetBackground(black);
   
   // Disable menu
-  m_view->getWidget()->removeAction(m_view->getWidget()->actions().first());
+  //TODO : OLDVERSION m_view->getWidget()->removeAction(m_view->getWidget()->actions().first());
 
-  QObject::connect(m_viewWidget, SIGNAL(mouseEvent(QMouseEvent *)),
-                   this, SLOT(vtkWidgetMouseEvent(QMouseEvent *)));
+//   QObject::connect(m_viewWidget, SIGNAL(mouseEvent(QMouseEvent *)),
+//                    this, SLOT(vtkWidgetMouseEvent(QMouseEvent *)));
 }
 
 //-----------------------------------------------------------------------------

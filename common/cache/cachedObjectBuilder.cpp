@@ -40,6 +40,7 @@
 #include <vtkSMIntVectorProperty.h>
 #include <vtkSMDoubleVectorProperty.h>
 #include <pqOutputPort.h>
+#include <vtkSIProxy.h>
 
 
 CachedObjectBuilder * CachedObjectBuilder::m_singleton = NULL;

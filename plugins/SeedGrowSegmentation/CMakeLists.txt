@@ -17,8 +17,8 @@ include (${ITK_USE_FILE})
 find_package (Cajal REQUIRED)
 include (${CAJAL_USE_FILE})
 
-find_package(Boost REQUIRED COMPONENTS  system filesystem graph)
-link_directories ( ${Boost_LIBRARY_DIRS} )
+# find_package(Boost REQUIRED COMPONENTS  system filesystem graph)
+# link_directories ( ${Boost_LIBRARY_DIRS} )
 
 
 
@@ -27,7 +27,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/common
   ${CMAKE_CURRENT_SOURCE_DIR} 
   ${ITK_VTK_GLUE}
-  ${Boost_INCLUDE_DIRS}
+#   ${Boost_INCLUDE_DIRS}
   ${ITK_DIR}/../
   )
 
@@ -77,7 +77,7 @@ set (PARAVIEW_ADDITIONAL_LIBRARIES
   ${CAJAL_LIBRARIES}
   Espina
   ITKCommon ITKBasicFilters ITKAlgorithms ITKIO
-  ${Boost_LIBRARIES}
+#   ${Boost_LIBRARIES}
 )
 
 # Now crete a plugin for the toolbar. Here we pass IFACES and IFACE_SRCS

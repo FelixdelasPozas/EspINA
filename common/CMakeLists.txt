@@ -8,7 +8,8 @@ include_directories(
   ${CMAKE_CURRENT_BINARY_DIR}  #For wrap/ui files
   ${ITK_DIR}/../
 )
-
+find_package(Boost REQUIRED COMPONENTS  system filesystem graph)
+link_directories ( ${Boost_LIBRARY_DIRS} )
 #------------------------------------------------------------------------------
 # Add Qt Resource files
 qt4_add_resources(RCC_BUILT_SOURCES )
@@ -53,7 +54,7 @@ set(Espina_SOURCE_FILES
   ${RCC_BUILT_SOURCES}
   )
 
-set(EXTERNAL_LIBS ${QUAZIP_LIBRARIES})
+set(EXTERNAL_LIBS ${QUAZIP_LIBRARIES} ${Boost_LIBRARIES})
 
 add_library (Espina SHARED ${Espina_SOURCE_FILES})
 
