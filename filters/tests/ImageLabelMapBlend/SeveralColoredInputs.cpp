@@ -38,9 +38,9 @@ int SeveralColoredInputs(int argc, char **argv)
   blender->AddInputConnection(0, bgImage->GetOutputPort());
 //   blender->SetLabelMapColor(0,1,0,0);
   blender->AddInputConnection(0,input1->GetOutputPort());
-  blender->SetLabelMapColor(1,1,0,0);
+  blender->SetLabelMapColor(1,1,0,0,0);
   blender->AddInputConnection(0,input2->GetOutputPort());
-  blender->SetLabelMapColor(2,0,1,0);
+  blender->SetLabelMapColor(2,0,1,0,0);
   
   blender->DebugOn();
   blender->Update();

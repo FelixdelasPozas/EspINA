@@ -1,6 +1,7 @@
 SET(LIB_DEPENDECIES
   vtkRendering
   CajalFilters
+  vtkIO
 )
 
 add_subdirectory(ConnectedThresholdImageFilter)

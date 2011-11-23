@@ -50,6 +50,8 @@ public:
   //! r,g,b : [0,1]
   void SetLabelMapColor(double id, double r, double g, double b, double selected=0);
   
+  void SetLabelMapColor(double color[5]);
+  
   void PrintSelf(ostream& os, vtkIndent indent);
     
 protected:

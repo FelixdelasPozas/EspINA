@@ -28,7 +28,7 @@ set_target_properties(CajalFilters PROPERTIES VERSION 0.1)
 
 # Maybe the target_link_libraries command is optional...
 # (I think it depends if we use shared libraries)
-target_link_libraries (CajalFilters ITKCommon ITKBasicFilters ITKAlgorithms ITKIO)
+target_link_libraries (CajalFilters ITKCommon ITKBasicFilters ITKAlgorithms ITKIO vtkIO)
 
 SET (ENABLE_TESTS 1)
 

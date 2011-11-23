@@ -33,7 +33,7 @@ int SingleInput(int argc, char **argv)
 //   blender->SetNumberOfThreads(3);
   blender->AddInputConnection(0, bgImage->GetOutputPort());
   blender->AddInputConnection(0,input1->GetOutputPort());
-  blender->SetLabelMapColor(1,1,0,0);
+  blender->SetLabelMapColor(1,1,0,0,0);
   
   blender->DebugOn();
   blender->Update();

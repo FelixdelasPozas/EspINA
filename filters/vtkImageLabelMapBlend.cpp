@@ -167,6 +167,9 @@ void vtkImageLabelMapBlend::RemoveAllInputs()
 
 void vtkImageLabelMapBlend::SetLabelMapColor(double id, double r, double g, double b, double selected)
 {
+  if (id == -1)
+    return;
+  
   assert(id < m_inputs.size());
   double rComponent = r*255;
   double gComponent = g*255;
@@ -201,6 +204,12 @@ void vtkImageLabelMapBlend::SetLabelMapColor(double id, double r, double g, doub
     }
   }
 }
+
+void vtkImageLabelMapBlend::SetLabelMapColor(double color[5])
+{
+  SetLabelMapColor(color[0], color[1], color[2], color[3], color[4]);
+}
+
 
 
 

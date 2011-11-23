@@ -40,11 +40,11 @@ int SeveralInputs_Stepped(int argc, char **argv)
   blender->Update();
 
   blender->AddInputConnection(0,input1->GetOutputPort());
-  blender->SetLabelMapColor(1,1,0,0);
+  blender->SetLabelMapColor(1,1,0,0,0);
   blender->Update();
    
   blender->AddInputConnection(0,input2->GetOutputPort());
-  blender->SetLabelMapColor(2,0,1,0);
+  blender->SetLabelMapColor(2,0,1,0,0);
   blender->Update();
   
   vtkSmartPointer<vtkMetaImageWriter> writer =

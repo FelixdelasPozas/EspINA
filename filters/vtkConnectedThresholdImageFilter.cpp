@@ -189,7 +189,8 @@ int vtkConnectedThresholdImageFilter::RequestData(vtkInformation* request, vtkIn
   typedef itk::ImageToVTKImageFilter<OutputImageType> itk2vtkFilterType;
   itk2vtkFilterType::Pointer itk2vtk_filter = itk2vtkFilterType::New();
   
-  itk2vtk_filter->SetInput( extract->GetOutput() );
+  ctif->Update();
+  itk2vtk_filter->SetInput( ctif->GetOutput() );
   itk2vtk_filter->Update();
   
   output->DeepCopy( itk2vtk_filter->GetOutput() );
