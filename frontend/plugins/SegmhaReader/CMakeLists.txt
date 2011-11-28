@@ -30,7 +30,7 @@ ADD_PARAVIEW_AUTO_START(IFACES IFACE_SRCS
 )
 
 ADD_PARAVIEW_PLUGIN(
-  SegmhaReader "1.0"
+  SegmhaReader "1.1"
   SERVER_MANAGER_SOURCES vtkSegmhaReader.cpp vtkExtractBlockAsImage.cpp
   SERVER_MANAGER_XML SegmhaReader.xml
 #   SOURCES ${LOCAL_SOURCES}

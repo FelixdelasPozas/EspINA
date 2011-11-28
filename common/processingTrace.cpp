@@ -441,7 +441,7 @@ void ProcessingTrace::print( std::ostream& out, ProcessingTrace::printFormat for
     dp.property("args", boost::get(&VertexProperties::args, m_trace));
     dp.property("label", boost::get(boost::edge_name, m_trace));
 
-    boost::write_graphviz( out, m_trace, dp);
+    boost::write_graphviz_dp( out, m_trace, dp);
   }
   else if( format == debug)
   {

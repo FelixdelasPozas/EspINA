@@ -42,6 +42,7 @@
 #include <EspinaSaveDataReaction.h>
 
 #include <fstream>
+#include <sstream>
 
 #include "FilePack.h"
 #include <QMessageBox>

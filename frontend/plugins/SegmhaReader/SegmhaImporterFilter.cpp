@@ -195,12 +195,16 @@ SegmhaImporterFilter::SegmhaImporterFilter(pqPipelineSource* reader, const QStri
     trace->addNode(seg);
     // Trace connection
     trace->connect(this, seg,"Segmentation");
-    
+
+    Taxonomy *espinaTax = EspINA::instance()->taxonomy();
 //     std::cout << "Getting taxonomy "<< segTaxonomies[p].toStdString() << ": " << availableTaxonomies[segTaxonomies[p].toInt()-1].toStdString() << std::endl;
-    seg->setTaxonomy(tax->element(availableTaxonomies[segTaxonomies[p].toInt()-1]));
+    TaxonomyNode *newtax = tax->element("Segmha/"+availableTaxonomies[segTaxonomies[p].toInt()-1]);
+//     std::cout << "Found taxonomy "<< newtax->name().toStdString() << std::endl;
+    
+    seg->setTaxonomy(newtax);
     
 //     std::cout << "Adding " << seg->taxonomy()->getName().toStdString() << " segmentation" << std::endl;
-    
+
     EspINA::instance()->addSegmentation(seg);
   }
   

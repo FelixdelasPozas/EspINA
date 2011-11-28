@@ -54,7 +54,7 @@ double vtkAppositionPlaneFeatures::area(vtkPolyData* mesh)
   mesh->Update();
   int nc = mesh->GetNumberOfCells();
   double totalArea = 0.0;
-  std::cout << "Number of Cells: " << nc << std::endl;
+//   std::cout << "Number of Cells: " << nc << std::endl;
   for (int i = 0; i < nc; i++)
     totalArea += vtkMeshQuality::TriangleArea(mesh->GetCell(i));
   
