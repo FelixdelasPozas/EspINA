@@ -205,6 +205,11 @@ SegmhaImporterFilter::SegmhaImporterFilter(pqPipelineSource* reader, const QStri
     
 //     std::cout << "Adding " << seg->taxonomy()->getName().toStdString() << " segmentation" << std::endl;
 
+    segImage->pipelineSource()->updatePipeline();
+    segImage->pipelineSource()->getProxy()->UpdatePropertyInformation();
+    int newId = vtkSMPropertyHelper(segImage->pipelineSource()->getProxy(),"Label").GetAsInt();
+    std::cout << "Loaded " << newtax->name().toStdString() << " " << newId << std::endl;
+    seg->setId(newId);
     EspINA::instance()->addSegmentation(seg);
   }
   

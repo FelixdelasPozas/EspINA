@@ -88,6 +88,15 @@
        immediate_update="1"
        command="SetExtractBlock">
      </IntVectorProperty>
+     <IntVectorProperty
+       name="Label"
+       number_of_elements="1"
+       default_values="-1"
+       immediate_update="1"
+       information_only="1"
+       command="GetLabel">
+       <SimpleIntInformationHelper/>
+     </IntVectorProperty>
    </SourceProxy>
    <!-- End ExtractBlockAsImage -->
   </ProxyGroup>

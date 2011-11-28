@@ -24,6 +24,7 @@
 #include <QFile>
 #include <QString>
 #include <QStringList>
+#include <vtkPointData.h>
 
 
 vtkStandardNewMacro(vtkExtractBlockAsImage);
@@ -31,6 +32,8 @@ vtkStandardNewMacro(vtkExtractBlockAsImage);
 
 //---------------------------------------------------------------------------
 vtkExtractBlockAsImage::vtkExtractBlockAsImage()
+: ExtractBlock(-1)
+, Label(-1)
 {
   this->SetNumberOfInputPorts(1);
   this->SetNumberOfOutputPorts(1);
@@ -80,6 +83,9 @@ int vtkExtractBlockAsImage::RequestData(
   output->ShallowCopy(inputImage);
   output->CopyInformation(inputImage);
   outputInfo->Set(vtkDataObject::SPACING(), inputImage->GetSpacing(), 3);
+
+  Label = inputImage->GetPointData()->GetArray("Label")->GetTuple1(0);
+//   std::cout << "Read Label: " << Label << std::endl; 
   
   
   return 1;

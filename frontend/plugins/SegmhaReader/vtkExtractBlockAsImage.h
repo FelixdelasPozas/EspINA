@@ -20,6 +20,7 @@ public:
     void PrintSelf(ostream& os, vtkIndent indent);
 
     vtkSetMacro(ExtractBlock,int);
+    vtkGetMacro(Label,int);
 //     vtkSetStringMacro(Trace);
 //     vtkGetStringMacro(Trace);
 
@@ -41,6 +42,7 @@ private:
   void operator=(const vtkExtractBlockAsImage&);  // Not implemented.
   
   int ExtractBlock;
+  int Label;
 //   char* Trace;
 //   char* Taxonomy;
 };

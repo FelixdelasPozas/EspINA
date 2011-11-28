@@ -27,6 +27,7 @@
 #include <QFile>
 #include <QString>
 #include <QStringList>
+#include <vtkPointData.h>
 
 typedef itk::Image<unsigned short,3> 			SegmhaImageType;
 typedef itk::Image<unsigned  char,3> 			EspinaImageType;
@@ -221,7 +222,7 @@ int vtkSegmhaReader::RequestData(
   {
     try
     {
-      std::cout << "Loading Segmentations " << blockNo << "..." << std::endl;
+      std::cout << "Loading Segmentation " << seg.label << " in block " << blockNo << "..." << std::endl;
       //     std::cout << "\tLabel: " << QString::number(seg.label).toStdString() << std::endl;
       //     std::cout << "\tSegment: " << QString::number(seg.taxonomyId).toStdString() << std::endl;
       LabelMapType *    labelMap = image2label->GetOutput();
@@ -257,6 +258,12 @@ int vtkSegmhaReader::RequestData(
       vtkSmartPointer<vtkImageData>::New();
       segImage->DeepCopy( itk2vtk_filter->GetOutput() );
       segImage->CopyInformation(itk2vtk_filter->GetOutput());//WARNING: don't forget!
+      vtkSmartPointer<vtkIntArray> labelData = vtkSmartPointer<vtkIntArray>::New();
+      labelData->SetName("Label");
+      labelData->SetNumberOfComponents(1);
+      labelData->SetNumberOfTuples(1);
+      labelData->SetValue(0,seg.label);
+      segImage->GetPointData()->AddArray(labelData);
       
       output->SetBlock(blockNo,segImage);
       
