@@ -144,8 +144,8 @@ SegmhaImporterFilter::SegmhaImporterFilter(pqPipelineSource* reader, const QStri
   {
     if (taxonomy == "")
       continue;
-    
-    QStringList values = taxonomy.split(" ");
+    std::cout << "Adding Tax: " << taxonomy.toStdString() << std::endl;
+    QStringList values = taxonomy.split(",");
     QChar zero = '0';
     QString color = QString("#%1%2%3")
     .arg(values[2].toInt(),2,16,zero)

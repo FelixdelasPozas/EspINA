@@ -77,7 +77,7 @@ vtkSegmhaReader::TaxonomyObject::TaxonomyObject(const QString& line)
 
 QString& vtkSegmhaReader::TaxonomyObject::toString()
 {
-  QString *string = new QString(QString("%1 %2 %3 %4 %5;")
+  QString *string = new QString(QString("%1,%2,%3,%4,%5;")
   .arg(label)
   .arg(*name)
   .arg(color[0])
