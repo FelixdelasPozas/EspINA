@@ -17,35 +17,29 @@
 */
 
 
-#ifndef SEGMENTATIONEXPLORER_H
-#define SEGMENTATIONEXPLORER_H
-
 //----------------------------------------------------------------------------
-// File:    SegmentationExplorer.h
-// Purpose: Dock widget to manage segmentations in the model
+// File:    ViewFrame.h
+// Purpose: Contain various views and re-arrange them.
 //----------------------------------------------------------------------------
-#include <common/gui/EspinaDockWidget.h>
-#include <ui_SegmentationExplorer.h>
+#ifndef VIEWFRAME_H
+#define VIEWFRAME_H
 
-class EspINA;
+#include <QSplitter>
 
-class SegmentationExplorer : public EspinaDockWidget
+class SliceView;
+class ViewFrame : public QSplitter
 {
-  Q_OBJECT
-
-  class GUI;
-  class State;
 public:
-  explicit SegmentationExplorer(QSharedPointer<EspINA> model, QWidget *parent = 0);
-  virtual ~SegmentationExplorer();
+  explicit ViewFrame();
+  ~ViewFrame();
 
-protected slots:
-  void deleteSegmentation();
+  void split();
 
-protected:
-  GUI *m_gui;
-  QSharedPointer<EspINA> m_baseModel;
-  State *m_state;
+  void onConnect();
+  void onDisconnect();
+
+private:
+  QList<QSharedPointer<SliceView> > m_views;
 };
 
-#endif // SEGMENTATIONEXPLORER_H
+#endif // VIEWFRAME_H

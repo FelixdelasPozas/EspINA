@@ -17,35 +17,48 @@
 */
 
 
-#ifndef SEGMENTATIONEXPLORER_H
-#define SEGMENTATIONEXPLORER_H
-
 //----------------------------------------------------------------------------
-// File:    SegmentationExplorer.h
-// Purpose: Dock widget to manage segmentations in the model
+// File:    ViewManager.h
+// Purpose: Create new views and keep them valid whenever the server
+//          connection changes.
 //----------------------------------------------------------------------------
-#include <common/gui/EspinaDockWidget.h>
-#include <ui_SegmentationExplorer.h>
+#ifndef VIEWMANAGER_H
+#define VIEWMANAGER_H
 
-class EspINA;
+#include <QSharedPointer>
 
-class SegmentationExplorer : public EspinaDockWidget
+class QWidget;
+class ViewFrame;
+class pqServerManagerObserver;
+
+class ViewManager : public QObject
 {
   Q_OBJECT
-
-  class GUI;
-  class State;
 public:
-  explicit SegmentationExplorer(QSharedPointer<EspINA> model, QWidget *parent = 0);
-  virtual ~SegmentationExplorer();
+  ~ViewManager();
+  
+  static QSharedPointer<ViewManager> instance()
+  {
+    if (!m_singleton)
+      m_singleton = QSharedPointer<ViewManager>(new ViewManager());
+
+    return m_singleton;
+  }
+
+  QWidget *createLayout();
 
 protected slots:
-  void deleteSegmentation();
+  // Espina has been connected to a new server
+  void onConnect();
+  // Espina has been disconnected from server
+  void onDisconnect();
 
-protected:
-  GUI *m_gui;
-  QSharedPointer<EspINA> m_baseModel;
-  State *m_state;
+private:
+  explicit ViewManager();
+
+  static QSharedPointer<ViewManager> m_singleton;
+  pqServerManagerObserver *m_SMObserver;
+  QList<ViewFrame *> m_frames;
 };
 
-#endif // SEGMENTATIONEXPLORER_H
+#endif // VIEWMANAGER_H

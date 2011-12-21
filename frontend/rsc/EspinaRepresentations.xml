@@ -1,0 +1,15 @@
+<ServerManagerConfiguration>
+  <ProxyGroup name="representations">
+    <RepresentationProxy name="EspinaSliceRepresentation"
+      class="vtkEspinaSliceRepresentation"
+      processes="client|renderserver|dataserver">
+      <Documentation>
+        This is the new representation type we are adding. This is identical to
+        the SurfaceRepresentation except that we are overriding the mapper with
+        our mapper.
+      </Documentation>
+
+    <!-- End of MySpecialRepresentation -->
+    </RepresentationProxy>
+  </ProxyGroup>
+</ServerManagerConfiguration>

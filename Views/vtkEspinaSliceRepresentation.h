@@ -17,35 +17,19 @@
 */
 
 
-#ifndef SEGMENTATIONEXPLORER_H
-#define SEGMENTATIONEXPLORER_H
+#ifndef VTKESPINASLICEREPRESENTATION_H
+#define VTKESPINASLICEREPRESENTATION_H
 
-//----------------------------------------------------------------------------
-// File:    SegmentationExplorer.h
-// Purpose: Dock widget to manage segmentations in the model
-//----------------------------------------------------------------------------
-#include <common/gui/EspinaDockWidget.h>
-#include <ui_SegmentationExplorer.h>
+#include <vtkImageSliceRepresentation.h>
 
-class EspINA;
 
-class SegmentationExplorer : public EspinaDockWidget
+class vtkEspinaSliceRepresentation : public vtkImageSliceRepresentation
 {
-  Q_OBJECT
-
-  class GUI;
-  class State;
 public:
-  explicit SegmentationExplorer(QSharedPointer<EspINA> model, QWidget *parent = 0);
-  virtual ~SegmentationExplorer();
+  static vtkEspinaSliceRepresentation* New();
+  vtkTypeMacro(vtkEspinaSliceRepresentation,vtkImageSliceRepresentation);
 
-protected slots:
-  void deleteSegmentation();
-
-protected:
-  GUI *m_gui;
-  QSharedPointer<EspINA> m_baseModel;
-  State *m_state;
+  virtual bool AddToView(vtkView* view);
 };
 
-#endif // SEGMENTATIONEXPLORER_H
+#endif // VTKESPINASLICEREPRESENTATION_H

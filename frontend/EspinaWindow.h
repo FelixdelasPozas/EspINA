@@ -17,35 +17,44 @@
 */
 
 
-#ifndef SEGMENTATIONEXPLORER_H
-#define SEGMENTATIONEXPLORER_H
+#ifndef ESPINAWINDOW_H
+#define ESPINAWINDOW_H
 
-//----------------------------------------------------------------------------
-// File:    SegmentationExplorer.h
-// Purpose: Dock widget to manage segmentations in the model
-//----------------------------------------------------------------------------
-#include <common/gui/EspinaDockWidget.h>
-#include <ui_SegmentationExplorer.h>
+#include <qt4/QtGui/QMainWindow>
 
 class EspINA;
+class pqView;
+class pqPipelineSource;
 
-class SegmentationExplorer : public EspinaDockWidget
+#define DEBUG
+
+#ifdef DEBUG
+class ModelTest;
+#endif
+
+class EspinaWindow : public QMainWindow
 {
   Q_OBJECT
-
-  class GUI;
-  class State;
 public:
-  explicit SegmentationExplorer(QSharedPointer<EspINA> model, QWidget *parent = 0);
-  virtual ~SegmentationExplorer();
+    explicit EspinaWindow();
+    virtual ~EspinaWindow();
+public slots:
+  void onConnect();
+  void loadSource(pqPipelineSource *source);
 
-protected slots:
-  void deleteSegmentation();
+  /// Open a new file for analysis after unloading Previous data.
+  void openFile();
+  /// Load new data for analysis
+  void loadFile();
 
 protected:
-  GUI *m_gui;
-  QSharedPointer<EspINA> m_baseModel;
-  State *m_state;
+  void loadParaviewBehavior();
+
+private:
+  QSharedPointer<EspINA> m_espina;
+#ifdef DEBUG
+  QSharedPointer<ModelTest> m_modelTester;
+#endif
 };
 
-#endif // SEGMENTATIONEXPLORER_H
+#endif // ESPINAWINDOW_H

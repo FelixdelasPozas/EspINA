@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
+    Copyright (C) 2011  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,19 +16,21 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+//----------------------------------------------------------------------------
+// File:    DynamicWidget.h
+// Purpose: Define the interface for every widget which depends on the current
+//          LOD and activity
+//----------------------------------------------------------------------------
+#ifndef DYNAMICWIDGET_H
+#define DYNAMICWIDGET_H
 
-#include "qTreeComboBox.h"
-
-#include <QMouseEvent>
-
-bool QTreeComboBox::eventFilter(QObject* object, QEvent* event)
+class DynamicWidget
 {
-  if (event->type() == QEvent::MouseButtonPress && object == view()->viewport())
-  {
-    QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
-    QModelIndex index = view()->indexAt(mouseEvent->pos());
-    if (!view()->visualRect(index).contains(mouseEvent->pos()))
-      skipNextHide = true;
-  }
-  return false;
-}
+public:
+  virtual void increaseLOD() = 0;
+  virtual void decreaseLOD() = 0;
+  virtual void setLOD() = 0;
+  virtual void setActivity() = 0;
+};
+
+#endif // DYNAMICWIDGET_H

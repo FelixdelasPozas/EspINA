@@ -16,36 +16,30 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-#ifndef SEGMENTATIONEXPLORER_H
-#define SEGMENTATIONEXPLORER_H
-
 //----------------------------------------------------------------------------
-// File:    SegmentationExplorer.h
-// Purpose: Dock widget to manage segmentations in the model
+// File:    EspinaDockWidget.h
+// Purpose: Extends Qt Dock Widget to deal with Espina LOD/Activities
 //----------------------------------------------------------------------------
-#include <common/gui/EspinaDockWidget.h>
-#include <ui_SegmentationExplorer.h>
+#ifndef ESPINADOCKWIDGET_H
+#define ESPINADOCKWIDGET_H
 
-class EspINA;
+#include <QDockWidget>
+#include "DynamicWidget.h"
 
-class SegmentationExplorer : public EspinaDockWidget
+
+class EspinaDockWidget : public QDockWidget, public DynamicWidget
 {
-  Q_OBJECT
 
-  class GUI;
-  class State;
 public:
-  explicit SegmentationExplorer(QSharedPointer<EspINA> model, QWidget *parent = 0);
-  virtual ~SegmentationExplorer();
+  EspinaDockWidget(QWidget *parent = 0);
+  virtual ~EspinaDockWidget();
 
-protected slots:
-  void deleteSegmentation();
-
+    virtual void increaseLOD(){}
+    virtual void decreaseLOD(){}
+    virtual void setLOD(){}
+    virtual void setActivity(){}
 protected:
-  GUI *m_gui;
-  QSharedPointer<EspINA> m_baseModel;
-  State *m_state;
+//   QSharedPointer<DynamicWidgetState> m_state;
 };
 
-#endif // SEGMENTATIONEXPLORER_H
+#endif // ESPINADOCKWIDGET_H

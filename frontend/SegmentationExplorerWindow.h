@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,32 +20,30 @@
 #ifndef SEGMENTATIONEXPLORER_H
 #define SEGMENTATIONEXPLORER_H
 
-//----------------------------------------------------------------------------
-// File:    SegmentationExplorer.h
-// Purpose: Dock widget to manage segmentations in the model
-//----------------------------------------------------------------------------
-#include <common/gui/EspinaDockWidget.h>
-#include <ui_SegmentationExplorer.h>
+#include <QWidget>
+#include "ui_segmentationExplorer.h"
 
-class EspINA;
+class Segmentation;
+class pqRenderView;
 
-class SegmentationExplorer : public EspinaDockWidget
+class SegmentationExplorer : public QWidget, public Ui::SegmentationExplorer
 {
   Q_OBJECT
-
-  class GUI;
-  class State;
 public:
-  explicit SegmentationExplorer(QSharedPointer<EspINA> model, QWidget *parent = 0);
+  SegmentationExplorer(Segmentation *seg, QWidget* parent = 0, Qt::WindowFlags f = 0);
   virtual ~SegmentationExplorer();
-
-protected slots:
-  void deleteSegmentation();
-
-protected:
-  GUI *m_gui;
-  QSharedPointer<EspINA> m_baseModel;
-  State *m_state;
+  
+public slots:
+  void takeSnapshot();
+  void exportScene();
+  void updateScene();
+ 
+signals:
+  void segmentationInformationHiden(Segmentation *);
+  
+private:
+  pqRenderView *m_view;
+  Segmentation *m_seg;
 };
 
 #endif // SEGMENTATIONEXPLORER_H
