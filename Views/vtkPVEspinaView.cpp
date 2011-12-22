@@ -21,6 +21,7 @@
 
 #include <QDebug>
 
+#include "vtkEspinaView.h"
 
 #include "vtkObjectFactory.h"
 #include "vtkLegendScaleActor.h"
@@ -28,8 +29,45 @@
 #include <vtkDataRepresentation.h>
 #include <vtkCommand.h>
 
-#include "vtkEspinaView.h"
+#include <vtkInteractorStyleImage.h>
 #include <vtkRenderWindow.h>
+#include <vtkPVGenericRenderWindowInteractor.h>
+#include <vtkPVInteractorStyle.h>
+
+// Interactor Style to be used with Slice Views
+class vtkInteractorStyleEspinaSlice
+: public vtkPVInteractorStyle
+{
+public:
+  static vtkInteractorStyleEspinaSlice *New();
+  vtkTypeMacro(vtkInteractorStyleEspinaSlice,vtkPVInteractorStyle);
+
+  // Disable mouse wheel
+  virtual void OnMouseWheelForward(){}
+  virtual void OnMouseWheelBackward(){}
+//   virtual void OnMouseMove();
+protected:
+  explicit vtkInteractorStyleEspinaSlice();
+  virtual ~vtkInteractorStyleEspinaSlice();
+
+private:
+  vtkInteractorStyleEspinaSlice(const vtkInteractorStyleImage& ); // Not implemented
+  void operator=(const vtkInteractorStyleEspinaSlice&);           // Not implemented
+};
+
+vtkStandardNewMacro(vtkInteractorStyleEspinaSlice);
+
+//-----------------------------------------------------------------------------
+vtkInteractorStyleEspinaSlice::vtkInteractorStyleEspinaSlice()
+{
+}
+
+//-----------------------------------------------------------------------------
+vtkInteractorStyleEspinaSlice::~vtkInteractorStyleEspinaSlice()
+{
+  qDebug() << "vtkInteractorStyleEspinaSlice(" << this << "): Destroyed";
+}
+
 
 vtkStandardNewMacro(vtkPVEspinaView);
 //----------------------------------------------------------------------------
@@ -39,11 +77,26 @@ vtkPVEspinaView::vtkPVEspinaView()
   this->SetCenterAxesVisibility(false);
   this->SetOrientationAxesVisibility(false);
   this->SetOrientationAxesInteractivity(false);
-  this->SetInteractionMode(INTERACTION_MODE_2D);
+  this->SetInteractionMode(INTERACTION_MODE_3D);
 
-  this->OverviewRenderer = vtkSmartPointer<vtkRenderer>::New();
-  this->OverviewRenderer->SetViewport(0.75,0,1,0.25);
-  this->GetRenderWindow()->AddRenderer(this->OverviewRenderer);
+  vtkRenderViewBase *oldRV = RenderView;
+  EspinaView = vtkEspinaView::New();
+  this->RenderView = EspinaView;
+  this->RenderView->SetInteractor(oldRV->GetInteractor());
+  this->RenderView->SetRenderWindow(oldRV->GetRenderWindow());
+  this->RenderView->SetInteractor(oldRV->GetInteractor());
+//   EspinaView->GetOverviewRenderer()->SetActiveCamera(RenderView->GetRenderer()->GetActiveCamera());
+  oldRV->Delete();
+  if (this->Interactor)
+  {
+    this->InteractorStyle = vtkInteractorStyleEspinaSlice::New();
+    this->Interactor->SetRenderer(this->GetRenderer());
+    this->Interactor->SetRenderWindow(this->GetRenderWindow());
+    this->Interactor->SetInteractorStyle(this->InteractorStyle);
+  }
+//   this->OverviewRenderer = vtkSmartPointer<vtkRenderer>::New();
+//   this->OverviewRenderer->SetViewport(0.75,0,1,0.25);
+//   this->GetRenderWindow()->AddRenderer(this->OverviewRenderer);
 
   qDebug() << this << ": Created";
 }
@@ -54,46 +107,51 @@ vtkPVEspinaView::~vtkPVEspinaView()
 }
 
 //----------------------------------------------------------------------------
-void vtkPVEspinaView::SetInteractionMode(int mode)
-{
-  if (mode == INTERACTION_MODE_3D)
-    {
-    mode = INTERACTION_MODE_2D;
-    }
-  this->Superclass::SetInteractionMode(mode);
-}
-
-//----------------------------------------------------------------------------
-void vtkPVEspinaView::SetAxisVisibility(bool val)
-{
-}
-
-void vtkPVEspinaView::AddActor(vtkProp* prop)
-{
-  qDebug() << this << ": Adding actor to both renderers";
-  OverviewRenderer->AddActor(prop);
-  OverviewRenderer->ResetCamera();
-  GetRenderer()->AddActor(prop);
-}
-
-
-//----------------------------------------------------------------------------
-void vtkPVEspinaView::AddSample(vtkDataRepresentation* rep)
-{
-  AddRepresentation(rep);
-  std::cout << "Add Sample to Espina View" << std::endl;
-}
-
-//----------------------------------------------------------------------------
-void vtkPVEspinaView::RemoveSample(vtkDataRepresentation* rep)
-{
-  std::cout << "Remove Sample to Espina View" << std::endl;
-}
-
-
-
-//----------------------------------------------------------------------------
 void vtkPVEspinaView::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }
+
+//----------------------------------------------------------------------------
+void vtkPVEspinaView::AddActor(vtkProp* actor)
+{
+//   EspinaView->GetRenderer()->SetBackground2(1,0,0);
+  EspinaView->AddActor(actor);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVEspinaView::ResetCamera()
+{
+  vtkPVRenderView::ResetCamera();
+  EspinaView->GetOverviewRenderer()->ResetCamera(this->LastComputedBounds);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVEspinaView::ResetCamera(double bounds[6])
+{
+  vtkPVRenderView::ResetCamera(bounds);
+  EspinaView->GetOverviewRenderer()->ResetCamera(bounds);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVEspinaView::ResetCameraClippingRange()
+{
+    vtkPVRenderView::ResetCameraClippingRange();
+    EspinaView->GetOverviewRenderer()->ResetCameraClippingRange(this->LastComputedBounds);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVEspinaView::SetOrientationAxesVisibility(bool )
+{
+    vtkPVRenderView::SetOrientationAxesVisibility(false);
+}
+
+
+//----------------------------------------------------------------------------
+void vtkPVEspinaView::SetBackground(double r, double g, double b)
+{
+  vtkPVRenderView::SetBackground(r,g,b);
+  EspinaView->GetOverviewRenderer()->SetBackground(r,g,b);
+}
+
+

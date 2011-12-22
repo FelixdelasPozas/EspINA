@@ -23,18 +23,18 @@
 // #include "espina_debug.h"
 // 
 // // EspINA
+#include "../../Views/EspinaView.h"
+#include "../Views/vtkSMEspinaViewProxy.h"
 // #include "interfaces.h"
 // #include "filter.h"
 // #include "sample.h"
 // #include "segmentation.h"
-#include "../../Views/EspinaView.h"
-#include "../Views/vtkSMEspinaViewProxy.h"
 
 // Qt includes
-#include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QScrollBar>
 #include <QSpinBox>
+#include <QVBoxLayout>
 // #include <QMouseEvent>
 
 // ParaQ includes
@@ -44,8 +44,11 @@
 #include <pqObjectBuilder.h>
 #include <pqPipelineSource.h>
 #include <pqRenderView.h>
-#include <vtkSMRepresentationProxy.h>
 #include <pqSMAdaptor.h>
+#include <vtkInteractorStyleImage.h>
+#include <vtkObjectFactory.h>
+#include <vtkSMPropertyHelper.h>
+#include <vtkSMRepresentationProxy.h>
 
 // #include "pqDisplayPolicy.h"
 // #include "pqPipelineRepresentation.h"
@@ -63,7 +66,6 @@
 // #include "vtkSMOutputPort.h"
 // #include "selectionManager.h"
 // #include <vtkInteractorObserver.h>
-// #include <vtkInteractorStyleImage.h>
 // #include <vtkPVInteractorStyle.h>
 //
 //
@@ -80,7 +82,6 @@
 // #include <vtkSMNewWidgetRepresentationProxy.h>
 // #include <vtkSMBoxRepresentationProxy.h>
 // #include <vtkBoxWidget2.h>
-// #include <vtkObjectFactory.h>
 // #include <vtkBoxRepresentation.h>
 // #include <vtkWidgetEventTranslator.h>
 // 
@@ -96,21 +97,44 @@
 // 
 // #include <vtkCubeSource.h>
 // #include <vtkPolyDataMapper.h>
-// 
-// class vtkInteractorStyleEspina : public vtkInteractorStyleImage
+
+// // Interactor Style to be used with Slice Views
+// class vtkInteractorStyleEspinaSlice
+// : public vtkInteractorStyleImage
 // {
 // public:
-//   static vtkInteractorStyleEspina *New();
-//   vtkTypeMacro(vtkInteractorStyleEspina,vtkInteractorStyleImage);
-//   
+//   static vtkInteractorStyleEspinaSlice *New();
+//   vtkTypeMacro(vtkInteractorStyleEspinaSlice,vtkInteractorStyleImage);
+// 
+//   // Disable mouse wheel
 //   virtual void OnMouseWheelForward(){}
 //   virtual void OnMouseWheelBackward(){}
-//   virtual void OnMouseMove();
+// //   virtual void OnMouseMove();
+// protected:
+//   explicit vtkInteractorStyleEspinaSlice();
+//   virtual ~vtkInteractorStyleEspinaSlice();
+// 
+// private:
+//   vtkInteractorStyleEspinaSlice(const vtkInteractorStyleImage& ); // Not implemented
+//   void operator=(const vtkInteractorStyleEspinaSlice&);           // Not implemented
 // };
 // 
-// vtkStandardNewMacro(vtkInteractorStyleEspina);
+// vtkStandardNewMacro(vtkInteractorStyleEspinaSlice);
 // 
 // //-----------------------------------------------------------------------------
+// vtkInteractorStyleEspinaSlice::vtkInteractorStyleEspinaSlice()
+// {
+// }
+// 
+// //-----------------------------------------------------------------------------
+// vtkInteractorStyleEspinaSlice::~vtkInteractorStyleEspinaSlice()
+// {
+//   qDebug() << "vtkInteractorStyleEspinaSlice(" << this << "): Destroyed";
+// }
+
+
+
+//-----------------------------------------------------------------------------
 // void vtkInteractorStyleEspina::OnMouseMove()
 // {
 //   if (Interactor->GetControlKey())
@@ -559,6 +583,7 @@ void SliceView::onConnect()
 //   connect(m_view,SIGNAL(beginRender()),this,SLOT(beginRender()));
 //   connect(m_view,SIGNAL(endRender()),this,SLOT(endRender()));
 
+
   m_viewWidget = m_view->getWidget();
 //   m_viewWidget->installEventFilter(this);
 //   QObject::connect(m_viewWidget, SIGNAL(mouseEvent(QMouseEvent *)),
@@ -567,18 +592,18 @@ void SliceView::onConnect()
 
 //   m_viewProxy = vtkSMRenderViewProxy::SafeDownCast(m_view->getProxy());
 //   assert(m_viewProxy);
-//   
+//
 //   m_rwi = vtkRenderWindowInteractor::SafeDownCast(
 //     m_viewProxy->GetRenderWindow()->GetInteractor());
 //   assert(m_rwi);
-//   
-//   
+//
+//
 //   m_style = vtkInteractorStyleEspina::New();
 //   m_rwi->SetInteractorStyle(m_style);
-//   
+//
 // //   vtkRenderWindow *clientRW = m_view->getRenderViewProxy()->GetRenderWindow();
 // //   vtkSmartPointer<vtkRenderer> clientRenderer = vtkSmartPointer<vtkRenderer>::New();
-// //   
+// //
 // //   vtkSmartPointer<vtkCubeSource> cube = vtkSmartPointer<vtkCubeSource>::New();
 // //   vtkPolyDataMapper *cubeMapper = vtkPolyDataMapper::New();
 // //   cubeMapper->SetInput(cube->GetOutput());
@@ -586,18 +611,18 @@ void SliceView::onConnect()
 // //   cubeActor->SetMapper(cubeMapper);
 // //   clientRenderer->AddActor(cubeActor);
 // //   clientRenderer->SetViewport(0.5,0,1,0.5);
-// //   
+// //
 // //   clientRW->AddRenderer(clientRenderer);
 // //   clientRW->AlphaBitPlanesOn();
 // //   clientRW->SetDoubleBuffer(true);
 // //   clientRW->SetNumberOfLayers(2);
 // //   clientRenderer->SetLayer(1);
-//   
+//
 //   m_cam = m_viewProxy->GetActiveCamera();
 //   assert(m_cam);
-//   
+//
 //   m_cam->ParallelProjectionOn();
-//   
+//
 //   switch (m_plane)
 //   {
 //     case VIEW_PLANE_XY:
@@ -621,13 +646,15 @@ void SliceView::onConnect()
 //     default:
 //       assert(false);
 //   };
-//     
-//   double black[3] = {0, 0, 0};
+//
+  double black[] = {0,0,0};
+  vtkSMPropertyHelper(m_view->getViewProxy(),"Background").Set(black,3);
+  m_view->getViewProxy()->UpdateVTKObjects();
 //   m_view->getRenderViewProxy()->GetRenderer()->SetBackground(black);
 //   m_view->setCenterAxesVisibility(false);
 //   m_view->setOrientationAxesVisibility(m_preferences->showAxis());
 //   //m_view->resetCamera();
-// 
+//
 //   // Disable menu
 //   // TODO: OLDVERSION m_view->getWidget()->removeAction(m_view->getWidget()->actions().first());
 
@@ -652,10 +679,11 @@ void SliceView::onDisconnect()
 void SliceView::loadTestImage()
 {
   qDebug() << this << ": Loading Test Image";
+  pqServer *server = pqActiveObjects::instance().activeServer();
   pqObjectBuilder* builder = pqApplicationCore::instance()->getObjectBuilder();
   pqPipelineSource *img = builder->createReader("sources","PVDReader",
 						QStringList("/home/jpena/Stacks/paraPeque.pvd"),
-						pqActiveObjects::instance().activeServer());
+						server);
   vtkSMEspinaViewProxy *ep =  vtkSMEspinaViewProxy::SafeDownCast(m_view->getViewProxy());
   Q_ASSERT(ep);
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();

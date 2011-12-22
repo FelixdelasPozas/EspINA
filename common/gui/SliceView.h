@@ -25,6 +25,7 @@
 
 #include <QAbstractItemView>
 
+#include <vtkSmartPointer.h>
 // #include <QMutex>
 // #include <QMap>
 // 
@@ -40,11 +41,11 @@
 // 
 //Forward declaration
 // class CrosshairRepresentation;
-// class vtkInteractorStyleEspina;
 // class vtkCamera;
 // class vtkSMRenderViewProxy;
 // class Sample;
 class EspinaView;
+class vtkInteractorStyleEspinaSlice;
 
 // GUI
 class QScrollBar;
@@ -196,7 +197,8 @@ private:
   QWidget     *m_viewWidget;
   QScrollBar  *m_scrollBar;
   QSpinBox    *m_spinBox;
-//   vtkInteractorStyleEspina *m_style;
+
+  vtkSmartPointer<vtkInteractorStyleEspinaSlice> m_style;
 //   pqPipelineSource *m_regionCut;
 
 //   SliceViewPreferences *m_preferences;

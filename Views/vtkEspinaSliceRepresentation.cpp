@@ -25,6 +25,10 @@
 #include <vtkRenderer.h>
 #include <vtkPVLODActor.h>
 
+#include <vtkImageData.h>
+#include <vtkImageActor.h>
+#include <vtkImageResliceToColors.h>
+
 vtkStandardNewMacro(vtkEspinaSliceRepresentation);
 
 bool vtkEspinaSliceRepresentation::AddToView(vtkView* view)
@@ -32,8 +36,18 @@ bool vtkEspinaSliceRepresentation::AddToView(vtkView* view)
   vtkPVEspinaView* rview = vtkPVEspinaView::SafeDownCast(view);
   if (rview)
     {
-    rview->AddActor(this->Actor);
-    return true;
+      vtkSmartPointer<vtkImageData> cube = vtkSmartPointer<vtkImageData>::New();
+      cube->SetExtent(0,400,0,400,0,20);
+      cube->SetSpacing(1,1,2);
+      //   vtkSmartPointer<vtkImageResliceToColors> planes = vtkSmartPointer<vtkImageResliceToColors>::New();
+      //   planes->SetInput(cube);
+      vtkSmartPointer<vtkImageActor> cubeActor = vtkSmartPointer<vtkImageActor>::New();
+      cubeActor->SetInput(cube);
+      cubeActor->SetOpacity(0.8);
+
+      rview->AddActor(this->Actor);
+//       rview->AddActor(cubeActor);
+      return true;
     }
   return false;
 }

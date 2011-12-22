@@ -19,20 +19,30 @@
 
 #include "vtkEspinaView.h"
 
+#include <QDebug>
 #include <assert.h>
 
 #include <vtkObjectFactory.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 
+#include <vtkPVInteractorStyle.h>
+#include <vtkRenderWindowInteractor.h>
 
 vtkStandardNewMacro(vtkEspinaView);
 
 //----------------------------------------------------------------------------
 vtkEspinaView::vtkEspinaView()
 {
-//   std::cout << "Dir of Render Window in subclass:" << &this->RenderWindow << std::endl;
+  std::cout << "Dir of Render Window in subclass:" << &this->RenderWindow << std::endl;
   assert(this->RenderWindow);
+
+  this->OverviewRenderer = vtkSmartPointer<vtkRenderer>::New();
+  this->OverviewRenderer->SetViewport(0.75,0,1,0.25);
+  this->RenderWindow->AddRenderer(this->OverviewRenderer);
+
+//   vtkPVInteractorStyle *style = vtkPVInteractorStyle::New();
+//   this->RenderWindow->GetInteractor()->SetInteractorStyle(style);
 }
 
 //----------------------------------------------------------------------------
@@ -43,7 +53,7 @@ vtkEspinaView::~vtkEspinaView()
 //----------------------------------------------------------------------------
 vtkRenderer* vtkEspinaView::GetOverviewRenderer()
 {
-  return this->GetOverviewRenderer();
+  return this->OverviewRenderer;
 }
 
 //----------------------------------------------------------------------------
@@ -58,20 +68,27 @@ void vtkEspinaView::AddActor(vtkProp* actor)
 {
   this->Renderer->AddActor(actor);
   this->OverviewRenderer->AddActor(actor);
-  this->OverviewRenderer->ResetCamera();
 }
+
+
 
 //----------------------------------------------------------------------------
 void vtkEspinaView::setSlice(unsigned int val)
 {
-  
 }
 
+//----------------------------------------------------------------------------
 void vtkEspinaView::ResetCamera()
 {
-  PrepareForRendering();
-  vtkRenderViewBase::ResetCamera();
+  Superclass::ResetCamera();
   OverviewRenderer->ResetCamera();
+}
+
+//----------------------------------------------------------------------------
+void vtkEspinaView::ResetCameraClippingRange()
+{
+    Superclass::ResetCameraClippingRange();
+    OverviewRenderer->ResetCameraClippingRange();
 }
 
 

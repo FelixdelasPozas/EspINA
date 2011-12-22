@@ -21,6 +21,7 @@
 #define VTKPVESPINAVIEW_H
 
 #include <vtkPVRenderView.h>
+
 #include <vtkSmartPointer.h>
 
 class vtkProp;
@@ -33,31 +34,28 @@ public:
   vtkTypeMacro(vtkPVEspinaView, vtkPVRenderView);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  // Description:
-  // Get/Set the interaction mode. Overridden to force 2D mode when 3D is
-  // requested.
-  virtual void SetInteractionMode(int mode);
+  void AddActor(vtkProp *actor);
 
-  void AddActor(vtkProp *prop);
-//   vtkEspinaView *GetEspinaRenderWindow(){ return EspinaRenderView; }
-  // Description:
-  // Set the visibility for the overlay legend.
-  void SetAxisVisibility(bool);
+  // Reimplemented to update overview vtkPVRenderView behavior
+  void ResetCamera();
+  void ResetCamera(double bounds[6]);
+  virtual void ResetCameraClippingRange();
+  
+  virtual void SetOrientationAxesVisibility(bool );
 
-  virtual void SetCenterAxesVisibility(bool)
-    { this->Superclass::SetCenterAxesVisibility(false); }
-  virtual void SetOrientationAxesInteractivity(bool)
-    { this->Superclass::SetOrientationAxesInteractivity(false); }
-  virtual void SetOrientationAxesVisibility(bool)
-    { this->Superclass::SetOrientationAxesVisibility(false); }
-
+  void SetBackground(double r, double g, double b);
+  
   // Method called from xml configuration when adding a new sample
   // to the view using the SMAdaptor:
   //  pqSMAdaptor::addProxyProperty(
   //  viewModuleProxy->GetProperty("Representations"), reprProxy); //change to Samples
   //  viewModuleProxy->UpdateVTKObjects();
-  void AddSample(vtkDataRepresentation *rep);
-  void RemoveSample(vtkDataRepresentation *rep);
+//   void AddSample(vtkDataRepresentation *rep);
+//   void RemoveSample(vtkDataRepresentation *rep);
+  
+  vtkSmartPointer<vtkRenderer> OverviewRenderer;
+protected:
+  
 
 //BTX
 protected:
@@ -68,7 +66,7 @@ private:
   vtkPVEspinaView(const vtkPVEspinaView&); // Not implemented
   void operator=(const vtkPVEspinaView&); // Not implemented
 
-  vtkSmartPointer<vtkRenderer> OverviewRenderer;
+  vtkEspinaView *EspinaView;
 //ETX
 };
 #endif // VTKPVESPINAVIEW_H

@@ -108,7 +108,9 @@ void EspinaWindow::loadParaviewBehavior()
   // Define application behaviors.
   new pqDataTimeStepBehavior(this);
   new pqAlwaysConnectedBehavior(this);
-  new pqPVNewSourceBehavior(this);
+  // Crashes while loading pqPipelineSource after a re-connecting
+  // the server and loading the same source
+  // new pqPVNewSourceBehavior(this);
   new pqDeleteBehavior(this);
   new pqAutoLoadPluginXMLBehavior(this);
   new pqPluginDockWidgetsBehavior(this);

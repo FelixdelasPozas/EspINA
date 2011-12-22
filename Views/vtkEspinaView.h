@@ -35,16 +35,17 @@ public:
   vtkTypeMacro(vtkEspinaView, vtkRenderViewBase);
   void PrintSelf(std::ostream& os, vtkIndent indent);
 
-  // Gets the renderer for the area overview
+  // Sets/Gets the renderer for the area overview
   virtual vtkRenderer *GetOverviewRenderer();
-  // Sets the renderer for the area overview
   virtual void SetOverviewRenderer(vtkRenderer *ren);
 
   // Adds actor to renderer and to overview renderer
   void AddActor(vtkProp *actor);
 
-  void setSlice(unsigned int val);
   virtual void ResetCamera();
+  virtual void ResetCameraClippingRange();
+
+  void setSlice(unsigned int val);
 
   // Get a handle to the render window.
 //   virtual vtkRenderWindow* GetRenderWindow();
