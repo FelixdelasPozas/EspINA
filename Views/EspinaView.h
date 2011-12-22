@@ -22,7 +22,7 @@
 
 #include <pqRenderViewBase.h>
 
-/// pqRenderViewBase specialization used for 2D image views.
+/// pqRenderViewBase specialization used for espina
 class PQCORE_EXPORT EspinaView : public pqRenderViewBase
 {
   Q_OBJECT
@@ -85,12 +85,12 @@ protected:
   /// Return the name of the group used for view-sepecific settings such as
   /// background color, lighting.
   virtual const char* viewSettingsGroup() const
-    { return "renderModule2D"; }
+    { return "renderModuleEspina"; }
 
   /// Returns the name of the group in which to save the interactor style
   /// settings.
   virtual const char* interactorStyleSettingsGroup() const
-    { return "renderModule2D/InteractorStyle"; }
+    { return "renderModuleEspina/InteractorStyle"; }
 
   /// Must be overridden to return the default manipulator types.
   virtual const ManipulatorType* getDefaultManipulatorTypesInternal()

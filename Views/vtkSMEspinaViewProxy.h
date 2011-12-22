@@ -20,14 +20,14 @@
 #ifndef VTKSMESPINAVIEWPROXY_H
 #define VTKSMESPINAVIEWPROXY_H
 
-#include <vtkSMTwoDRenderViewProxy.h>
+#include <vtkSMRenderViewProxy.h>
 
 
-class vtkSMEspinaViewProxy : public vtkSMTwoDRenderViewProxy
+class vtkSMEspinaViewProxy : public vtkSMRenderViewProxy
 {
 public:
   static vtkSMEspinaViewProxy* New();
-  vtkTypeMacro(vtkSMEspinaViewProxy, vtkSMTwoDRenderViewProxy);
+  vtkTypeMacro(vtkSMEspinaViewProxy, vtkSMRenderViewProxy);
   
   virtual vtkSMRepresentationProxy* CreateDefaultRepresentation(vtkSMProxy* source, int port);
 };

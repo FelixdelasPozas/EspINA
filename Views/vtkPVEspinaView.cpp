@@ -79,24 +79,19 @@ vtkPVEspinaView::vtkPVEspinaView()
   this->SetOrientationAxesInteractivity(false);
   this->SetInteractionMode(INTERACTION_MODE_3D);
 
-  vtkRenderViewBase *oldRV = RenderView;
-  EspinaView = vtkEspinaView::New();
-  this->RenderView = EspinaView;
-  this->RenderView->SetInteractor(oldRV->GetInteractor());
-  this->RenderView->SetRenderWindow(oldRV->GetRenderWindow());
-  this->RenderView->SetInteractor(oldRV->GetInteractor());
-//   EspinaView->GetOverviewRenderer()->SetActiveCamera(RenderView->GetRenderer()->GetActiveCamera());
-  oldRV->Delete();
   if (this->Interactor)
   {
-    this->InteractorStyle = vtkInteractorStyleEspinaSlice::New();
-    this->Interactor->SetRenderer(this->GetRenderer());
-    this->Interactor->SetRenderWindow(this->GetRenderWindow());
-    this->Interactor->SetInteractorStyle(this->InteractorStyle);
+//     this->InteractorStyle = vtkInteractorStyleEspinaSlice::New();
+    vtkInteractorStyleImage *style = vtkInteractorStyleImage::New();
+//     this->Interactor->SetInteractorStyle(this->InteractorStyle);
+    this->Interactor->SetInteractorStyle(style);
   }
-//   this->OverviewRenderer = vtkSmartPointer<vtkRenderer>::New();
-//   this->OverviewRenderer->SetViewport(0.75,0,1,0.25);
-//   this->GetRenderWindow()->AddRenderer(this->OverviewRenderer);
+
+  RenderView->GetRenderer()->SetLayer(0);
+  this->OverviewRenderer = vtkSmartPointer<vtkRenderer>::New();
+  this->OverviewRenderer->SetViewport(0.75,0,1,0.25);
+  OverviewRenderer->SetLayer(1);
+  this->GetRenderWindow()->AddRenderer(this->OverviewRenderer);
 
   qDebug() << this << ": Created";
 }
@@ -110,34 +105,45 @@ vtkPVEspinaView::~vtkPVEspinaView()
 void vtkPVEspinaView::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
+  os << indent << "OverviewRenderer: ";
+  if (this->OverviewRenderer)
+  {
+    os << "\n";
+    this->OverviewRenderer->PrintSelf(os, indent.GetNextIndent());
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkPVEspinaView::AddActor(vtkProp* actor)
 {
 //   EspinaView->GetRenderer()->SetBackground2(1,0,0);
-  EspinaView->AddActor(actor);
+RenderView->GetRenderer()->AddActor(actor);
+OverviewRenderer->AddActor(actor);
+//   EspinaView->AddActor(actor);
 }
 
 //----------------------------------------------------------------------------
 void vtkPVEspinaView::ResetCamera()
 {
   vtkPVRenderView::ResetCamera();
-  EspinaView->GetOverviewRenderer()->ResetCamera(this->LastComputedBounds);
+  OverviewRenderer->ResetCamera(this->LastComputedBounds);
+//   EspinaView->GetOverviewRenderer()->ResetCamera(this->LastComputedBounds);
 }
 
 //----------------------------------------------------------------------------
 void vtkPVEspinaView::ResetCamera(double bounds[6])
 {
   vtkPVRenderView::ResetCamera(bounds);
-  EspinaView->GetOverviewRenderer()->ResetCamera(bounds);
+  OverviewRenderer->ResetCamera(bounds);
+//   EspinaView->GetOverviewRenderer()->ResetCamera(bounds);
 }
 
 //----------------------------------------------------------------------------
 void vtkPVEspinaView::ResetCameraClippingRange()
 {
     vtkPVRenderView::ResetCameraClippingRange();
-    EspinaView->GetOverviewRenderer()->ResetCameraClippingRange(this->LastComputedBounds);
+    OverviewRenderer->ResetCameraClippingRange(this->LastComputedBounds);
+//     EspinaView->GetOverviewRenderer()->ResetCameraClippingRange(this->LastComputedBounds);
 }
 
 //----------------------------------------------------------------------------
@@ -151,7 +157,8 @@ void vtkPVEspinaView::SetOrientationAxesVisibility(bool )
 void vtkPVEspinaView::SetBackground(double r, double g, double b)
 {
   vtkPVRenderView::SetBackground(r,g,b);
-  EspinaView->GetOverviewRenderer()->SetBackground(r,g,b);
+  OverviewRenderer->SetBackground(r,g,b);
+//   EspinaView->GetOverviewRenderer()->SetBackground(r,g,b);
 }
 
 

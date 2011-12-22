@@ -649,6 +649,7 @@ void SliceView::onConnect()
 //
   double black[] = {0,0,0};
   vtkSMPropertyHelper(m_view->getViewProxy(),"Background").Set(black,3);
+  vtkSMPropertyHelper(m_view->getViewProxy(),"CenterAxesVisibility").Set(false);
   m_view->getViewProxy()->UpdateVTKObjects();
 //   m_view->getRenderViewProxy()->GetRenderer()->SetBackground(black);
 //   m_view->setCenterAxesVisibility(false);
