@@ -30,6 +30,15 @@ public:
   vtkTypeMacro(vtkEspinaSliceRepresentation,vtkImageSliceRepresentation);
 
   virtual bool AddToView(vtkView* view);
+
+  void SetType(int value);
+  vtkGetMacro(Type,int);
+  //BTX
+protected:
+  vtkEspinaSliceRepresentation();
+private:
+  int Type;
+  //ETX
 };
 
 #endif // VTKESPINASLICEREPRESENTATION_H

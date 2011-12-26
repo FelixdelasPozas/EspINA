@@ -40,11 +40,11 @@ public:
   void ResetCamera();
   void ResetCamera(double bounds[6]);
   virtual void ResetCameraClippingRange();
-  
+
   virtual void SetOrientationAxesVisibility(bool );
 
   void SetBackground(double r, double g, double b);
-  
+
   // Method called from xml configuration when adding a new sample
   // to the view using the SMAdaptor:
   //  pqSMAdaptor::addProxyProperty(
@@ -52,10 +52,9 @@ public:
   //  viewModuleProxy->UpdateVTKObjects();
 //   void AddSample(vtkDataRepresentation *rep);
 //   void RemoveSample(vtkDataRepresentation *rep);
-  
+
   vtkSmartPointer<vtkRenderer> OverviewRenderer;
 protected:
-  
 
 //BTX
 protected:

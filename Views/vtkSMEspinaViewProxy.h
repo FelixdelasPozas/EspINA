@@ -28,7 +28,7 @@ class vtkSMEspinaViewProxy : public vtkSMRenderViewProxy
 public:
   static vtkSMEspinaViewProxy* New();
   vtkTypeMacro(vtkSMEspinaViewProxy, vtkSMRenderViewProxy);
-  
+
   virtual vtkSMRepresentationProxy* CreateDefaultRepresentation(vtkSMProxy* source, int port);
 };
 

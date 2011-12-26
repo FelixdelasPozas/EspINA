@@ -25,6 +25,7 @@
 
 #include <pqApplicationCore.h>
 #include <pqServerManagerObserver.h>
+#include <QPushButton>
 
 ViewFrame::ViewFrame()
 {
@@ -49,8 +50,13 @@ ViewFrame::~ViewFrame()
 //----------------------------------------------------------------------------
 void ViewFrame::split()
 {
-//   addWidget(new QPushButton("A"));
-//   addWidget(new QPushButton("B"));
+//   SliceView *nslice = new SliceView();
+//   addWidget(nslice);
+//   pqServerManagerObserver *SMObserver = pqApplicationCore::instance()->getServerManagerObserver();
+//   connect(SMObserver, SIGNAL(connectionCreated(vtkIdType)),
+// 	  nslice, SLOT(onConnect()));
+//   connect(SMObserver, SIGNAL(connectionClosed(vtkIdType)),
+// 	  nslice, SLOT(onDisconnect()));
 }
 
 //----------------------------------------------------------------------------

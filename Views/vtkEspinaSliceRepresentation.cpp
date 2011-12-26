@@ -24,6 +24,7 @@
 #include "vtkEspinaView.h"
 #include <vtkRenderer.h>
 #include <vtkPVLODActor.h>
+#include <vtkProperty.h>
 
 #include <vtkImageData.h>
 #include <vtkImageActor.h>
@@ -31,6 +32,13 @@
 
 vtkStandardNewMacro(vtkEspinaSliceRepresentation);
 
+//----------------------------------------------------------------------------
+vtkEspinaSliceRepresentation::vtkEspinaSliceRepresentation()
+: vtkImageSliceRepresentation()
+{
+}
+
+//----------------------------------------------------------------------------
 bool vtkEspinaSliceRepresentation::AddToView(vtkView* view)
 {
   vtkPVEspinaView* rview = vtkPVEspinaView::SafeDownCast(view);
@@ -52,4 +60,13 @@ bool vtkEspinaSliceRepresentation::AddToView(vtkView* view)
   return false;
 }
 
+//----------------------------------------------------------------------------
+void vtkEspinaSliceRepresentation::SetType(int value)
+{
+  Type = value;
+  if (Type == 1)
+  {
+    this->Actor->GetProperty()->SetOpacity(0.8);;
+  }
+}
 

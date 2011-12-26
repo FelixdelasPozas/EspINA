@@ -46,8 +46,8 @@ public:
   
   virtual ~EspinaView();
 
-//     virtual QWidget* getWidget();
-
+// //     virtual QWidget* getWidget();
+// 
   /// Returns a array of 9 ManipulatorType objects defining
   /// default set of camera manipulators used by this type of view.
   /// There are exactly 9 entires in the returned array. It's is deliberately
@@ -67,14 +67,8 @@ public:
   virtual vtkImageData* captureImage(const QSize& size)
     { return this->Superclass::captureImage(size); }
 
-  /// returns whether a source can be displayed in this view module 
+  /// returns whether a source can be displayed in this view module
   virtual bool canDisplay(pqOutputPort* opPort) const;
-  
-protected slots:
-  /// Called when representationVisibilityChanged() is fired.
-  /// Since this view can only show 1 image at a time, we need to ensure that no
-  /// other repr is currently visible.
-  void updateVisibility(pqRepresentation* repr, bool visible);
 
 protected:
   /// Return the name of the group used for global settings (except interactor
@@ -85,16 +79,16 @@ protected:
   /// Return the name of the group used for view-sepecific settings such as
   /// background color, lighting.
   virtual const char* viewSettingsGroup() const
-    { return "renderModuleEspina"; }
+  { return "renderModuleEspina"; }
 
   /// Returns the name of the group in which to save the interactor style
   /// settings.
   virtual const char* interactorStyleSettingsGroup() const
-    { return "renderModuleEspina/InteractorStyle"; }
+  { return "renderModuleEspina/InteractorStyle"; }
 
   /// Must be overridden to return the default manipulator types.
   virtual const ManipulatorType* getDefaultManipulatorTypesInternal()
-    { return EspinaView::getDefaultManipulatorTypes(); }
+  { return EspinaView::getDefaultManipulatorTypes(); }
 
   /// Setups up RenderModule and QVTKWidget binding.
   /// This method is called for all EspinaView objects irrespective

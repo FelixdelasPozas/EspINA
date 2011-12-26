@@ -19,6 +19,8 @@
 
 #include "EspinaView.h"
 
+#include <QDebug>
+
 // Server Manager Includes.
 #include "QVTKWidget.h"
 #include "vtkPVDataInformation.h"
@@ -59,9 +61,8 @@ EspinaView::EspinaView(
   QObject* _parent):
   Superclass(espinaRenderViewType(), group, name, viewProxy, server, _parent)
 {
+  qDebug() << "EspinaView(" << this << ") : Created";
   this->InitializedWidgets = false;
-  QObject::connect(this, SIGNAL(representationVisibilityChanged(pqRepresentation*, bool)),
-    this, SLOT(updateVisibility(pqRepresentation*, bool)));
 }
 
 
@@ -75,9 +76,8 @@ EspinaView::EspinaView(
   QObject* p)
 : Superclass(espinaRenderViewType(), group, name, viewmodule, server, p)
 {
+  qDebug() << "EspinaView(" << this << ") : Created";
   this->InitializedWidgets = false;
-QObject::connect(this, SIGNAL(representationVisibilityChanged(pqRepresentation*, bool)),
-    this, SLOT(updateVisibility(pqRepresentation*, bool)));
 }
 
 
@@ -109,13 +109,13 @@ void EspinaView::initializeWidgets()
 
   this->InitializedWidgets = true;
 
-  vtkSMEspinaViewProxy* view = vtkSMEspinaViewProxy::SafeDownCast(
+  vtkSMEspinaViewProxy* renModule = vtkSMEspinaViewProxy::SafeDownCast(
     this->getProxy());
 
   QVTKWidget* vtkwidget = qobject_cast<QVTKWidget*>(this->getWidget());
   if (vtkwidget)
     {
-    vtkwidget->SetRenderWindow(view->GetRenderWindow());
+    vtkwidget->SetRenderWindow(renModule->GetRenderWindow());
     }
 }
 
@@ -144,7 +144,7 @@ bool EspinaView::canDisplay(pqOutputPort* opPort) const
     }
 
   pqPipelineSource* source = opPort->getSource();
-  vtkSMSourceProxy* sourceProxy = 
+  vtkSMSourceProxy* sourceProxy =
     vtkSMSourceProxy::SafeDownCast(source->getProxy());
   if (!sourceProxy ||
      sourceProxy->GetOutputPortsCreated()==0)
@@ -157,14 +157,14 @@ bool EspinaView::canDisplay(pqOutputPort* opPort) const
     strcmp(dataclassname, "vtkUniformGrid") == 0);
 }
 
-//-----------------------------------------------------------------------------
-void EspinaView::updateVisibility(pqRepresentation* curRepr, bool visible)
-{
-  if (!qobject_cast<pqDataRepresentation*>(curRepr))
-  {
-    return;
-  }
-
+// //-----------------------------------------------------------------------------
+// void EspinaView::updateVisibility(pqRepresentation* curRepr, bool visible)
+// {
+//   if (!qobject_cast<pqDataRepresentation*>(curRepr))
+//   {
+//     return;
+//   }
+/*
   if (visible)
   {
     QList<pqRepresentation*> reprs = this->getRepresentations();
@@ -180,4 +180,4 @@ void EspinaView::updateVisibility(pqRepresentation* curRepr, bool visible)
       }
     }
   }
-}
+}*/

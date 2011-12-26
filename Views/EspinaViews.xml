@@ -39,6 +39,16 @@
         </InputArrayDomain>
       </InputProperty>
 
+      <IntVectorProperty name="Type"
+        command="SetType"
+        number_of_elements="1"
+        default_values="0">
+        <Documentation>
+          Set the type for this representation.
+	  Type=0: Channel
+	  Type=1: Segmentation
+        </Documentation>
+      </IntVectorProperty>
       <IntVectorProperty name="Visibility"
         command="SetVisibility"
         number_of_elements="1"
@@ -48,7 +58,6 @@
           Set the visibility for this representation.
         </Documentation>
       </IntVectorProperty>
-
 
     </RepresentationProxy>
   </ProxyGroup>-->

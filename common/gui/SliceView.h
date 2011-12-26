@@ -26,7 +26,9 @@
 #include <QAbstractItemView>
 
 #include <vtkSmartPointer.h>
-// #include <QMutex>
+
+class pqOutputPort;
+class pqPipelineSource;// #include <QMutex>
 // #include <QMap>
 // 
 // #include "selectionManager.h"//TODO: Forward declare?
@@ -181,6 +183,8 @@ protected:
 //   void centerViewOn(int x, int y, int z);
 //   //! Converts point from Display coordinates to World coordinates
 //   ISelectionHandler::VtkRegion display2vtk(const QPolygonF &region);
+  void addChannelRepresentation(pqOutputPort *oport);
+  void addSegmentationRepresentation(pqOutputPort *oport);
   
 private:
 //   bool m_showSegmentations;

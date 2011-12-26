@@ -25,12 +25,14 @@
 #include <vtkSMPropertyHelper.h>
 #include <vtkSMRepresentationProxy.h>
 
+#include <QDebug>
 #include <assert.h>
 
 vtkStandardNewMacro(vtkSMEspinaViewProxy);
 
 vtkSMRepresentationProxy* vtkSMEspinaViewProxy::CreateDefaultRepresentation(vtkSMProxy* source, int port)
 {
+  qDebug() << "vtkSMEspinaViewProxy: Cretating default representation for" << source;
   vtkSMProxyManager* pxm = this->GetProxyManager();
   // Update with time to avoid domains updating without time later.
   vtkSMSourceProxy* sproxy = vtkSMSourceProxy::SafeDownCast(source);

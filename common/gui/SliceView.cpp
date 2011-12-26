@@ -49,6 +49,10 @@
 #include <vtkObjectFactory.h>
 #include <vtkSMPropertyHelper.h>
 #include <vtkSMRepresentationProxy.h>
+#include <pqTwoDRenderView.h>
+#include <vtkSMTwoDRenderViewProxy.h>
+#include <pqDataRepresentation.h>
+#include <pqPipelineRepresentation.h>
 
 // #include "pqDisplayPolicy.h"
 // #include "pqPipelineRepresentation.h"
@@ -679,19 +683,58 @@ void SliceView::onDisconnect()
 //-----------------------------------------------------------------------------
 void SliceView::loadTestImage()
 {
+  static bool first = true;
+  
   qDebug() << this << ": Loading Test Image";
   pqServer *server = pqActiveObjects::instance().activeServer();
   pqObjectBuilder* builder = pqApplicationCore::instance()->getObjectBuilder();
-  pqPipelineSource *img = builder->createReader("sources","PVDReader",
-						QStringList("/home/jpena/Stacks/paraPeque.pvd"),
-						server);
-  vtkSMEspinaViewProxy *ep =  vtkSMEspinaViewProxy::SafeDownCast(m_view->getViewProxy());
-  Q_ASSERT(ep);
-  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-  dp->createPreferredRepresentation(img->getOutputPort(0),m_view,true);
+  
+  pqPipelineSource *img;
+  if (first)
+  {
+    img = builder->createReader("sources","PVDReader",
+				QStringList("/home/jpena/Stacks/paraPeque.pvd"),
+					    server);
+    first = false;
+    addChannelRepresentation(img->getOutputPort(0));
+  }else{
+    img = builder->createReader("sources","PVDReader",
+    QStringList("/home/jpena/Stacks/Peque/pequeFromSegmha/c29dacd23596ac7420f52ab0474ed1c941123521.pvd"),
+//     QStringList("/home/jpena/Stacks/Peque/pequeFromSegmha/fa40f2b8d6b3bdd039fe2bd7086229eb61c9605e.pvd"),
+		server);
+    addSegmentationRepresentation(img->getOutputPort(0));
+  }
+  m_view->render();
+  
+  
   m_scrollBar->setMaximum(114);
   m_spinBox->setMaximum(114);
 }
+
+//-----------------------------------------------------------------------------
+void SliceView::addChannelRepresentation(pqOutputPort* oport)
+{
+  vtkSMEspinaViewProxy *ep =  vtkSMEspinaViewProxy::SafeDownCast(m_view->getViewProxy());
+  Q_ASSERT(ep);
+  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+  dp->createPreferredRepresentation(oport,m_view,true);
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::addSegmentationRepresentation(pqOutputPort* oport)
+{
+  vtkSMEspinaViewProxy *ep =  vtkSMEspinaViewProxy::SafeDownCast(m_view->getViewProxy());
+  Q_ASSERT(ep);
+  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+  pqDataRepresentation *dr = dp->createPreferredRepresentation(oport,m_view,true);
+  vtkSMPropertyHelper(dr->getProxy(),"Type").Set(1);
+  dr->getProxy()->UpdateVTKObjects();
+//   pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
+//   Q_ASSERT(rep);
+//   rep->setRepresentation("Slice");
+}
+
+
 
 // //-----------------------------------------------------------------------------
 // void SliceView::showSegmentations(bool value)

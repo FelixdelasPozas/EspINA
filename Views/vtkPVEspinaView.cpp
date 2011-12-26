@@ -36,11 +36,11 @@
 
 // Interactor Style to be used with Slice Views
 class vtkInteractorStyleEspinaSlice
-: public vtkPVInteractorStyle
+: public vtkInteractorStyleImage
 {
 public:
   static vtkInteractorStyleEspinaSlice *New();
-  vtkTypeMacro(vtkInteractorStyleEspinaSlice,vtkPVInteractorStyle);
+  vtkTypeMacro(vtkInteractorStyleEspinaSlice,vtkInteractorStyleImage);
 
   // Disable mouse wheel
   virtual void OnMouseWheelForward(){}
@@ -51,7 +51,7 @@ protected:
   virtual ~vtkInteractorStyleEspinaSlice();
 
 private:
-  vtkInteractorStyleEspinaSlice(const vtkInteractorStyleImage& ); // Not implemented
+  vtkInteractorStyleEspinaSlice(const vtkInteractorStyleEspinaSlice& ); // Not implemented
   void operator=(const vtkInteractorStyleEspinaSlice&);           // Not implemented
 };
 
@@ -81,9 +81,8 @@ vtkPVEspinaView::vtkPVEspinaView()
 
   if (this->Interactor)
   {
-//     this->InteractorStyle = vtkInteractorStyleEspinaSlice::New();
-    vtkInteractorStyleImage *style = vtkInteractorStyleImage::New();
-//     this->Interactor->SetInteractorStyle(this->InteractorStyle);
+//     vtkInteractorStyleImage *style = vtkInteractorStyleImage::New();
+    vtkInteractorStyleEspinaSlice *style = vtkInteractorStyleEspinaSlice::New();
     this->Interactor->SetInteractorStyle(style);
   }
 
@@ -93,7 +92,7 @@ vtkPVEspinaView::vtkPVEspinaView()
   OverviewRenderer->SetLayer(1);
   this->GetRenderWindow()->AddRenderer(this->OverviewRenderer);
 
-  qDebug() << this << ": Created";
+  qDebug() << "vtkPVEspinaView("<< this << "): Created";
 }
 
 //----------------------------------------------------------------------------
@@ -116,10 +115,8 @@ void vtkPVEspinaView::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkPVEspinaView::AddActor(vtkProp* actor)
 {
-//   EspinaView->GetRenderer()->SetBackground2(1,0,0);
 RenderView->GetRenderer()->AddActor(actor);
 OverviewRenderer->AddActor(actor);
-//   EspinaView->AddActor(actor);
 }
 
 //----------------------------------------------------------------------------
@@ -127,7 +124,6 @@ void vtkPVEspinaView::ResetCamera()
 {
   vtkPVRenderView::ResetCamera();
   OverviewRenderer->ResetCamera(this->LastComputedBounds);
-//   EspinaView->GetOverviewRenderer()->ResetCamera(this->LastComputedBounds);
 }
 
 //----------------------------------------------------------------------------
@@ -135,7 +131,6 @@ void vtkPVEspinaView::ResetCamera(double bounds[6])
 {
   vtkPVRenderView::ResetCamera(bounds);
   OverviewRenderer->ResetCamera(bounds);
-//   EspinaView->GetOverviewRenderer()->ResetCamera(bounds);
 }
 
 //----------------------------------------------------------------------------
@@ -143,7 +138,6 @@ void vtkPVEspinaView::ResetCameraClippingRange()
 {
     vtkPVRenderView::ResetCameraClippingRange();
     OverviewRenderer->ResetCameraClippingRange(this->LastComputedBounds);
-//     EspinaView->GetOverviewRenderer()->ResetCameraClippingRange(this->LastComputedBounds);
 }
 
 //----------------------------------------------------------------------------
@@ -158,7 +152,6 @@ void vtkPVEspinaView::SetBackground(double r, double g, double b)
 {
   vtkPVRenderView::SetBackground(r,g,b);
   OverviewRenderer->SetBackground(r,g,b);
-//   EspinaView->GetOverviewRenderer()->SetBackground(r,g,b);
 }
 
 
