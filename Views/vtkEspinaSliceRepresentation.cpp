@@ -165,12 +165,13 @@ bool vtkEspinaSliceRepresentation::AddToView(vtkView* view)
       plane->SetNormal(0,0,1);
       this->SliceMapper->SetSlicePlane(plane);
       this->SliceMapper->AutoAdjustImageQualityOff();
+//       this->SliceMapper->set
 
 //       this->SliceProperty->SetColorWindow(2000);
 //       this->SliceProperty->SetColorLevel(1000);
 //       this->SliceProperty->SetAmbient(0.0);
 //       this->SliceProperty->SetDiffuse(1.0);
-      this->SliceProperty->SetOpacity(0.9);
+      this->SliceProperty->SetOpacity(1.0);
 //       this->SliceProperty->SetInterpolationTypeToLinear();
       rview->AddActor(this->SliceActor);
       return true;

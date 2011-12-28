@@ -694,6 +694,8 @@ void SliceView::loadTestImage()
   {
     img = builder->createReader("sources","PVDReader",
 				QStringList("/home/jpena/Stacks/paraPeque.pvd"),
+// 				QStringList("/home/jpena/Stacks/AlzheimerE-reg-affine-012-510/AlzheimerE.pvd"),
+
 					    server);
     first = false;
     addChannelRepresentation(img->getOutputPort(0));
