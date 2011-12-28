@@ -16,26 +16,65 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+//----------------------------------------------------------------------------
+// File:    vtkEspinaSliceRepresentation.h
+// Purpose: Transform source's vtkImageData into slice representations to
+//          be rendered in vtkPVEspinaViews
+//          vtkEspinaSliceRepresentation is not meant to be used with
+//          conventional vtkPVViews
+//----------------------------------------------------------------------------
 #ifndef VTKESPINASLICEREPRESENTATION_H
 #define VTKESPINASLICEREPRESENTATION_H
 
-#include <vtkImageSliceRepresentation.h>
+#include <vtkPVDataRepresentation.h>
+
+class vtkImageSliceDataDeliveryFilter;
+class vtkImageSlice;
+class vtkImageProperty;
+class vtkImageResliceMapper;
 
 
-class vtkEspinaSliceRepresentation : public vtkImageSliceRepresentation
+class vtkEspinaSliceRepresentation : public vtkPVDataRepresentation
 {
 public:
   static vtkEspinaSliceRepresentation* New();
-  vtkTypeMacro(vtkEspinaSliceRepresentation,vtkImageSliceRepresentation);
-
-  virtual bool AddToView(vtkView* view);
+  vtkTypeMacro(vtkEspinaSliceRepresentation,vtkPVDataRepresentation);
+  
+  // vtkAlgorithm::ProcessRequest() equivalent for rendering passes. This is
+  // typically called by the vtkView to request meta-data from the
+  // representations or ask them to perform certain tasks e.g.
+  // PrepareForRendering.
+  virtual int ProcessViewRequest(vtkInformationRequestKey* request_type, vtkInformation* inInfo, vtkInformation* outInfo);
 
   void SetType(int value);
   vtkGetMacro(Type,int);
   //BTX
 protected:
   vtkEspinaSliceRepresentation();
+
+  // Fill input port information
+  virtual int FillInputPortInformation(int port, vtkInformation* info);
+
+  // Subclasses should override this to connect inputs to the internal pipeline
+  // as necessary. Since most representations are "meta-filters" (i.e. filters
+  // containing other filters), you should create shallow copies of your input
+  // before connecting to the internal pipeline. The convenience method
+  // GetInternalOutputPort will create a cached shallow copy of a specified
+  // input for you. The related helper functions GetInternalAnnotationOutputPort,
+  // GetInternalSelectionOutputPort should be used to obtain a selection or
+  // annotation port whose selections are localized for a particular input data object.
+  virtual int RequestData(vtkInformation* , vtkInformationVector** , vtkInformationVector* );
+  
+  virtual bool AddToView(vtkView* view);
+
+  vtkTimeStamp DeliveryTimeStamp;
+
+  vtkImageSliceDataDeliveryFilter *DeliveryFilter;
+  vtkImageResliceMapper *SliceMapper;
+  vtkImageProperty   *SliceProperty;
+  vtkImageSlice         *SliceActor;
+  vtkImageData           *SliceData;
+  
 private:
   int Type;
   //ETX
