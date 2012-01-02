@@ -25,6 +25,7 @@
 #include <vtkRenderer.h>
 #include <vtkPVLODActor.h>
 #include <vtkProperty.h>
+#include <vtkLookupTable.h>
 
 #include <vtkImageData.h>
 #include <vtkImageActor.h>
@@ -38,17 +39,18 @@
 
 vtkStandardNewMacro(vtkEspinaSliceRepresentation);
 
+static bool base = true;
 //----------------------------------------------------------------------------
 vtkEspinaSliceRepresentation::vtkEspinaSliceRepresentation()
 {
   this->SliceData = vtkImageData::New();
+  
   this->DeliveryFilter = vtkImageSliceDataDeliveryFilter::New();
-  this->SliceMapper = vtkImageResliceMapper::New();
-  this->SliceProperty = vtkImageProperty::New();
-  this->SliceActor = vtkImageSlice::New();
+  this->Slice = vtkImageResliceToColors::New();
+  this->SliceActor = vtkImageActor::New();
+  this->SliceActor->SetInterpolate(false);
 
-  this->SliceActor->SetMapper(this->SliceMapper);
-  this->SliceActor->SetProperty(this->SliceProperty);
+  this->SliceActor->SetInput(Slice->GetOutput());
 }
 
 //----------------------------------------------------------------------------
@@ -68,7 +70,7 @@ int vtkEspinaSliceRepresentation::ProcessViewRequest(
       {
       outInfo->Set(vtkPVRenderView::GEOMETRY_SIZE(), slice->GetActualMemorySize());
       }
-    if (this->SliceProperty->GetOpacity() < 1.0)
+    if (this->SliceActor->GetOpacity() < 1.0)
       {
       outInfo->Set(vtkPVRenderView::NEED_ORDERED_COMPOSITING(), 1);
       }
@@ -100,7 +102,7 @@ int vtkEspinaSliceRepresentation::ProcessViewRequest(
     // executive keeps on re-executing it every time.
     vtkImageData* clone = vtkImageData::New();
     clone->ShallowCopy(this->DeliveryFilter->GetOutputDataObject(0));
-    this->SliceMapper->SetInput(clone);
+    this->Slice->SetInput(clone);
     clone->Delete();
 
     this->DeliveryTimeStamp.Modified();
@@ -138,9 +140,11 @@ int vtkEspinaSliceRepresentation::RequestData(
   {
     vtkInformation* inInfo = inputVector[0]->GetInformationObject(0);
     vtkImageData* input = vtkImageData::GetData(inputVector[0], 0);
-    //     this->UpdateSliceData(inputVector);
-    this->SliceData = input;
-//         this->DeliveryFilter->SetInputConnection(this->CacheKeeper->GetOutputPort());
+    vtkImageData *clone = vtkImageData::New();
+    clone->ShallowCopy(input);
+    Slice->SetInput(clone);
+    Slice->Update();
+    this->SliceData->ShallowCopy(Slice->GetOutput());
     this->DeliveryFilter->SetInput(input);
   }
   else
@@ -158,21 +162,8 @@ bool vtkEspinaSliceRepresentation::AddToView(vtkView* view)
   vtkPVEspinaView* rview = vtkPVEspinaView::SafeDownCast(view);
   if (rview)
     {
-      this->SliceMapper->SliceAtFocalPointOff();
-      this->SliceMapper->SliceFacesCameraOff();
-      vtkPlane *plane = vtkPlane::New();
-      plane->SetOrigin(1,1,1);
-      plane->SetNormal(0,0,1);
-      this->SliceMapper->SetSlicePlane(plane);
-      this->SliceMapper->AutoAdjustImageQualityOff();
-//       this->SliceMapper->set
-
-//       this->SliceProperty->SetColorWindow(2000);
-//       this->SliceProperty->SetColorLevel(1000);
-//       this->SliceProperty->SetAmbient(0.0);
-//       this->SliceProperty->SetDiffuse(1.0);
-      this->SliceProperty->SetOpacity(1.0);
-//       this->SliceProperty->SetInterpolationTypeToLinear();
+      Slice->SetOutputDimensionality(2);
+      Slice->SetResliceAxes(rview->GetSlicingMatrix());
       rview->AddActor(this->SliceActor);
       return true;
     }
@@ -185,7 +176,11 @@ void vtkEspinaSliceRepresentation::SetType(int value)
   Type = value;
   if (Type == 1)
   {
-//     this->Actor->GetProperty()->SetOpacity(0.8);;
+      vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
+      lut->SetNumberOfTableValues(1);
+      lut->Build();
+      Slice->SetLookupTable(lut);
+      SliceActor->SetOpacity(0.7);
   }
 }
 

@@ -15,7 +15,13 @@
           Samples in espina view.
         </Documentation>
       </ProxyProperty>
-
+      <IntVectorProperty name="Slice"
+        command="SetSlice"
+        number_of_elements="1"
+        default_values="0">
+        <Documentation>
+        </Documentation>
+      </IntVectorProperty>
 
    </EspinaViewProxy>
  </ProxyGroup>

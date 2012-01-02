@@ -28,6 +28,8 @@
 
 #include <vtkPVDataRepresentation.h>
 
+class vtkImageResliceToColors;
+class vtkImageActor;
 class vtkImageSliceDataDeliveryFilter;
 class vtkImageSlice;
 class vtkImageProperty;
@@ -70,10 +72,9 @@ protected:
   vtkTimeStamp DeliveryTimeStamp;
 
   vtkImageSliceDataDeliveryFilter *DeliveryFilter;
-  vtkImageResliceMapper *SliceMapper;
-  vtkImageProperty   *SliceProperty;
-  vtkImageSlice         *SliceActor;
-  vtkImageData           *SliceData;
+  vtkImageResliceToColors *Slice;
+  vtkImageActor           *SliceActor;
+  vtkImageData            *SliceData;
   
 private:
   int Type;

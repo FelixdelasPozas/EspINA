@@ -37,6 +37,7 @@
 #include "pqOutputPort.h"
 #include "pqPipelineSource.h"
 #include "pqDataRepresentation.h"
+#include <vtkSMPropertyHelper.h>
 
 EspinaView::ManipulatorType EspinaView::DefaultManipulatorTypes[9] =
 {
@@ -156,6 +157,16 @@ bool EspinaView::canDisplay(pqOutputPort* opPort) const
   return (strcmp(dataclassname, "vtkImageData") == 0 ||
     strcmp(dataclassname, "vtkUniformGrid") == 0);
 }
+
+//-----------------------------------------------------------------------------
+void EspinaView::setSlice(int value)
+{
+  qDebug() << "Changing Slice " << value;
+  vtkSMPropertyHelper(this->getProxy(), "Slice").Set(value);
+  this->getProxy()->UpdateVTKObjects();
+  render();
+}
+
 
 // //-----------------------------------------------------------------------------
 // void EspinaView::updateVisibility(pqRepresentation* curRepr, bool visible)

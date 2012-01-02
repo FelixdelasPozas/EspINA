@@ -70,6 +70,9 @@ public:
   /// returns whether a source can be displayed in this view module
   virtual bool canDisplay(pqOutputPort* opPort) const;
 
+public slots:
+  void setSlice(int value);
+
 protected:
   /// Return the name of the group used for global settings (except interactor
   /// style).

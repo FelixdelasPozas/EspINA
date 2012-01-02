@@ -23,7 +23,9 @@
 #include <vtkPVRenderView.h>
 
 #include <vtkSmartPointer.h>
+#include <QList>
 
+class vtkMatrix4x4;
 class vtkProp;
 class vtkEspinaView;
 class vtkLegendScaleActor;
@@ -35,6 +37,8 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   void AddActor(vtkProp *actor);
+  void AddChannel(vtkProp *actor){};
+  void AddSegmentation(vtkProp *actor){};
 
   // Reimplemented to update overview vtkPVRenderView behavior
   void ResetCamera();
@@ -45,6 +49,10 @@ public:
 
   void SetBackground(double r, double g, double b);
 
+  vtkMatrix4x4 *GetSlicingMatrix() {return SlicingMatrix;}
+
+  void SetSlice(int value);
+  vtkGetMacro(Slice, int);
   // Method called from xml configuration when adding a new sample
   // to the view using the SMAdaptor:
   //  pqSMAdaptor::addProxyProperty(
@@ -65,6 +73,11 @@ private:
   vtkPVEspinaView(const vtkPVEspinaView&); // Not implemented
   void operator=(const vtkPVEspinaView&); // Not implemented
 
+  QList<vtkProp *> Channels;
+  QList<vtkProp *> Segmentations;
+
+  int Slice;
+  vtkMatrix4x4  *SlicingMatrix;
   vtkEspinaView *EspinaView;
 //ETX
 };

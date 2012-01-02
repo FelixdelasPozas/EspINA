@@ -33,6 +33,7 @@
 #include <vtkRenderWindow.h>
 #include <vtkPVGenericRenderWindowInteractor.h>
 #include <vtkPVInteractorStyle.h>
+#include <vtkMatrix4x4.h>
 
 // Interactor Style to be used with Slice Views
 class vtkInteractorStyleEspinaSlice
@@ -91,6 +92,10 @@ vtkPVEspinaView::vtkPVEspinaView()
   this->OverviewRenderer->SetViewport(0.75,0,1,0.25);
   OverviewRenderer->SetLayer(1);
   this->GetRenderWindow()->AddRenderer(this->OverviewRenderer);
+  
+  double matrix_values[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
+  SlicingMatrix = vtkMatrix4x4::New();
+  SlicingMatrix->DeepCopy(matrix_values);
 
   qDebug() << "vtkPVEspinaView("<< this << "): Created";
 }
@@ -115,8 +120,8 @@ void vtkPVEspinaView::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkPVEspinaView::AddActor(vtkProp* actor)
 {
-RenderView->GetRenderer()->AddActor(actor);
-OverviewRenderer->AddActor(actor);
+  RenderView->GetRenderer()->AddActor(actor);
+  OverviewRenderer->AddActor(actor);
 }
 
 //----------------------------------------------------------------------------
@@ -154,4 +159,18 @@ void vtkPVEspinaView::SetBackground(double r, double g, double b)
   OverviewRenderer->SetBackground(r,g,b);
 }
 
+void vtkPVEspinaView::SetSlice(int value)
+{
+  qDebug() << "vtkPVEspinaView changing slice" << value;
+  double point[4];
+  double center[4];
+  point[0] = 0.0;
+  point[1] = 0.0;
+  point[2] = 2; 
+  point[3] = 1.0;
+//   SlicingMatrix->MultiplyPoint(point, center);
+//   SlicingMatrix->SetElement(0, 3, center[0]);
+//   SlicingMatrix->SetElement(1, 3, center[1]);
+  SlicingMatrix->SetElement(2, 3, value*2);
+}
 

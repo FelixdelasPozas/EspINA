@@ -295,6 +295,7 @@ SliceView::SliceView(QWidget* parent)
     , m_viewWidget   (NULL)
     , m_scrollBar    (new QScrollBar(Qt::Horizontal))
     , m_spinBox      (new QSpinBox())
+    , first(true)
 //     , m_view(NULL)
 //     , m_regionCut(NULL)
 {
@@ -308,6 +309,11 @@ SliceView::SliceView(QWidget* parent)
   m_spinBox->setSizePolicy(
       QSizePolicy::Minimum,
       QSizePolicy::Preferred);
+
+  connect(m_scrollBar, SIGNAL(valueChanged(int)),
+	  m_spinBox, SLOT(setValue(int)));
+  connect(m_spinBox, SIGNAL(valueChanged(int)),
+	  m_scrollBar, SLOT(setValue(int)));
 
   QPushButton *fakeLoad = new QPushButton(tr("Load Test Stack"));
   connect(fakeLoad,SIGNAL(clicked(bool)),
@@ -584,6 +590,9 @@ void SliceView::onConnect()
 
   m_view = qobject_cast<EspinaView*>(ob->createView(
              EspinaView::espinaRenderViewType(), server));
+
+  connect(m_scrollBar, SIGNAL(valueChanged(int)),
+	  m_view, SLOT(setSlice(int)));
 //   connect(m_view,SIGNAL(beginRender()),this,SLOT(beginRender()));
 //   connect(m_view,SIGNAL(endRender()),this,SLOT(endRender()));
 
@@ -638,7 +647,7 @@ void SliceView::onConnect()
 //       m_cam->SetPosition(1, 0, 0);
 //       m_cam->SetFocalPoint(0, 0, 0);
 //       m_cam->SetRoll(180);
-//       break;
+//       break;17
 //     case VIEW_PLANE_XZ:
 // //       m_cam->SetPosition(0, 1, 0);
 // //       m_cam->SetFocalPoint(0, 0, 0);
@@ -651,7 +660,7 @@ void SliceView::onConnect()
 //       assert(false);
 //   };
 //
-  double black[] = {1,0,0};
+  double black[] = {0,0,0};
   vtkSMPropertyHelper(m_view->getViewProxy(),"Background").Set(black,3);
   vtkSMPropertyHelper(m_view->getViewProxy(),"CenterAxesVisibility").Set(false);
   m_view->getViewProxy()->UpdateVTKObjects();
@@ -683,7 +692,6 @@ void SliceView::onDisconnect()
 //-----------------------------------------------------------------------------
 void SliceView::loadTestImage()
 {
-  static bool first = true;
   
   qDebug() << this << ": Loading Test Image";
   pqServer *server = pqActiveObjects::instance().activeServer();

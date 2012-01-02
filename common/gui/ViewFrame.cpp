@@ -50,13 +50,13 @@ ViewFrame::~ViewFrame()
 //----------------------------------------------------------------------------
 void ViewFrame::split()
 {
-//   SliceView *nslice = new SliceView();
-//   addWidget(nslice);
-//   pqServerManagerObserver *SMObserver = pqApplicationCore::instance()->getServerManagerObserver();
-//   connect(SMObserver, SIGNAL(connectionCreated(vtkIdType)),
-// 	  nslice, SLOT(onConnect()));
-//   connect(SMObserver, SIGNAL(connectionClosed(vtkIdType)),
-// 	  nslice, SLOT(onDisconnect()));
+  SliceView *nslice = new SliceView();
+  addWidget(nslice);
+  pqServerManagerObserver *SMObserver = pqApplicationCore::instance()->getServerManagerObserver();
+  connect(SMObserver, SIGNAL(connectionCreated(vtkIdType)),
+	  nslice, SLOT(onConnect()));
+  connect(SMObserver, SIGNAL(connectionClosed(vtkIdType)),
+	  nslice, SLOT(onDisconnect()));
 }
 
 //----------------------------------------------------------------------------

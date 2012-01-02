@@ -190,6 +190,7 @@ private:
 //   bool m_showSegmentations;
 //   ViewType m_plane;
 
+  bool first;
   EspinaView *m_view;
 //   vtkSMRenderViewProxy *m_viewProxy;
 //   vtkRenderWindowInteractor *m_rwi;
