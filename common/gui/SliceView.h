@@ -27,6 +27,7 @@
 
 #include <vtkSmartPointer.h>
 
+class QLabel;
 class pqOutputPort;
 class pqPipelineSource;// #include <QMutex>
 // #include <QMap>
@@ -48,6 +49,7 @@ class pqPipelineSource;// #include <QMutex>
 // class Sample;
 class EspinaView;
 class vtkInteractorStyleEspinaSlice;
+class IPreferencePanel;
 
 // GUI
 class QScrollBar;
@@ -57,51 +59,9 @@ class QHBoxLayout;
 // class pqRenderView;
 // class vtkRenderWindowInteractor;
 
-// class SliceViewPreferences;
-// 
-// class SliceViewPreferencesPanel : public QWidget
-// {
-//   Q_OBJECT
-//   
-// public:
-//   explicit SliceViewPreferencesPanel(SliceViewPreferences *preferences);
-//   
-// public slots:
-//   void setInvertWheel(bool value);
-//   void setInvertNormal(bool value);
-//   void setShowAxis(bool value);
-// private:
-//   SliceViewPreferences *m_pref;
-// };
-// 
-// class SliceViewPreferences : public IPreferencePanel
-// {
-// public:
-//   explicit SliceViewPreferences(ViewType plane);
-//   
-//   virtual const QString shortDescription();
-//   virtual const QString longDescription() {return shortDescription();} 
-//   virtual const QIcon icon() {return QIcon();}
-//   
-//   virtual QWidget* widget() {return new SliceViewPreferencesPanel(this);}
-//   
-//   void setInvertWheel(bool value);
-//   bool invertWheel(){return m_InvertWheel;}
-//   void setInvertNormal(bool value);
-//   bool invertNormal() {return m_InvertNormal;}
-//   void setShowAxis(bool value);
-//   bool showAxis() {return m_ShowAxis;}
-//   
-// private:
-//   bool m_InvertWheel;
-//   bool m_InvertNormal;
-//   bool m_ShowAxis;
-//   
-// private:
-//   ViewType m_plane;
-//   QString viewSettings;
-// };
-// 
+class SliceViewPreferences;
+
+
 // //! Displays a unique slice of a sample
 // //! If segmentations are visible, then their slices are
 // //! blended over the sample slice
@@ -112,11 +72,20 @@ class SliceView
 {
   Q_OBJECT
 public:
-  SliceView(QWidget* parent = 0);
+  enum VIEW_PLANE
+  {
+    XY,
+    YZ,
+    XZ
+  };
+
+  SliceView(VIEW_PLANE plane=XY, QWidget* parent = 0);
   virtual ~SliceView();
 
 //   IPreferencePanel *preferences() {return m_preferences;}
-//   
+  inline QString title() const;
+  void setTitle(const QString &title);
+
   //! AbstractItemView Interface
   virtual QModelIndex indexAt(const QPoint& point) const {return QModelIndex();}
   virtual void scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint = EnsureVisible) {}
@@ -141,9 +110,9 @@ public slots:
 
   void loadTestImage();
 
-//   //! Show/Hide segmentations
-//   void showSegmentations(bool value);
-//   
+  //! Show/Hide segmentations
+  void showSegmentations(bool value);
+
 //   //! Slicer configuration methods:
 //   void setPlane(ViewType plane);
 //   
@@ -159,8 +128,18 @@ public slots:
 //   void setSlice(int slice);
 //   virtual void setVOI(IVOI *voi);
 //   void updateVOIVisibility();
-//   
-// signals:
+protected slots:
+  void close();
+  void maximize();
+  void minimize();
+  void undock();
+  
+signals:
+  // Notify the windows manager how to display the view
+  void closeRequest();
+  void maximizeRequest();
+  void minimizeRequest();
+  void undockRequest();
 //   void sliceChanged();
 // //  void pointSelected(int, int, int);
 
@@ -185,10 +164,12 @@ protected:
 //   ISelectionHandler::VtkRegion display2vtk(const QPolygonF &region);
   void addChannelRepresentation(pqOutputPort *oport);
   void addSegmentationRepresentation(pqOutputPort *oport);
-  
+
+  void buildTitle();
+  void buildControlers();
 private:
 //   bool m_showSegmentations;
-//   ViewType m_plane;
+  VIEW_PLANE m_plane;
 
   bool first;
   EspinaView *m_view;
@@ -197,16 +178,17 @@ private:
 //   vtkCamera *m_cam;
 
   // GUI
+  QHBoxLayout *m_titleLayout;
+  QLabel      *m_title;
   QVBoxLayout *m_mainLayout;
   QHBoxLayout *m_controlLayout;
   QWidget     *m_viewWidget;
   QScrollBar  *m_scrollBar;
   QSpinBox    *m_spinBox;
 
-  vtkSmartPointer<vtkInteractorStyleEspinaSlice> m_style;
-//   pqPipelineSource *m_regionCut;
+//   vtkSmartPointer<vtkInteractorStyleEspinaSlice> m_style;
 
-//   SliceViewPreferences *m_preferences;
+  SliceViewPreferences *m_preferences;
 };
 
 #endif // SLICEVIEW_H

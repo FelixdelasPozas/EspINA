@@ -44,10 +44,9 @@ ViewManager::~ViewManager()
 }
 
 //----------------------------------------------------------------------------
-QWidget* ViewManager::createLayout()
+QWidget* ViewManager::createLayout(const QString& layout)
 {
   ViewFrame *frame = new ViewFrame();
-  frame->split();
   // Returned frame will belong to another QObject, what happens when its
   // parent is destroyed? does m_frames's point become a dangling pointer?
   m_frames.append(frame);

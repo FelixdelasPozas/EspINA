@@ -45,7 +45,9 @@ public:
     return m_singleton;
   }
 
-  QWidget *createLayout();
+  QWidget *createLayout(const QString &layout = QString());
+  void saveLayout(const QString &layout) const;
+  void restoreLayout(const QString &layout);
 
 protected slots:
   // Espina has been connected to a new server

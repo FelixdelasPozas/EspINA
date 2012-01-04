@@ -34,6 +34,7 @@
 #include <vtkPVGenericRenderWindowInteractor.h>
 #include <vtkPVInteractorStyle.h>
 #include <vtkMatrix4x4.h>
+#include <vtkCamera.h>
 
 // Interactor Style to be used with Slice Views
 class vtkInteractorStyleEspinaSlice
@@ -93,7 +94,15 @@ vtkPVEspinaView::vtkPVEspinaView()
   OverviewRenderer->SetLayer(1);
   this->GetRenderWindow()->AddRenderer(this->OverviewRenderer);
   
-  double matrix_values[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 };
+  double matrix_values[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 }; // Axial
+//   double matrix_values[16] = { 1,  0,  0,  0,
+//                                0,  0,  1,  0,
+// 			       0, -1,  0,  0,
+// 			       0,  0,  0,  1 }; // Coronal
+//   double matrix_values[16] = { 0,  0, -1,  0,
+//                                1,  0,  0,  0,
+// 			       0, -1,  0,  0,
+// 			       0,  0,  0,  1 }; // Sagittal
   SlicingMatrix = vtkMatrix4x4::New();
   SlicingMatrix->DeepCopy(matrix_values);
 
@@ -120,6 +129,10 @@ void vtkPVEspinaView::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkPVEspinaView::AddActor(vtkProp* actor)
 {
+//   vtkCamera *cam =  RenderView->GetRenderer()->GetActiveCamera();
+//   cam->SetPosition(1, 0, 0);
+//   cam->SetFocalPoint(0, 0, 0);
+//   cam->SetRoll(180);
   RenderView->GetRenderer()->AddActor(actor);
   OverviewRenderer->AddActor(actor);
 }

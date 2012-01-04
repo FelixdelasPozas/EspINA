@@ -25,6 +25,7 @@
 // // EspINA
 #include "../../Views/EspinaView.h"
 #include "../Views/vtkSMEspinaViewProxy.h"
+#include "IPreferencePanel.h"
 // #include "interfaces.h"
 // #include "filter.h"
 // #include "sample.h"
@@ -53,6 +54,7 @@
 #include <vtkSMTwoDRenderViewProxy.h>
 #include <pqDataRepresentation.h>
 #include <pqPipelineRepresentation.h>
+#include <QLabel>
 
 // #include "pqDisplayPolicy.h"
 // #include "pqPipelineRepresentation.h"
@@ -101,6 +103,49 @@
 // 
 // #include <vtkCubeSource.h>
 // #include <vtkPolyDataMapper.h>
+
+class SliceViewPreferencesPanel : public QWidget
+{
+  Q_OBJECT
+
+public:
+  explicit SliceViewPreferencesPanel(SliceViewPreferences *preferences);
+
+public slots:
+  void setInvertWheel(bool value);
+  void setInvertNormal(bool value);
+  void setShowAxis(bool value);
+private:
+  SliceViewPreferences *m_pref;
+};
+
+class SliceViewPreferences : public IPreferencePanel
+{
+public:
+  explicit SliceViewPreferences(SliceView::VIEW_PLANE plane);
+
+  virtual const QString shortDescription();
+  virtual const QString longDescription() {return shortDescription();}
+  virtual const QIcon icon() {return QIcon();}
+
+  virtual QWidget* widget() {return new SliceViewPreferencesPanel(this);}
+
+  void setInvertWheel(bool value);
+  bool invertWheel(){return m_InvertWheel;}
+  void setInvertNormal(bool value);
+  bool invertNormal() {return m_InvertNormal;}
+  void setShowAxis(bool value);
+  bool showAxis() {return m_ShowAxis;}
+
+private:
+  bool m_InvertWheel;
+  bool m_InvertNormal;
+  bool m_ShowAxis;
+
+private:
+  SliceView::VIEW_PLANE m_plane;
+  QString viewSettings;
+};
 
 // // Interactor Style to be used with Slice Views
 // class vtkInteractorStyleEspinaSlice
@@ -284,20 +329,71 @@
 // #define UPPER(coord) (2*(coord) + 1)
 
 //-----------------------------------------------------------------------------
-SliceView::SliceView(QWidget* parent)
+SliceView::SliceView(VIEW_PLANE plane, QWidget* parent)
     : QAbstractItemView(parent)
-//     , m_showSegmentations(true)
-//     , m_plane(VIEW_PLANE_XY)
-//     , m_sampleRep(NULL)
-//     , m_focusedSample(NULL)
+    , m_plane(plane)
+    , m_titleLayout  (new QHBoxLayout())
+    , m_title        (new QLabel("Sagital"))
     , m_mainLayout   (new QVBoxLayout())
     , m_controlLayout(new QHBoxLayout())
     , m_viewWidget   (NULL)
     , m_scrollBar    (new QScrollBar(Qt::Horizontal))
     , m_spinBox      (new QSpinBox())
     , first(true)
-//     , m_view(NULL)
-//     , m_regionCut(NULL)
+{
+  buildTitle(); 
+//   m_viewWidget->setSizePolicy(
+//        QSizePolicy::Expanding,
+//        QSizePolicy::Expanding);
+//   m_viewWidget->setStyleSheet("background-color: black;");
+//   m_mainLayout->addWidget(m_viewWidget);
+  buildControlers();
+
+//   this->setAutoFillBackground(true);
+  setLayout(m_mainLayout);
+
+  // Color background
+  QPalette pal = this->palette();
+  pal.setColor(QPalette::Base, pal.color(QPalette::Window));
+  this->setPalette(pal);
+  this->setStyleSheet("QSpinBox { background-color: white;}");
+  
+//   m_preferences = new SliceViewPreferences(m_plane);
+  qDebug() << this << ": Created";
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::buildTitle()
+{
+  QPushButton *close = new QPushButton("x");
+  close->setMaximumHeight(20);
+  close->setMaximumWidth (20);
+
+  QPushButton *max = new QPushButton("-");
+  max->setMaximumHeight(20);
+  max->setMaximumWidth (20);
+  
+  QPushButton *undock = new QPushButton("^");
+  undock->setMaximumHeight(20);
+  undock->setMaximumWidth (20);
+  
+  connect(close, SIGNAL(clicked(bool)),
+	  this, SLOT(close()));
+  connect(max, SIGNAL(clicked(bool)),
+	  this, SLOT(maximize()));
+  connect(undock, SIGNAL(clicked(bool)),
+	  this, SLOT(undock()));
+  
+  m_titleLayout->addWidget(m_title);
+  m_titleLayout->addWidget(max);
+  m_titleLayout->addWidget(undock);
+  m_titleLayout->addWidget(close);
+
+  m_mainLayout->addLayout(m_titleLayout);
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::buildControlers()
 {
   m_scrollBar->setMaximum(0);
   m_scrollBar->setSizePolicy(
@@ -326,25 +422,9 @@ SliceView::SliceView(QWidget* parent)
   m_controlLayout->addWidget(m_scrollBar);
   m_controlLayout->addWidget(m_spinBox);
 
-//   m_viewWidget->setSizePolicy(
-//        QSizePolicy::Expanding,
-//        QSizePolicy::Expanding);
-//   m_viewWidget->setStyleSheet("background-color: black;");
-
-//   m_mainLayout->addWidget(m_viewWidget);
   m_mainLayout->addLayout(m_controlLayout);
-//   this->setAutoFillBackground(true);
-  setLayout(m_mainLayout);
-
-  // Color background
-  QPalette pal = this->palette();
-  pal.setColor(QPalette::Base, pal.color(QPalette::Window));
-  this->setPalette(pal);
-  this->setStyleSheet("QSpinBox { background-color: white;}");
-  
-//   m_preferences = new SliceViewPreferences(m_plane);
-  qDebug() << this << ": Created";
 }
+
 
 //-----------------------------------------------------------------------------
 SliceView::~SliceView()
@@ -352,6 +432,20 @@ SliceView::~SliceView()
   qDebug() << this << ": Destroyed";
   disconnect();
 }
+
+//-----------------------------------------------------------------------------
+QString SliceView::title() const
+{
+  return m_title->text();
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::setTitle(const QString& title)
+{
+  m_title->setText(title);
+}
+
+
 
 
 // //-----------------------------------------------------------------------------
@@ -601,7 +695,7 @@ void SliceView::onConnect()
 //   m_viewWidget->installEventFilter(this);
 //   QObject::connect(m_viewWidget, SIGNAL(mouseEvent(QMouseEvent *)),
 //                    this, SLOT(vtkWidgetMouseEvent(QMouseEvent *)));
-  m_mainLayout->insertWidget(0, m_viewWidget);//To preserve view order
+  m_mainLayout->insertWidget(1, m_viewWidget);//To preserve view order
 
 //   m_viewProxy = vtkSMRenderViewProxy::SafeDownCast(m_view->getProxy());
 //   assert(m_viewProxy);
@@ -715,10 +809,34 @@ void SliceView::loadTestImage()
     addSegmentationRepresentation(img->getOutputPort(0));
   }
   m_view->render();
-  
-  
+
+
   m_scrollBar->setMaximum(114);
   m_spinBox->setMaximum(114);
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::close()
+{
+  emit closeRequest();
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::maximize()
+{
+  emit maximizeRequest();
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::minimize()
+{
+  emit minimizeRequest();
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::undock()
+{
+  emit undockRequest();
 }
 
 //-----------------------------------------------------------------------------
@@ -746,16 +864,16 @@ void SliceView::addSegmentationRepresentation(pqOutputPort* oport)
 
 
 
-// //-----------------------------------------------------------------------------
-// void SliceView::showSegmentations(bool value)
-// {
+//-----------------------------------------------------------------------------
+void SliceView::showSegmentations(bool value)
+{
 //   if (m_showSegmentations != value)
 //   {
 //     m_showSegmentations = value;
 //     updateScene();
 //   }
-// }
-// 
+}
+
 // //-----------------------------------------------------------------------------
 // void SliceView::setPlane(ViewType plane)
 // {
