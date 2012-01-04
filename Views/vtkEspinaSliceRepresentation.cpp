@@ -50,7 +50,7 @@ vtkEspinaSliceRepresentation::vtkEspinaSliceRepresentation()
   this->SliceActor = vtkImageActor::New();
   this->SliceActor->SetInterpolate(false);
 
-  this->SliceActor->SetInput(Slice->GetOutput());
+  this->SliceActor->GetMapper()->SetInputConnection(Slice->GetOutputPort());
 }
 
 //----------------------------------------------------------------------------

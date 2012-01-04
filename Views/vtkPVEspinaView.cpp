@@ -138,6 +138,14 @@ void vtkPVEspinaView::AddActor(vtkProp* actor)
 }
 
 //----------------------------------------------------------------------------
+void vtkPVEspinaView::Initialize(unsigned int id)
+{
+    vtkPVRenderView::Initialize(id);
+    this->RenderView->GetRenderer()->UseDepthPeelingOff();
+    this->OverviewRenderer->UseDepthPeelingOff();
+}
+
+//----------------------------------------------------------------------------
 void vtkPVEspinaView::ResetCamera()
 {
   vtkPVRenderView::ResetCamera();

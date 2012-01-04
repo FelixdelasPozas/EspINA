@@ -40,6 +40,10 @@ public:
   void AddChannel(vtkProp *actor){};
   void AddSegmentation(vtkProp *actor){};
 
+
+  // We need to reimplement the initilize method to overwrite
+  // paraview's xml's default parameters
+  virtual void Initialize(unsigned int id);
   // Reimplemented to update overview vtkPVRenderView behavior
   void ResetCamera();
   void ResetCamera(double bounds[6]);
