@@ -22,6 +22,7 @@ qt4_wrap_cpp(MOC_BUILT_SOURCES
   model/ModelTest.h
   gui/SliceView.h
   gui/ViewManager.h
+  gui/VolumeView.h
   )
 
 source_group("Generated" FILES
@@ -39,9 +40,11 @@ set (MODEL_SOURCES
 set (GUI_SOURCES
   gui/DynamicWidget.cpp
   gui/EspinaDockWidget.cpp
+  gui/Layout.cpp
   gui/SliceView.cpp
   gui/ViewFrame.cpp
   gui/ViewManager.cpp
+  gui/VolumeView.cpp
   )
 
 set(Espina_SOURCE_FILES

@@ -21,25 +21,21 @@
 // File:    ViewFrame.h
 // Purpose: Contain various views and re-arrange them.
 //----------------------------------------------------------------------------
-#ifndef VIEWFRAME_H
-#define VIEWFRAME_H
+#ifndef MULTIVIEWFRAME_H
+#define MULTIVIEWFRAME_H
 
 #include <QSplitter>
 
+class pqView;
 class SliceView;
-class ViewFrame : public QSplitter
+class MultiViewFrame : public QWidget
 {
 public:
-  explicit ViewFrame();
-  ~ViewFrame();
-
-  void split();
-
-  void onConnect();
-  void onDisconnect();
+  explicit MultiViewFrame(QWidget *mainView, QWidget *parent=NULL);
+  ~MultiViewFrame();
 
 private:
-  QList<QSharedPointer<SliceView> > m_views;
+  QList<pqView*> m_views;
 };
 
-#endif // VIEWFRAME_H
+#endif // MULTIVIEWFRAME_H

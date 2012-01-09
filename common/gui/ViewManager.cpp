@@ -21,7 +21,15 @@
 
 #include <QDebug>
 
-#include "gui/ViewFrame.h"
+#include "gui/Layout.h"
+#include "gui/SliceView.h"
+// #include "gui/ViewFrame.h"
+
+#include <QDockWidget>
+#include <QLayout>
+#include <QMainWindow>
+#include <QSplitter>
+#include <QVBoxLayout>
 
 #include <pqApplicationCore.h>
 #include <pqServerManagerObserver.h>
@@ -31,11 +39,6 @@ QSharedPointer<ViewManager> ViewManager::m_singleton;
 //----------------------------------------------------------------------------
 ViewManager::ViewManager()
 {
-//     m_SMObserver = pqApplicationCore::instance()->getServerManagerObserver();
-//     connect(m_SMObserver, SIGNAL(connectionCreated(vtkIdType)),
-// 	    this, SLOT(onConnect()));
-//     connect(m_SMObserver, SIGNAL(connectionClosed(vtkIdType)),
-// 	    this, SLOT(onDisconnect()));
 }
 
 //----------------------------------------------------------------------------
@@ -44,29 +47,46 @@ ViewManager::~ViewManager()
 }
 
 //----------------------------------------------------------------------------
-QWidget* ViewManager::createLayout(const QString& layout)
+void ViewManager::createLayout(QMainWindow *window, const QString& layout)
 {
-  ViewFrame *frame = new ViewFrame();
+  if (layout == "squared")
+    createSquaredLayout(window);
+  else
+    createDefaultLayout(window);
+
+//   MultiViewFrame *frame = new MultiViewFrame(view);
   // Returned frame will belong to another QObject, what happens when its
   // parent is destroyed? does m_frames's point become a dangling pointer?
-  m_frames.append(frame);
-  return frame;
+//   m_frames.append(frame);
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::onConnect()
+void ViewManager::createDefaultLayout(QMainWindow* window)
 {
-  qDebug() << this << ": Connecting to a new server";
-  foreach (ViewFrame *frame, m_frames)
-    frame->onConnect();
+  new DefaultLayout(window);
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::onDisconnect()
+void ViewManager::createSquaredLayout(QMainWindow* window)
 {
-  qDebug() << this << ": Disconnecting from current server";
-  foreach (ViewFrame *frame, m_frames)
-    frame->onDisconnect();
+  SliceView *volView = new SliceView();
+  SliceView *xyView = new SliceView();
+
+  QSplitter *upperViews = new QSplitter(Qt::Horizontal);
+  upperViews->addWidget(volView);
+  upperViews->addWidget(xyView);
+
+  SliceView *yzView = new SliceView();
+  SliceView *xzView = new SliceView();
+  
+  QSplitter *lowerViews = new QSplitter(Qt::Horizontal);
+  lowerViews->addWidget(yzView);
+  lowerViews->addWidget(xzView);
+
+  QSplitter *mainSplitter = new QSplitter(Qt::Vertical);
+  mainSplitter->addWidget(upperViews);
+  mainSplitter->addWidget(lowerViews);
+
+  window->setCentralWidget(mainSplitter);
+  
 }
-
-

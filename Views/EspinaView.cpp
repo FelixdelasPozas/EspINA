@@ -62,7 +62,7 @@ EspinaView::EspinaView(
   QObject* _parent):
   Superclass(espinaRenderViewType(), group, name, viewProxy, server, _parent)
 {
-  qDebug() << "EspinaView(" << this << ") : Created";
+  qDebug() << this << ": Created";
   this->InitializedWidgets = false;
 }
 

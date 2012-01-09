@@ -86,7 +86,7 @@ public:
   inline QString title() const;
   void setTitle(const QString &title);
 
-  //! AbstractItemView Interface
+  /// QAbstractItemView Interface
   virtual QModelIndex indexAt(const QPoint& point) const {return QModelIndex();}
   virtual void scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint = EnsureVisible) {}
   virtual QRect visualRect(const QModelIndex& index) const {return QRect();}
@@ -166,7 +166,7 @@ protected:
   void addSegmentationRepresentation(pqOutputPort *oport);
 
   void buildTitle();
-  void buildControlers();
+  void buildControls();
 private:
 //   bool m_showSegmentations;
   VIEW_PLANE m_plane;

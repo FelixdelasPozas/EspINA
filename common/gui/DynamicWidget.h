@@ -24,13 +24,14 @@
 #ifndef DYNAMICWIDGET_H
 #define DYNAMICWIDGET_H
 
+class QString;
 class DynamicWidget
 {
 public:
   virtual void increaseLOD() = 0;
   virtual void decreaseLOD() = 0;
   virtual void setLOD() = 0;
-  virtual void setActivity() = 0;
+  virtual void setActivity(QString activity) = 0;
 };
 
 #endif // DYNAMICWIDGET_H

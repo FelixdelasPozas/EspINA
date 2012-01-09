@@ -27,6 +27,7 @@
 
 #include <QSharedPointer>
 
+class QMainWindow;
 class QWidget;
 class ViewFrame;
 class pqServerManagerObserver;
@@ -45,22 +46,22 @@ public:
     return m_singleton;
   }
 
-  QWidget *createLayout(const QString &layout = QString());
+  void createLayout(QMainWindow *window, const QString &layout = QString());
   void saveLayout(const QString &layout) const;
   void restoreLayout(const QString &layout);
 
 protected slots:
   // Espina has been connected to a new server
-  void onConnect();
+//   void onConnect();
   // Espina has been disconnected from server
-  void onDisconnect();
+//   void onDisconnect();
+  void createDefaultLayout(QMainWindow *window);
+  void createSquaredLayout(QMainWindow *window);
 
 private:
   explicit ViewManager();
 
   static QSharedPointer<ViewManager> m_singleton;
-  pqServerManagerObserver *m_SMObserver;
-  QList<ViewFrame *> m_frames;
 };
 
 #endif // VIEWMANAGER_H

@@ -41,6 +41,7 @@ SegmentationExplorer::SegmentationExplorer(QSharedPointer< EspINA> model, QWidge
 , m_baseModel(model)
 {
   setWindowTitle(tr("Segmentation Explorer"));
+  setObjectName("SegmentationExplorer");
   m_gui = new GUI();
   m_gui->view->setModel(m_baseModel.data());
 

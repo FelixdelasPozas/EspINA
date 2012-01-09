@@ -52,16 +52,17 @@
 EspinaWindow::EspinaWindow()
 {
   QSharedPointer<ViewManager> vm = ViewManager::instance();
-  setCentralWidget(vm->createLayout());
+  vm->createLayout(this);
 
   QMenu *fileMenu = new QMenu("File");
+  pqParaViewMenuBuilders::buildFileMenu(*fileMenu);
   menuBar()->addMenu(fileMenu);
   QMenu *toolsMenu = new QMenu("Tools");
-  menuBar()->addMenu(toolsMenu);
-  
-  pqParaViewMenuBuilders::buildFileMenu(*fileMenu);
   //NOTE: This method causes maxViewWindowSizeSet connection fail warning 
   pqParaViewMenuBuilders::buildToolsMenu(*toolsMenu);
+  menuBar()->addMenu(toolsMenu);
+  createActivityMenu();
+  createLODMenu();
 
 //   pqServerManagerObserver *server = pqApplicationCore::instance()->getServerManagerObserver();
 //   connect(server,SIGNAL(connectionCreated(vtkIdType)),this,SLOT(onConnect()));
@@ -87,12 +88,52 @@ EspinaWindow::EspinaWindow()
 
   loadParaviewBehavior();
 
+  QSettings settings("CeSViMa", "EspINA");
+  
+  restoreGeometry(settings.value("geometry").toByteArray());
+  restoreState(settings.value("state").toByteArray(),0);
+  
   statusBar()->clearMessage();
 }
 
 EspinaWindow::~EspinaWindow()
 {
 }
+
+void EspinaWindow::createActivityMenu()
+{
+  QSignalMapper *sigMapper = new QSignalMapper(this);
+
+  QMenu *activityMenu = new QMenu(tr("Activity"));
+  menuBar()->addMenu(activityMenu);
+
+  QAction *analyse = new QAction(tr("Analyse"),activityMenu);
+  activityMenu->addAction(analyse);
+  sigMapper->setMapping(analyse,QString("analyse"));
+  connect(analyse,SIGNAL(triggered(bool)), sigMapper, SLOT(map()));
+
+  QAction *segmentate = new QAction(tr("Segmentate"),activityMenu);
+  activityMenu->addAction(segmentate);
+  sigMapper->setMapping(segmentate,QString("segmentate"));
+  connect(segmentate,SIGNAL(triggered(bool)), sigMapper, SLOT(map()));
+
+  connect(sigMapper,SIGNAL(mapped(QString)),this, SLOT(setActivity(QString)));
+}
+
+void EspinaWindow::createLODMenu()
+{
+}
+
+
+void EspinaWindow::closeEvent(QCloseEvent* event)
+{
+  QSettings settings("CeSViMa", "EspINA");
+
+  settings.setValue("geometry", saveGeometry());
+  settings.setValue("state", saveState(0));
+  QMainWindow::closeEvent(event);
+}
+
 
 void EspinaWindow::loadParaviewBehavior()
 {
@@ -155,6 +196,29 @@ void EspinaWindow::loadSource(pqPipelineSource * source)
 //   view->render();
 
 }
+
+void EspinaWindow::setActivity(QString activity)
+{
+  // Changing the central widget desrtoys the previous one
+  if (activity == "analyse")
+  {
+    qDebug() << "Switch to Analyse Activity";
+    QSharedPointer<ViewManager> vm = ViewManager::instance();
+    vm->createLayout(this, "squared");
+  }
+  else if (activity == "segmentate")
+  {
+    qDebug() << "Switch to Segmentate Activity";
+    QSharedPointer<ViewManager> vm = ViewManager::instance();
+    vm->createLayout(this);
+  }
+  QSettings settings("CeSViMa", "EspINA");
+
+//   restoreGeometry(settings.value("geometry").toByteArray());
+  restoreState(settings.value("state").toByteArray(),0);
+  m_currentActivity = activity;
+}
+
 
 void EspinaWindow::openFile()
 {

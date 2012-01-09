@@ -20,7 +20,8 @@
 #ifndef ESPINAWINDOW_H
 #define ESPINAWINDOW_H
 
-#include <qt4/QtGui/QMainWindow>
+#include <QMainWindow>
+#include <gui/DynamicWidget.h>
 
 class EspINA;
 class pqView;
@@ -32,26 +33,38 @@ class pqPipelineSource;
 class ModelTest;
 #endif
 
-class EspinaWindow : public QMainWindow
+class EspinaWindow : public QMainWindow, public DynamicWidget
 {
   Q_OBJECT
 public:
     explicit EspinaWindow();
     virtual ~EspinaWindow();
+
 public slots:
   void onConnect();
   void loadSource(pqPipelineSource *source);
 
+  virtual void increaseLOD(){}
+  virtual void decreaseLOD(){}
+  virtual void setActivity(QString activity);
+  virtual void setLOD(){}
+  
   /// Open a new file for analysis after unloading Previous data.
   void openFile();
   /// Load new data for analysis
   void loadFile();
 
 protected:
+  void createActivityMenu();
+  void createLODMenu();
+  virtual void closeEvent(QCloseEvent* );
+  
   void loadParaviewBehavior();
+
 
 private:
   QSharedPointer<EspINA> m_espina;
+  QString m_currentActivity;
 #ifdef DEBUG
   QSharedPointer<ModelTest> m_modelTester;
 #endif

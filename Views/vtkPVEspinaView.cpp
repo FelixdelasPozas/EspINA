@@ -180,6 +180,7 @@ void vtkPVEspinaView::SetBackground(double r, double g, double b)
   OverviewRenderer->SetBackground(r,g,b);
 }
 
+//----------------------------------------------------------------------------
 void vtkPVEspinaView::SetSlice(int value)
 {
   qDebug() << "vtkPVEspinaView changing slice" << value;

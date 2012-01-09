@@ -55,6 +55,7 @@
 #include <pqDataRepresentation.h>
 #include <pqPipelineRepresentation.h>
 #include <QLabel>
+#include <pqServerManagerObserver.h>
 
 // #include "pqDisplayPolicy.h"
 // #include "pqPipelineRepresentation.h"
@@ -330,26 +331,26 @@ private:
 
 //-----------------------------------------------------------------------------
 SliceView::SliceView(VIEW_PLANE plane, QWidget* parent)
-    : QAbstractItemView(parent)
-    , m_plane(plane)
-    , m_titleLayout  (new QHBoxLayout())
-    , m_title        (new QLabel("Sagital"))
-    , m_mainLayout   (new QVBoxLayout())
-    , m_controlLayout(new QHBoxLayout())
-    , m_viewWidget   (NULL)
-    , m_scrollBar    (new QScrollBar(Qt::Horizontal))
-    , m_spinBox      (new QSpinBox())
-    , first(true)
+    : QAbstractItemView (parent)
+    , m_plane           (plane)
+    , m_titleLayout     (new QHBoxLayout())
+    , m_title           (new QLabel("Sagital"))
+    , m_mainLayout      (new QVBoxLayout())
+    , m_controlLayout   (new QHBoxLayout())
+    , m_viewWidget      (NULL)
+    , m_scrollBar       (new QScrollBar(Qt::Horizontal))
+    , m_spinBox         (new QSpinBox())
+    , first             (true)
 {
-  buildTitle(); 
+//   buildTitle(); 
 //   m_viewWidget->setSizePolicy(
 //        QSizePolicy::Expanding,
 //        QSizePolicy::Expanding);
 //   m_viewWidget->setStyleSheet("background-color: black;");
 //   m_mainLayout->addWidget(m_viewWidget);
-  buildControlers();
+  buildControls();
 
-//   this->setAutoFillBackground(true);
+  this->setAutoFillBackground(true);
   setLayout(m_mainLayout);
 
   // Color background
@@ -358,6 +359,14 @@ SliceView::SliceView(VIEW_PLANE plane, QWidget* parent)
   this->setPalette(pal);
   this->setStyleSheet("QSpinBox { background-color: white;}");
   
+  pqServerManagerObserver *SMObserver = pqApplicationCore::instance()->getServerManagerObserver();
+  connect(SMObserver, SIGNAL(connectionCreated(vtkIdType)),
+	  this, SLOT(onConnect()));
+  connect(SMObserver, SIGNAL(connectionClosed(vtkIdType)),
+	  this, SLOT(onDisconnect()));
+
+  if (pqApplicationCore::instance()->getActiveServer())
+    onConnect();
 //   m_preferences = new SliceViewPreferences(m_plane);
   qDebug() << this << ": Created";
 }
@@ -393,7 +402,7 @@ void SliceView::buildTitle()
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::buildControlers()
+void SliceView::buildControls()
 {
   m_scrollBar->setMaximum(0);
   m_scrollBar->setSizePolicy(
@@ -429,8 +438,8 @@ void SliceView::buildControlers()
 //-----------------------------------------------------------------------------
 SliceView::~SliceView()
 {
-  qDebug() << this << ": Destroyed";
   disconnect();
+  qDebug() << this << ": Destroyed";
 }
 
 //-----------------------------------------------------------------------------
@@ -695,7 +704,7 @@ void SliceView::onConnect()
 //   m_viewWidget->installEventFilter(this);
 //   QObject::connect(m_viewWidget, SIGNAL(mouseEvent(QMouseEvent *)),
 //                    this, SLOT(vtkWidgetMouseEvent(QMouseEvent *)));
-  m_mainLayout->insertWidget(1, m_viewWidget);//To preserve view order
+  m_mainLayout->insertWidget(0, m_viewWidget);//To preserve view order
 
 //   m_viewProxy = vtkSMRenderViewProxy::SafeDownCast(m_view->getProxy());
 //   assert(m_viewProxy);

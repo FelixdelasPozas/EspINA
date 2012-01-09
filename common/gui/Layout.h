@@ -17,23 +17,35 @@
 */
 
 
-#ifndef MAINTOOLBAR_H
-#define MAINTOOLBAR_H
+//----------------------------------------------------------------------------
+// File:    Layout.h
+// Purpose: Group different views and the way they are displayed
+//          (i.e. main window widget, dock widgets, independent widget, etc)
+//----------------------------------------------------------------------------
 
-#include <QToolBar>
-#include <common/gui/DynamicWidget.h>
+#ifndef LAYOUT_H
+#define LAYOUT_H
 
-class EspINA;
-class MainToolBar : public QToolBar, public DynamicWidget
+#include <QWidget>
+
+// Forward-declaration
+class QDockWidget;
+class QMainWindow;
+
+class Layout : public QWidget
 {
-  Q_OBJECT
 public:
-  explicit MainToolBar(QSharedPointer<EspINA> model, QWidget* parent = 0);
-
-  virtual void increaseLOD(){}
-  virtual void decreaseLOD(){}
-  virtual void setLOD(){}
-  virtual void setActivity(QString activity){}
+  explicit Layout(QMainWindow * parent = 0, Qt::WindowFlags f = 0);
+  virtual ~Layout(){}
 };
 
-#endif // MAINTOOLBAR_H
+class DefaultLayout : public Layout
+{
+public:
+  explicit DefaultLayout(QMainWindow* parent = 0, Qt::WindowFlags f = 0);
+  
+private:
+  QSharedPointer<QDockWidget> volDock, yzDock, xzDock;
+};
+
+#endif // LAYOUT_H

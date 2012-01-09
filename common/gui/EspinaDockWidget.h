@@ -37,7 +37,8 @@ public:
     virtual void increaseLOD(){}
     virtual void decreaseLOD(){}
     virtual void setLOD(){}
-    virtual void setActivity(){}
+    virtual void setActivity(QString activity){}
+
 protected:
 //   QSharedPointer<DynamicWidgetState> m_state;
 };

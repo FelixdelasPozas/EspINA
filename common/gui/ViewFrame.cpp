@@ -26,49 +26,17 @@
 #include <pqApplicationCore.h>
 #include <pqServerManagerObserver.h>
 #include <QPushButton>
+#include <QVBoxLayout>
 
-ViewFrame::ViewFrame()
+MultiViewFrame::MultiViewFrame(QWidget* mainView, QWidget* parent)
+: QWidget(parent)
 {
-  QSharedPointer<SliceView> defaultView =
-    QSharedPointer<SliceView>(new SliceView());
-  addWidget(defaultView.data());
-  pqServerManagerObserver *SMObserver = pqApplicationCore::instance()->getServerManagerObserver();
-  connect(SMObserver, SIGNAL(connectionCreated(vtkIdType)),
-	  defaultView.data(), SLOT(onConnect()));
-  connect(SMObserver, SIGNAL(connectionClosed(vtkIdType)),
-	  defaultView.data(), SLOT(onDisconnect()));
-
-  m_views.append(defaultView);
+  QHBoxLayout *layout = new QHBoxLayout(this);
+  layout->addWidget(mainView);
 }
 
-//----------------------------------------------------------------------------
-ViewFrame::~ViewFrame()
-{
-  qDebug() << this << ": Frame Destroyed";
-}
 
-//----------------------------------------------------------------------------
-void ViewFrame::split()
+MultiViewFrame::~MultiViewFrame()
 {
-  SliceView *nslice = new SliceView();
-  addWidget(nslice);
-  pqServerManagerObserver *SMObserver = pqApplicationCore::instance()->getServerManagerObserver();
-  connect(SMObserver, SIGNAL(connectionCreated(vtkIdType)),
-	  nslice, SLOT(onConnect()));
-  connect(SMObserver, SIGNAL(connectionClosed(vtkIdType)),
-	  nslice, SLOT(onDisconnect()));
-}
-
-//----------------------------------------------------------------------------
-void ViewFrame::onConnect()
-{
-  foreach(QSharedPointer<SliceView> view, m_views)
-    view->onConnect();
-}
-
-//----------------------------------------------------------------------------
-void ViewFrame::onDisconnect()
-{
-  foreach(QSharedPointer<SliceView> view, m_views)
-    view->onDisconnect();
+  qDebug() << "Destructing MultiViewFrame";
 }
