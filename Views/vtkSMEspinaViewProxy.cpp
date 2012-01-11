@@ -42,7 +42,7 @@ vtkSMRepresentationProxy* vtkSMEspinaViewProxy::CreateDefaultRepresentation(vtkS
     sproxy->UpdatePipeline(view_time);
     }
     vtkSMRepresentationProxy* repr = vtkSMRepresentationProxy::SafeDownCast(
-      pxm->NewProxy("representations", "EspinaSliceRepresentation"));
+      pxm->NewProxy("representations", "ChannelRepresentation"));
     assert(repr);
 //     vtkSMPropertyHelper(repr, "UseXYPlane").Set(1);
   return repr;

@@ -33,7 +33,7 @@
    </EspinaViewProxy>
  </ProxyGroup>
  <ProxyGroup name="representations">
-    <RepresentationProxy name="EspinaSliceRepresentation"
+    <RepresentationProxy name="ChannelRepresentation"
       class="vtkEspinaSliceRepresentation"
       processes="client|renderserver|dataserver">
       <Documentation>
@@ -51,7 +51,6 @@
         <InputArrayDomain name="input_array_any" attribute_type="any">
         </InputArrayDomain>
       </InputProperty>
-
       <IntVectorProperty name="Type"
         command="SetType"
         number_of_elements="1"
@@ -71,7 +70,44 @@
           Set the visibility for this representation.
         </Documentation>
       </IntVectorProperty>
-
+    </RepresentationProxy>
+    <RepresentationProxy name="SegmentationRepresentation"
+      class="vtkEspinaSliceRepresentation"
+      processes="client|renderserver|dataserver">
+      <Documentation>
+        This is the new representation type we are adding. This is identical to
+        the SurfaceRepresentation except that we are overriding the mapper with
+        our mapper.
+      </Documentation>
+      <InputProperty name="Input" command="SetInputConnection">
+        <Documentation>
+          Set the input to the representation. Must be a vtkImageData producer.
+        </Documentation>
+	<DataTypeDomain name="input_type" composite_data_supported="0">
+          <DataType value="vtkImageData" />
+        </DataTypeDomain>
+        <InputArrayDomain name="input_array_any" attribute_type="any">
+        </InputArrayDomain>
+      </InputProperty>
+      <IntVectorProperty name="Type"
+        command="SetType"
+        number_of_elements="1"
+        default_values="1">
+        <Documentation>
+          Set the type for this representation.
+	  Type=0: Channel
+	  Type=1: Segmentation
+        </Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty name="Visibility"
+        command="SetVisibility"
+        number_of_elements="1"
+        default_values="1">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Set the visibility for this representation.
+        </Documentation>
+      </IntVectorProperty>
     </RepresentationProxy>
   </ProxyGroup>-->
 </ServerManagerConfiguration>

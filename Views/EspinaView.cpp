@@ -161,7 +161,7 @@ bool EspinaView::canDisplay(pqOutputPort* opPort) const
 //-----------------------------------------------------------------------------
 void EspinaView::setSlice(int value)
 {
-  qDebug() << this << ": Changing Slice " << value;
+//   qDebug() << this << ": Changing Slice " << value;
   vtkSMPropertyHelper(this->getProxy(), "Slice").Set(value);
   this->getProxy()->UpdateVTKObjects();
   render();
@@ -170,7 +170,7 @@ void EspinaView::setSlice(int value)
 //-----------------------------------------------------------------------------
 void EspinaView::showSegmentations(bool visible)
 {
-  qDebug() << this << ": Segmentation Visibility = " << visible;
+//   qDebug() << this << ": Segmentation Visibility = " << visible;
   vtkSMPropertyHelper(this->getProxy(), "ShowSegmentations").Set(visible);
   this->getProxy()->UpdateVTKObjects();
   render();

@@ -878,13 +878,13 @@ void SliceView::addSegmentationRepresentation(pqOutputPort* oport)
   vtkSMProxyManager *pxm = source->getProxy()->GetProxyManager();
 
   vtkSMRepresentationProxy* reprProxy = vtkSMRepresentationProxy::SafeDownCast(
-    pxm->NewProxy("representations", "EspinaSliceRepresentation"));
+    pxm->NewProxy("representations", "SegmentationRepresentation"));
   assert(reprProxy);
 
     // Set the reprProxy's input.
   pqSMAdaptor::setInputProperty(reprProxy->GetProperty("Input"),
 				source->getProxy(), oport->getPortNumber());
-  vtkSMPropertyHelper(reprProxy,"Type").Set(1);
+//   vtkSMPropertyHelper(reprProxy,"Type").Set(1);
   reprProxy->UpdateVTKObjects();
 
   vtkSMProxy* viewModuleProxy = m_view->getProxy();

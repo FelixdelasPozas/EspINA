@@ -19,6 +19,8 @@
 
 #include "vtkEspinaSliceRepresentation.h"
 
+#include <QDebug>
+
 #include "vtkPVEspinaView.h"
 #include <vtkObjectFactory.h>
 #include "vtkEspinaView.h"
@@ -159,12 +161,24 @@ int vtkEspinaSliceRepresentation::RequestData(
 //----------------------------------------------------------------------------
 bool vtkEspinaSliceRepresentation::AddToView(vtkView* view)
 {
+  qDebug() << "Add to View";
   vtkPVEspinaView* rview = vtkPVEspinaView::SafeDownCast(view);
   if (rview)
     {
       Slice->SetOutputDimensionality(2);
       Slice->SetResliceAxes(rview->GetSlicingMatrix());
-      rview->AddActor(this->SliceActor);
+      switch (Type)
+      {
+	case 0:
+	  rview->AddChannel(this->SliceActor);
+	  break;
+	case 1:
+	  rview->AddSegmentation(this->SliceActor);
+	  break;
+	default:
+	  Q_ASSERT(false);
+	  return false;
+      };
       return true;
     }
   return false;
@@ -174,10 +188,15 @@ bool vtkEspinaSliceRepresentation::AddToView(vtkView* view)
 void vtkEspinaSliceRepresentation::SetType(int value)
 {
   Type = value;
+  qDebug() << "Set Type " << value ;
   if (Type == 1)
   {
       vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
-      lut->SetNumberOfTableValues(1);
+      lut->SetNumberOfTableValues(2);
+      double bg[4] = { 0.0, 0.0, 0.0, 0.0 };
+      double fg[4] = { 1.0, 0.0, 0.0, 1.0 };
+      lut->SetTableValue(0,bg);
+      lut->SetTableValue(1,fg);
       lut->Build();
       Slice->SetLookupTable(lut);
       SliceActor->SetOpacity(0.7);
