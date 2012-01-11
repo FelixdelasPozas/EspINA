@@ -148,6 +148,7 @@ void vtkPVEspinaView::AddChannel(vtkProp* actor)
 void vtkPVEspinaView::AddSegmentation(vtkProp* actor)
 {
   AddActor(actor);
+  actor->SetVisibility(ShowSegmentations);
   Segmentations.append(actor);
 }
 
@@ -197,7 +198,7 @@ void vtkPVEspinaView::SetBackground(double r, double g, double b)
 //----------------------------------------------------------------------------
 void vtkPVEspinaView::SetSlice(int value)
 {
-  qDebug() << "vtkPVEspinaView changing slice" << value;
+//   qDebug() << "vtkPVEspinaView changing slice" << value;
   double point[4];
   double center[4];
   point[0] = 0.0;
@@ -213,11 +214,12 @@ void vtkPVEspinaView::SetSlice(int value)
 //----------------------------------------------------------------------------
 void vtkPVEspinaView::SetShowSegmentations(bool value)
 {
-  qDebug() << "vtkPVEspinaView segmentation's visibility = " << value;
+//   qDebug() << "vtkPVEspinaView segmentation's visibility = " << value;
   vtkProp *seg;
   foreach(seg, Segmentations)
   {
     seg->SetVisibility(value);
   }
+  ShowSegmentations = value;
 }
 

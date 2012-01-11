@@ -894,19 +894,19 @@ void SliceView::addSegmentationRepresentation(pqOutputPort* oport)
   viewModuleProxy->UpdateVTKObjects();
 
   // Following code could be ignored
-  pqApplicationCore* core= pqApplicationCore::instance();
-  pqDataRepresentation* repr = core->getServerManagerModel()->
-  findItem<pqDataRepresentation*>(reprProxy);
-  if (repr )
-  {
-    repr->setDefaultPropertyValues();
-  }
+//   pqApplicationCore* core= pqApplicationCore::instance();
+//   pqDataRepresentation* repr = core->getServerManagerModel()->
+//   findItem<pqDataRepresentation*>(reprProxy);
+//   if (repr )
+//   {
+//     repr->setDefaultPropertyValues();
+//   }
 }
 
 
 
 //-----------------------------------------------------------------------------
-void SliceView::showSegmentations(bool value)
+void SliceView::setShowSegmentations(bool value)
 {
   m_view->showSegmentations(value);
 }

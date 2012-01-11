@@ -47,22 +47,26 @@
 #include <pqInterfaceTracker.h>
 #include <pqStandardViewModules.h>
 #include "MainToolBar.h"
+#include <gui/Layout.h>
 
 
 EspinaWindow::EspinaWindow()
 {
-  QSharedPointer<ViewManager> vm = ViewManager::instance();
-  vm->createLayout(this);
+  m_espina = QSharedPointer<EspINA>(new EspINA());
+#ifdef DEBUG
+  m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_espina.data()));
+#endif
 
   QMenu *fileMenu = new QMenu("File");
   pqParaViewMenuBuilders::buildFileMenu(*fileMenu);
   menuBar()->addMenu(fileMenu);
   QMenu *toolsMenu = new QMenu("Tools");
-  //NOTE: This method causes maxViewWindowSizeSet connection fail warning 
+  //NOTE: This method causes maxViewWindowSizeSet connection fail warning
   pqParaViewMenuBuilders::buildToolsMenu(*toolsMenu);
   menuBar()->addMenu(toolsMenu);
   createActivityMenu();
   createLODMenu();
+
 
 //   pqServerManagerObserver *server = pqApplicationCore::instance()->getServerManagerObserver();
 //   connect(server,SIGNAL(connectionCreated(vtkIdType)),this,SLOT(onConnect()));
@@ -74,18 +78,15 @@ EspinaWindow::EspinaWindow()
 // 		    this, SLOT( loadSource(pqPipelineSource *)));
 
 
-  m_espina = QSharedPointer<EspINA>(new EspINA());
-#ifdef DEBUG
-  m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_espina.data()));
-#endif
-
-  QToolBar *mainToolBar = new MainToolBar(m_espina);
-  mainToolBar->setMovable(false);
-  addToolBar(mainToolBar);
+  m_mainToolBar = new MainToolBar(m_espina);
+  m_mainToolBar->setMovable(false);
+  addToolBar(m_mainToolBar);
   
   SegmentationExplorer *segExplorer = new SegmentationExplorer(m_espina, this);
   addDockWidget(Qt::LeftDockWidgetArea,segExplorer);
 
+  setActivity("segmentate");
+  
   loadParaviewBehavior();
 
   QSettings settings("CeSViMa", "EspINA");
@@ -200,18 +201,24 @@ void EspinaWindow::loadSource(pqPipelineSource * source)
 void EspinaWindow::setActivity(QString activity)
 {
   // Changing the central widget desrtoys the previous one
+  Layout *newLayout = NULL;
   if (activity == "analyse")
   {
     qDebug() << "Switch to Analyse Activity";
     QSharedPointer<ViewManager> vm = ViewManager::instance();
-    vm->createLayout(this, "squared");
+    newLayout = vm->createLayout(this, "squared");
   }
   else if (activity == "segmentate")
   {
     qDebug() << "Switch to Segmentate Activity";
     QSharedPointer<ViewManager> vm = ViewManager::instance();
-    vm->createLayout(this);
+    newLayout = vm->createLayout(this);
   }
+
+  if (newLayout)
+    connect(m_mainToolBar, SIGNAL(showSegmentations(bool)),
+	    newLayout, SLOT(setShowSegmentations(bool)));
+  
   QSettings settings("CeSViMa", "EspINA");
 
 //   restoreGeometry(settings.value("geometry").toByteArray());

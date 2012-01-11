@@ -31,20 +31,27 @@
 // Forward-declaration
 class QDockWidget;
 class QMainWindow;
+class SliceView;
 
 class Layout : public QWidget
 {
+  Q_OBJECT
 public:
   explicit Layout(QMainWindow * parent = 0, Qt::WindowFlags f = 0);
   virtual ~Layout(){}
+
+public slots:
+  virtual void setShowSegmentations(bool visibility) = 0;
 };
 
 class DefaultLayout : public Layout
 {
 public:
   explicit DefaultLayout(QMainWindow* parent = 0, Qt::WindowFlags f = 0);
-  
+
+  virtual void setShowSegmentations(bool visibility);
 private:
+  SliceView *xyView, *yzView, *xzView;
   QSharedPointer<QDockWidget> volDock, yzDock, xzDock;
 };
 

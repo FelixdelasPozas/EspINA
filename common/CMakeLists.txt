@@ -20,6 +20,7 @@ qt4_add_resources(RCC_BUILT_SOURCES
 qt4_wrap_cpp(MOC_BUILT_SOURCES
   model/EspINA.h
   model/ModelTest.h
+  gui/Layout.h
   gui/SliceView.h
   gui/ViewManager.h
   gui/VolumeView.h

@@ -23,6 +23,7 @@
 #include <QMainWindow>
 #include <gui/DynamicWidget.h>
 
+class MainToolBar;
 class EspINA;
 class pqView;
 class pqPipelineSource;
@@ -64,6 +65,8 @@ protected:
 
 private:
   QSharedPointer<EspINA> m_espina;
+  MainToolBar *m_mainToolBar;
+  
   QString m_currentActivity;
 #ifdef DEBUG
   QSharedPointer<ModelTest> m_modelTester;

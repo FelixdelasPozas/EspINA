@@ -47,27 +47,22 @@ ViewManager::~ViewManager()
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::createLayout(QMainWindow *window, const QString& layout)
+Layout *ViewManager::createLayout(QMainWindow *window, const QString& layout)
 {
   if (layout == "squared")
-    createSquaredLayout(window);
+    return createSquaredLayout(window);
   else
-    createDefaultLayout(window);
-
-//   MultiViewFrame *frame = new MultiViewFrame(view);
-  // Returned frame will belong to another QObject, what happens when its
-  // parent is destroyed? does m_frames's point become a dangling pointer?
-//   m_frames.append(frame);
+    return createDefaultLayout(window);
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::createDefaultLayout(QMainWindow* window)
+Layout *ViewManager::createDefaultLayout(QMainWindow* window)
 {
-  new DefaultLayout(window);
+  return new DefaultLayout(window);
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::createSquaredLayout(QMainWindow* window)
+Layout* ViewManager::createSquaredLayout(QMainWindow* window)
 {
   SliceView *volView = new SliceView();
   SliceView *xyView = new SliceView();
@@ -88,5 +83,5 @@ void ViewManager::createSquaredLayout(QMainWindow* window)
   mainSplitter->addWidget(lowerViews);
 
   window->setCentralWidget(mainSplitter);
-  
+  return NULL;
 }

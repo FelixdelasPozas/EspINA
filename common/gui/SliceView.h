@@ -111,7 +111,7 @@ public slots:
   void loadTestImage();
 
   //! Show/Hide segmentations
-  void showSegmentations(bool value);
+  void setShowSegmentations(bool value);
 
 //   //! Slicer configuration methods:
 //   void setPlane(ViewType plane);

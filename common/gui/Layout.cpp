@@ -39,9 +39,9 @@ DefaultLayout::DefaultLayout(QMainWindow* parent, Qt::WindowFlags f)
 : Layout(parent, f)
 {
   qDebug() << "New Default Layout";
-  SliceView * xy = new SliceView();
+  xyView = new SliceView();
   this->setLayout(new QVBoxLayout());
-  this->layout()->addWidget(xy);
+  this->layout()->addWidget(xyView);
 
   volDock = QSharedPointer<QDockWidget>(new QDockWidget(tr("3D"),parent));
   volDock->setObjectName("volDock");
@@ -50,12 +50,12 @@ DefaultLayout::DefaultLayout(QMainWindow* parent, Qt::WindowFlags f)
   
   yzDock = QSharedPointer<QDockWidget>(new QDockWidget(tr("YZ"),parent));
   yzDock->setObjectName("yzDock");
-  SliceView *yzView = new SliceView();
+  yzView = new SliceView();
   yzDock->setWidget(yzView);
 
   xzDock = QSharedPointer<QDockWidget>(new QDockWidget(tr("XZ"),parent));
   xzDock->setObjectName("xzDock");
-  SliceView *xzView = new SliceView();
+  xzView = new SliceView();
   xzDock->setWidget(xzView);
 
   parent->addDockWidget(Qt::RightDockWidgetArea, volDock.data());
@@ -65,3 +65,10 @@ DefaultLayout::DefaultLayout(QMainWindow* parent, Qt::WindowFlags f)
   parent->setCentralWidget(this);
 }
 
+//----------------------------------------------------------------------------
+void DefaultLayout::setShowSegmentations(bool visibility)
+{
+  xyView->setShowSegmentations(visibility);
+  yzView->setShowSegmentations(visibility);
+  xzView->setShowSegmentations(visibility);
+}

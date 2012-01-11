@@ -21,17 +21,28 @@
 
 #include <common/model/EspINA.h>
 
-#include <QIcon>
+#include <QAction>
 #include <QComboBox>
+#include <QIcon>
 #include <QTreeView>
 
+//----------------------------------------------------------------------------
 MainToolBar::MainToolBar(QSharedPointer<EspINA> model, QWidget* parent)
 : QToolBar(parent)
 {
   setWindowTitle("EspINA");
   setObjectName("MainToolBar");
 
-  addAction(QIcon(":/espina/show_all.svg"),tr("Toggle Segmentations Visibility"));
+  toggleSegVisibility = addAction(//showIcon,
+				  tr("Toggle Segmentations Visibility"));
+
+  toggleSegVisibility->setShortcut(QString("Space"));
+  toggleSegVisibility->setCheckable(true);
+  toggleSegVisibility->setChecked(true);
+  setShowSegmentations(true);
+  connect(toggleSegVisibility,SIGNAL(triggered(bool)),
+	  this,SLOT(setShowSegmentations(bool)));
+
 
    // User selected Taxonomy Selection List
   QTreeView *taxonomyView = new QTreeView(this);
@@ -54,4 +65,15 @@ MainToolBar::MainToolBar(QSharedPointer<EspINA> model, QWidget* parent)
 //   Internals->toolBar->addAction(Internals->actionRemoveSegmentation);
 //   connect(Internals->actionRemoveSegmentation,SIGNAL(toggled(bool)),
 //           this,SLOT(removeSegmentationClicked(bool)));
+}
+
+//----------------------------------------------------------------------------
+void MainToolBar::setShowSegmentations(bool visible)
+{
+  if (visible)
+    toggleSegVisibility->setIcon(QIcon(":/espina/show_all.svg"));
+  else
+    toggleSegVisibility->setIcon(QIcon(":/espina/hide_all.svg"));
+  
+  emit showSegmentations(visible);
 }

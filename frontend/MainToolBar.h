@@ -16,7 +16,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+//----------------------------------------------------------------------------
+// File:    MainToolBar.h
+// Purpose: Provide tool buttons for most common actions in EspINA
+//----------------------------------------------------------------------------
 #ifndef MAINTOOLBAR_H
 #define MAINTOOLBAR_H
 
@@ -34,6 +37,15 @@ public:
   virtual void decreaseLOD(){}
   virtual void setLOD(){}
   virtual void setActivity(QString activity){}
+
+public slots:
+  void setShowSegmentations(bool visible);
+
+signals:
+  void showSegmentations(bool);
+
+private:
+  QAction *toggleSegVisibility;
 };
 
 #endif // MAINTOOLBAR_H
