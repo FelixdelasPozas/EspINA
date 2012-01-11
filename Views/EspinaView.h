@@ -72,6 +72,7 @@ public:
 
 public slots:
   void setSlice(int value);
+  void showSegmentations(bool visible);
 
 protected:
   /// Return the name of the group used for global settings (except interactor

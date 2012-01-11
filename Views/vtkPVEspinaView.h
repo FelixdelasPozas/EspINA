@@ -37,8 +37,8 @@ public:
   void PrintSelf(ostream& os, vtkIndent indent);
 
   void AddActor(vtkProp *actor);
-  void AddChannel(vtkProp *actor){};
-  void AddSegmentation(vtkProp *actor){};
+  void AddChannel(vtkProp *actor);
+  void AddSegmentation(vtkProp *actor);
 
 
   // We need to reimplement the initilize method to overwrite
@@ -57,6 +57,9 @@ public:
 
   void SetSlice(int value);
   vtkGetMacro(Slice, int);
+
+  void SetShowSegmentations(bool value);
+  vtkGetMacro(ShowSegmentations, bool);
   // Method called from xml configuration when adding a new sample
   // to the view using the SMAdaptor:
   //  pqSMAdaptor::addProxyProperty(
@@ -80,7 +83,8 @@ private:
   QList<vtkProp *> Channels;
   QList<vtkProp *> Segmentations;
 
-  int Slice;
+  int           Slice;
+  bool          ShowSegmentations;
   vtkMatrix4x4  *SlicingMatrix;
   vtkEspinaView *EspinaView;
 //ETX

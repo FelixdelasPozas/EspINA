@@ -15,6 +15,13 @@
           Samples in espina view.
         </Documentation>
       </ProxyProperty>
+      <IntVectorProperty name="ShowSegmentations"
+        command="SetShowSegmentations"
+        number_of_elements="1"
+        default_values="1">
+        <Documentation>
+        </Documentation>
+      </IntVectorProperty>
       <IntVectorProperty name="Slice"
         command="SetSlice"
         number_of_elements="1"

@@ -19,6 +19,7 @@
 
 // Debug
 #include <QDebug>
+#include <assert.h>
 #include <QPushButton>
 // #include "espina_debug.h"
 // 
@@ -56,6 +57,10 @@
 #include <pqPipelineRepresentation.h>
 #include <QLabel>
 #include <pqServerManagerObserver.h>
+#include <pqServer.h>
+#include <pqOutputPort.h>
+#include <vtkSMProxyManager.h>
+#include <pqServerManagerModel.h>
 
 // #include "pqDisplayPolicy.h"
 // #include "pqPipelineRepresentation.h"
@@ -860,15 +865,42 @@ void SliceView::addChannelRepresentation(pqOutputPort* oport)
 //-----------------------------------------------------------------------------
 void SliceView::addSegmentationRepresentation(pqOutputPort* oport)
 {
-  vtkSMEspinaViewProxy *ep =  vtkSMEspinaViewProxy::SafeDownCast(m_view->getViewProxy());
-  Q_ASSERT(ep);
-  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-  pqDataRepresentation *dr = dp->createPreferredRepresentation(oport,m_view,true);
-  vtkSMPropertyHelper(dr->getProxy(),"Type").Set(1);
-  dr->getProxy()->UpdateVTKObjects();
+//   vtkSMEspinaViewProxy *ep =  vtkSMEspinaViewProxy::SafeDownCast(m_view->getViewProxy());
+//   Q_ASSERT(ep);
+//   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+//   pqDataRepresentation *dr = dp->createPreferredRepresentation(oport,m_view,true);
+//   vtkSMPropertyHelper(dr->getProxy(),"Type").Set(1);
+//   dr->getProxy()->UpdateVTKObjects();
 //   pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
 //   Q_ASSERT(rep);
 //   rep->setRepresentation("Slice");
+  pqPipelineSource *source = oport->getSource();
+  vtkSMProxyManager *pxm = source->getProxy()->GetProxyManager();
+
+  vtkSMRepresentationProxy* reprProxy = vtkSMRepresentationProxy::SafeDownCast(
+    pxm->NewProxy("representations", "EspinaSliceRepresentation"));
+  assert(reprProxy);
+
+    // Set the reprProxy's input.
+  pqSMAdaptor::setInputProperty(reprProxy->GetProperty("Input"),
+				source->getProxy(), oport->getPortNumber());
+  vtkSMPropertyHelper(reprProxy,"Type").Set(1);
+  reprProxy->UpdateVTKObjects();
+
+  vtkSMProxy* viewModuleProxy = m_view->getProxy();
+  // Add the reprProxy to render module.
+  pqSMAdaptor::addProxyProperty(
+    viewModuleProxy->GetProperty("Representations"), reprProxy);
+  viewModuleProxy->UpdateVTKObjects();
+
+  // Following code could be ignored
+  pqApplicationCore* core= pqApplicationCore::instance();
+  pqDataRepresentation* repr = core->getServerManagerModel()->
+  findItem<pqDataRepresentation*>(reprProxy);
+  if (repr )
+  {
+    repr->setDefaultPropertyValues();
+  }
 }
 
 
@@ -876,11 +908,7 @@ void SliceView::addSegmentationRepresentation(pqOutputPort* oport)
 //-----------------------------------------------------------------------------
 void SliceView::showSegmentations(bool value)
 {
-//   if (m_showSegmentations != value)
-//   {
-//     m_showSegmentations = value;
-//     updateScene();
-//   }
+  m_view->showSegmentations(value);
 }
 
 // //-----------------------------------------------------------------------------
