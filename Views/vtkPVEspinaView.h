@@ -27,18 +27,28 @@
 
 class vtkMatrix4x4;
 class vtkProp;
+class vtkProp3D;
 class vtkEspinaView;
 class vtkLegendScaleActor;
+class EspinaViewState;
+
 class VTK_EXPORT vtkPVEspinaView : public vtkPVRenderView
 {
 public:
+    enum VIEW_PLANE
+  {
+    AXIAL,
+    SAGITTAL,
+    CORONAL
+  };
+
   static vtkPVEspinaView* New();
   vtkTypeMacro(vtkPVEspinaView, vtkPVRenderView);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  void AddActor(vtkProp *actor);
-  void AddChannel(vtkProp *actor);
-  void AddSegmentation(vtkProp *actor);
+  void AddActor(vtkProp3D* actor);
+  void AddChannel(vtkProp3D *actor);
+  void AddSegmentation(vtkProp3D *actor);
 
 
   // We need to reimplement the initilize method to overwrite
@@ -58,8 +68,14 @@ public:
   void SetSlice(int value);
   vtkGetMacro(Slice, int);
 
+  void SetCenter(double pos[3]/*in nm*/);
+
+  void SetSlicingPlane(int plane);
+  vtkGetMacro(SlicingPlane, int);
+
   void SetShowSegmentations(bool value);
   vtkGetMacro(ShowSegmentations, bool);
+
   // Method called from xml configuration when adding a new sample
   // to the view using the SMAdaptor:
   //  pqSMAdaptor::addProxyProperty(
@@ -80,13 +96,17 @@ private:
   vtkPVEspinaView(const vtkPVEspinaView&); // Not implemented
   void operator=(const vtkPVEspinaView&); // Not implemented
 
-  QList<vtkProp *> Channels;
-  QList<vtkProp *> Segmentations;
+  EspinaViewState  *State;
+  int              Slice;
+  VIEW_PLANE       SlicingPlane;
+  double           Center[3];
+  bool             ShowSegmentations;
 
-  int           Slice;
-  bool          ShowSegmentations;
-  vtkMatrix4x4  *SlicingMatrix;
-  vtkEspinaView *EspinaView;
+  QList<vtkProp3D *> Channels;
+  QList<vtkProp3D *> Segmentations;
+
+  vtkMatrix4x4     *SlicingMatrix;
+  vtkEspinaView    *EspinaView;
 //ETX
 };
 #endif // VTKPVESPINAVIEW_H

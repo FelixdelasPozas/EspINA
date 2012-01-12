@@ -39,6 +39,7 @@
 #include "pqDataRepresentation.h"
 #include <vtkSMPropertyHelper.h>
 
+
 EspinaView::ManipulatorType EspinaView::DefaultManipulatorTypes[9] =
 {
     { 1, 0, 0, "Pan"},
@@ -162,18 +163,26 @@ bool EspinaView::canDisplay(pqOutputPort* opPort) const
 void EspinaView::setSlice(int value)
 {
 //   qDebug() << this << ": Changing Slice " << value;
-  vtkSMPropertyHelper(this->getProxy(), "Slice").Set(value);
+  vtkSMPropertyHelper(this->getProxy(), "Slice").Set(2*value);
   this->getProxy()->UpdateVTKObjects();
-  render();
+  forceRender();
 }
 
 //-----------------------------------------------------------------------------
-void EspinaView::showSegmentations(bool visible)
+void EspinaView::setSlicingPlane(vtkPVEspinaView::VIEW_PLANE plane)
+{
+  vtkSMPropertyHelper(this->getProxy(), "SlicingPlane").Set(plane);
+  this->getProxy()->UpdateVTKObjects();
+  forceRender();
+}
+
+//-----------------------------------------------------------------------------
+void EspinaView::setShowSegmentations(bool visible)
 {
 //   qDebug() << this << ": Segmentation Visibility = " << visible;
   vtkSMPropertyHelper(this->getProxy(), "ShowSegmentations").Set(visible);
   this->getProxy()->UpdateVTKObjects();
-  render();
+  forceRender();
 }
 
 

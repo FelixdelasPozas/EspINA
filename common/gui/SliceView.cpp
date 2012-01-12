@@ -20,7 +20,6 @@
 // Debug
 #include <QDebug>
 #include <assert.h>
-#include <QPushButton>
 // #include "espina_debug.h"
 // 
 // // EspINA
@@ -33,10 +32,13 @@
 // #include "segmentation.h"
 
 // Qt includes
+#include <QPushButton>
 #include <QHBoxLayout>
 #include <QScrollBar>
+#include <QSettings>
 #include <QSpinBox>
 #include <QVBoxLayout>
+#include <QWheelEvent>
 // #include <QMouseEvent>
 
 // ParaQ includes
@@ -62,132 +64,6 @@
 #include <vtkSMProxyManager.h>
 #include <pqServerManagerModel.h>
 
-// #include "pqDisplayPolicy.h"
-// #include "pqPipelineRepresentation.h"
-// //TODO: OLDVERSION #include "vtkSMImageSliceRepresentationProxy.h"
-// #include "vtkSMIntVectorProperty.h"
-// #include "vtkSMViewProxy.h"
-// #include "vtkSMRenderViewProxy.h"
-// #include "vtkSMRenderViewProxy.h"
-// #include "vtkPVGenericRenderWindowInteractor.h"
-// #include "vtkRenderWindowInteractor.h"
-// #include "vtkAbstractPicker.h"
-// #include "vtkPropCollection.h"
-// #include "vtkPVDataInformation.h"
-// #include "pqOutputPort.h"
-// #include "vtkSMOutputPort.h"
-// #include "selectionManager.h"
-// #include <vtkInteractorObserver.h>
-// #include <vtkPVInteractorStyle.h>
-//
-//
-// #include <vtkSMInputProperty.h>
-// #include <vtkSMDoubleVectorProperty.h>
-// #include <proxies/vtkSMRGBALookupTableProxy.h>
-// #include <pqScalarsToColors.h>
-// #include <pqLookupTableManager.h>
-// #include <vtkRenderer.h>
-// #include <vtkRenderWindow.h>
-// #include <vtkCamera.h>
-// #include <vtkSMPropertyHelper.h>
-// #include <pq3DWidget.h>
-// #include <vtkSMNewWidgetRepresentationProxy.h>
-// #include <vtkSMBoxRepresentationProxy.h>
-// #include <vtkBoxWidget2.h>
-// #include <vtkBoxRepresentation.h>
-// #include <vtkWidgetEventTranslator.h>
-// 
-// #include <pqPipelineFilter.h>
-// #include <QApplication>
-// #include <crosshairExtension.h>
-// 
-// #include <vtkPropPicker.h>
-// #include <vtkProperty.h>
-// #include <QSettings>
-// #include <QCheckBox>
-// #include <SegmentationSelectionExtension.h>
-// 
-// #include <vtkCubeSource.h>
-// #include <vtkPolyDataMapper.h>
-
-class SliceViewPreferencesPanel : public QWidget
-{
-  Q_OBJECT
-
-public:
-  explicit SliceViewPreferencesPanel(SliceViewPreferences *preferences);
-
-public slots:
-  void setInvertWheel(bool value);
-  void setInvertNormal(bool value);
-  void setShowAxis(bool value);
-private:
-  SliceViewPreferences *m_pref;
-};
-
-class SliceViewPreferences : public IPreferencePanel
-{
-public:
-  explicit SliceViewPreferences(SliceView::VIEW_PLANE plane);
-
-  virtual const QString shortDescription();
-  virtual const QString longDescription() {return shortDescription();}
-  virtual const QIcon icon() {return QIcon();}
-
-  virtual QWidget* widget() {return new SliceViewPreferencesPanel(this);}
-
-  void setInvertWheel(bool value);
-  bool invertWheel(){return m_InvertWheel;}
-  void setInvertNormal(bool value);
-  bool invertNormal() {return m_InvertNormal;}
-  void setShowAxis(bool value);
-  bool showAxis() {return m_ShowAxis;}
-
-private:
-  bool m_InvertWheel;
-  bool m_InvertNormal;
-  bool m_ShowAxis;
-
-private:
-  SliceView::VIEW_PLANE m_plane;
-  QString viewSettings;
-};
-
-// // Interactor Style to be used with Slice Views
-// class vtkInteractorStyleEspinaSlice
-// : public vtkInteractorStyleImage
-// {
-// public:
-//   static vtkInteractorStyleEspinaSlice *New();
-//   vtkTypeMacro(vtkInteractorStyleEspinaSlice,vtkInteractorStyleImage);
-// 
-//   // Disable mouse wheel
-//   virtual void OnMouseWheelForward(){}
-//   virtual void OnMouseWheelBackward(){}
-// //   virtual void OnMouseMove();
-// protected:
-//   explicit vtkInteractorStyleEspinaSlice();
-//   virtual ~vtkInteractorStyleEspinaSlice();
-// 
-// private:
-//   vtkInteractorStyleEspinaSlice(const vtkInteractorStyleImage& ); // Not implemented
-//   void operator=(const vtkInteractorStyleEspinaSlice&);           // Not implemented
-// };
-// 
-// vtkStandardNewMacro(vtkInteractorStyleEspinaSlice);
-// 
-// //-----------------------------------------------------------------------------
-// vtkInteractorStyleEspinaSlice::vtkInteractorStyleEspinaSlice()
-// {
-// }
-// 
-// //-----------------------------------------------------------------------------
-// vtkInteractorStyleEspinaSlice::~vtkInteractorStyleEspinaSlice()
-// {
-//   qDebug() << "vtkInteractorStyleEspinaSlice(" << this << "): Destroyed";
-// }
-
-
 
 //-----------------------------------------------------------------------------
 // void vtkInteractorStyleEspina::OnMouseMove()
@@ -198,144 +74,152 @@ private:
 //   vtkInteractorStyleImage::OnMouseMove();
 // }
 // 
-// 
-// //-----------------------------------------------------------------------------
-// SliceViewPreferencesPanel::SliceViewPreferencesPanel(SliceViewPreferences* preferences)
-// : QWidget(preferences)
-// , m_pref(preferences)
-// {
-//   QVBoxLayout *layout = new QVBoxLayout();
-// 
-//   QCheckBox *invertWheel = new QCheckBox(tr("Invert Wheel"));
-//   invertWheel->setChecked(m_pref->invertWheel());
-//   connect(invertWheel,SIGNAL(toggled(bool)),
-// 	  this, SLOT(setInvertWheel(bool)));
-//   
-// //   QCheckBox *invertNormal = new QCheckBox(tr("Invert Normal"));
-// //   invertNormal->setChecked(m_pref->invertNormal());
-// //   connect(invertNormal,SIGNAL(toggled(bool)),
-// // 	  this, SLOT(setInvertNormal(bool)));
-// 
-//   QCheckBox *showAxis = new QCheckBox(tr("Show Axis"));
-//   showAxis->setChecked(m_pref->showAxis());
-//   connect(showAxis,SIGNAL(toggled(bool)),
-// 	  this, SLOT(setShowAxis(bool)));
-//   
-//   layout->addWidget(invertWheel);
-// //   layout->addWidget(invertNormal);
-//   layout->addWidget(showAxis);
-//   QSpacerItem *spacer = new QSpacerItem(10,10,QSizePolicy::Expanding,QSizePolicy::Expanding);
-//   layout->addSpacerItem(spacer);
-//   setLayout(layout);
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void SliceViewPreferencesPanel::setInvertWheel(bool value)
-// {
-//   m_pref->setInvertWheel(value);
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void SliceViewPreferencesPanel::setInvertNormal(bool value)
-// {
-//   m_pref->setInvertNormal(value);
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void SliceViewPreferencesPanel::setShowAxis(bool value)
-// {
-//   m_pref->setShowAxis(value);
-// }
-// 
-// 
-// //-----------------------------------------------------------------------------
-// SliceViewPreferences::SliceViewPreferences(ViewType plane)
-// : m_plane(plane)
-// {
-//   QSettings settings;
-//   
-//   switch (plane)
-//   {
-//     case VIEW_PLANE_XY:
-//       viewSettings = "XYSliceView";    
-//       break;
-//     case VIEW_PLANE_YZ:
-//       viewSettings = "YZSliceView";    
-//       break;
-//     case VIEW_PLANE_XZ:
-//       viewSettings = "XZSliceView";    
-//       break;
-//     default:
-//       assert(false);
-//   };
-//   
-//   const QString wheelSettings = QString(viewSettings+"::invertWheel");
-//   if (!settings.contains(wheelSettings))
-//     settings.setValue(wheelSettings,false);
-//   m_InvertWheel = settings.value(wheelSettings).toBool();
-// 
-//   const QString normalSettings = QString(viewSettings+"::invertNormal");
-//   if (!settings.contains(normalSettings))
-//     settings.setValue(normalSettings,false);
-//   m_InvertNormal = settings.value(normalSettings).toBool();
-//   
-//   const QString axisSettings = QString(viewSettings+"::showAxis");
-//   if (!settings.contains(axisSettings))
-//     settings.setValue(axisSettings,false);
-//   m_ShowAxis = settings.value(axisSettings).toBool();
-// }
-// 
-// //-----------------------------------------------------------------------------
-// const QString SliceViewPreferences::shortDescription()
-// {
-//   switch (m_plane)
-//   {
-//     case VIEW_PLANE_XY:
-//       return "XY View";
-//     case VIEW_PLANE_YZ:
-//       return "YZ View";
-//     case VIEW_PLANE_XZ:
-//       return "XZ View";
-//     default:
-//       return "";
-//   };
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void SliceViewPreferences::setInvertWheel(bool value)
-// {
-//   QSettings settings;
-//   
-//   const QString wheelSettings = QString(viewSettings+"::invertWheel");
-//   m_InvertWheel = value;
-//   settings.setValue(wheelSettings,value);
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void SliceViewPreferences::setInvertNormal(bool value)
-// {
-//   QSettings settings;
-//   
-//   const QString normalSettings = QString(viewSettings+"::invertNormal");
-//   m_InvertNormal = value;
-//   settings.setValue(normalSettings,value);
-// }
-// //-----------------------------------------------------------------------------
-// void SliceViewPreferences::setShowAxis(bool value)
-// {
-//   QSettings settings;
-//   
-//   const QString axisSettings = QString(viewSettings+"::showAxis");
-//   m_ShowAxis = value;
-//   settings.setValue(axisSettings,value);
-// }
-// 
-// 
-// #define LOWER(coord) (2*(coord))
-// #define UPPER(coord) (2*(coord) + 1)
 
 //-----------------------------------------------------------------------------
-SliceView::SliceView(VIEW_PLANE plane, QWidget* parent)
+SliceViewPreferencesPanel::SliceViewPreferencesPanel(SliceViewPreferences* preferences)
+: QWidget(preferences)
+, m_pref(preferences)
+{
+  QVBoxLayout *layout = new QVBoxLayout();
+/*
+  QCheckBox *invertWheel = new QCheckBox(tr("Invert Wheel"));
+  invertWheel->setChecked(m_pref->invertWheel());
+  connect(invertWheel,SIGNAL(toggled(bool)),
+	  this, SLOT(setInvertWheel(bool)));
+
+//   QCheckBox *invertNormal = new QCheckBox(tr("Invert Normal"));
+//   invertNormal->setChecked(m_pref->invertNormal());
+//   connect(invertNormal,SIGNAL(toggled(bool)),
+// 	  this, SLOT(setInvertNormal(bool)));
+
+  QCheckBox *showAxis = new QCheckBox(tr("Show Axis"));
+  showAxis->setChecked(m_pref->showAxis());
+  connect(showAxis,SIGNAL(toggled(bool)),
+	  this, SLOT(setShowAxis(bool)));
+
+  layout->addWidget(invertWheel);
+//   layout->addWidget(invertNormal);
+  layout->addWidget(showAxis);
+  QSpacerItem *spacer = new QSpacerItem(10,10,QSizePolicy::Expanding,QSizePolicy::Expanding);
+  layout->addSpacerItem(spacer);*/
+  setLayout(layout);
+}
+
+//-----------------------------------------------------------------------------
+void SliceViewPreferencesPanel::setInvertWheel(bool value)
+{
+  m_pref->setInvertWheel(value);
+}
+
+//-----------------------------------------------------------------------------
+void SliceViewPreferencesPanel::setInvertNormal(bool value)
+{
+  m_pref->setInvertSliceOrder(value);
+}
+
+//-----------------------------------------------------------------------------
+void SliceViewPreferencesPanel::setShowAxis(bool value)
+{
+  m_pref->setShowAxis(value);
+}
+
+
+
+//-----------------------------------------------------------------------------
+SliceViewPreferences::SliceViewPreferences(vtkPVEspinaView::VIEW_PLANE plane)
+: m_InvertWheel(false)
+, m_InvertSliceOrder(false)
+, m_ShowAxis(false)
+, m_plane(plane)
+{
+  QSettings settings("CeSViMa", "EspINA");
+
+  switch (plane)
+  {
+    case vtkPVEspinaView::AXIAL:
+      viewSettings = "AxialSliceView";
+      break;
+    case vtkPVEspinaView::SAGITTAL:
+      viewSettings = "SagittalSliceView";
+      break;
+    case vtkPVEspinaView::CORONAL:
+      viewSettings = "CoronalSliceView";
+      break;
+    default:
+      assert(false);
+  };
+
+  const QString wheelSettings = QString(viewSettings+"::invertWheel");
+  if (!settings.contains(wheelSettings))
+    settings.setValue(wheelSettings,m_InvertWheel);
+  m_InvertWheel = settings.value(wheelSettings).toBool();
+
+  const QString sliceOrderSettings = QString(viewSettings+"::invertSliceOrder");
+  if (!settings.contains(sliceOrderSettings))
+    settings.setValue(sliceOrderSettings,m_InvertSliceOrder);
+  m_InvertSliceOrder = settings.value(sliceOrderSettings).toBool();
+
+  const QString axisSettings = QString(viewSettings+"::showAxis");
+  if (!settings.contains(axisSettings))
+    settings.setValue(axisSettings,m_ShowAxis);
+  m_ShowAxis = settings.value(axisSettings).toBool();
+}
+
+//-----------------------------------------------------------------------------
+const QString SliceViewPreferences::shortDescription()
+{
+  switch (m_plane)
+  {
+    case vtkPVEspinaView::AXIAL:
+      viewSettings = "Axial View";
+      break;
+    case vtkPVEspinaView::SAGITTAL:
+      viewSettings = "Sagittal View";
+      break;
+    case vtkPVEspinaView::CORONAL:
+      viewSettings = "Coronal View";
+      break;
+    default:
+      assert(false);
+      return "ERROR";
+  };
+}
+
+//-----------------------------------------------------------------------------
+void SliceViewPreferences::setInvertWheel(bool value)
+{
+  QSettings settings("CeSViMa", "EspINA");
+
+  const QString wheelSettings = QString(viewSettings+"::invertWheel");
+  m_InvertWheel = value;
+  settings.setValue(wheelSettings,value);
+}
+
+//-----------------------------------------------------------------------------
+void SliceViewPreferences::setInvertSliceOrder(bool value)
+{
+  QSettings settings("CeSViMa", "EspINA");
+
+  const QString sliceOrderSettings = QString(viewSettings+"::invertSliceOrder");
+  m_InvertSliceOrder = value;
+  settings.setValue(sliceOrderSettings,value);
+}
+
+//-----------------------------------------------------------------------------
+void SliceViewPreferences::setShowAxis(bool value)
+{
+  QSettings settings("CeSViMa", "EspINA");
+
+  const QString axisSettings = QString(viewSettings+"::showAxis");
+  m_ShowAxis = value;
+  settings.setValue(axisSettings,value);
+}
+
+
+//-----------------------------------------------------------------------------
+// SLICE VIEW
+//-----------------------------------------------------------------------------
+SliceView::SliceView(vtkPVEspinaView::VIEW_PLANE plane, QWidget* parent)
     : QAbstractItemView (parent)
     , m_plane           (plane)
     , m_titleLayout     (new QHBoxLayout())
@@ -372,7 +256,8 @@ SliceView::SliceView(VIEW_PLANE plane, QWidget* parent)
 
   if (pqApplicationCore::instance()->getActiveServer())
     onConnect();
-//   m_preferences = new SliceViewPreferences(m_plane);
+
+  m_preferences = new SliceViewPreferences(m_plane);
   qDebug() << this << ": Created";
 }
 
@@ -458,9 +343,6 @@ void SliceView::setTitle(const QString& title)
 {
   m_title->setText(title);
 }
-
-
-
 
 // //-----------------------------------------------------------------------------
 // QModelIndex SliceView::indexAt(const QPoint& point) const
@@ -664,29 +546,6 @@ void SliceView::setTitle(const QString& title)
 // 
 // 
 // 
-// //-----------------------------------------------------------------------------
-// bool SliceView::eventFilter(QObject* obj, QEvent* event)
-// {
-//   if (event->type() == QEvent::Wheel)
-//   {
-//     QWheelEvent *we = static_cast<QWheelEvent *>(event);
-//     int numSteps = we->delta()/8/15*(m_preferences->invertWheel()?-1:1);//Refer to QWheelEvent doc.
-//     m_spinBox->setValue(m_spinBox->value() - numSteps);
-//     event->ignore();
-//   }else if (event->type() == QEvent::Enter)
-//   {
-//     QWidget::enterEvent(event);
-//     QApplication::setOverrideCursor(SelectionManager::instance()->cursor());
-//     event->accept();
-//   }else if (event->type() == QEvent::Leave)
-//   {
-//     QWidget::leaveEvent(event);
-//     QApplication::restoreOverrideCursor();
-//     event->accept();
-//   }
-//   return QObject::eventFilter(obj, event);
-// }
-// 
 
 //-----------------------------------------------------------------------------
 void SliceView::onConnect()
@@ -699,84 +558,25 @@ void SliceView::onConnect()
   m_view = qobject_cast<EspinaView*>(ob->createView(
              EspinaView::espinaRenderViewType(), server));
 
+  m_view->setSlicingPlane(m_plane);
   connect(m_scrollBar, SIGNAL(valueChanged(int)),
 	  m_view, SLOT(setSlice(int)));
 //   connect(m_view,SIGNAL(beginRender()),this,SLOT(beginRender()));
 //   connect(m_view,SIGNAL(endRender()),this,SLOT(endRender()));
 
-
   m_viewWidget = m_view->getWidget();
-//   m_viewWidget->installEventFilter(this);
+  // We want to manage events on the view
+  m_viewWidget->installEventFilter(this);
 //   QObject::connect(m_viewWidget, SIGNAL(mouseEvent(QMouseEvent *)),
 //                    this, SLOT(vtkWidgetMouseEvent(QMouseEvent *)));
   m_mainLayout->insertWidget(0, m_viewWidget);//To preserve view order
 
-//   m_viewProxy = vtkSMRenderViewProxy::SafeDownCast(m_view->getProxy());
-//   assert(m_viewProxy);
-//
-//   m_rwi = vtkRenderWindowInteractor::SafeDownCast(
-//     m_viewProxy->GetRenderWindow()->GetInteractor());
-//   assert(m_rwi);
-//
-//
-//   m_style = vtkInteractorStyleEspina::New();
-//   m_rwi->SetInteractorStyle(m_style);
-//
-// //   vtkRenderWindow *clientRW = m_view->getRenderViewProxy()->GetRenderWindow();
-// //   vtkSmartPointer<vtkRenderer> clientRenderer = vtkSmartPointer<vtkRenderer>::New();
-// //
-// //   vtkSmartPointer<vtkCubeSource> cube = vtkSmartPointer<vtkCubeSource>::New();
-// //   vtkPolyDataMapper *cubeMapper = vtkPolyDataMapper::New();
-// //   cubeMapper->SetInput(cube->GetOutput());
-// //   vtkActor * cubeActor = vtkActor::New();
-// //   cubeActor->SetMapper(cubeMapper);
-// //   clientRenderer->AddActor(cubeActor);
-// //   clientRenderer->SetViewport(0.5,0,1,0.5);
-// //
-// //   clientRW->AddRenderer(clientRenderer);
-// //   clientRW->AlphaBitPlanesOn();
-// //   clientRW->SetDoubleBuffer(true);
-// //   clientRW->SetNumberOfLayers(2);
-// //   clientRenderer->SetLayer(1);
-//
-//   m_cam = m_viewProxy->GetActiveCamera();
-//   assert(m_cam);
-//
-//   m_cam->ParallelProjectionOn();
-//
-//   switch (m_plane)
-//   {
-//     case VIEW_PLANE_XY:
-//       m_cam->SetPosition(0, 0, -1);
-//       m_cam->SetFocalPoint(0, 0, 0);
-//       m_cam->SetRoll(180);
-//       break;
-//     case VIEW_PLANE_YZ:
-//       m_cam->SetPosition(1, 0, 0);
-//       m_cam->SetFocalPoint(0, 0, 0);
-//       m_cam->SetRoll(180);
-//       break;17
-//     case VIEW_PLANE_XZ:
-// //       m_cam->SetPosition(0, 1, 0);
-// //       m_cam->SetFocalPoint(0, 0, 0);
-//       m_cam->Roll(90);
-//       m_cam->Azimuth(90);
-//       m_cam->Roll(90);
-//       m_cam->Elevation(180);
-//       break;
-//     default:
-//       assert(false);
-//   };
-//
+
   double black[] = {0,0,0};
   vtkSMPropertyHelper(m_view->getViewProxy(),"Background").Set(black,3);
   vtkSMPropertyHelper(m_view->getViewProxy(),"CenterAxesVisibility").Set(false);
   m_view->getViewProxy()->UpdateVTKObjects();
-//   m_view->getRenderViewProxy()->GetRenderer()->SetBackground(black);
-//   m_view->setCenterAxesVisibility(false);
-//   m_view->setOrientationAxesVisibility(m_preferences->showAxis());
-//   //m_view->resetCamera();
-//
+  
 //   // Disable menu
 //   // TODO: OLDVERSION m_view->getWidget()->removeAction(m_view->getWidget()->actions().first());
 
@@ -854,6 +654,29 @@ void SliceView::undock()
 }
 
 //-----------------------------------------------------------------------------
+bool SliceView::eventFilter(QObject* obj, QEvent* event)
+{
+  if (event->type() == QEvent::Wheel)
+  {
+    QWheelEvent *we = static_cast<QWheelEvent *>(event);
+    int numSteps = we->delta()/8/15*(m_preferences->invertWheel()?-1:1);//Refer to QWheelEvent doc.
+    m_spinBox->setValue(m_spinBox->value() - numSteps);
+    event->ignore();
+  }else if (event->type() == QEvent::Enter)
+  {
+    QWidget::enterEvent(event);
+//     QApplication::setOverrideCursor(SelectionManager::instance()->cursor());
+    event->accept();
+  }else if (event->type() == QEvent::Leave)
+  {
+    QWidget::leaveEvent(event);
+//     QApplication::restoreOverrideCursor();
+    event->accept();
+  }
+  return QObject::eventFilter(obj, event);
+}
+
+//-----------------------------------------------------------------------------
 void SliceView::addChannelRepresentation(pqOutputPort* oport)
 {
   vtkSMEspinaViewProxy *ep =  vtkSMEspinaViewProxy::SafeDownCast(m_view->getViewProxy());
@@ -904,11 +727,10 @@ void SliceView::addSegmentationRepresentation(pqOutputPort* oport)
 }
 
 
-
 //-----------------------------------------------------------------------------
 void SliceView::setShowSegmentations(bool value)
 {
-  m_view->showSegmentations(value);
+  m_view->setShowSegmentations(value);
 }
 
 // //-----------------------------------------------------------------------------

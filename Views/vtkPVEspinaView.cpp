@@ -20,6 +20,7 @@
 #include "vtkPVEspinaView.h"
 
 #include <QDebug>
+#include <assert.h>
 
 #include "vtkEspinaView.h"
 
@@ -47,6 +48,9 @@ public:
   // Disable mouse wheel
   virtual void OnMouseWheelForward(){}
   virtual void OnMouseWheelBackward(){}
+
+  virtual void OnLeftButtonDown(){}
+  virtual void OnLeftButtonUp(){}
 //   virtual void OnMouseMove();
 protected:
   explicit vtkInteractorStyleEspinaSlice();
@@ -71,7 +75,215 @@ vtkInteractorStyleEspinaSlice::~vtkInteractorStyleEspinaSlice()
 }
 
 
+
+//-----------------------------------------------------------------------------
+// AXIAL STATE
+//-----------------------------------------------------------------------------
+double axialSlice[16] =
+{
+  1,  0,  0,  0,
+  0,  1,  0,  0,
+  0,  0,  1,  0,
+  0,  0,  0,  1
+};
+
+class EspinaViewState
+{
+public:
+  virtual ~EspinaViewState(){}
+
+  virtual void updateActor(vtkProp3D *actor) = 0;
+  virtual void updateCamera(vtkCamera *camera) = 0;
+  virtual void updateSlicingMatrix(vtkMatrix4x4 *matrix) = 0;
+  virtual void setSlicePosition(vtkMatrix4x4 *matrix, double value) = 0;
+};
+
+class AxialState : public EspinaViewState
+{
+public:
+  static AxialState *instance()
+  {
+    if (!m_singleton)
+      m_singleton = new AxialState();
+    return m_singleton;
+  }
+
+  virtual void updateActor(vtkProp3D *actor);
+  virtual void updateCamera(vtkCamera* camera);
+  virtual void updateSlicingMatrix(vtkMatrix4x4 *matrix);
+  virtual void setSlicePosition(vtkMatrix4x4 *matrix, double value);
+
+protected:
+  AxialState(){}
+
+private:
+  static AxialState *m_singleton;
+};
+
+//-----------------------------------------------------------------------------
+AxialState *AxialState::m_singleton = NULL;
+
+//-----------------------------------------------------------------------------
+void AxialState::updateActor(vtkProp3D* actor)
+{
+  actor->RotateX(180);
+}
+
+//-----------------------------------------------------------------------------
+void AxialState::updateCamera(vtkCamera* camera)
+{
+  camera->SetPosition(0, 0, -1);
+  camera->SetFocalPoint(0, 0, 0);
+  camera->SetRoll(180);
+}
+
+//-----------------------------------------------------------------------------
+void AxialState::updateSlicingMatrix(vtkMatrix4x4* matrix)
+{
+  matrix->DeepCopy(axialSlice);
+}
+
+//-----------------------------------------------------------------------------
+void AxialState::setSlicePosition(vtkMatrix4x4 *matrix, double value)
+{
+  matrix->SetElement(2, 3, value);
+}
+
+
+//-----------------------------------------------------------------------------
+// SAGITTAL STATE
+//-----------------------------------------------------------------------------
+double saggitalSlice[16] =
+{
+  0,  0, -1,  0,
+  1,  0,  0,  0,
+  0, -1,  0,  0,
+  0,  0,  0,  1
+};
+
+class SagittalState : public EspinaViewState
+{
+public:
+  static SagittalState *instance()
+  {
+    if (!m_singleton)
+      m_singleton = new SagittalState();
+    return m_singleton;
+  }
+
+  virtual void updateActor(vtkProp3D* actor);
+  virtual void updateCamera(vtkCamera* camera);
+  virtual void updateSlicingMatrix(vtkMatrix4x4* matrix);
+  virtual void setSlicePosition(vtkMatrix4x4* matrix, double value);
+
+protected:
+  SagittalState(){}
+
+private:
+  static SagittalState *m_singleton;
+};
+
+//-----------------------------------------------------------------------------
+SagittalState *SagittalState::m_singleton = NULL;
+
+//----------------------------------------------------------------------------
+void SagittalState::updateActor(vtkProp3D* actor)
+{
+  actor->RotateX(-90);
+  actor->RotateY(-90);
+}
+
+//----------------------------------------------------------------------------
+void SagittalState::updateCamera(vtkCamera* camera)
+{
+  camera->SetPosition(1, 0, 0);
+  camera->SetFocalPoint(0, 0, 0);
+  camera->SetRoll(180);
+}
+
+//----------------------------------------------------------------------------
+void SagittalState::updateSlicingMatrix(vtkMatrix4x4* matrix)
+{
+  matrix->DeepCopy(saggitalSlice);
+}
+
+//-----------------------------------------------------------------------------
+void SagittalState::setSlicePosition(vtkMatrix4x4 *matrix, double value)
+{
+  matrix->SetElement(0, 3, value);
+}
+
+
+//-----------------------------------------------------------------------------
+// CORONAL STATE
+//-----------------------------------------------------------------------------
+double coronalSlice[16] =
+{
+  1,  0,  0,  0,
+  0,  0,  1,  0,
+  0, -1,  0,  0,
+  0,  0,  0,  1
+};
+
+class CoronalState : public EspinaViewState
+{
+public:
+  static CoronalState *instance()
+  {
+    if (!m_singleton)
+      m_singleton = new CoronalState();
+    return m_singleton;
+  }
+
+    virtual void updateActor(vtkProp3D* actor);
+    virtual void updateCamera(vtkCamera* camera);
+    virtual void updateSlicingMatrix(vtkMatrix4x4* matrix);
+    virtual void setSlicePosition(vtkMatrix4x4* matrix, double value);
+
+protected:
+  CoronalState(){}
+
+private:
+  static CoronalState *m_singleton;
+};
+
+//-----------------------------------------------------------------------------
+CoronalState *CoronalState::m_singleton = NULL;
+
+//----------------------------------------------------------------------------
+void CoronalState::updateActor(vtkProp3D* actor)
+{
+  actor->RotateX(-90);
+}
+
+//----------------------------------------------------------------------------
+void CoronalState::updateCamera(vtkCamera* camera)
+{
+  camera->Roll(90);
+  camera->Azimuth(90);
+  camera->Roll(90);
+  camera->Elevation(180);
+
+}
+
+//----------------------------------------------------------------------------
+void CoronalState::updateSlicingMatrix(vtkMatrix4x4* matrix)
+{
+  matrix->DeepCopy(coronalSlice);
+}
+
+//----------------------------------------------------------------------------
+void CoronalState::setSlicePosition(vtkMatrix4x4 *matrix, double value)
+{
+  matrix->SetElement(1, 3, value);
+}
+
+
+//----------------------------------------------------------------------------
+// vtkEspinaView
+//----------------------------------------------------------------------------
 vtkStandardNewMacro(vtkPVEspinaView);
+
 //----------------------------------------------------------------------------
 
 vtkPVEspinaView::vtkPVEspinaView()
@@ -93,18 +305,11 @@ vtkPVEspinaView::vtkPVEspinaView()
   this->OverviewRenderer->SetViewport(0.75,0,1,0.25);
   OverviewRenderer->SetLayer(1);
   this->GetRenderWindow()->AddRenderer(this->OverviewRenderer);
-  
-  double matrix_values[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1 }; // Axial
-//   double matrix_values[16] = { 1,  0,  0,  0,
-//                                0,  0,  1,  0,
-// 			       0, -1,  0,  0,
-// 			       0,  0,  0,  1 }; // Coronal
-//   double matrix_values[16] = { 0,  0, -1,  0,
-//                                1,  0,  0,  0,
-// 			       0, -1,  0,  0,
-// 			       0,  0,  0,  1 }; // Sagittal
+
   SlicingMatrix = vtkMatrix4x4::New();
-  SlicingMatrix->DeepCopy(matrix_values);
+  SlicingMatrix->DeepCopy(axialSlice);
+  SlicingPlane = AXIAL;
+  State = AxialState::instance();
 
   qDebug() << "vtkPVEspinaView("<< this << "): Created";
 }
@@ -127,25 +332,22 @@ void vtkPVEspinaView::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkPVEspinaView::AddActor(vtkProp* actor)
+void vtkPVEspinaView::AddActor(vtkProp3D* actor)
 {
-//   vtkCamera *cam =  RenderView->GetRenderer()->GetActiveCamera();
-//   cam->SetPosition(1, 0, 0);
-//   cam->SetFocalPoint(0, 0, 0);
-//   cam->SetRoll(180);
+  State->updateActor(actor);
   RenderView->GetRenderer()->AddActor(actor);
   OverviewRenderer->AddActor(actor);
 }
 
 //----------------------------------------------------------------------------
-void vtkPVEspinaView::AddChannel(vtkProp* actor)
+void vtkPVEspinaView::AddChannel(vtkProp3D* actor)
 {
   AddActor(actor);
   Channels.append(actor);
 }
 
 //----------------------------------------------------------------------------
-void vtkPVEspinaView::AddSegmentation(vtkProp* actor)
+void vtkPVEspinaView::AddSegmentation(vtkProp3D* actor)
 {
   AddActor(actor);
   actor->SetVisibility(ShowSegmentations);
@@ -158,6 +360,9 @@ void vtkPVEspinaView::Initialize(unsigned int id)
     vtkPVRenderView::Initialize(id);
     this->RenderView->GetRenderer()->UseDepthPeelingOff();
     this->OverviewRenderer->UseDepthPeelingOff();
+
+    this->RenderView->GetRenderer()->GetActiveCamera()->ParallelProjectionOn();
+    this->OverviewRenderer->GetActiveCamera()->ParallelProjectionOn();
 }
 
 //----------------------------------------------------------------------------
@@ -184,7 +389,7 @@ void vtkPVEspinaView::ResetCameraClippingRange()
 //----------------------------------------------------------------------------
 void vtkPVEspinaView::SetOrientationAxesVisibility(bool )
 {
-    vtkPVRenderView::SetOrientationAxesVisibility(false);
+    vtkPVRenderView::SetOrientationAxesVisibility(true);
 }
 
 
@@ -199,23 +404,57 @@ void vtkPVEspinaView::SetBackground(double r, double g, double b)
 void vtkPVEspinaView::SetSlice(int value)
 {
 //   qDebug() << "vtkPVEspinaView changing slice" << value;
-  double point[4];
-  double center[4];
-  point[0] = 0.0;
-  point[1] = 0.0;
-  point[2] = 2; 
-  point[3] = 1.0;
-//   SlicingMatrix->MultiplyPoint(point, center);
-//   SlicingMatrix->SetElement(0, 3, center[0]);
-//   SlicingMatrix->SetElement(1, 3, center[1]);
-  SlicingMatrix->SetElement(2, 3, value*2);
+  State->setSlicePosition(SlicingMatrix,value);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVEspinaView::SetSlicingPlane(int plane)
+{
+  if (SlicingPlane == plane)
+    return;
+
+  SlicingPlane = static_cast<VIEW_PLANE>(plane);
+
+  switch (SlicingPlane)
+  {
+    case AXIAL:
+      State = AxialState::instance();
+      break;
+    case SAGITTAL:
+      State = SagittalState::instance();
+      break;
+    case CORONAL:
+    default:
+      State = CoronalState::instance();
+  };
+
+  State->updateSlicingMatrix(SlicingMatrix);
+  State->updateCamera(RenderView->GetRenderer()->GetActiveCamera());
+  State->updateCamera(OverviewRenderer->GetActiveCamera());
+
+  vtkProp3D *actor;
+  foreach(actor, Channels)
+  {
+    State->updateActor(actor);
+  }
+  foreach(actor, Segmentations)
+  {
+    State->updateActor(actor);
+  }
+
+}
+
+//----------------------------------------------------------------------------
+void vtkPVEspinaView::SetCenter(double pos[3])
+{
+  
 }
 
 //----------------------------------------------------------------------------
 void vtkPVEspinaView::SetShowSegmentations(bool value)
 {
 //   qDebug() << "vtkPVEspinaView segmentation's visibility = " << value;
-  vtkProp *seg;
+  vtkProp3D *seg;
   foreach(seg, Segmentations)
   {
     seg->SetVisibility(value);

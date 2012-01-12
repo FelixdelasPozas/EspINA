@@ -6,15 +6,14 @@
      <Documentation>
         View proxy for a 3D interactive render view in Espina.
       </Documentation>
-
-      <ProxyProperty name="Samples"
+<!--      <ProxyProperty name="Samples"
         command="AddSample"
         remove_command="RemoveSample"
         repeatable="1">
         <Documentation>
           Samples in espina view.
         </Documentation>
-      </ProxyProperty>
+      </ProxyProperty>-->
       <IntVectorProperty name="ShowSegmentations"
         command="SetShowSegmentations"
         number_of_elements="1"
@@ -27,11 +26,21 @@
         number_of_elements="1"
         default_values="0">
         <Documentation>
+	  Set/Get at which position (in an orthogonal direction to the slicing plane)
+	  the input has to be sliced
         </Documentation>
       </IntVectorProperty>
-
+      <IntVectorProperty name="SlicingPlane"
+        command="SetSlicingPlane"
+        number_of_elements="1"
+        default_values="0">
+        <Documentation>
+	  Set/Get which plane is being sliced
+        </Documentation>
+      </IntVectorProperty>
    </EspinaViewProxy>
  </ProxyGroup>
+ 
  <ProxyGroup name="representations">
     <RepresentationProxy name="ChannelRepresentation"
       class="vtkEspinaSliceRepresentation"

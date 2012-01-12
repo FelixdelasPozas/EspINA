@@ -46,7 +46,7 @@ static bool base = true;
 vtkEspinaSliceRepresentation::vtkEspinaSliceRepresentation()
 {
   this->SliceData = vtkImageData::New();
-  
+
   this->DeliveryFilter = vtkImageSliceDataDeliveryFilter::New();
   this->Slice = vtkImageResliceToColors::New();
   this->SliceActor = vtkImageActor::New();

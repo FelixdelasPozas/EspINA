@@ -21,6 +21,7 @@
 #define ESPINAVIEW_H
 
 #include <pqRenderViewBase.h>
+#include "vtkPVEspinaView.h"
 
 /// pqRenderViewBase specialization used for espina
 class PQCORE_EXPORT EspinaView : public pqRenderViewBase
@@ -70,9 +71,11 @@ public:
   /// returns whether a source can be displayed in this view module
   virtual bool canDisplay(pqOutputPort* opPort) const;
 
+  void setSlicingPlane(vtkPVEspinaView::VIEW_PLANE plane);
+
 public slots:
   void setSlice(int value);
-  void showSegmentations(bool visible);
+  void setShowSegmentations(bool visible);
 
 protected:
   /// Return the name of the group used for global settings (except interactor

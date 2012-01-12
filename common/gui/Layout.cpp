@@ -40,6 +40,8 @@ DefaultLayout::DefaultLayout(QMainWindow* parent, Qt::WindowFlags f)
 {
   qDebug() << "New Default Layout";
   xyView = new SliceView();
+  xyView = new SliceView(vtkPVEspinaView::CORONAL);
+  xyView = new SliceView(vtkPVEspinaView::AXIAL);
   this->setLayout(new QVBoxLayout());
   this->layout()->addWidget(xyView);
 
@@ -50,12 +52,12 @@ DefaultLayout::DefaultLayout(QMainWindow* parent, Qt::WindowFlags f)
   
   yzDock = QSharedPointer<QDockWidget>(new QDockWidget(tr("YZ"),parent));
   yzDock->setObjectName("yzDock");
-  yzView = new SliceView();
+  yzView = new SliceView(vtkPVEspinaView::SAGITTAL);
   yzDock->setWidget(yzView);
 
   xzDock = QSharedPointer<QDockWidget>(new QDockWidget(tr("XZ"),parent));
   xzDock->setObjectName("xzDock");
-  xzView = new SliceView();
+  xzView = new SliceView(vtkPVEspinaView::CORONAL);
   xzDock->setWidget(xzView);
 
   parent->addDockWidget(Qt::RightDockWidgetArea, volDock.data());

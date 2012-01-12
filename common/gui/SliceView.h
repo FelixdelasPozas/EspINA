@@ -26,6 +26,8 @@
 #include <QAbstractItemView>
 
 #include <vtkSmartPointer.h>
+#include <../Views/vtkPVEspinaView.h>
+#include "IPreferencePanel.h"
 
 class QLabel;
 class pqOutputPort;
@@ -49,7 +51,6 @@ class pqPipelineSource;// #include <QMutex>
 // class Sample;
 class EspinaView;
 class vtkInteractorStyleEspinaSlice;
-class IPreferencePanel;
 
 // GUI
 class QScrollBar;
@@ -60,6 +61,49 @@ class QHBoxLayout;
 // class vtkRenderWindowInteractor;
 
 class SliceViewPreferences;
+
+class SliceViewPreferencesPanel : public QWidget
+{
+  Q_OBJECT
+
+public:
+  explicit SliceViewPreferencesPanel(SliceViewPreferences *preferences);
+
+public slots:
+  void setInvertWheel(bool value);
+  void setInvertNormal(bool value);
+  void setShowAxis(bool value);
+private:
+  SliceViewPreferences *m_pref;
+};
+
+class SliceViewPreferences : public IPreferencePanel
+{
+public:
+  explicit SliceViewPreferences(vtkPVEspinaView::VIEW_PLANE plane);
+
+  virtual const QString shortDescription();
+  virtual const QString longDescription() {return shortDescription();}
+  virtual const QIcon icon() {return QIcon();}
+
+  virtual QWidget* widget() {return new SliceViewPreferencesPanel(this);}
+
+  void setInvertWheel(bool value);
+  bool invertWheel(){return m_InvertWheel;}
+  void setInvertSliceOrder(bool value);
+  bool invertSliceOrder() {return m_InvertSliceOrder;}
+  void setShowAxis(bool value);
+  bool showAxis() {return m_ShowAxis;}
+
+private:
+  bool m_InvertWheel;
+  bool m_InvertSliceOrder;
+  bool m_ShowAxis;
+
+private:
+  vtkPVEspinaView::VIEW_PLANE m_plane;
+  QString viewSettings;
+};
 
 
 // //! Displays a unique slice of a sample
@@ -72,14 +116,7 @@ class SliceView
 {
   Q_OBJECT
 public:
-  enum VIEW_PLANE
-  {
-    XY,
-    YZ,
-    XZ
-  };
-
-  SliceView(VIEW_PLANE plane=XY, QWidget* parent = 0);
+  SliceView(vtkPVEspinaView::VIEW_PLANE plane = vtkPVEspinaView::AXIAL, QWidget* parent = 0);
   virtual ~SliceView();
 
 //   IPreferencePanel *preferences() {return m_preferences;}
@@ -100,7 +137,6 @@ public:
 //   QList<Segmentation *> pickSegmentationsAt(ISelectionHandler::VtkRegion region);
 //   void selectSegmentations(int x, int y, int z);
 // 
-//   virtual bool eventFilter(QObject* obj, QEvent* event);
 
 public slots:
   // Espina has been connected to a new server
@@ -115,15 +151,15 @@ public slots:
 
 //   //! Slicer configuration methods:
 //   void setPlane(ViewType plane);
-//   
+//
 //   //! Selections
 //   void vtkWidgetMouseEvent(QMouseEvent *event);
-// 
+//
 //   void updateScene();
-//   
+//
 //   void beginRender();
 //   void endRender();
-//   
+//
 // protected slots:
 //   void setSlice(int slice);
 //   virtual void setVOI(IVOI *voi);
@@ -133,7 +169,7 @@ protected slots:
   void maximize();
   void minimize();
   void undock();
-  
+
 signals:
   // Notify the windows manager how to display the view
   void closeRequest();
@@ -157,6 +193,7 @@ protected:
 //   virtual void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end);
 //   virtual void dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight);
 
+  virtual bool eventFilter(QObject* obj, QEvent* event);
 //   virtual pqRenderView* view();
 
 //   void centerViewOn(int x, int y, int z);
@@ -169,7 +206,7 @@ protected:
   void buildControls();
 private:
 //   bool m_showSegmentations;
-  VIEW_PLANE m_plane;
+  vtkPVEspinaView::VIEW_PLANE m_plane;
 
   bool first;
   EspinaView *m_view;
