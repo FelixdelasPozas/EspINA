@@ -41,12 +41,15 @@ EspinaView::EspinaView( QMainWindow* parent, const QString activity)
 DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity)
 : EspinaView(parent, activity)
 {
+  double cyan[3]    = {0, 1, 1};
+  double blue[3]    = {0, 0, 1};
+  double magenta[3] = {1, 0, 1};
+
   setObjectName("xyView");
   
   qDebug() << "New Default EspinaView";
-  xyView = new SliceView();
-  xyView = new SliceView(vtkPVSliceView::CORONAL);
   xyView = new SliceView(vtkPVSliceView::AXIAL);
+  xyView->setCrossHairColors(blue, magenta);
   this->setLayout(new QVBoxLayout());
   this->layout()->addWidget(xyView);
   this->layout()->setMargin(0);
@@ -59,11 +62,13 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   yzDock = QSharedPointer<QDockWidget>(new QDockWidget(tr("YZ"),parent));
   yzDock->setObjectName("yzDock");
   yzView = new SliceView(vtkPVSliceView::SAGITTAL);
+  yzView->setCrossHairColors(blue, cyan);
   yzDock->setWidget(yzView);
 
   xzDock = QSharedPointer<QDockWidget>(new QDockWidget(tr("XZ"),parent));
   xzDock->setObjectName("xzDock");
   xzView = new SliceView(vtkPVSliceView::CORONAL);
+  xzView->setCrossHairColors(cyan, magenta);
   xzDock->setWidget(xzView);
 
   parent->addDockWidget(Qt::RightDockWidgetArea, volDock.data());

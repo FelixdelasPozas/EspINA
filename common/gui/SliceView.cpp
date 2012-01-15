@@ -548,6 +548,15 @@ void SliceView::setTitle(const QString& title)
 // 
 
 //-----------------------------------------------------------------------------
+void SliceView::setCrossHairColors(double hcolor[3], double vcolor[3])
+{
+  vtkSMPropertyHelper(m_view->getViewProxy(),"HCrossLineColor").Set(hcolor,3);
+  vtkSMPropertyHelper(m_view->getViewProxy(),"VCrossLineColor").Set(vcolor,3);
+  m_view->getProxy()->UpdateVTKObjects();
+}
+
+
+//-----------------------------------------------------------------------------
 void SliceView::onConnect()
 {
   qDebug() << this << ": Connecting to a new server";
@@ -571,12 +580,11 @@ void SliceView::onConnect()
 //                    this, SLOT(vtkWidgetMouseEvent(QMouseEvent *)));
   m_mainLayout->insertWidget(0, m_viewWidget);//To preserve view order
 
-
   double black[] = {0,0,0};
   vtkSMPropertyHelper(m_view->getViewProxy(),"Background").Set(black,3);
   vtkSMPropertyHelper(m_view->getViewProxy(),"CenterAxesVisibility").Set(false);
   m_view->getViewProxy()->UpdateVTKObjects();
-  
+
 //   // Disable menu
 //   // TODO: OLDVERSION m_view->getWidget()->removeAction(m_view->getWidget()->actions().first());
 
@@ -725,7 +733,6 @@ void SliceView::addSegmentationRepresentation(pqOutputPort* oport)
 //     repr->setDefaultPropertyValues();
 //   }
 }
-
 
 //-----------------------------------------------------------------------------
 void SliceView::setShowSegmentations(bool value)

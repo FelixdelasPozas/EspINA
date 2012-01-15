@@ -25,6 +25,8 @@
 #include <vtkSmartPointer.h>
 #include <QList>
 
+class vtkActor;
+class vtkPolyData;
 class vtkMatrix4x4;
 class vtkProp;
 class vtkProp3D;
@@ -68,7 +70,16 @@ public:
   void SetSlice(int value);
   vtkGetMacro(Slice, int);
 
-  void SetCenter(double pos[3]/*in nm*/);
+  // Crosshair Related Methods
+  void SetCenter(double center[3]/*in nm*/);
+
+  void SetHCrossLineColor(double r, double g, double b);
+  void SetHCrossLineColor(double color[3]);
+  vtkGetVector3Macro(HCrossLineColor,double);
+
+  void SetVCrossLineColor(double r, double g, double b);
+  void SetVCrossLineColor(double color[3]);
+  vtkGetVector3Macro(VCrossLineColor,double);
 
   void SetSlicingPlane(int plane);
   vtkGetMacro(SlicingPlane, int);
@@ -84,11 +95,10 @@ public:
 //   void AddSample(vtkDataRepresentation *rep);
 //   void RemoveSample(vtkDataRepresentation *rep);
 
-  vtkSmartPointer<vtkRenderer> OverviewRenderer;
-protected:
-
 //BTX
 protected:
+  void initCrosshairs();
+
   vtkPVSliceView();
   ~vtkPVSliceView();
 
@@ -101,12 +111,20 @@ private:
   VIEW_PLANE       SlicingPlane;
   double           Center[3];
   bool             ShowSegmentations;
+  double           HCrossLineColor[3];
+  double           VCrossLineColor[3];
+  double           SagittalCrossLineColor[3];
+  double           CoronalCrossLineColor[3];
 
+  vtkSmartPointer<vtkRenderer> OverviewRenderer;
   QList<vtkProp3D *> Channels;
   QList<vtkProp3D *> Segmentations;
 
   vtkMatrix4x4     *SlicingMatrix;
   vtkEspinaView    *EspinaView;
+
+  vtkSmartPointer<vtkPolyData> HCrossLineData, VCrossLineData;
+  vtkSmartPointer<vtkActor> HCrossLine, VCrossLine;
 //ETX
 };
 #endif // VTKPVSLICEVIEW_H

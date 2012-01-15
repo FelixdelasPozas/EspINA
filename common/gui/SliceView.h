@@ -128,15 +128,16 @@ public:
   virtual void scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint = EnsureVisible) {}
   virtual QRect visualRect(const QModelIndex& index) const {return QRect();}
 
+  void setCrossHairColors(double hcolor[3], double vcolor[3]);
 //   //void focusOnSample(Sample *sample);
-//   
+//
 //   //! Interface of ISelectableView
 //   void setSelection(SelectionFilters &filters, ViewRegions &regions);
-//   
+//
 //   QList<Segmentation *> pickSegmentationsAt(int x, int y, int z);
 //   QList<Segmentation *> pickSegmentationsAt(ISelectionHandler::VtkRegion region);
 //   void selectSegmentations(int x, int y, int z);
-// 
+//
 
 public slots:
   // Espina has been connected to a new server
@@ -201,6 +202,7 @@ protected:
 //   ISelectionHandler::VtkRegion display2vtk(const QPolygonF &region);
   void addChannelRepresentation(pqOutputPort *oport);
   void addSegmentationRepresentation(pqOutputPort *oport);
+
 
   void buildTitle();
   void buildControls();

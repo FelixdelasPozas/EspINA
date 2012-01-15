@@ -23,18 +23,23 @@
 #include <assert.h>
 
 #include <vtkCamera.h>
+#include <vtkCellArray.h>
 #include <vtkCommand.h>
 #include <vtkDataRepresentation.h>
 #include <vtkInteractorStyleImage.h>
 #include "vtkLegendScaleActor.h"
 #include <vtkMatrix4x4.h>
-#include "vtkObjectFactory.h"
+#include <vtkObjectFactory.h>
+#include <vtkPoints.h>
+#include <vtkPolyData.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkProperty.h>
 #include <vtkPVGenericRenderWindowInteractor.h>
 #include <vtkPVInteractorStyle.h>
-#include "vtkRenderer.h"
+#include <vtkRenderer.h>
 #include <vtkRenderViewBase.h>
 #include <vtkRenderWindow.h>
-
+#include <vtkSmartPointer.h>
 
 // Interactor Style to be used with Slice Views
 class vtkInteractorStyleEspinaSlice
@@ -94,6 +99,10 @@ public:
   virtual void updateActor(vtkProp3D *actor) = 0;
   virtual void updateCamera(vtkCamera *camera) = 0;
   virtual void updateSlicingMatrix(vtkMatrix4x4 *matrix) = 0;
+  virtual void setCrossHairs(vtkPolyData *hline,
+			     vtkPolyData *vline,
+			     double center[3],
+			     double bounds[6]) = 0;
   virtual void setSlicePosition(vtkMatrix4x4 *matrix, double value) = 0;
 };
 
@@ -110,6 +119,8 @@ public:
   virtual void updateActor(vtkProp3D *actor);
   virtual void updateCamera(vtkCamera* camera);
   virtual void updateSlicingMatrix(vtkMatrix4x4 *matrix);
+  virtual void setCrossHairs(vtkPolyData* hline, vtkPolyData* vline,
+			     double center[3], double bounds[6]);
   virtual void setSlicePosition(vtkMatrix4x4 *matrix, double value);
 
 protected:
@@ -143,6 +154,20 @@ void AxialState::updateSlicingMatrix(vtkMatrix4x4* matrix)
 }
 
 //-----------------------------------------------------------------------------
+void AxialState::setCrossHairs(vtkPolyData* hline, vtkPolyData* vline,
+			       double center[3], double bounds[6])
+{
+  hline->GetPoints()->SetPoint(0,bounds[0],center[1],center[2]);
+  hline->GetPoints()->SetPoint(1,bounds[1],center[1],center[2]);
+  hline->Modified();
+
+  vline->GetPoints()->SetPoint(0,center[0],bounds[2],center[2]);
+  vline->GetPoints()->SetPoint(1,center[0],bounds[3],center[2]);
+  vline->Modified();
+}
+
+
+//-----------------------------------------------------------------------------
 void AxialState::setSlicePosition(vtkMatrix4x4 *matrix, double value)
 {
   matrix->SetElement(2, 3, value);
@@ -173,6 +198,8 @@ public:
   virtual void updateActor(vtkProp3D* actor);
   virtual void updateCamera(vtkCamera* camera);
   virtual void updateSlicingMatrix(vtkMatrix4x4* matrix);
+  virtual void setCrossHairs(vtkPolyData* hline, vtkPolyData* vline,
+			     double center[3], double bounds[6]);
   virtual void setSlicePosition(vtkMatrix4x4* matrix, double value);
 
 protected:
@@ -207,10 +234,24 @@ void SagittalState::updateSlicingMatrix(vtkMatrix4x4* matrix)
 }
 
 //-----------------------------------------------------------------------------
+void SagittalState::setCrossHairs(vtkPolyData* hline, vtkPolyData* vline,
+				  double center[3], double bounds[6])
+{
+  hline->GetPoints()->SetPoint(0,center[0],center[1],bounds[4]);
+  hline->GetPoints()->SetPoint(1,center[0],center[1],bounds[5]);
+  hline->Modified();
+
+  vline->GetPoints()->SetPoint(0,center[0],bounds[2],center[2]);
+  vline->GetPoints()->SetPoint(1,center[0],bounds[3],center[2]);
+  vline->Modified();
+}
+
+//-----------------------------------------------------------------------------
 void SagittalState::setSlicePosition(vtkMatrix4x4 *matrix, double value)
 {
   matrix->SetElement(0, 3, value);
 }
+
 
 
 //-----------------------------------------------------------------------------
@@ -238,6 +279,8 @@ public:
     virtual void updateCamera(vtkCamera* camera);
     virtual void updateSlicingMatrix(vtkMatrix4x4* matrix);
     virtual void setSlicePosition(vtkMatrix4x4* matrix, double value);
+    virtual void setCrossHairs(vtkPolyData* hline, vtkPolyData* vline,
+			       double center[3], double bounds[6]);
 
 protected:
   CoronalState(){}
@@ -272,6 +315,19 @@ void CoronalState::updateSlicingMatrix(vtkMatrix4x4* matrix)
 }
 
 //----------------------------------------------------------------------------
+void CoronalState::setCrossHairs(vtkPolyData* hline, vtkPolyData* vline,
+				 double center[3], double bounds[6])
+{
+  hline->GetPoints()->SetPoint(0,center[0],center[1],bounds[4]);
+  hline->GetPoints()->SetPoint(1,center[0],center[1],bounds[5]);
+  hline->Modified();
+
+  vline->GetPoints()->SetPoint(0,bounds[0],center[1],center[2]);
+  vline->GetPoints()->SetPoint(1,bounds[1],center[1],center[2]);
+  vline->Modified();
+}
+
+//----------------------------------------------------------------------------
 void CoronalState::setSlicePosition(vtkMatrix4x4 *matrix, double value)
 {
   matrix->SetElement(1, 3, value);
@@ -287,6 +343,7 @@ vtkStandardNewMacro(vtkPVSliceView);
 
 vtkPVSliceView::vtkPVSliceView()
 {
+  bzero(Center,3*sizeof(double));
   this->SetCenterAxesVisibility(false);
   this->SetOrientationAxesVisibility(false);
   this->SetOrientationAxesInteractivity(false);
@@ -305,13 +362,69 @@ vtkPVSliceView::vtkPVSliceView()
   OverviewRenderer->SetLayer(1);
   this->GetRenderWindow()->AddRenderer(this->OverviewRenderer);
 
+  initCrosshairs();
+
   SlicingMatrix = vtkMatrix4x4::New();
   SlicingMatrix->DeepCopy(axialSlice);
   SlicingPlane = AXIAL;
   State = AxialState::instance();
 
+
   qDebug() << "vtkPVSliceView("<< this << "): Created";
 }
+
+//----------------------------------------------------------------------------
+void vtkPVSliceView::initCrosshairs()
+{
+  vtkSmartPointer<vtkPoints> HPoints = vtkSmartPointer<vtkPoints>::New();
+  HPoints->InsertNextPoint(LastComputedBounds[0],0,0);
+  HPoints->InsertNextPoint(LastComputedBounds[1],0,0);
+  vtkSmartPointer<vtkCellArray> HLine = vtkSmartPointer<vtkCellArray>::New();
+  HLine->EstimateSize(1,2);
+  HLine->InsertNextCell(2);
+  HLine->InsertCellPoint(0);
+  HLine->InsertCellPoint(1);
+
+  HCrossLineData = vtkSmartPointer<vtkPolyData>::New();
+  HCrossLineData->SetPoints(HPoints);
+  HCrossLineData->SetLines(HLine);
+  HCrossLineData->Update();
+
+  vtkSmartPointer<vtkPolyDataMapper> HMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  HMapper->SetInput(HCrossLineData);
+
+  HCrossLine = vtkSmartPointer<vtkActor>::New();
+  HCrossLine->SetMapper(HMapper);
+  HCrossLine->GetProperty()->SetLineStipplePattern(0xF0F0);
+
+  NonCompositedRenderer->AddActor(HCrossLine);
+  OverviewRenderer->AddActor(HCrossLine);
+  
+  vtkSmartPointer<vtkPoints> VPoints = vtkSmartPointer<vtkPoints>::New();
+  VPoints->InsertNextPoint(0,LastComputedBounds[2],0);
+  VPoints->InsertNextPoint(0,LastComputedBounds[3],0);
+  vtkSmartPointer<vtkCellArray> VLine = vtkSmartPointer<vtkCellArray>::New();
+  VLine->EstimateSize(1,2);
+  VLine->InsertNextCell(2);
+  VLine->InsertCellPoint(0);
+  VLine->InsertCellPoint(1);
+
+  VCrossLineData = vtkSmartPointer<vtkPolyData>::New();
+  VCrossLineData->SetPoints(VPoints);
+  VCrossLineData->SetLines(VLine);
+  VCrossLineData->Update();
+
+  vtkSmartPointer<vtkPolyDataMapper> VMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  VMapper->SetInput(VCrossLineData);
+
+  VCrossLine = vtkSmartPointer<vtkActor>::New();
+  VCrossLine->SetMapper(VMapper);
+  VCrossLine->GetProperty()->SetLineStipplePattern(0xF0F0);
+
+  NonCompositedRenderer->AddActor(VCrossLine);
+  OverviewRenderer->AddActor(VCrossLine);
+}
+
 
 //----------------------------------------------------------------------------
 vtkPVSliceView::~vtkPVSliceView()
@@ -336,6 +449,7 @@ void vtkPVSliceView::AddActor(vtkProp3D* actor)
   State->updateActor(actor);
   RenderView->GetRenderer()->AddActor(actor);
   OverviewRenderer->AddActor(actor);
+  SetCenter(Center);
 }
 
 //----------------------------------------------------------------------------
@@ -369,6 +483,7 @@ void vtkPVSliceView::ResetCamera()
 {
   vtkPVRenderView::ResetCamera();
   OverviewRenderer->ResetCamera(this->LastComputedBounds);
+  SetCenter(Center);
 }
 
 //----------------------------------------------------------------------------
@@ -376,13 +491,15 @@ void vtkPVSliceView::ResetCamera(double bounds[6])
 {
   vtkPVRenderView::ResetCamera(bounds);
   OverviewRenderer->ResetCamera(bounds);
+  SetCenter(Center);
 }
 
 //----------------------------------------------------------------------------
 void vtkPVSliceView::ResetCameraClippingRange()
 {
-    vtkPVRenderView::ResetCameraClippingRange();
-    OverviewRenderer->ResetCameraClippingRange(this->LastComputedBounds);
+  vtkPVRenderView::ResetCameraClippingRange();
+  OverviewRenderer->ResetCameraClippingRange(this->LastComputedBounds);
+  SetCenter(Center);
 }
 
 //----------------------------------------------------------------------------
@@ -444,9 +561,39 @@ void vtkPVSliceView::SetSlicingPlane(int plane)
 }
 
 //----------------------------------------------------------------------------
-void vtkPVSliceView::SetCenter(double pos[3])
+void vtkPVSliceView::SetCenter(double center[3])
 {
-  
+  State->setCrossHairs(HCrossLineData,VCrossLineData, center, LastComputedBounds);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVSliceView::SetHCrossLineColor(double r, double g, double b)
+{
+  HCrossLine->GetProperty()->SetColor(r,g,b);
+  HCrossLineColor[0] = r;
+  HCrossLineColor[1] = g;
+  HCrossLineColor[2] = b;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVSliceView::SetHCrossLineColor(double color[3])
+{
+  SetHCrossLineColor(color[0], color[1], color[2]);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVSliceView::SetVCrossLineColor(double r, double g, double b)
+{
+  VCrossLine->GetProperty()->SetColor(r,g,b);
+  VCrossLineColor[0] = r;
+  VCrossLineColor[1] = g;
+  VCrossLineColor[2] = b;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVSliceView::SetVCrossLineColor(double color[3])
+{
+  SetVCrossLineColor(color[0], color[1], color[2]);
 }
 
 //----------------------------------------------------------------------------
