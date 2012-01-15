@@ -50,6 +50,7 @@ vtkSliceRepresentation::vtkSliceRepresentation()
   this->Slice = vtkImageResliceToColors::New();
   this->SliceActor = vtkImageActor::New();
   this->SliceActor->SetInterpolate(false);
+  this->SliceActor->GetMapper()->BorderOn();
 
   this->SliceActor->GetMapper()->SetInputConnection(Slice->GetOutputPort());
 }
