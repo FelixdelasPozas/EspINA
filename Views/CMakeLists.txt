@@ -6,25 +6,24 @@ include_directories(
   )
 
 qt4_wrap_cpp( MOC_SRCS
-  EspinaView.h
+  pqSliceView.h
   )
 
 add_paraview_view_module(
   IFACES
   IFACE_SRCS
-  VIEW_TYPE EspinaView
+  VIEW_TYPE pqSliceView
   VIEW_XML_GROUP views
   )
 
 set (SERVER_SOURCES
-  vtkPVEspinaView.cpp
-  vtkSMEspinaViewProxy.cpp
-  vtkEspinaView.cpp
-  vtkEspinaSliceRepresentation.cpp
+  vtkPVSliceView.cpp
+  vtkSMSliceViewProxy.cpp
+  vtkSliceRepresentation.cpp
   )
 
 set (PLUGIN_SOURCES
-  EspinaView.cpp
+  pqSliceView.cpp
   )
 
 add_paraview_plugin( EspinaViews "1.0"

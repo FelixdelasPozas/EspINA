@@ -17,35 +17,35 @@
 */
 
 
-#ifndef ESPINAVIEW_H
-#define ESPINAVIEW_H
+#ifndef PQSLICEVIEW_H
+#define PQSLICEVIEW_H
 
 #include <pqRenderViewBase.h>
-#include "vtkPVEspinaView.h"
+#include "vtkPVSliceView.h"
 
 /// pqRenderViewBase specialization used for espina
-class PQCORE_EXPORT EspinaView : public pqRenderViewBase
+class PQCORE_EXPORT pqSliceView : public pqRenderViewBase
 {
   Q_OBJECT
   typedef pqRenderViewBase Superclass;
 public:
-  static QString espinaRenderViewType() { return "EspinaView"; }
-  static QString espinaRenderViewTypeName() { return "Espina View"; }
+  static QString espinaRenderViewType() { return "pqSliceView"; }
+  static QString espinaRenderViewTypeName() { return "pqSlice View"; }
 
-  EspinaView(const QString& group,
+  pqSliceView(const QString& group,
 	     const QString& name,
 	     vtkSMViewProxy* renModule,
 	     pqServer* server,
 	     QObject* parent=NULL);
   
-  EspinaView(const QString& viewtypemodule,
+  pqSliceView(const QString& viewtypemodule,
 	     const QString& group,
 	     const QString& name,
 	     vtkSMViewProxy* viewmodule,
 	     pqServer* server,
 	     QObject* p);
   
-  virtual ~EspinaView();
+  virtual ~pqSliceView();
 
 // //     virtual QWidget* getWidget();
 // 
@@ -55,7 +55,7 @@ public:
   /// returned as non-constant. Developers can change the default by directly
   /// updating the entries.
   static ManipulatorType* getDefaultManipulatorTypes()
-    { return EspinaView::DefaultManipulatorTypes; }
+    { return pqSliceView::DefaultManipulatorTypes; }
 
   /// Resets the camera to include all visible data.
   /// It is essential to call this resetCamera, to ensure that the reset camera
@@ -71,7 +71,7 @@ public:
   /// returns whether a source can be displayed in this view module
   virtual bool canDisplay(pqOutputPort* opPort) const;
 
-  void setSlicingPlane(vtkPVEspinaView::VIEW_PLANE plane);
+  void setSlicingPlane(vtkPVSliceView::VIEW_PLANE plane);
 
 public slots:
   void setSlice(int value);
@@ -86,28 +86,28 @@ protected:
   /// Return the name of the group used for view-sepecific settings such as
   /// background color, lighting.
   virtual const char* viewSettingsGroup() const
-  { return "renderModuleEspina"; }
+  { return "renderModulepqSlice"; }
 
   /// Returns the name of the group in which to save the interactor style
   /// settings.
   virtual const char* interactorStyleSettingsGroup() const
-  { return "renderModuleEspina/InteractorStyle"; }
+  { return "renderModulepqSlice/InteractorStyle"; }
 
   /// Must be overridden to return the default manipulator types.
   virtual const ManipulatorType* getDefaultManipulatorTypesInternal()
-  { return EspinaView::getDefaultManipulatorTypes(); }
+  { return pqSliceView::getDefaultManipulatorTypes(); }
 
   /// Setups up RenderModule and QVTKWidget binding.
-  /// This method is called for all EspinaView objects irrespective
+  /// This method is called for all pqSliceView objects irrespective
   /// of whether it is created from state/undo-redo/python or by the GUI. Hence
   /// don't change any render module properties here.
   virtual void initializeWidgets();
 private:
-  EspinaView(const EspinaView&); // Not implemented.
-  void operator=(const EspinaView&); // Not implemented.
+  pqSliceView(const pqSliceView&); // Not implemented.
+  void operator=(const pqSliceView&); // Not implemented.
 
   static ManipulatorType DefaultManipulatorTypes[9];
   bool InitializedWidgets;
 };
 
-#endif // ESPINAVIEW_H
+#endif // PQSLICEVIEW_H

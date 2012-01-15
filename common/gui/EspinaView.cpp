@@ -1,5 +1,5 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
+    <one line to give the program's name an a brief idea of what it does.>
     Copyright (C) 2011  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 */
 
 
-#include "Layout.h"
+#include "EspinaView.h"
 
 #include <QDebug>
 
@@ -27,23 +27,29 @@
 #include <QDockWidget>
 #include <QMainWindow>
 #include <QVBoxLayout>
+#include <QSettings>
 
 //----------------------------------------------------------------------------
-Layout::Layout(QMainWindow* parent, Qt::WindowFlags f)
-: QWidget(parent, f)
+EspinaView::EspinaView( QMainWindow* parent, const QString activity)
+: QAbstractItemView(parent)
+, m_activity(activity)
+, m_window(parent)
 {
 }
 
 //----------------------------------------------------------------------------
-DefaultLayout::DefaultLayout(QMainWindow* parent, Qt::WindowFlags f)
-: Layout(parent, f)
+DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity)
+: EspinaView(parent, activity)
 {
-  qDebug() << "New Default Layout";
+  setObjectName("xyView");
+  
+  qDebug() << "New Default EspinaView";
   xyView = new SliceView();
-  xyView = new SliceView(vtkPVEspinaView::CORONAL);
-  xyView = new SliceView(vtkPVEspinaView::AXIAL);
+  xyView = new SliceView(vtkPVSliceView::CORONAL);
+  xyView = new SliceView(vtkPVSliceView::AXIAL);
   this->setLayout(new QVBoxLayout());
   this->layout()->addWidget(xyView);
+  this->layout()->setMargin(0);
 
   volDock = QSharedPointer<QDockWidget>(new QDockWidget(tr("3D"),parent));
   volDock->setObjectName("volDock");
@@ -52,12 +58,12 @@ DefaultLayout::DefaultLayout(QMainWindow* parent, Qt::WindowFlags f)
   
   yzDock = QSharedPointer<QDockWidget>(new QDockWidget(tr("YZ"),parent));
   yzDock->setObjectName("yzDock");
-  yzView = new SliceView(vtkPVEspinaView::SAGITTAL);
+  yzView = new SliceView(vtkPVSliceView::SAGITTAL);
   yzDock->setWidget(yzView);
 
   xzDock = QSharedPointer<QDockWidget>(new QDockWidget(tr("XZ"),parent));
   xzDock->setObjectName("xzDock");
-  xzView = new SliceView(vtkPVEspinaView::CORONAL);
+  xzView = new SliceView(vtkPVSliceView::CORONAL);
   xzDock->setWidget(xzView);
 
   parent->addDockWidget(Qt::RightDockWidgetArea, volDock.data());
@@ -68,7 +74,34 @@ DefaultLayout::DefaultLayout(QMainWindow* parent, Qt::WindowFlags f)
 }
 
 //----------------------------------------------------------------------------
-void DefaultLayout::setShowSegmentations(bool visibility)
+void DefaultEspinaView::restoreLayout()
+{
+  qDebug() << "Restore " << m_activity << volDock->objectName();
+  QSettings settings("CeSViMa", "EspINA");
+
+  m_window->restoreState(settings.value(m_activity+"/state").toByteArray());
+  m_window->restoreGeometry(settings.value(m_activity+"/geometry").toByteArray());
+}
+
+//----------------------------------------------------------------------------
+QSize DefaultEspinaView::sizeHint() const
+{
+  return QSize(500,500);
+}
+
+
+//----------------------------------------------------------------------------
+void DefaultEspinaView::saveLayout()
+{
+  qDebug() << "Save " << m_activity << volDock->objectName();
+  QSettings settings("CeSViMa", "EspINA");
+
+  settings.setValue(m_activity+"/state", m_window->saveState());
+  settings.setValue(m_activity+"/geometry", m_window->saveGeometry());
+}
+
+//----------------------------------------------------------------------------
+void DefaultEspinaView::setShowSegmentations(bool visibility)
 {
   xyView->setShowSegmentations(visibility);
   yzView->setShowSegmentations(visibility);

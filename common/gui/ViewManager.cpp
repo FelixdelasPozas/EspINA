@@ -21,7 +21,7 @@
 
 #include <QDebug>
 
-#include "gui/Layout.h"
+#include "gui/EspinaView.h"
 #include "gui/SliceView.h"
 // #include "gui/ViewFrame.h"
 
@@ -47,7 +47,7 @@ ViewManager::~ViewManager()
 }
 
 //----------------------------------------------------------------------------
-Layout *ViewManager::createLayout(QMainWindow *window, const QString& layout)
+EspinaView *ViewManager::createLayout(QMainWindow *window, const QString& layout)
 {
   if (layout == "squared")
     return createSquaredLayout(window);
@@ -56,13 +56,13 @@ Layout *ViewManager::createLayout(QMainWindow *window, const QString& layout)
 }
 
 //----------------------------------------------------------------------------
-Layout *ViewManager::createDefaultLayout(QMainWindow* window)
+EspinaView *ViewManager::createDefaultLayout(QMainWindow* window)
 {
-  return new DefaultLayout(window);
+  return new DefaultEspinaView(window, "Segmentation");
 }
 
 //----------------------------------------------------------------------------
-Layout* ViewManager::createSquaredLayout(QMainWindow* window)
+EspinaView* ViewManager::createSquaredLayout(QMainWindow* window)
 {
   SliceView *volView = new SliceView();
   SliceView *xyView = new SliceView();

@@ -17,19 +17,19 @@
 */
 
 
-#ifndef VTKSMESPINAVIEWPROXY_H
-#define VTKSMESPINAVIEWPROXY_H
+#ifndef VTKSMSLICEVIEWPROXY_H
+#define VTKSMSLICEVIEWPROXY_H
 
 #include <vtkSMRenderViewProxy.h>
 
 
-class vtkSMEspinaViewProxy : public vtkSMRenderViewProxy
+class vtkSMSliceViewProxy : public vtkSMRenderViewProxy
 {
 public:
-  static vtkSMEspinaViewProxy* New();
-  vtkTypeMacro(vtkSMEspinaViewProxy, vtkSMRenderViewProxy);
+  static vtkSMSliceViewProxy* New();
+  vtkTypeMacro(vtkSMSliceViewProxy, vtkSMRenderViewProxy);
 
   virtual vtkSMRepresentationProxy* CreateDefaultRepresentation(vtkSMProxy* source, int port);
 };
 
-#endif // VTKSMESPINAVIEWPROXY_H
+#endif // VTKSMSLICEVIEWPROXY_H

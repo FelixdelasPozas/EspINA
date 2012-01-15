@@ -23,8 +23,8 @@
 // #include "espina_debug.h"
 // 
 // // EspINA
-#include "../../Views/EspinaView.h"
-#include "../Views/vtkSMEspinaViewProxy.h"
+#include "../../Views/pqSliceView.h"
+#include "../Views/vtkSMSliceViewProxy.h"
 #include "IPreferencePanel.h"
 // #include "interfaces.h"
 // #include "filter.h"
@@ -126,7 +126,7 @@ void SliceViewPreferencesPanel::setShowAxis(bool value)
 
 
 //-----------------------------------------------------------------------------
-SliceViewPreferences::SliceViewPreferences(vtkPVEspinaView::VIEW_PLANE plane)
+SliceViewPreferences::SliceViewPreferences(vtkPVSliceView::VIEW_PLANE plane)
 : m_InvertWheel(false)
 , m_InvertSliceOrder(false)
 , m_ShowAxis(false)
@@ -136,13 +136,13 @@ SliceViewPreferences::SliceViewPreferences(vtkPVEspinaView::VIEW_PLANE plane)
 
   switch (plane)
   {
-    case vtkPVEspinaView::AXIAL:
+    case vtkPVSliceView::AXIAL:
       viewSettings = "AxialSliceView";
       break;
-    case vtkPVEspinaView::SAGITTAL:
+    case vtkPVSliceView::SAGITTAL:
       viewSettings = "SagittalSliceView";
       break;
-    case vtkPVEspinaView::CORONAL:
+    case vtkPVSliceView::CORONAL:
       viewSettings = "CoronalSliceView";
       break;
     default:
@@ -170,13 +170,13 @@ const QString SliceViewPreferences::shortDescription()
 {
   switch (m_plane)
   {
-    case vtkPVEspinaView::AXIAL:
+    case vtkPVSliceView::AXIAL:
       viewSettings = "Axial View";
       break;
-    case vtkPVEspinaView::SAGITTAL:
+    case vtkPVSliceView::SAGITTAL:
       viewSettings = "Sagittal View";
       break;
-    case vtkPVEspinaView::CORONAL:
+    case vtkPVSliceView::CORONAL:
       viewSettings = "Coronal View";
       break;
     default:
@@ -219,7 +219,7 @@ void SliceViewPreferences::setShowAxis(bool value)
 //-----------------------------------------------------------------------------
 // SLICE VIEW
 //-----------------------------------------------------------------------------
-SliceView::SliceView(vtkPVEspinaView::VIEW_PLANE plane, QWidget* parent)
+SliceView::SliceView(vtkPVSliceView::VIEW_PLANE plane, QWidget* parent)
     : QAbstractItemView (parent)
     , m_plane           (plane)
     , m_titleLayout     (new QHBoxLayout())
@@ -555,8 +555,8 @@ void SliceView::onConnect()
   pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
   pqServer    *server = pqActiveObjects::instance().activeServer();
 
-  m_view = qobject_cast<EspinaView*>(ob->createView(
-             EspinaView::espinaRenderViewType(), server));
+  m_view = qobject_cast<pqSliceView*>(ob->createView(
+             pqSliceView::espinaRenderViewType(), server));
 
   m_view->setSlicingPlane(m_plane);
   connect(m_scrollBar, SIGNAL(valueChanged(int)),
@@ -679,7 +679,7 @@ bool SliceView::eventFilter(QObject* obj, QEvent* event)
 //-----------------------------------------------------------------------------
 void SliceView::addChannelRepresentation(pqOutputPort* oport)
 {
-  vtkSMEspinaViewProxy *ep =  vtkSMEspinaViewProxy::SafeDownCast(m_view->getViewProxy());
+  vtkSMSliceViewProxy *ep =  vtkSMSliceViewProxy::SafeDownCast(m_view->getViewProxy());
   Q_ASSERT(ep);
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
   dp->createPreferredRepresentation(oport,m_view,true);
@@ -688,7 +688,7 @@ void SliceView::addChannelRepresentation(pqOutputPort* oport)
 //-----------------------------------------------------------------------------
 void SliceView::addSegmentationRepresentation(pqOutputPort* oport)
 {
-//   vtkSMEspinaViewProxy *ep =  vtkSMEspinaViewProxy::SafeDownCast(m_view->getViewProxy());
+//   vtkSMSliceViewProxy *ep =  vtkSMSliceViewProxy::SafeDownCast(m_view->getViewProxy());
 //   Q_ASSERT(ep);
 //   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
 //   pqDataRepresentation *dr = dp->createPreferredRepresentation(oport,m_view,true);

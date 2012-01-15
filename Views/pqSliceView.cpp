@@ -17,7 +17,7 @@
 */
 
 
-#include "EspinaView.h"
+#include "pqSliceView.h"
 
 #include <QDebug>
 
@@ -27,7 +27,7 @@
 #include "vtkSMRenderViewProxy.h"
 #include "vtkSMSourceProxy.h"
 #include "vtkSMTwoDRenderViewProxy.h"
-#include "vtkSMEspinaViewProxy.h"
+#include "vtkSMSliceViewProxy.h"
 
 // Qt Includes.
 #include <QPushButton>
@@ -40,7 +40,7 @@
 #include <vtkSMPropertyHelper.h>
 
 
-EspinaView::ManipulatorType EspinaView::DefaultManipulatorTypes[9] =
+pqSliceView::ManipulatorType pqSliceView::DefaultManipulatorTypes[9] =
 {
     { 1, 0, 0, "Pan"},
     { 2, 0, 0, "Pan"},
@@ -55,7 +55,7 @@ EspinaView::ManipulatorType EspinaView::DefaultManipulatorTypes[9] =
 
 
 //-----------------------------------------------------------------------------
-EspinaView::EspinaView(
+pqSliceView::pqSliceView(
   const QString& group,
   const QString& name, 
   vtkSMViewProxy* viewProxy,
@@ -69,7 +69,7 @@ EspinaView::EspinaView(
 
 
 //-----------------------------------------------------------------------------
-EspinaView::EspinaView(
+pqSliceView::pqSliceView(
   const QString& viewtypemodule,
   const QString& group,
   const QString& name,
@@ -78,13 +78,13 @@ EspinaView::EspinaView(
   QObject* p)
 : Superclass(espinaRenderViewType(), group, name, viewmodule, server, p)
 {
-  qDebug() << "EspinaView(" << this << ") : Created";
+  qDebug() << "pqSliceView(" << this << ") : Created";
   this->InitializedWidgets = false;
 }
 
 
 //-----------------------------------------------------------------------------
-EspinaView::~EspinaView()
+pqSliceView::~pqSliceView()
 {
 }
 
@@ -92,17 +92,17 @@ EspinaView::~EspinaView()
 /// Resets the camera to include all visible data.
 /// It is essential to call this resetCamera, to ensure that the reset camera
 /// action gets pushed on the interaction undo stack.
-void EspinaView::resetCamera()
+void pqSliceView::resetCamera()
 {
   this->getProxy()->InvokeCommand("ResetCamera");
   this->render();
 }
 
 //-----------------------------------------------------------------------------
-// This method is called for all EspinaView objects irrespective
+// This method is called for all pqSliceView objects irrespective
 // of whether it is created from state/undo-redo/python or by the GUI. Hence
 // don't change any render module properties here.
-void EspinaView::initializeWidgets()
+void pqSliceView::initializeWidgets()
 {
   if (this->InitializedWidgets)
     {
@@ -111,7 +111,7 @@ void EspinaView::initializeWidgets()
 
   this->InitializedWidgets = true;
 
-  vtkSMEspinaViewProxy* renModule = vtkSMEspinaViewProxy::SafeDownCast(
+  vtkSMSliceViewProxy* renModule = vtkSMSliceViewProxy::SafeDownCast(
     this->getProxy());
 
   QVTKWidget* vtkwidget = qobject_cast<QVTKWidget*>(this->getWidget());
@@ -122,7 +122,7 @@ void EspinaView::initializeWidgets()
 }
 
 //-----------------------------------------------------------------------------
-vtkImageData* EspinaView::captureImage(int magnification)
+vtkImageData* pqSliceView::captureImage(int magnification)
 {
   Q_ASSERT(false);
   if (this->getWidget()->isVisible())
@@ -138,7 +138,7 @@ vtkImageData* EspinaView::captureImage(int magnification)
 }
 
 //-----------------------------------------------------------------------------
-bool EspinaView::canDisplay(pqOutputPort* opPort) const
+bool pqSliceView::canDisplay(pqOutputPort* opPort) const
 {
   if (opPort == NULL || !this->Superclass::canDisplay(opPort))
     {
@@ -160,7 +160,7 @@ bool EspinaView::canDisplay(pqOutputPort* opPort) const
 }
 
 //-----------------------------------------------------------------------------
-void EspinaView::setSlice(int value)
+void pqSliceView::setSlice(int value)
 {
 //   qDebug() << this << ": Changing Slice " << value;
   vtkSMPropertyHelper(this->getProxy(), "Slice").Set(2*value);
@@ -169,7 +169,7 @@ void EspinaView::setSlice(int value)
 }
 
 //-----------------------------------------------------------------------------
-void EspinaView::setSlicingPlane(vtkPVEspinaView::VIEW_PLANE plane)
+void pqSliceView::setSlicingPlane(vtkPVSliceView::VIEW_PLANE plane)
 {
   vtkSMPropertyHelper(this->getProxy(), "SlicingPlane").Set(plane);
   this->getProxy()->UpdateVTKObjects();
@@ -177,7 +177,7 @@ void EspinaView::setSlicingPlane(vtkPVEspinaView::VIEW_PLANE plane)
 }
 
 //-----------------------------------------------------------------------------
-void EspinaView::setShowSegmentations(bool visible)
+void pqSliceView::setShowSegmentations(bool visible)
 {
 //   qDebug() << this << ": Segmentation Visibility = " << visible;
   vtkSMPropertyHelper(this->getProxy(), "ShowSegmentations").Set(visible);
@@ -187,7 +187,7 @@ void EspinaView::setShowSegmentations(bool visible)
 
 
 // //-----------------------------------------------------------------------------
-// void EspinaView::updateVisibility(pqRepresentation* curRepr, bool visible)
+// void pqSliceView::updateVisibility(pqRepresentation* curRepr, bool visible)
 // {
 //   if (!qobject_cast<pqDataRepresentation*>(curRepr))
 //   {

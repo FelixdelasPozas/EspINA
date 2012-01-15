@@ -47,10 +47,12 @@
 #include <pqInterfaceTracker.h>
 #include <pqStandardViewModules.h>
 #include "MainToolBar.h"
-#include <gui/Layout.h>
+#include <gui/EspinaView.h>
 
 
 EspinaWindow::EspinaWindow()
+: m_view(NULL)
+, m_currentActivity("NONE")
 {
   m_espina = QSharedPointer<EspINA>(new EspINA());
 #ifdef DEBUG
@@ -85,15 +87,15 @@ EspinaWindow::EspinaWindow()
   SegmentationExplorer *segExplorer = new SegmentationExplorer(m_espina, this);
   addDockWidget(Qt::LeftDockWidgetArea,segExplorer);
 
-  setActivity("segmentate");
-  
+
   loadParaviewBehavior();
 
-  QSettings settings("CeSViMa", "EspINA");
-  
-  restoreGeometry(settings.value("geometry").toByteArray());
-  restoreState(settings.value("state").toByteArray(),0);
-  
+  setActivity("segmentate");
+//   QSettings settings("CeSViMa", "EspINA");
+//   
+//   restoreGeometry(settings.value("geometry").toByteArray());
+//   restoreState(settings.value("state").toByteArray(),0);
+//   
   statusBar()->clearMessage();
 }
 
@@ -112,6 +114,11 @@ void EspinaWindow::createActivityMenu()
   activityMenu->addAction(analyse);
   sigMapper->setMapping(analyse,QString("analyse"));
   connect(analyse,SIGNAL(triggered(bool)), sigMapper, SLOT(map()));
+  
+  QAction *reload = new QAction(tr("Reload"),activityMenu);
+  activityMenu->addAction(reload);
+  sigMapper->setMapping(reload,QString("Reload"));
+  connect(reload,SIGNAL(triggered(bool)), sigMapper, SLOT(map()));
 
   QAction *segmentate = new QAction(tr("Segmentate"),activityMenu);
   activityMenu->addAction(segmentate);
@@ -128,10 +135,12 @@ void EspinaWindow::createLODMenu()
 
 void EspinaWindow::closeEvent(QCloseEvent* event)
 {
-  QSettings settings("CeSViMa", "EspINA");
+  if (m_view)
+    m_view->saveLayout();
+//   QSettings settings("CeSViMa", "EspINA");
 
-  settings.setValue("geometry", saveGeometry());
-  settings.setValue("state", saveState(0));
+//   settings.setValue(m_currentActivity+"/geometry", saveGeometry());
+//   settings.setValue(m_currentActivity+"/state", saveState());
   QMainWindow::closeEvent(event);
 }
 
@@ -200,30 +209,41 @@ void EspinaWindow::loadSource(pqPipelineSource * source)
 
 void EspinaWindow::setActivity(QString activity)
 {
+  if (activity == m_currentActivity)
+    return;
   // Changing the central widget desrtoys the previous one
-  Layout *newLayout = NULL;
+//   QSettings settings("CeSViMa", "EspINA");
+
+//   settings.setValue(m_currentActivity+"/geometry", saveGeometry());
+//   settings.setValue(m_currentActivity+"/state", saveState());
+  if (m_view)
+    m_view->saveLayout();
+
   if (activity == "analyse")
   {
     qDebug() << "Switch to Analyse Activity";
     QSharedPointer<ViewManager> vm = ViewManager::instance();
-    newLayout = vm->createLayout(this, "squared");
+    m_view = vm->createLayout(this, "squared");
   }
   else if (activity == "segmentate")
   {
     qDebug() << "Switch to Segmentate Activity";
     QSharedPointer<ViewManager> vm = ViewManager::instance();
-    newLayout = vm->createLayout(this);
+    m_view = vm->createLayout(this);
   }
 
-  if (newLayout)
+  if (m_view)
     connect(m_mainToolBar, SIGNAL(showSegmentations(bool)),
-	    newLayout, SLOT(setShowSegmentations(bool)));
-  
-  QSettings settings("CeSViMa", "EspINA");
+	    m_view, SLOT(setShowSegmentations(bool)));
 
-//   restoreGeometry(settings.value("geometry").toByteArray());
-  restoreState(settings.value("state").toByteArray(),0);
+  if (m_view)
+  {
+    m_view->restoreLayout();
+  }
   m_currentActivity = activity;
+
+//   restoreGeometry(settings.value(m_currentActivity+"/geometry").toByteArray());
+//   restoreState(settings.value(m_currentActivity+"/state").toByteArray());
 }
 
 

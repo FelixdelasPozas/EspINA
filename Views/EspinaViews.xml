@@ -1,6 +1,6 @@
 <ServerManagerConfiguration>
  <ProxyGroup name="views">
-   <EspinaViewProxy name="EspinaView" class="vtkPVEspinaView"
+   <SliceViewProxy name="pqSliceView" class="vtkPVSliceView"
      processes="client|renderserver|dataserver"
      base_proxygroup="views" base_proxyname="RenderView">
      <Documentation>
@@ -38,12 +38,12 @@
 	  Set/Get which plane is being sliced
         </Documentation>
       </IntVectorProperty>
-   </EspinaViewProxy>
+   </SliceViewProxy>
  </ProxyGroup>
  
  <ProxyGroup name="representations">
     <RepresentationProxy name="ChannelRepresentation"
-      class="vtkEspinaSliceRepresentation"
+      class="vtkSliceRepresentation"
       processes="client|renderserver|dataserver">
       <Documentation>
         This is the new representation type we are adding. This is identical to
@@ -81,7 +81,7 @@
       </IntVectorProperty>
     </RepresentationProxy>
     <RepresentationProxy name="SegmentationRepresentation"
-      class="vtkEspinaSliceRepresentation"
+      class="vtkSliceRepresentation"
       processes="client|renderserver|dataserver">
       <Documentation>
         This is the new representation type we are adding. This is identical to

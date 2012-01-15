@@ -17,13 +17,12 @@
 */
 
 
-#include "vtkEspinaSliceRepresentation.h"
+#include "vtkSliceRepresentation.h"
 
 #include <QDebug>
 
-#include "vtkPVEspinaView.h"
+#include "vtkPVSliceView.h"
 #include <vtkObjectFactory.h>
-#include "vtkEspinaView.h"
 #include <vtkRenderer.h>
 #include <vtkPVLODActor.h>
 #include <vtkProperty.h>
@@ -39,11 +38,11 @@
 #include <vtkInformationVector.h>
 #include <vtkPlane.h>
 
-vtkStandardNewMacro(vtkEspinaSliceRepresentation);
+vtkStandardNewMacro(vtkSliceRepresentation);
 
 static bool base = true;
 //----------------------------------------------------------------------------
-vtkEspinaSliceRepresentation::vtkEspinaSliceRepresentation()
+vtkSliceRepresentation::vtkSliceRepresentation()
 {
   this->SliceData = vtkImageData::New();
 
@@ -58,7 +57,7 @@ vtkEspinaSliceRepresentation::vtkEspinaSliceRepresentation()
 //----------------------------------------------------------------------------
 // This method has been taken from vtkImageSliceRepresentation and modified
 // to fit our purpose
-int vtkEspinaSliceRepresentation::ProcessViewRequest(
+int vtkSliceRepresentation::ProcessViewRequest(
   vtkInformationRequestKey* request_type,
   vtkInformation* inInfo,
   vtkInformation* outInfo)
@@ -118,7 +117,7 @@ int vtkEspinaSliceRepresentation::ProcessViewRequest(
 }
 
 //----------------------------------------------------------------------------
-int vtkEspinaSliceRepresentation::FillInputPortInformation(int port, vtkInformation* info)
+int vtkSliceRepresentation::FillInputPortInformation(int port, vtkInformation* info)
 {
   info->Set(vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkImageData");
   info->Set(vtkAlgorithm::INPUT_IS_OPTIONAL(), 1);
@@ -126,7 +125,7 @@ int vtkEspinaSliceRepresentation::FillInputPortInformation(int port, vtkInformat
 }
 
 //----------------------------------------------------------------------------
-int vtkEspinaSliceRepresentation::RequestData(
+int vtkSliceRepresentation::RequestData(
   vtkInformation* request,
   vtkInformationVector** inputVector,
   vtkInformationVector* outputVector)
@@ -159,10 +158,10 @@ int vtkEspinaSliceRepresentation::RequestData(
 
 
 //----------------------------------------------------------------------------
-bool vtkEspinaSliceRepresentation::AddToView(vtkView* view)
+bool vtkSliceRepresentation::AddToView(vtkView* view)
 {
   qDebug() << "Add to View";
-  vtkPVEspinaView* rview = vtkPVEspinaView::SafeDownCast(view);
+  vtkPVSliceView* rview = vtkPVSliceView::SafeDownCast(view);
   if (rview)
     {
       Slice->SetOutputDimensionality(2);
@@ -185,7 +184,7 @@ bool vtkEspinaSliceRepresentation::AddToView(vtkView* view)
 }
 
 //----------------------------------------------------------------------------
-void vtkEspinaSliceRepresentation::SetType(int value)
+void vtkSliceRepresentation::SetType(int value)
 {
   Type = value;
   qDebug() << "Set Type " << value ;

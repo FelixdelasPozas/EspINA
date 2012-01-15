@@ -17,8 +17,8 @@
 */
 
 
-#ifndef VTKPVESPINAVIEW_H
-#define VTKPVESPINAVIEW_H
+#ifndef VTKPVSLICEVIEW_H
+#define VTKPVSLICEVIEW_H
 
 #include <vtkPVRenderView.h>
 
@@ -32,7 +32,7 @@ class vtkEspinaView;
 class vtkLegendScaleActor;
 class EspinaViewState;
 
-class VTK_EXPORT vtkPVEspinaView : public vtkPVRenderView
+class VTK_EXPORT vtkPVSliceView : public vtkPVRenderView
 {
 public:
     enum VIEW_PLANE
@@ -42,8 +42,8 @@ public:
     CORONAL
   };
 
-  static vtkPVEspinaView* New();
-  vtkTypeMacro(vtkPVEspinaView, vtkPVRenderView);
+  static vtkPVSliceView* New();
+  vtkTypeMacro(vtkPVSliceView, vtkPVRenderView);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   void AddActor(vtkProp3D* actor);
@@ -89,12 +89,12 @@ protected:
 
 //BTX
 protected:
-  vtkPVEspinaView();
-  ~vtkPVEspinaView();
+  vtkPVSliceView();
+  ~vtkPVSliceView();
 
 private:
-  vtkPVEspinaView(const vtkPVEspinaView&); // Not implemented
-  void operator=(const vtkPVEspinaView&); // Not implemented
+  vtkPVSliceView(const vtkPVSliceView&); // Not implemented
+  void operator=(const vtkPVSliceView&); // Not implemented
 
   EspinaViewState  *State;
   int              Slice;
@@ -109,4 +109,4 @@ private:
   vtkEspinaView    *EspinaView;
 //ETX
 };
-#endif // VTKPVESPINAVIEW_H
+#endif // VTKPVSLICEVIEW_H

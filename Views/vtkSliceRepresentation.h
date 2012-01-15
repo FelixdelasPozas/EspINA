@@ -17,14 +17,14 @@
 */
 
 //----------------------------------------------------------------------------
-// File:    vtkEspinaSliceRepresentation.h
+// File:    vtkSliceRepresentation.h
 // Purpose: Transform source's vtkImageData into slice representations to
 //          be rendered in vtkPVEspinaViews
-//          vtkEspinaSliceRepresentation is not meant to be used with
+//          vtkSliceRepresentation is not meant to be used with
 //          conventional vtkPVViews
 //----------------------------------------------------------------------------
-#ifndef VTKESPINASLICEREPRESENTATION_H
-#define VTKESPINASLICEREPRESENTATION_H
+#ifndef VTKSLICEREPRESENTATION_H
+#define VTKSLICEREPRESENTATION_H
 
 #include <vtkPVDataRepresentation.h>
 
@@ -36,11 +36,11 @@ class vtkImageProperty;
 class vtkImageResliceMapper;
 
 
-class vtkEspinaSliceRepresentation : public vtkPVDataRepresentation
+class vtkSliceRepresentation : public vtkPVDataRepresentation
 {
 public:
-  static vtkEspinaSliceRepresentation* New();
-  vtkTypeMacro(vtkEspinaSliceRepresentation,vtkPVDataRepresentation);
+  static vtkSliceRepresentation* New();
+  vtkTypeMacro(vtkSliceRepresentation,vtkPVDataRepresentation);
   
   // vtkAlgorithm::ProcessRequest() equivalent for rendering passes. This is
   // typically called by the vtkView to request meta-data from the
@@ -52,7 +52,7 @@ public:
   vtkGetMacro(Type,int);
   //BTX
 protected:
-  vtkEspinaSliceRepresentation();
+  vtkSliceRepresentation();
 
   // Fill input port information
   virtual int FillInputPortInformation(int port, vtkInformation* info);
@@ -81,4 +81,4 @@ private:
   //ETX
 };
 
-#endif // VTKESPINASLICEREPRESENTATION_H
+#endif // VTKSLICEREPRESENTATION_H

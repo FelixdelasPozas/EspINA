@@ -17,25 +17,24 @@
 */
 
 
-#include "vtkPVEspinaView.h"
+#include "vtkPVSliceView.h"
 
 #include <QDebug>
 #include <assert.h>
 
-#include "vtkEspinaView.h"
-
-#include "vtkObjectFactory.h"
-#include "vtkLegendScaleActor.h"
-#include "vtkRenderer.h"
-#include <vtkDataRepresentation.h>
+#include <vtkCamera.h>
 #include <vtkCommand.h>
-
+#include <vtkDataRepresentation.h>
 #include <vtkInteractorStyleImage.h>
-#include <vtkRenderWindow.h>
+#include "vtkLegendScaleActor.h"
+#include <vtkMatrix4x4.h>
+#include "vtkObjectFactory.h"
 #include <vtkPVGenericRenderWindowInteractor.h>
 #include <vtkPVInteractorStyle.h>
-#include <vtkMatrix4x4.h>
-#include <vtkCamera.h>
+#include "vtkRenderer.h"
+#include <vtkRenderViewBase.h>
+#include <vtkRenderWindow.h>
+
 
 // Interactor Style to be used with Slice Views
 class vtkInteractorStyleEspinaSlice
@@ -282,11 +281,11 @@ void CoronalState::setSlicePosition(vtkMatrix4x4 *matrix, double value)
 //----------------------------------------------------------------------------
 // vtkEspinaView
 //----------------------------------------------------------------------------
-vtkStandardNewMacro(vtkPVEspinaView);
+vtkStandardNewMacro(vtkPVSliceView);
 
 //----------------------------------------------------------------------------
 
-vtkPVEspinaView::vtkPVEspinaView()
+vtkPVSliceView::vtkPVSliceView()
 {
   this->SetCenterAxesVisibility(false);
   this->SetOrientationAxesVisibility(false);
@@ -311,16 +310,16 @@ vtkPVEspinaView::vtkPVEspinaView()
   SlicingPlane = AXIAL;
   State = AxialState::instance();
 
-  qDebug() << "vtkPVEspinaView("<< this << "): Created";
+  qDebug() << "vtkPVSliceView("<< this << "): Created";
 }
 
 //----------------------------------------------------------------------------
-vtkPVEspinaView::~vtkPVEspinaView()
+vtkPVSliceView::~vtkPVSliceView()
 {
 }
 
 //----------------------------------------------------------------------------
-void vtkPVEspinaView::PrintSelf(ostream& os, vtkIndent indent)
+void vtkPVSliceView::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
   os << indent << "OverviewRenderer: ";
@@ -332,7 +331,7 @@ void vtkPVEspinaView::PrintSelf(ostream& os, vtkIndent indent)
 }
 
 //----------------------------------------------------------------------------
-void vtkPVEspinaView::AddActor(vtkProp3D* actor)
+void vtkPVSliceView::AddActor(vtkProp3D* actor)
 {
   State->updateActor(actor);
   RenderView->GetRenderer()->AddActor(actor);
@@ -340,14 +339,14 @@ void vtkPVEspinaView::AddActor(vtkProp3D* actor)
 }
 
 //----------------------------------------------------------------------------
-void vtkPVEspinaView::AddChannel(vtkProp3D* actor)
+void vtkPVSliceView::AddChannel(vtkProp3D* actor)
 {
   AddActor(actor);
   Channels.append(actor);
 }
 
 //----------------------------------------------------------------------------
-void vtkPVEspinaView::AddSegmentation(vtkProp3D* actor)
+void vtkPVSliceView::AddSegmentation(vtkProp3D* actor)
 {
   AddActor(actor);
   actor->SetVisibility(ShowSegmentations);
@@ -355,7 +354,7 @@ void vtkPVEspinaView::AddSegmentation(vtkProp3D* actor)
 }
 
 //----------------------------------------------------------------------------
-void vtkPVEspinaView::Initialize(unsigned int id)
+void vtkPVSliceView::Initialize(unsigned int id)
 {
     vtkPVRenderView::Initialize(id);
     this->RenderView->GetRenderer()->UseDepthPeelingOff();
@@ -366,49 +365,49 @@ void vtkPVEspinaView::Initialize(unsigned int id)
 }
 
 //----------------------------------------------------------------------------
-void vtkPVEspinaView::ResetCamera()
+void vtkPVSliceView::ResetCamera()
 {
   vtkPVRenderView::ResetCamera();
   OverviewRenderer->ResetCamera(this->LastComputedBounds);
 }
 
 //----------------------------------------------------------------------------
-void vtkPVEspinaView::ResetCamera(double bounds[6])
+void vtkPVSliceView::ResetCamera(double bounds[6])
 {
   vtkPVRenderView::ResetCamera(bounds);
   OverviewRenderer->ResetCamera(bounds);
 }
 
 //----------------------------------------------------------------------------
-void vtkPVEspinaView::ResetCameraClippingRange()
+void vtkPVSliceView::ResetCameraClippingRange()
 {
     vtkPVRenderView::ResetCameraClippingRange();
     OverviewRenderer->ResetCameraClippingRange(this->LastComputedBounds);
 }
 
 //----------------------------------------------------------------------------
-void vtkPVEspinaView::SetOrientationAxesVisibility(bool )
+void vtkPVSliceView::SetOrientationAxesVisibility(bool )
 {
     vtkPVRenderView::SetOrientationAxesVisibility(true);
 }
 
 
 //----------------------------------------------------------------------------
-void vtkPVEspinaView::SetBackground(double r, double g, double b)
+void vtkPVSliceView::SetBackground(double r, double g, double b)
 {
   vtkPVRenderView::SetBackground(r,g,b);
   OverviewRenderer->SetBackground(r,g,b);
 }
 
 //----------------------------------------------------------------------------
-void vtkPVEspinaView::SetSlice(int value)
+void vtkPVSliceView::SetSlice(int value)
 {
-//   qDebug() << "vtkPVEspinaView changing slice" << value;
+//   qDebug() << "vtkPVSliceView changing slice" << value;
   State->setSlicePosition(SlicingMatrix,value);
 }
 
 //----------------------------------------------------------------------------
-void vtkPVEspinaView::SetSlicingPlane(int plane)
+void vtkPVSliceView::SetSlicingPlane(int plane)
 {
   if (SlicingPlane == plane)
     return;
@@ -445,15 +444,15 @@ void vtkPVEspinaView::SetSlicingPlane(int plane)
 }
 
 //----------------------------------------------------------------------------
-void vtkPVEspinaView::SetCenter(double pos[3])
+void vtkPVSliceView::SetCenter(double pos[3])
 {
   
 }
 
 //----------------------------------------------------------------------------
-void vtkPVEspinaView::SetShowSegmentations(bool value)
+void vtkPVSliceView::SetShowSegmentations(bool value)
 {
-//   qDebug() << "vtkPVEspinaView segmentation's visibility = " << value;
+//   qDebug() << "vtkPVSliceView segmentation's visibility = " << value;
   vtkProp3D *seg;
   foreach(seg, Segmentations)
   {

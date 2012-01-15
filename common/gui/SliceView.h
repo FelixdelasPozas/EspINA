@@ -26,7 +26,7 @@
 #include <QAbstractItemView>
 
 #include <vtkSmartPointer.h>
-#include <../Views/vtkPVEspinaView.h>
+#include <../Views/vtkPVSliceView.h>
 #include "IPreferencePanel.h"
 
 class QLabel;
@@ -49,7 +49,7 @@ class pqPipelineSource;// #include <QMutex>
 // class vtkCamera;
 // class vtkSMRenderViewProxy;
 // class Sample;
-class EspinaView;
+class pqSliceView;
 class vtkInteractorStyleEspinaSlice;
 
 // GUI
@@ -80,7 +80,7 @@ private:
 class SliceViewPreferences : public IPreferencePanel
 {
 public:
-  explicit SliceViewPreferences(vtkPVEspinaView::VIEW_PLANE plane);
+  explicit SliceViewPreferences(vtkPVSliceView::VIEW_PLANE plane);
 
   virtual const QString shortDescription();
   virtual const QString longDescription() {return shortDescription();}
@@ -101,7 +101,7 @@ private:
   bool m_ShowAxis;
 
 private:
-  vtkPVEspinaView::VIEW_PLANE m_plane;
+  vtkPVSliceView::VIEW_PLANE m_plane;
   QString viewSettings;
 };
 
@@ -116,7 +116,7 @@ class SliceView
 {
   Q_OBJECT
 public:
-  SliceView(vtkPVEspinaView::VIEW_PLANE plane = vtkPVEspinaView::AXIAL, QWidget* parent = 0);
+  SliceView(vtkPVSliceView::VIEW_PLANE plane = vtkPVSliceView::AXIAL, QWidget* parent = 0);
   virtual ~SliceView();
 
 //   IPreferencePanel *preferences() {return m_preferences;}
@@ -206,10 +206,10 @@ protected:
   void buildControls();
 private:
 //   bool m_showSegmentations;
-  vtkPVEspinaView::VIEW_PLANE m_plane;
+  vtkPVSliceView::VIEW_PLANE m_plane;
 
   bool first;
-  EspinaView *m_view;
+  pqSliceView *m_view;
 //   vtkSMRenderViewProxy *m_viewProxy;
 //   vtkRenderWindowInteractor *m_rwi;
 //   vtkCamera *m_cam;

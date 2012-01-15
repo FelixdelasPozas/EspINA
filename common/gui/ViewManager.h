@@ -29,7 +29,7 @@
 
 class QMainWindow;
 class QWidget;
-class Layout;
+class EspinaView;
 class ViewFrame;
 class pqServerManagerObserver;
 
@@ -47,7 +47,7 @@ public:
     return m_singleton;
   }
 
-  Layout *createLayout(QMainWindow *window, const QString &layout = QString());
+  EspinaView *createLayout(QMainWindow *window, const QString &layout = QString());
   void saveLayout(const QString &layout) const;
   void restoreLayout(const QString &layout);
 
@@ -56,8 +56,8 @@ protected slots:
 //   void onConnect();
   // Espina has been disconnected from server
 //   void onDisconnect();
-  Layout *createDefaultLayout(QMainWindow *window);
-  Layout *createSquaredLayout(QMainWindow *window);
+  EspinaView *createDefaultLayout(QMainWindow *window);
+  EspinaView *createSquaredLayout(QMainWindow *window);
 
 private:
   explicit ViewManager();
