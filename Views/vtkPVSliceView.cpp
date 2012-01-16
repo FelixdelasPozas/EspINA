@@ -40,6 +40,7 @@
 #include <vtkRenderViewBase.h>
 #include <vtkRenderWindow.h>
 #include <vtkSmartPointer.h>
+#include <vtkImageActor.h>
 
 // Interactor Style to be used with Slice Views
 class vtkInteractorStyleEspinaSlice
@@ -157,12 +158,13 @@ void AxialState::updateSlicingMatrix(vtkMatrix4x4* matrix)
 void AxialState::setCrossHairs(vtkPolyData* hline, vtkPolyData* vline,
 			       double center[3], double bounds[6])
 {
-  hline->GetPoints()->SetPoint(0,bounds[0],center[1],center[2]);
-  hline->GetPoints()->SetPoint(1,bounds[1],center[1],center[2]);
+//   qDebug() << "Crosshair Center: " << center[0] << center[1] << center[2];
+  hline->GetPoints()->SetPoint(0,bounds[0],-center[1],0);
+  hline->GetPoints()->SetPoint(1,bounds[1],-center[1],0);
   hline->Modified();
 
-  vline->GetPoints()->SetPoint(0,center[0],bounds[2],center[2]);
-  vline->GetPoints()->SetPoint(1,center[0],bounds[3],center[2]);
+  vline->GetPoints()->SetPoint(0,center[0],bounds[2],0);
+  vline->GetPoints()->SetPoint(1,center[0],bounds[3],0);
   vline->Modified();
 }
 
@@ -237,12 +239,12 @@ void SagittalState::updateSlicingMatrix(vtkMatrix4x4* matrix)
 void SagittalState::setCrossHairs(vtkPolyData* hline, vtkPolyData* vline,
 				  double center[3], double bounds[6])
 {
-  hline->GetPoints()->SetPoint(0,center[0],center[1],bounds[4]);
-  hline->GetPoints()->SetPoint(1,center[0],center[1],bounds[5]);
+  hline->GetPoints()->SetPoint(0,0,center[1],bounds[4]);
+  hline->GetPoints()->SetPoint(1,0,center[1],bounds[5]);
   hline->Modified();
 
-  vline->GetPoints()->SetPoint(0,center[0],bounds[2],center[2]);
-  vline->GetPoints()->SetPoint(1,center[0],bounds[3],center[2]);
+  vline->GetPoints()->SetPoint(0,0,bounds[2],center[2]);
+  vline->GetPoints()->SetPoint(1,0,bounds[3],center[2]);
   vline->Modified();
 }
 
@@ -318,12 +320,12 @@ void CoronalState::updateSlicingMatrix(vtkMatrix4x4* matrix)
 void CoronalState::setCrossHairs(vtkPolyData* hline, vtkPolyData* vline,
 				 double center[3], double bounds[6])
 {
-  hline->GetPoints()->SetPoint(0,center[0],center[1],bounds[4]);
-  hline->GetPoints()->SetPoint(1,center[0],center[1],bounds[5]);
+  hline->GetPoints()->SetPoint(0,bounds[0],0,center[2]);
+  hline->GetPoints()->SetPoint(1,bounds[1],0,center[2]);
   hline->Modified();
 
-  vline->GetPoints()->SetPoint(0,bounds[0],center[1],center[2]);
-  vline->GetPoints()->SetPoint(1,bounds[1],center[1],center[2]);
+  vline->GetPoints()->SetPoint(0,center[0],0,bounds[4]);
+  vline->GetPoints()->SetPoint(1,center[0],0,bounds[5]);
   vline->Modified();
 }
 
@@ -340,7 +342,6 @@ void CoronalState::setSlicePosition(vtkMatrix4x4 *matrix, double value)
 vtkStandardNewMacro(vtkPVSliceView);
 
 //----------------------------------------------------------------------------
-
 vtkPVSliceView::vtkPVSliceView()
 {
   bzero(Center,3*sizeof(double));
@@ -395,7 +396,7 @@ void vtkPVSliceView::initCrosshairs()
 
   HCrossLine = vtkSmartPointer<vtkActor>::New();
   HCrossLine->SetMapper(HMapper);
-  HCrossLine->GetProperty()->SetLineStipplePattern(0xF0F0);
+//   HCrossLine->GetProperty()->SetLineStipplePattern(0xF0F0);
 
   NonCompositedRenderer->AddActor(HCrossLine);
   OverviewRenderer->AddActor(HCrossLine);
@@ -419,7 +420,7 @@ void vtkPVSliceView::initCrosshairs()
 
   VCrossLine = vtkSmartPointer<vtkActor>::New();
   VCrossLine->SetMapper(VMapper);
-  VCrossLine->GetProperty()->SetLineStipplePattern(0xF0F0);
+//   VCrossLine->GetProperty()->SetLineStipplePattern(0xF0F0);
 
   NonCompositedRenderer->AddActor(VCrossLine);
   OverviewRenderer->AddActor(VCrossLine);
@@ -460,10 +461,10 @@ void vtkPVSliceView::AddChannel(vtkProp3D* actor)
 }
 
 //----------------------------------------------------------------------------
-void vtkPVSliceView::AddSegmentation(vtkProp3D* actor)
+void vtkPVSliceView::AddSegmentation(vtkPVSliceView::SegActor* actor)
 {
-  AddActor(actor);
-  actor->SetVisibility(ShowSegmentations);
+  AddActor(actor->actor);
+  actor->actor->SetVisibility(ShowSegmentations);
   Segmentations.append(actor);
 }
 
@@ -517,10 +518,20 @@ void vtkPVSliceView::SetBackground(double r, double g, double b)
 }
 
 //----------------------------------------------------------------------------
-void vtkPVSliceView::SetSlice(int value)
+void vtkPVSliceView::SetSlice(double pos)
 {
-//   qDebug() << "vtkPVSliceView changing slice" << value;
-  State->setSlicePosition(SlicingMatrix,value);
+//   qDebug() << "vtkPVSliceView " << SlicingPlane << "changing slice" << pos;
+  State->setSlicePosition(SlicingMatrix, pos);
+  SegActor *seg;
+  foreach(seg, Segmentations)
+  {
+//     double b[6];
+//     seg->GetDisplayBounds(b);
+//     qDebug() << b[0] << b[1] <<  b[2] <<  b[3] <<  b[4] <<  b[5];
+    bool hide = seg->bounds[5] <= Center[SlicingPlane] ||
+      seg->bounds[4] > Center[SlicingPlane];
+    seg->actor->SetVisibility(!hide && ShowSegmentations);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -553,17 +564,34 @@ void vtkPVSliceView::SetSlicingPlane(int plane)
   {
     State->updateActor(actor);
   }
-  foreach(actor, Segmentations)
+  SegActor *seg;
+  foreach(seg, Segmentations)
   {
-    State->updateActor(actor);
+    State->updateActor(seg->actor);
   }
 
 }
 
 //----------------------------------------------------------------------------
+void vtkPVSliceView::SetCenter(double x, double y, double z)
+{
+//   qDebug() << "SetCenterxyx setting Center" << x << y << z;
+//   if (Center[0] == x && Center[1] == y && Center[2] == z)
+//     return;
+
+  Center[0] = x;
+  Center[1] = y;
+  Center[2] = z;
+  SetSlice(Center[SlicingPlane]);
+  State->setCrossHairs(HCrossLineData,VCrossLineData, Center, LastComputedBounds);
+}
+
+
+//----------------------------------------------------------------------------
 void vtkPVSliceView::SetCenter(double center[3])
 {
-  State->setCrossHairs(HCrossLineData,VCrossLineData, center, LastComputedBounds);
+//   qDebug() << "Setting Center3" << center[0] << center[1] << center[2];
+  SetCenter(center[0], center[1], center[2]);
 }
 
 //----------------------------------------------------------------------------
@@ -600,10 +628,10 @@ void vtkPVSliceView::SetVCrossLineColor(double color[3])
 void vtkPVSliceView::SetShowSegmentations(bool value)
 {
 //   qDebug() << "vtkPVSliceView segmentation's visibility = " << value;
-  vtkProp3D *seg;
+  SegActor *seg;
   foreach(seg, Segmentations)
   {
-    seg->SetVisibility(value);
+    seg->actor->SetVisibility(value);
   }
   ShowSegmentations = value;
 }

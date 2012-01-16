@@ -14,6 +14,22 @@
           Samples in espina view.
         </Documentation>
       </ProxyProperty>-->
+      <IntVectorProperty name="SlicingPlane"
+        command="SetSlicingPlane"
+        number_of_elements="1"
+        default_values="2">
+        <Documentation>
+	  Set/Get which plane is being sliced
+        </Documentation>
+      </IntVectorProperty>
+      <DoubleVectorProperty name="Center"
+        command="SetCenter"
+        number_of_elements="3"
+        default_values="0 0 0">
+        <Documentation>
+	  Set/Get the point in which the view is centered on
+        </Documentation>
+      </DoubleVectorProperty>
       <DoubleVectorProperty name="HCrossLineColor"
         command="SetHCrossLineColor"
         number_of_elements="3"
@@ -37,7 +53,7 @@
         <Documentation>
         </Documentation>
       </IntVectorProperty>
-      <IntVectorProperty name="Slice"
+<!--      <DoubleVectorProperty name="Slice"
         command="SetSlice"
         number_of_elements="1"
         default_values="0">
@@ -45,15 +61,7 @@
 	  Set/Get at which position (in an orthogonal direction to the slicing plane)
 	  the input has to be sliced
         </Documentation>
-      </IntVectorProperty>
-      <IntVectorProperty name="SlicingPlane"
-        command="SetSlicingPlane"
-        number_of_elements="1"
-        default_values="0">
-        <Documentation>
-	  Set/Get which plane is being sliced
-        </Documentation>
-      </IntVectorProperty>
+      </DoubleVectorProperty>-->
    </SliceViewProxy>
  </ProxyGroup>
  

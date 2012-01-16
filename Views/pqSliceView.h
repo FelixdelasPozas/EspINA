@@ -71,11 +71,20 @@ public:
   /// returns whether a source can be displayed in this view module
   virtual bool canDisplay(pqOutputPort* opPort) const;
 
+  /// Set the type of the slicing plane
   void setSlicingPlane(vtkPVSliceView::VIEW_PLANE plane);
 
 public slots:
-  void setSlice(int value);
+  /// Set/Get the position in the slicing plane's normal direction in
+  /// which the slice is obtained
+  void setSlice(double pos /*nm*/);
+  /// Set/Get the point in which the view is centered on
+  void centerViewOn(double x/*nm*/, double y/*nm*/, double z/*nm*/);
+  /// Set whether segmentations are visible or not
   void setShowSegmentations(bool visible);
+
+signals:
+  void centerChanged(double, double, double);
 
 protected:
   /// Return the name of the group used for global settings (except interactor
@@ -108,6 +117,9 @@ private:
 
   static ManipulatorType DefaultManipulatorTypes[9];
   bool InitializedWidgets;
+  
+  double Center[3];
+  vtkPVSliceView::VIEW_PLANE SlicingPlane;
 };
 
 #endif // PQSLICEVIEW_H

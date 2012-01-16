@@ -25,6 +25,7 @@
 #include <vtkSmartPointer.h>
 #include <QList>
 
+class vtkImageActor;
 class vtkActor;
 class vtkPolyData;
 class vtkMatrix4x4;
@@ -39,9 +40,15 @@ class VTK_EXPORT vtkPVSliceView : public vtkPVRenderView
 public:
     enum VIEW_PLANE
   {
-    AXIAL,
-    SAGITTAL,
-    CORONAL
+    AXIAL = 2,
+    SAGITTAL = 0,
+    CORONAL = 1
+  };
+
+  struct SegActor
+  {
+    vtkImageActor *actor;
+    double bounds[6];
   };
 
   static vtkPVSliceView* New();
@@ -50,7 +57,7 @@ public:
 
   void AddActor(vtkProp3D* actor);
   void AddChannel(vtkProp3D *actor);
-  void AddSegmentation(vtkProp3D *actor);
+  void AddSegmentation(SegActor *actor);
 
 
   // We need to reimplement the initilize method to overwrite
@@ -67,11 +74,13 @@ public:
 
   vtkMatrix4x4 *GetSlicingMatrix() {return SlicingMatrix;}
 
-  void SetSlice(int value);
-  vtkGetMacro(Slice, int);
+  void SetSlice(double pos);
+  vtkGetMacro(Slice, double);
 
   // Crosshair Related Methods
-  void SetCenter(double center[3]/*in nm*/);
+  void SetCenter(double x/*nm*/, double y/*nm*/, double z/*nm*/);
+  void SetCenter(double center[3]/*nm*/);
+  vtkGetVector3Macro(Center, double);
 
   void SetHCrossLineColor(double r, double g, double b);
   void SetHCrossLineColor(double color[3]);
@@ -107,7 +116,7 @@ private:
   void operator=(const vtkPVSliceView&); // Not implemented
 
   EspinaViewState  *State;
-  int              Slice;
+  double           Slice;
   VIEW_PLANE       SlicingPlane;
   double           Center[3];
   bool             ShowSegmentations;
@@ -118,7 +127,7 @@ private:
 
   vtkSmartPointer<vtkRenderer> OverviewRenderer;
   QList<vtkProp3D *> Channels;
-  QList<vtkProp3D *> Segmentations;
+  QList<SegActor *> Segmentations;
 
   vtkMatrix4x4     *SlicingMatrix;
   vtkEspinaView    *EspinaView;

@@ -28,6 +28,7 @@
 
 #include <QAbstractItemView>
 
+class VolumeView;
 // Forward-declaration
 class QDockWidget;
 class QMainWindow;
@@ -52,7 +53,11 @@ public:
 
 public slots:
   virtual void setShowSegmentations(bool visibility) = 0;
+  virtual void setCenter(double x, double y, double z) = 0;
+  virtual void loadTestImage() = 0;
 
+signals:
+  void statusMsg(QString);
   protected:
   // AbstractItemView Interfacec
   virtual QRegion visualRegionForSelection(const QItemSelection& selection) const {return QRegion();}
@@ -79,8 +84,14 @@ public:
   virtual QSize sizeHint() const;
 
   virtual void setShowSegmentations(bool visibility);
+  void setCenter(double x, double y, double z);
+
+  virtual void loadTestImage();
 private:
-  SliceView *xyView, *yzView, *xzView;
+  bool first;
+
+  SliceView  *xyView, *yzView, *xzView;
+  VolumeView *volView;
   QSharedPointer<QDockWidget> volDock, yzDock, xzDock;
 };
 

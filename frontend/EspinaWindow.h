@@ -57,6 +57,9 @@ public slots:
   /// Load new data for analysis
   void loadFile();
 
+protected slots:
+  void updateStatus(QString msg);
+
 protected:
   void createActivityMenu();
   void createLODMenu();

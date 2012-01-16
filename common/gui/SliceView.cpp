@@ -23,17 +23,14 @@
 // #include "espina_debug.h"
 // 
 // // EspINA
-#include "../../Views/pqSliceView.h"
+#include "../Views/pqSliceView.h"
 #include "../Views/vtkSMSliceViewProxy.h"
 #include "IPreferencePanel.h"
-// #include "interfaces.h"
-// #include "filter.h"
-// #include "sample.h"
-// #include "segmentation.h"
 
 // Qt includes
-#include <QPushButton>
 #include <QHBoxLayout>
+#include <QLabel>
+#include <QPushButton>
 #include <QScrollBar>
 #include <QSettings>
 #include <QSpinBox>
@@ -44,25 +41,24 @@
 // ParaQ includes
 #include <pqActiveObjects.h>
 #include <pqApplicationCore.h>
+#include <pqDataRepresentation.h>
 #include <pqDisplayPolicy.h>
 #include <pqObjectBuilder.h>
+#include <pqOutputPort.h>
+#include <pqPipelineRepresentation.h>
 #include <pqPipelineSource.h>
 #include <pqRenderView.h>
+#include <pqServer.h>
+#include <pqServerManagerModel.h>
+#include <pqServerManagerObserver.h>
 #include <pqSMAdaptor.h>
+#include <pqTwoDRenderView.h>
 #include <vtkInteractorStyleImage.h>
 #include <vtkObjectFactory.h>
 #include <vtkSMPropertyHelper.h>
 #include <vtkSMRepresentationProxy.h>
-#include <pqTwoDRenderView.h>
 #include <vtkSMTwoDRenderViewProxy.h>
-#include <pqDataRepresentation.h>
-#include <pqPipelineRepresentation.h>
-#include <QLabel>
-#include <pqServerManagerObserver.h>
-#include <pqServer.h>
-#include <pqOutputPort.h>
 #include <vtkSMProxyManager.h>
-#include <pqServerManagerModel.h>
 
 
 //-----------------------------------------------------------------------------
@@ -229,7 +225,6 @@ SliceView::SliceView(vtkPVSliceView::VIEW_PLANE plane, QWidget* parent)
     , m_viewWidget      (NULL)
     , m_scrollBar       (new QScrollBar(Qt::Horizontal))
     , m_spinBox         (new QSpinBox())
-    , first             (true)
 {
 //   buildTitle(); 
 //   m_viewWidget->setSizePolicy(
@@ -307,16 +302,11 @@ void SliceView::buildControls()
 
   connect(m_scrollBar, SIGNAL(valueChanged(int)),
 	  m_spinBox, SLOT(setValue(int)));
+  connect(m_scrollBar, SIGNAL(valueChanged(int)),
+	  this, SLOT(scrollValueChanged(int)));
   connect(m_spinBox, SIGNAL(valueChanged(int)),
 	  m_scrollBar, SLOT(setValue(int)));
-
-  QPushButton *fakeLoad = new QPushButton(tr("Load Test Stack"));
-  connect(fakeLoad,SIGNAL(clicked(bool)),
-          this, SLOT(loadTestImage()));
-  m_controlLayout->addWidget(fakeLoad);
   
-//   QObject::connect(m_scrollBar, SIGNAL(valueChanged(int)), this, SLOT(setSlice(int)));
-//   QObject::connect(m_spinBox, SIGNAL(valueChanged(int)), this, SLOT(setSlice(int)));
 //   connect(SelectionManager::instance(),SIGNAL(VOIChanged(IVOI*)),this,SLOT(setVOI(IVOI*)));
   m_controlLayout->addWidget(m_scrollBar);
   m_controlLayout->addWidget(m_spinBox);
@@ -568,12 +558,11 @@ void SliceView::onConnect()
              pqSliceView::espinaRenderViewType(), server));
 
   m_view->setSlicingPlane(m_plane);
-  connect(m_scrollBar, SIGNAL(valueChanged(int)),
-	  m_view, SLOT(setSlice(int)));
-//   connect(m_view,SIGNAL(beginRender()),this,SLOT(beginRender()));
-//   connect(m_view,SIGNAL(endRender()),this,SLOT(endRender()));
+  connect(m_view, SIGNAL(centerChanged(double,double,double)),
+	  this, SLOT(sliceViewCenterChanged(double,double,double)));
 
   m_viewWidget = m_view->getWidget();
+  
   // We want to manage events on the view
   m_viewWidget->installEventFilter(this);
 //   QObject::connect(m_viewWidget, SIGNAL(mouseEvent(QMouseEvent *)),
@@ -601,40 +590,21 @@ void SliceView::onDisconnect()
 //     m_mainLayout->removeWidget(m_viewWidget);
 //     m_style->Delete();
 //     m_view = NULL;
-//     m_viewWidget = NULL;
+//     m_viewWdget = NULL;
 //   }
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::loadTestImage()
+void SliceView::sliceViewCenterChanged(double x, double y, double z)
 {
-  
-  qDebug() << this << ": Loading Test Image";
-  pqServer *server = pqActiveObjects::instance().activeServer();
-  pqObjectBuilder* builder = pqApplicationCore::instance()->getObjectBuilder();
-  
-  pqPipelineSource *img;
-  if (first)
-  {
-    img = builder->createReader("sources","PVDReader",
-				QStringList("/home/jpena/Stacks/paraPeque.pvd"),
-// 				QStringList("/home/jpena/Stacks/AlzheimerE-reg-affine-012-510/AlzheimerE.pvd"),
+//   qDebug() << "Slice View: " << m_plane << " has new center";
+  emit centerChanged(x,y,z);
+}
 
-					    server);
-    first = false;
-    addChannelRepresentation(img->getOutputPort(0));
-  }else{
-    img = builder->createReader("sources","PVDReader",
-    QStringList("/home/jpena/Stacks/Peque/pequeFromSegmha/c29dacd23596ac7420f52ab0474ed1c941123521.pvd"),
-//     QStringList("/home/jpena/Stacks/Peque/pequeFromSegmha/fa40f2b8d6b3bdd039fe2bd7086229eb61c9605e.pvd"),
-		server);
-    addSegmentationRepresentation(img->getOutputPort(0));
-  }
-  m_view->render();
-
-
-  m_scrollBar->setMaximum(114);
-  m_spinBox->setMaximum(114);
+//-----------------------------------------------------------------------------
+void SliceView::scrollValueChanged(int pos)
+{
+  m_view->setSlice(20*pos);
 }
 
 //-----------------------------------------------------------------------------
@@ -724,6 +694,10 @@ void SliceView::addSegmentationRepresentation(pqOutputPort* oport)
     viewModuleProxy->GetProperty("Representations"), reprProxy);
   viewModuleProxy->UpdateVTKObjects();
 
+//   m_view->forceRender();
+
+  m_scrollBar->setMaximum(273);
+  m_spinBox->setMaximum(273);
   // Following code could be ignored
 //   pqApplicationCore* core= pqApplicationCore::instance();
 //   pqDataRepresentation* repr = core->getServerManagerModel()->
@@ -739,6 +713,34 @@ void SliceView::setShowSegmentations(bool value)
 {
   m_view->setShowSegmentations(value);
 }
+
+//-----------------------------------------------------------------------------
+void SliceView::forceRender()
+{
+  m_view->forceRender();
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::centerViewOn(double x, double y, double z)
+{
+//   switch (m_plane)
+//   {
+//     case vtkPVSliceView::AXIAL:
+//       m_scrollBar->setValue(z);
+//       break;
+//     case vtkPVSliceView::SAGITTAL:
+//       m_scrollBar->setValue(x);
+//       break;
+//     case vtkPVSliceView::CORONAL:
+//       m_scrollBar->setValue(y);
+//       break;
+//     default:
+//       assert(false);
+//   };
+//   qDebug() << "Slice View: Setting Center" << x << y << z;
+  m_view->centerViewOn(x, y, z);
+}
+
 
 // //-----------------------------------------------------------------------------
 // void SliceView::setPlane(ViewType plane)
@@ -1109,15 +1111,4 @@ void SliceView::setShowSegmentations(bool value)
 //   }
 //   m_view->render();
 // //   m_view->forceRender();
-// }
-// 
-// void SliceView::beginRender()
-// {
-//   QApplication::setOverrideCursor(Qt::WaitCursor);
-// }
-// 
-// 
-// void SliceView::endRender()
-// {
-//   QApplication::restoreOverrideCursor();
 // }

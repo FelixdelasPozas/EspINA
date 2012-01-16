@@ -27,6 +27,7 @@
 #define VTKSLICEREPRESENTATION_H
 
 #include <vtkPVDataRepresentation.h>
+#include "vtkPVSliceView.h"
 
 class vtkImageResliceToColors;
 class vtkImageActor;
@@ -72,10 +73,10 @@ protected:
   vtkTimeStamp DeliveryTimeStamp;
 
   vtkImageSliceDataDeliveryFilter *DeliveryFilter;
-  vtkImageResliceToColors *Slice;
-  vtkImageActor           *SliceActor;
-  vtkImageData            *SliceData;
-  
+  vtkImageResliceToColors  *Slice;
+  vtkImageActor            *SliceActor;
+  vtkImageData             *SliceData;
+  vtkPVSliceView::SegActor SegActor;
 private:
   int Type;
   //ETX

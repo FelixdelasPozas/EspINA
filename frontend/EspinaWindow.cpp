@@ -230,6 +230,8 @@ void EspinaWindow::setActivity(QString activity)
     qDebug() << "Switch to Segmentate Activity";
     QSharedPointer<ViewManager> vm = ViewManager::instance();
     m_view = vm->createLayout(this);
+    connect(m_view, SIGNAL(statusMsg(QString)),
+	    this, SLOT(updateStatus(QString)));
   }
 
   if (m_view)
@@ -255,5 +257,14 @@ void EspinaWindow::openFile()
 void EspinaWindow::loadFile()
 {
 }
+
+void EspinaWindow::updateStatus(QString msg)
+{
+  if (msg.isEmpty())
+    statusBar()->clearMessage();
+  else
+    statusBar()->showMessage(msg);
+}
+
 
 

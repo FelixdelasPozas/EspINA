@@ -62,6 +62,7 @@ pqSliceView::pqSliceView(
   pqServer* server, 
   QObject* _parent):
   Superclass(espinaRenderViewType(), group, name, viewProxy, server, _parent)
+  , SlicingPlane(vtkPVSliceView::AXIAL)
 {
   qDebug() << this << ": Created";
   this->InitializedWidgets = false;
@@ -77,6 +78,7 @@ pqSliceView::pqSliceView(
   pqServer* server,
   QObject* p)
 : Superclass(espinaRenderViewType(), group, name, viewmodule, server, p)
+, SlicingPlane(vtkPVSliceView::AXIAL)
 {
   qDebug() << "pqSliceView(" << this << ") : Created";
   this->InitializedWidgets = false;
@@ -160,17 +162,55 @@ bool pqSliceView::canDisplay(pqOutputPort* opPort) const
 }
 
 //-----------------------------------------------------------------------------
-void pqSliceView::setSlice(int value)
+// void pqSliceView::setSlice(int pos)
+// {
+//   setSlice(static_cast<double>(pos));
+// }
+
+
+//-----------------------------------------------------------------------------
+void pqSliceView::setSlice(double pos /*in nm*/)
 {
-//   qDebug() << this << ": Changing Slice " << value;
-  vtkSMPropertyHelper(this->getProxy(), "Slice").Set(2*value);
+//   qDebug() << this << ": Changing Slice " << pos;
+  if (Center[SlicingPlane] == pos)
+    return;
+
+  Center[SlicingPlane] = pos;
+
+  vtkSMPropertyHelper(this->getProxy(), "Center").Set(Center,3);
   this->getProxy()->UpdateVTKObjects();
   forceRender();
+
+  emit centerChanged(Center[0], Center[1], Center[2]);
 }
+
+//-----------------------------------------------------------------------------
+void pqSliceView::centerViewOn(double x, double y, double z)
+{
+//   qDebug() << "pqSliceView: Setting Center" << x << y << z;
+  if (Center[0] == x && Center[1] == y && Center[2] == z)
+    return;
+
+  Center[0] = x;
+  Center[1] = y;
+  Center[2] = z;
+
+  vtkSMPropertyHelper(this->getProxy(), "Center").Set(Center,3);
+  this->getProxy()->UpdateVTKObjects();
+  forceRender();
+
+  emit centerChanged(Center[0], Center[1], Center[2]);
+}
+
 
 //-----------------------------------------------------------------------------
 void pqSliceView::setSlicingPlane(vtkPVSliceView::VIEW_PLANE plane)
 {
+//   qDebug() << "Changing Slicing Plane";
+  if (SlicingPlane == plane)
+    return;
+
+  SlicingPlane = plane;
   vtkSMPropertyHelper(this->getProxy(), "SlicingPlane").Set(plane);
   this->getProxy()->UpdateVTKObjects();
   forceRender();

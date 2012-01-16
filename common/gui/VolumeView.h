@@ -56,6 +56,8 @@ public:
   virtual void scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint = EnsureVisible) {}
   virtual QRect visualRect(const QModelIndex& index) const {return QRect();}
 
+  void addSegmentationRepresentation(pqOutputPort *oport);
+
 public slots:
   void onConnect();
   void onDisconnect();

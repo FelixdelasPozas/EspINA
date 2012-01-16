@@ -147,6 +147,7 @@ int vtkSliceRepresentation::RequestData(
     Slice->SetInput(clone);
     Slice->Update();
     this->SliceData->ShallowCopy(Slice->GetOutput());
+    input->GetBounds(SegActor.bounds);
     this->DeliveryFilter->SetInput(input);
   }
   else
@@ -161,7 +162,7 @@ int vtkSliceRepresentation::RequestData(
 //----------------------------------------------------------------------------
 bool vtkSliceRepresentation::AddToView(vtkView* view)
 {
-  qDebug() << "Add to View";
+//   qDebug() << "Add to View";
   vtkPVSliceView* rview = vtkPVSliceView::SafeDownCast(view);
   if (rview)
     {
@@ -173,7 +174,8 @@ bool vtkSliceRepresentation::AddToView(vtkView* view)
 	  rview->AddChannel(this->SliceActor);
 	  break;
 	case 1:
-	  rview->AddSegmentation(this->SliceActor);
+	  SegActor.actor = this->SliceActor;
+	  rview->AddSegmentation(&SegActor);
 	  break;
 	default:
 	  Q_ASSERT(false);
@@ -188,7 +190,7 @@ bool vtkSliceRepresentation::AddToView(vtkView* view)
 void vtkSliceRepresentation::SetType(int value)
 {
   Type = value;
-  qDebug() << "Set Type " << value ;
+//   qDebug() << "Set Type " << value ;
   if (Type == 1)
   {
       vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();

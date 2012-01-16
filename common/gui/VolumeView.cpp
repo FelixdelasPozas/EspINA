@@ -106,6 +106,12 @@ void VolumeView::buildControls()
 
 
 //-----------------------------------------------------------------------------
+void VolumeView::addSegmentationRepresentation(pqOutputPort* oport)
+{
+  
+}
+
+//-----------------------------------------------------------------------------
 void VolumeView::onConnect()
 {
     qDebug() << this << ": Connecting to a new server";

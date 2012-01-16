@@ -128,16 +128,19 @@ public:
   virtual void scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint = EnsureVisible) {}
   virtual QRect visualRect(const QModelIndex& index) const {return QRect();}
 
+  void centerViewOn(double x/*nm*/, double y/*nm*/, double z/*nm*/);
   void setCrossHairColors(double hcolor[3], double vcolor[3]);
 //   //void focusOnSample(Sample *sample);
-//
+
 //   //! Interface of ISelectableView
 //   void setSelection(SelectionFilters &filters, ViewRegions &regions);
-//
+
 //   QList<Segmentation *> pickSegmentationsAt(int x, int y, int z);
 //   QList<Segmentation *> pickSegmentationsAt(ISelectionHandler::VtkRegion region);
 //   void selectSegmentations(int x, int y, int z);
 //
+  void addChannelRepresentation(pqOutputPort *oport);
+  void addSegmentationRepresentation(pqOutputPort *oport);
 
 public slots:
   // Espina has been connected to a new server
@@ -145,22 +148,20 @@ public slots:
   // Espina has been disconnected from server
   void onDisconnect();
 
-  void loadTestImage();
-
   //! Show/Hide segmentations
   void setShowSegmentations(bool value);
 
+  void forceRender();
+
+
 //   //! Slicer configuration methods:
 //   void setPlane(ViewType plane);
-//
+
 //   //! Selections
 //   void vtkWidgetMouseEvent(QMouseEvent *event);
-//
+
 //   void updateScene();
-//
-//   void beginRender();
-//   void endRender();
-//
+
 // protected slots:
 //   void setSlice(int slice);
 //   virtual void setVOI(IVOI *voi);
@@ -171,7 +172,11 @@ protected slots:
   void minimize();
   void undock();
 
+  void sliceViewCenterChanged(double x, double y, double z);
+  void scrollValueChanged(int pos);
+  
 signals:
+  void centerChanged(double, double, double);
   // Notify the windows manager how to display the view
   void closeRequest();
   void maximizeRequest();
@@ -200,8 +205,6 @@ protected:
 //   void centerViewOn(int x, int y, int z);
 //   //! Converts point from Display coordinates to World coordinates
 //   ISelectionHandler::VtkRegion display2vtk(const QPolygonF &region);
-  void addChannelRepresentation(pqOutputPort *oport);
-  void addSegmentationRepresentation(pqOutputPort *oport);
 
 
   void buildTitle();
@@ -210,7 +213,6 @@ private:
 //   bool m_showSegmentations;
   vtkPVSliceView::VIEW_PLANE m_plane;
 
-  bool first;
   pqSliceView *m_view;
 //   vtkSMRenderViewProxy *m_viewProxy;
 //   vtkRenderWindowInteractor *m_rwi;

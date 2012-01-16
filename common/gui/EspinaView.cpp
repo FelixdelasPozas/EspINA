@@ -29,6 +29,13 @@
 #include <QVBoxLayout>
 #include <QSettings>
 
+#include <pqServer.h>
+#include <pqObjectBuilder.h>
+#include <pqActiveObjects.h>
+#include <pqApplicationCore.h>
+#include <pqPipelineSource.h>
+#include <QDir>
+
 //----------------------------------------------------------------------------
 EspinaView::EspinaView( QMainWindow* parent, const QString activity)
 : QAbstractItemView(parent)
@@ -40,35 +47,47 @@ EspinaView::EspinaView( QMainWindow* parent, const QString activity)
 //----------------------------------------------------------------------------
 DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity)
 : EspinaView(parent, activity)
+, first(true)
 {
   double cyan[3]    = {0, 1, 1};
   double blue[3]    = {0, 0, 1};
   double magenta[3] = {1, 0, 1};
 
   setObjectName("xyView");
+
+  QPushButton *fakeLoad = new QPushButton(tr("Load Test Stack"));
+  connect(fakeLoad,SIGNAL(clicked(bool)),
+          this, SLOT(loadTestImage()));
   
   qDebug() << "New Default EspinaView";
   xyView = new SliceView(vtkPVSliceView::AXIAL);
   xyView->setCrossHairColors(blue, magenta);
+  connect(xyView, SIGNAL(centerChanged(double,double,double)),
+	  this, SLOT(setCenter(double,double,double)));
   this->setLayout(new QVBoxLayout());
   this->layout()->addWidget(xyView);
+  this->layout()->addWidget(fakeLoad);
   this->layout()->setMargin(0);
 
   volDock = QSharedPointer<QDockWidget>(new QDockWidget(tr("3D"),parent));
   volDock->setObjectName("volDock");
-  VolumeView *volView = new VolumeView(this);
+  volView = new VolumeView(this);
   volDock->setWidget(volView);
   
   yzDock = QSharedPointer<QDockWidget>(new QDockWidget(tr("YZ"),parent));
   yzDock->setObjectName("yzDock");
   yzView = new SliceView(vtkPVSliceView::SAGITTAL);
   yzView->setCrossHairColors(blue, cyan);
+  connect(yzView, SIGNAL(centerChanged(double,double,double)),
+	  this, SLOT(setCenter(double,double,double)));
   yzDock->setWidget(yzView);
 
   xzDock = QSharedPointer<QDockWidget>(new QDockWidget(tr("XZ"),parent));
   xzDock->setObjectName("xzDock");
   xzView = new SliceView(vtkPVSliceView::CORONAL);
   xzView->setCrossHairColors(cyan, magenta);
+  connect(xzView, SIGNAL(centerChanged(double,double,double)),
+	  this, SLOT(setCenter(double,double,double)));
   xzDock->setWidget(xzView);
 
   parent->addDockWidget(Qt::RightDockWidgetArea, volDock.data());
@@ -111,4 +130,61 @@ void DefaultEspinaView::setShowSegmentations(bool visibility)
   xyView->setShowSegmentations(visibility);
   yzView->setShowSegmentations(visibility);
   xzView->setShowSegmentations(visibility);
+}
+
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::setCenter(double x, double y, double z)
+{
+//   qDebug() << "Espina View Updating centers";
+  xyView->centerViewOn(x,y,z);
+  yzView->centerViewOn(x,y,z);
+  xzView->centerViewOn(x,y,z);
+}
+
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::loadTestImage()
+{
+
+  qDebug() << this << ": Loading Test Image";
+  pqServer *server = pqActiveObjects::instance().activeServer();
+  pqObjectBuilder* builder = pqApplicationCore::instance()->getObjectBuilder();
+
+  pqPipelineSource *img;
+  if (first)
+  {
+    img = builder->createReader("sources","MetaImageReader",
+// 				QStringList("/home/jpena/Stacks/paraPeque.pvd"),
+// 				QStringList("/home/jpena/Stacks/AlzheimerE-reg-affine-012-510/AlzheimerE.pvd"),
+// 				QStringList("/home/cbbp/Primeras Series Hechas/19-12wtSerie1/19-12wt Rigid-Body gaussian1-1.mhd"),
+				QStringList("/home/cbbp/Primeras Series Hechas/19-12tgSerie4/19-12TG.mhd"),
+					    server);
+    first = false;
+    xyView->addChannelRepresentation(img->getOutputPort(0));
+    yzView->addChannelRepresentation(img->getOutputPort(0));
+    xzView->addChannelRepresentation(img->getOutputPort(0));
+  }else{
+    //QDir segDir("/home/cbbp/Primeras Series Hechas/19-12wtSerie1/savegordo/");
+    QDir segDir("/home/cbbp/Primeras Series Hechas/19-12tgSerie4/19-12TG-Serie4/");
+    QString file;
+    QStringList entries = segDir.entryList(QStringList("*.pvd"));
+    int total = entries.size();
+    int loaded = 1;
+    foreach(file, entries)
+    {
+      img = builder->createReader("sources","PVDReader",
+      QStringList(segDir.path()+"/"+file),
+      //     QStringList("/home/jpena/Stacks/Peque/pequeFromSegmha/fa40f2b8d6b3bdd039fe2bd7086229eb61c9605e.pvd"),
+      server);
+      xyView->addSegmentationRepresentation(img->getOutputPort(0));
+      yzView->addSegmentationRepresentation(img->getOutputPort(0));
+      xzView->addSegmentationRepresentation(img->getOutputPort(0));
+      volView->addSegmentationRepresentation(img->getOutputPort(0));
+
+      emit statusMsg(QString("Loaded %1/%2 Segmentations.").arg(loaded++).arg(total));
+    }
+  }
+  xyView->forceRender();
+  yzView->forceRender();
+  xzView->forceRender();
+  emit statusMsg(QString());
 }
