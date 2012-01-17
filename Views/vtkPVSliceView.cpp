@@ -41,6 +41,7 @@
 #include <vtkRenderWindow.h>
 #include <vtkSmartPointer.h>
 #include <vtkImageActor.h>
+#include <vtkAbstractPicker.h>
 
 // Interactor Style to be used with Slice Views
 class vtkInteractorStyleEspinaSlice
@@ -358,9 +359,10 @@ vtkPVSliceView::vtkPVSliceView()
   }
 
   RenderView->GetRenderer()->SetLayer(0);
+  NonCompositedRenderer->SetLayer(1);
   this->OverviewRenderer = vtkSmartPointer<vtkRenderer>::New();
   this->OverviewRenderer->SetViewport(0.75,0,1,0.25);
-  OverviewRenderer->SetLayer(1);
+  OverviewRenderer->SetLayer(2);
   this->GetRenderWindow()->AddRenderer(this->OverviewRenderer);
 
   initCrosshairs();
@@ -396,6 +398,7 @@ void vtkPVSliceView::initCrosshairs()
 
   HCrossLine = vtkSmartPointer<vtkActor>::New();
   HCrossLine->SetMapper(HMapper);
+  HCrossLine->SetPickable(false);
 //   HCrossLine->GetProperty()->SetLineStipplePattern(0xF0F0);
 
   NonCompositedRenderer->AddActor(HCrossLine);
@@ -420,6 +423,7 @@ void vtkPVSliceView::initCrosshairs()
 
   VCrossLine = vtkSmartPointer<vtkActor>::New();
   VCrossLine->SetMapper(VMapper);
+  VCrossLine->SetPickable(false);
 //   VCrossLine->GetProperty()->SetLineStipplePattern(0xF0F0);
 
   NonCompositedRenderer->AddActor(VCrossLine);
@@ -448,6 +452,7 @@ void vtkPVSliceView::PrintSelf(ostream& os, vtkIndent indent)
 void vtkPVSliceView::AddActor(vtkProp3D* actor)
 {
   State->updateActor(actor);
+  RenderView->GetInteractor()->GetPicker()->AddPickList(actor);
   RenderView->GetRenderer()->AddActor(actor);
   OverviewRenderer->AddActor(actor);
   SetCenter(Center);
@@ -523,13 +528,15 @@ void vtkPVSliceView::SetSlice(double pos)
 //   qDebug() << "vtkPVSliceView " << SlicingPlane << "changing slice" << pos;
   State->setSlicePosition(SlicingMatrix, pos);
   SegActor *seg;
+  int lowerBound = SlicingPlane * 2;
+  int upperBound = SlicingPlane * 2 + 1;
   foreach(seg, Segmentations)
   {
 //     double b[6];
 //     seg->GetDisplayBounds(b);
 //     qDebug() << b[0] << b[1] <<  b[2] <<  b[3] <<  b[4] <<  b[5];
-    bool hide = seg->bounds[5] <= Center[SlicingPlane] ||
-      seg->bounds[4] > Center[SlicingPlane];
+    bool hide = seg->bounds[upperBound] <= Center[SlicingPlane] ||
+      seg->bounds[lowerBound] > Center[SlicingPlane];
     seg->actor->SetVisibility(!hide && ShowSegmentations);
   }
 }
@@ -575,7 +582,7 @@ void vtkPVSliceView::SetSlicingPlane(int plane)
 //----------------------------------------------------------------------------
 void vtkPVSliceView::SetCenter(double x, double y, double z)
 {
-//   qDebug() << "SetCenterxyx setting Center" << x << y << z;
+//   qDebug() << "vtkPVSliceView setting Center" << x << y << z;
 //   if (Center[0] == x && Center[1] == y && Center[2] == z)
 //     return;
 

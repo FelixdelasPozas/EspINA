@@ -171,9 +171,10 @@ bool pqSliceView::canDisplay(pqOutputPort* opPort) const
 //-----------------------------------------------------------------------------
 void pqSliceView::setSlice(double pos /*in nm*/)
 {
-//   qDebug() << this << ": Changing Slice " << pos;
   if (Center[SlicingPlane] == pos)
     return;
+
+//   qDebug() << this << ": Changing Slice " << pos;
 
   Center[SlicingPlane] = pos;
 
@@ -187,9 +188,10 @@ void pqSliceView::setSlice(double pos /*in nm*/)
 //-----------------------------------------------------------------------------
 void pqSliceView::centerViewOn(double x, double y, double z)
 {
-//   qDebug() << "pqSliceView: Setting Center" << x << y << z;
   if (Center[0] == x && Center[1] == y && Center[2] == z)
     return;
+
+//   qDebug() << "pqSliceView: Setting Center" << x << y << z;
 
   Center[0] = x;
   Center[1] = y;

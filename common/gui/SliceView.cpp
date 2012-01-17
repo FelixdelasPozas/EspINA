@@ -59,6 +59,11 @@
 #include <vtkSMRepresentationProxy.h>
 #include <vtkSMTwoDRenderViewProxy.h>
 #include <vtkSMProxyManager.h>
+#include <vtkRenderWindowInteractor.h>
+
+#include <vtkPropPicker.h>
+#include <vtkPropCollection.h>
+#include <vtkRenderWindow.h>
 
 
 //-----------------------------------------------------------------------------
@@ -93,7 +98,7 @@ SliceViewPreferencesPanel::SliceViewPreferencesPanel(SliceViewPreferences* prefe
   connect(showAxis,SIGNAL(toggled(bool)),
 	  this, SLOT(setShowAxis(bool)));
 
-  layout->addWidget(invertWheel);
+  ltyyout->addWidget(invertWheel);
 //   layout->addWidget(invertNormal);
   layout->addWidget(showAxis);
   QSpacerItem *spacer = new QSpacerItem(10,10,QSizePolicy::Expanding,QSizePolicy::Expanding);
@@ -225,6 +230,7 @@ SliceView::SliceView(vtkPVSliceView::VIEW_PLANE plane, QWidget* parent)
     , m_viewWidget      (NULL)
     , m_scrollBar       (new QScrollBar(Qt::Horizontal))
     , m_spinBox         (new QSpinBox())
+    , m_fitToGrid       (true)
 {
 //   buildTitle(); 
 //   m_viewWidget->setSizePolicy(
@@ -253,6 +259,7 @@ SliceView::SliceView(vtkPVSliceView::VIEW_PLANE plane, QWidget* parent)
     onConnect();
 
   m_preferences = new SliceViewPreferences(m_plane);
+
   qDebug() << this << ": Created";
 }
 
@@ -604,7 +611,10 @@ void SliceView::sliceViewCenterChanged(double x, double y, double z)
 //-----------------------------------------------------------------------------
 void SliceView::scrollValueChanged(int pos)
 {
-  m_view->setSlice(20*pos);
+  if (m_fitToGrid)
+    m_view->setSlice(m_gridSize[m_plane]*pos);
+  else
+    m_view->setSlice(pos);
 }
 
 //-----------------------------------------------------------------------------
@@ -632,26 +642,80 @@ void SliceView::undock()
 }
 
 //-----------------------------------------------------------------------------
-bool SliceView::eventFilter(QObject* obj, QEvent* event)
+bool SliceView::eventFilter(QObject* caller, QEvent* e)
 {
-  if (event->type() == QEvent::Wheel)
+  if (e->type() == QEvent::Wheel)
   {
-    QWheelEvent *we = static_cast<QWheelEvent *>(event);
+    QWheelEvent *we = static_cast<QWheelEvent *>(e);
     int numSteps = we->delta()/8/15*(m_preferences->invertWheel()?-1:1);//Refer to QWheelEvent doc.
     m_spinBox->setValue(m_spinBox->value() - numSteps);
-    event->ignore();
-  }else if (event->type() == QEvent::Enter)
+    e->ignore();
+  }else if (e->type() == QEvent::Enter)
   {
-    QWidget::enterEvent(event);
+    QWidget::enterEvent(e);
 //     QApplication::setOverrideCursor(SelectionManager::instance()->cursor());
-    event->accept();
-  }else if (event->type() == QEvent::Leave)
+    e->accept();
+  }else if (e->type() == QEvent::Leave)
   {
-    QWidget::leaveEvent(event);
+    QWidget::leaveEvent(e);
 //     QApplication::restoreOverrideCursor();
-    event->accept();
+    e->accept();
+  }else if (e->type() == QEvent::MouseButtonPress)
+  {
+    QMouseEvent* me = static_cast<QMouseEvent*>(e);
+    if (me->button() == Qt::LeftButton && me->modifiers() == Qt::CTRL)
+    {
+      centerViewOnMousePosition(me);
+    }
+  }else if(e->type() == QEvent::MouseButtonRelease)
+  {
   }
-  return QObject::eventFilter(obj, event);
+
+  return QAbstractItemView::eventFilter(caller, e);
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::centerViewOnMousePosition(QMouseEvent* me)
+{
+  //Use Render Window Interactor's to obtain event's position
+  vtkSMSliceViewProxy* view =
+    vtkSMSliceViewProxy::SafeDownCast(m_view->getProxy());
+  //vtkSMRenderViewProxy* renModule = view->GetRenderView();
+  vtkRenderWindowInteractor *rwi =
+    vtkRenderWindowInteractor::SafeDownCast(
+      view->GetRenderWindow()->GetInteractor());
+      //renModule->GetInteractor());
+  assert(rwi);
+
+  int xPos, yPos;
+  rwi->GetEventPosition(xPos, yPos);
+  //qDebug() << "EspINA::SliceView" << m_plane << ": Clicked Position" << xPos << " " << yPos;
+  QPoint pos(xPos,yPos);
+
+  //double spacing[3];//Image Spacing
+  //m_focusedSample->spacing(spacing);
+
+  double pickPos[3];//World coordinates
+  vtkPropPicker *propPicker = vtkPropPicker::New();
+  //TODO: Check this--> wpicker->AddPickList();
+  
+  propPicker->Pick(xPos, yPos, 0.1, view->GetRenderer());
+  propPicker->GetPickPosition(pickPos);
+
+  pickPos[m_plane] = m_fitToGrid?m_scrollBar->value()*m_gridSize[m_plane]:m_scrollBar->value();
+  if (vtkPVSliceView::AXIAL == m_plane )
+    pickPos[1] = -pickPos[1];
+
+  centerViewOn(pickPos);
+
+  //    qDebug() << "Picked pixel" << pickPos[0] << pickPos[1] << pickPos[2];
+//   SelectionManager::instance()->onMouseDown(pos, this);
+  //qDebug() << "Pick Position:" << pickPos[0] << pickPos[1] << pickPos[2];
+//   int selectedPixel[3];
+//   for(int dim = 0; dim < 3; dim++)
+//     selectedPixel[dim] = round(pickPos[dim]/spacing[dim]);
+//   if (rwi->GetControlKey())
+//     centerViewOn(selectedPixel[0], selectedPixel[1], selectedPixel[2]);
 }
 
 //-----------------------------------------------------------------------------
@@ -666,15 +730,6 @@ void SliceView::addChannelRepresentation(pqOutputPort* oport)
 //-----------------------------------------------------------------------------
 void SliceView::addSegmentationRepresentation(pqOutputPort* oport)
 {
-//   vtkSMSliceViewProxy *ep =  vtkSMSliceViewProxy::SafeDownCast(m_view->getViewProxy());
-//   Q_ASSERT(ep);
-//   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-//   pqDataRepresentation *dr = dp->createPreferredRepresentation(oport,m_view,true);
-//   vtkSMPropertyHelper(dr->getProxy(),"Type").Set(1);
-//   dr->getProxy()->UpdateVTKObjects();
-//   pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
-//   Q_ASSERT(rep);
-//   rep->setRepresentation("Slice");
   pqPipelineSource *source = oport->getSource();
   vtkSMProxyManager *pxm = source->getProxy()->GetProxyManager();
 
@@ -685,7 +740,7 @@ void SliceView::addSegmentationRepresentation(pqOutputPort* oport)
     // Set the reprProxy's input.
   pqSMAdaptor::setInputProperty(reprProxy->GetProperty("Input"),
 				source->getProxy(), oport->getPortNumber());
-//   vtkSMPropertyHelper(reprProxy,"Type").Set(1);
+// //   vtkSMPropertyHelper(reprProxy,"Type").Set(1);
   reprProxy->UpdateVTKObjects();
 
   vtkSMProxy* viewModuleProxy = m_view->getProxy();
@@ -694,10 +749,6 @@ void SliceView::addSegmentationRepresentation(pqOutputPort* oport)
     viewModuleProxy->GetProperty("Representations"), reprProxy);
   viewModuleProxy->UpdateVTKObjects();
 
-//   m_view->forceRender();
-
-  m_scrollBar->setMaximum(273);
-  m_spinBox->setMaximum(273);
   // Following code could be ignored
 //   pqApplicationCore* core= pqApplicationCore::instance();
 //   pqDataRepresentation* repr = core->getServerManagerModel()->
@@ -721,24 +772,72 @@ void SliceView::forceRender()
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::centerViewOn(double x, double y, double z)
+void SliceView::setGridSize(double size[3])
 {
-//   switch (m_plane)
-//   {
-//     case vtkPVSliceView::AXIAL:
-//       m_scrollBar->setValue(z);
-//       break;
-//     case vtkPVSliceView::SAGITTAL:
-//       m_scrollBar->setValue(x);
-//       break;
-//     case vtkPVSliceView::CORONAL:
-//       m_scrollBar->setValue(y);
-//       break;
-//     default:
-//       assert(false);
-//   };
-//   qDebug() << "Slice View: Setting Center" << x << y << z;
-  m_view->centerViewOn(x, y, z);
+  if (size[0] <= 0 || size[1] <= 0 || size[2] <= 0)
+  {
+    qFatal("SliceView: Invalid Grid Size. Grid Size not changed");
+    return;
+  }
+
+  memcpy(m_gridSize, size, 3*sizeof(double));
+  setRanges(m_range);
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::setRanges(double ranges[6])
+{
+  if (ranges[1] < ranges[0] || ranges[3] < ranges[2] || ranges[5] < ranges[4])
+  {
+    qFatal("SliceView: Invalid Ranges. Ranges not changed");
+    return;
+  }
+
+  double min = ranges[2*m_plane];
+  double max = ranges[2*m_plane+1];
+  if (m_fitToGrid)
+  {
+    min = min / m_gridSize[m_plane];
+    max = max / m_gridSize[m_plane];
+  }
+  m_scrollBar->setMinimum(static_cast<int>(min));
+  m_scrollBar->setMaximum(static_cast<int>(max));
+  m_spinBox->setMinimum(static_cast<int>(min));
+  m_spinBox->setMaximum(static_cast<int>(max));
+  memcpy(m_range, ranges, 6*sizeof(double));
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::centerViewOn(double center[3])
+{
+  if (m_center[0] == center[0] &&
+      m_center[1] == center[1] &&
+      m_center[2] == center[2])
+    return;
+
+  memcpy(m_center, center, 3*sizeof(double));
+
+  // Round the value to the nearest unit (nm or grid)
+  for (int i = 0; i < 3; i++)
+  {
+    if (m_fitToGrid)
+      m_center[i] = m_center[i]/m_gridSize[i];
+    m_center[i] = round(m_center[i]);
+  }
+
+  // Disable scrollbox signals to avoid calling seting slice
+  m_scrollBar->blockSignals(true);
+  m_spinBox->setValue(m_center[m_plane]);
+  m_scrollBar->setValue(m_center[m_plane]);
+  m_scrollBar->blockSignals(false);
+
+  // If fitToGrid is enabled, we must center the view on the
+  // corresponding grid's position
+  if (m_fitToGrid)
+    for (int i = 0; i < 3; i++)
+      m_center[i] = round(m_center[i]*m_gridSize[i]);
+
+  m_view->centerViewOn(m_center[0], m_center[1], m_center[2]);
 }
 
 

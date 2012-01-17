@@ -168,6 +168,7 @@ bool vtkSliceRepresentation::AddToView(vtkView* view)
     {
       Slice->SetOutputDimensionality(2);
       Slice->SetResliceAxes(rview->GetSlicingMatrix());
+      SliceActor->SetPickable(true);
       switch (Type)
       {
 	case 0:

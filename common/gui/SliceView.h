@@ -105,7 +105,6 @@ private:
   QString viewSettings;
 };
 
-
 // //! Displays a unique slice of a sample
 // //! If segmentations are visible, then their slices are
 // //! blended over the sample slice
@@ -128,7 +127,10 @@ public:
   virtual void scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint = EnsureVisible) {}
   virtual QRect visualRect(const QModelIndex& index) const {return QRect();}
 
-  void centerViewOn(double x/*nm*/, double y/*nm*/, double z/*nm*/);
+  void setGridSize(double size[3]);
+  void setRanges(double ranges[6]/*nm*/);
+  void setFitToGrid(bool value) {m_fitToGrid = value; setRanges(m_range);}
+  void centerViewOn(double center[3]/*nm*/);
   void setCrossHairColors(double hcolor[3], double vcolor[3]);
 //   //void focusOnSample(Sample *sample);
 
@@ -199,7 +201,8 @@ protected:
 //   virtual void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end);
 //   virtual void dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight);
 
-  virtual bool eventFilter(QObject* obj, QEvent* event);
+  virtual bool eventFilter(QObject* caller, QEvent* e);
+  void centerViewOnMousePosition(QMouseEvent *me);
 //   virtual pqRenderView* view();
 
 //   void centerViewOn(int x, int y, int z);
@@ -230,6 +233,10 @@ private:
 //   vtkSmartPointer<vtkInteractorStyleEspinaSlice> m_style;
 
   SliceViewPreferences *m_preferences;
+  bool m_fitToGrid;
+  double m_gridSize[3];
+  double m_range[6];
+  double m_center[3];
 };
 
 #endif // SLICEVIEW_H

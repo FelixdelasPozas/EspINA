@@ -58,10 +58,18 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   QPushButton *fakeLoad = new QPushButton(tr("Load Test Stack"));
   connect(fakeLoad,SIGNAL(clicked(bool)),
           this, SLOT(loadTestImage()));
-  
+
+  double gridSize[3] = {12.644, 12.644, 20};
+  double ranges[6] = {0,798,0,797,0,272};
+  ranges[1] = gridSize[0]*ranges[1];
+  ranges[3] = gridSize[1]*ranges[3];
+  ranges[5] = gridSize[2]*ranges[5];
   qDebug() << "New Default EspinaView";
   xyView = new SliceView(vtkPVSliceView::AXIAL);
   xyView->setCrossHairColors(blue, magenta);
+  xyView->setRanges(ranges);
+  xyView->setGridSize(gridSize);
+  xyView->setFitToGrid(true);
   connect(xyView, SIGNAL(centerChanged(double,double,double)),
 	  this, SLOT(setCenter(double,double,double)));
   this->setLayout(new QVBoxLayout());
@@ -78,6 +86,9 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   yzDock->setObjectName("yzDock");
   yzView = new SliceView(vtkPVSliceView::SAGITTAL);
   yzView->setCrossHairColors(blue, cyan);
+  yzView->setRanges(ranges);
+  yzView->setGridSize(gridSize);
+  yzView->setFitToGrid(true);
   connect(yzView, SIGNAL(centerChanged(double,double,double)),
 	  this, SLOT(setCenter(double,double,double)));
   yzDock->setWidget(yzView);
@@ -86,6 +97,9 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   xzDock->setObjectName("xzDock");
   xzView = new SliceView(vtkPVSliceView::CORONAL);
   xzView->setCrossHairColors(cyan, magenta);
+  xzView->setRanges(ranges);
+  xzView->setGridSize(gridSize);
+  xzView->setFitToGrid(true);
   connect(xzView, SIGNAL(centerChanged(double,double,double)),
 	  this, SLOT(setCenter(double,double,double)));
   xzDock->setWidget(xzView);
@@ -136,9 +150,10 @@ void DefaultEspinaView::setShowSegmentations(bool visibility)
 void DefaultEspinaView::setCenter(double x, double y, double z)
 {
 //   qDebug() << "Espina View Updating centers";
-  xyView->centerViewOn(x,y,z);
-  yzView->centerViewOn(x,y,z);
-  xzView->centerViewOn(x,y,z);
+  double center[3] = {x,y,z};
+  xyView->centerViewOn(center);
+  yzView->centerViewOn(center);
+  xzView->centerViewOn(center);
 }
 
 //-----------------------------------------------------------------------------
@@ -181,6 +196,8 @@ void DefaultEspinaView::loadTestImage()
       volView->addSegmentationRepresentation(img->getOutputPort(0));
 
       emit statusMsg(QString("Loaded %1/%2 Segmentations.").arg(loaded++).arg(total));
+      if (loaded > 40)
+	break;
     }
   }
   xyView->forceRender();
