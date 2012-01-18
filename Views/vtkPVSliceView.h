@@ -25,6 +25,7 @@
 #include <vtkSmartPointer.h>
 #include <QList>
 
+class vtkAxisActor2D;
 class vtkImageActor;
 class vtkActor;
 class vtkPolyData;
@@ -107,6 +108,7 @@ public:
 //BTX
 protected:
   void initCrosshairs();
+  void initRuler();
 
   vtkPVSliceView();
   ~vtkPVSliceView();
@@ -114,6 +116,8 @@ protected:
 private:
   vtkPVSliceView(const vtkPVSliceView&); // Not implemented
   void operator=(const vtkPVSliceView&); // Not implemented
+
+  void updateRuler();
 
   EspinaViewState  *State;
   double           Slice;
@@ -126,14 +130,16 @@ private:
   double           CoronalCrossLineColor[3];
 
   vtkSmartPointer<vtkRenderer> OverviewRenderer;
+  vtkSmartPointer<vtkRenderer> RulerRenderer;
   QList<vtkProp3D *> Channels;
   QList<SegActor *> Segmentations;
 
   vtkMatrix4x4     *SlicingMatrix;
   vtkEspinaView    *EspinaView;
 
-  vtkSmartPointer<vtkPolyData> HCrossLineData, VCrossLineData;
-  vtkSmartPointer<vtkActor> HCrossLine, VCrossLine;
+  vtkSmartPointer<vtkPolyData>    HCrossLineData, VCrossLineData;
+  vtkSmartPointer<vtkActor>       HCrossLine, VCrossLine;
+  vtkSmartPointer<vtkAxisActor2D> Ruler;
 //ETX
 };
 #endif // VTKPVSLICEVIEW_H

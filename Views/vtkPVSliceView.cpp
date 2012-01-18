@@ -27,7 +27,8 @@
 #include <vtkCommand.h>
 #include <vtkDataRepresentation.h>
 #include <vtkInteractorStyleImage.h>
-#include "vtkLegendScaleActor.h"
+#include <vtkLegendScaleActor.h>
+#include <vtkAxisActor2D.h>
 #include <vtkMatrix4x4.h>
 #include <vtkObjectFactory.h>
 #include <vtkPoints.h>
@@ -226,7 +227,7 @@ void SagittalState::updateActor(vtkProp3D* actor)
 //----------------------------------------------------------------------------
 void SagittalState::updateCamera(vtkCamera* camera)
 {
-  qDebug() << "Update sagittal Camera";
+//   qDebug() << "Update sagittal Camera";
   camera->SetPosition(1, 0, 0);
   camera->SetFocalPoint(0, 0, 0);
 }
@@ -305,14 +306,10 @@ void CoronalState::updateActor(vtkProp3D* actor)
 //----------------------------------------------------------------------------
 void CoronalState::updateCamera(vtkCamera* camera)
 {
-  qDebug() << "Update coronal Camera";
+//   qDebug() << "Update coronal Camera";
   camera->SetPosition(0, 1, 0);
   camera->SetFocalPoint(0, 0, 0);
   camera->SetViewUp(0,0,-1);
-//   camera->Roll(90);
-//   camera->Azimuth(90);
-//   camera->Roll(90);
-//   camera->Elevation(180);
 }
 
 //----------------------------------------------------------------------------
@@ -369,8 +366,12 @@ vtkPVSliceView::vtkPVSliceView()
   this->OverviewRenderer->SetViewport(0.75,0,1,0.25);
   OverviewRenderer->SetLayer(2);
   this->GetRenderWindow()->AddRenderer(this->OverviewRenderer);
+  this->RulerRenderer = vtkSmartPointer<vtkRenderer>::New();
+  RulerRenderer->SetLayer(2);
+  this->GetRenderWindow()->AddRenderer(this->RulerRenderer);
 
   initCrosshairs();
+  initRuler();
 
   SlicingMatrix = vtkMatrix4x4::New();
   SlicingMatrix->DeepCopy(axialSlice);
@@ -433,6 +434,24 @@ void vtkPVSliceView::initCrosshairs()
 
   NonCompositedRenderer->AddActor(VCrossLine);
   OverviewRenderer->AddActor(VCrossLine);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVSliceView::initRuler()
+{
+
+  Ruler = vtkSmartPointer<vtkAxisActor2D>::New();
+  Ruler->SetPosition(0.02,0.98);
+  Ruler->SetPosition2(0.15,0.98);
+  Ruler->SetPickable(false);
+  Ruler->SetLabelFactor(0.8);
+  Ruler->SetFontFactor(1);
+  Ruler->SetTitle("nm");
+  Ruler->SetAdjustLabels(false);
+  Ruler->SetNumberOfLabels(3);
+//   this->RulerRenderer->SetViewport(0,0,0.25,0.15);
+  this->RulerRenderer->AddActor(Ruler);
+  RulerRenderer->ResetCamera();
 }
 
 
@@ -501,9 +520,11 @@ void vtkPVSliceView::Initialize(unsigned int id)
     vtkPVRenderView::Initialize(id);
     this->RenderView->GetRenderer()->UseDepthPeelingOff();
     this->OverviewRenderer->UseDepthPeelingOff();
+    this->RulerRenderer->UseDepthPeelingOff();
 
     this->RenderView->GetRenderer()->GetActiveCamera()->ParallelProjectionOn();
     this->OverviewRenderer->GetActiveCamera()->ParallelProjectionOn();
+    this->RulerRenderer->GetActiveCamera()->ParallelProjectionOn();
 }
 
 //----------------------------------------------------------------------------
@@ -530,12 +551,14 @@ void vtkPVSliceView::ResetCameraClippingRange()
   vtkPVRenderView::ResetCameraClippingRange();
   OverviewRenderer->ResetCameraClippingRange(this->LastComputedBounds);
   SetCenter(Center);
+
+  updateRuler();
 }
 
 //----------------------------------------------------------------------------
 void vtkPVSliceView::SetOrientationAxesVisibility(bool )
 {
-    vtkPVRenderView::SetOrientationAxesVisibility(true);
+    vtkPVRenderView::SetOrientationAxesVisibility(false);
 }
 
 
@@ -665,5 +688,59 @@ void vtkPVSliceView::SetShowSegmentations(bool value)
     seg->actor->SetVisibility(value);
   }
   ShowSegmentations = value;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVSliceView::updateRuler()
+{
+  double *value;
+  double left;
+  double right;
+
+
+  double w, h, wPad, hPad;
+  w = 150;/*px*/
+  wPad = 60;
+  h = 2;/*font factor*/
+  hPad = 100;
+  int *ws;
+  ws = RenderView->GetRenderWindow()->GetSize();
+
+  Ruler->SetPoint1(wPad/ws[0],hPad/ws[1]);
+  Ruler->SetPoint2((wPad+w)/ws[0],hPad/ws[1]);
+  
+  vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
+
+  coords->SetViewport(GetRenderer());
+  coords->SetCoordinateSystemToNormalizedViewport();
+
+  int c = SlicingPlane==SAGITTAL?2:0;
+
+  coords->SetValue(0,0);
+  value = coords->GetComputedWorldValue(GetRenderer());
+  left = value[c];
+//   qDebug() << "UR" << value[0] << value[1] << value[2];
+
+  coords->SetValue(1,0);
+  value = coords->GetComputedWorldValue(GetRenderer());
+  right = value[c];
+//   qDebug() << "LL" << value[0] << value[1] << value[2];
+
+  const double RULERWIDTHRATIO = 0.13;
+  double maxRange = fabs(right-left)*RULERWIDTHRATIO;
+
+//   qDebug() << "Max Range" << maxRange;
+  std::string units[4] = {"nm","um", "mm", "m"};
+  int unit = 0;
+  while (maxRange > 1000)
+  {
+    maxRange /= 1000;
+    unit++;
+  }
+
+  if (maxRange < 1 && 0 == unit)
+    maxRange = 0;
+  Ruler->SetRange(0, maxRange);
+  Ruler->SetTitle(units[unit].c_str());
 }
 

@@ -707,9 +707,6 @@ void SliceView::centerViewOnMousePosition(QMouseEvent* me)
   propPicker->GetPickPosition(pickPos);
 
   pickPos[m_plane] = m_fitToGrid?m_scrollBar->value()*m_gridSize[m_plane]:m_scrollBar->value();
-  if (vtkPVSliceView::AXIAL == m_plane )
-    pickPos[1] = pickPos[1];
-
   qDebug() << "Pick Position" << pickPos[0] << pickPos[1] << pickPos[2];
 
   centerViewOn(pickPos);

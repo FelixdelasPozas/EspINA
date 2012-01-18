@@ -59,6 +59,8 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   connect(fakeLoad,SIGNAL(clicked(bool)),
           this, SLOT(loadTestImage()));
 
+//   double gridSize[3] = {1, 1, 2};
+//   double ranges[6] = {0,600,0,500,0,114};
   double gridSize[3] = {12.644, 12.644, 20};
   double ranges[6] = {0,798,0,797,0,272};
   ranges[1] = gridSize[0]*ranges[1];
@@ -169,6 +171,7 @@ void DefaultEspinaView::loadTestImage()
   {
     img = builder->createReader("sources","MetaImageReader",
 // 				QStringList("/home/jpena/Stacks/paraPeque.pvd"),
+// 				QStringList("/home/jpena/Stacks/Peque/peque.mhd"),
 // 				QStringList("/home/jpena/Stacks/AlzheimerE-reg-affine-012-510/AlzheimerE.pvd"),
 // 				QStringList("/home/cbbp/Primeras Series Hechas/19-12wtSerie1/19-12wt Rigid-Body gaussian1-1.mhd"),
 				QStringList("/home/cbbp/Primeras Series Hechas/19-12tgSerie4/19-12TG.mhd"),
@@ -196,8 +199,8 @@ void DefaultEspinaView::loadTestImage()
       volView->addSegmentationRepresentation(img->getOutputPort(0));
 
       emit statusMsg(QString("Loaded %1/%2 Segmentations.").arg(loaded++).arg(total));
-      if (loaded > 40)
-	break;
+//       if (loaded > 40)
+// 	break;
     }
   }
   xyView->forceRender();
