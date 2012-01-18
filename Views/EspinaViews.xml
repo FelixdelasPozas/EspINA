@@ -53,6 +53,13 @@
         <Documentation>
         </Documentation>
       </IntVectorProperty>
+      <IntVectorProperty name="ShowRuler"
+        command="SetShowRuler"
+        number_of_elements="1"
+        default_values="1">
+        <Documentation>
+        </Documentation>
+      </IntVectorProperty>
 <!--      <DoubleVectorProperty name="Slice"
         command="SetSlice"
         number_of_elements="1"

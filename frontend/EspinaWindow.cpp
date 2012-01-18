@@ -62,10 +62,14 @@ EspinaWindow::EspinaWindow()
   QMenu *fileMenu = new QMenu("File");
   pqParaViewMenuBuilders::buildFileMenu(*fileMenu);
   menuBar()->addMenu(fileMenu);
+  
   QMenu *toolsMenu = new QMenu("Tools");
   //NOTE: This method causes maxViewWindowSizeSet connection fail warning
   pqParaViewMenuBuilders::buildToolsMenu(*toolsMenu);
   menuBar()->addMenu(toolsMenu);
+  
+  m_viewMenu = new QMenu(tr("View"));
+  menuBar()->addMenu(m_viewMenu);
   createActivityMenu();
   createLODMenu();
 
@@ -219,6 +223,8 @@ void EspinaWindow::setActivity(QString activity)
   if (m_view)
     m_view->saveLayout();
 
+  m_viewMenu->clear();
+
   if (activity == "analyse")
   {
     qDebug() << "Switch to Analyse Activity";
@@ -232,6 +238,7 @@ void EspinaWindow::setActivity(QString activity)
     m_view = vm->createLayout(this);
     connect(m_view, SIGNAL(statusMsg(QString)),
 	    this, SLOT(updateStatus(QString)));
+    m_view->createViewMenu(m_viewMenu);
   }
 
   if (m_view)
@@ -242,6 +249,8 @@ void EspinaWindow::setActivity(QString activity)
   {
     m_view->restoreLayout();
   }
+
+  
   m_currentActivity = activity;
 
 //   restoreGeometry(settings.value(m_currentActivity+"/geometry").toByteArray());

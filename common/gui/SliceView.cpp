@@ -763,9 +763,15 @@ void SliceView::addSegmentationRepresentation(pqOutputPort* oport)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::setShowSegmentations(bool value)
+void SliceView::setSegmentationVisibility(bool visible)
 {
-  m_view->setShowSegmentations(value);
+  m_view->setShowSegmentations(visible);
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::setRulerVisibility(bool visible)
+{
+  m_view->setRulerVisibility(visible);
 }
 
 //-----------------------------------------------------------------------------

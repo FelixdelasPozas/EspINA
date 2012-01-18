@@ -82,6 +82,9 @@ public slots:
   void centerViewOn(double x/*nm*/, double y/*nm*/, double z/*nm*/);
   /// Set whether segmentations are visible or not
   void setShowSegmentations(bool visible);
+  /// Set whether the scale ruler is visible or not
+  void setRulerVisibility(bool visible);
+  
 
 signals:
   void centerChanged(double, double, double);

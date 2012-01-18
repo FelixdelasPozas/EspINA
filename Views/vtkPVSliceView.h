@@ -94,8 +94,11 @@ public:
   void SetSlicingPlane(int plane);
   vtkGetMacro(SlicingPlane, int);
 
-  void SetShowSegmentations(bool value);
+  void SetShowSegmentations(bool visible);
   vtkGetMacro(ShowSegmentations, bool);
+  
+  void SetShowRuler(bool visible);
+  vtkGetMacro(ShowRuler, bool);
 
   // Method called from xml configuration when adding a new sample
   // to the view using the SMAdaptor:
@@ -124,6 +127,7 @@ private:
   VIEW_PLANE       SlicingPlane;
   double           Center[3];
   bool             ShowSegmentations;
+  bool             ShowRuler;
   double           HCrossLineColor[3];
   double           VCrossLineColor[3];
   double           SagittalCrossLineColor[3];

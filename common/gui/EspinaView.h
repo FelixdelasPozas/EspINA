@@ -27,10 +27,10 @@
 #define ESPINAVIEW_H
 
 #include <QAbstractItemView>
+#include <QDockWidget>
 
 class VolumeView;
 // Forward-declaration
-class QDockWidget;
 class QMainWindow;
 class SliceView;
 
@@ -42,6 +42,7 @@ public:
   explicit EspinaView(QMainWindow * parent, const QString activity);
   virtual ~EspinaView(){}
 
+  virtual void createViewMenu(QMenu* menu) = 0;
   virtual void restoreLayout() = 0;
   virtual void saveLayout() = 0;
 
@@ -75,9 +76,11 @@ protected:
 
 class DefaultEspinaView : public EspinaView
 {
+  Q_OBJECT
 public:
   explicit DefaultEspinaView(QMainWindow* parent, const QString activity);
 
+  virtual void createViewMenu(QMenu* menu);
   virtual void restoreLayout();
   virtual void saveLayout();
 
@@ -87,6 +90,10 @@ public:
   void setCenter(double x, double y, double z);
 
   virtual void loadTestImage();
+
+protected slots:
+  void setRulerVisibility(bool visible);
+
 private:
   bool first;
 

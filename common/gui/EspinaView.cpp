@@ -35,6 +35,7 @@
 #include <pqApplicationCore.h>
 #include <pqPipelineSource.h>
 #include <QDir>
+#include <qmenu.h>
 
 //----------------------------------------------------------------------------
 EspinaView::EspinaView( QMainWindow* parent, const QString activity)
@@ -113,6 +114,24 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   parent->setCentralWidget(this);
 }
 
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::createViewMenu(QMenu* menu)
+{
+  menu->addAction(volDock->toggleViewAction());
+  menu->addAction(yzDock->toggleViewAction());
+  menu->addAction(xzDock->toggleViewAction());
+  menu->addSeparator();
+  
+  QAction *showSegmentations = new QAction(tr("Show Segmentations"),menu);
+  menu->addAction(showSegmentations);
+  QAction *showRuler = new QAction(tr("Show Ruler"),menu);
+  showRuler->setCheckable(true);
+  showRuler->setChecked(true);
+  menu->addAction(showRuler);
+  connect(showRuler, SIGNAL(toggled(bool)),
+	  this, SLOT(setRulerVisibility(bool)));
+}
+
 //----------------------------------------------------------------------------
 void DefaultEspinaView::restoreLayout()
 {
@@ -143,9 +162,9 @@ void DefaultEspinaView::saveLayout()
 //----------------------------------------------------------------------------
 void DefaultEspinaView::setShowSegmentations(bool visibility)
 {
-  xyView->setShowSegmentations(visibility);
-  yzView->setShowSegmentations(visibility);
-  xzView->setShowSegmentations(visibility);
+  xyView->setSegmentationVisibility(visibility);
+  yzView->setSegmentationVisibility(visibility);
+  xzView->setSegmentationVisibility(visibility);
 }
 
 //-----------------------------------------------------------------------------
@@ -207,4 +226,12 @@ void DefaultEspinaView::loadTestImage()
   yzView->forceRender();
   xzView->forceRender();
   emit statusMsg(QString());
+}
+
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::setRulerVisibility(bool visible)
+{
+  xyView->setRulerVisibility(visible);
+  yzView->setRulerVisibility(visible);
+  xzView->setRulerVisibility(visible);
 }

@@ -18,7 +18,7 @@
 
 //----------------------------------------------------------------------------
 // File:    SliceView.h
-// Purpose: Generate slices for model's elements
+// Purpose: Display channels and segmentations using slices
 //----------------------------------------------------------------------------
 #ifndef SLICEVIEW_H
 #define SLICEVIEW_H
@@ -31,24 +31,14 @@
 
 class QLabel;
 class pqOutputPort;
-class pqPipelineSource;// #include <QMutex>
+class pqPipelineSource;
 // #include <QMap>
 // 
 // #include "selectionManager.h"//TODO: Forward declare?
 // 
 // #include "../frontend/IPreferencePanel.h"
-// 
-// 
-// namespace CrosshairExtension
-// {
-// class SampleRepresentation;
-// }
-// 
+
 //Forward declaration
-// class CrosshairRepresentation;
-// class vtkCamera;
-// class vtkSMRenderViewProxy;
-// class Sample;
 class pqSliceView;
 class vtkInteractorStyleEspinaSlice;
 
@@ -57,8 +47,6 @@ class QScrollBar;
 class QSpinBox;
 class QVBoxLayout;
 class QHBoxLayout;
-// class pqRenderView;
-// class vtkRenderWindowInteractor;
 
 class SliceViewPreferences;
 
@@ -132,7 +120,6 @@ public:
   void setFitToGrid(bool value) {m_fitToGrid = value; setRanges(m_range);}
   void centerViewOn(double center[3]/*nm*/);
   void setCrossHairColors(double hcolor[3], double vcolor[3]);
-//   //void focusOnSample(Sample *sample);
 
 //   //! Interface of ISelectableView
 //   void setSelection(SelectionFilters &filters, ViewRegions &regions);
@@ -151,7 +138,9 @@ public slots:
   void onDisconnect();
 
   //! Show/Hide segmentations
-  void setShowSegmentations(bool value);
+  void setSegmentationVisibility(bool visible);
+  //! Show/Hide the ruler
+  void setRulerVisibility(bool visible);
 
   void forceRender();
 
@@ -159,15 +148,10 @@ public slots:
 //   //! Slicer configuration methods:
 //   void setPlane(ViewType plane);
 
-//   //! Selections
-//   void vtkWidgetMouseEvent(QMouseEvent *event);
-
-//   void updateScene();
-
 // protected slots:
-//   void setSlice(int slice);
 //   virtual void setVOI(IVOI *voi);
 //   void updateVOIVisibility();
+
 protected slots:
   void close();
   void maximize();
@@ -184,7 +168,6 @@ signals:
   void maximizeRequest();
   void minimizeRequest();
   void undockRequest();
-//   void sliceChanged();
 // //  void pointSelected(int, int, int);
 
 protected:
@@ -203,9 +186,7 @@ protected:
 
   virtual bool eventFilter(QObject* caller, QEvent* e);
   void centerViewOnMousePosition(QMouseEvent *me);
-//   virtual pqRenderView* view();
 
-//   void centerViewOn(int x, int y, int z);
 //   //! Converts point from Display coordinates to World coordinates
 //   ISelectionHandler::VtkRegion display2vtk(const QPolygonF &region);
 
@@ -229,8 +210,6 @@ private:
   QWidget     *m_viewWidget;
   QScrollBar  *m_scrollBar;
   QSpinBox    *m_spinBox;
-
-//   vtkSmartPointer<vtkInteractorStyleEspinaSlice> m_style;
 
   SliceViewPreferences *m_preferences;
   bool m_fitToGrid;

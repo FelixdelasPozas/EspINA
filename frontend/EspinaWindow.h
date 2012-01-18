@@ -69,12 +69,13 @@ protected:
 
 
 private:
-  QSharedPointer<EspINA> m_espina;
-  MainToolBar *m_mainToolBar;
+  QSharedPointer<EspINA>    m_espina;
+  MainToolBar              *m_mainToolBar;
+  QMenu                    *m_viewMenu;
 
-  QFrame *m_centralWidget;
-  QString m_currentActivity;
-  EspinaView *m_view;
+  QFrame                   *m_centralWidget;
+  QString                   m_currentActivity;
+  EspinaView               *m_view;
 #ifdef DEBUG
   QSharedPointer<ModelTest> m_modelTester;
 #endif
