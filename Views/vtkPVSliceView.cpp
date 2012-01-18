@@ -42,6 +42,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkImageActor.h>
 #include <vtkAbstractPicker.h>
+#include <vtkPVSynchronizedRenderWindows.h>
 
 // Interactor Style to be used with Slice Views
 class vtkInteractorStyleEspinaSlice
@@ -138,7 +139,7 @@ AxialState *AxialState::m_singleton = NULL;
 //-----------------------------------------------------------------------------
 void AxialState::updateActor(vtkProp3D* actor)
 {
-  actor->RotateX(180);
+//   actor->RotateX(180);
 }
 
 //-----------------------------------------------------------------------------
@@ -160,8 +161,8 @@ void AxialState::setCrossHairs(vtkPolyData* hline, vtkPolyData* vline,
 			       double center[3], double bounds[6])
 {
 //   qDebug() << "Crosshair Center: " << center[0] << center[1] << center[2];
-  hline->GetPoints()->SetPoint(0,bounds[0],-center[1],0);
-  hline->GetPoints()->SetPoint(1,bounds[1],-center[1],0);
+  hline->GetPoints()->SetPoint(0,bounds[0],center[1],0);
+  hline->GetPoints()->SetPoint(1,bounds[1],center[1],0);
   hline->Modified();
 
   vline->GetPoints()->SetPoint(0,center[0],bounds[2],0);
@@ -180,7 +181,7 @@ void AxialState::setSlicePosition(vtkMatrix4x4 *matrix, double value)
 //-----------------------------------------------------------------------------
 // SAGITTAL STATE
 //-----------------------------------------------------------------------------
-double saggitalSlice[16] =
+double sagittalSlice[16] =
 {
   0,  0, -1,  0,
   1,  0,  0,  0,
@@ -225,15 +226,15 @@ void SagittalState::updateActor(vtkProp3D* actor)
 //----------------------------------------------------------------------------
 void SagittalState::updateCamera(vtkCamera* camera)
 {
+  qDebug() << "Update sagittal Camera";
   camera->SetPosition(1, 0, 0);
   camera->SetFocalPoint(0, 0, 0);
-  camera->SetRoll(180);
 }
 
 //----------------------------------------------------------------------------
 void SagittalState::updateSlicingMatrix(vtkMatrix4x4* matrix)
 {
-  matrix->DeepCopy(saggitalSlice);
+  matrix->DeepCopy(sagittalSlice);
 }
 
 //-----------------------------------------------------------------------------
@@ -304,11 +305,14 @@ void CoronalState::updateActor(vtkProp3D* actor)
 //----------------------------------------------------------------------------
 void CoronalState::updateCamera(vtkCamera* camera)
 {
-  camera->Roll(90);
-  camera->Azimuth(90);
-  camera->Roll(90);
-  camera->Elevation(180);
-
+  qDebug() << "Update coronal Camera";
+  camera->SetPosition(0, 1, 0);
+  camera->SetFocalPoint(0, 0, 0);
+  camera->SetViewUp(0,0,-1);
+//   camera->Roll(90);
+//   camera->Azimuth(90);
+//   camera->Roll(90);
+//   camera->Elevation(180);
 }
 
 //----------------------------------------------------------------------------
@@ -356,6 +360,7 @@ vtkPVSliceView::vtkPVSliceView()
 //     vtkInteractorStyleImage *style = vtkInteractorStyleImage::New();
     vtkInteractorStyleEspinaSlice *style = vtkInteractorStyleEspinaSlice::New();
     this->Interactor->SetInteractorStyle(style);
+    style->Delete();
   }
 
   RenderView->GetRenderer()->SetLayer(0);
@@ -451,8 +456,25 @@ void vtkPVSliceView::PrintSelf(ostream& os, vtkIndent indent)
 //----------------------------------------------------------------------------
 void vtkPVSliceView::AddActor(vtkProp3D* actor)
 {
+  bool in_cave_mode = this->SynchronizedWindows->GetIsInCave();
+  if (in_cave_mode && !this->GetRemoteRenderingAvailable())
+    {
+    static bool warned_once = false;
+    if (!warned_once)
+      {
+      vtkErrorMacro(
+        "In Cave mode and Display cannot be opened on server-side! "
+        "Ensure the environment is set correctly in the pvx file.");
+      in_cave_mode = true;
+      }
+    }
+
+  // Decide if we are doing remote rendering or local rendering.
+  bool using_distributed_rendering = in_cave_mode || this->GetUseDistributedRendering();
+  if (this->GetLocalProcessDoesRendering(using_distributed_rendering))
+    RenderView->GetInteractor()->GetPicker()->AddPickList(actor);
+
   State->updateActor(actor);
-  RenderView->GetInteractor()->GetPicker()->AddPickList(actor);
   RenderView->GetRenderer()->AddActor(actor);
   OverviewRenderer->AddActor(actor);
   SetCenter(Center);
@@ -487,17 +509,19 @@ void vtkPVSliceView::Initialize(unsigned int id)
 //----------------------------------------------------------------------------
 void vtkPVSliceView::ResetCamera()
 {
+  State->updateCamera(RenderView->GetRenderer()->GetActiveCamera());
+  State->updateCamera(OverviewRenderer->GetActiveCamera());
   vtkPVRenderView::ResetCamera();
   OverviewRenderer->ResetCamera(this->LastComputedBounds);
-  SetCenter(Center);
 }
 
 //----------------------------------------------------------------------------
 void vtkPVSliceView::ResetCamera(double bounds[6])
 {
+  State->updateCamera(RenderView->GetRenderer()->GetActiveCamera());
+  State->updateCamera(OverviewRenderer->GetActiveCamera());
   vtkPVRenderView::ResetCamera(bounds);
   OverviewRenderer->ResetCamera(bounds);
-  SetCenter(Center);
 }
 
 //----------------------------------------------------------------------------

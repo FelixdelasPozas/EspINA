@@ -698,13 +698,19 @@ void SliceView::centerViewOnMousePosition(QMouseEvent* me)
   double pickPos[3];//World coordinates
   vtkPropPicker *propPicker = vtkPropPicker::New();
   //TODO: Check this--> wpicker->AddPickList();
-  
+
+  vtkRenderer * renderer = view->GetRenderer();
+  if (!renderer)
+    return;
+
   propPicker->Pick(xPos, yPos, 0.1, view->GetRenderer());
   propPicker->GetPickPosition(pickPos);
 
   pickPos[m_plane] = m_fitToGrid?m_scrollBar->value()*m_gridSize[m_plane]:m_scrollBar->value();
   if (vtkPVSliceView::AXIAL == m_plane )
-    pickPos[1] = -pickPos[1];
+    pickPos[1] = pickPos[1];
+
+  qDebug() << "Pick Position" << pickPos[0] << pickPos[1] << pickPos[2];
 
   centerViewOn(pickPos);
 
