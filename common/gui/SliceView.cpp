@@ -824,6 +824,7 @@ void SliceView::setFitToGrid(bool value)
   int currentScrollValue = m_scrollBar->value();
   m_fitToGrid = value;
   m_scrollBar->blockSignals(true);
+  m_spinBox->blockSignals(true);
   setRanges(m_range);
   if (m_fitToGrid)
   {
@@ -837,6 +838,7 @@ void SliceView::setFitToGrid(bool value)
     m_spinBox->setValue(currentScrollValue*m_gridSize[m_plane]);
     m_spinBox->setSuffix("nm");
   }
+  m_spinBox->blockSignals(false);
   m_scrollBar->blockSignals(false);
 }
 
