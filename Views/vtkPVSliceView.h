@@ -25,16 +25,16 @@
 #include <vtkSmartPointer.h>
 #include <QList>
 
+// Forward-declarations
+class EspinaViewState;
+
+class vtkActor;
 class vtkAxisActor2D;
 class vtkImageActor;
-class vtkActor;
-class vtkPolyData;
-class vtkMatrix4x4;
-class vtkProp;
-class vtkProp3D;
-class vtkEspinaView;
 class vtkLegendScaleActor;
-class EspinaViewState;
+class vtkMatrix4x4;
+class vtkPolyData;
+class vtkProp3D;
 
 class VTK_EXPORT vtkPVSliceView : public vtkPVRenderView
 {
@@ -96,10 +96,16 @@ public:
 
   void SetShowSegmentations(bool visible);
   vtkGetMacro(ShowSegmentations, bool);
-  
+
   void SetShowRuler(bool visible);
   vtkGetMacro(ShowRuler, bool);
 
+  void SetRulerColor(double r, double g, double b);
+  void SetRulerColor(double color[3]);
+  vtkGetVector3Macro(RulerColor,double);
+
+  vtkSetVector2Macro(RulerSize,double);
+  vtkGetVector2Macro(RulerSize,double);
   // Method called from xml configuration when adding a new sample
   // to the view using the SMAdaptor:
   //  pqSMAdaptor::addProxyProperty(
@@ -127,23 +133,24 @@ private:
   VIEW_PLANE       SlicingPlane;
   double           Center[3];
   bool             ShowSegmentations;
-  bool             ShowRuler;
-  double           HCrossLineColor[3];
-  double           VCrossLineColor[3];
-  double           SagittalCrossLineColor[3];
-  double           CoronalCrossLineColor[3];
 
   vtkSmartPointer<vtkRenderer> OverviewRenderer;
-  vtkSmartPointer<vtkRenderer> RulerRenderer;
   QList<vtkProp3D *> Channels;
   QList<SegActor *> Segmentations;
 
   vtkMatrix4x4     *SlicingMatrix;
-  vtkEspinaView    *EspinaView;
+
+  vtkSmartPointer<vtkAxisActor2D> Ruler;
+  bool             ShowRuler;
+  double           RulerColor[3];
+  double	   RulerSize[2];
 
   vtkSmartPointer<vtkPolyData>    HCrossLineData, VCrossLineData;
   vtkSmartPointer<vtkActor>       HCrossLine, VCrossLine;
-  vtkSmartPointer<vtkAxisActor2D> Ruler;
+  double           HCrossLineColor[3];
+  double           VCrossLineColor[3];
+  double           SagittalCrossLineColor[3];
+  double           CoronalCrossLineColor[3];
 //ETX
 };
 #endif // VTKPVSLICEVIEW_H

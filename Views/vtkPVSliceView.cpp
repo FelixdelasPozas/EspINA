@@ -22,28 +22,30 @@
 #include <QDebug>
 #include <assert.h>
 
+#include <vtkAbstractPicker.h>
+#include <vtkAxisActor2D.h>
 #include <vtkCamera.h>
 #include <vtkCellArray.h>
 #include <vtkCommand.h>
 #include <vtkDataRepresentation.h>
+#include <vtkImageActor.h>
 #include <vtkInteractorStyleImage.h>
 #include <vtkLegendScaleActor.h>
-#include <vtkAxisActor2D.h>
 #include <vtkMatrix4x4.h>
 #include <vtkObjectFactory.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
+#include <vtkProperty2D.h>
 #include <vtkPVGenericRenderWindowInteractor.h>
 #include <vtkPVInteractorStyle.h>
+#include <vtkPVSynchronizedRenderWindows.h>
 #include <vtkRenderer.h>
 #include <vtkRenderViewBase.h>
 #include <vtkRenderWindow.h>
 #include <vtkSmartPointer.h>
-#include <vtkImageActor.h>
-#include <vtkAbstractPicker.h>
-#include <vtkPVSynchronizedRenderWindows.h>
+#include <vtkTextProperty.h>
 
 // Interactor Style to be used with Slice Views
 class vtkInteractorStyleEspinaSlice
@@ -346,112 +348,109 @@ vtkStandardNewMacro(vtkPVSliceView);
 //----------------------------------------------------------------------------
 vtkPVSliceView::vtkPVSliceView()
 {
-    bzero(Center,3*sizeof(double));
-    this->SetCenterAxesVisibility(false);
-    this->SetOrientationAxesVisibility(false);
-    this->SetOrientationAxesInteractivity(false);
-    this->SetInteractionMode(INTERACTION_MODE_3D);
+  bzero(Center,3*sizeof(double));
 
-    if (this->Interactor)
-    {
-//     vtkInteractorStyleImage *style = vtkInteractorStyleImage::New();
-        vtkInteractorStyleEspinaSlice *style = vtkInteractorStyleEspinaSlice::New();
-        this->Interactor->SetInteractorStyle(style);
-        style->Delete();
-    }
+  this->SetCenterAxesVisibility(false);
+  this->SetOrientationAxesVisibility(false);
+  this->SetOrientationAxesInteractivity(false);
+  this->SetInteractionMode(INTERACTION_MODE_3D);
 
-    RenderView->GetRenderer()->SetLayer(0);
-    NonCompositedRenderer->SetLayer(1);
-    this->OverviewRenderer = vtkSmartPointer<vtkRenderer>::New();
-    this->OverviewRenderer->SetViewport(0.75,0,1,0.25);
-    OverviewRenderer->SetLayer(2);
-    this->GetRenderWindow()->AddRenderer(this->OverviewRenderer);
-    this->RulerRenderer = vtkSmartPointer<vtkRenderer>::New();
-    RulerRenderer->SetLayer(2);
-    this->GetRenderWindow()->AddRenderer(this->RulerRenderer);
+  if (this->Interactor)
+  {
+    //     vtkInteractorStyleImage *style = vtkInteractorStyleImage::New();
+    vtkInteractorStyleEspinaSlice *style = vtkInteractorStyleEspinaSlice::New();
+    this->Interactor->SetInteractorStyle(style);
+    style->Delete();
+  }
 
-    initCrosshairs();
-    initRuler();
+  RenderView->GetRenderer()->SetLayer(0);
+  NonCompositedRenderer->SetLayer(1);
+  this->OverviewRenderer = vtkSmartPointer<vtkRenderer>::New();
+  this->OverviewRenderer->SetViewport(0.75,0,1,0.25);
+  OverviewRenderer->SetLayer(2);
+  this->GetRenderWindow()->AddRenderer(this->OverviewRenderer);
 
-    SlicingMatrix = vtkMatrix4x4::New();
-    SlicingMatrix->DeepCopy(axialSlice);
-    SlicingPlane = AXIAL;
-    State = AxialState::instance();
+  initCrosshairs();
+  initRuler();
+
+  SlicingMatrix = vtkMatrix4x4::New();
+  SlicingMatrix->DeepCopy(axialSlice);
+  SlicingPlane = AXIAL;
+  State = AxialState::instance();
 
 
-    qDebug() << "vtkPVSliceView("<< this << "): Created";
+  qDebug() << "vtkPVSliceView("<< this << "): Created";
 }
 
 //----------------------------------------------------------------------------
 void vtkPVSliceView::initCrosshairs()
 {
-    vtkSmartPointer<vtkPoints> HPoints = vtkSmartPointer<vtkPoints>::New();
-    HPoints->InsertNextPoint(LastComputedBounds[0],0,0);
-    HPoints->InsertNextPoint(LastComputedBounds[1],0,0);
-    vtkSmartPointer<vtkCellArray> HLine = vtkSmartPointer<vtkCellArray>::New();
-    HLine->EstimateSize(1,2);
-    HLine->InsertNextCell(2);
-    HLine->InsertCellPoint(0);
-    HLine->InsertCellPoint(1);
+  vtkSmartPointer<vtkPoints> HPoints = vtkSmartPointer<vtkPoints>::New();
+  HPoints->InsertNextPoint(LastComputedBounds[0],0,0);
+  HPoints->InsertNextPoint(LastComputedBounds[1],0,0);
+  vtkSmartPointer<vtkCellArray> HLine = vtkSmartPointer<vtkCellArray>::New();
+  HLine->EstimateSize(1,2);
+  HLine->InsertNextCell(2);
+  HLine->InsertCellPoint(0);
+  HLine->InsertCellPoint(1);
 
-    HCrossLineData = vtkSmartPointer<vtkPolyData>::New();
-    HCrossLineData->SetPoints(HPoints);
-    HCrossLineData->SetLines(HLine);
-    HCrossLineData->Update();
+  HCrossLineData = vtkSmartPointer<vtkPolyData>::New();
+  HCrossLineData->SetPoints(HPoints);
+  HCrossLineData->SetLines(HLine);
+  HCrossLineData->Update();
 
-    vtkSmartPointer<vtkPolyDataMapper> HMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    HMapper->SetInput(HCrossLineData);
+  vtkSmartPointer<vtkPolyDataMapper> HMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  HMapper->SetInput(HCrossLineData);
 
-    HCrossLine = vtkSmartPointer<vtkActor>::New();
-    HCrossLine->SetMapper(HMapper);
-    HCrossLine->SetPickable(false);
-//   HCrossLine->GetProperty()->SetLineStipplePattern(0xF0F0);
+  HCrossLine = vtkSmartPointer<vtkActor>::New();
+  HCrossLine->SetMapper(HMapper);
+  HCrossLine->SetPickable(false);
+  //   HCrossLine->GetProperty()->SetLineStipplePattern(0xF0F0);
 
-    NonCompositedRenderer->AddActor(HCrossLine);
-    OverviewRenderer->AddActor(HCrossLine);
+  NonCompositedRenderer->AddActor(HCrossLine);
+  OverviewRenderer->AddActor(HCrossLine);
 
-    vtkSmartPointer<vtkPoints> VPoints = vtkSmartPointer<vtkPoints>::New();
-    VPoints->InsertNextPoint(0,LastComputedBounds[2],0);
-    VPoints->InsertNextPoint(0,LastComputedBounds[3],0);
-    vtkSmartPointer<vtkCellArray> VLine = vtkSmartPointer<vtkCellArray>::New();
-    VLine->EstimateSize(1,2);
-    VLine->InsertNextCell(2);
-    VLine->InsertCellPoint(0);
-    VLine->InsertCellPoint(1);
+  vtkSmartPointer<vtkPoints> VPoints = vtkSmartPointer<vtkPoints>::New();
+  VPoints->InsertNextPoint(0,LastComputedBounds[2],0);
+  VPoints->InsertNextPoint(0,LastComputedBounds[3],0);
+  vtkSmartPointer<vtkCellArray> VLine = vtkSmartPointer<vtkCellArray>::New();
+  VLine->EstimateSize(1,2);
+  VLine->InsertNextCell(2);
+  VLine->InsertCellPoint(0);
+  VLine->InsertCellPoint(1);
 
-    VCrossLineData = vtkSmartPointer<vtkPolyData>::New();
-    VCrossLineData->SetPoints(VPoints);
-    VCrossLineData->SetLines(VLine);
-    VCrossLineData->Update();
+  VCrossLineData = vtkSmartPointer<vtkPolyData>::New();
+  VCrossLineData->SetPoints(VPoints);
+  VCrossLineData->SetLines(VLine);
+  VCrossLineData->Update();
 
-    vtkSmartPointer<vtkPolyDataMapper> VMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    VMapper->SetInput(VCrossLineData);
+  vtkSmartPointer<vtkPolyDataMapper> VMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  VMapper->SetInput(VCrossLineData);
 
-    VCrossLine = vtkSmartPointer<vtkActor>::New();
-    VCrossLine->SetMapper(VMapper);
-    VCrossLine->SetPickable(false);
-//   VCrossLine->GetProperty()->SetLineStipplePattern(0xF0F0);
+  VCrossLine = vtkSmartPointer<vtkActor>::New();
+  VCrossLine->SetMapper(VMapper);
+  VCrossLine->SetPickable(false);
+  //   VCrossLine->GetProperty()->SetLineStipplePattern(0xF0F0);
 
-    NonCompositedRenderer->AddActor(VCrossLine);
-    OverviewRenderer->AddActor(VCrossLine);
+  NonCompositedRenderer->AddActor(VCrossLine);
+  OverviewRenderer->AddActor(VCrossLine);
 }
 
 //----------------------------------------------------------------------------
 void vtkPVSliceView::initRuler()
 {
-
-    Ruler = vtkSmartPointer<vtkAxisActor2D>::New();
-    Ruler->SetPosition(0.02,0.98);
-    Ruler->SetPosition2(0.15,0.98);
-    Ruler->SetPickable(false);
-    Ruler->SetLabelFactor(0.8);
-    Ruler->SetFontFactor(1);
-    Ruler->SetTitle("nm");
-    Ruler->SetAdjustLabels(false);
-    Ruler->SetNumberOfLabels(3);
-//   this->RulerRenderer->SetViewport(0,0,0.25,0.15);
-    this->RulerRenderer->AddActor(Ruler);
-    RulerRenderer->ResetCamera();
+  RulerSize[0] = 150; RulerSize[1] = 2;
+  Ruler = vtkSmartPointer<vtkAxisActor2D>::New();
+  Ruler->SetPosition(0.02,0.98);
+  Ruler->SetPosition2(0.15,0.98);
+  Ruler->SetPickable(false);
+  Ruler->SetLabelFactor(0.8);
+  Ruler->SetFontFactor(1);
+  Ruler->SetTitle("nm");
+  Ruler->SetAdjustLabels(false);
+  Ruler->SetNumberOfLabels(3);
+  this->NonCompositedRenderer->AddActor(Ruler);
+//   RulerRenderer->ResetCamera();
 }
 
 
@@ -520,11 +519,9 @@ void vtkPVSliceView::Initialize(unsigned int id)
     vtkPVRenderView::Initialize(id);
     this->RenderView->GetRenderer()->UseDepthPeelingOff();
     this->OverviewRenderer->UseDepthPeelingOff();
-    this->RulerRenderer->UseDepthPeelingOff();
 
     this->RenderView->GetRenderer()->GetActiveCamera()->ParallelProjectionOn();
     this->OverviewRenderer->GetActiveCamera()->ParallelProjectionOn();
-    this->RulerRenderer->GetActiveCamera()->ParallelProjectionOn();
 }
 
 //----------------------------------------------------------------------------
@@ -572,130 +569,146 @@ void vtkPVSliceView::SetBackground(double r, double g, double b)
 //----------------------------------------------------------------------------
 void vtkPVSliceView::SetSlice(double pos)
 {
-//   qDebug() << "vtkPVSliceView " << SlicingPlane << "changing slice" << pos;
-    State->setSlicePosition(SlicingMatrix, pos);
-    SegActor *seg;
-    int lowerBound = SlicingPlane * 2;
-    int upperBound = SlicingPlane * 2 + 1;
-    foreach(seg, Segmentations)
-    {
-//     double b[6];
-//     seg->GetDisplayBounds(b);
-//     qDebug() << b[0] << b[1] <<  b[2] <<  b[3] <<  b[4] <<  b[5];
-        bool hide = seg->bounds[upperBound] <= Center[SlicingPlane] ||
-                    seg->bounds[lowerBound] > Center[SlicingPlane];
-        seg->actor->SetVisibility(!hide && ShowSegmentations);
-    }
+  // qDebug() << "vtkPVSliceView " << SlicingPlane << "changing slice" << pos;
+  State->setSlicePosition(SlicingMatrix, pos);
+  SegActor *seg;
+  int lowerBound = SlicingPlane * 2;
+  int upperBound = SlicingPlane * 2 + 1;
+  foreach(seg, Segmentations)
+  {
+    //     double b[6];
+    //     seg->GetDisplayBounds(b);
+    //     qDebug() << b[0] << b[1] <<  b[2] <<  b[3] <<  b[4] <<  b[5];
+    bool hide = seg->bounds[upperBound] <= Center[SlicingPlane] ||
+      seg->bounds[lowerBound] > Center[SlicingPlane];
+    seg->actor->SetVisibility(!hide && ShowSegmentations);
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkPVSliceView::SetSlicingPlane(int plane)
 {
-    if (SlicingPlane == plane)
-        return;
+  if (SlicingPlane == plane)
+    return;
 
-    SlicingPlane = static_cast<VIEW_PLANE>(plane);
+  SlicingPlane = static_cast<VIEW_PLANE>(plane);
 
-    switch (SlicingPlane)
-    {
+  switch (SlicingPlane)
+  {
     case AXIAL:
-        State = AxialState::instance();
-        break;
+      State = AxialState::instance();
+      break;
     case SAGITTAL:
-        State = SagittalState::instance();
-        break;
+      State = SagittalState::instance();
+      break;
     case CORONAL:
     default:
-        State = CoronalState::instance();
-    };
+      State = CoronalState::instance();
+  };
 
-    State->updateSlicingMatrix(SlicingMatrix);
-    State->updateCamera(RenderView->GetRenderer()->GetActiveCamera());
-    State->updateCamera(OverviewRenderer->GetActiveCamera());
+  State->updateSlicingMatrix(SlicingMatrix);
+  State->updateCamera(RenderView->GetRenderer()->GetActiveCamera());
+  State->updateCamera(OverviewRenderer->GetActiveCamera());
 
-    vtkProp3D *actor;
-    foreach(actor, Channels)
-    {
-        State->updateActor(actor);
-    }
-    SegActor *seg;
-    foreach(seg, Segmentations)
-    {
-        State->updateActor(seg->actor);
-    }
-
+  vtkProp3D *actor;
+  foreach(actor, Channels)
+  {
+    State->updateActor(actor);
+  }
+  SegActor *seg;
+  foreach(seg, Segmentations)
+  {
+    State->updateActor(seg->actor);
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkPVSliceView::SetCenter(double x, double y, double z)
 {
-//   qDebug() << "vtkPVSliceView setting Center" << x << y << z;
-//   if (Center[0] == x && Center[1] == y && Center[2] == z)
-//     return;
+  //   qDebug() << "vtkPVSliceView setting Center" << x << y << z;
+  //   if (Center[0] == x && Center[1] == y && Center[2] == z)
+  //     return;
 
-    Center[0] = x;
-    Center[1] = y;
-    Center[2] = z;
-    SetSlice(Center[SlicingPlane]);
-    State->setCrossHairs(HCrossLineData,VCrossLineData, Center, LastComputedBounds);
+  Center[0] = x;
+  Center[1] = y;
+  Center[2] = z;
+  SetSlice(Center[SlicingPlane]);
+  State->setCrossHairs(HCrossLineData,VCrossLineData, Center, LastComputedBounds);
 }
 
 
 //----------------------------------------------------------------------------
 void vtkPVSliceView::SetCenter(double center[3])
 {
-//   qDebug() << "Setting Center3" << center[0] << center[1] << center[2];
-    SetCenter(center[0], center[1], center[2]);
+  //   qDebug() << "Setting Center3" << center[0] << center[1] << center[2];
+  SetCenter(center[0], center[1], center[2]);
 }
 
 //----------------------------------------------------------------------------
 void vtkPVSliceView::SetHCrossLineColor(double r, double g, double b)
 {
-    HCrossLine->GetProperty()->SetColor(r,g,b);
-    HCrossLineColor[0] = r;
-    HCrossLineColor[1] = g;
-    HCrossLineColor[2] = b;
+  HCrossLine->GetProperty()->SetColor(r,g,b);
+  HCrossLineColor[0] = r;
+  HCrossLineColor[1] = g;
+  HCrossLineColor[2] = b;
 }
 
 //----------------------------------------------------------------------------
 void vtkPVSliceView::SetHCrossLineColor(double color[3])
 {
-    SetHCrossLineColor(color[0], color[1], color[2]);
+  SetHCrossLineColor(color[0], color[1], color[2]);
 }
 
 //----------------------------------------------------------------------------
 void vtkPVSliceView::SetVCrossLineColor(double r, double g, double b)
 {
-    VCrossLine->GetProperty()->SetColor(r,g,b);
-    VCrossLineColor[0] = r;
-    VCrossLineColor[1] = g;
-    VCrossLineColor[2] = b;
+  VCrossLine->GetProperty()->SetColor(r,g,b);
+  VCrossLineColor[0] = r;
+  VCrossLineColor[1] = g;
+  VCrossLineColor[2] = b;
 }
 
 //----------------------------------------------------------------------------
 void vtkPVSliceView::SetVCrossLineColor(double color[3])
 {
-    SetVCrossLineColor(color[0], color[1], color[2]);
+  SetVCrossLineColor(color[0], color[1], color[2]);
 }
 
 //----------------------------------------------------------------------------
 void vtkPVSliceView::SetShowSegmentations(bool visible)
 {
-//   qDebug() << "vtkPVSliceView segmentation's visibility = " << value;
-    SegActor *seg;
-    foreach(seg, Segmentations)
-    {
-        seg->actor->SetVisibility(visible);
-    }
-    ShowSegmentations = visible;
+  //   qDebug() << "vtkPVSliceView segmentation's visibility = " << value;
+  SegActor *seg;
+  foreach(seg, Segmentations)
+  {
+    seg->actor->SetVisibility(visible);
+  }
+  ShowSegmentations = visible;
 }
 
 //----------------------------------------------------------------------------
 void vtkPVSliceView::SetShowRuler(bool visible)
 {
-//   qDebug() << "vtkPVSliceView segmentation's visibility = " << value;
+  //   qDebug() << "vtkPVSliceView segmentation's visibility = " << value;
   Ruler->SetVisibility(visible);
   ShowRuler = visible;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVSliceView::SetRulerColor(double r, double g, double b)
+{
+  Ruler->GetProperty()->SetColor(r,g,b);
+  Ruler->GetLabelTextProperty()->SetColor(r,g,b);
+  Ruler->GetTitleTextProperty()->SetColor(r,g,b);
+  RulerColor[0] = r;
+  RulerColor[1] = g;
+  RulerColor[2] = b;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVSliceView::SetRulerColor(double color[3])
+{
+  SetRulerColor(color[0], color[1], color[2]);
 }
 
 //----------------------------------------------------------------------------
@@ -705,20 +718,19 @@ void vtkPVSliceView::updateRuler()
     return;
 
   double *value;
-  double left;
-  double right;
+  double left, right;
 
+  double wPad = 60, hPad  = 100;
 
-  double w, h, wPad, hPad;
-  w = 150;/*px*/
-  wPad = 60;
-  h = 2;/*font factor*/
-  hPad = 100;
-  int *ws;
-  ws = RenderView->GetRenderWindow()->GetSize();
+  int *ws = RenderView->GetRenderWindow()->GetSize();
+
+  bool canDisplayRuler = ws[0] > RulerSize[0] + 2*wPad; 
+  Ruler->SetVisibility(canDisplayRuler);
+  if (!canDisplayRuler)
+    return;
 
   Ruler->SetPoint1(wPad/ws[0],hPad/ws[1]);
-  Ruler->SetPoint2((wPad+w)/ws[0],hPad/ws[1]);
+  Ruler->SetPoint2((wPad+RulerSize[0])/ws[0],hPad/ws[1]);
 
   vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
 
@@ -726,12 +738,10 @@ void vtkPVSliceView::updateRuler()
   coords->SetCoordinateSystemToNormalizedViewport();
 
   int c = SlicingPlane==SAGITTAL?2:0;
-
   coords->SetValue(0,0);
   value = coords->GetComputedWorldValue(GetRenderer());
   left = value[c];
   //   qDebug() << "UR" << value[0] << value[1] << value[2];
-
   coords->SetValue(1,0);
   value = coords->GetComputedWorldValue(GetRenderer());
   right = value[c];

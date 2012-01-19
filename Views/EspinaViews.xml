@@ -60,6 +60,22 @@
         <Documentation>
         </Documentation>
       </IntVectorProperty>
+      <DoubleVectorProperty name="RulerSize"
+        command="SetRulerSize"
+        number_of_elements="2"
+        default_values="150 2">
+        <Documentation>
+	  The Size of the ruler.
+        </Documentation>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty name="RulerColor"
+        command="SetRulerColor"
+        number_of_elements="3"
+        default_values="1 1 0">
+        <Documentation>
+	  The color for the Scale Ruler
+        </Documentation>
+      </DoubleVectorProperty>
 <!--      <DoubleVectorProperty name="Slice"
         command="SetSlice"
         number_of_elements="1"
