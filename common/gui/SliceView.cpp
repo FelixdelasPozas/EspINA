@@ -815,6 +815,30 @@ void SliceView::setRanges(double ranges[6])
   m_spinBox->setMaximum(static_cast<int>(max));
   memcpy(m_range, ranges, 6*sizeof(double));
 }
+//-----------------------------------------------------------------------------
+void SliceView::setFitToGrid(bool value)
+{
+  if (value == m_fitToGrid)
+    return;
+
+  int currentScrollValue = m_scrollBar->value();
+  m_fitToGrid = value;
+  m_scrollBar->blockSignals(true);
+  setRanges(m_range);
+  if (m_fitToGrid)
+  {
+    m_scrollBar->setValue(currentScrollValue/m_gridSize[m_plane]);
+    m_spinBox->setValue(currentScrollValue/m_gridSize[m_plane]);
+    m_spinBox->setSuffix("");
+  }
+  else
+  {
+    m_scrollBar->setValue(currentScrollValue*m_gridSize[m_plane]);
+    m_spinBox->setValue(currentScrollValue*m_gridSize[m_plane]);
+    m_spinBox->setSuffix("nm");
+  }
+  m_scrollBar->blockSignals(false);
+}
 
 //-----------------------------------------------------------------------------
 void SliceView::centerViewOn(double center[3])

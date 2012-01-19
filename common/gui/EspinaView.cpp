@@ -130,6 +130,12 @@ void DefaultEspinaView::createViewMenu(QMenu* menu)
   menu->addAction(showRuler);
   connect(showRuler, SIGNAL(toggled(bool)),
 	  this, SLOT(setRulerVisibility(bool)));
+  QAction *fitToSlices = new QAction(tr("Fit To Slices"),menu);
+  fitToSlices->setCheckable(true);
+  fitToSlices->setChecked(true);
+  menu->addAction(fitToSlices);
+  connect(fitToSlices, SIGNAL(toggled(bool)),
+	  this, SLOT(setFitToSlices(bool)));
 }
 
 //----------------------------------------------------------------------------
@@ -226,6 +232,14 @@ void DefaultEspinaView::loadTestImage()
   yzView->forceRender();
   xzView->forceRender();
   emit statusMsg(QString());
+}
+
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::setFitToSlices(bool fit )
+{
+  xyView->setFitToGrid(fit);
+  yzView->setFitToGrid(fit);
+  xzView->setFitToGrid(fit);
 }
 
 //-----------------------------------------------------------------------------

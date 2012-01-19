@@ -92,6 +92,7 @@ public:
   virtual void loadTestImage();
 
 protected slots:
+  void setFitToSlices(bool fit);
   void setRulerVisibility(bool visible);
 
 private:

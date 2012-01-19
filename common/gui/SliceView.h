@@ -117,7 +117,7 @@ public:
 
   void setGridSize(double size[3]);
   void setRanges(double ranges[6]/*nm*/);
-  void setFitToGrid(bool value) {m_fitToGrid = value; setRanges(m_range);}
+  void setFitToGrid(bool value); 
   void centerViewOn(double center[3]/*nm*/);
   void setCrossHairColors(double hcolor[3], double vcolor[3]);
 
