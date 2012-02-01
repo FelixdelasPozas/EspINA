@@ -19,43 +19,36 @@
 
 #ifndef CACHEDOBJECTBUILDER_H
 #define CACHEDOBJECTBUILDER_H
-#include "cache.h"
 
-#include <filter.h>
+#include "cache/Cache.h"
+
+#include "paraview/Filter.h"
 
 class pqPipelineSource;
-class Cache;
 
-//! A class to provide ParaView pqPipelineSources, either using
-//! ESPINA cache system or creating a new one if not available.
+/// A class to provide ParaView pqPipelineSources, either using
+/// ESPINA cache system or creating a new one if not available.
 class CachedObjectBuilder
 {
 public:
   static CachedObjectBuilder *instance();
-  
-  vtkFilter *createFilter(const QString group, const QString name, const vtkFilter::Arguments args, bool persistent=false);
-  void removeFilter(vtkFilter *filter);
-  vtkFilter *getFilter(Cache::Index &id) { return m_cache->getEntry(id); }
 
-  /**
-   * Insert a stack in the Espina Cache which has been already created in the server
-   *  The only difference with createStack is that the pqPipelineSource was already
-   *  created by ParaView system
-   */
-  //! Only used to load samples by pqPipelineDataReaction
-  vtkFilter* registerProductCreator(const QString& sampleFile, pqPipelineSource* source);
+  pqFilter *createFilter(const QString group, const QString name, const pqFilter::Arguments args, bool persistent=false);
+  pqFilter *registerFilter(const QString id, pqPipelineSource* source);
+  pqFilter *getFilter(Cache::Index &id) { return m_cache->getEntry(id); }
+  void removeFilter(pqFilter *filter);
 
-  static Cache::Index generateId(const QString group, const QString name, const vtkFilter::Arguments args);
+  static Cache::Index generateId(const QString group, const QString name, const pqFilter::Arguments args);
   
 private:
   CachedObjectBuilder();
   ~CachedObjectBuilder(){}
-  
+
   CachedObjectBuilder(const CachedObjectBuilder&);//Not implemented
   void *operator=(const CachedObjectBuilder&);//Not implemented
-    
-  pqPipelineSource *createSMFilter(const QString group, const QString name, const vtkFilter::Arguments args);
-  
+
+  pqPipelineSource *createSMFilter(const QString group, const QString name, const pqFilter::Arguments args);
+
   static CachedObjectBuilder *m_singleton;
   Cache *m_cache;
 };

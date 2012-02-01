@@ -24,7 +24,7 @@
 #include <QString>
 #include <QDir>
 
-class vtkFilter;
+class pqFilter;
 //typedef QString EspinaId;
 
 class Cache
@@ -32,28 +32,33 @@ class Cache
   struct Entry
   {
     int refCounter;
-    vtkFilter *filter;
+    pqFilter *filter;
   };
 public:
   typedef QString Index;
+
   static Cache *instance();
-  void insert(const Index& index, vtkFilter *filter, bool persistent=false);
-  void reference(const Index& index);
-  vtkFilter *getEntry(const Index index);
-  void remove(const Index& index);
-  /** Set the working directory of to the current Sample. It is used to find posible
-   *  files for the cache disk
-   */
+
+  /// Insert cache entry
+  void insert(const Index& index, pqFilter *filter, bool persistent=false);
+  /// Increase entry's reference count
+  void addReference(const Index& index);
+  /// Retrieve cache entry given its index
+  pqFilter *getEntry(const Index index);
+  /// Remove 
+  void removeReference(const Index& index);
+
+  /// Set the working directory of to the current Sample. It is used to find posible
+  /// files for the cache disk
   void setWorkingDirectory(QFileInfo& sample);
   QDir workingDirectory() const {return m_diskCachePath;}
   //CacheEntry *getEspinaEntry(const EspinaId &id) const;
-  
+
 protected:
   Cache(const QDir &path=QDir::tempPath()) : m_diskCachePath(path) {};
-  
+
 private:
   static Cache *m_singleton;
-  //QMap<EspinaId, CacheIndex> m_translator;// Relation between EspinaId and CacheIndex
   QMap<Index, Entry> m_cachedProxies;
   QDir m_diskCachePath;
 };

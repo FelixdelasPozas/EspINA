@@ -40,46 +40,48 @@ class vtkImageResliceMapper;
 class vtkSliceRepresentation : public vtkPVDataRepresentation
 {
 public:
-  static vtkSliceRepresentation* New();
-  vtkTypeMacro(vtkSliceRepresentation,vtkPVDataRepresentation);
-  
-  // vtkAlgorithm::ProcessRequest() equivalent for rendering passes. This is
-  // typically called by the vtkView to request meta-data from the
-  // representations or ask them to perform certain tasks e.g.
-  // PrepareForRendering.
-  virtual int ProcessViewRequest(vtkInformationRequestKey* request_type, vtkInformation* inInfo, vtkInformation* outInfo);
+    static vtkSliceRepresentation* New();
+    vtkTypeMacro ( vtkSliceRepresentation,vtkPVDataRepresentation );
 
-  void SetType(int value);
-  vtkGetMacro(Type,int);
-  //BTX
+    // vtkAlgorithm::ProcessRequest() equivalent for rendering passes. This is
+    // typically called by the vtkView to request meta-data from the
+    // representations or ask them to perform certain tasks e.g.
+    // PrepareForRendering.
+    virtual int ProcessViewRequest ( vtkInformationRequestKey* request_type, vtkInformation* inInfo, vtkInformation* outInfo );
+
+    void SetType ( int value );
+    vtkGetMacro ( Type,int );
+    //BTX
 protected:
-  vtkSliceRepresentation();
+    vtkSliceRepresentation();
+    virtual ~vtkSliceRepresentation();
 
-  // Fill input port information
-  virtual int FillInputPortInformation(int port, vtkInformation* info);
+    // Fill input port information
+    virtual int FillInputPortInformation ( int port, vtkInformation* info );
 
-  // Subclasses should override this to connect inputs to the internal pipeline
-  // as necessary. Since most representations are "meta-filters" (i.e. filters
-  // containing other filters), you should create shallow copies of your input
-  // before connecting to the internal pipeline. The convenience method
-  // GetInternalOutputPort will create a cached shallow copy of a specified
-  // input for you. The related helper functions GetInternalAnnotationOutputPort,
-  // GetInternalSelectionOutputPort should be used to obtain a selection or
-  // annotation port whose selections are localized for a particular input data object.
-  virtual int RequestData(vtkInformation* , vtkInformationVector** , vtkInformationVector* );
-  
-  virtual bool AddToView(vtkView* view);
+    // Subclasses should override this to connect inputs to the internal pipeline
+    // as necessary. Since most representations are "meta-filters" (i.e. filters
+    // containing other filters), you should create shallow copies of your input
+    // before connecting to the internal pipeline. The convenience method
+    // GetInternalOutputPort will create a cached shallow copy of a specified
+    // input for you. The related helper functions GetInternalAnnotationOutputPort,
+    // GetInternalSelectionOutputPort should be used to obtain a selection or
+    // annotation port whose selections are localized for a particular input data object.
+    virtual int RequestData ( vtkInformation* , vtkInformationVector** , vtkInformationVector* );
 
-  vtkTimeStamp DeliveryTimeStamp;
+    virtual bool AddToView ( vtkView* view );
+    virtual void SetVisibility(bool val);
 
-  vtkImageSliceDataDeliveryFilter *DeliveryFilter;
-  vtkImageResliceToColors  *Slice;
-  vtkImageActor            *SliceActor;
-  vtkImageData             *SliceData;
-  vtkPVSliceView::SegActor SegActor;
+    vtkTimeStamp DeliveryTimeStamp;
+
+    vtkImageSliceDataDeliveryFilter *DeliveryFilter;
+    vtkImageResliceToColors  *Slice;
+    vtkImageActor            *SliceActor;
+    vtkImageData             *SliceData;
+    vtkPVSliceView::SegActor SegActor;
 private:
-  int Type;
-  //ETX
+    int Type;
+    //ETX
 };
 
 #endif // VTKSLICEREPRESENTATION_H

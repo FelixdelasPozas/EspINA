@@ -1,6 +1,6 @@
-#include "taxonomy.h"
-#include <stack>
+#include "model/Taxonomy.h"
 
+#include <stack>
 #include <QFile>
 #include <QPixmap>
 #include <QXmlStreamReader>
@@ -8,6 +8,7 @@
 #include <iostream>
 #include <QDebug>
 #include <assert.h>
+#include <qpaintengine.h>
 
 //#include <assert.h>
 /*
@@ -21,7 +22,7 @@
 */
 
 //------------------------------------------------------------------------
-TaxonomyNode::TaxonomyNode(const QString& name, const QString& RGBColor)
+TaxonomyNode::TaxonomyNode(const QString name, const QString RGBColor)
 : m_parent(NULL)
 , m_name(name)//, m_elements(NULL)
 , m_color(RGBColor)
@@ -39,7 +40,7 @@ TaxonomyNode::~TaxonomyNode()
 }
 
 //------------------------------------------------------------------------
-TaxonomyNode* TaxonomyNode::addElement(const QString& qualifiedName)
+TaxonomyNode* TaxonomyNode::addElement(const QString qualifiedName)
 {
   TaxonomyNode *parent = this;
   QString name;
@@ -55,7 +56,7 @@ TaxonomyNode* TaxonomyNode::addElement(const QString& qualifiedName)
 }
 
 //------------------------------------------------------------------------
-TaxonomyNode* TaxonomyNode::element(const QString& qualifiedName)
+TaxonomyNode* TaxonomyNode::element(const QString qualifiedName)
 {
   QString::SectionFlag flag = QString::SectionSkipEmpty;
   QString node = qualifiedName.section("/",0,0,flag);
@@ -318,7 +319,7 @@ bool TaxonomyNode::setData(const QVariant& value, int role)
 //-----------------------------------------------------------------------------
 // TAXONOMY
 //-----------------------------------------------------------------------------
-Taxonomy::Taxonomy(const QString &name)
+Taxonomy::Taxonomy(const QString name)
 : m_root(new TaxonomyNode(name))
 {
 }
@@ -331,7 +332,7 @@ Taxonomy::~Taxonomy()
 }
 
 //-----------------------------------------------------------------------------
-TaxonomyNode* Taxonomy::addElement(const QString &name, const QString &parent)
+TaxonomyNode* Taxonomy::addElement(const QString name, const QString parent)
 {
   TaxonomyNode *node = NULL;
 
@@ -348,7 +349,7 @@ TaxonomyNode* Taxonomy::addElement(const QString &name, const QString &parent)
 }
 
 //-----------------------------------------------------------------------------
-void Taxonomy::removeElement(const QString& qualifiedName)
+void Taxonomy::removeElement(const QString qualifiedName)
 {
   TaxonomyNode *node = element(qualifiedName);
   assert(node);
@@ -359,7 +360,7 @@ void Taxonomy::removeElement(const QString& qualifiedName)
 }
 
 //-----------------------------------------------------------------------------
-TaxonomyNode* Taxonomy::element(const QString& qualifiedName)
+TaxonomyNode* Taxonomy::element(const QString qualifiedName)
 {
   QString::SectionFlag flag = QString::SectionSkipEmpty;
   QString rootName = qualifiedName.section("/",0,0,flag);
@@ -449,8 +450,6 @@ Taxonomy* IOTaxonomy::readXML(QXmlStreamReader& xmlStream)
       }
     }
   }
-  std::cout << "Taxonomy Loaded: " << std::endl;
-  tax->print();
   return tax;
 }
 
@@ -503,7 +502,7 @@ Taxonomy* IOTaxonomy::openXMLTaxonomy(QString fileName)
   return tax;
 }
 
-Taxonomy* IOTaxonomy::loadXMLTaxonomy(QString& content)
+Taxonomy* IOTaxonomy::loadXMLTaxonomy(QString content)
 {
 
 //   if( content.device() )

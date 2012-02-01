@@ -2,13 +2,11 @@ find_package(Quazip REQUIRED)
 include(${QUAZIP_USE_FILE})
 
 include_directories(
-  cache
-  proxies
-  gui
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}  #For wrap/ui files
 #   ${ITK_DIR}/../
 )
+
 # find_package(Boost REQUIRED COMPONENTS  system filesystem graph)
 # link_directories ( ${Boost_LIBRARY_DIRS} )
 #------------------------------------------------------------------------------
@@ -33,12 +31,14 @@ source_group("Generated" FILES
 
 set (LOCAL_SOURCES
   )
-set (MODEL_SOURCES
-  model/EspINA.cpp
-  model/ModelTest.cpp
+
+set (CACHE_SOURCES
+  cache/Cache.cpp
+  cache/CachedObjectBuilder.cpp
+  cache/CacheHash.cpp
   )
 
-set (GUI_SOURCES
+set (GUI_SOURCES 
   gui/DynamicWidget.cpp
   gui/EspinaDockWidget.cpp
   gui/EspinaView.cpp
@@ -48,12 +48,27 @@ set (GUI_SOURCES
   gui/VolumeView.cpp
   )
 
+set (MODEL_SOURCES
+  model/EspINA.cpp
+  model/ModelTest.cpp
+  model/Segmentation.cpp
+  model/Channel.cpp
+  model/Sample.cpp
+  model/Taxonomy.cpp
+  )
+
+set (PARAVIEW_SOURCES
+  paraview/Filter.cpp
+  paraview/pqData.cpp
+  )
+
 set(Espina_SOURCE_FILES
   ${LOCAL_SOURCES}
-  ${MODEL_SOURCES}
-#   ${CACHE_SOURCES}
-#   ${PROXIES_SOURCES}
+  ${CACHE_SOURCES}
   ${GUI_SOURCES}
+  ${MODEL_SOURCES}
+  ${PARAVIEW_SOURCES}
+#   ${PROXIES_SOURCES}
   ${MOC_BUILT_SOURCES}
   ${RCC_BUILT_SOURCES}
   )
@@ -70,4 +85,6 @@ target_link_libraries (Espina ${EXTERNAL_LIBS})
 
 install (TARGETS Espina ${PARAVIEW_LIBRARIES} LIBRARY DESTINATION lib)
 
-# add_subdirectory(tests)
+if (${BUILD_TESTING})
+  add_subdirectory(model/tests)
+endif (${BUILD_TESTING})

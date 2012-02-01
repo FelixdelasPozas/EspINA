@@ -17,10 +17,11 @@
 
 */
 
-#include "filter.h"
+#include "paraview/Filter.h"
 
 // ESPINA
-#include "cache/cachedObjectBuilder.h"
+#include "cache/CachedObjectBuilder.h"
+#include "paraview/pqData.h"
 
 // ParaQ
 #include <pqApplicationCore.h>
@@ -33,53 +34,51 @@
 #include <assert.h>
 #include <QDebug>
 
-#include "data/hash.h"
 #include <pqOutputPort.h>
 #include <vtkPVDataInformation.h>
 
 using namespace std;
 
-vtkFilter::vtkFilter(pqPipelineSource* source, const QString& cacheId)
-: m_pipelineSource(source)
+pqFilter::pqFilter(pqPipelineSource* source, const QString& cacheId)
+: m_source(source)
 , m_id(cacheId)
 {
 }
-vtkFilter::~vtkFilter()
+
+pqFilter::~pqFilter()
 {
    pqApplicationCore *core = pqApplicationCore::instance();
    pqObjectBuilder *ob = core->getObjectBuilder();
-   
-   ob->destroy(m_pipelineSource);
+
+   qDebug() << m_id << "has" << m_source->getNumberOfConsumers() << "consumers";
+   ob->destroy(m_source);
 }
 
-int vtkFilter::numProducts()
+int pqFilter::getNumberOfData()
 {
-  m_pipelineSource->getProxy()->UpdateVTKObjects();
-  return m_pipelineSource->getNumberOfOutputPorts();
+  m_source->getProxy()->UpdateVTKObjects();
+  return m_source->getNumberOfOutputPorts();
 }
 
-vtkProduct vtkFilter::product(int i)
+pqData pqFilter::data(int i)
 {
-  //TODO: Check bounds
-  vtkProduct product(this,i);
-  return product;
+  pqData filterData(this,i);
+  return filterData;
 }
 
-QList<vtkProduct *> vtkFilter::products()
+void pqFilter::clearPipeline()
 {
-  assert(false);
-  QList<vtkProduct *> p;
-  return p;
 }
+
 
 
 //-----------------------------------------------------------------------------
 // ESPINA FILTER
 //-----------------------------------------------------------------------------
-QString EspinaFilter::getFilterArguments() const
-{
-  return m_args;
-}
+// QString EspinaFilter::getFilterArguments() const
+// {
+//   return m_args;
+// }
 
 
 /*

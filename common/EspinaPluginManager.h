@@ -36,7 +36,7 @@ class EspinaPluginManager
 public:
   EspinaPluginManager(){}
   ~EspinaPluginManager(){}
-  
+
   //! Returns a SelectionManager singleton
   static EspinaPluginManager *instance()
   {

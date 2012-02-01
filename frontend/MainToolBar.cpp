@@ -45,12 +45,16 @@ MainToolBar::MainToolBar(QSharedPointer<EspINA> model, QWidget* parent)
 
 
    // User selected Taxonomy Selection List
-  QTreeView *taxonomyView = new QTreeView(this);
+  taxonomyView = new QTreeView(this);
   taxonomyView->setHeaderHidden(true);
 
-  QComboBox *taxonomySelector = new QComboBox(this);
+  taxonomySelector = new QComboBox(this);
   taxonomySelector->setView(taxonomyView); //Brutal!
   taxonomySelector->setModel(model.data());
+  taxonomySelector->setRootModelIndex(model->taxonomyRoot());
+  connect(model.data(),SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+	  this,SLOT(updateTaxonomy(QModelIndex,QModelIndex)));
+	  
   taxonomySelector->setMinimumWidth(160);
   taxonomySelector->setToolTip( tr("Type of new segmentation") );
   taxonomySelector->setSizeAdjustPolicy(QComboBox::AdjustToContents);
@@ -74,6 +78,14 @@ void MainToolBar::setShowSegmentations(bool visible)
     toggleSegVisibility->setIcon(QIcon(":/espina/show_all.svg"));
   else
     toggleSegVisibility->setIcon(QIcon(":/espina/hide_all.svg"));
-  
+
   emit showSegmentations(visible);
+}
+
+//----------------------------------------------------------------------------
+void MainToolBar::updateTaxonomy(QModelIndex left, QModelIndex right)
+{
+  if (left == taxonomySelector->view()->rootIndex())
+    taxonomySelector->setCurrentIndex(0);
+  taxonomyView->expandAll();
 }

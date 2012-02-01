@@ -71,7 +71,7 @@
       <DoubleVectorProperty name="RulerColor"
         command="SetRulerColor"
         number_of_elements="3"
-        default_values="1 1 0">
+        default_values="1 1 1">
         <Documentation>
 	  The color for the Scale Ruler
         </Documentation>

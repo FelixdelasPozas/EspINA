@@ -78,7 +78,7 @@ VolumeView::VolumeView(QWidget* parent)
 //-----------------------------------------------------------------------------
 void VolumeView::buildControls()
 {
-  m_controlLayout = new QHBoxLayout();
+  m_controlLayout = new QHBoxLayout(this);
   m_controlLayout->addStretch();
 
   m_snapshot.setIcon(QIcon(":/espina/snapshot_scene.svg"));
@@ -140,7 +140,7 @@ void VolumeView::onConnect()
 
   vtkInteractorStyleTrackballCamera *style = vtkInteractorStyleTrackballCamera::New();
   rwi->SetInteractorStyle(style);
-
+  style->Delete();
 
   double black[3] = {0,0,0};
   viewProxy->GetRenderer()->SetBackground(black);

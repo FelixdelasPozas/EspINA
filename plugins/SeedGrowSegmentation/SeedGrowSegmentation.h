@@ -38,7 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "selectionManager.h"
 
 #include <QToolButton>
-#include "SeedGrowSegmentationPreferences.h"
+// #include "SeedGrowSegmentationPreferences.h"
 
 class QMenu;//Forward declarations
 class QSpinBox;
@@ -50,46 +50,46 @@ class QString;
 
 //! Seed Growing Segmenation Plugin
 class SeedGrowSegmentation
-      : public ISegmentationPlugin
-      , public IFilterFactory
+: public QActionGroup
+//       : public ISegmentationPlugin
+//       , public IFilterFactory
 {
   Q_OBJECT
-
 public:
   SeedGrowSegmentation(QObject* parent);
 
-  EspinaFilter *createFilter(QString filter, ITraceNode::Arguments& args);
+//   EspinaFilter *createFilter(QString filter, ITraceNode::Arguments& args);
 
-protected slots:
-  //! Changes the method to select the input seed
-  void changeSeedSelector(QAction *seedSel);
-  //! Wait for Seed Selection
-  void waitSeedSelection(bool wait);
-  //! Abort current selection
-  void abortSelection();
-  //! Starts the segmentation filter putting a seed at @x, @y, @z.
-  void startSegmentation(ISelectionHandler::MultiSelection msel);
-
-signals:
-  void productCreated(Segmentation *);
-  void selectionAborted(ISelectionHandler *);
-
+// protected slots:
+//   //! Changes the method to select the input seed
+//   void changeSeedSelector(QAction *seedSel);
+//   //! Wait for Seed Selection
+//   void waitSeedSelection(bool wait);
+//   //! Abort current selection
+//   void abortSelection();
+//   //! Starts the segmentation filter putting a seed at @x, @y, @z.
+//   void startSegmentation(ISelectionHandler::MultiSelection msel);
+// 
+// signals:
+//   void productCreated(Segmentation *);
+//   void selectionAborted(ISelectionHandler *);
+// 
 private:
-  void buildSelectors();
+//   void buildSelectors();
   void buildUI();
 
-  void addPixelSelector(QAction *action, ISelectionHandler *handler);
+//   void addPixelSelector(QAction *action, ISelectionHandler *handler);
 
 private:
   QSpinBox *m_threshold;
   QCheckBox *m_useDefaultVOI;
-  IVOI *m_defaultVOI;
+//   IVOI *m_defaultVOI;
   QToolButton *m_segButton;
   QMenu *m_selectors;
-  ISelectionHandler *m_seedSelector;
-  QMap<QAction *, ISelectionHandler *> m_seedSelectors;
+//   ISelectionHandler *m_seedSelector;
+//   QMap<QAction *, ISelectionHandler *> m_seedSelectors;
   
-  SeedGrowSegmentationSettings *m_preferences;
+//   SeedGrowSegmentationSettings *m_preferences;
 };
 
 #endif// SEEDGROWINGSEGMENTATION_H

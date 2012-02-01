@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,22 +17,32 @@
 */
 
 
-#ifndef VTKSMSLICEVIEWPROXY_H
-#define VTKSMSLICEVIEWPROXY_H
+#ifndef ADDCHANNEL_H
+#define ADDCHANNEL_H
 
-#include <vtkSMRenderViewProxy.h>
+#include <QUndoStack>
+#include <QSharedPointer>
 
+class Channel;
+class EspINA;
+class Sample;
 
-class vtkSMSliceViewProxy : public vtkSMRenderViewProxy
+class AddChannel
+: public QUndoCommand
 {
 public:
-    static vtkSMSliceViewProxy* New();
-    vtkTypeMacro ( vtkSMSliceViewProxy, vtkSMRenderViewProxy );
+  explicit AddChannel(QSharedPointer<EspINA>  model,
+		      QSharedPointer<Sample>  sample,
+		      QSharedPointer<Channel> channel,
+		      QUndoCommand *parent=0);
 
-    virtual vtkSMRepresentationProxy* CreateDefaultRepresentation ( vtkSMProxy* source, int port );
-    // Description:
-    // Returns the client-side renderer (composited or 3D).
-    vtkRenderer* GetOverviewRenderer();
+  virtual void redo();
+  virtual void undo();
+
+private:
+  QSharedPointer<EspINA>  m_model;
+  QSharedPointer<Sample>  m_sample;
+  QSharedPointer<Channel> m_channel;
 };
 
-#endif // VTKSMSLICEVIEWPROXY_H
+#endif // ADDCHANNEL_H

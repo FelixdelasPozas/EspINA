@@ -1,11 +1,17 @@
 #ifndef ESPINATYPES_H
 #define ESPINATYPES_H
 
-#include "data/cajalTypes.h"
+// #include "data/cajalTypes.h"
 
 #include <QString>
 #include <QMap>
 #include <QVariant>
+//! A Trace node argument. It only has semantic meaning
+typedef QString NodeArg;
+//! The value of a node argument
+typedef QString ParamValue;
+typedef std::pair<NodeArg, ParamValue> NodeParam;
+typedef std::vector<NodeParam> NodeParamList;
 
 typedef NodeArg EspinaArg;
 typedef NodeParam EspinaParam;

@@ -23,6 +23,7 @@
 #include <QMainWindow>
 #include <gui/DynamicWidget.h>
 
+class QUndoStack;
 class QFrame;
 class EspinaView;
 class MainToolBar;
@@ -51,11 +52,13 @@ public slots:
   virtual void decreaseLOD(){}
   virtual void setActivity(QString activity);
   virtual void setLOD(){}
-  
-  /// Open a new file for analysis after unloading Previous data.
-  void openFile();
-  /// Load new data for analysis
-  void loadFile();
+
+  /// Creates an empty analysis 
+  void newAnalysis();
+  /// Close former analysis and load a new one
+  void openAnalysis();
+  /// Add new data from file to current analysis
+  void addToAnalysis();
 
 protected slots:
   void updateStatus(QString msg);
@@ -64,16 +67,15 @@ protected:
   void createActivityMenu();
   void createLODMenu();
   virtual void closeEvent(QCloseEvent* );
-  
-  void loadParaviewBehavior();
 
+  void loadParaviewBehavior();
 
 private:
   QSharedPointer<EspINA>    m_espina;
   MainToolBar              *m_mainToolBar;
   QMenu                    *m_viewMenu;
 
-  QFrame                   *m_centralWidget;
+  QUndoStack               *m_undoStack;
   QString                   m_currentActivity;
   EspinaView               *m_view;
 #ifdef DEBUG

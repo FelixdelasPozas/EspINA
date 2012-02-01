@@ -19,11 +19,14 @@
 
 #include "SegmentationExplorer.h"
 
-#include <common/model/EspINA.h>
+#include "common/model/EspINA.h"
+
 #include <iostream>
 #include <cstdio>
 
-class SegmentationExplorer::GUI : public QWidget, public Ui::SegmentationExplorer
+class SegmentationExplorer::GUI
+: public QWidget
+, public Ui::SegmentationExplorer
 {
 public:
   GUI(){setupUi(this);}

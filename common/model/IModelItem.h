@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,22 +17,18 @@
 */
 
 
-#ifndef VTKSMSLICEVIEWPROXY_H
-#define VTKSMSLICEVIEWPROXY_H
+#ifndef IMODELITEM_H
+#define IMODELITEM_H
 
-#include <vtkSMRenderViewProxy.h>
+#include <QModelIndex>
 
-
-class vtkSMSliceViewProxy : public vtkSMRenderViewProxy
+class IModelItem
 {
 public:
-    static vtkSMSliceViewProxy* New();
-    vtkTypeMacro ( vtkSMSliceViewProxy, vtkSMRenderViewProxy );
+  enum ItemType {TAXONOMY, SAMPLE, CHANNEL, SEGMENTATION};
 
-    virtual vtkSMRepresentationProxy* CreateDefaultRepresentation ( vtkSMProxy* source, int port );
-    // Description:
-    // Returns the client-side renderer (composited or 3D).
-    vtkRenderer* GetOverviewRenderer();
+  virtual QVariant data(int role) const = 0;
+  virtual ItemType type() const = 0;
 };
 
-#endif // VTKSMSLICEVIEWPROXY_H
+#endif // IMODELITEM_H

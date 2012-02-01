@@ -23,6 +23,6 @@
         <file>export_scene.svg</file>
         <file>snapshot_scene.svg</file>
         <file>removeSeg.svg</file>
-        <file>layouts.txt</file>
+        <file>defaultTaxonomy.xml</file>
     </qresource>
 </RCC>

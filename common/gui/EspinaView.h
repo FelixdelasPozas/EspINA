@@ -55,7 +55,6 @@ public:
 public slots:
   virtual void setShowSegmentations(bool visibility) = 0;
   virtual void setCenter(double x, double y, double z) = 0;
-  virtual void loadTestImage() = 0;
 
 signals:
   void statusMsg(QString);
@@ -89,11 +88,13 @@ public:
   virtual void setShowSegmentations(bool visibility);
   void setCenter(double x, double y, double z);
 
-  virtual void loadTestImage();
-
 protected slots:
+  virtual void rowsInserted(const QModelIndex& parent, int start, int end);
+  virtual void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end);
+
   void setFitToSlices(bool fit);
   void setRulerVisibility(bool visible);
+
 
 private:
   bool first;

@@ -23,6 +23,9 @@
 
 #include "gui/SliceView.h"
 #include "gui/VolumeView.h"
+#include "model/IModelItem.h"
+#include "model/Channel.h"
+#include "paraview/pqData.h"
 
 #include <QDockWidget>
 #include <QMainWindow>
@@ -35,7 +38,7 @@
 #include <pqApplicationCore.h>
 #include <pqPipelineSource.h>
 #include <QDir>
-#include <qmenu.h>
+#include <QMenu>
 
 //----------------------------------------------------------------------------
 EspinaView::EspinaView( QMainWindow* parent, const QString activity)
@@ -56,28 +59,16 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
 
   setObjectName("xyView");
 
-  QPushButton *fakeLoad = new QPushButton(tr("Load Test Stack"));
-  connect(fakeLoad,SIGNAL(clicked(bool)),
-          this, SLOT(loadTestImage()));
-
-//   double gridSize[3] = {1, 1, 2};
-//   double ranges[6] = {0,600,0,500,0,114};
-  double gridSize[3] = {12.644, 12.644, 20};
-  double ranges[6] = {0,798,0,797,0,272};
-  ranges[1] = gridSize[0]*ranges[1];
-  ranges[3] = gridSize[1]*ranges[3];
-  ranges[5] = gridSize[2]*ranges[5];
+  double ranges[6] = {0,0,0,0,0,0};
   qDebug() << "New Default EspinaView";
   xyView = new SliceView(vtkPVSliceView::AXIAL);
   xyView->setCrossHairColors(blue, magenta);
-  xyView->setRanges(ranges);
-  xyView->setGridSize(gridSize);
+//   xyView->setRanges(ranges);
   xyView->setFitToGrid(true);
   connect(xyView, SIGNAL(centerChanged(double,double,double)),
 	  this, SLOT(setCenter(double,double,double)));
   this->setLayout(new QVBoxLayout());
   this->layout()->addWidget(xyView);
-  this->layout()->addWidget(fakeLoad);
   this->layout()->setMargin(0);
 
   volDock = QSharedPointer<QDockWidget>(new QDockWidget(tr("3D"),parent));
@@ -89,8 +80,6 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   yzDock->setObjectName("yzDock");
   yzView = new SliceView(vtkPVSliceView::SAGITTAL);
   yzView->setCrossHairColors(blue, cyan);
-  yzView->setRanges(ranges);
-  yzView->setGridSize(gridSize);
   yzView->setFitToGrid(true);
   connect(yzView, SIGNAL(centerChanged(double,double,double)),
 	  this, SLOT(setCenter(double,double,double)));
@@ -100,8 +89,6 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   xzDock->setObjectName("xzDock");
   xzView = new SliceView(vtkPVSliceView::CORONAL);
   xzView->setCrossHairColors(cyan, magenta);
-  xzView->setRanges(ranges);
-  xzView->setGridSize(gridSize);
   xzView->setFitToGrid(true);
   connect(xzView, SIGNAL(centerChanged(double,double,double)),
 	  this, SLOT(setCenter(double,double,double)));
@@ -184,54 +171,65 @@ void DefaultEspinaView::setCenter(double x, double y, double z)
 }
 
 //-----------------------------------------------------------------------------
-void DefaultEspinaView::loadTestImage()
+void DefaultEspinaView::rowsInserted(const QModelIndex& parent, int start, int end)
 {
+  if (!parent.isValid())
+    return;
 
-  qDebug() << this << ": Loading Test Image";
-  pqServer *server = pqActiveObjects::instance().activeServer();
-  pqObjectBuilder* builder = pqApplicationCore::instance()->getObjectBuilder();
-
-  pqPipelineSource *img;
-  if (first)
+  QModelIndex index = parent.child(start, 0);
+  IModelItem *item  = static_cast<IModelItem *>(index.internalPointer());
+  switch (item->type())
   {
-    img = builder->createReader("sources","MetaImageReader",
-// 				QStringList("/home/jpena/Stacks/paraPeque.pvd"),
-// 				QStringList("/home/jpena/Stacks/Peque/peque.mhd"),
-// 				QStringList("/home/jpena/Stacks/AlzheimerE-reg-affine-012-510/AlzheimerE.pvd"),
-// 				QStringList("/home/cbbp/Primeras Series Hechas/19-12wtSerie1/19-12wt Rigid-Body gaussian1-1.mhd"),
-				QStringList("/home/cbbp/Primeras Series Hechas/19-12tgSerie4/19-12TG.mhd"),
-					    server);
-    first = false;
-    xyView->addChannelRepresentation(img->getOutputPort(0));
-    yzView->addChannelRepresentation(img->getOutputPort(0));
-    xzView->addChannelRepresentation(img->getOutputPort(0));
-  }else{
-    //QDir segDir("/home/cbbp/Primeras Series Hechas/19-12wtSerie1/savegordo/");
-    QDir segDir("/home/cbbp/Primeras Series Hechas/19-12tgSerie4/19-12TG-Serie4/");
-    QString file;
-    QStringList entries = segDir.entryList(QStringList("*.pvd"));
-    int total = entries.size();
-    int loaded = 1;
-    foreach(file, entries)
+    case IModelItem::CHANNEL:
     {
-      img = builder->createReader("sources","PVDReader",
-      QStringList(segDir.path()+"/"+file),
-      //     QStringList("/home/jpena/Stacks/Peque/pequeFromSegmha/fa40f2b8d6b3bdd039fe2bd7086229eb61c9605e.pvd"),
-      server);
-      xyView->addSegmentationRepresentation(img->getOutputPort(0));
-      yzView->addSegmentationRepresentation(img->getOutputPort(0));
-      xzView->addSegmentationRepresentation(img->getOutputPort(0));
-      volView->addSegmentationRepresentation(img->getOutputPort(0));
-
-      emit statusMsg(QString("Loaded %1/%2 Segmentations.").arg(loaded++).arg(total));
-//       if (loaded > 40)
-// 	break;
+      Q_ASSERT(start == end);// Only 1-row-at-a-time insertions are allowed
+      Channel *channel = dynamic_cast<Channel *>(item);
+      qDebug() << "Add Channel:" << channel->data(Qt::DisplayRole).toString();
+      xyView->addChannelRepresentation(channel);
+      yzView->addChannelRepresentation(channel);
+      xzView->addChannelRepresentation(channel);
+      break;
     }
-  }
+    default:
+      break;
+  };
   xyView->forceRender();
   yzView->forceRender();
   xzView->forceRender();
-  emit statusMsg(QString());
+}
+
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end)
+{
+  if (!parent.isValid())
+    return;
+
+  qDebug() << parent.data(Qt::DisplayRole).toString();
+  QModelIndex index = parent.child(start, 0);
+  IModelItem *item  = static_cast<IModelItem *>(index.internalPointer());
+  switch (item->type())
+  {
+    case IModelItem::CHANNEL:
+    {
+      Q_ASSERT(start == end);// Only 1-row-at-a-time insertions are allowed
+      Channel *channel = dynamic_cast<Channel *>(item);
+      qDebug() << "Remove Channel:" << channel->data(Qt::DisplayRole).toString();
+      xyView->removeChannelRepresentation(channel);
+      yzView->removeChannelRepresentation(channel);
+      xzView->removeChannelRepresentation(channel);
+
+      double emptyBounds[6] = {0,0,0,0,0,0};
+      xyView->setRanges(emptyBounds);
+      yzView->setRanges(emptyBounds);
+      xzView->setRanges(emptyBounds);
+      break;
+    }
+    default:
+      break;
+  };
+  xyView->forceRender();
+  yzView->forceRender();
+  xzView->forceRender();
 }
 
 //-----------------------------------------------------------------------------

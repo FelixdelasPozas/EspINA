@@ -1,13 +1,13 @@
-#include "hash.h"
-#include "cajalTypes.h"
+#include "cache/CacheHash.h"
+
 #include <QCryptographicHash>
 
 //! Generates a Sha1 hash code from a vector of strings 
-QString generateSha1( QStringList& v )
-{  
+QString generateSha1( QStringList& vector )
+{
   QCryptographicHash* hasher = new QCryptographicHash( QCryptographicHash::Sha1 );
-  
-  foreach(QString str, v)
+
+  foreach(QString str, vector)
     hasher->addData(str.toStdString().c_str(), str.size());
 
   QString outputHash = QString(hasher->result().toHex());
@@ -15,6 +15,7 @@ QString generateSha1( QStringList& v )
   return outputHash;
 }
 
+/*
 //! It flatten the NodeParamList to returning a vector of strings
 QStringList reduceArgs( NodeParamList& nl)
 {
@@ -27,3 +28,4 @@ QStringList reduceArgs( NodeParamList& nl)
   }
   return v;
 }
+*/

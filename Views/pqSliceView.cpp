@@ -55,33 +55,33 @@ pqSliceView::ManipulatorType pqSliceView::DefaultManipulatorTypes[9] =
 
 
 //-----------------------------------------------------------------------------
-pqSliceView::pqSliceView(
-  const QString& group,
-  const QString& name, 
-  vtkSMViewProxy* viewProxy,
-  pqServer* server, 
-  QObject* _parent):
-  Superclass(espinaRenderViewType(), group, name, viewProxy, server, _parent)
-  , SlicingPlane(vtkPVSliceView::AXIAL)
+pqSliceView::pqSliceView (
+    const QString& group,
+    const QString& name,
+    vtkSMViewProxy* viewProxy,
+    pqServer* server,
+    QObject* _parent ) :
+        Superclass ( espinaRenderViewType(), group, name, viewProxy, server, _parent )
+        , SlicingPlane ( vtkPVSliceView::AXIAL )
 {
-  qDebug() << this << ": Created";
-  this->InitializedWidgets = false;
+    qDebug() << this << ": Created";
+    this->InitializedWidgets = false;
 }
 
 
 //-----------------------------------------------------------------------------
-pqSliceView::pqSliceView(
-  const QString& viewtypemodule,
-  const QString& group,
-  const QString& name,
-  vtkSMViewProxy* viewmodule,
-  pqServer* server,
-  QObject* p)
-: Superclass(espinaRenderViewType(), group, name, viewmodule, server, p)
-, SlicingPlane(vtkPVSliceView::AXIAL)
+pqSliceView::pqSliceView (
+    const QString& viewtypemodule,
+    const QString& group,
+    const QString& name,
+    vtkSMViewProxy* viewmodule,
+    pqServer* server,
+    QObject* p )
+        : Superclass ( espinaRenderViewType(), group, name, viewmodule, server, p )
+        , SlicingPlane ( vtkPVSliceView::AXIAL )
 {
-  qDebug() << "pqSliceView(" << this << ") : Created";
-  this->InitializedWidgets = false;
+    qDebug() << "pqSliceView(" << this << ") : Created";
+    this->InitializedWidgets = false;
 }
 
 
@@ -96,8 +96,8 @@ pqSliceView::~pqSliceView()
 /// action gets pushed on the interaction undo stack.
 void pqSliceView::resetCamera()
 {
-  this->getProxy()->InvokeCommand("ResetCamera");
-  this->render();
+    this->getProxy()->InvokeCommand ( "ResetCamera" );
+    this->render();
 }
 
 //-----------------------------------------------------------------------------
@@ -106,59 +106,59 @@ void pqSliceView::resetCamera()
 // don't change any render module properties here.
 void pqSliceView::initializeWidgets()
 {
-  if (this->InitializedWidgets)
+    if ( this->InitializedWidgets )
     {
-    return;
+        return;
     }
 
-  this->InitializedWidgets = true;
+    this->InitializedWidgets = true;
 
-  vtkSMSliceViewProxy* renModule = vtkSMSliceViewProxy::SafeDownCast(
-    this->getProxy());
+    vtkSMSliceViewProxy* renModule = vtkSMSliceViewProxy::SafeDownCast (
+                                         this->getProxy() );
 
-  QVTKWidget* vtkwidget = qobject_cast<QVTKWidget*>(this->getWidget());
-  if (vtkwidget)
+    QVTKWidget* vtkwidget = qobject_cast<QVTKWidget*> ( this->getWidget() );
+    if ( vtkwidget )
     {
-    vtkwidget->SetRenderWindow(renModule->GetRenderWindow());
+        vtkwidget->SetRenderWindow ( renModule->GetRenderWindow() );
     }
 }
 
 //-----------------------------------------------------------------------------
-vtkImageData* pqSliceView::captureImage(int magnification)
+vtkImageData* pqSliceView::captureImage ( int magnification )
 {
-  Q_ASSERT(false);
-  if (this->getWidget()->isVisible())
+    Q_ASSERT ( false );
+    if ( this->getWidget()->isVisible() )
     {
-    vtkSMRenderViewProxy* view = vtkSMRenderViewProxy::SafeDownCast(
-      this->getProxy());
+        vtkSMRenderViewProxy* view = vtkSMRenderViewProxy::SafeDownCast (
+                                         this->getProxy() );
 
-    return view->CaptureWindow(magnification);
+        return view->CaptureWindow ( magnification );
     }
 
-  // Don't return any image when the view is not visible.
-  return NULL;
+    // Don't return any image when the view is not visible.
+    return NULL;
 }
 
 //-----------------------------------------------------------------------------
-bool pqSliceView::canDisplay(pqOutputPort* opPort) const
+bool pqSliceView::canDisplay ( pqOutputPort* opPort ) const
 {
-  if (opPort == NULL || !this->Superclass::canDisplay(opPort))
+    if ( opPort == NULL || !this->Superclass::canDisplay ( opPort ) )
     {
-    return false;
+        return false;
     }
 
-  pqPipelineSource* source = opPort->getSource();
-  vtkSMSourceProxy* sourceProxy =
-    vtkSMSourceProxy::SafeDownCast(source->getProxy());
-  if (!sourceProxy ||
-     sourceProxy->GetOutputPortsCreated()==0)
+    pqPipelineSource* source = opPort->getSource();
+    vtkSMSourceProxy* sourceProxy =
+        vtkSMSourceProxy::SafeDownCast ( source->getProxy() );
+    if ( !sourceProxy ||
+            sourceProxy->GetOutputPortsCreated() ==0 )
     {
-    return false;
+        return false;
     }
 
-  const char* dataclassname = opPort->getDataClassName();
-  return (strcmp(dataclassname, "vtkImageData") == 0 ||
-    strcmp(dataclassname, "vtkUniformGrid") == 0);
+    const char* dataclassname = opPort->getDataClassName();
+    return ( strcmp ( dataclassname, "vtkImageData" ) == 0 ||
+             strcmp ( dataclassname, "vtkUniformGrid" ) == 0 );
 }
 
 //-----------------------------------------------------------------------------
@@ -169,70 +169,76 @@ bool pqSliceView::canDisplay(pqOutputPort* opPort) const
 
 
 //-----------------------------------------------------------------------------
-void pqSliceView::setSlice(double pos /*in nm*/)
+void pqSliceView::setSlice ( double pos /*in nm*/ )
 {
-  if (Center[SlicingPlane] == pos)
-    return;
+    if ( Center[SlicingPlane] == pos )
+        return;
 
 //   qDebug() << this << ": Changing Slice " << pos;
 
-  Center[SlicingPlane] = pos;
+    Center[SlicingPlane] = pos;
 
-  vtkSMPropertyHelper(this->getProxy(), "Center").Set(Center,3);
-  this->getProxy()->UpdateVTKObjects();
-  forceRender();
+    vtkSMPropertyHelper ( this->getProxy(), "Center" ).Set ( Center,3 );
+    this->getProxy()->UpdateVTKObjects();
+    forceRender();
 
-  emit centerChanged(Center[0], Center[1], Center[2]);
+    emit centerChanged ( Center[0], Center[1], Center[2] );
 }
 
 //-----------------------------------------------------------------------------
-void pqSliceView::centerViewOn(double x, double y, double z)
+void pqSliceView::centerViewOn ( double x, double y, double z )
 {
-  if (Center[0] == x && Center[1] == y && Center[2] == z)
-    return;
+    if ( Center[0] == x && Center[1] == y && Center[2] == z )
+        return;
 
 //   qDebug() << "pqSliceView: Setting Center" << x << y << z;
 
-  Center[0] = x;
-  Center[1] = y;
-  Center[2] = z;
+    Center[0] = x;
+    Center[1] = y;
+    Center[2] = z;
 
-  vtkSMPropertyHelper(this->getProxy(), "Center").Set(Center,3);
-  this->getProxy()->UpdateVTKObjects();
-  forceRender();
+    vtkSMPropertyHelper ( this->getProxy(), "Center" ).Set ( Center,3 );
+    this->getProxy()->UpdateVTKObjects();
+    forceRender();
 
-  emit centerChanged(Center[0], Center[1], Center[2]);
+    emit centerChanged ( Center[0], Center[1], Center[2] );
 }
 
 
 //-----------------------------------------------------------------------------
-void pqSliceView::setSlicingPlane(vtkPVSliceView::VIEW_PLANE plane)
+void pqSliceView::setSlicingPlane ( vtkPVSliceView::VIEW_PLANE plane )
 {
 //   qDebug() << "Changing Slicing Plane";
-  if (SlicingPlane == plane)
-    return;
+    if ( SlicingPlane == plane )
+        return;
 
-  SlicingPlane = plane;
-  vtkSMPropertyHelper(this->getProxy(), "SlicingPlane").Set(plane);
-  this->getProxy()->UpdateVTKObjects();
-  forceRender();
+    SlicingPlane = plane;
+    vtkSMPropertyHelper ( this->getProxy(), "SlicingPlane" ).Set ( plane );
+    this->getProxy()->UpdateVTKObjects();
+    forceRender();
 }
 
 //-----------------------------------------------------------------------------
-void pqSliceView::setShowSegmentations(bool visible)
+vtkSMSliceViewProxy* pqSliceView::getRenderViewProxy() const
+{
+  return vtkSMSliceViewProxy::SafeDownCast(this->getViewProxy());
+}
+
+//-----------------------------------------------------------------------------
+void pqSliceView::setShowSegmentations ( bool visible )
 {
 //   qDebug() << this << ": Segmentation Visibility = " << visible;
-  vtkSMPropertyHelper(this->getProxy(), "ShowSegmentations").Set(visible);
-  this->getProxy()->UpdateVTKObjects();
-  forceRender();
+    vtkSMPropertyHelper ( this->getProxy(), "ShowSegmentations" ).Set ( visible );
+    this->getProxy()->UpdateVTKObjects();
+    forceRender();
 }
 
 //-----------------------------------------------------------------------------
-void pqSliceView::setRulerVisibility(bool visible)
+void pqSliceView::setRulerVisibility ( bool visible )
 {
-  vtkSMPropertyHelper(this->getProxy(), "ShowRuler").Set(visible);
-  this->getProxy()->UpdateVTKObjects();
-  forceRender();
+    vtkSMPropertyHelper ( this->getProxy(), "ShowRuler" ).Set ( visible );
+    this->getProxy()->UpdateVTKObjects();
+    forceRender();
 }
 
 

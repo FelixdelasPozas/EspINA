@@ -27,23 +27,33 @@
 
 #include <QDebug>
 #include <assert.h>
+#include "vtkPVSliceView.h"
 
-vtkStandardNewMacro(vtkSMSliceViewProxy);
+vtkStandardNewMacro ( vtkSMSliceViewProxy );
 
-vtkSMRepresentationProxy* vtkSMSliceViewProxy::CreateDefaultRepresentation(vtkSMProxy* source, int port)
+vtkSMRepresentationProxy* vtkSMSliceViewProxy::CreateDefaultRepresentation ( vtkSMProxy* source, int port )
 {
-  qDebug() << "vtkSMSliceViewProxy: Cretating default representation for" << source;
-  vtkSMProxyManager* pxm = this->GetProxyManager();
-  // Update with time to avoid domains updating without time later.
-  vtkSMSourceProxy* sproxy = vtkSMSourceProxy::SafeDownCast(source);
-  if (sproxy)
+    qDebug() << "vtkSMSliceViewProxy: Cretating default representation for" << source;
+    vtkSMProxyManager* pxm = this->GetProxyManager();
+    // Update with time to avoid domains updating without time later.
+    vtkSMSourceProxy* sproxy = vtkSMSourceProxy::SafeDownCast ( source );
+    if ( sproxy )
     {
-    double view_time = vtkSMPropertyHelper(this, "ViewTime").GetAsDouble();
-    sproxy->UpdatePipeline(view_time);
+        double view_time = vtkSMPropertyHelper ( this, "ViewTime" ).GetAsDouble();
+        sproxy->UpdatePipeline ( view_time );
     }
-    vtkSMRepresentationProxy* repr = vtkSMRepresentationProxy::SafeDownCast(
-      pxm->NewProxy("representations", "ChannelRepresentation"));
-    assert(repr);
+    vtkSMRepresentationProxy* repr = vtkSMRepresentationProxy::SafeDownCast (
+                                         pxm->NewProxy ( "representations", "ChannelRepresentation" ) );
+    assert ( repr );
 //     vtkSMPropertyHelper(repr, "UseXYPlane").Set(1);
-  return repr;
+    return repr;
 }
+
+vtkRenderer* vtkSMSliceViewProxy::GetOverviewRenderer()
+{
+  this->CreateVTKObjects();
+  vtkPVSliceView* rv = vtkPVSliceView::SafeDownCast(
+    this->GetClientSideObject());
+  return rv? rv->GetOverviewRenderer() : NULL;
+}
+

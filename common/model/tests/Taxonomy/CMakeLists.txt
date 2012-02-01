@@ -1,6 +1,5 @@
 find_package (Qt4 REQUIRED)
 include (${QT_USE_FILE})
-
 INCLUDE_DIRECTORIES (
   ../..
   ${QT_QTCORE_INCLUDE_DIR}
@@ -16,12 +15,12 @@ create_test_sourcelist(TESTS
    CreateTaxonomy
    TaxonomyProperties
 )
-#   insertInANonExistentSupElement.cpp  
+#   insertInANonExistentSupElement.cpp
 #   repeatedElement.cpp
 #   writing_reading.cpp
 
 add_executable(${TEST_NAME} ${TESTS})
-target_link_libraries(${TEST_NAME} ${LIB_DEPENDECIES} ${QT_QTCORE_LIBRARY}  CajalTests)
+target_link_libraries(${TEST_NAME} ${LIB_DEPENDECIES} ${QT_QTCORE_LIBRARY})
 
 # Remove the test driver source file
 set  (TestToRun ${TESTS} )

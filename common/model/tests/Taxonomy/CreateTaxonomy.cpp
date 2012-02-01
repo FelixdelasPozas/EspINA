@@ -1,4 +1,4 @@
-#include "taxonomy.h"
+#include "model/Taxonomy.h"
 
 #include <assert.h>
 #include <QDebug>

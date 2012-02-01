@@ -12,26 +12,30 @@ include (${PARAVIEW_USE_FILE})
 
 set (ITK_VTK_GLUE ${ITK_DIR}/../Wrapping/WrapITK/ExternalProjects/ItkVtkGlue/src)
 
-add_subdirectory( Views )
-add_subdirectory( common )
-add_subdirectory( frontend )
+SET (BUILD_TESTING OFF CACHE BOOL "Build EspINA Unitary Tests")
+SET (USE_DASHBOARD OFF CACHE BOOL "Use EspINA Unitary Tests Dashboard")
 
-
-if (BUILD_TESTING)
+if (${BUILD_TESTING})
   include (CTest)
   enable_testing()
+endif (${BUILD_TESTING})
+
+add_subdirectory( Views    )
+add_subdirectory( common   )
+add_subdirectory( frontend )
+add_subdirectory( plugins  )
+
+if (${USE_DASHBOARD})
   set (BUILDNAME "${BUILDNAME}" CACHE STRING "Name of build on the dashboard")
   mark_as_advanced (BUILDNAME)
-endif (BUILD_TESTING)
+endif (${USE_DASHBOARD})
 
-if (UNIX)
-  set( DEFAULT_TAXONOMY_PATH "/usr/share/espina/default_taxonomy.xml" )
-  file(COPY "${PROJECT_SOURCE_DIR}/default_taxonomy.xml" DESTINATION "${CMAKE_BINARY_DIR}")
-  configure_file(
-    "${PROJECT_SOURCE_DIR}/common/Config.h.in"
-    "${PROJECT_SOURCE_DIR}/common/Config.h"
-  )
-endif(UNIX)
+# if (UNIX)
+#   configure_file(
+#     "${PROJECT_SOURCE_DIR}/common/Config.h.in"
+#     "${PROJECT_SOURCE_DIR}/common/Config.h"
+#   )
+# endif(UNIX)
 
 ### TODO: Review from previous version
 # TRANSLATIONS
@@ -58,7 +62,7 @@ if (UNIX)
   install (FILES ${ITKFILES} DESTINATION lib/espina)
   install (FILES ${QUAZIPFILES} DESTINATION lib/espina)
   install (FILES espina.conf DESTINATION ../etc/ld.so.conf.d/)
-  install (FILES ${PROJECT_SOURCE_DIR}/default_taxonomy.xml DESTINATION share/espina/)
+#   install (FILES ${PROJECT_SOURCE_DIR}/default_taxonomy.xml DESTINATION share/espina/)
   #install (FILES ${PROJECT_SOURCE_DIR}/frontend/translationFiles/es.qm DESTINATION share/espina/)
 
   set (CPACK_PACKAGE_VERSION_MAJOR ${ESPINA_VERSION_MAJOR})

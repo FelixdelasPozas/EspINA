@@ -17,27 +17,17 @@
 
 */
 
-#include "cache.h"
+#include "Cache.h"
 
-// Debug
-#include "espina_debug.h"
-
-#include <filter.h>
-
-// Qt
-#include <QStringList>
-
-#include <boost/filesystem.hpp>
-
-// ParaView
-#include "pqPipelineSource.h"
-#include "pqApplicationCore.h"
-#include "pqObjectBuilder.h"
-#include "pqActiveObjects.h"
-#include "pqServer.h"
-
-#include "vtkSMProxy.h"
+#include "paraview/Filter.h"
 #include <pqLoadDataReaction.h>
+
+#include<QDebug>
+#define DEBUG_CACHE 1
+
+#define CACHE_DEBUG(exp) if (DEBUG_CACHE)      \
+			  qDebug() << "Cache:" << exp;
+			  
 
 Cache *Cache::m_singleton = NULL;
 
@@ -48,35 +38,35 @@ Cache* Cache::instance()
   return m_singleton;
 }
 
-void Cache::insert(const Index& index, vtkFilter* filter, bool persistent)
+void Cache::insert(const Cache::Index& index, pqFilter* filter, bool persistent)
 {
-  if ( index != filter->id())
-    CACHE_DEBUG("Cache: Inserting ... different id");
+  Q_ASSERT(index == filter->id());
+
   //m_translator.insert(id,index);
   if (m_cachedProxies.contains(index))
   {
     m_cachedProxies[index].refCounter++;
   }else{
-    CACHE_DEBUG("Inserting" << index);
+//     CACHE_DEBUG("Inserting" << index);
     Entry newEntry;
     newEntry.refCounter = 1 + persistent?1:0;
     newEntry.filter = filter;
-    m_cachedProxies.insert(index,newEntry);
+    m_cachedProxies.insert(index, newEntry);
   }
 }
 
-void Cache::reference(const Cache::Index& index)
+void Cache::addReference(const Cache::Index& index)
 {
   m_cachedProxies[index].refCounter++;
-  CACHE_DEBUG(index << "already has" << m_cachedProxies[index].refCounter << "references");
+//   CACHE_DEBUG(index << "already has" << m_cachedProxies[index].refCounter << "references");
 }
 
-vtkFilter *Cache::getEntry(const Cache::Index index)
+pqFilter *Cache::getEntry(const Cache::Index index)
 {
   // First we try to recover the proxy from cache
   if (m_cachedProxies.contains(index))
   {
-    CACHE_DEBUG(index << " HIT");
+//     CACHE_DEBUG(index << " HIT");
     return m_cachedProxies[index].filter;
   }
   else
@@ -86,48 +76,37 @@ vtkFilter *Cache::getEntry(const Cache::Index index)
     pqPipelineSource *diskSource = pqLoadDataReaction::loadData(fileName);
     if( diskSource )
     {
-      CACHE_DEBUG(index << " HIT Disk Cache");
+//       CACHE_DEBUG(index << " HIT Disk Cache");
       // insert it in the cache
-      vtkFilter* diskEntryFilter = new vtkFilter(diskSource, index);
-      insert(index, diskEntryFilter);
-      // The last vtkFilter inserted has increments the refCounter in one
-      // because intialization. But it is not used yet by anyone.
+      pqFilter* filter = new pqFilter(diskSource, index);
+      insert(index, filter);
+      // The last vtkFilter inserted has incremented the refCounter in one
+      // because of intialization. But it is not used yet by anyone.
       m_cachedProxies[index].refCounter--;
-      return diskEntryFilter;
+      return filter;
     }else{
-      CACHE_DEBUG("Cache: " << index << "Failed to found entry");
+//       CACHE_DEBUG("Cache: " << index << "Failed to found entry");
       return NULL;
     }
   }
 }
 
-void Cache::remove(const Cache::Index& index)
+void Cache::removeReference(const Cache::Index& index)
 {
-  assert(m_cachedProxies.contains(index));
+  Q_ASSERT(m_cachedProxies.contains(index));
   m_cachedProxies[index].refCounter--;
-  CACHE_DEBUG(index << "already has" << m_cachedProxies[index].refCounter << "references");
+  CACHE_DEBUG(index << "has" << m_cachedProxies[index].refCounter << "references");
   if (m_cachedProxies[index].refCounter <= 0)
   {
     CACHE_DEBUG(index << "removed");
     delete m_cachedProxies[index].filter;
     m_cachedProxies.remove(index);
-    assert(!m_cachedProxies.contains(index));
+    Q_ASSERT(!m_cachedProxies.contains(index));
   }
 }
-
-// CacheEntry* Cache::getEspinaEntry(const EspinaId& id) const
-// {
-//   CacheIndex index = m_translator.value(id,"");
-//   assert(index != "");
-//   return getEntry(index);
-// }
 
 //-----------------------------------------------------------------------------
 void Cache::setWorkingDirectory(QFileInfo& sample)
 {
   m_diskCachePath = sample.filePath();
 }
-
-
-
-

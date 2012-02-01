@@ -29,20 +29,17 @@
 #include <../Views/vtkPVSliceView.h>
 #include "IPreferencePanel.h"
 
-class QLabel;
-class pqOutputPort;
-class pqPipelineSource;
-// #include <QMap>
-// 
-// #include "selectionManager.h"//TODO: Forward declare?
-// 
-// #include "../frontend/IPreferencePanel.h"
+class pqDataRepresentation;
 
 //Forward declaration
+class Channel;
+class pqOutputPort;
+class pqPipelineSource;
 class pqSliceView;
 class vtkInteractorStyleEspinaSlice;
 
 // GUI
+class QLabel;
 class QScrollBar;
 class QSpinBox;
 class QVBoxLayout;
@@ -128,7 +125,9 @@ public:
 //   QList<Segmentation *> pickSegmentationsAt(ISelectionHandler::VtkRegion region);
 //   void selectSegmentations(int x, int y, int z);
 //
+  void addChannelRepresentation(Channel *channel);
   void addChannelRepresentation(pqOutputPort *oport);
+  void removeChannelRepresentation(Channel *channel);
   void addSegmentationRepresentation(pqOutputPort *oport);
 
 public slots:
@@ -201,6 +200,7 @@ private:
 //   vtkSMRenderViewProxy *m_viewProxy;
 //   vtkRenderWindowInteractor *m_rwi;
 //   vtkCamera *m_cam;
+  pqDataRepresentation *rep;
 
   // GUI
   QHBoxLayout *m_titleLayout;

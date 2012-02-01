@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) <year>  <name of author>
+    Copyright (C) 2011  Jorge Peña Pastor<jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,17 +17,14 @@
 
 */
 
-#include "cachedObjectBuilder.h"
+#include "cache/CachedObjectBuilder.h"
 
 // Debug
-#include "espina_debug.h"
+// #include "espina_debug.h"
 
-#include "data/hash.h"
-
-#include "filter.h"
+#include "cache/CacheHash.h"
 
 // Qt
-#include <QString>
 #include <QStringList>
 
 // ParaQ includes
@@ -57,36 +54,38 @@ CachedObjectBuilder* CachedObjectBuilder::instance()
   return m_singleton;
 }
 
-vtkFilter* CachedObjectBuilder::createFilter(const QString group, const QString name, const vtkFilter::Arguments args, bool persistent)
+pqFilter* CachedObjectBuilder::createFilter(const QString group,
+					    const QString name,
+					    const pqFilter::Arguments args,
+					    bool persistent)
 {
   // Create cache entry
   Cache::Index id = generateId(group, name, args);
-  
-  vtkFilter *filter = getFilter(id);
+
+  pqFilter *filter = getFilter(id);
   if (filter)
   {
-    m_cache->reference(filter->id());
+    m_cache->addReference(id);
     return filter;
   }
-  
+
   pqPipelineSource *proxy = createSMFilter(group, name, args);
-  filter = new vtkFilter(proxy, id);
-  m_cache->insert(id,filter, persistent);
+  filter = new pqFilter(proxy, id);
+  m_cache->insert(id, filter, persistent);
   return filter;
 }
 
-void CachedObjectBuilder::removeFilter(vtkFilter* filter)
+void CachedObjectBuilder::removeFilter(pqFilter* filter)
 {
-  m_cache->remove(filter->id());
+  m_cache->removeReference(filter->id());
 }
 
-
-Cache::Index CachedObjectBuilder::generateId(const QString group, const QString name, const vtkFilter::Arguments args)
+Cache::Index CachedObjectBuilder::generateId(const QString group, const QString name, const pqFilter::Arguments args)
 {
   QStringList namesToHash;
   namesToHash.push_back( QString(name) );
-  
-  foreach(vtkFilter::Argument arg, args)
+
+  foreach(Argument arg, args)
   {
     namesToHash.push_back( QString(arg.type));
     namesToHash.push_back(arg.name);
@@ -97,19 +96,19 @@ Cache::Index CachedObjectBuilder::generateId(const QString group, const QString 
 }
 
 
-pqPipelineSource *CachedObjectBuilder::createSMFilter(const QString group, const QString name, const vtkFilter::Arguments args)
+pqPipelineSource *CachedObjectBuilder::createSMFilter(const QString group, const QString name, const pqFilter::Arguments args)
 {
   pqApplicationCore* core = pqApplicationCore::instance();
   pqObjectBuilder* ob = core->getObjectBuilder();
   
-  CACHE_DEBUG("CachedObjectBuilder: Create Filter " << name);
+//   CACHE_DEBUG("CachedObjectBuilder: Create Filter " << name);
   pqPipelineSource *filter; //= builder->createFilter(group, name,NULL);
   vtkSMProperty *p;
-  foreach (vtkFilter::Argument arg, args)
+  foreach (Argument arg, args)
   {
     switch (arg.type)
     {
-      case INPUT:
+      case Argument::INPUT:
       {
 	// Filter is a source
 	if (arg.value == "")
@@ -119,88 +118,57 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(const QString group, const
 	else
 	{
 	  QStringList input = arg.value.split(":");
-	  assert(input.size()==2);
-	  vtkFilter *inputCreator = m_cache->getEntry(input[0]);
-	  assert(inputCreator);
+	  Q_ASSERT(input.size()==2);
+	  pqFilter *inputCreator = m_cache->getEntry(input[0]);
+	  Q_ASSERT(inputCreator);
 	  filter = ob->createFilter(group, name, inputCreator->pipelineSource(), input[1].toInt());
 	}
       }
       break;
-      case INTVECT:
-	assert(filter);
+      case Argument::INTVECT:
 	{
+	  Q_ASSERT(filter != NULL);
 	  p = filter->getProxy()->GetProperty( arg.name.toStdString().c_str() );
 	  vtkSMIntVectorProperty * prop = vtkSMIntVectorProperty::SafeDownCast(p);
 	  QStringList values = arg.value.split(",");
-	  CACHE_DEBUG("CachedObjectBuilder:" << arg.name << "Values" <<  values);
+// 	  CACHE_DEBUG("CachedObjectBuilder:" << arg.name << "Values" <<  values);
 	  for (int i = 0; i < values.size(); i++)
 	    prop->SetElement(i, values[i].toInt());
 	}
 	break;
-      case DOUBLEVECT:
-	assert(filter);
+      case Argument::DOUBLEVECT:
 	{
+	  Q_ASSERT(filter != NULL);
 	  p = filter->getProxy()->GetProperty( arg.name.toStdString().c_str() );
 	  vtkSMDoubleVectorProperty * prop = vtkSMDoubleVectorProperty::SafeDownCast(p);
 	  QStringList values = arg.value.split(",");
-	  qDebug() << "CachedObjectBuilder:" << arg.name << "Values" <<  values;
+// 	  qDebug() << "CachedObjectBuilder:" << arg.name << "Values" <<  values;
 	  for (int i = 0; i < values.size(); i++)
 	    prop->SetElement(i, values[i].toDouble());
 	}
 	break;
       default:
-	qDebug() << "Unkown parameter type";
-	assert(false);
+// 	qDebug() << "Unkown parameter type";
+	Q_ASSERT(false);
     };
   }
-  assert(filter);
+  Q_ASSERT(filter != NULL);
   //TODO: Review if needed here
   filter->getProxy()->UpdateVTKObjects();
-//   filter->updatePipeline();
  return filter;
 }
 
-//-----------------------------------------------------------------------------
-/**
- * For stacks loaded from the client-side
- */
-// EspinaProxy* CachedObjectBuilder::createStack(QString& filePath)
-// {
-//   QStringList v;
-//   v.push_back( filePath );
-//   CacheIndex sampleHash = generateSha1(v);
-//   CacheEntry* proxy = m_cache->getEntry(sampleHash);
-//   if( proxy )
-//     return proxy;
-//   
-//   proxy = pqLoadDataReaction::loadData( QStringList(filePath) );
-//   m_cache->insert(filePath, sampleHash, proxy);
-//   return proxy;
-// }
-
-/*
-TODO there are two ways to load sample files.
-  1.- ParaView way: it uses the default method of paraView to load files. It loads
-          data from the server's filesystem. It has it's own ParaView GUI
-          This uses EspinaMainWindow::loadData, insertLoadedStack, 
-  2.- Our way: our own GUI. Internaly it uses the ParaView load data system
-          This uses EspinaMainWindow::loadFile, insertLoadedStack,
-*/
-/**
- * Insert a stack in the Espina Cache which has been already created in the server
- * If it exists it will be overwrited by the nwe pqPipelineSource
- */
-vtkFilter* CachedObjectBuilder::registerProductCreator(const QString& sampleFile, pqPipelineSource* source)
+pqFilter* CachedObjectBuilder::registerFilter(const QString id, pqPipelineSource* source)
 {
-  vtkFilter* filter = m_cache->getEntry(sampleFile);
+  pqFilter* filter = m_cache->getEntry(id);
   if( filter )
   {
-    m_cache->remove(sampleFile);
-    assert(!m_cache->getEntry(sampleFile));
+    m_cache->removeReference(id);
+    Q_ASSERT(!m_cache->getEntry(id));
   }
-  
-  filter = new vtkFilter(source, sampleFile);
-  m_cache->insert(sampleFile, filter);
+
+  filter = new pqFilter(source, id);
+  m_cache->insert(id, filter);
   return filter;
 }
 

@@ -2,12 +2,13 @@
 INCLUDE_DIRECTORIES (..)
 
 ADD_DEFINITIONS(
-    ${QT_DEFINITIONS}
+  ${QT_DEFINITIONS}
 )
 
 SET(LIB_DEPENDECIES
-    CajalData
-    ${QT_LIBRARIES}
+  Espina
+  EspinaViews
+  ${QT_LIBRARIES}
 )
 
 add_subdirectory(Taxonomy)

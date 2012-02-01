@@ -21,8 +21,9 @@
 #include <QDebug>
 #include <assert.h>
 // #include "espina_debug.h"
-// 
+//
 // // EspINA
+#include "model/Channel.h"
 #include "../Views/pqSliceView.h"
 #include "../Views/vtkSMSliceViewProxy.h"
 #include "IPreferencePanel.h"
@@ -64,6 +65,8 @@
 #include <vtkPropPicker.h>
 #include <vtkPropCollection.h>
 #include <vtkRenderWindow.h>
+#include <paraview/pqData.h>
+#include <vtkRenderer.h>
 
 
 //-----------------------------------------------------------------------------
@@ -164,6 +167,7 @@ SliceViewPreferences::SliceViewPreferences(vtkPVSliceView::VIEW_PLANE plane)
   if (!settings.contains(axisSettings))
     settings.setValue(axisSettings,m_ShowAxis);
   m_ShowAxis = settings.value(axisSettings).toBool();
+
 }
 
 //-----------------------------------------------------------------------------
@@ -232,12 +236,16 @@ SliceView::SliceView(vtkPVSliceView::VIEW_PLANE plane, QWidget* parent)
     , m_spinBox         (new QSpinBox())
     , m_fitToGrid       (true)
 {
+  memset(m_gridSize,1,3*sizeof(double));
+  bzero(m_range,6*sizeof(double));
+
 //   buildTitle(); 
 //   m_viewWidget->setSizePolicy(
 //        QSizePolicy::Expanding,
 //        QSizePolicy::Expanding);
 //   m_viewWidget->setStyleSheet("background-color: black;");
 //   m_mainLayout->addWidget(m_viewWidget);
+
   buildControls();
 
   this->setAutoFillBackground(true);
@@ -722,12 +730,41 @@ void SliceView::centerViewOnMousePosition(QMouseEvent* me)
 }
 
 //-----------------------------------------------------------------------------
+void SliceView::addChannelRepresentation(Channel* channel)
+{
+  vtkSMSliceViewProxy *ep =  vtkSMSliceViewProxy::SafeDownCast(m_view->getViewProxy());
+  Q_ASSERT(ep);
+  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+  Q_ASSERT(dp);
+  rep = dp->createPreferredRepresentation(channel->outputPort(),m_view,true);
+
+  // Only at sample LOD
+  double spacing[3];
+  channel->spacing(spacing);
+  setGridSize(spacing);
+  double bounds[6];
+  channel->bounds(bounds);
+  setRanges(bounds);
+}
+
+//-----------------------------------------------------------------------------
 void SliceView::addChannelRepresentation(pqOutputPort* oport)
 {
   vtkSMSliceViewProxy *ep =  vtkSMSliceViewProxy::SafeDownCast(m_view->getViewProxy());
   Q_ASSERT(ep);
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
   dp->createPreferredRepresentation(oport,m_view,true);
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::removeChannelRepresentation(Channel* channel)
+{
+  pqApplicationCore *core = pqApplicationCore::instance();
+  pqObjectBuilder *ob = core->getObjectBuilder();
+  m_view->getRenderViewProxy()->GetRenderer()->RemoveAllViewProps();
+  m_view->getRenderViewProxy()->GetOverviewRenderer()->RemoveAllViewProps();
+  ob->destroy(rep);
+  m_view->getProxy()->UpdateVTKObjects();
 }
 
 //-----------------------------------------------------------------------------

@@ -28,6 +28,11 @@
 
 #include <QAbstractItemModel>
 
+class Channel;
+class Sample;
+class Segmentation;
+class Taxonomy;
+class TaxonomyNode;
 // #include <QObject>
 // #include <QMap>
 // #include <QList>
@@ -50,69 +55,71 @@ class EspINA : public QAbstractItemModel
 {
     Q_OBJECT
 public:
-//     //! Singleton Interface
-//     static EspINA *instance();
-    explicit EspINA(QObject* parent = 0);
-    virtual ~EspINA();
+  //     //! Singleton Interface
+  //     static EspINA *instance();
+  explicit EspINA(QObject* parent = 0);
+  virtual ~EspINA();
+  
+  void clear();
 
-    // Implement QAbstractItemModel Interface
-    virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
-    virtual bool setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole);
-    virtual int columnCount(const QModelIndex& parent = QModelIndex()) const;
-    virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
-    virtual QModelIndex parent(const QModelIndex& child) const;
-    virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
-//     virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
-//     virtual Qt::ItemFlags flags(const QModelIndex& index) const;
+  // Implement QAbstractItemModel Interface
+  virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
+  virtual bool setData(const QModelIndex& index, const QVariant& value, int role = Qt::EditRole);
+  virtual int columnCount(const QModelIndex& parent = QModelIndex()) const;
+  virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
+  virtual QModelIndex parent(const QModelIndex& child) const;
+  virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
+  //     virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
+  //     virtual Qt::ItemFlags flags(const QModelIndex& index) const;
 
-//     // Special Nodes of the model to refer different roots
-//     QModelIndex taxonomyRoot() const;
-//     QModelIndex sampleRoot() const;
-//     QModelIndex segmentationRoot() const;
+  // Special Nodes of the model to refer different roots
+  QModelIndex taxonomyRoot() const;
+  QModelIndex taxonomyIndex(TaxonomyNode* node) const;
 
-//     //! Returns the active sample: Only one sample can be active at a time. This is the one
-//     //! that is shown in the Slice Views (Plane Views)
-//     Sample *activeSample() {return m_activeSample;}
-//     //! Returs the QModelIndex of a given @sample
-//     QModelIndex sampleIndex(Sample *sample) const;
-// 
-//     // Segmentation managing
+  QModelIndex sampleRoot() const;
+  QModelIndex sampleIndex(Sample *sample) const;
+
+  QModelIndex channelRoot() const;
+  QModelIndex channelIndex(Channel *channel) const;
+
+  QModelIndex segmentationRoot() const;
+  QModelIndex segmentationIndex(Segmentation *seg) const;
+
+  // Taxonomies
+  /// Returns the taxonomy used by the analyzer
+  void setTaxonomy(Taxonomy *tax);
+  Taxonomy *const taxonomy() const {return m_tax;}
+  QModelIndex addTaxonomyElement(const QModelIndex &parent, QString qualifiedName);
+  void addTaxonomyElement(QString qualifiedName);
+  void removeTaxonomyElement(const QModelIndex &index);
+  void removeTaxonomyElement(QString qualifiedName);
+//     TaxonomyNode *taxonomyParent(TaxonomyNode *node);
+
+  // Samples
+  void addSample(Sample *sample);
+  /// Remove @sample and all channels and segmentations associated with it
+  void removeSample(Sample *sample);
+
+  // Channels
+  void addChannel(Sample *sample, Channel *channel);
+  void removeChannel(Sample *sample, Channel *channel);
+
+  // Segmentations
+  /// Add a new segmentation (used by the plugins)
+  void addSegmentation(Segmentation *seg);
+  /// Remove a segmentation (used by the UI)
+  void removeSegmentation(Segmentation *seg);
+
 //     //! Returns the list of segmentations belonging to @taxonomy. If @recursive returns also
 //     //! the segmentations belonging to its subtaxonomies
 //     QList<Segmentation *> segmentations(const TaxonomyNode* taxonomy, bool recursive = false) const;
 //     //! Returns the list of segmentations belonging to @sample.
 //     QList<Segmentation *> segmentations(const Sample* sample) const;
-// 
+//
 //     void changeTaxonomy(Segmentation *seg, TaxonomyNode *newTaxonomy);
 //     void changeTaxonomy(Segmentation* seg, const QString& taxName);
+
 //     
-//     // Taxonomy managing
-//     //! Returns the taxonomy used by the analyzer
-//     void loadTaxonomy(Taxonomy *tax) 
-//     {
-//       if (m_tax)
-//       {
-// 	beginRemoveRows(taxonomyRoot(),0,rowCount(taxonomyRoot()));
-// 	m_tax = NULL;
-// 	endRemoveRows();
-//       }
-//       beginInsertRows(taxonomyRoot(), 0, 0);
-//       m_tax = tax;
-//       endInsertRows();
-//       setUserDefindedTaxonomy(m_tax->elements()[0]->qualifiedName());
-//       emit resetTaxonomy();
-//     }
-//     Taxonomy *taxonomy() {return m_tax;}
-//     
-//     //! Returns the QModelIndex of a given @node
-//     QModelIndex taxonomyIndex(TaxonomyNode* node) const;
-//     void addTaxonomy(QString name, QString parentName);
-//     void removeTaxonomy(QString name);
-//     TaxonomyNode *taxonomyParent(TaxonomyNode *node);
-//     
-//     //! Returns the QModelIndex of a given @seg
-//     QModelIndex segmentationIndex(Segmentation *seg) const;
-// 
 //     int requestId(int suggestedId);
 //     
 //     void changeId(Segmentation *seg, int id);
@@ -130,16 +137,9 @@ public:
 //     //TODO: Check if private? Now it's only used by Espina
 //     void addSample(Sample *sample);
 // 
-//     //! It removes the Sample specify by @param sample and all the Segmentations
-//     //! that it has.
-//     void removeSample(Sample *sample);
 // 
 //     void removeSamples();
 //     
-//     //! Add a new segmentation (used by the plugins)
-//     void addSegmentation(Segmentation *seg);
-//     //! Remove a segmentation (used by the UI)
-//     void removeSegmentation(Segmentation *seg);
 //     
 //     //! Set which is the taxonomy that will be used for new segmentations
 //     //! when plugins can't guess their type
@@ -168,8 +168,14 @@ public:
 //   
 // protected:
 //     explicit EspINA(QObject* parent = 0);
-// 
-// private:
+//
+
+private:
+  Taxonomy             *m_tax;
+  QList<Sample *>       m_samples; //TODO: use DB instead
+  QList<Channel *>      m_channels; //TODO: use DB instead
+  QList<Segmentation *> m_segmentations; //TODO: use DB instead
+
 //     //! 
 //     void removeTaxonomy();
 //     void loadTaxonomy();//TODO: Replace with factor
@@ -195,9 +201,6 @@ public:
 //     TaxonomyNode *m_newSegType; // The type for new segmentations
 //     Sample *m_activeSample;
 //     
-//     //! Initial node taxonomy
-//     //TaxonomyNode *m_tax;
-//     Taxonomy *m_tax;
 //     QList<Sample *> m_samples;
 //     QList<Segmentation *> m_segmentations;
 //     //! It contains all the pipeline of filters, segmentations and samples

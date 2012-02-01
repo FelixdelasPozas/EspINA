@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,45 +16,41 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//----------------------------------------------------------------------------
-// File:    MainToolBar.h
-// Purpose: Provide tool buttons for most common actions in EspINA
-//----------------------------------------------------------------------------
-#ifndef MAINTOOLBAR_H
-#define MAINTOOLBAR_H
 
-#include <QToolBar>
-#include <common/gui/DynamicWidget.h>
+#ifndef TAXONOMYINSPECTOR_H
+#define TAXONOMYINSPECTOR_H
 
-#include <QModelIndex>
+//----------------------------------------------------------------------------
+// File:    TaxonomyInspector.h
+// Purpose: Dock widget to manage taxonomies in the model
+//----------------------------------------------------------------------------
+#include <gui/EspinaDockWidget.h>
+
 
 class EspINA;
-class QComboBox;
-class QTreeView;
-class MainToolBar : public QToolBar, public DynamicWidget
+
+class TaxonomyInspector : public EspinaDockWidget
 {
   Q_OBJECT
+
+  class GUI;
 public:
-  explicit MainToolBar(QSharedPointer<EspINA> model, QWidget* parent = 0);
-
-  virtual void increaseLOD(){}
-  virtual void decreaseLOD(){}
-  virtual void setLOD(){}
-  virtual void setActivity(QString activity){}
-
-public slots:
-  void setShowSegmentations(bool visible);
+  explicit TaxonomyInspector(QSharedPointer<EspINA> model, QWidget *parent = 0);
+  virtual ~TaxonomyInspector();
 
 protected slots:
-  void updateTaxonomy(QModelIndex left, QModelIndex right);
+  // Create a new taxonomy at the same level of the selected index
+  void addSameLevelTaxonomy();
+  // Create a new taxonomy as a child of the selected index
+  void addSubTaxonomy();
+  // Change selected taxonomy's color
+  void changeColor();
+  // Remove taxonomy associated with selected index
+  void removeSelectedTaxonomy();
 
-signals:
-  void showSegmentations(bool);
-
-private:
-  QAction   *toggleSegVisibility;
-  QComboBox *taxonomySelector;
-  QTreeView *taxonomyView;
+protected:
+  GUI *m_gui;
+  QSharedPointer<EspINA> m_baseModel;
 };
 
-#endif // MAINTOOLBAR_H
+#endif // TAXONOMYINSPECTOR_H

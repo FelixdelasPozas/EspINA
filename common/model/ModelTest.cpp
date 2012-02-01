@@ -170,7 +170,8 @@ void ModelTest::rowCount()
         Q_ASSERT ( model->hasChildren ( topIndex ) == true );
 
     QModelIndex secondLevelIndex = model->index ( 0, 0, topIndex );
-    if ( secondLevelIndex.isValid() ) { // not the top level
+    if ( secondLevelIndex.isValid() )   // not the top level
+    {
         // check a row count where parent is valid
         rows = model->rowCount ( secondLevelIndex );
         Q_ASSERT ( rows >= 0 );
@@ -280,7 +281,8 @@ void ModelTest::parent()
 
     // Common error test #2, make sure that a second level index has a parent
     // that is the first level index.
-    if ( model->rowCount ( topIndex ) > 0 ) {
+    if ( model->rowCount ( topIndex ) > 0 )
+    {
         QModelIndex childIndex = model->index ( 0, 0, topIndex );
         Q_ASSERT ( model->parent ( childIndex ) == topIndex );
     }
@@ -289,7 +291,8 @@ void ModelTest::parent()
     // as the first column in a row.
     // Usually the second column shouldn't have children.
     QModelIndex topIndex1 = model->index ( 0, 1, QModelIndex() );
-    if ( model->rowCount ( topIndex1 ) > 0 ) {
+    if ( model->rowCount ( topIndex1 ) > 0 )
+    {
         QModelIndex childIndex = model->index ( 0, 0, topIndex );
         QModelIndex childIndex1 = model->index ( 0, 0, topIndex1 );
         Q_ASSERT ( childIndex != childIndex1 );
@@ -322,7 +325,8 @@ void ModelTest::checkChildren ( const QModelIndex &parent, int currentDepth )
         p = p.parent();
 
     // For models that are dynamically populated
-    if ( model->canFetchMore ( parent ) ) {
+    if ( model->canFetchMore ( parent ) )
+    {
         fetchingMore = true;
         model->fetchMore ( parent );
         fetchingMore = false;
@@ -344,14 +348,17 @@ void ModelTest::checkChildren ( const QModelIndex &parent, int currentDepth )
     //         << "columns:" << columns << "parent column:" << parent.column();
 
     Q_ASSERT ( model->hasIndex ( rows + 1, 0, parent ) == false );
-    for ( int r = 0; r < rows; ++r ) {
-        if ( model->canFetchMore ( parent ) ) {
+    for ( int r = 0; r < rows; ++r )
+    {
+        if ( model->canFetchMore ( parent ) )
+        {
             fetchingMore = true;
             model->fetchMore ( parent );
             fetchingMore = false;
         }
         Q_ASSERT ( model->hasIndex ( r, columns + 1, parent ) == false );
-        for ( int c = 0; c < columns; ++c ) {
+        for ( int c = 0; c < columns; ++c )
+        {
             Q_ASSERT ( model->hasIndex ( r, c, parent ) == true );
             QModelIndex index = model->index ( r, c, parent );
             // rowCount() and columnCount() said that it existed...
@@ -376,10 +383,11 @@ void ModelTest::checkChildren ( const QModelIndex &parent, int currentDepth )
 
             // If the next test fails here is some somewhat useful debug you play with.
 
-            if (model->parent(index) != parent) {
-                qDebug() << r << c << currentDepth << model->data(index).toString()
-                         << model->data(parent).toString();
-                qDebug() << index << parent << model->parent(index);
+            if ( model->parent ( index ) != parent )
+            {
+                qDebug() << r << c << currentDepth << model->data ( index ).toString()
+                << model->data ( parent ).toString();
+                qDebug() << index << parent << model->parent ( index );
 //                 And a view that you can even use to show the model.
 //                 QTreeView view;
 //                 view.setModel(model);
@@ -391,7 +399,8 @@ void ModelTest::checkChildren ( const QModelIndex &parent, int currentDepth )
             Q_ASSERT ( model->parent ( index ) == parent );
 
             // recursively go down the children
-            if ( model->hasChildren ( index ) && currentDepth < 10 ) {
+            if ( model->hasChildren ( index ) && currentDepth < 10 )
+            {
                 //qDebug() << r << c << "has children" << model->rowCount(index);
                 checkChildren ( index, ++currentDepth );
             }/* else { if (currentDepth >= 10) qDebug() << "checked 10 deep"; };*/
@@ -422,51 +431,60 @@ void ModelTest::data()
 
     // General Purpose roles that should return a QString
     QVariant variant = model->data ( model->index ( 0, 0 ), Qt::ToolTipRole );
-    if ( variant.isValid() ) {
+    if ( variant.isValid() )
+    {
         Q_ASSERT ( qVariantCanConvert<QString> ( variant ) );
     }
     variant = model->data ( model->index ( 0, 0 ), Qt::StatusTipRole );
-    if ( variant.isValid() ) {
+    if ( variant.isValid() )
+    {
         Q_ASSERT ( qVariantCanConvert<QString> ( variant ) );
     }
     variant = model->data ( model->index ( 0, 0 ), Qt::WhatsThisRole );
-    if ( variant.isValid() ) {
+    if ( variant.isValid() )
+    {
         Q_ASSERT ( qVariantCanConvert<QString> ( variant ) );
     }
 
     // General Purpose roles that should return a QSize
     variant = model->data ( model->index ( 0, 0 ), Qt::SizeHintRole );
-    if ( variant.isValid() ) {
+    if ( variant.isValid() )
+    {
         Q_ASSERT ( qVariantCanConvert<QSize> ( variant ) );
     }
 
     // General Purpose roles that should return a QFont
     QVariant fontVariant = model->data ( model->index ( 0, 0 ), Qt::FontRole );
-    if ( fontVariant.isValid() ) {
+    if ( fontVariant.isValid() )
+    {
         Q_ASSERT ( qVariantCanConvert<QFont> ( fontVariant ) );
     }
 
     // Check that the alignment is one we know about
     QVariant textAlignmentVariant = model->data ( model->index ( 0, 0 ), Qt::TextAlignmentRole );
-    if ( textAlignmentVariant.isValid() ) {
+    if ( textAlignmentVariant.isValid() )
+    {
         int alignment = textAlignmentVariant.toInt();
         Q_ASSERT ( alignment == ( alignment & ( Qt::AlignHorizontal_Mask | Qt::AlignVertical_Mask ) ) );
     }
 
     // General Purpose roles that should return a QColor
     QVariant colorVariant = model->data ( model->index ( 0, 0 ), Qt::BackgroundColorRole );
-    if ( colorVariant.isValid() ) {
+    if ( colorVariant.isValid() )
+    {
         Q_ASSERT ( qVariantCanConvert<QColor> ( colorVariant ) );
     }
 
     colorVariant = model->data ( model->index ( 0, 0 ), Qt::TextColorRole );
-    if ( colorVariant.isValid() ) {
+    if ( colorVariant.isValid() )
+    {
         Q_ASSERT ( qVariantCanConvert<QColor> ( colorVariant ) );
     }
 
     // Check that the "check state" is one we know about.
     QVariant checkStateVariant = model->data ( model->index ( 0, 0 ), Qt::CheckStateRole );
-    if ( checkStateVariant.isValid() ) {
+    if ( checkStateVariant.isValid() )
+    {
         int state = checkStateVariant.toInt();
         Q_ASSERT ( state == Qt::Unchecked ||
                    state == Qt::PartiallyChecked ||
@@ -514,11 +532,12 @@ void ModelTest::rowsInserted ( const QModelIndex & parent, int start, int end )
     Q_ASSERT ( c.oldSize + ( end - start + 1 ) == model->rowCount ( parent ) );
     Q_ASSERT ( c.last == model->data ( model->index ( start - 1, 0, c.parent ) ) );
 
-    if (c.next != model->data(model->index(end + 1, 0, c.parent))) {
+    if ( c.next != model->data ( model->index ( end + 1, 0, c.parent ) ) )
+    {
         qDebug() << start << end;
-        for (int i=0; i < model->rowCount(); ++i)
-            qDebug() << model->index(i, 0).data().toString();
-        qDebug() << c.next << model->data(model->index(end + 1, 0, c.parent));
+        for ( int i=0; i < model->rowCount(); ++i )
+            qDebug() << model->index ( i, 0 ).data().toString();
+        qDebug() << c.next << model->data ( model->index ( end + 1, 0, c.parent ) );
     }
 
     Q_ASSERT ( c.next == model->data ( model->index ( end + 1, 0, c.parent ) ) );
@@ -532,7 +551,8 @@ void ModelTest::layoutAboutToBeChanged()
 
 void ModelTest::layoutChanged()
 {
-    for ( int i = 0; i < changing.count(); ++i ) {
+    for ( int i = 0; i < changing.count(); ++i )
+    {
         QPersistentModelIndex p = changing[i];
         Q_ASSERT ( p == model->index ( p.row(), p.column(), p.parent() ) );
     }
@@ -546,7 +566,7 @@ void ModelTest::layoutChanged()
  */
 void ModelTest::rowsAboutToBeRemoved ( const QModelIndex &parent, int start, int end )
 {
-qDebug() << "ratbr" << parent << start << end;
+    qDebug() << "ratbr" << parent << start << end;
     Changing c;
     c.parent = parent;
     c.oldSize = model->rowCount ( parent );
@@ -562,7 +582,7 @@ qDebug() << "ratbr" << parent << start << end;
  */
 void ModelTest::rowsRemoved ( const QModelIndex & parent, int start, int end )
 {
-  qDebug() << "rr" << parent << start << end;
+    qDebug() << "rr" << parent << start << end;
     Changing c = remove.pop();
     Q_ASSERT ( c.parent == parent );
     Q_ASSERT ( c.oldSize - ( end - start + 1 ) == model->rowCount ( parent ) );
