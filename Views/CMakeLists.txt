@@ -33,4 +33,13 @@ add_paraview_plugin( EspinaViews "1.0"
   GUI_SOURCES ${IFACE_SRCS} ${PLUGIN_SOURCES} ${MOC_SRCS}
   )
 
-message( STATUS ${IFACE_SRCS} )
+if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+  set_target_properties(EspinaViews PROPERTIES COMPILE_FLAGS "-fPIC")
+endif( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
+
+install (
+  TARGETS EspinaViews
+  LIBRARY
+  DESTINATION bin/plugins
+  COMPONENT espina
+  )

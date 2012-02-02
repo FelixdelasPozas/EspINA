@@ -44,6 +44,8 @@ public:
   void bounds(double val[6]);
   void spacing(double val[3]);
 
+  pqData data() const {return m_data;};
+
   virtual QVariant data(int role) const;
   virtual ItemType type() const {return IModelItem::CHANNEL;}
 

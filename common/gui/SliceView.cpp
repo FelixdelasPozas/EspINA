@@ -12,32 +12,34 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You shoulh this program.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 // NOTE: vtkRenderer::RemoveAllViewProps()  maybe free the memory of the representations...
 #include "SliceView.h"
 
 // Debug
 #include <QDebug>
-#include <assert.h>
 // #include "espina_debug.h"
 //
 // // EspINA
 #include "model/Channel.h"
 #include "../Views/pqSliceView.h"
 #include "../Views/vtkSMSliceViewProxy.h"
+#include <selection/SelectionManager.h>
 #include "IPreferencePanel.h"
 
 // Qt includes
+#include <QApplication>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
 #include <QScrollBar>
 #include <QSettings>
 #include <QSpinBox>
+#include <QVector3D>
 #include <QVBoxLayout>
 #include <QWheelEvent>
-// #include <QMouseEvent>
 
 // ParaQ includes
 #include <pqActiveObjects.h>
@@ -61,6 +63,7 @@
 #include <vtkSMTwoDRenderViewProxy.h>
 #include <vtkSMProxyManager.h>
 #include <vtkRenderWindowInteractor.h>
+#include <vtkWorldPointPicker.h>
 
 #include <vtkPropPicker.h>
 #include <vtkPropCollection.h>
@@ -68,16 +71,7 @@
 #include <paraview/pqData.h>
 #include <vtkRenderer.h>
 
-
-//-----------------------------------------------------------------------------
-// void vtkInteractorStyleEspina::OnMouseMove()
-// {
-//   if (Interactor->GetControlKey())
-//     return;
-//   
-//   vtkInteractorStyleImage::OnMouseMove();
-// }
-// 
+#include <vtkPropCollection.h>
 
 //-----------------------------------------------------------------------------
 SliceViewPreferencesPanel::SliceViewPreferencesPanel(SliceViewPreferences* preferences)
@@ -150,7 +144,7 @@ SliceViewPreferences::SliceViewPreferences(vtkPVSliceView::VIEW_PLANE plane)
       viewSettings = "CoronalSliceView";
       break;
     default:
-      assert(false);
+      Q_ASSERT(false);
   };
 
   const QString wheelSettings = QString(viewSettings+"::invertWheel");
@@ -185,7 +179,7 @@ const QString SliceViewPreferences::shortDescription()
       viewSettings = "Coronal View";
       break;
     default:
-      assert(false);
+      Q_ASSERT(false);
       return "ERROR";
   };
 }
@@ -373,68 +367,6 @@ void SliceView::setTitle(const QString& title)
 //   return QRect();
 // }
 // 
-// //! If several regions select the same object, consistently it will return
-// //! the same number of (regions,elements) as selected objects. Thus, the client
-// //! that decided such configuration has to resolve it
-// //-----------------------------------------------------------------------------
-// void SliceView::setSelection(SelectionFilters& filters, ViewRegions& regions)
-// {
-//   //TODO: Discuss if we apply VOI at application level or at plugin level
-//   // i.e. whether clicks out of VOI are discarted or not
-//   ISelectionHandler::MultiSelection msel;
-//   
-//   //qDebug() << "EspINA::SliceView" << m_plane << ": Making selection";
-//   // Select all products that belongs to all the regions
-//   foreach(const QPolygonF &region, regions)
-//   {
-//     ISelectionHandler::VtkRegion vtkRegion;
-//     // Translate view pixels into Vtk pixels
-//     vtkRegion = display2vtk(region);
-//     
-//     if (vtkRegion.isEmpty())
-//       return;
-//     
-//     if (SelectionManager::instance()->voi() && !SelectionManager::instance()->voi()->contains(vtkRegion))
-//     {
-//       return;
-//     }
-//     
-//     // Apply filtering criteria at given region
-//     foreach(QString filter, filters)
-//     {
-//       //! Special case, where sample is selected
-//       if (filter == "EspINA_Sample")
-//       {
-// 	ISelectionHandler::Selelection selSample;
-// 	selSample.first = vtkRegion;
-// 	selSample.second = m_focusedSample;
-// 	msel.append(selSample);
-//       } //! Select all segmented objects
-//       else if (filter == "EspINA_Segmentation")
-//       {
-// 	foreach(Segmentation *seg, pickSegmentationsAt(vtkRegion))
-// 	{
-// 	  ISelectionHandler::Selelection selSegmentaion;
-// 	  selSegmentaion.first = vtkRegion;
-// 	  selSegmentaion.second = seg;
-// 	  msel.append(selSegmentaion);
-// 	}
-//       }
-//       else 
-//       {
-// 	// Find segmented objects inside regions
-// 	// Discard by filter
-// 	// Adjust spacing
-// 	assert(false); //TODO: Taxonomy selection 
-// 	//NOTE: shall other filtering criterias be implemented?? Size??
-//       }
-//     }
-//   }
-//   //TODO: Update Qt selection
-//   // Notify the manager about the new selection
-//   SelectionManager::instance()->setSelection( msel);
-// }
-// 
 // //-----------------------------------------------------------------------------
 // QList<Segmentation* > SliceView::pickSegmentationsAt(int x, int y, int z)
 // {
@@ -562,6 +494,89 @@ void SliceView::setCrossHairColors(double hcolor[3], double vcolor[3])
 
 
 //-----------------------------------------------------------------------------
+void SliceView::eventPosition(int& x, int& y)
+{
+  //Use Render Window Interactor's to obtain event's position
+  vtkSMSliceViewProxy* view =
+    vtkSMSliceViewProxy::SafeDownCast(m_view->getProxy());
+  vtkRenderWindowInteractor *rwi =
+    vtkRenderWindowInteractor::SafeDownCast(
+      view->GetRenderWindow()->GetInteractor());
+  Q_ASSERT(rwi);
+
+  rwi->GetEventPosition(x, y);
+}
+
+
+//-----------------------------------------------------------------------------
+SelectionHandler::MultiSelection SliceView::select(
+  SelectionHandler::SelectionFilters filters,
+  SelectionHandler::ViewRegions regions)
+{
+  SelectionHandler::MultiSelection msel;
+  //TODO: Discuss if we apply VOI at application level or at plugin level
+  // i.e. whether clicks out of VOI are discarted or not
+
+  //qDebug() << "EspINA::SliceView" << m_plane << ": Making selection";
+  // Select all products that belongs to all the regions
+  foreach(const QPolygonF &region, regions)
+  {
+    SelectionHandler::VtkRegion vtkRegion;
+    // Translate view pixels into Vtk pixels
+    vtkRegion = display2vtk(region);
+
+    if (vtkRegion.isEmpty())
+      return msel;
+
+//     if (SelectionManager::instance()->voi() && !SelectionManager::instance()->voi()->contains(vtkRegion))
+//     {
+//       return;
+//     }
+
+    // Apply filtering criteria at given region
+    foreach(QString filter, filters)
+    {
+      //! Special case, where sample is selected
+      if (filter == SelectionHandler::EspINA_Channel)
+      {
+	Channel *channel = m_channels.keys().first();
+	SelectionHandler::Selelection selSample(vtkRegion,channel->data());
+	msel.append(selSample);
+      } //! Select all segmented objects
+//       else if (filter == "EspINA_Segmentation")
+//       {
+// 	foreach(Segmentation *seg, pickSegmentationsAt(vtkRegion))
+// 	{
+// 	  ISelectionHandler::Selelection selSegmentaion;
+// 	  selSegmentaion.first = vtkRegion;
+// 	  selSegmentaion.second = seg;
+// 	  msel.append(selSegmentaion);
+// 	}
+//       }
+      else
+      {
+	// Find segmented objects inside regions
+	// Discard by filter
+	// Adjust spacing
+	Q_ASSERT(false); //TODO: Taxonomy selection
+	//NOTE: should other filtering criterias be implemented?? Size??
+      }
+    }
+  }
+  //TODO: Update Qt selection
+
+  return msel;
+}
+
+
+//-----------------------------------------------------------------------------
+pqRenderViewBase* SliceView::view()
+{
+  return m_view;
+}
+
+
+//-----------------------------------------------------------------------------
 void SliceView::onConnect()
 {
   qDebug() << this << ": Connecting to a new server";
@@ -652,6 +667,9 @@ void SliceView::undock()
 //-----------------------------------------------------------------------------
 bool SliceView::eventFilter(QObject* caller, QEvent* e)
 {
+  if (SelectionManager::instance()->filterEvent(e, this))
+    return true;
+
   if (e->type() == QEvent::Wheel)
   {
     QWheelEvent *we = static_cast<QWheelEvent *>(e);
@@ -661,73 +679,57 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
   }else if (e->type() == QEvent::Enter)
   {
     QWidget::enterEvent(e);
-//     QApplication::setOverrideCursor(SelectionManager::instance()->cursor());
+    QApplication::setOverrideCursor(SelectionManager::instance()->cursor());
     e->accept();
   }else if (e->type() == QEvent::Leave)
   {
     QWidget::leaveEvent(e);
-//     QApplication::restoreOverrideCursor();
+    QApplication::restoreOverrideCursor();
     e->accept();
   }else if (e->type() == QEvent::MouseButtonPress)
   {
     QMouseEvent* me = static_cast<QMouseEvent*>(e);
     if (me->button() == Qt::LeftButton && me->modifiers() == Qt::CTRL)
     {
-      centerViewOnMousePosition(me);
+      centerViewOnMousePosition();
     }
-  }else if(e->type() == QEvent::MouseButtonRelease)
-  {
   }
 
   return QAbstractItemView::eventFilter(caller, e);
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::centerViewOnMousePosition(QMouseEvent* me)
+void SliceView::centerViewOnMousePosition()
 {
-  //Use Render Window Interactor's to obtain event's position
+  int xPos, yPos;
+  eventPosition(xPos, yPos);
+
+  double center[3];//World coordinates
+  pickChannel(xPos, yPos, center);
+
+  centerViewOn(center);
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::pickChannel(int x, int y, double pickPos[3])
+{
   vtkSMSliceViewProxy* view =
     vtkSMSliceViewProxy::SafeDownCast(m_view->getProxy());
-  //vtkSMRenderViewProxy* renModule = view->GetRenderView();
-  vtkRenderWindowInteractor *rwi =
-    vtkRenderWindowInteractor::SafeDownCast(
-      view->GetRenderWindow()->GetInteractor());
-      //renModule->GetInteractor());
-  assert(rwi);
-
-  int xPos, yPos;
-  rwi->GetEventPosition(xPos, yPos);
-  //qDebug() << "EspINA::SliceView" << m_plane << ": Clicked Position" << xPos << " " << yPos;
-  QPoint pos(xPos,yPos);
-
-  //double spacing[3];//Image Spacing
-  //m_focusedSample->spacing(spacing);
-
-  double pickPos[3];//World coordinates
-  vtkPropPicker *propPicker = vtkPropPicker::New();
-  //TODO: Check this--> wpicker->AddPickList();
-
+  Q_ASSERT(view);
   vtkRenderer * renderer = view->GetRenderer();
-  if (!renderer)
-    return;
+  Q_ASSERT(renderer);
 
-  propPicker->Pick(xPos, yPos, 0.1, view->GetRenderer());
+  vtkPropPicker *propPicker = vtkPropPicker::New();
+//   vtkPropCollection *col = vtkPropCollection::New();
+//   qDebug() << propPicker->PickProp(x, y, renderer, col);
+  propPicker->Pick(x, y, 0.1, renderer);
   propPicker->GetPickPosition(pickPos);
 
   pickPos[m_plane] = m_fitToGrid?m_scrollBar->value()*m_gridSize[m_plane]:m_scrollBar->value();
   qDebug() << "Pick Position" << pickPos[0] << pickPos[1] << pickPos[2];
-
-  centerViewOn(pickPos);
-
-  //    qDebug() << "Picked pixel" << pickPos[0] << pickPos[1] << pickPos[2];
-//   SelectionManager::instance()->onMouseDown(pos, this);
-  //qDebug() << "Pick Position:" << pickPos[0] << pickPos[1] << pickPos[2];
-//   int selectedPixel[3];
-//   for(int dim = 0; dim < 3; dim++)
-//     selectedPixel[dim] = round(pickPos[dim]/spacing[dim]);
-//   if (rwi->GetControlKey())
-//     centerViewOn(selectedPixel[0], selectedPixel[1], selectedPixel[2]);
+  propPicker->Delete();
 }
+
 
 //-----------------------------------------------------------------------------
 void SliceView::addChannelRepresentation(Channel* channel)
@@ -736,7 +738,9 @@ void SliceView::addChannelRepresentation(Channel* channel)
   Q_ASSERT(ep);
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
   Q_ASSERT(dp);
-  rep = dp->createPreferredRepresentation(channel->outputPort(),m_view,true);
+  pqDataRepresentation *rep = dp->createPreferredRepresentation(channel->outputPort(),m_view,true);
+
+  m_channels[channel] = rep;
 
   // Only at sample LOD
   double spacing[3];
@@ -763,7 +767,8 @@ void SliceView::removeChannelRepresentation(Channel* channel)
   pqObjectBuilder *ob = core->getObjectBuilder();
   m_view->getRenderViewProxy()->GetRenderer()->RemoveAllViewProps();
   m_view->getRenderViewProxy()->GetOverviewRenderer()->RemoveAllViewProps();
-  ob->destroy(rep);
+  ob->destroy(m_channels[channel]);
+  m_channels.remove(channel);
   m_view->getProxy()->UpdateVTKObjects();
 }
 
@@ -775,7 +780,7 @@ void SliceView::addSegmentationRepresentation(pqOutputPort* oport)
 
   vtkSMRepresentationProxy* reprProxy = vtkSMRepresentationProxy::SafeDownCast(
     pxm->NewProxy("representations", "SegmentationRepresentation"));
-  assert(reprProxy);
+  Q_ASSERT(reprProxy);
 
     // Set the reprProxy's input.
   pqSMAdaptor::setInputProperty(reprProxy->GetProperty("Input"),
@@ -1041,181 +1046,36 @@ void SliceView::centerViewOn(double center[3])
 // }
 // 
 // 
-// // //-----------------------------------------------------------------------------
-// // void SliceView::focusOnSample(Sample* sample)
-// // {
-// //   s_focusedSample = sample;
-// //   s_blender->focusOnSample(sample);
-// //   if (!m_slicer)
-// //   {
-// //     pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
-// //     m_slicer = ob->createFilter("filters", "ImageSlicer", sample->creator()->pipelineSource(), sample->portNumber());
-// //     setPlane(m_plane);
-// //     sample->creator()->pipelineSource()->updatePipeline();
-// //     /*
-// //     vtkPVDataInformation *info = sample->outputPort()->getDataInformation();
-// //     double *bounds = info->GetBounds();
-// //     int *extent = info->GetExtent();
-// //     */
-// //     int mextent[6];
-// //     sample->extent(mextent);
-// //     int normalCoorToPlane = (m_plane + 2) % 3;
-// //     int numSlices = mextent[2*normalCoorToPlane+1];
-// //     m_scrollBar->setMaximum(numSlices);
-// //     m_spinBox->setMaximum(numSlices);
-// // 
-// //     pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-// //     pqDataRepresentation *rep = dp->setRepresentationVisibility(m_slicer->getOutputPort(0), m_view, true);
-// //     
-// //     m_view->resetCamera();
-// //   }
-// //   else
-// //   {
-// //     qDebug() << "Need to change slicer input";
-// //     //TODO: change slicer input
-// //     //assert(false);
-// //   }
-// // 
-// //   double camPoint[3], sampleBound[6];
-// //   sample->bounds(sampleBound);
-// // }
-// 
-// 
-// //-----------------------------------------------------------------------------
-// void SliceView::centerViewOn(int x, int y, int z)
-// {
-//   //qDebug() << "Center view on" << x << y << z;
-//   if (m_sampleRep)
-//     m_sampleRep->centerOn(x,y,z);
-// }
-// 
-// //-----------------------------------------------------------------------------
-// ISelectionHandler::VtkRegion SliceView::display2vtk(const QPolygonF &region)
-// {
-//   //Use Render Window Interactor's Picker to find the world coordinates
-//   //of the stack
-//   //vtkSMRenderViewProxy* renModule = view->GetRenderWindow()->GetInteractor()->GetRenderView();
-//   ISelectionHandler::VtkRegion vtkRegion;
-//   
-//   //! thus, use its spacing
-//   double spacing[3];//Image Spacing
-//   m_focusedSample->spacing(spacing);
-//   
-//   double pickPos[3];//World coordinates
-//   vtkPropPicker *wpicker = vtkPropPicker::New();
-//   foreach(QPointF point, region)
-//   {  
-//     wpicker->Pick(point.x(), point.y(), 0.1, m_viewProxy->GetRenderer());
-//     wpicker->GetPickPosition(pickPos);
-//     qDebug() << "Second Picked pixel" << pickPos[0] << pickPos[1] << pickPos[2];
-//     if (round(pickPos[2]) < 0)
+
+//-----------------------------------------------------------------------------
+SelectionHandler::VtkRegion SliceView::display2vtk(const QPolygonF &region)
+{
+  //Use Render Window Interactor's Picker to find the world coordinates
+  //of the stack
+  //vtkSMRenderViewProxy* renModule = view->GetRenderWindow()->GetInteractor()->GetRenderView();
+  SelectionHandler::VtkRegion vtkRegion;
+
+  double pickPos[3];//World coordinates
+  vtkWorldPointPicker *wpicker = vtkWorldPointPicker::New();
+  foreach(QPointF point, region)
+  {
+    pickChannel(point.x(), point.y(), pickPos);
+    if (round(pickPos[2]) < 0)
+    {
+      qDebug() << "Invalid Z position " << pickPos[2];
 //       return vtkRegion;
-//     
-//     Point vtkPoint;
-//     for (int i=0; i<3; i++)
-//       vtkPoint[i] = round(pickPos[i] / spacing[i]);
-//     vtkRegion << vtkPoint;
-//   }
-//   return vtkRegion;
-// 
-// }
-// 
-// 
-// 
-// //-----------------------------------------------------------------------------
-// pqRenderView* SliceView::view()
-// {
-//   return m_view;
-// }
-// 
-// 
-// //-----------------------------------------------------------------------------
-// void SliceView::vtkWidgetMouseEvent(QMouseEvent* event)
-// {
-//   if (!m_sampleRep)
-//     return;
-//   
-//   //Use Render Window Interactor's to obtain event's position
-//   vtkSMRenderViewProxy* view = 
-//     vtkSMRenderViewProxy::SafeDownCast(m_view->getProxy());
-//   //vtkSMRenderViewProxy* renModule = view->GetRenderView();
-//   vtkRenderWindowInteractor *rwi =
-//     vtkRenderWindowInteractor::SafeDownCast(
-//       view->GetRenderWindow()->GetInteractor());
-//       //renModule->GetInteractor());
-//   assert(rwi);
-// 
-//   int xPos, yPos;
-//   rwi->GetEventPosition(xPos, yPos);
-//   //qDebug() << "EspINA::SliceView" << m_plane << ": Clicked Position" << xPos << " " << yPos;
-//   QPoint pos(xPos,yPos);
-//   
-//   if (event->type() == QMouseEvent::MouseButtonPress &&
-//       event->buttons() == Qt::LeftButton)
-//   {
-//     double spacing[3];//Image Spacing
-//     m_focusedSample->spacing(spacing);
-//   
-//     double pickPos[3];//World coordinates
-//     vtkPropPicker *wpicker = vtkPropPicker::New();
-//     //TODO: Check this--> wpicker->AddPickList();
-//     wpicker->Pick(xPos, yPos, 0.1, m_viewProxy->GetRenderer());
-//     wpicker->GetPickPosition(pickPos);
-//     
-//     if (pickPos[0] == 0 && pickPos[1] == 0 && pickPos[2] == 0)
-//     {
-//       qDebug() << "Ignoring picking outside sample";
-//       return;
-//     }
-//    
-// //    qDebug() << "Picked pixel" << pickPos[0] << pickPos[1] << pickPos[2];
-//     SelectionManager::instance()->onMouseDown(pos, this);
-//     //qDebug() << "Pick Position:" << pickPos[0] << pickPos[1] << pickPos[2];
-//     int selectedPixel[3];
-//     for(int dim = 0; dim < 3; dim++)
-//       selectedPixel[dim] = round(pickPos[dim]/spacing[dim]);
-//     if (rwi->GetControlKey())
-//       centerViewOn(selectedPixel[0], selectedPixel[1], selectedPixel[2]);
-//     
-//     selectSegmentations(selectedPixel[0], selectedPixel[1], selectedPixel[2]);
-//     
-//   }
-//   //BUG: Only MouseButtonPress events are received
-//   if (event->type() == QMouseEvent::MouseMove &&
-//       event->buttons() == Qt::LeftButton)
-//   {
-//     SelectionManager::instance()->onMouseMove(pos, this);
-//   }
-//   if (event->type() == QMouseEvent::MouseButtonRelease &&
-//       event->buttons() == Qt::LeftButton)
-//   {
-//     SelectionManager::instance()->onMouseUp(pos, this);
-//   }
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void SliceView::setSlice(int slice)
-// {
-//   
-//   if (m_spinBox->value() != slice)
-//   {
-//     m_spinBox->setValue(slice);
-//     updateVOIVisibility();
-//   }
-//   if (m_scrollBar->value() != slice)
-//   {
-//     m_scrollBar->setValue(slice);
-//     updateVOIVisibility();
-//   }
-// 
-//   if (m_sampleRep)
-//   {
-//     int sliceOffset = m_plane==VIEW_PLANE_XY?1:0;
-//     m_sampleRep->setSlice(slice-sliceOffset,m_plane);
-//   }
-//   
-// }
-// 
+    }
+
+    QVector3D vtkPoint;
+    vtkPoint.setX(round(pickPos[0] / m_gridSize[0]));
+    vtkPoint.setY(round(pickPos[1] / m_gridSize[1]));
+    vtkPoint.setZ(round(pickPos[2] / m_gridSize[2]));
+    vtkRegion << vtkPoint;
+  }
+  return vtkRegion;
+
+}
+
 // //-----------------------------------------------------------------------------
 // void SliceView::setVOI(IVOI* voi)
 // {

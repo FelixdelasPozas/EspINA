@@ -28,6 +28,7 @@
 #include <vtkSmartPointer.h>
 #include <../Views/vtkPVSliceView.h>
 #include "IPreferencePanel.h"
+#include <selection/SelectableView.h>
 
 class pqDataRepresentation;
 
@@ -90,13 +91,11 @@ private:
   QString viewSettings;
 };
 
-// //! Displays a unique slice of a sample
-// //! If segmentations are visible, then their slices are
-// //! blended over the sample slice
 /// Slice View Widget
+/// Displays a unique slice of a channel or segmentation
 class SliceView
 : public QAbstractItemView
-// , public ISelectableView
+, public SelectableView
 {
   Q_OBJECT
 public:
@@ -118,8 +117,10 @@ public:
   void centerViewOn(double center[3]/*nm*/);
   void setCrossHairColors(double hcolor[3], double vcolor[3]);
 
-//   //! Interface of ISelectableView
-//   void setSelection(SelectionFilters &filters, ViewRegions &regions);
+  // Interface of SelectableView
+  virtual void eventPosition(int &x, int &y);
+  virtual SelectionHandler::MultiSelection select(SelectionHandler::SelectionFilters filters, SelectionHandler::ViewRegions regions);
+  virtual pqRenderViewBase *view();
 
 //   QList<Segmentation *> pickSegmentationsAt(int x, int y, int z);
 //   QList<Segmentation *> pickSegmentationsAt(ISelectionHandler::VtkRegion region);
@@ -184,10 +185,11 @@ protected:
 //   virtual void dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight);
 
   virtual bool eventFilter(QObject* caller, QEvent* e);
-  void centerViewOnMousePosition(QMouseEvent *me);
+  void centerViewOnMousePosition();
+  void pickChannel(int x, int y, double pickPos[3]);
 
-//   //! Converts point from Display coordinates to World coordinates
-//   ISelectionHandler::VtkRegion display2vtk(const QPolygonF &region);
+  /// Converts point from Display coordinates to World coordinates
+  SelectionHandler::VtkRegion display2vtk(const QPolygonF &region);
 
 
   void buildTitle();
@@ -200,7 +202,6 @@ private:
 //   vtkSMRenderViewProxy *m_viewProxy;
 //   vtkRenderWindowInteractor *m_rwi;
 //   vtkCamera *m_cam;
-  pqDataRepresentation *rep;
 
   // GUI
   QHBoxLayout *m_titleLayout;
@@ -216,6 +217,8 @@ private:
   double m_gridSize[3];
   double m_range[6];
   double m_center[3];
+
+  QMap<Channel *, pqDataRepresentation *> m_channels;
 };
 
 #endif // SLICEVIEW_H

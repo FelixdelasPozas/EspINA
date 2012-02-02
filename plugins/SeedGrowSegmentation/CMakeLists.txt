@@ -25,12 +25,13 @@ include_directories(
 
 
 qt4_add_resources (RCC_BUILT_SOURCES 
-#   rsc/SeedGrowSegmentation.qrc
+  rsc/SeedGrowSegmentation.qrc
   )
 
 # We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
 qt4_wrap_cpp(MOC_SRCS 
-#   SeedGrowSegmentation.h
+  SeedGrowSegmentation.h
+  SeedGrowSelector.h
 #   SeedGrowSegmentationPreferences.h
   )
 
@@ -50,6 +51,7 @@ ADD_PARAVIEW_ACTION_GROUP(
 
 set (PLUGIN_SRCS
   SeedGrowSegmentation.cpp
+  SeedGrowSelector.cpp
 #   SeedGrowSegmentationPreferences.cpp
 #   SeedGrowSegmentationFilter.cpp
   ${MOC_SRCS} 
@@ -58,7 +60,7 @@ set (PLUGIN_SRCS
   )
 
 set (VTKFILTER_SRCS
-  vtkConnectedThresholdImageFilter.cpp
+#   vtkConnectedThresholdImageFilter.cpp
   )
 
 set (PARAVIEW_ADDITIONAL_LIBRARIES
@@ -72,7 +74,7 @@ set (PARAVIEW_ADDITIONAL_LIBRARIES
 # which are filled up by the above macro with relevant entries
 ADD_PARAVIEW_PLUGIN(
   SeedGrowSegmentationPlugin
-  "0.1"
+  "${PLUGIN_VERSION_MAJOR}.${PLUGIN_VERSION_MINOR}"
   SERVER_MANAGER_XML SeedGrowSegmentationFilters.xml
   SERVER_MANAGER_SOURCES ${VTKFILTER_SRCS}
 	#According to: http://markmail.org/message/wj27wmlj6rjd7vg5
@@ -91,24 +93,9 @@ endif( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
 target_link_libraries (SeedGrowSegmentationPlugin ${PARAVIEW_ADDITIONAL_LIBRARIES} )
 
-install (TARGETS SeedGrowSegmentationPlugin LIBRARY DESTINATION bin/plugins)
-
-# if (UNIX)
-#   set (CPACK_PACKAGE_VERSION_MAJOR ${ESPINA_VERSION_MAJOR})
-#   set (CPACK_PACKAGE_VERSION_MINOR ${ESPINA_VERSION_MINOR})
-#   set (CPACK_PACKAGE_VERSION_PATCH ${ESPINA_VERSION_PATCH})
-#   set (CPACK_PACKAGE_NAME EspINA )
-#   set (CPACK_GENERATOR "DEB")
-#   set (CPACK_DEBIAN_PACKAGE_MAINTAINER "CeSViMa") #required
-#   set (CPACK_DEBIAN_PACKAGE_DEPENDS "libboost-system1.42.0,
-#         libboost-filesystem1.42.0,
-#         libboost-graph1.42.0,
-#         libqt4-webkit,
-#         libqt4-svg,
-#         libqt4-help,
-#         libqt4-xmlpatterns,
-#         libopenmpi1.3")
-#   set( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/CMake/debian/postinst;")
-# 
-#   include (CPack)
-# endif (UNIX)
+install (
+  TARGETS SeedGrowSegmentationPlugin
+  LIBRARY
+  DESTINATION bin/plugins
+  COMPONENT SeedGrowSegmentation
+)

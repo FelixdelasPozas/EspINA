@@ -22,6 +22,8 @@ qt4_wrap_cpp(MOC_BUILT_SOURCES
   gui/SliceView.h
   gui/ViewManager.h
   gui/VolumeView.h
+  selection/SelectionHandler.h
+  selection/SelectionManager.h
   )
 
 source_group("Generated" FILES
@@ -29,16 +31,16 @@ source_group("Generated" FILES
   ${RCC_BUILT_SOURCES}
 )
 
-set (LOCAL_SOURCES
+set(LOCAL_SOURCES
   )
 
-set (CACHE_SOURCES
+set(CACHE_SOURCES
   cache/Cache.cpp
   cache/CachedObjectBuilder.cpp
   cache/CacheHash.cpp
   )
 
-set (GUI_SOURCES 
+set(GUI_SOURCES
   gui/DynamicWidget.cpp
   gui/EspinaDockWidget.cpp
   gui/EspinaView.cpp
@@ -48,7 +50,7 @@ set (GUI_SOURCES
   gui/VolumeView.cpp
   )
 
-set (MODEL_SOURCES
+set(MODEL_SOURCES
   model/EspINA.cpp
   model/ModelTest.cpp
   model/Segmentation.cpp
@@ -57,9 +59,15 @@ set (MODEL_SOURCES
   model/Taxonomy.cpp
   )
 
-set (PARAVIEW_SOURCES
+set(PARAVIEW_SOURCES
   paraview/Filter.cpp
   paraview/pqData.cpp
+  )
+
+set(SELECTION_SOURCES
+  selection/PixelSelector.cpp
+  selection/SelectionHandler.cpp
+  selection/SelectionManager.cpp
   )
 
 set(Espina_SOURCE_FILES
@@ -68,6 +76,7 @@ set(Espina_SOURCE_FILES
   ${GUI_SOURCES}
   ${MODEL_SOURCES}
   ${PARAVIEW_SOURCES}
+  ${SELECTION_SOURCES}
 #   ${PROXIES_SOURCES}
   ${MOC_BUILT_SOURCES}
   ${RCC_BUILT_SOURCES}
@@ -83,7 +92,12 @@ add_library (Espina SHARED ${Espina_SOURCE_FILES})
 
 target_link_libraries (Espina ${EXTERNAL_LIBS})
 
-install (TARGETS Espina ${PARAVIEW_LIBRARIES} LIBRARY DESTINATION lib)
+install (
+  TARGETS Espina ${PARAVIEW_LIBRARIES}
+  LIBRARY
+  DESTINATION lib
+  COMPONENT espina
+  )
 
 if (${BUILD_TESTING})
   add_subdirectory(model/tests)

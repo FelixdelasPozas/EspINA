@@ -101,7 +101,12 @@ build_paraview_client(espina
 
 target_link_libraries (espina ${Espina_LIBRARIES})
 
-install (TARGETS espina RUNTIME DESTINATION bin)
+install (
+  TARGETS espina
+  RUNTIME
+  DESTINATION bin
+  COMPONENT espina
+  )
 
 
 # add_subdirectory (plugins)

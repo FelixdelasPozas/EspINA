@@ -551,10 +551,10 @@ void vtkPVSliceView::RemoveActor(vtkProp3D* actor)
 }
 
 //----------------------------------------------------------------------------
-void vtkPVSliceView::AddChannel ( vtkProp3D* actor )
+void vtkPVSliceView::AddChannel(vtkProp3D* actor)
 {
-    AddActor ( actor );
-    Channels.append ( actor );
+  AddActor(actor);
+  Channels.append(actor);
 }
 
 //----------------------------------------------------------------------------

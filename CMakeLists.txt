@@ -1,4 +1,4 @@
-project (ESPINA)
+project (EspINA)
 
 cmake_minimum_required (VERSION 2.8)
 
@@ -58,19 +58,38 @@ if (UNIX)
   file (GLOB ITKFILES ${ITK_DIR}/bin/*.so*)
   file (GLOB QUAZIPFILES ${Quazip_DIR}/*.so*)
 
-  install (FILES ${PARAVIEWFILES} DESTINATION lib/espina)
-  install (FILES ${ITKFILES} DESTINATION lib/espina)
-  install (FILES ${QUAZIPFILES} DESTINATION lib/espina)
-  install (FILES espina.conf DESTINATION ../etc/ld.so.conf.d/)
-#   install (FILES ${PROJECT_SOURCE_DIR}/default_taxonomy.xml DESTINATION share/espina/)
+  install (
+    FILES ${PARAVIEWFILES}
+    DESTINATION lib/espina
+    COMPONENT espina
+    )
+  install (
+    FILES ${ITKFILES}
+    DESTINATION lib/espina
+    COMPONENT espina
+    )
+
+  install (
+    FILES ${QUAZIPFILES}
+    DESTINATION lib/espina
+    COMPONENT espina
+    )
+
+  install(
+    FILES espina.conf
+    DESTINATION ../etc/ld.so.conf.d/
+    COMPONENT espina
+    )
+
   #install (FILES ${PROJECT_SOURCE_DIR}/frontend/translationFiles/es.qm DESTINATION share/espina/)
 
   set (CPACK_PACKAGE_VERSION_MAJOR ${ESPINA_VERSION_MAJOR})
   set (CPACK_PACKAGE_VERSION_MINOR ${ESPINA_VERSION_MINOR})
   set (CPACK_PACKAGE_VERSION_PATCH ${ESPINA_VERSION_PATCH})
-  set (CPACK_PACKAGE_NAME EspINA )
+  set (CPACK_PACKAGE_NAME "EspINA")
   set (CPACK_GENERATOR "DEB")
   set (CPACK_DEBIAN_PACKAGE_MAINTAINER "CeSViMa") #required
+  set (CPACK_DEBIAN_PACKAGE_DESCRIPTION "Espina Bla Bla")
   set (CPACK_DEBIAN_PACKAGE_DEPENDS "libboost-system1.42.0,
         libboost-filesystem1.42.0,
         libboost-graph1.42.0,
@@ -79,8 +98,13 @@ if (UNIX)
         libqt4-help,
         libqt4-xmlpatterns,
         libopenmpi1.3")
-  set( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/CMake/debian/postinst;")
+  set (CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/CMake/debian/postinst;")
+
+  set (CPACK_COMPONENTS_ALL espina SeedGrowSegmentation)
+  set (CPACK_COMPONENT_ESPINA_DISPLAY_NAME "EspINA Interactive Neuron Analyser")
+  set (CPACK_COMPONENT_ESPINA_DESCRIPTION  "Interactive Analysis Tool for FEM images")
+
+  set(CPACK_DEB_COMPONENT_INSTALL ON)
 
   include (CPack)
 endif (UNIX)
-                                                                                       
