@@ -66,8 +66,9 @@ vtkSliceRepresentation::~vtkSliceRepresentation()
   DeliveryFilter->Delete();
   Slice->RemoveAllInputs();
   Slice->Delete();
-  SliceActor->GetMapper()->Delete();
-  SliceActor->Delete();
+  // WARNING: DO NOT FREE ACTOR, BECAUSE IT'S FREED BY THE RENDERER
+  // SliceActor->GetMapper()->Delete();
+  // SliceActor->Delete();
   qDebug() << "Destroyed Representation" << this;
 }
 

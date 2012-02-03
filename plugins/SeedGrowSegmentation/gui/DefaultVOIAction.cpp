@@ -26,6 +26,7 @@
 //------------------------------------------------------------------------
 DefaultVOIAction::DefaultVOIAction(QObject* parent)
 : QWidgetAction(parent)
+, m_useVOI(true)
 {
 }
 

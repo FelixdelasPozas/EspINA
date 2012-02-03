@@ -139,9 +139,9 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection se
 //   pqApplicationCore* core = pqApplicationCore::instance();
   //pqServerManagerModel* sm = core->getServerManagerModel();
 
-  qDebug() << "Start Segmentation";
   if (sel.size() > 0)
   {
+    qDebug() << "Start Segmentation";
     Q_ASSERT(sel.size() == 1);// Only one element selected
     SelectionHandler::Selelection element = sel.first();
 
@@ -157,6 +157,7 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection se
     SeedGrowSegmentationFilter filter(args);
 
     qDebug() << "Threshold:" << m_threshold->threshold();
+    qDebug() << "Use Default VOI:" << m_useDefaultVOI->useDefaultVOI();
 
 //   ITraceNode::Arguments args;
 //   args.insert("Type", SGSF);

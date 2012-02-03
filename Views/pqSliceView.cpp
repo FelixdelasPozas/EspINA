@@ -126,7 +126,6 @@ void pqSliceView::initializeWidgets()
 //-----------------------------------------------------------------------------
 vtkImageData* pqSliceView::captureImage ( int magnification )
 {
-    Q_ASSERT ( false );
     if ( this->getWidget()->isVisible() )
     {
         vtkSMRenderViewProxy* view = vtkSMRenderViewProxy::SafeDownCast (

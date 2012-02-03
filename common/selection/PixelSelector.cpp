@@ -85,7 +85,8 @@ BestPixelSelector::BestPixelSelector(SelectionHandler* succesor)
 //-----------------------------------------------------------------------------
 void BestPixelSelector::onMouseDown(const QPoint& pos, SelectableView* view)
 {
-  pqRenderView *rw = dynamic_cast<pqRenderView *>(view->view());
+  pqRenderViewBase *rw = dynamic_cast<pqRenderViewBase *>(view->view());
+  Q_ASSERT(rw);
   vtkImageData *img = rw->captureImage(1);
 
   int extent[6];
