@@ -17,27 +17,39 @@
 */
 
 
-#ifndef SEEDGROWSELECTOR_H
-#define SEEDGROWSELECTOR_H
+#ifndef SEGMENTACTION_H
+#define SEGMENTACTION_H
 
-#include <selection/SelectionHandler.h>
+#include <QWidgetAction>
 
-class ThresholdAction;
+class QMenu;
+class SelectionHandler;
 
-class SeedGrowSelector
-: public SelectionHandler
+
+class SegmentAction
+: public QWidgetAction
 {
   Q_OBJECT
 public:
-  explicit SeedGrowSelector(ThresholdAction *th, SelectionHandler* succesor = 0);
+  explicit SegmentAction(QObject* parent);
 
-  virtual bool filterEvent(QEvent* e, SelectableView* view = 0);
-  virtual QCursor cursor();
+  virtual QWidget* createWidget(QWidget* parent);
 
-  void setPixelSelector(SelectionHandler *sel) {m_succesor = sel;}
+  void addSelector(QAction *action);
+  void cancel() {emit cancelAction();}
+
+protected slots:
+  void actionTriggered(QAction *action);
+  void onActionCanceled();
+
+signals:
+  void cancelAction();
+  void actionCanceled();
+  void triggered(QAction *);
 
 private:
-  ThresholdAction *m_threshold;
+  SelectionHandler *m_selector;
+  QList<QAction *>  m_actions;
 };
 
-#endif // SEEDGROWSELECTOR_H
+#endif // SEGMENTACTION_H

@@ -22,7 +22,7 @@
 
 #include "cache/Cache.h"
 
-#include "paraview/Filter.h"
+#include "processing/pqFilter.h"
 
 class pqPipelineSource;
 

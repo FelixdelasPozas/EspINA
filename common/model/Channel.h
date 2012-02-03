@@ -27,7 +27,7 @@
 
 #include "IModelItem.h"
 
-#include "paraview/pqData.h"
+#include "processing/pqData.h"
 
 // Forward declarations
 class pqOutputPort;

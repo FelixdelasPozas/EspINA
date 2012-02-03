@@ -55,18 +55,17 @@ void SelectionManager::setSelection(SelectionHandler::MultiSelection sel) const
 QCursor SelectionManager::cursor() const
 {
   if (m_handler)
-    return m_handlerCursor;
+    return m_handler->cursor();
   else
     return QCursor(Qt::ArrowCursor);
 }
 
 //------------------------------------------------------------------------
-void SelectionManager::setSelectionHandler(SelectionHandler* sh, QCursor cursor)
+void SelectionManager::setSelectionHandler(SelectionHandler* sh)
 {
   if (m_handler && m_handler != sh)
     m_handler->abortSelection();
   m_handler = sh;
-  m_handlerCursor = cursor;
 //   if (m_voi)
 //   {
 //     m_voi->setEnabled(!m_handler);

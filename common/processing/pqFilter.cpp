@@ -17,11 +17,11 @@
 
 */
 
-#include "paraview/Filter.h"
+#include "processing/pqFilter.h"
 
 // ESPINA
 #include "cache/CachedObjectBuilder.h"
-#include "paraview/pqData.h"
+#include "processing/pqData.h"
 
 // ParaQ
 #include <pqApplicationCore.h>
@@ -31,7 +31,6 @@
 
 // Debug
 #include <iostream>
-#include <assert.h>
 #include <QDebug>
 
 #include <pqOutputPort.h>

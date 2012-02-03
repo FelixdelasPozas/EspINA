@@ -54,7 +54,7 @@ public:
 
 public slots:
   /// Register @sh as active Selection Handler
-  void setSelectionHandler(SelectionHandler *sh, QCursor cursor);
+  void setSelectionHandler(SelectionHandler *sh);
   /// Unregister @sh as active Selection Handler
   void unsetSelectionHandler(SelectionHandler *sh);
 
@@ -70,7 +70,6 @@ private:
 
 private:
   SelectionHandler *m_handler;
-  QCursor m_handlerCursor;
 //   IVOI *m_voi;
 
   static SelectionManager *m_singleton;

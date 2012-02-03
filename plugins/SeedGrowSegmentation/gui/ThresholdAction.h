@@ -17,27 +17,32 @@
 */
 
 
-#ifndef SEEDGROWSELECTOR_H
-#define SEEDGROWSELECTOR_H
+#ifndef THRESHOLDACTION_H
+#define THRESHOLDACTION_H
 
-#include <selection/SelectionHandler.h>
+#include <qt4/QtGui/QWidgetAction>
 
-class ThresholdAction;
 
-class SeedGrowSelector
-: public SelectionHandler
+class ThresholdAction
+: public QWidgetAction
 {
   Q_OBJECT
+
 public:
-  explicit SeedGrowSelector(ThresholdAction *th, SelectionHandler* succesor = 0);
+  explicit ThresholdAction(QObject* parent);
 
-  virtual bool filterEvent(QEvent* e, SelectableView* view = 0);
-  virtual QCursor cursor();
+  virtual QWidget* createWidget(QWidget* parent);
 
-  void setPixelSelector(SelectionHandler *sel) {m_succesor = sel;}
+  int threshold() {return m_threshold;}
+
+public slots:
+  void setThreshold(int th) {m_threshold = th; emit thresholdChanged(th);}
+
+signals:
+  void thresholdChanged(int);
 
 private:
-  ThresholdAction *m_threshold;
+  int m_threshold;
 };
 
-#endif // SEEDGROWSELECTOR_H
+#endif // THRESHOLDACTION_H

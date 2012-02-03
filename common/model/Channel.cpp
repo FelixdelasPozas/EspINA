@@ -18,8 +18,8 @@
 */
 #include "model/Channel.h"
 
-#include "paraview/pqData.h"
-#include "paraview/Filter.h"
+#include "processing/pqData.h"
+#include "processing/pqFilter.h"
 
 #include <QDebug>
 

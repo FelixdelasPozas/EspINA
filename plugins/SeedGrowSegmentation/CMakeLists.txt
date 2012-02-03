@@ -31,7 +31,11 @@ qt4_add_resources (RCC_BUILT_SOURCES
 # We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
 qt4_wrap_cpp(MOC_SRCS 
   SeedGrowSegmentation.h
+  SeedGrowSegmentationFilter.h
   SeedGrowSelector.h
+  gui/DefaultVOIAction.h
+  gui/SegmentAction.h
+  gui/ThresholdAction.h
 #   SeedGrowSegmentationPreferences.h
   )
 
@@ -51,10 +55,13 @@ ADD_PARAVIEW_ACTION_GROUP(
 
 set (PLUGIN_SRCS
   SeedGrowSegmentation.cpp
+  SeedGrowSegmentationFilter.cpp
   SeedGrowSelector.cpp
+  gui/DefaultVOIAction.cpp
+  gui/SegmentAction.cpp
+  gui/ThresholdAction.cpp
 #   SeedGrowSegmentationPreferences.cpp
-#   SeedGrowSegmentationFilter.cpp
-  ${MOC_SRCS} 
+  ${MOC_SRCS}
   ${RCC_BUILT_SOURCES} 
   ${UI_BUILT_SOURCES} 
   )

@@ -78,7 +78,7 @@ VolumeView::VolumeView(QWidget* parent)
 //-----------------------------------------------------------------------------
 void VolumeView::buildControls()
 {
-  m_controlLayout = new QHBoxLayout(this);
+  m_controlLayout = new QHBoxLayout();
   m_controlLayout->addStretch();
 
   m_snapshot.setIcon(QIcon(":/espina/snapshot_scene.svg"));

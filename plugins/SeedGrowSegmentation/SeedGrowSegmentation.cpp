@@ -35,23 +35,18 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 // EspINA
 #include "SeedGrowSelector.h"
+#include "gui/DefaultVOIAction.h"
+#include "gui/SegmentAction.h"
+#include "gui/ThresholdAction.h"
 // #include "SeedGrowSegmentationFilter.h"
-#include <paraview/pqData.h>
+#include <processing/pqData.h>
 #include <selection/PixelSelector.h>
 #include <selection/SelectionManager.h>
 
 //GUI includes
 #include <QApplication>
-#include <QBitmap>
-#include <QCheckBox>
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QMenu>
-#include <QSpinBox>
 #include <QSettings>
 #include <QStyle>
-#include <QToolButton>
-#include <QWidgetAction>
 
 #include <pqApplicationCore.h>
 #include <pqPipelineFilter.h>
@@ -60,9 +55,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vtkSMProxy.h>
 #include <vtkSMInputProperty.h>
 #include <vtkSMPropertyHelper.h>
-
+#include "SeedGrowSegmentationFilter.h"
 
 #define DEFAULT_THRESHOLD 30
+
+#include <QDebug>
 
 #define SGS "SeedGrowSegmentation"
 #define SGSF "SeedGrowSegmentation::SeedGrowSegmentationFilter"
@@ -71,21 +68,34 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 SeedGrowSegmentation::SeedGrowSegmentation(QObject* parent)
 : QActionGroup(parent)
 // , m_defaultVOI(NULL)
-, m_threshold   (new QSpinBox())
-, m_seedSelector(NULL)
-, m_eventFilter (new SeedGrowSelector(m_threshold))
+, m_threshold     (new ThresholdAction(this))
+, m_useDefaultVOI (new DefaultVOIAction(this))
+, m_segment       (new SegmentAction(this))
+, m_eventFilter   (new SeedGrowSelector(m_threshold))
 // , m_preferences(NULL)
 {
 //   m_factoryName = SGS;
   // Register Factory's filters
 //   ProcessingTrace::instance()->registerPlugin(SGSF, this);
 //   EspinaPluginManager::instance()->registerFilter(SGSF,this);
-  
+
 //   m_defaultVOI = new RectangularVOI(false);
 
-  buildUI();
+  buildSelectors();
+
+  connect(m_segment, SIGNAL(triggered(QAction*)),
+	  this, SLOT(waitSeedSelection(QAction*)));
+  connect(m_eventFilter.data(), SIGNAL(selectionAborted()),
+	  this, SLOT(onSelectionAborted()));
+  connect(m_segment, SIGNAL(actionCanceled()),
+	  this, SLOT(abortSelection()));
 }
 
+
+//-----------------------------------------------------------------------------
+SeedGrowSegmentation::~SeedGrowSegmentation()
+{
+}
 
 // //-----------------------------------------------------------------------------
 // EspinaFilter *SeedGrowSegmentation::createFilter(QString filter, ITraceNode::Arguments & args)
@@ -99,40 +109,25 @@ SeedGrowSegmentation::SeedGrowSegmentation(QObject* parent)
 //   return NULL;
 // }
 
-//-----------------------------------------------------------------------------
-void SeedGrowSegmentation::changeSeedSelector(QAction *seedSel)
-{
-  //qDebug() << "SeedGrowSegmenation: Changing Seed Selector";
-  m_seedSelector = m_seedSelectors.value(seedSel);
-
-  Q_ASSERT(m_seedSelector != NULL);
-
-  m_segButton->setIcon(seedSel->icon());
-
-  waitSeedSelection(m_segButton->isChecked());
-}
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentation::waitSeedSelection(bool wait)
+void SeedGrowSegmentation::waitSeedSelection(QAction* action)
 {
-  if (wait)
-  {
-    if (dynamic_cast<BestPixelSelector*>(m_seedSelector))
-      SelectionManager::instance()->setSelectionHandler(m_seedSelector, QCursor(QPixmap(":crossRegion.svg")));
-    else
-      SelectionManager::instance()->setSelectionHandler(m_seedSelector, Qt::CrossCursor);
-    m_segButton->setChecked(true);
-  }else
-  {
-    SelectionManager::instance()->setSelectionHandler(NULL, Qt::ArrowCursor);
-  }
+  Q_ASSERT(m_selectors.contains(action));
+  m_eventFilter->setPixelSelector(m_selectors[action]);
+  SelectionManager::instance()->setSelectionHandler(m_eventFilter.data());
 }
 
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentation::abortSelection()
 {
-  QApplication::restoreOverrideCursor();
-  m_segButton->setChecked(false);
+  SelectionManager::instance()->setSelectionHandler(NULL);
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentation::onSelectionAborted()
+{
+  m_segment->cancel();
 }
 
 //-----------------------------------------------------------------------------
@@ -145,15 +140,23 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection se
   //pqServerManagerModel* sm = core->getServerManagerModel();
 
   qDebug() << "Start Segmentation";
-  Q_ASSERT(sel.size() == 1);// Only one element selected
-  SelectionHandler::Selelection element = sel.first();
+  if (sel.size() > 0)
+  {
+    Q_ASSERT(sel.size() == 1);// Only one element selected
+    SelectionHandler::Selelection element = sel.first();
 
-  pqData input = element.second;
+    pqData input = element.second;
 
-  Q_ASSERT(element.first.size() == 1); // with one pixel
-  QVector3D seed = element.first.first();
+    Q_ASSERT(element.first.size() == 1); // with one pixel
+    QVector3D seed = element.first.first();
 
-  qDebug() << "Seed:" << seed;
+    qDebug() << "Seed:" << seed;
+
+    Filter::Arguments args;
+
+    SeedGrowSegmentationFilter filter(args);
+
+    qDebug() << "Threshold:" << m_threshold->threshold();
 
 //   ITraceNode::Arguments args;
 //   args.insert("Type", SGSF);
@@ -185,10 +188,21 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection se
 //   SeedGrowSegmentationFilter *sgs_sgsf = new SeedGrowSegmentationFilter(input, voi, args);
 //   if (!sgs_sgsf)
 //     qWarning() << "SeedGrowSegmentation: Failed to create new segmentation";
+  }
 
   QApplication::restoreOverrideCursor();
 }
 
+//------------------------------------------------------------------------
+void SeedGrowSegmentation::addPixelSelector(QAction* action, SelectionHandler* handler)
+{
+  m_segment->addSelector(action);
+  m_selectors[action] = handler;
+  connect(handler, SIGNAL(selectionChanged(SelectionHandler::MultiSelection)),
+	  this, SLOT(startSegmentation(SelectionHandler::MultiSelection)));
+//   connect(handler, SIGNAL(selectionAborted()),
+// 	  this, SLOT(abortSelection()));
+}
 
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentation::buildSelectors()
@@ -200,18 +214,18 @@ void SeedGrowSegmentation::buildSelectors()
   action = new QAction(
     QIcon(":pixelSelector.svg")
     , tr("Add synapse (Ctrl +). Exact Pixel"),
-    m_selectors);
-  selector = new PixelSelector(m_eventFilter.data());
+    m_segment);
+  selector = new PixelSelector();
   selector->setMultiSelection(false);
   selector->setSelectable(SelectionHandler::EspINA_Channel);
   addPixelSelector(action, selector);
 
-  // Best Pixel Selector
+//   // Best Pixel Selector
   action = new QAction(
     QIcon(":bestPixelSelector.svg")
     , tr("Add synapse (Ctrl +). Best Pixel"),
-    m_selectors);
-  BestPixelSelector *bestSelector = new BestPixelSelector(m_eventFilter.data());
+    m_segment);
+  BestPixelSelector *bestSelector = new BestPixelSelector();
 //   m_preferences = new SeedGrowSegmentationSettings(bestSelector);
 //   EspinaPluginManager::instance()->registerPreferencePanel(m_preferences);
 //   QSettings settings;
@@ -220,65 +234,6 @@ void SeedGrowSegmentation::buildSelectors()
   selector = bestSelector;
   selector->setMultiSelection(false);
   selector->setSelectable(SelectionHandler::EspINA_Channel);
+  selector->setCursor(QCursor(QPixmap(":crossRegion.svg")));
   addPixelSelector(action, selector);
-
-  m_seedSelector = selector;
-  m_segButton->setIcon(action->icon());
-}
-
-
-//-----------------------------------------------------------------------------
-void SeedGrowSegmentation::buildUI()
-{
-  // Threshold Widget
-  QLabel *thresholdLabel = new QLabel(tr("Threshold"));
-  m_threshold->setMinimum(0);
-  m_threshold->setMaximum(255);
-  m_threshold->setValue(DEFAULT_THRESHOLD);
-  m_threshold->setToolTip(tr("Determine the size of color value range for a given pixel"));
-
-  // Use default VOI
-  m_useDefaultVOI = new QCheckBox(tr("Default VOI"));
-  m_useDefaultVOI->setCheckState(Qt::Checked);
-
-  // Segmentation Button
-  m_segButton = new QToolButton();
-  m_segButton->setCheckable(true);
-  m_selectors = new QMenu();
-  m_segButton->setAutoRaise(true);
-  m_segButton->setIconSize(QSize(22,22));
-
-  buildSelectors();
-
-  m_segButton->setMenu(m_selectors);
-  m_segButton->setToolTip(tr("Pixel selector"));
-
-  // Plugin's Widget Layout
-  QHBoxLayout *thresholdLayout = new QHBoxLayout();
-  thresholdLayout->addWidget(thresholdLabel);
-  thresholdLayout->addWidget(m_threshold);
-  thresholdLayout->addWidget(m_useDefaultVOI);
-  thresholdLayout->addWidget(m_segButton);
-
-  QWidget *thresholdFrame = new QWidget();
-  thresholdFrame->setLayout(thresholdLayout);
-
-  QWidgetAction *threshold = new QWidgetAction(this);
-  threshold->setDefaultWidget(thresholdFrame);
-
-  // Interface connections
-  QObject::connect(m_segButton, SIGNAL(triggered(QAction*)), this, SLOT(changeSeedSelector(QAction *)));
-  QObject::connect(m_segButton, SIGNAL(toggled(bool)), this, SLOT(waitSeedSelection(bool)));
-  //QObject::connect(m_segButton, SIGNAL(clicked(bool)), this, SLOT(setActive(bool)));
-}
-
-//------------------------------------------------------------------------
-void SeedGrowSegmentation::addPixelSelector(QAction* action, SelectionHandler* handler)
-{
-  m_selectors->addAction(action);
-  connect(handler, SIGNAL(selectionChanged(SelectionHandler::MultiSelection)),
-	  this, SLOT(startSegmentation(SelectionHandler::MultiSelection)));
-  connect(handler, SIGNAL(selectionAborted()),
-	  this, SLOT(abortSelection()));
-  m_seedSelectors.insert(action, handler);
 }

@@ -59,8 +59,8 @@
 #include <pqStandardViewModules.h>
 #include <pqPipelineSource.h>
 #include <pqLoadDataReaction.h>
-#include <paraview/Filter.h>
-#include <paraview/pqData.h>
+#include <processing/pqFilter.h>
+#include <processing/pqData.h>
 
 
 //------------------------------------------------------------------------

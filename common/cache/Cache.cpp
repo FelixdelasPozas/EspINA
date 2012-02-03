@@ -19,7 +19,7 @@
 
 #include "Cache.h"
 
-#include "paraview/Filter.h"
+#include "paraview/pqFilter.h"
 #include <pqLoadDataReaction.h>
 
 #include<QDebug>

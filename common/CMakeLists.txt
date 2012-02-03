@@ -18,6 +18,7 @@ qt4_add_resources(RCC_BUILT_SOURCES
 qt4_wrap_cpp(MOC_BUILT_SOURCES
   model/EspINA.h
   model/ModelTest.h
+  gui/ActionSelectorWidget.h
   gui/EspinaView.h
   gui/SliceView.h
   gui/ViewManager.h
@@ -41,6 +42,7 @@ set(CACHE_SOURCES
   )
 
 set(GUI_SOURCES
+  gui/ActionSelectorWidget.cpp
   gui/DynamicWidget.cpp
   gui/EspinaDockWidget.cpp
   gui/EspinaView.cpp
@@ -59,9 +61,9 @@ set(MODEL_SOURCES
   model/Taxonomy.cpp
   )
 
-set(PARAVIEW_SOURCES
-  paraview/Filter.cpp
-  paraview/pqData.cpp
+set(PROCESSING_SOURCES
+  processing/pqFilter.cpp
+  processing/pqData.cpp
   )
 
 set(SELECTION_SOURCES
@@ -75,7 +77,7 @@ set(Espina_SOURCE_FILES
   ${CACHE_SOURCES}
   ${GUI_SOURCES}
   ${MODEL_SOURCES}
-  ${PARAVIEW_SOURCES}
+  ${PROCESSING_SOURCES}
   ${SELECTION_SOURCES}
 #   ${PROXIES_SOURCES}
   ${MOC_BUILT_SOURCES}

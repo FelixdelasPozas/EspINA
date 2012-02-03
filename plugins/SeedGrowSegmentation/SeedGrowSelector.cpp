@@ -19,10 +19,11 @@
 
 #include "SeedGrowSelector.h"
 
-#include <QSpinBox>
+#include "gui/ThresholdAction.h"
+
 #include <QWheelEvent>
 
-SeedGrowSelector::SeedGrowSelector(QSpinBox* th, SelectionHandler* succesor)
+SeedGrowSelector::SeedGrowSelector(ThresholdAction* th, SelectionHandler* succesor)
 : SelectionHandler(succesor)
 , m_threshold(th)
 {
@@ -37,11 +38,25 @@ bool SeedGrowSelector::filterEvent(QEvent* e, SelectableView* view)
     if (we->modifiers() == Qt::CTRL)
     {
       int numSteps = we->delta()/8/15;//Refer to QWheelEvent doc.
-      m_threshold->setValue(m_threshold->value() + numSteps);//Using stepBy highlight the input text
+      m_threshold->setThreshold(m_threshold->threshold() + numSteps);//Using stepBy highlight the input text
 
       return true;
+    }
+  } else if(e->type() == QEvent::MouseButtonPress)
+  {
+    QMouseEvent *me = dynamic_cast<QMouseEvent*>(e);
+    if (me->modifiers() != Qt::CTRL && m_succesor)
+    {
+      return m_succesor->filterEvent(e,view);
     }
   }
   return false;
 }
 
+QCursor SeedGrowSelector::cursor()
+{
+  if (m_succesor)
+    return m_succesor->cursor();
+  else
+    return m_cursor;
+}

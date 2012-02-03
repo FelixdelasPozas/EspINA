@@ -17,27 +17,21 @@
 */
 
 
-#ifndef SEEDGROWSELECTOR_H
-#define SEEDGROWSELECTOR_H
+#ifndef FILTER_H
+#define FILTER_H
 
-#include <selection/SelectionHandler.h>
+#include <QObject>
 
-class ThresholdAction;
-
-class SeedGrowSelector
-: public SelectionHandler
+class Filter : public QObject
 {
-  Q_OBJECT
 public:
-  explicit SeedGrowSelector(ThresholdAction *th, SelectionHandler* succesor = 0);
-
-  virtual bool filterEvent(QEvent* e, SelectableView* view = 0);
-  virtual QCursor cursor();
-
-  void setPixelSelector(SelectionHandler *sel) {m_succesor = sel;}
-
-private:
-  ThresholdAction *m_threshold;
+  class Arguments;
 };
 
-#endif // SEEDGROWSELECTOR_H
+class Filter::Arguments
+{
+public:
+  int type(){return 10;}
+};
+
+#endif // FILTER_H

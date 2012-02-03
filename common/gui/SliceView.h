@@ -186,7 +186,7 @@ protected:
 
   virtual bool eventFilter(QObject* caller, QEvent* e);
   void centerViewOnMousePosition();
-  void pickChannel(int x, int y, double pickPos[3]);
+  bool pickChannel(int x, int y, double pickPos[3]);
 
   /// Converts point from Display coordinates to World coordinates
   SelectionHandler::VtkRegion display2vtk(const QPolygonF &region);

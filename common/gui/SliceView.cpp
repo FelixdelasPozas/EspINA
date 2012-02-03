@@ -68,7 +68,7 @@
 #include <vtkPropPicker.h>
 #include <vtkPropCollection.h>
 #include <vtkRenderWindow.h>
-#include <paraview/pqData.h>
+#include <processing/pqData.h>
 #include <vtkRenderer.h>
 
 #include <vtkPropCollection.h>
@@ -618,7 +618,7 @@ void SliceView::onDisconnect()
 //   if (m_view)
 //   {
 //     m_mainLayout->removeWidget(m_viewWidget);
-//     m_style->Delete();
+//     m_style->Deete();
 //     m_view = NULL;
 //     m_viewWdget = NULL;
 //   }
@@ -711,7 +711,7 @@ void SliceView::centerViewOnMousePosition()
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::pickChannel(int x, int y, double pickPos[3])
+bool SliceView::pickChannel(int x, int y, double pickPos[3])
 {
   vtkSMSliceViewProxy* view =
     vtkSMSliceViewProxy::SafeDownCast(m_view->getProxy());
@@ -722,12 +722,16 @@ void SliceView::pickChannel(int x, int y, double pickPos[3])
   vtkPropPicker *propPicker = vtkPropPicker::New();
 //   vtkPropCollection *col = vtkPropCollection::New();
 //   qDebug() << propPicker->PickProp(x, y, renderer, col);
-  propPicker->Pick(x, y, 0.1, renderer);
+  if (!propPicker->Pick(x, y, 0.1, renderer))
+    return false;
+
   propPicker->GetPickPosition(pickPos);
 
   pickPos[m_plane] = m_fitToGrid?m_scrollBar->value()*m_gridSize[m_plane]:m_scrollBar->value();
   qDebug() << "Pick Position" << pickPos[0] << pickPos[1] << pickPos[2];
   propPicker->Delete();
+
+  return true;
 }
 
 
@@ -1059,12 +1063,8 @@ SelectionHandler::VtkRegion SliceView::display2vtk(const QPolygonF &region)
   vtkWorldPointPicker *wpicker = vtkWorldPointPicker::New();
   foreach(QPointF point, region)
   {
-    pickChannel(point.x(), point.y(), pickPos);
-    if (round(pickPos[2]) < 0)
-    {
-      qDebug() << "Invalid Z position " << pickPos[2];
-//       return vtkRegion;
-    }
+    if (!pickChannel(point.x(), point.y(), pickPos))
+      continue;
 
     QVector3D vtkPoint;
     vtkPoint.setX(round(pickPos[0] / m_gridSize[0]));

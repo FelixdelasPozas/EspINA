@@ -47,10 +47,6 @@ void PixelSelector::onMouseUp(const QPoint &pos, SelectableView* view)
 //-----------------------------------------------------------------------------
 bool PixelSelector::filterEvent(QEvent* e, SelectableView* view)
 {
-  // Let succesor filter event
-  if (SelectionHandler::filterEvent(e,view))
-    return true;
-
   // If succesor didn't abort the filtering, apply its own filtering
   if (e->type() == QEvent::MouseButtonPress)
   {
@@ -61,7 +57,8 @@ bool PixelSelector::filterEvent(QEvent* e, SelectableView* view)
       return true; // Prevent other elements to filter the event
     }
   }
-  return false;
+
+  return SelectionHandler::filterEvent(e,view);
 }
 
 

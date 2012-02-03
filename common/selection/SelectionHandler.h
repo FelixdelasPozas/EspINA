@@ -21,11 +21,13 @@
 
 #include <QObject>
 
+#include <processing/pqData.h>
+
 #include <QStringList>
 #include <QPolygon>
 #include <QVector3D>
 #include <QPair>
-#include <paraview/pqData.h>
+#include <QCursor>
 
 
 class SelectableView;
@@ -53,10 +55,15 @@ public:
   explicit SelectionHandler(SelectionHandler *succesor=NULL)
   : m_multiSelection(false)
   , m_succesor(succesor)
+  , m_cursor(Qt::CrossCursor)
   {}
   virtual ~SelectionHandler(){};
 
   virtual bool filterEvent(QEvent *e, SelectableView *view=NULL);
+
+  virtual QCursor cursor() {return m_cursor;}
+  virtual void setCursor(QCursor cursor) {m_cursor = cursor;}
+
 
   void setSelection(SelectionHandler::MultiSelection msel);
   void abortSelection();
@@ -75,6 +82,7 @@ protected:
   SelectionFilters  m_filters;
   bool              m_multiSelection;
   SelectionHandler *m_succesor;
+  QCursor	    m_cursor;
 };
 
 #endif // SELECTIONHANDLER_H

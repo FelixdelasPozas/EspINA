@@ -25,7 +25,7 @@
 #include "gui/VolumeView.h"
 #include "model/IModelItem.h"
 #include "model/Channel.h"
-#include "paraview/pqData.h"
+#include "processing/pqData.h"
 
 #include <QDockWidget>
 #include <QMainWindow>

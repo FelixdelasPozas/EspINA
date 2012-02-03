@@ -17,27 +17,34 @@
 */
 
 
-#ifndef SEEDGROWSELECTOR_H
-#define SEEDGROWSELECTOR_H
+#ifndef ACTIONSELECTORWIDGET_H
+#define ACTIONSELECTORWIDGET_H
 
-#include <selection/SelectionHandler.h>
+#include <QToolButton>
 
-class ThresholdAction;
-
-class SeedGrowSelector
-: public SelectionHandler
+class ActionSelectorWidget : public QToolButton
 {
   Q_OBJECT
 public:
-  explicit SeedGrowSelector(ThresholdAction *th, SelectionHandler* succesor = 0);
+  explicit ActionSelectorWidget(QWidget* parent = 0);
 
-  virtual bool filterEvent(QEvent* e, SelectableView* view = 0);
-  virtual QCursor cursor();
+  void addAction(QAction *action);
 
-  void setPixelSelector(SelectionHandler *sel) {m_succesor = sel;}
+public slots:
+  void cancelAction();
 
-private:
-  ThresholdAction *m_threshold;
+protected slots:
+  void triggerAction(bool trigger);
+  void changeAction(QAction *action);
+
+signals:
+  /// Actions are triggered only if button is checked
+  void actionTriggered(QAction *action);
+  void actionCanceled();
+
+protected:
+  QMenu   *m_actions;
+  QAction *m_selectedAction;
 };
 
-#endif // SEEDGROWSELECTOR_H
+#endif // ACTIONSELECTORWIDGET_H

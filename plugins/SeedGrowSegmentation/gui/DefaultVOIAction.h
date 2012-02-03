@@ -17,27 +17,31 @@
 */
 
 
-#ifndef SEEDGROWSELECTOR_H
-#define SEEDGROWSELECTOR_H
+#ifndef DEFAULTVOIACTION_H
+#define DEFAULTVOIACTION_H
 
-#include <selection/SelectionHandler.h>
+#include <qt4/QtGui/QWidgetAction>
 
-class ThresholdAction;
 
-class SeedGrowSelector
-: public SelectionHandler
+class DefaultVOIAction
+: public QWidgetAction
 {
   Q_OBJECT
+
 public:
-  explicit SeedGrowSelector(ThresholdAction *th, SelectionHandler* succesor = 0);
+  explicit DefaultVOIAction(QObject* parent);
 
-  virtual bool filterEvent(QEvent* e, SelectableView* view = 0);
-  virtual QCursor cursor();
+  virtual QWidget* createWidget(QWidget* parent);
 
-  void setPixelSelector(SelectionHandler *sel) {m_succesor = sel;}
+  bool useDefaultVOI() {return m_useVOI;}
 
+protected slots:
+  void setUseDefaultVOI(bool val) {m_useVOI = val; emit useVOI(val);}
+
+signals:
+  void useVOI(bool);
 private:
-  ThresholdAction *m_threshold;
+  bool m_useVOI;
 };
 
-#endif // SEEDGROWSELECTOR_H
+#endif // DEFAULTVOIACTION_H
