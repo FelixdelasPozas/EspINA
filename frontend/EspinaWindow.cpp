@@ -68,8 +68,8 @@ EspinaWindow::EspinaWindow()
 : m_view(NULL)
 , m_undoStack(new QUndoStack(this))
 , m_currentActivity("NONE")
+, m_espina(EspINA::instance())
 {
-  m_espina = QSharedPointer<EspINA>(new EspINA());
 #ifdef DEBUG
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_espina.data()));
 #endif

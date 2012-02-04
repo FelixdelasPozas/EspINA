@@ -24,6 +24,11 @@
 
 // EspINA
 
+#include <model/EspINA.h>
+#include <model/Segmentation.h>
+#include <processing/pqFilter.h>
+#include <processing/pqData.h>
+
 #include <pqPipelineSource.h>
 #include <QSpinBox>
 #include <QLayout>
@@ -34,6 +39,8 @@
 #include <QMessageBox>
 
 #include <QDebug>
+#include <cache/CachedObjectBuilder.h>
+#include <vtkSMPropertyHelper.h>
 
 // //-----------------------------------------------------------------------------
 // SeedGrowSegmentationFilter::SetupWidget::SetupWidget(EspinaFilter *parent)
@@ -53,9 +60,41 @@ QString stripArgs(QString args){return args.split(";")[1];}//FAKE
 
 
 //-----------------------------------------------------------------------------
-SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(Filter::Arguments arg)
+SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(Filter::Arguments args)
 {
-  qDebug() << arg.type();
+  EspINA *model = EspINA::instance();
+  qDebug() << args;
+
+  // Hacer el grow
+  pqFilter::Arguments growArgs;
+  growArgs << pqFilter::Argument("Input",    pqFilter::Argument::INPUT,     args["Channel"]);
+  growArgs << pqFilter::Argument("Seed",     pqFilter::Argument::INTVECT,   args["Seed"]);
+  growArgs << pqFilter::Argument("Threshold",pqFilter::Argument::DOUBLEVECT,args["Threshold"]);
+  qDebug() << "Grow Args:" << growArgs;
+
+  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+  pqFilter *grow = cob->createFilter("filters","SeedGrowSegmentationFilter", growArgs);
+
+  Q_ASSERT(grow->getNumberOfData() == 1);
+
+  vtkSMProxy *growDataProxy = grow->data(0).pipelineSource()->getProxy();
+  grow->pipelineSource()->updatePipeline();
+  growDataProxy->UpdatePropertyInformation();
+  int bounds[6];
+  vtkSMPropertyHelper(growDataProxy,"SegExtent").Get(bounds, 6);
+  qDebug() << bounds [0] << bounds [1] << bounds [2] << bounds [3] << bounds [4] << bounds [5];
+
+  pqFilter::Arguments extractArgs;
+  extractArgs << pqFilter::Argument("Input",pqFilter::Argument::INPUT, grow->data(0).id());
+  QString VolumeArg = QString("%1,%2,%3,%4,%5,%6").arg(bounds[0]).arg(bounds[1]).arg(bounds[2]).arg(bounds[3]).arg(bounds[4]).arg(bounds[5]);
+  extractArgs << pqFilter::Argument("VOI",pqFilter::Argument::INTVECT, VolumeArg);
+  pqFilter *extract = cob->createFilter("filters","ExtractGrid", extractArgs);
+  qDebug() << "Extract Args:" << extractArgs;
+
+  Q_ASSERT(extract->getNumberOfData() == 1);
+
+  Segmentation *seg = new Segmentation(this, extract->data(0));
+  model->addSegmentation(seg);
 }
 
 

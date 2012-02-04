@@ -62,6 +62,8 @@ public slots:
   void onConnect();
   void onDisconnect();
 
+  void forceRender();
+
 protected:
   /// QAbstractItemView Interface
   virtual QRegion visualRegionForSelection(const QItemSelection& selection) const {return QRegion();}

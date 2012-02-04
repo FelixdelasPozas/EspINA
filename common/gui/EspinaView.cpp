@@ -39,6 +39,7 @@
 #include <pqPipelineSource.h>
 #include <QDir>
 #include <QMenu>
+#include <model/Segmentation.h>
 
 //----------------------------------------------------------------------------
 EspinaView::EspinaView( QMainWindow* parent, const QString activity)
@@ -190,12 +191,48 @@ void DefaultEspinaView::rowsInserted(const QModelIndex& parent, int start, int e
       xzView->addChannelRepresentation(channel);
       break;
     }
+    case IModelItem::SEGMENTATION:
+    {
+//       pqServer *server = pqActiveObjects::instance().activeServer();
+//       pqObjectBuilder* builder = pqApplicationCore::instance()->getObjectBuilder();
+//       
+//       QDir segDir("/home/cbbp/Primeras Series Hechas/19-12tgSerie4/19-12TG-Serie4/");
+//       QString file;
+//       QStringList entries = segDir.entryList(QStringList("*.pvd"));
+//       int total = entries.size();
+//       int loaded = 1;
+//       pqPipelineSource *img;
+//       foreach(file, entries)
+//       {
+// 	if (loaded++ > 30)
+// 	  break;
+// 	img = builder->createReader("sources","PVDReader",
+// 				    QStringList(segDir.path()+"/"+file),
+// 				    //     QStringList("/home/jpena/Stacks/Peque/pequeFromSegmha/fa40f2b8d6b3bdd039fe2bd7086229eb61c9605e.pvd"),
+// 				    server);
+// 	xyView->addSegmentationRepresentation(img->getOutputPort(0));
+// 	yzView->addSegmentationRepresentation(img->getOutputPort(0));
+// 	xzView->addSegmentationRepresentation(img->getOutputPort(0));
+// 	volView->addSegmentationRepresentation(img->getOutputPort(0));
+// 
+// 	emit statusMsg(QString("Loaded %1/%2 Segmentations.").arg(loaded++).arg(total));
+//       }
+      Q_ASSERT(start == end);// Only 1-row-at-a-time insertions are allowed
+      Segmentation *seg = dynamic_cast<Segmentation *>(item);
+      qDebug() << "Add Segmentation:" << seg->data(Qt::DisplayRole).toString();
+      xyView->addSegmentationRepresentation(seg->data().outputPort());
+      yzView->addSegmentationRepresentation(seg->data().outputPort());
+      xzView->addSegmentationRepresentation(seg->data().outputPort());
+      volView->addSegmentationRepresentation(seg->data().outputPort());
+      break;
+    }
     default:
       break;
   };
   xyView->forceRender();
   yzView->forceRender();
   xzView->forceRender();
+  volView->forceRender();
 }
 
 //-----------------------------------------------------------------------------

@@ -631,7 +631,7 @@ void vtkPVSliceView::SetSlice ( double pos )
         //     double b[6];
         //     seg->GetDisplayBounds(b);
         //     qDebug() << b[0] << b[1] <<  b[2] <<  b[3] <<  b[4] <<  b[5];
-        bool hide = seg->bounds[upperBound] <= Center[SlicingPlane] ||
+        bool hide = seg->bounds[upperBound] < Center[SlicingPlane] ||
                     seg->bounds[lowerBound] > Center[SlicingPlane];
         seg->actor->SetVisibility ( !hide && ShowSegmentations );
     }

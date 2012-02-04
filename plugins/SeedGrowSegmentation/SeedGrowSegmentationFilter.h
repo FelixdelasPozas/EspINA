@@ -39,7 +39,7 @@ public:
 //   SeedGrowSegmentationFilter(EspinaProduct *input, IVOI *voi, ITraceNode::Arguments &args);
   //! Constructor desde lista de argumentos
 //   SeedGrowSegmentationFilter(ITraceNode::Arguments &args);
-  explicit SeedGrowSegmentationFilter(Arguments arg);
+  explicit SeedGrowSegmentationFilter(Arguments args);
   virtual ~SeedGrowSegmentationFilter();
 
 //   //! Implements IFilter Interface

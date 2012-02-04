@@ -85,7 +85,7 @@ Cache::Index CachedObjectBuilder::generateId(const QString group, const QString 
   QStringList namesToHash;
   namesToHash.push_back( QString(name) );
 
-  foreach(Argument arg, args)
+  foreach(pqFilter::Argument arg, args)
   {
     namesToHash.push_back( QString(arg.type));
     namesToHash.push_back(arg.name);
@@ -104,11 +104,11 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(const QString group, const
 //   CACHE_DEBUG("CachedObjectBuilder: Create Filter " << name);
   pqPipelineSource *filter; //= builder->createFilter(group, name,NULL);
   vtkSMProperty *p;
-  foreach (Argument arg, args)
+  foreach (pqFilter::Argument arg, args)
   {
     switch (arg.type)
     {
-      case Argument::INPUT:
+      case pqFilter::Argument::INPUT:
       {
 	// Filter is a source
 	if (arg.value == "")
@@ -125,7 +125,7 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(const QString group, const
 	}
       }
       break;
-      case Argument::INTVECT:
+      case pqFilter::Argument::INTVECT:
 	{
 	  Q_ASSERT(filter != NULL);
 	  p = filter->getProxy()->GetProperty( arg.name.toStdString().c_str() );
@@ -136,7 +136,7 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(const QString group, const
 	    prop->SetElement(i, values[i].toInt());
 	}
 	break;
-      case Argument::DOUBLEVECT:
+      case pqFilter::Argument::DOUBLEVECT:
 	{
 	  Q_ASSERT(filter != NULL);
 	  p = filter->getProxy()->GetProperty( arg.name.toStdString().c_str() );

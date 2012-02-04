@@ -32,6 +32,7 @@ vtkConnectedThresholdImageFilter::vtkConnectedThresholdImageFilter()
 {
   this->SetNumberOfInputPorts(1);
   this->SetNumberOfOutputPorts(1);
+  ReleaseDataFlagOn();
 }
 
 
@@ -130,6 +131,7 @@ int vtkConnectedThresholdImageFilter::RequestData(vtkInformation* request, vtkIn
   
   typedef itk::VTKImageToImageFilter<InputImageType> vtk2itkType;
   vtk2itkType::Pointer vtk2itk_filter = vtk2itkType::New();
+  vtk2itk_filter->ReleaseDataFlagOn();
 
   vtk2itk_filter->SetInput(input);
   vtk2itk_filter->Update();
@@ -138,6 +140,7 @@ int vtkConnectedThresholdImageFilter::RequestData(vtkInformation* request, vtkIn
   
   typedef itk::ConnectedThresholdImageFilter<InputImageType, InputImageType> ConnectedThresholdFilterType;
   ConnectedThresholdFilterType::Pointer ctif = ConnectedThresholdFilterType::New();
+  ctif->ReleaseDataFlagOn();
 
   double color = input->GetScalarComponentAsDouble(m_seed[0], m_seed[1], m_seed[2], 0);
   ctif->SetInput( vtk2itk_filter->GetOutput() );
@@ -159,6 +162,7 @@ int vtkConnectedThresholdImageFilter::RequestData(vtkInformation* request, vtkIn
   typedef itk::LabelImageToShapeLabelMapFilter<InputImageType, LabelMapType> Image2LabelFilterType;
   
   Image2LabelFilterType::Pointer image2label = Image2LabelFilterType::New();
+  image2label->ReleaseDataFlagOn();
   image2label->SetInput(ctif->GetOutput());
   image2label->Update();//TODO: Check if needed
   
@@ -168,16 +172,22 @@ int vtkConnectedThresholdImageFilter::RequestData(vtkInformation* request, vtkIn
   LabelMapType *    labelMap = image2label->GetOutput();
   LabelObjectType * object   = labelMap->GetLabelObject(LABEL_VALUE);
   LabelObjectType::RegionType objectROI = object->GetRegion();
+  objectROI.Print(std::cout);
+  SegExtent[0] = objectROI.GetIndex(0);
+  SegExtent[1] = SegExtent[0] + objectROI.GetSize(0) + 1;
+  SegExtent[2] = objectROI.GetIndex(1);
+  SegExtent[3] = SegExtent[2] + objectROI.GetSize(1) + 1;
+  SegExtent[4] = objectROI.GetIndex(2);
+  SegExtent[5] = SegExtent[4] + objectROI.GetSize(2) + 1;
+
+//   vtkDebugMacro(<< "Extracting Segmentation Region");
   
-  vtkDebugMacro(<< "Extracting Segmentation Region");
+//   typedef itk::ExtractImageFilter<InputImageType,InputImageType> ExtractFilterType;
+//   ExtractFilterType::Pointer extract = ExtractFilterType::New();
   
-  typedef itk::ExtractImageFilter<InputImageType,InputImageType> ExtractFilterType;
-  ExtractFilterType::Pointer extract = ExtractFilterType::New();
-  
-  extract->SetInput(ctif->GetOutput());
-  extract->SetExtractionRegion(objectROI);
-  extract->Update();
-  
+//   extract->SetInput(ctif->GetOutput());
+//   extract->SetExtractionRegion(objectROI);
+//   extract->Update();
   //typedef itk::ImageFileWriter< OutputImageType >  WriterType;
   //WriterType::Pointer writer = WriterType::New();
   //writer->SetFileName("Test.mha");
@@ -185,14 +195,15 @@ int vtkConnectedThresholdImageFilter::RequestData(vtkInformation* request, vtkIn
   //writer->Write();
   
   vtkDebugMacro(<< "Converting from ITK to VTK");
-  
+  ctif->Update();
+
   typedef itk::ImageToVTKImageFilter<OutputImageType> itk2vtkFilterType;
   itk2vtkFilterType::Pointer itk2vtk_filter = itk2vtkFilterType::New();
-  
-  ctif->Update();
+  itk2vtk_filter->ReleaseDataFlagOn();
+
   itk2vtk_filter->SetInput( ctif->GetOutput() );
   itk2vtk_filter->Update();
-  
+
   output->DeepCopy( itk2vtk_filter->GetOutput() );
 
   vtkDebugMacro(<< "Updating Information");

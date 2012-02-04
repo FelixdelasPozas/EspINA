@@ -22,9 +22,12 @@
 using namespace std;
 
 //-----------------------------------------------------------------------------
-Segmentation::Segmentation()
+Segmentation::Segmentation(Filter* filter, pqData data)
+: m_filter (filter)
+, m_data   (data)
 {
 }
+
 
 // //-----------------------------------------------------------------------------
 // Segmentation::Segmentation(EspinaFilter* parent, vtkFilter* creator, int portNumber)

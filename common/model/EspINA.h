@@ -55,11 +55,10 @@ class EspINA : public QAbstractItemModel
 {
     Q_OBJECT
 public:
-  //     //! Singleton Interface
-  //     static EspINA *instance();
-  explicit EspINA(QObject* parent = 0);
+  /// Singleton Interface
+  static EspINA *instance();
   virtual ~EspINA();
-  
+
   void clear();
 
   // Implement QAbstractItemModel Interface
@@ -119,64 +118,65 @@ public:
 //     void changeTaxonomy(Segmentation *seg, TaxonomyNode *newTaxonomy);
 //     void changeTaxonomy(Segmentation* seg, const QString& taxName);
 
-//     
+//
 //     int requestId(int suggestedId);
-//     
+//
 //     void changeId(Segmentation *seg, int id);
 //     void setLastUsedId(int id) {m_nextValidSegId = id+1;}
-// 
+//
 //     Segmentation* segmentation(QString& segId);
-//     
+//
 //     //void assignTaxonomy(QString& taxName, QString& segId);
-//     
+//
 //     //! Openning .trace In the future .seg (.trace + .mha) (used by the UI)
 //         void saveFile(QString& filePath, pqServer* server = NULL);
-// 
+//
 // public slots:
 //     void loadFile(QString filePath, QString method);
 //     //TODO: Check if private? Now it's only used by Espina
 //     void addSample(Sample *sample);
-// 
-// 
+//
+//
 //     void removeSamples();
-//     
-//     
+//
+//
 //     //! Set which is the taxonomy that will be used for new segmentations
 //     //! when plugins can't guess their type
 //     void setUserDefindedTaxonomy(const QString &taxName);
-// 
+//
 //     //! Debug slot to manage plugins
 //     void onProxyCreated(pqProxy* p);
 //     void destroyingProxy(pqProxy* p);
-// 
+//
 //     //! Manage the pqPipelineSources loaded with pqLoadReaction
 //     //TODO: Refactor
 //     void loadSource(pqPipelineSource* proxy);
-// 
+//
 //     //! Clear all the Espina Model. It removes the Samples, Segmentations
 //     //! and the Taxonomy.
 //     void clear();
-//     
+//
 // signals:
-//     //! 
+//     //!
 //     void focusSampleChanged(Sample *);
-// 
+//
 //     void resetTaxonomy();
-//     
+//
 // protected slots:
 //   void internalSegmentationUpdate(Segmentation *seg);
-//   
-// protected:
-//     explicit EspINA(QObject* parent = 0);
-//
+
+protected:
+  explicit EspINA(QObject* parent = 0);
 
 private:
+  static EspINA        *m_singleton;
+  
   Taxonomy             *m_tax;
   QList<Sample *>       m_samples; //TODO: use DB instead
   QList<Channel *>      m_channels; //TODO: use DB instead
   QList<Segmentation *> m_segmentations; //TODO: use DB instead
 
-//     //! 
+//     //!
 //     void removeTaxonomy();
 //     void loadTaxonomy();//TODO: Replace with factor
 //     //TaxonomyNode *indexNode(const QModelIndex &index) const;
@@ -185,31 +185,30 @@ private:
 //     //! Return the QModelIndex for a Taxonomy node given by
 //     //! the row and column of the node whithin its parent index
 //     //! and a pointer to the node itself
-//     
+//
 //     //! Return the number of segmentations which belong to tax
 //     int numOfSegmentations(TaxonomyNode *tax) const;
 //     //! Return the number of subtaxonomies which belong to tax
 //     int numOfSubTaxonomies(TaxonomyNode* tax) const;
-// 
+//
 //     //! Save a segmentation in the active server in a file which name
 //     //! corresponds to the id of the segmentation
 //     bool saveSegmentation( Segmentation* seg, QDir prefixFilePath);
-// 
+//
 //     int nextSegmentationId() {return m_nextValidSegId++;}
-// 
+//
 // private:
 //     TaxonomyNode *m_newSegType; // The type for new segmentations
 //     Sample *m_activeSample;
-//     
+//
 //     QList<Sample *> m_samples;
 //     QList<Segmentation *> m_segmentations;
 //     //! It contains all the pipeline of filters, segmentations and samples
 //     ProcessingTrace *m_analysis;
-// 
+//
 //     QMap<const TaxonomyNode *, QList<Segmentation *> > m_taxonomySegs;
-// 
-//     static EspINA *m_singleton;
-// 
+//
+//
 //     int m_nextValidSegId;
 };
 

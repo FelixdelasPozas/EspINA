@@ -29,18 +29,18 @@
 #include "model/Segmentation.h"
 #include "model/Taxonomy.h"
 
-// //------------------------------------------------------------------------
-// EspINA *EspINA::m_singleton(NULL);
-//
-// //------------------------------------------------------------------------
-// EspINA* EspINA::instance()
-// {
-//   if (!m_singleton)
-//     m_singleton = new EspINA();
-//
-//   return m_singleton;
-// }
-//
+//------------------------------------------------------------------------
+EspINA *EspINA::m_singleton(NULL);
+
+//------------------------------------------------------------------------
+EspINA* EspINA::instance()
+{
+  if (!m_singleton)
+    m_singleton = new EspINA();
+
+  return m_singleton;
+}
+
 //------------------------------------------------------------------------
 EspINA::EspINA ( QObject* parent )
         : QAbstractItemModel ( parent )

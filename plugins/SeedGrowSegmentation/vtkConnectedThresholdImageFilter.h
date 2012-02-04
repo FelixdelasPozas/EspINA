@@ -26,6 +26,8 @@ public:
   vtkSetVector4Macro(CheckPixel,int);
   
   vtkGetMacro(PixelValue,int);
+
+  vtkGetVector6Macro(SegExtent,int);
   
   void PrintSelf(ostream& os, vtkIndent indent);
     
@@ -46,11 +48,12 @@ private:
   void operator=(const vtkConnectedThresholdImageFilter&);// Not implemented
     
 private:
+  //BTX
   double m_threshold;
   int m_seed[3];
   int CheckPixel[4];
   int PixelValue;
-  //BTX
+  int SegExtent[6];
   vtkImageData *m_data;
   //ETX
   

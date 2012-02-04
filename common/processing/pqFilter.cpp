@@ -69,6 +69,26 @@ void pqFilter::clearPipeline()
 {
 }
 
+QDebug operator<<(QDebug& out, const pqFilter::Argument& arg)
+{
+  out << "Argument("<< arg.name;
+  switch (arg.type)
+  {
+    case pqFilter::Argument::INPUT:
+      out << "Input";
+      break;
+    case pqFilter::Argument::INTVECT:
+      out << "IntVector";
+      break;
+    case pqFilter::Argument::DOUBLEVECT:
+      out << "DoubleVector";
+      break;
+    default:
+      out << "UNKOWN";
+  }
+  out << arg.value << ")";
+  return out;
+}
 
 
 //-----------------------------------------------------------------------------

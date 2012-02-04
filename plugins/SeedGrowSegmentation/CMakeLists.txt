@@ -67,12 +67,17 @@ set (PLUGIN_SRCS
   )
 
 set (VTKFILTER_SRCS
-#   vtkConnectedThresholdImageFilter.cpp
+  vtkConnectedThresholdImageFilter.cpp
   )
 
 set (PARAVIEW_ADDITIONAL_LIBRARIES
   ${PARAVIEW_ADDITIONAL_LIBRARIES}
   Espina
+  # Linking EspinaViews generates the following warning:
+  # Inconsistency detected by ld.so: dl-close.c: 743: _dl_close:
+  #  Assertion `map->l_init_called' failed!
+  # Not linking prevent the plugin from being loaded in the server
+  EspinaViews
   ITKCommon ITKBasicFilters ITKAlgorithms ITKIO
 #   ${Boost_LIBRARIES}
 )

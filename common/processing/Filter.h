@@ -21,17 +21,13 @@
 #define FILTER_H
 
 #include <QObject>
+#include <QMap>
 
 class Filter : public QObject
 {
 public:
-  class Arguments;
+  typedef QMap<QString, QString> Arguments;
 };
 
-class Filter::Arguments
-{
-public:
-  int type(){return 10;}
-};
 
 #endif // FILTER_H

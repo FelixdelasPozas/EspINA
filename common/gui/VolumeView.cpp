@@ -45,6 +45,9 @@
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkSMRenderViewProxy.h>
+#include <pqDisplayPolicy.h>
+#include <pqDataRepresentation.h>
+#include <pqPipelineRepresentation.h>
 
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(QWidget* parent)
@@ -108,7 +111,13 @@ void VolumeView::buildControls()
 //-----------------------------------------------------------------------------
 void VolumeView::addSegmentationRepresentation(pqOutputPort* oport)
 {
-  
+  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+  pqDataRepresentation *dr = dp->setRepresentationVisibility(oport, m_view, true);
+  if (!dr)
+    return;
+  pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
+  Q_ASSERT(rep);
+  rep->setRepresentation("Volume");
 }
 
 //-----------------------------------------------------------------------------
@@ -164,6 +173,14 @@ void VolumeView::onDisconnect()
 //     m_view = NULL;
 //   }
 }
+
+//-----------------------------------------------------------------------------
+void VolumeView::forceRender()
+{
+  if( isVisible())
+    m_view->forceRender();
+}
+
 
 // //-----------------------------------------------------------------------------
 // void VolumeView::setVOI(IVOI* voi)

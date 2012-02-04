@@ -17,61 +17,39 @@
 
 */
 
-#ifndef FILTER_H
-#define FILTER_H
-
+#ifndef PQFILTER_H
+#define PQFILTER_H
 
 #include <QList>
 #include <QString>
+#include <QDebug>
 
 class pqData;
 class pqPipelineSource;
-
-class IFilter
-{
-public:
-  IFilter(){};
-  virtual ~IFilter(){}
-
-  /// Returns the number of products created by the filter
-  virtual int getNumberOfData() = 0;
-  /// Returns the i-th data created by the filter
-  virtual pqData data(int i) = 0;
-
-  virtual QString getFilterArguments() const = 0;
-
-private:
-  IFilter(const IFilter &);        // Disable copy constructor
-  void operator=(const IFilter &); // Disable copy operator
-};
-
-
-struct Argument
-{
-  enum VtkPropType
-  { UNKOWN     = -1
-  , INPUT      = 0
-  , INTVECT    = 1
-  , DOUBLEVECT = 2
-  };
-
-  Argument(QString newName, VtkPropType newType, QString newValue)
-  : name(newName)
-  , type(newType)
-  , value(newValue){}
-
-  QString name;
-  VtkPropType type;
-  QString value;
-};
-
 
 /// Represents a filter in Paraview's pipeline
 class pqFilter
 // : public IFilter
 {
-  friend class Cache;
-  friend class CachedObjectBuilder;
+public:
+  struct Argument
+  {
+    enum VtkPropType
+    { UNKOWN     = -1
+    , INPUT      = 0
+    , INTVECT    = 1
+    , DOUBLEVECT = 2
+    };
+
+    Argument(QString newName, VtkPropType newType, QString newValue)
+    : name(newName)
+    , type(newType)
+    , value(newValue){}
+
+    QString name;
+    VtkPropType type;
+    QString value;
+  };
 public:
   typedef QList<Argument> Arguments;
 
@@ -92,25 +70,14 @@ private:
 protected:
   pqPipelineSource *m_source;
   QString           m_id; /// Cache id
+
+  friend class Cache;
+  friend class CachedObjectBuilder;
 };
 
-/*
-//! Represents a filter that can be traced
-class EspinaFilter 
-: public IFilter
-{
-public:
-  virtual ~EspinaFilter(){}
-  //virtual int numProducts() = 0;
-  //virtual vtkProduct* product(int i) = 0;
-  //virtual QList< vtkProduct* > products() = 0;
-  virtual QString getFilterArguments() const = 0;
-  virtual void removeProduct(vtkProduct *product) = 0;
-  virtual QWidget *createWidget() = 0;
 
-protected:
-  QString m_args;
-};*/
+QDebug operator<<(QDebug &out, const pqFilter::Argument &arg);
 
 
-#endif // FILTER_H
+
+#endif // PQFILTER_H

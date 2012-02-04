@@ -26,7 +26,9 @@
 #define SEGMENTATION_H
 
 #include "IModelItem.h"
+#include <processing/pqData.h>
 
+class Filter;
 // Forward declarations
 class Sample;
 class pqPipelineSource;
@@ -34,10 +36,11 @@ class pqPipelineSource;
 class Segmentation : public IModelItem
 {
 public:
-  explicit Segmentation();
+  explicit Segmentation(Filter *filter, pqData data);
 //   Segmentation(EspinaFilter *parent, vtkFilter *creator, int portNumber);
   virtual ~Segmentation();
 
+  pqData data() {return m_data;}
   virtual QVariant data(int role) const;
   virtual ItemType type() const {return IModelItem::SEGMENTATION;}
 
@@ -75,6 +78,8 @@ public:
 //   void updated(Segmentation *);
   
 private:
+  Filter *m_filter;
+  pqData  m_data;
 //   QMap<ExtensionId, ISegmentationExtension *> m_extensions;
 //   QMap<ExtensionId, ISegmentationExtension *> m_pendingExtensions;
 //   QList<ISegmentationExtension *> m_insertionOrderedExtensions;

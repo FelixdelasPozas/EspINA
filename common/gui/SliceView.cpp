@@ -823,7 +823,8 @@ void SliceView::setRulerVisibility(bool visible)
 //-----------------------------------------------------------------------------
 void SliceView::forceRender()
 {
-  m_view->forceRender();
+  if (isVisible())
+    m_view->forceRender();
 }
 
 //-----------------------------------------------------------------------------

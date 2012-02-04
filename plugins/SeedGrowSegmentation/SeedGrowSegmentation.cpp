@@ -38,6 +38,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "gui/DefaultVOIAction.h"
 #include "gui/SegmentAction.h"
 #include "gui/ThresholdAction.h"
+
 // #include "SeedGrowSegmentationFilter.h"
 #include <processing/pqData.h>
 #include <selection/PixelSelector.h>
@@ -150,19 +151,16 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection se
     Q_ASSERT(element.first.size() == 1); // with one pixel
     QVector3D seed = element.first.first();
 
-    qDebug() << "Seed:" << seed;
-
-    Filter::Arguments args;
-
-    SeedGrowSegmentationFilter filter(args);
-
+    qDebug() << "Channel:" << input.id();
     qDebug() << "Threshold:" << m_threshold->threshold();
+    qDebug() << "Seed:" << seed;
     qDebug() << "Use Default VOI:" << m_useDefaultVOI->useDefaultVOI();
 
-//   ITraceNode::Arguments args;
-//   args.insert("Type", SGSF);
-//   args.insert("Seed", QString("%1,%2,%3").arg(seed.x).arg(seed.y).arg(seed.z));
-//   args.insert("Threshold",QString::number(m_threshold->value()));
+    Filter::Arguments args;
+    args["Type"] = SGSF;
+    args["Channel"]= input.id();
+    args["Seed"] = QString("%1,%2,%3").arg(seed.x()).arg(seed.y()).arg(seed.z());
+    args["Threshold"] = QString::number(m_threshold->threshold());
   // args.insert("VOI",SelectionManager::instance()->voi()->save());
   //createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);
 
@@ -186,7 +184,7 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection se
 //     vtkSMPropertyHelper(voi->getProxy(),"Bounds").Get(defVOI,6);
 //   }
 
-//   SeedGrowSegmentationFilter *sgs_sgsf = new SeedGrowSegmentationFilter(input, voi, args);
+    new SeedGrowSegmentationFilter(args);
 //   if (!sgs_sgsf)
 //     qWarning() << "SeedGrowSegmentation: Failed to create new segmentation";
   }

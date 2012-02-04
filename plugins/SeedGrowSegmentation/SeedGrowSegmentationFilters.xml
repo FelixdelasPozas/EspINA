@@ -32,27 +32,35 @@
 		 command="Setm_seed">
       </IntVectorProperty>
       <DoubleVectorProperty
-		 name="Threshold"
-         number_of_elements="1"
-		 default_values="30"
-		 immediate_update="1"
-		 command="Setm_threshold">
+        name="Threshold"
+	number_of_elements="1"
+	default_values="30"
+	immediate_update="1"
+	command="Setm_threshold">
       </DoubleVectorProperty>
       <IntVectorProperty
-      name="CheckPixel"
-      number_of_elements="4"
-      immediate_update="1"
-      default_values="0 0 0 0"
+        name="CheckPixel"
+	number_of_elements="4"
+	immediate_update="1"
+	default_values="0 0 0 0"
 	command="SetCheckPixel">
-	  <SimpleIntInformationHelper/>
+	<SimpleIntInformationHelper/>
       </IntVectorProperty>
       <IntVectorProperty
-      name="PixelValue"
-      number_of_elements="1"
-      information_only="1"
-      default_values="0"
+        name="PixelValue"
+	number_of_elements="1"
+	information_only="1"
+	default_values="0"
 	command="GetPixelValue">
-	  <SimpleIntInformationHelper/>
+	<SimpleIntInformationHelper/>
+      </IntVectorProperty>
+      <IntVectorProperty
+        name="SegExtent"
+	number_of_elements="6"
+	information_only="1"
+	default_values="0 -1 0 -1 0 -1"
+	command="GetSegExtent">
+	<SimpleIntInformationHelper/>
       </IntVectorProperty>
    <!-- End SegmentationFilter -->
    </SourceProxy>
