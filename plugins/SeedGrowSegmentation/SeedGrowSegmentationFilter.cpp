@@ -41,6 +41,7 @@
 #include <QDebug>
 #include <cache/CachedObjectBuilder.h>
 #include <vtkSMPropertyHelper.h>
+#include <complex>
 
 // //-----------------------------------------------------------------------------
 // SeedGrowSegmentationFilter::SetupWidget::SetupWidget(EspinaFilter *parent)
@@ -65,38 +66,77 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(Filter::Arguments args)
   EspINA *model = EspINA::instance();
   qDebug() << args;
 
-  // Hacer el grow
-  pqFilter::Arguments growArgs;
-  growArgs << pqFilter::Argument("Input",    pqFilter::Argument::INPUT,     args["Channel"]);
-  growArgs << pqFilter::Argument("Seed",     pqFilter::Argument::INTVECT,   args["Seed"]);
-  growArgs << pqFilter::Argument("Threshold",pqFilter::Argument::DOUBLEVECT,args["Threshold"]);
-  qDebug() << "Grow Args:" << growArgs;
-
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-  pqFilter *grow = cob->createFilter("filters","SeedGrowSegmentationFilter", growArgs);
 
-  Q_ASSERT(grow->getNumberOfData() == 1);
+  QStringList seed = args["Seed"].split(",");
+  const int W = 20;
+  int VOI[6] = {seed[0].toInt() - W, seed[0].toInt() + W,
+                seed[1].toInt() - W, seed[1].toInt() + W,
+                seed[2].toInt() - W, seed[2].toInt() + W};
 
-  vtkSMProxy *growDataProxy = grow->data(0).pipelineSource()->getProxy();
-  grow->pipelineSource()->updatePipeline();
-  growDataProxy->UpdatePropertyInformation();
-  int bounds[6];
-  vtkSMPropertyHelper(growDataProxy,"SegExtent").Get(bounds, 6);
-  qDebug() << bounds [0] << bounds [1] << bounds [2] << bounds [3] << bounds [4] << bounds [5];
+//   VOI[0] = VOI[2] = 0;
+//   //VOI[1] = 698;
+//   VOI[1] = 2264;
+//   //VOI[3] = 535;
+//   VOI[3] = 2104;
+  VOI[4] = 0;
+  VOI[5] = 0;
 
-  pqFilter::Arguments extractArgs;
-  extractArgs << pqFilter::Argument("Input",pqFilter::Argument::INPUT, grow->data(0).id());
-  QString VolumeArg = QString("%1,%2,%3,%4,%5,%6").arg(bounds[0]).arg(bounds[1]).arg(bounds[2]).arg(bounds[3]).arg(bounds[4]).arg(bounds[5]);
-  extractArgs << pqFilter::Argument("VOI",pqFilter::Argument::INTVECT, VolumeArg);
-  pqFilter *extract = cob->createFilter("filters","ExtractGrid", extractArgs);
-  qDebug() << "Extract Args:" << extractArgs;
+  pqFilter *extract = NULL;
+  grow = NULL;
 
+  for (int i = 0; i < 1; i++)
+  {
+    if (grow)
+      cob->removeFilter(grow);
+    if (extract)
+      cob->removeFilter(extract);
+
+    pqFilter::Arguments extractArgs;
+    extractArgs << pqFilter::Argument("Input",pqFilter::Argument::INPUT, args["Channel"]);
+    QString VolumeArg = QString("%1,%2,%3,%4,%5,%6").arg(VOI[0]).arg(VOI[1]).arg(VOI[2]).arg(VOI[3]).arg(VOI[4]).arg(VOI[5]);
+    extractArgs << pqFilter::Argument("VOI",pqFilter::Argument::INTVECT, VolumeArg);
+    extract = cob->createFilter("filters","ExtractGrid", extractArgs);
+    qDebug() << "Extract Args:" << extractArgs;
   Q_ASSERT(extract->getNumberOfData() == 1);
 
-  Segmentation *seg = new Segmentation(this, extract->data(0));
+    // Hacer el grow
+    pqFilter::Arguments growArgs;
+    growArgs << pqFilter::Argument("Input",    pqFilter::Argument::INPUT,     extract->data(0).id());
+    growArgs << pqFilter::Argument("Seed",     pqFilter::Argument::INTVECT,   args["Seed"]);
+    growArgs << pqFilter::Argument("Threshold",pqFilter::Argument::DOUBLEVECT,args["Threshold"]);
+    qDebug() << "Grow Args:" << growArgs;
+
+    grow = cob->createFilter("filters","SeedGrowSegmentationFilter", growArgs);
+
+    Q_ASSERT(grow->getNumberOfData() == 1);
+
+    vtkSMProxy *growDataProxy = grow->data(0).pipelineSource()->getProxy();
+    grow->pipelineSource()->updatePipeline();
+    growDataProxy->UpdatePropertyInformation();
+    int segExtent[6];
+    vtkSMPropertyHelper(growDataProxy,"SegExtent").Get(segExtent, 6);
+
+    if (memcmp(segExtent, VOI, 6*sizeof(int)) == 0)
+      break;
+    else
+      memcpy(VOI,segExtent,6*sizeof(int));
+//   qDebug() << bounds [0] << bounds [1] << bounds [2] << bounds [3] << bounds [4] << bounds [5];
+  }
+
+  Segmentation *seg = new Segmentation(this, grow->data(0));
   model->addSegmentation(seg);
 }
 
+
+// //-----------------------------------------------------------------------------
+void SeedGrowSegmentationFilter::setThreshold(double th)
+{
+  Q_ASSERT(grow);
+  vtkSMPropertyHelper(grow->pipelineSource()->getProxy(),"Threshold").Set(&th,1);
+  grow->pipelineSource()->updatePipeline();
+  emit modified();
+}
 
 // //-----------------------------------------------------------------------------
 // SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVOI* voi, ITraceNode::Arguments& args)

@@ -41,6 +41,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "SeedGrowSelector.h"
 #include <QWidgetAction>
 
+class SeedGrowSegmentationFilter;
 //Forward declarations
 class SegmentAction;
 class DefaultVOIAction;
@@ -68,6 +69,7 @@ protected slots:
   void onSelectionAborted();
   /// Starts the segmentation filter putting using @msel as seed
   void startSegmentation(SelectionHandler::MultiSelection msel);
+  void modifyLastFilter(int value);
 
 signals:
 //   void productCreated(Segmentation *);
@@ -83,6 +85,7 @@ private:
   SegmentAction    *m_segment;
   QMap<QAction *, SelectionHandler *> m_selectors;
   QSharedPointer<SeedGrowSelector> m_eventFilter;
+  SeedGrowSegmentationFilter *m_lastFilter;
 //   SeedGrowSegmentationSettings *m_preferences;
 };
 

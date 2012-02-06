@@ -145,13 +145,13 @@ int vtkConnectedThresholdImageFilter::RequestData(vtkInformation* request, vtkIn
   double color = input->GetScalarComponentAsDouble(m_seed[0], m_seed[1], m_seed[2], 0);
   ctif->SetInput( vtk2itk_filter->GetOutput() );
   ctif->SetReplaceValue(LABEL_VALUE); // 1 es ya el valor por defecto. Remplaza los valores de los pixeles que se encuentren entre lower y upper.
-  ctif->SetLower(std::max(color - m_threshold, 0.0));
-  ctif->SetUpper(std::min(color + m_threshold, 255.0));
+  ctif->SetLower(std::max(color - Threshold, 0.0));
+  ctif->SetUpper(std::min(color + Threshold, 255.0));
   InputImageType::IndexType seed; //TODO: Use class seed
   seed[0] = m_seed[0]; seed[1] = m_seed[1]; seed[2] = m_seed[2];
   ctif->AddSeed(seed);
 
-  vtkDebugMacro(<< "COLOR: " << color << "THRESHOLD: " << m_threshold << " => LOWER: " << (int)ctif->GetLower() <<  " UPPER: " << (int)ctif->GetUpper());
+  vtkDebugMacro(<< "COLOR: " << color << "THRESHOLD: " << Threshold << " => LOWER: " << (int)ctif->GetLower() <<  " UPPER: " << (int)ctif->GetUpper());
   vtkDebugMacro(<< "SEED: " << seed[0] << " " << seed[1] << " " << seed[2]);
 
   vtkDebugMacro(<< "Converting from ITK to LabelMap");
@@ -172,13 +172,13 @@ int vtkConnectedThresholdImageFilter::RequestData(vtkInformation* request, vtkIn
   LabelMapType *    labelMap = image2label->GetOutput();
   LabelObjectType * object   = labelMap->GetLabelObject(LABEL_VALUE);
   LabelObjectType::RegionType objectROI = object->GetRegion();
-  objectROI.Print(std::cout);
+//   objectROI.Print(std::cout);
   SegExtent[0] = objectROI.GetIndex(0);
-  SegExtent[1] = SegExtent[0] + objectROI.GetSize(0) + 1;
+  SegExtent[1] = SegExtent[0] + objectROI.GetSize(0) - 1;
   SegExtent[2] = objectROI.GetIndex(1);
-  SegExtent[3] = SegExtent[2] + objectROI.GetSize(1) + 1;
+  SegExtent[3] = SegExtent[2] + objectROI.GetSize(1) - 1;
   SegExtent[4] = objectROI.GetIndex(2);
-  SegExtent[5] = SegExtent[4] + objectROI.GetSize(2) + 1;
+  SegExtent[5] = SegExtent[4] + objectROI.GetSize(2) - 1;
 
 //   vtkDebugMacro(<< "Extracting Segmentation Region");
   
@@ -255,7 +255,7 @@ void vtkConnectedThresholdImageFilter::SetCheckPixel(int arg[4])
 void vtkConnectedThresholdImageFilter::PrintSelf(ostream& os, vtkIndent indent)
 {
     vtkImageAlgorithm::PrintSelf(os, indent);
-    os << indent << "Threshold: " << m_threshold << endl;
+    os << indent << "Threshold: " << Threshold << endl;
     os << indent << "Seed: (" << m_seed[0] << ", " << m_seed[1]
       << ", "<< m_seed[2] << ")" << endl;
 }

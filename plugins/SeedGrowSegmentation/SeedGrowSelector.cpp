@@ -22,6 +22,8 @@
 #include "gui/ThresholdAction.h"
 
 #include <QWheelEvent>
+#include <selection/SelectableView.h>
+#include <pqRenderViewBase.h>
 
 SeedGrowSelector::SeedGrowSelector(ThresholdAction* th, SelectionHandler* succesor)
 : SelectionHandler(succesor)
@@ -39,6 +41,7 @@ bool SeedGrowSelector::filterEvent(QEvent* e, SelectableView* view)
     {
       int numSteps = we->delta()/8/15;//Refer to QWheelEvent doc.
       m_threshold->setThreshold(m_threshold->threshold() + numSteps);//Using stepBy highlight the input text
+      view->view()->forceRender();
 
       return true;
     }

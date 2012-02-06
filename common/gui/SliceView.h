@@ -129,7 +129,11 @@ public:
   void addChannelRepresentation(Channel *channel);
   void addChannelRepresentation(pqOutputPort *oport);
   void removeChannelRepresentation(Channel *channel);
+
   void addSegmentationRepresentation(pqOutputPort *oport);
+
+//   void addPreview(pqOutputPort *preview);
+//   void previewVolume(int volume[6]);
 
 public slots:
   // Espina has been connected to a new server

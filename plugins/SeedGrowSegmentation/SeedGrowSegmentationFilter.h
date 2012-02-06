@@ -25,6 +25,7 @@
 // #include "ui_SeedGrowSegmentationFilterSetup.h"
 // class IVOI;
 
+class pqFilter;
 class SeedGrowSegmentationFilter
 : public Filter
 {
@@ -42,6 +43,7 @@ public:
   explicit SeedGrowSegmentationFilter(Arguments args);
   virtual ~SeedGrowSegmentationFilter();
 
+  void setThreshold(double th);
 //   //! Implements IFilter Interface
 //   virtual int numProducts() {return m_numSeg;}
 //   virtual vtkProduct product(int i) {return vtkProduct(m_finalFilter->product(i).creator(),i);}
@@ -67,6 +69,7 @@ private:
   int m_seed[3];
   int m_threshold;
   int m_numSeg;
+  pqFilter *grow;
 
 //   friend class SetupWidget;
 };

@@ -73,6 +73,7 @@ SeedGrowSegmentation::SeedGrowSegmentation(QObject* parent)
 , m_useDefaultVOI (new DefaultVOIAction(this))
 , m_segment       (new SegmentAction(this))
 , m_eventFilter   (new SeedGrowSelector(m_threshold))
+, m_lastFilter    (NULL)
 // , m_preferences(NULL)
 {
 //   m_factoryName = SGS;
@@ -90,6 +91,8 @@ SeedGrowSegmentation::SeedGrowSegmentation(QObject* parent)
 	  this, SLOT(onSelectionAborted()));
   connect(m_segment, SIGNAL(actionCanceled()),
 	  this, SLOT(abortSelection()));
+  connect(m_threshold,SIGNAL(thresholdChanged(int)),
+	  this, SLOT(modifyLastFilter(int)));
 }
 
 
@@ -134,7 +137,7 @@ void SeedGrowSegmentation::onSelectionAborted()
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection sel)
 {
-  QApplication::setOverrideCursor(Qt::WaitCursor);
+//   QApplication::setOverrideCursor(Qt::WaitCursor);
 
   // Initialize application context
 //   pqApplicationCore* core = pqApplicationCore::instance();
@@ -184,13 +187,21 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection se
 //     vtkSMPropertyHelper(voi->getProxy(),"Bounds").Get(defVOI,6);
 //   }
 
-    new SeedGrowSegmentationFilter(args);
+    m_lastFilter = new SeedGrowSegmentationFilter(args);
 //   if (!sgs_sgsf)
 //     qWarning() << "SeedGrowSegmentation: Failed to create new segmentation";
   }
 
-  QApplication::restoreOverrideCursor();
+//   QApplication::restoreOverrideCursor();
 }
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentation::modifyLastFilter(int value)
+{
+  if (m_lastFilter)
+    m_lastFilter->setThreshold(value);
+}
+
 
 //------------------------------------------------------------------------
 void SeedGrowSegmentation::addPixelSelector(QAction* action, SelectionHandler* handler)
