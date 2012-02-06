@@ -22,6 +22,7 @@
 
 #include <selection/SelectionHandler.h>
 
+class SeedGrowSegmentationFilter;
 class ThresholdAction;
 
 class SeedGrowSelector
@@ -35,6 +36,7 @@ public:
   virtual QCursor cursor();
 
   void setPixelSelector(SelectionHandler *sel) {m_succesor = sel;}
+  SeedGrowSegmentationFilter *filter;
 
 private:
   ThresholdAction *m_threshold;

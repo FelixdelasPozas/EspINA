@@ -361,13 +361,7 @@ void EspinaWindow::newAnalysis()
     QSharedPointer<Sample> sample = QSharedPointer<Sample>(new Sample(SampleName));
 //     Sample *sample = new Sample(SampleName);
     m_undoStack->push(new AddSample(m_espina, sample));
-
-    pqPipelineSource* reader = pqLoadDataReaction::loadData(QStringList(channelFile));
-    CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-    pqFilter *readerFilter = cob->registerFilter(channelName, reader);
-    pqData channelData(readerFilter,0);
-    QSharedPointer<Channel> channel = QSharedPointer<Channel>(new Channel(channelData));
-    m_undoStack->push(new AddChannel(m_espina, sample, channel));
+    m_undoStack->push(new AddChannel(m_espina, sample, channelFile));
 
     m_undoStack->endMacro();
     QApplication::restoreOverrideCursor();

@@ -51,8 +51,8 @@ vtkSliceRepresentation::vtkSliceRepresentation()
   this->SliceActor = vtkImageActor::New();
   this->SliceActor->SetInterpolate ( false );
   this->SliceActor->GetMapper()->BorderOn();
-  //   Slice->ReleaseDataFlagOn();
-  //   DeliveryFilter->ReleaseDataFlagOn();
+  Slice->ReleaseDataFlagOn();
+  DeliveryFilter->ReleaseDataFlagOn();
 
   this->SliceActor->GetMapper()->SetInputConnection ( Slice->GetOutputPort() );
   qDebug() << "Created Representation" << this;
@@ -162,7 +162,7 @@ int vtkSliceRepresentation::RequestData (
     vtkImageData *clone = vtkImageData::New();
     clone->ShallowCopy ( input );
     Slice->SetInput ( clone );
-    //     clone->Delete();
+    clone->Delete();
     Slice->Update();
     this->SliceData->ShallowCopy ( Slice->GetOutput() );
     input->GetBounds ( SegActor.bounds );

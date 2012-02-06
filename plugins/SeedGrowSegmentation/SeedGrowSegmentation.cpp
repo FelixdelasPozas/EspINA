@@ -188,6 +188,7 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection se
 //   }
 
     m_lastFilter = new SeedGrowSegmentationFilter(args);
+    m_eventFilter->filter = m_lastFilter;
 //   if (!sgs_sgsf)
 //     qWarning() << "SeedGrowSegmentation: Failed to create new segmentation";
   }

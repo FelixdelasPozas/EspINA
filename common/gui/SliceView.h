@@ -113,11 +113,12 @@ public:
 
   void setGridSize(double size[3]);
   void setRanges(double ranges[6]/*nm*/);
-  void setFitToGrid(bool value); 
+  void setFitToGrid(bool value);
   void centerViewOn(double center[3]/*nm*/);
   void setCrossHairColors(double hcolor[3], double vcolor[3]);
 
   // Interface of SelectableView
+  bool pickChannel(int x, int y, double pickPos[3]);
   virtual void eventPosition(int &x, int &y);
   virtual SelectionHandler::MultiSelection select(SelectionHandler::SelectionFilters filters, SelectionHandler::ViewRegions regions);
   virtual pqRenderViewBase *view();
@@ -164,7 +165,7 @@ protected slots:
 
   void sliceViewCenterChanged(double x, double y, double z);
   void scrollValueChanged(int pos);
-  
+
 signals:
   void centerChanged(double, double, double);
   // Notify the windows manager how to display the view
@@ -190,7 +191,6 @@ protected:
 
   virtual bool eventFilter(QObject* caller, QEvent* e);
   void centerViewOnMousePosition();
-  bool pickChannel(int x, int y, double pickPos[3]);
 
   /// Converts point from Display coordinates to World coordinates
   SelectionHandler::VtkRegion display2vtk(const QPolygonF &region);

@@ -69,7 +69,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(Filter::Arguments args)
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
 
   QStringList seed = args["Seed"].split(",");
-  const int W = 20;
+  const int W = 200;
   int VOI[6] = {seed[0].toInt() - W, seed[0].toInt() + W,
                 seed[1].toInt() - W, seed[1].toInt() + W,
                 seed[2].toInt() - W, seed[2].toInt() + W};
@@ -132,11 +132,26 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(Filter::Arguments args)
 // //-----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::setThreshold(double th)
 {
+  if (th < 0)
+    return;
+
+  m_threshold = th;
   Q_ASSERT(grow);
-  vtkSMPropertyHelper(grow->pipelineSource()->getProxy(),"Threshold").Set(&th,1);
+  vtkSMPropertyHelper(grow->pipelineSource()->getProxy(),"Threshold").Set(&m_threshold,1);
   grow->pipelineSource()->updatePipeline();
   emit modified();
 }
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationFilter::setSeed(int seed[3])
+{
+  memcpy(m_seed,seed,3*sizeof(int));
+  Q_ASSERT(grow);
+  vtkSMPropertyHelper(grow->pipelineSource()->getProxy(),"Seed").Set(m_seed,3);
+  grow->pipelineSource()->updatePipeline();
+  emit modified();
+}
+
 
 // //-----------------------------------------------------------------------------
 // SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVOI* voi, ITraceNode::Arguments& args)

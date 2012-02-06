@@ -24,10 +24,12 @@
 #include <QWheelEvent>
 #include <selection/SelectableView.h>
 #include <pqRenderViewBase.h>
+#include "SeedGrowSegmentationFilter.h"
 
 SeedGrowSelector::SeedGrowSelector(ThresholdAction* th, SelectionHandler* succesor)
 : SelectionHandler(succesor)
 , m_threshold(th)
+, filter(NULL)
 {
   Q_ASSERT(m_threshold);
 }
@@ -45,7 +47,24 @@ bool SeedGrowSelector::filterEvent(QEvent* e, SelectableView* view)
 
       return true;
     }
-  } else if(e->type() == QEvent::MouseButtonPress)
+  }else if(e->type() == QEvent::MouseMove)
+  {
+    QMouseEvent *me = dynamic_cast<QMouseEvent*>(e);
+    if (me->modifiers() == Qt::CTRL)
+    {
+      int x, y;
+      view->eventPosition(x,y);
+      double pick[3];
+      view->pickChannel(x,y,pick);
+      int seed[3] = {pick[0], pick[1], pick[2]}; 
+      if (filter)
+      {
+	filter->setSeed(seed);
+	view->view()->forceRender();
+      }
+      
+    }
+  }else if(e->type() == QEvent::MouseButtonPress)
   {
     QMouseEvent *me = dynamic_cast<QMouseEvent*>(e);
     if (me->modifiers() != Qt::CTRL && m_succesor)

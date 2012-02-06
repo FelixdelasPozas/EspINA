@@ -34,6 +34,7 @@ public:
   /// and pass the filtering criteria
 //   virtual void setSelection(SelectionFilters &filters, ViewRegions &regions) = 0;
   /// Position in display coordinates
+  virtual bool pickChannel(int x, int y, double pickPos[3]) = 0;
   virtual void eventPosition(int &x, int &y) = 0;
   virtual SelectionHandler::MultiSelection select(SelectionHandler::SelectionFilters filters, SelectionHandler::ViewRegions regions) = 0;
 

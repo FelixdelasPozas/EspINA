@@ -44,6 +44,8 @@ public:
   virtual ~SeedGrowSegmentationFilter();
 
   void setThreshold(double th);
+//   int threshold(){return m_threshold;}
+  void setSeed(int seed[3]);
 //   //! Implements IFilter Interface
 //   virtual int numProducts() {return m_numSeg;}
 //   virtual vtkProduct product(int i) {return vtkProduct(m_finalFilter->product(i).creator(),i);}
@@ -51,7 +53,6 @@ public:
 //   virtual QString getFilterArguments() const {return EspinaFilter::getFilterArguments();}
 //   virtual void removeProduct(vtkProduct* product);
 
-//   int threshold(){return m_threshold;}
 
 //   virtual QString label() const {return getArgument("Type");}
 //   virtual QString getArgument(QString name) const {return (name=="Type")?"SeedGrowSegmentation::SeedGrowSegmentationFilter":"";}
