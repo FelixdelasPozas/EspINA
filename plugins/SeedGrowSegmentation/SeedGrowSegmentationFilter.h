@@ -43,9 +43,10 @@ public:
   explicit SeedGrowSegmentationFilter(Arguments args);
   virtual ~SeedGrowSegmentationFilter();
 
-  void setThreshold(double th);
-//   int threshold(){return m_threshold;}
+  void setThreshold(int th);
+  int threshold(){return m_threshold;}
   void setSeed(int seed[3]);
+  void seed(int seed[3]) {memcpy(seed,m_seed,3*sizeof(int));}
 //   //! Implements IFilter Interface
 //   virtual int numProducts() {return m_numSeg;}
 //   virtual vtkProduct product(int i) {return vtkProduct(m_finalFilter->product(i).creator(),i);}

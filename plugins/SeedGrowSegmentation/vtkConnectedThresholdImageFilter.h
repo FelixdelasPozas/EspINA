@@ -17,8 +17,8 @@ public:
   vtkTypeMacro(vtkConnectedThresholdImageFilter,vtkImageAlgorithm);
     
   //! Gray level segmentation threshlod
-  vtkSetMacro(Threshold,double);
-  vtkGetMacro(Threshold,double);
+  vtkSetMacro(Threshold,int);
+  vtkGetMacro(Threshold,int);
   //! Seed coordinates
   vtkSetVector3Macro(m_seed,int);
   vtkGetVector3Macro(m_seed,int);
@@ -48,7 +48,7 @@ private:
   void operator=(const vtkConnectedThresholdImageFilter&);// Not implemented
     
 private:
-  double Threshold;
+  int Threshold;
   int m_seed[3];
   int CheckPixel[4];
   int PixelValue;

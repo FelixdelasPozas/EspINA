@@ -28,8 +28,8 @@
 
 SeedGrowSelector::SeedGrowSelector(ThresholdAction* th, SelectionHandler* succesor)
 : SelectionHandler(succesor)
-, m_threshold(th)
 , filter(NULL)
+, m_threshold(th)
 {
   Q_ASSERT(m_threshold);
 }

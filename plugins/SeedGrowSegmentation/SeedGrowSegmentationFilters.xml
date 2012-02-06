@@ -31,13 +31,13 @@
 		 immediate_update="1"
 		 command="Setm_seed">
       </IntVectorProperty>
-      <DoubleVectorProperty
+      <IntVectorProperty
         name="Threshold"
 	number_of_elements="1"
 	default_values="30"
 	immediate_update="1"
 	command="SetThreshold">
-      </DoubleVectorProperty>
+      </IntVectorProperty>
       <IntVectorProperty
         name="CheckPixel"
 	number_of_elements="4"

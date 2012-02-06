@@ -102,9 +102,9 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(Filter::Arguments args)
 
     // Hacer el grow
     pqFilter::Arguments growArgs;
-    growArgs << pqFilter::Argument("Input",    pqFilter::Argument::INPUT,     extract->data(0).id());
-    growArgs << pqFilter::Argument("Seed",     pqFilter::Argument::INTVECT,   args["Seed"]);
-    growArgs << pqFilter::Argument("Threshold",pqFilter::Argument::DOUBLEVECT,args["Threshold"]);
+    growArgs << pqFilter::Argument("Input",    pqFilter::Argument::INPUT,   extract->data(0).id());
+    growArgs << pqFilter::Argument("Seed",     pqFilter::Argument::INTVECT, args["Seed"]);
+    growArgs << pqFilter::Argument("Threshold",pqFilter::Argument::INTVECT, args["Threshold"]);
     qDebug() << "Grow Args:" << growArgs;
 
     grow = cob->createFilter("filters","SeedGrowSegmentationFilter", growArgs);
@@ -130,7 +130,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(Filter::Arguments args)
 
 
 // //-----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::setThreshold(double th)
+void SeedGrowSegmentationFilter::setThreshold(int th)
 {
   if (th < 0)
     return;
