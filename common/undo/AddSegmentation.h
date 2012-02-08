@@ -17,22 +17,30 @@
 */
 
 
-#ifndef FILTER_H
-#define FILTER_H
+#ifndef ADDSEGMENTATION_H
+#define ADDSEGMENTATION_H
 
-#include <QObject>
-#include <QMap>
-#include "pqData.h"
+#include <QSharedPointer>
+#include <QUndoCommand>
 
-class Filter : public QObject
+class Segmentation;
+class Filter;
+class EspINA;
+class Sample;
+
+class AddSegmentation : public QUndoCommand
 {
 public:
-  virtual int numProducts() const = 0;
-  virtual pqData product(int index) const = 0;
+  explicit AddSegmentation(QSharedPointer<Filter> filter,
+			   int element,
+			   QUndoCommand *parent=0);
+  virtual void redo();
+  virtual void undo();
 
-  typedef QMap<QString, QString> Arguments;
-  virtual pqData preview() = 0;
+private:
+  QSharedPointer<Filter> m_filter;
+  int m_productIndex;
+  Segmentation *m_segmentation;
 };
 
-
-#endif // FILTER_H
+#endif // ADDSEGMENTATION_H

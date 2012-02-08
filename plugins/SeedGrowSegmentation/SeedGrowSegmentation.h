@@ -84,8 +84,7 @@ private:
   DefaultVOIAction *m_useDefaultVOI;
   SegmentAction    *m_segment;
   QMap<QAction *, SelectionHandler *> m_selectors;
-  QSharedPointer<SeedGrowSelector> m_eventFilter;
-  SeedGrowSegmentationFilter *m_lastFilter;
+  QSharedPointer<SeedGrowSelector> m_selector;
 //   SeedGrowSegmentationSettings *m_preferences;
 };
 

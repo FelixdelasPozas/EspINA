@@ -23,7 +23,7 @@
 
 #include <QString>
 #include <QMap>
-#include <processingTrace.h>
+#include <processing/ProcessingTrace.h>
 
 class IPreferencePanel;
 class pqPipelineSource;

@@ -72,6 +72,7 @@
 #include <vtkRenderer.h>
 
 #include <vtkPropCollection.h>
+#include <model/Segmentation.h>
 
 //-----------------------------------------------------------------------------
 SliceViewPreferencesPanel::SliceViewPreferencesPanel(SliceViewPreferences* preferences)
@@ -219,7 +220,7 @@ void SliceViewPreferences::setShowAxis(bool value)
 // SLICE VIEW
 //-----------------------------------------------------------------------------
 SliceView::SliceView(vtkPVSliceView::VIEW_PLANE plane, QWidget* parent)
-    : QAbstractItemView (parent)
+    : QWidget           (parent)
     , m_plane           (plane)
     , m_titleLayout     (new QHBoxLayout())
     , m_title           (new QLabel("Sagital"))
@@ -695,7 +696,7 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
     }
   }
 
-  return QAbstractItemView::eventFilter(caller, e);
+  return QWidget::eventFilter(caller, e);
 }
 
 //-----------------------------------------------------------------------------
@@ -777,6 +778,30 @@ void SliceView::removeChannelRepresentation(Channel* channel)
 }
 
 //-----------------------------------------------------------------------------
+void SliceView::addSegmentationRepresentation(Segmentation* seg)
+{
+  pqOutputPort      *oport = seg->outputPort();
+  pqPipelineSource *source = oport->getSource();
+  vtkSMProxyManager   *pxm = source->getProxy()->GetProxyManager();
+
+  vtkSMRepresentationProxy* reprProxy = vtkSMRepresentationProxy::SafeDownCast(
+    pxm->NewProxy("representations", "SegmentationRepresentation"));
+  Q_ASSERT(reprProxy);
+  m_segmentations[seg] = reprProxy;
+
+    // Set the reprProxy's input.
+  pqSMAdaptor::setInputProperty(reprProxy->GetProperty("Input"),
+				source->getProxy(), oport->getPortNumber());
+  reprProxy->UpdateVTKObjects();
+
+  vtkSMProxy* viewModuleProxy = m_view->getProxy();
+  // Add the reprProxy to render module.
+  pqSMAdaptor::addProxyProperty(
+    viewModuleProxy->GetProperty("Representations"), reprProxy);
+  viewModuleProxy->UpdateVTKObjects();
+}
+
+//-----------------------------------------------------------------------------
 void SliceView::addSegmentationRepresentation(pqOutputPort* oport)
 {
   pqPipelineSource *source = oport->getSource();
@@ -785,6 +810,7 @@ void SliceView::addSegmentationRepresentation(pqOutputPort* oport)
   vtkSMRepresentationProxy* reprProxy = vtkSMRepresentationProxy::SafeDownCast(
     pxm->NewProxy("representations", "SegmentationRepresentation"));
   Q_ASSERT(reprProxy);
+  prevRep = reprProxy;
 
     // Set the reprProxy's input.
   pqSMAdaptor::setInputProperty(reprProxy->GetProperty("Input"),
@@ -806,6 +832,64 @@ void SliceView::addSegmentationRepresentation(pqOutputPort* oport)
 //   {
 //     repr->setDefaultPropertyValues();
 //   }
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::removeSegmentationRepresentation(Segmentation* seg)
+{
+  vtkSMProxy* viewModuleProxy = m_view->getProxy();
+  Q_ASSERT(m_segmentations.contains(seg));
+  vtkSMRepresentationProxy *repProxy = m_segmentations[seg];
+  // Remove the reprProxy to render module.
+  pqSMAdaptor::removeProxyProperty(
+    viewModuleProxy->GetProperty("Representations"), repProxy);
+  viewModuleProxy->UpdateVTKObjects();
+  m_view->getProxy()->UpdateVTKObjects();
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::removeSegmentationRepresentation(pqOutputPort* oport)
+{
+  vtkSMProxy* viewModuleProxy = m_view->getProxy();
+  // Add the reprProxy to render module.
+  pqSMAdaptor::removeProxyProperty(
+    viewModuleProxy->GetProperty("Representations"), prevRep);
+  viewModuleProxy->UpdateVTKObjects();
+//   m_view->getRenderViewProxy()->GetRenderer()->RemoveAllViewProps();
+//   m_view->getRenderViewProxy()->GetOverviewRenderer()->RemoveAllViewProps();
+  m_view->getProxy()->UpdateVTKObjects();
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::addPreview(Filter* filter)
+{
+  addPreview(filter->preview().outputPort());
+  m_preview = filter;
+}
+
+void SliceView::removePreview(Filter* filter)
+{
+  removePreview(filter->preview().outputPort());
+}
+
+
+//-----------------------------------------------------------------------------
+void SliceView::addPreview(pqOutputPort* preview)
+{
+  addSegmentationRepresentation(preview);
+}
+
+void SliceView::removePreview(pqOutputPort* preview)
+{
+  removeSegmentationRepresentation(preview);
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::previewExtent(int VOI[6])
+{
+  memcpy(VOI, m_gridSize,6*sizeof(int));
+  VOI[2*m_plane] = m_scrollBar->value();
+  VOI[2*m_plane+1] = m_scrollBar->value();
 }
 
 //-----------------------------------------------------------------------------

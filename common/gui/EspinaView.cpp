@@ -220,9 +220,9 @@ void DefaultEspinaView::rowsInserted(const QModelIndex& parent, int start, int e
       Q_ASSERT(start == end);// Only 1-row-at-a-time insertions are allowed
       Segmentation *seg = dynamic_cast<Segmentation *>(item);
       qDebug() << "Add Segmentation:" << seg->data(Qt::DisplayRole).toString();
-      xyView->addSegmentationRepresentation(seg->data().outputPort());
-      yzView->addSegmentationRepresentation(seg->data().outputPort());
-      xzView->addSegmentationRepresentation(seg->data().outputPort());
+      xyView->addSegmentationRepresentation(seg);
+      yzView->addSegmentationRepresentation(seg);
+      xzView->addSegmentationRepresentation(seg);
       volView->addSegmentationRepresentation(seg->data().outputPort());
       break;
     }
@@ -259,6 +259,16 @@ void DefaultEspinaView::rowsAboutToBeRemoved(const QModelIndex& parent, int star
       xyView->setRanges(emptyBounds);
       yzView->setRanges(emptyBounds);
       xzView->setRanges(emptyBounds);
+      break;
+    }
+    case IModelItem::SEGMENTATION:
+    {
+      Q_ASSERT(start == end);// Only 1-row-at-a-time insertions are allowed
+      Segmentation *seg = dynamic_cast<Segmentation *>(item);
+      qDebug() << "Remove Segmentation:" << seg->data(Qt::DisplayRole).toString();
+      xyView->removeSegmentationRepresentation(seg);
+      yzView->removeSegmentationRepresentation(seg);
+      xzView->removeSegmentationRepresentation(seg);
       break;
     }
     default:

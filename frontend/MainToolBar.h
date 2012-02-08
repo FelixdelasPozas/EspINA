@@ -18,7 +18,7 @@
 
 //----------------------------------------------------------------------------
 // File:    MainToolBar.h
-// Purpose: Provide tool buttons for most common actions in EspINA
+// Purpose: Provide tool buttons for most common actions in EspinaModel
 //----------------------------------------------------------------------------
 #ifndef MAINTOOLBAR_H
 #define MAINTOOLBAR_H
@@ -28,14 +28,14 @@
 
 #include <QModelIndex>
 
-class EspINA;
+class EspinaModel;
 class QComboBox;
 class QTreeView;
 class MainToolBar : public QToolBar, public DynamicWidget
 {
   Q_OBJECT
 public:
-  explicit MainToolBar(QSharedPointer<EspINA> model, QWidget* parent = 0);
+  explicit MainToolBar(QSharedPointer<EspinaModel> model, QWidget* parent = 0);
 
   virtual void increaseLOD(){}
   virtual void decreaseLOD(){}
@@ -46,6 +46,7 @@ public slots:
   void setShowSegmentations(bool visible);
 
 protected slots:
+  void setActiveTaxonomy(QModelIndex index);
   void updateTaxonomy(QModelIndex left, QModelIndex right);
 
 signals:

@@ -19,16 +19,16 @@
 
 #include "AddChannel.h"
 
-#include <common/cache/CachedObjectBuilder.h>
-#include <common/model/EspINA.h>
-#include <common/model/Channel.h>
-#include <common/model/Sample.h>
+#include <cache/CachedObjectBuilder.h>
+#include <model/EspinaModel.h>
+#include <model/Channel.h>
+#include <model/Sample.h>
 
 #include <pqPipelineSource.h>
 #include <pqLoadDataReaction.h>
 
 
-AddChannel::AddChannel(QSharedPointer< EspINA > model,
+AddChannel::AddChannel(QSharedPointer< EspinaModel > model,
 		       QSharedPointer< Sample > sample,
 		       const QString channelFile,
 		       QUndoCommand* parent)

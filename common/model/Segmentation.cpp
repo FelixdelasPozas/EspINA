@@ -22,20 +22,11 @@
 using namespace std;
 
 //-----------------------------------------------------------------------------
-Segmentation::Segmentation(Filter* filter, pqData data)
+Segmentation::Segmentation(QSharedPointer<Filter> filter, pqData data)
 : m_filter (filter)
 , m_data   (data)
 {
 }
-
-
-// //-----------------------------------------------------------------------------
-// Segmentation::Segmentation(EspinaFilter* parent, vtkFilter* creator, int portNumber)
-// : EspinaProduct(parent,creator, portNumber)
-// , m_isSelected(false)
-// , m_id(-1)
-// {
-// }
 
 //------------------------------------------------------------------------
 Segmentation::~Segmentation()
@@ -52,6 +43,12 @@ Segmentation::~Segmentation()
 //   m_insertionOrderedExtensions.clear();
 //   m_representations.clear();
 //   m_informations.clear();
+}
+
+//------------------------------------------------------------------------
+pqOutputPort* Segmentation::outputPort()
+{
+  return m_data.outputPort();
 }
 
 //------------------------------------------------------------------------

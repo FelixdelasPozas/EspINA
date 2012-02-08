@@ -21,6 +21,7 @@
 #define SELECTABLEVIEW_H
 
 #include "SelectionHandler.h"
+#include <processing/Filter.h>
 
 class pqRenderViewBase;
 
@@ -34,6 +35,9 @@ public:
   /// and pass the filtering criteria
 //   virtual void setSelection(SelectionFilters &filters, ViewRegions &regions) = 0;
   /// Position in display coordinates
+  virtual void addPreview(Filter *filter) = 0;
+  virtual void removePreview(Filter *filter) = 0;
+  virtual void previewExtent(int VOI[6]) = 0;
   virtual bool pickChannel(int x, int y, double pickPos[3]) = 0;
   virtual void eventPosition(int &x, int &y) = 0;
   virtual SelectionHandler::MultiSelection select(SelectionHandler::SelectionFilters filters, SelectionHandler::ViewRegions regions) = 0;

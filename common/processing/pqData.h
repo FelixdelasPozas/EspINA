@@ -32,6 +32,7 @@ class pqData
 {
 public:
   /// Paraview pipeline data correspondig to @source's @portNumber output
+  pqData(){}
   pqData(pqFilter *source, unsigned int portNumber);
 
   QString id() const;

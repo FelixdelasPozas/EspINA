@@ -35,11 +35,14 @@ public:
   virtual bool filterEvent(QEvent* e, SelectableView* view = 0);
   virtual QCursor cursor();
 
+  void previewOn();
+  void previewOff();
+
   void setPixelSelector(SelectionHandler *sel) {m_succesor = sel;}
-  SeedGrowSegmentationFilter *filter;
 
 private:
   ThresholdAction *m_threshold;
+  SeedGrowSegmentationFilter *m_preview;
 };
 
 #endif // SEEDGROWSELECTOR_H

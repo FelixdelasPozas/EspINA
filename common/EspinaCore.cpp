@@ -17,35 +17,29 @@
 */
 
 
-#ifndef ADDCHANNEL_H
-#define ADDCHANNEL_H
+#include "EspinaCore.h"
+
+#include "model/EspinaModel.h"
 
 #include <QUndoStack>
-#include <QSharedPointer>
 
-class pqFilter;
-class Channel;
-class EspINA;
-class Sample;
+EspinaCore *EspinaCore::m_singleton = NULL;
 
-class AddChannel
-: public QUndoCommand
+EspinaCore::EspinaCore()
+: m_model     (new EspinaModel())
+, m_undoStack (new QUndoStack())
 {
-public:
-  explicit AddChannel(QSharedPointer<EspINA>  model,
-		      QSharedPointer<Sample>  sample,
-		      const QString           channelFile,
-		      QUndoCommand *parent=0);
+}
 
-  virtual void redo();
-  virtual void undo();
+EspinaCore* EspinaCore::instance()
+{
+  if (!m_singleton)
+    m_singleton = new EspinaCore();
 
-private:
-  QSharedPointer<EspINA>  m_model;
-  QSharedPointer<Sample>  m_sample;
-  Channel                *m_channel;
-  pqFilter               *m_reader;
-  const QString           m_file;
-};
+  return m_singleton;
+}
 
-#endif // ADDCHANNEL_H
+void EspinaCore::setActiveTaxonomy(TaxonomyNode* tax)
+{
+  m_activeTaxonomy = tax;
+}

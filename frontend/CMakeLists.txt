@@ -22,7 +22,7 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
   EspinaWindow.h
   MainToolBar.h
   SegmentationExplorer.h
-  TaxonomyInspector.h
+  docks/TaxonomyInspector.h
 #   sampleEditor.h
 #   SegmentationExplorer.h
 #   qTreeComboBox.h
@@ -32,7 +32,7 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
 # Create Interface files
 qt4_wrap_ui (UI_BUILT_SOURCES
   SegmentationExplorer.ui
-  TaxonomyInspector.ui
+  docks/TaxonomyInspector.ui
 #   EspinaWindow.ui
 #   sampleEditor.ui
 #   segmentationExplorer.ui
@@ -47,22 +47,19 @@ qt4_wrap_ui (UI_BUILT_SOURCES
 #   ${RCC_BUILT_SOURCES}
 #   )
 
-# file ( GLOB LOCAL_SOURCES *.cpp )
-set (UNDO_SOURCES
-  undo/AddChannel.cpp
-  undo/AddSample.cpp
+set (DOCKS_SOURCES
+  docks/TaxonomyInspector.cpp
   )
 
 set (LOCAL_SOURCES
   EspinaWindow.cpp
   MainToolBar.cpp
   SegmentationExplorer.cpp
-  TaxonomyInspector.cpp
   )
 
 set (Espina_SOURCE_FILES
   ${LOCAL_SOURCES}
-  ${UNDO_SOURCES}
+  ${DOCKS_SOURCES}
   ${MOC_BUILT_SOURCES}
   ${UI_BUILT_SOURCES}
   ${RCC_BUILT_SOURCES}
@@ -109,4 +106,4 @@ install (
   )
 
 
-# add_subdirectory (plugins)
+add_subdirectory (plugins)

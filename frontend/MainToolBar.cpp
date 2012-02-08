@@ -19,18 +19,19 @@
 
 #include "MainToolBar.h"
 
-#include <common/model/EspINA.h>
+#include <common/model/EspinaModel.h>
 
 #include <QAction>
 #include <QComboBox>
 #include <QIcon>
 #include <QTreeView>
+#include <EspinaCore.h>
 
 //----------------------------------------------------------------------------
-MainToolBar::MainToolBar(QSharedPointer<EspINA> model, QWidget* parent)
+MainToolBar::MainToolBar(QSharedPointer<EspinaModel> model, QWidget* parent)
 : QToolBar(parent)
 {
-  setWindowTitle("EspINA");
+  setWindowTitle("EspinaModel");
   setObjectName("MainToolBar");
 
   toggleSegVisibility = addAction(//showIcon,
@@ -62,8 +63,8 @@ MainToolBar::MainToolBar(QSharedPointer<EspINA> model, QWidget* parent)
   addWidget(taxonomySelector);
 //   taxonomySelector->setRootModelIndex(m_espina);
 
-//   connect(m_taxonomyView, SIGNAL(entered(QModelIndex)),
-//           this, SLOT(setUserDefinedTaxonomy(QModelIndex)));
+  connect(taxonomyView, SIGNAL(entered(QModelIndex)),
+          this, SLOT(setActiveTaxonomy(QModelIndex)));
 //   m_taxonomySelector->setCurrentIndex(0);
 //   Internals->toolBar->addWidget(m_taxonomySelector);
 //   Internals->toolBar->addAction(Internals->actionRemoveSegmentation);
@@ -83,9 +84,25 @@ void MainToolBar::setShowSegmentations(bool visible)
 }
 
 //----------------------------------------------------------------------------
+void MainToolBar::setActiveTaxonomy(QModelIndex index)
+{
+  if (!index.isValid())
+    return;
+
+  IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
+  Q_ASSERT(item->type() == IModelItem::TAXONOMY);
+  TaxonomyNode *tax = dynamic_cast<TaxonomyNode *>(item);
+  Q_ASSERT(tax);
+  EspinaCore::instance()->setActiveTaxonomy(tax);
+}
+
+//----------------------------------------------------------------------------
 void MainToolBar::updateTaxonomy(QModelIndex left, QModelIndex right)
 {
   if (left == taxonomySelector->view()->rootIndex())
+  {
     taxonomySelector->setCurrentIndex(0);
+    setActiveTaxonomy(left.child(0,0));
+  }
   taxonomyView->expandAll();
 }

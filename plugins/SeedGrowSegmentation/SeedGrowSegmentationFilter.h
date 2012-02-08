@@ -21,10 +21,12 @@
 #define SEEDGROWSEGMENTATIONFILTER_H
 
 #include <processing/Filter.h>
+#include <processing/pqData.h>
 
 // #include "ui_SeedGrowSegmentationFilterSetup.h"
 // class IVOI;
 
+class Channel;
 class pqFilter;
 class SeedGrowSegmentationFilter
 : public Filter
@@ -40,16 +42,25 @@ public:
 //   SeedGrowSegmentationFilter(EspinaProduct *input, IVOI *voi, ITraceNode::Arguments &args);
   //! Constructor desde lista de argumentos
 //   SeedGrowSegmentationFilter(ITraceNode::Arguments &args);
+  explicit SeedGrowSegmentationFilter(pqData input, int seed[3], int threshold, int VOI[6]);
+
   explicit SeedGrowSegmentationFilter(Arguments args);
   virtual ~SeedGrowSegmentationFilter();
 
+  void run();
+
+  void setInput(pqData data);
   void setThreshold(int th);
-  int threshold(){return m_threshold;}
+  int threshold() const {return m_threshold;}
   void setSeed(int seed[3]);
-  void seed(int seed[3]) {memcpy(seed,m_seed,3*sizeof(int));}
-//   //! Implements IFilter Interface
-//   virtual int numProducts() {return m_numSeg;}
-//   virtual vtkProduct product(int i) {return vtkProduct(m_finalFilter->product(i).creator(),i);}
+  void seed(int seed[3]) const {memcpy(seed,m_seed,3*sizeof(int));}
+  void setVOI(int VOI[6]);
+  void voi(int VOI[6]) const {memcpy(VOI, m_VOI, 6*sizeof(int));}
+
+  /// Implements Filter Interface
+  pqData preview();
+  virtual int numProducts() const;
+  virtual pqData product(int i) const;
 //   virtual QList<vtkProduct *> products() {return m_finalFilter->products();}
 //   virtual QString getFilterArguments() const {return EspinaFilter::getFilterArguments();}
 //   virtual void removeProduct(vtkProduct* product);
@@ -64,14 +75,11 @@ signals:
   void modified();
 
 private:
-//   EspinaFilter *m_applyFilter;
-//   vtkFilter *m_grow;
-//   EspinaFilter *m_restoreFilter;
-//   IFilter *m_finalFilter;
+  pqData m_input;
   int m_seed[3];
   int m_threshold;
-  int m_numSeg;
-  pqFilter *grow;
+  int m_VOI[6];
+  pqFilter *grow, *extract;
 
 //   friend class SetupWidget;
 };

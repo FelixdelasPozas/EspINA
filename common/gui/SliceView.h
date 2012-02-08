@@ -23,17 +23,19 @@
 #ifndef SLICEVIEW_H
 #define SLICEVIEW_H
 
-#include <QAbstractItemView>
+#include <QWidget>
 
 #include <vtkSmartPointer.h>
 #include <../Views/vtkPVSliceView.h>
 #include "IPreferencePanel.h"
 #include <selection/SelectableView.h>
 
+class vtkSMRepresentationProxy;
 class pqDataRepresentation;
 
 //Forward declaration
 class Channel;
+class Segmentation;
 class pqOutputPort;
 class pqPipelineSource;
 class pqSliceView;
@@ -94,7 +96,7 @@ private:
 /// Slice View Widget
 /// Displays a unique slice of a channel or segmentation
 class SliceView
-: public QAbstractItemView
+: public QWidget
 , public SelectableView
 {
   Q_OBJECT
@@ -105,11 +107,6 @@ public:
 //   IPreferencePanel *preferences() {return m_preferences;}
   inline QString title() const;
   void setTitle(const QString &title);
-
-  /// QAbstractItemView Interface
-  virtual QModelIndex indexAt(const QPoint& point) const {return QModelIndex();}
-  virtual void scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint = EnsureVisible) {}
-  virtual QRect visualRect(const QModelIndex& index) const {return QRect();}
 
   void setGridSize(double size[3]);
   void setRanges(double ranges[6]/*nm*/);
@@ -131,10 +128,16 @@ public:
   void addChannelRepresentation(pqOutputPort *oport);
   void removeChannelRepresentation(Channel *channel);
 
+  void addSegmentationRepresentation(Segmentation *seg);
   void addSegmentationRepresentation(pqOutputPort *oport);
+  void removeSegmentationRepresentation(Segmentation *seg);
+  void removeSegmentationRepresentation(pqOutputPort *oport);
 
-//   void addPreview(pqOutputPort *preview);
-//   void previewVolume(int volume[6]);
+  virtual void addPreview(Filter* filter);
+  virtual void removePreview(Filter* filter);
+  virtual void previewExtent(int VOI[6]);
+  void addPreview(pqOutputPort *preview);
+  void removePreview(pqOutputPort *preview);
 
 public slots:
   // Espina has been connected to a new server
@@ -177,24 +180,11 @@ signals:
 
 protected:
   // AbstractItemView Interfacec
-  virtual QRegion visualRegionForSelection(const QItemSelection& selection) const {return QRegion();}
-  // TODO: Convert QRect to Region and use ISelectable::setSelection
-  virtual void setSelection(const QRect& rect, QItemSelectionModel::SelectionFlags command) {}
-  virtual bool isIndexHidden(const QModelIndex& index) const {return true;}
-  virtual int verticalOffset() const {return 0;}
-  virtual int horizontalOffset() const {return 0;}
-  virtual QModelIndex moveCursor(QAbstractItemView::CursorAction cursorAction, Qt::KeyboardModifiers modifiers){return QModelIndex();}
-//   // Updating model changes: This determines how the view should response to changes from the model
-//   virtual void rowsInserted(const QModelIndex& parent, int start, int end);
-//   virtual void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end);
-//   virtual void dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight);
-
   virtual bool eventFilter(QObject* caller, QEvent* e);
   void centerViewOnMousePosition();
 
   /// Converts point from Display coordinates to World coordinates
   SelectionHandler::VtkRegion display2vtk(const QPolygonF &region);
-
 
   void buildTitle();
   void buildControls();
@@ -223,6 +213,9 @@ private:
   double m_center[3];
 
   QMap<Channel *, pqDataRepresentation *> m_channels;
+  QMap<Segmentation *, vtkSMRepresentationProxy *> m_segmentations;
+  vtkSMRepresentationProxy *prevRep;
+  Filter *m_preview;
 };
 
 #endif // SLICEVIEW_H

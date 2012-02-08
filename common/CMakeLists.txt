@@ -16,7 +16,7 @@ qt4_add_resources(RCC_BUILT_SOURCES
 
 # Add extra library containing custom code for the client.
 qt4_wrap_cpp(MOC_BUILT_SOURCES
-  model/EspINA.h
+  model/EspinaModel.h
   model/ModelTest.h
   gui/ActionSelectorWidget.h
   gui/EspinaView.h
@@ -33,6 +33,7 @@ source_group("Generated" FILES
 )
 
 set(LOCAL_SOURCES
+  EspinaCore.cpp
   )
 
 set(CACHE_SOURCES
@@ -53,7 +54,7 @@ set(GUI_SOURCES
   )
 
 set(MODEL_SOURCES
-  model/EspINA.cpp
+  model/EspinaModel.cpp
   model/ModelTest.cpp
   model/Segmentation.cpp
   model/Channel.cpp
@@ -72,6 +73,12 @@ set(SELECTION_SOURCES
   selection/SelectionManager.cpp
   )
 
+set (UNDO_SOURCES
+  undo/AddChannel.cpp
+  undo/AddSample.cpp
+  undo/AddSegmentation.cpp
+  )
+
 set(Espina_SOURCE_FILES
   ${LOCAL_SOURCES}
   ${CACHE_SOURCES}
@@ -79,6 +86,7 @@ set(Espina_SOURCE_FILES
   ${MODEL_SOURCES}
   ${PROCESSING_SOURCES}
   ${SELECTION_SOURCES}
+  ${UNDO_SOURCES}
 #   ${PROXIES_SOURCES}
   ${MOC_BUILT_SOURCES}
   ${RCC_BUILT_SOURCES}

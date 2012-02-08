@@ -33,7 +33,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <QDebug>
 
-// EspINA
+// EspinaModel
 #include "SeedGrowSelector.h"
 #include "gui/DefaultVOIAction.h"
 #include "gui/SegmentAction.h"
@@ -61,6 +61,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define DEFAULT_THRESHOLD 30
 
 #include <QDebug>
+#include <QUndoStack>
+#include <model/EspinaModel.h>
+#include <undo/AddSegmentation.h>
+#include <EspinaCore.h>
 
 #define SGS "SeedGrowSegmentation"
 #define SGSF "SeedGrowSegmentation::SeedGrowSegmentationFilter"
@@ -72,8 +76,7 @@ SeedGrowSegmentation::SeedGrowSegmentation(QObject* parent)
 , m_threshold     (new ThresholdAction(this))
 , m_useDefaultVOI (new DefaultVOIAction(this))
 , m_segment       (new SegmentAction(this))
-, m_eventFilter   (new SeedGrowSelector(m_threshold))
-, m_lastFilter    (NULL)
+, m_selector   (new SeedGrowSelector(m_threshold))
 // , m_preferences(NULL)
 {
 //   m_factoryName = SGS;
@@ -87,7 +90,7 @@ SeedGrowSegmentation::SeedGrowSegmentation(QObject* parent)
 
   connect(m_segment, SIGNAL(triggered(QAction*)),
 	  this, SLOT(waitSeedSelection(QAction*)));
-  connect(m_eventFilter.data(), SIGNAL(selectionAborted()),
+  connect(m_selector.data(), SIGNAL(selectionAborted()),
 	  this, SLOT(onSelectionAborted()));
   connect(m_segment, SIGNAL(actionCanceled()),
 	  this, SLOT(abortSelection()));
@@ -118,13 +121,15 @@ SeedGrowSegmentation::~SeedGrowSegmentation()
 void SeedGrowSegmentation::waitSeedSelection(QAction* action)
 {
   Q_ASSERT(m_selectors.contains(action));
-  m_eventFilter->setPixelSelector(m_selectors[action]);
-  SelectionManager::instance()->setSelectionHandler(m_eventFilter.data());
+  m_selector->setPixelSelector(m_selectors[action]);
+  m_selector->previewOn();
+  SelectionManager::instance()->setSelectionHandler(m_selector.data());
 }
 
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentation::abortSelection()
 {
+  m_selector->previewOff();
   SelectionManager::instance()->setSelectionHandler(NULL);
 }
 
@@ -164,6 +169,38 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection se
     args["Channel"]= input.id();
     args["Seed"] = QString("%1,%2,%3").arg(seed.x()).arg(seed.y()).arg(seed.z());
     args["Threshold"] = QString::number(m_threshold->threshold());
+
+    int growSeed[3] = {seed.x(), seed.y(), seed.z()};
+
+    int VOI[6];
+    if (m_useDefaultVOI->useDefaultVOI())
+    {
+      const int W = 60;
+      VOI[0] = seed.x() - W;
+      VOI[1] = seed.x() + W;
+      VOI[2] = seed.y() - W;
+      VOI[3] = seed.y() + W;
+      VOI[4] = seed.z() - W;
+      VOI[5] = seed.z() + W;
+    } else
+    {
+      Q_ASSERT(false);
+    }
+
+    QSharedPointer<SeedGrowSegmentationFilter> filter =
+      QSharedPointer<SeedGrowSegmentationFilter>(
+	new SeedGrowSegmentationFilter(input,
+				     growSeed,
+				     m_threshold->threshold(),
+				     VOI)
+		     );
+
+
+    TaxonomyNode *tax = EspinaCore::instance()->activeTaxonomy();
+    Q_ASSERT(tax);
+    qDebug() << tax->name();
+    EspinaCore::instance()->undoStack()->push(new AddSegmentation(filter, 0));
+
   // args.insert("VOI",SelectionManager::instance()->voi()->save());
   //createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);
 
@@ -171,7 +208,7 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection se
 //   if (!voi && m_useDefaultVOI->isChecked())
 //   {
 //     voi = m_defaultVOI;
-//     Sample *input = EspINA::instance()->activeSample();
+//     Sample *input = EspinaModel::instance()->activeSample();
 //     voi->setSource(input);
 //     double spacing[3];
 //     input->spacing(spacing);
@@ -187,8 +224,7 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection se
 //     vtkSMPropertyHelper(voi->getProxy(),"Bounds").Get(defVOI,6);
 //   }
 
-    m_lastFilter = new SeedGrowSegmentationFilter(args);
-    m_eventFilter->filter = m_lastFilter;
+//     m_lastFilter = new SeedGrowSegmentationFilter(args);
 //   if (!sgs_sgsf)
 //     qWarning() << "SeedGrowSegmentation: Failed to create new segmentation";
   }
@@ -199,8 +235,8 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection se
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentation::modifyLastFilter(int value)
 {
-  if (m_lastFilter)
-    m_lastFilter->setThreshold(value);
+//   if (m_lastFilter)
+//     m_lastFilter->setThreshold(value);
 }
 
 

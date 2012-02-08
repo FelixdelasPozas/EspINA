@@ -20,14 +20,15 @@
 #include "EspinaWindow.h"
 
 // Data Model
-#include "common/model/EspINA.h"
+#include "EspinaCore.h"
 #include "common/model/ModelTest.h"
+#include "common/model/EspinaModel.h"
 
 #include <gui/EspinaView.h>
 #include <model/Sample.h>
 #include "common/gui/ViewManager.h"
 #include "SegmentationExplorer.h"
-#include "TaxonomyInspector.h"
+#include "docks/TaxonomyInspector.h"
 #include "MainToolBar.h"
 #include <cache/CachedObjectBuilder.h>
 #include <model/Channel.h>
@@ -62,16 +63,15 @@
 #include <processing/pqFilter.h>
 #include <processing/pqData.h>
 
-
 //------------------------------------------------------------------------
 EspinaWindow::EspinaWindow()
 : m_view(NULL)
-, m_undoStack(new QUndoStack(this))
+, m_model(EspinaCore::instance()->model())
+, m_undoStack(EspinaCore::instance()->undoStack())
 , m_currentActivity("NONE")
-, m_espina(EspINA::instance())
 {
 #ifdef DEBUG
-  m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_espina.data()));
+  m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model.data()));
 #endif
 
   QMenu *fileMenu = new QMenu("File");
@@ -122,21 +122,21 @@ EspinaWindow::EspinaWindow()
 // 		    this, SLOT( loadSource(pqPipelineSource *)));
 
 
-  m_mainToolBar = new MainToolBar(m_espina);
+  m_mainToolBar = new MainToolBar(m_model);
   m_mainToolBar->setMovable(false);
   addToolBar(m_mainToolBar);
 
-  SegmentationExplorer *segExplorer = new SegmentationExplorer(m_espina, this);
+  SegmentationExplorer *segExplorer = new SegmentationExplorer(m_model, this);
   addDockWidget(Qt::LeftDockWidgetArea,segExplorer);
 
-  TaxonomyInspector *taxInspector = new TaxonomyInspector(m_espina, this);
+  TaxonomyInspector *taxInspector = new TaxonomyInspector(m_model, this);
   addDockWidget(Qt::LeftDockWidgetArea,taxInspector);
 
 
   loadParaviewBehavior();
 
   setActivity("segmentate");
-//   QSettings settings("CeSViMa", "EspINA");
+//   QSettings settings("CeSViMa", "EspinaModel");
 //   
 //   restoreGeometry(settings.value("geometry").toByteArray());
 //   restoreState(settings.value("state").toByteArray(),0);
@@ -186,7 +186,7 @@ void EspinaWindow::closeEvent(QCloseEvent* event)
 {
   if (m_view)
     m_view->saveLayout();
-//   QSettings settings("CeSViMa", "EspINA");
+//   QSettings settings("CeSViMa", "EspinaModel");
 
 //   settings.setValue(m_currentActivity+"/geometry", saveGeometry());
 //   settings.setValue(m_currentActivity+"/state", saveState());
@@ -225,7 +225,7 @@ void EspinaWindow::loadParaviewBehavior()
 //------------------------------------------------------------------------
 void EspinaWindow::onConnect()
 {
-  m_espina->clear();
+  m_model->clear();
   m_undoStack->clear();
 //   pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
 //   pqServer * server = pqActiveObjects::instance().activeServer();
@@ -267,7 +267,7 @@ void EspinaWindow::setActivity(QString activity)
   if (activity == m_currentActivity)
     return;
   // Changing the central widget desrtoys the previous one
-//   QSettings settings("CeSViMa", "EspINA");
+//   QSettings settings("CeSViMa", "EspinaModel");
 
 //   settings.setValue(m_currentActivity+"/geometry", saveGeometry());
 //   settings.setValue(m_currentActivity+"/state", saveState());
@@ -290,7 +290,7 @@ void EspinaWindow::setActivity(QString activity)
     connect(m_view, SIGNAL(statusMsg(QString)),
 	    this, SLOT(updateStatus(QString)));
     m_view->createViewMenu(m_viewMenu);
-    m_view->setModel(m_espina.data());
+    m_view->setModel(m_model.data());
   }
 
   if (m_view)
@@ -338,15 +338,15 @@ void EspinaWindow::newAnalysis()
   if (fileDialog.exec() == QDialog::Accepted)
   {
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    m_espina->clear();
+    m_model->clear();
 
     Taxonomy *defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
-    m_espina->setTaxonomy(defaultTaxonomy);
+    m_model->setTaxonomy(defaultTaxonomy);
 //     defaultTaxonomy->print();
 
     if (fileDialog.getSelectedFiles().size() != 1)
     {
-      QMessageBox::warning(this, tr("EspINA"),
+      QMessageBox::warning(this, tr("EspinaModel"),
 			   tr("Loading multiple files at a time is not supported"));
       return; //Multi-channels is not supported
     }
@@ -360,8 +360,8 @@ void EspinaWindow::newAnalysis()
     m_undoStack->beginMacro("New Analysis");
     QSharedPointer<Sample> sample = QSharedPointer<Sample>(new Sample(SampleName));
 //     Sample *sample = new Sample(SampleName);
-    m_undoStack->push(new AddSample(m_espina, sample));
-    m_undoStack->push(new AddChannel(m_espina, sample, channelFile));
+    m_undoStack->push(new AddSample(m_model, sample));
+    m_undoStack->push(new AddChannel(m_model, sample, channelFile));
 
     m_undoStack->endMacro();
     QApplication::restoreOverrideCursor();
@@ -371,10 +371,10 @@ void EspinaWindow::newAnalysis()
 //------------------------------------------------------------------------
 void EspinaWindow::openAnalysis()
 {
-  m_espina->clear();
+  m_model->clear();
   m_undoStack->clear();
 //   pqServer* server = pqActiveObjects::instance().activeServer();
-//   QString filters(tr("EspINA Segmentation (*.seg)"));
+//   QString filters(tr("EspinaModel Segmentation (*.seg)"));
 // //   filters += "All files (*)";
 //   pqFileDialog fileDialog(server, 
 //     this,

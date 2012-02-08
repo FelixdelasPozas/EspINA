@@ -28,10 +28,12 @@
 
 SeedGrowSelector::SeedGrowSelector(ThresholdAction* th, SelectionHandler* succesor)
 : SelectionHandler(succesor)
-, filter(NULL)
 , m_threshold(th)
+, m_preview(NULL)
 {
   Q_ASSERT(m_threshold);
+  m_filters.clear();
+  m_filters << SelectionHandler::EspINA_Channel;
 }
 
 bool SeedGrowSelector::filterEvent(QEvent* e, SelectableView* view)
@@ -43,6 +45,10 @@ bool SeedGrowSelector::filterEvent(QEvent* e, SelectableView* view)
     {
       int numSteps = we->delta()/8/15;//Refer to QWheelEvent doc.
       m_threshold->setThreshold(m_threshold->threshold() + numSteps);//Using stepBy highlight the input text
+      if (m_preview)
+      {
+	m_preview->setThreshold(m_threshold->threshold());
+      }
       view->view()->forceRender();
 
       return true;
@@ -50,19 +56,55 @@ bool SeedGrowSelector::filterEvent(QEvent* e, SelectableView* view)
   }else if(e->type() == QEvent::MouseMove)
   {
     QMouseEvent *me = dynamic_cast<QMouseEvent*>(e);
-    if (me->modifiers() == Qt::CTRL)
+    if (me->modifiers() == Qt::SHIFT)
     {
-      int x, y;
-      view->eventPosition(x,y);
-      double pick[3];
-      view->pickChannel(x,y,pick);
-      int seed[3] = {pick[0], pick[1], pick[2]}; 
-      if (filter)
+      ViewRegions regions;
+      QPolygon singlePixel;
+
+      int xPos, yPos;
+      view->eventPosition(xPos, yPos);
+      singlePixel << QPoint(xPos,yPos);
+      regions << singlePixel;
+
+      MultiSelection sel = view->select(m_filters, regions);
+      if (sel.size() == 0)
+	return false;
+
+      Q_ASSERT(sel.size() == 1);// Only one element selected
+      SelectionHandler::Selelection element = sel.first();
+
+      pqData input = element.second;
+
+      Q_ASSERT(element.first.size() == 1); // with one pixel
+      QVector3D pick = element.first.first();
+      int seed[3] = {pick.x(), pick.y(), pick.z()};
+      if (NULL == m_preview)
       {
-	filter->setSeed(seed);
+// 	  const int W = 40;
+// 	  int VOI[6] = {seed[0] - W, seed[0] + W,
+// 	  seed[1] - W, seed[1] + W,
+// 	  seed[2] - W, seed[2] + W};
+
+        int VOI[6];
+	view->previewExtent(VOI);
+	m_preview = new SeedGrowSegmentationFilter(input, seed, m_threshold->threshold(), VOI);
+	view->addPreview(m_preview);
+      }
+      else
+      {
+	m_preview->setInput(input);
+	m_preview->setSeed(seed);
+      }
+      view->view()->forceRender();
+    }else
+    {
+      if (m_preview)
+      {
+	view->removePreview(m_preview);
+	delete m_preview;
+	m_preview = NULL;
 	view->view()->forceRender();
       }
-      
     }
   }else if(e->type() == QEvent::MouseButtonPress)
   {
@@ -81,4 +123,14 @@ QCursor SeedGrowSelector::cursor()
     return m_succesor->cursor();
   else
     return m_cursor;
+}
+
+void SeedGrowSelector::previewOn()
+{
+  
+}
+
+void SeedGrowSelector::previewOff()
+{
+
 }

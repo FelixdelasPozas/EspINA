@@ -17,22 +17,36 @@
 */
 
 
-#ifndef FILTER_H
-#define FILTER_H
+#ifndef ESPINACORE_H
+#define ESPINACORE_H
 
-#include <QObject>
-#include <QMap>
-#include "pqData.h"
+#include "model/Taxonomy.h"
+#include "model/EspinaModel.h"
 
-class Filter : public QObject
+#include <QSharedPointer>
+#include <QUndoStack>
+
+
+class EspinaCore
 {
 public:
-  virtual int numProducts() const = 0;
-  virtual pqData product(int index) const = 0;
+  explicit EspinaCore();
+  virtual ~EspinaCore(){}
 
-  typedef QMap<QString, QString> Arguments;
-  virtual pqData preview() = 0;
+  static EspinaCore *instance();
+
+  QSharedPointer<EspinaModel> model() {return m_model;}
+  QSharedPointer<QUndoStack>  undoStack() {return m_undoStack;}
+
+  void setActiveTaxonomy(TaxonomyNode *tax);
+  TaxonomyNode *activeTaxonomy(){return m_activeTaxonomy;}
+
+private:
+  static EspinaCore *m_singleton;
+
+  TaxonomyNode               *m_activeTaxonomy;
+  QSharedPointer<EspinaModel> m_model;
+  QSharedPointer<QUndoStack>  m_undoStack;
 };
 
-
-#endif // FILTER_H
+#endif // ESPINACORE_H

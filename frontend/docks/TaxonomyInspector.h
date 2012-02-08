@@ -27,7 +27,7 @@
 #include <gui/EspinaDockWidget.h>
 
 
-class EspINA;
+class EspinaModel;
 
 class TaxonomyInspector : public EspinaDockWidget
 {
@@ -35,7 +35,7 @@ class TaxonomyInspector : public EspinaDockWidget
 
   class GUI;
 public:
-  explicit TaxonomyInspector(QSharedPointer<EspINA> model, QWidget *parent = 0);
+  explicit TaxonomyInspector(QSharedPointer<EspinaModel> model, QWidget *parent = 0);
   virtual ~TaxonomyInspector();
 
 protected slots:
@@ -50,7 +50,7 @@ protected slots:
 
 protected:
   GUI *m_gui;
-  QSharedPointer<EspINA> m_baseModel;
+  QSharedPointer<EspinaModel> m_baseModel;
 };
 
 #endif // TAXONOMYINSPECTOR_H

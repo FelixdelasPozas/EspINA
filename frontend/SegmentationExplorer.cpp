@@ -19,7 +19,7 @@
 
 #include "SegmentationExplorer.h"
 
-#include "common/model/EspINA.h"
+#include "common/model/EspinaModel.h"
 
 #include <iostream>
 #include <cstdio>
@@ -39,7 +39,7 @@ public:
 };
 
 
-SegmentationExplorer::SegmentationExplorer(QSharedPointer< EspINA> model, QWidget* parent)
+SegmentationExplorer::SegmentationExplorer(QSharedPointer< EspinaModel> model, QWidget* parent)
 : EspinaDockWidget(parent)
 , m_baseModel(model)
 {

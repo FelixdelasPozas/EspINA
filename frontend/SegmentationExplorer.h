@@ -27,7 +27,7 @@
 #include <common/gui/EspinaDockWidget.h>
 #include <ui_SegmentationExplorer.h>
 
-class EspINA;
+class EspinaModel;
 
 class SegmentationExplorer : public EspinaDockWidget
 {
@@ -36,7 +36,7 @@ class SegmentationExplorer : public EspinaDockWidget
   class GUI;
   class State;
 public:
-  explicit SegmentationExplorer(QSharedPointer<EspINA> model, QWidget *parent = 0);
+  explicit SegmentationExplorer(QSharedPointer<EspinaModel> model, QWidget *parent = 0);
   virtual ~SegmentationExplorer();
 
 protected slots:
@@ -44,7 +44,7 @@ protected slots:
 
 protected:
   GUI *m_gui;
-  QSharedPointer<EspINA> m_baseModel;
+  QSharedPointer<EspinaModel> m_baseModel;
   State *m_state;
 };
 

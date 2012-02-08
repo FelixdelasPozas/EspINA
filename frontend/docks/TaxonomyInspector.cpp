@@ -20,7 +20,7 @@
 #include "TaxonomyInspector.h"
 #include <ui_TaxonomyInspector.h>
 
-#include "common/model/EspINA.h"
+#include "common/model/EspinaModel.h"
 #include "common/model/Taxonomy.h"
 
 #include <QColorDialog>
@@ -36,7 +36,7 @@ public:
 };
 
 //------------------------------------------------------------------------
-TaxonomyInspector::TaxonomyInspector(QSharedPointer<EspINA> model, QWidget* parent)
+TaxonomyInspector::TaxonomyInspector(QSharedPointer<EspinaModel> model, QWidget* parent)
 : EspinaDockWidget(parent)
 , m_baseModel(model)
 {

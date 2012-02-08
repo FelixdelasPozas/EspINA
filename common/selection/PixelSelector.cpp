@@ -89,31 +89,35 @@ void BestPixelSelector::onMouseDown(const QPoint& pos, SelectableView* view)
   Q_ASSERT(rw);
   vtkImageData *img = rw->captureImage(1);
 
+  int xPos, yPos;
+  view->eventPosition(xPos, yPos);
+
   int extent[6];
   img->GetExtent(extent);
+  qDebug() << extent[0] << extent[1] << extent[2] << extent[3] << extent[4] << extent[5];
 
-  int leftPixel = pos.x() - m_window->width()/2;
+  int leftPixel = xPos - m_window->width()/2;
   if (leftPixel < extent[0])
     leftPixel = extent[0];
 
-  int rightPixel = pos.x() + m_window->width()/2;
+  int rightPixel = xPos + m_window->width()/2;
   if (rightPixel > extent[1])
     rightPixel = extent[1];
 
-  int topPixel = pos.y() - m_window->height()/2;
+  int topPixel = yPos - m_window->height()/2;
   if (topPixel < extent[2])
     rightPixel = extent[2];
 
-  int bottomPixel = pos.y() + m_window->height()/2;
+  int bottomPixel = yPos + m_window->height()/2;
   if (bottomPixel > extent[3])
     rightPixel = extent[3];
 
-  QPoint bestPixel = pos;
+  QPoint bestPixel = QPoint(xPos, yPos);
   unsigned char * pixel;
   unsigned char pixelValue;
   unsigned char bestValue;
 
-  pixel = ((unsigned char *)img->GetScalarPointer(pos.x(),pos.y(),0));
+  pixel = ((unsigned char *)img->GetScalarPointer(xPos, yPos,0));
   bestValue = abs(pixel[0]-m_bestPixel);
 
   //qDebug() << "EspINA::BestPixelSelector: Scalar componets:" <<img->GetNumberOfScalarComponents();
@@ -129,7 +133,7 @@ void BestPixelSelector::onMouseDown(const QPoint& pos, SelectableView* view)
 	bestValue = pixelValue;
 	bestPixel = QPoint(x,y);
       } else if (pixelValue == bestValue &&
-	quadDist(pos.x(),pos.y(),x,y) < quadDist(pos.x(),pos.y(),bestPixel.x(),bestPixel.y()))
+	quadDist(xPos,yPos,x,y) < quadDist(xPos,yPos,bestPixel.x(),bestPixel.y()))
       {
 	bestValue = pixelValue;
 	bestPixel = QPoint(x,y);
@@ -147,6 +151,8 @@ void BestPixelSelector::onMouseDown(const QPoint& pos, SelectableView* view)
   QPolygon singlePixel;
   singlePixel << bestPixel;
   regions << singlePixel;
+  
+  MultiSelection msel = view->select(m_filters, regions);
 
-//   view->setSelection(m_filters, regions);
+  emit selectionChanged(msel);
 }

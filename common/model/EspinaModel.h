@@ -18,13 +18,13 @@
 
 
 //----------------------------------------------------------------------------
-// File:    EspINA.h
+// File:    EspinaModel.h
 // Purpose: Decide how to deal with different types of resources
 //          Load/Save Files
 //          Generate required models depending on the internal state
 //----------------------------------------------------------------------------
-#ifndef ESPINA_H
-#define ESPINA_H
+#ifndef ESPinaModelMODEL_H
+#define ESPinaModelMODEL_H
 
 #include <QAbstractItemModel>
 
@@ -51,13 +51,12 @@ class TaxonomyNode;
 // 
 /// Espina Interactive Neuron Analyzer
 /// The logic model for the application
-class EspINA : public QAbstractItemModel
+class EspinaModel : public QAbstractItemModel
 {
     Q_OBJECT
 public:
-  /// Singleton Interface
-  static EspINA *instance();
-  virtual ~EspINA();
+  explicit EspinaModel(QObject* parent = 0);
+  virtual ~EspinaModel();
 
   void clear();
 
@@ -165,12 +164,7 @@ public:
 // protected slots:
 //   void internalSegmentationUpdate(Segmentation *seg);
 
-protected:
-  explicit EspINA(QObject* parent = 0);
-
 private:
-  static EspINA        *m_singleton;
-  
   Taxonomy             *m_tax;
   QList<Sample *>       m_samples; //TODO: use DB instead
   QList<Channel *>      m_channels; //TODO: use DB instead
@@ -212,4 +206,4 @@ private:
 //     int m_nextValidSegId;
 };
 
-#endif // ESPINA_H
+#endif // ESPinaModelMODEL_H

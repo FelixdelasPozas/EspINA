@@ -19,10 +19,10 @@
 
 #include "AddSample.h"
 
-#include <common/model/EspINA.h>
-#include <common/model/Sample.h>
+#include <model/EspinaModel.h>
+#include <model/Sample.h>
 
-AddSample::AddSample(QSharedPointer<EspINA> model, QSharedPointer<Sample> sample)
+AddSample::AddSample(QSharedPointer<EspinaModel> model, QSharedPointer<Sample> sample)
 : m_model(model)
 , m_sample(sample)
 {}

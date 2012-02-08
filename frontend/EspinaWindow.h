@@ -17,19 +17,19 @@
 */
 
 
-#ifndef ESPINAWINDOW_H
-#define ESPINAWINDOW_H
+#ifndef ESPinaModelWINDOW_H
+#define ESPinaModelWINDOW_H
 
 #include <QMainWindow>
 #include <gui/DynamicWidget.h>
 
-class QUndoStack;
-class QFrame;
+class EspinaModel;
 class EspinaView;
 class MainToolBar;
-class EspINA;
-class pqView;
 class pqPipelineSource;
+class pqView;
+class QFrame;
+class QUndoStack;
 
 #define DEBUG
 
@@ -71,16 +71,16 @@ protected:
   void loadParaviewBehavior();
 
 private:
-  QSharedPointer<EspINA>    m_espina;
-  MainToolBar              *m_mainToolBar;
-  QMenu                    *m_viewMenu;
+  QSharedPointer<EspinaModel> m_model;
+  MainToolBar                *m_mainToolBar;
+  QMenu                      *m_viewMenu;
 
-  QUndoStack               *m_undoStack;
-  QString                   m_currentActivity;
-  EspinaView               *m_view;
+  QSharedPointer<QUndoStack>  m_undoStack;
+  QString                     m_currentActivity;
+  EspinaView                 *m_view;
 #ifdef DEBUG
-  QSharedPointer<ModelTest> m_modelTester;
+  QSharedPointer<ModelTest>   m_modelTester;
 #endif
 };
 
-#endif // ESPINAWINDOW_H
+#endif // ESPinaModelWINDOW_H

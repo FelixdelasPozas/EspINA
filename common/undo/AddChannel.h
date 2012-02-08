@@ -17,22 +17,35 @@
 */
 
 
-#ifndef FILTER_H
-#define FILTER_H
+#ifndef ADDCHANNEL_H
+#define ADDCHANNEL_H
 
-#include <QObject>
-#include <QMap>
-#include "pqData.h"
+#include <QUndoStack>
+#include <QSharedPointer>
 
-class Filter : public QObject
+class pqFilter;
+class Channel;
+class EspinaModel;
+class Sample;
+
+class AddChannel
+: public QUndoCommand
 {
 public:
-  virtual int numProducts() const = 0;
-  virtual pqData product(int index) const = 0;
+  explicit AddChannel(QSharedPointer<EspinaModel>  model,
+		      QSharedPointer<Sample>  sample,
+		      const QString           channelFile,
+		      QUndoCommand *parent=0);
 
-  typedef QMap<QString, QString> Arguments;
-  virtual pqData preview() = 0;
+  virtual void redo();
+  virtual void undo();
+
+private:
+  QSharedPointer<EspinaModel>  m_model;
+  QSharedPointer<Sample>  m_sample;
+  Channel                *m_channel;
+  pqFilter               *m_reader;
+  const QString           m_file;
 };
 
-
-#endif // FILTER_H
+#endif // ADDCHANNEL_H

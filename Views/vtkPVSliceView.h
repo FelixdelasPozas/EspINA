@@ -60,6 +60,8 @@ public:
     void RemoveActor(vtkProp3D* actor);
     void AddChannel ( vtkProp3D *actor );
     void AddSegmentation ( SegActor *actor );
+    virtual void AddRepresentationInternal(vtkDataRepresentation* rep);
+    virtual void RemoveRepresentationInternal(vtkDataRepresentation* rep);
 
     vtkRenderer *GetOverviewRenderer();
 
@@ -156,6 +158,8 @@ private:
     double           VCrossLineColor[3];
     double           SagittalCrossLineColor[3];
     double           CoronalCrossLineColor[3];
+    QList<vtkDataRepresentation *> m_reps;
+    QList<vtkProp3D *> m_actors;
 //ETX
 };
 #endif // VTKPVSLICEVIEW_H

@@ -1,4 +1,4 @@
-#include "vtkRemoteFileReader.h"
+#include "vtkSegReader.h"
 
 // #include "vtkFileContent.h"
 
@@ -12,10 +12,10 @@
 #include <qstring.h>
 #include "FilePack.h"
 
-vtkStandardNewMacro(vtkRemoteFileReader);
+vtkStandardNewMacro(vtkSegReader);
 
 //---------------------------------------------------------------------------
-vtkRemoteFileReader::vtkRemoteFileReader()
+vtkSegReader::vtkSegReader()
 {
   this->FileName = NULL;
   this->Trace = NULL;
@@ -25,7 +25,7 @@ vtkRemoteFileReader::vtkRemoteFileReader()
 }
 
 //---------------------------------------------------------------------------
-vtkRemoteFileReader::~vtkRemoteFileReader()
+vtkSegReader::~vtkSegReader()
 {
   //delete [] Taxonomy;
   //delete [] Trace;
@@ -35,7 +35,7 @@ vtkRemoteFileReader::~vtkRemoteFileReader()
 
 /*
 //---------------------------------------------------------------------------
-int vtkRemoteFileReader::ProcessRequest(vtkInformation* request,
+int vtkSegReader::ProcessRequest(vtkInformation* request,
                                    vtkInformationVector** inputVector,
                                    vtkInformationVector* outputVector)
 {
@@ -64,7 +64,7 @@ int vtkRemoteFileReader::ProcessRequest(vtkInformation* request,
 }
 
 //----------------------------------------------------------------------------
-int vtkRemoteFileReader::RequestInformation(vtkInformation* request,
+int vtkSegReader::RequestInformation(vtkInformation* request,
                                        vtkInformationVector** inputVector,
                                        vtkInformationVector* outputVector)
 {
@@ -75,7 +75,7 @@ int vtkRemoteFileReader::RequestInformation(vtkInformation* request,
 */
 #include "qdebug.h"
 //---------------------------------------------------------------------------
-int vtkRemoteFileReader::RequestData(
+int vtkSegReader::RequestData(
   vtkInformation *vtkNotUsed(request),
   vtkInformationVector **vtkNotUsed(inputVector),
   vtkInformationVector *outputVector)
@@ -131,7 +131,7 @@ int vtkRemoteFileReader::RequestData(
 }
 /*
 //----------------------------------------------------------------------------
-int vtkRemoteFileReader::RequestDataObject(vtkInformation* request,
+int vtkSegReader::RequestDataObject(vtkInformation* request,
                                       vtkInformationVector** inputVector,
                                       vtkInformationVector* outputVector)
 {
@@ -159,7 +159,7 @@ int vtkRemoteFileReader::RequestDataObject(vtkInformation* request,
 }
 
 //----------------------------------------------------------------------------
-int vtkRemoteFileReader::FillOutputPortInformation(int , vtkInformation* info)
+int vtkSegReader::FillOutputPortInformation(int , vtkInformation* info)
 {
   info->Set(vtkDataObject::DATA_TYPE_NAME(), "vtkFileContent");
   return 1;
@@ -167,7 +167,7 @@ int vtkRemoteFileReader::FillOutputPortInformation(int , vtkInformation* info)
 */
 
 //---------------------------------------------------------------------------
-void vtkRemoteFileReader::PrintSelf(ostream& os, vtkIndent indent)
+void vtkSegReader::PrintSelf(ostream& os, vtkIndent indent)
 {
   //this->Superclass::PrintSelf(os,indent);
   os << this->Trace << this->Taxonomy;
@@ -188,46 +188,46 @@ void vtkRemoteFileReader::PrintSelf(ostream& os, vtkIndent indent)
 #include <fstream>
 
 
-vtkStandardNewMacro(vtkRemoteFileReader);
-vtkCxxRevisionMacro(vtkRemoteFileReader, "$Revision: 1.1 $");
+vtkStandardNewMacro(vtkSegReader);
+vtkCxxRevisionMacro(vtkSegReader, "$Revision: 1.1 $");
 //---------------------------------------------------------------------------
-vtkRemoteFileReader::vtkRemoteFileReader()
+vtkSegReader::vtkSegReader()
 {
   this->SetNumberOfInputPorts(0);
   this->SetNumberOfOutputPorts(1);
   //this->FileName = NULL;
 }
 //---------------------------------------------------------------------------
-vtkRemoteFileReader::~vtkRemoteFileReader()
+vtkSegReader::~vtkSegReader()
 {
   this->SetFilePath(0);
 }
 //---------------------------------------------------------------------------
-void vtkRemoteFileReader::PrintSelf(ostream& os, vtkIndent indent)
+void vtkSegReader::PrintSelf(ostream& os, vtkIndent indent)
 {
   vtkAlgorithm::PrintSelf(os, indent);
 }
 
 //---------------------------------------------------------------------------
-vtkFileContent* vtkRemoteFileReader::GetOutput()
+vtkFileContent* vtkSegReader::GetOutput()
 {
   return this->GetOutput(0);
 }
 
 //---------------------------------------------------------------------------
-vtkFileContent* vtkRemoteFileReader::GetOutput(int port)
+vtkFileContent* vtkSegReader::GetOutput(int port)
 {
   //return (vtkStdString*)(this->GetOutputDataObject(port));
   return vtkFileContent::SafeDownCast(this->GetOutputDataObject(port));
 }
 
 //---------------------------------------------------------------------------
-void vtkRemoteFileReader::SetOutput(vtkDataObject* d)
+void vtkSegReader::SetOutput(vtkDataObject* d)
 {
   this->GetExecutive()->SetOutputData(0, d);
 }
 
-int vtkRemoteFileReader::ProcessRequest(vtkInformation* request,
+int vtkSegReader::ProcessRequest(vtkInformation* request,
                                    vtkInformationVector** inputVector,
                                    vtkInformationVector* outputVector)
 {
@@ -256,14 +256,14 @@ int vtkRemoteFileReader::ProcessRequest(vtkInformation* request,
 }
 
 //----------------------------------------------------------------------------
-int vtkRemoteFileReader::FillOutputPortInformation(int , vtkInformation* info)
+int vtkSegReader::FillOutputPortInformation(int , vtkInformation* info)
 {
   info->Set(vtkDataObject::DATA_TYPE_NAME(), "vtkFileContent");
   return 1;
 }
 
 //----------------------------------------------------------------------------
-int vtkRemoteFileReader::RequestDataObject(vtkInformation* request,
+int vtkSegReader::RequestDataObject(vtkInformation* request,
                                       vtkInformationVector** inputVector,
                                       vtkInformationVector* outputVector)
 {
@@ -290,7 +290,7 @@ int vtkRemoteFileReader::RequestDataObject(vtkInformation* request,
 //----------------------------------------------------------------------------
 // This is the superclasses style of Execute method.  Convert it into
 // an imaging style Execute method.
-int vtkRemoteFileReader::RequestData(vtkInformation* request,
+int vtkSegReader::RequestData(vtkInformation* request,
 				vtkInformationVector** inputVector, 
 				vtkInformationVector* outputVector)
 {
@@ -313,7 +313,7 @@ int vtkRemoteFileReader::RequestData(vtkInformation* request,
 }
 
 //----------------------------------------------------------------------------
-int vtkRemoteFileReader::RequestInformation(vtkInformation* request,
+int vtkSegReader::RequestInformation(vtkInformation* request,
                                        vtkInformationVector** inputVector,
                                        vtkInformationVector* outputVector)
 {
@@ -322,7 +322,7 @@ int vtkRemoteFileReader::RequestInformation(vtkInformation* request,
 }
 
 //----------------------------------------------------------------------------
-int vtkRemoteFileReader::RequestUpdateExtent(vtkInformation* request,
+int vtkSegReader::RequestUpdateExtent(vtkInformation* request,
 					vtkInformationVector** inputVector, 
 					vtkInformationVector* outputVector)
 {
