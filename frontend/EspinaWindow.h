@@ -59,6 +59,8 @@ public slots:
   void openAnalysis();
   /// Add new data from file to current analysis
   void addToAnalysis();
+  /// Save Current Analysis
+  void saveAnalysis();
 
 protected slots:
   void updateStatus(QString msg);

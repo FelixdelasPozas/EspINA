@@ -1,5 +1,5 @@
-find_package(Quazip REQUIRED)
-include(${QUAZIP_USE_FILE})
+# find_package(Quazip REQUIRED)
+# include(${QUAZIP_USE_FILE})
 
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
@@ -93,7 +93,6 @@ set(Espina_SOURCE_FILES
   )
 
 set(EXTERNAL_LIBS
-  ${QUAZIP_LIBRARIES}
   QtTest
 #   ${Boost_LIBRARIES}
 )

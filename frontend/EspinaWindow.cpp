@@ -62,6 +62,9 @@
 #include <pqLoadDataReaction.h>
 #include <processing/pqFilter.h>
 #include <processing/pqData.h>
+#include <pqObjectBuilder.h>
+#include <vtkSMPropertyHelper.h>
+#include <vtkSMProxy.h>
 
 //------------------------------------------------------------------------
 EspinaWindow::EspinaWindow()
@@ -84,9 +87,13 @@ EspinaWindow::EspinaWindow()
 	  this,SLOT(openAnalysis()));
   QAction *addToAnalysis = new QAction(tr("Add"),this);
   addToAnalysis->setEnabled(false);
+  QAction *saveAnalysis = new QAction(tr("Save"),this);
+  connect(saveAnalysis,SIGNAL(triggered(bool)),
+	  this,SLOT(saveAnalysis()));
   fileMenu->addAction(newAnalysis);
   fileMenu->addAction(openAnalysis);
   fileMenu->addAction(addToAnalysis);
+  fileMenu->addAction(saveAnalysis);
   menuBar()->addMenu(fileMenu);
 
   QMenu *editMenu = new QMenu("Edit");
@@ -399,6 +406,57 @@ void EspinaWindow::addToAnalysis()
 
 }
 
+//------------------------------------------------------------------------
+void EspinaWindow::saveAnalysis()
+{
+  pqServer* server = pqActiveObjects::instance().activeServer();
+  QString filters(tr("Espina Analysis (*.seg)"));
+  pqFileDialog fileDialog(server, 
+    this,
+    tr("Save Analysis:"), QString(), filters);
+  fileDialog.setObjectName("SaveAnalysisFileDialog");
+  fileDialog.setFileMode(pqFileDialog::AnyFile);
+  fileDialog.setWindowTitle("Save Espina Analysis");
+  if (fileDialog.exec() == QDialog::Accepted)
+  {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+
+    const QString analysisFile = fileDialog.getSelectedFiles().first();
+//     const QStrin analysisName = fileNameWithExtension(analysisFile);
+    Q_ASSERT(server);
+    pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
+    pqPipelineSource* writer = ob->createFilter("filters", "EspinaWriter",
+                   QMap<QString, QList< pqOutputPort*> >(),
+                   pqApplicationCore::instance()->getActiveServer() );
+
+    // Set the file name
+    vtkSMPropertyHelper(writer->getProxy(), "FileName").Set(analysisFile.toStdString().c_str());
+
+    // Set Taxonomy
+    QString taxonomySerialization;
+    IOTaxonomy::writeXMLTaxonomy(m_model->taxonomy(), taxonomySerialization);
+    vtkSMPropertyHelper(writer->getProxy(), "Taxonomy").Set(taxonomySerialization.toStdString().c_str());
+
+    // Set Trace
+//     std::ostringstream traceSerialization;
+    
+//     vtkSMStringVectorProperty* traceProp =
+//           vtkSMStringVectorProperty::SafeDownCast(remoteWriter->getProxy()->GetProperty("Trace"));
+//     traceProp->SetElement(0, trace_data.str().c_str());
+// 
+//      // Save the segmentations in different files
+//     filePath.remove(QRegExp("\\..*$"));
+//     foreach(Segmentation* seg, m_segmentations)
+//       this->saveSegmentation(seg, QDir(filePath)); // salva el fichero en el servidor
+    //Update the pipeline to obtain the content of the file
+    writer->getProxy()->UpdateVTKObjects();
+    writer->updatePipeline();
+    // Destroy de segFileWriter object
+    ob->destroy(writer);
+
+    QApplication::restoreOverrideCursor();
+  }
+}
 
 
 //------------------------------------------------------------------------

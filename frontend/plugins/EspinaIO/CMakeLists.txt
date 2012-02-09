@@ -9,7 +9,7 @@ ADD_PARAVIEW_PLUGIN(
   GUI_SOURCES FilePack.cpp
 )
 
-# target_link_libraries(FileReader Espina) #Required to be usedin server mode
+target_link_libraries(EspinaIO ${QUAZIP_LIBRARIES})#Espina) #Required to be usedin server mode
 # I think it's no more required because we have moved FilePack inside the library
 
 install (TARGETS EspinaIO
