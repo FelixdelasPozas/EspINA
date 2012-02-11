@@ -20,36 +20,25 @@
 #include "AddSegmentation.h"
 
 #include <EspinaCore.h>
-#include <model/Segmentation.h>
 #include <model/EspinaModel.h>
-#include <processing/Filter.h>
 
-
-AddSegmentation::AddSegmentation(QSharedPointer<Filter> filter,
-				 int element,
+AddSegmentation::AddSegmentation(SegmentationPtr seg,
 				 QUndoCommand* parent)
 : QUndoCommand(parent)
-, m_filter(filter)
-, m_productIndex(element)
-, m_segmentation(NULL)
+, m_segmentation(seg)
 {
 }
 
 
 void AddSegmentation::redo()
 {
-  QSharedPointer<EspinaModel>  model = EspinaCore::instance()->model();
+  EspinaModelPtr model = EspinaCore::instance()->model();
 
-  Q_ASSERT(m_segmentation == NULL);
-  m_segmentation = new Segmentation(m_filter, m_filter->product(m_productIndex));
   model->addSegmentation(m_segmentation);
 }
 
 void AddSegmentation::undo()
 {
-  QSharedPointer<EspinaModel>  model = EspinaCore::instance()->model();
-
+  EspinaModelPtr model = EspinaCore::instance()->model();
   model->removeSegmentation(m_segmentation);
-  delete m_segmentation;
-  m_segmentation = NULL;
 }

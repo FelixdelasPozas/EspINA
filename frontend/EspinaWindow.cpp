@@ -35,8 +35,11 @@
 #include <model/Taxonomy.h>
 #include "undo/AddChannel.h"
 #include "undo/AddSample.h"
+#include <undo/AddRelation.h>
 
 #include <QtGui>
+
+#include <sstream>
 
 #include <pqActiveObjects.h>
 #include <pqApplicationCore.h>
@@ -347,7 +350,7 @@ void EspinaWindow::newAnalysis()
     QApplication::setOverrideCursor(Qt::WaitCursor);
     m_model->clear();
 
-    Taxonomy *defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
+    TaxonomyPtr defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
     m_model->setTaxonomy(defaultTaxonomy);
 //     defaultTaxonomy->print();
 
@@ -364,11 +367,22 @@ void EspinaWindow::newAnalysis()
     const QString channelName = fileNameWithExtension(channelFile);
 
 
+    // Try to recover sample form DB using channel information
+    QSharedPointer<Sample> sample(new Sample(SampleName));
+    EspinaCore::instance()->setSample(sample.data());
+
+    CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+    pqPipelineSource* reader = pqLoadDataReaction::loadData(QStringList(channelFile));
+    pqFilter *channelReader = cob->registerFilter(channelFile, reader);
+    Q_ASSERT(channelReader->getNumberOfData() == 1);
+    pqData channelData(channelReader, 0);
+    QSharedPointer<Channel> channel(new Channel(channelData));
+
     m_undoStack->beginMacro("New Analysis");
-    QSharedPointer<Sample> sample = QSharedPointer<Sample>(new Sample(SampleName));
 //     Sample *sample = new Sample(SampleName);
-    m_undoStack->push(new AddSample(m_model, sample));
-    m_undoStack->push(new AddChannel(m_model, sample, channelFile));
+    m_undoStack->push(new AddSample(sample));
+    m_undoStack->push(new AddChannel(channel));
+    m_undoStack->push(new AddRelation(sample.data(), channel.data(), "where"));
 
     m_undoStack->endMacro();
     QApplication::restoreOverrideCursor();
@@ -438,16 +452,24 @@ void EspinaWindow::saveAnalysis()
     vtkSMPropertyHelper(writer->getProxy(), "Taxonomy").Set(taxonomySerialization.toStdString().c_str());
 
     // Set Trace
-//     std::ostringstream traceSerialization;
-    
-//     vtkSMStringVectorProperty* traceProp =
-//           vtkSMStringVectorProperty::SafeDownCast(remoteWriter->getProxy()->GetProperty("Trace"));
-//     traceProp->SetElement(0, trace_data.str().c_str());
+    std::ostringstream relationsSerialization;
+    m_model->relationships()->print(relationsSerialization);
+
+    vtkSMPropertyHelper(writer->getProxy(), "Trace").Set(relationsSerialization.str().c_str());
+
+    // Save the segmentations in different files
+//     analysisFile.remove(QRegExp("\\..*$"));
+//     QDir tmpDir(analysisFile);
 // 
-//      // Save the segmentations in different files
-//     filePath.remove(QRegExp("\\..*$"));
-//     foreach(Segmentation* seg, m_segmentations)
-//       this->saveSegmentation(seg, QDir(filePath)); // salva el fichero en el servidor
+//     foreach(SegmentationPtr seg, m_model->segmentations())
+//     {
+//       QString tmpfilePath(seg->creator()->id() + ".pvd");
+//       tmpfilePath = tmpDir.filePath(tmpfilePath);
+//       pqActiveObjects::instance().setActivePort(seg->outputPort());
+//       qDebug() << "EspINA::saveSegementation" << tmpfilePath;
+//       EspinaSaveDataReaction::saveActiveData(tmpfilePath);
+//     }
+
     //Update the pipeline to obtain the content of the file
     writer->getProxy()->UpdateVTKObjects();
     writer->updatePipeline();

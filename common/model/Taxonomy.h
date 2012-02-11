@@ -20,6 +20,8 @@
 #ifndef TAXONOMY_H
 #define TAXONOMY_H
 
+#include "ModelItem.h"
+
 // Qt dependencies
 #include <QColor>
 #include <QMap>
@@ -27,7 +29,6 @@
 #include <QTextStream>
 #include <QVariant>
 #include <QVector>
-#include "IModelItem.h"
 
 // Forward-declaration
 class QXmlStreamReader;
@@ -35,7 +36,7 @@ class QXmlStreamWriter;
 
 static const QString RED = "#00FF00";
 
-class TaxonomyNode : public IModelItem
+class TaxonomyNode : public ModelItem
 {
 public:
   TaxonomyNode(const QString name, const QString RGBColor = RED );
@@ -45,7 +46,6 @@ public:
   TaxonomyNode *addElement(const QString qualifiedName);
   /// Return taxonomy node for qualified taxonomy elements
   TaxonomyNode* element(const QString qualifiedName);
-
 
   TaxonomyNode *parentNode();
   QVector<TaxonomyNode*> subElements() const {return m_elements;}
@@ -71,8 +71,8 @@ public:
   // the elements through the TaxonoyNode object at the top of the tree.
   TaxonomyNode* addElement( QString subElement, QString supElement);//, QString RGBColor = "");
   void removeChild(QString name);
-  
-  //! Implements IModelItem
+
+  /// Implements ModelItem
   virtual ItemType type() const {return TAXONOMY;}
   virtual QVariant data(int role = Qt::UserRole + 1) const;
   virtual bool setData(const QVariant& value, int role = Qt::UserRole + 1);
@@ -110,21 +110,22 @@ private:
   TaxonomyNode *m_root;
 };
 
+typedef QSharedPointer<Taxonomy> TaxonomyPtr;
 
 class IOTaxonomy
 {
 public:
-  static Taxonomy *openXMLTaxonomy( QString fileName);
-  static Taxonomy *loadXMLTaxonomy( QString content);
-  static void writeXMLTaxonomy(Taxonomy* tax, QString& destination);
+  static TaxonomyPtr openXMLTaxonomy( QString fileName);
+  static TaxonomyPtr loadXMLTaxonomy( QString content);
+  static void writeXMLTaxonomy(TaxonomyPtr tax, QString& destination);
 
 private:
   IOTaxonomy();
   ~IOTaxonomy();
 
-  static void writeTaxonomy(Taxonomy* tax, QXmlStreamWriter& stream);
+  static void writeTaxonomy(TaxonomyPtr tax, QXmlStreamWriter& stream);
   static void writeTaxonomyNode(TaxonomyNode* node, QXmlStreamWriter& stream);
-  static Taxonomy *readXML(QXmlStreamReader& xmlStream);
+  static TaxonomyPtr readXML(QXmlStreamReader& xmlStream);
 
   //static void writeXMLTaxonomy(TaxonomyNode& tax, QString fileName);
 };

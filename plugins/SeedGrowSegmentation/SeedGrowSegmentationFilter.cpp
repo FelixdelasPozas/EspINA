@@ -66,9 +66,6 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(pqData input, int seed[3]
 : m_input(input)
 , m_threshold(threshold)
 {
-//   EspinaModel *model = EspinaModel::instance();
-  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-
   memcpy(m_seed, seed, 3*sizeof(int));
   memcpy(m_VOI,  VOI,  6*sizeof(int));
 
@@ -246,6 +243,15 @@ void SeedGrowSegmentationFilter::setSeed(int seed[3])
   grow->pipelineSource()->getProxy()->UpdateVTKObjects();
 //   grow->pipelineSource()->updatePipeline();
   emit modified();
+}
+
+//-----------------------------------------------------------------------------
+QVariant SeedGrowSegmentationFilter::data(int role) const
+{
+  if (role == Qt::DisplayRole)
+    return QString("Filter");
+  else
+    return QVariant();
 }
 
 //-----------------------------------------------------------------------------

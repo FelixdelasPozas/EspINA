@@ -25,15 +25,19 @@
 #ifndef SAMPLE_H
 #define SAMPLE_H
 
-#include "IModelItem.h"
+#include "ModelItem.h"
 
-#include <QString>
+#include "Channel.h"
+#include "Segmentation.h"
+
 #include <QList>
+#include <QSharedPointer>
+#include <QString>
 
 class Channel;
 class Segmentation;
 
-class Sample : public IModelItem
+class Sample : public ModelItem
 {
 public:
   explicit Sample(QString ID);
@@ -47,10 +51,10 @@ public:
   double *size();/*nm*/
   void setSize(double size[3]);
 
-  void addChannel(Channel *channel);
-  void addSegmentation(Segmentation *seg);
+  void addChannel(ChannelPtr channel);
+  void addSegmentation(SegmentationPtr seg);
 
-  /// IModelItem Interface
+  /// ModelItem Interface
   virtual QVariant data(int role) const;
   virtual ItemType type() const {return SAMPLE;}
 
@@ -59,8 +63,10 @@ private:
   double  m_origin[3];//nm
   double  m_size[3];//nm
 
-  QList<Channel *>      m_channels;
-  QList<Segmentation *> m_segmentations;
+  QList<ChannelPtr>      m_channels;
+  QList<SegmentationPtr> m_segmentations;
 };
+
+typedef QSharedPointer<Sample> SamplePtr;
 
 #endif // SAMPLE_H

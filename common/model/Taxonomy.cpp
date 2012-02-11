@@ -32,6 +32,7 @@ TaxonomyNode::TaxonomyNode(const QString name, const QString RGBColor)
 //------------------------------------------------------------------------
 TaxonomyNode::~TaxonomyNode()
 {
+  qDebug() << "Destroy node " << m_name;
   TaxonomyNode *node;
   foreach(node, m_elements)
   {
@@ -327,6 +328,7 @@ Taxonomy::Taxonomy(const QString name)
 //-----------------------------------------------------------------------------
 Taxonomy::~Taxonomy()
 {
+  qDebug() << "Destroy taxonomy";
   if (m_root)
     delete m_root;
 }
@@ -409,12 +411,12 @@ QString concatenate(std::stack<QString> hierarchy)
   return res;
 }
 
-Taxonomy* IOTaxonomy::readXML(QXmlStreamReader& xmlStream)
+TaxonomyPtr IOTaxonomy::readXML(QXmlStreamReader& xmlStream)
 {
   // Read the XML
 //   QXmlStreamReader xmlStream(&file);
   QStringRef nodeName, color;
-  Taxonomy* tax;
+  TaxonomyPtr tax;
   std::stack<QString> taxHierarchy;
   while(!xmlStream.atEnd())
   {
@@ -427,7 +429,7 @@ Taxonomy* IOTaxonomy::readXML(QXmlStreamReader& xmlStream)
         color = xmlStream.attributes().value("color");
         if( taxHierarchy.empty() )
         {
-          tax = new Taxonomy( nodeName.toString());
+          tax = TaxonomyPtr(new Taxonomy( nodeName.toString()));
         }
         else
         {
@@ -454,7 +456,7 @@ Taxonomy* IOTaxonomy::readXML(QXmlStreamReader& xmlStream)
 }
 
 
-Taxonomy* IOTaxonomy::openXMLTaxonomy(QString fileName)
+TaxonomyPtr IOTaxonomy::openXMLTaxonomy(QString fileName)
 {
   QFile file( fileName );
   if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
@@ -463,7 +465,7 @@ Taxonomy* IOTaxonomy::openXMLTaxonomy(QString fileName)
 //               "Couldn't open the file",
 //               QMessageBox::Ok);
     qDebug() <<"File could not be oppended";
-    return NULL;
+    return TaxonomyPtr();
   }
 
   // Read the XML
@@ -497,12 +499,12 @@ Taxonomy* IOTaxonomy::openXMLTaxonomy(QString fileName)
     }
   }
   */
-  Taxonomy* tax = readXML(xmlStream);
+  TaxonomyPtr tax = readXML(xmlStream);
   file.close();
   return tax;
 }
 
-Taxonomy* IOTaxonomy::loadXMLTaxonomy(QString content)
+TaxonomyPtr IOTaxonomy::loadXMLTaxonomy(QString content)
 {
 
 //   if( content.device() )
@@ -545,7 +547,7 @@ Taxonomy* IOTaxonomy::loadXMLTaxonomy(QString content)
   return readXML(xmlStream);
 }
 
-void IOTaxonomy::writeTaxonomy(Taxonomy* tax, QXmlStreamWriter& stream)
+void IOTaxonomy::writeTaxonomy(TaxonomyPtr tax, QXmlStreamWriter& stream)
 {
   if( tax )
   {
@@ -623,7 +625,7 @@ void IOTaxonomy::writeXMLTaxonomy(TaxonomyNode& tax, QString fileName)
 */
 
 //-----------------------------------------------------------------------------
-void IOTaxonomy::writeXMLTaxonomy(Taxonomy* tax, QString& destination)
+void IOTaxonomy::writeXMLTaxonomy(TaxonomyPtr tax, QString& destination)
 {
 //   QFile fd (fileName);
 //   fd.open( QIODevice::WriteOnly | QIODevice::Truncate );

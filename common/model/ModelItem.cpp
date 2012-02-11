@@ -17,25 +17,9 @@
 */
 
 
-#ifndef ADDSEGMENTATION_H
-#define ADDSEGMENTATION_H
+#include "ModelItem.h"
 
-#include <QSharedPointer>
-#include <QUndoCommand>
-
-#include <model/Filter.h>
-#include <model/Segmentation.h>
-
-class AddSegmentation : public QUndoCommand
+ModelItem* indexPtr(const QModelIndex& index)
 {
-public:
-  explicit AddSegmentation(SegmentationPtr seg,
-			   QUndoCommand *parent=0);
-  virtual void redo();
-  virtual void undo();
-
-private:
-  SegmentationPtr m_segmentation;
-};
-
-#endif // ADDSEGMENTATION_H
+  return static_cast<ModelItem *>(index.internalPointer());
+}

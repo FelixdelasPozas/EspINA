@@ -23,7 +23,7 @@ public:
 
     vtkSetStringMacro(Taxonomy);
     vtkGetStringMacro(Taxonomy);
-      
+
 protected:
     vtkSegWriter();
     ~vtkSegWriter() {}

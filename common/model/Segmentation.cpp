@@ -22,7 +22,7 @@
 using namespace std;
 
 //-----------------------------------------------------------------------------
-Segmentation::Segmentation(QSharedPointer<Filter> filter, pqData data)
+Segmentation::Segmentation(FilterPtr filter, pqData data)
 : m_filter (filter)
 , m_data   (data)
 {

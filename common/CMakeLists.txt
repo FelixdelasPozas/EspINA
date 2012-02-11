@@ -1,14 +1,12 @@
-# find_package(Quazip REQUIRED)
-# include(${QUAZIP_USE_FILE})
-
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}  #For wrap/ui files
 #   ${ITK_DIR}/../
 )
 
-# find_package(Boost REQUIRED COMPONENTS  system filesystem graph)
-# link_directories ( ${Boost_LIBRARY_DIRS} )
+find_package(Boost REQUIRED COMPONENTS  graph) #system filesystem 
+link_directories ( ${Boost_LIBRARY_DIRS} )
+
 #------------------------------------------------------------------------------
 # Add Qt Resource files
 qt4_add_resources(RCC_BUILT_SOURCES
@@ -55,9 +53,11 @@ set(GUI_SOURCES
 
 set(MODEL_SOURCES
   model/EspinaModel.cpp
+  model/ModelItem.cpp
   model/ModelTest.cpp
   model/Segmentation.cpp
   model/Channel.cpp
+  model/RelationshipGraph.cpp
   model/Sample.cpp
   model/Taxonomy.cpp
   )
@@ -75,6 +75,8 @@ set(SELECTION_SOURCES
 
 set (UNDO_SOURCES
   undo/AddChannel.cpp
+  undo/AddFilter.cpp
+  undo/AddRelation.cpp
   undo/AddSample.cpp
   undo/AddSegmentation.cpp
   )
@@ -93,8 +95,8 @@ set(Espina_SOURCE_FILES
   )
 
 set(EXTERNAL_LIBS
+  ${Boost_LIBRARIES}
   QtTest
-#   ${Boost_LIBRARIES}
 )
 
 add_library (Espina SHARED ${Espina_SOURCE_FILES})

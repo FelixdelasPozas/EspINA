@@ -17,25 +17,35 @@
 */
 
 
-#ifndef ADDSEGMENTATION_H
-#define ADDSEGMENTATION_H
+#ifndef ADDRELATION_H
+#define ADDRELATION_H
 
-#include <QSharedPointer>
 #include <QUndoCommand>
+#include <model/ModelItem.h>
 
-#include <model/Filter.h>
-#include <model/Segmentation.h>
+class ModelItem;
 
-class AddSegmentation : public QUndoCommand
+class AddRelation
+: public QUndoCommand
 {
 public:
-  explicit AddSegmentation(SegmentationPtr seg,
-			   QUndoCommand *parent=0);
+  explicit AddRelation(ModelItem *ancestor,
+		       ModelItem *successor,
+		       const QString description,
+		       QUndoCommand* parent = 0);
+
+  explicit AddRelation(ModelItemPtr ancestor,
+		       ModelItemPtr successor,
+		       const QString description,
+		       QUndoCommand* parent = 0);
+
   virtual void redo();
   virtual void undo();
 
 private:
-  SegmentationPtr m_segmentation;
+  ModelItem    *m_ancester;
+  ModelItem    *m_succesor;
+  const QString m_description;
 };
 
-#endif // ADDSEGMENTATION_H
+#endif // ADDRELATION_H

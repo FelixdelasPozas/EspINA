@@ -17,25 +17,25 @@
 */
 
 
-#ifndef ADDSEGMENTATION_H
-#define ADDSEGMENTATION_H
+#ifndef ADDFILTER_H
+#define ADDFILTER_H
 
-#include <QSharedPointer>
 #include <QUndoCommand>
 
 #include <model/Filter.h>
-#include <model/Segmentation.h>
+#include <QSharedPointer>
 
-class AddSegmentation : public QUndoCommand
+
+class AddFilter : public QUndoCommand
 {
 public:
-  explicit AddSegmentation(SegmentationPtr seg,
-			   QUndoCommand *parent=0);
+  explicit AddFilter(QSharedPointer<Filter> filter, QUndoCommand *parent = 0);
+
   virtual void redo();
   virtual void undo();
 
 private:
-  SegmentationPtr m_segmentation;
+  QSharedPointer<Filter> m_filter;
 };
 
-#endif // ADDSEGMENTATION_H
+#endif // ADDFILTER_H

@@ -17,217 +17,196 @@
 
 */
 
-#include "processingTrace.h"
+#include "RelationshipGraph.h"
 
-#include "espina.h"
-#include "sample.h"
-#include "segmentation.h"
-
-#include "graphHelper.h"
-#include "EspinaPlugin.h"
+#include "model/ModelItem.h"
 
 #include <iostream>
 #include <boost/graph/graphviz.hpp>
 
-//Debug
-#include <QDebug>
-#include <QStringList>
-#include <pqApplicationCore.h>
-#include <pqObjectBuilder.h>
-#include <pqLoadDataReaction.h>
-#include <cachedObjectBuilder.h>
-#include "espINAFactory.h"
-#include "labelMapExtension.h"
-
-#include <QSettings>
-#include <QFileDialog>
-#include "EspinaPluginManager.h"
-
 using namespace boost;
 
 
+//-----------------------------------------------------------------------------
+/// Visit nodes by edges and return the root vertex id
+template<class Graph, class VertexId>
+QList<VertexId> rootVertices(const Graph& graph)
+{
+    VertexId v;
+    QList<VertexId> discardedVertices, posibleRootVertices;
+
+    typename boost::graph_traits<Graph>::edge_iterator ei, ei_end;
+    for( boost::tie(ei, ei_end) = boost::edges(graph); ei != ei_end; ei++)
+    {
+//       std::cout << *ei;
+      v = boost::source(*ei, graph);
+//       std::cout << " v" << v;
+      if( !discardedVertices.contains(v) && !posibleRootVertices.contains(v)){
+//         std::cout << " a posible root vertex ";
+        posibleRootVertices.push_back(v);
+      }
+//       std::cout << std::endl;
+      v = boost::target(*ei, graph);
+      if( posibleRootVertices.contains(v) ){
+//         std::cout << "v" << v << " deleted from posibleRootVertices "<< std::endl;
+        posibleRootVertices.removeOne(v);
+      }
+      discardedVertices.push_back(v);
+
+//       qDebug() << "Discarded" << discardedVertices;
+//       qDebug() << "Posible Root" << posibleRootVertices;
+
+    }
+    // If there is no edges //TODO what if it is a closed graph?
+    if( posibleRootVertices.size() == 0)
+    {
+      typename boost::graph_traits<Graph>::vertex_iterator vi, vi_end;
+      for(boost::tie(vi, vi_end) = boost::vertices(graph); vi != vi_end; vi++)
+      {
+        posibleRootVertices.push_back(*vi);
+      }
+    }
+//     qDebug() << "Number of Root vertex " << posibleRootVertices.size();
+    assert(posibleRootVertices.size() >= 1 );//? posibleRootVertices.at(0) : -1;
+    return posibleRootVertices;
+
+}
 
 //-----------------------------------------------------------------------------
-TraceNode::Arguments TraceNode::parseArgs(QString& raw)
+//! Retrieve a map of the parents or predecessors of all the vertex in graph
+template<class Graph, class VertexId>
+QMap<VertexId, QList<VertexId> > predecessors(const Graph& g)
 {
-  TraceNode::Arguments res;
-  QStringList argList;
-  QString name, value, buffer;
-  int balanceo = 0;
+  QMap<VertexId, QList<VertexId> > res;
+  QList<VertexId> list;
+  VertexId vs, vt;
 
-  foreach(QChar c, raw)
+  typename boost::graph_traits<Graph>::edge_iterator ei, ei_end;
+  for( boost::tie(ei, ei_end) = boost::edges(g); ei != ei_end; ei++)
   {
-    if( c == '=' && balanceo == 0)
-    {
-      name = buffer;
-      buffer = "";
-    }    
-    else if( c == '[')
-    {
-      if(balanceo > 0)
-        buffer.append(c);
-      balanceo++;
-    }
-    else if( c== ']')
-    {
-      balanceo--;
-      if(balanceo > 0)
-        buffer.append(c);
-    }
-    else if( c == ';' && balanceo == 0)
-    {
-      value = buffer;
-      buffer = "";
-      res.insert(name, value);
+    vs = boost::source(*ei, g);
+    vt = boost::target(*ei, g);
+
+    if( !res.contains(vt) ){
+      list.clear();// = QList<VertexId>();
     }
     else
-    {
-      buffer.append(c);
-    }      
+      list = res.value(vt);
+    list.append(vs);
+    res.insert(vt, list);
+    //std::cout << vs << " (parentof) " << vt << std::endl;
   }
-
   return res;
 }
 
+
 //-----------------------------------------------------------------------------
-ProcessingTrace::ProcessingTrace()
-: m_trace(0)
+RelationshipGraph::RelationshipGraph()
+: m_graph(0)
 {
-  //m_trace[0].trace_name = "Espina";
+ // m_graph.m_property.owner = name;
 }
 
 //-----------------------------------------------------------------------------
-ProcessingTrace::ProcessingTrace(const QString& name)
-: m_trace(0)
+void RelationshipGraph::addItem(ModelItem* item)
 {
- // m_trace.m_property.owner = name;
-}
-
-//-----------------------------------------------------------------------------
-void ProcessingTrace::addNode(TraceNode* node)
-{
-  VertexId v = add_vertex(m_trace);
+  // TODO: Check if item's been already added to the graph
+  VertexId v = add_vertex(m_graph);
   //node->vertexId = v;
-  m_trace[v].node = node;
+  m_graph[v].item = item;
 }
 
+//-----------------------------------------------------------------------------
+void RelationshipGraph::removeItem(ModelItem *item)
+{
+  VertexDescriptor itemVertex = vertex(item);
+  clear_vertex (itemVertex, m_graph);
+  remove_vertex(itemVertex, m_graph);
+}
 
 //-----------------------------------------------------------------------------
-void ProcessingTrace::readNodes()
+void RelationshipGraph::updateVertexInformation()
 {
-  boost::graph_traits<Graph>::vertex_iterator vi, vi_end;
-  for(boost::tie(vi, vi_end) = boost::vertices(m_trace); vi != vi_end; vi++)
+  VertexIterator vi, vi_end;
+  for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
   {
-    TraceNode* node = m_trace[*vi].node;
-    assert(node);
-    m_trace[*vi].labelName = node->label().toStdString();
-    m_trace[*vi].args =  node->getArguments().toStdString();
-    switch (node->type)
+    VertexProperty &vertex = m_graph[*vi];
+    ModelItem *item = vertex.item;
+    Q_ASSERT(item);
+    vertex.name = item->data(Qt::DisplayRole).toString().toStdString();
+    switch (item->type())
     {
-    case (TraceNode::FILTER):
-        m_trace[*vi].shape = "box";
+      case ModelItem::SAMPLE:
+        vertex.shape = "trapezium";
         break;
-    case (TraceNode::PRODUCT):
-        m_trace[*vi].shape = "ellipse";
+      case ModelItem::CHANNEL:
+	vertex.shape = "box";
+	break;
+      case ModelItem::SEGMENTATION:
+	vertex.shape = "ellipse";
+	break;
+      case ModelItem::FILTER:
+	vertex.shape = "invtriangle";
         break;
     default:
-        assert(false);
+        Q_ASSERT(false);
     }
   }
 }
 
 //-----------------------------------------------------------------------------
-graph_traits< ProcessingTrace::Graph >::vertex_descriptor
-ProcessingTrace::vertexIndex(TraceNode* arg1)
+RelationshipGraph::VertexDescriptor RelationshipGraph::vertex(ModelItem* item)
 {
-  boost::graph_traits<Graph>::vertex_iterator vi, vi_end;
-  for(boost::tie(vi, vi_end) = boost::vertices(m_trace); vi != vi_end; vi++)
+  VertexIterator vi, vi_end;
+  for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
   {
-    if( m_trace[*vi].node == arg1 )
+    if( m_graph[*vi].item == item )
       return *vi;
   }
-  
-  assert(false);
+
+  Q_ASSERT(false);
 }
 
 //-----------------------------------------------------------------------------
-void ProcessingTrace::connect(
-  TraceNode* origin
-, TraceNode* destination
-, const std::string& description
-)
+void RelationshipGraph::addRelation(ModelItem* ancestor,
+				    ModelItem* successor,
+				    const QString description)
 {
-  //boost::add_edge(origin->vertexId, destination->vertexId, description, m_trace);
-  boost::add_edge(vertexIndex(origin), vertexIndex(destination), description, m_trace);
-  
-  //property_map<Graph, std::string EdgeProperty::*>::type descMap =
-  //  get(&EdgeProperty::relationship,m_trace);
-  //descMap[e] = description;
-  // Get list of vertex_descriptor
-  //Find the nodes corresponding the nodes
-  // Add a new edge(origin,destination) with 
-  // description property
+  boost::add_edge(vertex(ancestor), vertex(successor), description.toStdString(), m_graph);
 }
 
 //-----------------------------------------------------------------------------
-void ProcessingTrace::connect(const QString& id,
-                              TraceNode* destination,
-                              const std::string& description)
+void RelationshipGraph::connect(const QString& ancestor, ModelItem* successor, const QString description)
 {
-  boost::graph_traits<Graph>::vertex_iterator vi, vi_end;
-  for(boost::tie(vi, vi_end) = boost::vertices(m_trace); vi != vi_end; vi++)
+  VertexIterator vi, vi_end;
+  for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
   {
-    if(m_trace[*vi].node->getArgument("Id") == id)
-    {
-      break;
-    }
+    Q_ASSERT(false);
+//     if(m_graph[*vi].item->getArgument("Id") == id)
+//     {
+//       break;
+//     }
   }
-  connect(m_trace[*vi].node, destination, description);
+  addRelation(m_graph[*vi].item, successor, description);
 }
 
 //-----------------------------------------------------------------------------
-void ProcessingTrace::removeNode(TraceNode* node)
+void RelationshipGraph::readTrace(QTextStream& stream)
 {
-  EspinaFilter *parent = NULL;
-  graph_traits< ProcessingTrace::Graph >::vertex_descriptor indexNode = vertexIndex(node);
-  clear_vertex(indexNode, m_trace);
-  remove_vertex(indexNode, m_trace);
-  Segmentation *seg = dynamic_cast<Segmentation *>(node);
-  if( seg )
-  {
-    assert( node->type == TraceNode::PRODUCT );
-    parent = seg->parent();
-    parent->removeProduct(seg);
-    if (parent->numProducts() > 0)
-    {
-      parent = NULL;
-    }
-  }
-  delete node;
-  // The parent must be deleted after childs
-  if( parent )
-    removeNode(dynamic_cast<TraceNode*>(parent));
-  
-}
-
-
-//-----------------------------------------------------------------------------
-void ProcessingTrace::readTrace(QTextStream& stream)
-{
-  m_trace.clear(); // Reset the old trace
+  m_graph.clear(); // Reset the old trace
   Graph schema;
   boost::dynamic_properties dp;
 //   boost::property_map<Graph, boost::vertex_index1_t>::type vIndex
-//     = boost::get(boost::vertex_index, m_trace);
+//     = boost::get(boost::vertex_index, m_graph);
   dp.property("node_id", boost::get(boost::vertex_index1, schema));
 //   boost::property_map<Graph, std::string VertexProperty::*>::type vString;
-//   vString = boost::get(&VertexProperties::labelName, m_trace);
-  dp.property("label", boost::get(&VertexProperties::labelName, schema));
+//   vString = boost::get(&VertexProperties::labelName, m_graph);
+  dp.property("label", boost::get(&VertexProperties::name, schema));
   //boost::property_map<Graph, std::string VertexProperty::*>::type vShape
-  //vString = boost::get(&VertexProperties::shape, m_trace);
+  //vString = boost::get(&VertexProperties::shape, m_graph);
   dp.property("shape", boost::get(&VertexProperties::shape, schema));
   //boost::property_map<Graph, std::string VertexProperty::*>::type vShape
-  //vString = boost::get(&VertexProperties::args, m_trace);
+  //vString = boost::get(&VertexProperties::args, m_graph);
   dp.property("args", boost::get(&VertexProperties::args, schema));
 
   dp.property("label", boost::get(boost::edge_name, schema));
@@ -235,27 +214,19 @@ void ProcessingTrace::readTrace(QTextStream& stream)
   boost::read_graphviz( stream.string()->toStdString(), schema, dp);
 
   // Retrieve vertex porperties
-  pqApplicationCore* core = pqApplicationCore::instance();
   boost::property_map<Graph, std::string VertexProperty::*>::type vLabel
-    = boost::get(&VertexProperty::labelName, schema);
+    = boost::get(&VertexProperty::name, schema);
   boost::property_map<Graph, std::string VertexProperty::*>::type vArgs
     = boost::get(&VertexProperty::args, schema);
   boost::property_map<Graph, std::string VertexProperty::*>::type vShape
     = boost::get(&VertexProperty::shape, schema);
 
-  // recorrer el grafo en anchura e ir cargando los plugins
-  // Initialize PipeLine with rootId
-  // while pipeline not empty
-  //    retieve their neighbors of the first element in the pipeline(Adacent_vertices) ¡¡Test!!
-  //    if pass all the dependecies  and it is a Filter type
-  //        build it
-  //    else
-  //        insert into the pipeline
-
   QMap< VertexId, QList< VertexId > > parentsMap = predecessors<Graph, VertexId>(schema);
   QList<VertexId> verticesToProcess(rootVertices<Graph, VertexId>(schema)); // The nodes not processed
   QList<VertexId> processedVertices;
-  
+
+  Q_ASSERT(false/*ToDo*/);
+/*  
   Sample *newSample;
   
   int lastId = 0;
@@ -263,7 +234,7 @@ void ProcessingTrace::readTrace(QTextStream& stream)
   while( !verticesToProcess.empty() )
   {
     VertexId vertexId = verticesToProcess.first();
-    qDebug() << "ProcessingTrace: Processing the vertex with id: " << vertexId;
+    qDebug() << "RelationshipGraph: Processing the vertex with id: " << vertexId;
     // ***** Process the vertex *****
     // Retrieve all the parents by giving a VertexId TODO
     bool parentsProcessed = true;
@@ -283,7 +254,7 @@ void ProcessingTrace::readTrace(QTextStream& stream)
       // Is a stack //TODO be more explicit
       if( vShape[vertexId].compare("ellipse") == 0 && label.contains(".") ) //Samples contains extension's dot
       {
-        qDebug() << "ProcessingTrace: Loading the Stack " << label;
+        qDebug() << "RelationshipGraph: Loading the Stack " << label;
 	//NOTE: I call load reaction data to be sure it is also in the server
 	//TODO: review and clean
 	// First we try to find the sample in the current directory
@@ -347,24 +318,24 @@ void ProcessingTrace::readTrace(QTextStream& stream)
       } // A filter
       else if( vShape[vertexId].compare("box") == 0 )
       { // A filter that can be processed
-        qDebug() << "ProcessingTrace: Creating the filter " << label;
+        qDebug() << "RelationshipGraph: Creating the filter " << label;
         //QStringList filterInfo = QString(vLabel[vertexId].c_str()).split("::");
         //assert(filterInfo.size() == 2);
 	// if( filterInfo.at(1) == "SeedGrowSegmentationFilter")
 	
 	EspinaFilter *filter = EspinaPluginManager::instance()->createFilter(label,args);
 	if (!filter)
-	  qDebug() << "ProcessingTrace: the filter is not registered";
+	  qDebug() << "RelationshipGraph: the filter is not registered";
 	  
 //         IFilterFactory* factory = m_availablePlugins.value(label, NULL);
 //         if( factory )
 //           factory->createFilter(label, args);
 //         else
-//           qDebug() << "ProcessingTrace: the filter is not registered";
+//           qDebug() << "RelationshipGraph: the filter is not registered";
 
       } // A segmentation
       else {
-        qDebug() << "ProcessingTrace: segmentation " << args["Id"] << args["Taxonomy"];
+        qDebug() << "RelationshipGraph: segmentation " << args["Id"] << args["Taxonomy"];
         EspINA* espina = EspINA::instance();
 	Segmentation *seg = espina->segmentation(args["Id"]);
 	assert(seg);
@@ -397,11 +368,11 @@ void ProcessingTrace::readTrace(QTextStream& stream)
   EspINA::instance()->setLastUsedId(lastId);
   
   if (newSample)
-    dynamic_cast<LabelMapExtension::SampleRepresentation *>(newSample->representation(LabelMapExtension::SampleRepresentation::ID))->setEnable(true);
+    dynamic_cast<LabelMapExtension::SampleRepresentation *>(newSample->representation(LabelMapExtension::SampleRepresentation::ID))->setEnable(true);*/
 }
 
 // //-----------------------------------------------------------------------------
-// void ProcessingTrace::registerPlugin(QString key, IFilterFactory* factory)
+// void RelationshipGraph::registerPlugin(QString key, IFilterFactory* factory)
 // {
 //   assert( m_availablePlugins.contains(key) == false );
 //   m_availablePlugins.insert(key, factory);
@@ -409,7 +380,7 @@ void ProcessingTrace::readTrace(QTextStream& stream)
 // 
 // 
 // //-----------------------------------------------------------------------------
-// IFilterFactory * ProcessingTrace::getRegistredPlugin(QString& key)
+// IFilterFactory * RelationshipGraph::getRegistredPlugin(QString& key)
 // {
 //   assert( m_availablePlugins.contains(key));
 //   return m_availablePlugins[key];
@@ -417,90 +388,50 @@ void ProcessingTrace::readTrace(QTextStream& stream)
 
 
 //-----------------------------------------------------------------------------
-void ProcessingTrace::print( std::ostream& out, ProcessingTrace::printFormat format)
+void RelationshipGraph::print(std::ostream& out, RelationshipGraph::PrintFormat format)
 {
-  this->readNodes();
-  if( format == graphviz )
-  {
-    boost::dynamic_properties dp;
+  this->updateVertexInformation();
 
-    dp.property("node_id", boost::get(boost::vertex_index, m_trace));
-    dp.property("label", boost::get(&VertexProperties::labelName, m_trace));
-    dp.property("shape", boost::get(&VertexProperties::shape, m_trace));
-    dp.property("args", boost::get(&VertexProperties::args, m_trace));
-    dp.property("label", boost::get(boost::edge_name, m_trace));
-
-    boost::write_graphviz_dp( out, m_trace, dp);
-  }
-  else if( format == debug)
+  switch (format)
   {
-    QStringList qstrl;
-//     NodeParamList args;
-//     // Retrieve vertex porperties
-//     boost::property_map<Graph, std::string VertexProperty::*>::type vLabel
-//       = boost::get(&VertexProperty::labelName, m_trace);
-//     boost::property_map<Graph, std::string VertexProperty::*>::type vArgs
-//       = boost::get(&VertexProperty::args, m_trace);
-//     boost::property_map<Graph, std::string VertexProperty::*>::type vShape
-//       = boost::get(&VertexProperty::shape, m_trace);
-//     // Iter upon vertices
-//     boost::graph_traits<Graph>::vertex_iterator vi, vi_end;
-//     for( boost::tie(vi, vi_end) = boost::vertices(m_trace); vi != vi_end; vi++)
-//     {
-//       out << *vi << " - " << vLabel[*vi] << std::endl;
-//       // If it is a filter, it must parse the args
-//       if( vShape[*vi].compare("box") == 0 )
-//       {
-//         qstrl = QString(vLabel[*vi].c_str()).split("::");
-//         assert(qstrl.size() == 2);
-//         QString rawArgs( vArgs[*vi].c_str() );
-//         args = parseArgs( rawArgs );
-//         foreach( NodeParam param, args)
-//         {
-//           out << "\t" << param.first.toStdString()
-//               << " = " << param.second.toStdString();
-//         }
-//       } // A stack or a product
-//       else if( vShape[*vi].compare("ellipse") == 0 )
-//       {
-//         if( vLabel[*vi] != "Product" )
-//           out << "\tPosible stack!";
-//       }
-//     }
-  }
-    
-  // property_map<Graph, (return type) Class::*)
-  //property_map<Graph, std::string VertexProperty::*>::type nameMap =
-  //  get(&VertexProperty::name,m_trace);
-  //add_edge(0,1,m_trace);
-    
-  //write_graphviz(std::cout,m_trace,make_label_writer(nameMap));
+    case GRAPHVIZ:
+    {
+      boost::dynamic_properties dp;
+
+      dp.property("node_id", boost::get(boost::vertex_index, m_graph));
+      dp.property("label", boost::get(&VertexProperties::name, m_graph));
+      dp.property("shape", boost::get(&VertexProperties::shape, m_graph));
+      dp.property("args", boost::get(&VertexProperties::args, m_graph));
+      dp.property("label", boost::get(boost::edge_name, m_graph));
+
+      boost::write_graphviz_dp( out, m_graph, dp);
+      break;
+    }
+    default:
+      qWarning("Format Unkown");
+  };
 }
 
 /*
-void ProcessingTrace::addSubtrace(const ProcessingTrace* subTrace)
-{
 
-}
-
-std::vector< TraceNode* > ProcessingTrace::inputs(const TraceNode* node)
+std::vector< TraceNode* > RelationshipGraph::inputs(const TraceNode* node)
 {
   std::vector<TraceNode *> inputNodes;
   return inputNodes;
 }
 
-std::vector< TraceNode* > ProcessingTrace::outputs(const TraceNode* node)
+std::vector< TraceNode* > RelationshipGraph::outputs(const TraceNode* node)
 {
   std::vector<TraceNode *> result;
   // Node prooperty map
   property_map<Graph, TraceNode * VertexProperty::*>::type nodeMap =
-    get(&VertexProperty::node,m_trace);
+    get(&VertexProperty::node,m_graph);
   // Find targets of output edges
-    qDebug() << out_degree(node->localId,m_trace);
-  EdgeIteratorRange edges = out_edges(node->localId,m_trace);
+    qDebug() << out_degree(node->localId,m_graph);
+  EdgeIteratorRange edges = out_edges(node->localId,m_graph);
   for (OutEdgeIter e = edges.first; e != edges.second; e++)
   {
-    VertexId v = target(*e,m_trace);
+    VertexId v = target(*e,m_graph);
     result.push_back(nodeMap[v]);
   }
   return result;

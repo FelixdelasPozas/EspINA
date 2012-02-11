@@ -17,18 +17,26 @@
 */
 
 
-#ifndef IMODELITEM_H
-#define IMODELITEM_H
+#include "AddFilter.h"
 
-#include <QModelIndex>
+#include <EspinaCore.h>
 
-class IModelItem
+AddFilter::AddFilter(QSharedPointer< Filter > filter, QUndoCommand* parent)
+: QUndoCommand(parent)
+, m_filter(filter)
 {
-public:
-  enum ItemType {TAXONOMY, SAMPLE, CHANNEL, SEGMENTATION};
 
-  virtual QVariant data(int role) const = 0;
-  virtual ItemType type() const = 0;
-};
+}
 
-#endif // IMODELITEM_H
+void AddFilter::redo()
+{
+  EspinaCore::instance()->model()->addFilter(m_filter);
+}
+
+
+void AddFilter::undo()
+{
+  EspinaCore::instance()->model()->removeFilter(m_filter);
+}
+
+

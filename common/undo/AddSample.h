@@ -31,13 +31,12 @@ class Sample;
 class AddSample : public QUndoCommand
 {
 public:
-  explicit AddSample(QSharedPointer<EspinaModel> model, QSharedPointer<Sample> sample);
+  explicit AddSample(QSharedPointer<Sample> sample);
 
   virtual void redo();
   virtual void undo();
 
 private:
-  QSharedPointer<EspinaModel> m_model;
   QSharedPointer<Sample> m_sample;
 };
 #endif // ADDSAMPLE_H

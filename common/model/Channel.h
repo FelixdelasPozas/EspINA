@@ -25,7 +25,7 @@
 #ifndef CHANNEL_H
 #define CHANNEL_H
 
-#include "IModelItem.h"
+#include <selection/SelectableItem.h>
 
 #include "processing/pqData.h"
 
@@ -33,7 +33,7 @@
 class pqOutputPort;
 class pqPipelineSource;
 
-class Channel : public IModelItem
+class Channel : public SelectableItem
 {
 public:
   Channel(pqData data);
@@ -44,10 +44,11 @@ public:
   void bounds(double val[6]);
   void spacing(double val[3]);
 
-  pqData data() const {return m_data;};
-
+  /// Model Item Interface
   virtual QVariant data(int role) const;
-  virtual ItemType type() const {return IModelItem::CHANNEL;}
+  virtual ItemType type() const {return ModelItem::CHANNEL;}
+  /// Selectable Item Interface
+  virtual pqData volume() {return m_data;}
 
 private:
   pqData m_data;
@@ -63,5 +64,7 @@ private:
 //   QMap<IChannelRepresentation::RepresentationId, IChannelExtension *> m_representations;
 //   QMap<QString, IChannelExtension *> m_informations;
 };
+
+typedef QSharedPointer<Channel> ChannelPtr;
 
 #endif // CHANNEL_H

@@ -65,6 +65,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <model/EspinaModel.h>
 #include <undo/AddSegmentation.h>
 #include <EspinaCore.h>
+#include <undo/AddFilter.h>
+#include <selection/SelectableItem.h>
+#include <undo/AddRelation.h>
+#include <model/Channel.h>
 
 #define SGS "SeedGrowSegmentation"
 #define SGSF "SeedGrowSegmentation::SeedGrowSegmentationFilter"
@@ -154,19 +158,19 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection se
     Q_ASSERT(sel.size() == 1);// Only one element selected
     SelectionHandler::Selelection element = sel.first();
 
-    pqData input = element.second;
+    SelectableItem *input = element.second;
 
     Q_ASSERT(element.first.size() == 1); // with one pixel
     QVector3D seed = element.first.first();
 
-    qDebug() << "Channel:" << input.id();
+    qDebug() << "Channel:" << input->volume().id();
     qDebug() << "Threshold:" << m_threshold->threshold();
     qDebug() << "Seed:" << seed;
     qDebug() << "Use Default VOI:" << m_useDefaultVOI->useDefaultVOI();
 
     Filter::Arguments args;
     args["Type"] = SGSF;
-    args["Channel"]= input.id();
+    args["Channel"]= input->volume().id();
     args["Seed"] = QString("%1,%2,%3").arg(seed.x()).arg(seed.y()).arg(seed.z());
     args["Threshold"] = QString::number(m_threshold->threshold());
 
@@ -189,17 +193,29 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection se
 
     QSharedPointer<SeedGrowSegmentationFilter> filter =
       QSharedPointer<SeedGrowSegmentationFilter>(
-	new SeedGrowSegmentationFilter(input,
+	new SeedGrowSegmentationFilter(input->volume(),
 				     growSeed,
 				     m_threshold->threshold(),
 				     VOI)
 		     );
 
+    Q_ASSERT(filter->numProducts() == 1);
+    SegmentationPtr seg(new Segmentation(filter, filter->product(0)));
 
     TaxonomyNode *tax = EspinaCore::instance()->activeTaxonomy();
     Q_ASSERT(tax);
     qDebug() << tax->name();
-    EspinaCore::instance()->undoStack()->push(new AddSegmentation(filter, 0));
+
+    Sample *sample = EspinaCore::instance()->sample();
+
+    QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
+    undo->beginMacro("Add Segmentation");
+    undo->push(new AddFilter(filter));
+    undo->push(new AddRelation(input,filter.data(),"Channel"));
+    undo->push(new AddSegmentation(seg));
+    undo->push(new AddRelation(filter, seg, "Create Segmentation"));
+    undo->push(new AddRelation(sample, seg.data(), "where"));
+    undo->endMacro();
 
   // args.insert("VOI",SelectionManager::instance()->voi()->save());
   //createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);

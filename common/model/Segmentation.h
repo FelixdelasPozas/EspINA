@@ -25,28 +25,28 @@
 #ifndef SEGMENTATION_H
 #define SEGMENTATION_H
 
-#include "IModelItem.h"
+#include <selection/SelectableItem.h>
+#include <model/Filter.h>
 #include <processing/pqData.h>
-#include <processing/Filter.h>
-
-#include <QSharedPointer>
 
 // Forward declarations
 class Sample;
 class pqPipelineSource;
 
-class Segmentation : public IModelItem
+class Segmentation : public SelectableItem
 {
 public:
-  explicit Segmentation(QSharedPointer<Filter> filter, pqData data);
+  explicit Segmentation(FilterPtr filter, pqData data);
 //   Segmentation(EspinaFilter *parent, vtkFilter *creator, int portNumber);
   virtual ~Segmentation();
 
   pqOutputPort *outputPort();
 
-  pqData data() {return m_data;}
+  /// Model Item Interface
   virtual QVariant data(int role) const;
-  virtual ItemType type() const {return IModelItem::SEGMENTATION;}
+  virtual ItemType type() const {return ModelItem::SEGMENTATION;}
+  /// Selectable Item Interface
+  virtual pqData volume() {return m_data;}
 
 //   //! Reimplement ITraceNode Interface
 //   virtual QString label() const {return QString("%1 %2").arg(m_taxonomy->name()).arg(m_id);}
@@ -57,7 +57,7 @@ public:
 //   virtual void setSelected(bool value) {m_isSelected = value;}
 //   virtual bool isSelected() {return m_isSelected;}
 //   
-//   //! Reimplement IModelItem Interface
+//   //! Reimplement ModelItem Interface
 //   virtual QVariant data(int role = Qt::UserRole + 1) const;
 //   virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
 //   
@@ -82,8 +82,8 @@ public:
 //   void updated(Segmentation *);
   
 private:
-  QSharedPointer<Filter> m_filter;
-  pqData  m_data;
+  FilterPtr m_filter;
+  pqData    m_data;
 //   QMap<ExtensionId, ISegmentationExtension *> m_extensions;
 //   QMap<ExtensionId, ISegmentationExtension *> m_pendingExtensions;
 //   QList<ISegmentationExtension *> m_insertionOrderedExtensions;
@@ -95,5 +95,7 @@ private:
 // //   ISegmentationExtension::InformationMap m_infoMap;
 // //   ISegmentationExtension::RepresentationMap m_repMap;
 };
+
+typedef QSharedPointer<Segmentation> SegmentationPtr;
 
 #endif // PRODUCTS_H

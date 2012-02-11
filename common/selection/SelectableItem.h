@@ -17,25 +17,22 @@
 */
 
 
-#ifndef ADDSEGMENTATION_H
-#define ADDSEGMENTATION_H
+#ifndef SELECTABLEITEM_H
+#define SELECTABLEITEM_H
 
-#include <QSharedPointer>
-#include <QUndoCommand>
+#include <model/ModelItem.h>
+#include <processing/pqData.h>
 
-#include <model/Filter.h>
-#include <model/Segmentation.h>
 
-class AddSegmentation : public QUndoCommand
+class SelectableItem
+: public ModelItem
 {
 public:
-  explicit AddSegmentation(SegmentationPtr seg,
-			   QUndoCommand *parent=0);
-  virtual void redo();
-  virtual void undo();
+  ~SelectableItem(){}
 
-private:
-  SegmentationPtr m_segmentation;
+  virtual pqData volume() = 0;
 };
 
-#endif // ADDSEGMENTATION_H
+typedef QSharedPointer<SelectableItem> SelectableItemPtr;
+
+#endif // SELECTABLEITEM_H

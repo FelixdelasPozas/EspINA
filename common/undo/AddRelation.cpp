@@ -17,65 +17,43 @@
 */
 
 
-#include "model/Sample.h"
+#include "AddRelation.h"
+#include <EspinaCore.h>
 
-#include <QDebug>
 
 //------------------------------------------------------------------------
-Sample::Sample(QString ID)
-: m_ID(ID)
+AddRelation::AddRelation(ModelItem* ancestor,
+			 ModelItem* successor,
+			 const QString description,
+			 QUndoCommand* parent)
+: QUndoCommand(parent)
+, m_ancester(ancestor)
+, m_succesor(successor)
+, m_description(description)
 {
-  qDebug() << "Created Sample:" << ID;
 }
 
 //------------------------------------------------------------------------
-Sample::~Sample()
-{
-  qDebug() << "Deleted Sample:" << m_ID;
-}
-
-//------------------------------------------------------------------------
-double* Sample::origin()
-{
-  return m_origin;
-}
-
-
-//------------------------------------------------------------------------
-void Sample::setOrigin(double origin[3])
-{
-  memcpy(m_origin, origin, 3*sizeof(double));
-}
-
-//------------------------------------------------------------------------
-double* Sample::size()
-{
-  return m_size;
-}
-
-//------------------------------------------------------------------------
-void Sample::setSize(double size[3])
-{
-  memcpy(m_size, size, 3*sizeof(double));
-}
-
-//------------------------------------------------------------------------
-void Sample::addChannel(ChannelPtr channel)
+AddRelation::AddRelation(ModelItemPtr ancestor,
+			 ModelItemPtr successor,
+			 const QString description,
+			 QUndoCommand* parent)
+: QUndoCommand(parent)
+, m_ancester(ancestor.data())
+, m_succesor(successor.data())
+, m_description(description)
 {
 
 }
 
 //------------------------------------------------------------------------
-void Sample::addSegmentation(SegmentationPtr seg)
+void AddRelation::redo()
 {
-
+  EspinaCore::instance()->model()->addRelation(m_ancester, m_succesor, m_description);
 }
 
 //------------------------------------------------------------------------
-QVariant Sample::data(int role) const
+void AddRelation::undo()
 {
-  if (Qt::DisplayRole == role)
-    return m_ID;
-  else
-    return QVariant();
+  EspinaCore::instance()->model()->removeRelation(m_ancester, m_succesor, m_description);
 }

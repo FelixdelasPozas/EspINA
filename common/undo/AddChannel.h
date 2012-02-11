@@ -32,18 +32,16 @@ class AddChannel
 : public QUndoCommand
 {
 public:
-  explicit AddChannel(QSharedPointer<EspinaModel>  model,
-		      QSharedPointer<Sample>  sample,
-		      const QString           channelFile,
+  explicit AddChannel(QSharedPointer<Channel> channel,
+		      QUndoCommand *parent=0);
+  explicit AddChannel(const QString channelFile,
 		      QUndoCommand *parent=0);
 
   virtual void redo();
   virtual void undo();
 
 private:
-  QSharedPointer<EspinaModel>  m_model;
-  QSharedPointer<Sample>  m_sample;
-  Channel                *m_channel;
+  QSharedPointer<Channel> m_channel;
   pqFilter               *m_reader;
   const QString           m_file;
 };

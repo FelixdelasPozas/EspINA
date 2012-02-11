@@ -17,22 +17,32 @@
 */
 
 
-#ifndef FILTER_H
-#define FILTER_H
+#ifndef MODELITEM_H
+#define MODELITEM_H
 
-#include <QObject>
-#include <QMap>
-#include "pqData.h"
+#include <QModelIndex>
 
-class Filter : public QObject
+#include <QSharedPointer>
+
+/// Base class for every item in EspinaModel
+class ModelItem
 {
 public:
-  virtual int numProducts() const = 0;
-  virtual pqData product(int index) const = 0;
+  enum ItemType
+  { TAXONOMY
+  , SAMPLE
+  , CHANNEL
+  , SEGMENTATION
+  , FILTER};
 
-  typedef QMap<QString, QString> Arguments;
-  virtual pqData preview() = 0;
+  ~ModelItem(){}
+
+  virtual QVariant data(int role) const = 0;
+  virtual ItemType type() const = 0;
 };
 
+typedef QSharedPointer<ModelItem> ModelItemPtr;
 
-#endif // FILTER_H
+ModelItem *indexPtr(const QModelIndex &index);
+
+#endif //MODELITEM_H

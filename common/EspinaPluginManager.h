@@ -23,7 +23,6 @@
 
 #include <QString>
 #include <QMap>
-#include <processing/ProcessingTrace.h>
 
 class IPreferencePanel;
 class pqPipelineSource;
@@ -46,7 +45,7 @@ public:
   }
   
   void registerFilter(const QString &filter, IFilterFactory *factory);
-  EspinaFilter *createFilter(const QString& filter, ITraceNode::Arguments& args);
+//   EspinaFilter *createFilter(const QString& filter, ITraceNode::Arguments& args);
   
   void registerReader(const QString &extension, IFileReader *reader);
   void readFile(pqPipelineSource *proxy, const QString &filePath);

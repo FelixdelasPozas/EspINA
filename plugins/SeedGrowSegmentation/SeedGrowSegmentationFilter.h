@@ -20,7 +20,7 @@
 #ifndef SEEDGROWSEGMENTATIONFILTER_H
 #define SEEDGROWSEGMENTATIONFILTER_H
 
-#include <processing/Filter.h>
+#include <model/Filter.h>
 #include <processing/pqData.h>
 
 // #include "ui_SeedGrowSegmentationFilterSetup.h"
@@ -57,6 +57,9 @@ public:
   void setVOI(int VOI[6]);
   void voi(int VOI[6]) const {memcpy(VOI, m_VOI, 6*sizeof(int));}
 
+  /// Implements Model Item Interface
+  virtual QVariant data(int role) const;
+  virtual ItemType type() const {return ModelItem::FILTER;}
   /// Implements Filter Interface
   pqData preview();
   virtual int numProducts() const;

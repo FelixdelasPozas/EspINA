@@ -21,7 +21,7 @@
 #define SELECTABLEVIEW_H
 
 #include "SelectionHandler.h"
-#include <processing/Filter.h>
+#include <model/Filter.h>
 
 class pqRenderViewBase;
 

@@ -21,25 +21,19 @@
 
 #include <model/EspinaModel.h>
 #include <model/Sample.h>
+#include <EspinaCore.h>
 
-AddSample::AddSample(QSharedPointer<EspinaModel> model, QSharedPointer<Sample> sample)
-: m_model(model)
-, m_sample(sample)
+AddSample::AddSample(QSharedPointer<Sample> sample)
+: m_sample(sample)
 {}
 
 
 void AddSample::redo()
 {
-//   bool cover = m_model->getUndoStack()->property("cover").toBool();
-//   m_model->getUndoStack()->setProperty("cover", false);
-  m_model->addSample(m_sample.data());
-//   m_model->getUndoStack()->setProperty("cover", cover);
+  EspinaCore::instance()->model()->addSample(m_sample);
 }
 
 void AddSample::undo()
 {
-  //     bool cover = m_model->getUndoStack()->property("cover").toBool();
-  //     m_model->getUndoStack()->setProperty("cover", false);
-  m_model->removeSample(m_sample.data());
-  //     m_model->getUndoStack()->setProperty("cover", cover);
+  EspinaCore::instance()->model()->removeSample(m_sample);
 }

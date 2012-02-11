@@ -152,14 +152,6 @@ public slots:
 
   void forceRender();
 
-
-//   //! Slicer configuration methods:
-//   void setPlane(ViewType plane);
-
-// protected slots:
-//   virtual void setVOI(IVOI *voi);
-//   void updateVOIVisibility();
-
 protected slots:
   void close();
   void maximize();
@@ -176,7 +168,6 @@ signals:
   void maximizeRequest();
   void minimizeRequest();
   void undockRequest();
-// //  void pointSelected(int, int, int);
 
 protected:
   // AbstractItemView Interfacec
@@ -189,13 +180,9 @@ protected:
   void buildTitle();
   void buildControls();
 private:
-//   bool m_showSegmentations;
   vtkPVSliceView::VIEW_PLANE m_plane;
 
   pqSliceView *m_view;
-//   vtkSMRenderViewProxy *m_viewProxy;
-//   vtkRenderWindowInteractor *m_rwi;
-//   vtkCamera *m_cam;
 
   // GUI
   QHBoxLayout *m_titleLayout;

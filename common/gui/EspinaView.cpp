@@ -23,7 +23,7 @@
 
 #include "gui/SliceView.h"
 #include "gui/VolumeView.h"
-#include "model/IModelItem.h"
+#include "model/ModelItem.h"
 #include "model/Channel.h"
 #include "processing/pqData.h"
 
@@ -178,20 +178,21 @@ void DefaultEspinaView::rowsInserted(const QModelIndex& parent, int start, int e
     return;
 
   QModelIndex index = parent.child(start, 0);
-  IModelItem *item  = static_cast<IModelItem *>(index.internalPointer());
+  ModelItem *item  = indexPtr(index);
   switch (item->type())
   {
-    case IModelItem::CHANNEL:
+    case ModelItem::CHANNEL:
     {
       Q_ASSERT(start == end);// Only 1-row-at-a-time insertions are allowed
       Channel *channel = dynamic_cast<Channel *>(item);
+//       item.dynamicCast<ChannelPtr>();
       qDebug() << "Add Channel:" << channel->data(Qt::DisplayRole).toString();
       xyView->addChannelRepresentation(channel);
       yzView->addChannelRepresentation(channel);
       xzView->addChannelRepresentation(channel);
       break;
     }
-    case IModelItem::SEGMENTATION:
+    case ModelItem::SEGMENTATION:
     {
 //       pqServer *server = pqActiveObjects::instance().activeServer();
 //       pqObjectBuilder* builder = pqApplicationCore::instance()->getObjectBuilder();
@@ -223,7 +224,7 @@ void DefaultEspinaView::rowsInserted(const QModelIndex& parent, int start, int e
       xyView->addSegmentationRepresentation(seg);
       yzView->addSegmentationRepresentation(seg);
       xzView->addSegmentationRepresentation(seg);
-      volView->addSegmentationRepresentation(seg->data().outputPort());
+      volView->addSegmentationRepresentation(seg->volume().outputPort());
       break;
     }
     default:
@@ -243,10 +244,10 @@ void DefaultEspinaView::rowsAboutToBeRemoved(const QModelIndex& parent, int star
 
   qDebug() << parent.data(Qt::DisplayRole).toString();
   QModelIndex index = parent.child(start, 0);
-  IModelItem *item  = static_cast<IModelItem *>(index.internalPointer());
+  ModelItem *item  = indexPtr(index);
   switch (item->type())
   {
-    case IModelItem::CHANNEL:
+    case ModelItem::CHANNEL:
     {
       Q_ASSERT(start == end);// Only 1-row-at-a-time insertions are allowed
       Channel *channel = dynamic_cast<Channel *>(item);
@@ -261,7 +262,7 @@ void DefaultEspinaView::rowsAboutToBeRemoved(const QModelIndex& parent, int star
       xzView->setRanges(emptyBounds);
       break;
     }
-    case IModelItem::SEGMENTATION:
+    case ModelItem::SEGMENTATION:
     {
       Q_ASSERT(start == end);// Only 1-row-at-a-time insertions are allowed
       Segmentation *seg = dynamic_cast<Segmentation *>(item);

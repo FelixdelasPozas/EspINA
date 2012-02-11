@@ -41,11 +41,15 @@ public:
   void setActiveTaxonomy(TaxonomyNode *tax);
   TaxonomyNode *activeTaxonomy(){return m_activeTaxonomy;}
 
+  void setSample(Sample *sample) {m_sample = sample;}
+  Sample *sample(){return m_sample;}
+
 private:
   static EspinaCore *m_singleton;
 
   TaxonomyNode               *m_activeTaxonomy;
-  QSharedPointer<EspinaModel> m_model;
+  Sample                     *m_sample;
+  EspinaModelPtr              m_model;
   QSharedPointer<QUndoStack>  m_undoStack;
 };
 

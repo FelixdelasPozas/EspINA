@@ -22,37 +22,40 @@
 #include <cache/CachedObjectBuilder.h>
 #include <model/EspinaModel.h>
 #include <model/Channel.h>
-#include <model/Sample.h>
 
 #include <pqPipelineSource.h>
 #include <pqLoadDataReaction.h>
+#include <EspinaCore.h>
 
 
-AddChannel::AddChannel(QSharedPointer< EspinaModel > model,
-		       QSharedPointer< Sample > sample,
-		       const QString channelFile,
+AddChannel::AddChannel(QSharedPointer< Channel > channel, QUndoCommand* parent)
+: QUndoCommand(parent)
+, m_channel(channel)
+{
+}
+
+
+AddChannel::AddChannel(const QString channelFile,
 		       QUndoCommand* parent)
 : QUndoCommand(parent)
-, m_model(model)
-, m_sample(sample)
 , m_file(channelFile)
 {
 }
 
 void AddChannel::redo()
 {
-  pqPipelineSource* reader = pqLoadDataReaction::loadData(QStringList(m_file));
-  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-  m_reader = cob->registerFilter(m_file, reader);
-  Q_ASSERT(m_reader->getNumberOfData() == 1);
-  pqData channelData(m_reader,0);
-  m_channel = new Channel(channelData);
-  m_model->addChannel(m_sample.data(), m_channel);
+//   pqPipelineSource* reader = pqLoadDataReaction::loadData(QStringList(m_file));
+//   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+//   m_reader = cob->registerFilter(m_file, reader);
+//   Q_ASSERT(m_reader->getNumberOfData() == 1);
+//   pqData channelData(m_reader,0);
+//   m_channel = QSharedPointer<Channel>(new Channel(channelData));
+  EspinaCore::instance()->model()->addChannel(m_channel);
 }
 
 void AddChannel::undo()
 {
-  m_model->removeChannel(m_sample.data(), m_channel);
-  delete m_channel;
+  EspinaCore::instance()->model()->removeChannel(m_channel);
+//   m_channel.clear();
 }
 

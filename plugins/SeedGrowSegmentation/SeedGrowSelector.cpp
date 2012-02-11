@@ -20,6 +20,7 @@
 #include "SeedGrowSelector.h"
 
 #include "gui/ThresholdAction.h"
+#include <selection/SelectableItem.h>
 
 #include <QWheelEvent>
 #include <selection/SelectableView.h>
@@ -73,7 +74,7 @@ bool SeedGrowSelector::filterEvent(QEvent* e, SelectableView* view)
       Q_ASSERT(sel.size() == 1);// Only one element selected
       SelectionHandler::Selelection element = sel.first();
 
-      pqData input = element.second;
+      SelectableItem *input = element.second;
 
       Q_ASSERT(element.first.size() == 1); // with one pixel
       QVector3D pick = element.first.first();
@@ -87,12 +88,12 @@ bool SeedGrowSelector::filterEvent(QEvent* e, SelectableView* view)
 
         int VOI[6];
 	view->previewExtent(VOI);
-	m_preview = new SeedGrowSegmentationFilter(input, seed, m_threshold->threshold(), VOI);
+	m_preview = new SeedGrowSegmentationFilter(input->volume(), seed, m_threshold->threshold(), VOI);
 	view->addPreview(m_preview);
       }
       else
       {
-	m_preview->setInput(input);
+	m_preview->setInput(input->volume());
 	m_preview->setSeed(seed);
       }
       view->view()->forceRender();

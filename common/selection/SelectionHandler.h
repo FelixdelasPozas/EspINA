@@ -23,12 +23,14 @@
 
 #include <processing/pqData.h>
 
+#include "SelectableItem.h"
+
+#include <QSharedPointer>
 #include <QStringList>
 #include <QPolygon>
 #include <QVector3D>
 #include <QPair>
 #include <QCursor>
-
 
 class SelectableView;
 
@@ -43,13 +45,13 @@ class SelectionHandler
 public:
   /// List of taxonomy ids which can be selected
   /// WARNING: Special EspINA_Sample taxonomy is used to refer to the sample itself
-  static  const QString            EspINA_Channel;
-  typedef QStringList              SelectionFilters;
-  typedef QList<QPolygon>          ViewRegions;
-  typedef QList<QVector3D>         VtkRegion;
-  typedef QList<VtkRegion>         VtkRegions;
-  typedef QPair<VtkRegion, pqData> Selelection;
-  typedef QList<Selelection>       MultiSelection;
+  static  const QString                 EspINA_Channel;
+  typedef QStringList                   SelectionFilters;
+  typedef QList<QPolygon>               ViewRegions;
+  typedef QList<QVector3D>              VtkRegion;
+  typedef QList<VtkRegion>              VtkRegions;
+  typedef QPair<VtkRegion, SelectableItem *> Selelection;
+  typedef QList<Selelection>            MultiSelection;
 
 public:
   explicit SelectionHandler(SelectionHandler *succesor=NULL)
