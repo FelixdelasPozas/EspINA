@@ -43,18 +43,20 @@ vtkStandardNewMacro ( vtkSliceRepresentation );
 static bool base = true;
 //----------------------------------------------------------------------------
 vtkSliceRepresentation::vtkSliceRepresentation()
+: Color(0.0)
 {
+  bzero(Position,3*sizeof(int));
   this->SliceData = vtkImageData::New();
 
   this->DeliveryFilter = vtkImageSliceDataDeliveryFilter::New();
   this->Slice = vtkImageResliceToColors::New();
-  this->SliceActor = vtkImageActor::New();
-  this->SliceActor->SetInterpolate ( false );
-  this->SliceActor->GetMapper()->BorderOn();
+  this->SliceProp = vtkImageActor::New();
+  this->SliceProp->SetInterpolate(false);
+  this->SliceProp->GetMapper()->BorderOn();
   Slice->ReleaseDataFlagOn();
   DeliveryFilter->ReleaseDataFlagOn();
 
-  this->SliceActor->GetMapper()->SetInputConnection ( Slice->GetOutputPort() );
+  this->SliceProp->GetMapper()->SetInputConnection(Slice->GetOutputPort());
   qDebug() << "Created Representation" << this;
 }
 
@@ -89,7 +91,7 @@ int vtkSliceRepresentation::ProcessViewRequest (
     {
       outInfo->Set ( vtkPVRenderView::GEOMETRY_SIZE(), slice->GetActualMemorySize() );
     }
-    if ( this->SliceActor->GetOpacity() < 1.0 )
+    if ( this->SliceProp->GetOpacity() < 1.0 )
     {
       outInfo->Set ( vtkPVRenderView::NEED_ORDERED_COMPOSITING(), 1 );
     }
@@ -165,7 +167,7 @@ int vtkSliceRepresentation::RequestData (
     clone->Delete();
     Slice->Update();
     this->SliceData->ShallowCopy ( Slice->GetOutput() );
-    input->GetBounds ( SegActor.bounds );
+    input->GetBounds(SliceActor.bounds);
     this->DeliveryFilter->SetInput ( input );
   }
   else
@@ -178,26 +180,40 @@ int vtkSliceRepresentation::RequestData (
 
 
 //----------------------------------------------------------------------------
-bool vtkSliceRepresentation::AddToView ( vtkView* view )
+bool vtkSliceRepresentation::AddToView(vtkView* view)
 {
   //   qDebug() << "Add to View";
-  vtkPVSliceView* rview = vtkPVSliceView::SafeDownCast ( view );
-  if ( rview )
+  vtkPVSliceView* rview = vtkPVSliceView::SafeDownCast(view);
+  if (rview)
   {
-    Slice->SetOutputDimensionality ( 2 );
-    Slice->SetResliceAxes ( rview->GetSlicingMatrix() );
-    SliceActor->SetPickable ( true );
-    switch ( Type )
+    Slice->SetOutputDimensionality(2);
+    Slice->SetResliceAxes(rview->GetSlicingMatrix());
+    SliceProp->SetPickable(true);
+
+    SliceActor.prop = SliceProp;
+    SliceActor.mapper = Slice;
+
+    vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
+    lut->SetRange (0, 255);
+    lut->SetValueRange(0.0, 1.0);
+    double saturation = Color>0?1.0:0;
+    lut->SetSaturationRange(saturation, saturation);
+    lut->SetHueRange(Color, Color);
+    lut->SetRampToLinear();
+    lut->Build();
+    Slice->SetLookupTable(lut);
+    SliceActor.lut = lut;
+
+    switch (Type)
     {
       case 0:
-	rview->AddChannel ( this->SliceActor );
+	rview->AddChannel(&SliceActor);
 	break;
       case 1:
-	SegActor.actor = this->SliceActor;
-	rview->AddSegmentation ( &SegActor );
+	rview->AddSegmentation(&SliceActor);
 	break;
       default:
-	Q_ASSERT ( false );
+	Q_ASSERT(false);
 	return false;
     };
     return true;
@@ -207,8 +223,22 @@ bool vtkSliceRepresentation::AddToView ( vtkView* view )
 //----------------------------------------------------------------------------
 void vtkSliceRepresentation::SetVisibility(bool val)
 {
-  SliceActor->SetVisibility(val);
+  SliceProp->SetVisibility(val);
   vtkPVDataRepresentation::SetVisibility(val);
+}
+
+//----------------------------------------------------------------------------
+void vtkSliceRepresentation::SetColor(double color)
+{
+  Color = color;
+  std::cout<< "Changing Color " <<  color << std::endl;
+  if (SliceActor.lut == NULL)
+    return;
+
+  double saturation = Color>0?1.0:0;
+  SliceActor.lut->SetSaturationRange(saturation, saturation);
+  SliceActor.lut->SetHueRange(Color, Color);
+  SliceActor.lut->Build();
 }
 
 //----------------------------------------------------------------------------
@@ -226,7 +256,7 @@ void vtkSliceRepresentation::SetType ( int value )
     lut->SetTableValue ( 1,fg );
     lut->Build();
     Slice->SetLookupTable ( lut );
-    SliceActor->SetOpacity ( 0.7 );
+    SliceProp->SetOpacity ( 0.7 );
   }
 }
 

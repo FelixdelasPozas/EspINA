@@ -25,6 +25,8 @@
 #include <vtkSmartPointer.h>
 #include <QList>
 
+class vtkLookupTable;
+class vtkImageResliceToColors;
 // Forward-declarations
 class EspinaViewState;
 
@@ -46,20 +48,23 @@ public:
         CORONAL = 1
     };
 
-    struct SegActor
+    struct SliceActor
     {
-        vtkImageActor *actor;
-        double bounds[6];
+      vtkSmartPointer<vtkLookupTable> lut;
+      vtkImageResliceToColors *mapper;
+      vtkImageActor *prop;
+      double bounds[6];
     };
 
     static vtkPVSliceView* New();
     vtkTypeMacro ( vtkPVSliceView, vtkPVRenderView );
     void PrintSelf ( ostream& os, vtkIndent indent );
 
-    void AddActor ( vtkProp3D* actor );
+    void AddActor (vtkProp3D* actor);
     void RemoveActor(vtkProp3D* actor);
-    void AddChannel ( vtkProp3D *actor );
-    void AddSegmentation ( SegActor *actor );
+    void AddChannel(SliceActor *actor);
+    void AddSegmentation(SliceActor *actor);
+
     virtual void AddRepresentationInternal(vtkDataRepresentation* rep);
     virtual void RemoveRepresentationInternal(vtkDataRepresentation* rep);
 
@@ -142,8 +147,8 @@ private:
     bool             ShowSegmentations;
 
     vtkSmartPointer<vtkRenderer> OverviewRenderer;
-    QList<vtkProp3D *> Channels;
-    QList<SegActor *> Segmentations;
+    QList<SliceActor *> Channels;
+    QList<SliceActor *> Segmentations;
 
     vtkMatrix4x4     *SlicingMatrix;
 

@@ -23,6 +23,7 @@
 
 #include <iostream>
 #include <boost/graph/graphviz.hpp>
+#include "Filter.h"
 
 using namespace boost;
 
@@ -146,8 +147,13 @@ void RelationshipGraph::updateVertexInformation()
 	vertex.shape = "ellipse";
 	break;
       case ModelItem::FILTER:
+      {
+	Filter *filter = dynamic_cast<Filter *>(item);
+	Q_ASSERT(filter);
 	vertex.shape = "invtriangle";
+// 	vertex.args = filter->argments();
         break;
+      }
     default:
         Q_ASSERT(false);
     }

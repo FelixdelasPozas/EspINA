@@ -552,19 +552,31 @@ void vtkPVSliceView::RemoveActor(vtkProp3D* actor)
 }
 
 //----------------------------------------------------------------------------
-void vtkPVSliceView::AddChannel(vtkProp3D* actor)
+void vtkPVSliceView::AddChannel(SliceActor* actor)
 {
-  AddActor(actor);
+  AddActor(actor->prop);
   Channels.append(actor);
+  int numActors = m_actors.size();
+//   actor->prop->SetPosition(400*(numActors-1), 400*(numActors-1),0);
+  if (numActors > 1)
+  {
+    // TODO: Determine whether to change channel opacity or not (probably
+    // computing other channel intersections)
+    SliceActor *channel;
+    foreach(channel, Channels)
+    {
+      channel->prop->SetOpacity(1./double(numActors));
+    }
+  }
 }
 
 //----------------------------------------------------------------------------
-void vtkPVSliceView::AddSegmentation ( vtkPVSliceView::SegActor* actor )
+void vtkPVSliceView::AddSegmentation(vtkPVSliceView::SliceActor* actor)
 {
   qDebug() << "Add Segmentation";
-  AddActor ( actor->actor );
-  actor->actor->SetVisibility ( ShowSegmentations );
-  Segmentations.append ( actor );
+  AddActor(actor->prop);
+  actor->prop->SetVisibility(ShowSegmentations);
+  Segmentations.append(actor);
 }
 
 //----------------------------------------------------------------------------
@@ -646,7 +658,7 @@ void vtkPVSliceView::SetSlice ( double pos )
 {
     // qDebug() << "vtkPVSliceView " << SlicingPlane << "changing slice" << pos;
     State->setSlicePosition ( SlicingMatrix, pos );
-    SegActor *seg;
+    SliceActor *seg;
     int lowerBound = SlicingPlane * 2;
     int upperBound = SlicingPlane * 2 + 1;
     foreach ( seg, Segmentations )
@@ -656,7 +668,7 @@ void vtkPVSliceView::SetSlice ( double pos )
         //     qDebug() << b[0] << b[1] <<  b[2] <<  b[3] <<  b[4] <<  b[5];
         bool hide = seg->bounds[upperBound] < Center[SlicingPlane] ||
                     seg->bounds[lowerBound] > Center[SlicingPlane];
-        seg->actor->SetVisibility ( !hide && ShowSegmentations );
+        seg->prop->SetVisibility ( !hide && ShowSegmentations );
     }
 }
 
@@ -685,15 +697,15 @@ void vtkPVSliceView::SetSlicingPlane ( int plane )
     State->updateCamera ( RenderView->GetRenderer()->GetActiveCamera() );
     State->updateCamera ( OverviewRenderer->GetActiveCamera() );
 
-    vtkProp3D *actor;
-    foreach ( actor, Channels )
+    SliceActor *channel;
+    foreach(channel, Channels )
     {
-        State->updateActor ( actor );
+        State->updateActor(channel->prop);
     }
-    SegActor *seg;
-    foreach ( seg, Segmentations )
+    SliceActor *seg;
+    foreach(seg, Segmentations )
     {
-        State->updateActor ( seg->actor );
+        State->updateActor(seg->prop);
     }
 }
 
@@ -753,10 +765,10 @@ void vtkPVSliceView::SetVCrossLineColor ( double color[3] )
 void vtkPVSliceView::SetShowSegmentations ( bool visible )
 {
     //   qDebug() << "vtkPVSliceView segmentation's visibility = " << value;
-    SegActor *seg;
-    foreach ( seg, Segmentations )
+    SliceActor *seg;
+    foreach (seg, Segmentations)
     {
-        seg->actor->SetVisibility ( visible );
+        seg->prop->SetVisibility(visible);
     }
     ShowSegmentations = visible;
 }

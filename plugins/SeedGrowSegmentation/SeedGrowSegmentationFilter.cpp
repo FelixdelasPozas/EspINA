@@ -32,7 +32,6 @@
 #include <pqPipelineSource.h>
 #include <QSpinBox>
 #include <QLayout>
-#include <EspinaPluginManager.h>
 #include <pqOutputPort.h>
 #include <vtkPVDataInformation.h>
 #include <vtkSMProxy.h>
@@ -55,10 +54,6 @@
 //   m_zSeed->setText(QString("%1").arg(filter->m_seed[2]));
 //   m_threshold->setValue(filter->m_threshold);
 // }
-
-
-QString stripName(QString args){return args.split(";")[0];}//FAKE
-QString stripArgs(QString args){return args.split(";")[1];}//FAKE
 
 
 //-----------------------------------------------------------------------------

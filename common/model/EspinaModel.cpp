@@ -335,7 +335,6 @@ void EspinaModel::addSample (QSharedPointer<Sample> sample)
   beginInsertRows(sampleRoot(), row, row);
   m_samples << sample;
   m_relations->addItem(sample.data());
-  m_relations->print(std::cout);
   endInsertRows();
 }
 
@@ -374,7 +373,6 @@ void EspinaModel::addChannel(QSharedPointer<Channel> channel)
   beginInsertRows(channelRoot(), row, row);
   m_channels << channel;
   m_relations->addItem(channel.data());
-  m_relations->print(std::cout);
   endInsertRows();
 }
 
@@ -413,7 +411,6 @@ void EspinaModel::addSegmentation(SegmentationPtr seg)
 //   //m_sampleSegs[seg->origin()].push_back(seg);
   m_segmentations << seg;
   m_relations->addItem(seg.data());
-  m_relations->print(std::cout);
   endInsertRows();
 }
 
@@ -444,7 +441,6 @@ void EspinaModel::addFilter(FilterPtr filter)
   beginInsertRows(filterRoot(), row, row);
   m_filters << filter;
   m_relations->addItem(filter.data());
-  m_relations->print(std::cout);
   endInsertRows();
 }
 
@@ -463,7 +459,6 @@ void EspinaModel::removeFilter(FilterPtr filter)
 void EspinaModel::addRelation(ModelItem* ancestor, ModelItem* successor, QString relation)
 {
   m_relations->addRelation(ancestor, successor, relation);
-  m_relations->print(std::cout);
 }
 
 //------------------------------------------------------------------------

@@ -739,13 +739,27 @@ bool SliceView::pickChannel(int x, int y, double pickPos[3])
 //-----------------------------------------------------------------------------
 void SliceView::addChannelRepresentation(Channel* channel)
 {
-  vtkSMSliceViewProxy *ep =  vtkSMSliceViewProxy::SafeDownCast(m_view->getViewProxy());
-  Q_ASSERT(ep);
-  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-  Q_ASSERT(dp);
-  pqDataRepresentation *rep = dp->createPreferredRepresentation(channel->outputPort(),m_view,true);
+  pqOutputPort      *oport = channel->outputPort();
+  pqPipelineSource *source = oport->getSource();
+  vtkSMProxyManager   *pxm = source->getProxy()->GetProxyManager();
 
-  m_channels[channel] = rep;
+  vtkSMRepresentationProxy* reprProxy = vtkSMRepresentationProxy::SafeDownCast(
+    pxm->NewProxy("representations", "ChannelRepresentation"));
+  Q_ASSERT(reprProxy);
+  m_channels[channel] = reprProxy;
+
+    // Set the reprProxy's input.
+  pqSMAdaptor::setInputProperty(reprProxy->GetProperty("Input"),
+				source->getProxy(), oport->getPortNumber());
+  reprProxy->UpdateVTKObjects();
+
+  vtkSMProxy* viewModuleProxy = m_view->getProxy();
+  // Add the reprProxy to render module.
+  pqSMAdaptor::addProxyProperty(
+    viewModuleProxy->GetProperty("Representations"), reprProxy);
+  viewModuleProxy->UpdateVTKObjects();
+
+  m_view->resetCamera();
 
   // Only at sample LOD
   double spacing[3];
@@ -754,27 +768,34 @@ void SliceView::addChannelRepresentation(Channel* channel)
   double bounds[6];
   channel->bounds(bounds);
   setRanges(bounds);
-}
 
-//-----------------------------------------------------------------------------
-void SliceView::addChannelRepresentation(pqOutputPort* oport)
-{
-  vtkSMSliceViewProxy *ep =  vtkSMSliceViewProxy::SafeDownCast(m_view->getViewProxy());
-  Q_ASSERT(ep);
-  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-  dp->createPreferredRepresentation(oport,m_view,true);
+  int numChannels = m_channels.size();
+  if (numChannels > 1)
+  {
+    int total = 1;
+    vtkSMRepresentationProxy *rep;
+    foreach(rep, m_channels)
+    {
+      double color = 0.3*total++;
+      vtkSMPropertyHelper(rep, "Color").Set(&color,1);
+      rep->UpdateVTKObjects();
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::removeChannelRepresentation(Channel* channel)
 {
-  pqApplicationCore *core = pqApplicationCore::instance();
-  pqObjectBuilder *ob = core->getObjectBuilder();
-  m_view->getRenderViewProxy()->GetRenderer()->RemoveAllViewProps();
-  m_view->getRenderViewProxy()->GetOverviewRenderer()->RemoveAllViewProps();
-  ob->destroy(m_channels[channel]);
-  m_channels.remove(channel);
+  vtkSMProxy* viewModuleProxy = m_view->getProxy();
+  Q_ASSERT(m_channels.contains(channel));
+  vtkSMRepresentationProxy *repProxy = m_channels[channel];
+  // Remove the reprProxy to render module.
+  pqSMAdaptor::removeProxyProperty(
+    viewModuleProxy->GetProperty("Representations"), repProxy);
+  viewModuleProxy->UpdateVTKObjects();
   m_view->getProxy()->UpdateVTKObjects();
+
+  m_view->resetCamera();
 }
 
 //-----------------------------------------------------------------------------

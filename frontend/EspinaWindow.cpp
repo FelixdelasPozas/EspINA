@@ -88,14 +88,16 @@ EspinaWindow::EspinaWindow()
   QAction *openAnalysis = new QAction(tr("Open"),this);
   connect(openAnalysis,SIGNAL(triggered(bool)),
 	  this,SLOT(openAnalysis()));
-  QAction *addToAnalysis = new QAction(tr("Add"),this);
-  addToAnalysis->setEnabled(false);
+  m_addToAnalysis = new QAction(tr("Add"),this);
+  m_addToAnalysis->setEnabled(false);
+  connect(m_addToAnalysis, SIGNAL(triggered(bool)),
+	  this, SLOT(addToAnalysis()));
   QAction *saveAnalysis = new QAction(tr("Save"),this);
   connect(saveAnalysis,SIGNAL(triggered(bool)),
 	  this,SLOT(saveAnalysis()));
   fileMenu->addAction(newAnalysis);
   fileMenu->addAction(openAnalysis);
-  fileMenu->addAction(addToAnalysis);
+  fileMenu->addAction(m_addToAnalysis);
   fileMenu->addAction(saveAnalysis);
   menuBar()->addMenu(fileMenu);
 
@@ -386,6 +388,7 @@ void EspinaWindow::newAnalysis()
 
     m_undoStack->endMacro();
     QApplication::restoreOverrideCursor();
+    m_addToAnalysis->setEnabled(true);
   }
 }
 
@@ -417,7 +420,47 @@ void EspinaWindow::openAnalysis()
 //------------------------------------------------------------------------
 void EspinaWindow::addToAnalysis()
 {
+  pqServer* server = pqActiveObjects::instance().activeServer();
+  QString filters(tr("Channel (*.mha; *.mhd)"));
+  pqFileDialog fileDialog(server,
+    this,
+    tr("Analyse:"), QString(), filters);
+  fileDialog.setObjectName("AddToAnalysisFileDialog");
+  fileDialog.setFileMode(pqFileDialog::ExistingFiles);
+  fileDialog.setWindowTitle("Add data to Analysis");
+  if (fileDialog.exec() == QDialog::Accepted)
+  {
+    if (fileDialog.getSelectedFiles().size() != 1)
+    {
+      QMessageBox::warning(this, tr("EspinaModel"),
+			   tr("Loading multiple files at a time is not supported"));
+      return; //Multi-channels is not supported
+    }
 
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+
+    // TODO: Check for channel sample
+    const QString channelFile = fileDialog.getSelectedFiles().first();
+    const QString channelName = fileNameWithExtension(channelFile);
+
+
+    // Try to recover sample form DB using channel information
+    Sample *sample = EspinaCore::instance()->sample();
+
+    CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+    pqPipelineSource* reader = pqLoadDataReaction::loadData(QStringList(channelFile));
+    pqFilter *channelReader = cob->registerFilter(channelFile, reader);
+    Q_ASSERT(channelReader->getNumberOfData() == 1);
+    pqData channelData(channelReader, 0);
+    QSharedPointer<Channel> channel(new Channel(channelData));
+
+    m_undoStack->beginMacro("Add Data To Analysis");
+    m_undoStack->push(new AddChannel(channel));
+    m_undoStack->push(new AddRelation(sample, channel.data(), "where"));
+
+    m_undoStack->endMacro();
+    QApplication::restoreOverrideCursor();
+  }
 }
 
 //------------------------------------------------------------------------

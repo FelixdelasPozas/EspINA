@@ -76,6 +76,7 @@ private:
   QSharedPointer<EspinaModel> m_model;
   MainToolBar                *m_mainToolBar;
   QMenu                      *m_viewMenu;
+  QAction                    *m_addToAnalysis;
 
   QSharedPointer<QUndoStack>  m_undoStack;
   QString                     m_currentActivity;

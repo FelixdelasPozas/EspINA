@@ -43,6 +43,7 @@ public:
   void extent(int val[6]);
   void bounds(double val[6]);
   void spacing(double val[3]);
+  void position(int pos[3]);
 
   /// Model Item Interface
   virtual QVariant data(int role) const;
@@ -54,6 +55,7 @@ private:
   pqData m_data;
   int    m_extent[6];
   double m_bounds[6], m_spacing[3];
+  int    m_pos[3];/*in nm*/
 
 private:
 //   QList<Segmentation *> m_segs;

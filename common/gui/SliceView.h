@@ -125,7 +125,6 @@ public:
 //   void selectSegmentations(int x, int y, int z);
 //
   void addChannelRepresentation(Channel *channel);
-  void addChannelRepresentation(pqOutputPort *oport);
   void removeChannelRepresentation(Channel *channel);
 
   void addSegmentationRepresentation(Segmentation *seg);
@@ -199,7 +198,7 @@ private:
   double m_range[6];
   double m_center[3];
 
-  QMap<Channel *, pqDataRepresentation *> m_channels;
+  QMap<Channel *, vtkSMRepresentationProxy *> m_channels;
   QMap<Segmentation *, vtkSMRepresentationProxy *> m_segmentations;
   vtkSMRepresentationProxy *prevRep;
   Filter *m_preview;
