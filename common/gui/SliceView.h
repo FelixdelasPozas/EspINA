@@ -113,6 +113,7 @@ public:
   void setFitToGrid(bool value);
   void centerViewOn(double center[3]/*nm*/);
   void setCrossHairColors(double hcolor[3], double vcolor[3]);
+  void resetCamera();
 
   // Interface of SelectableView
   bool pickChannel(int x, int y, double pickPos[3]);

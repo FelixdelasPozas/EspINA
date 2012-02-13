@@ -25,6 +25,7 @@
 Sample::Sample(QString ID)
 : m_ID(ID)
 {
+  bzero(m_position,3*sizeof(int));
   qDebug() << "Created Sample:" << ID;
 }
 
@@ -35,16 +36,16 @@ Sample::~Sample()
 }
 
 //------------------------------------------------------------------------
-double* Sample::origin()
+void Sample::position(int pos[3])
 {
-  return m_origin;
+  memcpy(pos, m_position, 3*sizeof(int));
 }
 
 
 //------------------------------------------------------------------------
-void Sample::setOrigin(double origin[3])
+void Sample::setPosition(int pos[3])
 {
-  memcpy(m_origin, origin, 3*sizeof(double));
+  memcpy(m_position, pos, 3*sizeof(int));
 }
 
 //------------------------------------------------------------------------

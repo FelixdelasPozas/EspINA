@@ -45,8 +45,8 @@ public:
 
   QString id(){return m_ID;}
   // Relative to brain center (in nm)
-  double *origin();
-  void setOrigin(double origin[3]);
+  void position(int pos[3]);
+  void setPosition(int origin[3]);
 
   double *size();/*nm*/
   void setSize(double size[3]);
@@ -60,7 +60,7 @@ public:
 
 private:
   QString m_ID;
-  double  m_origin[3];//nm
+  int  m_position[3];//nm
   double  m_size[3];//nm
 
   QList<ChannelPtr>      m_channels;

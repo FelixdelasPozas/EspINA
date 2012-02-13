@@ -180,6 +180,19 @@ int vtkSliceRepresentation::RequestData (
 
 
 //----------------------------------------------------------------------------
+vtkSmartPointer< vtkLookupTable > vtkSliceRepresentation::lut()
+{
+  vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
+  lut->Build();
+  return lut;
+}
+
+//----------------------------------------------------------------------------
+void vtkSliceRepresentation::AddToView(vtkPVSliceView* view)
+{
+}
+
+//----------------------------------------------------------------------------
 bool vtkSliceRepresentation::AddToView(vtkView* view)
 {
   //   qDebug() << "Add to View";
@@ -193,32 +206,17 @@ bool vtkSliceRepresentation::AddToView(vtkView* view)
     SliceActor.prop = SliceProp;
     SliceActor.mapper = Slice;
 
-    vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
-    lut->SetRange (0, 255);
-    lut->SetValueRange(0.0, 1.0);
-    double saturation = Color>0?1.0:0;
-    lut->SetSaturationRange(saturation, saturation);
-    lut->SetHueRange(Color, Color);
-    lut->SetRampToLinear();
-    lut->Build();
-    Slice->SetLookupTable(lut);
-    SliceActor.lut = lut;
+    SliceActor.lut = lut();
+    Slice->SetLookupTable(SliceActor.lut);
 
-    switch (Type)
-    {
-      case 0:
-	rview->AddChannel(&SliceActor);
-	break;
-      case 1:
-	rview->AddSegmentation(&SliceActor);
-	break;
-      default:
-	Q_ASSERT(false);
-	return false;
-    };
+    SliceActor.prop->SetOpacity(Opacity);
+    SliceActor.prop->SetPosition(Position[0],Position[1],Position[2]);
+    AddToView(rview);
+
+
     return true;
-  }
-  return false;
+  }else
+    return false;
 }
 //----------------------------------------------------------------------------
 void vtkSliceRepresentation::SetVisibility(bool val)
@@ -231,32 +229,12 @@ void vtkSliceRepresentation::SetVisibility(bool val)
 void vtkSliceRepresentation::SetColor(double color)
 {
   Color = color;
-  std::cout<< "Changing Color " <<  color << std::endl;
+//   std::cout<< "Changing Color " <<  color << std::endl;
   if (SliceActor.lut == NULL)
     return;
 
-  double saturation = Color>0?1.0:0;
-  SliceActor.lut->SetSaturationRange(saturation, saturation);
+  double saturation = Color>=0?1.0:0;
+  SliceActor.lut->SetSaturationRange(0.0, saturation);
   SliceActor.lut->SetHueRange(Color, Color);
   SliceActor.lut->Build();
 }
-
-//----------------------------------------------------------------------------
-void vtkSliceRepresentation::SetType ( int value )
-{
-  Type = value;
-  //   qDebug() << "Set Type " << value ;
-  if ( Type == 1 )
-  {
-    vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
-    lut->SetNumberOfTableValues ( 2 );
-    double bg[4] = { 0.0, 0.0, 0.0, 0.0 };
-    double fg[4] = { 1.0, 0.0, 0.0, 1.0 };
-    lut->SetTableValue ( 0,bg );
-    lut->SetTableValue ( 1,fg );
-    lut->Build();
-    Slice->SetLookupTable ( lut );
-    SliceProp->SetOpacity ( 0.7 );
-  }
-}
-

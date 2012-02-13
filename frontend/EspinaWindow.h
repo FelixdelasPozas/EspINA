@@ -62,6 +62,8 @@ public slots:
   /// Save Current Analysis
   void saveAnalysis();
 
+  void loadChannel(const QString file);
+
 protected slots:
   void updateStatus(QString msg);
 

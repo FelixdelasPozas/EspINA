@@ -556,18 +556,18 @@ void vtkPVSliceView::AddChannel(SliceActor* actor)
 {
   AddActor(actor->prop);
   Channels.append(actor);
-  int numActors = m_actors.size();
-//   actor->prop->SetPosition(400*(numActors-1), 400*(numActors-1),0);
-  if (numActors > 1)
-  {
-    // TODO: Determine whether to change channel opacity or not (probably
-    // computing other channel intersections)
-    SliceActor *channel;
-    foreach(channel, Channels)
-    {
-      channel->prop->SetOpacity(1./double(numActors));
-    }
-  }
+//   int numChannels = Channels.size();
+//   actor->prop->SetPosition(400*(numChannels-1), 400*(numChannels-1),0);
+//   if (numChannels > 1)
+//   {
+//     // TODO: Determine whether to change channel opacity or not (probably
+//     // computing other channel intersections)
+//     SliceActor *channel;
+//     foreach(channel, Channels)
+//     {
+//       channel->prop->SetOpacity(1./double(numChannels));
+//     }
+//   }
 }
 
 //----------------------------------------------------------------------------

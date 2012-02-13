@@ -90,7 +90,7 @@
  
  <ProxyGroup name="representations">
     <RepresentationProxy name="ChannelRepresentation"
-      class="vtkSliceRepresentation"
+      class="vtkChannelRepresentation"
       processes="client|renderserver|dataserver">
       <Documentation>
         This is the new representation type we are adding. This is identical to
@@ -107,16 +107,6 @@
         <InputArrayDomain name="input_array_any" attribute_type="any">
         </InputArrayDomain>
       </InputProperty>
-      <IntVectorProperty name="Type"
-        command="SetType"
-        number_of_elements="1"
-        default_values="0">
-        <Documentation>
-          Set the type for this representation.
-	  Type=0: Channel
-	  Type=1: Segmentation
-        </Documentation>
-      </IntVectorProperty>
       <IntVectorProperty name="Position"
         command="SetPosition"
         number_of_elements="3"
@@ -137,14 +127,22 @@
       <DoubleVectorProperty name="Color"
         command="SetColor"
         number_of_elements="1"
-        default_values="0.0">
+        default_values="-1.0">
         <Documentation>
           Set the HUE value to be used for this slice.
         </Documentation>
       </DoubleVectorProperty>
+      <DoubleVectorProperty name="Opacity"
+        command="SetOpacity"
+        number_of_elements="1"
+        default_values="1.0">
+        <Documentation>
+          Set the opacity for the channel
+        </Documentation>
+      </DoubleVectorProperty>
     </RepresentationProxy>
     <RepresentationProxy name="SegmentationRepresentation"
-      class="vtkSliceRepresentation"
+      class="vtkSegmentationRepresentation"
       processes="client|renderserver|dataserver">
       <Documentation>
         This is the new representation type we are adding. This is identical to
@@ -161,16 +159,6 @@
         <InputArrayDomain name="input_array_any" attribute_type="any">
         </InputArrayDomain>
       </InputProperty>
-      <IntVectorProperty name="Type"
-        command="SetType"
-        number_of_elements="1"
-        default_values="1">
-        <Documentation>
-          Set the type for this representation.
-	  Type=0: Channel
-	  Type=1: Segmentation
-        </Documentation>
-      </IntVectorProperty>
       <IntVectorProperty name="Position"
         command="SetPosition"
         number_of_elements="3"
@@ -194,6 +182,14 @@
         default_values="1.0">
         <Documentation>
           Set the HUE value to be used for this slice.
+        </Documentation>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty name="Opacity"
+        command="SetOpacity"
+        number_of_elements="1"
+        default_values="0.3">
+        <Documentation>
+          Set the opacity for the channel
         </Documentation>
       </DoubleVectorProperty>
     </RepresentationProxy>

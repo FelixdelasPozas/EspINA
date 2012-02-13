@@ -28,6 +28,7 @@
 #include <selection/SelectableItem.h>
 
 #include "processing/pqData.h"
+#include <QColor>
 
 // Forward declarations
 class pqOutputPort;
@@ -43,7 +44,15 @@ public:
   void extent(int val[6]);
   void bounds(double val[6]);
   void spacing(double val[3]);
+
+  void setPosition(int pos[3]);
   void position(int pos[3]);
+
+  void setColor(const double color);
+  double color() const;
+
+  void setOpacity(double opacity);
+  double opacity() {return m_opacity;}
 
   /// Model Item Interface
   virtual QVariant data(int role) const;
@@ -58,6 +67,8 @@ private:
   int    m_pos[3];/*in nm*/
 
 private:
+  double m_color;
+  double m_opacity;
 //   QList<Segmentation *> m_segs;
 
 //   QMap<ExtensionId, IChannelExtension *> m_extensions;

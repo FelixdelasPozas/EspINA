@@ -46,6 +46,7 @@ public:
   virtual void restoreLayout() = 0;
   virtual void saveLayout() = 0;
 
+  virtual void resetCamera() = 0;
 
   /// QAbstractItemView Interface
   virtual QModelIndex indexAt(const QPoint& point) const {return QModelIndex();}
@@ -82,6 +83,8 @@ public:
   virtual void createViewMenu(QMenu* menu);
   virtual void restoreLayout();
   virtual void saveLayout();
+
+  virtual void resetCamera();
 
   virtual QSize sizeHint() const;
 

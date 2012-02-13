@@ -32,11 +32,14 @@
 //-----------------------------------------------------------------------------
 Channel::Channel(pqData data)
 : m_data(data)
+, m_color(-1.0)
+, m_opacity(1.0)
 {
   bzero(m_bounds,6*sizeof(double));
   bzero(m_extent,6*sizeof(int));
   bzero(m_spacing,3*sizeof(double));
   m_bounds[1] = m_extent[1] = -1;
+  bzero(m_pos,3*sizeof(int));
 
   qDebug() << "Created Channel" << m_data.id();
 }
@@ -165,6 +168,37 @@ void Channel::spacing(double val[3])
 //   qDebug() << b[0] << b[1] << b[2] << b[3] << b[4] << b[5];
 //   qDebug() << val[0] << val[1] << val[2];
 }
+
+//------------------------------------------------------------------------
+void Channel::setPosition(int pos[3])
+{
+  memcpy(m_pos, pos, 3*sizeof(int));
+}
+
+//------------------------------------------------------------------------
+void Channel::position(int pos[3])
+{
+  memcpy(pos, m_pos, 3*sizeof(int));
+}
+
+//------------------------------------------------------------------------
+void Channel::setColor(double color)
+{
+  m_color = color;
+}
+
+//------------------------------------------------------------------------
+double Channel::color() const
+{
+  return m_color;
+}
+
+//------------------------------------------------------------------------
+void Channel::setOpacity(double opacity)
+{
+  m_opacity = opacity;
+}
+
 
 //------------------------------------------------------------------------
 QVariant Channel::data(int role) const

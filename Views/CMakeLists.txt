@@ -19,6 +19,8 @@ add_paraview_view_module(
 set (SERVER_SOURCES
   vtkPVSliceView.cpp
   vtkSMSliceViewProxy.cpp
+  vtkChannelRepresentation.cpp
+  vtkSegmentationRepresentation.cpp
   vtkSliceRepresentation.cpp
   )
 

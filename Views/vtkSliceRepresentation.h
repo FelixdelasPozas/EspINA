@@ -52,11 +52,11 @@ public:
   void SetColor(double color);
   vtkGetMacro(Color, double);
 
+  vtkSetMacro(Opacity, double);
+  vtkGetMacro(Opacity, double);
+
   vtkSetVector3Macro(Position, int);
   vtkGetVector3Macro(Position, int);
-
-  void SetType(int value);
-  vtkGetMacro(Type, int);
 
   //BTX
 protected:
@@ -76,6 +76,8 @@ protected:
   // annotation port whose selections are localized for a particular input data object.
   virtual int RequestData (vtkInformation *, vtkInformationVector  **, vtkInformationVector *);
 
+  virtual vtkSmartPointer<vtkLookupTable> lut();
+  virtual void AddToView(vtkPVSliceView *view);
   virtual bool AddToView(vtkView *view);
   virtual void SetVisibility(bool val);
 
@@ -87,11 +89,12 @@ protected:
   vtkImageData              *SliceData;
   vtkPVSliceView::SliceActor SliceActor;
 
-private:
+protected:
   double Color;
   int    Position[3];
-  int    Type;
+  double Opacity;
   //ETX
 };
+
 
 #endif // VTKSLICEREPRESENTATION_H

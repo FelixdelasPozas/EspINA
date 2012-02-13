@@ -493,6 +493,12 @@ void SliceView::setCrossHairColors(double hcolor[3], double vcolor[3])
   m_view->getProxy()->UpdateVTKObjects();
 }
 
+//-----------------------------------------------------------------------------
+void SliceView::resetCamera()
+{
+  m_view->resetCamera();
+}
+
 
 //-----------------------------------------------------------------------------
 void SliceView::eventPosition(int& x, int& y)
@@ -751,6 +757,13 @@ void SliceView::addChannelRepresentation(Channel* channel)
     // Set the reprProxy's input.
   pqSMAdaptor::setInputProperty(reprProxy->GetProperty("Input"),
 				source->getProxy(), oport->getPortNumber());
+  int pos[3];
+  channel->position(pos);
+  vtkSMPropertyHelper(reprProxy, "Position").Set(pos,3);
+  double color = channel->color();
+  vtkSMPropertyHelper(reprProxy, "Color").Set(&color,1);
+  double opacity = channel->opacity();
+  vtkSMPropertyHelper(reprProxy, "Opacity").Set(&opacity,1);
   reprProxy->UpdateVTKObjects();
 
   vtkSMProxy* viewModuleProxy = m_view->getProxy();
@@ -759,8 +772,6 @@ void SliceView::addChannelRepresentation(Channel* channel)
     viewModuleProxy->GetProperty("Representations"), reprProxy);
   viewModuleProxy->UpdateVTKObjects();
 
-  m_view->resetCamera();
-
   // Only at sample LOD
   double spacing[3];
   channel->spacing(spacing);
@@ -768,19 +779,6 @@ void SliceView::addChannelRepresentation(Channel* channel)
   double bounds[6];
   channel->bounds(bounds);
   setRanges(bounds);
-
-  int numChannels = m_channels.size();
-  if (numChannels > 1)
-  {
-    int total = 1;
-    vtkSMRepresentationProxy *rep;
-    foreach(rep, m_channels)
-    {
-      double color = 0.3*total++;
-      vtkSMPropertyHelper(rep, "Color").Set(&color,1);
-      rep->UpdateVTKObjects();
-    }
-  }
 }
 
 //-----------------------------------------------------------------------------

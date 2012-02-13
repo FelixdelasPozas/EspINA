@@ -349,7 +349,6 @@ void EspinaWindow::newAnalysis()
   fileDialog.setWindowTitle("Analyse Data");
   if (fileDialog.exec() == QDialog::Accepted)
   {
-    QApplication::setOverrideCursor(Qt::WaitCursor);
     m_model->clear();
 
     TaxonomyPtr defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
@@ -373,22 +372,16 @@ void EspinaWindow::newAnalysis()
     QSharedPointer<Sample> sample(new Sample(SampleName));
     EspinaCore::instance()->setSample(sample.data());
 
-    CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-    pqPipelineSource* reader = pqLoadDataReaction::loadData(QStringList(channelFile));
-    pqFilter *channelReader = cob->registerFilter(channelFile, reader);
-    Q_ASSERT(channelReader->getNumberOfData() == 1);
-    pqData channelData(channelReader, 0);
-    QSharedPointer<Channel> channel(new Channel(channelData));
-
     m_undoStack->beginMacro("New Analysis");
-//     Sample *sample = new Sample(SampleName);
+
     m_undoStack->push(new AddSample(sample));
-    m_undoStack->push(new AddChannel(channel));
-    m_undoStack->push(new AddRelation(sample.data(), channel.data(), "where"));
+    loadChannel(channelFile);
 
     m_undoStack->endMacro();
-    QApplication::restoreOverrideCursor();
+
     m_addToAnalysis->setEnabled(true);
+
+    m_view->resetCamera();
   }
 }
 
@@ -411,7 +404,6 @@ void EspinaWindow::openAnalysis()
 // //     Internals->dataDock->setHidden(true);
 //     this->update();
 //     this->repaint();
-//     QApplication::setOverrideCursor(Qt::WaitCursor);
 // //     m_espina->loadFile(fileDialog.getSelectedFiles()[0], method);
 //     QApplication::restoreOverrideCursor();
 //   }
@@ -437,29 +429,9 @@ void EspinaWindow::addToAnalysis()
       return; //Multi-channels is not supported
     }
 
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-
-    // TODO: Check for channel sample
     const QString channelFile = fileDialog.getSelectedFiles().first();
-    const QString channelName = fileNameWithExtension(channelFile);
 
-
-    // Try to recover sample form DB using channel information
-    Sample *sample = EspinaCore::instance()->sample();
-
-    CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-    pqPipelineSource* reader = pqLoadDataReaction::loadData(QStringList(channelFile));
-    pqFilter *channelReader = cob->registerFilter(channelFile, reader);
-    Q_ASSERT(channelReader->getNumberOfData() == 1);
-    pqData channelData(channelReader, 0);
-    QSharedPointer<Channel> channel(new Channel(channelData));
-
-    m_undoStack->beginMacro("Add Data To Analysis");
-    m_undoStack->push(new AddChannel(channel));
-    m_undoStack->push(new AddRelation(sample, channel.data(), "where"));
-
-    m_undoStack->endMacro();
-    QApplication::restoreOverrideCursor();
+    loadChannel(channelFile);
   }
 }
 
@@ -522,6 +494,41 @@ void EspinaWindow::saveAnalysis()
     QApplication::restoreOverrideCursor();
   }
 }
+
+//------------------------------------------------------------------------
+void EspinaWindow::loadChannel(const QString file)
+{
+    pqPipelineSource* reader = pqLoadDataReaction::loadData(QStringList(file));
+
+    CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+    pqFilter *channelReader = cob->registerFilter(file, reader);
+    Q_ASSERT(channelReader->getNumberOfData() == 1);
+
+    // Try to recover sample form DB using channel information
+    Sample *sample = EspinaCore::instance()->sample();
+
+    pqData channelData(channelReader, 0);
+    QSharedPointer<Channel> channel(new Channel(channelData));
+
+    int pos[3];
+    sample->position(pos);
+    channel->setPosition(pos);
+
+    //TODO: Check for channel information in DB
+    QColorDialog dyeSelector;
+    if (dyeSelector.exec() == QDialog::Accepted)
+    {
+      channel->setColor(dyeSelector.selectedColor().hueF());
+    }
+
+    m_undoStack->beginMacro("Add Data To Analysis");
+    m_undoStack->push(new AddChannel(channel));
+    m_undoStack->push(new AddRelation(sample, channel.data(), "where"));
+
+    m_undoStack->endMacro();
+
+}
+
 
 
 //------------------------------------------------------------------------

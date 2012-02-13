@@ -40,6 +40,7 @@
 #include <QDir>
 #include <QMenu>
 #include <model/Segmentation.h>
+#include <QApplication>
 
 //----------------------------------------------------------------------------
 EspinaView::EspinaView( QMainWindow* parent, const QString activity)
@@ -154,6 +155,15 @@ void DefaultEspinaView::saveLayout()
 }
 
 //----------------------------------------------------------------------------
+void DefaultEspinaView::resetCamera()
+{
+  xyView->resetCamera();
+  yzView->resetCamera();
+  xzView->resetCamera();
+}
+
+
+//----------------------------------------------------------------------------
 void DefaultEspinaView::setShowSegmentations(bool visibility)
 {
   xyView->setSegmentationVisibility(visibility);
@@ -183,6 +193,7 @@ void DefaultEspinaView::rowsInserted(const QModelIndex& parent, int start, int e
   {
     case ModelItem::CHANNEL:
     {
+      QApplication::setOverrideCursor(Qt::WaitCursor);
       Q_ASSERT(start == end);// Only 1-row-at-a-time insertions are allowed
       Channel *channel = dynamic_cast<Channel *>(item);
 //       item.dynamicCast<ChannelPtr>();
@@ -190,6 +201,7 @@ void DefaultEspinaView::rowsInserted(const QModelIndex& parent, int start, int e
       xyView->addChannelRepresentation(channel);
       yzView->addChannelRepresentation(channel);
       xzView->addChannelRepresentation(channel);
+      QApplication::restoreOverrideCursor();
       break;
     }
     case ModelItem::SEGMENTATION:
