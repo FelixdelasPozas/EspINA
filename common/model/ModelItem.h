@@ -24,6 +24,9 @@
 
 #include <QSharedPointer>
 
+class VertexProperty;
+class RelationshipGraph;
+
 /// Base class for every item in EspinaModel
 class ModelItem
 {
@@ -35,10 +38,17 @@ public:
   , SEGMENTATION
   , FILTER};
 
-  ~ModelItem(){}
+  ModelItem() : m_vertex(NULL), m_relations(NULL) {}
+  virtual ~ModelItem(){}
 
   virtual QVariant data(int role) const = 0;
   virtual ItemType type() const = 0;
+
+protected:
+  VertexProperty *m_vertex;
+  RelationshipGraph *m_relations;
+
+  friend class RelationshipGraph;
 };
 
 typedef QSharedPointer<ModelItem> ModelItemPtr;

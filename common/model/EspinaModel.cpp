@@ -24,6 +24,7 @@
 // #include "espina_debug.h"
 
 //Espina
+#include "ModelItem.h"
 #include "model/Channel.h"
 #include "model/Sample.h"
 #include "model/Segmentation.h"
@@ -45,7 +46,7 @@ EspinaModel::~EspinaModel()
 }
 
 //------------------------------------------------------------------------
-void EspinaModel::clear()
+void EspinaModel::reset()
 {
   setTaxonomy(TaxonomyPtr());
   if (!m_samples.isEmpty())
@@ -466,6 +467,78 @@ void EspinaModel::removeRelation(ModelItem* ancestor, ModelItem* successor, QStr
 {
 //   m_relations->removeRelation(ancestor, successor, relation);
 }
+
+//------------------------------------------------------------------------
+void EspinaModel::serializeRelations(std::ostream& stream, RelationshipGraph::PrintFormat format)
+{
+  m_relations->serialize(stream, format);
+}
+
+//------------------------------------------------------------------------
+bool checkProcessing(RelationshipGraph::Vertices query, RelationshipGraph::Vertices processedVertices)
+{
+  foreach(RelationshipGraph::VertexId v, query)
+  {
+    if (!processedVertices.contains(v))
+      return false;
+  }
+  return true;
+}
+
+//------------------------------------------------------------------------
+void EspinaModel::loadSerialization(QTextStream& stream)
+{
+  QSharedPointer<RelationshipGraph> input(new RelationshipGraph());
+
+  input->load(stream);
+
+  RelationshipGraph::Vertices nonProcessedVertices(input->rootVertices());
+  RelationshipGraph::Vertices processedVertices;
+
+  while (!nonProcessedVertices.isEmpty())
+  {
+    RelationshipGraph::VertexId v = nonProcessedVertices.takeFirst();
+
+    qDebug() << "Processing" << v << input->name(v)  << input->type(v);
+
+    if (!checkProcessing(input->ancestors(v), processedVertices))
+    {
+      nonProcessedVertices << v;
+      continue;
+    }
+
+    RelationshipGraph::VertexId fv;// Found Vertex
+    if (!m_relations->find(input->properties(v), fv))
+    {
+      switch (input->type(v))
+      {
+	case ModelItem::SAMPLE:
+	{
+	    qDebug() << "Sample doesn't exists ==> Add new Sample"
+	    << input->name(v) << " with args:" << input->args(v);
+	    SamplePtr sample(new Sample(input->name(v), input->args(v)));
+	    addSample(sample);
+	  break;
+	}
+	case ModelItem::CHANNEL:
+	  break;
+	case ModelItem::FILTER:
+	  break;
+	case ModelItem::SEGMENTATION:
+	  break;
+	default:
+	  Q_ASSERT(false);
+      }
+    }else
+    {
+      qDebug() << v << "Already exists";
+    }
+
+    processedVertices << v;
+    nonProcessedVertices << input->succesors(v);
+  }
+}
+
 
 //------------------------------------------------------------------------
 QModelIndex EspinaModel::index(ModelItem *item)

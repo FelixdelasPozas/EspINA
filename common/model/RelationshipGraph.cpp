@@ -25,8 +25,14 @@
 #include <boost/graph/graphviz.hpp>
 #include "Filter.h"
 
+#include <QDebug>
+
 using namespace boost;
 
+const std::string BOX = "box";
+const std::string ELLIPSE = "ellipse";
+const std::string INVTRIANGLE = "invtriangle";
+const std::string TRAPEZIUM = "trapezium";
 
 //-----------------------------------------------------------------------------
 /// Visit nodes by edges and return the root vertex id
@@ -115,6 +121,8 @@ void RelationshipGraph::addItem(ModelItem* item)
   VertexId v = add_vertex(m_graph);
   //node->vertexId = v;
   m_graph[v].item = item;
+  item->m_vertex = &m_graph[v];
+  item->m_relations = this;
 }
 
 //-----------------------------------------------------------------------------
@@ -133,24 +141,26 @@ void RelationshipGraph::updateVertexInformation()
   {
     VertexProperty &vertex = m_graph[*vi];
     ModelItem *item = vertex.item;
+    if (!item)
+      continue;
     Q_ASSERT(item);
     vertex.name = item->data(Qt::DisplayRole).toString().toStdString();
     switch (item->type())
     {
       case ModelItem::SAMPLE:
-        vertex.shape = "trapezium";
+        vertex.shape = TRAPEZIUM;
         break;
       case ModelItem::CHANNEL:
-	vertex.shape = "box";
+	vertex.shape = BOX;
 	break;
       case ModelItem::SEGMENTATION:
-	vertex.shape = "ellipse";
+	vertex.shape = ELLIPSE;
 	break;
       case ModelItem::FILTER:
       {
 	Filter *filter = dynamic_cast<Filter *>(item);
 	Q_ASSERT(filter);
-	vertex.shape = "invtriangle";
+	vertex.shape = INVTRIANGLE;
 // 	vertex.args = filter->argments();
         break;
       }
@@ -197,41 +207,136 @@ void RelationshipGraph::connect(const QString& ancestor, ModelItem* successor, c
 }
 
 //-----------------------------------------------------------------------------
-void RelationshipGraph::readTrace(QTextStream& stream)
+RelationshipGraph::Vertices RelationshipGraph::rootVertices()
 {
-  m_graph.clear(); // Reset the old trace
-  Graph schema;
+  VertexId v;
+  Vertices result;
+
+  VertexIterator vi, vi_end;
+  for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
+  {
+    InEdgeIterator iei, iei_end;
+    boost::tie(iei, iei_end) = boost::in_edges(*vi,m_graph);
+    if (iei == iei_end)
+      result << *vi;
+  }
+
+  return result;
+}
+
+//-----------------------------------------------------------------------------
+RelationshipGraph::Vertices RelationshipGraph::ancestors(RelationshipGraph::VertexId v) const
+{
+  Vertices result;
+  InEdgeIterator iei, iei_end;
+
+  qDebug() << "Ancestors of:" << m_graph[v].name.c_str();
+  for(boost::tie(iei, iei_end) = boost::in_edges(v, m_graph); iei != iei_end; iei++)
+  {
+    qDebug() << "\t" << source(*iei, m_graph) << m_graph[source(*iei,m_graph)].name.c_str();
+    result << source(*iei, m_graph);
+  }
+  return result;
+}
+
+//-----------------------------------------------------------------------------
+RelationshipGraph::Vertices RelationshipGraph::succesors(RelationshipGraph::VertexId v) const
+{
+  Vertices result;
+  OutEdgeIterator oei, oei_end;
+
+  qDebug() << "Successors of:" << m_graph[v].name.c_str();
+  for(boost::tie(oei, oei_end) = boost::out_edges(v, m_graph); oei != oei_end; oei++)
+  {
+    qDebug() << "\t" << m_graph[target(*oei,m_graph)].name.c_str();
+    result << target(*oei, m_graph);
+  }
+  return result;
+}
+
+
+//-----------------------------------------------------------------------------
+bool RelationshipGraph::find(VertexProperty vp, RelationshipGraph::VertexId& foundV) const
+{
+  VertexIterator vi, vi_end;
+  for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
+  {
+    if (m_graph[*vi].name  == vp.name  &&
+        m_graph[*vi].shape == vp.shape &&
+        m_graph[*vi].args  == vp.args)
+    {
+      foundV = *vi;
+      return true;
+    }
+  }
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+QString RelationshipGraph::name(RelationshipGraph::VertexId v) const
+{
+  return QString(m_graph[v].name.c_str());
+}
+
+//-----------------------------------------------------------------------------
+ModelItem::ItemType RelationshipGraph::type(RelationshipGraph::VertexId v) const
+{
+  if (m_graph[v].item)
+    return m_graph[v].item->type();
+  else if (m_graph[v].shape == TRAPEZIUM)
+    return ModelItem::SAMPLE;
+  else if (m_graph[v].shape == BOX)
+    return ModelItem::CHANNEL;
+  else if (m_graph[v].shape == ELLIPSE)
+    return ModelItem::SEGMENTATION;
+  else if (m_graph[v].shape == INVTRIANGLE)
+    return ModelItem::FILTER;
+
+  Q_ASSERT(false);
+  return ModelItem::TAXONOMY;
+}
+
+//-----------------------------------------------------------------------------
+QString RelationshipGraph::args(RelationshipGraph::VertexId v) const
+{
+  return QString(m_graph[v].args.c_str());
+}
+
+//-----------------------------------------------------------------------------
+VertexProperty RelationshipGraph::properties(RelationshipGraph::VertexId v)
+{
+  return m_graph[v];
+}
+
+
+//-----------------------------------------------------------------------------
+void RelationshipGraph::load(QTextStream& serialization)
+{
+//   m_graph.clear(); // Reset the old trace
+
   boost::dynamic_properties dp;
-//   boost::property_map<Graph, boost::vertex_index1_t>::type vIndex
-//     = boost::get(boost::vertex_index, m_graph);
-  dp.property("node_id", boost::get(boost::vertex_index1, schema));
-//   boost::property_map<Graph, std::string VertexProperty::*>::type vString;
-//   vString = boost::get(&VertexProperties::labelName, m_graph);
-  dp.property("label", boost::get(&VertexProperties::name, schema));
-  //boost::property_map<Graph, std::string VertexProperty::*>::type vShape
-  //vString = boost::get(&VertexProperties::shape, m_graph);
-  dp.property("shape", boost::get(&VertexProperties::shape, schema));
-  //boost::property_map<Graph, std::string VertexProperty::*>::type vShape
-  //vString = boost::get(&VertexProperties::args, m_graph);
-  dp.property("args", boost::get(&VertexProperties::args, schema));
 
-  dp.property("label", boost::get(boost::edge_name, schema));
+  dp.property("node_id", boost::get(boost::vertex_index1, m_graph));
+  dp.property("label", boost::get(&VertexProperties::name, m_graph));
+  dp.property("shape", boost::get(&VertexProperties::shape, m_graph));
+  dp.property("args", boost::get(&VertexProperties::args, m_graph));
+  dp.property("label", boost::get(boost::edge_name, m_graph));
 
-  boost::read_graphviz( stream.string()->toStdString(), schema, dp);
+  boost::read_graphviz(serialization.string()->toStdString(), m_graph, dp);
 
   // Retrieve vertex porperties
-  boost::property_map<Graph, std::string VertexProperty::*>::type vLabel
-    = boost::get(&VertexProperty::name, schema);
-  boost::property_map<Graph, std::string VertexProperty::*>::type vArgs
-    = boost::get(&VertexProperty::args, schema);
-  boost::property_map<Graph, std::string VertexProperty::*>::type vShape
-    = boost::get(&VertexProperty::shape, schema);
+//   boost::property_map<Graph, std::string VertexProperty::*>::type vLabel
+//     = boost::get(&VertexProperty::name, m_graph);
+//   boost::property_map<Graph, std::string VertexProperty::*>::type vArgs
+//     = boost::get(&VertexProperty::args, m_graph);
+//   boost::property_map<Graph, std::string VertexProperty::*>::type vShape
+//     = boost::get(&VertexProperty::shape, m_graph);
 
-  QMap< VertexId, QList< VertexId > > parentsMap = predecessors<Graph, VertexId>(schema);
-  QList<VertexId> verticesToProcess(rootVertices<Graph, VertexId>(schema)); // The nodes not processed
-  QList<VertexId> processedVertices;
+//   QMap< VertexId, QList< VertexId > > parentsMap = predecessors<Graph, VertexId>(m_graph);
+//   QList<VertexId> verticesToProcess(rootVertices<Graph, VertexId>(m_graph)); // The nodes not processed
+//   QList<VertexId>ser;
 
-  Q_ASSERT(false/*ToDo*/);
+//   Q_ASSERT(false/*ToDo*/);
 /*  
   Sample *newSample;
   
@@ -393,8 +498,33 @@ void RelationshipGraph::readTrace(QTextStream& stream)
 // }
 
 
+// //-----------------------------------------------------------------------------
+// void RelationshipGraph::print(std::ostream& out, RelationshipGraph::PrintFormat format)
+// {
+//   this->updateVertexInformation();
+// 
+//   switch (format)
+//   {
+//     case GRAPHVIZ:
+//     {
+//       boost::dynamic_properties dp;
+// 
+//       dp.property("node_id", boost::get(boost::vertex_index, m_graph));
+//       dp.property("label", boost::get(&VertexProperties::name, m_graph));
+//       dp.property("shape", boost::get(&VertexProperties::shape, m_graph));
+//       dp.property("args", boost::get(&VertexProperties::args, m_graph));
+//       dp.property("label", boost::get(boost::edge_name, m_graph));
+// 
+//       boost::write_graphviz_dp( out, m_graph, dp);
+//       break;
+//     }
+//     default:
+//       qWarning("Format Unkown");
+//   };
+// }
+ 
 //-----------------------------------------------------------------------------
-void RelationshipGraph::print(std::ostream& out, RelationshipGraph::PrintFormat format)
+void RelationshipGraph::serialize(std::ostream &stream, RelationshipGraph::PrintFormat format)
 {
   this->updateVertexInformation();
 
@@ -404,19 +534,20 @@ void RelationshipGraph::print(std::ostream& out, RelationshipGraph::PrintFormat 
     {
       boost::dynamic_properties dp;
 
-      dp.property("node_id", boost::get(boost::vertex_index, m_graph));
+      dp.property("node_id"    , boost::get(boost::vertex_index, m_graph));
       dp.property("label", boost::get(&VertexProperties::name, m_graph));
-      dp.property("shape", boost::get(&VertexProperties::shape, m_graph));
-      dp.property("args", boost::get(&VertexProperties::args, m_graph));
-      dp.property("label", boost::get(boost::edge_name, m_graph));
+      dp.property("shape",       boost::get(&VertexProperties::shape, m_graph));
+      dp.property("args",        boost::get(&VertexProperties::args, m_graph));
+      dp.property("label",   boost::get(boost::edge_name, m_graph));
 
-      boost::write_graphviz_dp( out, m_graph, dp);
+      boost::write_graphviz_dp(stream, m_graph, dp);
       break;
     }
     default:
       qWarning("Format Unkown");
   };
 }
+
 
 /*
 

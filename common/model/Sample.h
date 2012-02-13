@@ -40,10 +40,12 @@ class Segmentation;
 class Sample : public ModelItem
 {
 public:
-  explicit Sample(QString ID);
+  explicit Sample(const QString id);
+  explicit Sample(const QString id, const QString args);
   virtual ~Sample();
 
   QString id(){return m_ID;}
+  void setId(const QString id) {m_ID = id;}
   // Relative to brain center (in nm)
   void position(int pos[3]);
   void setPosition(int origin[3]);

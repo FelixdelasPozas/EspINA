@@ -40,6 +40,7 @@
 #include <QtGui>
 
 #include <sstream>
+#include <boost/graph/graphviz.hpp>
 
 #include <pqActiveObjects.h>
 #include <pqApplicationCore.h>
@@ -68,6 +69,7 @@
 #include <pqObjectBuilder.h>
 #include <vtkSMPropertyHelper.h>
 #include <vtkSMProxy.h>
+#include <vtkSMStringVectorProperty.h>
 
 //------------------------------------------------------------------------
 EspinaWindow::EspinaWindow()
@@ -237,7 +239,7 @@ void EspinaWindow::loadParaviewBehavior()
 //------------------------------------------------------------------------
 void EspinaWindow::onConnect()
 {
-  m_model->clear();
+  m_model->reset();
   m_undoStack->clear();
 //   pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
 //   pqServer * server = pqActiveObjects::instance().activeServer();
@@ -326,6 +328,11 @@ QString extension(const QString path)
   return path.section('.',-1);
 }
 
+QString parentDirectory(const QString path)
+{
+  return path.section('/',0,-2);
+}
+
 QString fileName(const QString path)
 {
   return path.section('/',-1).section('.',0,-2);
@@ -349,7 +356,7 @@ void EspinaWindow::newAnalysis()
   fileDialog.setWindowTitle("Analyse Data");
   if (fileDialog.exec() == QDialog::Accepted)
   {
-    m_model->clear();
+    m_model->reset();
 
     TaxonomyPtr defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
     m_model->setTaxonomy(defaultTaxonomy);
@@ -366,7 +373,6 @@ void EspinaWindow::newAnalysis()
     const QString channelFile = fileDialog.getSelectedFiles().first();
     const QString SampleName  = fileName(channelFile);
     const QString channelName = fileNameWithExtension(channelFile);
-
 
     // Try to recover sample form DB using channel information
     QSharedPointer<Sample> sample(new Sample(SampleName));
@@ -388,25 +394,78 @@ void EspinaWindow::newAnalysis()
 //------------------------------------------------------------------------
 void EspinaWindow::openAnalysis()
 {
-  m_model->clear();
-  m_undoStack->clear();
-//   pqServer* server = pqActiveObjects::instance().activeServer();
-//   QString filters(tr("EspinaModel Segmentation (*.seg)"));
-// //   filters += "All files (*)";
-//   pqFileDialog fileDialog(server, 
-//     this,
-//     tr("Open:"), QString(), filters);
-//   fileDialog.setObjectName("OpenAnalysisFileDialog");
-//   fileDialog.setFileMode(pqFileDialog::ExistingFiles);
-//   fileDialog.setWindowTitle("Analyse Data");
-//   if (fileDialog.exec() == QDialog::Accepted)
-//   {
-// //     Internals->dataDock->setHidden(true);
-//     this->update();
-//     this->repaint();
-// //     m_espina->loadFile(fileDialog.getSelectedFiles()[0], method);
-//     QApplication::restoreOverrideCursor();
-//   }
+  pqServer* server = pqActiveObjects::instance().activeServer();
+  QString filters(tr("Espina Analysis (*.seg)"));
+  pqFileDialog fileDialog(server,
+    this,
+    tr("Open Analysis:"), QString(), filters);
+  fileDialog.setObjectName("OpenAnalysisFileDialog");
+  fileDialog.setFileMode(pqFileDialog::ExistingFiles);
+  fileDialog.setWindowTitle("Analyse Data");
+  if (fileDialog.exec() == QDialog::Accepted)
+  {
+    if (fileDialog.getSelectedFiles().size() != 1)
+    {
+      QMessageBox::warning(this, tr("EspinaModel"),
+			   tr("Loading multiple files at a time is not supported"));
+      return; //Multi-channels is not supported
+    }
+//     m_model->reset();
+//     m_undoStack->clear();
+
+    const QString analysisFile= fileDialog.getSelectedFiles().first();
+    const QString filePath = fileName(analysisFile);
+
+    qDebug() << "Opening Seg File:" << analysisFile;
+    qDebug() << "Parent Directory:" << filePath;
+
+    Q_ASSERT(server);
+    pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
+    pqPipelineSource* reader = ob->createFilter("sources", "EspinaReader",
+                   QMap<QString, QList<pqOutputPort*> >(),
+                   pqApplicationCore::instance()->getActiveServer() );
+    // Set the file name
+    vtkSMPropertyHelper(reader->getProxy(), "FileName").Set(analysisFile.toStdString().c_str());
+    reader->getProxy()->UpdateVTKObjects();
+
+    QFileInfo path(filePath);
+    Cache::instance()->setWorkingDirectory(path);
+    reader->updatePipeline(); //Update the pipeline to obtain the content of the file
+    reader->getProxy()->UpdatePropertyInformation();
+    
+    vtkSMProperty *p;
+    // Taxonomy
+    p = reader->getProxy()->GetProperty("Taxonomy");
+    vtkSMStringVectorProperty* TaxProp = vtkSMStringVectorProperty::SafeDownCast(p);
+    QString TaxonomySerialization(TaxProp->GetElement(0));
+
+    // Trace
+    p = reader->getProxy()->GetProperty("Trace");
+    vtkSMStringVectorProperty* TraceProp = vtkSMStringVectorProperty::SafeDownCast(p);
+    QString TraceSerialization(TraceProp->GetElement(0));
+    QTextStream traceStream;
+    traceStream.setString(&TraceSerialization);
+    qDebug() << TraceSerialization;
+
+    try{
+        qDebug("Reading taxonomy:");
+
+	TaxonomyPtr taxonomy = IOTaxonomy::loadXMLTaxonomy(TaxonomySerialization);
+	m_model->setTaxonomy(taxonomy);
+// 	taxonomy->print(3);
+
+      qDebug("Reading trace:");
+      m_model->loadSerialization(traceStream);
+      m_model->serializeRelations(std::cout);
+//       QList<ModelItem *> nonProcessedItems = relations.rootNodes();
+
+      // Remove the proxy of the .seg file
+      ob->destroy(reader);
+
+    } catch (...) {
+      qWarning() << "Espina: Unable to load" << analysisFile;
+    }
+  }
 }
 
 //------------------------------------------------------------------------
@@ -468,7 +527,7 @@ void EspinaWindow::saveAnalysis()
 
     // Set Trace
     std::ostringstream relationsSerialization;
-    m_model->relationships()->print(relationsSerialization);
+    m_model->serializeRelations(relationsSerialization);
 
     vtkSMPropertyHelper(writer->getProxy(), "Trace").Set(relationsSerialization.str().c_str());
 

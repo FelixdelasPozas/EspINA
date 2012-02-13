@@ -22,11 +22,19 @@
 #include <QDebug>
 
 //------------------------------------------------------------------------
-Sample::Sample(QString ID)
-: m_ID(ID)
+Sample::Sample(const QString id)
+: m_ID(id)
 {
   bzero(m_position,3*sizeof(int));
-  qDebug() << "Created Sample:" << ID;
+  qDebug() << "Created Sample:" << id;
+}
+
+//------------------------------------------------------------------------
+Sample::Sample(const QString id, const QString args)
+: m_ID(id)
+{
+  bzero(m_position,3*sizeof(int));
+  qDebug() << "Created Sample:" << id;
 }
 
 //------------------------------------------------------------------------

@@ -52,7 +52,7 @@ public:
   explicit EspinaModel(QObject* parent = 0);
   virtual ~EspinaModel();
 
-  void clear();
+  void reset();
 
   // Implement QAbstractItemModel Interface
   virtual QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const;
@@ -113,6 +113,9 @@ public:
 		      QString relation);
 
   RelationshipGraphPtr relationships() {return m_relations;}
+
+  void serializeRelations(std::ostream& stream, RelationshipGraph::PrintFormat format = RelationshipGraph::GRAPHVIZ);
+  void loadSerialization(QTextStream &stream);
 
 private:
   QModelIndex index(ModelItem *item);

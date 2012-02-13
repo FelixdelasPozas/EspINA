@@ -28,6 +28,7 @@
 #include <vtkPVDataInformation.h>
 #include <vtkSMProxy.h>
 #include <cache/CachedObjectBuilder.h>
+#include "RelationshipGraph.h"
 
 //-----------------------------------------------------------------------------
 Channel::Channel(pqData data)
@@ -206,6 +207,8 @@ QVariant Channel::data(int role) const
   switch (role)
   {
     case Qt::DisplayRole:
+      if (m_vertex)
+	return QString(m_vertex->name.c_str());
       return m_data.id().section(':',0,-2);
 //       return label();
 //     case Qt::DecorationRole:
