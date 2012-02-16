@@ -93,6 +93,7 @@ public:
   void addSample(SamplePtr sample);
   /// Remove @sample and all channels and segmentations associated with it
   void removeSample(SamplePtr sample);
+  QList<SegmentationPtr> segmentations() const {return m_segmentations;}
 
   // Channels
   void addChannel(ChannelPtr channel);

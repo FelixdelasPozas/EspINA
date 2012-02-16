@@ -686,13 +686,13 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
     e->ignore();
   }else if (e->type() == QEvent::Enter)
   {
-    QWidget::enterEvent(e);
     QApplication::setOverrideCursor(SelectionManager::instance()->cursor());
+    QWidget::enterEvent(e);
     e->accept();
   }else if (e->type() == QEvent::Leave)
   {
-    QWidget::leaveEvent(e);
     QApplication::restoreOverrideCursor();
+    QWidget::leaveEvent(e);
     e->accept();
   }else if (e->type() == QEvent::MouseButtonPress)
   {
@@ -793,6 +793,8 @@ void SliceView::removeChannelRepresentation(Channel* channel)
     viewModuleProxy->GetProperty("Representations"), repProxy);
   viewModuleProxy->UpdateVTKObjects();
   m_view->getProxy()->UpdateVTKObjects();
+  repProxy->Delete();
+  m_channels.remove(channel);
 
   m_view->resetCamera();
 }
@@ -865,6 +867,9 @@ void SliceView::removeSegmentationRepresentation(Segmentation* seg)
     viewModuleProxy->GetProperty("Representations"), repProxy);
   viewModuleProxy->UpdateVTKObjects();
   m_view->getProxy()->UpdateVTKObjects();
+
+  repProxy->Delete();
+  m_segmentations.remove(seg);
 }
 
 //-----------------------------------------------------------------------------

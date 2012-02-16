@@ -170,6 +170,7 @@ SeedGrowRegionSegmentationFilter::SeedGrowRegionSegmentationFilter ( ITraceNode:
 //-----------------------------------------------------------------------------
 SeedGrowRegionSegmentationFilter::~SeedGrowRegionSegmentationFilter()
 {
+  qDebug() << "Desrtoying filter";
   CachedObjectBuilder* cob = CachedObjectBuilder::instance();
   if( m_restoreFilter )
     delete m_restoreFilter;

@@ -159,6 +159,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ModelItem::Arguments args
 SeedGrowSegmentationFilter::~SeedGrowSegmentationFilter()
 {
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+  qDebug() << "Destroying" << SGSF;
 
   if (grow)
     cob->removeFilter(grow);

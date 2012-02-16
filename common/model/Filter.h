@@ -29,6 +29,7 @@
 class Filter : public ModelItem, public QObject
 {
 public:
+  virtual ~Filter(){}
   virtual int numProducts() const = 0;
   virtual pqData product(int index) const = 0;
 

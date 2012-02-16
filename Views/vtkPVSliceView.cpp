@@ -517,7 +517,7 @@ vtkRenderer* vtkPVSliceView::GetOverviewRenderer()
 }
 
 //----------------------------------------------------------------------------
-void vtkPVSliceView::AddActor ( vtkProp3D* actor )
+void vtkPVSliceView::AddActor(SliceActor *actor)
 {
     bool in_cave_mode = this->SynchronizedWindows->GetIsInCave();
     if ( in_cave_mode && !this->GetRemoteRenderingAvailable() )
@@ -534,47 +534,40 @@ void vtkPVSliceView::AddActor ( vtkProp3D* actor )
 
     // Decide if we are doing remote rendering or local rendering.
     bool using_distributed_rendering = in_cave_mode || this->GetUseDistributedRendering();
-    if ( this->GetLocalProcessDoesRendering ( using_distributed_rendering ) )
-        RenderView->GetInteractor()->GetPicker()->AddPickList ( actor );
+    if ( this->GetLocalProcessDoesRendering (using_distributed_rendering))
+        RenderView->GetInteractor()->GetPicker()->AddPickList(actor->prop);
 
-    State->updateActor ( actor );
-    RenderView->GetRenderer()->AddActor ( actor );
-    OverviewRenderer->AddActor ( actor );
-    SetCenter ( Center );
+    State->updateActor(actor->prop);
+    RenderView->GetRenderer()->AddActor(actor->prop);
+    OverviewRenderer->AddActor(actor->prop);
+    SetCenter(Center);
     m_actors << actor;
 }
 
 //----------------------------------------------------------------------------
-void vtkPVSliceView::RemoveActor(vtkProp3D* actor)
+void vtkPVSliceView::RemoveActor(SliceActor *actor)
 {
-  RenderView->GetRenderer()->RemoveActor(actor);
-  OverviewRenderer->RemoveActor(actor);
+  RenderView->GetRenderer()->RemoveActor(actor->prop);
+  OverviewRenderer->RemoveActor(actor->prop);
+  m_actors.removeOne(actor);
+  if (Segmentations.contains(actor))
+    Segmentations.removeOne(actor);
+  if (Channels.contains(actor))
+    Channels.removeOne(actor);
 }
 
 //----------------------------------------------------------------------------
 void vtkPVSliceView::AddChannel(SliceActor* actor)
 {
-  AddActor(actor->prop);
+  AddActor(actor);
   Channels.append(actor);
-//   int numChannels = Channels.size();
-//   actor->prop->SetPosition(400*(numChannels-1), 400*(numChannels-1),0);
-//   if (numChannels > 1)
-//   {
-//     // TODO: Determine whether to change channel opacity or not (probably
-//     // computing other channel intersections)
-//     SliceActor *channel;
-//     foreach(channel, Channels)
-//     {
-//       channel->prop->SetOpacity(1./double(numChannels));
-//     }
-//   }
 }
 
 //----------------------------------------------------------------------------
 void vtkPVSliceView::AddSegmentation(vtkPVSliceView::SliceActor* actor)
 {
 //   qDebug() << "Add Segmentation";
-  AddActor(actor->prop);
+  AddActor(actor);
   actor->prop->SetVisibility(ShowSegmentations);
   Segmentations.append(actor);
 }
@@ -591,12 +584,10 @@ void vtkPVSliceView::AddRepresentationInternal(vtkDataRepresentation* rep)
 void vtkPVSliceView::RemoveRepresentationInternal(vtkDataRepresentation* rep)
 {
   int index = m_reps.indexOf(rep);
-  vtkProp3D *actor = m_actors.at(index);
+  SliceActor *actor = m_actors.at(index);
 //   qDebug() << "REMOVING REPRESENTATION";
-  RenderView->GetRenderer()->RemoveActor( actor );
-  OverviewRenderer->RemoveActor( actor );
+  RemoveActor(actor);
   m_reps.removeAt(index);
-  m_actors.removeAt(index);
   vtkView::RemoveRepresentationInternal(rep);
 }
 

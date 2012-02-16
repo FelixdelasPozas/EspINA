@@ -60,8 +60,8 @@ public:
     vtkTypeMacro ( vtkPVSliceView, vtkPVRenderView );
     void PrintSelf ( ostream& os, vtkIndent indent );
 
-    void AddActor (vtkProp3D* actor);
-    void RemoveActor(vtkProp3D* actor);
+    void AddActor (SliceActor *actor);
+    void RemoveActor(SliceActor *actor);
     void AddChannel(SliceActor *actor);
     void AddSegmentation(SliceActor *actor);
 
@@ -164,7 +164,7 @@ private:
     double           SagittalCrossLineColor[3];
     double           CoronalCrossLineColor[3];
     QList<vtkDataRepresentation *> m_reps;
-    QList<vtkProp3D *> m_actors;
+    QList<SliceActor *> m_actors;
 //ETX
 };
 #endif // VTKPVSLICEVIEW_H

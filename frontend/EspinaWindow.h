@@ -53,6 +53,7 @@ public slots:
   virtual void setActivity(QString activity);
   virtual void setLOD(){}
 
+  void closeCurrentAnalysis();
   /// Creates an empty analysis 
   void newAnalysis();
   /// Close former analysis and load a new one
@@ -63,6 +64,7 @@ public slots:
   void saveAnalysis();
 
   void loadChannel(const QString file);
+
 
 protected slots:
   void updateStatus(QString msg);

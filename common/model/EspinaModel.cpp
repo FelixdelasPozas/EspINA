@@ -50,31 +50,31 @@ EspinaModel::~EspinaModel()
 void EspinaModel::reset()
 {
   setTaxonomy(TaxonomyPtr());
-  if (!m_samples.isEmpty())
-  {
-    beginRemoveRows(sampleRoot(),0,0);
-    m_samples.clear();
-    endRemoveRows();
-  }
-  if (!m_channels.isEmpty())
-  {
-    beginRemoveRows(channelRoot(),0,0);
-    m_channels.clear();
-    endRemoveRows();
-  }
   if (!m_segmentations.isEmpty())
   {
-    beginRemoveRows(segmentationRoot(),0,0);
+    beginRemoveRows(segmentationRoot(),0,m_segmentations.size()-1);
     m_segmentations.clear();
     endRemoveRows();
   }
   if (!m_filters.isEmpty())
   {
-    beginRemoveRows(filterRoot(),0,0);
+    beginRemoveRows(filterRoot(),0,m_filters.size()-1);
     m_filters.clear();
     endRemoveRows();
   }
-  m_relations->clear();//TODO: Remove every item when clearing its corresponding list
+  if (!m_channels.isEmpty())
+  {
+    beginRemoveRows(channelRoot(),0,m_channels.size()-1);
+    m_channels.clear();
+    endRemoveRows();
+  }
+  if (!m_samples.isEmpty())
+  {
+    beginRemoveRows(sampleRoot(),0,m_samples.size()-1);
+    m_samples.clear();
+    endRemoveRows();
+  }
+  m_relations->clear();//NOTE: Should we remove every item in the previous blocks?
 }
 
 //-----------------------------------------------------------------------------
@@ -493,8 +493,8 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
   QSharedPointer<RelationshipGraph> input(new RelationshipGraph());
 
   input->read(stream);
-  qDebug() << "Check";
-  input->write(std::cout);
+//   qDebug() << "Check";
+//   input->write(std::cout);
 
   EspinaFactory *factory = EspinaFactory::instance();
 

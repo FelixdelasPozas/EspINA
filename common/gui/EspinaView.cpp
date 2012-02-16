@@ -255,38 +255,39 @@ void DefaultEspinaView::rowsAboutToBeRemoved(const QModelIndex& parent, int star
     return;
 
   qDebug() << parent.data(Qt::DisplayRole).toString();
-  QModelIndex index = parent.child(start, 0);
-  ModelItem *item  = indexPtr(index);
-  switch (item->type())
+  for(int child = start; child <= end; child++)
   {
-    case ModelItem::CHANNEL:
+    QModelIndex index = parent.child(child, 0);
+    ModelItem *item  = indexPtr(index);
+    switch (item->type())
     {
-      Q_ASSERT(start == end);// Only 1-row-at-a-time insertions are allowed
-      Channel *channel = dynamic_cast<Channel *>(item);
-      qDebug() << "Remove Channel:" << channel->data(Qt::DisplayRole).toString();
-      xyView->removeChannelRepresentation(channel);
-      yzView->removeChannelRepresentation(channel);
-      xzView->removeChannelRepresentation(channel);
+      case ModelItem::CHANNEL:
+      {
+	Channel *channel = dynamic_cast<Channel *>(item);
+	qDebug() << "Remove Channel:" << channel->data(Qt::DisplayRole).toString();
+	xyView->removeChannelRepresentation(channel);
+	yzView->removeChannelRepresentation(channel);
+	xzView->removeChannelRepresentation(channel);
 
-      double emptyBounds[6] = {0,0,0,0,0,0};
-      xyView->setRanges(emptyBounds);
-      yzView->setRanges(emptyBounds);
-      xzView->setRanges(emptyBounds);
-      break;
-    }
-    case ModelItem::SEGMENTATION:
-    {
-      Q_ASSERT(start == end);// Only 1-row-at-a-time insertions are allowed
-      Segmentation *seg = dynamic_cast<Segmentation *>(item);
-      qDebug() << "Remove Segmentation:" << seg->data(Qt::DisplayRole).toString();
-      xyView->removeSegmentationRepresentation(seg);
-      yzView->removeSegmentationRepresentation(seg);
-      xzView->removeSegmentationRepresentation(seg);
-      break;
-    }
-    default:
-      break;
-  };
+	double emptyBounds[6] = {0,0,0,0,0,0};
+	xyView->setRanges(emptyBounds);
+	yzView->setRanges(emptyBounds);
+	xzView->setRanges(emptyBounds);
+	break;
+      }
+      case ModelItem::SEGMENTATION:
+      {
+	Segmentation *seg = dynamic_cast<Segmentation *>(item);
+	qDebug() << "Remove Segmentation:" << seg->data(Qt::DisplayRole).toString();
+	xyView->removeSegmentationRepresentation(seg);
+	yzView->removeSegmentationRepresentation(seg);
+	xzView->removeSegmentationRepresentation(seg);
+	break;
+      }
+      default:
+	break;
+    };
+  }
   xyView->forceRender();
   yzView->forceRender();
   xzView->forceRender();
