@@ -28,37 +28,42 @@
 #include <QString>
 #include <QTextStream>
 
+#include <QDebug>
 struct VertexProperty
 {
+  VertexProperty() : item(NULL) {}
   /// A pointer to the object associated with this vertex
   ModelItem *item;//TODO: Use smart pointers?
   /// Following members are needed to make the graph persistent
   std::string name;
   std::string shape;
   std::string args;
+  unsigned int vId;
 };
+
+
+struct Edge
+{
+  VertexProperty source;
+  VertexProperty target;
+  std::string    relationship;
+};
+
+typedef QList<VertexProperty> Vertices;
+typedef QList<Edge> Edges;
 
 /// Graph like structure which contains all the relationships
 /// between different elements of the model
 class RelationshipGraph
 {
+public:
   typedef unsigned int IndexType;
-
-  typedef boost::property
-  < boost::vertex_index1_t
-  , IndexType
-  , VertexProperty
-  > VertexProperties;
 
   struct EdgeProperty
   {
     /// Relationships between model items connected by an edge
     std::string relationship;
   };
-  typedef boost::property
-  < boost::edge_name_t
-  , std::string
-  > EdgeProperties;
 
   struct GraphPropery
   {
@@ -72,15 +77,14 @@ class RelationshipGraph
   < boost::listS
   , boost::vecS
   , boost::bidirectionalS
-  , VertexProperties
-  , EdgeProperties
+  , VertexProperty
+  , EdgeProperty
   , GraphProperties
   > Graph;
 
-public:
   typedef Graph::vertex_descriptor VertexId;
 
-  typedef QList<VertexId> Vertices;
+//   typedef QList<VertexId> Vertices;
 
   typedef Graph::edge_descriptor EdgeId;
 
@@ -98,12 +102,15 @@ public:
 
 public:
   enum PrintFormat
-  { GRAPHVIZ
+  { BOOST
+  , GRAPHVIZ
   , DEBUG
   };
 
   RelationshipGraph();
   ~RelationshipGraph(){}
+
+  void clear() {m_graph.clear();}
 
   void addItem(ModelItem    *item);
   void removeItem(ModelItem *item);
@@ -111,19 +118,23 @@ public:
   void addRelation(ModelItem* ancestor, ModelItem* successor, const QString description);
   void connect(const QString& ancestor, ModelItem* successor, const QString description);
 
-  Vertices rootVertices();
-  Vertices ancestors(VertexId v) const;
-  Vertices succesors(VertexId v) const;
+//   Vertices rootVertices();
+  Edges edges(const QString filter = "");
+  Vertices vertices();
+  Vertices ancestors(VertexId v, const QString filter = "");
+  Vertices succesors(VertexId v, const QString filter = "");
 
-  bool find(VertexProperty vp, VertexId &foundV) const;
+  bool find(VertexProperty vp, VertexProperty foundV);
+  void setItem(VertexId v, ModelItem *item);
   QString name(VertexId v) const;
-  ModelItem::ItemType type(VertexId v) const;
+  static ModelItem::ItemType type(const VertexProperty v);
   QString args(VertexId v) const;
   VertexProperty properties(VertexId v);
 
 //   void readTrace(std::istream& content);
   void load(QTextStream& serialization);
-  void serialize(std::ostream& stream, RelationshipGraph::PrintFormat format = GRAPHVIZ);
+  void read(std::istream& stream, RelationshipGraph::PrintFormat format = BOOST);
+  void write(std::ostream& stream, RelationshipGraph::PrintFormat format = BOOST);
 
 //   void registerPlugin(QString key, IFilterFactory* factory);
 //   IFilterFactory* getRegistredPlugin(QString& key);

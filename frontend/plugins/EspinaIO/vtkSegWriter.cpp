@@ -40,7 +40,7 @@ int vtkSegWriter::RequestData(
   QString taxAux(Taxonomy);
   // Retrive path of the new file
   QString FileNameAux(FileName);
-  
+
   // Retrive the files of the segmentations
   QStringList filters;
   filters << "*.pvd";
@@ -63,15 +63,15 @@ int vtkSegWriter::RequestData(
       vtiFiles[i] = QDir(path).filePath(vtiFiles[i]);
     segmentationPaths.append(vtiFiles);
   }
-  
+
   // Add at the beginning the path
   for(int i=0; i < segmentationPaths.count(); i++)
     segmentationPaths[i] = fileRootDir.filePath( segmentationPaths[i]);
   qDebug() << "vtkSegWriter: Segmentation paths" << segmentationPaths;
-  
+
   // Save Trace, Tax and Segmentation files
   IOEspinaFile::saveFile(FileNameAux, TraceAux, taxAux, segmentationPaths, fileRootDir.filePath("").append("/"));
-  
+
   qDebug() << "vtkSegWriter: File "<< FileNameAux << ". Removing temporary files";
   // Delete the segmentation files after Save: name.pvd, name/name_0.vti, name/
   foreach( QString segPath, segmentationPaths)
@@ -99,4 +99,3 @@ void vtkSegWriter::PrintSelf(ostream& os, vtkIndent indent)
   this->Superclass::PrintSelf(os,indent);
   os << this->FileName << " - " << this->Trace << " - " << this->Taxonomy;
 }
-

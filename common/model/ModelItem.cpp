@@ -19,6 +19,120 @@
 
 #include "ModelItem.h"
 
+#include <QStringList>
+#include "RelationshipGraph.h"
+
+#include <QDebug>
+
+//------------------------------------------------------------------------
+QMap<QString, QString> arguments(const QString args)
+{
+  QMap<QString, QString> res;
+  QString name, value, buffer;
+  int balanceo = 0;
+
+  foreach(QChar c, args)
+  {
+    if( c == '=' && balanceo == 0)
+    {
+      name = buffer;
+      buffer = "";
+    }
+    else if( c == '[')
+    {
+      if(balanceo > 0)
+        buffer.append(c);
+      balanceo++;
+    }
+    else if( c== ']')
+    {
+      balanceo--;
+      if(balanceo > 0)
+        buffer.append(c);
+    }
+    else if( c == ';' && balanceo == 0)
+    {
+      value = buffer;
+      buffer = "";
+      res.insert(name, value);
+    }
+    else
+    {
+      buffer.append(c);
+    }
+  }
+
+  return res;
+}
+
+ModelItem::Arguments::Arguments()
+{
+
+}
+
+ModelItem::Arguments::Arguments(const QMap<QString, QString>& args)
+: QMap<QString, QString>(args)
+{
+}
+
+ModelItem::Arguments::Arguments(const QString args)
+{
+  QString name, value, buffer;
+  int balanceo = 0;
+
+  foreach(QChar c, args)
+  {
+    if( c == '=' && balanceo == 0)
+    {
+      name = buffer;
+      buffer = "";
+    }
+    else if( c == '[')
+    {
+      if(balanceo > 0)
+        buffer.append(c);
+      balanceo++;
+    }
+    else if( c== ']')
+    {
+      balanceo--;
+      if(balanceo > 0)
+        buffer.append(c);
+    }
+    else if( c == ';' && balanceo == 0)
+    {
+      value = buffer;
+      buffer = "";
+      insert(name, value);
+    }
+    else
+    {
+      buffer.append(c);
+    }
+  }
+}
+
+
+//------------------------------------------------------------------------
+ModelItem::Vector ModelItem::relatedItems(ModelItem::RelationType rel, const QString filter)
+{
+  Vector res;
+
+  Q_ASSERT(m_relations);
+  qDebug()<< "Vertex Id" << m_vertex;
+  if (rel == IN || rel == INOUT)
+    foreach(VertexProperty v, m_relations->ancestors(m_vertex, filter))
+      res << v.item;
+
+  if (rel == OUT || rel == INOUT)
+    foreach(VertexProperty v, m_relations->succesors(m_vertex, filter))
+      res << v.item;
+
+  return res;
+}
+
+
+//------------------------------------------------------------------------
 ModelItem* indexPtr(const QModelIndex& index)
 {
   return static_cast<ModelItem *>(index.internalPointer());

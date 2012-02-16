@@ -26,6 +26,8 @@
 // #include "ui_SeedGrowSegmentationFilterSetup.h"
 // class IVOI;
 
+static const QString SGSF = "SeedGrowSegmentation::SeedGrowSegmentationFilter";
+
 class Channel;
 class pqFilter;
 class SeedGrowSegmentationFilter
@@ -58,8 +60,10 @@ public:
   void voi(int VOI[6]) const {memcpy(VOI, m_VOI, 6*sizeof(int));}
 
   /// Implements Model Item Interface
+  virtual QString serialize() const;
   virtual QVariant data(int role) const;
   virtual ItemType type() const {return ModelItem::FILTER;}
+
   /// Implements Filter Interface
   pqData preview();
   virtual int numProducts() const;
@@ -78,7 +82,7 @@ signals:
   void modified();
 
 private:
-  pqData m_input;
+  QString m_input;
   int m_seed[3];
   int m_threshold;
   int m_VOI[6];

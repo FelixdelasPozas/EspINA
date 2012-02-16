@@ -573,7 +573,7 @@ void vtkPVSliceView::AddChannel(SliceActor* actor)
 //----------------------------------------------------------------------------
 void vtkPVSliceView::AddSegmentation(vtkPVSliceView::SliceActor* actor)
 {
-  qDebug() << "Add Segmentation";
+//   qDebug() << "Add Segmentation";
   AddActor(actor->prop);
   actor->prop->SetVisibility(ShowSegmentations);
   Segmentations.append(actor);
@@ -583,7 +583,7 @@ void vtkPVSliceView::AddSegmentation(vtkPVSliceView::SliceActor* actor)
 void vtkPVSliceView::AddRepresentationInternal(vtkDataRepresentation* rep)
 {
   m_reps << rep;
-  qDebug() << "ADDING REPRESENTATION";
+//   qDebug() << "ADDING REPRESENTATION";
   vtkView::AddRepresentationInternal(rep);
 }
 
@@ -592,7 +592,7 @@ void vtkPVSliceView::RemoveRepresentationInternal(vtkDataRepresentation* rep)
 {
   int index = m_reps.indexOf(rep);
   vtkProp3D *actor = m_actors.at(index);
-  qDebug() << "REMOVING REPRESENTATION";
+//   qDebug() << "REMOVING REPRESENTATION";
   RenderView->GetRenderer()->RemoveActor( actor );
   OverviewRenderer->RemoveActor( actor );
   m_reps.removeAt(index);

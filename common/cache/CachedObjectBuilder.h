@@ -33,6 +33,7 @@ class CachedObjectBuilder
 public:
   static CachedObjectBuilder *instance();
 
+  pqFilter *loadFile(const QString file);
   pqFilter *createFilter(const QString group, const QString name, const pqFilter::Arguments args, bool persistent=false);
   pqFilter *registerFilter(const QString id, pqPipelineSource* source);
   pqFilter *getFilter(Cache::Index &id) { return m_cache->getEntry(id); }

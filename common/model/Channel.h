@@ -37,7 +37,8 @@ class pqPipelineSource;
 class Channel : public SelectableItem
 {
 public:
-  Channel(pqData data);
+  explicit Channel(const QString file, pqData data);
+  explicit Channel(const QString file, const QString args);
   virtual ~Channel();
 
   pqOutputPort *outputPort();
@@ -55,6 +56,7 @@ public:
   double opacity() {return m_opacity;}
 
   /// Model Item Interface
+  virtual QString serialize() const;
   virtual QVariant data(int role) const;
   virtual ItemType type() const {return ModelItem::CHANNEL;}
   /// Selectable Item Interface
@@ -69,6 +71,7 @@ private:
 private:
   double m_color;
   double m_opacity;
+  QString m_file;
 //   QList<Segmentation *> m_segs;
 
 //   QMap<ExtensionId, IChannelExtension *> m_extensions;

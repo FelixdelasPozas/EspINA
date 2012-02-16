@@ -23,6 +23,7 @@
 
 #include <iostream>
 #include <boost/graph/graphviz.hpp>
+#include <boost/graph/adjacency_list_io.hpp>
 #include "Filter.h"
 
 #include <QDebug>
@@ -33,6 +34,34 @@ const std::string BOX = "box";
 const std::string ELLIPSE = "ellipse";
 const std::string INVTRIANGLE = "invtriangle";
 const std::string TRAPEZIUM = "trapezium";
+
+std::ostream& operator << ( std::ostream& out, const VertexProperty& v)
+{
+  out << v.vId << " "
+      << v.shape << " "
+      << v.name << " "
+      << v.args << " ";
+  return out;
+}
+
+std::istream& operator >> ( std::istream& in, VertexProperty& v)
+{
+        in >> v.vId >> v.shape >> v.name >> v.args;
+	v.item = NULL;
+        return in;
+}
+
+std::ostream& operator << ( std::ostream& out, const RelationshipGraph::EdgeProperty& e )
+{
+        out << e.relationship << " ";
+        return out;
+}
+
+std::istream& operator >> ( std::istream& in, RelationshipGraph::EdgeProperty& e)
+{
+        in >> e.relationship;
+        return in;
+}
 
 //-----------------------------------------------------------------------------
 /// Visit nodes by edges and return the root vertex id
@@ -119,10 +148,10 @@ void RelationshipGraph::addItem(ModelItem* item)
 {
   // TODO: Check if item's been already added to the graph
   VertexId v = add_vertex(m_graph);
-  //node->vertexId = v;
   m_graph[v].item = item;
-  item->m_vertex = &m_graph[v];
+  item->m_vertex = v;
   item->m_relations = this;
+//   qDebug() << item->data(Qt::DisplayRole) << " = " << v;
 }
 
 //-----------------------------------------------------------------------------
@@ -144,7 +173,9 @@ void RelationshipGraph::updateVertexInformation()
     if (!item)
       continue;
     Q_ASSERT(item);
+    vertex.vId  = item->m_vertex;
     vertex.name = item->data(Qt::DisplayRole).toString().toStdString();
+    vertex.args = item->serialize().toStdString();
     switch (item->type())
     {
       case ModelItem::SAMPLE:
@@ -161,7 +192,6 @@ void RelationshipGraph::updateVertexInformation()
 	Filter *filter = dynamic_cast<Filter *>(item);
 	Q_ASSERT(filter);
 	vertex.shape = INVTRIANGLE;
-// 	vertex.args = filter->argments();
         break;
       }
     default:
@@ -188,7 +218,9 @@ void RelationshipGraph::addRelation(ModelItem* ancestor,
 				    ModelItem* successor,
 				    const QString description)
 {
-  boost::add_edge(vertex(ancestor), vertex(successor), description.toStdString(), m_graph);
+  EdgeProperty p;
+  p.relationship = description.toStdString();
+  boost::add_edge(vertex(ancestor), vertex(successor), p, m_graph);
 }
 
 //-----------------------------------------------------------------------------
@@ -207,56 +239,85 @@ void RelationshipGraph::connect(const QString& ancestor, ModelItem* successor, c
 }
 
 //-----------------------------------------------------------------------------
-RelationshipGraph::Vertices RelationshipGraph::rootVertices()
+Edges RelationshipGraph::edges(const QString filter)
 {
-  VertexId v;
+  Edges result;
+
+  EdgeIterator ei, ei_end;
+  for(boost::tie(ei, ei_end) = boost::edges(m_graph); ei != ei_end; ei++)
+  {
+    if (filter.isEmpty() || m_graph[*ei].relationship == filter.toStdString())
+    {
+    Edge e;
+    e.source = m_graph[source(*ei, m_graph)];
+    e.target = m_graph[target(*ei, m_graph)];
+    e.relationship = m_graph[*ei].relationship;
+    result << e;
+    }
+  }
+  return result;
+}
+
+//-----------------------------------------------------------------------------
+Vertices RelationshipGraph::vertices()
+{
   Vertices result;
 
   VertexIterator vi, vi_end;
   for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
   {
-    InEdgeIterator iei, iei_end;
-    boost::tie(iei, iei_end) = boost::in_edges(*vi,m_graph);
-    if (iei == iei_end)
-      result << *vi;
+//     qDebug() << *vi << m_graph[*vi].name.c_str() << m_graph[*vi].args.c_str();
+    Q_ASSERT(m_graph[*vi].vId == *vi);
+    result << m_graph[*vi];
   }
 
   return result;
 }
 
 //-----------------------------------------------------------------------------
-RelationshipGraph::Vertices RelationshipGraph::ancestors(RelationshipGraph::VertexId v) const
+Vertices RelationshipGraph::ancestors(RelationshipGraph::VertexId v, const QString filter)
 {
   Vertices result;
   InEdgeIterator iei, iei_end;
 
-  qDebug() << "Ancestors of:" << m_graph[v].name.c_str();
+//   qDebug() << "Ancestors of:" << m_graph[v].name.c_str();
   for(boost::tie(iei, iei_end) = boost::in_edges(v, m_graph); iei != iei_end; iei++)
   {
-    qDebug() << "\t" << source(*iei, m_graph) << m_graph[source(*iei,m_graph)].name.c_str();
-    result << source(*iei, m_graph);
+//     qDebug() << "\t" << source(*iei, m_graph) << m_graph[source(*iei,m_graph)].name.c_str();
+    if (filter.isEmpty() || m_graph[*iei].relationship == filter.toStdString())
+    {
+//       qDebug() << "Pass Filter:"  << m_graph[source(*iei, m_graph)].vId << m_graph[source(*iei, m_graph)].name.c_str();
+      VertexDescriptor v = source(*iei, m_graph);
+//       m_graph[v].vId = v;
+      result << m_graph[v];
+    }
   }
   return result;
 }
 
 //-----------------------------------------------------------------------------
-RelationshipGraph::Vertices RelationshipGraph::succesors(RelationshipGraph::VertexId v) const
+Vertices RelationshipGraph::succesors(RelationshipGraph::VertexId v, const QString filter)
 {
   Vertices result;
   OutEdgeIterator oei, oei_end;
 
-  qDebug() << "Successors of:" << m_graph[v].name.c_str();
+//   qDebug() << "Successors of:" << m_graph[v].name.c_str();
   for(boost::tie(oei, oei_end) = boost::out_edges(v, m_graph); oei != oei_end; oei++)
   {
-    qDebug() << "\t" << m_graph[target(*oei,m_graph)].name.c_str();
-    result << target(*oei, m_graph);
+//     qDebug() << "\t" << m_graph[target(*oei,m_graph)].name.c_str();
+    if (filter.isEmpty() || m_graph[*oei].relationship == filter.toStdString())
+    {
+      VertexDescriptor v = target(*oei, m_graph);
+//       m_graph[v].vId = v;
+      result << m_graph[v];
+    }
   }
   return result;
 }
 
 
 //-----------------------------------------------------------------------------
-bool RelationshipGraph::find(VertexProperty vp, RelationshipGraph::VertexId& foundV) const
+bool RelationshipGraph::find(VertexProperty vp, VertexProperty foundV)
 {
   VertexIterator vi, vi_end;
   for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
@@ -265,12 +326,19 @@ bool RelationshipGraph::find(VertexProperty vp, RelationshipGraph::VertexId& fou
         m_graph[*vi].shape == vp.shape &&
         m_graph[*vi].args  == vp.args)
     {
-      foundV = *vi;
+      foundV = m_graph[*vi];
       return true;
     }
   }
   return false;
 }
+
+//-----------------------------------------------------------------------------
+void RelationshipGraph::setItem(RelationshipGraph::VertexId v, ModelItem* item)
+{
+  m_graph[v].item = item;
+}
+
 
 //-----------------------------------------------------------------------------
 QString RelationshipGraph::name(RelationshipGraph::VertexId v) const
@@ -279,17 +347,17 @@ QString RelationshipGraph::name(RelationshipGraph::VertexId v) const
 }
 
 //-----------------------------------------------------------------------------
-ModelItem::ItemType RelationshipGraph::type(RelationshipGraph::VertexId v) const
+ModelItem::ItemType RelationshipGraph::type(const VertexProperty v)
 {
-  if (m_graph[v].item)
-    return m_graph[v].item->type();
-  else if (m_graph[v].shape == TRAPEZIUM)
+  if (v.item)
+    return v.item->type();
+  else if (v.shape == TRAPEZIUM)
     return ModelItem::SAMPLE;
-  else if (m_graph[v].shape == BOX)
+  else if (v.shape == BOX)
     return ModelItem::CHANNEL;
-  else if (m_graph[v].shape == ELLIPSE)
+  else if (v.shape == ELLIPSE)
     return ModelItem::SEGMENTATION;
-  else if (m_graph[v].shape == INVTRIANGLE)
+  else if (v.shape == INVTRIANGLE)
     return ModelItem::FILTER;
 
   Q_ASSERT(false);
@@ -312,240 +380,72 @@ VertexProperty RelationshipGraph::properties(RelationshipGraph::VertexId v)
 //-----------------------------------------------------------------------------
 void RelationshipGraph::load(QTextStream& serialization)
 {
-//   m_graph.clear(); // Reset the old trace
-
   boost::dynamic_properties dp;
 
-  dp.property("node_id", boost::get(boost::vertex_index1, m_graph));
-  dp.property("label", boost::get(&VertexProperties::name, m_graph));
-  dp.property("shape", boost::get(&VertexProperties::shape, m_graph));
-  dp.property("args", boost::get(&VertexProperties::args, m_graph));
-  dp.property("label", boost::get(boost::edge_name, m_graph));
+  dp.property("node_id", boost::get(&VertexProperty::vId, m_graph));
+  dp.property("label", boost::get(&VertexProperty::name, m_graph));
+  dp.property("shape", boost::get(&VertexProperty::shape, m_graph));
+  dp.property("args",  boost::get(&VertexProperty::args, m_graph));
+  dp.property("label", boost::get(&EdgeProperty::relationship, m_graph));
 
   boost::read_graphviz(serialization.string()->toStdString(), m_graph, dp);
-
-  // Retrieve vertex porperties
-//   boost::property_map<Graph, std::string VertexProperty::*>::type vLabel
-//     = boost::get(&VertexProperty::name, m_graph);
-//   boost::property_map<Graph, std::string VertexProperty::*>::type vArgs
-//     = boost::get(&VertexProperty::args, m_graph);
-//   boost::property_map<Graph, std::string VertexProperty::*>::type vShape
-//     = boost::get(&VertexProperty::shape, m_graph);
-
-//   QMap< VertexId, QList< VertexId > > parentsMap = predecessors<Graph, VertexId>(m_graph);
-//   QList<VertexId> verticesToProcess(rootVertices<Graph, VertexId>(m_graph)); // The nodes not processed
-//   QList<VertexId>ser;
-
-//   Q_ASSERT(false/*ToDo*/);
-/*  
-  Sample *newSample;
-  
-  int lastId = 0;
-
-  while( !verticesToProcess.empty() )
-  {
-    VertexId vertexId = verticesToProcess.first();
-    qDebug() << "RelationshipGraph: Processing the vertex with id: " << vertexId;
-    // ***** Process the vertex *****
-    // Retrieve all the parents by giving a VertexId TODO
-    bool parentsProcessed = true;
-    foreach(VertexId v, parentsMap.value( vertexId ))
-    {
-      if( ! processedVertices.contains( v ) )
-      {
-        parentsProcessed = false;
-        break;
-      }
-    }
-    if( parentsProcessed )
-    {
-      QString label(vLabel[vertexId].c_str());
-      QString rawArgs( vArgs[vertexId].c_str() );
-      TraceNode::Arguments args = TraceNode::parseArgs( rawArgs );
-      // Is a stack //TODO be more explicit
-      if( vShape[vertexId].compare("ellipse") == 0 && label.contains(".") ) //Samples contains extension's dot
-      {
-        qDebug() << "RelationshipGraph: Loading the Stack " << label;
-	//NOTE: I call load reaction data to be sure it is also in the server
-	//TODO: review and clean
-	// First we try to find the sample in the current directory
-	QString path = label.section('/',0,-2);
-	QString sampleId = label.section('/', -1);
-	QString sampleFile = label;
-        pqPipelineSource* proxy = pqLoadDataReaction::loadData(QStringList(sampleFile));
-	if (!proxy) // Try to find the sample in configuration directory
-	{
-	  QDir workingDirectory = Cache::instance()->workingDirectory();
-	  workingDirectory.cdUp();
-	  path = workingDirectory.absolutePath();
-	  sampleFile = path + '/' + sampleId;
-	  proxy = pqLoadDataReaction::loadData(QStringList(sampleFile));
-	  if (!proxy)
-	  {
-	    QSettings settings;
-	    path = settings.value("samplePath").toString();;
-	    sampleFile = path + '/' + sampleId;
-	    proxy = pqLoadDataReaction::loadData(QStringList(sampleFile));
-	    if (!proxy)
-	    {      
-	      sampleFile =  QFileDialog::getOpenFileName(0, "Select Sample", ".", "Sample Files (*.mha *.mhd)");
-	      path = sampleFile.section('/',0,-2);
-	      proxy = pqLoadDataReaction::loadData(QStringList(sampleFile));
-	    }
-	  }
-	}
-        if( proxy )
-        {
-          vtkFilter* sampleReader = CachedObjectBuilder::instance()->registerProductCreator(sampleId, proxy);
-	  newSample = EspINAFactory::instance()->CreateSample(sampleReader, 0,path);
-          EspINA::instance()->addSample(newSample);
-          // TODO same code like cachedObjectBuilder::createSMFilter() - DOUBLEVECT
-          QStringList values = args["Spacing"].split(",");
-          if(values.size() == 3)
-          {
-            newSample->setSpacing(values[0].toDouble(), values[1].toDouble(), values[2].toDouble());
-          }
-          foreach(QString argName, args.keys())
-	  {
-	    if (argName != "Id" && argName != "Taxonomy" && argName != "Spacing")
-	    {
-	      if (!newSample->extension(argName))
-	      {
-		std::cout << "ERROR: Extension " << argName.toStdString() << " doesn't exist" << std::endl;
-		assert(false);
-	      }
-	      newSample->extension(argName)->setArguments(args[argName]);
-	    }
-	  }
-	  //ALERT: newSample is not initialize until added to espina model
-	  assert(newSample->representation(LabelMapExtension::SampleRepresentation::ID));
-	  dynamic_cast<LabelMapExtension::SampleRepresentation *>(newSample->representation(LabelMapExtension::SampleRepresentation::ID))->setEnable(false);
-        }
-        else
-        {
-          qWarning() << __FILE__ << ":" << __LINE__ << "File" << label << "not found.";
-          return;
-        }
-      } // A filter
-      else if( vShape[vertexId].compare("box") == 0 )
-      { // A filter that can be processed
-        qDebug() << "RelationshipGraph: Creating the filter " << label;
-        //QStringList filterInfo = QString(vLabel[vertexId].c_str()).split("::");
-        //assert(filterInfo.size() == 2);
-	// if( filterInfo.at(1) == "SeedGrowSegmentationFilter")
-	
-	EspinaFilter *filter = EspinaPluginManager::instance()->createFilter(label,args);
-	if (!filter)
-	  qDebug() << "RelationshipGraph: the filter is not registered";
-	  
-//         IFilterFactory* factory = m_availablePlugins.value(label, NULL);
-//         if( factory )
-//           factory->createFilter(label, args);
-//         else
-//           qDebug() << "RelationshipGraph: the filter is not registered";
-
-      } // A segmentation
-      else {
-        qDebug() << "RelationshipGraph: segmentation " << args["Id"] << args["Taxonomy"];
-        EspINA* espina = EspINA::instance();
-	Segmentation *seg = espina->segmentation(args["Id"]);
-	assert(seg);
-	int segId = label.section(' ',-1).toInt();
-	lastId = std::max(lastId, segId);
-	espina->changeId(seg, segId);
-        espina->changeTaxonomy(seg, args["Taxonomy"]);
-        
-      //  localPipe.push_back(*vi);
-      // check if is a filter and all of its dependecies exist
-      }
-      processedVertices.append( vertexId );
-      verticesToProcess.pop_front(); // Remove the processed element
-
-      // ***** Retrieve the adjacet vertices *****
-      boost::graph_traits<Graph>::adjacency_iterator vi, vi_end;
-      for(boost::tie(vi, vi_end) = boost::adjacent_vertices(vertexId, schema);
-          vi != vi_end; vi++)
-      {
-        verticesToProcess.push_front(*vi);
-      }
-
-    }
-    else // The node could not be processed. Swap it with the next one
-    {
-      verticesToProcess.swap(0, verticesToProcess.size()-1);
-    }
-  }
-  
-  EspINA::instance()->setLastUsedId(lastId);
-  
-  if (newSample)
-    dynamic_cast<LabelMapExtension::SampleRepresentation *>(newSample->representation(LabelMapExtension::SampleRepresentation::ID))->setEnable(true);*/
 }
 
-// //-----------------------------------------------------------------------------
-// void RelationshipGraph::registerPlugin(QString key, IFilterFactory* factory)
-// {
-//   assert( m_availablePlugins.contains(key) == false );
-//   m_availablePlugins.insert(key, factory);
-// }
-// 
-// 
-// //-----------------------------------------------------------------------------
-// IFilterFactory * RelationshipGraph::getRegistredPlugin(QString& key)
-// {
-//   assert( m_availablePlugins.contains(key));
-//   return m_availablePlugins[key];
-// }
-
-
-// //-----------------------------------------------------------------------------
-// void RelationshipGraph::print(std::ostream& out, RelationshipGraph::PrintFormat format)
-// {
-//   this->updateVertexInformation();
-// 
-//   switch (format)
-//   {
-//     case GRAPHVIZ:
-//     {
-//       boost::dynamic_properties dp;
-// 
-//       dp.property("node_id", boost::get(boost::vertex_index, m_graph));
-//       dp.property("label", boost::get(&VertexProperties::name, m_graph));
-//       dp.property("shape", boost::get(&VertexProperties::shape, m_graph));
-//       dp.property("args", boost::get(&VertexProperties::args, m_graph));
-//       dp.property("label", boost::get(boost::edge_name, m_graph));
-// 
-//       boost::write_graphviz_dp( out, m_graph, dp);
-//       break;
-//     }
-//     default:
-//       qWarning("Format Unkown");
-//   };
-// }
- 
 //-----------------------------------------------------------------------------
-void RelationshipGraph::serialize(std::ostream &stream, RelationshipGraph::PrintFormat format)
+void RelationshipGraph::read(std::istream& stream, RelationshipGraph::PrintFormat format)
 {
-  this->updateVertexInformation();
-
   switch (format)
   {
+    case BOOST:
+      stream >> boost::read(m_graph);
+      break;
     case GRAPHVIZ:
     {
       boost::dynamic_properties dp;
 
       dp.property("node_id"    , boost::get(boost::vertex_index, m_graph));
-      dp.property("label", boost::get(&VertexProperties::name, m_graph));
-      dp.property("shape",       boost::get(&VertexProperties::shape, m_graph));
-      dp.property("args",        boost::get(&VertexProperties::args, m_graph));
-      dp.property("label",   boost::get(boost::edge_name, m_graph));
+      dp.property("label", boost::get(&VertexProperty::name, m_graph));
+      dp.property("shape",       boost::get(&VertexProperty::shape, m_graph));
+      dp.property("args",        boost::get(&VertexProperty::args, m_graph));
+      dp.property("label",   boost::get(&EdgeProperty::relationship, m_graph));
+      boost::read_graphviz(stream, m_graph, dp);
 
-      boost::write_graphviz_dp(stream, m_graph, dp);
       break;
     }
     default:
       qWarning("Format Unkown");
   };
+
+}
+
+//-----------------------------------------------------------------------------
+void RelationshipGraph::write(std::ostream &stream, RelationshipGraph::PrintFormat format)
+{
+  this->updateVertexInformation();
+  switch (format)
+  {
+    case BOOST:
+      stream << boost::write(m_graph) << std::endl;
+      std::cout << boost::write(m_graph) << std::endl;
+      break;
+    case GRAPHVIZ:
+    {
+      boost::dynamic_properties dp;
+
+      dp.property("node_id"    , boost::get(boost::vertex_index, m_graph));
+      dp.property("label", boost::get(&VertexProperty::name, m_graph));
+      dp.property("shape",       boost::get(&VertexProperty::shape, m_graph));
+      dp.property("args",        boost::get(&VertexProperty::args, m_graph));
+      dp.property("label",   boost::get(&EdgeProperty::relationship, m_graph));
+      boost::write_graphviz_dp(stream, m_graph, dp);
+
+      break;
+    }
+    default:
+      qWarning("Format Unkown");
+  };
+
+  
 }
 
 

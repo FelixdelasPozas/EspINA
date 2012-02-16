@@ -29,6 +29,7 @@
 #include "model/Sample.h"
 #include "model/Segmentation.h"
 #include "model/Taxonomy.h"
+#include "EspinaFactory.h"
 
 //------------------------------------------------------------------------
 EspinaModel::EspinaModel ( QObject* parent )
@@ -73,6 +74,7 @@ void EspinaModel::reset()
     m_filters.clear();
     endRemoveRows();
   }
+  m_relations->clear();//TODO: Remove every item when clearing its corresponding list
 }
 
 //-----------------------------------------------------------------------------
@@ -471,72 +473,94 @@ void EspinaModel::removeRelation(ModelItem* ancestor, ModelItem* successor, QStr
 //------------------------------------------------------------------------
 void EspinaModel::serializeRelations(std::ostream& stream, RelationshipGraph::PrintFormat format)
 {
-  m_relations->serialize(stream, format);
+  m_relations->write(stream, format);
 }
 
-//------------------------------------------------------------------------
-bool checkProcessing(RelationshipGraph::Vertices query, RelationshipGraph::Vertices processedVertices)
-{
-  foreach(RelationshipGraph::VertexId v, query)
-  {
-    if (!processedVertices.contains(v))
-      return false;
-  }
-  return true;
-}
+// //------------------------------------------------------------------------
+// bool checkProcessing(RelationshipGraph::Vertices query, RelationshipGraph::Vertices processedVertices)
+// {
+//   foreach(RelationshipGraph::VertexId v, query)
+//   {
+//     if (!processedVertices.contains(v))
+//       return false;
+//   }
+//   return true;
+// }
 
 //------------------------------------------------------------------------
-void EspinaModel::loadSerialization(QTextStream& stream)
+void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::PrintFormat format)
 {
   QSharedPointer<RelationshipGraph> input(new RelationshipGraph());
 
-  input->load(stream);
+  input->read(stream);
+  qDebug() << "Check";
+  input->write(std::cout);
 
-  RelationshipGraph::Vertices nonProcessedVertices(input->rootVertices());
-  RelationshipGraph::Vertices processedVertices;
+  EspinaFactory *factory = EspinaFactory::instance();
 
-  while (!nonProcessedVertices.isEmpty())
+  foreach(VertexProperty v, input->vertices())
   {
-    RelationshipGraph::VertexId v = nonProcessedVertices.takeFirst();
-
-    qDebug() << "Processing" << v << input->name(v)  << input->type(v);
-
-    if (!checkProcessing(input->ancestors(v), processedVertices))
+    VertexProperty fv;
+    if (m_relations->find(v, fv))
     {
-      nonProcessedVertices << v;
-      continue;
-    }
-
-    RelationshipGraph::VertexId fv;// Found Vertex
-    if (!m_relations->find(input->properties(v), fv))
+      qDebug() << "Updating existing vertex";
+    }else
     {
-      switch (input->type(v))
+//       qDebug() << "Creating vertex" << v;
+      switch (RelationshipGraph::type(v))
       {
 	case ModelItem::SAMPLE:
 	{
-	    qDebug() << "Sample doesn't exists ==> Add new Sample"
-	    << input->name(v) << " with args:" << input->args(v);
-	    SamplePtr sample(new Sample(input->name(v), input->args(v)));
-	    addSample(sample);
+// 	  qDebug() << "Sample doesn't exists ==> Add new Sample"
+// 	  << v.vId << v.name.c_str() << " with args:" << v.args.c_str();
+	  SamplePtr sample(factory->createSample(v.name.c_str(), v.args.c_str()));
+	  addSample(sample);
+	  input->setItem(v.vId, sample.data());
 	  break;
 	}
 	case ModelItem::CHANNEL:
+	{
+// 	  qDebug() << "Channel doesn't exists ==> Add new Channel"
+// 	  << v.vId << v.name.c_str() << " with args:" << v.args.c_str();
+	  ChannelPtr channel(new Channel(v.name.c_str(), v.args.c_str()));
+	  addChannel(channel);
+	  input->setItem(v.vId, channel.data());
 	  break;
+	}
 	case ModelItem::FILTER:
+	{
+// 	  qDebug() << "Filter doesn't exists ==> Add new Filter"
+// 	  << v.vId << v.name.c_str() << " with args:" << v.args.c_str();
+	  FilterPtr filter(factory->createFilter(v.name.c_str(), v.args.c_str()));
+	  addFilter(filter);
+	  input->setItem(v.vId, filter.data());
 	  break;
+	}
 	case ModelItem::SEGMENTATION:
+	{
+// 	  qDebug() << "Segmentation doesn't exists ==> Add new Segmentation"
+// 	  << v.vId << v.name.c_str() << " with args:" << v.args.c_str();
+	  Vertices ancestors = input->ancestors(v.vId, "CreateSegmentation");
+	  Q_ASSERT(ancestors.size() == 1);
+	  Filter *filter =  dynamic_cast<Filter *>(ancestors.first().item);
+	  SegmentationPtr seg(factory->createSegmentation(filter, filter->product(0)));
+	  addSegmentation(seg);
+	  input->setItem(v.vId, seg.data());
 	  break;
+	}
 	default:
 	  Q_ASSERT(false);
       }
-    }else
-    {
-      qDebug() << v << "Already exists";
     }
-
-    processedVertices << v;
-    nonProcessedVertices << input->succesors(v);
   }
+
+  foreach(Edge e, input->edges())
+  { //Should store just the modelitem?
+    Q_ASSERT(e.source.item);
+    Q_ASSERT(e.target.item);
+    m_relations->addRelation(e.source.item, e.target.item, e.relationship.c_str());
+  }
+//     if (!m_relations->find(input->properties(v), fv))
 }
 
 

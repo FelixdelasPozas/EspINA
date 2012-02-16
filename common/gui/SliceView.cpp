@@ -547,8 +547,9 @@ SelectionHandler::MultiSelection SliceView::select(
       if (filter == SelectionHandler::EspINA_Channel)
       {
 	Channel *channel = m_channels.keys().first();
-	SelectionHandler::Selelection selSample(vtkRegion,channel);
-	msel.append(selSample);
+
+	SelectionHandler::Selelection selChannel(vtkRegion,channel);
+	msel.append(selChannel);
       } //! Select all segmented objects
 //       else if (filter == "EspINA_Segmentation")
 //       {

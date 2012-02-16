@@ -410,8 +410,8 @@ void EspinaWindow::openAnalysis()
 			   tr("Loading multiple files at a time is not supported"));
       return; //Multi-channels is not supported
     }
-//     m_model->reset();
-//     m_undoStack->clear();
+    m_model->reset();
+    m_undoStack->clear();
 
     const QString analysisFile= fileDialog.getSelectedFiles().first();
     const QString filePath = fileName(analysisFile);
@@ -445,27 +445,27 @@ void EspinaWindow::openAnalysis()
     QString TraceSerialization(TraceProp->GetElement(0));
     QTextStream traceStream;
     traceStream.setString(&TraceSerialization);
-    qDebug() << TraceSerialization;
+    std::istringstream trace(TraceProp->GetElement(0));
+//     qDebug() << TraceSerialization;
 
     try{
-        qDebug("Reading taxonomy:");
-
+//         qDebug("Reading taxonomy:");
 	TaxonomyPtr taxonomy = IOTaxonomy::loadXMLTaxonomy(TaxonomySerialization);
 	m_model->setTaxonomy(taxonomy);
 // 	taxonomy->print(3);
 
-      qDebug("Reading trace:");
-      m_model->loadSerialization(traceStream);
-      m_model->serializeRelations(std::cout);
+//       qDebug("Reading trace:");
+      m_model->loadSerialization(trace);
 //       QList<ModelItem *> nonProcessedItems = relations.rootNodes();
 
       // Remove the proxy of the .seg file
       ob->destroy(reader);
 
-    } catch (...) {
-      qWarning() << "Espina: Unable to load" << analysisFile;
+    } catch (char *str) {
+      qWarning() << "Espina: Unable to load" << analysisFile << str;
     }
   }
+  m_view->resetCamera();
 }
 
 //------------------------------------------------------------------------
@@ -557,17 +557,15 @@ void EspinaWindow::saveAnalysis()
 //------------------------------------------------------------------------
 void EspinaWindow::loadChannel(const QString file)
 {
-    pqPipelineSource* reader = pqLoadDataReaction::loadData(QStringList(file));
-
     CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-    pqFilter *channelReader = cob->registerFilter(file, reader);
+    pqFilter *channelReader = cob->loadFile(file);
     Q_ASSERT(channelReader->getNumberOfData() == 1);
 
     // Try to recover sample form DB using channel information
     Sample *sample = EspinaCore::instance()->sample();
 
     pqData channelData(channelReader, 0);
-    QSharedPointer<Channel> channel(new Channel(channelData));
+    QSharedPointer<Channel> channel(new Channel(file, channelData));
 
     int pos[3];
     sample->position(pos);

@@ -30,11 +30,14 @@
 #include <cache/CachedObjectBuilder.h>
 #include "RelationshipGraph.h"
 
+
+
 //-----------------------------------------------------------------------------
-Channel::Channel(pqData data)
+Channel::Channel(const QString file, pqData data)
 : m_data(data)
 , m_color(-1.0)
 , m_opacity(1.0)
+, m_file(file)
 {
   bzero(m_bounds,6*sizeof(double));
   bzero(m_extent,6*sizeof(int));
@@ -43,6 +46,33 @@ Channel::Channel(pqData data)
   bzero(m_pos,3*sizeof(int));
 
   qDebug() << "Created Channel" << m_data.id();
+}
+
+//-----------------------------------------------------------------------------
+Channel::Channel(const QString file, const QString args)
+: m_opacity(1.0)
+{
+  bzero(m_bounds,6*sizeof(double));
+  bzero(m_extent,6*sizeof(int));
+  bzero(m_spacing,3*sizeof(double));
+  m_bounds[1] = m_extent[1] = -1;
+  bzero(m_pos,3*sizeof(int));
+
+  QMap<QString, QString> channelArgs = arguments(args);
+
+  qDebug() << channelArgs;
+
+  QStringList input = channelArgs["Id"].split(":");
+  int port = input.last().toInt();
+  m_color = channelArgs["Color"].toFloat();
+  qDebug() << "Loading Channel:" << file;
+  qDebug() << "\tUsing output port:" << port;
+  qDebug() << "\tColor:" << m_color;
+  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+  pqFilter *channelReader = cob->loadFile(file);
+  Q_ASSERT(port < channelReader->getNumberOfData());
+  m_data = pqData(channelReader, port);
+  m_file = file;
 }
 
 //-----------------------------------------------------------------------------
@@ -202,14 +232,21 @@ void Channel::setOpacity(double opacity)
 
 
 //------------------------------------------------------------------------
+QString Channel::serialize() const
+{
+  QString args;
+  args.append(argument("Id", m_data.id()));
+  args.append(argument("Color", QString::number(m_color)));
+  return args;
+}
+
+//------------------------------------------------------------------------
 QVariant Channel::data(int role) const
 {
   switch (role)
   {
     case Qt::DisplayRole:
-      if (m_vertex)
-	return QString(m_vertex->name.c_str());
-      return m_data.id().section(':',0,-2);
+      return m_file;
 //       return label();
 //     case Qt::DecorationRole:
 //       return QColor(Qt::blue);

@@ -114,8 +114,8 @@ public:
 
   RelationshipGraphPtr relationships() {return m_relations;}
 
-  void serializeRelations(std::ostream& stream, RelationshipGraph::PrintFormat format = RelationshipGraph::GRAPHVIZ);
-  void loadSerialization(QTextStream &stream);
+  void serializeRelations(std::ostream& stream, RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
+  void loadSerialization (std::istream &stream, RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
 
 private:
   QModelIndex index(ModelItem *item);

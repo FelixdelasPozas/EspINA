@@ -52,6 +52,7 @@ set(GUI_SOURCES
   )
 
 set(MODEL_SOURCES
+  model/EspinaFactory.cpp
   model/EspinaModel.cpp
   model/ModelItem.cpp
   model/ModelTest.cpp

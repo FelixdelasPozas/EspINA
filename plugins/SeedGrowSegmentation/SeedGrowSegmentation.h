@@ -35,10 +35,12 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 #include <QActionGroup>
-#include <QSharedPointer>
+#include <plugins/FilterFactory.h>
 
 #include <selection/SelectionHandler.h>
 #include "SeedGrowSelector.h"
+
+#include <QSharedPointer>
 #include <QWidgetAction>
 
 class SeedGrowSegmentationFilter;
@@ -51,7 +53,7 @@ class ThresholdAction;
 //! Seed Growing Segmenation Plugin
 class SeedGrowSegmentation
 : public QActionGroup
-//       : public ISegmentationPlugin
+, public FilterFactory
 //       , public IFilterFactory
 {
   Q_OBJECT
@@ -59,7 +61,7 @@ public:
   SeedGrowSegmentation(QObject* parent);
   virtual ~SeedGrowSegmentation();
 
-//   EspinaFilter *createFilter(QString filter, ITraceNode::Arguments& args);
+  virtual FilterPtr createFilter(const QString filter, const QString args);
 
 protected slots:
   /// Wait for Seed Selection

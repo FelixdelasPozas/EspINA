@@ -27,10 +27,26 @@
 class VertexProperty;
 class RelationshipGraph;
 
+QMap<QString, QString> arguments(const QString args);
+
+inline QString argument(const QString name, const QString value)
+{
+  return QString("%1=%2;").arg(name).arg(value);
+}
+
 /// Base class for every item in EspinaModel
 class ModelItem
 {
 public:
+  class Arguments : public QMap<QString, QString>
+  {
+  public:
+    explicit Arguments();
+    explicit Arguments(const QMap<QString, QString>& args);
+    explicit Arguments(const QString args);
+  };
+
+  typedef QList<ModelItem *> Vector;
   enum ItemType
   { TAXONOMY
   , SAMPLE
@@ -38,14 +54,22 @@ public:
   , SEGMENTATION
   , FILTER};
 
-  ModelItem() : m_vertex(NULL), m_relations(NULL) {}
+  enum RelationType
+  { IN
+  , OUT
+  , INOUT
+  };
+
+  ModelItem() : m_vertex(0), m_relations(NULL) {}
   virtual ~ModelItem(){}
 
+  Vector relatedItems(RelationType rel, const QString filter = "");
+  virtual QString serialize() const {return QString("none");}
   virtual QVariant data(int role) const = 0;
   virtual ItemType type() const = 0;
 
 protected:
-  VertexProperty *m_vertex;
+  size_t             m_vertex;
   RelationshipGraph *m_relations;
 
   friend class RelationshipGraph;

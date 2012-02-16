@@ -28,6 +28,7 @@ EspinaCore *EspinaCore::m_singleton = NULL;
 EspinaCore::EspinaCore()
 : m_model     (new EspinaModel())
 , m_undoStack (new QUndoStack())
+// , m_factory   (new EspinaFactory())
 {
 }
 

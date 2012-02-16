@@ -19,3 +19,18 @@
 
 #include "Filter.h"
 
+Filter::Arguments::Arguments()
+{
+
+}
+
+Filter::Arguments::Arguments(const QMap<QString, QString>& args)
+: QMap<QString, QString>(args)
+{
+
+}
+
+Filter::Arguments::Arguments(const QString args)
+{
+
+}

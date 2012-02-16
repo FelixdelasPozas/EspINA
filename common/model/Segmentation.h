@@ -36,7 +36,7 @@ class pqPipelineSource;
 class Segmentation : public SelectableItem
 {
 public:
-  explicit Segmentation(FilterPtr filter, pqData data);
+  explicit Segmentation(Filter *filter, pqData data);
 //   Segmentation(EspinaFilter *parent, vtkFilter *creator, int portNumber);
   virtual ~Segmentation();
 
@@ -82,8 +82,8 @@ public:
 //   void updated(Segmentation *);
   
 private:
-  FilterPtr m_filter;
-  pqData    m_data;
+  Filter *m_filter;
+  pqData  m_data;
 //   QMap<ExtensionId, ISegmentationExtension *> m_extensions;
 //   QMap<ExtensionId, ISegmentationExtension *> m_pendingExtensions;
 //   QList<ISegmentationExtension *> m_insertionOrderedExtensions;

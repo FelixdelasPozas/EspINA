@@ -22,7 +22,7 @@
 using namespace std;
 
 //-----------------------------------------------------------------------------
-Segmentation::Segmentation(FilterPtr filter, pqData data)
+Segmentation::Segmentation(Filter *filter, pqData data)
 : m_filter (filter)
 , m_data   (data)
 {

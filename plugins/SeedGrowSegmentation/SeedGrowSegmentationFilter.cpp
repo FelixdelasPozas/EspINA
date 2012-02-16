@@ -58,7 +58,7 @@
 
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(pqData input, int seed[3], int threshold, int VOI[6])
-: m_input(input)
+: m_input(input.id())
 , m_threshold(threshold)
 {
   memcpy(m_seed, seed, 3*sizeof(int));
@@ -70,28 +70,44 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(pqData input, int seed[3]
   run();
 }
 
-
 //-----------------------------------------------------------------------------
-SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(Filter::Arguments args)
+SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ModelItem::Arguments args)
 {
-//   EspinaModel *model = EspinaModel::instance();
-  qDebug() << args;
-
+//   qDebug() << args;
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
 
   QStringList seed = args["Seed"].split(",");
-  const int W = 200;
-  int VOI[6] = {seed[0].toInt() - W, seed[0].toInt() + W,
-                seed[1].toInt() - W, seed[1].toInt() + W,
-                seed[2].toInt() - W, seed[2].toInt() + W};
+  m_seed[0] = seed[0].toInt();
+  m_seed[1] = seed[1].toInt();
+  m_seed[2] = seed[2].toInt();
 
-//   VOI[0] = VOI[2] = 0;
-//   //VOI[1] = 698;
-//   VOI[1] = 2264;
-//   //VOI[3] = 535;
-//   VOI[3] = 2104;
-  VOI[4] = 0;
-  VOI[5] = 0;
+  QStringList voi = args["VOI"].split(",");
+  m_VOI[0] = voi[0].toInt();
+  m_VOI[1] = voi[1].toInt();
+  m_VOI[2] = voi[2].toInt();
+  m_VOI[3] = voi[3].toInt();
+  m_VOI[4] = voi[4].toInt();
+  m_VOI[5] = voi[5].toInt();
+
+  m_input = args["Channel"];
+
+  m_threshold = args["Threshold"].toInt();
+
+  int VOI[6];
+  memcpy(VOI, m_VOI, 6*sizeof(int));
+
+//   const int W = 200;
+//   int VOI[6] = {seed[0].toInt() - W, seed[0].toInt() + W,
+//                 seed[1].toInt() - W, seed[1].toInt() + W,
+//                 seed[2].toInt() - W, seed[2].toInt() + W};
+
+// //   VOI[0] = VOI[2] = 0;
+// //   //VOI[1] = 698;
+// //   VOI[1] = 2264;
+// //   //VOI[3] = 535;
+// //   VOI[3] = 2104;
+//   VOI[4] = 0;
+//   VOI[5] = 0;
 
   extract = NULL;
   grow = NULL;
@@ -108,15 +124,15 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(Filter::Arguments args)
     QString VolumeArg = QString("%1,%2,%3,%4,%5,%6").arg(VOI[0]).arg(VOI[1]).arg(VOI[2]).arg(VOI[3]).arg(VOI[4]).arg(VOI[5]);
     extractArgs << pqFilter::Argument("VOI",pqFilter::Argument::INTVECT, VolumeArg);
     extract = cob->createFilter("filters","ExtractGrid", extractArgs);
-    qDebug() << "Extract Args:" << extractArgs;
-  Q_ASSERT(extract->getNumberOfData() == 1);
+//     qDebug() << "Extract Args:" << extractArgs;
+    Q_ASSERT(extract->getNumberOfData() == 1);
 
     // Hacer el grow
     pqFilter::Arguments growArgs;
     growArgs << pqFilter::Argument("Input",    pqFilter::Argument::INPUT,   extract->data(0).id());
     growArgs << pqFilter::Argument("Seed",     pqFilter::Argument::INTVECT, args["Seed"]);
     growArgs << pqFilter::Argument("Threshold",pqFilter::Argument::INTVECT, args["Threshold"]);
-    qDebug() << "Grow Args:" << growArgs;
+//     qDebug() << "Grow Args:" << growArgs;
 
     grow = cob->createFilter("filters","SeedGrowSegmentationFilter", growArgs);
 
@@ -166,11 +182,11 @@ void SeedGrowSegmentationFilter::run()
       cob->removeFilter(extract);
 
     pqFilter::Arguments extractArgs;
-    extractArgs << pqFilter::Argument("Input",pqFilter::Argument::INPUT, m_input.id());
+    extractArgs << pqFilter::Argument("Input",pqFilter::Argument::INPUT, m_input);
     QString VolumeArg = QString("%1,%2,%3,%4,%5,%6").arg(VOI[0]).arg(VOI[1]).arg(VOI[2]).arg(VOI[3]).arg(VOI[4]).arg(VOI[5]);
     extractArgs << pqFilter::Argument("VOI",pqFilter::Argument::INTVECT, VolumeArg);
     extract = cob->createFilter("filters","ExtractGrid", extractArgs);
-    qDebug() << "Extract Args:" << extractArgs;
+//     qDebug() << "Extract Args:" << extractArgs;
     Q_ASSERT(extract->getNumberOfData() == 1);
     
     QString seedArg = QString("%1,%2,%3").arg(m_seed[0]).arg(m_seed[1]).arg(m_seed[2]);
@@ -178,8 +194,8 @@ void SeedGrowSegmentationFilter::run()
     pqFilter::Arguments growArgs;
     growArgs << pqFilter::Argument("Input",    pqFilter::Argument::INPUT,   extract->data(0).id());
     growArgs << pqFilter::Argument("Seed",     pqFilter::Argument::INTVECT, seedArg);
-    growArgs << pqFilter::Argument("Threshold",pqFilter::Argument::INTVECT,QString::number(m_threshold));
-    qDebug() << "Grow Args:" << growArgs;
+    growArgs << pqFilter::Argument("Threshold",pqFilter::Argument::INTVECT, QString::number(m_threshold));
+//     qDebug() << "Grow Args:" << growArgs;
 
     grow = cob->createFilter("filters","SeedGrowSegmentationFilter", growArgs);
 
@@ -241,10 +257,23 @@ void SeedGrowSegmentationFilter::setSeed(int seed[3])
 }
 
 //-----------------------------------------------------------------------------
+QString SeedGrowSegmentationFilter::serialize() const
+{
+  QString args;
+  args.append(argument("Channel", m_input));
+  QString seedArg = QString("%1,%2,%3").arg(m_seed[0]).arg(m_seed[1]).arg(m_seed[2]);
+  args.append(argument("Seed", seedArg));
+  args.append(argument("Threshold", QString::number(m_threshold)));
+  QString VolumeArg = QString("%1,%2,%3,%4,%5,%6").arg(m_VOI[0]).arg(m_VOI[1]).arg(m_VOI[2]).arg(m_VOI[3]).arg(m_VOI[4]).arg(m_VOI[5]);
+  args.append(argument("VOI", VolumeArg));
+  return args;
+}
+
+//-----------------------------------------------------------------------------
 QVariant SeedGrowSegmentationFilter::data(int role) const
 {
   if (role == Qt::DisplayRole)
-    return QString("Filter");
+    return SGSF;
   else
     return QVariant();
 }

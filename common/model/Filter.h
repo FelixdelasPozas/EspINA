@@ -32,7 +32,6 @@ public:
   virtual int numProducts() const = 0;
   virtual pqData product(int index) const = 0;
 
-  typedef QMap<QString, QString> Arguments;
   virtual pqData preview() = 0;
 };
 

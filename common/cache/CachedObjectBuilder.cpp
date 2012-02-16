@@ -40,13 +40,21 @@
 #include <vtkSIProxy.h>
 
 
+QString fileNameWithExtension(const QString path)
+{
+  return path.section('/',-1);
+}
+
+//------------------------------------------------------------------------
 CachedObjectBuilder * CachedObjectBuilder::m_singleton = NULL;
 
+//------------------------------------------------------------------------
 CachedObjectBuilder::CachedObjectBuilder()
 {
   m_cache = Cache::instance();
 }
 
+//------------------------------------------------------------------------
 CachedObjectBuilder* CachedObjectBuilder::instance()
 {
   if (!m_singleton)
@@ -54,6 +62,22 @@ CachedObjectBuilder* CachedObjectBuilder::instance()
   return m_singleton;
 }
 
+//------------------------------------------------------------------------
+pqFilter* CachedObjectBuilder::loadFile(const QString file)
+{
+  Cache::Index id = fileNameWithExtension(file);
+  pqFilter *reader = getFilter(id);
+  if (NULL == reader)
+  {
+    reader = new pqFilter(pqLoadDataReaction::loadData(QStringList(file)), id);
+    m_cache->insert(id, reader, false);
+  }
+  Q_ASSERT(reader);
+
+  return reader;
+}
+
+//------------------------------------------------------------------------
 pqFilter* CachedObjectBuilder::createFilter(const QString group,
 					    const QString name,
 					    const pqFilter::Arguments args,

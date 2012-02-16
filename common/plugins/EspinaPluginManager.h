@@ -43,16 +43,16 @@ public:
       m_singleton = new EspinaPluginManager();
     return m_singleton;
   }
-  
+
   void registerFilter(const QString &filter, IFilterFactory *factory);
 //   EspinaFilter *createFilter(const QString& filter, ITraceNode::Arguments& args);
-  
+
   void registerReader(const QString &extension, IFileReader *reader);
   void readFile(pqPipelineSource *proxy, const QString &filePath);
-  
+
   void registerPreferencePanel(IPreferencePanel *panel);
   QList<IPreferencePanel *> preferencePanels() {return m_panels;}
-    
+
 private:
   EspinaPluginManager(const EspinaPluginManager &);// Disable copy constructor
   void operator=(const EspinaPluginManager &); // Disable copy assigment constructor
