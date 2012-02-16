@@ -342,6 +342,17 @@ void EspinaModel::addSample (QSharedPointer<Sample> sample)
 }
 
 //------------------------------------------------------------------------
+void EspinaModel::addSample(QList<SamplePtr> samples)
+{
+//   beginInsertRows(sampleRoot(),);
+//   foreach(SamplePtr sample, samples)
+//   {
+//     Q_ASSERT(m_samples.contains(sample) == false);
+//   }
+}
+
+
+//------------------------------------------------------------------------
 void EspinaModel::removeSample(QSharedPointer<Sample> sample)
 {
   if (m_samples.contains(sample) == false)
@@ -396,6 +407,7 @@ void EspinaModel::removeChannel(QSharedPointer<Channel> channel)
 //------------------------------------------------------------------------
 void EspinaModel::addSegmentation(SegmentationPtr seg)
 {
+  Q_ASSERT(m_segmentations.contains(seg) == false);
 //   TaxonomyNode *node = m_newSegType;
 //
 //   // We need to notify other components that the model has changed
@@ -416,6 +428,23 @@ void EspinaModel::addSegmentation(SegmentationPtr seg)
   m_relations->addItem(seg.data());
   endInsertRows();
 }
+
+//------------------------------------------------------------------------
+void EspinaModel::addSegmentation(QList<SegmentationPtr> segs)
+{
+  int numExistingSegs = m_segmentations.size();
+  int numNewSegs = segs.size();
+
+  beginInsertRows(segmentationRoot(), numExistingSegs, numExistingSegs+numNewSegs-1);
+  foreach(SegmentationPtr seg, segs)
+  {
+    Q_ASSERT(m_segmentations.contains(seg) == false);
+    m_segmentations << seg;
+    m_relations->addItem(seg.data());
+  }
+  endInsertRows();
+}
+
 
 //------------------------------------------------------------------------
 void EspinaModel::removeSegmentation(SegmentationPtr seg)
@@ -498,6 +527,8 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
 
   EspinaFactory *factory = EspinaFactory::instance();
 
+  QList<SegmentationPtr> newSegmentations;
+
   foreach(VertexProperty v, input->vertices())
   {
     VertexProperty fv;
@@ -544,7 +575,8 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
 	  Q_ASSERT(ancestors.size() == 1);
 	  Filter *filter =  dynamic_cast<Filter *>(ancestors.first().item);
 	  SegmentationPtr seg(factory->createSegmentation(filter, filter->product(0)));
-	  addSegmentation(seg);
+	  newSegmentations << seg;
+// 	  addSegmentation(seg);
 	  input->setItem(v.vId, seg.data());
 	  break;
 	}
@@ -553,6 +585,8 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
       }
     }
   }
+
+  addSegmentation(newSegmentations);
 
   foreach(Edge e, input->edges())
   { //Should store just the modelitem?

@@ -36,7 +36,7 @@
 Channel::Channel(const QString file, pqData data)
 : m_data(data)
 , m_color(-1.0)
-, m_opacity(1.0)
+, m_visible(true)
 , m_file(file)
 {
   bzero(m_bounds,6*sizeof(double));
@@ -50,7 +50,7 @@ Channel::Channel(const QString file, pqData data)
 
 //-----------------------------------------------------------------------------
 Channel::Channel(const QString file, const QString args)
-: m_opacity(1.0)
+: m_visible(true) //TODO: Should be persisnet?
 {
   bzero(m_bounds,6*sizeof(double));
   bzero(m_extent,6*sizeof(int));
@@ -78,8 +78,6 @@ Channel::Channel(const QString file, const QString args)
 //-----------------------------------------------------------------------------
 Channel::~Channel()
 {
-  qDebug() << "Destroyed Channel" << m_data.id();
-
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   cob->removeFilter(m_data.source());
 /*  int size = m_insertionOrderedExtensions.size()-1;
@@ -94,7 +92,7 @@ Channel::~Channel()
   m_insertionOrderedExtensions.clear();
   m_representations.clear();
   m_informations.clear();
-  
+
   CachedObjectBuilder::instance()->removeFilter(this->creator()); */ 
 }
 
@@ -213,7 +211,7 @@ void Channel::position(int pos[3])
 }
 
 //------------------------------------------------------------------------
-void Channel::setColor(double color)
+void Channel::setColor(const double color)
 {
   m_color = color;
 }
@@ -224,11 +222,11 @@ double Channel::color() const
   return m_color;
 }
 
-//------------------------------------------------------------------------
-void Channel::setOpacity(double opacity)
-{
-  m_opacity = opacity;
-}
+// //------------------------------------------------------------------------
+// void Channel::setOpacity(double opacity)
+// {
+//   m_opacity = opacity;
+// }
 
 
 //------------------------------------------------------------------------
@@ -247,7 +245,8 @@ QVariant Channel::data(int role) const
   {
     case Qt::DisplayRole:
       return m_file;
-//       return label();
+    case Qt::CheckStateRole:
+      return m_visible?Qt::Checked: Qt::Unchecked;
 //     case Qt::DecorationRole:
 //       return QColor(Qt::blue);
     default:

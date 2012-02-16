@@ -49,11 +49,13 @@ public:
   void setPosition(int pos[3]);
   void position(int pos[3]);
 
-  void setColor(const double color);
+  void setColor(double color);
   double color() const;
 
-  void setOpacity(double opacity);
-  double opacity() {return m_opacity;}
+  void setVisible(bool visible) {m_visible = visible;}
+  bool isVisible() const {return m_visible;}
+//   void setOpacity(double opacity);
+//   double opacity() {return m_opacity;}
 
   /// Model Item Interface
   virtual QString serialize() const;
@@ -67,11 +69,10 @@ private:
   int    m_extent[6];
   double m_bounds[6], m_spacing[3];
   int    m_pos[3];/*in nm*/
-
-private:
   double m_color;
-  double m_opacity;
+  bool   m_visible;
   QString m_file;
+//   double m_opacity; //It's responsability of the view
 //   QList<Segmentation *> m_segs;
 
 //   QMap<ExtensionId, IChannelExtension *> m_extensions;

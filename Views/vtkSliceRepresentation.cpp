@@ -57,7 +57,7 @@ vtkSliceRepresentation::vtkSliceRepresentation()
   DeliveryFilter->ReleaseDataFlagOn();
 
   this->SliceProp->GetMapper()->SetInputConnection(Slice->GetOutputPort());
-  qDebug() << "Created Representation" << this;
+//   qDebug() << "Created Representation" << this;
 }
 
 //----------------------------------------------------------------------------
@@ -71,7 +71,7 @@ vtkSliceRepresentation::~vtkSliceRepresentation()
   // WARNING: DO NOT FREE ACTOR, BECAUSE IT'S FREED BY THE RENDERER
   // SliceActor->GetMapper()->Delete();
   // SliceActor->Delete();
-  qDebug() << "Destroyed Representation" << this;
+//   qDebug() << "Destroyed Representation" << this;
 }
 
 //----------------------------------------------------------------------------

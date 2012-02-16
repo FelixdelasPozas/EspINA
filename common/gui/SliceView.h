@@ -173,6 +173,7 @@ protected:
   // AbstractItemView Interfacec
   virtual bool eventFilter(QObject* caller, QEvent* e);
   void centerViewOnMousePosition();
+  void updateChannelOpacity();
 
   /// Converts point from Display coordinates to World coordinates
   SelectionHandler::VtkRegion display2vtk(const QPolygonF &region);

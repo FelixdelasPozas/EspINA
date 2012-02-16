@@ -91,9 +91,9 @@ public:
 
   // Samples
   void addSample(SamplePtr sample);
+  void addSample(QList<SamplePtr> samples);
   /// Remove @sample and all channels and segmentations associated with it
   void removeSample(SamplePtr sample);
-  QList<SegmentationPtr> segmentations() const {return m_segmentations;}
 
   // Channels
   void addChannel(ChannelPtr channel);
@@ -101,7 +101,9 @@ public:
 
   // Segmentations
   void addSegmentation(SegmentationPtr seg);
+  void addSegmentation(QList< SegmentationPtr > segs);
   void removeSegmentation(SegmentationPtr seg);
+  QList<SegmentationPtr> segmentations() const {return m_segmentations;}
 
   void addFilter(FilterPtr filter);
   void removeFilter(FilterPtr filter);

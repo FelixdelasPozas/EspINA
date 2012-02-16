@@ -187,61 +187,39 @@ void DefaultEspinaView::rowsInserted(const QModelIndex& parent, int start, int e
   if (!parent.isValid())
     return;
 
-  QModelIndex index = parent.child(start, 0);
-  ModelItem *item  = indexPtr(index);
-  switch (item->type())
+  for(int child = start; child <= end; child++)
   {
-    case ModelItem::CHANNEL:
+    QModelIndex index = parent.child(child, 0);
+    ModelItem *item  = indexPtr(index);
+    switch (item->type())
     {
-      QApplication::setOverrideCursor(Qt::WaitCursor);
-      Q_ASSERT(start == end);// Only 1-row-at-a-time insertions are allowed
-      Channel *channel = dynamic_cast<Channel *>(item);
-//       item.dynamicCast<ChannelPtr>();
-      qDebug() << "Add Channel:" << channel->data(Qt::DisplayRole).toString();
-      xyView->addChannelRepresentation(channel);
-      yzView->addChannelRepresentation(channel);
-      xzView->addChannelRepresentation(channel);
-      QApplication::restoreOverrideCursor();
-      break;
-    }
-    case ModelItem::SEGMENTATION:
-    {
-//       pqServer *server = pqActiveObjects::instance().activeServer();
-//       pqObjectBuilder* builder = pqApplicationCore::instance()->getObjectBuilder();
-//       
-//       QDir segDir("/home/cbbp/Primeras Series Hechas/19-12tgSerie4/19-12TG-Serie4/");
-//       QString file;
-//       QStringList entries = segDir.entryList(QStringList("*.pvd"));
-//       int total = entries.size();
-//       int loaded = 1;
-//       pqPipelineSource *img;
-//       foreach(file, entries)
-//       {
-// 	if (loaded++ > 30)
-// 	  break;
-// 	img = builder->createReader("sources","PVDReader",
-// 				    QStringList(segDir.path()+"/"+file),
-// 				    //     QStringList("/home/jpena/Stacks/Peque/pequeFromSegmha/fa40f2b8d6b3bdd039fe2bd7086229eb61c9605e.pvd"),
-// 				    server);
-// 	xyView->addSegmentationRepresentation(img->getOutputPort(0));
-// 	yzView->addSegmentationRepresentation(img->getOutputPort(0));
-// 	xzView->addSegmentationRepresentation(img->getOutputPort(0));
-// 	volView->addSegmentationRepresentation(img->getOutputPort(0));
-// 
-// 	emit statusMsg(QString("Loaded %1/%2 Segmentations.").arg(loaded++).arg(total));
-//       }
-      Q_ASSERT(start == end);// Only 1-row-at-a-time insertions are allowed
-      Segmentation *seg = dynamic_cast<Segmentation *>(item);
-      qDebug() << "Add Segmentation:" << seg->data(Qt::DisplayRole).toString();
-      xyView->addSegmentationRepresentation(seg);
-      yzView->addSegmentationRepresentation(seg);
-      xzView->addSegmentationRepresentation(seg);
-      volView->addSegmentationRepresentation(seg->volume().outputPort());
-      break;
-    }
-    default:
-      break;
-  };
+      case ModelItem::CHANNEL:
+      {
+	QApplication::setOverrideCursor(Qt::WaitCursor);
+	Q_ASSERT(start == end);// Only 1-row-at-a-time insertions are allowed
+	Channel *channel = dynamic_cast<Channel *>(item);
+	//       item.dynamicCast<ChannelPtr>();
+	qDebug() << "Add Channel:" << channel->data(Qt::DisplayRole).toString();
+	xyView->addChannelRepresentation(channel);
+	yzView->addChannelRepresentation(channel);
+	xzView->addChannelRepresentation(channel);
+	QApplication::restoreOverrideCursor();
+	break;
+      }
+      case ModelItem::SEGMENTATION:
+      {
+	Segmentation *seg = dynamic_cast<Segmentation *>(item);
+	qDebug() << "Add Segmentation:" << seg->data(Qt::DisplayRole).toString();
+	xyView->addSegmentationRepresentation(seg);
+	yzView->addSegmentationRepresentation(seg);
+	xzView->addSegmentationRepresentation(seg);
+	volView->addSegmentationRepresentation(seg->volume().outputPort());
+	break;
+      }
+      default:
+	break;
+    };
+  }
   xyView->forceRender();
   yzView->forceRender();
   xzView->forceRender();

@@ -719,6 +719,29 @@ void SliceView::centerViewOnMousePosition()
 }
 
 //-----------------------------------------------------------------------------
+void SliceView::updateChannelOpacity()
+{
+  double numVisibleRep = 0;
+
+  foreach(Channel *channel, m_channels.keys())
+    if (channel->isVisible())
+      numVisibleRep++;
+
+  if (numVisibleRep == 0)
+    return;
+
+  double opacity = 1.0 /  numVisibleRep;
+
+  foreach(Channel *channel, m_channels.keys())
+  {
+    vtkSMRepresentationProxy *rep = m_channels[channel];
+    vtkSMPropertyHelper(rep, "Opacity").Set(&opacity,1);
+    rep->UpdateVTKObjects();
+  }
+}
+
+
+//-----------------------------------------------------------------------------
 bool SliceView::pickChannel(int x, int y, double pickPos[3])
 {
   vtkSMSliceViewProxy* view =
@@ -763,9 +786,7 @@ void SliceView::addChannelRepresentation(Channel* channel)
   vtkSMPropertyHelper(reprProxy, "Position").Set(pos,3);
   double color = channel->color();
   vtkSMPropertyHelper(reprProxy, "Color").Set(&color,1);
-  double opacity = channel->opacity();
-  vtkSMPropertyHelper(reprProxy, "Opacity").Set(&opacity,1);
-  reprProxy->UpdateVTKObjects();
+  updateChannelOpacity();
 
   vtkSMProxy* viewModuleProxy = m_view->getProxy();
   // Add the reprProxy to render module.
