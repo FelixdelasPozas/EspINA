@@ -72,6 +72,10 @@
 #include <vtkSMStringVectorProperty.h>
 #include <pqPipelineFilter.h>
 
+
+static const QString CHANNEL_FILES = QObject::tr("Channel (*.mha; *.mhd)");
+static const QString SEG_FILES     = QObject::tr("Espina Analysis (*.seg)");
+
 //------------------------------------------------------------------------
 EspinaWindow::EspinaWindow()
 : m_view(NULL)
@@ -291,18 +295,17 @@ void EspinaWindow::setActivity(QString activity)
 
   m_viewMenu->clear();
 
+  QSharedPointer<ViewManager> vm = EspinaCore::instance()->viewManger();
   if (activity == "analyse")
   {
     qDebug() << "Switch to Analyse Activity";
-    QSharedPointer<ViewManager> vm = ViewManager::instance();
-    m_view = vm->createLayout(this, "squared");
+    m_view = vm->createView(this, "squared");
   }
   else if (activity == "segmentate")
   {
     qDebug() << "Switch to Segmentate Activity";
-    QSharedPointer<ViewManager> vm = ViewManager::instance();
-    m_view = vm->createLayout(this);
-    connect(m_view, SIGNAL(statusMsg(QString)),
+    m_view = vm->createView(this);
+    connect(m_view.data(), SIGNAL(statusMsg(QString)),
 	    this, SLOT(updateStatus(QString)));
     m_view->createViewMenu(m_viewMenu);
     m_view->setModel(m_model.data());
@@ -310,7 +313,7 @@ void EspinaWindow::setActivity(QString activity)
 
   if (m_view)
     connect(m_mainToolBar, SIGNAL(showSegmentations(bool)),
-	    m_view, SLOT(setShowSegmentations(bool)));
+	    m_view.data(), SLOT(setShowSegmentations(bool)));
 
   if (m_view)
   {
@@ -355,7 +358,7 @@ void EspinaWindow::closeCurrentAnalysis()
 void EspinaWindow::newAnalysis()
 {
   pqServer* server = pqActiveObjects::instance().activeServer();
-  QString filters(tr("Channel (*.mha; *.mhd)"));
+  QString filters(CHANNEL_FILES);
   pqFileDialog fileDialog(server, 
     this,
     tr("Channel:"), QString(), filters);
@@ -404,7 +407,7 @@ void EspinaWindow::newAnalysis()
 void EspinaWindow::openAnalysis()
 {
   pqServer* server = pqActiveObjects::instance().activeServer();
-  QString filters(tr("Espina Analysis (*.seg)"));
+  QString filters(SEG_FILES);
   pqFileDialog fileDialog(server,
     this,
     tr("Open Analysis:"), QString(), filters);
@@ -472,7 +475,8 @@ void EspinaWindow::openAnalysis()
       qWarning() << "Espina: Unable to load" << analysisFile << str;
     }
     m_view->resetCamera();
-    updateStatus(QString("File Loaded in %1ms").arg(timer.elapsed()));
+    m_addToAnalysis->setEnabled(true);
+    updateStatus(QString("File Loaded in %1 s").arg(timer.elapsed()/1000.0));
     QApplication::restoreOverrideCursor();
   }
 }
@@ -481,7 +485,10 @@ void EspinaWindow::openAnalysis()
 void EspinaWindow::addToAnalysis()
 {
   pqServer* server = pqActiveObjects::instance().activeServer();
-  QString filters(tr("Channel (*.mha; *.mhd)"));
+  QString filters;
+  filters.append(CHANNEL_FILES);
+  filters.append(";;");
+  filters.append(SEG_FILES);
   pqFileDialog fileDialog(server,
     this,
     tr("Analyse:"), QString(), filters);
@@ -497,6 +504,7 @@ void EspinaWindow::addToAnalysis()
       return; //Multi-channels is not supported
     }
 
+//     diferenciar dependiendo del tipo de archivo que se abra
     const QString channelFile = fileDialog.getSelectedFiles().first();
 
     loadChannel(channelFile);
@@ -509,7 +517,7 @@ void EspinaWindow::saveAnalysis()
 //   closeCurrentAnalysis();
 //   return;
   pqServer* server = pqActiveObjects::instance().activeServer();
-  QString filters(tr("Espina Analysis (*.seg)"));
+  QString filters(SEG_FILES);
   pqFileDialog fileDialog(server, 
     this,
     tr("Save Analysis:"), QString(), filters);

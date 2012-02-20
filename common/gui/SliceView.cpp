@@ -73,6 +73,7 @@
 
 #include <vtkPropCollection.h>
 #include <model/Segmentation.h>
+#include <pq3DWidget.h>
 
 //-----------------------------------------------------------------------------
 SliceViewPreferencesPanel::SliceViewPreferencesPanel(SliceViewPreferences* preferences)
@@ -686,13 +687,13 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
     e->ignore();
   }else if (e->type() == QEvent::Enter)
   {
-    QApplication::setOverrideCursor(SelectionManager::instance()->cursor());
     QWidget::enterEvent(e);
+    QApplication::setOverrideCursor(SelectionManager::instance()->cursor());
     e->accept();
   }else if (e->type() == QEvent::Leave)
   {
-    QApplication::restoreOverrideCursor();
     QWidget::leaveEvent(e);
+    QApplication::restoreOverrideCursor();
     e->accept();
   }else if (e->type() == QEvent::MouseButtonPress)
   {
@@ -928,6 +929,14 @@ void SliceView::addPreview(pqOutputPort* preview)
 void SliceView::removePreview(pqOutputPort* preview)
 {
   removeSegmentationRepresentation(preview);
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::addWidget(pq3DWidget* widget)
+{
+  widget->setView(m_view);
+  widget->setWidgetVisible(true);
+  widget->select();
 }
 
 //-----------------------------------------------------------------------------

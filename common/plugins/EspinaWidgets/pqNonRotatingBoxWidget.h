@@ -80,9 +80,6 @@ private slots:
 private:
   pqNonRotatingBoxWidget(const pqNonRotatingBoxWidget&); // Not implemented.
   void operator=(const pqNonRotatingBoxWidget&); // Not implemented.
-
-  class pqImplementation;
-  pqImplementation* Implementation;
 };
 
 #endif

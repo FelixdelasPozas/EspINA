@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
+    Copyright (C) 2011  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,20 +22,12 @@
 #ifndef COUNTINGREGION_H
 #define COUNTINGREGION_H
 
-#include "ui_CountingRegionPanel.h"
-
-#include <QDockWidget>
-#include <QMap>
-#include <QList>
-#include <QStringListModel>
-#include <QStandardItemModel>
+#include <common/gui/EspinaDockWidget.h>
 
 // Forward declaration
-class QAction;
-class Sample;
-class pqPipelineSource;
-
-class CountingRegion: public QDockWidget, private Ui::CountingRegionPanel
+class CountingRegion
+: public EspinaDockWidget
+, private Ui::CountingRegionPanel
 {
   Q_OBJECT
 

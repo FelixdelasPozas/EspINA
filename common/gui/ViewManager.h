@@ -37,32 +37,23 @@ class ViewManager : public QObject
 {
   Q_OBJECT
 public:
+  explicit ViewManager();
   ~ViewManager();
-  
-  static QSharedPointer<ViewManager> instance()
-  {
-    if (!m_singleton)
-      m_singleton = QSharedPointer<ViewManager>(new ViewManager());
 
-    return m_singleton;
-  }
+  QSharedPointer<EspinaView> currentView() {return m_currentView;}
+  QSharedPointer<EspinaView> createView(QMainWindow *window, const QString &layout = QString()); //NOTE: Should be move into the factory?
+//   void saveView(const QString &layout) const;
+//   void restoreView(const QString &layout);
 
-  EspinaView *createLayout(QMainWindow *window, const QString &layout = QString());
-  void saveLayout(const QString &layout) const;
-  void restoreLayout(const QString &layout);
-
-protected slots:
+protected:
   // Espina has been connected to a new server
 //   void onConnect();
   // Espina has been disconnected from server
 //   void onDisconnect();
-  EspinaView *createDefaultLayout(QMainWindow *window);
-  EspinaView *createSquaredLayout(QMainWindow *window);
+  QSharedPointer<EspinaView> createDefaultLayout(QMainWindow *window);
+  QSharedPointer<EspinaView> createSquaredLayout(QMainWindow *window);
 
-private:
-  explicit ViewManager();
-
-  static QSharedPointer<ViewManager> m_singleton;
+  QSharedPointer<EspinaView> m_currentView;
 };
 
 #endif // VIEWMANAGER_H

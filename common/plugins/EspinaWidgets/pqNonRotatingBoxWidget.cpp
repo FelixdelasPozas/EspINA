@@ -30,7 +30,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ========================================================================*/
 #include "pqNonRotatingBoxWidget.h"
-#include "ui_pqNonRotatingBoxWidget.h"
 
 // Server Manager Includes.
 #include "vtkSMNewWidgetRepresentationProxy.h"
@@ -47,73 +46,25 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqServerManagerModel.h"
 #include "pqSMAdaptor.h"
 
-class pqNonRotatingBoxWidget::pqImplementation : public Ui::pqNonRotatingBoxWidget
-{
-public:
-  pqPropertyLinks Links;
-};
-
-
-#define PVBOXWIDGET_TRIGGER_RENDER(ui)  \
-  QObject::connect(this->Implementation->ui,\
-    SIGNAL(editingFinished()),\
-    this, SLOT(render()), Qt::QueuedConnection);
 //-----------------------------------------------------------------------------
 pqNonRotatingBoxWidget::pqNonRotatingBoxWidget(vtkSMProxy* refProxy, vtkSMProxy* pxy, QWidget* _parent) :
   Superclass(refProxy, pxy, _parent)
 {
-  this->Implementation = new pqImplementation();
-  this->Implementation->setupUi(this);
-  this->Implementation->show3DWidget->setChecked(this->widgetVisible());  
-
-  // Setup validators for all line edits.
-  QDoubleValidator* validator = new QDoubleValidator(this);
-  this->Implementation->positionX->setValidator(validator);
-  this->Implementation->positionY->setValidator(validator);
-  this->Implementation->positionZ->setValidator(validator);
-  this->Implementation->scaleX->setValidator(validator);
-  this->Implementation->scaleY->setValidator(validator);
-  this->Implementation->scaleZ->setValidator(validator);
-
-  PVBOXWIDGET_TRIGGER_RENDER(positionX);
-  PVBOXWIDGET_TRIGGER_RENDER(positionY);
-  PVBOXWIDGET_TRIGGER_RENDER(positionZ);
-  PVBOXWIDGET_TRIGGER_RENDER(scaleX);
-  PVBOXWIDGET_TRIGGER_RENDER(scaleY);
-  PVBOXWIDGET_TRIGGER_RENDER(scaleZ);
-
-  QObject::connect(this->Implementation->show3DWidget,
-    SIGNAL(toggled(bool)), this, SLOT(setWidgetVisible(bool)));
 
   QObject::connect(this, SIGNAL(widgetVisibilityChanged(bool)),
     this, SLOT(onWidgetVisibilityChanged(bool)));
 
-  QObject::connect(this->Implementation->resetBounds,
-    SIGNAL(clicked()), this, SLOT(resetBounds()));
-
   //QObject::connect(this, SIGNAL(widgetStartInteraction()),
   //  this, SLOT(showHandles()));
 
-  QObject::connect(&this->Implementation->Links, SIGNAL(qtWidgetChanged()),
-    this, SLOT(setModified()));
-
   pqServerManagerModel* smmodel =
     pqApplicationCore::instance()->getServerManagerModel();
-  this->createWidget(smmodel->findServer(refProxy->GetConnectionID()));
+  this->createWidget(smmodel->findServer(refProxy->GetSession()));
 }
 
 //-----------------------------------------------------------------------------
 pqNonRotatingBoxWidget::~pqNonRotatingBoxWidget()
 {
-  delete this->Implementation;
-}
-
-#define PVBOXWIDGET_LINK(ui, smproperty, index)\
-{\
-  this->Implementation->Links.addPropertyLink(\
-    this->Implementation->ui, "text2",\
-    SIGNAL(textChanged(const QString&)),\
-    widget, widget->GetProperty(smproperty), index);\
 }
 
 //-----------------------------------------------------------------------------
@@ -126,14 +77,6 @@ void pqNonRotatingBoxWidget::createWidget(pqServer* server)
 
   widget->UpdateVTKObjects();
   widget->UpdatePropertyInformation();
-
-  PVBOXWIDGET_LINK(positionX, "Position", 0);
-  PVBOXWIDGET_LINK(positionY, "Position", 1);
-  PVBOXWIDGET_LINK(positionZ, "Position", 2);
-
-  PVBOXWIDGET_LINK(scaleX, "Scale", 0);
-  PVBOXWIDGET_LINK(scaleY, "Scale", 1);
-  PVBOXWIDGET_LINK(scaleZ, "Scale", 2);
 }
 
 //-----------------------------------------------------------------------------
@@ -174,9 +117,6 @@ void pqNonRotatingBoxWidget::cleanupWidget()
 //-----------------------------------------------------------------------------
 void pqNonRotatingBoxWidget::onWidgetVisibilityChanged(bool visible)
 {
-  this->Implementation->show3DWidget->blockSignals(true);
-  this->Implementation->show3DWidget->setChecked(visible);
-  this->Implementation->show3DWidget->blockSignals(false);
 }
 
 //-----------------------------------------------------------------------------

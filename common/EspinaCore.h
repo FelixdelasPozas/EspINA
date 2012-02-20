@@ -25,12 +25,12 @@
 
 #include <QSharedPointer>
 #include <QUndoStack>
+#include "gui/ViewManager.h"
 
 
 class EspinaCore
 {
 public:
-  explicit EspinaCore();
   virtual ~EspinaCore(){}
 
   static EspinaCore *instance();
@@ -44,13 +44,18 @@ public:
   void setSample(Sample *sample) {m_sample = sample;}
   Sample *sample(){return m_sample;}
 
+  QSharedPointer<ViewManager> viewManger() {return m_viewManager;}
+
 private:
+  explicit EspinaCore();
+
   static EspinaCore *m_singleton;
 
   TaxonomyNode               *m_activeTaxonomy;
   Sample                     *m_sample;
   EspinaModelPtr              m_model;
   QSharedPointer<QUndoStack>  m_undoStack;
+  QSharedPointer<ViewManager> m_viewManager;
 };
 
 #endif // ESPINACORE_H

@@ -66,6 +66,7 @@ void SelectionManager::setSelectionHandler(SelectionHandler* sh)
   if (m_handler && m_handler != sh)
     m_handler->abortSelection();
   m_handler = sh;
+
 //   if (m_voi)
 //   {
 //     m_voi->setEnabled(!m_handler);

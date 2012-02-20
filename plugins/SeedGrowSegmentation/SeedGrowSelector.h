@@ -30,7 +30,7 @@ class SeedGrowSelector
 {
   Q_OBJECT
 public:
-  explicit SeedGrowSelector(ThresholdAction *th, SelectionHandler* succesor = 0);
+  explicit SeedGrowSelector(ThresholdAction *th, SelectionHandler *succesor = NULL);
 
   virtual bool filterEvent(QEvent* e, SelectableView* view = 0);
   virtual QCursor cursor();

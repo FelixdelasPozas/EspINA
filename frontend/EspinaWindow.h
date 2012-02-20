@@ -84,7 +84,7 @@ private:
 
   QSharedPointer<QUndoStack>  m_undoStack;
   QString                     m_currentActivity;
-  EspinaView                 *m_view;
+  QSharedPointer<EspinaView>  m_view;
 #ifdef DEBUG
   QSharedPointer<ModelTest>   m_modelTester;
 #endif

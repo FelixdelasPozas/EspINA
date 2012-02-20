@@ -30,6 +30,7 @@
 #include "IPreferencePanel.h"
 #include <selection/SelectableView.h>
 
+class pq3DWidget;
 class vtkSMRepresentationProxy;
 class pqDataRepresentation;
 
@@ -138,6 +139,8 @@ public:
   virtual void previewExtent(int VOI[6]);
   void addPreview(pqOutputPort *preview);
   void removePreview(pqOutputPort *preview);
+
+  void addWidget(pq3DWidget *widget);
 
 public slots:
   // Espina has been connected to a new server

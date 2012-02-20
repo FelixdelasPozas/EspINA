@@ -17,57 +17,55 @@
 */
 
 
-#include "SegmentAction.h"
+#include "ActionSelector.h"
 
-#include "../common/gui/ActionSelectorWidget.h"
+#include "ActionSelectorWidget.h"
 
 #include <QDebug>
 
 //------------------------------------------------------------------------
-SegmentAction::SegmentAction(QObject* parent)
+ActionSelector::ActionSelector(QObject *parent)
 : QWidgetAction(parent)
 {
 }
 
 //------------------------------------------------------------------------
-QWidget* SegmentAction::createWidget(QWidget* parent)
+QWidget* ActionSelector::createWidget(QWidget* parent)
 {
-  qDebug() << "Create Segment Widget";
+//   qDebug() << "Create Segment Widget";
   // Segmentation Button
-  ActionSelectorWidget *segmentateButton = new ActionSelectorWidget(parent);
-  segmentateButton->setIconSize(QSize(22,22));
+  ActionSelectorWidget *button = new ActionSelectorWidget(parent);
+  button->setIconSize(QSize(22,22));
 
   foreach(QAction *action, m_actions)
-  {
-    segmentateButton->addAction(action);
-  }
+    button->addAction(action);
 
-  connect(segmentateButton, SIGNAL(actionTriggered(QAction*)),
+  connect(button, SIGNAL(actionTriggered(QAction*)),
 	  this, SLOT(actionTriggered(QAction*)));
   connect(this, SIGNAL(cancelAction()),
-	  segmentateButton, SLOT(cancelAction()));
-  connect(segmentateButton, SIGNAL(actionCanceled()),
+	  button, SLOT(cancelAction()));
+  connect(button, SIGNAL(actionCanceled()),
 	  this, SLOT(onActionCanceled()));
 
-  return segmentateButton;
+  return button;
 }
 
 //------------------------------------------------------------------------
-void SegmentAction::addSelector(QAction* action)
+void ActionSelector::addAction(QAction* action)
 {
   m_actions.append(action);
 }
 
 
 //------------------------------------------------------------------------
-void SegmentAction::actionTriggered(QAction* action)
+void ActionSelector::actionTriggered(QAction* action)
 {
-  qDebug() << action->text() << "has been triggered";
+//   qDebug() << action->text() << "has been triggered";
   emit triggered(action);
 }
 
 //------------------------------------------------------------------------
-void SegmentAction::onActionCanceled()
+void ActionSelector::onActionCanceled()
 {
   emit actionCanceled();
 }

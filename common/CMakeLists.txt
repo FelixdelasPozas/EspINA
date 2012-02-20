@@ -17,6 +17,7 @@ qt4_wrap_cpp(MOC_BUILT_SOURCES
   model/EspinaModel.h
   model/ModelTest.h
   gui/ActionSelectorWidget.h
+  gui/ActionSelector.h
   gui/EspinaView.h
   gui/SliceView.h
   gui/ViewManager.h
@@ -42,6 +43,7 @@ set(CACHE_SOURCES
 
 set(GUI_SOURCES
   gui/ActionSelectorWidget.cpp
+  gui/ActionSelector.cpp
   gui/DynamicWidget.cpp
   gui/EspinaDockWidget.cpp
   gui/EspinaView.cpp
@@ -100,17 +102,18 @@ set(EXTERNAL_LIBS
   QtTest
 )
 
-add_library (Espina SHARED ${Espina_SOURCE_FILES})
+add_library (EspinaCore SHARED ${Espina_SOURCE_FILES})
 
-target_link_libraries (Espina ${EXTERNAL_LIBS})
+target_link_libraries (EspinaCore ${EXTERNAL_LIBS})
 
 install (
-  TARGETS Espina ${PARAVIEW_LIBRARIES}
+  TARGETS EspinaCore ${PARAVIEW_LIBRARIES}
   LIBRARY
   DESTINATION lib
   COMPONENT espina
   )
 
+add_subdirectory (plugins/EspinaWidgets)
 if (${BUILD_TESTING})
   add_subdirectory(model/tests)
 endif (${BUILD_TESTING})

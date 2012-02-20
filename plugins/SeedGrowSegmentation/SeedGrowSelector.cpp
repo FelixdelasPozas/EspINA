@@ -27,6 +27,7 @@
 #include <pqRenderViewBase.h>
 #include "SeedGrowSegmentationFilter.h"
 
+//-----------------------------------------------------------------------------
 SeedGrowSelector::SeedGrowSelector(ThresholdAction* th, SelectionHandler* succesor)
 : SelectionHandler(succesor)
 , m_threshold(th)
@@ -37,6 +38,7 @@ SeedGrowSelector::SeedGrowSelector(ThresholdAction* th, SelectionHandler* succes
   m_filters << SelectionHandler::EspINA_Channel;
 }
 
+//-----------------------------------------------------------------------------
 bool SeedGrowSelector::filterEvent(QEvent* e, SelectableView* view)
 {
   if (e->type() == QEvent::Wheel)
@@ -118,19 +120,22 @@ bool SeedGrowSelector::filterEvent(QEvent* e, SelectableView* view)
   return false;
 }
 
+//-----------------------------------------------------------------------------
 QCursor SeedGrowSelector::cursor()
 {
   if (m_succesor)
     return m_succesor->cursor();
   else
-    return m_cursor;
+    return SelectionHandler::cursor();
 }
 
+//-----------------------------------------------------------------------------
 void SeedGrowSelector::previewOn()
 {
   
 }
 
+//-----------------------------------------------------------------------------
 void SeedGrowSelector::previewOff()
 {
 

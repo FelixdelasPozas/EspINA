@@ -41,6 +41,7 @@
 #include <QMenu>
 #include <model/Segmentation.h>
 #include <QApplication>
+#include <plugins/EspinaWidgets/RectangularSelection.h>
 
 //----------------------------------------------------------------------------
 EspinaView::EspinaView( QMainWindow* parent, const QString activity)
@@ -162,6 +163,12 @@ void DefaultEspinaView::resetCamera()
   xzView->resetCamera();
 }
 
+
+//----------------------------------------------------------------------------
+void DefaultEspinaView::addWidget(EspinaWidget* widget)
+{
+  xyView->addWidget(widget->createWidget(vtkPVSliceView::AXIAL));
+}
 
 //----------------------------------------------------------------------------
 void DefaultEspinaView::setShowSegmentations(bool visibility)

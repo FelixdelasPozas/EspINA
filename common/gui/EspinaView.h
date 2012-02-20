@@ -28,6 +28,7 @@
 
 #include <QAbstractItemView>
 #include <QDockWidget>
+#include <plugins/EspinaWidgets/RectangularSelection.h>
 
 class VolumeView;
 // Forward-declaration
@@ -52,6 +53,8 @@ public:
   virtual QModelIndex indexAt(const QPoint& point) const {return QModelIndex();}
   virtual void scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint = EnsureVisible) {}
   virtual QRect visualRect(const QModelIndex& index) const {return QRect();}
+
+  virtual void addWidget(EspinaWidget *widget) = 0;
 
 public slots:
   virtual void setShowSegmentations(bool visibility) = 0;
@@ -87,6 +90,8 @@ public:
   virtual void resetCamera();
 
   virtual QSize sizeHint() const;
+
+  virtual void addWidget(EspinaWidget* widget);
 
   virtual void setShowSegmentations(bool visibility);
   void setCenter(double x, double y, double z);

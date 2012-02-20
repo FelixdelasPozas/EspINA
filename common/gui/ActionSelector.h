@@ -17,25 +17,24 @@
 */
 
 
-#ifndef SEGMENTACTION_H
-#define SEGMENTACTION_H
+#ifndef ACTIONSELECTOR_H
+#define ACTIONSELECTOR_H
 
 #include <QWidgetAction>
 
 class QMenu;
 class SelectionHandler;
 
-
-class SegmentAction
+class ActionSelector
 : public QWidgetAction
 {
   Q_OBJECT
 public:
-  explicit SegmentAction(QObject* parent);
+  explicit ActionSelector(QObject *parent);
 
-  virtual QWidget* createWidget(QWidget* parent);
+  virtual QWidget* createWidget(QWidget *parent);
 
-  void addSelector(QAction *action);
+  void addAction(QAction *action);
   void cancel() {emit cancelAction();}
 
 protected slots:
@@ -48,8 +47,7 @@ signals:
   void triggered(QAction *);
 
 private:
-  SelectionHandler *m_selector;
   QList<QAction *>  m_actions;
 };
 
-#endif // SEGMENTACTION_H
+#endif // ACTIONSELECTOR_H

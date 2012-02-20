@@ -34,7 +34,6 @@ qt4_wrap_cpp(MOC_SRCS
   SeedGrowSegmentationFilter.h
   SeedGrowSelector.h
   gui/DefaultVOIAction.h
-  gui/SegmentAction.h
   gui/ThresholdAction.h
 #   SeedGrowSegmentationPreferences.h
   )
@@ -58,7 +57,6 @@ set (PLUGIN_SRCS
   SeedGrowSegmentationFilter.cpp
   SeedGrowSelector.cpp
   gui/DefaultVOIAction.cpp
-  gui/SegmentAction.cpp
   gui/ThresholdAction.cpp
 #   SeedGrowSegmentationPreferences.cpp
   ${MOC_SRCS}
@@ -72,7 +70,7 @@ set (VTKFILTER_SRCS
 
 set (PARAVIEW_ADDITIONAL_LIBRARIES
   ${PARAVIEW_ADDITIONAL_LIBRARIES}
-  Espina
+  EspinaCore
   # Linking EspinaViews generates the following warning:
   # Inconsistency detected by ld.so: dl-close.c: 743: _dl_close:
   #  Assertion `map->l_init_called' failed!
