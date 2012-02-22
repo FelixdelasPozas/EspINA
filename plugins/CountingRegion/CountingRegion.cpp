@@ -19,7 +19,8 @@
 #include "CountingRegion.h"
 #include "ui_CountingRegion.h"
 #include <common/EspinaCore.h>
-#include "regions/RectangularRegion.h"
+#include "regions/RectangularBoundingRegion.h"
+#include <common/gui/EspinaView.h>
 
 // #include "CountingRegionExtension.h"
 
@@ -92,6 +93,11 @@ CountingRegion::CountingRegion(QWidget * parent)
   setWidget(m_gui);
 
   m_gui->regionView->setModel(&m_regionModel);
+  m_regionModel.setHorizontalHeaderItem(0, new QStandardItem(tr("Name")));
+  m_regionModel.setHorizontalHeaderItem(1, new QStandardItem(tr("XY")));
+  m_regionModel.setHorizontalHeaderItem(2, new QStandardItem(tr("YZ")));
+  m_regionModel.setHorizontalHeaderItem(3, new QStandardItem(tr("XZ")));
+  m_regionModel.setHorizontalHeaderItem(4, new QStandardItem(tr("3D")));
   m_espinaModel = EspinaCore::instance()->model();
 
 //   connect(regionView, SIGNAL(clicked(QModelIndex)),
@@ -138,14 +144,20 @@ void CountingRegion::createBoundingRegion()
   int bottom = m_gui->bottomMargin->value();
   int lower  = m_gui->lowerSlice->value();
 
+  QSharedPointer<ViewManager> vm = EspinaCore::instance()->viewManger();
+  EspinaView *view = vm->currentView();
   if (m_gui->regionType->currentIndex() == ADAPTIVE)
   {
   } else if (m_gui->regionType->currentIndex() == RECTANGULAR)
   {
-    new RectangularRegion(left,  top,    upper,
-			  right, bottom, lower);
+    RectangularBoundingRegion *region =
+      new RectangularBoundingRegion(left,  top,    upper,
+				    right, bottom, lower);
+    m_regionModel.appendRow(region);
+    view->addWidget(region);
   } else
     Q_ASSERT(false);
+
 
   QApplication::restoreOverrideCursor();
 }

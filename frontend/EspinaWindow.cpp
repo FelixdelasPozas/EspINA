@@ -210,6 +210,8 @@ void EspinaWindow::closeEvent(QCloseEvent* event)
 {
   if (m_view)
     m_view->saveLayout();
+
+  closeCurrentAnalysis();
 //   QSettings settings("CeSViMa", "EspinaModel");
 
 //   settings.setValue(m_currentActivity+"/geometry", saveGeometry());

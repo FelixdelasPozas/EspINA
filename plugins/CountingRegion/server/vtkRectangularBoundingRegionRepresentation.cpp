@@ -32,7 +32,7 @@
 
 vtkStandardNewMacro(vtkRectangularBoundingRegionRepresentation);
 
-enum View {XY,YZ,XZ,VOL};
+enum View {XY=2,YZ=0,XZ=1,VOL=3};
 
 //----------------------------------------------------------------------------
 vtkRectangularBoundingRegionRepresentation::vtkRectangularBoundingRegionRepresentation()

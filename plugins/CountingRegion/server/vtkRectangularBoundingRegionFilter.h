@@ -38,7 +38,7 @@ class VTK_IMAGING_EXPORT vtkRectangularBoundingRegionFilter
 public:
   static vtkRectangularBoundingRegionFilter *New();
   vtkTypeMacro(vtkRectangularBoundingRegionFilter, vtkPolyDataAlgorithm);
-  
+
   vtkSetVector6Macro(Extent,int);
   vtkSetVector3Macro(Spacing,double);
 

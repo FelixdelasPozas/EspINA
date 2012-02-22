@@ -30,6 +30,7 @@
 #include "common/model/Segmentation.h"
 #include "common/model/Taxonomy.h"
 #include "common/model/EspinaFactory.h"
+#include "common/EspinaCore.h"
 
 //------------------------------------------------------------------------
 EspinaModel::EspinaModel ( QObject* parent )
@@ -546,6 +547,7 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
 // 	  << v.vId << v.name.c_str() << " with args:" << v.args.c_str();
 	  SamplePtr sample(factory->createSample(v.name.c_str(), v.args.c_str()));
 	  addSample(sample);
+	  EspinaCore::instance()->setSample(sample.data());
 	  input->setItem(v.vId, sample.data());
 	  break;
 	}

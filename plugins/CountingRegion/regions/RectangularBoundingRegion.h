@@ -17,18 +17,29 @@
 */
 
 
-#ifndef RECTANGULARREGION_H
-#define RECTANGULARREGION_H
+#ifndef RECTANGULARBOUNDINGREGION_H
+#define RECTANGULARBOUNDINGREGION_H
 
 #include "regions/BoundingRegion.h"
 
-class RectangularRegion
+class RectangularBoundingRegion
 : public BoundingRegion
 {
 public:
-  explicit RectangularRegion(int left,  int top,    int upper,
+  explicit RectangularBoundingRegion(int left,  int top,    int upper,
 			     int right, int bottom, int lower);
-  virtual ~RectangularRegion();
+  virtual ~RectangularBoundingRegion();
+
+  // Implements QStandardItem interface
+  virtual QVariant data(int role = Qt::UserRole + 1) const;
+
+  // Implements EspinaWidget interface
+  virtual pq3DWidget* createWidget(vtkPVSliceView::VIEW_PLANE plane);
+  virtual void setBounds(double bounds[6]);
+  virtual void setEnabled(bool enable);
+
+private:
+  QList<pq3DWidget *> m_widgets;
 };
 
-#endif // RECTANGULARREGION_H
+#endif // RECTANGULARBOUNDINGREGION_H

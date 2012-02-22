@@ -21,10 +21,14 @@
 #define BOUNDINGREGION_H
 
 #include <QStandardItemModel>
+#include <common/plugins/EspinaWidgets/RectangularSelection.h>
+
 #include <common/processing/pqFilter.h>
 
 /// Bounding Regions' base class
-class BoundingRegion : public QStandardItem
+class BoundingRegion
+: public QStandardItem
+, public EspinaWidget
 {
 public:
   explicit BoundingRegion(int left,  int top,    int upper,
@@ -41,7 +45,7 @@ public:
   virtual void setInclusive(int left, int top, int upper){};
   virtual void setExclusive(int right, int bottom, int lower){};
 
-private:
+protected:
   pqFilter *m_boundingRegion;
   int m_inclusion[3];
   int m_exclusion[3];

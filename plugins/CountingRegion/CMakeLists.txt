@@ -63,7 +63,7 @@ set (LOCAL_SOURCES
 
 set (REGION_SOURCES
   regions/BoundingRegion.cpp
-  regions/RectangularRegion.cpp
+  regions/RectangularBoundingRegion.cpp
   )
 
 set (SERVER_SOURCES
