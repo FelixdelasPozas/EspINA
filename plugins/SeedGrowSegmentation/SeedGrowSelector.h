@@ -20,7 +20,7 @@
 #ifndef SEEDGROWSELECTOR_H
 #define SEEDGROWSELECTOR_H
 
-#include <selection/SelectionHandler.h>
+#include "common/selection/SelectionHandler.h"
 
 class SeedGrowSegmentationFilter;
 class ThresholdAction;

@@ -23,11 +23,13 @@
 // #include "espina_debug.h"
 //
 // // EspINA
-#include "model/Channel.h"
-#include "../Views/pqSliceView.h"
-#include "../Views/vtkSMSliceViewProxy.h"
-#include <selection/SelectionManager.h>
+#include "common/model/Channel.h"
+#include "Views/pqSliceView.h"
+#include "Views/vtkSMSliceViewProxy.h"
+#include "common/selection/SelectionManager.h"
 #include "IPreferencePanel.h"
+#include "common/processing/pqData.h"
+#include "common/model/Segmentation.h"
 
 // Qt includes
 #include <QApplication>
@@ -68,11 +70,9 @@
 #include <vtkPropPicker.h>
 #include <vtkPropCollection.h>
 #include <vtkRenderWindow.h>
-#include <processing/pqData.h>
 #include <vtkRenderer.h>
 
 #include <vtkPropCollection.h>
-#include <model/Segmentation.h>
 #include <pq3DWidget.h>
 
 //-----------------------------------------------------------------------------
@@ -794,14 +794,6 @@ void SliceView::addChannelRepresentation(Channel* channel)
   pqSMAdaptor::addProxyProperty(
     viewModuleProxy->GetProperty("Representations"), reprProxy);
   viewModuleProxy->UpdateVTKObjects();
-
-  // Only at sample LOD
-  double spacing[3];
-  channel->spacing(spacing);
-  setGridSize(spacing);
-  double bounds[6];
-  channel->bounds(bounds);
-  setRanges(bounds);
 }
 
 //-----------------------------------------------------------------------------

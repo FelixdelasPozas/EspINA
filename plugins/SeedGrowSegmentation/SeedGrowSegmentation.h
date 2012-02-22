@@ -20,9 +20,9 @@
 
 
 #include <QActionGroup>
-#include <plugins/FilterFactory.h>
+#include "common/plugins/FilterFactory.h"
 
-#include <selection/SelectionHandler.h>
+#include "common/selection/SelectionHandler.h"
 #include "SeedGrowSelector.h"
 
 #include <QSharedPointer>

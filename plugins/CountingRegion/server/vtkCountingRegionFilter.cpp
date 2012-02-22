@@ -272,8 +272,8 @@ int vtkCountingRegionFilter::RequestData(vtkInformation* request, vtkInformation
   { 
     vtkInformation *regionInfo =  inputVector[0]->GetInformationObject(r);
     vtkPolyData *region= vtkPolyData::SafeDownCast(regionInfo->Get(vtkDataObject::DATA_OBJECT()));
-    
-    if (Discarted = discartedByRegion(input, inputBB, region))
+
+    if ((Discarted = discartedByRegion(input, inputBB, region)))
       break;
   }
   

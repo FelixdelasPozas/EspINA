@@ -88,8 +88,6 @@ private:
   void operator=(const pqRectangularBoundingRegionWidget&); // Not implemented.
   
   vtkSMProxy *InternalProxy;
-  class pqImplementation;
-  pqImplementation* Implementation;
 };
 
 #endif

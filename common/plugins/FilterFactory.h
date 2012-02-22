@@ -17,26 +17,19 @@
 */
 
 
-#include "AddFilter.h"
+#ifndef FILTERFACTORY_H
+#define FILTERFACTORY_H
 
-#include "common/EspinaCore.h"
+#include "common/model/Filter.h"
 
-AddFilter::AddFilter(QSharedPointer< Filter > filter, QUndoCommand* parent)
-: QUndoCommand(parent)
-, m_filter(filter)
+class FilterFactory
 {
+public:
+  virtual ~FilterFactory(){}
+  virtual FilterPtr createFilter(const QString filter, const QString args) = 0;
 
-}
+protected:
+  QString m_factoryName;
+};
 
-void AddFilter::redo()
-{
-  EspinaCore::instance()->model()->addFilter(m_filter);
-}
-
-
-void AddFilter::undo()
-{
-  EspinaCore::instance()->model()->removeFilter(m_filter);
-}
-
-
+#endif // FILTERFACTORY_H

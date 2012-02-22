@@ -31,24 +31,42 @@
 
 #include <QDebug>
 #include <pqPipelineSource.h>
+#include <vtkSMPropertyHelper.h>
 
 //----------------------------------------------------------------------------
 RectangularRegion::RectangularRegion()
 : m_box(NULL)
 {
+}
 
+//----------------------------------------------------------------------------
+RectangularRegion::~RectangularRegion()
+{
+//   qDebug() << "Destroying RectangularRegion";
+//   qDebug() << "  containing" << m_widgets.size() << "widgets";
+  foreach(pq3DWidget *widget, m_widgets)
+  {
+    widget->deselect();
+    widget->deleteLater();
+  }
+  m_widgets.clear();
+}
+
+//----------------------------------------------------------------------------
+vtkSMProxy *RectangularRegion::getProxy()
+{
+  if (!m_box)
+  {
+    pqObjectBuilder *builder =  pqApplicationCore::instance()->getObjectBuilder();
+    m_box =  builder->createProxy("implicit_functions","NonRotatingBox",pqApplicationCore::instance()->getActiveServer(),"widgets");
+  }
+  return m_box;
 }
 
 //----------------------------------------------------------------------------
 pq3DWidget* RectangularRegion::createWidget(vtkPVSliceView::VIEW_PLANE plane)
 {
-  qDebug() << "Creating Widget";
-  pqObjectBuilder *builder =  pqApplicationCore::instance()->getObjectBuilder();
-  vtkSMProxy *refBox =  builder->createProxy("implicit_functions","NonRotatingBox",pqApplicationCore::instance()->getActiveServer(),"widgets");
-  Q_ASSERT(refBox);
-  refBox->UpdateSelfAndAllInputs();
-  qDebug() << "Reference created";
-  QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(refBox, getProxy());
+  QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(getProxy(), getProxy());
 
   Q_ASSERT(widgets.size() == 1);
   // By default ParaView doesn't "Apply" the changes to the widget. So we set
@@ -64,7 +82,8 @@ pq3DWidget* RectangularRegion::createWidget(vtkPVSliceView::VIEW_PLANE plane)
 //   newWidget.viewType = viewType;
 //   m_widgets.push_back(newWidget);
 
-  vtkNonRotatingBoxWidget *boxwidget = dynamic_cast<vtkNonRotatingBoxWidget*>(widgets[0]->getWidgetProxy()->GetWidget());
+  vtkAbstractWidget *widget = widgets[0]->getWidgetProxy()->GetWidget();
+  vtkNonRotatingBoxWidget *boxwidget = dynamic_cast<vtkNonRotatingBoxWidget*>(widget);
   Q_ASSERT(boxwidget);
 
   if (plane == vtkPVSliceView::SAGITTAL)
@@ -78,15 +97,28 @@ pq3DWidget* RectangularRegion::createWidget(vtkPVSliceView::VIEW_PLANE plane)
   vtkProperty *outline = repbox->GetOutlineProperty();
   outline->SetColor(1.0,1.0,0);
 
+  m_widgets << widgets;
+
   return widgets[0];
 }
 
-vtkSMProxy *RectangularRegion::getProxy()
+//----------------------------------------------------------------------------
+void RectangularRegion::setEnabled(bool enable)
 {
-  if (!m_box)
+  foreach(pq3DWidget *widget, m_widgets)
   {
-    pqObjectBuilder *builder =  pqApplicationCore::instance()->getObjectBuilder();
-    m_box =  builder->createProxy("implicit_functions","NonRotatingBox",pqApplicationCore::instance()->getActiveServer(),"widgets");
+    vtkAbstractWidget *basewidget = widget->getWidgetProxy()->GetWidget();
+    vtkNonRotatingBoxWidget *boxwidget = dynamic_cast<vtkNonRotatingBoxWidget*>(basewidget);
+    Q_ASSERT(boxwidget);
+    boxwidget->SetProcessEvents(enable);
+    vtkBoxRepresentation *repbox =  dynamic_cast<vtkBoxRepresentation*>(boxwidget->GetRepresentation());
+    repbox->SetPickable(enable);
   }
-  return m_box;
+}
+
+//----------------------------------------------------------------------------
+void RectangularRegion::setBounds(double bounds[6])
+{
+  vtkSMPropertyHelper(getProxy(),"Bounds").Set(bounds,6);
+  getProxy()->UpdateVTKObjects();
 }

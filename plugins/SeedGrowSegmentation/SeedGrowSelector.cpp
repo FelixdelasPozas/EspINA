@@ -20,12 +20,12 @@
 #include "SeedGrowSelector.h"
 
 #include "gui/ThresholdAction.h"
-#include <selection/SelectableItem.h>
+#include "common/selection/SelectableItem.h"
+#include "common/selection/SelectableView.h"
+#include "SeedGrowSegmentationFilter.h"
 
 #include <QWheelEvent>
-#include <selection/SelectableView.h>
 #include <pqRenderViewBase.h>
-#include "SeedGrowSegmentationFilter.h"
 
 //-----------------------------------------------------------------------------
 SeedGrowSelector::SeedGrowSelector(ThresholdAction* th, SelectionHandler* succesor)

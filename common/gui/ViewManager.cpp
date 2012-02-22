@@ -21,8 +21,8 @@
 
 #include <QDebug>
 
-#include "gui/EspinaView.h"
-#include "gui/SliceView.h"
+#include "common/gui/EspinaView.h"
+#include "common/gui/SliceView.h"
 // #include "gui/ViewFrame.h"
 
 #include <QDockWidget>
@@ -45,7 +45,7 @@ ViewManager::~ViewManager()
 }
 
 //----------------------------------------------------------------------------
-QSharedPointer<EspinaView> ViewManager::createView(QMainWindow *window, const QString& layout)
+EspinaView *ViewManager::createView(QMainWindow *window, const QString& layout)
 {
   if (layout == "squared")
     m_currentView = createSquaredLayout(window);
@@ -56,13 +56,13 @@ QSharedPointer<EspinaView> ViewManager::createView(QMainWindow *window, const QS
 }
 
 //----------------------------------------------------------------------------
-QSharedPointer<EspinaView> ViewManager::createDefaultLayout(QMainWindow* window)
+EspinaView *ViewManager::createDefaultLayout(QMainWindow* window)
 {
-  return QSharedPointer<EspinaView>(new DefaultEspinaView(window, "Segmentation"));
+  return new DefaultEspinaView(window, "Segmentation");
 }
 
 //----------------------------------------------------------------------------
-QSharedPointer<EspinaView> ViewManager::createSquaredLayout(QMainWindow* window)
+EspinaView* ViewManager::createSquaredLayout(QMainWindow* window)
 {
   SliceView *volView = new SliceView();
   SliceView *xyView = new SliceView();
@@ -83,5 +83,5 @@ QSharedPointer<EspinaView> ViewManager::createSquaredLayout(QMainWindow* window)
   mainSplitter->addWidget(lowerViews);
 
   window->setCentralWidget(mainSplitter);
-  return QSharedPointer<EspinaView>(NULL);
+  return NULL;
 }

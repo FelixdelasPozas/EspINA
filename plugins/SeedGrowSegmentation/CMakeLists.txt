@@ -17,7 +17,7 @@ find_package (ITK REQUIRED)
 include (${ITK_USE_FILE})
 
 include_directories(
-  ${CMAKE_SOURCE_DIR}/common
+  ${CMAKE_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR} 
   ${ITK_VTK_GLUE}
 #   ${ITK_DIR}/../

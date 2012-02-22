@@ -17,7 +17,7 @@
 */
 
 
-#include "model/Sample.h"
+#include "common/model/Sample.h"
 
 #include <QDebug>
 

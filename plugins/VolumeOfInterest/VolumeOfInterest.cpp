@@ -17,17 +17,17 @@
 */
 #include "VolumeOfInterest.h"
 
-#include <gui/ActionSelector.h>
-#include <selection/SelectionManager.h>
-#include <EspinaCore.h>
+#include "common/gui/ActionSelector.h"
+#include "common/selection/SelectionManager.h"
+#include "common/gui/EspinaView.h"
+#include "common/EspinaCore.h"
 
 #include <QDebug>
-#include <gui/EspinaView.h>
 
 //-----------------------------------------------------------------------------
 VolumeOfInterest::VolumeOfInterest(QObject* parent)
 : QActionGroup (parent)
-, m_VOI        (new ActionSelector(this))
+, m_voi        (new ActionSelector(this))
 , m_selector   (new PixelSelector())
 {
   setObjectName("VolumeOfInterest");
@@ -38,11 +38,11 @@ VolumeOfInterest::VolumeOfInterest(QObject* parent)
 
   buildVOIs();
 
-  connect(m_VOI, SIGNAL(triggered(QAction*)),
+  connect(m_voi, SIGNAL(triggered(QAction*)),
 	  this, SLOT(changeVOISelector(QAction*)));
   connect(m_selector.data(), SIGNAL(selectionChanged(SelectionHandler::MultiSelection)),
 	  this, SLOT(defineVOI(SelectionHandler::MultiSelection)));
-  connect(m_VOI, SIGNAL(actionCanceled()),
+  connect(m_voi, SIGNAL(actionCanceled()),
 	  this, SLOT(cancelVOI()));
 
 //   m_preferences = new VolumeOfInterestPreferences();
@@ -64,9 +64,9 @@ void VolumeOfInterest::buildVOIs()
   action = new QAction(
     QIcon(":roi.svg")
     , tr("Volume Of Interest"),
-    m_VOI);
+    m_voi);
 
-  m_VOI->addAction(action);
+  m_voi->addAction(action);
 //   voi = new RectangularVOI();
 //   addVOI(action, voi);
 //   connect(voi, SIGNAL(voiCancelled()),this,SLOT(cancelVOI()));
@@ -81,16 +81,41 @@ void VolumeOfInterest::changeVOISelector(QAction* action)
 //-----------------------------------------------------------------------------
 void VolumeOfInterest::defineVOI(SelectionHandler::MultiSelection msel)
 {
-  qDebug() << "Create VOI";
+  if (msel.size() == 0)
+    return;
+
+  // Compute default bounds
+  Q_ASSERT(msel.size() == 1); //Only one element is selected
+  SelectionHandler::Selelection selection = msel.first();
+
+  Q_ASSERT(selection.first.size() == 1); //Only one pixel's selected
+  QVector3D pos = selection.first.first();
+
   QSharedPointer<ViewManager> vm = EspinaCore::instance()->viewManger();
-  QSharedPointer<EspinaView> view = vm->currentView();
-  RectangularRegion *voi = new RectangularRegion();
-  Q_ASSERT(voi);
-  view->addWidget(voi);
+  EspinaView *view = vm->currentView();
+  m_voiWidget = QSharedPointer<EspinaWidget>(new RectangularRegion());
+  Q_ASSERT(m_voiWidget);
+  view->addWidget(m_voiWidget.data());
+
+  const double XHSIZE = 40;
+  const double YHSIZE = 40;
+  const double ZHSIZE = 40;
+  double spacing[3];
+  view->gridSize(spacing);
+  double bounds[6] = {
+     (pos.x() - XHSIZE)*spacing[0], (pos.x() + XHSIZE)*spacing[0],
+     (pos.y() - YHSIZE)*spacing[1], (pos.y() + YHSIZE)*spacing[1],
+     (pos.z() - ZHSIZE)*spacing[2], (pos.z() + ZHSIZE)*spacing[2]};
+  m_voiWidget->setBounds(bounds);
+  //BEGIN TODO:
+  m_voiWidget->setEnabled(false);
+  //END TODO
+  SelectionManager::instance()->unsetSelectionHandler(m_selector.data());
 }
 
 //-----------------------------------------------------------------------------
 void VolumeOfInterest::cancelVOI()
 {
-  SelectionManager::instance()->setSelectionHandler(NULL);
+  m_voiWidget.clear();
+  SelectionManager::instance()->unsetSelectionHandler(m_selector.data());
 }

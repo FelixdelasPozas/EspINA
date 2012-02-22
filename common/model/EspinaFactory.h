@@ -20,8 +20,8 @@
 #ifndef ESPinaFACTORY_H
 #define ESPinaFACTORY_H
 
-#include "Sample.h"
-#include <plugins/FilterFactory.h>
+#include "common/model/Sample.h"
+#include "common/plugins/FilterFactory.h"
 
 
 class EspinaFactory

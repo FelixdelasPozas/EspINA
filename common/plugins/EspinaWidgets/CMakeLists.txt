@@ -6,11 +6,9 @@ set (PLUGIN_VERSION_PATCH 0)
 # We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
 qt4_wrap_cpp(MOC_SOURCES
   pqNonRotatingBoxWidget.h
-  RectangularSelection.h
   )
 # Create Interface files
 qt4_wrap_ui (UI_BUILT_SOURCES
-  pqNonRotatingBoxWidget.ui
   )
 
 ADD_3DWIDGET(

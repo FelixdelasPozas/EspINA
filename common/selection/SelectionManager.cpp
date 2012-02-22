@@ -18,6 +18,7 @@
 */
 
 #include "SelectionManager.h"
+#include <QApplication>
 
 
 SelectionManager *SelectionManager::m_singleton = NULL;//new SelectionManager();
@@ -76,9 +77,11 @@ void SelectionManager::setSelectionHandler(SelectionHandler* sh)
 //------------------------------------------------------------------------
 void SelectionManager::unsetSelectionHandler(SelectionHandler* sh)
 {
-  Q_ASSERT(m_handler == sh);
-
-  m_handler = NULL;
+  if (m_handler == sh)
+  {
+    m_handler = NULL;
+    QApplication::restoreOverrideCursor();
+  }
 }
 
 //------------------------------------------------------------------------

@@ -19,8 +19,8 @@
 
 #include "AddSegmentation.h"
 
-#include <EspinaCore.h>
-#include <model/EspinaModel.h>
+#include "common/EspinaCore.h"
+#include "common/model/EspinaModel.h"
 
 AddSegmentation::AddSegmentation(SegmentationPtr seg,
 				 QUndoCommand* parent)

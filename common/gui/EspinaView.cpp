@@ -21,11 +21,13 @@
 
 #include <QDebug>
 
-#include "gui/SliceView.h"
-#include "gui/VolumeView.h"
-#include "model/ModelItem.h"
-#include "model/Channel.h"
-#include "processing/pqData.h"
+#include "common/gui/SliceView.h"
+#include "common/gui/VolumeView.h"
+#include "common/model/ModelItem.h"
+#include "common/model/Channel.h"
+#include "common/processing/pqData.h"
+#include "common/model/Segmentation.h"
+#include "common/plugins/EspinaWidgets/RectangularSelection.h"
 
 #include <QDockWidget>
 #include <QMainWindow>
@@ -39,9 +41,7 @@
 #include <pqPipelineSource.h>
 #include <QDir>
 #include <QMenu>
-#include <model/Segmentation.h>
 #include <QApplication>
-#include <plugins/EspinaWidgets/RectangularSelection.h>
 
 //----------------------------------------------------------------------------
 EspinaView::EspinaView( QMainWindow* parent, const QString activity)
@@ -163,11 +163,29 @@ void DefaultEspinaView::resetCamera()
   xzView->resetCamera();
 }
 
+//----------------------------------------------------------------------------
+void DefaultEspinaView::gridSize(double size[3])
+{
+  memcpy(size, m_gridSize, 3*sizeof(double));
+}
+
+//----------------------------------------------------------------------------
+void DefaultEspinaView::setGridSize(double size[3])
+{
+  xyView->setGridSize(size);
+  yzView->setGridSize(size);
+  xzView->setGridSize(size);
+  memcpy(m_gridSize, size, 3*sizeof(double));
+}
+
 
 //----------------------------------------------------------------------------
 void DefaultEspinaView::addWidget(EspinaWidget* widget)
 {
   xyView->addWidget(widget->createWidget(vtkPVSliceView::AXIAL));
+  yzView->addWidget(widget->createWidget(vtkPVSliceView::SAGITTAL));
+  xzView->addWidget(widget->createWidget(vtkPVSliceView::CORONAL));
+  volView->addWidget(widget->createWidget(vtkPVSliceView::CORONAL));
 }
 
 //----------------------------------------------------------------------------
@@ -207,6 +225,17 @@ void DefaultEspinaView::rowsInserted(const QModelIndex& parent, int start, int e
 	Channel *channel = dynamic_cast<Channel *>(item);
 	//       item.dynamicCast<ChannelPtr>();
 	qDebug() << "Add Channel:" << channel->data(Qt::DisplayRole).toString();
+	
+	//BEGIN Only at sample LOD
+	double spacing[3];
+	channel->spacing(spacing);
+	setGridSize(spacing);
+	double bounds[6];
+	channel->bounds(bounds);
+	xyView->setRanges(bounds);
+	yzView->setRanges(bounds);
+	xzView->setRanges(bounds);
+	//END
 	xyView->addChannelRepresentation(channel);
 	yzView->addChannelRepresentation(channel);
 	xzView->addChannelRepresentation(channel);

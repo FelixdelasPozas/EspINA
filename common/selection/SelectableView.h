@@ -20,8 +20,8 @@
 #ifndef SELECTABLEVIEW_H
 #define SELECTABLEVIEW_H
 
-#include "SelectionHandler.h"
-#include <model/Filter.h>
+#include "common/selection/SelectionHandler.h"
+#include "common/model/Filter.h"
 
 class pqRenderViewBase;
 

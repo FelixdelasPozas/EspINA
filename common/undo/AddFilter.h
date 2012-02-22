@@ -22,7 +22,7 @@
 
 #include <QUndoCommand>
 
-#include <model/Filter.h>
+#include "common/model/Filter.h"
 #include <QSharedPointer>
 
 

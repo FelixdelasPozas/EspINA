@@ -25,9 +25,9 @@
 #ifndef CHANNEL_H
 #define CHANNEL_H
 
-#include <selection/SelectableItem.h>
+#include "common/selection/SelectableItem.h"
 
-#include "processing/pqData.h"
+#include "common/processing/pqData.h"
 #include <QColor>
 
 // Forward declarations

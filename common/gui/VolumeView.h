@@ -27,6 +27,7 @@
 #include <QAbstractItemView>
 #include <QPushButton>
 
+class pq3DWidget;
 class Sample;
 class Sample;
 class Segmentation;
@@ -57,6 +58,8 @@ public:
   virtual QRect visualRect(const QModelIndex& index) const {return QRect();}
 
   void addSegmentationRepresentation(pqOutputPort *oport);
+
+  void addWidget(pq3DWidget *widget);
 
 public slots:
   void onConnect();

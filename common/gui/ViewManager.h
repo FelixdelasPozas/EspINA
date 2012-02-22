@@ -25,11 +25,11 @@
 #ifndef VIEWMANAGER_H
 #define VIEWMANAGER_H
 
-#include <QSharedPointer>
+#include <QObject>
 
 class QMainWindow;
-class QWidget;
 class EspinaView;
+class QWidget;
 class ViewFrame;
 class pqServerManagerObserver;
 
@@ -40,8 +40,8 @@ public:
   explicit ViewManager();
   ~ViewManager();
 
-  QSharedPointer<EspinaView> currentView() {return m_currentView;}
-  QSharedPointer<EspinaView> createView(QMainWindow *window, const QString &layout = QString()); //NOTE: Should be move into the factory?
+  EspinaView *currentView() {return m_currentView;}
+  EspinaView *createView(QMainWindow *window, const QString &layout = QString()); //NOTE: Should be move into the factory?
 //   void saveView(const QString &layout) const;
 //   void restoreView(const QString &layout);
 
@@ -50,10 +50,10 @@ protected:
 //   void onConnect();
   // Espina has been disconnected from server
 //   void onDisconnect();
-  QSharedPointer<EspinaView> createDefaultLayout(QMainWindow *window);
-  QSharedPointer<EspinaView> createSquaredLayout(QMainWindow *window);
+  EspinaView *createDefaultLayout(QMainWindow *window);
+  EspinaView *createSquaredLayout(QMainWindow *window);
 
-  QSharedPointer<EspinaView> m_currentView;
+  EspinaView *m_currentView;
 };
 
 #endif // VIEWMANAGER_H

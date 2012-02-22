@@ -17,12 +17,12 @@
 
 */
 
-#include "cache/CachedObjectBuilder.h"
+#include "common/cache/CachedObjectBuilder.h"
 
 // Debug
 // #include "espina_debug.h"
 
-#include "cache/CacheHash.h"
+#include "common/cache/CacheHash.h"
 
 // Qt
 #include <QStringList>

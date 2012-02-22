@@ -23,52 +23,36 @@
 #define COUNTINGREGION_H
 
 #include <common/gui/EspinaDockWidget.h>
+#include <common/model/EspinaModel.h>
+
+#include <QStandardItemModel>
 
 // Forward declaration
 class CountingRegion
 : public EspinaDockWidget
-, private Ui::CountingRegionPanel
 {
   Q_OBJECT
-
+  class GUI;
 public:
   static const QString ID;
 
-  class SegmentationExtension;
-  class BoundingRegion;
-  class SampleExtension;
-  
 public:
-  CountingRegion(QWidget* parent);
-  
-  void initializeExtension(SegmentationExtension *ext);
-  
-  bool eventFilter(QObject *object, QEvent *event);
-  
-public slots:
-  void focusSampleChanged(Sample *sample);
-  
-  void regionTypeChanged(int type);
-  
+  explicit CountingRegion(QWidget* parent);
+  virtual ~CountingRegion();
+
+protected slots:
+  /// Creates a bounding region on the current focused/active
+  /// sample and update all their segmentations counting regions
+  /// extension discarting those that are out of the region
   void createBoundingRegion();
-  void removeBoundingRegion();
-  
-  void visibilityModified();
-  
-  //void onAction(QAction *action);
-  void displayRegions(SampleExtension *ext);
-  
-  void showInfo(const QModelIndex& index);
-  
+
 protected:
-  void resetRegionsModel();
-  
+  void createRectangularRegion();
+
 private:
-  Sample *m_focusedSample;
-  QStandardItemModel m_model;
-  
-  QStandardItem *m_parentItem;
+  GUI *m_gui;
+  QStandardItemModel m_regionModel;
+  QSharedPointer<EspinaModel> m_espinaModel;
 };
-  
 
 #endif // COUNTINGREGION_H

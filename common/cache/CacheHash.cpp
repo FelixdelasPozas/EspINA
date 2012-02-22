@@ -1,4 +1,4 @@
-#include "cache/CacheHash.h"
+#include "common/cache/CacheHash.h"
 
 #include <QCryptographicHash>
 

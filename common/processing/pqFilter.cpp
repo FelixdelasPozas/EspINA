@@ -17,11 +17,11 @@
 
 */
 
-#include "processing/pqFilter.h"
+#include "common/processing/pqFilter.h"
 
 // ESPINA
-#include "cache/CachedObjectBuilder.h"
-#include "processing/pqData.h"
+#include "common/cache/CachedObjectBuilder.h"
+#include "common/processing/pqData.h"
 
 // ParaQ
 #include <pqApplicationCore.h>

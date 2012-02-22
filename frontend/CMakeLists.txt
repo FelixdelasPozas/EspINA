@@ -23,6 +23,7 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
   MainToolBar.h
   SegmentationExplorer.h
   docks/TaxonomyInspector.h
+  toolbar/LODToolBar.h
 #   sampleEditor.h
 #   SegmentationExplorer.h
 #   qTreeComboBox.h
@@ -54,6 +55,7 @@ set (DOCKS_SOURCES
 set (LOCAL_SOURCES
   EspinaWindow.cpp
   MainToolBar.cpp
+  toolbar/LODToolBar.cpp
   SegmentationExplorer.cpp
   )
 

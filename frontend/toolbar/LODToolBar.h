@@ -17,26 +17,31 @@
 */
 
 
-#include "AddFilter.h"
+#ifndef LODTOOLBAR_H
+#define LODTOOLBAR_H
 
-#include "common/EspinaCore.h"
+#include <QToolBar>
+#include "common/gui/DynamicWidget.h"
 
-AddFilter::AddFilter(QSharedPointer< Filter > filter, QUndoCommand* parent)
-: QUndoCommand(parent)
-, m_filter(filter)
+
+class LODToolBar
+: public QToolBar
 {
+  Q_OBJECT
+public:
+  explicit LODToolBar(QWidget* parent = 0);
+  virtual ~LODToolBar();
 
-}
+  virtual void setActivity(QString activity);
+  virtual void setLOD();
+  
+public slots:
+  virtual void decreaseLOD();
+  virtual void increaseLOD();
 
-void AddFilter::redo()
-{
-  EspinaCore::instance()->model()->addFilter(m_filter);
-}
+private:
+  QAction *m_decreaseLOD;
+  QAction *m_increaseLOD;
+};
 
-
-void AddFilter::undo()
-{
-  EspinaCore::instance()->model()->removeFilter(m_filter);
-}
-
-
+#endif // LODTOOLBAR_H

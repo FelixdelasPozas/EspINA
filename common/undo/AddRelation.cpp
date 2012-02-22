@@ -18,7 +18,7 @@
 
 
 #include "AddRelation.h"
-#include <EspinaCore.h>
+#include "common/EspinaCore.h"
 
 
 //------------------------------------------------------------------------

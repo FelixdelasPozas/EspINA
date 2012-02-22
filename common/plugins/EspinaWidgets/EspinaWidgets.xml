@@ -1,5 +1,4 @@
 <ServerManagerConfiguration>
-
   <!-- We put all 3D widget definitions in this file -->
   <ProxyGroup name="representations">
     <!-- ================================================================== -->
@@ -118,7 +117,7 @@
         name="Bounds"
         command="SetBounds"
         number_of_elements="6"
-        default_values="0 1 0 1 0 1" >
+        default_values="0 40 0 40 0 40" >
       </DoubleVectorProperty>
       <DoubleVectorProperty
         name="Position"

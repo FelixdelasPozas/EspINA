@@ -20,8 +20,8 @@
 #ifndef SEEDGROWSEGMENTATIONFILTER_H
 #define SEEDGROWSEGMENTATIONFILTER_H
 
-#include <model/Filter.h>
-#include <processing/pqData.h>
+#include "common/model/Filter.h"
+#include "common/processing/pqData.h"
 
 // #include "ui_SeedGrowSegmentationFilterSetup.h"
 // class IVOI;

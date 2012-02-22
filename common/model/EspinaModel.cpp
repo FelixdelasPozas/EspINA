@@ -17,19 +17,19 @@
 */
 
 
-#include "model/EspinaModel.h"
+#include "common/model/EspinaModel.h"
 
 // Debug
 #include <QDebug>
 // #include "espina_debug.h"
 
 //Espina
-#include "ModelItem.h"
-#include "model/Channel.h"
-#include "model/Sample.h"
-#include "model/Segmentation.h"
-#include "model/Taxonomy.h"
-#include "EspinaFactory.h"
+#include "common/model/ModelItem.h"
+#include "common/model/Channel.h"
+#include "common/model/Sample.h"
+#include "common/model/Segmentation.h"
+#include "common/model/Taxonomy.h"
+#include "common/model/EspinaFactory.h"
 
 //------------------------------------------------------------------------
 EspinaModel::EspinaModel ( QObject* parent )

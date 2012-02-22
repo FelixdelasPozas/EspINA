@@ -1,6 +1,7 @@
 #include "PixelSelector.h"
 
-#include <selection/SelectableView.h>
+#include "common/selection/SelectableView.h"
+#include "Views/vtkSMSliceViewProxy.h"
 
 #include <QDebug>
 
@@ -10,7 +11,6 @@
 
 #include <pqRenderView.h>
 #include <vtkImageData.h>
-#include <../Views/vtkSMSliceViewProxy.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderWindow.h>
 

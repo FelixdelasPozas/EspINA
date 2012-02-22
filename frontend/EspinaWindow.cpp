@@ -40,7 +40,6 @@
 #include <QtGui>
 
 #include <sstream>
-#include <boost/graph/graphviz.hpp>
 
 #include <pqActiveObjects.h>
 #include <pqApplicationCore.h>
@@ -71,6 +70,7 @@
 #include <vtkSMProxy.h>
 #include <vtkSMStringVectorProperty.h>
 #include <pqPipelineFilter.h>
+#include "toolbar/LODToolBar.h"
 
 
 static const QString CHANNEL_FILES = QObject::tr("Channel (*.mha; *.mhd)");
@@ -142,8 +142,13 @@ EspinaWindow::EspinaWindow()
 
 
   m_mainToolBar = new MainToolBar(m_model);
-  m_mainToolBar->setMovable(false);
+//   m_mainToolBar->setMovable(false);
   addToolBar(m_mainToolBar);
+
+  QToolBar *lod = new LODToolBar();
+//   lod->setMovable(false);
+  addToolBar(lod);
+  
 
   SegmentationExplorer *segExplorer = new SegmentationExplorer(m_model, this);
   addDockWidget(Qt::LeftDockWidgetArea,segExplorer);
@@ -305,7 +310,7 @@ void EspinaWindow::setActivity(QString activity)
   {
     qDebug() << "Switch to Segmentate Activity";
     m_view = vm->createView(this);
-    connect(m_view.data(), SIGNAL(statusMsg(QString)),
+    connect(m_view, SIGNAL(statusMsg(QString)),
 	    this, SLOT(updateStatus(QString)));
     m_view->createViewMenu(m_viewMenu);
     m_view->setModel(m_model.data());
@@ -313,7 +318,7 @@ void EspinaWindow::setActivity(QString activity)
 
   if (m_view)
     connect(m_mainToolBar, SIGNAL(showSegmentations(bool)),
-	    m_view.data(), SLOT(setShowSegmentations(bool)));
+	    m_view, SLOT(setShowSegmentations(bool)));
 
   if (m_view)
   {

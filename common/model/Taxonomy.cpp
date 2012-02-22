@@ -1,4 +1,4 @@
-#include "model/Taxonomy.h"
+#include "common/model/Taxonomy.h"
 
 #include <stack>
 #include <QFile>

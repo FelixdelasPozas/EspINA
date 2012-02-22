@@ -20,9 +20,9 @@
 #ifndef CACHEDOBJECTBUILDER_H
 #define CACHEDOBJECTBUILDER_H
 
-#include "cache/Cache.h"
+#include <common/cache/Cache.h>
 
-#include "processing/pqFilter.h"
+#include <common/processing/pqFilter.h>
 
 class pqPipelineSource;
 

@@ -19,7 +19,7 @@
 
 #include "Cache.h"
 
-#include "processing/pqFilter.h"
+#include "common/processing/pqFilter.h"
 #include <pqLoadDataReaction.h>
 
 #include<QDebug>

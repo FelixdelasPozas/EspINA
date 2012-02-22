@@ -16,10 +16,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-#include "model/Channel.h"
+#include "common/model/Channel.h"
 
-#include "processing/pqData.h"
-#include "processing/pqFilter.h"
+#include "common/processing/pqData.h"
+#include "common/processing/pqFilter.h"
+#include "common/cache/CachedObjectBuilder.h"
+#include "common/model/RelationshipGraph.h"
 
 #include <QDebug>
 
@@ -27,8 +29,6 @@
 #include <pqPipelineSource.h>
 #include <vtkPVDataInformation.h>
 #include <vtkSMProxy.h>
-#include <cache/CachedObjectBuilder.h>
-#include "RelationshipGraph.h"
 
 
 

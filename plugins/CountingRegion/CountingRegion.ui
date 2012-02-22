@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>CountingRegionPanel</class>
- <widget class="QWidget" name="CountingRegionPanel">
+ <class>CountingRegion</class>
+ <widget class="QWidget" name="CountingRegion">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -71,25 +71,61 @@
      </item>
      <item row="3" column="1">
       <widget class="QSpinBox" name="leftMargin">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="styleSheet">
         <string notr="true">background-color:rgb(192, 255, 192)</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+       <property name="suffix">
+        <string>nm</string>
+       </property>
+       <property name="maximum">
+        <number>0</number>
        </property>
       </widget>
      </item>
      <item row="3" column="2">
       <widget class="QSpinBox" name="topMargin">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="autoFillBackground">
         <bool>false</bool>
        </property>
        <property name="styleSheet">
         <string notr="true">background-color: rgb(192, 255, 192)</string>
        </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+       <property name="suffix">
+        <string>nm</string>
+       </property>
+       <property name="maximum">
+        <number>0</number>
+       </property>
       </widget>
      </item>
      <item row="3" column="3">
       <widget class="QSpinBox" name="upperSlice">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="styleSheet">
         <string notr="true">background-color:rgb(192, 255, 192)</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+       <property name="suffix">
+        <string>nm</string>
+       </property>
+       <property name="maximum">
+        <number>0</number>
        </property>
       </widget>
      </item>
@@ -116,22 +152,58 @@
      </item>
      <item row="5" column="1">
       <widget class="QSpinBox" name="rightMargin">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="styleSheet">
         <string notr="true">background-color:rgb(255, 192, 192)</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+       <property name="suffix">
+        <string>nm</string>
+       </property>
+       <property name="maximum">
+        <number>0</number>
        </property>
       </widget>
      </item>
      <item row="5" column="2">
       <widget class="QSpinBox" name="bottomMargin">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="styleSheet">
         <string notr="true">background-color:rgb(255, 192, 192)</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+       <property name="suffix">
+        <string>nm</string>
+       </property>
+       <property name="maximum">
+        <number>0</number>
        </property>
       </widget>
      </item>
      <item row="5" column="3">
       <widget class="QSpinBox" name="lowerSlice">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="styleSheet">
         <string notr="true">background-color:rgb(255, 192, 192)</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+       </property>
+       <property name="suffix">
+        <string>nm</string>
+       </property>
+       <property name="maximum">
+        <number>0</number>
        </property>
       </widget>
      </item>
@@ -218,7 +290,7 @@
      <item>
       <widget class="QPushButton" name="createRegion">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="minimumSize">
         <size>

@@ -17,26 +17,5 @@
 */
 
 
-#include "AddFilter.h"
-
-#include "common/EspinaCore.h"
-
-AddFilter::AddFilter(QSharedPointer< Filter > filter, QUndoCommand* parent)
-: QUndoCommand(parent)
-, m_filter(filter)
-{
-
-}
-
-void AddFilter::redo()
-{
-  EspinaCore::instance()->model()->addFilter(m_filter);
-}
-
-
-void AddFilter::undo()
-{
-  EspinaCore::instance()->model()->removeFilter(m_filter);
-}
-
+#include "FilterFactory.h"
 

@@ -48,6 +48,7 @@
 #include <pqDisplayPolicy.h>
 #include <pqDataRepresentation.h>
 #include <pqPipelineRepresentation.h>
+#include <pq3DWidget.h>
 
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(QWidget* parent)
@@ -119,6 +120,16 @@ void VolumeView::addSegmentationRepresentation(pqOutputPort* oport)
   Q_ASSERT(rep);
   rep->setRepresentation("Volume");
 }
+
+//-----------------------------------------------------------------------------
+void VolumeView::addWidget(pq3DWidget* widget)
+{
+  widget->setView(m_view);
+  widget->setWidgetVisible(true);
+  widget->select();
+  widget->setEnabled(false);
+}
+
 
 //-----------------------------------------------------------------------------
 void VolumeView::onConnect()

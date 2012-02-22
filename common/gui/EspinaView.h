@@ -28,7 +28,7 @@
 
 #include <QAbstractItemView>
 #include <QDockWidget>
-#include <plugins/EspinaWidgets/RectangularSelection.h>
+#include "common/plugins/EspinaWidgets/RectangularSelection.h"
 
 class VolumeView;
 // Forward-declaration
@@ -55,6 +55,9 @@ public:
   virtual QRect visualRect(const QModelIndex& index) const {return QRect();}
 
   virtual void addWidget(EspinaWidget *widget) = 0;
+
+  virtual void gridSize(double size[3]) = 0;
+  virtual void setGridSize(double size[3]) = 0;
 
 public slots:
   virtual void setShowSegmentations(bool visibility) = 0;
@@ -91,6 +94,8 @@ public:
 
   virtual QSize sizeHint() const;
 
+  virtual void gridSize(double size[3]);
+  virtual void setGridSize(double size[3]);
   virtual void addWidget(EspinaWidget* widget);
 
   virtual void setShowSegmentations(bool visibility);
@@ -110,6 +115,7 @@ private:
   SliceView  *xyView, *yzView, *xzView;
   VolumeView *volView;
   QSharedPointer<QDockWidget> volDock, yzDock, xzDock;
+  double m_gridSize[3];
 };
 
 #endif // ESPINAVIEW_H

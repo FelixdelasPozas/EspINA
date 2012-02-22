@@ -860,11 +860,11 @@ void vtkRectangularBoundingRegionRepresentation::CreateYZFace()
   m_prevExclusion[2] = Exclusion[2]; // Use in Move Lower Margin
   
   int numPoints = this->Region->GetOutput()->GetPoints()->GetNumberOfPoints();  
-  int numSlices = numPoints/4;
+  unsigned int numSlices = numPoints/4;
   int numLateralMargins = numSlices - 1;
   m_numSlices = numSlices;
   
-  double point[3], prevPoint[3];
+  double point[3];
   vtkCellArray *inLines;
   vtkSmartPointer<vtkIntArray> lineData;
   vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
@@ -872,7 +872,7 @@ void vtkRectangularBoundingRegionRepresentation::CreateYZFace()
   // We need it to get right limits
   this->Region->GetOutput()->GetPoint(2,point);
   m_prevExclusionCoord[0] = point[0];
-  for (int s=1; s < numSlices; s++)
+  for (unsigned int s=1; s < numSlices; s++)
   {
     this->Region->GetOutput()->GetPoint(s*4+2,point);
     m_prevExclusionCoord[0] = std::max(m_prevExclusionCoord[0], point[0]);
@@ -975,28 +975,28 @@ void vtkRectangularBoundingRegionRepresentation::CreateXZFace()
 {
 //   std::cout << "Created XZ FACE" << std::endl;
   Region->UpdateWholeExtent();
-  
+
   m_prevInclusion[0] = Inclusion[0]; // Use in Move Left Margin
   m_prevExclusion[0] = Exclusion[0]; // Use in Move Right Margin
   m_prevInclusion[2] = Inclusion[2]; // Use in Move Upper Margin
   m_prevExclusion[2] = Exclusion[2]; // Use in Move Lower Margin
-  
+
   int numPoints = Region->GetOutput()->GetPoints()->GetNumberOfPoints();  
-  int numSlices = numPoints/4;
+  unsigned int numSlices = numPoints/4;
   int numLateralMargins = numSlices - 1;
   m_numSlices = numSlices;
-  
-  double point[3], prevPoint[3];
+
+  double point[3];
   vtkCellArray *inLines;
   vtkSmartPointer<vtkIntArray> lineData;
   vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
-  
+
   // We need it to get right limits
   this->Region->GetOutput()->GetPoint(0,point);
   m_prevInclusionCoord[1] = point[1];
   this->Region->GetOutput()->GetPoint(3,point);
   m_prevExclusionCoord[1] = point[1];
-  for (int s=1; s < numSlices; s++)
+  for (unsigned int s=1; s < numSlices; s++)
   {
     this->Region->GetOutput()->GetPoint(s*4+0,point);
     m_prevInclusionCoord[1] = std::min(m_prevInclusionCoord[1], point[1]);

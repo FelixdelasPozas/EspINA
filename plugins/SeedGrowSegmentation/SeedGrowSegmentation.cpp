@@ -22,23 +22,23 @@
 #include "SeedGrowSegmentationFilter.h"
 
 // EspinaModel
-#include <gui/ActionSelector.h>
 #include "SeedGrowSelector.h"
+#include "common/gui/ActionSelector.h"
 #include "gui/DefaultVOIAction.h"
 #include "gui/ThresholdAction.h"
-#include <model/EspinaModel.h>
-#include <undo/AddSegmentation.h>
-#include <EspinaCore.h>
-#include <undo/AddFilter.h>
-#include <selection/SelectableItem.h>
-#include <undo/AddRelation.h>
-#include <model/Channel.h>
-#include <model/EspinaFactory.h>
+#include "common/model/EspinaModel.h"
+#include "common/undo/AddSegmentation.h"
+#include "common/EspinaCore.h"
+#include "common/undo/AddFilter.h"
+#include "common/selection/SelectableItem.h"
+#include "common/undo/AddRelation.h"
+#include "common/model/Channel.h"
+#include "common/model/EspinaFactory.h"
 
 // #include "SeedGrowSegmentationFilter.h"
-#include <processing/pqData.h>
-#include <selection/PixelSelector.h>
-#include <selection/SelectionManager.h>
+#include "common/processing/pqData.h"
+#include "common/selection/PixelSelector.h"
+#include "common/selection/SelectionManager.h"
 
 //GUI includes
 #include <QSettings>
@@ -121,7 +121,7 @@ void SeedGrowSegmentation::onSelectionAborted()
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection sel)
+void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection msel)
 {
 //   QApplication::setOverrideCursor(Qt::WaitCursor);
 
@@ -129,11 +129,11 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection se
 //   pqApplicationCore* core = pqApplicationCore::instance();
   //pqServerManagerModel* sm = core->getServerManagerModel();
 
-  if (sel.size() > 0)
+  if (msel.size() > 0)
   {
     qDebug() << "Start Segmentation";
-    Q_ASSERT(sel.size() == 1);// Only one element selected
-    SelectionHandler::Selelection element = sel.first();
+    Q_ASSERT(msel.size() == 1);// Only one element selected
+    SelectionHandler::Selelection element = msel.first();
 
     SelectableItem *input = element.second;
 

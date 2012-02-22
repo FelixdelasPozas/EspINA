@@ -21,7 +21,7 @@
 // Debug
 
 // ESPINA
-#include "cache/CachedObjectBuilder.h"
+#include "common/cache/CachedObjectBuilder.h"
 
 #include <pqPipelineSource.h>
 

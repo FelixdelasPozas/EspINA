@@ -21,7 +21,7 @@
 #define ADDRELATION_H
 
 #include <QUndoCommand>
-#include <model/ModelItem.h>
+#include "common/model/ModelItem.h"
 
 class ModelItem;
 

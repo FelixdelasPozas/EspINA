@@ -20,8 +20,8 @@
 #ifndef SELECTABLEITEM_H
 #define SELECTABLEITEM_H
 
-#include <model/ModelItem.h>
-#include <processing/pqData.h>
+#include <common/model/ModelItem.h>
+#include <common/processing/pqData.h>
 
 
 class SelectableItem

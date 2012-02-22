@@ -151,6 +151,7 @@ void AxialState::updateCamera ( vtkCamera* camera )
     camera->SetPosition ( 0, 0, -1 );
     camera->SetFocalPoint ( 0, 0, 0 );
     camera->SetRoll ( 180 );
+    camera->ParallelProjectionOn();
 }
 
 //-----------------------------------------------------------------------------
@@ -177,7 +178,7 @@ void AxialState::setCrossHairs ( vtkPolyData* hline, vtkPolyData* vline,
 //-----------------------------------------------------------------------------
 void AxialState::setSlicePosition ( vtkMatrix4x4 *matrix, double value )
 {
-    matrix->SetElement ( 2, 3, value );
+  matrix->SetElement(2, 3, value);
 }
 
 
@@ -232,6 +233,7 @@ void SagittalState::updateCamera ( vtkCamera* camera )
 //   qDebug() << "Update sagittal Camera";
     camera->SetPosition ( 1, 0, 0 );
     camera->SetFocalPoint ( 0, 0, 0 );
+    camera->ParallelProjectionOn();
 }
 
 //----------------------------------------------------------------------------
@@ -312,6 +314,7 @@ void CoronalState::updateCamera ( vtkCamera* camera )
     camera->SetPosition ( 0, 1, 0 );
     camera->SetFocalPoint ( 0, 0, 0 );
     camera->SetViewUp ( 0,0,-1 );
+    camera->ParallelProjectionOn();
 }
 
 //----------------------------------------------------------------------------
@@ -347,6 +350,7 @@ vtkStandardNewMacro ( vtkPVSliceView );
 
 //----------------------------------------------------------------------------
 vtkPVSliceView::vtkPVSliceView()
+: m_pendingActor(NULL)
 {
     bzero ( Center,3*sizeof ( double ) );
 
@@ -378,7 +382,7 @@ vtkPVSliceView::vtkPVSliceView()
     SlicingPlane = AXIAL;
     State = AxialState::instance();
 
-    qDebug() << "vtkPVSliceView("<< this << "): Created";
+//     qDebug() << "vtkPVSliceView("<< this << "): Created";
 }
 
 //----------------------------------------------------------------------------
@@ -495,7 +499,7 @@ void vtkPVSliceView::initRuler()
 vtkPVSliceView::~vtkPVSliceView()
 {
   SlicingMatrix->Delete();
-  qDebug() << "vtkPVSliceView("<< this << "): Deleted";
+//   qDebug() << "vtkPVSliceView("<< this << "): Deleted";
 }
 
 //----------------------------------------------------------------------------
@@ -519,6 +523,7 @@ vtkRenderer* vtkPVSliceView::GetOverviewRenderer()
 //----------------------------------------------------------------------------
 void vtkPVSliceView::AddActor(SliceActor *actor)
 {
+//   qDebug() << "Add Actor";
     bool in_cave_mode = this->SynchronizedWindows->GetIsInCave();
     if ( in_cave_mode && !this->GetRemoteRenderingAvailable() )
     {
@@ -542,6 +547,8 @@ void vtkPVSliceView::AddActor(SliceActor *actor)
     OverviewRenderer->AddActor(actor->prop);
     SetCenter(Center);
     m_actors << actor;
+    Q_ASSERT(!m_pendingActor);
+    m_pendingActor = actor;
 }
 
 //----------------------------------------------------------------------------
@@ -575,19 +582,25 @@ void vtkPVSliceView::AddSegmentation(vtkPVSliceView::SliceActor* actor)
 //----------------------------------------------------------------------------
 void vtkPVSliceView::AddRepresentationInternal(vtkDataRepresentation* rep)
 {
-  m_reps << rep;
 //   qDebug() << "ADDING REPRESENTATION";
+  if (m_pendingActor)
+  {
+    m_reps[rep] = m_pendingActor;
+    m_pendingActor = NULL;
+  }
   vtkView::AddRepresentationInternal(rep);
 }
 
 //----------------------------------------------------------------------------
 void vtkPVSliceView::RemoveRepresentationInternal(vtkDataRepresentation* rep)
 {
-  int index = m_reps.indexOf(rep);
-  SliceActor *actor = m_actors.at(index);
-//   qDebug() << "REMOVING REPRESENTATION";
-  RemoveActor(actor);
-  m_reps.removeAt(index);
+  //   qDebug() << "REMOVING REPRESENTATION";
+  SliceActor *actor = m_reps.value(rep, NULL);
+  if (actor)
+  {
+    RemoveActor(actor);
+    m_reps.remove(rep);
+  }
   vtkView::RemoveRepresentationInternal(rep);
 }
 

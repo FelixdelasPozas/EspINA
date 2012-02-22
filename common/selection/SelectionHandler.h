@@ -21,7 +21,7 @@
 
 #include <QObject>
 
-#include <processing/pqData.h>
+#include "common/processing/pqData.h"
 
 #include "SelectableItem.h"
 

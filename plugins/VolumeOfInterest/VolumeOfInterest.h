@@ -20,12 +20,12 @@
 
 #include <QActionGroup>
 
-#include <selection/PixelSelector.h>
+#include "common/selection/PixelSelector.h"
+#include <common/plugins/EspinaWidgets/RectangularSelection.h>
 #include <QSharedPointer>
 
 class ActionSelector;
 class QAction;
-class VOISelector;
 
 /// Volume Of Interest Plugin
 class VolumeOfInterest 
@@ -49,8 +49,9 @@ private:
 //   void buildSubPipeline(Product* input, EspinaParamList args);
 
 private:
-  ActionSelector *m_VOI;
+  ActionSelector *m_voi;
   QSharedPointer<PixelSelector> m_selector;
+  QSharedPointer<EspinaWidget>  m_voiWidget;
 
 //   VolumeOfInterestPreferences *m_preferences;
 

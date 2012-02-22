@@ -17,26 +17,18 @@
 */
 
 
-#include "AddFilter.h"
+#ifndef RECTANGULARREGION_H
+#define RECTANGULARREGION_H
 
-#include "common/EspinaCore.h"
+#include "regions/BoundingRegion.h"
 
-AddFilter::AddFilter(QSharedPointer< Filter > filter, QUndoCommand* parent)
-: QUndoCommand(parent)
-, m_filter(filter)
+class RectangularRegion
+: public BoundingRegion
 {
+public:
+  explicit RectangularRegion(int left,  int top,    int upper,
+			     int right, int bottom, int lower);
+  virtual ~RectangularRegion();
+};
 
-}
-
-void AddFilter::redo()
-{
-  EspinaCore::instance()->model()->addFilter(m_filter);
-}
-
-
-void AddFilter::undo()
-{
-  EspinaCore::instance()->model()->removeFilter(m_filter);
-}
-
-
+#endif // RECTANGULARREGION_H

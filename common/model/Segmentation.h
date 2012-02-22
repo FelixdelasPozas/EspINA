@@ -25,9 +25,9 @@
 #ifndef SEGMENTATION_H
 #define SEGMENTATION_H
 
-#include <selection/SelectableItem.h>
-#include <model/Filter.h>
-#include <processing/pqData.h>
+#include "common/selection/SelectableItem.h"
+#include "common/model/Filter.h"
+#include "common/processing/pqData.h"
 
 // Forward declarations
 class Sample;

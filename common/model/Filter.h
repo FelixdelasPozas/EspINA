@@ -20,9 +20,9 @@
 #ifndef FILTER_H
 #define FILTER_H
 
-#include "ModelItem.h"
+#include "common/model/ModelItem.h"
 
-#include "processing/pqData.h"
+#include "common/processing/pqData.h"
 
 #include <QMap>
 

@@ -26,9 +26,9 @@
 #include <QWidget>
 
 #include <vtkSmartPointer.h>
-#include <../Views/vtkPVSliceView.h>
+#include <Views/vtkPVSliceView.h>
 #include "IPreferencePanel.h"
-#include <selection/SelectableView.h>
+#include "common/selection/SelectableView.h"
 
 class pq3DWidget;
 class vtkSMRepresentationProxy;

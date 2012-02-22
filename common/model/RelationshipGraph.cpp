@@ -19,12 +19,12 @@
 
 #include "RelationshipGraph.h"
 
-#include "model/ModelItem.h"
+#include "common/model/Filter.h"
+#include "common/model/ModelItem.h"
 
 #include <iostream>
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/adjacency_list_io.hpp>
-#include "Filter.h"
 
 #include <QDebug>
 

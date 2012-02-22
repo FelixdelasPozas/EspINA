@@ -24,6 +24,7 @@
 
 #include <vtkSmartPointer.h>
 #include <QList>
+#include <QMap>
 
 class vtkLookupTable;
 class vtkImageResliceToColors;
@@ -163,7 +164,8 @@ private:
     double           VCrossLineColor[3];
     double           SagittalCrossLineColor[3];
     double           CoronalCrossLineColor[3];
-    QList<vtkDataRepresentation *> m_reps;
+    QMap<vtkDataRepresentation *, SliceActor *> m_reps;
+    SliceActor        * m_pendingActor;
     QList<SliceActor *> m_actors;
 //ETX
 };

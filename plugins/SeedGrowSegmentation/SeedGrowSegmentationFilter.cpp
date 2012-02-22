@@ -23,11 +23,12 @@
 // #include "espina_debug.h"
 
 // EspinaModel
-#include <model/Channel.h>
-#include <model/EspinaModel.h>
-#include <model/Segmentation.h>
-#include <processing/pqFilter.h>
-#include <processing/pqData.h>
+#include "common/model/Channel.h"
+#include "common/model/EspinaModel.h"
+#include "common/model/Segmentation.h"
+#include "common/processing/pqFilter.h"
+#include "common/processing/pqData.h"
+#include "common/cache/CachedObjectBuilder.h"
 
 #include <pqPipelineSource.h>
 #include <QSpinBox>
@@ -38,7 +39,6 @@
 #include <QMessageBox>
 
 #include <QDebug>
-#include <cache/CachedObjectBuilder.h>
 #include <vtkSMPropertyHelper.h>
 #include <complex>
 #include <vtkSMInputProperty.h>
