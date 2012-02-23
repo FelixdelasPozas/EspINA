@@ -367,12 +367,12 @@ vtkPVSliceView::vtkPVSliceView()
         style->Delete();
     }
 
-    RenderView->GetRenderer()->SetLayer ( 0 );
-    NonCompositedRenderer->SetLayer ( 1 );
+    RenderView->GetRenderer()->SetLayer(0);
+    NonCompositedRenderer->SetLayer(1);
     this->OverviewRenderer = vtkSmartPointer<vtkRenderer>::New();
-    this->OverviewRenderer->SetViewport ( 0.75,0,1,0.25 );
-    OverviewRenderer->SetLayer ( 2 );
-    this->GetRenderWindow()->AddRenderer ( this->OverviewRenderer );
+    this->OverviewRenderer->SetViewport(0.75, 0, 1, 0.25);
+    OverviewRenderer->SetLayer(2);
+    this->GetRenderWindow()->AddRenderer(this->OverviewRenderer);
 
     initCrosshairs();
     initRuler();
@@ -389,54 +389,54 @@ vtkPVSliceView::vtkPVSliceView()
 void vtkPVSliceView::initCrosshairs()
 {
     vtkSmartPointer<vtkPoints> HPoints = vtkSmartPointer<vtkPoints>::New();
-    HPoints->InsertNextPoint ( LastComputedBounds[0],0,0 );
-    HPoints->InsertNextPoint ( LastComputedBounds[1],0,0 );
+    HPoints->InsertNextPoint(LastComputedBounds[0], 0, 0);
+    HPoints->InsertNextPoint(LastComputedBounds[1], 0, 0);
     vtkSmartPointer<vtkCellArray> HLine = vtkSmartPointer<vtkCellArray>::New();
-    HLine->EstimateSize ( 1,2 );
-    HLine->InsertNextCell ( 2 );
-    HLine->InsertCellPoint ( 0 );
-    HLine->InsertCellPoint ( 1 );
+    HLine->EstimateSize(1, 2);
+    HLine->InsertNextCell (2);
+    HLine->InsertCellPoint(0);
+    HLine->InsertCellPoint(1);
 
     HCrossLineData = vtkSmartPointer<vtkPolyData>::New();
-    HCrossLineData->SetPoints ( HPoints );
-    HCrossLineData->SetLines ( HLine );
+    HCrossLineData->SetPoints(HPoints);
+    HCrossLineData->SetLines (HLine);
     HCrossLineData->Update();
 
     vtkSmartPointer<vtkPolyDataMapper> HMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    HMapper->SetInput ( HCrossLineData );
+    HMapper->SetInput(HCrossLineData);
 
     HCrossLine = vtkSmartPointer<vtkActor>::New();
-    HCrossLine->SetMapper ( HMapper );
-    HCrossLine->SetPickable ( false );
+    HCrossLine->SetMapper(HMapper);
+    HCrossLine->SetPickable(false);
     //   HCrossLine->GetProperty()->SetLineStipplePattern(0xF0F0);
 
-    NonCompositedRenderer->AddActor ( HCrossLine );
-    OverviewRenderer->AddActor ( HCrossLine );
+    NonCompositedRenderer->AddActor(HCrossLine);
+    OverviewRenderer->AddActor(HCrossLine);
 
     vtkSmartPointer<vtkPoints> VPoints = vtkSmartPointer<vtkPoints>::New();
-    VPoints->InsertNextPoint ( 0,LastComputedBounds[2],0 );
-    VPoints->InsertNextPoint ( 0,LastComputedBounds[3],0 );
+    VPoints->InsertNextPoint(0, LastComputedBounds[2], 0);
+    VPoints->InsertNextPoint(0, LastComputedBounds[3], 0);
     vtkSmartPointer<vtkCellArray> VLine = vtkSmartPointer<vtkCellArray>::New();
-    VLine->EstimateSize ( 1,2 );
-    VLine->InsertNextCell ( 2 );
-    VLine->InsertCellPoint ( 0 );
-    VLine->InsertCellPoint ( 1 );
+    VLine->EstimateSize(1, 2);
+    VLine->InsertNextCell (2);
+    VLine->InsertCellPoint(0);
+    VLine->InsertCellPoint(1);
 
     VCrossLineData = vtkSmartPointer<vtkPolyData>::New();
-    VCrossLineData->SetPoints ( VPoints );
-    VCrossLineData->SetLines ( VLine );
+    VCrossLineData->SetPoints(VPoints);
+    VCrossLineData->SetLines(VLine);
     VCrossLineData->Update();
 
     vtkSmartPointer<vtkPolyDataMapper> VMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-    VMapper->SetInput ( VCrossLineData );
+    VMapper->SetInput(VCrossLineData);
 
     VCrossLine = vtkSmartPointer<vtkActor>::New();
-    VCrossLine->SetMapper ( VMapper );
-    VCrossLine->SetPickable ( false );
+    VCrossLine->SetMapper(VMapper);
+    VCrossLine->SetPickable(false);
     //   VCrossLine->GetProperty()->SetLineStipplePattern(0xF0F0);
 
-    NonCompositedRenderer->AddActor ( VCrossLine );
-    OverviewRenderer->AddActor ( VCrossLine );
+    NonCompositedRenderer->AddActor(VCrossLine);
+    OverviewRenderer->AddActor(VCrossLine);
 
 //   vtkSmartPointer<vtkPoints> BPoints = vtkSmartPointer<vtkPoints>::New();
 //   BPoints->InsertNextPoint(LastComputedBounds[0],LastComputedBounds[2],0);
@@ -820,28 +820,28 @@ void vtkPVSliceView::updateRuler()
     if ( !canDisplayRuler )
         return;
 
-    Ruler->SetPoint1 ( wPad/ws[0],hPad/ws[1] );
-    Ruler->SetPoint2 ( ( wPad+RulerSize[0] ) /ws[0],hPad/ws[1] );
+    Ruler->SetPoint1(wPad/ws[0], hPad/ws[1]);
+    Ruler->SetPoint2((wPad+RulerSize[0])/ws[0], hPad/ws[1]);
 
     vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
 
-    coords->SetViewport ( GetRenderer() );
+    coords->SetViewport(GetRenderer());
     coords->SetCoordinateSystemToNormalizedViewport();
 
     int c = SlicingPlane==SAGITTAL?2:0;
     coords->SetValue ( 0,0 );
     value = coords->GetComputedWorldValue ( GetRenderer() );
     left = value[c];
-    //   qDebug() << "UR" << value[0] << value[1] << value[2];
+//       qDebug() << "UR" << value[0] << value[1] << value[2];
     coords->SetValue ( 1,0 );
     value = coords->GetComputedWorldValue ( GetRenderer() );
     right = value[c];
-    //   qDebug() << "LL" << value[0] << value[1] << value[2];
+//       qDebug() << "LL" << value[0] << value[1] << value[2];
 
-    const double RULERWIDTHRATIO = 0.13;
+    const double RULERWIDTHRATIO = fabs(Ruler->GetPoint1()[0] - Ruler->GetPoint2()[0]);
     double maxRange = fabs ( right-left ) *RULERWIDTHRATIO;
+//       qDebug() << "Max Range" << maxRange;
 
-    //   qDebug() << "Max Range" << maxRange;
     std::string units[4] = {"nm","um", "mm", "m"};
     int unit = 0;
     while ( maxRange > 1000 )
@@ -850,7 +850,7 @@ void vtkPVSliceView::updateRuler()
         unit++;
     }
 
-    if ( maxRange < 1 && 0 == unit )
+    if ( maxRange < 0 && 0 == unit )
         maxRange = 0;
     Ruler->SetRange ( 0, maxRange );
     Ruler->SetTitle ( units[unit].c_str() );
