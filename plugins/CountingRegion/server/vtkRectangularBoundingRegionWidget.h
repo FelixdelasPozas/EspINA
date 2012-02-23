@@ -135,12 +135,12 @@ public:
   vtkSetMacro(InvertZCursor,int);
   vtkGetMacro(InvertZCursor,int);
   vtkBooleanMacro(InvertZCursor,int);
-  
-  vtkSetVector3Macro(Inclusion,int);
-  vtkGetVector3Macro(Inclusion,int);
-  vtkSetVector3Macro(Exclusion,int);
-  vtkGetVector3Macro(Exclusion,int);
-  
+
+  vtkSetVector3Macro(InclusionOffset, double);
+  vtkGetVector3Macro(InclusionOffset, double);
+  vtkSetVector3Macro(ExclusionOffset, double);
+  vtkGetVector3Macro(ExclusionOffset, double);
+
   virtual void SetViewType(int type);
   virtual void SetSlice(int slice, double spacing[3]);
   virtual void SetRegion(vtkPolyDataAlgorithm *region);
@@ -158,15 +158,15 @@ protected:
   int WidgetState;
   enum _WidgetState {Start=0,Active};
 //ETX
-  
+
   // These methods handle events
   static void SelectAction(vtkAbstractWidget*);
   static void EndSelectAction(vtkAbstractWidget*);
   static void TranslateAction(vtkAbstractWidget*);
   static void ScaleAction(vtkAbstractWidget*);
   static void MoveAction(vtkAbstractWidget*);
-  
-  // helper methods for cursoe management                     
+
+  // helper methods for cursoe management
   virtual void SetCursor(int state);
 
   // Control whether scaling, rotation, and translation are supported
@@ -177,17 +177,17 @@ protected:
   int InvertXCursor;
   int InvertYCursor;
   int InvertZCursor;
-  
-  int Inclusion[3];
-  int Exclusion[3];
-  
+
+  double InclusionOffset[3];
+  double ExclusionOffset[3];
+
   int Slice;
   int View;
-  
+
   vtkPolyDataAlgorithm *Region;
 private:
   vtkRectangularBoundingRegionWidget(const vtkRectangularBoundingRegionWidget&);  //Not implemented
   void operator=(const vtkRectangularBoundingRegionWidget&);  //Not implemented
 };
- 
+
 #endif

@@ -150,8 +150,12 @@ void CountingRegion::createBoundingRegion()
   {
   } else if (m_gui->regionType->currentIndex() == RECTANGULAR)
   {
+    double borders[6];
+    Sample *sample = EspinaCore::instance()->sample();
+    sample->bounds(borders);
     RectangularBoundingRegion *region =
-      new RectangularBoundingRegion(left,  top,    upper,
+      new RectangularBoundingRegion(borders,
+				    left,  top,    upper,
 				    right, bottom, lower);
     m_regionModel.appendRow(region);
     view->addWidget(region);

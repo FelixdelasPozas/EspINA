@@ -108,7 +108,7 @@ void VolumeOfInterest::defineVOI(SelectionHandler::MultiSelection msel)
      (pos.z() - ZHSIZE)*spacing[2], (pos.z() + ZHSIZE)*spacing[2]};
   m_voiWidget->setBounds(bounds);
   //BEGIN TODO:
-  m_voiWidget->setEnabled(false);
+//   m_voiWidget->setEnabled(false);
   //END TODO
   SelectionManager::instance()->unsetSelectionHandler(m_selector.data());
 }

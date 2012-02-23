@@ -62,7 +62,7 @@ vtkAdaptiveBoundingRegionFilter::vtkAdaptiveBoundingRegionFilter()
 , ExclusionVolume(0)
 , ExclusionAdaptiveVolume(0)
 {
-  bzero(Inclusion,3*sizeof(int));
+  bzero(InclusionOffset,3*sizeof(int));
   bzero(Exclusion,3*sizeof(int));
   this->SetNumberOfInputPorts(1);
   this->SetNumberOfOutputPorts(1);
@@ -174,8 +174,8 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
   //TODO: Min values are 0 or given by extent???
 //   int zMin = std::max(Inclusion[2], 0);
 //   int zMax = std::min(Inclusion[2], dim[2]-1);
-  assert(Inclusion[2] >= 0 && Exclusion[2] >= 0);
-  int zMin = std::min(extent[4] + Inclusion[2], extent[5]);
+  assert(InclusionOffset[2] >= 0 && Exclusion[2] >= 0);
+  int zMin = std::min(extent[4] + InclusionOffset[2], extent[5]);
   int zMax = std::max(extent[5] - Exclusion[2], extent[4]);
   
   const int blackThreshold = 50;

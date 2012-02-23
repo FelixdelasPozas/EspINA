@@ -26,6 +26,11 @@ Sample::Sample(const QString id)
 : m_ID(id)
 {
   bzero(m_position,3*sizeof(int));
+  //TODO
+  m_bounds[0] = m_bounds[2] = m_bounds[4] = 0;
+  m_bounds[1] = 698;
+  m_bounds[3] = 535;
+  m_bounds[5] = 228;
   qDebug() << "Created Sample:" << id;
 }
 
@@ -34,6 +39,11 @@ Sample::Sample(const QString id, const QString args)
 : m_ID(id)
 {
   bzero(m_position,3*sizeof(int));
+  //TODO
+  m_bounds[0] = m_bounds[2] = m_bounds[4] = 0;
+  m_bounds[1] = 698;
+  m_bounds[3] = 535;
+  m_bounds[5] = 228;
   qDebug() << "Created Sample:" << id;
 }
 
@@ -57,15 +67,15 @@ void Sample::setPosition(int pos[3])
 }
 
 //------------------------------------------------------------------------
-double* Sample::size()
+void Sample::bounds(double value[6])
 {
-  return m_size;
+  memcpy(value, m_bounds, 6*sizeof(double));
 }
 
 //------------------------------------------------------------------------
-void Sample::setSize(double size[3])
+void Sample::setBounds(double value[6])
 {
-  memcpy(m_size, size, 3*sizeof(double));
+  memcpy(m_bounds, value, 6*sizeof(double));
 }
 
 //------------------------------------------------------------------------

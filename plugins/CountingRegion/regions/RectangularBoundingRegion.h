@@ -25,18 +25,24 @@
 class RectangularBoundingRegion
 : public BoundingRegion
 {
+  Q_OBJECT
 public:
-  explicit RectangularBoundingRegion(int left,  int top,    int upper,
-			     int right, int bottom, int lower);
+  explicit RectangularBoundingRegion(double borders[6],
+				     int left,  int top,    int upper,
+				     int right, int bottom, int lower);
   virtual ~RectangularBoundingRegion();
 
   // Implements QStandardItem interface
   virtual QVariant data(int role = Qt::UserRole + 1) const;
 
   // Implements EspinaWidget interface
-  virtual pq3DWidget* createWidget(vtkPVSliceView::VIEW_PLANE plane);
+  virtual pq3DWidget* createWidget();
+  virtual pq3DWidget* createSliceWidget(vtkPVSliceView::VIEW_PLANE plane);
   virtual void setBounds(double bounds[6]);
   virtual void setEnabled(bool enable);
+
+protected slots:
+  void resetWidgets();
 
 private:
   QList<pq3DWidget *> m_widgets;

@@ -50,8 +50,8 @@ public:
   void position(int pos[3]);
   void setPosition(int origin[3]);
 
-  double *size();/*nm*/
-  void setSize(double size[3]);
+  void bounds(double value[6]);   //nm
+  void setBounds(double value[6]);//nm
 
   void addChannel(ChannelPtr channel);
   void addSegmentation(SegmentationPtr seg);
@@ -63,7 +63,7 @@ public:
 private:
   QString m_ID;
   int  m_position[3];//nm
-  double  m_size[3];//nm
+  double  m_bounds[6];//nm
 
   QList<ChannelPtr>      m_channels;
   QList<SegmentationPtr> m_segmentations;

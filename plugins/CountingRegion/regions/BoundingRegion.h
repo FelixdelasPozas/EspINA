@@ -28,6 +28,7 @@
 /// Bounding Regions' base class
 class BoundingRegion
 : public QStandardItem
+, public QObject
 , public EspinaWidget
 {
 public:

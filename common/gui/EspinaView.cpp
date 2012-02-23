@@ -182,10 +182,10 @@ void DefaultEspinaView::setGridSize(double size[3])
 //----------------------------------------------------------------------------
 void DefaultEspinaView::addWidget(EspinaWidget* widget)
 {
-  xyView->addWidget(widget->createWidget(vtkPVSliceView::AXIAL));
-  yzView->addWidget(widget->createWidget(vtkPVSliceView::SAGITTAL));
-  xzView->addWidget(widget->createWidget(vtkPVSliceView::CORONAL));
-  volView->addWidget(widget->createWidget(vtkPVSliceView::CORONAL));
+  xyView->addWidget(widget->createSliceWidget(vtkPVSliceView::AXIAL));
+  yzView->addWidget(widget->createSliceWidget(vtkPVSliceView::SAGITTAL));
+  xzView->addWidget(widget->createSliceWidget(vtkPVSliceView::CORONAL));
+  volView->addWidget(widget->createWidget());
 }
 
 //----------------------------------------------------------------------------

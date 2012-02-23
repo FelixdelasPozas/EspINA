@@ -64,7 +64,36 @@ vtkSMProxy *RectangularRegion::getProxy()
 }
 
 //----------------------------------------------------------------------------
-pq3DWidget* RectangularRegion::createWidget(vtkPVSliceView::VIEW_PLANE plane)
+pq3DWidget* RectangularRegion::createWidget()
+{
+  QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(getProxy(), getProxy());
+
+  Q_ASSERT(widgets.size() == 1);
+  // By default ParaView doesn't "Apply" the changes to the widget. So we set
+  // up a slot to "Apply" when the interaction ends.
+  QObject::connect(widgets[0], SIGNAL(widgetEndInteraction()),
+		   widgets[0], SLOT(accept()));
+//   QObject::connect(widgets[0], SIGNAL(widgetEndInteraction()),
+// 		   this, SLOT(modifyVOI()));
+
+  vtkAbstractWidget *widget = widgets[0]->getWidgetProxy()->GetWidget();
+  vtkNonRotatingBoxWidget *boxwidget = dynamic_cast<vtkNonRotatingBoxWidget*>(widget);
+  Q_ASSERT(boxwidget);
+
+  vtkBoxRepresentation *repbox =  dynamic_cast<vtkBoxRepresentation*>(boxwidget->GetRepresentation());
+  repbox->HandlesOff();
+  repbox->OutlineCursorWiresOff();
+  vtkProperty *outline = repbox->GetOutlineProperty();
+  outline->SetColor(1.0,1.0,0);
+
+  m_widgets << widgets;
+
+  return widgets[0];
+
+}
+
+//----------------------------------------------------------------------------
+pq3DWidget* RectangularRegion::createSliceWidget(vtkPVSliceView::VIEW_PLANE plane)
 {
   QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(getProxy(), getProxy());
 

@@ -32,7 +32,7 @@ qt4_add_resources (RCC_BUILT_SOURCES
 qt4_wrap_cpp(MOC_SRCS 
   CountingRegion.h
 #   regions/BoundingRegion.h
-#   regions/RectangularRegion.h
+  regions/RectangularBoundingRegion.h
 #   CountingRegionExtension.h
 #   RegionRenderer.h
   pqRectangularBoundingRegionWidget.h

@@ -25,11 +25,11 @@
           proxygroup="3d_widget_representations" proxyname="RectangularBoundingRegionRepresentation">
         </Proxy>
         <ExposedProperties>
-          <Property name="Inclusion">
-	    <SimpleIntInformationHelper/>
+          <Property name="InclusionOffset">
+	    <SimpleDoubleInformationHelper/>
 	  </Property>
-          <Property name="Exclusion">
-	    <SimpleIntInformationHelper/>
+          <Property name="ExclusionOffset">
+	    <SimpleDoubleInformationHelper/>
 	  </Property>
           <Property name="PlaceFactor" />
           <Property name="PlaceWidget" />
@@ -69,23 +69,23 @@
         <BooleanDomain name="bool" />
       </IntVectorProperty>
 
-      <IntVectorProperty
-	name="Inclusion"
+      <DoubleVectorProperty
+	name="InclusionOffset"
 	number_of_elements="3"
-	default_values="0 0 0"
+	default_values="0.0 0.0 0.0"
 	immediate_update="1"
-	command="SetInclusion">
-        <SimpleIntInformationHelper/>
-      </IntVectorProperty>
+	command="SetInclusionOffset">
+        <SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
 
-      <IntVectorProperty
-	name="Exclusion"
+      <DoubleVectorProperty
+	name="ExclusionOffset"
 	number_of_elements="3"
-	default_values="0 0 0"
+	default_values="0.0 0.0 0.0"
 	immediate_update="1"
-	command="SetExclusion">
-        <SimpleIntInformationHelper/>
-      </IntVectorProperty>
+	command="SetExclusionOffset">
+        <SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
 
       <DoubleVectorProperty
         name="PlaceWidget"
@@ -138,71 +138,65 @@
 	short_help="filter">
       </Documentation>
 
-      <IntVectorProperty
-        name="Extent"
-	number_of_elements="6"
-	default_values="0 0 0 1 1 1"
-	immediate_update="1"
-	command="SetExtent">
-	<!-- 		          <SimpleIntInformationHelper/> -->
-      </IntVectorProperty>
-
+      <!--Region Margins' position in the scene in nm -->
       <DoubleVectorProperty
-        name="Spacing"
-	number_of_elements="3"
-	default_values="1 1 1"
+        name="Margin"
+	number_of_elements="6"
+	default_values="0.0 0.0 0.0 1.0 1.0 1.0"
 	immediate_update="1"
-	command="SetSpacing">
-	<!-- 		          <SimpleDoubleInformationHelper/> -->
+	command="SetMargin">
+	<!-- 		          <SimpleIntInformationHelper/> -->
       </DoubleVectorProperty>
 
-      <IntVectorProperty
-        name="Inclusion"
+      <!-- Offset of inclusion margins from region's margins in nm -->
+      <DoubleVectorProperty
+        name="InclusionOffset"
 	number_of_elements="3"
-	default_values="0 0 0"
+	default_values="0.0 0.0 0.0"
 	immediate_update="1"
-	command="SetInclusion">
-	<SimpleIntInformationHelper/>
-      </IntVectorProperty>
+	command="SetInclusionOffset">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
 
-      <IntVectorProperty
-        name="Exclusion"
+      <!-- Offset of exclusion margins from region's margins in nm -->
+      <DoubleVectorProperty
+        name="ExclusionOffset"
 	number_of_elements="3"
-	default_values="0 0 0"
+	default_values="0.0 0.0 0.0"
 	immediate_update="1"
-	command="SetExclusion">
-	<SimpleIntInformationHelper/>
-      </IntVectorProperty>
+	command="SetExclusionOffset">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
 
-      <IntVectorProperty
+      <DoubleVectorProperty
         name="TotalVolume"
 	number_of_elements="1"
-	default_values="0"
+	default_values="0.0"
 	immediate_update="1"
 	information_only="1"
 	command="GetTotalVolume">
-	<SimpleIntInformationHelper/>
-      </IntVectorProperty>
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
 
-      <IntVectorProperty
+      <DoubleVectorProperty
         name="InclusionVolume"
 	number_of_elements="1"
-	default_values="0"
+	default_values="0.0"
 	immediate_update="1"
 	information_only="1"
 	command="GetInclusionVolume">
-	<SimpleIntInformationHelper/>
-      </IntVectorProperty>
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
 
-      <IntVectorProperty
+      <DoubleVectorProperty
         name="ExclusionVolume"
 	number_of_elements="1"
-	default_values="0"
+	default_values="0.0"
 	immediate_update="1"
 	information_only="1"
 	command="GetExclusionVolume">
-	<SimpleIntInformationHelper/>
-      </IntVectorProperty>
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
 
       <Hints>
 	<!-- Hints are metadata associated with the proxy.
@@ -214,8 +208,8 @@
 	<PropertyGroup type="RectangularBoundingRegion"> <!-- The name delcared in the cmake macro ADD_3DWIDGET -->
 	<!--Property name="Position" function="Position" />
 	<Property name="Scale" function="Scale" /-->
-	<!--<Property name="Inclusion" function="Inclusion" /> -->
-	<!--<Property name="Exclusion" function="Exclusion" /> -->
+<!-- 	<Property name="InclusionOffset" function="InclusionOffset" /> -->
+<!-- 	<Property name="ExclusionOffset" function="ExclusionOffset" /> -->
 	<!--<Property name="InclusionExclusion" function="PlaceWidget" /> -->
 	</PropertyGroup>
       </Hints>

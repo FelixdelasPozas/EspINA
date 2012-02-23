@@ -26,18 +26,23 @@
 #include <vtkSMNewWidgetRepresentationProxy.h>
 
 //-----------------------------------------------------------------------------
-RectangularBoundingRegion::RectangularBoundingRegion(int left, int top, int upper, int right, int bottom, int lower)
+RectangularBoundingRegion::RectangularBoundingRegion(double borders[6],
+						     int left,  int top,    int upper,
+						     int right, int bottom, int lower)
 : BoundingRegion(left, top, upper, right, bottom, lower)
 {
   // Configuration of Bounding Region interface
   pqFilter::Arguments regionArgs;
   regionArgs << pqFilter::Argument("Input",pqFilter::Argument::INPUT,"");
-  regionArgs << pqFilter::Argument("Extent",pqFilter::Argument::INTVECT, QString("0,400,0,400,0,110"));
-  regionArgs << pqFilter::Argument("Spacing",pqFilter::Argument::DOUBLEVECT, QString("10,10,10"));
+  QString margin = QString("%1,%2,%3,%4,%5,%6").arg((int)borders[0]).arg((int)borders[1])
+                                               .arg((int)borders[2]).arg((int)borders[3])
+				               .arg((int)borders[4]).arg((int)borders[5]);
+  qDebug() << margin;
+  regionArgs << pqFilter::Argument("Margin",pqFilter::Argument::DOUBLEVECT, margin);
   QString inclusion = QString("%1,%2,%3").arg(left).arg(top).arg(upper);
-  regionArgs << pqFilter::Argument("Inclusion", pqFilter::Argument::INTVECT, inclusion);
+  regionArgs << pqFilter::Argument("InclusionOffset", pqFilter::Argument::DOUBLEVECT, inclusion);
   QString exclusion = QString("%1,%2,%3").arg(right).arg(bottom).arg(lower);
-  regionArgs << pqFilter::Argument("Exclusion", pqFilter::Argument::INTVECT, exclusion);
+  regionArgs << pqFilter::Argument("ExclusionOffset", pqFilter::Argument::DOUBLEVECT, exclusion);
 
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   m_boundingRegion = cob->createFilter("filters","RectangularBoundingRegion", regionArgs);
@@ -71,7 +76,7 @@ QVariant RectangularBoundingRegion::data(int role) const
 }
 
 //-----------------------------------------------------------------------------
-pq3DWidget* RectangularBoundingRegion::createWidget(vtkPVSliceView::VIEW_PLANE plane)
+pq3DWidget* RectangularBoundingRegion::createWidget()
 {
   vtkSMProxy *proxy = m_boundingRegion->pipelineSource()->getProxy();
   QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(proxy, proxy);
@@ -81,6 +86,31 @@ pq3DWidget* RectangularBoundingRegion::createWidget(vtkPVSliceView::VIEW_PLANE p
   // up a slot to "Apply" when the interaction ends.
   QObject::connect(widgets[0], SIGNAL(widgetEndInteraction()),
 		   widgets[0], SLOT(accept()));
+  QObject::connect(widgets[0], SIGNAL(widgetEndInteraction()),
+		   this, SLOT(resetWidgets()));
+  
+  vtkRectangularBoundingRegionWidget *regionwidget = dynamic_cast<vtkRectangularBoundingRegionWidget*>(widgets[0]->getWidgetProxy()->GetWidget());
+  Q_ASSERT(regionwidget);
+  const int VOL = 3;
+  regionwidget->SetViewType(VOL);
+  m_widgets << widgets;
+
+  return widgets[0];
+}
+
+//-----------------------------------------------------------------------------
+pq3DWidget* RectangularBoundingRegion::createSliceWidget(vtkPVSliceView::VIEW_PLANE plane)
+{
+  vtkSMProxy *proxy = m_boundingRegion->pipelineSource()->getProxy();
+  QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(proxy, proxy);
+
+  Q_ASSERT(widgets.size() == 1);
+  // By default ParaView doesn't "Apply" the changes to the widget. So we set
+  // up a slot to "Apply" when the interaction ends.
+  QObject::connect(widgets[0], SIGNAL(widgetEndInteraction()),
+		   widgets[0], SLOT(accept()));
+  QObject::connect(widgets[0], SIGNAL(widgetEndInteraction()),
+		   this, SLOT(resetWidgets()));
   
   vtkRectangularBoundingRegionWidget *regionwidget = dynamic_cast<vtkRectangularBoundingRegionWidget*>(widgets[0]->getWidgetProxy()->GetWidget());
   Q_ASSERT(regionwidget);
@@ -88,6 +118,13 @@ pq3DWidget* RectangularBoundingRegion::createWidget(vtkPVSliceView::VIEW_PLANE p
   m_widgets << widgets;
 
   return widgets[0];
+}
+
+//-----------------------------------------------------------------------------
+void RectangularBoundingRegion::resetWidgets()
+{
+  foreach(pq3DWidget *widget, m_widgets)
+    widget->reset();
 }
 
 //-----------------------------------------------------------------------------

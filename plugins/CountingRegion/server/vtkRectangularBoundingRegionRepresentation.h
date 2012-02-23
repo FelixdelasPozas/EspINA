@@ -90,10 +90,10 @@ public:
   
   // Description:
   // These are methods to communicate with the 3d_widget
-  vtkSetVector3Macro(Inclusion,int);
-  vtkGetVector3Macro(Inclusion,int);
-  vtkSetVector3Macro(Exclusion,int);
-  vtkGetVector3Macro(Exclusion,int);
+  vtkSetVector3Macro(InclusionOffset, double);
+  vtkGetVector3Macro(InclusionOffset, double);
+  vtkSetVector3Macro(ExclusionOffset, double);
+  vtkGetVector3Macro(ExclusionOffset, double);
   
   // Description:
   // These are methods that satisfy vtkWidgetRepresentation's API.
@@ -176,13 +176,12 @@ protected:
   vtkProperty *InvisibleProperty;
   vtkProperty *SelectedOutlineProperty;
   virtual void CreateDefaultProperties();
-  
+
   // Helper methods to create face representations
   virtual void CreateXYFace();
   virtual void CreateYZFace();
   virtual void CreateXZFace();
-  
-  
+
   // Helper methods
   virtual void Translate(double *p1, double *p2);
   virtual void Scale(double *p1, double *p2, int X, int Y);
@@ -192,12 +191,6 @@ protected:
   void MoveBottomMargin(double *p1, double *p2);
   void MoveUpperMargin(double *p1, double *p2);
   void MoveLowerMargin(double *p1, double *p2);
-//   void MovePlusXFace(double *p1, double *p2);
-//   void MoveMinusXFace(double *p1, double *p2);
-//   void MovePlusYFace(double *p1, double *p2);
-//   void MoveMinusYFace(double *p1, double *p2);
-//   void MovePlusZFace(double *p1, double *p2);
-//   void MoveMinusZFace(double *p1, double *p2);
 
   // Internal ivars for performance
   vtkPoints      *PlanePoints;
@@ -213,24 +206,24 @@ protected:
   //Handles special cases where some of the scale factors are 0.
   void GetDirection(const double Nx[3],const double Ny[3], 
                     const double Nz[3], double dir[3]);
-  
+
   int ViewType;
   int Slice;
-  double Spacing[3];
   vtkPolyDataAlgorithm *Region;
 
 
 private:
   vtkRectangularBoundingRegionRepresentation(const vtkRectangularBoundingRegionRepresentation&);  //Not implemented
   void operator=(const vtkRectangularBoundingRegionRepresentation&);  //Not implemented
-  int Inclusion[3];
-  int Exclusion[3];
-  
+
+  double InclusionOffset[3];
+  double ExclusionOffset[3];
+
   int m_numSlices;
-  int m_prevExclusion[3];
-  int m_prevInclusion[3];
-  double m_prevExclusionCoord[3];
-  double m_prevInclusionCoord[3];
+  double m_prevInclusion[3];
+  double m_prevExclusion[3];
+  double m_lastInclusionMargin[3];
+  double m_lastExclusionMargin[3];
 };
 
 #endif

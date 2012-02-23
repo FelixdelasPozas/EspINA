@@ -1,31 +1,20 @@
 /*
-    Copyright (c) 2011, Jorge Peña <jorge.pena.pastor@gmail.com>
-    All rights reserved.
+    <one line to give the program's name and a brief idea of what it does.>
+    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
-    Redistribution and use in source and binary forms, with or without
-    modification, are permitted provided that the following conditions are met:
-        * Redistributions of source code must retain the above copyright
-        notice, this list of conditions and the following disclaimer.
-        * Redistributions in binary form must reproduce the above copyright
-        notice, this list of conditions and the following disclaimer in the
-        documentation and/or other materials provided with the distribution.
-        * Neither the name of the <organization> nor the
-        names of its contributors may be used to endorse or promote products
-        derived from this software without specific prior written permission.
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-    THIS SOFTWARE IS PROVIDED BY Jorge Peña <jorge.pena.pastor@gmail.com> ''AS IS'' AND ANY
-    EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-    WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-    DISCLAIMED. IN NO EVENT SHALL Jorge Peña <jorge.pena.pastor@gmail.com> BE LIABLE FOR ANY
-    DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-    (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-    LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-    ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-
 #ifndef VTKRECTANGULARBOUNDINGREGIONFILTER_H
 #define VTKRECTANGULARBOUNDINGREGIONFILTER_H
 
@@ -39,54 +28,45 @@ public:
   static vtkRectangularBoundingRegionFilter *New();
   vtkTypeMacro(vtkRectangularBoundingRegionFilter, vtkPolyDataAlgorithm);
 
-  vtkSetVector6Macro(Extent,int);
-  vtkSetVector3Macro(Spacing,double);
+  vtkSetVector6Macro(Margin, double);//in nm
 
-  //! Inclusion Coordinates (Left, Top, Upper)
-  vtkSetVector3Macro(Inclusion,int);
-  vtkGetVector3Macro(Inclusion,int);
-  //! Exclusion Coordinates (Right, Bottom, Lower)
-  vtkSetVector3Macro(Exclusion,int);
-  vtkGetVector3Macro(Exclusion,int);
-  
-  vtkGetMacro(TotalVolume,int);
-  vtkGetMacro(InclusionVolume,int);
-  vtkGetMacro(ExclusionVolume,int);
-  
+  /// Inclusion Coordinates (Left, Top, Upper)
+  vtkSetVector3Macro(InclusionOffset, double);//in nm
+  vtkGetVector3Macro(InclusionOffset, double);//in nm
+  /// Exclusion Coordinates (Right, Bottom, Lower)
+  vtkSetVector3Macro(ExclusionOffset, double);//in nm
+  vtkGetVector3Macro(ExclusionOffset, double);//in nm
+
+  vtkGetMacro(TotalVolume,     double); //in nm3
+  vtkGetMacro(InclusionVolume, double); //in nm3
+  vtkGetMacro(ExclusionVolume, double); //in nm3
+
 protected:
-//   virtual int FillInputPortInformation(int port, vtkInformation* info);
-  virtual int FillOutputPortInformation(int port, vtkInformation* info);
   virtual int RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector);
-  
+  virtual int FillOutputPortInformation(int port, vtkInformation* info);
+
 protected:
   vtkRectangularBoundingRegionFilter();
   virtual ~vtkRectangularBoundingRegionFilter();
-  
-private:
-  int left()  {return Extent[0]+Inclusion[0];}
-  int top()   {return Extent[2]+Inclusion[1];}
-  int upper() {return Extent[4]+Inclusion[2];}
-  int right() {return Extent[1]-Exclusion[0];}
-  int bottom(){return Extent[3]-Exclusion[1];}
-  int lower() {return Extent[5]-Exclusion[2];}
-  
-  int leftInclusion()  {return left()*Spacing[0];}
-  int topInclusion()   {return top()*Spacing[1];}
-  int upperInclusion() {return upper()*Spacing[2];}
-  int rightInclusion() {return right()*Spacing[0];}
-  int bottomInclusion(){return bottom()*Spacing[1];}
-  int lowerInclusion() {return lower()*Spacing[2];}
 
 private:
- // virtual vtkBoundingRegionFilter& operator=(const vtkBoundingRegionFilter& other); // Not implemented
- // virtual bool operator==(const vtkBoundingRegionFilter& other) const;// Not implemented
- int Extent[6];
- double Spacing[3];
- int Inclusion[3];
- int Exclusion[3];
- int TotalVolume;
- int InclusionVolume;
- int ExclusionVolume;
+  double left()  {return Margin[0]+InclusionOffset[0];}
+  double top()   {return Margin[2]+InclusionOffset[1];}
+  double upper() {return Margin[4]+InclusionOffset[2];}
+  double right() {return Margin[1]-ExclusionOffset[0];}
+  double bottom(){return Margin[3]-ExclusionOffset[1];}
+  double lower() {return Margin[5]-ExclusionOffset[2];}
+
+private:
+//  virtual vtkRectangularBoundingRegionFilter& operator=(const vtkRectangularBoundingRegionFilter& other); // Not implemented
+//  virtual bool operator==(const vtkRectangularBoundingRegionFilter& other) const;// Not implemented
+
+ double Margin[6];
+ double InclusionOffset[3];
+ double ExclusionOffset[3];
+ double TotalVolume;
+ double InclusionVolume;
+ double ExclusionVolume;
 };
 
 #endif // VTKRECTANGULARBOUNDINGREGIONFILTER_H

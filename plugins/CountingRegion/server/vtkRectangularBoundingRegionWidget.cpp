@@ -44,8 +44,8 @@ vtkRectangularBoundingRegionWidget::vtkRectangularBoundingRegionWidget()
   this->InvertYCursor = 0;
   this->InvertZCursor = 0;
   
-  bzero(Inclusion,3*sizeof(int));
-  bzero(Exclusion,3*sizeof(int));
+  bzero(InclusionOffset,3*sizeof(double));
+  bzero(ExclusionOffset,3*sizeof(double));
   
   // Define widget events
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
@@ -262,8 +262,11 @@ void vtkRectangularBoundingRegionWidget::MoveAction(vtkAbstractWidget *w)
     vtkRectangularBoundingRegionRepresentation::SafeDownCast(self->WidgetRep);
   if (rep)
   {
-    rep->GetInclusion(self->Inclusion);
-    rep->GetExclusion(self->Exclusion);
+    std::cout << "updating offset" << std::endl;
+    rep->GetInclusionOffset(self->InclusionOffset);
+    std::cout << "Inclusion Offset: " << self->InclusionOffset[0] << " " << self->InclusionOffset[1]  << " " << self->InclusionOffset[2] << std::endl;
+    rep->GetExclusionOffset(self->ExclusionOffset);
+    std::cout << "Exclusion Offset: " << self->ExclusionOffset[0] << " " << self->ExclusionOffset[1]  << " " << self->ExclusionOffset[2] << std::endl;
   }
   // moving something
   self->EventCallbackCommand->SetAbortFlag(1);
@@ -334,12 +337,13 @@ void vtkRectangularBoundingRegionWidget::EndSelectAction(vtkAbstractWidget *w)
 //----------------------------------------------------------------------
 void vtkRectangularBoundingRegionWidget::SetViewType(int type)
 {
-  reinterpret_cast<vtkRectangularBoundingRegionRepresentation*>(this->WidgetRep)->
-    SetViewType(type);
-    
-  if (type == 1)
+  vtkRectangularBoundingRegionRepresentation *rep =
+    reinterpret_cast<vtkRectangularBoundingRegionRepresentation*>(this->WidgetRep);
+    rep->SetViewType(type);
+
+  if (0 == type || 2 == type)
     InvertZCursorOn();
-  
+
   View = type;
 }
 
