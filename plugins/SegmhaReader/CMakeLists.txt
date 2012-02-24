@@ -1,3 +1,10 @@
+project( SEGMHA_IMPORTER_PLUGIN )
+
+# Version Number
+set (PLUGIN_VERSION_MAJOR 0)
+set (PLUGIN_VERSION_MINOR 1)
+set (PLUGIN_VERSION_PATCH 0)
+
 cmake_minimum_required(VERSION 2.6)
 
 find_package (ParaView REQUIRED)

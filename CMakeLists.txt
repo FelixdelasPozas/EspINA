@@ -25,17 +25,20 @@ add_subdirectory( common   )
 add_subdirectory( frontend )
 add_subdirectory( plugins  )
 
+set (ESPINA_INCLUDE ${PROJECT_SOURCE_DIR})
+
+set (ESPINA_USE_FILE "${PROJECT_SOURCE_DIR}/EspinaUse.cmake")
+
+configure_file (
+  "${PROJECT_SOURCE_DIR}/EspinaConfig.cmake.in"
+  "${PROJECT_BINARY_DIR}/EspinaConfig.cmake"
+  )
+
 if (${USE_DASHBOARD})
   set (BUILDNAME "${BUILDNAME}" CACHE STRING "Name of build on the dashboard")
   mark_as_advanced (BUILDNAME)
 endif (${USE_DASHBOARD})
 
-# if (UNIX)
-#   configure_file(
-#     "${PROJECT_SOURCE_DIR}/common/Config.h.in"
-#     "${PROJECT_SOURCE_DIR}/common/Config.h"
-#   )
-# endif(UNIX)
 
 ### TODO: Review from previous version
 # TRANSLATIONS

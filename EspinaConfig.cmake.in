@@ -1,0 +1,19 @@
+# Find EspINA includes and libraries
+#
+# Once done, this will define:
+# ESPINA_FOUND: EspINA libraries are available
+# ESPINA_INCLUDE_DIR: Espina include directories
+# ESPINA_USE_FILE: File to compile programs which use EspINA
+
+# Name conventions: Dependencies use plural forms,
+# the package itself uses the singular forms defined
+# by find_path and find_library
+
+
+set (ESPINA_FOUND 1)
+
+set (ESPINA_INCLUDE_DIR "@ESPINA_INCLUDE@")
+
+set (ESPINA_LIBRARIES "@ESPINA_LIBRARY@")
+
+set (ESPINA_USE_FILE "@ESPINA_USE_FILE@")
