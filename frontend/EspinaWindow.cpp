@@ -27,9 +27,9 @@
 #include <gui/EspinaView.h>
 #include <model/Sample.h>
 #include "common/gui/ViewManager.h"
-#include "SegmentationExplorer.h"
+#include "docks/SegmentationExplorer.h"
 #include "docks/TaxonomyInspector.h"
-#include "MainToolBar.h"
+#include "toolbar/MainToolBar.h"
 #include <cache/CachedObjectBuilder.h>
 #include <model/Channel.h>
 #include <model/Taxonomy.h>

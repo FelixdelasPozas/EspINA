@@ -20,48 +20,36 @@ qt4_add_resources(RCC_BUILT_SOURCES
 # Create header's MOC files
 qt4_wrap_cpp (MOC_BUILT_SOURCES
   EspinaWindow.h
-  MainToolBar.h
-  SegmentationExplorer.h
+  docks/SegmentationExplorer.h
   docks/TaxonomyInspector.h
+  toolbar/MainToolBar.h
   toolbar/LODToolBar.h
-#   sampleEditor.h
-#   SegmentationExplorer.h
-#   qTreeComboBox.h
-#   preferencesDialog.h
   )
 
 # Create Interface files
 qt4_wrap_ui (UI_BUILT_SOURCES
-  SegmentationExplorer.ui
+  docks/SegmentationExplorer.ui
   docks/TaxonomyInspector.ui
-#   EspinaWindow.ui
-#   sampleEditor.ui
-#   segmentationExplorer.ui
-#   preferencesDialog.ui
-#   GeneralPreferences.ui
-#   ViewPreferences.ui
   )
 
-# source_group ("Generated" FILES 
-#   ${MOC_BUILT_SOURCES}
-#   ${UI_BUILT_SOURCES}
-#   ${RCC_BUILT_SOURCES}
-#   )
-
 set (DOCKS_SOURCES
+  docks/SegmentationExplorer.cpp
   docks/TaxonomyInspector.cpp
+  )
+
+set (TOOLBAR_SOURCES
+  toolbar/MainToolBar.cpp
+  toolbar/LODToolBar.cpp
   )
 
 set (LOCAL_SOURCES
   EspinaWindow.cpp
-  MainToolBar.cpp
-  toolbar/LODToolBar.cpp
-  SegmentationExplorer.cpp
   )
 
 set (Espina_SOURCE_FILES
   ${LOCAL_SOURCES}
   ${DOCKS_SOURCES}
+  ${TOOLBAR_SOURCES}
   ${MOC_BUILT_SOURCES}
   ${UI_BUILT_SOURCES}
   ${RCC_BUILT_SOURCES}
