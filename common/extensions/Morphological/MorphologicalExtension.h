@@ -20,40 +20,51 @@
 #ifndef MORPHOLOGICALEXTENSION_H
 #define MORPHOLOGICALHEXTENSION_H
 
-#include <EspinaPlugin.h>
+#include "common/extensions/SegmentationExtension.h"
 
-class vtkFilter;
+class pqFilter;
 
-class MorphologicalExtension : public ISegmentationExtension
+class MorphologicalExtension
+: public SegmentationExtension
 {
-public:
-  static const ExtensionId ID;
+  static const QString ID;
 
 public:
-  MorphologicalExtension();
+  explicit MorphologicalExtension();
   virtual ~MorphologicalExtension();
-  
-  virtual ExtensionId id();
+
+  virtual QString id();
   virtual void initialize(Segmentation* seg);
-  virtual QStringList dependencies() {return ISegmentationExtension::dependencies();}
-  virtual QStringList availableRepresentations() {return ISegmentationExtension::availableRepresentations();}
-  virtual ISegmentationRepresentation *representation(QString rep);
-  virtual QStringList availableInformations() {return ISegmentationExtension::availableInformations();}
+
+  virtual QStringList dependencies()
+    {return SegmentationExtension::dependencies();}
+
+  virtual QStringList availableRepresentations()
+    {return SegmentationExtension::availableRepresentations();}
+
+  virtual SegmentationRepresentation *representation(QString rep);
+
+  virtual QStringList availableInformations()
+    {return SegmentationExtension::availableInformations();}
+
   virtual QVariant information(QString info);
-  
-  virtual ISegmentationExtension* clone();
-  
+
+  virtual SegmentationExtension* clone();
+
 private:
-  vtkFilter *m_features;
+  pqFilter *m_features;
+
+  // Variable to cache filter results
   double m_Size;
   double m_PhysicalSize;
   double m_Centroid[3];
-  int m_Region[3];
+  int    m_Region[3];
   double m_BinaryPrincipalMoments[3];
   double m_BinaryPrincipalAxes[9];
+  bool   m_validFeret;
   double m_FeretDiameter;
   double m_EquivalentEllipsoidSize[3];
-  bool m_init, m_validFeret;
+  bool   m_init;
 };
 
 #endif // MORPHOLOGICALEXTENSION_H

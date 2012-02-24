@@ -71,6 +71,8 @@
 #include <vtkSMStringVectorProperty.h>
 #include <pqPipelineFilter.h>
 #include "toolbar/LODToolBar.h"
+#include "views/DefaultEspinaView.h"
+#include "docks/DataViewPanel.h"
 
 
 static const QString CHANNEL_FILES = QObject::tr("Channel (*.mha; *.mhd)");
@@ -156,6 +158,8 @@ EspinaWindow::EspinaWindow()
   TaxonomyInspector *taxInspector = new TaxonomyInspector(m_model, this);
   addDockWidget(Qt::LeftDockWidgetArea,taxInspector);
 
+  DataViewPanel *dataView = new DataViewPanel(this);
+  addDockWidget(Qt::BottomDockWidgetArea, dataView);
 
   loadParaviewBehavior();
 
@@ -311,7 +315,8 @@ void EspinaWindow::setActivity(QString activity)
   else if (activity == "segmentate")
   {
     qDebug() << "Switch to Segmentate Activity";
-    m_view = vm->createView(this);
+    m_view = new DefaultEspinaView(this);
+    vm->setCurrentView(m_view);
     connect(m_view, SIGNAL(statusMsg(QString)),
 	    this, SLOT(updateStatus(QString)));
     m_view->createViewMenu(m_viewMenu);

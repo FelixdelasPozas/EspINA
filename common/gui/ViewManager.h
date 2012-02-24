@@ -40,6 +40,7 @@ public:
   explicit ViewManager();
   ~ViewManager();
 
+  void setCurrentView(EspinaView *view) {m_currentView = view;}
   EspinaView *currentView() {return m_currentView;}
   EspinaView *createView(QMainWindow *window, const QString &layout = QString()); //NOTE: Should be move into the factory?
 //   void saveView(const QString &layout) const;

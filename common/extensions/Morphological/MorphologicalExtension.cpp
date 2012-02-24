@@ -1,26 +1,16 @@
-#include "morphologicalExtension.h"
+#include "MorphologicalExtension.h"
 
-// Debug
-#include "espina_debug.h"
+#include "common/cache/CachedObjectBuilder.h"
+#include <common/model/Segmentation.h>
 
-// EspINA
-#include "cachedObjectBuilder.h"
-#include "segmentation.h"
-
-#include <vtkSMPropertyHelper.h>
-#include <pqPipelineSource.h>
-#include <vtkSMProxy.h>
-#include <vtkSMProperty.h>
-#include <vtkSMDoubleVectorProperty.h>
 #include <QApplication>
-#include "sample.h"
 
-//!-----------------------------------------------------------------------
-//! MORPHOLOGICAL EXTENSION--------------------------------------
-//! Information Provided:
-//! - Centroid
+#include <pqPipelineSource.h>
+#include <vtkSMPropertyHelper.h>
+#include <vtkSMProxy.h>
 
-const ExtensionId MorphologicalExtension::ID = "MorphologicalExtension";
+
+const QString MorphologicalExtension::ID = "MorphologicalExtension";
 
 //------------------------------------------------------------------------
 MorphologicalExtension::MorphologicalExtension()
@@ -45,7 +35,7 @@ MorphologicalExtension::~MorphologicalExtension()
 {
   if (m_features)
   {
-    EXTENSION_DEBUG("Deleted " << ID << " Extension from " << m_seg->id());
+//     EXTENSION_DEBUG("Deleted " << ID << " Extension from " << m_seg->id());
     CachedObjectBuilder *cob = CachedObjectBuilder::instance();
     cob->removeFilter(m_features);
     m_features = NULL;
@@ -53,7 +43,7 @@ MorphologicalExtension::~MorphologicalExtension()
 }
 
 //------------------------------------------------------------------------
-ExtensionId MorphologicalExtension::id()
+QString MorphologicalExtension::id()
 {
   return ID;
 }
@@ -64,18 +54,18 @@ void MorphologicalExtension::initialize(Segmentation* seg)
 {
   m_seg = seg;
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-  
-  vtkFilter::Arguments featuresArgs;
-  featuresArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT,m_seg->id()));
+
+  pqFilter::Arguments featuresArgs;
+  featuresArgs << pqFilter::Argument("Input", pqFilter::Argument::INPUT, m_seg->volume().id());
   m_features = cob->createFilter("filters","MorphologicalFeatures", featuresArgs);
-  assert(m_features);
+  Q_ASSERT(m_features);
 }
 
 //------------------------------------------------------------------------
-ISegmentationRepresentation* MorphologicalExtension::representation(QString rep)
+SegmentationRepresentation* MorphologicalExtension::representation(QString rep)
 {
   qWarning() << ID << ":" << rep << " is not provided";
-  assert(false);
+  Q_ASSERT(false);
   return NULL;
 }
 
@@ -107,9 +97,10 @@ QVariant MorphologicalExtension::information(QString info)
     QApplication::restoreOverrideCursor();
   }
 
-  double spacing[3];
-  m_seg->origin()->spacing(spacing);
-  
+  //TODO: Get segmentation's spacing
+  double spacing[3] = {1, 1, 1};
+//   m_seg->origin()->spacing(spacing);
+
   if (info == "Size")
       return m_Size;
   if (info == "Physical Size")
@@ -172,15 +163,14 @@ QVariant MorphologicalExtension::information(QString info)
       return m_EquivalentEllipsoidSize[1];
   if (info == "Equivalent Ellipsoid Size Z")
       return m_EquivalentEllipsoidSize[2];
-  
- 
+
   qWarning() << ID << ":"  << info << " is not provided";
-  assert(false);
+  Q_ASSERT(false);
   return QVariant();
 }
 
 //------------------------------------------------------------------------
-ISegmentationExtension* MorphologicalExtension::clone()
+SegmentationExtension* MorphologicalExtension::clone()
 {
   return new MorphologicalExtension();
 }

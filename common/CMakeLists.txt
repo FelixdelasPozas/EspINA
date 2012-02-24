@@ -1,7 +1,14 @@
+find_package (VTK REQUIRED)
+include (${VTK_USE_FILE})
+
+find_package (ITK REQUIRED)
+include (${ITK_USE_FILE})
+
 include_directories(
   ${CMAKE_SOURCE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}  #For wrap/ui files
 #   ${ITK_DIR}/../
+  ${ITK_VTK_GLUE}
 )
 
 find_package(Boost REQUIRED COMPONENTS  graph) #system filesystem 
@@ -40,6 +47,11 @@ set(CACHE_SOURCES
   cache/Cache.cpp
   cache/CachedObjectBuilder.cpp
   cache/CacheHash.cpp
+  )
+
+set(EXTENSIONS_SOURCES
+  extensions/Morphological/MorphologicalExtension.cpp
+  extensions/SegmentationExtension.cpp
   )
 
 set(GUI_SOURCES
@@ -88,6 +100,7 @@ set (UNDO_SOURCES
 set(Espina_SOURCE_FILES
   ${LOCAL_SOURCES}
   ${CACHE_SOURCES}
+  ${EXTENSIONS_SOURCES}
   ${GUI_SOURCES}
   ${MODEL_SOURCES}
   ${PROCESSING_SOURCES}
@@ -113,6 +126,35 @@ install (
   DESTINATION lib
   COMPONENT espina
   )
+
+# Version Number
+set (PLUGIN_VERSION_MAJOR 0)
+set (PLUGIN_VERSION_MINOR 1)
+set (PLUGIN_VERSION_PATCH 0)
+
+set (PARAVIEW_XML_FILES
+  extensions/Morphological/MorphologicalExtension.xml
+  )
+
+set (PARAVIEW_SERVER_SOURCES
+  extensions/Morphological/vtkMorphologicalFeaturesFilter.cpp
+  )
+
+ADD_PARAVIEW_PLUGIN(
+  EspinaPVCore
+  "${PLUGIN_VERSION_MAJOR}.${PLUGIN_VERSION_MINOR}"
+  SERVER_MANAGER_XML ${PARAVIEW_XML_FILES}
+  SERVER_MANAGER_SOURCES ${PARAVIEW_SERVER_SOURCES}
+#   SOURCES ${PLUGIN_SOURCES}
+#   GUI_INTERFACES ${WIDGET_IFACES}
+  )
+
+set (ESPINA_PVCORE_LIBRARIES
+  ITKCommon ITKBasicFilters ITKAlgorithms
+)
+
+target_link_libraries(EspinaPVCore ${ESPINA_PVCORE_LIBRARIES})
+
 
 add_subdirectory (plugins/EspinaWidgets)
 if (${BUILD_TESTING})

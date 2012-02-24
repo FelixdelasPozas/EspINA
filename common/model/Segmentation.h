@@ -25,9 +25,10 @@
 #ifndef SEGMENTATION_H
 #define SEGMENTATION_H
 
-#include "common/selection/SelectableItem.h"
+#include <common/extensions/SegmentationExtension.h>
 #include "common/model/Filter.h"
 #include "common/processing/pqData.h"
+#include "common/selection/SelectableItem.h"
 
 // Forward declarations
 class Sample;
@@ -60,11 +61,10 @@ public:
 //   //! Reimplement ModelItem Interface
 //   virtual QVariant data(int role = Qt::UserRole + 1) const;
 //   virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
-//   
-//   //! Add a new extension to the segmentation
-//   //! If extension pre-requirements are not satisfied it won't be available
-//   //! until all of them are satisfied
-//   void addExtension(ISegmentationExtension *ext);
+
+  /// Add a new extension to the segmentation
+  /// Extesion won't be available until requirements are satisfied
+  void addExtension(SegmentationExtension::SPtr ext);
 //   //! Are supposed to be used for sort time 
 //   ISegmentationExtension *extension(ExtensionId extId);
 //   
@@ -73,9 +73,9 @@ public:
 //   
 //   QStringList availableInformations() const;
 //   QVariant information(QString info) const;
-//   
-//   void initialize();
-//   
+
+  void initialize();
+
 //   void notifyInternalUpdate();
 //   
 // signals:
@@ -84,16 +84,15 @@ public:
 private:
   Filter *m_filter;
   pqData  m_data;
-//   QMap<ExtensionId, ISegmentationExtension *> m_extensions;
-//   QMap<ExtensionId, ISegmentationExtension *> m_pendingExtensions;
-//   QList<ISegmentationExtension *> m_insertionOrderedExtensions;
+
+  QMap<QString, SegmentationExtension::SPtr> m_extensions;
+  QMap<QString, SegmentationExtension::SPtr> m_pendingExtensions;
+  QList<SegmentationExtension::SPtr>         m_insertionOrderedExtensions;
 //   QMap<ISegmentationRepresentation::RepresentationId, ISegmentationExtension *> m_representations;
-//   QMap<QString, ISegmentationExtension *> m_informations;
+  QMap<QString, SegmentationExtension::SPtr> m_informations;
 //   int m_id;
 
 //   bool m_isSelected;
-// //   ISegmentationExtension::InformationMap m_infoMap;
-// //   ISegmentationExtension::RepresentationMap m_repMap;
 };
 
 typedef QSharedPointer<Segmentation> SegmentationPtr;

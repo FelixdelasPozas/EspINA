@@ -19,9 +19,17 @@
 
 #include "EspinaFactory.h"
 
+#include "common/extensions/Morphological/MorphologicalExtension.h"
 
 //------------------------------------------------------------------------
 EspinaFactory *EspinaFactory::m_instance = NULL;
+
+//------------------------------------------------------------------------
+EspinaFactory::EspinaFactory()
+{
+  // Register Default Extensions
+  registerSegmentationExtension(SegmentationExtension::SPtr(new MorphologicalExtension()));
+}
 
 //------------------------------------------------------------------------
 EspinaFactory* EspinaFactory::instance()
@@ -38,14 +46,11 @@ void EspinaFactory::registerFilter(const QString filter, FilterFactory* factory)
   m_filterFactory[filter] = factory;
 }
 
-
 //------------------------------------------------------------------------
-SamplePtr EspinaFactory::createSample(const QString id, const QString args)
+void EspinaFactory::registerSegmentationExtension(SegmentationExtension::SPtr extension)
 {
-  if (args.isNull())
-    return SamplePtr(new Sample(id));
-  else
-    return SamplePtr(new Sample(id, args));
+  Q_ASSERT(m_segExtensions.contains(extension) == false);
+  m_segExtensions << extension;
 }
 
 //------------------------------------------------------------------------
@@ -57,43 +62,33 @@ FilterPtr EspinaFactory::createFilter(const QString filter, const QString args)
 }
 
 //------------------------------------------------------------------------
+SamplePtr EspinaFactory::createSample(const QString id, const QString args)
+{
+  if (args.isNull())
+    return SamplePtr(new Sample(id));
+  else
+    return SamplePtr(new Sample(id, args));
+}
+
+//------------------------------------------------------------------------
 SegmentationPtr EspinaFactory::createSegmentation(Filter* parent, pqData data)
 {
 //   std::cout << "Factory is going to create a segmentation for vtkObject: " << vtkRef->id().toStdString() << std::endl;
   SegmentationPtr seg(new Segmentation(parent, data));
-//   foreach(ISegmentationExtension *ext, m_segExtensions)
-//   {
-//     seg->addExtension(ext->clone());
-//   }
-//   return seg;
+  foreach(SegmentationExtension::SPtr ext, m_segExtensions)
+    seg->addExtension(SegmentationExtension::SPtr(ext->clone()));
+
   return seg;
 }
 
 
-
-// Sample* EspinaFactory::CreateSample(vtkFilter* creator, int portNumber, const QString& path)
-// {
-// //   std::cout << "Factory is going to create sample: " << creator->id().toStdString() << std::endl;
-//   Sample *sample = new Sample(creator, portNumber, path);
-//   foreach(ISampleExtension *ext, m_sampleExtensions)
-//   {
-//     sample->addExtension(ext->clone());
-//   }
-//   return sample;
-// }
 // 
 // void EspinaFactory::addSampleExtension(ISampleExtension* ext)
 // {
 // //   qDebug() << ext->id() << "registered in Sample Factory";
 //   m_sampleExtensions.append(ext->clone());
 // }
-// 
-// void EspinaFactory::addSegmentationExtension(ISegmentationExtension* ext)
-// {
-// //   qDebug() << ext->id() << "registered in Segmentation Factory";
-//   m_segExtensions.append(ext->clone());
-// }
-// 
+
 // QStringList EspinaFactory::segmentationAvailableInformations()
 // {
 //   QStringList informations;

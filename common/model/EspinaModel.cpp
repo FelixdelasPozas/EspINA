@@ -420,7 +420,7 @@ void EspinaModel::addSegmentation(SegmentationPtr seg)
 //   seg->setOrigin(m_activeSample);
 //   if (!seg->validId())
 //     seg->setId(nextSegmentationId());
-//   seg->initialize();
+  seg->initialize();
 //   m_taxonomySegs[m_newSegType].push_back(seg);
 //   seg->origin()->addSegmentation(seg);
 //   connect(seg, SIGNAL(updated(Segmentation*)), this, SLOT(internalSegmentationUpdate(Segmentation*)));

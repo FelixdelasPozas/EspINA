@@ -20,19 +20,24 @@ qt4_add_resources(RCC_BUILT_SOURCES
 # Create header's MOC files
 qt4_wrap_cpp (MOC_BUILT_SOURCES
   EspinaWindow.h
+  docks/DataView.h
   docks/SegmentationExplorer.h
   docks/TaxonomyInspector.h
   toolbar/MainToolBar.h
   toolbar/LODToolBar.h
+  views/DefaultEspinaView.h
   )
 
 # Create Interface files
 qt4_wrap_ui (UI_BUILT_SOURCES
+  docks/DataView.ui
   docks/SegmentationExplorer.ui
   docks/TaxonomyInspector.ui
   )
 
 set (DOCKS_SOURCES
+  docks/DataView.cpp
+  docks/DataViewPanel.cpp
   docks/SegmentationExplorer.cpp
   docks/TaxonomyInspector.cpp
   )
@@ -42,6 +47,10 @@ set (TOOLBAR_SOURCES
   toolbar/LODToolBar.cpp
   )
 
+set (VIEW_SOURCES
+  views/DefaultEspinaView.cpp
+  )
+
 set (LOCAL_SOURCES
   EspinaWindow.cpp
   )
@@ -49,6 +58,7 @@ set (LOCAL_SOURCES
 set (Espina_SOURCE_FILES
   ${LOCAL_SOURCES}
   ${DOCKS_SOURCES}
+  ${VIEW_SOURCES}
   ${TOOLBAR_SOURCES}
   ${MOC_BUILT_SOURCES}
   ${UI_BUILT_SOURCES}

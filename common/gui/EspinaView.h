@@ -30,17 +30,15 @@
 #include <QDockWidget>
 #include "common/plugins/EspinaWidgets/RectangularSelection.h"
 
-class VolumeView;
 // Forward-declaration
 class QMainWindow;
-class SliceView;
 
 class EspinaView 
 : public QAbstractItemView
 {
   Q_OBJECT
 public:
-  explicit EspinaView(QMainWindow * parent, const QString activity);
+  explicit EspinaView(QMainWindow * parent, const QString activity = QString());
   virtual ~EspinaView(){}
 
   virtual void createViewMenu(QMenu* menu) = 0;
@@ -80,42 +78,5 @@ protected:
   QMainWindow *m_window;
 };
 
-class DefaultEspinaView : public EspinaView
-{
-  Q_OBJECT
-public:
-  explicit DefaultEspinaView(QMainWindow* parent, const QString activity);
-
-  virtual void createViewMenu(QMenu* menu);
-  virtual void restoreLayout();
-  virtual void saveLayout();
-
-  virtual void resetCamera();
-
-  virtual QSize sizeHint() const;
-
-  virtual void gridSize(double size[3]);
-  virtual void setGridSize(double size[3]);
-  virtual void addWidget(EspinaWidget* widget);
-
-  virtual void setShowSegmentations(bool visibility);
-  void setCenter(double x, double y, double z);
-
-protected slots:
-  virtual void rowsInserted(const QModelIndex& parent, int start, int end);
-  virtual void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end);
-
-  void setFitToSlices(bool fit);
-  void setRulerVisibility(bool visible);
-
-
-private:
-  bool first;
-
-  SliceView  *xyView, *yzView, *xzView;
-  VolumeView *volView;
-  QSharedPointer<QDockWidget> volDock, yzDock, xzDock;
-  double m_gridSize[3];
-};
 
 #endif // ESPINAVIEW_H

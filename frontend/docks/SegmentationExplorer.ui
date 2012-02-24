@@ -160,7 +160,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="../../../paraview3.8-cbbp/espina/frontend/rsc/espina.qrc">
+        <iconset resource="../rsc/espina.qrc">
          <normaloff>:/espina/trash-full.svg</normaloff>:/espina/trash-full.svg</iconset>
        </property>
        <property name="iconSize">
@@ -179,7 +179,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../../../paraview3.8-cbbp/espina/frontend/rsc/espina.qrc"/>
+  <include location="../rsc/espina.qrc"/>
  </resources>
  <connections/>
 </ui>

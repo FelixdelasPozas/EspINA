@@ -177,7 +177,8 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
 		     );
 
     Q_ASSERT(filter->numProducts() == 1);
-    SegmentationPtr seg(new Segmentation(filter.data(), filter->product(0)));
+    SegmentationPtr seg;
+    seg = EspinaFactory::instance()->createSegmentation(filter.data(), filter->product(0));
 
     TaxonomyNode *tax = EspinaCore::instance()->activeTaxonomy();
     Q_ASSERT(tax);

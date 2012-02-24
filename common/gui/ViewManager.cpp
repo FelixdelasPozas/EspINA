@@ -47,18 +47,20 @@ ViewManager::~ViewManager()
 //----------------------------------------------------------------------------
 EspinaView *ViewManager::createView(QMainWindow *window, const QString& layout)
 {
-  if (layout == "squared")
-    m_currentView = createSquaredLayout(window);
-  else
-    m_currentView = createDefaultLayout(window);
+//   if (layout == "squared")
+//     m_currentView = createSquaredLayout(window);
+//   else
+//     m_currentView = createDefaultLayout(window);
 
-  return m_currentView;
+  Q_ASSERT(false);
+  return NULL;
 }
 
 //----------------------------------------------------------------------------
 EspinaView *ViewManager::createDefaultLayout(QMainWindow* window)
 {
-  return new DefaultEspinaView(window, "Segmentation");
+  return NULL;
+//   return new DefaultEspinaView(window, "Segmentation");
 }
 
 //----------------------------------------------------------------------------

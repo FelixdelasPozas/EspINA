@@ -24,6 +24,7 @@
 #include <iostream>
 #include <cstdio>
 
+//------------------------------------------------------------------------
 class SegmentationExplorer::GUI
 : public QWidget
 , public Ui::SegmentationExplorer
@@ -32,20 +33,22 @@ public:
   GUI(){setupUi(this);}
 };
 
+//------------------------------------------------------------------------
 class State
 {
 public:
   void deleteSegmentation(){}
 };
 
-
+//------------------------------------------------------------------------
 SegmentationExplorer::SegmentationExplorer(QSharedPointer< EspinaModel> model, QWidget* parent)
 : EspinaDockWidget(parent)
+, m_gui(new GUI())
 , m_baseModel(model)
 {
   setWindowTitle(tr("Segmentation Explorer"));
   setObjectName("SegmentationExplorer");
-  m_gui = new GUI();
+
   m_gui->view->setModel(m_baseModel.data());
 
   connect(m_gui->deleteSegmentation, SIGNAL(clicked(bool)),

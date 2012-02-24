@@ -103,80 +103,46 @@ protected:
   Segmentation *m_seg;
 };
 
-//! Interface to extend segmentation behaviour
-class ISegmentationExtension 
-{
+// //Revisar!!! XXX MUERTEEEE DESTRUCCIOOOON
+// class IViewWidget : public QPushButton
+// {
+//   Q_OBJECT
 // public:
-//   typedef QMap<QString, QVariant> InformationMap;
-//   typedef QMap<QString, ISegmentationRepresentation *> RepresentationMap;
-  
-public:
-  virtual ~ISegmentationExtension(){}
-  
-  virtual ExtensionId id() = 0;
-  virtual void initialize(Segmentation *seg) = 0;
-  virtual QStringList dependencies() = 0;
-  virtual QStringList availableRepresentations() = 0;
-  virtual ISegmentationRepresentation *representation(QString rep) = 0;
-  virtual QStringList availableInformations() = 0;
-  virtual QVariant information(QString info) = 0;
-  
-  virtual Segmentation *segmentation() {return m_seg;}
-  
-  //! Prototype
-  virtual ISegmentationExtension *clone() = 0;
-  
-protected:
-  ISegmentationExtension() : m_seg(NULL), m_init(false){}
-  
-  Segmentation *m_seg;
-  bool m_init; // Wheteher the extentation has been initialized or not
-	       // In other words; if it has been linked to a segmentation
-  QStringList m_availableRepresentations;
-  QStringList m_availableInformations;
-};
+//   IViewWidget(QWidget* parent = 0) : QPushButton(parent) 
+//   {
+//     setCheckable(true);
+//     setFlat(true);
+//     setIconSize(QSize(22,22));
+//     setMaximumSize(QSize(32,32));
+//     connect(this,SIGNAL(toggled(bool)),this,SLOT(updateState(bool)));
+//   }
+//   virtual ~IViewWidget(){}
+//   
+//   virtual void renderInView(QModelIndex index, pqView* view) = 0;
+// 
+//   //! Prototype
+//   virtual IViewWidget *clone() = 0;
+//   
+// public slots:
+//   virtual void updateState(bool checked) = 0;
+//   
+// signals:
+//   void updateRequired();
+// };
 
-//TODO: Revisar!!! XXX MUERTEEEE DESTRUCCIOOOON
-class IViewWidget : public QPushButton
-{
-  Q_OBJECT
-public:
-  IViewWidget(QWidget* parent = 0) : QPushButton(parent) 
-  {
-    setCheckable(true);
-    setFlat(true);
-    setIconSize(QSize(22,22));
-    setMaximumSize(QSize(32,32));
-    connect(this,SIGNAL(toggled(bool)),this,SLOT(updateState(bool)));
-  }
-  virtual ~IViewWidget(){}
-  
-  virtual void renderInView(QModelIndex index, pqView* view) = 0;
-
-  //! Prototype
-  virtual IViewWidget *clone() = 0;
-  
-public slots:
-  virtual void updateState(bool checked) = 0;
-  
-signals:
-  void updateRequired();
-};
-
-
-#include "processingTrace.h" //WARNING: Visibility?
-class IFilter;
-
-class IFilterFactory
-{
-public:
-  virtual ~IFilterFactory(){}
-  virtual EspinaFilter* createFilter(QString filter, ITraceNode::Arguments &args) = 0;
-  
-  //QString pluginName() {return m_pluginName;}
-protected:
-  QString m_factoryName;
-};
+// #include "processingTrace.h" //WARNING: Visibility?
+// class IFilter;
+// 
+// class IFilterFactory
+// {
+// public:
+//   virtual ~IFilterFactory(){}
+//   virtual EspinaFilter* createFilter(QString filter, ITraceNode::Arguments &args) = 0;
+//   
+//   //QString pluginName() {return m_pluginName;}
+// protected:
+//   QString m_factoryName;
+// };
 
 class IFileReader
 {

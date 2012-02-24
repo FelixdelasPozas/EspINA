@@ -18,6 +18,7 @@
 */
 #include "Segmentation.h"
 
+#include <QDebug>
 
 using namespace std;
 
@@ -122,42 +123,42 @@ QVariant Segmentation::data(int role) const
 //       return false;
 //   }
 // }
-// 
-// //------------------------------------------------------------------------
-// void Segmentation::addExtension(ISegmentationExtension* ext)
-// {
-//   if (m_extensions.contains(ext->id()))
-//   {
-//      qWarning() << "Segmentation: Extension already registered";
-//      assert(false);
-//   }
-//   
-//   bool hasDependencies = true;
-//   foreach(QString reqExtId, ext->dependencies())
-//     hasDependencies = hasDependencies && m_extensions.contains(reqExtId);
-//   
-//   if (hasDependencies)
-//   {
-//     m_extensions.insert(ext->id(),ext);
-//     m_insertionOrderedExtensions.push_back(ext);
+
+//------------------------------------------------------------------------
+void Segmentation::addExtension(SegmentationExtension::SPtr ext)
+{
+  if (m_extensions.contains(ext->id()))
+  {
+     qWarning() << "Segmentation: Extension already registered";
+     Q_ASSERT(false);
+  }
+
+  bool hasDependencies = true;
+  foreach(QString reqExtId, ext->dependencies())
+    hasDependencies = hasDependencies && m_extensions.contains(reqExtId);
+
+  if (hasDependencies)
+  {
+    m_extensions.insert(ext->id(),ext);
+    m_insertionOrderedExtensions << ext;
 //     foreach(ISegmentationRepresentation::RepresentationId rep, ext->availableRepresentations())
 //       m_representations.insert(rep, ext);
-//     foreach(QString info, ext->availableInformations())
-//     {
-//       m_informations.insert(info, ext);
+    foreach(QString info, ext->availableInformations())
+    {
+      m_informations.insert(info, ext);
 //       EXTENSION_DEBUG("New Information: " << info);
-//     }
-//     // Try to satisfy pending extensions
-//     foreach(ISegmentationExtension *pending, m_pendingExtensions)
-//       addExtension(pending);
-//   } 
-//   else
-//   {
-//     if (!m_pendingExtensions.contains(ext->id()))
-//       m_pendingExtensions.insert(ext->id(),ext);
-//   }
-// }
-// 
+    }
+    // Try to satisfy pending extensions
+    foreach(SegmentationExtension::SPtr pending, m_pendingExtensions)
+      addExtension(pending);
+  } 
+  else
+  {
+    if (!m_pendingExtensions.contains(ext->id()))
+      m_pendingExtensions.insert(ext->id(),ext);
+  }
+}
+
 // //------------------------------------------------------------------------
 // ISegmentationExtension *Segmentation::extension(ExtensionId extId)
 // {
@@ -206,11 +207,11 @@ QVariant Segmentation::data(int role) const
 // //------------------------------------------------------------------------
 // //! TODO: Review where extensions should be initialized: at creation
 // //! or when adding them to EspINA
-// void Segmentation::initialize()
-// {
-//   foreach(ISegmentationExtension *ext, m_extensions)
-//     ext->initialize(this);
-// }
+void Segmentation::initialize()
+{
+  foreach(SegmentationExtension::SPtr ext, m_extensions)
+    ext->initialize(this);
+}
 // 
 // //------------------------------------------------------------------------
 // void Segmentation::notifyInternalUpdate()

@@ -22,7 +22,7 @@
 
 #include "common/model/Sample.h"
 #include "common/plugins/FilterFactory.h"
-
+#include "common/extensions/SegmentationExtension.h"
 
 class EspinaFactory
 {
@@ -30,9 +30,10 @@ public:
   static EspinaFactory *instance();
 
   void registerFilter(const QString filter, FilterFactory *factory);
+  void registerSegmentationExtension(SegmentationExtension::SPtr extension);
 
-  SamplePtr createSample(const QString id,     const QString args = "");
   FilterPtr createFilter(const QString filter, const QString args);
+  SamplePtr createSample(const QString id,     const QString args = "");
   SegmentationPtr createSegmentation(Filter *parent, pqData data);
 //   void addSampleExtension(ISampleExtension *ext);
 
@@ -40,14 +41,13 @@ public:
 //   QStringList segmentationAvailableInformations();
 
 private:
-  EspinaFactory(){};
+  EspinaFactory();
 
   static EspinaFactory *m_instance;
 
   QMap<QString, FilterFactory *> m_filterFactory;
-//   QList<ISegmentationExtension *> m_segExtensions;
+  QList<SegmentationExtension::SPtr> m_segExtensions;
 //   QList<ISampleExtension *> m_sampleExtensions;
-//   QList<IViewWidget *> m_widgets;
 };
 
 #endif // ESPinaFACTORY_H
