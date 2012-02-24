@@ -28,8 +28,8 @@ class RectangularBoundingRegion
   Q_OBJECT
 public:
   explicit RectangularBoundingRegion(double borders[6],
-				     int left,  int top,    int upper,
-				     int right, int bottom, int lower);
+				     double inclusion[3],
+				     double exclusion[3]);
   virtual ~RectangularBoundingRegion();
 
   // Implements QStandardItem interface

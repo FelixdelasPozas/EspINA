@@ -21,6 +21,7 @@
 #include <common/EspinaCore.h>
 #include "regions/RectangularBoundingRegion.h"
 #include <common/gui/EspinaView.h>
+#include "regions/AdaptiveBoundingRegion.h"
 
 // #include "CountingRegionExtension.h"
 
@@ -33,7 +34,9 @@ class CountingRegion::GUI
 , public Ui::CountingRegion
 {
 public:
-  explicit GUI(); 
+  explicit GUI();
+
+  void setOffsetRanges(int min, int max);
 
 private:
   bool eventFilter(QObject *object, QEvent *event);
@@ -77,6 +80,24 @@ bool CountingRegion::GUI::eventFilter(QObject* object, QEvent* event)
   return QObject::eventFilter(object, event);
 }
 
+//------------------------------------------------------------------------
+void CountingRegion::GUI::setOffsetRanges(int min, int max)
+{
+  leftMargin->setMinimum(min);
+  leftMargin->setMaximum(max);
+  topMargin->setMinimum(min);
+  topMargin->setMaximum(max);
+  upperSlice->setMinimum(min);
+  upperSlice->setMaximum(max);
+
+  rightMargin->setMinimum(min);
+  rightMargin->setMaximum(max);
+  bottomMargin->setMinimum(min);
+  bottomMargin->setMaximum(max);
+  lowerSlice->setMinimum(min);
+  lowerSlice->setMaximum(max);
+}
+
 
 const QString CountingRegion::ID = "CountingRegionExtension";
 
@@ -84,9 +105,6 @@ const QString CountingRegion::ID = "CountingRegionExtension";
 CountingRegion::CountingRegion(QWidget * parent)
 : EspinaDockWidget(parent)
 , m_gui(new GUI())
-// , m_focusedSample(NULL)
-// , m_model(0,5)
-// , m_parentItem(NULL)
 {
   setObjectName("CountingRegionDock");
   setWindowTitle(tr("Counting Region"));
@@ -94,26 +112,30 @@ CountingRegion::CountingRegion(QWidget * parent)
 
   m_gui->regionView->setModel(&m_regionModel);
   m_regionModel.setHorizontalHeaderItem(0, new QStandardItem(tr("Name")));
-  m_regionModel.setHorizontalHeaderItem(1, new QStandardItem(tr("XY")));
-  m_regionModel.setHorizontalHeaderItem(2, new QStandardItem(tr("YZ")));
-  m_regionModel.setHorizontalHeaderItem(3, new QStandardItem(tr("XZ")));
-  m_regionModel.setHorizontalHeaderItem(4, new QStandardItem(tr("3D")));
+//   m_regionModel.setHorizontalHeaderItem(1, new QStandardItem(tr("XY")));
+//   m_regionModel.setHorizontalHeaderItem(2, new QStandardItem(tr("YZ")));
+//   m_regionModel.setHorizontalHeaderItem(3, new QStandardItem(tr("XZ")));
+//   m_regionModel.setHorizontalHeaderItem(4, new QStandardItem(tr("3D")));
   m_espinaModel = EspinaCore::instance()->model();
 
-//   connect(regionView, SIGNAL(clicked(QModelIndex)),
-// 	  this, SLOT(showInfo(QModelIndex)));
-
-//   resetRegionsModel();
+  connect(EspinaCore::instance(), SIGNAL(sampleSelected(Sample*)),
+	  this, SLOT(sampleChanged(Sample*)));
 
   connect(m_gui->createRegion, SIGNAL(clicked()),
           this, SLOT(createBoundingRegion()));
-//   connect(removeRegion, SIGNAL(clicked()),
-//           this, SLOT(removeBoundingRegion()));
+  connect(m_gui->removeRegion, SIGNAL(clicked()),
+          this, SLOT(removeBoundingRegion()));
+
+  connect(m_gui->regionView, SIGNAL(clicked(QModelIndex)),
+	  this, SLOT(showInfo(QModelIndex)));
+  connect(&m_regionModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+	  this, SLOT(showInfo(QModelIndex)));
+  
+  connect(&m_regionModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+	  m_gui->regionView, SLOT(setCurrentIndex(QModelIndex)));
 //   connect(regionType, SIGNAL(currentIndexChanged(int)),
 // 	  this, SLOT(regionTypeChanged(int)));
 
-//   connect(EspINA::instance(), SIGNAL(focusSampleChanged(Sample*)),
-//           this, SLOT(focusSampleChanged(Sample *)));
 //   connect(&m_model,SIGNAL(dataChanged(QModelIndex,QModelIndex)),
 // 	  this, SLOT(visibilityModified()));
 
@@ -133,41 +155,90 @@ CountingRegion::~CountingRegion()
 }
 
 //------------------------------------------------------------------------
+void CountingRegion::createAdaptiveRegion(double inclusion[3], double exclusion[3])
+{
+  QSharedPointer<ViewManager> vm = EspinaCore::instance()->viewManger();
+  EspinaView *view = vm->currentView();
+
+  Sample *sample = EspinaCore::instance()->sample();
+  Q_ASSERT(sample);
+  ModelItem::Vector channels = sample->relatedItems(ModelItem::OUT,"mark");
+  Q_ASSERT(channels.size() > 0);
+
+  Channel *channel = dynamic_cast<Channel *>(channels.first());
+
+  AdaptiveBoundingRegion *region(new AdaptiveBoundingRegion(channel, inclusion, exclusion));
+  m_regionModel.appendRow(region);
+  view->addWidget(region);
+}
+
+//------------------------------------------------------------------------
+void CountingRegion::createRectangularRegion(double inclusion[3], double exclusion[3])
+{
+  QSharedPointer<ViewManager> vm = EspinaCore::instance()->viewManger();
+  EspinaView *view = vm->currentView();
+
+  Sample *sample = EspinaCore::instance()->sample();
+  Q_ASSERT(sample);
+
+  double borders[6];
+  sample->bounds(borders);
+
+  RectangularBoundingRegion *region(new RectangularBoundingRegion(borders, inclusion, exclusion));
+  m_regionModel.appendRow(region);
+  view->addWidget(region);
+}
+
+//------------------------------------------------------------------------
 void CountingRegion::createBoundingRegion()
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);
 
-  int left   = m_gui->leftMargin->value();
-  int top    = m_gui->topMargin->value();
-  int upper  = m_gui->upperSlice->value();
-  int right  = m_gui->rightMargin->value();
-  int bottom = m_gui->bottomMargin->value();
-  int lower  = m_gui->lowerSlice->value();
+  double inclusion[3];
+  inclusion[0] = m_gui->leftMargin->value();
+  inclusion[1] = m_gui->topMargin->value();
+  inclusion[2] = m_gui->upperSlice->value();
 
-  QSharedPointer<ViewManager> vm = EspinaCore::instance()->viewManger();
-  EspinaView *view = vm->currentView();
+  double exclusion[3];
+  exclusion[0] = m_gui->rightMargin->value();
+  exclusion[1] = m_gui->bottomMargin->value();
+  exclusion[2] = m_gui->lowerSlice->value();
+
   if (m_gui->regionType->currentIndex() == ADAPTIVE)
-  {
-  } else if (m_gui->regionType->currentIndex() == RECTANGULAR)
-  {
-    double borders[6];
-    Sample *sample = EspinaCore::instance()->sample();
-    sample->bounds(borders);
-    RectangularBoundingRegion *region =
-      new RectangularBoundingRegion(borders,
-				    left,  top,    upper,
-				    right, bottom, lower);
-    m_regionModel.appendRow(region);
-    view->addWidget(region);
-  } else
+    createAdaptiveRegion(inclusion, exclusion);
+  else if (m_gui->regionType->currentIndex() == RECTANGULAR)
+    createRectangularRegion(inclusion, exclusion);
+  else
     Q_ASSERT(false);
 
+  m_gui->removeRegion->setEnabled(true);
 
   QApplication::restoreOverrideCursor();
 }
 
 //------------------------------------------------------------------------
-void CountingRegion::createRectangularRegion()
+void CountingRegion::removeBoundingRegion()
 {
+  int selectedRegion = m_gui->regionView->currentIndex().row();
+  if (selectedRegion >= 0 && selectedRegion < m_regionModel.rowCount())
+    m_regionModel.removeRow(selectedRegion);
+
+  m_gui->regionDescription->clear();
+  m_gui->removeRegion->setEnabled(m_regionModel.rowCount() > 0);
 }
 
+//------------------------------------------------------------------------
+void CountingRegion::sampleChanged(Sample* sample)
+{
+  m_gui->createRegion->setEnabled(sample != NULL);
+  if (sample)
+    m_gui->setOffsetRanges(-1000,1000);
+  else
+    m_gui->setOffsetRanges(0,0);
+}
+
+//------------------------------------------------------------------------
+void CountingRegion::showInfo(const QModelIndex& index)
+{
+  m_gui->regionDescription->setText(index.data(BoundingRegion::DescriptionRole).toString());
+}

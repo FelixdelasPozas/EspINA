@@ -43,12 +43,12 @@
 #include <vtkOBBTree.h>
 #include <vtkCellData.h>
 
-#define Left Inclusion[0]
-#define Top Inclusion[1]
-#define Upper Inclusion[2]
-#define Right Exclusion[0]
-#define Bottom Exclusion[1]
-#define Lower Exclusion[2]
+#define Left InclusionOffset[0]
+#define Top InclusionOffset[1]
+#define Upper InclusionOffset[2]
+#define Right ExclusionOffset[0]
+#define Bottom ExclusionOffset[1]
+#define Lower ExclusionOffset[2]
 
 const int INCLUSION_FACE = 255;
 const int EXCLUSION_FACE = 0;
@@ -61,9 +61,10 @@ vtkAdaptiveBoundingRegionFilter::vtkAdaptiveBoundingRegionFilter()
 , InclusionVolume(0)
 , ExclusionVolume(0)
 , ExclusionAdaptiveVolume(0)
+, m_init(false)
 {
   bzero(InclusionOffset,3*sizeof(int));
-  bzero(Exclusion,3*sizeof(int));
+  bzero(ExclusionOffset,3*sizeof(int));
   this->SetNumberOfInputPorts(1);
   this->SetNumberOfOutputPorts(1);
 }
@@ -86,6 +87,7 @@ int vtkAdaptiveBoundingRegionFilter::FillOutputPortInformation(int port, vtkInfo
   return 1;
 }
 
+//-----------------------------------------------------------------------------
 vtkSmartPointer<vtkPoints> plane(const double corner[3], const double max[3],
 				   const double mid[3], const double min[3])
 {
@@ -111,73 +113,41 @@ vtkSmartPointer<vtkPoints> plane(const double corner[3], const double max[3],
   x[1] = corner[1] + max[1] + mid[1];
   x[2] = corner[2] + max[2] + mid[2];
   points->InsertNextPoint(x);
-  /*NOTE: We only want a plane, not a volume
-   *  // {0,0,1} <- in a cube
-   *  x[0] = corner[0] + min[0];
-   *  x[1] = corner[1] + min[1];
-   *  x[2] = corner[2] + min[2];
-   *  points->InsertNextPoint(x);
-   *  // {1,0,1} <- in a cube
-   *  x[0] = corner[0] + mid[0] + min[0];
-   *  x[1] = corner[1] + mid[1] + min[1];
-   *  x[2] = corner[2] + mid[2] + min[2];
-   *  points->InsertNextPoint(x);
-   *  // {0,1,1} <- in a cube
-   *  x[0] = corner[0] + max[0] + min[0];
-   *  x[1] = corner[1] + max[1] + min[1];
-   *  x[2] = corner[2] + max[2] + min[2];
-   *  points->InsertNextPoint(x);
-   *  // {1,1,1} <- in a cube
-   *  x[0] = corner[0] + max[0] + mid[0] + min[0];
-   *  x[1] = corner[1] + max[1] + mid[1] + min[1];
-   *  x[2] = corner[2] + max[2] + mid[2] + min[2];
-   *  points->InsertNextPoint(x);
-   */
-  
+
   return points;
 }
 
-
-int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
+//-----------------------------------------------------------------------------
+void vtkAdaptiveBoundingRegionFilter::computeStackMargins(vtkImageData *image)
 {
-  vtkInformation *imageInfo = inputVector[0]->GetInformationObject(0);
-  vtkInformation *regionInfo = outputVector->GetInformationObject(0);
-  
-  // Access to the input image (stack)
-  vtkImageData *image = vtkImageData::SafeDownCast(
-    imageInfo->Get(vtkDataObject::DATA_OBJECT())
-  );
-  vtkPolyData* region = vtkPolyData::SafeDownCast(
-    regionInfo->Get(vtkDataObject::DATA_OBJECT())
-  );
-  
-  vtkSmartPointer<vtkPoints> vertex = vtkSmartPointer<vtkPoints>::New();
-  vtkSmartPointer<vtkCellArray> faces = vtkSmartPointer<vtkCellArray>::New();
-  vtkSmartPointer<vtkIntArray> faceData = vtkSmartPointer<vtkIntArray>::New();
-  
+  borderVertices = vtkSmartPointer<vtkPoints>::New();
+  faces          = vtkSmartPointer<vtkCellArray>::New();
+  faceData       = vtkSmartPointer<vtkIntArray>::New();
+
   int dim[3];
   image->GetDimensions(dim);
-  
+
   double spacing[3];
   image->GetSpacing(spacing);
   int extent[6];
   image->GetExtent(extent);
-  
+
   vtkDebugMacro(<< "Dim: " << dim[0] << "," << dim[1] << "," << dim[2]);
   vtkDebugMacro(<< "Spacing: " << spacing[0] << "," << spacing[1] << "," << spacing[2]);
   vtkDebugMacro( << "Looking for borders");
-  
+
   int numComponets = image->GetNumberOfScalarComponents();
   unsigned char *imagePtr = static_cast<unsigned char *>(image->GetScalarPointer());
-  
+
   assert(extent[5] == dim[2]-1);
   //TODO: Min values are 0 or given by extent???
-//   int zMin = std::max(Inclusion[2], 0);
-//   int zMax = std::min(Inclusion[2], dim[2]-1);
-  assert(InclusionOffset[2] >= 0 && Exclusion[2] >= 0);
-  int zMin = std::min(extent[4] + InclusionOffset[2], extent[5]);
-  int zMax = std::max(extent[5] - Exclusion[2], extent[4]);
-  
+  //int zMin = std::max(Inclusion[2], 0);
+  //int zMax = std::min(Inclusion[2], dim[2]-1);
+  assert(InclusionOffset[2] >= 0 && ExclusionOffset[2] >= 0);
+
+
+  int zMin = std::min(extent[4] + int(InclusionOffset[2]), extent[5]);//TODO: change casting
+  int zMax = std::max(extent[5] - int(ExclusionOffset[2]), extent[4]);
   const int blackThreshold = 50;
   vtkIdType lastCell[4];
   for (int z = zMin; z <= zMax; z++)
@@ -199,7 +169,7 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
 	unsigned long pxId = x*numComponets + y * dim[0]*numComponets + z * dim[0] * dim[1]*numComponets; //check numComponents
 	for (int c = 0; c < numComponets; c++)
 	  nonBlackPixel = nonBlackPixel || (imagePtr[pxId+c] > blackThreshold);
-	
+
 	if (nonBlackPixel)
 	{
 	  if (nonBlackPixelDetected)
@@ -230,12 +200,12 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
     double corner[3], max[3], mid[3], min[3], size[3];
     vtkSmartPointer<vtkOBBTree> obb_tree = vtkSmartPointer<vtkOBBTree>::New();
     obb_tree->ComputeOBB(nonBlackPixels, corner, max, mid, min, size);
-    
+
     vtkSmartPointer<vtkPoints> face = plane(corner,max,mid,min);
     assert(face->GetNumberOfPoints() == 4);
-    
+
     double leftBottom[3], rightBottom[3], rightTop[3], leftTop[3];
-    
+
     double point[3];
     vtkIdType cell[4];
     // Left Top Corner
@@ -243,54 +213,41 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
     face->GetPoint(0, leftTop);
     int leftMargin = point[0];
     int topMargin = point[1];
-    point[0] += Left * spacing[0];
-    point[1] += Top * spacing[1];
-    point[0] = round(point[0]); point[1] = abs(round(point[1]));  point[2] = round(point[2]);
-    cell[0] = vertex->InsertNextPoint(point);
-//     std::cout << "Point " << cell[0] << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
+    cell[0] = borderVertices->InsertNextPoint(point);
+    //     std::cout << "Point " << cell[0] << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
 
     // Right Top Corner
-    face->GetPoint(2, point); 
+    face->GetPoint(2, point);
     face->GetPoint(2, rightTop);
-    point[0] -= Right * spacing[0];
-    point[1] += Top * spacing[1];
-    point[0] = round(point[0]); point[1] = abs(round(point[1]));  point[2] = round(point[2]);
-    cell[1] = vertex->InsertNextPoint(point);
-//     std::cout << "Point " << cell[1] << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
-    
+    cell[1] = borderVertices->InsertNextPoint(point);
+    //     std::cout << "Point " << cell[1] << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
+
     // Right Bottom Corner
     face->GetPoint(3, point);//WARNING: I use clockwise order from 0,0,0 according to espina's view
     face->GetPoint(3, rightBottom);
     int rightMargin = point[0];
     int bottomMargin = point[1];
-    point[0] -= Right * spacing[0];
-    point[1] -= Bottom * spacing[1];
-    point[0] = round(point[0]); point[1] = abs(round(point[1]));  point[2] = round(point[2]);
-    cell[2] = vertex->InsertNextPoint(point);
-//     std::cout << "Point " << cell[2] << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
-    
+    cell[2] = borderVertices->InsertNextPoint(point);
+    //     std::cout << "Point " << cell[2] << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
+
     // Left Bottom Corner
     face->GetPoint(1, point);//WARNING: I use clockwise order from 0,0,0 according to espina's view
     face->GetPoint(1, leftBottom);
-    point[0] += Left * spacing[0];
-    point[1] -= Bottom * spacing[1];
-    point[0] = round(point[0]); point[1] = abs(round(point[1])); point[2] = round(point[2]);
-    cell[3] = vertex->InsertNextPoint(point);
-//     std::cout << "Point " << cell[3] << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
-    
-//     std::cout << "Face: " << cell[0] << " " << cell[1] << " " << cell[2] << " " << cell[3] << std::endl;
-    
+    cell[3] = borderVertices->InsertNextPoint(point);
+    //     std::cout << "Point " << cell[3] << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
+    //     std::cout << "Face: " << cell[0] << " " << cell[1] << " " << cell[2] << " " << cell[3] << std::endl;
+
     TotalAdaptiveVolume += ((rightMargin - leftMargin + 1)*(bottomMargin - topMargin+1));
     if (z != zMax) // Don't include last exclusion face
       InclusionVolume += (((rightMargin - Right) - (leftMargin + Left))*((bottomMargin - Bottom) - (topMargin + Top)));
-    
+
     assert(leftBottom[0] < rightBottom[0]);
     assert(leftTop[0] < rightTop[0]);
     assert(leftBottom[1] > leftTop[1]);
     assert(rightBottom[1] > rightTop[1]);
-    
+
     if (z == zMin)
-    { 
+    {
       // Upper Inclusion Face
       faces->InsertNextCell(4, cell);
       faceData->InsertNextValue(INCLUSION_FACE);
@@ -300,8 +257,9 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
       faces->InsertNextCell(4, cell);
       faceData->InsertNextValue(EXCLUSION_FACE);
     } else
-    { // Create lateral faces
-      
+    {
+      // Create lateral faces
+
       // Left Inclusion Face
       vtkIdType left[4];
       left[0] = lastCell[3];
@@ -310,7 +268,7 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
       left[3] = cell[3];
       faces->InsertNextCell(4, left);
       faceData->InsertNextValue(INCLUSION_FACE);
-      
+
       // Right Exclusion Face
       vtkIdType right[4];
       right[0] = lastCell[1];
@@ -319,7 +277,7 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
       right[3] = cell[1];
       faces->InsertNextCell(4, right);
       faceData->InsertNextValue(EXCLUSION_FACE);
-      
+
       // Top Inclusion Face
       vtkIdType top[4];
       top[0] = lastCell[0];
@@ -328,7 +286,7 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
       top[3] = cell[0];
       faces->InsertNextCell(4, top);
       faceData->InsertNextValue(INCLUSION_FACE);
-      
+
       // Bottom Exclusion Face
       vtkIdType bottom[4];
       bottom[0] = lastCell[2];
@@ -337,21 +295,80 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
       bottom[3] = cell[2];
       faces->InsertNextCell(4, bottom);
       faceData->InsertNextValue(EXCLUSION_FACE);
-      
     }
     memcpy(lastCell,cell,4*sizeof(vtkIdType));
   }
-  
-  region->SetPoints(vertex);
+
+  TotalVolume = (extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1);
+}
+
+//-----------------------------------------------------------------------------
+vtkSmartPointer<vtkPoints> vtkAdaptiveBoundingRegionFilter::applyOffsets()
+{
+  vtkSmartPointer<vtkPoints> vertices = vtkSmartPointer<vtkPoints>::New();
+
+  for(int v=0; v < borderVertices->GetNumberOfPoints(); v+=4)
+  {
+    double p0[3];
+    borderVertices->GetPoint(v, p0);
+    p0[0] = round(p0[0] + Left);
+    p0[1] = round(p0[1] + Top);
+    p0[2] = round(p0[2]);
+    vertices->InsertNextPoint(p0);
+
+    double p1[3];
+    borderVertices->GetPoint(v+1, p1);
+    p1[0] = round(p1[0] - Right);
+    p1[1] = round(p1[1] + Top);
+    p1[2] = round(p1[2]);
+    vertices->InsertNextPoint(p1);
+
+    double p2[3];
+    borderVertices->GetPoint(v+2, p2);
+    p2[0] = round(p2[0] - Right);
+    p2[1] = round(p2[1] - Bottom);
+    p2[2] = round(p2[2]);
+    vertices->InsertNextPoint(p2);
+
+    double p3[3];
+    borderVertices->GetPoint(v+3, p3);
+    p3[0] = round(p3[0] + Left);
+    p3[1] = round(p3[1] - Bottom);
+    p3[2] = round(p3[2]);
+    vertices->InsertNextPoint(p3);
+  }
+  return vertices;
+}
+
+//-----------------------------------------------------------------------------
+int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
+{
+  vtkInformation *imageInfo = inputVector[0]->GetInformationObject(0);
+  vtkInformation *regionInfo = outputVector->GetInformationObject(0);
+
+  // Access to the input image (stack)
+  vtkImageData *image = vtkImageData::SafeDownCast(
+    imageInfo->Get(vtkDataObject::DATA_OBJECT())
+  );
+  vtkPolyData* region = vtkPolyData::SafeDownCast(
+    regionInfo->Get(vtkDataObject::DATA_OBJECT())
+  );
+
+  if (!m_init)
+  {
+    computeStackMargins(image);
+    m_init = true;
+  }
+
+  region->SetPoints(applyOffsets());
   region->SetPolys(faces);  
   vtkCellData *data = region->GetCellData();
   data->SetScalars(faceData);
   data->GetScalars()->SetName("Type");
-  
-  TotalVolume = (extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1);
+
   ExclusionVolume = TotalVolume - InclusionVolume;
   ExclusionAdaptiveVolume = TotalAdaptiveVolume - InclusionVolume;
-  
+
   return 1;
 }
 

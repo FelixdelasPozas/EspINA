@@ -24,19 +24,47 @@
 #include <pqPipelineSource.h>
 
 //-----------------------------------------------------------------------------
-BoundingRegion::BoundingRegion(int left,  int top,    int upper,
-			       int right, int bottom, int lower )
+BoundingRegion::BoundingRegion(double inclusion[3], double exclusion[3])
 : QStandardItem()
 {
-  m_inclusion[0] = left;  m_exclusion[0] = right;
-  m_inclusion[1] = top;   m_exclusion[1] = bottom;
-  m_inclusion[2] = upper; m_exclusion[2] = lower;
+  memcpy(m_inclusion, inclusion, 3*sizeof(double));
+  memcpy(m_exclusion, exclusion, 3*sizeof(double));
 }
 
 //-----------------------------------------------------------------------------
-unsigned int BoundingRegion::totalVolume()
+QVariant BoundingRegion::data(int role) const
 {
-  int vol;
+  if (role == DescriptionRole)
+  {
+    QString desc("Type: Rectangular Region\n"
+    "Volume Information:\n"
+    "  Total Volume:\n"
+    "    %1 px\n"
+    "    %2 %3\n"
+    "  Inclusion Volume:\n"
+    "    %4 px\n"
+    "    %5 %3\n"
+    "  Exclusion Volume:\n"
+    "    %6 px\n"
+    "    %7 %3\n"
+    );
+
+    double totalPixelVolume = totalVolume();// /volPixel;
+    double inclusionPixelVolume = inclusionVolume();// /volPixel;
+    double exclusionPixelVolume = exclusionVolume();// /volPixel;
+    desc = desc.arg(totalPixelVolume,0).arg(totalVolume(),0,'f',2).arg("nm");
+    desc = desc.arg(inclusionPixelVolume,0).arg(inclusionVolume(),0,'f',2);
+    desc = desc.arg(exclusionPixelVolume,0).arg(exclusionVolume(),0,'f',2);
+
+    return desc;
+  }
+  return QStandardItem::data(role);
+}
+
+//-----------------------------------------------------------------------------
+double BoundingRegion::totalVolume() const
+{
+  double vol;
 
   m_boundingRegion->pipelineSource()->updatePipeline();
   vtkSMProxy *proxy = m_boundingRegion->pipelineSource()->getProxy();
@@ -47,9 +75,9 @@ unsigned int BoundingRegion::totalVolume()
 }
 
 //-----------------------------------------------------------------------------
-unsigned int BoundingRegion::inclusionVolume()
+double BoundingRegion::inclusionVolume() const
 {
-  int vol;
+  double vol;
 
   m_boundingRegion->pipelineSource()->updatePipeline();
   vtkSMProxy *proxy = m_boundingRegion->pipelineSource()->getProxy();
@@ -60,9 +88,9 @@ unsigned int BoundingRegion::inclusionVolume()
 }
 
 //-----------------------------------------------------------------------------
-unsigned int BoundingRegion::exclusionVolume()
+double BoundingRegion::exclusionVolume() const
 {
-  int vol;
+  double vol;
 
   m_boundingRegion->pipelineSource()->updatePipeline();
   vtkSMProxy *proxy = m_boundingRegion->pipelineSource()->getProxy();

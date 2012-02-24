@@ -19,7 +19,10 @@
 #define VTKADAPTATIVEBOUNDINGREGIONFILTER_H
 
 #include <vtkPolyDataAlgorithm.h>
+#include <vtkSmartPointer.h>
+#include <vtkCellArray.h>
 
+class vtkImageData;
 
 class VTK_IMAGING_EXPORT vtkAdaptiveBoundingRegionFilter
       : public vtkPolyDataAlgorithm
@@ -46,6 +49,9 @@ protected:
   virtual int FillOutputPortInformation(int port, vtkInformation* info);
   virtual int RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector);
 
+  void computeStackMargins(vtkImageData *image);
+  vtkSmartPointer<vtkPoints> applyOffsets();
+
 protected:
   vtkAdaptiveBoundingRegionFilter();
   virtual ~vtkAdaptiveBoundingRegionFilter();
@@ -60,6 +66,11 @@ private:
  double InclusionVolume;
  double ExclusionVolume;
  double ExclusionAdaptiveVolume;
+
+ bool   m_init;
+ vtkSmartPointer<vtkPoints>    borderVertices;
+ vtkSmartPointer<vtkCellArray> faces;
+ vtkSmartPointer<vtkIntArray>  faceData;
 };
 
 #endif // VTKADAPTATIVEBOUNDINGREGIONFILTER_H

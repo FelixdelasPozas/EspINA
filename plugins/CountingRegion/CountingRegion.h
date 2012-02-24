@@ -40,14 +40,19 @@ public:
   explicit CountingRegion(QWidget* parent);
   virtual ~CountingRegion();
 
+protected:
+  void createAdaptiveRegion(double inclusion[3], double exclusion[3]);
+  void createRectangularRegion(double inclusion[3], double exclusion[3]);
+
 protected slots:
+
   /// Creates a bounding region on the current focused/active
   /// sample and update all their segmentations counting regions
   /// extension discarting those that are out of the region
   void createBoundingRegion();
-
-protected:
-  void createRectangularRegion();
+  void removeBoundingRegion();
+  void sampleChanged(Sample *sample);
+  void showInfo(const QModelIndex& index);
 
 private:
   GUI *m_gui;

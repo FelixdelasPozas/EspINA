@@ -25,6 +25,7 @@
 
 #include <common/processing/pqFilter.h>
 
+
 /// Bounding Regions' base class
 class BoundingRegion
 : public QStandardItem
@@ -32,24 +33,35 @@ class BoundingRegion
 , public EspinaWidget
 {
 public:
-  explicit BoundingRegion(int left,  int top,    int upper,
-			  int right, int bottom, int lower );
+  enum Role
+  {
+    DescriptionRole = Qt::UserRole + 1
+  };
+public:
+  explicit BoundingRegion(double inclusion[3], double exclusion[3]);
   virtual ~BoundingRegion(){}
 
-  /// Return total volume in pixels
-  unsigned int totalVolume();
-  /// Return inclusion volume in pixels
-  unsigned int inclusionVolume();
-  /// Return exclusion volume in pixels
-  unsigned int exclusionVolume();
+  virtual QVariant data(int role = Qt::UserRole + 1) const;
 
-  virtual void setInclusive(int left, int top, int upper){};
-  virtual void setExclusive(int right, int bottom, int lower){};
+  /// Return total volume in pixels
+  double totalVolume() const;
+  /// Return inclusion volume in pixels
+  double inclusionVolume() const;
+  /// Return exclusion volume in pixels
+  double exclusionVolume() const;
+
+protected:
+  double left()  const {return m_inclusion[0];}
+  double top()   const {return m_inclusion[1];}
+  double upper() const {return m_inclusion[2];}
+  double right() const {return m_exclusion[0];}
+  double bottom()const {return m_exclusion[1];}
+  double lower() const {return m_exclusion[2];}
 
 protected:
   pqFilter *m_boundingRegion;
-  int m_inclusion[3];
-  int m_exclusion[3];
+  double m_inclusion[3];
+  double m_exclusion[3];
 };
 
 #endif // BOUNDINGREGION_H

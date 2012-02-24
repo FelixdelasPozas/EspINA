@@ -31,7 +31,7 @@ qt4_add_resources (RCC_BUILT_SOURCES
 # We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
 qt4_wrap_cpp(MOC_SRCS 
   CountingRegion.h
-#   regions/BoundingRegion.h
+  regions/AdaptiveBoundingRegion.h
   regions/RectangularBoundingRegion.h
 #   CountingRegionExtension.h
 #   RegionRenderer.h
@@ -62,6 +62,7 @@ set (LOCAL_SOURCES
   )
 
 set (REGION_SOURCES
+  regions/AdaptiveBoundingRegion.cpp
   regions/BoundingRegion.cpp
   regions/RectangularBoundingRegion.cpp
   )

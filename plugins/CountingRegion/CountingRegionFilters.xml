@@ -234,71 +234,71 @@
 	</DataTypeDomain>
       </InputProperty>
 
-      <IntVectorProperty
-        name="Inclusion"
+      <DoubleVectorProperty
+        name="InclusionOffset"
 	number_of_elements="3"
-	default_values="0 0 0"
+	default_values="0.0 0.0 0.0"
 	immediate_update="1"
-	command="SetInclusion">
-      </IntVectorProperty>
+	command="SetInclusionOffset">
+      </DoubleVectorProperty>
 
-      <IntVectorProperty
-        name="Exclusion"
+      <DoubleVectorProperty
+        name="ExclusionOffset"
 	number_of_elements="3"
-	default_values="0 0 0"
+	default_values="0.0 0.0 0.0"
 	immediate_update="1"
-	command="SetExclusion">
-      </IntVectorProperty>
+	command="SetExclusionOffset">
+      </DoubleVectorProperty>
 
-      <IntVectorProperty
+      <DoubleVectorProperty
         name="TotalVolume"
 	number_of_elements="1"
-	default_values="0"
+	default_values="0.0"
 	immediate_update="1"
 	information_only="1"
 	command="GetTotalVolume">
-	<SimpleIntInformationHelper/>
-      </IntVectorProperty>
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
 
-      <IntVectorProperty
+      <DoubleVectorProperty
         name="TotalAdaptiveVolume"
 	number_of_elements="1"
-	default_values="0"
+	default_values="0.0"
 	immediate_update="1"
 	information_only="1"
 	command="GetTotalAdaptiveVolume">
-	<SimpleIntInformationHelper/>
-      </IntVectorProperty>
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
 
-      <IntVectorProperty
+      <DoubleVectorProperty
         name="InclusionVolume"
 	number_of_elements="1"
-	default_values="0"
+	default_values="0.0"
 	immediate_update="1"
 	information_only="1"
 	command="GetInclusionVolume">
-        <SimpleIntInformationHelper/>
-      </IntVectorProperty>
+        <SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
 
-      <IntVectorProperty
+      <DoubleVectorProperty
         name="ExclusionVolume"
 	number_of_elements="1"
-	default_values="0"
+	default_values="0.0"
 	immediate_update="1"
 	information_only="1"
 	command="GetExclusionVolume">
-	<SimpleIntInformationHelper/>
-      </IntVectorProperty>
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
 
-      <IntVectorProperty
+      <DoubleVectorProperty
         name="ExclusionAdaptiveVolume"
 	number_of_elements="1"
-	default_values="0"
+	default_values="0.0"
 	immediate_update="1"
 	information_only="1"
 	command="GetExclusionAdaptiveVolume">
-	<SimpleIntInformationHelper/>
-      </IntVectorProperty>
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
 
       <Hints>
 	<!-- Hints are metadata associated with the proxy.

@@ -14,6 +14,7 @@ qt4_add_resources(RCC_BUILT_SOURCES
 
 # Add extra library containing custom code for the client.
 qt4_wrap_cpp(MOC_BUILT_SOURCES
+  EspinaCore.h
   model/EspinaModel.h
   model/ModelTest.h
   gui/ActionSelectorWidget.h

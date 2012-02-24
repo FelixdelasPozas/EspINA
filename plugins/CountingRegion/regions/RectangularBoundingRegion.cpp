@@ -24,12 +24,11 @@
 #include <pq3DWidget.h>
 #include <vtkRectangularBoundingRegionWidget.h>
 #include <vtkSMNewWidgetRepresentationProxy.h>
+#include <vtkSMPropertyHelper.h>
 
 //-----------------------------------------------------------------------------
-RectangularBoundingRegion::RectangularBoundingRegion(double borders[6],
-						     int left,  int top,    int upper,
-						     int right, int bottom, int lower)
-: BoundingRegion(left, top, upper, right, bottom, lower)
+RectangularBoundingRegion::RectangularBoundingRegion(double borders[6], double inclusion[3], double exclusion[3])
+: BoundingRegion(inclusion, exclusion)
 {
   // Configuration of Bounding Region interface
   pqFilter::Arguments regionArgs;
@@ -37,12 +36,12 @@ RectangularBoundingRegion::RectangularBoundingRegion(double borders[6],
   QString margin = QString("%1,%2,%3,%4,%5,%6").arg((int)borders[0]).arg((int)borders[1])
                                                .arg((int)borders[2]).arg((int)borders[3])
 				               .arg((int)borders[4]).arg((int)borders[5]);
-  qDebug() << margin;
+
   regionArgs << pqFilter::Argument("Margin",pqFilter::Argument::DOUBLEVECT, margin);
-  QString inclusion = QString("%1,%2,%3").arg(left).arg(top).arg(upper);
-  regionArgs << pqFilter::Argument("InclusionOffset", pqFilter::Argument::DOUBLEVECT, inclusion);
-  QString exclusion = QString("%1,%2,%3").arg(right).arg(bottom).arg(lower);
-  regionArgs << pqFilter::Argument("ExclusionOffset", pqFilter::Argument::DOUBLEVECT, exclusion);
+  QString inclusionArg = QString("%1,%2,%3").arg(left()).arg(top()).arg(upper());
+  regionArgs << pqFilter::Argument("InclusionOffset", pqFilter::Argument::DOUBLEVECT, inclusionArg);
+  QString exclusionArg = QString("%1,%2,%3").arg(right()).arg(bottom()).arg(lower());
+  regionArgs << pqFilter::Argument("ExclusionOffset", pqFilter::Argument::DOUBLEVECT, exclusionArg);
 
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   m_boundingRegion = cob->createFilter("filters","RectangularBoundingRegion", regionArgs);
@@ -59,6 +58,10 @@ RectangularBoundingRegion::~RectangularBoundingRegion()
     widget->deleteLater();
   }
   m_widgets.clear();
+
+  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+  if (m_boundingRegion)
+    cob->removeFilter(m_boundingRegion);
 }
 
 //-----------------------------------------------------------------------------
@@ -66,13 +69,13 @@ QVariant RectangularBoundingRegion::data(int role) const
 {
   if (role == Qt::DisplayRole)
   {
-    QString repName = QString("Rectangular Region (%1,%2,%3,%4,%5,%6)")
-      .arg(m_inclusion[0]).arg(m_inclusion[1]).arg(m_inclusion[2])
-      .arg(m_exclusion[0]).arg(m_exclusion[1]).arg(m_exclusion[2]);
+    QString repName = QString(tr("Rectangular (%1,%2,%3,%4,%5,%6)"))
+      .arg(left()).arg(top()).arg(upper())
+      .arg(right()).arg(bottom()).arg(lower());
     return repName;
   }
 
-  return QStandardItem::data(role);
+  return BoundingRegion::data(role);
 }
 
 //-----------------------------------------------------------------------------
@@ -121,13 +124,6 @@ pq3DWidget* RectangularBoundingRegion::createSliceWidget(vtkPVSliceView::VIEW_PL
 }
 
 //-----------------------------------------------------------------------------
-void RectangularBoundingRegion::resetWidgets()
-{
-  foreach(pq3DWidget *widget, m_widgets)
-    widget->reset();
-}
-
-//-----------------------------------------------------------------------------
 void RectangularBoundingRegion::setBounds(double bounds[6])
 {
 
@@ -137,4 +133,17 @@ void RectangularBoundingRegion::setBounds(double bounds[6])
 void RectangularBoundingRegion::setEnabled(bool enable)
 {
 
+}
+
+//TODO: Widget related methods seem to be common in both regions
+//-----------------------------------------------------------------------------
+void RectangularBoundingRegion::resetWidgets()
+{
+  foreach(pq3DWidget *widget, m_widgets)
+    widget->reset();
+
+  vtkSMProxy *proxy = m_boundingRegion->pipelineSource()->getProxy();
+  vtkSMPropertyHelper(proxy, "InclusionOffset").Get(m_inclusion, 3);
+  vtkSMPropertyHelper(proxy, "ExclusionOffset").Get(m_exclusion, 3);
+  emitDataChanged();
 }

@@ -29,7 +29,9 @@
 
 
 class EspinaCore
+: public QObject
 {
+  Q_OBJECT
 public:
   virtual ~EspinaCore(){}
 
@@ -41,10 +43,13 @@ public:
   void setActiveTaxonomy(TaxonomyNode *tax);
   TaxonomyNode *activeTaxonomy(){return m_activeTaxonomy;}
 
-  void setSample(Sample *sample) {m_sample = sample;}
+  void setSample(Sample *sample) {m_sample = sample; emit sampleSelected(sample);}
   Sample *sample(){return m_sample;}
 
   QSharedPointer<ViewManager> viewManger() {return m_viewManager;}
+
+signals:
+  void sampleSelected(Sample *);
 
 private:
   explicit EspinaCore();

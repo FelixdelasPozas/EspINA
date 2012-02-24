@@ -376,6 +376,9 @@ void vtkRectangularBoundingRegionRepresentation::MoveRightMargin(double* p1, dou
     }
   }
 
+  std::cout << "Old Right Exclusion Offset " << ExclusionOffset[X] << std::endl;
+  std::cout << "Old Right Exclusion Margin " << m_lastExclusionMargin[X] << std::endl;
+  std::cout << "Mouse Position " << p2[X] << std::endl;
   ExclusionOffset[X] += m_lastExclusionMargin[X] - p2[X];
   m_lastExclusionMargin[X] = p2[X];
   std::cout << "New Right Exclusion Offset " << ExclusionOffset[X] << std::endl;

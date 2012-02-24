@@ -611,7 +611,7 @@ void EspinaWindow::loadChannel(const QString file)
 
     m_undoStack->beginMacro("Add Data To Analysis");
     m_undoStack->push(new AddChannel(channel));
-    m_undoStack->push(new AddRelation(sample, channel.data(), "where"));
+    m_undoStack->push(new AddRelation(sample, channel.data(), "mark"));//TODO: como se llama esto???
 
     m_undoStack->endMacro();
 
