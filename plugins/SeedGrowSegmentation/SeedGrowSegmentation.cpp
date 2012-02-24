@@ -183,7 +183,7 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
     Q_ASSERT(tax);
 //     qDebug() << tax->name();
 
-    ModelItem::Vector samples = input->relatedItems(ModelItem::IN, "where");
+    ModelItem::Vector samples = input->relatedItems(ModelItem::IN, "mark");
     Q_ASSERT(samples.size() > 0);
     Sample *sample = dynamic_cast<Sample *>(samples.first());
 
