@@ -20,7 +20,7 @@ if (${BUILD_TESTING})
   enable_testing()
 endif (${BUILD_TESTING})
 
-add_subdirectory( Views    )
+# add_subdirectory( Views    )
 add_subdirectory( common   )
 add_subdirectory( frontend )
 add_subdirectory( plugins  )

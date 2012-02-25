@@ -75,7 +75,6 @@ set (PARAVIEW_ADDITIONAL_LIBRARIES
   # Inconsistency detected by ld.so: dl-close.c: 743: _dl_close:
   #  Assertion `map->l_init_called' failed!
   # Not linking prevent the plugin from being loaded in the server
-  EspinaViews
   ITKCommon ITKBasicFilters ITKAlgorithms ITKIO
 #   ${Boost_LIBRARIES}
 )

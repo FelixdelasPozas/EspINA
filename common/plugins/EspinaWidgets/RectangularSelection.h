@@ -20,7 +20,7 @@
 #ifndef RECTANGULARVOI_H
 #define RECTANGULARVOI_H
 
-#include <Views/vtkPVSliceView.h>
+#include <common/views/vtkPVSliceView.h>
 #include <common/selection/SelectionHandler.h>
 
 class pq3DWidget;

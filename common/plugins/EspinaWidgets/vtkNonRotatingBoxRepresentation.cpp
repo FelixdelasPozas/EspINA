@@ -108,23 +108,23 @@ int vtkNonRotatingBoxRepresentation::ComputeInteractionState(int X, int Y, int m
 	      
 	      if (abs(edgeDist[TOP_EDGE]) < pickTh)
 	      {
-		this->CurrentHandle == this->Handle[4];
+		this->CurrentHandle = this->Handle[4];
 		this->InteractionState = vtkBoxRepresentation::MoveF2;
 	      } else if (abs(edgeDist[RIGHT_EDGE]) < pickTh)
 	      {
-		this->CurrentHandle == this->Handle[1];
+		this->CurrentHandle = this->Handle[1];
 		this->InteractionState = vtkBoxRepresentation::MoveF1;
 	      } else if (abs(edgeDist[BOTTOM_EDGE]) < pickTh)
 	      {
-		this->CurrentHandle == this->Handle[2];
+		this->CurrentHandle = this->Handle[2];
 		this->InteractionState = vtkBoxRepresentation::MoveF3;
 	      } else if (abs(edgeDist[LEFT_EDGE]) < pickTh)
 	      {
-		this->CurrentHandle == this->Handle[3];
+		this->CurrentHandle = this->Handle[3];
 		this->InteractionState = vtkBoxRepresentation::MoveF0;
 	      }else if (insideFace)
 	      {
-		this->CurrentHandle == this->Handle[6];
+		this->CurrentHandle = this->Handle[6];
 		this->InteractionState = vtkBoxRepresentation::Translating;
 	      }
 	      break;

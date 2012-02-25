@@ -1,51 +1,33 @@
-# Version Number
-set (PLUGIN_VERSION_MAJOR 0)
-set (PLUGIN_VERSION_MINOR 1)
-set (PLUGIN_VERSION_PATCH 0)
-
-# We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
-qt4_wrap_cpp(MOC_SOURCES
-  pqNonRotatingBoxWidget.h
-  )
-# Create Interface files
-qt4_wrap_ui (UI_BUILT_SOURCES
-  )
-
-ADD_3DWIDGET(
-  WIDGET_IFACES WIDGET_SOURCES
-  CLASS_NAME pqNonRotatingBoxWidget
-  WIDGET_TYPE NonRotatingBox
-  )
-
-set (LOCAL_SOURCES
-  pqNonRotatingBoxWidget.cpp
-  RectangularSelection.cpp
-  )
-
-set (PLUGIN_SOURCES
-  ${LOCAL_SOURCES}
+set (MOC_SOURCES
   ${MOC_SOURCES}
-  ${UI_BUILT_SOURCES}
-  ${WIDGET_SOURCES}
+  plugins/EspinaWidgets/pqNonRotatingBoxWidget.h
+  PARENT_SCOPE
   )
 
-set (VTK_SOURCES
-  vtkNonRotatingBoxRepresentation.cpp
-  vtkNonRotatingBoxWidget.cpp
+set (CORE_SOURCES
+  ${CORE_SOURCES}
+#   ${WIDGET_SOURCES}
+  plugins/EspinaWidgets/pqNonRotatingBoxWidget.cpp
+  plugins/EspinaWidgets/RectangularSelection.cpp
+  plugins/EspinaWidgets/vtkNonRotatingBoxWidget.cpp #Required by RectangularSelection
+  PARENT_SCOPE
   )
 
-ADD_PARAVIEW_PLUGIN(
-  EspinaWidgets
-  "${PLUGIN_VERSION_MAJOR}.${PLUGIN_VERSION_MINOR}"
-  SERVER_MANAGER_XML EspinaWidgets.xml
-  SERVER_MANAGER_SOURCES ${VTK_SOURCES}
-  SOURCES ${PLUGIN_SOURCES} 
-  GUI_INTERFACES ${WIDGET_IFACES}
+set (PVCORE_SOURCES
+  ${PVCORE_SOURCES}
+  plugins/EspinaWidgets/vtkNonRotatingBoxRepresentation.cpp
+  plugins/EspinaWidgets/vtkNonRotatingBoxWidget.cpp
+  PARENT_SCOPE
   )
 
-target_link_libraries (EspinaWidgets)
+set (PVCORE_IFACES
+  ${PVCORE_IFACES}
+  ${WIDGET_IFACES}
+  PARENT_SCOPE
+  )
 
-install (TARGETS EspinaWidgets
-         LIBRARY
-         DESTINATION bin/plugins
-         COMPONENT espinaApp)
+set (PVCORE_XML
+  ${PVCORE_XML}
+  plugins/EspinaWidgets/EspinaWidgets.xml
+  PARENT_SCOPE
+  )

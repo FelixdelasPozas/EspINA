@@ -67,7 +67,7 @@ set (Espina_SOURCE_FILES
 
 set (Espina_LIBRARIES
   EspinaCore
-  EspinaViews
+#   EspinaViews
 #   ${Boost_LIBRARIES}
 )
 

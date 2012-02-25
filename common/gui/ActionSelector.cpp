@@ -17,9 +17,9 @@
 */
 
 
-#include "ActionSelector.h"
+#include "common/gui/ActionSelector.h"
 
-#include "ActionSelectorWidget.h"
+#include "common/gui/ActionSelectorWidget.h"
 
 #include <QDebug>
 

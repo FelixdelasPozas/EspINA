@@ -1,7 +1,7 @@
 #include "PixelSelector.h"
 
 #include "common/selection/SelectableView.h"
-#include "Views/vtkSMSliceViewProxy.h"
+#include "common/views/vtkSMSliceViewProxy.h"
 
 #include <QDebug>
 

@@ -3,121 +3,101 @@ include (${VTK_USE_FILE})
 
 find_package (ITK REQUIRED)
 include (${ITK_USE_FILE})
+#NOTE: We can't use ITK and BOOST graph at the same time because of
+#      ITK_REQUIRED_CXX_FLAG: -ftemplate-depth-50
+#      so we override CXX_FLAGS to unset previous flag
+set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated -msse2")
+
+find_package(Boost REQUIRED COMPONENTS  graph) #system filesystem
+link_directories ( ${Boost_LIBRARY_DIRS} )
 
 include_directories(
   ${CMAKE_SOURCE_DIR}
+  ${CMAKE_SOURCE_DIR}/common/extensions/Morphological
+  ${CMAKE_SOURCE_DIR}/common/plugins/EspinaWidgets
+  ${CMAKE_SOURCE_DIR}/common/views
   ${CMAKE_CURRENT_BINARY_DIR}  #For wrap/ui files
-#   ${ITK_DIR}/../
+  ${CMAKE_CURRENT_BINARY_DIR}/plugins/EspinaWidgets
   ${ITK_VTK_GLUE}
 )
 
-find_package(Boost REQUIRED COMPONENTS  graph) #system filesystem 
-link_directories ( ${Boost_LIBRARY_DIRS} )
-
-#------------------------------------------------------------------------------
-# Add Qt Resource files
-qt4_add_resources(RCC_BUILT_SOURCES
-  )
-
-# Add extra library containing custom code for the client.
-qt4_wrap_cpp(MOC_BUILT_SOURCES
+set (MOC_SOURCES
   EspinaCore.h
-  model/EspinaModel.h
-  model/ModelTest.h
-  gui/ActionSelectorWidget.h
-  gui/ActionSelector.h
-  gui/EspinaView.h
-  gui/SliceView.h
-  gui/ViewManager.h
-  gui/VolumeView.h
-  selection/SelectionHandler.h
-  selection/SelectionManager.h
   )
 
-source_group("Generated" FILES
-  ${MOC_BUILT_SOURCES}
-  ${RCC_BUILT_SOURCES}
-)
-
-set(LOCAL_SOURCES
+set (CORE_SOURCES
   EspinaCore.cpp
   )
 
-set(CACHE_SOURCES
-  cache/Cache.cpp
-  cache/CachedObjectBuilder.cpp
-  cache/CacheHash.cpp
+set (PVCORE_SOURCES)
+
+
+set (PVCORE_XML)
+
+add_subdirectory(cache)
+add_subdirectory(extensions)
+add_subdirectory(gui)
+add_subdirectory(model)
+add_subdirectory(plugins)
+add_subdirectory(processing)
+add_subdirectory(selection)
+add_subdirectory(undo)
+add_subdirectory(views)
+
+# Add extra library containing custom code for the client.
+qt4_wrap_cpp(CORE_MOC
+  ${MOC_SOURCES}
   )
 
-set(EXTENSIONS_SOURCES
-  extensions/Morphological/MorphologicalExtension.cpp
-  extensions/SegmentationExtension.cpp
+# if no target is processed auto-generated files are not created
+# so we need to call cmake macros here
+ADD_3DWIDGET(
+  WIDGET_IFACES WIDGET_SOURCES
+  CLASS_NAME pqNonRotatingBoxWidget
+  WIDGET_TYPE NonRotatingBox
   )
 
-set(GUI_SOURCES
-  gui/ActionSelectorWidget.cpp
-  gui/ActionSelector.cpp
-  gui/DynamicWidget.cpp
-  gui/EspinaDockWidget.cpp
-  gui/EspinaView.cpp
-  gui/SliceView.cpp
-  gui/ViewFrame.cpp
-  gui/ViewManager.cpp
-  gui/VolumeView.cpp
+ADD_PARAVIEW_VIEW_MODULE(
+  VIEW_IFACES VIEW_SOURCES
+  VIEW_TYPE pqSliceView
+  VIEW_XML_GROUP views
   )
 
-set(MODEL_SOURCES
-  model/EspinaFactory.cpp
-  model/EspinaModel.cpp
-  model/ModelItem.cpp
-  model/ModelTest.cpp
-  model/Segmentation.cpp
-  model/Channel.cpp
-  model/RelationshipGraph.cpp
-  model/Sample.cpp
-  model/Taxonomy.cpp
+set (PVCORE_IFACES
+  ${WIDGET_IFACES}
+  ${VIEW_IFACES}
   )
 
-set(PROCESSING_SOURCES
-  processing/pqFilter.cpp
-  processing/pqData.cpp
+set (CORE_SOURCES
+  ${CORE_SOURCES}
+  ${CORE_MOC}
+  ${WIDGET_SOURCES}
+  ${VIEW_SOURCES}
   )
 
-set(SELECTION_SOURCES
-  selection/PixelSelector.cpp
-  selection/SelectionHandler.cpp
-  selection/SelectionManager.cpp
-  )
+# Make debug output clearer
+foreach(arg ${CORE_SOURCES})
+   set(MSG_SOURCES "${MSG_SOURCES}\n *${arg}")
+ endforeach(arg ${CORE_SOURCES})
+message("SOURCES:${MSG_SOURCES}")
 
-set (UNDO_SOURCES
-  undo/AddChannel.cpp
-  undo/AddFilter.cpp
-  undo/AddRelation.cpp
-  undo/AddSample.cpp
-  undo/AddSegmentation.cpp
-  )
+foreach(arg ${PVCORE_SOURCES})
+   set(MSG_PVSOURCES "${MSG_PVSOURCES}\n *${arg}")
+ endforeach(arg ${PVCORE_SOURCES})
+message("PV SOURCES:${MSG_PVSOURCES}")
 
-set(Espina_SOURCE_FILES
-  ${LOCAL_SOURCES}
-  ${CACHE_SOURCES}
-  ${EXTENSIONS_SOURCES}
-  ${GUI_SOURCES}
-  ${MODEL_SOURCES}
-  ${PROCESSING_SOURCES}
-  ${SELECTION_SOURCES}
-  ${UNDO_SOURCES}
-#   ${PROXIES_SOURCES}
-  ${MOC_BUILT_SOURCES}
-  ${RCC_BUILT_SOURCES}
-  )
+foreach(arg ${PVCORE_XML})
+   set(MSG_PVXML "${MSG_PVXML}\n *${arg}")
+ endforeach(arg ${PVCORE_XML})
+message("PV XML:${MSG_PVXML}")
+
 
 set(EXTERNAL_LIBS
   ${Boost_LIBRARIES}
   QtTest
 )
 
-add_library (EspinaCore SHARED ${Espina_SOURCE_FILES})
-
+add_library (EspinaCore SHARED ${CORE_SOURCES})
 target_link_libraries (EspinaCore ${EXTERNAL_LIBS})
 
 install (
@@ -127,36 +107,17 @@ install (
   COMPONENT espina
   )
 
-# Version Number
-set (PLUGIN_VERSION_MAJOR 0)
-set (PLUGIN_VERSION_MINOR 1)
-set (PLUGIN_VERSION_PATCH 0)
-
-set (PARAVIEW_XML_FILES
-  extensions/Morphological/MorphologicalExtension.xml
-  )
-
-set (PARAVIEW_SERVER_SOURCES
-  extensions/Morphological/vtkMorphologicalFeaturesFilter.cpp
-  )
-
 ADD_PARAVIEW_PLUGIN(
   EspinaPVCore
-  "${PLUGIN_VERSION_MAJOR}.${PLUGIN_VERSION_MINOR}"
-  SERVER_MANAGER_XML ${PARAVIEW_XML_FILES}
-  SERVER_MANAGER_SOURCES ${PARAVIEW_SERVER_SOURCES}
+  "${ESPINA_VERSION_MAJOR}.${ESPINA_VERSION_MINOR}"
+  SERVER_MANAGER_XML ${PVCORE_XML}
+  SERVER_MANAGER_SOURCES ${PVCORE_SOURCES}
 #   SOURCES ${PLUGIN_SOURCES}
-#   GUI_INTERFACES ${WIDGET_IFACES}
+  GUI_INTERFACES ${PVCORE_IFACES}
   )
 
-set (ESPINA_PVCORE_LIBRARIES
+set (PVCORE_LIBRARIES
   ITKCommon ITKBasicFilters ITKAlgorithms
-)
+  )
 
-target_link_libraries(EspinaPVCore ${ESPINA_PVCORE_LIBRARIES})
-
-
-add_subdirectory (plugins/EspinaWidgets)
-if (${BUILD_TESTING})
-  add_subdirectory(model/tests)
-endif (${BUILD_TESTING})
+target_link_libraries(EspinaPVCore ${PVCORE_LIBRARIES})

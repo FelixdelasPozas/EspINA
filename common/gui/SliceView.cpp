@@ -24,8 +24,8 @@
 //
 // // EspINA
 #include "common/model/Channel.h"
-#include "Views/pqSliceView.h"
-#include "Views/vtkSMSliceViewProxy.h"
+#include "common/views/pqSliceView.h"
+#include "common/views/vtkSMSliceViewProxy.h"
 #include "common/selection/SelectionManager.h"
 #include "IPreferencePanel.h"
 #include "common/processing/pqData.h"
@@ -184,6 +184,7 @@ const QString SliceViewPreferences::shortDescription()
       Q_ASSERT(false);
       return "ERROR";
   };
+  return viewSettings;
 }
 
 //-----------------------------------------------------------------------------
@@ -1191,8 +1192,8 @@ SelectionHandler::VtkRegion SliceView::display2vtk(const QPolygonF &region)
   //vtkSMRenderViewProxy* renModule = view->GetRenderWindow()->GetInteractor()->GetRenderView();
   SelectionHandler::VtkRegion vtkRegion;
 
+//   vtkWorldPointPicker *wpicker = vtkWorldPointPicker::New();
   double pickPos[3];//World coordinates
-  vtkWorldPointPicker *wpicker = vtkWorldPointPicker::New();
   foreach(QPointF point, region)
   {
     if (!pickChannel(point.x(), point.y(), pickPos))

@@ -59,6 +59,7 @@ void MorphologicalExtension::initialize(Segmentation* seg)
   featuresArgs << pqFilter::Argument("Input", pqFilter::Argument::INPUT, m_seg->volume().id());
   m_features = cob->createFilter("filters","MorphologicalFeatures", featuresArgs);
   Q_ASSERT(m_features);
+  qDebug() << information("Size");
 }
 
 //------------------------------------------------------------------------

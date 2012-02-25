@@ -53,6 +53,7 @@ public:
 
 private:
   pqFilter *m_features;
+  bool   m_init;
 
   // Variable to cache filter results
   double m_Size;
@@ -64,7 +65,6 @@ private:
   bool   m_validFeret;
   double m_FeretDiameter;
   double m_EquivalentEllipsoidSize[3];
-  bool   m_init;
 };
 
 #endif // MORPHOLOGICALEXTENSION_H

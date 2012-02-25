@@ -26,7 +26,7 @@
 #include <QWidget>
 
 #include <vtkSmartPointer.h>
-#include <Views/vtkPVSliceView.h>
+#include <common/views/vtkPVSliceView.h>
 #include "IPreferencePanel.h"
 #include "common/selection/SelectableView.h"
 

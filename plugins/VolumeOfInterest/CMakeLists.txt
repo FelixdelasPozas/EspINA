@@ -60,7 +60,6 @@ set (PLUGIN_SRCS
 set (PARAVIEW_ADDITIONAL_LIBRARIES
   ${PARAVIEW_ADDITIONAL_LIBRARIES}
   EspinaCore
-  EspinaWidgets
 )
 
 # Now crete a plugin for the toolbar. Here we pass IFACES and IFACE_SRCS
