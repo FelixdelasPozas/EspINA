@@ -1,22 +1,20 @@
 /*
- *    <one line to give the program's name and a brief idea of what it does.>
- *    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
- *
- *    This program is free software: you can redistribute it and/or modify
- *    it under the terms of the GNU General Public License as published by
- *    the Free Software Foundation, either version 3 of the License, or
- *    (at your option) any later version.
- *
- *    This program is distributed in the hope that it will be useful,
- *    but WITHOUT ANY WARRANTY; without even the implied warranty of
- *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *    GNU General Public License for more details.
- *
- *    You should have received a copy of the GNU General Public License
- *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+    <one line to give the program's name and a brief idea of what it does.>
+    Copyright (C) 2011  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #ifndef SEEDGROWSEGMENTATIONFILTER_H
 #define SEEDGROWSEGMENTATIONFILTER_H
 
@@ -30,6 +28,7 @@ static const QString SGSF = "SeedGrowSegmentation::SeedGrowSegmentationFilter";
 
 class Channel;
 class pqFilter;
+
 class SeedGrowSegmentationFilter
 : public Filter
 {
@@ -40,12 +39,8 @@ class SeedGrowSegmentationFilter
 //   };
 Q_OBJECT
 public:
-//   //! Constructor interactivo
-//   SeedGrowSegmentationFilter(EspinaProduct *input, IVOI *voi, ITraceNode::Arguments &args);
-  //! Constructor desde lista de argumentos
-//   SeedGrowSegmentationFilter(ITraceNode::Arguments &args);
   explicit SeedGrowSegmentationFilter(pqData input, int seed[3], int threshold, int VOI[6]);
-
+  /// Create a new filter from given arguments
   explicit SeedGrowSegmentationFilter(Arguments args);
   virtual ~SeedGrowSegmentationFilter();
 
@@ -67,7 +62,7 @@ public:
   /// Implements Filter Interface
   pqData preview();
   virtual int numProducts() const;
-  virtual pqData product(int i) const;
+  virtual pqData product(int index) const;
 //   virtual QList<vtkProduct *> products() {return m_finalFilter->products();}
 //   virtual QString getFilterArguments() const {return EspinaFilter::getFilterArguments();}
 //   virtual void removeProduct(vtkProduct* product);

@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
+    Copyright (C) 2011  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -15,12 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-
 #include "SeedGrowSegmentationFilter.h"
-
-// Debug
-// #include "espina_debug.h"
 
 // EspinaModel
 #include "common/model/Channel.h"
@@ -293,10 +288,10 @@ int SeedGrowSegmentationFilter::numProducts() const
 }
 
 //-----------------------------------------------------------------------------
-pqData SeedGrowSegmentationFilter::product(int i) const
+pqData SeedGrowSegmentationFilter::product(int index) const
 {
-  Q_ASSERT(grow->getNumberOfData() > i);
-  return grow->data(i);
+  Q_ASSERT(grow->getNumberOfData() > index);
+  return grow->data(index);
 }
 
 

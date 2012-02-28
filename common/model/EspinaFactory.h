@@ -22,6 +22,7 @@
 
 #include "common/model/Sample.h"
 #include "common/plugins/FilterFactory.h"
+#include "common/plugins/ReaderFactory.h"
 #include "common/extensions/SegmentationExtension.h"
 
 class EspinaFactory
@@ -30,11 +31,14 @@ public:
   static EspinaFactory *instance();
 
   void registerFilter(const QString filter, FilterFactory *factory);
+  void registerReader(const QString extension, ReaderFactory *factory);
   void registerSegmentationExtension(SegmentationExtension::SPtr extension);
 
   FilterPtr createFilter(const QString filter, const QString args);
   SamplePtr createSample(const QString id,     const QString args = "");
   SegmentationPtr createSegmentation(Filter *parent, pqData data);
+
+  void readFile(const QString file, const QString ext);
 //   void addSampleExtension(ISampleExtension *ext);
 
 //   void addSegmentationExtension(ISegmentationExtension *ext);
@@ -48,6 +52,7 @@ private:
   QMap<QString, FilterFactory *> m_filterFactory;
   QList<SegmentationExtension::SPtr> m_segExtensions;
 //   QList<ISampleExtension *> m_sampleExtensions;
+  QMap<QString, ReaderFactory *> m_readers;
 };
 
 #endif // ESPinaFACTORY_H

@@ -29,6 +29,10 @@ set (ESPINA_INCLUDE ${PROJECT_SOURCE_DIR})
 
 set (ESPINA_USE_FILE "${PROJECT_SOURCE_DIR}/EspinaUse.cmake")
 
+set (ESPINA_LIBRARY_DIRS
+  ${PROJECT_BINARY_DIR}/common
+  )
+
 configure_file (
   "${PROJECT_SOURCE_DIR}/EspinaConfig.cmake.in"
   "${PROJECT_BINARY_DIR}/EspinaConfig.cmake"

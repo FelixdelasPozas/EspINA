@@ -87,11 +87,13 @@ QVariant EspinaModel::data (const QModelIndex& index, int role) const
   if (index == taxonomyRoot())
   {
     if (role == Qt::DisplayRole)
+    {
       if (m_tax)
 	return m_tax->name();
       else
 	return tr("Taxonomies");
-      return QVariant();
+    }
+    return QVariant();
   }
 
   if (index == sampleRoot())
@@ -640,6 +642,7 @@ QModelIndex EspinaModel::index(ModelItem *item)
     default:
       Q_ASSERT(false);
   }
+  return QModelIndex();
 }
 
 

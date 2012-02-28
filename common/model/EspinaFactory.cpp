@@ -47,6 +47,13 @@ void EspinaFactory::registerFilter(const QString filter, FilterFactory* factory)
 }
 
 //------------------------------------------------------------------------
+void EspinaFactory::registerReader(const QString extension, ReaderFactory* factory)
+{
+  Q_ASSERT(m_readers.contains(extension) == false);
+  m_readers[extension] = factory;
+}
+
+//------------------------------------------------------------------------
 void EspinaFactory::registerSegmentationExtension(SegmentationExtension::SPtr extension)
 {
   Q_ASSERT(m_segExtensions.contains(extension) == false);
@@ -79,6 +86,13 @@ SegmentationPtr EspinaFactory::createSegmentation(Filter* parent, pqData data)
     seg->addExtension(SegmentationExtension::SPtr(ext->clone()));
 
   return seg;
+}
+
+//------------------------------------------------------------------------
+void EspinaFactory::readFile(const QString file, const QString ext)
+{
+  Q_ASSERT(m_readers.contains(ext));
+  m_readers[ext]->readFile(file);
 }
 
 

@@ -73,9 +73,10 @@
 #include "toolbar/LODToolBar.h"
 #include "views/DefaultEspinaView.h"
 #include "docks/DataViewPanel.h"
+#include <model/EspinaFactory.h>
 
 
-static const QString CHANNEL_FILES = QObject::tr("Channel (*.mha; *.mhd)");
+static const QString CHANNEL_FILES = QObject::tr("Channel (*.mha; *.segmha)");
 static const QString SEG_FILES     = QObject::tr("Espina Analysis (*.seg)");
 
 //------------------------------------------------------------------------
@@ -388,25 +389,31 @@ void EspinaWindow::newAnalysis()
 
     closeCurrentAnalysis();
 
-    TaxonomyPtr defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
-    m_model->setTaxonomy(defaultTaxonomy);
-//     defaultTaxonomy->print();
-
-
-    // TODO: Check for channel sample
-    const QString channelFile = fileDialog.getSelectedFiles().first();
-    const QString SampleName  = fileName(channelFile);
-    const QString channelName = fileNameWithExtension(channelFile);
-
-    // Try to recover sample form DB using channel information
-    QSharedPointer<Sample> sample(new Sample(SampleName));
-    EspinaCore::instance()->setSample(sample.data());
+    const QString file = fileDialog.getSelectedFiles().first();
+    const QString ext = extension(file);
 
     m_undoStack->beginMacro("New Analysis");
+    if (ext == "pvd" || ext == "mha" || ext == "mhd")
+    {
+      // Analysis from raw data
+      TaxonomyPtr defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
+      m_model->setTaxonomy(defaultTaxonomy);
 
-    m_undoStack->push(new AddSample(sample));
-    loadChannel(channelFile);
+      // TODO: Check for channel sample
+      const QString SampleName  = fileName(file);
+      const QString channelName = fileNameWithExtension(file);
 
+      // Try to recover sample form DB using channel information
+      QSharedPointer<Sample> sample(new Sample(SampleName));
+      EspinaCore::instance()->setSample(sample.data());
+
+      m_undoStack->push(new AddSample(sample));
+
+      loadChannel(file);
+    } else
+    {
+      EspinaFactory::instance()->readFile(file, ext);
+    }
     m_undoStack->endMacro();
 
     m_addToAnalysis->setEnabled(true);
