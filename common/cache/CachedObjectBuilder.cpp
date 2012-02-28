@@ -71,6 +71,8 @@ pqFilter* CachedObjectBuilder::loadFile(const QString file)
   {
     reader = new pqFilter(pqLoadDataReaction::loadData(QStringList(file)), id);
     m_cache->insert(id, reader, false);
+  }else{
+    m_cache->addReference(id);
   }
   Q_ASSERT(reader);
 

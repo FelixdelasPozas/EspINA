@@ -34,7 +34,7 @@ vtkStandardNewMacro ( vtkSMSliceViewProxy );
 vtkSMRepresentationProxy* vtkSMSliceViewProxy::CreateDefaultRepresentation ( vtkSMProxy* source, int port )
 {
     qDebug() << "vtkSMSliceViewProxy: Cretating default representation for" << source;
-    vtkSMProxyManager* pxm = this->GetProxyManager();
+    vtkSMProxyManager* pxm = vtkSMProxyManager::GetProxyManager();
     // Update with time to avoid domains updating without time later.
     vtkSMSourceProxy* sproxy = vtkSMSourceProxy::SafeDownCast ( source );
     if ( sproxy )

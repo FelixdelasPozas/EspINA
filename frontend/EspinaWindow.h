@@ -81,6 +81,7 @@ private:
   MainToolBar                *m_mainToolBar;
   QMenu                      *m_viewMenu;
   QAction                    *m_addToAnalysis;
+  bool                        m_busy;
 
   QSharedPointer<QUndoStack>  m_undoStack;
   QString                     m_currentActivity;

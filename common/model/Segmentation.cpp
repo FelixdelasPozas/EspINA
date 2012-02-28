@@ -53,6 +53,14 @@ pqOutputPort* Segmentation::outputPort()
 }
 
 //------------------------------------------------------------------------
+QString Segmentation::serialize() const
+{
+  QString args;
+  args.append(argument("Filter", m_data.id()));
+  return args;
+}
+
+//------------------------------------------------------------------------
 QVariant Segmentation::data(int role) const
 {
   switch (role)

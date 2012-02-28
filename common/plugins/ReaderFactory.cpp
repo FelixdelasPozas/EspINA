@@ -17,41 +17,5 @@
 */
 
 
-#include "EspinaCore.h"
+#include "ReaderFactory.h"
 
-#include "model/EspinaModel.h"
-
-#include <QUndoStack>
-
-EspinaCore *EspinaCore::m_singleton = NULL;
-
-EspinaCore::EspinaCore()
-: m_activeTaxonomy(NULL)
-, m_sample        (NULL)
-, m_model         (new EspinaModel())
-, m_undoStack     (new QUndoStack())
-, m_viewManager   (new ViewManager())
-{
-}
-
-EspinaCore* EspinaCore::instance()
-{
-  if (!m_singleton)
-    m_singleton = new EspinaCore();
-
-  return m_singleton;
-}
-
-void EspinaCore::setActiveTaxonomy(TaxonomyNode* tax)
-{
-  m_activeTaxonomy = tax;
-}
-
-void EspinaCore::closeCurrentAnalysis()
-{
-  emit currentAnalysisClosed();
-  m_activeTaxonomy = NULL;
-  m_sample = NULL;
-  m_model->reset();
-  m_undoStack->clear();
-}

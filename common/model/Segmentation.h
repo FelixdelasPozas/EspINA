@@ -44,6 +44,7 @@ public:
   pqOutputPort *outputPort();
 
   /// Model Item Interface
+  virtual QString serialize() const;
   virtual QVariant data(int role) const;
   virtual ItemType type() const {return ModelItem::SEGMENTATION;}
   /// Selectable Item Interface

@@ -124,7 +124,7 @@ public:
   Vertices ancestors(VertexId v, const QString filter = "");
   Vertices succesors(VertexId v, const QString filter = "");
 
-  bool find(VertexProperty vp, VertexProperty foundV);
+  bool find(VertexProperty vp, VertexProperty &foundV);
   void setItem(VertexId v, ModelItem *item);
   QString name(VertexId v) const;
   static ModelItem::ItemType type(const VertexProperty v);
@@ -144,9 +144,9 @@ public:
   std::vector<ITraceNode *> outputs(const ITraceNode *node);
   */
 //   void print(std::ostream& out, PrintFormat format = GRAPHVIZ);
-private:
   /// Update vertex's information with model's items' information
   void updateVertexInformation();
+private:
   //! It retrieves the current vertex index of a ModelItem
   VertexDescriptor vertex(ModelItem* item);
   //!Convert a string int the correct format "{argument:value;}+" in a NodeParamList

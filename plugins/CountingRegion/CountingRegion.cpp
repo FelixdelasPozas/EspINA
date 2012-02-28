@@ -124,7 +124,7 @@ CountingRegion::CountingRegion(QWidget * parent)
   connect(m_gui->createRegion, SIGNAL(clicked()),
           this, SLOT(createBoundingRegion()));
   connect(m_gui->removeRegion, SIGNAL(clicked()),
-          this, SLOT(removeBoundingRegion()));
+          this, SLOT(removeSelectedBoundingRegion()));
 
   connect(m_gui->regionView, SIGNAL(clicked(QModelIndex)),
 	  this, SLOT(showInfo(QModelIndex)));
@@ -133,6 +133,9 @@ CountingRegion::CountingRegion(QWidget * parent)
   
   connect(&m_regionModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
 	  m_gui->regionView, SLOT(setCurrentIndex(QModelIndex)));
+
+  connect(EspinaCore::instance(), SIGNAL(currentAnalysisClosed()),
+	  this, SLOT(clearBoundingRegions()));
 //   connect(regionType, SIGNAL(currentIndexChanged(int)),
 // 	  this, SLOT(regionTypeChanged(int)));
 
@@ -190,6 +193,15 @@ void CountingRegion::createRectangularRegion(double inclusion[3], double exclusi
 }
 
 //------------------------------------------------------------------------
+void CountingRegion::clearBoundingRegions()
+{
+  m_regionModel.clear();
+  m_gui->regionDescription->clear();
+  m_gui->createRegion->setEnabled(false);
+  m_gui->removeRegion->setEnabled(false);
+}
+
+//------------------------------------------------------------------------
 void CountingRegion::createBoundingRegion()
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);
@@ -217,7 +229,7 @@ void CountingRegion::createBoundingRegion()
 }
 
 //------------------------------------------------------------------------
-void CountingRegion::removeBoundingRegion()
+void CountingRegion::removeSelectedBoundingRegion()
 {
   int selectedRegion = m_gui->regionView->currentIndex().row();
   if (selectedRegion >= 0 && selectedRegion < m_regionModel.rowCount())

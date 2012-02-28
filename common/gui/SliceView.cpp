@@ -74,6 +74,7 @@
 
 #include <vtkPropCollection.h>
 #include <pq3DWidget.h>
+#include </home/jpena/src/ParaView-3.12.0/ParaViewCore/ServerManager/vtkSMProxyManager.h>
 
 //-----------------------------------------------------------------------------
 SliceViewPreferencesPanel::SliceViewPreferencesPanel(SliceViewPreferences* preferences)
@@ -773,7 +774,7 @@ void SliceView::addChannelRepresentation(Channel* channel)
 {
   pqOutputPort      *oport = channel->outputPort();
   pqPipelineSource *source = oport->getSource();
-  vtkSMProxyManager   *pxm = source->getProxy()->GetProxyManager();
+  vtkSMProxyManager   *pxm = vtkSMProxyManager::GetProxyManager();
 
   vtkSMRepresentationProxy* reprProxy = vtkSMRepresentationProxy::SafeDownCast(
     pxm->NewProxy("representations", "ChannelRepresentation"));
@@ -819,7 +820,7 @@ void SliceView::addSegmentationRepresentation(Segmentation* seg)
 {
   pqOutputPort      *oport = seg->outputPort();
   pqPipelineSource *source = oport->getSource();
-  vtkSMProxyManager   *pxm = source->getProxy()->GetProxyManager();
+  vtkSMProxyManager   *pxm = vtkSMProxyManager::GetProxyManager();
 
   vtkSMRepresentationProxy* reprProxy = vtkSMRepresentationProxy::SafeDownCast(
     pxm->NewProxy("representations", "SegmentationRepresentation"));
@@ -842,7 +843,7 @@ void SliceView::addSegmentationRepresentation(Segmentation* seg)
 void SliceView::addSegmentationRepresentation(pqOutputPort* oport)
 {
   pqPipelineSource *source = oport->getSource();
-  vtkSMProxyManager *pxm = source->getProxy()->GetProxyManager();
+  vtkSMProxyManager   *pxm = vtkSMProxyManager::GetProxyManager();
 
   vtkSMRepresentationProxy* reprProxy = vtkSMRepresentationProxy::SafeDownCast(
     pxm->NewProxy("representations", "SegmentationRepresentation"));

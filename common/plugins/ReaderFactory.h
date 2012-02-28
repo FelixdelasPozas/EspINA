@@ -17,41 +17,16 @@
 */
 
 
-#include "EspinaCore.h"
+#ifndef READERFACTORY_H
+#define READERFACTORY_H
 
-#include "model/EspinaModel.h"
+#include <QString>
 
-#include <QUndoStack>
-
-EspinaCore *EspinaCore::m_singleton = NULL;
-
-EspinaCore::EspinaCore()
-: m_activeTaxonomy(NULL)
-, m_sample        (NULL)
-, m_model         (new EspinaModel())
-, m_undoStack     (new QUndoStack())
-, m_viewManager   (new ViewManager())
+class ReaderFactory
 {
-}
+public:
+  virtual ~ReaderFactory(){}
+  virtual void readFile(const QString) = 0;
+};
 
-EspinaCore* EspinaCore::instance()
-{
-  if (!m_singleton)
-    m_singleton = new EspinaCore();
-
-  return m_singleton;
-}
-
-void EspinaCore::setActiveTaxonomy(TaxonomyNode* tax)
-{
-  m_activeTaxonomy = tax;
-}
-
-void EspinaCore::closeCurrentAnalysis()
-{
-  emit currentAnalysisClosed();
-  m_activeTaxonomy = NULL;
-  m_sample = NULL;
-  m_model->reset();
-  m_undoStack->clear();
-}
+#endif // READERFACTORY_H

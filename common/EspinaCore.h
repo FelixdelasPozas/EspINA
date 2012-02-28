@@ -48,8 +48,12 @@ public:
 
   QSharedPointer<ViewManager> viewManger() {return m_viewManager;}
 
+public slots:
+  void closeCurrentAnalysis();
+
 signals:
   void sampleSelected(Sample *);
+  void currentAnalysisClosed();
 
 private:
   explicit EspinaCore();

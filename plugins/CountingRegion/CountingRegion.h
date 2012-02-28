@@ -45,12 +45,12 @@ protected:
   void createRectangularRegion(double inclusion[3], double exclusion[3]);
 
 protected slots:
-
+  void clearBoundingRegions();
   /// Creates a bounding region on the current focused/active
   /// sample and update all their segmentations counting regions
   /// extension discarting those that are out of the region
   void createBoundingRegion();
-  void removeBoundingRegion();
+  void removeSelectedBoundingRegion();
   void sampleChanged(Sample *sample);
   void showInfo(const QModelIndex& index);
 

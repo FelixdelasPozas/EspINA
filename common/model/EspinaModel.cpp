@@ -528,16 +528,19 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
 //   qDebug() << "Check";
 //   input->write(std::cout);
 
+  m_relations->updateVertexInformation();
   EspinaFactory *factory = EspinaFactory::instance();
 
   QList<SegmentationPtr> newSegmentations;
 
+  //TODO: existing segmentations's filter id differ from load/creation
   foreach(VertexProperty v, input->vertices())
   {
     VertexProperty fv;
     if (m_relations->find(v, fv))
     {
-      qDebug() << "Updating existing vertex";
+      input->setItem(v.vId, fv.item);
+      qDebug() << "Updating existing vertex" << fv.item->data(Qt::DisplayRole).toString();
     }else
     {
 //       qDebug() << "Creating vertex" << v;
@@ -555,11 +558,22 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
 	}
 	case ModelItem::CHANNEL:
 	{
-// 	  qDebug() << "Channel doesn't exists ==> Add new Channel"
-// 	  << v.vId << v.name.c_str() << " with args:" << v.args.c_str();
-	  ChannelPtr channel(new Channel(v.name.c_str(), v.args.c_str()));
-	  addChannel(channel);
-	  input->setItem(v.vId, channel.data());
+// 	  bool found = false;
+// 	  int c = 0;
+// 	  while (c < m_channels.size() && !found)
+// 	    found = m_channels[c++]->data(Qt::DisplayRole).toString().toStdString() == v.name;
+// 
+// 	  if (found)
+// 	  {
+// 	    input->setItem(v.vId, m_channels[c-1].data());
+// 	  }else
+// 	  {
+	    // 	  qDebug() << "Channel doesn't exists ==> Add new Channel"
+	    // 	  << v.vId << v.name.c_str() << " with args:" << v.args.c_str();
+	    ChannelPtr channel(new Channel(v.name.c_str(), v.args.c_str()));
+	    addChannel(channel);
+	    input->setItem(v.vId, channel.data());
+// 	  }
 	  break;
 	}
 	case ModelItem::FILTER:
@@ -599,6 +613,7 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
     m_relations->addRelation(e.source.item, e.target.item, e.relationship.c_str());
   }
 //     if (!m_relations->find(input->properties(v), fv))
+//   m_relations->write(std::cout, RelationshipGraph::GRAPHVIZ);
 }
 
 

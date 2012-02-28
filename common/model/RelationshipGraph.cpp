@@ -317,7 +317,7 @@ Vertices RelationshipGraph::succesors(RelationshipGraph::VertexId v, const QStri
 
 
 //-----------------------------------------------------------------------------
-bool RelationshipGraph::find(VertexProperty vp, VertexProperty foundV)
+bool RelationshipGraph::find(VertexProperty vp, VertexProperty &foundV)
 {
   VertexIterator vi, vi_end;
   for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
