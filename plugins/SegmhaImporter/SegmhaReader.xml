@@ -70,6 +70,7 @@
         long_help="Extract nth block from a multiBlockDataSet as a single vtkImage"
         short_help="Extract nth block as vtkImage">
      </Documentation>
+
      <InputProperty
         name="Input"
         command="SetInputConnection">
@@ -87,6 +88,16 @@
        default_values="0"
        immediate_update="1"
        command="SetExtractBlock">
+     </IntVectorProperty>
+
+     <IntVectorProperty
+       name="Label"
+       number_of_elements="1"
+       default_values="-1"
+       immediate_update="1"
+       information_only="1"
+       command="GetLabel">
+       <SimpleIntInformationHelper/>
      </IntVectorProperty>
    </SourceProxy>
    <!-- End ExtractBlockAsImage -->

@@ -48,6 +48,11 @@ public:
 
   QSharedPointer<ViewManager> viewManger() {return m_viewManager;}
 
+  void loadFile(const QString file);
+
+protected:
+  void loadChannel(const QString file);
+
 public slots:
   void closeCurrentAnalysis();
 

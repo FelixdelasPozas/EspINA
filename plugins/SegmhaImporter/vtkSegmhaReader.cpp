@@ -4,25 +4,26 @@
 
 // #include "vtkFileContent.h"
 
-#include <vtkMultiBlockDataSet.h>
-#include "vtkObjectFactory.h"
-#include "vtkStreamingDemandDrivenPipeline.h"
-#include "vtkInformationVector.h"
-#include "vtkInformation.h"
-#include "vtkDataObject.h"
-#include "vtkSmartPointer.h"
-#include "vtkVertexGlyphFilter.h"
-
-#include <itkImageFileReader.h>
-#include <itkMetaImageIO.h>
-#include <itkImageToVTKImageFilter.h>
-#include <vtkImageReslice.h>
+#include <vtkDataObject.h>
 #include <vtkImageChangeInformation.h>
-#include <itkVTKImageToImageFilter.h>
-#include <itkStatisticsLabelObject.h>
-#include <itkLabelImageToShapeLabelMapFilter.h>
-#include <itkExtractImageFilter.h>
+#include <vtkImageReslice.h>
+#include <vtkInformation.h>
+#include <vtkInformationVector.h>
+#include <vtkMultiBlockDataSet.h>
+#include <vtkObjectFactory.h>
+#include <vtkPointData.h>
+#include <vtkSmartPointer.h>
+#include <vtkStreamingDemandDrivenPipeline.h>
+#include <vtkVertexGlyphFilter.h>
+#include <vtkDataSetAttributes.h>
 
+#include <itkExtractImageFilter.h>
+#include <itkImageFileReader.h>
+#include <itkImageToVTKImageFilter.h>
+#include <itkLabelImageToShapeLabelMapFilter.h>
+#include <itkMetaImageIO.h>
+#include <itkStatisticsLabelObject.h>
+#include <itkVTKImageToImageFilter.h>
 
 #include <QFile>
 #include <QString>
@@ -42,7 +43,6 @@ typedef itk::LabelMapToLabelImageFilter<
 typedef itk::ExtractImageFilter<
 	      EspinaImageType, EspinaImageType> 	ExtractFilterType;
 typedef itk::ImageToVTKImageFilter<EspinaImageType> 	ImageToVTKImageFilterType;
-  
 
 
 vtkStandardNewMacro(vtkSegmhaReader);
@@ -76,7 +76,7 @@ vtkSegmhaReader::TaxonomyObject::TaxonomyObject(const QString& line)
 
 QString& vtkSegmhaReader::TaxonomyObject::toString()
 {
-  QString *string = new QString(QString("%1 %2 %3 %4 %5;")
+  QString *string = new QString(QString("%1,%2,%3,%4,%5;")
   .arg(label)
   .arg(*name)
   .arg(color[0])
@@ -116,8 +116,8 @@ void parseCountingBrick(QString line, int cb[6])
   cb[2] = inclusive[2].section(']',0,0).toInt();
   
   cb[3] = exclusive[0].section('[',-1).toInt();
-  cb[3] = exclusive[1].toInt();
-  cb[4] = exclusive[2].section(']',0,0).toInt();
+  cb[4] = exclusive[1].toInt();
+  cb[5] = exclusive[2].section(']',0,0).toInt();
 }
 
 //---------------------------------------------------------------------------
@@ -126,23 +126,22 @@ int vtkSegmhaReader::RequestData(
   vtkInformationVector **vtkNotUsed(inputVector),
   vtkInformationVector *outputVector)
 {
-  
   ImageReaderType::Pointer imageReader = ImageReaderType::New();
-  
+
   vtkDebugMacro(<< "Reading segmentation's meta data from file");
   QList<SegmentationObject> metaData;
-  
+
   QFile metaDataReader(FileName);
   metaDataReader.open(QIODevice::ReadOnly);
   QTextStream stream(&metaDataReader);
-  
+
   QString line;
   QString taxonomies;
   QString segTaxonomies;
   while (!(line = stream.readLine()).isNull())
   {
     QString infoType = line.split(":")[0];
-    
+
     if (infoType == "Object")
     {
       SegmentationObject seg(line);
@@ -158,7 +157,7 @@ int vtkSegmhaReader::RequestData(
     else if (infoType == "Counting Brick")
     {
       int cb[6];
-      parseCountingBrick(line,cb);   
+      parseCountingBrick(line,cb);
       this->SetCountingBrick(cb);
     }
   }
@@ -206,8 +205,8 @@ int vtkSegmhaReader::RequestData(
     Image2LabelFilterType::New();
   image2label->SetInput(vtk2itk_filter->GetOutput());
   image2label->Update();//TODO: Check if needed
-  
-  
+
+
   // Configure the output multiblock
   vtkInformation* outInfo = outputVector->GetInformationObject(0);
   vtkMultiBlockDataSet *output = vtkMultiBlockDataSet::SafeDownCast(
@@ -217,49 +216,53 @@ int vtkSegmhaReader::RequestData(
   
   vtkDebugMacro(<< "Extract all label objects from LabelMap");
   int blockNo = 0;
+  vtkSmartPointer<vtkIntArray> labelData = vtkSmartPointer<vtkIntArray>::New();
+  labelData->SetName("Label");
+  labelData->SetNumberOfComponents(1);
   foreach(SegmentationObject seg, metaData)
   {
     try
     {
-      std::cout << "Loading Segmentations " << blockNo << "..." << std::endl;
+      std::cout << "Loading Segmentation " << seg.label << " in block " << blockNo << "..." << std::endl;
       //     std::cout << "\tLabel: " << QString::number(seg.label).toStdString() << std::endl;
       //     std::cout << "\tSegment: " << QString::number(seg.taxonomyId).toStdString() << std::endl;
       LabelMapType *    labelMap = image2label->GetOutput();
       //     std::cout << "Number of labels: " << labelMap->GetNumberOfLabelObjects() << std::endl;
       LabelObjectType * object   = labelMap->GetLabelObject(seg.label);
       LabelObjectType::RegionType region = object->GetRegion();
-      
+
       LabelMapType::Pointer tmpLabelMap = 
       LabelMapType::New();
       tmpLabelMap->CopyInformation(labelMap);
       object->SetLabel(255);
       tmpLabelMap->AddLabelObject(object);
       tmpLabelMap->Update();
-      
+
       Label2ImageFilterType::Pointer label2image =
       Label2ImageFilterType::New();
       label2image->SetInput(tmpLabelMap);
       label2image->Update();
-      
+
       ExtractFilterType::Pointer extract =
       ExtractFilterType::New();
       extract->SetInput(label2image->GetOutput());
       extract->SetExtractionRegion(region);
       extract->Update();
-      
+
       // Convert each object to vtk image
       ImageToVTKImageFilterType::Pointer itk2vtk_filter =
       ImageToVTKImageFilterType::New();
       itk2vtk_filter->SetInput( extract->GetOutput() );
       itk2vtk_filter->Update();
-      
+
       vtkSmartPointer<vtkImageData> segImage = 
       vtkSmartPointer<vtkImageData>::New();
       segImage->DeepCopy( itk2vtk_filter->GetOutput() );
       segImage->CopyInformation(itk2vtk_filter->GetOutput());//WARNING: don't forget!
-      
+      labelData->InsertNextValue(seg.label);
+
       output->SetBlock(blockNo,segImage);
-      
+
       blockNo++;
     } catch (...)
     {
@@ -267,6 +270,7 @@ int vtkSegmhaReader::RequestData(
       NumSegmentations--;
     }
   }
+  output->GetFieldData()->AddArray(labelData);
 
   return 1;
 }

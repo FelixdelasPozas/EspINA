@@ -37,6 +37,7 @@ EspinaModel::EspinaModel ( QObject* parent )
 : QAbstractItemModel ( parent )
 , m_tax ( NULL )
 , m_relations(new RelationshipGraph())
+, m_lastId(0)
 {
 }
 
@@ -75,6 +76,7 @@ void EspinaModel::reset()
     m_samples.clear();
     endRemoveRows();
   }
+  m_lastId = 0;
   m_relations->clear();//NOTE: Should we remove every item in the previous blocks?
 }
 
@@ -407,6 +409,11 @@ void EspinaModel::removeChannel(QSharedPointer<Channel> channel)
   endRemoveRows();
 }
 
+// bool segComparer(const SegmentationPtr &a, const SegmentationPtr &b)
+// {
+//   return a->data(Qt::DisplayRole).toString() < b->data(Qt::DisplayRole).toString();
+// }
+
 //------------------------------------------------------------------------
 void EspinaModel::addSegmentation(SegmentationPtr seg)
 {
@@ -427,7 +434,12 @@ void EspinaModel::addSegmentation(SegmentationPtr seg)
 //   seg->origin()->addSegmentation(seg);
 //   connect(seg, SIGNAL(updated(Segmentation*)), this, SLOT(internalSegmentationUpdate(Segmentation*)));
 //   //m_sampleSegs[seg->origin()].push_back(seg);
+  if (seg->id() == 0)
+    seg->setId(++m_lastId);
+  else
+    m_lastId = qMax(m_lastId, seg->id());
   m_segmentations << seg;
+//   qSort(m_segmentations.begin(), m_segmentations.end(), segComparer);
   m_relations->addItem(seg.data());
   endInsertRows();
 }

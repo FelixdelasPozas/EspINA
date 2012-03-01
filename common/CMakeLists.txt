@@ -27,6 +27,7 @@ set (MOC_SOURCES
 
 set (CORE_SOURCES
   EspinaCore.cpp
+  File.cpp
   )
 
 set (PVCORE_SOURCES)

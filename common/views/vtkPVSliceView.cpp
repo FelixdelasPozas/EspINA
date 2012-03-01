@@ -576,6 +576,10 @@ void vtkPVSliceView::AddSegmentation(vtkPVSliceView::SliceActor* actor)
 //   qDebug() << "Add Segmentation";
   AddActor(actor);
   actor->prop->SetVisibility(ShowSegmentations);
+  double pos[3];
+  actor->prop->GetPosition(pos);
+  pos[2] = pos[2] - 0.1;
+  actor->prop->SetPosition(pos);
   Segmentations.append(actor);
 }
 

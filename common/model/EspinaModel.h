@@ -132,6 +132,7 @@ private:
 
   QSharedPointer<RelationshipGraph> m_relations;
 
+  unsigned int           m_lastId;
 };
 
 typedef QSharedPointer<EspinaModel> EspinaModelPtr;

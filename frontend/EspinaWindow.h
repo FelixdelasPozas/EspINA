@@ -54,17 +54,12 @@ public slots:
   virtual void setLOD(){}
 
   void closeCurrentAnalysis();
-  /// Creates an empty analysis 
-  void newAnalysis();
   /// Close former analysis and load a new one
   void openAnalysis();
   /// Add new data from file to current analysis
   void addToAnalysis();
   /// Save Current Analysis
   void saveAnalysis();
-
-  void loadChannel(const QString file);
-
 
 protected slots:
   void updateStatus(QString msg);

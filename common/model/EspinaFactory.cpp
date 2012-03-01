@@ -28,7 +28,7 @@ EspinaFactory *EspinaFactory::m_instance = NULL;
 EspinaFactory::EspinaFactory()
 {
   // Register Default Extensions
-  registerSegmentationExtension(SegmentationExtension::SPtr(new MorphologicalExtension()));
+//   registerSegmentationExtension(SegmentationExtension::SPtr(new MorphologicalExtension()));
 }
 
 //------------------------------------------------------------------------

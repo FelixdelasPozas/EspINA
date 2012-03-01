@@ -58,9 +58,7 @@ protected:
   virtual ~vtkSegmhaReader();
 
   int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  
-  
-  
+
 private:
   vtkSegmhaReader(const vtkSegmhaReader&);  // Not implemented.
   void operator=(const vtkSegmhaReader&);  // Not implemented.

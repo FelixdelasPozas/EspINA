@@ -26,6 +26,8 @@ using namespace std;
 Segmentation::Segmentation(Filter *filter, pqData data)
 : m_filter (filter)
 , m_data   (data)
+, m_id     (0)
+, m_tax    (NULL)
 {
 }
 
@@ -67,7 +69,7 @@ QVariant Segmentation::data(int role) const
   {
     case Qt::DisplayRole:
 //     //case Qt::EditRole:
-      return QString("Segmentation");
+      return QString("Segmentation %1").arg(m_id);
 //     case Qt::DecorationRole:
 //     {
 //       QPixmap segIcon(3,16);

@@ -1,3 +1,6 @@
+find_package (ParaView REQUIRED)
+include (${PARAVIEW_USE_FILE})
+
 set (MOC_SOURCES
   ${MOC_SOURCES}
   views/pqSliceView.h

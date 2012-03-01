@@ -17,8 +17,14 @@
 */
 
 #include "SegmhaImporter.h"
+
 #include <common/model/EspinaFactory.h>
+#include <common/File.h>
+
 #include "SegmhaImporterFilter.h"
+#include <common/EspinaCore.h>
+#include <common/undo/AddFilter.h>
+#include <common/undo/AddSegmentation.h>
 
 static const QString SEGMHA = "segmha";
 
@@ -42,17 +48,32 @@ FilterPtr SegmhaImporter::createFilter(const QString filter, const QString args)
 //     SegmhaImporterFilter *sr_sif = new SegmhaImporterFilter(args);
 //     return sr_sif;
 //   }
-//   qWarning("::createFilter: Error no such a Filter");
-//   return NULL;
+  qWarning("::createFilter: Error no such a Filter");
+  return FilterPtr(NULL);
 }
 
 //-----------------------------------------------------------------------------
 void SegmhaImporter::readFile(const QString file)
 {
-  const QString extension = file.section('.',-1);
-  Q_ASSERT(extension == SEGMHA);
+  Q_ASSERT(File::extension(file) == SEGMHA);
 
-//     proxy->updatePipeline();
-//     //TODO: How to manage these kind of filters
-  SegmhaImporterFilter *segmhaImporter = new SegmhaImporterFilter(file.section('/', -1));
+  QSharedPointer<SegmhaImporterFilter> filter =
+   QSharedPointer<SegmhaImporterFilter>(new SegmhaImporterFilter(file));
+
+  Q_ASSERT(filter->numProducts() > 0);
+
+  QList<SegmentationPtr> segs = filter->segmentations();
+//   seg = EspinaFactory::instance()->createSegmentation(this, segImage->data(0));
+
+  QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
+  undo->beginMacro("Import Segmha");
+  undo->push(new AddFilter(filter));
+//   undo->push(new AddRelation(input,filter.data(),"Channel"));
+  foreach(SegmentationPtr seg, segs)
+  {
+    undo->push(new AddSegmentation(seg));
+  }
+//   undo->push(new AddRelation(filter, seg, "CreateSegmentation"));
+//   undo->push(new AddRelation(sample, seg.data(), "where"));
+  undo->endMacro();
 }

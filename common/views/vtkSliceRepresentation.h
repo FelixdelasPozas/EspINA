@@ -66,6 +66,7 @@ protected:
   // Fill input port information
   virtual int FillInputPortInformation(int port, vtkInformation *info);
 
+  
   // Subclasses should override this to connect inputs to the internal pipeline
   // as necessary. Since most representations are "meta-filters" (i.e. filters
   // containing other filters), you should create shallow copies of your input

@@ -23,6 +23,7 @@
 // #include "espina_debug.h"
 
 #include "common/cache/CacheHash.h"
+#include "common/File.h"
 
 // Qt
 #include <QStringList>
@@ -39,11 +40,6 @@
 #include <pqOutputPort.h>
 #include <vtkSIProxy.h>
 
-
-QString fileNameWithExtension(const QString path)
-{
-  return path.section('/',-1);
-}
 
 //------------------------------------------------------------------------
 CachedObjectBuilder * CachedObjectBuilder::m_singleton = NULL;
@@ -65,7 +61,7 @@ CachedObjectBuilder* CachedObjectBuilder::instance()
 //------------------------------------------------------------------------
 pqFilter* CachedObjectBuilder::loadFile(const QString file)
 {
-  Cache::Index id = fileNameWithExtension(file);
+  Cache::Index id = File::extendedName(file);
   pqFilter *reader = getFilter(id);
   if (NULL == reader)
   {

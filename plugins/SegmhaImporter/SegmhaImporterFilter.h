@@ -21,6 +21,7 @@
 #include <common/model/Filter.h>
 
 #include <QPushButton>
+#include <common/model/Segmentation.h>
 
 
 class SegmhaImporterFilter 
@@ -35,17 +36,20 @@ public:
 
   // Implements Model Item Interface
   virtual QString serialize() const{return QString();}
-  virtual QVariant data(int role) const {return QVariant();}
+  virtual QVariant data(int role) const;
   virtual ItemType type() const {return ModelItem::FILTER;}
 
   //Implements Filter Interface
   virtual pqData preview(){return pqData();}
-  virtual int numProducts() const{return 0;}
+  virtual int numProducts() const {return m_blocks.size();}
   virtual pqData product(int index) const{return pqData();}
+
+  //Own methods
+  QList<SegmentationPtr> segmentations() {return m_blocks.keys();}
 
 private:
   pqFilter *m_segReader;
-  QMap<pqData, QString> m_blocks;
+  QMap<SegmentationPtr, QString> m_blocks;
 
 //   friend class SetupWidget;
 };

@@ -22,9 +22,17 @@
 #include "model/EspinaModel.h"
 
 #include <QUndoStack>
+#include "model/EspinaFactory.h"
+#include <QColorDialog>
+#include "cache/CachedObjectBuilder.h"
+#include "undo/AddSample.h"
+#include "undo/AddChannel.h"
+#include "undo/AddRelation.h"
+#include "File.h"
 
 EspinaCore *EspinaCore::m_singleton = NULL;
 
+//------------------------------------------------------------------------
 EspinaCore::EspinaCore()
 : m_activeTaxonomy(NULL)
 , m_sample        (NULL)
@@ -34,6 +42,7 @@ EspinaCore::EspinaCore()
 {
 }
 
+//------------------------------------------------------------------------
 EspinaCore* EspinaCore::instance()
 {
   if (!m_singleton)
@@ -42,11 +51,71 @@ EspinaCore* EspinaCore::instance()
   return m_singleton;
 }
 
+//------------------------------------------------------------------------
 void EspinaCore::setActiveTaxonomy(TaxonomyNode* tax)
 {
   m_activeTaxonomy = tax;
 }
 
+//------------------------------------------------------------------------
+void EspinaCore::loadFile(const QString file)
+{
+  const QString ext = File::extension(file);
+  if (ext == "pvd" || ext == "mha" || ext == "mhd")
+  {
+    loadChannel(file);
+  }else
+    EspinaFactory::instance()->readFile(file, ext);
+}
+
+//------------------------------------------------------------------------
+void EspinaCore::loadChannel(const QString file)
+{
+  // Try to recover sample form DB using channel information
+  Sample *existingSample = EspinaCore::instance()->sample();
+
+  if (!existingSample)
+  {
+    File channelFile(file);
+    // TODO: Check for channel sample
+    const QString SampleName  = channelFile.name();
+    const QString channelName = channelFile.extendedName(file);
+
+    // Try to recover sample form DB using channel information
+    SamplePtr sample = SamplePtr(new Sample(SampleName));
+    EspinaCore::instance()->setSample(sample.data());
+
+    m_undoStack->push(new AddSample(sample));
+    existingSample = sample.data();
+  }
+
+  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+  pqFilter *channelReader = cob->loadFile(file);
+  Q_ASSERT(channelReader->getNumberOfData() == 1);
+
+
+  pqData channelData(channelReader, 0);
+  QSharedPointer<Channel> channel(new Channel(file, channelData));
+
+  int pos[3];
+  existingSample->position(pos);
+  channel->setPosition(pos);
+
+  //TODO: Check for channel information in DB
+  QColorDialog dyeSelector;
+  if (dyeSelector.exec() == QDialog::Accepted)
+  {
+    channel->setColor(dyeSelector.selectedColor().hueF());
+  }
+
+  m_undoStack->beginMacro("Add Data To Analysis");
+  m_undoStack->push(new AddChannel(channel));
+  m_undoStack->push(new AddRelation(existingSample, channel.data(), "mark"));//TODO: como se llama esto???
+
+  m_undoStack->endMacro();
+}
+
+//------------------------------------------------------------------------
 void EspinaCore::closeCurrentAnalysis()
 {
   emit currentAnalysisClosed();

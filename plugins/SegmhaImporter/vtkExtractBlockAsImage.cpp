@@ -24,6 +24,7 @@
 #include <QFile>
 #include <QString>
 #include <QStringList>
+#include <vtkPointData.h>
 
 
 vtkStandardNewMacro(vtkExtractBlockAsImage);
@@ -31,6 +32,8 @@ vtkStandardNewMacro(vtkExtractBlockAsImage);
 
 //---------------------------------------------------------------------------
 vtkExtractBlockAsImage::vtkExtractBlockAsImage()
+: ExtractBlock(-1)
+, Label(-1)
 {
   this->SetNumberOfInputPorts(1);
   this->SetNumberOfOutputPorts(1);
@@ -39,8 +42,6 @@ vtkExtractBlockAsImage::vtkExtractBlockAsImage()
 //---------------------------------------------------------------------------
 vtkExtractBlockAsImage::~vtkExtractBlockAsImage()
 {
-  //delete [] Taxonomy;
-  //delete [] Trace;
 }
 
 
@@ -60,13 +61,30 @@ int vtkExtractBlockAsImage::FillInputPortInformation(int port, vtkInformation* i
 
 
 //---------------------------------------------------------------------------
+int vtkExtractBlockAsImage::RequestInformation(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
+{
+  int res = vtkImageAlgorithm::RequestInformation(request, inputVector, outputVector);
+
+  // Get the info objects
+  vtkInformation* inInfo = inputVector[0]->GetInformationObject(0);
+  vtkInformation* outInfo = outputVector->GetInformationObject(0);
+  vtkMultiBlockDataSet *input = vtkMultiBlockDataSet::SafeDownCast(
+    inInfo->Get(vtkDataObject::DATA_OBJECT()) );
+
+  // Use the same input spacing
+  vtkImageData *inputImage = vtkImageData::SafeDownCast(input->GetBlock(ExtractBlock));
+  outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), inputImage->GetExtent(),6);
+
+  return res;
+}
+
+//---------------------------------------------------------------------------
 int vtkExtractBlockAsImage::RequestData(
   vtkInformation *vtkNotUsed(request),
   vtkInformationVector **inputVector,
   vtkInformationVector *outputVector)
 {
   vtkInformation *inputInfo = inputVector[0]->GetInformationObject(0);
-//   inputInfo->PrintSelf(std::cout,vtkIndent(0));
   vtkMultiBlockDataSet *input = vtkMultiBlockDataSet::SafeDownCast(
     inputInfo->Get(vtkDataObject::DATA_OBJECT())
   );
@@ -74,16 +92,20 @@ int vtkExtractBlockAsImage::RequestData(
   vtkImageData *output = vtkImageData::SafeDownCast(
     outputInfo->Get(vtkDataObject::DATA_OBJECT())
   );
-  
+
   vtkImageData *inputImage = vtkImageData::SafeDownCast(input->GetBlock(ExtractBlock));
 
   output->ShallowCopy(inputImage);
   output->CopyInformation(inputImage);
   outputInfo->Set(vtkDataObject::SPACING(), inputImage->GetSpacing(), 3);
-  
-  
+  output->SetWholeExtent(inputImage->GetExtent());
+
+  Label = input->GetFieldData()->GetArray("Label")->GetTuple1(ExtractBlock);
+
   return 1;
 }
+
+
 
 //---------------------------------------------------------------------------
 void vtkExtractBlockAsImage::PrintSelf(ostream& os, vtkIndent indent)

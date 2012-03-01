@@ -37,6 +37,8 @@
 #include <vtkInformation.h>
 #include <vtkInformationVector.h>
 #include <vtkPlane.h>
+#include <vtkMetaImageWriter.h>
+#include <vtkPointData.h>
 
 vtkStandardNewMacro ( vtkSliceRepresentation );
 
@@ -123,6 +125,7 @@ int vtkSliceRepresentation::ProcessViewRequest (
     // executive keeps on re-executing it every time.
     vtkImageData* clone = vtkImageData::New();
     clone->ShallowCopy ( this->DeliveryFilter->GetOutputDataObject ( 0 ) );
+//     clone->CopyInformation(this->DeliveryFilter->GetOutputDataObject ( 0 ) );
     this->Slice->SetInput ( clone );
     clone->Delete();
 
@@ -159,10 +162,18 @@ int vtkSliceRepresentation::RequestData (
 
   if ( inputVector[0]->GetNumberOfInformationObjects() ==1 )
   {
-    vtkInformation* inInfo = inputVector[0]->GetInformationObject ( 0 );
+//     vtkInformation* inInfo = inputVector[0]->GetInformationObject ( 0 );
     vtkImageData* input = vtkImageData::GetData ( inputVector[0], 0 );
+
+//     int e[6];
+//     input->GetExtent(e);
+//     std::cout << "Slice Rep Input has extent: " << e[0] << " " << e[1]<< " " << e[2]<< " " << e[3]<< " " << e[4]<< " " << e[5] << std::endl;
+//     std::cout << "Number Of Tuples " << input->GetPointData()->GetNumberOfTuples() << std::endl;
+
     vtkImageData *clone = vtkImageData::New();
     clone->ShallowCopy ( input );
+//     clone->CopyInformation(input);
+//     clone->GetExtent(e);
     Slice->SetInput ( clone );
     clone->Delete();
     Slice->Update();

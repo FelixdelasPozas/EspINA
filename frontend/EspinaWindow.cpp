@@ -30,7 +30,6 @@
 #include "docks/SegmentationExplorer.h"
 #include "docks/TaxonomyInspector.h"
 #include "toolbar/MainToolBar.h"
-#include <cache/CachedObjectBuilder.h>
 #include <model/Channel.h>
 #include <model/Taxonomy.h>
 #include "undo/AddChannel.h"
@@ -96,9 +95,6 @@ EspinaWindow::EspinaWindow()
 
   QMenu *fileMenu = new QMenu("File");
   pqParaViewMenuBuilders::buildFileMenu(*fileMenu);
-  QAction *newAnalysis = new QAction(tr("New"),this);
-  connect(newAnalysis,SIGNAL(triggered(bool)),
-	  this,SLOT(newAnalysis()));
   QAction *openAnalysis = new QAction(tr("Open"),this);
   connect(openAnalysis,SIGNAL(triggered(bool)),
 	  this,SLOT(openAnalysis()));
@@ -109,7 +105,6 @@ EspinaWindow::EspinaWindow()
   QAction *saveAnalysis = new QAction(tr("Save"),this);
   connect(saveAnalysis,SIGNAL(triggered(bool)),
 	  this,SLOT(saveAnalysis()));
-  fileMenu->addAction(newAnalysis);
   fileMenu->addAction(openAnalysis);
   fileMenu->addAction(m_addToAnalysis);
   fileMenu->addAction(saveAnalysis);
@@ -351,85 +346,10 @@ void EspinaWindow::setActivity(QString activity)
 //   restoreState(settings.value(m_currentActivity+"/state").toByteArray());
 }
 
-QString extension(const QString path)
-{
-  return path.section('.',-1);
-}
-
-QString parentDirectory(const QString path)
-{
-  return path.section('/',0,-2);
-}
-
-QString fileName(const QString path)
-{
-  return path.section('/',-1).section('.',0,-2);
-}
-
-QString fileNameWithExtension(const QString path)
-{
-  return path.section('/',-1);
-}
-
 //------------------------------------------------------------------------
 void EspinaWindow::closeCurrentAnalysis()
 {
   EspinaCore::instance()->closeCurrentAnalysis();
-}
-
-//------------------------------------------------------------------------
-void EspinaWindow::newAnalysis()
-{
-  pqServer* server = pqActiveObjects::instance().activeServer();
-  QString filters(CHANNEL_FILES);
-  pqFileDialog fileDialog(server, 
-    this,
-    tr("Channel:"), QString(), filters);
-  fileDialog.setObjectName("NewAnalysisFileDialog");
-  fileDialog.setFileMode(pqFileDialog::ExistingFiles);
-  fileDialog.setWindowTitle("Analyse Data");
-  if (fileDialog.exec() != QDialog::Accepted)
-    return;
-
-  if (fileDialog.getSelectedFiles().size() != 1)
-  {
-    QMessageBox::warning(this, tr("EspinaModel"),
-				  tr("Loading multiple files at a time is not supported"));
-    return; //Multi-channels is not supported
-  }
-
-  closeCurrentAnalysis();
-
-  const QString file = fileDialog.getSelectedFiles().first();
-  const QString ext = extension(file);
-
-  m_undoStack->beginMacro("New Analysis");
-  if (ext == "pvd" || ext == "mha" || ext == "mhd")
-  {
-    // Analysis from raw data
-    TaxonomyPtr defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
-    m_model->setTaxonomy(defaultTaxonomy);
-
-    // TODO: Check for channel sample
-    const QString SampleName  = fileName(file);
-    const QString channelName = fileNameWithExtension(file);
-
-    // Try to recover sample form DB using channel information
-    QSharedPointer<Sample> sample(new Sample(SampleName));
-    EspinaCore::instance()->setSample(sample.data());
-
-    m_undoStack->push(new AddSample(sample));
-
-    loadChannel(file);
-  } else
-  {
-    EspinaFactory::instance()->readFile(file, ext);
-  }
-  m_undoStack->endMacro();
-
-  m_addToAnalysis->setEnabled(true);
-
-  m_view->resetCamera();
 }
 
 //------------------------------------------------------------------------
@@ -464,17 +384,14 @@ void EspinaWindow::openAnalysis()
   closeCurrentAnalysis();
 
   const QString file = fileDialog.getSelectedFiles().first();
-  const QString ext = extension(file);
 
-  if (ext == "pvd" || ext == "mha" || ext == "mhd")
+  EspinaCore::instance()->loadFile(file);
+
+  if (m_model->taxonomy().isNull())
   {
-    // Analysis from raw data
     TaxonomyPtr defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
     m_model->setTaxonomy(defaultTaxonomy);
-
-    loadChannel(file);
-  } else
-    EspinaFactory::instance()->readFile(file, ext);
+  }
 
   m_view->resetCamera();
   m_addToAnalysis->setEnabled(true);
@@ -507,15 +424,16 @@ void EspinaWindow::addToAnalysis()
 			 tr("Loading multiple files at a time is not supported"));
     return; //Multi-channels is not supported
   }
+  
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  QElapsedTimer timer;
+  timer.start();
 
   const QString file = fileDialog.getSelectedFiles().first();
-  const QString ext = extension(file);
 
-  if (ext == "pvd" || ext == "mha" || ext == "mhd")
-  {
-    loadChannel(file);
-  }else
-    EspinaFactory::instance()->readFile(file, ext);
+  EspinaCore::instance()->loadFile(file);
+  updateStatus(QString("File Loaded in %1 s").arg(timer.elapsed()/1000.0));
+  QApplication::restoreOverrideCursor();
 }
 
 //------------------------------------------------------------------------
@@ -587,54 +505,6 @@ void EspinaWindow::saveAnalysis()
     m_busy = false;
   }
 }
-
-//------------------------------------------------------------------------
-void EspinaWindow::loadChannel(const QString file)
-{
-  // Try to recover sample form DB using channel information
-  Sample *existingSample = EspinaCore::instance()->sample();
-
-  if (!existingSample)
-  {
-    // TODO: Check for channel sample
-    const QString SampleName  = fileName(file);
-    const QString channelName = fileNameWithExtension(file);
-
-    // Try to recover sample form DB using channel information
-    SamplePtr sample = SamplePtr(new Sample(SampleName));
-    EspinaCore::instance()->setSample(sample.data());
-
-    m_undoStack->push(new AddSample(sample));
-    existingSample = sample.data();
-  }
-
-  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-  pqFilter *channelReader = cob->loadFile(file);
-  Q_ASSERT(channelReader->getNumberOfData() == 1);
-
-
-  pqData channelData(channelReader, 0);
-  QSharedPointer<Channel> channel(new Channel(file, channelData));
-
-  int pos[3];
-  existingSample->position(pos);
-  channel->setPosition(pos);
-
-  //TODO: Check for channel information in DB
-  QColorDialog dyeSelector;
-  if (dyeSelector.exec() == QDialog::Accepted)
-  {
-    channel->setColor(dyeSelector.selectedColor().hueF());
-  }
-
-  m_undoStack->beginMacro("Add Data To Analysis");
-  m_undoStack->push(new AddChannel(channel));
-  m_undoStack->push(new AddRelation(existingSample, channel.data(), "mark"));//TODO: como se llama esto???
-
-  m_undoStack->endMacro();
-}
-
-
 
 //------------------------------------------------------------------------
 void EspinaWindow::updateStatus(QString msg)

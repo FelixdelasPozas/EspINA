@@ -20,29 +20,23 @@ public:
     void PrintSelf(ostream& os, vtkIndent indent);
 
     vtkSetMacro(ExtractBlock,int);
-//     vtkSetStringMacro(Trace);
-//     vtkGetStringMacro(Trace);
+    vtkGetMacro(Label,int);
 
-//     vtkSetStringMacro(Taxonomy);
-//     vtkGetStringMacro(Taxonomy);
-    
 protected:
   vtkExtractBlockAsImage();
   virtual ~vtkExtractBlockAsImage();
 
   virtual int FillInputPortInformation(int port, vtkInformation* info);
-  
-  int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
-  
-  
-  
+
+  virtual int RequestInformation(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector);
+  virtual int RequestData(vtkInformation *, vtkInformationVector **, vtkInformationVector *);
+
 private:
   vtkExtractBlockAsImage(const vtkExtractBlockAsImage&);  // Not implemented.
   void operator=(const vtkExtractBlockAsImage&);  // Not implemented.
-  
+
   int ExtractBlock;
-//   char* Trace;
-//   char* Taxonomy;
+  int Label;
 };
 
 #endif // VTKSEGMHAFILEREADER_H

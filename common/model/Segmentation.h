@@ -29,6 +29,7 @@
 #include "common/model/Filter.h"
 #include "common/processing/pqData.h"
 #include "common/selection/SelectableItem.h"
+#include "common/model/Taxonomy.h"
 
 // Forward declarations
 class Sample;
@@ -50,18 +51,13 @@ public:
   /// Selectable Item Interface
   virtual pqData volume() {return m_data;}
 
-//   //! Reimplement ITraceNode Interface
-//   virtual QString label() const {return QString("%1 %2").arg(m_taxonomy->name()).arg(m_id);}
-//   void setId(int id) {m_id = id;}
-//   bool validId() {return m_id != -1;}
-//   
+  void setId(unsigned int id) {m_id = id;}
+  unsigned int id() const {return m_id;}
+  void setTaxonomy(TaxonomyNode *tax) {m_tax = tax;}
+  TaxonomyNode *taxonomy() const {return m_tax;}
 //   virtual void color(double* rgba);
 //   virtual void setSelected(bool value) {m_isSelected = value;}
 //   virtual bool isSelected() {return m_isSelected;}
-//   
-//   //! Reimplement ModelItem Interface
-//   virtual QVariant data(int role = Qt::UserRole + 1) const;
-//   virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
 
   /// Add a new extension to the segmentation
   /// Extesion won't be available until requirements are satisfied
@@ -83,15 +79,16 @@ public:
 //   void updated(Segmentation *);
   
 private:
-  Filter *m_filter;
-  pqData  m_data;
+  Filter             *m_filter;
+  pqData              m_data;
+  unsigned int        m_id;
+  TaxonomyNode *m_tax;
 
   QMap<QString, SegmentationExtension::SPtr> m_extensions;
   QMap<QString, SegmentationExtension::SPtr> m_pendingExtensions;
   QList<SegmentationExtension::SPtr>         m_insertionOrderedExtensions;
 //   QMap<ISegmentationRepresentation::RepresentationId, ISegmentationExtension *> m_representations;
   QMap<QString, SegmentationExtension::SPtr> m_informations;
-//   int m_id;
 
 //   bool m_isSelected;
 };
