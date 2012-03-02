@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
+    Copyright (C) 2011  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,61 +22,42 @@
 #ifndef COUNTINGREGION_H
 #define COUNTINGREGION_H
 
-#include "ui_CountingRegionPanel.h"
+#include <common/gui/EspinaDockWidget.h>
+#include <common/model/EspinaModel.h>
 
-#include <QDockWidget>
-#include <QMap>
-#include <QList>
-#include <QStringListModel>
 #include <QStandardItemModel>
 
 // Forward declaration
-class QAction;
-class Sample;
-class pqPipelineSource;
-
-class CountingRegion: public QDockWidget, private Ui::CountingRegionPanel
+class CountingRegion
+: public EspinaDockWidget
 {
   Q_OBJECT
-
+  class GUI;
 public:
   static const QString ID;
 
-  class SegmentationExtension;
-  class BoundingRegion;
-  class SampleExtension;
-  
 public:
-  CountingRegion(QWidget* parent);
-  
-  void initializeExtension(SegmentationExtension *ext);
-  
-  bool eventFilter(QObject *object, QEvent *event);
-  
-public slots:
-  void focusSampleChanged(Sample *sample);
-  
-  void regionTypeChanged(int type);
-  
-  void createBoundingRegion();
-  void removeBoundingRegion();
-  
-  void visibilityModified();
-  
-  //void onAction(QAction *action);
-  void displayRegions(SampleExtension *ext);
-  
-  void showInfo(const QModelIndex& index);
-  
+  explicit CountingRegion(QWidget* parent);
+  virtual ~CountingRegion();
+
 protected:
-  void resetRegionsModel();
-  
+  void createAdaptiveRegion(double inclusion[3], double exclusion[3]);
+  void createRectangularRegion(double inclusion[3], double exclusion[3]);
+
+protected slots:
+  void clearBoundingRegions();
+  /// Creates a bounding region on the current focused/active
+  /// sample and update all their segmentations counting regions
+  /// extension discarting those that are out of the region
+  void createBoundingRegion();
+  void removeSelectedBoundingRegion();
+  void sampleChanged(Sample *sample);
+  void showInfo(const QModelIndex& index);
+
 private:
-  Sample *m_focusedSample;
-  QStandardItemModel m_model;
-  
-  QStandardItem *m_parentItem;
+  GUI *m_gui;
+  QStandardItemModel m_regionModel;
+  QSharedPointer<EspinaModel> m_espinaModel;
 };
-  
 
 #endif // COUNTINGREGION_H

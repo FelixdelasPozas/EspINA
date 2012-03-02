@@ -1,0 +1,56 @@
+/*
+    <one line to give the program's name and a brief idea of what it does.>
+    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+
+#ifndef TAXONOMYINSPECTOR_H
+#define TAXONOMYINSPECTOR_H
+
+//----------------------------------------------------------------------------
+// File:    TaxonomyInspector.h
+// Purpose: Dock widget to manage taxonomies in the model
+//----------------------------------------------------------------------------
+#include <gui/EspinaDockWidget.h>
+
+
+class EspinaModel;
+
+class TaxonomyInspector : public EspinaDockWidget
+{
+  Q_OBJECT
+
+  class GUI;
+public:
+  explicit TaxonomyInspector(QSharedPointer<EspinaModel> model, QWidget *parent = 0);
+  virtual ~TaxonomyInspector();
+
+protected slots:
+  // Create a new taxonomy at the same level of the selected index
+  void addSameLevelTaxonomy();
+  // Create a new taxonomy as a child of the selected index
+  void addSubTaxonomy();
+  // Change selected taxonomy's color
+  void changeColor();
+  // Remove taxonomy associated with selected index
+  void removeSelectedTaxonomy();
+
+protected:
+  GUI *m_gui;
+  QSharedPointer<EspinaModel> m_baseModel;
+};
+
+#endif // TAXONOMYINSPECTOR_H

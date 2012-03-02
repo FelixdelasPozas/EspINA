@@ -74,7 +74,7 @@ void VolumetricRepresentation::render(pqView* view)
     return;
   pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
   assert(rep);
-  rep->setRepresentation(vtkSMPVRepresentationProxy::VOLUME);
+  rep->setRepresentation("Volume");
     
   vtkSMProxy *repProxy = rep->getProxy();
   

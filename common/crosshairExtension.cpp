@@ -68,10 +68,11 @@ SampleRepresentation::SampleRepresentation(Sample* sample)
   for(ViewType plane = VIEW_PLANE_FIRST; plane <= VIEW_PLANE_LAST; plane = ViewType(plane+1))
   {
     vtkFilter::Arguments filterArgs;
-    filterArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT, m_internalRep->id()));
+    filterArgs.push_back(vtkFilter::Argument("Input",vtkFilter::INPUT, m_sample->id())); //XXX: m_sample==>m_internalRep
     QString mode = QString("%1").arg(5+ plane);
     filterArgs.push_back(vtkFilter::Argument("SliceMode",vtkFilter::INTVECT,mode));
     m_planes[plane] = cob->createFilter("filters", "ImageSlicer", filterArgs);
+    m_planes[plane]->pipelineSource()->updatePipeline();
     m_center[plane] = 0;
   }
   m_center[VIEW_3D] = -1; // there is no single coordinate to refer all 3D image
@@ -154,7 +155,7 @@ void createRepresentation(pqView *view, pqOutputPort *port, int crossHairPlane)
   {
       pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
       assert(rep);
-      rep->setRepresentation(vtkSMPVRepresentationProxy::OUTLINE);
+      rep->setRepresentation("Outline");
       int pickable = 0; 
       vtkSMPropertyHelper(rep->getRepresentationProxy(),"Pickable").Set(pickable);;
       rep->getRepresentationProxy()->UpdateVTKObjects();

@@ -1,0 +1,115 @@
+<ServerManagerConfiguration>
+
+  <ProxyGroup name="filters">
+    <SourceProxy name="MorphologicalFeatures" class="vtkMorphologicalFeaturesFilter" label="MorphologicalFeatures">
+      <Documentation
+        short_help="Extract morphological features from its input"
+	long_help="Extract morphological features from its input">
+      </Documentation>
+
+      <InputProperty
+        name="Input"
+	port_index="0"
+	immediate_update="1"
+	command="SetInputConnection">
+	<ProxyGroupDomain name="groups">
+	  <Group name="sources"/>
+	  <Group name="filters"/>
+	</ProxyGroupDomain>
+	<DataTypeDomain name="input_type">
+	  <DataType value="vtkDataImage"/>
+	</DataTypeDomain>
+      </InputProperty>
+
+      <DoubleVectorProperty
+	name="Size"
+	number_of_elements="1"
+	immediate_update="1"
+	information_only="1"
+	default_values="0"
+	command="GetSize">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty
+	name="PhysicalSize"
+	number_of_elements="1"
+	immediate_update="1"
+	information_only="1"
+	default_values="0"
+	command="GetPhysicalSize">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty
+	name="Centroid"
+	number_of_elements="3"
+	immediate_update="1"
+	information_only="1"
+	default_values="0 0 0"
+	command="GetCentroid">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
+
+      <IntVectorProperty
+	name="Region"
+	number_of_elements="3"
+	immediate_update="1"
+	information_only="1"
+	default_values="0 0 0"
+	command="GetRegion">
+	<SimpleIntInformationHelper/>
+      </IntVectorProperty>
+
+      <DoubleVectorProperty
+	name="BinaryPrincipalMoments"
+	number_of_elements="3"
+	immediate_update="1"
+	information_only="1"
+	default_values="0 0 0"
+	command="GetBinaryPrincipalMoments">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty
+	name="BinaryPrincipalAxes"
+	number_of_elements="9"
+	immediate_update="1"
+	information_only="1"
+	default_values="0 0 0 0 0 0 0 0 0"
+	command="GetBinaryPrincipalAxes">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
+
+      <IntVectorProperty
+	name="ComputeFeret"
+	number_of_elements="1"
+	immediate_update="1"
+	default_values="0"
+	command="SetComputeFeret">
+      </IntVectorProperty>
+
+      <DoubleVectorProperty
+	name="FeretDiameter"
+	number_of_elements="1"
+	immediate_update="1"
+	information_only="1"
+	default_values="0"
+	command="GetFeretDiameter">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty
+	name="EquivalentEllipsoidSize"
+	number_of_elements="3"
+	immediate_update="1"
+	information_only="1"
+	default_values="0 0 0"
+	command="GetEquivalentEllipsoidSize">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
+    </SourceProxy>
+    <!-- End of MorphologicalFeatures -->
+  </ProxyGroup>
+  <!-- End Filters -->
+</ServerManagerConfiguration>

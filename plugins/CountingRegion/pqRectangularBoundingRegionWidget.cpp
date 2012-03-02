@@ -30,7 +30,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ========================================================================*/
 #include "pqRectangularBoundingRegionWidget.h"
-#include "ui_pqRectangularBoundingRegionWidget.h"
 
 // Server Manager Includes.
 #include "vtkSMNewWidgetRepresentationProxy.h"
@@ -49,73 +48,21 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "vtkRectangularBoundingRegionWidget.h"
 #include <vtkPolyDataAlgorithm.h>
 
-class pqRectangularBoundingRegionWidget::pqImplementation : public Ui::pqRectangularBoundingRegionWidget
-{
-public:
-  pqPropertyLinks Links;
-};
-
-
-#define PVBOXWIDGET_TRIGGER_RENDER(ui)  \
-  QObject::connect(this->Implementation->ui,\
-    SIGNAL(editingFinished()),\
-    this, SLOT(render()), Qt::QueuedConnection);
 //-----------------------------------------------------------------------------
 pqRectangularBoundingRegionWidget::pqRectangularBoundingRegionWidget(vtkSMProxy* refProxy, vtkSMProxy* pxy, QWidget* _parent) :
   Superclass(refProxy, pxy, _parent)
 {
-  this->Implementation = new pqImplementation();
-  this->Implementation->setupUi(this);
-  this->Implementation->show3DWidget->setChecked(this->widgetVisible());  
-
-  // Setup validators for all line edits.
-  QDoubleValidator* validator = new QDoubleValidator(this);
-  this->Implementation->positionX->setValidator(validator);
-  this->Implementation->positionY->setValidator(validator);
-  this->Implementation->positionZ->setValidator(validator);
-  this->Implementation->scaleX->setValidator(validator);
-  this->Implementation->scaleY->setValidator(validator);
-  this->Implementation->scaleZ->setValidator(validator);
-
-  PVBOXWIDGET_TRIGGER_RENDER(positionX);
-  PVBOXWIDGET_TRIGGER_RENDER(positionY);
-  PVBOXWIDGET_TRIGGER_RENDER(positionZ);
-  PVBOXWIDGET_TRIGGER_RENDER(scaleX);
-  PVBOXWIDGET_TRIGGER_RENDER(scaleY);
-  PVBOXWIDGET_TRIGGER_RENDER(scaleZ);
-
-  QObject::connect(this->Implementation->show3DWidget,
-    SIGNAL(toggled(bool)), this, SLOT(setWidgetVisible(bool)));
-
   QObject::connect(this, SIGNAL(widgetVisibilityChanged(bool)),
     this, SLOT(onWidgetVisibilityChanged(bool)));
 
-  QObject::connect(this->Implementation->resetBounds,
-    SIGNAL(clicked()), this, SLOT(resetBounds()));
-
-  //QObject::connect(this, SIGNAL(widgetStartInteraction()),
-  //  this, SLOT(showHandles()));
-
-  QObject::connect(&this->Implementation->Links, SIGNAL(qtWidgetChanged()),
-    this, SLOT(setModified()));
-
   pqServerManagerModel* smmodel =
     pqApplicationCore::instance()->getServerManagerModel();
-  this->createWidget(smmodel->findServer(refProxy->GetConnectionID()));
+  this->createWidget(smmodel->findServer(refProxy->GetSession()));
 }
 
 //-----------------------------------------------------------------------------
 pqRectangularBoundingRegionWidget::~pqRectangularBoundingRegionWidget()
 {
-  delete this->Implementation;
-}
-
-#define PVBOXWIDGET_LINK(ui, smproperty, index)\
-{\
-  this->Implementation->Links.addPropertyLink(\
-    this->Implementation->ui, "text2",\
-    SIGNAL(textChanged(const QString&)),\
-    widget, widget->GetProperty(smproperty), index);\
 }
 
 //-----------------------------------------------------------------------------
@@ -125,11 +72,11 @@ void pqRectangularBoundingRegionWidget::createWidget(pqServer* server)
     pqApplicationCore::instance()->get3DWidgetFactory()->
     get3DWidget("RectangularBoundingRegionWidgetRepresentation", server);
   this->setWidgetProxy(widget);
-  
+
 //   std::cout << "Create Widget" << std::endl;
   getControlledProxy()->UpdateSelfAndAllInputs();
   vtkPolyDataAlgorithm *region = vtkPolyDataAlgorithm::SafeDownCast(getControlledProxy()->GetClientSideObject());
-  
+
   widget->UpdateVTKObjects();
   widget->UpdatePropertyInformation();
 
@@ -140,13 +87,6 @@ void pqRectangularBoundingRegionWidget::createWidget(pqServer* server)
     vtkRectangularBoundingRegionWidget::SafeDownCast(miwidget)->SetRegion(region);
   }
 
-  PVBOXWIDGET_LINK(positionX, "Position", 0);
-  PVBOXWIDGET_LINK(positionY, "Position", 1);
-  PVBOXWIDGET_LINK(positionZ, "Position", 2);
-
-  PVBOXWIDGET_LINK(scaleX, "Scale", 0);
-  PVBOXWIDGET_LINK(scaleY, "Scale", 1);
-  PVBOXWIDGET_LINK(scaleZ, "Scale", 2);
 }
 
 //-----------------------------------------------------------------------------
@@ -159,8 +99,14 @@ void pqRectangularBoundingRegionWidget::select()
   {
     vtkSMPropertyHelper(widget, "PlaceWidget").Set(input_bounds, 6);
     widget->UpdateVTKObjects();
-    
-    updateWidgetMargins();
+
+    vtkPolyDataAlgorithm *region = vtkPolyDataAlgorithm::SafeDownCast(getControlledProxy()->GetClientSideObject());
+    if (region)
+    {
+      vtkAbstractWidget *miwidget = widget->GetWidget();
+      vtkRectangularBoundingRegionWidget::SafeDownCast(miwidget)->SetRegion(region);
+    }
+    //     updateWidgetMargins();
   }
   
   this->Superclass::select();
@@ -187,18 +133,20 @@ void pqRectangularBoundingRegionWidget::cleanupWidget()
 }
 
 //-----------------------------------------------------------------------------
-void pqRectangularBoundingRegionWidget::updateControlledMargins()
+void pqRectangularBoundingRegionWidget::updateControlledFilter()
 {
+//   std::cout << "Updating Controlled Filter" << std::endl;
   vtkSMNewWidgetRepresentationProxy* widget = this->getWidgetProxy();
   vtkAbstractWidget *miwidget = widget->GetWidget();
   vtkRectangularBoundingRegionWidget *rrbw = vtkRectangularBoundingRegionWidget::SafeDownCast(miwidget);
-  int margins[3];
-  rrbw->GetInclusion(margins);
-  vtkSMPropertyHelper(getControlledProxy(), "Inclusion").Set(margins, 3);
-  rrbw->GetExclusion(margins);
-  vtkSMPropertyHelper(getControlledProxy(), "Exclusion").Set(margins, 3);
+  double offset[3];
+  rrbw->GetInclusionOffset(offset);
+//   std::cout << "Widget Inclusion Offset: " << offset[0] << " " << offset[1]  << " " << offset[2] << std::endl;
+  vtkSMPropertyHelper(getControlledProxy(), "InclusionOffset").Set(offset, 3);
+  rrbw->GetExclusionOffset(offset);
+  vtkSMPropertyHelper(getControlledProxy(), "ExclusionOffset").Set(offset, 3);
+//   std::cout << "Widget Exclusion Offset: " << offset[0] << " " << offset[1]  << " " << offset[2] << std::endl;
   getControlledProxy()->UpdateVTKObjects();
-  getControlledProxy()->UpdateSelfAndAllInputs();
 }
 
 //-----------------------------------------------------------------------------
@@ -208,15 +156,16 @@ void pqRectangularBoundingRegionWidget::updateWidgetMargins()
   vtkSMNewWidgetRepresentationProxy* widget = this->getWidgetProxy();
   vtkAbstractWidget *miwidget = widget->GetWidget();
   vtkRectangularBoundingRegionWidget *rrbw = vtkRectangularBoundingRegionWidget::SafeDownCast(miwidget);
-  int margins[3];
-  getControlledProxy()->UpdateSelfAndAllInputs();
+  double offset[3];
   getControlledProxy()->UpdatePropertyInformation();
-  vtkSMPropertyHelper(getControlledProxy(), "Inclusion").Get(margins, 3);
-  vtkSMPropertyHelper(widget, "Inclusion").Set(margins, 3);
-  rrbw->SetInclusion(margins);
-  vtkSMPropertyHelper(getControlledProxy(), "Exclusion").Get(margins, 3);
-  vtkSMPropertyHelper(widget, "Exclusion").Set(margins, 3);
-  rrbw->SetExclusion(margins);
+  vtkSMPropertyHelper(getControlledProxy(), "InclusionOffset").Get(offset, 3);
+  vtkSMPropertyHelper(widget, "InclusionOffset").Set(offset, 3);
+//   std::cout << "Proxy Inclusion Offset: " << offset[0] << " " << offset[1]  << " " << offset[2] << std::endl;
+  rrbw->SetInclusionOffset(offset);
+  vtkSMPropertyHelper(getControlledProxy(), "ExclusionOffset").Get(offset, 3);
+  vtkSMPropertyHelper(widget, "ExclusionOffset").Set(offset, 3);
+//   std::cout << "Proxy Exclusion Offset: " << offset[0] << " " << offset[1]  << " " << offset[2] << std::endl;
+  rrbw->SetExclusionOffset(offset);
   widget->UpdateVTKObjects();
   vtkPolyDataAlgorithm *region = vtkPolyDataAlgorithm::SafeDownCast(getControlledProxy()->GetClientSideObject());
   if (region)
@@ -231,16 +180,13 @@ void pqRectangularBoundingRegionWidget::updateWidgetMargins()
 //-----------------------------------------------------------------------------
 void pqRectangularBoundingRegionWidget::onWidgetVisibilityChanged(bool visible)
 {
-  this->Implementation->show3DWidget->blockSignals(true);
-  this->Implementation->show3DWidget->setChecked(visible);
-  this->Implementation->show3DWidget->blockSignals(false);
 }
 
 //-----------------------------------------------------------------------------
 void pqRectangularBoundingRegionWidget::accept()
 {
-  std::cout << "Update Controlled Region" << std::endl;
-  updateControlledMargins();
+  std::cout << "Accept Changes"  << std::endl;
+  updateControlledFilter();
 //   vtkPolyDataAlgorithm *region = vtkPolyDataAlgorithm::SafeDownCast(getControlledProxy()->GetClientSideObject());
 //   if (region)
 //   {
@@ -248,12 +194,13 @@ void pqRectangularBoundingRegionWidget::accept()
 //     vtkRectangularBoundingRegionWidget::SafeDownCast(miwidget)->SetRegion(region);
 //   }
   this->Superclass::accept();
-  this->hideHandles();
+//   this->hideHandles();
 }
 
 //-----------------------------------------------------------------------------
 void pqRectangularBoundingRegionWidget::reset()
 {
+  std::cout << "Reset Changes"  << std::endl;
   updateWidgetMargins();
   this->Superclass::reset();
 //   this->hideHandles();

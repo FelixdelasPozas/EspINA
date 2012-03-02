@@ -90,7 +90,7 @@ void MeshRepresentation::render(pqView* view)
   
   pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
   assert(rep);
-  rep->setRepresentation(vtkSMPVRepresentationProxy::SURFACE);
+  rep->setRepresentation("Surface");
     
   vtkSMProxy *repProxy = rep->getProxy();
   

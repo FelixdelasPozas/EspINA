@@ -1,0 +1,80 @@
+<ServerManagerConfiguration>
+
+    <ProxyGroup name="sources">
+
+    <SourceProxy name="EspinaReader" class="vtkSegReader" label="Espina's File Reader">
+      <Documentation
+         long_help="Read a .seg file."
+         short_help="Read a .seg file.">
+      </Documentation>
+      <StringVectorProperty
+            name="FileName"
+            animateable="0"
+            command="SetFileName"
+            number_of_elements="1">
+        <FileListDomain name="files"/>
+        <Documentation>
+        </Documentation>
+      </StringVectorProperty>
+      <StringVectorProperty
+        name="Trace"
+        command="GetTrace"
+        number_of_elements="1"
+        information_only="1"
+        default_values="">
+        <SimpleStringInformationHelper/>
+        <Documentation>
+          This property retrieve the trace content of the file specified by FileName
+        </Documentation>
+      </StringVectorProperty>
+      <StringVectorProperty
+        name="Taxonomy"
+        command="GetTaxonomy"
+        number_of_elements="1"
+        information_only="1"
+        default_values="">
+        <SimpleStringInformationHelper/>
+        <Documentation>
+          This property retrieve the taxonomy content of the file specified by FileName
+        </Documentation>
+      </StringVectorProperty>
+    </SourceProxy>
+    <!-- End EspinaReader -->
+  </ProxyGroup>
+  <!-- End Sources -->
+  <ProxyGroup name="filters">
+
+    <SourceProxy name="EspinaWriter" class="vtkSegWriter" label="Espina's File Writer">
+      <Documentation
+         long_help="Write a .seg file."
+         short_help="Write a seg file.">
+      </Documentation>
+      <StringVectorProperty
+            name="FileName"
+            animateable="0"
+            command="SetFileName"
+            number_of_elements="1">
+        <FileListDomain name="files"/>
+      </StringVectorProperty>
+      <StringVectorProperty
+        name="Taxonomy"
+        command="SetTaxonomy"
+        number_of_elements="1">
+        <Documentation>
+          This property set the content of the Taxonomy
+        </Documentation>
+      </StringVectorProperty>
+      <StringVectorProperty
+        name="Trace"
+        command="SetTrace"
+        number_of_elements="1">
+        <Documentation>
+          This property set the content of the Trace
+        </Documentation>
+        <SimpleStringInformationHelper/>
+      </StringVectorProperty>
+    </SourceProxy>
+    <!-- End EspinaWriter -->
+  </ProxyGroup>
+  <!-- End Filters -->
+</ServerManagerConfiguration>

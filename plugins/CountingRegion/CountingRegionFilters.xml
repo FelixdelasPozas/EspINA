@@ -1,13 +1,63 @@
 <ServerManagerConfiguration>
-	<!-- This is the server manager configuration XML. It defines the interface to
-	   our new filter. As a rule of thumb, try to locate the configuration for
-	   a filter already in ParaView (in Servers/ServerManager/Resources/*.xml)
-	   that matches your filter and then model your xml on it -->
+  <!-- We put all 3D widget definitions in this file -->
+  <ProxyGroup name="representations">
+    <!-- ================================================================== -->
+    <NewWidgetRepresentationProxy name="RectangularBoundingRegionWidgetRepresentation"
+      class="vtk3DWidgetRepresentation">
+      <Documentation>
+        Representation proxy for the the rectangular bounding region widget. 
+	This includes the widget/representation proxies for the box 3D widget.
+	This is created by the pqRectangularBoundingRegionWidget.
+      </Documentation>
 
-  <ProxyGroup name="props">
+      <IntVectorProperty name="Enabled"
+        command="SetEnabled"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool"/>
+        <Documentation>
+          Enable/Disable widget interaction.
+        </Documentation>
+      </IntVectorProperty>
+
+      <SubProxy>
+        <Proxy name="Prop"
+          proxygroup="3d_widget_representations" proxyname="RectangularBoundingRegionRepresentation">
+        </Proxy>
+        <ExposedProperties>
+          <Property name="InclusionOffset">
+	    <SimpleDoubleInformationHelper/>
+	  </Property>
+          <Property name="ExclusionOffset">
+	    <SimpleDoubleInformationHelper/>
+	  </Property>
+          <Property name="PlaceFactor" />
+          <Property name="PlaceWidget" />
+          <Property name="Visibility" />
+          <Property name="Position" />
+          <Property name="PositionInfo" />
+          <Property name="Scale" />
+          <Property name="ScaleInfo" />
+        </ExposedProperties>
+      </SubProxy>
+
+      <SubProxy>
+        <Proxy name="Widget"
+          proxygroup="3d_widgets" proxyname="RectangularBoundingRegionWidget">
+        </Proxy>
+	<ExposedProperties>
+	  <Property name="Enabled" />
+	</ExposedProperties>
+      </SubProxy>
+      <!-- End of RectangularBoundingRegionWidgetRepresentation -->
+    </NewWidgetRepresentationProxy>
+  </ProxyGroup>
+  <!-- ****************************************************************** -->
+  <ProxyGroup name="3d_widget_representations">
+    <!-- ================================================================== -->
     <Proxy name="RectangularBoundingRegionRepresentation" class="vtkRectangularBoundingRegionRepresentation">
       <Documentation>
-		  Proxy for vtkRectangularBoundingRegionxRepresentation. 
+	Proxy for vtkRectangularBoundingRegionxRepresentation.
       </Documentation>
 
       <IntVectorProperty
@@ -18,38 +68,25 @@
         animateable="1">
         <BooleanDomain name="bool" />
       </IntVectorProperty>
-      
-      <!--IntVectorProperty
-        name="ViewType"
-        command="SetView"
-        number_of_elements="1"
-        default_values="3"
-        animateable="1">
-      </IntVectorProperty>
 
-      <IntVectorProperty
-        name="Slice"
-        command="SetView"
-        number_of_elements="1"
-        default_values="0"
-        animateable="1">
-      </IntVectorProperty-->
-      <IntVectorProperty
-	name="Inclusion"
+      <DoubleVectorProperty
+	name="InclusionOffset"
 	number_of_elements="3"
-	default_values="0 0 0"
+	default_values="0.0 0.0 0.0"
 	immediate_update="1"
-	command="SetInclusion">
-        <SimpleIntInformationHelper/>
-      </IntVectorProperty>
-      <IntVectorProperty
-	name="Exclusion"
+	command="SetInclusionOffset">
+        <SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty
+	name="ExclusionOffset"
 	number_of_elements="3"
-	default_values="0 0 0"
+	default_values="0.0 0.0 0.0"
 	immediate_update="1"
-	command="SetExclusion">
-        <SimpleIntInformationHelper/>
-      </IntVectorProperty>
+	command="SetExclusionOffset">
+        <SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
+
       <DoubleVectorProperty
         name="PlaceWidget"
         command="PlaceWidget"
@@ -67,12 +104,6 @@
         <DoubleRangeDomain name="range" min="0.01" />
       </DoubleVectorProperty>
 
-      <ProxyProperty name="Renderer" command="SetRenderer">
-        <ProxyGroupDomain name="groups">
-          <Group name="renderers"/>
-        </ProxyGroupDomain>
-      </ProxyProperty>
-
       <SubProxy>
         <Proxy name="Transform"
           proxygroup="extended_sources" proxyname="Transform2">
@@ -85,263 +116,239 @@
         </ExposedProperties>
       </SubProxy>
 
-      <!-- End of BoxRepresentation -->
+      <!-- End of RectangularBoundingRegionRepresentation -->
     </Proxy>
   </ProxyGroup>
 
+  <!-- ****************************************************************** -->
   <ProxyGroup name="3d_widgets">
     <Proxy name="RectangularBoundingRegionWidget" class="vtkRectangularBoundingRegionWidget"
       base_proxygroup="3d_widgets" base_proxyname="WidgetBase">
 	<Documentation>
-	  Proxy for vtkBoxWidget2.
+	  Proxy for vtkRectangularBoundingRegionWidget.
 	</Documentation>
     </Proxy>
   </ProxyGroup>
-  
- <ProxyGroup name="representations">
-    <NewWidgetRepresentationProxy name="RectangularBoundingRegionWidgetRepresentation">
-      <Documentation>
-        Representation proxy for the the rectangular bounding region widget. 
-	This includes the widget/representation proxies for the box 3D widget.
-	This is created by the pqRectangularBoundingRegionWidget.
+
+  <!-- ****************************************************************** -->
+  <ProxyGroup name="filters">
+    <SourceProxy name="RectangularBoundingRegion" class="vtkRectangularBoundingRegionFilter" label="Rectangular Bounding Region Filter" >
+      <Documentation
+        long_help="filter"
+	short_help="filter">
       </Documentation>
 
-      <SubProxy>
-        <Proxy name="Prop"
-          proxygroup="props" proxyname="RectangularBoundingRegionRepresentation">
-        </Proxy>
-        <ExposedProperties> 	  
-          <Property name="Inclusion">
-	            <SimpleIntInformationHelper/>
-		  </Property>
-          <Property name="Exclusion" />
-          <Property name="PlaceFactor" />
-          <Property name="PlaceWidget" />
-          <Property name="Visibility" />
-          <Property name="Position" />
-          <Property name="PositionInfo" />
-          <Property name="Scale" />
-          <Property name="ScaleInfo" />
-        </ExposedProperties>
-      </SubProxy>
+      <!--Region Margins' position in the scene in nm -->
+      <DoubleVectorProperty
+        name="Margin"
+	number_of_elements="6"
+	default_values="0.0 0.0 0.0 1.0 1.0 1.0"
+	immediate_update="1"
+	command="SetMargin">
+	<!-- 		          <SimpleIntInformationHelper/> -->
+      </DoubleVectorProperty>
 
-      <SubProxy>
-        <Proxy name="Widget"
-          proxygroup="3d_widgets" proxyname="RectangularBoundingRegionWidget">
-        </Proxy>
-        <ExposedProperties>
-          <Property name="Enabled" />
-        </ExposedProperties>
-      </SubProxy>
+      <!-- Offset of inclusion margins from region's margins in nm -->
+      <DoubleVectorProperty
+        name="InclusionOffset"
+	number_of_elements="3"
+	default_values="0.0 0.0 0.0"
+	immediate_update="1"
+	command="SetInclusionOffset">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
 
-      <!-- End of BoxWidgetRepresentation -->
-    </NewWidgetRepresentationProxy>
- </ProxyGroup>
+      <!-- Offset of exclusion margins from region's margins in nm -->
+      <DoubleVectorProperty
+        name="ExclusionOffset"
+	number_of_elements="3"
+	default_values="0.0 0.0 0.0"
+	immediate_update="1"
+	command="SetExclusionOffset">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
 
-  <ProxyGroup name="filters">
-    	  <SourceProxy name="RectangularBoundingRegion" class="vtkRectangularBoundingRegionFilter" label="Rectangular Bounding Region Filter" >
-		  <Documentation
-			  long_help="filter"
-			  short_help="filter">
-		  </Documentation>
-		  <IntVectorProperty
-			  name="Extent"
-			  number_of_elements="6"
-			  default_values="0 0 0 1 1 1"
-			  immediate_update="1"
-			  command="SetExtent">
-<!-- 		          <SimpleIntInformationHelper/> -->
-		  </IntVectorProperty>
-		  <DoubleVectorProperty
-			  name="Spacing"
-			  number_of_elements="3"
-			  default_values="0 0 0"
-			  immediate_update="1"
-			  command="SetSpacing">
-<!-- 		          <SimpleDoubleInformationHelper/> -->
-		  </DoubleVectorProperty>
-		  <IntVectorProperty
-			  name="Inclusion"
-			  number_of_elements="3"
-			  default_values="0 0 0"
-			  immediate_update="1"
-			  command="SetInclusion">
-		          <SimpleIntInformationHelper/>
-		  </IntVectorProperty>
-		  <IntVectorProperty
-			  name="Exclusion"
-			  number_of_elements="3"
-			  default_values="0 0 0"
-			  immediate_update="1"
-			  command="SetExclusion">
-		          <SimpleIntInformationHelper/>
-		  </IntVectorProperty>
-		  <IntVectorProperty
-			  name="TotalVolume"
-			  number_of_elements="1"
-			  default_values="0"
-			  immediate_update="1"
-			  information_only="1"
-			  command="GetTotalVolume">
-		          <SimpleIntInformationHelper/>
-		  </IntVectorProperty>
-		  <IntVectorProperty
-			  name="InclusionVolume"
-			  number_of_elements="1"
-			  default_values="0"
-			  immediate_update="1"
-			  information_only="1"
-			  command="GetInclusionVolume">
-		          <SimpleIntInformationHelper/>
-		  </IntVectorProperty>
-		  <IntVectorProperty
-			  name="ExclusionVolume"
-			  number_of_elements="1"
-			  default_values="0"
-			  immediate_update="1"
-			  information_only="1"
-			  command="GetExclusionVolume">
-		          <SimpleIntInformationHelper/>
-		  </IntVectorProperty>
-		  <Hints>
-		    <!-- Hints are metadata associated with the proxy.
-		    As far as the ServerManager is concerned, Hints have no 
-		    significance. GUI is free to interpret the hints as
-		    it chooses. Hints provide a mechanism to add some GUI
-		    pertinant information to the server manager XML.
-		      -->
-		    <PropertyGroup type="RectangularBoundingRegion"> <!-- The name delcared in the cmake macro ADD_3DWIDGET -->
-			  <!--Property name="Position" function="Position" />
-			  <Property name="Scale" function="Scale" /-->
-<!-- 			  <Property name="Inclusion" function="Inclusion" /> -->
-<!-- 			  <Property name="Exclusion" function="Exclusion" /> -->
-<!-- 			  <Property name="InclusionExclusion" function="PlaceWidget" /> -->
-		     </PropertyGroup> 
-		  </Hints>
-		  <!-- End Bounding Region Filter -->
-	  </SourceProxy>
-	  <SourceProxy name="AdaptiveBoundingRegion" class="vtkAdaptiveBoundingRegionFilter" label="Adaptive Bounding Region Filter" >
-		  <Documentation
-			  long_help="filter"
-			  short_help="filter">
-		  </Documentation>
-		  <InputProperty
-			  name="Input"
-			  command="SetInputConnection">
-			  <ProxyGroupDomain name="groups">
-				  <Group name="sources"/>
-				  <Group name="filters"/>
-			  </ProxyGroupDomain>
-			  <DataTypeDomain name="input_type">
-				  <DataType value="vtkImageData"/>
-			  </DataTypeDomain>
-		  </InputProperty>
-		  <IntVectorProperty
-			  name="Inclusion"
-			  number_of_elements="3"
-			  default_values="0 0 0"
-			  immediate_update="1"
-			  command="SetInclusion">
-		  </IntVectorProperty>
-		  <IntVectorProperty
-			  name="Exclusion"
-			  number_of_elements="3"
-			  default_values="0 0 0"
-			  immediate_update="1"
-			  command="SetExclusion">
-		  </IntVectorProperty>
-		  <IntVectorProperty
-			  name="TotalVolume"
-			  number_of_elements="1"
-			  default_values="0"
-			  immediate_update="1"
-			  information_only="1"
-			  command="GetTotalVolume">
-		          <SimpleIntInformationHelper/>
-		  </IntVectorProperty>
-		  <IntVectorProperty
-			  name="TotalAdaptiveVolume"
-			  number_of_elements="1"
-			  default_values="0"
-			  immediate_update="1"
-			  information_only="1"
-			  command="GetTotalAdaptiveVolume">
-		          <SimpleIntInformationHelper/>
-		  </IntVectorProperty>
-		  <IntVectorProperty
-			  name="InclusionVolume"
-			  number_of_elements="1"
-			  default_values="0"
-			  immediate_update="1"
-			  information_only="1"
-			  command="GetInclusionVolume">
-		          <SimpleIntInformationHelper/>
-		  </IntVectorProperty>
-		  <IntVectorProperty
-			  name="ExclusionVolume"
-			  number_of_elements="1"
-			  default_values="0"
-			  immediate_update="1"
-			  information_only="1"
-			  command="GetExclusionVolume">
-		          <SimpleIntInformationHelper/>
-		  </IntVectorProperty>
-		  <IntVectorProperty
-			  name="ExclusionAdaptiveVolume"
-			  number_of_elements="1"
-			  default_values="0"
-			  immediate_update="1"
-			  information_only="1"
-			  command="GetExclusionAdaptiveVolume">
-		          <SimpleIntInformationHelper/>
-		  </IntVectorProperty>
-  		  <Hints>
-		    <!-- Hints are metadata associated with the proxy.
-		    As far as the ServerManager is concerned, Hints have no 
-		    significance. GUI is free to interpret the hints as
-		    it chooses. Hints provide a mechanism to add some GUI
-		    pertinant information to the server manager XML.
-		      -->
-		    <PropertyGroup type="RectangularBoundingRegion"> <!-- The name delcared in the cmake macro ADD_3DWIDGET -->
-			  <!--Property name="Position" function="Position" />
-			  <Property name="Scale" function="Scale" />
-			  <Property name="Bounds" function="PlaceWidget" /-->
-		     </PropertyGroup> 
-		  </Hints>
-		  <!-- End Bounding Region Filter -->
-	  </SourceProxy>
-	  <SourceProxy name="CountingRegion" class="vtkCountingRegionFilter" label="Counting Region Filter" >
-		  <Documentation
-			  long_help="filter"
-			  short_help="filter">
-		</Documentation>
-		<InputProperty
-		name="Input"
-		port_index="0"
-		immediate_update="1"
-		clean_command="RemoveAllInputs"
-		command="AddInputConnection"
-		repeatable="1"
-		  >
-		    <ProxyGroupDomain name="groups">
-		      <Group name="sources"/>
-		      <Group name="filters"/>
-		    </ProxyGroupDomain>
-<!-- 		    <DataTypeDomain name="input_type"> -->
-<!-- 		      <DataType value="vtkDataImage"/> -->
-<!-- 		    </DataTypeDomain> -->
-		</InputProperty>
-		<IntVectorProperty
-			  name="Discarted"
-			  number_of_elements="1"
-			  information_only="1"
-			  default_values="0"
-			  command="GetDiscarted">
-			  <SimpleIntInformationHelper/>
-		  </IntVectorProperty>
-		  <!-- End Counting Region Filter -->
-	  </SourceProxy>
+      <DoubleVectorProperty
+        name="TotalVolume"
+	number_of_elements="1"
+	default_values="0.0"
+	immediate_update="1"
+	information_only="1"
+	command="GetTotalVolume">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty
+        name="InclusionVolume"
+	number_of_elements="1"
+	default_values="0.0"
+	immediate_update="1"
+	information_only="1"
+	command="GetInclusionVolume">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty
+        name="ExclusionVolume"
+	number_of_elements="1"
+	default_values="0.0"
+	immediate_update="1"
+	information_only="1"
+	command="GetExclusionVolume">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
+
+      <Hints>
+	<!-- Hints are metadata associated with the proxy.
+	As far as the ServerManager is concerned, Hints have no
+	significance. GUI is free to interpret the hints as
+	it chooses. Hints provide a mechanism to add some GUI
+	pertinant information to the server manager XML.
+	-->
+	<PropertyGroup type="RectangularBoundingRegion"> <!-- The name delcared in the cmake macro ADD_3DWIDGET -->
+	<!--Property name="Position" function="Position" />
+	<Property name="Scale" function="Scale" /-->
+<!-- 	<Property name="InclusionOffset" function="InclusionOffset" /> -->
+<!-- 	<Property name="ExclusionOffset" function="ExclusionOffset" /> -->
+	<!--<Property name="InclusionExclusion" function="PlaceWidget" /> -->
+	</PropertyGroup>
+      </Hints>
+      <!-- End Rectangular Bounding Region Filter -->
+    </SourceProxy>
+
+    <SourceProxy name="AdaptiveBoundingRegion" class="vtkAdaptiveBoundingRegionFilter" label="Adaptive Bounding Region Filter" >
+      <Documentation
+        long_help="filter"
+	short_help="filter">
+      </Documentation>
+
+      <InputProperty
+        name="Input"
+	command="SetInputConnection">
+	<ProxyGroupDomain name="groups">
+	  <Group name="sources"/>
+	  <Group name="filters"/>
+	</ProxyGroupDomain>
+	<DataTypeDomain name="input_type">
+	  <DataType value="vtkImageData"/>
+	</DataTypeDomain>
+      </InputProperty>
+
+      <DoubleVectorProperty
+        name="InclusionOffset"
+	number_of_elements="3"
+	default_values="0.0 0.0 0.0"
+	immediate_update="1"
+	command="SetInclusionOffset">
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty
+        name="ExclusionOffset"
+	number_of_elements="3"
+	default_values="0.0 0.0 0.0"
+	immediate_update="1"
+	command="SetExclusionOffset">
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty
+        name="TotalVolume"
+	number_of_elements="1"
+	default_values="0.0"
+	immediate_update="1"
+	information_only="1"
+	command="GetTotalVolume">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty
+        name="TotalAdaptiveVolume"
+	number_of_elements="1"
+	default_values="0.0"
+	immediate_update="1"
+	information_only="1"
+	command="GetTotalAdaptiveVolume">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty
+        name="InclusionVolume"
+	number_of_elements="1"
+	default_values="0.0"
+	immediate_update="1"
+	information_only="1"
+	command="GetInclusionVolume">
+        <SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty
+        name="ExclusionVolume"
+	number_of_elements="1"
+	default_values="0.0"
+	immediate_update="1"
+	information_only="1"
+	command="GetExclusionVolume">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty
+        name="ExclusionAdaptiveVolume"
+	number_of_elements="1"
+	default_values="0.0"
+	immediate_update="1"
+	information_only="1"
+	command="GetExclusionAdaptiveVolume">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
+
+      <Hints>
+	<!-- Hints are metadata associated with the proxy.
+	As far as the ServerManager is concerned, Hints have no
+	significance. GUI is free to interpret the hints as
+	it chooses. Hints provide a mechanism to add some GUI
+	pertinant information to the server manager XML.
+	-->
+	<PropertyGroup type="RectangularBoundingRegion"> <!-- The name delcared in the cmake macro ADD_3DWIDGET -->
+	<!--Property name="Position" function="Position" />
+	<Property name="Scale" function="Scale" />
+	<Property name="Bounds" function="PlaceWidget" /-->
+	</PropertyGroup>
+      </Hints>
+      <!-- End Adaptive Bounding Region Filter -->
+    </SourceProxy>
+
+    <SourceProxy name="CountingRegion" class="vtkCountingRegionFilter" label="Counting Region Filter" >
+      <Documentation
+        long_help="filter"
+	short_help="filter">
+      </Documentation>
+
+      <InputProperty
+        name="Input"
+	port_index="0"
+	immediate_update="1"
+	clean_command="RemoveAllInputs"
+	command="AddInputConnection"
+	repeatable="1">
+	<ProxyGroupDomain name="groups">
+	  <Group name="sources"/>
+	  <Group name="filters"/>
+	</ProxyGroupDomain>
+	<!--<DataTypeDomain name="input_type"> -->
+	<!--<DataType value="vtkDataImage"/> -->
+	<!--</DataTypeDomain> -->
+      </InputProperty>
+
+      <IntVectorProperty
+        name="Discarted"
+	number_of_elements="1"
+	information_only="1"
+	default_values="0"
+	command="GetDiscarted">
+	<SimpleIntInformationHelper/>
+      </IntVectorProperty>
+      <!-- End Counting Region Filter -->
+    </SourceProxy>
 
   </ProxyGroup>
-</ServerManagerConfiguration>
 
+</ServerManagerConfiguration>

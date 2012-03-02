@@ -1,0 +1,159 @@
+<ServerManagerConfiguration>
+  <!-- We put all 3D widget definitions in this file -->
+  <ProxyGroup name="representations">
+    <!-- ================================================================== -->
+    <NewWidgetRepresentationProxy name="NonRotatingBoxWidgetRepresentation"
+      class="vtk3DWidgetRepresentation">
+      <Documentation>
+        Representation proxy for the the box widget. This includes the
+        widget/representation proxies for the box 3D widget.
+	This is created by the pqNonRotatingBoxWidget.
+      </Documentation>
+
+      <IntVectorProperty name="Enabled"
+        command="SetEnabled"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool"/>
+        <Documentation>
+          Enable/Disable widget interaction.
+        </Documentation>
+      </IntVectorProperty>
+
+      <SubProxy>
+        <Proxy name="Prop"
+          proxygroup="3d_widget_representations" proxyname="NonRotatingBoxRepresentation">
+        </Proxy>
+        <ExposedProperties>
+          <Property name="PlaceFactor" />
+          <Property name="PlaceWidget" />
+          <Property name="Visibility" />
+          <Property name="Position" />
+          <Property name="PositionInfo" />
+          <Property name="Rotation" />
+          <Property name="RotationInfo" />
+          <Property name="Scale" />
+          <Property name="ScaleInfo" />
+        </ExposedProperties>
+      </SubProxy>
+
+      <SubProxy>
+        <Proxy name="Widget"
+          proxygroup="3d_widgets" proxyname="NonRotatingBoxWidget">
+        </Proxy>
+      </SubProxy>
+      <!-- End of BoxWidgetRepresentation -->
+    </NewWidgetRepresentationProxy>
+  </ProxyGroup>
+
+  <!-- ****************************************************************** -->
+  <ProxyGroup name="3d_widget_representations">
+    <!-- ================================================================== -->
+    <BoxRepresentationProxy name="NonRotatingBoxRepresentation" class="vtkNonRotatingBoxRepresentation">
+      <Documentation>
+        Proxy for vtkNonRotatingBoxRepresentation. Don't confuse this with the
+        vtkSMRepresentation proxy for the box widget (which is the
+        NonRotatingBoxWidgetRepresentation).
+      </Documentation>
+
+      <IntVectorProperty
+        name="Visibility"
+        command="SetVisibility"
+        number_of_elements="1"
+        default_values="1"
+        animateable="1">
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
+
+      <DoubleVectorProperty
+        name="PlaceWidget"
+        command="PlaceWidget"
+        number_of_elements="6"
+        argument_is_array="1"
+        default_values="none">
+        <DoubleRangeDomain name="range"/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty
+        name="PlaceFactor"
+        command="SetPlaceFactor"
+        number_of_elements="1"
+        default_values="1.0">
+        <DoubleRangeDomain name="range" min="0.01" />
+      </DoubleVectorProperty>
+
+      <SubProxy>
+        <Proxy name="Transform"
+          proxygroup="extended_sources" proxyname="Transform2">
+        </Proxy>
+        <ExposedProperties>
+          <Property name="Position" />
+          <Property name="PositionInfo" />
+          <Property name="Rotation" />
+          <Property name="RotationInfo" />
+          <Property name="Scale" />
+          <Property name="ScaleInfo" />
+        </ExposedProperties>
+      </SubProxy>
+
+      <!-- End of BoxRepresentation -->
+    </BoxRepresentationProxy>
+  </ProxyGroup>
+
+  <!-- ****************************************************************** -->
+  <ProxyGroup name="3d_widgets">
+    <Proxy name="NonRotatingBoxWidget" class="vtkNonRotatingBoxWidget"
+      base_proxygroup="3d_widgets" base_proxyname="WidgetBase">
+      <Documentation>
+        Proxy for vtkNonRotatingBoxWidget.
+      </Documentation>
+    </Proxy>
+  </ProxyGroup>
+
+  <!-- ****************************************************************** -->
+ <ProxyGroup name="implicit_functions">
+       <Proxy name="NonRotatingBox" class="vtkPVBox">
+      <DoubleVectorProperty
+        name="Bounds"
+        command="SetBounds"
+        number_of_elements="6"
+        default_values="0 40 0 40 0 40" >
+      </DoubleVectorProperty>
+      <DoubleVectorProperty
+        name="Position"
+        command="SetPosition"
+        number_of_elements="3"
+        animateable="1"
+        default_values="0.0 0.0 0.0" >
+        <DoubleRangeDomain name="range" />
+      </DoubleVectorProperty>
+      <DoubleVectorProperty
+        name="Scale"
+        command="SetScale"
+        number_of_elements="3"
+        animateable="1"
+        default_values="1.0 1.0 1.0" >
+        <DoubleRangeDomain name="range" />
+      </DoubleVectorProperty>
+      <Hints>
+        <!-- Hints are metadata associated with the proxy.
+             As far as the ServerManager is concerned, Hints have no
+             significance. GUI is free to interpret the hints as
+             it chooses. Hints provide a mechanism to add some GUI
+             pertinant information to the server manager XML.
+        -->
+	<!-- The name delcared in the cmake macro ADD_3DWIDGET -->
+        <PropertyGroup type="NonRotatingBox">
+          <Property name="Position" function="Position" />
+          <Property name="Scale" function="Scale" />
+          <Property name="Bounds" function="PlaceWidget" />
+        </PropertyGroup>
+
+      </Hints>
+      <!-- End of Box -->
+    </Proxy>
+  </ProxyGroup>
+
+  
+</ServerManagerConfiguration>
+

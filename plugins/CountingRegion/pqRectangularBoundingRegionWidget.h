@@ -68,11 +68,11 @@ public:
 protected:
   /// Internal method to create the widget.
   void createWidget(pqServer*);
-  
+
   /// Internal method to cleanup widget.
   void cleanupWidget();
-  
-  void updateControlledMargins();
+
+  void updateControlledFilter();
   void updateWidgetMargins();
 
 private slots:
@@ -81,15 +81,12 @@ private slots:
 
   void showHandles();
   void hideHandles();
-  
-  void setViewType(int type);
+
 private:
   pqRectangularBoundingRegionWidget(const pqRectangularBoundingRegionWidget&); // Not implemented.
   void operator=(const pqRectangularBoundingRegionWidget&); // Not implemented.
-  
+
   vtkSMProxy *InternalProxy;
-  class pqImplementation;
-  pqImplementation* Implementation;
 };
 
 #endif

@@ -1,11 +1,13 @@
-project (ESPINA_COUNTING_PLUGIN)
+project (COUNTING_REGION_PLUGIN)
+
+# Version Number
+set (PLUGIN_VERSION_MAJOR 0)
+set (PLUGIN_VERSION_MINOR 1)
+set (PLUGIN_VERSION_PATCH 0)
 
 cmake_minimum_required (VERSION 2.6)
 
-find_package (Qt4 REQUIRED)
-include (${QT_USE_FILE})
-
-find_package (ParaView REQUIRED)
+find_package (ParaView REQUIRED 1.12) # Include Qt4
 include (${PARAVIEW_USE_FILE})
 
 find_package (VTK REQUIRED)
@@ -14,19 +16,11 @@ include (${VTK_USE_FILE})
 find_package (ITK REQUIRED)
 include (${ITK_USE_FILE})
 
-find_package (Cajal REQUIRED)
-include (${ITK_USE_FILE})
-
-find_package(Boost REQUIRED COMPONENTS  system filesystem)
-link_directories ( ${Boost_LIBRARY_DIRS} )
-
 include_directories(
-  ${CAJAL_INCLUDE_DIR}/filters
-  ${CMAKE_SOURCE_DIR}/common
-  ${CMAKE_CURRENT_SOURCE_DIR} 
+  ${CMAKE_SOURCE_DIR} #TODO: change to use espina path
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/server
   ${ITK_VTK_GLUE}
-  ${Boost_INCLUDE_DIRS}
-  ${ITK_DIR}/../
   )
 
 
@@ -37,69 +31,81 @@ qt4_add_resources (RCC_BUILT_SOURCES
 # We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
 qt4_wrap_cpp(MOC_SRCS 
   CountingRegion.h
-  CountingRegionExtension.h
-  RegionRenderer.h
+  regions/AdaptiveBoundingRegion.h
+  regions/RectangularBoundingRegion.h
+#   CountingRegionExtension.h
+#   RegionRenderer.h
   pqRectangularBoundingRegionWidget.h
   )
 
 # Create Interface files
 qt4_wrap_ui (UI_BUILT_SOURCES
-  CountingRegionPanel.ui
-  pqRectangularBoundingRegionWidget.ui
+  CountingRegion.ui
   )
 
 ADD_3DWIDGET(
-  OUTIFACES OUTSRCS
+  WIDGET_IFACES WIDGET_SOURCES
   CLASS_NAME pqRectangularBoundingRegionWidget
   WIDGET_TYPE RectangularBoundingRegion
   )
 
 # This is a macro for adding QActionGroup subclasses automatically as toolbars.
 ADD_PARAVIEW_DOCK_WINDOW(
-  IFACES IFACE_SRCS
+  DOCK_IFACES DOCK_SOURCES
   CLASS_NAME CountingRegion 
   DOCK_AREA Left)
 
-file ( GLOB LOCAL_SOURCES *.cpp )
+# file ( GLOB LOCAL_SOURCES *.cpp )
+set (LOCAL_SOURCES
+  CountingRegion.cpp
+  pqRectangularBoundingRegionWidget.cpp
+  )
 
-set (VTKFILTER_SRCS
-  ${CAJAL_INCLUDE_DIR}/filters/vtkAdaptiveBoundingRegionFilter.cpp
-  ${CAJAL_INCLUDE_DIR}/filters/vtkRectangularBoundingRegionFilter.cpp
-  ${CAJAL_INCLUDE_DIR}/filters/vtkCountingRegionFilter.cpp
-  vtkRectangularBoundingRegionRepresentation.cpp
-  vtkRectangularBoundingRegionWidget.cpp
+set (REGION_SOURCES
+  regions/AdaptiveBoundingRegion.cpp
+  regions/BoundingRegion.cpp
+  regions/RectangularBoundingRegion.cpp
+  )
+
+set (SERVER_SOURCES
+  server/vtkAdaptiveBoundingRegionFilter.cpp
+  server/vtkRectangularBoundingRegionFilter.cpp
+  server/vtkCountingRegionFilter.cpp
+  server/vtkRectangularBoundingRegionRepresentation.cpp
+  server/vtkRectangularBoundingRegionWidget.cpp
 )
 
 set (PLUGIN_SRCS
-  ${LOCAL_SOURCES}
   ${MOC_SRCS} 
-  ${RCC_BUILT_SOURCES} 
+  ${LOCAL_SOURCES}
+  ${REGION_SOURCES}
+  ${RCC_BUILT_SOURCES}
   ${UI_BUILT_SOURCES}
+  ${WIDGET_SOURCES}
+  ${DOCK_SOURCES}
   )
 
 set (PARAVIEW_ADDITIONAL_LIBRARIES
   ${PARAVIEW_ADDITIONAL_LIBRARIES}
-  ${CAJAL_LIBRARIES}
-  Espina
+  EspinaCore
   ITKCommon ITKBasicFilters ITKAlgorithms 
-  ${Boost_LIBRARIES}
 )
 
 # Now crete a plugin for the toolbar. Here we pass IFACES and IFACE_SRCS
 # which are filled up by the above macro with relevant entries
 ADD_PARAVIEW_PLUGIN(
   CountingRegion
-  "0.1" 
+  "${PLUGIN_VERSION_MAJOR}.${PLUGIN_VERSION_MINOR}"
   SERVER_MANAGER_XML CountingRegionFilters.xml
-  SERVER_MANAGER_SOURCES ${VTKFILTER_SRCS}
+  SERVER_MANAGER_SOURCES ${SERVER_SOURCES}
 	#According to: http://markmail.org/message/wj27wmlj6rjd7vg5
 	# - See the macro documentation in ParaView/CMake/ParaViewPlugins.cmake:~835
 	# - the parser doesn't work because it seems there is no vtkClass inside
 	#   thus we have to use a vtkXXXX class name for our filter, other wise,
 	#   we need to use SERVER_SOURCES instead of SERVER_MANAGER_SOURCES
 	#   SERVER_SOURCES SegmentationFilter.cpp 
-  SOURCES ${IFACE_SRCS} ${PLUGIN_SRCS} ${OUTSRCS}
-  GUI_INTERFACES ${IFACES} ${OUTIFACES}
+  SOURCES ${PLUGIN_SRCS}
+  GUI_INTERFACES ${DOCK_IFACES} ${WIDGET_IFACES}
   )
 
 if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
@@ -108,4 +114,9 @@ endif( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
 target_link_libraries (CountingRegion ${PARAVIEW_ADDITIONAL_LIBRARIES} )
 
-install (TARGETS CountingRegion LIBRARY DESTINATION bin/plugins)
+install(
+  TARGETS CountingRegion
+  LIBRARY
+  DESTINATION bin/plugins
+  COMPONENT CountingRegion
+  )

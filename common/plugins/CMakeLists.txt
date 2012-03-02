@@ -1,0 +1,26 @@
+add_subdirectory(EspinaWidgets)
+
+set (MOC_SOURCES
+  ${MOC_SOURCES}
+  PARENT_SCOPE
+  )
+
+set (CORE_SOURCES
+  ${CORE_SOURCES}
+  PARENT_SCOPE
+  )
+
+set (PVCORE_SOURCES
+  ${PVCORE_SOURCES}
+  PARENT_SCOPE
+  )
+
+set (PVCORE_IFACES
+  ${PVCORE_IFACES}
+  PARENT_SCOPE
+  )
+
+set (PVCORE_XML
+  ${PVCORE_XML}
+  PARENT_SCOPE
+  )
