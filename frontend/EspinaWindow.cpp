@@ -222,7 +222,7 @@ void EspinaWindow::closeEvent(QCloseEvent* event)
   if (m_view)
     m_view->saveLayout();
 
-  closeCurrentAnalysis();
+//   closeCurrentAnalysis();
 //   QSettings settings("CeSViMa", "EspinaModel");
 
 //   settings.setValue(m_currentActivity+"/geometry", saveGeometry());
@@ -483,7 +483,7 @@ void EspinaWindow::saveAnalysis()
     SegmentationPtr seg;
     foreach(seg, m_model->segmentations())
     {
-      QString tmpfilePath(seg->volume().source()->id() + ".pvd");
+      QString tmpfilePath(seg->id() + ".pvd");
       tmpfilePath = tmpDir.filePath(tmpfilePath);
 //       pqActiveObjects::instance().setActivePort(seg->outputPort());
       qDebug() << "EspINA::saveSegementation" << tmpfilePath;

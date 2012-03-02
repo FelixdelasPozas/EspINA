@@ -74,6 +74,8 @@ int vtkExtractBlockAsImage::RequestInformation(vtkInformation* request, vtkInfor
   // Use the same input spacing
   vtkImageData *inputImage = vtkImageData::SafeDownCast(input->GetBlock(ExtractBlock));
   outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), inputImage->GetExtent(),6);
+  // Use the same input spacing
+  outInfo->Set(vtkDataObject::SPACING(), inputImage->GetSpacing(), 3);
 
   return res;
 }

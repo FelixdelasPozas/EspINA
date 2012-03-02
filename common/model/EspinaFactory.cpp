@@ -28,7 +28,7 @@ EspinaFactory *EspinaFactory::m_instance = NULL;
 EspinaFactory::EspinaFactory()
 {
   // Register Default Extensions
-//   registerSegmentationExtension(SegmentationExtension::SPtr(new MorphologicalExtension()));
+  registerSegmentationExtension(SegmentationExtension::SPtr(new MorphologicalExtension()));
 }
 
 //------------------------------------------------------------------------
@@ -78,10 +78,10 @@ SamplePtr EspinaFactory::createSample(const QString id, const QString args)
 }
 
 //------------------------------------------------------------------------
-SegmentationPtr EspinaFactory::createSegmentation(Filter* parent, pqData data)
+SegmentationPtr EspinaFactory::createSegmentation(Filter* parent, int output, pqData data)
 {
 //   std::cout << "Factory is going to create a segmentation for vtkObject: " << vtkRef->id().toStdString() << std::endl;
-  SegmentationPtr seg(new Segmentation(parent, data));
+  SegmentationPtr seg(new Segmentation(parent, output, data));
   foreach(SegmentationExtension::SPtr ext, m_segExtensions)
     seg->addExtension(SegmentationExtension::SPtr(ext->clone()));
 

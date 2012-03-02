@@ -26,33 +26,57 @@
 #define SEGMENTATION_H
 
 #include <common/extensions/SegmentationExtension.h>
-#include "common/model/Filter.h"
 #include "common/processing/pqData.h"
 #include "common/selection/SelectableItem.h"
 #include "common/model/Taxonomy.h"
 
 // Forward declarations
 class Sample;
+class Filter;
 class pqPipelineSource;
 
 class Segmentation : public SelectableItem
 {
+  static const QString NUMBER;
+  static const QString OUTPUT;
+
+  class SArguments : public Arguments
+  {
+  public:
+    void setNumber(unsigned int number)
+    {
+      Number = number;
+      (*this)[NUMBER] = QString::number(Number);
+    }
+    unsigned int number() const {return Number;}
+
+    void setOutput(int output)
+    {
+      Output = output;
+      (*this)[OUTPUT] = QString::number(Output);
+    }
+    int output() const {return Output;}
+  private:
+    unsigned int Number;
+    int Output;
+  };
+
 public:
-  explicit Segmentation(Filter *filter, pqData data);
-//   Segmentation(EspinaFilter *parent, vtkFilter *creator, int portNumber);
+  explicit Segmentation(Filter *filter, int output, pqData data);
   virtual ~Segmentation();
 
   pqOutputPort *outputPort();
 
   /// Model Item Interface
-  virtual QString serialize() const;
+  virtual QString id() const;
   virtual QVariant data(int role) const;
   virtual ItemType type() const {return ModelItem::SEGMENTATION;}
+  virtual QString serialize() const;
   /// Selectable Item Interface
   virtual pqData volume() {return m_data;}
 
-  void setId(unsigned int id) {m_id = id;}
-  unsigned int id() const {return m_id;}
+  void setNumber(unsigned int number) {m_args.setNumber(number);}
+  unsigned int number() const {return m_args.number();}
   void setTaxonomy(TaxonomyNode *tax) {m_tax = tax;}
   TaxonomyNode *taxonomy() const {return m_tax;}
 //   virtual void color(double* rgba);
@@ -81,8 +105,8 @@ public:
 private:
   Filter             *m_filter;
   pqData              m_data;
-  unsigned int        m_id;
-  TaxonomyNode *m_tax;
+  SArguments          m_args;
+  TaxonomyNode       *m_tax;
 
   QMap<QString, SegmentationExtension::SPtr> m_extensions;
   QMap<QString, SegmentationExtension::SPtr> m_pendingExtensions;

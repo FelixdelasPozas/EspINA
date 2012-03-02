@@ -18,17 +18,23 @@
 */
 #include "Segmentation.h"
 
+#include "Filter.h"
+
 #include <QDebug>
 
 using namespace std;
 
+const QString Segmentation::NUMBER = "Number";
+const QString Segmentation::OUTPUT = "Output";
+
 //-----------------------------------------------------------------------------
-Segmentation::Segmentation(Filter *filter, pqData data)
+Segmentation::Segmentation(Filter* filter, int output, pqData data)
 : m_filter (filter)
 , m_data   (data)
-, m_id     (0)
 , m_tax    (NULL)
 {
+  m_args.setNumber(0);
+  m_args.setOutput(output);
 }
 
 //------------------------------------------------------------------------
@@ -55,11 +61,9 @@ pqOutputPort* Segmentation::outputPort()
 }
 
 //------------------------------------------------------------------------
-QString Segmentation::serialize() const
+QString Segmentation::id() const
 {
-  QString args;
-  args.append(argument("Filter", m_data.id()));
-  return args;
+  return m_filter->id() + "_" + m_args[OUTPUT];
 }
 
 //------------------------------------------------------------------------
@@ -69,7 +73,7 @@ QVariant Segmentation::data(int role) const
   {
     case Qt::DisplayRole:
 //     //case Qt::EditRole:
-      return QString("Segmentation %1").arg(m_id);
+      return QString("Segmentation-%1").arg(m_args.number());
 //     case Qt::DecorationRole:
 //     {
 //       QPixmap segIcon(3,16);
@@ -103,6 +107,12 @@ QVariant Segmentation::data(int role) const
     default:
       return QVariant();
   }
+}
+
+//------------------------------------------------------------------------
+QString Segmentation::serialize() const
+{
+  return m_args.serialize();
 }
 
 // //------------------------------------------------------------------------

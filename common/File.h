@@ -17,21 +17,27 @@
 */
 
 
-#include "DataViewPanel.h"
+#ifndef FILE_H
+#define FILE_H
 
-#include "DataView.h"
+#include <QString>
 
-//----------------------------------------------------------------------------
-DataViewPanel::DataViewPanel(QWidget* parent)
-: EspinaDockWidget(parent)
+class File
 {
-  setObjectName("DataDock");
-  DataView *view = new DataView();
-  setWidget(view);
-}
+public:
+  explicit File(const QString file);
 
-//----------------------------------------------------------------------------
-DataViewPanel::~DataViewPanel()
-{
+  static QString extension(const QString file);
+  QString extension() const;
+  static QString extendedName(const QString file);
+  QString extendedName() const;
+  static QString name(const QString file);
+  QString name() const;
+  static QString parentDirectory(const QString file);
+  QString parentDirectory() const;
 
-}
+private:
+  const QString m_file;
+};
+
+#endif // FILE_H

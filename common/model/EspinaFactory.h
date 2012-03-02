@@ -36,7 +36,7 @@ public:
 
   FilterPtr createFilter(const QString filter, const QString args);
   SamplePtr createSample(const QString id,     const QString args = "");
-  SegmentationPtr createSegmentation(Filter *parent, pqData data);
+  SegmentationPtr createSegmentation(Filter* parent, int output, pqData data);
 
   void readFile(const QString file, const QString ext);
 //   void addSampleExtension(ISampleExtension *ext);

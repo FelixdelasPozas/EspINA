@@ -36,6 +36,25 @@ class pqPipelineSource;
 
 class Channel : public SelectableItem
 {
+  static const QString ID;
+  static const QString COLOR;
+
+  class CArguments : public Arguments
+  {
+  public:
+    explicit CArguments(){}
+    explicit CArguments(const QMap< QString, QString >& args) : Arguments(args){}
+    explicit CArguments(const QString args) : Arguments(args) {}
+    void setColor(double color)
+    {
+      (*this)[COLOR] = QString::number(color);
+    }
+
+    double color() const
+    {
+      return (*this)[COLOR].toFloat();
+    }
+  };
 public:
   explicit Channel(const QString file, pqData data);
   explicit Channel(const QString file, const QString args);
@@ -58,9 +77,11 @@ public:
 //   double opacity() {return m_opacity;}
 
   /// Model Item Interface
-  virtual QString serialize() const;
+  virtual QString id() const {return m_args[ID];}
   virtual QVariant data(int role) const;
   virtual ItemType type() const {return ModelItem::CHANNEL;}
+  virtual QString  serialize() const;
+
   /// Selectable Item Interface
   virtual pqData volume() {return m_data;}
 
@@ -69,9 +90,8 @@ private:
   int    m_extent[6];
   double m_bounds[6], m_spacing[3];
   int    m_pos[3];/*in nm*/
-  double m_color;
   bool   m_visible;
-  QString m_file;
+  CArguments m_args;
 //   double m_opacity; //It's responsability of the view
 //   QList<Segmentation *> m_segs;
 

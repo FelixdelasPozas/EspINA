@@ -27,11 +27,15 @@
 class VertexProperty;
 class RelationshipGraph;
 
-QMap<QString, QString> arguments(const QString args);
-
-inline QString argument(const QString name, const QString value)
+template<class T>
+QString arg3(const T val[3])
 {
-  return QString("%1=%2;").arg(name).arg(value);
+  return QString("%1,%2,%3").arg(val[0]).arg(val[1]).arg(val[2]);
+}
+template<class T>
+QString arg6(const T val[6])
+{
+  return QString("%1,%2,%3,%4,%5,%6").arg(val[0]).arg(val[1]).arg(val[2]).arg(val[3]).arg(val[4]).arg(val[5]);
 }
 
 /// Base class for every item in EspinaModel
@@ -44,6 +48,15 @@ public:
     explicit Arguments();
     explicit Arguments(const QMap<QString, QString>& args);
     explicit Arguments(const QString args);
+    virtual ~Arguments(){}
+
+    virtual QString serialize() const;
+    virtual QString hash() const;
+  protected:
+    inline QString argument(const QString name, const QString value) const
+    {
+      return QString("%1=%2;").arg(name).arg(value);
+    }
   };
 
   typedef QList<ModelItem *> Vector;
@@ -63,10 +76,11 @@ public:
   ModelItem() : m_vertex(0), m_relations(NULL) {}
   virtual ~ModelItem(){}
 
-  Vector relatedItems(RelationType rel, const QString filter = "");
-  virtual QString serialize() const {return QString("none");}
+  virtual QString  id() const = 0;
   virtual QVariant data(int role) const = 0;
+  virtual QString  serialize() const {return QString("none");}
   virtual ItemType type() const = 0;
+  Vector relatedItems(RelationType rel, const QString filter = "");
 
 protected:
   size_t             m_vertex;

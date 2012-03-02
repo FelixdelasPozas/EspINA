@@ -25,6 +25,7 @@
 #include <common/EspinaCore.h>
 #include <common/undo/AddFilter.h>
 #include <common/undo/AddSegmentation.h>
+#include <common/undo/AddRelation.h>
 
 static const QString SEGMHA = "segmha";
 
@@ -36,20 +37,16 @@ SegmhaImporter::SegmhaImporter(QObject* parent)
 void SegmhaImporter::onStartup()
 {
   // Register filter and reader factories
-//   manager->registerFilter(filter,this);
   EspinaFactory::instance()->registerReader(SEGMHA, this);
+  EspinaFactory::instance()->registerFilter(SIF, this);
 }
 
 //-----------------------------------------------------------------------------
 FilterPtr SegmhaImporter::createFilter(const QString filter, const QString args)
 {
-//   if (filter == SFRF)
-//   {
-//     SegmhaImporterFilter *sr_sif = new SegmhaImporterFilter(args);
-//     return sr_sif;
-//   }
-  qWarning("::createFilter: Error no such a Filter");
-  return FilterPtr(NULL);
+  Q_ASSERT(filter == SIF);
+
+  return FilterPtr(new SegmhaImporterFilter(ModelItem::Arguments(args)));
 }
 
 //-----------------------------------------------------------------------------
@@ -72,6 +69,7 @@ void SegmhaImporter::readFile(const QString file)
   foreach(SegmentationPtr seg, segs)
   {
     undo->push(new AddSegmentation(seg));
+    undo->push(new AddRelation(filter, seg, "CreateSegmentation"));
   }
 //   undo->push(new AddRelation(filter, seg, "CreateSegmentation"));
 //   undo->push(new AddRelation(sample, seg.data(), "where"));

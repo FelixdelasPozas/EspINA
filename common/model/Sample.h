@@ -44,8 +44,6 @@ public:
   explicit Sample(const QString id, const QString args);
   virtual ~Sample();
 
-  QString id(){return m_ID;}
-  void setId(const QString id) {m_ID = id;}
   // Relative to brain center (in nm)
   void position(int pos[3]);
   void setPosition(int origin[3]);
@@ -57,9 +55,11 @@ public:
   void addSegmentation(SegmentationPtr seg);
 
   /// ModelItem Interface
+  virtual QString id() const {return m_ID;}
   virtual QVariant data(int role) const;
   virtual ItemType type() const {return SAMPLE;}
 
+  void setId(const QString id) {m_ID = id;}
 private:
   QString m_ID;
   int  m_position[3];//nm

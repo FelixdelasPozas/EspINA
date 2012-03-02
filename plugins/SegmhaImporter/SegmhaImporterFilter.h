@@ -20,13 +20,32 @@
 
 #include <common/model/Filter.h>
 
-#include <QPushButton>
 #include <common/model/Segmentation.h>
 
+static const QString SIF = "SegmhaImporter::SegmhaImporterFilter";
 
 class SegmhaImporterFilter 
 : public Filter
 {
+  static const QString FILE;
+  static const QString BLOCKS;
+
+  class SArguments : public Arguments
+  {
+  public:
+    explicit SArguments() {}
+    explicit SArguments(const Arguments args) : Arguments(args) {}
+
+    void setBlocks(QStringList blockList)
+    {
+      (*this)[BLOCKS] = blockList.join(",");
+    }
+    QStringList blocks() const
+    {
+      return (*this)[BLOCKS].split(",");
+    }
+  };
+
 public:
 //   /// Constructor interactivo
   explicit SegmhaImporterFilter(const QString file);
@@ -35,22 +54,24 @@ public:
   virtual ~SegmhaImporterFilter();
 
   // Implements Model Item Interface
-  virtual QString serialize() const{return QString();}
+  virtual QString  id() const {return m_args.hash();}
   virtual QVariant data(int role) const;
+  virtual QString  serialize() const;
   virtual ItemType type() const {return ModelItem::FILTER;}
 
   //Implements Filter Interface
   virtual pqData preview(){return pqData();}
   virtual int numProducts() const {return m_blocks.size();}
-  virtual pqData product(int index) const{return pqData();}
+  virtual SegmentationPtr product(int index) const;
 
   //Own methods
-  QList<SegmentationPtr> segmentations() {return m_blocks.keys();}
+  QList<SegmentationPtr> segmentations() {return m_blocks.values();}
 
 private:
   pqFilter *m_segReader;
-  QMap<SegmentationPtr, QString> m_blocks;
+  QMap<QString, SegmentationPtr> m_blocks;
 
+  SArguments m_args;
 //   friend class SetupWidget;
 };
 

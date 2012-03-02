@@ -37,30 +37,38 @@ const std::string TRAPEZIUM = "trapezium";
 
 std::ostream& operator << ( std::ostream& out, const VertexProperty& v)
 {
-  out << v.vId << " "
-      << v.shape << " "
-      << v.name << " "
-      << v.args << " ";
+  out << v.vId << std::endl
+      << v.shape << std::endl
+      << v.name << std::endl
+      << v.args;
   return out;
 }
 
 std::istream& operator >> ( std::istream& in, VertexProperty& v)
 {
-        in >> v.vId >> v.shape >> v.name >> v.args;
-	v.item = NULL;
-        return in;
+  const int MAX = 10000;
+  in >> v.vId;
+  in >> v.shape;
+  char buff[MAX];
+  in.getline(buff, 2);//Process shape's endl
+  in.getline(buff, MAX);
+  v.name = buff;
+  in.getline(buff, MAX);
+  v.args = buff;
+  v.item = NULL;
+  return in;
 }
 
 std::ostream& operator << ( std::ostream& out, const RelationshipGraph::EdgeProperty& e )
 {
-        out << e.relationship << " ";
-        return out;
+  out << e.relationship << " ";
+  return out;
 }
 
 std::istream& operator >> ( std::istream& in, RelationshipGraph::EdgeProperty& e)
 {
-        in >> e.relationship;
-        return in;
+  in >> e.relationship;
+  return in;
 }
 
 //-----------------------------------------------------------------------------
@@ -211,6 +219,7 @@ RelationshipGraph::VertexDescriptor RelationshipGraph::vertex(ModelItem* item)
   }
 
   Q_ASSERT(false);
+  return *vi;
 }
 
 //-----------------------------------------------------------------------------

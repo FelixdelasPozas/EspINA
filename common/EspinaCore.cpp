@@ -30,6 +30,7 @@
 #include "undo/AddRelation.h"
 #include "File.h"
 
+
 EspinaCore *EspinaCore::m_singleton = NULL;
 
 //------------------------------------------------------------------------

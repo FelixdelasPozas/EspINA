@@ -73,8 +73,9 @@ public:
   void removeChild(QString name);
 
   /// Implements ModelItem
-  virtual ItemType type() const {return TAXONOMY;}
+  virtual QString id() const {return qualifiedName();}
   virtual QVariant data(int role = Qt::UserRole + 1) const;
+  virtual ItemType type() const {return TAXONOMY;}
   virtual bool setData(const QVariant& value, int role = Qt::UserRole + 1);
   
 private:

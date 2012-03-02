@@ -33,6 +33,7 @@
 #include <QSharedPointer>
 
 #include "common/model/Sample.h"
+#include "common/model/Filter.h"
 #include "common/model/Taxonomy.h"
 
 class Channel;

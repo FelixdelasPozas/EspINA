@@ -31,19 +31,21 @@
 #include <vtkSMProxy.h>
 
 
+const QString Channel::ID = "Id";
+const QString Channel::COLOR = "Color";
 
 //-----------------------------------------------------------------------------
 Channel::Channel(const QString file, pqData data)
 : m_data(data)
-, m_color(-1.0)
 , m_visible(true)
-, m_file(file)
 {
   bzero(m_bounds,6*sizeof(double));
   bzero(m_extent,6*sizeof(int));
   bzero(m_spacing,3*sizeof(double));
   m_bounds[1] = m_extent[1] = -1;
   bzero(m_pos,3*sizeof(int));
+  m_args[ID] = file;
+  m_args.setColor(-1.0);
 
   qDebug() << "Created Channel" << m_data.id();
 }
@@ -51,6 +53,7 @@ Channel::Channel(const QString file, pqData data)
 //-----------------------------------------------------------------------------
 Channel::Channel(const QString file, const QString args)
 : m_visible(true) //TODO: Should be persisnet?
+, m_args(args)
 {
   bzero(m_bounds,6*sizeof(double));
   bzero(m_extent,6*sizeof(int));
@@ -58,21 +61,16 @@ Channel::Channel(const QString file, const QString args)
   m_bounds[1] = m_extent[1] = -1;
   bzero(m_pos,3*sizeof(int));
 
-  QMap<QString, QString> channelArgs = arguments(args);
-
-  qDebug() << channelArgs;
-
-  QStringList input = channelArgs["Id"].split(":");
-  int port = input.last().toInt();
-  m_color = channelArgs["Color"].toFloat();
+//   QStringList input = m_args[ID].split(":");
+  m_args[ID] = file;
+  int port = 0;//input.last().toInt();
   qDebug() << "Loading Channel:" << file;
   qDebug() << "\tUsing output port:" << port;
-  qDebug() << "\tColor:" << m_color;
+  qDebug() << "\tColor:" << m_args["Color"];
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   pqFilter *channelReader = cob->loadFile(file);
   Q_ASSERT(port < channelReader->getNumberOfData());
   m_data = pqData(channelReader, port);
-  m_file = file;
 }
 
 //-----------------------------------------------------------------------------
@@ -213,13 +211,13 @@ void Channel::position(int pos[3])
 //------------------------------------------------------------------------
 void Channel::setColor(const double color)
 {
-  m_color = color;
+  m_args.setColor(color);
 }
 
 //------------------------------------------------------------------------
 double Channel::color() const
 {
-  return m_color;
+  return m_args.color();
 }
 
 // //------------------------------------------------------------------------
@@ -232,10 +230,11 @@ double Channel::color() const
 //------------------------------------------------------------------------
 QString Channel::serialize() const
 {
-  QString args;
-  args.append(argument("Id", m_data.id()));
-  args.append(argument("Color", QString::number(m_color)));
-  return args;
+  return m_args.serialize();
+//   QString args;
+//   args.append(argument("Id", m_data.id()));
+//   args.append(argument("Color", QString::number(m_color)));
+//   return args;
 }
 
 //------------------------------------------------------------------------
@@ -244,7 +243,7 @@ QVariant Channel::data(int role) const
   switch (role)
   {
     case Qt::DisplayRole:
-      return m_file;
+      return m_args[ID];
     case Qt::CheckStateRole:
       return m_visible?Qt::Checked: Qt::Unchecked;
 //     case Qt::DecorationRole:

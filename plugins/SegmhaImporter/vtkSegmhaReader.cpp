@@ -206,7 +206,6 @@ int vtkSegmhaReader::RequestData(
   image2label->SetInput(vtk2itk_filter->GetOutput());
   image2label->Update();//TODO: Check if needed
 
-
   // Configure the output multiblock
   vtkInformation* outInfo = outputVector->GetInformationObject(0);
   vtkMultiBlockDataSet *output = vtkMultiBlockDataSet::SafeDownCast(

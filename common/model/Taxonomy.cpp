@@ -67,10 +67,12 @@ TaxonomyNode* TaxonomyNode::element(const QString qualifiedName)
   foreach(child, m_elements)
   {
     if (node == child->m_name)
+    {
       if (subNodes.isEmpty())
 	return child;
       else
 	return child->element(qualifiedName.section("/",1));
+    }
   }
   
   return NULL;
@@ -187,7 +189,7 @@ TaxonomyNode* TaxonomyNode::addElement(QString subElement, QString supElement)//
 void TaxonomyNode::removeChild(QString name)
 {
   TaxonomyNode *node;
-  if( node = element(name) )
+  if( (node = element(name)) )
   {
 //     TaxonomyNode *parent = node->parentNode();
     int index = m_elements.indexOf(node);

@@ -22,16 +22,19 @@
 
 #include "common/model/ModelItem.h"
 
+#include "common/model/Segmentation.h"
 #include "common/processing/pqData.h"
 
 #include <QMap>
+
 
 class Filter : public ModelItem, public QObject
 {
 public:
   virtual ~Filter(){}
+
   virtual int numProducts() const = 0;
-  virtual pqData product(int index) const = 0;
+  virtual SegmentationPtr product(int index) const = 0;
 
   virtual pqData preview() = 0;
 };

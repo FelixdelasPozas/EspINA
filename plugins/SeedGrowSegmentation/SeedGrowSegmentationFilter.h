@@ -20,6 +20,7 @@
 
 #include "common/model/Filter.h"
 #include "common/processing/pqData.h"
+#include <common/model/Segmentation.h>
 
 // #include "ui_SeedGrowSegmentationFilterSetup.h"
 // class IVOI;
@@ -38,6 +39,51 @@ class SeedGrowSegmentationFilter
 //     SetupWidget(EspinaFilter *filter);
 //   };
 Q_OBJECT
+
+  static const QString CHANNEL;
+  static const QString SEED;
+  static const QString THRESHOLD;
+  static const QString VOI;
+
+  class SArguments : public Arguments
+  {
+  public:
+    explicit SArguments(){}
+    explicit SArguments(const ModelItem::Arguments args);
+
+    void setInput(const QString input)
+    {
+      (*this)[CHANNEL] = input;
+    }
+    QString input() const {return (*this)[CHANNEL];}
+
+    void setSeed(int seed[3])
+    {
+      memcpy(m_seed, seed, 3*sizeof(int));
+      (*this)[SEED] = arg3(seed);
+    }
+    void seed(int value[3]) const {memcpy(value, m_seed, 3*sizeof(int));}
+
+    void setThreshold(int th)
+    {
+      m_threshold = th;
+      (*this)[THRESHOLD] = QString::number(th);
+    }
+    int threshold() const {return m_threshold;}
+
+    void setVOI(int voi[6])
+    {
+      memcpy(m_VOI, voi, 6*sizeof(int));
+      (*this)[VOI] = arg6(voi);
+    }
+    void voi(int value[6]) const {memcpy(value, m_VOI, 6*sizeof(int));}
+ 
+  private:
+    int m_seed[3];
+    int m_threshold;
+    int m_VOI[6];
+  };
+
 public:
   explicit SeedGrowSegmentationFilter(pqData input, int seed[3], int threshold, int VOI[6]);
   /// Create a new filter from given arguments
@@ -48,21 +94,22 @@ public:
 
   void setInput(pqData data);
   void setThreshold(int th);
-  int threshold() const {return m_threshold;}
+  int threshold() const {return m_args.threshold();}
   void setSeed(int seed[3]);
-  void seed(int seed[3]) const {memcpy(seed,m_seed,3*sizeof(int));}
+  void seed(int seed[3]) const {m_args.seed(seed);}
   void setVOI(int VOI[6]);
-  void voi(int VOI[6]) const {memcpy(VOI, m_VOI, 6*sizeof(int));}
+  void voi(int VOI[6]) const {m_args.voi(VOI);}
 
   /// Implements Model Item Interface
-  virtual QString serialize() const;
+  virtual QString  id() const;
   virtual QVariant data(int role) const;
+  virtual QString  serialize() const;
   virtual ItemType type() const {return ModelItem::FILTER;}
 
   /// Implements Filter Interface
   pqData preview();
   virtual int numProducts() const;
-  virtual pqData product(int index) const;
+  virtual SegmentationPtr product(int index) const;
 //   virtual QList<vtkProduct *> products() {return m_finalFilter->products();}
 //   virtual QString getFilterArguments() const {return EspinaFilter::getFilterArguments();}
 //   virtual void removeProduct(vtkProduct* product);
@@ -77,12 +124,11 @@ signals:
   void modified();
 
 private:
-  QString m_input;
-  int m_seed[3];
-  int m_threshold;
-  int m_VOI[6];
+  SArguments m_args;
   pqFilter *grow, *extract;
+  pqFilter *segFilter;
 
+  SegmentationPtr m_seg;
 //   friend class SetupWidget;
 };
 

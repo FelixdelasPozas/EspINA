@@ -41,8 +41,11 @@ SelectionManager::SelectionManager()
 //------------------------------------------------------------------------
 bool SelectionManager::filterEvent(QEvent* e, SelectableView* view) const
 {
+  bool res = false;
   if (m_handler)
-    m_handler->filterEvent(e, view);
+    res = m_handler->filterEvent(e, view);
+
+  return res;
 }
 
 //------------------------------------------------------------------------
