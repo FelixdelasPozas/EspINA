@@ -23,7 +23,7 @@
 #include "RelationshipGraph.h"
 
 #include <QDebug>
-#include <qt4/QtCore/qcryptographichash.h>
+#include <QCryptographicHash>
 
 ModelItem::Arguments::Arguments()
 {

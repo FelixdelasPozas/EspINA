@@ -20,7 +20,7 @@
 #ifndef THRESHOLDACTION_H
 #define THRESHOLDACTION_H
 
-#include <qt4/QtGui/QWidgetAction>
+#include <QWidgetAction>
 
 
 class ThresholdAction

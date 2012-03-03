@@ -20,6 +20,7 @@
 #include "SegmentationExplorer.h"
 
 #include "common/model/EspinaModel.h"
+#include "common/model/proxies/SampleProxy.h"
 
 #include <iostream>
 #include <cstdio>
@@ -49,7 +50,9 @@ SegmentationExplorer::SegmentationExplorer(QSharedPointer< EspinaModel> model, Q
   setWindowTitle(tr("Segmentation Explorer"));
   setObjectName("SegmentationExplorer");
 
-  m_gui->view->setModel(m_baseModel.data());
+  SampleProxy *proxy = new SampleProxy();
+  proxy->setSourceModel(m_baseModel.data());
+  m_gui->view->setModel(proxy);
 
   connect(m_gui->deleteSegmentation, SIGNAL(clicked(bool)),
           this, SLOT(deleteSegmentation()));

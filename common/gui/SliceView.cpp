@@ -74,7 +74,7 @@
 
 #include <vtkPropCollection.h>
 #include <pq3DWidget.h>
-#include </home/jpena/src/ParaView-3.12.0/ParaViewCore/ServerManager/vtkSMProxyManager.h>
+#include <vtkSMProxyManager.h>
 
 //-----------------------------------------------------------------------------
 SliceViewPreferencesPanel::SliceViewPreferencesPanel(SliceViewPreferences* preferences)

@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
+    Copyright (C) 2011  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,18 +16,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "SampleProxy.h"
 
-#include "sampleProxy.h"
-
-#include "espina.h"
-#include "sample.h"
-#include "segmentation.h"
-
-// libCajal
-#include <data/modelItem.h>
-
-//Debug
-#include "espina_debug.h"
 
 SampleProxy::SampleProxy(QObject* parent)
     : QAbstractProxyModel(parent)
@@ -58,6 +48,7 @@ void SampleProxy::setSourceModel(QAbstractItemModel* sourceModel)
 //------------------------------------------------------------------------
 int SampleProxy::rowCount(const QModelIndex& parent) const
 {
+/*
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
 
   //updateSegmentations();
@@ -73,6 +64,7 @@ int SampleProxy::rowCount(const QModelIndex& parent) const
     int numSegs = m_sampleSegs[parentSample].size();
     return numSegs;//parentTax->getSubElements().size() + numSegs;
   }
+*/
   // Otherwise Segmentations have no children in the model
   return 0;
 }
@@ -80,6 +72,7 @@ int SampleProxy::rowCount(const QModelIndex& parent) const
 //------------------------------------------------------------------------
 QModelIndex SampleProxy::index(int row, int column, const QModelIndex& parent) const
 {
+/*
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
 
   if (!hasIndex(row, column, parent))
@@ -102,11 +95,14 @@ QModelIndex SampleProxy::index(int row, int column, const QModelIndex& parent) c
   IModelItem *internalPtr = m_sampleSegs[parentSample][row];
   assert(internalPtr);
   return createIndex(row, column, internalPtr);
+*/
+  return QModelIndex();
 }
 
 //------------------------------------------------------------------------
 QModelIndex SampleProxy::parent(const QModelIndex& child) const
 {
+/*
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
   assert(model);
 
@@ -126,11 +122,13 @@ QModelIndex SampleProxy::parent(const QModelIndex& child) const
     return mapFromSource(model->sampleIndex(childSeg->origin()));
 
   assert(false);
+*/
   return QModelIndex();
 }
 //------------------------------------------------------------------------
 QModelIndex SampleProxy::mapFromSource(const QModelIndex& sourceIndex) const
 {
+/*
   if (!sourceIndex.isValid())
     return QModelIndex();
   
@@ -164,12 +162,14 @@ QModelIndex SampleProxy::mapFromSource(const QModelIndex& sourceIndex) const
    }
    
    assert(false);
+*/
    return QModelIndex();
 }
 
 //------------------------------------------------------------------------
 QModelIndex SampleProxy::mapToSource(const QModelIndex& proxyIndex) const
 {
+/*
   if (!proxyIndex.isValid())
     return QModelIndex();
 
@@ -187,12 +187,14 @@ QModelIndex SampleProxy::mapToSource(const QModelIndex& proxyIndex) const
     return model->segmentationIndex(proxySeg);
 
   assert(false);
+*/
   return QModelIndex();
 }
 
 //------------------------------------------------------------------------
 void SampleProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start, int end)
 {
+/*
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
 
   if (sourceParent == model->sampleRoot())
@@ -213,11 +215,13 @@ void SampleProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start,
     beginInsertRows(parentIndex, row, row);
     endInsertRows();
   }
+*/
 }
 
 //------------------------------------------------------------------------
 void SampleProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, int start, int end)
 {
+/*
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
 
   if (sourceParent == model->sampleRoot())
@@ -235,12 +239,14 @@ void SampleProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, in
     QModelIndex proxyIndex = mapFromSource(sourceIndex);
     beginRemoveRows(proxyIndex.parent(),row,row);
   }
+*/
 }
 
 
 //------------------------------------------------------------------------
 void SampleProxy::sourceRowsRemoved(const QModelIndex& sourceParent, int start, int end)
 {
+/*
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
 
   if (sourceParent == model->sampleRoot())
@@ -251,15 +257,18 @@ void SampleProxy::sourceRowsRemoved(const QModelIndex& sourceParent, int start, 
     updateSegmentations();
     endRemoveRows();
   }
+*/
 }
 
 void SampleProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight)
 {
+/*
 //   qDebug() << "Sample source request update: " << sourceTopLeft;
   const QModelIndex proxyTopLeft = mapFromSource(sourceTopLeft);
   const QModelIndex proxyBottomRight = mapFromSource(sourceBottomRight);
   
   emit dataChanged(proxyTopLeft, proxyBottomRight);
+*/
 }
 
 
@@ -267,6 +276,7 @@ void SampleProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QMod
 //------------------------------------------------------------------------
 void SampleProxy::updateSegmentations() const
 {
+/*
   EspINA *model = dynamic_cast<EspINA *>(sourceModel());
   if (!model)
     return;
@@ -282,4 +292,5 @@ void SampleProxy::updateSegmentations() const
     assert(seg);
     m_sampleSegs[seg->origin()].push_back(seg);
   }
+*/
 }

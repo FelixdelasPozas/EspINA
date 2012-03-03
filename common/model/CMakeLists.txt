@@ -1,3 +1,5 @@
+add_subdirectory(proxies)
+
 set (MOC_SOURCES
   ${MOC_SOURCES}
   model/EspinaModel.h

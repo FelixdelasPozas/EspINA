@@ -26,25 +26,25 @@
 class Sample;
 class Segmentation;
 
-//! Group by Sample Espina Proxy
+/// Group by Sample Espina Proxy
 class SampleProxy : public QAbstractProxyModel
 {
   Q_OBJECT
 public:
-    SampleProxy(QObject* parent = 0);
-    virtual ~SampleProxy();
+  SampleProxy(QObject* parent = 0);
+  virtual ~SampleProxy();
     
-    virtual void setSourceModel(QAbstractItemModel* sourceModel);
-    
-    virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
-    virtual int columnCount(const QModelIndex& parent = QModelIndex()) const {return 1;}
-    virtual QModelIndex parent(const QModelIndex& child) const;
-    virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
-    virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
-    virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
-    
-protected slots:
-  void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
+  virtual void setSourceModel(QAbstractItemModel* sourceModel);
+
+  virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
+  virtual int columnCount(const QModelIndex& parent = QModelIndex()) const {return 1;}
+  virtual QModelIndex parent(const QModelIndex& child) const;
+  virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
+  virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
+  virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
+
+  protected slots:
+	  void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
   void sourceRowsAboutToBeRemoved(const QModelIndex & sourceParent, int start, int end);
   void sourceRowsRemoved(const QModelIndex & sourceParent, int start, int end);
   void sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight);
@@ -53,7 +53,7 @@ protected:
   void updateSegmentations() const;
   
 private:
-  mutable QMap<const Sample *, QList<Segmentation *> > m_sampleSegs;
+//  mutable QMap<const Sample *, QList<Segmentation *> > m_sampleSegs;
 };
 
 #endif // SAMPLEPROXY_H

@@ -47,9 +47,9 @@ std::ostream& operator << ( std::ostream& out, const VertexProperty& v)
 std::istream& operator >> ( std::istream& in, VertexProperty& v)
 {
   const int MAX = 10000;
+  char buff[MAX];
   in >> v.vId;
   in >> v.shape;
-  char buff[MAX];
   in.getline(buff, 2);//Process shape's endl
   in.getline(buff, MAX);
   v.name = buff;

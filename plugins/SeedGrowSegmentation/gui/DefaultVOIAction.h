@@ -20,7 +20,7 @@
 #ifndef DEFAULTVOIACTION_H
 #define DEFAULTVOIACTION_H
 
-#include <qt4/QtGui/QWidgetAction>
+#include <QWidgetAction>
 
 
 class DefaultVOIAction

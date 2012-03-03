@@ -73,7 +73,7 @@ QVariant Segmentation::data(int role) const
   {
     case Qt::DisplayRole:
 //     //case Qt::EditRole:
-      return QString("Segmentation-%1").arg(m_args.number());
+      return QString("Segmentation %1").arg(m_args.number());
 //     case Qt::DecorationRole:
 //     {
 //       QPixmap segIcon(3,16);

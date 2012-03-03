@@ -66,12 +66,12 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   this->layout()->addWidget(xyView);
   this->layout()->setMargin(0);
 
-  volDock = QSharedPointer<QDockWidget>(new QDockWidget(tr("3D"),parent));
+  volDock = new QDockWidget(tr("3D"),parent);
   volDock->setObjectName("volDock");
   volView = new VolumeView(this);
   volDock->setWidget(volView);
   
-  yzDock = QSharedPointer<QDockWidget>(new QDockWidget(tr("YZ"),parent));
+  yzDock = new QDockWidget(tr("YZ"),parent);
   yzDock->setObjectName("yzDock");
   yzView = new SliceView(vtkPVSliceView::SAGITTAL);
   yzView->setCrossHairColors(blue, cyan);
@@ -80,7 +80,7 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
 	  this, SLOT(setCenter(double,double,double)));
   yzDock->setWidget(yzView);
 
-  xzDock = QSharedPointer<QDockWidget>(new QDockWidget(tr("XZ"),parent));
+  xzDock = new QDockWidget(tr("XZ"),parent);
   xzDock->setObjectName("xzDock");
   xzView = new SliceView(vtkPVSliceView::CORONAL);
   xzView->setCrossHairColors(cyan, magenta);
@@ -89,9 +89,9 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
 	  this, SLOT(setCenter(double,double,double)));
   xzDock->setWidget(xzView);
 
-  parent->addDockWidget(Qt::RightDockWidgetArea, volDock.data());
-  parent->addDockWidget(Qt::RightDockWidgetArea, yzDock.data());
-  parent->addDockWidget(Qt::RightDockWidgetArea, xzDock.data());
+  parent->addDockWidget(Qt::RightDockWidgetArea, volDock);
+  parent->addDockWidget(Qt::RightDockWidgetArea, yzDock);
+  parent->addDockWidget(Qt::RightDockWidgetArea, xzDock);
 
   parent->setCentralWidget(this);
 }

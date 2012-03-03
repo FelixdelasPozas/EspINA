@@ -61,7 +61,7 @@ private:
 
   SliceView  *xyView, *yzView, *xzView;
   VolumeView *volView;
-  QSharedPointer<QDockWidget> volDock, yzDock, xzDock;
+  QDockWidget *volDock, *yzDock, *xzDock;
   double m_gridSize[3];
 };
 
