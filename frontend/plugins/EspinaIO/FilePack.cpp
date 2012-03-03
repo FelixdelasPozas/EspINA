@@ -185,7 +185,7 @@ bool IOEspinaFile::loadFile(QString filePath,
         return false;
       continue;
     }
-    qDebug() << "IOEspinaFile::loadFile: extracting" << actualFileName; //TODO espina_debug
+//     qDebug() << "IOEspinaFile::loadFile: extracting" << actualFileName; //TODO espina_debug
     if( actualFileName == TAXONOMY ) {
       if( !taxPorcessed )
         TaxonomyContent << file.readAll();

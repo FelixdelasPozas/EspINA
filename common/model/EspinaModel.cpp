@@ -31,6 +31,7 @@
 #include "common/model/Taxonomy.h"
 #include "common/model/EspinaFactory.h"
 #include "common/EspinaCore.h"
+#include <gui/EspinaView.h>
 
 //------------------------------------------------------------------------
 EspinaModel::EspinaModel ( QObject* parent )
