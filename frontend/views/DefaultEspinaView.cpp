@@ -216,7 +216,7 @@ void DefaultEspinaView::rowsInserted(const QModelIndex& parent, int start, int e
 	Q_ASSERT(start == end);// Only 1-row-at-a-time insertions are allowed
 	Channel *channel = dynamic_cast<Channel *>(item);
 	//       item.dynamicCast<ChannelPtr>();
-	qDebug() << "Add Channel:" << channel->data(Qt::DisplayRole).toString();
+// 	qDebug() << "Add Channel:" << channel->data(Qt::DisplayRole).toString();
 	
 	//BEGIN Only at sample LOD
 	double spacing[3];
@@ -232,12 +232,13 @@ void DefaultEspinaView::rowsInserted(const QModelIndex& parent, int start, int e
 	yzView->addChannelRepresentation(channel);
 	xzView->addChannelRepresentation(channel);
 	QApplication::restoreOverrideCursor();
+	resetCamera();
 	break;
       }
       case ModelItem::SEGMENTATION:
       {
 	Segmentation *seg = dynamic_cast<Segmentation *>(item);
-	qDebug() << "Add Segmentation:" << seg->data(Qt::DisplayRole).toString();
+// 	qDebug() << "Add Segmentation:" << seg->data(Qt::DisplayRole).toString();
 	xyView->addSegmentationRepresentation(seg);
 	yzView->addSegmentationRepresentation(seg);
 	xzView->addSegmentationRepresentation(seg);
