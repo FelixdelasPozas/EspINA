@@ -688,6 +688,7 @@ void EspinaModel::setTaxonomy(Taxonomy *tax)
     {
         beginRemoveRows ( taxonomyRoot(),0,rowCount ( taxonomyRoot() )-1 );
         delete m_tax;
+	m_tax = NULL;
         endRemoveRows();
     }
 
