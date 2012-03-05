@@ -98,7 +98,6 @@ ModelItem::Vector ModelItem::relatedItems(ModelItem::RelationType rel, const QSt
   Vector res;
 
   Q_ASSERT(m_relations);
-  qDebug()<< "Vertex Id" << m_vertex;
   if (rel == IN || rel == INOUT)
     foreach(VertexProperty v, m_relations->ancestors(m_vertex, filter))
       res << v.item;

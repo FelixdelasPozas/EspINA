@@ -58,6 +58,7 @@ vtkSliceRepresentation::vtkSliceRepresentation()
   Slice->ReleaseDataFlagOn();
   DeliveryFilter->ReleaseDataFlagOn();
 
+  SliceActor.prop = NULL;
   this->SliceProp->GetMapper()->SetInputConnection(Slice->GetOutputPort());
 //   qDebug() << "Created Representation" << this;
 }
@@ -175,9 +176,9 @@ int vtkSliceRepresentation::RequestData (
 //     clone->CopyInformation(input);
 //     clone->GetExtent(e);
     Slice->SetInput ( clone );
-    clone->Delete();
     Slice->Update();
     this->SliceData->ShallowCopy ( Slice->GetOutput() );
+    clone->Delete();
     input->GetBounds(SliceActor.bounds);
     this->DeliveryFilter->SetInput ( input );
   }
@@ -234,6 +235,7 @@ void vtkSliceRepresentation::SetVisibility(bool val)
 {
   SliceProp->SetVisibility(val);
   vtkPVDataRepresentation::SetVisibility(val);
+  SliceActor.visible = val;
 }
 
 //----------------------------------------------------------------------------
@@ -248,4 +250,16 @@ void vtkSliceRepresentation::SetColor(double color)
   SliceActor.lut->SetSaturationRange(0.0, saturation);
   SliceActor.lut->SetHueRange(Color, Color);
   SliceActor.lut->Build();
+}
+
+//----------------------------------------------------------------------------
+void vtkSliceRepresentation::SetOpacity(double value)
+{
+//   if (Opacity == value)
+//     return;
+
+  Opacity = value;
+  if (SliceActor.prop)
+    SliceActor.prop->SetOpacity(value);
+  Modified();
 }

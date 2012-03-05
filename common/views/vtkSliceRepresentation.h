@@ -52,8 +52,9 @@ public:
   void SetColor(double color);
   vtkGetMacro(Color, double);
 
-  vtkSetMacro(Opacity, double);
+  void SetOpacity(double value);
   vtkGetMacro(Opacity, double);
+//   vtkSetMacro(Opacity, double);
 
   vtkSetVector3Macro(Position, int);
   vtkGetVector3Macro(Position, int);

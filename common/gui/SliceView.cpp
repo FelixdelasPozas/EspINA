@@ -75,6 +75,7 @@
 #include <vtkPropCollection.h>
 #include <pq3DWidget.h>
 #include <vtkSMProxyManager.h>
+#include <vtkSMPropertyHelper.h>
 
 //-----------------------------------------------------------------------------
 SliceViewPreferencesPanel::SliceViewPreferencesPanel(SliceViewPreferences* preferences)
@@ -902,6 +903,18 @@ void SliceView::removeSegmentationRepresentation(pqOutputPort* oport)
 }
 
 //-----------------------------------------------------------------------------
+void SliceView::updateSegmentationRepresentation(Segmentation* seg)
+{
+  Q_ASSERT(m_segmentations.contains(seg));
+  vtkSMRepresentationProxy *repProxy = m_segmentations[seg];
+//   repProxy->PrintSelf(std::cout,vtkIndent(0));
+  vtkSMPropertyHelper(repProxy, "Visibility").Set(seg->visible());
+  double opacity = seg->selected()?1.0:0.7;
+  vtkSMPropertyHelper(repProxy, "Opacity").Set(&opacity, 1);
+  repProxy->UpdateVTKObjects();
+}
+
+//-----------------------------------------------------------------------------
 void SliceView::addPreview(Filter* filter)
 {
   addPreview(filter->preview().outputPort());
@@ -1055,136 +1068,6 @@ void SliceView::centerViewOn(double center[3])
   m_view->centerViewOn(m_center[0], m_center[1], m_center[2]);
 }
 
-
-// //-----------------------------------------------------------------------------
-// void SliceView::setPlane(ViewType plane)
-// {
-//   m_plane = plane;
-//   delete m_preferences;
-//   m_preferences = new SliceViewPreferences(m_plane);
-// }
-// 
-// 
-// //-----------------------------------------------------------------------------
-// QRegion SliceView::visualRegionForSelection(const QItemSelection& selection) const
-// {
-// //   qDebug() << "Visual region required";
-//   return QRect();
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void SliceView::setSelection(const QRect& rect, QItemSelectionModel::SelectionFlags command)
-// {
-//   qDebug() << "Selection in sliceview";
-// }
-// 
-// //-----------------------------------------------------------------------------
-// bool SliceView::isIndexHidden(const QModelIndex& index) const
-// {
-//   if (!index.isValid())
-//     return true;
-// 
-//   if (index.internalId() < 3)
-//     return true;
-// 
-//   IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
-//   EspinaProduct *actor = dynamic_cast<EspinaProduct *>(item);
-//   return !actor;
-// }
-// 
-// //-----------------------------------------------------------------------------
-// int SliceView::verticalOffset() const
-// {
-//   return 0;
-// }
-// 
-// //-----------------------------------------------------------------------------
-// int SliceView::horizontalOffset() const
-// {
-//   return 0;
-// }
-// 
-// //-----------------------------------------------------------------------------
-// QModelIndex SliceView::moveCursor(QAbstractItemView::CursorAction cursorAction, Qt::KeyboardModifiers modifiers)
-// {
-//   return QModelIndex();
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void SliceView::rowsInserted(const QModelIndex& parent, int start, int end)
-// {
-//   //QAbstractItemView::rowsInserted(parent, start, end);
-//   
-//   //TODO: Multi samples
-//   assert(start == end);// Only 1-row-at-a-time inserts are allowed
-//   
-//   //QModelIndex index = parent.child(r,0);
-//   QModelIndex index  = model()->index(start, 0, parent);
-//   IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
-//   // Check for sample
-//   Sample *sample = dynamic_cast<Sample *>(item);
-//   if (sample)
-//   {
-//     //Use croshairs representation
-//     int mextent[6];
-//     sample->extent(mextent);
-//     int normalCoorToPlane = (m_plane + 2) % 3;
-//     int sliceOffset = m_plane==VIEW_PLANE_XY?1:0;
-//     int minSlices = mextent[2*normalCoorToPlane] + sliceOffset;
-//     int maxSlices = mextent[2*normalCoorToPlane+1] + sliceOffset;
-//     m_scrollBar->setMinimum(minSlices);
-//     m_spinBox->setMinimum(minSlices);
-//     m_scrollBar->setMaximum(maxSlices);
-//     m_spinBox->setMaximum(maxSlices);
-// 
-//     m_sampleRep = dynamic_cast<CrosshairExtension::SampleRepresentation *>(sample->representation("Crosshairs"));
-//     connect(m_sampleRep,SIGNAL(representationUpdated()),this,SLOT(updateScene()));
-//     connect(sample,SIGNAL(updated(Sample*)),this,SLOT(updateScene()));
-//     m_sampleRep->render(m_view,m_plane);
-//     
-//     m_focusedSample = sample;
-//     m_view->resetCamera();
-//   }  
-//   updateScene();
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void SliceView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end)
-// {
-//   //QAbstractItemView::rowsAboutToBeRemoved(parent, start, end);
-//   pqApplicationCore *core = pqApplicationCore::instance();
-//   pqObjectBuilder *ob = core->getObjectBuilder();
-//   assert(start == end);
-// 
-//   QModelIndex index = model()->index(start, 0, parent);
-//   IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
-//   // Check for sample
-//   Sample *sample = dynamic_cast<Sample *>(item);
-//   if (sample)
-//   {
-//     m_focusedSample = NULL;
-//     m_sampleRep = NULL;
-//     foreach(pqRepresentation *rep, m_view->getRepresentations())
-//     {
-//       rep->setVisible(false);
-//       ob->destroy(rep);
-//     }
-//     m_view->getRenderViewProxy()->GetRenderer()->RemoveAllViewProps();
-//   }
-//   updateScene();
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void SliceView::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight)
-// {
-//   if (!topLeft.isValid() || !bottomRight.isValid())
-//     return;
-//   
-//   updateScene();
-// }
-// 
-// 
-
 //-----------------------------------------------------------------------------
 SelectionHandler::VtkRegion SliceView::display2vtk(const QPolygonF &region)
 {
@@ -1209,71 +1092,3 @@ SelectionHandler::VtkRegion SliceView::display2vtk(const QPolygonF &region)
   return vtkRegion;
 
 }
-
-// //-----------------------------------------------------------------------------
-// void SliceView::setVOI(IVOI* voi)
-// {
-//   if (m_VOIWidget)
-//   {
-//     m_VOIWidget->deselect();
-//     m_VOIWidget->setVisible(false);
-//     m_voi->deleteWidget(m_VOIWidget);
-//   }
-//   
-//   if(!m_focusedSample)
-//     return;
-//   
-//   m_voi = voi;
-//   
-//   if (!voi)
-//     return;
-//  
-//   
-//   m_VOIWidget = voi->newWidget(m_plane);
-//   m_VOIWidget->setView(m_view);
-//   m_VOIWidget->setWidgetVisible(true);
-//   m_VOIWidget->select();
-// //   m_VOIWidget->accept();
-//   m_voi->resizeToDefaultSize();
-// //   m_VOIWidget->accept(); //Required to initialize internal proxy properties
-//   
-//   connect(m_voi,SIGNAL(voiModified()),this,SLOT(updateVOIVisibility()));
-//   
-//   updateVOIVisibility();
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void SliceView::updateVOIVisibility()
-// {
-// //   std::cout << "updating voi in plane: " << m_plane << std::endl;
-//   if (!m_VOIWidget)
-//     return;
-// 
-//   int sliceOffset = m_plane==VIEW_PLANE_XY?1:0;
-//   if (m_voi->intersectPlane(m_plane,m_spinBox->value()-sliceOffset))
-//     m_VOIWidget->setWidgetVisible(true);
-//   else
-//     m_VOIWidget->setWidgetVisible(false);
-// }
-// 
-// 
-// //-----------------------------------------------------------------------------
-// void SliceView::updateScene()
-// {
-//   if (m_sampleRep)
-//   {
-//     int sliceOffset = m_plane==VIEW_PLANE_XY?1:0;
-//     int newSlice = m_sampleRep->slice(m_plane)+sliceOffset;
-//     if (newSlice != m_spinBox->value())
-//       setSlice(m_sampleRep->slice(m_plane)+sliceOffset);
-// //   std::cout << "Render in SliceView" << std::endl;
-//       ISampleExtension *ext = m_focusedSample->extension("CountingRegionExtension");
-//       if (ext)
-//       {
-// 	foreach(QString rep, ext->availableRepresentations())
-// 	  m_focusedSample->representation(rep)->render(m_view,m_plane);
-//       }
-//   }
-//   m_view->render();
-// //   m_view->forceRender();
-// }

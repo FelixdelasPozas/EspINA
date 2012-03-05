@@ -578,7 +578,7 @@ void vtkPVSliceView::AddSegmentation(vtkPVSliceView::SliceActor* actor)
   actor->prop->SetVisibility(ShowSegmentations);
   double pos[3];
   actor->prop->GetPosition(pos);
-  pos[2] = pos[2] - 0.1;
+  pos[2] = pos[2] - 0.2;
   actor->prop->SetPosition(pos);
   Segmentations.append(actor);
 }
@@ -671,12 +671,9 @@ void vtkPVSliceView::SetSlice ( double pos )
     int upperBound = SlicingPlane * 2 + 1;
     foreach ( seg, Segmentations )
     {
-        //     double b[6];
-        //     seg->GetDisplayBounds(b);
-        //     qDebug() << b[0] << b[1] <<  b[2] <<  b[3] <<  b[4] <<  b[5];
         bool hide = seg->bounds[upperBound] < Center[SlicingPlane] ||
                     seg->bounds[lowerBound] > Center[SlicingPlane];
-        seg->prop->SetVisibility ( !hide && ShowSegmentations );
+        seg->prop->SetVisibility(seg->visible && !hide && ShowSegmentations);
     }
 }
 
@@ -776,7 +773,7 @@ void vtkPVSliceView::SetShowSegmentations ( bool visible )
     SliceActor *seg;
     foreach (seg, Segmentations)
     {
-        seg->prop->SetVisibility(visible);
+        seg->prop->SetVisibility(visible && seg->visible);
     }
     ShowSegmentations = visible;
 }

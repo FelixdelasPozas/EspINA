@@ -67,7 +67,7 @@ private:
 
   TaxonomyNode               *m_activeTaxonomy;
   Sample                     *m_sample;
-  EspinaModelPtr              m_model;
+  QSharedPointer<EspinaModel> m_model;
   QSharedPointer<QUndoStack>  m_undoStack;
   QSharedPointer<ViewManager> m_viewManager;
 };

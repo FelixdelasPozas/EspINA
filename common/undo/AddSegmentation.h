@@ -29,13 +29,13 @@
 class AddSegmentation : public QUndoCommand
 {
 public:
-  explicit AddSegmentation(SegmentationPtr seg,
+  explicit AddSegmentation(Segmentation *seg,
 			   QUndoCommand *parent=0);
   virtual void redo();
   virtual void undo();
 
 private:
-  SegmentationPtr m_segmentation;
+  Segmentation *m_segmentation;
 };
 
 #endif // ADDSEGMENTATION_H

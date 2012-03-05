@@ -96,10 +96,10 @@ void EspinaIO::readFile(const QString file )
   std::istringstream trace(TraceProp->GetElement(0));
   //     qDebug() << TraceSerialization;
 
-  EspinaModelPtr model = EspinaCore::instance()->model();
+  QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
   try
   {
-    TaxonomyPtr taxonomy = IOTaxonomy::loadXMLTaxonomy(TaxonomySerialization);
+    Taxonomy *taxonomy = IOTaxonomy::loadXMLTaxonomy(TaxonomySerialization);
     model->setTaxonomy(taxonomy);
     // 	taxonomy->print(3);
 

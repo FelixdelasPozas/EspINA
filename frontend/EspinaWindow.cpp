@@ -387,9 +387,9 @@ void EspinaWindow::openAnalysis()
 
   EspinaCore::instance()->loadFile(file);
 
-  if (m_model->taxonomy().isNull())
+  if (!m_model->taxonomy())
   {
-    TaxonomyPtr defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
+    Taxonomy *defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
     m_model->setTaxonomy(defaultTaxonomy);
   }
 
@@ -480,12 +480,11 @@ void EspinaWindow::saveAnalysis()
     QString filePath = analysisFile;
     filePath.remove(QRegExp("\\..*$"));
     QDir tmpDir(filePath);
-    SegmentationPtr seg;
+    Segmentation *seg;
     foreach(seg, m_model->segmentations())
     {
       QString tmpfilePath(seg->id() + ".pvd");
       tmpfilePath = tmpDir.filePath(tmpfilePath);
-//       pqActiveObjects::instance().setActivePort(seg->outputPort());
       qDebug() << "EspINA::saveSegementation" << tmpfilePath;
       pqPipelineSource *segWriter = ob->createFilter("writers","XMLPVDWriter", seg->volume().pipelineSource(), seg->volume().portNumber());
       vtkSMPropertyHelper(segWriter->getProxy(), "FileName").Set(tmpfilePath.toStdString().c_str());

@@ -21,7 +21,7 @@
 
 #include "common/EspinaCore.h"
 
-AddFilter::AddFilter(QSharedPointer< Filter > filter, QUndoCommand* parent)
+AddFilter::AddFilter(Filter* filter, QUndoCommand* parent)
 : QUndoCommand(parent)
 , m_filter(filter)
 {

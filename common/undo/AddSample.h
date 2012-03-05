@@ -31,12 +31,12 @@ class Sample;
 class AddSample : public QUndoCommand
 {
 public:
-  explicit AddSample(QSharedPointer<Sample> sample);
+  explicit AddSample(Sample *sample);
 
   virtual void redo();
   virtual void undo();
 
 private:
-  QSharedPointer<Sample> m_sample;
+  Sample *m_sample;
 };
 #endif // ADDSAMPLE_H

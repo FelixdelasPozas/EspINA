@@ -90,11 +90,11 @@ SeedGrowSegmentation::~SeedGrowSegmentation()
 }
 
 //-----------------------------------------------------------------------------
-FilterPtr SeedGrowSegmentation::createFilter(const QString filter, const QString args)
+Filter *SeedGrowSegmentation::createFilter(const QString filter, const QString args)
 {
   Q_ASSERT(filter == SGSF);
 
-  return FilterPtr(new SeedGrowSegmentationFilter(ModelItem::Arguments(args)));
+  return new SeedGrowSegmentationFilter(ModelItem::Arguments(args));
 }
 
 
@@ -168,16 +168,14 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
       Q_ASSERT(false);
     }
 
-    QSharedPointer<SeedGrowSegmentationFilter> filter =
-      QSharedPointer<SeedGrowSegmentationFilter>(
+    SeedGrowSegmentationFilter *filter =
 	new SeedGrowSegmentationFilter(input->volume(),
 				     growSeed,
 				     m_threshold->threshold(),
-				     VOI)
-		     );
+				     VOI);
 
     Q_ASSERT(filter->numProducts() == 1);
-    SegmentationPtr seg = filter->product(0);
+    Segmentation *seg = filter->product(0);
 
     TaxonomyNode *tax = EspinaCore::instance()->activeTaxonomy();
     Q_ASSERT(tax);
@@ -190,10 +188,10 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
     QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
     undo->beginMacro("Add Segmentation");
     undo->push(new AddFilter(filter));
-    undo->push(new AddRelation(input,filter.data(),"Channel"));
+    undo->push(new AddRelation(input,filter,"Channel"));
     undo->push(new AddSegmentation(seg));
     undo->push(new AddRelation(filter, seg, "CreateSegmentation"));
-    undo->push(new AddRelation(sample, seg.data(), "where"));
+    undo->push(new AddRelation(sample, seg, "where"));
     undo->endMacro();
 
   // args.insert("VOI",SelectionManager::instance()->voi()->save());

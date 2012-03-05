@@ -102,6 +102,4 @@ private:
 //   QMap<QString, IChannelExtension *> m_informations;
 };
 
-typedef QSharedPointer<Channel> ChannelPtr;
-
 #endif // CHANNEL_H

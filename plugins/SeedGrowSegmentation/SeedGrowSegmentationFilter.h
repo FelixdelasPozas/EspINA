@@ -109,7 +109,7 @@ public:
   /// Implements Filter Interface
   pqData preview();
   virtual int numProducts() const;
-  virtual SegmentationPtr product(int index) const;
+  virtual Segmentation *product(int index) const;
 //   virtual QList<vtkProduct *> products() {return m_finalFilter->products();}
 //   virtual QString getFilterArguments() const {return EspinaFilter::getFilterArguments();}
 //   virtual void removeProduct(vtkProduct* product);
@@ -128,7 +128,7 @@ private:
   pqFilter *grow, *extract;
   pqFilter *segFilter;
 
-  SegmentationPtr m_seg;
+  Segmentation *m_seg;
 //   friend class SetupWidget;
 };
 

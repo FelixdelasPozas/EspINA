@@ -54,6 +54,8 @@ public:
       vtkSmartPointer<vtkLookupTable> lut;
       vtkImageResliceToColors *mapper;
       vtkImageActor *prop;
+      bool   visible;
+      bool   selected;
       double bounds[6];
     };
 

@@ -70,6 +70,7 @@ public:
   /// Model Item Interface
   virtual QString id() const;
   virtual QVariant data(int role) const;
+  virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
   virtual ItemType type() const {return ModelItem::SEGMENTATION;}
   virtual QString serialize() const;
   /// Selectable Item Interface
@@ -82,6 +83,12 @@ public:
 //   virtual void color(double* rgba);
 //   virtual void setSelected(bool value) {m_isSelected = value;}
 //   virtual bool isSelected() {return m_isSelected;}
+
+  // State
+  bool visible() const {return m_isVisible;}
+  void setVisible(bool visible);
+  bool selected() const {return m_isSelected;}
+  void setSelected(bool selected);
 
   /// Add a new extension to the segmentation
   /// Extesion won't be available until requirements are satisfied
@@ -114,9 +121,8 @@ private:
 //   QMap<ISegmentationRepresentation::RepresentationId, ISegmentationExtension *> m_representations;
   QMap<QString, SegmentationExtension::SPtr> m_informations;
 
-//   bool m_isSelected;
+  bool m_isSelected;
+  bool m_isVisible;
 };
-
-typedef QSharedPointer<Segmentation> SegmentationPtr;
 
 #endif // PRODUCTS_H

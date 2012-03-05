@@ -34,9 +34,9 @@ public:
   void registerReader(const QString extension, ReaderFactory *factory);
   void registerSegmentationExtension(SegmentationExtension::SPtr extension);
 
-  FilterPtr createFilter(const QString filter, const QString args);
-  SamplePtr createSample(const QString id,     const QString args = "");
-  SegmentationPtr createSegmentation(Filter* parent, int output, pqData data);
+  Filter *createFilter(const QString filter, const QString args);
+  Sample *createSample(const QString id,     const QString args = "");
+  Segmentation *createSegmentation(Filter* parent, int output, pqData data);
 
   void readFile(const QString file, const QString ext);
 //   void addSampleExtension(ISampleExtension *ext);

@@ -26,3 +26,11 @@ set (PVCORE_XML
   PARENT_SCOPE
   )
 
+add_library(fake
+  pqSliceView.cpp
+  vtkPVSliceView.cpp
+  vtkSMSliceViewProxy.cpp
+  vtkChannelRepresentation.cpp
+  vtkSegmentationRepresentation.cpp
+  vtkSliceRepresentation.cpp
+)

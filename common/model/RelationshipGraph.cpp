@@ -435,7 +435,7 @@ void RelationshipGraph::write(std::ostream &stream, RelationshipGraph::PrintForm
   {
     case BOOST:
       stream << boost::write(m_graph) << std::endl;
-      std::cout << boost::write(m_graph) << std::endl;
+//       std::cout << boost::write(m_graph) << std::endl;
       break;
     case GRAPHVIZ:
     {

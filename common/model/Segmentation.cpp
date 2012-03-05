@@ -32,6 +32,8 @@ Segmentation::Segmentation(Filter* filter, int output, pqData data)
 : m_filter (filter)
 , m_data   (data)
 , m_tax    (NULL)
+, m_isSelected(false)
+, m_isVisible(true)
 {
   m_args.setNumber(0);
   m_args.setOutput(output);
@@ -80,21 +82,21 @@ QVariant Segmentation::data(int role) const
 //       segIcon.fill(m_taxonomy->color());
 //       return segIcon;
 //     }
-//     case Qt::ToolTipRole:
-//       return QString(
-// 	"<b>Name:</b> %1<br>"
+    case Qt::ToolTipRole:
+      return QString(
+	"<b>Name:</b> %1<br>"
 // 	"<b>Taxonomy:</b> %2<br>"
 // 	"<b>Sample:</b> %3<br>"
 // 	"<b>Created by:</b><br>"
 // 	"%4"
-//       )
-//       .arg(label())
+      )
+      .arg(data(Qt::DisplayRole).toString())
 //       .arg(m_taxonomy->qualifiedName())
 //       .arg(origin()->label())
 //       .arg(m_parent->getFilterArguments())
-//       ;
-//     case Qt::CheckStateRole:
-//       return visible()?Qt::Checked:Qt::Unchecked;
+      ;
+    case Qt::CheckStateRole:
+      return visible()?Qt::Checked:Qt::Unchecked;
 // //     case Qt::FontRole:
 // //     {
 // //       QFont myFont;
@@ -124,25 +126,34 @@ QString Segmentation::serialize() const
 //   rgba[2] = color.blue()/255.0;
 //   rgba[3] = 1;
 // }
-// 
-// 
-// //------------------------------------------------------------------------
-// bool Segmentation::setData(const QVariant& value, int role)
-// {
-//   switch (role)
-//   {
-//     case Qt::EditRole:
-//       return true;
-//     case Qt::CheckStateRole:
-//       setVisible(value.toBool());
-//       return true;
-//     //case Qt::DecorationRole:
-//       //m_repMap["01_Color"]->requestUpdate();
-//       //return true;
-//     default:
-//       return false;
-//   }
-// }
+
+//------------------------------------------------------------------------
+bool Segmentation::setData(const QVariant& value, int role)
+{
+  switch (role)
+  {
+    case Qt::EditRole:
+      return true;
+    case Qt::CheckStateRole:
+      setVisible(value.toBool());
+      return true;
+    default:
+      return false;
+  }
+}
+
+//------------------------------------------------------------------------
+void Segmentation::setSelected(bool selected)
+{
+  m_isSelected = selected;
+}
+
+//------------------------------------------------------------------------
+void Segmentation::setVisible(bool visible)
+{
+  m_isVisible = visible;
+}
+
 
 //------------------------------------------------------------------------
 void Segmentation::addExtension(SegmentationExtension::SPtr ext)

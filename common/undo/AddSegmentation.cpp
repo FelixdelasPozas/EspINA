@@ -22,8 +22,8 @@
 #include "common/EspinaCore.h"
 #include "common/model/EspinaModel.h"
 
-AddSegmentation::AddSegmentation(SegmentationPtr seg,
-				 QUndoCommand* parent)
+AddSegmentation::AddSegmentation(Segmentation *seg,
+				 QUndoCommand *parent)
 : QUndoCommand(parent)
 , m_segmentation(seg)
 {
@@ -32,13 +32,13 @@ AddSegmentation::AddSegmentation(SegmentationPtr seg,
 
 void AddSegmentation::redo()
 {
-  EspinaModelPtr model = EspinaCore::instance()->model();
+  QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
 
   model->addSegmentation(m_segmentation);
 }
 
 void AddSegmentation::undo()
 {
-  EspinaModelPtr model = EspinaCore::instance()->model();
+  QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
   model->removeSegmentation(m_segmentation);
 }

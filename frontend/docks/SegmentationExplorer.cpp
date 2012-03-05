@@ -24,6 +24,7 @@
 
 #include <iostream>
 #include <cstdio>
+#include <model/ModelTest.h>
 
 //------------------------------------------------------------------------
 class SegmentationExplorer::GUI
@@ -31,8 +32,14 @@ class SegmentationExplorer::GUI
 , public Ui::SegmentationExplorer
 {
 public:
-  GUI(){setupUi(this);}
+  GUI();
 };
+
+SegmentationExplorer::GUI::GUI()
+{
+  setupUi(this);
+}
+
 
 //------------------------------------------------------------------------
 class State
@@ -52,6 +59,9 @@ SegmentationExplorer::SegmentationExplorer(QSharedPointer< EspinaModel> model, Q
 
   SampleProxy *proxy = new SampleProxy();
   proxy->setSourceModel(m_baseModel.data());
+#ifdef DEBUG
+  m_modelTester = QSharedPointer<ModelTest>(new ModelTest(proxy));
+#endif
   m_gui->view->setModel(proxy);
 
   connect(m_gui->deleteSegmentation, SIGNAL(clicked(bool)),

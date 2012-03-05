@@ -22,7 +22,6 @@
 
 #include "vtkSliceRepresentation.h"
 
-
 class vtkSegmentationRepresentation : public vtkSliceRepresentation
 {
 public:

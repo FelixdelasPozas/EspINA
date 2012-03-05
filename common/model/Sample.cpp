@@ -17,7 +17,9 @@
 */
 
 
+#include "common/model/Channel.h"
 #include "common/model/Sample.h"
+#include "common/model/Segmentation.h"
 
 #include <QDebug>
 
@@ -79,13 +81,13 @@ void Sample::setBounds(double value[6])
 }
 
 //------------------------------------------------------------------------
-void Sample::addChannel(ChannelPtr channel)
+void Sample::addChannel(Channel *channel)
 {
 
 }
 
 //------------------------------------------------------------------------
-void Sample::addSegmentation(SegmentationPtr seg)
+void Sample::addSegmentation(Segmentation *seg)
 {
 
 }

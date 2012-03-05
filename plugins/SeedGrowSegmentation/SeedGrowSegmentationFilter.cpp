@@ -323,7 +323,7 @@ int SeedGrowSegmentationFilter::numProducts() const
 }
 
 //-----------------------------------------------------------------------------
-SegmentationPtr SeedGrowSegmentationFilter::product(int index) const
+Segmentation *SeedGrowSegmentationFilter::product(int index) const
 {
   Q_ASSERT(segFilter->getNumberOfData() > index);
   return m_seg;

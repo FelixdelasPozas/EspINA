@@ -29,6 +29,12 @@
 
 class EspinaModel;
 
+#define DEBUG
+
+#ifdef DEBUG
+class ModelTest;
+#endif
+
 class SegmentationExplorer : public EspinaDockWidget
 {
   Q_OBJECT
@@ -46,6 +52,10 @@ protected:
   GUI *m_gui;
   QSharedPointer<EspinaModel> m_baseModel;
   State *m_state;
+private:
+#ifdef DEBUG
+  QSharedPointer<ModelTest>   m_modelTester;
+#endif
 };
 
 #endif // SEGMENTATIONEXPLORER_H

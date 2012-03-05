@@ -62,14 +62,14 @@ public:
   //Implements Filter Interface
   virtual pqData preview(){return pqData();}
   virtual int numProducts() const {return m_blocks.size();}
-  virtual SegmentationPtr product(int index) const;
+  virtual Segmentation *product(int index) const;
 
   //Own methods
-  QList<SegmentationPtr> segmentations() {return m_blocks.values();}
+  QList<Segmentation *> segmentations() {return m_blocks.values();}
 
 private:
   pqFilter *m_segReader;
-  QMap<QString, SegmentationPtr> m_blocks;
+  QMap<QString, Segmentation *> m_blocks;
 
   SArguments m_args;
 //   friend class SetupWidget;

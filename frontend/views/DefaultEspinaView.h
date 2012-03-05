@@ -22,6 +22,7 @@
 
 #include <common/gui/EspinaView.h>
 
+class Segmentation;
 // Forward-declaration
 class SliceView;
 class VolumeView;
@@ -48,9 +49,14 @@ public:
   virtual void setShowSegmentations(bool visibility);
   void setCenter(double x, double y, double z);
 
+protected:
+  void addSegmentation(Segmentation *seg);
+  void removeSegmentation(Segmentation *seg);
+
 protected slots:
   virtual void rowsInserted(const QModelIndex& parent, int start, int end);
   virtual void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end);
+  virtual void dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight);
 
   void setFitToSlices(bool fit);
   void setRulerVisibility(bool visible);

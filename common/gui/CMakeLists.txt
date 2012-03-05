@@ -22,3 +22,15 @@ set (CORE_SOURCES
   gui/VolumeView.cpp
   PARENT_SCOPE
   )
+
+add_library(gui_fake
+  ActionSelector.cpp
+  ActionSelectorWidget.cpp
+  DynamicWidget.cpp
+  EspinaDockWidget.cpp
+  EspinaView.cpp
+  SliceView.cpp
+  ViewFrame.cpp
+  ViewManager.cpp
+  VolumeView.cpp
+  )

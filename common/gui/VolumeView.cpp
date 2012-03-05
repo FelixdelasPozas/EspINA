@@ -175,7 +175,7 @@ void VolumeView::onConnect()
 //-----------------------------------------------------------------------------
 void VolumeView::onDisconnect()
 {
-  pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
+//   pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
 //    qDebug() << this << ": Disconnecting from server";
 //   if (m_view)
 //   {

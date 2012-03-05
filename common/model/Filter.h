@@ -34,12 +34,9 @@ public:
   virtual ~Filter(){}
 
   virtual int numProducts() const = 0;
-  virtual SegmentationPtr product(int index) const = 0;
+  virtual Segmentation *product(int index) const = 0;
 
   virtual pqData preview() = 0;
 };
-
-typedef QSharedPointer<Filter> FilterPtr;
-
 
 #endif // FILTER_H

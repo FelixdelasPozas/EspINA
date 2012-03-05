@@ -166,6 +166,19 @@
    </item>
    <item>
     <widget class="QTableView" name="tableView">
+     <property name="styleSheet">
+      <string notr="true">QTableView::indicator {
+     width: 15px;
+     height: 15px;
+ }
+QTableView::indicator:checked {
+     image: url(:/espina/show_all.svg);
+ } 
+QTableView::indicator:unchecked {
+     image: url(:/espina/hide_all.svg);
+ } 
+</string>
+     </property>
      <property name="selectionBehavior">
       <enum>QAbstractItemView::SelectRows</enum>
      </property>

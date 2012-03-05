@@ -18,9 +18,12 @@
 
 #include "CountingRegion.h"
 #include "ui_CountingRegion.h"
+
 #include <common/EspinaCore.h>
-#include "regions/RectangularBoundingRegion.h"
+#include <common/model/Channel.h>
 #include <common/gui/EspinaView.h>
+
+#include "regions/RectangularBoundingRegion.h"
 #include "regions/AdaptiveBoundingRegion.h"
 
 // #include "CountingRegionExtension.h"

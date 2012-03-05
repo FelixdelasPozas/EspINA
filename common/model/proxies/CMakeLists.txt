@@ -9,3 +9,5 @@ set (CORE_SOURCES
   model/proxies/SampleProxy.cpp
   PARENT_SCOPE
   )
+
+# add_library(fake SampleProxy.cpp)

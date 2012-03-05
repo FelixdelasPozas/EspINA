@@ -27,11 +27,7 @@
 
 #include "ModelItem.h"
 
-#include "Channel.h"
-#include "Segmentation.h"
-
 #include <QList>
-#include <QSharedPointer>
 #include <QString>
 
 class Channel;
@@ -51,8 +47,8 @@ public:
   void bounds(double value[6]);   //nm
   void setBounds(double value[6]);//nm
 
-  void addChannel(ChannelPtr channel);
-  void addSegmentation(SegmentationPtr seg);
+  void addChannel(Channel *channel);
+  void addSegmentation(Segmentation *seg);
 
   /// ModelItem Interface
   virtual QString id() const {return m_ID;}
@@ -65,10 +61,8 @@ private:
   int  m_position[3];//nm
   double  m_bounds[6];//nm
 
-  QList<ChannelPtr>      m_channels;
-  QList<SegmentationPtr> m_segmentations;
+  QList<Channel *>      m_channels;
+  QList<Segmentation *> m_segmentations;
 };
-
-typedef QSharedPointer<Sample> SamplePtr;
 
 #endif // SAMPLE_H

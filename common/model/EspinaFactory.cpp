@@ -61,7 +61,7 @@ void EspinaFactory::registerSegmentationExtension(SegmentationExtension::SPtr ex
 }
 
 //------------------------------------------------------------------------
-FilterPtr EspinaFactory::createFilter(const QString filter, const QString args)
+Filter *EspinaFactory::createFilter(const QString filter, const QString args)
 {
   Q_ASSERT(m_filterFactory.contains(filter));
 
@@ -69,19 +69,19 @@ FilterPtr EspinaFactory::createFilter(const QString filter, const QString args)
 }
 
 //------------------------------------------------------------------------
-SamplePtr EspinaFactory::createSample(const QString id, const QString args)
+Sample *EspinaFactory::createSample(const QString id, const QString args)
 {
   if (args.isNull())
-    return SamplePtr(new Sample(id));
+    return new Sample(id);
   else
-    return SamplePtr(new Sample(id, args));
+    return new Sample(id, args);
 }
 
 //------------------------------------------------------------------------
-SegmentationPtr EspinaFactory::createSegmentation(Filter* parent, int output, pqData data)
+Segmentation *EspinaFactory::createSegmentation(Filter* parent, int output, pqData data)
 {
 //   std::cout << "Factory is going to create a segmentation for vtkObject: " << vtkRef->id().toStdString() << std::endl;
-  SegmentationPtr seg(new Segmentation(parent, output, data));
+  Segmentation *seg = new Segmentation(parent, output, data);
   foreach(SegmentationExtension::SPtr ext, m_segExtensions)
     seg->addExtension(SegmentationExtension::SPtr(ext->clone()));
 

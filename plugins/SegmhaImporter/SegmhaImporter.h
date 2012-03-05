@@ -35,7 +35,7 @@ public:
   void onStartup();
   void onShutdown(){}
 
-  virtual FilterPtr createFilter(const QString filter, const QString args);
+  virtual Filter *createFilter(const QString filter, const QString args);
   virtual void readFile(const QString file);
 };
 

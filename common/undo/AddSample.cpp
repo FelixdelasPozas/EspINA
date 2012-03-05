@@ -23,7 +23,7 @@
 #include "common/model/Sample.h"
 #include "common/EspinaCore.h"
 
-AddSample::AddSample(QSharedPointer<Sample> sample)
+AddSample::AddSample(Sample *sample)
 : m_sample(sample)
 {}
 

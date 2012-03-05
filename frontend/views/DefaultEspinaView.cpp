@@ -199,6 +199,23 @@ void DefaultEspinaView::setCenter(double x, double y, double z)
 }
 
 //-----------------------------------------------------------------------------
+void DefaultEspinaView::addSegmentation(Segmentation* seg)
+{
+  xyView->addSegmentationRepresentation(seg);
+  yzView->addSegmentationRepresentation(seg);
+  xzView->addSegmentationRepresentation(seg);
+  volView->addSegmentationRepresentation(seg->volume().outputPort());
+}
+
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::removeSegmentation(Segmentation* seg)
+{
+  xyView->removeSegmentationRepresentation(seg);
+  yzView->removeSegmentationRepresentation(seg);
+  xzView->removeSegmentationRepresentation(seg);
+}
+
+//-----------------------------------------------------------------------------
 void DefaultEspinaView::rowsInserted(const QModelIndex& parent, int start, int end)
 {
   if (!parent.isValid())
@@ -239,10 +256,7 @@ void DefaultEspinaView::rowsInserted(const QModelIndex& parent, int start, int e
       {
 	Segmentation *seg = dynamic_cast<Segmentation *>(item);
 // 	qDebug() << "Add Segmentation:" << seg->data(Qt::DisplayRole).toString();
-	xyView->addSegmentationRepresentation(seg);
-	yzView->addSegmentationRepresentation(seg);
-	xzView->addSegmentationRepresentation(seg);
-	volView->addSegmentationRepresentation(seg->volume().outputPort());
+	addSegmentation(seg);
 	break;
       }
       default:
@@ -286,14 +300,31 @@ void DefaultEspinaView::rowsAboutToBeRemoved(const QModelIndex& parent, int star
       {
 	Segmentation *seg = dynamic_cast<Segmentation *>(item);
 	qDebug() << "Remove Segmentation:" << seg->data(Qt::DisplayRole).toString();
-	xyView->removeSegmentationRepresentation(seg);
-	yzView->removeSegmentationRepresentation(seg);
-	xzView->removeSegmentationRepresentation(seg);
+	removeSegmentation(seg);
 	break;
       }
       default:
 	break;
     };
+  }
+  xyView->forceRender();
+  yzView->forceRender();
+  xzView->forceRender();
+}
+
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight)
+{
+  if (!topLeft.isValid() || !topLeft.parent().isValid())
+    return;
+
+  ModelItem *item = indexPtr(topLeft);
+  if (ModelItem::SEGMENTATION == item->type())
+  {
+    Segmentation *seg = dynamic_cast<Segmentation *>(item);
+    xyView->updateSegmentationRepresentation(seg);
+    yzView->updateSegmentationRepresentation(seg);
+    xzView->updateSegmentationRepresentation(seg);
   }
   xyView->forceRender();
   yzView->forceRender();

@@ -111,22 +111,20 @@ private:
   TaxonomyNode *m_root;
 };
 
-typedef QSharedPointer<Taxonomy> TaxonomyPtr;
-
 class IOTaxonomy
 {
 public:
-  static TaxonomyPtr openXMLTaxonomy( QString fileName);
-  static TaxonomyPtr loadXMLTaxonomy( QString content);
-  static void writeXMLTaxonomy(TaxonomyPtr tax, QString& destination);
+  static Taxonomy *openXMLTaxonomy(QString fileName);
+  static Taxonomy *loadXMLTaxonomy(QString content);
+  static void writeXMLTaxonomy(Taxonomy *tax, QString& destination);
 
 private:
   IOTaxonomy();
   ~IOTaxonomy();
 
-  static void writeTaxonomy(TaxonomyPtr tax, QXmlStreamWriter& stream);
-  static void writeTaxonomyNode(TaxonomyNode* node, QXmlStreamWriter& stream);
-  static TaxonomyPtr readXML(QXmlStreamReader& xmlStream);
+  static void writeTaxonomy(Taxonomy *tax, QXmlStreamWriter& stream);
+  static void writeTaxonomyNode(TaxonomyNode *node, QXmlStreamWriter& stream);
+  static Taxonomy *readXML(QXmlStreamReader &xmlStream);
 
   //static void writeXMLTaxonomy(TaxonomyNode& tax, QString fileName);
 };

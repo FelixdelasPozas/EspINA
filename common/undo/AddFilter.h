@@ -29,13 +29,13 @@
 class AddFilter : public QUndoCommand
 {
 public:
-  explicit AddFilter(QSharedPointer<Filter> filter, QUndoCommand *parent = 0);
+  explicit AddFilter(Filter *filter, QUndoCommand *parent = 0);
 
   virtual void redo();
   virtual void undo();
 
 private:
-  QSharedPointer<Filter> m_filter;
+  Filter *m_filter;
 };
 
 #endif // ADDFILTER_H

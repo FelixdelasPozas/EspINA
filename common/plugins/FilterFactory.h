@@ -26,7 +26,7 @@ class FilterFactory
 {
 public:
   virtual ~FilterFactory(){}
-  virtual FilterPtr createFilter(const QString filter, const QString args) = 0;
+  virtual Filter *createFilter(const QString filter, const QString args) = 0;
 
 protected:
   QString m_factoryName;

@@ -78,6 +78,7 @@ public:
 
   virtual QString  id() const = 0;
   virtual QVariant data(int role) const = 0;
+  virtual bool setData(const QVariant& value, int role = Qt::UserRole +1) {return false;}
   virtual QString  serialize() const {return QString("none");}
   virtual ItemType type() const = 0;
   Vector relatedItems(RelationType rel, const QString filter = "");

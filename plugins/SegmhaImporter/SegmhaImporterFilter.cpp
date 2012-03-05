@@ -117,7 +117,7 @@ SegmhaImporterFilter::SegmhaImporterFilter(const QString file)
 
   QStringList taxonomies = TaxonomySerialization.split(";");
 
-  TaxonomyPtr tax = TaxonomyPtr(new Taxonomy("Segmha"));
+  Taxonomy *tax = new Taxonomy("Segmha");
   QStringList availableTaxonomies;
   foreach(QString taxonomy, taxonomies)
   {
@@ -161,7 +161,7 @@ SegmhaImporterFilter::SegmhaImporterFilter(const QString file)
     vtkSMProxy *proxy = segImage->pipelineSource()->getProxy();
     proxy->UpdatePropertyInformation();
 
-    SegmentationPtr seg = EspinaFactory::instance()->createSegmentation(this, p, segImage->data(0));
+    Segmentation *seg = EspinaFactory::instance()->createSegmentation(this, p, segImage->data(0));
     QString qualifiedName = "Segmha/" + availableTaxonomies[segTaxonomies[p].toInt()-1];
     TaxonomyNode *node = tax->element(qualifiedName);
     Q_ASSERT(node);
@@ -191,7 +191,7 @@ SegmhaImporterFilter::SegmhaImporterFilter(ModelItem::Arguments args)
     if (segFilter == NULL)
       break;
 
-    SegmentationPtr seg = EspinaFactory::instance()->createSegmentation(this, block.toInt(), segFilter->data(0));
+    Segmentation *seg = EspinaFactory::instance()->createSegmentation(this, block.toInt(), segFilter->data(0));
     m_blocks[block] = seg;
   }
 
@@ -229,7 +229,7 @@ SegmhaImporterFilter::SegmhaImporterFilter(ModelItem::Arguments args)
 
   QStringList taxonomies = TaxonomySerialization.split(";");
 
-  TaxonomyPtr tax = TaxonomyPtr(new Taxonomy("Segmha"));
+  Taxonomy *tax = new Taxonomy("Segmha");
   QStringList availableTaxonomies;
   foreach(QString taxonomy, taxonomies)
   {
@@ -274,7 +274,7 @@ SegmhaImporterFilter::SegmhaImporterFilter(ModelItem::Arguments args)
     proxy->UpdatePropertyInformation();
 
     int pos = block.toInt();
-    SegmentationPtr seg = EspinaFactory::instance()->createSegmentation(this, block.toInt(), segImage->data(0));
+    Segmentation *seg = EspinaFactory::instance()->createSegmentation(this, block.toInt(), segImage->data(0));
     QString qualifiedName = "Segmha/" + availableTaxonomies[segTaxonomies[pos].toInt()-1];
     TaxonomyNode *node = tax->element(qualifiedName);
     Q_ASSERT(node);
@@ -316,7 +316,7 @@ QVariant SegmhaImporterFilter::data(int role) const
 }
 
 //-----------------------------------------------------------------------------
-SegmentationPtr SegmhaImporterFilter::product(int index) const
+Segmentation *SegmhaImporterFilter::product(int index) const
 {
   return m_blocks[QString::number(index)];
 }

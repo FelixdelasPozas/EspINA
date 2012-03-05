@@ -23,6 +23,7 @@
 #include <QAbstractProxyModel>
 
 // Forward declaration
+class EspinaModel;
 class Sample;
 class Segmentation;
 
@@ -33,13 +34,16 @@ class SampleProxy : public QAbstractProxyModel
 public:
   SampleProxy(QObject* parent = 0);
   virtual ~SampleProxy();
-    
-  virtual void setSourceModel(QAbstractItemModel* sourceModel);
+
+  virtual void setSourceModel(EspinaModel *sourceModel);
+
+  virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;
 
   virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
   virtual int columnCount(const QModelIndex& parent = QModelIndex()) const {return 1;}
   virtual QModelIndex parent(const QModelIndex& child) const;
   virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
+
   virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
   virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
 
@@ -48,12 +52,18 @@ public:
   void sourceRowsAboutToBeRemoved(const QModelIndex & sourceParent, int start, int end);
   void sourceRowsRemoved(const QModelIndex & sourceParent, int start, int end);
   void sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight);
-  
+
 protected:
+  bool indices(const QModelIndex &topLeft, const QModelIndex &bottomRight, QModelIndexList &result);
   void updateSegmentations() const;
-  
+  Sample *origin(Segmentation *seg) const;
+  int numberOfSegmentations(Sample *sample) const;
+  int numberOfSubSamples(Sample *sample) const;
+
 private:
-//  mutable QMap<const Sample *, QList<Segmentation *> > m_sampleSegs;
+  EspinaModel *m_model;
+  QList<Sample *> m_samples;
+  mutable QMap<const Sample *, QList<Segmentation *> > m_sampleSegs;
 };
 
 #endif // SAMPLEPROXY_H

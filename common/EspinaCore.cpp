@@ -23,6 +23,7 @@
 
 #include <QUndoStack>
 #include "model/EspinaFactory.h"
+#include "model/Channel.h"
 #include <QColorDialog>
 #include "cache/CachedObjectBuilder.h"
 #include "undo/AddSample.h"
@@ -83,11 +84,11 @@ void EspinaCore::loadChannel(const QString file)
     const QString channelName = channelFile.extendedName(file);
 
     // Try to recover sample form DB using channel information
-    SamplePtr sample = SamplePtr(new Sample(SampleName));
-    EspinaCore::instance()->setSample(sample.data());
+    Sample *sample = new Sample(SampleName);
+    EspinaCore::instance()->setSample(sample);
 
     m_undoStack->push(new AddSample(sample));
-    existingSample = sample.data();
+    existingSample = sample;
   }
 
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
@@ -96,7 +97,7 @@ void EspinaCore::loadChannel(const QString file)
 
 
   pqData channelData(channelReader, 0);
-  QSharedPointer<Channel> channel(new Channel(file, channelData));
+  Channel *channel = new Channel(file, channelData);
 
   int pos[3];
   existingSample->position(pos);
@@ -111,7 +112,7 @@ void EspinaCore::loadChannel(const QString file)
 
   m_undoStack->beginMacro("Add Data To Analysis");
   m_undoStack->push(new AddChannel(channel));
-  m_undoStack->push(new AddRelation(existingSample, channel.data(), "mark"));//TODO: como se llama esto???
+  m_undoStack->push(new AddRelation(existingSample, channel, "mark"));//TODO: como se llama esto???
 
   m_undoStack->endMacro();
 }

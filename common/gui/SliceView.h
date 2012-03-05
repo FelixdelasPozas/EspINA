@@ -133,6 +133,7 @@ public:
   void addSegmentationRepresentation(pqOutputPort *oport);
   void removeSegmentationRepresentation(Segmentation *seg);
   void removeSegmentationRepresentation(pqOutputPort *oport);
+  void updateSegmentationRepresentation(Segmentation* seg);
 
   virtual void addPreview(Filter* filter);
   virtual void removePreview(Filter* filter);
