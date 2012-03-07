@@ -37,9 +37,12 @@ class pqPipelineSource;
 
 class Segmentation : public SelectableItem
 {
+public:
   static const QString NUMBER;
+  static const QString FILTER;
   static const QString OUTPUT;
 
+private:
   class SArguments : public Arguments
   {
   public:

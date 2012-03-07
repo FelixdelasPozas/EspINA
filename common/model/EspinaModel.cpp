@@ -539,6 +539,8 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
     VertexProperty fv;
     if (m_relations->find(v, fv))
     {
+      qDebug() << "Looking for" << v.args.c_str();
+      qDebug() << "\tFound" << fv.args.c_str();
       input->setItem(v.vId, fv.item);
       qDebug() << "Updating existing vertex" << fv.item->data(Qt::DisplayRole).toString();
     }else
@@ -593,7 +595,8 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
 	  Q_ASSERT(ancestors.size() == 1);
 	  Filter *filter =  dynamic_cast<Filter *>(ancestors.first().item);
 	  ModelItem::Arguments args(QString(v.args.c_str()));
-	  Segmentation *seg = filter->product(args["Output"].toInt());
+	  Segmentation *seg = filter->product(args[Segmentation::OUTPUT].toInt());
+	  seg->setNumber(args[Segmentation::NUMBER].toInt());
 	  newSegmentations << seg;
 // 	  addSegmentation(seg);
 	  input->setItem(v.vId, seg);

@@ -25,6 +25,7 @@
 #include <iostream>
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/adjacency_list_io.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include <QDebug>
 
@@ -53,8 +54,12 @@ std::istream& operator >> ( std::istream& in, VertexProperty& v)
   in.getline(buff, 2);//Process shape's endl
   in.getline(buff, MAX);
   v.name = buff;
+  // a trailing space is added even there's no such a space
+  // on writing, then we have to trim it out
+  trim(v.name);
   in.getline(buff, MAX);
   v.args = buff;
+  trim(v.args);
   v.item = NULL;
   return in;
 }

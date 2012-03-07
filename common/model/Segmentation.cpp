@@ -25,6 +25,7 @@
 using namespace std;
 
 const QString Segmentation::NUMBER = "Number";
+const QString Segmentation::FILTER = "Filter";
 const QString Segmentation::OUTPUT = "Output";
 
 //-----------------------------------------------------------------------------
@@ -36,6 +37,7 @@ Segmentation::Segmentation(Filter* filter, int output, pqData data)
 , m_isVisible(true)
 {
   m_args.setNumber(0);
+  m_args[FILTER] = m_filter->id();
   m_args.setOutput(output);
 }
 
