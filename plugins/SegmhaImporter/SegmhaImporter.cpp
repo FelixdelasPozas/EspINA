@@ -23,11 +23,54 @@
 
 #include "SegmhaImporterFilter.h"
 #include <common/EspinaCore.h>
-#include <common/undo/AddFilter.h>
-#include <common/undo/AddSegmentation.h>
-#include <common/undo/AddRelation.h>
+#include <common/model/Channel.h>
 
 static const QString SEGMHA = "segmha";
+
+//-----------------------------------------------------------------------------
+SegmhaImporter::UndoCommand::UndoCommand(SegmhaImporterFilter *filter)
+: m_filter(filter)
+{
+  m_channel = m_filter->channel();
+  ModelItem::Vector samples = m_channel->relatedItems(ModelItem::IN, "mark");
+  Q_ASSERT(samples.size() > 0);
+  m_sample = dynamic_cast<Sample *>(samples.first());
+}
+
+//-----------------------------------------------------------------------------
+void SegmhaImporter::UndoCommand::redo()
+{
+  QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
+
+  QList<Segmentation *> segs = m_filter->segmentations();
+
+  model->addFilter(m_filter);
+  model->addSegmentation(segs);
+
+  foreach(Segmentation *seg, segs)
+  {
+    model->addRelation(m_filter, seg, "CreateSegmentation");
+    model->addRelation(m_sample, seg, "where");
+  }
+}
+
+//-----------------------------------------------------------------------------
+void SegmhaImporter::UndoCommand::undo()
+{
+  QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
+
+  QList<Segmentation *> segs = m_filter->segmentations();
+
+
+  foreach(Segmentation *seg, segs)
+  {
+    model->removeRelation(m_filter, seg, "CreateSegmentation");
+    model->removeRelation(m_sample, seg, "where");
+    model->removeSegmentation(seg);
+  }
+  model->removeFilter(m_filter);
+}
+
 
 //-----------------------------------------------------------------------------
 SegmhaImporter::SegmhaImporter(QObject* parent)
@@ -55,21 +98,10 @@ void SegmhaImporter::readFile(const QString file)
   Q_ASSERT(File::extension(file) == SEGMHA);
 
   SegmhaImporterFilter *filter = new SegmhaImporterFilter(file);
-
   Q_ASSERT(filter->numProducts() > 0);
-
-  QList<Segmentation *> segs = filter->segmentations();
-//   seg = EspinaFactory::instance()->createSegmentation(this, segImage->data(0));
 
   QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
   undo->beginMacro("Import Segmha");
-  undo->push(new AddFilter(filter));
-//   undo->push(new AddRelation(input,filter.data(),"Channel"));
-  foreach(Segmentation *seg, segs)
-  {
-    undo->push(new AddSegmentation(seg));
-//     undo->push(new AddRelation(filter, seg, "CreateSegmentation"));
-//     undo->push(new AddRelation(sample, seg, "where"));
-  }
+  undo->push(new UndoCommand(filter));
   undo->endMacro();
 }

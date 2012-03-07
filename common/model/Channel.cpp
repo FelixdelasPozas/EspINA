@@ -46,8 +46,6 @@ Channel::Channel(const QString file, pqData data)
   bzero(m_pos,3*sizeof(int));
   m_args[ID] = file;
   m_args.setColor(-1.0);
-
-  qDebug() << "Created Channel" << m_data.id();
 }
 
 //-----------------------------------------------------------------------------

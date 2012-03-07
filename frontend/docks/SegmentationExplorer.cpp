@@ -20,11 +20,14 @@
 #include "SegmentationExplorer.h"
 
 #include "common/model/EspinaModel.h"
+#include "common/model/ModelTest.h"
 #include "common/model/proxies/SampleProxy.h"
+#include "common/model/proxies/TaxonomyProxy.h"
 
 #include <iostream>
 #include <cstdio>
-#include <model/ModelTest.h>
+
+#include <QStringListModel>
 
 //------------------------------------------------------------------------
 class SegmentationExplorer::GUI
@@ -42,38 +45,119 @@ SegmentationExplorer::GUI::GUI()
 
 
 //------------------------------------------------------------------------
-class State
+class SegmentationExplorer::Layout
 {
 public:
-  void deleteSegmentation(){}
+  explicit Layout(QSharedPointer<EspinaModel> model): m_model(model) {}
+  virtual ~Layout(){}
+
+  virtual QAbstractItemModel *model() = 0;
+  virtual void deleteSegmentation() = 0;
+
+protected:
+  QSharedPointer<EspinaModel> m_model;
 };
+
+//------------------------------------------------------------------------
+class SampleLayout : public SegmentationExplorer::Layout
+{
+public:
+  explicit SampleLayout(QSharedPointer<EspinaModel> model);
+  virtual ~SampleLayout(){}
+
+  virtual QAbstractItemModel* model() {return m_proxy.data();}
+  virtual void deleteSegmentation();
+
+private:
+  QSharedPointer<SampleProxy> m_proxy;
+};
+//------------------------------------------------------------------------
+SampleLayout::SampleLayout(QSharedPointer<EspinaModel> model)
+: Layout(model)
+, m_proxy(new SampleProxy())
+{
+  m_proxy->setSourceModel(m_model.data());
+}
+
+//------------------------------------------------------------------------
+void SampleLayout::deleteSegmentation()
+{
+
+}
+
+//------------------------------------------------------------------------
+class TaxonomyLayout : public SegmentationExplorer::Layout
+{
+public:
+  explicit TaxonomyLayout(QSharedPointer<EspinaModel> model);
+  virtual ~TaxonomyLayout(){}
+
+  virtual QAbstractItemModel* model() {return m_proxy.data();}
+  virtual void deleteSegmentation(){}
+
+private:
+  QSharedPointer<TaxonomyProxy> m_proxy;
+};
+
+//------------------------------------------------------------------------
+TaxonomyLayout::TaxonomyLayout(QSharedPointer<EspinaModel> model)
+: Layout(model)
+, m_proxy(new TaxonomyProxy())
+{
+  m_proxy->setSourceModel(m_model.data());
+}
 
 //------------------------------------------------------------------------
 SegmentationExplorer::SegmentationExplorer(QSharedPointer< EspinaModel> model, QWidget* parent)
 : EspinaDockWidget(parent)
 , m_gui(new GUI())
 , m_baseModel(model)
+, m_layout(NULL)
 {
   setWindowTitle(tr("Segmentation Explorer"));
   setObjectName("SegmentationExplorer");
 
-  SampleProxy *proxy = new SampleProxy();
-  proxy->setSourceModel(m_baseModel.data());
-#ifdef DEBUG
-  m_modelTester = QSharedPointer<ModelTest>(new ModelTest(proxy));
-#endif
-  m_gui->view->setModel(proxy);
+  addLayout("Taxonomy", new TaxonomyLayout(m_baseModel));
+  addLayout("Location", new SampleLayout  (m_baseModel));
 
+  QStringListModel *layoutModel = new QStringListModel(m_layoutNames);
+  m_gui->groupList->setModel(layoutModel);
+  changeLayout(0);
+
+  connect(m_gui->groupList, SIGNAL(currentIndexChanged(int)),
+	  this, SLOT(changeLayout(int)));
   connect(m_gui->deleteSegmentation, SIGNAL(clicked(bool)),
           this, SLOT(deleteSegmentation()));
 
   setWidget(m_gui);
 }
 
+//------------------------------------------------------------------------
 SegmentationExplorer::~SegmentationExplorer()
 {
 }
 
+//------------------------------------------------------------------------
+void SegmentationExplorer::addLayout(const QString id, SegmentationExplorer::Layout* proxy)
+{
+  m_layoutNames << id;
+  m_layouts << proxy;
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::changeLayout(int index)
+{
+  Q_ASSERT(index < m_layouts.size());
+  m_layout = m_layouts[index];
+#ifdef DEBUG
+  m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_layout->model()));
+#endif
+  m_gui->view->setModel(m_layout->model());
+}
+
+//------------------------------------------------------------------------
 void SegmentationExplorer::deleteSegmentation()
 {
+  if (m_layout)
+    m_layout->deleteSegmentation();
 }

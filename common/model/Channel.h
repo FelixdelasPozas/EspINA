@@ -28,6 +28,7 @@
 #include "common/selection/SelectableItem.h"
 
 #include "common/processing/pqData.h"
+#include "common/File.h"
 #include <QColor>
 
 // Forward declarations
@@ -77,7 +78,7 @@ public:
 //   double opacity() {return m_opacity;}
 
   /// Model Item Interface
-  virtual QString id() const {return m_args[ID];}
+  virtual QString id() const {return File::name(m_args[ID]);}
   virtual QVariant data(int role) const;
   virtual ItemType type() const {return ModelItem::CHANNEL;}
   virtual QString  serialize() const;

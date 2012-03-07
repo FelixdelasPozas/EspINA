@@ -60,7 +60,6 @@ QTreeView::indicator:checked {
 QTreeView::indicator:unchecked {
      image: url(:/espina/hide_all.svg);
  } 
-
 </string>
      </property>
      <property name="editTriggers">

@@ -22,7 +22,7 @@
 
 //------------------------------------------------------------------------
 File::File(const QString file)
-: m_file(file)
+: QString(file)
 {
 }
 
@@ -35,7 +35,7 @@ QString File::extension(const QString file)
 //------------------------------------------------------------------------
 QString File::extension() const
 {
-  return extension(m_file);
+  return extension(*this);
 }
 
 //------------------------------------------------------------------------
@@ -47,7 +47,7 @@ QString File::extendedName(const QString file)
 //------------------------------------------------------------------------
 QString File::extendedName() const
 {
-  return extendedName(m_file);
+  return extendedName(*this);
 }
 
 //------------------------------------------------------------------------
@@ -59,7 +59,7 @@ QString File::name(const QString file)
 //------------------------------------------------------------------------
 QString File::name() const
 {
-  return name(m_file);
+  return name(*this);
 }
 
 //------------------------------------------------------------------------
@@ -71,5 +71,5 @@ QString File::parentDirectory(const QString file)
 //------------------------------------------------------------------------
 QString File::parentDirectory() const
 {
-  return parentDirectory(m_file);
+  return parentDirectory(*this);
 }

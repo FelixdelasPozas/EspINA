@@ -31,7 +31,7 @@ class pqView;
 class QFrame;
 class QUndoStack;
 
-#define DEBUG
+// #define DEBUG
 
 #ifdef DEBUG
 class ModelTest;

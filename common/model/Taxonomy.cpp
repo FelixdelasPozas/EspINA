@@ -79,7 +79,7 @@ TaxonomyNode* TaxonomyNode::element(const QString qualifiedName)
 }
 
 //------------------------------------------------------------------------
-TaxonomyNode* TaxonomyNode::parentNode()
+TaxonomyNode* TaxonomyNode::parentNode() const
 {
   return m_parent;
 }

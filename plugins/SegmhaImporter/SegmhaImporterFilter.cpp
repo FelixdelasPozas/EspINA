@@ -52,6 +52,8 @@ const QString SegmhaImporterFilter::BLOCKS = "Blocks";
 
 //-----------------------------------------------------------------------------
 SegmhaImporterFilter::SegmhaImporterFilter(const QString file)
+: m_segReader(NULL)
+, m_channel  (NULL)
 {
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
 
@@ -83,7 +85,9 @@ SegmhaImporterFilter::SegmhaImporterFilter(const QString file)
       }
       QApplication::restoreOverrideCursor();
 
-      EspinaCore::instance()->loadFile(fileDialog.getSelectedFiles()[0]);
+      File channelFile(fileDialog.getSelectedFiles()[0]);
+      EspinaCore::instance()->loadFile(channelFile);
+      m_channel = EspinaCore::instance()->model()->channel(channelFile.name());
   }
 
   m_args[FILE] = file;
@@ -177,7 +181,9 @@ SegmhaImporterFilter::SegmhaImporterFilter(const QString file)
 }
 
 SegmhaImporterFilter::SegmhaImporterFilter(ModelItem::Arguments args)
-: m_args(args)
+: m_segReader(NULL)
+, m_channel  (NULL)
+, m_args     (args)
 {
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
 
@@ -320,7 +326,6 @@ Segmentation *SegmhaImporterFilter::product(int index) const
 {
   return m_blocks[QString::number(index)];
 }
-
 
 
 // //-----------------------------------------------------------------------------

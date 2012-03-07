@@ -17,15 +17,20 @@
 */
 
 #include "SampleProxy.h"
-#include <EspinaCore.h>
+
+#include <common/EspinaCore.h>
 #include <QPixmap>
+#include <QSet>
 
+typedef QSet<ModelItem *> SegSet;
 
+//------------------------------------------------------------------------
 SampleProxy::SampleProxy(QObject* parent)
-    : QAbstractProxyModel(parent)
+: QAbstractProxyModel(parent)
 {
 }
 
+//------------------------------------------------------------------------
 SampleProxy::~SampleProxy()
 {
 
@@ -61,7 +66,9 @@ QVariant SampleProxy::data(const QModelIndex& proxyIndex, int role) const
       if (Qt::DisplayRole == role)
       {
 	Sample *sample = dynamic_cast<Sample *>(item);
-	return item->data(role).toString() + QString(" (%1)").arg(numberOfSegmentations(sample));
+	int numSegs = numSegmentations(sample);
+	QString suffix = (numSegs>0)?QString(" (%1)").arg(numSegmentations(sample)):QString();
+	return item->data(role).toString() + suffix;
       } else if (Qt::DecorationRole == role)
 	return QColor(Qt::blue);
       else
@@ -94,7 +101,7 @@ int SampleProxy::rowCount(const QModelIndex& parent) const
   if (ModelItem::SAMPLE == parentItem->type())
   {
     Sample *sample = dynamic_cast<Sample *>(parentItem);
-    rows = numberOfSubSamples(sample) + numberOfSegmentations(sample);
+    rows = numSubSamples(sample) + numSegmentations(sample);
   }
   return rows;
 }
@@ -113,13 +120,13 @@ QModelIndex SampleProxy::index(int row, int column, const QModelIndex& parent) c
   Sample * parentSample = dynamic_cast<Sample *>(parentItem);
   Q_ASSERT(parentSample);
 
-  int subSamples = numberOfSubSamples(parentSample);
+  int subSamples = numSubSamples(parentSample);
   if (row < subSamples)
     return mapFromSource(m_model->index(row, column, m_model->sampleIndex(parentSample)));
 
   int segRow = row - subSamples;
-  Q_ASSERT(segRow < numberOfSegmentations(parentSample));
-  ModelItem *internalPtr = m_sampleSegs[parentSample][segRow];
+  Q_ASSERT(segRow < numSegmentations(parentSample));
+  ModelItem *internalPtr = m_segmentations[parentSample][segRow];
 
   return createIndex(row, column, internalPtr);
 }
@@ -145,9 +152,11 @@ QModelIndex SampleProxy::parent(const QModelIndex& child) const
     }
     case ModelItem::SEGMENTATION:
     {
-      Segmentation *seg = dynamic_cast<Segmentation *>(childItem);
-      Q_ASSERT(seg);
-      parent = mapFromSource(m_model->sampleIndex(origin(seg)));
+      foreach(Sample *sample, m_segmentations.keys())
+      {
+	if (m_segmentations[sample].contains(childItem))
+	  parent = mapFromSource(m_model->sampleIndex(sample));
+      }
       break;
     }
     default:
@@ -164,21 +173,12 @@ QModelIndex SampleProxy::mapFromSource(const QModelIndex& sourceIndex) const
   if (!sourceIndex.isValid())
     return QModelIndex();
 
-  if (sourceIndex == m_model->taxonomyRoot())
+  if (sourceIndex == m_model->taxonomyRoot() ||
+      sourceIndex == m_model->sampleRoot()   ||
+      sourceIndex == m_model->channelRoot()  ||
+      sourceIndex == m_model->filterRoot()   ||
+      sourceIndex == m_model->segmentationRoot())
     return QModelIndex();
-
-  if (sourceIndex == m_model->sampleRoot())
-    return QModelIndex();
-
-  if (sourceIndex == m_model->channelRoot())
-    return QModelIndex();
-
-  if (sourceIndex == m_model->filterRoot())
-    return QModelIndex();
-
-  if (sourceIndex == m_model->segmentationRoot())
-    return QModelIndex();
-
 
   ModelItem *sourceItem = indexPtr(sourceIndex);
   QModelIndex proxyIndex;
@@ -192,20 +192,20 @@ QModelIndex SampleProxy::mapFromSource(const QModelIndex& sourceIndex) const
       proxyIndex = createIndex(sourceIndex.row(), sourceIndex.column(), sourceIndex.internalPointer());
       break;
     }
-    case ModelItem::CHANNEL:
-      break;
     case ModelItem::SEGMENTATION:
     {
-      //Segmentations
       Segmentation *seg = dynamic_cast<Segmentation *>(sourceItem);
       Q_ASSERT(seg);
       ModelItem::Vector samples = seg->relatedItems(ModelItem::IN, "where");
       if (samples.size() > 0)
       {
 	Sample *sample = dynamic_cast<Sample *>(samples[0]);
-	int row = m_sampleSegs[sample].indexOf(seg);
+	int row = m_segmentations[sample].indexOf(sourceItem);
 	if (row >= 0)
+	{
+	  row += numSubSamples(sample);
 	  proxyIndex = createIndex(row, 0, sourceIndex.internalPointer());
+	}
       }
       break;
     }
@@ -264,18 +264,21 @@ void SampleProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start,
   if (sourceParent == m_model->sampleRoot())
   {
     beginInsertRows(QModelIndex(), start, end);
-    ModelItem *sourceRow = indexPtr(m_model->index(start, 0, sourceParent));
-    Q_ASSERT(ModelItem::SAMPLE == sourceRow->type());
-    Sample *sample = dynamic_cast<Sample *>(sourceRow);
-    Q_ASSERT(sample);
-    m_samples << sample;
+    for (int row = start; row <= end; row++)
+    {
+      ModelItem *sourceRow = indexPtr(m_model->index(row, 0, sourceParent));
+      Q_ASSERT(ModelItem::SAMPLE == sourceRow->type());
+      Sample *sample = dynamic_cast<Sample *>(sourceRow);
+      Q_ASSERT(sample);
+      m_samples << sample;
+    }
     endInsertRows();
     return;
   }
 
   if (sourceParent == m_model->segmentationRoot())
   {
-    QMap<Sample *, QList<Segmentation *> > relations;
+    QMap<Sample *, QList<ModelItem *> > relations;
     for (int child=start; child <= end; child++)
     {
       QModelIndex sourceIndex = m_model->index(child, 0, sourceParent);
@@ -284,67 +287,106 @@ void SampleProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start,
       Segmentation *seg = dynamic_cast<Segmentation *>(sourceItem);
       Sample *sample = origin(seg);
       if (sample)
-	relations[sample] << seg;
+	relations[sample] << sourceItem;
     }
     foreach(Sample *sample, relations.keys())
     {
-      int numSubSamples = numberOfSubSamples(sample);
-      int numSegs = numberOfSegmentations(sample);
-      int startRow = numSubSamples + numSegs;
-      int endRow = startRow + relations[sample].size();
-      QModelIndex sourceSample = mapFromSource(m_model->sampleIndex(sample));
-      beginInsertRows(sourceSample, startRow, endRow);
-      m_sampleSegs[sample] << relations[sample];
+      int numSamples = numSubSamples(sample);
+      int numSegs = numSegmentations(sample);
+      int startRow = numSamples + numSegs;
+      int endRow = startRow + relations[sample].size() - 1;
+      QModelIndex proxySample = mapFromSource(m_model->sampleIndex(sample));
+      beginInsertRows(proxySample, startRow, endRow);
+      m_segmentations[sample] << relations[sample];
       endInsertRows();
     }
     return;
   }
 
-  ModelItem *sourceItem = indexPtr(sourceParent);
-  if (sourceItem->type() != ModelItem::SAMPLE)
-    return;
+//   ModelItem *sourceItem = indexPtr(sourceParent);
+//   if (sourceItem->type() != ModelItem::SAMPLE)
+//     return;
 }
 
 //------------------------------------------------------------------------
 void SampleProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, int start, int end)
 {
-/*
-  EspINA *model = dynamic_cast<EspINA *>(sourceModel());
+  if (!sourceParent.isValid())
+    return;
 
-  if (sourceParent == model->sampleRoot())
+  if (sourceParent == m_model->taxonomyRoot() ||
+      sourceParent == m_model->channelRoot()  ||
+      sourceParent == m_model->filterRoot())
+    return;
+
+  QModelIndex sourceIndex = m_model->index(start, 0, sourceParent);
+  QModelIndex proxyIndex = mapFromSource(sourceIndex);
+  ModelItem *item = indexPtr(sourceIndex);
+
+  switch (item->type())
   {
-    beginRemoveRows(mapFromSource(sourceParent),start,end);
-  } else if (sourceParent == model->segmentationRoot())
-  {
-    assert(start == end);//TODO: Add support for multiple deletions
-    // Need to find its parent before deletion
-    QModelIndex sourceIndex = model->index(start, 0, sourceParent);
-    IModelItem *sourceItem = static_cast<IModelItem *>(sourceIndex.internalPointer());
-    Segmentation *sourceSeg = dynamic_cast<Segmentation *>(sourceItem);
-    Sample *segParent = sourceSeg->origin();
-    int row = m_sampleSegs[segParent].indexOf(sourceSeg);
-    QModelIndex proxyIndex = mapFromSource(sourceIndex);
-    beginRemoveRows(proxyIndex.parent(),row,row);
+    case ModelItem::SAMPLE:
+    {
+      beginRemoveRows(proxyIndex.parent(), start,end);
+      Sample *sample = dynamic_cast<Sample *>(item);
+      m_samples.removeOne(sample);
+      m_segmentations.remove(sample);
+      endRemoveRows();
+      break;
+    }
+    case ModelItem::SEGMENTATION:
+    {
+      // Need to find its parent before deletion
+      Segmentation *seg = dynamic_cast<Segmentation *>(item);
+      Sample *sample = origin(seg);
+      int row = m_segmentations[sample].indexOf(item);
+      if (row >= 0)
+      {
+	beginRemoveRows(proxyIndex.parent(), row, row);
+	m_segmentations[sample].removeAt(row);
+	endRemoveRows();
+      }
+break;
+    }
+    default:
+      Q_ASSERT(false);
   }
-*/
 }
 
 
 //------------------------------------------------------------------------
 void SampleProxy::sourceRowsRemoved(const QModelIndex& sourceParent, int start, int end)
 {
-/*
-  EspINA *model = dynamic_cast<EspINA *>(sourceModel());
-
-  if (sourceParent == model->sampleRoot())
-    endRemoveRows();
-  
-  if (sourceParent == model->segmentationRoot())
-  {
-    updateSegmentations();
-    endRemoveRows();
-  }
-*/
+//   QModelIndex sourceIndex = m_model->index(start, 0, sourceParent);
+// 
+//   if (!sourceIndex.isValid())
+//     return;
+// 
+//   ModelItem *item = indexPtr(sourceIndex);
+// 
+//   switch (item->type())
+//   {
+//     case ModelItem::SAMPLE:
+//     {
+// //       Sample *sample = dynamic_cast<Sample *>(item);
+// //       m_samples.removeOne(sample);
+// //       m_segmentations.remove(sample);
+// //       endRemoveRows();
+//       break;
+//     }
+//     case ModelItem::SEGMENTATION:
+//     {
+//       Segmentation *seg = dynamic_cast<Segmentation *>(item);
+//       Sample *sample = origin(seg);
+//       if (sample)
+// 	m_segmentations[sample].removeOne(seg);
+//       endRemoveRows();
+//       break;
+//     }
+//     default:
+//       // ignore other elements
+//       break;
+//   }
 }
 
 bool SampleProxy::indices(const QModelIndex& topLeft, const QModelIndex& bottomRight, QModelIndexList& result)
@@ -367,6 +409,13 @@ bool SampleProxy::indices(const QModelIndex& topLeft, const QModelIndex& bottomR
   return false;
 }
 
+void debugSet(QString name, QSet<ModelItem *> set)
+{
+  qDebug() << name;
+  foreach(ModelItem *item, set)
+    qDebug() << item->data(Qt::DisplayRole).toString();
+}
+
 void SampleProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight)
 {
   QModelIndexList sources;
@@ -382,19 +431,34 @@ void SampleProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QMod
       {
 	Sample *sample = dynamic_cast<Sample *>(proxyItem);
 	ModelItem::Vector segs = sample->relatedItems(ModelItem::OUT, "where");
-	QList<Segmentation *> newSegmentations;
-	foreach(ModelItem *output, segs)
+	SegSet prevSegs = m_segmentations[sample].toSet();
+// 	debugSet("Previous Segmentations", prevSegs);
+	SegSet currentSegs = segs.toSet();
+// 	debugSet("Current Segmentations", currentSegs);
+	// We need to copy currentSegs to avoid emptying it
+	SegSet newSegs = SegSet(currentSegs).subtract(prevSegs);
+// 	debugSet("Segmentations to be added", newSegs);
+	SegSet remSegs = SegSet(prevSegs).subtract(currentSegs);
+// 	debugSet("Segmentations to be removed", remSegs);
+	
+	if (remSegs.size() > 0)
 	{
-	  Q_ASSERT(ModelItem::SEGMENTATION == output->type());
-	  Segmentation *seg = dynamic_cast<Segmentation *>(output);
-	  if (!m_sampleSegs[sample].contains(seg))
-	    newSegmentations << seg;
+	  foreach(ModelItem *seg, remSegs)
+	  {
+	    int row = m_segmentations[sample].indexOf(seg);
+	    beginRemoveRows(proxyIndex, row, row);
+	    m_segmentations[sample].removeAt(row);
+	    endRemoveRows();
+	  }
 	}
-	int start = m_sampleSegs[sample].size();
-	int end = start + newSegmentations.size() - 1;
-	beginInsertRows(proxyIndex, start, end);
-	m_sampleSegs[sample] << newSegmentations;
-	endInsertRows();
+	if (newSegs.size() > 0)
+	{
+	  int start = m_segmentations[sample].size();
+	  int end = start + newSegs.size() - 1;
+	  beginInsertRows(proxyIndex, start, end);
+	  m_segmentations[sample] << newSegs.toList();
+	  endInsertRows();
+	}
       }
       emit dataChanged(proxyIndex, proxyIndex);
     }
@@ -406,22 +470,22 @@ void SampleProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QMod
 //------------------------------------------------------------------------
 void SampleProxy::updateSegmentations() const
 {
-  m_sampleSegs.clear();
-  int rows = m_model->rowCount(m_model->segmentationRoot());
-  for (int row = 0; row < rows; row++)
-  {
-    QModelIndex segIndex = m_model->index(row, 0, m_model->segmentationRoot());
-    ModelItem *segItem = indexPtr(segIndex);
-    Q_ASSERT(segItem);
-    Segmentation *seg = dynamic_cast<Segmentation *>(segItem);
-    Q_ASSERT(seg);
-    ModelItem::Vector samples = segItem->relatedItems(ModelItem::IN, "where");
-    if (samples.size() > 0)
-    {
-      Sample *sample = dynamic_cast<Sample *>(samples[0]);
-      m_sampleSegs[sample].push_back(seg);
-    }
-  }
+//   m_segmentations.clear();
+//   int rows = m_model->rowCount(m_model->segmentationRoot());
+//   for (int row = 0; row < rows; row++)
+//   {
+//     QModelIndex segIndex = m_model->index(row, 0, m_model->segmentationRoot());
+//     ModelItem *segItem = indexPtr(segIndex);
+//     Q_ASSERT(segItem);
+//     Segmentation *seg = dynamic_cast<Segmentation *>(segItem);
+//     Q_ASSERT(seg);
+//     ModelItem::Vector samples = segItem->relatedItems(ModelItem::IN, "where");
+//     if (samples.size() > 0)
+//     {
+//       Sample *sample = dynamic_cast<Sample *>(samples[0]);
+//       m_segmentations[sample].push_back(seg);
+//     }
+//   }
 }
 
 //------------------------------------------------------------------------
@@ -436,13 +500,13 @@ Sample* SampleProxy::origin(Segmentation* seg) const
 }
 
 //------------------------------------------------------------------------
-int SampleProxy::numberOfSegmentations(Sample* sample) const
+int SampleProxy::numSegmentations(Sample* sample) const
 {
-  return m_sampleSegs[sample].size();
+  return m_segmentations[sample].size();
 }
 
 //------------------------------------------------------------------------
-int SampleProxy::numberOfSubSamples(Sample* sample) const
+int SampleProxy::numSubSamples(Sample* sample) const
 {
   return m_model->rowCount(m_model->sampleIndex(sample));
 }

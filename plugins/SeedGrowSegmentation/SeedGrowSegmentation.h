@@ -26,7 +26,9 @@
 #include "SeedGrowSelector.h"
 
 #include <QSharedPointer>
+#include <QUndoCommand>
 
+class Channel;
 //Forward declarations
 class ActionSelector;
 class DefaultVOIAction;
@@ -39,6 +41,22 @@ class SeedGrowSegmentation
 : public QActionGroup
 , public FilterFactory
 {
+  class UndoCommand : public QUndoCommand
+  {
+  public:
+    explicit UndoCommand(Channel * channel,
+			 SeedGrowSegmentationFilter *filter,
+			 TaxonomyNode *taxonomy);
+    virtual void redo();
+    virtual void undo();
+  private:
+    Sample                     *m_sample;
+    Channel                    *m_channel;
+    SeedGrowSegmentationFilter *m_filter;
+    Segmentation               *m_seg;
+    TaxonomyNode               *m_taxonomy;
+  };
+
   Q_OBJECT
 public:
   SeedGrowSegmentation(QObject* parent);

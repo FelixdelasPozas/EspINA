@@ -22,7 +22,7 @@
 
 #include <QString>
 
-class File
+class File : public QString
 {
 public:
   explicit File(const QString file);
@@ -37,7 +37,7 @@ public:
   QString parentDirectory() const;
 
 private:
-  const QString m_file;
+//   const QString m_file;
 };
 
 #endif // FILE_H

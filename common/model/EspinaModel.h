@@ -101,6 +101,7 @@ public:
   // Channels
   void addChannel(Channel *channel);
   void removeChannel(Channel *channel);
+  Channel *channel(const QString id) const;
 
   // Segmentations
   void addSegmentation(Segmentation *seg);

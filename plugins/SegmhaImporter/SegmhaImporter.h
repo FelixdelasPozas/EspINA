@@ -20,8 +20,13 @@
 
 #include <common/plugins/FilterFactory.h>
 #include <common/plugins/ReaderFactory.h>
+#include <QUndoCommand>
 
 static const QString SFRF = "SegmhaReader::SegmhaImporterFilter";
+
+class Channel;
+class Sample;
+class SegmhaImporterFilter;
 
 /// Segmha Reader Plugin
 class SegmhaImporter
@@ -29,6 +34,17 @@ class SegmhaImporter
       , public FilterFactory
       , public ReaderFactory
 {
+  class UndoCommand : public QUndoCommand
+  {
+  public:
+    explicit UndoCommand(SegmhaImporterFilter *filter);
+    virtual void redo();
+    virtual void undo();
+  private:
+    Sample               *m_sample;
+    Channel              *m_channel;
+    SegmhaImporterFilter *m_filter;
+  };
 public:
   SegmhaImporter(QObject* parent=0);
 

@@ -77,8 +77,8 @@ void EspinaModel::reset()
     m_samples.clear();
     endRemoveRows();
   }
-  m_lastId = 0;
   m_relations->clear();//NOTE: Should we remove every item in the previous blocks?
+  m_lastId = 0;
 }
 
 //-----------------------------------------------------------------------------
@@ -400,10 +400,17 @@ void EspinaModel::removeChannel(Channel *channel)
   endRemoveRows();
 }
 
-// bool segComparer(const SegmentationPtr &a, const SegmentationPtr &b)
-// {
-//   return a->data(Qt::DisplayRole).toString() < b->data(Qt::DisplayRole).toString();
-// }
+//------------------------------------------------------------------------
+Channel* EspinaModel::channel(const QString id) const
+{
+  foreach(Channel *channel, m_channels)
+  {
+    if (channel->id() == id)
+      return channel;
+  }
+  return NULL;
+}
+
 
 //------------------------------------------------------------------------
 void EspinaModel::addSegmentation(Segmentation *seg)
@@ -453,11 +460,6 @@ void EspinaModel::removeSegmentation(Segmentation *seg)
   beginRemoveRows(index.parent(), index.row(), index.row());
   m_segmentations.removeOne(seg);
   Q_ASSERT(m_segmentations.contains(seg) == false);
-//   m_taxonomySegs[seg->taxonomy()].removeOne(seg);
-//   seg->origin()->removeSegmentation(seg);
-//   //m_sampleSegs[seg->origin()].removeOne(seg);
-//   // Free internal memory
-//   m_analysis->removeNode(seg);
   endRemoveRows();
 }
 
@@ -498,7 +500,11 @@ void EspinaModel::addRelation(ModelItem* ancestor, ModelItem* successor, QString
 //------------------------------------------------------------------------
 void EspinaModel::removeRelation(ModelItem* ancestor, ModelItem* successor, QString relation)
 {
-//   m_relations->removeRelation(ancestor, successor, relation);
+  m_relations->removeRelation(ancestor, successor, relation);
+  QModelIndex ancestorIndex = index(ancestor);
+  QModelIndex succesorIndex = index(successor);
+  emit dataChanged(ancestorIndex, ancestorIndex);
+  emit dataChanged(succesorIndex, succesorIndex);
 }
 
 //------------------------------------------------------------------------

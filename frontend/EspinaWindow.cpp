@@ -77,6 +77,7 @@
 #include <vtkSMProxyManager.h>
 #include <vtkSMReaderFactory.h>
 
+#undef DEBUG
 
 static const QString CHANNEL_FILES = QObject::tr("Channel (*.mha; *.segmha)");
 static const QString SEG_FILES     = QObject::tr("Espina Analysis (*.seg)");

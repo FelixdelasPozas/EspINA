@@ -284,6 +284,8 @@ void ModelTest::parent()
     if ( model->rowCount ( topIndex ) > 0 )
     {
         QModelIndex childIndex = model->index ( 0, 0, topIndex );
+	if (model->parent ( childIndex ) != topIndex)
+	  qDebug() << topIndex.data(Qt::DisplayRole).toString() << childIndex.data(Qt::DisplayRole).toString() << model->parent(childIndex);
         Q_ASSERT ( model->parent ( childIndex ) == topIndex );
     }
 
@@ -395,7 +397,7 @@ void ModelTest::checkChildren ( const QModelIndex &parent, int currentDepth )
             }
 
             // Check that we can get back our real parent.
-//             qDebug() << model->parent ( index ) << parent ;
+//             qDebug() << index.data(Qt::DisplayRole)<< model->parent ( index ) << parent ;
             Q_ASSERT ( model->parent ( index ) == parent );
 
             // recursively go down the children
@@ -585,6 +587,7 @@ void ModelTest::rowsRemoved ( const QModelIndex & parent, int start, int end )
     qDebug() << "rr" << parent << start << end;
     Changing c = remove.pop();
     Q_ASSERT ( c.parent == parent );
+//     qDebug() << c.oldSize << parent.data(Qt::DisplayRole).toString() << model->rowCount(parent);
     Q_ASSERT ( c.oldSize - ( end - start + 1 ) == model->rowCount ( parent ) );
     Q_ASSERT ( c.last == model->data ( model->index ( start - 1, 0, c.parent ) ) );
     Q_ASSERT ( c.next == model->data ( model->index ( start, 0, c.parent ) ) );

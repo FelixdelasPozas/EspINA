@@ -116,6 +116,7 @@ public:
   void removeItem(ModelItem *item);
 
   void addRelation(ModelItem* ancestor, ModelItem* successor, const QString description);
+  void removeRelation(ModelItem* ancestor, ModelItem* successor, const QString description);
   void connect(const QString& ancestor, ModelItem* successor, const QString description);
 
 //   Vertices rootVertices();

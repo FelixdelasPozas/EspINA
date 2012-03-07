@@ -47,7 +47,7 @@ public:
   /// Return taxonomy node for qualified taxonomy elements
   TaxonomyNode* element(const QString qualifiedName);
 
-  TaxonomyNode *parentNode();
+  TaxonomyNode *parentNode() const;
   QVector<TaxonomyNode*> subElements() const {return m_elements;}
 
   void setName(QString name);

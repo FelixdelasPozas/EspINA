@@ -38,20 +38,30 @@ class ModelTest;
 class SegmentationExplorer : public EspinaDockWidget
 {
   Q_OBJECT
-
   class GUI;
-  class State;
+
+public:
+  class Layout;
+
 public:
   explicit SegmentationExplorer(QSharedPointer<EspinaModel> model, QWidget *parent = 0);
   virtual ~SegmentationExplorer();
 
+protected:
+  void addLayout(const QString id, Layout *proxy);
+
 protected slots:
+  void changeLayout(int index);
   void deleteSegmentation();
 
 protected:
   GUI *m_gui;
   QSharedPointer<EspinaModel> m_baseModel;
-  State *m_state;
+
+  QStringList     m_layoutNames;
+  QList<Layout *> m_layouts;
+  Layout         *m_layout;
+
 private:
 #ifdef DEBUG
   QSharedPointer<ModelTest>   m_modelTester;

@@ -22,6 +22,7 @@
 
 #include <common/model/Segmentation.h>
 
+class Channel;
 static const QString SIF = "SegmhaImporter::SegmhaImporterFilter";
 
 class SegmhaImporterFilter 
@@ -65,10 +66,12 @@ public:
   virtual Segmentation *product(int index) const;
 
   //Own methods
+  Channel *channel() const {return m_channel;}
   QList<Segmentation *> segmentations() {return m_blocks.values();}
 
 private:
   pqFilter *m_segReader;
+  Channel  *m_channel; 
   QMap<QString, Segmentation *> m_blocks;
 
   SArguments m_args;

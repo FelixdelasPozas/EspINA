@@ -22,6 +22,7 @@
 
 #include <QAbstractProxyModel>
 
+class ModelItem;
 // Forward declaration
 class EspinaModel;
 class Sample;
@@ -47,8 +48,8 @@ public:
   virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
   virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
 
-  protected slots:
-	  void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
+protected slots:
+  void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
   void sourceRowsAboutToBeRemoved(const QModelIndex & sourceParent, int start, int end);
   void sourceRowsRemoved(const QModelIndex & sourceParent, int start, int end);
   void sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight);
@@ -57,13 +58,13 @@ protected:
   bool indices(const QModelIndex &topLeft, const QModelIndex &bottomRight, QModelIndexList &result);
   void updateSegmentations() const;
   Sample *origin(Segmentation *seg) const;
-  int numberOfSegmentations(Sample *sample) const;
-  int numberOfSubSamples(Sample *sample) const;
+  int numSegmentations(Sample *sample) const;
+  int numSubSamples(Sample *sample) const;
 
 private:
   EspinaModel *m_model;
   QList<Sample *> m_samples;
-  mutable QMap<const Sample *, QList<Segmentation *> > m_sampleSegs;
+  mutable QMap<Sample *, QList<ModelItem *> > m_segmentations;
 };
 
 #endif // SAMPLEPROXY_H
