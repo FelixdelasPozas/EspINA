@@ -21,9 +21,9 @@ set (CORE_SOURCES
   PARENT_SCOPE
   )
 
-# if (${BUILD_TESTING})
+if (${BUILD_TESTING})
   add_subdirectory(tests)
-# endif (${BUILD_TESTING})
+endif (${BUILD_TESTING})
 
 add_library(model_fage
   EspinaFactory.cpp
