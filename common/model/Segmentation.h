@@ -83,7 +83,7 @@ public:
   void setNumber(unsigned int number) {m_args.setNumber(number);}
   unsigned int number() const {return m_args.number();}
   void setTaxonomy(TaxonomyNode *tax);
-  TaxonomyNode *taxonomy() const {return m_tax;}
+  TaxonomyNode *taxonomy() const {return m_taxonomy;}
 //   virtual void color(double* rgba);
 //   virtual void setSelected(bool value) {m_isSelected = value;}
 //   virtual bool isSelected() {return m_isSelected;}
@@ -102,9 +102,9 @@ public:
 //   
 //   QStringList availableRepresentations() const;
 //   ISegmentationRepresentation *representation(QString rep);
-//   
-//   QStringList availableInformations() const;
-//   QVariant information(QString info) const;
+
+  QStringList availableInformations() const;
+  QVariant information(QString info) const;
 
   void initialize();
 
@@ -117,7 +117,7 @@ private:
   Filter             *m_filter;
   pqData              m_data;
   SArguments          m_args;
-  TaxonomyNode       *m_tax;
+  TaxonomyNode       *m_taxonomy;
 
   QMap<QString, SegmentationExtension::SPtr> m_extensions;
   QMap<QString, SegmentationExtension::SPtr> m_pendingExtensions;

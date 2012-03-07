@@ -33,7 +33,7 @@ const QString Segmentation::TAXONOMY = "Taxonomy";
 Segmentation::Segmentation(Filter* filter, int output, pqData data)
 : m_filter (filter)
 , m_data   (data)
-, m_tax    (NULL)
+, m_taxonomy    (NULL)
 , m_isSelected(false)
 , m_isVisible(true)
 {
@@ -149,7 +149,7 @@ bool Segmentation::setData(const QVariant& value, int role)
 //------------------------------------------------------------------------
 void Segmentation::setTaxonomy(TaxonomyNode* tax)
 {
-  m_tax = tax;
+  m_taxonomy = tax;
   m_args[TAXONOMY] = tax->qualifiedName();
 }
 
@@ -223,29 +223,30 @@ void Segmentation::addExtension(SegmentationExtension::SPtr ext)
 // {
 //   return m_representations[rep]->representation(rep);
 // }
-// 
-// //------------------------------------------------------------------------
-// QStringList Segmentation::availableInformations() const
-// {
-//   QStringList informations;
-//   informations << "Name" << "Taxonomy";
-//   foreach (ISegmentationExtension *ext, m_insertionOrderedExtensions)
-//     informations << ext->availableInformations();
-//   
-//   return informations;
-// }
-// 
-// //------------------------------------------------------------------------
-// QVariant Segmentation::information(QString info) const
-// {
-//   if (info == "Name")
-//     return data(Qt::DisplayRole);
-//   if (info == "Taxonomy")
-//     return m_taxonomy->qualifiedName();
-//     
-//   return m_informations[info]->information(info);
-// }
-// 
+
+//------------------------------------------------------------------------
+QStringList Segmentation::availableInformations() const
+{
+  QStringList informations;
+  informations << "Name" << "Taxonomy";
+  foreach (SegmentationExtension::SPtr ext, m_insertionOrderedExtensions)
+    informations << ext->availableInformations();
+
+  return informations;
+}
+
+//------------------------------------------------------------------------
+QVariant Segmentation::information(QString info) const
+{
+  if (info == "Name")
+    return data(Qt::DisplayRole);
+  if (info == "Taxonomy")
+    return m_taxonomy->qualifiedName();
+
+  Q_ASSERT(m_informations.contains(info));
+  return m_informations[info]->information(info);
+}
+
 // //------------------------------------------------------------------------
 // //! TODO: Review where extensions should be initialized: at creation
 // //! or when adding them to EspINA

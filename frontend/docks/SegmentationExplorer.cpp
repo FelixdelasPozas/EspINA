@@ -172,14 +172,10 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
   if (seg)
   {
     EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
-    view->setCenter(30,30,30);
-//     Sample *origin = seg->origin();
-//     double spacing[3];
-//     origin->spacing(spacing);
-//     int x = seg->information("Centroid X").toInt() / spacing[0];
-//     int y = seg->information("Centroid Y").toInt() / spacing[1];
-//     int z = seg->information("Centroid Z").toInt() / spacing[2];
-//     cross->centerOn(x,y,z);
+    int x = seg->information("Centroid X").toInt();
+    int y = seg->information("Centroid Y").toInt();
+    int z = seg->information("Centroid Z").toInt();
+    view->setCenter(x, y, z);
   }
 }
 
