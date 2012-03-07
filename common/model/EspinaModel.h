@@ -28,13 +28,13 @@
 
 #include <QAbstractItemModel>
 
-#include "RelationshipGraph.h"
 
 #include <QSharedPointer>
 
 #include "common/model/Sample.h"
 #include "common/model/Filter.h"
 #include "common/model/Taxonomy.h"
+#include "common/model/RelationshipGraph.h"
 
 class Channel;
 class Filter;
@@ -87,6 +87,7 @@ public:
   /// Returns the taxonomy used by the analyzer
   void setTaxonomy(Taxonomy *tax);
   Taxonomy * const taxonomy() const {return m_tax;}
+  void addTaxonomy(Taxonomy *tax);
   QModelIndex addTaxonomyElement(const QModelIndex &parent, QString qualifiedName);
   void addTaxonomyElement(QString qualifiedName);
   void removeTaxonomyElement(const QModelIndex &index);
@@ -125,6 +126,7 @@ public:
   void loadSerialization (std::istream &stream, RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
 
 private:
+  void addTaxonomy(TaxonomyNode *tax);
   QModelIndex index(ModelItem *item) const;
 
 private:

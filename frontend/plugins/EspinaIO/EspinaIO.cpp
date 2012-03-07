@@ -100,7 +100,7 @@ void EspinaIO::readFile(const QString file )
   try
   {
     Taxonomy *taxonomy = IOTaxonomy::loadXMLTaxonomy(TaxonomySerialization);
-    model->setTaxonomy(taxonomy);
+    model->addTaxonomy(taxonomy);
     // 	taxonomy->print(3);
 
     model->loadSerialization(trace);

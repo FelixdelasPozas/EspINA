@@ -1,4 +1,4 @@
-#include "model/Taxonomy.h"
+#include "common/model/Taxonomy.h"
 
 #include <assert.h>
 #include <QDebug>
@@ -8,7 +8,7 @@
 int TaxonomyProperties(int argc, char** argv)
 {
   // Create empty Taxonmy
-  Taxonomy tax("Root");
+  Taxonomy tax;
   
   // Add subnode to root node
   

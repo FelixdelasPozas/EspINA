@@ -4,10 +4,15 @@ INCLUDE_DIRECTORIES (..)
 ADD_DEFINITIONS(
   ${QT_DEFINITIONS}
 )
+find_package (ParaView REQUIRED 1.12) # Includes Qt4
+include (${PARAVIEW_USE_FILE})
 
 SET(LIB_DEPENDECIES
-  Espina
-  EspinaViews
+  EspinaCore
+  EspinaPVCore
+  pqApplicationComponents
+#   pqComponents
+#   pqCore
   ${QT_LIBRARIES}
 )
 

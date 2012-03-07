@@ -102,7 +102,7 @@ add_library (EspinaCore SHARED ${CORE_SOURCES})
 target_link_libraries (EspinaCore ${EXTERNAL_LIBS})
 
 install (
-  TARGETS EspinaCore ${PARAVIEW_LIBRARIES}
+  TARGETS EspinaCore
   LIBRARY
   DESTINATION lib
   COMPONENT espina

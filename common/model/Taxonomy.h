@@ -94,19 +94,19 @@ private:
 class Taxonomy
 {
 public:
-  Taxonomy(const QString name);
+  Taxonomy();
   ~Taxonomy();
 
-  QString name() {return m_root->name();}
+//   QString name() {return m_root->name();}
 
   TaxonomyNode *addElement(const QString name, const QString parent = QString());
   void removeElement(const QString qualifiedName);
   TaxonomyNode *element(const QString qualifiedName);
   TaxonomyNode *root(){return m_root;}
   QVector<TaxonomyNode *> elements() {return m_root->subElements();}
-  
-  void print(int indent = 0);  
-  
+
+  void print(int indent = 0);
+
 private:
   TaxonomyNode *m_root;
 };

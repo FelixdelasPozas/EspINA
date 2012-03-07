@@ -51,8 +51,8 @@ public:
   explicit Layout(QSharedPointer<EspinaModel> model): m_model(model) {}
   virtual ~Layout(){}
 
-  virtual QAbstractItemModel *model() = 0;
-  virtual void deleteSegmentation() = 0;
+  virtual QAbstractItemModel *model() {return m_model.data();}
+  virtual void deleteSegmentation() {};
 
 protected:
   QSharedPointer<EspinaModel> m_model;
@@ -117,8 +117,9 @@ SegmentationExplorer::SegmentationExplorer(QSharedPointer< EspinaModel> model, Q
   setWindowTitle(tr("Segmentation Explorer"));
   setObjectName("SegmentationExplorer");
 
-  addLayout("Taxonomy", new TaxonomyLayout(m_baseModel));
-  addLayout("Location", new SampleLayout  (m_baseModel));
+  addLayout("None", new Layout(m_baseModel));
+//   addLayout("Taxonomy", new TaxonomyLayout(m_baseModel));
+//   addLayout("Location", new SampleLayout  (m_baseModel));
 
   QStringListModel *layoutModel = new QStringListModel(m_layoutNames);
   m_gui->groupList->setModel(layoutModel);

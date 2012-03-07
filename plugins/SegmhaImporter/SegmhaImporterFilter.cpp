@@ -121,7 +121,7 @@ SegmhaImporterFilter::SegmhaImporterFilter(const QString file)
 
   QStringList taxonomies = TaxonomySerialization.split(";");
 
-  Taxonomy *tax = new Taxonomy("Segmha");
+  Taxonomy *tax = new Taxonomy();
   QStringList availableTaxonomies;
   foreach(QString taxonomy, taxonomies)
   {
@@ -235,7 +235,7 @@ SegmhaImporterFilter::SegmhaImporterFilter(ModelItem::Arguments args)
 
   QStringList taxonomies = TaxonomySerialization.split(";");
 
-  Taxonomy *tax = new Taxonomy("Segmha");
+  Taxonomy *tax = new Taxonomy();
   QStringList availableTaxonomies;
   foreach(QString taxonomy, taxonomies)
   {

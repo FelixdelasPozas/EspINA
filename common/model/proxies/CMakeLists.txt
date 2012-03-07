@@ -12,4 +12,7 @@ set (CORE_SOURCES
   PARENT_SCOPE
   )
 
-add_library(proxies_fake SampleProxy.cpp)
+add_library(proxies_fake
+  SampleProxy.cpp
+  TaxonomyProxy.cpp
+  )

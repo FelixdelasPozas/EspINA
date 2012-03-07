@@ -31,7 +31,7 @@
 #include "common/model/Taxonomy.h"
 #include "common/model/EspinaFactory.h"
 #include "common/EspinaCore.h"
-#include <gui/EspinaView.h>
+#include "common/gui/EspinaView.h"
 
 //------------------------------------------------------------------------
 EspinaModel::EspinaModel ( QObject* parent )
@@ -90,12 +90,7 @@ QVariant EspinaModel::data (const QModelIndex& index, int role) const
   if (index == taxonomyRoot())
   {
     if (role == Qt::DisplayRole)
-    {
-      if (m_tax)
-	return m_tax->name();
-      else
-	return tr("Taxonomies");
-    }
+      return tr("Taxonomies");
     return QVariant();
   }
 
@@ -711,24 +706,44 @@ void EspinaModel::setTaxonomy(Taxonomy *tax)
 }
 
 //------------------------------------------------------------------------
+void EspinaModel::addTaxonomy(Taxonomy* tax)
+{
+  if (m_tax)
+  {
+    qDebug() << "Current tax root" << m_tax->root()->qualifiedName();
+    addTaxonomy(tax->root());
+  }
+  else
+    setTaxonomy(tax);
+}
+
+//------------------------------------------------------------------------
+void EspinaModel::addTaxonomy(TaxonomyNode *root)
+{
+  foreach (TaxonomyNode *node, root->subElements())
+  {
+    addTaxonomyElement(taxonomyRoot(), node->qualifiedName());
+    addTaxonomy(node);
+  }
+}
+
+//------------------------------------------------------------------------
 QModelIndex EspinaModel::addTaxonomyElement(const QModelIndex& parent, QString qualifiedName)
 {
   int newTaxRow = rowCount(parent);
-  QString parentName = m_tax->name();
+  TaxonomyNode *parentNode = m_tax->root();
   if (parent != taxonomyRoot())
   {
     ModelItem *item = indexPtr(parent);
     Q_ASSERT (item->type() == ModelItem::TAXONOMY);
-    TaxonomyNode *node = dynamic_cast<TaxonomyNode *>(item);
-    parentName = node->qualifiedName();
+    parentNode = dynamic_cast<TaxonomyNode *>(item);
   }
-  TaxonomyNode *parentNode = m_tax->element(parentName);
   Q_ASSERT(parentNode);
   TaxonomyNode *requestedNode = parentNode->element(qualifiedName);
   if (!requestedNode)
   {
     beginInsertRows(parent, newTaxRow, newTaxRow);
-    requestedNode = m_tax->addElement(qualifiedName, parentName);
+    requestedNode = m_tax->addElement(qualifiedName, parentNode->qualifiedName());
     endInsertRows();
   }
   return taxonomyIndex(requestedNode);
@@ -824,7 +839,7 @@ QModelIndex EspinaModel::filterIndex(Filter *filter) const
 QModelIndex EspinaModel::taxonomyIndex(TaxonomyNode *node) const
 {
   // We avoid setting the Taxonomy descriptor as parent of an index
-  if ( !m_tax || node->name() == m_tax->name() )
+  if ( !m_tax || m_tax->root() == node)
     return taxonomyRoot();
 
   TaxonomyNode *parentNode = node->parentNode();

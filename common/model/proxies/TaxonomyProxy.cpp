@@ -19,7 +19,7 @@
 
 #include "TaxonomyProxy.h"
 
-#include <EspinaCore.h>
+#include "common/EspinaCore.h"
 
 #include <QPixmap>
 

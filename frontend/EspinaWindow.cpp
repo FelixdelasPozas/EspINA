@@ -391,6 +391,7 @@ void EspinaWindow::openAnalysis()
   if (!m_model->taxonomy())
   {
     Taxonomy *defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
+    defaultTaxonomy->print();
     m_model->setTaxonomy(defaultTaxonomy);
   }
 
