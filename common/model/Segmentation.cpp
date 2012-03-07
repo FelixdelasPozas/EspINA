@@ -24,9 +24,10 @@
 
 using namespace std;
 
-const QString Segmentation::NUMBER = "Number";
-const QString Segmentation::FILTER = "Filter";
-const QString Segmentation::OUTPUT = "Output";
+const QString Segmentation::FILTER   = "Filter";
+const QString Segmentation::NUMBER   = "Number";
+const QString Segmentation::OUTPUT   = "Output";
+const QString Segmentation::TAXONOMY = "Taxonomy";
 
 //-----------------------------------------------------------------------------
 Segmentation::Segmentation(Filter* filter, int output, pqData data)
@@ -39,6 +40,7 @@ Segmentation::Segmentation(Filter* filter, int output, pqData data)
   m_args.setNumber(0);
   m_args[FILTER] = m_filter->id();
   m_args.setOutput(output);
+  m_args[TAXONOMY] = "Unknown";
 }
 
 //------------------------------------------------------------------------
@@ -142,6 +144,13 @@ bool Segmentation::setData(const QVariant& value, int role)
     default:
       return false;
   }
+}
+
+//------------------------------------------------------------------------
+void Segmentation::setTaxonomy(TaxonomyNode* tax)
+{
+  m_tax = tax;
+  m_args[TAXONOMY] = tax->qualifiedName();
 }
 
 //------------------------------------------------------------------------

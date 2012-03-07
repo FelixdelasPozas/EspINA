@@ -63,7 +63,8 @@ signals:
 
 protected:
   bool indices(const QModelIndex& topLeft, const QModelIndex& bottomRight, QModelIndexList& result);
-//   QList<TaxonomyNode *> indexTaxonomies(int row, int column, const QModelIndex& parent);
+  QModelIndexList indices(const QModelIndex& parent, int start, int end);
+  void removeTaxonomy(TaxonomyNode *taxonomy);
   int numTaxonomies(TaxonomyNode *taxonomy) const;
   int numSegmentations(TaxonomyNode *taxonomy) const;
 

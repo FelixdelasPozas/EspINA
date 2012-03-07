@@ -39,9 +39,7 @@ SampleProxy::~SampleProxy()
 //------------------------------------------------------------------------
 void SampleProxy::setSourceModel(EspinaModel* sourceModel)
 {
-  QAbstractProxyModel::setSourceModel(sourceModel);
   m_model = sourceModel;
-  updateSegmentations();
   connect(sourceModel, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsInserted(const QModelIndex&, int, int)));
   connect(sourceModel, SIGNAL(rowsRemoved(const QModelIndex&, int, int)),
@@ -50,6 +48,7 @@ void SampleProxy::setSourceModel(EspinaModel* sourceModel)
           this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex, int, int)));
   connect(sourceModel, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
           this, SLOT(sourceDataChanged(const QModelIndex &,const QModelIndex &)));
+  QAbstractProxyModel::setSourceModel(sourceModel);
 }
 
 //------------------------------------------------------------------------
@@ -260,7 +259,6 @@ void SampleProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start,
       sourceParent == m_model->filterRoot())
     return;
 
-
   if (sourceParent == m_model->sampleRoot())
   {
     beginInsertRows(QModelIndex(), start, end);
@@ -346,10 +344,11 @@ void SampleProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, in
 	m_segmentations[sample].removeAt(row);
 	endRemoveRows();
       }
-break;
+      break;
     }
     default:
-      Q_ASSERT(false);
+      // Ignore taxonomy nodes
+      break;
   }
 }
 
@@ -389,6 +388,7 @@ void SampleProxy::sourceRowsRemoved(const QModelIndex& sourceParent, int start, 
 //   }
 }
 
+//------------------------------------------------------------------------
 bool SampleProxy::indices(const QModelIndex& topLeft, const QModelIndex& bottomRight, QModelIndexList& result)
 {
   result << topLeft;
@@ -409,6 +409,32 @@ bool SampleProxy::indices(const QModelIndex& topLeft, const QModelIndex& bottomR
   return false;
 }
 
+// //------------------------------------------------------------------------
+// QModelIndexList SampleProxy::indices(const QModelIndex &parent, int start, int end)
+// {
+//   QModelIndexList res;
+// //   static int indent = 0;
+// 
+// //   QString tab = std::string(indent*2,' ').c_str();
+// //   qDebug() <<  tab << parent.data(Qt::DisplayRole).toString() << m_model->rowCount(parent) << start << end;
+//   for (int row = start; row <= end; row++)
+//   {
+//     QModelIndex sourceIndex = m_model->index(row, 0, parent);
+// //     qDebug() << tab << "  " << sourceIndex.data(Qt::DisplayRole).toString();
+//     res << sourceIndex;
+// 
+// //     indent++;
+//     int numChildren = m_model->rowCount(sourceIndex);
+//     if (numChildren > 0)
+//       res << indices(sourceIndex,0,numChildren - 1);
+// //     indent--;
+//   }
+// 
+//   return res;
+// }
+
+
+//------------------------------------------------------------------------
 void debugSet(QString name, QSet<ModelItem *> set)
 {
   qDebug() << name;

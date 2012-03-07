@@ -539,19 +539,14 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
     VertexProperty fv;
     if (m_relations->find(v, fv))
     {
-      qDebug() << "Looking for" << v.args.c_str();
-      qDebug() << "\tFound" << fv.args.c_str();
       input->setItem(v.vId, fv.item);
       qDebug() << "Updating existing vertex" << fv.item->data(Qt::DisplayRole).toString();
     }else
     {
-//       qDebug() << "Creating vertex" << v;
       switch (RelationshipGraph::type(v))
       {
 	case ModelItem::SAMPLE:
 	{
-// 	  qDebug() << "Sample doesn't exists ==> Add new Sample"
-// 	  << v.vId << v.name.c_str() << " with args:" << v.args.c_str();
 	  Sample *sample = factory->createSample(v.name.c_str(), v.args.c_str());
 	  addSample(sample);
 	  EspinaCore::instance()->setSample(sample);
@@ -560,28 +555,13 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
 	}
 	case ModelItem::CHANNEL:
 	{
-// 	  bool found = false;
-// 	  int c = 0;
-// 	  while (c < m_channels.size() && !found)
-// 	    found = m_channels[c++]->data(Qt::DisplayRole).toString().toStdString() == v.name;
-// 
-// 	  if (found)
-// 	  {
-// 	    input->setItem(v.vId, m_channels[c-1].data());
-// 	  }else
-// 	  {
-	    // 	  qDebug() << "Channel doesn't exists ==> Add new Channel"
-	    // 	  << v.vId << v.name.c_str() << " with args:" << v.args.c_str();
-	    Channel *channel = new Channel(v.name.c_str(), v.args.c_str());
-	    addChannel(channel);
-	    input->setItem(v.vId, channel);
-// 	  }
+	  Channel *channel = new Channel(v.name.c_str(), v.args.c_str());
+	  addChannel(channel);
+	  input->setItem(v.vId, channel);
 	  break;
 	}
 	case ModelItem::FILTER:
 	{
-// 	  qDebug() << "Filter doesn't exists ==> Add new Filter"
-// 	  << v.vId << v.name.c_str() << " with args:" << v.args.c_str();
 	  Filter *filter = factory->createFilter(v.name.c_str(), v.args.c_str());
 	  addFilter(filter);
 	  input->setItem(v.vId, filter);
@@ -589,16 +569,16 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
 	}
 	case ModelItem::SEGMENTATION:
 	{
-// 	  qDebug() << "Segmentation doesn't exists ==> Add new Segmentation"
-// 	  << v.vId << v.name.c_str() << " with args:" << v.args.c_str();
 	  Vertices ancestors = input->ancestors(v.vId, "CreateSegmentation");
 	  Q_ASSERT(ancestors.size() == 1);
 	  Filter *filter =  dynamic_cast<Filter *>(ancestors.first().item);
 	  ModelItem::Arguments args(QString(v.args.c_str()));
 	  Segmentation *seg = filter->product(args[Segmentation::OUTPUT].toInt());
 	  seg->setNumber(args[Segmentation::NUMBER].toInt());
+	  TaxonomyNode *taxonomy = m_tax->element(args[Segmentation::TAXONOMY]);
+	  if (taxonomy)
+	    seg->setTaxonomy(taxonomy);
 	  newSegmentations << seg;
-// 	  addSegmentation(seg);
 	  input->setItem(v.vId, seg);
 	  break;
 	}
@@ -614,10 +594,8 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
   { //Should store just the modelitem?
     Q_ASSERT(e.source.item);
     Q_ASSERT(e.target.item);
-    m_relations->addRelation(e.source.item, e.target.item, e.relationship.c_str());
+    addRelation(e.source.item, e.target.item, e.relationship.c_str());
   }
-//     if (!m_relations->find(input->properties(v), fv))
-//   m_relations->write(std::cout, RelationshipGraph::GRAPHVIZ);
 }
 
 //------------------------------------------------------------------------
@@ -712,10 +690,7 @@ void EspinaModel::setTaxonomy(Taxonomy *tax)
 void EspinaModel::addTaxonomy(Taxonomy* tax)
 {
   if (m_tax)
-  {
-    qDebug() << "Current tax root" << m_tax->root()->qualifiedName();
     addTaxonomy(tax->root());
-  }
   else
     setTaxonomy(tax);
 }

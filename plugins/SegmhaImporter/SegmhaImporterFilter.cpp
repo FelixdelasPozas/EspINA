@@ -166,7 +166,7 @@ SegmhaImporterFilter::SegmhaImporterFilter(const QString file)
     proxy->UpdatePropertyInformation();
 
     Segmentation *seg = EspinaFactory::instance()->createSegmentation(this, p, segImage->data(0));
-    QString qualifiedName = "Segmha/" + availableTaxonomies[segTaxonomies[p].toInt()-1];
+    QString qualifiedName = availableTaxonomies[segTaxonomies[p].toInt()-1];
     TaxonomyNode *node = tax->element(qualifiedName);
     Q_ASSERT(node);
     std::cout << "Getting taxonomy "<< segTaxonomies[p].toStdString() << ": " << node->qualifiedName().toStdString() << std::endl;
@@ -281,7 +281,7 @@ SegmhaImporterFilter::SegmhaImporterFilter(ModelItem::Arguments args)
 
     int pos = block.toInt();
     Segmentation *seg = EspinaFactory::instance()->createSegmentation(this, block.toInt(), segImage->data(0));
-    QString qualifiedName = "Segmha/" + availableTaxonomies[segTaxonomies[pos].toInt()-1];
+    QString qualifiedName = availableTaxonomies[segTaxonomies[pos].toInt()-1];
     TaxonomyNode *node = tax->element(qualifiedName);
     Q_ASSERT(node);
     std::cout << "Getting taxonomy "<< segTaxonomies[pos].toStdString() << ": " << node->qualifiedName().toStdString() << std::endl;

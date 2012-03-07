@@ -109,5 +109,5 @@ void Cache::removeReference(const Cache::Index& index)
 void Cache::setWorkingDirectory(QFileInfo& sample)
 {
   m_diskCachePath = sample.filePath();
-  qDebug() <<  "Cache Directory" << m_diskCachePath;
+//   qDebug() <<  "Cache Directory" << m_diskCachePath;
 }

@@ -66,8 +66,8 @@ void EspinaIO::readFile(const QString file )
 {
   const QString cachePath = parentDirectory(file) + "/" + fileName(file);
 
-  qDebug() << "Opening Seg File:" << file;
-  qDebug() << "Parent Directory:" << cachePath;
+//   qDebug() << "Opening Seg File:" << file;
+//   qDebug() << "Parent Directory:" << cachePath;
 
   pqServer* server = pqActiveObjects::instance().activeServer();
   Q_ASSERT(server);

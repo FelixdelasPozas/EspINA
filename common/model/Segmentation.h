@@ -38,9 +38,10 @@ class pqPipelineSource;
 class Segmentation : public SelectableItem
 {
 public:
-  static const QString NUMBER;
   static const QString FILTER;
+  static const QString NUMBER;
   static const QString OUTPUT;
+  static const QString TAXONOMY;
 
 private:
   class SArguments : public Arguments
@@ -81,17 +82,17 @@ public:
 
   void setNumber(unsigned int number) {m_args.setNumber(number);}
   unsigned int number() const {return m_args.number();}
-  void setTaxonomy(TaxonomyNode *tax) {m_tax = tax;}
+  void setTaxonomy(TaxonomyNode *tax);
   TaxonomyNode *taxonomy() const {return m_tax;}
 //   virtual void color(double* rgba);
 //   virtual void setSelected(bool value) {m_isSelected = value;}
 //   virtual bool isSelected() {return m_isSelected;}
 
   // State
-  bool visible() const {return m_isVisible;}
-  void setVisible(bool visible);
   bool selected() const {return m_isSelected;}
   void setSelected(bool selected);
+  bool visible() const {return m_isVisible;}
+  void setVisible(bool visible);
 
   /// Add a new extension to the segmentation
   /// Extesion won't be available until requirements are satisfied

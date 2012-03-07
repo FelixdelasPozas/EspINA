@@ -28,6 +28,8 @@
 #include <cstdio>
 
 #include <QStringListModel>
+#include <EspinaCore.h>
+#include <gui/EspinaView.h>
 
 //------------------------------------------------------------------------
 class SegmentationExplorer::GUI
@@ -117,9 +119,9 @@ SegmentationExplorer::SegmentationExplorer(QSharedPointer< EspinaModel> model, Q
   setWindowTitle(tr("Segmentation Explorer"));
   setObjectName("SegmentationExplorer");
 
-  addLayout("None", new Layout(m_baseModel));
-//   addLayout("Taxonomy", new TaxonomyLayout(m_baseModel));
-//   addLayout("Location", new SampleLayout  (m_baseModel));
+//   addLayout("Debug", new Layout(m_baseModel));
+  addLayout("Taxonomy", new TaxonomyLayout(m_baseModel));
+  addLayout("Location", new SampleLayout  (m_baseModel));
 
   QStringListModel *layoutModel = new QStringListModel(m_layoutNames);
   m_gui->groupList->setModel(layoutModel);
@@ -127,6 +129,8 @@ SegmentationExplorer::SegmentationExplorer(QSharedPointer< EspinaModel> model, Q
 
   connect(m_gui->groupList, SIGNAL(currentIndexChanged(int)),
 	  this, SLOT(changeLayout(int)));
+  connect(m_gui->view, SIGNAL(doubleClicked(QModelIndex)),
+	  this, SLOT(focusOnSegmentation(QModelIndex)));
   connect(m_gui->deleteSegmentation, SIGNAL(clicked(bool)),
           this, SLOT(deleteSegmentation()));
 
@@ -154,6 +158,29 @@ void SegmentationExplorer::changeLayout(int index)
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_layout->model()));
 #endif
   m_gui->view->setModel(m_layout->model());
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
+{
+  ModelItem *item = indexPtr(index);
+
+  if (ModelItem::SEGMENTATION != item->type())
+    return;
+
+  Segmentation *seg = dynamic_cast<Segmentation *>(item);
+  if (seg)
+  {
+    EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
+    view->setCenter(30,30,30);
+//     Sample *origin = seg->origin();
+//     double spacing[3];
+//     origin->spacing(spacing);
+//     int x = seg->information("Centroid X").toInt() / spacing[0];
+//     int y = seg->information("Centroid Y").toInt() / spacing[1];
+//     int z = seg->information("Centroid Z").toInt() / spacing[2];
+//     cross->centerOn(x,y,z);
+  }
 }
 
 //------------------------------------------------------------------------

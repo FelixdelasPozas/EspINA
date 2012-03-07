@@ -56,6 +56,7 @@ protected slots:
 
 protected:
   bool indices(const QModelIndex &topLeft, const QModelIndex &bottomRight, QModelIndexList &result);
+//   QModelIndexList indices(const QModelIndex& parent, int start, int end);
   void updateSegmentations() const;
   Sample *origin(Segmentation *seg) const;
   int numSegmentations(Sample *sample) const;

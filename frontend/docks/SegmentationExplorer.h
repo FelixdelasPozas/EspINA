@@ -52,6 +52,7 @@ protected:
 
 protected slots:
   void changeLayout(int index);
+  void focusOnSegmentation(const QModelIndex &index);
   void deleteSegmentation();
 
 protected:
