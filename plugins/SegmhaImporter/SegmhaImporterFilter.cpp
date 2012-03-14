@@ -195,7 +195,7 @@ SegmhaImporterFilter::SegmhaImporterFilter(ModelItem::Arguments args)
     QString segId = id() + "_" + block;
     segFilter = cob->loadFile(segId);
     if (segFilter == NULL)
-      break;
+      continue;
 
     Segmentation *seg = EspinaFactory::instance()->createSegmentation(this, block.toInt(), segFilter->data(0));
     m_blocks[block] = seg;

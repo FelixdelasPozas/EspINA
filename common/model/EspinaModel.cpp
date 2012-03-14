@@ -454,6 +454,7 @@ void EspinaModel::removeSegmentation(Segmentation *seg)
   QModelIndex index = segmentationIndex(seg);
   beginRemoveRows(index.parent(), index.row(), index.row());
   m_segmentations.removeOne(seg);
+  m_relations->removeItem(seg);
   Q_ASSERT(m_segmentations.contains(seg) == false);
   endRemoveRows();
 }
@@ -489,6 +490,7 @@ void EspinaModel::removeFilter(Filter *filter)
   QModelIndex index = filterIndex(filter);
   beginRemoveRows(index.parent(), index.row(), index.row());
   m_filters.removeOne(filter);
+  m_relations->removeItem(filter);
   Q_ASSERT(m_filters.contains(filter) == false);
   endRemoveRows();
 }

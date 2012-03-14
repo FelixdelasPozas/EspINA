@@ -98,6 +98,7 @@ ModelItem::Vector ModelItem::relatedItems(ModelItem::RelationType rel, const QSt
   Vector res;
 
   Q_ASSERT(m_relations);
+  m_vertex = m_relations->vertex(this);
   if (rel == IN || rel == INOUT)
     foreach(VertexProperty v, m_relations->ancestors(m_vertex, filter))
       res << v.item;
@@ -115,7 +116,7 @@ ModelItem::RelationList ModelItem::relations(const QString filter)
   RelationList res;
 
   Q_ASSERT(m_relations);
-//   m_relations->updateVertexInformation();
+  m_vertex = m_relations->vertex(this);
   foreach(Edge edge, m_relations->edges(m_vertex, filter))
   {
     Relation rel;

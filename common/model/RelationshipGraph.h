@@ -150,9 +150,9 @@ public:
 //   void print(std::ostream& out, PrintFormat format = GRAPHVIZ);
   /// Update vertex's information with model's items' information
   void updateVertexInformation();
-private:
   //! It retrieves the current vertex index of a ModelItem
   VertexDescriptor vertex(ModelItem* item);
+private:
   //!Convert a string int the correct format "{argument:value;}+" in a NodeParamList
   //ITraceNode::Arguments parseArgs( QString& raw );
 

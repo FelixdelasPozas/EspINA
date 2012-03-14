@@ -69,6 +69,7 @@ public:
   explicit Segmentation(Filter *filter, int output, pqData data);
   virtual ~Segmentation();
 
+  Filter *filter() const {return m_filter;}
   pqOutputPort *outputPort();
 
   /// Model Item Interface

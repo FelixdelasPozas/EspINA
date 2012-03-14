@@ -351,7 +351,8 @@ Vertices RelationshipGraph::vertices()
   for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
   {
 //     qDebug() << *vi << m_graph[*vi].name.c_str() << m_graph[*vi].args.c_str();
-    Q_ASSERT(m_graph[*vi].vId == *vi);
+//     Q_ASSERT(m_graph[*vi].vId == *vi);
+    m_graph[*vi].vId = *vi;
     result << m_graph[*vi];
   }
 

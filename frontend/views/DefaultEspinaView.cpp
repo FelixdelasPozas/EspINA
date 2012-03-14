@@ -286,7 +286,7 @@ void DefaultEspinaView::rowsAboutToBeRemoved(const QModelIndex& parent, int star
       case ModelItem::CHANNEL:
       {
 	Channel *channel = dynamic_cast<Channel *>(item);
-	qDebug() << "Remove Channel:" << channel->data(Qt::DisplayRole).toString();
+// 	qDebug() << "Remove Channel:" << channel->data(Qt::DisplayRole).toString();
 	xyView->removeChannelRepresentation(channel);
 	yzView->removeChannelRepresentation(channel);
 	xzView->removeChannelRepresentation(channel);
@@ -300,7 +300,7 @@ void DefaultEspinaView::rowsAboutToBeRemoved(const QModelIndex& parent, int star
       case ModelItem::SEGMENTATION:
       {
 	Segmentation *seg = dynamic_cast<Segmentation *>(item);
-	qDebug() << "Remove Segmentation:" << seg->data(Qt::DisplayRole).toString();
+// 	qDebug() << "Remove Segmentation:" << seg->data(Qt::DisplayRole).toString();
 	removeSegmentation(seg);
 	break;
       }
