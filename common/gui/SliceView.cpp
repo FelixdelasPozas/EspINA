@@ -841,7 +841,23 @@ void SliceView::addSegmentationRepresentation(Segmentation* seg)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::addSegmentationRepresentation(pqOutputPort* oport)
+void SliceView::removeSegmentationRepresentation(Segmentation* seg)
+{
+  vtkSMProxy* viewModuleProxy = m_view->getProxy();
+  Q_ASSERT(m_segmentations.contains(seg));
+  vtkSMRepresentationProxy *repProxy = m_segmentations[seg];
+  // Remove the reprProxy to render module.
+  pqSMAdaptor::removeProxyProperty(
+    viewModuleProxy->GetProperty("Representations"), repProxy);
+  viewModuleProxy->UpdateVTKObjects();
+  m_view->getProxy()->UpdateVTKObjects();
+
+  repProxy->Delete();
+  m_segmentations.remove(seg);
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::addRepresentation(pqOutputPort* oport)
 {
   pqPipelineSource *source = oport->getSource();
   vtkSMProxyManager   *pxm = vtkSMProxyManager::GetProxyManager();
@@ -874,23 +890,7 @@ void SliceView::addSegmentationRepresentation(pqOutputPort* oport)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::removeSegmentationRepresentation(Segmentation* seg)
-{
-  vtkSMProxy* viewModuleProxy = m_view->getProxy();
-  Q_ASSERT(m_segmentations.contains(seg));
-  vtkSMRepresentationProxy *repProxy = m_segmentations[seg];
-  // Remove the reprProxy to render module.
-  pqSMAdaptor::removeProxyProperty(
-    viewModuleProxy->GetProperty("Representations"), repProxy);
-  viewModuleProxy->UpdateVTKObjects();
-  m_view->getProxy()->UpdateVTKObjects();
-
-  repProxy->Delete();
-  m_segmentations.remove(seg);
-}
-
-//-----------------------------------------------------------------------------
-void SliceView::removeSegmentationRepresentation(pqOutputPort* oport)
+void SliceView::removeRepresentation(pqOutputPort* oport)
 {
   vtkSMProxy* viewModuleProxy = m_view->getProxy();
   // Add the reprProxy to render module.
@@ -930,12 +930,12 @@ void SliceView::removePreview(Filter* filter)
 //-----------------------------------------------------------------------------
 void SliceView::addPreview(pqOutputPort* preview)
 {
-  addSegmentationRepresentation(preview);
+  addRepresentation(preview);
 }
 
 void SliceView::removePreview(pqOutputPort* preview)
 {
-  removeSegmentationRepresentation(preview);
+  removeRepresentation(preview);
 }
 
 //-----------------------------------------------------------------------------

@@ -169,14 +169,12 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
     return;
 
   Segmentation *seg = dynamic_cast<Segmentation *>(item);
-  if (seg)
-  {
-    EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
-    int x = seg->information("Centroid X").toInt();
-    int y = seg->information("Centroid Y").toInt();
-    int z = seg->information("Centroid Z").toInt();
-    view->setCenter(x, y, z);
-  }
+  Q_ASSERT(seg);
+  EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
+  int x = seg->information("Centroid X").toInt();
+  int y = seg->information("Centroid Y").toInt();
+  int z = seg->information("Centroid Z").toInt();
+  view->setCenter(x, y, z);
 }
 
 //------------------------------------------------------------------------

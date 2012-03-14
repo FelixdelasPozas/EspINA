@@ -27,6 +27,7 @@
 #include <QAbstractItemView>
 #include <QPushButton>
 
+class pqPipelineRepresentation;
 class pq3DWidget;
 class Sample;
 class Sample;
@@ -57,7 +58,10 @@ public:
   virtual void scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint = EnsureVisible) {}
   virtual QRect visualRect(const QModelIndex& index) const {return QRect();}
 
-  void addSegmentationRepresentation(pqOutputPort *oport);
+  void addSegmentationRepresentation(Segmentation *seg);
+  void removeSegmentationRepresentation(Segmentation *seg);
+  
+  void addRepresentation(pqOutputPort *oport);
 
   void addWidget(pq3DWidget *widget);
 
@@ -95,9 +99,7 @@ protected slots:
 
   void buildControls();
 private:
-  bool m_init;
   pqRenderView *m_view;
-//   double m_focus[3];
 
   // GUI
   QVBoxLayout *m_mainLayout;
@@ -105,6 +107,8 @@ private:
   QWidget *m_viewWidget;
   QPushButton m_snapshot;
   QPushButton m_export;
+
+  QMap<Segmentation *, pqPipelineRepresentation *> m_segmentations;
 };
 
 #endif // VOLUMEVIEW_H

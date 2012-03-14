@@ -21,9 +21,8 @@
 // Debug
 #include <QDebug>
 
-// #include "espina_debug.h"
-
 // EspINA
+#include <common/model/Segmentation.h>
 
 // GUI
 #include <QFileDialog>
@@ -49,6 +48,7 @@
 #include <pqDataRepresentation.h>
 #include <pqPipelineRepresentation.h>
 #include <pq3DWidget.h>
+#include <pqOutputPort.h>
 
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(QWidget* parent)
@@ -110,7 +110,32 @@ void VolumeView::buildControls()
 
 
 //-----------------------------------------------------------------------------
-void VolumeView::addSegmentationRepresentation(pqOutputPort* oport)
+void VolumeView::addSegmentationRepresentation(Segmentation *seg)
+{
+  pqOutputPort *oport = seg->outputPort();
+  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+  pqDataRepresentation *dr = dp->setRepresentationVisibility(oport, m_view, true);
+  if (!dr)
+    return;
+  pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
+  Q_ASSERT(rep);
+  rep->setRepresentation("Volume");
+
+  m_segmentations[seg] = rep;
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::removeSegmentationRepresentation(Segmentation* seg)
+{
+  Q_ASSERT(m_segmentations.contains(seg));
+  pqPipelineRepresentation *rep = m_segmentations[seg];
+  rep->setVisible(false);
+  rep->deleteLater();
+}
+
+
+//-----------------------------------------------------------------------------
+void VolumeView::addRepresentation(pqOutputPort* oport)
 {
   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
   pqDataRepresentation *dr = dp->setRepresentationVisibility(oport, m_view, true);
@@ -188,7 +213,7 @@ void VolumeView::onDisconnect()
 //-----------------------------------------------------------------------------
 void VolumeView::forceRender()
 {
-  if( isVisible())
+  if(isVisible())
     m_view->forceRender();
 }
 

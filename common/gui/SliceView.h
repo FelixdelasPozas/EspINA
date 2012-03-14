@@ -130,11 +130,12 @@ public:
   void removeChannelRepresentation(Channel *channel);
 
   void addSegmentationRepresentation(Segmentation *seg);
-  void addSegmentationRepresentation(pqOutputPort *oport);
   void removeSegmentationRepresentation(Segmentation *seg);
-  void removeSegmentationRepresentation(pqOutputPort *oport);
   void updateSegmentationRepresentation(Segmentation* seg);
 
+  void addRepresentation(pqOutputPort *oport);
+  void removeRepresentation(pqOutputPort *oport);
+  
   virtual void addPreview(Filter* filter);
   virtual void removePreview(Filter* filter);
   virtual void previewExtent(int VOI[6]);

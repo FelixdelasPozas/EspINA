@@ -204,7 +204,7 @@ void DefaultEspinaView::addSegmentation(Segmentation* seg)
   xyView->addSegmentationRepresentation(seg);
   yzView->addSegmentationRepresentation(seg);
   xzView->addSegmentationRepresentation(seg);
-  volView->addSegmentationRepresentation(seg->volume().outputPort());
+  volView->addSegmentationRepresentation(seg);
 }
 
 //-----------------------------------------------------------------------------
@@ -213,6 +213,7 @@ void DefaultEspinaView::removeSegmentation(Segmentation* seg)
   xyView->removeSegmentationRepresentation(seg);
   yzView->removeSegmentationRepresentation(seg);
   xzView->removeSegmentationRepresentation(seg);
+  volView->removeSegmentationRepresentation(seg);
 }
 
 //-----------------------------------------------------------------------------
@@ -310,6 +311,7 @@ void DefaultEspinaView::rowsAboutToBeRemoved(const QModelIndex& parent, int star
   xyView->forceRender();
   yzView->forceRender();
   xzView->forceRender();
+  volView->forceRender();
 }
 
 //-----------------------------------------------------------------------------
