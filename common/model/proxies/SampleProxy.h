@@ -48,6 +48,10 @@ public:
   virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;
   virtual QModelIndex mapToSource(const QModelIndex& proxyIndex) const;
 
+  int numSegmentations(QModelIndex sampleIndex, bool recursive = false) const;
+  int numSubSamples(QModelIndex sampleIndex) const;
+  QModelIndexList segmentations(QModelIndex sampleIndex, bool recursive=false) const;
+
 protected slots:
   void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
   void sourceRowsAboutToBeRemoved(const QModelIndex & sourceParent, int start, int end);
@@ -57,6 +61,7 @@ protected slots:
 protected:
   bool indices(const QModelIndex &topLeft, const QModelIndex &bottomRight, QModelIndexList &result);
 //   QModelIndexList indices(const QModelIndex& parent, int start, int end);
+  QModelIndexList proxyIndices(const QModelIndex& parent, int start, int end) const;
   void updateSegmentations() const;
   Sample *origin(Segmentation *seg) const;
   int numSegmentations(Sample *sample) const;

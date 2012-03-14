@@ -86,6 +86,80 @@ SampleLayout::SampleLayout(QSharedPointer<EspinaModel> model)
 //------------------------------------------------------------------------
 void SampleLayout::deleteSegmentation(QModelIndexList indices)
 {
+  QList<Segmentation *> toDelete;
+  foreach(QModelIndex index, indices)
+  {
+    ModelItem *item = indexPtr(index);
+    switch (item->type())
+    {
+      case ModelItem::SEGMENTATION:
+      {
+	Segmentation *seg = dynamic_cast<Segmentation *>(item);
+	Q_ASSERT(seg);
+	toDelete << seg;
+	break;
+      }
+      case ModelItem::SAMPLE:
+      {
+	int totalSeg = m_proxy->numSegmentations(index, true);
+	int directSeg = m_proxy->numSegmentations(index);
+
+	if (totalSeg == 0)
+	  continue;
+	
+	Sample *sample = dynamic_cast<Sample *>(item);
+	QMessageBox msgBox;
+	msgBox.setText(QString("Delete %1's segmentations").arg(sample->id()));
+	msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+	msgBox.setDefaultButton(QMessageBox::No);
+
+	if (directSeg > 0)
+	{
+	  if (directSeg < totalSeg)
+	  {
+	    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::YesAll |  QMessageBox::No);
+	    msgBox.setText(QString("Delete %1's segmentations. If you want to delete recursively select Yes To All").arg(sample->id()));
+	  }
+	} else
+	{
+	  msgBox.setText(QString("Delete recursively %1's segmentations").arg(sample->id()));
+	  msgBox.setStandardButtons(QMessageBox::YesAll |  QMessageBox::No);
+	}
+	
+	bool recursive = false;
+	switch (msgBox.exec())
+	{
+	  case QMessageBox::YesAll:
+	    recursive = true;
+	  case QMessageBox::Yes:
+	  {
+	    QModelIndexList subSegs = m_proxy->segmentations(index, recursive);
+	    foreach(QModelIndex subIndex, subSegs)
+	    {
+	      ModelItem *subItem = indexPtr(subIndex);
+	      Segmentation *seg = dynamic_cast<Segmentation *>(subItem);
+	      Q_ASSERT(seg);
+	      toDelete << seg;
+	    }
+	    break;
+	  }
+	  default:
+	    break;
+	}
+	break;
+      }
+      default:
+	Q_ASSERT(false);
+    }
+  }
+
+  if (!toDelete.isEmpty())
+  {
+  QSharedPointer<QUndoStack> undoStack = EspinaCore::instance()->undoStack();
+  undoStack->beginMacro("Delete Segmentations");
+  undoStack->push(new RemoveSegmentation(toDelete));
+  undoStack->endMacro();
+  }
 
 }
 
@@ -131,7 +205,6 @@ void TaxonomyLayout::deleteSegmentation(QModelIndexList indices)
       {
 	int totalSeg = m_proxy->numSegmentations(index, true);
 	int directSeg = m_proxy->numSegmentations(index);
-	qDebug() << "Segmentations:" << directSeg << "SubTaxonomies Segmentations" << totalSeg;
 
 	if (totalSeg == 0)
 	  continue;

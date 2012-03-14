@@ -249,6 +249,47 @@ QModelIndex SampleProxy::mapToSource(const QModelIndex& proxyIndex) const
 }
 
 //------------------------------------------------------------------------
+int SampleProxy::numSegmentations(QModelIndex sampleIndex, bool recursive) const
+{
+  ModelItem *item = indexPtr(sampleIndex);
+  if (ModelItem::SAMPLE != item->type())
+    return 0;
+
+  Sample *sample = dynamic_cast<Sample *>(item);
+  int total = numSegmentations(sample);
+  return total;
+}
+
+//------------------------------------------------------------------------
+int SampleProxy::numSubSamples(QModelIndex sampleIndex) const
+{
+  ModelItem *item = indexPtr(sampleIndex);
+  if (ModelItem::SAMPLE != item->type())
+    return 0;
+
+  Sample *sample = dynamic_cast<Sample *>(item);
+  return numSubSamples(sample);
+}
+
+//------------------------------------------------------------------------
+QModelIndexList SampleProxy::segmentations(QModelIndex sampleIndex, bool recursive) const
+{
+  QModelIndexList segs;
+
+  int start = numSubSamples(sampleIndex);
+  int end = start + numSegmentations(sampleIndex) - 1;
+  if (recursive)
+  {
+    for (int tax = 0; tax < start; tax++)
+      segs << segmentations(index(tax, 0, sampleIndex), true);
+  }
+  if (start <= end)
+    segs << proxyIndices(sampleIndex, start, end);
+
+  return segs;
+}
+
+//------------------------------------------------------------------------
 void SampleProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start, int end)
 {
   if (!sourceParent.isValid())
@@ -433,6 +474,22 @@ bool SampleProxy::indices(const QModelIndex& topLeft, const QModelIndex& bottomR
 //   return res;
 // }
 
+//------------------------------------------------------------------------
+QModelIndexList SampleProxy::proxyIndices(const QModelIndex& parent, int start, int end) const
+{
+  QModelIndexList res;
+  for (int row = start; row <= end; row++)
+  {
+    QModelIndex proxyIndex = index(row, 0, parent);
+    res << proxyIndex;
+
+    int numChildren = rowCount(proxyIndex);
+    if (numChildren > 0)
+      res << proxyIndices(proxyIndex,0,numChildren - 1);
+  }
+
+  return res;
+}
 
 //------------------------------------------------------------------------
 void debugSet(QString name, QSet<ModelItem *> set)
