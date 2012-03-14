@@ -373,20 +373,20 @@ void SampleProxy::sourceRowsAboutToBeRemoved(const QModelIndex& sourceParent, in
       endRemoveRows();
       break;
     }
-    case ModelItem::SEGMENTATION:
-    {
-      // Need to find its parent before deletion
-      Segmentation *seg = dynamic_cast<Segmentation *>(item);
-      Sample *sample = origin(seg);
-      int row = m_segmentations[sample].indexOf(item);
-      if (row >= 0)
-      {
-	beginRemoveRows(proxyIndex.parent(), row, row);
-	m_segmentations[sample].removeAt(row);
-	endRemoveRows();
-      }
-      break;
-    }
+//     case ModelItem::SEGMENTATION:
+//     {
+//       // Need to find its parent before deletion
+//       Segmentation *seg = dynamic_cast<Segmentation *>(item);
+//       Sample *sample = origin(seg);
+//       int row = m_segmentations[sample].indexOf(item);
+//       if (row >= 0)
+//       {
+// 	beginRemoveRows(proxyIndex.parent(), row, row);
+// 	m_segmentations[sample].removeAt(row);
+// 	endRemoveRows();
+//       }
+//       break;
+//     }
     default:
       // Ignore taxonomy nodes
       break;
@@ -499,6 +499,7 @@ void debugSet(QString name, QSet<ModelItem *> set)
     qDebug() << item->data(Qt::DisplayRole).toString();
 }
 
+//------------------------------------------------------------------------
 void SampleProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight)
 {
   QModelIndexList sources;

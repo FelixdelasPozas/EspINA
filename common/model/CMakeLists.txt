@@ -25,7 +25,7 @@ if (${BUILD_TESTING})
   add_subdirectory(tests)
 endif (${BUILD_TESTING})
 
-add_library(model_fage
+add_library(model_fake
   EspinaFactory.cpp
   EspinaModel.cpp
   ModelItem.cpp

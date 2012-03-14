@@ -38,10 +38,20 @@ QString arg6(const T val[6])
   return QString("%1,%2,%3,%4,%5,%6").arg(val[0]).arg(val[1]).arg(val[2]).arg(val[3]).arg(val[4]).arg(val[5]);
 }
 
+
 /// Base class for every item in EspinaModel
 class ModelItem
 {
 public:
+  struct Relation
+  {
+    ModelItem *ancestor;
+    ModelItem *succesor;
+    QString relation;
+  };
+
+  typedef QList<Relation> RelationList;
+  
   class Arguments : public QMap<QString, QString>
   {
   public:
@@ -82,6 +92,7 @@ public:
   virtual QString  serialize() const {return QString("none");}
   virtual ItemType type() const = 0;
   Vector relatedItems(RelationType rel, const QString filter = "");
+  RelationList relations(const QString filter = "");
 
 protected:
   size_t             m_vertex;

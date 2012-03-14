@@ -162,7 +162,7 @@ void RelationshipGraph::addItem(ModelItem* item)
   // TODO: Check if item's been already added to the graph
   VertexId v = add_vertex(m_graph);
   m_graph[v].item = item;
-  item->m_vertex = v;
+  item->m_vertex = vertex(item);
   item->m_relations = this;
 //   qDebug() << item->data(Qt::DisplayRole) << " = " << v;
 }
@@ -216,6 +216,7 @@ void RelationshipGraph::updateVertexInformation()
 //-----------------------------------------------------------------------------
 RelationshipGraph::VertexDescriptor RelationshipGraph::vertex(ModelItem* item)
 {
+//   qDebug() << "Previous id" << item->m_vertex;
   VertexIterator vi, vi_end;
   for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
   {
@@ -280,13 +281,64 @@ Edges RelationshipGraph::edges(const QString filter)
   {
     if (filter.isEmpty() || m_graph[*ei].relationship == filter.toStdString())
     {
-    Edge e;
-    e.source = m_graph[source(*ei, m_graph)];
-    e.target = m_graph[target(*ei, m_graph)];
-    e.relationship = m_graph[*ei].relationship;
-    result << e;
+      Edge e;
+      e.source = m_graph[source(*ei, m_graph)];
+      e.target = m_graph[target(*ei, m_graph)];
+      e.relationship = m_graph[*ei].relationship;
+      result << e;
     }
   }
+  return result;
+}
+
+//-----------------------------------------------------------------------------
+Edges RelationshipGraph::inEdges(RelationshipGraph::VertexId v, const QString filter)
+{
+  Edges result;
+
+  InEdgeIterator ei, ei_end;
+  for(boost::tie(ei, ei_end) = boost::in_edges(v, m_graph); ei != ei_end; ei++)
+  {
+    if (filter.isEmpty() || m_graph[*ei].relationship == filter.toStdString())
+    {
+      Edge e;
+      e.source = m_graph[source(*ei, m_graph)];
+      e.target = m_graph[target(*ei, m_graph)];
+      e.relationship = m_graph[*ei].relationship;
+      result << e;
+    }
+  }
+  return result;
+}
+
+//-----------------------------------------------------------------------------
+Edges RelationshipGraph::outEdges(RelationshipGraph::VertexId v, const QString filter)
+{
+  Edges result;
+
+  OutEdgeIterator ei, ei_end;
+  for(boost::tie(ei, ei_end) = boost::out_edges(v, m_graph); ei != ei_end; ei++)
+  {
+    if (filter.isEmpty() || m_graph[*ei].relationship == filter.toStdString())
+    {
+      Edge e;
+      e.source = m_graph[source(*ei, m_graph)];
+      e.target = m_graph[target(*ei, m_graph)];
+      e.relationship = m_graph[*ei].relationship;
+      result << e;
+    }
+  }
+  return result;
+}
+
+//-----------------------------------------------------------------------------
+Edges RelationshipGraph::edges(RelationshipGraph::VertexId v, const QString filter)
+{
+  Edges result;
+
+  result << inEdges(v, filter);
+  result << outEdges(v, filter);
+
   return result;
 }
 

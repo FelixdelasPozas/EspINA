@@ -121,6 +121,9 @@ public:
 
 //   Vertices rootVertices();
   Edges edges(const QString filter = "");
+  Edges inEdges(VertexId v, const QString filter = "");
+  Edges outEdges(VertexId v, const QString filter = "");
+  Edges edges(VertexId v, const QString filter = "");
   Vertices vertices();
   Vertices ancestors(VertexId v, const QString filter = "");
   Vertices succesors(VertexId v, const QString filter = "");

@@ -109,6 +109,26 @@ ModelItem::Vector ModelItem::relatedItems(ModelItem::RelationType rel, const QSt
   return res;
 }
 
+//------------------------------------------------------------------------
+ModelItem::RelationList ModelItem::relations(const QString filter)
+{
+  RelationList res;
+
+  Q_ASSERT(m_relations);
+//   m_relations->updateVertexInformation();
+  foreach(Edge edge, m_relations->edges(m_vertex, filter))
+  {
+    Relation rel;
+    rel.ancestor = edge.source.item;
+    rel.succesor = edge.target.item;
+    rel.relation = edge.relationship.c_str();
+    res << rel;
+  }
+
+  qDebug() << m_vertex<<"Model Relations" << res.size();
+  return res;
+}
+
 
 //------------------------------------------------------------------------
 ModelItem* indexPtr(const QModelIndex& index)
