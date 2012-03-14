@@ -459,6 +459,17 @@ void EspinaModel::removeSegmentation(Segmentation *seg)
 }
 
 //------------------------------------------------------------------------
+void EspinaModel::removeSegmentation(QList<Segmentation *> segs)
+{
+  //TODO: Group removals ==> also in proxies
+  foreach(Segmentation *seg, segs)
+  {
+    removeSegmentation(seg);
+  }
+}
+
+
+//------------------------------------------------------------------------
 void EspinaModel::addFilter(Filter *filter)
 {
   Q_ASSERT(!m_filters.contains(filter));

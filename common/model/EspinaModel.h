@@ -108,6 +108,7 @@ public:
   void addSegmentation(Segmentation *seg);
   void addSegmentation(QList<Segmentation *> segs);
   void removeSegmentation(Segmentation *seg);
+  void removeSegmentation(QList<Segmentation *> segs);
   QList<Segmentation *> segmentations() const {return m_segmentations;}
 
   void addFilter(Filter *filter);

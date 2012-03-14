@@ -52,6 +52,10 @@ public:
   virtual Qt::DropActions supportedDropActions() const {return Qt::MoveAction;}
   virtual bool dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent);
 
+  int numSegmentations(QModelIndex taxIndex, bool recursive = false) const;
+  int numTaxonomies(QModelIndex taxIndex) const;
+  QModelIndexList segmentations(QModelIndex taxIndex, bool recursive=false) const;
+
 protected slots:
   void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
   void sourceRowsAboutToBeRemoved(const QModelIndex & sourceParent, int start, int end);
@@ -63,7 +67,8 @@ signals:
 
 protected:
   bool indices(const QModelIndex& topLeft, const QModelIndex& bottomRight, QModelIndexList& result);
-  QModelIndexList indices(const QModelIndex& parent, int start, int end);
+  QModelIndexList sourceIndices(const QModelIndex& parent, int start, int end) const;
+  QModelIndexList proxyIndices(const QModelIndex& parent, int start, int end) const;
   void removeTaxonomy(TaxonomyNode *taxonomy);
   int numTaxonomies(TaxonomyNode *taxonomy) const;
   int numSegmentations(TaxonomyNode *taxonomy) const;

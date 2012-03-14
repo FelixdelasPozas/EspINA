@@ -30,6 +30,8 @@
 #include <QStringListModel>
 #include <EspinaCore.h>
 #include <gui/EspinaView.h>
+#include <undo/RemoveSegmentation.h>
+#include <QMessageBox>
 
 //------------------------------------------------------------------------
 class SegmentationExplorer::GUI
@@ -54,7 +56,7 @@ public:
   virtual ~Layout(){}
 
   virtual QAbstractItemModel *model() {return m_model.data();}
-  virtual void deleteSegmentation() {};
+  virtual void deleteSegmentation(QModelIndexList indices) {};
 
 protected:
   QSharedPointer<EspinaModel> m_model;
@@ -68,7 +70,7 @@ public:
   virtual ~SampleLayout(){}
 
   virtual QAbstractItemModel* model() {return m_proxy.data();}
-  virtual void deleteSegmentation();
+  virtual void deleteSegmentation(QModelIndexList indices);
 
 private:
   QSharedPointer<SampleProxy> m_proxy;
@@ -82,7 +84,7 @@ SampleLayout::SampleLayout(QSharedPointer<EspinaModel> model)
 }
 
 //------------------------------------------------------------------------
-void SampleLayout::deleteSegmentation()
+void SampleLayout::deleteSegmentation(QModelIndexList indices)
 {
 
 }
@@ -95,7 +97,7 @@ public:
   virtual ~TaxonomyLayout(){}
 
   virtual QAbstractItemModel* model() {return m_proxy.data();}
-  virtual void deleteSegmentation(){}
+  virtual void deleteSegmentation(QModelIndexList indices);
 
 private:
   QSharedPointer<TaxonomyProxy> m_proxy;
@@ -108,6 +110,87 @@ TaxonomyLayout::TaxonomyLayout(QSharedPointer<EspinaModel> model)
 {
   m_proxy->setSourceModel(m_model.data());
 }
+
+//------------------------------------------------------------------------
+void TaxonomyLayout::deleteSegmentation(QModelIndexList indices)
+{
+  QList<Segmentation *> toDelete;
+  foreach(QModelIndex index, indices)
+  {
+    ModelItem *item = indexPtr(index);
+    switch (item->type())
+    {
+      case ModelItem::SEGMENTATION:
+      {
+	Segmentation *seg = dynamic_cast<Segmentation *>(item);
+	Q_ASSERT(seg);
+	toDelete << seg;
+	break;
+      }
+      case ModelItem::TAXONOMY:
+      {
+	int totalSeg = m_proxy->numSegmentations(index, true);
+	int directSeg = m_proxy->numSegmentations(index);
+	qDebug() << "Segmentations:" << directSeg << "SubTaxonomies Segmentations" << totalSeg;
+
+	if (totalSeg == 0)
+	  continue;
+	
+	TaxonomyNode *taxonmy = dynamic_cast<TaxonomyNode *>(item);
+	QMessageBox msgBox;
+	msgBox.setText(QString("Delete %1's segmentations").arg(taxonmy->qualifiedName()));
+	msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+	msgBox.setDefaultButton(QMessageBox::No);
+
+	if (directSeg > 0)
+	{
+	  if (directSeg < totalSeg)
+	  {
+	    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::YesAll |  QMessageBox::No);
+	    msgBox.setText(QString("Delete %1's segmentations. If you want to delete recursively select Yes To All").arg(taxonmy->qualifiedName()));
+	  }
+	} else
+	{
+	  msgBox.setText(QString("Delete recursively %1's segmentations").arg(taxonmy->qualifiedName()));
+	  msgBox.setStandardButtons(QMessageBox::YesAll |  QMessageBox::No);
+	}
+	
+	bool recursive = false;
+	switch (msgBox.exec())
+	{
+	  case QMessageBox::YesAll:
+	    recursive = true;
+	  case QMessageBox::Yes:
+	  {
+	    QModelIndexList subSegs = m_proxy->segmentations(index, recursive);
+	    foreach(QModelIndex subIndex, subSegs)
+	    {
+	      ModelItem *subItem = indexPtr(subIndex);
+	      Segmentation *seg = dynamic_cast<Segmentation *>(subItem);
+	      Q_ASSERT(seg);
+	      toDelete << seg;
+	    }
+	    break;
+	  }
+	  default:
+	    break;
+	}
+	break;
+      }
+      default:
+	Q_ASSERT(false);
+    }
+  }
+
+  if (!toDelete.isEmpty())
+  {
+  QSharedPointer<QUndoStack> undoStack = EspinaCore::instance()->undoStack();
+  undoStack->beginMacro("Delete Segmentations");
+  undoStack->push(new RemoveSegmentation(toDelete));
+  undoStack->endMacro();
+  }
+}
+
 
 //------------------------------------------------------------------------
 SegmentationExplorer::SegmentationExplorer(QSharedPointer< EspinaModel> model, QWidget* parent)
@@ -181,5 +264,5 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
 void SegmentationExplorer::deleteSegmentation()
 {
   if (m_layout)
-    m_layout->deleteSegmentation();
+    m_layout->deleteSegmentation(m_gui->view->selectionModel()->selectedIndexes());
 }

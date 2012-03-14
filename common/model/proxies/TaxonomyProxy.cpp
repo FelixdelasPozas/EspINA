@@ -327,6 +327,56 @@ bool TaxonomyProxy::dropMimeData(const QMimeData* data, Qt::DropAction action, i
   return true;
 }
 
+//------------------------------------------------------------------------
+int TaxonomyProxy::numSegmentations(QModelIndex taxIndex, bool recursive) const
+{
+  ModelItem *item = indexPtr(taxIndex);
+  if (ModelItem::TAXONOMY != item->type())
+    return 0;
+
+  TaxonomyNode *taxonomy = dynamic_cast<TaxonomyNode *>(item);
+  int total = numSegmentations(taxonomy);
+  if (recursive)
+  {
+    int numTax = numTaxonomies(taxonomy);
+    for (int subTax = 0; subTax < numTax; subTax++)
+    {
+      total += numSegmentations(index(subTax, 0, taxIndex), true);
+    }
+  }
+  return total;
+}
+
+//------------------------------------------------------------------------
+int TaxonomyProxy::numTaxonomies(QModelIndex taxIndex) const
+{
+  ModelItem *item = indexPtr(taxIndex);
+  if (ModelItem::TAXONOMY != item->type())
+    return 0;
+
+  TaxonomyNode *taxonomy = dynamic_cast<TaxonomyNode *>(item);
+  return numTaxonomies(taxonomy);
+}
+
+//------------------------------------------------------------------------
+QModelIndexList TaxonomyProxy::segmentations(QModelIndex taxIndex, bool recursive) const
+{
+  QModelIndexList segs;
+
+  int start = numTaxonomies(taxIndex);
+  int end = start + numSegmentations(taxIndex) - 1;
+  if (recursive)
+  {
+    for (int tax = 0; tax < start; tax++)
+      segs << segmentations(index(tax, 0, taxIndex), true);
+  }
+  if (start <= end)
+    segs << proxyIndices(taxIndex, start, end);
+
+  return segs;
+}
+
+
 // QList<TaxonomyNode *> TaxonomyProxy::indexTaxonomies(int row, int column, const QModelIndex& parent)
 // {
 //   QList<TaxonomyNode *> res;
@@ -343,11 +393,11 @@ bool TaxonomyProxy::dropMimeData(const QMimeData* data, Qt::DropAction action, i
 //     res << indexTaxonomies(r, 0, sourceIndex);
 //   }
 // 
-//   return res;
+//   return res();
 // }
 
 //------------------------------------------------------------------------
-QModelIndexList TaxonomyProxy::indices(const QModelIndex &parent, int start, int end)
+QModelIndexList TaxonomyProxy::sourceIndices(const QModelIndex& parent, int start, int end) const
 {
   QModelIndexList res;
 //   static int indent = 0;
@@ -363,12 +413,30 @@ QModelIndexList TaxonomyProxy::indices(const QModelIndex &parent, int start, int
 //     indent++;
     int numChildren = m_model->rowCount(sourceIndex);
     if (numChildren > 0)
-      res << indices(sourceIndex,0,numChildren - 1);
+      res << sourceIndices(sourceIndex,0,numChildren - 1);
 //     indent--;
   }
 
   return res;
 }
+
+//------------------------------------------------------------------------
+QModelIndexList TaxonomyProxy::proxyIndices(const QModelIndex& parent, int start, int end) const
+{
+  QModelIndexList res;
+  for (int row = start; row <= end; row++)
+  {
+    QModelIndex proxyIndex = index(row, 0, parent);
+    res << proxyIndex;
+
+    int numChildren = rowCount(proxyIndex);
+    if (numChildren > 0)
+      res << proxyIndices(proxyIndex,0,numChildren - 1);
+  }
+
+  return res;
+}
+
 //------------------------------------------------------------------------
 void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int start, int end)
 {

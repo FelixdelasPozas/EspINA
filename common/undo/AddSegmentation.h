@@ -23,8 +23,7 @@
 #include <QSharedPointer>
 #include <QUndoCommand>
 
-#include "common/model/Filter.h"
-#include "common/model/Segmentation.h"
+class Segmentation;
 
 class AddSegmentation : public QUndoCommand
 {

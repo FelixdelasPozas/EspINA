@@ -20,7 +20,6 @@
 #include "AddSegmentation.h"
 
 #include "common/EspinaCore.h"
-#include "common/model/EspinaModel.h"
 
 AddSegmentation::AddSegmentation(Segmentation *seg,
 				 QUndoCommand *parent)
@@ -33,7 +32,6 @@ AddSegmentation::AddSegmentation(Segmentation *seg,
 void AddSegmentation::redo()
 {
   QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
-
   model->addSegmentation(m_segmentation);
 }
 
