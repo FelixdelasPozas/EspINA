@@ -131,6 +131,7 @@ void VolumeView::removeSegmentationRepresentation(Segmentation* seg)
   pqPipelineRepresentation *rep = m_segmentations[seg];
   rep->setVisible(false);
   rep->deleteLater();
+  m_segmentations.remove(seg);
 }
 
 
