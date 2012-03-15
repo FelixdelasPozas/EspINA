@@ -126,13 +126,19 @@ pq3DWidget* RectangularBoundingRegion::createSliceWidget(vtkPVSliceView::VIEW_PL
 //-----------------------------------------------------------------------------
 void RectangularBoundingRegion::setBounds(double bounds[6])
 {
+  Q_ASSERT(false);
+}
 
+//-----------------------------------------------------------------------------
+void RectangularBoundingRegion::bounds(double bounds[6])
+{
+  Q_ASSERT(false);
 }
 
 //-----------------------------------------------------------------------------
 void RectangularBoundingRegion::setEnabled(bool enable)
 {
-
+  Q_ASSERT(false);
 }
 
 //TODO: Widget related methods seem to be common in both regions

@@ -720,6 +720,20 @@ void vtkPVSliceView::SetSlicingPlane ( int plane )
 void vtkPVSliceView::SetCenter ( double x, double y, double z )
 {
 //   qDebug() << "vtkPVSliceView setting Center on " << SlicingPlane << x << y << z;
+  bool crossHairChanged;
+
+  switch (SlicingPlane)
+  {
+    case AXIAL:
+      crossHairChanged = Center[0] != x || Center[1] != y;
+      break;
+    case SAGITTAL:
+      crossHairChanged = Center[1] != y || Center[2] != z;
+      break;
+    case CORONAL:
+      crossHairChanged = Center[0] != x || Center[2] != z;
+  }
+
   Center[0] = x;
   Center[1] = y;
   Center[2] = z;
@@ -739,10 +753,10 @@ void vtkPVSliceView::SetCenter ( double x, double y, double z )
 
   int H = (SAGITTAL == SlicingPlane)?2:0;
   int V = (CORONAL  == SlicingPlane)?2:1;
-  bool centerCamera = Center[H] < ll[H] || Center[H] > ur[H] // Horizontally out
+  bool centerOutOfCamera = Center[H] < ll[H] || Center[H] > ur[H] // Horizontally out
                    || Center[V] > ll[V] || Center[V] < ur[V];// Vertically out
 
-  if (centerCamera)
+  if (crossHairChanged && centerOutOfCamera)
   {
     State->updateCamera(RenderView->GetRenderer()->GetActiveCamera(), Center);
     State->updateCamera(OverviewRenderer->GetActiveCamera(), Center);

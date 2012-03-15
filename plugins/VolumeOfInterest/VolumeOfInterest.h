@@ -41,6 +41,9 @@ protected slots:
   void defineVOI(SelectionHandler::MultiSelection msel);
   void cancelVOI();
 
+  void setBorderFrom(int pos/*nm*/, vtkPVSliceView::VIEW_PLANE plane);
+  void setBorderTo(int pos/*nm*/, vtkPVSliceView::VIEW_PLANE plane);
+
 private:
   void buildVOIs();
 

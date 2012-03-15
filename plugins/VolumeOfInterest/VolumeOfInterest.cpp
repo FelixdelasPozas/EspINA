@@ -76,6 +76,12 @@ void VolumeOfInterest::buildVOIs()
 void VolumeOfInterest::changeVOISelector(QAction* action)
 {
   SelectionManager::instance()->setSelectionHandler(m_selector.data());
+  EspinaView *currentView = EspinaCore::instance()->viewManger()->currentView();
+  currentView->setSliceSelectors(SliceView::From|SliceView::To);
+  connect(currentView, SIGNAL(selectedFromSlice(int,vtkPVSliceView::VIEW_PLANE)),
+	  this, SLOT(setBorderFrom(int,vtkPVSliceView::VIEW_PLANE)));
+  connect(currentView, SIGNAL(selectedToSlice(int,vtkPVSliceView::VIEW_PLANE)),
+	  this, SLOT(setBorderTo(int,vtkPVSliceView::VIEW_PLANE)));
 }
 
 //-----------------------------------------------------------------------------
@@ -118,4 +124,67 @@ void VolumeOfInterest::cancelVOI()
 {
   m_voiWidget.clear();
   SelectionManager::instance()->unsetSelectionHandler(m_selector.data());
+  EspinaView *currentView = EspinaCore::instance()->viewManger()->currentView();
+  currentView->setSliceSelectors(SliceView::NoSelector);
+  disconnect(currentView, SIGNAL(selectedFromSlice(int,vtkPVSliceView::VIEW_PLANE)),
+	  this, SLOT(setBorderFrom(int,vtkPVSliceView::VIEW_PLANE)));
+  disconnect(currentView, SIGNAL(selectedToSlice(int,vtkPVSliceView::VIEW_PLANE)),
+	  this, SLOT(setBorderTo(int,vtkPVSliceView::VIEW_PLANE)));
+}
+
+//-----------------------------------------------------------------------------
+void VolumeOfInterest::setBorderFrom(int pos, vtkPVSliceView::VIEW_PLANE plane)
+{
+  if (!m_voiWidget.isNull())
+  {
+    EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
+    double spacing[3];
+    view->gridSize(spacing);
+    double bounds[6];
+    m_voiWidget->bounds(bounds);
+    switch (plane)
+    {
+      case vtkPVSliceView::AXIAL:
+	bounds[4] = pos;
+	break;
+      case vtkPVSliceView::SAGITTAL:
+	bounds[0] = pos;
+	break;
+      case vtkPVSliceView::CORONAL:
+	bounds[2] = pos;
+	break;
+      default:
+	break;
+    }
+    m_voiWidget->setBounds(bounds);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void VolumeOfInterest::setBorderTo(int pos, vtkPVSliceView::VIEW_PLANE plane)
+{
+  if (!m_voiWidget.isNull())
+  {
+    EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
+    double spacing[3];
+    view->gridSize(spacing);
+    double bounds[6];
+    m_voiWidget->bounds(bounds);
+    switch (plane)
+    {
+      case vtkPVSliceView::AXIAL:
+	bounds[4+1] = pos;
+	break;
+      case vtkPVSliceView::SAGITTAL:
+	bounds[0+1] = pos;
+	break;
+      case vtkPVSliceView::CORONAL:
+	bounds[2+1] = pos;
+	break;
+      default:
+	break;
+    }
+    m_voiWidget->setBounds(bounds);
+  }
+
 }

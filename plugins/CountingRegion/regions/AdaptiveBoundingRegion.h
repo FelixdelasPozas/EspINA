@@ -38,6 +38,7 @@ public:
   virtual pq3DWidget* createWidget();
   virtual pq3DWidget* createSliceWidget(vtkPVSliceView::VIEW_PLANE plane);
   virtual void setBounds(double bounds[6]);
+  virtual void bounds(double bounds[6]);
   virtual void setEnabled(bool enable);
 
 protected slots:

@@ -123,13 +123,19 @@ pq3DWidget* AdaptiveBoundingRegion::createSliceWidget(vtkPVSliceView::VIEW_PLANE
 //-----------------------------------------------------------------------------
 void AdaptiveBoundingRegion::setBounds(double bounds[6])
 {
+  Q_ASSERT(false);
+}
 
+//-----------------------------------------------------------------------------
+void AdaptiveBoundingRegion::bounds(double bounds[6])
+{
+  Q_ASSERT(false);
 }
 
 //-----------------------------------------------------------------------------
 void AdaptiveBoundingRegion::setEnabled(bool enable)
 {
-
+  Q_ASSERT(false);
 }
 
 //-----------------------------------------------------------------------------

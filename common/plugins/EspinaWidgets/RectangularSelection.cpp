@@ -151,3 +151,10 @@ void RectangularRegion::setBounds(double bounds[6])
   vtkSMPropertyHelper(getProxy(),"Bounds").Set(bounds,6);
   getProxy()->UpdateVTKObjects();
 }
+
+//----------------------------------------------------------------------------
+void RectangularRegion::bounds(double bounds[6])
+{
+  vtkSMPropertyHelper(getProxy(),"Bounds").Get(bounds,6);
+}
+

@@ -313,11 +313,16 @@ void SliceView::buildControls()
   m_fromSlice->setFlat(true);
   m_fromSlice->setVisible(false);
   m_fromSlice->setEnabled(false);
+  m_fromSlice->setMaximumHeight(20);
+  m_fromSlice->setSizePolicy(
+      QSizePolicy::Minimum,
+      QSizePolicy::Minimum);
   connect(m_fromSlice, SIGNAL(clicked(bool)),
 	  this,SLOT(selectFromSlice()));
 
   m_spinBox->setMaximum(0);
   m_spinBox->setMinimumWidth(40);
+  m_spinBox->setMaximumHeight(20);
   m_spinBox->setSizePolicy(
       QSizePolicy::Minimum,
       QSizePolicy::Preferred);
@@ -326,6 +331,10 @@ void SliceView::buildControls()
   m_toSlice->setFlat(true);
   m_toSlice->setVisible(false);
   m_toSlice->setEnabled(false);
+  m_toSlice->setMaximumHeight(20);
+  m_toSlice->setSizePolicy(
+      QSizePolicy::Minimum,
+      QSizePolicy::Minimum);
   connect(m_toSlice, SIGNAL(clicked(bool)),
 	  this,SLOT(selectToSlice()));
 
@@ -672,13 +681,13 @@ void SliceView::scrollValueChanged(int pos)
 //-----------------------------------------------------------------------------
 void SliceView::selectFromSlice()
 {
-  emit selectedFromSlice(m_spinBox->value(), m_plane);
+  emit selectedFromSlice(sliceValue(), m_plane);
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::selectToSlice()
 {
-  emit selectedToSlice(m_spinBox->value(), m_plane);
+  emit selectedToSlice(sliceValue(), m_plane);
 }
 
 //-----------------------------------------------------------------------------
@@ -771,6 +780,16 @@ void SliceView::updateChannelOpacity()
     vtkSMPropertyHelper(rep, "Opacity").Set(&opacity,1);
     rep->UpdateVTKObjects();
   }
+}
+
+
+//-----------------------------------------------------------------------------
+int SliceView::sliceValue() const
+{
+  if (m_fitToGrid)
+    return m_gridSize[m_plane]*m_spinBox->value();
+  else
+    return m_spinBox->value();
 }
 
 

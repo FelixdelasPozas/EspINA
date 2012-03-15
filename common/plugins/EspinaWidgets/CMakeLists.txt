@@ -31,3 +31,10 @@ set (PVCORE_XML
   plugins/EspinaWidgets/EspinaWidgets.xml
   PARENT_SCOPE
   )
+
+
+add_library(fake_widgets
+  pqNonRotatingBoxWidget.cpp
+  RectangularSelection.cpp
+  vtkNonRotatingBoxWidget.cpp
+  )

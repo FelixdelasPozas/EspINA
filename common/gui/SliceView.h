@@ -197,6 +197,8 @@ protected:
   void centerViewOnMousePosition();
   void updateChannelOpacity();
 
+  int sliceValue() const;
+
   /// Converts point from Display coordinates to World coordinates
   SelectionHandler::VtkRegion display2vtk(const QPolygonF &region);
 

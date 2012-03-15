@@ -37,6 +37,7 @@ public:
   virtual void setEnabled(bool enable) = 0;
   /// Expand the widget to fit @bounds
   virtual void setBounds(double bounds[6]) = 0;
+  virtual void bounds(double bounds[6]) = 0;
 };
 
 class RectangularRegion
@@ -53,7 +54,7 @@ public:
   virtual void setEnabled(bool enable);
 //   virtual void setDefaultBounds(double bounds[6]);
   virtual void setBounds(double bounds[6]);
-//   void bounds ( double bounds[6] );
+  virtual void bounds(double bounds[6]);
 
 //   virtual vtkSMProxy *getProxy();
 //   virtual void deleteWidget(pq3DWidget* &widget);
