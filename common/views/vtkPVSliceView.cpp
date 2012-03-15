@@ -724,6 +724,9 @@ void vtkPVSliceView::SetCenter ( double x, double y, double z )
   Center[1] = y;
   Center[2] = z;
 
+  SetSlice ( Center[SlicingPlane] );
+  State->setCrossHairs(HCrossLineData,VCrossLineData, Center, LastComputedBounds);
+
   // Only center camera if center is out of the display view
   vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
   coords->SetViewport(GetRenderer());
@@ -738,23 +741,6 @@ void vtkPVSliceView::SetCenter ( double x, double y, double z )
   int V = (CORONAL  == SlicingPlane)?2:1;
   bool centerCamera = Center[H] < ll[H] || Center[H] > ur[H] // Horizontally out
                    || Center[V] > ll[V] || Center[V] < ur[V];// Vertically out
-//   switch (SlicingPlane)
-//   {
-//     case AXIAL:
-//       centerCamera = Center[0] < ll[0] || Center[0] > ur[0] // Horizontally out
-//                   || Center[1] > ll[1] || Center[1] < ur[1];// Vertically out
-//       break;
-//     case SAGITTAL:
-//       centerCamera = Center[2] < ll[2] || Center[2] > ur[2] // Horizontally out
-//                   || Center[1] > ll[1] || Center[1] < ur[1];// Vertically out
-//       break;
-//     case CORONAL:
-//       centerCamera = Center[0] < ll[0] || Center[0] > ur[0] // Horizontally out
-//                   || Center[2] > ll[2] || Center[2] < ur[2];// Vertically out
-//       break;
-//   }
-  SetSlice ( Center[SlicingPlane] );
-  State->setCrossHairs(HCrossLineData,VCrossLineData, Center, LastComputedBounds);
 
   if (centerCamera)
   {

@@ -232,7 +232,9 @@ SliceView::SliceView(vtkPVSliceView::VIEW_PLANE plane, QWidget* parent)
     , m_controlLayout   (new QHBoxLayout())
     , m_viewWidget      (NULL)
     , m_scrollBar       (new QScrollBar(Qt::Horizontal))
+    , m_fromSlice       (new QPushButton("From"))
     , m_spinBox         (new QSpinBox())
+    , m_toSlice         (new QPushButton("To"))
     , m_fitToGrid       (true)
 {
   memset(m_gridSize,1,3*sizeof(double));
@@ -308,11 +310,24 @@ void SliceView::buildControls()
       QSizePolicy::Expanding,
       QSizePolicy::Preferred);
 
+  m_fromSlice->setFlat(true);
+  m_fromSlice->setVisible(false);
+  m_fromSlice->setEnabled(false);
+  connect(m_fromSlice, SIGNAL(clicked(bool)),
+	  this,SLOT(selectFromSlice()));
+
   m_spinBox->setMaximum(0);
   m_spinBox->setMinimumWidth(40);
   m_spinBox->setSizePolicy(
       QSizePolicy::Minimum,
       QSizePolicy::Preferred);
+  m_spinBox->setAlignment(Qt::AlignRight);
+
+  m_toSlice->setFlat(true);
+  m_toSlice->setVisible(false);
+  m_toSlice->setEnabled(false);
+  connect(m_toSlice, SIGNAL(clicked(bool)),
+	  this,SLOT(selectToSlice()));
 
   connect(m_scrollBar, SIGNAL(valueChanged(int)),
 	  m_spinBox, SLOT(setValue(int)));
@@ -323,7 +338,9 @@ void SliceView::buildControls()
   
 //   connect(SelectionManager::instance(),SIGNAL(VOIChanged(IVOI*)),this,SLOT(setVOI(IVOI*)));
   m_controlLayout->addWidget(m_scrollBar);
+  m_controlLayout->addWidget(m_fromSlice);
   m_controlLayout->addWidget(m_spinBox);
+  m_controlLayout->addWidget(m_toSlice);
 
   m_mainLayout->addLayout(m_controlLayout);
 }
@@ -653,6 +670,18 @@ void SliceView::scrollValueChanged(int pos)
 }
 
 //-----------------------------------------------------------------------------
+void SliceView::selectFromSlice()
+{
+  emit selectedFromSlice(m_spinBox->value(), m_plane);
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::selectToSlice()
+{
+  emit selectedToSlice(m_spinBox->value(), m_plane);
+}
+
+//-----------------------------------------------------------------------------
 void SliceView::close()
 {
   emit closeRequest();
@@ -967,6 +996,13 @@ void SliceView::setRulerVisibility(bool visible)
 }
 
 //-----------------------------------------------------------------------------
+void SliceView::setSliceSelectors(SliceView::SliceSelectors selectors)
+{
+  m_fromSlice->setVisible(selectors.testFlag(From));
+  m_toSlice->setVisible(selectors.testFlag(To));
+}
+
+//-----------------------------------------------------------------------------
 void SliceView::forceRender()
 {
   if (isVisible())
@@ -1007,6 +1043,10 @@ void SliceView::setRanges(double ranges[6])
   m_spinBox->setMinimum(static_cast<int>(min));
   m_spinBox->setMaximum(static_cast<int>(max));
   memcpy(m_range, ranges, 6*sizeof(double));
+
+  bool enabled = m_spinBox->minimum() < m_spinBox->maximum();
+  m_fromSlice->setEnabled(enabled);
+  m_toSlice->setEnabled(enabled);
 }
 //-----------------------------------------------------------------------------
 void SliceView::setFitToGrid(bool value)

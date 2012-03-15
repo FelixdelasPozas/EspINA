@@ -62,6 +62,10 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   xyView->setFitToGrid(true);
   connect(xyView, SIGNAL(centerChanged(double,double,double)),
 	  this, SLOT(setCenter(double,double,double)));
+  connect(xyView, SIGNAL(selectedFromSlice(int,vtkPVSliceView::VIEW_PLANE)),
+	  this, SLOT(selectFromSlice(int,vtkPVSliceView::VIEW_PLANE)));
+  connect(xyView, SIGNAL(selectedToSlice(int,vtkPVSliceView::VIEW_PLANE)),
+	  this, SLOT(selectToSlice(int,vtkPVSliceView::VIEW_PLANE)));
   this->setLayout(new QVBoxLayout());
   this->layout()->addWidget(xyView);
   this->layout()->setMargin(0);
@@ -78,6 +82,10 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   yzView->setFitToGrid(true);
   connect(yzView, SIGNAL(centerChanged(double,double,double)),
 	  this, SLOT(setCenter(double,double,double)));
+  connect(yzView, SIGNAL(selectedFromSlice(int,vtkPVSliceView::VIEW_PLANE)),
+	  this, SLOT(selectFromSlice(int,vtkPVSliceView::VIEW_PLANE)));
+  connect(yzView, SIGNAL(selectedToSlice(int,vtkPVSliceView::VIEW_PLANE)),
+	  this, SLOT(selectToSlice(int,vtkPVSliceView::VIEW_PLANE)));
   yzDock->setWidget(yzView);
 
   xzDock = new QDockWidget(tr("XZ"),parent);
@@ -87,6 +95,10 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   xzView->setFitToGrid(true);
   connect(xzView, SIGNAL(centerChanged(double,double,double)),
 	  this, SLOT(setCenter(double,double,double)));
+  connect(xzView, SIGNAL(selectedFromSlice(int,vtkPVSliceView::VIEW_PLANE)),
+	  this, SLOT(selectFromSlice(int,vtkPVSliceView::VIEW_PLANE)));
+  connect(xzView, SIGNAL(selectedToSlice(int,vtkPVSliceView::VIEW_PLANE)),
+	  this, SLOT(selectToSlice(int,vtkPVSliceView::VIEW_PLANE)));
   xzDock->setWidget(xzView);
 
   parent->addDockWidget(Qt::RightDockWidgetArea, volDock);
@@ -197,6 +209,15 @@ void DefaultEspinaView::setCenter(double x, double y, double z)
   yzView->centerViewOn(center);
   xzView->centerViewOn(center);
 }
+
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::setSliceSelectors(SliceView::SliceSelectors selectors)
+{
+  xyView->setSliceSelectors(selectors);
+  yzView->setSliceSelectors(selectors);
+  xzView->setSliceSelectors(selectors);
+}
+
 
 //-----------------------------------------------------------------------------
 void DefaultEspinaView::addSegmentation(Segmentation* seg)
@@ -347,4 +368,16 @@ void DefaultEspinaView::setRulerVisibility(bool visible)
   xyView->setRulerVisibility(visible);
   yzView->setRulerVisibility(visible);
   xzView->setRulerVisibility(visible);
+}
+
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::selectFromSlice(int slice, vtkPVSliceView::VIEW_PLANE plane)
+{
+  emit selectedFromSlice(slice, plane);
+}
+
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::selectToSlice(int slice, vtkPVSliceView::VIEW_PLANE plane)
+{
+  emit selectedToSlice(slice, plane);
 }

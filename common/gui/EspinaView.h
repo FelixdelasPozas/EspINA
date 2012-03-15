@@ -29,6 +29,7 @@
 #include <QAbstractItemView>
 #include <QDockWidget>
 #include "common/plugins/EspinaWidgets/RectangularSelection.h"
+#include "common/gui/SliceView.h"
 
 // Forward-declaration
 class QMainWindow;
@@ -60,10 +61,15 @@ public:
 public slots:
   virtual void setShowSegmentations(bool visibility) = 0;
   virtual void setCenter(double x, double y, double z) = 0;
+  virtual void setSliceSelectors(SliceView::SliceSelectors selectors) = 0;
 
 signals:
   void statusMsg(QString);
-  protected:
+
+  void selectedFromSlice(int, vtkPVSliceView::VIEW_PLANE);
+  void selectedToSlice(int, vtkPVSliceView::VIEW_PLANE);
+
+protected:
   // AbstractItemView Interfacec
   virtual QRegion visualRegionForSelection(const QItemSelection& selection) const {return QRegion();}
   // TODO: Convert QRect to Region and use ISelectable::setSelection

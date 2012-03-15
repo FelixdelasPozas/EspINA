@@ -30,6 +30,7 @@
 #include "IPreferencePanel.h"
 #include "common/selection/SelectableView.h"
 
+class QPushButton;
 class pq3DWidget;
 class vtkSMRepresentationProxy;
 class pqDataRepresentation;
@@ -102,6 +103,15 @@ class SliceView
 {
   Q_OBJECT
 public:
+  enum SliceSelector
+  {
+    NoSelector = 0x0,
+    From       = 0x1,
+    To         = 0x2
+  };
+  Q_DECLARE_FLAGS(SliceSelectors, SliceSelector)
+
+public:
   SliceView(vtkPVSliceView::VIEW_PLANE plane = vtkPVSliceView::AXIAL, QWidget* parent = 0);
   virtual ~SliceView();
 
@@ -150,10 +160,12 @@ public slots:
   // Espina has been disconnected from server
   void onDisconnect();
 
-  //! Show/Hide segmentations
+  /// Show/Hide segmentations
   void setSegmentationVisibility(bool visible);
-  //! Show/Hide the ruler
+  /// Show/Hide the ruler
   void setRulerVisibility(bool visible);
+  /// Show/Hide Slice Selector
+  void setSliceSelectors(SliceSelectors selectors);
 
   void forceRender();
 
@@ -165,6 +177,8 @@ protected slots:
 
   void sliceViewCenterChanged(double x, double y, double z);
   void scrollValueChanged(int pos);
+  void selectFromSlice();
+  void selectToSlice();
 
 signals:
   void centerChanged(double, double, double);
@@ -173,6 +187,9 @@ signals:
   void maximizeRequest();
   void minimizeRequest();
   void undockRequest();
+
+  void selectedFromSlice(int, vtkPVSliceView::VIEW_PLANE);
+  void selectedToSlice(int, vtkPVSliceView::VIEW_PLANE);
 
 protected:
   // AbstractItemView Interfacec
@@ -197,7 +214,9 @@ private:
   QHBoxLayout *m_controlLayout;
   QWidget     *m_viewWidget;
   QScrollBar  *m_scrollBar;
+  QPushButton *m_fromSlice;
   QSpinBox    *m_spinBox;
+  QPushButton *m_toSlice;
 
   SliceViewPreferences *m_preferences;
   bool m_fitToGrid;
@@ -210,5 +229,7 @@ private:
   vtkSMRepresentationProxy *prevRep;
   Filter *m_preview;
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(SliceView::SliceSelectors)
 
 #endif // SLICEVIEW_H

@@ -46,8 +46,10 @@ public:
   virtual void setGridSize(double size[3]);
   virtual void addWidget(EspinaWidget* widget);
 
+public slots:
   virtual void setShowSegmentations(bool visibility);
-  void setCenter(double x, double y, double z);
+  virtual void setCenter(double x, double y, double z);
+  virtual void setSliceSelectors(SliceView::SliceSelectors selectors);
 
 protected:
   void addSegmentation(Segmentation *seg);
@@ -61,6 +63,8 @@ protected slots:
   void setFitToSlices(bool fit);
   void setRulerVisibility(bool visible);
 
+  void selectFromSlice(int slice, vtkPVSliceView::VIEW_PLANE plane);
+  void selectToSlice(int slice, vtkPVSliceView::VIEW_PLANE plane);
 
 private:
   bool first;
