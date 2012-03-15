@@ -63,8 +63,8 @@ protected slots:
   void setFitToSlices(bool fit);
   void setRulerVisibility(bool visible);
 
-  void selectFromSlice(int slice, vtkPVSliceView::VIEW_PLANE plane);
-  void selectToSlice(int slice, vtkPVSliceView::VIEW_PLANE plane);
+  void selectFromSlice(double slice, vtkPVSliceView::VIEW_PLANE plane);
+  void selectToSlice(double slice, vtkPVSliceView::VIEW_PLANE plane);
 
 private:
   bool first;

@@ -784,7 +784,7 @@ void SliceView::updateChannelOpacity()
 
 
 //-----------------------------------------------------------------------------
-int SliceView::sliceValue() const
+double SliceView::sliceValue() const
 {
   if (m_fitToGrid)
     return m_gridSize[m_plane]*m_spinBox->value();

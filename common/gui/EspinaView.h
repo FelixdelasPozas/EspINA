@@ -66,8 +66,8 @@ public slots:
 signals:
   void statusMsg(QString);
 
-  void selectedFromSlice(int, vtkPVSliceView::VIEW_PLANE);
-  void selectedToSlice(int, vtkPVSliceView::VIEW_PLANE);
+  void selectedFromSlice(double, vtkPVSliceView::VIEW_PLANE);
+  void selectedToSlice(double, vtkPVSliceView::VIEW_PLANE);
 
 protected:
   // AbstractItemView Interfacec

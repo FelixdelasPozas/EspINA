@@ -188,8 +188,8 @@ signals:
   void minimizeRequest();
   void undockRequest();
 
-  void selectedFromSlice(int, vtkPVSliceView::VIEW_PLANE);
-  void selectedToSlice(int, vtkPVSliceView::VIEW_PLANE);
+  void selectedFromSlice(double, vtkPVSliceView::VIEW_PLANE);
+  void selectedToSlice(double, vtkPVSliceView::VIEW_PLANE);
 
 protected:
   // AbstractItemView Interfacec
@@ -197,7 +197,7 @@ protected:
   void centerViewOnMousePosition();
   void updateChannelOpacity();
 
-  int sliceValue() const;
+  double sliceValue() const;
 
   /// Converts point from Display coordinates to World coordinates
   SelectionHandler::VtkRegion display2vtk(const QPolygonF &region);

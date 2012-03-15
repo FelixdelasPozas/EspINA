@@ -62,10 +62,10 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   xyView->setFitToGrid(true);
   connect(xyView, SIGNAL(centerChanged(double,double,double)),
 	  this, SLOT(setCenter(double,double,double)));
-  connect(xyView, SIGNAL(selectedFromSlice(int,vtkPVSliceView::VIEW_PLANE)),
-	  this, SLOT(selectFromSlice(int,vtkPVSliceView::VIEW_PLANE)));
-  connect(xyView, SIGNAL(selectedToSlice(int,vtkPVSliceView::VIEW_PLANE)),
-	  this, SLOT(selectToSlice(int,vtkPVSliceView::VIEW_PLANE)));
+  connect(xyView, SIGNAL(selectedFromSlice(double, vtkPVSliceView::VIEW_PLANE)),
+	  this, SLOT(selectFromSlice(double, vtkPVSliceView::VIEW_PLANE)));
+  connect(xyView, SIGNAL(selectedToSlice(double, vtkPVSliceView::VIEW_PLANE)),
+	  this, SLOT(selectToSlice(double, vtkPVSliceView::VIEW_PLANE)));
   this->setLayout(new QVBoxLayout());
   this->layout()->addWidget(xyView);
   this->layout()->setMargin(0);
@@ -82,10 +82,10 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   yzView->setFitToGrid(true);
   connect(yzView, SIGNAL(centerChanged(double,double,double)),
 	  this, SLOT(setCenter(double,double,double)));
-  connect(yzView, SIGNAL(selectedFromSlice(int,vtkPVSliceView::VIEW_PLANE)),
-	  this, SLOT(selectFromSlice(int,vtkPVSliceView::VIEW_PLANE)));
-  connect(yzView, SIGNAL(selectedToSlice(int,vtkPVSliceView::VIEW_PLANE)),
-	  this, SLOT(selectToSlice(int,vtkPVSliceView::VIEW_PLANE)));
+  connect(yzView, SIGNAL(selectedFromSlice(double, vtkPVSliceView::VIEW_PLANE)),
+	  this, SLOT(selectFromSlice(double, vtkPVSliceView::VIEW_PLANE)));
+  connect(yzView, SIGNAL(selectedToSlice(double, vtkPVSliceView::VIEW_PLANE)),
+	  this, SLOT(selectToSlice(double, vtkPVSliceView::VIEW_PLANE)));
   yzDock->setWidget(yzView);
 
   xzDock = new QDockWidget(tr("XZ"),parent);
@@ -95,10 +95,10 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   xzView->setFitToGrid(true);
   connect(xzView, SIGNAL(centerChanged(double,double,double)),
 	  this, SLOT(setCenter(double,double,double)));
-  connect(xzView, SIGNAL(selectedFromSlice(int,vtkPVSliceView::VIEW_PLANE)),
-	  this, SLOT(selectFromSlice(int,vtkPVSliceView::VIEW_PLANE)));
-  connect(xzView, SIGNAL(selectedToSlice(int,vtkPVSliceView::VIEW_PLANE)),
-	  this, SLOT(selectToSlice(int,vtkPVSliceView::VIEW_PLANE)));
+  connect(xzView, SIGNAL(selectedFromSlice(double, vtkPVSliceView::VIEW_PLANE)),
+	  this, SLOT(selectFromSlice(double, vtkPVSliceView::VIEW_PLANE)));
+  connect(xzView, SIGNAL(selectedToSlice(double, vtkPVSliceView::VIEW_PLANE)),
+	  this, SLOT(selectToSlice(double, vtkPVSliceView::VIEW_PLANE)));
   xzDock->setWidget(xzView);
 
   parent->addDockWidget(Qt::RightDockWidgetArea, volDock);
@@ -371,13 +371,13 @@ void DefaultEspinaView::setRulerVisibility(bool visible)
 }
 
 //-----------------------------------------------------------------------------
-void DefaultEspinaView::selectFromSlice(int slice, vtkPVSliceView::VIEW_PLANE plane)
+void DefaultEspinaView::selectFromSlice(double slice, vtkPVSliceView::VIEW_PLANE plane)
 {
   emit selectedFromSlice(slice, plane);
 }
 
 //-----------------------------------------------------------------------------
-void DefaultEspinaView::selectToSlice(int slice, vtkPVSliceView::VIEW_PLANE plane)
+void DefaultEspinaView::selectToSlice(double slice, vtkPVSliceView::VIEW_PLANE plane)
 {
   emit selectedToSlice(slice, plane);
 }

@@ -78,10 +78,10 @@ void VolumeOfInterest::changeVOISelector(QAction* action)
   SelectionManager::instance()->setSelectionHandler(m_selector.data());
   EspinaView *currentView = EspinaCore::instance()->viewManger()->currentView();
   currentView->setSliceSelectors(SliceView::From|SliceView::To);
-  connect(currentView, SIGNAL(selectedFromSlice(int,vtkPVSliceView::VIEW_PLANE)),
-	  this, SLOT(setBorderFrom(int,vtkPVSliceView::VIEW_PLANE)));
-  connect(currentView, SIGNAL(selectedToSlice(int,vtkPVSliceView::VIEW_PLANE)),
-	  this, SLOT(setBorderTo(int,vtkPVSliceView::VIEW_PLANE)));
+  connect(currentView, SIGNAL(selectedFromSlice(double, vtkPVSliceView::VIEW_PLANE)),
+	  this, SLOT(setBorderFrom(double, vtkPVSliceView::VIEW_PLANE)));
+  connect(currentView, SIGNAL(selectedToSlice(double, vtkPVSliceView::VIEW_PLANE)),
+	  this, SLOT(setBorderTo(double, vtkPVSliceView::VIEW_PLANE)));
 }
 
 //-----------------------------------------------------------------------------
@@ -126,14 +126,14 @@ void VolumeOfInterest::cancelVOI()
   SelectionManager::instance()->unsetSelectionHandler(m_selector.data());
   EspinaView *currentView = EspinaCore::instance()->viewManger()->currentView();
   currentView->setSliceSelectors(SliceView::NoSelector);
-  disconnect(currentView, SIGNAL(selectedFromSlice(int,vtkPVSliceView::VIEW_PLANE)),
-	  this, SLOT(setBorderFrom(int,vtkPVSliceView::VIEW_PLANE)));
-  disconnect(currentView, SIGNAL(selectedToSlice(int,vtkPVSliceView::VIEW_PLANE)),
-	  this, SLOT(setBorderTo(int,vtkPVSliceView::VIEW_PLANE)));
+  disconnect(currentView, SIGNAL(selectedFromSlice(double, vtkPVSliceView::VIEW_PLANE)),
+	  this, SLOT(setBorderFrom(double, vtkPVSliceView::VIEW_PLANE)));
+  disconnect(currentView, SIGNAL(selectedToSlice(double, vtkPVSliceView::VIEW_PLANE)),
+	  this, SLOT(setBorderTo(double, vtkPVSliceView::VIEW_PLANE)));
 }
 
 //-----------------------------------------------------------------------------
-void VolumeOfInterest::setBorderFrom(int pos, vtkPVSliceView::VIEW_PLANE plane)
+void VolumeOfInterest::setBorderFrom(double pos, vtkPVSliceView::VIEW_PLANE plane)
 {
   if (!m_voiWidget.isNull())
   {
@@ -142,26 +142,13 @@ void VolumeOfInterest::setBorderFrom(int pos, vtkPVSliceView::VIEW_PLANE plane)
     view->gridSize(spacing);
     double bounds[6];
     m_voiWidget->bounds(bounds);
-    switch (plane)
-    {
-      case vtkPVSliceView::AXIAL:
-	bounds[4] = pos;
-	break;
-      case vtkPVSliceView::SAGITTAL:
-	bounds[0] = pos;
-	break;
-      case vtkPVSliceView::CORONAL:
-	bounds[2] = pos;
-	break;
-      default:
-	break;
-    }
+    bounds[plane*2] = pos;
     m_voiWidget->setBounds(bounds);
   }
 }
 
 //-----------------------------------------------------------------------------
-void VolumeOfInterest::setBorderTo(int pos, vtkPVSliceView::VIEW_PLANE plane)
+void VolumeOfInterest::setBorderTo(double pos, vtkPVSliceView::VIEW_PLANE plane)
 {
   if (!m_voiWidget.isNull())
   {
@@ -170,20 +157,7 @@ void VolumeOfInterest::setBorderTo(int pos, vtkPVSliceView::VIEW_PLANE plane)
     view->gridSize(spacing);
     double bounds[6];
     m_voiWidget->bounds(bounds);
-    switch (plane)
-    {
-      case vtkPVSliceView::AXIAL:
-	bounds[4+1] = pos;
-	break;
-      case vtkPVSliceView::SAGITTAL:
-	bounds[0+1] = pos;
-	break;
-      case vtkPVSliceView::CORONAL:
-	bounds[2+1] = pos;
-	break;
-      default:
-	break;
-    }
+    bounds[plane*2+1] = pos;
     m_voiWidget->setBounds(bounds);
   }
 
