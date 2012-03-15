@@ -759,7 +759,7 @@ void vtkPVSliceView::SetCenter ( double x, double y, double z )
   if (crossHairChanged && centerOutOfCamera)
   {
     State->updateCamera(RenderView->GetRenderer()->GetActiveCamera(), Center);
-    State->updateCamera(OverviewRenderer->GetActiveCamera(), Center);
+//     State->updateCamera(OverviewRenderer->GetActiveCamera(), Center);
   }
 }
 
