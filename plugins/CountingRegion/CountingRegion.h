@@ -53,6 +53,7 @@ protected slots:
   void removeSelectedBoundingRegion();
   void sampleChanged(Sample *sample);
   void showInfo(const QModelIndex& index);
+  void saveRegionDescription();
 
 private:
   GUI *m_gui;

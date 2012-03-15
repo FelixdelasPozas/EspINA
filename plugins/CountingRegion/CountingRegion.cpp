@@ -25,6 +25,7 @@
 
 #include "regions/RectangularBoundingRegion.h"
 #include "regions/AdaptiveBoundingRegion.h"
+#include <QFileDialog>
 
 // #include "CountingRegionExtension.h"
 
@@ -113,6 +114,11 @@ CountingRegion::CountingRegion(QWidget * parent)
   setWindowTitle(tr("Counting Region"));
   setWidget(m_gui);
 
+  QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
+  m_gui->saveDescription->setIcon(iconSave);
+  connect(m_gui->saveDescription, SIGNAL(clicked(bool)),
+	  this, SLOT(saveRegionDescription()));
+
   m_gui->regionView->setModel(&m_regionModel);
   m_regionModel.setHorizontalHeaderItem(0, new QStandardItem(tr("Name")));
 //   m_regionModel.setHorizontalHeaderItem(1, new QStandardItem(tr("XY")));
@@ -139,20 +145,7 @@ CountingRegion::CountingRegion(QWidget * parent)
 
   connect(EspinaCore::instance(), SIGNAL(currentAnalysisClosed()),
 	  this, SLOT(clearBoundingRegions()));
-//   connect(regionType, SIGNAL(currentIndexChanged(int)),
-// 	  this, SLOT(regionTypeChanged(int)));
 
-//   connect(&m_model,SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-// 	  this, SLOT(visibilityModified()));
-
-//   // Register Counting Brick extensions
-//   SegmentationExtension segExt;
-//   EspINAFactory::instance()->addSegmentationExtension(&segExt);
-//   SampleExtension sampleExt;
-//   EspINAFactory::instance()->addSampleExtension(&sampleExt);
-//   RegionRenderer region;
-//   EspINAFactory::instance()->addViewWidget(region.clone());
-// //   EXTENSION_DEBUG(<< "Counting Region Panel created");
 }
 
 //------------------------------------------------------------------------
@@ -239,6 +232,7 @@ void CountingRegion::removeSelectedBoundingRegion()
     m_regionModel.removeRow(selectedRegion);
 
   m_gui->regionDescription->clear();
+  m_gui->saveDescription->setEnabled(false);
   m_gui->removeRegion->setEnabled(m_regionModel.rowCount() > 0);
 }
 
@@ -256,4 +250,22 @@ void CountingRegion::sampleChanged(Sample* sample)
 void CountingRegion::showInfo(const QModelIndex& index)
 {
   m_gui->regionDescription->setText(index.data(BoundingRegion::DescriptionRole).toString());
+  m_gui->saveDescription->setEnabled(index.isValid());
+}
+
+//------------------------------------------------------------------------
+void CountingRegion::saveRegionDescription()
+{
+  QString title   = tr("Save Counting Region Description");
+  QString fileExt = tr("Text File (*.txt)");
+  QString fileName = QFileDialog::getSaveFileName(this, title, "", fileExt);
+
+  if (!fileName.isEmpty())
+  {
+    QFile file(fileName);
+    file.open(QIODevice::WriteOnly |  QIODevice::Text);
+    QTextStream out(&file);
+    out << m_gui->regionDescription->toPlainText();
+    file.close();
+  }
 }
