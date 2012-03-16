@@ -1,4 +1,4 @@
-add_subdirectory (CountingRegion)
+# add_subdirectory (CountingRegion)
 add_subdirectory (SeedGrowSegmentation)
 add_subdirectory (SegmhaImporter)
 add_subdirectory (VolumeOfInterest)

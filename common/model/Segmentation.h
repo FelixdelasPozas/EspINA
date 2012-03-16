@@ -97,7 +97,7 @@ public:
 
   /// Add a new extension to the segmentation
   /// Extesion won't be available until requirements are satisfied
-  void addExtension(SegmentationExtension::SPtr ext);
+  void addExtension(SegmentationExtension *ext);
 //   //! Are supposed to be used for sort time 
 //   ISegmentationExtension *extension(ExtensionId extId);
 //   
@@ -119,12 +119,6 @@ private:
   pqData              m_data;
   SArguments          m_args;
   TaxonomyNode       *m_taxonomy;
-
-  QMap<QString, SegmentationExtension::SPtr> m_extensions;
-  QMap<QString, SegmentationExtension::SPtr> m_pendingExtensions;
-  QList<SegmentationExtension::SPtr>         m_insertionOrderedExtensions;
-//   QMap<ISegmentationRepresentation::RepresentationId, ISegmentationExtension *> m_representations;
-  QMap<QString, SegmentationExtension::SPtr> m_informations;
 
   bool m_isSelected;
   bool m_isVisible;

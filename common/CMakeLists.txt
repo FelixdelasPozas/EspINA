@@ -13,6 +13,7 @@ link_directories ( ${Boost_LIBRARY_DIRS} )
 
 include_directories(
   ${CMAKE_SOURCE_DIR}
+  ${CMAKE_SOURCE_DIR}/common/extensions/Margins
   ${CMAKE_SOURCE_DIR}/common/extensions/Morphological
   ${CMAKE_SOURCE_DIR}/common/plugins/EspinaWidgets
   ${CMAKE_SOURCE_DIR}/common/views

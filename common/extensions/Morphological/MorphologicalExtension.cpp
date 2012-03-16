@@ -15,7 +15,6 @@ const QString MorphologicalExtension::ID = "MorphologicalExtension";
 //------------------------------------------------------------------------
 MorphologicalExtension::MorphologicalExtension()
 : m_features(NULL)
-, m_init(false)
 , m_validFeret(0)
 {
   m_availableInformations << "Size";
@@ -70,7 +69,7 @@ SegmentationRepresentation* MorphologicalExtension::representation(QString rep)
 }
 
 //------------------------------------------------------------------------
-QVariant MorphologicalExtension::information(QString info)
+QVariant MorphologicalExtension::information(QString info) const
 {
   if (!m_init)
   {

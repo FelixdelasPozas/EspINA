@@ -131,11 +131,11 @@ SeedGrowSegmentation::~SeedGrowSegmentation()
 }
 
 //-----------------------------------------------------------------------------
-Filter *SeedGrowSegmentation::createFilter(const QString filter, const QString args)
+Filter *SeedGrowSegmentation::createFilter(const QString filter, const ModelItem::Arguments args)
 {
   Q_ASSERT(filter == SGSF);
 
-  return new SeedGrowSegmentationFilter(ModelItem::Arguments(args));
+  return new SeedGrowSegmentationFilter(args);
 }
 
 

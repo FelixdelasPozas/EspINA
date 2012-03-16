@@ -167,38 +167,9 @@ void Segmentation::setVisible(bool visible)
 
 
 //------------------------------------------------------------------------
-void Segmentation::addExtension(SegmentationExtension::SPtr ext)
+void Segmentation::addExtension(SegmentationExtension * ext)
 {
-  if (m_extensions.contains(ext->id()))
-  {
-     qWarning() << "Segmentation: Extension already registered";
-     Q_ASSERT(false);
-  }
-
-  bool hasDependencies = true;
-  foreach(QString reqExtId, ext->dependencies())
-    hasDependencies = hasDependencies && m_extensions.contains(reqExtId);
-
-  if (hasDependencies)
-  {
-    m_extensions.insert(ext->id(),ext);
-    m_insertionOrderedExtensions << ext;
-//     foreach(ISegmentationRepresentation::RepresentationId rep, ext->availableRepresentations())
-//       m_representations.insert(rep, ext);
-    foreach(QString info, ext->availableInformations())
-    {
-      m_informations.insert(info, ext);
-//       EXTENSION_DEBUG("New Information: " << info);
-    }
-    // Try to satisfy pending extensions
-    foreach(SegmentationExtension::SPtr pending, m_pendingExtensions)
-      addExtension(pending);
-  } 
-  else
-  {
-    if (!m_pendingExtensions.contains(ext->id()))
-      m_pendingExtensions.insert(ext->id(),ext);
-  }
+  ModelItem::addExtension(ext);
 }
 
 // //------------------------------------------------------------------------
@@ -229,8 +200,7 @@ QStringList Segmentation::availableInformations() const
 {
   QStringList informations;
   informations << "Name" << "Taxonomy";
-  foreach (SegmentationExtension::SPtr ext, m_insertionOrderedExtensions)
-    informations << ext->availableInformations();
+  informations << ModelItem::availableInformations();
 
   return informations;
 }
@@ -252,8 +222,12 @@ QVariant Segmentation::information(QString info) const
 // //! or when adding them to EspINA
 void Segmentation::initialize()
 {
-  foreach(SegmentationExtension::SPtr ext, m_extensions)
-    ext->initialize(this);
+  foreach(ModelItemExtension *ext, m_extensions)
+  {
+    SegmentationExtension *segExt = dynamic_cast<SegmentationExtension *>(ext);
+    Q_ASSERT(segExt);
+    segExt->initialize(this);
+  }
 }
 // 
 // //------------------------------------------------------------------------

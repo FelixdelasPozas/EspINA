@@ -144,11 +144,11 @@ protected:
 //   QString m_factoryName;
 // };
 
-class IFileReader
-{
-public:
-  virtual ~IFileReader(){}
-  virtual void readFile(pqPipelineSource *proxy, const QString &filePath) = 0;
-};
+// class IFileReader
+// {
+// public:
+//   virtual ~IFileReader(){}
+//   virtual void readFile(pqPipelineSource *proxy, const QString &filePath) = 0;
+// };
 
 #endif // ESPINAPLUGIN_H

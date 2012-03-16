@@ -96,19 +96,23 @@ void EspinaCore::loadChannel(const QString file)
   Q_ASSERT(channelReader->getNumberOfData() == 1);
 
 
-  pqData channelData(channelReader, 0);
-  Channel *channel = new Channel(file, channelData);
+  Channel::CArguments args;
 
-  int pos[3];
-  existingSample->position(pos);
-  channel->setPosition(pos);
+  pqData channelData(channelReader, 0);
+  args[Channel::ID] = channelData.id();
 
   //TODO: Check for channel information in DB
   QColorDialog dyeSelector;
   if (dyeSelector.exec() == QDialog::Accepted)
   {
-    channel->setColor(dyeSelector.selectedColor().hueF());
+    args.setColor(dyeSelector.selectedColor().hueF());
   }
+
+  Channel *channel = EspinaFactory::instance()->createChannel(file, args);
+
+  int pos[3];
+  existingSample->position(pos);
+  channel->setPosition(pos);
 
   m_undoStack->beginMacro("Add Data To Analysis");
   m_undoStack->push(new AddChannel(channel));

@@ -17,4 +17,30 @@
 */
 
 
-#include "SegmentationExtension.h"
+#ifndef MODELITEMEXTENSION_H
+#define MODELITEMEXTENSION_H
+
+#include <QStringList>
+#include <QVariant>
+
+class ModelItemExtension
+{
+public:
+  virtual ~ModelItemExtension(){}
+
+  virtual QString id() = 0;
+  virtual QStringList dependencies() const  = 0;
+  virtual QStringList availableInformations()    const = 0;
+  virtual QStringList availableRepresentations() const = 0;
+  virtual QVariant    information(QString info)  const = 0;
+//   virtual SegmentationRepresentation *representation(QString rep) = 0;
+
+protected:
+  ModelItemExtension() : m_init(false) {}
+  mutable bool m_init;
+
+  QStringList m_availableRepresentations;
+  QStringList m_availableInformations;
+};
+
+#endif // MODELITEMEXTENSION_H

@@ -17,4 +17,38 @@
 */
 
 
-#include "SegmentationExtension.h"
+#ifndef CHANNELEXTENSION_H
+#define CHANNELEXTENSION_H
+
+#include "common/extensions/ModelItemExtension.h"
+
+#include <QSharedPointer>
+#include <QStringList>
+#include <QVariant>
+
+class Channel;
+
+/// Interface to extend channel's behaviour
+class ChannelExtension
+: public ModelItemExtension
+{
+public:
+  typedef QSharedPointer<ChannelExtension> SPtr;
+
+public:
+  virtual ~ChannelExtension(){}
+
+  virtual void initialize(Channel *channel) = 0;
+
+  virtual Channel *channel() const {return m_channel;}
+
+  /// Prototype
+  virtual ChannelExtension *clone() = 0;
+
+protected:
+  explicit ChannelExtension() : m_channel(NULL){}
+
+  Channel *m_channel;
+};
+
+#endif // CHANNELEXTENSION_H

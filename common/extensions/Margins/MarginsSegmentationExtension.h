@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
+    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,25 +17,31 @@
 */
 
 
-#ifndef MORPHOLOGICALEXTENSION_H
-#define MORPHOLOGICALHEXTENSION_H
+#ifndef MARGINSSEGMENTATIONEXTENSION_H
+#define MARGINSSEGMENTATIONEXTENSION_H
 
 #include "common/extensions/SegmentationExtension.h"
 
-class pqFilter;
 
-class MorphologicalExtension
+class MarginsSegmentationExtension
 : public SegmentationExtension
 {
   static const QString ID;
 
 public:
-  explicit MorphologicalExtension();
-  virtual ~MorphologicalExtension();
+  static const QString LeftMargin;
+  static const QString TopMargin;
+  static const QString UpperMargin;
+  static const QString RightMargin;
+  static const QString BottomMargin;
+  static const QString LowerMargin;
+
+  explicit MarginsSegmentationExtension();
+  virtual ~MarginsSegmentationExtension();
 
   virtual QString id();
   virtual void initialize(Segmentation* seg);
-
+  
   virtual QStringList dependencies() const
     {return SegmentationExtension::dependencies();}
 
@@ -52,18 +58,7 @@ public:
   virtual SegmentationExtension* clone();
 
 private:
-  pqFilter *m_features;
-
-  // Variable to cache filter results
-  mutable double m_Size;
-  mutable double m_PhysicalSize;
-  mutable double m_Centroid[3];
-  mutable int    m_Region[3];
-  mutable double m_BinaryPrincipalMoments[3];
-  mutable double m_BinaryPrincipalAxes[9];
-  mutable bool   m_validFeret;
-  mutable double m_FeretDiameter;
-  mutable double m_EquivalentEllipsoidSize[3];
+  mutable double m_distances[6];
 };
 
-#endif // MORPHOLOGICALEXTENSION_H
+#endif // MARGINSSEGMENTATIONEXTENSION_H

@@ -18,10 +18,13 @@
 */
 #include "common/model/Channel.h"
 
+#include "common/cache/CachedObjectBuilder.h"
+#include "common/extensions/ChannelExtension.h"
+#include "common/extensions/ModelItemExtension.h"
+#include "common/model/RelationshipGraph.h"
+#include "common/model/Representation.h"
 #include "common/processing/pqData.h"
 #include "common/processing/pqFilter.h"
-#include "common/cache/CachedObjectBuilder.h"
-#include "common/model/RelationshipGraph.h"
 
 #include <QDebug>
 
@@ -34,11 +37,15 @@
 const QString Channel::ID = "Id";
 const QString Channel::COLOR = "Color";
 
+const QString Channel::NAME   = "Name";
+const QString Channel::VOLUME = "Volumetric";
+
 //-----------------------------------------------------------------------------
 Channel::Channel(const QString file, pqData data)
 : m_data(data)
 , m_visible(true)
 {
+  qDebug() << "Creating channel from data";
   bzero(m_bounds,6*sizeof(double));
   bzero(m_extent,6*sizeof(int));
   bzero(m_spacing,3*sizeof(double));
@@ -46,13 +53,25 @@ Channel::Channel(const QString file, pqData data)
   bzero(m_pos,3*sizeof(int));
   m_args[ID] = file;
   m_args.setColor(-1.0);
+
+  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+  pqFilter::Arguments infoArgs;
+  infoArgs << pqFilter::Argument("Input", pqFilter::Argument::INPUT, m_data.id());
+//   QString spacing = QString("2,4,6");
+//   infoArgs << pqFilter::Argument("Spacing", pqFilter::Argument::DOUBLEVECT, spacing);
+  m_spacingFilter = cob->createFilter("filters", "InformationChanger", infoArgs);
+  m_spacingFilter->pipelineSource()->updatePipeline();
+  Q_ASSERT(m_spacingFilter->getNumberOfData() == 1);
+  m_representations[VOLUME] = new Representation(m_spacingFilter->data(0));
+  m_data = m_spacingFilter->data(0);
 }
 
 //-----------------------------------------------------------------------------
-Channel::Channel(const QString file, const QString args)
-: m_visible(true) //TODO: Should be persisnet?
+Channel::Channel(const QString file, const Arguments args)
+: m_visible(true) //TODO: Should be persistent?
 , m_args(args)
 {
+  qDebug() << "Creating channel from args";
   bzero(m_bounds,6*sizeof(double));
   bzero(m_extent,6*sizeof(int));
   bzero(m_spacing,3*sizeof(double));
@@ -62,13 +81,20 @@ Channel::Channel(const QString file, const QString args)
 //   QStringList input = m_args[ID].split(":");
   m_args[ID] = file;
   int port = 0;//input.last().toInt();
-  qDebug() << "Loading Channel:" << file;
-  qDebug() << "\tUsing output port:" << port;
-  qDebug() << "\tColor:" << m_args["Color"];
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   pqFilter *channelReader = cob->loadFile(file);
   Q_ASSERT(port < channelReader->getNumberOfData());
   m_data = pqData(channelReader, port);
+
+  pqFilter::Arguments infoArgs;
+  infoArgs << pqFilter::Argument("Input", pqFilter::Argument::INPUT, m_data.id());
+//   QString spacing = QString("2,4,6");
+//   infoArgs << pqFilter::Argument("Spacing", pqFilter::Argument::DOUBLEVECT, spacing);
+  m_spacingFilter = cob->createFilter("filters", "InformationChanger", infoArgs);
+  m_spacingFilter->pipelineSource()->updatePipeline();
+  Q_ASSERT(m_spacingFilter->getNumberOfData() == 1);
+  m_representations[VOLUME] = new Representation(m_spacingFilter->data(0));
+  m_data = m_spacingFilter->data(0);
 }
 
 //-----------------------------------------------------------------------------
@@ -218,22 +244,32 @@ double Channel::color() const
   return m_args.color();
 }
 
-// //------------------------------------------------------------------------
-// void Channel::setOpacity(double opacity)
-// {
-//   m_opacity = opacity;
-// }
-
-
 //------------------------------------------------------------------------
 QString Channel::serialize() const
 {
   return m_args.serialize();
-//   QString args;
-//   args.append(argument("Id", m_data.id()));
-//   args.append(argument("Color", QString::number(m_color)));
-//   return args;
 }
+
+//------------------------------------------------------------------------
+QStringList Channel::availableInformations() const
+{
+  QStringList informations;
+  informations << NAME;
+  informations << ModelItem::availableInformations();
+
+  return informations;
+}
+
+//------------------------------------------------------------------------
+QStringList Channel::availableRepresentations() const
+{
+  QStringList representations;
+  representations << VOLUME;
+  representations << ModelItem::availableInformations();
+
+  return representations;
+}
+
 
 //------------------------------------------------------------------------
 QVariant Channel::data(int role) const
@@ -248,6 +284,31 @@ QVariant Channel::data(int role) const
 //       return QColor(Qt::blue);
     default:
       return QVariant();
+  }
+}
+
+//------------------------------------------------------------------------
+QVariant Channel::information(QString name) const
+{
+  if (name == NAME)
+    return data(Qt::DisplayRole);
+
+  return ModelItem::information(name);
+}
+
+void Channel::addExtension(ChannelExtension* ext)
+{
+  ModelItem::addExtension(ext);
+}
+
+//-----------------------------------------------------------------------------
+void Channel::initialize()
+{
+  foreach(ModelItemExtension *ext, m_extensions)
+  {
+    ChannelExtension *channelExt = dynamic_cast<ChannelExtension *>(ext);
+    Q_ASSERT(channelExt);
+    channelExt->initialize(this);
   }
 }
 

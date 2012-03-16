@@ -18,7 +18,9 @@
 
 
 #include "DataView.h"
+
 #include <EspinaCore.h>
+#include <QFileDialog>
 
 DataView::DataView(QWidget* parent, Qt::WindowFlags f)
 : QWidget(parent, f)
@@ -29,6 +31,8 @@ DataView::DataView(QWidget* parent, Qt::WindowFlags f)
   tableView->setModel(model);
   tableView->setRootIndex(model->segmentationRoot());
 
+  QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
+  writeDataToFile->setIcon(iconSave);
   connect(writeDataToFile, SIGNAL(clicked()),
 	  this,SLOT(extractInformation()));
 }
@@ -40,6 +44,27 @@ DataView::~DataView()
 
 void DataView::extractInformation()
 {
+  QString title   = tr("Export Segmentation Data");
+  QString fileExt = tr("CSV Text File (*.csv)");
+  QString fileName = QFileDialog::getSaveFileName(this, title, "", fileExt);
 
+  if (fileName.isEmpty())
+    return;
+
+  QFile file(fileName);
+  file.open(QIODevice::WriteOnly |  QIODevice::Text);
+  QTextStream out(&file);
+//   out << EspINAFactory::instance()->segmentationAvailableInformations().join(",") << "\n";
+//   for (int r = 0; r < m_espina->rowCount(m_espina->segmentationRoot()); r++)
+//   {
+//     for (int c = 0; c < m_espina->columnCount(m_espina->segmentationRoot()); c++)
+//     {
+//       if (c)
+// 	out << ",";
+//       out << m_espina->index(r,c,m_espina->segmentationRoot()).data().toString();
+//     }
+//     out << "\n";
+//   }
+  file.close();
 }
 

@@ -51,7 +51,7 @@ public:
   void onStartup();
   void onShutdown(){}
 
-  virtual Filter *createFilter(const QString filter, const QString args);
+  virtual Filter *createFilter(const QString filter, const ModelItem::Arguments args);
   virtual void readFile(const QString file);
 };
 

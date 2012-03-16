@@ -23,13 +23,14 @@
 // #include "espina_debug.h"
 //
 // // EspINA
+#include "IPreferencePanel.h"
 #include "common/model/Channel.h"
+#include "common/model/Representation.h"
+#include "common/model/Segmentation.h"
+#include "common/processing/pqData.h"
+#include "common/selection/SelectionManager.h"
 #include "common/views/pqSliceView.h"
 #include "common/views/vtkSMSliceViewProxy.h"
-#include "common/selection/SelectionManager.h"
-#include "IPreferencePanel.h"
-#include "common/processing/pqData.h"
-#include "common/model/Segmentation.h"
 
 // Qt includes
 #include <QApplication>
@@ -39,11 +40,12 @@
 #include <QScrollBar>
 #include <QSettings>
 #include <QSpinBox>
-#include <QVector3D>
 #include <QVBoxLayout>
+#include <QVector3D>
 #include <QWheelEvent>
 
 // ParaQ includes
+#include <pq3DWidget.h>
 #include <pqActiveObjects.h>
 #include <pqApplicationCore.h>
 #include <pqDataRepresentation.h>
@@ -53,29 +55,26 @@
 #include <pqPipelineRepresentation.h>
 #include <pqPipelineSource.h>
 #include <pqRenderView.h>
+#include <pqSMAdaptor.h>
 #include <pqServer.h>
 #include <pqServerManagerModel.h>
 #include <pqServerManagerObserver.h>
-#include <pqSMAdaptor.h>
 #include <pqTwoDRenderView.h>
 #include <vtkInteractorStyleImage.h>
 #include <vtkObjectFactory.h>
+#include <vtkPropCollection.h>
+#include <vtkPropCollection.h>
+#include <vtkPropPicker.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderWindowInteractor.h>
+#include <vtkRenderer.h>
 #include <vtkSMPropertyHelper.h>
+#include <vtkSMPropertyHelper.h>
+#include <vtkSMProxyManager.h>
+#include <vtkSMProxyManager.h>
 #include <vtkSMRepresentationProxy.h>
 #include <vtkSMTwoDRenderViewProxy.h>
-#include <vtkSMProxyManager.h>
-#include <vtkRenderWindowInteractor.h>
 #include <vtkWorldPointPicker.h>
-
-#include <vtkPropPicker.h>
-#include <vtkPropCollection.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderer.h>
-
-#include <vtkPropCollection.h>
-#include <pq3DWidget.h>
-#include <vtkSMProxyManager.h>
-#include <vtkSMPropertyHelper.h>
 
 //-----------------------------------------------------------------------------
 SliceViewPreferencesPanel::SliceViewPreferencesPanel(SliceViewPreferences* preferences)
@@ -821,7 +820,8 @@ bool SliceView::pickChannel(int x, int y, double pickPos[3])
 //-----------------------------------------------------------------------------
 void SliceView::addChannelRepresentation(Channel* channel)
 {
-  pqOutputPort      *oport = channel->outputPort();
+  pqData volumetric = channel->representation("Volumetric")->output();
+  pqOutputPort      *oport = volumetric.outputPort();
   pqPipelineSource *source = oport->getSource();
   vtkSMProxyManager   *pxm = vtkSMProxyManager::GetProxyManager();
 

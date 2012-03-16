@@ -31,21 +31,29 @@
 #include "common/File.h"
 #include <QColor>
 
+class ChannelExtension;
+class ChannelExtension;
 // Forward declarations
 class pqOutputPort;
 class pqPipelineSource;
 
 class Channel : public SelectableItem
 {
+public:
   static const QString ID;
   static const QString COLOR;
 
-  class CArguments : public Arguments
+  static const QString NAME;
+  static const QString MARGIN;
+  static const QString VOLUME;
+
+  class CArguments : public ModelItem::Arguments
   {
   public:
     explicit CArguments(){}
-    explicit CArguments(const QMap< QString, QString >& args) : Arguments(args){}
-    explicit CArguments(const QString args) : Arguments(args) {}
+//     explicit CArguments(const QMap< QString, QString >& args) : Arguments(args){}
+//     explicit CArguments(const QString args) : Arguments(args) {}
+    explicit CArguments(const Arguments args) : Arguments(args) {}
     void setColor(double color)
     {
       (*this)[COLOR] = QString::number(color);
@@ -56,9 +64,10 @@ class Channel : public SelectableItem
       return (*this)[COLOR].toFloat();
     }
   };
+
 public:
   explicit Channel(const QString file, pqData data);
-  explicit Channel(const QString file, const QString args);
+  explicit Channel(const QString file, const Arguments args);
   virtual ~Channel();
 
   pqOutputPort *outputPort();
@@ -74,8 +83,6 @@ public:
 
   void setVisible(bool visible) {m_visible = visible;}
   bool isVisible() const {return m_visible;}
-//   void setOpacity(double opacity);
-//   double opacity() {return m_opacity;}
 
   /// Model Item Interface
   virtual QString id() const {return File::name(m_args[ID]);}
@@ -83,8 +90,17 @@ public:
   virtual ItemType type() const {return ModelItem::CHANNEL;}
   virtual QString  serialize() const;
 
+  virtual QStringList availableInformations() const;
+  virtual QStringList availableRepresentations() const;
+  virtual QVariant information(QString name) const;
+
   /// Selectable Item Interface
   virtual pqData volume() {return m_data;}
+
+  /// Add a new extension to the segmentation
+  /// Extesion won't be available until requirements are satisfied
+  void addExtension(ChannelExtension *ext);
+  void initialize();
 
 private:
   pqData m_data;
@@ -92,15 +108,16 @@ private:
   double m_bounds[6], m_spacing[3];
   int    m_pos[3];/*in nm*/
   bool   m_visible;
+
   CArguments m_args;
-//   double m_opacity; //It's responsability of the view
+
+  pqFilter *m_spacingFilter;
 //   QList<Segmentation *> m_segs;
 
 //   QMap<ExtensionId, IChannelExtension *> m_extensions;
 //   QMap<ExtensionId, IChannelExtension *> m_pendingExtensions;
 //   QList<IChannelExtension *> m_insertionOrderedExtensions;
 //   QMap<IChannelRepresentation::RepresentationId, IChannelExtension *> m_representations;
-//   QMap<QString, IChannelExtension *> m_informations;
 };
 
 #endif // CHANNEL_H

@@ -20,10 +20,12 @@
 #ifndef ESPinaFACTORY_H
 #define ESPinaFACTORY_H
 
+#include "common/extensions/ChannelExtension.h"
+#include "common/extensions/SegmentationExtension.h"
+#include "common/model/Channel.h"
 #include "common/model/Sample.h"
 #include "common/plugins/FilterFactory.h"
 #include "common/plugins/ReaderFactory.h"
-#include "common/extensions/SegmentationExtension.h"
 
 class EspinaFactory
 {
@@ -32,27 +34,25 @@ public:
 
   void registerFilter(const QString filter, FilterFactory *factory);
   void registerReader(const QString extension, ReaderFactory *factory);
+  void registerChannelExtension(ChannelExtension::SPtr extension);
   void registerSegmentationExtension(SegmentationExtension::SPtr extension);
 
-  Filter *createFilter(const QString filter, const QString args);
-  Sample *createSample(const QString id,     const QString args = "");
+  Filter  *createFilter (const QString filter, const ModelItem::Arguments args);
+  Sample  *createSample (const QString id, const QString args = "");
+  Channel *createChannel(const QString id, const ModelItem::Arguments args);
   Segmentation *createSegmentation(Filter* parent, int output, pqData data);
 
   void readFile(const QString file, const QString ext);
-//   void addSampleExtension(ISampleExtension *ext);
-
-//   void addSegmentationExtension(ISegmentationExtension *ext);
-//   QStringList segmentationAvailableInformations();
 
 private:
   EspinaFactory();
 
   static EspinaFactory *m_instance;
 
-  QMap<QString, FilterFactory *> m_filterFactory;
+  QMap<QString, FilterFactory *>     m_filterFactory;
   QList<SegmentationExtension::SPtr> m_segExtensions;
-//   QList<ISampleExtension *> m_sampleExtensions;
-  QMap<QString, ReaderFactory *> m_readers;
+  QList<ChannelExtension::SPtr>      m_channelExtensions;
+  QMap<QString, ReaderFactory *>     m_readers;
 };
 
 #endif // ESPinaFACTORY_H

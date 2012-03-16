@@ -21,6 +21,12 @@ set (CORE_SOURCES
   PARENT_SCOPE
   )
 
+set (PVCORE_XML
+  ${PVCORE_XML}
+  model/Model.xml
+  PARENT_SCOPE
+  )
+
 if (${BUILD_TESTING})
   add_subdirectory(tests)
 endif (${BUILD_TESTING})

@@ -20,8 +20,8 @@
 #ifndef SEGMENTATIONEXTENSION_H
 #define SEGMENTATIONEXTENSION_H
 
-#include <QStringList>
-#include <QVariant>
+#include "common/extensions/ModelItemExtension.h"
+
 #include <QSharedPointer>
 
 class Segmentation;
@@ -29,6 +29,7 @@ class SegmentationRepresentation;
 
 /// Interface to extend segmentation's behaviour
 class SegmentationExtension
+: public ModelItemExtension
 {
 public:
   typedef QSharedPointer<SegmentationExtension> SPtr;
@@ -36,27 +37,17 @@ public:
 public:
   virtual ~SegmentationExtension(){}
 
-  virtual QString id() = 0;
   virtual void initialize(Segmentation *seg) = 0;
-  virtual QStringList dependencies() = 0;
-  virtual QStringList availableRepresentations() = 0;
+
   virtual SegmentationRepresentation *representation(QString rep) = 0;
-  virtual QStringList availableInformations() = 0;
-  virtual QVariant information(QString info) = 0;
 
   virtual Segmentation *segmentation() {return m_seg;}
 
   /// Prototype
   virtual SegmentationExtension *clone() = 0;
-
 protected:
-  SegmentationExtension() : m_seg(NULL), m_init(false){}
-
+  SegmentationExtension() : m_seg(NULL){}
   Segmentation *m_seg;
-  bool m_init; // Wheteher the extentation has been initialized or not
-	       // In other words; if it has been linked to a segmentation
-  QStringList m_availableRepresentations;
-  QStringList m_availableInformations;
 };
 
 

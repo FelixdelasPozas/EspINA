@@ -42,7 +42,7 @@
 
 vtkStandardNewMacro ( vtkSliceRepresentation );
 
-static bool base = true;
+// static bool base = true;
 //----------------------------------------------------------------------------
 vtkSliceRepresentation::vtkSliceRepresentation()
 : Color(0.0)

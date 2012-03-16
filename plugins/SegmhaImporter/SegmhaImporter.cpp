@@ -85,11 +85,11 @@ void SegmhaImporter::onStartup()
 }
 
 //-----------------------------------------------------------------------------
-Filter *SegmhaImporter::createFilter(const QString filter, const QString args)
+Filter *SegmhaImporter::createFilter(const QString filter, const ModelItem::Arguments args)
 {
   Q_ASSERT(filter == SIF);
 
-  return new SegmhaImporterFilter(ModelItem::Arguments(args));
+  return new SegmhaImporterFilter(args);
 }
 
 //-----------------------------------------------------------------------------

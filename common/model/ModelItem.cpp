@@ -20,20 +20,25 @@
 #include "ModelItem.h"
 
 #include <QStringList>
-#include "RelationshipGraph.h"
+#include "common/extensions/ModelItemExtension.h"
+#include "common/model/RelationshipGraph.h"
 
 #include <QDebug>
 #include <QCryptographicHash>
+#include "Representation.h"
 
+//------------------------------------------------------------------------
 ModelItem::Arguments::Arguments()
 {
 }
 
+//------------------------------------------------------------------------
 ModelItem::Arguments::Arguments(const QMap<QString, QString>& args)
 : QMap<QString, QString>(args)
 {
 }
 
+//------------------------------------------------------------------------
 ModelItem::Arguments::Arguments(const QString args)
 {
   QString name, value, buffer;
@@ -71,6 +76,7 @@ ModelItem::Arguments::Arguments(const QString args)
   }
 }
 
+//------------------------------------------------------------------------
 QString ModelItem::Arguments::serialize() const
 {
   QString args;
@@ -81,6 +87,7 @@ QString ModelItem::Arguments::serialize() const
   return args;
 }
 
+//------------------------------------------------------------------------
 QString ModelItem::Arguments::hash() const
 {
   QCryptographicHash hasher(QCryptographicHash::Sha1);
@@ -130,6 +137,74 @@ ModelItem::RelationList ModelItem::relations(const QString filter)
   return res;
 }
 
+//------------------------------------------------------------------------
+QStringList ModelItem::availableInformations() const
+{
+  QStringList informations;
+  foreach (ModelItemExtension *ext, m_insertionOrderedExtensions)
+    informations << ext->availableInformations();
+
+  return informations;
+}
+
+//------------------------------------------------------------------------
+QStringList ModelItem::availableRepresentations() const
+{
+  QStringList representations;
+  foreach (ModelItemExtension *ext, m_insertionOrderedExtensions)
+    representations << ext->availableRepresentations();
+
+  return representations;
+}
+
+//------------------------------------------------------------------------
+QVariant ModelItem::information(QString name) const
+{
+  Q_ASSERT(m_informations.contains(name));
+  return m_informations[name]->information(name);
+}
+
+//------------------------------------------------------------------------
+Representation* ModelItem::representation(QString name) const
+{
+  Q_ASSERT(m_representations.contains(name));
+  return m_representations[name];
+}
+
+//------------------------------------------------------------------------
+void ModelItem::addExtension(ModelItemExtension *ext)
+{
+  if (m_extensions.contains(ext->id()))
+  {
+     qWarning() << "Extension already registered";
+     Q_ASSERT(false);
+  }
+
+  bool hasDependencies = true;
+  foreach(QString reqExtId, ext->dependencies())
+    hasDependencies = hasDependencies && m_extensions.contains(reqExtId);
+
+  if (hasDependencies)
+  {
+    m_extensions.insert(ext->id(),ext);
+    m_insertionOrderedExtensions << ext;
+//     foreach(ISegmentationRepresentation::RepresentationId rep, ext->availableRepresentations())
+//       m_representations.insert(rep, ext);
+    foreach(QString info, ext->availableInformations())
+    {
+      m_informations.insert(info, ext);
+//       EXTENSION_DEBUG("New Information: " << info);
+    }
+    // Try to satisfy pending extensions
+    foreach(ModelItemExtension *pending, m_pendingExtensions)
+      addExtension(pending);
+  } 
+  else
+  {
+    if (!m_pendingExtensions.contains(ext->id()))
+      m_pendingExtensions.insert(ext->id(),ext);
+  }
+}
 
 //------------------------------------------------------------------------
 ModelItem* indexPtr(const QModelIndex& index)

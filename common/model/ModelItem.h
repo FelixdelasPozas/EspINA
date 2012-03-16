@@ -23,9 +23,12 @@
 #include <QModelIndex>
 
 #include <QSharedPointer>
+#include <QStringList>
 
-class VertexProperty;
+class Representation;
+class ModelItemExtension;
 class RelationshipGraph;
+class VertexProperty;
 
 template<class T>
 QString arg3(const T val[3])
@@ -91,12 +94,26 @@ public:
   virtual bool setData(const QVariant& value, int role = Qt::UserRole +1) {return false;}
   virtual QString  serialize() const {return QString("none");}
   virtual ItemType type() const = 0;
+  
   Vector relatedItems(RelationType rel, const QString filter = "");
   RelationList relations(const QString filter = "");
 
+  virtual QStringList availableInformations() const;
+  virtual QStringList availableRepresentations() const;
+  virtual QVariant information(QString name) const;
+  virtual Representation *representation(QString name) const;
+
 protected:
+  void addExtension(ModelItemExtension *ext);
+
   size_t             m_vertex;
   RelationshipGraph *m_relations;
+
+  QMap<QString, ModelItemExtension *> m_extensions;
+  QMap<QString, ModelItemExtension *> m_pendingExtensions;
+  QList<ModelItemExtension *>         m_insertionOrderedExtensions;
+  QMap<QString, Representation *>     m_representations;
+  QMap<QString, ModelItemExtension *> m_informations;
 
   friend class RelationshipGraph;
 };

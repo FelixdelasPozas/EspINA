@@ -17,4 +17,22 @@
 */
 
 
-#include "SegmentationExtension.h"
+#include "ModelItemExtension.h"
+
+//-----------------------------------------------------------------------------
+QStringList ModelItemExtension::dependencies() const
+{
+  return QStringList();
+}
+
+//-----------------------------------------------------------------------------
+QStringList ModelItemExtension::availableRepresentations() const
+{
+  return m_availableRepresentations;
+}
+
+//-----------------------------------------------------------------------------
+QStringList ModelItemExtension::availableInformations() const
+{
+  return m_availableInformations;
+}

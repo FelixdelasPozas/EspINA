@@ -376,6 +376,7 @@ void EspinaModel::addChannel(Channel *channel)
   int row = m_channels.size();
 
   beginInsertRows(channelRoot(), row, row);
+  channel->initialize();
   m_channels << channel;
   m_relations->addItem(channel);
   endInsertRows();
@@ -568,14 +569,14 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
 	}
 	case ModelItem::CHANNEL:
 	{
-	  Channel *channel = new Channel(v.name.c_str(), v.args.c_str());
+	  Channel *channel = factory->createChannel(v.name.c_str(), ModelItem::Arguments(v.args.c_str()));
 	  addChannel(channel);
 	  input->setItem(v.vId, channel);
 	  break;
 	}
 	case ModelItem::FILTER:
 	{
-	  Filter *filter = factory->createFilter(v.name.c_str(), v.args.c_str());
+	  Filter *filter = factory->createFilter(v.name.c_str(), ModelItem::Arguments(v.args.c_str()));
 	  addFilter(filter);
 	  input->setItem(v.vId, filter);
 	  break;

@@ -19,6 +19,8 @@
 
 #include "EspinaFactory.h"
 
+#include "common/extensions/Margins/MarginsChannelExtension.h"
+#include "common/extensions/Margins/MarginsSegmentationExtension.h"
 #include "common/extensions/Morphological/MorphologicalExtension.h"
 
 //------------------------------------------------------------------------
@@ -28,6 +30,8 @@ EspinaFactory *EspinaFactory::m_instance = NULL;
 EspinaFactory::EspinaFactory()
 {
   // Register Default Extensions
+  registerChannelExtension(ChannelExtension::SPtr(new MarginsChannelExtension()));
+  registerSegmentationExtension(SegmentationExtension::SPtr(new MarginsSegmentationExtension()));
   registerSegmentationExtension(SegmentationExtension::SPtr(new MorphologicalExtension()));
 }
 
@@ -54,6 +58,13 @@ void EspinaFactory::registerReader(const QString extension, ReaderFactory* facto
 }
 
 //------------------------------------------------------------------------
+void EspinaFactory::registerChannelExtension(ChannelExtension::SPtr extension)
+{
+  Q_ASSERT(m_channelExtensions.contains(extension) == false);
+  m_channelExtensions << extension;
+}
+
+//------------------------------------------------------------------------
 void EspinaFactory::registerSegmentationExtension(SegmentationExtension::SPtr extension)
 {
   Q_ASSERT(m_segExtensions.contains(extension) == false);
@@ -61,7 +72,7 @@ void EspinaFactory::registerSegmentationExtension(SegmentationExtension::SPtr ex
 }
 
 //------------------------------------------------------------------------
-Filter *EspinaFactory::createFilter(const QString filter, const QString args)
+Filter *EspinaFactory::createFilter(const QString filter, const ModelItem::Arguments args)
 {
   Q_ASSERT(m_filterFactory.contains(filter));
 
@@ -78,12 +89,22 @@ Sample *EspinaFactory::createSample(const QString id, const QString args)
 }
 
 //------------------------------------------------------------------------
+Channel* EspinaFactory::createChannel(const QString id, const ModelItem::Arguments args)
+{
+  Channel *channel = new Channel(id, args);
+  foreach(ChannelExtension::SPtr ext, m_channelExtensions)
+    channel->addExtension(ext->clone());
+
+  return channel;
+}
+
+//------------------------------------------------------------------------
 Segmentation *EspinaFactory::createSegmentation(Filter* parent, int output, pqData data)
 {
 //   std::cout << "Factory is going to create a segmentation for vtkObject: " << vtkRef->id().toStdString() << std::endl;
   Segmentation *seg = new Segmentation(parent, output, data);
   foreach(SegmentationExtension::SPtr ext, m_segExtensions)
-    seg->addExtension(SegmentationExtension::SPtr(ext->clone()));
+    seg->addExtension(ext->clone());
 
   return seg;
 }

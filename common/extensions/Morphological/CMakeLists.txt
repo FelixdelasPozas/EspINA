@@ -15,3 +15,8 @@ set (PVCORE_XML
   extensions/Morphological/MorphologicalExtension.xml
   PARENT_SCOPE
   )
+
+add_library(fake_morphological
+  MorphologicalExtension.cpp
+  vtkMorphologicalFeaturesFilter.cpp
+  )
