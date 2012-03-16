@@ -1,23 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>DataView</class>
- <widget class="QWidget" name="DataView">
+ <class>QueryView</class>
+ <widget class="QWidget" name="QueryView">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>300</height>
+    <width>231</width>
+    <height>351</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="margin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QListView" name="listView">
+     <property name="dragDropMode">
+      <enum>QAbstractItemView::InternalMove</enum>
+     </property>
+     <property name="defaultDropAction">
+      <enum>Qt::MoveAction</enum>
+     </property>
+     <property name="alternatingRowColors">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_5">
      <item>
-      <widget class="QPushButton" name="refreshView">
+      <spacer name="horizontalSpacer_5">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="acceptQuery">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -43,14 +72,14 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Change taxomy node color</string>
+        <string>Add taxonomy node</string>
        </property>
        <property name="text">
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="../../../../paraview3.8-cbbp/espina/frontend/rsc/espina.qrc">
-         <normaloff>:/espina/view-refresh.svg</normaloff>:/espina/view-refresh.svg</iconset>
+        <iconset resource="../../rsc/espina.qrc">
+         <normaloff>:/espina/add.svg</normaloff>:/espina/add.svg</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -95,61 +124,9 @@
        <property name="text">
         <string/>
        </property>
-       <property name="iconSize">
-        <size>
-         <width>22</width>
-         <height>22</height>
-        </size>
-       </property>
-       <property name="flat">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer_5">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="configure">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="minimumSize">
-        <size>
-         <width>32</width>
-         <height>32</height>
-        </size>
-       </property>
-       <property name="maximumSize">
-        <size>
-         <width>32</width>
-         <height>32</height>
-        </size>
-       </property>
-       <property name="baseSize">
-        <size>
-         <width>32</width>
-         <height>32</height>
-        </size>
-       </property>
-       <property name="toolTip">
-        <string>Add taxonomy node</string>
-       </property>
-       <property name="text">
-        <string/>
+       <property name="icon">
+        <iconset resource="../../rsc/espina.qrc">
+         <normaloff>:/espina/remove.svg</normaloff>:/espina/remove.svg</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -164,33 +141,10 @@
      </item>
     </layout>
    </item>
-   <item>
-    <widget class="QTableView" name="tableView">
-     <property name="styleSheet">
-      <string notr="true">QTableView::indicator {
-     width: 15px;
-     height: 15px;
- }
-QTableView::indicator:checked {
-     image: url(:/espina/show_all.svg);
- } 
-QTableView::indicator:unchecked {
-     image: url(:/espina/hide_all.svg);
- } 
-</string>
-     </property>
-     <property name="selectionBehavior">
-      <enum>QAbstractItemView::SelectRows</enum>
-     </property>
-     <attribute name="verticalHeaderVisible">
-      <bool>false</bool>
-     </attribute>
-    </widget>
-   </item>
   </layout>
  </widget>
  <resources>
-  <include location="../../../../paraview3.8-cbbp/espina/frontend/rsc/espina.qrc"/>
+  <include location="../../rsc/espina.qrc"/>
  </resources>
  <connections/>
 </ui>

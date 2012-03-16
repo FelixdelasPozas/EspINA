@@ -21,27 +21,49 @@
 
 #include <EspinaCore.h>
 #include <QFileDialog>
+#include "QueryView.h"
 
+//------------------------------------------------------------------------
 DataView::DataView(QWidget* parent, Qt::WindowFlags f)
 : QWidget(parent, f)
+, m_model(new InformationProxy())
 {
   setupUi(this);
 
   EspinaModel *model = EspinaCore::instance()->model().data();
-  tableView->setModel(model);
-  tableView->setRootIndex(model->segmentationRoot());
+  m_model->setSourceModel(model);
+  QStringList query;
+  query << "Name" << "Size" << "Centroid X";
+  m_model->setQuery(query);
+  tableView->setModel(m_model.data());
+//   tableView->setRootIndex(model->segmentationRoot());
 
   QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
   writeDataToFile->setIcon(iconSave);
   connect(writeDataToFile, SIGNAL(clicked()),
 	  this,SLOT(extractInformation()));
+  connect(changeQuery, SIGNAL(clicked()),
+	  this,SLOT(defineQuery()));
 }
 
+//------------------------------------------------------------------------
 DataView::~DataView()
 {
 
 }
 
+//------------------------------------------------------------------------
+void DataView::defineQuery()
+{
+  QStringList query;
+  query << "Name" << "Size" << "Centroid X";
+  QueryView *querySelector = new QueryView(query, this);
+  querySelector->exec();
+  qDebug() << "New Query" << query;
+  m_model->setQuery(query);
+}
+
+//------------------------------------------------------------------------
 void DataView::extractInformation()
 {
   QString title   = tr("Export Segmentation Data");

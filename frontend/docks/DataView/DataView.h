@@ -24,6 +24,8 @@
 
 #include <ui_DataView.h>
 
+#include "InformationProxy.h"
+
 class DataView
 : public QWidget
 , Ui::DataView
@@ -34,7 +36,12 @@ public:
   virtual ~DataView();
 
 protected slots:
+  void defineQuery();
   void extractInformation();
+
+private:
+  QSharedPointer<InformationProxy> m_model;
+  QStringList m_query;
 };
 
 #endif // DATAVIEW_H

@@ -71,7 +71,7 @@
 #include <pqPipelineFilter.h>
 #include "toolbar/LODToolBar.h"
 #include "views/DefaultEspinaView.h"
-#include "docks/DataViewPanel.h"
+#include "docks/DataView/DataViewPanel.h"
 #include <model/EspinaFactory.h>
 #include <pqServer.h>
 #include <vtkSMProxyManager.h>
