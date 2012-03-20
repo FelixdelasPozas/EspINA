@@ -86,7 +86,7 @@ SampleLayout::SampleLayout(QSharedPointer<EspinaModel> model)
 //------------------------------------------------------------------------
 void SampleLayout::deleteSegmentation(QModelIndexList indices)
 {
-  QList<Segmentation *> toDelete;
+  QSet<Segmentation *> toDelete;
   foreach(QModelIndex index, indices)
   {
     ModelItem *item = indexPtr(index);
@@ -157,7 +157,7 @@ void SampleLayout::deleteSegmentation(QModelIndexList indices)
   {
   QSharedPointer<QUndoStack> undoStack = EspinaCore::instance()->undoStack();
   undoStack->beginMacro("Delete Segmentations");
-  undoStack->push(new RemoveSegmentation(toDelete));
+  undoStack->push(new RemoveSegmentation(toDelete.toList()));
   undoStack->endMacro();
   }
 
@@ -188,7 +188,7 @@ TaxonomyLayout::TaxonomyLayout(QSharedPointer<EspinaModel> model)
 //------------------------------------------------------------------------
 void TaxonomyLayout::deleteSegmentation(QModelIndexList indices)
 {
-  QList<Segmentation *> toDelete;
+  QSet<Segmentation *> toDelete;
   foreach(QModelIndex index, indices)
   {
     ModelItem *item = indexPtr(index);
@@ -259,7 +259,7 @@ void TaxonomyLayout::deleteSegmentation(QModelIndexList indices)
   {
   QSharedPointer<QUndoStack> undoStack = EspinaCore::instance()->undoStack();
   undoStack->beginMacro("Delete Segmentations");
-  undoStack->push(new RemoveSegmentation(toDelete));
+  undoStack->push(new RemoveSegmentation(toDelete.toList()));
   undoStack->endMacro();
   }
 }
