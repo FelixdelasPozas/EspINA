@@ -141,6 +141,9 @@ bool Segmentation::setData(const QVariant& value, int role)
     case Qt::CheckStateRole:
       setVisible(value.toBool());
       return true;
+    case SelectionRole:
+      setSelected(value.toBool());
+      return true;
     default:
       return false;
   }

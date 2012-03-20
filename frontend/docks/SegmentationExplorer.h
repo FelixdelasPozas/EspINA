@@ -54,6 +54,8 @@ protected slots:
   void changeLayout(int index);
   void focusOnSegmentation(const QModelIndex &index);
   void deleteSegmentation();
+  void updateSelection(QModelIndex index);
+  void updateSelection(QItemSelection selected, QItemSelection deselected);
 
 protected:
   GUI *m_gui;

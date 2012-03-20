@@ -289,6 +289,8 @@ SegmentationExplorer::SegmentationExplorer(QSharedPointer< EspinaModel> model, Q
 	  this, SLOT(focusOnSegmentation(QModelIndex)));
   connect(m_gui->deleteSegmentation, SIGNAL(clicked(bool)),
           this, SLOT(deleteSegmentation()));
+  connect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+	  this, SLOT(updateSelection(QItemSelection, QItemSelection)));
 
   setWidget(m_gui);
 }
@@ -309,11 +311,18 @@ void SegmentationExplorer::addLayout(const QString id, SegmentationExplorer::Lay
 void SegmentationExplorer::changeLayout(int index)
 {
   Q_ASSERT(index < m_layouts.size());
+  if (m_layout)
+  {
+    disconnect(m_layout->model(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+	    this, SLOT(updateSelection(QModelIndex)));
+  }
   m_layout = m_layouts[index];
 #ifdef DEBUG
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_layout->model()));
 #endif
   m_gui->view->setModel(m_layout->model());
+  connect(m_layout->model(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+	  this, SLOT(updateSelection(QModelIndex)));
 }
 
 //------------------------------------------------------------------------
@@ -338,4 +347,31 @@ void SegmentationExplorer::deleteSegmentation()
 {
   if (m_layout)
     m_layout->deleteSegmentation(m_gui->view->selectionModel()->selectedIndexes());
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::updateSelection(QModelIndex index)
+{
+  if (index.isValid())
+  {
+    ModelItem *item = indexPtr(index);
+    if (ModelItem::SEGMENTATION == item->type())
+    {
+      Segmentation *seg = dynamic_cast<Segmentation *>(item);
+      if (seg->selected())
+	m_gui->view->selectionModel()->select(index, QItemSelectionModel::Select);
+      else
+	m_gui->view->selectionModel()->select(index, QItemSelectionModel::Deselect);
+    }
+  }
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::updateSelection(QItemSelection selected, QItemSelection deselected)
+{
+  foreach(QModelIndex index, selected.indexes())
+    m_layout->model()->setData(index, true, Segmentation::SelectionRole);
+
+  foreach(QModelIndex index, deselected.indexes())
+    m_layout->model()->setData(index, false, Segmentation::SelectionRole);
 }

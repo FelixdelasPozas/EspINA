@@ -44,6 +44,8 @@ public:
 protected slots:
   void defineQuery();
   void extractInformation();
+  void updateSelection(QModelIndex index);
+  void updateSelection(QItemSelection selected, QItemSelection deselected);
 
 private:
   QSharedPointer<InformationProxy>      m_model;

@@ -43,6 +43,8 @@ public:
   static const QString OUTPUT;
   static const QString TAXONOMY;
 
+  static const int SelectionRole = Qt::UserRole + 2;
+
 private:
   class SArguments : public Arguments
   {
