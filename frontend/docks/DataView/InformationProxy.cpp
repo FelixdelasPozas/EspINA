@@ -60,7 +60,7 @@ QModelIndex InformationProxy::mapFromSource(const QModelIndex& sourceIndex) cons
   ModelItem *sourceItem = indexPtr(sourceIndex);
   Q_ASSERT(sourceItem);
   if (ModelItem::SEGMENTATION == sourceItem->type())
-    return createIndex(sourceIndex.row(), sourceIndex.column(), sourceIndex.internalPointer());
+    return createIndex(sourceIndex.row(), sourceIndex.column(), sourceItem);
 
   return QModelIndex();
 }

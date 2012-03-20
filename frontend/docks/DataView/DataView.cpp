@@ -55,6 +55,10 @@ DataView::DataView(QWidget* parent, Qt::WindowFlags f)
 	  this,SLOT(extractInformation()));
   connect(changeQuery, SIGNAL(clicked()),
 	  this,SLOT(defineQuery()));
+  connect(tableView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+	  this, SLOT(updateSelection(QItemSelection,QItemSelection)));
+  connect(m_sort.data(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+	  this, SLOT(updateSelection(QModelIndex)));
 }
 
 //------------------------------------------------------------------------
@@ -99,3 +103,47 @@ void DataView::extractInformation()
   file.close();
 }
 
+//------------------------------------------------------------------------
+void DataView::updateSelection(QModelIndex index)
+{
+  if (index.isValid())
+  {
+    QString data = index.data().toString();
+    ModelItem *item = indexPtr(m_sort->mapToSource(index));
+    if (ModelItem::SEGMENTATION == item->type())
+    {
+      tableView->blockSignals(true);
+      Segmentation *seg = dynamic_cast<Segmentation *>(item);
+      if (seg->selected())
+      {
+	int row = index.row();
+	for (int c = 0; c < m_sort->columnCount(); c++)
+	  tableView->selectionModel()->select(index.sibling(row,c), QItemSelectionModel::Select);
+// 	tableView->selectRow(index.row());
+      }
+      else
+      {
+	int row = index.row();
+	for (int c = 0; c < m_sort->columnCount(); c++)
+	  tableView->selectionModel()->select(index.sibling(row,c), QItemSelectionModel::Deselect);
+      }
+      tableView->blockSignals(false);
+    }
+  }
+}
+
+//------------------------------------------------------------------------
+void DataView::updateSelection(QItemSelection selected, QItemSelection deselected)
+{
+  foreach(QModelIndex index, selected.indexes())
+  {
+    if (index.column() == 0)
+      m_sort->setData(index, true, Segmentation::SelectionRole);
+  }
+
+  foreach(QModelIndex index, deselected.indexes())
+  {
+    if (index.column() == 0)
+      m_sort->setData(index, false, Segmentation::SelectionRole);
+  }
+}
