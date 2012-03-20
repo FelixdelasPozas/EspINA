@@ -160,6 +160,9 @@ QVariant InformationProxy::data(const QModelIndex& proxyIndex, int role) const
   if (ModelItem::SEGMENTATION != proxyItem->type())
     return QVariant();
 
+  if (role == Qt::TextAlignmentRole)
+    return Qt::AlignRight;
+
   if (role == Qt::DisplayRole && !m_query.isEmpty())
   {
     QString query = m_query[proxyIndex.column()];
