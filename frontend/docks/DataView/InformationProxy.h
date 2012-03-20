@@ -23,6 +23,7 @@
 #include <QAbstractProxyModel>
 #include <QStringList>
 
+class ModelItem;
 class EspinaModel;
 
 class InformationProxy
@@ -45,6 +46,7 @@ public:
 
   void setQuery(const QStringList query);
   const QStringList query() const {return m_query;}
+  const QStringList availableInformation() const;
 
 protected slots:
   void sourceRowsInserted(const QModelIndex & sourceParent, int start, int end);
@@ -53,7 +55,8 @@ protected slots:
 
 private:
   EspinaModel *m_model;
-  QStringList m_query;
+  QStringList  m_query;
+  QList<QModelIndex> m_elements;
 };
 
 #endif // INFORMATIONPROXY_H

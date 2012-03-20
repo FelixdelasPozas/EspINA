@@ -18,15 +18,12 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QListView" name="listView">
+    <widget class="QListWidget" name="listView">
+     <property name="dragDropOverwriteMode">
+      <bool>false</bool>
+     </property>
      <property name="dragDropMode">
       <enum>QAbstractItemView::InternalMove</enum>
-     </property>
-     <property name="defaultDropAction">
-      <enum>Qt::MoveAction</enum>
-     </property>
-     <property name="alternatingRowColors">
-      <bool>false</bool>
      </property>
     </widget>
    </item>

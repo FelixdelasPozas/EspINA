@@ -23,19 +23,30 @@
 #include <QFileDialog>
 #include "QueryView.h"
 
+#ifdef DEBUG
+  #include "common/model/ModelTest.h"
+#endif
+
 //------------------------------------------------------------------------
 DataView::DataView(QWidget* parent, Qt::WindowFlags f)
 : QWidget(parent, f)
 , m_model(new InformationProxy())
+, m_sort (new QSortFilterProxyModel())
 {
   setupUi(this);
 
   EspinaModel *model = EspinaCore::instance()->model().data();
   m_model->setSourceModel(model);
-  QStringList query;
-  query << "Name" << "Size" << "Centroid X";
-  m_model->setQuery(query);
-  tableView->setModel(m_model.data());
+  m_sort->setSourceModel(m_model.data());
+  m_sort->setDynamicSortFilter(true);
+
+#ifdef DEBUG
+  m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model.data()));
+#endif
+
+  tableView->setModel(m_sort.data());
+  tableView->setSortingEnabled(true);
+  tableView->sortByColumn(0, Qt::AscendingOrder);
 //   tableView->setRootIndex(model->segmentationRoot());
 
   QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
@@ -55,11 +66,9 @@ DataView::~DataView()
 //------------------------------------------------------------------------
 void DataView::defineQuery()
 {
-  QStringList query;
-  query << "Name" << "Size" << "Centroid X";
+  QStringList query = m_model->availableInformation();
   QueryView *querySelector = new QueryView(query, this);
   querySelector->exec();
-  qDebug() << "New Query" << query;
   m_model->setQuery(query);
 }
 
@@ -76,17 +85,17 @@ void DataView::extractInformation()
   QFile file(fileName);
   file.open(QIODevice::WriteOnly |  QIODevice::Text);
   QTextStream out(&file);
-//   out << EspINAFactory::instance()->segmentationAvailableInformations().join(",") << "\n";
-//   for (int r = 0; r < m_espina->rowCount(m_espina->segmentationRoot()); r++)
-//   {
-//     for (int c = 0; c < m_espina->columnCount(m_espina->segmentationRoot()); c++)
-//     {
-//       if (c)
-// 	out << ",";
-//       out << m_espina->index(r,c,m_espina->segmentationRoot()).data().toString();
-//     }
-//     out << "\n";
-//   }
+  out << m_model->query().join(",") << "\n";
+  for (int r = 0; r < m_sort->rowCount(); r++)
+  {
+    for (int c = 0; c < m_sort->columnCount(); c++)
+    {
+      if (c)
+	out << ",";
+      out << m_sort->index(r,c).data().toString();
+    }
+    out << "\n";
+  }
   file.close();
 }
 

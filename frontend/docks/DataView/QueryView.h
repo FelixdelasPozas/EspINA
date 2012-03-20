@@ -39,7 +39,7 @@ protected slots:
 
 private:
   QStringList &m_query;
-  QStringListModel m_queryModel;
+//   QStringListModel m_queryModel;
 };
 
 #endif // QUERYVIEW_H

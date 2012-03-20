@@ -21,10 +21,16 @@
 #define DATAVIEW_H
 
 #include <QWidget>
-
 #include <ui_DataView.h>
 
 #include "InformationProxy.h"
+#include <QSortFilterProxyModel>
+
+#define DEBUG
+
+#ifdef DEBUG
+class ModelTest;
+#endif
 
 class DataView
 : public QWidget
@@ -40,7 +46,11 @@ protected slots:
   void extractInformation();
 
 private:
-  QSharedPointer<InformationProxy> m_model;
+  QSharedPointer<InformationProxy>      m_model;
+  QSharedPointer<QSortFilterProxyModel> m_sort;
+#ifdef DEBUG
+  QSharedPointer<ModelTest>             m_modelTester;
+#endif
   QStringList m_query;
 };
 

@@ -133,7 +133,7 @@ ModelItem::RelationList ModelItem::relations(const QString filter)
     res << rel;
   }
 
-  qDebug() << m_vertex<<"Model Relations" << res.size();
+//   qDebug() << m_vertex<<"Model Relations" << res.size();
   return res;
 }
 

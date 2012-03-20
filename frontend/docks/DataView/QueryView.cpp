@@ -25,8 +25,13 @@ QueryView::QueryView(QStringList &query, QWidget* parent, Qt::WindowFlags f)
 {
   setupUi(this);
 
-  m_queryModel.setStringList(m_query);
-  listView->setModel(&m_queryModel);
+//   m_queryModel.setStringList(m_query);
+//   listView->setModel(&m_queryModel);
+  foreach(QString info, query)
+  {
+    listView->addItem(info);
+    listView->item(listView->count()-1)->setCheckState(Qt::Checked);
+  }
 
   connect(acceptQuery, SIGNAL(clicked(bool)),
 	  this, SLOT(accept()));
@@ -38,7 +43,12 @@ QueryView::~QueryView()
 
 void QueryView::accept()
 {
-  m_query = m_queryModel.stringList();
+  m_query.clear();
+  for (int r=0; r < listView->count(); r++)
+  {
+    if (listView->item(r)->checkState() == Qt::Checked)
+      m_query << listView->item(r)->data(Qt::DisplayRole).toString();
+  }
   QDialog::accept();
 }
 

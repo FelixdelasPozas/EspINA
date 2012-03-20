@@ -167,7 +167,15 @@ void ModelTest::rowCount()
     int rows = model->rowCount ( topIndex );
     Q_ASSERT ( rows >= 0 );
     if ( rows > 0 )
+    {
+      if (model->hasChildren(topIndex) == false)
+      {
+	
+	qDebug() << topIndex << topIndex.isValid();
+	QModelIndex topIndex = model->index ( 0, 0, QModelIndex() );
+      }
         Q_ASSERT ( model->hasChildren ( topIndex ) == true );
+    }
 
     QModelIndex secondLevelIndex = model->index ( 0, 0, topIndex );
     if ( secondLevelIndex.isValid() )   // not the top level

@@ -120,7 +120,7 @@ void VolumeView::addSegmentationRepresentation(Segmentation *seg)
   pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
   Q_ASSERT(rep);
   rep->setRepresentation("Volume");
-  qDebug() << "Add Seg:" << seg << "Rep:" << rep;
+//   qDebug() << "Add Seg:" << seg << "Rep:" << rep;
 
   m_segmentations[seg] = rep;
 }
@@ -130,7 +130,7 @@ void VolumeView::removeSegmentationRepresentation(Segmentation* seg)
 {
   Q_ASSERT(m_segmentations.contains(seg));
   pqPipelineRepresentation *rep = m_segmentations[seg];
-  qDebug() << "Remove Seg:" << seg << "Rep:" << rep;
+//   qDebug() << "Remove Seg:" << seg->number() << "Rep:" << rep;
   rep->setVisible(false);
 //   rep->deleteLater();
   m_segmentations.remove(seg);
