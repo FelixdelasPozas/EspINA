@@ -31,6 +31,8 @@ if (${BUILD_TESTING})
   add_subdirectory(tests)
 endif (${BUILD_TESTING})
 
+
+if (${USE_KDEVELOP_FAKE_TARGETS})
 add_library(model_fake
   EspinaFactory.cpp
   EspinaModel.cpp
@@ -42,3 +44,4 @@ add_library(model_fake
   Sample.cpp
   Taxonomy.cpp
   )
+endif (${USE_KDEVELOP_FAKE_TARGETS})

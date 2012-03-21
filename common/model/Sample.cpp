@@ -20,6 +20,7 @@
 #include "common/model/Channel.h"
 #include "common/model/Sample.h"
 #include "common/model/Segmentation.h"
+#include "common/extensions/SampleExtension.h"
 
 #include <QDebug>
 
@@ -99,4 +100,21 @@ QVariant Sample::data(int role) const
     return m_ID;
   else
     return QVariant();
+}
+
+//------------------------------------------------------------------------
+void Sample::addExtension(SampleExtension *ext)
+{
+  ModelItem::addExtension(ext);
+}
+
+//------------------------------------------------------------------------
+void Sample::initialize()
+{
+  foreach(ModelItemExtension *ext, m_extensions)
+  {
+    SampleExtension *sampleExt = dynamic_cast<SampleExtension *>(ext);
+    Q_ASSERT(sampleExt);
+    sampleExt->initialize(this);
+  }
 }

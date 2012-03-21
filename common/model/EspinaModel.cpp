@@ -376,7 +376,7 @@ void EspinaModel::addChannel(Channel *channel)
   int row = m_channels.size();
 
   beginInsertRows(channelRoot(), row, row);
-  channel->initialize();
+//   channel->initialize();
   m_channels << channel;
   m_relations->addItem(channel);
   endInsertRows();
@@ -415,13 +415,13 @@ void EspinaModel::addSegmentation(Segmentation *seg)
   int row = m_segmentations.size();
 
   beginInsertRows(segmentationRoot(), row, row);
-  seg->initialize();
   if (seg->number() == 0)
     seg->setNumber(++m_lastId);
   else
     m_lastId = qMax(m_lastId, seg->number());
   m_segmentations << seg;
   m_relations->addItem(seg);
+//   seg->initialize();
   endInsertRows();
 }
 
@@ -435,13 +435,13 @@ void EspinaModel::addSegmentation(QList<Segmentation *> segs)
   foreach(Segmentation *seg, segs)
   {
     Q_ASSERT(m_segmentations.contains(seg) == false);
-    seg->initialize();
     if (seg->number() == 0)
       seg->setNumber(++m_lastId);
     else
       m_lastId = qMax(m_lastId, seg->number());
     m_segmentations << seg;
     m_relations->addItem(seg);
+//     seg->initialize();
   }
   endInsertRows();
 }
@@ -555,6 +555,7 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
 
   EspinaFactory *factory = EspinaFactory::instance();
 
+  QList<ModelItem *> newItems;
   QList<Segmentation *> newSegmentations;
 
   foreach(VertexProperty v, input->vertices())
@@ -572,6 +573,7 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
 	{
 	  Sample *sample = factory->createSample(v.name.c_str(), v.args.c_str());
 	  addSample(sample);
+	  newItems << sample;
 	  EspinaCore::instance()->setSample(sample);
 	  input->setItem(v.vId, sample);
 	  break;
@@ -580,6 +582,7 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
 	{
 	  Channel *channel = factory->createChannel(v.name.c_str(), ModelItem::Arguments(v.args.c_str()));
 	  addChannel(channel);
+	  newItems << channel;
 	  input->setItem(v.vId, channel);
 	  break;
 	}
@@ -602,6 +605,7 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
 	  if (taxonomy)
 	    seg->setTaxonomy(taxonomy);
 	  newSegmentations << seg;
+	  newItems << seg;
 	  input->setItem(v.vId, seg);
 	  break;
 	}
@@ -619,6 +623,9 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
     Q_ASSERT(e.target.item);
     addRelation(e.source.item, e.target.item, e.relationship.c_str());
   }
+
+  foreach(ModelItem *item, newItems)
+    item->initialize();
 }
 
 //------------------------------------------------------------------------

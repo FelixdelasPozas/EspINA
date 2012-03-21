@@ -30,6 +30,7 @@
 #include <QList>
 #include <QString>
 
+class SampleExtension;
 class Channel;
 class Segmentation;
 
@@ -56,6 +57,11 @@ public:
   virtual ItemType type() const {return SAMPLE;}
 
   void setId(const QString id) {m_ID = id;}
+
+  /// Add a new extension to the segmentation
+  /// Extesion won't be available until requirements are satisfied
+  void addExtension(SampleExtension *ext);
+  void initialize();
 private:
   QString m_ID;
   int  m_position[3];//nm

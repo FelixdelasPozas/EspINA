@@ -14,6 +14,7 @@ set (ITK_VTK_GLUE ${ITK_DIR}/../Wrapping/WrapITK/ExternalProjects/ItkVtkGlue/src
 
 SET (BUILD_TESTING OFF CACHE BOOL "Build EspINA Unitary Tests")
 SET (USE_DASHBOARD OFF CACHE BOOL "Use EspINA Unitary Tests Dashboard")
+SET (USE_KDEVELOP_FAKE_TARGETS  OFF CACHE BOOL "Create Fake targets to let kdevelop parse the project files")
 
 if (${BUILD_TESTING})
   include (CTest)

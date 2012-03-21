@@ -47,6 +47,7 @@ void SegmhaImporter::UndoCommand::redo()
   model->addFilter(m_filter);
   model->addSegmentation(segs);
 
+  model->addRelation(m_channel, m_filter, "Channel");
   foreach(Segmentation *seg, segs)
   {
     model->addRelation(m_filter, seg, "CreateSegmentation");
@@ -62,6 +63,7 @@ void SegmhaImporter::UndoCommand::undo()
   QList<Segmentation *> segs = m_filter->segmentations();
 
 
+  model->removeRelation(m_channel, m_filter, "Channel");
   foreach(Segmentation *seg, segs)
   {
     model->removeRelation(m_filter, seg, "CreateSegmentation");

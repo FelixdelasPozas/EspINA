@@ -36,3 +36,9 @@ QStringList ModelItemExtension::availableInformations() const
 {
   return m_availableInformations;
 }
+
+//-----------------------------------------------------------------------------
+QVariant ModelItemExtension::information(QString info) const
+{
+  return QVariant();
+}

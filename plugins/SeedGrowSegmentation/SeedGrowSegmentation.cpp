@@ -81,6 +81,7 @@ void SeedGrowSegmentation::UndoCommand::redo()
   model->addSegmentation(m_seg);
   model->addRelation(m_filter, m_seg, "CreateSegmentation");
   model->addRelation(m_sample, m_seg, "where");
+  m_seg->initialize();
 }
 
 //-----------------------------------------------------------------------------

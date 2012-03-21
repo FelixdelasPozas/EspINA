@@ -206,8 +206,11 @@ void InformationProxy::sourceRowsInserted(const QModelIndex& sourceParent, int s
     if (m_query.isEmpty())
     {
       QModelIndex sourceIndex = mapFromSource(m_model->index(start, 0, sourceParent));
-      ModelItem *item = indexPtr(sourceIndex);
-      setQuery(item->availableInformations());
+      if (sourceIndex.isValid())
+      {
+	ModelItem *item = indexPtr(sourceIndex);
+	setQuery(item->availableInformations());
+      }
     }
     // Avoid population the view if no query is selected
     if (!m_query.isEmpty())

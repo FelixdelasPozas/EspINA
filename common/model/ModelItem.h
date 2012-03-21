@@ -102,6 +102,13 @@ public:
   virtual QStringList availableRepresentations() const;
   virtual QVariant information(QString name) const;
   virtual Representation *representation(QString name) const;
+  ModelItemExtension *extension(QString name) const;
+
+  /// Used to initialize its extension
+  /// It's important to call initialize once the item has stablished
+  /// its relations with other items. It's up to the developer to
+  /// satisfy this condition
+  virtual void initialize(){};
 
 protected:
   void addExtension(ModelItemExtension *ext);

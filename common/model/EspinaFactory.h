@@ -22,6 +22,7 @@
 
 #include "common/extensions/ChannelExtension.h"
 #include "common/extensions/SegmentationExtension.h"
+#include "common/extensions/SampleExtension.h"
 #include "common/model/Channel.h"
 #include "common/model/Sample.h"
 #include "common/plugins/FilterFactory.h"
@@ -34,6 +35,7 @@ public:
 
   void registerFilter(const QString filter, FilterFactory *factory);
   void registerReader(const QString extension, ReaderFactory *factory);
+  void registerSampleExtension(SampleExtension::SPtr extension);
   void registerChannelExtension(ChannelExtension::SPtr extension);
   void registerSegmentationExtension(SegmentationExtension::SPtr extension);
 
@@ -51,6 +53,7 @@ private:
 
   QMap<QString, FilterFactory *>     m_filterFactory;
   QList<SegmentationExtension::SPtr> m_segExtensions;
+  QList<SampleExtension::SPtr>       m_sampleExtensions;
   QList<ChannelExtension::SPtr>      m_channelExtensions;
   QMap<QString, ReaderFactory *>     m_readers;
 };

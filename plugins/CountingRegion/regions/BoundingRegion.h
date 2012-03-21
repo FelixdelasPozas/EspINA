@@ -50,6 +50,8 @@ public:
   /// Return exclusion volume in pixels
   double exclusionVolume() const;
 
+  virtual pqData region() const {return m_boundingRegion->data(0);}
+
 protected:
   double left()  const {return m_inclusion[0];}
   double top()   const {return m_inclusion[1];}

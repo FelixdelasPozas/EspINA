@@ -23,6 +23,7 @@ set (CORE_SOURCES
   PARENT_SCOPE
   )
 
+if (${USE_KDEVELOP_FAKE_TARGETS})
 add_library(gui_fake
   ActionSelector.cpp
   ActionSelectorWidget.cpp
@@ -34,3 +35,4 @@ add_library(gui_fake
   ViewManager.cpp
   VolumeView.cpp
   )
+endif (${USE_KDEVELOP_FAKE_TARGETS})

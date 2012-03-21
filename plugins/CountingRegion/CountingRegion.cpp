@@ -22,12 +22,14 @@
 #include <common/EspinaCore.h>
 #include <common/model/Channel.h>
 #include <common/gui/EspinaView.h>
+#include <common/model/EspinaFactory.h>
 
 #include "regions/RectangularBoundingRegion.h"
 #include "regions/AdaptiveBoundingRegion.h"
-#include <QFileDialog>
+#include "extensions/CountingRegionSampleExtension.h"
+#include "extensions/CountingRegionSegmentationExtension.h"
 
-// #include "CountingRegionExtension.h"
+#include <QFileDialog>
 
 const int ADAPTIVE = 0;
 const int RECTANGULAR = 1;
@@ -119,6 +121,11 @@ CountingRegion::CountingRegion(QWidget * parent)
   connect(m_gui->saveDescription, SIGNAL(clicked(bool)),
 	  this, SLOT(saveRegionDescription()));
 
+  SampleExtension::SPtr sampleExtension(new CountingRegionSampleExtension());
+  EspinaFactory::instance()->registerSampleExtension(sampleExtension);
+  SegmentationExtension::SPtr segExtension(new CountingRegionSegmentationExtension());
+  EspinaFactory::instance()->registerSegmentationExtension(segExtension);
+
   m_gui->regionView->setModel(&m_regionModel);
   m_regionModel.setHorizontalHeaderItem(0, new QStandardItem(tr("Name")));
 //   m_regionModel.setHorizontalHeaderItem(1, new QStandardItem(tr("XY")));
@@ -180,10 +187,16 @@ void CountingRegion::createRectangularRegion(double inclusion[3], double exclusi
   Sample *sample = EspinaCore::instance()->sample();
   Q_ASSERT(sample);
 
+  ModelItemExtension *ext = sample->extension(CountingRegionSampleExtension::ID);
+  Q_ASSERT(ext);
+  CountingRegionSampleExtension *sampleExt = dynamic_cast<CountingRegionSampleExtension *>(ext);
+  Q_ASSERT(sampleExt);
+  
   double borders[6];
   sample->bounds(borders);
 
   RectangularBoundingRegion *region(new RectangularBoundingRegion(borders, inclusion, exclusion));
+  sampleExt->addRegion(region);
   m_regionModel.appendRow(region);
   view->addWidget(region);
 }

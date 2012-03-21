@@ -30,8 +30,8 @@ EspinaFactory *EspinaFactory::m_instance = NULL;
 EspinaFactory::EspinaFactory()
 {
   // Register Default Extensions
-  registerChannelExtension(ChannelExtension::SPtr(new MarginsChannelExtension()));
-  registerSegmentationExtension(SegmentationExtension::SPtr(new MarginsSegmentationExtension()));
+//   registerChannelExtension(ChannelExtension::SPtr(new MarginsChannelExtension()));
+//   registerSegmentationExtension(SegmentationExtension::SPtr(new MarginsSegmentationExtension()));
   registerSegmentationExtension(SegmentationExtension::SPtr(new MorphologicalExtension()));
 }
 
@@ -55,6 +55,13 @@ void EspinaFactory::registerReader(const QString extension, ReaderFactory* facto
 {
   Q_ASSERT(m_readers.contains(extension) == false);
   m_readers[extension] = factory;
+}
+
+//------------------------------------------------------------------------
+void EspinaFactory::registerSampleExtension(SampleExtension::SPtr extension)
+{
+  Q_ASSERT(m_sampleExtensions.contains(extension) == false);
+  m_sampleExtensions << extension;
 }
 
 //------------------------------------------------------------------------
@@ -82,10 +89,16 @@ Filter *EspinaFactory::createFilter(const QString filter, const ModelItem::Argum
 //------------------------------------------------------------------------
 Sample *EspinaFactory::createSample(const QString id, const QString args)
 {
+  Sample *sample;
   if (args.isNull())
-    return new Sample(id);
+    sample = new Sample(id);
   else
-    return new Sample(id, args);
+    sample = new Sample(id, args);
+
+  foreach(SampleExtension::SPtr ext, m_sampleExtensions)
+    sample->addExtension(ext->clone());
+
+  return sample;
 }
 
 //------------------------------------------------------------------------

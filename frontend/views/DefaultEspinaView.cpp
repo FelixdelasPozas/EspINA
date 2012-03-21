@@ -42,6 +42,7 @@
 #include <QDir>
 #include <QMenu>
 #include <QApplication>
+#include <EspinaCore.h>
 
 //----------------------------------------------------------------------------
 DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity)
@@ -198,6 +199,7 @@ void DefaultEspinaView::setShowSegmentations(bool visibility)
   xyView->setSegmentationVisibility(visibility);
   yzView->setSegmentationVisibility(visibility);
   xzView->setSegmentationVisibility(visibility);
+  EspinaCore::instance()->model()->serializeRelations(std::cout, RelationshipGraph::GRAPHVIZ);
 }
 
 //-----------------------------------------------------------------------------

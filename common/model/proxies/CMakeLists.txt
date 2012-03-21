@@ -12,7 +12,9 @@ set (CORE_SOURCES
   PARENT_SCOPE
   )
 
+if (${USE_KDEVELOP_FAKE_TARGETS})
 add_library(proxies_fake
   SampleProxy.cpp
   TaxonomyProxy.cpp
   )
+endif (${USE_KDEVELOP_FAKE_TARGETS})

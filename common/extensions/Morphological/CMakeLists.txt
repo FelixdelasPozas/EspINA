@@ -16,7 +16,9 @@ set (PVCORE_XML
   PARENT_SCOPE
   )
 
+if (${USE_KDEVELOP_FAKE_TARGETS})
 add_library(fake_morphological
   MorphologicalExtension.cpp
   vtkMorphologicalFeaturesFilter.cpp
   )
+endif (${USE_KDEVELOP_FAKE_TARGETS})

@@ -84,7 +84,7 @@ void EspinaCore::loadChannel(const QString file)
     const QString channelName = channelFile.extendedName(file);
 
     // Try to recover sample form DB using channel information
-    Sample *sample = new Sample(SampleName);
+    Sample *sample = EspinaFactory::instance()->createSample(SampleName);
     EspinaCore::instance()->setSample(sample);
 
     m_undoStack->push(new AddSample(sample));
@@ -117,6 +117,8 @@ void EspinaCore::loadChannel(const QString file)
   m_undoStack->beginMacro("Add Data To Analysis");
   m_undoStack->push(new AddChannel(channel));
   m_undoStack->push(new AddRelation(existingSample, channel, "mark"));//TODO: como se llama esto???
+  existingSample->initialize();
+  channel->initialize();
 
   m_undoStack->endMacro();
 }

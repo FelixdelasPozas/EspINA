@@ -172,6 +172,13 @@ Representation* ModelItem::representation(QString name) const
 }
 
 //------------------------------------------------------------------------
+ModelItemExtension* ModelItem::extension(QString name) const
+{
+  return m_extensions.value(name, NULL);
+}
+
+
+//------------------------------------------------------------------------
 void ModelItem::addExtension(ModelItemExtension *ext)
 {
   if (m_extensions.contains(ext->id()))

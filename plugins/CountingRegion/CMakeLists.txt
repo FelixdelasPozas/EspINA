@@ -33,8 +33,6 @@ qt4_wrap_cpp(MOC_SRCS
   CountingRegion.h
   regions/AdaptiveBoundingRegion.h
   regions/RectangularBoundingRegion.h
-#   CountingRegionExtension.h
-#   RegionRenderer.h
   pqRectangularBoundingRegionWidget.h
   )
 
@@ -58,6 +56,8 @@ ADD_PARAVIEW_DOCK_WINDOW(
 # file ( GLOB LOCAL_SOURCES *.cpp )
 set (LOCAL_SOURCES
   CountingRegion.cpp
+  extensions/CountingRegionSampleExtension.cpp
+  extensions/CountingRegionSegmentationExtension.cpp
   pqRectangularBoundingRegionWidget.cpp
   )
 

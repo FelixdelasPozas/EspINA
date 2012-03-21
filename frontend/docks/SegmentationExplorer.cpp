@@ -75,6 +75,7 @@ public:
 private:
   QSharedPointer<SampleProxy> m_proxy;
 };
+
 //------------------------------------------------------------------------
 SampleLayout::SampleLayout(QSharedPointer<EspinaModel> model)
 : Layout(model)
