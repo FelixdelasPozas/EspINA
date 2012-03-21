@@ -42,8 +42,8 @@ vtkRectangularBoundingRegionRepresentation::vtkRectangularBoundingRegionRepresen
   this->ViewType = VOL; //Default 3D View
   this->Slice = 0;
   this->Region = NULL;
-  bzero(this->InclusionOffset,3*sizeof(double));
-  bzero(this->ExclusionOffset,3*sizeof(double));
+  memset(this->InclusionOffset, 0, 3*sizeof(double));
+  memset(this->ExclusionOffset, 0, 3*sizeof(double));
 
   // Set up the initial properties
   this->CreateDefaultProperties();

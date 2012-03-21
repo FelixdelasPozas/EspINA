@@ -44,8 +44,8 @@ vtkRectangularBoundingRegionWidget::vtkRectangularBoundingRegionWidget()
   this->InvertYCursor = 0;
   this->InvertZCursor = 0;
   
-  bzero(InclusionOffset,3*sizeof(double));
-  bzero(ExclusionOffset,3*sizeof(double));
+  memset(InclusionOffset, 0, 3*sizeof(double));
+  memset(ExclusionOffset, 0, 3*sizeof(double));
   
   // Define widget events
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,

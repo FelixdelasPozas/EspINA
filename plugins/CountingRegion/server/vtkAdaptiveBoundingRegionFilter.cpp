@@ -63,8 +63,8 @@ vtkAdaptiveBoundingRegionFilter::vtkAdaptiveBoundingRegionFilter()
 , ExclusionAdaptiveVolume(0)
 , m_init(false)
 {
-  bzero(InclusionOffset,3*sizeof(int));
-  bzero(ExclusionOffset,3*sizeof(int));
+  memset(InclusionOffset, 0, 3*sizeof(int));
+  memset(ExclusionOffset, 0, 3*sizeof(int));
   this->SetNumberOfInputPorts(1);
   this->SetNumberOfOutputPorts(1);
 }
@@ -311,30 +311,30 @@ vtkSmartPointer<vtkPoints> vtkAdaptiveBoundingRegionFilter::applyOffsets()
   {
     double p0[3];
     borderVertices->GetPoint(v, p0);
-    p0[0] = round(p0[0] + Left);
-    p0[1] = round(p0[1] + Top);
-    p0[2] = round(p0[2]);
+    p0[0] = floor((p0[0] + Left)+0.5);
+    p0[1] = floor((p0[1] + Top)+0.5);
+    p0[2] = floor(p0[2]+0.5);
     vertices->InsertNextPoint(p0);
 
     double p1[3];
     borderVertices->GetPoint(v+1, p1);
-    p1[0] = round(p1[0] - Right);
-    p1[1] = round(p1[1] + Top);
-    p1[2] = round(p1[2]);
+    p1[0] = floor((p1[0] - Right)+0.5);
+    p1[1] = floor((p1[1] + Top)+0.5);
+    p1[2] = floor(p1[2]+0.5);
     vertices->InsertNextPoint(p1);
 
     double p2[3];
     borderVertices->GetPoint(v+2, p2);
-    p2[0] = round(p2[0] - Right);
-    p2[1] = round(p2[1] - Bottom);
-    p2[2] = round(p2[2]);
+    p2[0] = floor((p2[0] - Right)+0.5);
+    p2[1] = floor((p2[1] - Bottom)+0.5);
+    p2[2] = floor(p2[2]+0.5);
     vertices->InsertNextPoint(p2);
 
     double p3[3];
     borderVertices->GetPoint(v+3, p3);
-    p3[0] = round(p3[0] + Left);
-    p3[1] = round(p3[1] - Bottom);
-    p3[2] = round(p3[2]);
+    p3[0] = floor((p3[0] + Left)+0.5);
+    p3[1] = floor((p3[1] - Bottom)+0.5);
+    p3[2] = floor(p3[2]+0.5);
     vertices->InsertNextPoint(p3);
   }
   return vertices;

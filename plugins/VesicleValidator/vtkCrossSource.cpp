@@ -26,7 +26,7 @@ vtkCrossSource::vtkCrossSource()
 : Radius(1)
 , Width(0)
 {
-  bzero(Center,3*sizeof(int));
+  memset(Center, 0, 3*sizeof(int));
   Spacing[0] = Spacing[1] = Spacing[2] = 1;
   
   this->SetNumberOfInputPorts(0);

@@ -165,7 +165,7 @@ ConnectedThresholdRegionGrowImageFilter//<TInputImage, TOutputImage>
 		else
 			m_GridSize[i] = inputImageSize[i];
 
-		m_GridNonOverlappedRegionSize[i] = (unsigned int) round( 1.0*inputImageSize[i] / m_GridSize[i] );
+		m_GridNonOverlappedRegionSize[i] = (unsigned int) floor( (1.0*inputImageSize[i] / m_GridSize[i])+0.5);
 		m_GridOverlappedRegionSize[i] = m_GridNonOverlappedRegionSize[i] + 1;
 
 		lastRegionSize[i] = m_InputImageSize[i] - ((m_GridSize[i]-1)*m_GridNonOverlappedRegionSize[i]);

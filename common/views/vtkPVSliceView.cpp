@@ -354,7 +354,7 @@ vtkStandardNewMacro ( vtkPVSliceView );
 vtkPVSliceView::vtkPVSliceView()
 : m_pendingActor(NULL)
 {
-  bzero ( Center,3*sizeof ( double ) );
+  memset(Center, 0, 3*sizeof(double));
 
   this->SetCenterAxesVisibility ( false );
   this->SetOrientationAxesVisibility ( false );

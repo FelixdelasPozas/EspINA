@@ -47,7 +47,7 @@ vtkStandardNewMacro ( vtkSliceRepresentation );
 vtkSliceRepresentation::vtkSliceRepresentation()
 : Color(0.0)
 {
-  bzero(Position,3*sizeof(int));
+  memset(Position, 0, 3*sizeof(int));
   this->SliceData = vtkImageData::New();
 
   this->DeliveryFilter = vtkImageSliceDataDeliveryFilter::New();

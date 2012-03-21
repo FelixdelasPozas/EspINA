@@ -46,11 +46,11 @@ Channel::Channel(const QString file, pqData data)
 , m_visible(true)
 {
   qDebug() << "Creating channel from data";
-  bzero(m_bounds,6*sizeof(double));
-  bzero(m_extent,6*sizeof(int));
-  bzero(m_spacing,3*sizeof(double));
+  memset(m_bounds, 0, 6*sizeof(double));
+  memset(m_extent, 0, 6*sizeof(int));
+  memset(m_spacing, 0, 3*sizeof(double));
   m_bounds[1] = m_extent[1] = -1;
-  bzero(m_pos,3*sizeof(int));
+  memset(m_pos, 0, 3*sizeof(int));
   m_args[ID] = file;
   m_args.setColor(-1.0);
 
@@ -81,11 +81,11 @@ Channel::Channel(const QString file, const Arguments args)
 , m_args(args)
 {
   qDebug() << "Creating channel from args";
-  bzero(m_bounds,6*sizeof(double));
-  bzero(m_extent,6*sizeof(int));
-  bzero(m_spacing,3*sizeof(double));
+  memset(m_bounds, 0, 6*sizeof(double));
+  memset(m_extent, 0, 6*sizeof(int));
+  memset(m_spacing, 0, 3*sizeof(double));
   m_bounds[1] = m_extent[1] = -1;
-  bzero(m_pos,3*sizeof(int));
+  memset(m_pos, 0, 3*sizeof(int));
 
 //   QStringList input = m_args[ID].split(":");
   m_args[ID] = file;

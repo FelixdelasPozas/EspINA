@@ -236,8 +236,8 @@ SliceView::SliceView(vtkPVSliceView::VIEW_PLANE plane, QWidget* parent)
     , m_toSlice         (new QPushButton("To"))
     , m_fitToGrid       (true)
 {
-  memset(m_gridSize,1,3*sizeof(double));
-  bzero(m_range,6*sizeof(double));
+  memset(m_gridSize, 1, 3*sizeof(double));
+  memset(m_range, 0, 6*sizeof(double));
 
 //   buildTitle(); 
 //   m_viewWidget->setSizePolicy(
@@ -1109,7 +1109,7 @@ void SliceView::centerViewOn(double center[3])
   {
     if (m_fitToGrid)
       m_center[i] = m_center[i]/m_gridSize[i];
-    m_center[i] = round(m_center[i]);
+    m_center[i] = floor(m_center[i]+0.5);
   }
 
   // Disable scrollbox signals to avoid calling seting slice
@@ -1122,7 +1122,7 @@ void SliceView::centerViewOn(double center[3])
   // corresponding grid's position
   if (m_fitToGrid)
     for (int i = 0; i < 3; i++)
-      m_center[i] = round(m_center[i]*m_gridSize[i]);
+      m_center[i] = floor((m_center[i]*m_gridSize[i])+0.5);
 
   m_view->centerViewOn(m_center[0], m_center[1], m_center[2]);
 }
@@ -1143,9 +1143,9 @@ SelectionHandler::VtkRegion SliceView::display2vtk(const QPolygonF &region)
       continue;
 
     QVector3D vtkPoint;
-    vtkPoint.setX(round(pickPos[0] / m_gridSize[0]));
-    vtkPoint.setY(round(pickPos[1] / m_gridSize[1]));
-    vtkPoint.setZ(round(pickPos[2] / m_gridSize[2]));
+    vtkPoint.setX(floor((pickPos[0] / m_gridSize[0])+0.5));
+    vtkPoint.setY(floor((pickPos[1] / m_gridSize[1])+0.5));
+    vtkPoint.setZ(floor((pickPos[2] / m_gridSize[2])+0.5));
     vtkRegion << vtkPoint;
   }
   return vtkRegion;

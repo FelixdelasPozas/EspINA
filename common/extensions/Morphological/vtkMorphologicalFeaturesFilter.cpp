@@ -35,11 +35,11 @@ vtkMorphologicalFeaturesFilter::vtkMorphologicalFeaturesFilter()
 , PhysicalSize(0)
 , FeretDiameter(0)
 {
-  bzero(Centroid, 3*sizeof(double));
-  bzero(Region, 3*sizeof(int));
-  bzero(BinaryPrincipalMoments, 3*sizeof(double));
-  bzero(BinaryPrincipalAxes, 9*sizeof(double));
-  bzero(EquivalentEllipsoidSize, 3*sizeof(double));
+  memset(Centroid, 0, 3*sizeof(double));
+  memset(Region, 0, 3*sizeof(int));
+  memset(BinaryPrincipalMoments, 0, 3*sizeof(double));
+  memset(BinaryPrincipalAxes, 0, 9*sizeof(double));
+  memset(EquivalentEllipsoidSize, 0, 3*sizeof(double));
 }
 
 

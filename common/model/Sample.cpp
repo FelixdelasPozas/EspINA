@@ -27,7 +27,7 @@
 Sample::Sample(const QString id)
 : m_ID(id)
 {
-  bzero(m_position,3*sizeof(int));
+  memset(m_position, 0, 3*sizeof(int));
   //TODO
   m_bounds[0] = m_bounds[2] = m_bounds[4] = 0;
   m_bounds[1] = 698;
@@ -40,7 +40,7 @@ Sample::Sample(const QString id)
 Sample::Sample(const QString id, const QString args)
 : m_ID(id)
 {
-  bzero(m_position,3*sizeof(int));
+  memset(m_position, 0, 3*sizeof(int));
   //TODO
   m_bounds[0] = m_bounds[2] = m_bounds[4] = 0;
   m_bounds[1] = 698;

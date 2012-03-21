@@ -53,9 +53,9 @@ vtkRectangularBoundingRegionFilter::vtkRectangularBoundingRegionFilter()
 , InclusionVolume(0)
 , ExclusionVolume(0)
 {
-  bzero(Margin,6*sizeof(double));
-  bzero(InclusionOffset,3*sizeof(double));
-  bzero(ExclusionOffset,3*sizeof(double));
+  memset(Margin, 0, 6*sizeof(double));
+  memset(InclusionOffset, 0, 3*sizeof(double));
+  memset(ExclusionOffset, 0, 3*sizeof(double));
   this->SetNumberOfInputPorts(0);
   this->SetNumberOfOutputPorts(1);
 }

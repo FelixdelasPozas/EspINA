@@ -54,7 +54,7 @@ int ComputedFeatures(int argc, char **argv)
   double centroid[3] = {-1,-1,1};
   features->GetCentroid(centroid);  
   std::cout << "\tCentroid\t\t" << centroid[0] << " " << centroid[1] << " " << centroid[2] << std::endl;
-  failed = failed || round(centroid[0]*1000) != 415521 || round(centroid[1]*1000) != 347717 || round(centroid[2]*100000) != 429692;
+  failed = failed || floor((centroid[0]*1000)+0.5) != 415521 || floor((centroid[1]*1000)+0.5) != 347717 || floor((centroid[2]*100000)+0.5) != 429692;
   if (failed)
     return 1;
   
@@ -68,7 +68,7 @@ int ComputedFeatures(int argc, char **argv)
   double bpm[3] = {-1,-1,-1};
   features->GetBinaryPrincipalMoments(bpm);
   std::cout << "\tBinary Princ. Moments\t" << bpm[0] << " " << bpm[1] << " " << bpm[2] << std::endl;
-  failed = failed || round(10000*bpm[0]) != 33241 || round(10000*bpm[1]) != 250345 || round(10000*bpm[2]) != 597872;
+  failed = failed || floor((10000*bpm[0])+0.5) != 33241 || floor((10000*bpm[1])+0.5) != 250345 || floor((10000*bpm[2])+0.5) != 597872;
   if (failed)
     return 1;
 
@@ -82,9 +82,9 @@ int ComputedFeatures(int argc, char **argv)
   std::cout << "\tBinary Princ. Axes\t" << bpa[0] << " " << bpa[1] << " " << bpa[2] << std::endl;
   std::cout << "\t\t\t" << bpa[3] << " " << bpa[4] << " " << bpa[5] << std::endl;
   std::cout << "\t\t\t" << bpa[6] << " " << bpa[7] << " " << bpa[8] << std::endl;
-  failed = failed || round(1e6*bpa[0]) != -478568 || round(1e7*bpa[1]) != 719678 || round(1e6*bpa[2]) != -875096;
-  failed = failed || round(1e6*bpa[3]) != -433767 || round(1e6*bpa[4]) != -885908 || round(1e6*bpa[5]) != 164359;
-  failed = failed || round(1e6*bpa[6]) != -763426 || round(1e6*bpa[7]) != 458245 || round(1e6*bpa[8]) != 455184;
+  failed = failed || floor((1e6*bpa[0])+0.5) != -478568 || floor((1e7*bpa[1])+0.5) != 719678 || floor((1e6*bpa[2])+0.5) != -875096;
+  failed = failed || floor((1e6*bpa[3])+0.5) != -433767 || floor((1e6*bpa[4])+0.5) != -885908 || floor((1e6*bpa[5])+0.5) != 164359;
+  failed = failed || floor((1e6*bpa[6])+0.5) != -763426 || floor((1e6*bpa[7])+0.5) != 458245 || floor((1e6*bpa[8])+0.5) != 455184;
   if (failed)
     return 1;
   
@@ -98,7 +98,7 @@ int ComputedFeatures(int argc, char **argv)
   double ess[3] = {-1,-1,-1};
   features->GetEquivalentEllipsoidSize(ess);
   std::cout << "\tEquivalent Ellip. Size\t" << ess[0] << " " << ess[1] << " " << ess[2] << std::endl;
-  failed = failed || round(1e5*ess[0]) != 489328 || round(1e4*ess[1]) != 134286 || round(1e4*ess[2]) != 207523;
+  failed = failed || floor((1e5*ess[0])+0.5) != 489328 || floor((1e4*ess[1])+0.5) != 134286 || floor((1e4*ess[2])+0.5) != 207523;
 
   return failed;
 }

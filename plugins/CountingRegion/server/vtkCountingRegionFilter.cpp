@@ -192,9 +192,9 @@ bool realCollision(vtkImageData *input, BoundingBox interscetion)
     for (int y = interscetion.yMin; y <= interscetion.yMax; y++)
       for (int x = interscetion.xMin; x <= interscetion.xMax; x++)
       {
-	int px = round(x/spacing[0]);
-	int py = round(y/spacing[1]);
-	int pz = round(z/spacing[2]);
+	int px = floor((x/spacing[0])+0.5);
+	int py = floor((y/spacing[1])+0.5);
+	int pz = floor((z/spacing[2])+0.5);
 	if (input->GetScalarComponentAsDouble(px,py,pz,0))
 	  return true;
       }
