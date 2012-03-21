@@ -109,6 +109,7 @@ public:
   void addSegmentation(QList<Segmentation *> segs);
   void removeSegmentation(Segmentation *seg);
   void removeSegmentation(QList<Segmentation *> segs);
+  void changeTaxonomy(Segmentation *seg, TaxonomyNode *taxonomy);
   QList<Segmentation *> segmentations() const {return m_segmentations;}
 
   void addFilter(Filter *filter);

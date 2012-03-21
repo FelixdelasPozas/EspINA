@@ -470,6 +470,15 @@ void EspinaModel::removeSegmentation(QList<Segmentation *> segs)
   }
 }
 
+//------------------------------------------------------------------------
+void EspinaModel::changeTaxonomy(Segmentation* seg, TaxonomyNode* taxonomy)
+{
+  seg->setTaxonomy(taxonomy);
+
+  QModelIndex segIndex = segmentationIndex(seg);
+  emit dataChanged(segIndex, segIndex);
+}
+
 
 //------------------------------------------------------------------------
 void EspinaModel::addFilter(Filter *filter)

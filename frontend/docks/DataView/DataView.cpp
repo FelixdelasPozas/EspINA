@@ -47,7 +47,7 @@ DataView::DataView(QWidget* parent, Qt::WindowFlags f)
   tableView->setModel(m_sort.data());
   tableView->setSortingEnabled(true);
   tableView->sortByColumn(0, Qt::AscendingOrder);
-//   tableView->setRootIndex(model->segmentationRoot());
+//   tableView->horizontalHeader()->setMovable(true);
 
   QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
   writeDataToFile->setIcon(iconSave);
