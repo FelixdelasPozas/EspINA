@@ -40,7 +40,6 @@ public:
   explicit CountingRegion(QWidget* parent);
   virtual ~CountingRegion();
 
-protected:
   void createAdaptiveRegion(double inclusion[3], double exclusion[3]);
   void createRectangularRegion(double inclusion[3], double exclusion[3]);
 

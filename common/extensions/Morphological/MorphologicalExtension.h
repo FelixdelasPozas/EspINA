@@ -55,6 +55,7 @@ private:
   pqFilter *m_features;
 
   // Variable to cache filter results
+  mutable bool   m_validInfo;
   mutable double m_Size;
   mutable double m_PhysicalSize;
   mutable double m_Centroid[3];

@@ -48,10 +48,12 @@ void SegmhaImporter::UndoCommand::redo()
   model->addSegmentation(segs);
 
   model->addRelation(m_channel, m_filter, "Channel");
+  m_channel->initialize();
   foreach(Segmentation *seg, segs)
   {
     model->addRelation(m_filter, seg, "CreateSegmentation");
     model->addRelation(m_sample, seg, "where");
+    seg->initialize();
   }
 }
 

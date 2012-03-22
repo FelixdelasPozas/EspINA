@@ -34,6 +34,7 @@ public:
   virtual QStringList availableRepresentations() const = 0;
   virtual QVariant    information(QString info)  const = 0;
 //   virtual SegmentationRepresentation *representation(QString rep) = 0;
+  virtual void setArguments(QString args) {}
 
 protected:
   ModelItemExtension() : m_init(false) {}

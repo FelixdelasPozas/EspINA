@@ -24,12 +24,15 @@
 
 #include "CountingRegionSegmentationExtension.h"
 
+#include <regions/RectangularBoundingRegion.h>
+#include <CountingRegion.h>
+
 const QString CountingRegionSampleExtension::ID = "CountingRegionExtension";
 
 //-----------------------------------------------------------------------------
-CountingRegionSampleExtension::CountingRegionSampleExtension()
+CountingRegionSampleExtension::CountingRegionSampleExtension(CountingRegion *plugin)
+: m_plugin(plugin)
 {
-
 }
 
 //-----------------------------------------------------------------------------
@@ -51,9 +54,38 @@ void CountingRegionSampleExtension::initialize(Sample* sample)
 }
 
 //-----------------------------------------------------------------------------
+void CountingRegionSampleExtension::setArguments(QString args)
+{
+  QStringList regions = args.split(";");
+
+  foreach (QString region, regions)
+  {
+    if (region.isEmpty())
+      continue;
+
+    QString type = region.section('=',0,0);
+    QStringList margins = region.section('=',-1).split(',');
+    double inclusion[3], exclusion[3];
+    for (int i=0; i<3; i++)
+    {
+      inclusion[i] = margins[i].toInt();
+      exclusion[i] = margins[3+i].toInt();
+    }
+    if (type == "RectangularRegion")
+      m_plugin->createRectangularRegion(inclusion, exclusion);
+//       createRectangularRegion(inclusion[0],inclusion[1],inclusion[2],
+// 			      exclusion[0], exclusion[1], exclusion[2], row);
+//       else if (type == AdaptiveRegion::ID)
+// 	createAdaptiveRegion(inclusion[0],inclusion[1],inclusion[2],
+// 			     exclusion[0], exclusion[1], exclusion[2], row);
+  }
+}
+
+
+//-----------------------------------------------------------------------------
 SampleExtension *CountingRegionSampleExtension::clone()
 {
-  return new CountingRegionSampleExtension();
+  return new CountingRegionSampleExtension(m_plugin);
 }
 
 //-----------------------------------------------------------------------------

@@ -121,7 +121,7 @@ CountingRegion::CountingRegion(QWidget * parent)
   connect(m_gui->saveDescription, SIGNAL(clicked(bool)),
 	  this, SLOT(saveRegionDescription()));
 
-  SampleExtension::SPtr sampleExtension(new CountingRegionSampleExtension());
+  SampleExtension::SPtr sampleExtension(new CountingRegionSampleExtension(this));
   EspinaFactory::instance()->registerSampleExtension(sampleExtension);
   SegmentationExtension::SPtr segExtension(new CountingRegionSegmentationExtension());
   EspinaFactory::instance()->registerSegmentationExtension(segExtension);
@@ -176,6 +176,7 @@ void CountingRegion::createAdaptiveRegion(double inclusion[3], double exclusion[
   AdaptiveBoundingRegion *region(new AdaptiveBoundingRegion(channel, inclusion, exclusion));
   m_regionModel.appendRow(region);
   view->addWidget(region);
+  m_gui->removeRegion->setEnabled(true);
 }
 
 //------------------------------------------------------------------------
@@ -199,6 +200,7 @@ void CountingRegion::createRectangularRegion(double inclusion[3], double exclusi
   sampleExt->addRegion(region);
   m_regionModel.appendRow(region);
   view->addWidget(region);
+  m_gui->removeRegion->setEnabled(true);
 }
 
 //------------------------------------------------------------------------
@@ -232,7 +234,6 @@ void CountingRegion::createBoundingRegion()
   else
     Q_ASSERT(false);
 
-  m_gui->removeRegion->setEnabled(true);
 
   QApplication::restoreOverrideCursor();
 }

@@ -77,6 +77,7 @@ void MorphologicalExtension::initialize(Segmentation* seg)
   featuresArgs << pqFilter::Argument("Input", pqFilter::Argument::INPUT, m_seg->volume().id());
   m_features = cob->createFilter("filters","MorphologicalFeatures", featuresArgs);
   Q_ASSERT(m_features);
+  m_init = true;
 }
 
 //------------------------------------------------------------------------
@@ -91,11 +92,14 @@ SegmentationRepresentation* MorphologicalExtension::representation(QString rep)
 QVariant MorphologicalExtension::information(QString info) const
 {
   if (!m_init)
+    return QVariant();
+
+  if (!m_validInfo)
   {
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    m_init = true;
+    m_validInfo = true;
     m_features->pipelineSource()->updatePipeline();
-    
+
     vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"Size").UpdateValueFromServer();
     vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"Size").Get(&m_Size,1);
     vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"PhysicalSize").UpdateValueFromServer();

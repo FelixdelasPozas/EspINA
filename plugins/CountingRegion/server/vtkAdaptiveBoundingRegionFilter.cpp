@@ -241,10 +241,10 @@ void vtkAdaptiveBoundingRegionFilter::computeStackMargins(vtkImageData *image)
     if (z != zMax) // Don't include last exclusion face
       InclusionVolume += (((rightMargin - Right) - (leftMargin + Left))*((bottomMargin - Bottom) - (topMargin + Top)));
 
-    assert(leftBottom[0] < rightBottom[0]);
-    assert(leftTop[0] < rightTop[0]);
-    assert(leftBottom[1] > leftTop[1]);
-    assert(rightBottom[1] > rightTop[1]);
+//     assert(leftBottom[0] < rightBottom[0]);
+//     assert(leftTop[0] < rightTop[0]);
+//     assert(leftBottom[1] > leftTop[1]);
+//     assert(rightBottom[1] > rightTop[1]);
 
     if (z == zMin)
     {
