@@ -19,13 +19,17 @@
 
 #include "MarginsChannelExtension.h"
 
-#include "common/processing/pqFilter.h"
-#include "common/model/Channel.h"
+#include "MarginsSegmentationExtension.h"
+
 #include "common/cache/CachedObjectBuilder.h"
+#include "common/model/Channel.h"
+#include "common/processing/pqFilter.h"
+#include "common/model/Segmentation.h"
 
 #include <pqPipelineSource.h>
 #include <vtkSMPropertyHelper.h>
 #include <vtkSMProxy.h>
+#include <QMessageBox>
 
 const QString MarginsChannelExtension::ID = "MarginsExtension";
 
@@ -38,7 +42,8 @@ const QString MarginsChannelExtension::LowerMargin  = "Lower Margin";
 
 //-----------------------------------------------------------------------------
 MarginsChannelExtension::MarginsChannelExtension()
-: m_borderDetector(NULL)
+: m_useExtentMargins(true)
+, m_borderDetector(NULL)
 {
 //   m_availableInformations << LeftMargin;
 //   m_availableInformations << TopMargin;
@@ -63,16 +68,28 @@ QString MarginsChannelExtension::id()
 //-----------------------------------------------------------------------------
 void MarginsChannelExtension::initialize(Channel *channel)
 {
+  if (m_init && m_channel == channel)
+    return;
+
   m_channel = channel;
 
-  //TODO: If has border argument, recover it
-  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-  pqFilter::Arguments marginArgs;
-  marginArgs << pqFilter::Argument("Input", pqFilter::Argument::INPUT, m_channel->volume().id());
-  m_borderDetector = cob->createFilter("filters","ChannelBorderDetector", marginArgs);
-  Q_ASSERT(m_borderDetector);
-  m_borderDetector->pipelineSource()->updatePipeline();
-  Q_ASSERT(m_borderDetector->getNumberOfData() == 1);
+  QMessageBox msgBox;
+  msgBox.setText(QString("Compute %1's margins").arg(channel->data(Qt::DisplayRole).toString()));
+  msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+  msgBox.setDefaultButton(QMessageBox::No);
+  if (msgBox.exec() == QMessageBox::Yes)
+  {
+    //TODO: If has border argument, recover it
+    CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+    pqFilter::Arguments marginArgs;
+    marginArgs << pqFilter::Argument("Input", pqFilter::Argument::INPUT, m_channel->volume().id());
+    m_borderDetector = cob->createFilter("filters","ChannelBorderDetector", marginArgs);
+    Q_ASSERT(m_borderDetector);
+    m_borderDetector->pipelineSource()->updatePipeline();
+    Q_ASSERT(m_borderDetector->getNumberOfData() == 1);
+    m_useExtentMargins = false;
+  }
+  m_init = true;
 }
 
 //-----------------------------------------------------------------------------
@@ -90,4 +107,25 @@ QVariant MarginsChannelExtension::information(QString info) const
 ChannelExtension* MarginsChannelExtension::clone()
 {
   return new MarginsChannelExtension();
+}
+
+//-----------------------------------------------------------------------------
+void MarginsChannelExtension::computeMarginDistance(Segmentation* seg)
+{
+  ModelItemExtension *ext = seg->extension(ID);
+  Q_ASSERT(ext);
+  MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext);
+  Q_ASSERT(marginExt);
+  if (m_useExtentMargins)
+  {
+    double cmargins[6], smargins[6], margins[6];
+    m_channel->bounds(cmargins);
+    seg->bounds(smargins);
+    for(int i = 0; i < 6; i++)
+      margins[i] = abs(smargins[i] - cmargins[1]);
+
+    marginExt->setMargins(margins);
+  }else
+  {
+  }
 }

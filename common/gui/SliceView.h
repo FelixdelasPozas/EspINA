@@ -141,7 +141,7 @@ public:
 
   void addSegmentationRepresentation(Segmentation *seg);
   void removeSegmentationRepresentation(Segmentation *seg);
-  void updateSegmentationRepresentation(Segmentation* seg);
+  bool updateSegmentationRepresentation(Segmentation* seg);
 
   void addRepresentation(pqOutputPort *oport);
   void removeRepresentation(pqOutputPort *oport);
@@ -205,6 +205,12 @@ protected:
   void buildTitle();
   void buildControls();
 private:
+  struct SegRep
+  {
+    vtkSMRepresentationProxy *proxy;
+    bool visible;
+    bool selected;
+  };
   vtkPVSliceView::VIEW_PLANE m_plane;
 
   pqSliceView *m_view;
@@ -227,7 +233,7 @@ private:
   double m_center[3];
 
   QMap<Channel *, vtkSMRepresentationProxy *> m_channels;
-  QMap<Segmentation *, vtkSMRepresentationProxy *> m_segmentations;
+  QMap<Segmentation *, SegRep> m_segmentations;
   vtkSMRepresentationProxy *prevRep;
   Filter *m_preview;
 };

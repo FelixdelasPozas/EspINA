@@ -397,7 +397,15 @@ void EspinaWindow::openAnalysis()
 
   m_view->resetCamera();
   m_addToAnalysis->setEnabled(true);
-  updateStatus(QString("File Loaded in %1 s").arg(timer.elapsed()/1000.0));
+  int secs = timer.elapsed()/1000.0;
+  int mins = 0;
+  if (secs > 60)
+  {
+    mins = secs / 60;
+    secs = secs % 60;
+  }
+
+  updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
   QApplication::restoreOverrideCursor();
 }
 

@@ -34,7 +34,8 @@ const QString MorphologicalExtension::ID = "MorphologicalExtension";
 //------------------------------------------------------------------------
 MorphologicalExtension::MorphologicalExtension()
 : m_features(NULL)
-, m_validFeret(0)
+, m_validInfo(false)
+, m_validFeret(false)
 {
   m_availableInformations << "Size";
   m_availableInformations << "Physical Size";

@@ -159,7 +159,7 @@ void AxialState::updateCamera (vtkCamera* camera, double center[3])
 //-----------------------------------------------------------------------------
 void AxialState::updateSlicingMatrix ( vtkMatrix4x4* matrix )
 {
-  matrix->DeepCopy ( axialSlice );
+  matrix->DeepCopy(axialSlice);
 }
 
 //-----------------------------------------------------------------------------

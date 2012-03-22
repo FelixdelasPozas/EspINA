@@ -874,7 +874,9 @@ void SliceView::addSegmentationRepresentation(Segmentation* seg)
   vtkSMRepresentationProxy* reprProxy = vtkSMRepresentationProxy::SafeDownCast(
     pxm->NewProxy("representations", "SegmentationRepresentation"));
   Q_ASSERT(reprProxy);
-  m_segmentations[seg] = reprProxy;
+  m_segmentations[seg].proxy    = reprProxy;
+  m_segmentations[seg].selected = seg->selected();
+  m_segmentations[seg].visible  = seg->visible();
 
     // Set the reprProxy's input.
   pqSMAdaptor::setInputProperty(reprProxy->GetProperty("Input"),
@@ -893,14 +895,14 @@ void SliceView::removeSegmentationRepresentation(Segmentation* seg)
 {
   vtkSMProxy* viewModuleProxy = m_view->getProxy();
   Q_ASSERT(m_segmentations.contains(seg));
-  vtkSMRepresentationProxy *repProxy = m_segmentations[seg];
+  SegRep rep = m_segmentations[seg];
   // Remove the reprProxy to render module.
   pqSMAdaptor::removeProxyProperty(
-    viewModuleProxy->GetProperty("Representations"), repProxy);
+    viewModuleProxy->GetProperty("Representations"), rep.proxy);
   viewModuleProxy->UpdateVTKObjects();
   m_view->getProxy()->UpdateVTKObjects();
 
-  repProxy->Delete();
+  rep.proxy->Delete();
   m_segmentations.remove(seg);
 }
 
@@ -951,15 +953,22 @@ void SliceView::removeRepresentation(pqOutputPort* oport)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::updateSegmentationRepresentation(Segmentation* seg)
+bool SliceView::updateSegmentationRepresentation(Segmentation* seg)
 {
   Q_ASSERT(m_segmentations.contains(seg));
-  vtkSMRepresentationProxy *repProxy = m_segmentations[seg];
-//   repProxy->PrintSelf(std::cout,vtkIndent(0));
-  vtkSMPropertyHelper(repProxy, "Visibility").Set(seg->visible());
-  double opacity = seg->selected()?1.0:0.7;
-  vtkSMPropertyHelper(repProxy, "Opacity").Set(&opacity, 1);
-  repProxy->UpdateVTKObjects();
+  SegRep &rep = m_segmentations[seg];
+  if (seg->selected() != rep.selected || seg->visible() != rep.visible)
+  {
+    rep.selected = seg->selected();
+    rep.visible  = seg->visible();
+    //   repProxy->PrintSelf(std::cout,vtkIndent(0));
+    vtkSMPropertyHelper(rep.proxy, "Visibility").Set(rep.visible);
+    double opacity = rep.selected?1.0:0.7;
+    vtkSMPropertyHelper(rep.proxy, "Opacity").Set(&opacity, 1);
+    rep.proxy->UpdateVTKObjects();
+    return true;
+  }
+  return false;
 }
 
 //-----------------------------------------------------------------------------
@@ -1025,7 +1034,10 @@ void SliceView::setSliceSelectors(SliceView::SliceSelectors selectors)
 void SliceView::forceRender()
 {
   if (isVisible())
+  {
+//     qDebug() << "Rendering View";
     m_view->forceRender();
+  }
 }
 
 //-----------------------------------------------------------------------------

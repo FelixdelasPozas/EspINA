@@ -30,8 +30,8 @@ EspinaFactory *EspinaFactory::m_instance = NULL;
 EspinaFactory::EspinaFactory()
 {
   // Register Default Extensions
-  registerChannelExtension(ChannelExtension::SPtr(new MarginsChannelExtension()));
-  registerSegmentationExtension(SegmentationExtension::SPtr(new MarginsSegmentationExtension()));
+//   registerChannelExtension(ChannelExtension::SPtr(new MarginsChannelExtension()));
+//   registerSegmentationExtension(SegmentationExtension::SPtr(new MarginsSegmentationExtension()));
   registerSegmentationExtension(SegmentationExtension::SPtr(new MorphologicalExtension()));
 }
 

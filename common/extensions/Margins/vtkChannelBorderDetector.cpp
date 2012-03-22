@@ -210,10 +210,10 @@ void vtkChannelBorderDetector::computeChannelMargins(vtkImageData* image)
 
     TotalAdaptiveVolume += ((rightMargin - leftMargin + 1)*(bottomMargin - topMargin+1));
 
-    assert(leftBottom[0] < rightBottom[0]);
-    assert(leftTop[0] < rightTop[0]);
-    assert(leftBottom[1] > leftTop[1]);
-    assert(rightBottom[1] > rightTop[1]);
+//     assert(leftBottom[0] < rightBottom[0]);
+//     assert(leftTop[0] < rightTop[0]);
+//     assert(leftBottom[1] > leftTop[1]);
+//     assert(rightBottom[1] > rightTop[1]);
 
     if (z == zMin)
     {

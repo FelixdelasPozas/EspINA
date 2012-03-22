@@ -53,6 +53,7 @@ void SegmhaImporter::UndoCommand::redo()
   {
     model->addRelation(m_filter, seg, "CreateSegmentation");
     model->addRelation(m_sample, seg, "where");
+    model->addRelation(m_channel, seg, "Channel");
     seg->initialize();
   }
 }
@@ -70,6 +71,7 @@ void SegmhaImporter::UndoCommand::undo()
   {
     model->removeRelation(m_filter, seg, "CreateSegmentation");
     model->removeRelation(m_sample, seg, "where");
+    model->removeRelation(m_channel, seg, "Channel");
     model->removeSegmentation(seg);
   }
   model->removeFilter(m_filter);

@@ -117,7 +117,9 @@ void DataView::updateSelection(QModelIndex index)
       if (seg->selected())
       {
 	int row = index.row();
-	for (int c = 0; c < m_sort->columnCount(); c++)
+// 	tableView->selectionModel()->select(index.sibling(row,0), QItemSelectionModel::SelectCurrent);
+	tableView->selectionModel()->setCurrentIndex(index.sibling(row,0),QItemSelectionModel::SelectCurrent);
+	for (int c = 1; c < m_sort->columnCount(); c++)
 	  tableView->selectionModel()->select(index.sibling(row,c), QItemSelectionModel::Select);
 // 	tableView->selectRow(index.row());
       }
@@ -135,6 +137,7 @@ void DataView::updateSelection(QModelIndex index)
 //------------------------------------------------------------------------
 void DataView::updateSelection(QItemSelection selected, QItemSelection deselected)
 {
+  m_sort->blockSignals(true);
   foreach(QModelIndex index, selected.indexes())
   {
     if (index.column() == 0)
@@ -146,4 +149,5 @@ void DataView::updateSelection(QItemSelection selected, QItemSelection deselecte
     if (index.column() == 0)
       m_sort->setData(index, false, Segmentation::SelectionRole);
   }
+  m_sort->blockSignals(false);
 }

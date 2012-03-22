@@ -361,7 +361,7 @@ void SegmentationExplorer::updateSelection(QModelIndex index)
       m_gui->view->blockSignals(true);
       Segmentation *seg = dynamic_cast<Segmentation *>(item);
       if (seg->selected())
-	m_gui->view->selectionModel()->select(index, QItemSelectionModel::Select);
+	m_gui->view->selectionModel()->setCurrentIndex(index, QItemSelectionModel::SelectCurrent);
       else
 	m_gui->view->selectionModel()->select(index, QItemSelectionModel::Deselect);
       m_gui->view->blockSignals(false);
@@ -372,9 +372,11 @@ void SegmentationExplorer::updateSelection(QModelIndex index)
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSelection(QItemSelection selected, QItemSelection deselected)
 {
+  m_layout->model()->blockSignals(true);
   foreach(QModelIndex index, selected.indexes())
     m_layout->model()->setData(index, true, Segmentation::SelectionRole);
 
   foreach(QModelIndex index, deselected.indexes())
     m_layout->model()->setData(index, false, Segmentation::SelectionRole);
+  m_layout->model()->blockSignals(false);
 }

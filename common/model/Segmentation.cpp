@@ -21,6 +21,9 @@
 #include "Filter.h"
 
 #include <QDebug>
+#include <vtkPVDataInformation.h>
+#include <pqOutputPort.h>
+#include <pqPipelineSource.h>
 
 using namespace std;
 
@@ -37,6 +40,8 @@ Segmentation::Segmentation(Filter* filter, int output, pqData data)
 , m_isSelected(false)
 , m_isVisible(true)
 {
+  memset(m_bounds, 0, 6*sizeof(double));
+  m_bounds[1] = -1;
   m_args.setNumber(0);
   m_args[FILTER] = m_filter->id();
   m_args.setOutput(output);
@@ -156,6 +161,17 @@ void Segmentation::setTaxonomy(TaxonomyNode* tax)
   m_args[TAXONOMY] = tax->qualifiedName();
 }
 
+void Segmentation::bounds(double val[3])
+//------------------------------------------------------------------------
+{
+  if (m_bounds[1] < m_bounds[0])
+  {
+    m_data.pipelineSource()->updatePipeline();
+    vtkPVDataInformation *info = outputPort()->getDataInformation();
+    info->GetBounds(m_bounds);
+  }
+  memcpy(val,m_bounds,6*sizeof(double));
+}
 //------------------------------------------------------------------------
 void Segmentation::setSelected(bool selected)
 {

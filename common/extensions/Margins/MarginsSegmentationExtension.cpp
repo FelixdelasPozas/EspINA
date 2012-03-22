@@ -19,7 +19,11 @@
 
 #include "MarginsSegmentationExtension.h"
 
+#include "MarginsChannelExtension.h"
+
 #include <QDebug>
+#include <common/model/Segmentation.h>
+#include <common/model/Channel.h>
 
 const QString MarginsSegmentationExtension::ID = "MarginsExtension";
 
@@ -33,6 +37,7 @@ const QString MarginsSegmentationExtension::LowerMargin  = "Lower Margin";
 //-----------------------------------------------------------------------------
 MarginsSegmentationExtension::MarginsSegmentationExtension()
 {
+  memset(m_distances, 0, 6*sizeof(double));
   m_availableInformations << LeftMargin;
   m_availableInformations << TopMargin;
   m_availableInformations << UpperMargin;
@@ -56,7 +61,15 @@ QString MarginsSegmentationExtension::id()
 void MarginsSegmentationExtension::initialize(Segmentation* seg)
 {
   m_seg = seg;
-  memset(m_distances, 1, 6*sizeof(double));
+
+  ModelItem::Vector channels = m_seg->relatedItems(ModelItem::IN, "Channel");
+  Q_ASSERT(!channels.isEmpty());
+
+  Channel *channel = dynamic_cast<Channel *>(channels.first());
+  ModelItemExtension *ext = channel->extension(ID);
+  Q_ASSERT(ext);
+  MarginsChannelExtension *marginExt = dynamic_cast<MarginsChannelExtension *>(ext);
+  marginExt->computeMarginDistance(seg);
 }
 
 //-----------------------------------------------------------------------------
@@ -69,6 +82,9 @@ SegmentationRepresentation* MarginsSegmentationExtension::representation(QString
 //-----------------------------------------------------------------------------
 QVariant MarginsSegmentationExtension::information(QString info) const
 {
+  if (!m_init)
+    return QString(QObject::tr("Unknown"));
+
   if (LeftMargin == info)
     return m_distances[0];
   if (TopMargin == info)
@@ -91,4 +107,11 @@ QVariant MarginsSegmentationExtension::information(QString info) const
 SegmentationExtension* MarginsSegmentationExtension::clone()
 {
   return new MarginsSegmentationExtension();
+}
+
+//-----------------------------------------------------------------------------
+void MarginsSegmentationExtension::setMargins(double distances[6])
+{
+  memcpy(m_distances, distances, 6*sizeof(double));
+  m_init = true;
 }

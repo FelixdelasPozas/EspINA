@@ -298,6 +298,7 @@ void DefaultEspinaView::rowsAboutToBeRemoved(const QModelIndex& parent, int star
 {
   if (!parent.isValid())
     return;
+  QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
 
   qDebug() << parent.data(Qt::DisplayRole).toString();
   for(int child = start; child <= end; child++)
@@ -314,10 +315,13 @@ void DefaultEspinaView::rowsAboutToBeRemoved(const QModelIndex& parent, int star
 	yzView->removeChannelRepresentation(channel);
 	xzView->removeChannelRepresentation(channel);
 
-	double emptyBounds[6] = {0,0,0,0,0,0};
-	xyView->setRanges(emptyBounds);
-	yzView->setRanges(emptyBounds);
-	xzView->setRanges(emptyBounds);
+	if (model->rowCount(model->channelRoot()) == 0)
+	{
+	  double emptyBounds[6] = {0,0,0,0,0,0};
+	  xyView->setRanges(emptyBounds);
+	  yzView->setRanges(emptyBounds);
+	  xzView->setRanges(emptyBounds);
+	}
 	break;
       }
       case ModelItem::SEGMENTATION:
@@ -343,17 +347,21 @@ void DefaultEspinaView::dataChanged(const QModelIndex& topLeft, const QModelInde
   if (!topLeft.isValid() || !topLeft.parent().isValid())
     return;
 
+  bool needUpdate = false;
   ModelItem *item = indexPtr(topLeft);
   if (ModelItem::SEGMENTATION == item->type())
   {
     Segmentation *seg = dynamic_cast<Segmentation *>(item);
     xyView->updateSegmentationRepresentation(seg);
     yzView->updateSegmentationRepresentation(seg);
-    xzView->updateSegmentationRepresentation(seg);
+    needUpdate = xzView->updateSegmentationRepresentation(seg);
   }
-  xyView->forceRender();
-  yzView->forceRender();
-  xzView->forceRender();
+  if (needUpdate)
+  {
+    xyView->forceRender();
+    yzView->forceRender();
+    xzView->forceRender();
+  }
 }
 
 //-----------------------------------------------------------------------------

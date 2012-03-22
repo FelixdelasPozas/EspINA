@@ -58,7 +58,12 @@ public:
   virtual SegmentationExtension* clone();
 
 private:
+  void setMargins(double distances[6]);
+
+private:
   mutable double m_distances[6];
+
+  friend class MarginsChannelExtension;
 };
 
 #endif // MARGINSSEGMENTATIONEXTENSION_H

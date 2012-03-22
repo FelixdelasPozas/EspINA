@@ -100,6 +100,21 @@ QVariant CountingRegionSegmentationExtension::information(QString info) const
     vtkSMProxy *proxy = m_countingRegion->pipelineSource()->getProxy();
     vtkSMPropertyHelper(proxy,"Discarted").UpdateValueFromServer();
     vtkSMPropertyHelper(proxy,"Discarted").Get(&isDiscarted,1);
+
+    ModelItemExtension *ext = m_seg->extension("MarginsExtension");
+    if (ext)
+    {
+      bool ok;
+      double margin;
+      QStringList marginInfoList = ext->availableInformations();
+      int i = 0;
+      while(i < marginInfoList.size() && !isDiscarted)
+      {
+	margin = ext->information(marginInfoList[i++]).toDouble(&ok);
+	if (ok && margin < 1)
+	  isDiscarted = true;
+      }
+    }
     m_seg->setVisible(!isDiscarted);
     return (bool)isDiscarted;
   }
@@ -114,6 +129,9 @@ void CountingRegionSegmentationExtension::updateRegions(QList< BoundingRegion* >
 {
 //   EXTENSION_DEBUG("Updating " << m_seg->id() << " bounding regions...");
 //   EXTENSION_DEBUG("\tNumber of regions applied:" << regions.size());
+  if (regions.isEmpty())
+    return;
+
   vtkSMProperty *p;
 
   vtkstd::vector<vtkSMProxy *> inputs;

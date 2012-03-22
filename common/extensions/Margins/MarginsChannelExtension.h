@@ -23,6 +23,7 @@
 #include "common/extensions/ChannelExtension.h"
 
 class Channel;
+class Segmentation;
 class pqFilter;
 
 class MarginsChannelExtension
@@ -57,7 +58,10 @@ public:
 
   virtual ChannelExtension* clone();
 
+  void computeMarginDistance(Segmentation *seg);
+
 private:
+  bool      m_useExtentMargins;
   pqFilter *m_borderDetector;
 };
 

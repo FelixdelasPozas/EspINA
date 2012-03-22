@@ -90,6 +90,7 @@ public:
 //   virtual void color(double* rgba);
 //   virtual void setSelected(bool value) {m_isSelected = value;}
 //   virtual bool isSelected() {return m_isSelected;}
+  void bounds(double val[3]);
 
   // State
   bool selected() const {return m_isSelected;}
@@ -124,6 +125,7 @@ private:
 
   bool m_isSelected;
   bool m_isVisible;
+  mutable double m_bounds[6];
 };
 
 #endif // PRODUCTS_H
