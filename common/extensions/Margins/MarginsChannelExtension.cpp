@@ -122,7 +122,7 @@ void MarginsChannelExtension::computeMarginDistance(Segmentation* seg)
     m_channel->bounds(cmargins);
     seg->bounds(smargins);
     for(int i = 0; i < 6; i++)
-      margins[i] = abs(smargins[i] - cmargins[1]);
+      margins[i] = abs(smargins[i] - cmargins[i]);
 
     marginExt->setMargins(margins);
   }else
