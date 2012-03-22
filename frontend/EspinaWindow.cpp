@@ -29,6 +29,7 @@
 #include "common/gui/ViewManager.h"
 #include "docks/SegmentationExplorer.h"
 #include "docks/TaxonomyInspector.h"
+#include "docks/ModifyFilter/ModifyFilterPanel.h"
 #include "toolbar/MainToolBar.h"
 #include <model/Channel.h>
 #include <model/Taxonomy.h>
@@ -159,8 +160,12 @@ EspinaWindow::EspinaWindow()
   TaxonomyInspector *taxInspector = new TaxonomyInspector(m_model, this);
   addDockWidget(Qt::LeftDockWidgetArea,taxInspector);
 
+  ModifyFilterPanel *filterPanel = new ModifyFilterPanel(this);
+  addDockWidget(Qt::LeftDockWidgetArea, filterPanel);
+
   DataViewPanel *dataView = new DataViewPanel(this);
   addDockWidget(Qt::BottomDockWidgetArea, dataView);
+
 
   loadParaviewBehavior();
 

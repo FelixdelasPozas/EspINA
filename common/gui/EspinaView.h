@@ -46,6 +46,7 @@ public:
   virtual void restoreLayout() = 0;
   virtual void saveLayout() = 0;
 
+  virtual void forceRender() = 0;
   virtual void resetCamera() = 0;
 
   /// QAbstractItemView Interface

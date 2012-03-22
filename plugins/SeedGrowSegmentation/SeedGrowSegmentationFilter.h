@@ -19,6 +19,7 @@
 #define SEEDGROWSEGMENTATIONFILTER_H
 
 #include "common/model/Filter.h"
+
 #include "common/processing/pqData.h"
 #include <common/model/Segmentation.h>
 
@@ -33,11 +34,10 @@ class pqFilter;
 class SeedGrowSegmentationFilter
 : public Filter
 {
-//   class SetupWidget : public QWidget, public Ui_SeedGrowSegmentationFilterSetup
-//   {
-//   public:
-//     SetupWidget(EspinaFilter *filter);
-//   };
+  class SetupWidget;
+
+public:
+
 Q_OBJECT
 
   static const QString CHANNEL;
@@ -110,16 +110,8 @@ public:
   pqData preview();
   virtual int numProducts() const;
   virtual Segmentation *product(int index) const;
-//   virtual QList<vtkProduct *> products() {return m_finalFilter->products();}
-//   virtual QString getFilterArguments() const {return EspinaFilter::getFilterArguments();}
-//   virtual void removeProduct(vtkProduct* product);
+  virtual QWidget* createConfigurationWidget();
 
-
-//   virtual QString label() const {return getArgument("Type");}
-//   virtual QString getArgument(QString name) const {return (name=="Type")?"SeedGrowSegmentation::SeedGrowSegmentationFilter":"";}
-//   virtual QString getArguments() const {return m_args;}
-
-//   virtual QWidget* createWidget();
 signals:
   void modified();
 
@@ -129,7 +121,7 @@ private:
   pqFilter *segFilter;
 
   Segmentation *m_seg;
-//   friend class SetupWidget;
+  friend class SetupWidget;
 };
 
 

@@ -161,6 +161,14 @@ void DefaultEspinaView::saveLayout()
 }
 
 //----------------------------------------------------------------------------
+void DefaultEspinaView::forceRender()
+{
+  xyView->forceRender();
+  yzView->forceRender();
+  xzView->forceRender();
+}
+
+//----------------------------------------------------------------------------
 void DefaultEspinaView::resetCamera()
 {
   xyView->resetCamera();

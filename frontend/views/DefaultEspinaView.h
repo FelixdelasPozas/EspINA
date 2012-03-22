@@ -38,6 +38,7 @@ public:
   virtual void restoreLayout();
   virtual void saveLayout();
 
+  virtual void forceRender();
   virtual void resetCamera();
 
   virtual QSize sizeHint() const;

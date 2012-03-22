@@ -64,6 +64,8 @@ public:
   virtual pqData preview(){return pqData();}
   virtual int numProducts() const {return m_blocks.size();}
   virtual Segmentation *product(int index) const;
+  virtual QWidget* createConfigurationWidget()
+  {return Filter::createConfigurationWidget();}
 
   //Own methods
   Channel *channel() const {return m_channel;}

@@ -16,6 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "SeedGrowSegmentationFilter.h"
+#include "SetupWidget.h"
 
 // EspinaModel
 #include "common/model/Channel.h"
@@ -40,24 +41,13 @@
 #include <common/model/EspinaFactory.h>
 #include <qcryptographichash.h>
 
-// //-----------------------------------------------------------------------------
-// SeedGrowSegmentationFilter::SetupWidget::SetupWidget(EspinaFilter *parent)
-// : QWidget()
-// {
-//   setupUi(this);
-//   SeedGrowSegmentationFilter *filter = dynamic_cast<SeedGrowSegmentationFilter *>(parent);
-//   m_xSeed->setText(QString("%1").arg(filter->m_seed[0]));
-//   m_ySeed->setText(QString("%1").arg(filter->m_seed[1]));
-//   m_zSeed->setText(QString("%1").arg(filter->m_seed[2]));
-//   m_threshold->setValue(filter->m_threshold);
-// }
-
 const QString SeedGrowSegmentationFilter::CHANNEL = "Channel";
 const QString SeedGrowSegmentationFilter::SEED = "Seed";
 const QString SeedGrowSegmentationFilter::THRESHOLD = "Threshold";
 const QString SeedGrowSegmentationFilter::VOI = "VOI";
 
 
+//----------------------------------------------------------------------------
 SeedGrowSegmentationFilter::SArguments::SArguments(const ModelItem::Arguments args)
 : Arguments(args)
 {
@@ -329,6 +319,11 @@ Segmentation *SeedGrowSegmentationFilter::product(int index) const
   return m_seg;
 }
 
+//-----------------------------------------------------------------------------
+QWidget* SeedGrowSegmentationFilter::createConfigurationWidget()
+{
+  return new SetupWidget(this);
+}
 
 // //-----------------------------------------------------------------------------
 // SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(EspinaProduct* input, IVOI* voi, ITraceNode::Arguments& args)
@@ -536,8 +531,3 @@ Segmentation *SeedGrowSegmentationFilter::product(int index) const
 //   m_numSeg = 0;
 // }
 // 
-// //-----------------------------------------------------------------------------
-// QWidget* SeedGrowSegmentationFilter::createWidget()
-// {
-//   return new SetupWidget(this);
-// }

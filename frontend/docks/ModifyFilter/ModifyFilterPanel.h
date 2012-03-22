@@ -17,12 +17,27 @@
 */
 
 
-#include "Filter.h"
+#ifndef MODIFYFILTERPANEL_H
+#define MODIFYFILTERPANEL_H
 
-#include <QWidget>
+#include "common/gui/EspinaDockWidget.h"
 
+#include "common/model/EspinaModel.h"
 
-QWidget* Filter::createConfigurationWidget()
+class ModifyFilterPanel
+: public EspinaDockWidget
 {
-  return new QWidget();
-}
+  Q_OBJECT
+public:
+  explicit ModifyFilterPanel(QWidget* parent = 0);
+  virtual ~ModifyFilterPanel();
+
+protected slots:
+  void showOriginFilter(QModelIndex index);
+
+private:
+  QSharedPointer<EspinaModel> m_model;
+  Segmentation *              m_currentSeg;
+};
+
+#endif // MODIFYFILTERPANEL_H

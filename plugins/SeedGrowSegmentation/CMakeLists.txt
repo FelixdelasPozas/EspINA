@@ -33,6 +33,7 @@ qt4_wrap_cpp(MOC_SRCS
   SeedGrowSegmentation.h
   SeedGrowSegmentationFilter.h
   SeedGrowSelector.h
+  SetupWidget.h
   gui/DefaultVOIAction.h
   gui/ThresholdAction.h
 #   SeedGrowSegmentationPreferences.h
@@ -40,7 +41,7 @@ qt4_wrap_cpp(MOC_SRCS
 
 # Create Interface files
 qt4_wrap_ui (UI_BUILT_SOURCES
-#   SeedGrowSegmentationFilterSetup.ui
+  SeedGrowSegmentationFilterSetup.ui
 #   SeedGrowSegmentationPreferences.ui
   )
 
@@ -56,6 +57,7 @@ set (PLUGIN_SRCS
   SeedGrowSegmentation.cpp
   SeedGrowSegmentationFilter.cpp
   SeedGrowSelector.cpp
+  SetupWidget.cpp
   gui/DefaultVOIAction.cpp
   gui/ThresholdAction.cpp
 #   SeedGrowSegmentationPreferences.cpp

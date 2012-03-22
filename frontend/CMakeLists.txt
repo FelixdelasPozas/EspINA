@@ -23,6 +23,7 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
   docks/DataView/DataView.h
   docks/DataView/QueryView.h
   docks/DataView/InformationProxy.h
+  docks/ModifyFilter/ModifyFilterPanel.h
   docks/SegmentationExplorer.h
   docks/TaxonomyInspector.h
   toolbar/MainToolBar.h
@@ -43,6 +44,7 @@ set (DOCKS_SOURCES
   docks/DataView/DataViewPanel.cpp
   docks/DataView/QueryView.cpp
   docks/DataView/InformationProxy.cpp
+  docks/ModifyFilter/ModifyFilterPanel.cpp
   docks/SegmentationExplorer.cpp
   docks/TaxonomyInspector.cpp
   )

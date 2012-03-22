@@ -17,12 +17,28 @@
 */
 
 
-#include "Filter.h"
+#ifndef SETUPWIDGET_H
+#define SETUPWIDGET_H
 
 #include <QWidget>
 
+#include "SeedGrowSegmentationFilter.h"
+#include "ui_SeedGrowSegmentationFilterSetup.h"
 
-QWidget* Filter::createConfigurationWidget()
+
+class SeedGrowSegmentationFilter::SetupWidget
+: public QWidget
+, Ui_SeedGrowSegmentationFilterSetup
 {
-  return new QWidget();
-}
+  Q_OBJECT
+public:
+  explicit SetupWidget(Filter *filter);
+
+protected slots:
+  void modifyFilter();
+
+private :
+  SeedGrowSegmentationFilter *m_filter;
+};
+
+#endif // SETUPWIDGET_H

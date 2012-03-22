@@ -16,6 +16,7 @@ set (CORE_SOURCES
   model/Segmentation.cpp
   model/Channel.cpp
   model/RelationshipGraph.cpp
+  model/Filter.cpp
   model/Sample.cpp
   model/Taxonomy.cpp
   PARENT_SCOPE

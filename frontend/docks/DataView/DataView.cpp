@@ -118,7 +118,7 @@ void DataView::updateSelection(QModelIndex index)
       {
 	int row = index.row();
 // 	tableView->selectionModel()->select(index.sibling(row,0), QItemSelectionModel::SelectCurrent);
-	tableView->selectionModel()->setCurrentIndex(index.sibling(row,0),QItemSelectionModel::SelectCurrent);
+	tableView->selectionModel()->setCurrentIndex(index.sibling(row,0),QItemSelectionModel::Select);
 	for (int c = 1; c < m_sort->columnCount(); c++)
 	  tableView->selectionModel()->select(index.sibling(row,c), QItemSelectionModel::Select);
 // 	tableView->selectRow(index.row());

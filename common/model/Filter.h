@@ -27,7 +27,6 @@
 
 #include <QMap>
 
-
 class Filter : public ModelItem, public QObject
 {
 public:
@@ -37,6 +36,7 @@ public:
   virtual Segmentation *product(int index) const = 0;
 
   virtual pqData preview() = 0;
+  virtual QWidget *createConfigurationWidget() = 0;
 };
 
 #endif // FILTER_H
