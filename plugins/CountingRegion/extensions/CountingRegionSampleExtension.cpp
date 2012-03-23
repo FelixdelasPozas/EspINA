@@ -106,3 +106,22 @@ void CountingRegionSampleExtension::addRegion(BoundingRegion* region)
     }
   }
 }
+
+//-----------------------------------------------------------------------------
+void CountingRegionSampleExtension::removeRegion(BoundingRegion* region)
+{
+  Q_ASSERT(m_regions.contains(region));
+  m_regions.removeOne(region);
+
+  ModelItem::Vector items = m_sample->relatedItems(ModelItem::OUT, "where");
+  foreach(ModelItem *item, items)
+  {
+    if (ModelItem::SEGMENTATION == item->type())
+    {
+      ModelItemExtension *ext = item->extension(CountingRegionSegmentationExtension::ID);
+      Q_ASSERT(ext);
+      CountingRegionSegmentationExtension *segExt = dynamic_cast<CountingRegionSegmentationExtension *>(ext);
+      segExt->updateRegions(m_regions);
+    }
+  }
+}

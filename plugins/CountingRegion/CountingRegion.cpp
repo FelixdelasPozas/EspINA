@@ -171,9 +171,14 @@ void CountingRegion::createAdaptiveRegion(double inclusion[3], double exclusion[
   ModelItem::Vector channels = sample->relatedItems(ModelItem::OUT,"mark");
   Q_ASSERT(channels.size() > 0);
 
+  ModelItemExtension *ext = sample->extension(CountingRegionSampleExtension::ID);
+  Q_ASSERT(ext);
+  CountingRegionSampleExtension *sampleExt = dynamic_cast<CountingRegionSampleExtension *>(ext);
+  Q_ASSERT(sampleExt);
+
   Channel *channel = dynamic_cast<Channel *>(channels.first());
 
-  AdaptiveBoundingRegion *region(new AdaptiveBoundingRegion(channel, inclusion, exclusion));
+  AdaptiveBoundingRegion *region(new AdaptiveBoundingRegion(sampleExt, channel, inclusion, exclusion));
   m_regionModel.appendRow(region);
   view->addWidget(region);
   m_gui->removeRegion->setEnabled(true);
@@ -196,7 +201,7 @@ void CountingRegion::createRectangularRegion(double inclusion[3], double exclusi
   double borders[6];
   sample->bounds(borders);
 
-  RectangularBoundingRegion *region(new RectangularBoundingRegion(borders, inclusion, exclusion));
+  RectangularBoundingRegion *region(new RectangularBoundingRegion(sampleExt, borders, inclusion, exclusion));
   sampleExt->addRegion(region);
   m_regionModel.appendRow(region);
   view->addWidget(region);

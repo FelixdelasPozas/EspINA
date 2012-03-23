@@ -29,8 +29,11 @@
 #include <vtkSMPropertyHelper.h>
 
 //-----------------------------------------------------------------------------
-AdaptiveBoundingRegion::AdaptiveBoundingRegion(Channel* channel, double inclusion[3], double exclusion[3])
-: BoundingRegion(inclusion, exclusion)
+AdaptiveBoundingRegion::AdaptiveBoundingRegion(CountingRegionSampleExtension *sampleExt,
+					       Channel* channel,
+					       double inclusion[3],
+					       double exclusion[3])
+: BoundingRegion(sampleExt, inclusion, exclusion)
 {
   // Configuration of Bounding Region interface
   pqFilter::Arguments regionArgs;

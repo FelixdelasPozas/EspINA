@@ -24,8 +24,11 @@
 #include <pqPipelineSource.h>
 
 //-----------------------------------------------------------------------------
-BoundingRegion::BoundingRegion(double inclusion[3], double exclusion[3])
+BoundingRegion::BoundingRegion(CountingRegionSampleExtension *sampleExt,
+			       double inclusion[3],
+			       double exclusion[3])
 : QStandardItem()
+, m_sampleExt(sampleExt)
 {
   memcpy(m_inclusion, inclusion, 3*sizeof(double));
   memcpy(m_exclusion, exclusion, 3*sizeof(double));

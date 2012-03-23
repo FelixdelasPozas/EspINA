@@ -25,6 +25,7 @@
 
 #include <common/processing/pqFilter.h>
 
+class CountingRegionSampleExtension;
 
 /// Bounding Regions' base class
 class BoundingRegion
@@ -38,7 +39,9 @@ public:
     DescriptionRole = Qt::UserRole + 1
   };
 public:
-  explicit BoundingRegion(double inclusion[3], double exclusion[3]);
+  explicit BoundingRegion(CountingRegionSampleExtension *sampleExt,
+			  double inclusion[3],
+			  double exclusion[3]);
   virtual ~BoundingRegion(){}
 
   virtual QVariant data(int role = Qt::UserRole + 1) const;
@@ -62,8 +65,9 @@ protected:
 
 protected:
   pqFilter *m_boundingRegion;
-  double m_inclusion[3];
-  double m_exclusion[3];
+  CountingRegionSampleExtension *m_sampleExt;
+  double  m_inclusion[3];
+  double  m_exclusion[3];
 };
 
 #endif // BOUNDINGREGION_H

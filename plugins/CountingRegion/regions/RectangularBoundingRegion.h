@@ -27,7 +27,8 @@ class RectangularBoundingRegion
 {
   Q_OBJECT
 public:
-  explicit RectangularBoundingRegion(double borders[6],
+  explicit RectangularBoundingRegion(CountingRegionSampleExtension *samplExt,
+				     double borders[6],
 				     double inclusion[3],
 				     double exclusion[3]);
   virtual ~RectangularBoundingRegion();

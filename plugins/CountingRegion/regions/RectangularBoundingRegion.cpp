@@ -25,10 +25,14 @@
 #include <vtkRectangularBoundingRegionWidget.h>
 #include <vtkSMNewWidgetRepresentationProxy.h>
 #include <vtkSMPropertyHelper.h>
+#include <extensions/CountingRegionSampleExtension.h>
 
 //-----------------------------------------------------------------------------
-RectangularBoundingRegion::RectangularBoundingRegion(double borders[6], double inclusion[3], double exclusion[3])
-: BoundingRegion(inclusion, exclusion)
+RectangularBoundingRegion::RectangularBoundingRegion(CountingRegionSampleExtension *sampleExt,
+						     double borders[6],
+						     double inclusion[3],
+						     double exclusion[3])
+: BoundingRegion(sampleExt, inclusion, exclusion)
 {
   // Configuration of Bounding Region interface
   pqFilter::Arguments regionArgs;
@@ -52,6 +56,7 @@ RectangularBoundingRegion::RectangularBoundingRegion(double borders[6], double i
 //-----------------------------------------------------------------------------
 RectangularBoundingRegion::~RectangularBoundingRegion()
 {
+  m_sampleExt->removeRegion(this);
   foreach(pq3DWidget *widget, m_widgets)
   {
     widget->deselect();

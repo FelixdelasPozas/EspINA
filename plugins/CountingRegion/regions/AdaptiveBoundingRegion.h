@@ -28,7 +28,10 @@ class AdaptiveBoundingRegion
 {
   Q_OBJECT
 public:
-  explicit AdaptiveBoundingRegion(Channel *channel, double inclusion[3], double exclusion[3]);
+  explicit AdaptiveBoundingRegion(CountingRegionSampleExtension *sampleExt,
+				  Channel *channel,
+				  double inclusion[3],
+				  double exclusion[3]);
   virtual ~AdaptiveBoundingRegion();
 
   // Implements QStandardItem interface

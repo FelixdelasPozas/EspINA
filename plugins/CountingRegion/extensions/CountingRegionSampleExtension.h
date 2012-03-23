@@ -54,6 +54,7 @@ public:
   virtual SampleExtension *clone();
 
   void addRegion(BoundingRegion *region);
+  void removeRegion(BoundingRegion *region);
   QList<BoundingRegion *> regions() const {return m_regions;}
 
 private:
