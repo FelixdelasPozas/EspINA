@@ -54,16 +54,37 @@ public:
   };
 
   typedef QList<Relation> RelationList;
-  
-  class Arguments : public QMap<QString, QString>
+
+  class ArgumentId : public QString
+  {
+  public:
+    explicit ArgumentId() : isKey(false) {}
+    explicit ArgumentId(QString string, bool key)
+    : QString(string), isKey(key) {}
+    bool isKey;
+  };
+
+  typedef QString Argument;
+//   class Argument : public QString
+//   {
+//   public:
+//     explicit Argument() : isKey(false) {}
+//     explicit Argument(QString string, bool key=false)
+//     : QString(string), isKey(key) {}
+//     bool isKey;
+//   };
+
+  class Arguments : public QMap<ArgumentId, Argument>
   {
   public:
     explicit Arguments();
-    explicit Arguments(const QMap<QString, QString>& args);
+    explicit Arguments(const QMap<ArgumentId, Argument>& args);
     explicit Arguments(const QString args);
     virtual ~Arguments(){}
 
-    virtual QString serialize() const;
+    virtual ArgumentId argumentId(QString name) const {return ArgumentId(name, false);}
+
+    virtual QString serialize(bool key=false) const;
     virtual QString hash() const;
   protected:
     inline QString argument(const QString name, const QString value) const

@@ -36,20 +36,31 @@ class SeedGrowSegmentationFilter
 {
   class SetupWidget;
 
-public:
-
 Q_OBJECT
-
-  static const QString CHANNEL;
-  static const QString SEED;
-  static const QString THRESHOLD;
-  static const QString VOI;
+public:
+  static const ModelItem::ArgumentId CHANNEL;
+  static const ModelItem::ArgumentId SEED;
+  static const ModelItem::ArgumentId THRESHOLD;
+  static const ModelItem::ArgumentId VOI;
 
   class SArguments : public Arguments
   {
   public:
     explicit SArguments(){}
     explicit SArguments(const ModelItem::Arguments args);
+
+    virtual ArgumentId argumentId(QString name) const
+    {
+      if (name == CHANNEL)
+	return CHANNEL;
+      if (name == SEED)
+	return SEED;
+      if (name == THRESHOLD)
+	return THRESHOLD;
+      if (name == VOI)
+	return VOI;
+      return Arguments::argumentId(name);
+    }
 
     void setInput(const QString input)
     {

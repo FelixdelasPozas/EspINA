@@ -28,8 +28,8 @@ static const QString SIF = "SegmhaImporter::SegmhaImporterFilter";
 class SegmhaImporterFilter 
 : public Filter
 {
-  static const QString FILE;
-  static const QString BLOCKS;
+  static const ArgumentId FILE;
+  static const ArgumentId BLOCKS;
 
   class SArguments : public Arguments
   {
@@ -37,6 +37,14 @@ class SegmhaImporterFilter
     explicit SArguments() {}
     explicit SArguments(const Arguments args) : Arguments(args) {}
 
+    virtual ArgumentId argumentId(QString name) const
+    {
+      if (name == FILE)
+	return FILE;
+      if (name == BLOCKS)
+	return BLOCKS;
+      return Arguments::argumentId(name);
+    }
     void setBlocks(QStringList blockList)
     {
       (*this)[BLOCKS] = blockList.join(",");

@@ -34,8 +34,8 @@
 #include <vtkSMProxy.h>
 
 
-const QString Channel::ID = "Id";
-const QString Channel::COLOR = "Color";
+const ModelItem::ArgumentId Channel::ID = ArgumentId("Id", true);
+const ModelItem::ArgumentId Channel::COLOR = ArgumentId("Color", true);
 
 const QString Channel::NAME   = "Name";
 const QString Channel::VOLUME = "Volumetric";
@@ -51,7 +51,7 @@ Channel::Channel(const QString file, pqData data)
   memset(m_spacing, 0, 3*sizeof(double));
   m_bounds[1] = m_extent[1] = -1;
   memset(m_pos, 0, 3*sizeof(int));
-  m_args[ID] = file;
+  m_args[ID] = Argument(file);
   m_args.setColor(-1.0);
 
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
@@ -88,7 +88,7 @@ Channel::Channel(const QString file, const Arguments args)
   memset(m_pos, 0, 3*sizeof(int));
 
 //   QStringList input = m_args[ID].split(":");
-  m_args[ID] = file;
+  m_args[ID] = Argument(file);
   int port = 0;//input.last().toInt();
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   pqFilter *channelReader = cob->loadFile(file);

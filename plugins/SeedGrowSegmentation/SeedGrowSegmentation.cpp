@@ -54,6 +54,8 @@
 
 #define DEFAULT_THRESHOLD 30
 
+const ModelItem::ArgumentId TYPE = ModelItem::ArgumentId("Type", true);
+
 
 //-----------------------------------------------------------------------------
 SeedGrowSegmentation::UndoCommand::UndoCommand(Channel* channel,
@@ -190,10 +192,10 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
 //     qDebug() << "Use Default VOI:" << m_useDefaultVOI->useDefaultVOI();
 
     Filter::Arguments args;
-    args["Type"] = SGSF;
-    args["Channel"]= input->volume().id();
-    args["Seed"] = QString("%1,%2,%3").arg(seed.x()).arg(seed.y()).arg(seed.z());
-    args["Threshold"] = QString::number(m_threshold->threshold());
+    args[TYPE] = SGSF;
+    args[SeedGrowSegmentationFilter::CHANNEL]= input->volume().id();
+    args[SeedGrowSegmentationFilter::SEED] = QString("%1,%2,%3").arg(seed.x()).arg(seed.y()).arg(seed.z());
+    args[SeedGrowSegmentationFilter::THRESHOLD] = QString::number(m_threshold->threshold());
 
     int growSeed[3] = {seed.x(), seed.y(), seed.z()};
 

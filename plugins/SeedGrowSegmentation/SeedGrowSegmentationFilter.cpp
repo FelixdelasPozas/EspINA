@@ -41,10 +41,12 @@
 #include <common/model/EspinaFactory.h>
 #include <qcryptographichash.h>
 
-const QString SeedGrowSegmentationFilter::CHANNEL = "Channel";
-const QString SeedGrowSegmentationFilter::SEED = "Seed";
-const QString SeedGrowSegmentationFilter::THRESHOLD = "Threshold";
-const QString SeedGrowSegmentationFilter::VOI = "VOI";
+typedef ModelItem::ArgumentId ArgumentId;
+
+const ArgumentId SeedGrowSegmentationFilter::CHANNEL = ArgumentId("Channel", true);
+const ArgumentId SeedGrowSegmentationFilter::SEED = ArgumentId("Seed", true);
+const ArgumentId SeedGrowSegmentationFilter::THRESHOLD = ArgumentId("Threshold", true);
+const ArgumentId SeedGrowSegmentationFilter::VOI = ArgumentId("VOI", true);
 
 
 //----------------------------------------------------------------------------
@@ -56,9 +58,9 @@ SeedGrowSegmentationFilter::SArguments::SArguments(const ModelItem::Arguments ar
   m_seed[1] = seed[1].toInt();
   m_seed[2] = seed[2].toInt();
 
-  m_threshold = args["Threshold"].toInt();
+  m_threshold = args[THRESHOLD].toInt();
 
-  QStringList voi = args["VOI"].split(",");
+  QStringList voi = args[VOI].split(",");
   m_VOI[0] = voi[0].toInt();
   m_VOI[1] = voi[1].toInt();
   m_VOI[2] = voi[2].toInt();

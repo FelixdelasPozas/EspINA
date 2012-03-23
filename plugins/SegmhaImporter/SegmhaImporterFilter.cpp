@@ -37,8 +37,8 @@
 
 // #include <plugins/CountingRegion/extensions/CountingRegionSampleExtension.h>
 
-const QString SegmhaImporterFilter::FILE = "File";
-const QString SegmhaImporterFilter::BLOCKS = "Blocks";
+const ModelItem::ArgumentId SegmhaImporterFilter::FILE = ModelItem::ArgumentId("File", true);
+const ModelItem::ArgumentId SegmhaImporterFilter::BLOCKS = ModelItem::ArgumentId("Blocks", true);
 
 // SegmhaImporterFilter::SetupWidget::SetupWidget(EspinaFilter *parent)
 // : QWidget()

@@ -33,8 +33,8 @@ ModelItem::Arguments::Arguments()
 }
 
 //------------------------------------------------------------------------
-ModelItem::Arguments::Arguments(const QMap<QString, QString>& args)
-: QMap<QString, QString>(args)
+ModelItem::Arguments::Arguments(const QMap<ArgumentId, Argument>& args)
+: QMap<ArgumentId, Argument>(args)
 {
 }
 
@@ -67,7 +67,7 @@ ModelItem::Arguments::Arguments(const QString args)
     {
       value = buffer;
       buffer = "";
-      insert(name, value);
+      insert(argumentId(name), value);
     }
     else
     {
@@ -77,12 +77,13 @@ ModelItem::Arguments::Arguments(const QString args)
 }
 
 //------------------------------------------------------------------------
-QString ModelItem::Arguments::serialize() const
+QString ModelItem::Arguments::serialize(bool key) const
 {
   QString args;
-  foreach(QString key, keys())
+  foreach(ArgumentId id, keys())
   {
-    args += argument(key, value(key));
+    if (false == key || id.isKey)
+      args += argument(id, value(id));
   }
   return args;
 }

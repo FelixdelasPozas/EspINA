@@ -40,11 +40,12 @@ class pqPipelineSource;
 class Channel : public SelectableItem
 {
 public:
-  static const QString ID;
-  static const QString COLOR;
+  // Argument Ids
+  static const ArgumentId ID;
+  static const ArgumentId COLOR;
 
+// Extended Information and representation tags
   static const QString NAME;
-  static const QString MARGIN;
   static const QString VOLUME;
 
   class CArguments : public ModelItem::Arguments
@@ -54,6 +55,18 @@ public:
 //     explicit CArguments(const QMap< QString, QString >& args) : Arguments(args){}
 //     explicit CArguments(const QString args) : Arguments(args) {}
     explicit CArguments(const Arguments args) : Arguments(args) {}
+
+    virtual ArgumentId argumentId(QString name) const
+    {
+      if (name == ID)
+	return ID;
+
+      if (name == COLOR)
+	return COLOR;
+
+      return Arguments::argumentId(name);
+    }
+
     void setColor(double color)
     {
       (*this)[COLOR] = QString::number(color);

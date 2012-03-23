@@ -38,10 +38,10 @@ class pqPipelineSource;
 class Segmentation : public SelectableItem
 {
 public:
-  static const QString FILTER;
-  static const QString NUMBER;
-  static const QString OUTPUT;
-  static const QString TAXONOMY;
+  static const ArgumentId FILTER;
+  static const ArgumentId NUMBER;
+  static const ArgumentId OUTPUT;
+  static const ArgumentId TAXONOMY;
 
   static const int SelectionRole = Qt::UserRole + 2;
 
@@ -59,7 +59,7 @@ private:
     void setOutput(int output)
     {
       Output = output;
-      (*this)[OUTPUT] = QString::number(Output);
+      (*this)[OUTPUT] = Argument(QString::number(Output));
     }
     int output() const {return Output;}
   private:
