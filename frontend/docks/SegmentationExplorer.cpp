@@ -126,7 +126,7 @@ void SampleLayout::deleteSegmentation(QModelIndexList indices)
 	  msgBox.setText(QString("Delete recursively %1's segmentations").arg(sample->id()));
 	  msgBox.setStandardButtons(QMessageBox::YesAll |  QMessageBox::No);
 	}
-	
+
 	bool recursive = false;
 	switch (msgBox.exec())
 	{

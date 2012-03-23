@@ -214,12 +214,41 @@ void SeedGrowSegmentationFilter::run()
 
     segFilter = grow;
 
+    if (0 == i)
+    {
+      bool incomplete = false;
+      for (int b = 0; b < 6; b++)
+      {
+	if (segExtent[b] == voi[b])
+	{incomplete = true;}
+      }
+      if (incomplete)
+      {
+	QMessageBox warning;
+	warning.setWindowTitle(tr("Seed Grow Segmentation Filter Information"));
+	warning.setText(tr("New segmentation may be incomplete due to VOI restriction."));
+// 	warning.setStandardButtons(QMessageBox::Yes |  QMessageBox::No);
+	warning.exec();
+// 	if (warning.exec() == QMessageBox::Yes)
+// 	{
+// 	  for (int v = 0; v < 3; v++)
+// 	  {
+// 	    segExtent[2*v] -= 20;
+// 	    segExtent[2*v+1] += 20;
+// 	  }
+// 	  i--;
+// 	}
+      }
+    }
+
     if (memcmp(segExtent, voi, 6*sizeof(int)) == 0)
       break;
     else
       memcpy(voi,segExtent,6*sizeof(int));
 //   qDebug() << bounds [0] << bounds [1] << bounds [2] << bounds [3] << bounds [4] << bounds [5];
   }
+
+  // Segmentation region matches
 
   m_seg = EspinaFactory::instance()->createSegmentation(this, 0, segFilter->data(0));
 }

@@ -96,7 +96,7 @@ EspinaWindow::EspinaWindow()
 #endif
 
   QMenu *fileMenu = new QMenu("File");
-  pqParaViewMenuBuilders::buildFileMenu(*fileMenu);
+//   pqParaViewMenuBuilders::buildFileMenu(*fileMenu);
   QAction *openAnalysis = new QAction(tr("Open"),this);
   connect(openAnalysis,SIGNAL(triggered(bool)),
 	  this,SLOT(openAnalysis()));
@@ -220,20 +220,25 @@ void EspinaWindow::closeEvent(QCloseEvent* event)
 {
   if (m_busy)
   {
-    QMessageBox::warning(this, tr("EspINA"),
-				  tr("EspINA has pending actions. Do you really want to quit anyway?"));
-    return;
+    QMessageBox warning;
+    warning.setWindowTitle(tr("EspINA"));
+    warning.setText(tr("EspINA has pending actions. Do you really want to quit anyway?"));
+    if (warning.exec() != QMessageBox::Ok)
+    {
+      event->ignore();
+      return;
+    }
   }
-    
+
   if (m_view)
     m_view->saveLayout();
 
+  event->accept();
 //   closeCurrentAnalysis();
 //   QSettings settings("CeSViMa", "EspinaModel");
 
 //   settings.setValue(m_currentActivity+"/geometry", saveGeometry());
 //   settings.setValue(m_currentActivity+"/state", saveState());
-  QMainWindow::closeEvent(event);
 }
 
 
