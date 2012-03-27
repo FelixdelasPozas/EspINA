@@ -47,8 +47,12 @@
 #include <pqDisplayPolicy.h>
 #include <pqDataRepresentation.h>
 #include <pqPipelineRepresentation.h>
+#include <pqScalarsToColors.h>
 #include <pq3DWidget.h>
 #include <pqOutputPort.h>
+#include "ColorEngine.h"
+#include </home/jpena/src/ParaView-3.12.0/Qt/Core/pqPipelineRepresentation.h>
+#include <vtkSMPropertyHelper.h>
 
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(QWidget* parent)
@@ -117,9 +121,11 @@ void VolumeView::addSegmentationRepresentation(Segmentation *seg)
   pqDataRepresentation *dr = dp->setRepresentationVisibility(oport, m_view, true);
   if (!dr)
     return;
-  pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
-  Q_ASSERT(rep);
-  rep->setRepresentation("Volume");
+
+  SegRep rep;
+  rep.pipeline = qobject_cast<pqPipelineRepresentation *>(dr);
+  Q_ASSERT(rep.pipeline);
+  rep.pipeline->setRepresentation("Volume");
 //   qDebug() << "Add Seg:" << seg << "Rep:" << rep;
 
   m_segmentations[seg] = rep;
@@ -129,11 +135,40 @@ void VolumeView::addSegmentationRepresentation(Segmentation *seg)
 void VolumeView::removeSegmentationRepresentation(Segmentation* seg)
 {
   Q_ASSERT(m_segmentations.contains(seg));
-  pqPipelineRepresentation *rep = m_segmentations[seg];
+  SegRep rep = m_segmentations[seg];
 //   qDebug() << "Remove Seg:" << seg->number() << "Rep:" << rep;
-  rep->setVisible(false);
+  rep.pipeline->setVisible(false);
 //   rep->deleteLater();
   m_segmentations.remove(seg);
+}
+
+//-----------------------------------------------------------------------------
+bool VolumeView::updateSegmentationRepresentation(Segmentation* seg)
+{
+  Q_ASSERT(m_segmentations.contains(seg));
+  SegRep &rep = m_segmentations[seg];
+  if (seg->selected() != rep.selected
+    || seg->visible() != rep.visible
+    || m_colorEngine->color(seg) != rep.color)
+  {
+    rep.selected = seg->selected();
+    rep.visible  = seg->visible();
+    rep.color = m_colorEngine->color(seg);
+    //   repProxy->PrintSelf(std::cout,vtkIndent(0));
+    double color[3];
+    color[0] =  rep.color.redF();
+    color[1] =  rep.color.greenF();
+    color[2] =  rep.color.blueF();
+//     rep.pipeline->getLookupTable()->
+    rep.pipeline->setColor(color[0], color[1], color[2]);
+    double opacity = rep.selected?1.0:0.7;
+    vtkSMPropertyHelper(rep.pipeline->getProxy(), "Opacity").Set(&opacity, 1);
+//     vtkSMPropertyHelper(rep.proxy, "RGBColor").Set(color,3);
+    rep.pipeline->setVisible(rep.visible);
+    rep.pipeline->getProxy()->UpdateVTKObjects();
+    return true;
+  }
+  return false;
 }
 
 

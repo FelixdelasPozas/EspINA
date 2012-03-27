@@ -27,6 +27,7 @@
 #include <QAbstractItemView>
 #include <QPushButton>
 
+class ColorEngine;
 class pqPipelineRepresentation;
 class pq3DWidget;
 class Sample;
@@ -60,10 +61,13 @@ public:
 
   void addSegmentationRepresentation(Segmentation *seg);
   void removeSegmentationRepresentation(Segmentation *seg);
-  
+  bool updateSegmentationRepresentation(Segmentation* seg);
+
   void addRepresentation(pqOutputPort *oport);
 
   void addWidget(pq3DWidget *widget);
+
+  void setColorEngine(ColorEngine *engine){m_colorEngine = engine;}
 
 public slots:
   void onConnect();
@@ -87,11 +91,11 @@ protected:
 
 private:
   void selectSegmentations(int x, int y, int z);
-  
+
 protected slots:
 //   /// Selections
 //   void vtkWidgetMouseEvent(QMouseEvent *event);
-  
+
 //   void updateScene();
 //   void render(const QModelIndex &index);
   void exportScene();
@@ -99,6 +103,14 @@ protected slots:
 
   void buildControls();
 private:
+  struct SegRep
+  {
+    pqPipelineRepresentation *pipeline;
+    bool visible;
+    bool selected;
+    QColor color;
+  };
+
   pqRenderView *m_view;
 
   // GUI
@@ -108,7 +120,9 @@ private:
   QPushButton m_snapshot;
   QPushButton m_export;
 
-  QMap<Segmentation *, pqPipelineRepresentation *> m_segmentations;
+  ColorEngine *m_colorEngine;
+
+  QMap<Segmentation *, SegRep> m_segmentations;
 };
 
 #endif // VOLUMEVIEW_H

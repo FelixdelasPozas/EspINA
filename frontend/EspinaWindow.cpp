@@ -96,15 +96,18 @@ EspinaWindow::EspinaWindow()
 #endif
 
   QMenu *fileMenu = new QMenu("File");
-//   pqParaViewMenuBuilders::buildFileMenu(*fileMenu);
-  QAction *openAnalysis = new QAction(tr("Open"),this);
+  //   pqParaViewMenuBuilders::buildFileMenu(*fileMenu);
+  QIcon openIcon = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
+  QAction *openAnalysis = new QAction(openIcon, tr("&Open"),this);
   connect(openAnalysis,SIGNAL(triggered(bool)),
 	  this,SLOT(openAnalysis()));
-  m_addToAnalysis = new QAction(tr("Add"),this);
+  QIcon addIcon = QIcon(":espina/add.svg");
+  m_addToAnalysis = new QAction(addIcon, tr("&Add"),this);
   m_addToAnalysis->setEnabled(false);
   connect(m_addToAnalysis, SIGNAL(triggered(bool)),
 	  this, SLOT(addToAnalysis()));
-  QAction *saveAnalysis = new QAction(tr("Save"),this);
+  QIcon saveIcon = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
+  QAction *saveAnalysis = new QAction(saveIcon, tr("&Save"),this);
   connect(saveAnalysis,SIGNAL(triggered(bool)),
 	  this,SLOT(saveAnalysis()));
   fileMenu->addAction(openAnalysis);

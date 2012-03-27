@@ -22,11 +22,13 @@
 #include <QColor>
 
 class Segmentation;
+class vtkSMProxy;
 
 class ColorEngine
 {
 public:
   virtual QColor color(Segmentation *seg) = 0;
+  virtual vtkSMProxy *lut(Segmentation *seg) = 0;
 };
 
 #endif // COLORENGINE_H

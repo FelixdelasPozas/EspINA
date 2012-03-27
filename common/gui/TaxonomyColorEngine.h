@@ -21,13 +21,18 @@
 #define TAXONOMYCOLORENGINE_H
 
 #include "common/gui/ColorEngine.h"
+#include <QMap>
 
 
 class TaxonomyColorEngine : public ColorEngine
 {
 
 public:
-    virtual QColor color(Segmentation* seg);
+  virtual QColor color(Segmentation* seg);
+  virtual vtkSMProxy *lut(Segmentation* seg);
+
+private:
+  QMap<QString, vtkSMProxy *> m_LUT;
 };
 
 #endif // TAXONOMYCOLORENGINE_H

@@ -48,6 +48,8 @@ public:
   virtual void setGridSize(double size[3]);
   virtual void addWidget(EspinaWidget* widget);
 
+  void setColorEngine(ColorEngine *engine);
+
 public slots:
   virtual void setShowSegmentations(bool visibility);
   virtual void setCenter(double x, double y, double z);

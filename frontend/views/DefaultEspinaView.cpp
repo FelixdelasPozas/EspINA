@@ -57,14 +57,12 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
 
   setObjectName("xyView");
 
-  m_colorEngine = new TaxonomyColorEngine();
 
   double ranges[6] = {0,0,0,0,0,0};
   qDebug() << "New Default EspinaView";
   xyView = new SliceView(vtkPVSliceView::AXIAL);
   xyView->setCrossHairColors(blue, magenta);
 //   xyView->setRanges(ranges);
-  xyView->setColorEngine(m_colorEngine);
   xyView->setFitToGrid(true);
   connect(xyView, SIGNAL(centerChanged(double,double,double)),
 	  this, SLOT(setCenter(double,double,double)));
@@ -85,7 +83,6 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   yzDock->setObjectName("yzDock");
   yzView = new SliceView(vtkPVSliceView::SAGITTAL);
   yzView->setCrossHairColors(blue, cyan);
-  yzView->setColorEngine(m_colorEngine);
   yzView->setFitToGrid(true);
   connect(yzView, SIGNAL(centerChanged(double,double,double)),
 	  this, SLOT(setCenter(double,double,double)));
@@ -99,7 +96,6 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   xzDock->setObjectName("xzDock");
   xzView = new SliceView(vtkPVSliceView::CORONAL);
   xzView->setCrossHairColors(cyan, magenta);
-  xzView->setColorEngine(m_colorEngine);
   xzView->setFitToGrid(true);
   connect(xzView, SIGNAL(centerChanged(double,double,double)),
 	  this, SLOT(setCenter(double,double,double)));
@@ -108,6 +104,8 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   connect(xzView, SIGNAL(selectedToSlice(double, vtkPVSliceView::VIEW_PLANE)),
 	  this, SLOT(selectToSlice(double, vtkPVSliceView::VIEW_PLANE)));
   xzDock->setWidget(xzView);
+
+  setColorEngine(new TaxonomyColorEngine());
 
   parent->addDockWidget(Qt::RightDockWidgetArea, volDock);
   parent->addDockWidget(Qt::RightDockWidgetArea, yzDock);
@@ -207,6 +205,17 @@ void DefaultEspinaView::addWidget(EspinaWidget* widget)
   xzView->addWidget(widget->createSliceWidget(vtkPVSliceView::CORONAL));
   volView->addWidget(widget->createWidget());
 }
+
+//----------------------------------------------------------------------------
+void DefaultEspinaView::setColorEngine(ColorEngine* engine)
+{
+  m_colorEngine = engine;
+  xyView->setColorEngine(m_colorEngine);
+  yzView->setColorEngine(m_colorEngine);
+  xzView->setColorEngine(m_colorEngine);
+  volView->setColorEngine(m_colorEngine);
+}
+
 
 //----------------------------------------------------------------------------
 void DefaultEspinaView::setShowSegmentations(bool visibility)
@@ -370,12 +379,14 @@ void DefaultEspinaView::dataChanged(const QModelIndex& topLeft, const QModelInde
     xyView->updateSegmentationRepresentation(seg);
     yzView->updateSegmentationRepresentation(seg);
     needUpdate = xzView->updateSegmentationRepresentation(seg);
+    volView->updateSegmentationRepresentation(seg);
   }
   if (needUpdate)
   {
     xyView->forceRender();
     yzView->forceRender();
     xzView->forceRender();
+    volView->forceRender();
   }
 }
 
