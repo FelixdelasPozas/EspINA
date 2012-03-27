@@ -177,12 +177,12 @@
           Set the visibility for this representation.
         </Documentation>
       </IntVectorProperty>
-      <DoubleVectorProperty name="Color"
-        command="SetColor"
-        number_of_elements="1"
-        default_values="0.4">
+      <DoubleVectorProperty name="RGBColor"
+        command="SetRGBColor"
+        number_of_elements="3"
+        default_values="1 0 0">
         <Documentation>
-          Set the HUE value to be used for this slice.
+          Set the RGB value to be used for this slice.
         </Documentation>
       </DoubleVectorProperty>
       <DoubleVectorProperty name="Opacity"

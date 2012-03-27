@@ -22,6 +22,7 @@
 
 #include <common/gui/EspinaView.h>
 
+class ColorEngine;
 class Segmentation;
 // Forward-declaration
 class SliceView;
@@ -70,6 +71,7 @@ protected slots:
 private:
   bool first;
 
+  ColorEngine *m_colorEngine;
   SliceView  *xyView, *yzView, *xzView;
   VolumeView *volView;
   QDockWidget *volDock, *yzDock, *xzDock;

@@ -39,7 +39,7 @@ vtkSmartPointer< vtkLookupTable > vtkSegmentationRepresentation::lut()
   vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
   lut->SetNumberOfTableValues ( 2 );
   double bg[4] = { 0.0, 0.0, 0.0, 0.0 };
-  double fg[4] = { 1.0, 0.0, 0.0, 1.0 };
+  double fg[4] = {RGBColor[0], RGBColor[1], RGBColor[2], 1.0 };
   lut->SetTableValue ( 0,bg );
   lut->SetTableValue ( 1,fg );
   lut->Build();
@@ -49,4 +49,26 @@ vtkSmartPointer< vtkLookupTable > vtkSegmentationRepresentation::lut()
 void vtkSegmentationRepresentation::AddToView(vtkPVSliceView* view)
 {
   view->AddSegmentation(&SliceActor);
+}
+
+void vtkSegmentationRepresentation::SetRGBColor(double r, double g, double b)
+{
+  RGBColor[0] = r;
+  RGBColor[1] = g;
+  RGBColor[2] = b;
+
+  if (SliceActor.lut == NULL)
+    return;
+
+  SliceActor.lut->SetNumberOfTableValues ( 2 );
+  double bg[4] = { 0.0, 0.0, 0.0, 0.0 };
+  double fg[4] = {r, g, b, 1.0 };
+  SliceActor.lut->SetTableValue(0, bg);
+  SliceActor.lut->SetTableValue(1, fg);
+  SliceActor.lut->Build();
+}
+
+void vtkSegmentationRepresentation::SetRGBColor(double rgb[3])
+{
+  SetRGBColor(rgb[0], rgb[1], rgb[2]);
 }

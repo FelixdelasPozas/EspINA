@@ -49,7 +49,7 @@ public:
   // PrepareForRendering.
   virtual int ProcessViewRequest(vtkInformationRequestKey *request_type, vtkInformation *inInfo, vtkInformation *outInfo);
 
-  void SetColor(double color);
+  virtual void SetColor(double color);
   vtkGetMacro(Color, double);
 
   void SetOpacity(double value);

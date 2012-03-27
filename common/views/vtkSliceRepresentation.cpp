@@ -242,7 +242,6 @@ void vtkSliceRepresentation::SetVisibility(bool val)
 void vtkSliceRepresentation::SetColor(double color)
 {
   Color = color;
-//   std::cout<< "Changing Color " <<  color << std::endl;
   if (SliceActor.lut == NULL)
     return;
 

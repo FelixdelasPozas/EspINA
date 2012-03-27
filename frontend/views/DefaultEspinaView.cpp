@@ -22,6 +22,7 @@
 #include <QDebug>
 
 #include "common/gui/SliceView.h"
+#include "common/gui/TaxonomyColorEngine.h"
 #include "common/gui/VolumeView.h"
 #include "common/model/ModelItem.h"
 #include "common/model/Channel.h"
@@ -48,6 +49,7 @@
 DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity)
 : EspinaView(parent, activity)
 , first(true)
+, m_colorEngine(NULL)
 {
   double cyan[3]    = {0, 1, 1};
   double blue[3]    = {0, 0, 1};
@@ -55,11 +57,14 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
 
   setObjectName("xyView");
 
+  m_colorEngine = new TaxonomyColorEngine();
+
   double ranges[6] = {0,0,0,0,0,0};
   qDebug() << "New Default EspinaView";
   xyView = new SliceView(vtkPVSliceView::AXIAL);
   xyView->setCrossHairColors(blue, magenta);
 //   xyView->setRanges(ranges);
+  xyView->setColorEngine(m_colorEngine);
   xyView->setFitToGrid(true);
   connect(xyView, SIGNAL(centerChanged(double,double,double)),
 	  this, SLOT(setCenter(double,double,double)));
@@ -80,6 +85,7 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   yzDock->setObjectName("yzDock");
   yzView = new SliceView(vtkPVSliceView::SAGITTAL);
   yzView->setCrossHairColors(blue, cyan);
+  yzView->setColorEngine(m_colorEngine);
   yzView->setFitToGrid(true);
   connect(yzView, SIGNAL(centerChanged(double,double,double)),
 	  this, SLOT(setCenter(double,double,double)));
@@ -93,6 +99,7 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   xzDock->setObjectName("xzDock");
   xzView = new SliceView(vtkPVSliceView::CORONAL);
   xzView->setCrossHairColors(cyan, magenta);
+  xzView->setColorEngine(m_colorEngine);
   xzView->setFitToGrid(true);
   connect(xzView, SIGNAL(centerChanged(double,double,double)),
 	  this, SLOT(setCenter(double,double,double)));

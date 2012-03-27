@@ -75,6 +75,7 @@
 #include <vtkSMRepresentationProxy.h>
 #include <vtkSMTwoDRenderViewProxy.h>
 #include <vtkWorldPointPicker.h>
+#include "ColorEngine.h"
 
 //-----------------------------------------------------------------------------
 SliceViewPreferencesPanel::SliceViewPreferencesPanel(SliceViewPreferences* preferences)
@@ -875,13 +876,15 @@ void SliceView::addSegmentationRepresentation(Segmentation* seg)
     pxm->NewProxy("representations", "SegmentationRepresentation"));
   Q_ASSERT(reprProxy);
   m_segmentations[seg].proxy    = reprProxy;
-  m_segmentations[seg].selected = seg->selected();
+  m_segmentations[seg].selected = !seg->selected();
   m_segmentations[seg].visible  = seg->visible();
+  m_segmentations[seg].color  = m_colorEngine->color(seg);
 
     // Set the reprProxy's input.
   pqSMAdaptor::setInputProperty(reprProxy->GetProperty("Input"),
 				source->getProxy(), oport->getPortNumber());
-  reprProxy->UpdateVTKObjects();
+  updateSegmentationRepresentation(seg);
+//   reprProxy->UpdateVTKObjects();
 
   vtkSMProxy* viewModuleProxy = m_view->getProxy();
   // Add the reprProxy to render module.
@@ -957,11 +960,19 @@ bool SliceView::updateSegmentationRepresentation(Segmentation* seg)
 {
   Q_ASSERT(m_segmentations.contains(seg));
   SegRep &rep = m_segmentations[seg];
-  if (seg->selected() != rep.selected || seg->visible() != rep.visible)
+  if (seg->selected() != rep.selected
+    || seg->visible() != rep.visible
+    || m_colorEngine->color(seg) != rep.color)
   {
     rep.selected = seg->selected();
     rep.visible  = seg->visible();
+    rep.color = m_colorEngine->color(seg);
     //   repProxy->PrintSelf(std::cout,vtkIndent(0));
+    double color[3];
+    color[0] =  rep.color.redF();
+    color[1] =  rep.color.greenF();
+    color[2] =  rep.color.blueF();
+    vtkSMPropertyHelper(rep.proxy, "RGBColor").Set(color,3);
     vtkSMPropertyHelper(rep.proxy, "Visibility").Set(rep.visible);
     double opacity = rep.selected?1.0:0.7;
     vtkSMPropertyHelper(rep.proxy, "Opacity").Set(&opacity, 1);

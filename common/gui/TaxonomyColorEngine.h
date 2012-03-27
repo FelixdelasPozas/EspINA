@@ -17,30 +17,17 @@
 */
 
 
-#ifndef VTKSEGMENTATIONREPRESENTATION_H
-#define VTKSEGMENTATIONREPRESENTATION_H
+#ifndef TAXONOMYCOLORENGINE_H
+#define TAXONOMYCOLORENGINE_H
 
-#include "vtkSliceRepresentation.h"
+#include "common/gui/ColorEngine.h"
 
-class vtkSegmentationRepresentation : public vtkSliceRepresentation
+
+class TaxonomyColorEngine : public ColorEngine
 {
+
 public:
-  static vtkSegmentationRepresentation *New();
-  vtkTypeMacro(vtkSegmentationRepresentation, vtkSliceRepresentation);
-
-  void SetRGBColor(double r, double g, double b);
-  void SetRGBColor(double rgb[3]);
-  vtkGetVector3Macro(RGBColor, double)
-
-protected:
-  vtkSegmentationRepresentation();
-  virtual ~vtkSegmentationRepresentation();
-
-  virtual vtkSmartPointer<vtkLookupTable> lut();
-  virtual void AddToView(vtkPVSliceView* view);
-
-private:
-  double RGBColor[3];
+    virtual QColor color(Segmentation* seg);
 };
 
-#endif // VTKSEGMENTATIONREPRESENTATION_H
+#endif // TAXONOMYCOLORENGINE_H

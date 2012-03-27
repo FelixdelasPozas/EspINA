@@ -30,6 +30,7 @@
 #include "IPreferencePanel.h"
 #include "common/selection/SelectableView.h"
 
+class ColorEngine;
 class QPushButton;
 class pq3DWidget;
 class vtkSMRepresentationProxy;
@@ -154,6 +155,8 @@ public:
 
   void addWidget(pq3DWidget *widget);
 
+  void setColorEngine(ColorEngine *engine){m_colorEngine = engine;}
+
 public slots:
   // Espina has been connected to a new server
   void onConnect();
@@ -210,6 +213,7 @@ private:
     vtkSMRepresentationProxy *proxy;
     bool visible;
     bool selected;
+    QColor color;
   };
   vtkPVSliceView::VIEW_PLANE m_plane;
 
@@ -231,6 +235,7 @@ private:
   double m_gridSize[3];
   double m_range[6];
   double m_center[3];
+  ColorEngine *m_colorEngine;
 
   QMap<Channel *, vtkSMRepresentationProxy *> m_channels;
   QMap<Segmentation *, SegRep> m_segmentations;

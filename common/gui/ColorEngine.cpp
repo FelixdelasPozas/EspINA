@@ -16,31 +16,4 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-#ifndef VTKSEGMENTATIONREPRESENTATION_H
-#define VTKSEGMENTATIONREPRESENTATION_H
-
-#include "vtkSliceRepresentation.h"
-
-class vtkSegmentationRepresentation : public vtkSliceRepresentation
-{
-public:
-  static vtkSegmentationRepresentation *New();
-  vtkTypeMacro(vtkSegmentationRepresentation, vtkSliceRepresentation);
-
-  void SetRGBColor(double r, double g, double b);
-  void SetRGBColor(double rgb[3]);
-  vtkGetVector3Macro(RGBColor, double)
-
-protected:
-  vtkSegmentationRepresentation();
-  virtual ~vtkSegmentationRepresentation();
-
-  virtual vtkSmartPointer<vtkLookupTable> lut();
-  virtual void AddToView(vtkPVSliceView* view);
-
-private:
-  double RGBColor[3];
-};
-
-#endif // VTKSEGMENTATIONREPRESENTATION_H
+#include "ColorEngine.h"
