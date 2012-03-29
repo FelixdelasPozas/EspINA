@@ -103,5 +103,6 @@ void TaxonomyInspector::changeColor()
 //------------------------------------------------------------------------
 void TaxonomyInspector::removeSelectedTaxonomy()
 {
-  m_baseModel->removeTaxonomyElement(m_gui->treeView->currentIndex());
+  if (m_gui->treeView->currentIndex().isValid())
+    m_baseModel->removeTaxonomyElement(m_gui->treeView->currentIndex());
 }
