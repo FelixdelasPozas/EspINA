@@ -21,6 +21,13 @@
 
 #include "common/model/Segmentation.h"
 
+#include <pqServer.h>
+#include <pqApplicationCore.h>
+#include <vtkSMPropertyHelper.h>
+#include <vtkSMProxy.h>
+#include <pqScalarsToColors.h>
+#include <pqLookupTableManager.h>
+
 QColor TaxonomyColorEngine::color(Segmentation* seg)
 {
   if (seg && seg->taxonomy())
@@ -31,35 +38,24 @@ QColor TaxonomyColorEngine::color(Segmentation* seg)
 
 vtkSMProxy *TaxonomyColorEngine::lut(Segmentation* seg)
 {
-//   // Get (or create if it doesn't exit) the lut for the segmentations' images
-//   pqServer *server =  pqApplicationCore::instance()->getActiveServer();
-//   QString lutName = m_seg->taxonomy()->qualifiedName();
-//   if (m_seg->isSelected())
-//     lutName.append("_selected");
-// 
-//   m_LUT = pqApplicationCore::instance()->getLookupTableManager()->getLookupTable(server,lutName,4,0);
-//   if (m_LUT)
-//   {
-//     vtkSMDoubleVectorProperty *rgbs = vtkSMDoubleVectorProperty::SafeDownCast(
-//       m_LUT->getProxy()->GetProperty("RGBPoints"));
-//     if (rgbs)
-//     {
-// 
-//       double color[4];
-//       double rgba[4];
-//       rgba[3] = 1;
-//       m_seg->color(color);
-//       bool isSelected = m_seg->isSelected();
-//       for(int c=0; c<3; c++)
-//       {
-// 	rgba[c] = color[c]*(isSelected?1:0.7);
-//       }
-//       double colors[8] = {0,0,0,0,1,rgba[0],rgba[1],rgba[2]};
-//       rgbs->SetElements(colors);
-//     }
-//     m_LUT->getProxy()->UpdateVTKObjects();
-//   }
-  return NULL;
+  // Get (or create if it doesn't exit) the lut for the segmentations' images
+  pqServer *server =  pqApplicationCore::instance()->getActiveServer();
+  QString lutName = seg->taxonomy()->qualifiedName();
+  if (seg->selected())
+    lutName.append("_selected");
+
+  pqLookupTableManager *lutManager = pqApplicationCore::instance()->getLookupTableManager();
+  pqScalarsToColors *lut = lutManager->getLookupTable(server,lutName,4,0);
+  if (lut)
+  {
+    double alpha = (seg->selected()?1.0:0.7);
+    QColor c = color(seg);
+    double colors[8] = {0,0,0,0,255, c.redF()*alpha,c.greenF()*alpha,c.blueF()*alpha};
+    vtkSMPropertyHelper(lut->getProxy(), "RGBPoints").Set(colors, 8);
+    lut->getProxy()->UpdateVTKObjects();
+  }
+
+  return lut->getProxy();
 }
 
 

@@ -53,6 +53,7 @@
 #include "ColorEngine.h"
 #include </home/jpena/src/ParaView-3.12.0/Qt/Core/pqPipelineRepresentation.h>
 #include <vtkSMPropertyHelper.h>
+#include <vtkSMProxyProperty.h>
 
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(QWidget* parent)
@@ -155,15 +156,10 @@ bool VolumeView::updateSegmentationRepresentation(Segmentation* seg)
     rep.visible  = seg->visible();
     rep.color = m_colorEngine->color(seg);
     //   repProxy->PrintSelf(std::cout,vtkIndent(0));
-    double color[3];
-    color[0] =  rep.color.redF();
-    color[1] =  rep.color.greenF();
-    color[2] =  rep.color.blueF();
-//     rep.pipeline->getLookupTable()->
-    rep.pipeline->setColor(color[0], color[1], color[2]);
-    double opacity = rep.selected?1.0:0.7;
-    vtkSMPropertyHelper(rep.pipeline->getProxy(), "Opacity").Set(&opacity, 1);
-//     vtkSMPropertyHelper(rep.proxy, "RGBColor").Set(color,3);
+    vtkSMProperty *p = rep.pipeline->getProxy()->GetProperty("LookupTable");
+    vtkSMProxyProperty *lut = vtkSMProxyProperty::SafeDownCast(p);
+    if (lut)
+      lut->SetProxy(0, m_colorEngine->lut(seg));
     rep.pipeline->setVisible(rep.visible);
     rep.pipeline->getProxy()->UpdateVTKObjects();
     return true;
