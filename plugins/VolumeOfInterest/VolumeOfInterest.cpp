@@ -116,14 +116,18 @@ void VolumeOfInterest::defineVOI(SelectionHandler::MultiSelection msel)
   //BEGIN TODO:
 //   m_voiWidget->setEnabled(false);
   //END TODO
-  SelectionManager::instance()->unsetSelectionHandler(m_selector.data());
+  SelectionManager *selectionManager = SelectionManager::instance();
+  selectionManager->unsetSelectionHandler(m_selector.data());
+  selectionManager->setVOI(m_voiWidget.data());
 }
 
 //-----------------------------------------------------------------------------
 void VolumeOfInterest::cancelVOI()
 {
   m_voiWidget.clear();
-  SelectionManager::instance()->unsetSelectionHandler(m_selector.data());
+  SelectionManager *selectorManager = SelectionManager::instance();
+  selectorManager->unsetSelectionHandler(m_selector.data());
+  selectorManager->setVOI(NULL);
   EspinaView *currentView = EspinaCore::instance()->viewManger()->currentView();
   currentView->setSliceSelectors(SliceView::NoSelector);
   disconnect(currentView, SIGNAL(selectedFromSlice(double, vtkPVSliceView::VIEW_PLANE)),
@@ -138,8 +142,6 @@ void VolumeOfInterest::setBorderFrom(double pos, vtkPVSliceView::VIEW_PLANE plan
   if (!m_voiWidget.isNull())
   {
     EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
-    double spacing[3];
-    view->gridSize(spacing);
     double bounds[6];
     m_voiWidget->bounds(bounds);
     bounds[plane*2] = pos;
@@ -153,8 +155,6 @@ void VolumeOfInterest::setBorderTo(double pos, vtkPVSliceView::VIEW_PLANE plane)
   if (!m_voiWidget.isNull())
   {
     EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
-    double spacing[3];
-    view->gridSize(spacing);
     double bounds[6];
     m_voiWidget->bounds(bounds);
     bounds[plane*2+1] = pos;

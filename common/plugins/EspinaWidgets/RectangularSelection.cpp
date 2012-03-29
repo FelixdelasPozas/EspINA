@@ -32,6 +32,7 @@
 #include <QDebug>
 #include <pqPipelineSource.h>
 #include <vtkSMPropertyHelper.h>
+#include </home/jpena/src/ParaView-3.12.0/Qt/Components/pq3DWidget.h>
 
 //----------------------------------------------------------------------------
 RectangularRegion::RectangularRegion()
@@ -148,13 +149,25 @@ void RectangularRegion::setEnabled(bool enable)
 //----------------------------------------------------------------------------
 void RectangularRegion::setBounds(double bounds[6])
 {
-  vtkSMPropertyHelper(getProxy(),"Bounds").Set(bounds,6);
-  getProxy()->UpdateVTKObjects();
+  vtkSMProxy *proxy = getProxy();
+  vtkSMPropertyHelper(proxy,"Bounds").Set(bounds,6);
+  double pos[3] = {0, 0, 0};
+  vtkSMPropertyHelper(proxy, "Position").Set(pos,3);
+  double scale[3] = {1, 1, 1};
+  vtkSMPropertyHelper(proxy, "Scale").Set(scale,3);
+  proxy->UpdateVTKObjects();
 }
 
 //----------------------------------------------------------------------------
 void RectangularRegion::bounds(double bounds[6])
 {
-  vtkSMPropertyHelper(getProxy(),"Bounds").Get(bounds,6);
+  vtkSMProxy *proxy = getProxy();
+  double pos[3];
+  vtkSMPropertyHelper(proxy, "Position").Get(pos,3);
+  double scale[3];
+  vtkSMPropertyHelper(proxy, "Scale").Get(scale,3);
+  vtkSMPropertyHelper(proxy, "Bounds").Get(bounds,6);
+  for (int i = 0; i < 6; i++)
+    bounds[i] = pos[i/2] + bounds[i]*scale[i/2];
 }
 

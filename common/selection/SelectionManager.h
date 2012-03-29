@@ -25,6 +25,7 @@
 #include "SelectionHandler.h"
 #include <QCursor>
 
+class EspinaWidget;
 class QPoint;
 class SelectableView;
 
@@ -44,12 +45,8 @@ public:
   bool filterEvent(QEvent *e, SelectableView *view=NULL) const;
 
   void setSelection(SelectionHandler::MultiSelection sel) const;
-//   void setVOI(IVOI *voi);
-//   IVOI *voi() {return m_voi;}
-//   //! Applies active VOI to product
-  //IFilter *applyVOI(vtkProduct *product);
-//   //! Restores VOI transformations
-  //IFilter *restoreVOITransformation(vtkProduct *product);
+  void setVOI(EspinaWidget *voi);
+
   QCursor cursor() const;
 
 public slots:
@@ -70,7 +67,7 @@ private:
 
 private:
   SelectionHandler *m_handler;
-//   IVOI *m_voi;
+  EspinaWidget     *m_voi;
 
   static SelectionManager *m_singleton;
 };

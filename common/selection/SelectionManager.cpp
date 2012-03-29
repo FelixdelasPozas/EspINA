@@ -18,7 +18,10 @@
 */
 
 #include "SelectionManager.h"
+
 #include <QApplication>
+
+#include <RectangularSelection.h>
 
 
 SelectionManager *SelectionManager::m_singleton = NULL;//new SelectionManager();
@@ -34,7 +37,7 @@ SelectionManager* SelectionManager::instance()
 
 SelectionManager::SelectionManager()
   : m_handler(NULL)
-//   , m_voi(NULL)
+  , m_voi(NULL)
 {
 }
 
@@ -69,12 +72,13 @@ void SelectionManager::setSelectionHandler(SelectionHandler* sh)
 {
   if (m_handler && m_handler != sh)
     m_handler->abortSelection();
+
   m_handler = sh;
 
-//   if (m_voi)
-//   {
-//     m_voi->setEnabled(!m_handler);
-//   }
+  if (m_voi)
+  {
+    m_voi->setEnabled(!m_handler);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -88,18 +92,13 @@ void SelectionManager::unsetSelectionHandler(SelectionHandler* sh)
 }
 
 //------------------------------------------------------------------------
-// void SelectionManager::setVOI(IVOI* voi)
-// {
-//   if (m_voi && m_voi != voi)
-//     m_voi->cancelVOI();
-//   m_voi = voi;
-//   if (m_voi)
-//     m_voi->setSource(EspINA::instance()->activeSample());
-//   emit VOIChanged(m_voi);
-//   
-//   if (m_handler && m_voi)
-//   {
-//     m_handler->abortSelection();
-//     m_handler = NULL;
-//   }
-// }
+void SelectionManager::setVOI(EspinaWidget *voi)
+{
+  m_voi = voi;
+
+  if (m_handler && m_voi)
+  {
+    m_handler->abortSelection();
+    m_handler = NULL;
+  }
+}
