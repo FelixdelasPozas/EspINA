@@ -104,10 +104,14 @@ void SegmhaImporter::readFile(const QString file)
   Q_ASSERT(File::extension(file) == SEGMHA);
 
   SegmhaImporterFilter *filter = new SegmhaImporterFilter(file);
-  Q_ASSERT(filter->numProducts() > 0);
-
-  QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
-  undo->beginMacro("Import Segmha");
-  undo->push(new UndoCommand(filter));
-  undo->endMacro();
+  if (filter->numProducts() > 0)
+  {
+    QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
+    undo->beginMacro("Import Segmha");
+    undo->push(new UndoCommand(filter));
+    undo->endMacro();
+  } else
+  {
+    delete filter;
+  }
 }

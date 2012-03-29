@@ -80,7 +80,7 @@ SegmhaImporterFilter::SegmhaImporterFilter(const QString file)
 
 
       QApplication::setOverrideCursor(Qt::ArrowCursor);
-      if (fileDialog.exec() == QDialog::Rejected)
+      if (fileDialog.exec() != QDialog::Accepted)
       {
 	QApplication::restoreOverrideCursor();
 	return;
