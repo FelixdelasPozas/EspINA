@@ -185,8 +185,8 @@ QModelIndex SampleProxy::mapFromSource(const QModelIndex& sourceIndex) const
   {
     case ModelItem::SAMPLE:
     {
-      Sample *sample = dynamic_cast<Sample *>(sourceItem);
-      Q_ASSERT(sample);
+//       Sample *sample = dynamic_cast<Sample *>(sourceItem);
+//       Q_ASSERT(sample);
       //Samples are shown in the same order than in the original model
       proxyIndex = createIndex(sourceIndex.row(), sourceIndex.column(), sourceIndex.internalPointer());
       break;

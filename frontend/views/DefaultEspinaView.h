@@ -56,8 +56,12 @@ public slots:
   virtual void setSliceSelectors(SliceView::SliceSelectors selectors);
 
 protected:
+  void addChannelRepresentation(Channel *channel);
+  void removeChannelRepresentation(Channel *channel);
+
   void addSegmentation(Segmentation *seg);
   void removeSegmentation(Segmentation *seg);
+  bool updateSegmentation(Segmentation *seg);
 
 protected slots:
   virtual void rowsInserted(const QModelIndex& parent, int start, int end);

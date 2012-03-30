@@ -171,6 +171,7 @@ void DefaultEspinaView::forceRender()
   xyView->forceRender();
   yzView->forceRender();
   xzView->forceRender();
+  volView->forceRender();
 }
 
 //----------------------------------------------------------------------------
@@ -246,6 +247,22 @@ void DefaultEspinaView::setSliceSelectors(SliceView::SliceSelectors selectors)
 
 
 //-----------------------------------------------------------------------------
+void DefaultEspinaView::addChannelRepresentation(Channel* channel)
+{
+  xyView->addChannelRepresentation(channel);
+  yzView->addChannelRepresentation(channel);
+  xzView->addChannelRepresentation(channel);
+}
+
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::removeChannelRepresentation(Channel* channel)
+{
+  xyView->removeChannelRepresentation(channel);
+  yzView->removeChannelRepresentation(channel);
+  xzView->removeChannelRepresentation(channel);
+}
+
+//-----------------------------------------------------------------------------
 void DefaultEspinaView::addSegmentation(Segmentation* seg)
 {
   xyView->addSegmentationRepresentation(seg);
@@ -262,6 +279,19 @@ void DefaultEspinaView::removeSegmentation(Segmentation* seg)
   xzView->removeSegmentationRepresentation(seg);
   volView->removeSegmentationRepresentation(seg);
 }
+
+//-----------------------------------------------------------------------------
+bool DefaultEspinaView::updateSegmentation(Segmentation* seg)
+{
+  bool modified = true;
+  modified = xyView->updateSegmentationRepresentation(seg)  || modified;
+  modified = yzView->updateSegmentationRepresentation(seg)  || modified;
+  modified = xzView->updateSegmentationRepresentation(seg)  || modified;
+  modified = volView->updateSegmentationRepresentation(seg) || modified;
+
+  return modified;
+}
+
 
 //-----------------------------------------------------------------------------
 void DefaultEspinaView::rowsInserted(const QModelIndex& parent, int start, int end)
@@ -293,9 +323,7 @@ void DefaultEspinaView::rowsInserted(const QModelIndex& parent, int start, int e
 	yzView->setRanges(bounds);
 	xzView->setRanges(bounds);
 	//END
-	xyView->addChannelRepresentation(channel);
-	yzView->addChannelRepresentation(channel);
-	xzView->addChannelRepresentation(channel);
+	addChannelRepresentation(channel);
 	QApplication::restoreOverrideCursor();
 	resetCamera();
 	break;
@@ -311,10 +339,7 @@ void DefaultEspinaView::rowsInserted(const QModelIndex& parent, int start, int e
 	break;
     };
   }
-  xyView->forceRender();
-  yzView->forceRender();
-  xzView->forceRender();
-  volView->forceRender();
+  forceRender();
 }
 
 //-----------------------------------------------------------------------------
@@ -335,9 +360,7 @@ void DefaultEspinaView::rowsAboutToBeRemoved(const QModelIndex& parent, int star
       {
 	Channel *channel = dynamic_cast<Channel *>(item);
 // 	qDebug() << "Remove Channel:" << channel->data(Qt::DisplayRole).toString();
-	xyView->removeChannelRepresentation(channel);
-	yzView->removeChannelRepresentation(channel);
-	xzView->removeChannelRepresentation(channel);
+	removeChannelRepresentation(channel);
 
 	if (model->rowCount(model->channelRoot()) == 0)
 	{
@@ -359,10 +382,7 @@ void DefaultEspinaView::rowsAboutToBeRemoved(const QModelIndex& parent, int star
 	break;
     };
   }
-  xyView->forceRender();
-  yzView->forceRender();
-  xzView->forceRender();
-  volView->forceRender();
+  forceRender();
 }
 
 //-----------------------------------------------------------------------------
@@ -371,22 +391,14 @@ void DefaultEspinaView::dataChanged(const QModelIndex& topLeft, const QModelInde
   if (!topLeft.isValid() || !topLeft.parent().isValid())
     return;
 
-  bool needUpdate = false;
   ModelItem *item = indexPtr(topLeft);
   if (ModelItem::SEGMENTATION == item->type())
   {
     Segmentation *seg = dynamic_cast<Segmentation *>(item);
-    xyView->updateSegmentationRepresentation(seg);
-    yzView->updateSegmentationRepresentation(seg);
-    needUpdate = xzView->updateSegmentationRepresentation(seg);
-    volView->updateSegmentationRepresentation(seg);
-  }
-  if (needUpdate)
-  {
-    xyView->forceRender();
-    yzView->forceRender();
-    xzView->forceRender();
-    volView->forceRender();
+    if (updateSegmentation(seg))
+    {
+      forceRender();
+    }
   }
 }
 
