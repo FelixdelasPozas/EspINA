@@ -594,7 +594,7 @@ void vtkPVSliceView::AddRepresentationInternal(vtkDataRepresentation* rep)
     m_reps[rep] = m_pendingActor;
     m_pendingActor = NULL;
   }
-  vtkView::AddRepresentationInternal(rep);
+  vtkPVRenderView::AddRepresentationInternal(rep);
 }
 
 //----------------------------------------------------------------------------
@@ -607,7 +607,7 @@ void vtkPVSliceView::RemoveRepresentationInternal(vtkDataRepresentation* rep)
     RemoveActor(actor);
     m_reps.remove(rep);
   }
-  vtkView::RemoveRepresentationInternal(rep);
+  vtkPVRenderView::RemoveRepresentationInternal(rep);
 }
 
 //----------------------------------------------------------------------------
