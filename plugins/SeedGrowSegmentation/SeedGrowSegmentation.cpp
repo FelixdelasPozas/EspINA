@@ -51,6 +51,7 @@
 #include <vtkSMProxy.h>
 #include <vtkSMInputProperty.h>
 #include <vtkSMPropertyHelper.h>
+#include <common/plugins/EspinaWidgets/RectangularSelection.h>
 
 #define DEFAULT_THRESHOLD 30
 
@@ -171,10 +172,6 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
 {
 //   QApplication::setOverrideCursor(Qt::WaitCursor);
 
-  // Initialize application context
-//   pqApplicationCore* core = pqApplicationCore::instance();
-  //pqServerManagerModel* sm = core->getServerManagerModel();
-
   if (msel.size() > 0)
   {
     qDebug() << "Start Segmentation";
@@ -197,10 +194,24 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
     args[SeedGrowSegmentationFilter::SEED] = QString("%1,%2,%3").arg(seed.x()).arg(seed.y()).arg(seed.z());
     args[SeedGrowSegmentationFilter::THRESHOLD] = QString::number(m_threshold->threshold());
 
+    Q_ASSERT(ModelItem::CHANNEL == input->type());
+    Channel *channel = dynamic_cast<Channel *>(input);
+
     int growSeed[3] = {seed.x(), seed.y(), seed.z()};
 
     int VOI[6];
-    if (m_useDefaultVOI->useDefaultVOI())
+    EspinaWidget *currentVOI = SelectionManager::instance()->voi();
+    if (currentVOI)
+    {
+      double bounds[6];
+      currentVOI->bounds(bounds);
+      double spacing[3];
+      channel->spacing(spacing);
+      for (int i=0; i<6; i++)
+	VOI[i] = bounds[i] / spacing[i/2];
+      qDebug() << VOI[0] << VOI[1] << VOI[2] << VOI[3] << VOI[4] << VOI[5];
+    }
+    else if (m_useDefaultVOI->useDefaultVOI())
     {
       const int W = 60;
       VOI[0] = seed.x() - W;
@@ -211,11 +222,8 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
       VOI[5] = seed.z() + W;
     } else
     {
-      Q_ASSERT(false);
+      channel->extent(VOI);
     }
-
-    Q_ASSERT(ModelItem::CHANNEL == input->type());
-    Channel *channel = dynamic_cast<Channel *>(input);
 
     SeedGrowSegmentationFilter *filter =
 	new SeedGrowSegmentationFilter(input->volume(),
@@ -228,9 +236,7 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
     Q_ASSERT(tax);
 
     QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
-//     undo->beginMacro("Add Segmentation");
     undo->push(new UndoCommand(channel, filter, tax));
-//     undo->endMacro();
 
   // args.insert("VOI",SelectionManager::instance()->voi()->save());
   //createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);

@@ -46,6 +46,7 @@ public:
 
   void setSelection(SelectionHandler::MultiSelection sel) const;
   void setVOI(EspinaWidget *voi);
+  EspinaWidget *voi() const {return m_voi;}
 
   QCursor cursor() const;
 
@@ -71,56 +72,5 @@ private:
 
   static SelectionManager *m_singleton;
 };
-
-
-//class vtkSMProxy;
-//class pq3DWidget;
-
-
-
-// class Product;
-
-/*
-class IVOI : public QObject
-{
-  Q_OBJECT
-public:
-  virtual ~IVOI(){}
-
-  virtual EspinaFilter *applyVOI(vtkProduct *product) = 0;
-  virtual EspinaFilter *restoreVOITransormation(vtkProduct* product) = 0;
-  virtual void setDefaultBounds(double bounds[6]) = 0;
-  virtual void resizeToDefaultSize() = 0;
-  void defaultBounds(double bounds[6])  {memcpy(bounds,m_bounds,6*sizeof(double));}
-  virtual void bounds(double bounds[6]) = 0;
-  
-  virtual vtkSMProxy * getProxy() = 0;
-  virtual pq3DWidget *newWidget(ViewType viewType) = 0;
-  virtual void deleteWidget(pq3DWidget *&widget) = 0;
-  
-  virtual bool contains(ISelectionHandler::VtkRegion region) = 0;
-  virtual bool intersectPlane(ViewType plane, int slice) = 0;
-  
-  virtual void setEnabled(bool value) = 0;
-  
-  virtual void cancelVOI() = 0;
-  
-  virtual void setSource(Sample *product) { m_product  = product;}
-  
-  virtual void setFromSlice(int value) = 0;
-
-  virtual void setToSlice(int value) = 0;
-
-signals:
-  void voiModified();
-  void voiCancelled();
-
-  
-protected:
-  Sample *m_product;
-  double m_bounds[6];
-};*/
-
-
 
 #endif // SELECTIONMANAGER_H
