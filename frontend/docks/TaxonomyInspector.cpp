@@ -24,6 +24,7 @@
 #include "common/model/Taxonomy.h"
 
 #include <QColorDialog>
+#include <QSortFilterProxyModel>
 
 
 //------------------------------------------------------------------------
@@ -38,13 +39,17 @@ public:
 //------------------------------------------------------------------------
 TaxonomyInspector::TaxonomyInspector(QSharedPointer<EspinaModel> model, QWidget* parent)
 : EspinaDockWidget(parent)
+, m_gui(new GUI())
 , m_baseModel(model)
+, m_sort(new QSortFilterProxyModel())
 {
   setWindowTitle(tr("Taxonomy Inspector"));
   setObjectName("TaxonomyInspector");
-  m_gui = new GUI();
-  m_gui->treeView->setModel(m_baseModel.data());
-  m_gui->treeView->setRootIndex(m_baseModel->taxonomyRoot());
+  m_sort->setSourceModel(m_baseModel.data());
+  m_sort->setDynamicSortFilter(true);
+  m_gui->treeView->setModel(m_sort.data());
+  m_gui->treeView->setRootIndex(m_sort->mapFromSource(m_baseModel->taxonomyRoot()));
+  m_gui->treeView->sortByColumn(0, Qt::AscendingOrder);
 
   connect(m_gui->addTaxonomy, SIGNAL(clicked(bool)),
           this, SLOT(addSameLevelTaxonomy()));

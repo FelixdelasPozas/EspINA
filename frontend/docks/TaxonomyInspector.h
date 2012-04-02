@@ -26,6 +26,7 @@
 //----------------------------------------------------------------------------
 #include <gui/EspinaDockWidget.h>
 
+#include <QSortFilterProxyModel>
 
 class EspinaModel;
 
@@ -51,6 +52,7 @@ protected slots:
 protected:
   GUI *m_gui;
   QSharedPointer<EspinaModel> m_baseModel;
+  QSharedPointer<QSortFilterProxyModel> m_sort;
 };
 
 #endif // TAXONOMYINSPECTOR_H

@@ -32,6 +32,7 @@
 #include <gui/EspinaView.h>
 #include <undo/RemoveSegmentation.h>
 #include <QMessageBox>
+#include <QSortFilterProxyModel>
 
 //------------------------------------------------------------------------
 class SegmentationExplorer::GUI
@@ -45,6 +46,8 @@ public:
 SegmentationExplorer::GUI::GUI()
 {
   setupUi(this);
+  view->setSortingEnabled(true);
+  view->sortByColumn(0, Qt::AscendingOrder);
 }
 
 
@@ -65,23 +68,41 @@ protected:
 //------------------------------------------------------------------------
 class SampleLayout : public SegmentationExplorer::Layout
 {
+  class SampleSortFilter : public QSortFilterProxyModel
+  {
+  protected:
+    virtual bool lessThan(const QModelIndex& left, const QModelIndex& right) const
+    {
+      ModelItem *leftItem = indexPtr(left);
+      ModelItem *rightItem = indexPtr(right);
+      if (leftItem->type() == rightItem->type())
+	return leftItem->data(Qt::DisplayRole).toString() < rightItem->data(Qt::DisplayRole).toString();
+      else
+	return leftItem->type() == ModelItem::TAXONOMY;
+    }
+  };
+
 public:
   explicit SampleLayout(QSharedPointer<EspinaModel> model);
   virtual ~SampleLayout(){}
 
-  virtual QAbstractItemModel* model() {return m_proxy.data();}
+  virtual QAbstractItemModel* model() {return m_sort.data();}
   virtual void deleteSegmentation(QModelIndexList indices);
 
 private:
   QSharedPointer<SampleProxy> m_proxy;
+  QSharedPointer<SampleSortFilter> m_sort;
 };
 
 //------------------------------------------------------------------------
 SampleLayout::SampleLayout(QSharedPointer<EspinaModel> model)
 : Layout(model)
 , m_proxy(new SampleProxy())
+, m_sort (new SampleSortFilter())
 {
   m_proxy->setSourceModel(m_model.data());
+  m_sort->setSourceModel(m_proxy.data());
+  m_sort->setDynamicSortFilter(true);
 }
 
 //------------------------------------------------------------------------
@@ -90,6 +111,7 @@ void SampleLayout::deleteSegmentation(QModelIndexList indices)
   QSet<Segmentation *> toDelete;
   foreach(QModelIndex index, indices)
   {
+    index = m_sort->mapToSource(index);
     ModelItem *item = indexPtr(index);
     switch (item->type())
     {
@@ -102,7 +124,7 @@ void SampleLayout::deleteSegmentation(QModelIndexList indices)
       }
       case ModelItem::SAMPLE:
       {
-	int totalSeg = m_proxy->numSegmentations(index, true);
+	int totalSeg  = m_proxy->numSegmentations(index, true);
 	int directSeg = m_proxy->numSegmentations(index);
 
 	if (totalSeg == 0)
@@ -167,23 +189,40 @@ void SampleLayout::deleteSegmentation(QModelIndexList indices)
 //------------------------------------------------------------------------
 class TaxonomyLayout : public SegmentationExplorer::Layout
 {
+  class TaxonomySortFilter : public QSortFilterProxyModel
+  {
+  protected:
+    virtual bool lessThan(const QModelIndex& left, const QModelIndex& right) const
+    {
+      ModelItem *leftItem = indexPtr(left);
+      ModelItem *rightItem = indexPtr(right);
+      if (leftItem->type() == rightItem->type())
+	return leftItem->data(Qt::DisplayRole).toString() < rightItem->data(Qt::DisplayRole).toString();
+      else
+	return leftItem->type() == ModelItem::TAXONOMY;
+    }
+  };
 public:
   explicit TaxonomyLayout(QSharedPointer<EspinaModel> model);
   virtual ~TaxonomyLayout(){}
 
-  virtual QAbstractItemModel* model() {return m_proxy.data();}
+  virtual QAbstractItemModel* model() {return m_sort.data();}
   virtual void deleteSegmentation(QModelIndexList indices);
 
 private:
   QSharedPointer<TaxonomyProxy> m_proxy;
+  QSharedPointer<TaxonomySortFilter> m_sort;
 };
 
 //------------------------------------------------------------------------
 TaxonomyLayout::TaxonomyLayout(QSharedPointer<EspinaModel> model)
 : Layout(model)
 , m_proxy(new TaxonomyProxy())
+, m_sort (new TaxonomySortFilter())
 {
   m_proxy->setSourceModel(m_model.data());
+  m_sort->setSourceModel(m_proxy.data());
+  m_sort->setDynamicSortFilter(true);
 }
 
 //------------------------------------------------------------------------
@@ -192,6 +231,7 @@ void TaxonomyLayout::deleteSegmentation(QModelIndexList indices)
   QSet<Segmentation *> toDelete;
   foreach(QModelIndex index, indices)
   {
+    index = m_sort->mapToSource(index);
     ModelItem *item = indexPtr(index);
     switch (item->type())
     {
@@ -353,6 +393,7 @@ void SegmentationExplorer::deleteSegmentation()
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSelection(QModelIndex index)
 {
+  return;
   if (index.isValid())
   {
     ModelItem *item = indexPtr(index);
@@ -372,6 +413,7 @@ void SegmentationExplorer::updateSelection(QModelIndex index)
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSelection(QItemSelection selected, QItemSelection deselected)
 {
+  return;
   m_layout->model()->blockSignals(true);
   foreach(QModelIndex index, selected.indexes())
     m_layout->model()->setData(index, true, Segmentation::SelectionRole);
