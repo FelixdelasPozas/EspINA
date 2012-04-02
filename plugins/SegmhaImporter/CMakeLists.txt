@@ -16,8 +16,11 @@ include(${ITK_USE_FILE})
 
 set (ITK_VTK_GLUE ${ITK_DIR}/../Wrapping/WrapITK/ExternalProjects/ItkVtkGlue/src)
 
-find_package(Espina REQUIRED)
-include(${ESPINA_USE_FILE})
+# find_package(Espina REQUIRED)
+# include(${ESPINA_USE_FILE})
+include_directories (
+  ${CMAKE_SOURCE_DIR}
+)
 
 include_directories (
   ${ITK_VTK_GLUE}
