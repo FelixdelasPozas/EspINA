@@ -55,13 +55,14 @@ public:
   virtual QString id() const {return m_ID;}
   virtual QVariant data(int role) const;
   virtual ItemType type() const {return SAMPLE;}
+  virtual void initialize(Arguments args = Arguments());
 
   void setId(const QString id) {m_ID = id;}
 
   /// Add a new extension to the segmentation
   /// Extesion won't be available until requirements are satisfied
   void addExtension(SampleExtension *ext);
-  void initialize();
+
 private:
   QString m_ID;
   int  m_position[3];//nm

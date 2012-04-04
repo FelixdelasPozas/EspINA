@@ -27,6 +27,8 @@
 #include <QCryptographicHash>
 #include "Representation.h"
 
+const ModelItem::ArgumentId ModelItem::EXTENSIONS = ArgumentId("Extensions", ArgumentId::VARIABLE);
+
 //------------------------------------------------------------------------
 ModelItem::Arguments::Arguments()
 {

@@ -27,10 +27,10 @@
 
 using namespace std;
 
-const ModelItem::ArgumentId Segmentation::FILTER   = ArgumentId("Filter", true);
-const ModelItem::ArgumentId Segmentation::NUMBER   = ArgumentId("Number", true);
-const ModelItem::ArgumentId Segmentation::OUTPUT   = ArgumentId("Output", true);
-const ModelItem::ArgumentId Segmentation::TAXONOMY = ArgumentId("Taxonomy", false);
+const ModelItem::ArgumentId Segmentation::FILTER    = ArgumentId("Filter",   ArgumentId::KEY);
+const ModelItem::ArgumentId Segmentation::NUMBER    = ArgumentId("Number",   ArgumentId::KEY);
+const ModelItem::ArgumentId Segmentation::OUTPUT    = ArgumentId("Output",   ArgumentId::KEY);
+const ModelItem::ArgumentId Segmentation::TAXONOMY  = ArgumentId("Taxonomy", ArgumentId::VARIABLE);
 
 //-----------------------------------------------------------------------------
 Segmentation::Segmentation(Filter* filter, int output, pqData data)
@@ -124,6 +124,17 @@ QVariant Segmentation::data(int role) const
 QString Segmentation::serialize() const
 {
   return m_args.serialize();
+}
+
+//------------------------------------------------------------------------
+void Segmentation::initialize(ModelItem::Arguments args)
+{
+  foreach(ModelItemExtension *ext, m_extensions)
+  {
+    SegmentationExtension *segExt = dynamic_cast<SegmentationExtension *>(ext);
+    Q_ASSERT(segExt);
+    segExt->initialize(this);
+  }
 }
 
 // //------------------------------------------------------------------------
@@ -236,18 +247,6 @@ QVariant Segmentation::information(QString info) const
   return m_informations[info]->information(info);
 }
 
-// //------------------------------------------------------------------------
-// //! TODO: Review where extensions should be initialized: at creation
-// //! or when adding them to EspINA
-void Segmentation::initialize()
-{
-  foreach(ModelItemExtension *ext, m_extensions)
-  {
-    SegmentationExtension *segExt = dynamic_cast<SegmentationExtension *>(ext);
-    Q_ASSERT(segExt);
-    segExt->initialize(this);
-  }
-}
 // 
 // //------------------------------------------------------------------------
 // void Segmentation::notifyInternalUpdate()

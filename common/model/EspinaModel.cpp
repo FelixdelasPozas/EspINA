@@ -555,7 +555,8 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
 
   EspinaFactory *factory = EspinaFactory::instance();
 
-  QList<ModelItem *> newItems;
+  typedef QPair<ModelItem *, ModelItem::Arguments> NonInitilizedItem;
+  QList<NonInitilizedItem> nonInitializedItems;
   QList<Segmentation *> newSegmentations;
 
   foreach(VertexProperty v, input->vertices())
@@ -571,18 +572,20 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
       {
 	case ModelItem::SAMPLE:
 	{
+	  ModelItem::Arguments args(v.args.c_str());
 	  Sample *sample = factory->createSample(v.name.c_str(), v.args.c_str());
 	  addSample(sample);
-	  newItems << sample;
+	  nonInitializedItems << NonInitilizedItem(sample, args);
 	  EspinaCore::instance()->setSample(sample);
 	  input->setItem(v.vId, sample);
 	  break;
 	}
 	case ModelItem::CHANNEL:
 	{
-	  Channel *channel = factory->createChannel(v.name.c_str(), ModelItem::Arguments(v.args.c_str()));
+	  ModelItem::Arguments args(v.args.c_str());
+	  Channel *channel = factory->createChannel(v.name.c_str(), args);
 	  addChannel(channel);
-	  newItems << channel;
+	  nonInitializedItems << NonInitilizedItem(channel, args);
 	  input->setItem(v.vId, channel);
 	  break;
 	}
@@ -605,7 +608,7 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
 	  if (taxonomy)
 	    seg->setTaxonomy(taxonomy);
 	  newSegmentations << seg;
-	  newItems << seg;
+	  nonInitializedItems << NonInitilizedItem(seg, args);
 	  input->setItem(v.vId, seg);
 	  break;
 	}
@@ -624,8 +627,8 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
     addRelation(e.source.item, e.target.item, e.relationship.c_str());
   }
 
-  foreach(ModelItem *item, newItems)
-    item->initialize();
+  foreach(NonInitilizedItem item, nonInitializedItems)
+    item.first->initialize(item.second);
 }
 
 //------------------------------------------------------------------------

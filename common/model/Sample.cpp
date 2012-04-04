@@ -103,13 +103,7 @@ QVariant Sample::data(int role) const
 }
 
 //------------------------------------------------------------------------
-void Sample::addExtension(SampleExtension *ext)
-{
-  ModelItem::addExtension(ext);
-}
-
-//------------------------------------------------------------------------
-void Sample::initialize()
+void Sample::initialize(ModelItem::Arguments args)
 {
   foreach(ModelItemExtension *ext, m_extensions)
   {
@@ -118,3 +112,10 @@ void Sample::initialize()
     sampleExt->initialize(this);
   }
 }
+
+//------------------------------------------------------------------------
+void Sample::addExtension(SampleExtension *ext)
+{
+  ModelItem::addExtension(ext);
+}
+

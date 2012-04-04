@@ -102,6 +102,7 @@ public:
   virtual QVariant data(int role) const;
   virtual ItemType type() const {return ModelItem::CHANNEL;}
   virtual QString  serialize() const;
+  virtual void initialize(Arguments args = Arguments());
 
   virtual QStringList availableInformations() const;
   virtual QStringList availableRepresentations() const;
@@ -113,7 +114,6 @@ public:
   /// Add a new extension to the segmentation
   /// Extesion won't be available until requirements are satisfied
   void addExtension(ChannelExtension *ext);
-  void initialize();
 
 private:
   pqData m_data;
@@ -122,7 +122,7 @@ private:
   int    m_pos[3];/*in nm*/
   bool   m_visible;
 
-  CArguments m_args;
+  mutable CArguments m_args;
 
   pqFilter *m_spacingFilter;
 //   QList<Segmentation *> m_segs;

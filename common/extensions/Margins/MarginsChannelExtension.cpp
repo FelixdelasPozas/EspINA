@@ -31,6 +31,8 @@
 #include <vtkSMProxy.h>
 #include <QMessageBox>
 
+typedef ModelItem::ArgumentId ArgumentId;
+
 const QString MarginsChannelExtension::ID = "MarginsExtension";
 
 const QString MarginsChannelExtension::LeftMargin   = "Left Margin";
@@ -39,6 +41,8 @@ const QString MarginsChannelExtension::UpperMargin  = "Upper Margin";
 const QString MarginsChannelExtension::RightMargin  = "Right Margin";
 const QString MarginsChannelExtension::BottomMargin = "Bottom Margin";
 const QString MarginsChannelExtension::LowerMargin  = "Lower Margin";
+
+const ArgumentId MarginsChannelExtension::MARGINTYPE = ArgumentId("MarginType", ArgumentId::VARIABLE);
 
 //-----------------------------------------------------------------------------
 MarginsChannelExtension::MarginsChannelExtension()
@@ -66,20 +70,31 @@ QString MarginsChannelExtension::id()
 }
 
 //-----------------------------------------------------------------------------
-void MarginsChannelExtension::initialize(Channel *channel)
+void MarginsChannelExtension::initialize(Channel* channel, ModelItem::Arguments args)
 {
   if (m_init && m_channel == channel)
     return;
 
   m_channel = channel;
+  
 
-  QMessageBox msgBox;
-  msgBox.setText(QString("Compute %1's margins").arg(channel->data(Qt::DisplayRole).toString()));
-  msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-  msgBox.setDefaultButton(QMessageBox::No);
-  if (msgBox.exec() == QMessageBox::Yes)
+  qDebug() << args;
+  bool computeMargin = false;
+  if (args.contains(MARGINTYPE))
   {
-    //TODO: If has border argument, recover it
+    computeMargin = args[MARGINTYPE] == "Yes";
+  } else
+  {
+    QMessageBox msgBox;
+    msgBox.setText(QString("Compute %1's margins").arg(channel->data(Qt::DisplayRole).toString()));
+    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+    msgBox.setDefaultButton(QMessageBox::No);
+    computeMargin = msgBox.exec() == QMessageBox::Yes;
+    args[MARGINTYPE] = computeMargin?"Yes":"No";
+  }
+
+  if (computeMargin)
+  {
     CachedObjectBuilder *cob = CachedObjectBuilder::instance();
     pqFilter::Arguments marginArgs;
     marginArgs << pqFilter::Argument("Input", pqFilter::Argument::INPUT, m_channel->volume().id());
@@ -90,6 +105,13 @@ void MarginsChannelExtension::initialize(Channel *channel)
     m_useExtentMargins = false;
   }
   m_init = true;
+  m_args = args;
+}
+
+//-----------------------------------------------------------------------------
+QString MarginsChannelExtension::serialize() const
+{
+  return m_args.serialize();
 }
 
 //-----------------------------------------------------------------------------

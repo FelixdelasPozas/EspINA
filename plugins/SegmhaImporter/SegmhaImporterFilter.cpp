@@ -116,7 +116,9 @@ SegmhaImporterFilter::SegmhaImporterFilter(const QString file)
       .arg(margins[1]).arg(margins[4])
       .arg(margins[2]).arg(margins[5]);
     qDebug() << "Using Counting Region" << rcb;
-    crExtension->setArguments(rcb);
+    ModelItem::Arguments args;
+    args[ArgumentId("REGION", ArgumentId::KEY)] = rcb;
+    crExtension->initialize(args);
   }
 
   vtkSMProperty *p;

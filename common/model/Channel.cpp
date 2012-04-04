@@ -263,12 +263,6 @@ double Channel::color() const
 }
 
 //------------------------------------------------------------------------
-QString Channel::serialize() const
-{
-  return m_args.serialize();
-}
-
-//------------------------------------------------------------------------
 QStringList Channel::availableInformations() const
 {
   QStringList informations;
@@ -306,6 +300,40 @@ QVariant Channel::data(int role) const
 }
 
 //------------------------------------------------------------------------
+QString Channel::serialize() const
+{
+  QString extensionArgs;
+  foreach(ModelItemExtension *ext, m_extensions)
+  {
+    ChannelExtension *channelExt = dynamic_cast<ChannelExtension *>(ext);
+    Q_ASSERT(channelExt);
+    QString serializedArgs = channelExt->serialize(); //Independizar los argumentos?
+    if (!serializedArgs.isEmpty())
+      extensionArgs.append(ext->id()+"=["+serializedArgs+"];");
+  }
+  if (!extensionArgs.isEmpty())
+  {
+    m_args[EXTENSIONS] = QString("[%1]").arg(extensionArgs);
+  }
+  return m_args.serialize();
+}
+
+//-----------------------------------------------------------------------------
+void Channel::initialize(ModelItem::Arguments args)
+{
+  ModelItem::Arguments extArgs(args[EXTENSIONS]);
+  foreach(ModelItemExtension *ext, m_extensions)
+  {
+    ChannelExtension *channelExt = dynamic_cast<ChannelExtension *>(ext);
+    Q_ASSERT(channelExt);
+    qDebug() << extArgs;
+    ArgumentId argId(channelExt->id(), false);
+    ModelItem::Arguments cArgs(extArgs.value(argId, QString()));
+    channelExt->initialize(this, cArgs);
+  }
+}
+
+//------------------------------------------------------------------------
 QVariant Channel::information(QString name) const
 {
   if (name == NAME)
@@ -317,17 +345,6 @@ QVariant Channel::information(QString name) const
 void Channel::addExtension(ChannelExtension* ext)
 {
   ModelItem::addExtension(ext);
-}
-
-//-----------------------------------------------------------------------------
-void Channel::initialize()
-{
-  foreach(ModelItemExtension *ext, m_extensions)
-  {
-    ChannelExtension *channelExt = dynamic_cast<ChannelExtension *>(ext);
-    Q_ASSERT(channelExt);
-    channelExt->initialize(this);
-  }
 }
 
 

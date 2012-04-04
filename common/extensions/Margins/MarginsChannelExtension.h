@@ -38,11 +38,14 @@ public:
   static const QString BottomMargin;
   static const QString LowerMargin;
 
+  static const ModelItem::ArgumentId MARGINTYPE;
+
   explicit MarginsChannelExtension();
   virtual ~MarginsChannelExtension();
 
   virtual QString id();
-  virtual void initialize(Channel* channel);
+  virtual void initialize(Channel* channel, ModelItem::Arguments args);
+  virtual QString serialize() const;
 
   virtual QStringList dependencies() const
   {return ChannelExtension::dependencies();}
@@ -63,6 +66,7 @@ public:
 private:
   bool      m_useExtentMargins;
   pqFilter *m_borderDetector;
+  ModelItem::Arguments m_args;
 };
 
 #endif // MARGINSCHANNELEXTENSION_H

@@ -38,7 +38,8 @@ public:
 public:
   virtual ~ChannelExtension(){}
 
-  virtual void initialize(Channel *channel) = 0;
+  virtual void initialize(Channel *channel, ModelItem::Arguments args) = 0;
+  virtual QString serialize() const = 0;
 
   virtual Channel *channel() const {return m_channel;}
 

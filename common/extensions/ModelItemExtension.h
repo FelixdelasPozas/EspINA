@@ -20,6 +20,8 @@
 #ifndef MODELITEMEXTENSION_H
 #define MODELITEMEXTENSION_H
 
+#include "common/model/ModelItem.h"
+
 #include <QStringList>
 #include <QVariant>
 
@@ -33,8 +35,9 @@ public:
   virtual QStringList availableInformations()    const = 0;
   virtual QStringList availableRepresentations() const = 0;
   virtual QVariant    information(QString info)  const = 0;
+  virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments()) {}
 //   virtual SegmentationRepresentation *representation(QString rep) = 0;
-  virtual void setArguments(QString args) {}
+//   virtual void setArguments(QString args) {}
 
 protected:
   ModelItemExtension() : m_init(false) {}

@@ -59,6 +59,7 @@ public:
   virtual ~Layout(){}
 
   virtual QAbstractItemModel *model() {return m_model.data();}
+  virtual ModelItem *item(QModelIndex &index) const {return indexPtr(index);}
   virtual void deleteSegmentation(QModelIndexList indices) {};
 
 protected:
@@ -87,6 +88,7 @@ public:
   virtual ~SampleLayout(){}
 
   virtual QAbstractItemModel* model() {return m_sort.data();}
+  virtual ModelItem* item(QModelIndex& index) const;
   virtual void deleteSegmentation(QModelIndexList indices);
 
 private:
@@ -104,6 +106,13 @@ SampleLayout::SampleLayout(QSharedPointer<EspinaModel> model)
   m_sort->setSourceModel(m_proxy.data());
   m_sort->setDynamicSortFilter(true);
 }
+
+//------------------------------------------------------------------------
+ModelItem* SampleLayout::item(QModelIndex& index) const
+{
+  return indexPtr(m_sort->mapToSource(index));
+}
+
 
 //------------------------------------------------------------------------
 void SampleLayout::deleteSegmentation(QModelIndexList indices)
@@ -207,6 +216,7 @@ public:
   virtual ~TaxonomyLayout(){}
 
   virtual QAbstractItemModel* model() {return m_sort.data();}
+  virtual ModelItem* item(QModelIndex& index) const;
   virtual void deleteSegmentation(QModelIndexList indices);
 
 private:
@@ -224,6 +234,12 @@ TaxonomyLayout::TaxonomyLayout(QSharedPointer<EspinaModel> model)
   m_sort->setSourceModel(m_proxy.data());
   m_sort->setDynamicSortFilter(true);
 }
+
+ModelItem* TaxonomyLayout::item(QModelIndex& index) const
+{
+  return indexPtr(m_sort->mapToSource(index));
+}
+
 
 //------------------------------------------------------------------------
 void TaxonomyLayout::deleteSegmentation(QModelIndexList indices)
@@ -393,10 +409,9 @@ void SegmentationExplorer::deleteSegmentation()
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSelection(QModelIndex index)
 {
-  return;
   if (index.isValid())
   {
-    ModelItem *item = indexPtr(index);
+    ModelItem *item = m_layout->item(index);
     if (ModelItem::SEGMENTATION == item->type())
     {
       m_gui->view->blockSignals(true);
@@ -413,7 +428,6 @@ void SegmentationExplorer::updateSelection(QModelIndex index)
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSelection(QItemSelection selected, QItemSelection deselected)
 {
-  return;
   m_layout->model()->blockSignals(true);
   foreach(QModelIndex index, selected.indexes())
     m_layout->model()->setData(index, true, Segmentation::SelectionRole);

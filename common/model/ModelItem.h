@@ -58,6 +58,9 @@ public:
   class ArgumentId : public QString
   {
   public:
+    static const bool KEY = true;
+    static const bool VARIABLE = false;
+  public:
     explicit ArgumentId() : isKey(false) {}
     explicit ArgumentId(QString string, bool key)
     : QString(string), isKey(key) {}
@@ -65,14 +68,6 @@ public:
   };
 
   typedef QString Argument;
-//   class Argument : public QString
-//   {
-//   public:
-//     explicit Argument() : isKey(false) {}
-//     explicit Argument(QString string, bool key=false)
-//     : QString(string), isKey(key) {}
-//     bool isKey;
-//   };
 
   class Arguments : public QMap<ArgumentId, Argument>
   {
@@ -107,6 +102,8 @@ public:
   , INOUT
   };
 
+  static const ArgumentId EXTENSIONS;
+
   ModelItem() : m_vertex(0), m_relations(NULL) {}
   virtual ~ModelItem(){}
 
@@ -129,7 +126,7 @@ public:
   /// It's important to call initialize once the item has stablished
   /// its relations with other items. It's up to the developer to
   /// satisfy this condition
-  virtual void initialize(){};
+  virtual void initialize(Arguments args = Arguments()) {};
 
 protected:
   void addExtension(ModelItemExtension *ext);
