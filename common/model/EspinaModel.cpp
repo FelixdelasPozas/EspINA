@@ -134,7 +134,7 @@ bool EspinaModel::setData ( const QModelIndex& index, const QVariant& value, int
   {
     // Other elements can set their own data
     ModelItem *indexItem = indexPtr(index);
-    result = indexItem->setData(value, role);
+  result = indexItem->setData(value, role);
     if (result)
       emit dataChanged(index,index);
   }

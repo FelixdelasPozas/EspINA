@@ -35,7 +35,6 @@ class SeedGrowSegmentationFilter
 : public Filter
 {
   class SetupWidget;
-
 Q_OBJECT
 public:
   static const ModelItem::ArgumentId CHANNEL;
@@ -51,13 +50,13 @@ public:
 
     virtual ArgumentId argumentId(QString name) const
     {
-      if (name == CHANNEL)
+      if (CHANNEL == name)
 	return CHANNEL;
-      if (name == SEED)
+      if (SEED == name)
 	return SEED;
-      if (name == THRESHOLD)
+      if (THRESHOLD == name)
 	return THRESHOLD;
-      if (name == VOI)
+      if (VOI == name)
 	return VOI;
       return Arguments::argumentId(name);
     }
@@ -124,7 +123,7 @@ public:
   virtual QWidget* createConfigurationWidget();
 
 signals:
-  void modified();
+  virtual void modified();
 
 private:
   SArguments m_args;

@@ -35,7 +35,7 @@ class Sample;
 class Filter;
 class pqPipelineSource;
 
-class Segmentation : public SelectableItem
+class Segmentation : public SelectableItem, public QObject
 {
 public:
   static const ArgumentId FILTER;
@@ -102,15 +102,11 @@ public:
   /// Add a new extension to the segmentation
   /// Extesion won't be available until requirements are satisfied
   void addExtension(SegmentationExtension *ext);
-//   //! Are supposed to be used for sort time 
-//   ISegmentationExtension *extension(ExtensionId extId);
-//   
 //   QStringList availableRepresentations() const;
 //   ISegmentationRepresentation *representation(QString rep);
 
   QStringList availableInformations() const;
   QVariant information(QString info) const;
-
 
 //   void notifyInternalUpdate();
 //   

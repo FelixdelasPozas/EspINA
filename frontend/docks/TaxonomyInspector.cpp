@@ -78,7 +78,8 @@ void TaxonomyInspector::addSameLevelTaxonomy()
   if (!parent.isValid())
     parent = m_gui->treeView->rootIndex();
 
-  QModelIndex tax = m_baseModel->addTaxonomyElement(parent,"Undefined");
+  QModelIndex index = m_sort->mapToSource(parent);
+  QModelIndex tax = m_baseModel->addTaxonomyElement(index,"Undefined");
   m_gui->treeView->setCurrentIndex(tax);
 }
 
@@ -89,7 +90,8 @@ void TaxonomyInspector::addSubTaxonomy()
   if (!currentIndex.isValid())
     currentIndex = m_gui->treeView->rootIndex();
 
-  QModelIndex tax = m_baseModel->addTaxonomyElement(currentIndex,"Undefined");
+  QModelIndex index = m_sort->mapToSource(currentIndex);
+  QModelIndex tax = m_baseModel->addTaxonomyElement(index,"Undefined");
   m_gui->treeView->setCurrentIndex(tax);
 }
 
@@ -99,7 +101,8 @@ void TaxonomyInspector::changeColor()
   QColorDialog colorSelector;
   if( colorSelector.exec() == QDialog::Accepted)
   {
-    m_baseModel->setData(m_gui->treeView->currentIndex(),
+    QModelIndex index = m_sort->mapToSource(m_gui->treeView->currentIndex());
+    m_baseModel->setData(index,
 			 colorSelector.selectedColor(),
 			 Qt::DecorationRole);
   }
@@ -109,5 +112,8 @@ void TaxonomyInspector::changeColor()
 void TaxonomyInspector::removeSelectedTaxonomy()
 {
   if (m_gui->treeView->currentIndex().isValid())
-    m_baseModel->removeTaxonomyElement(m_gui->treeView->currentIndex());
+  {
+    QModelIndex index = m_sort->mapToSource(m_gui->treeView->currentIndex());
+    m_baseModel->removeTaxonomyElement(index);
+  }
 }

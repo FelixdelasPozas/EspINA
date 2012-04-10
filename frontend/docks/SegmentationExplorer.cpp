@@ -59,7 +59,7 @@ public:
   virtual ~Layout(){}
 
   virtual QAbstractItemModel *model() {return m_model.data();}
-  virtual ModelItem *item(QModelIndex &index) const {return indexPtr(index);}
+  virtual ModelItem *item(const QModelIndex &index) const {return indexPtr(index);}
   virtual void deleteSegmentation(QModelIndexList indices) {};
 
 protected:
@@ -88,7 +88,7 @@ public:
   virtual ~SampleLayout(){}
 
   virtual QAbstractItemModel* model() {return m_sort.data();}
-  virtual ModelItem* item(QModelIndex& index) const;
+  virtual ModelItem* item(const QModelIndex& index) const;
   virtual void deleteSegmentation(QModelIndexList indices);
 
 private:
@@ -108,7 +108,7 @@ SampleLayout::SampleLayout(QSharedPointer<EspinaModel> model)
 }
 
 //------------------------------------------------------------------------
-ModelItem* SampleLayout::item(QModelIndex& index) const
+ModelItem* SampleLayout::item(const QModelIndex& index) const
 {
   return indexPtr(m_sort->mapToSource(index));
 }
@@ -216,7 +216,7 @@ public:
   virtual ~TaxonomyLayout(){}
 
   virtual QAbstractItemModel* model() {return m_sort.data();}
-  virtual ModelItem* item(QModelIndex& index) const;
+  virtual ModelItem* item(const QModelIndex& index) const;
   virtual void deleteSegmentation(QModelIndexList indices);
 
 private:
@@ -235,7 +235,7 @@ TaxonomyLayout::TaxonomyLayout(QSharedPointer<EspinaModel> model)
   m_sort->setDynamicSortFilter(true);
 }
 
-ModelItem* TaxonomyLayout::item(QModelIndex& index) const
+ModelItem* TaxonomyLayout::item(const QModelIndex& index) const
 {
   return indexPtr(m_sort->mapToSource(index));
 }
@@ -385,7 +385,7 @@ void SegmentationExplorer::changeLayout(int index)
 //------------------------------------------------------------------------
 void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
 {
-  ModelItem *item = indexPtr(index);
+  ModelItem *item = m_layout->item(index);
 
   if (ModelItem::SEGMENTATION != item->type())
     return;

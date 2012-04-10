@@ -269,7 +269,7 @@ SliceView::SliceView(vtkPVSliceView::VIEW_PLANE plane, QWidget* parent)
 
   m_preferences = new SliceViewPreferences(m_plane);
 
-  qDebug() << this << ": Created";
+//   qDebug() << this << ": Created";
 }
 
 //-----------------------------------------------------------------------------
@@ -359,7 +359,7 @@ void SliceView::buildControls()
 SliceView::~SliceView()
 {
   disconnect();
-  qDebug() << this << ": Destroyed";
+//   qDebug() << this << ": Destroyed";
 }
 
 //-----------------------------------------------------------------------------

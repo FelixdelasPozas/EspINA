@@ -37,6 +37,7 @@ public:
 
   virtual pqData preview() = 0;
   virtual QWidget *createConfigurationWidget() = 0;
+
 };
 
 #endif // FILTER_H
