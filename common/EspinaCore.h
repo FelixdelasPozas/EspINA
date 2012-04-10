@@ -25,7 +25,8 @@
 
 #include <QSharedPointer>
 #include <QUndoStack>
-#include "gui/ViewManager.h"
+#include "common/gui/ViewManager.h"
+#include "common/settings/GeneralSettings.h"
 
 
 class EspinaCore
@@ -45,6 +46,8 @@ public:
 
   void setSample(Sample *sample) {m_sample = sample; emit sampleSelected(sample);}
   Sample *sample(){return m_sample;}
+
+  GeneralSettings &settings(){return m_settings;}
 
   QSharedPointer<ViewManager> viewManger() {return m_viewManager;}
 
@@ -70,6 +73,7 @@ private:
   QSharedPointer<EspinaModel> m_model;
   QSharedPointer<QUndoStack>  m_undoStack;
   QSharedPointer<ViewManager> m_viewManager;
+  GeneralSettings             m_settings;
 };
 
 #endif // ESPINACORE_H

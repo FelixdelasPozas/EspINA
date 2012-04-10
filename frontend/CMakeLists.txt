@@ -20,6 +20,7 @@ qt4_add_resources(RCC_BUILT_SOURCES
 # Create header's MOC files
 qt4_wrap_cpp (MOC_BUILT_SOURCES
   EspinaWindow.h
+  PreferencesDialog.h
   docks/DataView/DataView.h
   docks/DataView/QueryView.h
   docks/DataView/InformationProxy.h
@@ -37,6 +38,8 @@ qt4_wrap_ui (UI_BUILT_SOURCES
   docks/DataView/QueryView.ui
   docks/SegmentationExplorer.ui
   docks/TaxonomyInspector.ui
+  GeneralPreferences.ui
+  PreferencesDialog.ui
   )
 
 set (DOCKS_SOURCES
@@ -60,6 +63,7 @@ set (VIEW_SOURCES
 
 set (LOCAL_SOURCES
   EspinaWindow.cpp
+  PreferencesDialog.cpp
   )
 
 set (Espina_SOURCE_FILES

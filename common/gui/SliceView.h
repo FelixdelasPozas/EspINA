@@ -68,7 +68,7 @@ private:
   SliceViewPreferences *m_pref;
 };
 
-class SliceViewPreferences : public IPreferencePanel
+class SliceViewPreferences : public ISettingsPanel
 {
 public:
   explicit SliceViewPreferences(vtkPVSliceView::VIEW_PLANE plane);
@@ -239,6 +239,7 @@ private:
 
   QMap<Channel *, vtkSMRepresentationProxy *> m_channels;
   QMap<Segmentation *, SegRep> m_segmentations;
+  QList<pq3DWidget *>          m_widgets;
   vtkSMRepresentationProxy *prevRep;
   Filter *m_preview;
 };

@@ -1012,6 +1012,7 @@ void SliceView::addWidget(pq3DWidget* widget)
   widget->setView(m_view);
   widget->setWidgetVisible(true);
   widget->select();
+  m_widgets << widget;
 }
 
 //-----------------------------------------------------------------------------

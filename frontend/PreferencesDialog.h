@@ -21,66 +21,46 @@
 #define PREFERENCESDIALOG_H
 
 #include <QDialog>
-#include "IPreferencePanel.h"
+
+#include <common/gui/IPreferencePanel.h>
 
 #include "ui_GeneralPreferences.h"
-#include "ui_ViewPreferences.h"
-#include "ui_preferencesDialog.h"
-/*
-class IPreferencePanel : public QWidget
-{
-public:
-  virtual ~IPreferencePanel(){}
-  
-  virtual const QString shortDescription() = 0;
-  virtual const QString longDescription() = 0;
-  virtual const QIcon icon() = 0;  
-  
-  virtual QWidget *widget() = 0;
-};*/
+#include "ui_PreferencesDialog.h"
 
-class GeneralPreferences : public IPreferencePanel, Ui::GeneralPreferences
+class GeneralSettingsPanel : public ISettingsPanel, Ui::GeneralPreferences
 {
 public:
-  GeneralPreferences();
-  
+  GeneralSettingsPanel();
+
   virtual const QString shortDescription() {return "General";}
   virtual const QString longDescription() {return "General";}
   virtual const QIcon icon() {return QIcon(":/espina/editor.ico");}
-  
-  virtual QWidget* widget();
-};
 
-class ViewPreferences : public IPreferencePanel, Ui::ViewPreferences
-{
-public:
-  ViewPreferences();
-  
-  virtual const QString shortDescription() {return "View";}
-  virtual const QString longDescription() {return "View";}
-  virtual const QIcon icon() {return QIcon(":/espina/show_all.svg");}
-  
-  virtual void addPanel(IPreferencePanel* panel);
+  virtual void acceptChanges();
+  virtual void rejectChanges();
+
   virtual QWidget* widget();
-private:
-  QList<IPreferencePanel *> panels;
 };
 
 class PreferencesDialog : public QDialog, Ui::PreferencesDialog
 {
   Q_OBJECT
-  
 public:
   explicit PreferencesDialog(QWidget* parent = 0, Qt::WindowFlags f = 0);
-  
-  void addPanel(IPreferencePanel* panel);
-  IPreferencePanel * panel(const QString &shortDesc);
-  
+
+  virtual void accept();
+  virtual void reject();
+
+  void addPanel(ISettingsPanel* panel);
+  ISettingsPanel * panel(const QString &shortDesc);
+
+
 public slots:
   void changePreferencePanel(int panel);
-  
+
 private:
-  QList<IPreferencePanel *> m_panels;
+  ISettingsPanel         *m_activePanel;
+  QList<ISettingsPanel *> m_panels;
 };
 
 #endif // PREFERENCESDIALOG_H

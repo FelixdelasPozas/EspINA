@@ -63,6 +63,7 @@ public slots:
 
 protected slots:
   void updateStatus(QString msg);
+  void showPreferencesDialog();
 
 protected:
   void createActivityMenu();

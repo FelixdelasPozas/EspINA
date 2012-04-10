@@ -77,6 +77,7 @@
 #include <pqServer.h>
 #include <vtkSMProxyManager.h>
 #include <vtkSMReaderFactory.h>
+#include "PreferencesDialog.h"
 
 #undef DEBUG
 
@@ -95,6 +96,7 @@ EspinaWindow::EspinaWindow()
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model.data()));
 #endif
 
+  /*** FILE MENU ***/
   QMenu *fileMenu = new QMenu("File");
   //   pqParaViewMenuBuilders::buildFileMenu(*fileMenu);
   QIcon openIcon = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
@@ -115,6 +117,7 @@ EspinaWindow::EspinaWindow()
   fileMenu->addAction(saveAnalysis);
   menuBar()->addMenu(fileMenu);
 
+  /*** EDIT MENU ***/
   QMenu *editMenu = new QMenu("Edit");
   QAction *undo = m_undoStack->createUndoAction(editMenu);
   undo->setShortcut(QString("Ctrl+Z"));
@@ -126,15 +129,25 @@ EspinaWindow::EspinaWindow()
   editMenu->addAction(redo);
   menuBar()->addMenu(editMenu);
 
+  /*** TOOLS MENU ***/
   QMenu *toolsMenu = new QMenu("Tools");
   //NOTE: This method causes maxViewWindowSizeSet connection fail warning
   pqParaViewMenuBuilders::buildToolsMenu(*toolsMenu);
   menuBar()->addMenu(toolsMenu);
 
+  /*** VIEW MENU ***/
   m_viewMenu = new QMenu(tr("View"));
   menuBar()->addMenu(m_viewMenu);
   createActivityMenu();
   createLODMenu();
+
+  /*** Settings MENU ***/
+  QMenu *settings = new QMenu(tr("&Settings"));
+  QAction *preferences = new QAction(tr("&Preferences"), this);
+  connect(preferences, SIGNAL(triggered(bool)),
+	  this, SLOT(showPreferencesDialog()));
+  settings->addAction(preferences);
+  menuBar()->addMenu(settings);
 
 
   pqServerManagerObserver *server = pqApplicationCore::instance()->getServerManagerObserver();
@@ -535,6 +548,16 @@ void EspinaWindow::updateStatus(QString msg)
     statusBar()->clearMessage();
   else
     statusBar()->showMessage(msg);
+}
+
+//------------------------------------------------------------------------
+void EspinaWindow::showPreferencesDialog()
+{
+  PreferencesDialog dialog;
+
+//   dialog.addPanel(m_view->preferences());
+
+  dialog.exec();
 }
 
 
