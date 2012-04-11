@@ -43,8 +43,9 @@ QString arg6(const T val[6])
 
 
 /// Base class for every item in EspinaModel
-class ModelItem
+class ModelItem : public QObject
 {
+  Q_OBJECT
 public:
   struct Relation
   {
@@ -127,6 +128,12 @@ public:
   /// its relations with other items. It's up to the developer to
   /// satisfy this condition
   virtual void initialize(Arguments args = Arguments()) {};
+
+public slots:
+  virtual void notifyModification() {emit modified(this);}
+
+signals:
+  void modified(ModelItem *);
 
 protected:
   void addExtension(ModelItemExtension *ext);

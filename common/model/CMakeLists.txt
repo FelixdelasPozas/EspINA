@@ -4,6 +4,8 @@ set (MOC_SOURCES
   ${MOC_SOURCES}
   model/EspinaModel.h
   model/ModelTest.h
+  model/ModelItem.h
+  model/Segmentation.h
   PARENT_SCOPE
   )
 

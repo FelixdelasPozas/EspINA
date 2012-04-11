@@ -46,6 +46,8 @@ Segmentation::Segmentation(Filter* filter, int output, pqData data)
   m_args[FILTER] = m_filter->id();
   m_args.setOutput(output);
   m_args[TAXONOMY] = "Unknown";
+  connect(filter,SIGNAL(modified(ModelItem *)),
+	  this, SLOT(notifyModification()));
 }
 
 //------------------------------------------------------------------------
@@ -247,7 +249,7 @@ QVariant Segmentation::information(QString info) const
   return m_informations[info]->information(info);
 }
 
-// 
+//
 // //------------------------------------------------------------------------
 // void Segmentation::notifyInternalUpdate()
 // {

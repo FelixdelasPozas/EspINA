@@ -72,6 +72,7 @@ SeedGrowSegmentationFilter::SArguments::SArguments(const ModelItem::Arguments ar
 
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(pqData input, int seed[3], int threshold, int VOI[6])
+: m_seg(NULL)
 {
   m_args.setInput(input.id());
   m_args.setSeed(seed);
@@ -88,6 +89,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(pqData input, int seed[3]
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ModelItem::Arguments args)
 : m_args(args)
+, m_seg(NULL)
 {
 //   qDebug() << args;
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
@@ -160,7 +162,10 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ModelItem::Arguments args
   }
 
   Q_ASSERT(segFilter);
-  m_seg = EspinaFactory::instance()->createSegmentation(this, 0, segFilter->data(0));
+  if (!m_seg)
+    m_seg = EspinaFactory::instance()->createSegmentation(this, 0, segFilter->data(0));
+  else
+    setSegmentationData(m_seg, segFilter->data(0));
 }
 
 //-----------------------------------------------------------------------------
@@ -252,7 +257,10 @@ void SeedGrowSegmentationFilter::run()
 
   // Segmentation region matches
 
-  m_seg = EspinaFactory::instance()->createSegmentation(this, 0, segFilter->data(0));
+  if (!m_seg)
+    m_seg = EspinaFactory::instance()->createSegmentation(this, 0, segFilter->data(0));
+  else
+    setSegmentationData(m_seg, segFilter->data(0));
 }
 
 
@@ -267,7 +275,7 @@ void SeedGrowSegmentationFilter::setInput(pqData data)
 //   input->SetProxy(0,data.pipelineSource()->getProxy());
 //   extract->pipelineSource()->getProxy()->UpdateVTKObjects();
 //   extract->pipelineSource()->updatePipeline();
-  emit modified();
+  emit modified(this);
 }
 
 //-----------------------------------------------------------------------------
@@ -285,7 +293,7 @@ void SeedGrowSegmentationFilter::setThreshold(int th)
   vtkSMPropertyHelper(grow->pipelineSource()->getProxy(),"Threshold").Set(&th, 1);
   grow->pipelineSource()->getProxy()->UpdateVTKObjects();
 //   grow->pipelineSource()->updatePipeline();
-  emit modified();
+  emit modified(this);
 }
 
 //-----------------------------------------------------------------------------
@@ -296,7 +304,7 @@ void SeedGrowSegmentationFilter::setSeed(int seed[3])
   vtkSMPropertyHelper(grow->pipelineSource()->getProxy(),"Seed").Set(seed,3);
   grow->pipelineSource()->getProxy()->UpdateVTKObjects();
 //   grow->pipelineSource()->updatePipeline();
-  emit modified();
+  emit modified(this);
 }
 
 

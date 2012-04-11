@@ -35,8 +35,9 @@ class Sample;
 class Filter;
 class pqPipelineSource;
 
-class Segmentation : public SelectableItem, public QObject
+class Segmentation : public SelectableItem
 {
+  Q_OBJECT
 public:
   static const ArgumentId FILTER;
   static const ArgumentId NUMBER;
@@ -108,11 +109,10 @@ public:
   QStringList availableInformations() const;
   QVariant information(QString info) const;
 
-//   void notifyInternalUpdate();
-//   
-// signals:
+// public slots:
+//   virtual void notifyModification();
 //   void updated(Segmentation *);
-  
+
 private:
   Filter             *m_filter;
   pqData              m_data;
@@ -122,6 +122,8 @@ private:
   bool m_isSelected;
   bool m_isVisible;
   mutable double m_bounds[6];
+
+  friend class Filter;
 };
 
 #endif // PRODUCTS_H

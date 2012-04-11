@@ -123,13 +123,14 @@ void VolumeView::addSegmentationRepresentation(Segmentation *seg)
   if (!dr)
     return;
 
-  SegRep rep;
-  rep.pipeline = qobject_cast<pqPipelineRepresentation *>(dr);
-  Q_ASSERT(rep.pipeline);
-  rep.pipeline->setRepresentation("Volume");
-//   qDebug() << "Add Seg:" << seg << "Rep:" << rep;
+  pqPipelineRepresentation *repProxy = qobject_cast<pqPipelineRepresentation *>(dr);
+  Q_ASSERT(repProxy);
+  repProxy->setRepresentation("Volume");
 
-  m_segmentations[seg] = rep;
+  m_segmentations[seg].outport = oport;
+  m_segmentations[seg].repProxy = repProxy;
+
+  updateSegmentationRepresentation(seg);
 }
 
 //-----------------------------------------------------------------------------
@@ -138,7 +139,7 @@ void VolumeView::removeSegmentationRepresentation(Segmentation* seg)
   Q_ASSERT(m_segmentations.contains(seg));
   SegRep rep = m_segmentations[seg];
 //   qDebug() << "Remove Seg:" << seg->number() << "Rep:" << rep;
-  rep.pipeline->setVisible(false);
+  rep.repProxy->setVisible(false);
 //   rep->deleteLater();
   m_segmentations.remove(seg);
 }
@@ -148,6 +149,12 @@ bool VolumeView::updateSegmentationRepresentation(Segmentation* seg)
 {
   Q_ASSERT(m_segmentations.contains(seg));
   SegRep &rep = m_segmentations[seg];
+  if (seg->outputPort() != rep.outport)
+  {
+    removeSegmentationRepresentation(seg);
+    addSegmentationRepresentation(seg);
+    return true;
+  }
   if (seg->selected() != rep.selected
     || seg->visible() != rep.visible
     || m_colorEngine->color(seg) != rep.color)
@@ -156,12 +163,12 @@ bool VolumeView::updateSegmentationRepresentation(Segmentation* seg)
     rep.visible  = seg->visible();
     rep.color = m_colorEngine->color(seg);
     //   repProxy->PrintSelf(std::cout,vtkIndent(0));
-    vtkSMProperty *p = rep.pipeline->getProxy()->GetProperty("LookupTable");
+    vtkSMProperty *p = rep.repProxy->getProxy()->GetProperty("LookupTable");
     vtkSMProxyProperty *lut = vtkSMProxyProperty::SafeDownCast(p);
     if (lut)
       lut->SetProxy(0, m_colorEngine->lut(seg));
-    rep.pipeline->setVisible(rep.visible);
-    rep.pipeline->getProxy()->UpdateVTKObjects();
+    rep.repProxy->setVisible(rep.visible);
+    rep.repProxy->getProxy()->UpdateVTKObjects();
     return true;
   }
   return false;

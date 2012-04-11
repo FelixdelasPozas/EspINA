@@ -875,6 +875,7 @@ void SliceView::addSegmentationRepresentation(Segmentation* seg)
   vtkSMRepresentationProxy* reprProxy = vtkSMRepresentationProxy::SafeDownCast(
     pxm->NewProxy("representations", "SegmentationRepresentation"));
   Q_ASSERT(reprProxy);
+  m_segmentations[seg].outport  = oport;
   m_segmentations[seg].proxy    = reprProxy;
   m_segmentations[seg].selected = !seg->selected();
   m_segmentations[seg].visible  = seg->visible();
@@ -960,6 +961,14 @@ bool SliceView::updateSegmentationRepresentation(Segmentation* seg)
 {
   Q_ASSERT(m_segmentations.contains(seg));
   SegRep &rep = m_segmentations[seg];
+  if (seg->outputPort() != rep.outport)
+  {
+    //remove representation using previous proxy
+    removeSegmentationRepresentation(seg);
+    //add representation using new proxy
+    addSegmentationRepresentation(seg);
+    return true;
+  }
   if (seg->selected() != rep.selected
     || seg->visible() != rep.visible
     || m_colorEngine->color(seg) != rep.color)

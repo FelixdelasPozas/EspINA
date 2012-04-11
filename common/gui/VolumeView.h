@@ -105,7 +105,8 @@ protected slots:
 private:
   struct SegRep
   {
-    pqPipelineRepresentation *pipeline;
+    pqOutputPort *outport;
+    pqPipelineRepresentation *repProxy;
     bool visible;
     bool selected;
     QColor color;

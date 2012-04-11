@@ -210,6 +210,7 @@ protected:
 private:
   struct SegRep
   {
+    pqOutputPort *outport;
     vtkSMRepresentationProxy *proxy;
     bool visible;
     bool selected;

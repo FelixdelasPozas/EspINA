@@ -127,6 +127,9 @@ public:
   void serializeRelations(std::ostream& stream, RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
   void loadSerialization (std::istream &stream, RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
 
+private slots:
+  void itemModified(ModelItem *item);
+
 private:
   void addTaxonomy(TaxonomyNode *tax);
   QModelIndex index(ModelItem *item) const;

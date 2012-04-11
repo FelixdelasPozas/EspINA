@@ -122,8 +122,6 @@ public:
   virtual Segmentation *product(int index) const;
   virtual QWidget* createConfigurationWidget();
 
-signals:
-  virtual void modified();
 
 private:
   SArguments m_args;

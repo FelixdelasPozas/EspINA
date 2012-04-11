@@ -421,6 +421,8 @@ void EspinaModel::addSegmentation(Segmentation *seg)
     m_lastId = qMax(m_lastId, seg->number());
   m_segmentations << seg;
   m_relations->addItem(seg);
+  connect(seg, SIGNAL(modified(ModelItem*)),
+	  this, SLOT(itemModified(ModelItem*)));
 //   seg->initialize();
   endInsertRows();
 }
@@ -441,6 +443,8 @@ void EspinaModel::addSegmentation(QList<Segmentation *> segs)
       m_lastId = qMax(m_lastId, seg->number());
     m_segmentations << seg;
     m_relations->addItem(seg);
+    connect(seg, SIGNAL(modified(ModelItem*)),
+	    this, SLOT(itemModified(ModelItem*)));
 //     seg->initialize();
   }
   endInsertRows();
@@ -726,6 +730,13 @@ void EspinaModel::addTaxonomy(Taxonomy* tax)
     addTaxonomy(tax->root());
   else
     setTaxonomy(tax);
+}
+
+//------------------------------------------------------------------------
+void EspinaModel::itemModified(ModelItem* item)
+{
+  QModelIndex itemIndex = index(item);
+  emit dataChanged(itemIndex, itemIndex);
 }
 
 //------------------------------------------------------------------------
