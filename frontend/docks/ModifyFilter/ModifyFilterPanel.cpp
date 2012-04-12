@@ -41,6 +41,9 @@ ModifyFilterPanel::~ModifyFilterPanel()
 //----------------------------------------------------------------------------
 void ModifyFilterPanel::showOriginFilter(QModelIndex index)
 {
+  if (!widget() || !widget()->isVisible())
+    return;
+
   if (index.parent() == m_model->segmentationRoot())
   {
     ModelItem *item = indexPtr(index);
@@ -48,11 +51,15 @@ void ModifyFilterPanel::showOriginFilter(QModelIndex index)
     if (seg != m_currentSeg && seg->selected())
     {
       ModelItem::Vector filters = item->relatedItems(ModelItem::IN, "CreateSegmentation");
-      Q_ASSERT(filters.size() == 1);
-      Filter *filter = dynamic_cast<Filter *>(filters.first());
-      Q_ASSERT(filter);
-      setWidget(filter->createConfigurationWidget());
-      m_currentSeg = seg;
+      if (filters.size() > 0)
+      {
+	Filter *filter = dynamic_cast<Filter *>(filters.first());
+	Q_ASSERT(filter);
+	setWidget(filter->createConfigurationWidget());
+	m_currentSeg = seg;
+      }else{
+	setWidget(NULL);
+      }
     }
   }
 }
