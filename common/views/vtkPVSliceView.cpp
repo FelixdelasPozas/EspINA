@@ -647,6 +647,7 @@ void vtkPVSliceView::ResetCameraClippingRange()
 //   SetCenter ( Center );
 
   updateRuler();
+  updateThumbnail();
 }
 
 //----------------------------------------------------------------------------
@@ -865,14 +866,14 @@ void vtkPVSliceView::updateRuler()
   coords->SetCoordinateSystemToNormalizedViewport();
 
   int c = SlicingPlane==SAGITTAL?2:0;
-  coords->SetValue ( 0,0 );
+  coords->SetValue(0, 0); //Viewport Lower Left Corner
   value = coords->GetComputedWorldValue ( GetRenderer() );
   left = value[c];
-  //       qDebug() << "UR" << value[0] << value[1] << value[2];
-  coords->SetValue ( 1,0 );
+//   qDebug() << "LL" << value[0] << value[1] << value[2];
+  coords->SetValue(1, 0); // Viewport Lower Right Corner
   value = coords->GetComputedWorldValue ( GetRenderer() );
   right = value[c];
-  //       qDebug() << "LL" << value[0] << value[1] << value[2];
+//   qDebug() << "LR" << value[0] << value[1] << value[2];
 
   const double RULERWIDTHRATIO = fabs(Ruler->GetPoint1()[0] - Ruler->GetPoint2()[0]);
   double maxRange = fabs ( right-left ) *RULERWIDTHRATIO;
@@ -890,4 +891,45 @@ void vtkPVSliceView::updateRuler()
     maxRange = 0;
   Ruler->SetRange ( 0, maxRange );
   Ruler->SetTitle ( units[unit].c_str() );
+}
+
+//----------------------------------------------------------------------------
+void vtkPVSliceView::updateThumbnail()
+{
+  double *value;
+  // Position of world margins acording to the display
+  // Depending on the plane being shown can refer to different
+  // bound components
+  double left, right, upper, lower;
+  vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
+
+  coords->SetViewport(GetRenderer());
+  coords->SetCoordinateSystemToNormalizedViewport();
+
+  int h = SlicingPlane==SAGITTAL?2:0;
+  int v = SlicingPlane==CORONAL?2:1;
+  coords->SetValue(0, 0); // Viewport Lower Left Corner
+  value = coords->GetComputedWorldValue ( GetRenderer() );
+  lower = value[v]; // Lower Margin in World Coordinates
+  left  = value[h]; // Left Margin in World Coordinates
+//   qDebug() << "LL" << value[0] << value[1] << value[2];
+  coords->SetValue(1, 1);
+  value = coords->GetComputedWorldValue(GetRenderer());
+  upper = value[v]; // Upper Margin in World Coordinates
+  right = value[h]; // Right Margin in Worl Coordinates
+//   qDebug() << "UR" << value[0] << value[1] << value[2];
+
+  bool leftHidden  = LastComputedBounds[2*h] < left;
+  bool rightHidden = LastComputedBounds[2*h+1] > right;
+  bool upperHidden = LastComputedBounds[2*v] < upper;
+  bool lowerHidden = LastComputedBounds[2*v+1] > lower;
+  if (leftHidden || rightHidden || upperHidden || lowerHidden)
+    OverviewRenderer->DrawOn();
+  else
+    OverviewRenderer->DrawOff();
+}
+
+//----------------------------------------------------------------------------
+void vtkPVSliceView::updateView()
+{
 }

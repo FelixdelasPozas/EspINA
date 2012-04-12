@@ -142,6 +142,8 @@ private:
     void operator= ( const vtkPVSliceView& ); // Not implemented
 
     void updateRuler();
+    void updateThumbnail();
+    void updateView();
 
     EspinaViewState  *State;
     double           Slice;
@@ -158,7 +160,7 @@ private:
     vtkSmartPointer<vtkAxisActor2D> Ruler;
     bool             ShowRuler;
     double           RulerColor[3];
-    double	   RulerSize[2];
+    double	     RulerSize[2];
 
     vtkSmartPointer<vtkPolyData>    HCrossLineData, VCrossLineData/*, BorderData*/;
     vtkSmartPointer<vtkActor>       HCrossLine, VCrossLine/*, Border*/;

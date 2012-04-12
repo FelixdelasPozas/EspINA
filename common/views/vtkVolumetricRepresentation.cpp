@@ -67,7 +67,7 @@ vtkVolumetricRepresentation::vtkVolumetricRepresentation()
   volProperty->SetScalarOpacity(OpacityFunction);
 
   ColorFunction = vtkColorTransferFunction::New();
-  ColorFunction->AddRGBSegment(0.0,0.0,0.0,0.0,255.0,1.0,0.0,0.0);
+  ColorFunction->AddRGBSegment(0.0,0.0,0.0,0.0,1.0,1.0,0.0,0.0);
   volProperty->SetColor(ColorFunction);
 
   volProperty->ShadeOn();
@@ -253,7 +253,7 @@ void vtkVolumetricRepresentation::SetColor(double r, double g, double b)
   Color[1] = g;
   Color[2] = b;
 
-  ColorFunction->AddRGBPoint(255.0, r, g, b);
+  ColorFunction->AddRGBPoint(1.0, r, g, b);
 }
 
 //----------------------------------------------------------------------------
