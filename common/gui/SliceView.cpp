@@ -881,7 +881,7 @@ void SliceView::addSegmentationRepresentation(Segmentation* seg)
   m_segmentations[seg].visible  = seg->visible();
   m_segmentations[seg].color  = m_colorEngine->color(seg);
 
-    // Set the reprProxy's input.
+  // Set the reprProxy's input.
   pqSMAdaptor::setInputProperty(reprProxy->GetProperty("Input"),
 				source->getProxy(), oport->getPortNumber());
   updateSegmentationRepresentation(seg);
@@ -977,10 +977,7 @@ bool SliceView::updateSegmentationRepresentation(Segmentation* seg)
     rep.visible  = seg->visible();
     rep.color = m_colorEngine->color(seg);
     //   repProxy->PrintSelf(std::cout,vtkIndent(0));
-    double color[3];
-    color[0] =  rep.color.redF();
-    color[1] =  rep.color.greenF();
-    color[2] =  rep.color.blueF();
+    double color[3] = {rep.color.redF(), rep.color.greenF(), rep.color.blueF()};
     vtkSMPropertyHelper(rep.proxy, "RGBColor").Set(color,3);
     vtkSMPropertyHelper(rep.proxy, "Visibility").Set(rep.visible);
     double opacity = rep.selected?1.0:0.7;

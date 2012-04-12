@@ -27,6 +27,7 @@
 #include <QAbstractItemView>
 #include <QPushButton>
 
+class vtkSMRepresentationProxy;
 class ColorEngine;
 class pqPipelineRepresentation;
 class pq3DWidget;
@@ -35,7 +36,7 @@ class Sample;
 class Segmentation;
 //Forward declaration
 class SliceBlender;
-class pqRenderView;
+class pqVolumeView;
 class QWidget;
 class QToolButton;
 class QVBoxLayout;
@@ -106,13 +107,13 @@ private:
   struct SegRep
   {
     pqOutputPort *outport;
-    pqPipelineRepresentation *repProxy;
+    vtkSMRepresentationProxy *proxy;
     bool visible;
     bool selected;
     QColor color;
   };
 
-  pqRenderView *m_view;
+  pqVolumeView *m_view;
 
   // GUI
   QVBoxLayout *m_mainLayout;

@@ -23,6 +23,7 @@
 
 // EspINA
 #include <common/model/Segmentation.h>
+#include <common/views/pqVolumeView.h>
 
 // GUI
 #include <QFileDialog>
@@ -34,7 +35,6 @@
 #include <pqActiveObjects.h>
 #include <pqApplicationCore.h>
 #include <pqObjectBuilder.h>
-#include "pqRenderView.h"
 #include <pqServer.h>
 #include <pqServerManagerObserver.h>
 #include <pqViewExporterManager.h>
@@ -51,9 +51,13 @@
 #include <pq3DWidget.h>
 #include <pqOutputPort.h>
 #include "ColorEngine.h"
-#include </home/jpena/src/ParaView-3.12.0/Qt/Core/pqPipelineRepresentation.h>
 #include <vtkSMPropertyHelper.h>
 #include <vtkSMProxyProperty.h>
+#include <pqRenderView.h>
+#include <pqPipelineSource.h>
+#include <vtkSMProxyManager.h>
+#include <vtkSMRepresentationProxy.h>
+#include <pqSMAdaptor.h>
 
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(QWidget* parent)
@@ -117,30 +121,45 @@ void VolumeView::buildControls()
 //-----------------------------------------------------------------------------
 void VolumeView::addSegmentationRepresentation(Segmentation *seg)
 {
-  pqOutputPort *oport = seg->outputPort();
-  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-  pqDataRepresentation *dr = dp->setRepresentationVisibility(oport, m_view, true);
-  if (!dr)
-    return;
+  pqOutputPort      *oport = seg->outputPort();
+  pqPipelineSource *source = oport->getSource();
+  vtkSMProxyManager   *pxm = vtkSMProxyManager::GetProxyManager();
 
-  pqPipelineRepresentation *repProxy = qobject_cast<pqPipelineRepresentation *>(dr);
+  vtkSMRepresentationProxy* repProxy = vtkSMRepresentationProxy::SafeDownCast(
+    pxm->NewProxy("representations", "VolumetricRepresentation"));
   Q_ASSERT(repProxy);
-  repProxy->setRepresentation("Volume");
-
   m_segmentations[seg].outport = oport;
-  m_segmentations[seg].repProxy = repProxy;
+  m_segmentations[seg].proxy = repProxy;
+  m_segmentations[seg].selected = !seg->selected();
+  m_segmentations[seg].visible  = seg->visible();
+  m_segmentations[seg].color  = m_colorEngine->color(seg);
+
+  // Set the reprProxy's input.
+  pqSMAdaptor::setInputProperty(repProxy->GetProperty("Input"),
+				source->getProxy(), oport->getPortNumber());
 
   updateSegmentationRepresentation(seg);
+
+  vtkSMProxy* viewModuleProxy = m_view->getProxy();
+  // Add the reprProxy to render module.
+  pqSMAdaptor::addProxyProperty(
+    viewModuleProxy->GetProperty("Representations"), repProxy);
+  viewModuleProxy->UpdateVTKObjects();
 }
 
 //-----------------------------------------------------------------------------
 void VolumeView::removeSegmentationRepresentation(Segmentation* seg)
 {
+  vtkSMProxy* viewModuleProxy = m_view->getProxy();
   Q_ASSERT(m_segmentations.contains(seg));
   SegRep rep = m_segmentations[seg];
-//   qDebug() << "Remove Seg:" << seg->number() << "Rep:" << rep;
-  rep.repProxy->setVisible(false);
-//   rep->deleteLater();
+  // Remove the reprProxy to render module.
+  pqSMAdaptor::removeProxyProperty(
+    viewModuleProxy->GetProperty("Representations"), rep.proxy);
+  viewModuleProxy->UpdateVTKObjects();
+  m_view->getProxy()->UpdateVTKObjects();
+
+  rep.proxy->Delete();
   m_segmentations.remove(seg);
 }
 
@@ -163,12 +182,10 @@ bool VolumeView::updateSegmentationRepresentation(Segmentation* seg)
     rep.visible  = seg->visible();
     rep.color = m_colorEngine->color(seg);
     //   repProxy->PrintSelf(std::cout,vtkIndent(0));
-    vtkSMProperty *p = rep.repProxy->getProxy()->GetProperty("LookupTable");
-    vtkSMProxyProperty *lut = vtkSMProxyProperty::SafeDownCast(p);
-    if (lut)
-      lut->SetProxy(0, m_colorEngine->lut(seg));
-    rep.repProxy->setVisible(rep.visible);
-    rep.repProxy->getProxy()->UpdateVTKObjects();
+    double rgb[3] = {rep.color.redF(), rep.color.greenF(), rep.color.blueF()};
+    vtkSMPropertyHelper(rep.proxy, "Color").Set(rgb, 3);
+    vtkSMPropertyHelper(rep.proxy, "Visibility").Set(rep.visible);
+    rep.proxy->UpdateVTKObjects();
     return true;
   }
   return false;
@@ -178,13 +195,13 @@ bool VolumeView::updateSegmentationRepresentation(Segmentation* seg)
 //-----------------------------------------------------------------------------
 void VolumeView::addRepresentation(pqOutputPort* oport)
 {
-  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-  pqDataRepresentation *dr = dp->setRepresentationVisibility(oport, m_view, true);
-  if (!dr)
-    return;
-  pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
-  Q_ASSERT(rep);
-  rep->setRepresentation("Volume");
+//   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
+//   pqDataRepresentation *dr = dp->setRepresentationVisibility(oport, m_view, true);
+//   if (!dr)
+//     return;
+//   pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
+//   Q_ASSERT(rep);
+//   rep->setRepresentation("Volume");
 }
 
 //-----------------------------------------------------------------------------
@@ -200,18 +217,17 @@ void VolumeView::addWidget(pq3DWidget* widget)
 //-----------------------------------------------------------------------------
 void VolumeView::onConnect()
 {
-    qDebug() << this << ": Connecting to a new server";
-
+  qDebug() << this << ": Connecting to a new server";
   pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
   pqServer    *server = pqActiveObjects::instance().activeServer();
 
-  m_view = qobject_cast<pqRenderView*>(ob->createView(
-             pqRenderView::renderViewType(), server));
+  m_view = qobject_cast<pqVolumeView *>(ob->createView(
+             pqVolumeView::espinaRenderViewType(), server));
 
   m_viewWidget = m_view->getWidget();
   m_mainLayout->insertWidget(0,m_viewWidget);//To preserver view order
 
-  m_view->setCenterAxesVisibility(false);
+//   m_view->setCenterAxesVisibility(false);
 
   vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast(m_view->getProxy());
 //   assert(viewProxy);
@@ -612,7 +628,6 @@ void VolumeView::exportScene()
      tr("Save Scene"), "", tr("3D Scene (*.x3d *.pov *.vrml)"));
   exporter->write(fileName);
   delete exporter;
-  m_view->saveImage(1024,768,"/home/jorge/scene.jpg");
 }
 
 void VolumeView::takeSnapshot()
