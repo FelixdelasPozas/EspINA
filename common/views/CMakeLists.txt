@@ -9,6 +9,9 @@ set (CORE_SOURCES
   ${CORE_SOURCES}
   views/pqSliceView.cpp
   views/pqVolumeView.cpp
+# Necessary to pick on OverviewRenderer
+  views/vtkPVSliceView.cpp
+  views/vtkSMSliceViewProxy.cpp
   PARENT_SCOPE
   )
 

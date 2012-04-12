@@ -799,19 +799,27 @@ bool SliceView::pickChannel(int x, int y, double pickPos[3])
   vtkSMSliceViewProxy* view =
     vtkSMSliceViewProxy::SafeDownCast(m_view->getProxy());
   Q_ASSERT(view);
-  vtkRenderer * renderer = view->GetRenderer();
-  Q_ASSERT(renderer);
+  vtkRenderer * thumbnail = view->GetOverviewRenderer();
+  Q_ASSERT(thumbnail);
 
   vtkPropPicker *propPicker = vtkPropPicker::New();
 //   vtkPropCollection *col = vtkPropCollection::New();
 //   qDebug() << propPicker->PickProp(x, y, renderer, col);
-  if (!propPicker->Pick(x, y, 0.1, renderer))
-    return false;
+  if (!propPicker->Pick(x, y, 0.1, thumbnail))
+  {
+    vtkRenderer *renderer = view->GetRenderer();
+    Q_ASSERT(renderer);
+    if (!propPicker->Pick(x, y, 0.1, renderer))
+    {
+//       qDebug() << "ePick Fail!";
+      return false;
+    }
+  }
 
   propPicker->GetPickPosition(pickPos);
 
   pickPos[m_plane] = m_fitToGrid?m_scrollBar->value()*m_gridSize[m_plane]:m_scrollBar->value();
-  qDebug() << "Pick Position" << pickPos[0] << pickPos[1] << pickPos[2];
+//   qDebug() << "Pick Position" << pickPos[0] << pickPos[1] << pickPos[2];
   propPicker->Delete();
 
   return true;
