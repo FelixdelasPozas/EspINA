@@ -41,7 +41,7 @@ ModifyFilterPanel::~ModifyFilterPanel()
 //----------------------------------------------------------------------------
 void ModifyFilterPanel::showOriginFilter(QModelIndex index)
 {
-  if (!widget() || !widget()->isVisible())
+  if (!isVisible())
     return;
 
   if (index.parent() == m_model->segmentationRoot())
