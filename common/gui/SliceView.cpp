@@ -766,7 +766,13 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
     }
 
     if (m_inThumbnail && me->buttons() == Qt::LeftButton)
+    {
       centerViewOnMousePosition();
+      if (me->modifiers() == Qt::CTRL)
+      {
+	centerCrosshairOnMousePosition();
+      }
+    }
 
   }else if (e->type() == QEvent::MouseButtonPress)
   {
