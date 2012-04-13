@@ -133,6 +133,8 @@ public:
 protected:
     void initCrosshairs();
     void initRuler();
+    void initBorder(vtkSmartPointer<vtkPolyData> &data,
+		    vtkSmartPointer<vtkActor> &actor);
 
     vtkPVSliceView();
     ~vtkPVSliceView();
@@ -142,6 +144,9 @@ private:
     void operator= ( const vtkPVSliceView& ); // Not implemented
 
     void updateRuler();
+    void updateBorder(vtkSmartPointer<vtkPolyData> data,
+		      double left, double right,
+		      double upper, double lower);
     void updateThumbnail();
     void updateView();
 
@@ -162,8 +167,10 @@ private:
     double           RulerColor[3];
     double	     RulerSize[2];
 
-    vtkSmartPointer<vtkPolyData>    HCrossLineData, VCrossLineData/*, BorderData*/;
-    vtkSmartPointer<vtkActor>       HCrossLine, VCrossLine/*, Border*/;
+    vtkSmartPointer<vtkPolyData>    HCrossLineData, VCrossLineData;
+    vtkSmartPointer<vtkActor>       HCrossLine, VCrossLine;
+    vtkSmartPointer<vtkPolyData>    SliceBorderData, ViewBorderData;
+    vtkSmartPointer<vtkActor>       SliceBorder, ViewBorder;
     double           HCrossLineColor[3];
     double           VCrossLineColor[3];
     double           SagittalCrossLineColor[3];

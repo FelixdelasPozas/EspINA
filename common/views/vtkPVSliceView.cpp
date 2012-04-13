@@ -378,6 +378,9 @@ vtkPVSliceView::vtkPVSliceView()
 
   initCrosshairs();
   initRuler();
+  initBorder(SliceBorderData, SliceBorder);
+  initBorder(ViewBorderData,  ViewBorder);
+//   initViewBorder();
 
   SlicingMatrix = vtkMatrix4x4::New();
   SlicingMatrix->DeepCopy ( axialSlice );
@@ -496,6 +499,37 @@ void vtkPVSliceView::initRuler()
   //   RulerRenderer->ResetCamera();
 }
 
+//----------------------------------------------------------------------------
+void vtkPVSliceView::initBorder(vtkSmartPointer<vtkPolyData> &data,
+				vtkSmartPointer<vtkActor> &actor)
+{
+  vtkSmartPointer<vtkPoints> corners = vtkSmartPointer<vtkPoints>::New();
+  corners->InsertNextPoint(LastComputedBounds[0], LastComputedBounds[2], 0); //UL
+  corners->InsertNextPoint(LastComputedBounds[0], LastComputedBounds[3], 0); //UR
+  corners->InsertNextPoint(LastComputedBounds[1], LastComputedBounds[3], 0); //LR
+  corners->InsertNextPoint(LastComputedBounds[1], LastComputedBounds[2], 0); //LL
+  vtkSmartPointer<vtkCellArray> borders = vtkSmartPointer<vtkCellArray>::New();
+  borders->EstimateSize(4, 2);
+  for (int i=0; i < 4; i++)
+  {
+    borders->InsertNextCell (2);
+    borders->InsertCellPoint(i);
+    borders->InsertCellPoint((i+1)%4);
+  }
+  data = vtkSmartPointer<vtkPolyData>::New();
+  data->SetPoints(corners);
+  data->SetLines(borders);
+  data->Update();
+
+  vtkSmartPointer<vtkPolyDataMapper> Mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  Mapper->SetInput(data);
+  actor = vtkSmartPointer<vtkActor>::New();
+  actor->SetMapper(Mapper);
+  actor->GetProperty()->SetLineWidth(2);
+  actor->SetPickable(false);
+
+  OverviewRenderer->AddActor(actor);
+}
 
 //----------------------------------------------------------------------------
 vtkPVSliceView::~vtkPVSliceView()
@@ -894,13 +928,46 @@ void vtkPVSliceView::updateRuler()
 }
 
 //----------------------------------------------------------------------------
+void vtkPVSliceView::updateBorder(vtkSmartPointer< vtkPolyData > data,
+				  double left, double right,
+				  double upper, double lower)
+{
+  vtkPoints *corners = data->GetPoints();
+
+  switch (SlicingPlane)
+  {
+    case AXIAL:
+      corners->SetPoint(0, left,  upper, 0); //UL
+      corners->SetPoint(1, right, upper, 0); //UR
+      corners->SetPoint(2, right, lower, 0); //LR
+      corners->SetPoint(3, left,  lower, 0); //LL
+      break;
+    case SAGITTAL:
+      corners->SetPoint(0, 0, upper,  left); //UL
+      corners->SetPoint(1, 0, lower,  left); //UR
+      corners->SetPoint(2, 0, lower, right); //LR
+      corners->SetPoint(3, 0, upper, right); //LL
+      break;
+    case CORONAL:
+      corners->SetPoint(0, left,  0, upper); //UL
+      corners->SetPoint(1, right, 0, upper); //UR
+      corners->SetPoint(2, right, 0, lower); //LR
+      corners->SetPoint(3, left,  0, lower); //LL
+      break;
+    default:
+      Q_ASSERT(false);
+  }
+  data->Modified();
+}
+
+//----------------------------------------------------------------------------
 void vtkPVSliceView::updateThumbnail()
 {
   double *value;
   // Position of world margins acording to the display
   // Depending on the plane being shown can refer to different
   // bound components
-  double left, right, upper, lower;
+  double viewLeft, viewRight, viewUpper, viewLower;
   vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
 
   coords->SetViewport(GetRenderer());
@@ -910,21 +977,31 @@ void vtkPVSliceView::updateThumbnail()
   int v = SlicingPlane==CORONAL?2:1;
   coords->SetValue(0, 0); // Viewport Lower Left Corner
   value = coords->GetComputedWorldValue ( GetRenderer() );
-  lower = value[v]; // Lower Margin in World Coordinates
-  left  = value[h]; // Left Margin in World Coordinates
+  viewLower = value[v]; // Lower Margin in World Coordinates
+  viewLeft  = value[h]; // Left Margin in World Coordinates
 //   qDebug() << "LL" << value[0] << value[1] << value[2];
   coords->SetValue(1, 1);
   value = coords->GetComputedWorldValue(GetRenderer());
-  upper = value[v]; // Upper Margin in World Coordinates
-  right = value[h]; // Right Margin in Worl Coordinates
+  viewUpper = value[v]; // Upper Margin in World Coordinates
+  viewRight = value[h]; // Right Margin in Worl Coordinates
 //   qDebug() << "UR" << value[0] << value[1] << value[2];
 
-  bool leftHidden  = LastComputedBounds[2*h] < left;
-  bool rightHidden = LastComputedBounds[2*h+1] > right;
-  bool upperHidden = LastComputedBounds[2*v] < upper;
-  bool lowerHidden = LastComputedBounds[2*v+1] > lower;
+  double sceneLeft  = LastComputedBounds[2*h];
+  double sceneRight = LastComputedBounds[2*h+1];
+  double sceneUpper = LastComputedBounds[2*v];
+  double sceneLower = LastComputedBounds[2*v+1];
+
+  bool leftHidden   = sceneLeft  < viewLeft;
+  bool rightHidden  = sceneRight > viewRight;
+  bool upperHidden  = sceneUpper < viewUpper;
+  bool lowerHidden  = sceneLower > viewLower;
+
   if (leftHidden || rightHidden || upperHidden || lowerHidden)
+  {
     OverviewRenderer->DrawOn();
+    updateBorder(SliceBorderData, sceneLeft, sceneRight, sceneUpper, sceneLower);
+    updateBorder(ViewBorderData, viewLeft, viewRight, viewUpper, viewLower);
+  }
   else
     OverviewRenderer->DrawOff();
 }
