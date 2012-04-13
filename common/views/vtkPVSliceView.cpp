@@ -59,7 +59,8 @@ public:
   virtual void OnMouseWheelForward() {}
   virtual void OnMouseWheelBackward() {}
 
-  virtual void OnLeftButtonDown() {}
+  // Disable modifying brightness and saturation
+  virtual void OnLeftButtonDown() { }
   virtual void OnLeftButtonUp() {}
   //   virtual void OnMouseMove();
 protected:
@@ -365,7 +366,7 @@ vtkPVSliceView::vtkPVSliceView()
   {
     //     vtkInteractorStyleImage *style = vtkInteractorStyleImage::New();
     vtkInteractorStyleEspinaSlice *style = vtkInteractorStyleEspinaSlice::New();
-    this->Interactor->SetInteractorStyle ( style );
+    this->Interactor->SetInteractorStyle(style);
     style->Delete();
   }
 

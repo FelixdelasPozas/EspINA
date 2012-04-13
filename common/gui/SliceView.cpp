@@ -76,6 +76,7 @@
 #include <vtkSMTwoDRenderViewProxy.h>
 #include <vtkWorldPointPicker.h>
 #include "ColorEngine.h"
+#include <vtkCamera.h>
 
 //-----------------------------------------------------------------------------
 SliceViewPreferencesPanel::SliceViewPreferencesPanel(SliceViewPreferences* preferences)
@@ -236,6 +237,7 @@ SliceView::SliceView(vtkPVSliceView::VIEW_PLANE plane, QWidget* parent)
     , m_spinBox         (new QSpinBox())
     , m_toSlice         (new QPushButton("To"))
     , m_fitToGrid       (true)
+    , m_inThumbnail     (false)
 {
   memset(m_gridSize, 1, 3*sizeof(double));
   memset(m_range, 0, 6*sizeof(double));
@@ -551,6 +553,9 @@ SelectionHandler::MultiSelection SliceView::select(
   SelectionHandler::ViewRegions regions)
 {
   SelectionHandler::MultiSelection msel;
+
+  if (m_inThumbnail)
+    return msel;
   //TODO: Discuss if we apply VOI at application level or at plugin level
   // i.e. whether clicks out of VOI are discarted or not
 
@@ -736,16 +741,60 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
     QWidget::leaveEvent(e);
     QApplication::restoreOverrideCursor();
     e->accept();
+  }else if (e->type() == QEvent::MouseMove)
+  {
+    QMouseEvent* me = static_cast<QMouseEvent*>(e);
+    vtkSMSliceViewProxy* view =
+    vtkSMSliceViewProxy::SafeDownCast(m_view->getProxy());
+    Q_ASSERT(view);
+    vtkRenderer * thumbnail = view->GetOverviewRenderer();
+    Q_ASSERT(thumbnail);
+    vtkPropPicker *propPicker = vtkPropPicker::New();
+    int x, y;
+    eventPosition(x, y);
+    if (thumbnail->GetDraw() && propPicker->Pick(x, y, 0.1, thumbnail))
+    {
+      if (!m_inThumbnail)
+	QApplication::setOverrideCursor(Qt::ArrowCursor);
+      m_inThumbnail = true;
+    }
+    else
+    {
+      if (m_inThumbnail)
+	QApplication::restoreOverrideCursor();;
+      m_inThumbnail = false;
+    }
+
+    if (m_inThumbnail && me->buttons() == Qt::LeftButton)
+      centerViewOnMousePosition();
+
   }else if (e->type() == QEvent::MouseButtonPress)
   {
     QMouseEvent* me = static_cast<QMouseEvent*>(e);
-    if (me->button() == Qt::LeftButton && me->modifiers() == Qt::CTRL)
+    if (me->button() == Qt::LeftButton)
     {
-      centerViewOnMousePosition();
+      if (me->modifiers() == Qt::CTRL)
+      {
+	centerCrosshairOnMousePosition();
+      }else if (m_inThumbnail){
+	centerViewOnMousePosition();
+      }
     }
   }
 
   return QWidget::eventFilter(caller, e);
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::centerCrosshairOnMousePosition()
+{
+  int xPos, yPos;
+  eventPosition(xPos, yPos);
+
+  double center[3];//World coordinates
+  pickChannel(xPos, yPos, center);
+
+  centerViewOn(center);
 }
 
 //-----------------------------------------------------------------------------
@@ -757,7 +806,9 @@ void SliceView::centerViewOnMousePosition()
   double center[3];//World coordinates
   pickChannel(xPos, yPos, center);
 
-  centerViewOn(center);
+  vtkCamera * camera = m_view->getRenderViewProxy()->GetRenderer()->GetActiveCamera();
+  camera->SetFocalPoint(center);
+  m_view->render();
 }
 
 //-----------------------------------------------------------------------------
@@ -803,8 +854,6 @@ bool SliceView::pickChannel(int x, int y, double pickPos[3])
   Q_ASSERT(thumbnail);
 
   vtkPropPicker *propPicker = vtkPropPicker::New();
-//   vtkPropCollection *col = vtkPropCollection::New();
-//   qDebug() << propPicker->PickProp(x, y, renderer, col);
   if (!propPicker->Pick(x, y, 0.1, thumbnail))
   {
     vtkRenderer *renderer = view->GetRenderer();

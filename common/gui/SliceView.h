@@ -197,6 +197,7 @@ signals:
 protected:
   // AbstractItemView Interfacec
   virtual bool eventFilter(QObject* caller, QEvent* e);
+  void centerCrosshairOnMousePosition();
   void centerViewOnMousePosition();
   void updateChannelOpacity();
 
@@ -238,6 +239,7 @@ private:
   double m_center[3];
   ColorEngine *m_colorEngine;
 
+  bool m_inThumbnail;
   QMap<Channel *, vtkSMRepresentationProxy *> m_channels;
   QMap<Segmentation *, SegRep> m_segmentations;
   QList<pq3DWidget *>          m_widgets;
