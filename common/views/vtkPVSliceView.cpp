@@ -81,7 +81,7 @@ vtkInteractorStyleEspinaSlice::vtkInteractorStyleEspinaSlice()
 //-----------------------------------------------------------------------------
 vtkInteractorStyleEspinaSlice::~vtkInteractorStyleEspinaSlice()
 {
-  qDebug() << "vtkInteractorStyleEspinaSlice(" << this << "): Destroyed";
+//   qDebug() << "vtkInteractorStyleEspinaSlice(" << this << "): Destroyed";
 }
 
 
@@ -532,6 +532,14 @@ void vtkPVSliceView::initBorder(vtkSmartPointer<vtkPolyData> &data,
 }
 
 //----------------------------------------------------------------------------
+void vtkPVSliceView::Render(bool interactive, bool skip_rendering)
+{
+  updateRuler();
+  updateThumbnail();
+  vtkPVRenderView::Render(interactive, skip_rendering);
+}
+
+//----------------------------------------------------------------------------
 vtkPVSliceView::~vtkPVSliceView()
 {
   SlicingMatrix->Delete();
@@ -680,8 +688,6 @@ void vtkPVSliceView::ResetCameraClippingRange()
   OverviewRenderer->ResetCameraClippingRange ( this->LastComputedBounds );
 //   SetCenter ( Center );
 
-  updateRuler();
-  updateThumbnail();
 }
 
 //----------------------------------------------------------------------------
@@ -1004,9 +1010,4 @@ void vtkPVSliceView::updateThumbnail()
   }
   else
     OverviewRenderer->DrawOff();
-}
-
-//----------------------------------------------------------------------------
-void vtkPVSliceView::updateView()
-{
 }

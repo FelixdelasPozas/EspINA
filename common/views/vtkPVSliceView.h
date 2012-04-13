@@ -136,6 +136,8 @@ protected:
     void initBorder(vtkSmartPointer<vtkPolyData> &data,
 		    vtkSmartPointer<vtkActor> &actor);
 
+    virtual void Render(bool interactive, bool skip_rendering);
+
     vtkPVSliceView();
     ~vtkPVSliceView();
 
@@ -148,7 +150,6 @@ private:
 		      double left, double right,
 		      double upper, double lower);
     void updateThumbnail();
-    void updateView();
 
     EspinaViewState  *State;
     double           Slice;
