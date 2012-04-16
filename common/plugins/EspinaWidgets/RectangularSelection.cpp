@@ -32,7 +32,7 @@
 #include <QDebug>
 #include <pqPipelineSource.h>
 #include <vtkSMPropertyHelper.h>
-#include </home/jpena/src/ParaView-3.12.0/Qt/Components/pq3DWidget.h>
+#include <pq3DWidget.h>
 
 //----------------------------------------------------------------------------
 RectangularRegion::RectangularRegion()

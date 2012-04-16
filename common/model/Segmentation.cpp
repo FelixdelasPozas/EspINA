@@ -34,6 +34,26 @@ const ModelItem::ArgumentId Segmentation::FILTER    = ArgumentId("Filter",   Arg
 const ModelItem::ArgumentId Segmentation::NUMBER    = ArgumentId("Number",   ArgumentId::KEY);
 const ModelItem::ArgumentId Segmentation::OUTPUT    = ArgumentId("Output",   ArgumentId::KEY);
 const ModelItem::ArgumentId Segmentation::TAXONOMY  = ArgumentId("Taxonomy", ArgumentId::VARIABLE);
+const ModelItem::ArgumentId Segmentation::USERS     = ArgumentId("Users",    ArgumentId::VARIABLE);
+
+//-----------------------------------------------------------------------------
+Segmentation::SArguments::SArguments(const ModelItem::Arguments args)
+: Arguments(args)
+{
+  Number = args[NUMBER].toInt();
+  Output = args[OUTPUT].toInt();
+}
+
+
+//-----------------------------------------------------------------------------
+QString Segmentation::SArguments::serialize(bool key) const
+{
+  QString user = EspinaCore::instance()->settings().userName();
+  SArguments *args = const_cast<SArguments *>(this);
+  args->addUser(user);
+  return ModelItem::Arguments::serialize(key);
+}
+
 
 //-----------------------------------------------------------------------------
 Segmentation::Segmentation(Filter* filter, int output, pqData data)
@@ -94,8 +114,7 @@ QVariant Segmentation::data(int role) const
       return QString("Segmentation %1").arg(m_args.number());
     case Qt::DecorationRole:
     {
-//       return EspinaCore::instance()->colorSettings().engine()->color(this);
-      return m_color;
+      return EspinaCore::instance()->colorSettings().engine()->color(this);
 //       QPixmap segIcon(3,16);
 //       segIcon.fill(m_taxonomy->color());
 //       return segIcon;
@@ -138,6 +157,7 @@ QString Segmentation::serialize() const
 //------------------------------------------------------------------------
 void Segmentation::initialize(ModelItem::Arguments args)
 {
+  m_args = SArguments(args);
   foreach(ModelItemExtension *ext, m_extensions)
   {
     SegmentationExtension *segExt = dynamic_cast<SegmentationExtension *>(ext);
@@ -145,6 +165,7 @@ void Segmentation::initialize(ModelItem::Arguments args)
     segExt->initialize(this);
   }
   onColorEngineChanged();
+  qDebug() << "Users" << m_args.users() << m_args[USERS];
 }
 
 // //------------------------------------------------------------------------

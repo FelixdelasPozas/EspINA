@@ -43,6 +43,7 @@ public:
   static const ArgumentId NUMBER;
   static const ArgumentId OUTPUT;
   static const ArgumentId TAXONOMY;
+  static const ArgumentId USERS;//who have review this segmentation
 
   static const int SelectionRole = Qt::UserRole + 2;
 
@@ -50,6 +51,9 @@ private:
   class SArguments : public Arguments
   {
   public:
+    explicit SArguments(){}
+    explicit SArguments(const ModelItem::Arguments args);
+
     void setNumber(unsigned int number)
     {
       Number = number;
@@ -60,9 +64,23 @@ private:
     void setOutput(int output)
     {
       Output = output;
-      (*this)[OUTPUT] = Argument(QString::number(Output));
+      (*this)[OUTPUT] = QString::number(Output);
     }
+
     int output() const {return Output;}
+
+    void addUser(const QString &user)
+    {
+      if ((*this)[USERS].isEmpty())
+	(*this)[USERS] = user;
+      else if (!users().contains(user))
+	(*this)[USERS] += ',' + user;
+    }
+
+    QStringList users() const {return (*this)[USERS].split(',');}
+
+    virtual QString serialize(bool key = false) const;
+
   private:
     unsigned int Number;
     int Output;
@@ -99,7 +117,7 @@ public:
   void setSelected(bool selected);
   bool visible() const {return m_isVisible;}
   void setVisible(bool visible);
-  QColor color() const {return m_color;}
+  QStringList users() const {return m_args.users();}
 
   /// Add a new extension to the segmentation
   /// Extesion won't be available until requirements are satisfied

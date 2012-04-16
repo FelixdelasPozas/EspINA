@@ -22,13 +22,23 @@
 
 #include <common/gui/ColorEngine.h>
 
+#include <QMap>
 
 class UserColorEngine : public ColorEngine
 {
-
 public:
-    virtual vtkSMProxy* lut(const Segmentation* seg);
-    virtual QColor color(const Segmentation* seg);
+  explicit UserColorEngine();
+
+  virtual vtkSMProxy* lut(const Segmentation* seg);
+  virtual QColor color(const Segmentation* seg);
+
+private:
+  QColor nextColor();
+
+private:
+  QMap<QString, QColor> m_userColors;
+  QList<QColor>         m_colors;
+  int                   m_lastColor;
 };
 
 #endif // USERCOLORENGINE_H
