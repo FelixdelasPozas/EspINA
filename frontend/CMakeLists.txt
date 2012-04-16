@@ -1,3 +1,9 @@
+find_package (VTK REQUIRED)
+include (${VTK_USE_FILE})
+
+find_package (ITK REQUIRED)
+include (${ITK_USE_FILE})
+
 find_package(Boost REQUIRED COMPONENTS  system filesystem graph)
 
 # link_directories ( ${Boost_LIBRARY_DIRS} )
@@ -78,7 +84,6 @@ set (Espina_SOURCE_FILES
 
 set (Espina_LIBRARIES
   EspinaCore
-#   EspinaViews
 #   ${Boost_LIBRARIES}
 )
 
@@ -109,12 +114,12 @@ build_paraview_client(espina
 
 target_link_libraries (espina ${Espina_LIBRARIES})
 
-install (
-  TARGETS espina
-  RUNTIME
-  DESTINATION bin
-  COMPONENT espina
-  )
+#install (
+#  TARGETS espina
+#  RUNTIME
+#  DESTINATION bin
+#  COMPONENT espina
+#  )
 
 
 add_subdirectory (plugins)
