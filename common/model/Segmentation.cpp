@@ -20,6 +20,9 @@
 
 #include "Filter.h"
 
+#include <common/EspinaCore.h>
+#include <common/gui/ColorEngine.h>
+
 #include <QDebug>
 #include <vtkPVDataInformation.h>
 #include <pqOutputPort.h>
@@ -48,6 +51,8 @@ Segmentation::Segmentation(Filter* filter, int output, pqData data)
   m_args[TAXONOMY] = "Unknown";
   connect(filter,SIGNAL(modified(ModelItem *)),
 	  this, SLOT(notifyModification()));
+  connect(&EspinaCore::instance()->colorSettings(),SIGNAL(colorEngineChanged()),
+	  this, SLOT(onColorEngineChanged()));
 }
 
 //------------------------------------------------------------------------
@@ -87,12 +92,14 @@ QVariant Segmentation::data(int role) const
     case Qt::DisplayRole:
 //     //case Qt::EditRole:
       return QString("Segmentation %1").arg(m_args.number());
-//     case Qt::DecorationRole:
-//     {
+    case Qt::DecorationRole:
+    {
+//       return EspinaCore::instance()->colorSettings().engine()->color(this);
+      return m_color;
 //       QPixmap segIcon(3,16);
 //       segIcon.fill(m_taxonomy->color());
 //       return segIcon;
-//     }
+    }
     case Qt::ToolTipRole:
       return QString(
 	"<b>Name:</b> %1<br>"
@@ -137,6 +144,7 @@ void Segmentation::initialize(ModelItem::Arguments args)
     Q_ASSERT(segExt);
     segExt->initialize(this);
   }
+  onColorEngineChanged();
 }
 
 // //------------------------------------------------------------------------
@@ -247,6 +255,19 @@ QVariant Segmentation::information(QString info) const
 
   Q_ASSERT(m_informations.contains(info));
   return m_informations[info]->information(info);
+}
+
+//------------------------------------------------------------------------
+void Segmentation::onColorEngineChanged()
+{
+  ColorEngineSettings &settings = EspinaCore::instance()->colorSettings();
+  ColorEngine * engine = settings.engine();
+  QColor color = engine->color(this);
+  if (m_color != color)
+  {
+    m_color = color;
+    notifyModification();
+  }
 }
 
 //

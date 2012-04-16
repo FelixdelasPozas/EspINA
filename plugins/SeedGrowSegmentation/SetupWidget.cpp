@@ -32,6 +32,7 @@ SeedGrowSegmentationFilter::SetupWidget::SetupWidget(Filter* filter)
   m_xSeed->setText(QString("%1").arg(seed[0]));
   m_ySeed->setText(QString("%1").arg(seed[1]));
   m_zSeed->setText(QString("%1").arg(seed[2]));
+  m_threshold->setMaximum(255);
   m_threshold->setValue(m_filter->m_args.threshold());
   connect(m_threshold, SIGNAL(valueChanged(int)),
 	  this, SLOT(modifyFilter()));

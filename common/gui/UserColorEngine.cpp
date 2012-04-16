@@ -17,18 +17,15 @@
 */
 
 
-#ifndef COLORENGINE_H
-#define COLORENGINE_H
-#include <QColor>
+#include "UserColorEngine.h"
 
-class Segmentation;
-class vtkSMProxy;
-
-class ColorEngine
+vtkSMProxy* UserColorEngine::lut(const Segmentation* seg)
 {
-public:
-  virtual QColor color(const Segmentation *seg) = 0;
-  virtual vtkSMProxy *lut(const Segmentation *seg) = 0;
-};
+  return NULL;
+}
 
-#endif // COLORENGINE_H
+QColor UserColorEngine::color(const Segmentation* seg)
+{
+  return Qt::blue;
+}
+

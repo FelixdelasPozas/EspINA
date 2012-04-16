@@ -99,6 +99,7 @@ public:
   void setSelected(bool selected);
   bool visible() const {return m_isVisible;}
   void setVisible(bool visible);
+  QColor color() const {return m_color;}
 
   /// Add a new extension to the segmentation
   /// Extesion won't be available until requirements are satisfied
@@ -112,6 +113,8 @@ public:
 // public slots:
 //   virtual void notifyModification();
 //   void updated(Segmentation *);
+private slots:
+  void onColorEngineChanged();
 
 private:
   Filter             *m_filter;
@@ -119,8 +122,9 @@ private:
   SArguments          m_args;
   TaxonomyNode       *m_taxonomy;
 
-  bool m_isSelected;
-  bool m_isVisible;
+  bool           m_isSelected;
+  bool           m_isVisible;
+  QColor         m_color;
   mutable double m_bounds[6];
 
   friend class Filter;

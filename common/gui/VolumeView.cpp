@@ -176,11 +176,11 @@ bool VolumeView::updateSegmentationRepresentation(Segmentation* seg)
   }
   if (seg->selected() != rep.selected
     || seg->visible() != rep.visible
-    || m_colorEngine->color(seg) != rep.color)
+    || seg->color() != rep.color)
   {
     rep.selected = seg->selected();
     rep.visible  = seg->visible();
-    rep.color = m_colorEngine->color(seg);
+    rep.color = seg->color();
     //   repProxy->PrintSelf(std::cout,vtkIndent(0));
     double rgb[3] = {rep.color.redF(), rep.color.greenF(), rep.color.blueF()};
     vtkSMPropertyHelper(rep.proxy, "Color").Set(rgb, 3);

@@ -339,6 +339,8 @@ void EspinaWindow::setActivity(QString activity)
     m_view->saveLayout();
 
   m_viewMenu->clear();
+  m_viewMenu->addMenu(EspinaCore::instance()->colorSettings().availableEngines());
+  m_viewMenu->addSeparator();
 
   QSharedPointer<ViewManager> vm = EspinaCore::instance()->viewManger();
   if (activity == "analyse")
@@ -350,6 +352,7 @@ void EspinaWindow::setActivity(QString activity)
   {
     qDebug() << "Switch to Segmentate Activity";
     m_view = new DefaultEspinaView(this);
+    m_view->setColorEngine(EspinaCore::instance()->colorSettings().engine());
     vm->setCurrentView(m_view);
     connect(m_view, SIGNAL(statusMsg(QString)),
 	    this, SLOT(updateStatus(QString)));

@@ -27,6 +27,7 @@
 #include <QUndoStack>
 #include "common/gui/ViewManager.h"
 #include "common/settings/GeneralSettings.h"
+#include "common/settings/ColorEngineSettings.h"
 
 
 class EspinaCore
@@ -48,6 +49,7 @@ public:
   Sample *sample(){return m_sample;}
 
   GeneralSettings &settings(){return m_settings;}
+  ColorEngineSettings &colorSettings(){return m_colorSettigns;}
 
   QSharedPointer<ViewManager> viewManger() {return m_viewManager;}
 
@@ -74,6 +76,7 @@ private:
   QSharedPointer<QUndoStack>  m_undoStack;
   QSharedPointer<ViewManager> m_viewManager;
   GeneralSettings             m_settings;
+  ColorEngineSettings         m_colorSettigns;
 };
 
 #endif // ESPINACORE_H

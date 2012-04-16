@@ -18,6 +18,7 @@ set (CORE_SOURCES
   gui/EspinaView.cpp
   gui/SliceView.cpp
   gui/TaxonomyColorEngine.cpp
+  gui/UserColorEngine.cpp
   gui/ViewFrame.cpp
   gui/ViewManager.cpp
   gui/VolumeView.cpp
@@ -33,6 +34,7 @@ add_library(gui_fake
   EspinaView.cpp
   SliceView.cpp
   TaxonomyColorEngine.cpp
+  UserColorEngine.cpp
   ViewFrame.cpp
   ViewManager.cpp
   VolumeView.cpp

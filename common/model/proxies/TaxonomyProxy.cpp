@@ -77,7 +77,7 @@ QVariant TaxonomyProxy::data(const QModelIndex& proxyIndex, int role) const
       {
 	Segmentation *seg = dynamic_cast<Segmentation *>(item);
 	QPixmap segIcon(3,16);
-	segIcon.fill(seg->taxonomy()->color());
+	segIcon.fill(seg->data(role).value<QColor>());
 	return segIcon;
       }else
 	return item->data(role);

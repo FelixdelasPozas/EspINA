@@ -17,18 +17,18 @@
 */
 
 
-#ifndef COLORENGINE_H
-#define COLORENGINE_H
-#include <QColor>
+#ifndef USERCOLORENGINE_H
+#define USERCOLORENGINE_H
 
-class Segmentation;
-class vtkSMProxy;
+#include <common/gui/ColorEngine.h>
 
-class ColorEngine
+
+class UserColorEngine : public ColorEngine
 {
+
 public:
-  virtual QColor color(const Segmentation *seg) = 0;
-  virtual vtkSMProxy *lut(const Segmentation *seg) = 0;
+    virtual vtkSMProxy* lut(const Segmentation* seg);
+    virtual QColor color(const Segmentation* seg);
 };
 
-#endif // COLORENGINE_H
+#endif // USERCOLORENGINE_H

@@ -79,7 +79,7 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   volView = new VolumeView(this);
   volDock->setWidget(volView);
   
-  yzDock = new QDockWidget(tr("YZ"),parent);
+  yzDock = new QDockWidget(tr("ZY"),parent);
   yzDock->setObjectName("yzDock");
   yzView = new SliceView(vtkPVSliceView::SAGITTAL);
   yzView->setCrossHairColors(blue, cyan);
@@ -105,7 +105,7 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
 	  this, SLOT(selectToSlice(double, vtkPVSliceView::VIEW_PLANE)));
   xzDock->setWidget(xzView);
 
-  setColorEngine(new TaxonomyColorEngine());
+//   setColorEngine(new TaxonomyColorEngine());
 
   parent->addDockWidget(Qt::RightDockWidgetArea, volDock);
   parent->addDockWidget(Qt::RightDockWidgetArea, yzDock);
@@ -117,9 +117,9 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
 //-----------------------------------------------------------------------------
 void DefaultEspinaView::createViewMenu(QMenu* menu)
 {
-  menu->addAction(volDock->toggleViewAction());
   menu->addAction(yzDock->toggleViewAction());
   menu->addAction(xzDock->toggleViewAction());
+  menu->addAction(volDock->toggleViewAction());
   menu->addSeparator();
   
   QAction *showSegmentations = new QAction(tr("Show Segmentations"),menu);

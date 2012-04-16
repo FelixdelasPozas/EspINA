@@ -17,18 +17,41 @@
 */
 
 
-#ifndef COLORENGINE_H
-#define COLORENGINE_H
-#include <QColor>
+#ifndef COLORENGINESETTINGS_H
+#define COLORENGINESETTINGS_H
 
-class Segmentation;
-class vtkSMProxy;
+#include <QObject>
+#include <QMap>
 
-class ColorEngine
+class QActionGroup;
+class ColorEngine;
+class QAction;
+class QMenu;
+
+const QString COLOR_ENGINE("ColorEngine");
+
+class ColorEngineSettings : public QObject
 {
+  Q_OBJECT
 public:
-  virtual QColor color(const Segmentation *seg) = 0;
-  virtual vtkSMProxy *lut(const Segmentation *seg) = 0;
+  explicit ColorEngineSettings();
+
+  ColorEngine *engine() const {return m_engine;}
+  QMenu *availableEngines();
+
+public slots:
+  void setColorEngine(ColorEngine *engine);
+
+protected slots:
+  void setColorEngine(QAction *engine);
+
+signals:
+  void colorEngineChanged();
+
+private:
+  ColorEngine  *m_engine;
+  QActionGroup *m_actions;
+  QMap<QAction *, ColorEngine *> m_availableEngines;
 };
 
-#endif // COLORENGINE_H
+#endif // COLORENGINESETTINGS_H

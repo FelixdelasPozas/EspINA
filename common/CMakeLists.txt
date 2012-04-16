@@ -24,12 +24,14 @@ include_directories(
 
 set (MOC_SOURCES
   EspinaCore.h
+  settings/ColorEngineSettings.h
   settings/GeneralSettings.h
   )
 
 set (CORE_SOURCES
   EspinaCore.cpp
   File.cpp
+  settings/ColorEngineSettings.cpp
   settings/GeneralSettings.cpp
   )
 

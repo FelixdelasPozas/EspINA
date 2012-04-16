@@ -28,7 +28,7 @@
 #include <pqScalarsToColors.h>
 #include <pqLookupTableManager.h>
 
-QColor TaxonomyColorEngine::color(Segmentation* seg)
+QColor TaxonomyColorEngine::color(const Segmentation* seg)
 {
   if (seg && seg->taxonomy())
     return seg->taxonomy()->color();
@@ -36,7 +36,7 @@ QColor TaxonomyColorEngine::color(Segmentation* seg)
     return Qt::red;
 }
 
-vtkSMProxy *TaxonomyColorEngine::lut(Segmentation* seg)
+vtkSMProxy *TaxonomyColorEngine::lut(const Segmentation* seg)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
   pqServer *server =  pqApplicationCore::instance()->getActiveServer();
