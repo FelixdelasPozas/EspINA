@@ -13,8 +13,8 @@ include (${PARAVIEW_USE_FILE})
 find_package (VTK REQUIRED)
 include (${VTK_USE_FILE})
 
-# find_package (ITK REQUIRED)
-# include (${ITK_USE_FILE})
+find_package (ITK REQUIRED)
+include (${ITK_USE_FILE})
 
 include_directories(
   ${CMAKE_SOURCE_DIR}
