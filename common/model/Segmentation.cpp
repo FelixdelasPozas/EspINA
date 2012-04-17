@@ -157,7 +157,10 @@ QString Segmentation::serialize() const
 //------------------------------------------------------------------------
 void Segmentation::initialize(ModelItem::Arguments args)
 {
-  m_args = SArguments(args);
+  // Prevent overriding segmentation id assigned from model
+  if (ModelItem::Arguments() != args)
+    m_args = SArguments(args);
+
   foreach(ModelItemExtension *ext, m_extensions)
   {
     SegmentationExtension *segExt = dynamic_cast<SegmentationExtension *>(ext);
@@ -165,7 +168,7 @@ void Segmentation::initialize(ModelItem::Arguments args)
     segExt->initialize(this);
   }
   onColorEngineChanged();
-  qDebug() << "Users" << m_args.users() << m_args[USERS];
+//   qDebug() << "Users" << m_args.users() << m_args[USERS];
 }
 
 // //------------------------------------------------------------------------
