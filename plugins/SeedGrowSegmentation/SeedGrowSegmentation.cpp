@@ -51,7 +51,7 @@
 #include <vtkSMProxy.h>
 #include <vtkSMInputProperty.h>
 #include <vtkSMPropertyHelper.h>
-#include <common/plugins/EspinaWidgets/RectangularSelection.h>
+#include <common/widgets/RectangularSelection.h>
 
 #define DEFAULT_THRESHOLD 30
 

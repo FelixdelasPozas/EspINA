@@ -21,7 +21,7 @@
 #define BOUNDINGREGION_H
 
 #include <QStandardItemModel>
-#include <common/plugins/EspinaWidgets/RectangularSelection.h>
+#include <common/widgets/RectangularSelection.h>
 
 #include <common/processing/pqFilter.h>
 

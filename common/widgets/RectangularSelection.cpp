@@ -33,6 +33,11 @@
 #include <pqPipelineSource.h>
 #include <vtkSMPropertyHelper.h>
 #include <pq3DWidget.h>
+#include <pq3DWidgetInterface.h>
+#include <pqInterfaceTracker.h>
+#include <vtkPVXMLElement.h>
+#include "vtkRectangularWidget.h"
+#include "vtkRectangularRepresentation.h"
 
 //----------------------------------------------------------------------------
 RectangularRegion::RectangularRegion()
@@ -67,18 +72,17 @@ vtkSMProxy *RectangularRegion::getProxy()
 //----------------------------------------------------------------------------
 pq3DWidget* RectangularRegion::createWidget()
 {
-  QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(getProxy(), getProxy());
-
-  Q_ASSERT(widgets.size() == 1);
+  pq3DWidget *widget = createWidget("NonRotatingBox");
+  Q_ASSERT(widget);
   // By default ParaView doesn't "Apply" the changes to the widget. So we set
   // up a slot to "Apply" when the interaction ends.
-  QObject::connect(widgets[0], SIGNAL(widgetEndInteraction()),
-		   widgets[0], SLOT(accept()));
+  QObject::connect(widget, SIGNAL(widgetEndInteraction()),
+		   widget, SLOT(accept()));
 //   QObject::connect(widgets[0], SIGNAL(widgetEndInteraction()),
 // 		   this, SLOT(modifyVOI()));
 
-  vtkAbstractWidget *widget = widgets[0]->getWidgetProxy()->GetWidget();
-  vtkNonRotatingBoxWidget *boxwidget = dynamic_cast<vtkNonRotatingBoxWidget*>(widget);
+  vtkAbstractWidget *aw = widget->getWidgetProxy()->GetWidget();
+  vtkNonRotatingBoxWidget *boxwidget = dynamic_cast<vtkNonRotatingBoxWidget*>(aw);
   Q_ASSERT(boxwidget);
 
   vtkBoxRepresentation *repbox =  dynamic_cast<vtkBoxRepresentation*>(boxwidget->GetRepresentation());
@@ -87,49 +91,38 @@ pq3DWidget* RectangularRegion::createWidget()
   vtkProperty *outline = repbox->GetOutlineProperty();
   outline->SetColor(1.0,1.0,0);
 
-  m_widgets << widgets;
+  m_widgets << widget;
 
-  return widgets[0];
-
+  return widget;
 }
 
 //----------------------------------------------------------------------------
 pq3DWidget* RectangularRegion::createSliceWidget(vtkPVSliceView::VIEW_PLANE plane)
 {
-  QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(getProxy(), getProxy());
-
-  Q_ASSERT(widgets.size() == 1);
+  pq3DWidget *widget = createWidget("RectangularBorder");
+  Q_ASSERT(widget);
   // By default ParaView doesn't "Apply" the changes to the widget. So we set
   // up a slot to "Apply" when the interaction ends.
-  QObject::connect(widgets[0], SIGNAL(widgetEndInteraction()),
-		   widgets[0], SLOT(accept()));
+  QObject::connect(widget, SIGNAL(widgetEndInteraction()),
+		   widget, SLOT(accept()));
 //   QObject::connect(widgets[0], SIGNAL(widgetEndInteraction()),
 // 		   this, SLOT(modifyVOI()));
 
-//   m_widgets
-//   Widget newWidget;
-//   newWidget.widget = widgets[0];
-//   newWidget.viewType = viewType;
-//   m_widgets.push_back(newWidget);
+  vtkAbstractWidget *aw = widget->getWidgetProxy()->GetWidget();
+  vtkRectangularWidget *borderWidget = dynamic_cast<vtkRectangularWidget*>(aw);
+  Q_ASSERT(borderWidget);
 
-  vtkAbstractWidget *widget = widgets[0]->getWidgetProxy()->GetWidget();
-  vtkNonRotatingBoxWidget *boxwidget = dynamic_cast<vtkNonRotatingBoxWidget*>(widget);
-  Q_ASSERT(boxwidget);
+  borderWidget->SetPlane(plane);
 
-  if (plane == vtkPVSliceView::SAGITTAL)
-    boxwidget->SetInvertZCursor(true);
-//   if (plane == vtkPVSliceView::3D)
-//     boxwidget->SetProcessEvents(false);
+//   vtkRectangularRepresentation *repbox =  dynamic_cast<vtkRectangularRepresentation*>(borderWidget->GetRepresentation());
+//   repbox->HandlesOff();
+//   repbox->OutlineCursorWiresOff();
+//   vtkProperty *outline = repbox->GetOutlineProperty();
+//   outline->SetColor(1.0,1.0,0);
 
-  vtkBoxRepresentation *repbox =  dynamic_cast<vtkBoxRepresentation*>(boxwidget->GetRepresentation());
-  repbox->HandlesOff();
-  repbox->OutlineCursorWiresOff();
-  vtkProperty *outline = repbox->GetOutlineProperty();
-  outline->SetColor(1.0,1.0,0);
+  m_widgets << widget;
 
-  m_widgets << widgets;
-
-  return widgets[0];
+  return widget;
 }
 
 //----------------------------------------------------------------------------
@@ -139,10 +132,19 @@ void RectangularRegion::setEnabled(bool enable)
   {
     vtkAbstractWidget *basewidget = widget->getWidgetProxy()->GetWidget();
     vtkNonRotatingBoxWidget *boxwidget = dynamic_cast<vtkNonRotatingBoxWidget*>(basewidget);
-    Q_ASSERT(boxwidget);
-    boxwidget->SetProcessEvents(enable);
-    vtkBoxRepresentation *repbox =  dynamic_cast<vtkBoxRepresentation*>(boxwidget->GetRepresentation());
-    repbox->SetPickable(enable);
+    if (boxwidget)
+    {
+      boxwidget->SetProcessEvents(enable);
+      vtkBoxRepresentation *repbox =  dynamic_cast<vtkBoxRepresentation*>(boxwidget->GetRepresentation());
+      repbox->SetPickable(enable);
+    } else
+    {
+      vtkRectangularWidget *rw = dynamic_cast<vtkRectangularWidget*>(basewidget);
+      Q_ASSERT(rw);
+      rw->SetProcessEvents(enable);
+      vtkRectangularRepresentation *repbox =  dynamic_cast<vtkRectangularRepresentation*>(rw->GetRepresentation());
+      repbox->SetPickable(enable);
+    }
   }
 }
 
@@ -171,3 +173,25 @@ void RectangularRegion::bounds(double bounds[6])
     bounds[i] = pos[i/2] + bounds[i]*scale[i/2];
 }
 
+//----------------------------------------------------------------------------
+pq3DWidget* RectangularRegion::createWidget(QString name)
+{
+  vtkPVXMLElement* hints = getProxy()->GetHints();
+  Q_ASSERT(hints->GetNumberOfNestedElements() == 1);
+  vtkPVXMLElement* element = hints->GetNestedElement(0);
+  QList<pq3DWidgetInterface *> interfaces =
+  pqApplicationCore::instance()->interfaceTracker()->interfaces<pq3DWidgetInterface*>();
+  pq3DWidget *widget = 0;
+
+  // Create the widget from plugins.
+  foreach (pq3DWidgetInterface* iface, interfaces)
+  {
+    widget = iface->newWidget(name, getProxy(), getProxy());
+    if (widget)
+    {
+      widget->setHints(element);
+      return widget;
+    }
+  }
+  return NULL;
+}

@@ -52,23 +52,11 @@ public:
   virtual pq3DWidget* createWidget();
   virtual pq3DWidget* createSliceWidget(vtkPVSliceView::VIEW_PLANE plane);
   virtual void setEnabled(bool enable);
-//   virtual void setDefaultBounds(double bounds[6]);
   virtual void setBounds(double bounds[6]);
   virtual void bounds(double bounds[6]);
 
-//   virtual vtkSMProxy *getProxy();
-//   virtual void deleteWidget(pq3DWidget* &widget);
-
-//   virtual bool contains(SelectionHandler::VtkRegion region);
-//   virtual bool intersectPlane(ViewType plane, int slice);
-
-//   virtual void setEnabled(bool value);
-
-// protected slots:
-//   virtual void modifyVOI();
-
-// private:
-//   void rvoiExtent(double *rvoi);
+private:
+  pq3DWidget *createWidget(QString name);
 
 private:
   vtkSMProxy *m_box;

@@ -38,10 +38,6 @@ vtkNonRotatingBoxWidget::vtkNonRotatingBoxWidget()
   this->TranslationEnabled = 1;
   this->ScalingEnabled = 1;
   this->RotationEnabled = 1;
-  
-  this->InvertXCursor = 0;
-  this->InvertYCursor = 0;
-  this->InvertZCursor = 0;
 
   // Define widget events
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
@@ -268,24 +264,15 @@ void vtkNonRotatingBoxWidget::SetCursor(int state)
 	break;
       case vtkNonRotatingBoxRepresentation::MoveF0:
       case vtkNonRotatingBoxRepresentation::MoveF1:
-	if (this->InvertXCursor)
-	  this->RequestCursorShape(VTK_CURSOR_SIZENS);
-	else
-	  this->RequestCursorShape(VTK_CURSOR_SIZEWE);
+	this->RequestCursorShape(VTK_CURSOR_SIZEWE);
 	break;
       case vtkNonRotatingBoxRepresentation::MoveF2:
       case vtkNonRotatingBoxRepresentation::MoveF3:
-	if (this->InvertYCursor)
-	  this->RequestCursorShape(VTK_CURSOR_SIZEWE);
-	else
-	  this->RequestCursorShape(VTK_CURSOR_SIZENS);
+	this->RequestCursorShape(VTK_CURSOR_SIZENS);
 	break;
       case vtkNonRotatingBoxRepresentation::MoveF4:
       case vtkNonRotatingBoxRepresentation::MoveF5:
-	if (this->InvertZCursor)
-	  this->RequestCursorShape(VTK_CURSOR_SIZEWE);
-	else
-	  this->RequestCursorShape(VTK_CURSOR_SIZENS);
+	this->RequestCursorShape(VTK_CURSOR_SIZENS);
 	break;
       case vtkNonRotatingBoxRepresentation::Outside:
 	this->RequestCursorShape(VTK_CURSOR_DEFAULT);

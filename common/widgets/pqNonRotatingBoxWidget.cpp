@@ -29,22 +29,23 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ========================================================================*/
-#include "common/plugins/EspinaWidgets/pqNonRotatingBoxWidget.h"
+#include "pqNonRotatingBoxWidget.h"
 
 // Server Manager Includes.
-#include "vtkSMNewWidgetRepresentationProxy.h"
-#include "vtkSMPropertyHelper.h"
+#include <vtkSMNewWidgetRepresentationProxy.h>
+#include <vtkSMPropertyHelper.h>
 
 // Qt Includes.
 #include <QDoubleValidator>
 
 // ParaView Includes.
-#include "pq3DWidgetFactory.h"
-#include "pqApplicationCore.h"
-#include "pqPropertyLinks.h"
-#include "pqServer.h"
-#include "pqServerManagerModel.h"
-#include "pqSMAdaptor.h"
+#include <pq3DWidgetFactory.h>
+#include <pqApplicationCore.h>
+#include <pqPropertyLinks.h>
+#include <pqServer.h>
+#include <pqServerManagerModel.h>
+#include <pqSMAdaptor.h>
+#include "vtkNonRotatingBoxRepresentation.h"
 
 //-----------------------------------------------------------------------------
 pqNonRotatingBoxWidget::pqNonRotatingBoxWidget(vtkSMProxy* refProxy, vtkSMProxy* pxy, QWidget* _parent) :
@@ -122,6 +123,15 @@ void pqNonRotatingBoxWidget::onWidgetVisibilityChanged(bool visible)
 //-----------------------------------------------------------------------------
 void pqNonRotatingBoxWidget::accept()
 {
+  vtkSMNewWidgetRepresentationProxy* widget = this->getWidgetProxy();
+  Q_ASSERT(widget);
+  vtkSMProxy *proxy = widget->GetRepresentationProxy();
+  Q_ASSERT(proxy);
+  vtkNonRotatingBoxRepresentation *rep =
+    dynamic_cast<vtkNonRotatingBoxRepresentation *>(proxy->GetClientSideObject());
+  Q_ASSERT(rep);
+  vtkSMPropertyHelper(getControlledProxy(), "Bounds").Set(rep->GetBounds(), 6);
+  getControlledProxy()->UpdateVTKObjects();
   this->Superclass::accept();
   this->hideHandles();
 }

@@ -28,7 +28,7 @@
 
 #include <QAbstractItemView>
 #include <QDockWidget>
-#include "common/plugins/EspinaWidgets/RectangularSelection.h"
+#include "common/widgets/RectangularSelection.h"
 #include "common/gui/SliceView.h"
 
 // Forward-declaration

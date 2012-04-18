@@ -226,8 +226,8 @@ SagittalState *SagittalState::m_singleton = NULL;
 //----------------------------------------------------------------------------
 void SagittalState::updateActor ( vtkProp3D* actor )
 {
-  actor->RotateX ( -90 );
-  actor->RotateY ( -90 );
+  actor->RotateX(-90);
+  actor->RotateY(-90);
 }
 
 //----------------------------------------------------------------------------

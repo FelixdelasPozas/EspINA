@@ -28,7 +28,7 @@
 #include "common/model/Channel.h"
 #include "common/processing/pqData.h"
 #include "common/model/Segmentation.h"
-#include "common/plugins/EspinaWidgets/RectangularSelection.h"
+#include "common/widgets/RectangularSelection.h"
 
 #include <QDockWidget>
 #include <QMainWindow>

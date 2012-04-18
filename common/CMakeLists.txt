@@ -16,10 +16,10 @@ include_directories(
   ${CMAKE_SOURCE_DIR}
   ${CMAKE_SOURCE_DIR}/common/extensions/Margins
   ${CMAKE_SOURCE_DIR}/common/extensions/Morphological
-  ${CMAKE_SOURCE_DIR}/common/plugins/EspinaWidgets
+  ${CMAKE_SOURCE_DIR}/common/widgets
   ${CMAKE_SOURCE_DIR}/common/views
   ${CMAKE_CURRENT_BINARY_DIR}  #For wrap/ui files
-  ${CMAKE_CURRENT_BINARY_DIR}/plugins/EspinaWidgets
+#   ${CMAKE_CURRENT_BINARY_DIR}/widgets
   ${ITK_VTK_GLUE}
 )
 
@@ -29,6 +29,12 @@ ADD_3DWIDGET(
   WIDGET_IFACES WIDGET_SOURCES
   CLASS_NAME pqNonRotatingBoxWidget
   WIDGET_TYPE NonRotatingBox
+  )
+
+ADD_3DWIDGET(
+  WIDGET2_IFACES WIDGET2_SOURCES
+  CLASS_NAME pqRectangularWidget
+  WIDGET_TYPE RectangularBorder
   )
 
 ADD_PARAVIEW_VIEW_MODULE(
@@ -45,21 +51,21 @@ ADD_PARAVIEW_VIEW_MODULE(
 
 set (PVCORE_IFACES
   ${WIDGET_IFACES}
+  ${WIDGET2_IFACES}
   ${SLICE_VIEW_IFACES}
   ${VOLUME_VIEW_IFACES}
   )
 
 qt4_wrap_cpp(PVMOC_SOURCES
-  plugins/EspinaWidgets/pqNonRotatingBoxWidget.h
   views/pqSliceView.h
   views/pqVolumeView.h
+  widgets/pqRectangularWidget.h
+  widgets/pqNonRotatingBoxWidget.h
   )
 
 set (PVCORE_SERVER_SOURCES
   extensions/Margins/vtkChannelBorderDetector.cpp
   extensions/Morphological/vtkMorphologicalFeaturesFilter.cpp
-  plugins/EspinaWidgets/vtkNonRotatingBoxRepresentation.cpp
-  plugins/EspinaWidgets/vtkNonRotatingBoxWidget.cpp
   views/vtkPVSliceView.cpp
   views/vtkPVVolumeView.cpp
   views/vtkSMSliceViewProxy.cpp
@@ -67,24 +73,30 @@ set (PVCORE_SERVER_SOURCES
   views/vtkSegmentationRepresentation.cpp
   views/vtkSliceRepresentation.cpp
   views/vtkVolumetricRepresentation.cpp
+  widgets/vtkRectangularRepresentation.cpp
+  widgets/vtkRectangularWidget.cpp
+  widgets/vtkNonRotatingBoxRepresentation.cpp
+  widgets/vtkNonRotatingBoxWidget.cpp
   )
 
 set (PVCORE_SOURCES
   ${PVMOC_SOURCES}
   ${WIDGET_SOURCES}
+  ${WIDGET2_SOURCES}
   ${SLICE_VIEW_SOURCES}
   ${VOLUME_VIEW_SOURCES}
   views/pqSliceView.cpp
   views/pqVolumeView.cpp
-  plugins/EspinaWidgets/pqNonRotatingBoxWidget.cpp
-  plugins/EspinaWidgets/RectangularSelection.cpp
+  widgets/pqRectangularWidget.cpp
+  widgets/pqNonRotatingBoxWidget.cpp
+  widgets/RectangularSelection.cpp
   )
 
 set (PVCORE_XML
   extensions/Margins/Margins.xml
   extensions/Morphological/MorphologicalExtension.xml
   model/Model.xml
-  plugins/EspinaWidgets/EspinaWidgets.xml
+  widgets/EspinaWidgets.xml
   views/EspinaViews.xml
   )
 

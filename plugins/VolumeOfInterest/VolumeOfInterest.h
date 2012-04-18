@@ -21,7 +21,7 @@
 #include <QActionGroup>
 
 #include "common/selection/PixelSelector.h"
-#include <common/plugins/EspinaWidgets/RectangularSelection.h>
+#include <common/widgets/RectangularSelection.h>
 #include <QSharedPointer>
 
 class ActionSelector;

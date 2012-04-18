@@ -42,7 +42,48 @@
           proxygroup="3d_widgets" proxyname="NonRotatingBoxWidget">
         </Proxy>
       </SubProxy>
-      <!-- End of BoxWidgetRepresentation -->
+      <!-- End of NonRotatingBoxWidgetRepresentation -->
+    </NewWidgetRepresentationProxy>
+    <!-- ================================================================== -->
+    <NewWidgetRepresentationProxy name="RectangularWidgetRepresentation"
+      class="vtk3DWidgetRepresentation">
+      <Documentation>
+        Representation proxy for the the rectangular widget. This includes the
+        widget/representation proxies for the rectangular widget.
+	This is created by pqRectangularWidget.
+      </Documentation>
+
+      <IntVectorProperty name="Enabled"
+        command="SetEnabled"
+        number_of_elements="1"
+        default_values="0">
+        <BooleanDomain name="bool"/>
+        <Documentation>
+          Enable/Disable widget interaction.
+        </Documentation>
+      </IntVectorProperty>
+
+      <SubProxy>
+        <Proxy name="Prop"
+          proxygroup="3d_widget_representations" proxyname="RectangularRepresentation">
+        </Proxy>
+        <ExposedProperties>
+          <Property name="PlaceFactor" />
+          <Property name="PlaceWidget" />
+          <Property name="Visibility" />
+          <Property name="Position" />
+          <Property name="PositionInfo" />
+          <Property name="Scale" />
+          <Property name="ScaleInfo" />
+        </ExposedProperties>
+      </SubProxy>
+
+      <SubProxy>
+        <Proxy name="Widget"
+          proxygroup="3d_widgets" proxyname="RectangularWidget">
+        </Proxy>
+      </SubProxy>
+      <!-- End of RectangularWidgetRepresentation -->
     </NewWidgetRepresentationProxy>
   </ProxyGroup>
 
@@ -96,16 +137,71 @@
         </ExposedProperties>
       </SubProxy>
 
-      <!-- End of BoxRepresentation -->
+      <!-- End of NonRotatingBoxRepresentation -->
     </BoxRepresentationProxy>
+    <!-- ================================================================== -->
+    <Proxy name="RectangularRepresentation" class="vtkRectangularRepresentation">
+      <Documentation>
+        Proxy for vtkRectangularRepresentation. Don't confuse this with the
+        vtkSMRepresentation proxy for the rectangular widget (which is the
+        RectangularWidgetRepresentation).
+      </Documentation>
+
+      <IntVectorProperty
+        name="Visibility"
+        command="SetVisibility"
+        number_of_elements="1"
+        default_values="1"
+        animateable="1">
+        <BooleanDomain name="bool" />
+      </IntVectorProperty>
+
+      <DoubleVectorProperty
+        name="PlaceWidget"
+        command="PlaceWidget"
+        number_of_elements="6"
+        argument_is_array="1"
+        default_values="none">
+        <DoubleRangeDomain name="range"/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty
+        name="PlaceFactor"
+        command="SetPlaceFactor"
+        number_of_elements="1"
+        default_values="1.0">
+        <DoubleRangeDomain name="range" min="0.01" />
+      </DoubleVectorProperty>
+
+      <SubProxy>
+        <Proxy name="Transform"
+          proxygroup="extended_sources" proxyname="Transform2">
+        </Proxy>
+        <ExposedProperties>
+          <Property name="Position" />
+          <Property name="PositionInfo" />
+          <Property name="Scale" />
+          <Property name="ScaleInfo" />
+        </ExposedProperties>
+      </SubProxy>
+      <!-- End of RectangularRepresentation -->
+    </Proxy>
   </ProxyGroup>
 
   <!-- ****************************************************************** -->
   <ProxyGroup name="3d_widgets">
+    <!-- ================================================================== -->
     <Proxy name="NonRotatingBoxWidget" class="vtkNonRotatingBoxWidget"
       base_proxygroup="3d_widgets" base_proxyname="WidgetBase">
       <Documentation>
         Proxy for vtkNonRotatingBoxWidget.
+      </Documentation>
+    </Proxy>
+    <!-- ================================================================== -->
+    <Proxy name="RectangularWidget" class="vtkRectangularWidget"
+      base_proxygroup="3d_widgets" base_proxyname="WidgetBase">
+      <Documentation>
+        Proxy for vtkRectangularWidget.
       </Documentation>
     </Proxy>
   </ProxyGroup>
@@ -154,6 +250,5 @@
     </Proxy>
   </ProxyGroup>
 
-  
 </ServerManagerConfiguration>
 

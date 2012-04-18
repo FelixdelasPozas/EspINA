@@ -128,15 +128,6 @@ public:
   vtkSetMacro(RotationEnabled,int);
   vtkGetMacro(RotationEnabled,int);
   vtkBooleanMacro(RotationEnabled,int);
-  vtkSetMacro(InvertXCursor,int);
-  vtkGetMacro(InvertXCursor,int);
-  vtkBooleanMacro(InvertXCursor,int);
-  vtkSetMacro(InvertYCursor,int);
-  vtkGetMacro(InvertYCursor,int);
-  vtkBooleanMacro(InvertYCursor,int);
-  vtkSetMacro(InvertZCursor,int);
-  vtkGetMacro(InvertZCursor,int);
-  vtkBooleanMacro(InvertZCursor,int);
 
   // Description:
   // Create the default widget representation if one is not set. By default,
@@ -166,10 +157,6 @@ protected:
   int TranslationEnabled;
   int ScalingEnabled;
   int RotationEnabled;
-  // Control whether resize cursor should be inverted or not
-  int InvertXCursor;
-  int InvertYCursor;
-  int InvertZCursor;
 private:
   vtkNonRotatingBoxWidget(const vtkNonRotatingBoxWidget&);  //Not implemented
   void operator=(const vtkNonRotatingBoxWidget&);  //Not implemented

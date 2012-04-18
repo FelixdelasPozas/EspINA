@@ -7,9 +7,9 @@ class VTK_WIDGETS_EXPORT vtkNonRotatingBoxRepresentation : public vtkBoxRepresen
 {
 public:
   static vtkNonRotatingBoxRepresentation *New();  
-  
+
   vtkTypeMacro(vtkNonRotatingBoxRepresentation, vtkBoxRepresentation); 
-  
+
 //   virtual void WidgetInteraction(double e[2]);
   virtual int ComputeInteractionState(int X, int Y, int modify = 0);
 };
