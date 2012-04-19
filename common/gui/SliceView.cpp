@@ -1116,6 +1116,14 @@ void SliceView::addWidget(pq3DWidget* widget)
 }
 
 //-----------------------------------------------------------------------------
+void SliceView::removeWidget(pq3DWidget* widget)
+{
+  Q_ASSERT(m_widgets.contains(widget));
+  m_widgets.removeOne(widget);
+}
+
+
+//-----------------------------------------------------------------------------
 void SliceView::previewExtent(int VOI[6])
 {
   memcpy(VOI, m_gridSize,6*sizeof(int));

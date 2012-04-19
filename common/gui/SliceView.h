@@ -154,6 +154,7 @@ public:
   void removePreview(pqOutputPort *preview);
 
   void addWidget(pq3DWidget *widget);
+  void removeWidget(pq3DWidget *widget);
 
   void setColorEngine(ColorEngine *engine){m_colorEngine = engine;}
 

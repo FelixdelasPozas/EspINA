@@ -56,6 +56,7 @@ public:
   virtual QRect visualRect(const QModelIndex& index) const {return QRect();}
 
   virtual void addWidget(EspinaWidget *widget) = 0;
+  virtual void removeWidget(EspinaWidget *widget) = 0;
 
   virtual void gridSize(double size[3]) = 0;
   virtual void setGridSize(double size[3]) = 0;

@@ -67,6 +67,7 @@ public:
   void addRepresentation(pqOutputPort *oport);
 
   void addWidget(pq3DWidget *widget);
+  void removeWidget(pq3DWidget *widget);
 
   void setColorEngine(ColorEngine *engine){m_colorEngine = engine;}
 

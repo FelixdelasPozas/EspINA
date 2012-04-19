@@ -31,6 +31,13 @@ class VolumeView;
 class DefaultEspinaView
 : public EspinaView
 {
+  struct Widgtes
+  {
+    pq3DWidget *xy;
+    pq3DWidget *yz;
+    pq3DWidget *xz;
+    pq3DWidget *vol;
+  };
   Q_OBJECT
 public:
   explicit DefaultEspinaView(QMainWindow* parent, const QString activity = QString());
@@ -47,6 +54,7 @@ public:
   virtual void gridSize(double size[3]);
   virtual void setGridSize(double size[3]);
   virtual void addWidget(EspinaWidget* widget);
+  virtual void removeWidget(EspinaWidget* widget);
 
   void setColorEngine(ColorEngine *engine);
 
@@ -82,6 +90,7 @@ private:
   VolumeView *volView;
   QDockWidget *volDock, *yzDock, *xzDock;
   double m_gridSize[3];
+  QMap<EspinaWidget *, Widgtes> m_widgets;
 };
 
 #endif // DEFAULTESPINAVIEW_H

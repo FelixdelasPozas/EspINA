@@ -213,6 +213,13 @@ void VolumeView::addWidget(pq3DWidget* widget)
   widget->setEnabled(false);
 }
 
+//-----------------------------------------------------------------------------
+void VolumeView::removeWidget(pq3DWidget* widget)
+{
+  widget->setWidgetVisible(false);
+  widget->deselect();
+}
+
 
 //-----------------------------------------------------------------------------
 void VolumeView::onConnect()

@@ -201,11 +201,33 @@ void DefaultEspinaView::setGridSize(double size[3])
 //----------------------------------------------------------------------------
 void DefaultEspinaView::addWidget(EspinaWidget* widget)
 {
-  xyView->addWidget(widget->createSliceWidget(vtkPVSliceView::AXIAL));
-  yzView->addWidget(widget->createSliceWidget(vtkPVSliceView::SAGITTAL));
-  xzView->addWidget(widget->createSliceWidget(vtkPVSliceView::CORONAL));
-  volView->addWidget(widget->createWidget());
+  Widgtes widgets;
+  widgets.xy  = widget->createSliceWidget(vtkPVSliceView::AXIAL);
+  widgets.yz  = widget->createSliceWidget(vtkPVSliceView::SAGITTAL);
+  widgets.xz  = widget->createSliceWidget(vtkPVSliceView::CORONAL);
+  widgets.vol = widget->createWidget();
+
+  xyView->addWidget (widgets.xy);
+  yzView->addWidget (widgets.yz);
+  xzView->addWidget (widgets.xz);
+  volView->addWidget(widgets.vol);
+
+  m_widgets[widget] = widgets;
 }
+
+//----------------------------------------------------------------------------
+void DefaultEspinaView::removeWidget(EspinaWidget* widget)
+{
+  Widgtes widgets = m_widgets[widget];
+
+  xyView->removeWidget (widgets.xy);
+  yzView->removeWidget (widgets.yz);
+  xzView->removeWidget (widgets.xz);
+  volView->removeWidget(widgets.vol);
+
+  m_widgets.remove(widget);
+}
+
 
 //----------------------------------------------------------------------------
 void DefaultEspinaView::setColorEngine(ColorEngine* engine)

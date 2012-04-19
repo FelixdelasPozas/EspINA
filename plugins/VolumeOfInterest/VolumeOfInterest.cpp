@@ -124,7 +124,14 @@ void VolumeOfInterest::defineVOI(SelectionHandler::MultiSelection msel)
 //-----------------------------------------------------------------------------
 void VolumeOfInterest::cancelVOI()
 {
-  m_voiWidget.clear();
+  if (!m_voiWidget.isNull())
+  {
+    QSharedPointer<ViewManager> vm = EspinaCore::instance()->viewManger();
+    EspinaView *view = vm->currentView();
+    view->removeWidget(m_voiWidget.data());
+    m_voiWidget.clear();
+  }
+
   SelectionManager *selectorManager = SelectionManager::instance();
   selectorManager->unsetSelectionHandler(m_selector.data());
   selectorManager->setVOI(NULL);

@@ -86,11 +86,11 @@ static const QString SEG_FILES     = QObject::tr("Espina Analysis (*.seg)");
 
 //------------------------------------------------------------------------
 EspinaWindow::EspinaWindow()
-: m_view(NULL)
+: m_model(EspinaCore::instance()->model())
 , m_busy(false)
-, m_model(EspinaCore::instance()->model())
 , m_undoStack(EspinaCore::instance()->undoStack())
 , m_currentActivity("NONE")
+, m_view(NULL)
 {
 #ifdef DEBUG
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model.data()));
