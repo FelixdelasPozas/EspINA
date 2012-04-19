@@ -1,3 +1,6 @@
+find_package (ParaView REQUIRED 1.12) # Includes Qt4
+include (${PARAVIEW_USE_FILE})
+
 find_package (VTK REQUIRED)
 include (${VTK_USE_FILE})
 
@@ -14,6 +17,8 @@ link_directories ( ${Boost_LIBRARY_DIRS} )
 
 include_directories(
   ${CMAKE_SOURCE_DIR}
+  ${CMAKE_SOURCE_DIR}/common
+  ${CMAKE_SOURCE_DIR}/common/gui
   ${CMAKE_SOURCE_DIR}/common/extensions/Margins
   ${CMAKE_SOURCE_DIR}/common/extensions/Morphological
   ${CMAKE_SOURCE_DIR}/common/widgets
@@ -22,6 +27,7 @@ include_directories(
 #   ${CMAKE_CURRENT_BINARY_DIR}/widgets
   ${ITK_VTK_GLUE}
 )
+
 
 ####### EspinaPVCore #########
 
@@ -189,6 +195,7 @@ set (CORE_SOURCES
   undo/AddSegmentation.cpp
   undo/RemoveSegmentation.cpp
   )
+add_library(fakeGUI ${CORE_SOURCES})
 
 # Make debug output clearer
 #foreach(arg ${CORE_SOURCES})

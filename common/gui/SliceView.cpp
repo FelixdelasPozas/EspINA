@@ -16,10 +16,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 // NOTE: vtkRenderer::RemoveAllViewProps()  maybe free the memory of the representations...
-#include "SliceView.h"
+#include "common/gui/SliceView.h"
 
-// Debug
-#include <QDebug>
 // #include "espina_debug.h"
 //
 // // EspINA
@@ -31,7 +29,10 @@
 #include "common/selection/SelectionManager.h"
 #include "common/views/pqSliceView.h"
 #include "common/views/vtkSMSliceViewProxy.h"
+#include "ColorEngine.h"
 
+// Debug
+#include <QDebug>
 // Qt includes
 #include <QApplication>
 #include <QHBoxLayout>
@@ -75,8 +76,10 @@
 #include <vtkSMRepresentationProxy.h>
 #include <vtkSMTwoDRenderViewProxy.h>
 #include <vtkWorldPointPicker.h>
-#include "ColorEngine.h"
 #include <vtkCamera.h>
+#include <vtkAbstractWidget.h>
+#include <vtkSMNewWidgetRepresentationProxy.h>
+#include <vtkWidgetRepresentation.h>
 
 //-----------------------------------------------------------------------------
 SliceViewPreferencesPanel::SliceViewPreferencesPanel(SliceViewPreferences* preferences)
@@ -675,12 +678,25 @@ void SliceView::sliceViewCenterChanged(double x, double y, double z)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::scrollValueChanged(int pos)
+void SliceView::scrollValueChanged(int value)
 {
+  double pos = value;//nm
+
   if (m_fitToGrid)
-    m_view->setSlice(m_gridSize[m_plane]*pos);
-  else
-    m_view->setSlice(pos);
+    pos *= m_gridSize[m_plane];
+
+  m_view->setSlice(pos);
+//   foreach(pq3DWidget *widget, m_widgets)
+//   {
+//     vtkAbstractWidget *aw = widget->getWidgetProxy()->GetWidget();
+//     double *bounds = aw->GetRepresentation()->GetBounds();
+//     bool visible = bounds[2*m_plane] <= pos && pos <= bounds[2*m_plane+1];
+//     widget->setWidgetVisible(visible);
+//     qDebug() << bounds[0] << bounds[1]
+//              << bounds[2] << bounds[3]
+//              << bounds[4] << bounds[5];
+//     qDebug() << m_plane << pos << visible;
+//   }
 }
 
 //-----------------------------------------------------------------------------
@@ -836,6 +852,18 @@ void SliceView::updateChannelOpacity()
     vtkSMRepresentationProxy *rep = m_channels[channel];
     vtkSMPropertyHelper(rep, "Opacity").Set(&opacity,1);
     rep->UpdateVTKObjects();
+  }
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::updateWidgetVisibility()
+{
+  foreach(pq3DWidget *widget, m_widgets)
+  {
+    vtkAbstractWidget *aw = widget->getWidgetProxy()->GetWidget();
+    double *bounds = aw->GetRepresentation()->GetBounds();
+    bool visible = bounds[2*m_plane] <= m_center[m_plane] && m_center[m_plane] <= bounds[2*m_plane+1];
+    widget->setWidgetVisible(visible);
   }
 }
 
@@ -1081,7 +1109,10 @@ void SliceView::addWidget(pq3DWidget* widget)
   widget->setView(m_view);
   widget->setWidgetVisible(true);
   widget->select();
+  connect(widget, SIGNAL(modified()),
+	  this, SLOT(updateWidgetVisibility()));
   m_widgets << widget;
+  updateWidgetVisibility();
 }
 
 //-----------------------------------------------------------------------------
@@ -1218,6 +1249,8 @@ void SliceView::centerViewOn(double center[3])
       m_center[i] = floor((m_center[i]*m_gridSize[i])+0.5);
 
   m_view->centerViewOn(m_center[0], m_center[1], m_center[2]);
+
+  updateWidgetVisibility();
 }
 
 //-----------------------------------------------------------------------------

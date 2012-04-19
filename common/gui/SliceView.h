@@ -179,9 +179,11 @@ protected slots:
   void undock();
 
   void sliceViewCenterChanged(double x, double y, double z);
-  void scrollValueChanged(int pos);
+  void scrollValueChanged(int value);
   void selectFromSlice();
   void selectToSlice();
+
+  void updateWidgetVisibility();
 
 signals:
   void centerChanged(double, double, double);

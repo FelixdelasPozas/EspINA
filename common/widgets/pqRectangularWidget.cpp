@@ -30,9 +30,9 @@
 #include <pqServer.h>
 #include <pqServerManagerModel.h>
 #include <vtkPolyDataAlgorithm.h>
+#include <vtkRectangularRepresentation.h>
 #include <vtkSMNewWidgetRepresentationProxy.h>
 #include <vtkSMPropertyHelper.h>
-#include "vtkRectangularRepresentation.h"
 
 //-----------------------------------------------------------------------------
 pqRectangularWidget::pqRectangularWidget(vtkSMProxy* refProxy, vtkSMProxy* pxy, QWidget* _parent) :
