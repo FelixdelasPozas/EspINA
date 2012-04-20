@@ -33,12 +33,19 @@ qt4_wrap_cpp(MOC_SRCS
   CountingRegion.h
   regions/AdaptiveBoundingRegion.h
   regions/RectangularBoundingRegion.h
+  pqRectangularBoundingVolumeWidget.h
   pqRectangularBoundingRegionWidget.h
   )
 
 # Create Interface files
 qt4_wrap_ui (UI_BUILT_SOURCES
   CountingRegion.ui
+  )
+
+ADD_3DWIDGET(
+  VOLUME_WIDGET_IFACES VOLUME_WIDGET_SOURCES
+  CLASS_NAME pqRectangularBoundingVolumeWidget
+  WIDGET_TYPE RectangularBoundingVolume
   )
 
 ADD_3DWIDGET(
@@ -59,6 +66,7 @@ set (LOCAL_SOURCES
   extensions/CountingRegionSampleExtension.cpp
   extensions/CountingRegionSegmentationExtension.cpp
   pqRectangularBoundingRegionWidget.cpp
+  pqRectangularBoundingVolumeWidget.cpp
   )
 
 set (REGION_SOURCES
@@ -73,6 +81,8 @@ set (SERVER_SOURCES
   server/vtkCountingRegionFilter.cpp
   server/vtkRectangularBoundingRegionRepresentation.cpp
   server/vtkRectangularBoundingRegionWidget.cpp
+  server/vtkRectangularBoundingVolumeRepresentation.cpp
+  server/vtkRectangularBoundingVolumeWidget.cpp
 )
 
 set (PLUGIN_SRCS
@@ -82,6 +92,7 @@ set (PLUGIN_SRCS
   ${RCC_BUILT_SOURCES}
   ${UI_BUILT_SOURCES}
   ${WIDGET_SOURCES}
+  ${VOLUME_WIDGET_SOURCES}
   ${DOCK_SOURCES}
   )
 
@@ -105,7 +116,7 @@ ADD_PARAVIEW_PLUGIN(
 	#   we need to use SERVER_SOURCES instead of SERVER_MANAGER_SOURCES
 	#   SERVER_SOURCES SegmentationFilter.cpp 
   SOURCES ${PLUGIN_SRCS}
-  GUI_INTERFACES ${DOCK_IFACES} ${WIDGET_IFACES}
+  GUI_INTERFACES ${DOCK_IFACES} ${WIDGET_IFACES} ${VOLUME_WIDGET_IFACES}
   )
 
 if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )

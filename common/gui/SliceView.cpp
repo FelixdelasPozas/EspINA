@@ -686,17 +686,7 @@ void SliceView::scrollValueChanged(int value)
     pos *= m_gridSize[m_plane];
 
   m_view->setSlice(pos);
-//   foreach(pq3DWidget *widget, m_widgets)
-//   {
-//     vtkAbstractWidget *aw = widget->getWidgetProxy()->GetWidget();
-//     double *bounds = aw->GetRepresentation()->GetBounds();
-//     bool visible = bounds[2*m_plane] <= pos && pos <= bounds[2*m_plane+1];
-//     widget->setWidgetVisible(visible);
-//     qDebug() << bounds[0] << bounds[1]
-//              << bounds[2] << bounds[3]
-//              << bounds[4] << bounds[5];
-//     qDebug() << m_plane << pos << visible;
-//   }
+  updateWidgetVisibility();
 }
 
 //-----------------------------------------------------------------------------
@@ -858,12 +848,9 @@ void SliceView::updateChannelOpacity()
 //-----------------------------------------------------------------------------
 void SliceView::updateWidgetVisibility()
 {
-  foreach(pq3DWidget *widget, m_widgets)
+  foreach(SliceWidget *widget, m_widgets)
   {
-    vtkAbstractWidget *aw = widget->getWidgetProxy()->GetWidget();
-    double *bounds = aw->GetRepresentation()->GetBounds();
-    bool visible = bounds[2*m_plane] <= m_center[m_plane] && m_center[m_plane] <= bounds[2*m_plane+1];
-    widget->setWidgetVisible(visible);
+    widget->setSlice(m_center[m_plane], m_plane);
   }
 }
 
@@ -1104,22 +1091,23 @@ void SliceView::removePreview(pqOutputPort* preview)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::addWidget(pq3DWidget* widget)
+void SliceView::addWidget(SliceWidget *sWidget)
 {
+  pq3DWidget *widget = *sWidget;
   widget->setView(m_view);
   widget->setWidgetVisible(true);
   widget->select();
   connect(widget, SIGNAL(modified()),
 	  this, SLOT(updateWidgetVisibility()));
-  m_widgets << widget;
+  m_widgets << sWidget;
   updateWidgetVisibility();
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::removeWidget(pq3DWidget* widget)
+void SliceView::removeWidget(SliceWidget* sWidget)
 {
-  Q_ASSERT(m_widgets.contains(widget));
-  m_widgets.removeOne(widget);
+  Q_ASSERT(m_widgets.contains(sWidget));
+  m_widgets.removeOne(sWidget);
 }
 
 
@@ -1156,6 +1144,7 @@ void SliceView::forceRender()
   if (isVisible())
   {
 //     qDebug() << "Rendering View";
+    updateWidgetVisibility();
     m_view->forceRender();
   }
 }
@@ -1258,7 +1247,6 @@ void SliceView::centerViewOn(double center[3])
 
   m_view->centerViewOn(m_center[0], m_center[1], m_center[2]);
 
-  updateWidgetVisibility();
 }
 
 //-----------------------------------------------------------------------------

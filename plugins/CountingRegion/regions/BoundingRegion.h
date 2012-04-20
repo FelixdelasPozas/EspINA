@@ -24,6 +24,7 @@
 #include <common/widgets/RectangularSelection.h>
 
 #include <common/processing/pqFilter.h>
+#include <common/processing/pqData.h>
 
 class CountingRegionSampleExtension;
 

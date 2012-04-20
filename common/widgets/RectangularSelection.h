@@ -20,25 +20,10 @@
 #ifndef RECTANGULARVOI_H
 #define RECTANGULARVOI_H
 
-#include <common/views/vtkPVSliceView.h>
-#include <common/selection/SelectionHandler.h>
+#include <common/widgets/EspinaWidget.h>
 
 class pq3DWidget;
 class vtkSMProxy;
-
-class EspinaWidget
-{
-public:
-  virtual ~EspinaWidget(){}
-
-  virtual pq3DWidget* createWidget() = 0;
-  virtual pq3DWidget* createSliceWidget(vtkPVSliceView::VIEW_PLANE plane) = 0;
-
-  virtual void setEnabled(bool enable) = 0;
-  /// Expand the widget to fit @bounds
-  virtual void setBounds(double bounds[6]) = 0;
-  virtual void bounds(double bounds[6]) = 0;
-};
 
 class RectangularRegion
 : public EspinaWidget
@@ -49,8 +34,8 @@ public:
 
   vtkSMProxy *getProxy();
 
-  virtual pq3DWidget* createWidget();
-  virtual pq3DWidget* createSliceWidget(vtkPVSliceView::VIEW_PLANE plane);
+  virtual pq3DWidget*  createWidget();
+  virtual SliceWidget *createSliceWidget(vtkPVSliceView::VIEW_PLANE plane);
   virtual void setEnabled(bool enable);
   virtual void setBounds(double bounds[6]);
   virtual void bounds(double bounds[6]);

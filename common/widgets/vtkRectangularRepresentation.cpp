@@ -21,10 +21,10 @@ vtkStandardNewMacro(vtkRectangularRepresentation);
 
 //----------------------------------------------------------------------------
 vtkRectangularRepresentation::vtkRectangularRepresentation()
+: Plane(vtkPVSliceView::AXIAL)
 {
   // The initial state
   this->InteractionState = vtkRectangularRepresentation::Outside;
-  this->Plane = vtkPVSliceView::AXIAL; //Default Axial plane
 
   this->CreateDefaultProperties();
 
@@ -47,19 +47,15 @@ vtkRectangularRepresentation::vtkRectangularRepresentation()
     this->EdgeActor[i]    = vtkActor::New();
 
     this->EdgePolyData[i]->SetPoints(this->Vertex);
-//     this->EdgePolyData[i]->GetLines()->Allocate(2, 4);
-//     this->EdgePolyData[i]->GetLines()->InsertNextCell(2);
-//     this->EdgePolyData[i]->GetLines()->InsertCellPoint(i);
-//     this->EdgePolyData[i]->GetLines()->InsertCellPoint((i+1)%4);
-    vtkSmartPointer<vtkLine> edge = vtkSmartPointer<vtkLine>::New();
-    vtkCellArray *lines = vtkCellArray::New();
-    edge->GetPointIds()->SetId(0, i);
-    edge->GetPointIds()->SetId(1, (i+1)%4);
-    lines->Allocate(lines->EstimateSize(1,2));
-    lines->InsertNextCell(edge);
-    this->EdgePolyData[i]->SetLines(lines);
-    this->EdgePolyData[i]->Modified();
+    this->EdgePolyData[i]->SetLines(vtkCellArray::New());
+    this->EdgePolyData[i]->GetLines()->Allocate(
+      this->EdgePolyData[i]->GetLines()->EstimateSize(1,2));
+    this->EdgePolyData[i]->GetLines()->InsertNextCell(2);
+    this->EdgePolyData[i]->GetLines()->InsertCellPoint(i);
+    this->EdgePolyData[i]->GetLines()->InsertCellPoint((i+1)%4);
+
     this->EdgeMapper[i]->SetInput(this->EdgePolyData[i]);
+
     this->EdgeActor[i]->SetMapper(this->EdgeMapper[i]);
     this->EdgeActor[i]->SetProperty(this->EdgeProperty);
 
@@ -97,7 +93,17 @@ vtkRectangularRepresentation::vtkRectangularRepresentation()
 //----------------------------------------------------------------------------
 vtkRectangularRepresentation::~vtkRectangularRepresentation()
 {
-  //TODO: Review deletes
+  for(int i=0; i<4; i++)
+  {
+    this->EdgeActor[i]->Delete();
+    this->EdgeMapper[i]->Delete();
+    this->EdgePolyData[i]->Delete();
+  }
+
+  this->RegionActor->Delete();
+  this->RegionMapper->Delete();
+  this->RegionPolyData->Delete();
+
   this->EdgePicker->Delete();
   this->RegionPicker->Delete();
 
@@ -106,6 +112,7 @@ vtkRectangularRepresentation::~vtkRectangularRepresentation()
   this->EdgeProperty->Delete();
   this->RegionProperty->Delete();
   this->SelectedEdgeProperty->Delete();
+  this->InvisibleProperty->Delete();
 }
 
 //----------------------------------------------------------------------

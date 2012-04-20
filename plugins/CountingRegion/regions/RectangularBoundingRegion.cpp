@@ -100,14 +100,14 @@ pq3DWidget* RectangularBoundingRegion::createWidget()
   vtkRectangularBoundingRegionWidget *regionwidget = dynamic_cast<vtkRectangularBoundingRegionWidget*>(widgets[0]->getWidgetProxy()->GetWidget());
   Q_ASSERT(regionwidget);
   const int VOL = 3;
-  regionwidget->SetViewType(VOL);
+//   regionwidget->SetPlane(VOL);
   m_widgets << widgets;
 
   return widgets[0];
 }
 
 //-----------------------------------------------------------------------------
-pq3DWidget* RectangularBoundingRegion::createSliceWidget(vtkPVSliceView::VIEW_PLANE plane)
+SliceWidget *RectangularBoundingRegion::createSliceWidget(vtkPVSliceView::VIEW_PLANE plane)
 {
   vtkSMProxy *proxy = m_boundingRegion->pipelineSource()->getProxy();
   QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(proxy, proxy);
@@ -122,10 +122,10 @@ pq3DWidget* RectangularBoundingRegion::createSliceWidget(vtkPVSliceView::VIEW_PL
   
   vtkRectangularBoundingRegionWidget *regionwidget = dynamic_cast<vtkRectangularBoundingRegionWidget*>(widgets[0]->getWidgetProxy()->GetWidget());
   Q_ASSERT(regionwidget);
-  regionwidget->SetViewType(plane);
+  regionwidget->SetPlane(plane);
   m_widgets << widgets;
 
-  return widgets[0];
+  return new SliceWidget(widgets[0]);
 }
 
 //-----------------------------------------------------------------------------

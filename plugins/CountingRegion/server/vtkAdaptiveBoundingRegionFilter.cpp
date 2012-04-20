@@ -354,10 +354,14 @@ int vtkAdaptiveBoundingRegionFilter::RequestData(vtkInformation* request, vtkInf
     regionInfo->Get(vtkDataObject::DATA_OBJECT())
   );
 
-  if (!m_init)
+  if (!m_init
+    || LastComputedUpper != InclusionOffset[2]
+    || LastComputedLower != ExclusionOffset[2])
   {
     computeStackMargins(image);
     m_init = true;
+    LastComputedUpper = InclusionOffset[2];
+    LastComputedLower = ExclusionOffset[2];
   }
 
   region->SetPoints(applyOffsets());

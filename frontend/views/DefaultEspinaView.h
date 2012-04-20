@@ -33,10 +33,10 @@ class DefaultEspinaView
 {
   struct Widgtes
   {
-    pq3DWidget *xy;
-    pq3DWidget *yz;
-    pq3DWidget *xz;
-    pq3DWidget *vol;
+    SliceWidget *xy;
+    SliceWidget *yz;
+    SliceWidget *xz;
+    pq3DWidget  *vol;
   };
   Q_OBJECT
 public:

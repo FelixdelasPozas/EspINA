@@ -24,9 +24,28 @@
 #include <vtkRectangularBoundingRegionWidget.h>
 
 #include <pq3DWidget.h>
+#include <pq3DWidgetInterface.h>
+#include <pqApplicationCore.h>
+#include <pqInterfaceTracker.h>
 #include <pqPipelineSource.h>
+#include <vtkPVXMLElement.h>
 #include <vtkSMNewWidgetRepresentationProxy.h>
 #include <vtkSMPropertyHelper.h>
+
+class AdaptiveRegionWidget
+: public SliceWidget
+{
+public:
+  explicit AdaptiveRegionWidget(pq3DWidget* widget) : SliceWidget(widget){}
+  virtual void setSlice(double pos, vtkPVSliceView::VIEW_PLANE plane)
+  {
+    vtkAbstractWidget *aw = m_widget->getWidgetProxy()->GetWidget();
+    vtkRectangularBoundingRegionWidget *regionWidget =
+      dynamic_cast<vtkRectangularBoundingRegionWidget*>(aw);
+    regionWidget->SetSlice(pos);
+    SliceWidget::setSlice(pos, plane);
+  }
+};
 
 //-----------------------------------------------------------------------------
 AdaptiveBoundingRegion::AdaptiveBoundingRegion(CountingRegionSampleExtension *sampleExt,
@@ -81,46 +100,41 @@ QVariant AdaptiveBoundingRegion::data(int role) const
 //-----------------------------------------------------------------------------
 pq3DWidget* AdaptiveBoundingRegion::createWidget()
 {
-  vtkSMProxy *proxy = m_boundingRegion->pipelineSource()->getProxy();
-  QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(proxy, proxy);
-
-  Q_ASSERT(widgets.size() == 1);
+  pq3DWidget *widget = createWidget("RectangularBoundingVolume");
+  Q_ASSERT(widget);
   // By default ParaView doesn't "Apply" the changes to the widget. So we set
   // up a slot to "Apply" when the interaction ends.
-  QObject::connect(widgets[0], SIGNAL(widgetEndInteraction()),
-		   widgets[0], SLOT(accept()));
-  QObject::connect(widgets[0], SIGNAL(widgetEndInteraction()),
+  QObject::connect(widget, SIGNAL(widgetEndInteraction()),
+		   widget, SLOT(accept()));
+  QObject::connect(widget, SIGNAL(widgetEndInteraction()),
 		   this, SLOT(resetWidgets()));
 
-  vtkRectangularBoundingRegionWidget *regionwidget = dynamic_cast<vtkRectangularBoundingRegionWidget*>(widgets[0]->getWidgetProxy()->GetWidget());
-  Q_ASSERT(regionwidget);
-  const int VOL = 3;
-  regionwidget->SetViewType(VOL);
-  m_widgets << widgets;
+  m_widgets << widget;
 
-  return widgets[0];
+  return widget;
 }
 
 //-----------------------------------------------------------------------------
-pq3DWidget* AdaptiveBoundingRegion::createSliceWidget(vtkPVSliceView::VIEW_PLANE plane)
+SliceWidget* AdaptiveBoundingRegion::createSliceWidget(vtkPVSliceView::VIEW_PLANE plane)
 {
-  vtkSMProxy *proxy = m_boundingRegion->pipelineSource()->getProxy();
-  QList<pq3DWidget *> widgets =  pq3DWidget::createWidgets(proxy, proxy);
-
-  Q_ASSERT(widgets.size() == 1);
+  pq3DWidget *widget = createWidget("RectangularBoundingRegion");
+  Q_ASSERT(widget);
   // By default ParaView doesn't "Apply" the changes to the widget. So we set
   // up a slot to "Apply" when the interaction ends.
-  QObject::connect(widgets[0], SIGNAL(widgetEndInteraction()),
-		   widgets[0], SLOT(accept()));
-  QObject::connect(widgets[0], SIGNAL(widgetEndInteraction()),
+  QObject::connect(widget, SIGNAL(widgetEndInteraction()),
+		   widget, SLOT(accept()));
+  QObject::connect(widget, SIGNAL(widgetEndInteraction()),
 		   this, SLOT(resetWidgets()));
 
-  vtkRectangularBoundingRegionWidget *regionwidget = dynamic_cast<vtkRectangularBoundingRegionWidget*>(widgets[0]->getWidgetProxy()->GetWidget());
-  Q_ASSERT(regionwidget);
-  regionwidget->SetViewType(plane);
-  m_widgets << widgets;
+  vtkAbstractWidget *aw = widget->getWidgetProxy()->GetWidget();
+  vtkRectangularBoundingRegionWidget *regionWidget =
+    dynamic_cast<vtkRectangularBoundingRegionWidget*>(aw);
+  Q_ASSERT(regionWidget);
+  regionWidget->SetPlane(plane);
 
-  return widgets[0];
+  m_widgets << widget;
+
+  return new AdaptiveRegionWidget(widget);
 }
 
 //-----------------------------------------------------------------------------
@@ -150,5 +164,29 @@ void AdaptiveBoundingRegion::resetWidgets()
   vtkSMPropertyHelper(proxy, "InclusionOffset").Get(m_inclusion, 3);
   vtkSMPropertyHelper(proxy, "ExclusionOffset").Get(m_exclusion, 3);
   emitDataChanged();
+}
+
+//-----------------------------------------------------------------------------
+pq3DWidget* AdaptiveBoundingRegion::createWidget(QString name)
+{
+  vtkSMProxy *proxy = m_boundingRegion->pipelineSource()->getProxy();
+//   vtkPVXMLElement *hints = proxy->GetHints();
+//   Q_ASSERT(hints->GetNumberOfNestedElements() == 1);
+//   vtkPVXMLElement* element = hints->GetNestedElement(0);
+  QList<pq3DWidgetInterface *> interfaces =
+  pqApplicationCore::instance()->interfaceTracker()->interfaces<pq3DWidgetInterface*>();
+  pq3DWidget *widget = 0;
+
+  // Create the widget from plugins.
+  foreach (pq3DWidgetInterface* iface, interfaces)
+  {
+    widget = iface->newWidget(name, proxy, proxy);
+    if (widget)
+    {
+//       widget->setHints(element);
+      return widget;
+    }
+  }
+  return NULL;
 }
 

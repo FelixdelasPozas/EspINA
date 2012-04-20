@@ -29,6 +29,7 @@
 #include <common/views/vtkPVSliceView.h>
 #include "IPreferencePanel.h"
 #include "common/selection/SelectableView.h"
+#include <common/widgets/EspinaWidget.h>
 
 class ColorEngine;
 class QPushButton;
@@ -153,8 +154,8 @@ public:
   void addPreview(pqOutputPort *preview);
   void removePreview(pqOutputPort *preview);
 
-  void addWidget(pq3DWidget *widget);
-  void removeWidget(pq3DWidget *widget);
+  void addWidget(SliceWidget *sWidget);
+  void removeWidget(SliceWidget *sWidget);
 
   void setColorEngine(ColorEngine *engine){m_colorEngine = engine;}
 
@@ -245,7 +246,7 @@ private:
   bool m_inThumbnail;
   QMap<Channel *, vtkSMRepresentationProxy *> m_channels;
   QMap<Segmentation *, SegRep> m_segmentations;
-  QList<pq3DWidget *>          m_widgets;
+  QList<SliceWidget *>         m_widgets;
   vtkSMRepresentationProxy *prevRep;
   Filter *m_preview;
 };

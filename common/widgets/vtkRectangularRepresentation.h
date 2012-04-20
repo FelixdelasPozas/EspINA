@@ -116,8 +116,8 @@ protected:
   // Do the picking
   vtkCellPicker *EdgePicker;
   vtkCellPicker *RegionPicker;
-  vtkActor *CurrentHandle;
   vtkCellPicker *LastPicker;
+  vtkActor *CurrentHandle;
 
   // Support GetBounds() method
   vtkBox *BoundingBox;

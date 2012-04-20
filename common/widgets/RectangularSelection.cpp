@@ -97,7 +97,7 @@ pq3DWidget* RectangularRegion::createWidget()
 }
 
 //----------------------------------------------------------------------------
-pq3DWidget* RectangularRegion::createSliceWidget(vtkPVSliceView::VIEW_PLANE plane)
+SliceWidget *RectangularRegion::createSliceWidget(vtkPVSliceView::VIEW_PLANE plane)
 {
   pq3DWidget *widget = createWidget("RectangularBorder");
   Q_ASSERT(widget);
@@ -122,7 +122,7 @@ pq3DWidget* RectangularRegion::createSliceWidget(vtkPVSliceView::VIEW_PLANE plan
 
   m_widgets << widget;
 
-  return widget;
+  return new SliceWidget(widget);
 }
 
 //----------------------------------------------------------------------------

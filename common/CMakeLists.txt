@@ -95,6 +95,7 @@ set (PVCORE_SOURCES
   views/pqVolumeView.cpp
   widgets/pqRectangularWidget.cpp
   widgets/pqNonRotatingBoxWidget.cpp
+  widgets/EspinaWidget.cpp
   widgets/RectangularSelection.cpp
   )
 

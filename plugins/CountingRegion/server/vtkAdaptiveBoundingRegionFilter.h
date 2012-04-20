@@ -67,6 +67,9 @@ private:
  double ExclusionVolume;
  double ExclusionAdaptiveVolume;
 
+ double LastComputedUpper;
+ double LastComputedLower;
+
  bool   m_init;
  vtkSmartPointer<vtkPoints>    borderVertices;
  vtkSmartPointer<vtkCellArray> faces;

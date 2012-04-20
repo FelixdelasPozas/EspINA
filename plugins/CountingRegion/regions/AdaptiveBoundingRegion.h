@@ -38,14 +38,17 @@ public:
   virtual QVariant data(int role = Qt::UserRole + 1) const;
 
   // Implements EspinaWidget itnerface
-  virtual pq3DWidget* createWidget();
-  virtual pq3DWidget* createSliceWidget(vtkPVSliceView::VIEW_PLANE plane);
+  virtual pq3DWidget  *createWidget();
+  virtual SliceWidget *createSliceWidget(vtkPVSliceView::VIEW_PLANE plane);
   virtual void setBounds(double bounds[6]);
   virtual void bounds(double bounds[6]);
   virtual void setEnabled(bool enable);
 
 protected slots:
   void resetWidgets();
+
+private:
+  pq3DWidget *createWidget(QString name);
 
 private:
   QList<pq3DWidget *> m_widgets;

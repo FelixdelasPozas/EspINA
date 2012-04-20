@@ -2,6 +2,7 @@
 #define VTKRECTANGULARBOUNDINGBOXREPRESENTATION_H
 
 #include "vtkWidgetRepresentation.h"
+#include <common/views/vtkPVSliceView.h>
 
 class vtkLookupTable;
 class vtkPolyDataAlgorithm;
@@ -25,8 +26,9 @@ class vtkMatrix4x4;
 class VTK_WIDGETS_EXPORT vtkRectangularBoundingRegionRepresentation : public vtkWidgetRepresentation
 {
   //BTX
-  enum MARGIN {LEFT, TOP, UPPER, RIGHT, BOTTOM, LOWER, VOLUME};
+  enum EDGE {LEFT, TOP, RIGHT, BOTTOM};
   //ETX
+
 public:
   // Description:
   // Instantiate the class.
@@ -36,21 +38,6 @@ public:
   // Standard methods for the class.
   vtkTypeMacro(vtkRectangularBoundingRegionRepresentation,vtkWidgetRepresentation);
   void PrintSelf(ostream& os, vtkIndent indent);
-
-  // Description:
-  // Retrieve a linear transform characterizing the transformation of the
-  // box. Note that the transformation is relative to where PlaceWidget()
-  // was initially called. This method modifies the transform provided. The
-  // transform can be used to control the position of vtkProp3D's, as well as
-  // other transformation operations (e.g., vtkTranformPolyData).
-  virtual void GetTransform(vtkTransform *t);
-
-  // Description:
-  // Set the position, scale and orientation of the box widget using the
-  // transform specified. Note that the transformation is relative to 
-  // where PlaceWidget() was initially called (i.e., the original bounding
-  // box). 
-  virtual void SetTransform(vtkTransform* t);
 
   // Description:
   // Grab the polydata (including points) that define the box widget. The
@@ -66,26 +53,19 @@ public:
   void reset();
 
   // Description:
-  // Get the face properties (the faces of the box). The 
-  // properties of the face when selected and normal can be 
-  // set.
-  vtkGetObjectMacro(FaceProperty,vtkProperty);
-  vtkGetObjectMacro(SelectedFaceProperty,vtkProperty);
-  
-  // Description:
   // Get the outline properties (the outline of the box). The 
   // properties of the outline when selected and normal can be 
   // set.
 //   vtkGetObjectMacro(OutlineProperty,vtkProperty);
-  vtkGetObjectMacro(SelectedOutlineProperty,vtkProperty);
+  vtkGetObjectMacro(SelectedEdgeProperty,vtkProperty);
 
   // Description:
   // Get the view type properties. In which plane it is been shown
   // and which slice (in case of planar views) is selected
 //   vtkSetMacro(ViewType,int);
 //   vtkSetMacro(Slice,int);
-  virtual void SetViewType(int type);
-  virtual void SetSlice(int slice, double spacing[3]);
+  virtual void SetPlane(vtkPVSliceView::VIEW_PLANE plane);
+  virtual void SetSlice(double pos);
   virtual void SetRegion(vtkPolyDataAlgorithm *region);
   
   // Description:
@@ -113,8 +93,7 @@ public:
   
 //BTX - used to manage the state of the widget
   enum {Outside=0,
-    MoveLeft, MoveRight, MoveTop, MoveBottom, MoveUpper, MoveLower,
-    Translating,Rotating,Scaling
+    MoveLeft, MoveRight, MoveTop, MoveBottom, Translating
   };
 //ETX
 
@@ -134,82 +113,54 @@ protected:
 
   // Manage how the representation appears
   double LastEventPosition[3];
-  
-  double             N[6][3]; //the normals of the faces
-  
-  vtkLookupTable    *InclusionLUT;
-  
-  // Inclusin Margin
-  vtkActor 	    *MarginActor[7]; 
-  vtkPolyDataMapper *MarginMapper[7];
-  vtkPolyData 	    *MarginPolyData[7];
-  vtkPoints	    *MarginPoints;
-  
-  // 3D Region
-  vtkActor 	    *RegionActor;    // Exclusion Actor
-  vtkPolyDataMapper *RegionMapper;
-  vtkPolyData 	    *RegionPolyData;
-  vtkPoints	    *RegionPoints;
 
-  void HighlightMargin(vtkActor *actor);
-//   void HighlightFace(int cellId);
-  void HighlightOutline(int highlight);
-  virtual void ComputeNormals();
-  
+  // Counting Region Edge
+  vtkActor 	    *EdgeActor[4];
+  vtkPolyDataMapper *EdgeMapper[4];
+  vtkPolyData 	    *EdgePolyData[4];
+  vtkPoints	    *Vertex;
+
+  void HighlightEdge(vtkActor *actor);
+
   // Do the picking
-  vtkCellPicker *RegionPicker;
-  vtkActor *CurrentHandle;
-  int      CurrentHexFace;
+  vtkCellPicker *EdgePicker;
   vtkCellPicker *LastPicker;
-  
-  // Transform the hexahedral points (used for rotations)
-  vtkTransform *Transform;
-  
+  vtkActor *CurrentEdge;
+
   // Support GetBounds() method
   vtkBox *BoundingBox;
-  
+
   // Properties used to control the appearance of selected objects and
   // the manipulator in general.
-  vtkProperty *FaceProperty;
-  vtkProperty *SelectedFaceProperty;
-  vtkProperty *InclusionProperty;
+  vtkProperty *InclusionEdgeProperty;
+  vtkProperty *ExclusionEdgeProperty;
+  vtkProperty *SelectedEdgeProperty;
   vtkProperty *InvisibleProperty;
-  vtkProperty *SelectedOutlineProperty;
+
   virtual void CreateDefaultProperties();
 
   // Helper methods to create face representations
+  virtual void CreateRegion();
+  virtual void UpdateRegion();
   virtual void CreateXYFace();
+  virtual void UpdateXYFace();
   virtual void CreateYZFace();
+  virtual void UpdateYZFace();
   virtual void CreateXZFace();
+  virtual void UpdateXZFace();
 
   // Helper methods
-  virtual void Translate(double *p1, double *p2);
-  virtual void Scale(double *p1, double *p2, int X, int Y);
-  void MoveLeftMargin(double *p1, double *p2);
-  void MoveRightMargin(double *p1, double *p2);
-  void MoveTopMargin(double *p1, double *p2);
-  void MoveBottomMargin(double *p1, double *p2);
-  void MoveUpperMargin(double *p1, double *p2);
-  void MoveLowerMargin(double *p1, double *p2);
+  void MoveLeftEdge(double *p1, double *p2);
+  void MoveRightEdge(double *p1, double *p2);
+  void MoveTopEdge(double *p1, double *p2);
+  void MoveBottomEdge(double *p1, double *p2);
+  void MoveUpperEdge(double *p1, double *p2);
+  void MoveLowerEdge(double *p1, double *p2);
 
-  // Internal ivars for performance
-  vtkPoints      *PlanePoints;
-  vtkDoubleArray *PlaneNormals;
-  vtkMatrix4x4   *Matrix;
-
-  //"dir" is the direction in which the face can be moved i.e. the axis passing
-  //through the center
-  void MoveFace(double *p1, double *p2, double *dir, 
-                double *x1, double *x2, double *x3, double *x4,
-                double *x5);
-  //Helper method to obtain the direction in which the face is to be moved.
-  //Handles special cases where some of the scale factors are 0.
-  void GetDirection(const double Nx[3],const double Ny[3], 
-                    const double Nz[3], double dir[3]);
-
-  int ViewType;
-  int Slice;
+  vtkPVSliceView::VIEW_PLANE Plane;
   vtkPolyDataAlgorithm *Region;
+  double Slice;
+  bool Init;
 
 
 private:
@@ -222,8 +173,8 @@ private:
   int m_numSlices;
   double m_prevInclusion[3];
   double m_prevExclusion[3];
-  double m_lastInclusionMargin[3];
-  double m_lastExclusionMargin[3];
+  double m_lastInclusionEdge[3];
+  double m_lastExclusionEdge[3];
 };
 
 #endif

@@ -36,17 +36,9 @@ vtkRectangularBoundingRegionWidget::vtkRectangularBoundingRegionWidget()
   this->WidgetState = vtkRectangularBoundingRegionWidget::Start;
   this->ManagesCursor = 1;
 
-  this->TranslationEnabled = 1;
-  this->ScalingEnabled = 1;
-  this->RotationEnabled = 1;
-  
-  this->InvertXCursor = 0;
-  this->InvertYCursor = 0;
-  this->InvertZCursor = 0;
-  
   memset(InclusionOffset, 0, 3*sizeof(double));
   memset(ExclusionOffset, 0, 3*sizeof(double));
-  
+
   // Define widget events
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
                                           vtkEvent::NoModifier,
@@ -84,9 +76,6 @@ vtkRectangularBoundingRegionWidget::vtkRectangularBoundingRegionWidget()
                                             0, 0, NULL,
                                           vtkWidgetEvent::EndTranslate,
                                           this, vtkRectangularBoundingRegionWidget::EndSelectAction);
-  this->CallbackMapper->SetCallbackMethod(vtkCommand::RightButtonPressEvent,
-                                          vtkWidgetEvent::Scale,
-                                          this, vtkRectangularBoundingRegionWidget::ScaleAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::RightButtonReleaseEvent,
                                           vtkWidgetEvent::EndScale,
                                           this, vtkRectangularBoundingRegionWidget::EndSelectAction);
@@ -189,53 +178,8 @@ void vtkRectangularBoundingRegionWidget::TranslateAction(vtkAbstractWidget *w)
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularBoundingRegionWidget::ScaleAction(vtkAbstractWidget *w)
-{
-  return; //NOTE: Disabled
-  // We are in a static method, cast to ourself
-  vtkRectangularBoundingRegionWidget *self = reinterpret_cast<vtkRectangularBoundingRegionWidget*>(w);
-
-  // Get the event position
-  int X = self->Interactor->GetEventPosition()[0];
-  int Y = self->Interactor->GetEventPosition()[1];
-  
-  // Okay, make sure that the pick is in the current renderer
-  if ( !self->CurrentRenderer || 
-       !self->CurrentRenderer->IsInViewport(X,Y) )
-    {
-    self->WidgetState = vtkRectangularBoundingRegionWidget::Start;
-    return;
-    }
-  
-  // Begin the widget interaction which has the side effect of setting the
-  // interaction state.
-  double e[2];
-  e[0] = static_cast<double>(X);
-  e[1] = static_cast<double>(Y);
-  self->WidgetRep->StartWidgetInteraction(e);
-  int interactionState = self->WidgetRep->GetInteractionState();
-  if ( interactionState == vtkRectangularBoundingRegionRepresentation::Outside )
-    {
-    return;
-    }
-  
-  // We are definitely selected
-  self->WidgetState = vtkRectangularBoundingRegionWidget::Active;
-  self->GrabFocus(self->EventCallbackCommand);
-  reinterpret_cast<vtkRectangularBoundingRegionRepresentation*>(self->WidgetRep)->
-    SetInteractionState(vtkRectangularBoundingRegionRepresentation::Scaling);
-
-  // start the interaction
-  self->EventCallbackCommand->SetAbortFlag(1);
-  self->StartInteraction();
-  self->InvokeEvent(vtkCommand::StartInteractionEvent,NULL);
-  self->Render();
-}
-
-//----------------------------------------------------------------------
 void vtkRectangularBoundingRegionWidget::MoveAction(vtkAbstractWidget *w)
 {
-  
   vtkRectangularBoundingRegionWidget *self = reinterpret_cast<vtkRectangularBoundingRegionWidget*>(w);
 
   // compute some info we need for all cases
@@ -250,7 +194,6 @@ void vtkRectangularBoundingRegionWidget::MoveAction(vtkAbstractWidget *w)
     self->SetCursor(stateAfter);
     return;
   }
-  
 
   // Okay, adjust the representation
   double e[2];
@@ -284,24 +227,11 @@ void vtkRectangularBoundingRegionWidget::SetCursor(int state)
 	break;
       case vtkRectangularBoundingRegionRepresentation::MoveLeft:
       case vtkRectangularBoundingRegionRepresentation::MoveRight:
-	if (this->InvertXCursor)
-	  this->RequestCursorShape(VTK_CURSOR_SIZENS);
-	else
-	  this->RequestCursorShape(VTK_CURSOR_SIZEWE);
+	this->RequestCursorShape(VTK_CURSOR_SIZEWE);
 	break;
       case vtkRectangularBoundingRegionRepresentation::MoveTop:
       case vtkRectangularBoundingRegionRepresentation::MoveBottom:
-	if (this->InvertYCursor)
-	  this->RequestCursorShape(VTK_CURSOR_SIZEWE);
-	else
-	  this->RequestCursorShape(VTK_CURSOR_SIZENS);
-	break;
-      case vtkRectangularBoundingRegionRepresentation::MoveUpper:
-      case vtkRectangularBoundingRegionRepresentation::MoveLower:
-	if (this->InvertZCursor)
-	  this->RequestCursorShape(VTK_CURSOR_SIZEWE);
-	else
-	  this->RequestCursorShape(VTK_CURSOR_SIZENS);
+	this->RequestCursorShape(VTK_CURSOR_SIZENS);
 	break;
       case vtkRectangularBoundingRegionRepresentation::Outside:
 	this->RequestCursorShape(VTK_CURSOR_DEFAULT);
@@ -335,24 +265,22 @@ void vtkRectangularBoundingRegionWidget::EndSelectAction(vtkAbstractWidget *w)
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularBoundingRegionWidget::SetViewType(int type)
+void vtkRectangularBoundingRegionWidget::SetPlane(vtkPVSliceView::VIEW_PLANE plane)
 {
   vtkRectangularBoundingRegionRepresentation *rep =
     reinterpret_cast<vtkRectangularBoundingRegionRepresentation*>(this->WidgetRep);
-    rep->SetViewType(type);
+  rep->SetPlane(plane);
 
-  if (0 == type || 2 == type)
-    InvertZCursorOn();
-
-  View = type;
+  Plane = plane;
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularBoundingRegionWidget::SetSlice(int slice, double spacing[3])
+void vtkRectangularBoundingRegionWidget::SetSlice(double pos)
 {
   reinterpret_cast<vtkRectangularBoundingRegionRepresentation*>(this->WidgetRep)->
-    SetSlice(slice,spacing);
-  Slice = slice;
+    SetSlice(pos);
+  Slice = pos;
+  Render();
 }
 
 //----------------------------------------------------------------------
@@ -385,10 +313,6 @@ void vtkRectangularBoundingRegionWidget::CreateDefaultRepresentation()
 void vtkRectangularBoundingRegionWidget::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
-
-  os << indent << "Translation Enabled: " << (this->TranslationEnabled ? "On\n" : "Off\n");
-  os << indent << "Scaling Enabled: " << (this->ScalingEnabled ? "On\n" : "Off\n");
-  os << indent << "Rotation Enabled: " << (this->RotationEnabled ? "On\n" : "Off\n");
 }
 
 
