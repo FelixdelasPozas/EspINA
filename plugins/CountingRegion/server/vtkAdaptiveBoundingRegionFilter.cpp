@@ -140,17 +140,24 @@ void vtkAdaptiveBoundingRegionFilter::computeStackMargins(vtkImageData *image)
   unsigned char *imagePtr = static_cast<unsigned char *>(image->GetScalarPointer());
 
   assert(extent[5] == dim[2]-1);
-  //TODO: Min values are 0 or given by extent???
-  //int zMin = std::max(Inclusion[2], 0);
-  //int zMax = std::min(Inclusion[2], dim[2]-1);
-  assert(InclusionOffset[2] >= 0 && ExclusionOffset[2] >= 0);
 
+  int inSliceOffset = InclusionOffset[2] / spacing[2];
+  int exSliceOffset = ExclusionOffset[2] / spacing[2];
 
-  int zMin = std::min(extent[4] + int(InclusionOffset[2]), extent[5]);//TODO: change casting
-  int zMax = std::max(extent[5] - int(ExclusionOffset[2]), extent[4]);
+  int upperSlice = extent[4] + inSliceOffset;
+  upperSlice = std::max(upperSlice, extent[4]);
+  upperSlice = std::min(upperSlice, extent[5]);
+
+  int lowerSlice = extent[5] - exSliceOffset;
+  lowerSlice = std::max(lowerSlice, extent[4]);
+  lowerSlice = std::min(lowerSlice, extent[5]);
+
+  // upper and lower refer to Espina's orientation
+  assert(upperSlice <= lowerSlice);
+
   const int blackThreshold = 50;
   vtkIdType lastCell[4];
-  for (int z = zMin; z <= zMax; z++)
+  for (int z = upperSlice; z <= lowerSlice; z++)
   {
     // Look for images borders in z slice:
     // We are going to take all bordering pixels (almost black) and then extract its oriented
@@ -238,7 +245,7 @@ void vtkAdaptiveBoundingRegionFilter::computeStackMargins(vtkImageData *image)
     //     std::cout << "Face: " << cell[0] << " " << cell[1] << " " << cell[2] << " " << cell[3] << std::endl;
 
     TotalAdaptiveVolume += ((rightMargin - leftMargin + 1)*(bottomMargin - topMargin+1));
-    if (z != zMax) // Don't include last exclusion face
+    if (z != lowerSlice) // Don't include last exclusion face
       InclusionVolume += (((rightMargin - Right) - (leftMargin + Left))*((bottomMargin - Bottom) - (topMargin + Top)));
 
 //     assert(leftBottom[0] < rightBottom[0]);
@@ -246,12 +253,12 @@ void vtkAdaptiveBoundingRegionFilter::computeStackMargins(vtkImageData *image)
 //     assert(leftBottom[1] > leftTop[1]);
 //     assert(rightBottom[1] > rightTop[1]);
 
-    if (z == zMin)
+    if (z == upperSlice)
     {
       // Upper Inclusion Face
       faces->InsertNextCell(4, cell);
       faceData->InsertNextValue(INCLUSION_FACE);
-    } else if (z == zMax)
+    } else if (z == lowerSlice)
     {
       // Lower Inclusion Face
       faces->InsertNextCell(4, cell);

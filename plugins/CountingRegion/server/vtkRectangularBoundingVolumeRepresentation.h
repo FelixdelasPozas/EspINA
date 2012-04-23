@@ -1,8 +1,25 @@
+/*
+    <one line to give the program's name and a brief idea of what it does.>
+    Copyright (C) 2011  Jorge Peña Pastor <jpena@cesvima.upm.es>
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #ifndef VTKRECTANGULARBOUNDINGBOXREPRESENTATION_H
 #define VTKRECTANGULARBOUNDINGBOXREPRESENTATION_H
 
 #include "vtkWidgetRepresentation.h"
-#include <common/views/vtkPVSliceView.h>
 
 class vtkLookupTable;
 class vtkPolyDataAlgorithm;
@@ -16,27 +33,25 @@ class vtkPolyData;
 class vtkPoints;
 class vtkPolyDataAlgorithm;
 class vtkPointHandleRepresentation3D;
-class vtkTransform;
 class vtkPlanes;
 class vtkBox;
 class vtkDoubleArray;
 class vtkMatrix4x4;
 
 
-class VTK_WIDGETS_EXPORT vtkRectangularBoundingRegionRepresentation : public vtkWidgetRepresentation
+class VTK_WIDGETS_EXPORT vtkRectangularBoundingVolumeRepresentation : public vtkWidgetRepresentation
 {
   //BTX
-  enum EDGE {LEFT, TOP, RIGHT, BOTTOM};
+  enum MARGIN {LEFT, TOP, UPPER, RIGHT, BOTTOM, LOWER, VOLUME};
   //ETX
-
 public:
   // Description:
   // Instantiate the class.
-  static vtkRectangularBoundingRegionRepresentation *New();
+  static vtkRectangularBoundingVolumeRepresentation *New();
 
   // Description:
   // Standard methods for the class.
-  vtkTypeMacro(vtkRectangularBoundingRegionRepresentation,vtkWidgetRepresentation);
+  vtkTypeMacro(vtkRectangularBoundingVolumeRepresentation,vtkWidgetRepresentation);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
@@ -49,25 +64,25 @@ public:
   // or EndInteractionEvent events are invoked. The user provides the
   // vtkPolyData and the points and cells are added to it.
   void GetPolyData(vtkPolyData *pd);
-
+  
   void reset();
 
+  // Description:
+  // Get the face properties (the faces of the box). The 
+  // properties of the face when selected and normal can be 
+  // set.
+  vtkGetObjectMacro(FaceProperty,vtkProperty);
+  vtkGetObjectMacro(SelectedFaceProperty,vtkProperty);
+  
   // Description:
   // Get the outline properties (the outline of the box). The 
   // properties of the outline when selected and normal can be 
   // set.
 //   vtkGetObjectMacro(OutlineProperty,vtkProperty);
-  vtkGetObjectMacro(SelectedInclusionProperty,vtkProperty);
+  vtkGetObjectMacro(SelectedOutlineProperty,vtkProperty);
 
-  // Description:
-  // Get the view type properties. In which plane it is been shown
-  // and which slice (in case of planar views) is selected
-//   vtkSetMacro(ViewType,int);
-//   vtkSetMacro(Slice,int);
-  virtual void SetPlane(vtkPVSliceView::VIEW_PLANE plane);
-  virtual void SetSlice(double pos);
-  virtual void SetRegion(vtkPolyDataAlgorithm *region);
-
+  virtual void SetVolume(vtkPolyDataAlgorithm *region);
+  
   // Description:
   // These are methods to communicate with the 3d_widget
   vtkSetVector3Macro(InclusionOffset, double);
@@ -93,7 +108,7 @@ public:
   
 //BTX - used to manage the state of the widget
   enum {Outside=0,
-    MoveLeft, MoveRight, MoveTop, MoveBottom, Translating
+    MoveLeft, MoveRight, MoveTop, MoveBottom, MoveUpper, MoveLower,
   };
 //ETX
 
@@ -108,75 +123,74 @@ public:
   void SetInteractionState(int state);
 
 protected:
-  vtkRectangularBoundingRegionRepresentation();
-  ~vtkRectangularBoundingRegionRepresentation();
+  vtkRectangularBoundingVolumeRepresentation();
+  ~vtkRectangularBoundingVolumeRepresentation();
 
   // Manage how the representation appears
   double LastEventPosition[3];
 
-  // Counting Region Edge
-  vtkActor 	    *EdgeActor[4];
-  vtkPolyDataMapper *EdgeMapper[4];
-  vtkPolyData 	    *EdgePolyData[4];
-  vtkPoints	    *Vertex;
+  vtkLookupTable    *InclusionLUT;
 
-  void HighlightEdge(vtkActor *actor);
+  // Inclusin Margin
+  vtkActor 	    *MarginActor[7]; 
+  vtkPolyDataMapper *MarginMapper[7];
+  vtkPolyData 	    *MarginPolyData[7];
+  vtkPoints	    *MarginPoints;
+
+  // 3D Volume
+  vtkActor 	    *VolumeActor;    // Exclusion Actor
+  vtkPolyDataMapper *VolumeMapper;
+  vtkPolyData 	    *VolumePolyData;
+  vtkPoints	    *VolumePoints;
+
+  void HighlightMargin(vtkActor *actor);
+//   void HighlightFace(int cellId);
+  void HighlightOutline(int highlight);
 
   // Do the picking
-  vtkCellPicker *EdgePicker;
+  vtkCellPicker *VolumePicker;
+  vtkActor *CurrentHandle;
+  int      CurrentHexFace;
   vtkCellPicker *LastPicker;
-  vtkActor *CurrentEdge;
 
+  // Support GetBounds() method
+  vtkBox *BoundingBox;
+  
   // Properties used to control the appearance of selected objects and
   // the manipulator in general.
-  vtkProperty *InclusionEdgeProperty;
-  vtkProperty *ExclusionEdgeProperty;
-  vtkProperty *SelectedInclusionProperty;
-  vtkProperty *SelectedExclusionProperty;
+  vtkProperty *FaceProperty;
+  vtkProperty *SelectedFaceProperty;
+  vtkProperty *InclusionProperty;
   vtkProperty *InvisibleProperty;
-
+  vtkProperty *SelectedOutlineProperty;
   virtual void CreateDefaultProperties();
 
-  int hCoord() const {return Plane==vtkPVSliceView::SAGITTAL?2:0;}
-  int vCoord() const {return Plane==vtkPVSliceView::CORONAL?2:1;}
-  double leftEdge() {return GetBounds()[hCoord()*2] + Shift[LEFT];}
-  double topEdge() {return GetBounds()[vCoord()*2] + Shift[TOP];}
-  double rightEdge() {return GetBounds()[hCoord()*2+1] + Shift[RIGHT];}
-  double bottomEdge() {return GetBounds()[vCoord()*2+1] + Shift[BOTTOM];}
-
-  int sliceNumber(double pos/*nm*/, vtkPVSliceView::VIEW_PLANE plane) const;
-
   // Helper methods to create face representations
-  virtual void CreateRegion();
-  virtual void UpdateRegion();
   virtual void CreateXYFace();
-  virtual void UpdateXYFace();
   virtual void CreateYZFace();
   virtual void CreateXZFace();
 
   // Helper methods
-  void MoveLeftEdge(double *p1, double *p2);
-  void MoveRightEdge(double *p1, double *p2);
-  void MoveTopEdge(double *p1, double *p2);
-  void MoveBottomEdge(double *p1, double *p2);
+  void MoveLeftMargin(double *p1, double *p2);
+  void MoveRightMargin(double *p1, double *p2);
+  void MoveTopMargin(double *p1, double *p2);
+  void MoveBottomMargin(double *p1, double *p2);
+  void MoveUpperMargin(double *p1, double *p2);
+  void MoveLowerMargin(double *p1, double *p2);
 
-  vtkPVSliceView::VIEW_PLANE Plane;
-  vtkPolyDataAlgorithm *Region;
-  double Slice;
-  double Shift[4];
-  bool Init;
-
+  vtkPolyDataAlgorithm *Volume;
 
 private:
-  vtkRectangularBoundingRegionRepresentation(const vtkRectangularBoundingRegionRepresentation&);  //Not implemented
-  void operator=(const vtkRectangularBoundingRegionRepresentation&);  //Not implemented
+  vtkRectangularBoundingVolumeRepresentation(const vtkRectangularBoundingVolumeRepresentation&);  //Not implemented
+  void operator=(const vtkRectangularBoundingVolumeRepresentation&);  //Not implemented
 
   double InclusionOffset[3];
   double ExclusionOffset[3];
 
-  int NumPoints;
-  int NumSlices;
-  int NumVertex;
+  double m_prevInclusion[3];
+  double m_prevExclusion[3];
+  double m_lastInclusionMargin[3];
+  double m_lastExclusionMargin[3];
 };
 
 #endif

@@ -81,7 +81,7 @@ vtkRectangularRepresentation::vtkRectangularRepresentation()
   this->RegionPicker->AddPickList(this->RegionActor);
 
   // Define the point coordinates
-  double bounds[6] = {-0.5, 0.5, -0.5, 0.5, -0.5, 0.5};
+  double bounds[6] = {-1.5, 1.5, -0.5, 0.5, -0.5, 0.5};
   this->BoundingBox = vtkBox::New();
   this->PlaceWidget(bounds);
 
@@ -209,8 +209,7 @@ void vtkRectangularRepresentation::WidgetInteraction(double e[2])
 //----------------------------------------------------------------------------
 void vtkRectangularRepresentation::MoveLeftEdge(double* p1, double* p2)
 {
-  const int hCoord = Plane==vtkPVSliceView::SAGITTAL?2:0;
-  this->InitialBounds[leftIndex()] = p2[hCoord];
+  this->InitialBounds[leftIndex()] = p2[hCoord()];
   updateVertex();
 }
 
@@ -333,7 +332,7 @@ void vtkRectangularRepresentation::PlaceWidget(double bds[6])
 
   this->AdjustBounds(bds,bounds,center);
 //   std::cout << bds[0] << " "<< bds[1] << " "<< bds[2] << " "<< bds[3] << " "<< bds[4] << " "<< bds[5] << std::endl;
-//   std::cout << bounds[0] << " "<< bounds[1] << " "<< bounds[2] << " "<< bounds[3] << " "<< bounds[4] << " "<< bounds[5] << std::endl;
+  std::cout << bounds[0] << " "<< bounds[1] << " "<< bounds[2] << " "<< bounds[3] << " "<< bounds[4] << " "<< bounds[5] << std::endl;
 
   for (i=0; i<6; i++)
     {

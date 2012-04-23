@@ -59,8 +59,8 @@ protected:
 private:
  // virtual vtkBoundingRegionFilter& operator=(const vtkBoundingRegionFilter& other); // Not implemented
  // virtual bool operator==(const vtkBoundingRegionFilter& other) const;// Not implemented
- double InclusionOffset[3];
- double ExclusionOffset[3];
+ double InclusionOffset[3];// in nm
+ double ExclusionOffset[3];// in nm
  double TotalVolume;
  double TotalAdaptiveVolume;
  double InclusionVolume;

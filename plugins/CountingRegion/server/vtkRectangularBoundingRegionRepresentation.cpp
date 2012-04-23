@@ -27,21 +27,25 @@
 #include <vtkPolyDataAlgorithm.h>
 #include <vtkSmartPointer.h>
 
+const double MIN_SLICE_SPACING = 2;
 
 vtkStandardNewMacro(vtkRectangularBoundingRegionRepresentation);
 
 //----------------------------------------------------------------------------
 vtkRectangularBoundingRegionRepresentation::vtkRectangularBoundingRegionRepresentation()
 : Plane(vtkPVSliceView::AXIAL)
-, Slice(0)
 , Region(NULL)
+, Slice(0)
 , Init(false)
+, NumPoints(0)
+, NumSlices(0)
 {
   // The initial state
   this->InteractionState = vtkRectangularBoundingRegionRepresentation::Outside;
 
   memset(this->InclusionOffset, 0, 3*sizeof(double));
   memset(this->ExclusionOffset, 0, 3*sizeof(double));
+  memset(this->Shift, 0, 4*sizeof(double));
 
   this->CreateDefaultProperties();
 
@@ -73,7 +77,6 @@ vtkRectangularBoundingRegionRepresentation::vtkRectangularBoundingRegionRepresen
 
   // Define the point coordinates
   double bounds[6] = {-0.5, 0.5, -0.5, 0.5, -0.5, 0.5};
-  this->BoundingBox = vtkBox::New();
   this->PlaceWidget(bounds);
 
   this->CurrentEdge = NULL;
@@ -91,11 +94,10 @@ vtkRectangularBoundingRegionRepresentation::~vtkRectangularBoundingRegionReprese
 
   this->EdgePicker->Delete();
 
-  this->BoundingBox->Delete();
-
   this->InclusionEdgeProperty->Delete();
   this->ExclusionEdgeProperty->Delete();
-  this->SelectedEdgeProperty->Delete();
+  this->SelectedInclusionProperty->Delete();
+  this->SelectedExclusionProperty->Delete();
   this->InvisibleProperty->Delete();
 }
 
@@ -110,7 +112,9 @@ void vtkRectangularBoundingRegionRepresentation::GetPolyData(vtkPolyData *pd)
 //----------------------------------------------------------------------
 void vtkRectangularBoundingRegionRepresentation::reset()
 {
-//   CreateRegion();
+//   std::cout << "Shift's been reset" << std::endl;
+  memset(this->Shift, 0, 4*sizeof(double));
+  CreateRegion();
 }
 
 
@@ -187,175 +191,59 @@ void vtkRectangularBoundingRegionRepresentation::WidgetInteraction(double e[2])
 //----------------------------------------------------------------------------
 void vtkRectangularBoundingRegionRepresentation::MoveLeftEdge(double* p1, double* p2)
 {
-  double *pts =
-    static_cast<vtkDoubleArray *>(this->Vertex->GetData())->GetPointer(0);
-
-  const int X = 0;
-
-  pts[3*3 + X] = p2[X];
-  pts[3*0 + X] = p2[X];
-
-  InclusionOffset[X] += p2[X] - m_lastInclusionEdge[X];
-  m_lastInclusionEdge[X] = p2[X];
-  std::cout << "New Left Inclusion Offset " << InclusionOffset[X] << std::endl;
-
-  this->EdgePolyData[LEFT]->Modified();
-  this->EdgePolyData[TOP]->Modified();
-  this->EdgePolyData[BOTTOM]->Modified();
-  BuildRepresentation();
+  double shift = p2[hCoord()] - p1[hCoord()];
+  bool crossRightEdge = leftEdge() + shift + MIN_SLICE_SPACING >= rightEdge();
+  bool validOffset = vtkPVSliceView::SAGITTAL != Plane
+                  || InclusionOffset[hCoord()] + shift >= 0;
+  if (!crossRightEdge && validOffset)
+  {
+    Shift[LEFT] += shift;
+    InclusionOffset[hCoord()] += shift;
+    UpdateRegion();
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkRectangularBoundingRegionRepresentation::MoveRightEdge(double* p1, double* p2)
 {
-//   double *pts =
-//     static_cast<vtkDoubleArray *>(this->Vertex->GetData())->GetPointer(0);
-// 
-//   const int X = 0;
-// 
-//   assert(ViewType == XY || ViewType == XZ);
-//   int contBorder1 = ViewType == XY?TOP:UPPER;
-//   int contBorder2 = ViewType == XY?BOTTOM:LOWER;
-//   
-//   if (ViewType == XY)
-//   {
-//     pts[3*1 + X] = p2[X];
-//     pts[3*2 + X] = p2[X];
-//   }else if (ViewType == XZ)
-//   {
-//     double shift = (p2[X] - p1[X]);
-//     for (int s=0; s < m_numSlices; s++)
-//     {
-//       pts[3*(2*s+1) + X] += shift;
-//     }
-//   }
-// 
-//   std::cout << "Old Right Exclusion Offset " << ExclusionOffset[X] << std::endl;
-//   std::cout << "Old Right Exclusion Edge " << m_lastExclusionEdge[X] << std::endl;
-//   std::cout << "Mouse Position " << p2[X] << std::endl;
-//   ExclusionOffset[X] += m_lastExclusionEdge[X] - p2[X];
-//   m_lastExclusionEdge[X] = p2[X];
-//   std::cout << "New Right Exclusion Offset " << ExclusionOffset[X] << std::endl;
-// 
-//   this->EdgePolyData[RIGHT]->Modified();
-//   this->EdgePolyData[contBorder1]->Modified();
-//   this->EdgePolyData[contBorder2]->Modified();
+  double shift = p2[hCoord()] - p1[hCoord()];
+  bool crossLeftEdge = leftEdge() + MIN_SLICE_SPACING >= rightEdge() + shift;
+  bool validOffset = vtkPVSliceView::SAGITTAL != Plane
+                  || ExclusionOffset[hCoord()] - shift >= 0;
+  if (!crossLeftEdge && validOffset)
+  {
+    Shift[RIGHT] += shift;
+    ExclusionOffset[hCoord()] -= shift;
+    UpdateRegion();
+  }
 }
 //----------------------------------------------------------------------------
 void vtkRectangularBoundingRegionRepresentation::MoveTopEdge(double* p1, double* p2)
 {
-//   double *pts =
-//     static_cast<vtkDoubleArray *>(this->Vertex->GetData())->GetPointer(0);
-// 
-//   const int Y = 1;
-// 
-//   assert(ViewType == XY || ViewType == YZ);
-//   int contBorder1 = ViewType == XY?LEFT:UPPER;
-//   int contBorder2 = ViewType == XY?RIGHT:LOWER;
-// 
-//   if (ViewType == XY)
-//   {
-//     pts[3*0 + Y] = p2[Y]; 
-//     pts[3*1 + Y] = p2[Y]; 
-//   }else
-//   {
-//     double shift = (p2[Y] - p1[Y]);
-//     for (int s=0; s < m_numSlices; s++)
-//     {
-//       pts[3*(2*s+1) + Y] += shift;
-//     }
-//   }
-// 
-//   InclusionOffset[Y] += p2[Y] - m_lastInclusionEdge[Y];
-//   m_lastInclusionEdge[Y] = p2[Y];
-//   std::cout << "New Top Inclusion Offset " << InclusionOffset[Y] << std::endl;
-// 
-//   this->EdgePolyData[TOP]->Modified();
-//   this->EdgePolyData[contBorder1]->Modified();
-//   this->EdgePolyData[contBorder2]->Modified();
+  double shift = p2[vCoord()] - p1[vCoord()];
+  double crossBottomEdge = topEdge() + shift + MIN_SLICE_SPACING >= bottomEdge();
+  bool validOffset = vtkPVSliceView::CORONAL != Plane
+                  || InclusionOffset[vCoord()] + shift >= 0;
+  if (!crossBottomEdge && validOffset)
+  {
+    Shift[TOP] += shift;
+    InclusionOffset[vCoord()] += shift;
+    UpdateRegion();
+  }
 }
 //----------------------------------------------------------------------------
 void vtkRectangularBoundingRegionRepresentation::MoveBottomEdge(double* p1, double* p2)
 {
-//   double *pts =
-//     static_cast<vtkDoubleArray *>(this->Vertex->GetData())->GetPointer(0);
-// 
-//   const int Y = 1;
-// 
-//   assert(ViewType == XY || ViewType == YZ);
-//   int contBorder1 = ViewType == XY?LEFT:UPPER;
-//   int contBorder2 = ViewType == XY?RIGHT:LOWER;
-// 
-//   if (ViewType == XY)
-//   {
-//     pts[3*2 + Y] = p2[Y]; 
-//     pts[3*3 + Y] = p2[Y]; 
-//   }else if (ViewType == YZ)
-//   {
-//     double shift = (p2[Y] - p1[Y]);
-//     for (int s=0; s < m_numSlices; s++)
-//     {
-//       pts[3*2*s + Y] += shift;
-//     }
-//   }else
-//     assert(false);
-// 
-//   ExclusionOffset[Y] += m_lastExclusionEdge[Y] - p2[Y];
-//   m_lastExclusionEdge[Y] = p2[Y];
-//   std::cout << "New Botton Exclusion Offset " << ExclusionOffset[Y] << std::endl;
-// 
-//   this->EdgePolyData[BOTTOM]->Modified();
-//   this->EdgePolyData[contBorder1]->Modified();
-//   this->EdgePolyData[contBorder2]->Modified();
-}
-//----------------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::MoveUpperEdge(double* p1, double* p2)
-{
-//   double *pts =
-//     static_cast<vtkDoubleArray *>(this->Vertex->GetData())->GetPointer(0);
-// 
-//   const int Z = 2;
-// 
-//   assert(ViewType == YZ || ViewType == XZ);
-//   int contBorder1 = ViewType == YZ?TOP:LEFT;
-//   int contBorder2 = ViewType == YZ?BOTTOM:RIGHT;
-// 
-//   pts[3*0 + Z] = p2[Z]; 
-//   pts[3*1 + Z] = p2[Z]; 
-// 
-//   InclusionOffset[Z] += p2[Z] - m_lastInclusionEdge[Z];
-//   m_lastInclusionEdge[Z] = p2[Z];
-//   std::cout << "New Upper Inclusion Offset " << InclusionOffset[Z] << std::endl;
-// 
-//   this->EdgePolyData[UPPER]->Modified();
-//   this->EdgePolyData[contBorder1]->Modified();
-//   this->EdgePolyData[contBorder2]->Modified();
-}
-
-//----------------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::MoveLowerEdge(double* p1, double* p2)
-{
-//   double *pts =
-//     static_cast<vtkDoubleArray *>(this->Vertex->GetData())->GetPointer(0);
-// 
-//   const int Z = 2;
-// 
-//   assert(ViewType == YZ || ViewType == XZ);
-//   int contBorder1 = ViewType == YZ?TOP:LEFT;
-//   int contBorder2 = ViewType == YZ?BOTTOM:RIGHT;
-// 
-//   int lastSlice = m_numSlices - 1;
-//   int lastEdgePoint = lastSlice*2;
-//   pts[3*(lastEdgePoint) + Z] = p2[Z];
-//   pts[3*(lastEdgePoint+1) + Z] = p2[Z];
-// 
-//   ExclusionOffset[Z] += m_lastExclusionEdge[Z] - p2[Z];
-//   m_lastExclusionEdge[Z] = p2[Z];
-//   std::cout << "New Lower Exclusion Offset " << ExclusionOffset[Z] << std::endl;
-// 
-//   this->EdgePolyData[LOWER]->Modified();
-//   this->EdgePolyData[contBorder1]->Modified();
-//   this->EdgePolyData[contBorder2]->Modified();
+  double shift = p2[vCoord()] - p1[vCoord()];
+  double crossTopEdge = topEdge() + MIN_SLICE_SPACING >= bottomEdge() + shift;
+  bool validOffset = vtkPVSliceView::CORONAL != Plane
+                  || ExclusionOffset[vCoord()] - shift >= 0;
+  if (!crossTopEdge && validOffset)
+  {
+    Shift[BOTTOM] += shift;
+    ExclusionOffset[vCoord()] -= shift;
+    UpdateRegion();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -375,17 +263,38 @@ void vtkRectangularBoundingRegionRepresentation::CreateDefaultProperties()
   this->ExclusionEdgeProperty->SetLineWidth(1.0);
 
   // Selected Edge properties
-  this->SelectedEdgeProperty = vtkProperty::New();
-  this->SelectedEdgeProperty->SetRepresentationToSurface();
-  this->SelectedEdgeProperty->SetOpacity(1.0);
-  this->SelectedEdgeProperty->SetDiffuse(1.0);
-  this->SelectedEdgeProperty->SetLineWidth(2.0);
+  this->SelectedInclusionProperty = vtkProperty::New();
+  this->SelectedInclusionProperty->SetRepresentationToSurface();
+  this->SelectedInclusionProperty->SetOpacity(1.0);
+  this->SelectedInclusionProperty->SetColor(0.0,1.0,0.0);
+  this->SelectedInclusionProperty->SetLineWidth(2.0);
+  this->SelectedExclusionProperty = vtkProperty::New();
+  this->SelectedExclusionProperty->SetRepresentationToSurface();
+  this->SelectedExclusionProperty->SetOpacity(1.0);
+  this->SelectedExclusionProperty->SetColor(1.0,0.0,0.0);
+  this->SelectedExclusionProperty->SetLineWidth(2.0);
 
   this->InvisibleProperty = vtkProperty::New();
   this->InvisibleProperty->SetRepresentationToWireframe();
   this->InvisibleProperty->SetAmbient(0.0);
   this->InvisibleProperty->SetDiffuse(0.0);
   this->InvisibleProperty->SetOpacity(0);
+}
+
+//----------------------------------------------------------------------------
+int vtkRectangularBoundingRegionRepresentation::sliceNumber(double pos,
+				vtkPVSliceView::VIEW_PLANE plane) const
+{
+  double point[3];
+  for (int number = 0; number < NumSlices; number++)
+  {
+    this->Region->GetOutput()->GetPoints()->GetPoint(4*number, point);
+//     this->Region->GetOutput()->GetPoints()->GetPoint(4*(number+1), next);
+//     if (point[Plane] <= pos && pos < next[Plane])
+    if (pos <= point[plane])
+      return number;
+  }
+  return NumSlices - 1;
 }
 
 //----------------------------------------------------------------------------
@@ -414,10 +323,10 @@ void vtkRectangularBoundingRegionRepresentation::UpdateRegion()
       UpdateXYFace();
       break;
     case vtkPVSliceView::SAGITTAL:
-      UpdateYZFace();
+      CreateYZFace();
       break;
     case vtkPVSliceView::CORONAL:
-      UpdateXZFace();
+      CreateXZFace();
       break;
   };
 }
@@ -425,7 +334,6 @@ void vtkRectangularBoundingRegionRepresentation::UpdateRegion()
 //----------------------------------------------------------------------------
 void vtkRectangularBoundingRegionRepresentation::CreateXYFace()
 {
-//   std::cout << "Created XY FACE" << std::endl;
   Region->UpdateWholeExtent();
 
   // Corners of the rectangular region
@@ -444,44 +352,58 @@ void vtkRectangularBoundingRegionRepresentation::CreateXYFace()
   UpdateXYFace();
 }
 
+
+double slope(double p1[2], double p2[2])
+{
+  return (p2[1] - p1[1])/(p2[0] - p1[0]);
+}
+double interpolate(double p1[2], double p2[2], double x)
+{
+  double m = slope(p1, p2);
+  return m*x + p1[1] - m*p1[0];
+}
+
+void intersection(double A1[2], double A2[2], double B1[2], double B2[2], double p[2])
+{
+  double mA = slope(A1, A2);
+  double bA = A1[1] / (A1[0]*mA);
+  double mB = slope(B1, B2);
+  double bB = B1[1] / (B1[0]*mB);
+  p[0] = (bB - bA)/(mA - mB);
+  p[1] = mA*A1[0] + bA;
+}
+
 void vtkRectangularBoundingRegionRepresentation::UpdateXYFace()
 {
-  m_prevInclusion[0] = InclusionOffset[0]; // Use in Move Left Edge
-  m_prevExclusion[0] = ExclusionOffset[0]; // Use in Move Right Edge
-  m_prevInclusion[1] = InclusionOffset[1]; // Use in Move Top Edge
-  m_prevExclusion[1] = ExclusionOffset[1]; // Use in Move Bottom Edge
+  double LB[3], LT[3], RT[3], RB[3];
 
-  double point[3];
-  // We need it to get lower limits
-  int numPoints = this->Region->GetOutput()->GetPoints()->GetNumberOfPoints();
+  // Get original Region Points
+  Region->GetOutput()->GetPoint(Slice*4+3, LB);
+  Region->GetOutput()->GetPoint(Slice*4+0, LT);
+  Region->GetOutput()->GetPoint(Slice*4+1, RT);
+  Region->GetOutput()->GetPoint(Slice*4+2, RB);
 
-  this->Region->GetOutput()->GetPoint(numPoints-1,point);
-  m_lastExclusionEdge[2] = point[2];
+  // Change its depth to be always on top of the XY plane
+  // according to Espina's Camera
+  LB[2] = LT[2] = RT[2] = RB[2] = -0.1;
 
-  // Point 0
-  Region->GetOutput()->GetPoint(Slice*4+3,point);
-  point[2] = -0.1;
-  this->Vertex->SetPoint(0, point);
-  m_lastInclusionEdge[0] = point[0];
-  m_lastExclusionEdge[1] = point[1];
+  // Shift edges' points
+  LB[0] += Shift[LEFT];
+  LT[0] += Shift[LEFT];
 
-  // Point 1
-  Region->GetOutput()->GetPoint(Slice*4+0,point);
-  point[2] = -0.1;
-  this->Vertex->SetPoint(1, point);
+  LT[1] += Shift[TOP];
+  RT[1] += Shift[TOP];
 
-  //Point 2
-  Region->GetOutput()->GetPoint(Slice*4+1,point);
-  point[2] = -0.1;
-  this->Vertex->SetPoint(2, point);
-  m_lastInclusionEdge[1] = point[1];
-  m_lastInclusionEdge[2] = point[2];
+  RB[0] += Shift[RIGHT];
+  RT[0] += Shift[RIGHT];
 
-  // Point 3
-  Region->GetOutput()->GetPoint(Slice*4+2,point);
-  point[2] = -0.1;
-  this->Vertex->SetPoint(3, point);
-  m_lastExclusionEdge[0] = point[0];
+  RB[1] += Shift[BOTTOM];
+  LB[1] += Shift[BOTTOM];
+
+  this->Vertex->SetPoint(0, LB);
+  this->Vertex->SetPoint(1, LT);
+  this->Vertex->SetPoint(2, RT);
+  this->Vertex->SetPoint(3, RB);
 
   for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
     this->EdgePolyData[i]->Modified();
@@ -494,14 +416,25 @@ void vtkRectangularBoundingRegionRepresentation::UpdateXYFace()
 void vtkRectangularBoundingRegionRepresentation::CreateYZFace()
 {
 //   std::cout << "Created YZ FACE" << std::endl;
-  this->Region->UpdateWholeExtent();
+  double LB[3], RB[3];
+  this->Region->GetOutput()->GetPoint(2, LB);
+  this->Region->GetOutput()->GetPoint(NumPoints-2, RB);
 
-  int numPoints = this->Region->GetOutput()->GetPoints()->GetNumberOfPoints();
-  unsigned int numSlices    = numPoints/4;
-  unsigned int numIntervals = numSlices - 1;
-  unsigned int numVertex    = numSlices * 2;
+//   std::cout << "LB: " << LB[2] << std::endl;
+//   std::cout << "RB: " << RB[2] << std::endl;
+//   std::cout << "LB+Shift: " << LB[2] + Shift[LEFT]  << std::endl;
+//   std::cout << "RB+Shift: " << RB[2]+ Shift[RIGHT] << std::endl;
+  int UpperSlice = sliceNumber(LB[2] + Shift[LEFT], vtkPVSliceView::AXIAL);
+  int LowerSlice = sliceNumber(RB[2] + Shift[RIGHT], vtkPVSliceView::AXIAL);
+//   std::cout << "Upper Slice: " << UpperSlice << std::endl;
+//   std::cout << "Lower Slice: " << LowerSlice << std::endl;
 
-  m_numSlices = numSlices;
+  int numRepSlices = LowerSlice - UpperSlice + 1;
+  if (numRepSlices == 0)
+    return;
+
+  unsigned int numIntervals = numRepSlices - 1;
+  unsigned int numVertex    = numRepSlices * 2;
 
   // Set of point pairs. Each pair belong to the same slice .
   // First pair belongs to the left edge
@@ -550,63 +483,29 @@ void vtkRectangularBoundingRegionRepresentation::CreateYZFace()
     this->EdgePolyData[BOTTOM]->GetLines()->InsertCellPoint(2*interval+2);
   }
 
-  UpdateYZFace();
-}
-
-//----------------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::UpdateYZFace()
-{
-//   m_prevInclusion[1] = InclusionOffset[1]; // Use in Move Top Edge
-//   m_prevExclusion[1] = ExclusionOffset[1]; // Use in Move Bottom Edge
-//   m_prevInclusion[2] = InclusionOffset[2]; // Use in Move Upper Edge
-//   m_prevExclusion[2] = ExclusionOffset[2]; // Use in Move Lower Edge
-  this->Region->UpdateWholeExtent();
-
-  int numPoints = this->Region->GetOutput()->GetPoints()->GetNumberOfPoints();
-  unsigned int numSlices = numPoints/4;
-  int numLateralEdges = numSlices - 1;
-  m_numSlices = numSlices;
-
   double point[3];
-
-  // We need it to get right limits
-  this->Region->GetOutput()->GetPoint(2,point);
-  m_lastExclusionEdge[0] = point[0];
-  for (unsigned int s=1; s < numSlices; s++)
-  {
-    this->Region->GetOutput()->GetPoint(s*4+2,point);
-    m_lastExclusionEdge[0] = std::max(m_lastExclusionEdge[0], point[0]);
-  }
-
-//   // Point 0
-//   this->Region->GetOutput()->GetPoint(0*4+3,point);
-//   this->Vertex->SetPoint(0, point);
-// 
-//   // Point 1
-//   this->Region->GetOutput()->GetPoint(0*4+0,point);
-//   this->Vertex->SetPoint(1, point);
-//   m_lastInclusionEdge[0] = point[0];
-//   m_lastInclusionEdge[2] = point[2];
-
   /// Loop over slices and create Top/Bottom Edges
-  for (unsigned int slice=0; slice< numSlices; slice++)
+  for (int slice=UpperSlice; slice <= LowerSlice; slice++)
   {
-//     int prevSlice = slice - 1;
-    // Add new points
-    // Point Slice_0
+    int interval = slice - UpperSlice;
+    // Bottom
     Region->GetOutput()->GetPoint(slice*4+3,point);
-//     point[0] = 200;
-    this->Vertex->SetPoint(2*slice, point);//BOTTOM
-    m_lastExclusionEdge[1] = point[1];
-//     std::cout << "Slice: " << point[0] << " " << point[1]<< " " << point[2] << std::endl;
-
-    // Point Slice_1
+    point[0] = -0.1;
+    point[1] += Shift[BOTTOM];
+    if (slice == 0)
+      point[2] += Shift[LEFT];
+    else if (slice == NumSlices - 1)
+      point[2] += Shift[RIGHT];
+    this->Vertex->SetPoint(2*interval, point);
+    // Top
     Region->GetOutput()->GetPoint(slice*4+0,point);
-//     point[0] = 200;
-    this->Vertex->SetPoint(2*slice+1, point);//TOP
-    m_lastInclusionEdge[1] = point[1];
-    m_lastExclusionEdge[2] = point[2];
-//     std::cout << "Slice: " << point[0] << " " << point[1]<< " " << point[2] << std::endl;
+    point[0] = -0.1;
+    point[1] += Shift[TOP];
+    if (slice == 0)
+      point[2] += Shift[LEFT];
+    else if (slice == NumSlices - 1)
+      point[2] += Shift[RIGHT];
+    this->Vertex->SetPoint(2*interval+1, point);
   }
 
   for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
@@ -615,19 +514,26 @@ void vtkRectangularBoundingRegionRepresentation::UpdateYZFace()
   BuildRepresentation();
 }
 
-
 //----------------------------------------------------------------------------
 void vtkRectangularBoundingRegionRepresentation::CreateXZFace()
 {
-  std::cout << "Created XZ FACE" << std::endl;
-  this->Region->UpdateWholeExtent();
+  double LT[3], LB[3];
+  this->Region->GetOutput()->GetPoint(0, LT);
+  this->Region->GetOutput()->GetPoint(NumPoints-1, LB);
 
-  int numPoints = this->Region->GetOutput()->GetPoints()->GetNumberOfPoints();
-  unsigned int numSlices    = numPoints/4;
-  unsigned int numIntervals = numSlices - 1;
-  unsigned int numVertex    = numSlices * 2;
+//   std::cout << "LT: " << LT[2] << std::endl;
+//   std::cout << "LB: " << LB[2] << std::endl;
+  int UpperSlice = sliceNumber(LT[2] + Shift[TOP], vtkPVSliceView::AXIAL);
+  int LowerSlice = sliceNumber(LB[2] + Shift[BOTTOM], vtkPVSliceView::AXIAL);
+//   std::cout << "Upper Slice: " << UpperSlice << std::endl;
+//   std::cout << "Lower Slice: " << LowerSlice << std::endl;
 
-  m_numSlices = numSlices;
+  int numRepSlices = LowerSlice - UpperSlice + 1;
+  if (numRepSlices == 0)
+    return;
+
+  unsigned int numIntervals = numRepSlices - 1;
+  unsigned int numVertex    = numRepSlices * 2;
 
   // Set of point pairs. Each pair belong to the same slice .
   // First pair belongs to the top edge
@@ -678,60 +584,29 @@ void vtkRectangularBoundingRegionRepresentation::CreateXZFace()
   this->EdgePolyData[BOTTOM]->GetLines()->InsertCellPoint(numVertex-2);
   this->EdgePolyData[BOTTOM]->GetLines()->InsertCellPoint(numVertex-1);
 
-  UpdateXZFace();
-}
-//----------------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::UpdateXZFace()
-{
-//   m_prevInclusion[0] = InclusionOffset[0]; // Use in Move Left Edge
-//   m_prevExclusion[0] = ExclusionOffset[0]; // Use in Move Right Edge
-//   m_prevInclusion[2] = InclusionOffset[2]; // Use in Move Upper Edge
-//   m_prevExclusion[2] = ExclusionOffset[2]; // Use in Move Lower Edge
-// 
-  int numPoints = Region->GetOutput()->GetPoints()->GetNumberOfPoints();
-  unsigned int numSlices = numPoints/4;
-  int numLateralEdges = numSlices - 1;
-  m_numSlices = numSlices;
-
   double point[3];
-
-  // We need it to get right limits
-  this->Region->GetOutput()->GetPoint(0,point);
-  m_lastInclusionEdge[1] = point[1];
-  this->Region->GetOutput()->GetPoint(3,point);
-  m_lastExclusionEdge[1] = point[1];
-  for (unsigned int s=1; s < numSlices; s++)
-  {
-    this->Region->GetOutput()->GetPoint(s*4+0,point);
-    m_lastInclusionEdge[1] = std::min(m_lastInclusionEdge[1], point[1]);
-    this->Region->GetOutput()->GetPoint(s*4+3,point);
-    m_lastExclusionEdge[1] = std::max(m_lastExclusionEdge[1], point[1]);
-  }
-
-//   // Point 0
-//   Region->GetOutput()->GetPoint(0*4+0,point);
-//   this->Vertex->SetPoint(0, point);
-
-//   // Point 1
-//   Region->GetOutput()->GetPoint(0*4+1,point);
-//   this->Vertex->SetPoint(1, point);
-//   m_lastInclusionEdge[2] = point[2];
-
   /// Loop over slices and create Top/Bottom Edges
-  for (unsigned int slice=0; slice< numSlices; slice++)
+  for ( int slice=UpperSlice; slice <= LowerSlice; slice++)
   {
-//     int prevSlice = slice - 1;
-
-    // Add new points
-    // Point Slice_0
+    int interval = slice - UpperSlice;
+    // LEFT
     Region->GetOutput()->GetPoint(slice*4+0,point);
-    this->Vertex->SetPoint(2*slice+0, point);//TOP
-    m_lastInclusionEdge[0] = point[0];
-    // Point Slice_1
+    point[0] += Shift[LEFT];
+    point[1] = -0.1;
+    if (slice == 0)
+      point[2] += Shift[TOP];
+    else if (slice == NumSlices -1)
+      point[2] += Shift[BOTTOM];
+    this->Vertex->SetPoint(2*interval+0, point);
+    //RIGHT
     Region->GetOutput()->GetPoint(slice*4+1,point);
-    this->Vertex->SetPoint(2*slice+1, point);//RIGHT
-    m_lastExclusionEdge[0] = point[0];
-    m_lastExclusionEdge[2] = point[2];
+    point[0] += Shift[RIGHT];
+    point[1] = -0.1;
+    if (slice == 0)
+      point[2] += Shift[TOP];
+    else if (slice == NumSlices -1)
+      point[2] += Shift[BOTTOM];
+    this->Vertex->SetPoint(2*interval+1, point);
   }
 
   for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
@@ -740,8 +615,6 @@ void vtkRectangularBoundingRegionRepresentation::UpdateXZFace()
   BuildRepresentation();
 }
 
-
-
 //----------------------------------------------------------------------------
 void vtkRectangularBoundingRegionRepresentation::SetPlane(vtkPVSliceView::VIEW_PLANE plane)
 {
@@ -749,93 +622,33 @@ void vtkRectangularBoundingRegionRepresentation::SetPlane(vtkPVSliceView::VIEW_P
     return;
 
   Init = true;
-
   Plane = plane;
 
-  double bounds[6];
-  BoundingBox->GetBounds(bounds);
+//   double bounds[6];
+//   BoundingBox->GetBounds(bounds);
 
   CreateRegion();
-
 }
 
 //----------------------------------------------------------------------------
 void vtkRectangularBoundingRegionRepresentation::SetSlice(double pos)
 {
 //   std::cout << "Plane: " << Plane << ", Slice: " << pos << /*", Spacing: " << spacing[0] << " " << spacing[1] << " " << spacing[2] <<*/ std::endl;
-//   Region->UpdateWholeExtent();
-  int numPoints = this->Region->GetOutput()->GetPoints()->GetNumberOfPoints();
-
-  double point[3], next[3];
-  for (unsigned int slice = 0; slice < numPoints/4; slice++)
-  {
-    this->Region->GetOutput()->GetPoints()->GetPoint(4*slice, point);
-    this->Region->GetOutput()->GetPoints()->GetPoint(4*(slice+1), next);
-    if (point[Plane] <= pos && pos < next[Plane])
-    {
-      Slice = slice;
-      UpdateRegion();
-      break;
-    }
-  }
-  std::cout << "Change to Slice: " << Slice << " because of " << pos << std::endl;
-//   int normalDir = Plane;
-//   int slicePosition = slice*spacing[normalDir];
-//   bool showRegion = m_lastInclusionEdge[normalDir] <= slicePosition &&
-// 		    slicePosition <= m_lastExclusionEdge[normalDir];
-// //   std::cout << "Exclusion on " << normalDir << ": " << m_prevExclusionCoord[normalDir] << std::endl;
-//   if (showRegion)
-//   {
-//     for (int i=0; i<6; i++)
-//       EdgeActor[i]->SetProperty(InclusionProperty);
-//   }else
-//   {
-//     for (int i=0; i<6; i++)
-//       EdgeActor[i]->SetProperty(InvisibleProperty);
-//     return;
-//   }
-//   
-//   double *pts =
-//     static_cast<vtkDoubleArray *>(this->Vertex->GetData())->GetPointer(0);
-// 
-//   if (ViewType == XY)
-//   {
-//     double point[3];
-//     for (int p=0; p<this->Vertex->GetNumberOfPoints(); p++)
-//     {
-//       int numFaces = Region->GetOutput()->GetPoints()->GetNumberOfPoints()/4;
-//       int validSlice = numFaces==2?0:slice;
-//       
-//       Region->GetOutput()->GetPoint(validSlice*4+p,point);
-//       
-// //       pts[3*p+0] = (p==3||p==0)?Inclusion[0]:point[0];
-//       pts[3*p+0] = point[0];
-//       pts[3*p+1] = point[1];
-//       pts[3*p+2] = point[2];
-// // 	pts[3*p] = slice; //BUG: get real spacing
-//     }
-//   }else
-//   {
-//     int normalDirection;
-//     if (ViewType == YZ)
-//       normalDirection = 0;
-//     else
-//       normalDirection = 1;
-//     for (int p=0; p<this->Vertex->GetNumberOfPoints(); p++)
-//     {
-//       pts[3*p+normalDirection] = slice*spacing[normalDirection];
-//     }
-//   }
-//   for(unsigned int i=0; i<6; i++)
-//     this->EdgePolyData[i]->Modified();
-// //   std::cout << "View " << ViewType <<  " : " << BoundingFacePoints->GetNumberOfPoints() << std::endl;
+  Slice = sliceNumber(pos, Plane);
+  UpdateRegion();
 }
 
 //----------------------------------------------------------------------------
 void vtkRectangularBoundingRegionRepresentation::SetRegion(vtkPolyDataAlgorithm *region)
 {
   Region = region;
-  region->Update();
+  this->Region->Update();
+  this->Region->UpdateWholeExtent();
+  this->NumPoints = this->Region->GetOutput()->GetPoints()->GetNumberOfPoints();
+  this->NumSlices = this->NumPoints / 4;
+  this->NumVertex = this->NumSlices * 2;
+
+  CreateRegion();
 //   RegionPolyData->SetPoints(region->GetOutput()->GetPoints());
 //   RegionPolyData->SetPolys(region->GetOutput()->GetPolys());
 //   RegionPolyData->GetCellData()->SetScalars(region->GetOutput()->GetCellData()->GetScalars("Type"));
@@ -954,10 +767,7 @@ void vtkRectangularBoundingRegionRepresentation::SetInteractionState(int state)
 double *vtkRectangularBoundingRegionRepresentation::GetBounds()
 {
   this->BuildRepresentation();
-  //BUG: //TODO
-  double bounds[6] = {0,6000,0,6000,0,6000};
-  this->BoundingBox->SetBounds(bounds);
-  return this->BoundingBox->GetBounds();
+  return Region->GetOutput()->GetBounds();
 }
 
 //----------------------------------------------------------------------------
@@ -1025,7 +835,12 @@ void vtkRectangularBoundingRegionRepresentation::HighlightEdge(vtkActor* actor)
   for (EDGE edge=LEFT; edge <= BOTTOM; edge = EDGE(edge+1))
   {
     if (this->EdgeActor[edge] == actor)
-      this->EdgeActor[edge]->SetProperty(this->SelectedEdgeProperty);
+    {
+      if (edge < RIGHT)
+	this->EdgeActor[edge]->SetProperty(this->SelectedInclusionProperty);
+      else
+	this->EdgeActor[edge]->SetProperty(this->SelectedExclusionProperty);
+    }
     else if (edge < RIGHT)
       this->EdgeActor[edge]->SetProperty(this->InclusionEdgeProperty);
     else

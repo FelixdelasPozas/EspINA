@@ -1,7 +1,7 @@
 /*=========================================================================
 
    Program: ParaView
-   Module:    pqRectangularBoundingRegionWidget.cxx
+   Module:    pqRectangularBoundingVolumeWidget.cxx
 
    Copyright (c) 2005,2006 Sandia Corporation, Kitware Inc.
    All rights reserved.
@@ -29,7 +29,7 @@ NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ========================================================================*/
-#include "pqRectangularBoundingRegionWidget.h"
+#include "pqRectangularBoundingVolumeWidget.h"
 
 // Server Manager Includes.
 #include "vtkSMNewWidgetRepresentationProxy.h"
@@ -45,11 +45,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "pqServer.h"
 #include "pqServerManagerModel.h"
 #include "pqSMAdaptor.h"
-#include "vtkRectangularBoundingRegionWidget.h"
+#include "vtkRectangularBoundingVolumeWidget.h"
 #include <vtkPolyDataAlgorithm.h>
 
 //-----------------------------------------------------------------------------
-pqRectangularBoundingRegionWidget::pqRectangularBoundingRegionWidget(vtkSMProxy* refProxy, vtkSMProxy* pxy, QWidget* _parent) :
+pqRectangularBoundingVolumeWidget::pqRectangularBoundingVolumeWidget(vtkSMProxy* refProxy, vtkSMProxy* pxy, QWidget* _parent) :
   Superclass(refProxy, pxy, _parent)
 {
   QObject::connect(this, SIGNAL(widgetVisibilityChanged(bool)),
@@ -61,16 +61,16 @@ pqRectangularBoundingRegionWidget::pqRectangularBoundingRegionWidget(vtkSMProxy*
 }
 
 //-----------------------------------------------------------------------------
-pqRectangularBoundingRegionWidget::~pqRectangularBoundingRegionWidget()
+pqRectangularBoundingVolumeWidget::~pqRectangularBoundingVolumeWidget()
 {
 }
 
 //-----------------------------------------------------------------------------
-void pqRectangularBoundingRegionWidget::createWidget(pqServer* server)
+void pqRectangularBoundingVolumeWidget::createWidget(pqServer* server)
 {
   vtkSMNewWidgetRepresentationProxy* widget =
     pqApplicationCore::instance()->get3DWidgetFactory()->
-    get3DWidget("RectangularBoundingRegionWidgetRepresentation", server);
+    get3DWidget("RectangularBoundingVolumeWidgetRepresentation", server);
   this->setWidgetProxy(widget);
 
 //   std::cout << "Create Widget" << std::endl;
@@ -82,16 +82,16 @@ void pqRectangularBoundingRegionWidget::createWidget(pqServer* server)
 
   if (region)
   {
-//     std::cout << "Set Region" << std::endl;
+//     std::cout << "Set Volume" << std::endl;
     vtkAbstractWidget *miwidget = widget->GetWidget();
-    vtkRectangularBoundingRegionWidget::SafeDownCast(miwidget)->SetRegion(region);
+    vtkRectangularBoundingVolumeWidget::SafeDownCast(miwidget)->SetVolume(region);
   }
 
 }
 
 //-----------------------------------------------------------------------------
 // update widget bounds.
-void pqRectangularBoundingRegionWidget::select()
+void pqRectangularBoundingVolumeWidget::select()
 {
   vtkSMNewWidgetRepresentationProxy* widget = this->getWidgetProxy();
   double input_bounds[6];
@@ -104,7 +104,7 @@ void pqRectangularBoundingRegionWidget::select()
     if (region)
     {
       vtkAbstractWidget *miwidget = widget->GetWidget();
-      vtkRectangularBoundingRegionWidget::SafeDownCast(miwidget)->SetRegion(region);
+      vtkRectangularBoundingVolumeWidget::SafeDownCast(miwidget)->SetVolume(region);
     }
     //     updateWidgetMargins();
   }
@@ -113,7 +113,7 @@ void pqRectangularBoundingRegionWidget::select()
 }
 
 //-----------------------------------------------------------------------------
-void pqRectangularBoundingRegionWidget::resetBounds(double input_bounds[6])
+void pqRectangularBoundingVolumeWidget::resetBounds(double input_bounds[6])
 {
   vtkSMNewWidgetRepresentationProxy* widget = this->getWidgetProxy();
   vtkSMPropertyHelper(widget, "PlaceWidget").Set(input_bounds, 6);
@@ -121,7 +121,7 @@ void pqRectangularBoundingRegionWidget::resetBounds(double input_bounds[6])
 }
 
 //-----------------------------------------------------------------------------
-void pqRectangularBoundingRegionWidget::cleanupWidget()
+void pqRectangularBoundingVolumeWidget::cleanupWidget()
 {
   vtkSMNewWidgetRepresentationProxy* widget = this->getWidgetProxy();
   if(widget)
@@ -133,12 +133,12 @@ void pqRectangularBoundingRegionWidget::cleanupWidget()
 }
 
 //-----------------------------------------------------------------------------
-void pqRectangularBoundingRegionWidget::updateControlledFilter()
+void pqRectangularBoundingVolumeWidget::updateControlledFilter()
 {
 //   std::cout << "Updating Controlled Filter" << std::endl;
   vtkSMNewWidgetRepresentationProxy* widget = this->getWidgetProxy();
   vtkAbstractWidget *miwidget = widget->GetWidget();
-  vtkRectangularBoundingRegionWidget *rrbw = vtkRectangularBoundingRegionWidget::SafeDownCast(miwidget);
+  vtkRectangularBoundingVolumeWidget *rrbw = vtkRectangularBoundingVolumeWidget::SafeDownCast(miwidget);
   double offset[3];
   rrbw->GetInclusionOffset(offset);
 //   std::cout << "Widget Inclusion Offset: " << offset[0] << " " << offset[1]  << " " << offset[2] << std::endl;
@@ -150,12 +150,12 @@ void pqRectangularBoundingRegionWidget::updateControlledFilter()
 }
 
 //-----------------------------------------------------------------------------
-void pqRectangularBoundingRegionWidget::updateWidgetMargins()
+void pqRectangularBoundingVolumeWidget::updateWidgetMargins()
 {
 //   std::cout << "Update Widget Margins" << std::endl;
   vtkSMNewWidgetRepresentationProxy* widget = this->getWidgetProxy();
   vtkAbstractWidget *miwidget = widget->GetWidget();
-  vtkRectangularBoundingRegionWidget *rrbw = vtkRectangularBoundingRegionWidget::SafeDownCast(miwidget);
+  vtkRectangularBoundingVolumeWidget *rrbw = vtkRectangularBoundingVolumeWidget::SafeDownCast(miwidget);
   double offset[3];
   getControlledProxy()->UpdatePropertyInformation();
   vtkSMPropertyHelper(getControlledProxy(), "InclusionOffset").Get(offset, 3);
@@ -171,38 +171,63 @@ void pqRectangularBoundingRegionWidget::updateWidgetMargins()
   if (region)
   {
     vtkAbstractWidget *miwidget = widget->GetWidget();
-    vtkRectangularBoundingRegionWidget::SafeDownCast(miwidget)->SetRegion(region);
+    vtkRectangularBoundingVolumeWidget::SafeDownCast(miwidget)->SetVolume(region);
   }
-//   emit modified();
 }
 
 
 
 //-----------------------------------------------------------------------------
-void pqRectangularBoundingRegionWidget::onWidgetVisibilityChanged(bool visible)
+void pqRectangularBoundingVolumeWidget::onWidgetVisibilityChanged(bool visible)
 {
 }
 
 //-----------------------------------------------------------------------------
-void pqRectangularBoundingRegionWidget::accept()
+void pqRectangularBoundingVolumeWidget::accept()
 {
-//   std::cout << "Accept Changes"  << std::endl;
+  std::cout << "Accept Changes"  << std::endl;
   updateControlledFilter();
 //   vtkPolyDataAlgorithm *region = vtkPolyDataAlgorithm::SafeDownCast(getControlledProxy()->GetClientSideObject());
 //   if (region)
 //   {
 //     vtkAbstractWidget *miwidget = widget->GetWidget();
-//     vtkRectangularBoundingRegionWidget::SafeDownCast(miwidget)->SetRegion(region);
+//     vtkRectangularBoundingVolumeWidget::SafeDownCast(miwidget)->SetVolume(region);
 //   }
   this->Superclass::accept();
 //   this->hideHandles();
 }
 
 //-----------------------------------------------------------------------------
-void pqRectangularBoundingRegionWidget::reset()
+void pqRectangularBoundingVolumeWidget::reset()
 {
-//   std::cout << "Reset Changes"  << std::endl;
+  std::cout << "Reset Changes"  << std::endl;
   updateWidgetMargins();
   this->Superclass::reset();
-  emit modified();
+//   this->hideHandles();
+}
+
+//-----------------------------------------------------------------------------
+void pqRectangularBoundingVolumeWidget::showHandles()
+{
+  /*
+  vtkSMProxy* proxy = this->getWidgetProxy();
+  if (proxy)
+    {
+    pqSMAdaptor::setElementProperty(proxy->GetProperty("HandleVisibility"), 1);
+    proxy->UpdateVTKObjects();
+    }
+    */
+}
+
+//-----------------------------------------------------------------------------
+void pqRectangularBoundingVolumeWidget::hideHandles()
+{
+  /*
+  vtkSMProxy* proxy = this->getWidgetProxy();
+  if (proxy)
+    {
+    pqSMAdaptor::setElementProperty(proxy->GetProperty("HandleVisibility"), 1);
+    proxy->UpdateVTKObjects();
+    }
+  */
 }

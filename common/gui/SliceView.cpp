@@ -1100,7 +1100,6 @@ void SliceView::addWidget(SliceWidget *sWidget)
   connect(widget, SIGNAL(modified()),
 	  this, SLOT(updateWidgetVisibility()));
   m_widgets << sWidget;
-  updateWidgetVisibility();
 }
 
 //-----------------------------------------------------------------------------
