@@ -74,7 +74,7 @@ public:
   vtkGetVector3Macro(InclusionOffset, double);
   vtkSetVector3Macro(ExclusionOffset, double);
   vtkGetVector3Macro(ExclusionOffset, double);
-  
+
   // Description:
   // These are methods that satisfy vtkWidgetRepresentation's API.
   virtual void PlaceWidget(double bounds[6]);
@@ -83,14 +83,14 @@ public:
   virtual void StartWidgetInteraction(double e[2]);
   virtual void WidgetInteraction(double e[2]);
   virtual double *GetBounds();
-  
+
   // Description:
   // Methods supporting, and required by, the rendering process.
   virtual void ReleaseGraphicsResources(vtkWindow*);
   virtual int  RenderOpaqueGeometry(vtkViewport*);
   virtual int  RenderTranslucentPolygonalGeometry(vtkViewport*);
   virtual int  HasTranslucentPolygonalGeometry();
-  
+
 //BTX - used to manage the state of the widget
   enum {Outside=0,
     MoveLeft, MoveRight, MoveTop, MoveBottom, Translating

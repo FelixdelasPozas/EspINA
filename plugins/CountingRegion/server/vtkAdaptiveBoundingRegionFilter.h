@@ -37,7 +37,7 @@ public:
   //! Exclusion Offset (Right, Bottom, Lower)
   vtkSetVector3Macro(ExclusionOffset, double);
   vtkGetVector3Macro(ExclusionOffset, double);
-  
+
   vtkGetMacro(TotalVolume, double);
   vtkGetMacro(TotalAdaptiveVolume, double);
   vtkGetMacro(InclusionVolume, double);
@@ -50,11 +50,21 @@ protected:
   virtual int RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector);
 
   void computeStackMargins(vtkImageData *image);
-  vtkSmartPointer<vtkPoints> applyOffsets();
+  void createBoundingRegion(vtkImageData *image);
 
 protected:
   vtkAdaptiveBoundingRegionFilter();
   virtual ~vtkAdaptiveBoundingRegionFilter();
+
+  double leftOffset() const  {return InclusionOffset[0];}
+  double topOffset() const   {return InclusionOffset[1];}
+  double upperOffset() const {return InclusionOffset[2];}
+  double rightOffset() const {return -ExclusionOffset[0];}
+  double bottomOffset() const{return -ExclusionOffset[1];}
+  double lowerOffset() const {return -ExclusionOffset[2];}
+
+  void roundToSlice(double &var, double offset)
+  {var = floor(var + offset + 0.5);}
 
 private:
  // virtual vtkBoundingRegionFilter& operator=(const vtkBoundingRegionFilter& other); // Not implemented
@@ -67,11 +77,10 @@ private:
  double ExclusionVolume;
  double ExclusionAdaptiveVolume;
 
- double LastComputedUpper;
- double LastComputedLower;
-
  bool   m_init;
- vtkSmartPointer<vtkPoints>    borderVertices;
+
+ vtkSmartPointer<vtkPoints>    stackBoderVertex;
+ vtkSmartPointer<vtkPoints>    regionVertex;
  vtkSmartPointer<vtkCellArray> faces;
  vtkSmartPointer<vtkIntArray>  faceData;
 };

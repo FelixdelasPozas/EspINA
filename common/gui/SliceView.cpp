@@ -638,7 +638,7 @@ void SliceView::onConnect()
 	  this, SLOT(sliceViewCenterChanged(double,double,double)));
 
   m_viewWidget = m_view->getWidget();
-  
+
   // We want to manage events on the view
   m_viewWidget->installEventFilter(this);
 //   QObject::connect(m_viewWidget, SIGNAL(mouseEvent(QMouseEvent *)),
@@ -686,7 +686,6 @@ void SliceView::scrollValueChanged(int value)
     pos *= m_gridSize[m_plane];
 
   m_view->setSlice(pos);
-  updateWidgetVisibility();
 }
 
 //-----------------------------------------------------------------------------
@@ -1245,7 +1244,7 @@ void SliceView::centerViewOn(double center[3])
       m_center[i] = floor((m_center[i]*m_gridSize[i])+0.5);
 
   m_view->centerViewOn(m_center[0], m_center[1], m_center[2]);
-
+  updateWidgetVisibility();
 }
 
 //-----------------------------------------------------------------------------

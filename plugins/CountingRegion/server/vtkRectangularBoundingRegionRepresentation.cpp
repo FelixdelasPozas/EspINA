@@ -378,10 +378,10 @@ void vtkRectangularBoundingRegionRepresentation::UpdateXYFace()
   double LB[3], LT[3], RT[3], RB[3];
 
   // Get original Region Points
-  Region->GetOutput()->GetPoint(Slice*4+3, LB);
-  Region->GetOutput()->GetPoint(Slice*4+0, LT);
-  Region->GetOutput()->GetPoint(Slice*4+1, RT);
-  Region->GetOutput()->GetPoint(Slice*4+2, RB);
+  Region->GetOutput()->GetPoint(Slice*4+0, LB);
+  Region->GetOutput()->GetPoint(Slice*4+1, LT);
+  Region->GetOutput()->GetPoint(Slice*4+2, RT);
+  Region->GetOutput()->GetPoint(Slice*4+3, RB);
 
   // Change its depth to be always on top of the XY plane
   // according to Espina's Camera
@@ -417,8 +417,8 @@ void vtkRectangularBoundingRegionRepresentation::CreateYZFace()
 {
 //   std::cout << "Created YZ FACE" << std::endl;
   double LB[3], RB[3];
-  this->Region->GetOutput()->GetPoint(2, LB);
-  this->Region->GetOutput()->GetPoint(NumPoints-2, RB);
+  this->Region->GetOutput()->GetPoint(0, LB);
+  this->Region->GetOutput()->GetPoint(NumPoints-1, RB);
 
 //   std::cout << "LB: " << LB[2] << std::endl;
 //   std::cout << "RB: " << RB[2] << std::endl;
@@ -489,7 +489,7 @@ void vtkRectangularBoundingRegionRepresentation::CreateYZFace()
   {
     int interval = slice - UpperSlice;
     // Bottom
-    Region->GetOutput()->GetPoint(slice*4+3,point);
+    Region->GetOutput()->GetPoint(slice*4+0,point);
     point[0] = -0.1;
     point[1] += Shift[BOTTOM];
     if (slice == 0)
@@ -498,7 +498,7 @@ void vtkRectangularBoundingRegionRepresentation::CreateYZFace()
       point[2] += Shift[RIGHT];
     this->Vertex->SetPoint(2*interval, point);
     // Top
-    Region->GetOutput()->GetPoint(slice*4+0,point);
+    Region->GetOutput()->GetPoint(slice*4+1,point);
     point[0] = -0.1;
     point[1] += Shift[TOP];
     if (slice == 0)
@@ -518,8 +518,8 @@ void vtkRectangularBoundingRegionRepresentation::CreateYZFace()
 void vtkRectangularBoundingRegionRepresentation::CreateXZFace()
 {
   double LT[3], LB[3];
-  this->Region->GetOutput()->GetPoint(0, LT);
-  this->Region->GetOutput()->GetPoint(NumPoints-1, LB);
+  this->Region->GetOutput()->GetPoint(1, LT);
+  this->Region->GetOutput()->GetPoint(NumPoints-4, LB);
 
 //   std::cout << "LT: " << LT[2] << std::endl;
 //   std::cout << "LB: " << LB[2] << std::endl;
@@ -590,7 +590,7 @@ void vtkRectangularBoundingRegionRepresentation::CreateXZFace()
   {
     int interval = slice - UpperSlice;
     // LEFT
-    Region->GetOutput()->GetPoint(slice*4+0,point);
+    Region->GetOutput()->GetPoint(slice*4+1,point);
     point[0] += Shift[LEFT];
     point[1] = -0.1;
     if (slice == 0)
@@ -599,7 +599,7 @@ void vtkRectangularBoundingRegionRepresentation::CreateXZFace()
       point[2] += Shift[BOTTOM];
     this->Vertex->SetPoint(2*interval+0, point);
     //RIGHT
-    Region->GetOutput()->GetPoint(slice*4+1,point);
+    Region->GetOutput()->GetPoint(slice*4+3,point);
     point[0] += Shift[RIGHT];
     point[1] = -0.1;
     if (slice == 0)
@@ -738,8 +738,6 @@ void vtkRectangularBoundingRegionRepresentation::SetInteractionState(int state)
 {
   // Clamp to allowable values
   state = state < vtkRectangularBoundingRegionRepresentation::Outside ? vtkRectangularBoundingRegionRepresentation::Outside : state;
-//   state = ( state < vtkRectangularBoundingRegionRepresentation::Outside ? vtkRectangularBoundingRegionRepresentation::Outside : 
-//             (state > vtkRectangularBoundingRegionRepresentation::Scaling ? vtkRectangularBoundingRegionRepresentation::Scaling : state) );
 
   // Depending on state, highlight appropriate parts of representation
   this->InteractionState = state;
@@ -753,13 +751,9 @@ void vtkRectangularBoundingRegionRepresentation::SetInteractionState(int state)
       break;
     case vtkRectangularBoundingRegionRepresentation::Translating:
       this->HighlightEdge(this->CurrentEdge);
-      //       this->HighlightFace(-1);
       break;
     default:
-//       this->HighlightOutline(0);
       this->HighlightEdge(NULL);
-//       this->HighlightHandle(NULL);
-//       this->HighlightFace(-1);
     }
 }
 
@@ -788,8 +782,6 @@ void vtkRectangularBoundingRegionRepresentation::ReleaseGraphicsResources(vtkWin
 {
   for (EDGE i=LEFT; i <= BOTTOM; i = EDGE(i+1))
     this->EdgeActor[i]->ReleaseGraphicsResources(w);
-//   this->BoundingFaceActor->ReleaseGraphicsResources(w);
-//   this->HexFace->ReleaseGraphicsResources(w);
 
 }
 
@@ -847,45 +839,6 @@ void vtkRectangularBoundingRegionRepresentation::HighlightEdge(vtkActor* actor)
       this->EdgeActor[edge]->SetProperty(this->ExclusionEdgeProperty);
   }
 }
-//----------------------------------------------------------------------------
-// void vtkRectangularBoundingRegionRepresentation::HighlightFace(int cellId)
-// {
-//   if ( cellId >= 0 )
-//     {
-//     vtkIdType npts;
-//     vtkIdType *pts;
-//     vtkCellArray *cells = this->HexFacePolyData->GetPolys();
-//     this->InclusionPolyData->GetCellPoints(cellId, npts, pts);
-//     this->HexFacePolyData->Modified();
-//     cells->ReplaceCell(0,npts,pts);
-//     this->CurrentHexFace = cellId;
-//     this->HexFace->SetProperty(this->SelectedFaceProperty);
-//     if ( !this->CurrentEdge )
-//       {
-//       this->CurrentEdge = this->HexFace;
-//       }
-//     }
-//   else
-//     {
-//     this->HexFace->SetProperty(this->FaceProperty);
-//     this->CurrentHexFace = -1;
-//     }
-// }
-
-// //----------------------------------------------------------------------------
-// void vtkRectangularBoundingRegionRepresentation::HighlightOutline(int highlight)
-// {
-//   if ( highlight )
-//     {
-//     this->EdgeActor[TOP]->SetProperty(this->SelectedOutlineProperty);
-// //     this->BoundingFaceActor->SetProperty(this->SelectedOutlineProperty);
-//     }
-//   else
-//     {
-//     this->EdgeActor[TOP]->SetProperty(this->InclusionProperty);
-// //     this->BoundingFaceActor->SetProperty(this->BoundingFaceProperty);
-//     }
-// }
 
 //----------------------------------------------------------------------------
 void vtkRectangularBoundingRegionRepresentation::PrintSelf(ostream& os, vtkIndent indent)
