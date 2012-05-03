@@ -237,36 +237,7 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
 
     QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
     undo->push(new UndoCommand(channel, filter, tax));
-
-  // args.insert("VOI",SelectionManager::instance()->voi()->save());
-  //createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);createFilter(m_pluginName + "::" + "SeedGrowSegmentationFilter",args);
-
-//   IVOI *voi = SelectionManager::instance()->voi();
-//   if (!voi && m_useDefaultVOI->isChecked())
-//   {
-//     voi = m_defaultVOI;
-//     Sample *input = EspinaModel::instance()->activeSample();
-//     voi->setSource(input);
-//     double spacing[3];
-//     input->spacing(spacing);
-//     double defVOI[6] = {(seed.x - m_preferences->xSize())*spacing[0],
-// 			(seed.x + m_preferences->xSize())*spacing[0],
-// 			(seed.y - m_preferences->ySize())*spacing[1],
-// 			(seed.y + m_preferences->ySize())*spacing[1],
-// 			(seed.z - m_preferences->zSize())*spacing[2],
-// 			(seed.z + m_preferences->zSize())*spacing[2]};
-//     vtkSMPropertyHelper(voi->getProxy(),"Bounds").Set(defVOI,6);
-//     voi->getProxy()->UpdateVTKObjects();
-// //     double checkBounds[6];
-//     vtkSMPropertyHelper(voi->getProxy(),"Bounds").Get(defVOI,6);
-//   }
-
-//     m_lastFilter = new SeedGrowSegmentationFilter(args);
-//   if (!sgs_sgsf)
-//     qWarning() << "SeedGrowSegmentation: Failed to create new segmentation";
   }
-
-//   QApplication::restoreOverrideCursor();
 }
 
 //-----------------------------------------------------------------------------

@@ -125,63 +125,76 @@ Cache::Index CachedObjectBuilder::generateId(const QString group, const QString 
 pqPipelineSource *CachedObjectBuilder::createSMFilter(const QString group, const QString name, const pqFilter::Arguments args)
 {
   pqApplicationCore* core = pqApplicationCore::instance();
-  pqObjectBuilder* ob = core->getObjectBuilder();
-  
-//   CACHE_DEBUG("CachedObjectBuilder: Create Filter " << name);
-  pqPipelineSource *filter; //= builder->createFilter(group, name,NULL);
+  pqObjectBuilder* ob     = core->getObjectBuilder();
+  pqServer *activeServer  = core->getActiveServer();
+
+  //   CACHE_DEBUG("CachedObjectBuilder: Create Filter " << name);
+  pqPipelineSource *filter = NULL;
   vtkSMProperty *p;
+
+  QMap<QString, QList<pqOutputPort*> > namedInputs;
+  foreach (pqFilter::Argument arg, args)
+  {
+    if (arg.type == pqFilter::Argument::INPUT)
+    {
+	QStringList input = arg.value.split(":");
+	Q_ASSERT(input.size()==2);
+	pqFilter *inputCreator = m_cache->getEntry(input[0]);
+	Q_ASSERT(inputCreator);
+	pqOutputPort *port = inputCreator->pipelineSource()->getOutputPort(input[1].toInt());
+	Q_ASSERT(port);
+	// Recover already connected output ports for this input
+	if (namedInputs.contains(arg.name))
+	  namedInputs[arg.name] << port;
+	else
+	  namedInputs[arg.name] = (QList<pqOutputPort*>() << port);
+    }
+  }
+
+  // Filter is a source
+  if (namedInputs.isEmpty())
+    filter = ob->createSource(group, name, activeServer);
+  else
+    filter = ob->createFilter(group, name, namedInputs, activeServer);
+
+  Q_ASSERT(filter != NULL);
+
   foreach (pqFilter::Argument arg, args)
   {
     switch (arg.type)
     {
       case pqFilter::Argument::INPUT:
-      {
-	// Filter is a source
-	if (arg.value == "")
-	{
-	  filter = ob->createSource(group, name, pqApplicationCore::instance()->getActiveServer());
-	}
-	else
-	{
-	  QStringList input = arg.value.split(":");
-	  Q_ASSERT(input.size()==2);
-	  pqFilter *inputCreator = m_cache->getEntry(input[0]);
-	  Q_ASSERT(inputCreator);
-	  filter = ob->createFilter(group, name, inputCreator->pipelineSource(), input[1].toInt());
-	}
-      }
-      break;
+	break;
       case pqFilter::Argument::INTVECT:
-	{
-	  Q_ASSERT(filter != NULL);
-	  p = filter->getProxy()->GetProperty( arg.name.toStdString().c_str() );
-	  vtkSMIntVectorProperty * prop = vtkSMIntVectorProperty::SafeDownCast(p);
-	  QStringList values = arg.value.split(",");
-// 	  CACHE_DEBUG("CachedObjectBuilder:" << arg.name << "Values" <<  values);
-	  for (int i = 0; i < values.size(); i++)
-	    prop->SetElement(i, values[i].toInt());
-	}
+      {
+	p = filter->getProxy()->GetProperty( arg.name.toStdString().c_str() );
+	vtkSMIntVectorProperty * prop = vtkSMIntVectorProperty::SafeDownCast(p);
+	QStringList values = arg.value.split(",");
+	// 	  CACHE_DEBUG("CachedObjectBuilder:" << arg.name << "Values" <<  values);
+	for (int i = 0; i < values.size(); i++)
+	  prop->SetElement(i, values[i].toInt());
+
 	break;
+      }
       case pqFilter::Argument::DOUBLEVECT:
-	{
-	  Q_ASSERT(filter != NULL);
-	  p = filter->getProxy()->GetProperty( arg.name.toStdString().c_str() );
-	  vtkSMDoubleVectorProperty * prop = vtkSMDoubleVectorProperty::SafeDownCast(p);
-	  QStringList values = arg.value.split(",");
-// 	  qDebug() << "CachedObjectBuilder:" << arg.name << "Values" <<  values;
-	  for (int i = 0; i < values.size(); i++)
-	    prop->SetElement(i, values[i].toDouble());
-	}
+      {
+	p = filter->getProxy()->GetProperty( arg.name.toStdString().c_str() );
+	vtkSMDoubleVectorProperty * prop = vtkSMDoubleVectorProperty::SafeDownCast(p);
+	QStringList values = arg.value.split(",");
+	// 	  qDebug() << "CachedObjectBuilder:" << arg.name << "Values" <<  values;
+	for (int i = 0; i < values.size(); i++)
+	  prop->SetElement(i, values[i].toDouble());
+
 	break;
+      }
       default:
-// 	qDebug() << "Unkown parameter type";
+	// 	qDebug() << "Unkown parameter type";
 	Q_ASSERT(false);
     };
   }
-  Q_ASSERT(filter != NULL);
-  //TODO: Review if needed here
-  filter->getProxy()->UpdateVTKObjects();
- return filter;
+
+//   filter->getProxy()->UpdateVTKObjects();
+  return filter;
 }
 
 pqFilter* CachedObjectBuilder::registerFilter(const QString id, pqPipelineSource* source)

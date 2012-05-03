@@ -9,7 +9,7 @@ class VTK_IMAGING_EXPORT vtkConnectedThresholdImageFilter :
 public:
   static vtkConnectedThresholdImageFilter *New();
   vtkTypeMacro(vtkConnectedThresholdImageFilter,vtkImageAlgorithm);
-    
+
   //! Gray level segmentation threshlod
   vtkSetMacro(Threshold,int);
   vtkGetMacro(Threshold,int);
@@ -20,13 +20,13 @@ public:
   void SetCheckPixel(int x, int y, int z, int value);
   void SetCheckPixel(int arg[4]);
   vtkGetVector4Macro(CheckPixel,int);
-  
+
   vtkGetMacro(PixelValue,int);
 
   vtkGetVector6Macro(SegExtent,int);
-  
+
   void PrintSelf(ostream& os, vtkIndent indent);
-    
+
 protected:
 
   vtkConnectedThresholdImageFilter();
