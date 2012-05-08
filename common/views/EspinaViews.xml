@@ -101,8 +101,16 @@
           Samples in espina view.
         </Documentation>
       </ProxyProperty>-->
-      <DoubleVectorProperty name="Center"
-        command="SetCenter"
+      <DoubleVectorProperty name="Focus"
+        command="SetFocus"
+        number_of_elements="3"
+        default_values="0 0 0">
+        <Documentation>
+	  Set/Get the point in which the view is centered on
+        </Documentation>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty name="Crosshair"
+        command="SetCrosshair"
         number_of_elements="3"
         default_values="0 0 0">
         <Documentation>
@@ -259,6 +267,56 @@
         command="SetOpacity"
         number_of_elements="1"
         default_values="0.7">
+        <Documentation>
+          Set the opacity for the channel
+        </Documentation>
+      </DoubleVectorProperty>
+    </RepresentationProxy>
+
+    <RepresentationProxy name="CrosshairRepresentation"
+      class="vtkCrosshairRepresentation"
+      processes="client|renderserver|dataserver">
+      <Documentation>
+      </Documentation>
+      <InputProperty name="Input" command="SetInputConnection">
+        <Documentation>
+          Set the input to the representation. Must be a vtkImageData producer.
+        </Documentation>
+	<DataTypeDomain name="input_type" composite_data_supported="0">
+          <DataType value="vtkImageData" />
+        </DataTypeDomain>
+        <InputArrayDomain name="input_array_any" attribute_type="any">
+        </InputArrayDomain>
+      </InputProperty>
+      <IntVectorProperty name="Position"
+        command="SetPosition"
+        number_of_elements="3"
+        default_values="0 0 0">
+        <Documentation>
+	  Set the absolute position of the representation in the view
+        </Documentation>
+      </IntVectorProperty>
+      <IntVectorProperty name="Visibility"
+        command="SetVisibility"
+        number_of_elements="1"
+        default_values="1">
+        <BooleanDomain name="bool" />
+        <Documentation>
+          Set the visibility for this representation.
+        </Documentation>
+      </IntVectorProperty>
+      <DoubleVectorProperty name="Color"
+        command="SetColor"
+        number_of_elements="1"
+        default_values="-1.0">
+        <Documentation>
+          Set the HUE value to be used for this slice.
+        </Documentation>
+      </DoubleVectorProperty>
+      <DoubleVectorProperty name="Opacity"
+        command="SetOpacity"
+        number_of_elements="1"
+        default_values="1.0">
         <Documentation>
           Set the opacity for the channel
         </Documentation>

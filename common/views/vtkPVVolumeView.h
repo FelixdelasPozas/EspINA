@@ -45,7 +45,7 @@ class VTK_EXPORT vtkPVVolumeView : public vtkPVRenderView
 public:
     struct VolumeActor
     {
-      vtkVolume *prop;
+      vtkProp3D *prop;
       bool   visible;
       bool   selected;
       double bounds[6];
@@ -78,30 +78,39 @@ public:
     void SetBackground ( double r, double g, double b );
 
     // Crosshair Related Methods
-    void SetCenter ( double x/*nm*/, double y/*nm*/, double z/*nm*/ );
-    void SetCenter ( double center[3]/*nm*/ );
-    vtkGetVector3Macro ( Center, double );
+    void SetCrosshair(double x/*nm*/, double y/*nm*/, double z/*nm*/);
+    void SetCrosshair(double center[3]/*nm*/);
+    vtkGetVector3Macro(Crosshair, double);
 
-    void SetHCrossLineColor ( double r, double g, double b );
-    void SetHCrossLineColor ( double color[3] );
-    vtkGetVector3Macro ( HCrossLineColor,double );
+    // Focus Related Methods
+    void SetFocus(double x/*nm*/, double y/*nm*/, double z/*nm*/);
+    void SetFocus(double center[3]/*nm*/);
+    vtkGetVector3Macro(Focus, double);
 
-    void SetVCrossLineColor ( double r, double g, double b );
-    void SetVCrossLineColor ( double color[3] );
-    vtkGetVector3Macro ( VCrossLineColor,double );
+    void SetHCrossLineColor(double r, double g, double b);
+    void SetHCrossLineColor(double color[3]);
+    vtkGetVector3Macro(HCrossLineColor,double);
 
-    void SetShowSegmentations ( bool visible );
-    vtkGetMacro ( ShowSegmentations, bool );
+    void SetVCrossLineColor(double r, double g, double b);
+    void SetVCrossLineColor(double color[3]);
+    vtkGetVector3Macro(VCrossLineColor, double);
 
-    void SetShowRuler ( bool visible );
-    vtkGetMacro ( ShowRuler, bool );
+    void SetShowSegmentations(bool visible);
+    vtkGetMacro (ShowSegmentations, bool);
 
-    void SetRulerColor ( double r, double g, double b );
-    void SetRulerColor ( double color[3] );
-    vtkGetVector3Macro ( RulerColor,double );
+    void SetShowRuler(bool visible);
+    vtkGetMacro(ShowRuler, bool);
 
-    vtkSetVector2Macro ( RulerSize,double );
-    vtkGetVector2Macro ( RulerSize,double );
+    void SetRulerColor(double r, double g, double b);
+    void SetRulerColor(double color[3]);
+    vtkGetVector3Macro(RulerColor, double);
+
+    vtkSetVector2Macro(RulerSize, double);
+    vtkGetVector2Macro(RulerSize, double);
+
+    vtkMatrix4x4 *AxialSlicingMatrix() {return AxialMatrix;}
+    vtkMatrix4x4 *SagittalSlicingMatrix() {return SagittalMatrix;}
+    vtkMatrix4x4 *CoronalSlicingMatrix() {return CoronalMatrix;}
 
 //BTX
 protected:
@@ -117,17 +126,18 @@ private:
 
     void updateRuler();
 
-    double           Center[3];
-    bool             ShowSegmentations;
+    double Crosshair[3];
+    double Focus[3];
+    bool   ShowSegmentations;
 
 //     vtkSmartPointer<vtkRenderer> OverviewRenderer;
     QList<VolumeActor *> Channels;
     QList<VolumeActor *> Segmentations;
 
     vtkSmartPointer<vtkAxisActor2D> Ruler;
-    bool             ShowRuler;
-    double           RulerColor[3];
-    double	   RulerSize[2];
+    bool   ShowRuler;
+    double RulerColor[3];
+    double RulerSize[2];
 
     vtkSmartPointer<vtkPolyData>    HCrossLineData, VCrossLineData/*, BorderData*/;
     vtkSmartPointer<vtkActor>       HCrossLine, VCrossLine/*, Border*/;
@@ -135,6 +145,9 @@ private:
     double           VCrossLineColor[3];
     double           SagittalCrossLineColor[3];
     double           CoronalCrossLineColor[3];
+
+    vtkMatrix4x4    *AxialMatrix, *SagittalMatrix, *CoronalMatrix;
+    double AxialSlice[16], SagittalSlice[16], CoronalSlice[16];
     QMap<vtkDataRepresentation *, VolumeActor *> m_reps;
     VolumeActor        * m_pendingActor;
     QList<VolumeActor *> m_actors;

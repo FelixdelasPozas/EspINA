@@ -189,6 +189,7 @@ protected slots:
 
 signals:
   void centerChanged(double, double, double);
+  void focusChanged (double[3]);
   // Notify the windows manager how to display the view
   void closeRequest();
   void maximizeRequest();

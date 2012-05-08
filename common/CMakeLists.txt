@@ -78,6 +78,7 @@ set (PVCORE_SERVER_SOURCES
   views/vtkChannelRepresentation.cpp
   views/vtkSegmentationRepresentation.cpp
   views/vtkSliceRepresentation.cpp
+  views/vtkCrosshairRepresentation.cpp
   views/vtkVolumetricRepresentation.cpp
   widgets/vtkRectangularRepresentation.cpp
   widgets/vtkRectangularWidget.cpp
@@ -196,7 +197,7 @@ set (CORE_SOURCES
   undo/AddSegmentation.cpp
   undo/RemoveSegmentation.cpp
   )
-add_library(fakeGUI ${CORE_SOURCES})
+# add_library(fakeGUI ${CORE_SOURCES})
 
 # Make debug output clearer
 #foreach(arg ${CORE_SOURCES})

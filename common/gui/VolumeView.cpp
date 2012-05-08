@@ -58,10 +58,12 @@
 #include <vtkSMProxyManager.h>
 #include <vtkSMRepresentationProxy.h>
 #include <pqSMAdaptor.h>
+#include <model/Channel.h>
+#include <model/Representation.h>
 
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(QWidget* parent)
-: QAbstractItemView (parent)
+: QWidget(parent)
 , m_mainLayout      (new QVBoxLayout())
 , m_controlLayout   (new QHBoxLayout())
 // , m_VOIWidget(NULL)
@@ -117,6 +119,67 @@ void VolumeView::buildControls()
   m_mainLayout->addLayout(m_controlLayout);
 }
 
+
+//-----------------------------------------------------------------------------
+void VolumeView::centerViewOn(double center[3])
+{
+  if (m_center[0] == center[0] &&
+      m_center[1] == center[1] &&
+      m_center[2] == center[2])
+    return;
+
+  memcpy(m_center, center, 3*sizeof(double));
+
+  m_view->setCrosshairCenter(m_center[0], m_center[1], m_center[2]);
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::setCameraFocus(double center[3])
+{
+  m_view->setCameraFocus(m_center[0], m_center[1], m_center[2]);
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::resetCamera()
+{
+  m_view->resetCamera();
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::addChannelRepresentation(Channel* channel)
+{
+  pqData volume = channel->representation("Volumetric")->output();
+  pqOutputPort      *oport = volume.outputPort();
+  pqPipelineSource *source = oport->getSource();
+  vtkSMProxyManager   *pxm = vtkSMProxyManager::GetProxyManager();
+
+  vtkSMRepresentationProxy* repProxy = vtkSMRepresentationProxy::SafeDownCast(
+    pxm->NewProxy("representations", "CrosshairRepresentation"));
+  Q_ASSERT(repProxy);
+  m_channels[channel] = repProxy;
+
+  // Set repProxy's input.
+  pqSMAdaptor::setInputProperty(repProxy->GetProperty("Input"),
+				source->getProxy(), oport->getPortNumber());
+  int pos[3];
+  channel->position(pos);
+  vtkSMPropertyHelper(repProxy, "Position").Set(pos,3);
+  double color = channel->color();
+  vtkSMPropertyHelper(repProxy, "Color").Set(&color,1);
+  repProxy->UpdateVTKObjects();
+
+  vtkSMProxy* viewModuleProxy = m_view->getProxy();
+  // Add the reprProxy to render module.
+  pqSMAdaptor::addProxyProperty(
+    viewModuleProxy->GetProperty("Representations"), repProxy);
+  viewModuleProxy->UpdateVTKObjects();
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::removeChannelRepresentation(Channel* channel)
+{
+
+}
 
 //-----------------------------------------------------------------------------
 void VolumeView::addSegmentationRepresentation(Segmentation *seg)

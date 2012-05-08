@@ -82,8 +82,10 @@ public:
     virtual vtkSMRenderViewProxy *getRenderViewProxy() const;
 
 public slots:
-    /// Set/Get the point in which the view is centered on
-    void centerViewOn ( double x/*nm*/, double y/*nm*/, double z/*nm*/ );
+    /// Set the point in which the crosshair is centered on
+    void setCrosshairCenter(double x/*nm*/, double y/*nm*/, double z/*nm*/ );
+    /// Set the point in which the camera focus is centered on
+    void setCameraFocus(double x/*nm*/, double y/*nm*/, double z/*nm*/ );
     /// Set whether segmentations are visible or not
     void setShowSegmentations ( bool visible );
     /// Set whether the scale ruler is visible or not
@@ -133,7 +135,8 @@ private:
     static ManipulatorType DefaultManipulatorTypes[9];
     bool InitializedWidgets;
 
-    double Center[3];
+    double Crosshair[3];
+    double Focus[3];
 };
 
 #endif // PQVOLUMEVIEW_H

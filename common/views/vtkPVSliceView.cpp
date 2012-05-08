@@ -709,11 +709,11 @@ void vtkPVSliceView::SetBackground ( double r, double g, double b )
 void vtkPVSliceView::SetSlice ( double pos )
 {
   // qDebug() << "vtkPVSliceView " << SlicingPlane << "changing slice" << pos;
-  State->setSlicePosition ( SlicingMatrix, pos );
+  State->setSlicePosition(SlicingMatrix, pos);
   SliceActor *seg;
   int lowerBound = SlicingPlane * 2;
   int upperBound = SlicingPlane * 2 + 1;
-  foreach ( seg, Segmentations )
+  foreach(seg, Segmentations)
   {
     bool hide = seg->bounds[upperBound] < Center[SlicingPlane] ||
     seg->bounds[lowerBound] > Center[SlicingPlane];

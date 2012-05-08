@@ -164,20 +164,36 @@ bool pqVolumeView::canDisplay ( pqOutputPort* opPort ) const
 // }
 
 //-----------------------------------------------------------------------------
-void pqVolumeView::centerViewOn ( double x, double y, double z )
+void pqVolumeView::setCrosshairCenter(double x, double y, double z)
 {
-  if ( Center[0] == x && Center[1] == y && Center[2] == z )
+  if ( Crosshair[0] == x && Crosshair[1] == y && Crosshair[2] == z )
     return;
 
-  Center[0] = x;
-  Center[1] = y;
-  Center[2] = z;
+  Crosshair[0] = x;
+  Crosshair[1] = y;
+  Crosshair[2] = z;
 
-  vtkSMPropertyHelper(this->getProxy(), "Center").Set (Center, 3);
+  vtkSMPropertyHelper(this->getProxy(), "Crosshair").Set (Crosshair, 3);
   this->getProxy()->UpdateVTKObjects();
   forceRender();
 
-  emit centerChanged(Center[0], Center[1], Center[2]);
+//   emit centerChanged(Crosshair[0], Crosshair[1], Crosshair[2]);
+}
+
+//-----------------------------------------------------------------------------
+void pqVolumeView::setCameraFocus(double x, double y, double z)
+{
+  if (Focus[0] == x && Focus[1] == y && Focus[2] == z)
+    return;
+
+  Focus[0] = x;
+  Focus[1] = y;
+  Focus[2] = z;
+
+  vtkSMPropertyHelper(this->getProxy(), "Focus").Set (Focus, 3);
+  this->getProxy()->UpdateVTKObjects();
+  forceRender();
+//   emit centerChanged(Crosshair[0], Crosshair[1], Crosshair[2]);
 }
 
 //-----------------------------------------------------------------------------

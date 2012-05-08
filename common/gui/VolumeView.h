@@ -27,6 +27,7 @@
 #include <QAbstractItemView>
 #include <QPushButton>
 
+class Channel;
 class vtkSMRepresentationProxy;
 class ColorEngine;
 class pqPipelineRepresentation;
@@ -48,17 +49,19 @@ class IViewWidget;
 
 /// VolumeView
 class VolumeView
-: public QAbstractItemView
+: public QWidget
 {
   Q_OBJECT
 public:
   explicit VolumeView(QWidget* parent = 0);
   virtual ~VolumeView(){}
 
-  /// QAbstractItemView Interface
-  virtual QModelIndex indexAt(const QPoint& point) const {return QModelIndex();}
-  virtual void scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint = EnsureVisible) {}
-  virtual QRect visualRect(const QModelIndex& index) const {return QRect();}
+  void centerViewOn(double center[3]/*nm*/);
+  void setCameraFocus(double center[3]);
+  void resetCamera();
+
+  void addChannelRepresentation(Channel *channel);
+  void removeChannelRepresentation(Channel *channel);
 
   void addSegmentationRepresentation(Segmentation *seg);
   void removeSegmentationRepresentation(Segmentation *seg);
@@ -77,20 +80,6 @@ public slots:
 
   void forceRender();
 
-protected:
-  /// QAbstractItemView Interface
-  virtual QRegion visualRegionForSelection(const QItemSelection& selection) const {return QRegion();}
-  virtual void setSelection(const QRect& rect, QItemSelectionModel::SelectionFlags command) {}
-  virtual bool isIndexHidden(const QModelIndex& index) const {return true;}
-  virtual int verticalOffset() const {return 0;}
-  virtual int horizontalOffset() const {return 0;}
-  virtual QModelIndex moveCursor(QAbstractItemView::CursorAction cursorAction, Qt::KeyboardModifiers modifiers) {return QModelIndex();}
-
-  // Updating model changes
-//   virtual void rowsInserted(const QModelIndex& parent, int start, int end);
-//   virtual void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end);
-//   virtual void dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight);
-
 private:
   void selectSegmentations(int x, int y, int z);
 
@@ -98,12 +87,11 @@ protected slots:
 //   /// Selections
 //   void vtkWidgetMouseEvent(QMouseEvent *event);
 
-//   void updateScene();
-//   void render(const QModelIndex &index);
   void exportScene();
   void takeSnapshot();
 
   void buildControls();
+
 private:
   struct SegRep
   {
@@ -123,8 +111,10 @@ private:
   QPushButton m_snapshot;
   QPushButton m_export;
 
+  double m_center[3];
   ColorEngine *m_colorEngine;
 
+  QMap<Channel *, vtkSMRepresentationProxy *> m_channels;
   QMap<Segmentation *, SegRep> m_segmentations;
 };
 

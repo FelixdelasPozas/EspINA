@@ -806,6 +806,7 @@ void SliceView::centerCrosshairOnMousePosition()
   pickChannel(xPos, yPos, center);
 
   centerViewOn(center);
+  emit focusChanged(center);
 }
 
 //-----------------------------------------------------------------------------

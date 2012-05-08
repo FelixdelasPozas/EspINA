@@ -93,12 +93,30 @@ vtkStandardNewMacro ( vtkPVVolumeView );
 vtkPVVolumeView::vtkPVVolumeView()
 : m_pendingActor(NULL)
 {
-  memset(Center, 0, 3*sizeof(double));
+  memset(Crosshair, 0, 3*sizeof(double));
+  memset(Focus, 0, 3*sizeof(double));
 
   this->SetCenterAxesVisibility ( false );
   this->SetOrientationAxesVisibility ( false );
   this->SetOrientationAxesInteractivity ( false );
   this->SetInteractionMode ( INTERACTION_MODE_3D );
+
+  memset(AxialSlice, 0, 16*sizeof(double));
+  AxialSlice[0] = AxialSlice[5] = AxialSlice[10] = AxialSlice[15] = 1;
+  AxialMatrix = vtkMatrix4x4::New();
+  AxialMatrix->DeepCopy(AxialSlice);
+
+  memset(SagittalSlice, 0, 16*sizeof(double));
+  SagittalSlice[4] = SagittalSlice[15] = 1;
+  SagittalSlice[2] = SagittalSlice[9] = -1;
+  SagittalMatrix = vtkMatrix4x4::New();
+  SagittalMatrix->DeepCopy(SagittalSlice);
+
+  memset(CoronalSlice, 0, 16*sizeof(double));
+  CoronalSlice[0] = CoronalSlice[6] = CoronalSlice[15] = 1;
+  CoronalSlice[9] = -1;
+  CoronalMatrix = vtkMatrix4x4::New();
+  CoronalMatrix->DeepCopy(CoronalSlice);
 
 //   if ( this->Interactor )
 //   {
@@ -116,8 +134,8 @@ vtkPVVolumeView::vtkPVVolumeView()
 //   OverviewRenderer->SetLayer(2);
 //   this->GetRenderWindow()->AddRenderer(this->OverviewRenderer);
 
-  initCrosshairs();
-  initRuler();
+//   initCrosshairs();
+//   initRuler();
   //     qDebug() << "vtkPVVolumeView("<< this << "): Created";
 }
 
@@ -279,10 +297,11 @@ void vtkPVVolumeView::AddActor(VolumeActor *actor)
 
   RenderView->GetRenderer()->AddActor(actor->prop);
 //   OverviewRenderer->AddActor(actor->prop);
-  SetCenter(Center);
+  SetCrosshair(Crosshair);
   m_actors << actor;
   Q_ASSERT(!m_pendingActor);
   m_pendingActor = actor;
+  double bounds[6] = {0,500,0,500,0,200};
 }
 
 //----------------------------------------------------------------------------
@@ -300,8 +319,8 @@ void vtkPVVolumeView::RemoveActor(VolumeActor *actor)
 //----------------------------------------------------------------------------
 void vtkPVVolumeView::AddChannel(VolumeActor* actor)
 {
-//   AddActor(actor);
-//   Channels.append(actor);
+  AddActor(actor);
+  Channels.append(actor);
 }
 
 //----------------------------------------------------------------------------
@@ -356,6 +375,10 @@ void vtkPVVolumeView::Initialize ( unsigned int id )
 //----------------------------------------------------------------------------
 void vtkPVVolumeView::ResetCamera()
 {
+  vtkCamera *camera = RenderView->GetRenderer()->GetActiveCamera();
+  camera->SetPosition (Crosshair[0], Crosshair[1], Crosshair[2]-1);
+  camera->SetFocalPoint(Crosshair[0], Crosshair[1], Crosshair[2]);
+  camera->SetRoll(180);
   vtkPVRenderView::ResetCamera();
 //   OverviewRenderer->ResetCamera ( this->LastComputedBounds );
 }
@@ -363,6 +386,10 @@ void vtkPVVolumeView::ResetCamera()
 //----------------------------------------------------------------------------
 void vtkPVVolumeView::ResetCamera ( double bounds[6] )
 {
+  vtkCamera *camera = RenderView->GetRenderer()->GetActiveCamera();
+  camera->SetPosition (Crosshair[0], Crosshair[1], Crosshair[2]-1);
+  camera->SetFocalPoint(Crosshair[0], Crosshair[1], Crosshair[2]);
+  camera->SetRoll(180);
   vtkPVRenderView::ResetCamera ( bounds );
 //   OverviewRenderer->ResetCamera ( bounds );
 }
@@ -392,74 +419,74 @@ void vtkPVVolumeView::SetBackground ( double r, double g, double b )
 }
 
 //----------------------------------------------------------------------------
-void vtkPVVolumeView::SetCenter ( double x, double y, double z )
+void vtkPVVolumeView::SetCrosshair(double x, double y, double z)
 {
-//   qDebug() << "vtkPVVolumeView setting Center on " << SlicingPlane << x << y << z;
+//   qDebug() << "vtkPVVolumeView setting Center on " << x << y << z;
   bool crossHairChanged;
 
-  crossHairChanged = Center[0] != x || Center[1] != y || Center[2] != z;
+  crossHairChanged = Crosshair[0] != x || Crosshair[1] != y || Crosshair[2] != z;
 
-  Center[0] = x;
-  Center[1] = y;
-  Center[2] = z;
+  Crosshair[0] = x;
+  Crosshair[1] = y;
+  Crosshair[2] = z;
 
-  // Only center camera if center is out of the display view
-  vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
-  coords->SetViewport(GetRenderer());
-  coords->SetCoordinateSystemToNormalizedViewport();
-  double ll[3], ur[3];
-  coords->SetValue(0, 0); //LL
-  memcpy(ll,coords->GetComputedWorldValue(GetRenderer()),3*sizeof(double));
-  coords->SetValue(1, 1); //UR
-  memcpy(ur,coords->GetComputedWorldValue(GetRenderer()),3*sizeof(double));
-
-//   int H = (SAGITTAL == SlicingPlane)?2:0;
-//   int V = (CORONAL  == SlicingPlane)?2:1;
-//   bool centerOutOfCamera = Center[H] < ll[H] || Center[H] > ur[H] // Horizontally out
-//                    || Center[V] > ll[V] || Center[V] < ur[V];// Vertically out
-
-//   if (crossHairChanged && centerOutOfCamera)
-//   {
-//     State->updateCamera(RenderView->GetRenderer()->GetActiveCamera(), Center);
-//   }
+  AxialMatrix->SetElement(2, 3, Crosshair[2]);
+  SagittalMatrix->SetElement(0, 3, Crosshair[0]);
+  CoronalMatrix->SetElement(1, 3, Crosshair[1]);
 }
-
 
 //----------------------------------------------------------------------------
-void vtkPVVolumeView::SetCenter(double center[3])
+void vtkPVVolumeView::SetCrosshair(double center[3])
 {
   //   qDebug() << "Setting Center3" << center[0] << center[1] << center[2];
-  SetCenter (center[0], center[1], center[2]);
+  SetCrosshair(center[0], center[1], center[2]);
 }
+
+//----------------------------------------------------------------------------
+void vtkPVVolumeView::SetFocus(double x, double y, double z)
+{
+  vtkCamera *camera = RenderView->GetRenderer()->GetActiveCamera();
+//   camera->SetPosition (Center[0], Center[1], Center[2]-1);
+  camera->SetFocalPoint(x, y, z);
+  camera->SetRoll(180);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVVolumeView::SetFocus(double center[3])
+{
+  //   qDebug() << "Setting Center3" << center[0] << center[1] << center[2];
+  SetFocus(center[0], center[1], center[2]);
+}
+
 
 //----------------------------------------------------------------------------
 void vtkPVVolumeView::SetHCrossLineColor(double r, double g, double b)
 {
-  HCrossLine->GetProperty()->SetColor(r, g, b);
-  HCrossLineColor[0] = r;
-  HCrossLineColor[1] = g;
-  HCrossLineColor[2] = b;
+//   HCrossLine->GetProperty()->SetColor(r, g, b);
+//   HCrossLineColor[0] = r;
+//   HCrossLineColor[1] = g;
+//   HCrossLineColor[2] = b;
 }
 
 //----------------------------------------------------------------------------
 void vtkPVVolumeView::SetHCrossLineColor(double color[3])
 {
-  SetHCrossLineColor(color[0], color[1], color[2]);
+//   SetHCrossLineColor(color[0], color[1], color[2]);
 }
 
 //----------------------------------------------------------------------------
 void vtkPVVolumeView::SetVCrossLineColor ( double r, double g, double b )
 {
-  VCrossLine->GetProperty()->SetColor ( r,g,b );
-  VCrossLineColor[0] = r;
-  VCrossLineColor[1] = g;
-  VCrossLineColor[2] = b;
+//   VCrossLine->GetProperty()->SetColor ( r,g,b );
+//   VCrossLineColor[0] = r;
+//   VCrossLineColor[1] = g;
+//   VCrossLineColor[2] = b;
 }
 
 //----------------------------------------------------------------------------
 void vtkPVVolumeView::SetVCrossLineColor ( double color[3] )
 {
-  SetVCrossLineColor ( color[0], color[1], color[2] );
+//   SetVCrossLineColor ( color[0], color[1], color[2] );
 }
 
 //----------------------------------------------------------------------------
@@ -478,13 +505,14 @@ void vtkPVVolumeView::SetShowSegmentations ( bool visible )
 void vtkPVVolumeView::SetShowRuler ( bool visible )
 {
   //   qDebug() << "vtkPVVolumeView segmentation's visibility = " << value;
-  Ruler->SetVisibility ( visible );
-  ShowRuler = visible;
+//   Ruler->SetVisibility ( visible );
+//   ShowRuler = visible;
 }
 
 //----------------------------------------------------------------------------
 void vtkPVVolumeView::SetRulerColor ( double r, double g, double b )
 {
+  return;
   Ruler->GetProperty()->SetColor ( r,g,b );
   Ruler->GetLabelTextProperty()->SetColor ( r,g,b );
   Ruler->GetTitleTextProperty()->SetColor ( r,g,b );
@@ -502,6 +530,7 @@ void vtkPVVolumeView::SetRulerColor ( double color[3] )
 //----------------------------------------------------------------------------
 void vtkPVVolumeView::updateRuler()
 {
+  return;
   if ( !ShowRuler )
     return;
 

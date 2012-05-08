@@ -53,6 +53,7 @@ public:
 
   virtual void gridSize(double size[3]);
   virtual void setGridSize(double size[3]);
+
   virtual void addWidget(EspinaWidget* widget);
   virtual void removeWidget(EspinaWidget* widget);
 
@@ -61,6 +62,7 @@ public:
 public slots:
   virtual void setShowSegmentations(bool visibility);
   virtual void setCenter(double x, double y, double z);
+  virtual void setCameraFocus(double [3]);
   virtual void setSliceSelectors(SliceView::SliceSelectors selectors);
 
 protected:

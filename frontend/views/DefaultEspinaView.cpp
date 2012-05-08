@@ -66,6 +66,8 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   xyView->setFitToGrid(true);
   connect(xyView, SIGNAL(centerChanged(double,double,double)),
 	  this, SLOT(setCenter(double,double,double)));
+  connect(xyView, SIGNAL(focusChanged(double[3])),
+	  this, SLOT(setCameraFocus(double[3])));
   connect(xyView, SIGNAL(selectedFromSlice(double, vtkPVSliceView::VIEW_PLANE)),
 	  this, SLOT(selectFromSlice(double, vtkPVSliceView::VIEW_PLANE)));
   connect(xyView, SIGNAL(selectedToSlice(double, vtkPVSliceView::VIEW_PLANE)),
@@ -86,6 +88,8 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   yzView->setFitToGrid(true);
   connect(yzView, SIGNAL(centerChanged(double,double,double)),
 	  this, SLOT(setCenter(double,double,double)));
+  connect(yzView, SIGNAL(focusChanged(double[3])),
+	  this, SLOT(setCameraFocus(double[3])));
   connect(yzView, SIGNAL(selectedFromSlice(double, vtkPVSliceView::VIEW_PLANE)),
 	  this, SLOT(selectFromSlice(double, vtkPVSliceView::VIEW_PLANE)));
   connect(yzView, SIGNAL(selectedToSlice(double, vtkPVSliceView::VIEW_PLANE)),
@@ -99,6 +103,8 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   xzView->setFitToGrid(true);
   connect(xzView, SIGNAL(centerChanged(double,double,double)),
 	  this, SLOT(setCenter(double,double,double)));
+  connect(xzView, SIGNAL(focusChanged(double[3])),
+	  this, SLOT(setCameraFocus(double[3])));
   connect(xzView, SIGNAL(selectedFromSlice(double, vtkPVSliceView::VIEW_PLANE)),
 	  this, SLOT(selectFromSlice(double, vtkPVSliceView::VIEW_PLANE)));
   connect(xzView, SIGNAL(selectedToSlice(double, vtkPVSliceView::VIEW_PLANE)),
@@ -180,6 +186,7 @@ void DefaultEspinaView::resetCamera()
   xyView->resetCamera();
   yzView->resetCamera();
   xzView->resetCamera();
+  volView->resetCamera();
 }
 
 //----------------------------------------------------------------------------
@@ -257,6 +264,13 @@ void DefaultEspinaView::setCenter(double x, double y, double z)
   xyView->centerViewOn(center);
   yzView->centerViewOn(center);
   xzView->centerViewOn(center);
+  volView->centerViewOn(center);
+}
+
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::setCameraFocus(double focus[3])
+{
+  volView->setCameraFocus(focus);
 }
 
 //-----------------------------------------------------------------------------
@@ -274,6 +288,7 @@ void DefaultEspinaView::addChannelRepresentation(Channel* channel)
   xyView->addChannelRepresentation(channel);
   yzView->addChannelRepresentation(channel);
   xzView->addChannelRepresentation(channel);
+  volView->addChannelRepresentation(channel);
 }
 
 //-----------------------------------------------------------------------------
