@@ -101,8 +101,12 @@ EspinaWindow::EspinaWindow()
   //   pqParaViewMenuBuilders::buildFileMenu(*fileMenu);
   QIcon openIcon = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
   QAction *openAnalysis = new QAction(openIcon, tr("&Open"),this);
-  connect(openAnalysis,SIGNAL(triggered(bool)),
-	  this,SLOT(openAnalysis()));
+  connect(openAnalysis, SIGNAL(triggered(bool)),
+	  this, SLOT(openAnalysis()));
+  QMenu *openRecentAnalysis = new QMenu(tr("&Open Recent"));
+  openRecentAnalysis->addActions(m_recentDocuments.list());
+  connect(openRecentAnalysis, SIGNAL(triggered(QAction*)),
+	  this, SLOT(openRecentAnalysis(QAction*)));
   QIcon addIcon = QIcon(":espina/add.svg");
   m_addToAnalysis = new QAction(addIcon, tr("&Add"),this);
   m_addToAnalysis->setEnabled(false);
@@ -113,6 +117,7 @@ EspinaWindow::EspinaWindow()
   connect(saveAnalysis,SIGNAL(triggered(bool)),
 	  this,SLOT(saveAnalysis()));
   fileMenu->addAction(openAnalysis);
+  fileMenu->addMenu(openRecentAnalysis);
   fileMenu->addAction(m_addToAnalysis);
   fileMenu->addAction(saveAnalysis);
   menuBar()->addMenu(fileMenu);
@@ -406,15 +411,18 @@ void EspinaWindow::openAnalysis()
 				  tr("Loading multiple files at a time is not supported"));
     return; //Multi-channels is not supported
   }
+  const QString file = fileDialog.getSelectedFiles().first();
+  openAnalysis(file);
+}
 
+//------------------------------------------------------------------------
+void EspinaWindow::openAnalysis(const QString file)
+{
   QApplication::setOverrideCursor(Qt::WaitCursor);
   QElapsedTimer timer;
   timer.start();
 
   closeCurrentAnalysis();
-
-  const QString file = fileDialog.getSelectedFiles().first();
-
   EspinaCore::instance()->loadFile(file);
 
   if (!m_model->taxonomy())
@@ -436,6 +444,14 @@ void EspinaWindow::openAnalysis()
 
   updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
   QApplication::restoreOverrideCursor();
+  m_recentDocuments.addDocument(file);
+}
+
+//------------------------------------------------------------------------
+void EspinaWindow::openRecentAnalysis(QAction *action)
+{
+  if (action)
+    openAnalysis(action->data().toString());
 }
 
 //------------------------------------------------------------------------

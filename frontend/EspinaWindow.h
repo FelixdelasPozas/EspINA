@@ -22,7 +22,9 @@
 
 #include <QMainWindow>
 #include <gui/DynamicWidget.h>
+#include "RecentDocuments.h"
 
+class QAction;
 class EspinaModel;
 class EspinaView;
 class MainToolBar;
@@ -56,6 +58,8 @@ public slots:
   void closeCurrentAnalysis();
   /// Close former analysis and load a new one
   void openAnalysis();
+  void openAnalysis(const QString file);
+  void openRecentAnalysis(QAction *action);
   /// Add new data from file to current analysis
   void addToAnalysis();
   /// Save Current Analysis
@@ -82,6 +86,7 @@ private:
   QSharedPointer<QUndoStack>  m_undoStack;
   QString                     m_currentActivity;
   EspinaView                 *m_view;
+  RecentDocuments             m_recentDocuments;
 #ifdef DEBUG
   QSharedPointer<ModelTest>   m_modelTester;
 #endif

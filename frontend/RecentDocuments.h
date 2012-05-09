@@ -17,5 +17,29 @@
 */
 
 
-#include "ReaderFactory.h"
+#ifndef RECENTDOCUMENTS_H
+#define RECENTDOCUMENTS_H
 
+#include <QObject>
+#include <QStringList>
+
+class QAction;
+class RecentDocuments
+: QObject
+{
+public:
+  explicit RecentDocuments();
+  virtual ~RecentDocuments();
+
+  void addDocument(QString path);
+  QList<QAction *> list() const {return m_actionList;}
+
+private:
+  void updateActions();
+
+private:
+  QStringList m_recentDocuments;
+  QList<QAction *> m_actionList;
+};
+
+#endif // RECENTDOCUMENTS_H

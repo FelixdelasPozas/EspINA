@@ -70,6 +70,7 @@ set (VIEW_SOURCES
 set (LOCAL_SOURCES
   EspinaWindow.cpp
   PreferencesDialog.cpp
+  RecentDocuments.cpp
   )
 
 set (Espina_SOURCE_FILES
