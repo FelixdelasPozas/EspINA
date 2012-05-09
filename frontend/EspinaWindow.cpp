@@ -143,10 +143,10 @@ EspinaWindow::EspinaWindow()
 
   /*** Settings MENU ***/
   QMenu *settings = new QMenu(tr("&Settings"));
-  QAction *preferences = new QAction(tr("&Preferences"), this);
-  connect(preferences, SIGNAL(triggered(bool)),
+  QAction *configure = new QAction(tr("&Configure EspINA"), this);
+  connect(configure, SIGNAL(triggered(bool)),
 	  this, SLOT(showPreferencesDialog()));
-  settings->addAction(preferences);
+  settings->addAction(configure);
   menuBar()->addMenu(settings);
 
 
@@ -559,6 +559,10 @@ void EspinaWindow::showPreferencesDialog()
   PreferencesDialog dialog;
 
 //   dialog.addPanel(m_view->preferences());
+  foreach(ISettingsPanel *panel, EspinaFactory::instance()->settingsPanels())
+  {
+    dialog.addPanel(panel);
+  }
 
   dialog.exec();
 }

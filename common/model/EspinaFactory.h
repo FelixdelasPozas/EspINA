@@ -28,6 +28,7 @@
 #include "common/plugins/FilterFactory.h"
 #include "common/plugins/ReaderFactory.h"
 
+class ISettingsPanel;
 class EspinaFactory
 {
 public:
@@ -38,6 +39,9 @@ public:
   void registerSampleExtension(SampleExtension::SPtr extension);
   void registerChannelExtension(ChannelExtension::SPtr extension);
   void registerSegmentationExtension(SegmentationExtension::SPtr extension);
+  void registerSettingsPanel(ISettingsPanel *panel){m_settingsPanels << panel;}
+
+  QList<ISettingsPanel *> settingsPanels() const {return m_settingsPanels;}
 
   Filter  *createFilter (const QString filter, const ModelItem::Arguments args);
   Sample  *createSample (const QString id, const QString args = "");
@@ -56,6 +60,7 @@ private:
   QList<SampleExtension::SPtr>       m_sampleExtensions;
   QList<ChannelExtension::SPtr>      m_channelExtensions;
   QMap<QString, ReaderFactory *>     m_readers;
+  QList<ISettingsPanel *>            m_settingsPanels;
 };
 
 #endif // ESPinaFACTORY_H

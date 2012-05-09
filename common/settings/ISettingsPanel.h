@@ -1,5 +1,5 @@
-#ifndef ISETTINGS_PANEL_H
-#define ISETTINGS_PANEL_H
+#ifndef ISETTINGSPANEL_H
+#define ISETTINGSPANEL_H
 
 #include <QWidget>
 #include <QIcon>
@@ -19,7 +19,7 @@ public:
   virtual void rejectChanges(){};
   virtual bool modified() const {return false;}
 
-  virtual QWidget *widget() = 0;
+  virtual ISettingsPanel *widget() = 0;
 };
 
-#endif// ISETTINGS_PANEL_H
+#endif// ISETTINGSPANEL_H

@@ -21,7 +21,7 @@
 // #include "espina_debug.h"
 //
 // // EspINA
-#include "IPreferencePanel.h"
+#include "common/settings/ISettingsPanel.h"
 #include "common/model/Channel.h"
 #include "common/model/Representation.h"
 #include "common/model/Segmentation.h"

@@ -33,16 +33,16 @@ qt4_wrap_cpp(MOC_SRCS
   SeedGrowSegmentation.h
   SeedGrowSegmentationFilter.h
   SeedGrowSelector.h
+  SettingsPanel.h
   SetupWidget.h
   gui/DefaultVOIAction.h
   gui/ThresholdAction.h
-#   SeedGrowSegmentationPreferences.h
   )
 
 # Create Interface files
 qt4_wrap_ui (UI_BUILT_SOURCES
   SeedGrowSegmentationFilterSetup.ui
-#   SeedGrowSegmentationPreferences.ui
+  SettingsPanel.ui
   )
 
 
@@ -54,16 +54,17 @@ ADD_PARAVIEW_ACTION_GROUP(
 
 
 set (PLUGIN_SRCS
-  SeedGrowSegmentation.cpp
-  SeedGrowSegmentationFilter.cpp
-  SeedGrowSelector.cpp
-  SetupWidget.cpp
-  gui/DefaultVOIAction.cpp
-  gui/ThresholdAction.cpp
-#   SeedGrowSegmentationPreferences.cpp
   ${MOC_SRCS}
   ${RCC_BUILT_SOURCES} 
   ${UI_BUILT_SOURCES} 
+  SeedGrowSegmentation.cpp
+  SeedGrowSegmentationFilter.cpp
+  SeedGrowSelector.cpp
+  Settings.cpp
+  SettingsPanel.cpp
+  SetupWidget.cpp
+  gui/DefaultVOIAction.cpp
+  gui/ThresholdAction.cpp
   )
 
 set (VTKFILTER_SRCS

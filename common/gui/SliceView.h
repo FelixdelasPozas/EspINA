@@ -27,7 +27,7 @@
 
 #include <vtkSmartPointer.h>
 #include <common/views/vtkPVSliceView.h>
-#include "IPreferencePanel.h"
+#include "common/settings/ISettingsPanel.h"
 #include "common/selection/SelectableView.h"
 #include <common/widgets/EspinaWidget.h>
 
@@ -78,7 +78,7 @@ public:
   virtual const QString longDescription() {return shortDescription();}
   virtual const QIcon icon() {return QIcon();}
 
-  virtual QWidget* widget() {return new SliceViewPreferencesPanel(this);}
+  virtual ISettingsPanel* widget() {return NULL;}//new SliceViewPreferencesPanel(this);}
 
   void setInvertWheel(bool value);
   bool invertWheel(){return m_InvertWheel;}

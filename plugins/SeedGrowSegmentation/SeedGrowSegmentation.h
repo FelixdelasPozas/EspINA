@@ -28,6 +28,8 @@
 #include <QSharedPointer>
 #include <QUndoCommand>
 
+class SeedGrowSegmentationPanel;
+class SeedGrowSegmentationSettings;
 class Channel;
 //Forward declarations
 class ActionSelector;
@@ -41,6 +43,9 @@ class SeedGrowSegmentation
 : public QActionGroup
 , public FilterFactory
 {
+  class SettingsPanel;
+  class Settings;
+
   class UndoCommand : public QUndoCommand
   {
   public:
@@ -88,7 +93,8 @@ private:
   ActionSelector   *m_segment;
   QMap<QAction *, SelectionHandler *> m_selectors;
   QSharedPointer<SeedGrowSelector> m_selector;
-//   SeedGrowSegmentationSettings *m_preferences;
+  Settings      *m_settings;
+  SettingsPanel *m_settingsPanel;
 };
 
 #endif// SEEDGROWINGSEGMENTATION_H

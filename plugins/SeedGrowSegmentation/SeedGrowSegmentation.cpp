@@ -20,25 +20,26 @@
 #include <QDebug>
 
 #include "SeedGrowSegmentationFilter.h"
+#include "SeedGrowSelector.h"
+#include "Settings.h"
+#include "SettingsPanel.h"
 
 // EspinaModel
-#include "SeedGrowSelector.h"
-#include "common/gui/ActionSelector.h"
-#include "gui/DefaultVOIAction.h"
-#include "gui/ThresholdAction.h"
-#include "common/model/EspinaModel.h"
-#include "common/undo/AddSegmentation.h"
 #include "common/EspinaCore.h"
-#include "common/undo/AddFilter.h"
-#include "common/selection/SelectableItem.h"
-#include "common/undo/AddRelation.h"
+#include "common/gui/ActionSelector.h"
 #include "common/model/Channel.h"
 #include "common/model/EspinaFactory.h"
-
-// #include "SeedGrowSegmentationFilter.h"
+#include "common/model/EspinaModel.h"
 #include "common/processing/pqData.h"
 #include "common/selection/PixelSelector.h"
+#include "common/selection/SelectableItem.h"
 #include "common/selection/SelectionManager.h"
+#include "common/undo/AddFilter.h"
+#include "common/undo/AddRelation.h"
+#include "common/undo/AddSegmentation.h"
+#include "common/widgets/RectangularSelection.h"
+#include "gui/DefaultVOIAction.h"
+#include "gui/ThresholdAction.h"
 
 //GUI includes
 #include <QSettings>
@@ -48,12 +49,11 @@
 #include <pqPipelineFilter.h>
 #include <pqServer.h>
 #include <pqServerManagerModel.h>
-#include <vtkSMProxy.h>
 #include <vtkSMInputProperty.h>
 #include <vtkSMPropertyHelper.h>
-#include <common/widgets/RectangularSelection.h>
+#include <vtkSMProxy.h>
 
-#define DEFAULT_THRESHOLD 30
+const int DEFAULT_THRESHOLD = 30;
 
 const ModelItem::ArgumentId TYPE = ModelItem::ArgumentId("Type", true);
 
@@ -209,17 +209,16 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
       channel->spacing(spacing);
       for (int i=0; i<6; i++)
 	VOI[i] = bounds[i] / spacing[i/2];
-      qDebug() << VOI[0] << VOI[1] << VOI[2] << VOI[3] << VOI[4] << VOI[5];
+//       qDebug() << VOI[0] << VOI[1] << VOI[2] << VOI[3] << VOI[4] << VOI[5];
     }
     else if (m_useDefaultVOI->useDefaultVOI())
     {
-      const int W = 60;
-      VOI[0] = seed.x() - W;
-      VOI[1] = seed.x() + W;
-      VOI[2] = seed.y() - W;
-      VOI[3] = seed.y() + W;
-      VOI[4] = seed.z() - W;
-      VOI[5] = seed.z() + W;
+      VOI[0] = seed.x() - m_settings->xSize();
+      VOI[1] = seed.x() + m_settings->xSize();
+      VOI[2] = seed.y() - m_settings->ySize();
+      VOI[3] = seed.y() + m_settings->ySize();
+      VOI[4] = seed.z() - m_settings->zSize();
+      VOI[5] = seed.z() + m_settings->zSize();
     } else
     {
       channel->extent(VOI);
@@ -281,10 +280,9 @@ void SeedGrowSegmentation::buildSelectors()
     , tr("Add synapse (Ctrl +). Best Pixel"),
     m_segment);
   BestPixelSelector *bestSelector = new BestPixelSelector();
-//   m_preferences = new SeedGrowSegmentationSettings(bestSelector);
-//   EspinaPluginManager::instance()->registerPreferencePanel(m_preferences);
-//   QSettings settings;
-//   if (settings.contains(BEST_PIXEL))
+  m_settings = new Settings(bestSelector);
+  m_settingsPanel = new SettingsPanel(m_settings);
+  EspinaFactory::instance()->registerSettingsPanel(m_settingsPanel);
 //     bestSelector->setBestPixelValue(settings.value(BEST_PIXEL).toInt());
   selector = bestSelector;
   selector->setMultiSelection(false);

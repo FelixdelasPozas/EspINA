@@ -31,6 +31,12 @@
 //------------------------------------------------------------------------
 GeneralSettingsPanel::GeneralSettingsPanel()
 {
+  setupUi(this);
+
+  GeneralSettings &settings = EspinaCore::instance()->settings();
+
+  samplePath->setText(settings.stackDirectory());
+  userName->setText(settings.userName());
 }
 
 //------------------------------------------------------------------------
@@ -43,27 +49,18 @@ void GeneralSettingsPanel::acceptChanges()
 }
 
 //------------------------------------------------------------------------
-void GeneralSettingsPanel::rejectChanges()
+bool GeneralSettingsPanel::modified() const
 {
   GeneralSettings &settings = EspinaCore::instance()->settings();
 
-  samplePath->setText(settings.stackDirectory());
-  userName->setText(settings.userName());
+  return samplePath->text() != settings.stackDirectory()
+  || userName->text() != settings.userName();
 }
 
 //------------------------------------------------------------------------
-QWidget* GeneralSettingsPanel::widget()
+ISettingsPanel *GeneralSettingsPanel::widget()
 {
-  QWidget *widget = new QWidget();
-  setupUi(widget);
-
-  GeneralSettings &settings = EspinaCore::instance()->settings();
-
-  samplePath->setText(settings.stackDirectory());
-  userName->setText(settings.userName());
-
-
-  return widget;
+  return new GeneralSettingsPanel();
 }
 
 //------------------------------------------------------------------------
@@ -125,20 +122,20 @@ ISettingsPanel* PreferencesDialog::panel(const QString& shortDesc)
 //------------------------------------------------------------------------
 void PreferencesDialog::changePreferencePanel(int panel)
 {
-  if (m_activePanel)
+  if (m_activePanel && m_activePanel->modified())
   {
     QMessageBox msg;
     msg.setText("Settings have changed. Do you want to save them");
     msg.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
-    if (msg.exec() == Accepted)
+    if (msg.exec() == QMessageBox::Yes)
       m_activePanel->acceptChanges();
     else
       m_activePanel->rejectChanges();
   }
 
-  m_activePanel = m_panels[panel];
+  m_activePanel = m_panels[panel]->widget();
   longDescription->setText( m_activePanel->longDescription() );
   icon->setPixmap( m_activePanel->icon().pixmap(icon->size()) );
-  scrollArea->setWidget(m_activePanel->widget());
+  scrollArea->setWidget(m_activePanel);
 }
 

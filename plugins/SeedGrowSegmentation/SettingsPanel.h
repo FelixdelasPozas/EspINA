@@ -17,52 +17,38 @@
 */
 
 
-#ifndef PREFERENCESDIALOG_H
-#define PREFERENCESDIALOG_H
-
-#include <QDialog>
+#ifndef SEEDGROWSEGMENTATIONPREFERENCES_H
+#define SEEDGROWSEGMENTATIONPREFERENCES_H
 
 #include <common/settings/ISettingsPanel.h>
+#include "ui_SeedGrowSegmentationPreferences.h"
 
-#include "ui_GeneralPreferences.h"
-#include "ui_PreferencesDialog.h"
+#include "SeedGrowSegmentation.h"
 
-class GeneralSettingsPanel
+class SeedGrowSegmentation::SettingsPanel
 : public ISettingsPanel
-, Ui::GeneralPreferences
-{
-public:
-  GeneralSettingsPanel();
-
-  virtual const QString shortDescription() {return "General";}
-  virtual const QString longDescription() {return "General";}
-  virtual const QIcon icon() {return QIcon(":/espina/editor.ico");}
-
-  virtual void acceptChanges();
-  virtual bool modified() const;
-
-  virtual ISettingsPanel *widget();
-};
-
-class PreferencesDialog : public QDialog, Ui::PreferencesDialog
+, public Ui::SeedGrowSegmentationPreferences
 {
   Q_OBJECT
 public:
-  explicit PreferencesDialog(QWidget* parent = 0, Qt::WindowFlags f = 0);
+  explicit SettingsPanel(SeedGrowSegmentation::Settings *settings);
+  virtual ~SettingsPanel(){}
 
-  virtual void accept();
-  virtual void reject();
+  virtual const QString shortDescription() {return "Seed Grow Segmentation";}
+  virtual const QString longDescription() {return "Seed Grow Segmentation Settings";}
+  virtual const QIcon icon() {return QIcon(":/bestPixelSelector.svg");}
 
-  void addPanel(ISettingsPanel* panel);
-  ISettingsPanel * panel(const QString &shortDesc);
+  virtual void acceptChanges();
 
+  virtual bool modified() const;
+
+  virtual ISettingsPanel *widget();
 
 public slots:
-  void changePreferencePanel(int panel);
+  void displayColor(int value);
 
 private:
-  ISettingsPanel         *m_activePanel;
-  QList<ISettingsPanel *> m_panels;
+  SeedGrowSegmentation::Settings *m_settings;
 };
 
-#endif // PREFERENCESDIALOG_H
+#endif // SEEDGROWSEGMENTATIONPREFERENCES_H
