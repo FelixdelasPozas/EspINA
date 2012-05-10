@@ -58,6 +58,9 @@ public:
   virtual void addWidget(EspinaWidget *widget) = 0;
   virtual void removeWidget(EspinaWidget *widget) = 0;
 
+  virtual void addRepresentation(pqOutputPort *oport, QColor color) = 0;
+  virtual void removeRepresentation(pqOutputPort *oport) = 0;
+
   virtual void gridSize(double size[3]) = 0;
   virtual void setGridSize(double size[3]) = 0;
   virtual void setColorEngine(ColorEngine *engine) {};

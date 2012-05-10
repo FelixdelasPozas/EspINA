@@ -28,7 +28,7 @@
 #include <model/Sample.h>
 #include "common/gui/ViewManager.h"
 #include "docks/SegmentationExplorer.h"
-#include "docks/TaxonomyInspector.h"
+#include "docks/TaxonomyExplorer.h"
 #include "docks/ModifyFilter/ModifyFilterPanel.h"
 #include "toolbar/MainToolBar.h"
 #include <model/Channel.h>
@@ -78,6 +78,7 @@
 #include <vtkSMProxyManager.h>
 #include <vtkSMReaderFactory.h>
 #include "PreferencesDialog.h"
+#include "docks/ChannelExplorer.h"
 
 #undef DEBUG
 
@@ -173,13 +174,15 @@ EspinaWindow::EspinaWindow()
   QToolBar *lod = new LODToolBar();
 //   lod->setMovable(false);
   addToolBar(lod);
-  
+
+  ChannelExplorer *channelExplorer = new ChannelExplorer(m_model, this);
+  addDockWidget(Qt::LeftDockWidgetArea, channelExplorer);
 
   SegmentationExplorer *segExplorer = new SegmentationExplorer(m_model, this);
-  addDockWidget(Qt::LeftDockWidgetArea,segExplorer);
+  addDockWidget(Qt::LeftDockWidgetArea, segExplorer);
 
-  TaxonomyInspector *taxInspector = new TaxonomyInspector(m_model, this);
-  addDockWidget(Qt::LeftDockWidgetArea,taxInspector);
+  TaxonomyExplorer *taxExplorer = new TaxonomyExplorer(m_model, this);
+  addDockWidget(Qt::LeftDockWidgetArea, taxExplorer);
 
   ModifyFilterPanel *filterPanel = new ModifyFilterPanel(this);
   addDockWidget(Qt::LeftDockWidgetArea, filterPanel);

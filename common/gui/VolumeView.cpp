@@ -156,17 +156,18 @@ void VolumeView::addChannelRepresentation(Channel* channel)
   vtkSMRepresentationProxy* repProxy = vtkSMRepresentationProxy::SafeDownCast(
     pxm->NewProxy("representations", "CrosshairRepresentation"));
   Q_ASSERT(repProxy);
-  m_channels[channel] = repProxy;
+  m_channels[channel].proxy = repProxy;
 
   // Set repProxy's input.
   pqSMAdaptor::setInputProperty(repProxy->GetProperty("Input"),
 				source->getProxy(), oport->getPortNumber());
-  int pos[3];
-  channel->position(pos);
-  vtkSMPropertyHelper(repProxy, "Position").Set(pos,3);
-  double color = channel->color();
-  vtkSMPropertyHelper(repProxy, "Color").Set(&color,1);
-  repProxy->UpdateVTKObjects();
+  updateChannelRepresentation(channel);
+//   int pos[3];
+//   channel->position(pos);
+//   vtkSMPropertyHelper(repProxy, "Position").Set(pos,3);
+//   double color = channel->color();
+//   vtkSMPropertyHelper(repProxy, "Color").Set(&color,1);
+//   repProxy->UpdateVTKObjects();
 
   vtkSMProxy* viewModuleProxy = m_view->getProxy();
   // Add the reprProxy to render module.
@@ -178,8 +179,44 @@ void VolumeView::addChannelRepresentation(Channel* channel)
 //-----------------------------------------------------------------------------
 void VolumeView::removeChannelRepresentation(Channel* channel)
 {
+  vtkSMProxy* viewModuleProxy = m_view->getProxy();
+  Q_ASSERT(m_channels.contains(channel));
+  vtkSMRepresentationProxy *repProxy = m_channels[channel].proxy;
+  // Remove the reprProxy to render module.
+  pqSMAdaptor::removeProxyProperty(
+    viewModuleProxy->GetProperty("Representations"), repProxy);
+  viewModuleProxy->UpdateVTKObjects();
+  m_view->getProxy()->UpdateVTKObjects();
+  repProxy->Delete();
+  m_channels.remove(channel);
 
+  m_view->resetCamera();
 }
+
+//-----------------------------------------------------------------------------
+bool VolumeView::updateChannelRepresentation(Channel* channel)
+{
+  Q_ASSERT(m_channels.contains(channel));
+  Representation &rep = m_channels[channel];
+
+  if (channel->isVisible() != rep.visible)
+  {
+    rep.visible  = channel->isVisible();
+
+    int pos[3];
+    channel->position(pos);
+    vtkSMPropertyHelper(rep.proxy, "Position").Set(pos,3);
+    double color = channel->color();
+    vtkSMPropertyHelper(rep.proxy, "Color").Set(&color,1);
+    vtkSMPropertyHelper(rep.proxy, "Visibility").Set(rep.visible);
+    double opacity = suggestedChannelOpacity();
+    vtkSMPropertyHelper(rep.proxy, "Opacity").Set(&opacity,1);
+    rep.proxy->UpdateVTKObjects();
+    return true;
+  }
+  return false;
+}
+
 
 //-----------------------------------------------------------------------------
 void VolumeView::addSegmentationRepresentation(Segmentation *seg)
@@ -215,7 +252,7 @@ void VolumeView::removeSegmentationRepresentation(Segmentation* seg)
 {
   vtkSMProxy* viewModuleProxy = m_view->getProxy();
   Q_ASSERT(m_segmentations.contains(seg));
-  SegRep rep = m_segmentations[seg];
+  Representation rep = m_segmentations[seg];
   // Remove the reprProxy to render module.
   pqSMAdaptor::removeProxyProperty(
     viewModuleProxy->GetProperty("Representations"), rep.proxy);
@@ -230,7 +267,7 @@ void VolumeView::removeSegmentationRepresentation(Segmentation* seg)
 bool VolumeView::updateSegmentationRepresentation(Segmentation* seg)
 {
   Q_ASSERT(m_segmentations.contains(seg));
-  SegRep &rep = m_segmentations[seg];
+  Representation &rep = m_segmentations[seg];
   if (seg->outputPort() != rep.outport)
   {
     removeSegmentationRepresentation(seg);
@@ -297,13 +334,7 @@ void VolumeView::onConnect()
   m_viewWidget = m_view->getWidget();
   m_mainLayout->insertWidget(0,m_viewWidget);//To preserver view order
 
-//   m_view->setCenterAxesVisibility(false);
-
   vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast(m_view->getProxy());
-//   assert(viewProxy);
-//   vtkCamera *cam = viewProxy->GetActiveCamera();
-//   cam->Azimuth(180);
-//   cam->Roll(180);
 
   // Change Render Window Interactor
   vtkRenderWindowInteractor *rwi = vtkRenderWindowInteractor::SafeDownCast(
@@ -316,12 +347,6 @@ void VolumeView::onConnect()
 
   double black[3] = {0,0,0};
   viewProxy->GetRenderer()->SetBackground(black);
-
-//   // Disable menu
-//   //TODO : OLDVERSION m_view->getWidget()->removeAction(m_view->getWidget()->actions().first());
-// 
-// //   QObject::connect(m_viewWidget, SIGNAL(mouseEvent(QMouseEvent *)),
-// //                    this, SLOT(vtkWidgetMouseEvent(QMouseEvent *)));
 }
 
 //-----------------------------------------------------------------------------
@@ -344,216 +369,21 @@ void VolumeView::forceRender()
     m_view->forceRender();
 }
 
+//-----------------------------------------------------------------------------
+double VolumeView::suggestedChannelOpacity()
+{
+  double numVisibleRep = 0;
 
-// //-----------------------------------------------------------------------------
-// void VolumeView::setVOI(IVOI* voi)
-// {
-//   if (m_VOIWidget)
-//   {
-//     m_VOIWidget->deselect();
-//     m_VOIWidget->setVisible(false);
-//     delete m_VOIWidget;
-//     m_VOIWidget = NULL;
-//   }
-//   
-// //   qDebug()<< "VolumeView: elemets" << model()->rowCount();
-//   if (model()->rowCount() == 0)
-//     return;
-//      
-//   if (!voi)
-//     return;
-//     
-//   m_VOIWidget = voi->newWidget(VIEW_3D);
-//   m_VOIWidget->setView(m_view);
-//   m_VOIWidget->setWidgetVisible(true);
-//   m_VOIWidget->select();
-//   m_VOIWidget->accept();
-//   voi->resizeToDefaultSize();
-// }
-// 
-// 
-// //-----------------------------------------------------------------------------
-// QRegion VolumeView::visualRegionForSelection(const QItemSelection& selection) const
-// {
-//   return QRect();
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void VolumeView::setSelection(const QRect& rect, QItemSelectionModel::SelectionFlags command)
-// {
-//   qDebug() << "Selection";
-// }
-// 
-// //-----------------------------------------------------------------------------
-// bool VolumeView::isIndexHidden(const QModelIndex& index) const
-// {
-//   if (!index.isValid())
-//     return true;
-//   
-//   if (index.internalId() < 3)
-//     return true;
-//   
-//   IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
-//   EspinaProduct *actor = dynamic_cast<EspinaProduct *>(item);
-//   return !actor;
-// }
-// 
-// //-----------------------------------------------------------------------------
-// int VolumeView::verticalOffset() const
-// {
-//   return 0;
-// }
-// 
-// //-----------------------------------------------------------------------------
-// int VolumeView::horizontalOffset() const
-// {
-//   return 0;
-// 
-// }
-// 
-// //-----------------------------------------------------------------------------
-// QModelIndex VolumeView::moveCursor(QAbstractItemView::CursorAction cursorAction, Qt::KeyboardModifiers modifiers)
-// {
-//   return QModelIndex();
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void VolumeView::rowsInserted(const QModelIndex& parent, int start, int end)
-// {
-//   for (int r = start; r <= end; r++)
-//   {
-//     QModelIndex index = model()->index(r,0,parent);
-//     IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
-//     // Check for sample
-//     Sample *sample = dynamic_cast<Sample *>(item);
-//     if (sample)
-//     {
-//       m_lastSample = sample;
-//       double bounds[6];
-//       sample->bounds(bounds);
-//       m_focus[0] = (bounds[1]-bounds[0])/2.0;
-//       m_focus[1] = (bounds[3]-bounds[2])/2.0;
-//       m_focus[2] = (bounds[5]-bounds[4])/2.0;
-//       connect(sample->representation(LabelMapExtension::SampleRepresentation::ID),SIGNAL(representationUpdated()),this,SLOT(updateScene()));
-//       connect(sample->representation(CrosshairExtension::SampleRepresentation::ID),SIGNAL(representationUpdated()),this,SLOT(updateScene()));
-//       connect(sample,SIGNAL(updated(Sample*)),this,SLOT(updateScene()));
-//       sample->representation(CrosshairExtension::SampleRepresentation::ID)->render(m_view);
-//     } 
-//     else 
-//     {
-// //       Segmentation *seg = dynamic_cast<Segmentation *>(item);
-// //       assert(seg); // If not sample, it has to be a segmentation
-// //       seg->representation("Mesh")->render(m_view);
-//     }
-//   }
-//   updateScene();
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void VolumeView::rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end)
-// {
-//   pqApplicationCore *core = pqApplicationCore::instance();
-//   pqObjectBuilder *ob = core->getObjectBuilder();
-//   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-//   for (int r = start; r <= end; r++)
-//   {
-//     QModelIndex index = model()->index(r,0,parent);
-//     IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
-//     // Check for sample
-//     Sample *sample = dynamic_cast<Sample *>(item);
-//     if (sample)
-//     {
-//       //TODO: Render sample
-//       qDebug() << "Render sample?";
-//     } 
-//     else
-//     {
-//       Segmentation *seg = dynamic_cast<Segmentation *>(item);
-//       assert(seg); // If not sample, it has to be a segmentation
-//       pqRepresentation *rep = dp->setRepresentationVisibility(seg->outputPort(), m_view, false);
-//       if (rep)
-//       {
-// 	qDebug() << seg->label() << " destroyed";
-// 	ob->destroy(rep);
-//       }
-//     }
-//   }
-//   m_view->render();
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void VolumeView::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight)
-// {
-//   if (!topLeft.isValid() || !bottomRight.isValid())
-//     return;
-//         
-// //   qDebug()<< "Update Request " << topLeft;
-//   
-//   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-//   //TODO: Update to deal with hierarchy
-//   assert(topLeft == bottomRight);
-//   QModelIndex index = topLeft;
-//   IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
-//   // Check for sample
-//   Sample *sample = dynamic_cast<Sample *>(item);
-//   if (sample)
-//   {
-//     sample->representation(CrosshairExtension::SampleRepresentation::ID)->render(m_view);
-//     m_lastSample = sample;
-//   } 
-//   else
-//   {
-//     Segmentation *seg = dynamic_cast<Segmentation *>(item);
-//     assert(seg); // If not sample, it has to be a segmentation
-//     foreach (IViewWidget *widget, m_widgets)
-//     {
-//       if (widget->isChecked())
-// 	widget->renderInView(index,m_view);
-//     }
-//   }
-//   
-//   m_view->render();
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void VolumeView::setRootIndex(const QModelIndex& index)
-// {
-//   QAbstractItemView::setRootIndex(index);
-//   if (index.isValid())
-//     updateScene();
-// }
-// 
-// 
-// 
-// 
-// //-----------------------------------------------------------------------------
-// QModelIndex VolumeView::indexAt(const QPoint& point) const
-// {
-//   return QModelIndex();
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void VolumeView::scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint)
-// {
-//   //updateScene();
-// }
-// 
-// //-----------------------------------------------------------------------------
-// QRect VolumeView::visualRect(const QModelIndex& index) const
-// {
-//   return QRect();
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void VolumeView::addWidget(IViewWidget* widget)
-// {
-//   m_controlLayout->addWidget(widget);
-//   connect(widget,SIGNAL(updateRequired()),this,SLOT(updateScene()));
-//   connect(widget,SIGNAL(toggled(bool)),this,SLOT(updateScene()));
-//   m_widgets.append(widget);
-// }
-// 
-// 
+  foreach(Channel *channel, m_channels.keys())
+    if (channel->isVisible())
+      numVisibleRep++;
+
+  if (numVisibleRep == 0)
+    return 0.0;
+
+  return 1.0 /  numVisibleRep;
+}
+
 // //-----------------------------------------------------------------------------
 // void VolumeView::selectSegmentations(int x, int y, int z)
 // {
@@ -604,92 +434,7 @@ void VolumeView::forceRender()
 //       selectionModel()->clearSelection();
 //   }
 // }
-// 
-// //-----------------------------------------------------------------------------
-// void VolumeView::vtkWidgetMouseEvent(QMouseEvent* event)
-// {
-//   if (!m_lastSample)
-//     return;
-//   
-//   //Use Render Window Interactor's to obtain event's position
-//   vtkSMRenderViewProxy* view = 
-//     vtkSMRenderViewProxy::SafeDownCast(m_view->getProxy());
-//   //vtkSMRenderViewProxy* renModule = view->GetRenderView();
-//   vtkRenderWindowInteractor *rwi =
-//     vtkRenderWindowInteractor::SafeDownCast(
-//       view->GetRenderWindow()->GetInteractor());
-//       //renModule->GetInteractor());
-//   assert(rwi);
-//   
-//   vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast(m_view->getProxy());
-//   
-//   int xPos, yPos;
-//   rwi->GetEventPosition(xPos, yPos);
-//   
-//   if (event->type() == QMouseEvent::MouseButtonPress &&
-//     event->buttons() == Qt::LeftButton)
-//   {
-//     double spacing[3];//Image Spacing
-//     m_lastSample->spacing(spacing);
-//     
-//     double pickPos[3];//World coordinates
-//     vtkPropPicker *wpicker = vtkPropPicker::New();
-//     //TODO: Check this--> wpicker->AddPickList();
-//     wpicker->Pick(xPos, yPos, 0.1, viewProxy->GetRenderer());
-//     wpicker->GetPickPosition(pickPos);
-//     
-//     int selectedPixel[3];
-//     for(int dim = 0; dim < 3; dim++)
-//       selectedPixel[dim] = round(pickPos[dim]/spacing[dim]);
-//     selectSegmentations(selectedPixel[0], selectedPixel[1], selectedPixel[2]);
-//   }
-// }
-// 
-// 
-// //-----------------------------------------------------------------------------
-// void VolumeView::updateScene()
-// {
-//   vtkSMRenderViewProxy* view = vtkSMRenderViewProxy::SafeDownCast(
-//     m_view->getProxy());
-//   assert(view);
-//   
-// //   double cor[3];
-// //   view->GetInteractor()->GetCenterOfRotation(cor);
-// //   
-//   vtkCamera *cam = view->GetActiveCamera();
-//   double pos[3], focus[3];
-//   cam->GetPosition(pos);
-// //   cam->GetFocalPoint(focus);
-//   
-//   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-//   pqRepresentation *rep;
-//   foreach(rep,m_view->getRepresentations())
-//   {
-//     rep->setVisible(false);
-//   }
-//   
-// //   if (selectionModel()->selection().size() == 0)
-// //   {
-// //     focus[0] = m_focus[0];
-// //     focus[1] = m_focus[1];
-// //     focus[1] = m_focus[2];
-// //   }
-//   
-//   foreach (IViewWidget *widget, m_widgets)
-//   {
-// //     if (widget->isChecked())
-//       widget->renderInView(rootIndex(),m_view);
-//   }
-// 
-//   //cam->SetFocalPoint(focus);
-//   //view->GetInteractor()->SetCenterOfRotation(focus);
-//   m_view->resetCamera();
-//   cam->SetPosition(pos);
-// 
-//   
-//   m_view->render();
-// }
-// 
+
 void VolumeView::exportScene()
 {
   pqViewExporterManager *exporter = new pqViewExporterManager();

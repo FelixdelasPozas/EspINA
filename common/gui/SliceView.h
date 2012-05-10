@@ -140,12 +140,13 @@ public:
 //
   void addChannelRepresentation(Channel *channel);
   void removeChannelRepresentation(Channel *channel);
+  bool updateChannelRepresentation(Channel *channel);
 
   void addSegmentationRepresentation(Segmentation *seg);
   void removeSegmentationRepresentation(Segmentation *seg);
   bool updateSegmentationRepresentation(Segmentation* seg);
 
-  void addRepresentation(pqOutputPort *oport);
+  void addRepresentation(pqOutputPort *oport, QColor color);
   void removeRepresentation(pqOutputPort *oport);
   
   virtual void addPreview(Filter* filter);
@@ -204,7 +205,8 @@ protected:
   virtual bool eventFilter(QObject* caller, QEvent* e);
   void centerCrosshairOnMousePosition();
   void centerViewOnMousePosition();
-  void updateChannelOpacity();
+
+  double suggestedChannelOpacity();
 
   double sliceValue() const;
 
@@ -214,7 +216,7 @@ protected:
   void buildTitle();
   void buildControls();
 private:
-  struct SegRep
+  struct Representation
   {
     pqOutputPort *outport;
     vtkSMRepresentationProxy *proxy;
@@ -222,6 +224,7 @@ private:
     bool selected;
     QColor color;
   };
+
   vtkPVSliceView::VIEW_PLANE m_plane;
 
   pqSliceView *m_view;
@@ -245,10 +248,11 @@ private:
   ColorEngine *m_colorEngine;
 
   bool m_inThumbnail;
-  QMap<Channel *, vtkSMRepresentationProxy *> m_channels;
-  QMap<Segmentation *, SegRep> m_segmentations;
-  QList<SliceWidget *>         m_widgets;
-  vtkSMRepresentationProxy *prevRep;
+  QMap<Channel *, Representation>      m_channels;
+  QMap<Segmentation *, Representation> m_segmentations;
+  QMap<pqOutputPort *, Representation> m_representations;
+
+  QList<SliceWidget *>      m_widgets;
   Filter *m_preview;
 };
 

@@ -62,6 +62,7 @@ public:
 
   void addChannelRepresentation(Channel *channel);
   void removeChannelRepresentation(Channel *channel);
+  bool updateChannelRepresentation(Channel *channel);
 
   void addSegmentationRepresentation(Segmentation *seg);
   void removeSegmentationRepresentation(Segmentation *seg);
@@ -80,8 +81,11 @@ public slots:
 
   void forceRender();
 
+protected:
+  double suggestedChannelOpacity();
+
 private:
-  void selectSegmentations(int x, int y, int z);
+//   void selectSegmentations(int x, int y, int z);
 
 protected slots:
 //   /// Selections
@@ -93,7 +97,7 @@ protected slots:
   void buildControls();
 
 private:
-  struct SegRep
+  struct Representation
   {
     pqOutputPort *outport;
     vtkSMRepresentationProxy *proxy;
@@ -114,8 +118,8 @@ private:
   double m_center[3];
   ColorEngine *m_colorEngine;
 
-  QMap<Channel *, vtkSMRepresentationProxy *> m_channels;
-  QMap<Segmentation *, SegRep> m_segmentations;
+  QMap<Channel *,      Representation> m_channels;
+  QMap<Segmentation *, Representation> m_segmentations;
 };
 
 #endif // VOLUMEVIEW_H

@@ -235,6 +235,23 @@ void DefaultEspinaView::removeWidget(EspinaWidget* widget)
   m_widgets.remove(widget);
 }
 
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::addRepresentation(pqOutputPort* oport, QColor color)
+{
+  xyView->addRepresentation(oport, color);
+  yzView->addRepresentation(oport, color);
+  xzView->addRepresentation(oport, color);
+  //volView->addRepresentation(oport);
+}
+
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::removeRepresentation(pqOutputPort* oport)
+{
+  xyView->removeRepresentation(oport);
+  yzView->removeRepresentation(oport);
+  xzView->removeRepresentation(oport);
+  //volView->removeRepresentation(oport);
+}
 
 //----------------------------------------------------------------------------
 void DefaultEspinaView::setColorEngine(ColorEngine* engine)
@@ -297,7 +314,21 @@ void DefaultEspinaView::removeChannelRepresentation(Channel* channel)
   xyView->removeChannelRepresentation(channel);
   yzView->removeChannelRepresentation(channel);
   xzView->removeChannelRepresentation(channel);
+  volView->removeChannelRepresentation(channel);
 }
+
+//-----------------------------------------------------------------------------
+bool DefaultEspinaView::updateChannel(Channel* channel)
+{
+  bool modified = true;
+  modified = xyView->updateChannelRepresentation(channel)  || modified;
+  modified = yzView->updateChannelRepresentation(channel)  || modified;
+  modified = xzView->updateChannelRepresentation(channel)  || modified;
+  modified = volView->updateChannelRepresentation(channel) || modified;
+
+  return modified;
+}
+
 
 //-----------------------------------------------------------------------------
 void DefaultEspinaView::addSegmentation(Segmentation* seg)
@@ -316,6 +347,7 @@ void DefaultEspinaView::removeSegmentation(Segmentation* seg)
   xzView->removeSegmentationRepresentation(seg);
   volView->removeSegmentationRepresentation(seg);
 }
+
 
 //-----------------------------------------------------------------------------
 bool DefaultEspinaView::updateSegmentation(Segmentation* seg)
@@ -429,13 +461,16 @@ void DefaultEspinaView::dataChanged(const QModelIndex& topLeft, const QModelInde
     return;
 
   ModelItem *item = indexPtr(topLeft);
-  if (ModelItem::SEGMENTATION == item->type())
+  if (ModelItem::CHANNEL == item->type())
+  {
+    Channel *channel = dynamic_cast<Channel *>(item);
+    if (updateChannel(channel))
+      forceRender();
+  }else if (ModelItem::SEGMENTATION == item->type())
   {
     Segmentation *seg = dynamic_cast<Segmentation *>(item);
     if (updateSegmentation(seg))
-    {
       forceRender();
-    }
   }
 }
 

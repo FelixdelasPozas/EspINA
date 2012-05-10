@@ -17,8 +17,8 @@
 */
 
 
-#include "TaxonomyInspector.h"
-#include <ui_TaxonomyInspector.h>
+#include "TaxonomyExplorer.h"
+#include <ui_TaxonomyExplorer.h>
 
 #include "common/model/EspinaModel.h"
 #include "common/model/Taxonomy.h"
@@ -28,23 +28,23 @@
 
 
 //------------------------------------------------------------------------
-class TaxonomyInspector::GUI
+class TaxonomyExplorer::GUI
 : public QWidget
-, public Ui::TaxonomyInspector
+, public Ui::TaxonomyExplorer
 {
 public:
   GUI(){setupUi(this);}
 };
 
 //------------------------------------------------------------------------
-TaxonomyInspector::TaxonomyInspector(QSharedPointer<EspinaModel> model, QWidget* parent)
+TaxonomyExplorer::TaxonomyExplorer(QSharedPointer<EspinaModel> model, QWidget* parent)
 : EspinaDockWidget(parent)
 , m_gui(new GUI())
 , m_baseModel(model)
 , m_sort(new QSortFilterProxyModel())
 {
-  setWindowTitle(tr("Taxonomy Inspector"));
-  setObjectName("TaxonomyInspector");
+  setWindowTitle(tr("Taxonomy Explorer"));
+  setObjectName("TaxonomyExplorer");
   m_sort->setSourceModel(m_baseModel.data());
   m_sort->setDynamicSortFilter(true);
   m_gui->treeView->setModel(m_sort.data());
@@ -64,13 +64,13 @@ TaxonomyInspector::TaxonomyInspector(QSharedPointer<EspinaModel> model, QWidget*
 }
 
 //------------------------------------------------------------------------
-TaxonomyInspector::~TaxonomyInspector()
+TaxonomyExplorer::~TaxonomyExplorer()
 {
 
 }
 
 //------------------------------------------------------------------------
-void TaxonomyInspector::addSameLevelTaxonomy()
+void TaxonomyExplorer::addSameLevelTaxonomy()
 {
   QModelIndex currentIndex = m_gui->treeView->currentIndex();
   QModelIndex parent = currentIndex.parent();
@@ -84,7 +84,7 @@ void TaxonomyInspector::addSameLevelTaxonomy()
 }
 
 //------------------------------------------------------------------------
-void TaxonomyInspector::addSubTaxonomy()
+void TaxonomyExplorer::addSubTaxonomy()
 {
   QModelIndex currentIndex = m_gui->treeView->currentIndex();
   if (!currentIndex.isValid())
@@ -96,7 +96,7 @@ void TaxonomyInspector::addSubTaxonomy()
 }
 
 //------------------------------------------------------------------------
-void TaxonomyInspector::changeColor()
+void TaxonomyExplorer::changeColor()
 {
   QColorDialog colorSelector;
   if( colorSelector.exec() == QDialog::Accepted)
@@ -109,7 +109,7 @@ void TaxonomyInspector::changeColor()
 }
 
 //------------------------------------------------------------------------
-void TaxonomyInspector::removeSelectedTaxonomy()
+void TaxonomyExplorer::removeSelectedTaxonomy()
 {
   if (m_gui->treeView->currentIndex().isValid())
   {

@@ -100,6 +100,7 @@ public:
   /// Model Item Interface
   virtual QString id() const {return File::name(m_args[ID]);}
   virtual QVariant data(int role) const;
+  virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
   virtual ItemType type() const {return ModelItem::CHANNEL;}
   virtual QString  serialize() const;
   virtual void initialize(Arguments args = Arguments());

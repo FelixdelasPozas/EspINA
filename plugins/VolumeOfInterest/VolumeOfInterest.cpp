@@ -148,7 +148,6 @@ void VolumeOfInterest::setBorderFrom(double pos, vtkPVSliceView::VIEW_PLANE plan
 {
   if (!m_voiWidget.isNull())
   {
-    EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
     double bounds[6];
     m_voiWidget->bounds(bounds);
     bounds[plane*2] = pos;
@@ -161,7 +160,6 @@ void VolumeOfInterest::setBorderTo(double pos, vtkPVSliceView::VIEW_PLANE plane)
 {
   if (!m_voiWidget.isNull())
   {
-    EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
     double bounds[6];
     m_voiWidget->bounds(bounds);
     bounds[plane*2+1] = pos;

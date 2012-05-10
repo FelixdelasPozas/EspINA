@@ -17,11 +17,11 @@
 */
 
 
-#ifndef TAXONOMYINSPECTOR_H
-#define TAXONOMYINSPECTOR_H
+#ifndef TAXONOMYEXPLORER_H
+#define TAXONOMYEXPLORER_H
 
 //----------------------------------------------------------------------------
-// File:    TaxonomyInspector.h
+// File:    TaxonomyExplorer.h
 // Purpose: Dock widget to manage taxonomies in the model
 //----------------------------------------------------------------------------
 #include <gui/EspinaDockWidget.h>
@@ -30,14 +30,14 @@
 
 class EspinaModel;
 
-class TaxonomyInspector : public EspinaDockWidget
+class TaxonomyExplorer : public EspinaDockWidget
 {
   Q_OBJECT
 
   class GUI;
 public:
-  explicit TaxonomyInspector(QSharedPointer<EspinaModel> model, QWidget *parent = 0);
-  virtual ~TaxonomyInspector();
+  explicit TaxonomyExplorer(QSharedPointer<EspinaModel> model, QWidget *parent = 0);
+  virtual ~TaxonomyExplorer();
 
 protected slots:
   // Create a new taxonomy at the same level of the selected index
@@ -55,4 +55,4 @@ protected:
   QSharedPointer<QSortFilterProxyModel> m_sort;
 };
 
-#endif // TAXONOMYINSPECTOR_H
+#endif // TAXONOMYEXPLORER_H

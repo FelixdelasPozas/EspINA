@@ -234,6 +234,8 @@ bool vtkSliceRepresentation::AddToView(vtkView* view)
 void vtkSliceRepresentation::SetVisibility(bool val)
 {
   SliceProp->SetVisibility(val);
+  //TODO: 
+  SliceProp->SetPosition(Position[0],Position[1],Position[2]);
   vtkPVDataRepresentation::SetVisibility(val);
   SliceActor.visible = val;
 }

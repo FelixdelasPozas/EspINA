@@ -19,8 +19,11 @@
 
 #include "SegmentationExplorer.h"
 
-#include "common/model/EspinaModel.h"
+#ifdef DEBUG
 #include "common/model/ModelTest.h"
+#endif
+
+#include "common/model/EspinaModel.h"
 #include "common/model/proxies/SampleProxy.h"
 #include "common/model/proxies/TaxonomyProxy.h"
 

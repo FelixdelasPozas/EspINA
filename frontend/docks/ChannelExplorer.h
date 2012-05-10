@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,59 +17,53 @@
 */
 
 
-#ifndef SEGMENTATIONEXPLORER_H
-#define SEGMENTATIONEXPLORER_H
+#ifndef CHANNELEXPLORER_H
+#define CHANNELEXPLORER_H
 
 //----------------------------------------------------------------------------
-// File:    SegmentationExplorer.h
-// Purpose: Dock widget to manage segmentations in the model
+// File:    ChannelExplorer.h
+// Purpose: Dock widget to manage channels in the model
 //----------------------------------------------------------------------------
-#include <common/gui/EspinaDockWidget.h>
-#include <ui_SegmentationExplorer.h>
+#include <gui/EspinaDockWidget.h>
 
-class EspinaModel;
+#include <model/EspinaModel.h>
+#include <QSortFilterProxyModel>
+#include <model/proxies/ChannelProxy.h>
 
 #define DEBUG
-
 #ifdef DEBUG
 class ModelTest;
 #endif
 
-class SegmentationExplorer
+class ChannelExplorer
 : public EspinaDockWidget
 {
   Q_OBJECT
-  class GUI;
-
+  class CentralWidget;
 public:
-  class Layout;
-
-public:
-  explicit SegmentationExplorer(QSharedPointer<EspinaModel> model, QWidget *parent = 0);
-  virtual ~SegmentationExplorer();
-
-protected:
-  void addLayout(const QString id, Layout *proxy);
+  explicit ChannelExplorer(QSharedPointer<EspinaModel> model,
+			   QWidget* parent = 0);
+  virtual ~ChannelExplorer();
 
 protected slots:
-  void changeLayout(int index);
-  void focusOnSegmentation(const QModelIndex &index);
-  void deleteSegmentation();
-  void updateSelection(QModelIndex index);
-  void updateSelection(QItemSelection selected, QItemSelection deselected);
-
-protected:
-  GUI *m_gui;
-  QSharedPointer<EspinaModel> m_baseModel;
-
-  QStringList     m_layoutNames;
-  QList<Layout *> m_layouts;
-  Layout         *m_layout;
+  void channelSelected();
+  void alignLeft();
+  void alignCenter();
+  void alignRight();
+  void moveRight();
+  void moveLelft();
+  void changeChannelColor();
+  void updateChannelPosition();
 
 private:
+  CentralWidget *m_gui;
+  QSharedPointer<EspinaModel> m_model;
+  QSharedPointer<ChannelProxy> m_channelProxy;
+  QSharedPointer<QSortFilterProxyModel> m_sort;
+
 #ifdef DEBUG
   QSharedPointer<ModelTest>   m_modelTester;
 #endif
 };
 
-#endif // SEGMENTATIONEXPLORER_H
+#endif // CHANNELEXPLORER_H

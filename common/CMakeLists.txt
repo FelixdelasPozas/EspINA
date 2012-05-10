@@ -138,6 +138,7 @@ qt4_wrap_cpp(CORE_MOC
   model/ModelTest.h
   model/ModelItem.h
   model/Segmentation.h
+  model/proxies/ChannelProxy.h
   model/proxies/SampleProxy.h
   model/proxies/TaxonomyProxy.h
   selection/SelectionHandler.h
@@ -181,6 +182,7 @@ set (CORE_SOURCES
   model/Sample.cpp
   model/Segmentation.cpp
   model/Taxonomy.cpp
+  model/proxies/ChannelProxy.cpp
   model/proxies/SampleProxy.cpp
   model/proxies/TaxonomyProxy.cpp
   processing/pqData.cpp

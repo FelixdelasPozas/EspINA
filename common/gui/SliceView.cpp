@@ -824,7 +824,7 @@ void SliceView::centerViewOnMousePosition()
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::updateChannelOpacity()
+double SliceView::suggestedChannelOpacity()
 {
   double numVisibleRep = 0;
 
@@ -833,16 +833,9 @@ void SliceView::updateChannelOpacity()
       numVisibleRep++;
 
   if (numVisibleRep == 0)
-    return;
+    return 0.0;
 
-  double opacity = 1.0 /  numVisibleRep;
-
-  foreach(Channel *channel, m_channels.keys())
-  {
-    vtkSMRepresentationProxy *rep = m_channels[channel];
-    vtkSMPropertyHelper(rep, "Opacity").Set(&opacity,1);
-    rep->UpdateVTKObjects();
-  }
+  return 1.0 /  numVisibleRep;
 }
 
 //-----------------------------------------------------------------------------
@@ -907,17 +900,16 @@ void SliceView::addChannelRepresentation(Channel* channel)
   vtkSMRepresentationProxy* reprProxy = vtkSMRepresentationProxy::SafeDownCast(
     pxm->NewProxy("representations", "ChannelRepresentation"));
   Q_ASSERT(reprProxy);
-  m_channels[channel] = reprProxy;
+  m_channels[channel].outport  = oport;
+  m_channels[channel].proxy    = reprProxy;
+  m_channels[channel].selected = false;
+  m_channels[channel].visible  = !channel->isVisible();// Force initialization
+  m_channels[channel].color    = QColor("red");
 
     // Set the reprProxy's input.
   pqSMAdaptor::setInputProperty(reprProxy->GetProperty("Input"),
 				source->getProxy(), oport->getPortNumber());
-  int pos[3];
-  channel->position(pos);
-  vtkSMPropertyHelper(reprProxy, "Position").Set(pos,3);
-  double color = channel->color();
-  vtkSMPropertyHelper(reprProxy, "Color").Set(&color,1);
-  updateChannelOpacity();
+  updateChannelRepresentation(channel);
 
   vtkSMProxy* viewModuleProxy = m_view->getProxy();
   // Add the reprProxy to render module.
@@ -931,7 +923,7 @@ void SliceView::removeChannelRepresentation(Channel* channel)
 {
   vtkSMProxy* viewModuleProxy = m_view->getProxy();
   Q_ASSERT(m_channels.contains(channel));
-  vtkSMRepresentationProxy *repProxy = m_channels[channel];
+  vtkSMRepresentationProxy *repProxy = m_channels[channel].proxy;
   // Remove the reprProxy to render module.
   pqSMAdaptor::removeProxyProperty(
     viewModuleProxy->GetProperty("Representations"), repProxy);
@@ -941,6 +933,30 @@ void SliceView::removeChannelRepresentation(Channel* channel)
   m_channels.remove(channel);
 
   m_view->resetCamera();
+}
+
+//-----------------------------------------------------------------------------
+bool SliceView::updateChannelRepresentation(Channel* channel)
+{
+  Q_ASSERT(m_channels.contains(channel));
+  Representation &rep = m_channels[channel];
+
+  if (channel->isVisible() != rep.visible)
+  {
+    rep.visible  = channel->isVisible();
+
+    int pos[3];
+    channel->position(pos);
+    vtkSMPropertyHelper(rep.proxy, "Position").Set(pos,3);
+    double color = channel->color();
+    vtkSMPropertyHelper(rep.proxy, "Color").Set(&color,1);
+    vtkSMPropertyHelper(rep.proxy, "Visibility").Set(rep.visible);
+    double opacity = suggestedChannelOpacity();
+    vtkSMPropertyHelper(rep.proxy, "Opacity").Set(&opacity,1);
+    rep.proxy->UpdateVTKObjects();
+    return true;
+  }
+  return false;
 }
 
 //-----------------------------------------------------------------------------
@@ -977,7 +993,7 @@ void SliceView::removeSegmentationRepresentation(Segmentation* seg)
 {
   vtkSMProxy* viewModuleProxy = m_view->getProxy();
   Q_ASSERT(m_segmentations.contains(seg));
-  SegRep rep = m_segmentations[seg];
+  Representation rep = m_segmentations[seg];
   // Remove the reprProxy to render module.
   pqSMAdaptor::removeProxyProperty(
     viewModuleProxy->GetProperty("Representations"), rep.proxy);
@@ -989,7 +1005,7 @@ void SliceView::removeSegmentationRepresentation(Segmentation* seg)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::addRepresentation(pqOutputPort* oport)
+void SliceView::addRepresentation(pqOutputPort* oport, QColor color)
 {
   pqPipelineSource *source = oport->getSource();
   vtkSMProxyManager   *pxm = vtkSMProxyManager::GetProxyManager();
@@ -997,12 +1013,16 @@ void SliceView::addRepresentation(pqOutputPort* oport)
   vtkSMRepresentationProxy* reprProxy = vtkSMRepresentationProxy::SafeDownCast(
     pxm->NewProxy("representations", "SegmentationRepresentation"));
   Q_ASSERT(reprProxy);
-  prevRep = reprProxy;
+  m_representations[oport].proxy  = reprProxy;
+  m_representations[oport].color  = color;
 
-    // Set the reprProxy's input.
+  // Set the reprProxy's input.
   pqSMAdaptor::setInputProperty(reprProxy->GetProperty("Input"),
-				source->getProxy(), oport->getPortNumber());
-// //   vtkSMPropertyHelper(reprProxy,"Type").Set(1);
+                                source->getProxy(), oport->getPortNumber());
+
+  double colorD[3] = {color.redF(), color.greenF(), color.blueF()};
+  vtkSMPropertyHelper(reprProxy, "RGBColor").Set(colorD,3);
+
   reprProxy->UpdateVTKObjects();
 
   vtkSMProxy* viewModuleProxy = m_view->getProxy();
@@ -1010,35 +1030,29 @@ void SliceView::addRepresentation(pqOutputPort* oport)
   pqSMAdaptor::addProxyProperty(
     viewModuleProxy->GetProperty("Representations"), reprProxy);
   viewModuleProxy->UpdateVTKObjects();
-
-  // Following code could be ignored
-//   pqApplicationCore* core= pqApplicationCore::instance();
-//   pqDataRepresentation* repr = core->getServerManagerModel()->
-//   findItem<pqDataRepresentation*>(reprProxy);
-//   if (repr )
-//   {
-//     repr->setDefaultPropertyValues();
-//   }
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::removeRepresentation(pqOutputPort* oport)
 {
   vtkSMProxy* viewModuleProxy = m_view->getProxy();
-  // Add the reprProxy to render module.
+  Q_ASSERT(m_representations.contains(oport));
+  Representation rep = m_representations[oport];
+  // Remove the reprProxy to render module.
   pqSMAdaptor::removeProxyProperty(
-    viewModuleProxy->GetProperty("Representations"), prevRep);
+    viewModuleProxy->GetProperty("Representations"), rep.proxy);
   viewModuleProxy->UpdateVTKObjects();
-//   m_view->getRenderViewProxy()->GetRenderer()->RemoveAllViewProps();
-//   m_view->getRenderViewProxy()->GetOverviewRenderer()->RemoveAllViewProps();
   m_view->getProxy()->UpdateVTKObjects();
+
+  rep.proxy->Delete();
+  m_representations.remove(oport);
 }
 
 //-----------------------------------------------------------------------------
 bool SliceView::updateSegmentationRepresentation(Segmentation* seg)
 {
   Q_ASSERT(m_segmentations.contains(seg));
-  SegRep &rep = m_segmentations[seg];
+  Representation &rep = m_segmentations[seg];
   if (seg->outputPort() != rep.outport)
   {
     //remove representation using previous proxy
@@ -1082,7 +1096,7 @@ void SliceView::removePreview(Filter* filter)
 //-----------------------------------------------------------------------------
 void SliceView::addPreview(pqOutputPort* preview)
 {
-  addRepresentation(preview);
+    addRepresentation(preview, QColor(255,0,0));
 }
 
 void SliceView::removePreview(pqOutputPort* preview)

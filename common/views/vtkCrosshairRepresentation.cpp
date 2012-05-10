@@ -270,7 +270,7 @@ void vtkCrosshairRepresentation::SetColor(double color)
 {
   Color = color;
 //   if (CrosshairActor.lut == NULL)
-    return;
+//     return;
 
   double saturation = Color>=0?1.0:0;
 //   CrosshairActor.lut->SetSaturationRange(0.0, saturation);

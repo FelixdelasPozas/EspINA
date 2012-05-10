@@ -31,8 +31,9 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
   docks/DataView/QueryView.h
   docks/DataView/InformationProxy.h
   docks/ModifyFilter/ModifyFilterPanel.h
+  docks/ChannelExplorer.h
   docks/SegmentationExplorer.h
-  docks/TaxonomyInspector.h
+  docks/TaxonomyExplorer.h
   toolbar/MainToolBar.h
   toolbar/LODToolBar.h
   views/DefaultEspinaView.h
@@ -42,8 +43,9 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
 qt4_wrap_ui (UI_BUILT_SOURCES
   docks/DataView/DataView.ui
   docks/DataView/QueryView.ui
+  docks/ChannelExplorer.ui
   docks/SegmentationExplorer.ui
-  docks/TaxonomyInspector.ui
+  docks/TaxonomyExplorer.ui
   GeneralPreferences.ui
   PreferencesDialog.ui
   )
@@ -54,8 +56,9 @@ set (DOCKS_SOURCES
   docks/DataView/QueryView.cpp
   docks/DataView/InformationProxy.cpp
   docks/ModifyFilter/ModifyFilterPanel.cpp
+  docks/ChannelExplorer.cpp
   docks/SegmentationExplorer.cpp
-  docks/TaxonomyInspector.cpp
+  docks/TaxonomyExplorer.cpp
   )
 
 set (TOOLBAR_SOURCES

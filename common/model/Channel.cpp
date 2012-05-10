@@ -300,6 +300,21 @@ QVariant Channel::data(int role) const
 }
 
 //------------------------------------------------------------------------
+bool Channel::setData(const QVariant& value, int role)
+{
+  switch (role)
+  {
+    case Qt::EditRole:
+      return true;
+    case Qt::CheckStateRole:
+      setVisible(value.toBool());
+      return true;
+    default:
+      return false;
+  }
+}
+
+//------------------------------------------------------------------------
 QString Channel::serialize() const
 {
   QString extensionArgs;
