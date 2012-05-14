@@ -204,12 +204,13 @@ bool VolumeView::updateChannelRepresentation(Channel* channel)
   Q_ASSERT(m_channels.contains(channel));
   Representation &rep = m_channels[channel];
 
+  double pos[3];
+  channel->position(pos);
+  //TODO: update if position changes
   if (channel->isVisible() != rep.visible)
   {
     rep.visible  = channel->isVisible();
 
-    int pos[3];
-    channel->position(pos);
     vtkSMPropertyHelper(rep.proxy, "Position").Set(pos,3);
     double color = channel->color();
     vtkSMPropertyHelper(rep.proxy, "Color").Set(&color,1);

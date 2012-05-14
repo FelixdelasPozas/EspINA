@@ -185,14 +185,14 @@
         <InputArrayDomain name="input_array_any" attribute_type="any">
         </InputArrayDomain>
       </InputProperty>
-      <IntVectorProperty name="Position"
+      <DoubleVectorProperty name="Position"
         command="SetPosition"
         number_of_elements="3"
         default_values="0 0 0">
         <Documentation>
 	  Set the absolute position of the representation in the view
         </Documentation>
-      </IntVectorProperty>
+      </DoubleVectorProperty>
       <IntVectorProperty name="Visibility"
         command="SetVisibility"
         number_of_elements="1"
@@ -238,14 +238,14 @@
         <InputArrayDomain name="input_array_any" attribute_type="any">
         </InputArrayDomain>
       </InputProperty>
-      <IntVectorProperty name="Position"
+      <DoubleVectorProperty name="Position"
         command="SetPosition"
         number_of_elements="3"
         default_values="0 0 0">
         <Documentation>
 	  Set the absolute position of the representation in the view
         </Documentation>7
-      </IntVectorProperty>
+      </DoubleVectorProperty>
       <IntVectorProperty name="Visibility"
         command="SetVisibility"
         number_of_elements="1"
@@ -288,14 +288,14 @@
         <InputArrayDomain name="input_array_any" attribute_type="any">
         </InputArrayDomain>
       </InputProperty>
-      <IntVectorProperty name="Position"
+      <DoubleVectorProperty name="Position"
         command="SetPosition"
         number_of_elements="3"
         default_values="0 0 0">
         <Documentation>
 	  Set the absolute position of the representation in the view
         </Documentation>
-      </IntVectorProperty>
+      </DoubleVectorProperty>
       <IntVectorProperty name="Visibility"
         command="SetVisibility"
         number_of_elements="1"
@@ -338,14 +338,14 @@
         <InputArrayDomain name="input_array_any" attribute_type="any">
         </InputArrayDomain>
       </InputProperty>
-      <IntVectorProperty name="Position"
+      <DoubleVectorProperty name="Position"
         command="SetPosition"
         number_of_elements="3"
         default_values="0 0 0">
         <Documentation>
 	  Set the absolute position of the representation in the view
         </Documentation>7
-      </IntVectorProperty>
+      </DoubleVectorProperty>
       <IntVectorProperty name="Visibility"
         command="SetVisibility"
         number_of_elements="1"

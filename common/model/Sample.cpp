@@ -28,7 +28,7 @@
 Sample::Sample(const QString id)
 : m_ID(id)
 {
-  memset(m_position, 0, 3*sizeof(int));
+  memset(m_position, 0, 3*sizeof(double));
   //TODO
   m_bounds[0] = m_bounds[2] = m_bounds[4] = 0;
   m_bounds[1] = 698;
@@ -41,7 +41,7 @@ Sample::Sample(const QString id)
 Sample::Sample(const QString id, const QString args)
 : m_ID(id)
 {
-  memset(m_position, 0, 3*sizeof(int));
+  memset(m_position, 0, 3*sizeof(double));
   //TODO
   m_bounds[0] = m_bounds[2] = m_bounds[4] = 0;
   m_bounds[1] = 698;
@@ -57,16 +57,16 @@ Sample::~Sample()
 }
 
 //------------------------------------------------------------------------
-void Sample::position(int pos[3])
+void Sample::position(double pos[3])
 {
-  memcpy(pos, m_position, 3*sizeof(int));
+  memcpy(pos, m_position, 3*sizeof(double));
 }
 
 
 //------------------------------------------------------------------------
-void Sample::setPosition(int pos[3])
+void Sample::setPosition(double pos[3])
 {
-  memcpy(m_position, pos, 3*sizeof(int));
+  memcpy(m_position, pos, 3*sizeof(double));
 }
 
 //------------------------------------------------------------------------

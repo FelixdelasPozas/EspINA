@@ -110,7 +110,7 @@ void EspinaCore::loadChannel(const QString file)
 
   Channel *channel = EspinaFactory::instance()->createChannel(file, args);
 
-  int pos[3];
+  double pos[3];
   existingSample->position(pos);
   channel->setPosition(pos);
 

@@ -379,6 +379,9 @@ void EspinaModel::addChannel(Channel *channel)
 //   channel->initialize();
   m_channels << channel;
   m_relations->addItem(channel);
+
+  connect(channel, SIGNAL(modified(ModelItem*)),
+	  this, SLOT(itemModified(ModelItem*)));
   endInsertRows();
 }
 

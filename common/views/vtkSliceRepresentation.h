@@ -57,8 +57,9 @@ public:
   vtkGetMacro(Opacity, double);
 //   vtkSetMacro(Opacity, double);
 
-  vtkSetVector3Macro(Position, int);
-  vtkGetVector3Macro(Position, int);
+  void SetPosition(double x, double y, double z);
+  void SetPosition(double pos[3]);
+  vtkGetVector3Macro(Position, double);
 
   //BTX
   vtkProp3D *GetSliceProp();
@@ -94,7 +95,7 @@ protected:
 
 protected:
   double Color;
-  int    Position[3];
+  double Position[3];
   double Opacity;
   //ETX
 };

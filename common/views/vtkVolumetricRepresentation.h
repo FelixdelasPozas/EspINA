@@ -62,8 +62,8 @@ public:
   void SetOpacity(double value);
   vtkGetMacro(Opacity, double);
 
-  vtkSetVector3Macro(Position, int);
-  vtkGetVector3Macro(Position, int);
+  vtkSetVector3Macro(Position, double);
+  vtkGetVector3Macro(Position, double);
 
   //BTX
   vtkProp3D *GetVolumetricProp();
@@ -102,7 +102,7 @@ protected:
 
 protected:
   double Color[3];
-  int    Position[3];
+  double Position[3];
   double Opacity;
   //ETX
 };

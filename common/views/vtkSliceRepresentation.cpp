@@ -47,7 +47,7 @@ vtkStandardNewMacro ( vtkSliceRepresentation );
 vtkSliceRepresentation::vtkSliceRepresentation()
 : Color(0.0)
 {
-  memset(Position, 0, 3*sizeof(int));
+  memset(Position, 0, 3*sizeof(double));
   this->SliceData = vtkImageData::New();
 
   this->DeliveryFilter = vtkImageSliceDataDeliveryFilter::New();
@@ -228,7 +228,7 @@ bool vtkSliceRepresentation::AddToView(vtkView* view)
     Slice->SetLookupTable(SliceActor.lut);
 
     SliceActor.prop->SetOpacity(Opacity);
-    SliceActor.prop->SetPosition(Position[0],Position[1],Position[2]);
+    SliceActor.prop->SetPosition(Position);
     AddToView(rview);
 
 
@@ -240,8 +240,6 @@ bool vtkSliceRepresentation::AddToView(vtkView* view)
 void vtkSliceRepresentation::SetVisibility(bool val)
 {
   SliceProp->SetVisibility(val);
-  //TODO: 
-  SliceProp->SetPosition(Position[0],Position[1],Position[2]);
   vtkPVDataRepresentation::SetVisibility(val);
   SliceActor.visible = val;
 }
@@ -262,11 +260,29 @@ void vtkSliceRepresentation::SetColor(double color)
 //----------------------------------------------------------------------------
 void vtkSliceRepresentation::SetOpacity(double value)
 {
-//   if (Opacity == value)
-//     return;
+  if (Opacity == value)
+    return;
 
   Opacity = value;
   if (SliceActor.prop)
     SliceActor.prop->SetOpacity(value);
   Modified();
+}
+
+//----------------------------------------------------------------------------
+void vtkSliceRepresentation::SetPosition(double x, double y, double z)
+{
+  Position[0] = x;
+  Position[1] = y;
+  Position[2] = z;
+
+  if (SliceProp)
+    SliceProp->SetPosition(Position);
+
+  Modified();
+}
+
+void vtkSliceRepresentation::SetPosition(double pos[3])
+{
+  SetPosition(pos[0], pos[1], pos[2]);
 }

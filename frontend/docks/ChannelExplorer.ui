@@ -383,7 +383,7 @@ QTreeView::indicator:unchecked {
           </property>
           <property name="icon">
            <iconset resource="../rsc/espina.qrc">
-            <normaloff>:/espina/add.svg</normaloff>:/espina/add.svg</iconset>
+            <normaloff>:/espina/edit-undo.svg</normaloff>:/espina/edit-undo.svg</iconset>
           </property>
           <property name="iconSize">
            <size>
@@ -430,7 +430,7 @@ QTreeView::indicator:unchecked {
           </property>
           <property name="icon">
            <iconset resource="../rsc/espina.qrc">
-            <normaloff>:/espina/add.svg</normaloff>:/espina/add.svg</iconset>
+            <normaloff>:/espina/edit-redo.svg</normaloff>:/espina/edit-redo.svg</iconset>
           </property>
           <property name="iconSize">
            <size>

@@ -50,7 +50,7 @@ Channel::Channel(const QString file, pqData data)
   memset(m_extent, 0, 6*sizeof(int));
   memset(m_spacing, 0, 3*sizeof(double));
   m_bounds[1] = m_extent[1] = -1;
-  memset(m_pos, 0, 3*sizeof(int));
+  memset(m_pos, 0, 3*sizeof(double));
   m_args[ID] = Argument(file);
   m_args.setColor(-1.0);
 
@@ -85,7 +85,7 @@ Channel::Channel(const QString file, const Arguments args)
   memset(m_extent, 0, 6*sizeof(int));
   memset(m_spacing, 0, 3*sizeof(double));
   m_bounds[1] = m_extent[1] = -1;
-  memset(m_pos, 0, 3*sizeof(int));
+  memset(m_pos, 0, 3*sizeof(double));
 
 //   QStringList input = m_args[ID].split(":");
   m_args[ID] = Argument(file);
@@ -239,15 +239,15 @@ void Channel::spacing(double val[3])
 }
 
 //------------------------------------------------------------------------
-void Channel::setPosition(int pos[3])
+void Channel::setPosition(double pos[3])
 {
-  memcpy(m_pos, pos, 3*sizeof(int));
+  memcpy(m_pos, pos, 3*sizeof(double));
 }
 
 //------------------------------------------------------------------------
-void Channel::position(int pos[3])
+void Channel::position(double pos[3])
 {
-  memcpy(pos, m_pos, 3*sizeof(int));
+  memcpy(pos, m_pos, 3*sizeof(double));
 }
 
 //------------------------------------------------------------------------

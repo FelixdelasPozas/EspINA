@@ -51,7 +51,7 @@ vtkStandardNewMacro ( vtkVolumetricRepresentation );
 vtkVolumetricRepresentation::vtkVolumetricRepresentation()
 {
   memset(Color, 0, 3*sizeof(int));
-  memset(Position, 0, 3*sizeof(int));
+  memset(Position, 0, 3*sizeof(double));
   VolumetricData = vtkImageData::New();
 
   DeliveryFilter = vtkImageSliceDataDeliveryFilter::New();

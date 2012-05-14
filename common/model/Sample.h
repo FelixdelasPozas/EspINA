@@ -42,8 +42,8 @@ public:
   virtual ~Sample();
 
   // Relative to brain center (in nm)
-  void position(int pos[3]);
-  void setPosition(int origin[3]);
+  void position(double pos[3]);
+  void setPosition(double pos[3]);
 
   void bounds(double value[6]);   //nm
   void setBounds(double value[6]);//nm
@@ -65,7 +65,7 @@ public:
 
 private:
   QString m_ID;
-  int  m_position[3];//nm
+  double  m_position[3];//nm
   double  m_bounds[6];//nm
 
   QList<Channel *>      m_channels;

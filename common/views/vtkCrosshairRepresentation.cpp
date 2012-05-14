@@ -50,7 +50,7 @@ vtkStandardNewMacro ( vtkCrosshairRepresentation );
 vtkCrosshairRepresentation::vtkCrosshairRepresentation()
 : Color(0.0)
 {
-  memset(Position, 0, 3*sizeof(int));
+  memset(Position, 0, 3*sizeof(double));
 
   CrosshairProp = vtkAssembly::New();
 
@@ -249,7 +249,7 @@ bool vtkCrosshairRepresentation::AddToView(vtkView* view)
 //     Crosshair->SetLookupTable(CrosshairActor.lut);
 
 //     CrosshairActor.prop->SetOpacity(Opacity);
-    CrosshairActor.prop->SetPosition(Position[0],Position[1],Position[2]);
+    CrosshairActor.prop->SetPosition(Position);
     AddToView(rview);
 
 

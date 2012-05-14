@@ -23,9 +23,10 @@
 
 #ifdef DEBUG
 #include "common/model/ModelTest.h"
-#include <model/Channel.h>
-#include <qcolordialog.h>
 #endif
+
+#include <model/Channel.h>
+#include <QColorDialog>
 
 
 //------------------------------------------------------------------------
@@ -76,18 +77,15 @@ ChannelExplorer::ChannelExplorer(QSharedPointer< EspinaModel > model,
 	  this, SLOT(updateChannelPosition()));
   connect(m_gui->zPos, SIGNAL(valueChanged(int)),
 	  this, SLOT(updateChannelPosition()));
+  connect(m_gui->coordinateSelector, SIGNAL(currentIndexChanged(int)),
+	  this, SLOT(updateTooltips(int)));
 
+  updateTooltips(0);
   setWidget(m_gui);
 }
 
 //------------------------------------------------------------------------
 ChannelExplorer::~ChannelExplorer()
-{
-
-}
-
-//------------------------------------------------------------------------
-void ChannelExplorer::alignLeft()
 {
 
 }
@@ -104,7 +102,7 @@ void ChannelExplorer::channelSelected()
   if (ModelItem::CHANNEL == currentItem->type())
   {
     Channel *channel = dynamic_cast<Channel *>(currentItem);
-    int pos[3];
+    double pos[3];
     channel->position(pos);
     m_gui->xPos->blockSignals(true);
     m_gui->yPos->blockSignals(true);
@@ -120,41 +118,193 @@ void ChannelExplorer::channelSelected()
   }
 }
 
+//------------------------------------------------------------------------
+void ChannelExplorer::alignLeft()
+{
+  QItemSelectionModel *selection = m_gui->view->selectionModel();
+  Channel *lastChannel = NULL;
+  foreach (QModelIndex index, selection->selectedIndexes())
+  {
+    ModelItem *item = indexPtr(m_sort->mapToSource(index));
+    if (ModelItem::CHANNEL != item->type())
+      continue;
+
+    Channel *channel = dynamic_cast<Channel *>(item);
+    if (lastChannel)
+    {
+      double lastPos[3], pos[3];
+      lastChannel->position(lastPos);
+      channel->position(pos);
+      int coord = m_gui->coordinateSelector->currentIndex();
+      pos[coord] = lastPos[coord];
+      channel->setPosition(pos);
+      channel->notifyModification();
+    }
+    if (!lastChannel)
+      lastChannel = channel;
+  }
+  channelSelected();
+}
+
 
 //------------------------------------------------------------------------
 void ChannelExplorer::alignCenter()
 {
+  QItemSelectionModel *selection = m_gui->view->selectionModel();
+  Channel *lastChannel = NULL;
+  double pos[3], bounds[6], centerMargin;
+  int coord = m_gui->coordinateSelector->currentIndex();
 
+  foreach (QModelIndex index, selection->selectedIndexes())
+  {
+    ModelItem *item = indexPtr(m_sort->mapToSource(index));
+    if (ModelItem::CHANNEL != item->type())
+      continue;
+
+    Channel *channel = dynamic_cast<Channel *>(item);
+    if (lastChannel)
+    {
+      double pos[3], bounds[6];
+      channel->position(pos);
+      channel->bounds(bounds);
+      pos[coord] = centerMargin - (bounds[2*coord+1] - bounds[2*coord])/2.0;
+      channel->setPosition(pos);
+      channel->notifyModification();
+    }
+
+    if (!lastChannel)
+    {
+      lastChannel = channel;
+      lastChannel->position(pos);
+      lastChannel->bounds(bounds);
+      centerMargin = pos[coord] + (bounds[2*coord+1] - bounds[2*coord])/2.0;
+    }
+  }
+  channelSelected();
 }
 
 //------------------------------------------------------------------------
 void ChannelExplorer::alignRight()
 {
+  QItemSelectionModel *selection = m_gui->view->selectionModel();
+  Channel *lastChannel = NULL;
+  double pos[3], bounds[6], rightMargin;
+  int coord = m_gui->coordinateSelector->currentIndex();
 
+  foreach (QModelIndex index, selection->selectedIndexes())
+  {
+    ModelItem *item = indexPtr(m_sort->mapToSource(index));
+    if (ModelItem::CHANNEL != item->type())
+      continue;
+
+    Channel *channel = dynamic_cast<Channel *>(item);
+    if (lastChannel)
+    {
+      double pos[3], bounds[6];
+      channel->position(pos);
+      channel->bounds(bounds);
+      pos[coord] = rightMargin - (bounds[2*coord+1] - bounds[2*coord]);
+      channel->setPosition(pos);
+      channel->notifyModification();
+    }
+
+    if (!lastChannel)
+    {
+      lastChannel = channel;
+      lastChannel->position(pos);
+      lastChannel->bounds(bounds);
+      rightMargin = pos[coord] + (bounds[2*coord+1] - bounds[2*coord]);
+    }
+  }
+  channelSelected();
 }
 
 //------------------------------------------------------------------------
 void ChannelExplorer::moveLelft()
 {
+  QItemSelectionModel *selection = m_gui->view->selectionModel();
+  Channel *lastChannel = NULL;
+  double pos[3], leftMargin;
+  int coord = m_gui->coordinateSelector->currentIndex();
 
+  foreach (QModelIndex index, selection->selectedIndexes())
+  {
+    ModelItem *item = indexPtr(m_sort->mapToSource(index));
+    if (ModelItem::CHANNEL != item->type())
+      continue;
+
+    Channel *channel = dynamic_cast<Channel *>(item);
+    if (lastChannel)
+    {
+      double pos[3], bounds[6];
+      channel->position(pos);
+      channel->bounds(bounds);
+      pos[coord] = leftMargin - (bounds[2*coord+1] - bounds[2*coord]);
+      channel->setPosition(pos);
+      channel->notifyModification();
+    }
+
+    if (!lastChannel)
+    {
+      lastChannel = channel;
+      lastChannel->position(pos);
+      leftMargin = pos[coord];
+    }
+  }
+  channelSelected();
 }
 
 //------------------------------------------------------------------------
 void ChannelExplorer::moveRight()
 {
+  QItemSelectionModel *selection = m_gui->view->selectionModel();
+  Channel *lastChannel = NULL;
+  double pos[3], bounds[6], rightMargin;
+  int coord = m_gui->coordinateSelector->currentIndex();
 
+  foreach (QModelIndex index, selection->selectedIndexes())
+  {
+    ModelItem *item = indexPtr(m_sort->mapToSource(index));
+    if (ModelItem::CHANNEL != item->type())
+      continue;
+
+    Channel *channel = dynamic_cast<Channel *>(item);
+    if (lastChannel)
+    {
+      double pos[3], bounds[6];
+      channel->position(pos);
+      channel->bounds(bounds);
+      pos[coord] = rightMargin;
+      channel->setPosition(pos);
+      channel->notifyModification();
+    }
+
+    if (!lastChannel)
+    {
+      lastChannel = channel;
+      lastChannel->position(pos);
+      lastChannel->bounds(bounds);
+      rightMargin = pos[coord] + (bounds[2*coord+1] - bounds[2*coord]);
+    }
+  }
+  channelSelected();
 }
 
 //------------------------------------------------------------------------
 void ChannelExplorer::changeChannelColor()
 {
+  QModelIndex index = m_sort->mapToSource(m_gui->view->currentIndex());
+  ModelItem *item = indexPtr(index);
+  Channel *channel = dynamic_cast<Channel *>(item);
+
+  QColor currentColor;
+  currentColor.setHsvF(channel->color(), 1.0, 1.0);
   QColorDialog colorSelector;
+  colorSelector.setCurrentColor(currentColor);
   if( colorSelector.exec() == QDialog::Accepted)
   {
-//     QModelIndex index = m_sort->mapToSource(m_gui->treeView->currentIndex());
-//     m_baseModel->setData(index,
-// 			 colorSelector.selectedColor(),
-// 			 Qt::DecorationRole);
+    channel->setColor(colorSelector.selectedColor().hueF());
+    channel->notifyModification();
   }
 }
 
@@ -170,13 +320,41 @@ void ChannelExplorer::updateChannelPosition()
   if (ModelItem::CHANNEL == currentItem->type())
   {
     Channel *channel = dynamic_cast<Channel *>(currentItem);
-    int pos[3] = {
+    double pos[3] = {
       m_gui->xPos->value(),
       m_gui->yPos->value(),
       m_gui->zPos->value()
     };
 
     channel->setPosition(pos);
+    channel->notifyModification();
   }
 }
 
+//------------------------------------------------------------------------
+void ChannelExplorer::updateTooltips(int index)
+{
+  if (0 == index)
+  {
+    m_gui->alignLeft->setToolTip(tr("Align Left Margins"));
+    m_gui->alignCenter->setToolTip(tr("Center Margins in plane X"));
+    m_gui->alignRight->setToolTip(tr("Align Right Margins"));
+    m_gui->moveLeft->setToolTip(tr("Move next to Left Margin"));
+    m_gui->moveRight->setToolTip(tr("Move next to Right Margin"));
+  } else if (1 == index)
+  {
+    m_gui->alignLeft->setToolTip(tr("Align Top Margins"));
+    m_gui->alignCenter->setToolTip(tr("Center Margins in plane Y"));
+    m_gui->alignRight->setToolTip(tr("Align Bottom Margins"));
+    m_gui->moveLeft->setToolTip(tr("Move next to Top Margin"));
+    m_gui->moveRight->setToolTip(tr("Move next to Bottom Margin"));
+  } else if (2 == index)
+  {
+    m_gui->alignLeft->setToolTip(tr("Align Lower Margins"));
+    m_gui->alignCenter->setToolTip(tr("Center Margins in plane Z"));
+    m_gui->alignRight->setToolTip(tr("Align Upper Margins"));
+    m_gui->moveLeft->setToolTip(tr("Move next to Lower Margin"));
+    m_gui->moveRight->setToolTip(tr("Move next to Upper Margin"));
+  }else
+    Q_ASSERT(false);
+}

@@ -846,13 +846,18 @@ bool SliceView::updateChannelRepresentation(Channel* channel)
   Q_ASSERT(m_channels.contains(channel));
   Representation &rep = m_channels[channel];
 
-  if (channel->isVisible() != rep.visible)
+  double pos[3];
+  channel->position(pos);
+
+  if (channel->isVisible() != rep.visible
+    || channel->color() != rep.color.hueF()
+    || memcmp(pos, rep.pos, 3*sizeof(double)))
   {
     rep.visible  = channel->isVisible();
+    rep.color.setHsvF(channel->color(),1.0,1.0);
+    memcpy(rep.pos, pos, 3*sizeof(double));
 
-    int pos[3];
-    channel->position(pos);
-    vtkSMPropertyHelper(rep.proxy, "Position").Set(pos,3);
+    vtkSMPropertyHelper(rep.proxy, "Position").Set(rep.pos,3);
     double color = channel->color();
     vtkSMPropertyHelper(rep.proxy, "Color").Set(&color,1);
     vtkSMPropertyHelper(rep.proxy, "Visibility").Set(rep.visible);

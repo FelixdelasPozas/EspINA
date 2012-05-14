@@ -88,8 +88,8 @@ public:
   void bounds(double val[6]);
   void spacing(double val[3]);
 
-  void setPosition(int pos[3]);
-  void position(int pos[3]);
+  void setPosition(double pos[3]);
+  void position(double pos[3]);
 
   void setColor(double color);
   double color() const;
@@ -120,7 +120,7 @@ private:
   pqData m_data;
   int    m_extent[6];
   double m_bounds[6], m_spacing[3];
-  int    m_pos[3];/*in nm*/
+  double m_pos[3];/*in nm*/
   bool   m_visible;
 
   mutable CArguments m_args;
