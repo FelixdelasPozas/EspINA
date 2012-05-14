@@ -41,44 +41,46 @@
 
 #include <sstream>
 
-#include <pqActiveObjects.h>
-#include <pqApplicationCore.h>
-#include <pqParaViewBehaviors.h>
-#include <pqParaViewMenuBuilders.h>
-#include <pqServerManagerObserver.h>
-#include <pqDataTimeStepBehavior.h>
-#include <pqAlwaysConnectedBehavior.h>
-#include <pqPVNewSourceBehavior.h>
-#include <pqDeleteBehavior.h>
-#include <pqAutoLoadPluginXMLBehavior.h>
-#include <pqPluginDockWidgetsBehavior.h>
-#include <pqVerifyRequiredPluginBehavior.h>
-#include <pqPluginActionGroupBehavior.h>
-#include <pqFileDialog.h>
-#include <pqFixPathsInStateFilesBehavior.h>
-#include <pqCommandLineOptionsBehavior.h>
-#include <pqPersistentMainWindowStateBehavior.h>
-#include <pqObjectPickingBehavior.h>
-#include <pqInterfaceTracker.h>
-#include <pqStandardViewModules.h>
-#include <pqPipelineSource.h>
-#include <pqLoadDataReaction.h>
-#include <processing/pqFilter.h>
-#include <processing/pqData.h>
-#include <pqObjectBuilder.h>
-#include <vtkSMPropertyHelper.h>
-#include <vtkSMProxy.h>
-#include <vtkSMStringVectorProperty.h>
-#include <pqPipelineFilter.h>
-#include "toolbar/LODToolBar.h"
-#include "views/DefaultEspinaView.h"
-#include "docks/DataView/DataViewPanel.h"
-#include <model/EspinaFactory.h>
-#include <pqServer.h>
-#include <vtkSMProxyManager.h>
-#include <vtkSMReaderFactory.h>
 #include "PreferencesDialog.h"
 #include "docks/ChannelExplorer.h"
+#include "docks/DataView/DataViewPanel.h"
+#include "toolbar/LODToolBar.h"
+#include "views/DefaultEspinaView.h"
+#include <model/EspinaFactory.h>
+#include <pqActiveObjects.h>
+#include <pqAlwaysConnectedBehavior.h>
+#include <pqApplicationCore.h>
+#include <pqAutoLoadPluginXMLBehavior.h>
+#include <pqCommandLineOptionsBehavior.h>
+#include <pqDataTimeStepBehavior.h>
+#include <pqDeleteBehavior.h>
+#include <pqFileDialog.h>
+#include <pqFixPathsInStateFilesBehavior.h>
+#include <pqInterfaceTracker.h>
+#include <pqLoadDataReaction.h>
+#include <pqManagePluginsReaction.h>
+#include <pqObjectBuilder.h>
+#include <pqObjectPickingBehavior.h>
+#include <pqPVNewSourceBehavior.h>
+#include <pqParaViewBehaviors.h>
+#include <pqParaViewMenuBuilders.h>
+#include <pqPersistentMainWindowStateBehavior.h>
+#include <pqPipelineFilter.h>
+#include <pqPipelineSource.h>
+#include <pqPluginActionGroupBehavior.h>
+#include <pqPluginDockWidgetsBehavior.h>
+#include <pqSetName.h>
+#include <pqServer.h>
+#include <pqServerManagerObserver.h>
+#include <pqStandardViewModules.h>
+#include <pqVerifyRequiredPluginBehavior.h>
+#include <processing/pqData.h>
+#include <processing/pqFilter.h>
+#include <vtkSMPropertyHelper.h>
+#include <vtkSMProxy.h>
+#include <vtkSMProxyManager.h>
+#include <vtkSMReaderFactory.h>
+#include <vtkSMStringVectorProperty.h>
 
 #undef DEBUG
 
@@ -97,30 +99,64 @@ EspinaWindow::EspinaWindow()
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model.data()));
 #endif
 
-  /*** FILE MENU ***/
-  QMenu *fileMenu = new QMenu("File");
-  //   pqParaViewMenuBuilders::buildFileMenu(*fileMenu);
-  QIcon openIcon = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
-  QAction *openAnalysis = new QAction(openIcon, tr("&Open"),this);
-  connect(openAnalysis, SIGNAL(triggered(bool)),
-	  this, SLOT(openAnalysis()));
-  QMenu *openRecentAnalysis = new QMenu(tr("&Open Recent"));
-  openRecentAnalysis->addActions(m_recentDocuments.list());
-  connect(openRecentAnalysis, SIGNAL(triggered(QAction*)),
-	  this, SLOT(openRecentAnalysis(QAction*)));
   QIcon addIcon = QIcon(":espina/add.svg");
-  m_addToAnalysis = new QAction(addIcon, tr("&Add"),this);
-  m_addToAnalysis->setEnabled(false);
-  connect(m_addToAnalysis, SIGNAL(triggered(bool)),
-	  this, SLOT(addToAnalysis()));
+  QIcon fileIcon = qApp->style()->standardIcon(QStyle::SP_FileIcon);
+  QIcon openIcon = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
   QIcon saveIcon = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
-  QAction *saveAnalysis = new QAction(saveIcon, tr("&Save"),this);
-  connect(saveAnalysis,SIGNAL(triggered(bool)),
-	  this,SLOT(saveAnalysis()));
-  fileMenu->addAction(openAnalysis);
-  fileMenu->addMenu(openRecentAnalysis);
-  fileMenu->addAction(m_addToAnalysis);
-  fileMenu->addAction(saveAnalysis);
+
+  /*** FILE MENU ***/
+  QMenu *fileMenu = new QMenu(tr("File"));
+  {
+    QMenu *openMenu = new QMenu(tr("&Open"));
+    {
+      openMenu->setIcon(openIcon);
+      openMenu->setToolTip(tr("Open New Analysis"));
+
+      QAction *openAction = new QAction(fileIcon, tr("&File"),this);
+
+      openMenu->addAction(openAction);
+      openMenu->addSeparator();
+      openMenu->addActions(m_recentDocuments.list());
+
+      connect(openMenu, SIGNAL(aboutToShow()),
+	      this, SLOT(openState()));
+      connect(openAction, SIGNAL(triggered(bool)),
+	      this, SLOT(openAnalysis()));
+    }
+
+    m_addMenu = new QMenu(tr("&Add"),this);
+    {
+      m_addMenu->setIcon(addIcon);
+      m_addMenu->setToolTip(tr("Add File to Analysis"));
+      m_addMenu->setEnabled(false);
+
+      QAction *addAction = new QAction(fileIcon, tr("&File"),this);
+
+      m_addMenu->addAction(addAction);
+      m_addMenu->addSeparator();
+      m_addMenu->addActions(m_recentDocuments.list());
+
+      connect(m_addMenu, SIGNAL(aboutToShow()),
+	      this, SLOT(addState()));
+      connect(addAction, SIGNAL(triggered(bool)),
+	      this, SLOT(addToAnalysis()));
+    }
+
+    QAction *saveAnalysis = new QAction(saveIcon, tr("&Save"),this);
+    connect(saveAnalysis,SIGNAL(triggered(bool)),
+	    this,SLOT(saveAnalysis()));
+
+    QAction *exit = new QAction(tr("&Exit"), this);
+    connect(exit, SIGNAL(triggered(bool)),
+	    QApplication::instance(), SLOT(quit()));
+
+    fileMenu->addMenu(openMenu);
+    fileMenu->addMenu(m_addMenu);
+    fileMenu->addAction(saveAnalysis);
+    fileMenu->addAction(exit);
+  }
+  connect(fileMenu, SIGNAL(triggered(QAction*)),
+	  this, SLOT(openRecentAnalysis(QAction*)));
   menuBar()->addMenu(fileMenu);
 
   /*** EDIT MENU ***/
@@ -135,28 +171,31 @@ EspinaWindow::EspinaWindow()
   editMenu->addAction(redo);
   menuBar()->addMenu(editMenu);
 
-  /*** TOOLS MENU ***/
-  QMenu *toolsMenu = new QMenu("Tools");
-  //NOTE: This method causes maxViewWindowSizeSet connection fail warning
-  pqParaViewMenuBuilders::buildToolsMenu(*toolsMenu);
-  menuBar()->addMenu(toolsMenu);
-
   /*** VIEW MENU ***/
   m_viewMenu = new QMenu(tr("View"));
+
   menuBar()->addMenu(m_viewMenu);
-  createActivityMenu();
-  createLODMenu();
+
+//   createActivityMenu();
+//   createLODMenu();
 
   /*** Settings MENU ***/
   QMenu *settings = new QMenu(tr("&Settings"));
-  QAction *configure = new QAction(tr("&Configure EspINA"), this);
-  connect(configure, SIGNAL(triggered(bool)),
-	  this, SLOT(showPreferencesDialog()));
-  settings->addAction(configure);
+  {
+    QAction *managePlugins = settings->addAction("Manage Plugins");
+    managePlugins << pqSetName("actionManage_Plugins");
+    new pqManagePluginsReaction(managePlugins);
+
+    QAction *configure = new QAction(tr("&Configure EspINA"), this);
+    connect(configure, SIGNAL(triggered(bool)),
+	    this, SLOT(showPreferencesDialog()));
+    settings->addAction(configure);
+  }
   menuBar()->addMenu(settings);
 
 
-  pqServerManagerObserver *server = pqApplicationCore::instance()->getServerManagerObserver();
+  pqServerManagerObserver *server =
+    pqApplicationCore::instance()->getServerManagerObserver();
   connect(server,SIGNAL(connectionClosed(vtkIdType)),
 	  this,SLOT(onConnect()));
 //   QAction *action = new QAction(tr("Open - ParaView mode"),this);
@@ -377,7 +416,6 @@ void EspinaWindow::setActivity(QString activity)
     m_view->restoreLayout();
   }
 
-  
   m_currentActivity = activity;
 
 //   restoreGeometry(settings.value(m_currentActivity+"/geometry").toByteArray());
@@ -436,7 +474,8 @@ void EspinaWindow::openAnalysis(const QString file)
   }
 
   m_view->resetCamera();
-  m_addToAnalysis->setEnabled(true);
+  m_addMenu->setEnabled(true);
+
   int secs = timer.elapsed()/1000.0;
   int mins = 0;
   if (secs > 60)
@@ -453,8 +492,13 @@ void EspinaWindow::openAnalysis(const QString file)
 //------------------------------------------------------------------------
 void EspinaWindow::openRecentAnalysis(QAction *action)
 {
-  if (action)
-    openAnalysis(action->data().toString());
+  if (action && !action->data().isNull())
+  {
+    if (OPEN_STATE == m_menuState)
+      openAnalysis(action->data().toString());
+    else
+      addToAnalysis(action->data().toString());
+  }
 }
 
 //------------------------------------------------------------------------
@@ -482,17 +526,32 @@ void EspinaWindow::addToAnalysis()
 			 tr("Loading multiple files at a time is not supported"));
     return; //Multi-channels is not supported
   }
-  
+  const QString file = fileDialog.getSelectedFiles().first();
+  addToAnalysis(file);
+}
+
+//------------------------------------------------------------------------
+void EspinaWindow::addToAnalysis(const QString file)
+{
   QApplication::setOverrideCursor(Qt::WaitCursor);
   QElapsedTimer timer;
   timer.start();
 
-  const QString file = fileDialog.getSelectedFiles().first();
-
   EspinaCore::instance()->loadFile(file);
-  updateStatus(QString("File Loaded in %1 s").arg(timer.elapsed()/1000.0));
+
+  int secs = timer.elapsed()/1000.0;
+  int mins = 0;
+  if (secs > 60)
+  {
+    mins = secs / 60;
+    secs = secs % 60;
+  }
+
+  updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
   QApplication::restoreOverrideCursor();
+  m_recentDocuments.addDocument(file);
 }
+
 
 //------------------------------------------------------------------------
 void EspinaWindow::saveAnalysis()

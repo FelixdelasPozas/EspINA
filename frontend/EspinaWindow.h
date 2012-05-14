@@ -56,18 +56,23 @@ public slots:
   virtual void setLOD(){}
 
   void closeCurrentAnalysis();
+
+  void openRecentAnalysis(QAction *action);
   /// Close former analysis and load a new one
   void openAnalysis();
   void openAnalysis(const QString file);
-  void openRecentAnalysis(QAction *action);
   /// Add new data from file to current analysis
   void addToAnalysis();
+  void addToAnalysis(const QString file);
   /// Save Current Analysis
   void saveAnalysis();
 
 protected slots:
   void updateStatus(QString msg);
   void showPreferencesDialog();
+
+  void openState() {m_menuState = OPEN_STATE;}
+  void addState()  {m_menuState = ADD_STATE;}
 
 protected:
   void createActivityMenu();
@@ -80,7 +85,7 @@ private:
   QSharedPointer<EspinaModel> m_model;
   MainToolBar                *m_mainToolBar;
   QMenu                      *m_viewMenu;
-  QAction                    *m_addToAnalysis;
+  QMenu                      *m_addMenu;
   bool                        m_busy;
 
   QSharedPointer<QUndoStack>  m_undoStack;
@@ -90,6 +95,9 @@ private:
 #ifdef DEBUG
   QSharedPointer<ModelTest>   m_modelTester;
 #endif
+  enum MenuState {OPEN_STATE, ADD_STATE};
+  MenuState m_menuState;
+  
 };
 
 #endif // ESPinaModelWINDOW_H

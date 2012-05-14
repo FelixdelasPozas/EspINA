@@ -45,7 +45,7 @@ Channel::Channel(const QString file, pqData data)
 : m_data(data)
 , m_visible(true)
 {
-  qDebug() << "Creating channel from data";
+//   qDebug() << "Creating channel from data";
   memset(m_bounds, 0, 6*sizeof(double));
   memset(m_extent, 0, 6*sizeof(int));
   memset(m_spacing, 0, 3*sizeof(double));
@@ -80,7 +80,7 @@ Channel::Channel(const QString file, const Arguments args)
 : m_visible(true) //TODO: Should be persistent?
 , m_args(args)
 {
-  qDebug() << "Creating channel from args";
+//   qDebug() << "Creating channel from args";
   memset(m_bounds, 0, 6*sizeof(double));
   memset(m_extent, 0, 6*sizeof(int));
   memset(m_spacing, 0, 3*sizeof(double));
@@ -341,7 +341,7 @@ void Channel::initialize(ModelItem::Arguments args)
   {
     ChannelExtension *channelExt = dynamic_cast<ChannelExtension *>(ext);
     Q_ASSERT(channelExt);
-    qDebug() << extArgs;
+//     qDebug() << extArgs;
     ArgumentId argId(channelExt->id(), false);
     ModelItem::Arguments cArgs(extArgs.value(argId, QString()));
     channelExt->initialize(this, cArgs);
