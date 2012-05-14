@@ -200,7 +200,7 @@ void pqRectangularBoundingVolumeWidget::accept()
 //-----------------------------------------------------------------------------
 void pqRectangularBoundingVolumeWidget::reset()
 {
-  std::cout << "Reset Changes"  << std::endl;
+//   std::cout << "Reset Changes"  << std::endl;
   updateWidgetMargins();
   this->Superclass::reset();
 //   this->hideHandles();

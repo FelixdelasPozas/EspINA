@@ -166,9 +166,7 @@ protected:
   virtual void CreateDefaultProperties();
 
   // Helper methods to create face representations
-  virtual void CreateXYFace();
-  virtual void CreateYZFace();
-  virtual void CreateXZFace();
+  virtual void CreateVolume();
 
   // Helper methods
   void MoveLeftMargin(double *p1, double *p2);

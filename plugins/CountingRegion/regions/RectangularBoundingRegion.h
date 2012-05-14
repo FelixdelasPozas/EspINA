@@ -47,6 +47,9 @@ protected slots:
   void resetWidgets();
 
 private:
+  pq3DWidget *createWidget(QString name);
+
+private:
   QList<pq3DWidget *> m_widgets;
 };
 

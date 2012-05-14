@@ -100,52 +100,52 @@ int vtkRectangularBoundingRegionFilter::RequestData(vtkInformation* request, vtk
   double Lower  = lower();
 
   // Upper Inclusion Face
-  upperFace[0] = vertex->InsertNextPoint(Left,Top,Upper);
-  upperFace[1] = vertex->InsertNextPoint(Right,Top,Upper);
-  upperFace[2] = vertex->InsertNextPoint(Right,Bottom,Upper);
-  upperFace[3] = vertex->InsertNextPoint(Left,Bottom,Upper);
+  upperFace[0] = vertex->InsertNextPoint(Left,  Bottom, Upper);
+  upperFace[1] = vertex->InsertNextPoint(Left,  Top,    Upper);
+  upperFace[2] = vertex->InsertNextPoint(Right, Top,    Upper);
+  upperFace[3] = vertex->InsertNextPoint(Right, Bottom, Upper);
   faces->InsertNextCell(4, upperFace);
   faceData->InsertNextValue(INCLUSION_FACE);
 
   // Lower Exclusion Face
-  lowerFace[0] = vertex->InsertNextPoint(Left,Top,Lower);
-  lowerFace[1] = vertex->InsertNextPoint(Right,Top,Lower);
-  lowerFace[2] = vertex->InsertNextPoint(Right,Bottom,Lower);
-  lowerFace[3] = vertex->InsertNextPoint(Left,Bottom,Lower);
+  lowerFace[0] = vertex->InsertNextPoint(Left,  Bottom, Lower);
+  lowerFace[1] = vertex->InsertNextPoint(Left,  Top,    Lower);
+  lowerFace[2] = vertex->InsertNextPoint(Right, Top,    Lower);
+  lowerFace[3] = vertex->InsertNextPoint(Right, Bottom, Lower);
   faces->InsertNextCell(4, lowerFace);
   faceData->InsertNextValue(EXCLUSION_FACE);
 
-  // Bottom Exclusion Face
-  bottomFace[0] = upperFace[2];
-  bottomFace[1] = upperFace[3];
-  bottomFace[2] = lowerFace[3];
-  bottomFace[3] = lowerFace[2];
-  faces->InsertNextCell(4, bottomFace);
-  faceData->InsertNextValue(EXCLUSION_FACE);
-
-  // Top Inclusion Face
-  topFace[0] = upperFace[0];
-  topFace[1] = upperFace[1];
-  topFace[2] = lowerFace[1];
-  topFace[3] = lowerFace[0];
-  faces->InsertNextCell(4, topFace);
+  // Left Inclusion Face
+  leftFace[0] = upperFace[0];
+  leftFace[1] = upperFace[1];
+  leftFace[2] = lowerFace[1];
+  leftFace[3] = lowerFace[0];
+  faces->InsertNextCell(4, leftFace);
   faceData->InsertNextValue(INCLUSION_FACE);
 
   // Right Exclusion Face
-  rightFace[0] = upperFace[1];
-  rightFace[1] = upperFace[2];
-  rightFace[2] = lowerFace[2];
-  rightFace[3] = lowerFace[1];
+  rightFace[0] = upperFace[2];
+  rightFace[1] = upperFace[3];
+  rightFace[2] = lowerFace[3];
+  rightFace[3] = lowerFace[2];
   faces->InsertNextCell(4, rightFace);
   faceData->InsertNextValue(EXCLUSION_FACE);
 
-  // Left Inclusion Face
-  leftFace[0] = upperFace[3];
-  leftFace[1] = upperFace[0];
-  leftFace[2] = lowerFace[0];
-  leftFace[3] = lowerFace[3];
-  faces->InsertNextCell(4, leftFace);
+  // Top Inclusion Face
+  topFace[0] = upperFace[1];
+  topFace[1] = upperFace[2];
+  topFace[2] = lowerFace[2];
+  topFace[3] = lowerFace[1];
+  faces->InsertNextCell(4, topFace);
   faceData->InsertNextValue(INCLUSION_FACE);
+
+  // Bottom Exclusion Face
+  bottomFace[0] = upperFace[3];
+  bottomFace[1] = upperFace[0];
+  bottomFace[2] = lowerFace[0];
+  bottomFace[3] = lowerFace[3];
+  faces->InsertNextCell(4, bottomFace);
+  faceData->InsertNextValue(EXCLUSION_FACE);
 
   region->SetPoints(vertex);
   region->SetPolys(faces);
