@@ -80,6 +80,8 @@
 #include <vtkAbstractWidget.h>
 #include <vtkSMNewWidgetRepresentationProxy.h>
 #include <vtkWidgetRepresentation.h>
+#include <vtkSMProperty.h>
+#include <vtkChannelRepresentation.h>
 
 //-----------------------------------------------------------------------------
 SliceViewPreferencesPanel::SliceViewPreferencesPanel(SliceViewPreferences* preferences)
@@ -379,147 +381,6 @@ void SliceView::setTitle(const QString& title)
   m_title->setText(title);
 }
 
-// //-----------------------------------------------------------------------------
-// QModelIndex SliceView::indexAt(const QPoint& point) const
-// {
-// //   qDebug() << "Selected " << "FAKE" << " segmentation";
-//   return QModelIndex();
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void SliceView::scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint)
-// {
-//   qDebug() << "Scroll to Sample";
-//   IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
-//   Sample * sample = dynamic_cast<Sample *>(item);
-//   if (sample)
-//     qDebug() << "Scroll to Sample";
-//     //s_focusedSample = sample;
-// }
-// 
-// //-----------------------------------------------------------------------------
-// QRect SliceView::visualRect(const QModelIndex& index) const
-// {
-//   return QRect();
-// }
-// 
-// //-----------------------------------------------------------------------------
-// QList<Segmentation* > SliceView::pickSegmentationsAt(int x, int y, int z)
-// {
-//   QList<Segmentation *> res;
-//   
-//   if (m_focusedSample)
-//   {
-//     for (int i=0; i < m_focusedSample->segmentations().size(); i++)
-//     {
-//       Segmentation *seg = m_focusedSample->segmentations()[i];
-//       assert(seg);
-//       
-//       seg->creator()->pipelineSource()->updatePipeline();;
-//       seg->creator()->pipelineSource()->getProxy()->UpdatePropertyInformation();
-//       vtkPVDataInformation *info = seg->outputPort()->getDataInformation();
-//       int extent[6];
-//       info->GetExtent(extent);
-//       if ((extent[0] <= x && x <= extent[1]) &&
-// 	(extent[2] <= y && y <= extent[3]) &&
-// 	(extent[4] <= z && z <= extent[5]))
-//       {
-// 	SegmentationSelectionExtension *selector = dynamic_cast<SegmentationSelectionExtension *>(
-// 	  seg->extension(SegmentationSelectionExtension::ID));
-// 	
-// 	if (selector->isSegmentationPixel(x,y,z))
-// 	  res.append(seg);
-// 	/*
-// 	double pixelValue[4]; //NOTE: hack to redefine vtkVectorMacro so Paraview can find it
-// 	pixelValue[0] = x;
-// 	pixelValue[1] = y;
-// 	pixelValue[2] = z;
-// 	pixelValue[3] = 4;
-// 	vtkSMPropertyHelper(seg->creator()->pipelineSource()->getProxy(),"CheckPixel").Set(pixelValue,4);
-// 	seg->creator()->pipelineSource()->getProxy()->UpdateVTKObjects();
-// 	int value;
-// 	seg->creator()->pipelineSource()->getProxy()->UpdatePropertyInformation();
-// 	vtkSMPropertyHelper(seg->creator()->pipelineSource()->getProxy(),"PixelValue").Get(&value,1);
-// // 	qDebug() << "Pixel Value" << value;
-// 	if (value == 255)
-// 	  res.append(seg);
-// 	*/
-//       }
-//     }
-//   }
-//   return res;
-// }
-// 
-// //-----------------------------------------------------------------------------
-// QList< Segmentation* > SliceView::pickSegmentationsAt(ISelectionHandler::VtkRegion region)
-// {
-//   QList<Segmentation *> res;
-//   foreach(Point p, region)
-//   {
-//     res.append(pickSegmentationsAt(p.x,p.y,p.z));
-//   }
-//   return res;
-// }
-// 
-// 
-// 
-// //-----------------------------------------------------------------------------
-// void SliceView::selectSegmentations(int x, int y, int z)
-// {
-//   QItemSelection selection;
-//   if (m_focusedSample)
-//   {
-//     QModelIndex selIndex;
-//     for (int i=0; i < m_focusedSample->segmentations().size(); i++)
-//     {
-//       QModelIndex segIndex = rootIndex().child(i,0);
-//       IModelItem *segItem = static_cast<IModelItem *>(segIndex.internalPointer());
-//       Segmentation *seg = dynamic_cast<Segmentation *>(segItem);
-//       assert(seg);
-//       
-// 
-//       seg->creator()->pipelineSource()->updatePipeline();;
-//       seg->creator()->pipelineSource()->getProxy()->UpdatePropertyInformation();
-//       vtkPVDataInformation *info = seg->outputPort()->getDataInformation();
-//       int extent[6];
-//       info->GetExtent(extent);
-//       if ((extent[0] <= x && x <= extent[1]) &&
-// 	(extent[2] <= y && y <= extent[3]) &&
-// 	(extent[4] <= z && z <= extent[5]))
-//       {
-// 	SegmentationSelectionExtension *selector = dynamic_cast<SegmentationSelectionExtension *>(
-// 	  seg->extension(SegmentationSelectionExtension::ID));
-// 	
-// 	if (selector->isSegmentationPixel(x,y,z))
-// 	  selIndex = segIndex;
-// // 	seg->outputPort()->getDataInformation()->GetPointDataInformation();
-// 	//selection.indexes().append(segIndex);
-// 	/*double pixelValue[4];
-// 	pixelValue[0] = x;
-// 	pixelValue[1] = y;
-// 	pixelValue[2] = z;
-// 	pixelValue[3] = 4;
-// 	vtkSMPropertyHelper(seg->creator()->pipelineSource()->getProxy(),"CheckPixel").Set(pixelValue,4);
-// 	seg->creator()->pipelineSource()->getProxy()->UpdateVTKObjects();
-// 	int value;
-// 	seg->creator()->pipelineSource()->getProxy()->UpdatePropertyInformation();
-// 	vtkSMPropertyHelper(seg->creator()->pipelineSource()->getProxy(),"PixelValue").Get(&value,1);
-// // 	qDebug() << "Pixel Value" << value;
-// 	if (value == 255)
-// 	  selIndex = segIndex;
-// 	*/
-//       }
-//     }
-//     if (selIndex.isValid())
-//       selectionModel()->select(selIndex,QItemSelectionModel::ClearAndSelect);
-//     else
-//       selectionModel()->clearSelection();
-//   }
-// }
-// 
-// 
-// 
-
 //-----------------------------------------------------------------------------
 void SliceView::setCrossHairColors(double hcolor[3], double vcolor[3])
 {
@@ -559,8 +420,6 @@ SelectionHandler::MultiSelection SliceView::select(
 
   if (m_inThumbnail)
     return msel;
-  //TODO: Discuss if we apply VOI at application level or at plugin level
-  // i.e. whether clicks out of VOI are discarted or not
 
   //qDebug() << "EspINA::SliceView" << m_plane << ": Making selection";
   // Select all products that belongs to all the regions
@@ -778,17 +637,19 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
 	centerCrosshairOnMousePosition();
       }
     }
-
   }else if (e->type() == QEvent::MouseButtonPress)
   {
     QMouseEvent* me = static_cast<QMouseEvent*>(e);
     if (me->button() == Qt::LeftButton)
     {
       if (me->modifiers() == Qt::CTRL)
-      {
 	centerCrosshairOnMousePosition();
-      }else if (m_inThumbnail){
+      else if (m_inThumbnail)
+      {
 	centerViewOnMousePosition();
+      } else
+      {
+	selectPickedItems(me->modifiers() == Qt::SHIFT);
       }
     }
   }
@@ -821,6 +682,53 @@ void SliceView::centerViewOnMousePosition()
   vtkCamera * camera = m_view->getRenderViewProxy()->GetRenderer()->GetActiveCamera();
   camera->SetFocalPoint(center);
   m_view->render();
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::selectPickedItems(bool append)
+{
+  vtkSMSliceViewProxy* view =
+    vtkSMSliceViewProxy::SafeDownCast(m_view->getProxy());
+  Q_ASSERT(view);
+  vtkRenderer *renderer = view->GetRenderer();
+  Q_ASSERT(renderer);
+
+  int x, y;
+  eventPosition(x, y);
+
+  vtkPropPicker *propPicker = vtkPropPicker::New();
+  if (propPicker->Pick(x, y, 0.1, renderer))
+  {
+    vtkProp3D *pickedProp = propPicker->GetProp3D();
+    vtkObjectBase *object;
+    vtkSliceRepresentation *rep;
+
+    foreach(Channel *channel, m_channels.keys())
+    {
+      object = m_channels[channel].proxy->GetClientSideObject();
+      rep = dynamic_cast<vtkSliceRepresentation *>(object);
+      Q_ASSERT(rep);
+      if (rep->GetSliceProp() == pickedProp)
+      {
+// 	qDebug() << "Channel" << channel->data(Qt::DisplayRole).toString() << "Selected";
+	emit channelSelected(channel);
+	return;
+      }
+    }
+
+    foreach(Segmentation *seg, m_segmentations.keys())
+    {
+      object = m_segmentations[seg].proxy->GetClientSideObject();
+      rep = dynamic_cast<vtkSliceRepresentation *>(object);
+      Q_ASSERT(rep);
+      if (rep->GetSliceProp() == pickedProp)
+      {
+// 	qDebug() << "Segmentation" << seg->data(Qt::DisplayRole).toString() << "Selected";
+	emit segmentationSelected(seg, append);
+	return;
+      }
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------

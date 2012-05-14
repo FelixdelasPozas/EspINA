@@ -141,6 +141,12 @@ int vtkSliceRepresentation::ProcessViewRequest (
 }
 
 //----------------------------------------------------------------------------
+vtkProp3D* vtkSliceRepresentation::GetSliceProp()
+{
+  return SliceProp;
+}
+
+//----------------------------------------------------------------------------
 int vtkSliceRepresentation::FillInputPortInformation ( int port, vtkInformation* info )
 {
   info->Set ( vtkAlgorithm::INPUT_REQUIRED_DATA_TYPE(), "vtkImageData" );

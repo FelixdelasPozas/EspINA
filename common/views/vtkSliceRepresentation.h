@@ -35,6 +35,7 @@ class vtkImageSliceDataDeliveryFilter;
 class vtkImageSlice;
 class vtkImageProperty;
 class vtkImageResliceMapper;
+class vtkProp3D;
 
 
 class vtkSliceRepresentation : public vtkPVDataRepresentation
@@ -60,6 +61,7 @@ public:
   vtkGetVector3Macro(Position, int);
 
   //BTX
+  vtkProp3D *GetSliceProp();
 protected:
   vtkSliceRepresentation();
   virtual ~vtkSliceRepresentation();

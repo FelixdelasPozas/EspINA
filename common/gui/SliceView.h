@@ -31,6 +31,7 @@
 #include "common/selection/SelectableView.h"
 #include <common/widgets/EspinaWidget.h>
 
+class Channel;
 class ColorEngine;
 class QPushButton;
 class pq3DWidget;
@@ -197,6 +198,8 @@ signals:
   void minimizeRequest();
   void undockRequest();
 
+  void channelSelected(Channel *);
+  void segmentationSelected(Segmentation *, bool);
   void selectedFromSlice(double, vtkPVSliceView::VIEW_PLANE);
   void selectedToSlice(double, vtkPVSliceView::VIEW_PLANE);
 
@@ -205,6 +208,7 @@ protected:
   virtual bool eventFilter(QObject* caller, QEvent* e);
   void centerCrosshairOnMousePosition();
   void centerViewOnMousePosition();
+  void selectPickedItems(bool append);
 
   double suggestedChannelOpacity();
 

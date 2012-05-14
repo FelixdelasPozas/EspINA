@@ -57,21 +57,10 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
 
   setObjectName("xyView");
 
-
-  double ranges[6] = {0,0,0,0,0,0};
-  qDebug() << "New Default EspinaView";
+//   qDebug() << "New Default EspinaView";
   xyView = new SliceView(vtkPVSliceView::AXIAL);
   xyView->setCrossHairColors(blue, magenta);
-//   xyView->setRanges(ranges);
-  xyView->setFitToGrid(true);
-  connect(xyView, SIGNAL(centerChanged(double,double,double)),
-	  this, SLOT(setCenter(double,double,double)));
-  connect(xyView, SIGNAL(focusChanged(double[3])),
-	  this, SLOT(setCameraFocus(double[3])));
-  connect(xyView, SIGNAL(selectedFromSlice(double, vtkPVSliceView::VIEW_PLANE)),
-	  this, SLOT(selectFromSlice(double, vtkPVSliceView::VIEW_PLANE)));
-  connect(xyView, SIGNAL(selectedToSlice(double, vtkPVSliceView::VIEW_PLANE)),
-	  this, SLOT(selectToSlice(double, vtkPVSliceView::VIEW_PLANE)));
+  initSliceView(xyView);
   this->setLayout(new QVBoxLayout());
   this->layout()->addWidget(xyView);
   this->layout()->setMargin(0);
@@ -80,35 +69,19 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   volDock->setObjectName("volDock");
   volView = new VolumeView(this);
   volDock->setWidget(volView);
-  
+
   yzDock = new QDockWidget(tr("ZY"),parent);
   yzDock->setObjectName("yzDock");
   yzView = new SliceView(vtkPVSliceView::SAGITTAL);
   yzView->setCrossHairColors(blue, cyan);
-  yzView->setFitToGrid(true);
-  connect(yzView, SIGNAL(centerChanged(double,double,double)),
-	  this, SLOT(setCenter(double,double,double)));
-  connect(yzView, SIGNAL(focusChanged(double[3])),
-	  this, SLOT(setCameraFocus(double[3])));
-  connect(yzView, SIGNAL(selectedFromSlice(double, vtkPVSliceView::VIEW_PLANE)),
-	  this, SLOT(selectFromSlice(double, vtkPVSliceView::VIEW_PLANE)));
-  connect(yzView, SIGNAL(selectedToSlice(double, vtkPVSliceView::VIEW_PLANE)),
-	  this, SLOT(selectToSlice(double, vtkPVSliceView::VIEW_PLANE)));
+  initSliceView(yzView);
   yzDock->setWidget(yzView);
 
   xzDock = new QDockWidget(tr("XZ"),parent);
   xzDock->setObjectName("xzDock");
   xzView = new SliceView(vtkPVSliceView::CORONAL);
   xzView->setCrossHairColors(cyan, magenta);
-  xzView->setFitToGrid(true);
-  connect(xzView, SIGNAL(centerChanged(double,double,double)),
-	  this, SLOT(setCenter(double,double,double)));
-  connect(xzView, SIGNAL(focusChanged(double[3])),
-	  this, SLOT(setCameraFocus(double[3])));
-  connect(xzView, SIGNAL(selectedFromSlice(double, vtkPVSliceView::VIEW_PLANE)),
-	  this, SLOT(selectFromSlice(double, vtkPVSliceView::VIEW_PLANE)));
-  connect(xzView, SIGNAL(selectedToSlice(double, vtkPVSliceView::VIEW_PLANE)),
-	  this, SLOT(selectToSlice(double, vtkPVSliceView::VIEW_PLANE)));
+  initSliceView(xzView);
   xzDock->setWidget(xzView);
 
 //   setColorEngine(new TaxonomyColorEngine());
@@ -118,6 +91,24 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   parent->addDockWidget(Qt::RightDockWidgetArea, xzDock);
 
   parent->setCentralWidget(this);
+}
+
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::initSliceView(SliceView* view)
+{
+  view->setFitToGrid(true);
+  connect(view, SIGNAL(centerChanged(double,double,double)),
+	  this, SLOT(setCenter(double,double,double)));
+  connect(view, SIGNAL(focusChanged(double[3])),
+	  this, SLOT(setCameraFocus(double[3])));
+  connect(view, SIGNAL(selectedFromSlice(double, vtkPVSliceView::VIEW_PLANE)),
+	  this, SLOT(selectFromSlice(double, vtkPVSliceView::VIEW_PLANE)));
+  connect(view, SIGNAL(selectedToSlice(double, vtkPVSliceView::VIEW_PLANE)),
+	  this, SLOT(selectToSlice(double, vtkPVSliceView::VIEW_PLANE)));
+  connect(view, SIGNAL(channelSelected(Channel*)),
+	  this, SLOT(channelSelected(Channel*)));
+  connect(view, SIGNAL(segmentationSelected(Segmentation*, bool)),
+	  this, SLOT(segmentationSelected(Segmentation*, bool)));
 }
 
 //-----------------------------------------------------------------------------
@@ -469,6 +460,7 @@ void DefaultEspinaView::dataChanged(const QModelIndex& topLeft, const QModelInde
   }else if (ModelItem::SEGMENTATION == item->type())
   {
     Segmentation *seg = dynamic_cast<Segmentation *>(item);
+    updateSelection(topLeft);
     if (updateSegmentation(seg))
       forceRender();
   }
@@ -500,4 +492,64 @@ void DefaultEspinaView::selectFromSlice(double slice, vtkPVSliceView::VIEW_PLANE
 void DefaultEspinaView::selectToSlice(double slice, vtkPVSliceView::VIEW_PLANE plane)
 {
   emit selectedToSlice(slice, plane);
+}
+
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::channelSelected(Channel* channel)
+{
+  blockSignals(true);
+  foreach(QModelIndex index, selectionModel()->selectedIndexes())
+  {
+    ModelItem *item = indexPtr(index);
+    if (ModelItem::SEGMENTATION == item->type())
+    {
+      Segmentation *selSeg = dynamic_cast<Segmentation *>(item);
+      selSeg->setSelected(false);
+      selSeg->notifyModification();
+      selectionModel()->select(index, QItemSelectionModel::Deselect);
+    }
+  }
+  blockSignals(false);
+}
+
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::segmentationSelected(Segmentation* seg, bool append)
+{
+  if (append == false)
+  {
+    blockSignals(true);
+    foreach(QModelIndex index, selectionModel()->selectedIndexes())
+    {
+      ModelItem *item = indexPtr(index);
+      if (ModelItem::SEGMENTATION == item->type())
+      {
+	Segmentation *selSeg = dynamic_cast<Segmentation *>(item);
+	selSeg->setSelected(false);
+	selSeg->notifyModification();
+	selectionModel()->select(index, QItemSelectionModel::Deselect);
+      }
+    }
+    blockSignals(false);
+  }
+  seg->setSelected(true);
+  seg->notifyModification();
+}
+
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::updateSelection(QModelIndex index)
+{
+  if (index.isValid())
+  {
+    ModelItem *item = indexPtr(index);
+    if (ModelItem::SEGMENTATION == item->type())
+    {
+      blockSignals(true);
+      Segmentation *seg = dynamic_cast<Segmentation *>(item);
+      if (seg->selected())
+	selectionModel()->setCurrentIndex(index, QItemSelectionModel::Select);
+      else
+	selectionModel()->select(index, QItemSelectionModel::Deselect);
+      blockSignals(false);
+    }
+  }
 }

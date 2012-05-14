@@ -89,6 +89,13 @@ protected slots:
   void selectFromSlice(double slice, vtkPVSliceView::VIEW_PLANE plane);
   void selectToSlice(double slice, vtkPVSliceView::VIEW_PLANE plane);
 
+  void channelSelected(Channel *channel);
+  void segmentationSelected(Segmentation *seg, bool append);
+  void updateSelection(QModelIndex index);
+
+private:
+  void initSliceView(SliceView *view);
+
 private:
   bool first;
 
