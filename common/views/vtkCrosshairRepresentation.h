@@ -64,6 +64,7 @@ public:
   vtkGetVector3Macro(Position, int);
 
   //BTX
+  vtkProp3D *GetCrosshairProp();
 protected:
   vtkCrosshairRepresentation();
   virtual ~vtkCrosshairRepresentation();

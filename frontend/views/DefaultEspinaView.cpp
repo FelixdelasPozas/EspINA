@@ -68,6 +68,10 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   volDock = new QDockWidget(tr("3D"),parent);
   volDock->setObjectName("volDock");
   volView = new VolumeView(this);
+  connect(volView, SIGNAL(channelSelected(Channel*)),
+	  this, SLOT(channelSelected(Channel*)));
+  connect(volView, SIGNAL(segmentationSelected(Segmentation*, bool)),
+	  this, SLOT(segmentationSelected(Segmentation*, bool)));
   volDock->setWidget(volView);
 
   yzDock = new QDockWidget(tr("ZY"),parent);
@@ -524,9 +528,12 @@ void DefaultEspinaView::segmentationSelected(Segmentation* seg, bool append)
       if (ModelItem::SEGMENTATION == item->type())
       {
 	Segmentation *selSeg = dynamic_cast<Segmentation *>(item);
-	selSeg->setSelected(false);
-	selSeg->notifyModification();
-	selectionModel()->select(index, QItemSelectionModel::Deselect);
+	if (selSeg != seg)
+	{
+	  selSeg->setSelected(false);
+	  selSeg->notifyModification();
+	  selectionModel()->select(index, QItemSelectionModel::Deselect);
+	}
       }
     }
     blockSignals(false);

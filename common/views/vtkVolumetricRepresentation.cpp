@@ -259,11 +259,21 @@ void vtkVolumetricRepresentation::SetColor(double r, double g, double b)
 //----------------------------------------------------------------------------
 void vtkVolumetricRepresentation::SetOpacity(double value)
 {
-//   if (Opacity == value)
-//     return;
+  if (Opacity == value)
+    return;
 
   Opacity = value;
-//   if (VolumetricActor.prop)
-//     VolumetricActor.prop->SetOpacity(value);
+  if (ColorFunction)
+  {
+    ColorFunction->SetAlpha(value);
+    ColorFunction->Modified();
+  }
+
   Modified();
+}
+
+//----------------------------------------------------------------------------
+vtkProp3D* vtkVolumetricRepresentation::GetVolumetricProp()
+{
+  return VolumetricProp;
 }

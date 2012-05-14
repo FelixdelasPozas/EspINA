@@ -81,15 +81,19 @@ public slots:
 
   void forceRender();
 
+signals:
+  void channelSelected(Channel *);
+  void segmentationSelected(Segmentation *, bool);
+
 protected:
   double suggestedChannelOpacity();
+  void selectPickedItems(bool append);
 
 private:
 //   void selectSegmentations(int x, int y, int z);
 
 protected slots:
-//   /// Selections
-//   void vtkWidgetMouseEvent(QMouseEvent *event);
+  virtual bool eventFilter(QObject* caller, QEvent* e);
 
   void exportScene();
   void takeSnapshot();

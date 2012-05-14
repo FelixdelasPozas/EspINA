@@ -363,14 +363,14 @@
           Set the color for the segmentation
         </Documentation>
       </DoubleVectorProperty>
-<!--      <DoubleVectorProperty name="Opacity"
+      <DoubleVectorProperty name="Opacity"
         command="SetOpacity"
         number_of_elements="1"
         default_values="0.7">
         <Documentation>
           Set the opacity for the channel
         </Documentation>
-      </DoubleVectorProperty>-->
+      </DoubleVectorProperty>
     </RepresentationProxy>
   </ProxyGroup>-->
 </ServerManagerConfiguration>

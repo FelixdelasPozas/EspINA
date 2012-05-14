@@ -26,6 +26,7 @@
 #include <common/views/pqVolumeView.h>
 
 // GUI
+#include <QEvent>
 #include <QFileDialog>
 #include <QHBoxLayout>
 #include <QPushButton>
@@ -60,6 +61,10 @@
 #include <pqSMAdaptor.h>
 #include <model/Channel.h>
 #include <model/Representation.h>
+#include <QMouseEvent>
+#include <vtkPropPicker.h>
+#include <vtkVolumetricRepresentation.h>
+#include <vtkCrosshairRepresentation.h>
 
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(QWidget* parent)
@@ -284,6 +289,7 @@ bool VolumeView::updateSegmentationRepresentation(Segmentation* seg)
     //   repProxy->PrintSelf(std::cout,vtkIndent(0));
     double rgb[3] = {rep.color.redF(), rep.color.greenF(), rep.color.blueF()};
     vtkSMPropertyHelper(rep.proxy, "Color").Set(rgb, 3);
+    vtkSMPropertyHelper(rep.proxy, "Opacity").Set(rep.selected?1.0:0.7);
     vtkSMPropertyHelper(rep.proxy, "Visibility").Set(rep.visible);
     rep.proxy->UpdateVTKObjects();
     return true;
@@ -332,6 +338,8 @@ void VolumeView::onConnect()
              pqVolumeView::espinaRenderViewType(), server));
 
   m_viewWidget = m_view->getWidget();
+  // We want to manage events on the view
+  m_viewWidget->installEventFilter(this);
   m_mainLayout->insertWidget(0,m_viewWidget);//To preserver view order
 
   vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast(m_view->getProxy());
@@ -384,57 +392,74 @@ double VolumeView::suggestedChannelOpacity()
   return 1.0 /  numVisibleRep;
 }
 
-// //-----------------------------------------------------------------------------
-// void VolumeView::selectSegmentations(int x, int y, int z)
-// {
-//   QItemSelection selection;
-//   
-//   QModelIndex selIndex;
-//   for (int i=0; i < model()->rowCount(rootIndex()); i++)
-//   {
-//     QModelIndex segIndex = rootIndex().child(i,0);
-//     IModelItem *segItem = static_cast<IModelItem *>(segIndex.internalPointer());
-//     Segmentation *seg = dynamic_cast<Segmentation *>(segItem);
-//     assert(seg);
-//     
-//     
-//     seg->creator()->pipelineSource()->updatePipeline();;
-//     seg->creator()->pipelineSource()->getProxy()->UpdatePropertyInformation();
-//     vtkPVDataInformation *info = seg->outputPort()->getDataInformation();
-//     int extent[6];
-//     info->GetExtent(extent);
-//     if ((extent[0] <= x && x <= extent[1]) &&
-//       (extent[2] <= y && y <= extent[3]) &&
-//       (extent[4] <= z && z <= extent[5]))
-//     {
-//       SegmentationSelectionExtension *selector = dynamic_cast<SegmentationSelectionExtension *>(
-// 	seg->extension(SegmentationSelectionExtension::ID));
-//       
-//       if (selector->isSegmentationPixel(x,y,z))
-// 	selIndex = segIndex;
-//       // 	seg->outputPort()->getDataInformation()->GetPointDataInformation();
-//       //selection.indexes().append(segIndex);
-// //       double pixelValue[4];
-// //       pixelValue[0] = x;
-// //       pixelValue[1] = y;
-// //       pixelValue[2] = z;
-// //       pixelValue[3] = 4;
-// //       vtkSMPropertyHelper(seg->creator()->pipelineSource()->getProxy(),"CheckPixel").Set(pixelValue,4);
-// //       seg->creator()->pipelineSource()->getProxy()->UpdateVTKObjects();
-// //       int value;
-// //       seg->creator()->pipelineSource()->getProxy()->UpdatePropertyInformation();
-// //       vtkSMPropertyHelper(seg->creator()->pipelineSource()->getProxy(),"PixelValue").Get(&value,1);
-// //       	qDebug() << "Pixel Value" << value;
-// //       if (value == 255)
-// // 	selIndex = segIndex;
-//     }
-//     if (selIndex.isValid())
-//       selectionModel()->select(selIndex,QItemSelectionModel::ClearAndSelect);
-//     else
-//       selectionModel()->clearSelection();
-//   }
-// }
+//-----------------------------------------------------------------------------
+void VolumeView::selectPickedItems(bool append)
+{
+  vtkSMRenderViewProxy *view =
+    vtkSMRenderViewProxy::SafeDownCast(m_view->getProxy());
+  Q_ASSERT(view);
+  vtkRenderer *renderer = view->GetRenderer();
+  Q_ASSERT(renderer);
+  vtkRenderWindowInteractor *rwi =
+    vtkRenderWindowInteractor::SafeDownCast(
+      view->GetRenderWindow()->GetInteractor());
+  Q_ASSERT(rwi);
 
+  int x, y;
+  rwi->GetEventPosition(x, y);
+
+  vtkPropPicker *propPicker = vtkPropPicker::New();
+  if (propPicker->Pick(x, y, 0.1, renderer))
+  {
+    vtkProp3D *pickedProp = propPicker->GetProp3D();
+    vtkObjectBase *object;
+
+    foreach(Channel *channel, m_channels.keys())
+    {
+      vtkCrosshairRepresentation *rep;
+      object = m_channels[channel].proxy->GetClientSideObject();
+      rep = dynamic_cast<vtkCrosshairRepresentation *>(object);
+      Q_ASSERT(rep);
+      if (rep->GetCrosshairProp() == pickedProp)
+      {
+// 	qDebug() << "Channel" << channel->data(Qt::DisplayRole).toString() << "Selected";
+	emit channelSelected(channel);
+	return;
+      }
+    }
+
+    foreach(Segmentation *seg, m_segmentations.keys())
+    {
+      vtkVolumetricRepresentation *rep;
+      object = m_segmentations[seg].proxy->GetClientSideObject();
+      rep = dynamic_cast<vtkVolumetricRepresentation *>(object);
+      Q_ASSERT(rep);
+      if (rep->GetVolumetricProp() == pickedProp)
+      {
+// 	qDebug() << "Segmentation" << seg->data(Qt::DisplayRole).toString() << "Selected";
+	emit segmentationSelected(seg, append);
+	return;
+      }
+    }
+  }
+}
+//-----------------------------------------------------------------------------
+bool VolumeView::eventFilter(QObject* caller, QEvent* e)
+{
+  if (e->type() == QEvent::MouseButtonPress)
+  {
+    QMouseEvent *me = static_cast<QMouseEvent*>(e);
+    if (me->button() == Qt::LeftButton)
+    {
+      selectPickedItems(me->modifiers() == Qt::SHIFT);
+    }
+  }
+
+  return QObject::eventFilter(caller, e);
+}
+
+
+//-----------------------------------------------------------------------------
 void VolumeView::exportScene()
 {
   pqViewExporterManager *exporter = new pqViewExporterManager();

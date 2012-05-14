@@ -66,6 +66,8 @@ public:
   vtkGetVector3Macro(Position, int);
 
   //BTX
+  vtkProp3D *GetVolumetricProp();
+
 protected:
   vtkVolumetricRepresentation();
   virtual ~vtkVolumetricRepresentation();

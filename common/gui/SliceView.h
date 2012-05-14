@@ -204,7 +204,6 @@ signals:
   void selectedToSlice(double, vtkPVSliceView::VIEW_PLANE);
 
 protected:
-  // AbstractItemView Interfacec
   virtual bool eventFilter(QObject* caller, QEvent* e);
   void centerCrosshairOnMousePosition();
   void centerViewOnMousePosition();

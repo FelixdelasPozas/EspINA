@@ -289,3 +289,9 @@ void vtkCrosshairRepresentation::SetOpacity(double value)
 //     CrosshairActor.prop->SetOpacity(value);
   Modified();
 }
+
+//----------------------------------------------------------------------------
+vtkProp3D* vtkCrosshairRepresentation::GetCrosshairProp()
+{
+  return CrosshairProp;
+}

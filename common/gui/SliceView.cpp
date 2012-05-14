@@ -497,11 +497,8 @@ void SliceView::onConnect()
 	  this, SLOT(sliceViewCenterChanged(double,double,double)));
 
   m_viewWidget = m_view->getWidget();
-
   // We want to manage events on the view
   m_viewWidget->installEventFilter(this);
-//   QObject::connect(m_viewWidget, SIGNAL(mouseEvent(QMouseEvent *)),
-//                    this, SLOT(vtkWidgetMouseEvent(QMouseEvent *)));
   m_mainLayout->insertWidget(0, m_viewWidget);//To preserve view order
 
   double black[] = {0,0,0};
