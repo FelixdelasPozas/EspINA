@@ -52,6 +52,9 @@ void RecentDocuments::addDocument(QString path)
   if (m_recentDocuments.contains(path))
     m_recentDocuments.removeAll(path);
 
+  if (m_recentDocuments.size() == MAX_FILES)
+    m_recentDocuments.pop_back();
+
   m_recentDocuments.push_front(path);
 
   updateActions();
@@ -63,7 +66,8 @@ void RecentDocuments::addDocument(QString path)
 //------------------------------------------------------------------------
 void RecentDocuments::updateActions()
 {
-  for(int i = 0; i < m_recentDocuments.size(); i++)
+  int numberFiles = qMin(m_recentDocuments.size(), MAX_FILES);
+  for(int i = 0; i < numberFiles; i++)
   {
     m_actionList[i]->setText(QFileInfo(m_recentDocuments[i]).fileName());
     m_actionList[i]->setToolTip(m_recentDocuments[i]);
