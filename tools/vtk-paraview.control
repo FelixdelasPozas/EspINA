@@ -1,0 +1,7 @@
+Package: vtk-paraview
+Section: Science & Math
+Priority: optional
+Version: 5.8
+Architecture: amd64
+Maintainer: CeSViMa
+Description: VTK libraries as provided by Paraview 3.14.1

@@ -10,14 +10,15 @@ cmake_minimum_required(VERSION 2.6)
 find_package (ParaView REQUIRED)
 include (${PARAVIEW_USE_FILE})
 
-# ITK Support
+## ITK Support
 find_package(ITK REQUIRED)
 include(${ITK_USE_FILE})
 
 set (ITK_VTK_GLUE ${ITK_DIR}/../Wrapping/WrapITK/ExternalProjects/ItkVtkGlue/src)
 
-# find_package(Espina REQUIRED)
-# include(${ESPINA_USE_FILE})
+find_package(Espina REQUIRED)
+include(${ESPINA_USE_FILE})
+
 include_directories (
   ${CMAKE_SOURCE_DIR}
 )
@@ -82,7 +83,7 @@ install (
 set (CPACK_PACKAGE_VERSION_MAJOR ${PLUGIN_VERSION_MAJOR})
 set (CPACK_PACKAGE_VERSION_MINOR ${PLUGIN_VERSION_MINOR})
 set (CPACK_PACKAGE_VERSION_PATCH ${PLUGIN_VERSION_PATCH})
-set (CPACK_PACKAGE_NAME "EspINA-egmhaImporter")
+set (CPACK_PACKAGE_NAME "EspINA-SegmhaImporter")
 set (CPACK_GENERATOR "DEB")
 set (CPACK_DEBIAN_PACKAGE_MAINTAINER "CeSViMa") #required
 set (CPACK_DEBIAN_PACKAGE_DESCRIPTION "Import segmha segmentation files generated with python's EspINA")

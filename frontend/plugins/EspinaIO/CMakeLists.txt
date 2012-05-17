@@ -33,4 +33,5 @@ target_link_libraries(EspinaIO EspinaCore ${QUAZIP_LIBRARIES})#Espina) #Required
 install (TARGETS EspinaIO
          LIBRARY
          DESTINATION bin/plugins
-         COMPONENT espinaApp)
+        #COMPONENT espinaApp
+        )

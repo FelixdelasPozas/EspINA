@@ -89,5 +89,5 @@ install (
   TARGETS VolumeOfInterest
   LIBRARY
   DESTINATION bin/plugins
-  COMPONENT VolumeOfInterest
+  #COMPONENT VolumeOfInterest
 )

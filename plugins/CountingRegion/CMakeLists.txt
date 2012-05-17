@@ -129,5 +129,5 @@ install(
   TARGETS CountingRegion
   LIBRARY
   DESTINATION bin/plugins
-  COMPONENT CountingRegion
+  #COMPONENT CountingRegion
   )

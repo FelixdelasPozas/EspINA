@@ -21,13 +21,13 @@
 #define SEEDGROWSEGMENTATIONPREFERENCES_H
 
 #include <common/settings/ISettingsPanel.h>
-#include "ui_SeedGrowSegmentationPreferences.h"
+#include "ui_SettingsPanel.h"
 
 #include "SeedGrowSegmentation.h"
 
 class SeedGrowSegmentation::SettingsPanel
 : public ISettingsPanel
-, public Ui::SeedGrowSegmentationPreferences
+, public Ui::SettingsPanel
 {
   Q_OBJECT
 public:

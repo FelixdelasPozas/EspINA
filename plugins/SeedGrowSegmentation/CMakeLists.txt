@@ -109,5 +109,5 @@ install (
   TARGETS SeedGrowSegmentationPlugin
   LIBRARY
   DESTINATION bin/plugins
-  COMPONENT SeedGrowSegmentation
+  #COMPONENT SeedGrowSegmentation
 )

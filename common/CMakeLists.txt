@@ -220,7 +220,7 @@ set (CORE_SOURCES
 
 set(CORE_EXTERNAL_LIBS
   ${Boost_LIBRARIES}
-  QtTest
+  #QtTest
   EspinaPVCore
   pqApplicationComponents
 )
@@ -228,10 +228,16 @@ set(CORE_EXTERNAL_LIBS
 add_library (EspinaCore SHARED ${CORE_SOURCES})
 target_link_libraries (EspinaCore ${CORE_EXTERNAL_LIBS})
 
-#install (
-#  TARGETS EspinaCore
-#  LIBRARY
-#  DESTINATION lib
+install (
+  TARGETS EspinaCore EspinaPVCore
+  LIBRARY
+  DESTINATION lib
 #  COMPONENT espina
-#  )
+  )
 
+install (
+  TARGETS EspinaPVCore
+  LIBRARY
+  DESTINATION bin/plugins
+#  COMPONENT espina
+  )

@@ -5,7 +5,7 @@ cmake_minimum_required (VERSION 2.8)
 # Version Number
 set (ESPINA_VERSION_MAJOR 1)
 set (ESPINA_VERSION_MINOR 0)
-set (ESPINA_VERSION_PATCH 2)
+set (ESPINA_VERSION_PATCH 99)
 
 find_package (ParaView REQUIRED 1.12) # Includes Qt4
 include (${PARAVIEW_USE_FILE})
@@ -62,26 +62,26 @@ endif (${USE_DASHBOARD})
 
 #LINUX INSTALATION
 if (UNIX)
-  file (GLOB PARAVIEWFILES ${ParaView_BINARY_DIR}/bin/*.so*)
-  file (GLOB ITKFILES ${ITK_DIR}/bin/*.so*)
-  file (GLOB QUAZIPFILES ${Quazip_DIR}/*.so*)
-
-  install (
-    FILES ${PARAVIEWFILES}
-    DESTINATION lib/espina
-    COMPONENT espina
-    )
-  install (
-    FILES ${ITKFILES}
-    DESTINATION lib/espina
-    COMPONENT espina
-    )
-
-  install (
-    FILES ${QUAZIPFILES}
-    DESTINATION lib/espina
-    COMPONENT espina
-    )
+#  file (GLOB PARAVIEWFILES ${ParaView_BINARY_DIR}/bin/*.so*)
+#  file (GLOB ITKFILES ${ITK_DIR}/bin/*.so*)
+#  file (GLOB QUAZIPFILES ${Quazip_DIR}/*.so*)
+#
+#  install (
+#    FILES ${PARAVIEWFILES}
+#    DESTINATION lib/espina
+#    COMPONENT espina
+#    )
+#  install (
+#    FILES ${ITKFILES}
+#    DESTINATION lib/espina
+#    COMPONENT espina
+#    )
+#
+#  install (
+#    FILES ${QUAZIPFILES}
+#    DESTINATION lib/espina
+#    COMPONENT espina
+#    )
 
   install(
     FILES espina.conf
@@ -97,10 +97,13 @@ if (UNIX)
   set (CPACK_PACKAGE_NAME "EspINA")
   set (CPACK_GENERATOR "DEB")
   set (CPACK_DEBIAN_PACKAGE_MAINTAINER "CeSViMa") #required
-  set (CPACK_DEBIAN_PACKAGE_DESCRIPTION "Espina Bla Bla")
+  set (CPACK_DEBIAN_PACKAGE_DESCRIPTION "EspINA: EspINA Interactive Neuron Analyzer")
   set (CPACK_DEBIAN_PACKAGE_DEPENDS "libboost-system1.42.0,
         libboost-filesystem1.42.0,
         libboost-graph1.42.0,
+        itk-review,
+        vtk-paraview (>= 5.8),
+        paraview (>= 3.14),
         libqt4-webkit,
         libqt4-svg,
         libqt4-help,
@@ -108,11 +111,11 @@ if (UNIX)
         libopenmpi1.3")
   set (CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/CMake/debian/postinst;")
 
-  set (CPACK_COMPONENTS_ALL espina SeedGrowSegmentation)
-  set (CPACK_COMPONENT_ESPINA_DISPLAY_NAME "EspINA Interactive Neuron Analyser")
-  set (CPACK_COMPONENT_ESPINA_DESCRIPTION  "Interactive Analysis Tool for FEM images")
-
-  set(CPACK_DEB_COMPONENT_INSTALL ON)
+#  set (CPACK_COMPONENTS_ALL espina SeedGrowSegmentation)
+#  set (CPACK_COMPONENT_ESPINA_DISPLAY_NAME "EspINA Interactive Neuron Analyser")
+#  set (CPACK_COMPONENT_ESPINA_DESCRIPTION  "Interactive Analysis Tool for FEM images")
+#
+#  set(CPACK_DEB_COMPONENT_INSTALL ON)
 
   include (CPack)
 endif (UNIX)
