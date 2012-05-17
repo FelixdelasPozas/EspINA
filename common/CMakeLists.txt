@@ -167,6 +167,7 @@ set (CORE_SOURCES
   gui/EspinaDockWidget.cpp
   gui/EspinaView.cpp
   gui/SliceView.cpp
+  gui/NumberColorEngine.cpp
   gui/TaxonomyColorEngine.cpp
   gui/UserColorEngine.cpp
   gui/ViewFrame.cpp
@@ -220,7 +221,7 @@ set (CORE_SOURCES
 
 set(CORE_EXTERNAL_LIBS
   ${Boost_LIBRARIES}
-  #QtTest
+  QtTest
   EspinaPVCore
   pqApplicationComponents
 )

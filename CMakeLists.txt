@@ -105,6 +105,7 @@ if (UNIX)
         vtk-paraview (>= 5.8),
         paraview (>= 3.14),
         libqt4-webkit,
+        libqt4-test,
         libqt4-svg,
         libqt4-help,
         libqt4-xmlpatterns,

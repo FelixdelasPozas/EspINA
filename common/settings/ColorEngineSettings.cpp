@@ -23,6 +23,7 @@
 
 #include <gui/TaxonomyColorEngine.h>
 #include <gui/UserColorEngine.h>
+#include <NumberColorEngine.h>
 
 
 ColorEngineSettings::ColorEngineSettings()
@@ -37,6 +38,9 @@ ColorEngineSettings::ColorEngineSettings()
   user->setCheckable(true);
   m_availableEngines[user] = new UserColorEngine();
 
+  QAction *id = new QAction(tr("Segmentation Id"), this);
+  id->setCheckable(true);
+  m_availableEngines[id] = new NumberColorEngine();
 
   foreach(QAction *engine, m_availableEngines.keys())
   {
