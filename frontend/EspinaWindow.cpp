@@ -210,9 +210,9 @@ EspinaWindow::EspinaWindow()
 //   m_mainToolBar->setMovable(false);
   addToolBar(m_mainToolBar);
 
-  QToolBar *lod = new LODToolBar();
-//   lod->setMovable(false);
-  addToolBar(lod);
+//   QToolBar *lod = new LODToolBar();
+// //   lod->setMovable(false);
+//   addToolBar(lod);
 
   ChannelExplorer *channelExplorer = new ChannelExplorer(m_model, this);
   addDockWidget(Qt::LeftDockWidgetArea, channelExplorer);

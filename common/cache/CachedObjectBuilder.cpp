@@ -193,7 +193,7 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(const QString group, const
     };
   }
 
-//   filter->getProxy()->UpdateVTKObjects();
+  filter->getProxy()->UpdateVTKObjects();
   return filter;
 }
 
