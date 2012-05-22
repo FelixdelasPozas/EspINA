@@ -21,6 +21,8 @@ if (${BUILD_TESTING})
   enable_testing()
 endif (${BUILD_TESTING})
 
+SET(LIBRARY_OUTPUT_PATH "${CMAKE_BINARY_DIR}/frontend/plugins")
+
 # add_subdirectory( Views    )
 add_subdirectory( common   )
 add_subdirectory( frontend )
