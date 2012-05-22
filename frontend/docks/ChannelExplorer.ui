@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>279</width>
+    <width>283</width>
     <height>475</height>
    </rect>
   </property>
@@ -242,7 +242,7 @@ QTreeView::indicator:unchecked {
           </property>
           <property name="icon">
            <iconset resource="../rsc/espina.qrc">
-            <normaloff>:/espina/edit-undo.svg</normaloff>:/espina/edit-undo.svg</iconset>
+            <normaloff>:/espina/leftIn.png</normaloff>:/espina/leftIn.png</iconset>
           </property>
           <property name="iconSize">
            <size>
@@ -289,7 +289,7 @@ QTreeView::indicator:unchecked {
           </property>
           <property name="icon">
            <iconset resource="../rsc/espina.qrc">
-            <normaloff>:/espina/add.svg</normaloff>:/espina/add.svg</iconset>
+            <normaloff>:/espina/centerIn.png</normaloff>:/espina/centerIn.png</iconset>
           </property>
           <property name="iconSize">
            <size>
@@ -336,7 +336,7 @@ QTreeView::indicator:unchecked {
           </property>
           <property name="icon">
            <iconset resource="../rsc/espina.qrc">
-            <normaloff>:/espina/edit-redo.svg</normaloff>:/espina/edit-redo.svg</iconset>
+            <normaloff>:/espina/rightIn.png</normaloff>:/espina/rightIn.png</iconset>
           </property>
           <property name="iconSize">
            <size>
@@ -383,7 +383,7 @@ QTreeView::indicator:unchecked {
           </property>
           <property name="icon">
            <iconset resource="../rsc/espina.qrc">
-            <normaloff>:/espina/edit-undo.svg</normaloff>:/espina/edit-undo.svg</iconset>
+            <normaloff>:/espina/leftOut.png</normaloff>:/espina/leftOut.png</iconset>
           </property>
           <property name="iconSize">
            <size>
@@ -430,7 +430,7 @@ QTreeView::indicator:unchecked {
           </property>
           <property name="icon">
            <iconset resource="../rsc/espina.qrc">
-            <normaloff>:/espina/edit-redo.svg</normaloff>:/espina/edit-redo.svg</iconset>
+            <normaloff>:/espina/rightOut.png</normaloff>:/espina/rightOut.png</iconset>
           </property>
           <property name="iconSize">
            <size>
