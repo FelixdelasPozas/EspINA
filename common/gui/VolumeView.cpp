@@ -447,6 +447,8 @@ void VolumeView::selectPickedItems(bool append)
 //-----------------------------------------------------------------------------
 bool VolumeView::eventFilter(QObject* caller, QEvent* e)
 {
+  return QObject::eventFilter(caller, e);
+
   if (e->type() == QEvent::MouseButtonPress)
   {
     QMouseEvent *me = static_cast<QMouseEvent*>(e);

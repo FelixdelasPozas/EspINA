@@ -43,20 +43,26 @@
 #include <vtkVolumeProperty.h>
 #include <vtkPiecewiseFunction.h>
 #include <vtkColorTransferFunction.h>
+#include <vtkRenderWindow.h>
+
+#include <vtkGPUInfoList.h>
+#include <vtkGPUInfo.h>
 
 vtkStandardNewMacro ( vtkVolumetricRepresentation );
 
 // static bool base = true;
 //----------------------------------------------------------------------------
 vtkVolumetricRepresentation::vtkVolumetricRepresentation()
+: GPUMapper(NULL)
+, SWMapper(NULL)
+, VolumetricMapper(NULL)
 {
   memset(Color, 0, 3*sizeof(int));
   memset(Position, 0, 3*sizeof(double));
   VolumetricData = vtkImageData::New();
 
   DeliveryFilter = vtkImageSliceDataDeliveryFilter::New();
-  Volumetric = vtkVolumeRayCastMapper::New();
-  Volumetric->SetVolumeRayCastFunction(vtkVolumeRayCastCompositeFunction::New());
+
   VolumetricProp = vtkVolume::New();
   VolumetricProp->SetPickable(true);
   vtkVolumeProperty *volProperty = VolumetricProp->GetProperty();
@@ -72,11 +78,11 @@ vtkVolumetricRepresentation::vtkVolumetricRepresentation()
 
   volProperty->ShadeOn();
 
-  Volumetric->ReleaseDataFlagOn();
+//   VolumetricMapper->ReleaseDataFlagOn();
   DeliveryFilter->ReleaseDataFlagOn();
 
-  VolumetricActor.prop = NULL;
-  VolumetricProp->SetMapper(Volumetric);
+  VolumetricActor.prop = VolumetricProp;
+//   VolumetricProp->SetMapper(VolumetricMapper);
 //   qDebug() << "Created Representation" << this;
 }
 
@@ -86,8 +92,8 @@ vtkVolumetricRepresentation::~vtkVolumetricRepresentation()
   VolumetricData->Delete();
   DeliveryFilter->RemoveAllInputs();;
   DeliveryFilter->Delete();
-  Volumetric->RemoveAllInputs();
-  Volumetric->Delete();
+//   VolumetricMapper->RemoveAllInputs();
+//   VolumetricMapper->Delete();
   // WARNING: DO NOT FREE ACTOR, BECAUSE IT'S FREED BY THE RENDERER
   // VolumetricActor->GetMapper()->Delete();
   // VolumetricActor->Delete();
@@ -140,7 +146,7 @@ int vtkVolumetricRepresentation::ProcessViewRequest (
     vtkImageData* clone = vtkImageData::New();
     clone->ShallowCopy ( this->DeliveryFilter->GetOutputDataObject ( 0 ) );
 //     clone->CopyInformation(this->DeliveryFilter->GetOutputDataObject ( 0 ) );
-    this->Volumetric->SetInput ( clone );
+    VolumetricMapper->SetInput ( clone );
     clone->Delete();
 
     this->DeliveryTimeStamp.Modified();
@@ -181,8 +187,8 @@ int vtkVolumetricRepresentation::RequestData (
 
     vtkImageData *clone = vtkImageData::New();
     clone->ShallowCopy ( input );
-    Volumetric->SetInput ( clone );
-    Volumetric->Update();
+    VolumetricMapper->SetInput ( clone );
+    VolumetricMapper->Update();
     this->VolumetricData->ShallowCopy ( clone );
     clone->Delete();
     input->GetBounds(VolumetricActor.bounds);
@@ -216,6 +222,29 @@ bool vtkVolumetricRepresentation::AddToView(vtkView* view)
 {
   //   qDebug() << "Add to View";
   vtkPVVolumeView* rview = vtkPVVolumeView::SafeDownCast(view);
+  GPUMapper = vtkGPUVolumeRayCastMapper::New();
+  if (GPUMapper->IsRenderSupported(rview->GetRenderWindow(), NULL))
+  {
+    vtkSmartPointer<vtkGPUInfoList> info = vtkSmartPointer<vtkGPUInfoList>::New();
+    info->Probe();
+    GPUMapper->SetScalarModeToUsePointData();
+    GPUMapper->SetMaxMemoryInBytes(info->GetGPUInfo(0)->GetDedicatedVideoMemory());
+    GPUMapper->SetMaxMemoryFraction(1.0);
+    GPUMapper->SetAutoAdjustSampleDistances(false);
+    GPUMapper->SetMaximumImageSampleDistance(1.0);
+
+    VolumetricMapper = GPUMapper;
+  } else
+  {
+    GPUMapper->Delete();
+    SWMapper = vtkVolumeRayCastMapper::New();
+    SWMapper->SetVolumeRayCastFunction(vtkVolumeRayCastCompositeFunction::New());
+
+    VolumetricMapper = SWMapper;
+  }
+
+  VolumetricProp->SetMapper(VolumetricMapper);
+
   if (rview)
   {
 //     Volumetric->SetOutputDimensionality(2);
