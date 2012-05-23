@@ -32,6 +32,7 @@
 #include <vtkVolume.h>
 #include <vtkPVVolumeView.h>
 #include <vtkVolumeRayCastMapper.h>
+#include <vtkGPUVolumeRayCastMapper.h>
 
 class vtkImageResliceToColors;
 class vtkImageActor;
@@ -95,7 +96,9 @@ protected:
   vtkImageSliceDataDeliveryFilter *DeliveryFilter;
   vtkPiecewiseFunction            *OpacityFunction;
   vtkColorTransferFunction        *ColorFunction;
-  vtkVolumeRayCastMapper          *Volumetric;
+  vtkVolumeRayCastMapper          *SWMapper;
+  vtkGPUVolumeRayCastMapper       *GPUMapper;
+  vtkVolumeMapper                 *VolumetricMapper;
   vtkVolume                       *VolumetricProp;
   vtkImageData                    *VolumetricData;
   vtkPVVolumeView::VolumeActor     VolumetricActor;
