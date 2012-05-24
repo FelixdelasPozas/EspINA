@@ -119,7 +119,7 @@ public:
 
   virtual QStringList availableInformations() const;
   virtual QStringList availableRepresentations() const;
-  virtual QVariant information(QString name) const;
+  virtual QVariant information(QString name);
   virtual Representation *representation(QString name) const;
   ModelItemExtension *extension(QString name) const;
 

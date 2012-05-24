@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>SegmentationExplorer</class>
- <widget class="QWidget" name="SegmentationExplorer">
+ <class>SegmentationInspector</class>
+ <widget class="QWidget" name="SegmentationInspector">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -74,7 +74,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="rsc/espina.qrc">
+            <iconset resource="../rsc/espina.qrc">
              <normaloff>:/espina/snapshot_scene.svg</normaloff>:/espina/snapshot_scene.svg</iconset>
            </property>
            <property name="iconSize">
@@ -121,7 +121,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="rsc/espina.qrc">
+            <iconset resource="../rsc/espina.qrc">
              <normaloff>:/espina/export_scene.svg</normaloff>:/espina/export_scene.svg</iconset>
            </property>
            <property name="iconSize">
@@ -166,7 +166,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="rsc/espina.qrc">
+            <iconset resource="../rsc/espina.qrc">
              <normaloff>:/espina/voxel.png</normaloff>:/espina/voxel.png</iconset>
            </property>
            <property name="iconSize">
@@ -201,7 +201,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="rsc/espina.qrc">
+            <iconset resource="../rsc/espina.qrc">
              <normaloff>:/espina/mesh.png</normaloff>:/espina/mesh.png</iconset>
            </property>
            <property name="iconSize">
@@ -239,7 +239,7 @@
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="rsc/espina.qrc">
+            <iconset resource="../rsc/espina.qrc">
              <normaloff>:/espina/appPlane.svg</normaloff>:/espina/appPlane.svg</iconset>
            </property>
            <property name="iconSize">
@@ -268,7 +268,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="rsc/espina.qrc"/>
+  <include location="../rsc/espina.qrc"/>
  </resources>
  <connections/>
 </ui>

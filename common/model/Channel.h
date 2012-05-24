@@ -107,7 +107,7 @@ public:
 
   virtual QStringList availableInformations() const;
   virtual QStringList availableRepresentations() const;
-  virtual QVariant information(QString name) const;
+  virtual QVariant information(QString name);
 
   /// Selectable Item Interface
   virtual pqData volume() {return m_data;}

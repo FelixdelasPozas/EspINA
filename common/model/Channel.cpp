@@ -349,7 +349,7 @@ void Channel::initialize(ModelItem::Arguments args)
 }
 
 //------------------------------------------------------------------------
-QVariant Channel::information(QString name) const
+QVariant Channel::information(QString name)
 {
   if (name == NAME)
     return data(Qt::DisplayRole);

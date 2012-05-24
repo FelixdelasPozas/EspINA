@@ -17,19 +17,37 @@
 */
 
 
-#ifndef SEGMENTATIONEDITOR_H
-#define SEGMENTATIONEDITOR_H
+#ifndef SEGMENTATIONINSPECTOR_H
+#define SEGMENTATIONINSPECTOR_H
 
-#include <QStyledItemDelegate>
+#include <QDialog>
+#include "ui_SegmentationInspector.h"
 
+class pqRenderView;
+class Segmentation;
 
-class SegmentationEditor : public QStyledItemDelegate
+class SegmentationInspector
+: public QWidget
+, public Ui::SegmentationInspector
 {
-
+  Q_OBJECT
 public:
-    virtual QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const;
-    virtual void setEditorData(QWidget* editor, const QModelIndex& index) const;
-    virtual void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const;
+  static SegmentationInspector *CreateInspector(Segmentation *seg);
+  virtual ~SegmentationInspector();
+
+public slots:
+  void takeSnapshot();
+  void exportScene();
+  void updateScene();
+
+protected:
+  SegmentationInspector(Segmentation *seg, QWidget* parent = 0, Qt::WindowFlags f = 0);
+  virtual void closeEvent(QCloseEvent *e);
+
+private:
+  pqRenderView *m_view;
+  Segmentation *m_seg;
+  static QMap<Segmentation *, SegmentationInspector *> m_inspectors;
 };
 
-#endif // SEGMENTATIONEDITOR_H
+#endif // SEGMENTATIONINSPECTOR_H

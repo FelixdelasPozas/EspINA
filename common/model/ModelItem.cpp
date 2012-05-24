@@ -161,7 +161,7 @@ QStringList ModelItem::availableRepresentations() const
 }
 
 //------------------------------------------------------------------------
-QVariant ModelItem::information(QString name) const
+QVariant ModelItem::information(QString name)
 {
   Q_ASSERT(m_informations.contains(name));
   return m_informations[name]->information(name);

@@ -100,6 +100,7 @@ public:
   virtual ItemType type() const {return ModelItem::SEGMENTATION;}
   virtual QString serialize() const;
   virtual void initialize(Arguments args = Arguments());
+  virtual void initializeExtensions();
   /// Selectable Item Interface
   virtual pqData volume() {return m_data;}
 
@@ -126,7 +127,7 @@ public:
 //   ISegmentationRepresentation *representation(QString rep);
 
   QStringList availableInformations() const;
-  QVariant information(QString info) const;
+  QVariant information(QString info);
 
 // public slots:
 //   virtual void notifyModification();
@@ -140,6 +141,7 @@ private:
   SArguments          m_args;
   TaxonomyNode       *m_taxonomy;
 
+  bool           m_extInitialized;
   bool           m_isSelected;
   bool           m_isVisible;
   QColor         m_color;

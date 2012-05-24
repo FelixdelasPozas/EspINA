@@ -101,7 +101,7 @@ QTreeView::indicator:unchecked {
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="segmentationInformation">
+      <widget class="QPushButton" name="showInformation">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
          <horstretch>0</horstretch>

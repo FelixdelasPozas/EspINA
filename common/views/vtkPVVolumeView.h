@@ -73,7 +73,8 @@ public:
     void ResetCamera ( double bounds[6] );
     virtual void ResetCameraClippingRange();
 
-    virtual void SetOrientationAxesVisibility ( bool );
+    virtual void SetOrientationAxesVisibility(bool);
+    virtual void SetCenterAxesVisibility(bool);
 
     void SetBackground ( double r, double g, double b );
 

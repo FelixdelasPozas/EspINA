@@ -405,9 +405,15 @@ void vtkPVVolumeView::ResetCameraClippingRange()
 }
 
 //----------------------------------------------------------------------------
-void vtkPVVolumeView::SetOrientationAxesVisibility ( bool )
+void vtkPVVolumeView::SetOrientationAxesVisibility(bool)
 {
-  vtkPVRenderView::SetOrientationAxesVisibility ( false );
+  vtkPVRenderView::SetOrientationAxesVisibility(false);
+}
+
+//----------------------------------------------------------------------------
+void vtkPVVolumeView::SetCenterAxesVisibility(bool)
+{
+  vtkPVRenderView::SetCenterAxesVisibility(false);
 }
 
 

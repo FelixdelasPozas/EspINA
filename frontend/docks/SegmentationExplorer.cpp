@@ -23,7 +23,12 @@
 #include "common/model/ModelTest.h"
 #endif
 
-#include "common/model/EspinaModel.h"
+#include "common/EspinaCore.h"
+#include <gui/EspinaView.h>
+#include <undo/RemoveSegmentation.h>
+
+#include "SegmentationInspector.h"
+#include "SegmentationDelegate.h"
 #include "common/model/proxies/SampleProxy.h"
 #include "common/model/proxies/TaxonomyProxy.h"
 
@@ -31,9 +36,6 @@
 #include <cstdio>
 
 #include <QStringListModel>
-#include <EspinaCore.h>
-#include <gui/EspinaView.h>
-#include <undo/RemoveSegmentation.h>
 #include <QMessageBox>
 #include <QSortFilterProxyModel>
 
@@ -51,6 +53,9 @@ SegmentationExplorer::GUI::GUI()
   setupUi(this);
   view->setSortingEnabled(true);
   view->sortByColumn(0, Qt::AscendingOrder);
+
+  showInformation->setIcon(
+    qApp->style()->standardIcon(QStyle::SP_MessageBoxInformation));
 }
 
 
@@ -347,6 +352,8 @@ SegmentationExplorer::SegmentationExplorer(QSharedPointer< EspinaModel> model, Q
 	  this, SLOT(changeLayout(int)));
   connect(m_gui->view, SIGNAL(doubleClicked(QModelIndex)),
 	  this, SLOT(focusOnSegmentation(QModelIndex)));
+  connect(m_gui->showInformation, SIGNAL(clicked(bool)),
+          this, SLOT(showInformation()));
   connect(m_gui->deleteSegmentation, SIGNAL(clicked(bool)),
           this, SLOT(deleteSegmentation()));
   connect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
@@ -381,6 +388,7 @@ void SegmentationExplorer::changeLayout(int index)
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_layout->model()));
 #endif
   m_gui->view->setModel(m_layout->model());
+  m_gui->view->setItemDelegate(new SegmentationDelegate());
   connect(m_layout->model(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
 	  this, SLOT(updateSelection(QModelIndex)));
 }
@@ -400,6 +408,24 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
   int y = seg->information("Centroid Y").toInt();
   int z = seg->information("Centroid Z").toInt();
   view->setCenter(x, y, z);
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::showInformation()
+{
+  foreach(QModelIndex index, m_gui->view->selectionModel()->selectedIndexes())
+  {
+    ModelItem *item = m_layout->item(index);
+    Q_ASSERT(item);
+
+    if (ModelItem::SEGMENTATION == item->type())
+    {
+      Segmentation *seg = dynamic_cast<Segmentation *>(item);
+      SegmentationInspector *inspector = SegmentationInspector::CreateInspector(seg);
+      inspector->show();
+      inspector->raise();
+    }
+  }
 }
 
 //------------------------------------------------------------------------

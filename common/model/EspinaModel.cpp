@@ -157,7 +157,7 @@ Qt::ItemFlags EspinaModel::flags(const QModelIndex& index) const
 
   ModelItem *item = indexPtr(index);
   if (ModelItem::SEGMENTATION == item->type() || ModelItem::CHANNEL == item->type())
-    return QAbstractItemModel::flags(index) | Qt::ItemIsUserCheckable | Qt::ItemIsEditable ;
+    return QAbstractItemModel::flags(index) | Qt::ItemIsUserCheckable | Qt::ItemIsEditable;
   else
     return QAbstractItemModel::flags(index) | Qt::ItemIsEditable;
 }

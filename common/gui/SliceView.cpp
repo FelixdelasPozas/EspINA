@@ -484,7 +484,7 @@ pqRenderViewBase* SliceView::view()
 //-----------------------------------------------------------------------------
 void SliceView::onConnect()
 {
-  qDebug() << this << ": Connecting to a new server";
+//   qDebug() << this << ": Connecting to a new server";
 
   pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
   pqServer    *server = pqActiveObjects::instance().activeServer();
@@ -514,7 +514,7 @@ void SliceView::onConnect()
 //-----------------------------------------------------------------------------
 void SliceView::onDisconnect()
 {
-  qDebug() << this << ": Disconnecting from server";
+//   qDebug() << this << ": Disconnecting from server";
 //   pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
   m_viewWidget = NULL;
 //   if (m_view)
@@ -1066,7 +1066,7 @@ void SliceView::forceRender()
 {
   if (isVisible())
   {
-//     qDebug() << "Rendering View";
+//     qDebug() << "Rendering View" << m_plane;
     updateWidgetVisibility();
     m_view->forceRender();
   }

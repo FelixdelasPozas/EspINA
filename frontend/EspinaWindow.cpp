@@ -302,6 +302,7 @@ void EspinaWindow::closeEvent(QCloseEvent* event)
 
 //   settings.setValue(m_currentActivity+"/geometry", saveGeometry());
 //   settings.setValue(m_currentActivity+"/state", saveState());
+  exit(0);
 }
 
 

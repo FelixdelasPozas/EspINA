@@ -331,7 +331,7 @@ void VolumeView::removeWidget(pq3DWidget* widget)
 //-----------------------------------------------------------------------------
 void VolumeView::onConnect()
 {
-  qDebug() << this << ": Connecting to a new server";
+//   qDebug() << this << ": Connecting to a new server";
   pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
   pqServer    *server = pqActiveObjects::instance().activeServer();
 
@@ -375,7 +375,10 @@ void VolumeView::onDisconnect()
 void VolumeView::forceRender()
 {
   if(isVisible())
+  {
+//     qDebug() << "Render 3D View";
     m_view->forceRender();
+  }
 }
 
 //-----------------------------------------------------------------------------

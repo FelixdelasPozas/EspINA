@@ -33,6 +33,7 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
   docks/ModifyFilter/ModifyFilterPanel.h
   docks/ChannelExplorer.h
   docks/SegmentationExplorer.h
+  docks/SegmentationInspector.h
   docks/TaxonomyExplorer.h
   toolbar/MainToolBar.h
   toolbar/LODToolBar.h
@@ -45,6 +46,7 @@ qt4_wrap_ui (UI_BUILT_SOURCES
   docks/DataView/QueryView.ui
   docks/ChannelExplorer.ui
   docks/SegmentationExplorer.ui
+  docks/SegmentationInspector.ui
   docks/TaxonomyExplorer.ui
   GeneralPreferences.ui
   PreferencesDialog.ui
@@ -57,7 +59,9 @@ set (DOCKS_SOURCES
   docks/DataView/InformationProxy.cpp
   docks/ModifyFilter/ModifyFilterPanel.cpp
   docks/ChannelExplorer.cpp
+  docks/SegmentationDelegate.cpp
   docks/SegmentationExplorer.cpp
+  docks/SegmentationInspector.cpp
   docks/TaxonomyExplorer.cpp
   )
 

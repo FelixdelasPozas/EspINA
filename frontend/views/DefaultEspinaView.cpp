@@ -315,7 +315,7 @@ void DefaultEspinaView::removeChannelRepresentation(Channel* channel)
 //-----------------------------------------------------------------------------
 bool DefaultEspinaView::updateChannel(Channel* channel)
 {
-  bool modified = true;
+  bool modified = false;
   modified = xyView->updateChannelRepresentation(channel)  || modified;
   modified = yzView->updateChannelRepresentation(channel)  || modified;
   modified = xzView->updateChannelRepresentation(channel)  || modified;
@@ -347,7 +347,7 @@ void DefaultEspinaView::removeSegmentation(Segmentation* seg)
 //-----------------------------------------------------------------------------
 bool DefaultEspinaView::updateSegmentation(Segmentation* seg)
 {
-  bool modified = true;
+  bool modified = false;
   modified = xyView->updateSegmentationRepresentation(seg)  || modified;
   modified = yzView->updateSegmentationRepresentation(seg)  || modified;
   modified = xzView->updateSegmentationRepresentation(seg)  || modified;
@@ -363,6 +363,7 @@ void DefaultEspinaView::rowsInserted(const QModelIndex& parent, int start, int e
   if (!parent.isValid())
     return;
 
+  bool render = false;
   for(int child = start; child <= end; child++)
   {
     QModelIndex index = parent.child(child, 0);
@@ -390,6 +391,7 @@ void DefaultEspinaView::rowsInserted(const QModelIndex& parent, int start, int e
 	addChannelRepresentation(channel);
 	QApplication::restoreOverrideCursor();
 	resetCamera();
+	render = true;
 	break;
       }
       case ModelItem::SEGMENTATION:
@@ -397,13 +399,15 @@ void DefaultEspinaView::rowsInserted(const QModelIndex& parent, int start, int e
 	Segmentation *seg = dynamic_cast<Segmentation *>(item);
 // 	qDebug() << "Add Segmentation:" << seg->data(Qt::DisplayRole).toString();
 	addSegmentation(seg);
+	render = true;
 	break;
       }
       default:
 	break;
     };
   }
-  forceRender();
+  if (render)
+    forceRender();
 }
 
 //-----------------------------------------------------------------------------

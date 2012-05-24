@@ -60,6 +60,7 @@ Segmentation::Segmentation(Filter* filter, int output, pqData data)
 : m_filter (filter)
 , m_data   (data)
 , m_taxonomy    (NULL)
+, m_extInitialized(false)
 , m_isSelected(false)
 , m_isVisible(true)
 {
@@ -160,7 +161,12 @@ void Segmentation::initialize(ModelItem::Arguments args)
   // Prevent overriding segmentation id assigned from model
   if (ModelItem::Arguments() != args)
     m_args = SArguments(args);
+//   qDebug() << "Users" << m_args.users() << m_args[USERS];
+}
 
+//------------------------------------------------------------------------
+void Segmentation::initializeExtensions()
+{
   foreach(ModelItemExtension *ext, m_extensions)
   {
     SegmentationExtension *segExt = dynamic_cast<SegmentationExtension *>(ext);
@@ -168,8 +174,11 @@ void Segmentation::initialize(ModelItem::Arguments args)
     segExt->initialize(this);
   }
   onColorEngineChanged();
-//   qDebug() << "Users" << m_args.users() << m_args[USERS];
+
+  m_extInitialized = true;
+//   qDebug() << data(Qt::DisplayRole).toString() << " initialized";
 }
+
 
 // //------------------------------------------------------------------------
 // void Segmentation::color(double* rgba)
@@ -270,8 +279,12 @@ QStringList Segmentation::availableInformations() const
 }
 
 //------------------------------------------------------------------------
-QVariant Segmentation::information(QString info) const
+QVariant Segmentation::information(QString info)
 {
+  if (!m_extInitialized)
+  {
+    this->initializeExtensions();
+  }
   if (info == "Name")
     return data(Qt::DisplayRole);
   if (info == "Taxonomy")

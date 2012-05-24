@@ -17,44 +17,36 @@
 */
 
 
-#include "segmentationEditor.h"
-
-#include <data/modelItem.h>
-
-#include "SegmentationExplorer.h"
-#include "sample.h"
-#include "segmentation.h"
+#include "SegmentationDelegate.h"
 
 #include <QDebug>
 
-QWidget* SegmentationEditor::createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const
-{
-  IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
-  Sample *sample = dynamic_cast<Sample *>(item);
-  if (sample)
-  {
-    return QStyledItemDelegate::createEditor(parent, option, index);
-  }
-  
-  //NOTE: Maybe use a generic product explorer...
-  Segmentation *seg = dynamic_cast<Segmentation *>(item);
-  if (seg)
-  {
-    SegmentationExplorer *explorer = new SegmentationExplorer(seg);
-    explorer->setFocusPolicy(Qt::StrongFocus);
-    return explorer;
-  }
+#include <model/ModelItem.h>
+#include <model/Segmentation.h>
+#include "SegmentationInspector.h"
 
-  return QStyledItemDelegate::createEditor(parent, option, index);
+QWidget* SegmentationDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const
+{
+  ModelItem *item =  indexPtr(index);
+  Q_ASSERT(item);
+
+  if (ModelItem::SEGMENTATION == item->type())
+  {
+    Segmentation *seg = dynamic_cast<Segmentation *>(item);
+    SegmentationInspector *inspector = SegmentationInspector::CreateInspector(seg);
+    inspector->setFocusPolicy(Qt::StrongFocus);
+    return inspector;
+  } else
+    return QStyledItemDelegate::createEditor(parent, option, index);
 
 }
 
-void SegmentationEditor::setEditorData(QWidget* editor, const QModelIndex& index) const
+void SegmentationDelegate::setEditorData(QWidget* editor, const QModelIndex& index) const
 {
   QStyledItemDelegate::setEditorData(editor, index);
 }
 
-void SegmentationEditor::setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const
+void SegmentationDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const
 {
   QStyledItemDelegate::setModelData(editor, model, index);
 }
