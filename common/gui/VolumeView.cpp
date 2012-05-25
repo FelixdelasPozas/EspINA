@@ -27,6 +27,7 @@
 
 // GUI
 #include <QEvent>
+#include <QSettings>
 #include <QFileDialog>
 #include <QHBoxLayout>
 #include <QPushButton>
@@ -71,8 +72,7 @@ VolumeView::VolumeView(QWidget* parent)
 : QWidget(parent)
 , m_mainLayout      (new QVBoxLayout())
 , m_controlLayout   (new QHBoxLayout())
-// , m_VOIWidget(NULL)
-// , m_lastSample(NULL)
+, m_settings        (new Settings())
 {
   buildControls();
 
@@ -481,4 +481,30 @@ void VolumeView::takeSnapshot()
   QString fileName = QFileDialog::getSaveFileName(this,
      tr("Save Scene"), "", tr("Image Files (*.jpg *.png)"));
   m_view->saveImage(1024,768,fileName);
+}
+
+//-----------------------------------------------------------------------------
+VolumeView::Settings::Settings(const QString prefix)
+: RENDERERS(prefix + "VolumeView::renderers")
+{
+  QSettings settings("CeSViMa", "EspINA");
+
+  if (!settings.contains(RENDERERS))
+    settings.setValue(RENDERERS, QStringList("Volumetric"));
+  qDebug() << settings.value(RENDERERS).toStringList();
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::Settings::setRenderers(const QStringList values)
+{
+
+}
+
+//-----------------------------------------------------------------------------
+QStringList VolumeView::Settings::renderers() const
+{
+  QSettings settings("CeSViMa", "EspINA");
+  
+  qDebug() << settings.value(RENDERERS).toStringList();
+  return settings.value(RENDERERS).toStringList();
 }

@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
+    Copyright (C) 2012  Jorge PeÃ±a Pastor <email>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,38 +17,33 @@
 */
 
 
-#ifndef SEEDGROWSEGMENTATIONPREFERENCES_H
-#define SEEDGROWSEGMENTATIONPREFERENCES_H
+#ifndef VOLUMEVIEWSETTINGSPANEL_H
+#define VOLUMEVIEWSETTINGSPANEL_H
 
 #include <common/settings/ISettingsPanel.h>
-#include "ui_SettingsPanel.h"
+#include "ui_VolumeViewSettingsPanel.h"
 
-#include "SeedGrowSegmentation.h"
+#include <common/gui/VolumeView.h>
 
-class SeedGrowSegmentation::SettingsPanel
+class VolumeViewSettingsPanel
 : public ISettingsPanel
-, public Ui::SettingsPanel
+, Ui::VolumeViewSettingsPanel 
 {
-  Q_OBJECT
 public:
-  explicit SettingsPanel(SeedGrowSegmentation::Settings *settings);
-  virtual ~SettingsPanel(){}
+  explicit VolumeViewSettingsPanel(VolumeView::SettingsPtr settings);
 
-  virtual const QString shortDescription() {return "Seed Grow Segmentation";}
-  virtual const QString longDescription() {return "Seed Grow Segmentation Settings";}
-  virtual const QIcon icon() {return QIcon(":/bestPixelSelector.svg");}
+  virtual const QString shortDescription() {return tr("3D View");}
+  virtual const QString longDescription() {return tr("%1 Settings").arg(shortDescription());}
+  virtual const QIcon icon() {return QIcon();}
 
   virtual void acceptChanges();
 
   virtual bool modified() const;
-
-  virtual ISettingsPanel *clone();
-
-public slots:
-  void displayColor(int value);
+  
+  virtual ISettingsPanel* clone();
 
 private:
-  SeedGrowSegmentation::Settings *m_settings;
+  VolumeView::SettingsPtr m_settings;
 };
 
-#endif // SEEDGROWSEGMENTATIONPREFERENCES_H
+#endif // VOLUMEVIEWSETTINGSPANEL_H

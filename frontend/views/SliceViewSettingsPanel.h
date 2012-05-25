@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2012  Jorge Peña Pastor <email>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,29 +17,33 @@
 */
 
 
-#ifndef GENERALSETTINGS_H
-#define GENERALSETTINGS_H
+#ifndef SLICEVIEWSETTINGSPANEL_H
+#define SLICEVIEWSETTINGSPANEL_H
 
-#include <QObject>
-#include <QString>
+#include <common/settings/ISettingsPanel.h>
+#include <common/gui/SliceView.h>
+#include "ui_SliceViewSettingsPanel.h"
 
-const QString STACK_DIR("StackDirectory");
-const QString USER_NAME("UserName");
-
-class GeneralSettings
+class SliceViewSettingsPanel
+: public ISettingsPanel
+, Ui::SliceViewSettingsPanel
 {
+  Q_OBJECT
 public:
-  explicit GeneralSettings();
+  explicit SliceViewSettingsPanel(SliceView::SettingsPtr settings);
 
-  QString stackDirectory() const {return m_stackDir;}
-  void setStackDirectory(QString path);
+  virtual const QString shortDescription();
+  virtual const QString longDescription() {return tr("%1 Settings").arg(shortDescription());}
+  virtual const QIcon icon() {return QIcon();}
 
-  QString userName() const {return m_userName;}
-  void setUserName(QString name);
+  virtual void acceptChanges();
+
+  virtual bool modified() const;
+
+  virtual ISettingsPanel* clone();
 
 private:
-  QString m_stackDir;
-  QString m_userName;
+  SliceView::SettingsPtr m_settings;
 };
 
-#endif // GENERALSETTINGS_H
+#endif // SLICEVIEWSETTINGSPANEL_H

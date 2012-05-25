@@ -63,7 +63,10 @@ public:
 
   virtual void gridSize(double size[3]) = 0;
   virtual void setGridSize(double size[3]) = 0;
+
   virtual void setColorEngine(ColorEngine *engine) {};
+  virtual ISettingsPanel *settingsPanel() = 0;
+
 public slots:
   virtual void setShowSegmentations(bool visibility) = 0;
   virtual void setCenter(double x, double y, double z) = 0;

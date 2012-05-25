@@ -53,6 +53,10 @@ class VolumeView
 {
   Q_OBJECT
 public:
+  class Settings;
+  typedef QSharedPointer<Settings> SettingsPtr;
+
+public:
   explicit VolumeView(QWidget* parent = 0);
   virtual ~VolumeView(){}
 
@@ -74,6 +78,7 @@ public:
   void removeWidget(pq3DWidget *widget);
 
   void setColorEngine(ColorEngine *engine){m_colorEngine = engine;}
+  SettingsPtr settings() {return m_settings;}
 
 public slots:
   void onConnect();
@@ -119,11 +124,24 @@ private:
   QPushButton m_snapshot;
   QPushButton m_export;
 
+  SettingsPtr m_settings;
+
   double m_center[3];
   ColorEngine *m_colorEngine;
 
   QMap<Channel *,      Representation> m_channels;
   QMap<Segmentation *, Representation> m_segmentations;
+};
+
+class VolumeView::Settings
+{
+  const QString RENDERERS;
+
+public:
+  explicit Settings(const QString prefix=QString());
+
+  void setRenderers(const QStringList values);
+  QStringList renderers() const;
 };
 
 #endif // VOLUMEVIEW_H

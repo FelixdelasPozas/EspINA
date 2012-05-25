@@ -144,7 +144,6 @@ qt4_wrap_cpp(CORE_MOC
   selection/SelectionHandler.h
   selection/SelectionManager.h
   settings/ColorEngineSettings.h
-  settings/GeneralSettings.h
   )
 
 set (CORE_SOURCES

@@ -16,23 +16,20 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef RENDERER
+#define RENDERER
 
-#ifndef ESPINAIO_H
-#define ESPINAIO_H
+#include <QString>
+#include <QIcon>
 
-#include <common/pluginInterfaces/ReaderFactory.h>
-
-class EspinaIO
-: public ReaderFactory
+class Renderer
 {
 public:
-  explicit EspinaIO();
-  virtual ~EspinaIO();
+  virtual ~Renderer();
 
-  void onStartup(){}
-  void onShutdown(){}
-
-  virtual void readFile(const QString file); 
+  virtual const QString name() const = 0;
+  virtual const QIcon icon() const = 0;
 };
 
-#endif // ESPINAIO_H
+#endif // RENDERER
+

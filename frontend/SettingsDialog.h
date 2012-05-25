@@ -24,12 +24,12 @@
 
 #include <common/settings/ISettingsPanel.h>
 
-#include "ui_GeneralPreferences.h"
-#include "ui_PreferencesDialog.h"
+#include "ui_GeneralSettingsPanel.h"
+#include "ui_SettingsDialog.h"
 
 class GeneralSettingsPanel
 : public ISettingsPanel
-, Ui::GeneralPreferences
+, Ui::GeneralSettingsPanel
 {
 public:
   GeneralSettingsPanel();
@@ -41,14 +41,16 @@ public:
   virtual void acceptChanges();
   virtual bool modified() const;
 
-  virtual ISettingsPanel *widget();
+  virtual ISettingsPanel *clone();
 };
 
-class PreferencesDialog : public QDialog, Ui::PreferencesDialog
+class SettingsDialog
+: public QDialog
+, Ui::SettingsDialog
 {
   Q_OBJECT
 public:
-  explicit PreferencesDialog(QWidget* parent = 0, Qt::WindowFlags f = 0);
+  explicit SettingsDialog(QWidget* parent = 0, Qt::WindowFlags f = 0);
 
   virtual void accept();
   virtual void reject();

@@ -41,7 +41,7 @@
 
 #include <sstream>
 
-#include "PreferencesDialog.h"
+#include "SettingsDialog.h"
 #include "docks/ChannelExplorer.h"
 #include "docks/DataView/DataViewPanel.h"
 #include "toolbar/LODToolBar.h"
@@ -635,9 +635,10 @@ void EspinaWindow::updateStatus(QString msg)
 //------------------------------------------------------------------------
 void EspinaWindow::showPreferencesDialog()
 {
-  PreferencesDialog dialog;
+  SettingsDialog dialog;
 
-//   dialog.addPanel(m_view->preferences());
+  dialog.addPanel(m_view->settingsPanel());
+
   foreach(ISettingsPanel *panel, EspinaFactory::instance()->settingsPanels())
   {
     dialog.addPanel(panel);
