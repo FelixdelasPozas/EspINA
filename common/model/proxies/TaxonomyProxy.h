@@ -39,6 +39,7 @@ public:
 
   virtual QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const;
 
+  virtual bool hasChildren(const QModelIndex& parent = QModelIndex()) const;
   virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
   virtual int columnCount(const QModelIndex& parent = QModelIndex()) const {return 1;}
   virtual QModelIndex parent(const QModelIndex& child) const;

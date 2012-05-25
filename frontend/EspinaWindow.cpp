@@ -82,7 +82,7 @@
 #include <vtkSMReaderFactory.h>
 #include <vtkSMStringVectorProperty.h>
 
-#undef DEBUG
+#define DEBUG
 
 static const QString CHANNEL_FILES = QObject::tr("Channel (*.mha; *.segmha)");
 static const QString SEG_FILES     = QObject::tr("Espina Analysis (*.seg)");

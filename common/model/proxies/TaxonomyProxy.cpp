@@ -91,6 +91,13 @@ QVariant TaxonomyProxy::data(const QModelIndex& proxyIndex, int role) const
 
 
 //------------------------------------------------------------------------
+bool TaxonomyProxy::hasChildren(const QModelIndex& parent) const
+{
+  return rowCount(parent) > 0 && columnCount(parent) > 0;
+}
+
+
+//------------------------------------------------------------------------
 int TaxonomyProxy::rowCount(const QModelIndex& parent) const
 {
   if (!parent.isValid())
