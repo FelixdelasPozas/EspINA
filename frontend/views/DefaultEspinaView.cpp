@@ -18,6 +18,8 @@
 
 
 #include "DefaultEspinaView.h"
+#include "SliceViewSettingsPanel.h"
+#include "VolumeViewSettingsPanel.h"
 
 #include <QDebug>
 
@@ -43,6 +45,7 @@
 #include <QDir>
 #include <QMenu>
 #include <QApplication>
+#include <QGroupBox>
 #include <EspinaCore.h>
 
 //----------------------------------------------------------------------------
@@ -256,6 +259,15 @@ void DefaultEspinaView::setColorEngine(ColorEngine* engine)
   yzView->setColorEngine(m_colorEngine);
   xzView->setColorEngine(m_colorEngine);
   volView->setColorEngine(m_colorEngine);
+}
+
+//----------------------------------------------------------------------------
+ISettingsPanel* DefaultEspinaView::settingsPanel()
+{
+  return new SettingsPanel(xyView->settings(),
+			 yzView->settings(),
+			 xzView->settings(),
+			 volView->settings());
 }
 
 
@@ -564,3 +576,78 @@ void DefaultEspinaView::updateSelection(QModelIndex index)
     }
   }
 }
+
+//-----------------------------------------------------------------------------
+DefaultEspinaView::SettingsPanel::SettingsPanel(SliceView::SettingsPtr xy,
+					     SliceView::SettingsPtr yz,
+					     SliceView::SettingsPtr xz,
+					     VolumeView::SettingsPtr vol)
+: m_xy(xy)
+, m_yz(yz)
+, m_xz(xz)
+, m_vol(vol)
+{
+  QVBoxLayout *layout = new QVBoxLayout();
+  QGroupBox *group;
+  QVBoxLayout *groupLayout;
+
+  // Axial View
+  m_xyPanel = new SliceViewSettingsPanel(xy);
+  group= new QGroupBox(m_xyPanel->shortDescription());
+  groupLayout = new QVBoxLayout();
+  groupLayout->addWidget(m_xyPanel);
+  group->setLayout(groupLayout);
+  layout->addWidget(group);
+
+  // Sagittal View
+  m_yzPanel = new SliceViewSettingsPanel(yz);
+  group= new QGroupBox(m_yzPanel->shortDescription());
+  groupLayout = new QVBoxLayout();
+  groupLayout->addWidget(m_yzPanel);
+  group->setLayout(groupLayout);
+  layout->addWidget(group);
+
+  // Coronal View
+  m_xzPanel = new SliceViewSettingsPanel(xz);
+  group= new QGroupBox(m_xzPanel->shortDescription());
+  groupLayout = new QVBoxLayout();
+  groupLayout->addWidget(m_xzPanel);
+  group->setLayout(groupLayout);
+  layout->addWidget(group);
+
+  // 3D View
+  m_volPanel = new VolumeViewSettingsPanel(vol);
+  group= new QGroupBox(m_volPanel->shortDescription());
+  groupLayout = new QVBoxLayout();
+  groupLayout->addWidget(m_volPanel);
+  group->setLayout(groupLayout);
+  layout->addWidget(group);
+
+  this->setLayout(layout);
+}
+
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::SettingsPanel::acceptChanges()
+{
+  m_xyPanel->acceptChanges();
+  m_yzPanel->acceptChanges();
+  m_xzPanel->acceptChanges();
+  m_volPanel->acceptChanges();
+}
+
+//-----------------------------------------------------------------------------
+bool DefaultEspinaView::SettingsPanel::modified() const
+{
+  return m_xyPanel->modified()
+      || m_yzPanel->modified()
+      || m_xzPanel->modified()
+      || m_volPanel->modified();
+}
+
+//-----------------------------------------------------------------------------
+ISettingsPanel* DefaultEspinaView::SettingsPanel::clone()
+{
+  return new SettingsPanel(m_xy, m_yz, m_xz, m_vol);
+}
+
+//-----------------------------------------------------------------------------

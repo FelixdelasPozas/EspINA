@@ -83,166 +83,25 @@
 #include <vtkSMProperty.h>
 #include <vtkChannelRepresentation.h>
 
-//-----------------------------------------------------------------------------
-SliceViewPreferencesPanel::SliceViewPreferencesPanel(SliceViewPreferences* preferences)
-: QWidget(preferences)
-, m_pref(preferences)
-{
-  QVBoxLayout *layout = new QVBoxLayout();
-/*
-  QCheckBox *invertWheel = new QCheckBox(tr("Invert Wheel"));
-  invertWheel->setChecked(m_pref->invertWheel());
-  connect(invertWheel,SIGNAL(toggled(bool)),
-	  this, SLOT(setInvertWheel(bool)));
-
-//   QCheckBox *invertNormal = new QCheckBox(tr("Invert Normal"));
-//   invertNormal->setChecked(m_pref->invertNormal());
-//   connect(invertNormal,SIGNAL(toggled(bool)),
-// 	  this, SLOT(setInvertNormal(bool)));
-
-  QCheckBox *showAxis = new QCheckBox(tr("Show Axis"));
-  showAxis->setChecked(m_pref->showAxis());
-  connect(showAxis,SIGNAL(toggled(bool)),
-	  this, SLOT(setShowAxis(bool)));
-
-  ltyyout->addWidget(invertWheel);
-//   layout->addWidget(invertNormal);
-  layout->addWidget(showAxis);
-  QSpacerItem *spacer = new QSpacerItem(10,10,QSizePolicy::Expanding,QSizePolicy::Expanding);
-  layout->addSpacerItem(spacer);*/
-  setLayout(layout);
-}
-
-//-----------------------------------------------------------------------------
-void SliceViewPreferencesPanel::setInvertWheel(bool value)
-{
-  m_pref->setInvertWheel(value);
-}
-
-//-----------------------------------------------------------------------------
-void SliceViewPreferencesPanel::setInvertNormal(bool value)
-{
-  m_pref->setInvertSliceOrder(value);
-}
-
-//-----------------------------------------------------------------------------
-void SliceViewPreferencesPanel::setShowAxis(bool value)
-{
-  m_pref->setShowAxis(value);
-}
-
-
-
-//-----------------------------------------------------------------------------
-SliceViewPreferences::SliceViewPreferences(vtkPVSliceView::VIEW_PLANE plane)
-: m_InvertWheel(false)
-, m_InvertSliceOrder(false)
-, m_ShowAxis(false)
-, m_plane(plane)
-{
-  QSettings settings("CeSViMa", "EspINA");
-
-  switch (plane)
-  {
-    case vtkPVSliceView::AXIAL:
-      viewSettings = "AxialSliceView";
-      break;
-    case vtkPVSliceView::SAGITTAL:
-      viewSettings = "SagittalSliceView";
-      break;
-    case vtkPVSliceView::CORONAL:
-      viewSettings = "CoronalSliceView";
-      break;
-    default:
-      Q_ASSERT(false);
-  };
-
-  const QString wheelSettings = QString(viewSettings+"::invertWheel");
-  if (!settings.contains(wheelSettings))
-    settings.setValue(wheelSettings,m_InvertWheel);
-  m_InvertWheel = settings.value(wheelSettings).toBool();
-
-  const QString sliceOrderSettings = QString(viewSettings+"::invertSliceOrder");
-  if (!settings.contains(sliceOrderSettings))
-    settings.setValue(sliceOrderSettings,m_InvertSliceOrder);
-  m_InvertSliceOrder = settings.value(sliceOrderSettings).toBool();
-
-  const QString axisSettings = QString(viewSettings+"::showAxis");
-  if (!settings.contains(axisSettings))
-    settings.setValue(axisSettings,m_ShowAxis);
-  m_ShowAxis = settings.value(axisSettings).toBool();
-
-}
-
-//-----------------------------------------------------------------------------
-const QString SliceViewPreferences::shortDescription()
-{
-  switch (m_plane)
-  {
-    case vtkPVSliceView::AXIAL:
-      viewSettings = "Axial View";
-      break;
-    case vtkPVSliceView::SAGITTAL:
-      viewSettings = "Sagittal View";
-      break;
-    case vtkPVSliceView::CORONAL:
-      viewSettings = "Coronal View";
-      break;
-    default:
-      Q_ASSERT(false);
-      return "ERROR";
-  };
-  return viewSettings;
-}
-
-//-----------------------------------------------------------------------------
-void SliceViewPreferences::setInvertWheel(bool value)
-{
-  QSettings settings("CeSViMa", "EspINA");
-
-  const QString wheelSettings = QString(viewSettings+"::invertWheel");
-  m_InvertWheel = value;
-  settings.setValue(wheelSettings,value);
-}
-
-//-----------------------------------------------------------------------------
-void SliceViewPreferences::setInvertSliceOrder(bool value)
-{
-  QSettings settings("CeSViMa", "EspINA");
-
-  const QString sliceOrderSettings = QString(viewSettings+"::invertSliceOrder");
-  m_InvertSliceOrder = value;
-  settings.setValue(sliceOrderSettings,value);
-}
-
-//-----------------------------------------------------------------------------
-void SliceViewPreferences::setShowAxis(bool value)
-{
-  QSettings settings("CeSViMa", "EspINA");
-
-  const QString axisSettings = QString(viewSettings+"::showAxis");
-  m_ShowAxis = value;
-  settings.setValue(axisSettings,value);
-}
-
 
 //-----------------------------------------------------------------------------
 // SLICE VIEW
 //-----------------------------------------------------------------------------
 SliceView::SliceView(vtkPVSliceView::VIEW_PLANE plane, QWidget* parent)
-    : QWidget           (parent)
-    , m_plane           (plane)
-    , m_titleLayout     (new QHBoxLayout())
-    , m_title           (new QLabel("Sagital"))
-    , m_mainLayout      (new QVBoxLayout())
-    , m_controlLayout   (new QHBoxLayout())
-    , m_viewWidget      (NULL)
-    , m_scrollBar       (new QScrollBar(Qt::Horizontal))
-    , m_fromSlice       (new QPushButton("From"))
-    , m_spinBox         (new QSpinBox())
-    , m_toSlice         (new QPushButton("To"))
-    , m_fitToGrid       (true)
-    , m_inThumbnail     (false)
+: QWidget           (parent)
+, m_plane           (plane)
+, m_titleLayout     (new QHBoxLayout())
+, m_title           (new QLabel("Sagital"))
+, m_mainLayout      (new QVBoxLayout())
+, m_controlLayout   (new QHBoxLayout())
+, m_viewWidget      (NULL)
+, m_scrollBar       (new QScrollBar(Qt::Horizontal))
+, m_fromSlice       (new QPushButton("From"))
+, m_spinBox         (new QSpinBox())
+, m_toSlice         (new QPushButton("To"))
+, m_settings        (new Settings(m_plane))
+, m_fitToGrid       (true)
+, m_inThumbnail     (false)
 {
   memset(m_gridSize, 1, 3*sizeof(double));
   memset(m_range, 0, 6*sizeof(double));
@@ -274,7 +133,6 @@ SliceView::SliceView(vtkPVSliceView::VIEW_PLANE plane, QWidget* parent)
   if (pqApplicationCore::instance()->getActiveServer())
     onConnect();
 
-  m_preferences = new SliceViewPreferences(m_plane);
 
 //   qDebug() << this << ": Created";
 }
@@ -589,7 +447,7 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
   if (e->type() == QEvent::Wheel)
   {
     QWheelEvent *we = static_cast<QWheelEvent *>(e);
-    int numSteps = we->delta()/8/15*(m_preferences->invertWheel()?-1:1);//Refer to QWheelEvent doc.
+    int numSteps = we->delta()/8/15*(m_settings->invertWheel()?-1:1);//Refer to QWheelEvent doc.
     m_spinBox->setValue(m_spinBox->value() - numSteps);
     e->ignore();
   }else if (e->type() == QEvent::Enter)
@@ -1195,4 +1053,73 @@ SelectionHandler::VtkRegion SliceView::display2vtk(const QPolygonF &region)
   }
   return vtkRegion;
 
+}
+
+
+//-----------------------------------------------------------------------------
+SliceView::Settings::Settings(vtkPVSliceView::VIEW_PLANE plane, const QString prefix)
+: INVERT_SLICE_ORDER (prefix + view(plane) + "::invertSliceOrder")
+, INVERT_WHEEL       (prefix + view(plane) + "::invertWheel")
+, SHOW_AXIS          (prefix + view(plane) + "::showAxis")
+, m_InvertWheel(false)
+, m_InvertSliceOrder(false)
+, m_ShowAxis(false)
+, m_plane(plane)
+{
+  QSettings settings("CeSViMa", "EspINA");
+
+  if (!settings.contains(INVERT_SLICE_ORDER))
+    settings.setValue(INVERT_SLICE_ORDER, m_InvertSliceOrder);
+  if (!settings.contains(INVERT_WHEEL))
+    settings.setValue(INVERT_WHEEL, m_InvertWheel);
+  if (!settings.contains(SHOW_AXIS))
+    settings.setValue(SHOW_AXIS, m_ShowAxis);
+
+  m_InvertSliceOrder = settings.value(INVERT_SLICE_ORDER).toBool();
+  m_InvertWheel      = settings.value(INVERT_WHEEL      ).toBool();
+  m_ShowAxis         = settings.value(SHOW_AXIS         ).toBool();
+}
+
+//-----------------------------------------------------------------------------
+const QString SliceView::Settings::view(vtkPVSliceView::VIEW_PLANE plane)
+{
+  switch (plane)
+  {
+    case vtkPVSliceView::AXIAL:
+      return QString("AxialSliceView");
+    case vtkPVSliceView::SAGITTAL:
+      return QString("SagittalSliceView");
+    case vtkPVSliceView::CORONAL:
+      return QString("CoronalSliceView");
+    default:
+      Q_ASSERT(false);
+  };
+  return QString("Unknown");
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::Settings::setInvertSliceOrder(bool value)
+{
+  QSettings settings("CeSViMa", "EspINA");
+
+  settings.setValue(INVERT_SLICE_ORDER, value);
+  m_InvertSliceOrder = value;
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::Settings::setInvertWheel(bool value)
+{
+  QSettings settings("CeSViMa", "EspINA");
+
+  settings.setValue(INVERT_WHEEL, value);
+  m_InvertWheel = value;
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::Settings::setShowAxis(bool value)
+{
+  QSettings settings("CeSViMa", "EspINA");
+
+  settings.setValue(SHOW_AXIS, value);
+  m_ShowAxis = value;
 }

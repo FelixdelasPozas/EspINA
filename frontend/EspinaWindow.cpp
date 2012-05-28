@@ -41,7 +41,7 @@
 
 #include <sstream>
 
-#include "PreferencesDialog.h"
+#include "SettingsDialog.h"
 #include "docks/ChannelExplorer.h"
 #include "docks/DataView/DataViewPanel.h"
 #include "toolbar/LODToolBar.h"
@@ -76,13 +76,15 @@
 #include <pqVerifyRequiredPluginBehavior.h>
 #include <processing/pqData.h>
 #include <processing/pqFilter.h>
+#include <renderers/VolumetricRenderer.h>
+#include <renderers/CrosshairRenderer.h>
 #include <vtkSMPropertyHelper.h>
 #include <vtkSMProxy.h>
 #include <vtkSMProxyManager.h>
 #include <vtkSMReaderFactory.h>
 #include <vtkSMStringVectorProperty.h>
 
-#undef DEBUG
+#define DEBUG
 
 static const QString CHANNEL_FILES = QObject::tr("Channel (*.mha; *.segmha)");
 static const QString SEG_FILES     = QObject::tr("Espina Analysis (*.seg)");
@@ -103,6 +105,9 @@ EspinaWindow::EspinaWindow()
   QIcon fileIcon = qApp->style()->standardIcon(QStyle::SP_FileIcon);
   QIcon openIcon = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
   QIcon saveIcon = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
+
+  EspinaFactory::instance()->registerRenderer(new CrosshairRenderer());
+  EspinaFactory::instance()->registerRenderer(new VolumetricRenderer());
 
   /*** FILE MENU ***/
   QMenu *fileMenu = new QMenu(tr("File"));
@@ -228,7 +233,6 @@ EspinaWindow::EspinaWindow()
 
   DataViewPanel *dataView = new DataViewPanel(this);
   addDockWidget(Qt::BottomDockWidgetArea, dataView);
-
 
   loadParaviewBehavior();
 
@@ -635,9 +639,10 @@ void EspinaWindow::updateStatus(QString msg)
 //------------------------------------------------------------------------
 void EspinaWindow::showPreferencesDialog()
 {
-  PreferencesDialog dialog;
+  SettingsDialog dialog;
 
-//   dialog.addPanel(m_view->preferences());
+  dialog.addPanel(m_view->settingsPanel());
+
   foreach(ISettingsPanel *panel, EspinaFactory::instance()->settingsPanels())
   {
     dialog.addPanel(panel);

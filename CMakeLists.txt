@@ -7,7 +7,7 @@ set (ESPINA_VERSION_MAJOR 1)
 set (ESPINA_VERSION_MINOR 0)
 set (ESPINA_VERSION_PATCH 99)
 
-find_package (ParaView REQUIRED 1.12) # Includes Qt4
+find_package (ParaView REQUIRED 1.14) # Includes Qt4
 include (${PARAVIEW_USE_FILE})
 
 set (ITK_VTK_GLUE ${ITK_DIR}/../Wrapping/WrapITK/ExternalProjects/ItkVtkGlue/src)
@@ -34,6 +34,7 @@ set (ESPINA_USE_FILE "${PROJECT_SOURCE_DIR}/EspinaUse.cmake")
 
 set (ESPINA_LIBRARY_DIRS
   ${PROJECT_BINARY_DIR}/common
+  ${PROJECT_BINARY_DIR}/frontend/plugins
   )
 
 configure_file (

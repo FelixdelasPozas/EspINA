@@ -19,7 +19,7 @@ public:
   virtual void rejectChanges(){};
   virtual bool modified() const {return false;}
 
-  virtual ISettingsPanel *widget() = 0;
+  virtual ISettingsPanel *clone() = 0;
 };
 
 #endif// ISETTINGSPANEL_H

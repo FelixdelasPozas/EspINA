@@ -20,7 +20,7 @@
 
 
 #include <QActionGroup>
-#include "common/plugins/FilterFactory.h"
+#include "common/pluginInterfaces/FilterFactory.h"
 
 #include "common/selection/SelectionHandler.h"
 #include "SeedGrowSelector.h"

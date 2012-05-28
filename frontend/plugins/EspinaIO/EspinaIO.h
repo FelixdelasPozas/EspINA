@@ -20,7 +20,7 @@
 #ifndef ESPINAIO_H
 #define ESPINAIO_H
 
-#include <common/plugins/ReaderFactory.h>
+#include <common/pluginInterfaces/ReaderFactory.h>
 
 class EspinaIO
 : public ReaderFactory

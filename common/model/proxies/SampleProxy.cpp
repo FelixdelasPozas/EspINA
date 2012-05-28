@@ -89,6 +89,13 @@ QVariant SampleProxy::data(const QModelIndex& proxyIndex, int role) const
 }
 
 //------------------------------------------------------------------------
+bool SampleProxy::hasChildren(const QModelIndex& parent) const
+{
+  return rowCount(parent) > 0 && columnCount(parent) > 0;
+}
+
+
+//------------------------------------------------------------------------
 int SampleProxy::rowCount(const QModelIndex& parent) const
 {
   if (!parent.isValid())

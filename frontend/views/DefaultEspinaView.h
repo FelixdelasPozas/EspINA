@@ -21,7 +21,10 @@
 #define DEFAULTESPINAVIEW_H
 
 #include <common/gui/EspinaView.h>
+#include <gui/VolumeView.h>
 
+class VolumeViewSettingsPanel;
+class SliceViewSettingsPanel;
 class ColorEngine;
 class Segmentation;
 // Forward-declaration
@@ -31,6 +34,8 @@ class VolumeView;
 class DefaultEspinaView
 : public EspinaView
 {
+  Q_OBJECT
+
   struct Widgtes
   {
     SliceWidget *xy;
@@ -38,7 +43,9 @@ class DefaultEspinaView
     SliceWidget *xz;
     pq3DWidget  *vol;
   };
-  Q_OBJECT
+
+  class SettingsPanel;
+
 public:
   explicit DefaultEspinaView(QMainWindow* parent, const QString activity = QString());
 
@@ -60,7 +67,8 @@ public:
   virtual void addRepresentation(pqOutputPort *oport, QColor color);
   virtual void removeRepresentation(pqOutputPort *oport);
 
-  void setColorEngine(ColorEngine *engine);
+  virtual void setColorEngine(ColorEngine *engine);
+  virtual ISettingsPanel* settingsPanel();
 
 public slots:
   virtual void setShowSegmentations(bool visibility);
@@ -105,6 +113,32 @@ private:
   QDockWidget *volDock, *yzDock, *xzDock;
   double m_gridSize[3];
   QMap<EspinaWidget *, Widgtes> m_widgets;
+};
+
+class DefaultEspinaView::SettingsPanel
+: public ISettingsPanel
+{
+public:
+  explicit SettingsPanel(SliceView::SettingsPtr xy,
+		        SliceView::SettingsPtr yz,
+		        SliceView::SettingsPtr xz,
+		        VolumeView::SettingsPtr vol);
+
+  virtual const QString shortDescription() {return tr("View");}
+  virtual const QString longDescription() {return tr("%1 Settings").arg(shortDescription());}
+  virtual const QIcon icon() {return QIcon(":/espina/show_all.svg");}
+
+  virtual void acceptChanges();
+
+  virtual bool modified() const;
+
+  virtual ISettingsPanel* clone();
+
+private:
+  SliceView::SettingsPtr m_xy, m_yz, m_xz;
+  SliceViewSettingsPanel *m_xyPanel, *m_yzPanel, *m_xzPanel;
+  VolumeView::SettingsPtr m_vol;
+  VolumeViewSettingsPanel *m_volPanel;
 };
 
 #endif // DEFAULTESPINAVIEW_H

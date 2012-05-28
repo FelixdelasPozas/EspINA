@@ -62,7 +62,7 @@ bool SeedGrowSegmentation::SettingsPanel::modified() const
 
 
 //------------------------------------------------------------------------
-ISettingsPanel *SeedGrowSegmentation::SettingsPanel::widget()
+ISettingsPanel *SeedGrowSegmentation::SettingsPanel::clone()
 {
   SettingsPanel *panel = new SettingsPanel(m_settings);
   return panel;

@@ -25,9 +25,10 @@
 #include "common/extensions/SampleExtension.h"
 #include "common/model/Channel.h"
 #include "common/model/Sample.h"
-#include "common/plugins/FilterFactory.h"
-#include "common/plugins/ReaderFactory.h"
+#include "common/pluginInterfaces/FilterFactory.h"
+#include "common/pluginInterfaces/ReaderFactory.h"
 
+class Renderer;
 class ISettingsPanel;
 class EspinaFactory
 {
@@ -40,8 +41,10 @@ public:
   void registerChannelExtension(ChannelExtension::SPtr extension);
   void registerSegmentationExtension(SegmentationExtension::SPtr extension);
   void registerSettingsPanel(ISettingsPanel *panel){m_settingsPanels << panel;}
+  void registerRenderer(Renderer *renderer) {m_renderers << renderer;}
 
   QList<ISettingsPanel *> settingsPanels() const {return m_settingsPanels;}
+  QList<Renderer *> renderers() const {return m_renderers;}
 
   Filter  *createFilter (const QString filter, const ModelItem::Arguments args);
   Sample  *createSample (const QString id, const QString args = "");
@@ -61,6 +64,7 @@ private:
   QList<ChannelExtension::SPtr>      m_channelExtensions;
   QMap<QString, ReaderFactory *>     m_readers;
   QList<ISettingsPanel *>            m_settingsPanels;
+  QList<Renderer *>                  m_renderers;
 };
 
 #endif // ESPinaFACTORY_H

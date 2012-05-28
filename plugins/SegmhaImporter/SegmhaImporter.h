@@ -18,8 +18,8 @@
 #ifndef SEGMHAIMPORTER_H
 #define SEGMHAIMPORTER_H
 
-#include <common/plugins/FilterFactory.h>
-#include <common/plugins/ReaderFactory.h>
+#include <common/pluginInterfaces/FilterFactory.h>
+#include <common/pluginInterfaces/ReaderFactory.h>
 #include <QUndoCommand>
 
 static const QString SFRF = "SegmhaReader::SegmhaImporterFilter";

@@ -17,7 +17,7 @@
 */
 
 
-#include "PreferencesDialog.h"
+#include "SettingsDialog.h"
 
 #include <EspinaCore.h>
 
@@ -58,13 +58,13 @@ bool GeneralSettingsPanel::modified() const
 }
 
 //------------------------------------------------------------------------
-ISettingsPanel *GeneralSettingsPanel::widget()
+ISettingsPanel *GeneralSettingsPanel::clone()
 {
   return new GeneralSettingsPanel();
 }
 
 //------------------------------------------------------------------------
-PreferencesDialog::PreferencesDialog(QWidget* parent, Qt::WindowFlags f)
+SettingsDialog::SettingsDialog(QWidget* parent, Qt::WindowFlags f)
 : QDialog(parent, f)
 , m_activePanel(NULL)
 {
@@ -83,21 +83,21 @@ PreferencesDialog::PreferencesDialog(QWidget* parent, Qt::WindowFlags f)
 }
 
 //------------------------------------------------------------------------
-void PreferencesDialog::accept()
+void SettingsDialog::accept()
 {
   m_activePanel->acceptChanges();
   QDialog::accept();
 }
 
 //------------------------------------------------------------------------
-void PreferencesDialog::reject()
+void SettingsDialog::reject()
 {
   m_activePanel->rejectChanges();
   QDialog::reject();
 }
 
 //------------------------------------------------------------------------
-void PreferencesDialog::addPanel(ISettingsPanel* panel)
+void SettingsDialog::addPanel(ISettingsPanel* panel)
 {
   QListWidgetItem *item = new QListWidgetItem();
   item->setData(Qt::DisplayRole,panel->shortDescription());
@@ -108,7 +108,7 @@ void PreferencesDialog::addPanel(ISettingsPanel* panel)
 }
 
 //------------------------------------------------------------------------
-ISettingsPanel* PreferencesDialog::panel(const QString& shortDesc)
+ISettingsPanel* SettingsDialog::panel(const QString& shortDesc)
 {
   foreach(ISettingsPanel *panel, m_panels)
   {
@@ -120,12 +120,12 @@ ISettingsPanel* PreferencesDialog::panel(const QString& shortDesc)
 
 
 //------------------------------------------------------------------------
-void PreferencesDialog::changePreferencePanel(int panel)
+void SettingsDialog::changePreferencePanel(int panel)
 {
   if (m_activePanel && m_activePanel->modified())
   {
     QMessageBox msg;
-    msg.setText("Settings have changed. Do you want to save them");
+    msg.setText(tr("Settings have changed. Do you want to save them"));
     msg.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
     if (msg.exec() == QMessageBox::Yes)
       m_activePanel->acceptChanges();
@@ -133,7 +133,7 @@ void PreferencesDialog::changePreferencePanel(int panel)
       m_activePanel->rejectChanges();
   }
 
-  m_activePanel = m_panels[panel]->widget();
+  m_activePanel = m_panels[panel]->clone();
   longDescription->setText( m_activePanel->longDescription() );
   icon->setPixmap( m_activePanel->icon().pixmap(icon->size()) );
   scrollArea->setWidget(m_activePanel);

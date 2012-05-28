@@ -53,51 +53,6 @@ class QSpinBox;
 class QVBoxLayout;
 class QHBoxLayout;
 
-class SliceViewPreferences;
-
-class SliceViewPreferencesPanel : public QWidget
-{
-  Q_OBJECT
-
-public:
-  explicit SliceViewPreferencesPanel(SliceViewPreferences *preferences);
-
-public slots:
-  void setInvertWheel(bool value);
-  void setInvertNormal(bool value);
-  void setShowAxis(bool value);
-private:
-  SliceViewPreferences *m_pref;
-};
-
-class SliceViewPreferences : public ISettingsPanel
-{
-public:
-  explicit SliceViewPreferences(vtkPVSliceView::VIEW_PLANE plane);
-
-  virtual const QString shortDescription();
-  virtual const QString longDescription() {return shortDescription();}
-  virtual const QIcon icon() {return QIcon();}
-
-  virtual ISettingsPanel* widget() {return NULL;}//new SliceViewPreferencesPanel(this);}
-
-  void setInvertWheel(bool value);
-  bool invertWheel(){return m_InvertWheel;}
-  void setInvertSliceOrder(bool value);
-  bool invertSliceOrder() {return m_InvertSliceOrder;}
-  void setShowAxis(bool value);
-  bool showAxis() {return m_ShowAxis;}
-
-private:
-  bool m_InvertWheel;
-  bool m_InvertSliceOrder;
-  bool m_ShowAxis;
-
-private:
-  vtkPVSliceView::VIEW_PLANE m_plane;
-  QString viewSettings;
-};
-
 /// Slice View Widget
 /// Displays a unique slice of a channel or segmentation
 class SliceView
@@ -114,13 +69,16 @@ public:
   };
   Q_DECLARE_FLAGS(SliceSelectors, SliceSelector)
 
+  class Settings;
+  typedef QSharedPointer<Settings> SettingsPtr;
+
 public:
   SliceView(vtkPVSliceView::VIEW_PLANE plane = vtkPVSliceView::AXIAL, QWidget* parent = 0);
   virtual ~SliceView();
 
-//   IPreferencePanel *preferences() {return m_preferences;}
   inline QString title() const;
   void setTitle(const QString &title);
+
 
   void setGridSize(double size[3]);
   void setRanges(double ranges[6]/*nm*/);
@@ -135,10 +93,6 @@ public:
   virtual SelectionHandler::MultiSelection select(SelectionHandler::SelectionFilters filters, SelectionHandler::ViewRegions regions);
   virtual pqRenderViewBase *view();
 
-//   QList<Segmentation *> pickSegmentationsAt(int x, int y, int z);
-//   QList<Segmentation *> pickSegmentationsAt(ISelectionHandler::VtkRegion region);
-//   void selectSegmentations(int x, int y, int z);
-//
   void addChannelRepresentation(Channel *channel);
   void removeChannelRepresentation(Channel *channel);
   bool updateChannelRepresentation(Channel *channel);
@@ -160,6 +114,7 @@ public:
   void removeWidget(SliceWidget *sWidget);
 
   void setColorEngine(ColorEngine *engine){m_colorEngine = engine;}
+  SettingsPtr settings() {return m_settings;}
 
 public slots:
   // Espina has been connected to a new server
@@ -244,7 +199,8 @@ private:
   QSpinBox    *m_spinBox;
   QPushButton *m_toSlice;
 
-  SliceViewPreferences *m_preferences;
+  SettingsPtr m_settings;
+
   bool m_fitToGrid;
   double m_gridSize[3];
   double m_range[6];
@@ -259,6 +215,40 @@ private:
   QList<SliceWidget *>      m_widgets;
   Filter *m_preview;
 };
+
+class SliceView::Settings 
+{
+  const QString INVERT_SLICE_ORDER;
+  const QString INVERT_WHEEL;
+  const QString SHOW_AXIS;
+
+public:
+  explicit Settings(vtkPVSliceView::VIEW_PLANE plane, const QString prefix=QString());
+
+  void setInvertWheel(bool value);
+  bool invertWheel() const {return m_InvertWheel;}
+
+  void setInvertSliceOrder(bool value);
+  bool invertSliceOrder() const {return m_InvertSliceOrder;}
+
+  void setShowAxis(bool value);
+  bool showAxis() const {return m_ShowAxis;}
+
+  vtkPVSliceView::VIEW_PLANE plane() const {return m_plane;}
+
+private:
+  static const QString view(vtkPVSliceView::VIEW_PLANE plane);
+
+private:
+  bool m_InvertWheel;
+  bool m_InvertSliceOrder;
+  bool m_ShowAxis;
+
+private:
+  vtkPVSliceView::VIEW_PLANE m_plane;
+  QString viewSettings;
+};
+
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(SliceView::SliceSelectors)
 

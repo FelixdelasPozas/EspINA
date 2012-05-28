@@ -38,5 +38,5 @@ MultiViewFrame::MultiViewFrame(QWidget* mainView, QWidget* parent)
 
 MultiViewFrame::~MultiViewFrame()
 {
-  qDebug() << "Destructing MultiViewFrame";
+//   qDebug() << "Destructing MultiViewFrame";
 }
