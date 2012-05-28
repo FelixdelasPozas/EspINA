@@ -66,8 +66,8 @@ QVariant TaxonomyProxy::data(const QModelIndex& proxyIndex, int role) const
       if (Qt::DisplayRole == role)
       {
 	TaxonomyNode *taxonomy = dynamic_cast<TaxonomyNode *>(item);
-	int numSegs = numSegmentations(taxonomy);
-	QString suffix = (numSegs>0)?QString(" (%1)").arg(numSegmentations(taxonomy)):QString();
+	int numSegs = numSegmentations(taxonomy, true);
+	QString suffix = (numSegs>0)?QString(" (%1)").arg(numSegs):QString();
 	return item->data(role).toString() + suffix;
       } else
 	return item->data(role);
@@ -657,9 +657,16 @@ void TaxonomyProxy::removeTaxonomy(TaxonomyNode* taxonomy)
 }
 
 //------------------------------------------------------------------------
-int TaxonomyProxy::numSegmentations(TaxonomyNode* taxonomy) const
+int TaxonomyProxy::numSegmentations(TaxonomyNode* taxonomy, bool recursive) const
 {
-  return m_segmentations[taxonomy].size();
+  int total = m_segmentations[taxonomy].size();
+  if (recursive)
+    foreach(TaxonomyNode *subtax, taxonomy->subElements())
+    {
+      total += numSegmentations(subtax);
+    }
+
+  return total;
 }
 //------------------------------------------------------------------------
 int TaxonomyProxy::numTaxonomies(TaxonomyNode* taxonomy) const

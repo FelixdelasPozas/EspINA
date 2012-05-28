@@ -71,7 +71,7 @@ protected:
   QModelIndexList sourceIndices(const QModelIndex& parent, int start, int end) const;
   QModelIndexList proxyIndices(const QModelIndex& parent, int start, int end) const;
   void removeTaxonomy(TaxonomyNode *taxonomy);
-  int numSegmentations(TaxonomyNode *taxonomy) const;
+  int numSegmentations(TaxonomyNode *taxonomy, bool recursive = false) const;
   int numTaxonomies(TaxonomyNode *taxonomy) const;
 
 private:
