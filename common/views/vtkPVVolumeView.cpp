@@ -46,6 +46,8 @@
 #include <vtkRenderWindow.h>
 #include <vtkSmartPointer.h>
 #include <vtkTextProperty.h>
+#include <vtkAssembly.h>
+#include <vtkProp3DCollection.h>
 
 // // Interactor Style to be used with Volume Views
 // class vtkInteractorStyleEspinaVolume
@@ -439,6 +441,26 @@ void vtkPVVolumeView::SetCrosshair(double x, double y, double z)
   AxialMatrix->SetElement(2, 3, Crosshair[2]);
   SagittalMatrix->SetElement(0, 3, Crosshair[0]);
   CoronalMatrix->SetElement(1, 3, Crosshair[1]);
+  foreach(VolumeActor *actor, Channels)
+  {
+    vtkAssembly *assembly = vtkAssembly::SafeDownCast(actor->prop);
+    vtkProp3DCollection *col = assembly->GetParts();
+    col->InitTraversal();
+    vtkProp3D *prop;
+    double pos[3];
+    prop = col->GetNextProp3D();
+    prop->GetPosition(pos);
+    pos[2] = z;
+    prop->SetPosition(pos);
+    prop = col->GetNextProp3D();
+    prop->GetPosition(pos);
+    pos[0] = x;
+    prop->SetPosition(pos);
+    prop = col->GetNextProp3D();
+    prop->GetPosition(pos);
+    pos[1] = y;
+    prop->SetPosition(pos);
+  }
 }
 
 //----------------------------------------------------------------------------
