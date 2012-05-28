@@ -62,10 +62,12 @@
 #include <pqSMAdaptor.h>
 #include <model/Channel.h>
 #include <model/Representation.h>
+#include <model/EspinaFactory.h>
 #include <QMouseEvent>
 #include <vtkPropPicker.h>
 #include <vtkVolumetricRepresentation.h>
 #include <vtkCrosshairRepresentation.h>
+#include <pluginInterfaces/Renderer.h>
 
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(QWidget* parent)
@@ -120,6 +122,18 @@ void VolumeView::buildControls()
   m_controlLayout->addWidget(&m_snapshot);
   m_controlLayout->addWidget(&m_export);
   m_controlLayout->addItem(horizontalSpacer);
+
+  QPushButton *button;
+  foreach(Renderer *renderer, m_settings->renderers())
+  {
+    button = new QPushButton(renderer->icon(), "");
+    button->setFlat(true);
+    button->setCheckable(true);
+    button->setIconSize(QSize(22,22));
+    button->setMaximumSize(QSize(32,32));
+    button->setToolTip(renderer->name());
+    m_controlLayout->addWidget(button);
+  }
 
   m_mainLayout->addLayout(m_controlLayout);
 }
@@ -495,16 +509,17 @@ VolumeView::Settings::Settings(const QString prefix)
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::Settings::setRenderers(const QStringList values)
+void VolumeView::Settings::setRenderers(QList< Renderer* > values)
 {
 
 }
 
 //-----------------------------------------------------------------------------
-QStringList VolumeView::Settings::renderers() const
+QList< Renderer* > VolumeView::Settings::renderers() const
 {
   QSettings settings("CeSViMa", "EspINA");
   
   qDebug() << settings.value(RENDERERS).toStringList();
-  return settings.value(RENDERERS).toStringList();
+  //return settings.value(RENDERERS).toStringList();
+  return EspinaFactory::instance()->renderers();
 }

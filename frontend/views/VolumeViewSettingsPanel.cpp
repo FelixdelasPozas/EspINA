@@ -19,6 +19,7 @@
 
 #include "VolumeViewSettingsPanel.h"
 #include <model/EspinaFactory.h>
+#include <pluginInterfaces/Renderer.h>
 
 #include <QStandardItemModel>
 
@@ -33,11 +34,9 @@ VolumeViewSettingsPanel::VolumeViewSettingsPanel(VolumeView::SettingsPtr setting
   active    = new QStandardItemModel(this);
   available = new QStandardItemModel(this);
 
-  available->appendRow(new QStandardItem(QIcon(":/bestPixelSelector.svg"),
-				      tr("Volumetric")));
-
   foreach(Renderer *renderer, EspinaFactory::instance()->renderers())
   {
+    available->appendRow(new QStandardItem(renderer->icon(), renderer->name()));
   }
 
   activeRenderers->setModel(active);

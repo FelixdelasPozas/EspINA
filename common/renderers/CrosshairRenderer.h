@@ -16,20 +16,19 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef RENDERER
-#define RENDERER
 
-#include <QString>
-#include <QIcon>
+#ifndef CROSSHAIRRENDERER_H
+#define CROSSHAIRRENDERER_H
 
-class Renderer
+#include "common/pluginInterfaces/Renderer.h"
+
+class CrosshairRenderer
+: public Renderer
 {
-public:
-  virtual ~Renderer(){}
 
-  virtual const QString name() const = 0;
-  virtual const QIcon icon() const = 0;
+public:
+  virtual const QIcon icon() const {return QIcon(":/espina/show_planes.svg");}
+  virtual const QString name() const {return "Sample's Crosshairs";}
 };
 
-#endif // RENDERER
-
+#endif // CROSSHAIRRENDERER_H

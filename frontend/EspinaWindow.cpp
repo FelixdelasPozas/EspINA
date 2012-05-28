@@ -76,6 +76,8 @@
 #include <pqVerifyRequiredPluginBehavior.h>
 #include <processing/pqData.h>
 #include <processing/pqFilter.h>
+#include <renderers/VolumetricRenderer.h>
+#include <renderers/CrosshairRenderer.h>
 #include <vtkSMPropertyHelper.h>
 #include <vtkSMProxy.h>
 #include <vtkSMProxyManager.h>
@@ -103,6 +105,9 @@ EspinaWindow::EspinaWindow()
   QIcon fileIcon = qApp->style()->standardIcon(QStyle::SP_FileIcon);
   QIcon openIcon = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
   QIcon saveIcon = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
+
+  EspinaFactory::instance()->registerRenderer(new CrosshairRenderer());
+  EspinaFactory::instance()->registerRenderer(new VolumetricRenderer());
 
   /*** FILE MENU ***/
   QMenu *fileMenu = new QMenu(tr("File"));
@@ -228,7 +233,6 @@ EspinaWindow::EspinaWindow()
 
   DataViewPanel *dataView = new DataViewPanel(this);
   addDockWidget(Qt::BottomDockWidgetArea, dataView);
-
 
   loadParaviewBehavior();
 

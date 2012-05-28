@@ -16,20 +16,5 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef RENDERER
-#define RENDERER
 
-#include <QString>
-#include <QIcon>
-
-class Renderer
-{
-public:
-  virtual ~Renderer(){}
-
-  virtual const QString name() const = 0;
-  virtual const QIcon icon() const = 0;
-};
-
-#endif // RENDERER
-
+#include "VolumetricRenderer.h"

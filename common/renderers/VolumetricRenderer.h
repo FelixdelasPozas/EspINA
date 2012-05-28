@@ -16,20 +16,18 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef RENDERER
-#define RENDERER
 
-#include <QString>
-#include <QIcon>
+#ifndef VOLUMETRICRENDERER_H
+#define VOLUMETRICRENDERER_H
 
-class Renderer
+#include "common/pluginInterfaces/Renderer.h"
+
+class VolumetricRenderer
+: public Renderer
 {
 public:
-  virtual ~Renderer(){}
-
-  virtual const QString name() const = 0;
-  virtual const QIcon icon() const = 0;
+  virtual const QIcon icon() const {return QIcon(":/espina/voxel.png");}
+  virtual const QString name() const {return "Volumetric";}
 };
 
-#endif // RENDERER
-
+#endif // VOLUMETRICRENDERER_H

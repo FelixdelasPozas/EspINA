@@ -27,6 +27,7 @@
 #include <QAbstractItemView>
 #include <QPushButton>
 
+class Renderer;
 class Channel;
 class vtkSMRepresentationProxy;
 class ColorEngine;
@@ -140,8 +141,8 @@ class VolumeView::Settings
 public:
   explicit Settings(const QString prefix=QString());
 
-  void setRenderers(const QStringList values);
-  QStringList renderers() const;
+  void setRenderers(QList<Renderer *> values);
+  QList<Renderer *> renderers() const;
 };
 
 #endif // VOLUMEVIEW_H
