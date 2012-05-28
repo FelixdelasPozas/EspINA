@@ -141,6 +141,7 @@ qt4_wrap_cpp(CORE_MOC
   model/proxies/ChannelProxy.h
   model/proxies/SampleProxy.h
   model/proxies/TaxonomyProxy.h
+  pluginInterfaces/Renderer.h
   selection/SelectionHandler.h
   selection/SelectionManager.h
   settings/ColorEngineSettings.h
@@ -187,6 +188,8 @@ set (CORE_SOURCES
   model/proxies/TaxonomyProxy.cpp
   processing/pqData.cpp
   processing/pqFilter.cpp
+  renderers/CrosshairRenderer.cpp
+  renderers/VolumetricRenderer.cpp
   selection/PixelSelector.cpp
   selection/SelectionHandler.cpp
   selection/SelectionManager.cpp

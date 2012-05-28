@@ -129,9 +129,14 @@ void VolumeView::buildControls()
     button = new QPushButton(renderer->icon(), "");
     button->setFlat(true);
     button->setCheckable(true);
+    button->setChecked(true);
     button->setIconSize(QSize(22,22));
     button->setMaximumSize(QSize(32,32));
     button->setToolTip(renderer->name());
+    connect(button, SIGNAL(clicked(bool)),
+	    renderer, SLOT(setEnable(bool)));
+    connect(renderer, SIGNAL(renderRequested()),
+	    this, SLOT(forceRender()));
     m_controlLayout->addWidget(button);
   }
 
@@ -167,162 +172,65 @@ void VolumeView::resetCamera()
 //-----------------------------------------------------------------------------
 void VolumeView::addChannelRepresentation(Channel* channel)
 {
-  pqData volume = channel->representation("Volumetric")->output();
-  pqOutputPort      *oport = volume.outputPort();
-  pqPipelineSource *source = oport->getSource();
-  vtkSMProxyManager   *pxm = vtkSMProxyManager::GetProxyManager();
-
-  vtkSMRepresentationProxy* repProxy = vtkSMRepresentationProxy::SafeDownCast(
-    pxm->NewProxy("representations", "CrosshairRepresentation"));
-  Q_ASSERT(repProxy);
-  m_channels[channel].proxy = repProxy;
-
-  // Set repProxy's input.
-  pqSMAdaptor::setInputProperty(repProxy->GetProperty("Input"),
-				source->getProxy(), oport->getPortNumber());
-  updateChannelRepresentation(channel);
-//   int pos[3];
-//   channel->position(pos);
-//   vtkSMPropertyHelper(repProxy, "Position").Set(pos,3);
-//   double color = channel->color();
-//   vtkSMPropertyHelper(repProxy, "Color").Set(&color,1);
-//   repProxy->UpdateVTKObjects();
-
-  vtkSMProxy* viewModuleProxy = m_view->getProxy();
-  // Add the reprProxy to render module.
-  pqSMAdaptor::addProxyProperty(
-    viewModuleProxy->GetProperty("Representations"), repProxy);
-  viewModuleProxy->UpdateVTKObjects();
-}
-
-//-----------------------------------------------------------------------------
-void VolumeView::removeChannelRepresentation(Channel* channel)
-{
-  vtkSMProxy* viewModuleProxy = m_view->getProxy();
-  Q_ASSERT(m_channels.contains(channel));
-  vtkSMRepresentationProxy *repProxy = m_channels[channel].proxy;
-  // Remove the reprProxy to render module.
-  pqSMAdaptor::removeProxyProperty(
-    viewModuleProxy->GetProperty("Representations"), repProxy);
-  viewModuleProxy->UpdateVTKObjects();
-  m_view->getProxy()->UpdateVTKObjects();
-  repProxy->Delete();
-  m_channels.remove(channel);
-
-  m_view->resetCamera();
+  bool modified = false;
+  foreach(Renderer *renderer, m_settings->renderers())
+  {
+    modified |= renderer->addItem(channel);
+  }
 }
 
 //-----------------------------------------------------------------------------
 bool VolumeView::updateChannelRepresentation(Channel* channel)
 {
-  Q_ASSERT(m_channels.contains(channel));
-  Representation &rep = m_channels[channel];
-
-  double pos[3];
-  channel->position(pos);
-  //TODO: update if position changes
-  if (channel->isVisible() != rep.visible)
+  bool updated = false;
+  foreach(Renderer *renderer, m_settings->renderers())
   {
-    rep.visible  = channel->isVisible();
-
-    vtkSMPropertyHelper(rep.proxy, "Position").Set(pos,3);
-    double color = channel->color();
-    vtkSMPropertyHelper(rep.proxy, "Color").Set(&color,1);
-    vtkSMPropertyHelper(rep.proxy, "Visibility").Set(rep.visible);
-    double opacity = suggestedChannelOpacity();
-    vtkSMPropertyHelper(rep.proxy, "Opacity").Set(&opacity,1);
-    rep.proxy->UpdateVTKObjects();
-    return true;
+    updated = renderer->updateItem(channel) | updated;
   }
-  return false;
+  return updated;
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::removeChannelRepresentation(Channel* channel)
+{
+  bool modified = false;
+  foreach(Renderer *renderer, m_settings->renderers())
+  {
+    modified |= renderer->removeItem(channel);
+  }
+  m_view->resetCamera();
 }
 
 
 //-----------------------------------------------------------------------------
 void VolumeView::addSegmentationRepresentation(Segmentation *seg)
 {
-  pqOutputPort      *oport = seg->outputPort();
-  pqPipelineSource *source = oport->getSource();
-  vtkSMProxyManager   *pxm = vtkSMProxyManager::GetProxyManager();
-
-  vtkSMRepresentationProxy* repProxy = vtkSMRepresentationProxy::SafeDownCast(
-    pxm->NewProxy("representations", "VolumetricRepresentation"));
-  Q_ASSERT(repProxy);
-  m_segmentations[seg].outport = oport;
-  m_segmentations[seg].proxy = repProxy;
-  m_segmentations[seg].selected = !seg->selected();
-  m_segmentations[seg].visible  = seg->visible();
-  m_segmentations[seg].color  = m_colorEngine->color(seg);
-
-  // Set the reprProxy's input.
-  pqSMAdaptor::setInputProperty(repProxy->GetProperty("Input"),
-				source->getProxy(), oport->getPortNumber());
-
-  updateSegmentationRepresentation(seg);
-
-  vtkSMProxy* viewModuleProxy = m_view->getProxy();
-  // Add the reprProxy to render module.
-  pqSMAdaptor::addProxyProperty(
-    viewModuleProxy->GetProperty("Representations"), repProxy);
-  viewModuleProxy->UpdateVTKObjects();
-}
-
-//-----------------------------------------------------------------------------
-void VolumeView::removeSegmentationRepresentation(Segmentation* seg)
-{
-  vtkSMProxy* viewModuleProxy = m_view->getProxy();
-  Q_ASSERT(m_segmentations.contains(seg));
-  Representation rep = m_segmentations[seg];
-  // Remove the reprProxy to render module.
-  pqSMAdaptor::removeProxyProperty(
-    viewModuleProxy->GetProperty("Representations"), rep.proxy);
-  viewModuleProxy->UpdateVTKObjects();
-  m_view->getProxy()->UpdateVTKObjects();
-
-  rep.proxy->Delete();
-  m_segmentations.remove(seg);
+  bool modified = false;
+  foreach(Renderer *renderer, m_settings->renderers())
+  {
+    modified |= renderer->addItem(seg);
+  }
 }
 
 //-----------------------------------------------------------------------------
 bool VolumeView::updateSegmentationRepresentation(Segmentation* seg)
 {
-  Q_ASSERT(m_segmentations.contains(seg));
-  Representation &rep = m_segmentations[seg];
-  if (seg->outputPort() != rep.outport)
+  bool updated = false;
+  foreach(Renderer *renderer, m_settings->renderers())
   {
-    removeSegmentationRepresentation(seg);
-    addSegmentationRepresentation(seg);
-    return true;
+    updated = renderer->updateItem(seg) | updated;
   }
-  if (seg->selected() != rep.selected
-    || seg->visible() != rep.visible
-    || seg->data(Qt::DecorationRole).value<QColor>() != rep.color)
-  {
-    rep.selected = seg->selected();
-    rep.visible  = seg->visible();
-    rep.color = seg->data(Qt::DecorationRole).value<QColor>();
-    //   repProxy->PrintSelf(std::cout,vtkIndent(0));
-    double rgb[3] = {rep.color.redF(), rep.color.greenF(), rep.color.blueF()};
-    vtkSMPropertyHelper(rep.proxy, "Color").Set(rgb, 3);
-    vtkSMPropertyHelper(rep.proxy, "Opacity").Set(rep.selected?1.0:0.7);
-    vtkSMPropertyHelper(rep.proxy, "Visibility").Set(rep.visible);
-    rep.proxy->UpdateVTKObjects();
-    return true;
-  }
-  return false;
+  return updated;
 }
 
-
 //-----------------------------------------------------------------------------
-void VolumeView::addRepresentation(pqOutputPort* oport)
+void VolumeView::removeSegmentationRepresentation(Segmentation* seg)
 {
-//   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-//   pqDataRepresentation *dr = dp->setRepresentationVisibility(oport, m_view, true);
-//   if (!dr)
-//     return;
-//   pqPipelineRepresentation *rep = qobject_cast<pqPipelineRepresentation *>(dr);
-//   Q_ASSERT(rep);
-//   rep->setRepresentation("Volume");
+  bool modified = false;
+  foreach(Renderer *renderer, m_settings->renderers())
+  {
+    modified |= renderer->removeItem(seg);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -370,6 +278,11 @@ void VolumeView::onConnect()
 
   double black[3] = {0,0,0};
   viewProxy->GetRenderer()->SetBackground(black);
+
+  foreach(Renderer *renderer, m_settings->renderers())
+  {
+    renderer->setView(m_view->getProxy());
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -398,68 +311,69 @@ void VolumeView::forceRender()
 //-----------------------------------------------------------------------------
 double VolumeView::suggestedChannelOpacity()
 {
-  double numVisibleRep = 0;
-
-  foreach(Channel *channel, m_channels.keys())
-    if (channel->isVisible())
-      numVisibleRep++;
-
-  if (numVisibleRep == 0)
-    return 0.0;
-
-  return 1.0 /  numVisibleRep;
+//   double numVisibleRep = 0;
+// 
+//   foreach(Channel *channel, m_channels.keys())
+//     if (channel->isVisible())
+//       numVisibleRep++;
+// 
+//   if (numVisibleRep == 0)
+//     return 0.0;
+// 
+//   return 1.0 /  numVisibleRep;
+return 1;
 }
 
 //-----------------------------------------------------------------------------
 void VolumeView::selectPickedItems(bool append)
 {
-  vtkSMRenderViewProxy *view =
-    vtkSMRenderViewProxy::SafeDownCast(m_view->getProxy());
-  Q_ASSERT(view);
-  vtkRenderer *renderer = view->GetRenderer();
-  Q_ASSERT(renderer);
-  vtkRenderWindowInteractor *rwi =
-    vtkRenderWindowInteractor::SafeDownCast(
-      view->GetRenderWindow()->GetInteractor());
-  Q_ASSERT(rwi);
-
-  int x, y;
-  rwi->GetEventPosition(x, y);
-
-  vtkPropPicker *propPicker = vtkPropPicker::New();
-  if (propPicker->Pick(x, y, 0.1, renderer))
-  {
-    vtkProp3D *pickedProp = propPicker->GetProp3D();
-    vtkObjectBase *object;
-
-    foreach(Channel *channel, m_channels.keys())
-    {
-      vtkCrosshairRepresentation *rep;
-      object = m_channels[channel].proxy->GetClientSideObject();
-      rep = dynamic_cast<vtkCrosshairRepresentation *>(object);
-      Q_ASSERT(rep);
-      if (rep->GetCrosshairProp() == pickedProp)
-      {
-// 	qDebug() << "Channel" << channel->data(Qt::DisplayRole).toString() << "Selected";
-	emit channelSelected(channel);
-	return;
-      }
-    }
-
-    foreach(Segmentation *seg, m_segmentations.keys())
-    {
-      vtkVolumetricRepresentation *rep;
-      object = m_segmentations[seg].proxy->GetClientSideObject();
-      rep = dynamic_cast<vtkVolumetricRepresentation *>(object);
-      Q_ASSERT(rep);
-      if (rep->GetVolumetricProp() == pickedProp)
-      {
-// 	qDebug() << "Segmentation" << seg->data(Qt::DisplayRole).toString() << "Selected";
-	emit segmentationSelected(seg, append);
-	return;
-      }
-    }
-  }
+//   vtkSMRenderViewProxy *view =
+//     vtkSMRenderViewProxy::SafeDownCast(m_view->getProxy());
+//   Q_ASSERT(view);
+//   vtkRenderer *renderer = view->GetRenderer();
+//   Q_ASSERT(renderer);
+//   vtkRenderWindowInteractor *rwi =
+//     vtkRenderWindowInteractor::SafeDownCast(
+//       view->GetRenderWindow()->GetInteractor());
+//   Q_ASSERT(rwi);
+// 
+//   int x, y;
+//   rwi->GetEventPosition(x, y);
+// 
+//   vtkPropPicker *propPicker = vtkPropPicker::New();
+//   if (propPicker->Pick(x, y, 0.1, renderer))
+//   {
+//     vtkProp3D *pickedProp = propPicker->GetProp3D();
+//     vtkObjectBase *object;
+// 
+//     foreach(Channel *channel, m_channels.keys())
+//     {
+//       vtkCrosshairRepresentation *rep;
+//       object = m_channels[channel].proxy->GetClientSideObject();
+//       rep = dynamic_cast<vtkCrosshairRepresentation *>(object);
+//       Q_ASSERT(rep);
+//       if (rep->GetCrosshairProp() == pickedProp)
+//       {
+// // 	qDebug() << "Channel" << channel->data(Qt::DisplayRole).toString() << "Selected";
+// 	emit channelSelected(channel);
+// 	return;
+//       }
+//     }
+// 
+//     foreach(Segmentation *seg, m_segmentations.keys())
+//     {
+//       vtkVolumetricRepresentation *rep;
+//       object = m_segmentations[seg].proxy->GetClientSideObject();
+//       rep = dynamic_cast<vtkVolumetricRepresentation *>(object);
+//       Q_ASSERT(rep);
+//       if (rep->GetVolumetricProp() == pickedProp)
+//       {
+// // 	qDebug() << "Segmentation" << seg->data(Qt::DisplayRole).toString() << "Selected";
+// 	emit segmentationSelected(seg, append);
+// 	return;
+//       }
+//     }
+//   }
 }
 //-----------------------------------------------------------------------------
 bool VolumeView::eventFilter(QObject* caller, QEvent* e)
@@ -505,7 +419,6 @@ VolumeView::Settings::Settings(const QString prefix)
 
   if (!settings.contains(RENDERERS))
     settings.setValue(RENDERERS, QStringList("Volumetric"));
-  qDebug() << settings.value(RENDERERS).toStringList();
 }
 
 //-----------------------------------------------------------------------------
@@ -518,8 +431,6 @@ void VolumeView::Settings::setRenderers(QList< Renderer* > values)
 QList< Renderer* > VolumeView::Settings::renderers() const
 {
   QSettings settings("CeSViMa", "EspINA");
-  
-  qDebug() << settings.value(RENDERERS).toStringList();
   //return settings.value(RENDERERS).toStringList();
   return EspinaFactory::instance()->renderers();
 }

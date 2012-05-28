@@ -66,14 +66,12 @@ public:
   void resetCamera();
 
   void addChannelRepresentation(Channel *channel);
-  void removeChannelRepresentation(Channel *channel);
   bool updateChannelRepresentation(Channel *channel);
+  void removeChannelRepresentation(Channel *channel);
 
   void addSegmentationRepresentation(Segmentation *seg);
   void removeSegmentationRepresentation(Segmentation *seg);
   bool updateSegmentationRepresentation(Segmentation* seg);
-
-  void addRepresentation(pqOutputPort *oport);
 
   void addWidget(pq3DWidget *widget);
   void removeWidget(pq3DWidget *widget);
@@ -130,7 +128,6 @@ private:
   double m_center[3];
   ColorEngine *m_colorEngine;
 
-  QMap<Channel *,      Representation> m_channels;
   QMap<Segmentation *, Representation> m_segmentations;
 };
 

@@ -76,9 +76,8 @@ void MarginsChannelExtension::initialize(Channel* channel, ModelItem::Arguments 
     return;
 
   m_channel = channel;
-  
 
-  qDebug() << args;
+//   qDebug() << args;
   bool computeMargin = false;
   if (args.contains(MARGINTYPE))
   {

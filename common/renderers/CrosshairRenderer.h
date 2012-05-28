@@ -22,13 +22,39 @@
 
 #include "common/pluginInterfaces/Renderer.h"
 
+#include <QMap>
+
+class pqOutputPort;
+class ModelItem;
+class vtkSMRepresentationProxy;
+
 class CrosshairRenderer
 : public Renderer
 {
+  struct Representation
+  {
+    pqOutputPort *outport;
+    vtkSMRepresentationProxy *proxy;
+    bool visible;
+    bool selected;
+    QColor color;
+  };
 
 public:
   virtual const QIcon icon() const {return QIcon(":/espina/show_planes.svg");}
   virtual const QString name() const {return "Sample's Crosshairs";}
+
+  virtual bool addItem(ModelItem* item);
+  virtual bool updateItem(ModelItem* item);
+  virtual bool removeItem(ModelItem* item);
+
+  virtual void hide();
+  virtual void show();
+
+  virtual Renderer* clone() {return new CrosshairRenderer();}
+
+private:
+  QMap<ModelItem *, Representation> m_channels;
 };
 
 #endif // CROSSHAIRRENDERER_H

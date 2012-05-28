@@ -22,13 +22,55 @@
 #include <QString>
 #include <QIcon>
 
+class ModelItem;
+class vtkSMProxy;
+
 class Renderer
+: public QObject
 {
+  Q_OBJECT
 public:
   virtual ~Renderer(){}
 
-  virtual const QString name() const = 0;
-  virtual const QIcon icon() const = 0;
+  virtual const QString name() const {return QString();}
+  virtual const QIcon icon() const {return QIcon();}
+
+  void setView(vtkSMProxy *view) {m_view = view;};
+
+  // Return whether the itme was rendered or not
+  virtual bool addItem(ModelItem *item) {return false;}
+  virtual bool updateItem(ModelItem *item) {return false;}
+  virtual bool removeItem(ModelItem *item) {return false;}
+
+  // Hide/Show all items rendered by the Renderer
+  virtual void hide() {};
+  virtual void show() {};
+
+  // Remove all items rendered by the Renderer
+  virtual void clean() {}
+
+  virtual Renderer *clone() {return NULL;}
+
+public slots:
+  virtual void setEnable(bool value)
+  {
+    m_enable = value;
+    if (m_enable)
+      show();
+    else
+      hide();
+  }
+
+signals:
+  void renderRequested();
+
+protected:
+  explicit Renderer(QObject* parent = 0)
+  : m_enable(true)
+  , m_view(NULL) {}
+protected:
+  bool m_enable;
+  vtkSMProxy *m_view;
 };
 
 #endif // RENDERER

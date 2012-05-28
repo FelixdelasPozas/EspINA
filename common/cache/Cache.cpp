@@ -23,7 +23,7 @@
 #include <pqLoadDataReaction.h>
 
 #include<QDebug>
-#define DEBUG_CACHE 1
+#define DEBUG_CACHE 0
 
 #define CACHE_DEBUG(exp) if (DEBUG_CACHE)      \
 			  qDebug() << "Cache:" << exp;

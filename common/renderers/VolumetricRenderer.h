@@ -22,12 +22,38 @@
 
 #include "common/pluginInterfaces/Renderer.h"
 
+#include <QMap>
+
+class ModelItem;
+class pqOutputPort;
+class vtkSMRepresentationProxy;
+
 class VolumetricRenderer
 : public Renderer
 {
+  struct Representation
+  {
+    pqOutputPort *outport;
+    vtkSMRepresentationProxy *proxy;
+    bool visible;
+    bool selected;
+    QColor color;
+  };
 public:
   virtual const QIcon icon() const {return QIcon(":/espina/voxel.png");}
   virtual const QString name() const {return "Volumetric";}
+
+  virtual bool addItem(ModelItem* item);
+  virtual bool updateItem(ModelItem* item);
+  virtual bool removeItem(ModelItem* item);
+
+  virtual void hide();
+  virtual void show();
+
+  virtual Renderer* clone() {return new VolumetricRenderer();}
+
+private:
+  QMap<ModelItem *, Representation> m_segmentations;
 };
 
 #endif // VOLUMETRICRENDERER_H
