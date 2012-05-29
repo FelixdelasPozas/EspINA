@@ -62,7 +62,7 @@ QString fileName(const QString path)
 }
 
 //-----------------------------------------------------------------------------
-void EspinaIO::readFile(const QString file )
+bool EspinaIO::readFile(const QString file )
 {
   const QString cachePath = parentDirectory(file) + "/" + fileName(file);
 
@@ -101,6 +101,8 @@ void EspinaIO::readFile(const QString file )
   {
     Taxonomy *taxonomy = IOTaxonomy::loadXMLTaxonomy(TaxonomySerialization);
     model->addTaxonomy(taxonomy);
+    if (model->taxonomy()->elements().size() == 0)
+      return false;
     // 	taxonomy->print(3);
 
     model->loadSerialization(trace);
@@ -111,7 +113,9 @@ void EspinaIO::readFile(const QString file )
   catch (char *str)
   {
     qWarning() << "Espina: Unable to load" << file << str;
+    return false;
   }
+  return true;
 }
 
 

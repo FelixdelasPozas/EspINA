@@ -32,7 +32,7 @@ public:
   void onStartup(){}
   void onShutdown(){}
 
-  virtual void readFile(const QString file); 
+  virtual bool readFile(const QString file);
 };
 
 #endif // ESPINAIO_H

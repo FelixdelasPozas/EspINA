@@ -52,7 +52,7 @@ public:
   void onShutdown(){}
 
   virtual Filter *createFilter(const QString filter, const ModelItem::Arguments args);
-  virtual void readFile(const QString file);
+  virtual bool readFile(const QString file);
 };
 
 #endif// SEGMHAIMPORTER_H

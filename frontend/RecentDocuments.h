@@ -32,6 +32,7 @@ public:
   virtual ~RecentDocuments();
 
   void addDocument(QString path);
+  void removeDocument(QString path);
   QList<QAction *> list() const {return m_actionList;}
 
 private:

@@ -99,7 +99,7 @@ Filter *SegmhaImporter::createFilter(const QString filter, const ModelItem::Argu
 }
 
 //-----------------------------------------------------------------------------
-void SegmhaImporter::readFile(const QString file)
+bool SegmhaImporter::readFile(const QString file)
 {
   Q_ASSERT(File::extension(file) == SEGMHA);
 
@@ -113,5 +113,7 @@ void SegmhaImporter::readFile(const QString file)
   } else
   {
     delete filter;
+    return false;
   }
+  return true;
 }

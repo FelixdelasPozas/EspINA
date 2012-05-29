@@ -469,7 +469,21 @@ void EspinaWindow::openAnalysis(const QString file)
   timer.start();
 
   closeCurrentAnalysis();
-  EspinaCore::instance()->loadFile(file);
+
+  if (!EspinaCore::instance()->loadFile(file))
+  {
+    QMessageBox box(QMessageBox::Warning,
+		    tr("Espina"),
+	            tr("File %1 could not be loaded.\nDo you want to remove it from recent documents?")
+		    .arg(File::extendedName(file)),
+		    QMessageBox::Yes|QMessageBox::No);
+
+    if (box.exec() == QMessageBox::Yes)
+      m_recentDocuments.removeDocument(file);
+
+    QApplication::restoreOverrideCursor();
+    return;
+  }
 
   if (!m_model->taxonomy())
   {
@@ -624,6 +638,8 @@ void EspinaWindow::saveAnalysis()
     QApplication::restoreOverrideCursor();
     updateStatus(QString("File Saved Successfuly in %1").arg(analysisFile));
     m_busy = false;
+
+   m_recentDocuments.addDocument(analysisFile);
   }
 }
 

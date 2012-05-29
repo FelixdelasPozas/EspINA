@@ -26,7 +26,7 @@ class ReaderFactory
 {
 public:
   virtual ~ReaderFactory(){}
-  virtual void readFile(const QString) = 0;
+  virtual bool readFile(const QString) = 0;
 };
 
 #endif // READERFACTORY_H

@@ -171,7 +171,7 @@ bool IOEspinaFile::loadFile(QString filePath,
   QuaZip zip(filePath);
   if( !zip.open(QuaZip::mdUnzip) )
   {
-    qWarning() << "IOEspinaFile: Could not open the file" << filePath;
+    qWarning() << "IOEspinaFile: Could not open file" << filePath;
     return false;
   }
   bool taxPorcessed = false, traceProcess = false;

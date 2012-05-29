@@ -64,6 +64,19 @@ void RecentDocuments::addDocument(QString path)
 }
 
 //------------------------------------------------------------------------
+void RecentDocuments::removeDocument(QString path)
+{
+  if (m_recentDocuments.contains(path))
+    m_recentDocuments.removeAll(path);
+
+  updateActions();
+
+  QSettings settings;
+  settings.setValue("recentFileList", m_recentDocuments);
+}
+
+
+//------------------------------------------------------------------------
 void RecentDocuments::updateActions()
 {
   int numberFiles = qMin(m_recentDocuments.size(), MAX_FILES);
@@ -73,5 +86,10 @@ void RecentDocuments::updateActions()
     m_actionList[i]->setToolTip(m_recentDocuments[i]);
     m_actionList[i]->setData(m_recentDocuments[i]);
     m_actionList[i]->setVisible(true);
+  }
+
+  for(int i = numberFiles; i < MAX_FILES; i++)
+  {
+    m_actionList[i]->setVisible(false);
   }
 }

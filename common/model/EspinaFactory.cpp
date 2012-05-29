@@ -123,10 +123,10 @@ Segmentation *EspinaFactory::createSegmentation(Filter* parent, int output, pqDa
 }
 
 //------------------------------------------------------------------------
-void EspinaFactory::readFile(const QString file, const QString ext)
+bool EspinaFactory::readFile(const QString file, const QString ext)
 {
   Q_ASSERT(m_readers.contains(ext));
-  m_readers[ext]->readFile(file);
+  return m_readers[ext]->readFile(file);
 }
 
 

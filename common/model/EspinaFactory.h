@@ -51,7 +51,7 @@ public:
   Channel *createChannel(const QString id, const ModelItem::Arguments args);
   Segmentation *createSegmentation(Filter* parent, int output, pqData data);
 
-  void readFile(const QString file, const QString ext);
+  bool readFile(const QString file, const QString ext);
 
 private:
   EspinaFactory();

@@ -60,18 +60,21 @@ void EspinaCore::setActiveTaxonomy(TaxonomyNode* tax)
 }
 
 //------------------------------------------------------------------------
-void EspinaCore::loadFile(const QString file)
+bool EspinaCore::loadFile(const QString file)
 {
+  bool status = false;
   const QString ext = File::extension(file);
   if (ext == "pvd" || ext == "mha" || ext == "mhd")
   {
-    loadChannel(file);
+    status = loadChannel(file);
   }else
-    EspinaFactory::instance()->readFile(file, ext);
+    status = EspinaFactory::instance()->readFile(file, ext);
+
+  return status;
 }
 
 //------------------------------------------------------------------------
-void EspinaCore::loadChannel(const QString file)
+bool EspinaCore::loadChannel(const QString file)
 {
   // Try to recover sample form DB using channel information
   Sample *existingSample = EspinaCore::instance()->sample();
@@ -121,6 +124,8 @@ void EspinaCore::loadChannel(const QString file)
   channel->initialize();
 
   m_undoStack->endMacro();
+
+  return true;
 }
 
 //------------------------------------------------------------------------
