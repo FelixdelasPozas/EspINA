@@ -228,7 +228,10 @@ bool vtkVolumetricRepresentation::AddToView(vtkView* view)
     vtkSmartPointer<vtkGPUInfoList> info = vtkSmartPointer<vtkGPUInfoList>::New();
     info->Probe();
     GPUMapper->SetScalarModeToUsePointData();
-    GPUMapper->SetMaxMemoryInBytes(info->GetGPUInfo(0)->GetDedicatedVideoMemory());
+    if (info->GetNumberOfGPUs() > 0)
+    {
+      GPUMapper->SetMaxMemoryInBytes(info->GetGPUInfo(0)->GetDedicatedVideoMemory());
+    }
     GPUMapper->SetMaxMemoryFraction(1.0);
     GPUMapper->SetAutoAdjustSampleDistances(false);
     GPUMapper->SetMaximumImageSampleDistance(1.0);
