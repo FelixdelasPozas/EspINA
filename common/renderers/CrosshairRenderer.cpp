@@ -78,9 +78,13 @@ bool CrosshairRenderer::updateItem(ModelItem* item)
   double pos[3];
   channel->position(pos);
   //TODO: update if position changes
-  if (channel->isVisible() != rep.visible)
+  if (channel->isVisible() != rep.visible
+    ||channel->color() != rep.color.hueF()
+    || memcmp(pos, rep.pos, 3*sizeof(double)))
   {
     rep.visible  = channel->isVisible();
+    rep.color.setHsvF(channel->color(),1.0,1.0);
+    memcpy(rep.pos, pos, 3*sizeof(double));
 
     vtkSMPropertyHelper(rep.proxy, "Position").Set(pos,3);
     double color = channel->color();

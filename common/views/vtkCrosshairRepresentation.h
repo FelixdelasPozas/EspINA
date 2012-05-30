@@ -85,7 +85,6 @@ protected:
 			   vtkInformationVector  **,
 			   vtkInformationVector *);
 
-  virtual vtkSmartPointer<vtkLookupTable> lut();
 
   virtual void AddToView(vtkPVVolumeView *view);
   virtual bool AddToView(vtkView *view);
@@ -102,8 +101,9 @@ protected:
 
 protected:
   double Color;
-  double    Position[3];
+  double Position[3];
   double Opacity;
+  vtkSmartPointer<vtkLookupTable> LUT;
   //ETX
 };
 

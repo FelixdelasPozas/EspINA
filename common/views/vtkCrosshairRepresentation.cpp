@@ -54,7 +54,17 @@ vtkCrosshairRepresentation::vtkCrosshairRepresentation()
 
   CrosshairProp = vtkAssembly::New();
 
+  LUT = vtkSmartPointer<vtkLookupTable>::New();
+  LUT->SetRange (0, 255);
+  double saturation = Color>=0?1.0:0;
+  LUT->SetSaturationRange(0.0, saturation);
+  LUT->SetValueRange(0.0, 1.0);
+  LUT->SetHueRange(Color, Color);
+  LUT->SetRampToLinear();
+  LUT->Build();
+
   this->DeliveryFilter = vtkImageSliceDataDeliveryFilter::New();
+
   for (int i = 0; i < 3; i++)
   {
     this->CrosshairData[i] = vtkImageData::New();
@@ -63,6 +73,7 @@ vtkCrosshairRepresentation::vtkCrosshairRepresentation()
     this->CrosshairSliceProp[i]->GetMapper()->BorderOn();
     this->CrosshairSliceProp[i]->SetInterpolate(false);
     this->CrosshairSliceProp[i]->GetMapper()->SetInputConnection(Crosshair[i]->GetOutputPort());
+    this->Crosshair[i]->SetLookupTable(LUT);
     this->Crosshair[i]->ReleaseDataFlagOn();
     CrosshairProp->AddPart(CrosshairSliceProp[i]);
   }
@@ -83,6 +94,7 @@ vtkCrosshairRepresentation::~vtkCrosshairRepresentation()
     Crosshair[i]->RemoveAllInputs();
     Crosshair[i]->Delete();
   }
+
   // WARNING: DO NOT FREE ACTOR, BECAUSE IT'S FREED BY THE RENDERER
   // CrosshairActor->GetMapper()->Delete();
   // CrosshairActor->Delete();
@@ -207,15 +219,6 @@ int vtkCrosshairRepresentation::RequestData (
   return this->Superclass::RequestData ( request, inputVector, outputVector );
 }
 
-
-//----------------------------------------------------------------------------
-vtkSmartPointer< vtkLookupTable > vtkCrosshairRepresentation::lut()
-{
-  vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
-  lut->Build();
-  return lut;
-}
-
 //----------------------------------------------------------------------------
 void vtkCrosshairRepresentation::AddToView(vtkPVVolumeView* view)
 {
@@ -269,24 +272,25 @@ void vtkCrosshairRepresentation::SetVisibility(bool val)
 void vtkCrosshairRepresentation::SetColor(double color)
 {
   Color = color;
-//   if (CrosshairActor.lut == NULL)
-//     return;
 
   double saturation = Color>=0?1.0:0;
-//   CrosshairActor.lut->SetSaturationRange(0.0, saturation);
-//   CrosshairActor.lut->SetHueRange(Color, Color);
-//   CrosshairActor.lut->Build();
+  LUT->SetSaturationRange(0.0, saturation);
+  LUT->SetHueRange(Color, Color);
+  LUT->Build();
 }
 
 //----------------------------------------------------------------------------
 void vtkCrosshairRepresentation::SetOpacity(double value)
 {
-//   if (Opacity == value)
-//     return;
+  if (Opacity == value)
+    return;
 
   Opacity = value;
-//   if (CrosshairActor.prop)
-//     CrosshairActor.prop->SetOpacity(value);
+  if (CrosshairActor.prop)
+
+  for (int i=0; i<3; i++)
+    CrosshairSliceProp[i]->SetOpacity(value);
+
   Modified();
 }
 

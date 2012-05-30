@@ -38,6 +38,7 @@ class CrosshairRenderer
     bool visible;
     bool selected;
     QColor color;
+    double pos[3];
   };
 
 public:
