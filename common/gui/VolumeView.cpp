@@ -124,7 +124,7 @@ void VolumeView::buildControls()
   m_controlLayout->addItem(horizontalSpacer);
 
   QPushButton *button;
-  foreach(Renderer *renderer, m_settings->renderers())
+  foreach(Settings::RendererPtr renderer, m_settings->renderers())
   {
     button = new QPushButton(renderer->icon(), "");
     button->setFlat(true);
@@ -134,8 +134,8 @@ void VolumeView::buildControls()
     button->setMaximumSize(QSize(32,32));
     button->setToolTip(renderer->name());
     connect(button, SIGNAL(clicked(bool)),
-	    renderer, SLOT(setEnable(bool)));
-    connect(renderer, SIGNAL(renderRequested()),
+	    renderer.data(), SLOT(setEnable(bool)));
+    connect(renderer.data(), SIGNAL(renderRequested()),
 	    this, SLOT(forceRender()));
     m_controlLayout->addWidget(button);
   }
@@ -173,7 +173,7 @@ void VolumeView::resetCamera()
 void VolumeView::addChannelRepresentation(Channel* channel)
 {
   bool modified = false;
-  foreach(Renderer *renderer, m_settings->renderers())
+  foreach(Settings::RendererPtr renderer, m_settings->renderers())
   {
     modified |= renderer->addItem(channel);
   }
@@ -183,7 +183,7 @@ void VolumeView::addChannelRepresentation(Channel* channel)
 bool VolumeView::updateChannelRepresentation(Channel* channel)
 {
   bool updated = false;
-  foreach(Renderer *renderer, m_settings->renderers())
+  foreach(Settings::RendererPtr renderer, m_settings->renderers())
   {
     updated = renderer->updateItem(channel) | updated;
   }
@@ -194,7 +194,7 @@ bool VolumeView::updateChannelRepresentation(Channel* channel)
 void VolumeView::removeChannelRepresentation(Channel* channel)
 {
   bool modified = false;
-  foreach(Renderer *renderer, m_settings->renderers())
+  foreach(Settings::RendererPtr renderer, m_settings->renderers())
   {
     modified |= renderer->removeItem(channel);
   }
@@ -206,7 +206,7 @@ void VolumeView::removeChannelRepresentation(Channel* channel)
 void VolumeView::addSegmentationRepresentation(Segmentation *seg)
 {
   bool modified = false;
-  foreach(Renderer *renderer, m_settings->renderers())
+  foreach(Settings::RendererPtr renderer, m_settings->renderers())
   {
     modified |= renderer->addItem(seg);
   }
@@ -216,7 +216,7 @@ void VolumeView::addSegmentationRepresentation(Segmentation *seg)
 bool VolumeView::updateSegmentationRepresentation(Segmentation* seg)
 {
   bool updated = false;
-  foreach(Renderer *renderer, m_settings->renderers())
+  foreach(Settings::RendererPtr renderer, m_settings->renderers())
   {
     updated = renderer->updateItem(seg) | updated;
   }
@@ -227,7 +227,7 @@ bool VolumeView::updateSegmentationRepresentation(Segmentation* seg)
 void VolumeView::removeSegmentationRepresentation(Segmentation* seg)
 {
   bool modified = false;
-  foreach(Renderer *renderer, m_settings->renderers())
+  foreach(Settings::RendererPtr renderer, m_settings->renderers())
   {
     modified |= renderer->removeItem(seg);
   }
@@ -279,7 +279,7 @@ void VolumeView::onConnect()
   double black[3] = {0,0,0};
   viewProxy->GetRenderer()->SetBackground(black);
 
-  foreach(Renderer *renderer, m_settings->renderers())
+  foreach(Settings::RendererPtr renderer, m_settings->renderers())
   {
     renderer->setView(m_view->getProxy());
   }
@@ -419,18 +419,33 @@ VolumeView::Settings::Settings(const QString prefix)
 
   if (!settings.contains(RENDERERS))
     settings.setValue(RENDERERS, QStringList("Volumetric"));
+
+  QMap<QString, Renderer *> renderers = EspinaFactory::instance()->renderers();
+  foreach(QString renderer, settings.value(RENDERERS).toStringList())
+  {
+    m_renderers << RendererPtr(renderers[renderer]->clone());
+  }
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::Settings::setRenderers(QList< Renderer* > values)
-{
-
-}
-
-//-----------------------------------------------------------------------------
-QList< Renderer* > VolumeView::Settings::renderers() const
+void VolumeView::Settings::setRenderers(QList<Renderer *> values)
 {
   QSettings settings("CeSViMa", "EspINA");
+  QStringList activeRenderers;
+
+  m_renderers.clear();
+  foreach(Renderer *renderer, values)
+  {
+    m_renderers << RendererPtr(renderer->clone());
+    activeRenderers << renderer->name();
+  }
+  settings.setValue(RENDERERS, activeRenderers);
+}
+
+//-----------------------------------------------------------------------------
+QList< VolumeView::Settings::RendererPtr> VolumeView::Settings::renderers() const
+{
   //return settings.value(RENDERERS).toStringList();
-  return EspinaFactory::instance()->renderers();
+  return m_renderers;
+//   return EspinaFactory::instance()->renderers();
 }

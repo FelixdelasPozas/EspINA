@@ -23,6 +23,7 @@
 #include <QDialog>
 #include "ui_SegmentationInspector.h"
 
+class VolumeView;
 class pqRenderView;
 class Segmentation;
 
@@ -36,8 +37,6 @@ public:
   virtual ~SegmentationInspector();
 
 public slots:
-  void takeSnapshot();
-  void exportScene();
   void updateScene();
 
 protected:
@@ -45,8 +44,9 @@ protected:
   virtual void closeEvent(QCloseEvent *e);
 
 private:
-  pqRenderView *m_view;
   Segmentation *m_seg;
+  VolumeView   *m_view;
+
   static QMap<Segmentation *, SegmentationInspector *> m_inspectors;
 };
 

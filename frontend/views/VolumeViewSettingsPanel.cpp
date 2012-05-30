@@ -46,7 +46,16 @@ VolumeViewSettingsPanel::VolumeViewSettingsPanel(VolumeView::SettingsPtr setting
 //-----------------------------------------------------------------------------
 void VolumeViewSettingsPanel::acceptChanges()
 {
-  ISettingsPanel::acceptChanges();
+  QList<Renderer *> renderers;
+  QMap<QString, Renderer *> rendererFactory = EspinaFactory::instance()->renderers();
+
+  QAbstractItemModel *activeModel = activeRenderers->model();
+  for(int i=0; i < activeModel->rowCount(); i++)
+  {
+    renderers << rendererFactory[activeModel->index(i,0).data().toString()];
+  }
+
+  m_settings->setRenderers(renderers);
 }
 
 //-----------------------------------------------------------------------------
