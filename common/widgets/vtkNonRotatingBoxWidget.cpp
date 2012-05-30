@@ -260,19 +260,13 @@ void vtkNonRotatingBoxWidget::SetCursor(int state)
     switch (state)
     {
       case vtkNonRotatingBoxRepresentation::Translating:
-	this->RequestCursorShape(VTK_CURSOR_SIZEALL);
-	break;
       case vtkNonRotatingBoxRepresentation::MoveF0:
       case vtkNonRotatingBoxRepresentation::MoveF1:
-	this->RequestCursorShape(VTK_CURSOR_SIZEWE);
-	break;
       case vtkNonRotatingBoxRepresentation::MoveF2:
       case vtkNonRotatingBoxRepresentation::MoveF3:
-	this->RequestCursorShape(VTK_CURSOR_SIZENS);
-	break;
       case vtkNonRotatingBoxRepresentation::MoveF4:
       case vtkNonRotatingBoxRepresentation::MoveF5:
-	this->RequestCursorShape(VTK_CURSOR_SIZENS);
+	this->RequestCursorShape(VTK_CURSOR_SIZEALL);
 	break;
       case vtkNonRotatingBoxRepresentation::Outside:
 	this->RequestCursorShape(VTK_CURSOR_DEFAULT);

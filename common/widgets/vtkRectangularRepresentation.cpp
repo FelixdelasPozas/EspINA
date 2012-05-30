@@ -332,7 +332,7 @@ void vtkRectangularRepresentation::PlaceWidget(double bds[6])
 
   this->AdjustBounds(bds,bounds,center);
 //   std::cout << bds[0] << " "<< bds[1] << " "<< bds[2] << " "<< bds[3] << " "<< bds[4] << " "<< bds[5] << std::endl;
-  std::cout << bounds[0] << " "<< bounds[1] << " "<< bounds[2] << " "<< bounds[3] << " "<< bounds[4] << " "<< bounds[5] << std::endl;
+//   std::cout << bounds[0] << " "<< bounds[1] << " "<< bounds[2] << " "<< bounds[3] << " "<< bounds[4] << " "<< bounds[5] << std::endl;
 
   for (i=0; i<6; i++)
     {
