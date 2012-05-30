@@ -22,6 +22,7 @@
 #include "common/extensions/Margins/MarginsChannelExtension.h"
 #include "common/extensions/Margins/MarginsSegmentationExtension.h"
 #include "common/extensions/Morphological/MorphologicalExtension.h"
+#include <pluginInterfaces/Renderer.h>
 
 //------------------------------------------------------------------------
 EspinaFactory *EspinaFactory::m_instance = NULL;
@@ -76,6 +77,12 @@ void EspinaFactory::registerSegmentationExtension(SegmentationExtension::SPtr ex
 {
   Q_ASSERT(m_segExtensions.contains(extension) == false);
   m_segExtensions << extension;
+}
+
+//------------------------------------------------------------------------
+void EspinaFactory::registerRenderer(Renderer* renderer)
+{
+  m_renderers[renderer->name()] = renderer;
 }
 
 //------------------------------------------------------------------------

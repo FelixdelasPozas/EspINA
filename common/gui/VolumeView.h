@@ -26,27 +26,25 @@
 
 #include <QAbstractItemView>
 #include <QPushButton>
+#include <pluginInterfaces/Renderer.h>
 
-class Renderer;
-class Channel;
-class vtkSMRepresentationProxy;
-class ColorEngine;
-class pqPipelineRepresentation;
-class pq3DWidget;
-class Sample;
-class Sample;
-class Segmentation;
+
 //Forward declaration
-class SliceBlender;
-class pqVolumeView;
-class QWidget;
+class Channel;
+class ColorEngine;
+class IViewWidget;
+class QHBoxLayout;
 class QToolButton;
 class QVBoxLayout;
-class QHBoxLayout;
-class pqOutputPort;
+class QWidget;
+class Renderer;
+class Sample;
 class Segmentation;
-class IRenderer;
-class IViewWidget;
+class pq3DWidget;
+class pqOutputPort;
+class pqPipelineRepresentation;
+class pqVolumeView;
+class vtkSMRepresentationProxy;
 
 /// VolumeView
 class VolumeView
@@ -134,12 +132,15 @@ private:
 class VolumeView::Settings
 {
   const QString RENDERERS;
-
 public:
+  typedef QSharedPointer<Renderer> RendererPtr;
   explicit Settings(const QString prefix=QString());
 
-  void setRenderers(QList<Renderer *> values);
-  QList<Renderer *> renderers() const;
+  void setRenderers(QList< Renderer* > values);
+  QList<RendererPtr> renderers() const;
+
+private:
+  QList<RendererPtr> m_renderers;
 };
 
 #endif // VOLUMEVIEW_H

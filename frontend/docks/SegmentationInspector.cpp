@@ -34,6 +34,7 @@
 #include <model/ModelItem.h>
 #include <model/Segmentation.h>
 #include <model/Filter.h>
+#include <gui/VolumeView.h>
 
 QMap<Segmentation *, SegmentationInspector *> SegmentationInspector::m_inspectors;
 
@@ -54,46 +55,26 @@ SegmentationInspector* SegmentationInspector::CreateInspector(Segmentation* seg)
 //------------------------------------------------------------------------
 SegmentationInspector::SegmentationInspector(Segmentation *seg, QWidget* parent, Qt::WindowFlags f)
 : QWidget(parent, f)
-, m_view(NULL)
 , m_seg(seg)
+, m_view(NULL)
 {
   setupUi(this);
-  m_renderPlane->setVisible(false);
 
-  QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
-  m_export->setIcon(iconSave);
-  if (!m_view)
-  {
-    pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
-    pqServer * server= pqActiveObjects::instance().activeServer();
-    m_view = qobject_cast<pqRenderView*>(ob->createView( pqRenderView::renderViewType(), server));
+  m_view = new VolumeView();
+  this->hlayout->insertWidget(0, m_view);
 
-    this->viewLayout->insertWidget(0,m_view->getWidget());
-    m_view->setCenterAxesVisibility(false);
-    double black[3] = {0,0,0};
-    //TODO: OLDVERSION m_view->getRenderViewProxy()->SetBackgroundColorCM(black);
+  m_view->addSegmentationRepresentation(seg);
+  m_view->resetCamera();
+  m_view->forceRender();
 
-//     m_informationView->setModel(EspINA::instance());
-//     m_informationView->setRootIndex(EspINA::instance()->segmentationIndex(seg));
+  connect(seg, SIGNAL(modified(ModelItem*)),
+	  this, SLOT(updateScene()));
 
-    ModelItem::Vector filters = seg->relatedItems(ModelItem::IN, "CreateSegmentation");
-    Q_ASSERT(filters.size() > 0);
-    Filter *filter = dynamic_cast<Filter *>(filters.first());
-    Q_ASSERT(filter);
-    this->pluginLayout->insertWidget(0, filter->createConfigurationWidget());
-
-    connect(m_snapshot,SIGNAL(clicked(bool)),this,SLOT(takeSnapshot()));
-    connect(m_export,SIGNAL(clicked(bool)),this,SLOT(exportScene()));
-    connect(m_renderVolumetric,SIGNAL(clicked(bool)),this,SLOT(updateScene()));
-    connect(m_renderMesh,SIGNAL(clicked(bool)),this,SLOT(updateScene()));
-//     connect(m_renderPlane,SIGNAL(clicked(bool)),this,SLOT(updateScene()));
-
-    m_renderVolumetric->setChecked(false);
-    m_renderMesh->setChecked(true);
-    m_renderPlane->setChecked(false);
-  }
-
-  updateScene();
+  ModelItem::Vector filters = seg->relatedItems(ModelItem::IN, "CreateSegmentation");
+  Q_ASSERT(filters.size() > 0);
+  Filter *filter = dynamic_cast<Filter *>(filters.first());
+  Q_ASSERT(filter);
+  this->pluginLayout->insertWidget(0, filter->createConfigurationWidget());
 
   m_inspectors[m_seg] = this;
 }
@@ -108,45 +89,33 @@ void SegmentationInspector::closeEvent(QCloseEvent *e)
 //------------------------------------------------------------------------
 SegmentationInspector::~SegmentationInspector()
 {
-  pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
-  ob->destroy(m_view);
+  delete m_view;
 
   m_inspectors.remove(m_seg);
 }
 
-//------------------------------------------------------------------------
-void SegmentationInspector::takeSnapshot()
-{
-  QString fileName = QFileDialog::getSaveFileName(this,
-     tr("Save Scene"), "", tr("Image Files (*.jpg *.png)"));
-  m_view->saveImage(1024,768,fileName);
-}
-
-//------------------------------------------------------------------------
-void SegmentationInspector::exportScene()
-{
-  pqViewExporterManager *exporter = new pqViewExporterManager();
-  exporter->setView(m_view);
-  QString fileName = QFileDialog::getSaveFileName(this,
-     tr("Save Scene"), "", tr("3D Scene (*.x3d *.pov *.vrml)"));
-  exporter->write(fileName);
-  delete exporter;
-}
-
-//------------------------------------------------------------------------
+//
 void SegmentationInspector::updateScene()
 {
-  pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-  pqRepresentation *rep;
-//   foreach(rep,m_view->getRepresentations())
-//   {
-//     rep->setVisible(false);
-//   }
-//   if (m_renderVolumetric->isChecked())
-//     m_seg->representation("Volumetric")->render(m_view);
-//   if (m_renderMesh->isChecked())
-//     m_seg->representation("Mesh")->render(m_view);
-//   if (m_renderPlane->isChecked())
-//     m_seg->representation("AppositionPlane")->render(m_view);
-//   m_view->render();
+  m_view->updateSegmentationRepresentation(m_seg);
+  m_view->forceRender();
 }
+
+// //------------------------------------------------------------------------
+// void SegmentationInspector::takeSnapshot()
+// {
+//   QString fileName = QFileDialog::getSaveFileName(this,
+//      tr("Save Scene"), "", tr("Image Files (*.jpg *.png)"));
+//   m_view->saveImage(1024,768,fileName);
+// }
+// 
+// //------------------------------------------------------------------------
+// void SegmentationInspector::exportScene()
+// {
+//   pqViewExporterManager *exporter = new pqViewExporterManager();
+//   exporter->setView(m_view);
+//   QString fileName = QFileDialog::getSaveFileName(this,
+//      tr("Save Scene"), "", tr("3D Scene (*.x3d *.pov *.vrml)"));
+//   exporter->write(fileName);
+//   delete exporter;
+// }
