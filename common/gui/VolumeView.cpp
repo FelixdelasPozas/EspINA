@@ -132,7 +132,7 @@ void VolumeView::buildControls()
     button->setChecked(true);
     button->setIconSize(QSize(22,22));
     button->setMaximumSize(QSize(32,32));
-    button->setToolTip(renderer->name());
+    button->setToolTip(renderer->tooltip());
     connect(button, SIGNAL(clicked(bool)),
 	    renderer.data(), SLOT(setEnable(bool)));
     connect(renderer.data(), SIGNAL(renderRequested()),
@@ -418,12 +418,14 @@ VolumeView::Settings::Settings(const QString prefix)
   QSettings settings("CeSViMa", "EspINA");
 
   if (!settings.contains(RENDERERS))
-    settings.setValue(RENDERERS, QStringList("Volumetric"));
+    settings.setValue(RENDERERS, QStringList() << "Crosshairs" << "Volumetric");
 
   QMap<QString, Renderer *> renderers = EspinaFactory::instance()->renderers();
-  foreach(QString renderer, settings.value(RENDERERS).toStringList())
+  foreach(QString name, settings.value(RENDERERS).toStringList())
   {
-    m_renderers << RendererPtr(renderers[renderer]->clone());
+    Renderer *renderer = renderers.value(name, NULL);
+    if (renderer)
+      m_renderers << RendererPtr(renderer->clone());
   }
 }
 

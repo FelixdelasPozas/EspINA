@@ -33,6 +33,7 @@ public:
   virtual ~Renderer(){}
 
   virtual const QString name() const {return QString();}
+  virtual const QString tooltip() const {return QString();}
   virtual const QIcon icon() const {return QIcon();}
 
   void setView(vtkSMProxy *view) {m_view = view;};

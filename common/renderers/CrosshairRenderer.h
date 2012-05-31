@@ -43,7 +43,8 @@ class CrosshairRenderer
 
 public:
   virtual const QIcon icon() const {return QIcon(":/espina/show_planes.svg");}
-  virtual const QString name() const {return "Sample's Crosshairs";}
+  virtual const QString name() const {return "Crosshairs";}
+  virtual const QString tooltip() const {return "Sample's Crosshairs";}
 
   virtual bool addItem(ModelItem* item);
   virtual bool updateItem(ModelItem* item);

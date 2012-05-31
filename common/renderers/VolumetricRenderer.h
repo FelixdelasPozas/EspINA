@@ -42,6 +42,7 @@ class VolumetricRenderer
 public:
   virtual const QIcon icon() const {return QIcon(":/espina/voxel.png");}
   virtual const QString name() const {return "Volumetric";}
+  virtual const QString tooltip() const {return "Segmentation's Volumes";}
 
   virtual bool addItem(ModelItem* item);
   virtual bool updateItem(ModelItem* item);

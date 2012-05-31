@@ -36,7 +36,9 @@ VolumeViewSettingsPanel::VolumeViewSettingsPanel(VolumeView::SettingsPtr setting
 
   foreach(Renderer *renderer, EspinaFactory::instance()->renderers())
   {
-    available->appendRow(new QStandardItem(renderer->icon(), renderer->name()));
+    QStandardItem *item = new QStandardItem(renderer->icon(), renderer->name());
+    item->setToolTip(renderer->tooltip());
+    available->appendRow(item);
   }
 
   activeRenderers->setModel(active);
