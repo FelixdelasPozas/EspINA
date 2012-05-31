@@ -26,6 +26,8 @@
 #include <QIcon>
 #include <QTreeView>
 #include <EspinaCore.h>
+#include <selection/PixelSelector.h>
+#include <undo/RemoveSegmentation.h>
 
 //----------------------------------------------------------------------------
 MainToolBar::MainToolBar(QSharedPointer<EspinaModel> model, QWidget* parent)
@@ -34,51 +36,59 @@ MainToolBar::MainToolBar(QSharedPointer<EspinaModel> model, QWidget* parent)
   setWindowTitle("EspinaModel");
   setObjectName("MainToolBar");
 
-  toggleSegVisibility = addAction(//showIcon,
+  m_toggleSegVisibility = addAction(//showIcon,
 				  tr("Toggle Segmentations Visibility"));
 
-  toggleSegVisibility->setShortcut(QString("Space"));
-  toggleSegVisibility->setCheckable(true);
-  toggleSegVisibility->setChecked(true);
+  m_toggleSegVisibility->setShortcut(QString("Space"));
+  m_toggleSegVisibility->setCheckable(true);
+  m_toggleSegVisibility->setChecked(true);
   setShowSegmentations(true);
-  connect(toggleSegVisibility,SIGNAL(triggered(bool)),
+  connect(m_toggleSegVisibility,SIGNAL(triggered(bool)),
 	  this,SLOT(setShowSegmentations(bool)));
 
 
    // User selected Taxonomy Selection List
-  taxonomyView = new QTreeView(this);
-  taxonomyView->setHeaderHidden(true);
+  m_taxonomyView = new QTreeView(this);
+  m_taxonomyView->setHeaderHidden(true);
 
-  taxonomySelector = new QComboBox(this);
-  taxonomySelector->setView(taxonomyView); //Brutal!
-  taxonomySelector->setModel(model.data());
-  taxonomySelector->setRootModelIndex(model->taxonomyRoot());
+  m_taxonomySelector = new QComboBox(this);
+  m_taxonomySelector->setView(m_taxonomyView); //Brutal!
+  m_taxonomySelector->setModel(model.data());
+  m_taxonomySelector->setRootModelIndex(model->taxonomyRoot());
   connect(model.data(),SIGNAL(dataChanged(QModelIndex,QModelIndex)),
 	  this,SLOT(updateTaxonomy(QModelIndex,QModelIndex)));
-	  
-  taxonomySelector->setMinimumWidth(160);
-  taxonomySelector->setToolTip( tr("Type of new segmentation") );
-  taxonomySelector->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 
-  addWidget(taxonomySelector);
-//   taxonomySelector->setRootModelIndex(m_espina);
+  m_taxonomySelector->setMinimumWidth(160);
+  m_taxonomySelector->setToolTip( tr("Type of new segmentation") );
+  m_taxonomySelector->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 
-  connect(taxonomyView, SIGNAL(entered(QModelIndex)),
+  addWidget(m_taxonomySelector);
+
+  connect(m_taxonomyView, SIGNAL(entered(QModelIndex)),
           this, SLOT(setActiveTaxonomy(QModelIndex)));
-//   m_taxonomySelector->setCurrentIndex(0);
-//   Internals->toolBar->addWidget(m_taxonomySelector);
-//   Internals->toolBar->addAction(Internals->actionRemoveSegmentation);
-//   connect(Internals->actionRemoveSegmentation,SIGNAL(toggled(bool)),
-//           this,SLOT(removeSegmentationClicked(bool)));
+
+  m_selector = new PixelSelector();
+  m_selector->setMultiSelection(false);
+  m_selector->setSelectable(SelectionHandler::EspINA_Segmentation);
+  connect(m_selector, SIGNAL(selectionAborted()),
+	  this, SLOT(abortSelection()));
+  connect(m_selector, SIGNAL(selectionChanged(SelectionHandler::MultiSelection)),
+	  this, SLOT(removeSelectedSegmentation(SelectionHandler::MultiSelection)));
+
+  m_removeSegmentation = addAction(QIcon(":/espina/removeSeg.svg"),
+					  tr("Remove Segmentation"));
+  m_removeSegmentation->setCheckable(true);
+  connect(m_removeSegmentation, SIGNAL(toggled(bool)),
+	  this, SLOT(removeSegmentation(bool)));
 }
 
 //----------------------------------------------------------------------------
 void MainToolBar::setShowSegmentations(bool visible)
 {
   if (visible)
-    toggleSegVisibility->setIcon(QIcon(":/espina/show_all.svg"));
+    m_toggleSegVisibility->setIcon(QIcon(":/espina/show_all.svg"));
   else
-    toggleSegVisibility->setIcon(QIcon(":/espina/hide_all.svg"));
+    m_toggleSegVisibility->setIcon(QIcon(":/espina/hide_all.svg"));
 
   emit showSegmentations(visible);
 }
@@ -99,10 +109,48 @@ void MainToolBar::setActiveTaxonomy(QModelIndex index)
 //----------------------------------------------------------------------------
 void MainToolBar::updateTaxonomy(QModelIndex left, QModelIndex right)
 {
-  if (left == taxonomySelector->view()->rootIndex())
+  if (left == m_taxonomySelector->view()->rootIndex())
   {
-    taxonomySelector->setCurrentIndex(0);
+    m_taxonomySelector->setCurrentIndex(0);
     setActiveTaxonomy(left.child(0,0));
   }
-  taxonomyView->expandAll();
+  m_taxonomyView->expandAll();
+}
+
+//----------------------------------------------------------------------------
+void MainToolBar::removeSegmentation(bool active)
+{
+  if (active)
+  {
+    SelectionManager::instance()->setSelectionHandler(m_selector);
+  }else
+  {
+    SelectionManager::instance()->setSelectionHandler(NULL);
+  }
+}
+
+//----------------------------------------------------------------------------
+void MainToolBar::removeSelectedSegmentation(SelectionHandler::MultiSelection msel)
+{
+  if (msel.size() != 1)
+    return;
+
+  SelectionHandler::Selelection element = msel.first();
+
+  SelectableItem *input = element.second;
+  Q_ASSERT(ModelItem::SEGMENTATION == input->type());
+  QList<Segmentation *> removedSegs;
+  removedSegs << dynamic_cast<Segmentation *>(input);
+  QSharedPointer<QUndoStack> undoStack = EspinaCore::instance()->undoStack();
+  undoStack->beginMacro(tr("Delete Segmentation"));
+  undoStack->push(new RemoveSegmentation(removedSegs));
+  undoStack->endMacro();
+}
+
+//----------------------------------------------------------------------------
+void MainToolBar::abortSelection()
+{
+  m_removeSegmentation->blockSignals(true);
+  m_removeSegmentation->setChecked(false);
+  m_removeSegmentation->blockSignals(false);
 }

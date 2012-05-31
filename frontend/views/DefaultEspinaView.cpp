@@ -277,7 +277,7 @@ void DefaultEspinaView::setShowSegmentations(bool visibility)
   xyView->setSegmentationVisibility(visibility);
   yzView->setSegmentationVisibility(visibility);
   xzView->setSegmentationVisibility(visibility);
-  EspinaCore::instance()->model()->serializeRelations(std::cout, RelationshipGraph::GRAPHVIZ);
+//   EspinaCore::instance()->model()->serializeRelations(std::cout, RelationshipGraph::GRAPHVIZ);
 }
 
 //-----------------------------------------------------------------------------

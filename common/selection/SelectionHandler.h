@@ -44,8 +44,10 @@ class SelectionHandler
   Q_OBJECT
 public:
   /// List of taxonomy ids which can be selected
-  /// WARNING: Special EspINA_Sample taxonomy is used to refer to the sample itself
+  /// WARNING: Special EspINA_Sample is used to refer to the sample itself
   static  const QString                 EspINA_Channel;
+  static  const QString                 EspINA_Segmentation;
+
   typedef QStringList                   SelectionFilters;
   typedef QList<QPolygon>               ViewRegions;
   typedef QList<QVector3D>              VtkRegion;

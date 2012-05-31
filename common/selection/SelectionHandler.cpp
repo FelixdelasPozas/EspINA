@@ -20,6 +20,7 @@
 #include "SelectionHandler.h"
 
 const QString SelectionHandler::EspINA_Channel = "EspINA_Channel";
+const QString SelectionHandler::EspINA_Segmentation = "EspINA_Segmentation";
 
 //-----------------------------------------------------------------------------
 bool SelectionHandler::filterEvent(QEvent* e, SelectableView* view)

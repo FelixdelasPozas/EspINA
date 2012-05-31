@@ -31,6 +31,7 @@
 #include "common/selection/SelectableView.h"
 #include <common/widgets/EspinaWidget.h>
 
+class vtkPropPicker;
 class Channel;
 class ColorEngine;
 class QPushButton;
@@ -162,6 +163,8 @@ protected:
   virtual bool eventFilter(QObject* caller, QEvent* e);
   void centerCrosshairOnMousePosition();
   void centerViewOnMousePosition();
+  QList<Channel *> pickChannels(vtkPropPicker *picker, bool repeatable=true);
+  QList<Segmentation *> pickSegmentations(vtkPropPicker *picker, bool repeatable=true);
   void selectPickedItems(bool append);
 
   double suggestedChannelOpacity();

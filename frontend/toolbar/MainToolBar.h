@@ -27,7 +27,9 @@
 #include <common/gui/DynamicWidget.h>
 
 #include <QModelIndex>
+#include <common/selection/SelectionHandler.h>
 
+class PixelSelector;
 class EspinaModel;
 class QComboBox;
 class QTreeView;
@@ -48,14 +50,18 @@ public slots:
 protected slots:
   void setActiveTaxonomy(QModelIndex index);
   void updateTaxonomy(QModelIndex left, QModelIndex right);
+  void removeSegmentation(bool active);
+  void removeSelectedSegmentation(SelectionHandler::MultiSelection msel);
+  void abortSelection();
 
 signals:
   void showSegmentations(bool);
 
 private:
-  QAction   *toggleSegVisibility;
-  QComboBox *taxonomySelector;
-  QTreeView *taxonomyView;
+  QAction       *m_toggleSegVisibility, *m_removeSegmentation;
+  QComboBox     *m_taxonomySelector;
+  QTreeView     *m_taxonomyView;
+  PixelSelector *m_selector;
 };
 
 #endif // MAINTOOLBAR_H

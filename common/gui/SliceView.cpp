@@ -274,12 +274,20 @@ SelectionHandler::MultiSelection SliceView::select(
   SelectionHandler::SelectionFilters filters,
   SelectionHandler::ViewRegions regions)
 {
+  bool multiSelection = false;
   SelectionHandler::MultiSelection msel;
 
   if (m_inThumbnail)
     return msel;
 
-  //qDebug() << "EspINA::SliceView" << m_plane << ": Making selection";
+  vtkSMSliceViewProxy* view =
+    vtkSMSliceViewProxy::SafeDownCast(m_view->getProxy());
+  Q_ASSERT(view);
+  vtkRenderer *renderer = view->GetRenderer();
+  Q_ASSERT(renderer);
+  vtkPropPicker *propPicker = vtkPropPicker::New();
+
+//   qDebug() << "EspINA::SliceView" << m_plane << ": Making selection";
   // Select all products that belongs to all the regions
   foreach(const QPolygonF &region, regions)
   {
@@ -290,43 +298,39 @@ SelectionHandler::MultiSelection SliceView::select(
     if (vtkRegion.isEmpty())
       return msel;
 
-//     if (SelectionManager::instance()->voi() && !SelectionManager::instance()->voi()->contains(vtkRegion))
-//     {
-//       return;
-//     }
-
-    // Apply filtering criteria at given region
-    foreach(QString filter, filters)
+//     qDebug() << "Analyze Region:";
+    foreach(QPointF p, region)
     {
-      //! Special case, where sample is selected
-      if (filter == SelectionHandler::EspINA_Channel)
+//       qDebug() << "\tPick at:" << p;
+      if (propPicker->Pick(p.x(), p.y(), 0.1, renderer))
       {
-	Channel *channel = m_channels.keys().first();
-
-	SelectionHandler::Selelection selChannel(vtkRegion,channel);
-	msel.append(selChannel);
-      } //! Select all segmented objects
-//       else if (filter == "EspINA_Segmentation")
-//       {
-// 	foreach(Segmentation *seg, pickSegmentationsAt(vtkRegion))
-// 	{
-// 	  ISelectionHandler::Selelection selSegmentaion;
-// 	  selSegmentaion.first = vtkRegion;
-// 	  selSegmentaion.second = seg;
-// 	  msel.append(selSegmentaion);
-// 	}
-//       }
-      else
-      {
-	// Find segmented objects inside regions
-	// Discard by filter
-	// Adjust spacing
-	Q_ASSERT(false); //TODO: Taxonomy selection
-	//NOTE: should other filtering criterias be implemented?? Size??
+// 	qDebug() << "\t\tObject Found";
+	foreach(QString filter, filters)
+	{
+// 	  qDebug() << "\t\tLooking for" << filter;
+	  if (filter == SelectionHandler::EspINA_Channel)
+	  {
+	    foreach(Channel *channel, pickChannels(propPicker, multiSelection))
+	    {
+	      SelectionHandler::Selelection selection(vtkRegion,channel);
+	      msel.append(selection);
+	    }
+	  }
+	  else if (filter == SelectionHandler::EspINA_Segmentation)
+	  {
+	    foreach(Segmentation *seg, pickSegmentations(propPicker, multiSelection))
+	    {
+	      SelectionHandler::Selelection selection(vtkRegion, seg);
+	      msel.append(selection);
+	    }
+	  }else
+	  {
+	    Q_ASSERT(false);
+	  }
+	}
       }
     }
   }
-  //TODO: Update Qt selection
 
   return msel;
 }
@@ -540,8 +544,60 @@ void SliceView::centerViewOnMousePosition()
 }
 
 //-----------------------------------------------------------------------------
+QList<Channel *> SliceView::pickChannels(vtkPropPicker* picker, bool repeatable)
+{
+  vtkProp3D *pickedProp = picker->GetProp3D();
+  vtkObjectBase *object;
+  vtkSliceRepresentation *rep;
+
+  QList<Channel *> channels;
+  foreach(Channel *channel, m_channels.keys())
+  {
+    object = m_channels[channel].proxy->GetClientSideObject();
+    rep = dynamic_cast<vtkSliceRepresentation *>(object);
+    Q_ASSERT(rep);
+    if (rep->GetSliceProp() == pickedProp)
+    {
+      qDebug() << "Channel" << channel->data(Qt::DisplayRole).toString() << "Selected";
+      channels << channel;
+      if (!repeatable)
+	return channels;
+    }
+  }
+
+  return channels;
+}
+
+
+//-----------------------------------------------------------------------------
+QList< Segmentation* > SliceView::pickSegmentations(vtkPropPicker* picker, bool repeatable)
+{
+  vtkProp3D *pickedProp = picker->GetProp3D();
+  vtkObjectBase *object;
+  vtkSliceRepresentation *rep;
+
+  QList<Segmentation *> segmentations;
+  foreach(Segmentation *seg, m_segmentations.keys())
+  {
+    object = m_segmentations[seg].proxy->GetClientSideObject();
+    rep = dynamic_cast<vtkSliceRepresentation *>(object);
+    Q_ASSERT(rep);
+    if (rep->GetSliceProp() == pickedProp)
+    {
+      qDebug() << "Segmentation" << seg->data(Qt::DisplayRole).toString() << "Selected";
+      segmentations << seg;
+      if (!repeatable)
+	return segmentations;
+    }
+  }
+
+  return segmentations;
+}
+
+//-----------------------------------------------------------------------------
 void SliceView::selectPickedItems(bool append)
 {
+  qDebug() << "SliceView::SelectPickedItems";
   vtkSMSliceViewProxy* view =
     vtkSMSliceViewProxy::SafeDownCast(m_view->getProxy());
   Q_ASSERT(view);
@@ -554,34 +610,18 @@ void SliceView::selectPickedItems(bool append)
   vtkPropPicker *propPicker = vtkPropPicker::New();
   if (propPicker->Pick(x, y, 0.1, renderer))
   {
-    vtkProp3D *pickedProp = propPicker->GetProp3D();
-    vtkObjectBase *object;
-    vtkSliceRepresentation *rep;
-
-    foreach(Channel *channel, m_channels.keys())
+    foreach(Channel *channel, pickChannels(propPicker, append))
     {
-      object = m_channels[channel].proxy->GetClientSideObject();
-      rep = dynamic_cast<vtkSliceRepresentation *>(object);
-      Q_ASSERT(rep);
-      if (rep->GetSliceProp() == pickedProp)
-      {
-// 	qDebug() << "Channel" << channel->data(Qt::DisplayRole).toString() << "Selected";
-	emit channelSelected(channel);
+      emit channelSelected(channel);
+      if (!append)
 	return;
-      }
     }
 
-    foreach(Segmentation *seg, m_segmentations.keys())
+    foreach(Segmentation *seg, pickSegmentations(propPicker, append))
     {
-      object = m_segmentations[seg].proxy->GetClientSideObject();
-      rep = dynamic_cast<vtkSliceRepresentation *>(object);
-      Q_ASSERT(rep);
-      if (rep->GetSliceProp() == pickedProp)
-      {
-// 	qDebug() << "Segmentation" << seg->data(Qt::DisplayRole).toString() << "Selected";
-	emit segmentationSelected(seg, append);
+      emit segmentationSelected(seg, append);
+      if (!append)
 	return;
-      }
     }
   }
 }

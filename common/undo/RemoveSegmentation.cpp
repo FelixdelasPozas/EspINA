@@ -59,7 +59,7 @@ void RemoveSegmentation::redo()
     ModelItem::Vector segs = segInfo.filter->relatedItems(ModelItem::OUT, "CreateSegmentation");
     if (segs.size() == 0)
     {
-      qDebug() << segInfo.filter->data(Qt::DisplayRole).toString() << "has no segmentations==>Must be deleted";
+//       qDebug() << segInfo.filter->data(Qt::DisplayRole).toString() << "has no segmentations==>Must be deleted";
       FilterInfo filterInfo(segInfo.filter, segInfo.filter->relations());
       removeRelations(filterInfo.relations);
       filtersToRemove << filterInfo.filter;
