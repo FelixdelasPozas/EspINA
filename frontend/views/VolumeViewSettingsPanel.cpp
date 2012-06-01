@@ -38,7 +38,16 @@ VolumeViewSettingsPanel::VolumeViewSettingsPanel(VolumeView::SettingsPtr setting
   {
     QStandardItem *item = new QStandardItem(renderer->icon(), renderer->name());
     item->setToolTip(renderer->tooltip());
-    available->appendRow(item);
+    bool isActive = false;
+    foreach(VolumeView::Settings::RendererPtr activeRenderer, m_settings->renderers())
+    {
+      if (renderer->name() == activeRenderer->name())
+	isActive = true;
+    }
+    if (isActive)
+      active->appendRow(item);
+    else
+      available->appendRow(item);
   }
 
   activeRenderers->setModel(active);
@@ -63,7 +72,16 @@ void VolumeViewSettingsPanel::acceptChanges()
 //-----------------------------------------------------------------------------
 bool VolumeViewSettingsPanel::modified() const
 {
-  return ISettingsPanel::modified();
+  QStringList current, previous;
+
+  QAbstractItemModel *activeModel = activeRenderers->model();
+  for(int i=0; i < activeModel->rowCount(); i++)
+    current << activeModel->index(i,0).data().toString();
+
+  foreach(VolumeView::Settings::RendererPtr activeRenderer, m_settings->renderers())
+    previous << activeRenderer->name();
+
+  return current != previous;
 }
 
 

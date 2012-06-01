@@ -101,9 +101,10 @@ if (UNIX)
   set (CPACK_GENERATOR "DEB")
   set (CPACK_DEBIAN_PACKAGE_MAINTAINER "CeSViMa") #required
   set (CPACK_DEBIAN_PACKAGE_DESCRIPTION "EspINA: EspINA Interactive Neuron Analyzer")
-  set (CPACK_DEBIAN_PACKAGE_DEPENDS "libboost-system1.42.0,
-        libboost-filesystem1.42.0,
-        libboost-graph1.42.0,
+  set (CPACK_DEBIAN_PACKAGE_DEPENDS "libboost-system1.46.1,
+        libboost-filesystem1.46.1,
+        libboost-graph1.46.1,
+        quazip,
         itk-review,
         vtk-paraview (>= 5.8),
         paraview (>= 3.14),
@@ -111,8 +112,8 @@ if (UNIX)
         libqt4-test,
         libqt4-svg,
         libqt4-help,
-        libqt4-xmlpatterns,
-        libopenmpi1.3")
+        libqt4-xmlpatterns")
+        #libopenmpi1.3")
   set (CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/CMake/debian/postinst;")
 
 #  set (CPACK_COMPONENTS_ALL espina SeedGrowSegmentation)
