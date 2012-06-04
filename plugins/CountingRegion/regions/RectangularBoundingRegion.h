@@ -43,6 +43,9 @@ public:
   virtual void bounds(double bounds[6]);
   virtual void setEnabled(bool enable);
 
+signals:
+  void modified(BoundingRegion *);
+
 protected slots:
   void resetWidgets();
 

@@ -154,6 +154,7 @@ void RectangularBoundingRegion::resetWidgets()
   vtkSMPropertyHelper(proxy, "InclusionOffset").Get(m_inclusion, 3);
   vtkSMPropertyHelper(proxy, "ExclusionOffset").Get(m_exclusion, 3);
   emitDataChanged();
+  emit modified(this);
 }
 
 //-----------------------------------------------------------------------------

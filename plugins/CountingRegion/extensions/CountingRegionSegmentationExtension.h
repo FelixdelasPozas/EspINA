@@ -31,6 +31,7 @@ class BoundingRegion;
 class CountingRegionSegmentationExtension
 : public SegmentationExtension
 {
+  Q_OBJECT
 public:
   static const QString ID;
   static const QString Discarted;
@@ -58,6 +59,9 @@ public:
   void updateRegions(QList<BoundingRegion *> regions);
 
   virtual SegmentationExtension* clone();
+
+protected slots:
+  void regionUpdated(BoundingRegion *region);
 
 private:
   pqFilter *m_countingRegion;

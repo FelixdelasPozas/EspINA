@@ -179,6 +179,7 @@ void CountingRegion::createAdaptiveRegion(double inclusion[3], double exclusion[
   Channel *channel = dynamic_cast<Channel *>(channels.first());
 
   AdaptiveBoundingRegion *region(new AdaptiveBoundingRegion(sampleExt, channel, inclusion, exclusion));
+  sampleExt->addRegion(region);
   m_regionModel.appendRow(region);
   view->addWidget(region);
   m_gui->removeRegion->setEnabled(true);

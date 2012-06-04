@@ -259,16 +259,16 @@ bool discartedByRegion(vtkImageData *input, BoundingBox &inputBB, vtkPolyData *r
 int vtkCountingRegionFilter::RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
 {
   vtkInformation *inputInfo = inputVector[0]->GetInformationObject(0);
-  int numSeg = inputVector[0]->GetNumberOfInformationObjects();
+  int numRegions = inputVector[0]->GetNumberOfInformationObjects();
 
   vtkImageData *input = NULL;
-  if (numSeg)
+  if (numRegions)
     input = vtkImageData::SafeDownCast(inputInfo->Get(vtkDataObject::DATA_OBJECT()));
 
   BoundingBox inputBB(input);
   
   Discarted = 0;
-  for (int r = 1; r < numSeg; r++)
+  for (int r = 1; r < numRegions; r++)
   { 
     vtkInformation *regionInfo =  inputVector[0]->GetInformationObject(r);
     vtkPolyData *region= vtkPolyData::SafeDownCast(regionInfo->Get(vtkDataObject::DATA_OBJECT()));

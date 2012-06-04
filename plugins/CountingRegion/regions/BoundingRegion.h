@@ -56,6 +56,8 @@ public:
 
   virtual pqData region() const {return m_boundingRegion->data(0);}
 
+  void modified(BoundingRegion *){};
+
 protected:
   double left()  const {return m_inclusion[0];}
   double top()   const {return m_inclusion[1];}

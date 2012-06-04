@@ -72,14 +72,17 @@ void CountingRegionSegmentationExtension::initialize(Segmentation* seg)
   Q_ASSERT(m_countingRegion);
 
   ModelItem::Vector samples = m_seg->relatedItems(ModelItem::IN, "where");
-  Q_ASSERT(!samples.isEmpty());
-  Sample *sample = dynamic_cast<Sample *>(samples.first());
-  ModelItemExtension *ext = sample->extension(CountingRegionSampleExtension::ID);
-  Q_ASSERT(ext);
-  CountingRegionSampleExtension *sampleExt =
+  //Q_ASSERT(!samples.isEmpty());
+  if (!samples.isEmpty())
+  {
+    Sample *sample = dynamic_cast<Sample *>(samples.first());
+    ModelItemExtension *ext = sample->extension(CountingRegionSampleExtension::ID);
+    Q_ASSERT(ext);
+    CountingRegionSampleExtension *sampleExt =
     dynamic_cast<CountingRegionSampleExtension *>(ext);
 
-  updateRegions(sampleExt->regions());
+    updateRegions(sampleExt->regions());
+  }
 }
 
 //------------------------------------------------------------------------
@@ -150,6 +153,8 @@ void CountingRegionSegmentationExtension::updateRegions(QList< BoundingRegion* >
     region->region().pipelineSource()->updatePipeline();
     inputs.push_back(region->region().pipelineSource()->getProxy());
     ports.push_back(0);
+    connect(region, SIGNAL(modified(BoundingRegion *)),
+	    this, SLOT(regionUpdated(BoundingRegion*)));
   }
 
   vtkSMProxy *proxy =  m_countingRegion->pipelineSource()->getProxy();
@@ -168,13 +173,32 @@ void CountingRegionSegmentationExtension::updateRegions(QList< BoundingRegion* >
   int isDiscarted = 0;
   vtkSMPropertyHelper(proxy, "Discarted").UpdateValueFromServer();
   vtkSMPropertyHelper(proxy, "Discarted").Get(&isDiscarted,1);
-  m_seg->setVisible(!isDiscarted);
+  if (m_seg->visible() != !isDiscarted)
+  {
+    m_seg->setVisible(!isDiscarted);
+    m_seg->notifyModification();
+  }
 //   EXTENSION_DEBUG("Counting Region Extension request Segmentation Update");
-//   m_seg->notifyInternalUpdate();
 }
 
 //------------------------------------------------------------------------
 SegmentationExtension* CountingRegionSegmentationExtension::clone()
 {
   return new CountingRegionSegmentationExtension();
+}
+
+//------------------------------------------------------------------------
+void CountingRegionSegmentationExtension::regionUpdated(BoundingRegion* region)
+{
+  m_countingRegion->pipelineSource()->updatePipeline();
+
+  int isDiscarted = 0;
+  vtkSMProxy *proxy =  m_countingRegion->pipelineSource()->getProxy();
+  vtkSMPropertyHelper(proxy, "Discarted").UpdateValueFromServer();
+  vtkSMPropertyHelper(proxy, "Discarted").Get(&isDiscarted,1);
+  if (m_seg->visible() != !isDiscarted)
+  {
+    m_seg->setVisible(!isDiscarted);
+    m_seg->notifyModification();
+  }
 }

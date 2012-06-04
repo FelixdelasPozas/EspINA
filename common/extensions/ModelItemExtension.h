@@ -26,6 +26,7 @@
 #include <QVariant>
 
 class ModelItemExtension
+: public QObject
 {
 public:
   virtual ~ModelItemExtension(){}
