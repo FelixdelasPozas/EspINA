@@ -231,11 +231,20 @@ void SeedGrowSegmentationFilter::run()
       }
       if (incomplete)
       {
+	// Desired cursor
+	QApplication::setOverrideCursor(Qt::ArrowCursor);
+	// Counteracts restoring cursor on slice view leave event
+	QApplication::setOverrideCursor(Qt::ArrowCursor);
 	QMessageBox warning;
 	warning.setWindowTitle(tr("Seed Grow Segmentation Filter Information"));
 	warning.setText(tr("New segmentation may be incomplete due to VOI restriction."));
 // 	warning.setStandardButtons(QMessageBox::Yes |  QMessageBox::No);
 	warning.exec();
+	// Counteracts setting cursor on slice view enter event
+	QApplication::restoreOverrideCursor();
+	// Remove current cursor and restore previous one
+	QApplication::restoreOverrideCursor();
+	
 // 	if (warning.exec() == QMessageBox::Yes)
 // 	{
 // 	  for (int v = 0; v < 3; v++)

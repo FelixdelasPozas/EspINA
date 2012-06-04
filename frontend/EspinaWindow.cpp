@@ -464,11 +464,12 @@ void EspinaWindow::openAnalysis()
 //------------------------------------------------------------------------
 void EspinaWindow::openAnalysis(const QString file)
 {
-  QApplication::setOverrideCursor(Qt::WaitCursor);
   QElapsedTimer timer;
   timer.start();
 
+  QApplication::setOverrideCursor(Qt::WaitCursor);
   closeCurrentAnalysis();
+  QApplication::restoreOverrideCursor();
 
   if (!EspinaCore::instance()->loadFile(file))
   {
@@ -485,10 +486,11 @@ void EspinaWindow::openAnalysis(const QString file)
     return;
   }
 
+  QApplication::setOverrideCursor(Qt::WaitCursor);
   if (!m_model->taxonomy())
   {
     Taxonomy *defaultTaxonomy = IOTaxonomy::openXMLTaxonomy(":/espina/defaultTaxonomy.xml");
-    defaultTaxonomy->print();
+    //defaultTaxonomy->print();
     m_model->setTaxonomy(defaultTaxonomy);
   }
 

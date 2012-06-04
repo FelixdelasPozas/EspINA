@@ -170,8 +170,6 @@ void SeedGrowSegmentation::onSelectionAborted()
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection msel)
 {
-//   QApplication::setOverrideCursor(Qt::WaitCursor);
-
   if (msel.size() > 0)
   {
     qDebug() << "Start Segmentation";
@@ -224,6 +222,7 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
       channel->extent(VOI);
     }
 
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     SeedGrowSegmentationFilter *filter =
 	new SeedGrowSegmentationFilter(input->volume(),
 				     growSeed,
@@ -236,6 +235,7 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
 
     QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
     undo->push(new UndoCommand(channel, filter, tax));
+    QApplication::restoreOverrideCursor();
   }
 }
 

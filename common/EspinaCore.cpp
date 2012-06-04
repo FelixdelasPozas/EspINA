@@ -25,6 +25,7 @@
 #include "model/EspinaFactory.h"
 #include "model/Channel.h"
 #include <QColorDialog>
+#include <QApplication>
 #include "cache/CachedObjectBuilder.h"
 #include "undo/AddSample.h"
 #include "undo/AddChannel.h"
@@ -111,6 +112,7 @@ bool EspinaCore::loadChannel(const QString file)
     args.setColor(dyeSelector.selectedColor().hueF());
   }
 
+  QApplication::setOverrideCursor(Qt::WaitCursor);
   Channel *channel = EspinaFactory::instance()->createChannel(file, args);
 
   double pos[3];
@@ -124,6 +126,7 @@ bool EspinaCore::loadChannel(const QString file)
   channel->initialize();
 
   m_undoStack->endMacro();
+  QApplication::restoreOverrideCursor();
 
   return true;
 }

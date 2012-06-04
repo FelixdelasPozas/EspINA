@@ -30,6 +30,7 @@
 #include <vtkSMPropertyHelper.h>
 #include <vtkSMProxy.h>
 #include <QMessageBox>
+#include <QApplication>
 
 typedef ModelItem::ArgumentId ArgumentId;
 
@@ -94,6 +95,7 @@ void MarginsChannelExtension::initialize(Channel* channel, ModelItem::Arguments 
 
   if (computeMargin)
   {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     CachedObjectBuilder *cob = CachedObjectBuilder::instance();
     pqFilter::Arguments marginArgs;
     marginArgs << pqFilter::Argument("Input", pqFilter::Argument::INPUT, m_channel->volume().id());
@@ -102,6 +104,7 @@ void MarginsChannelExtension::initialize(Channel* channel, ModelItem::Arguments 
     m_borderDetector->pipelineSource()->updatePipeline();
     Q_ASSERT(m_borderDetector->getNumberOfData() == 1);
     m_useExtentMargins = false;
+    QApplication::restoreOverrideCursor();
   }
   m_init = true;
   m_args = args;

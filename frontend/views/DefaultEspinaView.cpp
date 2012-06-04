@@ -172,10 +172,12 @@ void DefaultEspinaView::saveLayout()
 //----------------------------------------------------------------------------
 void DefaultEspinaView::forceRender()
 {
+  QApplication::setOverrideCursor(Qt::WaitCursor);
   xyView->forceRender();
   yzView->forceRender();
   xzView->forceRender();
   volView->forceRender();
+  QApplication::restoreOverrideCursor();
 }
 
 //----------------------------------------------------------------------------

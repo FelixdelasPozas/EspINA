@@ -34,7 +34,7 @@ Sample::Sample(const QString id)
   m_bounds[1] = 698;
   m_bounds[3] = 535;
   m_bounds[5] = 228;
-  qDebug() << "Created Sample:" << id;
+//   qDebug() << "Created Sample:" << id;
 }
 
 //------------------------------------------------------------------------
@@ -47,13 +47,13 @@ Sample::Sample(const QString id, const QString args)
   m_bounds[1] = 698;
   m_bounds[3] = 535;
   m_bounds[5] = 228;
-  qDebug() << "Created Sample:" << id;
+//   qDebug() << "Created Sample:" << id;
 }
 
 //------------------------------------------------------------------------
 Sample::~Sample()
 {
-  qDebug() << "Deleted Sample:" << m_ID;
+//   qDebug() << "Deleted Sample:" << m_ID;
 }
 
 //------------------------------------------------------------------------

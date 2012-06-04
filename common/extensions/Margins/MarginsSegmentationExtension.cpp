@@ -63,13 +63,15 @@ void MarginsSegmentationExtension::initialize(Segmentation* seg)
   m_seg = seg;
 
   ModelItem::Vector channels = m_seg->relatedItems(ModelItem::IN, "Channel");
-  Q_ASSERT(!channels.isEmpty());
-
-  Channel *channel = dynamic_cast<Channel *>(channels.first());
-  ModelItemExtension *ext = channel->extension(ID);
-  Q_ASSERT(ext);
-  MarginsChannelExtension *marginExt = dynamic_cast<MarginsChannelExtension *>(ext);
-  marginExt->computeMarginDistance(seg);
+  //Q_ASSERT(!channels.isEmpty());
+  if (!channels.isEmpty())
+  {
+    Channel *channel = dynamic_cast<Channel *>(channels.first());
+    ModelItemExtension *ext = channel->extension(ID);
+    Q_ASSERT(ext);
+    MarginsChannelExtension *marginExt = dynamic_cast<MarginsChannelExtension *>(ext);
+    marginExt->computeMarginDistance(seg);
+  }
 }
 
 //-----------------------------------------------------------------------------

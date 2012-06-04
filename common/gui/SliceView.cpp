@@ -558,7 +558,7 @@ QList<Channel *> SliceView::pickChannels(vtkPropPicker* picker, bool repeatable)
     Q_ASSERT(rep);
     if (rep->GetSliceProp() == pickedProp)
     {
-      qDebug() << "Channel" << channel->data(Qt::DisplayRole).toString() << "Selected";
+//       qDebug() << "Channel" << channel->data(Qt::DisplayRole).toString() << "Selected";
       channels << channel;
       if (!repeatable)
 	return channels;
@@ -584,7 +584,7 @@ QList< Segmentation* > SliceView::pickSegmentations(vtkPropPicker* picker, bool 
     Q_ASSERT(rep);
     if (rep->GetSliceProp() == pickedProp)
     {
-      qDebug() << "Segmentation" << seg->data(Qt::DisplayRole).toString() << "Selected";
+//       qDebug() << "Segmentation" << seg->data(Qt::DisplayRole).toString() << "Selected";
       segmentations << seg;
       if (!repeatable)
 	return segmentations;
@@ -597,7 +597,7 @@ QList< Segmentation* > SliceView::pickSegmentations(vtkPropPicker* picker, bool 
 //-----------------------------------------------------------------------------
 void SliceView::selectPickedItems(bool append)
 {
-  qDebug() << "SliceView::SelectPickedItems";
+//   qDebug() << "SliceView::SelectPickedItems";
   vtkSMSliceViewProxy* view =
     vtkSMSliceViewProxy::SafeDownCast(m_view->getProxy());
   Q_ASSERT(view);
