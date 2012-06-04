@@ -129,12 +129,14 @@ void vtkAdaptiveBoundingRegionFilter::computeStackMargins(vtkImageData *image)
   int numComponets = image->GetNumberOfScalarComponents();
   unsigned char *imagePtr = static_cast<unsigned char *>(image->GetScalarPointer());
 
-  //NOTE: if you read this, delete next line ;)
-  assert(dim[2] == extent[5] - extent[4] + 1);
+  unsigned long zMin = extent[4];
+  unsigned long zMax = extent[5];
+  unsigned long yMax = dim[1];
+  unsigned long xMax = dim[0];
 
   stackBoderVertex = vtkSmartPointer<vtkPoints>::New();
   const int blackThreshold = 50;
-  for (int z = extent[4]; z <= extent[5]; z++)
+  for (unsigned long z = zMin; z <= zMax; z++)
   {
     // Look for images borders in z slice:
     // We are going to take all bordering pixels (almost black) and then extract its oriented
@@ -142,12 +144,12 @@ void vtkAdaptiveBoundingRegionFilter::computeStackMargins(vtkImageData *image)
     // We ignore pixles until we find the first non-black pixel
     // Then, we keep last non-black pixel as the other side of the line
     vtkSmartPointer<vtkPoints> nonBlackPixels = vtkSmartPointer<vtkPoints>::New();
-    for (int y = 0; y < dim[1]; y++)
+    for (unsigned long y = 0; y < yMax; y++)
     {
       bool nonBlackPixelDetected = false;
       double p1[3], p2[3];
       bool singlePixel = true;;
-      for (int x = 0; x < dim[0]; x++)
+      for (unsigned long x = 0; x < xMax; x++)
       {
 	bool nonBlackPixel = false;
 	unsigned long pxId = x*numComponets + y * dim[0]*numComponets + z * dim[0] * dim[1]*numComponets; //check numComponents
