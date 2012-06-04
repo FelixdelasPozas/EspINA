@@ -38,6 +38,7 @@ public:
   explicit CentralWidget(QWidget* parent = 0, Qt::WindowFlags f = 0)
   {
     setupUi(this);
+    groupBox->setVisible(false);
   }
 };
 
