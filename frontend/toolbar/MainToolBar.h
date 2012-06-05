@@ -33,7 +33,9 @@ class PixelSelector;
 class EspinaModel;
 class QComboBox;
 class QTreeView;
-class MainToolBar : public QToolBar, public DynamicWidget
+class MainToolBar
+: public QToolBar,
+public DynamicWidget
 {
   Q_OBJECT
 public:

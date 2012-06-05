@@ -30,7 +30,12 @@ class SelectableItem
 public:
   ~SelectableItem(){}
 
+  virtual bool isSelected() const {return m_isSelected;}
+  virtual void setSelected(bool value) {m_isSelected = value;}
   virtual pqData volume() = 0;
+
+protected:
+  bool m_isSelected;
 };
 
 typedef QSharedPointer<SelectableItem> SelectableItemPtr;

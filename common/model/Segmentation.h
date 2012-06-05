@@ -35,7 +35,8 @@ class Sample;
 class Filter;
 class pqPipelineSource;
 
-class Segmentation : public SelectableItem
+class Segmentation
+: public SelectableItem
 {
   Q_OBJECT
 public:
@@ -114,8 +115,6 @@ public:
   void bounds(double val[3]);
 
   // State
-  bool selected() const {return m_isSelected;}
-  void setSelected(bool selected);
   bool visible() const {return m_isVisible;}
   void setVisible(bool visible);
   QStringList users() const {return m_args.users();}
@@ -142,7 +141,6 @@ private:
   TaxonomyNode       *m_taxonomy;
 
   bool           m_extInitialized;
-  bool           m_isSelected;
   bool           m_isVisible;
   QColor         m_color;
   mutable double m_bounds[6];

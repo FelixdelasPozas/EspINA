@@ -47,7 +47,7 @@ bool VolumetricRenderer::addItem(ModelItem* item)
   ColorEngine *engine = EspinaCore::instance()->colorSettings().engine();
   m_segmentations[seg].outport  = oport;
   m_segmentations[seg].proxy    = repProxy;
-  m_segmentations[seg].selected = !seg->selected();
+  m_segmentations[seg].selected = !seg->isSelected();
   m_segmentations[seg].visible  = seg->visible();
   m_segmentations[seg].color    = engine->color(seg);
 
@@ -81,11 +81,11 @@ bool VolumetricRenderer::updateItem(ModelItem* item)
     removeItem(seg);
     addItem(seg);
     updated = true;
-  } else if (seg->selected() != rep.selected
+  } else if (seg->isSelected() != rep.selected
           || seg->visible() != rep.visible
           || seg->data(Qt::DecorationRole).value<QColor>() != rep.color)
   {
-    rep.selected = seg->selected();
+    rep.selected = seg->isSelected();
     rep.visible  = seg->visible();
     rep.color = seg->data(Qt::DecorationRole).value<QColor>();
     //   repProxy->PrintSelf(std::cout,vtkIndent(0));

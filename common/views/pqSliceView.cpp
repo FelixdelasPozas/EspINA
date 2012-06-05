@@ -224,6 +224,19 @@ vtkSMSliceViewProxy* pqSliceView::getRenderViewProxy() const
 }
 
 //-----------------------------------------------------------------------------
+vtkPropPicker* pqSliceView::channelPicker() const
+{
+  return getRenderViewProxy()->GetChannelPicker();
+}
+
+//-----------------------------------------------------------------------------
+vtkPropPicker* pqSliceView::segmentationPicker() const
+{
+  return getRenderViewProxy()->GetSegmentationPicker();
+}
+
+
+//-----------------------------------------------------------------------------
 void pqSliceView::setShowSegmentations ( bool visible )
 {
 //   qDebug() << this << ": Segmentation Visibility = " << visible;

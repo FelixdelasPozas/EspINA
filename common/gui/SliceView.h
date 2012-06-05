@@ -31,6 +31,7 @@
 #include "common/selection/SelectableView.h"
 #include <common/widgets/EspinaWidget.h>
 
+class Representation;
 class vtkPropPicker;
 class Channel;
 class ColorEngine;
@@ -104,7 +105,7 @@ public:
 
   void addRepresentation(pqOutputPort *oport, QColor color);
   void removeRepresentation(pqOutputPort *oport);
-  
+
   virtual void addPreview(Filter* filter);
   virtual void removePreview(Filter* filter);
   virtual void previewExtent(int VOI[6]);
@@ -163,8 +164,8 @@ protected:
   virtual bool eventFilter(QObject* caller, QEvent* e);
   void centerCrosshairOnMousePosition();
   void centerViewOnMousePosition();
-  QList<Channel *> pickChannels(vtkPropPicker *picker, bool repeatable=true);
-  QList<Segmentation *> pickSegmentations(vtkPropPicker *picker, bool repeatable=true);
+  QList<Channel *> pickChannels(double vx, double vy, vtkRenderer *renderer, bool repeatable=true);
+  QList<Segmentation *> pickSegmentations(double vx, double vy, vtkRenderer *renderer, bool repeatable=true);
   void selectPickedItems(bool append);
 
   double suggestedChannelOpacity();
@@ -177,7 +178,7 @@ protected:
   void buildTitle();
   void buildControls();
 private:
-  struct Representation
+  struct RepInfo
   {
     pqOutputPort *outport;
     vtkSMRepresentationProxy *proxy;
@@ -211,9 +212,9 @@ private:
   ColorEngine *m_colorEngine;
 
   bool m_inThumbnail;
-  QMap<Channel *, Representation>      m_channels;
-  QMap<Segmentation *, Representation> m_segmentations;
-  QMap<pqOutputPort *, Representation> m_representations;
+  QMap<Channel *, RepInfo>      m_channels;
+  QMap<Segmentation *, RepInfo> m_segmentations;
+  QMap<pqOutputPort *, RepInfo> m_representations;
 
   QList<SliceWidget *>      m_widgets;
   Filter *m_preview;

@@ -46,6 +46,7 @@
 #include <vtkRenderWindow.h>
 #include <vtkSmartPointer.h>
 #include <vtkTextProperty.h>
+#include <vtkPropPicker.h>
 
 // Interactor Style to be used with Slice Views
 class vtkInteractorStyleEspinaSlice
@@ -388,6 +389,12 @@ vtkPVSliceView::vtkPVSliceView()
   SlicingPlane = AXIAL;
   State = AxialState::instance();
 
+  ChannelPicker = vtkSmartPointer<vtkPropPicker>::New();
+  ChannelPicker->PickFromListOn();
+
+  SegmentationPicker = vtkSmartPointer<vtkPropPicker>::New();
+  SegmentationPicker->PickFromListOn();
+
   //     qDebug() << "vtkPVSliceView("<< this << "): Created";
 }
 
@@ -566,6 +573,18 @@ vtkRenderer* vtkPVSliceView::GetOverviewRenderer()
 }
 
 //----------------------------------------------------------------------------
+vtkPropPicker* vtkPVSliceView::GetChannelPicker()
+{
+  return ChannelPicker.GetPointer();
+}
+
+//----------------------------------------------------------------------------
+vtkPropPicker* vtkPVSliceView::GetSegmentationPicker()
+{
+  return SegmentationPicker.GetPointer();
+}
+
+//----------------------------------------------------------------------------
 void vtkPVSliceView::AddActor(SliceActor *actor)
 {
   //   qDebug() << "Add Actor";
@@ -611,6 +630,12 @@ void vtkPVSliceView::RemoveActor(SliceActor *actor)
 //----------------------------------------------------------------------------
 void vtkPVSliceView::AddChannel(SliceActor* actor)
 {
+  bool in_cave_mode = this->SynchronizedWindows->GetIsInCave();
+  // Decide if we are doing remote rendering or local rendering.
+  bool using_distributed_rendering = in_cave_mode || this->GetUseDistributedRendering();
+  if ( this->GetLocalProcessDoesRendering (using_distributed_rendering))
+    ChannelPicker->AddPickList(actor->prop);
+
   AddActor(actor);
   Channels.append(actor);
 }
@@ -619,6 +644,12 @@ void vtkPVSliceView::AddChannel(SliceActor* actor)
 void vtkPVSliceView::AddSegmentation(vtkPVSliceView::SliceActor* actor)
 {
   //   qDebug() << "Add Segmentation";
+  bool in_cave_mode = this->SynchronizedWindows->GetIsInCave();
+  // Decide if we are doing remote rendering or local rendering.
+  bool using_distributed_rendering = in_cave_mode || this->GetUseDistributedRendering();
+  if ( this->GetLocalProcessDoesRendering (using_distributed_rendering))
+    SegmentationPicker->AddPickList(actor->prop);
+
   AddActor(actor);
   actor->prop->SetVisibility(ShowSegmentations);
   double pos[3];

@@ -115,7 +115,7 @@ void DataView::updateSelection(QModelIndex index)
     {
       tableView->blockSignals(true);
       Segmentation *seg = dynamic_cast<Segmentation *>(item);
-      if (seg->selected())
+      if (seg->isSelected())
       {
 	int row = index.row();
 // 	tableView->selectionModel()->select(index.sibling(row,0), QItemSelectionModel::SelectCurrent);

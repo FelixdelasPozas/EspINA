@@ -463,7 +463,7 @@ void SegmentationExplorer::updateSelection(QModelIndex index)
     {
       m_gui->view->blockSignals(true);
       Segmentation *seg = dynamic_cast<Segmentation *>(item);
-      if (seg->selected())
+      if (seg->isSelected())
 	m_gui->view->selectionModel()->setCurrentIndex(index, QItemSelectionModel::Select);
       else
 	m_gui->view->selectionModel()->select(index, QItemSelectionModel::Deselect);

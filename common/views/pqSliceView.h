@@ -23,6 +23,7 @@
 #include <pqRenderViewBase.h>
 #include "vtkPVSliceView.h"
 
+class vtkPropPicker;
 class vtkSMSliceViewProxy;
 /// pqRenderViewBase specialization used for espina
 class PQCORE_EXPORT pqSliceView : public pqRenderViewBase
@@ -86,6 +87,9 @@ public:
     void setSlicingPlane ( vtkPVSliceView::VIEW_PLANE plane );
 
     virtual vtkSMSliceViewProxy *getRenderViewProxy() const;
+
+    virtual vtkPropPicker *channelPicker() const;
+    virtual vtkPropPicker *segmentationPicker() const;
 
 public slots:
     /// Set/Get the position in the slicing plane's normal direction in

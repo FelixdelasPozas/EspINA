@@ -658,6 +658,9 @@ QModelIndex EspinaModel::index(ModelItem* item) const
       break;
     case ModelItem::SEGMENTATION:
       res = segmentationIndex(dynamic_cast<Segmentation *>(item));
+      break;
+    default:
+      Q_ASSERT(false);
   }
   return res;
 }

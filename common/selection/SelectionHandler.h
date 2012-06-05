@@ -47,6 +47,7 @@ public:
   /// WARNING: Special EspINA_Sample is used to refer to the sample itself
   static  const QString                 EspINA_Channel;
   static  const QString                 EspINA_Segmentation;
+  static  const QString                 EspINA_Representation;
 
   typedef QStringList                   SelectionFilters;
   typedef QList<QPolygon>               ViewRegions;

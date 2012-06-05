@@ -31,6 +31,7 @@
 
 vtkStandardNewMacro ( vtkSMSliceViewProxy );
 
+//-----------------------------------------------------------------------------
 vtkSMRepresentationProxy* vtkSMSliceViewProxy::CreateDefaultRepresentation ( vtkSMProxy* source, int port )
 {
     qDebug() << "vtkSMSliceViewProxy: Cretating default representation for" << source;
@@ -49,6 +50,7 @@ vtkSMRepresentationProxy* vtkSMSliceViewProxy::CreateDefaultRepresentation ( vtk
     return repr;
 }
 
+//-----------------------------------------------------------------------------
 vtkRenderer* vtkSMSliceViewProxy::GetOverviewRenderer()
 {
   this->CreateVTKObjects();
@@ -57,3 +59,18 @@ vtkRenderer* vtkSMSliceViewProxy::GetOverviewRenderer()
   return rv? rv->GetOverviewRenderer() : NULL;
 }
 
+//-----------------------------------------------------------------------------
+vtkPropPicker* vtkSMSliceViewProxy::GetChannelPicker()
+{
+  vtkPVSliceView* rv = vtkPVSliceView::SafeDownCast(
+    this->GetClientSideObject());
+  return rv? rv->GetChannelPicker() : NULL;
+}
+
+//-----------------------------------------------------------------------------
+vtkPropPicker* vtkSMSliceViewProxy::GetSegmentationPicker()
+{
+  vtkPVSliceView* rv = vtkPVSliceView::SafeDownCast(
+    this->GetClientSideObject());
+  return rv? rv->GetSegmentationPicker() : NULL;
+}

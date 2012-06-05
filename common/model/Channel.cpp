@@ -53,6 +53,7 @@ Channel::Channel(const QString file, pqData data)
   memset(m_pos, 0, 3*sizeof(double));
   m_args[ID] = Argument(file);
   m_args.setColor(-1.0);
+  m_isSelected = false;
 
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   pqFilter::Arguments infoArgs;

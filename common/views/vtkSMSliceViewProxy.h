@@ -22,6 +22,7 @@
 
 #include <vtkSMRenderViewProxy.h>
 
+class vtkPropPicker;
 
 class vtkSMSliceViewProxy : public vtkSMRenderViewProxy
 {
@@ -33,6 +34,9 @@ public:
     // Description:
     // Returns the client-side renderer (composited or 3D).
     vtkRenderer* GetOverviewRenderer();
+
+    vtkPropPicker *GetChannelPicker();
+    vtkPropPicker *GetSegmentationPicker();
 };
 
 #endif // VTKSMSLICEVIEWPROXY_H

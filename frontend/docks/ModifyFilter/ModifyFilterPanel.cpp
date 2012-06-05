@@ -53,7 +53,7 @@ void ModifyFilterPanel::showOriginFilter(QModelIndex index)
 
     if (seg == m_currentSeg)
       return;
-    else if (seg->selected())
+    else if (seg->isSelected())
     {
       ModelItem::Vector filters = item->relatedItems(ModelItem::IN, "CreateSegmentation");
       if (filters.size() > 0)

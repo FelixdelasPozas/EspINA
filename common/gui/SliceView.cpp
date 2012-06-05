@@ -285,7 +285,6 @@ SelectionHandler::MultiSelection SliceView::select(
   Q_ASSERT(view);
   vtkRenderer *renderer = view->GetRenderer();
   Q_ASSERT(renderer);
-  vtkPropPicker *propPicker = vtkPropPicker::New();
 
 //   qDebug() << "EspINA::SliceView" << m_plane << ": Making selection";
   // Select all products that belongs to all the regions
@@ -301,32 +300,34 @@ SelectionHandler::MultiSelection SliceView::select(
 //     qDebug() << "Analyze Region:";
     foreach(QPointF p, region)
     {
-//       qDebug() << "\tPick at:" << p;
-      if (propPicker->Pick(p.x(), p.y(), 0.1, renderer))
+      foreach(QString filter, filters)
       {
-// 	qDebug() << "\t\tObject Found";
-	foreach(QString filter, filters)
+	// 	  qDebug() << "\t\tLooking for" << filter;
+	if (filter == SelectionHandler::EspINA_Channel)
 	{
-// 	  qDebug() << "\t\tLooking for" << filter;
-	  if (filter == SelectionHandler::EspINA_Channel)
+	  foreach(Channel *channel, pickChannels(p.x(), p.y(), renderer, multiSelection))
 	  {
-	    foreach(Channel *channel, pickChannels(propPicker, multiSelection))
-	    {
-	      SelectionHandler::Selelection selection(vtkRegion,channel);
-	      msel.append(selection);
-	    }
+	    SelectionHandler::Selelection selection(vtkRegion,channel);
+	    msel.append(selection);
 	  }
-	  else if (filter == SelectionHandler::EspINA_Segmentation)
+	}
+	else if (filter == SelectionHandler::EspINA_Segmentation)
+	{
+	  foreach(Segmentation *seg, pickSegmentations(p.x(), p.y(), renderer, multiSelection))
 	  {
-	    foreach(Segmentation *seg, pickSegmentations(propPicker, multiSelection))
-	    {
-	      SelectionHandler::Selelection selection(vtkRegion, seg);
-	      msel.append(selection);
-	    }
-	  }else
-	  {
-	    Q_ASSERT(false);
+	    SelectionHandler::Selelection selection(vtkRegion, seg);
+	    msel.append(selection);
 	  }
+// 	} else if (filter == SelectionHandler::EspINA_Representation)
+// 	{
+// 	  foreach(Representation *rep, pickRepresentation(propPicker, multiSelection))
+// 	  {
+// 	    SelectionHandler::Selelection selection(vtkRegion, rep);
+// 	    msel.append(selection);
+// 	  }
+	}else
+	{
+	  Q_ASSERT(false);
 	}
       }
     }
@@ -544,24 +545,31 @@ void SliceView::centerViewOnMousePosition()
 }
 
 //-----------------------------------------------------------------------------
-QList<Channel *> SliceView::pickChannels(vtkPropPicker* picker, bool repeatable)
+QList<Channel *> SliceView::pickChannels(double vx, double vy,
+					 vtkRenderer* renderer,
+					 bool repeatable)
 {
-  vtkProp3D *pickedProp = picker->GetProp3D();
-  vtkObjectBase *object;
-  vtkSliceRepresentation *rep;
-
   QList<Channel *> channels;
-  foreach(Channel *channel, m_channels.keys())
+
+  vtkPropPicker *picker = m_view->channelPicker();
+  if (picker->Pick(vx, vy, 0.1, renderer))
   {
-    object = m_channels[channel].proxy->GetClientSideObject();
-    rep = dynamic_cast<vtkSliceRepresentation *>(object);
-    Q_ASSERT(rep);
-    if (rep->GetSliceProp() == pickedProp)
+    vtkProp3D *pickedProp = picker->GetProp3D();
+    vtkObjectBase *object;
+    vtkSliceRepresentation *rep;
+
+    foreach(Channel *channel, m_channels.keys())
     {
-//       qDebug() << "Channel" << channel->data(Qt::DisplayRole).toString() << "Selected";
-      channels << channel;
-      if (!repeatable)
-	return channels;
+      object = m_channels[channel].proxy->GetClientSideObject();
+      rep = dynamic_cast<vtkSliceRepresentation *>(object);
+      Q_ASSERT(rep);
+      if (rep->GetSliceProp() == pickedProp)
+      {
+// 	qDebug() << "Channel" << channel->data(Qt::DisplayRole).toString() << "Selected";
+	channels << channel;
+	if (!repeatable)
+	  return channels;
+      }
     }
   }
 
@@ -570,24 +578,31 @@ QList<Channel *> SliceView::pickChannels(vtkPropPicker* picker, bool repeatable)
 
 
 //-----------------------------------------------------------------------------
-QList< Segmentation* > SliceView::pickSegmentations(vtkPropPicker* picker, bool repeatable)
+QList<Segmentation *> SliceView::pickSegmentations(double vx, double vy,
+						    vtkRenderer* renderer,
+						    bool repeatable)
 {
-  vtkProp3D *pickedProp = picker->GetProp3D();
-  vtkObjectBase *object;
-  vtkSliceRepresentation *rep;
-
   QList<Segmentation *> segmentations;
-  foreach(Segmentation *seg, m_segmentations.keys())
+
+  vtkPropPicker *picker = m_view->segmentationPicker();
+  if (picker->Pick(vx, vy, 0.1, renderer))
   {
-    object = m_segmentations[seg].proxy->GetClientSideObject();
-    rep = dynamic_cast<vtkSliceRepresentation *>(object);
-    Q_ASSERT(rep);
-    if (rep->GetSliceProp() == pickedProp)
+    vtkProp3D *pickedProp = picker->GetProp3D();
+    vtkObjectBase *object;
+    vtkSliceRepresentation *rep;
+
+    foreach(Segmentation *seg, m_segmentations.keys())
     {
-//       qDebug() << "Segmentation" << seg->data(Qt::DisplayRole).toString() << "Selected";
-      segmentations << seg;
-      if (!repeatable)
-	return segmentations;
+      object = m_segmentations[seg].proxy->GetClientSideObject();
+      rep = dynamic_cast<vtkSliceRepresentation *>(object);
+      Q_ASSERT(rep);
+      if (rep->GetSliceProp() == pickedProp)
+      {
+// 	qDebug() << "Segmentation" << seg->data(Qt::DisplayRole).toString() << "Selected";
+	segmentations << seg;
+	if (!repeatable)
+	  return segmentations;
+      }
     }
   }
 
@@ -604,26 +619,30 @@ void SliceView::selectPickedItems(bool append)
   vtkRenderer *renderer = view->GetRenderer();
   Q_ASSERT(renderer);
 
-  int x, y;
-  eventPosition(x, y);
+  int vx, vy;
+  eventPosition(vx, vy);
 
-  vtkPropPicker *propPicker = vtkPropPicker::New();
-  if (propPicker->Pick(x, y, 0.1, renderer))
+  bool segPicked = false;
+  // If no append, segmentations have priority over channels
+  foreach(Segmentation *seg, pickSegmentations(vx, vy, renderer, append))
   {
-    foreach(Channel *channel, pickChannels(propPicker, append))
-    {
-      emit channelSelected(channel);
-      if (!append)
-	return;
-    }
-
-    foreach(Segmentation *seg, pickSegmentations(propPicker, append))
-    {
-      emit segmentationSelected(seg, append);
-      if (!append)
-	return;
-    }
+    segPicked = true;
+    emit segmentationSelected(seg, append);
+    if (!append)
+      return;
   }
+
+  // Heterogeneus picking is not supported
+  if (segPicked)
+    return;
+
+  foreach(Channel *channel, pickChannels(vx, vy, renderer, append))
+  {
+    emit channelSelected(channel);
+    if (!append)
+      return;
+  }
+
 }
 
 //-----------------------------------------------------------------------------
@@ -742,7 +761,7 @@ void SliceView::removeChannelRepresentation(Channel* channel)
 bool SliceView::updateChannelRepresentation(Channel* channel)
 {
   Q_ASSERT(m_channels.contains(channel));
-  Representation &rep = m_channels[channel];
+  RepInfo &rep = m_channels[channel];
 
   double pos[3];
   channel->position(pos);
@@ -779,7 +798,7 @@ void SliceView::addSegmentationRepresentation(Segmentation* seg)
   Q_ASSERT(reprProxy);
   m_segmentations[seg].outport  = oport;
   m_segmentations[seg].proxy    = reprProxy;
-  m_segmentations[seg].selected = !seg->selected();
+  m_segmentations[seg].selected = !seg->isSelected();
   m_segmentations[seg].visible  = seg->visible();
   m_segmentations[seg].color  = m_colorEngine->color(seg);
 
@@ -801,7 +820,7 @@ void SliceView::removeSegmentationRepresentation(Segmentation* seg)
 {
   vtkSMProxy* viewModuleProxy = m_view->getProxy();
   Q_ASSERT(m_segmentations.contains(seg));
-  Representation rep = m_segmentations[seg];
+  RepInfo rep = m_segmentations[seg];
   // Remove the reprProxy to render module.
   pqSMAdaptor::removeProxyProperty(
     viewModuleProxy->GetProperty("Representations"), rep.proxy);
@@ -844,15 +863,19 @@ void SliceView::addRepresentation(pqOutputPort* oport, QColor color)
 void SliceView::removeRepresentation(pqOutputPort* oport)
 {
   vtkSMProxy* viewModuleProxy = m_view->getProxy();
-  Q_ASSERT(m_representations.contains(oport));
-  Representation rep = m_representations[oport];
+
+  if (!m_representations.contains(oport))
+    return;
+  //Q_ASSERT(m_representations.contains(rep));
+
+  RepInfo sliceRep = m_representations[oport];
   // Remove the reprProxy to render module.
   pqSMAdaptor::removeProxyProperty(
-    viewModuleProxy->GetProperty("Representations"), rep.proxy);
+    viewModuleProxy->GetProperty("Representations"), sliceRep.proxy);
   viewModuleProxy->UpdateVTKObjects();
   m_view->getProxy()->UpdateVTKObjects();
 
-  rep.proxy->Delete();
+  sliceRep.proxy->Delete();
   m_representations.remove(oport);
 }
 
@@ -860,7 +883,7 @@ void SliceView::removeRepresentation(pqOutputPort* oport)
 bool SliceView::updateSegmentationRepresentation(Segmentation* seg)
 {
   Q_ASSERT(m_segmentations.contains(seg));
-  Representation &rep = m_segmentations[seg];
+  RepInfo &rep = m_segmentations[seg];
   if (seg->outputPort() != rep.outport)
   {
     //remove representation using previous proxy
@@ -869,11 +892,11 @@ bool SliceView::updateSegmentationRepresentation(Segmentation* seg)
     addSegmentationRepresentation(seg);
     return true;
   }
-  if (seg->selected() != rep.selected
+  if (seg->isSelected() != rep.selected
     || seg->visible() != rep.visible
     || seg->data(Qt::DecorationRole).value<QColor>() != rep.color)
   {
-    rep.selected = seg->selected();
+    rep.selected = seg->isSelected();
     rep.visible  = seg->visible();
     rep.color = seg->data(Qt::DecorationRole).value<QColor>();
     //   repProxy->PrintSelf(std::cout,vtkIndent(0));
@@ -904,12 +927,12 @@ void SliceView::removePreview(Filter* filter)
 //-----------------------------------------------------------------------------
 void SliceView::addPreview(pqOutputPort* preview)
 {
-    addRepresentation(preview, QColor(255,0,0));
+//   addRepresentation(preview, QColor(255,0,0));
 }
 
 void SliceView::removePreview(pqOutputPort* preview)
 {
-  removeRepresentation(preview);
+//   removeRepresentation(preview);
 }
 
 //-----------------------------------------------------------------------------

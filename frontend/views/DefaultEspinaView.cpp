@@ -570,7 +570,7 @@ void DefaultEspinaView::updateSelection(QModelIndex index)
     {
       blockSignals(true);
       Segmentation *seg = dynamic_cast<Segmentation *>(item);
-      if (seg->selected())
+      if (seg->isSelected())
 	selectionModel()->setCurrentIndex(index, QItemSelectionModel::Select);
       else
 	selectionModel()->select(index, QItemSelectionModel::Deselect);

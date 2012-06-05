@@ -26,6 +26,7 @@
 #include <QList>
 #include <QMap>
 
+class vtkPropPicker;
 class vtkLookupTable;
 class vtkImageResliceToColors;
 // Forward-declarations
@@ -71,7 +72,9 @@ public:
     virtual void AddRepresentationInternal(vtkDataRepresentation* rep);
     virtual void RemoveRepresentationInternal(vtkDataRepresentation* rep);
 
-    vtkRenderer *GetOverviewRenderer();
+    vtkRenderer   *GetOverviewRenderer();
+    vtkPropPicker *GetChannelPicker();
+    vtkPropPicker *GetSegmentationPicker();
 
     // We need to reimplement the initilize method to overwrite
     // paraview's xml's default parameters
@@ -179,6 +182,9 @@ private:
     QMap<vtkDataRepresentation *, SliceActor *> m_reps;
     SliceActor        * m_pendingActor;
     QList<SliceActor *> m_actors;
+
+    vtkSmartPointer<vtkPropPicker>  ChannelPicker;
+    vtkSmartPointer<vtkPropPicker>  SegmentationPicker;
 //ETX
 };
 #endif // VTKPVSLICEVIEW_H

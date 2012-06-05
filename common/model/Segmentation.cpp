@@ -61,9 +61,9 @@ Segmentation::Segmentation(Filter* filter, int output, pqData data)
 , m_data   (data)
 , m_taxonomy    (NULL)
 , m_extInitialized(false)
-, m_isSelected(false)
 , m_isVisible(true)
 {
+  m_isSelected = false;
   memset(m_bounds, 0, 6*sizeof(double));
   m_bounds[1] = -1;
   m_args.setNumber(0);
@@ -231,11 +231,6 @@ void Segmentation::bounds(double val[3])
     info->GetBounds(m_bounds);
   }
   memcpy(val,m_bounds,6*sizeof(double));
-}
-//------------------------------------------------------------------------
-void Segmentation::setSelected(bool selected)
-{
-  m_isSelected = selected;
 }
 
 //------------------------------------------------------------------------
