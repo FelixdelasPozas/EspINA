@@ -148,8 +148,8 @@ QVariant Segmentation::data(int role) const
 // // //       }
 // //       return myFont;
 // //     }
-    case Qt::UserRole:
-      return this;
+    case Qt::UserRole + 1:
+      return number();
     default:
       return QVariant();
   }

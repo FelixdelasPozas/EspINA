@@ -74,6 +74,18 @@ protected:
   QSharedPointer<EspinaModel> m_model;
 };
 
+bool sortSegmentationLessThan(ModelItem *left, ModelItem *right)
+{
+  Segmentation *leftSeg = dynamic_cast<Segmentation *>(left);
+  Segmentation *rightSeg = dynamic_cast<Segmentation *>(right);
+
+  if (leftSeg->number() == rightSeg->number())
+    return left->data(Qt::ToolTipRole).toString() <
+           right->data(Qt::ToolTipRole).toString();
+  else
+    return leftSeg->number() < rightSeg->number();
+}
+
 //------------------------------------------------------------------------
 class SampleLayout : public SegmentationExplorer::Layout
 {
@@ -86,7 +98,7 @@ class SampleLayout : public SegmentationExplorer::Layout
       ModelItem *rightItem = indexPtr(right);
       if (leftItem->type() == rightItem->type())
 	if (ModelItem::SEGMENTATION == leftItem->type())
-	  return leftItem->data(Qt::ToolTipRole).toString() < rightItem->data(Qt::ToolTipRole).toString();
+	  return sortSegmentationLessThan(leftItem, rightItem);
 	else
 	  return leftItem->data(Qt::DisplayRole).toString() < rightItem->data(Qt::DisplayRole).toString();
       else
@@ -218,7 +230,7 @@ class TaxonomyLayout : public SegmentationExplorer::Layout
       ModelItem *rightItem = indexPtr(right);
       if (leftItem->type() == rightItem->type())
 	if (ModelItem::SEGMENTATION == leftItem->type())
-	  return leftItem->data(Qt::ToolTipRole).toString() < rightItem->data(Qt::ToolTipRole).toString();
+	  return sortSegmentationLessThan(leftItem, rightItem);
 	else
 	  return leftItem->data(Qt::DisplayRole).toString() < rightItem->data(Qt::DisplayRole).toString();
       else
