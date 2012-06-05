@@ -172,7 +172,7 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
 {
   if (msel.size() > 0)
   {
-    qDebug() << "Start Segmentation";
+//     qDebug() << "Start Segmentation";
     Q_ASSERT(msel.size() == 1);// Only one element selected
     SelectionHandler::Selelection element = msel.first();
 
@@ -207,7 +207,7 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
       channel->spacing(spacing);
       for (int i=0; i<6; i++)
 	VOI[i] = bounds[i] / spacing[i/2];
-//       qDebug() << VOI[0] << VOI[1] << VOI[2] << VOI[3] << VOI[4] << VOI[5];
+      qDebug() << VOI[0] << VOI[1] << VOI[2] << VOI[3] << VOI[4] << VOI[5];
     }
     else if (m_useDefaultVOI->useDefaultVOI())
     {

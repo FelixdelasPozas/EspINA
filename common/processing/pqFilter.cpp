@@ -49,7 +49,7 @@ pqFilter::~pqFilter()
    pqApplicationCore *core = pqApplicationCore::instance();
    pqObjectBuilder *ob = core->getObjectBuilder();
 
-   qDebug() << m_id << "has" << m_source->getNumberOfConsumers() << "consumers";
+//    qDebug() << m_id << "has" << m_source->getNumberOfConsumers() << "consumers";
    ob->destroy(m_source);
 }
 

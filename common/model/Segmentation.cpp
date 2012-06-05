@@ -123,15 +123,19 @@ QVariant Segmentation::data(int role) const
     case Qt::ToolTipRole:
       return QString(
 	"<b>Name:</b> %1<br>"
-// 	"<b>Taxonomy:</b> %2<br>"
-// 	"<b>Sample:</b> %3<br>"
+	"<b>Taxonomy:</b> %2<br>"
+	"<b>Filter:</b> %3<br>"
+	"<b>Users:</b><br>"
+        "%4<br>"
+	"<b>Id:</b> %5<br>"
 // 	"<b>Created by:</b><br>"
 // 	"%4"
       )
       .arg(data(Qt::DisplayRole).toString())
-//       .arg(m_taxonomy->qualifiedName())
-//       .arg(origin()->label())
-//       .arg(m_parent->getFilterArguments())
+      .arg(m_taxonomy->qualifiedName())
+      .arg(filter()->data(Qt::DisplayRole).toString())
+      .arg(m_args[USERS])
+      .arg(id())
       ;
     case Qt::CheckStateRole:
       return visible()?Qt::Checked:Qt::Unchecked;
@@ -144,6 +148,8 @@ QVariant Segmentation::data(int role) const
 // // //       }
 // //       return myFont;
 // //     }
+    case Qt::UserRole:
+      return this;
     default:
       return QVariant();
   }

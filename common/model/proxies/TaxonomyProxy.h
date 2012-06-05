@@ -68,7 +68,7 @@ signals:
 
 protected:
   bool indices(const QModelIndex& topLeft, const QModelIndex& bottomRight, QModelIndexList& result);
-  Segmentation *findSegmentation(QString name);
+  Segmentation *findSegmentation(QString tooltip);
   QModelIndexList sourceIndices(const QModelIndex& parent, int start, int end) const;
   QModelIndexList proxyIndices(const QModelIndex& parent, int start, int end) const;
   void removeTaxonomy(TaxonomyNode *taxonomy);

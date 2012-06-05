@@ -4,8 +4,8 @@ cmake_minimum_required (VERSION 2.8)
 
 # Version Number
 set (ESPINA_VERSION_MAJOR 1)
-set (ESPINA_VERSION_MINOR 0)
-set (ESPINA_VERSION_PATCH 99)
+set (ESPINA_VERSION_MINOR 1)
+set (ESPINA_VERSION_PATCH 0)
 
 find_package (ParaView REQUIRED 1.14) # Includes Qt4
 include (${PARAVIEW_USE_FILE})

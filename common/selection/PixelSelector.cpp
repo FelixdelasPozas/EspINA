@@ -35,13 +35,13 @@ void PixelSelector::onMouseDown(const QPoint &pos, SelectableView* view)
 void PixelSelector::onMouseMove(const QPoint &pos, SelectableView* view)
 {
   //Do nothing
-  qDebug() << "EspINA::PixelSelector: Mouse Moving: " << pos.x() << pos.y();
+  //qDebug() << "EspINA::PixelSelector: Mouse Moving: " << pos.x() << pos.y();
 }
 
 //-----------------------------------------------------------------------------
 void PixelSelector::onMouseUp(const QPoint &pos, SelectableView* view)
 {
-  qDebug() << "EspINA::PixelSelector: Mouse released";
+  //qDebug() << "EspINA::PixelSelector: Mouse released";
 }
 
 //-----------------------------------------------------------------------------
@@ -142,8 +142,8 @@ void BestPixelSelector::onMouseDown(const QPoint& pos, SelectableView* view)
     }
   }
 
-  qDebug() << "EspINA::BestPixelSelector: Best Pixel(" << bestPixel.x() << "," << bestPixel.y()
-  << ") value :" << bestValue;
+  //qDebug() << "EspINA::BestPixelSelector: Best Pixel(" << bestPixel.x() << "," << bestPixel.y()
+  //<< ") value :" << bestValue;
 
   img->Delete();
 
@@ -151,7 +151,7 @@ void BestPixelSelector::onMouseDown(const QPoint& pos, SelectableView* view)
   QPolygon singlePixel;
   singlePixel << bestPixel;
   regions << singlePixel;
-  
+
   MultiSelection msel = view->select(m_filters, regions);
 
   emit selectionChanged(msel);

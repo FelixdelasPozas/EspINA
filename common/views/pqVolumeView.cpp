@@ -62,7 +62,7 @@ pqVolumeView::pqVolumeView (
     QObject* _parent ) :
         Superclass ( espinaRenderViewType(), group, name, viewProxy, server, _parent )
 {
-    qDebug() << this << ": Created";
+//     qDebug() << this << ": Created";
     this->InitializedWidgets = false;
 }
 
@@ -77,7 +77,7 @@ pqVolumeView::pqVolumeView (
     QObject* p )
         : Superclass ( espinaRenderViewType(), group, name, viewmodule, server, p )
 {
-    qDebug() << "pqVolumeView(" << this << ") : Created";
+//     qDebug() << "pqVolumeView(" << this << ") : Created";
     this->InitializedWidgets = false;
 }
 

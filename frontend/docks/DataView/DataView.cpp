@@ -39,6 +39,7 @@ DataView::DataView(QWidget* parent, Qt::WindowFlags f)
   m_model->setSourceModel(model);
   m_sort->setSourceModel(m_model.data());
   m_sort->setDynamicSortFilter(true);
+  m_sort->setSortRole(Qt::ToolTipRole);
 
 #ifdef DEBUG
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model.data()));

@@ -145,7 +145,7 @@ void DefaultEspinaView::createViewMenu(QMenu* menu)
 //----------------------------------------------------------------------------
 void DefaultEspinaView::restoreLayout()
 {
-  qDebug() << "Restore " << m_activity << volDock->objectName();
+//   qDebug() << "Restore " << m_activity << volDock->objectName();
   QSettings settings("CeSViMa", "EspINA");
 
   m_window->restoreState(settings.value(m_activity+"/state").toByteArray());
@@ -162,7 +162,7 @@ QSize DefaultEspinaView::sizeHint() const
 //----------------------------------------------------------------------------
 void DefaultEspinaView::saveLayout()
 {
-  qDebug() << "Save " << m_activity << volDock->objectName();
+//   qDebug() << "Save " << m_activity << volDock->objectName();
   QSettings settings("CeSViMa", "EspINA");
 
   settings.setValue(m_activity+"/state", m_window->saveState());
@@ -172,12 +172,12 @@ void DefaultEspinaView::saveLayout()
 //----------------------------------------------------------------------------
 void DefaultEspinaView::forceRender()
 {
-  QApplication::setOverrideCursor(Qt::WaitCursor);
+  //QApplication::setOverrideCursor(Qt::WaitCursor);
   xyView->forceRender();
   yzView->forceRender();
   xzView->forceRender();
   volView->forceRender();
-  QApplication::restoreOverrideCursor();
+  //QApplication::restoreOverrideCursor();
 }
 
 //----------------------------------------------------------------------------
@@ -431,7 +431,7 @@ void DefaultEspinaView::rowsAboutToBeRemoved(const QModelIndex& parent, int star
     return;
   QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
 
-  qDebug() << parent.data(Qt::DisplayRole).toString();
+//   qDebug() << parent.data(Qt::DisplayRole).toString();
   for(int child = start; child <= end; child++)
   {
     QModelIndex index = parent.child(child, 0);

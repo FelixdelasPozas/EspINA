@@ -306,7 +306,7 @@ bool TaxonomyProxy::dropMimeData(const QMimeData *data, Qt::DropAction action, i
     QMap<int,  QVariant> roleDataMap;
     stream >> row >> col >> roleDataMap;
 
-    QString segName = roleDataMap[Qt::DisplayRole].toString();
+    QString segName = roleDataMap[Qt::ToolTipRole].toString();
     Segmentation *seg = findSegmentation(segName);
     Q_ASSERT(seg);
     m_model->changeTaxonomy(seg, selectedTaxonomy);
@@ -586,11 +586,11 @@ bool TaxonomyProxy::indices(const QModelIndex& topLeft, const QModelIndex& botto
 }
 
 //------------------------------------------------------------------------
-Segmentation* TaxonomyProxy::findSegmentation(QString name)
+Segmentation* TaxonomyProxy::findSegmentation(QString tooltip)
 {
   foreach (TaxonomyNode *tax, m_segmentations.keys())
     foreach(ModelItem *seg, m_segmentations[tax])
-      if (seg->data(Qt::DisplayRole) == name)
+      if (seg->data(Qt::ToolTipRole) == tooltip)
 	return dynamic_cast<Segmentation *>(seg);
 
   return NULL;

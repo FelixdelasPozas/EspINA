@@ -52,7 +52,6 @@ EspinaModel::~EspinaModel()
 //------------------------------------------------------------------------
 void EspinaModel::reset()
 {
-  setTaxonomy(NULL);
   if (!m_segmentations.isEmpty())
   {
     beginRemoveRows(segmentationRoot(),0,m_segmentations.size()-1);
@@ -77,6 +76,7 @@ void EspinaModel::reset()
     m_samples.clear();
     endRemoveRows();
   }
+  setTaxonomy(NULL);
   m_relations->clear();//NOTE: Should we remove every item in the previous blocks?
   m_lastId = 0;
 }

@@ -64,7 +64,7 @@ pqSliceView::pqSliceView (
         Superclass ( espinaRenderViewType(), group, name, viewProxy, server, _parent )
         , SlicingPlane ( vtkPVSliceView::AXIAL )
 {
-    qDebug() << this << ": Created";
+//     qDebug() << this << ": Created";
     this->InitializedWidgets = false;
 }
 
@@ -80,7 +80,7 @@ pqSliceView::pqSliceView (
         : Superclass ( espinaRenderViewType(), group, name, viewmodule, server, p )
         , SlicingPlane ( vtkPVSliceView::AXIAL )
 {
-    qDebug() << "pqSliceView(" << this << ") : Created";
+//     qDebug() << "pqSliceView(" << this << ") : Created";
     this->InitializedWidgets = false;
 }
 

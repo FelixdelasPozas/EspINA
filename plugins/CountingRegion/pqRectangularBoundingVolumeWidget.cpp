@@ -185,7 +185,7 @@ void pqRectangularBoundingVolumeWidget::onWidgetVisibilityChanged(bool visible)
 //-----------------------------------------------------------------------------
 void pqRectangularBoundingVolumeWidget::accept()
 {
-  std::cout << "Accept Changes"  << std::endl;
+  //std::cout << "Accept Changes"  << std::endl;
   updateControlledFilter();
 //   vtkPolyDataAlgorithm *region = vtkPolyDataAlgorithm::SafeDownCast(getControlledProxy()->GetClientSideObject());
 //   if (region)

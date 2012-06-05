@@ -41,7 +41,7 @@ qt4_wrap_cpp(MOC_SRCS
 
 # Create Interface files
 qt4_wrap_ui (UI_BUILT_SOURCES
-  SeedGrowSegmentationFilterSetup.ui
+  SetupWidget.ui
   SettingsPanel.ui
   )
 

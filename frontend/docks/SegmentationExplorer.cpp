@@ -85,7 +85,10 @@ class SampleLayout : public SegmentationExplorer::Layout
       ModelItem *leftItem = indexPtr(left);
       ModelItem *rightItem = indexPtr(right);
       if (leftItem->type() == rightItem->type())
-	return leftItem->data(Qt::DisplayRole).toString() < rightItem->data(Qt::DisplayRole).toString();
+	if (ModelItem::SEGMENTATION == leftItem->type())
+	  return leftItem->data(Qt::ToolTipRole).toString() < rightItem->data(Qt::ToolTipRole).toString();
+	else
+	  return leftItem->data(Qt::DisplayRole).toString() < rightItem->data(Qt::DisplayRole).toString();
       else
 	return leftItem->type() == ModelItem::TAXONOMY;
     }
@@ -214,7 +217,10 @@ class TaxonomyLayout : public SegmentationExplorer::Layout
       ModelItem *leftItem = indexPtr(left);
       ModelItem *rightItem = indexPtr(right);
       if (leftItem->type() == rightItem->type())
-	return leftItem->data(Qt::DisplayRole).toString() < rightItem->data(Qt::DisplayRole).toString();
+	if (ModelItem::SEGMENTATION == leftItem->type())
+	  return leftItem->data(Qt::ToolTipRole).toString() < rightItem->data(Qt::ToolTipRole).toString();
+	else
+	  return leftItem->data(Qt::DisplayRole).toString() < rightItem->data(Qt::DisplayRole).toString();
       else
 	return leftItem->type() == ModelItem::TAXONOMY;
     }

@@ -21,6 +21,8 @@
 
 #include <EspinaCore.h>
 
+#include <QDebug>
+
 //----------------------------------------------------------------------------
 ModifyFilterPanel::ModifyFilterPanel(QWidget* parent)
 : EspinaDockWidget(parent)
@@ -48,7 +50,10 @@ void ModifyFilterPanel::showOriginFilter(QModelIndex index)
   {
     ModelItem *item = indexPtr(index);
     Segmentation *seg = dynamic_cast<Segmentation *>(item);
-    if (seg != m_currentSeg && seg->selected())
+
+    if (seg == m_currentSeg)
+      return;
+    else if (seg->selected())
     {
       ModelItem::Vector filters = item->relatedItems(ModelItem::IN, "CreateSegmentation");
       if (filters.size() > 0)
@@ -58,7 +63,9 @@ void ModifyFilterPanel::showOriginFilter(QModelIndex index)
 	setWidget(filter->createConfigurationWidget());
 	m_currentSeg = seg;
       }else{
+	qDebug("BYE");
 	setWidget(NULL);
+	m_currentSeg = NULL;
       }
     }
   }

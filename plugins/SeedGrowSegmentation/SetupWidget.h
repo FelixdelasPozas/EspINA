@@ -23,18 +23,24 @@
 #include <QWidget>
 
 #include "SeedGrowSegmentationFilter.h"
-#include "ui_SeedGrowSegmentationFilterSetup.h"
+#include "ui_SetupWidget.h"
+#include <common/views/vtkPVSliceView.h>
 
 
 class SeedGrowSegmentationFilter::SetupWidget
 : public QWidget
-, Ui_SeedGrowSegmentationFilterSetup
+, Ui::SetupWidget
 {
   Q_OBJECT
 public:
   explicit SetupWidget(Filter *filter);
+  virtual ~SetupWidget();
+
+  virtual bool eventFilter(QObject* sender, QEvent* e );
 
 protected slots:
+  void redefineFromVOI(double value, vtkPVSliceView::VIEW_PLANE plane);
+  void redefineToVOI(double value, vtkPVSliceView::VIEW_PLANE plane);
   void modifyFilter();
 
 private :

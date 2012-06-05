@@ -70,6 +70,8 @@ public:
 public slots:
   virtual void setShowSegmentations(bool visibility) = 0;
   virtual void setCenter(double x, double y, double z) = 0;
+  //TODO: use a stack-like method to support interactions between different
+  // components
   virtual void setSliceSelectors(SliceView::SliceSelectors selectors) = 0;
 
 signals:

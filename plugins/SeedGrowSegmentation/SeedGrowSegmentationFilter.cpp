@@ -270,6 +270,8 @@ void SeedGrowSegmentationFilter::run()
     m_seg = EspinaFactory::instance()->createSegmentation(this, 0, segFilter->data(0));
   else
     setSegmentationData(m_seg, segFilter->data(0));
+
+  emit modified(this);
 }
 
 
@@ -295,14 +297,24 @@ void SeedGrowSegmentationFilter::setThreshold(int th)
 
   m_args.setThreshold(th);
 
-  if (!grow)
-    run();
+// //   if (!grow)
+//     run();
+// 
+// //   Q_ASSERT(grow);
+// //   vtkSMPropertyHelper(grow->pipelineSource()->getProxy(),"Threshold").Set(&th, 1);
+// //   grow->pipelineSource()->getProxy()->UpdateVTKObjects();
+// // //   grow->pipelineSource()->updatePipeline();
+//   emit modified(this);
+}
 
-  Q_ASSERT(grow);
-  vtkSMPropertyHelper(grow->pipelineSource()->getProxy(),"Threshold").Set(&th, 1);
-  grow->pipelineSource()->getProxy()->UpdateVTKObjects();
-//   grow->pipelineSource()->updatePipeline();
-  emit modified(this);
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationFilter::setVOI(int VOI[6])
+{
+  m_args.setVOI(VOI);
+/*
+  run();
+
+  emit modified(this);*/
 }
 
 //-----------------------------------------------------------------------------
