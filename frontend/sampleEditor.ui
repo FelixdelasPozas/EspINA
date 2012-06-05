@@ -37,6 +37,9 @@
        <property name="suffix">
         <string>nm</string>
        </property>
+       <property name="maximum">
+        <double>99999.990000000005239</double>
+       </property>
       </widget>
      </item>
     </layout>
@@ -63,6 +66,9 @@
        </property>
        <property name="suffix">
         <string>nm</string>
+       </property>
+       <property name="maximum">
+        <double>99999.990000000005239</double>
        </property>
       </widget>
      </item>
@@ -91,6 +97,12 @@
        <property name="suffix">
         <string>nm</string>
        </property>
+       <property name="maximum">
+        <double>99999.990000000005239</double>
+       </property>
+       <property name="singleStep">
+        <double>1.000000000000000</double>
+       </property>
       </widget>
      </item>
     </layout>
@@ -114,12 +126,12 @@
       <widget class="QComboBox" name="m_unit">
        <item>
         <property name="text">
-         <string>nm</string>
+         <string>um</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>um</string>
+         <string>nm</string>
         </property>
        </item>
       </widget>

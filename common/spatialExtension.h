@@ -22,7 +22,7 @@ namespace SpatialExtension
     virtual pqPipelineSource *pipelineSource();
     
     void setSpacing(double x, double y, double z);
-    void spacing(double value[3]);
+    void spacing(double value[3]) const;
 
   public slots:
     virtual void requestUpdate(bool force = false){};

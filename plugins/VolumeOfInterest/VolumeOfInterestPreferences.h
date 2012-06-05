@@ -23,9 +23,9 @@
 #include <../frontend/IPreferencePanel.h>
 #include "ui_VOIPreferences.h"
 
-const QString DEFAULT_VOI_X("VolumeOfInterest::DafaultVOI::X");
-const QString DEFAULT_VOI_Y("VolumeOfInterest::DafaultVOI::Y");
-const QString DEFAULT_VOI_Z("VolumeOfInterest::DafaultVOI::Z");
+const QString DEFAULT_VOI_X("VolumeOfInterest::DefaultVOI::X");
+const QString DEFAULT_VOI_Y("VolumeOfInterest::DefaultVOI::Y");
+const QString DEFAULT_VOI_Z("VolumeOfInterest::DefaultVOI::Z");
 
 class VolumeOfInterestPreferences;
 

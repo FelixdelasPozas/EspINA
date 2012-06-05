@@ -1,11 +1,13 @@
-project (ESPINA_SEEDGROWSEGMENTATION_PLUGIN)
+project( SEED_GROW_SEGMENTATION_PLUGIN )
+
+# Version Number
+set (PLUGIN_VERSION_MAJOR 0)
+set (PLUGIN_VERSION_MINOR 1)
+set (PLUGIN_VERSION_PATCH 0)
 
 cmake_minimum_required (VERSION 2.6)
 
-find_package (Qt4 REQUIRED)
-include (${QT_USE_FILE})
-
-find_package (ParaView REQUIRED)
+find_package (ParaView REQUIRED 1.12) # Include Qt4
 include (${PARAVIEW_USE_FILE})
 
 find_package (VTK REQUIRED)
@@ -14,21 +16,11 @@ include (${VTK_USE_FILE})
 find_package (ITK REQUIRED)
 include (${ITK_USE_FILE})
 
-find_package (Cajal REQUIRED)
-include (${CAJAL_USE_FILE})
-
-find_package(Boost REQUIRED COMPONENTS  system filesystem graph)
-link_directories ( ${Boost_LIBRARY_DIRS} )
-
-
-
 include_directories(
-  ${CAJAL_INCLUDE_DIR}/filters
-  ${CMAKE_SOURCE_DIR}/common
+  ${CMAKE_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR} 
   ${ITK_VTK_GLUE}
-  ${Boost_INCLUDE_DIRS}
-  ${ITK_DIR}/../
+#   ${ITK_DIR}/../
   )
 
 
@@ -39,13 +31,18 @@ qt4_add_resources (RCC_BUILT_SOURCES
 # We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
 qt4_wrap_cpp(MOC_SRCS 
   SeedGrowSegmentation.h
-  SeedGrowSegmentationPreferences.h
+  SeedGrowSegmentationFilter.h
+  SeedGrowSelector.h
+  SettingsPanel.h
+  SetupWidget.h
+  gui/DefaultVOIAction.h
+  gui/ThresholdAction.h
   )
 
 # Create Interface files
 qt4_wrap_ui (UI_BUILT_SOURCES
-  SeedGrowSegmentationFilterSetup.ui
-  SeedGrowSegmentationPreferences.ui
+  SetupWidget.ui
+  SettingsPanel.ui
   )
 
 
@@ -55,36 +52,41 @@ ADD_PARAVIEW_ACTION_GROUP(
   CLASS_NAME SeedGrowSegmentation 
   GROUP_NAME "ToolBar/SeedGrowingSegmentation")
 
-#file ( GLOB LOCAL_SOURCES *.cpp )
-
-MESSAGE (STATUS ${CAJAL_INCLUDE_DIR})
 
 set (PLUGIN_SRCS
-  SeedGrowSegmentation.cpp
-  SeedGrowSegmentationPreferences.cpp
-  SeedGrowSegmentationFilter.cpp
-  ${MOC_SRCS} 
+  ${MOC_SRCS}
   ${RCC_BUILT_SOURCES} 
   ${UI_BUILT_SOURCES} 
+  SeedGrowSegmentation.cpp
+  SeedGrowSegmentationFilter.cpp
+  SeedGrowSelector.cpp
+  Settings.cpp
+  SettingsPanel.cpp
+  SetupWidget.cpp
+  gui/DefaultVOIAction.cpp
+  gui/ThresholdAction.cpp
   )
 
 set (VTKFILTER_SRCS
-	${CAJAL_INCLUDE_DIR}/filters/vtkConnectedThresholdImageFilter.cpp
-	)
+  vtkConnectedThresholdImageFilter.cpp
+  )
 
 set (PARAVIEW_ADDITIONAL_LIBRARIES
   ${PARAVIEW_ADDITIONAL_LIBRARIES}
-  ${CAJAL_LIBRARIES}
-  Espina
+  EspinaCore
+  # Linking EspinaViews generates the following warning:
+  # Inconsistency detected by ld.so: dl-close.c: 743: _dl_close:
+  #  Assertion `map->l_init_called' failed!
+  # Not linking prevent the plugin from being loaded in the server
   ITKCommon ITKBasicFilters ITKAlgorithms ITKIO
-  ${Boost_LIBRARIES}
+#   ${Boost_LIBRARIES}
 )
 
 # Now crete a plugin for the toolbar. Here we pass IFACES and IFACE_SRCS
 # which are filled up by the above macro with relevant entries
 ADD_PARAVIEW_PLUGIN(
   SeedGrowSegmentationPlugin
-  "0.1" 
+  "${PLUGIN_VERSION_MAJOR}.${PLUGIN_VERSION_MINOR}"
   SERVER_MANAGER_XML SeedGrowSegmentationFilters.xml
   SERVER_MANAGER_SOURCES ${VTKFILTER_SRCS}
 	#According to: http://markmail.org/message/wj27wmlj6rjd7vg5
@@ -103,4 +105,9 @@ endif( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 
 target_link_libraries (SeedGrowSegmentationPlugin ${PARAVIEW_ADDITIONAL_LIBRARIES} )
 
-install (TARGETS SeedGrowSegmentationPlugin LIBRARY DESTINATION bin/plugins)
+install (
+  TARGETS SeedGrowSegmentationPlugin
+  LIBRARY
+  DESTINATION bin/plugins
+  #COMPONENT SeedGrowSegmentation
+)

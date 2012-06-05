@@ -1,21 +1,20 @@
-project (ESPINA_FRONTEND)
+find_package (VTK REQUIRED)
+include (${VTK_USE_FILE})
 
-cmake_minimum_required (VERSION 2.6)
-
-#find_package(Cajal REQUIRED)
+find_package (ITK REQUIRED)
+include (${ITK_USE_FILE})
 
 find_package(Boost REQUIRED COMPONENTS  system filesystem graph)
 
-link_directories ( ${Boost_LIBRARY_DIRS} )
+# link_directories ( ${Boost_LIBRARY_DIRS} )
 
 include_directories(
   ${CMAKE_SOURCE_DIR}/common 
+  ${CMAKE_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR} 
   ${CMAKE_CURRENT_BINARY_DIR}  #For wrap/ui files
-  ${CAJAL_INCLUDE_DIRS}
-  ${Boost_INCLUDE_DIRS}
-#   "/opt/InsightToolkit-3.20.0/Utilities/vxl/vcl"
-  ${ITK_DIR}/../
+#   ${Boost_INCLUDE_DIRS}
+#   ${ITK_DIR}/../
   )
 
 #------------------------------------------------------------------------------
@@ -26,42 +25,80 @@ qt4_add_resources(RCC_BUILT_SOURCES
 
 # Create header's MOC files
 qt4_wrap_cpp (MOC_BUILT_SOURCES
-  espinaMainWindow.h
-  sampleEditor.h
-  SegmentationExplorer.h
-  qTreeComboBox.h
-  preferencesDialog.h
+  EspinaWindow.h
+  SettingsDialog.h
+  docks/DataView/DataView.h
+  docks/DataView/QueryView.h
+  docks/DataView/InformationProxy.h
+  docks/ModifyFilter/ModifyFilterPanel.h
+  docks/ChannelExplorer.h
+  docks/SegmentationExplorer.h
+  docks/SegmentationInspector.h
+  docks/TaxonomyExplorer.h
+  toolbar/MainToolBar.h
+  toolbar/LODToolBar.h
+  views/DefaultEspinaView.h
+  views/SliceViewSettingsPanel.h
+  views/VolumeViewSettingsPanel.h
   )
 
 # Create Interface files
 qt4_wrap_ui (UI_BUILT_SOURCES
-  espinaMainWindow.ui
-  sampleEditor.ui
-  segmentationExplorer.ui
-  preferencesDialog.ui
-  GeneralPreferences.ui
-  ViewPreferences.ui
+  docks/DataView/DataView.ui
+  docks/DataView/QueryView.ui
+  docks/ChannelExplorer.ui
+  docks/SegmentationExplorer.ui
+  docks/SegmentationInspector.ui
+  docks/TaxonomyExplorer.ui
+  views/SliceViewSettingsPanel.ui
+  views/VolumeViewSettingsPanel.ui
+  GeneralSettingsPanel.ui
+  SettingsDialog.ui
   )
 
-
-source_group ("Generated" FILES 
-  ${MOC_BUILT_SOURCES}
-  ${UI_BUILT_SOURCES}
-  ${RCC_BUILT_SOURCES}
+set (DOCKS_SOURCES
+  docks/DataView/DataView.cpp
+  docks/DataView/DataViewPanel.cpp
+  docks/DataView/QueryView.cpp
+  docks/DataView/InformationProxy.cpp
+  docks/ModifyFilter/ModifyFilterPanel.cpp
+  docks/ChannelExplorer.cpp
+  docks/SegmentationDelegate.cpp
+  docks/SegmentationExplorer.cpp
+  docks/SegmentationInspector.cpp
+  docks/TaxonomyExplorer.cpp
+  views/SliceViewSettingsPanel.cpp
+  views/VolumeViewSettingsPanel.cpp
   )
 
-file ( GLOB LOCAL_SOURCES *.cpp )
+set (TOOLBAR_SOURCES
+  toolbar/MainToolBar.cpp
+  toolbar/LODToolBar.cpp
+  )
+
+set (VIEW_SOURCES
+  views/DefaultEspinaView.cpp
+  )
+
+set (LOCAL_SOURCES
+  EspinaWindow.cpp
+  SettingsDialog.cpp
+  RecentDocuments.cpp
+  )
 
 set (Espina_SOURCE_FILES
   ${LOCAL_SOURCES}
+  ${DOCKS_SOURCES}
+  ${VIEW_SOURCES}
+  ${TOOLBAR_SOURCES}
   ${MOC_BUILT_SOURCES}
   ${UI_BUILT_SOURCES}
   ${RCC_BUILT_SOURCES}
   )
 
 set (Espina_LIBRARIES
-  Espina
-  ${Boost_LIBRARIES}
+  EspinaCore
+#   ${Boost_LIBRARIES}
 )
 
 
@@ -69,23 +106,21 @@ set (Espina_LIBRARIES
 # Build the client
 build_paraview_client(espina
   APPLICATION_NAME "EspINA"
-  TITLE "Espina"
+  TITLE "EspINA"
   ORGANIZATION  "CeSViMa"
   VERSION_MAJOR ${ESPINA_VERSION_MAJOR}
   VERSION_MINOR ${ESPINA_VERSION_MINOR}
   VERSION_PATCH ${ESPINA_VERSION_PATCH}
   SPLASH_IMAGE "${CMAKE_CURRENT_SOURCE_DIR}/rsc/SplashScreen.png"
-  PVMAIN_WINDOW EspinaMainWindow
-  PVMAIN_WINDOW_INCLUDE espinaMainWindow.h
-  BUNDLE_ICON   "${CMAKE_CURRENT_SOURCE_DIR}/rsc/MacIcon.icns"
-  APPLICATION_ICON  "${CMAKE_CURRENT_SOURCE_DIR}/rsc/WinIcon.ico"
+  PVMAIN_WINDOW EspinaWindow
+  PVMAIN_WINDOW_INCLUDE EspinaWindow.h
+#   BUNDLE_ICON   "${CMAKE_CURRENT_SOURCE_DIR}/rsc/MacIcon.icns"
+#   APPLICATION_ICON  "${CMAKE_CURRENT_SOURCE_DIR}/rsc/WinIcon.ico"
   GUI_CONFIGURATION_XMLS
-	#  ${CMAKE_CURRENT_SOURCE_DIR}/ParaViewSources.xml
-	#  ${CMAKE_CURRENT_SOURCE_DIR}/plugins/EspinaFilters.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/rsc/EspinaReaders.xml
   ${CMAKE_CURRENT_SOURCE_DIR}/rsc/EspinaWriters.xml
-	#  ${PARAVIEW_EXTRA_GUI_RESOURCES} # Add any compiled in GUI configuration xmls
-  COMPRESSED_HELP_FILE "${ParaView_BINARY_DIR}/Documentation/paraview.qch"
+  #${PARAVIEW_EXTRA_GUI_RESOURCES} # Add any compiled in GUI configuration xmls
+  #COMPRESSED_HELP_FILE "${ParaView_BINARY_DIR}/Documentation/paraview.qch"
   SOURCES ${Espina_SOURCE_FILES}
 	#INSTALL_BIN_DIR "${PV_INSTALL_BIN_DIR}"
 	#INSTALL_LIB_DIR "${PV_INSTALL_LIB_DIR}"
@@ -93,7 +128,12 @@ build_paraview_client(espina
 
 target_link_libraries (espina ${Espina_LIBRARIES})
 
-install (TARGETS espina RUNTIME DESTINATION bin)
+install (
+  TARGETS espina
+  RUNTIME
+  DESTINATION bin
+#  COMPONENT espina
+  )
 
 
 add_subdirectory (plugins)

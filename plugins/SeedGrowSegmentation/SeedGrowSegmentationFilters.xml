@@ -14,16 +14,17 @@
 		 This is the original itk implementation
      </Documentation>
      <InputProperty
-        name="Input"
-        command="SetInputConnection">
-           <ProxyGroupDomain name="groups">
-             <Group name="sources"/>
-             <Group name="filters"/>
-           </ProxyGroupDomain>
-           <DataTypeDomain name="input_type">
-             <DataType value="vtkImageData"/>
-           </DataTypeDomain>
-      </InputProperty>
+     name="Input"
+     command="SetInputConnection"
+     clean_command="RemoveAllInputs">
+     <ProxyGroupDomain name="groups">
+        <Group name="sources"/>
+        <Group name="filters"/>
+     </ProxyGroupDomain>
+     <DataTypeDomain name="input_type">
+        <DataType value="vtkImageData"/>
+     </DataTypeDomain>
+     </InputProperty>
 	  <IntVectorProperty
 		 name="Seed"
          number_of_elements="3"
@@ -31,28 +32,36 @@
 		 immediate_update="1"
 		 command="Setm_seed">
       </IntVectorProperty>
-      <DoubleVectorProperty
-		 name="Threshold"
-         number_of_elements="1"
-		 default_values="30"
-		 immediate_update="1"
-		 command="Setm_threshold">
-      </DoubleVectorProperty>
       <IntVectorProperty
-      name="CheckPixel"
-      number_of_elements="4"
-      immediate_update="1"
-      default_values="0 0 0 0"
-	command="SetCheckPixel">
-	  <SimpleIntInformationHelper/>
+        name="Threshold"
+	number_of_elements="1"
+	default_values="30"
+	immediate_update="1"
+	command="SetThreshold">
       </IntVectorProperty>
       <IntVectorProperty
-      name="PixelValue"
-      number_of_elements="1"
-      information_only="1"
-      default_values="0"
+        name="CheckPixel"
+	number_of_elements="4"
+	immediate_update="1"
+	default_values="0 0 0 0"
+	command="SetCheckPixel">
+	<SimpleIntInformationHelper/>
+      </IntVectorProperty>
+      <IntVectorProperty
+        name="PixelValue"
+	number_of_elements="1"
+	information_only="1"
+	default_values="0"
 	command="GetPixelValue">
-	  <SimpleIntInformationHelper/>
+	<SimpleIntInformationHelper/>
+      </IntVectorProperty>
+      <IntVectorProperty
+        name="SegExtent"
+	number_of_elements="6"
+	information_only="1"
+	default_values="0 -1 0 -1 0 -1"
+	command="GetSegExtent">
+	<SimpleIntInformationHelper/>
       </IntVectorProperty>
    <!-- End SegmentationFilter -->
    </SourceProxy>

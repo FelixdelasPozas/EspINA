@@ -37,6 +37,7 @@ SampleRepresentation::SampleRepresentation(Sample* sample): ISampleRepresentatio
   QString spacing = QString("%1,%2,%3").arg(m_spacing[0]).arg(m_spacing[1]).arg(m_spacing[2]);
   volArgs.push_back(vtkFilter::Argument("OutputSpacing",vtkFilter::DOUBLEVECT, spacing));
   m_rep = cob->createFilter("filters", "ImageChangeInformation", volArgs);
+  m_rep->pipelineSource()->updatePipeline();
   assert(m_rep->numProducts() == 1);
 }
 
@@ -80,7 +81,7 @@ void SampleRepresentation::setSpacing(double x, double y, double z)
   changeInformationFilter->getProxy()->UpdateVTKObjects();
 }
 
-void SampleRepresentation::spacing(double value[3])
+void SampleRepresentation::spacing( double value[3]) const
 {
   value[0] = m_spacing[0];
   value[1] = m_spacing[1];

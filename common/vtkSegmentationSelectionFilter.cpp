@@ -31,7 +31,7 @@ vtkStandardNewMacro(vtkSegmentationSelectionFilter);
 vtkSegmentationSelectionFilter::vtkSegmentationSelectionFilter()
 : PixelValue(0)
 {
-  bzero(CheckPixel, 3*sizeof(int));
+  memset(CheckPixel, 0, 3*sizeof(int));
 }
 
 int vtkSegmentationSelectionFilter::RequestUpdateExtent(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)

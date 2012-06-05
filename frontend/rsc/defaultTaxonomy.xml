@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<Taxonomy>
+  <node name="Synapse" color="#FF7F7F">
+    <node name="Asymetric" color="#00FF00"/>
+    <node name="Symetric" color="#FF0000"/>
+  </node>
+  <node name="Vesicles" color="#A5E024"/>
+</Taxonomy>

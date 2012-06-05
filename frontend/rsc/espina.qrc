@@ -1,6 +1,12 @@
 <RCC>
   <qresource prefix="/espina">
+    <file>rightIn.png</file>
+    <file>rightOut.png</file>
+    <file>centerIn.png</file>
+    <file>leftIn.png</file>
+    <file>leftOut.png</file>
     <file>mesh.png</file>
+    <file>appPlane.svg</file>
     <file>voxel.png</file>
     <file>view-refresh.svg</file>
     <file>add_child.svg</file>
@@ -22,5 +28,6 @@
     <file>export_scene.svg</file>
     <file>snapshot_scene.svg</file>
     <file>removeSeg.svg</file>
+    <file>defaultTaxonomy.xml</file>
   </qresource>
 </RCC>

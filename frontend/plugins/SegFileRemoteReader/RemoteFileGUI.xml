@@ -1,5 +1,0 @@
-<ParaViewReaders>
-  <Reader name="FileReader" extensions="seg"
-	  file_description="Espina (.seg) files">
-  </Reader>
-</ParaViewReaders>

@@ -1,0 +1,30 @@
+<ServerManagerConfiguration>
+
+  <ProxyGroup name="filters">
+    <SourceProxy name="InformationChanger"
+      class="vtkImageChangeInformation"
+      label="Change vtkImage Information">
+      <InputProperty
+        name="Input"
+	command="SetInputConnection">
+	<ProxyGroupDomain name="groups">
+	  <Group name="sources"/>
+	  <Group name="filters"/>
+	</ProxyGroupDomain>
+	<DataTypeDomain name="input_type">
+	  <DataType value="vtkDataSet"/>
+	</DataTypeDomain>
+      </InputProperty>
+      <DoubleVectorProperty
+	name="Spacing"
+	command="SetOutputSpacing"
+	immediate_update="1"
+	default_values="1.0 1.0 1.0"
+	number_of_elements="3"
+	number_elements_per_command="3"
+	repeat_command="0">
+      </DoubleVectorProperty>
+    </SourceProxy>
+  </ProxyGroup>
+
+</ServerManagerConfiguration>

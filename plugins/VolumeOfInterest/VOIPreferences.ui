@@ -38,6 +38,9 @@
         </item>
         <item>
          <widget class="QSpinBox" name="xSize">
+          <property name="maximum">
+           <number>10000</number>
+          </property>
           <property name="singleStep">
            <number>2</number>
           </property>
@@ -52,6 +55,9 @@
         </item>
         <item>
          <widget class="QSpinBox" name="ySize">
+          <property name="maximum">
+           <number>10000</number>
+          </property>
           <property name="singleStep">
            <number>2</number>
           </property>
@@ -66,6 +72,9 @@
         </item>
         <item>
          <widget class="QSpinBox" name="zSize">
+          <property name="maximum">
+           <number>10000</number>
+          </property>
           <property name="singleStep">
            <number>2</number>
           </property>

@@ -181,7 +181,7 @@ void ProcessingTrace::connect(
 }
 
 //-----------------------------------------------------------------------------
-void ProcessingTrace::connect(QString& id,
+void ProcessingTrace::connect(const QString& id,
                               ITraceNode* destination,
                               const std::string& description)
 {
@@ -268,6 +268,8 @@ void ProcessingTrace::readTrace(QTextStream& stream)
   QList<VertexId> processedVertices;
   
   Sample *newSample;
+  
+  int lastId = 0;
 
   while( !verticesToProcess.empty() )
   {
@@ -377,7 +379,9 @@ void ProcessingTrace::readTrace(QTextStream& stream)
         EspINA* espina = EspINA::instance();
 	Segmentation *seg = espina->segmentation(args["Id"]);
 	assert(seg);
-	espina->changeId(seg, label.section(' ',-1).toInt());
+	int segId = label.section(' ',-1).toInt();
+	lastId = std::max(lastId, segId);
+	espina->changeId(seg, segId);
         espina->changeTaxonomy(seg, args["Taxonomy"]);
         
       //  localPipe.push_back(*vi);
@@ -400,6 +404,9 @@ void ProcessingTrace::readTrace(QTextStream& stream)
       verticesToProcess.swap(0, verticesToProcess.size()-1);
     }
   }
+  
+  EspINA::instance()->setLastUsedId(lastId);
+  
   if (newSample)
     dynamic_cast<LabelMapExtension::SampleRepresentation *>(newSample->representation(LabelMapExtension::SampleRepresentation::ID))->setEnable(true);
 }
@@ -434,7 +441,7 @@ void ProcessingTrace::print( std::ostream& out, ProcessingTrace::printFormat for
     dp.property("args", boost::get(&VertexProperties::args, m_trace));
     dp.property("label", boost::get(boost::edge_name, m_trace));
 
-    boost::write_graphviz( out, m_trace, dp);
+    boost::write_graphviz_dp( out, m_trace, dp);
   }
   else if( format == debug)
   {

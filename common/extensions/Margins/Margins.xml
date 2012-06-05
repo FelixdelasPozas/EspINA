@@ -1,0 +1,61 @@
+<ServerManagerConfiguration>
+
+  <ProxyGroup name="filters">
+    <SourceProxy name="ChannelBorderDetector"
+      class="vtkChannelBorderDetector"
+      label="Channel Border Detector" >
+      <Documentation
+        long_help="filter"
+	short_help="filter">
+      </Documentation>
+
+      <InputProperty
+        name="Input"
+	command="SetInputConnection">
+	<ProxyGroupDomain name="groups">
+	  <Group name="sources"/>
+	  <Group name="filters"/>
+	</ProxyGroupDomain>
+	<DataTypeDomain name="input_type">
+	  <DataType value="vtkImageData"/>
+	</DataTypeDomain>
+      </InputProperty>
+
+      <DoubleVectorProperty
+        name="TotalVolume"
+	number_of_elements="1"
+	default_values="0.0"
+	immediate_update="1"
+	information_only="1"
+	command="GetTotalVolume">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
+
+      <DoubleVectorProperty
+        name="TotalAdaptiveVolume"
+	number_of_elements="1"
+	default_values="0.0"
+	immediate_update="1"
+	information_only="1"
+	command="GetTotalAdaptiveVolume">
+	<SimpleDoubleInformationHelper/>
+      </DoubleVectorProperty>
+
+      <Hints>
+	<!-- Hints are metadata associated with the proxy.
+	As far as the ServerManager is concerned, Hints have no
+	significance. GUI is free to interpret the hints as
+	it chooses. Hints provide a mechanism to add some GUI
+	pertinant information to the server manager XML.
+	-->
+	<PropertyGroup type="RectangularBoundingRegion"> <!-- The name delcared in the cmake macro ADD_3DWIDGET -->
+	<!--Property name="Position" function="Position" />
+	<Property name="Scale" function="Scale" />
+	<Property name="Bounds" function="PlaceWidget" /-->
+	</PropertyGroup>
+      </Hints>
+      <!-- End Adaptive Bounding Region Filter -->
+    </SourceProxy>
+  </ProxyGroup>
+
+</ServerManagerConfiguration>

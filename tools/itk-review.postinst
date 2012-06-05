@@ -1,0 +1,4 @@
+#!/bin/bash
+
+echo "/usr/lib/InsightToolkit" >> /etc/ld.so.conf.d/itk-review.conf
+ldconfig

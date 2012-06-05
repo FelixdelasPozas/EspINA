@@ -1,349 +1,169 @@
-/*=========================================================================
+/*
+    <one line to give the program's name and a brief idea of what it does.>
+    Copyright (C) 2011  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
-   Program: ParaView
-   Module:    SegmentationToolbarActions.cxx
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-   Copyright (c) 2005-2008 Sandia Corporation, Kitware Inc.
-   All rights reserved.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-   ParaView is a free software; you can redistribute it and/or modify it
-   under the terms of the ParaView license version 1.2. 
-
-   See License_v1.2.txt for the full ParaView license.
-   A copy of this license can be obtained by contacting
-   Kitware Inc.
-   28 Corporate Drive
-   Clifton Park, NY 12065
-   USA
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHORS OR
-CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
-EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
-PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-=========================================================================*/
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
 #include "VolumeOfInterest.h"
 
-#include "RectangularVOI.h"
-
-#include "espina.h"
-#include <cache/cachedObjectBuilder.h>
-#include "crosshairExtension.h"
-
-#include "pixelSelector.h"
-#include "filter.h"
-
-//GUI includes
-#include <QApplication>
-#include <QStyle>
-#include <QHBoxLayout>
-#include <QLabel>
-#include <QSpinBox>
-#include <QWidgetAction>
-#include <QToolButton>
-#include <QMenu>
-
-#include "pqApplicationCore.h"
-#include "pqServer.h"
-#include "pqServerManagerModel.h"
-#include "pqUndoStack.h"
-#include "pqPipelineFilter.h"
-#include "vtkSMProxy.h"
-#include "vtkSMInputProperty.h"
+#include "common/gui/ActionSelector.h"
+#include "common/selection/SelectionManager.h"
+#include "common/gui/EspinaView.h"
+#include "common/EspinaCore.h"
 
 #include <QDebug>
-#include "assert.h"
-#include <espINAFactory.h>
-#include <sample.h>
-#include "VolumeOfInterestPreferences.h"
-#include <EspinaPluginManager.h>
-
-
-
-#define DEFAULT_THRESHOLD 30
 
 //-----------------------------------------------------------------------------
 VolumeOfInterest::VolumeOfInterest(QObject* parent)
-: QActionGroup(parent)
-, m_activeVOI(NULL)
-, m_focusedSample(NULL)
+: QActionGroup (parent)
+, m_voi        (new ActionSelector(this))
+, m_selector   (new PixelSelector())
 {
-  m_selector = new PixelSelector();
-  m_selector->multiSelection = false;
-  m_selector->filters << "EspINA_Sample";
-  
-  connect(m_selector,SIGNAL(selectionAborted()),
+  setObjectName("VolumeOfInterest");
+
+  m_selector->setCursor(QCursor(QPixmap(":roi_go.svg").scaled(32,32)));
+  m_selector->setMultiSelection(false);
+  m_selector->setSelectable(SelectionHandler::EspINA_Channel);
+
+  buildVOIs();
+
+  connect(m_voi, SIGNAL(triggered(QAction*)),
+	  this, SLOT(changeVOISelector(QAction*)));
+  connect(m_selector.data(), SIGNAL(selectionChanged(SelectionHandler::MultiSelection)),
+	  this, SLOT(defineVOI(SelectionHandler::MultiSelection)));
+  connect(m_voi, SIGNAL(actionCanceled()),
 	  this, SLOT(cancelVOI()));
-  connect(m_selector,SIGNAL(selectionChanged(ISelectionHandler::Selection)),
-	  this, SLOT(applyVOI(ISelectionHandler::Selection)));
-  
-  
-  buildUI();
-  
-  // register in a plugin list
-  //QString registerName = m_pluginName + "::" + "RectangularVOIFilter::Apply";
-  //ProcessingTrace::instance()->registerPlugin(registerName, this);
-  //registerName = m_pluginName + "::" + "RectangularVOIFilter::Restore";
-  //ProcessingTrace::instance()->registerPlugin(registerName, this);
-  m_preferences = new VolumeOfInterestPreferences();
-  EspinaPluginManager::instance()->registerPreferencePanel(m_preferences);
 
+//   m_preferences = new VolumeOfInterestPreferences();
+//   EspinaPluginManager::instance()->registerPreferencePanel(m_preferences);
 }
 
 //-----------------------------------------------------------------------------
-void VolumeOfInterest::applyVOI(ISelectionHandler::Selection sel)
+VolumeOfInterest::~VolumeOfInterest()
 {
-  QApplication::restoreOverrideCursor();
-  qDebug() << "EspINA::VolumeOfInterest: Apply VOI";
-  SelectionManager::instance()->unsetSelectionHandler(m_selector);
-  
-  // Compute default bounds
-  assert(sel.size() == 1); // At least one sample was selected
-  ISelectionHandler::SelElement selSample = sel.first();
-  assert(selSample.first.size() == 1); // with one pixel
-  Point clickedPixel = selSample.first.first();
-  Sample *input = dynamic_cast<Sample *>(selSample.second);
-  double spacing[3];
-  input->spacing(spacing);
-  double bounds[6] = {
-     (clickedPixel.x - m_preferences->xSize())*spacing[0],
-     (clickedPixel.x + m_preferences->xSize())*spacing[0],
-     (clickedPixel.y - m_preferences->ySize())*spacing[1],
-     (clickedPixel.y + m_preferences->ySize())*spacing[1],
-     (clickedPixel.z - m_preferences->zSize())*spacing[2],
-     (clickedPixel.z + m_preferences->zSize())*spacing[2]};
-  m_activeVOI->setDefaultBounds(bounds);
-  SelectionManager::instance()->setVOI(m_activeVOI);
-}
-
-
-//-----------------------------------------------------------------------------
-void VolumeOfInterest::enable(bool value)
-{
-  if (value)
-  {
-    m_voiButton->setChecked(true);
-    SelectionManager::instance()->setSelectionHandler(m_selector, QCursor(QPixmap(":roi_go.svg").scaled(32,32)));
-    qDebug() << "EspINA::VolumeOfInterest: Waiting VOI's placing point";
-  }else
-  {
-    SelectionManager::instance()->setSelectionHandler(NULL, Qt::ArrowCursor);
-    SelectionManager::instance()->setVOI(NULL);
-  }
-}
-
-
-//-----------------------------------------------------------------------------
-void VolumeOfInterest::changeVOI(QAction* voi)
-{
-  qDebug() << "EspINA::VolumeOfInterest: Changing VOI";
-  m_activeVOI = m_VOIs.value(voi);
-  
-  if (!m_activeVOI)
-  {
-    qDebug() << "EspINA::VolumeOfInterest FATAL ERROR: No valid VOI";
-    assert(m_activeVOI);
-  }
-  
-  m_voiButton->setIcon(voi->icon());
-  
-  enable(m_voiButton->isChecked());
-}
-
-//-----------------------------------------------------------------------------
-void VolumeOfInterest::cancelVOI()
-{
-  m_voiButton->setChecked(false);
-}
-
-//-----------------------------------------------------------------------------
-void VolumeOfInterest::focusSampleChanged(Sample* sample)
-{
-  if (sample)
-  {
-    m_voiButton->setEnabled(true);
-    // Update limits
-    int mextent[6];
-    sample->extent(mextent);
-    int minSlices = mextent[4] + SliceOffset;
-    int maxSlices = mextent[5] + SliceOffset;
-    m_fromSlice->setMinimum(minSlices);
-    m_fromSlice->setMaximum(maxSlices);
-    m_toSlice->setMinimum(minSlices);
-    m_toSlice->setMaximum(maxSlices);
-    m_toSlice->setValue(maxSlices);
-  }
-  else
-  {
-    m_voiButton->setEnabled(false);
-  }
-  m_focusedSample = sample;
-}
-
-//-----------------------------------------------------------------------------
-void VolumeOfInterest::setFromCurrentSlice()
-{
-  if (m_focusedSample)
-  {
-    CrosshairExtension::SampleRepresentation *rep =
-      dynamic_cast<CrosshairExtension::SampleRepresentation *>(
-	m_focusedSample->representation(CrosshairExtension::SampleRepresentation::ID)
-	);
-    assert(rep);
-    m_fromSlice->setValue(rep->slice(VIEW_PLANE_XY)+SliceOffset);
-  }
-}
-
-//-----------------------------------------------------------------------------
-void VolumeOfInterest::setToCurrentSlice()
-{
-  if (m_focusedSample)
-  {
-    CrosshairExtension::SampleRepresentation *rep =
-      dynamic_cast<CrosshairExtension::SampleRepresentation *>(
-	m_focusedSample->representation(CrosshairExtension::SampleRepresentation::ID)
-	);
-    assert(rep);
-    m_toSlice->setValue(rep->slice(VIEW_PLANE_XY)+SliceOffset);
-  }
-}
-
-//-----------------------------------------------------------------------------
-void VolumeOfInterest::setFromSlice(int value)
-{
-  if (m_activeVOI && m_voiButton->isChecked())
-    m_activeVOI->setFromSlice(value-SliceOffset);
-}
-
-//-----------------------------------------------------------------------------
-void VolumeOfInterest::setToSlice(int value)
-{
-  if (m_activeVOI && m_voiButton->isChecked())
-    m_activeVOI->setToSlice(value-SliceOffset);
 }
 
 //-----------------------------------------------------------------------------
 void VolumeOfInterest::buildVOIs()
 {
-  IVOI *voi;
+//   IVOI *voi;
   QAction *action;
   
   // Exact Pixel Selector
   action = new QAction(
     QIcon(":roi.svg")
     , tr("Volume Of Interest"),
-    m_VOIMenu);
-  voi = new RectangularVOI();
-  addVOI(action, voi);
-  connect(voi, SIGNAL(voiCancelled()),this,SLOT(cancelVOI()));
+    m_voi);
+
+  m_voi->addAction(action);
+//   voi = new RectangularVOI();
+//   addVOI(action, voi);
+//   connect(voi, SIGNAL(voiCancelled()),this,SLOT(cancelVOI()));
 }
 
-void VolumeOfInterest::buildUI()
+//-----------------------------------------------------------------------------
+void VolumeOfInterest::changeVOISelector(QAction* action)
 {
-  // VOI Button
-  m_voiButton = new QToolButton();
-  m_voiButton->setCheckable(true);
-  m_VOIMenu = new QMenu();
-  m_voiButton->setAutoRaise(true);
-  m_voiButton->setIconSize(QSize(22,22));
-  m_voiButton->setEnabled(false);
-  
-  buildVOIs();
-  
-  m_activeVOI = m_VOIs.value(m_VOIs.keys().first());
-  m_voiButton->setIcon(m_VOIs.key(m_activeVOI)->icon());
-  m_voiButton->setMenu(m_VOIMenu);
-  
-  QToolButton *updateFrom = new QToolButton();
-  updateFrom->setText(tr("From"));
-  updateFrom->setAutoRaise(true);
-  connect(updateFrom,SIGNAL(clicked(bool)),this,SLOT(setFromCurrentSlice()));
-
-  m_fromSlice = new QSpinBox();
-  m_fromSlice->setMinimum(0);
-  m_fromSlice->setMaximum(0);
-  m_fromSlice->setToolTip(tr("Determine which is the first slice included in the VOI"));
-  connect(m_fromSlice,SIGNAL(valueChanged(int)),this,SLOT(setFromSlice(int)));
-  
-  QToolButton *updateTo = new QToolButton();
-  updateTo->setText(tr("To"));
-  updateTo->setAutoRaise(true);
-  connect(updateTo,SIGNAL(clicked(bool)),this,SLOT(setToCurrentSlice()));
-
-  m_toSlice = new QSpinBox();
-  m_toSlice->setMinimum(0);
-  m_toSlice->setMaximum(0);
-  m_toSlice->setToolTip(tr("Determine which is the last slice included in the VOI"));
-  connect(m_toSlice,SIGNAL(valueChanged(int)),this,SLOT(setToSlice(int)));
-  
-  // Plugin's Widget Layout
-  QHBoxLayout *toolbarLayout = new QHBoxLayout();
-  toolbarLayout->addWidget(updateFrom);
-  toolbarLayout->addWidget(m_fromSlice);
-  toolbarLayout->addWidget(updateTo);
-  toolbarLayout->addWidget(m_toSlice);
-  toolbarLayout->addWidget(m_voiButton);
-    
-  QWidget *toolbar = new QWidget();
-  toolbar->setLayout(toolbarLayout);
-
-  QWidgetAction *toolbarAdaptor = new QWidgetAction(this);
-  toolbarAdaptor->setDefaultWidget(toolbar);
-  
-  // Interface connections
-  connect(m_voiButton, SIGNAL(triggered(QAction*)), this, SLOT(changeVOI(QAction*)));
-  connect(m_voiButton, SIGNAL(toggled(bool)), this, SLOT(enable(bool)));
-  connect(EspINA::instance(), SIGNAL(focusSampleChanged(Sample*)),
-          this, SLOT(focusSampleChanged(Sample *)));
+  SelectionManager::instance()->setSelectionHandler(m_selector.data());
+  EspinaView *currentView = EspinaCore::instance()->viewManger()->currentView();
+  currentView->setSliceSelectors(SliceView::From|SliceView::To);
+  connect(currentView, SIGNAL(selectedFromSlice(double, vtkPVSliceView::VIEW_PLANE)),
+	  this, SLOT(setBorderFrom(double, vtkPVSliceView::VIEW_PLANE)));
+  connect(currentView, SIGNAL(selectedToSlice(double, vtkPVSliceView::VIEW_PLANE)),
+	  this, SLOT(setBorderTo(double, vtkPVSliceView::VIEW_PLANE)));
 }
 
-
-//------------------------------------------------------------------------
-void VolumeOfInterest::addVOI(QAction* action, IVOI* voi)
+//-----------------------------------------------------------------------------
+void VolumeOfInterest::defineVOI(SelectionHandler::MultiSelection msel)
 {
-  m_VOIMenu->addAction(action);
-  /*
-  connect(voi,
-	  SIGNAL(selectionChanged(ISelectionHandler::Selection)),
-	  this,
-	  SLOT(startSegmentation(ISelectionHandler::Selection)));
-  connect(voi,
-	  SIGNAL(selectionAborted()),
-	  this,
-	  SLOT(abortSelection()));
-	  */
-  m_VOIs.insert(action, voi);
+  if (msel.size() == 0)
+    return;
+
+  // Compute default bounds
+  Q_ASSERT(msel.size() == 1); //Only one element is selected
+  SelectionHandler::Selelection selection = msel.first();
+
+  Q_ASSERT(selection.first.size() == 1); //Only one pixel's selected
+  QVector3D pos = selection.first.first();
+
+  QSharedPointer<ViewManager> vm = EspinaCore::instance()->viewManger();
+  EspinaView *view = vm->currentView();
+  m_voiWidget = QSharedPointer<EspinaWidget>(new RectangularRegion());
+  Q_ASSERT(m_voiWidget);
+  view->addWidget(m_voiWidget.data());
+
+  const double XHSIZE = 40;
+  const double YHSIZE = 40;
+  const double ZHSIZE = 40;
+  double spacing[3];
+  view->gridSize(spacing);
+  double bounds[6] = {
+     (pos.x() - XHSIZE)*spacing[0], (pos.x() + XHSIZE)*spacing[0],
+     (pos.y() - YHSIZE)*spacing[1], (pos.y() + YHSIZE)*spacing[1],
+     (pos.z() - ZHSIZE)*spacing[2], (pos.z() + ZHSIZE)*spacing[2]};
+  m_voiWidget->setBounds(bounds);
+  //BEGIN TODO:
+//   m_voiWidget->setEnabled(false);
+  //END TODO
+  SelectionManager *selectionManager = SelectionManager::instance();
+  selectionManager->unsetSelectionHandler(m_selector.data());
+  selectionManager->setVOI(m_voiWidget.data());
 }
 
-
-//------------------------------------------------------------------------
-//! Creates the corresponding Pipeline of the plugin (the Filters and the Products). It also updates the Trace of the system
-void VolumeOfInterest::buildSubPipeline(Product* input, EspinaParamList args)
+//-----------------------------------------------------------------------------
+void VolumeOfInterest::cancelVOI()
 {
-  /*
-  ProcessingTrace *trace = ProcessingTrace::instance();//!X
-
-  Filter *grow = new Filter(
-    m_groupName,
-    m_filterName,
-    args,
-    m_tableGrow
-  );
-  
-  trace->connect(input, grow, "input");
-   
-  Product *product;
-  foreach(product,grow->products())
+  if (!m_voiWidget.isNull())
   {
-    Segmentation *seg = EspINAFactory::instance()->CreateSegmentation(product->sourceData(),product->portNumber(), grow->id());
-    emit productCreated(seg);
+    QSharedPointer<ViewManager> vm = EspinaCore::instance()->viewManger();
+    EspinaView *view = vm->currentView();
+    view->removeWidget(m_voiWidget.data());
+    m_voiWidget.clear();
   }
-  */
+
+  SelectionManager *selectorManager = SelectionManager::instance();
+  selectorManager->unsetSelectionHandler(m_selector.data());
+  selectorManager->setVOI(NULL);
+  EspinaView *currentView = EspinaCore::instance()->viewManger()->currentView();
+  currentView->setSliceSelectors(SliceView::NoSelector);
+  disconnect(currentView, SIGNAL(selectedFromSlice(double, vtkPVSliceView::VIEW_PLANE)),
+	  this, SLOT(setBorderFrom(double, vtkPVSliceView::VIEW_PLANE)));
+  disconnect(currentView, SIGNAL(selectedToSlice(double, vtkPVSliceView::VIEW_PLANE)),
+	  this, SLOT(setBorderTo(double, vtkPVSliceView::VIEW_PLANE)));
+}
+
+//-----------------------------------------------------------------------------
+void VolumeOfInterest::setBorderFrom(double pos, vtkPVSliceView::VIEW_PLANE plane)
+{
+  if (!m_voiWidget.isNull())
+  {
+    double bounds[6];
+    m_voiWidget->bounds(bounds);
+    bounds[plane*2] = pos;
+    m_voiWidget->setBounds(bounds);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void VolumeOfInterest::setBorderTo(double pos, vtkPVSliceView::VIEW_PLANE plane)
+{
+  if (!m_voiWidget.isNull())
+  {
+    double bounds[6];
+    m_voiWidget->bounds(bounds);
+    bounds[plane*2+1] = pos;
+    m_voiWidget->setBounds(bounds);
+  }
+
 }
