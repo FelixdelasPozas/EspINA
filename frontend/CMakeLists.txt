@@ -36,6 +36,7 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
   docks/SegmentationInspector.h
   docks/TaxonomyExplorer.h
   toolbar/MainToolBar.h
+  toolbar/editor/EditorToolBar.h
   toolbar/LODToolBar.h
   views/DefaultEspinaView.h
   views/SliceViewSettingsPanel.h
@@ -74,6 +75,7 @@ set (DOCKS_SOURCES
 set (TOOLBAR_SOURCES
   toolbar/MainToolBar.cpp
   toolbar/LODToolBar.cpp
+  toolbar/editor/EditorToolBar.cpp
   )
 
 set (VIEW_SOURCES

@@ -83,6 +83,7 @@
 #include <vtkSMProxyManager.h>
 #include <vtkSMReaderFactory.h>
 #include <vtkSMStringVectorProperty.h>
+#include "toolbar/editor/EditorToolBar.h"
 
 #define DEBUG
 
@@ -214,6 +215,7 @@ EspinaWindow::EspinaWindow()
   m_mainToolBar = new MainToolBar(m_model);
 //   m_mainToolBar->setMovable(false);
   addToolBar(m_mainToolBar);
+  addToolBar(new EditorToolBar());
 
 //   QToolBar *lod = new LODToolBar();
 // //   lod->setMovable(false);
