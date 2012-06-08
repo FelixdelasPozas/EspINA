@@ -63,7 +63,6 @@ void ModifyFilterPanel::showOriginFilter(QModelIndex index)
 	setWidget(filter->createConfigurationWidget());
 	m_currentSeg = seg;
       }else{
-	qDebug("BYE");
 	setWidget(NULL);
 	m_currentSeg = NULL;
       }

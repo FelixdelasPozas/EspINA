@@ -15,9 +15,11 @@ set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated")
 find_package(Boost REQUIRED COMPONENTS  graph) #system filesystem
 link_directories ( ${Boost_LIBRARY_DIRS} )
 
+# We need to include directories containing vtk filters
 include_directories(
   ${CMAKE_SOURCE_DIR}
   ${CMAKE_SOURCE_DIR}/common
+  ${CMAKE_SOURCE_DIR}/common/editor
   ${CMAKE_SOURCE_DIR}/common/gui
   ${CMAKE_SOURCE_DIR}/common/extensions/Margins
   ${CMAKE_SOURCE_DIR}/common/extensions/Morphological
@@ -70,6 +72,7 @@ qt4_wrap_cpp(PVMOC_SOURCES
   )
 
 set (PVCORE_SERVER_SOURCES
+  editor/vtkImageLogicFilter.cpp
   extensions/Margins/vtkChannelBorderDetector.cpp
   extensions/Morphological/vtkMorphologicalFeaturesFilter.cpp
   views/vtkPVSliceView.cpp
@@ -101,6 +104,7 @@ set (PVCORE_SOURCES
   )
 
 set (PVCORE_XML
+  editor/Editor.xml
   extensions/Margins/Margins.xml
   extensions/Morphological/MorphologicalExtension.xml
   model/Model.xml
@@ -154,6 +158,8 @@ set (CORE_SOURCES
   cache/Cache.cpp
   cache/CacheHash.cpp
   cache/CachedObjectBuilder.cpp
+  editor/ImageLogicCommand.cpp
+  editor/ImageLogicFilter.cpp
   extensions/ChannelExtension.cpp
   extensions/Margins/MarginsChannelExtension.cpp
   extensions/Margins/MarginsSegmentationExtension.cpp

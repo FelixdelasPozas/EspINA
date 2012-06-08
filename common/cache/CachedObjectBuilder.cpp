@@ -137,17 +137,22 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(const QString group, const
   {
     if (arg.type == pqFilter::Argument::INPUT)
     {
-	QStringList input = arg.value.split(":");
-	Q_ASSERT(input.size()==2);
-	pqFilter *inputCreator = m_cache->getEntry(input[0]);
+      // Repeatable input
+      QStringList inputs = arg.value.split(",");
+      foreach (QString input, inputs)
+      {
+	QStringList inputData = input.split(":");
+	Q_ASSERT(inputData.size()==2);
+	pqFilter *inputCreator = m_cache->getEntry(inputData[0]);
 	Q_ASSERT(inputCreator);
-	pqOutputPort *port = inputCreator->pipelineSource()->getOutputPort(input[1].toInt());
+	pqOutputPort *port = inputCreator->pipelineSource()->getOutputPort(inputData[1].toInt());
 	Q_ASSERT(port);
 	// Recover already connected output ports for this input
 	if (namedInputs.contains(arg.name))
 	  namedInputs[arg.name] << port;
 	else
 	  namedInputs[arg.name] = (QList<pqOutputPort*>() << port);
+      }
     }
   }
 

@@ -114,7 +114,6 @@ public:
   virtual QString  id() const;
   virtual QVariant data(int role) const;
   virtual QString  serialize() const;
-  virtual ItemType type() const {return ModelItem::FILTER;}
 
   /// Implements Filter Interface
   pqData preview();

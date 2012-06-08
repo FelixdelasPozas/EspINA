@@ -1,0 +1,32 @@
+<ServerManagerConfiguration>
+  <ProxyGroup name="filters">
+   <SourceProxy name="ImageLogicFilter" class="vtkImageLogicFilter" label="Imagic Logic Filter">
+     <Documentation
+        long_help="Implements basic logic operations on vtkImageData"
+        short_help="Implements basic logic operations on vtkImageData">
+     </Documentation>
+     <InputProperty
+        name="Input"
+        command="AddInputConnection"
+	repeatable="1">
+	<ProxyGroupDomain name="groups">
+	  <Group name="sources"/>
+	  <Group name="filters"/>
+	</ProxyGroupDomain>
+	<DataTypeDomain name="input_type">
+	  <DataType value="vtkImageData"/>
+	</DataTypeDomain>
+      </InputProperty>
+
+     <IntVectorProperty
+       name="Operation"
+       number_of_elements="1"
+       default_values="0"
+       immediate_update="1"
+       command="SetOperation">
+     </IntVectorProperty>
+   </SourceProxy>
+   <!-- End of ImageLogicFilter -->
+ </ProxyGroup>
+ <!-- End Filters -->
+</ServerManagerConfiguration>

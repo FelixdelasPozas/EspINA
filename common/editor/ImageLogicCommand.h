@@ -17,34 +17,28 @@
 */
 
 
-#ifndef FILTER_H
-#define FILTER_H
+#ifndef IMAGELOGICCOMMAND_H
+#define IMAGELOGICCOMMAND_H
 
-#include "common/model/ModelItem.h"
+#include <QUndoStack>
 
-#include "common/model/Segmentation.h"
-#include "common/processing/pqData.h"
+#include "ImageLogicFilter.h"
 
-#include <QMap>
+class Segmentation;
 
-class Filter
-: public ModelItem
+class ImageLogicCommand
+: public QUndoCommand
 {
 public:
-  virtual ~Filter(){}
+  explicit ImageLogicCommand(QList<Segmentation *> inputs,
+			     ImageLogicFilter::Operation op);
 
-  /// Implements Model Item Interface common to filters
-  virtual ItemType type() const {return ModelItem::FILTER;}
+  virtual void redo();
+  virtual void undo();
 
-  /// Defines Filter's Interface
-  virtual int numProducts() const = 0;
-  virtual Segmentation *product(int index) const = 0;
-
-  virtual pqData preview() = 0;
-  virtual QWidget *createConfigurationWidget() = 0;
-
-protected:
-  void setSegmentationData(Segmentation *seg, pqData data);
+private:
+  ImageLogicFilter *m_filter;
+  QList<Segmentation *> m_input;
 };
 
-#endif // FILTER_H
+#endif // IMAGELOGICCOMMAND_H

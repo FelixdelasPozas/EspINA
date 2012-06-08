@@ -24,6 +24,7 @@
 
 #include <QAction>
 #include <EspinaCore.h>
+#include <editor/ImageLogicCommand.h>
 
 //----------------------------------------------------------------------------
 EditorToolBar::EditorToolBar(QWidget* parent)
@@ -67,9 +68,16 @@ void EditorToolBar::combineSegmentations()
 {
   QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
 
+  QList<Segmentation *> input;
   foreach(Segmentation *seg, model->segmentations())
   {
     if (seg->isSelected())
-      qDebug() << "Combining Segmentation:" << seg->data(Qt::DisplayRole).toString();
+      input << seg;
+  }
+
+  if (!input.isEmpty())
+  {
+    QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
+    undo->push(new ImageLogicCommand(input, ImageLogicFilter::ADDITION));
   }
 }

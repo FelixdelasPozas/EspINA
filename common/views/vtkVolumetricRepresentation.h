@@ -96,8 +96,8 @@ protected:
   vtkImageSliceDataDeliveryFilter *DeliveryFilter;
   vtkPiecewiseFunction            *OpacityFunction;
   vtkColorTransferFunction        *ColorFunction;
-  vtkVolumeRayCastMapper          *SWMapper;
   vtkGPUVolumeRayCastMapper       *GPUMapper;
+  vtkVolumeRayCastMapper          *SWMapper;
   vtkVolumeMapper                 *VolumetricMapper;
   vtkVolume                       *VolumetricProp;
   vtkImageData                    *VolumetricData;
