@@ -510,6 +510,7 @@ void EspinaWindow::openAnalysis(const QString file)
   updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
   QApplication::restoreOverrideCursor();
   m_recentDocuments.addDocument(file);
+  setWindowTitle(EspinaCore::instance()->sample()->data(Qt::DisplayRole).toString());
 }
 
 //------------------------------------------------------------------------
