@@ -620,6 +620,8 @@ void vtkPVSliceView::RemoveActor(SliceActor *actor)
 {
   RenderView->GetRenderer()->RemoveActor(actor->prop);
   OverviewRenderer->RemoveActor(actor->prop);
+  ChannelPicker->DeletePickList(actor->prop);
+  SegmentationPicker->DeletePickList(actor->prop);
   m_actors.removeOne(actor);
   if (Segmentations.contains(actor))
     Segmentations.removeOne(actor);
