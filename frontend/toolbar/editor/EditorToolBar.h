@@ -41,9 +41,11 @@ public:
 
 protected slots:
   void combineSegmentations();
+  void substractSegmentations();
 
 private:
-  QAction       *m_combineAction;
+  QAction *m_addition;
+  QAction *m_substraction;
 };
 
 #endif // EDITORTOOLBAR_H

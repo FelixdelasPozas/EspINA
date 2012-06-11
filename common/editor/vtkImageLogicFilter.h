@@ -25,7 +25,7 @@ protected:
 
 private:
   int Operation;
-  int output_extent[6];
+  int OutExtent[6];
 
 
   vtkImageLogicFilter(const vtkImageLogicFilter&);  // Not implemented.

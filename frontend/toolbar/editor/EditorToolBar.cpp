@@ -29,14 +29,18 @@
 //----------------------------------------------------------------------------
 EditorToolBar::EditorToolBar(QWidget* parent)
 : QToolBar(parent)
-, m_combineAction(addAction(tr("Compine Select Segmentations")))
+, m_addition(addAction(tr("Combine Select Segmentations")))
+, m_substraction(addAction(tr("Substract Select Segmentations")))
 {
 //   setWindowTitle("Editor Tool Bar");
   setObjectName("EditorToolBar");
 
-  m_combineAction->setIcon(QIcon(":/espina/add.svg"));
-  connect(m_combineAction, SIGNAL(triggered(bool)),
+  m_addition->setIcon(QIcon(":/espina/add.svg"));
+  connect(m_addition, SIGNAL(triggered(bool)),
 	  this, SLOT(combineSegmentations()));
+  m_substraction->setIcon(QIcon(":/espina/remove.svg"));
+  connect(m_substraction, SIGNAL(triggered(bool)),
+	  this, SLOT(substractSegmentations()));
 }
 
 //----------------------------------------------------------------------------
@@ -79,5 +83,24 @@ void EditorToolBar::combineSegmentations()
   {
     QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
     undo->push(new ImageLogicCommand(input, ImageLogicFilter::ADDITION));
+  }
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::substractSegmentations()
+{
+  QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
+
+  QList<Segmentation *> input;
+  foreach(Segmentation *seg, model->segmentations())
+  {
+    if (seg->isSelected())
+      input << seg;
+  }
+
+  if (!input.isEmpty())
+  {
+    QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
+    undo->push(new ImageLogicCommand(input, ImageLogicFilter::SUBSTRACTION));
   }
 }

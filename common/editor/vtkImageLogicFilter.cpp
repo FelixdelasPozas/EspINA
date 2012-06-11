@@ -41,31 +41,28 @@ int vtkImageLogicFilter::RequestInformation(vtkInformation *request,
 {
   // Get input and output pipeline information.
   vtkInformation* outInfo = outputVector->GetInformationObject(0);
-  vtkInformation *inInfo1 = inputVector[0]->GetInformationObject(0);
-  vtkInformation *inInfo2 = inputVector[0]->GetInformationObject(1);
-
-  // Get the input whole extent.
-  int i1_extent[6],i2_extent[6];
-  inInfo1->Get(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), i1_extent);
-  inInfo2->Get(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), i2_extent);
 
 
-  output_extent[0] = std::min(i1_extent[0],i2_extent[0]);
-  output_extent[1] = std::max(i1_extent[1],i2_extent[1]);
-  output_extent[2] = std::min(i1_extent[2],i2_extent[2]);
-  output_extent[3] = std::max(i1_extent[3],i2_extent[3]);
-  output_extent[4] = std::min(i1_extent[4],i2_extent[4]);
-  output_extent[5] = std::max(i1_extent[5],i2_extent[5]);
+  int inExtent[6];
+  vtkInformation *inInfo = inputVector[0]->GetInformationObject(0);
+  inInfo->Get(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), OutExtent);
+  for(int i=1; i < inputVector[0]->GetNumberOfInformationObjects(); i++)
+  {
+    inInfo = inputVector[0]->GetInformationObject(i);
+    inInfo->Get(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), inExtent);
+
+    for(int j=0; j<=4; j+=2)
+    {
+      OutExtent[j] = std::min(inExtent[j], OutExtent[j]);
+      OutExtent[j+1] = std::max(inExtent[j+1], OutExtent[j+1]);
+    }
+//     inInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(), inExtent, 6);
+  }
+
 
   // Store the new whole extent for the output.
-  outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), output_extent, 6);
-  //outInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(), output_extent, 6);
-
-  //inInfo1->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), output_extent, 6);
-  //inInfo1->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(), output_extent, 6);
-
-  //inInfo2->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), output_extent, 6);
-  //inInfo2->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(), output_extent, 6);
+  outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), OutExtent, 6);
+//   outInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(), OutExtent, 6);
 
   return 1;
 }
@@ -75,8 +72,6 @@ int vtkImageLogicFilter::RequestData(vtkInformation *vtkNotUsed(request),
                                              vtkInformationVector **inputVector,
                                              vtkInformationVector *outputVector)
 {
-   // int i1_extent[6], i2_extent[6];
-
   // Get the info objects
   vtkInformation *inInfo1 = inputVector[0]->GetInformationObject(0);
   vtkInformation *inInfo2 = inputVector[0]->GetInformationObject(1);
@@ -101,13 +96,13 @@ int vtkImageLogicFilter::RequestData(vtkInformation *vtkNotUsed(request),
   vtkSmartPointer<vtkImageConstantPad> padded1 = vtkSmartPointer<vtkImageConstantPad>::New();
   padded1->SetInput(disconnectedImage1);
   padded1->SetConstant(0.0);
-  padded1->SetOutputWholeExtent(output_extent);
+  padded1->SetOutputWholeExtent(OutExtent);
   padded1->Update();
 
   vtkSmartPointer<vtkImageConstantPad> padded2 = vtkSmartPointer<vtkImageConstantPad>::New();
   padded2->SetInput(disconnectedImage2);
   padded2->SetConstant(0.0);
-  padded2->SetOutputWholeExtent(output_extent);
+  padded2->SetOutputWholeExtent(OutExtent);
   padded2->Update();
 
   if (Operation == ADDITION){
@@ -133,12 +128,6 @@ int vtkImageLogicFilter::RequestData(vtkInformation *vtkNotUsed(request),
 
       output->ShallowCopy(sub2->GetOutput());
   }
-
-  // Without the following lines, the output will appear real but will not work as the input to any other filters
-
-  output->SetExtent(output->GetExtent());
-  output->SetUpdateExtent(output->GetExtent());
-  output->SetWholeExtent(output->GetExtent());
 
   return 1;
 }
