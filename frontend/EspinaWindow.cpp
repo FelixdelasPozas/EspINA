@@ -299,6 +299,19 @@ void EspinaWindow::closeEvent(QCloseEvent* event)
     }
   }
 
+  if (m_model->hasChanged())
+  {
+    QMessageBox warning;
+    warning.setWindowTitle(tr("EspINA"));
+    warning.setText(tr("Current session has not been saved. Do you want to save it now?"));
+    warning.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
+    if (warning.exec() == QMessageBox::Yes)
+    {
+      event->ignore();
+      return;
+    }
+  }
+
   if (m_view)
     m_view->saveLayout();
 
@@ -461,6 +474,7 @@ void EspinaWindow::openAnalysis()
   }
   const QString file = fileDialog.getSelectedFiles().first();
   openAnalysis(file);
+  m_model->markAsSaved();
 }
 
 //------------------------------------------------------------------------
@@ -519,7 +533,10 @@ void EspinaWindow::openRecentAnalysis(QAction *action)
   if (action && !action->data().isNull())
   {
     if (OPEN_STATE == m_menuState)
+    {
       openAnalysis(action->data().toString());
+      m_model->markAsSaved();
+    }
     else
       addToAnalysis(action->data().toString());
   }
@@ -646,6 +663,7 @@ void EspinaWindow::saveAnalysis()
 
    m_recentDocuments.addDocument(analysisFile);
   }
+  m_model->markAsSaved();
 }
 
 //------------------------------------------------------------------------

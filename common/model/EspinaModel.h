@@ -82,6 +82,10 @@ public:
   QModelIndex filterRoot() const;
   QModelIndex filterIndex(Filter *filter) const;
 
+  bool hasChanged() const {return m_changed;}
+  void markAsChanged() {m_changed = true;}
+  void markAsSaved(){m_changed = false;}
+
 
   // Taxonomies
   /// Returns the taxonomy used by the analyzer
@@ -143,7 +147,8 @@ private:
 
   RelationshipGraph    *m_relations;
 
-  unsigned int           m_lastId;
+  unsigned int          m_lastId;
+  bool                  m_changed;
 };
 
 #endif // ESPinaModelMODEL_H

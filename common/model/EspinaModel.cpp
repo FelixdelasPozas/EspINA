@@ -39,6 +39,7 @@ EspinaModel::EspinaModel ( QObject* parent )
 , m_tax       (NULL)
 , m_relations (new RelationshipGraph())
 , m_lastId    (0)
+, m_changed   (false)
 {
 }
 
@@ -330,6 +331,7 @@ void EspinaModel::addSample (Sample *sample)
   m_samples << sample;
   m_relations->addItem(sample);
   endInsertRows();
+  markAsChanged();;
 }
 
 //------------------------------------------------------------------------
@@ -340,6 +342,7 @@ void EspinaModel::addSample(QList<Sample *> samples)
 //   {
 //     Q_ASSERT(m_samples.contains(sample) == false);
 //   }
+  markAsChanged();;
 }
 
 
@@ -366,6 +369,7 @@ void EspinaModel::removeSample(Sample *sample)
   Q_ASSERT (m_samples.contains(sample) == false );
   //   m_analysis->removeNode(sample);
   endRemoveRows();
+  markAsChanged();;
 }
 
 //------------------------------------------------------------------------
@@ -383,6 +387,7 @@ void EspinaModel::addChannel(Channel *channel)
   connect(channel, SIGNAL(modified(ModelItem*)),
 	  this, SLOT(itemModified(ModelItem*)));
   endInsertRows();
+  markAsChanged();;
 }
 
 //------------------------------------------------------------------------
@@ -397,6 +402,7 @@ void EspinaModel::removeChannel(Channel *channel)
   m_channels.removeOne(channel);
   Q_ASSERT(m_channels.contains(channel) == false);
   endRemoveRows();
+  markAsChanged();;
 }
 
 //------------------------------------------------------------------------
@@ -428,6 +434,7 @@ void EspinaModel::addSegmentation(Segmentation *seg)
 	  this, SLOT(itemModified(ModelItem*)));
 //   seg->initialize();
   endInsertRows();
+  markAsChanged();;
 }
 
 //------------------------------------------------------------------------
@@ -451,6 +458,7 @@ void EspinaModel::addSegmentation(QList<Segmentation *> segs)
 //     seg->initialize();
   }
   endInsertRows();
+  markAsChanged();;
 }
 
 
@@ -465,6 +473,7 @@ void EspinaModel::removeSegmentation(Segmentation *seg)
   m_relations->removeItem(seg);
   Q_ASSERT(m_segmentations.contains(seg) == false);
   endRemoveRows();
+  markAsChanged();;
 }
 
 //------------------------------------------------------------------------
@@ -475,6 +484,7 @@ void EspinaModel::removeSegmentation(QList<Segmentation *> segs)
   {
     removeSegmentation(seg);
   }
+  markAsChanged();;
 }
 
 //------------------------------------------------------------------------
@@ -484,6 +494,7 @@ void EspinaModel::changeTaxonomy(Segmentation* seg, TaxonomyNode* taxonomy)
 
   QModelIndex segIndex = segmentationIndex(seg);
   emit dataChanged(segIndex, segIndex);
+  markAsChanged();;
 }
 
 
@@ -498,6 +509,7 @@ void EspinaModel::addFilter(Filter *filter)
   m_filters << filter;
   m_relations->addItem(filter);
   endInsertRows();
+  markAsChanged();;
 }
 
 //------------------------------------------------------------------------
@@ -510,6 +522,7 @@ void EspinaModel::removeFilter(Filter *filter)
   m_relations->removeItem(filter);
   Q_ASSERT(m_filters.contains(filter) == false);
   endRemoveRows();
+  markAsChanged();;
 }
 
 //------------------------------------------------------------------------
@@ -520,6 +533,7 @@ void EspinaModel::addRelation(ModelItem* ancestor, ModelItem* successor, QString
   QModelIndex succesorIndex = index(successor);
   emit dataChanged(ancestorIndex, ancestorIndex);
   emit dataChanged(succesorIndex, succesorIndex);
+  markAsChanged();;
 }
 
 //------------------------------------------------------------------------
@@ -530,6 +544,7 @@ void EspinaModel::removeRelation(ModelItem* ancestor, ModelItem* successor, QStr
   QModelIndex succesorIndex = index(successor);
   emit dataChanged(ancestorIndex, ancestorIndex);
   emit dataChanged(succesorIndex, succesorIndex);
+  markAsChanged();;
 }
 
 //------------------------------------------------------------------------
@@ -753,6 +768,7 @@ void EspinaModel::addTaxonomy(TaxonomyNode *root)
     addTaxonomyElement(taxonomyRoot(), node->qualifiedName());
     addTaxonomy(node);
   }
+  markAsChanged();
 }
 
 //------------------------------------------------------------------------
@@ -774,6 +790,7 @@ QModelIndex EspinaModel::addTaxonomyElement(const QModelIndex& parent, QString q
     requestedNode = m_tax->addElement(qualifiedName, parentNode->qualifiedName());
     endInsertRows();
   }
+  markAsChanged();
   return taxonomyIndex(requestedNode);
 }
 
@@ -792,6 +809,7 @@ void EspinaModel::removeTaxonomyElement(const QModelIndex &index)
     beginRemoveRows(index.parent(), index.row(), index.row());
     node->parentNode()->removeChild(node->name());
     endRemoveRows();
+    markAsChanged();
 }
 
 //------------------------------------------------------------------------
