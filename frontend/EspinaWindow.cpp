@@ -78,6 +78,7 @@
 #include <processing/pqFilter.h>
 #include <renderers/VolumetricRenderer.h>
 #include <renderers/CrosshairRenderer.h>
+#include <selection/SelectionManager.h>
 #include <vtkSMPropertyHelper.h>
 #include <vtkSMProxy.h>
 #include <vtkSMProxyManager.h>
@@ -445,6 +446,8 @@ void EspinaWindow::setActivity(QString activity)
 void EspinaWindow::closeCurrentAnalysis()
 {
   EspinaCore::instance()->closeCurrentAnalysis();
+  SelectionManager::instance()->setSelectionHandler(NULL);
+  //SelectionManager::instance()->setVOI(NULL);
 }
 
 //------------------------------------------------------------------------

@@ -144,7 +144,9 @@ void SeedGrowSegmentationFilter::SetupWidget::modifyFilter()
 
   m_filter->setThreshold(m_threshold->value());
   m_filter->setVOI(VOI);
+  QApplication::setOverrideCursor(Qt::WaitCursor);
   m_filter->run();
   m_filter->product(0)->volume().pipelineSource()->updatePipeline();
   EspinaCore::instance()->viewManger()->currentView()->forceRender();
+  QApplication::restoreOverrideCursor();
 }
