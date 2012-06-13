@@ -83,7 +83,11 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
     return;
 
   SelectionHandler::VtkRegion region = msel.first().first;
-  QVector3D center = region.first();
+  if (region.size() != 2)
+    return;
+
+  QVector3D center = region[0];
+  QVector3D p = region[1];
   int extent[6];
   extent[0] = center.x() - 5*m_pencilSelector->radius();
   extent[1] = center.x() + 5*m_pencilSelector->radius();
@@ -116,10 +120,12 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
     m_currentSource = new FreeFormSource(spacing);
   }
 
+  int radius = abs(center.x() - p.x());
+
   if (m_pencilSelector->state() == PencilSelector::DRAWING)
-    m_currentSource->draw(center, m_pencilSelector->radius());
+    m_currentSource->draw(center, radius);
   else if (m_pencilSelector->state() == PencilSelector::ERASING)
-    m_currentSource->erase(center, m_pencilSelector->radius());
+    m_currentSource->erase(center, radius);
   else
     Q_ASSERT(false);
 

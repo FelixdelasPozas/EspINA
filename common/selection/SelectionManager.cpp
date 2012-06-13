@@ -94,6 +94,9 @@ void SelectionManager::unsetSelectionHandler(SelectionHandler* sh)
 //------------------------------------------------------------------------
 void SelectionManager::setVOI(EspinaWidget *voi)
 {
+//   if (m_voi)
+//     m_voi->cancel();
+
   m_voi = voi;
 
   if (m_handler && m_voi)

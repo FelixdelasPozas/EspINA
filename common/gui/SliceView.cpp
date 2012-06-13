@@ -284,7 +284,6 @@ void SliceView::eventPosition(int& x, int& y)
     vtkRenderWindowInteractor::SafeDownCast(
       view->GetRenderWindow()->GetInteractor());
   Q_ASSERT(rwi);
-
   rwi->GetEventPosition(x, y);
 }
 
@@ -363,6 +362,14 @@ pqRenderViewBase* SliceView::view()
   return m_view;
 }
 
+
+//-----------------------------------------------------------------------------
+vtkRenderWindow* SliceView::renderWindow()
+{
+  vtkSMSliceViewProxy* view =
+    vtkSMSliceViewProxy::SafeDownCast(m_view->getProxy());
+  return view->GetRenderWindow();
+}
 
 //-----------------------------------------------------------------------------
 void SliceView::onConnect()
@@ -997,7 +1004,7 @@ void SliceView::setShowPreprocessing(bool visible)
   if (m_channels.size() < 2)
     return;
 
-  for(unsigned int i=0; i < m_channels.keys().size(); i++)
+  for(int i=0; i < m_channels.keys().size(); i++)
   {
     Channel *channel = m_channels.keys()[i];
     if (i == 0)

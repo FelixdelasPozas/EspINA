@@ -81,7 +81,6 @@ public:
   inline QString title() const;
   void setTitle(const QString &title);
 
-
   void setGridSize(double size[3]);
   void setRanges(double ranges[6]/*nm*/);
   void setFitToGrid(bool value);
@@ -94,6 +93,7 @@ public:
   virtual void eventPosition(int &x, int &y);
   virtual SelectionHandler::MultiSelection select(SelectionHandler::SelectionFilters filters, SelectionHandler::ViewRegions regions);
   virtual pqRenderViewBase *view();
+  virtual vtkRenderWindow* renderWindow();
 
   void addChannelRepresentation(Channel *channel);
   void removeChannelRepresentation(Channel *channel);

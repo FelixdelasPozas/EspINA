@@ -23,6 +23,7 @@
 #include <EspinaCore.h>
 #include <vtkCommand.h>
 #include <vtkInteractorStyle.h>
+#include <vtkRenderWindow.h>
 #include <pqRenderViewBase.h>
 
 #include <QPixmap>
@@ -36,6 +37,7 @@
 #include <QDebug>
 
 
+//TODO: Generalize to Circular selector
 //-----------------------------------------------------------------------------
 PencilSelector::PencilSelector(SelectionHandler* succesor)
 : SelectionHandler(succesor)
@@ -50,26 +52,23 @@ bool PencilSelector::filterEvent(QEvent* e, SelectableView* view)
 {
   if (e->type() == QEvent::Enter)
   {
+    setRadius(m_radius);
     view->view()->getWidget()->grabKeyboard();
     return SelectionHandler::filterEvent(e, view);
   }
   if (e->type() == QEvent::KeyPress)
   {
    QKeyEvent *ke = static_cast<QKeyEvent *>(e);
-    if (ke->key() == Qt::Key_Control)
+    if (ke->key() == Qt::Key_Control && ke->count() == 1)
       changeState(ERASING);
-    else
-      changeState(DRAWING);
     QApplication::changeOverrideCursor(cursor());
     return true;
   }
   if (e->type() == QEvent::KeyRelease)
   {
    QKeyEvent *ke = static_cast<QKeyEvent *>(e);
-    if (ke->key() == Qt::Key_Control)
+    if (ke->key() == Qt::Key_Control && ke->count() == 1)
       changeState(DRAWING);
-    else
-      changeState(ERASING);
     QApplication::changeOverrideCursor(cursor());
     return true;
   }
@@ -97,22 +96,26 @@ bool PencilSelector::filterEvent(QEvent* e, SelectableView* view)
       ViewRegions regions;
       QPolygon singlePixel;
 
+      int *winSize = view->renderWindow()->GetSize();
       int xPos, yPos;
-      view->eventPosition(xPos, yPos);
-      //     qDebug() << "Initial" << xPos << yPos;
-      if (!m_tracking)
-      {
-	m_xRef = me->x();
-	m_yRef = -me->y();
-	//       qDebug() << "Reference" << m_xRef << m_yRef;
-      }
-      m_tracking = true;
-      //     qDebug() << "Mouse" << me->x() << me->y();
-      xPos = xPos + (me->x() - m_xRef);
-      yPos = yPos + (-me->y() - m_yRef);
-      //     qDebug() << "Final" << xPos << yPos;
+      xPos = me->x();
+      yPos = winSize[1] - me->y();
+//       view->eventPosition(xPos, yPos);
+//       qDebug() << "Pick Pos" << xPos << yPos;
+//       qDebug() << "Mouse Pos" << me->x() << me->y();
+//       if (!m_tracking)
+//       {
+// 	m_xRef = me->x();
+// 	m_yRef = -me->y();
+// 	//       qDebug() << "Reference" << m_xRef << m_yRef;
+//       }
+//       m_tracking = true;
+//       //     qDebug() << "Mouse" << me->x() << me->y();
+//       xPos = xPos + (me->x() - m_xRef);
+//       yPos = yPos + (-me->y() - m_yRef);
+//       //     qDebug() << "Final" << xPos << yPos;
 
-      singlePixel << QPoint(xPos,yPos);
+      singlePixel << QPoint(xPos,yPos) << QPoint(xPos+radius(), yPos);
       regions << singlePixel;
 
       MultiSelection msel = view->select(m_filters, regions);
@@ -136,7 +139,8 @@ QCursor PencilSelector::cursor()
 //-----------------------------------------------------------------------------
 void PencilSelector::setRadius(int radius)
 {
-  if (/*radius != m_radius &&*/ radius > 0)
+  static const int MAX_RADIUS = 32;
+  if (radius > 0 && radius <= MAX_RADIUS)
   {
     m_radius = radius;
     int width = 2*radius;

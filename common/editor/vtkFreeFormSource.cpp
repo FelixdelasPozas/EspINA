@@ -55,7 +55,7 @@ vtkFreeFormSource::vtkFreeFormSource()
 //-----------------------------------------------------------------------------
 void vtkFreeFormSource::Draw(int cx, int cy, int cz, int r, int plane)
 {
-  if (0 <= plane && plane <=2 && r > 0)
+  if (0 <= plane && plane <=2 && r >= 0)
   {
 //     std::cout << "Drawing" << std::endl;
 //     std::cout << "\t" << cx << " " << cy << " " << cz << " " << r << std::endl;
