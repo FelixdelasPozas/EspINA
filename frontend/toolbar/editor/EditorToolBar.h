@@ -24,8 +24,11 @@
 #include <common/gui/DynamicWidget.h>
 
 #include <selection/SelectionHandler.h>
+#include <editor/PencilSelector.h>
 
-class PixelSelector;
+class Segmentation;
+class FreeFormSource;
+
 class EditorToolBar
 : public QToolBar
 , public DynamicWidget
@@ -34,18 +37,27 @@ class EditorToolBar
 public:
   explicit EditorToolBar(QWidget *parent = 0);
 
-  virtual void setActivity(QString activity);
-  virtual void setLOD();
-  virtual void decreaseLOD();
-  virtual void increaseLOD();
+  virtual void setActivity(QString activity){}
+  virtual void setLOD(){}
+  virtual void decreaseLOD(){}
+  virtual void increaseLOD(){}
 
 protected slots:
+  void startDrawing(bool draw);
+  void drawSegmentation(SelectionHandler::MultiSelection msel);
+  void stopDrawing();
+  void stateChanged(PencilSelector::State state);
   void combineSegmentations();
   void substractSegmentations();
 
 private:
+  QAction *m_draw;
   QAction *m_addition;
   QAction *m_substraction;
+
+  PencilSelector *m_pencilSelector;
+  FreeFormSource *m_currentSource;
+  Segmentation   *m_currentSeg;
 };
 
 #endif // EDITORTOOLBAR_H

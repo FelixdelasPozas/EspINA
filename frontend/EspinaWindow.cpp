@@ -307,8 +307,7 @@ void EspinaWindow::closeEvent(QCloseEvent* event)
     warning.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
     if (warning.exec() == QMessageBox::Yes)
     {
-      event->ignore();
-      return;
+      saveAnalysis();
     }
   }
 

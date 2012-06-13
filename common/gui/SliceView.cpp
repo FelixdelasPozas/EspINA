@@ -65,6 +65,7 @@
 #include <vtkObjectFactory.h>
 #include <vtkPropCollection.h>
 #include <vtkPropCollection.h>
+#include <vtkCommand.h>
 #include <vtkPropPicker.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
@@ -81,9 +82,28 @@
 #include <vtkSMNewWidgetRepresentationProxy.h>
 #include <vtkWidgetRepresentation.h>
 #include <vtkSMProperty.h>
+#include <vtkPVGenericRenderWindowInteractor.h>
 #include <vtkChannelRepresentation.h>
 
 
+// class MouseMoveCallback : public vtkCommand
+// {
+//   static MouseMoveCallback *New()
+//   {
+//     return new MouseMoveCallback();
+//   }
+// 
+// virtual void execute(vtkobject* caller, long unsigned int eventid, void* calldata)
+// {
+//   //vtkinteractorstyle *style = static_cast<vtkinteractorstyle *>(caller);
+// 
+//   switch(eventid)
+//   {
+//     case vtkcommand::mousemoveevent:
+//       qdebug() << "moviendose";
+//   }
+// }
+// };
 //-----------------------------------------------------------------------------
 // SLICE VIEW
 //-----------------------------------------------------------------------------
@@ -894,7 +914,9 @@ bool SliceView::updateSegmentationRepresentation(Segmentation* seg)
   }
   if (seg->isSelected() != rep.selected
     || seg->visible() != rep.visible
-    || seg->data(Qt::DecorationRole).value<QColor>() != rep.color)
+    || seg->data(Qt::DecorationRole).value<QColor>() != rep.color
+    || seg->updateForced()
+  )
   {
     rep.selected = seg->isSelected();
     rep.visible  = seg->visible();

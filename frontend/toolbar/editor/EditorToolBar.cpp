@@ -20,51 +20,138 @@
 #include "EditorToolBar.h"
 
 #include <selection/SelectionManager.h>
+#include <selection/SelectableItem.h>
 #include <selection/PixelSelector.h>
 
 #include <QAction>
 #include <EspinaCore.h>
+#include <model/Channel.h>
 #include <editor/ImageLogicCommand.h>
+#include <editor/PencilSelector.h>
+#include <editor/FreeFormSource.h>
 
 //----------------------------------------------------------------------------
 EditorToolBar::EditorToolBar(QWidget* parent)
 : QToolBar(parent)
-, m_addition(addAction(tr("Combine Select Segmentations")))
-, m_substraction(addAction(tr("Substract Select Segmentations")))
+, m_draw(addAction(tr("Draw segmentations")))
+, m_addition(addAction(tr("Combine Selected Segmentations")))
+, m_substraction(addAction(tr("Substract Selected Segmentations")))
+, m_pencilSelector(new PencilSelector())
+, m_currentSource(NULL)
+, m_currentSeg(NULL)
 {
 //   setWindowTitle("Editor Tool Bar");
   setObjectName("EditorToolBar");
 
+  m_draw->setIcon(QIcon(":/espina/pencil.png"));
+  m_draw->setCheckable(true);
+  connect(m_draw, SIGNAL(triggered(bool)),
+	 this, SLOT(startDrawing(bool)));
   m_addition->setIcon(QIcon(":/espina/add.svg"));
   connect(m_addition, SIGNAL(triggered(bool)),
-	  this, SLOT(combineSegmentations()));
+	 this, SLOT(combineSegmentations()));
   m_substraction->setIcon(QIcon(":/espina/remove.svg"));
   connect(m_substraction, SIGNAL(triggered(bool)),
-	  this, SLOT(substractSegmentations()));
+	 this, SLOT(substractSegmentations()));
+
+  m_pencilSelector->setSelectable(SelectionHandler::EspINA_Channel);
+  connect(m_pencilSelector, SIGNAL(selectionChanged(SelectionHandler::MultiSelection)),
+	 this, SLOT(drawSegmentation(SelectionHandler::MultiSelection)));
+  connect(m_pencilSelector, SIGNAL(selectionAborted()),
+	 this, SLOT(stopDrawing()));
+  connect(m_pencilSelector, SIGNAL(stateChanged(PencilSelector::State)),
+	 this, SLOT(stateChanged(PencilSelector::State)));
 }
 
 //----------------------------------------------------------------------------
-void EditorToolBar::setActivity(QString activity)
+void EditorToolBar::startDrawing(bool draw)
 {
-
+  if (draw)
+    SelectionManager::instance()->setSelectionHandler(m_pencilSelector);
+  else
+  {
+    SelectionManager::instance()->setSelectionHandler(NULL);
+    m_currentSource = NULL;
+    m_currentSeg = NULL;
+  }
 }
 
 //----------------------------------------------------------------------------
-void EditorToolBar::setLOD()
+void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
 {
+  if (msel.size() == 0)
+    return;
 
+  SelectionHandler::VtkRegion region = msel.first().first;
+  QVector3D center = region.first();
+  int extent[6];
+  extent[0] = center.x() - 5*m_pencilSelector->radius();
+  extent[1] = center.x() + 5*m_pencilSelector->radius();
+  extent[2] = center.y() - 5*m_pencilSelector->radius();
+  extent[3] = center.y() + 5*m_pencilSelector->radius();
+  extent[4] = center.z() - 5*m_pencilSelector->radius();
+  extent[5] = center.z() + 5*m_pencilSelector->radius();
+
+  double spacing[3];
+  SelectableItem *selectedItem = msel.first().second;
+  if (ModelItem::CHANNEL == selectedItem->type())
+  {
+    int channelExtent[6];
+    Channel *channel = dynamic_cast<Channel *>(selectedItem);
+    channel->extent(channelExtent);
+    for(int i=0; i<3; i++)
+    {
+      int min = 2*i, max = 2*i+1;
+      extent[min] = std::max(extent[min], channelExtent[min]);
+      extent[max] = std::min(extent[max], channelExtent[max]);
+    }
+    channel->spacing(spacing);
+//     center.setX(center.x()*spacing[0]);
+//     center.setY(center.y()*spacing[1]);
+//     center.setZ(center.z()*spacing[2]);
+  }
+
+  if (!m_currentSource)
+  {
+    m_currentSource = new FreeFormSource(spacing);
+  }
+
+  if (m_pencilSelector->state() == PencilSelector::DRAWING)
+    m_currentSource->draw(center, m_pencilSelector->radius());
+  else if (m_pencilSelector->state() == PencilSelector::ERASING)
+    m_currentSource->erase(center, m_pencilSelector->radius());
+  else
+    Q_ASSERT(false);
+
+  if (!m_currentSeg)
+  {
+    m_currentSeg = m_currentSource->product(0);
+    m_currentSeg->setTaxonomy(EspinaCore::instance()->activeTaxonomy());
+    EspinaCore::instance()->model()->addSegmentation(m_currentSeg);
+  }
+  m_currentSeg->notifyModification(true);
 }
 
 //----------------------------------------------------------------------------
-void EditorToolBar::decreaseLOD()
+void EditorToolBar::stopDrawing()
 {
-
+  m_draw->blockSignals(true);
+  m_draw->setChecked(false);
+  m_draw->blockSignals(false);
 }
 
 //----------------------------------------------------------------------------
-void EditorToolBar::increaseLOD()
+void EditorToolBar::stateChanged(PencilSelector::State state)
 {
-
+  switch (state)
+  {
+    case PencilSelector::DRAWING:
+      m_draw->setIcon(QIcon(":/espina/pencil.png"));
+      break;
+    case PencilSelector::ERASING:
+      m_draw->setIcon(QIcon(":/espina/eraser.png"));
+      break;
+  };
 }
 
 //----------------------------------------------------------------------------

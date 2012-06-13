@@ -1,4 +1,41 @@
 <ServerManagerConfiguration>
+  <ProxyGroup name="sources">
+   <SourceProxy name="FreeFormSource" class="vtkFreeFormSource" label="Free Form Binary Image Source">
+     <Documentation
+        long_help="Binary Image which support basic drawing operations"
+        short_help="Binary Image which support basic drawing operations">
+     </Documentation>
+<!--     <IntVectorProperty
+	name="Extent"
+	number_of_elements="6"
+	default_values="0 -1 0 -1 0 -1"
+	immediate_update="1"
+	command="SetExtent">
+     </IntVectorProperty>-->
+     <DoubleVectorProperty
+	name="Spacing"
+	number_of_elements="3"
+	default_values="1 1 1"
+	immediate_update="1"
+	command="SetSpacing">
+      </DoubleVectorProperty>
+      <IntVectorProperty
+	name="Draw"
+	number_of_elements="5"
+	default_values="0 0 0 0 -1"
+	command="Draw">
+      </IntVectorProperty>
+      <IntVectorProperty
+	name="Erase"
+	number_of_elements="5"
+	default_values="0 0 0 0 -1"
+	command="Erase">
+      </IntVectorProperty>
+   </SourceProxy>
+   <!-- End of FreeFormSource -->
+   
+ </ProxyGroup>
+ <!-- End Sources -->
   <ProxyGroup name="filters">
    <SourceProxy name="ImageLogicFilter" class="vtkImageLogicFilter" label="Imagic Logic Filter">
      <Documentation

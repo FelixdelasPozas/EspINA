@@ -72,6 +72,7 @@ public:
 
 public slots:
   virtual void setShowSegmentations(bool visibility);
+  virtual void setShowPreprocessing(bool visibility);
   virtual void setCenter(double x, double y, double z);
   virtual void setCameraFocus(double [3]);
   virtual void setSliceSelectors(SliceView::SliceSelectors selectors);

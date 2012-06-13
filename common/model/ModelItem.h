@@ -105,7 +105,7 @@ public:
 
   static const ArgumentId EXTENSIONS;
 
-  ModelItem() : m_vertex(0), m_relations(NULL) {}
+  ModelItem() : m_modified(false), m_vertex(0), m_relations(NULL) {}
   virtual ~ModelItem(){}
 
   virtual QString  id() const = 0;
@@ -129,8 +129,10 @@ public:
   /// satisfy this condition
   virtual void initialize(Arguments args = Arguments()) {};
 
+  bool updateForced() const {return m_modified;}
 public slots:
-  virtual void notifyModification() {emit modified(this);}
+  virtual void notifyModification(bool force=false)
+  {m_modified = force; emit modified(this);}
 
 signals:
   void modified(ModelItem *);
@@ -138,6 +140,7 @@ signals:
 protected:
   void addExtension(ModelItemExtension *ext);
 
+  bool               m_modified;
   size_t             m_vertex;
   RelationshipGraph *m_relations;
 

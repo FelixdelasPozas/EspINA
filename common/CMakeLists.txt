@@ -73,6 +73,7 @@ qt4_wrap_cpp(PVMOC_SOURCES
 
 set (PVCORE_SERVER_SOURCES
   editor/vtkImageLogicFilter.cpp
+  editor/vtkFreeFormSource.cpp
   extensions/Margins/vtkChannelBorderDetector.cpp
   extensions/Morphological/vtkMorphologicalFeaturesFilter.cpp
   views/vtkPVSliceView.cpp
@@ -132,6 +133,7 @@ target_link_libraries(EspinaPVCore ${PVCORE_LIBRARIES})
 # Add extra library containing custom code for the client.
 qt4_wrap_cpp(CORE_MOC
   EspinaCore.h
+  editor/PencilSelector.h
   gui/ActionSelector.h
   gui/ActionSelectorWidget.h
   gui/EspinaView.h
@@ -158,6 +160,8 @@ set (CORE_SOURCES
   cache/Cache.cpp
   cache/CacheHash.cpp
   cache/CachedObjectBuilder.cpp
+  editor/PencilSelector.cpp
+  editor/FreeFormSource.cpp
   editor/ImageLogicCommand.cpp
   editor/ImageLogicFilter.cpp
   extensions/ChannelExtension.cpp

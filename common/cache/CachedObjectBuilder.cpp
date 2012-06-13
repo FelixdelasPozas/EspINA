@@ -83,16 +83,21 @@ pqFilter* CachedObjectBuilder::loadFile(const QString file)
 pqFilter* CachedObjectBuilder::createFilter(const QString group,
 					    const QString name,
 					    const pqFilter::Arguments args,
-					    bool persistent)
+					    bool persistent,
+					    bool ignoreCache)
 {
   // Create cache entry
   Cache::Index id = generateId(group, name, args);
 
-  pqFilter *filter = getFilter(id);
-  if (filter)
+  pqFilter *filter = NULL;
+  if (!ignoreCache)
   {
-    m_cache->addReference(id);
-    return filter;
+    filter = getFilter(id);
+    if (filter)
+    {
+      m_cache->addReference(id);
+      return filter;
+    }
   }
 
   pqPipelineSource *proxy = createSMFilter(group, name, args);
