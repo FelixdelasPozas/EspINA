@@ -38,6 +38,7 @@
 #include <QDebug>
 #include <model/Taxonomy.h>
 #include <EspinaCore.h>
+#include <QApplication>
 static const QString SEG = "seg";
 
 //-----------------------------------------------------------------------------
@@ -65,6 +66,8 @@ QString fileName(const QString path)
 bool EspinaIO::readFile(const QString file )
 {
   const QString cachePath = parentDirectory(file) + "/" + fileName(file);
+
+  QApplication::setOverrideCursor(Qt::WaitCursor);
 
 //   qDebug() << "Opening Seg File:" << file;
 //   qDebug() << "Parent Directory:" << cachePath;
@@ -102,7 +105,10 @@ bool EspinaIO::readFile(const QString file )
     Taxonomy *taxonomy = IOTaxonomy::loadXMLTaxonomy(TaxonomySerialization);
     model->addTaxonomy(taxonomy);
     if (model->taxonomy()->elements().size() == 0)
+    {
+      QApplication::restoreOverrideCursor();
       return false;
+    }
     // 	taxonomy->print(3);
 
     model->loadSerialization(trace);
@@ -113,8 +119,10 @@ bool EspinaIO::readFile(const QString file )
   catch (char *str)
   {
     qWarning() << "Espina: Unable to load" << file << str;
+      QApplication::restoreOverrideCursor();
     return false;
   }
+  QApplication::restoreOverrideCursor();
   return true;
 }
 
