@@ -39,10 +39,6 @@ public:
   int radius() const {return m_radius;}
 
   State state() const {return m_state;}
-signals:
-  void stateChanged(PencilSelector::State);
-
-private:
   void changeState(State state)
   {
     if (m_state != state)
@@ -52,6 +48,10 @@ private:
       emit stateChanged(state);
     }
   }
+
+signals:
+  void stateChanged(PencilSelector::State);
+
 
 private:
   int     m_radius;

@@ -137,6 +137,7 @@ void EditorToolBar::stopDrawing()
 {
   m_draw->blockSignals(true);
   m_draw->setChecked(false);
+  m_pencilSelector->changeState(PencilSelector::DRAWING);
   m_draw->blockSignals(false);
 }
 

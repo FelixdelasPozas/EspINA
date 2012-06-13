@@ -125,9 +125,15 @@ void DefaultEspinaView::createViewMenu(QMenu* menu)
   menu->addAction(xzDock->toggleViewAction());
   menu->addAction(volDock->toggleViewAction());
   menu->addSeparator();
-  
+
   QAction *showSegmentations = new QAction(tr("Show Segmentations"),menu);
   menu->addAction(showSegmentations);
+  QAction *showPreprocessing = new QAction(tr("Show Channel Preprocessing"), menu);
+  showPreprocessing->setCheckable(true);
+  showPreprocessing->setShortcut(QString("Ctrl+Space"));
+  connect(showPreprocessing, SIGNAL(triggered(bool)),
+	 this, SLOT(setShowPreprocessing(bool)));
+  menu->addAction(showPreprocessing);
   QAction *showRuler = new QAction(tr("Show Ruler"),menu);
   showRuler->setCheckable(true);
   showRuler->setChecked(true);
@@ -280,6 +286,12 @@ void DefaultEspinaView::setShowSegmentations(bool visibility)
   yzView->setSegmentationVisibility(visibility);
   xzView->setSegmentationVisibility(visibility);
 //   EspinaCore::instance()->model()->serializeRelations(std::cout, RelationshipGraph::GRAPHVIZ);
+}
+
+//----------------------------------------------------------------------------
+void DefaultEspinaView::setShowPreprocessing(bool visibility)
+{
+  xyView->setShowPreprocessing(visibility);
 }
 
 //-----------------------------------------------------------------------------

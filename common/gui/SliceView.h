@@ -126,6 +126,8 @@ public slots:
 
   /// Show/Hide segmentations
   void setSegmentationVisibility(bool visible);
+  /// Show/Hide Preprocessing
+  void setShowPreprocessing(bool visible);
   /// Show/Hide the ruler
   void setRulerVisibility(bool visible);
   /// Show/Hide Slice Selector

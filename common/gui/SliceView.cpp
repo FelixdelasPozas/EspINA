@@ -992,6 +992,27 @@ void SliceView::setSegmentationVisibility(bool visible)
 }
 
 //-----------------------------------------------------------------------------
+void SliceView::setShowPreprocessing(bool visible)
+{
+  if (m_channels.size() < 2)
+    return;
+
+  for(unsigned int i=0; i < m_channels.keys().size(); i++)
+  {
+    Channel *channel = m_channels.keys()[i];
+    if (i == 0)
+      channel->setData(!visible, Qt::CheckStateRole);
+    else if (i == 1)
+      channel->setData(visible, Qt::CheckStateRole);
+    else
+      channel->setData(false, Qt::CheckStateRole);
+
+    channel->notifyModification();
+  }
+}
+
+
+//-----------------------------------------------------------------------------
 void SliceView::setRulerVisibility(bool visible)
 {
   m_view->setRulerVisibility(visible);
