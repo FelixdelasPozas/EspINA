@@ -87,7 +87,6 @@ void SelectionManager::unsetSelectionHandler(SelectionHandler* sh)
   if (m_handler == sh)
   {
     m_handler = NULL;
-    QApplication::restoreOverrideCursor();
   }
 }
 

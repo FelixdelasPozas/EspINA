@@ -485,12 +485,7 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
   }else if (e->type() == QEvent::Enter)
   {
     QWidget::enterEvent(e);
-    QApplication::setOverrideCursor(SelectionManager::instance()->cursor());
-    e->accept();
-  }else if (e->type() == QEvent::Leave)
-  {
-    QWidget::leaveEvent(e);
-    QApplication::restoreOverrideCursor();
+    m_viewWidget->setCursor(SelectionManager::instance()->cursor());
     e->accept();
   }else if (e->type() == QEvent::MouseMove)
   {
@@ -512,7 +507,7 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
     else
     {
       if (m_inThumbnail)
-	QApplication::restoreOverrideCursor();;
+	QApplication::restoreOverrideCursor();
       m_inThumbnail = false;
     }
 

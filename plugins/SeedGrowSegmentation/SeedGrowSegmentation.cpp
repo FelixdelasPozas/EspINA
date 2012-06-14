@@ -27,6 +27,7 @@
 // EspinaModel
 #include "common/EspinaCore.h"
 #include "common/gui/ActionSelector.h"
+#include <common/gui/EspinaView.h>
 #include "common/model/Channel.h"
 #include "common/model/EspinaFactory.h"
 #include "common/model/EspinaModel.h"
@@ -235,6 +236,7 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
 
     QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
     undo->push(new UndoCommand(channel, filter, tax));
+    EspinaCore::instance()->viewManger()->currentView()->forceRender();
     QApplication::restoreOverrideCursor();
   }
 }

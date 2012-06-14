@@ -53,14 +53,19 @@ bool PencilSelector::filterEvent(QEvent* e, SelectableView* view)
   if (e->type() == QEvent::Enter)
   {
     setRadius(m_radius);
-    view->view()->getWidget()->setFocus();
+    view->view()->getWidget()->grabKeyboard();
+    return SelectionHandler::filterEvent(e, view);
+  }
+  else if (e->type() == QEvent::Leave)
+  {
+    view->view()->getWidget()->releaseKeyboard();
     return SelectionHandler::filterEvent(e, view);
   } else if (e->type() == QEvent::KeyPress)
   {
    QKeyEvent *ke = static_cast<QKeyEvent *>(e);
     if (ke->key() == Qt::Key_Control && ke->count() == 1)
       changeState(ERASING);
-    QApplication::changeOverrideCursor(cursor());
+    view->view()->getWidget()->setCursor(cursor());
     return true;
   }
   if (e->type() == QEvent::KeyRelease)
@@ -68,7 +73,7 @@ bool PencilSelector::filterEvent(QEvent* e, SelectableView* view)
    QKeyEvent *ke = static_cast<QKeyEvent *>(e);
     if (ke->key() == Qt::Key_Control && ke->count() == 1)
       changeState(DRAWING);
-    QApplication::changeOverrideCursor(cursor());
+    view->view()->getWidget()->setCursor(cursor());
     return true;
   }
   if (e->type() == QEvent::Wheel)
@@ -78,48 +83,20 @@ bool PencilSelector::filterEvent(QEvent* e, SelectableView* view)
     {
       int numSteps = we->delta()/8/15;//Refer to QWheelEvent doc.
       setRadius(m_radius+numSteps);
-      QApplication::changeOverrideCursor(cursor());
+      view->view()->getWidget()->setCursor(cursor());
       return true;
+    }else if (we->buttons() == Qt::LeftButton)
+    {
+      startSelection(we->x(), we->y(), view);
+      return false;
     }
   }else if (QEvent::MouseButtonPress == e->type()
-    || QEvent::MouseMove == e->type())
+      || QEvent::MouseMove == e->type())
   {
     QMouseEvent *me = dynamic_cast<QMouseEvent *>(e);
-//     if (me->modifiers() == Qt::CTRL)
-//       changeState(ERASING);
-//     else
-//       changeState(DRAWING);
-
     if (me->buttons() == Qt::LeftButton)
     {
-      ViewRegions regions;
-      QPolygon singlePixel;
-
-      int *winSize = view->renderWindow()->GetSize();
-      int xPos, yPos;
-      xPos = me->x();
-      yPos = winSize[1] - me->y();
-//       view->eventPosition(xPos, yPos);
-//       qDebug() << "Pick Pos" << xPos << yPos;
-//       qDebug() << "Mouse Pos" << me->x() << me->y();
-//       if (!m_tracking)
-//       {
-// 	m_xRef = me->x();
-// 	m_yRef = -me->y();
-// 	//       qDebug() << "Reference" << m_xRef << m_yRef;
-//       }
-//       m_tracking = true;
-//       //     qDebug() << "Mouse" << me->x() << me->y();
-//       xPos = xPos + (me->x() - m_xRef);
-//       yPos = yPos + (-me->y() - m_yRef);
-//       //     qDebug() << "Final" << xPos << yPos;
-
-      singlePixel << QPoint(xPos,yPos) << QPoint(xPos+radius(), yPos);
-      regions << singlePixel;
-
-      MultiSelection msel = view->select(m_filters, regions);
-
-      emit selectionChanged(msel);
+      startSelection(me->x(), me->y(), view);
       return true;
     }
   }
@@ -168,5 +145,24 @@ void PencilSelector::setRadius(int radius)
 
     m_cursor = QCursor(pix);
   }
+}
+
+//-----------------------------------------------------------------------------
+void PencilSelector::startSelection(int x, int y, SelectableView *view)
+{
+  ViewRegions regions;
+  QPolygon brushRadius;
+
+  int *winSize = view->renderWindow()->GetSize();
+  int xPos, yPos;
+  xPos = x;
+  yPos = winSize[1] - y;
+
+  brushRadius << QPoint(xPos,yPos) << QPoint(xPos+radius(), yPos);
+  regions << brushRadius;
+
+  MultiSelection msel = view->select(m_filters, regions);
+
+  emit selectionChanged(msel);
 }
 

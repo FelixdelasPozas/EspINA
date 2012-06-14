@@ -491,6 +491,7 @@ void EspinaWindow::openAnalysis(const QString file)
 
   if (!EspinaCore::instance()->loadFile(file))
   {
+    QApplication::setOverrideCursor(Qt::ArrowCursor);
     QMessageBox box(QMessageBox::Warning,
 		    tr("Espina"),
 	            tr("File %1 could not be loaded.\nDo you want to remove it from recent documents?")
@@ -499,7 +500,6 @@ void EspinaWindow::openAnalysis(const QString file)
 
     if (box.exec() == QMessageBox::Yes)
       m_recentDocuments.removeDocument(file);
-
     QApplication::restoreOverrideCursor();
     return;
   }

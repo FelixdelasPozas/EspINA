@@ -49,6 +49,9 @@ public:
     }
   }
 
+private:
+  void startSelection(int x, int y, SelectableView *view);
+
 signals:
   void stateChanged(PencilSelector::State);
 

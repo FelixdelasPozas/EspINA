@@ -119,7 +119,7 @@ bool EspinaIO::readFile(const QString file )
   catch (char *str)
   {
     qWarning() << "Espina: Unable to load" << file << str;
-      QApplication::restoreOverrideCursor();
+    QApplication::restoreOverrideCursor();
     return false;
   }
   QApplication::restoreOverrideCursor();
