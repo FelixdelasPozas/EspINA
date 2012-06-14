@@ -84,7 +84,7 @@ public:
   void setGridSize(double size[3]);
   void setRanges(double ranges[6]/*nm*/);
   void setFitToGrid(bool value);
-  void centerViewOn(double center[3]/*nm*/);
+  void centerViewOn(double center[3]/*nm*/, bool force=false);
   void setCrossHairColors(double hcolor[3], double vcolor[3]);
   void resetCamera();
 

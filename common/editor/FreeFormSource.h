@@ -51,6 +51,7 @@ private:
   Segmentation *m_seg;
   unsigned int  m_id;
   Arguments     m_args;
+  bool          m_hasPixels;
   static unsigned int m_count;
 };
 

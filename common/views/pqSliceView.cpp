@@ -185,9 +185,9 @@ void pqSliceView::setSlice ( double pos /*in nm*/ )
 }
 
 //-----------------------------------------------------------------------------
-void pqSliceView::centerViewOn ( double x, double y, double z )
+void pqSliceView::centerViewOn(double x, double y, double z, bool force)
 {
-    if ( Center[0] == x && Center[1] == y && Center[2] == z )
+    if ( Center[0] == x && Center[1] == y && Center[2] == z && !force)
         return;
 
 //   qDebug() << "pqSliceView: Setting Center" << x << y << z;
@@ -196,7 +196,8 @@ void pqSliceView::centerViewOn ( double x, double y, double z )
     Center[1] = y;
     Center[2] = z;
 
-    vtkSMPropertyHelper ( this->getProxy(), "Center" ).Set ( Center,3 );
+    vtkSMPropertyHelper(this->getProxy(), "Center").Set(Center, 3);
+    this->getProxy()->UpdateProperty("Center", force);
     this->getProxy()->UpdateVTKObjects();
     forceRender();
 

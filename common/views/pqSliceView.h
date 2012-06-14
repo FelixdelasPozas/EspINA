@@ -96,7 +96,7 @@ public slots:
     /// which the slice is obtained
     void setSlice ( double pos /*nm*/ );
     /// Set/Get the point in which the view is centered on
-    void centerViewOn ( double x/*nm*/, double y/*nm*/, double z/*nm*/ );
+    void centerViewOn(double x/*nm*/, double y/*nm*/, double z/*nm*/, bool force=false);
     /// Set whether segmentations are visible or not
     void setShowSegmentations ( bool visible );
     /// Set whether the scale ruler is visible or not

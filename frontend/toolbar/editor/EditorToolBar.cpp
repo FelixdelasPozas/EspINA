@@ -129,13 +129,15 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
   else
     Q_ASSERT(false);
 
-  if (!m_currentSeg)
+  if (!m_currentSeg && m_currentSource->numProducts() == 1)
   {
     m_currentSeg = m_currentSource->product(0);
     m_currentSeg->setTaxonomy(EspinaCore::instance()->activeTaxonomy());
     EspinaCore::instance()->model()->addSegmentation(m_currentSeg);
   }
-  m_currentSeg->notifyModification(true);
+
+  if (m_currentSeg)
+    m_currentSeg->notifyModification(true);
 }
 
 //----------------------------------------------------------------------------

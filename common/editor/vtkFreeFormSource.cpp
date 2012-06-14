@@ -129,7 +129,7 @@ void vtkFreeFormSource::Draw(int disc[5])
 //-----------------------------------------------------------------------------
 void vtkFreeFormSource::Erase(int cx, int cy, int cz, int r, int plane)
 {
-  if (0 <= plane && plane <=2 && r > 0)
+  if (0 <= plane && plane <=2 && r > 0 && m_data.GetPointer())
   {
 //     std::cout << "Erasing" << std::endl;
 //     std::cout << "\t" << cx << " " << cy << " " << cz << " " << r << std::endl;
@@ -155,8 +155,6 @@ void vtkFreeFormSource::Erase(int cx, int cy, int cz, int r, int plane)
 //     Extent[3] = std::max(Extent[3], expandY?cy + r:cy);
 //     Extent[4] = std::min(Extent[4], expandZ?cz - r:cz);
 //     Extent[5] = std::max(Extent[5], expandZ?cz + r:cz);
-
-    assert(m_data.GetPointer());
 
     for (int x = Extent[0]; x <= Extent[1]; x++)
       for (int y = Extent[2]; y <= Extent[3]; y++)
@@ -185,6 +183,7 @@ int vtkFreeFormSource::RequestInformation(vtkInformation* request, vtkInformatio
   int res = vtkImageAlgorithm::RequestInformation(request, inputVector, outputVector);
 
   outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), Extent, 6);
+  outInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(), Extent, 6);
   outInfo->Set(vtkDataObject::SPACING(), Spacing, 3);
 
   return res;

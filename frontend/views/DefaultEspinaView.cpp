@@ -295,14 +295,15 @@ void DefaultEspinaView::setShowPreprocessing(bool visibility)
 }
 
 //-----------------------------------------------------------------------------
-void DefaultEspinaView::setCenter(double x, double y, double z)
+void DefaultEspinaView::setCenter(double x, double y, double z, bool force)
 {
 //   qDebug() << "Espina View Updating centers";
   double center[3] = {x,y,z};
-  xyView->centerViewOn(center);
-  yzView->centerViewOn(center);
-  xzView->centerViewOn(center);
+  xyView->centerViewOn(center, force);
+  yzView->centerViewOn(center, force);
+  xzView->centerViewOn(center, force);
   volView->centerViewOn(center);
+  memcpy(m_center, center, 3*sizeof(double));
 }
 
 //-----------------------------------------------------------------------------

@@ -1110,11 +1110,12 @@ void SliceView::setFitToGrid(bool value)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::centerViewOn(double center[3])
+void SliceView::centerViewOn(double center[3], bool force)
 {
   if (m_center[0] == center[0] &&
       m_center[1] == center[1] &&
-      m_center[2] == center[2])
+      m_center[2] == center[2] &&
+      !force)
     return;
 
   memcpy(m_center, center, 3*sizeof(double));
@@ -1139,7 +1140,7 @@ void SliceView::centerViewOn(double center[3])
     for (int i = 0; i < 3; i++)
       m_center[i] = floor((m_center[i]*m_gridSize[i])+0.5);
 
-  m_view->centerViewOn(m_center[0], m_center[1], m_center[2]);
+  m_view->centerViewOn(m_center[0], m_center[1], m_center[2], force);
   updateWidgetVisibility();
 }
 

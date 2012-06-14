@@ -21,6 +21,8 @@
 #include <cache/CachedObjectBuilder.h>
 #include <model/EspinaFactory.h>
 #include <vtkPVSliceView.h>
+#include <EspinaCore.h>
+#include <EspinaView.h>
 #include <pqPipelineSource.h>
 #include <vtkSMPropertyHelper.h>
 #include <vtkSMProxy.h>
@@ -36,6 +38,7 @@ FreeFormSource::FreeFormSource(double spacing[3])
 : m_source(NULL)
 , m_seg(NULL)
 , m_id(m_count++)
+, m_hasPixels(false)
 {
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
 
@@ -68,19 +71,30 @@ void FreeFormSource::draw(QVector3D center, int radius)
   vtkSMProxy *proxy = m_source->pipelineSource()->getProxy();
   vtkSMPropertyHelper(proxy, "Draw").Set(points, 5);
   proxy->UpdateVTKObjects();
-  m_source->pipelineSource()->updatePipeline();
+//   m_source->pipelineSource()->updatePipeline();
+  double cross[3];
+  //TODO: Find a clearer way to get the segmentation rendered
+  EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
+  view->center(cross);
+  view->setCenter(cross[0], cross[1], cross[2], true);
+  view->setCenter(cross[0], cross[1], cross[2], true);
+  view->forceRender();
+  m_hasPixels = true;
 }
 
 //-----------------------------------------------------------------------------
 void FreeFormSource::erase(QVector3D center, int radius)
 {
+  if (!m_hasPixels)
+    return;
+
   int points[5] = {
     center.x(), center.y(), center.z(),
     radius, vtkPVSliceView::AXIAL};
   vtkSMProxy *proxy = m_source->pipelineSource()->getProxy();
   vtkSMPropertyHelper(proxy, "Erase").Set(points, 5);
   proxy->UpdateVTKObjects();
-  m_source->pipelineSource()->updatePipeline();
+//   m_source->pipelineSource()->updatePipeline();
 }
 
 //-----------------------------------------------------------------------------
@@ -104,7 +118,7 @@ QString FreeFormSource::serialize() const
 //-----------------------------------------------------------------------------
 int FreeFormSource::numProducts() const
 {
-  return m_source?1:0;
+  return m_source && m_seg && m_hasPixels?1:0;
 }
 
 //-----------------------------------------------------------------------------
