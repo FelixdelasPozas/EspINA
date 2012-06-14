@@ -75,6 +75,9 @@ void vtkFreeFormSource::Draw(int cx, int cy, int cz, int r, int plane)
       m_init = true;
     }
 
+    int oldExtent[6];
+    memcpy(oldExtent, Extent, 6*sizeof(int));
+
     Extent[0] = std::min(Extent[0], expandX?cx - r:cx);
     Extent[1] = std::max(Extent[1], expandX?cx + r:cx);
     Extent[2] = std::min(Extent[2], expandY?cy - r:cy);
@@ -82,39 +85,60 @@ void vtkFreeFormSource::Draw(int cx, int cy, int cz, int r, int plane)
     Extent[4] = std::min(Extent[4], expandZ?cz - r:cz);
     Extent[5] = std::max(Extent[5], expandZ?cz + r:cz);
 
-    vtkSmartPointer<vtkImageData> img
-    = vtkSmartPointer<vtkImageData>::New();
+    if (memcmp(oldExtent, Extent, 6*sizeof(int)) == 0)
+    {
+      int minX = expandX?cx - r:cx;
+      int maxX = expandX?cx + r:cx;
+      int minY = expandY?cy - r:cy;
+      int maxY = expandY?cy + r:cy;
+      int minZ = expandZ?cz - r:cz;
+      int maxZ = expandZ?cz + r:cz;
 
-//     std::cout << "New Extent\n";
-//       printExtent(Extent);
-    img->SetExtent(Extent);
-    img->SetScalarTypeToUnsignedChar();
-    img->SetNumberOfScalarComponents(1);
-    img->AllocateScalars();
-
-    int lastExtent[6] = {0, -1, 0, -1, 0, -1};
-    if (m_data.GetPointer())
-      m_data->GetExtent(lastExtent);
-
-    for (int x = Extent[0]; x <= Extent[1]; x++)
-      for (int y = Extent[2]; y <= Extent[3]; y++)
-	for (int z = Extent[4]; z <= Extent[5]; z++)
-	{
-	  double r2 = pow(x-cx, 2) + pow(y-cy, 2);
-	  double value = r2 <= r*r && z == cz?255:0;
-	  double prevValue = 0;
-	  if (lastExtent[0] <= x && x <= lastExtent[1]
-	    && lastExtent[2] <= y && y <= lastExtent[3]
-	    && lastExtent[4] <= z && z <= lastExtent[5])
+      for (int x = minX; x <= maxX; x++)
+	for (int y = minY; y <= maxY; y++)
+	  for (int z = minZ; z <= maxZ; z++)
 	  {
-	    prevValue = m_data->GetScalarComponentAsDouble(x, y, z, 0);
+	    double r2 = pow(x-cx, 2) + pow(y-cy, 2);
+	    double value = r2 <= r*r && z == cz?
+	                   255:m_data->GetScalarComponentAsDouble(x, y, z, 0);
+
+	    m_data->SetScalarComponentFromDouble(x,y,z,0,value);
 	  }
-	  value = value + prevValue;
+    }else
+    {
+      vtkSmartPointer<vtkImageData> img
+      = vtkSmartPointer<vtkImageData>::New();
 
-	  img->SetScalarComponentFromDouble(x,y,z,0,value);
-	}
+      //     std::cout << "New Extent\n";
+      //       printExtent(Extent);
+      img->SetExtent(Extent);
+      img->SetScalarTypeToUnsignedChar();
+      img->SetNumberOfScalarComponents(1);
+      img->AllocateScalars();
 
-	m_data = img;
+      int lastExtent[6] = {0, -1, 0, -1, 0, -1};
+      if (m_data.GetPointer())
+	m_data->GetExtent(lastExtent);
+
+      for (int x = Extent[0]; x <= Extent[1]; x++)
+	for (int y = Extent[2]; y <= Extent[3]; y++)
+	  for (int z = Extent[4]; z <= Extent[5]; z++)
+	  {
+	    double r2 = pow(x-cx, 2) + pow(y-cy, 2);
+	    double prevValue = 0;
+	    if (lastExtent[0] <= x && x <= lastExtent[1]
+	      && lastExtent[2] <= y && y <= lastExtent[3]
+	      && lastExtent[4] <= z && z <= lastExtent[5])
+	    {
+	      prevValue = m_data->GetScalarComponentAsDouble(x, y, z, 0);
+	    }
+	    double value = r2 <= r*r && z == cz?255:prevValue;
+
+	    img->SetScalarComponentFromDouble(x,y,z,0,value);
+	  }
+
+	  m_data = img;
+    }
 
 	Modified();
   }
@@ -129,36 +153,33 @@ void vtkFreeFormSource::Draw(int disc[5])
 //-----------------------------------------------------------------------------
 void vtkFreeFormSource::Erase(int cx, int cy, int cz, int r, int plane)
 {
-  if (0 <= plane && plane <=2 && r > 0 && m_data.GetPointer())
+  if (0 <= plane && plane <=2 && r > 0
+    && m_data.GetPointer()
+    && Extent[0] <= cx && cx <= Extent[1]
+    && Extent[2] <= cy && cy <= Extent[3]
+    && Extent[4] <= cz && cz <= Extent[5]
+  )
   {
 //     std::cout << "Erasing" << std::endl;
 //     std::cout << "\t" << cx << " " << cy << " " << cz << " " << r << std::endl;
 
-//     bool expandX = vtkPVSliceView::AXIAL == plane
-//                 || vtkPVSliceView::CORONAL == plane;
-//     bool expandY = vtkPVSliceView::AXIAL == plane
-//                 || vtkPVSliceView::SAGITTAL == plane;
-//     bool expandZ = vtkPVSliceView::SAGITTAL == plane
-//                 || vtkPVSliceView::CORONAL == plane;
-// 	
-//     if (!m_init)
-//     {
-//       Extent[0] = Extent[1] = cx;
-//       Extent[2] = Extent[3] = cy;
-//       Extent[4] = Extent[5] = cz;
-//       m_init = true;
-//     }
-// 
-//     Extent[0] = std::min(Extent[0], expandX?cx - r:cx);
-//     Extent[1] = std::max(Extent[1], expandX?cx + r:cx);
-//     Extent[2] = std::min(Extent[2], expandY?cy - r:cy);
-//     Extent[3] = std::max(Extent[3], expandY?cy + r:cy);
-//     Extent[4] = std::min(Extent[4], expandZ?cz - r:cz);
-//     Extent[5] = std::max(Extent[5], expandZ?cz + r:cz);
+    bool expandX = vtkPVSliceView::AXIAL == plane
+                || vtkPVSliceView::CORONAL == plane;
+    bool expandY = vtkPVSliceView::AXIAL == plane
+                || vtkPVSliceView::SAGITTAL == plane;
+    bool expandZ = vtkPVSliceView::SAGITTAL == plane
+                || vtkPVSliceView::CORONAL == plane;
 
-    for (int x = Extent[0]; x <= Extent[1]; x++)
-      for (int y = Extent[2]; y <= Extent[3]; y++)
-	for (int z = Extent[4]; z <= Extent[5]; z++)
+    int minX = expandX?cx - r:cx;
+    int maxX = expandX?cx + r:cx;
+    int minY = expandY?cy - r:cy;
+    int maxY = expandY?cy + r:cy;
+    int minZ = expandZ?cz - r:cz;
+    int maxZ = expandZ?cz + r:cz;
+
+    for (int x = minX; x <= maxX; x++)
+      for (int y = minY; y <= maxY; y++)
+	for (int z = minZ; z <= maxZ; z++)
 	{
 	  double r2 = pow(x-cx, 2) + pow(y-cy, 2);
 	  if (r2 <= r*r && z == cz)

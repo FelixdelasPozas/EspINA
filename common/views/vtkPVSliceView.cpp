@@ -423,8 +423,8 @@ void vtkPVSliceView::initCrosshairs()
   HCrossLine->SetPickable(false);
   //   HCrossLine->GetProperty()->SetLineStipplePattern(0xF0F0);
 
-  NonCompositedRenderer->AddActor(HCrossLine);
-  OverviewRenderer->AddActor(HCrossLine);
+  //NonCompositedRenderer->AddActor(HCrossLine);
+  //OverviewRenderer->AddActor(HCrossLine);
 
   vtkSmartPointer<vtkPoints> VPoints = vtkSmartPointer<vtkPoints>::New();
   VPoints->InsertNextPoint(0, LastComputedBounds[2], 0);
@@ -448,8 +448,8 @@ void vtkPVSliceView::initCrosshairs()
   VCrossLine->SetPickable(false);
   //   VCrossLine->GetProperty()->SetLineStipplePattern(0xF0F0);
 
-  NonCompositedRenderer->AddActor(VCrossLine);
-  OverviewRenderer->AddActor(VCrossLine);
+  //NonCompositedRenderer->AddActor(VCrossLine);
+  //OverviewRenderer->AddActor(VCrossLine);
 
   //   vtkSmartPointer<vtkPoints> BPoints = vtkSmartPointer<vtkPoints>::New();
   //   BPoints->InsertNextPoint(LastComputedBounds[0],LastComputedBounds[2],0);
