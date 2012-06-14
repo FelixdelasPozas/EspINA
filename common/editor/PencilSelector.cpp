@@ -53,10 +53,9 @@ bool PencilSelector::filterEvent(QEvent* e, SelectableView* view)
   if (e->type() == QEvent::Enter)
   {
     setRadius(m_radius);
-    view->view()->getWidget()->grabKeyboard();
+    view->view()->getWidget()->setFocus();
     return SelectionHandler::filterEvent(e, view);
-  }
-  if (e->type() == QEvent::KeyPress)
+  } else if (e->type() == QEvent::KeyPress)
   {
    QKeyEvent *ke = static_cast<QKeyEvent *>(e);
     if (ke->key() == Qt::Key_Control && ke->count() == 1)
