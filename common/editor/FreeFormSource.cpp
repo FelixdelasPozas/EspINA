@@ -30,6 +30,7 @@
 typedef ModelItem::ArgumentId ArgumentId;
 
 const ArgumentId ID = ArgumentId("ID", true);
+const ArgumentId SPACING = ArgumentId("SPACING", true);
 
 unsigned int FreeFormSource::m_count = 0;
 
@@ -44,14 +45,39 @@ FreeFormSource::FreeFormSource(double spacing[3])
 
   m_args[ID] = QString::number(m_id);
   pqFilter::Arguments args;
-  QString SpacingArg = QString("%1,%2,%3")
-                      .arg(spacing[0]).arg(spacing[1]).arg(spacing[2]);
+  m_args[SPACING] = QString("%1,%2,%3")
+                     .arg(spacing[0]).arg(spacing[1]).arg(spacing[2]);
 // 		     .arg(extent[3]).arg(extent[4]).arg(extent[5]);
 
-  args << pqFilter::Argument("Spacing",pqFilter::Argument::DOUBLEVECT, SpacingArg);
+  args << pqFilter::Argument("Spacing",pqFilter::Argument::DOUBLEVECT, m_args[SPACING]);
   m_source = cob->createFilter("sources","FreeFormSource", args, false, true);
   Q_ASSERT(m_source->getNumberOfData() == 1);
 
+  if (!m_seg)
+    m_seg = EspinaFactory::instance()->createSegmentation(this, 0, m_source->data(0));
+}
+
+//-----------------------------------------------------------------------------
+FreeFormSource::FreeFormSource(ModelItem::Arguments args)
+: m_args(args)
+, m_source(NULL)
+, m_seg(NULL)
+, m_hasPixels(false)
+{
+  m_id = m_args[ID].toUInt();
+
+  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+
+  QString segId = id() + "_0";
+  if ((m_source = cob->loadFile(segId)) == NULL)
+  {
+    pqFilter::Arguments sourceArgs;
+    sourceArgs << pqFilter::Argument("Spacing",pqFilter::Argument::DOUBLEVECT, m_args[SPACING]);
+    m_source = cob->createFilter("sources","FreeFormSource", sourceArgs);
+    Q_ASSERT(m_source->getNumberOfData() == 1);
+  }
+
+  Q_ASSERT(m_source);
   if (!m_seg)
     m_seg = EspinaFactory::instance()->createSegmentation(this, 0, m_source->data(0));
 }
@@ -115,7 +141,10 @@ QString FreeFormSource::id() const
 //-----------------------------------------------------------------------------
 QVariant FreeFormSource::data(int role) const
 {
-  return QVariant();
+  if (role == Qt::DisplayRole)
+    return FFS;
+  else
+    return QVariant();
 }
 
 //-----------------------------------------------------------------------------

@@ -25,11 +25,14 @@
 
 #include <QVector3D>
 
+static const QString FFS = "EditorToolBar::FreeFormSource";
+
 class FreeFormSource
 : public Filter
 {
 public:
   explicit FreeFormSource(double spacing[3]);
+  explicit FreeFormSource(Arguments args);
   virtual ~FreeFormSource();
 
   void draw(vtkPVSliceView::VIEW_PLANE plane,  QVector3D center, int radius = 0);
@@ -47,10 +50,10 @@ public:
   virtual QWidget* createConfigurationWidget();
 
 private:
+  Arguments     m_args;
   pqFilter     *m_source;
   Segmentation *m_seg;
   unsigned int  m_id;
-  Arguments     m_args;
   bool          m_hasPixels;
   static unsigned int m_count;
 };

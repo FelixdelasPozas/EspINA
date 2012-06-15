@@ -26,9 +26,62 @@
 #include <QAction>
 #include <EspinaCore.h>
 #include <model/Channel.h>
+#include <model/EspinaFactory.h>
 #include <editor/ImageLogicCommand.h>
 #include <editor/PencilSelector.h>
 #include <editor/FreeFormSource.h>
+
+//----------------------------------------------------------------------------
+class EditorToolBar::FreeFormCommand
+: public QUndoCommand
+{
+public:
+  explicit FreeFormCommand(Channel * channel,
+		      FreeFormSource *filter,
+		      TaxonomyNode *taxonomy)
+  : m_channel (channel)
+  , m_filter  (filter)
+  , m_taxonomy(taxonomy)
+  {
+    ModelItem::Vector samples = m_channel->relatedItems(ModelItem::IN, "mark");
+    Q_ASSERT(samples.size() > 0);
+    m_sample = dynamic_cast<Sample *>(samples.first());
+    m_seg = m_filter->product(0);
+  }
+
+  virtual void redo()
+  {
+    QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
+
+    model->addFilter(m_filter);
+    model->addRelation(m_channel, m_filter, "Channel");
+    m_seg->setTaxonomy(m_taxonomy);
+    model->addSegmentation(m_seg);
+    model->addRelation(m_filter, m_seg, "CreateSegmentation");
+    model->addRelation(m_sample, m_seg, "where");
+    model->addRelation(m_channel, m_seg, "Channel");
+    m_seg->initialize();
+  }
+
+  virtual void undo()
+  {
+    QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
+
+    model->removeRelation(m_channel, m_seg, "Channel");
+    model->removeRelation(m_sample, m_seg, "where");
+    model->removeRelation(m_filter, m_seg, "CreateSegmentation");
+    model->removeSegmentation(m_seg);
+    model->removeRelation(m_channel, m_filter, "Channel");
+    model->removeFilter(m_filter);
+  }
+
+private:
+  Sample         *m_sample;
+  Channel        *m_channel;
+  FreeFormSource *m_filter;
+  Segmentation   *m_seg;
+  TaxonomyNode   *m_taxonomy;
+};
 
 //----------------------------------------------------------------------------
 class EditorToolBar::DrawCommand
@@ -109,6 +162,8 @@ EditorToolBar::EditorToolBar(QWidget* parent)
 //   setWindowTitle("Editor Tool Bar");
   setObjectName("EditorToolBar");
 
+  EspinaFactory::instance()->registerFilter(FFS, this);
+
   m_draw->setIcon(QIcon(":/espina/pencil.png"));
   m_draw->setCheckable(true);
   connect(m_draw, SIGNAL(triggered(bool)),
@@ -148,6 +203,14 @@ EditorToolBar::EditorToolBar(QWidget* parent)
 }
 
 //----------------------------------------------------------------------------
+Filter* EditorToolBar::createFilter(const QString filter, const ModelItem::Arguments args)
+{
+  Q_ASSERT(filter == FFS);
+
+  return new FreeFormSource(args);
+}
+
+//----------------------------------------------------------------------------
 void EditorToolBar::startDrawing(bool draw)
 {
   if (draw)
@@ -180,24 +243,19 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
   extent[4] = center.z() - 5*m_pencilSelector->radius();
   extent[5] = center.z() + 5*m_pencilSelector->radius();
 
-  double spacing[3];
   SelectableItem *selectedItem = msel.first().second;
-  if (ModelItem::CHANNEL == selectedItem->type())
+  Q_ASSERT(ModelItem::CHANNEL == selectedItem->type());
+  int channelExtent[6];
+  Channel *channel = dynamic_cast<Channel *>(selectedItem);
+  channel->extent(channelExtent);
+  for(int i=0; i<3; i++)
   {
-    int channelExtent[6];
-    Channel *channel = dynamic_cast<Channel *>(selectedItem);
-    channel->extent(channelExtent);
-    for(int i=0; i<3; i++)
-    {
-      int min = 2*i, max = 2*i+1;
-      extent[min] = std::max(extent[min], channelExtent[min]);
-      extent[max] = std::min(extent[max], channelExtent[max]);
-    }
-    channel->spacing(spacing);
-//     center.setX(center.x()*spacing[0]);
-//     center.setY(center.y()*spacing[1]);
-//     center.setZ(center.z()*spacing[2]);
+    int min = 2*i, max = 2*i+1;
+    extent[min] = std::max(extent[min], channelExtent[min]);
+    extent[max] = std::min(extent[max], channelExtent[max]);
   }
+  double spacing[3];
+  channel->spacing(spacing);
 
   if (!m_currentSource)
   {
@@ -217,12 +275,12 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
   if (!m_currentSeg && m_currentSource->numProducts() == 1)
   {
     m_currentSeg = m_currentSource->product(0);
-    m_currentSeg->setTaxonomy(EspinaCore::instance()->activeTaxonomy());
-    EspinaCore::instance()->model()->addSegmentation(m_currentSeg);
+    TaxonomyNode *tax = EspinaCore::instance()->activeTaxonomy();
+    undo->push(new FreeFormCommand(channel, m_currentSource, tax));
   }
 
-  if (m_currentSeg)
-    m_currentSeg->notifyModification(true);
+  //if (m_currentSeg)
+    //m_currentSeg->notifyModification(true);
 }
 
 //----------------------------------------------------------------------------

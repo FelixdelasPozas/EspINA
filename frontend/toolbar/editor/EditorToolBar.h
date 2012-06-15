@@ -25,15 +25,19 @@
 
 #include <selection/SelectionHandler.h>
 #include <editor/PencilSelector.h>
+#include <pluginInterfaces/FilterFactory.h>
 
 class Segmentation;
 class FreeFormSource;
 
+
 class EditorToolBar
 : public QToolBar
 , public DynamicWidget
+, public FilterFactory
 {
   Q_OBJECT
+  class FreeFormCommand;
   class DrawCommand;
   class EraseCommand;
 public:
@@ -43,6 +47,8 @@ public:
   virtual void setLOD(){}
   virtual void decreaseLOD(){}
   virtual void increaseLOD(){}
+
+  virtual Filter* createFilter(const QString filter, const ModelItem::Arguments args);
 
 protected slots:
   void startDrawing(bool draw);
