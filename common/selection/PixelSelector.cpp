@@ -94,7 +94,7 @@ void BestPixelSelector::onMouseDown(const QPoint& pos, SelectableView* view)
 
   int extent[6];
   img->GetExtent(extent);
-  qDebug() << extent[0] << extent[1] << extent[2] << extent[3] << extent[4] << extent[5];
+  //qDebug() << extent[0] << extent[1] << extent[2] << extent[3] << extent[4] << extent[5];
 
   int leftPixel = xPos - m_window->width()/2;
   if (leftPixel < extent[0])

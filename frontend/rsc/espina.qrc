@@ -31,5 +31,9 @@
         <file>defaultTaxonomy.xml</file>
         <file>pencil.png</file>
         <file>eraser.png</file>
+        <file>erode.png</file>
+        <file>close.png</file>
+        <file>open.png</file>
+        <file>dilate.png</file>
     </qresource>
 </RCC>

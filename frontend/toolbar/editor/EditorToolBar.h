@@ -34,6 +34,8 @@ class EditorToolBar
 , public DynamicWidget
 {
   Q_OBJECT
+  class DrawCommand;
+  class EraseCommand;
 public:
   explicit EditorToolBar(QWidget *parent = 0);
 
@@ -49,11 +51,19 @@ protected slots:
   void stateChanged(PencilSelector::State state);
   void combineSegmentations();
   void substractSegmentations();
+  void erodeSegmentations();
+  void dilateSegmentations();
+  void openSegmentations();
+  void closeSegmentations();
 
 private:
   QAction *m_draw;
   QAction *m_addition;
   QAction *m_substraction;
+  QAction *m_erode;
+  QAction *m_dilate;
+  QAction *m_open;
+  QAction *m_close;
 
   PencilSelector *m_pencilSelector;
   FreeFormSource *m_currentSource;

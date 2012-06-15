@@ -31,11 +31,77 @@
 #include <editor/FreeFormSource.h>
 
 //----------------------------------------------------------------------------
+class EditorToolBar::DrawCommand
+: public QUndoCommand
+{
+public:
+  explicit DrawCommand(FreeFormSource *source,
+		      vtkPVSliceView::VIEW_PLANE plane,
+		      QVector3D center, int radius)
+  : m_source(source)
+  , m_plane(plane)
+  , m_center(center)
+  , m_radius(radius)
+  {
+  }
+
+  virtual void redo()
+  {
+    m_source->draw(m_plane, m_center, m_radius);
+  }
+  virtual void undo()
+  {
+    m_source->erase(m_plane, m_center, m_radius);
+  }
+
+private:
+  FreeFormSource            *m_source;
+  vtkPVSliceView::VIEW_PLANE m_plane;
+  QVector3D                  m_center;
+  int                        m_radius;
+};
+
+//----------------------------------------------------------------------------
+class EditorToolBar::EraseCommand
+: public QUndoCommand
+{
+public:
+  explicit EraseCommand(FreeFormSource *source,
+		       vtkPVSliceView::VIEW_PLANE plane,
+		       QVector3D center, int radius)
+  : m_source(source)
+  , m_plane(plane)
+  , m_center(center)
+  , m_radius(radius)
+  {
+  }
+
+  virtual void redo()
+  {
+    m_source->erase(m_plane, m_center, m_radius);
+  }
+  virtual void undo()
+  {
+    m_source->draw(m_plane, m_center, m_radius);
+  }
+
+private:
+  FreeFormSource            *m_source;
+  vtkPVSliceView::VIEW_PLANE m_plane;
+  QVector3D                  m_center;
+  int                        m_radius;
+};
+
+//----------------------------------------------------------------------------
 EditorToolBar::EditorToolBar(QWidget* parent)
 : QToolBar(parent)
 , m_draw(addAction(tr("Draw segmentations")))
 , m_addition(addAction(tr("Combine Selected Segmentations")))
 , m_substraction(addAction(tr("Substract Selected Segmentations")))
+, m_erode(addAction(tr("Erode Selected Segmentations")))
+, m_dilate(addAction(tr("Dilate Selected Segmentations")))
+, m_open(addAction(tr("Open Selected Segmentations")))
+, m_close(addAction(tr("Close Selected Segmentations")))
 , m_pencilSelector(new PencilSelector())
 , m_currentSource(NULL)
 , m_currentSeg(NULL)
@@ -47,12 +113,30 @@ EditorToolBar::EditorToolBar(QWidget* parent)
   m_draw->setCheckable(true);
   connect(m_draw, SIGNAL(triggered(bool)),
 	 this, SLOT(startDrawing(bool)));
+
   m_addition->setIcon(QIcon(":/espina/add.svg"));
   connect(m_addition, SIGNAL(triggered(bool)),
 	 this, SLOT(combineSegmentations()));
+
   m_substraction->setIcon(QIcon(":/espina/remove.svg"));
   connect(m_substraction, SIGNAL(triggered(bool)),
 	 this, SLOT(substractSegmentations()));
+
+  m_erode->setIcon(QIcon(":/espina/erode.png"));
+  connect(m_erode, SIGNAL(triggered(bool)),
+	 this, SLOT(erodeSegmentations()));
+
+  m_dilate->setIcon(QIcon(":/espina/dilate.png"));
+  connect(m_dilate, SIGNAL(triggered(bool)),
+	 this, SLOT(dilateSegmentations()));
+
+  m_open->setIcon(QIcon(":/espina/open.png"));
+  connect(m_open, SIGNAL(triggered(bool)),
+	 this, SLOT(openSegmentations()));
+
+  m_close->setIcon(QIcon(":/espina/close.png"));
+  connect(m_close, SIGNAL(triggered(bool)),
+	 this, SLOT(closeSegmentations()));
 
   m_pencilSelector->setSelectable(SelectionHandler::EspINA_Channel);
   connect(m_pencilSelector, SIGNAL(selectionChanged(SelectionHandler::MultiSelection)),
@@ -122,10 +206,11 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
 
   int radius = abs(center.x() - p.x());
 
+  QSharedPointer<QUndoStack> undo = EspinaCore::instance()->undoStack();
   if (m_pencilSelector->state() == PencilSelector::DRAWING)
-    m_currentSource->draw(center, radius);
+    undo->push(new DrawCommand(m_currentSource, vtkPVSliceView::AXIAL, center, radius));
   else if (m_pencilSelector->state() == PencilSelector::ERASING)
-    m_currentSource->erase(center, radius);
+    undo->push(new EraseCommand(m_currentSource, vtkPVSliceView::AXIAL, center, radius));
   else
     Q_ASSERT(false);
 
@@ -198,5 +283,36 @@ void EditorToolBar::substractSegmentations()
   {
     QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
     undo->push(new ImageLogicCommand(input, ImageLogicFilter::SUBSTRACTION));
+  }
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::erodeSegmentations()
+{
+
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::dilateSegmentations()
+{
+
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::openSegmentations()
+{
+
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::closeSegmentations()
+{
+  QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
+
+  foreach(Segmentation *seg, model->segmentations())
+  {
+    if (seg->isSelected())
+    {
+    }
   }
 }

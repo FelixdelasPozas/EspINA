@@ -52,6 +52,27 @@ vtkFreeFormSource::vtkFreeFormSource()
   this->SetNumberOfOutputPorts(1);
 }
 
+bool drawPixel(int x, int y, int z,
+	      int cx, int cy, int cz,
+	      int r, int plane,
+	      int extent[6])
+{
+  if (plane == 2)
+  {
+    double r2 = pow(x-cx+extent[0], 2) + pow(y-cy+extent[2], 2);
+    return r2 <= r*r && z == cz-extent[4];
+  }else if (plane == 1)
+  {
+    double r2 = pow(x-cx+extent[0], 2) + pow(z-cz+extent[4], 2);
+    return r2 <= r*r && y == cy-extent[2];
+  }else if (plane == 0)
+  {
+    double r2 = pow(y-cy+extent[2], 2) + pow(z-cz+extent[4], 2);
+    return r2 <= r*r && x == cx-extent[0];
+  }
+  return false;
+}
+
 //-----------------------------------------------------------------------------
 void vtkFreeFormSource::Draw(int cx, int cy, int cz, int r, int plane)
 {
@@ -75,8 +96,10 @@ void vtkFreeFormSource::Draw(int cx, int cy, int cz, int r, int plane)
       m_init = true;
     }
 
-    int oldExtent[6];
-    memcpy(oldExtent, Extent, 6*sizeof(int));
+    int dim[3];
+    int prevExtent[6];
+    memcpy(prevExtent, Extent, 6*sizeof(int));
+
 
     Extent[0] = std::min(Extent[0], expandX?cx - r:cx);
     Extent[1] = std::max(Extent[1], expandX?cx + r:cx);
@@ -85,25 +108,33 @@ void vtkFreeFormSource::Draw(int cx, int cy, int cz, int r, int plane)
     Extent[4] = std::min(Extent[4], expandZ?cz - r:cz);
     Extent[5] = std::max(Extent[5], expandZ?cz + r:cz);
 
-    if (memcmp(oldExtent, Extent, 6*sizeof(int)) == 0)
+    if (memcmp(prevExtent, Extent, 6*sizeof(int)) == 0)
     {
-      int minX = expandX?cx - r:cx;
-      int maxX = expandX?cx + r:cx;
-      int minY = expandY?cy - r:cy;
-      int maxY = expandY?cy + r:cy;
-      int minZ = expandZ?cz - r:cz;
-      int maxZ = expandZ?cz + r:cz;
+      int minX = (expandX?cx - r:cx)-Extent[0];
+      int maxX = (expandX?cx + r:cx)-Extent[0];
+      int minY = (expandY?cy - r:cy)-Extent[2];
+      int maxY = (expandY?cy + r:cy)-Extent[2];
+      int minZ = (expandZ?cz - r:cz)-Extent[4];
+      int maxZ = (expandZ?cz + r:cz)-Extent[4];
 
-      for (int x = minX; x <= maxX; x++)
+      m_data->GetDimensions(dim);
+
+      //NOTE: Try using vtkImageIterator 
+      unsigned char *outputPtr = static_cast<unsigned char *>(m_data->GetScalarPointer());
+
+      for (int z = minZ; z <= maxZ; z++)
+      {
+	unsigned long long zOffset = z * dim[0] * dim[1];
 	for (int y = minY; y <= maxY; y++)
-	  for (int z = minZ; z <= maxZ; z++)
+	{
+	  unsigned long long yOffset = y * dim[0];
+	  for (int x = minX; x <= maxX; x++)
 	  {
-	    double r2 = pow(x-cx, 2) + pow(y-cy, 2);
-	    double value = r2 <= r*r && z == cz?
-	                   255:m_data->GetScalarComponentAsDouble(x, y, z, 0);
-
-	    m_data->SetScalarComponentFromDouble(x,y,z,0,value);
+	    unsigned long long offset = x + yOffset + zOffset;
+	    outputPtr[offset] += drawPixel(x,y,z,cx,cy,cz,r,plane,Extent)?1:0;
 	  }
+	}
+      }
     }else
     {
       vtkSmartPointer<vtkImageData> img
@@ -116,28 +147,50 @@ void vtkFreeFormSource::Draw(int cx, int cy, int cz, int r, int plane)
       img->SetNumberOfScalarComponents(1);
       img->AllocateScalars();
 
-      int lastExtent[6] = {0, -1, 0, -1, 0, -1};
-      if (m_data.GetPointer())
-	m_data->GetExtent(lastExtent);
+      unsigned char *prevOutputPtr;
+      int prevDim[3];
+      if (!m_data.GetPointer())
+      {
+	prevExtent[0] = prevExtent[2] = prevExtent[4] = 0;
+	prevExtent[1] = prevExtent[3] = prevExtent[5] = -1;
+      } else
+      {
+	prevOutputPtr = static_cast<unsigned char *>(m_data->GetScalarPointer());
+	m_data->GetDimensions(prevDim);
+      }
 
-      for (int x = Extent[0]; x <= Extent[1]; x++)
-	for (int y = Extent[2]; y <= Extent[3]; y++)
-	  for (int z = Extent[4]; z <= Extent[5]; z++)
+      int minX = 0;
+      int maxX = Extent[1]-Extent[0];
+      int minY = 0;
+      int maxY = Extent[3]-Extent[2];
+      int minZ = 0;
+      int maxZ = Extent[5]-Extent[4];
+
+      unsigned char *outputPtr = static_cast<unsigned char *>(img->GetScalarPointer());
+      img->GetDimensions(dim);
+
+      for (int z = minZ; z <= maxZ; z++)
+      {
+	unsigned long long zOffset = z * dim[0] * dim[1];
+	for (int y = minY; y <= maxY; y++)
+	{
+	  unsigned long long yOffset = y * dim[0];
+	  for (int x = minX; x <= maxX; x++)
 	  {
-	    double r2 = pow(x-cx, 2) + pow(y-cy, 2);
+	    unsigned long long offset = x + yOffset + zOffset;
 	    double prevValue = 0;
-	    if (lastExtent[0] <= x && x <= lastExtent[1]
-	      && lastExtent[2] <= y && y <= lastExtent[3]
-	      && lastExtent[4] <= z && z <= lastExtent[5])
+	    if (prevExtent[0] <= x + Extent[0] && x + Extent[0] <= prevExtent[1]
+	      && prevExtent[2] <= y + Extent[2] && y + Extent[2] <= prevExtent[3]
+	      && prevExtent[4] <= z + Extent[4] && z + Extent[4] <= prevExtent[5])
 	    {
-	      prevValue = m_data->GetScalarComponentAsDouble(x, y, z, 0);
+	      prevValue = *prevOutputPtr;
+	      prevOutputPtr++;
 	    }
-	    double value = r2 <= r*r && z == cz?255:prevValue;
-
-	    img->SetScalarComponentFromDouble(x,y,z,0,value);
+	    outputPtr[offset] = prevValue + drawPixel(x,y,z,cx,cy,cz,r,plane,Extent)?1:0;
 	  }
-
-	  m_data = img;
+	}
+      }
+      m_data = img;
     }
 
 	Modified();
@@ -170,21 +223,33 @@ void vtkFreeFormSource::Erase(int cx, int cy, int cz, int r, int plane)
     bool expandZ = vtkPVSliceView::SAGITTAL == plane
                 || vtkPVSliceView::CORONAL == plane;
 
-    int minX = expandX?cx - r:cx;
-    int maxX = expandX?cx + r:cx;
-    int minY = expandY?cy - r:cy;
-    int maxY = expandY?cy + r:cy;
-    int minZ = expandZ?cz - r:cz;
-    int maxZ = expandZ?cz + r:cz;
+    int minX = std::max(Extent[0],(expandX?cx - r:cx))-Extent[0];
+    int maxX = std::min(Extent[1],(expandX?cx + r:cx))-Extent[0];
+    int minY = std::max(Extent[2],(expandY?cy - r:cy))-Extent[2];
+    int maxY = std::min(Extent[3],(expandY?cy + r:cy))-Extent[2];
+    int minZ = std::max(Extent[4],(expandZ?cz - r:cz))-Extent[4];
+    int maxZ = std::min(Extent[5],(expandZ?cz + r:cz))-Extent[4];
 
-    for (int x = minX; x <= maxX; x++)
+    int dim[3];
+    m_data->GetDimensions(dim);
+
+    //NOTE: Try using vtkImageIterator
+    unsigned char *outputPtr = static_cast<unsigned char *>(m_data->GetScalarPointer());
+
+    for (int z = minZ; z <= maxZ; z++)
+    {
+      unsigned long long zOffset = z * dim[0] * dim[1];
       for (int y = minY; y <= maxY; y++)
-	for (int z = minZ; z <= maxZ; z++)
+      {
+	unsigned long long yOffset = y * dim[0];
+	for (int x = minX; x <= maxX; x++)
 	{
-	  double r2 = pow(x-cx, 2) + pow(y-cy, 2);
-	  if (r2 <= r*r && z == cz)
-	    m_data->SetScalarComponentFromDouble(x, y, z, 0, 0.0);
+	  unsigned long long offset = x + yOffset + zOffset;
+	  if (drawPixel(x,y,z,cx,cy,cz,r,plane,Extent))
+	    outputPtr[offset] = 0;
 	}
+      }
+    }
 
     Modified();
   }

@@ -63,11 +63,12 @@ FreeFormSource::~FreeFormSource()
 }
 
 //-----------------------------------------------------------------------------
-void FreeFormSource::draw(QVector3D center, int radius)
+void FreeFormSource::draw(vtkPVSliceView::VIEW_PLANE plane,
+			 QVector3D center, int radius)
 {
   int points[5] = {
     center.x(), center.y(), center.z(),
-    radius, vtkPVSliceView::AXIAL};
+    radius, plane};
   vtkSMProxy *proxy = m_source->pipelineSource()->getProxy();
   vtkSMPropertyHelper(proxy, "Draw").Set(points, 5);
   proxy->UpdateVTKObjects();
@@ -83,18 +84,26 @@ void FreeFormSource::draw(QVector3D center, int radius)
 }
 
 //-----------------------------------------------------------------------------
-void FreeFormSource::erase(QVector3D center, int radius)
+void FreeFormSource::erase(vtkPVSliceView::VIEW_PLANE plane,
+			  QVector3D center, int radius)
 {
   if (!m_hasPixels)
     return;
 
   int points[5] = {
     center.x(), center.y(), center.z(),
-    radius, vtkPVSliceView::AXIAL};
+    radius, plane};
   vtkSMProxy *proxy = m_source->pipelineSource()->getProxy();
   vtkSMPropertyHelper(proxy, "Erase").Set(points, 5);
   proxy->UpdateVTKObjects();
 //   m_source->pipelineSource()->updatePipeline();
+  double cross[3];
+  //TODO: Find a clearer way to get the segmentation rendered
+  EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
+  view->center(cross);
+  view->setCenter(cross[0], cross[1], cross[2], true);
+  view->setCenter(cross[0], cross[1], cross[2], true);
+  view->forceRender();
 }
 
 //-----------------------------------------------------------------------------
