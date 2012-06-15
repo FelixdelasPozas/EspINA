@@ -26,24 +26,27 @@
 #include <pqPipelineSource.h>
 #include <vtkSMPropertyHelper.h>
 #include <vtkSMProxy.h>
+#include <QDateTime>
+
+#include <QDebug>
 
 typedef ModelItem::ArgumentId ArgumentId;
 
+// We use timestamp as ID
 const ArgumentId ID = ArgumentId("ID", true);
 const ArgumentId SPACING = ArgumentId("SPACING", true);
-
-unsigned int FreeFormSource::m_count = 0;
 
 //-----------------------------------------------------------------------------
 FreeFormSource::FreeFormSource(double spacing[3])
 : m_source(NULL)
 , m_seg(NULL)
-, m_id(m_count++)
 , m_hasPixels(false)
 {
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
 
-  m_args[ID] = QString::number(m_id);
+  //WARNING: Efecto 3000!
+  m_args[ID] = QDateTime::currentDateTime().toString("ddMMyyhhmmss");
+
   pqFilter::Arguments args;
   m_args[SPACING] = QString("%1,%2,%3")
                      .arg(spacing[0]).arg(spacing[1]).arg(spacing[2]);
@@ -64,8 +67,6 @@ FreeFormSource::FreeFormSource(ModelItem::Arguments args)
 , m_seg(NULL)
 , m_hasPixels(false)
 {
-  m_id = m_args[ID].toUInt();
-
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
 
   QString segId = id() + "_0";

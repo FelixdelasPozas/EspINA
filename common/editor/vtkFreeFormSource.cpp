@@ -131,7 +131,8 @@ void vtkFreeFormSource::Draw(int cx, int cy, int cz, int r, int plane)
 	  for (int x = minX; x <= maxX; x++)
 	  {
 	    unsigned long long offset = x + yOffset + zOffset;
-	    outputPtr[offset] += drawPixel(x,y,z,cx,cy,cz,r,plane,Extent)?1:0;
+	    if (drawPixel(x,y,z,cx,cy,cz,r,plane,Extent))
+	      outputPtr[offset] = 255;
 	  }
 	}
       }
@@ -186,7 +187,7 @@ void vtkFreeFormSource::Draw(int cx, int cy, int cz, int r, int plane)
 	      prevValue = *prevOutputPtr;
 	      prevOutputPtr++;
 	    }
-	    outputPtr[offset] = prevValue + drawPixel(x,y,z,cx,cy,cz,r,plane,Extent)?1:0;
+	    outputPtr[offset] = drawPixel(x,y,z,cx,cy,cz,r,plane,Extent)?255:prevValue;
 	  }
 	}
       }

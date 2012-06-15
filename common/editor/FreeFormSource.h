@@ -53,9 +53,7 @@ private:
   Arguments     m_args;
   pqFilter     *m_source;
   Segmentation *m_seg;
-  unsigned int  m_id;
   bool          m_hasPixels;
-  static unsigned int m_count;
 };
 
 #endif // FREEFORMSOURCE_H
