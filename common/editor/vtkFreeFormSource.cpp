@@ -46,6 +46,7 @@ vtkFreeFormSource::vtkFreeFormSource()
 : m_init(false)
 {
   memset(Extent, 0, 6*sizeof(int));
+  memset(DrawExtent, 0, 6*sizeof(int));
   Spacing[0] = Spacing[1] = Spacing[2] = 1;
 
   this->SetNumberOfInputPorts(0);
@@ -209,14 +210,19 @@ void vtkFreeFormSource::Erase(int cx, int cy, int cz, int r, int plane)
 {
   if (0 <= plane && plane <=2 && r > 0
     && m_data.GetPointer()
-    && Extent[0] <= cx && cx <= Extent[1]
-    && Extent[2] <= cy && cy <= Extent[3]
-    && Extent[4] <= cz && cz <= Extent[5]
+    && Extent[0] <= cx + r && cx - r <= Extent[1]
+    && Extent[2] <= cy + r && cy - r <= Extent[3]
+    && Extent[4] <= cz + r && cz - r <= Extent[5]
   )
   {
+    DrawExtent[0] = cx - r;
+    DrawExtent[1] = cx + r;
+    DrawExtent[2] = cy - r;
+    DrawExtent[3] = cy + r;
+    DrawExtent[4] = cz - r;
+    DrawExtent[5] = cz + r;
 //     std::cout << "Erasing" << std::endl;
 //     std::cout << "\t" << cx << " " << cy << " " << cz << " " << r << std::endl;
-
     bool expandX = vtkPVSliceView::AXIAL == plane
                 || vtkPVSliceView::CORONAL == plane;
     bool expandY = vtkPVSliceView::AXIAL == plane
@@ -270,7 +276,7 @@ int vtkFreeFormSource::RequestInformation(vtkInformation* request, vtkInformatio
   int res = vtkImageAlgorithm::RequestInformation(request, inputVector, outputVector);
 
   outInfo->Set(vtkStreamingDemandDrivenPipeline::WHOLE_EXTENT(), Extent, 6);
-  outInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(), Extent, 6);
+  outInfo->Set(vtkStreamingDemandDrivenPipeline::UPDATE_EXTENT(), DrawExtent, 6);
   outInfo->Set(vtkDataObject::SPACING(), Spacing, 3);
 
   return res;

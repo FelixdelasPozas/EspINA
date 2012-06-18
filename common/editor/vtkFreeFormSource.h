@@ -56,6 +56,7 @@ virtual int RequestData(vtkInformation* request,
 
 private:
   int    Extent[6];
+  int    DrawExtent[6];
   double Spacing[3];
   //BTX
   bool   m_init;
