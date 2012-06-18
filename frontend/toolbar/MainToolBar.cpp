@@ -90,8 +90,6 @@ void MainToolBar::setShowSegmentations(bool visible)
   else
     m_toggleSegVisibility->setIcon(QIcon(":/espina/hide_all.svg"));
 
-  EspinaCore::instance()->model()->relationships()->write(std::cout, RelationshipGraph::GRAPHVIZ);
-
   emit showSegmentations(visible);
 }
 

@@ -110,7 +110,8 @@ bool EspinaCore::loadChannel(const QString file)
   if (dyeSelector.exec() == QDialog::Accepted)
   {
     args.setColor(dyeSelector.selectedColor().hueF());
-  }
+  } else
+    args.setColor(QColor(Qt::black).hueF());
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
   Channel *channel = EspinaFactory::instance()->createChannel(file, args);
