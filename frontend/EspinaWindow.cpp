@@ -305,10 +305,15 @@ void EspinaWindow::closeEvent(QCloseEvent* event)
     QMessageBox warning;
     warning.setWindowTitle(tr("EspINA"));
     warning.setText(tr("Current session has not been saved. Do you want to save it now?"));
-    warning.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
-    if (warning.exec() == QMessageBox::Yes)
+    warning.setStandardButtons(QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
+    int res = warning.exec();
+    if (QMessageBox::Yes == res)
     {
       saveAnalysis();
+    } else if (QMessageBox::Cancel == res)
+    {
+      event->ignore();
+      return;
     }
   }
 
