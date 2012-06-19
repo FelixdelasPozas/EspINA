@@ -1107,10 +1107,11 @@ void SliceView::setFitToGrid(bool value)
 //-----------------------------------------------------------------------------
 void SliceView::centerViewOn(double center[3], bool force)
 {
-  if (m_center[0] == center[0] &&
-      m_center[1] == center[1] &&
-      m_center[2] == center[2] &&
-      !force)
+  if (!isVisible() ||
+      (m_center[0] == center[0] &&
+       m_center[1] == center[1] &&
+       m_center[2] == center[2] &&
+       !force))
     return;
 
   memcpy(m_center, center, 3*sizeof(double));
