@@ -999,17 +999,17 @@ void SliceView::setShowPreprocessing(bool visible)
   if (m_channels.size() < 2)
     return;
 
-  for(int i=0; i < m_channels.keys().size(); i++)
+  Channel *hiddenChannel = m_channels.keys()[visible];
+  Channel *visibleChannel = m_channels.keys()[1-visible];
+  hiddenChannel->setData(false, Qt::CheckStateRole);
+  hiddenChannel->notifyModification();
+  visibleChannel->setData(true, Qt::CheckStateRole);
+  visibleChannel->notifyModification();
+  for(int i=2; i < m_channels.keys().size(); i++)
   {
-    Channel *channel = m_channels.keys()[i];
-    if (i == 0)
-      channel->setData(!visible, Qt::CheckStateRole);
-    else if (i == 1)
-      channel->setData(visible, Qt::CheckStateRole);
-    else
-      channel->setData(false, Qt::CheckStateRole);
-
-    channel->notifyModification();
+    Channel *otherChannel = m_channels.keys()[i];
+    otherChannel->setData(false, Qt::CheckStateRole);
+    otherChannel->notifyModification();
   }
 }
 
