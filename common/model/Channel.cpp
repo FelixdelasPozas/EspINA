@@ -21,6 +21,7 @@
 #include "common/cache/CachedObjectBuilder.h"
 #include "common/extensions/ChannelExtension.h"
 #include "common/extensions/ModelItemExtension.h"
+#include "common/model/Sample.h"
 #include "common/model/RelationshipGraph.h"
 #include "common/model/Representation.h"
 #include "common/processing/pqData.h"
@@ -30,11 +31,16 @@
 
 #include <pqOutputPort.h>
 #include <pqPipelineSource.h>
+#include <pqFileDialog.h>
 #include <vtkPVDataInformation.h>
 #include <vtkSMProxy.h>
+#include <vtkSMReaderFactory.h>
+#include <vtkSMProxyManager.h>
+#include <pqActiveObjects.h>
 
 
 const ModelItem::ArgumentId Channel::ID = ArgumentId("Id", true);
+const ModelItem::ArgumentId Channel::PATH = ArgumentId("Path", true);
 const ModelItem::ArgumentId Channel::COLOR = ArgumentId("Color", true);
 
 const QString Channel::NAME   = "Name";
@@ -51,7 +57,8 @@ Channel::Channel(const QString file, pqData data)
   memset(m_spacing, 0, 3*sizeof(double));
   m_bounds[1] = m_extent[1] = -1;
   memset(m_pos, 0, 3*sizeof(double));
-  m_args[ID] = Argument(file);
+  m_args[ID] = Argument(File::extendedName(file));
+  m_args[PATH] = Argument(file);
   m_args.setColor(-1.0);
   m_isSelected = false;
 
@@ -81,7 +88,7 @@ Channel::Channel(const QString file, const Arguments args)
 : m_visible(true) //TODO: Should be persistent?
 , m_args(args)
 {
-//   qDebug() << "Creating channel from args";
+  //qDebug() << "Creating channel from args" << file << args;
   memset(m_bounds, 0, 6*sizeof(double));
   memset(m_extent, 0, 6*sizeof(int));
   memset(m_spacing, 0, 3*sizeof(double));
@@ -89,10 +96,33 @@ Channel::Channel(const QString file, const Arguments args)
   memset(m_pos, 0, 3*sizeof(double));
 
 //   QStringList input = m_args[ID].split(":");
-  m_args[ID] = Argument(file);
+  m_args[ID] = Argument(File::extendedName(file));
+  if (QFile::exists(file))
+  {
+    m_args[PATH] = Argument(file);
+  } else if (!QFile::exists(m_args[PATH]))
+  {
+    pqServer *server = pqActiveObjects::instance().activeServer();
+    vtkSMReaderFactory *readerFactory =
+    vtkSMProxyManager::GetProxyManager()->GetReaderFactory();
+    QString filters = readerFactory->GetSupportedFileTypes(server->session());
+    filters.replace("Meta Image Files", "Channel Files");
+    pqFileDialog fileDialog(server,
+			    0,
+			    QString(), QString(), filters);
+    fileDialog.setObjectName("SelectChannelFile");
+    fileDialog.setFileMode(pqFileDialog::ExistingFiles);
+    fileDialog.setWindowTitle(QString("Select file for %1:").arg(m_args[ID]));
+
+    Q_ASSERT(fileDialog.exec() == QDialog::Accepted);
+
+    m_args[PATH] = fileDialog.getSelectedFiles().first();
+  }
+
+  qDebug() << m_args[PATH];
   int port = 0;//input.last().toInt();
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-  pqFilter *channelReader = cob->loadFile(file);
+  pqFilter *channelReader = cob->loadFile(m_args[PATH]);
   Q_ASSERT(port < channelReader->getNumberOfData());
   m_data = pqData(channelReader, port);
 
@@ -361,6 +391,15 @@ QVariant Channel::information(QString name)
 void Channel::addExtension(ChannelExtension* ext)
 {
   ModelItem::addExtension(ext);
+}
+
+
+//-----------------------------------------------------------------------------
+Sample *Channel::sample()
+{
+  ModelItem::Vector relatedSamples = relatedItems(ModelItem::IN, "mark");
+  Q_ASSERT(relatedSamples.size() == 1);
+  return dynamic_cast<Sample *>(relatedSamples[0]);
 }
 
 

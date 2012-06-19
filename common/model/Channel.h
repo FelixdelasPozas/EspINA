@@ -42,6 +42,7 @@ class Channel : public SelectableItem
 public:
   // Argument Ids
   static const ArgumentId ID;
+  static const ArgumentId PATH;
   static const ArgumentId COLOR;
 
 // Extended Information and representation tags
@@ -98,7 +99,7 @@ public:
   bool isVisible() const {return m_visible;}
 
   /// Model Item Interface
-  virtual QString id() const {return File::name(m_args[ID]);}
+  virtual QString id() const {return m_args[ID];}
   virtual QVariant data(int role) const;
   virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
   virtual ItemType type() const {return ModelItem::CHANNEL;}
@@ -108,6 +109,8 @@ public:
   virtual QStringList availableInformations() const;
   virtual QStringList availableRepresentations() const;
   virtual QVariant information(QString name);
+
+  Sample *sample();
 
   /// Selectable Item Interface
   virtual pqData volume() {return m_data;}

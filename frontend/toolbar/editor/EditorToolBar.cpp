@@ -30,6 +30,7 @@
 #include <editor/ImageLogicCommand.h>
 #include <editor/PencilSelector.h>
 #include <editor/FreeFormSource.h>
+#include <undo/RemoveSegmentation.h>
 
 //----------------------------------------------------------------------------
 class EditorToolBar::FreeFormCommand
@@ -163,6 +164,7 @@ EditorToolBar::EditorToolBar(QWidget* parent)
   setObjectName("EditorToolBar");
 
   EspinaFactory::instance()->registerFilter(FFS, this);
+  EspinaFactory::instance()->registerFilter(ILF, this);
 
   m_draw->setIcon(QIcon(":/espina/pencil.png"));
   m_draw->setCheckable(true);
@@ -205,9 +207,14 @@ EditorToolBar::EditorToolBar(QWidget* parent)
 //----------------------------------------------------------------------------
 Filter* EditorToolBar::createFilter(const QString filter, const ModelItem::Arguments args)
 {
-  Q_ASSERT(filter == FFS);
+  if (filter == FFS)
+    return new FreeFormSource(args);
+  else if (filter == ILF)
+    return new ImageLogicFilter(args);
+  else
+    Q_ASSERT(false);
 
-  return new FreeFormSource(args);
+  return NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -266,9 +273,11 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
 
   QSharedPointer<QUndoStack> undo = EspinaCore::instance()->undoStack();
   if (m_pencilSelector->state() == PencilSelector::DRAWING)
-    undo->push(new DrawCommand(m_currentSource, vtkPVSliceView::AXIAL, center, radius));
+    m_currentSource->draw(vtkPVSliceView::AXIAL, center, radius);
+    //undo->push(new DrawCommand(m_currentSource, vtkPVSliceView::AXIAL, center, radius));
   else if (m_pencilSelector->state() == PencilSelector::ERASING)
-    undo->push(new EraseCommand(m_currentSource, vtkPVSliceView::AXIAL, center, radius));
+    m_currentSource->erase(vtkPVSliceView::AXIAL, center, radius);
+    //undo->push(new EraseCommand(m_currentSource, vtkPVSliceView::AXIAL, center, radius));
   else
     Q_ASSERT(false);
 
@@ -318,10 +327,13 @@ void EditorToolBar::combineSegmentations()
       input << seg;
   }
 
-  if (!input.isEmpty())
+  if (input.size() >= 2)
   {
     QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
+    undo->beginMacro("Combine Segmentations");
     undo->push(new ImageLogicCommand(input, ImageLogicFilter::ADDITION));
+    undo->push(new RemoveSegmentation(input));
+    undo->endMacro();
   }
 }
 
@@ -337,10 +349,13 @@ void EditorToolBar::substractSegmentations()
       input << seg;
   }
 
-  if (!input.isEmpty())
+  if (input.size() >= 2)
   {
     QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
+    undo->beginMacro("Substract Segmentations");
     undo->push(new ImageLogicCommand(input, ImageLogicFilter::SUBSTRACTION));
+    undo->push(new RemoveSegmentation(input));
+    undo->endMacro();
   }
 }
 

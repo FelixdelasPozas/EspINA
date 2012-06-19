@@ -23,8 +23,6 @@
 #include <model/EspinaFactory.h>
 #include <pqPipelineSource.h>
 
-const QString ImageLogicFilter::ILF = "Editor::ImageLogicFilter";
-
 //-----------------------------------------------------------------------------
 ImageLogicFilter::ImageLogicFilter(QList< Segmentation* > input,
 				   ImageLogicFilter::Operation op)
@@ -63,11 +61,15 @@ void ImageLogicFilter::run()
 {
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
 
-  pqFilter::Arguments logic;
-  logic << pqFilter::Argument("Input",pqFilter::Argument::INPUT, m_args->value(ILFArguments::INPUT));
-  logic << pqFilter::Argument("Operation",pqFilter::Argument::INTVECT, m_args->value(ILFArguments::OPERATION));
-  m_filter = cob->createFilter("filters","ImageLogicFilter", logic);
-  Q_ASSERT(m_filter->getNumberOfData() == 1);
+  QString segId = id() + "_0";
+  if ((m_filter = cob->loadFile(segId)) == NULL)
+  {
+    pqFilter::Arguments logic;
+    logic << pqFilter::Argument("Input",pqFilter::Argument::INPUT, m_args->value(ILFArguments::INPUT));
+    logic << pqFilter::Argument("Operation",pqFilter::Argument::INTVECT, m_args->value(ILFArguments::OPERATION));
+    m_filter = cob->createFilter("filters","ImageLogicFilter", logic);
+    Q_ASSERT(m_filter->getNumberOfData() == 1);
+  }
 
   m_filter->pipelineSource()->updatePipeline();
 

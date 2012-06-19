@@ -22,6 +22,8 @@
 
 #include <model/Filter.h>
 
+static const QString ILF = "EditorToolBar::ImageLogicFilter";
+
 class ImageLogicFilter
 : public Filter
 {
@@ -32,8 +34,6 @@ public:
     SUBSTRACTION,
     NOSIGN
   };
-
-  static const QString ILF;
 
   class ILFArguments;
 

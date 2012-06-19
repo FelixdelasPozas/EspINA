@@ -21,7 +21,9 @@
 
 #include <EspinaCore.h>
 
-ImageLogicCommand::ImageLogicCommand(QList< Segmentation* > inputs,
+#include <common/model/Channel.h>
+
+ImageLogicCommand::ImageLogicCommand(QList<Segmentation *> inputs,
 				     ImageLogicFilter::Operation op)
 : m_input(inputs)
 {
@@ -30,23 +32,54 @@ ImageLogicCommand::ImageLogicCommand(QList< Segmentation* > inputs,
 
 void ImageLogicCommand::redo()
 {
+  //TODO: Combine segmentations from different channels
   QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
 
-  model->removeSegmentation(m_input);
+  QSet<Channel *> channels;
+
+  foreach(Segmentation *seg, m_input)
+  {
+    ModelItem::Vector relatedChannels = seg->relatedItems(ModelItem::IN, "Channel");
+    foreach(ModelItem *item, relatedChannels)
+    {
+      Channel *channel = dynamic_cast<Channel *>(item);
+      //model->removeRelation(channel, seg, "Channel");
+      channels << channel;
+    }
+  }
   model->addFilter(m_filter);
+  foreach(Segmentation *seg, m_input)
+  {
+    model->addRelation(seg, m_filter, "Add");
+  }
   Segmentation *seg = m_filter->product(0);
   seg->setTaxonomy(EspinaCore::instance()->activeTaxonomy());
   model->addSegmentation(seg);
-//   model->addRelation(m_channel, m_filter, "Channel");
-//   m_seg->setTaxonomy(m_taxonomy);
-//   model->addSegmentation(m_seg);
-//   model->addRelation(m_filter, m_seg, "CreateSegmentation");
-//   model->addRelation(m_sample, m_seg, "where");
-//   model->addRelation(m_channel, m_seg, "Channel");
-//   m_seg->initialize();
+  foreach(Channel *channel, channels)
+  {
+    Sample *sample = channel->sample();
+    model->addRelation(m_filter, seg, "CreateSegmentation");
+    model->addRelation(sample, seg, "where");
+    model->addRelation(channel, seg, "Channel");
+    seg->initialize();
+  }
 }
 
 void ImageLogicCommand::undo()
 {
-  QUndoCommand::undo();
+  QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
+
+  Segmentation *seg = m_filter->product(0);
+
+  foreach(ModelItem::Relation relation,  seg->relations())
+  {
+    model->removeRelation(relation.ancestor, relation.succesor, relation.relation);
+  }
+  model->removeSegmentation(seg);
+
+  foreach(ModelItem::Relation relation,  m_filter->relations())
+  {
+    model->removeRelation(relation.ancestor, relation.succesor, relation.relation);
+  }
+  model->removeFilter(m_filter);
 }

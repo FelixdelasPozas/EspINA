@@ -46,12 +46,14 @@ FreeFormSource::FreeFormSource(double spacing[3])
 
   //WARNING: Efecto 3000!
   m_args[ID] = QDateTime::currentDateTime().toString("ddMMyyhhmmss");
+  //qDebug() << m_args[ID] << id();
 
   pqFilter::Arguments args;
   m_args[SPACING] = QString("%1,%2,%3")
                      .arg(spacing[0]).arg(spacing[1]).arg(spacing[2]);
 // 		     .arg(extent[3]).arg(extent[4]).arg(extent[5]);
 
+  args << pqFilter::Argument("Id", pqFilter::Argument::UNKOWN, m_args[ID]);
   args << pqFilter::Argument("Spacing",pqFilter::Argument::DOUBLEVECT, m_args[SPACING]);
   m_source = cob->createFilter("sources","FreeFormSource", args, false, true);
   Q_ASSERT(m_source->getNumberOfData() == 1);

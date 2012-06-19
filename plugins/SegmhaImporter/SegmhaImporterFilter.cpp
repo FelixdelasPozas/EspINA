@@ -89,7 +89,7 @@ SegmhaImporterFilter::SegmhaImporterFilter(const QString file)
 
       File channelFile(fileDialog.getSelectedFiles()[0]);
       EspinaCore::instance()->loadFile(channelFile);
-      m_channel = EspinaCore::instance()->model()->channel(channelFile.name());
+      m_channel = EspinaCore::instance()->model()->channel(channelFile.extendedName());
   }
 
   m_args[FILE] = file;

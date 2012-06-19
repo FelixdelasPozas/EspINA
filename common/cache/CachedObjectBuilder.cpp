@@ -198,8 +198,7 @@ pqPipelineSource *CachedObjectBuilder::createSMFilter(const QString group, const
 	break;
       }
       default:
-	// 	qDebug() << "Unkown parameter type";
-	Q_ASSERT(false);
+	qDebug() << "Unkown parameter type. Ignored";
     };
   }
 
