@@ -272,6 +272,7 @@ void SliceView::setCrosshairVisibility(bool visible)
 {
   vtkSMPropertyHelper(m_view->getViewProxy(),"ShowCrosshair").Set(visible);
   m_view->getProxy()->UpdateVTKObjects();
+  forceRender();
 }
 
 //-----------------------------------------------------------------------------
@@ -552,6 +553,11 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
 	selectPickedItems(me->modifiers() == Qt::SHIFT);
       }
     }
+  } else if (e->type() == QEvent::KeyRelease)
+  {
+    QKeyEvent *ke = static_cast<QKeyEvent *>(e);
+    if (ke->key() == Qt::Key_Control && ke->count() == 1)
+      emit showCrosshairs(false);
   }
 
   return QWidget::eventFilter(caller, e);

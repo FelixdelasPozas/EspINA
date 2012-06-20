@@ -117,6 +117,8 @@ void DefaultEspinaView::initSliceView(SliceView* view)
 	  this, SLOT(channelSelected(Channel*)));
   connect(view, SIGNAL(segmentationSelected(Segmentation*, bool)),
 	  this, SLOT(segmentationSelected(Segmentation*, bool)));
+  connect(view, SIGNAL(showCrosshairs(bool)),
+	 this, SLOT(showCrosshair(bool)));
 }
 
 //-----------------------------------------------------------------------------
@@ -298,7 +300,9 @@ ISettingsPanel* DefaultEspinaView::settingsPanel()
 //----------------------------------------------------------------------------
 void DefaultEspinaView::showCrosshair(bool visible)
 {
-
+  xyView->setCrosshairVisibility(visible);
+  yzView->setCrosshairVisibility(visible);
+  xzView->setCrosshairVisibility(visible);
 }
 
 //----------------------------------------------------------------------------

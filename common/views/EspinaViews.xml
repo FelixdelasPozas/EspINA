@@ -49,7 +49,7 @@
       <IntVectorProperty name="ShowCrosshair"
         command="SetShowCrosshair"
         number_of_elements="1"
-        default_values="1">
+        default_values="0">
         <Documentation>
         </Documentation>
       </IntVectorProperty>
