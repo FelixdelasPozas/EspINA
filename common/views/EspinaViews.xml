@@ -46,6 +46,13 @@
 	  The color for the Vertical CrossHair' Line
         </Documentation>
       </DoubleVectorProperty>
+      <IntVectorProperty name="ShowCrosshair"
+        command="SetShowCrosshair"
+        number_of_elements="1"
+        default_values="1">
+        <Documentation>
+        </Documentation>
+      </IntVectorProperty>
       <IntVectorProperty name="ShowSegmentations"
         command="SetShowSegmentations"
         number_of_elements="1"
@@ -76,6 +83,13 @@
 	  The color for the Scale Ruler
         </Documentation>
       </DoubleVectorProperty>
+      <IntVectorProperty name="ShowThumbnail"
+        command="SetShowThumbnail"
+        number_of_elements="1"
+        default_values="1">
+        <Documentation>
+        </Documentation>
+      </IntVectorProperty>
 <!--      <DoubleVectorProperty name="Slice"
         command="SetSlice"
         number_of_elements="1"

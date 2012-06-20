@@ -81,6 +81,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(pqData input, int seed[3]
 
   extract = NULL;
   grow = NULL;
+  close = NULL;
   segFilter = NULL;
 
   run();
@@ -96,6 +97,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(ModelItem::Arguments args
 
   extract = NULL;
   grow = NULL;
+  close = NULL;
   segFilter = NULL;
 
   QString segId = id() + "_0";
@@ -219,7 +221,6 @@ void SeedGrowSegmentationFilter::run()
     int segExtent[6];
     vtkSMPropertyHelper(growDataProxy,"SegExtent").Get(segExtent, 6);
 
-    segFilter = grow;
 
     if (0 == i)
     {
@@ -256,10 +257,20 @@ void SeedGrowSegmentationFilter::run()
     else
       memcpy(voi,segExtent,6*sizeof(int));
 //   qDebug() << bounds [0] << bounds [1] << bounds [2] << bounds [3] << bounds [4] << bounds [5];
+
   }
 
-  // Segmentation region matches
+  Q_ASSERT(grow);
+  Q_ASSERT(grow->getNumberOfData() == 1);
 
+//   pqFilter::Arguments closeArgs;
+//   closeArgs << pqFilter::Argument("Input", pqFilter::Argument::INPUT, grow->data(0).id());
+//   close = cob->createFilter("filters","ClosingImageFilter", closeArgs);
+//   close->pipelineSource()->updatePipeline();
+//   Q_ASSERT(close->getNumberOfData() == 1);
+// 
+//   segFilter = close;
+  segFilter = grow;
   if (!m_seg)
     m_seg = EspinaFactory::instance()->createSegmentation(this, 0, segFilter->data(0));
   else

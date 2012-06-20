@@ -434,7 +434,7 @@ void EspinaWindow::setActivity(QString activity)
 
   if (m_view)
     connect(m_mainToolBar, SIGNAL(showSegmentations(bool)),
-	    m_view, SLOT(setShowSegmentations(bool)));
+	    m_view, SLOT(showSegmentations(bool)));
 
   if (m_view)
   {

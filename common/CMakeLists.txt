@@ -72,6 +72,10 @@ qt4_wrap_cpp(PVMOC_SOURCES
   )
 
 set (PVCORE_SERVER_SOURCES
+  editor/vtkClosingImageFilter.cpp
+  editor/vtkOpeningImageFilter.cpp
+  editor/vtkDilateImageFilter.cpp
+  editor/vtkErodeImageFilter.cpp
   editor/vtkImageLogicFilter.cpp
   editor/vtkFreeFormSource.cpp
   extensions/Margins/vtkChannelBorderDetector.cpp
@@ -123,7 +127,7 @@ ADD_PARAVIEW_PLUGIN(
   )
 
 set (PVCORE_LIBRARIES
-  ITKCommon ITKBasicFilters ITKAlgorithms
+  ITKBasicFilters ITKAlgorithms ITKCommon
   )
 
 target_link_libraries(EspinaPVCore ${PVCORE_LIBRARIES})
@@ -163,6 +167,7 @@ set (CORE_SOURCES
   editor/PencilSelector.cpp
   editor/FreeFormSource.cpp
   editor/ImageLogicCommand.cpp
+  editor/CODEFilter.cpp
   editor/ImageLogicFilter.cpp
   extensions/ChannelExtension.cpp
   extensions/Margins/MarginsChannelExtension.cpp

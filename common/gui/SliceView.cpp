@@ -260,11 +260,26 @@ void SliceView::setTitle(const QString& title)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::setCrossHairColors(double hcolor[3], double vcolor[3])
+void SliceView::setCrosshairColors(double hcolor[3], double vcolor[3])
 {
   vtkSMPropertyHelper(m_view->getViewProxy(),"HCrossLineColor").Set(hcolor,3);
   vtkSMPropertyHelper(m_view->getViewProxy(),"VCrossLineColor").Set(vcolor,3);
   m_view->getProxy()->UpdateVTKObjects();
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::setCrosshairVisibility(bool visible)
+{
+  vtkSMPropertyHelper(m_view->getViewProxy(),"ShowCrosshair").Set(visible);
+  m_view->getProxy()->UpdateVTKObjects();
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::setThumbnailVisibility(bool visible)
+{
+  vtkSMPropertyHelper(m_view->getViewProxy(),"ShowThumbnail").Set(visible);
+  m_view->getProxy()->UpdateVTKObjects();
+  forceRender();
 }
 
 //-----------------------------------------------------------------------------
@@ -525,7 +540,10 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
     if (me->button() == Qt::LeftButton)
     {
       if (me->modifiers() == Qt::CTRL)
+      {
 	centerCrosshairOnMousePosition();
+	emit showCrosshairs(true);
+      }
       else if (m_inThumbnail)
       {
 	centerViewOnMousePosition();
@@ -712,7 +730,7 @@ bool SliceView::pickChannel(int x, int y, double pickPos[3])
   Q_ASSERT(thumbnail);
 
   vtkPropPicker *propPicker = vtkPropPicker::New();
-  if (!propPicker->Pick(x, y, 0.1, thumbnail))
+  if (!thumbnail->GetDraw() || !propPicker->Pick(x, y, 0.1, thumbnail))
   {
     vtkRenderer *renderer = view->GetRenderer();
     Q_ASSERT(renderer);

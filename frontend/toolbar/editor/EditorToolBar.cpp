@@ -30,6 +30,7 @@
 #include <editor/ImageLogicCommand.h>
 #include <editor/PencilSelector.h>
 #include <editor/FreeFormSource.h>
+#include <editor/CODEFilter.h>
 #include <undo/RemoveSegmentation.h>
 
 //----------------------------------------------------------------------------
@@ -144,6 +145,48 @@ private:
   vtkPVSliceView::VIEW_PLANE m_plane;
   QVector3D                  m_center;
   int                        m_radius;
+};
+
+
+
+//----------------------------------------------------------------------------
+class EditorToolBar::CODECommand :
+public QUndoCommand
+{
+public:
+
+  explicit CODECommand(QList<Segmentation *> inputs,
+		      CODEFilter::Operation op,
+		      unsigned int radius)
+  {
+    foreach(Segmentation *seg, inputs)
+    {
+      m_filters << new CODEFilter(seg, op, radius);
+    }
+  }
+
+  virtual void redo()
+  {
+    QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
+
+    foreach(Filter *filter, m_filters)
+    {
+      model->addFilter(filter);
+      //model->addRelation(m_channel, m_filter, "Channel");
+      Segmentation *seg = filter->product(0);
+      seg->setTaxonomy(EspinaCore::instance()->activeTaxonomy());
+      model->addSegmentation(seg);
+      model->addRelation(filter, seg, "CreateSegmentation");
+      //model->addRelation(m_sample, m_seg, "where");
+      //model->addRelation(m_channel, m_seg, "Channel");
+      seg->initialize();
+    }
+  }
+  virtual void undo(){}
+
+private:
+  QList<Filter *> m_filters;
+  
 };
 
 //----------------------------------------------------------------------------
@@ -318,14 +361,7 @@ void EditorToolBar::stateChanged(PencilSelector::State state)
 //----------------------------------------------------------------------------
 void EditorToolBar::combineSegmentations()
 {
-  QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
-
-  QList<Segmentation *> input;
-  foreach(Segmentation *seg, model->segmentations())
-  {
-    if (seg->isSelected())
-      input << seg;
-  }
+  QList<Segmentation *> input = selectedSegmentations();
 
   if (input.size() >= 2)
   {
@@ -340,14 +376,7 @@ void EditorToolBar::combineSegmentations()
 //----------------------------------------------------------------------------
 void EditorToolBar::substractSegmentations()
 {
-  QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
-
-  QList<Segmentation *> input;
-  foreach(Segmentation *seg, model->segmentations())
-  {
-    if (seg->isSelected())
-      input << seg;
-  }
+  QList<Segmentation *> input = selectedSegmentations();
 
   if (input.size() >= 2)
   {
@@ -362,30 +391,56 @@ void EditorToolBar::substractSegmentations()
 //----------------------------------------------------------------------------
 void EditorToolBar::erodeSegmentations()
 {
-
+  QList<Segmentation *> input = selectedSegmentations();
+  if (input.size() > 0)
+  {
+    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODEFilter::ERODE, 10));
+  }
 }
 
 //----------------------------------------------------------------------------
 void EditorToolBar::dilateSegmentations()
 {
-
+  QList<Segmentation *> input = selectedSegmentations();
+  if (input.size() > 0)
+  {
+    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODEFilter::DILATE, 10));
+  }
 }
 
 //----------------------------------------------------------------------------
 void EditorToolBar::openSegmentations()
 {
-
+  QList<Segmentation *> input = selectedSegmentations();
+  if (input.size() > 0)
+  {
+    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODEFilter::OPEN, 10));
+  }
 }
 
 //----------------------------------------------------------------------------
 void EditorToolBar::closeSegmentations()
 {
+  QList<Segmentation *> input = selectedSegmentations();
+  if (input.size() > 0)
+  {
+    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODEFilter::CLOSE, 10));
+  }
+}
+
+//----------------------------------------------------------------------------
+QList< Segmentation* > EditorToolBar::selectedSegmentations()
+{
   QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
 
+  QList<Segmentation *> selection;
   foreach(Segmentation *seg, model->segmentations())
   {
     if (seg->isSelected())
     {
+      selection << seg;
     }
   }
+
+  return selection;
 }

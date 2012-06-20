@@ -40,22 +40,6 @@
 	command="SetThreshold">
       </IntVectorProperty>
       <IntVectorProperty
-        name="CheckPixel"
-	number_of_elements="4"
-	immediate_update="1"
-	default_values="0 0 0 0"
-	command="SetCheckPixel">
-	<SimpleIntInformationHelper/>
-      </IntVectorProperty>
-      <IntVectorProperty
-        name="PixelValue"
-	number_of_elements="1"
-	information_only="1"
-	default_values="0"
-	command="GetPixelValue">
-	<SimpleIntInformationHelper/>
-      </IntVectorProperty>
-      <IntVectorProperty
         name="SegExtent"
 	number_of_elements="6"
 	information_only="1"

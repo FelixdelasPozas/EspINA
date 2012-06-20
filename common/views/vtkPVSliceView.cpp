@@ -354,7 +354,11 @@ vtkStandardNewMacro ( vtkPVSliceView );
 
 //----------------------------------------------------------------------------
 vtkPVSliceView::vtkPVSliceView()
-: m_pendingActor(NULL)
+: ShowSegmentations(true)
+, ShowThumbnail(true)
+, ShowRuler(true)
+, ShowCrosshair(false)
+, m_pendingActor(NULL)
 {
   memset(Center, 0, 3*sizeof(double));
 
@@ -423,8 +427,8 @@ void vtkPVSliceView::initCrosshairs()
   HCrossLine->SetPickable(false);
   //   HCrossLine->GetProperty()->SetLineStipplePattern(0xF0F0);
 
-  //NonCompositedRenderer->AddActor(HCrossLine);
-  //OverviewRenderer->AddActor(HCrossLine);
+//   NonCompositedRenderer->AddActor(HCrossLine);
+//   OverviewRenderer->AddActor(HCrossLine);
 
   vtkSmartPointer<vtkPoints> VPoints = vtkSmartPointer<vtkPoints>::New();
   VPoints->InsertNextPoint(0, LastComputedBounds[2], 0);
@@ -448,8 +452,8 @@ void vtkPVSliceView::initCrosshairs()
   VCrossLine->SetPickable(false);
   //   VCrossLine->GetProperty()->SetLineStipplePattern(0xF0F0);
 
-  //NonCompositedRenderer->AddActor(VCrossLine);
-  //OverviewRenderer->AddActor(VCrossLine);
+//   NonCompositedRenderer->AddActor(VCrossLine);
+//   OverviewRenderer->AddActor(VCrossLine);
 
   //   vtkSmartPointer<vtkPoints> BPoints = vtkSmartPointer<vtkPoints>::New();
   //   BPoints->InsertNextPoint(LastComputedBounds[0],LastComputedBounds[2],0);
@@ -877,6 +881,32 @@ void vtkPVSliceView::SetVCrossLineColor ( double color[3] )
 }
 
 //----------------------------------------------------------------------------
+void vtkPVSliceView::SetShowCrosshair(bool visible)
+{
+  if (visible == ShowCrosshair)
+    return;
+
+  if (visible)
+  {
+    NonCompositedRenderer->AddActor(HCrossLine);
+    OverviewRenderer->AddActor(HCrossLine);
+
+    NonCompositedRenderer->AddActor(VCrossLine);
+    OverviewRenderer->AddActor(VCrossLine);
+  }
+  else
+  {
+    NonCompositedRenderer->RemoveActor(HCrossLine);
+    OverviewRenderer->RemoveActor(HCrossLine);
+
+    NonCompositedRenderer->RemoveActor(VCrossLine);
+    OverviewRenderer->RemoveActor(VCrossLine);
+  }
+
+  ShowCrosshair = visible;
+}
+
+//----------------------------------------------------------------------------
 void vtkPVSliceView::SetShowSegmentations ( bool visible )
 {
   //   qDebug() << "vtkPVSliceView segmentation's visibility = " << value;
@@ -886,6 +916,24 @@ void vtkPVSliceView::SetShowSegmentations ( bool visible )
     seg->prop->SetVisibility(visible && seg->visible);
   }
   ShowSegmentations = visible;
+}
+
+//----------------------------------------------------------------------------
+void vtkPVSliceView::SetShowThumbnail(bool visible)
+{
+  if (visible == ShowThumbnail)
+    return;
+
+  if (visible)
+  {
+    OverviewRenderer->DrawOn();
+  }
+  else
+  {
+    OverviewRenderer->DrawOff();
+  }
+
+  ShowThumbnail = visible;
 }
 
 //----------------------------------------------------------------------------
@@ -1003,6 +1051,9 @@ void vtkPVSliceView::updateBorder(vtkSmartPointer< vtkPolyData > data,
 //----------------------------------------------------------------------------
 void vtkPVSliceView::updateThumbnail()
 {
+  if (!ShowThumbnail)
+    return;
+
   double *value;
   // Position of world margins acording to the display
   // Depending on the plane being shown can refer to different

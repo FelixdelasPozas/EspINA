@@ -71,8 +71,11 @@ public:
   virtual ISettingsPanel* settingsPanel();
 
 public slots:
-  virtual void setShowSegmentations(bool visibility);
-  virtual void setShowPreprocessing(bool visibility);
+  virtual void showCrosshair(bool visible);
+  virtual void switchPreprocessing();
+  virtual void showSegmentations(bool visible);
+  virtual void showThumbnail(bool visible);
+
   virtual void setCenter(double x, double y, double z, bool force=false);
   virtual void setCameraFocus(double [3]);
   virtual void setSliceSelectors(SliceView::SliceSelectors selectors);
@@ -114,6 +117,7 @@ private:
   QDockWidget *volDock, *yzDock, *xzDock;
   double m_gridSize[3];
   QMap<EspinaWidget *, Widgtes> m_widgets;
+  bool                    m_showProcessing;
 };
 
 class DefaultEspinaView::SettingsPanel

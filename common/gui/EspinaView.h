@@ -68,7 +68,7 @@ public:
   virtual ISettingsPanel *settingsPanel() = 0;
 
 public slots:
-  virtual void setShowSegmentations(bool visibility) = 0;
+  virtual void showSegmentations(bool visible) = 0;
   void center(double center[3]){memcpy(center, m_center, 3*sizeof(double));}
   virtual void setCenter(double x, double y, double z, bool force=false) = 0;
   //TODO: use a stack-like method to support interactions between different

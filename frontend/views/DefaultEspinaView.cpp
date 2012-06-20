@@ -53,6 +53,7 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
 : EspinaView(parent, activity)
 , first(true)
 , m_colorEngine(NULL)
+, m_showProcessing(false)
 {
   double cyan[3]    = {0, 1, 1};
   double blue[3]    = {0, 0, 1};
@@ -62,7 +63,7 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
 
 //   qDebug() << "New Default EspinaView";
   xyView = new SliceView(vtkPVSliceView::AXIAL);
-  xyView->setCrossHairColors(blue, magenta);
+  xyView->setCrosshairColors(blue, magenta);
   initSliceView(xyView);
   this->setLayout(new QVBoxLayout());
   this->layout()->addWidget(xyView);
@@ -80,14 +81,14 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   yzDock = new QDockWidget(tr("ZY"),parent);
   yzDock->setObjectName("yzDock");
   yzView = new SliceView(vtkPVSliceView::SAGITTAL);
-  yzView->setCrossHairColors(blue, cyan);
+  yzView->setCrosshairColors(blue, cyan);
   initSliceView(yzView);
   yzDock->setWidget(yzView);
 
   xzDock = new QDockWidget(tr("XZ"),parent);
   xzDock->setObjectName("xzDock");
   xzView = new SliceView(vtkPVSliceView::CORONAL);
-  xzView->setCrossHairColors(cyan, magenta);
+  xzView->setCrosshairColors(cyan, magenta);
   initSliceView(xzView);
   xzDock->setWidget(xzView);
 
@@ -121,25 +122,40 @@ void DefaultEspinaView::initSliceView(SliceView* view)
 //-----------------------------------------------------------------------------
 void DefaultEspinaView::createViewMenu(QMenu* menu)
 {
-  menu->addAction(yzDock->toggleViewAction());
-  menu->addAction(xzDock->toggleViewAction());
-  menu->addAction(volDock->toggleViewAction());
-  menu->addSeparator();
+  QMenu *renderMenu = new QMenu(tr("Renderers"), this);
+  renderMenu->addAction(yzDock->toggleViewAction());
+  renderMenu->addAction(xzDock->toggleViewAction());
+  renderMenu->addAction(volDock->toggleViewAction());
+  //renderMenu->addSeparator();
+  menu->addMenu(renderMenu);
 
-  QAction *showSegmentations = new QAction(tr("Show Segmentations"),menu);
-  menu->addAction(showSegmentations);
-  QAction *showPreprocessing = new QAction(tr("Show Channel Preprocessing"), menu);
-  showPreprocessing->setCheckable(true);
-  showPreprocessing->setShortcut(QString("Ctrl+Space"));
-  connect(showPreprocessing, SIGNAL(triggered(bool)),
-	 this, SLOT(setShowPreprocessing(bool)));
-  menu->addAction(showPreprocessing);
+  //TODO: Synchronize with maintoolbar action
+  //QAction *toggleSegmentationsVisibility = new QAction(tr("Show Segmentations"),menu);
+  //toggleSegmentationsVisibility->setCheckable(true);
+  //toggleSegmentationsVisibility->setShortcut(QString("Space"));
+  //connect(toggleSegmentationsVisibility, SIGNAL(triggered(bool)),
+	 //this, SLOT(showSegmentations(bool)));
+  //menu->addAction(toggleSegmentationsVisibility);
   QAction *showRuler = new QAction(tr("Show Ruler"),menu);
   showRuler->setCheckable(true);
   showRuler->setChecked(true);
   menu->addAction(showRuler);
   connect(showRuler, SIGNAL(toggled(bool)),
 	  this, SLOT(setRulerVisibility(bool)));
+
+  QAction *showThumbnail = new QAction(tr("Show Thumbnail"),menu);
+  showThumbnail->setCheckable(true);
+  showThumbnail->setChecked(true);
+  menu->addAction(showThumbnail);
+  connect(showThumbnail, SIGNAL(toggled(bool)),
+	  this, SLOT(showThumbnail(bool)));
+
+  QAction *togglePreprocessingVisibility = new QAction(tr("Switch Channel"), menu);
+  togglePreprocessingVisibility->setShortcut(QString("Ctrl+Space"));
+  connect(togglePreprocessingVisibility, SIGNAL(triggered(bool)),
+	 this, SLOT(switchPreprocessing()));
+  menu->addAction(togglePreprocessingVisibility);
+
   QAction *fitToSlices = new QAction(tr("Fit To Slices"),menu);
   fitToSlices->setCheckable(true);
   fitToSlices->setChecked(true);
@@ -280,18 +296,35 @@ ISettingsPanel* DefaultEspinaView::settingsPanel()
 
 
 //----------------------------------------------------------------------------
-void DefaultEspinaView::setShowSegmentations(bool visibility)
+void DefaultEspinaView::showCrosshair(bool visible)
 {
-  xyView->setSegmentationVisibility(visibility);
-  yzView->setSegmentationVisibility(visibility);
-  xzView->setSegmentationVisibility(visibility);
-//   EspinaCore::instance()->model()->serializeRelations(std::cout, RelationshipGraph::GRAPHVIZ);
+
 }
 
 //----------------------------------------------------------------------------
-void DefaultEspinaView::setShowPreprocessing(bool visibility)
+void DefaultEspinaView::switchPreprocessing()
 {
-  xyView->setShowPreprocessing(visibility);
+  //Current implementation changes channel visibility and then
+  //notifies it's been updated to other views
+  m_showProcessing = !m_showProcessing;
+  xyView->setShowPreprocessing(m_showProcessing);
+}
+
+//----------------------------------------------------------------------------
+void DefaultEspinaView::showSegmentations(bool visible)
+{
+  xyView->setSegmentationVisibility(visible);
+  yzView->setSegmentationVisibility(visible);
+  xzView->setSegmentationVisibility(visible);
+//   EspinaCore::instance()->model()->serializeRelations(std::cout, RelationshipGraph::GRAPHVIZ);
+}
+
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::showThumbnail(bool visible)
+{
+  xyView->setThumbnailVisibility(visible);
+  yzView->setThumbnailVisibility(visible);
+  xzView->setThumbnailVisibility(visible);
 }
 
 //-----------------------------------------------------------------------------

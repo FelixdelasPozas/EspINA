@@ -249,7 +249,7 @@ void pqSliceView::setShowSegmentations ( bool visible )
 //-----------------------------------------------------------------------------
 void pqSliceView::setRulerVisibility ( bool visible )
 {
-    vtkSMPropertyHelper ( this->getProxy(), "ShowRuler" ).Set ( visible );
+    vtkSMPropertyHelper(this->getProxy(), "ShowRuler").Set(visible);
     this->getProxy()->UpdateVTKObjects();
     forceRender();
 }

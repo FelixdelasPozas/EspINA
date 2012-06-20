@@ -107,20 +107,26 @@ public:
 
     void SetVCrossLineColor ( double r, double g, double b );
     void SetVCrossLineColor ( double color[3] );
-    vtkGetVector3Macro ( VCrossLineColor,double );
+    vtkGetVector3Macro (VCrossLineColor, double);
 
-    void SetSlicingPlane ( int plane );
-    vtkGetMacro ( SlicingPlane, int );
+    void SetSlicingPlane(int plane);
+    vtkGetMacro(SlicingPlane, int);
 
-    void SetShowSegmentations ( bool visible );
-    vtkGetMacro ( ShowSegmentations, bool );
+    void SetShowCrosshair(bool visible);
+    vtkGetMacro(ShowCrosshair, bool);
 
-    void SetShowRuler ( bool visible );
-    vtkGetMacro ( ShowRuler, bool );
+    void SetShowSegmentations(bool visible);
+    vtkGetMacro(ShowSegmentations, bool);
 
-    void SetRulerColor ( double r, double g, double b );
-    void SetRulerColor ( double color[3] );
-    vtkGetVector3Macro ( RulerColor,double );
+    void SetShowThumbnail(bool visible);
+    vtkGetMacro(ShowThumbnail, bool);
+
+    void SetShowRuler(bool visible);
+    vtkGetMacro(ShowRuler, bool);
+
+    void SetRulerColor(double r, double g, double b);
+    void SetRulerColor(double color[3]);
+    vtkGetVector3Macro(RulerColor, double);
 
     vtkSetVector2Macro ( RulerSize,double );
     vtkGetVector2Macro ( RulerSize,double );
@@ -159,6 +165,7 @@ private:
     VIEW_PLANE       SlicingPlane;
     double           Center[3];
     bool             ShowSegmentations;
+    bool             ShowThumbnail;
 
     vtkSmartPointer<vtkRenderer> OverviewRenderer;
     QList<SliceActor *> Channels;
@@ -169,7 +176,7 @@ private:
     vtkSmartPointer<vtkAxisActor2D> Ruler;
     bool             ShowRuler;
     double           RulerColor[3];
-    double	     RulerSize[2];
+    double           RulerSize[2];
 
     vtkSmartPointer<vtkPolyData>    HCrossLineData, VCrossLineData;
     vtkSmartPointer<vtkActor>       HCrossLine, VCrossLine;
@@ -179,6 +186,7 @@ private:
     double           VCrossLineColor[3];
     double           SagittalCrossLineColor[3];
     double           CoronalCrossLineColor[3];
+    bool             ShowCrosshair;
     QMap<vtkDataRepresentation *, SliceActor *> m_reps;
     SliceActor        * m_pendingActor;
     QList<SliceActor *> m_actors;

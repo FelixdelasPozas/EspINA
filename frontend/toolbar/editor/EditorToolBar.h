@@ -40,6 +40,7 @@ class EditorToolBar
   class FreeFormCommand;
   class DrawCommand;
   class EraseCommand;
+  class CODECommand;//CloseOpenDilateErode Command
 public:
   explicit EditorToolBar(QWidget *parent = 0);
 
@@ -61,6 +62,8 @@ protected slots:
   void dilateSegmentations();
   void openSegmentations();
   void closeSegmentations();
+
+  QList<Segmentation *> selectedSegmentations();
 
 private:
   QAction *m_draw;

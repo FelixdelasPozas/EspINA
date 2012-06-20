@@ -64,6 +64,110 @@
      </IntVectorProperty>
    </SourceProxy>
    <!-- End of ImageLogicFilter -->
+   <SourceProxy name="ClosingImageFilter" class="vtkClosingImageFilter" label="Closing Imagic Filter">
+     <Documentation
+        long_help="Close operation on vtkImageData"
+        short_help="Close operation on vtkImageData">
+     </Documentation>
+     <InputProperty
+        name="Input"
+	command="SetInputConnection"
+	clean_command="RemoveAllInputs">
+	<ProxyGroupDomain name="groups">
+	  <Group name="sources"/>
+	  <Group name="filters"/>
+	</ProxyGroupDomain>
+	<DataTypeDomain name="input_type">
+	  <DataType value="vtkImageData"/>
+	</DataTypeDomain>
+      </InputProperty>
+     <IntVectorProperty
+       name="Radius"
+       number_of_elements="1"
+       default_values="0"
+       immediate_update="1"
+       command="SetRadius">
+     </IntVectorProperty>
+   </SourceProxy>
+   <!-- End of ClosingImageFilter -->
+   <SourceProxy name="OpeningImageFilter" class="vtkOpeningImageFilter" label="Opening Imagic Filter">
+     <Documentation
+        long_help="Open operation on vtkImageData"
+        short_help="Open operation on vtkImageData">
+     </Documentation>
+     <InputProperty
+        name="Input"
+	command="SetInputConnection"
+	clean_command="RemoveAllInputs">
+	<ProxyGroupDomain name="groups">
+	  <Group name="sources"/>
+	  <Group name="filters"/>
+	</ProxyGroupDomain>
+	<DataTypeDomain name="input_type">
+	  <DataType value="vtkImageData"/>
+	</DataTypeDomain>
+      </InputProperty>
+     <IntVectorProperty
+       name="Radius"
+       number_of_elements="1"
+       default_values="0"
+       immediate_update="1"
+       command="SetRadius">
+     </IntVectorProperty>
+   </SourceProxy>
+   <!-- End of OpeningImageFilter -->
+   <SourceProxy name="DilateImageFilter" class="vtkDilateImageFilter" label="Dilate Imagic Filter">
+     <Documentation
+        long_help="Dilate operation on vtkImageData"
+        short_help="Dilate operation on vtkImageData">
+     </Documentation>
+     <InputProperty
+        name="Input"
+	command="SetInputConnection"
+	clean_command="RemoveAllInputs">
+	<ProxyGroupDomain name="groups">
+	  <Group name="sources"/>
+	  <Group name="filters"/>
+	</ProxyGroupDomain>
+	<DataTypeDomain name="input_type">
+	  <DataType value="vtkImageData"/>
+	</DataTypeDomain>
+      </InputProperty>
+     <IntVectorProperty
+       name="Radius"
+       number_of_elements="1"
+       default_values="0"
+       immediate_update="1"
+       command="SetRadius">
+     </IntVectorProperty>
+   </SourceProxy>
+   <!-- End of DilateImageFilter -->
+   <SourceProxy name="ErodeImageFilter" class="vtkErodeImageFilter" label="Erode Imagic Filter">
+     <Documentation
+        long_help="Erode operation on vtkImageData"
+        short_help="Erode operation on vtkImageData">
+     </Documentation>
+     <InputProperty
+        name="Input"
+	command="SetInputConnection"
+	clean_command="RemoveAllInputs">
+	<ProxyGroupDomain name="groups">
+	  <Group name="sources"/>
+	  <Group name="filters"/>
+	</ProxyGroupDomain>
+	<DataTypeDomain name="input_type">
+	  <DataType value="vtkImageData"/>
+	</DataTypeDomain>
+      </InputProperty>
+     <IntVectorProperty
+       name="Radius"
+       number_of_elements="1"
+       default_values="0"
+       immediate_update="1"
+       command="SetRadius">
+     </IntVectorProperty>
+   </SourceProxy>
+   <!-- End of ErodeImageFilter -->
  </ProxyGroup>
  <!-- End Filters -->
 </ServerManagerConfiguration>

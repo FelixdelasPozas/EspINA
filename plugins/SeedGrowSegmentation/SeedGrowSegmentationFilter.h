@@ -124,7 +124,7 @@ public:
 
 private:
   SArguments m_args;
-  pqFilter *grow, *extract;
+  pqFilter *grow, *extract, *close;
   pqFilter *segFilter;
 
   Segmentation *m_seg;

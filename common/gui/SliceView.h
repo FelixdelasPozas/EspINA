@@ -85,7 +85,9 @@ public:
   void setRanges(double ranges[6]/*nm*/);
   void setFitToGrid(bool value);
   void centerViewOn(double center[3]/*nm*/, bool force=false);
-  void setCrossHairColors(double hcolor[3], double vcolor[3]);
+  void setCrosshairColors(double hcolor[3], double vcolor[3]);
+  void setCrosshairVisibility(bool visible);
+  void setThumbnailVisibility(bool visible);
   void resetCamera();
 
   // Interface of SelectableView
@@ -150,6 +152,7 @@ protected slots:
 
 signals:
   void centerChanged(double, double, double);
+  void showCrosshairs(bool);
   void focusChanged (double[3]);
   // Notify the windows manager how to display the view
   void closeRequest();
