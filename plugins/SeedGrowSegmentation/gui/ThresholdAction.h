@@ -36,7 +36,7 @@ public:
   int threshold() {return m_threshold;}
 
 public slots:
-  void setThreshold(int th) {m_threshold = th>0?th:0; emit thresholdChanged(m_threshold);}
+  void setThreshold(int th);
 
 signals:
   void thresholdChanged(int);

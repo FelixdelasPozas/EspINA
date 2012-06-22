@@ -48,6 +48,7 @@ class DefaultEspinaView
 
 public:
   explicit DefaultEspinaView(QMainWindow* parent, const QString activity = QString());
+  virtual ~DefaultEspinaView();
 
   virtual void createViewMenu(QMenu* menu);
   virtual void restoreLayout();
@@ -115,6 +116,7 @@ private:
   SliceView  *xyView, *yzView, *xzView;
   VolumeView *volView;
   QDockWidget *volDock, *yzDock, *xzDock;
+  QAction     *m_showRuler, *m_showThumbnail;
   double m_gridSize[3];
   QMap<EspinaWidget *, Widgtes> m_widgets;
   bool                    m_showProcessing;
