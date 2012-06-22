@@ -84,7 +84,7 @@
      <IntVectorProperty
        name="Radius"
        number_of_elements="1"
-       default_values="0"
+       default_values="3"
        immediate_update="1"
        command="SetRadius">
      </IntVectorProperty>
@@ -110,7 +110,7 @@
      <IntVectorProperty
        name="Radius"
        number_of_elements="1"
-       default_values="0"
+       default_values="3"
        immediate_update="1"
        command="SetRadius">
      </IntVectorProperty>
@@ -136,7 +136,7 @@
      <IntVectorProperty
        name="Radius"
        number_of_elements="1"
-       default_values="0"
+       default_values="3"
        immediate_update="1"
        command="SetRadius">
      </IntVectorProperty>
@@ -162,7 +162,7 @@
      <IntVectorProperty
        name="Radius"
        number_of_elements="1"
-       default_values="0"
+       default_values="3"
        immediate_update="1"
        command="SetRadius">
      </IntVectorProperty>

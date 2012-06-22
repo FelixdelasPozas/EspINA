@@ -265,6 +265,7 @@ void SeedGrowSegmentationFilter::run()
 
 //   pqFilter::Arguments closeArgs;
 //   closeArgs << pqFilter::Argument("Input", pqFilter::Argument::INPUT, grow->data(0).id());
+//   closeArgs << pqFilter::Argument("Radius",pqFilter::Argument::INTVECT, QString::number(3));
 //   close = cob->createFilter("filters","ClosingImageFilter", closeArgs);
 //   close->pipelineSource()->updatePipeline();
 //   Q_ASSERT(close->getNumberOfData() == 1);

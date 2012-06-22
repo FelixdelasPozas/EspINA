@@ -28,6 +28,7 @@ vtkClosingImageFilter::vtkClosingImageFilter()
 {
   this->SetNumberOfInputPorts(1);
   this->SetNumberOfOutputPorts(1);
+  DebugOn();
 }
 
 int vtkClosingImageFilter::RequestData(vtkInformation* request,

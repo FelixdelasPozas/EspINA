@@ -53,6 +53,7 @@ vtkFreeFormSource::vtkFreeFormSource()
   this->SetNumberOfOutputPorts(1);
 }
 
+//-----------------------------------------------------------------------------
 bool drawPixel(int x, int y, int z,
 	      int cx, int cy, int cz,
 	      int r, int plane,
@@ -268,7 +269,9 @@ void vtkFreeFormSource::Erase(int disc[5])
   Erase(disc[0], disc[1], disc[2], disc[3], disc[4]);
 }
 //-----------------------------------------------------------------------------
-int vtkFreeFormSource::RequestInformation(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
+int vtkFreeFormSource::RequestInformation(vtkInformation* request,
+					vtkInformationVector** inputVector,
+					vtkInformationVector* outputVector)
 {
   //Get the info objects
   vtkInformation *outInfo = outputVector->GetInformationObject(0);
@@ -283,7 +286,9 @@ int vtkFreeFormSource::RequestInformation(vtkInformation* request, vtkInformatio
 }
 
 //-----------------------------------------------------------------------------
-int vtkFreeFormSource::RequestData(vtkInformation* request, vtkInformationVector** inputVector, vtkInformationVector* outputVector)
+int vtkFreeFormSource::RequestData(vtkInformation* request,
+				  vtkInformationVector** inputVector,
+				  vtkInformationVector* outputVector)
 {
   vtkInformation* outInfo = outputVector->GetInformationObject(0);
 

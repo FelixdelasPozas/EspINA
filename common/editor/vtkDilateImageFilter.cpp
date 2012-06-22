@@ -28,6 +28,7 @@ vtkDilateImageFilter::vtkDilateImageFilter()
 {
   this->SetNumberOfInputPorts(1);
   this->SetNumberOfOutputPorts(1);
+  DebugOn();
 }
 
 int vtkDilateImageFilter::RequestData(vtkInformation* request,
