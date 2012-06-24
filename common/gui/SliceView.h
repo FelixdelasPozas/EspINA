@@ -20,33 +20,36 @@
 // File:    SliceView.h
 // Purpose: Display channels and segmentations using slices
 //----------------------------------------------------------------------------
+
 #ifndef SLICEVIEW_H
 #define SLICEVIEW_H
 
 #include <QWidget>
 
-#include <vtkSmartPointer.h>
-#include <common/views/vtkPVSliceView.h>
+#include "common/views/vtkSliceView.h"
 #include "common/settings/ISettingsPanel.h"
 #include "common/selection/SelectableView.h"
-#include <common/widgets/EspinaWidget.h>
+#include "common/widgets/EspinaWidget.h"
 
-class Representation;
-class vtkPropPicker;
-class Channel;
-class ColorEngine;
-class QPushButton;
-class pq3DWidget;
-class vtkSMRepresentationProxy;
-class pqDataRepresentation;
+#include <vtkSmartPointer.h>
+#include <vtkRenderer.h>
+#include <vtkPropPicker.h>
 
+class vtkImageResliceToColors;
+class vtkImageActor;
+class QVTKWidget;
+class vtkRenderWindow;
+class vtkView;
 //Forward declaration
 class Channel;
+class ColorEngine;
+class Representation;
 class Segmentation;
-class pqOutputPort;
-class pqPipelineSource;
-class pqSliceView;
+
+
 class vtkInteractorStyleEspinaSlice;
+class vtkPropPicker;
+
 
 // GUI
 class QLabel;
@@ -54,6 +57,7 @@ class QScrollBar;
 class QSpinBox;
 class QVBoxLayout;
 class QHBoxLayout;
+class QPushButton;
 
 /// Slice View Widget
 /// Displays a unique slice of a channel or segmentation
@@ -62,6 +66,12 @@ class SliceView
 , public SelectableView
 {
   Q_OBJECT
+
+  class State;
+  class AxialState;
+  class SagittalState;
+  class CoronalState;
+
 public:
   enum SliceSelector
   {
@@ -75,7 +85,7 @@ public:
   typedef QSharedPointer<Settings> SettingsPtr;
 
 public:
-  SliceView(vtkPVSliceView::VIEW_PLANE plane = vtkPVSliceView::AXIAL, QWidget* parent = 0);
+  SliceView(vtkSliceView::VIEW_PLANE plane = vtkSliceView::AXIAL, QWidget* parent = 0);
   virtual ~SliceView();
 
   inline QString title() const;
@@ -94,8 +104,8 @@ public:
   bool pickChannel(int x, int y, double pickPos[3]);
   virtual void eventPosition(int &x, int &y);
   virtual SelectionHandler::MultiSelection select(SelectionHandler::SelectionFilters filters, SelectionHandler::ViewRegions regions);
-  virtual pqRenderViewBase *view();
-  virtual vtkRenderWindow* renderWindow();
+  virtual vtkRenderWindow *renderWindow();
+  virtual QVTKWidget *view();
 
   void addChannelRepresentation(Channel *channel);
   void removeChannelRepresentation(Channel *channel);
@@ -105,14 +115,12 @@ public:
   void removeSegmentationRepresentation(Segmentation *seg);
   bool updateSegmentationRepresentation(Segmentation* seg);
 
-  void addRepresentation(pqOutputPort *oport, QColor color);
-  void removeRepresentation(pqOutputPort *oport);
+  //void addRepresentation(pqOutputPort *oport, QColor color);
+  //void removeRepresentation(pqOutputPort *oport);
 
   virtual void addPreview(Filter* filter);
   virtual void removePreview(Filter* filter);
   virtual void previewExtent(int VOI[6]);
-  void addPreview(pqOutputPort *preview);
-  void removePreview(pqOutputPort *preview);
 
   void addWidget(SliceWidget *sWidget);
   void removeWidget(SliceWidget *sWidget);
@@ -121,11 +129,6 @@ public:
   SettingsPtr settings() {return m_settings;}
 
 public slots:
-  // Espina has been connected to a new server
-  void onConnect();
-  // Espina has been disconnected from server
-  void onDisconnect();
-
   /// Show/Hide segmentations
   void setSegmentationVisibility(bool visible);
   /// Show/Hide Preprocessing
@@ -162,8 +165,8 @@ signals:
 
   void channelSelected(Channel *);
   void segmentationSelected(Segmentation *, bool);
-  void selectedFromSlice(double, vtkPVSliceView::VIEW_PLANE);
-  void selectedToSlice(double, vtkPVSliceView::VIEW_PLANE);
+  void selectedFromSlice(double, vtkSliceView::VIEW_PLANE);
+  void selectedToSlice(double, vtkSliceView::VIEW_PLANE);
 
 protected:
   virtual bool eventFilter(QObject* caller, QEvent* e);
@@ -181,34 +184,41 @@ protected:
   SelectionHandler::VtkRegion display2vtk(const QPolygonF &region);
 
   void buildTitle();
-  void buildControls();
+  void setupUI();
 private:
-  struct RepInfo
+  struct SliceRep
   {
-    pqOutputPort *outport;
-    vtkSMRepresentationProxy *proxy;
-    bool visible;
-    bool selected;
-    QColor color;
-    double pos[3];
+    vtkImageResliceToColors *resliceToColors;
+    vtkImageActor           *slice;
+    bool                     visible;
+    bool                     selected;
+    QColor                   color;
+    double                   pos[3];
   };
 
-  vtkPVSliceView::VIEW_PLANE m_plane;
-
-  pqSliceView *m_view;
+  //TODO: Possibly remove vtkXXXViews ==> create header file with type definitions
+  vtkSliceView::VIEW_PLANE m_plane;
 
   // GUI
   QHBoxLayout *m_titleLayout;
   QLabel      *m_title;
   QVBoxLayout *m_mainLayout;
   QHBoxLayout *m_controlLayout;
-  QWidget     *m_viewWidget;
+  QVTKWidget *m_view;
   QScrollBar  *m_scrollBar;
   QPushButton *m_fromSlice;
   QSpinBox    *m_spinBox;
   QPushButton *m_toSlice;
 
-  SettingsPtr m_settings;
+  // VTK View
+  vtkSmartPointer<vtkRenderer> m_renderer;
+  vtkSmartPointer<vtkRenderer> m_thumbnail;
+  vtkSmartPointer<vtkPropPicker> m_channelPicker;
+  vtkSmartPointer<vtkPropPicker> m_segmentationPicker;
+
+  vtkMatrix4x4 *m_slicingMatrix;
+  State        *m_state;
+  SettingsPtr   m_settings;
 
   bool m_fitToGrid;
   double m_gridSize[3];
@@ -217,22 +227,24 @@ private:
   ColorEngine *m_colorEngine;
 
   bool m_inThumbnail;
-  QMap<Channel *, RepInfo>      m_channels;
-  QMap<Segmentation *, RepInfo> m_segmentations;
-  QMap<pqOutputPort *, RepInfo> m_representations;
+  QMap<Channel *, SliceRep>      m_channels;
+  QMap<Segmentation *, SliceRep> m_segmentations;
+  //QMap<pqOutputPort *, RepInfo> m_representations;
 
   QList<SliceWidget *>      m_widgets;
   Filter *m_preview;
 };
 
-class SliceView::Settings 
+Q_DECLARE_OPERATORS_FOR_FLAGS(SliceView::SliceSelectors)
+
+class SliceView::Settings
 {
   const QString INVERT_SLICE_ORDER;
   const QString INVERT_WHEEL;
   const QString SHOW_AXIS;
 
 public:
-  explicit Settings(vtkPVSliceView::VIEW_PLANE plane, const QString prefix=QString());
+  explicit Settings(vtkSliceView::VIEW_PLANE plane, const QString prefix=QString());
 
   void setInvertWheel(bool value);
   bool invertWheel() const {return m_InvertWheel;}
@@ -243,10 +255,10 @@ public:
   void setShowAxis(bool value);
   bool showAxis() const {return m_ShowAxis;}
 
-  vtkPVSliceView::VIEW_PLANE plane() const {return m_plane;}
+  vtkSliceView::VIEW_PLANE plane() const {return m_plane;}
 
 private:
-  static const QString view(vtkPVSliceView::VIEW_PLANE plane);
+  static const QString view(vtkSliceView::VIEW_PLANE plane);
 
 private:
   bool m_InvertWheel;
@@ -254,11 +266,9 @@ private:
   bool m_ShowAxis;
 
 private:
-  vtkPVSliceView::VIEW_PLANE m_plane;
+  vtkSliceView::VIEW_PLANE m_plane;
   QString viewSettings;
 };
 
-
-Q_DECLARE_OPERATORS_FOR_FLAGS(SliceView::SliceSelectors)
-
 #endif // SLICEVIEW_H
+

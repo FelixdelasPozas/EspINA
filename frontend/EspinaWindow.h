@@ -28,8 +28,6 @@ class QAction;
 class EspinaModel;
 class EspinaView;
 class MainToolBar;
-class pqPipelineSource;
-class pqView;
 class QFrame;
 class QUndoStack;
 
@@ -47,9 +45,6 @@ public:
     virtual ~EspinaWindow();
 
 public slots:
-  void onConnect();
-  void loadSource(pqPipelineSource *source);
-
   virtual void increaseLOD(){}
   virtual void decreaseLOD(){}
   virtual void setActivity(QString activity);
@@ -97,7 +92,6 @@ private:
 #endif
   enum MenuState {OPEN_STATE, ADD_STATE};
   MenuState m_menuState;
-  
 };
 
 #endif // ESPinaModelWINDOW_H

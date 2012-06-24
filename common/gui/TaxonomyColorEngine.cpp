@@ -21,13 +21,6 @@
 
 #include "common/model/Segmentation.h"
 
-#include <pqServer.h>
-#include <pqApplicationCore.h>
-#include <vtkSMPropertyHelper.h>
-#include <vtkSMProxy.h>
-#include <pqScalarsToColors.h>
-#include <pqLookupTableManager.h>
-
 QColor TaxonomyColorEngine::color(const Segmentation* seg)
 {
   if (seg && seg->taxonomy())
@@ -36,26 +29,26 @@ QColor TaxonomyColorEngine::color(const Segmentation* seg)
     return Qt::red;
 }
 
-vtkSMProxy *TaxonomyColorEngine::lut(const Segmentation* seg)
-{
-  // Get (or create if it doesn't exit) the lut for the segmentations' images
-  pqServer *server =  pqApplicationCore::instance()->getActiveServer();
-  QString lutName = seg->taxonomy()->qualifiedName();
-  if (seg->isSelected())
-    lutName.append("_selected");
-
-  pqLookupTableManager *lutManager = pqApplicationCore::instance()->getLookupTableManager();
-  pqScalarsToColors *lut = lutManager->getLookupTable(server,lutName,4,0);
-  if (lut)
-  {
-    double alpha = (seg->isSelected()?1.0:0.7);
-    QColor c = color(seg);
-    double colors[8] = {0,0,0,0,255, c.redF()*alpha,c.greenF()*alpha,c.blueF()*alpha};
-    vtkSMPropertyHelper(lut->getProxy(), "RGBPoints").Set(colors, 8);
-    lut->getProxy()->UpdateVTKObjects();
-  }
-
-  return lut->getProxy();
-}
+// vtkSMProxy *TaxonomyColorEngine::lut(const Segmentation* seg)
+// {
+//   // Get (or create if it doesn't exit) the lut for the segmentations' images
+//   pqServer *server =  pqApplicationCore::instance()->getActiveServer();
+//   QString lutName = seg->taxonomy()->qualifiedName();
+//   if (seg->isSelected())
+//     lutName.append("_selected");
+// 
+//   pqLookupTableManager *lutManager = pqApplicationCore::instance()->getLookupTableManager();
+//   pqScalarsToColors *lut = lutManager->getLookupTable(server,lutName,4,0);
+//   if (lut)
+//   {
+//     double alpha = (seg->isSelected()?1.0:0.7);
+//     QColor c = color(seg);
+//     double colors[8] = {0,0,0,0,255, c.redF()*alpha,c.greenF()*alpha,c.blueF()*alpha};
+//     vtkSMPropertyHelper(lut->getProxy(), "RGBPoints").Set(colors, 8);
+//     lut->getProxy()->UpdateVTKObjects();
+//   }
+// 
+//   return lut->getProxy();
+// }
 
 

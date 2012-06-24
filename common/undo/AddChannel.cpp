@@ -24,10 +24,6 @@
 #include "common/model/Channel.h"
 #include "common/EspinaCore.h"
 
-#include <pqPipelineSource.h>
-#include <pqLoadDataReaction.h>
-
-
 AddChannel::AddChannel(Channel  *channel, QUndoCommand* parent)
 : QUndoCommand(parent)
 , m_channel(channel)

@@ -41,7 +41,7 @@ class DefaultEspinaView
     SliceWidget *xy;
     SliceWidget *yz;
     SliceWidget *xz;
-    pq3DWidget  *vol;
+//     pq3DWidget  *vol;
   };
 
   class SettingsPanel;
@@ -61,11 +61,11 @@ public:
   virtual void gridSize(double size[3]);
   virtual void setGridSize(double size[3]);
 
-  virtual void addWidget(EspinaWidget* widget);
-  virtual void removeWidget(EspinaWidget* widget);
+//   virtual void addWidget(EspinaWidget* widget);
+//   virtual void removeWidget(EspinaWidget* widget);
 
-  virtual void addRepresentation(pqOutputPort *oport, QColor color);
-  virtual void removeRepresentation(pqOutputPort *oport);
+//   virtual void addRepresentation(pqOutputPort *oport, QColor color);
+//   virtual void removeRepresentation(pqOutputPort *oport);
 
   virtual void setColorEngine(ColorEngine *engine);
   virtual ISettingsPanel* settingsPanel();
@@ -98,8 +98,8 @@ protected slots:
   void setFitToSlices(bool fit);
   void setRulerVisibility(bool visible);
 
-  void selectFromSlice(double slice, vtkPVSliceView::VIEW_PLANE plane);
-  void selectToSlice(double slice, vtkPVSliceView::VIEW_PLANE plane);
+  void selectFromSlice(double slice, vtkSliceView::VIEW_PLANE plane);
+  void selectToSlice(double slice, vtkSliceView::VIEW_PLANE plane);
 
   void channelSelected(Channel *channel);
   void segmentationSelected(Segmentation *seg, bool append);

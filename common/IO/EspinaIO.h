@@ -17,38 +17,12 @@
 */
 
 
-#ifndef FILTER_H
-#define FILTER_H
+#ifndef ESPINAIO_H
+#define ESPINAIO_H
 
-#include "common/model/ModelItem.h"
+#include <QFileInfo>
 
-#include "common/model/Segmentation.h"
-#include "common/processing/pqData.h"
+//TODO: Remove vtkSegReader/vtkSegWriter objects and use these calls
+bool readSegFile(const QFileInfo file);
 
-#include <QMap>
-
-class vtkAlgorithmOutput;
-
-class Filter
-: public ModelItem
-{
-public:
-  virtual ~Filter(){}
-
-  /// Implements Model Item Interface common to filters
-  virtual ItemType type() const {return ModelItem::FILTER;}
-
-  /// Defines Filter's Interface
-  virtual int numProducts() const = 0;
-  virtual Segmentation *product(int index) const = 0;
-
-  virtual pqData preview() = 0;
-  virtual QWidget *createConfigurationWidget() = 0;
-
-protected:
-  virtual vtkAlgorithmOutput *output(unsigned int outputNb) = 0;
-
-  friend class Segmentation;
-};
-
-#endif // FILTER_H
+#endif // ESPINAIO_H

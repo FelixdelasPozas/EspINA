@@ -26,18 +26,12 @@
 #include "common/model/Representation.h"
 #include "common/processing/pqData.h"
 #include "common/processing/pqFilter.h"
+#include <vtkImageAlgorithm.h>
+#include <vtkDataObject.h>
+#include <vtkImageData.h>
 
 #include <QDebug>
-
-#include <pqOutputPort.h>
-#include <pqPipelineSource.h>
-#include <pqFileDialog.h>
-#include <vtkPVDataInformation.h>
-#include <vtkSMProxy.h>
-#include <vtkSMReaderFactory.h>
-#include <vtkSMProxyManager.h>
-#include <pqActiveObjects.h>
-
+#include <QFileDialog>
 
 const ModelItem::ArgumentId Channel::ID = ArgumentId("Id", true);
 const ModelItem::ArgumentId Channel::PATH = ArgumentId("Path", true);
@@ -67,20 +61,21 @@ Channel::Channel(const QString file, pqData data)
   infoArgs << pqFilter::Argument("Input", pqFilter::Argument::INPUT, m_data.id());
   double imgBounds[6], imgSpacing[3];
   int imgExtent[6];
-  m_data.pipelineSource()->updatePipeline();
-  vtkPVDataInformation *info = outputPort()->getDataInformation();
-  info->GetExtent(imgExtent);
-  info->GetBounds(imgBounds);
-  imgSpacing[0] = imgBounds[1] / imgExtent[1];
-  imgSpacing[1] = imgBounds[3] / imgExtent[3];
-  imgSpacing[2] = imgBounds[5] / imgExtent[5];
-  QString spacingArg = QString("%1,%2,%3").arg(imgSpacing[0]).arg(imgSpacing[1]).arg(imgSpacing[2]);
-  infoArgs << pqFilter::Argument("Spacing", pqFilter::Argument::DOUBLEVECT, spacingArg);
-  m_spacingFilter = cob->createFilter("filters", "InformationChanger", infoArgs);
-  m_spacingFilter->pipelineSource()->updatePipeline();
-  Q_ASSERT(m_spacingFilter->getNumberOfData() == 1);
-  m_representations[VOLUME] = new Representation(m_spacingFilter->data(0));
-  m_data = m_spacingFilter->data(0);
+  m_data.algorithm()->Update();
+  Q_ASSERT(false);
+//TODO:   vtkPVDataInformation *info = m_data.algorithm()->GetOutputPortInformation();
+//   info->GetExtent(imgExtent);
+//   info->GetBounds(imgBounds);
+//   imgSpacing[0] = imgBounds[1] / imgExtent[1];
+//   imgSpacing[1] = imgBounds[3] / imgExtent[3];
+//   imgSpacing[2] = imgBounds[5] / imgExtent[5];
+//   QString spacingArg = QString("%1,%2,%3").arg(imgSpacing[0]).arg(imgSpacing[1]).arg(imgSpacing[2]);
+//   infoArgs << pqFilter::Argument("Spacing", pqFilter::Argument::DOUBLEVECT, spacingArg);
+//   m_spacingFilter = cob->createFilter("filters", "InformationChanger", infoArgs);
+//   m_spacingFilter->pipelineSource()->updatePipeline();
+//   Q_ASSERT(m_spacingFilter->getNumberOfData() == 1);
+//   m_representations[VOLUME] = new Representation(m_spacingFilter->data(0));
+//   m_data = m_spacingFilter->data(0);
 }
 
 //-----------------------------------------------------------------------------
@@ -102,21 +97,19 @@ Channel::Channel(const QString file, const Arguments args)
     m_args[PATH] = Argument(file);
   } else if (!QFile::exists(m_args[PATH]))
   {
-    pqServer *server = pqActiveObjects::instance().activeServer();
-    vtkSMReaderFactory *readerFactory =
-    vtkSMProxyManager::GetProxyManager()->GetReaderFactory();
-    QString filters = readerFactory->GetSupportedFileTypes(server->session());
+    QString filters;// = readerFactory->GetSupportedFileTypes(server->session());
     filters.replace("Meta Image Files", "Channel Files");
-    pqFileDialog fileDialog(server,
-			    0,
-			    QString(), QString(), filters);
+    QFileDialog fileDialog(0,
+			  QString(),
+			  QString(),
+			  filters);
     fileDialog.setObjectName("SelectChannelFile");
-    fileDialog.setFileMode(pqFileDialog::ExistingFiles);
+    fileDialog.setFileMode(QFileDialog::ExistingFiles);
     fileDialog.setWindowTitle(QString("Select file for %1:").arg(m_args[ID]));
 
     Q_ASSERT(fileDialog.exec() == QDialog::Accepted);
 
-    m_args[PATH] = fileDialog.getSelectedFiles().first();
+    m_args[PATH] = fileDialog.selectedFiles().first();
   }
 
   qDebug() << m_args[PATH];
@@ -130,20 +123,21 @@ Channel::Channel(const QString file, const Arguments args)
   infoArgs << pqFilter::Argument("Input", pqFilter::Argument::INPUT, m_data.id());
   double imgBounds[6], imgSpacing[3];
   int imgExtent[6];
-  m_data.pipelineSource()->updatePipeline();
-  vtkPVDataInformation *info = outputPort()->getDataInformation();
-  info->GetExtent(imgExtent);
-  info->GetBounds(imgBounds);
-  imgSpacing[0] = imgBounds[1] / imgExtent[1];
-  imgSpacing[1] = imgBounds[3] / imgExtent[3];
-  imgSpacing[2] = imgBounds[5] / imgExtent[5];
-  QString spacingArg = QString("%1,%2,%3").arg(imgSpacing[0]).arg(imgSpacing[1]).arg(imgSpacing[2]);
-  infoArgs << pqFilter::Argument("Spacing", pqFilter::Argument::DOUBLEVECT, spacingArg);
-  m_spacingFilter = cob->createFilter("filters", "InformationChanger", infoArgs);
-  m_spacingFilter->pipelineSource()->updatePipeline();
-  Q_ASSERT(m_spacingFilter->getNumberOfData() == 1);
-  m_representations[VOLUME] = new Representation(m_spacingFilter->data(0));
-  m_data = m_spacingFilter->data(0);
+  m_data.algorithm()->Update();
+  //TODO:
+//   vtkPVDataInformation *info = outputPort()->getDataInformation();
+//   info->GetExtent(imgExtent);
+//   info->GetBounds(imgBounds);
+//   imgSpacing[0] = imgBounds[1] / imgExtent[1];
+//   imgSpacing[1] = imgBounds[3] / imgExtent[3];
+//   imgSpacing[2] = imgBounds[5] / imgExtent[5];
+//   QString spacingArg = QString("%1,%2,%3").arg(imgSpacing[0]).arg(imgSpacing[1]).arg(imgSpacing[2]);
+//   infoArgs << pqFilter::Argument("Spacing", pqFilter::Argument::DOUBLEVECT, spacingArg);
+//   m_spacingFilter = cob->createFilter("filters", "InformationChanger", infoArgs);
+//   m_spacingFilter->pipelineSource()->updatePipeline();
+//   Q_ASSERT(m_spacingFilter->getNumberOfData() == 1);
+//   m_representations[VOLUME] = new Representation(m_spacingFilter->data(0));
+//   m_data = m_spacingFilter->data(0);
 }
 
 //-----------------------------------------------------------------------------
@@ -151,77 +145,24 @@ Channel::~Channel()
 {
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   cob->removeFilter(m_data.source());
-/*  int size = m_insertionOrderedExtensions.size()-1;
-  for (int i = size; i >= 0; i--)
-    delete m_insertionOrderedExtensions[i];
-
-  foreach(IChannelExtension *ext, m_pendingExtensions)
-    delete ext;
-
-  m_extensions.clear();
-  m_pendingExtensions.clear();
-  m_insertionOrderedExtensions.clear();
-  m_representations.clear();
-  m_informations.clear();
-
-  CachedObjectBuilder::instance()->removeFilter(this->creator()); */ 
 }
 
-//-----------------------------------------------------------------------------
-// QString Channel::getArguments() const
-// {
-//   double sp[3];
-//   Channel *nonconst = const_cast<Channel *>(this); //Cast away constness
-//   nonconst->spacing(sp);
-//   QString args = EspinaProduct::getArguments();
-//   args.append(
-//     ESPINA_ARG("Spacing", QString("%1,%2,%3")
-//       .arg(sp[0]).arg(sp[1]).arg(sp[2]))
-//   );
-//   
-//   foreach(IChannelExtension *ext, m_extensions)
-//   {
-//     QString extArgs = ext->getArguments();
-//     if (!extArgs.isEmpty())
-//       args.append(ESPINA_ARG(ext->id(),"["+extArgs+"]"));
-//   }
-//   
-//   return args;
-// }
-
-//-----------------------------------------------------------------------------
-// QString Channel::label() const
-// {
-//   return m_path + "/" + m_creator->id().split(":")[0];
-// }
-
-
 
 //------------------------------------------------------------------------
-// bool Channel::setData(const QVariant& value, int role)
-// {
-//   if (role == Qt::EditRole)
-//   {
-//     return true;
-//   }
-//   return false;
-// }
-
-//------------------------------------------------------------------------
-pqOutputPort* Channel::outputPort()
+vtkAlgorithmOutput *Channel::outputPort()
 {
   return m_data.outputPort();
 }
 
 
 //------------------------------------------------------------------------
-void Channel::extent( int* out)
+void Channel::extent(int *out)
 {
   if (m_extent[1] < m_extent[0])
   {
-    m_data.pipelineSource()->updatePipeline();
-    vtkPVDataInformation *info = outputPort()->getDataInformation();
-    info->GetExtent(m_extent);
+    m_data.algorithm()->Update();
+    vtkImageData *volume = vtkImageData::SafeDownCast(m_data.algorithm()->GetOutputDataObject(0));
+    volume->GetExtent(m_extent);
   }
   memcpy(out,m_extent,6*sizeof(int));
 }
@@ -231,9 +172,9 @@ void Channel::bounds(double val[3])
 {
   if (m_bounds[1] < m_bounds[0])
   {
-    m_data.pipelineSource()->updatePipeline();
-    vtkPVDataInformation *info = outputPort()->getDataInformation();
-    info->GetBounds(m_bounds);
+    m_data.algorithm()->Update();
+    vtkImageData *volume = vtkImageData::SafeDownCast(m_data.algorithm()->GetOutputDataObject(0));
+    volume->GetBounds(m_bounds);
   }
   memcpy(val,m_bounds,6*sizeof(double));
 }

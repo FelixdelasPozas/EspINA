@@ -22,51 +22,35 @@
 // ESPINA
 #include "common/cache/CachedObjectBuilder.h"
 #include "common/processing/pqData.h"
-
-// ParaQ
-#include <pqApplicationCore.h>
-#include <pqObjectBuilder.h>
-#include "pqPipelineSource.h"
-#include "vtkSMProxy.h"
+#include <vtkImageAlgorithm.h>
 
 // Debug
 #include <iostream>
 #include <QDebug>
 
-#include <pqOutputPort.h>
-#include <vtkPVDataInformation.h>
-
 using namespace std;
 
-pqFilter::pqFilter(pqPipelineSource* source, const QString& cacheId)
-: m_source(source)
+pqFilter::pqFilter(vtkImageAlgorithm *algorithm, const QString& cacheId)
+: m_algorithm(algorithm)
 , m_id(cacheId)
 {
 }
 
 pqFilter::~pqFilter()
 {
-   pqApplicationCore *core = pqApplicationCore::instance();
-   pqObjectBuilder *ob = core->getObjectBuilder();
-
+  Q_ASSERT(false);
 //    qDebug() << m_id << "has" << m_source->getNumberOfConsumers() << "consumers";
-   ob->destroy(m_source);
 }
 
 int pqFilter::getNumberOfData()
 {
-  m_source->getProxy()->UpdateVTKObjects();
-  return m_source->getNumberOfOutputPorts();
+  return m_algorithm->GetNumberOfOutputPorts();
 }
 
 pqData pqFilter::data(int i)
 {
   pqData filterData(this,i);
   return filterData;
-}
-
-void pqFilter::clearPipeline()
-{
 }
 
 QDebug operator<<(QDebug& out, const pqFilter::Argument& arg)
@@ -89,96 +73,3 @@ QDebug operator<<(QDebug& out, const pqFilter::Argument& arg)
   out << arg.value << ")";
   return out;
 }
-
-
-//-----------------------------------------------------------------------------
-// ESPINA FILTER
-//-----------------------------------------------------------------------------
-// QString EspinaFilter::getFilterArguments() const
-// {
-//   return m_args;
-// }
-
-
-/*
-//-----------------------------------------------------------------------------
-// FILTER
-//-----------------------------------------------------------------------------
-Filter::Filter(
-  const QString& group
-, const QString& name
-, const EspinaParamList& args
-, const TranslatorTable &table
-  )
-  : m_group(group)
-  , m_args(args)
-  , m_translator(table)
-  //, m_filtertrace(name)
-{
-  this->name = name;
-  this->type = 1;
-  
-  ProcessingTrace* trace = ProcessingTrace::instance();
-  trace->addNode(this);
-  
-  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-  
-  m_vtkArgs = m_translator.translate(args);
-  
-  m_proxy = cob->createFilter(this);
-  
-  m_proxy->getProxy()->UpdateVTKObjects();
-  
-  for (int portNumber = 0; portNumber < m_proxy->getOutputPorts().size(); portNumber++)
-  {
-    //TODO:WARNING:Que hacer con los parametros que se pasan al producto
-    Product *filterOutput = new Product(m_proxy,portNumber, "Product" , this->id());
-    //filterOutput->m_parentHash = this->id(); //TODO modify the way it takes the parent hash, Maybe in the constructer (above line)
-    //trace->addNode(filterOutput);
-    //trace->connect(this,filterOutput,"segmentation");
-    m_products.push_back(filterOutput);
-  }
-  qDebug() << "Filter: Created Filter with id " << this->id();
-}
-*/
-
-//-----------------------------------------------------------------------------
-/*
-vector< ITraceNode* > Filter::inputs()
-{
- return m_filtertrace.inputs(this);
-}
-
-//-----------------------------------------------------------------------------
-vector< ITraceNode* > Filter::outputs()
-{
- return m_filtertrace.outputs(this);
-}
-*/
-//-----------------------------------------------------------------------------
-// void Filter::print(int indent) const
-// {
-//   cout << name.toStdString().c_str() << endl;
-// }
-// 
-// //-----------------------------------------------------------------------------
-// EspinaParamList Filter::getArguments()
-// {
-//   //EspinaParamList nullParamList;
-//   return m_args;
-// }
-// 
-// //-----------------------------------------------------------------------------
-// EspinaId Filter::id()
-// {
-//   QStringList namesToHash;
-//   namesToHash.push_back(name);
-//   namesToHash.append( reduceArgs(m_args) );
-//   return generateSha1(namesToHash);
-// }
-// 
-// 
-// vector<Product *> Filter::products()
-// {
-//   return m_products;
-// }

@@ -31,9 +31,6 @@
 #include <QSplitter>
 #include <QVBoxLayout>
 
-#include <pqApplicationCore.h>
-#include <pqServerManagerObserver.h>
-
 //----------------------------------------------------------------------------
 ViewManager::ViewManager()
 {
@@ -75,7 +72,7 @@ EspinaView* ViewManager::createSquaredLayout(QMainWindow* window)
 
   SliceView *yzView = new SliceView();
   SliceView *xzView = new SliceView();
-  
+
   QSplitter *lowerViews = new QSplitter(Qt::Horizontal);
   lowerViews->addWidget(yzView);
   lowerViews->addWidget(xzView);

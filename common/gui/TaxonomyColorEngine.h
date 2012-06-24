@@ -29,7 +29,7 @@ class TaxonomyColorEngine : public ColorEngine
 
 public:
   virtual QColor color(const Segmentation* seg);
-  virtual vtkSMProxy *lut(const Segmentation* seg);
+//   virtual vtkSMProxy *lut(const Segmentation* seg);
 
 private:
   QMap<QString, vtkSMProxy *> m_LUT;

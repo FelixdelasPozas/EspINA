@@ -24,23 +24,23 @@
 
 #include <common/processing/pqFilter.h>
 
-class pqPipelineSource;
+class vtkImageAlgorithm;
 
-/// A class to provide ParaView pqPipelineSources, either using
+/// A class to provide ParaView vtkAlgorithms, either using
 /// ESPINA cache system or creating a new one if not available.
 class CachedObjectBuilder
 {
 public:
   static CachedObjectBuilder *instance();
 
-  pqFilter *loadFile(const QString file);
+  pqFilter *loadFile(const QFileInfo file);
   pqFilter *createFilter(const QString group, const QString name, const pqFilter::Arguments args, bool persistent=false, bool ignoreCache=false);
-  pqFilter *registerFilter(const QString id, pqPipelineSource* source);
+  pqFilter *registerFilter(const QString id, vtkImageAlgorithm* source);
   pqFilter *getFilter(Cache::Index &id) { return m_cache->getEntry(id); }
   void removeFilter(pqFilter *filter);
 
   static Cache::Index generateId(const QString group, const QString name, const pqFilter::Arguments args);
-  
+
 private:
   CachedObjectBuilder();
   ~CachedObjectBuilder(){}
@@ -48,7 +48,7 @@ private:
   CachedObjectBuilder(const CachedObjectBuilder&);//Not implemented
   void *operator=(const CachedObjectBuilder&);//Not implemented
 
-  pqPipelineSource *createSMFilter(const QString group, const QString name, const pqFilter::Arguments args);
+  vtkImageAlgorithm *createSMFilter(const QString group, const QString name, const pqFilter::Arguments args);
 
   static CachedObjectBuilder *m_singleton;
   Cache *m_cache;

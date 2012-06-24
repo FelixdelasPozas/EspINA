@@ -24,6 +24,7 @@
 #include "model/EspinaModel.h"
 
 #include <QSharedPointer>
+#include <QFileInfo>
 #include <QUndoStack>
 #include "common/gui/ViewManager.h"
 #include "common/settings/GeneralSettings.h"
@@ -53,10 +54,10 @@ public:
 
   QSharedPointer<ViewManager> viewManger() {return m_viewManager;}
 
-  bool loadFile(const QString file);
+  bool loadFile(const QFileInfo file);
 
 protected:
-  bool loadChannel(const QString file);
+  bool loadChannel(const QFileInfo file);
 
 public slots:
   void closeCurrentAnalysis();

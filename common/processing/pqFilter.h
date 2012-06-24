@@ -24,8 +24,8 @@
 #include <QString>
 #include <QDebug>
 
+class vtkImageAlgorithm;
 class pqData;
-class pqPipelineSource;
 
 /// Represents a filter in Paraview's pipeline
 class pqFilter
@@ -57,19 +57,16 @@ public:
   //! Implements IFilter Interface
   virtual int getNumberOfData();
   virtual pqData data(int i);
-//   virtual QList<pqData *> data();
-//   virtual QString getFilterArguments() const {return "";}
 
   QString id() const {return m_id;}
-  pqPipelineSource *pipelineSource(){return m_source;}
-  void clearPipeline();
+  vtkImageAlgorithm *algorithm(){return m_algorithm;}
 
 private:
-  pqFilter(pqPipelineSource* source, const QString& cacheId);
+  pqFilter(vtkImageAlgorithm *source, const QString& cacheId);
 
 protected:
-  pqPipelineSource *m_source;
-  QString           m_id; /// Cache id
+  vtkImageAlgorithm *m_algorithm;
+  QString       m_id; /// Cache id
 
   friend class Cache;
   friend class CachedObjectBuilder;

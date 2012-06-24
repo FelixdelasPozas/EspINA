@@ -20,12 +20,13 @@
 #ifndef PQDATA_H
 #define PQDATA_H
 
+class vtkAlgorithmOutput;
 // Forward declarations
 class QString;
 class Sample;
 class pqFilter;
-class pqOutputPort;
-class pqPipelineSource;
+class vtkImageAlgorithmOutput;
+class vtkImageAlgorithm;
 
 /// Represent source's output in Paraview's pipeline
 class pqData
@@ -37,62 +38,14 @@ public:
 
   QString id() const;
   pqFilter *source() {return m_source;}
-  pqPipelineSource *pipelineSource();
+  vtkImageAlgorithm *algorithm();
   int portNumber() {return m_portNumber;}
   /// The output port where data can be retrieved
-  pqOutputPort *outputPort() const;
+  vtkAlgorithmOutput *outputPort() const;
 
 protected:
   pqFilter     *m_source;
   unsigned int  m_portNumber;
 };
-
-
-// class EspinaProduct
-// : public vtkProduct
-// , public ITraceNode
-// //, public IRenderable
-// , public IModelItem
-// {
-// public:
-//   
-//   enum RENDER_STYLE
-//   { VISIBLE   = 1
-//   , SELECTED  = 2
-//   , DISCARTED = 4
-//   };
-//   
-// public:
-//   EspinaProduct(EspinaFilter *parent, vtkFilter *creator, int portNumber);
-//   
-//   void addArgument(QString name, QString argValue);
-//   //! Implements ITraceNode interface
-//   virtual QString getArgument(QString name) const;
-//   virtual QString getArguments() const;
-//   virtual QString label() const {return "Product";}
-//   EspinaFilter *parent() const {return m_parent;}
-// 
-//   //! Implements deprecated IRenderable interface as part of its own interface
-//   virtual void color(double* rgba);
-//   virtual bool visible() const { return m_style & VISIBLE; }
-//   virtual void setVisible(bool value) { m_style = RENDER_STYLE((m_style & !VISIBLE) | (value ? 1 : 0)); }
-//   virtual RENDER_STYLE style() const {return m_style;}
-//   
-//   //! Implements IModelItem Interface
-//   virtual QVariant data(int role = Qt::UserRole + 1) const;
-//   
-//   virtual TaxonomyNode *taxonomy() {return m_taxonomy;}
-//   virtual void setTaxonomy(TaxonomyNode *taxonomy) {m_taxonomy = taxonomy;} 
-//   virtual void setOrigin(Sample *sample) {    m_origin = sample;}
-//   virtual Sample *origin() const {return m_origin;}
-//   
-// protected:
-//   EspinaFilter *m_parent;
-//   double m_rgba[4];
-//   TaxonomyNode *m_taxonomy;
-//   Sample *m_origin;
-//   RENDER_STYLE m_style;
-//   QString m_args;
-// };
 
 #endif // PQDATA_H

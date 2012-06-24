@@ -37,11 +37,6 @@
 #include <QVBoxLayout>
 #include <QSettings>
 
-#include <pqServer.h>
-#include <pqObjectBuilder.h>
-#include <pqActiveObjects.h>
-#include <pqApplicationCore.h>
-#include <pqPipelineSource.h>
 #include <QDir>
 #include <QMenu>
 #include <QApplication>
@@ -62,7 +57,7 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   setObjectName("xyView");
 
 //   qDebug() << "New Default EspinaView";
-  xyView = new SliceView(vtkPVSliceView::AXIAL);
+  xyView = new SliceView(vtkSliceView::AXIAL);
   xyView->setCrosshairColors(blue, magenta);
   initSliceView(xyView);
   this->setLayout(new QVBoxLayout());
@@ -80,14 +75,14 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
 
   yzDock = new QDockWidget(tr("ZY"),parent);
   yzDock->setObjectName("yzDock");
-  yzView = new SliceView(vtkPVSliceView::SAGITTAL);
+  yzView = new SliceView(vtkSliceView::SAGITTAL);
   yzView->setCrosshairColors(blue, cyan);
   initSliceView(yzView);
   yzDock->setWidget(yzView);
 
   xzDock = new QDockWidget(tr("XZ"),parent);
   xzDock->setObjectName("xzDock");
-  xzView = new SliceView(vtkPVSliceView::CORONAL);
+  xzView = new SliceView(vtkSliceView::CORONAL);
   xzView->setCrosshairColors(cyan, magenta);
   initSliceView(xzView);
   xzDock->setWidget(xzView);
@@ -109,10 +104,10 @@ void DefaultEspinaView::initSliceView(SliceView* view)
 	  this, SLOT(setCenter(double,double,double)));
   connect(view, SIGNAL(focusChanged(double[3])),
 	  this, SLOT(setCameraFocus(double[3])));
-  connect(view, SIGNAL(selectedFromSlice(double, vtkPVSliceView::VIEW_PLANE)),
-	  this, SLOT(selectFromSlice(double, vtkPVSliceView::VIEW_PLANE)));
-  connect(view, SIGNAL(selectedToSlice(double, vtkPVSliceView::VIEW_PLANE)),
-	  this, SLOT(selectToSlice(double, vtkPVSliceView::VIEW_PLANE)));
+  connect(view, SIGNAL(selectedFromSlice(double, vtkSliceView::VIEW_PLANE)),
+	  this, SLOT(selectFromSlice(double, vtkSliceView::VIEW_PLANE)));
+  connect(view, SIGNAL(selectedToSlice(double, vtkSliceView::VIEW_PLANE)),
+	  this, SLOT(selectToSlice(double, vtkSliceView::VIEW_PLANE)));
   connect(view, SIGNAL(channelSelected(Channel*)),
 	  this, SLOT(channelSelected(Channel*)));
   connect(view, SIGNAL(segmentationSelected(Segmentation*, bool)),
@@ -200,7 +195,7 @@ void DefaultEspinaView::forceRender()
   xyView->forceRender();
   yzView->forceRender();
   xzView->forceRender();
-  volView->forceRender();
+  //volView->forceRender();
   //QApplication::restoreOverrideCursor();
 }
 
@@ -210,7 +205,7 @@ void DefaultEspinaView::resetCamera()
   xyView->resetCamera();
   yzView->resetCamera();
   xzView->resetCamera();
-  volView->resetCamera();
+  //volView->resetCamera();
 }
 
 //----------------------------------------------------------------------------
@@ -229,53 +224,53 @@ void DefaultEspinaView::setGridSize(double size[3])
 }
 
 
-//----------------------------------------------------------------------------
-void DefaultEspinaView::addWidget(EspinaWidget* widget)
-{
-  Widgtes widgets;
-  widgets.xy  = widget->createSliceWidget(vtkPVSliceView::AXIAL);
-  widgets.yz  = widget->createSliceWidget(vtkPVSliceView::SAGITTAL);
-  widgets.xz  = widget->createSliceWidget(vtkPVSliceView::CORONAL);
-  widgets.vol = widget->createWidget();
-
-  xyView->addWidget (widgets.xy);
-  yzView->addWidget (widgets.yz);
-  xzView->addWidget (widgets.xz);
-  volView->addWidget(widgets.vol);
-
-  m_widgets[widget] = widgets;
-}
-
-//----------------------------------------------------------------------------
-void DefaultEspinaView::removeWidget(EspinaWidget* widget)
-{
-  Widgtes widgets = m_widgets[widget];
-
-  xyView->removeWidget (widgets.xy);
-  yzView->removeWidget (widgets.yz);
-  xzView->removeWidget (widgets.xz);
-  volView->removeWidget(widgets.vol);
-
-  m_widgets.remove(widget);
-}
-
-//-----------------------------------------------------------------------------
-void DefaultEspinaView::addRepresentation(pqOutputPort* oport, QColor color)
-{
-  xyView->addRepresentation(oport, color);
-  yzView->addRepresentation(oport, color);
-  xzView->addRepresentation(oport, color);
-  //volView->addRepresentation(oport);
-}
-
-//-----------------------------------------------------------------------------
-void DefaultEspinaView::removeRepresentation(pqOutputPort* oport)
-{
-  xyView->removeRepresentation(oport);
-  yzView->removeRepresentation(oport);
-  xzView->removeRepresentation(oport);
-  //volView->removeRepresentation(oport);
-}
+// //----------------------------------------------------------------------------
+// void DefaultEspinaView::addWidget(EspinaWidget* widget)
+// {
+//   Widgtes widgets;
+//   widgets.xy  = widget->createSliceWidget(vtkSliceView::AXIAL);
+//   widgets.yz  = widget->createSliceWidget(vtkSliceView::SAGITTAL);
+//   widgets.xz  = widget->createSliceWidget(vtkSliceView::CORONAL);
+//   widgets.vol = widget->createWidget();
+// 
+//   xyView->addWidget (widgets.xy);
+//   yzView->addWidget (widgets.yz);
+//   xzView->addWidget (widgets.xz);
+//   volView->addWidget(widgets.vol);
+// 
+//   m_widgets[widget] = widgets;
+// }
+// 
+// //----------------------------------------------------------------------------
+// void DefaultEspinaView::removeWidget(EspinaWidget* widget)
+// {
+//   Widgtes widgets = m_widgets[widget];
+// 
+//   xyView->removeWidget (widgets.xy);
+//   yzView->removeWidget (widgets.yz);
+//   xzView->removeWidget (widgets.xz);
+//   volView->removeWidget(widgets.vol);
+// 
+//   m_widgets.remove(widget);
+// }
+// 
+// //-----------------------------------------------------------------------------
+// void DefaultEspinaView::addRepresentation(pqOutputPort* oport, QColor color)
+// {
+//   xyView->addRepresentation(oport, color);
+//   yzView->addRepresentation(oport, color);
+//   xzView->addRepresentation(oport, color);
+//   //volView->addRepresentation(oport);
+// }
+// 
+// //-----------------------------------------------------------------------------
+// void DefaultEspinaView::removeRepresentation(pqOutputPort* oport)
+// {
+//   xyView->removeRepresentation(oport);
+//   yzView->removeRepresentation(oport);
+//   xzView->removeRepresentation(oport);
+//   //volView->removeRepresentation(oport);
+// }
 
 //----------------------------------------------------------------------------
 void DefaultEspinaView::setColorEngine(ColorEngine* engine)
@@ -284,7 +279,7 @@ void DefaultEspinaView::setColorEngine(ColorEngine* engine)
   xyView->setColorEngine(m_colorEngine);
   yzView->setColorEngine(m_colorEngine);
   xzView->setColorEngine(m_colorEngine);
-  volView->setColorEngine(m_colorEngine);
+  //volView->setColorEngine(m_colorEngine);
 }
 
 //----------------------------------------------------------------------------
@@ -339,14 +334,14 @@ void DefaultEspinaView::setCenter(double x, double y, double z, bool force)
   xyView->centerViewOn(center, force);
   yzView->centerViewOn(center, force);
   xzView->centerViewOn(center, force);
-  volView->centerViewOn(center);
+  //volView->centerViewOn(center);
   memcpy(m_center, center, 3*sizeof(double));
 }
 
 //-----------------------------------------------------------------------------
 void DefaultEspinaView::setCameraFocus(double focus[3])
 {
-  volView->setCameraFocus(focus);
+  //volView->setCameraFocus(focus);
 }
 
 //-----------------------------------------------------------------------------
@@ -364,7 +359,7 @@ void DefaultEspinaView::addChannelRepresentation(Channel* channel)
   xyView->addChannelRepresentation(channel);
   yzView->addChannelRepresentation(channel);
   xzView->addChannelRepresentation(channel);
-  volView->addChannelRepresentation(channel);
+  //volView->addChannelRepresentation(channel);
 }
 
 //-----------------------------------------------------------------------------
@@ -373,7 +368,7 @@ void DefaultEspinaView::removeChannelRepresentation(Channel* channel)
   xyView->removeChannelRepresentation(channel);
   yzView->removeChannelRepresentation(channel);
   xzView->removeChannelRepresentation(channel);
-  volView->removeChannelRepresentation(channel);
+  //volView->removeChannelRepresentation(channel);
 }
 
 //-----------------------------------------------------------------------------
@@ -383,7 +378,7 @@ bool DefaultEspinaView::updateChannel(Channel* channel)
   modified = xyView->updateChannelRepresentation(channel)  || modified;
   modified = yzView->updateChannelRepresentation(channel)  || modified;
   modified = xzView->updateChannelRepresentation(channel)  || modified;
-  modified = volView->updateChannelRepresentation(channel) || modified;
+  //modified = volView->updateChannelRepresentation(channel) || modified;
 
   return modified;
 }
@@ -395,7 +390,7 @@ void DefaultEspinaView::addSegmentation(Segmentation* seg)
   xyView->addSegmentationRepresentation(seg);
   yzView->addSegmentationRepresentation(seg);
   xzView->addSegmentationRepresentation(seg);
-  volView->addSegmentationRepresentation(seg);
+  //volView->addSegmentationRepresentation(seg);
 }
 
 //-----------------------------------------------------------------------------
@@ -404,7 +399,7 @@ void DefaultEspinaView::removeSegmentation(Segmentation* seg)
   xyView->removeSegmentationRepresentation(seg);
   yzView->removeSegmentationRepresentation(seg);
   xzView->removeSegmentationRepresentation(seg);
-  volView->removeSegmentationRepresentation(seg);
+  //volView->removeSegmentationRepresentation(seg);
 }
 
 
@@ -415,7 +410,7 @@ bool DefaultEspinaView::updateSegmentation(Segmentation* seg)
   modified = xyView->updateSegmentationRepresentation(seg)  || modified;
   modified = yzView->updateSegmentationRepresentation(seg)  || modified;
   modified = xzView->updateSegmentationRepresentation(seg)  || modified;
-  modified = volView->updateSegmentationRepresentation(seg) || modified;
+  //modified = volView->updateSegmentationRepresentation(seg) || modified;
 
   return modified;
 }
@@ -555,13 +550,13 @@ void DefaultEspinaView::setRulerVisibility(bool visible)
 }
 
 //-----------------------------------------------------------------------------
-void DefaultEspinaView::selectFromSlice(double slice, vtkPVSliceView::VIEW_PLANE plane)
+void DefaultEspinaView::selectFromSlice(double slice, vtkSliceView::VIEW_PLANE plane)
 {
   emit selectedFromSlice(slice, plane);
 }
 
 //-----------------------------------------------------------------------------
-void DefaultEspinaView::selectToSlice(double slice, vtkPVSliceView::VIEW_PLANE plane)
+void DefaultEspinaView::selectToSlice(double slice, vtkSliceView::VIEW_PLANE plane)
 {
   emit selectedToSlice(slice, plane);
 }
@@ -692,8 +687,8 @@ bool DefaultEspinaView::SettingsPanel::modified() const
 {
   return m_xyPanel->modified()
       || m_yzPanel->modified()
-      || m_xzPanel->modified()
-      || m_volPanel->modified();
+      || m_xzPanel->modified();
+      //|| m_volPanel->modified();
 }
 
 //-----------------------------------------------------------------------------

@@ -18,7 +18,7 @@
 
 
 #include "vtkFreeFormSource.h"
-#include <vtkPVSliceView.h>
+#include <vtkSliceView.h>
 
 #include <vtkObjectFactory.h>
 #include <vtkInformation.h>
@@ -83,12 +83,12 @@ void vtkFreeFormSource::Draw(int cx, int cy, int cz, int r, int plane)
 //     std::cout << "Drawing" << std::endl;
 //     std::cout << "\t" << cx << " " << cy << " " << cz << " " << r << std::endl;
 
-    bool expandX = vtkPVSliceView::AXIAL == plane
-                || vtkPVSliceView::CORONAL == plane;
-    bool expandY = vtkPVSliceView::AXIAL == plane
-                || vtkPVSliceView::SAGITTAL == plane;
-    bool expandZ = vtkPVSliceView::SAGITTAL == plane
-                || vtkPVSliceView::CORONAL == plane;
+    bool expandX = vtkSliceView::AXIAL == plane
+                || vtkSliceView::CORONAL == plane;
+    bool expandY = vtkSliceView::AXIAL == plane
+                || vtkSliceView::SAGITTAL == plane;
+    bool expandZ = vtkSliceView::SAGITTAL == plane
+                || vtkSliceView::CORONAL == plane;
 	
     if (!m_init)
     {
@@ -224,12 +224,12 @@ void vtkFreeFormSource::Erase(int cx, int cy, int cz, int r, int plane)
     DrawExtent[5] = cz + r;
 //     std::cout << "Erasing" << std::endl;
 //     std::cout << "\t" << cx << " " << cy << " " << cz << " " << r << std::endl;
-    bool expandX = vtkPVSliceView::AXIAL == plane
-                || vtkPVSliceView::CORONAL == plane;
-    bool expandY = vtkPVSliceView::AXIAL == plane
-                || vtkPVSliceView::SAGITTAL == plane;
-    bool expandZ = vtkPVSliceView::SAGITTAL == plane
-                || vtkPVSliceView::CORONAL == plane;
+    bool expandX = vtkSliceView::AXIAL == plane
+                || vtkSliceView::CORONAL == plane;
+    bool expandY = vtkSliceView::AXIAL == plane
+                || vtkSliceView::SAGITTAL == plane;
+    bool expandZ = vtkSliceView::SAGITTAL == plane
+                || vtkSliceView::CORONAL == plane;
 
     int minX = std::max(Extent[0],(expandX?cx - r:cx))-Extent[0];
     int maxX = std::min(Extent[1],(expandX?cx + r:cx))-Extent[0];

@@ -57,6 +57,9 @@ public:
   virtual pqData preview();
   virtual QWidget* createConfigurationWidget();
 
+protected:
+  virtual vtkAlgorithmOutput* output(unsigned int outputNb){ Q_ASSERT(false);return NULL;}
+
 private:
   CODEArguments *m_args;
   pqFilter      *m_filter;
@@ -77,7 +80,7 @@ public:
 
   void setInput(Segmentation * seg)
   {
-    (*this)[INPUT] = seg->volume().id();
+    (*this)[INPUT] = seg->id();
   }
 
   void setOperation(Operation op)

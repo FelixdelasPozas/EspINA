@@ -56,6 +56,9 @@ public:
   virtual pqData preview();
   virtual QWidget* createConfigurationWidget();
 
+protected:
+virtual vtkAlgorithmOutput* output(unsigned int outputNb){ Q_ASSERT(false);return NULL;}
+
 private:
   ILFArguments *m_args;
 
@@ -82,7 +85,7 @@ public:
     {
       if (!inputs.isEmpty())
 	inputs.append(",");
-      inputs.append(seg->volume().id());
+      inputs.append(seg->id());
     }
     (*this)[INPUT] = inputs;
   }

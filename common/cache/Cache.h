@@ -50,7 +50,7 @@ public:
 
   /// Set the working directory of to the current Sample. It is used to find posible
   /// files for the cache disk
-  void setWorkingDirectory(QFileInfo& sample);
+  void setWorkingDirectory(const QFileInfo& sample);
   QDir workingDirectory() const {return m_diskCachePath;}
   //CacheEntry *getEspinaEntry(const EspinaId &id) const;
 

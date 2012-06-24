@@ -28,6 +28,7 @@
 #include <QPushButton>
 #include <pluginInterfaces/Renderer.h>
 
+class QVTKWidget;
 
 //Forward declaration
 class Channel;
@@ -36,15 +37,10 @@ class IViewWidget;
 class QHBoxLayout;
 class QToolButton;
 class QVBoxLayout;
-class QWidget;
 class Renderer;
 class Sample;
 class Segmentation;
-class pq3DWidget;
-class pqOutputPort;
-class pqPipelineRepresentation;
-class pqVolumeView;
-class vtkSMRepresentationProxy;
+class vtkVolumeView;
 
 /// VolumeView
 class VolumeView
@@ -71,16 +67,13 @@ public:
   void removeSegmentationRepresentation(Segmentation *seg);
   bool updateSegmentationRepresentation(Segmentation* seg);
 
-  void addWidget(pq3DWidget *widget);
-  void removeWidget(pq3DWidget *widget);
+//TODO:   void addWidget(pq3DWidget *widget);
+//TODO:   void removeWidget(pq3DWidget *widget);
 
   void setColorEngine(ColorEngine *engine){m_colorEngine = engine;}
   SettingsPtr settings() {return m_settings;}
 
 public slots:
-  void onConnect();
-  void onDisconnect();
-
   void forceRender();
 
 signals:
@@ -88,6 +81,7 @@ signals:
   void segmentationSelected(Segmentation *, bool);
 
 protected:
+  void init();
   double suggestedChannelOpacity();
   void selectPickedItems(bool append);
 
@@ -105,19 +99,19 @@ protected slots:
 private:
   struct Representation
   {
-    pqOutputPort *outport;
-    vtkSMRepresentationProxy *proxy;
+    //pqOutputPort *outport;
+    //vtkSMRepresentationProxy *proxy;
     bool visible;
     bool selected;
     QColor color;
   };
 
-  pqVolumeView *m_view;
+  vtkVolumeView *m_view;
 
   // GUI
   QVBoxLayout *m_mainLayout;
   QHBoxLayout *m_controlLayout;
-  QWidget *m_viewWidget;
+  QVTKWidget  *m_viewWidget;
   QPushButton m_snapshot;
   QPushButton m_export;
 

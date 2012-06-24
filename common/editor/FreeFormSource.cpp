@@ -20,14 +20,11 @@
 #include "FreeFormSource.h"
 #include <cache/CachedObjectBuilder.h>
 #include <model/EspinaFactory.h>
-#include <vtkPVSliceView.h>
+#include <vtkSliceView.h>
 #include <EspinaCore.h>
 #include <EspinaView.h>
-#include <pqPipelineSource.h>
-#include <vtkSMPropertyHelper.h>
-#include <vtkSMProxy.h>
-#include <QDateTime>
 
+#include <QDateTime>
 #include <QDebug>
 
 typedef ModelItem::ArgumentId ArgumentId;
@@ -59,7 +56,7 @@ FreeFormSource::FreeFormSource(double spacing[3])
   Q_ASSERT(m_source->getNumberOfData() == 1);
 
   if (!m_seg)
-    m_seg = EspinaFactory::instance()->createSegmentation(this, 0, m_source->data(0));
+    m_seg = EspinaFactory::instance()->createSegmentation(this, 0);
 }
 
 //-----------------------------------------------------------------------------
@@ -82,7 +79,7 @@ FreeFormSource::FreeFormSource(ModelItem::Arguments args)
 
   Q_ASSERT(m_source);
   if (!m_seg)
-    m_seg = EspinaFactory::instance()->createSegmentation(this, 0, m_source->data(0));
+    m_seg = EspinaFactory::instance()->createSegmentation(this, 0);
 }
 
 //-----------------------------------------------------------------------------
@@ -92,47 +89,49 @@ FreeFormSource::~FreeFormSource()
 }
 
 //-----------------------------------------------------------------------------
-void FreeFormSource::draw(vtkPVSliceView::VIEW_PLANE plane,
+void FreeFormSource::draw(vtkSliceView::VIEW_PLANE plane,
 			 QVector3D center, int radius)
 {
-  int points[5] = {
-    center.x(), center.y(), center.z(),
-    radius, plane};
-  vtkSMProxy *proxy = m_source->pipelineSource()->getProxy();
-  vtkSMPropertyHelper(proxy, "Draw").Set(points, 5);
-  proxy->UpdateVTKObjects();
-//   m_source->pipelineSource()->updatePipeline();
-  double cross[3];
-  //TODO: Find a clearer way to get the segmentation rendered
-  EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
-  view->center(cross);
-  view->setCenter(cross[0], cross[1], cross[2], true);
-  view->setCenter(cross[0], cross[1], cross[2], true);
-  view->forceRender();
+  Q_ASSERT(false);
+//   int points[5] = {
+//     center.x(), center.y(), center.z(),
+//     radius, plane};
+//   vtkSMProxy *proxy = m_source->pipelineSource()->getProxy();
+//   vtkSMPropertyHelper(proxy, "Draw").Set(points, 5);
+//   proxy->UpdateVTKObjects();
+// //   m_source->pipelineSource()->updatePipeline();
+//   double cross[3];
+//   //TODO: Find a clearer way to get the segmentation rendered
+//   EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
+//   view->center(cross);
+//   view->setCenter(cross[0], cross[1], cross[2], true);
+//   view->setCenter(cross[0], cross[1], cross[2], true);
+//   view->forceRender();
   m_hasPixels = true;
 }
 
 //-----------------------------------------------------------------------------
-void FreeFormSource::erase(vtkPVSliceView::VIEW_PLANE plane,
+void FreeFormSource::erase(vtkSliceView::VIEW_PLANE plane,
 			  QVector3D center, int radius)
 {
-  if (!m_hasPixels)
-    return;
-
-  int points[5] = {
-    center.x(), center.y(), center.z(),
-    radius, plane};
-  vtkSMProxy *proxy = m_source->pipelineSource()->getProxy();
-  vtkSMPropertyHelper(proxy, "Erase").Set(points, 5);
-  proxy->UpdateVTKObjects();
-//   m_source->pipelineSource()->updatePipeline();
-  double cross[3];
-  //TODO: Find a clearer way to get the segmentation rendered
-  EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
-  view->center(cross);
-  view->setCenter(cross[0], cross[1], cross[2], true);
-  view->setCenter(cross[0], cross[1], cross[2], true);
-  view->forceRender();
+  Q_ASSERT(false);
+//   if (!m_hasPixels)
+//     return;
+// 
+//   int points[5] = {
+//     center.x(), center.y(), center.z(),
+//     radius, plane};
+//   vtkSMProxy *proxy = m_source->pipelineSource()->getProxy();
+//   vtkSMPropertyHelper(proxy, "Erase").Set(points, 5);
+//   proxy->UpdateVTKObjects();
+// //   m_source->pipelineSource()->updatePipeline();
+//   double cross[3];
+//   //TODO: Find a clearer way to get the segmentation rendered
+//   EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
+//   view->center(cross);
+//   view->setCenter(cross[0], cross[1], cross[2], true);
+//   view->setCenter(cross[0], cross[1], cross[2], true);
+//   view->forceRender();
 }
 
 //-----------------------------------------------------------------------------

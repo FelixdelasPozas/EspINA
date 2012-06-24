@@ -29,6 +29,7 @@
 #include "common/processing/pqData.h"
 #include "common/selection/SelectableItem.h"
 #include "common/model/Taxonomy.h"
+#include "Filter.h"
 
 // Forward declarations
 class Sample;
@@ -44,7 +45,7 @@ public:
   static const ArgumentId NUMBER;
   static const ArgumentId OUTPUT;
   static const ArgumentId TAXONOMY;
-  static const ArgumentId USERS;//who have review this segmentation
+  static const ArgumentId USERS;//who have reviewed this segmentation
 
   static const int SelectionRole = Qt::UserRole + 2;
 
@@ -62,13 +63,13 @@ private:
     }
     unsigned int number() const {return Number;}
 
-    void setOutput(int output)
+    void setOutputNumber(int outputNb)
     {
-      Output = output;
-      (*this)[OUTPUT] = QString::number(Output);
+      OutputNumber = outputNb;
+      (*this)[OUTPUT] = QString::number(outputNb);
     }
 
-    int output() const {return Output;}
+    int outputNumber() const {return OutputNumber;}
 
     void addUser(const QString &user)
     {
@@ -84,34 +85,32 @@ private:
 
   private:
     unsigned int Number;
-    int Output;
+    int OutputNumber;
   };
 
 public:
-  explicit Segmentation(Filter *filter, int output, pqData data);
+  explicit Segmentation(Filter *filter, unsigned int outputNb);
   virtual ~Segmentation();
 
   Filter *filter() const {return m_filter;}
-  pqOutputPort *outputPort();
+  vtkAlgorithmOutput *output();
 
   /// Model Item Interface
   virtual QString id() const;
-  virtual QVariant data(int role) const;
+  virtual QVariant data(int role=Qt::DisplayRole) const;
   virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
   virtual ItemType type() const {return ModelItem::SEGMENTATION;}
   virtual QString serialize() const;
   virtual void initialize(Arguments args = Arguments());
   virtual void initializeExtensions();
+
   /// Selectable Item Interface
-  virtual pqData volume() {return m_data;}
+  virtual vtkAlgorithmOutput *volume() {return output();}
 
   void setNumber(unsigned int number) {m_args.setNumber(number);}
   unsigned int number() const {return m_args.number();}
   void setTaxonomy(TaxonomyNode *tax);
   TaxonomyNode *taxonomy() const {return m_taxonomy;}
-//   virtual void color(double* rgba);
-//   virtual void setSelected(bool value) {m_isSelected = value;}
-//   virtual bool isSelected() {return m_isSelected;}
   void bounds(double val[3]);
 
   // State
@@ -128,15 +127,11 @@ public:
   QStringList availableInformations() const;
   QVariant information(QString info);
 
-// public slots:
-//   virtual void notifyModification();
-//   void updated(Segmentation *);
 private slots:
   void onColorEngineChanged();
 
 private:
   Filter             *m_filter;
-  pqData              m_data;
   SArguments          m_args;
   TaxonomyNode       *m_taxonomy;
 

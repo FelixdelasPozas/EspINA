@@ -21,7 +21,7 @@
 #define FREEFORMSOURCE_H
 
 #include <model/Filter.h>
-#include <common/views/vtkPVSliceView.h>
+#include <common/views/vtkSliceView.h>
 
 #include <QVector3D>
 
@@ -35,8 +35,8 @@ public:
   explicit FreeFormSource(Arguments args);
   virtual ~FreeFormSource();
 
-  void draw(vtkPVSliceView::VIEW_PLANE plane,  QVector3D center, int radius = 0);
-  void erase(vtkPVSliceView::VIEW_PLANE plane, QVector3D center, int radius = 0);
+  void draw(vtkSliceView::VIEW_PLANE plane,  QVector3D center, int radius = 0);
+  void erase(vtkSliceView::VIEW_PLANE plane, QVector3D center, int radius = 0);
   /// Implements Model Item Interface
   virtual QString id() const;
   virtual QVariant data(int role) const;
@@ -48,6 +48,9 @@ public:
 
   virtual pqData preview();
   virtual QWidget* createConfigurationWidget();
+
+protected:
+  virtual vtkAlgorithmOutput* output(unsigned int outputNb){ Q_ASSERT(false);return NULL;}
 
 private:
   Arguments     m_args;

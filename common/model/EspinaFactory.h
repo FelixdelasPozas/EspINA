@@ -49,7 +49,7 @@ public:
   Filter  *createFilter (const QString filter, const ModelItem::Arguments args);
   Sample  *createSample (const QString id, const QString args = "");
   Channel *createChannel(const QString id, const ModelItem::Arguments args);
-  Segmentation *createSegmentation(Filter* parent, int output, pqData data);
+  Segmentation *createSegmentation(Filter* parent, int output);
 
   bool readFile(const QString file, const QString ext);
 

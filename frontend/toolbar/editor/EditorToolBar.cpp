@@ -91,7 +91,7 @@ class EditorToolBar::DrawCommand
 {
 public:
   explicit DrawCommand(FreeFormSource *source,
-		      vtkPVSliceView::VIEW_PLANE plane,
+		      vtkSliceView::VIEW_PLANE plane,
 		      QVector3D center, int radius)
   : m_source(source)
   , m_plane(plane)
@@ -111,7 +111,7 @@ public:
 
 private:
   FreeFormSource            *m_source;
-  vtkPVSliceView::VIEW_PLANE m_plane;
+  vtkSliceView::VIEW_PLANE m_plane;
   QVector3D                  m_center;
   int                        m_radius;
 };
@@ -122,7 +122,7 @@ class EditorToolBar::EraseCommand
 {
 public:
   explicit EraseCommand(FreeFormSource *source,
-		       vtkPVSliceView::VIEW_PLANE plane,
+		       vtkSliceView::VIEW_PLANE plane,
 		       QVector3D center, int radius)
   : m_source(source)
   , m_plane(plane)
@@ -142,7 +142,7 @@ public:
 
 private:
   FreeFormSource            *m_source;
-  vtkPVSliceView::VIEW_PLANE m_plane;
+  vtkSliceView::VIEW_PLANE m_plane;
   QVector3D                  m_center;
   int                        m_radius;
 };
@@ -203,8 +203,8 @@ EditorToolBar::EditorToolBar(QWidget* parent)
 , m_currentSource(NULL)
 , m_currentSeg(NULL)
 {
-//   setWindowTitle("Editor Tool Bar");
   setObjectName("EditorToolBar");
+  setWindowTitle("Editor Tool Bar");
 
   EspinaFactory::instance()->registerFilter(FFS, this);
   EspinaFactory::instance()->registerFilter(ILF, this);
@@ -316,11 +316,11 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
 
   QSharedPointer<QUndoStack> undo = EspinaCore::instance()->undoStack();
   if (m_pencilSelector->state() == PencilSelector::DRAWING)
-    m_currentSource->draw(vtkPVSliceView::AXIAL, center, radius);
-    //undo->push(new DrawCommand(m_currentSource, vtkPVSliceView::AXIAL, center, radius));
+    m_currentSource->draw(vtkSliceView::AXIAL, center, radius);
+    //undo->push(new DrawCommand(m_currentSource, vtkSliceView::AXIAL, center, radius));
   else if (m_pencilSelector->state() == PencilSelector::ERASING)
-    m_currentSource->erase(vtkPVSliceView::AXIAL, center, radius);
-    //undo->push(new EraseCommand(m_currentSource, vtkPVSliceView::AXIAL, center, radius));
+    m_currentSource->erase(vtkSliceView::AXIAL, center, radius);
+    //undo->push(new EraseCommand(m_currentSource, vtkSliceView::AXIAL, center, radius));
   else
     Q_ASSERT(false);
 

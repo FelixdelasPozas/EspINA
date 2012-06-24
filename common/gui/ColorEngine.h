@@ -28,7 +28,7 @@ class ColorEngine
 {
 public:
   virtual QColor color(const Segmentation *seg) = 0;
-  virtual vtkSMProxy *lut(const Segmentation *seg) = 0;
+  //virtual vtkSMProxy *lut(const Segmentation *seg) = 0;
 };
 
 #endif // COLORENGINE_H

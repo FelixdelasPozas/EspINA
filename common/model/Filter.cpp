@@ -26,8 +26,3 @@ QWidget* Filter::createConfigurationWidget()
 {
   return new QWidget();
 }
-
-void Filter::setSegmentationData(Segmentation* seg, pqData data)
-{
-  seg->m_data = data;
-}

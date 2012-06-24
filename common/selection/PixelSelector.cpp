@@ -1,7 +1,6 @@
 #include "PixelSelector.h"
 
 #include "common/selection/SelectableView.h"
-#include "common/views/vtkSMSliceViewProxy.h"
 
 #include <QDebug>
 
@@ -9,7 +8,6 @@
 #include <QWidget>
 #include <QSize>
 
-#include <pqRenderView.h>
 #include <vtkImageData.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderWindow.h>
@@ -85,74 +83,75 @@ BestPixelSelector::BestPixelSelector(SelectionHandler* succesor)
 //-----------------------------------------------------------------------------
 void BestPixelSelector::onMouseDown(const QPoint& pos, SelectableView* view)
 {
-  pqRenderViewBase *rw = dynamic_cast<pqRenderViewBase *>(view->view());
-  Q_ASSERT(rw);
-  vtkImageData *img = rw->captureImage(1);
-
-  int xPos, yPos;
-  view->eventPosition(xPos, yPos);
-
-  int extent[6];
-  img->GetExtent(extent);
-  //qDebug() << extent[0] << extent[1] << extent[2] << extent[3] << extent[4] << extent[5];
-
-  int leftPixel = xPos - m_window->width()/2;
-  if (leftPixel < extent[0])
-    leftPixel = extent[0];
-
-  int rightPixel = xPos + m_window->width()/2;
-  if (rightPixel > extent[1])
-    rightPixel = extent[1];
-
-  int topPixel = yPos - m_window->height()/2;
-  if (topPixel < extent[2])
-    rightPixel = extent[2];
-
-  int bottomPixel = yPos + m_window->height()/2;
-  if (bottomPixel > extent[3])
-    rightPixel = extent[3];
-
-  QPoint bestPixel = QPoint(xPos, yPos);
-  unsigned char * pixel;
-  unsigned char pixelValue;
-  unsigned char bestValue;
-
-  pixel = ((unsigned char *)img->GetScalarPointer(xPos, yPos,0));
-  bestValue = abs(pixel[0]-m_bestPixel);
-
-  //qDebug() << "EspINA::BestPixelSelector: Scalar componets:" <<img->GetNumberOfScalarComponents();
-
-  for (int x = leftPixel; x <= rightPixel; x++)
-  {
-    for (int y = topPixel; y <= bottomPixel; y++)
-    {
-      pixel = ((unsigned char *)img->GetScalarPointer(x,y,0));
-      pixelValue = abs(pixel[0] - m_bestPixel);
-      if (pixelValue < bestValue)
-      {
-	bestValue = pixelValue;
-	bestPixel = QPoint(x,y);
-      } else if (pixelValue == bestValue &&
-	quadDist(xPos,yPos,x,y) < quadDist(xPos,yPos,bestPixel.x(),bestPixel.y()))
-      {
-	bestValue = pixelValue;
-	bestPixel = QPoint(x,y);
-      }
-      //qDebug() << "Pixel(" << x << "," << y<< ") value :" << pixel[0] << pixel[1] << pixel[2];
-    }
-  }
-
-  //qDebug() << "EspINA::BestPixelSelector: Best Pixel(" << bestPixel.x() << "," << bestPixel.y()
-  //<< ") value :" << bestValue;
-
-  img->Delete();
-
-  ViewRegions regions;
-  QPolygon singlePixel;
-  singlePixel << bestPixel;
-  regions << singlePixel;
-
-  MultiSelection msel = view->select(m_filters, regions);
-
-  emit selectionChanged(msel);
+  Q_ASSERT(false);
+//   pqRenderViewBase *rw = dynamic_cast<pqRenderViewBase *>(view->view());
+//   Q_ASSERT(rw);
+//   vtkImageData *img = rw->captureImage(1);
+// 
+//   int xPos, yPos;
+//   view->eventPosition(xPos, yPos);
+// 
+//   int extent[6];
+//   img->GetExtent(extent);
+//   //qDebug() << extent[0] << extent[1] << extent[2] << extent[3] << extent[4] << extent[5];
+// 
+//   int leftPixel = xPos - m_window->width()/2;
+//   if (leftPixel < extent[0])
+//     leftPixel = extent[0];
+// 
+//   int rightPixel = xPos + m_window->width()/2;
+//   if (rightPixel > extent[1])
+//     rightPixel = extent[1];
+// 
+//   int topPixel = yPos - m_window->height()/2;
+//   if (topPixel < extent[2])
+//     rightPixel = extent[2];
+// 
+//   int bottomPixel = yPos + m_window->height()/2;
+//   if (bottomPixel > extent[3])
+//     rightPixel = extent[3];
+// 
+//   QPoint bestPixel = QPoint(xPos, yPos);
+//   unsigned char * pixel;
+//   unsigned char pixelValue;
+//   unsigned char bestValue;
+// 
+//   pixel = ((unsigned char *)img->GetScalarPointer(xPos, yPos,0));
+//   bestValue = abs(pixel[0]-m_bestPixel);
+// 
+//   //qDebug() << "EspINA::BestPixelSelector: Scalar componets:" <<img->GetNumberOfScalarComponents();
+// 
+//   for (int x = leftPixel; x <= rightPixel; x++)
+//   {
+//     for (int y = topPixel; y <= bottomPixel; y++)
+//     {
+//       pixel = ((unsigned char *)img->GetScalarPointer(x,y,0));
+//       pixelValue = abs(pixel[0] - m_bestPixel);
+//       if (pixelValue < bestValue)
+//       {
+// 	bestValue = pixelValue;
+// 	bestPixel = QPoint(x,y);
+//       } else if (pixelValue == bestValue &&
+// 	quadDist(xPos,yPos,x,y) < quadDist(xPos,yPos,bestPixel.x(),bestPixel.y()))
+//       {
+// 	bestValue = pixelValue;
+// 	bestPixel = QPoint(x,y);
+//       }
+//       //qDebug() << "Pixel(" << x << "," << y<< ") value :" << pixel[0] << pixel[1] << pixel[2];
+//     }
+//   }
+// 
+//   //qDebug() << "EspINA::BestPixelSelector: Best Pixel(" << bestPixel.x() << "," << bestPixel.y()
+//   //<< ") value :" << bestValue;
+// 
+//   img->Delete();
+// 
+//   ViewRegions regions;
+//   QPolygon singlePixel;
+//   singlePixel << bestPixel;
+//   regions << singlePixel;
+// 
+//   MultiSelection msel = view->select(m_filters, regions);
+// 
+//   emit selectionChanged(msel);
 }

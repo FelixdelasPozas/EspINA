@@ -27,8 +27,8 @@ class NumberColorEngine
 {
 
 public:
-    virtual vtkSMProxy* lut(const Segmentation* seg);
     virtual QColor color(const Segmentation* seg);
+//     virtual vtkSMProxy* lut(const Segmentation* seg);
 };
 
 #endif // NUMBERCOLORENGINE_H

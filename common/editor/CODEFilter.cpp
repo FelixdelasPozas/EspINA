@@ -20,7 +20,7 @@
 #include "CODEFilter.h"
 #include <cache/CachedObjectBuilder.h>
 #include <model/EspinaFactory.h>
-#include <pqPipelineSource.h>
+#include <vtkImageAlgorithm.h>
 
 //-----------------------------------------------------------------------------
 CODEFilter::CODEFilter(Segmentation* seg, CODEFilter::Operation op, unsigned int radius)
@@ -83,9 +83,9 @@ void CODEFilter::run()
     }
     Q_ASSERT(m_filter->getNumberOfData() == 1);
   }
-  m_filter->pipelineSource()->updatePipeline();
+  m_filter->algorithm()->Update();
 
-  m_seg = EspinaFactory::instance()->createSegmentation(this, 0, m_filter->data(0));
+  m_seg = EspinaFactory::instance()->createSegmentation(this, 0);
 }
 
 //-----------------------------------------------------------------------------

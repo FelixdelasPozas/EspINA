@@ -17,38 +17,33 @@
 */
 
 
-#ifndef FILTER_H
-#define FILTER_H
+#ifndef SETUPWIDGET_H
+#define SETUPWIDGET_H
 
-#include "common/model/ModelItem.h"
+#include "SeedGrowSegmentationFilter.h"
+#include <QWidget>
+#include "ui_SetupWidget.h"
 
-#include "common/model/Segmentation.h"
-#include "common/processing/pqData.h"
+#include <common/views/vtkSliceView.h>
 
-#include <QMap>
-
-class vtkAlgorithmOutput;
-
-class Filter
-: public ModelItem
+class SeedGrowSegmentationFilter::SetupWidget
+: public QWidget
+, Ui::SetupWidget
 {
+  Q_OBJECT
 public:
-  virtual ~Filter(){}
+  explicit SetupWidget(Filter *filter);
+  virtual ~SetupWidget();
 
-  /// Implements Model Item Interface common to filters
-  virtual ItemType type() const {return ModelItem::FILTER;}
+  virtual bool eventFilter(QObject* sender, QEvent* e );
 
-  /// Defines Filter's Interface
-  virtual int numProducts() const = 0;
-  virtual Segmentation *product(int index) const = 0;
+protected slots:
+  void redefineFromVOI(double value, vtkSliceView::VIEW_PLANE plane);
+  void redefineToVOI(double value, vtkSliceView::VIEW_PLANE plane);
+  void modifyFilter();
 
-  virtual pqData preview() = 0;
-  virtual QWidget *createConfigurationWidget() = 0;
-
-protected:
-  virtual vtkAlgorithmOutput *output(unsigned int outputNb) = 0;
-
-  friend class Segmentation;
+private :
+  SeedGrowSegmentationFilter *m_filter;
 };
 
-#endif // FILTER_H
+#endif // SETUPWIDGET_H

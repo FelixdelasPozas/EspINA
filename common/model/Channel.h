@@ -31,11 +31,9 @@
 #include "common/File.h"
 #include <QColor>
 
-class ChannelExtension;
-class ChannelExtension;
 // Forward declarations
-class pqOutputPort;
-class pqPipelineSource;
+class ChannelExtension;
+class vtkAlgorithmOutput;
 
 class Channel : public SelectableItem
 {
@@ -84,7 +82,7 @@ public:
   explicit Channel(const QString file, const Arguments args);
   virtual ~Channel();
 
-  pqOutputPort *outputPort();
+  vtkAlgorithmOutput *outputPort();
   void extent(int val[6]);
   void bounds(double val[6]);
   void spacing(double val[3]);
@@ -113,7 +111,7 @@ public:
   Sample *sample();
 
   /// Selectable Item Interface
-  virtual pqData volume() {return m_data;}
+  virtual vtkAlgorithmOutput *volume() {return m_data.outputPort();}
 
   /// Add a new extension to the segmentation
   /// Extesion won't be available until requirements are satisfied

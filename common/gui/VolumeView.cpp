@@ -23,7 +23,11 @@
 
 // EspINA
 #include <common/model/Segmentation.h>
-#include <common/views/pqVolumeView.h>
+#include "ColorEngine.h"
+#include <model/Channel.h>
+#include <model/Representation.h>
+#include <model/EspinaFactory.h>
+#include <pluginInterfaces/Renderer.h>
 
 // GUI
 #include <QEvent>
@@ -32,42 +36,16 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QVBoxLayout>
-
-// ParaView
-#include <pqActiveObjects.h>
-#include <pqApplicationCore.h>
-#include <pqObjectBuilder.h>
-#include <pqServer.h>
-#include <pqServerManagerObserver.h>
-#include <pqViewExporterManager.h>
+#include <QMouseEvent>
 
 #include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
-#include <vtkSMRenderViewProxy.h>
-#include <pqDisplayPolicy.h>
-#include <pqDataRepresentation.h>
-#include <pqPipelineRepresentation.h>
-#include <pqScalarsToColors.h>
-#include <pq3DWidget.h>
-#include <pqOutputPort.h>
-#include "ColorEngine.h"
-#include <vtkSMPropertyHelper.h>
-#include <vtkSMProxyProperty.h>
-#include <pqRenderView.h>
-#include <pqPipelineSource.h>
-#include <vtkSMProxyManager.h>
-#include <vtkSMRepresentationProxy.h>
-#include <pqSMAdaptor.h>
-#include <model/Channel.h>
-#include <model/Representation.h>
-#include <model/EspinaFactory.h>
-#include <QMouseEvent>
 #include <vtkPropPicker.h>
-#include <vtkVolumetricRepresentation.h>
-#include <vtkCrosshairRepresentation.h>
-#include <pluginInterfaces/Renderer.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkSphereSource.h>
+#include <QVTKWidget.h>
 
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(QWidget* parent)
@@ -87,14 +65,7 @@ VolumeView::VolumeView(QWidget* parent)
   this->setPalette(pal);
   //   this->setStyleSheet("background-color: grey;");
 
-  pqServerManagerObserver *SMObserver = pqApplicationCore::instance()->getServerManagerObserver();
-  connect(SMObserver, SIGNAL(connectionCreated(vtkIdType)),
-	  this, SLOT(onConnect()));
-  connect(SMObserver, SIGNAL(connectionClosed(vtkIdType)),
-	  this, SLOT(onDisconnect()));
-
-  if (pqApplicationCore::instance()->getActiveServer())
-    onConnect();
+  init();
 }
 
 //-----------------------------------------------------------------------------
@@ -155,19 +126,21 @@ void VolumeView::centerViewOn(double center[3])
 
   memcpy(m_center, center, 3*sizeof(double));
 
-  m_view->setCrosshairCenter(m_center[0], m_center[1], m_center[2]);
+  //TODO:m_view->SetCrosshair(m_center[0], m_center[1], m_center[2]);
 }
 
 //-----------------------------------------------------------------------------
 void VolumeView::setCameraFocus(double center[3])
 {
-  m_view->setCameraFocus(m_center[0], m_center[1], m_center[2]);
+  Q_ASSERT(false);
+  //TODO:m_view->SetCameraFocus(m_center[0], m_center[1], m_center[2]);
 }
 
 //-----------------------------------------------------------------------------
 void VolumeView::resetCamera()
 {
-  m_view->resetCamera();
+  Q_ASSERT(false);
+//   m_view->resetCamera();
 }
 
 //-----------------------------------------------------------------------------
@@ -199,7 +172,8 @@ void VolumeView::removeChannelRepresentation(Channel* channel)
   {
     modified |= renderer->removeItem(channel);
   }
-  m_view->resetCamera();
+  Q_ASSERT(false);
+  //TODO:m_view->resetCamera();
 }
 
 
@@ -234,69 +208,32 @@ void VolumeView::removeSegmentationRepresentation(Segmentation* seg)
   }
 }
 
-//-----------------------------------------------------------------------------
-void VolumeView::addWidget(pq3DWidget* widget)
-{
-  widget->setView(m_view);
-  widget->setWidgetVisible(true);
-  widget->select();
-  widget->setEnabled(false);
-}
+// //-----------------------------------------------------------------------------
+// void VolumeView::addWidget(pq3DWidget* widget)
+// {
+//   widget->setView(m_view);
+//   widget->setWidgetVisible(true);
+//   widget->select();
+//   widget->setEnabled(false);
+// }
+// 
+// //-----------------------------------------------------------------------------
+// void VolumeView::removeWidget(pq3DWidget* widget)
+// {
+//   widget->setWidgetVisible(false);
+//   widget->deselect();
+// }
+// 
 
 //-----------------------------------------------------------------------------
-void VolumeView::removeWidget(pq3DWidget* widget)
-{
-  widget->setWidgetVisible(false);
-  widget->deselect();
-}
-
-
-//-----------------------------------------------------------------------------
-void VolumeView::onConnect()
+void VolumeView::init()
 {
 //   qDebug() << this << ": Connecting to a new server";
-  pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
-  pqServer    *server = pqActiveObjects::instance().activeServer();
+  //m_view = vtkVolumeView::New();
 
-  m_view = qobject_cast<pqVolumeView *>(ob->createView(
-             pqVolumeView::espinaRenderViewType(), server));
-
-  m_viewWidget = m_view->getWidget();
-  // We want to manage events on the view
-  m_viewWidget->installEventFilter(this);
+  m_viewWidget = new QVTKWidget();
   m_mainLayout->insertWidget(0,m_viewWidget);//To preserver view order
-
-  vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast(m_view->getProxy());
-
-  // Change Render Window Interactor
-  vtkRenderWindowInteractor *rwi = vtkRenderWindowInteractor::SafeDownCast(
-    viewProxy->GetRenderWindow()->GetInteractor());
-  Q_ASSERT(rwi);
-
-  vtkInteractorStyleTrackballCamera *style = vtkInteractorStyleTrackballCamera::New();
-  rwi->SetInteractorStyle(style);
-  style->Delete();
-
-  double black[3] = {0,0,0};
-  viewProxy->GetRenderer()->SetBackground(black);
-
-  foreach(Settings::RendererPtr renderer, m_settings->renderers())
-  {
-    renderer->setView(m_view->getProxy());
-  }
-}
-
-//-----------------------------------------------------------------------------
-void VolumeView::onDisconnect()
-{
-//   pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
-//    qDebug() << this << ": Disconnecting from server";
-//   if (m_view)
-//   {
-//     m_mainLayout->removeWidget(m_viewWidget);
-//     ob->destroy(m_view);
-//     m_view = NULL;
-//   }
+  m_viewWidget->show();
 }
 
 //-----------------------------------------------------------------------------
@@ -305,7 +242,7 @@ void VolumeView::forceRender()
   if(isVisible())
   {
 //     qDebug() << "Render 3D View";
-    m_view->forceRender();
+    //TODO:m_view->forceRender();
   }
 }
 
@@ -397,19 +334,21 @@ bool VolumeView::eventFilter(QObject* caller, QEvent* e)
 //-----------------------------------------------------------------------------
 void VolumeView::exportScene()
 {
-  pqViewExporterManager *exporter = new pqViewExporterManager();
-  exporter->setView(m_view);
-  QString fileName = QFileDialog::getSaveFileName(this,
-     tr("Save Scene"), "", tr("3D Scene (*.x3d *.pov *.vrml)"));
-  exporter->write(fileName);
-  delete exporter;
+  Q_ASSERT(false);
+//   pqViewExporterManager *exporter = new pqViewExporterManager();
+//   exporter->setView(m_view);
+//   QString fileName = QFileDialog::getSaveFileName(this,
+//      tr("Save Scene"), "", tr("3D Scene (*.x3d *.pov *.vrml)"));
+//   exporter->write(fileName);
+//   delete exporter;
 }
 
 void VolumeView::takeSnapshot()
 {
-  QString fileName = QFileDialog::getSaveFileName(this,
-     tr("Save Scene"), "", tr("Image Files (*.jpg *.png)"));
-  m_view->saveImage(1024,768,fileName);
+  Q_ASSERT(false);
+//   QString fileName = QFileDialog::getSaveFileName(this,
+//      tr("Save Scene"), "", tr("Image Files (*.jpg *.png)"));
+//   m_view->saveImage(1024,768,fileName);
 }
 
 //-----------------------------------------------------------------------------

@@ -22,11 +22,11 @@
 
 #include <common/EspinaCore.h>
 #include <common/gui/ColorEngine.h>
+#include <vtkAlgorithm.h>
+#include <vtkAlgorithmOutput.h>
+#include <vtkImageData.h>
 
 #include <QDebug>
-#include <vtkPVDataInformation.h>
-#include <pqOutputPort.h>
-#include <pqPipelineSource.h>
 
 using namespace std;
 
@@ -41,7 +41,7 @@ Segmentation::SArguments::SArguments(const ModelItem::Arguments args)
 : Arguments(args)
 {
   Number = args[NUMBER].toInt();
-  Output = args[OUTPUT].toInt();
+  OutputNumber = args[OUTPUT].toInt();
 }
 
 
@@ -56,9 +56,8 @@ QString Segmentation::SArguments::serialize(bool key) const
 
 
 //-----------------------------------------------------------------------------
-Segmentation::Segmentation(Filter* filter, int output, pqData data)
+Segmentation::Segmentation(Filter* filter, unsigned int outputNb)
 : m_filter (filter)
-, m_data   (data)
 , m_taxonomy    (NULL)
 , m_extInitialized(false)
 , m_isVisible(true)
@@ -68,7 +67,7 @@ Segmentation::Segmentation(Filter* filter, int output, pqData data)
   m_bounds[1] = -1;
   m_args.setNumber(0);
   m_args[FILTER] = m_filter->id();
-  m_args.setOutput(output);
+  m_args.setOutputNumber(outputNb);
   m_args[TAXONOMY] = "Unknown";
   connect(filter,SIGNAL(modified(ModelItem *)),
 	  this, SLOT(notifyModification()));
@@ -94,9 +93,9 @@ Segmentation::~Segmentation()
 }
 
 //------------------------------------------------------------------------
-pqOutputPort* Segmentation::outputPort()
+vtkAlgorithmOutput *Segmentation::output()
 {
-  return m_data.outputPort();
+  return m_filter->output(m_args.outputNumber());
 }
 
 //------------------------------------------------------------------------
@@ -186,16 +185,6 @@ void Segmentation::initializeExtensions()
 }
 
 
-// //------------------------------------------------------------------------
-// void Segmentation::color(double* rgba)
-// {
-//   QColor color = m_taxonomy->color();
-//   rgba[0] = color.red()/255.0;
-//   rgba[1] = color.green()/255.0;
-//   rgba[2] = color.blue()/255.0;
-//   rgba[3] = 1;
-// }
-
 //------------------------------------------------------------------------
 bool Segmentation::setData(const QVariant& value, int role)
 {
@@ -226,9 +215,9 @@ void Segmentation::bounds(double val[3])
 {
   if (m_bounds[1] < m_bounds[0])
   {
-    m_data.pipelineSource()->updatePipeline();
-    vtkPVDataInformation *info = outputPort()->getDataInformation();
-    info->GetBounds(m_bounds);
+    output()->GetProducer()->Update();
+    vtkImageData *image = vtkImageData::SafeDownCast(output());
+    image->GetBounds(m_bounds);
   }
   memcpy(val,m_bounds,6*sizeof(double));
 }
@@ -291,6 +280,7 @@ QVariant Segmentation::information(QString info)
   if (info == "Taxonomy")
     return m_taxonomy->qualifiedName();
 
+  qDebug() << info;
   Q_ASSERT(m_informations.contains(info));
   return m_informations[info]->information(info);
 }
@@ -307,12 +297,3 @@ void Segmentation::onColorEngineChanged()
     notifyModification();
   }
 }
-
-//
-// //------------------------------------------------------------------------
-// void Segmentation::notifyInternalUpdate()
-// {
-// //   std::cout << "Notifying update" << std::endl;
-// //   this->origin()->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
-//   emit updated(this);
-// }

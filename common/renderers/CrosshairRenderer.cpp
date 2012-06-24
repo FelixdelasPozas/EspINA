@@ -24,42 +24,37 @@
 #include "common/model/Channel.h"
 #include "common/model/Representation.h"
 
-#include <pqOutputPort.h>
-#include <pqPipelineSource.h>
-#include <pqSMAdaptor.h>
-#include <vtkSMPropertyHelper.h>
-#include <vtkSMProxyManager.h>
-#include <vtkSMRepresentationProxy.h>
 
 //-----------------------------------------------------------------------------
 bool CrosshairRenderer::addItem(ModelItem* item)
 {
-  if (ModelItem::CHANNEL != item->type())
-    return false;
-
-  Channel *channel = dynamic_cast<Channel *>(item);
-  pqData volume = channel->representation("Volumetric")->output();
-  pqOutputPort      *oport = volume.outputPort();
-  pqPipelineSource *source = oport->getSource();
-  vtkSMProxyManager   *pxm = vtkSMProxyManager::GetProxyManager();
-
-  vtkSMRepresentationProxy* repProxy = vtkSMRepresentationProxy::SafeDownCast(
-    pxm->NewProxy("representations", "CrosshairRepresentation"));
-  Q_ASSERT(repProxy);
-  m_channels[channel].proxy = repProxy;
-  m_channels[channel].visible = !channel->isVisible();
-
-  // Set repProxy's input.
-  pqSMAdaptor::setInputProperty(repProxy->GetProperty("Input"),
-				source->getProxy(),
-				oport->getPortNumber());
-
-  updateItem(item);
-
-  // Add the reprProxy to renderer module.
-  pqSMAdaptor::addProxyProperty(
-    m_view->GetProperty("Representations"), repProxy);
-  m_view->UpdateVTKObjects();
+  Q_ASSERT(false);
+//   if (ModelItem::CHANNEL != item->type())
+//     return false;
+// 
+//   Channel *channel = dynamic_cast<Channel *>(item);
+//   pqData volume = channel->representation("Volumetric")->output();
+//   pqOutputPort      *oport = volume.outputPort();
+//   pqPipelineSource *source = oport->getSource();
+//   vtkSMProxyManager   *pxm = vtkSMProxyManager::GetProxyManager();
+// 
+//   vtkSMRepresentationProxy* repProxy = vtkSMRepresentationProxy::SafeDownCast(
+//     pxm->NewProxy("representations", "CrosshairRepresentation"));
+//   Q_ASSERT(repProxy);
+//   m_channels[channel].proxy = repProxy;
+//   m_channels[channel].visible = !channel->isVisible();
+// 
+//   // Set repProxy's input.
+//   pqSMAdaptor::setInputProperty(repProxy->GetProperty("Input"),
+// 				source->getProxy(),
+// 				oport->getPortNumber());
+// 
+//   updateItem(item);
+// 
+//   // Add the reprProxy to renderer module.
+//   pqSMAdaptor::addProxyProperty(
+//     m_view->GetProperty("Representations"), repProxy);
+//   m_view->UpdateVTKObjects();
 
   return true;
 }
@@ -68,33 +63,34 @@ bool CrosshairRenderer::addItem(ModelItem* item)
 //-----------------------------------------------------------------------------
 bool CrosshairRenderer::updateItem(ModelItem* item)
 {
-  if (ModelItem::CHANNEL != item->type())
-    return false;
-
+  Q_ASSERT(false);
+//   if (ModelItem::CHANNEL != item->type())
+//     return false;
+// 
   bool updated = false;
-  Channel *channel = dynamic_cast<Channel *>(item);
-  Q_ASSERT(m_channels.contains(channel));
-  Representation &rep = m_channels[channel];
-  double pos[3];
-  channel->position(pos);
-  //TODO: update if position changes
-  if (channel->isVisible() != rep.visible
-    ||channel->color() != rep.color.hueF()
-    || memcmp(pos, rep.pos, 3*sizeof(double)))
-  {
-    rep.visible  = channel->isVisible();
-    rep.color.setHsvF(channel->color(),1.0,1.0);
-    memcpy(rep.pos, pos, 3*sizeof(double));
-
-    vtkSMPropertyHelper(rep.proxy, "Position").Set(pos,3);
-    double color = channel->color();
-    vtkSMPropertyHelper(rep.proxy, "Color").Set(&color,1);
-    vtkSMPropertyHelper(rep.proxy, "Visibility").Set(rep.visible && m_enable);
-    double opacity = 1.0;//suggestedChannelOpacity();
-    vtkSMPropertyHelper(rep.proxy, "Opacity").Set(&opacity,1);
-    rep.proxy->UpdateVTKObjects();
-    updated = true;
-  }
+//   Channel *channel = dynamic_cast<Channel *>(item);
+//   Q_ASSERT(m_channels.contains(channel));
+//   Representation &rep = m_channels[channel];
+//   double pos[3];
+//   channel->position(pos);
+//   //TODO: update if position changes
+//   if (channel->isVisible() != rep.visible
+//     ||channel->color() != rep.color.hueF()
+//     || memcmp(pos, rep.pos, 3*sizeof(double)))
+//   {
+//     rep.visible  = channel->isVisible();
+//     rep.color.setHsvF(channel->color(),1.0,1.0);
+//     memcpy(rep.pos, pos, 3*sizeof(double));
+// 
+//     vtkSMPropertyHelper(rep.proxy, "Position").Set(pos,3);
+//     double color = channel->color();
+//     vtkSMPropertyHelper(rep.proxy, "Color").Set(&color,1);
+//     vtkSMPropertyHelper(rep.proxy, "Visibility").Set(rep.visible && m_enable);
+//     double opacity = 1.0;//suggestedChannelOpacity();
+//     vtkSMPropertyHelper(rep.proxy, "Opacity").Set(&opacity,1);
+//     rep.proxy->UpdateVTKObjects();
+//     updated = true;
+//   }
 
   return updated;
 }
@@ -102,18 +98,19 @@ bool CrosshairRenderer::updateItem(ModelItem* item)
 //-----------------------------------------------------------------------------
 bool CrosshairRenderer::removeItem(ModelItem* item)
 {
-  if (ModelItem::CHANNEL != item->type())
-    return false;
-
-  Channel *channel = dynamic_cast<Channel *>(item);
-  Q_ASSERT(m_channels.contains(channel));
-  vtkSMRepresentationProxy *repProxy = m_channels[channel].proxy;
-  // Remove the reprProxy to render module.
-  pqSMAdaptor::removeProxyProperty(
-    m_view->GetProperty("Representations"), repProxy);
-  m_view->UpdateVTKObjects();
-  repProxy->Delete();
-  m_channels.remove(channel);
+  Q_ASSERT(false);
+//   if (ModelItem::CHANNEL != item->type())
+//     return false;
+// 
+//   Channel *channel = dynamic_cast<Channel *>(item);
+//   Q_ASSERT(m_channels.contains(channel));
+//   vtkSMRepresentationProxy *repProxy = m_channels[channel].proxy;
+//   // Remove the reprProxy to render module.
+//   pqSMAdaptor::removeProxyProperty(
+//     m_view->GetProperty("Representations"), repProxy);
+//   m_view->UpdateVTKObjects();
+//   repProxy->Delete();
+//   m_channels.remove(channel);
 
   return true;
 }
@@ -122,23 +119,25 @@ bool CrosshairRenderer::removeItem(ModelItem* item)
 //-----------------------------------------------------------------------------
 void CrosshairRenderer::hide()
 {
-  foreach(Representation rep, m_channels)
-  {
-    vtkSMPropertyHelper(rep.proxy, "Visibility").Set(false);
-    rep.proxy->UpdateVTKObjects();
-  }
-  emit renderRequested();
+  Q_ASSERT(false);
+//   foreach(Representation rep, m_channels)
+//   {
+//     vtkSMPropertyHelper(rep.proxy, "Visibility").Set(false);
+//     rep.proxy->UpdateVTKObjects();
+//   }
+//   emit renderRequested();
 }
 
 //-----------------------------------------------------------------------------
 void CrosshairRenderer::show()
 {
-  foreach(Representation rep, m_channels)
-  {
-    vtkSMPropertyHelper(rep.proxy, "Visibility").Set(rep.visible);
-    rep.proxy->UpdateVTKObjects();
-  }
-  emit renderRequested();
+  Q_ASSERT(false);
+//   foreach(Representation rep, m_channels)
+//   {
+//     vtkSMPropertyHelper(rep.proxy, "Visibility").Set(rep.visible);
+//     rep.proxy->UpdateVTKObjects();
+//   }
+//   emit renderRequested();
 }
 
 

@@ -33,8 +33,8 @@
 MainToolBar::MainToolBar(QSharedPointer<EspinaModel> model, QWidget* parent)
 : QToolBar(parent)
 {
-//   setWindowTitle("EspinaModel");
   setObjectName("MainToolBar");
+  setWindowTitle("Main Tool Bar");
 
   m_toggleSegVisibility = addAction(//showIcon,
 				  tr("Toggle Segmentations Visibility"));

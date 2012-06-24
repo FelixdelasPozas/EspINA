@@ -19,13 +19,11 @@
 
 #include "EspinaWidget.h"
 
-#include <pq3DWidget.h>
 #include <vtkAbstractWidget.h>
-#include <vtkSMNewWidgetRepresentationProxy.h>
 #include <vtkWidgetRepresentation.h>
 
 //----------------------------------------------------------------------------
-SliceWidget::SliceWidget(pq3DWidget* widget)
+SliceWidget::SliceWidget(vtkAbstractWidget *widget)
 : m_widget(widget)
 {
 }
@@ -33,9 +31,10 @@ SliceWidget::SliceWidget(pq3DWidget* widget)
 //----------------------------------------------------------------------------
 void SliceWidget::setSlice(double pos, vtkPVSliceView::VIEW_PLANE plane)
 {
-  vtkAbstractWidget *aw = m_widget->getWidgetProxy()->GetWidget();
-  double *bounds = aw->GetRepresentation()->GetBounds();
-  bool visible = bounds[2*plane] <= pos && pos <= bounds[2*plane+1];
-  m_widget->setWidgetVisible(visible);
+  Q_ASSERT(false);
+//   vtkAbstractWidget *aw = m_widget->getWidgetProxy()->GetWidget();
+//   double *bounds = aw->GetRepresentation()->GetBounds();
+//   bool visible = bounds[2*plane] <= pos && pos <= bounds[2*plane+1];
+//   m_widget->setWidgetVisible(visible);
 }
 

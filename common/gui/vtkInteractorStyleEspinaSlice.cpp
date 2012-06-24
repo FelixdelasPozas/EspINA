@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2012  Jorge PeÃ±a Pastor <email>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,28 +17,15 @@
 */
 
 
-#ifndef SELECTABLEITEM_H
-#define SELECTABLEITEM_H
+#include "vtkInteractorStyleEspinaSlice.h"
 
-#include <common/model/ModelItem.h>
-#include <common/processing/pqData.h>
+#include <vtkObjectFactory.h>
 
-class vtkAlgorithmOutput;
 
-class SelectableItem
-: public ModelItem
-{
-public:
-  ~SelectableItem(){}
+vtkStandardNewMacro(vtkInteractorStyleEspinaSlice);
 
-  virtual bool isSelected() const {return m_isSelected;}
-  virtual void setSelected(bool value) {m_isSelected = value;}
-  virtual vtkAlgorithmOutput *volume() = 0;
 
-protected:
-  bool m_isSelected;
-};
-
-typedef QSharedPointer<SelectableItem> SelectableItemPtr;
-
-#endif // SELECTABLEITEM_H
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------

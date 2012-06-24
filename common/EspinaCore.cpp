@@ -21,17 +21,17 @@
 
 #include "model/EspinaModel.h"
 
-#include <QUndoStack>
+#include "cache/CachedObjectBuilder.h"
 #include "model/EspinaFactory.h"
 #include "model/Channel.h"
-#include <QColorDialog>
-#include <QApplication>
-#include "cache/CachedObjectBuilder.h"
 #include "undo/AddSample.h"
 #include "undo/AddChannel.h"
 #include "undo/AddRelation.h"
-#include "File.h"
+#include "IO/EspinaIO.h"
 
+#include <QUndoStack>
+#include <QColorDialog>
+#include <QApplication>
 
 EspinaCore *EspinaCore::m_singleton = NULL;
 
@@ -61,34 +61,33 @@ void EspinaCore::setActiveTaxonomy(TaxonomyNode* tax)
 }
 
 //------------------------------------------------------------------------
-bool EspinaCore::loadFile(const QString file)
+bool EspinaCore::loadFile(const QFileInfo file)
 {
   bool status = false;
-  const QString ext = File::extension(file);
-  if (ext == "pvd" || ext == "mha" || ext == "mhd")
+  const QString ext = file.completeSuffix();//:::fileName() extension(file);
+  if ("mha" == ext || "mhd" == ext || "tiff" == ext || "tif" == ext)
   {
     status = loadChannel(file);
+  } else if ("seg" == ext)
+  {
+    status = readSegFile(file);
   }else
-    status = EspinaFactory::instance()->readFile(file, ext);
+    status = EspinaFactory::instance()->readFile(file.absoluteFilePath(), ext);
 
   return status;
 }
 
 //------------------------------------------------------------------------
-bool EspinaCore::loadChannel(const QString file)
+bool EspinaCore::loadChannel(const QFileInfo file)
 {
   // Try to recover sample form DB using channel information
   Sample *existingSample = EspinaCore::instance()->sample();
 
   if (!existingSample)
   {
-    File channelFile(file);
-    // TODO: Check for channel sample
-    const QString SampleName  = channelFile.name();
-    const QString channelName = channelFile.extendedName(file);
-
+    // TODO: Look for real channel's sample in DB or prompt dialog
     // Try to recover sample form DB using channel information
-    Sample *sample = EspinaFactory::instance()->createSample(SampleName);
+    Sample *sample = EspinaFactory::instance()->createSample(file.baseName());
     EspinaCore::instance()->setSample(sample);
 
     m_undoStack->push(new AddSample(sample));
@@ -114,7 +113,7 @@ bool EspinaCore::loadChannel(const QString file)
     args.setColor(QColor(Qt::black).hueF());
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
-  Channel *channel = EspinaFactory::instance()->createChannel(file, args);
+  Channel *channel = EspinaFactory::instance()->createChannel(file.absoluteFilePath(), args);
 
   double pos[3];
   existingSample->position(pos);

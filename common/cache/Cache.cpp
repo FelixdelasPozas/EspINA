@@ -20,7 +20,6 @@
 #include "Cache.h"
 
 #include "common/processing/pqFilter.h"
-#include <pqLoadDataReaction.h>
 
 #include<QDebug>
 #define DEBUG_CACHE 0
@@ -63,29 +62,32 @@ void Cache::addReference(const Cache::Index& index)
 
 pqFilter *Cache::getEntry(const Cache::Index index)
 {
-  // First we try to recover the proxy from cache
+  // Cache HIT
   if (m_cachedProxies.contains(index))
   {
-//     CACHE_DEBUG(index << " HIT");
     return m_cachedProxies[index].filter;
   }
   else
   {
-    // Try to load from cache disk
-    QStringList fileName(m_diskCachePath.filePath(index + ".pvd"));
-    pqPipelineSource *diskSource = pqLoadDataReaction::loadData(fileName);
-    if( diskSource )
+    // Look for entry in disk cache
+    //TODO: Change segmentation format
+    QFileInfo cacheEntry = m_diskCachePath.filePath(index + ".pvd");
+    if (cacheEntry.exists())
     {
-//       CACHE_DEBUG(index << " HIT Disk Cache");
-      // insert it in the cache
-      pqFilter* filter = new pqFilter(diskSource, index);
-      insert(index, filter);
-      // The last vtkFilter inserted has incremented the refCounter in one
-      // because of intialization. But it is not used yet by anyone.
-      m_cachedProxies[index].refCounter--;
-      return filter;
-    }else{
-//       CACHE_DEBUG("Cache: " << index << "Failed to found entry");
+      Q_ASSERT(false);
+//       vtkAlgorithm *diskSource = reader::New();
+//       diskSource->SetFileName(cacheEntry.absoluteFilePath());
+//       // Disck Cache HIT
+//       pqFilter* filter = new pqFilter(diskSource, index);
+//       // update cache
+//       insert(index, filter);
+//       // The last vtkFilter inserted has incremented the refCounter in one
+//       // because of intialization. But it is not used yet by anyone.
+//       m_cachedProxies[index].refCounter--;
+//       return filter;
+    }else
+    {
+      //Cache MISS
       return NULL;
     }
   }
@@ -93,20 +95,21 @@ pqFilter *Cache::getEntry(const Cache::Index index)
 
 void Cache::removeReference(const Cache::Index& index)
 {
-  Q_ASSERT(m_cachedProxies.contains(index));
-  m_cachedProxies[index].refCounter--;
-  CACHE_DEBUG(index << "has" << m_cachedProxies[index].refCounter << "references");
-  if (m_cachedProxies[index].refCounter <= 0)
-  {
-    CACHE_DEBUG(index << "removed");
-    delete m_cachedProxies[index].filter;
-    m_cachedProxies.remove(index);
-    Q_ASSERT(!m_cachedProxies.contains(index));
-  }
+  Q_ASSERT(false);
+//   Q_ASSERT(m_cachedProxies.contains(index));
+//   m_cachedProxies[index].refCounter--;
+//   CACHE_DEBUG(index << "has" << m_cachedProxies[index].refCounter << "references");
+//   if (m_cachedProxies[index].refCounter <= 0)
+//   {
+//     CACHE_DEBUG(index << "removed");
+//     delete m_cachedProxies[index].filter;
+//     m_cachedProxies.remove(index);
+//     Q_ASSERT(!m_cachedProxies.contains(index));
+//   }
 }
 
 //-----------------------------------------------------------------------------
-void Cache::setWorkingDirectory(QFileInfo& sample)
+void Cache::setWorkingDirectory(const QFileInfo& sample)
 {
   m_diskCachePath = sample.filePath();
 //   qDebug() <<  "Cache Directory" << m_diskCachePath;
