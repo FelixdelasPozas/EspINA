@@ -331,7 +331,7 @@ QVTKWidget *SliceView::view()
 //-----------------------------------------------------------------------------
 vtkRenderWindow* SliceView::renderWindow()
 {
-	return NULL;
+	return m_view->GetRenderWindow();
 }
 
 //-----------------------------------------------------------------------------
@@ -772,52 +772,42 @@ void SliceView::addSegmentationRepresentation(Segmentation* seg)
 //-----------------------------------------------------------------------------
 void SliceView::removeSegmentationRepresentation(Segmentation* seg)
 {
-	Q_ASSERT(false);
-//   vtkSMProxy* viewModuleProxy = m_view->getProxy();
-//   Q_ASSERT(m_segmentations.contains(seg));
-//   RepInfo rep = m_segmentations[seg];
-//   // Remove the reprProxy to render module.
-//   pqSMAdaptor::removeProxyProperty(
-//     viewModuleProxy->GetProperty("Representations"), rep.proxy);
-//   viewModuleProxy->UpdateVTKObjects();
-//   m_view->getProxy()->UpdateVTKObjects();
-// 
-//   rep.proxy->Delete();
-//   m_segmentations.remove(seg);
+    Q_ASSERT(m_segmentations.contains(seg));
+
+    SliceRep rep = m_segmentations[seg];
+
+    m_renderer->RemoveActor(rep.slice);
+    m_segmentationPicker->DeletePickList(rep.slice);
+
+    // itkvtk filter is handled by a smartpointer, these two are not
+    rep.slice->Delete();
+    rep.resliceToColors->Delete();
+
+    m_segmentations.remove(seg);
+
+    forceRender();
 }
 
 //-----------------------------------------------------------------------------
 bool SliceView::updateSegmentationRepresentation(Segmentation* seg)
 {
-//   Q_ASSERT(m_segmentations.contains(seg));
-//   RepInfo &rep = m_segmentations[seg];
-//   if (seg->outputPort() != rep.outport)
-//   {
-//     //remove representation using previous proxy
-//     removeSegmentationRepresentation(seg);
-//     //add representation using new proxy
-//     addSegmentationRepresentation(seg);
-//     return true;
-//   }
-//   if (seg->isSelected() != rep.selected
-//     || seg->visible() != rep.visible
-//     || seg->data(Qt::DecorationRole).value<QColor>() != rep.color
-//     || seg->updateForced()
-//   )
-//   {
-//     rep.selected = seg->isSelected();
-//     rep.visible  = seg->visible();
-//     rep.color = seg->data(Qt::DecorationRole).value<QColor>();
-//     //   repProxy->PrintSelf(std::cout,vtkIndent(0));
-//     double color[3] = {rep.color.redF(), rep.color.greenF(), rep.color.blueF()};
-//     vtkSMPropertyHelper(rep.proxy, "RGBColor").Set(color,3);
-//     vtkSMPropertyHelper(rep.proxy, "Visibility").Set(rep.visible);
-//     double opacity = rep.selected?1.0:0.7;
-//     vtkSMPropertyHelper(rep.proxy, "Opacity").Set(&opacity, 1);
-//     rep.proxy->UpdateVTKObjects();
-//     return true;
-//   }
-	return false;
+    Q_ASSERT(m_segmentations.contains(seg));
+    SliceRep &rep = m_segmentations[seg];
+
+    if ((seg->isSelected() != rep.selected) || (seg->visible() != rep.visible) || (seg->data(Qt::DecorationRole).value<QColor>() != rep.color) || seg->updateForced())
+    {
+        rep.selected = seg->isSelected();
+        rep.visible = seg->visible();
+        rep.color = seg->data(Qt::DecorationRole).value<QColor>();
+
+        rep.resliceToColors->SetLookupTable(m_colorEngine->lut(seg));
+        rep.resliceToColors->Update();
+
+        double alpha = (rep.selected) ? 1.0 : 0.7;
+        m_segmentations[seg].slice->SetVisibility(seg->visible());
+        return true;
+    }
+    return false;
 }
 
 // //-----------------------------------------------------------------------------

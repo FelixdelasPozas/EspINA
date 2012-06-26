@@ -43,6 +43,7 @@ vtkLookupTable* TaxonomyColorEngine::lut(const Segmentation* seg)
 		QColor c = color(seg);
 
 		seg_lut = vtkLookupTable::New();
+		seg_lut->Allocate();
 		seg_lut->SetNumberOfTableValues(2);
 		seg_lut->Build();
 		seg_lut->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
