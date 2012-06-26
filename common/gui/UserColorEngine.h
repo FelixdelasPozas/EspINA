@@ -29,7 +29,7 @@ class UserColorEngine : public ColorEngine
 public:
   explicit UserColorEngine();
 
-  virtual vtkSMProxy* lut(const Segmentation* seg);
+  virtual vtkLookupTable* lut(const Segmentation* seg);
   virtual QColor color(const Segmentation* seg);
 
 private:
