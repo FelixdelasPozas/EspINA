@@ -28,19 +28,11 @@ SeedGrowSegmentation::Settings::Settings(BestPixelSelector *selector)
 {
   QSettings settings;
 
-  if (!settings.allKeys().contains(BEST_PIXEL))
-    settings.setValue(BEST_PIXEL,0);
-  if (!settings.allKeys().contains(DEFAULT_VOI_X))
-    settings.setValue(DEFAULT_VOI_X,60);
-  if (!settings.allKeys().contains(DEFAULT_VOI_Y))
-    settings.setValue(DEFAULT_VOI_Y,60);
-  if (!settings.allKeys().contains(DEFAULT_VOI_Z))
-    settings.setValue(DEFAULT_VOI_Z,60);
-
-  m_selector->setBestPixelValue(settings.value(BEST_PIXEL).toInt());
-  m_xSize = settings.value(DEFAULT_VOI_X).toInt();
-  m_ySize = settings.value(DEFAULT_VOI_Y).toInt();
-  m_zSize = settings.value(DEFAULT_VOI_Z).toInt();
+  m_selector->setBestPixelValue(settings.value(BEST_PIXEL, 0).toInt());
+  m_xSize   = settings.value(DEFAULT_VOI_X, 60).toInt();
+  m_ySize   = settings.value(DEFAULT_VOI_Y, 60).toInt();
+  m_zSize   = settings.value(DEFAULT_VOI_Z, 60).toInt();
+  m_closing = settings.value(CLOSING, -1).toInt();
 }
 
 //------------------------------------------------------------------------
@@ -87,3 +79,11 @@ int SeedGrowSegmentation::Settings::bestPixelValue() const
   return settings.value(BEST_PIXEL).toInt();
 }
 
+//------------------------------------------------------------------------
+void SeedGrowSegmentation::Settings::setClosing(int value)
+{
+  QSettings settings;
+
+  settings.setValue(CLOSING, value);
+  m_closing = value;
+}

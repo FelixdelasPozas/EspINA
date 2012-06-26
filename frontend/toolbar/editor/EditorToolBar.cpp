@@ -30,7 +30,10 @@
 #include <editor/ImageLogicCommand.h>
 #include <editor/PencilSelector.h>
 #include <editor/FreeFormSource.h>
-#include <editor/CODEFilter.h>
+#include <editor/ClosingFilter.h>
+#include <editor/ErodeFilter.h>
+#include <editor/DilateFilter.h>
+#include <editor/OpeningFilter.h>
 #include <undo/RemoveSegmentation.h>
 
 //----------------------------------------------------------------------------
@@ -154,14 +157,39 @@ class EditorToolBar::CODECommand :
 public QUndoCommand
 {
 public:
+  enum Operation
+  {
+    CLOSE,
+    OPEN,
+    DILATE,
+    ERODE
+  };
 
+public:
   explicit CODECommand(QList<Segmentation *> inputs,
-		      CODEFilter::Operation op,
+		      Operation op,
 		      unsigned int radius)
   {
     foreach(Segmentation *seg, inputs)
     {
-      m_filters << new CODEFilter(seg, op, radius);
+      Filter *filter;
+      switch (op)
+      {
+	case CLOSE:
+	  filter = new ClosingFilter(seg, radius);
+	  break;
+	case OPEN:
+	  filter = new OpeningFilter(seg, radius);
+	  break;
+	case DILATE:
+	  filter = new DilateFilter(seg, radius);
+	  break;
+	case ERODE:
+	  filter = new ErodeFilter(seg, radius);
+	  break;
+      }
+      m_filters << filter;
+      m_segmentations << EspinaFactory::instance()->createSegmentation(filter, 0);
     }
   }
 
@@ -169,12 +197,13 @@ public:
   {
     QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
 
-    foreach(Filter *filter, m_filters)
+    for(unsigned int i=0; i<m_filters.size(); i++)
     {
+      Filter       *filter = m_filters[i];
+      Segmentation *seg    = m_segmentations[i];
+
       model->addFilter(filter);
       //model->addRelation(m_channel, m_filter, "Channel");
-      Q_ASSERT(false);
-      Segmentation *seg;// = filter->product(0);
       seg->setTaxonomy(EspinaCore::instance()->activeTaxonomy());
       model->addSegmentation(seg);
       model->addRelation(filter, seg, "CreateSegmentation");
@@ -187,7 +216,7 @@ public:
 
 private:
   QList<Filter *> m_filters;
-  
+  QList<Segmentation *> m_segmentations;
 };
 
 //----------------------------------------------------------------------------
@@ -395,7 +424,7 @@ void EditorToolBar::erodeSegmentations()
   QList<Segmentation *> input = selectedSegmentations();
   if (input.size() > 0)
   {
-    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODEFilter::ERODE, 10));
+    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODECommand::ERODE, 10));
   }
 }
 
@@ -405,7 +434,7 @@ void EditorToolBar::dilateSegmentations()
   QList<Segmentation *> input = selectedSegmentations();
   if (input.size() > 0)
   {
-    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODEFilter::DILATE, 10));
+    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODECommand::DILATE, 10));
   }
 }
 
@@ -415,7 +444,7 @@ void EditorToolBar::openSegmentations()
   QList<Segmentation *> input = selectedSegmentations();
   if (input.size() > 0)
   {
-    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODEFilter::OPEN, 10));
+    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODECommand::OPEN, 10));
   }
 }
 
@@ -425,7 +454,7 @@ void EditorToolBar::closeSegmentations()
   QList<Segmentation *> input = selectedSegmentations();
   if (input.size() > 0)
   {
-    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODEFilter::CLOSE, 10));
+    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODECommand::CLOSE, 10));
   }
 }
 

@@ -219,7 +219,8 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
 	new SeedGrowSegmentationFilter(input,
 				     growSeed,
 				     threshold,
-				     VOI);
+				     VOI,
+				     m_settings->closing());
     Q_ASSERT(filter->numberOutputs() == 1);
 
     TaxonomyNode *tax = EspinaCore::instance()->activeTaxonomy();

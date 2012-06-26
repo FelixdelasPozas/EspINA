@@ -62,6 +62,7 @@ public:
   static const ModelItem::ArgumentId LTHRESHOLD;
   static const ModelItem::ArgumentId UTHRESHOLD;
   static const ModelItem::ArgumentId VOI;
+  static const ModelItem::ArgumentId CLOSE;
 
   class SArguments : public Arguments
   {
@@ -117,15 +118,28 @@ public:
       (*this)[VOI] = arg6(voi);
     }
     void voi(int value[6]) const {memcpy(value, m_VOI, 6*sizeof(int));}
- 
+
+    void setCloseValue(int value)
+    {
+      m_close = value;
+      (*this)[CLOSE] = QString::number(value);
+    }
+
+    int closeValue() const {return m_close;}
+
   private:
     int m_seed[3];
     int m_threshold[2];
     int m_VOI[6];
+    int m_close;
   };
 
 public:
-  explicit SeedGrowSegmentationFilter(SelectableItem *input, int seed[3], int threshold[2], int VOI[6]);
+  explicit SeedGrowSegmentationFilter(SelectableItem *input,
+				     int seed[3],
+				     int threshold[2],
+				     int VOI[6],
+				     int closing);
   /// Create a new filter from given arguments
   explicit SeedGrowSegmentationFilter(Arguments args);
   virtual ~SeedGrowSegmentationFilter();

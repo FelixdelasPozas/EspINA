@@ -26,6 +26,7 @@ const QString BEST_PIXEL("SeedGrowSegmentation::BestPixelValue");
 const QString DEFAULT_VOI_X("SeedGrowSegmentation::DafaultVOI::X");
 const QString DEFAULT_VOI_Y("SeedGrowSegmentation::DafaultVOI::Y");
 const QString DEFAULT_VOI_Z("SeedGrowSegmentation::DafaultVOI::Z");
+const QString CLOSING("SeedGrowSegmentation::Closing");
 
 class BestPixelSelector;
 
@@ -47,9 +48,12 @@ public:
   void setBestPixelValue(int value);
   int bestPixelValue() const;
 
+  void setClosing(int value);
+  int closing() const {return m_closing;}
+
 private:
   BestPixelSelector *m_selector;
-  int m_xSize, m_ySize, m_zSize;
+  int m_xSize, m_ySize, m_zSize, m_closing;
 };
 
 #endif // SETTINGS_H

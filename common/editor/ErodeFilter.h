@@ -17,32 +17,29 @@
 */
 
 
-#ifndef CODEFILTER_H
-#define CODEFILTER_H
+#ifndef ERODEFILTER_H
+#define ERODEFILTER_H
 
-#include <model/Filter.h>
 #include <model/Segmentation.h>
 
-static const QString CODE = "EditorToolBar::CODEFilter";
+#include <itkBinaryBallStructuringElement.h>
+#include <itkErodeObjectMorphologyImageFilter.h>
 
-class CODEFilter
+static const QString Erode = "EditorToolBar::ErodeFilter";
+
+class ErodeFilter
 : public Filter
 {
-public:
-  enum Operation
-  {
-    CLOSE,
-    OPEN,
-    DILATE,
-    ERODE
-  };
-
-  class CODEArguments;
+  typedef itk::BinaryBallStructuringElement<EspinaVolume::PixelType, 3> StructuringElementType;
+  typedef itk::ErodeObjectMorphologyImageFilter<EspinaVolume, EspinaVolume, StructuringElementType> bmcifType;
 
 public:
-  explicit CODEFilter(Segmentation *seg, Operation op, unsigned int radius);
-  explicit CODEFilter(Arguments args);
-  virtual ~CODEFilter();
+  class ErodeArguments;
+
+public:
+  explicit ErodeFilter(Segmentation *seg, unsigned int radius);
+  explicit ErodeFilter(Arguments args);
+  virtual ~ErodeFilter();
 
   void run();
 
@@ -57,43 +54,38 @@ public:
   virtual QWidget* createConfigurationWidget();
 
 private:
-  CODEArguments *m_args;
+  ErodeArguments *m_args;
+  Segmentation  *m_input;
+  EspinaVolume  *m_volume;
+
+  bmcifType::Pointer m_filter;
 };
 
-class CODEFilter::CODEArguments
+class ErodeFilter::ErodeArguments
 : public Arguments
 {
 public:
   static const ModelItem::ArgumentId INPUT;
-  static const ModelItem::ArgumentId OPERATION;
   static const ModelItem::ArgumentId RADIUS;
 
 public:
-  explicit CODEArguments(){}
-  explicit CODEArguments(const Arguments args);
+  explicit ErodeArguments(){}
+  explicit ErodeArguments(const Arguments args);
 
   void setInput(Segmentation * seg)
   {
     (*this)[INPUT] = seg->id();
   }
 
-  void setOperation(Operation op)
-  {
-    m_operation = op;
-    (*this)[OPERATION] = QString::number(op);
-  }
-  Operation operation() const {return m_operation;}
-
   void setRadius(unsigned int radius)
   {
     m_radius = radius;
-    (*this)[OPERATION] = QString::number(radius);
+    (*this)[RADIUS] = QString::number(radius);
   }
   unsigned int radius() const {return m_radius;}
 
 private:
-  Operation    m_operation;
   unsigned int m_radius;
 };
 
-#endif // CODEFILTER_H
+#endif // ERODEFILTER_H

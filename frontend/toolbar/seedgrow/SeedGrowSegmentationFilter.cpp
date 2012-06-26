@@ -45,6 +45,7 @@ const ArgumentId SeedGrowSegmentationFilter::SEED = ArgumentId("Seed", true);
 const ArgumentId SeedGrowSegmentationFilter::LTHRESHOLD = ArgumentId("LowerThreshold", true);
 const ArgumentId SeedGrowSegmentationFilter::UTHRESHOLD = ArgumentId("UpperThreshold", true);
 const ArgumentId SeedGrowSegmentationFilter::VOI = ArgumentId("VOI", true);
+const ArgumentId SeedGrowSegmentationFilter::CLOSE = ArgumentId("Close", true);
 
 const unsigned char LABEL_VALUE = 255;
 
@@ -70,9 +71,12 @@ SeedGrowSegmentationFilter::SArguments::SArguments(const ModelItem::Arguments ar
   m_VOI[5] = voi[5].toInt();
 }
 
-
 //-----------------------------------------------------------------------------
-SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(SelectableItem* input, int seed[3], int threshold[2], int VOI[6])
+SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(SelectableItem* input,
+						     int seed[3],
+						     int threshold[2],
+						     int VOI[6],
+						     int closing)
 : m_input(input->volume())
 , m_volume(NULL)
 {
@@ -81,6 +85,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(SelectableItem* input, in
   m_args.setLowerThreshold(threshold[0]);
   m_args.setUpperThreshold(threshold[1]);
   m_args.setVOI(VOI);
+  m_args.setCloseValue(closing);
 
   update();
 }
@@ -183,8 +188,6 @@ void SeedGrowSegmentationFilter::run()
     voi[sup] = std::min(voi[sup], inputExtent[sup]);
   }
 
-  try
-  {
   qDebug() << "Apply VOI";
   extractFilter = ExtractType::New();
   ExtractType::InputImageRegionType roi;
@@ -256,33 +259,26 @@ void SeedGrowSegmentationFilter::run()
   //writer->SetInput(extract->GetOutput());
   //writer->Write();
 
-  qDebug() << "Closing Segmentation";
-  StructuringElementType ball;
-  ball.SetRadius(4);
-  ball.CreateStructuringElement();
-
-  bmcif = bmcifType::New();
-  bmcif->SetInput(ctif->GetOutput());
-  bmcif->SetKernel(ball);
-  bmcif->SetForegroundValue(LABEL_VALUE);
-//   bmcif->ReleaseDataFlagOn();
-  bmcif->Update();
-
-  m_volume = bmcif->GetOutput(0);
-
-//   m_segImg->DeepCopy(itk2vtk_filter->GetOutput());
-// 
-//   m_filterOutput = m_segImg->GetProducerPort();
-// 
-//   if (!m_seg)
-//     m_seg = EspinaFactory::instance()->createSegmentation(this, 0);
-// //   else
-// //     setEspinaVolume(m_seg, segFilter->data(0));
-// 
-//   emit modified(this);
-  }catch(...)
+  if (m_args.closeValue() > 0)
   {
+    qDebug() << "Closing Segmentation";
+    StructuringElementType ball;
+    ball.SetRadius(4);
+    ball.CreateStructuringElement();
+
+    bmcif = bmcifType::New();
+    bmcif->SetInput(ctif->GetOutput());
+    bmcif->SetKernel(ball);
+    bmcif->SetForegroundValue(LABEL_VALUE);
+    //   bmcif->ReleaseDataFlagOn();
+    bmcif->Update();
+
+    m_volume = bmcif->GetOutput();
   }
+  else
+    m_volume = ctif->GetOutput();
+
+  emit modified(this);
 }
 
 

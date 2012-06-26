@@ -52,7 +52,8 @@ void ImageLogicCommand::redo()
   {
     model->addRelation(seg, m_filter, "Add");
   }
-  Segmentation *seg = m_filter->product(0);
+  Q_ASSERT(false);
+  Segmentation *seg;// = m_filter->product(0);
   seg->setTaxonomy(EspinaCore::instance()->activeTaxonomy());
   model->addSegmentation(seg);
   foreach(Channel *channel, channels)
@@ -69,7 +70,8 @@ void ImageLogicCommand::undo()
 {
   QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
 
-  Segmentation *seg = m_filter->product(0);
+  Q_ASSERT(false);
+  Segmentation *seg;// = m_filter->product(0);
 
   foreach(ModelItem::Relation relation,  seg->relations())
   {

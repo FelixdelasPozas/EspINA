@@ -51,22 +51,13 @@ public:
   virtual QString serialize() const;
 
   /// Implements Filter Interface
-  virtual int numProducts() const;
-  virtual Segmentation* product(int index) const;
   virtual int numberOutputs() const{}
   virtual EspinaVolume* output(int i) const{}
 
-  virtual pqData preview();
   virtual QWidget* createConfigurationWidget();
-
-protected:
-virtual vtkAlgorithmOutput* output(unsigned int outputNb){ Q_ASSERT(false);return NULL;}
 
 private:
   ILFArguments *m_args;
-
-  pqFilter     *m_filter;
-  Segmentation *m_seg;
 };
 
 

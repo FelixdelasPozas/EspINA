@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2012  Jorge PeÃ±a Pastor <email>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,96 +16,114 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ImageLogicFilter.h"
 
-#include <processing/pqFilter.h>
-#include <cache/CachedObjectBuilder.h>
+#include "OpeningFilter.h"
+
 #include <model/EspinaFactory.h>
-#include <vtkImageAlgorithm.h>
+
+#include <QDebug>
+#include <QApplication>
+
+const unsigned int LABEL_VALUE = 255;
 
 //-----------------------------------------------------------------------------
-ImageLogicFilter::ImageLogicFilter(QList<Segmentation *> input,
-				   ImageLogicFilter::Operation op)
-: m_args  (new ILFArguments())
+OpeningFilter::OpeningFilter(Segmentation* seg, unsigned int radius)
+: m_args(new OpeningArguments())
+, m_input(seg)
+, m_volume(NULL)
 {
-  m_args->setInput(input);
-  m_args->setOperation(op);
+  m_args->setInput(seg);
+  m_args->setRadius(radius);
 
+  update();
+}
+
+//-----------------------------------------------------------------------------
+OpeningFilter::OpeningFilter(ModelItem::Arguments args)
+: m_args(new OpeningArguments(args))
+, m_input(NULL)
+, m_volume(NULL)
+{
+  Q_ASSERT(false);
   run();
 }
 
 //-----------------------------------------------------------------------------
-ImageLogicFilter::ImageLogicFilter(ModelItem::Arguments args)
-: m_args(new ILFArguments(args))
-{
-  run();
-}
-
-//-----------------------------------------------------------------------------
-ImageLogicFilter::~ImageLogicFilter()
+OpeningFilter::~OpeningFilter()
 {
   delete m_args;
 }
 
 //-----------------------------------------------------------------------------
-void ImageLogicFilter::run()
+void OpeningFilter::run()
 {
-//   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-// 
-//   QString segId = id() + "_0";
-//   if ((m_filter = cob->loadFile(segId)) == NULL)
-//   {
-//     pqFilter::Arguments logic;
-//     logic << pqFilter::Argument("Input",pqFilter::Argument::INPUT, m_args->value(ILFArguments::INPUT));
-//     logic << pqFilter::Argument("Operation",pqFilter::Argument::INTVECT, m_args->value(ILFArguments::OPERATION));
-//     m_filter = cob->createFilter("filters","ImageLogicFilter", logic);
-//     Q_ASSERT(m_filter->getNumberOfData() == 1);
-//   }
-// 
-//   m_filter->algorithm()->Update();
-// 
-//   m_seg = EspinaFactory::instance()->createSegmentation(this, 0);
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  qDebug() << "Compute Image Opening";
+  StructuringElementType ball;
+  ball.SetRadius(m_args->radius());
+  ball.CreateStructuringElement();
+
+  m_filter = FilterType::New();
+  m_filter->SetInput(m_input->volume());
+  m_filter->SetKernel(ball);
+  m_filter->SetForegroundValue(LABEL_VALUE);
+  m_filter->Update();
+  QApplication::restoreOverrideCursor();
+
+  m_volume = m_filter->GetOutput();
 }
 
 //-----------------------------------------------------------------------------
-QString ImageLogicFilter::id() const
+QString OpeningFilter::id() const
 {
   return m_args->hash();
 }
 
 //-----------------------------------------------------------------------------
-QVariant ImageLogicFilter::data(int role) const
+QVariant OpeningFilter::data(int role) const
 {
   if (role == Qt::DisplayRole)
-    return ILF;
+    return Opening;
   else
     return QVariant();
 }
 
 //-----------------------------------------------------------------------------
-QString ImageLogicFilter::serialize() const
+QString OpeningFilter::serialize() const
 {
   return m_args->serialize();
 }
 
 //-----------------------------------------------------------------------------
-QWidget* ImageLogicFilter::createConfigurationWidget()
+int OpeningFilter::numberOutputs() const
+{
+ return m_volume?1:0;
+}
+
+//-----------------------------------------------------------------------------
+EspinaVolume* OpeningFilter::output(int i) const
+{
+  if (m_volume && i == 0)
+    return m_volume;
+
+  Q_ASSERT(false);
+  return NULL;
+}
+
+//-----------------------------------------------------------------------------
+QWidget* OpeningFilter::createConfigurationWidget()
 {
   return NULL;
 }
 
 //-----------------------------------------------------------------------------
 typedef ModelItem::ArgumentId ArgumentId;
-const ArgumentId ImageLogicFilter::ILFArguments::INPUT = ArgumentId("INPUT", true);
-const ArgumentId ImageLogicFilter::ILFArguments::OPERATION = ArgumentId("Operation", true);
+const ArgumentId OpeningFilter::OpeningArguments::INPUT = ArgumentId("INPUT", true);
+const ArgumentId OpeningFilter::OpeningArguments::RADIUS = ArgumentId("Radius", true);
 
 //-----------------------------------------------------------------------------
-ImageLogicFilter::ILFArguments::ILFArguments(const Arguments args)
+OpeningFilter::OpeningArguments::OpeningArguments(const Arguments args)
 : Arguments(args)
 {
-  QStringList input = args[INPUT].split(",");
   //TODO: Recover segmentation pointers
-
-  m_operation = Operation(args[OPERATION].toInt());
-
 }

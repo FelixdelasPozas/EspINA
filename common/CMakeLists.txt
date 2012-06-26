@@ -68,12 +68,11 @@ set (CORE_SOURCES
   editor/PencilSelector.cpp
   editor/FreeFormSource.cpp
   editor/ImageLogicCommand.cpp
-  editor/CODEFilter.cpp
+  editor/ClosingFilter.cpp
+  editor/OpeningFilter.cpp
+  editor/DilateFilter.cpp
+  editor/ErodeFilter.cpp
   editor/ImageLogicFilter.cpp
-  editor/vtkClosingImageFilter.cpp
-  editor/vtkOpeningImageFilter.cpp
-  editor/vtkDilateImageFilter.cpp
-  editor/vtkErodeImageFilter.cpp
   editor/vtkImageLogicFilter.cpp
   editor/vtkFreeFormSource.cpp
   IO/EspinaIO.cpp
