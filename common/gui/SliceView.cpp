@@ -331,10 +331,6 @@ QVTKWidget *SliceView::view()
 //-----------------------------------------------------------------------------
 vtkRenderWindow* SliceView::renderWindow()
 {
-	Q_ASSERT(false);
-//   vtkSMSliceViewProxy* view =
-//     vtkSMSliceViewProxy::SafeDownCast(m_view->getProxy());
-//   return view->GetRenderWindow();
 	return NULL;
 }
 
