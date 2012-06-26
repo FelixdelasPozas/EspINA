@@ -39,7 +39,14 @@ SeedGrowSegmentation::SettingsPanel::SettingsPanel(SeedGrowSegmentation::Setting
   displayColor(pixelValue->value());
   xSize->setValue(settings->xSize());
   ySize->setValue(settings->ySize());
+  qDebug() << "Closing" << settings->closing();
+  bool closingActive = settings->closing()>0;
+  applyClosing->setChecked(closingActive);
+  closing->setEnabled(closingActive);
   closing->setValue(settings->closing());
+
+  connect(applyClosing, SIGNAL(toggled(bool)),
+	 closing, SLOT(setEnabled(bool)));
 }
 
 //------------------------------------------------------------------------
@@ -52,7 +59,7 @@ void SeedGrowSegmentation::SettingsPanel::acceptChanges()
   if (applyClosing->isChecked())
     m_settings->setClosing(closing->value());
   else
-    m_settings->setClosing(-1);
+    m_settings->setClosing(0);
 }
 
 //------------------------------------------------------------------------
@@ -62,7 +69,7 @@ bool SeedGrowSegmentation::SettingsPanel::modified() const
   || ySize->value() != m_settings->ySize()
   || zSize->value() != m_settings->zSize()
   || pixelValue->value() != m_settings->bestPixelValue()
-  || applyClosing->isChecked()?closing->value():-1 != m_settings->closing();
+  || (applyClosing->isChecked()?closing->value():0) != m_settings->closing();
 }
 
 

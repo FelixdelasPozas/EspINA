@@ -32,7 +32,7 @@ SeedGrowSegmentation::Settings::Settings(BestPixelSelector *selector)
   m_xSize   = settings.value(DEFAULT_VOI_X, 60).toInt();
   m_ySize   = settings.value(DEFAULT_VOI_Y, 60).toInt();
   m_zSize   = settings.value(DEFAULT_VOI_Z, 60).toInt();
-  m_closing = settings.value(CLOSING, -1).toInt();
+  m_closing = settings.value(CLOSING, 0).toInt();
 }
 
 //------------------------------------------------------------------------
