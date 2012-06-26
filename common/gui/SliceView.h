@@ -185,10 +185,8 @@ class SliceView: public QWidget, public SelectableView
 		void buildTitle();
 		void setupUI();
 	private:
-		typedef itk::ImageToVTKImageFilter<EspinaVolume> itk2vtkFilterType;
 		struct SliceRep
 		{
-				itk2vtkFilterType::Pointer itk2vtk;
 				vtkImageResliceToColors *resliceToColors;
 				vtkImageActor *slice;
 				bool visible;

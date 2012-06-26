@@ -66,13 +66,21 @@ Segmentation::Segmentation(Filter* filter, unsigned int outputNb) :
 	m_args[TAXONOMY] = "Unknown";
 	connect(filter, SIGNAL(modified(ModelItem *)), this, SLOT(notifyModification()));
 	connect(&EspinaCore::instance()->colorSettings(), SIGNAL(colorEngineChanged()), this, SLOT(onColorEngineChanged()));
+
+    qDebug() << "Converting from ITK to VTK";
+    itk2vtk = itk2vtkFilterType::New();
+    itk2vtk->ReleaseDataFlagOn();
+    itk2vtk->SetInput(m_filter->output(m_args.outputNumber()));
+    itk2vtk->Update();
 }
 
 //------------------------------------------------------------------------
 void Segmentation::changeFilter(Filter* filter, unsigned int outputNb)
 {
-  m_filter = filter;
-  m_args.setOutputNumber(outputNb);
+    itk2vtk->SetInput(filter->output(outputNb));
+    itk2vtk->Update();
+    m_filter = filter;
+    m_args.setOutputNumber(outputNb);
 }
 
 //------------------------------------------------------------------------
@@ -95,7 +103,7 @@ Segmentation::~Segmentation()
 //------------------------------------------------------------------------
 EspinaVolume *Segmentation::volume()
 {
-	return m_filter->output(m_args.outputNumber());
+    return m_filter->output(m_args.outputNumber());
 }
 
 //------------------------------------------------------------------------
@@ -284,4 +292,9 @@ void Segmentation::onColorEngineChanged()
 		m_color = color;
 		notifyModification();
 	}
+}
+
+vtkAlgorithmOutput* Segmentation::image()
+{
+    return itk2vtk->GetOutput()->GetProducerPort();
 }

@@ -28,6 +28,8 @@
 #include "common/selection/SelectableItem.h"
 #include <itkImageIOBase.h>
 #include <itkImageFileReader.h>
+#include <itkImageToVTKImageFilter.h>
+#include <vtkAlgorithmOutput.h>
 
 #include <QColor>
 #include <QFileInfo>
@@ -142,6 +144,9 @@ public:
   /// Selectable Item Interface
   EspinaVolume *volume();
 
+  // vtk image of the channel
+  vtkAlgorithmOutput* image();
+
   /// Add a new extension to the segmentation
   /// Extesion won't be available until requirements are satisfied
   void addExtension(ChannelExtension *ext);
@@ -160,5 +165,7 @@ private:
 //   QMap<ExtensionId, IChannelExtension *> m_pendingExtensions;
 //   QList<IChannelExtension *> m_insertionOrderedExtensions;
 //   QMap<IChannelRepresentation::RepresentationId, IChannelExtension *> m_representations;
+  typedef itk::ImageToVTKImageFilter<EspinaVolume> itk2vtkFilterType;
+  itk2vtkFilterType::Pointer itk2vtk;
 };
 #endif // CHANNEL_H

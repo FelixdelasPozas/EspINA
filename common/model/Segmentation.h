@@ -30,6 +30,8 @@
 #include "common/selection/SelectableItem.h"
 #include "common/model/Taxonomy.h"
 #include "Filter.h"
+#include <itkImageToVTKImageFilter.h>
+#include <vtkAlgorithmOutput.h>
 
 // Forward declarations
 class Sample;
@@ -108,6 +110,8 @@ public:
   /// Selectable Item Interface
   virtual EspinaVolume *volume();
 
+  virtual vtkAlgorithmOutput* image();
+
   void setNumber(unsigned int number) {m_args.setNumber(number);}
   unsigned int number() const {return m_args.number();}
   void setTaxonomy(TaxonomyNode *tax);
@@ -141,6 +145,10 @@ private:
   bool m_isVisible;
   QColor m_color;
   //   mutable double m_bounds[6];
+
+  // itk to vtk filter
+  typedef itk::ImageToVTKImageFilter<EspinaVolume> itk2vtkFilterType;
+  itk2vtkFilterType::Pointer itk2vtk;
 
   friend class Filter;
 };

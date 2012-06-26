@@ -660,19 +660,10 @@ void SliceView::addChannelRepresentation(Channel* channel)
 
 	SliceRep channelRep;
 
-	//TODO: Move conversion inside Segmentation API to avoid pipeline replication
-	//      in different views
-	qDebug() << "Converting from ITK to VTK";
-	channelRep.itk2vtk = itk2vtkFilterType::New();
-	channelRep.itk2vtk->ReleaseDataFlagOn();
-	channelRep.itk2vtk->SetInput(channel->volume());
-	channelRep.itk2vtk->Update();
-	vtkAlgorithmOutput *volume = channelRep.itk2vtk->GetOutput()->GetProducerPort();
-
 	channelRep.resliceToColors = vtkImageResliceToColors::New();
 	channelRep.resliceToColors->ReleaseDataFlagOn();
 	channelRep.resliceToColors->SetResliceAxes(m_slicingMatrix);
-	channelRep.resliceToColors->SetInputConnection(volume);
+	channelRep.resliceToColors->SetInputConnection(channel->image());
 	channelRep.resliceToColors->SetOutputDimensionality(2);
 
 	channelRep.slice = vtkImageActor::New();
@@ -737,17 +728,10 @@ void SliceView::addSegmentationRepresentation(Segmentation* seg)
 
 	SliceRep segRep;
 
-	qDebug() << "Converting from ITK to VTK";
-	segRep.itk2vtk = itk2vtkFilterType::New();
-	segRep.itk2vtk->ReleaseDataFlagOn();
-	segRep.itk2vtk->SetInput(seg->volume());
-	segRep.itk2vtk->Update();
-	vtkAlgorithmOutput *volume = segRep.itk2vtk->GetOutput()->GetProducerPort();
-
 	segRep.resliceToColors = vtkImageResliceToColors::New();
 	segRep.resliceToColors->ReleaseDataFlagOn();
 	segRep.resliceToColors->SetResliceAxes(m_slicingMatrix);
-	segRep.resliceToColors->SetInputConnection(volume);
+	segRep.resliceToColors->SetInputConnection(seg->image());
 	segRep.resliceToColors->SetOutputDimensionality(2);
 
 	segRep.resliceToColors->SetLookupTable(m_colorEngine->lut(seg));
@@ -803,14 +787,13 @@ bool SliceView::updateSegmentationRepresentation(Segmentation* seg)
         rep.resliceToColors->SetLookupTable(m_colorEngine->lut(seg));
         rep.resliceToColors->Update();
 
-        double alpha = (rep.selected) ? 1.0 : 0.7;
         m_segmentations[seg].slice->SetVisibility(seg->visible());
         return true;
     }
     return false;
 }
 
-// //-----------------------------------------------------------------------------
+// //-----------------------------------º------------------------------------------
 // void SliceView::addRepresentation(pqOutputPort* oport, QColor color)
 // {
 //   pqPipelineSource *source = oport->getSource();

@@ -157,6 +157,12 @@ Channel::Channel(const QFileInfo file, const Arguments args)
     m_bounds[min] = m_extent[min]*spacing[i];
     m_bounds[max] = m_extent[max]*spacing[i];
   }
+
+  qDebug() << "Converting from ITK to VTK (channel)";
+  itk2vtk = itk2vtkFilterType::New();
+  itk2vtk->ReleaseDataFlagOn();
+  itk2vtk->SetInput(m_volume);
+  itk2vtk->Update();
 }
 
 //-----------------------------------------------------------------------------
@@ -423,3 +429,8 @@ Sample *Channel::sample()
 //   foreach(IChannelExtension *ext, m_insertionOrderedExtensions)
 //     ext->initialize(this);
 // }
+
+vtkAlgorithmOutput* Channel::image()
+{
+    return itk2vtk->GetOutput()->GetProducerPort();
+}
