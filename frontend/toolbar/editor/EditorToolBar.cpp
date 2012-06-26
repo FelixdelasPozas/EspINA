@@ -45,10 +45,10 @@ public:
   , m_filter  (filter)
   , m_taxonomy(taxonomy)
   {
-    ModelItem::Vector samples = m_channel->relatedItems(ModelItem::IN, "mark");
-    Q_ASSERT(samples.size() > 0);
-    m_sample = dynamic_cast<Sample *>(samples.first());
-    m_seg = m_filter->product(0);
+//     ModelItem::Vector samples = m_channel->relatedItems(ModelItem::IN, "mark");
+//     Q_ASSERT(samples.size() > 0);
+//     m_sample = dynamic_cast<Sample *>(samples.first());
+//     m_seg = m_filter->product(0);
   }
 
   virtual void redo()
@@ -173,7 +173,8 @@ public:
     {
       model->addFilter(filter);
       //model->addRelation(m_channel, m_filter, "Channel");
-      Segmentation *seg = filter->product(0);
+      Q_ASSERT(false);
+      Segmentation *seg;// = filter->product(0);
       seg->setTaxonomy(EspinaCore::instance()->activeTaxonomy());
       model->addSegmentation(seg);
       model->addRelation(filter, seg, "CreateSegmentation");
@@ -324,15 +325,15 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
   else
     Q_ASSERT(false);
 
-  if (!m_currentSeg && m_currentSource->numProducts() == 1)
-  {
-    m_currentSeg = m_currentSource->product(0);
-    TaxonomyNode *tax = EspinaCore::instance()->activeTaxonomy();
-    undo->push(new FreeFormCommand(channel, m_currentSource, tax));
-  }
-
-  //if (m_currentSeg)
-    //m_currentSeg->notifyModification(true);
+//   if (!m_currentSeg && m_currentSource->numProducts() == 1)
+//   {
+//     m_currentSeg = m_currentSource->product(0);
+//     TaxonomyNode *tax = EspinaCore::instance()->activeTaxonomy();
+//     undo->push(new FreeFormCommand(channel, m_currentSource, tax));
+//   }
+// 
+//   //if (m_currentSeg)
+//     //m_currentSeg->notifyModification(true);
 }
 
 //----------------------------------------------------------------------------

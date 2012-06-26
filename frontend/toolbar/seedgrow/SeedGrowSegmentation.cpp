@@ -62,7 +62,7 @@ SeedGrowSegmentation::UndoCommand::UndoCommand(Channel* channel,
   ModelItem::Vector samples = m_channel->relatedItems(ModelItem::IN, "mark");
   Q_ASSERT(samples.size() > 0);
   m_sample = dynamic_cast<Sample *>(samples.first());
-  m_seg = m_filter->product(0);
+  m_seg = EspinaFactory::instance()->createSegmentation(m_filter, 0);
 }
 
 
@@ -198,7 +198,7 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
       channel->spacing(spacing);
       for (int i=0; i<6; i++)
 	VOI[i] = bounds[i] / spacing[i/2];
-      qDebug() << VOI[0] << VOI[1] << VOI[2] << VOI[3] << VOI[4] << VOI[5];
+      //qDebug() << VOI[0] << VOI[1] << VOI[2] << VOI[3] << VOI[4] << VOI[5];
     }
     else if (m_useDefaultVOI->useDefaultVOI())
     {
@@ -220,7 +220,7 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
 				     growSeed,
 				     threshold,
 				     VOI);
-    Q_ASSERT(filter->numProducts() == 1);
+    Q_ASSERT(filter->numberOutputs() == 1);
 
     TaxonomyNode *tax = EspinaCore::instance()->activeTaxonomy();
     Q_ASSERT(tax);

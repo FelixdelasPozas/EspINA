@@ -19,6 +19,7 @@
 
 #include "EspinaFactory.h"
 
+#include "common/model/Segmentation.h"
 #include "common/extensions/Margins/MarginsChannelExtension.h"
 #include "common/extensions/Margins/MarginsSegmentationExtension.h"
 #include "common/extensions/Morphological/MorphologicalExtension.h"

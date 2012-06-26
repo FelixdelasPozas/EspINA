@@ -43,19 +43,14 @@ public:
   virtual QString serialize() const;
 
   /// Implements Filter Interface
-  virtual int numProducts() const;
-  virtual Segmentation* product(int index) const;
+  virtual int numberOutputs() const;
+  virtual EspinaVolume* output(int i) const;
+  virtual void run(){}
 
-  virtual pqData preview();
   virtual QWidget* createConfigurationWidget();
-
-protected:
-  virtual vtkAlgorithmOutput* output(unsigned int outputNb){ Q_ASSERT(false);return NULL;}
 
 private:
   Arguments     m_args;
-  pqFilter     *m_source;
-  Segmentation *m_seg;
   bool          m_hasPixels;
 };
 

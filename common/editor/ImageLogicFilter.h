@@ -21,6 +21,7 @@
 #define IMAGELOGICFILTER_H
 
 #include <model/Filter.h>
+#include <model/Segmentation.h>
 
 static const QString ILF = "EditorToolBar::ImageLogicFilter";
 
@@ -52,6 +53,8 @@ public:
   /// Implements Filter Interface
   virtual int numProducts() const;
   virtual Segmentation* product(int index) const;
+  virtual int numberOutputs() const{}
+  virtual EspinaVolume* output(int i) const{}
 
   virtual pqData preview();
   virtual QWidget* createConfigurationWidget();

@@ -34,6 +34,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
 #include <vtkPropPicker.h>
+#include <itkImageToVTKImageFilter.h>
 
 class vtkImageResliceToColors;
 class vtkImageActor;
@@ -186,8 +187,10 @@ protected:
   void buildTitle();
   void setupUI();
 private:
+  typedef itk::ImageToVTKImageFilter<EspinaVolume> itk2vtkFilterType;
   struct SliceRep
   {
+    itk2vtkFilterType::Pointer itk2vtk;
     vtkImageResliceToColors *resliceToColors;
     vtkImageActor           *slice;
     bool                     visible;

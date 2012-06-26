@@ -20,6 +20,7 @@
 #include "TaxonomyProxy.h"
 
 #include "common/EspinaCore.h"
+#include "common/model/Segmentation.h"
 
 #include <QMimeData>
 #include <QPixmap>

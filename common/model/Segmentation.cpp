@@ -63,8 +63,8 @@ Segmentation::Segmentation(Filter* filter, unsigned int outputNb)
 , m_isVisible(true)
 {
   m_isSelected = false;
-  memset(m_bounds, 0, 6*sizeof(double));
-  m_bounds[1] = -1;
+//   memset(m_bounds, 0, 6*sizeof(double));
+//   m_bounds[1] = -1;
   m_args.setNumber(0);
   m_args[FILTER] = m_filter->id();
   m_args.setOutputNumber(outputNb);
@@ -93,7 +93,7 @@ Segmentation::~Segmentation()
 }
 
 //------------------------------------------------------------------------
-vtkAlgorithmOutput *Segmentation::output()
+EspinaVolume *Segmentation::volume()
 {
   return m_filter->output(m_args.outputNumber());
 }
@@ -110,7 +110,6 @@ QVariant Segmentation::data(int role) const
   switch (role)
   {
     case Qt::DisplayRole:
-//     //case Qt::EditRole:
       return QString("Segmentation %1").arg(m_args.number());
     case Qt::DecorationRole:
     {
@@ -127,8 +126,6 @@ QVariant Segmentation::data(int role) const
 	"<b>Users:</b><br>"
         "%4<br>"
 	"<b>Id:</b> %5<br>"
-// 	"<b>Created by:</b><br>"
-// 	"%4"
       )
       .arg(data(Qt::DisplayRole).toString())
       .arg(m_taxonomy->qualifiedName())
@@ -210,17 +207,17 @@ void Segmentation::setTaxonomy(TaxonomyNode* tax)
   m_args[TAXONOMY] = Argument(tax->qualifiedName());
 }
 
-void Segmentation::bounds(double val[3])
-//------------------------------------------------------------------------
-{
-  if (m_bounds[1] < m_bounds[0])
-  {
-    output()->GetProducer()->Update();
-    vtkImageData *image = vtkImageData::SafeDownCast(output());
-    image->GetBounds(m_bounds);
-  }
-  memcpy(val,m_bounds,6*sizeof(double));
-}
+// void Segmentation::bounds(double val[3])
+// //------------------------------------------------------------------------
+// {
+//   if (m_bounds[1] < m_bounds[0])
+//   {
+//     output()->GetProducer()->Update();
+//     vtkImageData *image = vtkImageData::SafeDownCast(output());
+//     image->GetBounds(m_bounds);
+//   }
+//   memcpy(val,m_bounds,6*sizeof(double));
+// }
 
 //------------------------------------------------------------------------
 void Segmentation::setVisible(bool visible)

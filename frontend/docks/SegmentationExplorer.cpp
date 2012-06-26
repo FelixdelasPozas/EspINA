@@ -31,6 +31,7 @@
 #include "SegmentationDelegate.h"
 #include "common/model/proxies/SampleProxy.h"
 #include "common/model/proxies/TaxonomyProxy.h"
+#include <model/Segmentation.h>
 
 #include <iostream>
 #include <cstdio>

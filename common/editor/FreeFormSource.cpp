@@ -35,51 +35,47 @@ const ArgumentId SPACING = ArgumentId("SPACING", true);
 
 //-----------------------------------------------------------------------------
 FreeFormSource::FreeFormSource(double spacing[3])
-: m_source(NULL)
-, m_seg(NULL)
-, m_hasPixels(false)
+: m_hasPixels(false)
 {
-  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-
-  //WARNING: Efecto 3000!
-  m_args[ID] = QDateTime::currentDateTime().toString("ddMMyyhhmmss");
-  //qDebug() << m_args[ID] << id();
-
-  pqFilter::Arguments args;
-  m_args[SPACING] = QString("%1,%2,%3")
-                     .arg(spacing[0]).arg(spacing[1]).arg(spacing[2]);
-// 		     .arg(extent[3]).arg(extent[4]).arg(extent[5]);
-
-  args << pqFilter::Argument("Id", pqFilter::Argument::UNKOWN, m_args[ID]);
-  args << pqFilter::Argument("Spacing",pqFilter::Argument::DOUBLEVECT, m_args[SPACING]);
-  m_source = cob->createFilter("sources","FreeFormSource", args, false, true);
-  Q_ASSERT(m_source->getNumberOfData() == 1);
-
-  if (!m_seg)
-    m_seg = EspinaFactory::instance()->createSegmentation(this, 0);
+//   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+// 
+//   //WARNING: Efecto 3000!
+//   m_args[ID] = QDateTime::currentDateTime().toString("ddMMyyhhmmss");
+//   //qDebug() << m_args[ID] << id();
+// 
+//   pqFilter::Arguments args;
+//   m_args[SPACING] = QString("%1,%2,%3")
+//                      .arg(spacing[0]).arg(spacing[1]).arg(spacing[2]);
+// // 		     .arg(extent[3]).arg(extent[4]).arg(extent[5]);
+// 
+//   args << pqFilter::Argument("Id", pqFilter::Argument::UNKOWN, m_args[ID]);
+//   args << pqFilter::Argument("Spacing",pqFilter::Argument::DOUBLEVECT, m_args[SPACING]);
+//   m_source = cob->createFilter("sources","FreeFormSource", args, false, true);
+//   Q_ASSERT(m_source->getNumberOfData() == 1);
+// 
+//   if (!m_seg)
+//     m_seg = EspinaFactory::instance()->createSegmentation(this, 0);
 }
 
 //-----------------------------------------------------------------------------
 FreeFormSource::FreeFormSource(ModelItem::Arguments args)
 : m_args(args)
-, m_source(NULL)
-, m_seg(NULL)
 , m_hasPixels(false)
 {
-  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-
-  QString segId = id() + "_0";
-  if ((m_source = cob->loadFile(segId)) == NULL)
-  {
-    pqFilter::Arguments sourceArgs;
-    sourceArgs << pqFilter::Argument("Spacing",pqFilter::Argument::DOUBLEVECT, m_args[SPACING]);
-    m_source = cob->createFilter("sources","FreeFormSource", sourceArgs);
-    Q_ASSERT(m_source->getNumberOfData() == 1);
-  }
-
-  Q_ASSERT(m_source);
-  if (!m_seg)
-    m_seg = EspinaFactory::instance()->createSegmentation(this, 0);
+//   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+// 
+//   QString segId = id() + "_0";
+//   if ((m_source = cob->loadFile(segId)) == NULL)
+//   {
+//     pqFilter::Arguments sourceArgs;
+//     sourceArgs << pqFilter::Argument("Spacing",pqFilter::Argument::DOUBLEVECT, m_args[SPACING]);
+//     m_source = cob->createFilter("sources","FreeFormSource", sourceArgs);
+//     Q_ASSERT(m_source->getNumberOfData() == 1);
+//   }
+// 
+//   Q_ASSERT(m_source);
+//   if (!m_seg)
+//     m_seg = EspinaFactory::instance()->createSegmentation(this, 0);
 }
 
 //-----------------------------------------------------------------------------
@@ -156,22 +152,15 @@ QString FreeFormSource::serialize() const
 }
 
 //-----------------------------------------------------------------------------
-int FreeFormSource::numProducts() const
+int FreeFormSource::numberOutputs() const
 {
-  return m_source && m_seg && m_hasPixels?1:0;
+//   return m_source && m_seg && m_hasPixels?1:0;
 }
 
 //-----------------------------------------------------------------------------
-Segmentation* FreeFormSource::product(int index) const
+EspinaVolume* FreeFormSource::output(int i) const
 {
-  Q_ASSERT(m_source->getNumberOfData() > 0);
-  return m_seg;
-}
-
-//-----------------------------------------------------------------------------
-pqData FreeFormSource::preview()
-{
-  return pqData(NULL, -1);
+  //Q_ASSERT(m_source->getNumberOfData() > 0);
 }
 
 //-----------------------------------------------------------------------------

@@ -25,8 +25,6 @@
 //-----------------------------------------------------------------------------
 CODEFilter::CODEFilter(Segmentation* seg, CODEFilter::Operation op, unsigned int radius)
 : m_args(new CODEArguments())
-, m_filter(NULL)
-, m_seg(NULL)
 {
   m_args->setInput(seg);
   m_args->setOperation(op);
@@ -47,45 +45,40 @@ CODEFilter::~CODEFilter()
 {
   delete m_args;
 
-  if (m_seg)
-    delete m_seg;
-
-  if (m_filter)
-    delete m_filter;
 }
 
 //-----------------------------------------------------------------------------
 void CODEFilter::run()
 {
-  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-
-  QString segId = id() + "_0";
-  if ((m_filter = cob->loadFile(segId)) == NULL)
-  {
-    pqFilter::Arguments args;
-    args << pqFilter::Argument("Input",pqFilter::Argument::INPUT, m_args->value(CODEArguments::INPUT));
-    args << pqFilter::Argument("Radius",pqFilter::Argument::INTVECT, m_args->value(CODEArguments::RADIUS));
-    args << pqFilter::Argument("Operation",pqFilter::Argument::UNKOWN, m_args->value(CODEArguments::OPERATION));
-    switch (m_args->operation())
-    {
-      case CLOSE:
-	m_filter = cob->createFilter("filters","ClosingImageFilter", args);
-	break;
-      case OPEN:
-	m_filter = cob->createFilter("filters","OpeningImageFilter", args);
-	break;
-      case DILATE:
-	m_filter = cob->createFilter("filters","DilateImageFilter", args);
-	break;
-      case ERODE:
-	m_filter = cob->createFilter("filters","ErodeImageFilter", args);
-	break;
-    }
-    Q_ASSERT(m_filter->getNumberOfData() == 1);
-  }
-  m_filter->algorithm()->Update();
-
-  m_seg = EspinaFactory::instance()->createSegmentation(this, 0);
+//   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+// 
+//   QString segId = id() + "_0";
+//   if ((m_filter = cob->loadFile(segId)) == NULL)
+//   {
+//     pqFilter::Arguments args;
+//     args << pqFilter::Argument("Input",pqFilter::Argument::INPUT, m_args->value(CODEArguments::INPUT));
+//     args << pqFilter::Argument("Radius",pqFilter::Argument::INTVECT, m_args->value(CODEArguments::RADIUS));
+//     args << pqFilter::Argument("Operation",pqFilter::Argument::UNKOWN, m_args->value(CODEArguments::OPERATION));
+//     switch (m_args->operation())
+//     {
+//       case CLOSE:
+// 	m_filter = cob->createFilter("filters","ClosingImageFilter", args);
+// 	break;
+//       case OPEN:
+// 	m_filter = cob->createFilter("filters","OpeningImageFilter", args);
+// 	break;
+//       case DILATE:
+// 	m_filter = cob->createFilter("filters","DilateImageFilter", args);
+// 	break;
+//       case ERODE:
+// 	m_filter = cob->createFilter("filters","ErodeImageFilter", args);
+// 	break;
+//     }
+//     Q_ASSERT(m_filter->getNumberOfData() == 1);
+//   }
+//   m_filter->algorithm()->Update();
+// 
+//   m_seg = EspinaFactory::instance()->createSegmentation(this, 0);
 }
 
 //-----------------------------------------------------------------------------
@@ -110,23 +103,16 @@ QString CODEFilter::serialize() const
 }
 
 //-----------------------------------------------------------------------------
-int CODEFilter::numProducts() const
+int CODEFilter::numberOutputs() const
 {
-  return m_filter?1:0;
+//  return m_filter?1:0;
 }
 
 //-----------------------------------------------------------------------------
-Segmentation* CODEFilter::product(int index) const
+EspinaVolume* CODEFilter::output(int i) const
 {
-  Q_ASSERT(m_filter->getNumberOfData() > index);
-  return m_seg;
-}
-
-//-----------------------------------------------------------------------------
-pqData CODEFilter::preview()
-{
-  Q_ASSERT(false);
-  return pqData(NULL, -1);
+//   Q_ASSERT(m_filter->getNumberOfData() > index);
+//   return m_seg;
 }
 
 //-----------------------------------------------------------------------------

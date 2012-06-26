@@ -33,72 +33,76 @@
 #include <QDebug>
 #include <QFileDialog>
 
+#include "EspinaTypes.h"
+#include <itkImageFileReader.h>
+#include <itkMetaImageIO.h>
+#include <itkTIFFImageIO.h>
+
 const ModelItem::ArgumentId Channel::ID = ArgumentId("Id", true);
 const ModelItem::ArgumentId Channel::PATH = ArgumentId("Path", true);
 const ModelItem::ArgumentId Channel::COLOR = ArgumentId("Color", true);
+const ModelItem::ArgumentId Channel::SPACING = ArgumentId("Spacing", true);
 
 const QString Channel::NAME   = "Name";
 const QString Channel::VOLUME = "Volumetric";
 
 //-----------------------------------------------------------------------------
-Channel::Channel(const QString file, pqData data)
-: m_data(data)
-, m_visible(true)
-{
-//   qDebug() << "Creating channel from data";
-  memset(m_bounds, 0, 6*sizeof(double));
-  memset(m_extent, 0, 6*sizeof(int));
-  memset(m_spacing, 0, 3*sizeof(double));
-  m_bounds[1] = m_extent[1] = -1;
-  memset(m_pos, 0, 3*sizeof(double));
-  m_args[ID] = Argument(File::extendedName(file));
-  m_args[PATH] = Argument(file);
-  m_args.setColor(-1.0);
-  m_isSelected = false;
-
-  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-  pqFilter::Arguments infoArgs;
-  infoArgs << pqFilter::Argument("Input", pqFilter::Argument::INPUT, m_data.id());
-  double imgBounds[6], imgSpacing[3];
-  int imgExtent[6];
-  m_data.algorithm()->Update();
-  Q_ASSERT(false);
-//TODO:   vtkPVDataInformation *info = m_data.algorithm()->GetOutputPortInformation();
-//   info->GetExtent(imgExtent);
-//   info->GetBounds(imgBounds);
-//   imgSpacing[0] = imgBounds[1] / imgExtent[1];
-//   imgSpacing[1] = imgBounds[3] / imgExtent[3];
-//   imgSpacing[2] = imgBounds[5] / imgExtent[5];
-//   QString spacingArg = QString("%1,%2,%3").arg(imgSpacing[0]).arg(imgSpacing[1]).arg(imgSpacing[2]);
-//   infoArgs << pqFilter::Argument("Spacing", pqFilter::Argument::DOUBLEVECT, spacingArg);
-//   m_spacingFilter = cob->createFilter("filters", "InformationChanger", infoArgs);
-//   m_spacingFilter->pipelineSource()->updatePipeline();
-//   Q_ASSERT(m_spacingFilter->getNumberOfData() == 1);
-//   m_representations[VOLUME] = new Representation(m_spacingFilter->data(0));
-//   m_data = m_spacingFilter->data(0);
-}
+// Channel::Channel(const QString file, pqData data)
+// : m_data(data)
+// , m_visible(true)
+// {
+// //   qDebug() << "Creating channel from data";
+//   memset(m_bounds, 0, 6*sizeof(double));
+//   memset(m_extent, 0, 6*sizeof(int));
+//   memset(m_spacing, 0, 3*sizeof(double));
+//   m_bounds[1] = m_extent[1] = -1;
+//   memset(m_pos, 0, 3*sizeof(double));
+//   m_args[ID] = Argument(File::extendedName(file));
+//   m_args[PATH] = Argument(file);
+//   m_args.setColor(-1.0);
+//   m_isSelected = false;
+// 
+//   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+//   pqFilter::Arguments infoArgs;
+//   infoArgs << pqFilter::Argument("Input", pqFilter::Argument::INPUT, m_data.id());
+//   double imgBounds[6], imgSpacing[3];
+//   int imgExtent[6];
+//   m_data.algorithm()->Update();
+//   Q_ASSERT(false);
+// //TODO:   vtkPVDataInformation *info = m_data.algorithm()->GetOutputPortInformation();
+// //   info->GetExtent(imgExtent);
+// //   info->GetBounds(imgBounds);
+// //   imgSpacing[0] = imgBounds[1] / imgExtent[1];
+// //   imgSpacing[1] = imgBounds[3] / imgExtent[3];
+// //   imgSpacing[2] = imgBounds[5] / imgExtent[5];
+// //   QString spacingArg = QString("%1,%2,%3").arg(imgSpacing[0]).arg(imgSpacing[1]).arg(imgSpacing[2]);
+// //   infoArgs << pqFilter::Argument("Spacing", pqFilter::Argument::DOUBLEVECT, spacingArg);
+// //   m_spacingFilter = cob->createFilter("filters", "InformationChanger", infoArgs);
+// //   m_spacingFilter->pipelineSource()->updatePipeline();
+// //   Q_ASSERT(m_spacingFilter->getNumberOfData() == 1);
+// //   m_representations[VOLUME] = new Representation(m_spacingFilter->data(0));
+// //   m_data = m_spacingFilter->data(0);
+// }
 
 //-----------------------------------------------------------------------------
-Channel::Channel(const QString file, const Arguments args)
-: m_visible(true) //TODO: Should be persistent?
+Channel::Channel(const QFileInfo file, const Arguments args)
+: m_visible(true)
 , m_args(args)
 {
-  //qDebug() << "Creating channel from args" << file << args;
+  qDebug() << "Creating channel from args" << file.path() << args;
   memset(m_bounds, 0, 6*sizeof(double));
   memset(m_extent, 0, 6*sizeof(int));
-  memset(m_spacing, 0, 3*sizeof(double));
-  m_bounds[1] = m_extent[1] = -1;
   memset(m_pos, 0, 3*sizeof(double));
 
-//   QStringList input = m_args[ID].split(":");
-  m_args[ID] = Argument(File::extendedName(file));
-  if (QFile::exists(file))
+  m_args[ID] = Argument(file.fileName());
+  qDebug() << m_args;
+  qDebug() << m_args[PATH];
+  if (QFile::exists(file.absoluteFilePath()))
   {
-    m_args[PATH] = Argument(file);
+    m_args[PATH] = Argument(file.absoluteFilePath());
   } else if (!QFile::exists(m_args[PATH]))
   {
-    QString filters;// = readerFactory->GetSupportedFileTypes(server->session());
-    filters.replace("Meta Image Files", "Channel Files");
+    QString filters; //TODO: Get previous extension
     QFileDialog fileDialog(0,
 			  QString(),
 			  QString(),
@@ -112,102 +116,79 @@ Channel::Channel(const QString file, const Arguments args)
     m_args[PATH] = fileDialog.selectedFiles().first();
   }
 
-  qDebug() << m_args[PATH];
-  int port = 0;//input.last().toInt();
-  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-  pqFilter *channelReader = cob->loadFile(m_args[PATH]);
-  Q_ASSERT(port < channelReader->getNumberOfData());
-  m_data = pqData(channelReader, port);
+  double spacing[3];
+  m_args.spacing(spacing);
 
-  pqFilter::Arguments infoArgs;
-  infoArgs << pqFilter::Argument("Input", pqFilter::Argument::INPUT, m_data.id());
-  double imgBounds[6], imgSpacing[3];
-  int imgExtent[6];
-  m_data.algorithm()->Update();
-  //TODO:
-//   vtkPVDataInformation *info = outputPort()->getDataInformation();
-//   info->GetExtent(imgExtent);
-//   info->GetBounds(imgBounds);
-//   imgSpacing[0] = imgBounds[1] / imgExtent[1];
-//   imgSpacing[1] = imgBounds[3] / imgExtent[3];
-//   imgSpacing[2] = imgBounds[5] / imgExtent[5];
-//   QString spacingArg = QString("%1,%2,%3").arg(imgSpacing[0]).arg(imgSpacing[1]).arg(imgSpacing[2]);
-//   infoArgs << pqFilter::Argument("Spacing", pqFilter::Argument::DOUBLEVECT, spacingArg);
-//   m_spacingFilter = cob->createFilter("filters", "InformationChanger", infoArgs);
-//   m_spacingFilter->pipelineSource()->updatePipeline();
-//   Q_ASSERT(m_spacingFilter->getNumberOfData() == 1);
-//   m_representations[VOLUME] = new Representation(m_spacingFilter->data(0));
-//   m_data = m_spacingFilter->data(0);
+  typedef itk::ImageFileReader<EspinaVolume> EspinaVolumeReader;
+  reader = EspinaVolumeReader::New();
+
+  QString ext = file.suffix();
+  if ("mhd" == ext || "mha" == ext)
+    io = itk::MetaImageIO::New();
+  else if ("tif" == ext || "tiff" == ext)
+    io = itk::TIFFImageIO::New();
+  else
+  {
+    qWarning() << QString("Cached Object Builder: Couldn't load file %1."
+    "Extension not supported")
+    .arg(file.absoluteFilePath());
+    Q_ASSERT(false);
+  }
+  io->SetFileName(m_args[PATH].toAscii());
+  if (spacing[0] > 0)
+  {
+    for(int i=0; i<3; i++)
+      io->SetSpacing(i, spacing[i]);
+  }
+  reader->SetImageIO(io);
+  reader->SetFileName(m_args[PATH].toStdString());
+  reader->Update();
+  for(int i=0; i<3; i++)
+    spacing[i] = io->GetSpacing(i);
+  m_args.setSpacing(spacing);
+
+  m_volume = reader->GetOutput();
+  EspinaVolume::RegionType region = m_volume->GetRequestedRegion();
+  for(int i=0; i<3; i++)
+  {
+    int min = 2*i, max = 2*i+1;
+    m_extent[min] = region.GetIndex(i);
+    m_extent[max] = m_extent[min] + region.GetSize(i) - 1;
+    m_bounds[min] = m_extent[min]*spacing[i];
+    m_bounds[max] = m_extent[max]*spacing[i];
+  }
 }
 
 //-----------------------------------------------------------------------------
 Channel::~Channel()
 {
-  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-  cob->removeFilter(m_data.source());
+  m_volume->Delete();
 }
 
 
 //------------------------------------------------------------------------
-vtkAlgorithmOutput *Channel::outputPort()
+EspinaVolume *Channel::volume()
 {
-  return m_data.outputPort();
+  return m_volume;
 }
 
 
 //------------------------------------------------------------------------
 void Channel::extent(int *out)
 {
-  if (m_extent[1] < m_extent[0])
-  {
-    m_data.algorithm()->Update();
-    vtkImageData *volume = vtkImageData::SafeDownCast(m_data.algorithm()->GetOutputDataObject(0));
-    volume->GetExtent(m_extent);
-  }
   memcpy(out,m_extent,6*sizeof(int));
 }
 
 void Channel::bounds(double val[3])
 //------------------------------------------------------------------------
 {
-  if (m_bounds[1] < m_bounds[0])
-  {
-    m_data.algorithm()->Update();
-    vtkImageData *volume = vtkImageData::SafeDownCast(m_data.algorithm()->GetOutputDataObject(0));
-    volume->GetBounds(m_bounds);
-  }
   memcpy(val,m_bounds,6*sizeof(double));
 }
 
 //------------------------------------------------------------------------
 void Channel::spacing(double val[3])
 {
-/*   IChannelRepresentation *spatialRep;
-//   if ((spatialRep =  representation(SpatialExtension::ChannelRepresentation::ID)))
-//   {
-//     SpatialExtension::ChannelRepresentation* rep =
-//       dynamic_cast<SpatialExtension::ChannelRepresentation*>(spatialRep);
-//     rep->spacing(out);
-//   }else
-//   {
-//   int e[6];
-//   double b[6];
-*/
-  if (m_extent[1] < m_extent[0])
-    extent(m_extent);
-  if (m_bounds[1] < m_bounds[0])
-    bounds(m_bounds);
-
-  m_spacing[0] = m_bounds[1] / m_extent[1];
-  m_spacing[1] = m_bounds[3] / m_extent[3];
-  m_spacing[2] = m_bounds[5] / m_extent[5];
-
-  memcpy(val,m_spacing,3*sizeof(double));
-//   }
-//   qDebug() << "Spacing";
-//   qDebug() << e[0] << e[1] << e[2] << e[3] << e[4] << e[5];
-//   qDebug() << b[0] << b[1] << b[2] << b[3] << b[4] << b[5];
-//   qDebug() << val[0] << val[1] << val[2];
+  m_args.spacing(val);
 }
 
 //------------------------------------------------------------------------
@@ -254,7 +235,6 @@ QStringList Channel::availableRepresentations() const
   return representations;
 }
 
-
 //------------------------------------------------------------------------
 QVariant Channel::data(int role) const
 {
@@ -264,8 +244,6 @@ QVariant Channel::data(int role) const
       return m_args[ID];
     case Qt::CheckStateRole:
       return m_visible?Qt::Checked: Qt::Unchecked;
-//     case Qt::DecorationRole:
-//       return QColor(Qt::blue);
     default:
       return QVariant();
   }
@@ -344,41 +322,6 @@ Sample *Channel::sample()
 }
 
 
-// //-----------------------------------------------------------------------------
-// void Channel::setSpacing(double x, double y, double z)
-// {
-//   SpatialExtension::ChannelRepresentation* rep =
-//     dynamic_cast<SpatialExtension::ChannelRepresentation*>(representation(SpatialExtension::ChannelRepresentation::ID));
-//   double spacing[3];
-//   rep->spacing(spacing);
-//   if(spacing[0] != x || spacing[1] != y || spacing[2] != z)
-//   {
-//     assert(m_segs.empty());
-//     qDebug() << m_extensions.keys();
-//     rep->setSpacing(x, y, z);
-//   }
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void Channel::addSegmentation(Segmentation* seg)
-// {
-//   m_segs.push_back(seg);
-//   foreach(IChannelRepresentation::RepresentationId rep, availableRepresentations())
-//   {
-//     representation(rep)->requestUpdate();
-//   }
-// }
-// 
-// //------------------------------------------------------------------------
-// void Channel::removeSegmentation(Segmentation* seg)
-// {
-//   m_segs.removeOne(seg);
-//   foreach(IChannelRepresentation::RepresentationId rep, availableRepresentations())
-//   {
-//     representation(rep)->requestUpdate();
-//   }
-// }
-// 
 // //------------------------------------------------------------------------
 // void Channel::addExtension(IChannelExtension* ext)
 // {

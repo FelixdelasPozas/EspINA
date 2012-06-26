@@ -26,22 +26,27 @@
 #define CHANNEL_H
 
 #include "common/selection/SelectableItem.h"
+#include <itkImageIOBase.h>
+#include <itkImageFileReader.h>
 
-#include "common/processing/pqData.h"
-#include "common/File.h"
 #include <QColor>
+#include <QFileInfo>
 
 // Forward declarations
 class ChannelExtension;
 class vtkAlgorithmOutput;
 
-class Channel : public SelectableItem
+class Channel
+: public SelectableItem
 {
+  typedef itk::ImageFileReader<EspinaVolume> EspinaVolumeReader;
+
 public:
   // Argument Ids
   static const ArgumentId ID;
   static const ArgumentId PATH;
   static const ArgumentId COLOR;
+  static const ArgumentId SPACING;
 
 // Extended Information and representation tags
   static const QString NAME;
@@ -51,9 +56,18 @@ public:
   {
   public:
     explicit CArguments(){}
-//     explicit CArguments(const QMap< QString, QString >& args) : Arguments(args){}
-//     explicit CArguments(const QString args) : Arguments(args) {}
-    explicit CArguments(const Arguments args) : Arguments(args) {}
+    explicit CArguments(const Arguments args) : Arguments(args)
+    {
+      if (args.contains(SPACING))
+      {
+      QStringList spacing = args[SPACING].split(",");
+      for(int i=0; i<3; i++)
+	m_spacing[i] = spacing[i].toFloat();
+      } else
+      {
+	memset(m_spacing, 0,  3*sizeof(double));
+      }
+    }
 
     virtual ArgumentId argumentId(QString name) const
     {
@@ -75,14 +89,28 @@ public:
     {
       return (*this)[COLOR].toFloat();
     }
+
+    void setSpacing(double spacing[3])
+    {
+      memcpy(m_spacing, spacing, 3*sizeof(double));
+      (*this)[SPACING] = QString("%1,%2,%3")
+                         .arg(spacing[0])
+                         .arg(spacing[1])
+                         .arg(spacing[2]);
+    }
+    void spacing(double spacing[3])
+    {
+      memcpy(spacing, m_spacing, 3*sizeof(double));
+    }
+  private:
+    double m_spacing[3];
   };
 
 public:
-  explicit Channel(const QString file, pqData data);
-  explicit Channel(const QString file, const Arguments args);
+  //explicit Channel(const QString file, pqData data);
+  explicit Channel(const QFileInfo file, const Arguments args);
   virtual ~Channel();
 
-  vtkAlgorithmOutput *outputPort();
   void extent(int val[6]);
   void bounds(double val[6]);
   void spacing(double val[3]);
@@ -108,31 +136,29 @@ public:
   virtual QStringList availableRepresentations() const;
   virtual QVariant information(QString name);
 
+  /// Get the sample which channel belongs to
   Sample *sample();
 
   /// Selectable Item Interface
-  virtual vtkAlgorithmOutput *volume() {return m_data.outputPort();}
+  EspinaVolume *volume();
 
   /// Add a new extension to the segmentation
   /// Extesion won't be available until requirements are satisfied
   void addExtension(ChannelExtension *ext);
 
 private:
-  pqData m_data;
-  int    m_extent[6];
-  double m_bounds[6], m_spacing[3];
-  double m_pos[3];/*in nm*/
   bool   m_visible;
+  EspinaVolume *m_volume;
+  itk::ImageIOBase::Pointer io;
+  EspinaVolumeReader::Pointer reader;
 
+  int    m_extent[6];
+  double m_bounds[6];
+  double m_pos[3];/*in nm*/
   mutable CArguments m_args;
-
-  pqFilter *m_spacingFilter;
-//   QList<Segmentation *> m_segs;
-
 //   QMap<ExtensionId, IChannelExtension *> m_extensions;
 //   QMap<ExtensionId, IChannelExtension *> m_pendingExtensions;
 //   QList<IChannelExtension *> m_insertionOrderedExtensions;
 //   QMap<IChannelRepresentation::RepresentationId, IChannelExtension *> m_representations;
 };
-
 #endif // CHANNEL_H

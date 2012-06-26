@@ -22,6 +22,8 @@
 
 #include "common/pluginInterfaces/FilterFactory.h"
 #include "common/selection/SelectionHandler.h"
+#include <model/Taxonomy.h>
+#include <model/Segmentation.h>
 #include "SeedGrowSelector.h"
 
 #include <QSharedPointer>

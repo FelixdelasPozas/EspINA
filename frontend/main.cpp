@@ -16,31 +16,15 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <QApplication>
+#include <EspinaWindow.h>
 
-#ifndef SELECTABLEITEM_H
-#define SELECTABLEITEM_H
-
-#include <common/model/ModelItem.h>
-#include <common/processing/pqData.h>
-
-#include <EspinaTypes.h>
-
-class vtkAlgorithmOutput;
-
-class SelectableItem
-: public ModelItem
+int main(int argc, char **argv)
 {
-public:
-  ~SelectableItem(){}
+  QApplication app(argc, argv);
 
-  virtual bool isSelected() const {return m_isSelected;}
-  virtual void setSelected(bool value) {m_isSelected = value;}
-  virtual EspinaVolume *volume() = 0;
+  EspinaWindow espina;
+  espina.show();
 
-protected:
-  bool m_isSelected;
-};
-
-typedef QSharedPointer<SelectableItem> SelectableItemPtr;
-
-#endif // SELECTABLEITEM_H
+  return app.exec();
+}

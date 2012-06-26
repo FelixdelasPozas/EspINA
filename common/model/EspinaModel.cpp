@@ -624,7 +624,7 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
 	  Q_ASSERT(ancestors.size() == 1);
 	  Filter *filter =  dynamic_cast<Filter *>(ancestors.first().item);
 	  ModelItem::Arguments args(QString(v.args.c_str()));
-	  Segmentation *seg = filter->product(args[Segmentation::OUTPUT].toInt());
+	  Segmentation *seg = factory->createSegmentation(filter, args[Segmentation::OUTPUT].toInt());
 	  seg->setNumber(args[Segmentation::NUMBER].toInt());
 	  TaxonomyNode *taxonomy = m_tax->element(args[Segmentation::TAXONOMY]);
 	  if (taxonomy)

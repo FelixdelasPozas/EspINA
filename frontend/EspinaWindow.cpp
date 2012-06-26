@@ -371,6 +371,8 @@ void EspinaWindow::openAnalysis(const QString file)
   QElapsedTimer timer;
   timer.start();
 
+  QFileInfo fileInfo(file);
+
   QApplication::setOverrideCursor(Qt::WaitCursor);
   closeCurrentAnalysis();
   QApplication::restoreOverrideCursor();
@@ -381,7 +383,7 @@ void EspinaWindow::openAnalysis(const QString file)
     QMessageBox box(QMessageBox::Warning,
 		    tr("Espina"),
 	            tr("File %1 could not be loaded.\nDo you want to remove it from recent documents?")
-		    .arg(File::extendedName(file)),
+		    .arg(fileInfo.fileName()),
 		    QMessageBox::Yes|QMessageBox::No);
 
     if (box.exec() == QMessageBox::Yes)

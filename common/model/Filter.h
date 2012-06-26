@@ -22,12 +22,7 @@
 
 #include "common/model/ModelItem.h"
 
-#include "common/model/Segmentation.h"
-#include "common/processing/pqData.h"
-
-#include <QMap>
-
-class vtkAlgorithmOutput;
+#include <EspinaTypes.h>
 
 class Filter
 : public ModelItem
@@ -35,20 +30,26 @@ class Filter
 public:
   virtual ~Filter(){}
 
-  /// Implements Model Item Interface common to filters
+  // Implements Model Item Interface common to filters
   virtual ItemType type() const {return ModelItem::FILTER;}
 
-  /// Defines Filter's Interface
-  virtual int numProducts() const = 0;
-  virtual Segmentation *product(int index) const = 0;
+  // Defines Filter's Interface
+  /// Updates filter outputs.
+  /// If a snapshot exits it will try to load it
+  void update(){prefetchFilter(); run();}//TODO
+  /// Method which actually executes the filter
+  virtual void run() = 0;
+  /// Specify how many outputs this filter generates
+  virtual int numberOutputs() const = 0;
+  /// Return the i-th output
+  virtual EspinaVolume *output(int i) const = 0;
 
-  virtual pqData preview() = 0;
+  /// Return a widget used to configure filter's parameters
   virtual QWidget *createConfigurationWidget() = 0;
 
 protected:
-  virtual vtkAlgorithmOutput *output(unsigned int outputNb) = 0;
-
-  friend class Segmentation;
+  /// Try to locate an snapshot of the filter in the hard drive
+  virtual void prefetchFilter(){}
 };
 
 #endif // FILTER_H

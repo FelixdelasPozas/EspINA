@@ -23,6 +23,16 @@
 #include "common/processing/pqData.h"
 #include <common/model/Segmentation.h>
 
+#include <itkImage.h>
+#include <itkVTKImageToImageFilter.h>
+#include <itkImageToVTKImageFilter.h>
+#include <itkConnectedThresholdImageFilter.h>
+#include <itkStatisticsLabelObject.h>
+#include <itkLabelImageToShapeLabelMapFilter.h>
+#include <itkBinaryBallStructuringElement.h>
+#include <itkBinaryMorphologicalClosingImageFilter.h>
+#include <itkExtractImageFilter.h>
+
 // #include "ui_SeedGrowSegmentationFilterSetup.h"
 // class IVOI;
 
@@ -37,6 +47,14 @@ class SeedGrowSegmentationFilter
 : public Filter
 {
   class SetupWidget;
+
+  typedef itk::ExtractImageFilter<EspinaVolume, EspinaVolume> ExtractType;
+  typedef itk::ConnectedThresholdImageFilter<EspinaVolume, EspinaVolume> ConnectedThresholdFilterType;
+  typedef itk::StatisticsLabelObject<unsigned int, 3> LabelObjectType;
+  typedef itk::LabelMap<LabelObjectType> LabelMapType;
+  typedef itk::LabelImageToShapeLabelMapFilter<EspinaVolume, LabelMapType> Image2LabelFilterType;
+  typedef itk::BinaryBallStructuringElement<EspinaVolume::PixelType, 3> StructuringElementType;
+  typedef itk::BinaryMorphologicalClosingImageFilter<EspinaVolume, EspinaVolume, StructuringElementType> bmcifType;
 Q_OBJECT
 public:
   static const ModelItem::ArgumentId CHANNEL;
@@ -114,9 +132,10 @@ public:
 
   void run();
 
-  void setInput(pqData data);
-  void setThreshold(int th);
-  int threshold() const {return m_args.lowerThreshold();}
+  void setLowerThreshold(int th);
+  int lowerThreshold() const {return m_args.lowerThreshold();}
+  void setUpperThreshold(int th);
+  int upperThreshold() const {return m_args.upperThreshold();}
   void setSeed(int seed[3]);
   void seed(int seed[3]) const {m_args.seed(seed);}
   void setVOI(int VOI[6]);
@@ -128,22 +147,21 @@ public:
   virtual QString  serialize() const;
 
   /// Implements Filter Interface
-  pqData preview();
-  virtual int numProducts() const;
-  virtual Segmentation *product(int index) const;
+  virtual int numberOutputs() const;
+  virtual EspinaVolume* output(int i) const;
+
   virtual QWidget* createConfigurationWidget();
 
-protected:
-  virtual vtkAlgorithmOutput* output(unsigned int outputNb);
-
 private:
-  SArguments m_args;
-  pqFilter *grow, *extract, *close;
-  pqFilter *segFilter;
-  vtkImageData *m_segImg;
-  vtkAlgorithmOutput *m_filterOutput;
+  EspinaVolume *m_input;
+  EspinaVolume *m_volume;
 
-  Segmentation *m_seg;
+  ExtractType::Pointer extractFilter;
+  ConnectedThresholdFilterType::Pointer ctif;
+  Image2LabelFilterType::Pointer image2label;
+  bmcifType::Pointer bmcif;
+  SArguments    m_args;
+
   friend class SetupWidget;
 };
 

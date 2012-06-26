@@ -19,7 +19,8 @@
 
 #include "RemoveSegmentation.h"
 
-#include <common/EspinaCore.h>
+#include "common/EspinaCore.h"
+#include "common/model/Segmentation.h"
 
 
 //------------------------------------------------------------------------

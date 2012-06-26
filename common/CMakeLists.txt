@@ -111,6 +111,7 @@ set (CORE_SOURCES
   model/Sample.cpp
   model/Segmentation.cpp
   model/Taxonomy.cpp
+  EspinaTypes.cpp
   model/proxies/ChannelProxy.cpp
   model/proxies/SampleProxy.cpp
   model/proxies/TaxonomyProxy.cpp

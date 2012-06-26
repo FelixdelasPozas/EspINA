@@ -20,6 +20,7 @@
 #include "MainToolBar.h"
 
 #include <common/model/EspinaModel.h>
+#include <model/Segmentation.h>
 
 #include <QAction>
 #include <QComboBox>
@@ -28,6 +29,7 @@
 #include <EspinaCore.h>
 #include <selection/PixelSelector.h>
 #include <undo/RemoveSegmentation.h>
+#include <iostream>
 
 //----------------------------------------------------------------------------
 MainToolBar::MainToolBar(QSharedPointer<EspinaModel> model, QWidget* parent)
@@ -89,6 +91,8 @@ void MainToolBar::setShowSegmentations(bool visible)
     m_toggleSegVisibility->setIcon(QIcon(":/espina/show_all.svg"));
   else
     m_toggleSegVisibility->setIcon(QIcon(":/espina/hide_all.svg"));
+
+  EspinaCore::instance()->model()->relationships()->write(std::cout, RelationshipGraph::GRAPHVIZ);
 
   emit showSegmentations(visible);
 }

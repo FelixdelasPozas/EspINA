@@ -20,6 +20,7 @@
 #include "InformationProxy.h"
 
 #include "common/model/EspinaModel.h"
+#include <model/Segmentation.h>
 
 //------------------------------------------------------------------------
 void InformationProxy::setSourceModel(EspinaModel* sourceModel)

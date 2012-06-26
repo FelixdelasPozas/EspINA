@@ -20,6 +20,7 @@
 #include "common/gui/SliceView.h"
 
 // // EspINA
+#include "EspinaTypes.h"
 #include "common/settings/ISettingsPanel.h"
 #include "common/model/Channel.h"
 #include "common/model/Representation.h"
@@ -65,6 +66,7 @@
 #include <vtkImageResliceToColors.h>
 #include <vtkMatrix4x4.h>
 #include <vtkAlgorithmOutput.h>
+#include <itkImageToVTKImageFilter.h>
 
 
 // class MouseMoveCallback : public vtkCommand
@@ -697,12 +699,21 @@ void SliceView::addChannelRepresentation(Channel* channel)
   Q_ASSERT(!m_channels.contains(channel));
 
   SliceRep channelRep;
-  vtkAlgorithmOutput *volume = channel->volume();
+
+  //TODO: Move conversion inside Segmentation API to avoid pipeline replication
+  //      in different views
+  qDebug() << "Converting from ITK to VTK";
+  channelRep.itk2vtk = itk2vtkFilterType::New();
+  channelRep.itk2vtk->ReleaseDataFlagOn();
+  channelRep.itk2vtk->SetInput(channel->volume());
+  channelRep.itk2vtk->Update();
+  vtkAlgorithmOutput *volume = channelRep.itk2vtk->GetOutput()->GetProducerPort();
 
   channelRep.resliceToColors = vtkImageResliceToColors::New();
   channelRep.resliceToColors->ReleaseDataFlagOn();
   channelRep.resliceToColors->SetResliceAxes(m_slicingMatrix);
   channelRep.resliceToColors->SetInputConnection(volume);
+  channelRep.resliceToColors->SetOutputDimensionality(2);
 
   channelRep.slice = vtkImageActor::New();
   channelRep.slice->SetInterpolate(false);
@@ -767,12 +778,19 @@ void SliceView::addSegmentationRepresentation(Segmentation* seg)
   Q_ASSERT(!m_segmentations.contains(seg));
 
   SliceRep segRep;
-  vtkAlgorithmOutput *volume = seg->volume();
+
+  qDebug() << "Converting from ITK to VTK";
+  segRep.itk2vtk = itk2vtkFilterType::New();
+  segRep.itk2vtk->ReleaseDataFlagOn();
+  segRep.itk2vtk->SetInput(seg->volume());
+  segRep.itk2vtk->Update();
+  vtkAlgorithmOutput *volume = segRep.itk2vtk->GetOutput()->GetProducerPort();
 
   segRep.resliceToColors = vtkImageResliceToColors::New();
   segRep.resliceToColors->ReleaseDataFlagOn();
   segRep.resliceToColors->SetResliceAxes(m_slicingMatrix);
   segRep.resliceToColors->SetInputConnection(volume);
+  segRep.resliceToColors->SetOutputDimensionality(2);
   //TODO: Let color engine manage luts
   vtkLookupTable *lut = vtkLookupTable::New();
   lut->SetNumberOfTableValues(2);

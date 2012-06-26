@@ -21,6 +21,7 @@
 #define CODEFILTER_H
 
 #include <model/Filter.h>
+#include <model/Segmentation.h>
 
 static const QString CODE = "EditorToolBar::CODEFilter";
 
@@ -51,19 +52,12 @@ public:
   virtual QString serialize() const;
 
   /// Implements Filter Interface
-  virtual int numProducts() const;
-  virtual Segmentation* product(int index) const;
-
-  virtual pqData preview();
+  virtual int numberOutputs() const;
+  virtual EspinaVolume* output(int i) const;
   virtual QWidget* createConfigurationWidget();
-
-protected:
-  virtual vtkAlgorithmOutput* output(unsigned int outputNb){ Q_ASSERT(false);return NULL;}
 
 private:
   CODEArguments *m_args;
-  pqFilter      *m_filter;
-  Segmentation  *m_seg;
 };
 
 class CODEFilter::CODEArguments

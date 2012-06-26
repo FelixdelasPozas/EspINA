@@ -93,7 +93,6 @@ public:
   virtual ~Segmentation();
 
   Filter *filter() const {return m_filter;}
-  vtkAlgorithmOutput *output();
 
   /// Model Item Interface
   virtual QString id() const;
@@ -105,13 +104,13 @@ public:
   virtual void initializeExtensions();
 
   /// Selectable Item Interface
-  virtual vtkAlgorithmOutput *volume() {return output();}
+  virtual EspinaVolume *volume();
 
   void setNumber(unsigned int number) {m_args.setNumber(number);}
   unsigned int number() const {return m_args.number();}
   void setTaxonomy(TaxonomyNode *tax);
   TaxonomyNode *taxonomy() const {return m_taxonomy;}
-  void bounds(double val[3]);
+  //void bounds(double val[3]);
 
   // State
   bool visible() const {return m_isVisible;}
@@ -131,14 +130,15 @@ private slots:
   void onColorEngineChanged();
 
 private:
-  Filter             *m_filter;
-  SArguments          m_args;
-  TaxonomyNode       *m_taxonomy;
+  Filter               *m_filter;
+  EspinaVolume::Pointer m_volume;
+  SArguments            m_args;
+  TaxonomyNode         *m_taxonomy;
 
   bool           m_extInitialized;
   bool           m_isVisible;
   QColor         m_color;
-  mutable double m_bounds[6];
+//   mutable double m_bounds[6];
 
   friend class Filter;
 };
