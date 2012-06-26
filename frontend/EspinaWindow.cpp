@@ -55,6 +55,7 @@
 #include "toolbar/editor/EditorToolBar.h"
 #include "toolbar/seedgrow/SeedGrowSegmentation.h"
 #include "common/IO/vtkSegWriter.h"
+#include <IO/FilePack.h>
 
 #define DEBUG
 
@@ -500,39 +501,8 @@ void EspinaWindow::saveAnalysis()
 
     const QString analysisFile = fileDialog.selectedFiles().first();
 
-    vtkSmartPointer<vtkSegWriter> writer = vtkSmartPointer<vtkSegWriter>::New();
-    writer->SetFileName(analysisFile.toAscii());
-
-    // Set Taxonomy
-    QString taxonomySerialization;
-    IOTaxonomy::writeXMLTaxonomy(m_model->taxonomy(), taxonomySerialization);
-    writer->SetTaxonomy(taxonomySerialization.toAscii());
-
-    // Set Trace
-    std::ostringstream relationsSerialization;
-    m_model->serializeRelations(relationsSerialization);
-    writer->SetTrace(relationsSerialization.str().c_str());
-
-    // Save the segmentations in different files
-    QString filePath = analysisFile;
-    filePath.remove(QRegExp("\\..*$"));
-    QDir tmpDir(filePath);
-    Segmentation *seg;
-    foreach(seg, m_model->segmentations())
-    {
-      QString tmpfilePath(seg->id() + ".pvd");
-      tmpfilePath = tmpDir.filePath(tmpfilePath);
-      qDebug() << "EspINA::saveSegementation" << tmpfilePath;
-      //TODO:pqPipelineSource *segWriter = ob->createFilter("writers","XMLPVDWriter", seg->volume().pipelineSource(), seg->volume().portNumber());
-      //TODO:vtkSMPropertyHelper(segWriter->getProxy(), "FileName").Set(tmpfilePath.toStdString().c_str());
-      //TODO:segWriter->getProxy()->UpdateVTKObjects();
-      //TODO:segWriter->updatePipeline();
-      //       EspinaSaveDataReaction::saveActiveData(tmpfilePath);
-    }
-
-    //Update the pipeline to obtain the content of the file
-    writer->Update();
-    // Destroy de segFileWriter object
+    IOEspinaFile::saveFile(analysisFile,
+                           m_model);
 
     QApplication::restoreOverrideCursor();
     updateStatus(QString("File Saved Successfuly in %1").arg(analysisFile));

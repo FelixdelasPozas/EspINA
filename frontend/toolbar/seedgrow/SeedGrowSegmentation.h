@@ -51,8 +51,8 @@ class SeedGrowSegmentation
   {
   public:
     explicit UndoCommand(Channel * channel,
-			 SeedGrowSegmentationFilter *filter,
-			 TaxonomyNode *taxonomy);
+			SeedGrowSegmentationFilter *filter,
+			TaxonomyNode *taxonomy);
     virtual void redo();
     virtual void undo();
   private:

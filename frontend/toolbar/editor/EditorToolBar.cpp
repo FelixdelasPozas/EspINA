@@ -164,13 +164,13 @@ public:
     DILATE,
     ERODE
   };
-
 public:
   explicit CODECommand(QList<Segmentation *> inputs,
 		      Operation op,
 		      unsigned int radius)
+  : m_segmentations(inputs)
   {
-    foreach(Segmentation *seg, inputs)
+    foreach(Segmentation *seg, m_segmentations)
     {
       Filter *filter;
       switch (op)
@@ -188,8 +188,8 @@ public:
 	  filter = new ErodeFilter(seg, radius);
 	  break;
       }
-      m_filters << filter;
-      m_segmentations << EspinaFactory::instance()->createSegmentation(filter, 0);
+      m_newConnections << Connection(filter, 0);
+      m_oldConnections << Connection(seg->filter(), seg->outputNumber());
     }
   }
 
@@ -197,25 +197,42 @@ public:
   {
     QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
 
-    for(unsigned int i=0; i<m_filters.size(); i++)
+    for(unsigned int i=0; i<m_newConnections.size(); i++)
     {
-      Filter       *filter = m_filters[i];
-      Segmentation *seg    = m_segmentations[i];
+      Segmentation *seg        = m_segmentations[i];
+      Connection oldConnection = m_oldConnections[i];
+      Connection newConnection = m_newConnections[i];
 
-      model->addFilter(filter);
-      //model->addRelation(m_channel, m_filter, "Channel");
-      seg->setTaxonomy(EspinaCore::instance()->activeTaxonomy());
-      model->addSegmentation(seg);
-      model->addRelation(filter, seg, "CreateSegmentation");
-      //model->addRelation(m_sample, m_seg, "where");
-      //model->addRelation(m_channel, m_seg, "Channel");
-      seg->initialize();
+      model->removeRelation(oldConnection.first, seg, "CreateSegmentation");
+      model->addFilter(newConnection.first);
+      model->addRelation(oldConnection.first, newConnection.first, "Input");
+      model->addRelation(newConnection.first, seg, "CreateSegmentation");
+      seg->changeFilter(newConnection.first, newConnection.second);
+      seg->notifyModification();
     }
   }
-  virtual void undo(){}
+  virtual void undo()
+  {
+    QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
+
+    for(unsigned int i=0; i<m_newConnections.size(); i++)
+    {
+      Segmentation *seg        = m_segmentations[i];
+      Connection oldConnection = m_oldConnections[i];
+      Connection newConnection = m_newConnections[i];
+
+      model->removeRelation(newConnection.first, seg, "CreateSegmentation");
+      model->removeRelation(oldConnection.first, newConnection.first, "Input");
+      model->removeFilter(newConnection.first);
+      model->addRelation(oldConnection.first, seg, "CreateSegmentation");
+      seg->changeFilter(oldConnection.first, oldConnection.second);
+      seg->notifyModification();
+    }
+  }
 
 private:
-  QList<Filter *> m_filters;
+  typedef QPair<Filter *, unsigned int> Connection;
+  QList<Connection> m_oldConnections, m_newConnections;
   QList<Segmentation *> m_segmentations;
 };
 

@@ -69,6 +69,13 @@ Segmentation::Segmentation(Filter* filter, unsigned int outputNb) :
 }
 
 //------------------------------------------------------------------------
+void Segmentation::changeFilter(Filter* filter, unsigned int outputNb)
+{
+  m_filter = filter;
+  m_args.setOutputNumber(outputNb);
+}
+
+//------------------------------------------------------------------------
 Segmentation::~Segmentation()
 {
 //   int size = m_insertionOrderedExtensions.size()-1;
