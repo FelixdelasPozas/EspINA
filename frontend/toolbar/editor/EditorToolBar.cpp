@@ -187,7 +187,7 @@ public:
           filter = new ClosingFilter(inputs, args);
           break;
         case OPEN:
-          filter = new OpeningFilter(seg, radius);
+          filter = new OpeningFilter(inputs, args);
           break;
         case DILATE:
           filter = new DilateFilter(seg, radius);
@@ -312,6 +312,8 @@ Filter* EditorToolBar::createFilter(const QString filter, Filter::NamedInputs in
 {
   if (ClosingFilter::TYPE == filter)
     return new ClosingFilter(inputs, args);
+  if (OpeningFilter::TYPE == filter)
+    return new OpeningFilter(inputs, args);
 //   if (filter == FFS)
 //     return new FreeFormSource(inputs, args);
 //   else if (filter == ILF)
@@ -476,7 +478,7 @@ void EditorToolBar::openSegmentations()
   QList<Segmentation *> input = selectedSegmentations();
   if (input.size() > 0)
   {
-    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODECommand::OPEN, 10));
+    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODECommand::OPEN, 3));
   }
 }
 

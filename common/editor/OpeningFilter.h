@@ -25,8 +25,6 @@
 #include <itkBinaryBallStructuringElement.h>
 #include <itkBinaryMorphologicalOpeningImageFilter.h>
 
-static const QString Opening = "EditorToolBar::OpeningFilter";
-
 class OpeningFilter
 : public Filter
 {
@@ -34,11 +32,27 @@ class OpeningFilter
   typedef itk::BinaryMorphologicalOpeningImageFilter<EspinaVolume, EspinaVolume, StructuringElementType> FilterType;
 
 public:
-  class OpeningArguments;
+  static const QString TYPE;
+
+  static const ModelItem::ArgumentId RADIUS;
+
+  class OpeningArguments : public Arguments
+  {
+  public:
+  public:
+    explicit OpeningArguments(){}
+    explicit OpeningArguments(const Arguments args) : Arguments(args){}
+
+    void setRadius(unsigned int radius)
+    {
+      (*this)[RADIUS] = QString::number(radius);
+    }
+    unsigned int radius() const {return (*this)[RADIUS].toInt();}
+  };
 
 public:
-  explicit OpeningFilter(Segmentation *seg, unsigned int radius);
-  explicit OpeningFilter(Arguments args);
+  explicit OpeningFilter(NamedInputs inputs,
+                         Arguments args);
   virtual ~OpeningFilter();
 
   void run();
@@ -54,38 +68,14 @@ public:
   virtual QWidget* createConfigurationWidget();
 
 private:
-  OpeningArguments *m_args;
-  Segmentation  *m_input;
-  EspinaVolume  *m_volume;
+  NamedInputs      m_inputs;
+  OpeningArguments m_args;
+
+  EspinaVolume    *m_input;
+  EspinaVolume    *m_volume;
 
   FilterType::Pointer m_filter;
 };
 
-class OpeningFilter::OpeningArguments
-: public Arguments
-{
-public:
-  static const ModelItem::ArgumentId INPUT;
-  static const ModelItem::ArgumentId RADIUS;
-
-public:
-  explicit OpeningArguments(){}
-  explicit OpeningArguments(const Arguments args);
-
-  void setInput(Segmentation * seg)
-  {
-    (*this)[INPUT] = seg->id();
-  }
-
-  void setRadius(unsigned int radius)
-  {
-    m_radius = radius;
-    (*this)[RADIUS] = QString::number(radius);
-  }
-  unsigned int radius() const {return m_radius;}
-
-private:
-  unsigned int m_radius;
-};
 
 #endif // OPENINGFILTER_H

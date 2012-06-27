@@ -24,47 +24,45 @@
 #include <QDebug>
 #include <QApplication>
 
+const QString OpeningFilter::TYPE = "EditorToolBar::OpeningFilter";
+
+typedef ModelItem::ArgumentId ArgumentId;
+const ArgumentId OpeningFilter::RADIUS = ArgumentId("Radius", true);
+
 const unsigned int LABEL_VALUE = 255;
 
-//-----------------------------------------------------------------------------
-OpeningFilter::OpeningFilter(Segmentation* seg, unsigned int radius)
-: m_args(new OpeningArguments())
-, m_input(seg)
-, m_volume(NULL)
-{
-  m_args->setInput(seg);
-  m_args->setRadius(radius);
-
-  update();
-}
-
-//-----------------------------------------------------------------------------
-OpeningFilter::OpeningFilter(ModelItem::Arguments args)
-: m_args(new OpeningArguments(args))
+OpeningFilter::OpeningFilter(Filter::NamedInputs inputs,
+                             ModelItem::Arguments args)
+: m_inputs(inputs)
+, m_args(args)
 , m_input(NULL)
 , m_volume(NULL)
 {
-  Q_ASSERT(false);
-  run();
+  qDebug() << TYPE << "arguments" << m_args;
 }
+
 
 //-----------------------------------------------------------------------------
 OpeningFilter::~OpeningFilter()
 {
-  delete m_args;
+  qDebug() << "Destroying" << TYPE;
 }
 
 //-----------------------------------------------------------------------------
 void OpeningFilter::run()
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);
+
+  QStringList input = m_args[INPUTS].split("_");
+  m_input = m_inputs[input[0]]->output(input[1].toUInt());
+
   qDebug() << "Compute Image Opening";
   StructuringElementType ball;
-  ball.SetRadius(m_args->radius());
+  ball.SetRadius(m_args.radius());
   ball.CreateStructuringElement();
 
   m_filter = FilterType::New();
-  m_filter->SetInput(m_input->volume());
+  m_filter->SetInput(m_input);
   m_filter->SetKernel(ball);
   m_filter->SetForegroundValue(LABEL_VALUE);
   m_filter->Update();
@@ -76,14 +74,14 @@ void OpeningFilter::run()
 //-----------------------------------------------------------------------------
 QString OpeningFilter::id() const
 {
-  return m_args->hash();
+  return m_args[ID];
 }
 
 //-----------------------------------------------------------------------------
 QVariant OpeningFilter::data(int role) const
 {
   if (role == Qt::DisplayRole)
-    return Opening;
+    return TYPE;
   else
     return QVariant();
 }
@@ -91,13 +89,13 @@ QVariant OpeningFilter::data(int role) const
 //-----------------------------------------------------------------------------
 QString OpeningFilter::serialize() const
 {
-  return m_args->serialize();
+  return m_args.serialize();
 }
 
 //-----------------------------------------------------------------------------
 int OpeningFilter::numberOutputs() const
 {
- return m_volume?1:0;
+  return m_volume?1:0;
 }
 
 //-----------------------------------------------------------------------------
@@ -114,16 +112,4 @@ EspinaVolume* OpeningFilter::output(OutputNumber i) const
 QWidget* OpeningFilter::createConfigurationWidget()
 {
   return NULL;
-}
-
-//-----------------------------------------------------------------------------
-typedef ModelItem::ArgumentId ArgumentId;
-const ArgumentId OpeningFilter::OpeningArguments::INPUT = ArgumentId("INPUT", true);
-const ArgumentId OpeningFilter::OpeningArguments::RADIUS = ArgumentId("Radius", true);
-
-//-----------------------------------------------------------------------------
-OpeningFilter::OpeningArguments::OpeningArguments(const Arguments args)
-: Arguments(args)
-{
-  //TODO: Recover segmentation pointers
 }
