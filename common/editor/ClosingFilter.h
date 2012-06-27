@@ -56,8 +56,6 @@ public:
                          Arguments args);
   virtual ~ClosingFilter();
 
-  void run();
-
   /// Implements Model Item Interface
   virtual QString id() const;
   virtual QVariant data(int role) const;
@@ -66,6 +64,8 @@ public:
   /// Implements Filter Interface
   virtual int numberOutputs() const;
   virtual EspinaVolume* output(OutputNumber i) const;
+  void run();
+
   virtual QWidget* createConfigurationWidget();
 
 private:

@@ -75,10 +75,10 @@ Segmentation::Segmentation(Filter* filter, unsigned int outputNb)
 //------------------------------------------------------------------------
 void Segmentation::changeFilter(Filter* filter, unsigned int outputNb)
 {
-    itk2vtk->SetInput(filter->output(outputNb));
-    itk2vtk->Update();
-    m_filter = filter;
-    m_args.setOutputNumber(outputNb);
+  itk2vtk->SetInput(filter->output(outputNb));
+  itk2vtk->Update();
+  m_filter = filter;
+  m_args.setOutputNumber(outputNb);
 }
 
 //------------------------------------------------------------------------

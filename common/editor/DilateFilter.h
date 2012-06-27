@@ -25,7 +25,6 @@
 #include <itkBinaryBallStructuringElement.h>
 #include <itkDilateObjectMorphologyImageFilter.h>
 
-static const QString Dilate = "EditorToolBar::DilateFilter";
 
 class DilateFilter
 : public Filter
@@ -34,11 +33,27 @@ class DilateFilter
   typedef itk::DilateObjectMorphologyImageFilter<EspinaVolume, EspinaVolume, StructuringElementType> FilterType;
 
 public:
-  class DilateArguments;
+  static const QString TYPE;
+
+  static const ModelItem::ArgumentId RADIUS;
+
+  class DilateArguments : public Arguments
+  {
+  public:
+  public:
+    explicit DilateArguments(){}
+    explicit DilateArguments(const Arguments args) : Arguments(args){}
+
+    void setRadius(unsigned int radius)
+    {
+      (*this)[RADIUS] = QString::number(radius);
+    }
+    unsigned int radius() const {return (*this)[RADIUS].toInt();}
+  };
 
 public:
-  explicit DilateFilter(Segmentation *seg, unsigned int radius);
-  explicit DilateFilter(Arguments args);
+  explicit DilateFilter(NamedInputs inputs,
+                         Arguments args);
   virtual ~DilateFilter();
 
   void run();
@@ -54,38 +69,14 @@ public:
   virtual QWidget* createConfigurationWidget();
 
 private:
-  DilateArguments *m_args;
-  Segmentation  *m_input;
-  EspinaVolume  *m_volume;
+  NamedInputs     m_inputs;
+  DilateArguments m_args;
+
+  EspinaVolume   *m_input;
+  EspinaVolume   *m_volume;
 
   FilterType::Pointer m_filter;
 };
 
-class DilateFilter::DilateArguments
-: public Arguments
-{
-public:
-  static const ModelItem::ArgumentId INPUT;
-  static const ModelItem::ArgumentId RADIUS;
-
-public:
-  explicit DilateArguments(){}
-  explicit DilateArguments(const Arguments args);
-
-  void setInput(Segmentation * seg)
-  {
-    (*this)[INPUT] = seg->id();
-  }
-
-  void setRadius(unsigned int radius)
-  {
-    m_radius = radius;
-    (*this)[RADIUS] = QString::number(radius);
-  }
-  unsigned int radius() const {return m_radius;}
-
-private:
-  unsigned int m_radius;
-};
 
 #endif // DILATEFILTER_H
