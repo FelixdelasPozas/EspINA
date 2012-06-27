@@ -334,11 +334,13 @@ void EspinaWindow::closeCurrentAnalysis()
 
 static const QString CHANNEL_FILES = QObject::tr("Channel Files (*.mha *.mhd *.tif *.tiff)");
 static const QString SEG_FILES     = QObject::tr("Espina Analysis (*.seg)");
+static const QString ESPINA_FILES  = QObject::tr("Espina Files (*.mha *.mhd *.tif *.tiff *.seg)");
 
 //------------------------------------------------------------------------
 void EspinaWindow::openAnalysis()
 {
   QStringList filters;
+  filters << ESPINA_FILES;
   filters << CHANNEL_FILES;
   filters << SEG_FILES;
 
@@ -348,6 +350,7 @@ void EspinaWindow::openAnalysis()
   fileDialog.setFileMode(QFileDialog::ExistingFiles);
   fileDialog.setFilters(filters);
   fileDialog.setWindowTitle("Analyse Data");
+  fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
   if (fileDialog.exec() != QDialog::Accepted)
     return;
 
@@ -434,6 +437,7 @@ void EspinaWindow::openRecentAnalysis(QAction *action)
 void EspinaWindow::addToAnalysis()
 {
   QStringList filters;
+  filters << ESPINA_FILES;
   filters << CHANNEL_FILES;
   filters << SEG_FILES;
 
@@ -443,6 +447,7 @@ void EspinaWindow::addToAnalysis()
   fileDialog.setFileMode(QFileDialog::ExistingFiles);
   fileDialog.setFilters(filters);
   fileDialog.setWindowTitle("Add data to Analysis");
+  fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
   if (fileDialog.exec() != QDialog::Accepted)
     return;
 
@@ -488,6 +493,8 @@ void EspinaWindow::saveAnalysis()
   QFileDialog fileDialog(this, tr("Save Analysis:"), QString(), filters);
   fileDialog.setObjectName("SaveAnalysisFileDialog");
   fileDialog.setWindowTitle("Save Espina Analysis");
+  fileDialog.setAcceptMode(QFileDialog::AcceptSave);
+  fileDialog.setDefaultSuffix(QString(tr("seg")));
   fileDialog.setFileMode(QFileDialog::AnyFile);
 
   if (fileDialog.exec() == QDialog::Accepted)
