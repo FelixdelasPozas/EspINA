@@ -18,7 +18,6 @@
 
 
 #include "FreeFormSource.h"
-#include <cache/CachedObjectBuilder.h>
 #include <model/EspinaFactory.h>
 #include <vtkSliceView.h>
 #include <EspinaCore.h>
@@ -158,7 +157,7 @@ int FreeFormSource::numberOutputs() const
 }
 
 //-----------------------------------------------------------------------------
-EspinaVolume* FreeFormSource::output(int i) const
+EspinaVolume* FreeFormSource::output(OutputNumber i) const
 {
   //Q_ASSERT(m_source->getNumberOfData() > 0);
 }

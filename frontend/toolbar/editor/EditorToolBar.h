@@ -49,7 +49,9 @@ public:
   virtual void decreaseLOD(){}
   virtual void increaseLOD(){}
 
-  virtual Filter* createFilter(const QString filter, const ModelItem::Arguments args);
+  virtual Filter* createFilter(const QString filter,
+                               Filter::NamedInputs inputs,
+                               const ModelItem::Arguments args);
 
 protected slots:
   void startDrawing(bool draw);

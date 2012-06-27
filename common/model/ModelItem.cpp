@@ -101,6 +101,12 @@ QString ModelItem::Arguments::hash() const
 }
 
 
+//------------------------------------------------------------------------
+QString ModelItem::serialize() const
+{
+  return QString("none");
+}
+
 
 //------------------------------------------------------------------------
 ModelItem::Vector ModelItem::relatedItems(ModelItem::RelationType rel, const QString filter)

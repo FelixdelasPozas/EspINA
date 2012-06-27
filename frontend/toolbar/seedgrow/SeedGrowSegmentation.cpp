@@ -31,7 +31,6 @@
 #include "common/model/Channel.h"
 #include "common/model/EspinaFactory.h"
 #include "common/model/EspinaModel.h"
-#include "common/processing/pqData.h"
 #include "common/selection/PixelSelector.h"
 #include "common/selection/SelectableItem.h"
 #include "common/selection/SelectionManager.h"
@@ -47,6 +46,7 @@
 #include <QStyle>
 
 const int DEFAULT_THRESHOLD = 30;
+const QString INPUTLINK = "Input";
 
 const ModelItem::ArgumentId TYPE = ModelItem::ArgumentId("Type", true);
 
@@ -59,7 +59,8 @@ SeedGrowSegmentation::UndoCommand::UndoCommand(Channel* channel,
 , m_filter  (filter)
 , m_taxonomy(taxonomy)
 {
-  ModelItem::Vector samples = m_channel->relatedItems(ModelItem::IN, "mark");
+  ModelItem::Vector samples = m_channel->relatedItems(ModelItem::IN,
+                                                      Channel::STAINLINK);
   Q_ASSERT(samples.size() > 0);
   m_sample = dynamic_cast<Sample *>(samples.first());
   m_seg = EspinaFactory::instance()->createSegmentation(m_filter, 0);
@@ -72,7 +73,7 @@ void SeedGrowSegmentation::UndoCommand::redo()
   QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
 
   model->addFilter(m_filter);
-  model->addRelation(m_channel, m_filter, "Channel");
+  model->addRelation(m_channel->filter(), m_filter, INPUTLINK);
   m_seg->setTaxonomy(m_taxonomy);
   model->addSegmentation(m_seg);
   model->addRelation(m_filter, m_seg, "CreateSegmentation");
@@ -86,7 +87,7 @@ void SeedGrowSegmentation::UndoCommand::undo()
 {
   QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
 
-  model->removeRelation(m_channel, m_seg, "Channel");
+  model->removeRelation(m_channel->filter(), m_seg, INPUTLINK);
   model->removeRelation(m_sample, m_seg, "where");
   model->removeRelation(m_filter, m_seg, "CreateSegmentation");
   model->removeSegmentation(m_seg);
@@ -107,24 +108,23 @@ SeedGrowSegmentation::SeedGrowSegmentation(QWidget* parent)
   setObjectName("SeedGrowSegmentation");
   setWindowTitle("Seed Grow Segmentation Tool Bar");
   // Register Factory's filters
-  EspinaFactory::instance()->registerFilter(SGSF, this);
+  EspinaFactory::instance()->registerFilter(SeedGrowSegmentationFilter::TYPE, this);
 
   buildSelectors();
 
   addAction(m_threshold);
   addAction(m_useDefaultVOI);
   addAction(m_segment);
-//   m_defaultVOI = new RectangularVOI(false);
-
+  //   m_defaultVOI = new RectangularVOI(false);
 
   connect(m_segment, SIGNAL(triggered(QAction*)),
-	  this, SLOT(waitSeedSelection(QAction*)));
+          this, SLOT(waitSeedSelection(QAction*)));
   connect(m_selector.data(), SIGNAL(selectionAborted()),
-	  this, SLOT(onSelectionAborted()));
+          this, SLOT(onSelectionAborted()));
   connect(m_segment, SIGNAL(actionCanceled()),
-	  this, SLOT(abortSelection()));
+          this, SLOT(abortSelection()));
   connect(m_threshold,SIGNAL(thresholdChanged(int)),
-	  this, SLOT(modifyLastFilter(int)));
+          this, SLOT(modifyLastFilter(int)));
 }
 
 
@@ -134,11 +134,11 @@ SeedGrowSegmentation::~SeedGrowSegmentation()
 }
 
 //-----------------------------------------------------------------------------
-Filter *SeedGrowSegmentation::createFilter(const QString filter, const ModelItem::Arguments args)
+Filter* SeedGrowSegmentation::createFilter(const QString filter, Filter::NamedInputs inputs, const ModelItem::Arguments args)
 {
-  Q_ASSERT(filter == SGSF);
+  Q_ASSERT(SeedGrowSegmentationFilter::TYPE == filter);
 
-  return new SeedGrowSegmentationFilter(args);
+  return new SeedGrowSegmentationFilter(inputs, args);
 }
 
 
@@ -178,10 +178,10 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
     Q_ASSERT(element.first.size() == 1); // with one pixel
     QVector3D seed = element.first.first();
 
-//     qDebug() << "Channel:" << input->volume().id();
-//     qDebug() << "Threshold:" << m_threshold->threshold();
-//     qDebug() << "Seed:" << seed;
-//     qDebug() << "Use Default VOI:" << m_useDefaultVOI->useDefaultVOI();
+    //     qDebug() << "Channel:" << input->volume().id();
+    //     qDebug() << "Threshold:" << m_threshold->threshold();
+    //     qDebug() << "Seed:" << seed;
+    //     qDebug() << "Use Default VOI:" << m_useDefaultVOI->useDefaultVOI();
 
     Q_ASSERT(ModelItem::CHANNEL == input->type());
     Channel *channel = dynamic_cast<Channel *>(input);
@@ -197,7 +197,7 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
       double spacing[3];
       channel->spacing(spacing);
       for (int i=0; i<6; i++)
-	VOI[i] = bounds[i] / spacing[i/2];
+        VOI[i] = bounds[i] / spacing[i/2];
       //qDebug() << VOI[0] << VOI[1] << VOI[2] << VOI[3] << VOI[4] << VOI[5];
     }
     else if (m_useDefaultVOI->useDefaultVOI())
@@ -214,13 +214,19 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
     }
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    int threshold[2] = {m_threshold->threshold(), m_threshold->threshold()};
-    SeedGrowSegmentationFilter *filter =
-	new SeedGrowSegmentationFilter(input,
-				     growSeed,
-				     threshold,
-				     VOI,
-				     m_settings->closing());
+
+    Filter::NamedInputs inputs;
+    SeedGrowSegmentationFilter::SArguments args;
+    args.setSeed(growSeed);
+    args.setLowerThreshold(m_threshold->threshold());
+    args.setUpperThreshold(m_threshold->threshold());
+    args.setVOI(VOI);
+    args.setCloseValue(m_settings->closing());
+    inputs[INPUTLINK] = channel->filter();
+    args[SeedGrowSegmentationFilter::INPUTS] = INPUTLINK + "_" + QString::number(channel->outputNumber());
+    SeedGrowSegmentationFilter *filter;
+    filter = new SeedGrowSegmentationFilter(inputs, args);
+    filter->update();
     Q_ASSERT(filter->numberOutputs() == 1);
 
     TaxonomyNode *tax = EspinaCore::instance()->activeTaxonomy();

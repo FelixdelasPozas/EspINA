@@ -75,13 +75,14 @@ public:
   /// Implements ModelItem
   virtual QString id() const {return qualifiedName();}
   virtual QVariant data(int role = Qt::UserRole + 1) const;
+  virtual QString serialize() const {return ModelItem::serialize();}
   virtual ItemType type() const {return TAXONOMY;}
   virtual bool setData(const QVariant& value, int role = Qt::UserRole + 1);
 
 private:
 //  TaxonomyNode *insertElement( QString subElement, QString RGBColor ); // Without checking
  TaxonomyNode *insertNode(const QString &name);
- 
+
 private:
  TaxonomyNode *m_parent;
  QVector<TaxonomyNode *> m_elements;

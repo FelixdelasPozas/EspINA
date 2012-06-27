@@ -35,6 +35,7 @@
 #include <editor/DilateFilter.h>
 #include <editor/OpeningFilter.h>
 #include <undo/RemoveSegmentation.h>
+#include <gui/EspinaView.h>
 
 //----------------------------------------------------------------------------
 class EditorToolBar::FreeFormCommand
@@ -211,6 +212,7 @@ public:
       seg->notifyModification();
     }
   }
+
   virtual void undo()
   {
     QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
@@ -295,13 +297,13 @@ EditorToolBar::EditorToolBar(QWidget* parent)
 }
 
 //----------------------------------------------------------------------------
-Filter* EditorToolBar::createFilter(const QString filter, const ModelItem::Arguments args)
+Filter* EditorToolBar::createFilter(const QString filter, Filter::NamedInputs inputs, const ModelItem::Arguments args)
 {
-  if (filter == FFS)
-    return new FreeFormSource(args);
-  else if (filter == ILF)
-    return new ImageLogicFilter(args);
-  else
+//   if (filter == FFS)
+//     return new FreeFormSource(inputs, args);
+//   else if (filter == ILF)
+//     return new ImageLogicFilter(inputs, args);
+//   else
     Q_ASSERT(false);
 
   return NULL;

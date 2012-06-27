@@ -22,6 +22,7 @@
 
 #include <common/widgets/EspinaWidget.h>
 
+class vtkImageAlgorithm;
 class RectangularRegion
 : public EspinaWidget
 {

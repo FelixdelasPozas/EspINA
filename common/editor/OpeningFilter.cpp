@@ -101,7 +101,7 @@ int OpeningFilter::numberOutputs() const
 }
 
 //-----------------------------------------------------------------------------
-EspinaVolume* OpeningFilter::output(int i) const
+EspinaVolume* OpeningFilter::output(OutputNumber i) const
 {
   if (m_volume && i == 0)
     return m_volume;

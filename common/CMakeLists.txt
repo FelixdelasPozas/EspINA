@@ -61,10 +61,7 @@ qt4_wrap_cpp(CORE_MOC
 set (CORE_SOURCES
   ${CORE_MOC}
   EspinaCore.cpp
-  File.cpp
-  cache/Cache.cpp
   cache/CacheHash.cpp
-  cache/CachedObjectBuilder.cpp
   editor/PencilSelector.cpp
   editor/FreeFormSource.cpp
   editor/ImageLogicCommand.cpp
@@ -75,10 +72,7 @@ set (CORE_SOURCES
   editor/ImageLogicFilter.cpp
   editor/vtkImageLogicFilter.cpp
   editor/vtkFreeFormSource.cpp
-  IO/EspinaIO.cpp
   IO/FilePack.cpp
-  IO/vtkSegReader.cpp
-  IO/vtkSegWriter.cpp
   extensions/ChannelExtension.cpp
 #   extensions/Margins/MarginsChannelExtension.cpp
 #   extensions/Margins/MarginsSegmentationExtension.cpp
@@ -101,6 +95,7 @@ set (CORE_SOURCES
   gui/ViewManager.cpp
   gui/VolumeView.cpp
   model/Channel.cpp
+  model/ChannelReader.cpp
   model/EspinaFactory.cpp
   model/EspinaModel.cpp
   model/Filter.cpp
@@ -114,8 +109,6 @@ set (CORE_SOURCES
   model/proxies/ChannelProxy.cpp
   model/proxies/SampleProxy.cpp
   model/proxies/TaxonomyProxy.cpp
-  processing/pqData.cpp
-  processing/pqFilter.cpp
   renderers/CrosshairRenderer.cpp
   renderers/VolumetricRenderer.cpp
   selection/PixelSelector.cpp

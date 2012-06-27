@@ -16,9 +16,13 @@ public:
    * @param TaxonomyContent is an output parameter which will contain the content of the taxonomy file
    * @return If everythin works well it returns true. Otherwise returns false.
    */
+  ///DEPRECATED
   static bool loadFile(QString filePath,
                        QTextStream& TraceContent,
                        QTextStream& TaxonomyContent);
+  static bool loadFile(QFileInfo file,
+                       QSharedPointer<EspinaModel> model
+                      );
 
   /**
    * Stores in a seg file (packed) all the pipeline built.
@@ -30,6 +34,7 @@ public:
    * will be removed after the file was saved.
    * @return If everythin works well it returns true. Otherwise returns false.
    */
+  ///DEPRECATED
   static bool saveFile(QString& filePath,
                        QString& TraceContent,
                        QString& TaxonomyContent,
@@ -50,6 +55,7 @@ public:
   static bool saveFile(QFileInfo file,
                        QSharedPointer<EspinaModel> model
                       );
+
 private:
   /**
    * Creates a zipped file called @param fileName inside @param zFile. @param content 

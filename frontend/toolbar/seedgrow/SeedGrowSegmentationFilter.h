@@ -20,9 +20,6 @@
 
 #include "common/model/Filter.h"
 
-#include "common/processing/pqData.h"
-#include <common/model/Segmentation.h>
-
 #include <itkImage.h>
 #include <itkVTKImageToImageFilter.h>
 #include <itkImageToVTKImageFilter.h>
@@ -33,12 +30,8 @@
 #include <itkBinaryMorphologicalClosingImageFilter.h>
 #include <itkExtractImageFilter.h>
 
-// #include "ui_SeedGrowSegmentationFilterSetup.h"
-// class IVOI;
-
 class vtkImageData;
 class vtkConnectedThresholdImageFilter;
-static const QString SGSF = "SeedGrowSegmentation::SeedGrowSegmentationFilter";
 
 class Channel;
 class pqFilter;
@@ -46,8 +39,8 @@ class pqFilter;
 class SeedGrowSegmentationFilter
 : public Filter
 {
+  Q_OBJECT
   class SetupWidget;
-
   typedef itk::ExtractImageFilter<EspinaVolume, EspinaVolume> ExtractType;
   typedef itk::ConnectedThresholdImageFilter<EspinaVolume, EspinaVolume> ConnectedThresholdFilterType;
   typedef itk::StatisticsLabelObject<unsigned int, 3> LabelObjectType;
@@ -55,8 +48,10 @@ class SeedGrowSegmentationFilter
   typedef itk::LabelImageToShapeLabelMapFilter<EspinaVolume, LabelMapType> Image2LabelFilterType;
   typedef itk::BinaryBallStructuringElement<EspinaVolume::PixelType, 3> StructuringElementType;
   typedef itk::BinaryMorphologicalClosingImageFilter<EspinaVolume, EspinaVolume, StructuringElementType> bmcifType;
-Q_OBJECT
+
 public:
+  static const QString TYPE;
+
   static const ModelItem::ArgumentId CHANNEL;
   static const ModelItem::ArgumentId SEED;
   static const ModelItem::ArgumentId LTHRESHOLD;
@@ -135,16 +130,10 @@ public:
   };
 
 public:
-  explicit SeedGrowSegmentationFilter(SelectableItem *input,
-				     int seed[3],
-				     int threshold[2],
-				     int VOI[6],
-				     int closing);
-  /// Create a new filter from given arguments
-  explicit SeedGrowSegmentationFilter(Arguments args);
+  explicit SeedGrowSegmentationFilter(NamedInputs inputs,
+                                      Arguments args);
   virtual ~SeedGrowSegmentationFilter();
 
-  void run();
 
   void setLowerThreshold(int th);
   int lowerThreshold() const {return m_args.lowerThreshold();}
@@ -161,12 +150,17 @@ public:
   virtual QString  serialize() const;
 
   /// Implements Filter Interface
+  void run();
+
   virtual int numberOutputs() const;
-  virtual EspinaVolume* output(int i) const;
+  virtual EspinaVolume* output(OutputNumber i) const;
 
   virtual QWidget* createConfigurationWidget();
 
 private:
+  NamedInputs   m_inputs;
+  SArguments    m_args;
+
   EspinaVolume *m_input;
   EspinaVolume *m_volume;
 
@@ -174,7 +168,6 @@ private:
   ConnectedThresholdFilterType::Pointer ctif;
   Image2LabelFilterType::Pointer image2label;
   bmcifType::Pointer bmcif;
-  SArguments    m_args;
 
   friend class SetupWidget;
 };

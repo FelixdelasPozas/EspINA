@@ -27,7 +27,6 @@
 #include "common/gui/VolumeView.h"
 #include "common/model/ModelItem.h"
 #include "common/model/Channel.h"
-#include "common/processing/pqData.h"
 #include "common/model/Segmentation.h"
 #include "common/widgets/RectangularSelection.h"
 

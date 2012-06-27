@@ -40,8 +40,8 @@ const ModelItem::ArgumentId Segmentation::USERS = ArgumentId("Users", ArgumentId
 Segmentation::SArguments::SArguments(const ModelItem::Arguments args) :
 		Arguments(args)
 {
-	Number = args[NUMBER].toInt();
-	OutputNumber = args[OUTPUT].toInt();
+	m_number = args[NUMBER].toInt();
+	m_outputNumber = args[OUTPUT].toInt();
 }
 
 //-----------------------------------------------------------------------------
@@ -54,8 +54,11 @@ QString Segmentation::SArguments::serialize(bool key) const
 }
 
 //-----------------------------------------------------------------------------
-Segmentation::Segmentation(Filter* filter, unsigned int outputNb) :
-		m_filter(filter), m_taxonomy(NULL), m_extInitialized(false), m_isVisible(true)
+Segmentation::Segmentation(Filter* filter, unsigned int outputNb)
+: m_filter(filter)
+, m_taxonomy(NULL)
+, m_extInitialized(false)
+, m_isVisible(true)
 {
 	m_isSelected = false;
 //   memset(m_bounds, 0, 6*sizeof(double));
@@ -67,11 +70,6 @@ Segmentation::Segmentation(Filter* filter, unsigned int outputNb) :
 	connect(filter, SIGNAL(modified(ModelItem *)), this, SLOT(notifyModification()));
 	connect(&EspinaCore::instance()->colorSettings(), SIGNAL(colorEngineChanged()), this, SLOT(onColorEngineChanged()));
 
-    qDebug() << "Converting from ITK to VTK";
-    itk2vtk = itk2vtkFilterType::New();
-    itk2vtk->ReleaseDataFlagOn();
-    itk2vtk->SetInput(m_filter->output(m_args.outputNumber()));
-    itk2vtk->Update();
 }
 
 //------------------------------------------------------------------------
@@ -103,7 +101,7 @@ Segmentation::~Segmentation()
 //------------------------------------------------------------------------
 EspinaVolume *Segmentation::volume()
 {
-    return m_filter->output(m_args.outputNumber());
+  return m_filter->output(m_args.outputNumber());
 }
 
 //------------------------------------------------------------------------
@@ -296,5 +294,14 @@ void Segmentation::onColorEngineChanged()
 
 vtkAlgorithmOutput* Segmentation::image()
 {
-    return itk2vtk->GetOutput()->GetProducerPort();
+  if (itk2vtk.IsNull())
+  {
+    qDebug() << "Converting from ITK to VTK";
+    itk2vtk = itk2vtkFilterType::New();
+    itk2vtk->ReleaseDataFlagOn();
+    itk2vtk->SetInput(m_filter->output(m_args.outputNumber()));
+    itk2vtk->Update();
+  }
+
+  return itk2vtk->GetOutput()->GetProducerPort();
 }

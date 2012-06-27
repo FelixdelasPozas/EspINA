@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2011  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,41 +17,51 @@
 */
 
 
-#ifndef FREEFORMSOURCE_H
-#define FREEFORMSOURCE_H
+#ifndef CHANNELREADER_H
+#define CHANNELREADER_H
 
 #include <model/Filter.h>
-#include <common/views/vtkSliceView.h>
 
-#include <QVector3D>
+#include <itkImageIOBase.h>
+#include <itkImageFileReader.h>
 
-static const QString FFS = "EditorToolBar::FreeFormSource";
 
-class FreeFormSource
+class ChannelReader
 : public Filter
 {
+  typedef itk::ImageFileReader<EspinaVolume> EspinaVolumeReader;
 public:
-  explicit FreeFormSource(double spacing[3]);
-  explicit FreeFormSource(Arguments args);
-  virtual ~FreeFormSource();
+  static const QString TYPE;
 
-  void draw(vtkSliceView::VIEW_PLANE plane,  QVector3D center, int radius = 0);
-  void erase(vtkSliceView::VIEW_PLANE plane, QVector3D center, int radius = 0);
+  static const ArgumentId FILE;
+  static const ArgumentId SPACING;
+
+public:
+  explicit ChannelReader(NamedInputs inputs, Arguments args);
+
   /// Implements Model Item Interface
-  virtual QString id() const;
-  virtual QVariant data(int role) const;
+  virtual QString id() const {return m_args[ID];}
+  virtual QVariant data(int role=Qt::DisplayRole) const;
   virtual QString serialize() const;
 
   /// Implements Filter Interface
+  virtual void run();
+
   virtual int numberOutputs() const;
   virtual EspinaVolume* output(OutputNumber i) const;
-  virtual void run(){}
 
   virtual QWidget* createConfigurationWidget();
 
+protected:
+    void setSpacing(double value[3]);
+    void spacing(double value[3]);
+
 private:
   Arguments     m_args;
-  bool          m_hasPixels;
+  EspinaVolume *m_volume;
+
+  itk::ImageIOBase::Pointer   m_io;
+  EspinaVolumeReader::Pointer m_reader;
 };
 
-#endif // FREEFORMSOURCE_H
+#endif // CHANNELREADER_H

@@ -68,7 +68,9 @@ public:
   SeedGrowSegmentation(QWidget *parent=NULL);
   virtual ~SeedGrowSegmentation();
 
-  virtual Filter *createFilter(const QString filter, const ModelItem::Arguments args);
+  virtual Filter* createFilter(const QString filter,
+                               Filter::NamedInputs inputs,
+                               const ModelItem::Arguments args);
 
 protected slots:
   /// Wait for Seed Selection

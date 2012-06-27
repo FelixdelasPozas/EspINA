@@ -54,6 +54,7 @@ public:
   /// ModelItem Interface
   virtual QString id() const {return m_ID;}
   virtual QVariant data(int role) const;
+  virtual QString serialize() const {return ModelItem::serialize();}
   virtual ItemType type() const {return SAMPLE;}
   virtual void initialize(Arguments args = Arguments());
 

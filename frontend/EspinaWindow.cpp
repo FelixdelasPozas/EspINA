@@ -47,14 +47,11 @@
 #include "toolbar/LODToolBar.h"
 #include "views/DefaultEspinaView.h"
 #include <model/EspinaFactory.h>
-#include <processing/pqData.h>
-#include <processing/pqFilter.h>
 #include <renderers/VolumetricRenderer.h>
 #include <renderers/CrosshairRenderer.h>
 #include <selection/SelectionManager.h>
 #include "toolbar/editor/EditorToolBar.h"
 #include "toolbar/seedgrow/SeedGrowSegmentation.h"
-#include "common/IO/vtkSegWriter.h"
 #include <IO/FilePack.h>
 
 #define DEBUG
@@ -436,16 +433,15 @@ void EspinaWindow::openRecentAnalysis(QAction *action)
 //------------------------------------------------------------------------
 void EspinaWindow::addToAnalysis()
 {
-  Q_ASSERT(false);
-  QString filters;// = readerFactory->GetSupportedFileTypes(server->session());
-  //filters.replace("Meta Image Files", "Channel Files");
+  QStringList filters;
+  filters << CHANNEL_FILES;
+  filters << SEG_FILES;
 
   QFileDialog fileDialog(this,
-			tr("Analyse:"),
-			QString(),
-			filters);
+			tr("Analyse:"));
   fileDialog.setObjectName("AddToAnalysisFileDialog");
   fileDialog.setFileMode(QFileDialog::ExistingFiles);
+  fileDialog.setFilters(filters);
   fileDialog.setWindowTitle("Add data to Analysis");
   if (fileDialog.exec() != QDialog::Accepted)
     return;
