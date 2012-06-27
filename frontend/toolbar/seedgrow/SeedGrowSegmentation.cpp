@@ -177,7 +177,6 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
 
     Q_ASSERT(element.first.size() == 1); // with one pixel
     QVector3D seed = element.first.first();
-
     //     qDebug() << "Channel:" << input->volume().id();
     //     qDebug() << "Threshold:" << m_threshold->threshold();
     //     qDebug() << "Seed:" << seed;
@@ -217,13 +216,15 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
 
     Filter::NamedInputs inputs;
     SeedGrowSegmentationFilter::SArguments args;
+    args[Filter::ID] = Filter::generateId();
     args.setSeed(growSeed);
     args.setLowerThreshold(m_threshold->threshold());
     args.setUpperThreshold(m_threshold->threshold());
     args.setVOI(VOI);
     args.setCloseValue(m_settings->closing());
     inputs[INPUTLINK] = channel->filter();
-    args[SeedGrowSegmentationFilter::INPUTS] = INPUTLINK + "_" + QString::number(channel->outputNumber());
+    args[Filter::INPUTS] = INPUTLINK + "_" + QString::number(channel->outputNumber());
+
     SeedGrowSegmentationFilter *filter;
     filter = new SeedGrowSegmentationFilter(inputs, args);
     filter->update();

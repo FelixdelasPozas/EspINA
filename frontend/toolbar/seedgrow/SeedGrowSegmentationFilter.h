@@ -52,7 +52,6 @@ class SeedGrowSegmentationFilter
 public:
   static const QString TYPE;
 
-  static const ModelItem::ArgumentId CHANNEL;
   static const ModelItem::ArgumentId SEED;
   static const ModelItem::ArgumentId LTHRESHOLD;
   static const ModelItem::ArgumentId UTHRESHOLD;
@@ -67,24 +66,16 @@ public:
 
     virtual ArgumentId argumentId(QString name) const
     {
-      if (CHANNEL == name)
-	return CHANNEL;
       if (SEED == name)
-	return SEED;
+        return SEED;
       if (LTHRESHOLD == name)
-	return LTHRESHOLD;
+        return LTHRESHOLD;
       if (UTHRESHOLD == name)
-	return UTHRESHOLD;
+        return UTHRESHOLD;
       if (VOI == name)
-	return VOI;
+        return VOI;
       return Arguments::argumentId(name);
     }
-
-    void setInput(const QString input)
-    {
-      (*this)[CHANNEL] = input;
-    }
-    QString input() const {return (*this)[CHANNEL];}
 
     void setSeed(int seed[3])
     {
@@ -120,7 +111,7 @@ public:
       (*this)[CLOSE] = QString::number(value);
     }
 
-    int closeValue() const {return m_close;}
+    int closeValue() const {return (*this)[CLOSE].toInt();}
 
   private:
     int m_seed[3];

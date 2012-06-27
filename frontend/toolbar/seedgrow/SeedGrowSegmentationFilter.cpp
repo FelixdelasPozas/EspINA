@@ -33,7 +33,6 @@
 const QString SeedGrowSegmentationFilter::TYPE = "SeedGrowSegmentation::SeedGrowSegmentationFilter";
 
 typedef ModelItem::ArgumentId ArgumentId;
-const ArgumentId SeedGrowSegmentationFilter::CHANNEL = ArgumentId("Channel", true);
 const ArgumentId SeedGrowSegmentationFilter::SEED = ArgumentId("Seed", true);
 const ArgumentId SeedGrowSegmentationFilter::LTHRESHOLD = ArgumentId("LowerThreshold", true);
 const ArgumentId SeedGrowSegmentationFilter::UTHRESHOLD = ArgumentId("UpperThreshold", true);
@@ -66,10 +65,11 @@ SeedGrowSegmentationFilter::SArguments::SArguments(const ModelItem::Arguments ar
 
 SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(Filter::NamedInputs inputs,
                                                        ModelItem::Arguments args)
-: m_inputs(inputs)
+: m_input(NULL)
+, m_inputs(inputs)
 , m_args(args)
 {
-  qDebug() << TYPE << "arguments" << args;
+  qDebug() << TYPE << "arguments" << m_args;
 }
 
 //-----------------------------------------------------------------------------
@@ -81,11 +81,13 @@ SeedGrowSegmentationFilter::~SeedGrowSegmentationFilter()
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::run()
 {
+  QApplication::setOverrideCursor(Qt::WaitCursor);
   int voi[6];
   m_args.voi(voi);
 
   QStringList input = m_args[INPUTS].split("_");
   m_input = m_inputs[input[0]]->output(input[1].toUInt());
+  Q_ASSERT(m_input);
   qDebug() << "Bound VOI to input extent";
   int inputExtent[6];
   VolumeExtent(m_input, inputExtent);
@@ -186,6 +188,7 @@ void SeedGrowSegmentationFilter::run()
   else
     m_volume = ctif->GetOutput();
 
+  QApplication::restoreOverrideCursor();
   emit modified(this);
 }
 
@@ -233,7 +236,7 @@ void SeedGrowSegmentationFilter::setSeed(int seed[3])
 //-----------------------------------------------------------------------------
 QString SeedGrowSegmentationFilter::id() const
 {
-  return m_args.hash();
+  return m_args[ID];
 }
 
 //-----------------------------------------------------------------------------
