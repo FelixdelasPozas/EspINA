@@ -97,7 +97,6 @@ bool EspinaCore::loadChannel(const QFileInfo file)
     existingSample = sample;
   }
 
-
   //TODO: Check for channel information in DB
   QColor stainColor;
   QColorDialog stainColorSelector;
@@ -111,6 +110,7 @@ bool EspinaCore::loadChannel(const QFileInfo file)
 
   Filter::NamedInputs noInputs;
   Filter::Arguments readerArgs;
+  //TODO: Manage ID generation inside Filer class
   readerArgs[Filter::ID] = Filter::generateId();
   readerArgs[ChannelReader::FILE] = file.absoluteFilePath();
   ChannelReader *reader = new ChannelReader(noInputs, readerArgs);
@@ -147,4 +147,5 @@ void EspinaCore::closeCurrentAnalysis()
   m_sample = NULL;
   m_model->reset();
   m_undoStack->clear();
+  Filter::resetId();
 }

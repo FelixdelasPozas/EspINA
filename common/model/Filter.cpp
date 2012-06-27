@@ -31,6 +31,12 @@ const ArgumentId Filter::EDIT   = ArgumentId("Edit", true);
 unsigned int Filter::m_lastId = 0;
 
 //----------------------------------------------------------------------------
+void Filter::resetId()
+{
+  m_lastId = 0;
+}
+
+//----------------------------------------------------------------------------
 QString Filter::generateId()
 {
   return QString::number(m_lastId++);

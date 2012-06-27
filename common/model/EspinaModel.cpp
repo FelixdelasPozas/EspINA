@@ -573,17 +573,17 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
 //   qDebug() << "Check";
   m_relations->updateVertexInformation();
 //   input->write(std::cout,RelationshipGraph::BOOST);
-  input->write(std::cout,RelationshipGraph::GRAPHVIZ);
+  input->write(std::cout, RelationshipGraph::GRAPHVIZ);
 
   EspinaFactory *factory = EspinaFactory::instance();
 
   typedef QPair<ModelItem *, ModelItem::Arguments> NonInitilizedItem;
   QList<NonInitilizedItem> nonInitializedItems;
+  QList<VertexProperty> segmentationNodes;
   QList<Segmentation *> newSegmentations;
 
   foreach(VertexProperty v, input->vertices())
   {
-    
     VertexProperty fv;
     if (m_relations->find(v, fv))
     {
@@ -629,6 +629,7 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
           ModelItem::Arguments args(v.args.c_str());
           qDebug() << "Filter Args" << args;
           QStringList inputLinks = args[Filter::INPUTS].split(",", QString::SkipEmptyParts);
+          Q_ASSERT(args[Filter::ID] == Filter::generateId());
           foreach(QString inputLink, inputLinks)
           {
             QStringList link = inputLink.split("_");
@@ -648,24 +649,31 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
         }
         case ModelItem::SEGMENTATION:
         {
-          Vertices ancestors = input->ancestors(v.vId, "CreateSegmentation");
-          Q_ASSERT(ancestors.size() == 1);
-          Filter *filter =  dynamic_cast<Filter *>(ancestors.first().item);
-          ModelItem::Arguments args(QString(v.args.c_str()));
-          Segmentation *seg = factory->createSegmentation(filter, args[Segmentation::OUTPUT].toInt());
-          seg->setNumber(args[Segmentation::NUMBER].toInt());
-          TaxonomyNode *taxonomy = m_tax->element(args[Segmentation::TAXONOMY]);
-          if (taxonomy)
-            seg->setTaxonomy(taxonomy);
-          newSegmentations << seg;
-          nonInitializedItems << NonInitilizedItem(seg, args);
-          input->setItem(v.vId, seg);
+          segmentationNodes << v;
           break;
         }
         default:
           Q_ASSERT(false);
       }
     }
+  }
+
+  foreach(VertexProperty v, segmentationNodes)
+  {
+    Vertices ancestors = input->ancestors(v.vId, "CreateSegmentation");
+    Q_ASSERT(ancestors.size() == 1);
+    ModelItem *item = ancestors.first().item;
+    qDebug() << item->data(Qt::DisplayRole).toString();
+    Filter *filter =  dynamic_cast<Filter *>(item);
+    ModelItem::Arguments args(QString(v.args.c_str()));
+    Segmentation *seg = factory->createSegmentation(filter, args[Segmentation::OUTPUT].toInt());
+    seg->setNumber(args[Segmentation::NUMBER].toInt());
+    TaxonomyNode *taxonomy = m_tax->element(args[Segmentation::TAXONOMY]);
+    if (taxonomy)
+      seg->setTaxonomy(taxonomy);
+    newSegmentations << seg;
+    nonInitializedItems << NonInitilizedItem(seg, args);
+    input->setItem(v.vId, seg);
   }
 
   addSegmentation(newSegmentations);

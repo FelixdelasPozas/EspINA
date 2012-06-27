@@ -157,6 +157,7 @@ private:
 class EditorToolBar::CODECommand :
 public QUndoCommand
 {
+  static const QString INPUTLINK;
 public:
   enum Operation
   {
@@ -167,28 +168,35 @@ public:
   };
 public:
   explicit CODECommand(QList<Segmentation *> inputs,
-		      Operation op,
-		      unsigned int radius)
+                       Operation op,
+                       unsigned int radius)
   : m_segmentations(inputs)
   {
     foreach(Segmentation *seg, m_segmentations)
     {
       Filter *filter;
+      Filter::NamedInputs inputs;
+      Filter::Arguments args;
+      args[Filter::ID]  = Filter::generateId();
+      args[Filter::ArgumentId("Radius", true)]    = QString::number(radius);
+      inputs[INPUTLINK] = seg->filter();
+      args[Filter::INPUTS] = INPUTLINK + "_" + QString::number(seg->outputNumber());
       switch (op)
       {
-	case CLOSE:
-	  filter = new ClosingFilter(seg, radius);
-	  break;
-	case OPEN:
-	  filter = new OpeningFilter(seg, radius);
-	  break;
-	case DILATE:
-	  filter = new DilateFilter(seg, radius);
-	  break;
-	case ERODE:
-	  filter = new ErodeFilter(seg, radius);
-	  break;
+        case CLOSE:
+          filter = new ClosingFilter(inputs, args);
+          break;
+        case OPEN:
+          filter = new OpeningFilter(seg, radius);
+          break;
+        case DILATE:
+          filter = new DilateFilter(seg, radius);
+          break;
+        case ERODE:
+          filter = new ErodeFilter(seg, radius);
+          break;
       }
+      filter->update();
       m_newConnections << Connection(filter, 0);
       m_oldConnections << Connection(seg->filter(), seg->outputNumber());
     }
@@ -238,6 +246,8 @@ private:
   QList<Segmentation *> m_segmentations;
 };
 
+const QString EditorToolBar::CODECommand::INPUTLINK = "Input";
+
 //----------------------------------------------------------------------------
 EditorToolBar::EditorToolBar(QWidget* parent)
 : QToolBar(parent)
@@ -255,6 +265,7 @@ EditorToolBar::EditorToolBar(QWidget* parent)
   setObjectName("EditorToolBar");
   setWindowTitle("Editor Tool Bar");
 
+  EspinaFactory::instance()->registerFilter(ClosingFilter::TYPE, this);
   EspinaFactory::instance()->registerFilter(FFS, this);
   EspinaFactory::instance()->registerFilter(ILF, this);
 
@@ -299,6 +310,8 @@ EditorToolBar::EditorToolBar(QWidget* parent)
 //----------------------------------------------------------------------------
 Filter* EditorToolBar::createFilter(const QString filter, Filter::NamedInputs inputs, const ModelItem::Arguments args)
 {
+  if (ClosingFilter::TYPE == filter)
+    return new ClosingFilter(inputs, args);
 //   if (filter == FFS)
 //     return new FreeFormSource(inputs, args);
 //   else if (filter == ILF)

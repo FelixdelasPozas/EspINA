@@ -25,7 +25,6 @@
 #include <itkBinaryBallStructuringElement.h>
 #include <itkBinaryMorphologicalClosingImageFilter.h>
 
-static const QString Closing = "EditorToolBar::ClosingFilter";
 
 class ClosingFilter
 : public Filter
@@ -34,11 +33,27 @@ class ClosingFilter
   typedef itk::BinaryMorphologicalClosingImageFilter<EspinaVolume, EspinaVolume, StructuringElementType> FilterType;
 
 public:
-  class ClosingArguments;
+  static const QString TYPE;
+
+  static const ModelItem::ArgumentId RADIUS;
+
+  class ClosingArguments : public Arguments
+  {
+  public:
+  public:
+    explicit ClosingArguments(){}
+    explicit ClosingArguments(const Arguments args) : Arguments(args){}
+
+    void setRadius(unsigned int radius)
+    {
+      (*this)[RADIUS] = QString::number(radius);
+    }
+    unsigned int radius() const {return (*this)[RADIUS].toInt();}
+  };
 
 public:
-  explicit ClosingFilter(Segmentation *seg, unsigned int radius);
-  explicit ClosingFilter(Arguments args);
+  explicit ClosingFilter(NamedInputs inputs,
+                         Arguments args);
   virtual ~ClosingFilter();
 
   void run();
@@ -54,38 +69,14 @@ public:
   virtual QWidget* createConfigurationWidget();
 
 private:
-  ClosingArguments *m_args;
-  Segmentation  *m_input;
-  EspinaVolume  *m_volume;
+  NamedInputs      m_inputs;
+  ClosingArguments m_args;
+
+  EspinaVolume    *m_input;
+  EspinaVolume    *m_volume;
 
   FilterType::Pointer m_filter;
 };
 
-class ClosingFilter::ClosingArguments
-: public Arguments
-{
-public:
-  static const ModelItem::ArgumentId INPUT;
-  static const ModelItem::ArgumentId RADIUS;
-
-public:
-  explicit ClosingArguments(){}
-  explicit ClosingArguments(const Arguments args);
-
-  void setInput(Segmentation * seg)
-  {
-    (*this)[INPUT] = seg->id();
-  }
-
-  void setRadius(unsigned int radius)
-  {
-    m_radius = radius;
-    (*this)[RADIUS] = QString::number(radius);
-  }
-  unsigned int radius() const {return m_radius;}
-
-private:
-  unsigned int m_radius;
-};
 
 #endif // CLOSINGFILTER_H

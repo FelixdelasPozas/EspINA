@@ -41,6 +41,7 @@ public:
 
   // Defines Filter's Interface
   /// Generate unique ID for current analysis.
+  static void resetId();
   static QString generateId();
   /// Manually Edit Filter Output
   virtual void changePixelValue(int x,
