@@ -24,47 +24,45 @@
 #include <QDebug>
 #include <QApplication>
 
+const QString ErodeFilter::TYPE = "EditorToolBar::ErodeFilter";
+
+typedef ModelItem::ArgumentId ArgumentId;
+const ArgumentId ErodeFilter::RADIUS = ArgumentId("Radius", true);
+
 const unsigned int LABEL_VALUE = 255;
 
-//-----------------------------------------------------------------------------
-ErodeFilter::ErodeFilter(Segmentation* seg, unsigned int radius)
-: m_args(new ErodeArguments())
-, m_input(seg)
-, m_volume(NULL)
-{
-  m_args->setInput(seg);
-  m_args->setRadius(radius);
-
-  update();
-}
-
-//-----------------------------------------------------------------------------
-ErodeFilter::ErodeFilter(ModelItem::Arguments args)
-: m_args(new ErodeArguments(args))
+ErodeFilter::ErodeFilter(Filter::NamedInputs inputs,
+                             ModelItem::Arguments args)
+: m_inputs(inputs)
+, m_args(args)
 , m_input(NULL)
 , m_volume(NULL)
 {
-  Q_ASSERT(false);
-  run();
+  qDebug() << TYPE << "arguments" << m_args;
 }
+
 
 //-----------------------------------------------------------------------------
 ErodeFilter::~ErodeFilter()
 {
-  delete m_args;
+  qDebug() << "Destroying" << TYPE;
 }
 
 //-----------------------------------------------------------------------------
 void ErodeFilter::run()
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);
+
+  QStringList input = m_args[INPUTS].split("_");
+  m_input = m_inputs[input[0]]->output(input[1].toUInt());
+
   qDebug() << "Compute Image Erode";
   StructuringElementType ball;
-  ball.SetRadius(m_args->radius());
+  ball.SetRadius(m_args.radius());
   ball.CreateStructuringElement();
 
-  m_filter = bmcifType::New();
-  m_filter->SetInput(m_input->volume());
+  m_filter = FilterType::New();
+  m_filter->SetInput(m_input);
   m_filter->SetKernel(ball);
   m_filter->SetObjectValue(LABEL_VALUE);
   m_filter->Update();
@@ -76,14 +74,14 @@ void ErodeFilter::run()
 //-----------------------------------------------------------------------------
 QString ErodeFilter::id() const
 {
-  return m_args->hash();
+  return m_args[ID];
 }
 
 //-----------------------------------------------------------------------------
 QVariant ErodeFilter::data(int role) const
 {
   if (role == Qt::DisplayRole)
-    return Erode;
+    return TYPE;
   else
     return QVariant();
 }
@@ -91,13 +89,13 @@ QVariant ErodeFilter::data(int role) const
 //-----------------------------------------------------------------------------
 QString ErodeFilter::serialize() const
 {
-  return m_args->serialize();
+  return m_args.serialize();
 }
 
 //-----------------------------------------------------------------------------
 int ErodeFilter::numberOutputs() const
 {
- return m_volume?1:0;
+  return m_volume?1:0;
 }
 
 //-----------------------------------------------------------------------------
@@ -114,16 +112,4 @@ EspinaVolume* ErodeFilter::output(OutputNumber i) const
 QWidget* ErodeFilter::createConfigurationWidget()
 {
   return NULL;
-}
-
-//-----------------------------------------------------------------------------
-typedef ModelItem::ArgumentId ArgumentId;
-const ArgumentId ErodeFilter::ErodeArguments::INPUT = ArgumentId("INPUT", true);
-const ArgumentId ErodeFilter::ErodeArguments::RADIUS = ArgumentId("Radius", true);
-
-//-----------------------------------------------------------------------------
-ErodeFilter::ErodeArguments::ErodeArguments(const Arguments args)
-: Arguments(args)
-{
-  //TODO: Recover segmentation pointers
 }

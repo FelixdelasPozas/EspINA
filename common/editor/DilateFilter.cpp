@@ -24,47 +24,48 @@
 #include <QDebug>
 #include <QApplication>
 
+const QString DilateFilter::TYPE = "EditorToolBar::DilateFilter";
+
+typedef ModelItem::ArgumentId ArgumentId;
+const ArgumentId DilateFilter::RADIUS = ArgumentId("Radius", true);
+
 const unsigned int LABEL_VALUE = 255;
 
-//-----------------------------------------------------------------------------
-DilateFilter::DilateFilter(Segmentation* seg, unsigned int radius)
-: m_args(new DilateArguments())
-, m_input(seg)
-, m_volume(NULL)
-{
-  m_args->setInput(seg);
-  m_args->setRadius(radius);
-
-  update();
-}
-
-//-----------------------------------------------------------------------------
-DilateFilter::DilateFilter(ModelItem::Arguments args)
-: m_args(new DilateArguments(args))
+DilateFilter::DilateFilter(Filter::NamedInputs inputs,
+                             ModelItem::Arguments args)
+: m_inputs(inputs)
+, m_args(args)
 , m_input(NULL)
 , m_volume(NULL)
 {
-  Q_ASSERT(false);
-  run();
+  qDebug() << TYPE << "arguments" << m_args;
 }
+
 
 //-----------------------------------------------------------------------------
 DilateFilter::~DilateFilter()
 {
-  delete m_args;
+  qDebug() << "Destroying" << TYPE;
 }
 
 //-----------------------------------------------------------------------------
 void DilateFilter::run()
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);
-  qDebug() << "Compute Image Dilate";
+
+  QStringList input = m_args[INPUTS].split("_");
+  qDebug() << m_inputs[input[0]]->data(Qt::DisplayRole).toString();
+  m_input = m_inputs[input[0]]->output(input[1].toUInt());
+  m_input->Update();
+
+  unsigned int radius = m_args.radius();
+  qDebug() << "Compute Image Dilate" << radius;
   StructuringElementType ball;
-  ball.SetRadius(m_args->radius());
+  ball.SetRadius(radius);
   ball.CreateStructuringElement();
 
   m_filter = FilterType::New();
-  m_filter->SetInput(m_input->volume());
+  m_filter->SetInput(m_input);
   m_filter->SetKernel(ball);
   m_filter->SetObjectValue(LABEL_VALUE);
   m_filter->SetReleaseDataFlag(false);
@@ -77,14 +78,14 @@ void DilateFilter::run()
 //-----------------------------------------------------------------------------
 QString DilateFilter::id() const
 {
-  return m_args->hash();
+  return m_args[ID];
 }
 
 //-----------------------------------------------------------------------------
 QVariant DilateFilter::data(int role) const
 {
   if (role == Qt::DisplayRole)
-    return Dilate;
+    return TYPE;
   else
     return QVariant();
 }
@@ -92,13 +93,13 @@ QVariant DilateFilter::data(int role) const
 //-----------------------------------------------------------------------------
 QString DilateFilter::serialize() const
 {
-  return m_args->serialize();
+  return m_args.serialize();
 }
 
 //-----------------------------------------------------------------------------
 int DilateFilter::numberOutputs() const
 {
- return m_volume?1:0;
+  return m_volume?1:0;
 }
 
 //-----------------------------------------------------------------------------
@@ -115,16 +116,4 @@ EspinaVolume* DilateFilter::output(OutputNumber i) const
 QWidget* DilateFilter::createConfigurationWidget()
 {
   return NULL;
-}
-
-//-----------------------------------------------------------------------------
-typedef ModelItem::ArgumentId ArgumentId;
-const ArgumentId DilateFilter::DilateArguments::INPUT = ArgumentId("INPUT", true);
-const ArgumentId DilateFilter::DilateArguments::RADIUS = ArgumentId("Radius", true);
-
-//-----------------------------------------------------------------------------
-DilateFilter::DilateArguments::DilateArguments(const Arguments args)
-: Arguments(args)
-{
-  //TODO: Recover segmentation pointers
 }

@@ -190,10 +190,10 @@ public:
           filter = new OpeningFilter(inputs, args);
           break;
         case DILATE:
-          filter = new DilateFilter(seg, radius);
+          filter = new DilateFilter(inputs, args);
           break;
         case ERODE:
-          filter = new ErodeFilter(seg, radius);
+          filter = new ErodeFilter(inputs, args);
           break;
       }
       filter->update();
@@ -314,6 +314,10 @@ Filter* EditorToolBar::createFilter(const QString filter, Filter::NamedInputs in
     return new ClosingFilter(inputs, args);
   if (OpeningFilter::TYPE == filter)
     return new OpeningFilter(inputs, args);
+  if (DilateFilter::TYPE == filter)
+    return new DilateFilter(inputs, args);
+  if (ErodeFilter::TYPE == filter)
+    return new ErodeFilter(inputs, args);
 //   if (filter == FFS)
 //     return new FreeFormSource(inputs, args);
 //   else if (filter == ILF)
@@ -458,7 +462,7 @@ void EditorToolBar::erodeSegmentations()
   QList<Segmentation *> input = selectedSegmentations();
   if (input.size() > 0)
   {
-    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODECommand::ERODE, 10));
+    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODECommand::ERODE, 3));
   }
 }
 
@@ -468,7 +472,7 @@ void EditorToolBar::dilateSegmentations()
   QList<Segmentation *> input = selectedSegmentations();
   if (input.size() > 0)
   {
-    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODECommand::DILATE, 10));
+    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODECommand::DILATE, 3));
   }
 }
 
@@ -488,7 +492,7 @@ void EditorToolBar::closeSegmentations()
   QList<Segmentation *> input = selectedSegmentations();
   if (input.size() > 0)
   {
-    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODECommand::CLOSE, 10));
+    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODECommand::CLOSE, 3));
   }
 }
 

@@ -25,20 +25,35 @@
 #include <itkBinaryBallStructuringElement.h>
 #include <itkErodeObjectMorphologyImageFilter.h>
 
-static const QString Erode = "EditorToolBar::ErodeFilter";
-
 class ErodeFilter
 : public Filter
 {
   typedef itk::BinaryBallStructuringElement<EspinaVolume::PixelType, 3> StructuringElementType;
-  typedef itk::ErodeObjectMorphologyImageFilter<EspinaVolume, EspinaVolume, StructuringElementType> bmcifType;
+  typedef itk::ErodeObjectMorphologyImageFilter<EspinaVolume, EspinaVolume, StructuringElementType> FilterType;
 
 public:
-  class ErodeArguments;
+  static const QString TYPE;
+
+  static const ModelItem::ArgumentId RADIUS;
+
+  class ErodeArguments : public Arguments
+  {
+  public:
+  public:
+    explicit ErodeArguments(){}
+    explicit ErodeArguments(const Arguments args)
+    : Arguments(args){}
+
+    void setRadius(unsigned int radius)
+    {
+      (*this)[RADIUS] = QString::number(radius);
+    }
+    unsigned int radius() const {return (*this)[RADIUS].toInt();}
+  };
 
 public:
-  explicit ErodeFilter(Segmentation *seg, unsigned int radius);
-  explicit ErodeFilter(Arguments args);
+  explicit ErodeFilter(NamedInputs inputs,
+                         Arguments args);
   virtual ~ErodeFilter();
 
   void run();
@@ -54,38 +69,14 @@ public:
   virtual QWidget* createConfigurationWidget();
 
 private:
-  ErodeArguments *m_args;
-  Segmentation  *m_input;
+  NamedInputs    m_inputs;
+  ErodeArguments m_args;
+
+  EspinaVolume  *m_input;
   EspinaVolume  *m_volume;
 
-  bmcifType::Pointer m_filter;
+  FilterType::Pointer m_filter;
 };
 
-class ErodeFilter::ErodeArguments
-: public Arguments
-{
-public:
-  static const ModelItem::ArgumentId INPUT;
-  static const ModelItem::ArgumentId RADIUS;
-
-public:
-  explicit ErodeArguments(){}
-  explicit ErodeArguments(const Arguments args);
-
-  void setInput(Segmentation * seg)
-  {
-    (*this)[INPUT] = seg->id();
-  }
-
-  void setRadius(unsigned int radius)
-  {
-    m_radius = radius;
-    (*this)[RADIUS] = QString::number(radius);
-  }
-  unsigned int radius() const {return m_radius;}
-
-private:
-  unsigned int m_radius;
-};
 
 #endif // ERODEFILTER_H
