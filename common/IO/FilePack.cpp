@@ -10,9 +10,11 @@
 
 #include <itkImageFileWriter.h>
 #include <itkMetaImageIO.h>
+#include <vtkMetaImageReader.h>
+#include <vtkTIFFReader.h>
 
-#define TRACE "trace.dot"
-#define TAXONOMY "taxonomy.xml"
+const QString TRACE    = "trace.dot";
+const QString TAXONOMY = "taxonomy.xml";
 
 typedef itk::ImageFileWriter<EspinaVolume> EspinaVolumeWriter;
 
@@ -97,12 +99,89 @@ bool IOEspinaFile::loadFile(QString filePath,
 }
 
 //-----------------------------------------------------------------------------
+bool IOEspinaFile::loadFile(QFileInfo file,
+                            QSharedPointer<EspinaModel> model)
+{
+  // Create tmp dir
+  qDebug() << file.absolutePath();
+  QDir tmpDir = file.absoluteDir();
+  tmpDir.mkdir(file.baseName());
+  tmpDir.cd(file.baseName());
+  qDebug() << "Temporal Dir" << tmpDir;
+
+  QuaZip espinaZip(file.filePath());
+  if( !espinaZip.open(QuaZip::mdUnzip) )
+  {
+    qWarning() << "IOEspinaFile: Could not open file" << file.filePath();
+    return false;
+  }
+
+  QuaZipFile espinaFile(&espinaZip);
+
+  Taxonomy *taxonomy = NULL;
+  QString traceContent;
+
+  bool hasFile = espinaZip.goToFirstFile();
+  while(hasFile)
+  {
+    QFileInfo file = espinaFile.getActualFileName();
+    if( !espinaFile.open(QIODevice::ReadOnly) )
+    {
+      qWarning() << "IOEspinaFile: Could not extract the file" << file.filePath();
+      if( file == TAXONOMY || file == TRACE )
+        return false;
+      continue;
+    }
+
+    qDebug() << "IOEspinaFile::loadFile: extracting" << file.filePath();
+    if(file.fileName() == TAXONOMY )
+    {
+      Q_ASSERT(taxonomy == NULL);
+      taxonomy = IOTaxonomy::loadXMLTaxonomy(espinaFile.readAll());
+      taxonomy->print(3);
+    } else if(file.fileName() == TRACE)
+    {
+      Q_ASSERT(traceContent.isEmpty());
+      QTextStream traceStream(&traceContent);
+      traceStream << espinaFile.readAll();
+    } else
+    {
+      // Espina Volumes
+      QFile destination(tmpDir.filePath(file.fileName()));
+      /*qDebug()<< "Permissions set" <<
+       *       destination.setPermissions(QFile::ReadOwner | QFile::WriteOwner |
+       *                                  QFile::ReadGroup | QFile::ReadOther);*/
+      if(!destination.open(QIODevice::WriteOnly | QIODevice::Truncate))
+      {
+        qWarning() << "IOEspinaFile::loadFile: could not create file " << file.filePath();
+      }
+      destination.write(espinaFile.readAll());
+      destination.close();
+    }
+    espinaFile.close();
+    hasFile = espinaZip.goToNextFile();
+  }
+
+  if(!taxonomy || traceContent.isEmpty())
+  {
+    qWarning() << "IOEspinaFile::loadFile: could not find taxonomy and/or trace files";
+    return false;
+  }
+
+  model->addTaxonomy(taxonomy);
+  std::istringstream trace(traceContent.toStdString().c_str());
+  model->loadSerialization(trace);
+
+  espinaZip.close();
+  return true;
+}
+
+//-----------------------------------------------------------------------------
 bool IOEspinaFile::saveFile(QString& filePath,
                             QString& TraceContent,
                             QString& TaxonomyContent,
                             QStringList& segmentationPaths,
-                            QString commonPathToRemove
-                           )
+                            QString commonPathToRemove )
 {
   QFile zFile(filePath);
   QuaZip zip(&zFile);
@@ -174,13 +253,25 @@ bool IOEspinaFile::saveFile(QFileInfo file,
     EspinaVolumeWriter::Pointer writer = EspinaVolumeWriter::New();
     Filter *creator = seg->filter();
     int output = seg->outputNumber();
-    QString volumeName = creator->id() + "_" + QString::number(output) + ".mhd";
-    std::string volumeFile = tmpDir.absoluteFilePath(volumeName).toStdString();
-    io->SetFileName(volumeFile);
-    writer->SetFileName(volumeFile);
+    QString volumeName = creator->id() + "_" + QString::number(output);
+    QString volumeFile = tmpDir.absoluteFilePath(volumeName + ".mhd");
+    io->SetFileName(volumeFile.toStdString());
+    writer->SetFileName(volumeFile.toStdString());
     writer->SetInput(seg->volume());
     writer->SetImageIO(io);
     writer->Update();
+    QFile segFile(volumeFile);
+    segFile.open(QIODevice::ReadOnly);
+    if( !IOEspinaFile::zipFile(volumeName + ".mhd", segFile.readAll() , outFile) )
+    {
+      qWarning() << "IOEspinaFile::saveFile: Error while zipping" << (volumeName + ".mhd");
+      return false;
+    }
+    if( !IOEspinaFile::zipFile(volumeName + ".raw", segFile.readAll() , outFile) )
+    {
+      qWarning() << "IOEspinaFile::saveFile: Error while zipping" << (volumeName + ".raw");
+      return false;
+    }
   }
 
   QStringList filters;

@@ -46,10 +46,14 @@ public:
   QList<ISettingsPanel *> settingsPanels() const {return m_settingsPanels;}
   QMap<QString, Renderer *> renderers() const {return m_renderers;}
 
-  Filter  *createFilter (const QString filter, const ModelItem::Arguments args);
+  Filter  *createFilter (const QString filter,
+                         Filter::NamedInputs inputs,
+                         const ModelItem::Arguments args);
   Sample  *createSample (const QString id, const QString args = "");
+  Channel *createChannel(Filter *filter, OutputNumber output);
+  ///DEPRECATED
   Channel *createChannel(const QString id, const ModelItem::Arguments args);
-  Segmentation *createSegmentation(Filter* parent, int output);
+  Segmentation *createSegmentation(Filter* parent, OutputNumber output);
 
   bool readFile(const QString file, const QString ext);
 

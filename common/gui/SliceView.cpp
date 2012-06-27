@@ -24,7 +24,6 @@
 #include "common/model/Channel.h"
 #include "common/model/Representation.h"
 #include "common/model/Segmentation.h"
-#include "common/processing/pqData.h"
 #include "common/selection/SelectionManager.h"
 #include "ColorEngine.h"
 #include "common/gui/SliceViewState.h"

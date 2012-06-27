@@ -18,8 +18,6 @@
 
 #include "ImageLogicFilter.h"
 
-#include <processing/pqFilter.h>
-#include <cache/CachedObjectBuilder.h>
 #include <model/EspinaFactory.h>
 #include <vtkImageAlgorithm.h>
 

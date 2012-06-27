@@ -168,7 +168,8 @@ void CountingRegion::createAdaptiveRegion(double inclusion[3], double exclusion[
 
   Sample *sample = EspinaCore::instance()->sample();
   Q_ASSERT(sample);
-  ModelItem::Vector channels = sample->relatedItems(ModelItem::OUT,"mark");
+  ModelItem::Vector channels = sample->relatedItems(ModelItem::OUT,
+                                                    Channel::STAINLINK);
   Q_ASSERT(channels.size() > 0);
 
   ModelItemExtension *ext = sample->extension(CountingRegionSampleExtension::ID);

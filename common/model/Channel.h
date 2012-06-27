@@ -34,6 +34,8 @@
 #include <QColor>
 #include <QFileInfo>
 
+class Sample;
+class Filter;
 // Forward declarations
 class ChannelExtension;
 class vtkAlgorithmOutput;
@@ -46,76 +48,70 @@ class Channel
 public:
   // Argument Ids
   static const ArgumentId ID;
-  static const ArgumentId PATH;
   static const ArgumentId COLOR;
-  static const ArgumentId SPACING;
+  static const ArgumentId VOLUME;
+
+  static const QString STAINLINK;
+  static const QString VOLUMELINK;
 
 // Extended Information and representation tags
   static const QString NAME;
-  static const QString VOLUME;
+  static const QString VOLUMETRIC;
 
   class CArguments : public ModelItem::Arguments
   {
   public:
     explicit CArguments(){}
-    explicit CArguments(const Arguments args) : Arguments(args)
-    {
-      if (args.contains(SPACING))
-      {
-      QStringList spacing = args[SPACING].split(",");
-      for(int i=0; i<3; i++)
-	m_spacing[i] = spacing[i].toFloat();
-      } else
-      {
-	memset(m_spacing, 0,  3*sizeof(double));
-      }
-    }
+    explicit CArguments(const Arguments args) : Arguments(args) {}
 
     virtual ArgumentId argumentId(QString name) const
     {
-      if (name == ID)
-	return ID;
-
-      if (name == COLOR)
-	return COLOR;
+      if (ID == name)
+        return ID;
+      if (COLOR == name)
+        return COLOR;
+      if (VOLUME == name)
+        return VOLUME;
 
       return Arguments::argumentId(name);
     }
 
+    /// Channel dye color. Hue's value in range (0,1)
     void setColor(double color)
     {
       (*this)[COLOR] = QString::number(color);
     }
-
+    /// Channel dye color. Hue's value in range (0,1)
     double color() const
     {
       return (*this)[COLOR].toFloat();
     }
 
-    void setSpacing(double spacing[3])
+    void setOutputNumber(OutputNumber number)
     {
-      memcpy(m_spacing, spacing, 3*sizeof(double));
-      (*this)[SPACING] = QString("%1,%2,%3")
-                         .arg(spacing[0])
-                         .arg(spacing[1])
-                         .arg(spacing[2]);
+      (*this)[VOLUME] = QString("%1_%2")
+                        .arg(VOLUMELINK)
+                        .arg(number);
+      m_outputNumber = number;
     }
-    void spacing(double spacing[3])
+
+    OutputNumber outputNumber() const
     {
-      memcpy(spacing, m_spacing, 3*sizeof(double));
+      return m_outputNumber;
     }
+
   private:
-    double m_spacing[3];
+    OutputNumber m_outputNumber;
+    //double m_spacing[3];
   };
 
 public:
-  //explicit Channel(const QString file, pqData data);
-  explicit Channel(const QFileInfo file, const Arguments args);
+  explicit Channel(Filter *filter, OutputNumber output);
   virtual ~Channel();
 
-  void extent(int val[6]);
-  void bounds(double val[6]);
-  void spacing(double val[3]);
+  void extent(int out[6]);
+  void bounds(double out[6]);
+  void spacing(double out[3]);
 
   void setPosition(double pos[3]);
   void position(double pos[3]);
@@ -142,7 +138,9 @@ public:
   Sample *sample();
 
   /// Selectable Item Interface
-  EspinaVolume *volume();
+  virtual Filter* filter();
+  virtual OutputNumber outputNumber();
+  virtual EspinaVolume *volume();
 
   // vtk image of the channel
   vtkAlgorithmOutput* image();
@@ -153,13 +151,11 @@ public:
 
 private:
   bool   m_visible;
-  EspinaVolume *m_volume;
-  itk::ImageIOBase::Pointer io;
-  EspinaVolumeReader::Pointer reader;
-
   int    m_extent[6];
   double m_bounds[6];
   double m_pos[3];/*in nm*/
+
+  Filter            *m_filter;
   mutable CArguments m_args;
 //   QMap<ExtensionId, IChannelExtension *> m_extensions;
 //   QMap<ExtensionId, IChannelExtension *> m_pendingExtensions;

@@ -101,7 +101,7 @@ int ErodeFilter::numberOutputs() const
 }
 
 //-----------------------------------------------------------------------------
-EspinaVolume* ErodeFilter::output(int i) const
+EspinaVolume* ErodeFilter::output(OutputNumber i) const
 {
   if (m_volume && i == 0)
     return m_volume;

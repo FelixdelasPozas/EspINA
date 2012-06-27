@@ -23,27 +23,25 @@
 #include <QUndoStack>
 #include <QSharedPointer>
 
-class pqFilter;
-class Channel;
 class EspinaModel;
+class ChannelReader;
+class Channel;
 class Sample;
 
 class AddChannel
 : public QUndoCommand
 {
 public:
-  explicit AddChannel(Channel *channel,
-		      QUndoCommand *parent=0);
-  explicit AddChannel(const QString channelFile,
-		      QUndoCommand *parent=0);
+  explicit AddChannel(ChannelReader *reader,
+                      Channel *channel,
+                      QUndoCommand *parent=0);
 
   virtual void redo();
   virtual void undo();
 
 private:
-  Channel      *m_channel;
-  pqFilter     *m_reader;
-  const QString m_file;
+  ChannelReader *m_reader;
+  Channel       *m_channel;
 };
 
 #endif // ADDCHANNEL_H

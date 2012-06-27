@@ -19,39 +19,35 @@
 
 #include "AddChannel.h"
 
-#include "common/cache/CachedObjectBuilder.h"
 #include "common/model/EspinaModel.h"
 #include "common/model/Channel.h"
+#include <model/ChannelReader.h>
 #include "common/EspinaCore.h"
 
-AddChannel::AddChannel(Channel  *channel, QUndoCommand* parent)
+AddChannel::AddChannel(ChannelReader *reader,
+                       Channel* channel,
+                       QUndoCommand* parent)
 : QUndoCommand(parent)
+, m_reader(reader)
 , m_channel(channel)
-{
-}
-
-
-AddChannel::AddChannel(const QString channelFile,
-		       QUndoCommand* parent)
-: QUndoCommand(parent)
-, m_file(channelFile)
 {
 }
 
 void AddChannel::redo()
 {
-// //   pqPipelineSource* reader = pqLoadDataReaction::loadData(QStringList(m_file));
-// //   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-// //   m_reader = cob->registerFilter(m_file, reader);
-// //   Q_ASSERT(m_reader->getNumberOfData() == 1);
-// //   pqData channelData(m_reader,0);
-// //   m_channel = QSharedPointer<Channel>(new Channel(channelData));
-  EspinaCore::instance()->model()->addChannel(m_channel);
+  QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
+
+  model->addFilter(m_reader);
+  model->addChannel(m_channel);
+  model->addRelation(m_reader, m_channel, Channel::VOLUMELINK);
 }
 
 void AddChannel::undo()
 {
-  EspinaCore::instance()->model()->removeChannel(m_channel);
-//   m_channel.clear();
+  QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
+
+  model->removeRelation(m_reader, m_channel, Channel::VOLUMELINK);
+  model->removeChannel(m_channel);
+  model->removeFilter(m_reader);
 }
 

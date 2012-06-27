@@ -50,7 +50,7 @@ public:
 
   /// Implements Filter Interface
   virtual int numberOutputs() const;
-  virtual EspinaVolume* output(int i) const;
+  virtual EspinaVolume* output(OutputNumber i) const;
   virtual QWidget* createConfigurationWidget();
 
 private:

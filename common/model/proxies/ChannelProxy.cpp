@@ -195,14 +195,17 @@ QModelIndex ChannelProxy::mapFromSource(const QModelIndex& sourceIndex) const
 //       Sample *sample = dynamic_cast<Sample *>(sourceItem);
 //       Q_ASSERT(sample);
       //Samples are shown in the same order than in the original model
-      proxyIndex = createIndex(sourceIndex.row(), sourceIndex.column(), sourceIndex.internalPointer());
+      proxyIndex = createIndex(sourceIndex.row(),
+                               sourceIndex.column(),
+                               sourceIndex.internalPointer());
       break;
     }
     case ModelItem::CHANNEL:
     {
       Channel *channel = dynamic_cast<Channel *>(sourceItem);
       Q_ASSERT(channel);
-      ModelItem::Vector samples = channel->relatedItems(ModelItem::IN, "mark");
+      ModelItem::Vector samples = channel->relatedItems(ModelItem::IN,
+                                                        Channel::STAINLINK);
       if (samples.size() > 0)
       {
 	Sample *sample = dynamic_cast<Sample *>(samples[0]);
@@ -434,7 +437,8 @@ QModelIndexList ChannelProxy::proxyIndices(const QModelIndex& parent, int start,
 // }
 
 //------------------------------------------------------------------------
-void ChannelProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QModelIndex& sourceBottomRight)
+void ChannelProxy::sourceDataChanged(const QModelIndex& sourceTopLeft,
+                                     const QModelIndex& sourceBottomRight)
 {
   QModelIndexList sources;
   indices(sourceTopLeft, sourceBottomRight, sources);
@@ -448,7 +452,8 @@ void ChannelProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QMo
       if (ModelItem::SAMPLE == proxyItem->type())
       {
 	Sample *sample = dynamic_cast<Sample *>(proxyItem);
-	ModelItem::Vector channels = sample->relatedItems(ModelItem::OUT, "mark");
+	ModelItem::Vector channels = sample->relatedItems(ModelItem::OUT,
+                                                      Channel::STAINLINK);
 	ChannelSet prevChannels = m_channels[sample].toSet();
 // 	debugSet("Previous Channels", prevSegs);
 	ChannelSet currentChannels = channels.toSet();
@@ -487,7 +492,8 @@ void ChannelProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QMo
 Sample* ChannelProxy::origin(Channel* channel) const
 {
   Sample *sample = NULL;
-  ModelItem::Vector samples = channel->relatedItems(ModelItem::IN, "mark");
+  ModelItem::Vector samples = channel->relatedItems(ModelItem::IN,
+                                                    Channel::STAINLINK);
   if (samples.size() > 0)
     sample = dynamic_cast<Sample *>(samples[0]);
 

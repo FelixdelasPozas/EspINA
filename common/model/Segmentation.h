@@ -26,7 +26,6 @@
 #define SEGMENTATION_H
 
 #include <common/extensions/SegmentationExtension.h>
-#include "common/processing/pqData.h"
 #include "common/selection/SelectableItem.h"
 #include "common/model/Taxonomy.h"
 #include "Filter.h"
@@ -38,7 +37,8 @@ class Sample;
 class Filter;
 class pqPipelineSource;
 
-class Segmentation: public SelectableItem
+class Segmentation
+: public SelectableItem
 {
   Q_OBJECT
 public:
@@ -59,18 +59,18 @@ private:
 
     void setNumber(unsigned int number)
     {
-      Number = number;
-      (*this)[NUMBER] = QString::number(Number);
+      m_number = number;
+      (*this)[NUMBER] = QString::number(m_number);
     }
-    unsigned int number() const {return Number;}
+    unsigned int number() const {return m_number;}
 
-    void setOutputNumber(int outputNb)
+    void setOutputNumber(OutputNumber outputNb)
     {
-      OutputNumber = outputNb;
+      m_outputNumber = outputNb;
       (*this)[OUTPUT] = QString::number(outputNb);
     }
 
-    int outputNumber() const {return OutputNumber;}
+    OutputNumber outputNumber() const {return m_outputNumber;}
 
     void addUser(const QString &user)
     {
@@ -85,12 +85,12 @@ private:
     virtual QString serialize(bool key = false) const;
 
   private:
-    unsigned int Number;
-    int OutputNumber;
+    unsigned int m_number;
+    int m_outputNumber;
   };
 
 public:
-  explicit Segmentation(Filter *filter, unsigned int outputNb);
+  explicit Segmentation(Filter *filter, OutputNumber outputNb);
   virtual ~Segmentation();
 
   Filter *filter() const {return m_filter;}
@@ -108,6 +108,8 @@ public:
   virtual void initializeExtensions();
 
   /// Selectable Item Interface
+  virtual Filter* filter(){return m_filter;}
+  virtual OutputNumber outputNumber() {return m_args.outputNumber();}
   virtual EspinaVolume *volume();
 
   virtual vtkAlgorithmOutput* image();
@@ -137,7 +139,6 @@ private slots:
 
 private:
   Filter *m_filter;
-  EspinaVolume::Pointer m_volume;
   SArguments m_args;
   TaxonomyNode *m_taxonomy;
 

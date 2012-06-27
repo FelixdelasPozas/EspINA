@@ -4,6 +4,7 @@
 #include <itkImage.h>
 
 typedef itk::Image<unsigned char, 3> EspinaVolume;
+typedef unsigned int OutputNumber;
 
 void VolumeExtent(EspinaVolume *volume, int extent[6]);
 

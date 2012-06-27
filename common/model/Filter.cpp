@@ -18,10 +18,35 @@
 
 
 #include "Filter.h"
+#include <EspinaCore.h>
 
 #include <QWidget>
 
+typedef ModelItem::ArgumentId ArgumentId;
 
+const ArgumentId Filter::ID     = ArgumentId("ID", true);
+const ArgumentId Filter::INPUTS = ArgumentId("Inputs", true);
+const ArgumentId Filter::EDIT   = ArgumentId("Edit", true);
+
+unsigned int Filter::m_lastId = 0;
+
+//----------------------------------------------------------------------------
+QString Filter::generateId()
+{
+  return QString::number(m_lastId++);
+}
+
+//----------------------------------------------------------------------------
+void Filter::update()
+{
+  QString filename = id() + ".mhd";
+  //if (EspinaCore::instance()->temporalDir()
+  prefetchFilter();
+  run();
+}
+
+
+//----------------------------------------------------------------------------
 QWidget* Filter::createConfigurationWidget()
 {
   return new QWidget();

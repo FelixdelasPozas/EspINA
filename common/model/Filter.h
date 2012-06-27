@@ -28,21 +28,35 @@ class Filter
 : public ModelItem
 {
 public:
+  typedef QMap<QString, Filter *> NamedInputs;
+
+  static const ModelItem::ArgumentId ID;
+  static const ModelItem::ArgumentId INPUTS;
+  static const ModelItem::ArgumentId EDIT;
+public:
   virtual ~Filter(){}
 
   // Implements Model Item Interface common to filters
   virtual ItemType type() const {return ModelItem::FILTER;}
 
   // Defines Filter's Interface
-  /// Updates filter outputs.
-  /// If a snapshot exits it will try to load it
-  void update(){prefetchFilter(); run();}//TODO
-  /// Method which actually executes the filter
-  virtual void run() = 0;
+  /// Generate unique ID for current analysis.
+  static QString generateId();
+  /// Manually Edit Filter Output
+  virtual void changePixelValue(int x,
+                                int y,
+                                int z,
+                                EspinaVolume::PixelType value,
+                                OutputNumber output){/*TODO*/}
   /// Specify how many outputs this filter generates
   virtual int numberOutputs() const = 0;
   /// Return the i-th output
-  virtual EspinaVolume *output(int i) const = 0;
+  virtual EspinaVolume *output(OutputNumber i) const = 0;
+  /// Updates filter outputs.
+  /// If a snapshot exits it will try to load it
+  void update();
+  /// Method which actually executes the filter
+  virtual void run() = 0;
 
   /// Return a widget used to configure filter's parameters
   virtual QWidget *createConfigurationWidget() = 0;
@@ -50,6 +64,9 @@ public:
 protected:
   /// Try to locate an snapshot of the filter in the hard drive
   virtual void prefetchFilter(){}
+
+private:
+  static unsigned int m_lastId;
 };
 
 #endif // FILTER_H

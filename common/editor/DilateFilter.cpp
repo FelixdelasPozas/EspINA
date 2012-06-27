@@ -102,7 +102,7 @@ int DilateFilter::numberOutputs() const
 }
 
 //-----------------------------------------------------------------------------
-EspinaVolume* DilateFilter::output(int i) const
+EspinaVolume* DilateFilter::output(OutputNumber i) const
 {
   if (m_volume && i == 0)
     return m_volume;
