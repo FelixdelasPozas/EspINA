@@ -1,20 +1,20 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    <one line to give the program's name and a brief idea of what it does.>
+ *    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 
 #ifndef IMAGELOGICFILTER_H
@@ -22,8 +22,6 @@
 
 #include <model/Filter.h>
 #include <model/Segmentation.h>
-
-static const QString ILF = "EditorToolBar::ImageLogicFilter";
 
 class ImageLogicFilter
 : public Filter
@@ -35,65 +33,50 @@ public:
     SUBSTRACTION,
     NOSIGN
   };
+  static const QString TYPE;
 
-  class ILFArguments;
+  static const ModelItem::ArgumentId OPERATION;
+
+  class ILFArguments
+  : public Arguments
+  {
+  public:
+    explicit ILFArguments(){}
+    explicit ILFArguments(const Arguments args) : Arguments(args) {}
+
+    void setOperation(Operation op)
+    {
+      (*this)[OPERATION] = QString::number(op);
+    }
+
+    Operation operation() const {return Operation((*this)[OPERATION].toInt());}
+  };
 
 public:
-  explicit ImageLogicFilter(QList<Segmentation *> input, Operation op);
-  explicit ImageLogicFilter(Arguments args);
+  explicit ImageLogicFilter(NamedInputs inputs, Arguments args);
   virtual ~ImageLogicFilter();
 
-  void run();
 
   /// Implements Model Item Interface
   virtual QString id() const;
-  virtual QVariant data(int role) const;
+  virtual QVariant data(int role=Qt::DisplayRole) const;
   virtual QString serialize() const;
 
   /// Implements Filter Interface
-  virtual int numberOutputs() const{}
-  virtual EspinaVolume* output(OutputNumber i) const{}
+  void run();
+  virtual int numberOutputs() const;
+  virtual EspinaVolume* output(OutputNumber i) const;
+  virtual bool prefetchFilter();
 
   virtual QWidget* createConfigurationWidget();
 
 private:
-  ILFArguments *m_args;
+  NamedInputs   m_inputs;
+  ILFArguments  m_args;
+
+  EspinaVolume *m_volume;
 };
 
 
-class ImageLogicFilter::ILFArguments
-: public Arguments
-{
-public: 
-  static const ModelItem::ArgumentId INPUT;
-  static const ModelItem::ArgumentId OPERATION;
-
-public:
-  explicit ILFArguments(){}
-  explicit ILFArguments(const Arguments args);
-
-  void setInput(QList<Segmentation *> input)
-  {
-    QString inputs;
-    foreach(Segmentation *seg, input)
-    {
-      if (!inputs.isEmpty())
-	inputs.append(",");
-      inputs.append(seg->id());
-    }
-    (*this)[INPUT] = inputs;
-  }
-
-  void setOperation(Operation op)
-  {
-    m_operation = op;
-    (*this)[OPERATION] = QString::number(op);
-  }
-
-  Operation operation() const {return m_operation;}
-
-private:
-  Operation m_operation;
-};
 
 #endif // IMAGELOGICFILTER_H

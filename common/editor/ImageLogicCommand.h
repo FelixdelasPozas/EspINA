@@ -27,15 +27,18 @@ class Segmentation;
 
 class ImageLogicCommand: public QUndoCommand
 {
-	public:
-		explicit ImageLogicCommand(QList<Segmentation *> inputs, ImageLogicFilter::Operation op);
+public:
+  explicit ImageLogicCommand(QList<Segmentation *> segmentations,
+                             ImageLogicFilter::Operation op);
 
-		virtual void redo();
-		virtual void undo();
+  virtual void redo();
+  virtual void undo();
 
-	private:
-		ImageLogicFilter *m_filter;
-		QList<Segmentation *> m_input;
+private:
+  ImageLogicFilter     *m_filter;
+  Segmentation         *m_seg;
+  TaxonomyNode         *m_tax;
+  QList<Segmentation *> m_input;
 };
 
 #endif // IMAGELOGICCOMMAND_H

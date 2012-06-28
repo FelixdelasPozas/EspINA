@@ -36,6 +36,7 @@
 #include <editor/OpeningFilter.h>
 #include <undo/RemoveSegmentation.h>
 #include <gui/EspinaView.h>
+#include "frontend/toolbar/editor/MorphologicalSettingsPanel.h"
 
 //----------------------------------------------------------------------------
 class EditorToolBar::FreeFormCommand
@@ -269,13 +270,15 @@ EditorToolBar::EditorToolBar(QWidget* parent)
 {
   setObjectName("EditorToolBar");
   setWindowTitle("Editor Tool Bar");
+  EspinaFactory *factory = EspinaFactory::instance();
+  factory->registerFilter(ClosingFilter::TYPE,  this);
+  factory->registerFilter(OpeningFilter::TYPE,  this);
+  factory->registerFilter(DilateFilter::TYPE,   this);
+  factory->registerFilter(ErodeFilter::TYPE,    this);
+  factory->registerFilter(FreeFormSource::TYPE, this);
+  factory->registerFilter(ImageLogicFilter::TYPE, this);
 
-  EspinaFactory::instance()->registerFilter(ClosingFilter::TYPE,  this);
-  EspinaFactory::instance()->registerFilter(OpeningFilter::TYPE,  this);
-  EspinaFactory::instance()->registerFilter(DilateFilter::TYPE,   this);
-  EspinaFactory::instance()->registerFilter(ErodeFilter::TYPE,    this);
-  EspinaFactory::instance()->registerFilter(FreeFormSource::TYPE, this);
-  EspinaFactory::instance()->registerFilter(ILF, this);
+  factory->registerSettingsPanel(new MorphologicalFiltersPreferences());
 
   m_draw->setIcon(QIcon(":/espina/pencil.png"));
   m_draw->setCheckable(true);
@@ -328,8 +331,8 @@ Filter* EditorToolBar::createFilter(const QString filter, Filter::NamedInputs in
     return new ErodeFilter(inputs, args);
   if (FreeFormSource::TYPE == filter)
     return new FreeFormSource(inputs, args);
-//   else if (filter == ILF)
-//     return new ImageLogicFilter(inputs, args);
+  if (ImageLogicFilter::TYPE == filter)
+    return new ImageLogicFilter(inputs, args);
   else
     Q_ASSERT(false);
 

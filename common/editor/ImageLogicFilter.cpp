@@ -21,61 +21,67 @@
 #include <model/EspinaFactory.h>
 #include <vtkImageAlgorithm.h>
 
-//-----------------------------------------------------------------------------
-ImageLogicFilter::ImageLogicFilter(QList<Segmentation *> input,
-				   ImageLogicFilter::Operation op)
-: m_args  (new ILFArguments())
-{
-  m_args->setInput(input);
-  m_args->setOperation(op);
-
-  run();
-}
+const QString ImageLogicFilter::TYPE = "EditorToolBar::ImageLogicFilter";
 
 //-----------------------------------------------------------------------------
-ImageLogicFilter::ImageLogicFilter(ModelItem::Arguments args)
-: m_args(new ILFArguments(args))
+typedef ModelItem::ArgumentId ArgumentId;
+const ArgumentId ImageLogicFilter::OPERATION = ArgumentId("Operation", true);
+
+
+//-----------------------------------------------------------------------------
+ImageLogicFilter::ImageLogicFilter(Filter::NamedInputs inputs,
+                                   ModelItem::Arguments args)
+: m_inputs(inputs)
+, m_args(args)
+, m_volume(NULL)
 {
-  run();
+
 }
 
 //-----------------------------------------------------------------------------
 ImageLogicFilter::~ImageLogicFilter()
 {
-  delete m_args;
 }
 
 //-----------------------------------------------------------------------------
 void ImageLogicFilter::run()
 {
-//   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-// 
-//   QString segId = id() + "_0";
-//   if ((m_filter = cob->loadFile(segId)) == NULL)
-//   {
-//     pqFilter::Arguments logic;
-//     logic << pqFilter::Argument("Input",pqFilter::Argument::INPUT, m_args->value(ILFArguments::INPUT));
-//     logic << pqFilter::Argument("Operation",pqFilter::Argument::INTVECT, m_args->value(ILFArguments::OPERATION));
-//     m_filter = cob->createFilter("filters","ImageLogicFilter", logic);
-//     Q_ASSERT(m_filter->getNumberOfData() == 1);
-//   }
-// 
-//   m_filter->algorithm()->Update();
-// 
-//   m_seg = EspinaFactory::instance()->createSegmentation(this, 0);
+  
+}
+
+//-----------------------------------------------------------------------------
+int ImageLogicFilter::numberOutputs() const
+{
+  return m_volume?1:0;
+}
+
+//-----------------------------------------------------------------------------
+EspinaVolume* ImageLogicFilter::output(OutputNumber i) const
+{
+  if (m_volume && i == 0)
+    return m_volume;
+
+  Q_ASSERT(false);
+  return NULL;
+}
+
+//-----------------------------------------------------------------------------
+bool ImageLogicFilter::prefetchFilter()
+{
+return Filter::prefetchFilter();
 }
 
 //-----------------------------------------------------------------------------
 QString ImageLogicFilter::id() const
 {
-  return m_args->hash();
+  return m_args[ID];
 }
 
 //-----------------------------------------------------------------------------
 QVariant ImageLogicFilter::data(int role) const
 {
   if (role == Qt::DisplayRole)
-    return ILF;
+    return TYPE;
   else
     return QVariant();
 }
@@ -83,27 +89,11 @@ QVariant ImageLogicFilter::data(int role) const
 //-----------------------------------------------------------------------------
 QString ImageLogicFilter::serialize() const
 {
-  return m_args->serialize();
+  return m_args.serialize();
 }
 
 //-----------------------------------------------------------------------------
 QWidget* ImageLogicFilter::createConfigurationWidget()
 {
   return NULL;
-}
-
-//-----------------------------------------------------------------------------
-typedef ModelItem::ArgumentId ArgumentId;
-const ArgumentId ImageLogicFilter::ILFArguments::INPUT = ArgumentId("INPUT", true);
-const ArgumentId ImageLogicFilter::ILFArguments::OPERATION = ArgumentId("Operation", true);
-
-//-----------------------------------------------------------------------------
-ImageLogicFilter::ILFArguments::ILFArguments(const Arguments args)
-: Arguments(args)
-{
-  QStringList input = args[INPUT].split(",");
-  //TODO: Recover segmentation pointers
-
-  m_operation = Operation(args[OPERATION].toInt());
-
 }
