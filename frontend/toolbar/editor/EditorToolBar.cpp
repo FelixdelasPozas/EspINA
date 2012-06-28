@@ -266,7 +266,9 @@ EditorToolBar::EditorToolBar(QWidget* parent)
   setWindowTitle("Editor Tool Bar");
 
   EspinaFactory::instance()->registerFilter(ClosingFilter::TYPE, this);
-  EspinaFactory::instance()->registerFilter(FFS, this);
+  EspinaFactory::instance()->registerFilter(OpeningFilter::TYPE, this);
+  EspinaFactory::instance()->registerFilter(DilateFilter::TYPE, this);
+  EspinaFactory::instance()->registerFilter(ErodeFilter::TYPE, this);
   EspinaFactory::instance()->registerFilter(ILF, this);
 
   m_draw->setIcon(QIcon(":/espina/pencil.png"));

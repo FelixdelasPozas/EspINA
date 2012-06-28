@@ -39,7 +39,6 @@ SeedGrowSegmentation::SettingsPanel::SettingsPanel(SeedGrowSegmentation::Setting
   displayColor(pixelValue->value());
   xSize->setValue(settings->xSize());
   ySize->setValue(settings->ySize());
-  qDebug() << "Closing" << settings->closing();
   bool closingActive = settings->closing()>0;
   applyClosing->setChecked(closingActive);
   closing->setEnabled(closingActive);

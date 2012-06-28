@@ -44,7 +44,7 @@ bool MorphologicalFiltersPreferences::modified() const
 //------------------------------------------------------------------------
 ISettingsPanel *MorphologicalFiltersPreferences::clone()
 {
-    MorphologicalFiltersPreferences *panel = new MorphologicalFiltersPreferences(m_radius);
+    MorphologicalFiltersPreferences *panel = new MorphologicalFiltersPreferences();
     return panel;
 }
 
