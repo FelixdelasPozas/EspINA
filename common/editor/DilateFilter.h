@@ -60,7 +60,7 @@ public:
 
   /// Implements Model Item Interface
   virtual QString id() const;
-  virtual QVariant data(int role) const;
+  virtual QVariant data(int role=Qt::DisplayRole) const;
   virtual QString serialize() const;
 
   /// Implements Filter Interface

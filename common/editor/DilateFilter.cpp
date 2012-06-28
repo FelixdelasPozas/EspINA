@@ -38,14 +38,14 @@ DilateFilter::DilateFilter(Filter::NamedInputs inputs,
 , m_input(NULL)
 , m_volume(NULL)
 {
-  qDebug() << TYPE << "arguments" << m_args;
+//   qDebug() << TYPE << "arguments" << m_args;
 }
 
 
 //-----------------------------------------------------------------------------
 DilateFilter::~DilateFilter()
 {
-  qDebug() << "Destroying" << TYPE;
+//   qDebug() << "Destroying" << TYPE;
 }
 
 //-----------------------------------------------------------------------------

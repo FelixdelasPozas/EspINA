@@ -60,6 +60,7 @@ public:
   {
     QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
 
+    Filter::nextId();
     model->addFilter(m_filter);
     model->addRelation(m_channel, m_filter, "Channel");
     m_seg->setTaxonomy(m_taxonomy);
@@ -74,6 +75,7 @@ public:
   {
     QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
 
+    Filter::prevId();
     model->removeRelation(m_channel, m_seg, "Channel");
     model->removeRelation(m_sample, m_seg, "where");
     model->removeRelation(m_filter, m_seg, "CreateSegmentation");
@@ -178,7 +180,7 @@ public:
       Filter *filter;
       Filter::NamedInputs inputs;
       Filter::Arguments args;
-      args[Filter::ID]  = Filter::generateId();
+      args[Filter::ID]  = Filter::currentId();
       args[Filter::ArgumentId("Radius", true)]    = QString::number(radius);
       inputs[INPUTLINK] = seg->filter();
       args[Filter::INPUTS] = INPUTLINK + "_" + QString::number(seg->outputNumber());
@@ -213,6 +215,7 @@ public:
       Connection oldConnection = m_oldConnections[i];
       Connection newConnection = m_newConnections[i];
 
+      Filter::nextId();
       model->removeRelation(oldConnection.first, seg, "CreateSegmentation");
       model->addFilter(newConnection.first);
       model->addRelation(oldConnection.first, newConnection.first, "Input");
@@ -232,6 +235,7 @@ public:
       Connection oldConnection = m_oldConnections[i];
       Connection newConnection = m_newConnections[i];
 
+      Filter::prevId();
       model->removeRelation(newConnection.first, seg, "CreateSegmentation");
       model->removeRelation(oldConnection.first, newConnection.first, "Input");
       model->removeFilter(newConnection.first);
@@ -381,7 +385,7 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
   {
     Filter::NamedInputs inputs;
     FreeFormSource::FreeFormArguments args;
-    args[Filter::ID]  = Filter::generateId();
+    args[Filter::ID]  = Filter::currentId();
     double spacing[3];
     channel->spacing(spacing);
     args.setSpacing(spacing);

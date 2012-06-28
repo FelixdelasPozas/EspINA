@@ -38,14 +38,14 @@ OpeningFilter::OpeningFilter(Filter::NamedInputs inputs,
 , m_input(NULL)
 , m_volume(NULL)
 {
-  qDebug() << TYPE << "arguments" << m_args;
+//   qDebug() << TYPE << "arguments" << m_args;
 }
 
 
 //-----------------------------------------------------------------------------
 OpeningFilter::~OpeningFilter()
 {
-  qDebug() << "Destroying" << TYPE;
+//   qDebug() << "Destroying" << TYPE;
 }
 
 //-----------------------------------------------------------------------------
@@ -106,6 +106,22 @@ EspinaVolume* OpeningFilter::output(OutputNumber i) const
 
   Q_ASSERT(false);
   return NULL;
+}
+
+//-----------------------------------------------------------------------------
+bool OpeningFilter::prefetchFilter()
+{
+  QString tmpFile = id() + "_0.mhd";
+  m_cachedFilter = tmpFileReader(tmpFile);
+
+  if (m_cachedFilter.IsNotNull())
+  {
+    m_volume = m_cachedFilter->GetOutput();
+    emit modified(this);
+    return true;
+  }
+
+  return false;
 }
 
 //-----------------------------------------------------------------------------

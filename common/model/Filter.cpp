@@ -37,10 +37,30 @@ void Filter::resetId()
   m_lastId = 0;
 }
 
+
 //----------------------------------------------------------------------------
-QString Filter::generateId()
+QString Filter::currentId()
 {
-  return QString::number(m_lastId++);
+  return QString::number(m_lastId);
+}
+
+//----------------------------------------------------------------------------
+void Filter::nextId()
+{
+  m_lastId++;
+}
+
+//----------------------------------------------------------------------------
+void Filter::prevId()
+{
+  Q_ASSERT(m_lastId > 0);
+  m_lastId--;
+}
+
+//----------------------------------------------------------------------------
+bool Filter::isEdited() const
+{
+  return true;//TODO: Generalize edition flag
 }
 
 //----------------------------------------------------------------------------

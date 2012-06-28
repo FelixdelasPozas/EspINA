@@ -2,8 +2,10 @@
 #define FILEPACKER_H
 
 #include <QFileInfo>
+#include <QDir>
 #include <model/EspinaModel.h>
 
+class QuaZipFile;
 class QuaZipFile;
 class IOEspinaFile
 {
@@ -42,7 +44,10 @@ private:
    * compression.
    * @return If everythin works well it returns true. Otherwise returns false.
    */
+  static bool zipVolume(Filter *filter,
+                        OutputNumber outputNumber,
+                        QDir tmpDir,
+                        QuaZipFile &outFile);
   static bool zipFile(QString fileName, QByteArray content, QuaZipFile& zFile);
-  
 };
 #endif // FILEPACKER_H

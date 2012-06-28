@@ -111,7 +111,7 @@ bool EspinaCore::loadChannel(const QFileInfo file)
   Filter::NamedInputs noInputs;
   Filter::Arguments readerArgs;
   //TODO: Manage ID generation inside Filer class
-  readerArgs[Filter::ID] = Filter::generateId();
+  readerArgs[Filter::ID] = Filter::currentId();
   readerArgs[ChannelReader::FILE] = file.absoluteFilePath();
   ChannelReader *reader = new ChannelReader(noInputs, readerArgs);
   reader->update();

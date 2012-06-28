@@ -69,13 +69,14 @@ public:
 
   /// Implements Model Item Interface
   virtual QString id() const;
-  virtual QVariant data(int role) const;
+  virtual QVariant data(int role=Qt::DisplayRole) const;
   virtual QString serialize() const;
 
   /// Implements Filter Interface
+  virtual void run(){}
   virtual int numberOutputs() const;
   virtual EspinaVolume* output(OutputNumber i) const;
-  virtual void run(){}
+  virtual bool prefetchFilter();
 
   virtual QWidget* createConfigurationWidget();
 
@@ -90,8 +91,10 @@ private:
   int    Extent[6];
   int    DrawExtent[6];
   double Spacing[3];
+
   EspinaVolume::Pointer m_volume;
   FilterType::Pointer m_filter;
+  EspinaVolumeReader::Pointer m_cachedFilter;
 };
 
 #endif // FREEFORMSOURCE_H

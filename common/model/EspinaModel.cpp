@@ -625,9 +625,11 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
         case ModelItem::FILTER:
         {
           Filter::NamedInputs inputs;
-          ModelItem::Arguments args(v.args.c_str());
+          Filter::Arguments args(v.args.c_str());
           QStringList inputLinks = args[Filter::INPUTS].split(",", QString::SkipEmptyParts);
-          Q_ASSERT(args[Filter::ID] == Filter::generateId());
+          // We need to update id values for future filters
+          Q_ASSERT(args[Filter::ID] == Filter::currentId());
+          Filter::nextId();
           foreach(QString inputLink, inputLinks)
           {
             QStringList link = inputLink.split("_");

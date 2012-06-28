@@ -38,14 +38,14 @@ ErodeFilter::ErodeFilter(Filter::NamedInputs inputs,
 , m_input(NULL)
 , m_volume(NULL)
 {
-  qDebug() << TYPE << "arguments" << m_args;
+//   qDebug() << TYPE << "arguments" << m_args;
 }
 
 
 //-----------------------------------------------------------------------------
 ErodeFilter::~ErodeFilter()
 {
-  qDebug() << "Destroying" << TYPE;
+//   qDebug() << "Destroying" << TYPE;
 }
 
 //-----------------------------------------------------------------------------
@@ -106,6 +106,22 @@ EspinaVolume* ErodeFilter::output(OutputNumber i) const
 
   Q_ASSERT(false);
   return NULL;
+}
+
+//-----------------------------------------------------------------------------
+bool ErodeFilter::prefetchFilter()
+{
+  QString tmpFile = id() + "_0.mhd";
+  m_cachedFilter = tmpFileReader(tmpFile);
+
+  if (m_cachedFilter.IsNotNull())
+  {
+    m_volume = m_cachedFilter->GetOutput();
+    emit modified(this);
+    return true;
+  }
+
+  return false;
 }
 
 //-----------------------------------------------------------------------------

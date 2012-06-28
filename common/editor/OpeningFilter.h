@@ -55,16 +55,17 @@ public:
                          Arguments args);
   virtual ~OpeningFilter();
 
-  void run();
 
   /// Implements Model Item Interface
   virtual QString id() const;
-  virtual QVariant data(int role) const;
+  virtual QVariant data(int role=Qt::DisplayRole) const;
   virtual QString serialize() const;
 
   /// Implements Filter Interface
+  void run();
   virtual int numberOutputs() const;
   virtual EspinaVolume* output(OutputNumber i) const;
+  virtual bool prefetchFilter();
   virtual QWidget* createConfigurationWidget();
 
 private:
@@ -73,6 +74,7 @@ private:
 
   EspinaVolume    *m_input;
   EspinaVolume    *m_volume;
+  EspinaVolumeReader::Pointer m_cachedFilter;
 
   FilterType::Pointer m_filter;
 };

@@ -109,7 +109,7 @@ public:
   virtual ~ModelItem(){}
 
   virtual QString  id() const = 0;
-  virtual QVariant data(int role) const = 0;
+  virtual QVariant data(int role=Qt::DisplayRole) const = 0;
   virtual bool setData(const QVariant& value, int role = Qt::UserRole +1) {return false;}
   virtual QString  serialize() const = 0;
   virtual ItemType type() const = 0;

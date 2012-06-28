@@ -105,6 +105,38 @@ bool IOEspinaFile::loadFile(QFileInfo file,
   return true;
 }
 
+//-----------------------------------------------------------------------------
+bool IOEspinaFile::zipVolume(Filter* filter, OutputNumber outputNumber,
+                             QDir tmpDir, QuaZipFile& outFile)
+{
+  itk::MetaImageIO::Pointer io = itk::MetaImageIO::New();
+  EspinaVolumeWriter::Pointer writer = EspinaVolumeWriter::New();
+  QString volumeName = filter->id() + "_" + QString::number(outputNumber);
+  QString mhd = tmpDir.absoluteFilePath(volumeName + ".mhd");
+  QString raw = tmpDir.absoluteFilePath(volumeName + ".raw");
+  io->SetFileName(mhd.toStdString());
+  writer->SetFileName(mhd.toStdString());
+  writer->SetInput(filter->output(outputNumber));
+  writer->SetImageIO(io);
+  writer->Write();
+  QFile mhdFile(mhd);
+  mhdFile.open(QIODevice::ReadOnly);
+  QFile rawFile(raw);
+  rawFile.open(QIODevice::ReadOnly);
+  if( !IOEspinaFile::zipFile(volumeName + ".mhd", mhdFile.readAll() , outFile) )
+  {
+    qWarning() << "IOEspinaFile::saveFile: Error while zipping" << (volumeName + ".mhd");
+    return false;
+  }
+  if( !IOEspinaFile::zipFile(volumeName + ".raw", rawFile.readAll() , outFile) )
+  {
+    qWarning() << "IOEspinaFile::saveFile: Error while zipping" << (volumeName + ".raw");
+    return false;
+  }
+  mhdFile.close();
+  rawFile.close();
+  return true;
+}
 
 //-----------------------------------------------------------------------------
 bool IOEspinaFile::saveFile(QFileInfo file,
@@ -140,37 +172,16 @@ bool IOEspinaFile::saveFile(QFileInfo file,
   if( !IOEspinaFile::zipFile(QString(TRACE),  trace.str().c_str(), outFile) )
     return false;
 
+  foreach(Filter *filter, model->filters())
+  {
+    qDebug() << "Making" << filter->data().toString() << "snapshot";
+    if (filter->isEdited())
+      zipVolume(filter,0, tmpDir, outFile);
+  }
   foreach(Segmentation *seg, model->segmentations())
   {
     qDebug() << "Making" << seg->data().toString() << "snapshot";
-    itk::MetaImageIO::Pointer io = itk::MetaImageIO::New();
-    EspinaVolumeWriter::Pointer writer = EspinaVolumeWriter::New();
-    Filter *creator = seg->filter();
-    int output = seg->outputNumber();
-    QString volumeName = creator->id() + "_" + QString::number(output);
-    QString mhd = tmpDir.absoluteFilePath(volumeName + ".mhd");
-    QString raw = tmpDir.absoluteFilePath(volumeName + ".raw");
-    io->SetFileName(mhd.toStdString());
-    writer->SetFileName(mhd.toStdString());
-    writer->SetInput(seg->volume());
-    writer->SetImageIO(io);
-    writer->Write();
-    QFile mhdFile(mhd);
-    mhdFile.open(QIODevice::ReadOnly);
-    QFile rawFile(raw);
-    rawFile.open(QIODevice::ReadOnly);
-    if( !IOEspinaFile::zipFile(volumeName + ".mhd", mhdFile.readAll() , outFile) )
-    {
-      qWarning() << "IOEspinaFile::saveFile: Error while zipping" << (volumeName + ".mhd");
-      return false;
-    }
-    if( !IOEspinaFile::zipFile(volumeName + ".raw", rawFile.readAll() , outFile) )
-    {
-      qWarning() << "IOEspinaFile::saveFile: Error while zipping" << (volumeName + ".raw");
-      return false;
-    }
-    mhdFile.close();
-    rawFile.close();
+    zipVolume(seg->filter(), seg->outputNumber(), tmpDir, outFile);
   }
 
   QStringList filters;

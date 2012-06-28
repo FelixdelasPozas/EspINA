@@ -141,7 +141,7 @@ void FreeFormSource::draw(vtkSliceView::VIEW_PLANE plane,
     img->SetSpacing(m_args.spacing());
     img->Allocate();
 
-    unsigned char *prevOutputPtr;
+    unsigned char *prevOutputPtr = NULL;
     if (!m_volume)
     {
       prevExtent[0] = prevExtent[2] = prevExtent[4] = 0;
@@ -288,6 +288,23 @@ EspinaVolume* FreeFormSource::output(OutputNumber i) const
     return m_filter->GetOutput();
 
   return NULL;
+}
+
+//-----------------------------------------------------------------------------
+bool FreeFormSource::prefetchFilter()
+{
+  QString tmpFile = id() + "_0.mhd";
+  m_cachedFilter = tmpFileReader(tmpFile);
+
+  if (m_cachedFilter.IsNotNull())
+  {
+    m_volume = m_cachedFilter->GetOutput();
+    m_filter->SetInput(m_volume);
+    emit modified(this);
+    return true;
+  }
+
+  return false;
 }
 
 //-----------------------------------------------------------------------------

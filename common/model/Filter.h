@@ -46,13 +46,17 @@ public:
   // Defines Filter's Interface
   /// Generate unique ID for current analysis.
   static void resetId();
-  static QString generateId();
+  static QString currentId();
+  static void nextId();
+  static void prevId();
   /// Manually Edit Filter Output
   virtual void changePixelValue(int x,
                                 int y,
                                 int z,
                                 EspinaVolume::PixelType value,
                                 OutputNumber output){/*TODO*/}
+  /// Returns whether or not the filter was edited by the user
+  bool isEdited() const;
   /// Specify how many outputs this filter generates
   virtual int numberOutputs() const = 0;
   /// Return the i-th output

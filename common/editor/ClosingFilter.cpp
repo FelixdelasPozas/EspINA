@@ -38,14 +38,14 @@ ClosingFilter::ClosingFilter(Filter::NamedInputs inputs,
 , m_input(NULL)
 , m_volume(NULL)
 {
-  qDebug() << TYPE << "arguments" << m_args;
+//   qDebug() << TYPE << "arguments" << m_args;
 }
 
 
 //-----------------------------------------------------------------------------
 ClosingFilter::~ClosingFilter()
 {
-  qDebug() << "Destroying" << TYPE;
+//   qDebug() << "Destroying" << TYPE;
 }
 
 //-----------------------------------------------------------------------------
@@ -107,6 +107,23 @@ EspinaVolume* ClosingFilter::output(OutputNumber i) const
   Q_ASSERT(false);
   return NULL;
 }
+
+//-----------------------------------------------------------------------------
+bool ClosingFilter::prefetchFilter()
+{
+  QString tmpFile = id() + "_0.mhd";
+  m_cachedFilter = tmpFileReader(tmpFile);
+
+  if (m_cachedFilter.IsNotNull())
+  {
+    m_volume = m_cachedFilter->GetOutput();
+    emit modified(this);
+    return true;
+  }
+
+  return false;
+}
+
 
 //-----------------------------------------------------------------------------
 QWidget* ClosingFilter::createConfigurationWidget()
