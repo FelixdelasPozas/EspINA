@@ -33,8 +33,8 @@ const unsigned int LABEL_VALUE = 255;
 
 DilateFilter::DilateFilter(Filter::NamedInputs inputs,
                              ModelItem::Arguments args)
-: m_inputs(inputs)
-, m_args(args)
+: Filter(inputs, args)
+, m_params(m_args)
 , m_input(NULL)
 , m_volume(NULL)
 {
@@ -53,15 +53,12 @@ void DilateFilter::run()
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);
 
-  QStringList input = m_args[INPUTS].split("_");
-  qDebug() << m_inputs[input[0]]->data(Qt::DisplayRole).toString();
-  m_input = m_inputs[input[0]]->output(input[1].toUInt());
-  m_input->Update();
+  Q_ASSERT(m_inputs.size() == 1);
+  m_input = m_inputs.first();
 
-  unsigned int radius = m_args.radius();
-  qDebug() << "Compute Image Dilate" << radius;
+  qDebug() << "Compute Image Dilate";
   StructuringElementType ball;
-  ball.SetRadius(radius);
+  ball.SetRadius(m_params.radius());
   ball.CreateStructuringElement();
 
   m_filter = FilterType::New();
@@ -76,24 +73,12 @@ void DilateFilter::run()
 }
 
 //-----------------------------------------------------------------------------
-QString DilateFilter::id() const
-{
-  return m_args[ID];
-}
-
-//-----------------------------------------------------------------------------
 QVariant DilateFilter::data(int role) const
 {
   if (role == Qt::DisplayRole)
     return TYPE;
   else
     return QVariant();
-}
-
-//-----------------------------------------------------------------------------
-QString DilateFilter::serialize() const
-{
-  return m_args.serialize();
 }
 
 //-----------------------------------------------------------------------------
@@ -126,10 +111,4 @@ bool DilateFilter::prefetchFilter()
   }
 
   return false;
-}
-
-//-----------------------------------------------------------------------------
-QWidget* DilateFilter::createConfigurationWidget()
-{
-  return NULL;
 }

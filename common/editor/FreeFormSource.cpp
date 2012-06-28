@@ -58,7 +58,8 @@ bool drawPixel(int x, int y, int z,
 //-----------------------------------------------------------------------------
 FreeFormSource::FreeFormSource(Filter::NamedInputs inputs,
                                ModelItem::Arguments args)
-: m_args(args)
+: Filter(inputs, args)
+, m_param(m_args)
 , m_hasPixels(false)
 , m_init(false)
 , m_volume(NULL)
@@ -70,7 +71,6 @@ FreeFormSource::FreeFormSource(Filter::NamedInputs inputs,
 //-----------------------------------------------------------------------------
 FreeFormSource::~FreeFormSource()
 {
-
 }
 
 //-----------------------------------------------------------------------------
@@ -138,7 +138,7 @@ void FreeFormSource::draw(vtkSliceView::VIEW_PLANE plane,
     EspinaVolume::Pointer img = EspinaVolume::New();
     EspinaVolume::RegionType buffer = region(Extent);
     img->SetRegions(buffer);
-    img->SetSpacing(m_args.spacing());
+    img->SetSpacing(m_param.spacing());
     img->Allocate();
 
     unsigned char *prevOutputPtr = NULL;
@@ -255,12 +255,6 @@ void FreeFormSource::erase(vtkSliceView::VIEW_PLANE plane,
 }
 
 //-----------------------------------------------------------------------------
-QString FreeFormSource::id() const
-{
-  return m_args[ID];
-}
-
-//-----------------------------------------------------------------------------
 QVariant FreeFormSource::data(int role) const
 {
   if (role == Qt::DisplayRole)
@@ -269,11 +263,6 @@ QVariant FreeFormSource::data(int role) const
     return QVariant();
 }
 
-//-----------------------------------------------------------------------------
-QString FreeFormSource::serialize() const
-{
-  return m_args.serialize();
-}
 
 //-----------------------------------------------------------------------------
 int FreeFormSource::numberOutputs() const
@@ -305,12 +294,6 @@ bool FreeFormSource::prefetchFilter()
   }
 
   return false;
-}
-
-//-----------------------------------------------------------------------------
-QWidget* FreeFormSource::createConfigurationWidget()
-{
-  return NULL;
 }
 
 //-----------------------------------------------------------------------------

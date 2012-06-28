@@ -20,6 +20,7 @@
 
 #include <model/EspinaFactory.h>
 #include <vtkImageAlgorithm.h>
+#include <QApplication>
 
 const QString ImageLogicFilter::TYPE = "EditorToolBar::ImageLogicFilter";
 
@@ -31,11 +32,11 @@ const ArgumentId ImageLogicFilter::OPERATION = ArgumentId("Operation", true);
 //-----------------------------------------------------------------------------
 ImageLogicFilter::ImageLogicFilter(Filter::NamedInputs inputs,
                                    ModelItem::Arguments args)
-: m_inputs(inputs)
-, m_args(args)
+: Filter(inputs, args)
+, m_param(m_args)
 , m_volume(NULL)
+, m_orFilter(OrFilterType::New())
 {
-
 }
 
 //-----------------------------------------------------------------------------
@@ -46,7 +47,9 @@ ImageLogicFilter::~ImageLogicFilter()
 //-----------------------------------------------------------------------------
 void ImageLogicFilter::run()
 {
+  QApplication::setOverrideCursor(Qt::WaitCursor);
   
+  QApplication::restoreOverrideCursor();
 }
 
 //-----------------------------------------------------------------------------
@@ -72,28 +75,10 @@ return Filter::prefetchFilter();
 }
 
 //-----------------------------------------------------------------------------
-QString ImageLogicFilter::id() const
-{
-  return m_args[ID];
-}
-
-//-----------------------------------------------------------------------------
 QVariant ImageLogicFilter::data(int role) const
 {
   if (role == Qt::DisplayRole)
     return TYPE;
   else
     return QVariant();
-}
-
-//-----------------------------------------------------------------------------
-QString ImageLogicFilter::serialize() const
-{
-  return m_args.serialize();
-}
-
-//-----------------------------------------------------------------------------
-QWidget* ImageLogicFilter::createConfigurationWidget()
-{
-  return NULL;
 }

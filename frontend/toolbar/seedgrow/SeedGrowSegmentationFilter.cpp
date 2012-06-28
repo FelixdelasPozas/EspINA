@@ -44,31 +44,16 @@ const unsigned char LABEL_VALUE = 255;
 
 
 //----------------------------------------------------------------------------
-SeedGrowSegmentationFilter::SArguments::SArguments(const ModelItem::Arguments args)
-: Arguments(args)
+SeedGrowSegmentationFilter::Parameters::Parameters(ModelItem::Arguments &args)
+: m_args(args)
 {
-  QStringList seed = args[SEED].split(",");
-  m_seed[0] = seed[0].toInt();
-  m_seed[1] = seed[1].toInt();
-  m_seed[2] = seed[2].toInt();
-
-  m_threshold[0] = args[LTHRESHOLD].toInt();
-  m_threshold[1] = args[UTHRESHOLD].toInt();
-
-  QStringList voi = args[VOI].split(",");
-  m_VOI[0] = voi[0].toInt();
-  m_VOI[1] = voi[1].toInt();
-  m_VOI[2] = voi[2].toInt();
-  m_VOI[3] = voi[3].toInt();
-  m_VOI[4] = voi[4].toInt();
-  m_VOI[5] = voi[5].toInt();
 }
 
 SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(Filter::NamedInputs inputs,
                                                        ModelItem::Arguments args)
-: m_input(NULL)
-, m_inputs(inputs)
-, m_args(args)
+: Filter(inputs, args)
+, m_param(m_args)
+, m_input(NULL)
 {
   qDebug() << TYPE << "arguments" << m_args;
 }
@@ -76,7 +61,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(Filter::NamedInputs input
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationFilter::~SeedGrowSegmentationFilter()
 {
-  qDebug() << "Destroying" << TYPE;
+//   qDebug() << "Destroying" << TYPE;
 }
 
 //-----------------------------------------------------------------------------
@@ -84,11 +69,12 @@ void SeedGrowSegmentationFilter::run()
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);
   int voi[6];
-  m_args.voi(voi);
+  m_param.voi(voi);
 
-  QStringList input = m_args[INPUTS].split("_");
-  m_input = m_inputs[input[0]]->output(input[1].toUInt());
+  Q_ASSERT(m_inputs.size() == 1);
+  m_input = m_inputs.first();
   Q_ASSERT(m_input);
+
   qDebug() << "Bound VOI to input extent";
   int inputExtent[6];
   VolumeExtent(m_input, inputExtent);
@@ -114,28 +100,20 @@ void SeedGrowSegmentationFilter::run()
   extractFilter->Update();
 
   qDebug() << "Computing Original Size Connected Threshold";
+  EspinaVolume::IndexType seed = m_param.seed();
+  double seedIntensity = m_input->GetPixel(seed);
   ctif = ConnectedThresholdFilterType::New();
   ctif->ReleaseDataFlagOn();
-  int aseed[3];
-  m_args.seed(aseed);
-  EspinaVolume::IndexType index;
-  index[0] = aseed[0];
-  index[1] = aseed[1];
-  index[2] = aseed[2];
-  double seedIntensity = m_input->GetPixel(index);
   ctif->SetInput(extractFilter->GetOutput());
   ctif->SetReplaceValue(LABEL_VALUE);
-  ctif->SetLower(std::max(seedIntensity - m_args.lowerThreshold(), 0.0));
-  ctif->SetUpper(std::min(seedIntensity + m_args.upperThreshold(), 255.0));
-
-  EspinaVolume::IndexType seed; //TODO: Use class seed
-  seed[0] = aseed[0]; seed[1] = aseed[1]; seed[2] = aseed[2];
+  ctif->SetLower(std::max(seedIntensity - m_param.lowerThreshold(), 0.0));
+  ctif->SetUpper(std::min(seedIntensity + m_param.upperThreshold(), 255.0));
   ctif->AddSeed(seed);
 
-  qDebug() << "Intensity at Seed:" << seedIntensity;
-  qDebug() << "Lower Threshold:" << m_args.lowerThreshold();
-  qDebug() << "Upper Threshold:" << m_args.upperThreshold();
-  qDebug() << "SEED: " << seed[0] << " " << seed[1] << " " << seed[2];
+//   qDebug() << "Intensity at Seed:" << seedIntensity;
+//   qDebug() << "Lower Intensity:" << std::max(seedIntensity - m_param.lowerThreshold(), 0);
+//   qDebug() << "Upper Intensity:" << std::min(seedIntensity + m_param.upperThreshold(), 255);
+//   qDebug() << "SEED: " << seed[0] << " " << seed[1] << " " << seed[2];
 
   qDebug() << "Converting from ITK to LabelMap";
   image2label = Image2LabelFilterType::New();
@@ -170,7 +148,7 @@ void SeedGrowSegmentationFilter::run()
   //writer->SetInput(extract->GetOutput());
   //writer->Write();
 
-  if (m_args.closeValue() > 0)
+  if (m_param.closeValue() > 0)
   {
     qDebug() << "Closing Segmentation";
     StructuringElementType ball;
@@ -200,7 +178,7 @@ void SeedGrowSegmentationFilter::setLowerThreshold(int th)
   if (th < 0)
     return;
 
-  m_args.setLowerThreshold(th);
+  m_param.setLowerThreshold(th);
 }
 
 //-----------------------------------------------------------------------------
@@ -209,13 +187,13 @@ void SeedGrowSegmentationFilter::setUpperThreshold(int th)
   if (th < 0)
     return;
 
-  m_args.setUpperThreshold(th);
+  m_param.setUpperThreshold(th);
 }
 
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::setVOI(int VOI[6])
 {
-  m_args.setVOI(VOI);
+  m_param.setVOI(VOI);
 /*
   run();
 
@@ -225,14 +203,15 @@ void SeedGrowSegmentationFilter::setVOI(int VOI[6])
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::setSeed(int seed[3])
 {
-  m_args.setSeed(seed);
+  m_param.setSeed(seed);
 }
 
-
 //-----------------------------------------------------------------------------
-QString SeedGrowSegmentationFilter::id() const
+void SeedGrowSegmentationFilter::seed(int seed[3]) const
 {
-  return m_args[ID];
+  EspinaVolume::IndexType index = m_param.seed();
+  for(int i=0; i<3; i++)
+    seed[i] = index[i];
 }
 
 //-----------------------------------------------------------------------------
@@ -242,12 +221,6 @@ QVariant SeedGrowSegmentationFilter::data(int role) const
     return TYPE;
   else
     return QVariant();
-}
-
-//-----------------------------------------------------------------------------
-QString SeedGrowSegmentationFilter::serialize() const
-{
-  return m_args.serialize();
 }
 
 //-----------------------------------------------------------------------------

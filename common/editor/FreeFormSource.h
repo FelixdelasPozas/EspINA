@@ -37,28 +37,30 @@ public:
 
   static const ModelItem::ArgumentId SPACING;
 
-  class FreeFormArguments : public Arguments
+  class Parameters
   {
   public:
-    explicit FreeFormArguments(){}
-    explicit FreeFormArguments(const Arguments args) : Arguments(args){}
+    explicit Parameters(Arguments &args) : m_args(args) {}
 
     void setSpacing(double value[3])
     {
-      (*this)[SPACING] = QString("%1,%2,%3")
-                         .arg(value[0])
-                         .arg(value[1])
-                         .arg(value[2]);
+      m_args[SPACING] = QString("%1,%2,%3")
+                       .arg(value[0])
+                       .arg(value[1])
+                       .arg(value[2]);
     }
     EspinaVolume::SpacingType spacing() const
     {
       EspinaVolume::SpacingType res;
-      QStringList values = (*this)[SPACING].split(",");
+      QStringList values = m_args[SPACING].split(",");
       for(int i=0; i<3; i++)
         res[i] = values[i].toDouble();
       return res;
     }
+  private:
+    Arguments &m_args;
   };
+
 public:
   explicit FreeFormSource(NamedInputs inputs,
                           Arguments args);
@@ -68,9 +70,7 @@ public:
   void erase(vtkSliceView::VIEW_PLANE plane, QVector3D center, int radius = 0);
 
   /// Implements Model Item Interface
-  virtual QString id() const;
   virtual QVariant data(int role=Qt::DisplayRole) const;
-  virtual QString serialize() const;
 
   /// Implements Filter Interface
   virtual void run(){}
@@ -78,19 +78,15 @@ public:
   virtual EspinaVolume* output(OutputNumber i) const;
   virtual bool prefetchFilter();
 
-  virtual QWidget* createConfigurationWidget();
-
 protected:
   EspinaVolume::RegionType region(int extent[6]) const;
 
 private:
-  FreeFormArguments m_args;
-
-  bool   m_hasPixels;
-  bool   m_init;
-  int    Extent[6];
-  int    DrawExtent[6];
-  double Spacing[3];
+  Parameters m_param;
+  bool       m_hasPixels;
+  bool       m_init;
+  int        Extent[6];
+  int        DrawExtent[6];
 
   EspinaVolume::Pointer m_volume;
   FilterType::Pointer m_filter;

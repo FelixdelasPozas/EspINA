@@ -217,16 +217,15 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
     Filter::NamedInputs inputs;
-    SeedGrowSegmentationFilter::SArguments args;
-    args[Filter::ID] = Filter::currentId();
-    args.setSeed(growSeed);
-    args.setLowerThreshold(m_threshold->threshold());
-    args.setUpperThreshold(m_threshold->threshold());
-    args.setVOI(VOI);
-    args.setCloseValue(m_settings->closing());
+    Filter::Arguments args;
+    SeedGrowSegmentationFilter::Parameters params(args);
+    params.setSeed(growSeed);
+    params.setLowerThreshold(m_threshold->threshold());
+    params.setUpperThreshold(m_threshold->threshold());
+    params.setVOI(VOI);
+    params.setCloseValue(m_settings->closing());
     inputs[INPUTLINK] = channel->filter();
     args[Filter::INPUTS] = INPUTLINK + "_" + QString::number(channel->outputNumber());
-
     SeedGrowSegmentationFilter *filter;
     filter = new SeedGrowSegmentationFilter(inputs, args);
     filter->update();

@@ -33,8 +33,8 @@ const unsigned int LABEL_VALUE = 255;
 
 ClosingFilter::ClosingFilter(Filter::NamedInputs inputs,
                              ModelItem::Arguments args)
-: m_inputs(inputs)
-, m_args(args)
+: Filter(inputs, args)
+, m_param(m_args)
 , m_input(NULL)
 , m_volume(NULL)
 {
@@ -53,12 +53,12 @@ void ClosingFilter::run()
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);
 
-  QStringList input = m_args[INPUTS].split("_");
-  m_input = m_inputs[input[0]]->output(input[1].toUInt());
+  Q_ASSERT(m_inputs.size() == 1);
+  m_input = m_inputs.first();
 
   qDebug() << "Compute Image Closing";
   StructuringElementType ball;
-  ball.SetRadius(m_args.radius());
+  ball.SetRadius(m_param.radius());
   ball.CreateStructuringElement();
 
   m_filter = FilterType::New();
@@ -72,24 +72,12 @@ void ClosingFilter::run()
 }
 
 //-----------------------------------------------------------------------------
-QString ClosingFilter::id() const
-{
-  return m_args[ID];
-}
-
-//-----------------------------------------------------------------------------
 QVariant ClosingFilter::data(int role) const
 {
   if (role == Qt::DisplayRole)
     return TYPE;
   else
     return QVariant();
-}
-
-//-----------------------------------------------------------------------------
-QString ClosingFilter::serialize() const
-{
-  return m_args.serialize();
 }
 
 //-----------------------------------------------------------------------------
@@ -122,11 +110,4 @@ bool ClosingFilter::prefetchFilter()
   }
 
   return false;
-}
-
-
-//-----------------------------------------------------------------------------
-QWidget* ClosingFilter::createConfigurationWidget()
-{
-  return NULL;
 }

@@ -42,13 +42,21 @@ public:
 
   // Implements Model Item Interface common to filters
   virtual ItemType type() const {return ModelItem::FILTER;}
+  virtual QString id() const {return m_args[ID];}
+  virtual QString serialize() const {return m_args.serialize();}
 
-  // Defines Filter's Interface
-  /// Generate unique ID for current analysis.
   static void resetId();
   static QString currentId();
   static void nextId();
   static void prevId();
+
+  struct Link
+  {
+    Filter      *filter;
+    OutputNumber outputPort;
+  };
+
+  // Defines Filter's Interface
   /// Manually Edit Filter Output
   virtual void changePixelValue(int x,
                                 int y,
@@ -58,22 +66,29 @@ public:
   /// Returns whether or not the filter was edited by the user
   bool isEdited() const;
   /// Specify how many outputs this filter generates
-  virtual int numberOutputs() const = 0;
+  virtual int numberOutputs() const {return 0;}
   /// Return the i-th output
-  virtual EspinaVolume *output(OutputNumber i) const = 0;
+  virtual EspinaVolume *output(OutputNumber i) const {Q_ASSERT(false); return NULL;};
   /// Updates filter outputs.
   /// If a snapshot exits it will try to load it
   void update();
   /// Method which actually executes the filter
-  virtual void run() = 0;
+  virtual void run() {};
 
   /// Return a widget used to configure filter's parameters
-  virtual QWidget *createConfigurationWidget() = 0;
+  virtual QWidget *createConfigurationWidget();
 
 protected:
+  explicit Filter(NamedInputs namedInputs,
+                  Arguments args);
+
   /// Try to locate an snapshot of the filter in the hard drive
   virtual bool prefetchFilter();
   EspinaVolumeReader::Pointer tmpFileReader(const QString file);
+
+protected:
+  QList<EspinaVolume *> m_inputs;
+  Arguments             m_args;
 
 private:
   static unsigned int m_lastId;

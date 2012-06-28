@@ -387,11 +387,11 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
   if (!m_currentSource)
   {
     Filter::NamedInputs inputs;
-    FreeFormSource::FreeFormArguments args;
-    args[Filter::ID]  = Filter::currentId();
+    Filter::Arguments args;
+    FreeFormSource::Parameters params(args);
     double spacing[3];
     channel->spacing(spacing);
-    args.setSpacing(spacing);
+    params.setSpacing(spacing);
     m_currentSource = new FreeFormSource(inputs, args);
   }
 

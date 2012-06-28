@@ -58,9 +58,24 @@ void Filter::prevId()
 }
 
 //----------------------------------------------------------------------------
+Filter::Filter(Filter::NamedInputs  namedInputs,
+               ModelItem::Arguments args)
+: m_args(args)
+{
+  m_args[ID] = currentId();
+  QStringList namedInputList = args[INPUTS].split(",", QString::SkipEmptyParts);
+  foreach(QString namedInput, namedInputList)
+  {
+    QStringList input = namedInput.split("_");
+    m_inputs << namedInputs[input[0]]->output(input[1].toUInt());
+  }
+}
+
+
+//----------------------------------------------------------------------------
 bool Filter::isEdited() const
 {
-  return true;//TODO: Generalize edition flag
+  return m_args.contains(EDIT);
 }
 
 //----------------------------------------------------------------------------
@@ -95,7 +110,6 @@ Filter::EspinaVolumeReader::Pointer Filter::tmpFileReader(const QString file)
   }
   return NULL;
 }
-
 
 //----------------------------------------------------------------------------
 QWidget* Filter::createConfigurationWidget()

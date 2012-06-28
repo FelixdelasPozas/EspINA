@@ -29,9 +29,9 @@ ImageLogicCommand::ImageLogicCommand(QList<Segmentation *> segmentations,
 : m_input(segmentations)
 {
   Filter::NamedInputs inputs;
-  ImageLogicFilter::ILFArguments args;
-  args.setOperation(op);
-  args[Filter::ID] = Filter::currentId();
+  Filter::Arguments args;
+  ImageLogicFilter::Parameters params(args);
+  params.setOperation(op);
   m_filter = new ImageLogicFilter(inputs, args);
   m_seg = EspinaFactory::instance()->createSegmentation(m_filter, 0);
   m_tax = EspinaCore::instance()->activeTaxonomy();

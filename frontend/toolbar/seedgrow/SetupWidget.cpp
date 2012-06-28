@@ -36,9 +36,9 @@ SeedGrowSegmentationFilter::SetupWidget::SetupWidget(Filter* filter)
   m_ySeed->setText(QString("%1").arg(seed[1]));
   m_zSeed->setText(QString("%1").arg(seed[2]));
   m_threshold->setMaximum(255);
-  m_threshold->setValue(m_filter->m_args.lowerThreshold());
+  m_threshold->setValue(m_filter->m_param.lowerThreshold());
   int VOI[6];
-  m_filter->m_args.voi(VOI);
+  m_filter->m_param.voi(VOI);
   m_leftMargin->setValue(VOI[0]);
   m_rightMargin->setValue(VOI[1]);
   m_topMargin->setValue(VOI[2]);

@@ -37,18 +37,18 @@ public:
 
   static const ModelItem::ArgumentId RADIUS;
 
-  class ClosingArguments : public Arguments
+  class Parameters
   {
   public:
-  public:
-    explicit ClosingArguments(){}
-    explicit ClosingArguments(const Arguments args) : Arguments(args){}
+    explicit Parameters(Arguments &args) : m_args(args){}
 
     void setRadius(unsigned int radius)
     {
-      (*this)[RADIUS] = QString::number(radius);
+      m_args[RADIUS] = QString::number(radius);
     }
-    unsigned int radius() const {return (*this)[RADIUS].toInt();}
+    unsigned int radius() const {return m_args[RADIUS].toInt();}
+  private:
+    Arguments &m_args;
   };
 
 public:
@@ -57,9 +57,7 @@ public:
   virtual ~ClosingFilter();
 
   /// Implements Model Item Interface
-  virtual QString id() const;
   virtual QVariant data(int role=Qt::DisplayRole) const;
-  virtual QString serialize() const;
 
   /// Implements Filter Interface
   void run();
@@ -67,12 +65,8 @@ public:
   virtual EspinaVolume* output(OutputNumber i) const;
   virtual bool prefetchFilter();
 
-  virtual QWidget* createConfigurationWidget();
-
 private:
-  NamedInputs      m_inputs;
-  ClosingArguments m_args;
-
+  Parameters       m_param;
   EspinaVolume    *m_input;
   EspinaVolume    *m_volume;
   EspinaVolumeReader::Pointer m_cachedFilter;

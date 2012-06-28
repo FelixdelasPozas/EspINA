@@ -33,8 +33,8 @@ const unsigned int LABEL_VALUE = 255;
 
 OpeningFilter::OpeningFilter(Filter::NamedInputs inputs,
                              ModelItem::Arguments args)
-: m_inputs(inputs)
-, m_args(args)
+: Filter(inputs, args)
+, m_params(m_args)
 , m_input(NULL)
 , m_volume(NULL)
 {
@@ -53,12 +53,12 @@ void OpeningFilter::run()
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);
 
-  QStringList input = m_args[INPUTS].split("_");
-  m_input = m_inputs[input[0]]->output(input[1].toUInt());
+  Q_ASSERT(m_inputs.size() == 1);
+  m_input = m_inputs.first();
 
   qDebug() << "Compute Image Opening";
   StructuringElementType ball;
-  ball.SetRadius(m_args.radius());
+  ball.SetRadius(m_params.radius());
   ball.CreateStructuringElement();
 
   m_filter = FilterType::New();
@@ -72,24 +72,12 @@ void OpeningFilter::run()
 }
 
 //-----------------------------------------------------------------------------
-QString OpeningFilter::id() const
-{
-  return m_args[ID];
-}
-
-//-----------------------------------------------------------------------------
 QVariant OpeningFilter::data(int role) const
 {
   if (role == Qt::DisplayRole)
     return TYPE;
   else
     return QVariant();
-}
-
-//-----------------------------------------------------------------------------
-QString OpeningFilter::serialize() const
-{
-  return m_args.serialize();
 }
 
 //-----------------------------------------------------------------------------
@@ -122,10 +110,4 @@ bool OpeningFilter::prefetchFilter()
   }
 
   return false;
-}
-
-//-----------------------------------------------------------------------------
-QWidget* OpeningFilter::createConfigurationWidget()
-{
-  return NULL;
 }

@@ -58,11 +58,10 @@ public:
   static const ModelItem::ArgumentId VOI;
   static const ModelItem::ArgumentId CLOSE;
 
-  class SArguments : public Arguments
+  class Parameters
   {
   public:
-    explicit SArguments(){}
-    explicit SArguments(const ModelItem::Arguments args);
+    explicit Parameters(Arguments &args);
 
     virtual ArgumentId argumentId(QString name) const
     {
@@ -78,46 +77,45 @@ public:
     }
 
     void setSeed(int seed[3])
+      {m_args[SEED] = arg3(seed);}
+    EspinaVolume::IndexType seed() const
     {
-      memcpy(m_seed, seed, 3*sizeof(int));
-      (*this)[SEED] = arg3(seed);
+      EspinaVolume::IndexType res;
+      QStringList values = m_args[SEED].split(",");
+      for(int i=0; i<3; i++)
+        res[i] = values[i].toInt();
+
+      return res;
     }
-    void seed(int value[3]) const {memcpy(value, m_seed, 3*sizeof(int));}
 
     void setLowerThreshold(int th)
-    {
-      m_threshold[0] = th;
-      (*this)[LTHRESHOLD] = QString::number(th);
-    }
-    int lowerThreshold() const {return m_threshold[0];}
+      {m_args[LTHRESHOLD] = QString::number(th);}
+
+    int lowerThreshold() const
+      {return m_args.value(LTHRESHOLD, 0).toInt();}
 
     void setUpperThreshold(int th)
-    {
-      m_threshold[1] = th;
-      (*this)[UTHRESHOLD] = QString::number(th);
-    }
-    int upperThreshold() const {return m_threshold[1];}
+      {m_args[UTHRESHOLD] = QString::number(th);}
+    int upperThreshold() const {return m_args.value(UTHRESHOLD, 0).toInt();}
 
     void setVOI(int voi[6])
     {
-      memcpy(m_VOI, voi, 6*sizeof(int));
-      (*this)[VOI] = arg6(voi);
+      m_args[VOI] = arg6(voi);
     }
-    void voi(int value[6]) const {memcpy(value, m_VOI, 6*sizeof(int));}
+    void voi(int value[6]) const
+    {
+      QStringList values = m_args[VOI].split(",");
+      for(int i=0; i<6; i++)
+        value[i] = values[i].toInt();
+    }
 
     void setCloseValue(int value)
-    {
-      m_close = value;
-      (*this)[CLOSE] = QString::number(value);
-    }
-
-    int closeValue() const {return (*this)[CLOSE].toInt();}
+      {m_args[CLOSE] = QString::number(value);}
+    int closeValue() const
+      {return m_args[CLOSE].toInt();}
 
   private:
-    int m_seed[3];
-    int m_threshold[2];
-    int m_VOI[6];
-    int m_close;
+    Arguments &m_args;
   };
 
 public:
@@ -127,18 +125,16 @@ public:
 
 
   void setLowerThreshold(int th);
-  int lowerThreshold() const {return m_args.lowerThreshold();}
+  int lowerThreshold() const {return m_param.lowerThreshold();}
   void setUpperThreshold(int th);
-  int upperThreshold() const {return m_args.upperThreshold();}
+  int upperThreshold() const {return m_param.upperThreshold();}
   void setSeed(int seed[3]);
-  void seed(int seed[3]) const {m_args.seed(seed);}
+  void seed(int seed[3]) const;
   void setVOI(int VOI[6]);
-  void voi(int VOI[6]) const {m_args.voi(VOI);}
+  void voi(int VOI[6]) const {m_param.voi(VOI);}
 
   /// Implements Model Item Interface
-  virtual QString  id() const;
   virtual QVariant data(int role=Qt::DisplayRole) const;
-  virtual QString  serialize() const;
 
   /// Implements Filter Interface
   void run();
@@ -149,9 +145,7 @@ public:
   virtual QWidget* createConfigurationWidget();
 
 private:
-  NamedInputs   m_inputs;
-  SArguments    m_args;
-
+  Parameters   m_param;
   EspinaVolume *m_input;
   EspinaVolume *m_volume;
   EspinaVolumeReader::Pointer m_cachedFilter;

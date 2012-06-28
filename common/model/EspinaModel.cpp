@@ -641,6 +641,7 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
             Filter *filter =  dynamic_cast<Filter *>(item);
             inputs[link[0]] = filter;
           }
+          qDebug() << args;
           Filter *filter = factory->createFilter(v.name.c_str(), inputs, args);
           //filter->update();
           addFilter(filter);

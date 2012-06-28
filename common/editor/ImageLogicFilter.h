@@ -23,9 +23,12 @@
 #include <model/Filter.h>
 #include <model/Segmentation.h>
 
+#include <itkOrImageFilter.h>
+
 class ImageLogicFilter
 : public Filter
 {
+  typedef itk::OrImageFilter<EspinaVolume, EspinaVolume, EspinaVolume> OrFilterType;
 public:
   enum Operation
   {
@@ -37,19 +40,18 @@ public:
 
   static const ModelItem::ArgumentId OPERATION;
 
-  class ILFArguments
-  : public Arguments
+  class Parameters
   {
   public:
-    explicit ILFArguments(){}
-    explicit ILFArguments(const Arguments args) : Arguments(args) {}
+    explicit Parameters(Arguments &args) : m_args(args) {}
 
     void setOperation(Operation op)
     {
-      (*this)[OPERATION] = QString::number(op);
+      m_args[OPERATION] = QString::number(op);
     }
-
-    Operation operation() const {return Operation((*this)[OPERATION].toInt());}
+    Operation operation() const {return Operation(m_args[OPERATION].toInt());}
+  private:
+    Arguments &m_args;
   };
 
 public:
@@ -58,9 +60,7 @@ public:
 
 
   /// Implements Model Item Interface
-  virtual QString id() const;
   virtual QVariant data(int role=Qt::DisplayRole) const;
-  virtual QString serialize() const;
 
   /// Implements Filter Interface
   void run();
@@ -68,13 +68,11 @@ public:
   virtual EspinaVolume* output(OutputNumber i) const;
   virtual bool prefetchFilter();
 
-  virtual QWidget* createConfigurationWidget();
-
 private:
-  NamedInputs   m_inputs;
-  ILFArguments  m_args;
+  Parameters  m_param;
 
   EspinaVolume *m_volume;
+  OrFilterType::Pointer m_orFilter;
 };
 
 

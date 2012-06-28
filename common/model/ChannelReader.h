@@ -49,14 +49,11 @@ public:
   virtual int numberOutputs() const;
   virtual EspinaVolume* output(OutputNumber i) const;
 
-  virtual QWidget* createConfigurationWidget();
-
 protected:
     void setSpacing(double value[3]);
     void spacing(double value[3]);
 
 private:
-  Arguments     m_args;
   EspinaVolume *m_volume;
 
   itk::ImageIOBase::Pointer   m_io;

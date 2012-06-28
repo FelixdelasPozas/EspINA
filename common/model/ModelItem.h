@@ -78,7 +78,7 @@ public:
     explicit Arguments(const QString args);
     virtual ~Arguments(){}
 
-    virtual ArgumentId argumentId(QString name) const {return ArgumentId(name, false);}
+    static ArgumentId argumentId(QString name) {return ArgumentId(name, false);}
 
     virtual QString serialize(bool key=false) const;
     virtual QString hash() const;

@@ -35,7 +35,7 @@ const ArgumentId ChannelReader::SPACING = ArgumentId("Spacing", true);
 //----------------------------------------------------------------------------
 ChannelReader::ChannelReader(Filter::NamedInputs inputs,
                              ModelItem::Arguments args)
-: m_args  (args)
+: Filter(inputs, args)
 , m_volume(NULL)
 {
 }
@@ -125,12 +125,6 @@ EspinaVolume* ChannelReader::output(OutputNumber i) const
     return m_volume;
 
   Q_ASSERT(false);
-  return NULL;
-}
-
-//----------------------------------------------------------------------------
-QWidget* ChannelReader::createConfigurationWidget()
-{
   return NULL;
 }
 

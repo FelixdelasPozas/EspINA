@@ -36,19 +36,18 @@ public:
 
   static const ModelItem::ArgumentId RADIUS;
 
-  class ErodeArguments : public Arguments
+  class Parameters
   {
   public:
-  public:
-    explicit ErodeArguments(){}
-    explicit ErodeArguments(const Arguments args)
-    : Arguments(args){}
+    explicit Parameters(Arguments &args) : m_args(args){}
 
     void setRadius(unsigned int radius)
     {
-      (*this)[RADIUS] = QString::number(radius);
+      m_args[RADIUS] = QString::number(radius);
     }
-    unsigned int radius() const {return (*this)[RADIUS].toInt();}
+    unsigned int radius() const {return m_args[RADIUS].toInt();}
+  private:
+    Arguments &m_args;
   };
 
 public:
@@ -57,21 +56,16 @@ public:
   virtual ~ErodeFilter();
 
   /// Implements Model Item Interface
-  virtual QString id() const;
   virtual QVariant data(int role=Qt::DisplayRole) const;
-  virtual QString serialize() const;
 
   /// Implements Filter Interface
   void run();
   virtual int numberOutputs() const;
   virtual EspinaVolume* output(OutputNumber i) const;
   virtual bool prefetchFilter();
-  virtual QWidget* createConfigurationWidget();
 
 private:
-  NamedInputs    m_inputs;
-  ErodeArguments m_args;
-
+  Parameters     m_params;
   EspinaVolume  *m_input;
   EspinaVolume  *m_volume;
   EspinaVolumeReader::Pointer m_cachedFilter;
