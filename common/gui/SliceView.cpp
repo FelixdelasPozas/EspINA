@@ -261,65 +261,65 @@ void SliceView::eventPosition(int& x, int& y)
 //-----------------------------------------------------------------------------
 SelectionHandler::MultiSelection SliceView::select(SelectionHandler::SelectionFilters filters, SelectionHandler::ViewRegions regions)
 {
-	bool multiSelection = false;
-	SelectionHandler::MultiSelection msel;
+  bool multiSelection = false;
+  SelectionHandler::MultiSelection msel;
 
-	//if (m_inThumbnail)
-	//  return msel;
+  //if (m_inThumbnail)
+  //  return msel;
 
-	vtkRenderer *renderer = m_renderer;
-	Q_ASSERT(renderer);
+  vtkRenderer *renderer = m_renderer;
+  Q_ASSERT(renderer);
 
-////   qDebug() << "EspINA::SliceView" << m_plane << ": Making selection";
-	// Select all products that belongs to all the regions
-	foreach(const QPolygonF &region, regions)
-	{
-		SelectionHandler::VtkRegion vtkRegion;
-		// Translate view pixels into Vtk pixels
-		vtkRegion = display2vtk(region);
+  ////   qDebug() << "EspINA::SliceView" << m_plane << ": Making selection";
+  // Select all products that belongs to all the regions
+  foreach(const QPolygonF &region, regions)
+  {
+    SelectionHandler::VtkRegion vtkRegion;
+    // Translate view pixels into Vtk pixels
+    vtkRegion = display2vtk(region);
 
-		if (vtkRegion.isEmpty())
-		return msel;
+    if (vtkRegion.isEmpty())
+      return msel;
 
-//     qDebug() << "Analyze Region:";
-		foreach(QPointF p, region)
-		{
-			foreach(QString filter, filters)
-			{
-//        qDebug() << "\t\tLooking for" << filter;
-				if (filter == SelectionHandler::EspINA_Channel)
-				{
-					foreach(Channel *channel, pickChannels(p.x(), p.y(), renderer, multiSelection))
-					{
-						SelectionHandler::Selelection selection(vtkRegion,channel);
-						msel.append(selection);
-					}
-				}
-				else if (filter == SelectionHandler::EspINA_Segmentation)
-				{
-					foreach(Segmentation *seg, pickSegmentations(p.x(), p.y(), renderer, multiSelection))
-					{
-						SelectionHandler::Selelection selection(vtkRegion, seg);
-						msel.append(selection);
-					}
-// 	} else if (filter == SelectionHandler::EspINA_Representation)
-// 	{
-// 	  foreach(Representation *rep, pickRepresentation(propPicker, multiSelection))
-// 	  {
-// 	    SelectionHandler::Selelection selection(vtkRegion, rep);
-// 	    msel.append(selection);
-// 	  }
-				}
-				else
-				{
-					Q_ASSERT(false);
-				}
-			}
-		}
-	}
+    //     qDebug() << "Analyze Region:";
+      foreach(QPointF p, region)
+      {
+        foreach(QString filter, filters)
+        {
+          //        qDebug() << "\t\tLooking for" << filter;
+          if (filter == SelectionHandler::EspINA_Channel)
+          {
+            foreach(Channel *channel, pickChannels(p.x(), p.y(), renderer, multiSelection))
+            {
+              SelectionHandler::Selelection selection(vtkRegion,channel);
+              msel.append(selection);
+            }
+          }
+          else if (filter == SelectionHandler::EspINA_Segmentation)
+          {
+            foreach(Segmentation *seg, pickSegmentations(p.x(), p.y(), renderer, multiSelection))
+            {
+              SelectionHandler::Selelection selection(vtkRegion, seg);
+              msel.append(selection);
+            }
+            // 	} else if (filter == SelectionHandler::EspINA_Representation)
+            // 	{
+              // 	  foreach(Representation *rep, pickRepresentation(propPicker, multiSelection))
+              // 	  {
+                // 	    SelectionHandler::Selelection selection(vtkRegion, rep);
+                // 	    msel.append(selection);
+                // 	  }
+            }
+            else
+            {
+              Q_ASSERT(false);
+            }
+          }
+        }
+      }
 
-	return msel;
-}
+      return msel;
+  }
 
 //-----------------------------------------------------------------------------
 QVTKWidget *SliceView::view()
@@ -502,94 +502,90 @@ void SliceView::centerViewOnMousePosition()
 //-----------------------------------------------------------------------------
 QList<Channel *> SliceView::pickChannels(double vx, double vy, vtkRenderer* renderer, bool repeatable)
 {
-	QList<Channel *> channels;
+  QList<Channel *> channels;
 
-	if (m_channelPicker->Pick(vx, vy, 0.1, renderer))
-	{
-		vtkProp3D *pickedProp = m_channelPicker->GetProp3D();
-		vtkImageActor *slice = vtkImageActor::SafeDownCast(pickedProp);
+  if (m_channelPicker->Pick(vx, vy, 0.1, renderer))
+  {
+    vtkProp3D *pickedProp = m_channelPicker->GetProp3D();
+    vtkImageActor *slice = vtkImageActor::SafeDownCast(pickedProp);
 
-		foreach(Channel * channel, m_channels.keys())
-		{
-			if (m_channels[channel].slice == slice)
-			{
-				qDebug() << "Channel" << channel->data(Qt::DisplayRole).toString() << "Selected";
-				channels << channel;
-				if (!repeatable)
-					return channels;
-			}
-		}
-	}
+    foreach(Channel * channel, m_channels.keys())
+    {
+      if (m_channels[channel].slice == slice)
+      {
+        //qDebug() << "Channel" << channel->data(Qt::DisplayRole).toString() << "Selected";
+        channels << channel;
+        if (!repeatable)
+          return channels;
+      }
+    }
+  }
 
-	return channels;
+  return channels;
 }
 
 //-----------------------------------------------------------------------------
-QList<Segmentation *> SliceView::pickSegmentations(double vx, double vy, vtkRenderer* renderer, bool repeatable)
+QList<Segmentation *> SliceView::pickSegmentations(double vx,
+                                                   double vy,
+                                                   vtkRenderer* renderer,
+                                                   bool repeatable)
 {
-	QList<Segmentation *> segmentations;
+  QList<Segmentation *> segmentations;
 
-	Q_ASSERT(false);
+  vtkPropPicker *picker = m_segmentationPicker;
+  if (picker->Pick(vx, vy, 0.1, renderer))
+  {
+    vtkProp3D *pickedProp = picker->GetProp3D();
 
-//   vtkPropPicker *picker = m_view->segmentationPicker();
-//   if (picker->Pick(vx, vy, 0.1, renderer))
-//   {
-//     vtkProp3D *pickedProp = picker->GetProp3D();
-//     vtkObjectBase *object;
-//     vtkSliceRepresentation *rep;
-// 
-//     foreach(Segmentation *seg, m_segmentations.keys())
-//     {
-//       object = m_segmentations[seg].proxy->GetClientSideObject();
-//       rep = dynamic_cast<vtkSliceRepresentation *>(object);
-//       Q_ASSERT(rep);
-//       if (rep->GetSliceProp() == pickedProp)
-//       {
-// // 	qDebug() << "Segmentation" << seg->data(Qt::DisplayRole).toString() << "Selected";
-// 	segmentations << seg;
-// 	if (!repeatable)
-// 	  return segmentations;
-//       }
-//     }
-//   }
+    QPolygonF selectedRegion;
+    selectedRegion << QPointF(vx, vy);
+    QVector3D pixel = display2vtk(selectedRegion).first();
+    foreach(Segmentation *seg, m_segmentations.keys())
+    {
+      EspinaVolume::IndexType index;
+      index[0] = pixel.x() - seg->volume()->GetOrigin()[0];
+      index[1] = pixel.y() - seg->volume()->GetOrigin()[1];
+      index[2] = pixel.z() - seg->volume()->GetOrigin()[2];
+      if (m_segmentations[seg].slice == pickedProp
+        && seg->volume()->GetPixel(index) > 0)
+      {
+        //qDebug() << "Segmentation" << seg->data(Qt::DisplayRole).toString() << "Selected";
+        segmentations << seg;
+        if (!repeatable)
+          return segmentations;
+      }
+    }
+  }
 
-	return segmentations;
+  return segmentations;
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::selectPickedItems(bool append)
 {
-////   qDebug() << "SliceView::SelectPickedItems";
-//  vtkSMSliceViewProxy* view =
-//    vtkSMSliceViewProxy::SafeDownCast(m_view->getProxy());
-//  Q_ASSERT(view);
-//  vtkRenderer *renderer = view->GetRenderer();
-//  Q_ASSERT(renderer);
-//
-//  int vx, vy;
-//  eventPosition(vx, vy);
-//
-//  bool segPicked = false;
-//  // If no append, segmentations have priority over channels
-//  foreach(Segmentation *seg, pickSegmentations(vx, vy, renderer, append))
-//  {
-//    segPicked = true;
-//    emit segmentationSelected(seg, append);
-//    if (!append)
-//      return;
-//  }
-//
-//  // Heterogeneus picking is not supported
-//  if (segPicked)
-//    return;
-//
-//  foreach(Channel *channel, pickChannels(vx, vy, renderer, append))
-//  {
-//    emit channelSelected(channel);
-//    if (!append)
-//      return;
-//  }
-//
+  int vx, vy;
+  eventPosition(vx, vy);
+
+  bool segPicked = false;
+  // If no append, segmentations have priority over channels
+  foreach(Segmentation *seg, pickSegmentations(vx, vy, m_renderer, append))
+  {
+    segPicked = true;
+    emit segmentationSelected(seg, append);
+    if (!append)
+      return;
+  }
+
+  // Heterogeneus picking is not supported
+  if (segPicked)
+    return;
+
+  foreach(Channel *channel, pickChannels(vx, vy, m_renderer, append))
+  {
+    emit channelSelected(channel);
+    if (!append)
+      return;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1042,25 +1038,25 @@ void SliceView::centerViewOn(double center[3], bool force)
 //-----------------------------------------------------------------------------
 SelectionHandler::VtkRegion SliceView::display2vtk(const QPolygonF &region)
 {
-	//Use Render Window Interactor's Picker to find the world coordinates
-	//of the stack
-	//vtkSMRenderViewProxy* renModule = view->GetRenderWindow()->GetInteractor()->GetRenderView();
-	SelectionHandler::VtkRegion vtkRegion;
+  //Use Render Window Interactor's Picker to find the world coordinates
+  //of the stack
+  //vtkSMRenderViewProxy* renModule = view->GetRenderWindow()->GetInteractor()->GetRenderView();
+  SelectionHandler::VtkRegion vtkRegion;
 
-//   vtkWorldPointPicker *wpicker = vtkWorldPointPicker::New();
-	double pickPos[3];  //World coordinates
-	foreach(QPointF point, region)
-	{
-		if (!pickChannel(point.x(), point.y(), pickPos))
-		continue;
+  //   vtkWorldPointPicker *wpicker = vtkWorldPointPicker::New();
+  double pickPos[3];  //World coordinates
+  foreach(QPointF point, region)
+  {
+    if (!pickChannel(point.x(), point.y(), pickPos))
+      continue;
 
-		QVector3D vtkPoint;
-		vtkPoint.setX(floor((pickPos[0] / m_gridSize[0])+0.5));
-		vtkPoint.setY(floor((pickPos[1] / m_gridSize[1])+0.5));
-		vtkPoint.setZ(floor((pickPos[2] / m_gridSize[2])+0.5));
-		vtkRegion << vtkPoint;
-	}
-	return vtkRegion;
+    QVector3D vtkPoint;
+    vtkPoint.setX(floor((pickPos[0] / m_gridSize[0])+0.5));
+    vtkPoint.setY(floor((pickPos[1] / m_gridSize[1])+0.5));
+    vtkPoint.setZ(floor((pickPos[2] / m_gridSize[2])+0.5));
+    vtkRegion << vtkPoint;
+  }
+  return vtkRegion;
 
 }
 

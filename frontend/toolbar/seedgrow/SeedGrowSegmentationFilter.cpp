@@ -226,11 +226,6 @@ void SeedGrowSegmentationFilter::setVOI(int VOI[6])
 void SeedGrowSegmentationFilter::setSeed(int seed[3])
 {
   m_args.setSeed(seed);
-//   Q_ASSERT(grow);
-//   vtkSMPropertyHelper(grow->pipelineSource()->getProxy(),"Seed").Set(seed,3);
-//   grow->pipelineSource()->getProxy()->UpdateVTKObjects();
-// //   grow->pipelineSource()->updatePipeline();
-//   emit modified(this);
 }
 
 

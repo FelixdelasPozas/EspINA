@@ -614,7 +614,7 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
           ModelItem *item = ancestors.first().item;
           Q_ASSERT(ModelItem::FILTER == item->type());
           Filter *filter =  dynamic_cast<Filter *>(item);
-          //filter->update();
+          filter->update();
           Channel *channel = factory->createChannel(filter, link[1].toUInt());
           channel->initialize(args);
           addChannel(channel);
@@ -642,7 +642,7 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
             inputs[link[0]] = filter;
           }
           Filter *filter = factory->createFilter(v.name.c_str(), inputs, args);
-          filter->update();
+          //filter->update();
           addFilter(filter);
           input->setItem(v.vId, filter);
           break;
@@ -665,6 +665,7 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
     ModelItem *item = ancestors.first().item;
     qDebug() << item->data(Qt::DisplayRole).toString();
     Filter *filter =  dynamic_cast<Filter *>(item);
+    filter->update();
     ModelItem::Arguments args(QString(v.args.c_str()));
     Segmentation *seg = factory->createSegmentation(filter, args[Segmentation::OUTPUT].toInt());
     seg->setNumber(args[Segmentation::NUMBER].toInt());

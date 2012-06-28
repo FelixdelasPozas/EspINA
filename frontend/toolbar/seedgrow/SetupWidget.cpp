@@ -119,33 +119,34 @@ void SeedGrowSegmentationFilter::SetupWidget::redefineToVOI(double value, vtkSli
 //----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::SetupWidget::modifyFilter()
 {
-//   int VOI[6];
-//   VOI[0] = m_leftMargin->value();
-//   VOI[1] = m_rightMargin->value();
-//   VOI[2] = m_topMargin->value();
-//   VOI[3] = m_bottomMargin->value();
-//   VOI[4] = m_upperMargin->value();
-//   VOI[5] = m_lowerMargin->value();
-// 
-//   int x = m_xSeed->text().toInt();
-//   int y = m_ySeed->text().toInt();
-//   int z = m_zSeed->text().toInt();
-// 
-//   if ( VOI[0] > x || VOI[1] < x
-//     || VOI[2] > y || VOI[3] < y
-//     || VOI[4] > z || VOI[5] < z )
-//   {
-//     QMessageBox::warning(this,
-// 			 tr("Seed Grow Segmentation"),
-// 			 tr("Segmentation couldn't be modified. Seed is outside VOI"));
-//     return;
-//   }
-// 
-//   m_filter->setThreshold(m_threshold->value());
-//   m_filter->setVOI(VOI);
-//   QApplication::setOverrideCursor(Qt::WaitCursor);
-//   m_filter->run();
-//   m_filter->product(0)->volume().pipelineSource()->updatePipeline();
-//   EspinaCore::instance()->viewManger()->currentView()->forceRender();
-//   QApplication::restoreOverrideCursor();
+  int VOI[6];
+  VOI[0] = m_leftMargin->value();
+  VOI[1] = m_rightMargin->value();
+  VOI[2] = m_topMargin->value();
+  VOI[3] = m_bottomMargin->value();
+  VOI[4] = m_upperMargin->value();
+  VOI[5] = m_lowerMargin->value();
+
+  int x = m_xSeed->text().toInt();
+  int y = m_ySeed->text().toInt();
+  int z = m_zSeed->text().toInt();
+
+  if ( VOI[0] > x || VOI[1] < x
+    || VOI[2] > y || VOI[3] < y
+    || VOI[4] > z || VOI[5] < z )
+  {
+    QMessageBox::warning(this,
+			 tr("Seed Grow Segmentation"),
+			 tr("Segmentation couldn't be modified. Seed is outside VOI"));
+    return;
+  }
+
+  m_filter->setLowerThreshold(m_threshold->value());
+  m_filter->setUpperThreshold(m_threshold->value());
+  m_filter->setVOI(VOI);
+
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  m_filter->run();
+  EspinaCore::instance()->viewManger()->currentView()->forceRender();
+  QApplication::restoreOverrideCursor();
 }
