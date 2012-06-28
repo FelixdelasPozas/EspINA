@@ -181,6 +181,16 @@ void Segmentation::initializeExtensions()
 }
 
 //------------------------------------------------------------------------
+void Segmentation::notifyModification(bool force)
+{
+  m_filter->output(m_args.outputNumber())->Update();
+  itk2vtk->SetInput(m_filter->output(m_args.outputNumber()));
+  itk2vtk->Update();
+  ModelItem::notifyModification(force);
+}
+
+
+//------------------------------------------------------------------------
 bool Segmentation::setData(const QVariant& value, int role)
 {
 	switch (role)

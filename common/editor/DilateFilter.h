@@ -66,6 +66,8 @@ public:
   /// Implements Filter Interface
   virtual int numberOutputs() const;
   virtual EspinaVolume* output(OutputNumber i) const;
+  virtual bool prefetchFilter();
+
   virtual QWidget* createConfigurationWidget();
 
 private:
@@ -74,6 +76,7 @@ private:
 
   EspinaVolume   *m_input;
   EspinaVolume   *m_volume;
+  EspinaVolumeReader::Pointer m_cachedFilter;
 
   FilterType::Pointer m_filter;
 };

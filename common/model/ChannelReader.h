@@ -29,7 +29,6 @@
 class ChannelReader
 : public Filter
 {
-  typedef itk::ImageFileReader<EspinaVolume> EspinaVolumeReader;
 public:
   static const QString TYPE;
 

@@ -23,10 +23,14 @@
 #include "common/model/ModelItem.h"
 
 #include <EspinaTypes.h>
+#include <itkImageFileReader.h>
 
 class Filter
 : public ModelItem
 {
+protected:
+  typedef itk::ImageFileReader<EspinaVolume> EspinaVolumeReader;
+
 public:
   typedef QMap<QString, Filter *> NamedInputs;
 
@@ -64,7 +68,8 @@ public:
 
 protected:
   /// Try to locate an snapshot of the filter in the hard drive
-  virtual void prefetchFilter(){}
+  virtual bool prefetchFilter();
+  EspinaVolumeReader::Pointer tmpFileReader(const QString file);
 
 private:
   static unsigned int m_lastId;

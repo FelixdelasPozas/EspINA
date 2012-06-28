@@ -19,6 +19,7 @@
 #include "SetupWidget.h"
 
 #include "common/model/EspinaModel.h"
+#include <EspinaCore.h>
 
 #include <QDebug>
 #include <QCryptographicHash>
@@ -268,6 +269,22 @@ EspinaVolume* SeedGrowSegmentationFilter::output(OutputNumber i) const
 
   Q_ASSERT(false);
   return NULL;
+}
+
+//-----------------------------------------------------------------------------
+bool SeedGrowSegmentationFilter::prefetchFilter()
+{
+  QString tmpFile = id() + "_0.mhd";
+  m_cachedFilter = tmpFileReader(tmpFile);
+
+  if (m_cachedFilter.IsNotNull())
+  {
+    m_volume = m_cachedFilter->GetOutput();
+    emit modified(this);
+    return true;
+  }
+
+  return false;
 }
 
 //-----------------------------------------------------------------------------

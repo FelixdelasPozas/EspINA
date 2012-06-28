@@ -145,6 +145,7 @@ public:
 
   virtual int numberOutputs() const;
   virtual EspinaVolume* output(OutputNumber i) const;
+  virtual bool prefetchFilter();
 
   virtual QWidget* createConfigurationWidget();
 
@@ -154,6 +155,7 @@ private:
 
   EspinaVolume *m_input;
   EspinaVolume *m_volume;
+  EspinaVolumeReader::Pointer m_cachedFilter;
 
   ExtractType::Pointer extractFilter;
   ConnectedThresholdFilterType::Pointer ctif;

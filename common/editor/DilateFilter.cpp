@@ -113,6 +113,22 @@ EspinaVolume* DilateFilter::output(OutputNumber i) const
 }
 
 //-----------------------------------------------------------------------------
+bool DilateFilter::prefetchFilter()
+{
+  QString tmpFile = id() + "_0.mhd";
+  m_cachedFilter = tmpFileReader(tmpFile);
+
+  if (m_cachedFilter.IsNotNull())
+  {
+    m_volume = m_cachedFilter->GetOutput();
+    emit modified(this);
+    return true;
+  }
+
+  return false;
+}
+
+//-----------------------------------------------------------------------------
 QWidget* DilateFilter::createConfigurationWidget()
 {
   return NULL;

@@ -19,6 +19,7 @@
 
 #include "Filter.h"
 #include <EspinaCore.h>
+#include <itkMetaImageIO.h>
 
 #include <QWidget>
 
@@ -45,10 +46,34 @@ QString Filter::generateId()
 //----------------------------------------------------------------------------
 void Filter::update()
 {
-  QString filename = id() + ".mhd";
-  //if (EspinaCore::instance()->temporalDir()
-  prefetchFilter();
-  run();
+  if (!prefetchFilter())
+    run();
+}
+
+//----------------------------------------------------------------------------
+bool Filter::prefetchFilter()
+{
+  return false;
+}
+
+//----------------------------------------------------------------------------
+Filter::EspinaVolumeReader::Pointer Filter::tmpFileReader(const QString file)
+{
+  QDir tmpDir = EspinaCore::instance()->temporalDir();
+  if (tmpDir.exists(file))
+  {
+    itk::MetaImageIO::Pointer io = itk::MetaImageIO::New();
+    EspinaVolumeReader::Pointer reader = EspinaVolumeReader::New();
+
+    std::string tmpFile = tmpDir.absoluteFilePath(file).toStdString();
+    io->SetFileName(tmpFile.c_str());
+    reader->SetImageIO(io);
+    reader->SetFileName(tmpFile);
+    reader->Update();
+
+    return reader;
+  }
+  return NULL;
 }
 
 
