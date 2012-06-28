@@ -606,8 +606,7 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
         case ModelItem::CHANNEL:
         {
           ModelItem::Arguments args(v.args.c_str());
-          qDebug() << "Channel Args" << args;
-          // TODO: Manage links inside channel arguments"
+          // TODO: Move link management code inside Channel's Arguments class
           QStringList link = args[Channel::VOLUME].split("_");
           Q_ASSERT(link.size() == 2);
           Vertices ancestors = input->ancestors(v.vId, link[0]);
@@ -627,7 +626,6 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
         {
           Filter::NamedInputs inputs;
           ModelItem::Arguments args(v.args.c_str());
-          qDebug() << "Filter Args" << args;
           QStringList inputLinks = args[Filter::INPUTS].split(",", QString::SkipEmptyParts);
           Q_ASSERT(args[Filter::ID] == Filter::generateId());
           foreach(QString inputLink, inputLinks)

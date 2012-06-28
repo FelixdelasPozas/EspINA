@@ -774,22 +774,25 @@ void SliceView::removeSegmentationRepresentation(Segmentation* seg)
 //-----------------------------------------------------------------------------
 bool SliceView::updateSegmentationRepresentation(Segmentation* seg)
 {
-    Q_ASSERT(m_segmentations.contains(seg));
-    SliceRep &rep = m_segmentations[seg];
+  Q_ASSERT(m_segmentations.contains(seg));
+  SliceRep &rep = m_segmentations[seg];
 
-    if ((seg->isSelected() != rep.selected) || (seg->visible() != rep.visible) || (seg->data(Qt::DecorationRole).value<QColor>() != rep.color) || seg->updateForced())
-    {
-        rep.selected = seg->isSelected();
-        rep.visible = seg->visible();
-        rep.color = seg->data(Qt::DecorationRole).value<QColor>();
+  if ((seg->isSelected() != rep.selected)
+   || (seg->visible() != rep.visible)
+   || (seg->data(Qt::DecorationRole).value<QColor>() != rep.color)
+   || seg->updateForced())
+  {
+    rep.selected = seg->isSelected();
+    rep.visible = seg->visible();
+    rep.color = seg->data(Qt::DecorationRole).value<QColor>();
 
-        rep.resliceToColors->SetLookupTable(m_colorEngine->lut(seg));
-        rep.resliceToColors->Update();
+    rep.resliceToColors->SetLookupTable(m_colorEngine->lut(seg));
+    rep.resliceToColors->Update();
 
-        m_segmentations[seg].slice->SetVisibility(seg->visible());
-        return true;
-    }
-    return false;
+    m_segmentations[seg].slice->SetVisibility(seg->visible());
+    return true;
+  }
+  return false;
 }
 
 // //-----------------------------------º------------------------------------------

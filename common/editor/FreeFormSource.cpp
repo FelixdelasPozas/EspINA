@@ -22,59 +22,49 @@
 #include <vtkSliceView.h>
 #include <EspinaCore.h>
 #include <EspinaView.h>
+#include <itkImageRegionIteratorWithIndex.h>
 
 #include <QDateTime>
 #include <QDebug>
 
-typedef ModelItem::ArgumentId ArgumentId;
+const QString FreeFormSource::TYPE = "EditorToolBar::FreeFormSource";
 
-// We use timestamp as ID
-const ArgumentId ID = ArgumentId("ID", true);
-const ArgumentId SPACING = ArgumentId("SPACING", true);
+typedef ModelItem::ArgumentId ArgumentId;
+const ArgumentId FreeFormSource::SPACING = ArgumentId("SPACING", true);
 
 //-----------------------------------------------------------------------------
-FreeFormSource::FreeFormSource(double spacing[3])
-: m_hasPixels(false)
+bool drawPixel(int x, int y, int z,
+               int cx, int cy, int cz,
+               int r, int plane,
+               int extent[6])
 {
-//   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-// 
-//   //WARNING: Efecto 3000!
-//   m_args[ID] = QDateTime::currentDateTime().toString("ddMMyyhhmmss");
-//   //qDebug() << m_args[ID] << id();
-// 
-//   pqFilter::Arguments args;
-//   m_args[SPACING] = QString("%1,%2,%3")
-//                      .arg(spacing[0]).arg(spacing[1]).arg(spacing[2]);
-// // 		     .arg(extent[3]).arg(extent[4]).arg(extent[5]);
-// 
-//   args << pqFilter::Argument("Id", pqFilter::Argument::UNKOWN, m_args[ID]);
-//   args << pqFilter::Argument("Spacing",pqFilter::Argument::DOUBLEVECT, m_args[SPACING]);
-//   m_source = cob->createFilter("sources","FreeFormSource", args, false, true);
-//   Q_ASSERT(m_source->getNumberOfData() == 1);
-// 
-//   if (!m_seg)
-//     m_seg = EspinaFactory::instance()->createSegmentation(this, 0);
+  if (plane == 2)
+  {
+    double r2 = pow(x-cx+extent[0], 2) + pow(y-cy+extent[2], 2);
+    return r2 <= r*r && z == cz-extent[4];
+  }else if (plane == 1)
+  {
+    double r2 = pow(x-cx+extent[0], 2) + pow(z-cz+extent[4], 2);
+    return r2 <= r*r && y == cy-extent[2];
+  }else if (plane == 0)
+  {
+    double r2 = pow(y-cy+extent[2], 2) + pow(z-cz+extent[4], 2);
+    return r2 <= r*r && x == cx-extent[0];
+  }
+  return false;
 }
 
+
 //-----------------------------------------------------------------------------
-FreeFormSource::FreeFormSource(ModelItem::Arguments args)
+FreeFormSource::FreeFormSource(Filter::NamedInputs inputs,
+                               ModelItem::Arguments args)
 : m_args(args)
 , m_hasPixels(false)
+, m_init(false)
+, m_volume(NULL)
+, m_filter(FilterType::New())
 {
-//   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-// 
-//   QString segId = id() + "_0";
-//   if ((m_source = cob->loadFile(segId)) == NULL)
-//   {
-//     pqFilter::Arguments sourceArgs;
-//     sourceArgs << pqFilter::Argument("Spacing",pqFilter::Argument::DOUBLEVECT, m_args[SPACING]);
-//     m_source = cob->createFilter("sources","FreeFormSource", sourceArgs);
-//     Q_ASSERT(m_source->getNumberOfData() == 1);
-//   }
-// 
-//   Q_ASSERT(m_source);
-//   if (!m_seg)
-//     m_seg = EspinaFactory::instance()->createSegmentation(this, 0);
+  Q_ASSERT(inputs.isEmpty());
 }
 
 //-----------------------------------------------------------------------------
@@ -85,61 +75,196 @@ FreeFormSource::~FreeFormSource()
 
 //-----------------------------------------------------------------------------
 void FreeFormSource::draw(vtkSliceView::VIEW_PLANE plane,
-			 QVector3D center, int radius)
+                          QVector3D center, int r)
 {
-  Q_ASSERT(false);
-//   int points[5] = {
-//     center.x(), center.y(), center.z(),
-//     radius, plane};
-//   vtkSMProxy *proxy = m_source->pipelineSource()->getProxy();
-//   vtkSMPropertyHelper(proxy, "Draw").Set(points, 5);
-//   proxy->UpdateVTKObjects();
-// //   m_source->pipelineSource()->updatePipeline();
-//   double cross[3];
-//   //TODO: Find a clearer way to get the segmentation rendered
-//   EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
-//   view->center(cross);
-//   view->setCenter(cross[0], cross[1], cross[2], true);
-//   view->setCenter(cross[0], cross[1], cross[2], true);
-//   view->forceRender();
+  bool expandX = vtkSliceView::AXIAL    == plane
+              || vtkSliceView::CORONAL  == plane;
+  bool expandY = vtkSliceView::AXIAL    == plane
+              || vtkSliceView::SAGITTAL == plane;
+  bool expandZ = vtkSliceView::SAGITTAL == plane
+              || vtkSliceView::CORONAL  == plane;
+
+  int cx = center.x();
+  int cy = center.y();
+  int cz = center.z();
+
+  if (!m_init)
+  {
+    Extent[0] = Extent[1] = cx;
+    Extent[2] = Extent[3] = cy;
+    Extent[4] = Extent[5] = cz;
+    m_init = true;
+  }
+
+  EspinaVolume::SizeType dim;
+  int prevExtent[6];
+  memcpy(prevExtent, Extent, 6*sizeof(int));
+
+  Extent[0] = std::min(Extent[0], expandX?cx - r:cx);
+  Extent[1] = std::max(Extent[1], expandX?cx + r:cx);
+  Extent[2] = std::min(Extent[2], expandY?cy - r:cy);
+  Extent[3] = std::max(Extent[3], expandY?cy + r:cy);
+  Extent[4] = std::min(Extent[4], expandZ?cz - r:cz);
+  Extent[5] = std::max(Extent[5], expandZ?cz + r:cz);
+
+  if (memcmp(prevExtent, Extent, 6*sizeof(int)) == 0)
+  {
+    int minX = (expandX?cx - r:cx)-Extent[0];
+    int maxX = (expandX?cx + r:cx)-Extent[0];
+    int minY = (expandY?cy - r:cy)-Extent[2];
+    int maxY = (expandY?cy + r:cy)-Extent[2];
+    int minZ = (expandZ?cz - r:cz)-Extent[4];
+    int maxZ = (expandZ?cz + r:cz)-Extent[4];
+
+    dim = m_volume->GetBufferedRegion().GetSize();
+    unsigned char *outputPtr = static_cast<unsigned char *>(m_volume->GetBufferPointer());
+    for (int z = minZ; z <= maxZ; z++)
+    {
+      unsigned long long zOffset = z * dim[0] * dim[1];
+      for (int y = minY; y <= maxY; y++)
+      {
+        unsigned long long yOffset = y * dim[0];
+        for (int x = minX; x <= maxX; x++)
+        {
+          unsigned long long offset = x + yOffset + zOffset;
+          if (drawPixel(x,y,z,cx,cy,cz,r,plane,Extent))
+            outputPtr[offset] = 255;
+        }
+      }
+    }
+    m_volume->Modified();
+  }else
+  {
+    EspinaVolume::Pointer img = EspinaVolume::New();
+    EspinaVolume::RegionType buffer = region(Extent);
+    img->SetRegions(buffer);
+    img->SetSpacing(m_args.spacing());
+    img->Allocate();
+
+    unsigned char *prevOutputPtr;
+    if (!m_volume)
+    {
+      prevExtent[0] = prevExtent[2] = prevExtent[4] = 0;
+      prevExtent[1] = prevExtent[3] = prevExtent[5] = -1;
+    } else
+    {
+      prevOutputPtr = static_cast<unsigned char *>(m_volume->GetBufferPointer());
+    }
+
+    int minX = 0;
+    int maxX = Extent[1]-Extent[0];
+    int minY = 0;
+    int maxY = Extent[3]-Extent[2];
+    int minZ = 0;
+    int maxZ = Extent[5]-Extent[4];
+
+    unsigned char *outputPtr = static_cast<unsigned char *>(img->GetBufferPointer());
+    dim = buffer.GetSize();
+
+    for (int z = minZ; z <= maxZ; z++)
+    {
+      unsigned long long zOffset = z * dim[0] * dim[1];
+      for (int y = minY; y <= maxY; y++)
+      {
+        unsigned long long yOffset = y * dim[0];
+        for (int x = minX; x <= maxX; x++)
+        {
+          unsigned long long offset = x + yOffset + zOffset;
+          double prevValue = 0;
+          if (prevExtent[0] <= x + Extent[0] && x + Extent[0] <= prevExtent[1]
+            && prevExtent[2] <= y + Extent[2] && y + Extent[2] <= prevExtent[3]
+            && prevExtent[4] <= z + Extent[4] && z + Extent[4] <= prevExtent[5])
+          {
+            prevValue = *prevOutputPtr;
+            prevOutputPtr++;
+          }
+          outputPtr[offset] = drawPixel(x,y,z,cx,cy,cz,r,plane,Extent)?255:prevValue;
+        }
+      }
+    }
+    m_volume = img;
+    m_filter->SetInput(m_volume);
+  }
+  m_filter->Update();
+
   m_hasPixels = true;
 }
 
 //-----------------------------------------------------------------------------
 void FreeFormSource::erase(vtkSliceView::VIEW_PLANE plane,
-			  QVector3D center, int radius)
+                           QVector3D center, int r)
 {
-  Q_ASSERT(false);
-//   if (!m_hasPixels)
-//     return;
-// 
-//   int points[5] = {
-//     center.x(), center.y(), center.z(),
-//     radius, plane};
-//   vtkSMProxy *proxy = m_source->pipelineSource()->getProxy();
-//   vtkSMPropertyHelper(proxy, "Erase").Set(points, 5);
-//   proxy->UpdateVTKObjects();
-// //   m_source->pipelineSource()->updatePipeline();
-//   double cross[3];
-//   //TODO: Find a clearer way to get the segmentation rendered
-//   EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
-//   view->center(cross);
-//   view->setCenter(cross[0], cross[1], cross[2], true);
-//   view->setCenter(cross[0], cross[1], cross[2], true);
-//   view->forceRender();
+  if (!m_hasPixels)
+    return;
+
+  int cx = center.x();
+  int cy = center.y();
+  int cz = center.z();
+
+  if (0 <= plane && plane <=2 && r > 0
+    && m_volume.IsNotNull()
+    && Extent[0] <= cx + r && cx - r <= Extent[1]
+    && Extent[2] <= cy + r && cy - r <= Extent[3]
+    && Extent[4] <= cz + r && cz - r <= Extent[5]
+  )
+  {
+    DrawExtent[0] = cx - r;
+    DrawExtent[1] = cx + r;
+    DrawExtent[2] = cy - r;
+    DrawExtent[3] = cy + r;
+    DrawExtent[4] = cz - r;
+    DrawExtent[5] = cz + r;
+
+    bool expandX = vtkSliceView::AXIAL    == plane
+                || vtkSliceView::CORONAL  == plane;
+    bool expandY = vtkSliceView::AXIAL    == plane
+                || vtkSliceView::SAGITTAL == plane;
+    bool expandZ = vtkSliceView::SAGITTAL == plane
+                || vtkSliceView::CORONAL  == plane;
+
+    int minX = std::max(Extent[0],(expandX?cx - r:cx))-Extent[0];
+    int maxX = std::min(Extent[1],(expandX?cx + r:cx))-Extent[0];
+    int minY = std::max(Extent[2],(expandY?cy - r:cy))-Extent[2];
+    int maxY = std::min(Extent[3],(expandY?cy + r:cy))-Extent[2];
+    int minZ = std::max(Extent[4],(expandZ?cz - r:cz))-Extent[4];
+    int maxZ = std::min(Extent[5],(expandZ?cz + r:cz))-Extent[4];
+
+    EspinaVolume::SizeType dim;
+    dim = m_volume->GetBufferedRegion().GetSize();
+
+    //NOTE: Try using vtkImageIterator
+    unsigned char *outputPtr = static_cast<unsigned char *>(m_volume->GetBufferPointer());
+
+    for (int z = minZ; z <= maxZ; z++)
+    {
+      unsigned long long zOffset = z * dim[0] * dim[1];
+      for (int y = minY; y <= maxY; y++)
+      {
+    unsigned long long yOffset = y * dim[0];
+    for (int x = minX; x <= maxX; x++)
+    {
+      unsigned long long offset = x + yOffset + zOffset;
+      if (drawPixel(x,y,z,cx,cy,cz,r,plane,Extent))
+        outputPtr[offset] = 0;
+    }
+      }
+    }
+
+    m_volume->Modified();
+  }
 }
 
 //-----------------------------------------------------------------------------
 QString FreeFormSource::id() const
 {
-  return m_args.hash();
+  return m_args[ID];
 }
 
 //-----------------------------------------------------------------------------
 QVariant FreeFormSource::data(int role) const
 {
   if (role == Qt::DisplayRole)
-    return FFS;
+    return TYPE;
   else
     return QVariant();
 }
@@ -153,17 +278,32 @@ QString FreeFormSource::serialize() const
 //-----------------------------------------------------------------------------
 int FreeFormSource::numberOutputs() const
 {
-//   return m_source && m_seg && m_hasPixels?1:0;
+  return m_hasPixels?1:0;
 }
 
 //-----------------------------------------------------------------------------
 EspinaVolume* FreeFormSource::output(OutputNumber i) const
 {
-  //Q_ASSERT(m_source->getNumberOfData() > 0);
+  if (m_volume.IsNotNull() && i == 0)
+    return m_filter->GetOutput();
+
+  return NULL;
 }
 
 //-----------------------------------------------------------------------------
 QWidget* FreeFormSource::createConfigurationWidget()
 {
   return NULL;
+}
+
+//-----------------------------------------------------------------------------
+EspinaVolume::RegionType FreeFormSource::region(int extent[6]) const
+{
+  EspinaVolume::RegionType res;
+  for(int i=0; i<3; i++)
+  {
+    res.SetIndex(i, extent[2*i]);
+    res.SetSize (i, extent[2*i+1] - extent[2*i]+1);
+  }
+  return res;
 }

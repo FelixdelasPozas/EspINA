@@ -43,16 +43,17 @@ class EditorToolBar::FreeFormCommand
 {
 public:
   explicit FreeFormCommand(Channel * channel,
-		      FreeFormSource *filter,
-		      TaxonomyNode *taxonomy)
+                           FreeFormSource *filter,
+                           Segmentation *seg,
+                           TaxonomyNode *taxonomy)
   : m_channel (channel)
   , m_filter  (filter)
+  , m_seg(seg)
   , m_taxonomy(taxonomy)
   {
-//     ModelItem::Vector samples = m_channel->relatedItems(ModelItem::IN, "mark");
-//     Q_ASSERT(samples.size() > 0);
-//     m_sample = dynamic_cast<Sample *>(samples.first());
-//     m_seg = m_filter->product(0);
+    ModelItem::Vector samples = m_channel->relatedItems(ModelItem::IN, Channel::STAINLINK);
+    Q_ASSERT(samples.size() > 0);
+    m_sample = dynamic_cast<Sample *>(samples.first());
   }
 
   virtual void redo()
@@ -217,7 +218,7 @@ public:
       model->addRelation(oldConnection.first, newConnection.first, "Input");
       model->addRelation(newConnection.first, seg, "CreateSegmentation");
       seg->changeFilter(newConnection.first, newConnection.second);
-      seg->notifyModification();
+      seg->notifyModification(true);
     }
   }
 
@@ -236,7 +237,7 @@ public:
       model->removeFilter(newConnection.first);
       model->addRelation(oldConnection.first, seg, "CreateSegmentation");
       seg->changeFilter(oldConnection.first, oldConnection.second);
-      seg->notifyModification();
+      seg->notifyModification(true);
     }
   }
 
@@ -265,10 +266,11 @@ EditorToolBar::EditorToolBar(QWidget* parent)
   setObjectName("EditorToolBar");
   setWindowTitle("Editor Tool Bar");
 
-  EspinaFactory::instance()->registerFilter(ClosingFilter::TYPE, this);
-  EspinaFactory::instance()->registerFilter(OpeningFilter::TYPE, this);
-  EspinaFactory::instance()->registerFilter(DilateFilter::TYPE, this);
-  EspinaFactory::instance()->registerFilter(ErodeFilter::TYPE, this);
+  EspinaFactory::instance()->registerFilter(ClosingFilter::TYPE,  this);
+  EspinaFactory::instance()->registerFilter(OpeningFilter::TYPE,  this);
+  EspinaFactory::instance()->registerFilter(DilateFilter::TYPE,   this);
+  EspinaFactory::instance()->registerFilter(ErodeFilter::TYPE,    this);
+  EspinaFactory::instance()->registerFilter(FreeFormSource::TYPE, this);
   EspinaFactory::instance()->registerFilter(ILF, this);
 
   m_draw->setIcon(QIcon(":/espina/pencil.png"));
@@ -320,11 +322,11 @@ Filter* EditorToolBar::createFilter(const QString filter, Filter::NamedInputs in
     return new DilateFilter(inputs, args);
   if (ErodeFilter::TYPE == filter)
     return new ErodeFilter(inputs, args);
-//   if (filter == FFS)
-//     return new FreeFormSource(inputs, args);
+  if (FreeFormSource::TYPE == filter)
+    return new FreeFormSource(inputs, args);
 //   else if (filter == ILF)
 //     return new ImageLogicFilter(inputs, args);
-//   else
+  else
     Q_ASSERT(false);
 
   return NULL;
@@ -374,12 +376,16 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
     extent[min] = std::max(extent[min], channelExtent[min]);
     extent[max] = std::min(extent[max], channelExtent[max]);
   }
-  double spacing[3];
-  channel->spacing(spacing);
 
   if (!m_currentSource)
   {
-    m_currentSource = new FreeFormSource(spacing);
+    Filter::NamedInputs inputs;
+    FreeFormSource::FreeFormArguments args;
+    args[Filter::ID]  = Filter::generateId();
+    double spacing[3];
+    channel->spacing(spacing);
+    args.setSpacing(spacing);
+    m_currentSource = new FreeFormSource(inputs, args);
   }
 
   int radius = abs(center.x() - p.x());
@@ -394,15 +400,15 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
   else
     Q_ASSERT(false);
 
-//   if (!m_currentSeg && m_currentSource->numProducts() == 1)
-//   {
-//     m_currentSeg = m_currentSource->product(0);
-//     TaxonomyNode *tax = EspinaCore::instance()->activeTaxonomy();
-//     undo->push(new FreeFormCommand(channel, m_currentSource, tax));
-//   }
-// 
-//   //if (m_currentSeg)
-//     //m_currentSeg->notifyModification(true);
+  if (!m_currentSeg && m_currentSource->numberOutputs() == 1)
+  {
+    m_currentSeg = EspinaFactory::instance()->createSegmentation(m_currentSource, 0);
+    TaxonomyNode *tax = EspinaCore::instance()->activeTaxonomy();
+    undo->push(new FreeFormCommand(channel, m_currentSource, m_currentSeg, tax));
+  }
+
+  if (m_currentSeg)
+    m_currentSeg->notifyModification(true);
 }
 
 //----------------------------------------------------------------------------

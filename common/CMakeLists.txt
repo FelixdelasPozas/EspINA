@@ -71,7 +71,6 @@ set (CORE_SOURCES
   editor/ErodeFilter.cpp
   editor/ImageLogicFilter.cpp
   editor/vtkImageLogicFilter.cpp
-  editor/vtkFreeFormSource.cpp
   IO/FilePack.cpp
   extensions/ChannelExtension.cpp
 #   extensions/Margins/MarginsChannelExtension.cpp

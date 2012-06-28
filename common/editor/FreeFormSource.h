@@ -23,20 +23,50 @@
 #include <model/Filter.h>
 #include <common/views/vtkSliceView.h>
 
+#include <itkChangeInformationImageFilter.h>
+
 #include <QVector3D>
 
-static const QString FFS = "EditorToolBar::FreeFormSource";
 
 class FreeFormSource
 : public Filter
 {
+  typedef itk::ChangeInformationImageFilter<EspinaVolume> FilterType;
 public:
-  explicit FreeFormSource(double spacing[3]);
-  explicit FreeFormSource(Arguments args);
+  static const QString TYPE;
+
+  static const ModelItem::ArgumentId SPACING;
+
+  class FreeFormArguments : public Arguments
+  {
+  public:
+    explicit FreeFormArguments(){}
+    explicit FreeFormArguments(const Arguments args) : Arguments(args){}
+
+    void setSpacing(double value[3])
+    {
+      (*this)[SPACING] = QString("%1,%2,%3")
+                         .arg(value[0])
+                         .arg(value[1])
+                         .arg(value[2]);
+    }
+    EspinaVolume::SpacingType spacing() const
+    {
+      EspinaVolume::SpacingType res;
+      QStringList values = (*this)[SPACING].split(",");
+      for(int i=0; i<3; i++)
+        res[i] = values[i].toDouble();
+      return res;
+    }
+  };
+public:
+  explicit FreeFormSource(NamedInputs inputs,
+                          Arguments args);
   virtual ~FreeFormSource();
 
   void draw(vtkSliceView::VIEW_PLANE plane,  QVector3D center, int radius = 0);
   void erase(vtkSliceView::VIEW_PLANE plane, QVector3D center, int radius = 0);
+
   /// Implements Model Item Interface
   virtual QString id() const;
   virtual QVariant data(int role) const;
@@ -49,9 +79,19 @@ public:
 
   virtual QWidget* createConfigurationWidget();
 
+protected:
+  EspinaVolume::RegionType region(int extent[6]) const;
+
 private:
-  Arguments     m_args;
-  bool          m_hasPixels;
+  FreeFormArguments m_args;
+
+  bool   m_hasPixels;
+  bool   m_init;
+  int    Extent[6];
+  int    DrawExtent[6];
+  double Spacing[3];
+  EspinaVolume::Pointer m_volume;
+  FilterType::Pointer m_filter;
 };
 
 #endif // FREEFORMSOURCE_H
