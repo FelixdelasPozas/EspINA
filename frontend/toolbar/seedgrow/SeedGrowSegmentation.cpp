@@ -136,7 +136,9 @@ SeedGrowSegmentation::~SeedGrowSegmentation()
 }
 
 //-----------------------------------------------------------------------------
-Filter* SeedGrowSegmentation::createFilter(const QString filter, Filter::NamedInputs inputs, const ModelItem::Arguments args)
+Filter* SeedGrowSegmentation::createFilter(const QString filter,
+                                           Filter::NamedInputs inputs,
+                                           const ModelItem::Arguments args)
 {
   Q_ASSERT(SeedGrowSegmentationFilter::TYPE == filter);
 

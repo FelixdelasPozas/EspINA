@@ -24,19 +24,55 @@
 #include <common/model/Channel.h>
 #include <model/EspinaFactory.h>
 
+const QString INPUTLINK     = "Input";
+const QString MERGELINK     = "Merge";
+const QString SUBSTRACTLINK = "Substract";
+
+//----------------------------------------------------------------------------
 ImageLogicCommand::ImageLogicCommand(QList<Segmentation *> segmentations,
-				     ImageLogicFilter::Operation op)
+                                     ImageLogicFilter::Operation op)
 : m_input(segmentations)
+, m_op(op)
 {
   Filter::NamedInputs inputs;
   Filter::Arguments args;
   ImageLogicFilter::Parameters params(args);
+  Segmentation *seg = segmentations.first();
+  args[Filter::INPUTS] = link(seg) + "_" + QString::number(seg->outputNumber());
+  inputs[link(seg)] = seg->filter();
+  for(int i=1; i<segmentations.size(); i++)
+  {
+    seg = segmentations[i];
+    args[Filter::INPUTS].append(",");
+    args[Filter::INPUTS].append(link(seg) + "_" + QString::number(seg->outputNumber()));
+    inputs[link(seg)] = seg->filter();
+  }
   params.setOperation(op);
   m_filter = new ImageLogicFilter(inputs, args);
+  m_filter->update();
   m_seg = EspinaFactory::instance()->createSegmentation(m_filter, 0);
   m_tax = EspinaCore::instance()->activeTaxonomy();
 }
 
+//----------------------------------------------------------------------------
+const QString ImageLogicCommand::link(Segmentation* seg)
+{
+  unsigned int index = m_input.indexOf(seg);
+  QString linkName;
+  if (0 == index)
+    linkName = INPUTLINK;
+  else if (ImageLogicFilter::ADDITION == m_op)
+    linkName = MERGELINK + QString::number(index);
+  else if (ImageLogicFilter::SUBSTRACTION == m_op)
+    linkName = SUBSTRACTLINK + QString::number(index);
+  else
+    Q_ASSERT(false);
+
+  return linkName;
+}
+
+
+//----------------------------------------------------------------------------
 void ImageLogicCommand::redo()
 {
   //TODO: Combine segmentations from different channels
@@ -57,7 +93,7 @@ void ImageLogicCommand::redo()
   model->addFilter(m_filter);
   foreach(Segmentation *seg, m_input)
   {
-    model->addRelation(seg, m_filter, "Add");
+    model->addRelation(seg, m_filter, link(seg));
   }
   m_seg->setTaxonomy(m_tax);
   model->addSegmentation(m_seg);
@@ -71,6 +107,7 @@ void ImageLogicCommand::redo()
   }
 }
 
+//----------------------------------------------------------------------------
 void ImageLogicCommand::undo()
 {
   QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());

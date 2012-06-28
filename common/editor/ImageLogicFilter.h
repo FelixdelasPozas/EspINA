@@ -23,11 +23,13 @@
 #include <model/Filter.h>
 #include <model/Segmentation.h>
 
+#include <itkConstantPadImageFilter.h>
 #include <itkOrImageFilter.h>
 
 class ImageLogicFilter
 : public Filter
 {
+  typedef itk::ConstantPadImageFilter<EspinaVolume, EspinaVolume> PadFilterType;
   typedef itk::OrImageFilter<EspinaVolume, EspinaVolume, EspinaVolume> OrFilterType;
 public:
   enum Operation
@@ -72,7 +74,9 @@ private:
   Parameters  m_param;
 
   EspinaVolume *m_volume;
-  OrFilterType::Pointer m_orFilter;
+  PadFilterType::Pointer m_pad1;
+  PadFilterType::Pointer m_pad2;
+  OrFilterType::Pointer  m_orFilter;
 };
 
 

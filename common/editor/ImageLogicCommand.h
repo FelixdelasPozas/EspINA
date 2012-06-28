@@ -34,11 +34,15 @@ public:
   virtual void redo();
   virtual void undo();
 
+  const QString link(Segmentation *seg);
+
 private:
+  QList<Segmentation *>       m_input;
+  ImageLogicFilter::Operation m_op;
+
   ImageLogicFilter     *m_filter;
   Segmentation         *m_seg;
   TaxonomyNode         *m_tax;
-  QList<Segmentation *> m_input;
 };
 
 #endif // IMAGELOGICCOMMAND_H
