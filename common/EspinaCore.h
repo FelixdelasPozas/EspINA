@@ -25,6 +25,7 @@
 
 #include <QSharedPointer>
 #include <QFileInfo>
+#include <QDir>
 #include <QUndoStack>
 #include "common/gui/ViewManager.h"
 #include "common/settings/GeneralSettings.h"
@@ -54,6 +55,9 @@ public:
 
   QSharedPointer<ViewManager> viewManger() {return m_viewManager;}
 
+  QDir temporalDir() const {return m_tmpDir;}
+  void setTemporalDir(QDir tmpDir) {m_tmpDir = tmpDir;}
+
   bool loadFile(const QFileInfo file);
 
 protected:
@@ -78,6 +82,7 @@ private:
   QSharedPointer<ViewManager> m_viewManager;
   GeneralSettings             m_settings;
   ColorEngineSettings         m_colorSettigns;
+  QDir                        m_tmpDir;
 };
 
 #endif // ESPINACORE_H

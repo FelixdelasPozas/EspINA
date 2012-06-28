@@ -7,6 +7,7 @@
 #include <QDir>
 #include "espina_debug.h"
 #include <model/Segmentation.h>
+#include <EspinaCore.h>
 
 #include <itkImageFileWriter.h>
 #include <itkMetaImageIO.h>
@@ -25,79 +26,6 @@ typedef itk::ImageFileWriter<EspinaVolume> EspinaVolumeWriter;
  * If there are extra files (for the cached disk). They are extracted in a 
  * directory with the same name as seg file (without the extension).
  */
-bool IOEspinaFile::loadFile(QString filePath,
-                            QTextStream& TraceContent,
-                            QTextStream& TaxonomyContent)
-{
-
-  // directory of the cached disk files
-  QDir dir(QString(filePath).remove(QRegExp("\\..*$")));
-  if( !dir.exists() )
-    dir.mkpath(dir.absolutePath());
-  
-  QuaZip zip(filePath);
-  if( !zip.open(QuaZip::mdUnzip) )
-  {
-    qWarning() << "IOEspinaFile: Could not open file" << filePath;
-    return false;
-  }
-  bool taxPorcessed = false, traceProcess = false;
-  QuaZipFile file(&zip);
-  for(bool more=zip.goToFirstFile(); more; more=zip.goToNextFile()) {
-    QString actualFileName = file.getActualFileName();
-    if( !file.open(QIODevice::ReadOnly) )
-    {
-      qWarning() << "IOEspinaFile: Could not extract the file" << actualFileName;
-      if( actualFileName == TAXONOMY || actualFileName == TRACE )
-        return false;
-      continue;
-    }
-//     qDebug() << "IOEspinaFile::loadFile: extracting" << actualFileName; //TODO espina_debug
-    if( actualFileName == TAXONOMY ) {
-      if( !taxPorcessed )
-        TaxonomyContent << file.readAll();
-      taxPorcessed = true;
-    } else if( actualFileName == TRACE ) {
-      if( !traceProcess )
-        TraceContent << file.readAll();
-      traceProcess = true;
-    } else { // Cache Disk files
-      // Is a directory
-      QFileInfo fileInfo(actualFileName);
-      //qDebug() << actualFileName << "has path" << fileInfo.path();
-      if( fileInfo.path() != "." )
-      {
-        dir.mkpath(fileInfo.path());
-        /*
-        QFile::setPermissions(dir.filePath(fileInfo.path()),
-            QFile::ReadOwner | QFile::WriteOwner | QFile::ExeOwner |
-            QFile::ReadGroup | QFile::ExeGroup |
-            QFile::ReadOther | QFile::ExeOther);
-            */
-      }
-      
-      QFile destination(dir.filePath(actualFileName));
-      /*qDebug()<< "Permissions set" << 
-      destination.setPermissions(QFile::ReadOwner | QFile::WriteOwner | 
-                                 QFile::ReadGroup | QFile::ReadOther);*/
-      if(!destination.open(QIODevice::WriteOnly | QIODevice::Truncate))
-      {
-        qWarning() << "IOEspinaFile::loadFile: could not create file " << actualFileName;
-      }
-      destination.write(file.readAll());
-      destination.close();
-    }
-    file.close();
-  }
-  if( !taxPorcessed || !traceProcess )
-  {
-    qWarning() << "IOEspinaFile::loadFile: could not find taxonomy and/or trace files";
-    return false;
-  }
-  zip.close();
-  return true;
-}
-
 //-----------------------------------------------------------------------------
 bool IOEspinaFile::loadFile(QFileInfo file,
                             QSharedPointer<EspinaModel> model)
@@ -107,6 +35,7 @@ bool IOEspinaFile::loadFile(QFileInfo file,
   QDir tmpDir = file.absoluteDir();
   tmpDir.mkdir(file.baseName());
   tmpDir.cd(file.baseName());
+  EspinaCore::instance()->setTemporalDir(tmpDir);
   qDebug() << "Temporal Dir" << tmpDir;
 
   QuaZip espinaZip(file.filePath());
@@ -176,41 +105,6 @@ bool IOEspinaFile::loadFile(QFileInfo file,
   return true;
 }
 
-//-----------------------------------------------------------------------------
-bool IOEspinaFile::saveFile(QString& filePath,
-                            QString& TraceContent,
-                            QString& TaxonomyContent,
-                            QStringList& segmentationPaths,
-                            QString commonPathToRemove )
-{
-  QFile zFile(filePath);
-  QuaZip zip(&zFile);
-  if(!zip.open(QuaZip::mdCreate)) 
-  {
-    qWarning() << "IOEspinaFile::saveFile" << filePath << "error while creating file";
-    return false;
-  }
-  QFileInfoList files=QDir().entryInfoList(segmentationPaths);
-  QuaZipFile outFile(&zip);
-  // zip taxonomy and trace files
-//   QByteArray(TraceContent.toStdString().c_str());
-  if( !IOEspinaFile::zipFile(QString(TRACE),  TraceContent.toStdString().c_str(), outFile) )
-    return false;
-  if( !IOEspinaFile::zipFile(QString(TAXONOMY), TaxonomyContent.toStdString().c_str(), outFile) )
-    return false;
-  // zip the segmentation files
-  QByteArray buffer;
-  foreach(QString pathName, segmentationPaths) 
-  {
-    QFile inFile(pathName);
-    qDebug() << "SaveFile: Processing" << pathName;
-    qDebug() << "SaveFile: Opening files"
-      << inFile.open(QIODevice::ReadOnly);
-    IOEspinaFile::zipFile(inFile.fileName().remove(commonPathToRemove), inFile.readAll(), outFile);
-    inFile.close();
-  }
-  return true;
-}
 
 //-----------------------------------------------------------------------------
 bool IOEspinaFile::saveFile(QFileInfo file,
@@ -254,24 +148,29 @@ bool IOEspinaFile::saveFile(QFileInfo file,
     Filter *creator = seg->filter();
     int output = seg->outputNumber();
     QString volumeName = creator->id() + "_" + QString::number(output);
-    QString volumeFile = tmpDir.absoluteFilePath(volumeName + ".mhd");
-    io->SetFileName(volumeFile.toStdString());
-    writer->SetFileName(volumeFile.toStdString());
+    QString mhd = tmpDir.absoluteFilePath(volumeName + ".mhd");
+    QString raw = tmpDir.absoluteFilePath(volumeName + ".raw");
+    io->SetFileName(mhd.toStdString());
+    writer->SetFileName(mhd.toStdString());
     writer->SetInput(seg->volume());
     writer->SetImageIO(io);
-    writer->Update();
-    QFile segFile(volumeFile);
-    segFile.open(QIODevice::ReadOnly);
-    if( !IOEspinaFile::zipFile(volumeName + ".mhd", segFile.readAll() , outFile) )
+    writer->Write();
+    QFile mhdFile(mhd);
+    mhdFile.open(QIODevice::ReadOnly);
+    QFile rawFile(raw);
+    rawFile.open(QIODevice::ReadOnly);
+    if( !IOEspinaFile::zipFile(volumeName + ".mhd", mhdFile.readAll() , outFile) )
     {
       qWarning() << "IOEspinaFile::saveFile: Error while zipping" << (volumeName + ".mhd");
       return false;
     }
-    if( !IOEspinaFile::zipFile(volumeName + ".raw", segFile.readAll() , outFile) )
+    if( !IOEspinaFile::zipFile(volumeName + ".raw", rawFile.readAll() , outFile) )
     {
       qWarning() << "IOEspinaFile::saveFile: Error while zipping" << (volumeName + ".raw");
       return false;
     }
+    mhdFile.close();
+    rawFile.close();
   }
 
   QStringList filters;

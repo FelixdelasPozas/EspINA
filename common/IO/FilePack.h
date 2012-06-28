@@ -16,31 +16,10 @@ public:
    * @param TaxonomyContent is an output parameter which will contain the content of the taxonomy file
    * @return If everythin works well it returns true. Otherwise returns false.
    */
-  ///DEPRECATED
-  static bool loadFile(QString filePath,
-                       QTextStream& TraceContent,
-                       QTextStream& TaxonomyContent);
   static bool loadFile(QFileInfo file,
                        QSharedPointer<EspinaModel> model
                       );
 
-  /**
-   * Stores in a seg file (packed) all the pipeline built.
-   * @param TraceContent is the content of the trace file
-   * @param TaxonomyContent is the content of the taxonomy file
-   * @param segmentationPaths is a list of file paths with the file generated per segmentaion. 
-   * This files are packed inside the new file @param filePath
-   * @param commonPathToRemove is a list of temporary files generated during the save process. They
-   * will be removed after the file was saved.
-   * @return If everythin works well it returns true. Otherwise returns false.
-   */
-  ///DEPRECATED
-  static bool saveFile(QString& filePath,
-                       QString& TraceContent,
-                       QString& TaxonomyContent,
-                       QStringList& segmentationPaths,
-                       QString commonPathToRemove
-                      );
 
     /**
    * Stores in a seg file (packed) all the pipeline built.
