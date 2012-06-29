@@ -136,7 +136,7 @@ void FreeFormSource::draw(vtkSliceView::VIEW_PLANE plane,
   }else
   {
     EspinaVolume::Pointer img = EspinaVolume::New();
-    EspinaVolume::RegionType buffer = region(Extent);
+    EspinaVolume::RegionType buffer = ExtentToRegion(Extent);
     img->SetRegions(buffer);
     img->SetSpacing(m_param.spacing());
     img->Allocate();
@@ -294,16 +294,4 @@ bool FreeFormSource::prefetchFilter()
   }
 
   return false;
-}
-
-//-----------------------------------------------------------------------------
-EspinaVolume::RegionType FreeFormSource::region(int extent[6]) const
-{
-  EspinaVolume::RegionType res;
-  for(int i=0; i<3; i++)
-  {
-    res.SetIndex(i, extent[2*i]);
-    res.SetSize (i, extent[2*i+1] - extent[2*i]+1);
-  }
-  return res;
 }

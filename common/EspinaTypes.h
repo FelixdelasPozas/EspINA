@@ -10,5 +10,8 @@ void VolumeExtent(EspinaVolume *volume, int extent[6]);
 
 void VolumeBounds(EspinaVolume *volume, double bounds[6]);
 
+EspinaVolume::RegionType ExtentToRegion(int extent[6]);
+
+bool isExtentPixel(int x, int y, int z, int extent[6]);
 
 #endif// ESPINATYPES_H

@@ -23,14 +23,17 @@
 #include <model/Filter.h>
 #include <model/Segmentation.h>
 
-#include <itkConstantPadImageFilter.h>
-#include <itkOrImageFilter.h>
+#include <itkChangeInformationImageFilter.h>
+// #include <itkConstantPadImageFilter.h>
+// #include <itkOrImageFilter.h>
 
 class ImageLogicFilter
 : public Filter
 {
-  typedef itk::ConstantPadImageFilter<EspinaVolume, EspinaVolume> PadFilterType;
-  typedef itk::OrImageFilter<EspinaVolume, EspinaVolume, EspinaVolume> OrFilterType;
+  typedef itk::ChangeInformationImageFilter<EspinaVolume> FilterType;
+
+//   typedef itk::ConstantPadImageFilter<EspinaVolume, EspinaVolume> PadFilterType;
+//   typedef itk::OrImageFilter<EspinaVolume, EspinaVolume, EspinaVolume> OrFilterType;
 public:
   enum Operation
   {
@@ -65,18 +68,25 @@ public:
   virtual QVariant data(int role=Qt::DisplayRole) const;
 
   /// Implements Filter Interface
-  void run();
   virtual int numberOutputs() const;
   virtual EspinaVolume* output(OutputNumber i) const;
   virtual bool prefetchFilter();
+  void run();
+
+protected:
+  void addition();
+  void substraction();
 
 private:
-  Parameters  m_param;
+  Parameters   m_param;
+  QList<int *> m_inputExtents;
+  int          m_outputExtent[6];
 
-  EspinaVolume *m_volume;
-  PadFilterType::Pointer m_pad1;
-  PadFilterType::Pointer m_pad2;
-  OrFilterType::Pointer  m_orFilter;
+  EspinaVolume::Pointer m_volume;
+  FilterType::Pointer   m_filter;
+//   PadFilterType::Pointer m_pad1;
+//   PadFilterType::Pointer m_pad2;
+//   OrFilterType::Pointer  m_orFilter;
 };
 
 

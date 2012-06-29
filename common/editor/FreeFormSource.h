@@ -78,9 +78,6 @@ public:
   virtual EspinaVolume* output(OutputNumber i) const;
   virtual bool prefetchFilter();
 
-protected:
-  EspinaVolume::RegionType region(int extent[6]) const;
-
 private:
   Parameters m_param;
   bool       m_hasPixels;
