@@ -550,6 +550,8 @@ void EspinaModel::removeRelation(ModelItem* ancestor, ModelItem* successor, QStr
 //------------------------------------------------------------------------
 void EspinaModel::serializeRelations(std::ostream& stream, RelationshipGraph::PrintFormat format)
 {
+  Filter::resetId();
+  m_relations->updateVertexInformation();
   m_relations->write(stream, format);
 }
 
@@ -571,7 +573,7 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
 
   input->read(stream);
 //   qDebug() << "Check";
-  m_relations->updateVertexInformation();
+  //m_relations->updateVertexInformation();
 //   input->write(std::cout,RelationshipGraph::BOOST);
   input->write(std::cout, RelationshipGraph::GRAPHVIZ);
 
@@ -628,8 +630,6 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
           Filter::Arguments args(v.args.c_str());
           QStringList inputLinks = args[Filter::INPUTS].split(",", QString::SkipEmptyParts);
           // We need to update id values for future filters
-          Q_ASSERT(args[Filter::ID] == Filter::currentId());
-          Filter::nextId();
           foreach(QString inputLink, inputLinks)
           {
             QStringList link = inputLink.split("_");
@@ -643,6 +643,7 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
           }
           qDebug() << args;
           Filter *filter = factory->createFilter(v.name.c_str(), inputs, args);
+          qDebug() << filter->id();
           //filter->update();
           addFilter(filter);
           input->setItem(v.vId, filter);
@@ -661,7 +662,7 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
 
   foreach(VertexProperty v, segmentationNodes)
   {
-    Vertices ancestors = input->ancestors(v.vId, "CreateSegmentation");
+    Vertices ancestors = input->ancestors(v.vId, CREATELINK);
     Q_ASSERT(ancestors.size() == 1);
     ModelItem *item = ancestors.first().item;
     qDebug() << item->data(Qt::DisplayRole).toString();

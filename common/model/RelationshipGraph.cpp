@@ -187,8 +187,6 @@ void RelationshipGraph::updateVertexInformation()
       continue;
     Q_ASSERT(item);
     vertex.vId  = item->m_vertex;
-    vertex.name = item->data(Qt::DisplayRole).toString().toStdString();
-    vertex.args = item->serialize().toStdString();
     switch (item->type())
     {
       case ModelItem::SAMPLE:
@@ -204,12 +202,15 @@ void RelationshipGraph::updateVertexInformation()
       {
         Filter *filter = dynamic_cast<Filter *>(item);
         Q_ASSERT(filter);
+        filter->setId(Filter::generateId());
         vertex.shape = FILTER_SHAPE;
         break;
       }
       default:
         Q_ASSERT(false);
     }
+    vertex.name = item->data(Qt::DisplayRole).toString().toStdString();
+    vertex.args = item->serialize().toStdString();
   }
 }
 
@@ -506,7 +507,6 @@ void RelationshipGraph::read(std::istream& stream, RelationshipGraph::PrintForma
 //-----------------------------------------------------------------------------
 void RelationshipGraph::write(std::ostream &stream, RelationshipGraph::PrintFormat format)
 {
-  this->updateVertexInformation();
   switch (format)
   {
     case BOOST:

@@ -31,12 +31,12 @@ bool IOEspinaFile::loadFile(QFileInfo file,
                             QSharedPointer<EspinaModel> model)
 {
   // Create tmp dir
-  qDebug() << file.absolutePath();
+//   qDebug() << file.absolutePath();
   QDir tmpDir = file.absoluteDir();
   tmpDir.mkdir(file.baseName());
   tmpDir.cd(file.baseName());
   EspinaCore::instance()->setTemporalDir(tmpDir);
-  qDebug() << "Temporal Dir" << tmpDir;
+//   qDebug() << "Temporal Dir" << tmpDir;
 
   QuaZip espinaZip(file.filePath());
   if( !espinaZip.open(QuaZip::mdUnzip) )
@@ -116,6 +116,7 @@ bool IOEspinaFile::zipVolume(Filter* filter, OutputNumber outputNumber,
   QString raw = tmpDir.absoluteFilePath(volumeName + ".raw");
   io->SetFileName(mhd.toStdString());
   writer->SetFileName(mhd.toStdString());
+  filter->update();
   writer->SetInput(filter->output(outputNumber));
   writer->SetImageIO(io);
   writer->Write();
@@ -143,11 +144,11 @@ bool IOEspinaFile::saveFile(QFileInfo file,
                             QSharedPointer<EspinaModel> model)
 {
   // Create tmp dir
-  qDebug() << file.absolutePath();
+//   qDebug() << file.absolutePath();
   QDir tmpDir = file.absoluteDir();
   tmpDir.mkdir(file.baseName());
   tmpDir.cd(file.baseName());
-  qDebug() << "Temporal Dir" << tmpDir;
+//   qDebug() << "Temporal Dir" << tmpDir;
 
   QFile zFile(file.filePath());
   QuaZip zip(&zFile);
@@ -160,13 +161,13 @@ bool IOEspinaFile::saveFile(QFileInfo file,
   //TODO: File header
   // outFile.write("EspinaSegmenation-1.0\0",21);
 
-  // Set Taxonomy
+  // Save Taxonomy
   QString taxonomy;
   IOTaxonomy::writeXMLTaxonomy(model->taxonomy(), taxonomy);
   if( !IOEspinaFile::zipFile(QString(TAXONOMY), taxonomy.toAscii(), outFile) )
     return false;
 
-  // Set Trace
+  // Save Trace
   std::ostringstream trace;
   model->serializeRelations(trace);
   if( !IOEspinaFile::zipFile(QString(TRACE),  trace.str().c_str(), outFile) )
@@ -174,9 +175,11 @@ bool IOEspinaFile::saveFile(QFileInfo file,
 
   foreach(Filter *filter, model->filters())
   {
-    qDebug() << "Making" << filter->data().toString() << "snapshot";
     if (filter->isEdited())
+    {
+      qDebug() << "Making" << filter->data().toString() << "snapshot";
       zipVolume(filter,0, tmpDir, outFile);
+    }
   }
   foreach(Segmentation *seg, model->segmentations())
   {

@@ -78,7 +78,6 @@ void ImageLogicCommand::redo()
   //TODO: Combine segmentations from different channels
   QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
 
-  Filter::nextId();
   QSet<Channel *> channels;
   foreach(Segmentation *seg, m_input)
   {
@@ -100,7 +99,7 @@ void ImageLogicCommand::redo()
   foreach(Channel *channel, channels)
   {
     Sample *sample = channel->sample();
-    model->addRelation(m_filter, m_seg, "CreateSegmentation");
+    model->addRelation(m_filter, m_seg, CREATELINK);
     model->addRelation(sample, m_seg, "where");
     model->addRelation(channel, m_seg, "Channel");
     m_seg->initialize();
@@ -112,7 +111,6 @@ void ImageLogicCommand::undo()
 {
   QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
 
-  Filter::prevId();
   foreach(ModelItem::Relation relation,  m_seg->relations())
   {
     model->removeRelation(relation.ancestor, relation.succesor, relation.relation);

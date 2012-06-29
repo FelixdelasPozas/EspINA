@@ -39,36 +39,19 @@ void Filter::resetId()
 
 
 //----------------------------------------------------------------------------
-QString Filter::currentId()
+QString Filter::generateId()
 {
-  return QString::number(m_lastId);
-}
-
-//----------------------------------------------------------------------------
-void Filter::nextId()
-{
-  m_lastId++;
-}
-
-//----------------------------------------------------------------------------
-void Filter::prevId()
-{
-  Q_ASSERT(m_lastId > 0);
-  m_lastId--;
+  return QString::number(m_lastId++);
 }
 
 //----------------------------------------------------------------------------
 Filter::Filter(Filter::NamedInputs  namedInputs,
                ModelItem::Arguments args)
-: m_args(args)
+: m_namedInputs(namedInputs)
+, m_args(args)
 {
-  m_args[ID] = currentId();
-  QStringList namedInputList = args[INPUTS].split(",", QString::SkipEmptyParts);
-  foreach(QString namedInput, namedInputList)
-  {
-    QStringList input = namedInput.split("_");
-    m_inputs << namedInputs[input[0]]->output(input[1].toUInt());
-  }
+  if (!m_args.contains(ID))
+    m_args[ID] = "-1";
 }
 
 
@@ -81,8 +64,22 @@ bool Filter::isEdited() const
 //----------------------------------------------------------------------------
 void Filter::update()
 {
+  if (!needUpdate())
+    return;
+
   if (!prefetchFilter())
+  {
+    m_inputs.clear();
+    QStringList namedInputList = m_args[INPUTS].split(",", QString::SkipEmptyParts);
+    foreach(QString namedInput, namedInputList)
+    {
+      QStringList input = namedInput.split("_");
+      Filter *inputFilter = m_namedInputs[input[0]];
+      inputFilter->update();
+      m_inputs << inputFilter->output(input[1].toUInt());
+    }
     run();
+  }
 }
 
 //----------------------------------------------------------------------------

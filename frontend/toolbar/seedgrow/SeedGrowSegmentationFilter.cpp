@@ -55,7 +55,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(Filter::NamedInputs input
 , m_param(m_args)
 , m_input(NULL)
 {
-  qDebug() << TYPE << "arguments" << m_args;
+//   qDebug() << TYPE << "arguments" << m_args;
 }
 
 //-----------------------------------------------------------------------------

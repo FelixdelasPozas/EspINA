@@ -61,12 +61,11 @@ public:
   {
     QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
 
-    Filter::nextId();
     model->addFilter(m_filter);
     model->addRelation(m_channel, m_filter, "Channel");
     m_seg->setTaxonomy(m_taxonomy);
     model->addSegmentation(m_seg);
-    model->addRelation(m_filter, m_seg, "CreateSegmentation");
+    model->addRelation(m_filter, m_seg, CREATELINK);
     model->addRelation(m_sample, m_seg, "where");
     model->addRelation(m_channel, m_seg, "Channel");
     m_seg->initialize();
@@ -76,10 +75,9 @@ public:
   {
     QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
 
-    Filter::prevId();
     model->removeRelation(m_channel, m_seg, "Channel");
     model->removeRelation(m_sample, m_seg, "where");
-    model->removeRelation(m_filter, m_seg, "CreateSegmentation");
+    model->removeRelation(m_filter, m_seg, CREATELINK);
     model->removeSegmentation(m_seg);
     model->removeRelation(m_channel, m_filter, "Channel");
     model->removeFilter(m_filter);
@@ -181,7 +179,6 @@ public:
       Filter *filter;
       Filter::NamedInputs inputs;
       Filter::Arguments args;
-      args[Filter::ID]  = Filter::currentId();
       args[Filter::ArgumentId("Radius", true)]    = QString::number(radius);
       inputs[INPUTLINK] = seg->filter();
       args[Filter::INPUTS] = INPUTLINK + "_" + QString::number(seg->outputNumber());
@@ -216,11 +213,10 @@ public:
       Connection oldConnection = m_oldConnections[i];
       Connection newConnection = m_newConnections[i];
 
-      Filter::nextId();
-      model->removeRelation(oldConnection.first, seg, "CreateSegmentation");
+      model->removeRelation(oldConnection.first, seg, CREATELINK);
       model->addFilter(newConnection.first);
       model->addRelation(oldConnection.first, newConnection.first, "Input");
-      model->addRelation(newConnection.first, seg, "CreateSegmentation");
+      model->addRelation(newConnection.first, seg, CREATELINK);
       seg->changeFilter(newConnection.first, newConnection.second);
       seg->notifyModification(true);
     }
@@ -236,11 +232,10 @@ public:
       Connection oldConnection = m_oldConnections[i];
       Connection newConnection = m_newConnections[i];
 
-      Filter::prevId();
-      model->removeRelation(newConnection.first, seg, "CreateSegmentation");
+      model->removeRelation(newConnection.first, seg, CREATELINK);
       model->removeRelation(oldConnection.first, newConnection.first, "Input");
       model->removeFilter(newConnection.first);
-      model->addRelation(oldConnection.first, seg, "CreateSegmentation");
+      model->addRelation(oldConnection.first, seg, CREATELINK);
       seg->changeFilter(oldConnection.first, oldConnection.second);
       seg->notifyModification(true);
     }

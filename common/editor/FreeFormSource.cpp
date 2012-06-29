@@ -263,6 +263,12 @@ QVariant FreeFormSource::data(int role) const
     return QVariant();
 }
 
+//-----------------------------------------------------------------------------
+bool FreeFormSource::needUpdate() const
+{
+  return m_volume.IsNull();
+}
+
 
 //-----------------------------------------------------------------------------
 int FreeFormSource::numberOutputs() const

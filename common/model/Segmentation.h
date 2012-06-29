@@ -42,7 +42,6 @@ class Segmentation
 {
   Q_OBJECT
 public:
-  static const ArgumentId FILTER;
   static const ArgumentId NUMBER;
   static const ArgumentId OUTPUT;
   static const ArgumentId TAXONOMY;

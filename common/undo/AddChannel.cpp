@@ -37,7 +37,6 @@ void AddChannel::redo()
 {
   QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
 
-  Filter::nextId();
   model->addFilter(m_reader);
   model->addChannel(m_channel);
   model->addRelation(m_reader, m_channel, Channel::VOLUMELINK);
@@ -47,7 +46,6 @@ void AddChannel::undo()
 {
   QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
 
-  Filter::prevId();
   model->removeRelation(m_reader, m_channel, Channel::VOLUMELINK);
   model->removeChannel(m_channel);
   model->removeFilter(m_reader);

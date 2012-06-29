@@ -25,6 +25,8 @@
 #include <EspinaTypes.h>
 #include <itkImageFileReader.h>
 
+const QString CREATELINK = "CreateSegmentation";
+
 class Filter
 : public ModelItem
 {
@@ -40,15 +42,15 @@ public:
 public:
   virtual ~Filter(){}
 
+  void setId(QString id) {m_args[ID] = id;}
+
   // Implements Model Item Interface common to filters
   virtual ItemType type() const {return ModelItem::FILTER;}
   virtual QString id() const {return m_args[ID];}
   virtual QString serialize() const {return m_args.serialize();}
 
   static void resetId();
-  static QString currentId();
-  static void nextId();
-  static void prevId();
+  static QString generateId();
 
   struct Link
   {
@@ -69,8 +71,10 @@ public:
   virtual int numberOutputs() const {return 0;}
   /// Return the i-th output
   virtual EspinaVolume *output(OutputNumber i) const {Q_ASSERT(false); return NULL;};
+  /// Interface to be overload by subclasses
+  virtual bool needUpdate() const {return true;}
   /// Updates filter outputs.
-  /// If a snapshot exits it will try to load it
+  /// If a snapshot exits it will try to load it from disk
   void update();
   /// Method which actually executes the filter
   virtual void run() {};
@@ -88,6 +92,7 @@ protected:
 
 protected:
   QList<EspinaVolume *> m_inputs;
+  NamedInputs           m_namedInputs;
   Arguments             m_args;
 
 private:

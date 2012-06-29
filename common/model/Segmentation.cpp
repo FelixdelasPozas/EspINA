@@ -30,7 +30,6 @@
 
 using namespace std;
 
-const ModelItem::ArgumentId Segmentation::FILTER = ArgumentId("Filter", ArgumentId::KEY);
 const ModelItem::ArgumentId Segmentation::NUMBER = ArgumentId("Number", ArgumentId::KEY);
 const ModelItem::ArgumentId Segmentation::OUTPUT = ArgumentId("Output", ArgumentId::KEY);
 const ModelItem::ArgumentId Segmentation::TAXONOMY = ArgumentId("Taxonomy", ArgumentId::VARIABLE);
@@ -64,7 +63,6 @@ Segmentation::Segmentation(Filter* filter, unsigned int outputNb)
 //   memset(m_bounds, 0, 6*sizeof(double));
 //   m_bounds[1] = -1;
 	m_args.setNumber(0);
-	m_args[FILTER] = m_filter->id();
 	m_args.setOutputNumber(outputNb);
 	m_args[TAXONOMY] = "Unknown";
 	connect(filter, SIGNAL(modified(ModelItem *)), this, SLOT(notifyModification()));

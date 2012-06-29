@@ -72,12 +72,11 @@ void SeedGrowSegmentation::UndoCommand::redo()
 {
   QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
 
-  Filter::nextId();
   model->addFilter(m_filter);
   model->addRelation(m_channel->filter(), m_filter, INPUTLINK);
   m_seg->setTaxonomy(m_taxonomy);
   model->addSegmentation(m_seg);
-  model->addRelation(m_filter, m_seg, "CreateSegmentation");
+  model->addRelation(m_filter, m_seg, CREATELINK);
   model->addRelation(m_sample, m_seg, "where");
   model->addRelation(m_channel, m_seg, "Channel");
   m_seg->initialize();
@@ -88,10 +87,9 @@ void SeedGrowSegmentation::UndoCommand::undo()
 {
   QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
 
-  Filter::prevId();
   model->removeRelation(m_channel->filter(), m_seg, INPUTLINK);
   model->removeRelation(m_sample, m_seg, "where");
-  model->removeRelation(m_filter, m_seg, "CreateSegmentation");
+  model->removeRelation(m_filter, m_seg, CREATELINK);
   model->removeSegmentation(m_seg);
   model->removeRelation(m_channel, m_filter, "Channel");
   model->removeFilter(m_filter);

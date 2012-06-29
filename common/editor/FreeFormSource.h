@@ -73,6 +73,7 @@ public:
   virtual QVariant data(int role=Qt::DisplayRole) const;
 
   /// Implements Filter Interface
+  virtual bool needUpdate() const;
   virtual void run(){}
   virtual int numberOutputs() const;
   virtual EspinaVolume* output(OutputNumber i) const;
