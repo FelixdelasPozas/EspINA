@@ -179,7 +179,8 @@ public:
       Filter *filter;
       Filter::NamedInputs inputs;
       Filter::Arguments args;
-      args[Filter::ArgumentId("Radius", true)]    = QString::number(radius);
+      MorphologicalEditionFilter::Parameters params(args);
+      params.setRadius(radius);
       inputs[INPUTLINK] = seg->filter();
       args[Filter::INPUTS] = INPUTLINK + "_" + QString::number(seg->outputNumber());
       switch (op)

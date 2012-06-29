@@ -26,17 +26,11 @@
 
 const QString ErodeFilter::TYPE = "EditorToolBar::ErodeFilter";
 
-typedef ModelItem::ArgumentId ArgumentId;
-const ArgumentId ErodeFilter::RADIUS = ArgumentId("Radius", true);
-
 const unsigned int LABEL_VALUE = 255;
 
 ErodeFilter::ErodeFilter(Filter::NamedInputs inputs,
                              ModelItem::Arguments args)
-: Filter(inputs, args)
-, m_params(m_args)
-, m_input(NULL)
-, m_volume(NULL)
+: MorphologicalEditionFilter(inputs, args)
 {
 //   qDebug() << TYPE << "arguments" << m_args;
 }
@@ -46,12 +40,6 @@ ErodeFilter::ErodeFilter(Filter::NamedInputs inputs,
 ErodeFilter::~ErodeFilter()
 {
 //   qDebug() << "Destroying" << TYPE;
-}
-
-//-----------------------------------------------------------------------------
-bool ErodeFilter::needUpdate() const
-{
-  return m_volume == NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -84,37 +72,4 @@ QVariant ErodeFilter::data(int role) const
     return TYPE;
   else
     return QVariant();
-}
-
-
-//-----------------------------------------------------------------------------
-int ErodeFilter::numberOutputs() const
-{
-  return m_volume?1:0;
-}
-
-//-----------------------------------------------------------------------------
-EspinaVolume* ErodeFilter::output(OutputNumber i) const
-{
-  if (m_volume && i == 0)
-    return m_volume;
-
-  Q_ASSERT(false);
-  return NULL;
-}
-
-//-----------------------------------------------------------------------------
-bool ErodeFilter::prefetchFilter()
-{
-  QString tmpFile = id() + "_0.mhd";
-  m_cachedFilter = tmpFileReader(tmpFile);
-
-  if (m_cachedFilter.IsNotNull())
-  {
-    m_volume = m_cachedFilter->GetOutput();
-    emit modified(this);
-    return true;
-  }
-
-  return false;
 }

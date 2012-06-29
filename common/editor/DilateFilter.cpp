@@ -26,17 +26,11 @@
 
 const QString DilateFilter::TYPE = "EditorToolBar::DilateFilter";
 
-typedef ModelItem::ArgumentId ArgumentId;
-const ArgumentId DilateFilter::RADIUS = ArgumentId("Radius", true);
-
 const unsigned int LABEL_VALUE = 255;
 
 DilateFilter::DilateFilter(Filter::NamedInputs inputs,
                              ModelItem::Arguments args)
-: Filter(inputs, args)
-, m_params(m_args)
-, m_input(NULL)
-, m_volume(NULL)
+: MorphologicalEditionFilter(inputs, args)
 {
 //   qDebug() << TYPE << "arguments" << m_args;
 }
@@ -46,12 +40,6 @@ DilateFilter::DilateFilter(Filter::NamedInputs inputs,
 DilateFilter::~DilateFilter()
 {
 //   qDebug() << "Destroying" << TYPE;
-}
-
-//-----------------------------------------------------------------------------
-bool DilateFilter::needUpdate() const
-{
-  return m_volume == NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -85,36 +73,4 @@ QVariant DilateFilter::data(int role) const
     return TYPE;
   else
     return QVariant();
-}
-
-//-----------------------------------------------------------------------------
-int DilateFilter::numberOutputs() const
-{
-  return m_volume?1:0;
-}
-
-//-----------------------------------------------------------------------------
-EspinaVolume* DilateFilter::output(OutputNumber i) const
-{
-  if (m_volume && i == 0)
-    return m_volume;
-
-  Q_ASSERT(false);
-  return NULL;
-}
-
-//-----------------------------------------------------------------------------
-bool DilateFilter::prefetchFilter()
-{
-  QString tmpFile = id() + "_0.mhd";
-  m_cachedFilter = tmpFileReader(tmpFile);
-
-  if (m_cachedFilter.IsNotNull())
-  {
-    m_volume = m_cachedFilter->GetOutput();
-    emit modified(this);
-    return true;
-  }
-
-  return false;
 }

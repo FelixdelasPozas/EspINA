@@ -20,6 +20,7 @@
 #ifndef DILATEFILTER_H
 #define DILATEFILTER_H
 
+#include "MorphologicalEditionFilter.h"
 #include <model/Segmentation.h>
 
 #include <itkBinaryBallStructuringElement.h>
@@ -27,7 +28,7 @@
 
 
 class DilateFilter
-: public Filter
+: public MorphologicalEditionFilter
 {
   typedef itk::BinaryBallStructuringElement<EspinaVolume::PixelType, 3> StructuringElementType;
   typedef itk::DilateObjectMorphologyImageFilter<EspinaVolume, EspinaVolume, StructuringElementType> FilterType;
@@ -35,58 +36,18 @@ class DilateFilter
 public:
   static const QString TYPE;
 
-  static const ModelItem::ArgumentId RADIUS;
-
-  class Parameters
-  {
-  public:
-    explicit Parameters(Arguments &args) : m_args(args){}
-
-    void setRadius(unsigned int radius)
-    {
-      m_args[RADIUS] = QString::number(radius);
-    }
-    unsigned int radius() const {return m_args[RADIUS].toInt();}
-  private:
-    Arguments &m_args;
-  };
-
-  class DilateArguments : public Arguments
-  {
-  public:
-  public:
-    explicit DilateArguments(){}
-    explicit DilateArguments(const Arguments args) : Arguments(args){}
-
-    void setRadius(unsigned int radius)
-    {
-      (*this)[RADIUS] = QString::number(radius);
-    }
-    unsigned int radius() const {return (*this)[RADIUS].toInt();}
-  };
-
 public:
   explicit DilateFilter(NamedInputs inputs,
                          Arguments args);
   virtual ~DilateFilter();
 
-
   /// Implements Model Item Interface
   virtual QVariant data(int role=Qt::DisplayRole) const;
 
   /// Implements Filter Interface
-  virtual bool needUpdate() const;
   void run();
-  virtual int numberOutputs() const;
-  virtual EspinaVolume* output(OutputNumber i) const;
-  virtual bool prefetchFilter();
 
 private:
-  Parameters      m_params;
-  EspinaVolume   *m_input;
-  EspinaVolume   *m_volume;
-  EspinaVolumeReader::Pointer m_cachedFilter;
-
   FilterType::Pointer m_filter;
 };
 

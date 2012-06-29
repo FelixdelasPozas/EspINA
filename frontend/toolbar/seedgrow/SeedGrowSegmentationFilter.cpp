@@ -45,14 +45,14 @@ const unsigned char LABEL_VALUE = 255;
 
 //----------------------------------------------------------------------------
 SeedGrowSegmentationFilter::Parameters::Parameters(ModelItem::Arguments &args)
-: m_modified(false)
-, m_args(args)
+: m_args(args)
 {
 }
 
 SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(Filter::NamedInputs inputs,
                                                        ModelItem::Arguments args)
 : Filter(inputs, args)
+, m_needUpdate(false)
 , m_param(m_args)
 , m_input(NULL)
 , m_volume(NULL)
@@ -69,7 +69,7 @@ SeedGrowSegmentationFilter::~SeedGrowSegmentationFilter()
 //-----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::needUpdate() const
 {
-  return (m_volume == NULL || m_param.isModified());
+  return (m_volume == NULL || m_needUpdate);
 }
 
 //-----------------------------------------------------------------------------
@@ -176,7 +176,8 @@ void SeedGrowSegmentationFilter::run()
     m_volume = ctif->GetOutput();
 
   QApplication::restoreOverrideCursor();
-  //emit modified(this);
+  emit modified(this);
+  m_needUpdate = false;
 }
 
 
@@ -187,6 +188,7 @@ void SeedGrowSegmentationFilter::setLowerThreshold(int th)
     return;
 
   m_param.setLowerThreshold(th);
+  m_needUpdate = true;
 }
 
 //-----------------------------------------------------------------------------
@@ -196,16 +198,14 @@ void SeedGrowSegmentationFilter::setUpperThreshold(int th)
     return;
 
   m_param.setUpperThreshold(th);
+  m_needUpdate = true;
 }
 
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::setVOI(int VOI[6])
 {
   m_param.setVOI(VOI);
-/*
-  run();
-
-  emit modified(this);*/
+  m_needUpdate = true;
 }
 
 //-----------------------------------------------------------------------------

@@ -26,17 +26,11 @@
 
 const QString ClosingFilter::TYPE = "EditorToolBar::ClosingFilter";
 
-typedef ModelItem::ArgumentId ArgumentId;
-const ArgumentId ClosingFilter::RADIUS = ArgumentId("Radius", true);
-
 const unsigned int LABEL_VALUE = 255;
 
 ClosingFilter::ClosingFilter(Filter::NamedInputs inputs,
                              ModelItem::Arguments args)
-: Filter(inputs, args)
-, m_param(m_args)
-, m_input(NULL)
-, m_volume(NULL)
+: MorphologicalEditionFilter(inputs, args)
 {
 //   qDebug() << TYPE << "arguments" << m_args;
 }
@@ -49,12 +43,6 @@ ClosingFilter::~ClosingFilter()
 }
 
 //-----------------------------------------------------------------------------
-bool ClosingFilter::needUpdate() const
-{
-  return m_volume == NULL;
-}
-
-//-----------------------------------------------------------------------------
 void ClosingFilter::run()
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);
@@ -64,7 +52,7 @@ void ClosingFilter::run()
 
   qDebug() << "Compute Image Closing";
   StructuringElementType ball;
-  ball.SetRadius(m_param.radius());
+  ball.SetRadius(m_params.radius());
   ball.CreateStructuringElement();
 
   m_filter = FilterType::New();
@@ -84,36 +72,4 @@ QVariant ClosingFilter::data(int role) const
     return TYPE;
   else
     return QVariant();
-}
-
-//-----------------------------------------------------------------------------
-int ClosingFilter::numberOutputs() const
-{
-  return m_volume?1:0;
-}
-
-//-----------------------------------------------------------------------------
-EspinaVolume* ClosingFilter::output(OutputNumber i) const
-{
-  if (m_volume && i == 0)
-    return m_volume;
-
-  Q_ASSERT(false);
-  return NULL;
-}
-
-//-----------------------------------------------------------------------------
-bool ClosingFilter::prefetchFilter()
-{
-  QString tmpFile = id() + "_0.mhd";
-  m_cachedFilter = tmpFileReader(tmpFile);
-
-  if (m_cachedFilter.IsNotNull())
-  {
-    m_volume = m_cachedFilter->GetOutput();
-    emit modified(this);
-    return true;
-  }
-
-  return false;
 }

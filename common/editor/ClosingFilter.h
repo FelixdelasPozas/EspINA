@@ -20,36 +20,20 @@
 #ifndef CLOSINGFILTER_H
 #define CLOSINGFILTER_H
 
-#include <model/Segmentation.h>
+#include "MorphologicalEditionFilter.h"
 
 #include <itkBinaryBallStructuringElement.h>
 #include <itkBinaryMorphologicalClosingImageFilter.h>
 
 
 class ClosingFilter
-: public Filter
+: public MorphologicalEditionFilter
 {
   typedef itk::BinaryBallStructuringElement<EspinaVolume::PixelType, 3> StructuringElementType;
   typedef itk::BinaryMorphologicalClosingImageFilter<EspinaVolume, EspinaVolume, StructuringElementType> FilterType;
 
 public:
   static const QString TYPE;
-
-  static const ModelItem::ArgumentId RADIUS;
-
-  class Parameters
-  {
-  public:
-    explicit Parameters(Arguments &args) : m_args(args){}
-
-    void setRadius(unsigned int radius)
-    {
-      m_args[RADIUS] = QString::number(radius);
-    }
-    unsigned int radius() const {return m_args[RADIUS].toInt();}
-  private:
-    Arguments &m_args;
-  };
 
 public:
   explicit ClosingFilter(NamedInputs inputs,
@@ -60,18 +44,9 @@ public:
   virtual QVariant data(int role=Qt::DisplayRole) const;
 
   /// Implements Filter Interface
-  virtual bool needUpdate() const;
   void run();
-  virtual int numberOutputs() const;
-  virtual EspinaVolume* output(OutputNumber i) const;
-  virtual bool prefetchFilter();
 
 private:
-  Parameters       m_param;
-  EspinaVolume    *m_input;
-  EspinaVolume    *m_volume;
-  EspinaVolumeReader::Pointer m_cachedFilter;
-
   FilterType::Pointer m_filter;
 };
 

@@ -114,10 +114,7 @@ public:
     int closeValue() const
       {return m_args[CLOSE].toInt();}
 
-    bool isModified() const {return m_modified;}
-
   private:
-    bool       m_modified;
     Arguments &m_args;
   };
 
@@ -149,6 +146,7 @@ public:
   virtual QWidget* createConfigurationWidget();
 
 private:
+  bool         m_needUpdate;
   Parameters   m_param;
   EspinaVolume *m_input;
   EspinaVolume *m_volume;

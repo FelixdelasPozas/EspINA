@@ -65,6 +65,7 @@ set (CORE_SOURCES
   editor/PencilSelector.cpp
   editor/FreeFormSource.cpp
   editor/ImageLogicCommand.cpp
+  editor/MorphologicalEditionFilter.cpp
   editor/ClosingFilter.cpp
   editor/OpeningFilter.cpp
   editor/DilateFilter.cpp
@@ -146,6 +147,7 @@ set(CORE_EXTERNAL_LIBS
   ${Boost_LIBRARIES}
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
+  QVTK
   QtTest
 )
 

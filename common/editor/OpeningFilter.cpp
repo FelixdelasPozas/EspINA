@@ -26,17 +26,11 @@
 
 const QString OpeningFilter::TYPE = "EditorToolBar::OpeningFilter";
 
-typedef ModelItem::ArgumentId ArgumentId;
-const ArgumentId OpeningFilter::RADIUS = ArgumentId("Radius", true);
-
 const unsigned int LABEL_VALUE = 255;
 
 OpeningFilter::OpeningFilter(Filter::NamedInputs inputs,
                              ModelItem::Arguments args)
-: Filter(inputs, args)
-, m_params(m_args)
-, m_input(NULL)
-, m_volume(NULL)
+: MorphologicalEditionFilter(inputs, args)
 {
 //   qDebug() << TYPE << "arguments" << m_args;
 }
@@ -46,12 +40,6 @@ OpeningFilter::OpeningFilter(Filter::NamedInputs inputs,
 OpeningFilter::~OpeningFilter()
 {
 //   qDebug() << "Destroying" << TYPE;
-}
-
-//-----------------------------------------------------------------------------
-bool OpeningFilter::needUpdate() const
-{
-  return m_volume == NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -84,36 +72,4 @@ QVariant OpeningFilter::data(int role) const
     return TYPE;
   else
     return QVariant();
-}
-
-//-----------------------------------------------------------------------------
-int OpeningFilter::numberOutputs() const
-{
-  return m_volume?1:0;
-}
-
-//-----------------------------------------------------------------------------
-EspinaVolume* OpeningFilter::output(OutputNumber i) const
-{
-  if (m_volume && i == 0)
-    return m_volume;
-
-  Q_ASSERT(false);
-  return NULL;
-}
-
-//-----------------------------------------------------------------------------
-bool OpeningFilter::prefetchFilter()
-{
-  QString tmpFile = id() + "_0.mhd";
-  m_cachedFilter = tmpFileReader(tmpFile);
-
-  if (m_cachedFilter.IsNotNull())
-  {
-    m_volume = m_cachedFilter->GetOutput();
-    emit modified(this);
-    return true;
-  }
-
-  return false;
 }
