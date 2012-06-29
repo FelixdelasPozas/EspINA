@@ -45,7 +45,8 @@ const unsigned char LABEL_VALUE = 255;
 
 //----------------------------------------------------------------------------
 SeedGrowSegmentationFilter::Parameters::Parameters(ModelItem::Arguments &args)
-: m_args(args)
+: m_modified(false)
+, m_args(args)
 {
 }
 
@@ -54,6 +55,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(Filter::NamedInputs input
 : Filter(inputs, args)
 , m_param(m_args)
 , m_input(NULL)
+, m_volume(NULL)
 {
 //   qDebug() << TYPE << "arguments" << m_args;
 }
@@ -62,6 +64,12 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(Filter::NamedInputs input
 SeedGrowSegmentationFilter::~SeedGrowSegmentationFilter()
 {
 //   qDebug() << "Destroying" << TYPE;
+}
+
+//-----------------------------------------------------------------------------
+bool SeedGrowSegmentationFilter::needUpdate() const
+{
+  return (m_volume == NULL || m_param.isModified());
 }
 
 //-----------------------------------------------------------------------------
@@ -168,7 +176,7 @@ void SeedGrowSegmentationFilter::run()
     m_volume = ctif->GetOutput();
 
   QApplication::restoreOverrideCursor();
-  emit modified(this);
+  //emit modified(this);
 }
 
 

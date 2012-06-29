@@ -82,6 +82,12 @@ return Filter::prefetchFilter();
 }
 
 //-----------------------------------------------------------------------------
+bool ImageLogicFilter::needUpdate() const
+{
+  return m_volume.IsNull();
+}
+
+//-----------------------------------------------------------------------------
 void ImageLogicFilter::run() //TODO: Parallelize
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);

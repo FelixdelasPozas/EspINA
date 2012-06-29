@@ -71,6 +71,7 @@ public:
   virtual int numberOutputs() const;
   virtual EspinaVolume* output(OutputNumber i) const;
   virtual bool prefetchFilter();
+  virtual bool needUpdate() const;
   void run();
 
 protected:

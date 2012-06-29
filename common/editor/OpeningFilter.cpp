@@ -49,6 +49,12 @@ OpeningFilter::~OpeningFilter()
 }
 
 //-----------------------------------------------------------------------------
+bool OpeningFilter::needUpdate() const
+{
+  return m_volume == NULL;
+}
+
+//-----------------------------------------------------------------------------
 void OpeningFilter::run()
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);

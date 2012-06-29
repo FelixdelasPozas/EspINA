@@ -49,6 +49,12 @@ DilateFilter::~DilateFilter()
 }
 
 //-----------------------------------------------------------------------------
+bool DilateFilter::needUpdate() const
+{
+  return m_volume == NULL;
+}
+
+//-----------------------------------------------------------------------------
 void DilateFilter::run()
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);

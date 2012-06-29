@@ -49,6 +49,12 @@ ClosingFilter::~ClosingFilter()
 }
 
 //-----------------------------------------------------------------------------
+bool ClosingFilter::needUpdate() const
+{
+  return m_volume == NULL;
+}
+
+//-----------------------------------------------------------------------------
 void ClosingFilter::run()
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);

@@ -49,6 +49,12 @@ ErodeFilter::~ErodeFilter()
 }
 
 //-----------------------------------------------------------------------------
+bool ErodeFilter::needUpdate() const
+{
+  return m_volume == NULL;
+}
+
+//-----------------------------------------------------------------------------
 void ErodeFilter::run()
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);

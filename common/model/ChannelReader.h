@@ -44,6 +44,7 @@ public:
   virtual QString serialize() const;
 
   /// Implements Filter Interface
+  virtual bool needUpdate() const;
   virtual void run();
 
   virtual int numberOutputs() const;

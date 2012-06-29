@@ -73,6 +73,7 @@ Segmentation::Segmentation(Filter* filter, unsigned int outputNb)
 //------------------------------------------------------------------------
 void Segmentation::changeFilter(Filter* filter, unsigned int outputNb)
 {
+  filter->update();
   itk2vtk->SetInput(filter->output(outputNb));
   itk2vtk->Update();
   m_filter = filter;

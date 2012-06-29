@@ -56,6 +56,12 @@ QString ChannelReader::serialize() const
 }
 
 //----------------------------------------------------------------------------
+bool ChannelReader::needUpdate() const
+{
+  return m_volume == NULL;
+}
+
+//----------------------------------------------------------------------------
 void ChannelReader::run()
 {
   qDebug() << "Creating channel from args" << m_args;
