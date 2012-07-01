@@ -530,9 +530,10 @@ void EspinaModel::addRelation(ModelItem* ancestor, ModelItem* successor, QString
 {
   m_relations->addRelation(ancestor, successor, relation);
   QModelIndex ancestorIndex = index(ancestor);
-  QModelIndex succesorIndex = index(successor);
+  QModelIndex successorIndex = index(successor);
+//   qDebug() << ancestorIndex.data().toString() << "==" << relation << "==>" << successorIndex.data().toString();
   emit dataChanged(ancestorIndex, ancestorIndex);
-  emit dataChanged(succesorIndex, succesorIndex);
+  emit dataChanged(successorIndex, successorIndex);
   markAsChanged();;
 }
 

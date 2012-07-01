@@ -447,7 +447,6 @@ void EditorToolBar::combineSegmentations()
     QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
     undo->beginMacro("Combine Segmentations");
     undo->push(new ImageLogicCommand(input, ImageLogicFilter::ADDITION));
-    undo->push(new RemoveSegmentation(input));
     undo->endMacro();
   }
 }
@@ -462,7 +461,6 @@ void EditorToolBar::substractSegmentations()
     QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
     undo->beginMacro("Substract Segmentations");
     undo->push(new ImageLogicCommand(input, ImageLogicFilter::SUBSTRACTION));
-    undo->push(new RemoveSegmentation(input));
     undo->endMacro();
   }
 }

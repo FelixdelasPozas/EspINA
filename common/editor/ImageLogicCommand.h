@@ -27,6 +27,19 @@ class Segmentation;
 
 class ImageLogicCommand: public QUndoCommand
 {
+  //TODO REVIEW: This class is also defined in RemoveSegmentationCommand
+  struct SegInfo
+  {
+    SegInfo(Segmentation *seg)
+    : filter(seg->filter())
+    , relations(seg->relations())
+    , segmentation(seg){}
+
+    Filter *filter;
+    ModelItem::RelationList relations;
+    Segmentation *segmentation;
+  };
+
 public:
   explicit ImageLogicCommand(QList<Segmentation *> segmentations,
                              ImageLogicFilter::Operation op);
@@ -40,9 +53,10 @@ private:
   QList<Segmentation *>       m_input;
   ImageLogicFilter::Operation m_op;
 
-  ImageLogicFilter     *m_filter;
-  Segmentation         *m_seg;
-  TaxonomyNode         *m_tax;
+  QList<SegInfo>    m_infoList;
+  ImageLogicFilter *m_filter;
+  Segmentation     *m_seg;
+  TaxonomyNode     *m_tax;
 };
 
 #endif // IMAGELOGICCOMMAND_H

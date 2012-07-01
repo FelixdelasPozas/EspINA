@@ -104,6 +104,10 @@ void ImageLogicFilter::run() //TODO: Parallelize
   VolumeExtent(m_inputs[0], inExt1);
   VolumeExtent(m_inputs[1], inExt2);
 
+  EspinaVolume::PointType origin1 = m_inputs[0]->GetOrigin();
+  EspinaVolume::PointType origin2 = m_inputs[1]->GetOrigin();
+  EspinaVolume::PointType outOrigin;
+
   Q_ASSERT(m_inputs[0]->GetSpacing() == m_inputs[1]->GetSpacing());
 
   for (int i=0; i<3; i++)
@@ -112,12 +116,14 @@ void ImageLogicFilter::run() //TODO: Parallelize
     int upper = lower + 1;
     m_outputExtent[lower] = std::min(inExt1[lower], inExt2[lower]);
     m_outputExtent[upper] = std::max(inExt1[upper], inExt2[upper]);
+//     outOrigin[i] = std::min(origin1[i], origin2[i]);
   }
 
   m_volume = EspinaVolume::New();
   EspinaVolume::RegionType buffer = ExtentToRegion(m_outputExtent);
   m_volume->SetRegions(buffer);
   m_volume->SetSpacing(m_inputs[0]->GetSpacing());
+  m_volume->SetOrigin(outOrigin);
   m_volume->Allocate();
 
   switch (m_param.operation())

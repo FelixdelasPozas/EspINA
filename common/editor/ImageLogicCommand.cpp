@@ -37,15 +37,13 @@ ImageLogicCommand::ImageLogicCommand(QList<Segmentation *> segmentations,
   Filter::NamedInputs inputs;
   Filter::Arguments args;
   ImageLogicFilter::Parameters params(args);
-  Segmentation *seg = segmentations.first();
-  args[Filter::INPUTS] = link(seg) + "_" + QString::number(seg->outputNumber());
-  inputs[link(seg)] = seg->filter();
-  for(int i=1; i<segmentations.size(); i++)
+  for(int i=0; i<segmentations.size(); i++)
   {
-    seg = segmentations[i];
-    args[Filter::INPUTS].append(",");
+    Segmentation *seg = segmentations[i];
+    if (i>0) args[Filter::INPUTS].append(",");
     args[Filter::INPUTS].append(link(seg) + "_" + QString::number(seg->outputNumber()));
     inputs[link(seg)] = seg->filter();
+    m_infoList << SegInfo(seg);
   }
   params.setOperation(op);
   m_filter = new ImageLogicFilter(inputs, args);
@@ -89,11 +87,27 @@ void ImageLogicCommand::redo()
       channels << channel;
     }
   }
+  // Add new filter
   model->addFilter(m_filter);
-  foreach(Segmentation *seg, m_input)
+  QList<Segmentation *> oldSegmentations;
+  foreach(SegInfo info, m_infoList)
   {
-    model->addRelation(seg, m_filter, link(seg));
+    ModelItem::Vector segFilter = info.segmentation->relatedItems(ModelItem::IN, CREATELINK);
+    Q_ASSERT(segFilter.size() == 1);
+    ModelItem *item = segFilter[0];
+    Q_ASSERT(ModelItem::FILTER == item->type());
+    model->addRelation(item, m_filter, link(info.segmentation));
+    // Remove Segmentation Relations
+    foreach(ModelItem::Relation rel, info.relations)
+    {
+      model->removeRelation(rel.ancestor, rel.succesor, rel.relation);
+    }
+    oldSegmentations << info.segmentation;
   }
+  // Remove old segmentation nodes
+  model->removeSegmentation(oldSegmentations);
+
+  // Add new segmentation
   m_seg->setTaxonomy(m_tax);
   model->addSegmentation(m_seg);
   foreach(Channel *channel, channels)
@@ -111,15 +125,29 @@ void ImageLogicCommand::undo()
 {
   QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
 
+  // Remove merge segmentation
   foreach(ModelItem::Relation relation,  m_seg->relations())
   {
     model->removeRelation(relation.ancestor, relation.succesor, relation.relation);
   }
   model->removeSegmentation(m_seg);
 
+  // Remove filter
   foreach(ModelItem::Relation relation,  m_filter->relations())
   {
     model->removeRelation(relation.ancestor, relation.succesor, relation.relation);
   }
   model->removeFilter(m_filter);
+
+  // Restore input segmentation
+  // First we need to restore all segmentations, just in case there are
+  // relations between segmentations
+  model->addSegmentation(m_input);
+  foreach(SegInfo info, m_infoList)
+  {
+    foreach(ModelItem::Relation rel, info.relations)
+    {
+      model->addRelation(rel.ancestor, rel.succesor, rel.relation);
+    }
+  }
 }
