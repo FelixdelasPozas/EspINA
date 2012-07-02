@@ -59,25 +59,31 @@ Segmentation::Segmentation(Filter* filter, unsigned int outputNb)
 , m_extInitialized(false)
 , m_isVisible(true)
 {
-	m_isSelected = false;
-//   memset(m_bounds, 0, 6*sizeof(double));
-//   m_bounds[1] = -1;
-	m_args.setNumber(0);
-	m_args.setOutputNumber(outputNb);
-	m_args[TAXONOMY] = "Unknown";
-	connect(filter, SIGNAL(modified(ModelItem *)), this, SLOT(notifyModification()));
-	connect(&EspinaCore::instance()->colorSettings(), SIGNAL(colorEngineChanged()), this, SLOT(onColorEngineChanged()));
+  m_isSelected = false;
+  //   memset(m_bounds, 0, 6*sizeof(double));
+  //   m_bounds[1] = -1;
+  m_args.setNumber(0);
+  m_args.setOutputNumber(outputNb);
+  m_args[TAXONOMY] = "Unknown";
+  connect(filter, SIGNAL(modified(ModelItem *)),
+          this, SLOT(notifyModification()));
+  connect(&EspinaCore::instance()->colorSettings(),
+          SIGNAL(colorEngineChanged()), this, SLOT(onColorEngineChanged()));
 
 }
 
 //------------------------------------------------------------------------
 void Segmentation::changeFilter(Filter* filter, unsigned int outputNb)
 {
+  disconnect(m_filter, SIGNAL(modified(ModelItem *)),
+             this, SLOT(notifyModification()));
   filter->update();
   itk2vtk->SetInput(filter->output(outputNb));
   itk2vtk->Update();
   m_filter = filter;
   m_args.setOutputNumber(outputNb);
+  connect(filter, SIGNAL(modified(ModelItem *)),
+          this, SLOT(notifyModification()));
 }
 
 //------------------------------------------------------------------------

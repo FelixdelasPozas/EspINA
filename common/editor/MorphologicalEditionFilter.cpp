@@ -18,6 +18,7 @@
 
 
 #include "MorphologicalEditionFilter.h"
+#include "CODESettings.h"
 
 #include <model/EspinaFactory.h>
 
@@ -84,4 +85,10 @@ bool MorphologicalEditionFilter::prefetchFilter()
   }
 
   return false;
+}
+
+//-----------------------------------------------------------------------------
+QWidget* MorphologicalEditionFilter::createConfigurationWidget()
+{
+  return new CODESettings(this);
 }

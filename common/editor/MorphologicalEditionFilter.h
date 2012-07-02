@@ -48,14 +48,16 @@ public:
                                       Arguments args);
   virtual ~MorphologicalEditionFilter();
 
-  void setRadius(unsigned int radius) {m_params.setRadius(radius);}
-  unsigned int radius() const {return m_params.radius();}
-
   /// Implements Filter Interface
   virtual bool needUpdate() const;
   virtual int numberOutputs() const;
   virtual EspinaVolume* output(OutputNumber i) const;
   virtual bool prefetchFilter();
+
+  virtual QWidget* createConfigurationWidget();
+
+  unsigned int radius() const {return m_params.radius();}
+  void setRadius(int radius) {m_params.setRadius(radius); run();}
 
 protected:
   Parameters       m_params;

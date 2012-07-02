@@ -415,6 +415,7 @@ void SegmentationExplorer::changeLayout(int index)
 //------------------------------------------------------------------------
 void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
 {
+  return;
   ModelItem *item = m_layout->item(index);
 
   if (ModelItem::SEGMENTATION != item->type())

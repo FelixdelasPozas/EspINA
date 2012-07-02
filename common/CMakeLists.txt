@@ -39,6 +39,7 @@ include_directories(
 qt4_wrap_cpp(CORE_MOC
   EspinaCore.h
   editor/PencilSelector.h
+  editor/CODESettings.h
   gui/ActionSelector.h
   gui/ActionSelectorWidget.h
   gui/EspinaView.h
@@ -62,6 +63,7 @@ set (CORE_SOURCES
   ${CORE_MOC}
   EspinaCore.cpp
   cache/CacheHash.cpp
+  editor/CODESettings.cpp
   editor/PencilSelector.cpp
   editor/FreeFormSource.cpp
   editor/ImageLogicCommand.cpp

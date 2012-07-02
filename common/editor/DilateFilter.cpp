@@ -23,6 +23,7 @@
 
 #include <QDebug>
 #include <QApplication>
+#include <QSpinBox>
 
 const QString DilateFilter::TYPE = "EditorToolBar::DilateFilter";
 
@@ -40,6 +41,15 @@ DilateFilter::DilateFilter(Filter::NamedInputs inputs,
 DilateFilter::~DilateFilter()
 {
 //   qDebug() << "Destroying" << TYPE;
+}
+
+//-----------------------------------------------------------------------------
+QVariant DilateFilter::data(int role) const
+{
+  if (role == Qt::DisplayRole)
+    return TYPE;
+  else
+    return QVariant();
 }
 
 //-----------------------------------------------------------------------------
@@ -64,13 +74,5 @@ void DilateFilter::run()
   QApplication::restoreOverrideCursor();
 
   m_volume = m_filter->GetOutput();
-}
-
-//-----------------------------------------------------------------------------
-QVariant DilateFilter::data(int role) const
-{
-  if (role == Qt::DisplayRole)
-    return TYPE;
-  else
-    return QVariant();
+  emit modified(this);
 }
