@@ -224,7 +224,8 @@ private:
   bool m_fitToGrid;
   double m_gridSize[3];
   double m_range[6];
-  double m_center[3];
+  double m_center[3];//nm
+  double m_slicePos; //nm
   ColorEngine *m_colorEngine;
 
   // Crosshairs

@@ -31,9 +31,9 @@ public:
 
   virtual void setSlice(double pos, vtkSliceView::VIEW_PLANE plane);
 
-  //operator pq3DWidget *(){return m_widget;}
-  //operator const pq3DWidget * const() const {return m_widget;}
-  //   pq3DWidget *operator->() {return m_widget;}
+  operator vtkAbstractWidget *(){return m_widget;}
+  operator const vtkAbstractWidget *const() const {return m_widget;}
+  vtkAbstractWidget *operator->() {return m_widget;}
 
 protected:
   vtkAbstractWidget *m_widget;
@@ -44,8 +44,8 @@ class EspinaWidget
 public:
   virtual ~EspinaWidget(){}
 
-//   virtual pq3DWidget*  createWidget() = 0;
-//   virtual SliceWidget *createSliceWidget(vtkSliceView::VIEW_PLANE plane) = 0;
+  virtual vtkAbstractWidget *createWidget() = 0;
+  virtual SliceWidget *createSliceWidget(vtkSliceView::VIEW_PLANE plane) = 0;
 
   virtual void setEnabled(bool enable) = 0;
   /// Expand the widget to fit @bounds

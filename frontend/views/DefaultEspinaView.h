@@ -62,8 +62,8 @@ public:
   virtual void gridSize(double size[3]);
   virtual void setGridSize(double size[3]);
 
-//   virtual void addWidget(EspinaWidget* widget);
-//   virtual void removeWidget(EspinaWidget* widget);
+  virtual void addWidget(EspinaWidget* widget);
+  virtual void removeWidget(EspinaWidget* widget);
 
 //   virtual void addRepresentation(pqOutputPort *oport, QColor color);
 //   virtual void removeRepresentation(pqOutputPort *oport);

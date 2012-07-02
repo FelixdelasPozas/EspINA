@@ -422,12 +422,18 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
     return;
 
   Segmentation *seg = dynamic_cast<Segmentation *>(item);
-  Q_ASSERT(seg);
+  double bounds[6];
+  VolumeBounds(seg->volume(), bounds);
+  double x = bounds[0] + (bounds[1]-bounds[0])/2.0;
+  double y = bounds[2] + (bounds[3]-bounds[2])/2.0;
+  double z = bounds[4] + (bounds[5]-bounds[4])/2.0;
   EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
-  int x = seg->information("Centroid X").toInt();
-  int y = seg->information("Centroid Y").toInt();
-  int z = seg->information("Centroid Z").toInt();
   view->setCenter(x, y, z);
+//   Q_ASSERT(seg);
+//   x = seg->information("Centroid X").toInt();
+//   y = seg->information("Centroid Y").toInt();
+//   z = seg->information("Centroid Z").toInt();
+//   view->setCenter(x, y, z);
 }
 
 //------------------------------------------------------------------------

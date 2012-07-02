@@ -39,18 +39,17 @@ RectangularRegion::~RectangularRegion()
 {
 //   qDebug() << "Destroying RectangularRegion";
 //   qDebug() << "  containing" << m_widgets.size() << "widgets";
-  foreach(pq3DWidget *widget, m_widgets)
+  foreach(vtkAbstractWidget *widget, m_widgets)
   {
-    widget->deselect();
-    widget->deleteLater();
+    widget->Off();
   }
   m_widgets.clear();
 }
 
 
-// //----------------------------------------------------------------------------
-// pq3DWidget* RectangularRegion::createWidget()
-// {
+//----------------------------------------------------------------------------
+vtkAbstractWidget* RectangularRegion::createWidget()
+{
 //   pq3DWidget *widget = createWidget("NonRotatingBox");
 //   Q_ASSERT(widget);
 //   // By default ParaView doesn't "Apply" the changes to the widget. So we set
@@ -73,86 +72,55 @@ RectangularRegion::~RectangularRegion()
 //   m_widgets << widget;
 // 
 //   return widget;
-// }
-// 
-// //----------------------------------------------------------------------------
-// SliceWidget *RectangularRegion::createSliceWidget(vtkPVSliceView::VIEW_PLANE plane)
-// {
-//   pq3DWidget *widget = createWidget("RectangularBorder");
-//   Q_ASSERT(widget);
-//   // By default ParaView doesn't "Apply" the changes to the widget. So we set
-//   // up a slot to "Apply" when the interaction ends.
+}
+
+//----------------------------------------------------------------------------
+SliceWidget* RectangularRegion::createSliceWidget(vtkSliceView::VIEW_PLANE plane)
+{
+  vtkRectangularWidget *widget = vtkRectangularWidget::New();
+  Q_ASSERT(widget);
+  //TODO: By default ParaView doesn't "Apply" the changes to the widget. So we set
+  // up a slot to "Apply" when the interaction ends.
 //   QObject::connect(widget, SIGNAL(widgetEndInteraction()),
 // 		   widget, SLOT(accept()));
 // //   QObject::connect(widgets[0], SIGNAL(widgetEndInteraction()),
 // // 		   this, SLOT(modifyVOI()));
-// 
-//   vtkAbstractWidget *aw = widget->getWidgetProxy()->GetWidget();
-//   vtkRectangularWidget *borderWidget = dynamic_cast<vtkRectangularWidget*>(aw);
-//   Q_ASSERT(borderWidget);
-// 
-//   borderWidget->SetPlane(plane);
-// 
-// //   vtkRectangularRepresentation *repbox =  dynamic_cast<vtkRectangularRepresentation*>(borderWidget->GetRepresentation());
-// //   repbox->HandlesOff();
-// //   repbox->OutlineCursorWiresOff();
-// //   vtkProperty *outline = repbox->GetOutlineProperty();
-// //   outline->SetColor(1.0,1.0,0);
-// 
-//   m_widgets << widget;
-// 
-//   return new SliceWidget(widget);
-// }
+
+  widget->SetPlane(plane);
+
+  m_widgets << widget;
+
+  return new SliceWidget(widget);
+}
 
 //----------------------------------------------------------------------------
 void RectangularRegion::setEnabled(bool enable)
 {
-  Q_ASSERT(false);
-//   foreach(pq3DWidget *widget, m_widgets)
-//   {
-//     vtkAbstractWidget *basewidget = widget->getWidgetProxy()->GetWidget();
-//     vtkNonRotatingBoxWidget *boxwidget = dynamic_cast<vtkNonRotatingBoxWidget*>(basewidget);
-//     if (boxwidget)
-//     {
-//       boxwidget->SetProcessEvents(enable);
-//       vtkBoxRepresentation *repbox =  dynamic_cast<vtkBoxRepresentation*>(boxwidget->GetRepresentation());
-//       repbox->SetPickable(enable);
-//     } else
-//     {
-//       vtkRectangularWidget *rw = dynamic_cast<vtkRectangularWidget*>(basewidget);
-//       Q_ASSERT(rw);
-//       rw->SetProcessEvents(enable);
-//       vtkRectangularRepresentation *repbox =  dynamic_cast<vtkRectangularRepresentation*>(rw->GetRepresentation());
-//       repbox->SetPickable(enable);
-//     }
-//   }
+  vtkAbstractWidget *widget;
+  foreach(widget, m_widgets)
+  {
+    widget->SetProcessEvents(enable);
+    widget->GetRepresentation()->SetPickable(enable);
+  }
 }
 
 //----------------------------------------------------------------------------
 void RectangularRegion::setBounds(double bounds[6])
 {
-  Q_ASSERT(false);
-//   vtkSMProxy *proxy = getProxy();
-//   vtkSMPropertyHelper(proxy,"Bounds").Set(bounds,6);
-//   double pos[3] = {0, 0, 0};
-//   vtkSMPropertyHelper(proxy, "Position").Set(pos,3);
-//   double scale[3] = {1, 1, 1};
-//   vtkSMPropertyHelper(proxy, "Scale").Set(scale,3);
-//   proxy->UpdateVTKObjects();
+  foreach(vtkAbstractWidget *widget, m_widgets)
+  {
+    widget->GetRepresentation()->PlaceWidget(bounds);
+  }
 }
 
 //----------------------------------------------------------------------------
 void RectangularRegion::bounds(double bounds[6])
 {
-  Q_ASSERT(false);
-//   vtkSMProxy *proxy = getProxy();
-//   double pos[3];
-//   vtkSMPropertyHelper(proxy, "Position").Get(pos,3);
-//   double scale[3];
-//   vtkSMPropertyHelper(proxy, "Scale").Get(scale,3);
-//   vtkSMPropertyHelper(proxy, "Bounds").Get(bounds,6);
-//   for (int i = 0; i < 6; i++)
-//     bounds[i] = pos[i/2] + bounds[i]*scale[i/2];
+  Q_ASSERT(!m_widgets.isEmpty());
+
+  vtkAbstractWidget *widget = m_widgets[0];
+
+  memcpy(bounds,widget->GetRepresentation()->GetBounds(),6*sizeof(double));
 }
 
 // //----------------------------------------------------------------------------

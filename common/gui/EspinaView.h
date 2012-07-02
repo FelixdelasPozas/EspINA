@@ -55,8 +55,8 @@ public:
   virtual void scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint = EnsureVisible) {}
   virtual QRect visualRect(const QModelIndex& index) const {return QRect();}
 
-//   virtual void addWidget(EspinaWidget *widget) = 0;
-//   virtual void removeWidget(EspinaWidget *widget) = 0;
+  virtual void addWidget(EspinaWidget *widget) = 0;
+  virtual void removeWidget(EspinaWidget *widget) = 0;
 
 //   virtual void addRepresentation(pqOutputPort *oport, QColor color) = 0;
 //   virtual void removeRepresentation(pqOutputPort *oport) = 0;

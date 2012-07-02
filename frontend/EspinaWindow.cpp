@@ -52,6 +52,7 @@
 #include <selection/SelectionManager.h>
 #include "toolbar/editor/EditorToolBar.h"
 #include "toolbar/seedgrow/SeedGrowSegmentation.h"
+#include "toolbar/voi/VolumeOfInterest.h"
 #include <IO/FilePack.h>
 
 #define DEBUG
@@ -164,6 +165,7 @@ EspinaWindow::EspinaWindow()
   m_mainToolBar = new MainToolBar(m_model);
 //   m_mainToolBar->setMovable(false);
   addToolBar(m_mainToolBar);
+  addToolBar(new VolumeOfInterest());
   addToolBar(new SeedGrowSegmentation());
   addToolBar(new EditorToolBar());
 
@@ -496,6 +498,7 @@ void EspinaWindow::saveAnalysis()
   fileDialog.setAcceptMode(QFileDialog::AcceptSave);
   fileDialog.setDefaultSuffix(QString(tr("seg")));
   fileDialog.setFileMode(QFileDialog::AnyFile);
+  fileDialog.selectFile("");
 
   if (fileDialog.exec() == QDialog::Accepted)
   {

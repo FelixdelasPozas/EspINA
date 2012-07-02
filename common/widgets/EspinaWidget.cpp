@@ -29,12 +29,10 @@ SliceWidget::SliceWidget(vtkAbstractWidget *widget)
 }
 
 //----------------------------------------------------------------------------
-void SliceWidget::setSlice(double pos, vtkPVSliceView::VIEW_PLANE plane)
+void SliceWidget::setSlice(double pos, vtkSliceView::VIEW_PLANE plane)
 {
-  Q_ASSERT(false);
-//   vtkAbstractWidget *aw = m_widget->getWidgetProxy()->GetWidget();
-//   double *bounds = aw->GetRepresentation()->GetBounds();
-//   bool visible = bounds[2*plane] <= pos && pos <= bounds[2*plane+1];
-//   m_widget->setWidgetVisible(visible);
+  double *bounds = m_widget->GetRepresentation()->GetBounds();
+  bool visible = bounds[2*plane] <= pos && pos <= bounds[2*plane+1];
+  m_widget->GetRepresentation()->SetVisibility(visible);
 }
 

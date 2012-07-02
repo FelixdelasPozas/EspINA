@@ -271,14 +271,14 @@ void vtkRectangularWidget::SetCursor(int state)
 	break;
       case vtkRectangularRepresentation::MoveLeft:
       case vtkRectangularRepresentation::MoveRight:
-// 	if (this->Plane == vtkPVSliceView::CORONAL)
+// 	if (this->Plane == vtkSliceView::CORONAL)
 // 	  this->RequestCursorShape(VTK_CURSOR_SIZENS);
 // 	else
 	  this->RequestCursorShape(VTK_CURSOR_SIZEWE);
 	break;
       case vtkRectangularRepresentation::MoveTop:
       case vtkRectangularRepresentation::MoveBottom:
-// 	if (this->Plane == vtkPVSliceView::CORONAL)
+// 	if (this->Plane == vtkSliceView::CORONAL)
 // 	  this->RequestCursorShape(VTK_CURSOR_SIZEWE);
 // 	else
 	  this->RequestCursorShape(VTK_CURSOR_SIZENS);
@@ -315,8 +315,11 @@ void vtkRectangularWidget::EndSelectAction(vtkAbstractWidget *w)
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularWidget::SetPlane(vtkPVSliceView::VIEW_PLANE plane)
+void vtkRectangularWidget::SetPlane(vtkSliceView::VIEW_PLANE plane)
 {
+  if (!this->WidgetRep)
+    this->CreateDefaultRepresentation();
+
   vtkRectangularRepresentation *rep =
     reinterpret_cast<vtkRectangularRepresentation*>(this->WidgetRep);
     rep->SetPlane(plane);
@@ -324,22 +327,6 @@ void vtkRectangularWidget::SetPlane(vtkPVSliceView::VIEW_PLANE plane)
   Plane = plane;
 }
 
-// //----------------------------------------------------------------------
-// void vtkRectangularWidget::SetRegion(vtkPolyDataAlgorithm *region)
-// {
-//   Region = region;
-//   if (WidgetRep)
-//   {
-//     vtkRectangularRepresentation *rep =
-//       reinterpret_cast<vtkRectangularRepresentation*>(this->WidgetRep);
-//     rep->SetRegion(region);
-//     rep->reset();
-//   }
-//   else
-//     std::cout << "There is no representation" << std::endl;
-// }
-
-  
 //----------------------------------------------------------------------
 void vtkRectangularWidget::CreateDefaultRepresentation()
 {
@@ -358,5 +345,3 @@ void vtkRectangularWidget::PrintSelf(ostream& os, vtkIndent indent)
   os << indent << "Translation Enabled: " << (this->TranslationEnabled ? "On\n" : "Off\n");
   os << indent << "Scaling Enabled: " << (this->ScalingEnabled ? "On\n" : "Off\n");
 }
-
-

@@ -126,6 +126,10 @@ set (CORE_SOURCES
   undo/RemoveSegmentation.cpp
   #views/vtkSliceView.cpp
   #views/vtkVolumeView.cpp
+  widgets/vtkRectangularRepresentation.cpp
+  widgets/vtkRectangularWidget.cpp
+  widgets/EspinaWidget.cpp
+  widgets/RectangularSelection.cpp
   )
 
 # Make debug output clearer

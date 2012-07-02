@@ -28,6 +28,8 @@
 #include "ColorEngine.h"
 #include "common/gui/SliceViewState.h"
 #include "vtkInteractorStyleEspinaSlice.h"
+#include <vtkRectangularWidget.h>
+#include <vtkRectangularRepresentation.h>
 #include <vtkLookupTable.h>
 
 // Debug
@@ -305,6 +307,14 @@ void SliceView::setCrosshairVisibility(bool visible)
   {
     m_renderer->AddActor(m_HCrossLine);
     m_renderer->AddActor(m_VCrossLine);
+//     vtkRectangularWidget *boxWidget = vtkRectangularWidget::New();
+//     boxWidget->SetInteractor(m_view->GetRenderWindow()->GetInteractor());
+//     boxWidget->CreateDefaultRepresentation();
+//     boxWidget->SetPlane(m_plane);
+//     boxWidget->SetEnabled(true);
+//     boxWidget->GetRepresentation()->PlaceWidget(m_range);
+//     boxWidget->On();
+//     vtkRectangularRepresentation *rep = vtkRectangularRepresentation::SafeDownCast(boxWidget->GetRepresentation());
   }else
   {
     m_renderer->RemoveActor(m_HCrossLine);
@@ -421,12 +431,12 @@ void SliceView::sliceViewCenterChanged(double x, double y, double z)
 //-----------------------------------------------------------------------------
 void SliceView::scrollValueChanged(int value)
 {
-  double pos = value;  //nm
+  m_slicePos = value;  //nm
 
   if (m_fitToGrid)
-    pos *= m_gridSize[m_plane];
+    m_slicePos *= m_gridSize[m_plane];
 
-  m_state->setSlicePosition(m_slicingMatrix, pos);
+  m_state->setSlicePosition(m_slicingMatrix, m_slicePos);
   forceRender();
 }
 
@@ -686,7 +696,7 @@ void SliceView::updateWidgetVisibility()
 {
   foreach(SliceWidget * widget, m_widgets)
   {
-    //TODO: widget->setSlice(m_center[m_plane], m_plane);
+    widget->setSlice(m_slicePos, m_plane);
   }
 }
 
@@ -934,14 +944,13 @@ void SliceView::removePreview(Filter* filter)
 //-----------------------------------------------------------------------------
 void SliceView::addWidget(SliceWidget *sWidget)
 {
-	Q_ASSERT(false);
-//   pq3DWidget *widget = *sWidget;
-//   widget->setView(m_view);
-//   widget->setWidgetVisible(true);
-//   widget->select();
+  vtkAbstractWidget *widget = *sWidget;
+  widget->SetInteractor(m_view->GetRenderWindow()->GetInteractor());
+  widget->GetRepresentation()->SetVisibility(true);
+  widget->On();
 //   connect(widget, SIGNAL(modified()),
 // 	  this, SLOT(updateWidgetVisibility()));
-//   m_widgets << sWidget;
+  m_widgets << sWidget;
 }
 
 //-----------------------------------------------------------------------------
@@ -1113,7 +1122,8 @@ void SliceView::centerViewOn(double center[3], bool force)
     for (int i = 0; i < 3; i++)
       m_center[i] = floor((m_center[i] * m_gridSize[i]) + 0.5);
 
-  m_state->setSlicePosition(m_slicingMatrix, m_center[m_plane]);
+  m_slicePos = m_center[m_plane];
+  m_state->setSlicePosition(m_slicingMatrix, m_slicePos);
   m_state->setCrossHairs(m_HCrossLineData, m_VCrossLineData, m_center, m_range);
 
   // Only center camera if center is out of the display view
@@ -1138,7 +1148,6 @@ void SliceView::centerViewOn(double center[3], bool force)
   }
 
   forceRender();
-  updateWidgetVisibility();
 }
 
 //-----------------------------------------------------------------------------

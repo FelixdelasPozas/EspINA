@@ -21,6 +21,7 @@ include_directories(
 # Add Qt Resource files
 qt4_add_resources(RCC_BUILT_SOURCES
   toolbar/seedgrow/rsc/SeedGrowSegmentation.qrc
+  toolbar/voi/rsc/VolumeOfInterest.qrc
   rsc/espina.qrc
   )
 
@@ -46,6 +47,7 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
   toolbar/seedgrow/gui/DefaultVOIAction.h
   toolbar/seedgrow/gui/ThresholdAction.h
   toolbar/editor/MorphologicalSettingsPanel.h
+  toolbar/voi/VolumeOfInterest.h
   toolbar/LODToolBar.h
   views/DefaultEspinaView.h
   views/SliceViewSettingsPanel.h
@@ -88,15 +90,16 @@ set (TOOLBAR_SOURCES
   toolbar/MainToolBar.cpp
   toolbar/LODToolBar.cpp
   toolbar/editor/EditorToolBar.cpp
+  toolbar/editor/MorphologicalSettingsPanel.cpp
   toolbar/seedgrow/SeedGrowSegmentation.cpp
   toolbar/seedgrow/SeedGrowSegmentationFilter.cpp
   toolbar/seedgrow/SeedGrowSelector.cpp
   toolbar/seedgrow/Settings.cpp
   toolbar/seedgrow/SettingsPanel.cpp
   toolbar/seedgrow/SetupWidget.cpp
-  toolbar/editor/MorphologicalSettingsPanel.cpp
   toolbar/seedgrow/gui/DefaultVOIAction.cpp
   toolbar/seedgrow/gui/ThresholdAction.cpp
+  toolbar/voi/VolumeOfInterest.cpp
   )
 
 set (VIEW_SOURCES

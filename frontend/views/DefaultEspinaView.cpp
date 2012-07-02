@@ -228,36 +228,36 @@ void DefaultEspinaView::setGridSize(double size[3])
   memcpy(m_gridSize, size, 3 * sizeof(double));
 }
 
-// //----------------------------------------------------------------------------
-// void DefaultEspinaView::addWidget(EspinaWidget* widget)
-// {
-//   Widgtes widgets;
-//   widgets.xy  = widget->createSliceWidget(vtkSliceView::AXIAL);
-//   widgets.yz  = widget->createSliceWidget(vtkSliceView::SAGITTAL);
-//   widgets.xz  = widget->createSliceWidget(vtkSliceView::CORONAL);
+//----------------------------------------------------------------------------
+void DefaultEspinaView::addWidget(EspinaWidget* widget)
+{
+  Widgtes widgets;
+  widgets.xy  = widget->createSliceWidget(vtkSliceView::AXIAL);
+  widgets.yz  = widget->createSliceWidget(vtkSliceView::SAGITTAL);
+  widgets.xz  = widget->createSliceWidget(vtkSliceView::CORONAL);
 //   widgets.vol = widget->createWidget();
-// 
-//   xyView->addWidget (widgets.xy);
-//   yzView->addWidget (widgets.yz);
-//   xzView->addWidget (widgets.xz);
+
+  xyView->addWidget (widgets.xy);
+  yzView->addWidget (widgets.yz);
+  xzView->addWidget (widgets.xz);
 //   volView->addWidget(widgets.vol);
-// 
-//   m_widgets[widget] = widgets;
-// }
-// 
-// //----------------------------------------------------------------------------
-// void DefaultEspinaView::removeWidget(EspinaWidget* widget)
-// {
-//   Widgtes widgets = m_widgets[widget];
-// 
-//   xyView->removeWidget (widgets.xy);
-//   yzView->removeWidget (widgets.yz);
-//   xzView->removeWidget (widgets.xz);
+
+  m_widgets[widget] = widgets;
+}
+
+//----------------------------------------------------------------------------
+void DefaultEspinaView::removeWidget(EspinaWidget* widget)
+{
+  Widgtes widgets = m_widgets[widget];
+
+  xyView->removeWidget (widgets.xy);
+  yzView->removeWidget (widgets.yz);
+  xzView->removeWidget (widgets.xz);
 //   volView->removeWidget(widgets.vol);
-// 
-//   m_widgets.remove(widget);
-// }
-// 
+
+  m_widgets.remove(widget);
+}
+
 // //-----------------------------------------------------------------------------
 // void DefaultEspinaView::addRepresentation(pqOutputPort* oport, QColor color)
 // {

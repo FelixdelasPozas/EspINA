@@ -30,16 +30,12 @@ public:
   explicit RectangularRegion();
   virtual ~RectangularRegion();
 
-//   vtkSMProxy *getProxy();
-// 
-//   virtual pq3DWidget*  createWidget();
-//   virtual SliceWidget *createSliceWidget(vtkPVSliceView::VIEW_PLANE plane);
+  virtual vtkAbstractWidget* createWidget();
+  virtual SliceWidget* createSliceWidget(vtkSliceView::VIEW_PLANE plane);
+
   virtual void setEnabled(bool enable);
   virtual void setBounds(double bounds[6]);
   virtual void bounds(double bounds[6]);
-
-private:
-//   pq3DWidget *createWidget(QString name);
 
 private:
   vtkImageAlgorithm *m_box;
