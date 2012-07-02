@@ -40,10 +40,21 @@ public:
   class Parameters
   {
   public:
-    explicit Parameters(Arguments &args) : m_args(args) {}
+    explicit Parameters(Arguments &args)
+    : m_args(args)
+    {
+      QStringList values = m_args[SPACING].split(",", QString::SkipEmptyParts);
+      if (values.size() == 3)
+      {
+        for(int i=0; i<3; i++)
+          m_spacing[i] = values[i].toDouble();
+      }
+    }
 
     void setSpacing(double value[3])
     {
+      for(int i=0; i<3; i++)
+        m_spacing[i] = value[i];
       m_args[SPACING] = QString("%1,%2,%3")
                        .arg(value[0])
                        .arg(value[1])
@@ -51,14 +62,11 @@ public:
     }
     EspinaVolume::SpacingType spacing() const
     {
-      EspinaVolume::SpacingType res;
-      QStringList values = m_args[SPACING].split(",");
-      for(int i=0; i<3; i++)
-        res[i] = values[i].toDouble();
-      return res;
+      return m_spacing;
     }
   private:
     Arguments &m_args;
+    EspinaVolume::SpacingType m_spacing;
   };
 
 public:
@@ -79,6 +87,12 @@ public:
   virtual EspinaVolume* output(OutputNumber i) const;
   virtual bool prefetchFilter();
 
+protected:
+  bool drawPixel(int x, int y, int z,
+                 int cx, int cy, int cz,
+                 int r, int plane,
+                 int extent[6]);
+
 private:
   Parameters m_param;
   bool       m_hasPixels;
@@ -88,6 +102,7 @@ private:
 
   EspinaVolume::Pointer m_volume;
   FilterType::Pointer m_filter;
+  EspinaVolume::SpacingType m_spacing;
   EspinaVolumeReader::Pointer m_cachedFilter;
 };
 

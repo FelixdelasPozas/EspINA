@@ -158,7 +158,9 @@ void PencilSelector::startSelection(int x, int y, SelectableView *view)
   xPos = x;
   yPos = winSize[1] - y;
 
-  brushRadius << QPoint(xPos,yPos) << QPoint(xPos+radius(), yPos);
+  brushRadius << QPoint(xPos,yPos)
+              << QPoint(xPos+radius(), yPos)
+              << QPoint(xPos, yPos+radius());
   regions << brushRadius;
 
   MultiSelection msel = view->select(m_filters, regions);

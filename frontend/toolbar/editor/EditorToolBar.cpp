@@ -279,39 +279,39 @@ EditorToolBar::EditorToolBar(QWidget* parent)
   m_draw->setIcon(QIcon(":/espina/pencil.png"));
   m_draw->setCheckable(true);
   connect(m_draw, SIGNAL(triggered(bool)),
-	 this, SLOT(startDrawing(bool)));
+          this, SLOT(startDrawing(bool)));
 
   m_addition->setIcon(QIcon(":/espina/add.svg"));
   connect(m_addition, SIGNAL(triggered(bool)),
-	 this, SLOT(combineSegmentations()));
+          this, SLOT(combineSegmentations()));
 
   m_substraction->setIcon(QIcon(":/espina/remove.svg"));
   connect(m_substraction, SIGNAL(triggered(bool)),
-	 this, SLOT(substractSegmentations()));
+          this, SLOT(substractSegmentations()));
 
   m_erode->setIcon(QIcon(":/espina/erode.png"));
   connect(m_erode, SIGNAL(triggered(bool)),
-	 this, SLOT(erodeSegmentations()));
+          this, SLOT(erodeSegmentations()));
 
   m_dilate->setIcon(QIcon(":/espina/dilate.png"));
   connect(m_dilate, SIGNAL(triggered(bool)),
-	 this, SLOT(dilateSegmentations()));
+          this, SLOT(dilateSegmentations()));
 
   m_open->setIcon(QIcon(":/espina/open.png"));
   connect(m_open, SIGNAL(triggered(bool)),
-	 this, SLOT(openSegmentations()));
+          this, SLOT(openSegmentations()));
 
   m_close->setIcon(QIcon(":/espina/close.png"));
   connect(m_close, SIGNAL(triggered(bool)),
-	 this, SLOT(closeSegmentations()));
+          this, SLOT(closeSegmentations()));
 
   m_pencilSelector->setSelectable(SelectionHandler::EspINA_Channel);
   connect(m_pencilSelector, SIGNAL(selectionChanged(SelectionHandler::MultiSelection)),
-	 this, SLOT(drawSegmentation(SelectionHandler::MultiSelection)));
+          this, SLOT(drawSegmentation(SelectionHandler::MultiSelection)));
   connect(m_pencilSelector, SIGNAL(selectionAborted()),
-	 this, SLOT(stopDrawing()));
+          this, SLOT(stopDrawing()));
   connect(m_pencilSelector, SIGNAL(stateChanged(PencilSelector::State)),
-	 this, SLOT(stateChanged(PencilSelector::State)));
+          this, SLOT(stateChanged(PencilSelector::State)));
 }
 
 //----------------------------------------------------------------------------
@@ -355,30 +355,23 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
     return;
 
   SelectionHandler::VtkRegion region = msel.first().first;
-  if (region.size() != 2)
+  if (region.size() < 2)
     return;
 
   QVector3D center = region[0];
-  QVector3D p = region[1];
-  int extent[6];
-  extent[0] = center.x() - 5*m_pencilSelector->radius();
-  extent[1] = center.x() + 5*m_pencilSelector->radius();
-  extent[2] = center.y() - 5*m_pencilSelector->radius();
-  extent[3] = center.y() + 5*m_pencilSelector->radius();
-  extent[4] = center.z() - 5*m_pencilSelector->radius();
-  extent[5] = center.z() + 5*m_pencilSelector->radius();
+  QVector3D rx = region[1];
+  QVector3D ry = region[2];
+  vtkSliceView::VIEW_PLANE selectedPlane;
+  if (center.x() == rx.x() && rx.x() == ry.x())
+    selectedPlane = vtkSliceView::SAGITTAL;
+  else if (rx.y() == center.y() && rx.y() == ry.y())
+    selectedPlane = vtkSliceView::CORONAL;
+  else if (center.z() == rx.z() && rx.z() == ry.z())
+    selectedPlane = vtkSliceView::AXIAL;
 
   SelectableItem *selectedItem = msel.first().second;
   Q_ASSERT(ModelItem::CHANNEL == selectedItem->type());
-  int channelExtent[6];
   Channel *channel = dynamic_cast<Channel *>(selectedItem);
-  channel->extent(channelExtent);
-  for(int i=0; i<3; i++)
-  {
-    int min = 2*i, max = 2*i+1;
-    extent[min] = std::max(extent[min], channelExtent[min]);
-    extent[max] = std::min(extent[max], channelExtent[max]);
-  }
 
   if (!m_currentSource)
   {
@@ -391,14 +384,18 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
     m_currentSource = new FreeFormSource(inputs, args);
   }
 
-  int radius = abs(center.x() - p.x());
+  int radius = 0;
+  if (selectedPlane != vtkSliceView::SAGITTAL)
+    radius = abs(center.x() - rx.x());
+  else
+    radius = abs(center.y() - region[2].y());
 
   QSharedPointer<QUndoStack> undo = EspinaCore::instance()->undoStack();
   if (m_pencilSelector->state() == PencilSelector::DRAWING)
-    m_currentSource->draw(vtkSliceView::AXIAL, center, radius);
+    m_currentSource->draw(selectedPlane, center, radius);
     //undo->push(new DrawCommand(m_currentSource, vtkSliceView::AXIAL, center, radius));
   else if (m_pencilSelector->state() == PencilSelector::ERASING)
-    m_currentSource->erase(vtkSliceView::AXIAL, center, radius);
+    m_currentSource->erase(selectedPlane, center, radius);
     //undo->push(new EraseCommand(m_currentSource, vtkSliceView::AXIAL, center, radius));
   else
     Q_ASSERT(false);

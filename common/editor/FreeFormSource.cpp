@@ -33,27 +33,23 @@ typedef ModelItem::ArgumentId ArgumentId;
 const ArgumentId FreeFormSource::SPACING = ArgumentId("SPACING", true);
 
 //-----------------------------------------------------------------------------
-bool drawPixel(int x, int y, int z,
-               int cx, int cy, int cz,
-               int r, int plane,
-               int extent[6])
+bool FreeFormSource::drawPixel(int x, int y, int z, int cx, int cy, int cz, int r, int plane, int extent[6])
 {
   if (plane == 2)
   {
-    double r2 = pow(x-cx+extent[0], 2) + pow(y-cy+extent[2], 2);
+    double r2 = pow((x-cx+extent[0])*m_param.spacing()[0], 2) + pow((y-cy+extent[2])*m_param.spacing()[1], 2);
     return r2 <= r*r && z == cz-extent[4];
   }else if (plane == 1)
   {
-    double r2 = pow(x-cx+extent[0], 2) + pow(z-cz+extent[4], 2);
+    double r2 = pow((x-cx+extent[0])*m_param.spacing()[0], 2) + pow((z-cz+extent[4])*m_param.spacing()[2], 2);
     return r2 <= r*r && y == cy-extent[2];
   }else if (plane == 0)
   {
-    double r2 = pow(y-cy+extent[2], 2) + pow(z-cz+extent[4], 2);
+    double r2 = pow((y-cy+extent[2])*m_param.spacing()[1], 2) + pow((z-cz+extent[4])*m_param.spacing()[2], 2);
     return r2 <= r*r && x == cx-extent[0];
   }
   return false;
 }
-
 
 //-----------------------------------------------------------------------------
 FreeFormSource::FreeFormSource(Filter::NamedInputs inputs,
