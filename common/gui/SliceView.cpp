@@ -57,6 +57,7 @@
 #include <vtkImageActor.h>
 #include <vtkImageMapper3D.h>
 #include <vtkImageProperty.h>
+#include <vtkProperty.h>
 #include <vtkAbstractWidget.h>
 #include <vtkWidgetRepresentation.h>
 #include <QVTKWidget.h>
@@ -66,6 +67,7 @@
 #include <vtkAlgorithmOutput.h>
 #include <itkImageToVTKImageFilter.h>
 #include <vtkCoordinate.h>
+#include <vtkCellArray.h>
 
 // class MouseMoveCallback : public vtkCommand
 // {
@@ -144,6 +146,61 @@ QWidget(parent)
   m_view->GetRenderWindow()->AddRenderer(m_renderer);
   m_view->GetInteractor()->SetInteractorStyle(vtkInteractorStyleEspinaSlice::New());
   m_view->GetRenderWindow()->Render();
+
+  buildCrosshairs();
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::buildCrosshairs()
+{
+ vtkSmartPointer<vtkPoints> HPoints = vtkSmartPointer<vtkPoints>::New();
+  HPoints->InsertNextPoint(-0.5, 0, 0);
+  HPoints->InsertNextPoint(0.5, 0, 0);
+  vtkSmartPointer<vtkCellArray> HLine = vtkSmartPointer<vtkCellArray>::New();
+  HLine->EstimateSize(1, 2);
+  HLine->InsertNextCell (2);
+  HLine->InsertCellPoint(0);
+  HLine->InsertCellPoint(1);
+
+  m_HCrossLineData = vtkSmartPointer<vtkPolyData>::New();
+  m_HCrossLineData->SetPoints(HPoints);
+  m_HCrossLineData->SetLines (HLine);
+  m_HCrossLineData->Update();
+
+  vtkSmartPointer<vtkPolyDataMapper> HMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  HMapper->SetInput(m_HCrossLineData);
+
+  m_HCrossLine = vtkSmartPointer<vtkActor>::New();
+  m_HCrossLine->SetMapper(HMapper);
+  m_HCrossLine->GetProperty()->SetLineWidth(2);
+  m_HCrossLine->SetPickable(false);
+  //   HCrossLine->GetProperty()->SetLineStipplePattern(0xF0F0);
+
+//   NonCompositedRenderer->AddActor(HCrossLine);
+//   OverviewRenderer->AddActor(HCrossLine);
+
+  vtkSmartPointer<vtkPoints> VPoints = vtkSmartPointer<vtkPoints>::New();
+  VPoints->InsertNextPoint(0, -0.5, 0);
+  VPoints->InsertNextPoint(0, 0.5, 0);
+  vtkSmartPointer<vtkCellArray> VLine = vtkSmartPointer<vtkCellArray>::New();
+  VLine->EstimateSize(1, 2);
+  VLine->InsertNextCell (2);
+  VLine->InsertCellPoint(0);
+  VLine->InsertCellPoint(1);
+
+  m_VCrossLineData = vtkSmartPointer<vtkPolyData>::New();
+  m_VCrossLineData->SetPoints(VPoints);
+  m_VCrossLineData->SetLines(VLine);
+  m_VCrossLineData->Update();
+
+  vtkSmartPointer<vtkPolyDataMapper> VMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  VMapper->SetInput(m_VCrossLineData);
+
+  m_VCrossLine = vtkSmartPointer<vtkActor>::New();
+  m_VCrossLine->SetMapper(VMapper);
+  m_VCrossLine->GetProperty()->SetLineWidth(2);
+  m_VCrossLine->SetPickable(false);
+
 }
 
 //-----------------------------------------------------------------------------
@@ -237,14 +294,22 @@ void SliceView::setTitle(const QString& title)
 //-----------------------------------------------------------------------------
 void SliceView::setCrosshairColors(double hcolor[3], double vcolor[3])
 {
-  //TODO: vtkSMPropertyHelper(m_view->getViewProxy(),"HCrossLineColor").Set(hcolor,3);
-  //TODO: vtkSMPropertyHelper(m_view->getViewProxy(),"VCrossLineColor").Set(vcolor,3);
+  m_HCrossLine->GetProperty()->SetColor(hcolor);
+  m_VCrossLine->GetProperty()->SetColor(vcolor);
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::setCrosshairVisibility(bool visible)
 {
-  //TODO:vtkSMPropertyHelper(m_view->getViewProxy(),"ShowCrosshair").Set(visible);
+  if (visible)
+  {
+    m_renderer->AddActor(m_HCrossLine);
+    m_renderer->AddActor(m_VCrossLine);
+  }else
+  {
+    m_renderer->RemoveActor(m_HCrossLine);
+    m_renderer->RemoveActor(m_VCrossLine);
+  }
   forceRender();
 }
 
@@ -491,6 +556,7 @@ void SliceView::centerCrosshairOnMousePosition()
 
   double center[3];  //World coordinates
   pickChannel(xPos, yPos, center);
+
 
 
   centerViewOn(center);
@@ -942,12 +1008,13 @@ void SliceView::setSliceSelectors(SliceView::SliceSelectors selectors)
 //-----------------------------------------------------------------------------
 void SliceView::forceRender()
 {
-	if (isVisible())
-	{
-//     qDebug() << "Rendering View" << m_plane;
-		updateWidgetVisibility();
-		m_view->GetRenderWindow()->Render();
-	}
+  if (isVisible())
+  {
+    //     qDebug() << "Rendering View" << m_plane;
+    updateWidgetVisibility();
+    m_view->GetRenderWindow()->Render();
+    m_view->update();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1037,8 +1104,8 @@ void SliceView::centerViewOn(double center[3], bool force)
   }
 
   // Disable scrollbox signals to avoid calling seting slice
-  m_spinBox->setValue(m_center[m_plane]);
   m_scrollBar->blockSignals(true);
+  m_spinBox->setValue(m_center[m_plane]);
   m_scrollBar->setValue(m_center[m_plane]);
   m_scrollBar->blockSignals(false);
 
@@ -1049,6 +1116,7 @@ void SliceView::centerViewOn(double center[3], bool force)
       m_center[i] = floor((m_center[i] * m_gridSize[i]) + 0.5);
 
   m_state->setSlicePosition(m_slicingMatrix, m_center[m_plane]);
+  m_state->setCrossHairs(m_HCrossLineData, m_VCrossLineData, m_center, m_range);
 
   // Only center camera if center is out of the display view
   vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();

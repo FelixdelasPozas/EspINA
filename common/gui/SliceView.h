@@ -33,6 +33,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
 #include <vtkPropPicker.h>
+#include <vtkPolyData.h>
 #include <itkImageToVTKImageFilter.h>
 
 class vtkImageResliceToColors;
@@ -182,6 +183,7 @@ protected:
   /// Converts point from Display coordinates to World coordinates
   SelectionHandler::VtkRegion display2vtk(const QPolygonF &region);
 
+  void buildCrosshairs();
   void buildTitle();
   void setupUI();
 private:
@@ -225,7 +227,16 @@ private:
   double m_center[3];
   ColorEngine *m_colorEngine;
 
+  // Crosshairs
+  vtkSmartPointer<vtkPolyData> m_HCrossLineData, m_VCrossLineData;
+  vtkSmartPointer<vtkActor>    m_HCrossLine, m_VCrossLine;
+  double                       m_HCrossLineColor[3];
+  double                       m_VCrossLineColor[3];
+
+  // Thumbnail
   bool m_inThumbnail;
+
+  // Representations
   QMap<Channel *, SliceRep> m_channels;
   QMap<Segmentation *, SliceRep> m_segmentations;
   //QMap<pqOutputPort *, RepInfo> m_representations;
