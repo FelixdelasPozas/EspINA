@@ -77,6 +77,9 @@ FreeFormSource::~FreeFormSource()
 void FreeFormSource::draw(vtkSliceView::VIEW_PLANE plane,
                           QVector3D center, int r)
 {
+  if (plane < 0 || 2 < plane || r < 0)
+    return;
+
   bool expandX = vtkSliceView::AXIAL    == plane
               || vtkSliceView::CORONAL  == plane;
   bool expandY = vtkSliceView::AXIAL    == plane
@@ -107,7 +110,7 @@ void FreeFormSource::draw(vtkSliceView::VIEW_PLANE plane,
   Extent[4] = std::min(Extent[4], expandZ?cz - r:cz);
   Extent[5] = std::max(Extent[5], expandZ?cz + r:cz);
 
-  if (memcmp(prevExtent, Extent, 6*sizeof(int)) == 0)
+  if (m_volume.IsNotNull() && memcmp(prevExtent, Extent, 6*sizeof(int)) == 0)
   {
     int minX = (expandX?cx - r:cx)-Extent[0];
     int maxX = (expandX?cx + r:cx)-Extent[0];
