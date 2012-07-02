@@ -24,14 +24,16 @@
 #include <QSpinBox>
 
 #include <QDebug>
+#include <QSettings>
 
 #define DEFAULT_THRESHOLD 30
 
 //------------------------------------------------------------------------
 ThresholdAction::ThresholdAction(QObject* parent)
 : QWidgetAction(parent)
-, m_threshold(DEFAULT_THRESHOLD)
 {
+  QSettings settings("CeSViMa", "EspIA");
+  m_threshold = settings.value("SeedGrowSegmentation::Threshold", DEFAULT_THRESHOLD).toInt();
 }
 
 //------------------------------------------------------------------------
@@ -46,7 +48,7 @@ QWidget* ThresholdAction::createWidget(QWidget* parent)
   QSpinBox *threshold = new QSpinBox();
   threshold->setMinimum(0);
   threshold->setMaximum(255);
-  threshold->setValue(DEFAULT_THRESHOLD);
+  threshold->setValue(m_threshold);
   threshold->setToolTip(tr("Determine the size of color value range for a given pixel"));
 
   layout->addWidget(thresholdLabel);
@@ -58,4 +60,12 @@ QWidget* ThresholdAction::createWidget(QWidget* parent)
 	  threshold, SLOT(setValue(int)));
 
   return w;
+}
+
+void ThresholdAction::setThreshold(int th)
+{
+  m_threshold = th>0?th:0;
+  QSettings settings("CeSViMa", "EspIA");
+  settings.setValue("SeedGrowSegmentation::Threshold", m_threshold);
+  emit thresholdChanged(m_threshold);
 }
