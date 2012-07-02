@@ -31,6 +31,7 @@
 #include "common/settings/GeneralSettings.h"
 #include "common/settings/ColorEngineSettings.h"
 
+class Channel;
 
 class EspinaCore
 : public QObject
@@ -44,6 +45,8 @@ public:
   QSharedPointer<EspinaModel> model() {return m_model;}
   QSharedPointer<QUndoStack>  undoStack() {return m_undoStack;}
 
+  void setActiveChannel(Channel *channel){m_activeChannel=channel;}
+  Channel *activeChannel(){return m_activeChannel;}
   void setActiveTaxonomy(TaxonomyNode *tax);
   TaxonomyNode *activeTaxonomy(){return m_activeTaxonomy;}
 
@@ -75,6 +78,7 @@ private:
 
   static EspinaCore *m_singleton;
 
+  Channel                    *m_activeChannel;
   TaxonomyNode               *m_activeTaxonomy;
   Sample                     *m_sample;
   QSharedPointer<EspinaModel> m_model;

@@ -37,7 +37,8 @@ EspinaCore *EspinaCore::m_singleton = NULL;
 
 //------------------------------------------------------------------------
 EspinaCore::EspinaCore()
-: m_activeTaxonomy(NULL)
+: m_activeChannel(NULL)
+, m_activeTaxonomy(NULL)
 , m_sample        (NULL)
 , m_model         (new EspinaModel())
 , m_undoStack     (new QUndoStack())
@@ -119,6 +120,8 @@ bool EspinaCore::loadChannel(const QFileInfo file)
   args.setColor(stainColor.hueF());
   Channel *channel = factory->createChannel(reader, 0);
   channel->initialize(args);
+  if (m_activeChannel == NULL)
+    m_activeChannel = channel;
     //file.absoluteFilePath(), args);
 
   double pos[3];
@@ -141,6 +144,7 @@ bool EspinaCore::loadChannel(const QFileInfo file)
 void EspinaCore::closeCurrentAnalysis()
 {
   emit currentAnalysisClosed();
+  m_activeChannel = NULL;
   m_activeTaxonomy = NULL;
   m_sample = NULL;
   m_model->reset();

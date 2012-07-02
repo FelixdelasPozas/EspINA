@@ -33,16 +33,19 @@ public:
 
   virtual QWidget* createWidget(QWidget* parent);
 
-  int threshold() {return m_threshold;}
+  int lowerThreshold() {return m_threshold[0];}
+  int upperThreshold() {return m_threshold[1];}
 
 public slots:
-  void setThreshold(int th);
+  void setLowerThreshold(int th);
+  void setUpperThreshold(int th);
 
 signals:
-  void thresholdChanged(int);
+  void lowerThresholdChanged(int);
+  void upperThresholdChanged(int);
 
 private:
-  int m_threshold;
+  int m_threshold[2];
 };
 
 #endif // THRESHOLDACTION_H

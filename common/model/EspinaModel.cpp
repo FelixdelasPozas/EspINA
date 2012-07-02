@@ -377,6 +377,9 @@ void EspinaModel::addChannel(Channel *channel)
 {
   Q_ASSERT(m_channels.contains(channel) == false);
 
+  if (m_channels.isEmpty())
+    EspinaCore::instance()->setActiveChannel(channel);
+
   int row = m_channels.size();
 
   beginInsertRows(channelRoot(), row, row);

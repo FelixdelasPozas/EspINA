@@ -46,7 +46,8 @@ bool SeedGrowSelector::filterEvent(QEvent* e, SelectableView* view)
     if (we->modifiers() == Qt::CTRL)
     {
       int numSteps = we->delta()/8/15;//Refer to QWheelEvent doc.
-      m_threshold->setThreshold(m_threshold->threshold() + numSteps);//Using stepBy highlight the input text
+      m_threshold->setUpperThreshold(m_threshold->upperThreshold() + numSteps);//Using stepBy highlight the input text
+      m_threshold->setLowerThreshold(m_threshold->lowerThreshold() + numSteps);//Using stepBy highlight the input text
 //       if (m_preview)
 //       {
 // 	m_preview->setThreshold(m_threshold->threshold());

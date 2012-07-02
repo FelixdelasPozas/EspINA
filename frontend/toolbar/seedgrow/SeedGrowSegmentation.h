@@ -80,7 +80,8 @@ protected slots:
   void onSelectionAborted();
   /// Starts the segmentation filter putting using @msel as seed
   void startSegmentation(SelectionHandler::MultiSelection msel);
-  void modifyLastFilter(int value);
+
+  void batchMode();
 
 signals:
 //   void productCreated(Segmentation *);
