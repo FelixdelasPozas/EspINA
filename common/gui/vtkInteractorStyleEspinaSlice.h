@@ -40,7 +40,10 @@ public:
   virtual void OnLeftButtonUp() {}
   //   virtual void OnMouseMove();
 protected:
-  explicit vtkInteractorStyleEspinaSlice(){}
+  explicit vtkInteractorStyleEspinaSlice()
+  {
+    AutoAdjustCameraClippingRangeOn();
+  }
   virtual ~vtkInteractorStyleEspinaSlice(){}
 
 private:

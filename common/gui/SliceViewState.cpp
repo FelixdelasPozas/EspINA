@@ -24,6 +24,8 @@
 #include <vtkPolyData.h>
 #include <vtkProp3D.h>
 
+#include <QDebug>
+
 double AxialSliceMatrix[16] =
 {
   1,  0,  0,  0,
@@ -57,7 +59,6 @@ void SliceView::AxialState::updateCamera(vtkCamera* camera, double center[3])
   camera->SetPosition (center[0], center[1], -1);
   camera->SetFocalPoint(center[0], center[1], 0);
   camera->SetRoll(180);
-  camera->ParallelProjectionOn();
 }
 
 //-----------------------------------------------------------------------------
@@ -77,9 +78,9 @@ double SagitalSliceMatrix[16] =
 
 //-----------------------------------------------------------------------------
 void SliceView::SagittalState::setCrossHairs(vtkPolyData* hline,
-					   vtkPolyData* vline,
-					   double center[3],
-					   double bounds[6])
+                                             vtkPolyData* vline,
+                                             double center[3],
+                                             double bounds[6])
 {
   hline->GetPoints()->SetPoint ( 0,0,center[1],bounds[4] );
   hline->GetPoints()->SetPoint ( 1,0,center[1],bounds[5] );
@@ -92,7 +93,7 @@ void SliceView::SagittalState::setCrossHairs(vtkPolyData* hline,
 
 //-----------------------------------------------------------------------------
 void SliceView::SagittalState::setSlicePosition(vtkMatrix4x4* matrix,
-					      double value)
+                                                double value)
 {
   matrix->SetElement(0, 3, value);
 }
@@ -106,11 +107,11 @@ void SliceView::SagittalState::updateActor(vtkProp3D* actor)
 
 //-----------------------------------------------------------------------------
 void SliceView::SagittalState::updateCamera(vtkCamera* camera,
-					  double center[3])
+                                            double center[3])
 {
   camera->SetPosition(center[0] + 1,center[1], center[2]);
   camera->SetFocalPoint(center[0], center[1], center[2]);
-  camera->ParallelProjectionOn();
+  camera->SetRoll(180);
 }
 
 //-----------------------------------------------------------------------------
@@ -130,9 +131,9 @@ double CoronalSliceMatrix[16] =
 
 //-----------------------------------------------------------------------------
 void SliceView::CoronalState::setCrossHairs(vtkPolyData* hline,
-					  vtkPolyData* vline,
-					  double center[3],
-					  double bounds[6])
+                                            vtkPolyData* vline,
+                                            double center[3],
+                                            double bounds[6])
 {
   hline->GetPoints()->SetPoint ( 0,bounds[0],0,center[2] );
   hline->GetPoints()->SetPoint ( 1,bounds[1],0,center[2] );
@@ -162,7 +163,6 @@ void SliceView::CoronalState::updateCamera(vtkCamera* camera,
   camera->SetPosition(center[0], center[1]+1, center[2]);
   camera->SetFocalPoint(center[0], center[1], center[2]);
   camera->SetViewUp(0, 0, -1);
-  camera->ParallelProjectionOn();
 }
 
 //-----------------------------------------------------------------------------

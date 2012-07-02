@@ -93,13 +93,20 @@ EspinaView(parent, activity), first(true), m_colorEngine(NULL), m_showProcessing
 void DefaultEspinaView::initSliceView(SliceView* view)
 {
   view->setFitToGrid(true);
-  connect(view, SIGNAL(centerChanged(double,double,double)), this, SLOT(setCenter(double,double,double)));
-  connect(view, SIGNAL(focusChanged(double[3])), this, SLOT(setCameraFocus(double[3])));
-  connect(view, SIGNAL(selectedFromSlice(double, vtkSliceView::VIEW_PLANE)), this, SLOT(selectFromSlice(double, vtkSliceView::VIEW_PLANE)));
-  connect(view, SIGNAL(selectedToSlice(double, vtkSliceView::VIEW_PLANE)), this, SLOT(selectToSlice(double, vtkSliceView::VIEW_PLANE)));
-  connect(view, SIGNAL(channelSelected(Channel*)), this, SLOT(channelSelected(Channel*)));
-  connect(view, SIGNAL(segmentationSelected(Segmentation*, bool)), this, SLOT(segmentationSelected(Segmentation*, bool)));
-  connect(view, SIGNAL(showCrosshairs(bool)), this, SLOT(showCrosshair(bool)));
+  connect(view, SIGNAL(centerChanged(double,double,double)),
+          this, SLOT(setCenter(double,double,double)));
+  connect(view, SIGNAL(focusChanged(double[3])),
+          this, SLOT(setCameraFocus(double[3])));
+  connect(view, SIGNAL(selectedFromSlice(double, vtkSliceView::VIEW_PLANE)),
+          this, SLOT(selectFromSlice(double, vtkSliceView::VIEW_PLANE)));
+  connect(view, SIGNAL(selectedToSlice(double, vtkSliceView::VIEW_PLANE)),
+          this, SLOT(selectToSlice(double, vtkSliceView::VIEW_PLANE)));
+  connect(view, SIGNAL(channelSelected(Channel*)),
+          this, SLOT(channelSelected(Channel*)));
+  connect(view, SIGNAL(segmentationSelected(Segmentation*, bool)),
+          this, SLOT(segmentationSelected(Segmentation*, bool)));
+  connect(view, SIGNAL(showCrosshairs(bool)),
+          this, SLOT(showCrosshair(bool)));
 }
 
 //-----------------------------------------------------------------------------
