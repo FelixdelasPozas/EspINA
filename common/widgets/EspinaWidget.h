@@ -20,23 +20,23 @@
 #ifndef ESPINAWIDGET_H
 #define ESPINAWIDGET_H
 
-#include <common/views/vtkPVSliceView.h>
+#include <common/views/vtkSliceView.h>
 
-class pq3DWidget;
+class vtkAbstractWidget;
 
 class SliceWidget
 {
 public:
-  explicit SliceWidget(pq3DWidget *widget);
+  explicit SliceWidget(vtkAbstractWidget *widget);
 
-  virtual void setSlice(double pos, vtkPVSliceView::VIEW_PLANE plane);
+  virtual void setSlice(double pos, vtkSliceView::VIEW_PLANE plane);
 
-  operator pq3DWidget *(){return m_widget;}
-  operator const pq3DWidget * const() const {return m_widget;}
-//   pq3DWidget *operator->() {return m_widget;}
+  //operator pq3DWidget *(){return m_widget;}
+  //operator const pq3DWidget * const() const {return m_widget;}
+  //   pq3DWidget *operator->() {return m_widget;}
 
 protected:
-  pq3DWidget *m_widget;
+  vtkAbstractWidget *m_widget;
 };
 
 class EspinaWidget
@@ -44,8 +44,8 @@ class EspinaWidget
 public:
   virtual ~EspinaWidget(){}
 
-  virtual pq3DWidget*  createWidget() = 0;
-  virtual SliceWidget *createSliceWidget(vtkPVSliceView::VIEW_PLANE plane) = 0;
+//   virtual pq3DWidget*  createWidget() = 0;
+//   virtual SliceWidget *createSliceWidget(vtkSliceView::VIEW_PLANE plane) = 0;
 
   virtual void setEnabled(bool enable) = 0;
   /// Expand the widget to fit @bounds

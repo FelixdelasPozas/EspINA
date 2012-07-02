@@ -21,39 +21,74 @@
 #define FREEFORMSOURCE_H
 
 #include <model/Filter.h>
-#include <common/views/vtkPVSliceView.h>
+#include <common/views/vtkSliceView.h>
+
+#include <itkChangeInformationImageFilter.h>
 
 #include <QVector3D>
 
-static const QString FFS = "EditorToolBar::FreeFormSource";
 
 class FreeFormSource
 : public Filter
 {
+  typedef itk::ChangeInformationImageFilter<EspinaVolume> FilterType;
 public:
-  explicit FreeFormSource(double spacing[3]);
-  explicit FreeFormSource(Arguments args);
+  static const QString TYPE;
+
+  static const ModelItem::ArgumentId SPACING;
+
+  class Parameters
+  {
+  public:
+    explicit Parameters(Arguments &args) : m_args(args) {}
+
+    void setSpacing(double value[3])
+    {
+      m_args[SPACING] = QString("%1,%2,%3")
+                       .arg(value[0])
+                       .arg(value[1])
+                       .arg(value[2]);
+    }
+    EspinaVolume::SpacingType spacing() const
+    {
+      EspinaVolume::SpacingType res;
+      QStringList values = m_args[SPACING].split(",");
+      for(int i=0; i<3; i++)
+        res[i] = values[i].toDouble();
+      return res;
+    }
+  private:
+    Arguments &m_args;
+  };
+
+public:
+  explicit FreeFormSource(NamedInputs inputs,
+                          Arguments args);
   virtual ~FreeFormSource();
 
-  void draw(vtkPVSliceView::VIEW_PLANE plane,  QVector3D center, int radius = 0);
-  void erase(vtkPVSliceView::VIEW_PLANE plane, QVector3D center, int radius = 0);
+  void draw(vtkSliceView::VIEW_PLANE plane,  QVector3D center, int radius = 0);
+  void erase(vtkSliceView::VIEW_PLANE plane, QVector3D center, int radius = 0);
+
   /// Implements Model Item Interface
-  virtual QString id() const;
-  virtual QVariant data(int role) const;
-  virtual QString serialize() const;
+  virtual QVariant data(int role=Qt::DisplayRole) const;
 
   /// Implements Filter Interface
-  virtual int numProducts() const;
-  virtual Segmentation* product(int index) const;
-
-  virtual pqData preview();
-  virtual QWidget* createConfigurationWidget();
+  virtual bool needUpdate() const;
+  virtual void run(){}
+  virtual int numberOutputs() const;
+  virtual EspinaVolume* output(OutputNumber i) const;
+  virtual bool prefetchFilter();
 
 private:
-  Arguments     m_args;
-  pqFilter     *m_source;
-  Segmentation *m_seg;
-  bool          m_hasPixels;
+  Parameters m_param;
+  bool       m_hasPixels;
+  bool       m_init;
+  int        Extent[6];
+  int        DrawExtent[6];
+
+  EspinaVolume::Pointer m_volume;
+  FilterType::Pointer m_filter;
+  EspinaVolumeReader::Pointer m_cachedFilter;
 };
 
 #endif // FREEFORMSOURCE_H

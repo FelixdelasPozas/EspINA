@@ -23,8 +23,6 @@
 
 #include "SliceView.h"
 
-#include <pqApplicationCore.h>
-#include <pqServerManagerObserver.h>
 #include <QPushButton>
 #include <QVBoxLayout>
 

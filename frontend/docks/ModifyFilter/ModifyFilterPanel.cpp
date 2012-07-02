@@ -20,6 +20,7 @@
 #include "ModifyFilterPanel.h"
 
 #include <EspinaCore.h>
+#include <model/Segmentation.h>
 
 #include <QDebug>
 

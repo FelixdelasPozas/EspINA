@@ -19,6 +19,8 @@
 #include "SampleProxy.h"
 
 #include <common/EspinaCore.h>
+#include "common/model/Segmentation.h"
+
 #include <QPixmap>
 #include <QSet>
 

@@ -26,9 +26,6 @@
 #include "common/processing/pqFilter.h"
 #include "common/model/Segmentation.h"
 
-#include <pqPipelineSource.h>
-#include <vtkSMPropertyHelper.h>
-#include <vtkSMProxy.h>
 #include <QMessageBox>
 #include <QApplication>
 

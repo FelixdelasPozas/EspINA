@@ -22,9 +22,7 @@
 
 #include <common/widgets/EspinaWidget.h>
 
-class pq3DWidget;
-class vtkSMProxy;
-
+class vtkImageAlgorithm;
 class RectangularRegion
 : public EspinaWidget
 {
@@ -32,20 +30,20 @@ public:
   explicit RectangularRegion();
   virtual ~RectangularRegion();
 
-  vtkSMProxy *getProxy();
-
-  virtual pq3DWidget*  createWidget();
-  virtual SliceWidget *createSliceWidget(vtkPVSliceView::VIEW_PLANE plane);
+//   vtkSMProxy *getProxy();
+// 
+//   virtual pq3DWidget*  createWidget();
+//   virtual SliceWidget *createSliceWidget(vtkPVSliceView::VIEW_PLANE plane);
   virtual void setEnabled(bool enable);
   virtual void setBounds(double bounds[6]);
   virtual void bounds(double bounds[6]);
 
 private:
-  pq3DWidget *createWidget(QString name);
+//   pq3DWidget *createWidget(QString name);
 
 private:
-  vtkSMProxy *m_box;
-  QList<pq3DWidget *> m_widgets;
+  vtkImageAlgorithm *m_box;
+  QList<vtkAbstractWidget *> m_widgets;
 };
 
 #endif // RECTANGULARVOI_H

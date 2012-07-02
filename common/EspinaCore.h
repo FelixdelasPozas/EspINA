@@ -24,6 +24,8 @@
 #include "model/EspinaModel.h"
 
 #include <QSharedPointer>
+#include <QFileInfo>
+#include <QDir>
 #include <QUndoStack>
 #include "common/gui/ViewManager.h"
 #include "common/settings/GeneralSettings.h"
@@ -53,10 +55,13 @@ public:
 
   QSharedPointer<ViewManager> viewManger() {return m_viewManager;}
 
-  bool loadFile(const QString file);
+  QDir temporalDir() const {return m_tmpDir;}
+  void setTemporalDir(QDir tmpDir) {m_tmpDir = tmpDir;}
+
+  bool loadFile(const QFileInfo file);
 
 protected:
-  bool loadChannel(const QString file);
+  bool loadChannel(const QFileInfo file);
 
 public slots:
   void closeCurrentAnalysis();
@@ -77,6 +82,7 @@ private:
   QSharedPointer<ViewManager> m_viewManager;
   GeneralSettings             m_settings;
   ColorEngineSettings         m_colorSettigns;
+  QDir                        m_tmpDir;
 };
 
 #endif // ESPINACORE_H

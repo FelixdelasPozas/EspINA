@@ -31,7 +31,6 @@ class QMainWindow;
 class EspinaView;
 class QWidget;
 class ViewFrame;
-class pqServerManagerObserver;
 
 class ViewManager : public QObject
 {
@@ -47,10 +46,6 @@ public:
 //   void restoreView(const QString &layout);
 
 protected:
-  // Espina has been connected to a new server
-//   void onConnect();
-  // Espina has been disconnected from server
-//   void onDisconnect();
   EspinaView *createDefaultLayout(QMainWindow *window);
   EspinaView *createSquaredLayout(QMainWindow *window);
 

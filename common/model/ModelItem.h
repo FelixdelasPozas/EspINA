@@ -78,7 +78,7 @@ public:
     explicit Arguments(const QString args);
     virtual ~Arguments(){}
 
-    virtual ArgumentId argumentId(QString name) const {return ArgumentId(name, false);}
+    static ArgumentId argumentId(QString name) {return ArgumentId(name, false);}
 
     virtual QString serialize(bool key=false) const;
     virtual QString hash() const;
@@ -109,9 +109,9 @@ public:
   virtual ~ModelItem(){}
 
   virtual QString  id() const = 0;
-  virtual QVariant data(int role) const = 0;
+  virtual QVariant data(int role=Qt::DisplayRole) const = 0;
   virtual bool setData(const QVariant& value, int role = Qt::UserRole +1) {return false;}
-  virtual QString  serialize() const {return QString("none");}
+  virtual QString  serialize() const = 0;
   virtual ItemType type() const = 0;
   
   Vector relatedItems(RelationType rel, const QString filter = "");

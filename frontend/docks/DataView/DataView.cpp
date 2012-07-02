@@ -25,6 +25,7 @@
 
 #ifdef DEBUG
   #include "common/model/ModelTest.h"
+#include <model/Segmentation.h>
 #endif
 
 //------------------------------------------------------------------------

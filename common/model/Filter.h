@@ -22,29 +22,81 @@
 
 #include "common/model/ModelItem.h"
 
-#include "common/model/Segmentation.h"
-#include "common/processing/pqData.h"
+#include <EspinaTypes.h>
+#include <itkImageFileReader.h>
 
-#include <QMap>
+const QString CREATELINK = "CreateSegmentation";
 
 class Filter
 : public ModelItem
 {
+protected:
+  typedef itk::ImageFileReader<EspinaVolume> EspinaVolumeReader;
+
+public:
+  typedef QMap<QString, Filter *> NamedInputs;
+
+  static const ModelItem::ArgumentId ID;
+  static const ModelItem::ArgumentId INPUTS;
+  static const ModelItem::ArgumentId EDIT;
 public:
   virtual ~Filter(){}
 
-  /// Implements Model Item Interface common to filters
+  void setId(QString id) {m_args[ID] = id;}
+
+  // Implements Model Item Interface common to filters
   virtual ItemType type() const {return ModelItem::FILTER;}
+  virtual QString id() const {return m_args[ID];}
+  virtual QString serialize() const {return m_args.serialize();}
 
-  /// Defines Filter's Interface
-  virtual int numProducts() const = 0;
-  virtual Segmentation *product(int index) const = 0;
+  static void resetId();
+  static QString generateId();
 
-  virtual pqData preview() = 0;
-  virtual QWidget *createConfigurationWidget() = 0;
+  struct Link
+  {
+    Filter      *filter;
+    OutputNumber outputPort;
+  };
+
+  // Defines Filter's Interface
+  /// Manually Edit Filter Output
+  virtual void changePixelValue(int x,
+                                int y,
+                                int z,
+                                EspinaVolume::PixelType value,
+                                OutputNumber output){/*TODO*/}
+  /// Returns whether or not the filter was edited by the user
+  bool isEdited() const;
+  /// Specify how many outputs this filter generates
+  virtual int numberOutputs() const {return 0;}
+  /// Return the i-th output
+  virtual EspinaVolume *output(OutputNumber i) const {Q_ASSERT(false); return NULL;};
+  /// Interface to be overload by subclasses
+  virtual bool needUpdate() const {return true;}
+  /// Updates filter outputs.
+  /// If a snapshot exits it will try to load it from disk
+  void update();
+  /// Method which actually executes the filter
+  virtual void run() {};
+
+  /// Return a widget used to configure filter's parameters
+  virtual QWidget *createConfigurationWidget();
 
 protected:
-  void setSegmentationData(Segmentation *seg, pqData data);
+  explicit Filter(NamedInputs namedInputs,
+                  Arguments args);
+
+  /// Try to locate an snapshot of the filter in the hard drive
+  virtual bool prefetchFilter();
+  EspinaVolumeReader::Pointer tmpFileReader(const QString file);
+
+protected:
+  QList<EspinaVolume *> m_inputs;
+  NamedInputs           m_namedInputs;
+  Arguments             m_args;
+
+private:
+  static unsigned int m_lastId;
 };
 
 #endif // FILTER_H

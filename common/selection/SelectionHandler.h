@@ -21,8 +21,6 @@
 
 #include <QObject>
 
-#include "common/processing/pqData.h"
-
 #include "SelectableItem.h"
 
 #include <QSharedPointer>

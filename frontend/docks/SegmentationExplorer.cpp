@@ -31,6 +31,7 @@
 #include "SegmentationDelegate.h"
 #include "common/model/proxies/SampleProxy.h"
 #include "common/model/proxies/TaxonomyProxy.h"
+#include <model/Segmentation.h>
 
 #include <iostream>
 #include <cstdio>
@@ -414,6 +415,7 @@ void SegmentationExplorer::changeLayout(int index)
 //------------------------------------------------------------------------
 void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
 {
+  return;
   ModelItem *item = m_layout->item(index);
 
   if (ModelItem::SEGMENTATION != item->type())

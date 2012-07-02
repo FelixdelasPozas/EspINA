@@ -21,17 +21,17 @@
 
 #include "model/EspinaModel.h"
 
-#include <QUndoStack>
 #include "model/EspinaFactory.h"
 #include "model/Channel.h"
-#include <QColorDialog>
-#include <QApplication>
-#include "cache/CachedObjectBuilder.h"
+#include "model/ChannelReader.h"
 #include "undo/AddSample.h"
 #include "undo/AddChannel.h"
 #include "undo/AddRelation.h"
-#include "File.h"
+#include "IO/FilePack.h"
 
+#include <QUndoStack>
+#include <QColorDialog>
+#include <QApplication>
 
 EspinaCore *EspinaCore::m_singleton = NULL;
 
@@ -61,68 +61,73 @@ void EspinaCore::setActiveTaxonomy(TaxonomyNode* tax)
 }
 
 //------------------------------------------------------------------------
-bool EspinaCore::loadFile(const QString file)
+bool EspinaCore::loadFile(const QFileInfo file)
 {
   bool status = false;
-  const QString ext = File::extension(file);
-  if (ext == "pvd" || ext == "mha" || ext == "mhd")
+  const QString ext = file.completeSuffix();//:::fileName() extension(file);
+  if ("mha" == ext || "mhd" == ext || "tiff" == ext || "tif" == ext)
   {
     status = loadChannel(file);
+  } else if ("seg" == ext)
+  {
+    status = IOEspinaFile::loadFile(file,
+                                    EspinaCore::instance()->model());
   }else
-    status = EspinaFactory::instance()->readFile(file, ext);
+    status = EspinaFactory::instance()->readFile(file.absoluteFilePath(), ext);
 
   return status;
 }
 
 //------------------------------------------------------------------------
-bool EspinaCore::loadChannel(const QString file)
+bool EspinaCore::loadChannel(const QFileInfo file)
 {
   // Try to recover sample form DB using channel information
   Sample *existingSample = EspinaCore::instance()->sample();
 
+  EspinaFactory *factory = EspinaFactory::instance();
+
   if (!existingSample)
   {
-    File channelFile(file);
-    // TODO: Check for channel sample
-    const QString SampleName  = channelFile.name();
-    const QString channelName = channelFile.extendedName(file);
-
+    // TODO: Look for real channel's sample in DB or prompt dialog
     // Try to recover sample form DB using channel information
-    Sample *sample = EspinaFactory::instance()->createSample(SampleName);
+    Sample *sample = factory->createSample(file.baseName());
     EspinaCore::instance()->setSample(sample);
 
     m_undoStack->push(new AddSample(sample));
     existingSample = sample;
   }
 
-  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-  pqFilter *channelReader = cob->loadFile(file);
-  Q_ASSERT(channelReader->getNumberOfData() == 1);
-
-
-  Channel::CArguments args;
-
-  pqData channelData(channelReader, 0);
-  args[Channel::ID] = channelData.id();
-
   //TODO: Check for channel information in DB
-  QColorDialog dyeSelector;
-  if (dyeSelector.exec() == QDialog::Accepted)
-  {
-    args.setColor(dyeSelector.selectedColor().hueF());
-  } else
-    args.setColor(QColor(Qt::black).hueF());
+  QColor stainColor;
+  QColorDialog stainColorSelector;
+  stainColorSelector.setWindowTitle("Select Stain Color");
+  if (stainColorSelector.exec() == QDialog::Accepted)
+    stainColor = stainColorSelector.selectedColor();
+  else
+    stainColor = QColor(Qt::black);
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
-  Channel *channel = EspinaFactory::instance()->createChannel(file, args);
+
+  Filter::NamedInputs noInputs;
+  Filter::Arguments readerArgs;
+  readerArgs[ChannelReader::FILE] = file.absoluteFilePath();
+  ChannelReader *reader = new ChannelReader(noInputs, readerArgs);
+  reader->update();
+
+  Channel::CArguments args;
+  args[Channel::ID] = file.fileName();
+  args.setColor(stainColor.hueF());
+  Channel *channel = factory->createChannel(reader, 0);
+  channel->initialize(args);
+    //file.absoluteFilePath(), args);
 
   double pos[3];
   existingSample->position(pos);
   channel->setPosition(pos);
 
   m_undoStack->beginMacro("Add Data To Analysis");
-  m_undoStack->push(new AddChannel(channel));
-  m_undoStack->push(new AddRelation(existingSample, channel, "mark"));//TODO: como se llama esto???
+  m_undoStack->push(new AddChannel(reader, channel));
+  m_undoStack->push(new AddRelation(existingSample, channel, Channel::STAINLINK));
   existingSample->initialize();
   channel->initialize();
 
@@ -140,4 +145,5 @@ void EspinaCore::closeCurrentAnalysis()
   m_sample = NULL;
   m_model->reset();
   m_undoStack->clear();
+  Filter::resetId();
 }

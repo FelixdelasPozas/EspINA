@@ -1,79 +1,89 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) <year>  <name of author>
+ <one line to give the program's name and a brief idea of what it does.>
+ Copyright (C) <year>  <name of author>
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-*/
+ */
 #include "Segmentation.h"
 
 #include "Filter.h"
 
 #include <common/EspinaCore.h>
 #include <common/gui/ColorEngine.h>
+#include <vtkAlgorithm.h>
+#include <vtkAlgorithmOutput.h>
+#include <vtkImageData.h>
 
 #include <QDebug>
-#include <vtkPVDataInformation.h>
-#include <pqOutputPort.h>
-#include <pqPipelineSource.h>
 
 using namespace std;
 
-const ModelItem::ArgumentId Segmentation::FILTER    = ArgumentId("Filter",   ArgumentId::KEY);
-const ModelItem::ArgumentId Segmentation::NUMBER    = ArgumentId("Number",   ArgumentId::KEY);
-const ModelItem::ArgumentId Segmentation::OUTPUT    = ArgumentId("Output",   ArgumentId::KEY);
-const ModelItem::ArgumentId Segmentation::TAXONOMY  = ArgumentId("Taxonomy", ArgumentId::VARIABLE);
-const ModelItem::ArgumentId Segmentation::USERS     = ArgumentId("Users",    ArgumentId::VARIABLE);
+const ModelItem::ArgumentId Segmentation::NUMBER = ArgumentId("Number", ArgumentId::KEY);
+const ModelItem::ArgumentId Segmentation::OUTPUT = ArgumentId("Output", ArgumentId::KEY);
+const ModelItem::ArgumentId Segmentation::TAXONOMY = ArgumentId("Taxonomy", ArgumentId::VARIABLE);
+const ModelItem::ArgumentId Segmentation::USERS = ArgumentId("Users", ArgumentId::VARIABLE);
 
 //-----------------------------------------------------------------------------
-Segmentation::SArguments::SArguments(const ModelItem::Arguments args)
-: Arguments(args)
+Segmentation::SArguments::SArguments(const ModelItem::Arguments args) :
+		Arguments(args)
 {
-  Number = args[NUMBER].toInt();
-  Output = args[OUTPUT].toInt();
+	m_number = args[NUMBER].toInt();
+	m_outputNumber = args[OUTPUT].toInt();
 }
-
 
 //-----------------------------------------------------------------------------
 QString Segmentation::SArguments::serialize(bool key) const
 {
-  QString user = EspinaCore::instance()->settings().userName();
-  SArguments *args = const_cast<SArguments *>(this);
-  args->addUser(user);
-  return ModelItem::Arguments::serialize(key);
+	QString user = EspinaCore::instance()->settings().userName();
+	SArguments *args = const_cast<SArguments *>(this);
+	args->addUser(user);
+	return ModelItem::Arguments::serialize(key);
 }
 
-
 //-----------------------------------------------------------------------------
-Segmentation::Segmentation(Filter* filter, int output, pqData data)
-: m_filter (filter)
-, m_data   (data)
-, m_taxonomy    (NULL)
+Segmentation::Segmentation(Filter* filter, unsigned int outputNb)
+: m_filter(filter)
+, m_taxonomy(NULL)
 , m_extInitialized(false)
 , m_isVisible(true)
 {
   m_isSelected = false;
-  memset(m_bounds, 0, 6*sizeof(double));
-  m_bounds[1] = -1;
+  //   memset(m_bounds, 0, 6*sizeof(double));
+  //   m_bounds[1] = -1;
   m_args.setNumber(0);
-  m_args[FILTER] = m_filter->id();
-  m_args.setOutput(output);
+  m_args.setOutputNumber(outputNb);
   m_args[TAXONOMY] = "Unknown";
-  connect(filter,SIGNAL(modified(ModelItem *)),
-	  this, SLOT(notifyModification()));
-  connect(&EspinaCore::instance()->colorSettings(),SIGNAL(colorEngineChanged()),
-	  this, SLOT(onColorEngineChanged()));
+  connect(filter, SIGNAL(modified(ModelItem *)),
+          this, SLOT(notifyModification()));
+  connect(&EspinaCore::instance()->colorSettings(),
+          SIGNAL(colorEngineChanged()), this, SLOT(onColorEngineChanged()));
+
+}
+
+//------------------------------------------------------------------------
+void Segmentation::changeFilter(Filter* filter, unsigned int outputNb)
+{
+  disconnect(m_filter, SIGNAL(modified(ModelItem *)),
+             this, SLOT(notifyModification()));
+  filter->update();
+  itk2vtk->SetInput(filter->output(outputNb));
+  itk2vtk->Update();
+  m_filter = filter;
+  m_args.setOutputNumber(outputNb);
+  connect(filter, SIGNAL(modified(ModelItem *)),
+          this, SLOT(notifyModification()));
 }
 
 //------------------------------------------------------------------------
@@ -94,51 +104,41 @@ Segmentation::~Segmentation()
 }
 
 //------------------------------------------------------------------------
-pqOutputPort* Segmentation::outputPort()
+EspinaVolume *Segmentation::volume()
 {
-  return m_data.outputPort();
+  return m_filter->output(m_args.outputNumber());
 }
 
 //------------------------------------------------------------------------
 QString Segmentation::id() const
 {
-  return m_filter->id() + "_" + m_args[OUTPUT];
+	return m_filter->id() + "_" + m_args[OUTPUT];
 }
 
 //------------------------------------------------------------------------
 QVariant Segmentation::data(int role) const
 {
-  switch (role)
-  {
-    case Qt::DisplayRole:
-//     //case Qt::EditRole:
-      return QString("Segmentation %1").arg(m_args.number());
-    case Qt::DecorationRole:
-    {
-      return EspinaCore::instance()->colorSettings().engine()->color(this);
+	switch (role)
+	{
+		case Qt::DisplayRole:
+			return QString("Segmentation %1").arg(m_args.number());
+		case Qt::DecorationRole:
+		{
+			return EspinaCore::instance()->colorSettings().engine()->color(this);
 //       QPixmap segIcon(3,16);
 //       segIcon.fill(m_taxonomy->color());
 //       return segIcon;
-    }
-    case Qt::ToolTipRole:
-      return QString(
-	"<b>Name:</b> %1<br>"
-	"<b>Taxonomy:</b> %2<br>"
-	"<b>Filter:</b> %3<br>"
-	"<b>Users:</b><br>"
-        "%4<br>"
-	"<b>Id:</b> %5<br>"
-// 	"<b>Created by:</b><br>"
-// 	"%4"
-      )
-      .arg(data(Qt::DisplayRole).toString())
-      .arg(m_taxonomy->qualifiedName())
-      .arg(filter()->data(Qt::DisplayRole).toString())
-      .arg(m_args[USERS])
-      .arg(id())
-      ;
-    case Qt::CheckStateRole:
-      return visible()?Qt::Checked:Qt::Unchecked;
+		}
+		case Qt::ToolTipRole:
+			return QString("<b>Name:</b> %1<br>"
+					"<b>Taxonomy:</b> %2<br>"
+					"<b>Filter:</b> %3<br>"
+					"<b>Users:</b><br>"
+					"%4<br>"
+					"<b>Id:</b> %5<br>").arg(data(Qt::DisplayRole).toString()).arg(m_taxonomy->qualifiedName()).arg(filter()->data(Qt::DisplayRole).toString()).arg(
+					m_args[USERS]).arg(id());
+		case Qt::CheckStateRole:
+			return visible() ? Qt::Checked : Qt::Unchecked;
 // //     case Qt::FontRole:
 // //     {
 // //       QFont myFont;
@@ -148,102 +148,100 @@ QVariant Segmentation::data(int role) const
 // // //       }
 // //       return myFont;
 // //     }
-    case Qt::UserRole + 1:
-      return number();
-    default:
-      return QVariant();
-  }
+		case Qt::UserRole + 1:
+			return number();
+		default:
+			return QVariant();
+	}
 }
 
 //------------------------------------------------------------------------
 QString Segmentation::serialize() const
 {
-  return m_args.serialize();
+	return m_args.serialize();
 }
 
 //------------------------------------------------------------------------
 void Segmentation::initialize(ModelItem::Arguments args)
 {
-  // Prevent overriding segmentation id assigned from model
-  if (ModelItem::Arguments() != args)
-    m_args = SArguments(args);
+	// Prevent overriding segmentation id assigned from model
+	if (ModelItem::Arguments() != args)
+		m_args = SArguments(args);
 //   qDebug() << "Users" << m_args.users() << m_args[USERS];
 }
 
 //------------------------------------------------------------------------
 void Segmentation::initializeExtensions()
 {
-  foreach(ModelItemExtension *ext, m_extensions)
-  {
-    SegmentationExtension *segExt = dynamic_cast<SegmentationExtension *>(ext);
-    Q_ASSERT(segExt);
-    segExt->initialize(this);
-  }
-  onColorEngineChanged();
+	foreach(ModelItemExtension *ext, m_extensions)
+	{
+		SegmentationExtension *segExt = dynamic_cast<SegmentationExtension *>(ext);
+		Q_ASSERT(segExt);
+		segExt->initialize(this);
+	}
+	onColorEngineChanged();
 
-  m_extInitialized = true;
+	m_extInitialized = true;
 //   qDebug() << data(Qt::DisplayRole).toString() << " initialized";
 }
 
+//------------------------------------------------------------------------
+void Segmentation::notifyModification(bool force)
+{
+  m_filter->output(m_args.outputNumber())->Update();
+  itk2vtk->SetInput(m_filter->output(m_args.outputNumber()));
+  itk2vtk->Update();
+  ModelItem::notifyModification(force);
+}
 
-// //------------------------------------------------------------------------
-// void Segmentation::color(double* rgba)
-// {
-//   QColor color = m_taxonomy->color();
-//   rgba[0] = color.red()/255.0;
-//   rgba[1] = color.green()/255.0;
-//   rgba[2] = color.blue()/255.0;
-//   rgba[3] = 1;
-// }
 
 //------------------------------------------------------------------------
 bool Segmentation::setData(const QVariant& value, int role)
 {
-  switch (role)
-  {
-    case Qt::EditRole:
-      return true;
-    case Qt::CheckStateRole:
-      setVisible(value.toBool());
-      return true;
-    case SelectionRole:
-      setSelected(value.toBool());
-      return true;
-    default:
-      return false;
-  }
+	switch (role)
+	{
+		case Qt::EditRole:
+			return true;
+		case Qt::CheckStateRole:
+			setVisible(value.toBool());
+			return true;
+		case SelectionRole:
+			setSelected(value.toBool());
+			return true;
+		default:
+			return false;
+	}
 }
 
 //------------------------------------------------------------------------
 void Segmentation::setTaxonomy(TaxonomyNode* tax)
 {
-  m_taxonomy = tax;
-  m_args[TAXONOMY] = Argument(tax->qualifiedName());
+	m_taxonomy = tax;
+	m_args[TAXONOMY] = Argument(tax->qualifiedName());
 }
 
-void Segmentation::bounds(double val[3])
-//------------------------------------------------------------------------
-{
-  if (m_bounds[1] < m_bounds[0])
-  {
-    m_data.pipelineSource()->updatePipeline();
-    vtkPVDataInformation *info = outputPort()->getDataInformation();
-    info->GetBounds(m_bounds);
-  }
-  memcpy(val,m_bounds,6*sizeof(double));
-}
+// void Segmentation::bounds(double val[3])
+// //------------------------------------------------------------------------
+// {
+//   if (m_bounds[1] < m_bounds[0])
+//   {
+//     output()->GetProducer()->Update();
+//     vtkImageData *image = vtkImageData::SafeDownCast(output());
+//     image->GetBounds(m_bounds);
+//   }
+//   memcpy(val,m_bounds,6*sizeof(double));
+// }
 
 //------------------------------------------------------------------------
 void Segmentation::setVisible(bool visible)
 {
-  m_isVisible = visible;
+	m_isVisible = visible;
 }
-
 
 //------------------------------------------------------------------------
 void Segmentation::addExtension(SegmentationExtension * ext)
 {
-  ModelItem::addExtension(ext);
+	ModelItem::addExtension(ext);
 }
 
 // //------------------------------------------------------------------------
@@ -272,47 +270,53 @@ void Segmentation::addExtension(SegmentationExtension * ext)
 //------------------------------------------------------------------------
 QStringList Segmentation::availableInformations() const
 {
-  QStringList informations;
-  informations << "Name" << "Taxonomy";
-  informations << ModelItem::availableInformations();
+	QStringList informations;
+	informations << "Name" << "Taxonomy";
+	informations << ModelItem::availableInformations();
 
-  return informations;
+	return informations;
 }
 
 //------------------------------------------------------------------------
 QVariant Segmentation::information(QString info)
 {
-  if (!m_extInitialized)
-  {
-    this->initializeExtensions();
-  }
-  if (info == "Name")
-    return data(Qt::DisplayRole);
-  if (info == "Taxonomy")
-    return m_taxonomy->qualifiedName();
+	if (!m_extInitialized)
+	{
+		this->initializeExtensions();
+	}
+	if (info == "Name")
+		return data(Qt::DisplayRole);
+	if (info == "Taxonomy")
+		return m_taxonomy->qualifiedName();
 
-  Q_ASSERT(m_informations.contains(info));
-  return m_informations[info]->information(info);
+	qDebug() << info;
+	Q_ASSERT(m_informations.contains(info));
+	return m_informations[info]->information(info);
 }
 
 //------------------------------------------------------------------------
 void Segmentation::onColorEngineChanged()
 {
-  ColorEngineSettings &settings = EspinaCore::instance()->colorSettings();
-  ColorEngine * engine = settings.engine();
-  QColor color = engine->color(this);
-  if (m_color != color)
-  {
-    m_color = color;
-    notifyModification();
-  }
+	ColorEngineSettings &settings = EspinaCore::instance()->colorSettings();
+	ColorEngine * engine = settings.engine();
+	QColor color = engine->color(this);
+	if (m_color != color)
+	{
+		m_color = color;
+		notifyModification();
+	}
 }
 
-//
-// //------------------------------------------------------------------------
-// void Segmentation::notifyInternalUpdate()
-// {
-// //   std::cout << "Notifying update" << std::endl;
-// //   this->origin()->representation(LabelMapExtension::SampleRepresentation::ID)->requestUpdate(true);
-//   emit updated(this);
-// }
+vtkAlgorithmOutput* Segmentation::image()
+{
+  if (itk2vtk.IsNull())
+  {
+    qDebug() << "Converting from ITK to VTK";
+    itk2vtk = itk2vtkFilterType::New();
+    itk2vtk->ReleaseDataFlagOn();
+    itk2vtk->SetInput(m_filter->output(m_args.outputNumber()));
+    itk2vtk->Update();
+  }
+
+  return itk2vtk->GetOutput()->GetProducerPort();
+}

@@ -28,7 +28,7 @@
 
 #include <QAbstractItemView>
 #include <QDockWidget>
-#include "common/widgets/RectangularSelection.h"
+
 #include "common/gui/SliceView.h"
 
 // Forward-declaration
@@ -55,11 +55,11 @@ public:
   virtual void scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint = EnsureVisible) {}
   virtual QRect visualRect(const QModelIndex& index) const {return QRect();}
 
-  virtual void addWidget(EspinaWidget *widget) = 0;
-  virtual void removeWidget(EspinaWidget *widget) = 0;
+//   virtual void addWidget(EspinaWidget *widget) = 0;
+//   virtual void removeWidget(EspinaWidget *widget) = 0;
 
-  virtual void addRepresentation(pqOutputPort *oport, QColor color) = 0;
-  virtual void removeRepresentation(pqOutputPort *oport) = 0;
+//   virtual void addRepresentation(pqOutputPort *oport, QColor color) = 0;
+//   virtual void removeRepresentation(pqOutputPort *oport) = 0;
 
   virtual void gridSize(double size[3]) = 0;
   virtual void setGridSize(double size[3]) = 0;
@@ -78,8 +78,8 @@ public slots:
 signals:
   void statusMsg(QString);
 
-  void selectedFromSlice(double, vtkPVSliceView::VIEW_PLANE);
-  void selectedToSlice(double, vtkPVSliceView::VIEW_PLANE);
+  void selectedFromSlice(double, vtkSliceView::VIEW_PLANE);
+  void selectedToSlice(double, vtkSliceView::VIEW_PLANE);
 
 protected:
   // AbstractItemView Interfacec

@@ -21,16 +21,6 @@
 #include <QFileDialog>
 #include <QDebug>
 
-#include <pqObjectBuilder.h>
-#include <pqApplicationCore.h>
-#include <pqActiveObjects.h>
-#include <pqRenderView.h>
-#include <pqDisplayPolicy.h>
-#include <pqDataRepresentation.h>
-#include <pqPipelineRepresentation.h>
-#include <pqViewExporterManager.h>
-#include <vtkSMRenderViewProxy.h>
-
 #include <model/ModelItem.h>
 #include <model/Segmentation.h>
 #include <model/Filter.h>

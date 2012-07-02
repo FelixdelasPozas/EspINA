@@ -24,7 +24,7 @@
 #include <vtkCommand.h>
 #include <vtkInteractorStyle.h>
 #include <vtkRenderWindow.h>
-#include <pqRenderViewBase.h>
+#include <QVTKWidget.h>
 
 #include <QPixmap>
 #include <QPaintEngine>
@@ -32,7 +32,6 @@
 #include <QMouseEvent>
 #include <QApplication>
 #include <QEvent>
-#include <QWidget>
 
 #include <QDebug>
 
@@ -48,24 +47,25 @@ PencilSelector::PencilSelector(SelectionHandler* succesor)
 }
 
 //-----------------------------------------------------------------------------
+//TODO: Pass only the QVTKWidget which contains the elements which we are interested in
 bool PencilSelector::filterEvent(QEvent* e, SelectableView* view)
 {
   if (e->type() == QEvent::Enter)
   {
     setRadius(m_radius);
-    view->view()->getWidget()->grabKeyboard();
+    view->view()->grabKeyboard();
     return SelectionHandler::filterEvent(e, view);
   }
   else if (e->type() == QEvent::Leave)
   {
-    view->view()->getWidget()->releaseKeyboard();
+    view->view()->releaseKeyboard();
     return SelectionHandler::filterEvent(e, view);
   } else if (e->type() == QEvent::KeyPress)
   {
    QKeyEvent *ke = static_cast<QKeyEvent *>(e);
     if (ke->key() == Qt::Key_Control && ke->count() == 1)
       changeState(ERASING);
-    view->view()->getWidget()->setCursor(cursor());
+    view->view()->setCursor(cursor());
     return true;
   }
   if (e->type() == QEvent::KeyRelease)
@@ -73,7 +73,7 @@ bool PencilSelector::filterEvent(QEvent* e, SelectableView* view)
    QKeyEvent *ke = static_cast<QKeyEvent *>(e);
     if (ke->key() == Qt::Key_Control && ke->count() == 1)
       changeState(DRAWING);
-    view->view()->getWidget()->setCursor(cursor());
+    view->view()->setCursor(cursor());
     return true;
   }
   if (e->type() == QEvent::Wheel)
@@ -83,7 +83,7 @@ bool PencilSelector::filterEvent(QEvent* e, SelectableView* view)
     {
       int numSteps = we->delta()/8/15;//Refer to QWheelEvent doc.
       setRadius(m_radius+numSteps);
-      view->view()->getWidget()->setCursor(cursor());
+      view->view()->setCursor(cursor());
       return true;
     }else if (we->buttons() == Qt::LeftButton)
     {

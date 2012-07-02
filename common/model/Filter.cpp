@@ -18,16 +18,98 @@
 
 
 #include "Filter.h"
+#include <EspinaCore.h>
+#include <itkMetaImageIO.h>
 
 #include <QWidget>
 
+typedef ModelItem::ArgumentId ArgumentId;
 
+const ArgumentId Filter::ID     = ArgumentId("ID", true);
+const ArgumentId Filter::INPUTS = ArgumentId("Inputs", true);
+const ArgumentId Filter::EDIT   = ArgumentId("Edit", true);
+
+unsigned int Filter::m_lastId = 0;
+
+//----------------------------------------------------------------------------
+void Filter::resetId()
+{
+  m_lastId = 0;
+}
+
+
+//----------------------------------------------------------------------------
+QString Filter::generateId()
+{
+  return QString::number(m_lastId++);
+}
+
+//----------------------------------------------------------------------------
+Filter::Filter(Filter::NamedInputs  namedInputs,
+               ModelItem::Arguments args)
+: m_namedInputs(namedInputs)
+, m_args(args)
+{
+  if (!m_args.contains(ID))
+    m_args[ID] = "-1";
+}
+
+
+//----------------------------------------------------------------------------
+bool Filter::isEdited() const
+{
+  return m_args.contains(EDIT);
+}
+
+//----------------------------------------------------------------------------
+void Filter::update()
+{
+  if (!needUpdate())
+    return;
+
+  if (!prefetchFilter())
+  {
+    m_inputs.clear();
+    QStringList namedInputList = m_args[INPUTS].split(",", QString::SkipEmptyParts);
+    foreach(QString namedInput, namedInputList)
+    {
+      QStringList input = namedInput.split("_");
+      Filter *inputFilter = m_namedInputs[input[0]];
+      inputFilter->update();
+      m_inputs << inputFilter->output(input[1].toUInt());
+    }
+    run();
+  }
+}
+
+//----------------------------------------------------------------------------
+bool Filter::prefetchFilter()
+{
+  return false;
+}
+
+//----------------------------------------------------------------------------
+Filter::EspinaVolumeReader::Pointer Filter::tmpFileReader(const QString file)
+{
+  QDir tmpDir = EspinaCore::instance()->temporalDir();
+  if (tmpDir.exists(file))
+  {
+    itk::MetaImageIO::Pointer io = itk::MetaImageIO::New();
+    EspinaVolumeReader::Pointer reader = EspinaVolumeReader::New();
+
+    std::string tmpFile = tmpDir.absoluteFilePath(file).toStdString();
+    io->SetFileName(tmpFile.c_str());
+    reader->SetImageIO(io);
+    reader->SetFileName(tmpFile);
+    reader->Update();
+
+    return reader;
+  }
+  return NULL;
+}
+
+//----------------------------------------------------------------------------
 QWidget* Filter::createConfigurationWidget()
 {
   return new QWidget();
-}
-
-void Filter::setSegmentationData(Segmentation* seg, pqData data)
-{
-  seg->m_data = data;
 }

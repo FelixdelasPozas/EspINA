@@ -1,5 +1,8 @@
-find_package (ParaView REQUIRED 1.12) # Includes Qt4
-include (${PARAVIEW_USE_FILE})
+find_package(Quazip REQUIRED)
+include(${QUAZIP_USE_FILE})
+
+find_package(Qt4 REQUIRED)
+include(${QT_USE_FILE})
 
 find_package (VTK REQUIRED)
 include (${VTK_USE_FILE})
@@ -15,7 +18,6 @@ set(CMAKE_CXX_FLAGS " -Wall -Wno-deprecated")
 find_package(Boost REQUIRED COMPONENTS  graph) #system filesystem
 link_directories ( ${Boost_LIBRARY_DIRS} )
 
-# We need to include directories containing vtk filters
 include_directories(
   ${CMAKE_SOURCE_DIR}
   ${CMAKE_SOURCE_DIR}/common
@@ -26,118 +28,18 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/common/widgets
   ${CMAKE_SOURCE_DIR}/common/views
   ${CMAKE_CURRENT_BINARY_DIR}  #For wrap/ui files
-#   ${CMAKE_CURRENT_BINARY_DIR}/widgets
-  ${ITK_VTK_GLUE}
 )
 
+#   extensions/Margins/vtkChannelBorderDetector.cpp
+#   extensions/Morphological/vtkMorphologicalFeaturesFilter.cpp
 
-####### EspinaPVCore #########
-
-ADD_3DWIDGET(
-  WIDGET_IFACES WIDGET_SOURCES
-  CLASS_NAME pqNonRotatingBoxWidget
-  WIDGET_TYPE NonRotatingBox
-  )
-
-ADD_3DWIDGET(
-  WIDGET2_IFACES WIDGET2_SOURCES
-  CLASS_NAME pqRectangularWidget
-  WIDGET_TYPE RectangularBorder
-  )
-
-ADD_PARAVIEW_VIEW_MODULE(
-  SLICE_VIEW_IFACES SLICE_VIEW_SOURCES
-  VIEW_TYPE pqSliceView
-  VIEW_XML_GROUP views
-  )
-
-ADD_PARAVIEW_VIEW_MODULE(
-  VOLUME_VIEW_IFACES VOLUME_VIEW_SOURCES
-  VIEW_TYPE pqVolumeView
-  VIEW_XML_GROUP views
-  )
-
-set (PVCORE_IFACES
-  ${WIDGET_IFACES}
-  ${WIDGET2_IFACES}
-  ${SLICE_VIEW_IFACES}
-  ${VOLUME_VIEW_IFACES}
-  )
-
-qt4_wrap_cpp(PVMOC_SOURCES
-  views/pqSliceView.h
-  views/pqVolumeView.h
-  widgets/pqRectangularWidget.h
-  widgets/pqNonRotatingBoxWidget.h
-  )
-
-set (PVCORE_SERVER_SOURCES
-  editor/vtkClosingImageFilter.cpp
-  editor/vtkOpeningImageFilter.cpp
-  editor/vtkDilateImageFilter.cpp
-  editor/vtkErodeImageFilter.cpp
-  editor/vtkImageLogicFilter.cpp
-  editor/vtkFreeFormSource.cpp
-  extensions/Margins/vtkChannelBorderDetector.cpp
-  extensions/Morphological/vtkMorphologicalFeaturesFilter.cpp
-  views/vtkPVSliceView.cpp
-  views/vtkPVVolumeView.cpp
-  views/vtkSMSliceViewProxy.cpp
-  views/vtkChannelRepresentation.cpp
-  views/vtkSegmentationRepresentation.cpp
-  views/vtkSliceRepresentation.cpp
-  views/vtkCrosshairRepresentation.cpp
-  views/vtkVolumetricRepresentation.cpp
-  widgets/vtkRectangularRepresentation.cpp
-  widgets/vtkRectangularWidget.cpp
-  widgets/vtkNonRotatingBoxRepresentation.cpp
-  widgets/vtkNonRotatingBoxWidget.cpp
-  )
-
-set (PVCORE_SOURCES
-  ${PVMOC_SOURCES}
-  ${WIDGET_SOURCES}
-  ${WIDGET2_SOURCES}
-  ${SLICE_VIEW_SOURCES}
-  ${VOLUME_VIEW_SOURCES}
-  views/pqSliceView.cpp
-  views/pqVolumeView.cpp
-  widgets/pqRectangularWidget.cpp
-  widgets/pqNonRotatingBoxWidget.cpp
-  widgets/EspinaWidget.cpp
-  widgets/RectangularSelection.cpp
-  )
-
-set (PVCORE_XML
-  editor/Editor.xml
-  extensions/Margins/Margins.xml
-  extensions/Morphological/MorphologicalExtension.xml
-  model/Model.xml
-  widgets/EspinaWidgets.xml
-  views/EspinaViews.xml
-  )
-
-ADD_PARAVIEW_PLUGIN(
-  EspinaPVCore
-  "${ESPINA_VERSION_MAJOR}.${ESPINA_VERSION_MINOR}"
-  SERVER_MANAGER_XML ${PVCORE_XML}
-  SERVER_MANAGER_SOURCES ${PVCORE_SERVER_SOURCES}
-  SOURCES ${PVCORE_SOURCES}
-  GUI_INTERFACES ${PVCORE_IFACES}
-  )
-
-set (PVCORE_LIBRARIES
-  ITKBasicFilters ITKAlgorithms ITKCommon
-  )
-
-target_link_libraries(EspinaPVCore ${PVCORE_LIBRARIES})
 
 ####### EspinaCore #########
-
 # Add extra library containing custom code for the client.
 qt4_wrap_cpp(CORE_MOC
   EspinaCore.h
   editor/PencilSelector.h
+  editor/CODESettings.h
   gui/ActionSelector.h
   gui/ActionSelectorWidget.h
   gui/EspinaView.h
@@ -160,20 +62,24 @@ qt4_wrap_cpp(CORE_MOC
 set (CORE_SOURCES
   ${CORE_MOC}
   EspinaCore.cpp
-  File.cpp
-  cache/Cache.cpp
   cache/CacheHash.cpp
-  cache/CachedObjectBuilder.cpp
+  editor/CODESettings.cpp
   editor/PencilSelector.cpp
   editor/FreeFormSource.cpp
   editor/ImageLogicCommand.cpp
-  editor/CODEFilter.cpp
+  editor/MorphologicalEditionFilter.cpp
+  editor/ClosingFilter.cpp
+  editor/OpeningFilter.cpp
+  editor/DilateFilter.cpp
+  editor/ErodeFilter.cpp
   editor/ImageLogicFilter.cpp
+  editor/vtkImageLogicFilter.cpp
+  IO/FilePack.cpp
   extensions/ChannelExtension.cpp
-  extensions/Margins/MarginsChannelExtension.cpp
-  extensions/Margins/MarginsSegmentationExtension.cpp
-  extensions/ModelItemExtension.cpp
-  extensions/Morphological/MorphologicalExtension.cpp
+#   extensions/Margins/MarginsChannelExtension.cpp
+#   extensions/Margins/MarginsSegmentationExtension.cpp
+#   extensions/ModelItemExtension.cpp
+#   extensions/Morphological/MorphologicalExtension.cpp
   extensions/SampleExtension.cpp
   extensions/SegmentationExtension.cpp
   gui/ActionSelector.cpp
@@ -182,6 +88,8 @@ set (CORE_SOURCES
   gui/EspinaDockWidget.cpp
   gui/EspinaView.cpp
   gui/SliceView.cpp
+  gui/SliceViewState.cpp
+  gui/vtkInteractorStyleEspinaSlice.cpp
   gui/NumberColorEngine.cpp
   gui/TaxonomyColorEngine.cpp
   gui/UserColorEngine.cpp
@@ -189,6 +97,7 @@ set (CORE_SOURCES
   gui/ViewManager.cpp
   gui/VolumeView.cpp
   model/Channel.cpp
+  model/ChannelReader.cpp
   model/EspinaFactory.cpp
   model/EspinaModel.cpp
   model/Filter.cpp
@@ -198,11 +107,10 @@ set (CORE_SOURCES
   model/Sample.cpp
   model/Segmentation.cpp
   model/Taxonomy.cpp
+  EspinaTypes.cpp
   model/proxies/ChannelProxy.cpp
   model/proxies/SampleProxy.cpp
   model/proxies/TaxonomyProxy.cpp
-  processing/pqData.cpp
-  processing/pqFilter.cpp
   renderers/CrosshairRenderer.cpp
   renderers/VolumetricRenderer.cpp
   selection/PixelSelector.cpp
@@ -216,8 +124,9 @@ set (CORE_SOURCES
   undo/AddSample.cpp
   undo/AddSegmentation.cpp
   undo/RemoveSegmentation.cpp
+  #views/vtkSliceView.cpp
+  #views/vtkVolumeView.cpp
   )
-# add_library(fakeGUI ${CORE_SOURCES})
 
 # Make debug output clearer
 #foreach(arg ${CORE_SOURCES})
@@ -235,27 +144,14 @@ set (CORE_SOURCES
 # endforeach(arg ${PVCORE_XML})
 #message("PV XML:${MSG_PVXML}")
 
-
 set(CORE_EXTERNAL_LIBS
+  ${QUAZIP_LIBRARIES}
   ${Boost_LIBRARIES}
+  ${VTK_LIBRARIES}
+  ${ITK_LIBRARIES}
+  QVTK
   QtTest
-  EspinaPVCore
-  pqApplicationComponents
 )
 
 add_library (EspinaCore SHARED ${CORE_SOURCES})
 target_link_libraries (EspinaCore ${CORE_EXTERNAL_LIBS})
-
-install (
-  TARGETS EspinaCore EspinaPVCore
-  LIBRARY
-  DESTINATION lib
-#  COMPONENT espina
-  )
-
-install (
-  TARGETS EspinaPVCore
-  LIBRARY
-  DESTINATION bin/plugins
-#  COMPONENT espina
-  )

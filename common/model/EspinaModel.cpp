@@ -530,9 +530,10 @@ void EspinaModel::addRelation(ModelItem* ancestor, ModelItem* successor, QString
 {
   m_relations->addRelation(ancestor, successor, relation);
   QModelIndex ancestorIndex = index(ancestor);
-  QModelIndex succesorIndex = index(successor);
+  QModelIndex successorIndex = index(successor);
+//   qDebug() << ancestorIndex.data().toString() << "==" << relation << "==>" << successorIndex.data().toString();
   emit dataChanged(ancestorIndex, ancestorIndex);
-  emit dataChanged(succesorIndex, succesorIndex);
+  emit dataChanged(successorIndex, successorIndex);
   markAsChanged();;
 }
 
@@ -550,6 +551,8 @@ void EspinaModel::removeRelation(ModelItem* ancestor, ModelItem* successor, QStr
 //------------------------------------------------------------------------
 void EspinaModel::serializeRelations(std::ostream& stream, RelationshipGraph::PrintFormat format)
 {
+  Filter::resetId();
+  m_relations->updateVertexInformation();
   m_relations->write(stream, format);
 }
 
@@ -571,14 +574,15 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
 
   input->read(stream);
 //   qDebug() << "Check";
-  m_relations->updateVertexInformation();
+  //m_relations->updateVertexInformation();
 //   input->write(std::cout,RelationshipGraph::BOOST);
-//   input->write(std::cout,RelationshipGraph::GRAPHVIZ);
+  input->write(std::cout, RelationshipGraph::GRAPHVIZ);
 
   EspinaFactory *factory = EspinaFactory::instance();
 
   typedef QPair<ModelItem *, ModelItem::Arguments> NonInitilizedItem;
   QList<NonInitilizedItem> nonInitializedItems;
+  QList<VertexProperty> segmentationNodes;
   QList<Segmentation *> newSegmentations;
 
   foreach(VertexProperty v, input->vertices())
@@ -592,52 +596,86 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
     {
       switch (RelationshipGraph::type(v))
       {
-	case ModelItem::SAMPLE:
-	{
-	  ModelItem::Arguments args(v.args.c_str());
-	  Sample *sample = factory->createSample(v.name.c_str(), v.args.c_str());
-	  addSample(sample);
-	  nonInitializedItems << NonInitilizedItem(sample, args);
-	  EspinaCore::instance()->setSample(sample);
-	  input->setItem(v.vId, sample);
-	  break;
-	}
-	case ModelItem::CHANNEL:
-	{
-	  ModelItem::Arguments args(v.args.c_str());
-	  Channel *channel = factory->createChannel(v.name.c_str(), args);
-	  addChannel(channel);
-	  nonInitializedItems << NonInitilizedItem(channel, args);
-	  input->setItem(v.vId, channel);
-	  break;
-	}
-	case ModelItem::FILTER:
-	{
-	  Filter *filter = factory->createFilter(v.name.c_str(), ModelItem::Arguments(v.args.c_str()));
-	  addFilter(filter);
-	  input->setItem(v.vId, filter);
-	  break;
-	}
-	case ModelItem::SEGMENTATION:
-	{
-	  Vertices ancestors = input->ancestors(v.vId, "CreateSegmentation");
-	  Q_ASSERT(ancestors.size() == 1);
-	  Filter *filter =  dynamic_cast<Filter *>(ancestors.first().item);
-	  ModelItem::Arguments args(QString(v.args.c_str()));
-	  Segmentation *seg = filter->product(args[Segmentation::OUTPUT].toInt());
-	  seg->setNumber(args[Segmentation::NUMBER].toInt());
-	  TaxonomyNode *taxonomy = m_tax->element(args[Segmentation::TAXONOMY]);
-	  if (taxonomy)
-	    seg->setTaxonomy(taxonomy);
-	  newSegmentations << seg;
-	  nonInitializedItems << NonInitilizedItem(seg, args);
-	  input->setItem(v.vId, seg);
-	  break;
-	}
-	default:
-	  Q_ASSERT(false);
+        case ModelItem::SAMPLE:
+        {
+          ModelItem::Arguments args(v.args.c_str());
+          Sample *sample = factory->createSample(v.name.c_str(), v.args.c_str());
+          addSample(sample);
+          nonInitializedItems << NonInitilizedItem(sample, args);
+          EspinaCore::instance()->setSample(sample);
+          input->setItem(v.vId, sample);
+          break;
+        }
+        case ModelItem::CHANNEL:
+        {
+          ModelItem::Arguments args(v.args.c_str());
+          // TODO: Move link management code inside Channel's Arguments class
+          QStringList link = args[Channel::VOLUME].split("_");
+          Q_ASSERT(link.size() == 2);
+          Vertices ancestors = input->ancestors(v.vId, link[0]);
+          Q_ASSERT(ancestors.size() == 1);
+          ModelItem *item = ancestors.first().item;
+          Q_ASSERT(ModelItem::FILTER == item->type());
+          Filter *filter =  dynamic_cast<Filter *>(item);
+          filter->update();
+          Channel *channel = factory->createChannel(filter, link[1].toUInt());
+          channel->initialize(args);
+          addChannel(channel);
+          nonInitializedItems << NonInitilizedItem(channel, args);
+          input->setItem(v.vId, channel);
+          break;
+        }
+        case ModelItem::FILTER:
+        {
+          Filter::NamedInputs inputs;
+          Filter::Arguments args(v.args.c_str());
+          QStringList inputLinks = args[Filter::INPUTS].split(",", QString::SkipEmptyParts);
+          // We need to update id values for future filters
+          foreach(QString inputLink, inputLinks)
+          {
+            QStringList link = inputLink.split("_");
+            Q_ASSERT(link.size() == 2);
+            Vertices ancestors = input->ancestors(v.vId, link[0]);
+            Q_ASSERT(ancestors.size() == 1);
+            ModelItem *item = ancestors.first().item;
+            Q_ASSERT(ModelItem::FILTER == item->type());
+            Filter *filter =  dynamic_cast<Filter *>(item);
+            inputs[link[0]] = filter;
+          }
+          Filter *filter = factory->createFilter(v.name.c_str(), inputs, args);
+          //filter->update();
+          addFilter(filter);
+          input->setItem(v.vId, filter);
+          break;
+        }
+        case ModelItem::SEGMENTATION:
+        {
+          segmentationNodes << v;
+          break;
+        }
+        default:
+          Q_ASSERT(false);
       }
     }
+  }
+
+  foreach(VertexProperty v, segmentationNodes)
+  {
+    Vertices ancestors = input->ancestors(v.vId, CREATELINK);
+    Q_ASSERT(ancestors.size() == 1);
+    ModelItem *item = ancestors.first().item;
+    qDebug() << item->data(Qt::DisplayRole).toString();
+    Filter *filter =  dynamic_cast<Filter *>(item);
+    filter->update();
+    ModelItem::Arguments args(QString(v.args.c_str()));
+    Segmentation *seg = factory->createSegmentation(filter, args[Segmentation::OUTPUT].toInt());
+    seg->setNumber(args[Segmentation::NUMBER].toInt());
+    TaxonomyNode *taxonomy = m_tax->element(args[Segmentation::TAXONOMY]);
+    if (taxonomy)
+      seg->setTaxonomy(taxonomy);
+    newSegmentations << seg;
+    nonInitializedItems << NonInitilizedItem(seg, args);
+    input->setItem(v.vId, seg);
   }
 
   addSegmentation(newSegmentations);

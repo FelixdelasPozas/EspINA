@@ -23,8 +23,9 @@
 #include "common/selection/SelectionHandler.h"
 #include "common/model/Filter.h"
 
+class QVTKWidget;
+class vtkView;
 class vtkRenderWindow;
-class pqRenderViewBase;
 
 /// Interface for Views where user can select data
 class SelectableView
@@ -43,8 +44,8 @@ public:
   virtual void eventPosition(int &x, int &y) = 0;
   virtual SelectionHandler::MultiSelection select(SelectionHandler::SelectionFilters filters, SelectionHandler::ViewRegions regions) = 0;
 
-  virtual pqRenderViewBase *view() = 0;
   virtual vtkRenderWindow *renderWindow() = 0;
+  virtual QVTKWidget *view() = 0;
 
 // protected:
 //   virtual void setVOI(IVOI *voi) = 0;

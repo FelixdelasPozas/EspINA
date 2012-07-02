@@ -21,8 +21,11 @@
 #define SELECTABLEITEM_H
 
 #include <common/model/ModelItem.h>
-#include <common/processing/pqData.h>
 
+#include <EspinaTypes.h>
+
+class Filter;
+class vtkAlgorithmOutput;
 
 class SelectableItem
 : public ModelItem
@@ -32,7 +35,9 @@ public:
 
   virtual bool isSelected() const {return m_isSelected;}
   virtual void setSelected(bool value) {m_isSelected = value;}
-  virtual pqData volume() = 0;
+  virtual Filter       *filter() = 0;
+  virtual OutputNumber  outputNumber() = 0;
+  virtual EspinaVolume *volume() = 0;
 
 protected:
   bool m_isSelected;

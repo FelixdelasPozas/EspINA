@@ -118,6 +118,7 @@ public:
 
   void addFilter(Filter *filter);
   void removeFilter(Filter *filter);
+  QList<Filter *> filters() const {return m_filters;}
 
   void addRelation(ModelItem *ancestor,
 		   ModelItem *succesor,

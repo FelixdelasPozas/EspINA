@@ -31,10 +31,10 @@
 
 using namespace boost;
 
-const std::string BOX = "box";
-const std::string ELLIPSE = "ellipse";
-const std::string INVTRIANGLE = "invtriangle";
-const std::string TRAPEZIUM = "trapezium";
+const std::string CHANNEL_SHAPE = "trapezium";
+const std::string SEGMENTATION_SHAPE = "ellipse";
+const std::string FILTER_SHAPE = "box";
+const std::string SAMPLE_SHAPE = "invtriangle";
 
 std::ostream& operator << ( std::ostream& out, const VertexProperty& v)
 {
@@ -187,29 +187,30 @@ void RelationshipGraph::updateVertexInformation()
       continue;
     Q_ASSERT(item);
     vertex.vId  = item->m_vertex;
-    vertex.name = item->data(Qt::DisplayRole).toString().toStdString();
-    vertex.args = item->serialize().toStdString();
     switch (item->type())
     {
       case ModelItem::SAMPLE:
-        vertex.shape = TRAPEZIUM;
+        vertex.shape = SAMPLE_SHAPE;
         break;
       case ModelItem::CHANNEL:
-	vertex.shape = BOX;
-	break;
+        vertex.shape = CHANNEL_SHAPE;
+        break;
       case ModelItem::SEGMENTATION:
-	vertex.shape = ELLIPSE;
-	break;
+        vertex.shape = SEGMENTATION_SHAPE;
+        break;
       case ModelItem::FILTER:
       {
-	Filter *filter = dynamic_cast<Filter *>(item);
-	Q_ASSERT(filter);
-	vertex.shape = INVTRIANGLE;
+        Filter *filter = dynamic_cast<Filter *>(item);
+        Q_ASSERT(filter);
+        filter->setId(Filter::generateId());
+        vertex.shape = FILTER_SHAPE;
         break;
       }
-    default:
+      default:
         Q_ASSERT(false);
     }
+    vertex.name = item->data(Qt::DisplayRole).toString().toStdString();
+    vertex.args = item->serialize().toStdString();
   }
 }
 
@@ -436,13 +437,13 @@ ModelItem::ItemType RelationshipGraph::type(const VertexProperty v)
 {
   if (v.item)
     return v.item->type();
-  else if (v.shape == TRAPEZIUM)
+  else if (v.shape == SAMPLE_SHAPE)
     return ModelItem::SAMPLE;
-  else if (v.shape == BOX)
+  else if (v.shape == CHANNEL_SHAPE)
     return ModelItem::CHANNEL;
-  else if (v.shape == ELLIPSE)
+  else if (v.shape == SEGMENTATION_SHAPE)
     return ModelItem::SEGMENTATION;
-  else if (v.shape == INVTRIANGLE)
+  else if (v.shape == FILTER_SHAPE)
     return ModelItem::FILTER;
 
   Q_ASSERT(false);
@@ -506,7 +507,6 @@ void RelationshipGraph::read(std::istream& stream, RelationshipGraph::PrintForma
 //-----------------------------------------------------------------------------
 void RelationshipGraph::write(std::ostream &stream, RelationshipGraph::PrintFormat format)
 {
-  this->updateVertexInformation();
   switch (format)
   {
     case BOOST:

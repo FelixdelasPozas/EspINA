@@ -30,8 +30,13 @@
 #include <editor/ImageLogicCommand.h>
 #include <editor/PencilSelector.h>
 #include <editor/FreeFormSource.h>
-#include <editor/CODEFilter.h>
+#include <editor/ClosingFilter.h>
+#include <editor/ErodeFilter.h>
+#include <editor/DilateFilter.h>
+#include <editor/OpeningFilter.h>
 #include <undo/RemoveSegmentation.h>
+#include <gui/EspinaView.h>
+#include "frontend/toolbar/editor/MorphologicalSettingsPanel.h"
 
 //----------------------------------------------------------------------------
 class EditorToolBar::FreeFormCommand
@@ -39,16 +44,17 @@ class EditorToolBar::FreeFormCommand
 {
 public:
   explicit FreeFormCommand(Channel * channel,
-		      FreeFormSource *filter,
-		      TaxonomyNode *taxonomy)
+                           FreeFormSource *filter,
+                           Segmentation *seg,
+                           TaxonomyNode *taxonomy)
   : m_channel (channel)
   , m_filter  (filter)
+  , m_seg(seg)
   , m_taxonomy(taxonomy)
   {
-    ModelItem::Vector samples = m_channel->relatedItems(ModelItem::IN, "mark");
+    ModelItem::Vector samples = m_channel->relatedItems(ModelItem::IN, Channel::STAINLINK);
     Q_ASSERT(samples.size() > 0);
     m_sample = dynamic_cast<Sample *>(samples.first());
-    m_seg = m_filter->product(0);
   }
 
   virtual void redo()
@@ -59,7 +65,7 @@ public:
     model->addRelation(m_channel, m_filter, "Channel");
     m_seg->setTaxonomy(m_taxonomy);
     model->addSegmentation(m_seg);
-    model->addRelation(m_filter, m_seg, "CreateSegmentation");
+    model->addRelation(m_filter, m_seg, CREATELINK);
     model->addRelation(m_sample, m_seg, "where");
     model->addRelation(m_channel, m_seg, "Channel");
     m_seg->initialize();
@@ -71,7 +77,7 @@ public:
 
     model->removeRelation(m_channel, m_seg, "Channel");
     model->removeRelation(m_sample, m_seg, "where");
-    model->removeRelation(m_filter, m_seg, "CreateSegmentation");
+    model->removeRelation(m_filter, m_seg, CREATELINK);
     model->removeSegmentation(m_seg);
     model->removeRelation(m_channel, m_filter, "Channel");
     model->removeFilter(m_filter);
@@ -91,7 +97,7 @@ class EditorToolBar::DrawCommand
 {
 public:
   explicit DrawCommand(FreeFormSource *source,
-		      vtkPVSliceView::VIEW_PLANE plane,
+		      vtkSliceView::VIEW_PLANE plane,
 		      QVector3D center, int radius)
   : m_source(source)
   , m_plane(plane)
@@ -111,7 +117,7 @@ public:
 
 private:
   FreeFormSource            *m_source;
-  vtkPVSliceView::VIEW_PLANE m_plane;
+  vtkSliceView::VIEW_PLANE m_plane;
   QVector3D                  m_center;
   int                        m_radius;
 };
@@ -122,7 +128,7 @@ class EditorToolBar::EraseCommand
 {
 public:
   explicit EraseCommand(FreeFormSource *source,
-		       vtkPVSliceView::VIEW_PLANE plane,
+		       vtkSliceView::VIEW_PLANE plane,
 		       QVector3D center, int radius)
   : m_source(source)
   , m_plane(plane)
@@ -142,7 +148,7 @@ public:
 
 private:
   FreeFormSource            *m_source;
-  vtkPVSliceView::VIEW_PLANE m_plane;
+  vtkSliceView::VIEW_PLANE m_plane;
   QVector3D                  m_center;
   int                        m_radius;
 };
@@ -153,15 +159,48 @@ private:
 class EditorToolBar::CODECommand :
 public QUndoCommand
 {
+  static const QString INPUTLINK;
 public:
-
-  explicit CODECommand(QList<Segmentation *> inputs,
-		      CODEFilter::Operation op,
-		      unsigned int radius)
+  enum Operation
   {
-    foreach(Segmentation *seg, inputs)
+    CLOSE,
+    OPEN,
+    DILATE,
+    ERODE
+  };
+public:
+  explicit CODECommand(QList<Segmentation *> inputs,
+                       Operation op,
+                       unsigned int radius)
+  : m_segmentations(inputs)
+  {
+    foreach(Segmentation *seg, m_segmentations)
     {
-      m_filters << new CODEFilter(seg, op, radius);
+      Filter *filter;
+      Filter::NamedInputs inputs;
+      Filter::Arguments args;
+      MorphologicalEditionFilter::Parameters params(args);
+      params.setRadius(radius);
+      inputs[INPUTLINK] = seg->filter();
+      args[Filter::INPUTS] = INPUTLINK + "_" + QString::number(seg->outputNumber());
+      switch (op)
+      {
+        case CLOSE:
+          filter = new ClosingFilter(inputs, args);
+          break;
+        case OPEN:
+          filter = new OpeningFilter(inputs, args);
+          break;
+        case DILATE:
+          filter = new DilateFilter(inputs, args);
+          break;
+        case ERODE:
+          filter = new ErodeFilter(inputs, args);
+          break;
+      }
+      filter->update();
+      m_newConnections << Connection(filter, 0);
+      m_oldConnections << Connection(seg->filter(), seg->outputNumber());
     }
   }
 
@@ -169,25 +208,47 @@ public:
   {
     QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
 
-    foreach(Filter *filter, m_filters)
+    for(unsigned int i=0; i<m_newConnections.size(); i++)
     {
-      model->addFilter(filter);
-      //model->addRelation(m_channel, m_filter, "Channel");
-      Segmentation *seg = filter->product(0);
-      seg->setTaxonomy(EspinaCore::instance()->activeTaxonomy());
-      model->addSegmentation(seg);
-      model->addRelation(filter, seg, "CreateSegmentation");
-      //model->addRelation(m_sample, m_seg, "where");
-      //model->addRelation(m_channel, m_seg, "Channel");
-      seg->initialize();
+      Segmentation *seg        = m_segmentations[i];
+      Connection oldConnection = m_oldConnections[i];
+      Connection newConnection = m_newConnections[i];
+
+      model->removeRelation(oldConnection.first, seg, CREATELINK);
+      model->addFilter(newConnection.first);
+      model->addRelation(oldConnection.first, newConnection.first, "Input");
+      model->addRelation(newConnection.first, seg, CREATELINK);
+      seg->changeFilter(newConnection.first, newConnection.second);
+      seg->notifyModification(true);
     }
   }
-  virtual void undo(){}
+
+  virtual void undo()
+  {
+    QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
+
+    for(unsigned int i=0; i<m_newConnections.size(); i++)
+    {
+      Segmentation *seg        = m_segmentations[i];
+      Connection oldConnection = m_oldConnections[i];
+      Connection newConnection = m_newConnections[i];
+
+      model->removeRelation(newConnection.first, seg, CREATELINK);
+      model->removeRelation(oldConnection.first, newConnection.first, "Input");
+      model->removeFilter(newConnection.first);
+      model->addRelation(oldConnection.first, seg, CREATELINK);
+      seg->changeFilter(oldConnection.first, oldConnection.second);
+      seg->notifyModification(true);
+    }
+  }
 
 private:
-  QList<Filter *> m_filters;
-  
+  typedef QPair<Filter *, unsigned int> Connection;
+  QList<Connection> m_oldConnections, m_newConnections;
+  QList<Segmentation *> m_segmentations;
 };
+
+const QString EditorToolBar::CODECommand::INPUTLINK = "Input";
 
 //----------------------------------------------------------------------------
 EditorToolBar::EditorToolBar(QWidget* parent)
@@ -203,11 +264,17 @@ EditorToolBar::EditorToolBar(QWidget* parent)
 , m_currentSource(NULL)
 , m_currentSeg(NULL)
 {
-//   setWindowTitle("Editor Tool Bar");
   setObjectName("EditorToolBar");
+  setWindowTitle("Editor Tool Bar");
+  EspinaFactory *factory = EspinaFactory::instance();
+  factory->registerFilter(ClosingFilter::TYPE,  this);
+  factory->registerFilter(OpeningFilter::TYPE,  this);
+  factory->registerFilter(DilateFilter::TYPE,   this);
+  factory->registerFilter(ErodeFilter::TYPE,    this);
+  factory->registerFilter(FreeFormSource::TYPE, this);
+  factory->registerFilter(ImageLogicFilter::TYPE, this);
 
-  EspinaFactory::instance()->registerFilter(FFS, this);
-  EspinaFactory::instance()->registerFilter(ILF, this);
+  factory->registerSettingsPanel(new MorphologicalFiltersPreferences());
 
   m_draw->setIcon(QIcon(":/espina/pencil.png"));
   m_draw->setCheckable(true);
@@ -248,12 +315,20 @@ EditorToolBar::EditorToolBar(QWidget* parent)
 }
 
 //----------------------------------------------------------------------------
-Filter* EditorToolBar::createFilter(const QString filter, const ModelItem::Arguments args)
+Filter* EditorToolBar::createFilter(const QString filter, Filter::NamedInputs inputs, const ModelItem::Arguments args)
 {
-  if (filter == FFS)
-    return new FreeFormSource(args);
-  else if (filter == ILF)
-    return new ImageLogicFilter(args);
+  if (ClosingFilter::TYPE == filter)
+    return new ClosingFilter(inputs, args);
+  if (OpeningFilter::TYPE == filter)
+    return new OpeningFilter(inputs, args);
+  if (DilateFilter::TYPE == filter)
+    return new DilateFilter(inputs, args);
+  if (ErodeFilter::TYPE == filter)
+    return new ErodeFilter(inputs, args);
+  if (FreeFormSource::TYPE == filter)
+    return new FreeFormSource(inputs, args);
+  if (ImageLogicFilter::TYPE == filter)
+    return new ImageLogicFilter(inputs, args);
   else
     Q_ASSERT(false);
 
@@ -304,35 +379,39 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
     extent[min] = std::max(extent[min], channelExtent[min]);
     extent[max] = std::min(extent[max], channelExtent[max]);
   }
-  double spacing[3];
-  channel->spacing(spacing);
 
   if (!m_currentSource)
   {
-    m_currentSource = new FreeFormSource(spacing);
+    Filter::NamedInputs inputs;
+    Filter::Arguments args;
+    FreeFormSource::Parameters params(args);
+    double spacing[3];
+    channel->spacing(spacing);
+    params.setSpacing(spacing);
+    m_currentSource = new FreeFormSource(inputs, args);
   }
 
   int radius = abs(center.x() - p.x());
 
   QSharedPointer<QUndoStack> undo = EspinaCore::instance()->undoStack();
   if (m_pencilSelector->state() == PencilSelector::DRAWING)
-    m_currentSource->draw(vtkPVSliceView::AXIAL, center, radius);
-    //undo->push(new DrawCommand(m_currentSource, vtkPVSliceView::AXIAL, center, radius));
+    m_currentSource->draw(vtkSliceView::AXIAL, center, radius);
+    //undo->push(new DrawCommand(m_currentSource, vtkSliceView::AXIAL, center, radius));
   else if (m_pencilSelector->state() == PencilSelector::ERASING)
-    m_currentSource->erase(vtkPVSliceView::AXIAL, center, radius);
-    //undo->push(new EraseCommand(m_currentSource, vtkPVSliceView::AXIAL, center, radius));
+    m_currentSource->erase(vtkSliceView::AXIAL, center, radius);
+    //undo->push(new EraseCommand(m_currentSource, vtkSliceView::AXIAL, center, radius));
   else
     Q_ASSERT(false);
 
-  if (!m_currentSeg && m_currentSource->numProducts() == 1)
+  if (!m_currentSeg && m_currentSource->numberOutputs() == 1)
   {
-    m_currentSeg = m_currentSource->product(0);
+    m_currentSeg = EspinaFactory::instance()->createSegmentation(m_currentSource, 0);
     TaxonomyNode *tax = EspinaCore::instance()->activeTaxonomy();
-    undo->push(new FreeFormCommand(channel, m_currentSource, tax));
+    undo->push(new FreeFormCommand(channel, m_currentSource, m_currentSeg, tax));
   }
 
-  //if (m_currentSeg)
-    //m_currentSeg->notifyModification(true);
+  if (m_currentSeg)
+    m_currentSeg->notifyModification(true);
 }
 
 //----------------------------------------------------------------------------
@@ -368,7 +447,6 @@ void EditorToolBar::combineSegmentations()
     QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
     undo->beginMacro("Combine Segmentations");
     undo->push(new ImageLogicCommand(input, ImageLogicFilter::ADDITION));
-    undo->push(new RemoveSegmentation(input));
     undo->endMacro();
   }
 }
@@ -383,7 +461,6 @@ void EditorToolBar::substractSegmentations()
     QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
     undo->beginMacro("Substract Segmentations");
     undo->push(new ImageLogicCommand(input, ImageLogicFilter::SUBSTRACTION));
-    undo->push(new RemoveSegmentation(input));
     undo->endMacro();
   }
 }
@@ -394,7 +471,7 @@ void EditorToolBar::erodeSegmentations()
   QList<Segmentation *> input = selectedSegmentations();
   if (input.size() > 0)
   {
-    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODEFilter::ERODE, 10));
+    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODECommand::ERODE, 3));
   }
 }
 
@@ -404,7 +481,7 @@ void EditorToolBar::dilateSegmentations()
   QList<Segmentation *> input = selectedSegmentations();
   if (input.size() > 0)
   {
-    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODEFilter::DILATE, 10));
+    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODECommand::DILATE, 3));
   }
 }
 
@@ -414,7 +491,7 @@ void EditorToolBar::openSegmentations()
   QList<Segmentation *> input = selectedSegmentations();
   if (input.size() > 0)
   {
-    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODEFilter::OPEN, 10));
+    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODECommand::OPEN, 3));
   }
 }
 
@@ -424,7 +501,7 @@ void EditorToolBar::closeSegmentations()
   QList<Segmentation *> input = selectedSegmentations();
   if (input.size() > 0)
   {
-    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODEFilter::CLOSE, 10));
+    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODECommand::CLOSE, 3));
   }
 }
 
