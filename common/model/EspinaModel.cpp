@@ -667,7 +667,6 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
     Vertices ancestors = input->ancestors(v.vId, CREATELINK);
     Q_ASSERT(ancestors.size() == 1);
     ModelItem *item = ancestors.first().item;
-    qDebug() << item->data(Qt::DisplayRole).toString();
     Filter *filter =  dynamic_cast<Filter *>(item);
     filter->update();
     ModelItem::Arguments args(QString(v.args.c_str()));

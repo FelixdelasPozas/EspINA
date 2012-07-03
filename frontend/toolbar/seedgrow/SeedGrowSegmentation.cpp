@@ -215,30 +215,35 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
       channel->extent(VOI);
     }
 
-    QApplication::setOverrideCursor(Qt::WaitCursor);
+    if (VOI[0] <= growSeed[0] && growSeed[0] <= VOI[1] &&
+        VOI[2] <= growSeed[1] && growSeed[1] <= VOI[3] &&
+        VOI[4] <= growSeed[2] && growSeed[2] <= VOI[5])
+    {
+      QApplication::setOverrideCursor(Qt::WaitCursor);
 
-    Filter::NamedInputs inputs;
-    Filter::Arguments args;
-    SeedGrowSegmentationFilter::Parameters params(args);
-    params.setSeed(growSeed);
-    params.setLowerThreshold(m_threshold->lowerThreshold());
-    params.setUpperThreshold(m_threshold->upperThreshold());
-    params.setVOI(VOI);
-    params.setCloseValue(m_settings->closing());
-    inputs[INPUTLINK] = channel->filter();
-    args[Filter::INPUTS] = INPUTLINK + "_" + QString::number(channel->outputNumber());
-    SeedGrowSegmentationFilter *filter;
-    filter = new SeedGrowSegmentationFilter(inputs, args);
-    filter->update();
-    Q_ASSERT(filter->numberOutputs() == 1);
+      Filter::NamedInputs inputs;
+      Filter::Arguments args;
+      SeedGrowSegmentationFilter::Parameters params(args);
+      params.setSeed(growSeed);
+      params.setLowerThreshold(m_threshold->lowerThreshold());
+      params.setUpperThreshold(m_threshold->upperThreshold());
+      params.setVOI(VOI);
+      params.setCloseValue(m_settings->closing());
+      inputs[INPUTLINK] = channel->filter();
+      args[Filter::INPUTS] = INPUTLINK + "_" + QString::number(channel->outputNumber());
+      SeedGrowSegmentationFilter *filter;
+      filter = new SeedGrowSegmentationFilter(inputs, args);
+      filter->update();
+      Q_ASSERT(filter->numberOutputs() == 1);
 
-    TaxonomyNode *tax = EspinaCore::instance()->activeTaxonomy();
-    Q_ASSERT(tax);
+      TaxonomyNode *tax = EspinaCore::instance()->activeTaxonomy();
+      Q_ASSERT(tax);
 
-    QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
-    undo->push(new UndoCommand(channel, filter, tax));
-    EspinaCore::instance()->viewManger()->currentView()->forceRender();
-    QApplication::restoreOverrideCursor();
+      QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
+      undo->push(new UndoCommand(channel, filter, tax));
+      EspinaCore::instance()->viewManger()->currentView()->forceRender();
+      QApplication::restoreOverrideCursor();
+    }
   }
 }
 

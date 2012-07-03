@@ -64,7 +64,7 @@ bool ChannelReader::needUpdate() const
 //----------------------------------------------------------------------------
 void ChannelReader::run()
 {
-  qDebug() << "Creating channel from args" << m_args;
+  //qDebug() << "Creating channel from args" << m_args;
   QFileInfo file = m_args[FILE];
   if (!file.exists())
   {
