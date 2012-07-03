@@ -117,9 +117,13 @@ bool IOEspinaFile::zipVolume(Filter* filter, OutputNumber outputNumber,
   io->SetFileName(mhd.toStdString());
   writer->SetFileName(mhd.toStdString());
   filter->update();
-  writer->SetInput(filter->output(outputNumber));
+  EspinaVolume *volume = filter->output(outputNumber);
+  bool releaseFlag = volume->GetReleaseDataFlag();
+  volume->ReleaseDataFlagOff();
+  writer->SetInput(volume);
   writer->SetImageIO(io);
   writer->Write();
+  volume->SetReleaseDataFlag(releaseFlag);
   QFile mhdFile(mhd);
   mhdFile.open(QIODevice::ReadOnly);
   QFile rawFile(raw);

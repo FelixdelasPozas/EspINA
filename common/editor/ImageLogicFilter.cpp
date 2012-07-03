@@ -78,7 +78,19 @@ EspinaVolume* ImageLogicFilter::output(OutputNumber i) const
 //-----------------------------------------------------------------------------
 bool ImageLogicFilter::prefetchFilter()
 {
-return Filter::prefetchFilter();
+  QString tmpFile = id() + "_0.mhd";
+  m_cachedFilter = tmpFileReader(tmpFile);
+
+  if (m_cachedFilter.IsNotNull())
+  {
+    m_volume = m_cachedFilter->GetOutput();
+    m_filter->SetInput(m_volume);
+    m_filter->Update();
+    emit modified(this);
+    return true;
+  }
+
+  return false;
 }
 
 //-----------------------------------------------------------------------------

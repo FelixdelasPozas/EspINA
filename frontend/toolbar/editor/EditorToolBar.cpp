@@ -439,7 +439,7 @@ void EditorToolBar::combineSegmentations()
 {
   QList<Segmentation *> input = selectedSegmentations();
 
-  if (input.size() >= 2)
+  if (input.size() == 2)
   {
     QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
     undo->beginMacro("Combine Segmentations");
@@ -453,7 +453,7 @@ void EditorToolBar::substractSegmentations()
 {
   QList<Segmentation *> input = selectedSegmentations();
 
-  if (input.size() >= 2)
+  if (input.size() == 2)
   {
     QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
     undo->beginMacro("Substract Segmentations");

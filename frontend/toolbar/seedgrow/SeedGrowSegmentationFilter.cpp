@@ -63,7 +63,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(Filter::NamedInputs input
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationFilter::~SeedGrowSegmentationFilter()
 {
-//   qDebug() << "Destroying" << TYPE;
+  qDebug() << "Destroying" << TYPE;
 }
 
 //-----------------------------------------------------------------------------

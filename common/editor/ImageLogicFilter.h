@@ -85,6 +85,7 @@ private:
 
   EspinaVolume::Pointer m_volume;
   FilterType::Pointer   m_filter;
+  EspinaVolumeReader::Pointer m_cachedFilter;
 //   PadFilterType::Pointer m_pad1;
 //   PadFilterType::Pointer m_pad2;
 //   OrFilterType::Pointer  m_orFilter;
