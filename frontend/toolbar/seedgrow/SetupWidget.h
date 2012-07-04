@@ -26,6 +26,7 @@
 
 #include <common/views/vtkSliceView.h>
 
+class RectangularRegion;
 class SeedGrowSegmentationFilter::SetupWidget
 : public QWidget
 , Ui::SetupWidget
@@ -44,6 +45,7 @@ protected slots:
 
 private :
   SeedGrowSegmentationFilter *m_filter;
+  RectangularRegion          *m_region;
 };
 
 #endif // SETUPWIDGET_H

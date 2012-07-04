@@ -22,7 +22,7 @@
 
 #include "common/model/ModelItem.h"
 
-#include <EspinaTypes.h>
+#include "common/EspinaTypes.h"
 #include <itkImageFileReader.h>
 
 const QString CREATELINK = "CreateSegmentation";

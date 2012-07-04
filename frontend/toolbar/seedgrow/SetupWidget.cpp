@@ -21,6 +21,7 @@
 #include <common/EspinaCore.h>
 #include <common/gui/EspinaView.h>
 #include <common/selection/SelectionManager.h>
+#include <widgets/RectangularSelection.h>
 
 #include <QDebug>
 #include <QMessageBox>
@@ -45,6 +46,9 @@ SeedGrowSegmentationFilter::SetupWidget::SetupWidget(Filter* filter)
   m_bottomMargin->setValue(VOI[3]);
   m_upperMargin->setValue(VOI[4]);
   m_lowerMargin->setValue(VOI[5]);
+  double boudns[6];
+  for (int i=0; i<6; i++)
+    boudns[i] = VOI[i];
 
   m_leftMargin->installEventFilter(this);
   m_rightMargin->installEventFilter(this);
@@ -56,6 +60,11 @@ SeedGrowSegmentationFilter::SetupWidget::SetupWidget(Filter* filter)
 // 	  this, SLOT(modifyFilter()));
   connect(m_modify, SIGNAL(clicked(bool)),
 	  this, SLOT(modifyFilter()));
+
+
+  m_region = new RectangularRegion();
+  EspinaCore::instance()->viewManger()->currentView()->addWidget(m_region);
+  m_region->setBounds(boudns);
 }
 
 //----------------------------------------------------------------------------
@@ -64,6 +73,9 @@ SeedGrowSegmentationFilter::SetupWidget::~SetupWidget()
   EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
   if (!SelectionManager::instance()->voi())
     view->setSliceSelectors(SliceView::NoSelector);
+
+  EspinaCore::instance()->viewManger()->currentView()->removeWidget(m_region);
+  delete m_region;
 }
 
 //----------------------------------------------------------------------------

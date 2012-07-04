@@ -950,15 +950,15 @@ void SliceView::addWidget(SliceWidget *sWidget)
   widget->On();
 //   connect(widget, SIGNAL(modified()),
 // 	  this, SLOT(updateWidgetVisibility()));
+  m_renderer->ResetCameraClippingRange();
   m_widgets << sWidget;
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::removeWidget(SliceWidget* sWidget)
 {
-	Q_ASSERT(false);
-//   Q_ASSERT(m_widgets.contains(sWidget));
-//   m_widgets.removeOne(sWidget);
+  Q_ASSERT(m_widgets.contains(sWidget));
+  m_widgets.removeOne(sWidget);
 }
 
 //-----------------------------------------------------------------------------

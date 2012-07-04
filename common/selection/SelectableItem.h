@@ -22,7 +22,7 @@
 
 #include <common/model/ModelItem.h>
 
-#include <EspinaTypes.h>
+#include "common/EspinaTypes.h"
 
 class Filter;
 class vtkAlgorithmOutput;

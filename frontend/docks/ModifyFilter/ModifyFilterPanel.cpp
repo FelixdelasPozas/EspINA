@@ -61,7 +61,9 @@ void ModifyFilterPanel::showOriginFilter(QModelIndex index)
       {
 	Filter *filter = dynamic_cast<Filter *>(filters.first());
 	Q_ASSERT(filter);
+    QWidget *prevWidget = widget();
 	setWidget(filter->createConfigurationWidget());
+    delete prevWidget;
 	m_currentSeg = seg;
       }else{
 	setWidget(NULL);

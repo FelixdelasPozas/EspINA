@@ -195,7 +195,7 @@ QString Channel::serialize() const
 //-----------------------------------------------------------------------------
 void Channel::initialize(ModelItem::Arguments args)
 {
-  qDebug() << "Init channel with args:" << args;
+  //qDebug() << "Init channel with args:" << args;
   foreach(ArgumentId argId, args.keys())
   {
     if (argId != EXTENSIONS)

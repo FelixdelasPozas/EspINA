@@ -126,7 +126,7 @@ void VolumeOfInterest::cancelVOI()
   {
     QSharedPointer<ViewManager> vm = EspinaCore::instance()->viewManger();
     EspinaView *view = vm->currentView();
-    //TODO:view->removeWidget(m_voiWidget.data());
+    view->removeWidget(m_voiWidget.data());
     m_voiWidget.clear();
     view->forceRender();
   }

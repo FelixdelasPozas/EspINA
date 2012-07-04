@@ -350,7 +350,8 @@ void TaxonomyLayout::deleteSegmentation(QModelIndexList indices)
 
 
 //------------------------------------------------------------------------
-SegmentationExplorer::SegmentationExplorer(QSharedPointer< EspinaModel> model, QWidget* parent)
+SegmentationExplorer::SegmentationExplorer(QSharedPointer<EspinaModel> model,
+                                           QWidget* parent)
 : EspinaDockWidget(parent)
 , m_gui(new GUI())
 , m_baseModel(model)
@@ -359,7 +360,7 @@ SegmentationExplorer::SegmentationExplorer(QSharedPointer< EspinaModel> model, Q
   setWindowTitle(tr("Segmentation Explorer"));
   setObjectName("SegmentationExplorer");
 
-//   addLayout("Debug", new Layout(m_baseModel));
+  //   addLayout("Debug", new Layout(m_baseModel));
   addLayout("Taxonomy", new TaxonomyLayout(m_baseModel));
   addLayout("Location", new SampleLayout  (m_baseModel));
 
@@ -368,15 +369,15 @@ SegmentationExplorer::SegmentationExplorer(QSharedPointer< EspinaModel> model, Q
   changeLayout(0);
 
   connect(m_gui->groupList, SIGNAL(currentIndexChanged(int)),
-	  this, SLOT(changeLayout(int)));
+          this, SLOT(changeLayout(int)));
   connect(m_gui->view, SIGNAL(doubleClicked(QModelIndex)),
-	  this, SLOT(focusOnSegmentation(QModelIndex)));
+          this, SLOT(focusOnSegmentation(QModelIndex)));
   connect(m_gui->showInformation, SIGNAL(clicked(bool)),
           this, SLOT(showInformation()));
   connect(m_gui->deleteSegmentation, SIGNAL(clicked(bool)),
           this, SLOT(deleteSegmentation()));
   connect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
-	  this, SLOT(updateSelection(QItemSelection, QItemSelection)));
+          this, SLOT(updateSelection(QItemSelection, QItemSelection)));
 
   setWidget(m_gui);
 }
@@ -472,9 +473,9 @@ void SegmentationExplorer::updateSelection(QModelIndex index)
       m_gui->view->blockSignals(true);
       Segmentation *seg = dynamic_cast<Segmentation *>(item);
       if (seg->isSelected())
-	m_gui->view->selectionModel()->setCurrentIndex(index, QItemSelectionModel::Select);
+        m_gui->view->selectionModel()->setCurrentIndex(index, QItemSelectionModel::Select);
       else
-	m_gui->view->selectionModel()->select(index, QItemSelectionModel::Deselect);
+        m_gui->view->selectionModel()->select(index, QItemSelectionModel::Deselect);
       m_gui->view->blockSignals(false);
     }
   }
