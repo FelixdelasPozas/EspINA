@@ -74,7 +74,7 @@ protected:
   void createLODMenu();
   virtual void closeEvent(QCloseEvent* );
 
-  void loadParaviewBehavior();
+  void loadPlugins();
 
 private:
   QSharedPointer<EspinaModel> m_model;

@@ -54,6 +54,7 @@
 #include "toolbar/seedgrow/SeedGrowSegmentation.h"
 #include "toolbar/voi/VolumeOfInterest.h"
 #include <IO/FilePack.h>
+#include <pluginInterfaces/ToolBarInterface.h>
 
 #define DEBUG
 
@@ -169,6 +170,7 @@ EspinaWindow::EspinaWindow()
   addToolBar(new SeedGrowSegmentation());
   addToolBar(new EditorToolBar());
 
+  loadPlugins();
 //   QToolBar *lod = new LODToolBar();
 // //   lod->setMovable(false);
 //   addToolBar(lod);
@@ -199,6 +201,40 @@ EspinaWindow::EspinaWindow()
 EspinaWindow::~EspinaWindow()
 {
 }
+
+//------------------------------------------------------------------------
+void EspinaWindow::loadPlugins()
+{
+  QDir pluginsDir = QDir(qApp->applicationDirPath());
+
+  #if defined(Q_OS_WIN)
+  if (pluginsDir.dirName().toLower() == "debug" || pluginsDir.dirName().toLower() == "release")
+    pluginsDir.cdUp();
+  #elif defined(Q_OS_MAC)
+  if (pluginsDir.dirName() == "MacOS")
+  {
+    pluginsDir.cdUp();
+    pluginsDir.cdUp();
+    pluginsDir.cdUp();
+  }
+  #endif
+
+  pluginsDir.cd("plugins");
+
+  qDebug() << "Loading Plugins: ";
+  foreach (QString fileName, pluginsDir.entryList(QDir::Files)) {
+    QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
+    QObject *plugin = loader.instance();
+    if (plugin)
+    {
+      qDebug() << " -" << fileName;
+      ToolBarInterface *toolbar = qobject_cast<ToolBarInterface*>(plugin);
+      if (toolbar)
+        addToolBar(toolbar);
+    }
+  }
+}
+
 
 //------------------------------------------------------------------------
 void EspinaWindow::createActivityMenu()
