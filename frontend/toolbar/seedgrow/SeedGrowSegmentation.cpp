@@ -191,7 +191,8 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
     int growSeed[3] = {seed.x(), seed.y(), seed.z()};
 
     int VOI[6];
-    EspinaWidget *currentVOI = SelectionManager::instance()->voi();
+    //TODO: Create region // selection base class
+    RectangularRegion *currentVOI = dynamic_cast<RectangularRegion*>(SelectionManager::instance()->voi());
     if (currentVOI)
     {
       double bounds[6];

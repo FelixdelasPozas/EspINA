@@ -99,7 +99,7 @@ void VolumeOfInterest::defineVOI(SelectionHandler::MultiSelection msel)
 
   QSharedPointer<ViewManager> vm = EspinaCore::instance()->viewManger();
   EspinaView *view = vm->currentView();
-  m_voiWidget = QSharedPointer<EspinaWidget>(new RectangularRegion());
+  m_voiWidget = QSharedPointer<RectangularRegion>(new RectangularRegion());
   Q_ASSERT(m_voiWidget);
   view->addWidget(m_voiWidget.data());
 

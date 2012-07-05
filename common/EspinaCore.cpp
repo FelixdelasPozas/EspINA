@@ -99,13 +99,11 @@ bool EspinaCore::loadChannel(const QFileInfo file)
   }
 
   //TODO: Check for channel information in DB
-  QColor stainColor;
-  QColorDialog stainColorSelector;
-  stainColorSelector.setWindowTitle("Select Stain Color");
-  if (stainColorSelector.exec() == QDialog::Accepted)
-    stainColor = stainColorSelector.selectedColor();
-  else
-    stainColor = QColor(Qt::black);
+  QColor stainColor = QColor(Qt::black);
+//   QColorDialog stainColorSelector;
+//   stainColorSelector.setWindowTitle("Select Stain Color");
+//   if (stainColorSelector.exec() == QDialog::Accepted)
+//     stainColor = stainColorSelector.selectedColor();
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
 

@@ -238,8 +238,8 @@ void DefaultEspinaView::addWidget(EspinaWidget* widget)
 //   widgets.vol = widget->createWidget();
 
   xyView->addWidget (widgets.xy);
-  yzView->addWidget (widgets.yz);
-  xzView->addWidget (widgets.xz);
+//   yzView->addWidget (widgets.yz);
+//   xzView->addWidget (widgets.xz);
 //   volView->addWidget(widgets.vol);
 
   m_widgets[widget] = widgets;

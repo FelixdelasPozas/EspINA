@@ -16,38 +16,21 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef TOOLBARINTERFACE_H
+#define TOOLBARINTERFACE_H
+#include <QToolBar>
 
-#ifndef ESPINAWIDGET_H
-#define ESPINAWIDGET_H
-
-#include <common/views/vtkSliceView.h>
-
-class vtkAbstractWidget;
-
-class SliceWidget
+class ToolBarInterface
+: public QToolBar
 {
 public:
-  explicit SliceWidget(vtkAbstractWidget *widget);
-
-  virtual void setSlice(double pos, vtkSliceView::VIEW_PLANE plane);
-
-  operator vtkAbstractWidget *(){return m_widget;}
-  operator const vtkAbstractWidget *const() const {return m_widget;}
-  vtkAbstractWidget *operator->() {return m_widget;}
-
-protected:
-  vtkAbstractWidget *m_widget;
+  explicit ToolBarInterface(QWidget* parent = 0)
+  : QToolBar(parent){}
+  explicit ToolBarInterface(const QString& title, QWidget* parent = 0)
+  : QToolBar(title, parent){}
+  virtual ~ToolBarInterface(){}
 };
 
-class EspinaWidget
-{
-public:
-  virtual ~EspinaWidget(){}
-
-  virtual vtkAbstractWidget *createWidget() = 0;
-  virtual SliceWidget *createSliceWidget(vtkSliceView::VIEW_PLANE plane) = 0;
-
-  virtual void setEnabled(bool enable) = 0;
-};
-
-#endif // ESPINAWIDGET_H
+Q_DECLARE_INTERFACE(ToolBarInterface,
+                    "es.upm.cesvima.ToolBarInterface/1.0")
+#endif //TOOLBARINTERFACE_H

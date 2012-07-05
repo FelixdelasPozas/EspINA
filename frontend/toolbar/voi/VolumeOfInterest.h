@@ -52,7 +52,7 @@ private:
 private:
   ActionSelector *m_voi;
   QSharedPointer<PixelSelector> m_selector;
-  QSharedPointer<EspinaWidget>  m_voiWidget;
+  QSharedPointer<RectangularRegion> m_voiWidget;
 };
 
 #endif// VOLUMEOFINTEREST_H
