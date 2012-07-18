@@ -311,7 +311,7 @@ vtkAlgorithmOutput* Segmentation::image()
 {
   if (itk2vtk.IsNull())
   {
-    qDebug() << "Converting from ITK to VTK";
+    //qDebug() << "Converting from ITK to VTK";
     itk2vtk = itk2vtkFilterType::New();
     itk2vtk->ReleaseDataFlagOn();
     itk2vtk->SetInput(m_filter->output(m_args.outputNumber()));

@@ -372,23 +372,23 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
   SelectableItem *selectedItem = msel.first().second;
   Q_ASSERT(ModelItem::CHANNEL == selectedItem->type());
   Channel *channel = dynamic_cast<Channel *>(selectedItem);
+  double spacing[3];
+  channel->spacing(spacing);
 
   if (!m_currentSource)
   {
     Filter::NamedInputs inputs;
     Filter::Arguments args;
     FreeFormSource::Parameters params(args);
-    double spacing[3];
-    channel->spacing(spacing);
     params.setSpacing(spacing);
     m_currentSource = new FreeFormSource(inputs, args);
   }
 
   int radius = 0;
   if (selectedPlane != vtkSliceView::SAGITTAL)
-    radius = abs(center.x() - rx.x());
+    radius = abs(center.x() - rx.x())*spacing[0];
   else
-    radius = abs(center.y() - region[2].y());
+    radius = abs(center.y() - region[2].y())*spacing[1];
 
   QSharedPointer<QUndoStack> undo = EspinaCore::instance()->undoStack();
   if (m_pencilSelector->state() == PencilSelector::DRAWING)

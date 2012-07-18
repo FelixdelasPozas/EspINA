@@ -33,21 +33,28 @@ typedef ModelItem::ArgumentId ArgumentId;
 const ArgumentId FreeFormSource::SPACING = ArgumentId("SPACING", true);
 
 //-----------------------------------------------------------------------------
-bool FreeFormSource::drawPixel(int x, int y, int z, int cx, int cy, int cz, int r, int plane, int extent[6])
+bool FreeFormSource::drawPixel(int x, int y, int z,
+			       int cx, int cy, int cz,
+			       int r, int plane)
 {
-  if (plane == 2)
+  bool onSlice = false;
+  onSlice |= plane == vtkSliceView::AXIAL    &&  z == cz-Extent[4];
+  onSlice |= plane == vtkSliceView::SAGITTAL &&  x == cx-Extent[0];
+  onSlice |= plane == vtkSliceView::CORONAL  &&  y == cy-Extent[2];
+
+  if (onSlice)
   {
-    double r2 = pow((x-cx+extent[0])*m_param.spacing()[0], 2) + pow((y-cy+extent[2])*m_param.spacing()[1], 2);
-    return r2 <= r*r && z == cz-extent[4];
-  }else if (plane == 1)
-  {
-    double r2 = pow((x-cx+extent[0])*m_param.spacing()[0], 2) + pow((z-cz+extent[4])*m_param.spacing()[2], 2);
-    return r2 <= r*r && y == cy-extent[2];
-  }else if (plane == 0)
-  {
-    double r2 = pow((y-cy+extent[2])*m_param.spacing()[1], 2) + pow((z-cz+extent[4])*m_param.spacing()[2], 2);
-    return r2 <= r*r && x == cx-extent[0];
+    double p1 = plane==vtkSliceView::SAGITTAL?
+                (y-cy+Extent[2])*m_param.spacing()[1]:
+                (x-cx+Extent[0])*m_param.spacing()[0];
+    double p2 = plane==vtkSliceView::AXIAL?
+                (y-cy+Extent[2])*m_param.spacing()[1]:
+                (z-cz+Extent[4])*m_param.spacing()[2];
+    double dist2= pow(p1, 2) + pow(p2, 2);
+
+    return dist2 <= r*r;
   }
+
   return false;
 }
 
@@ -71,9 +78,9 @@ FreeFormSource::~FreeFormSource()
 
 //-----------------------------------------------------------------------------
 void FreeFormSource::draw(vtkSliceView::VIEW_PLANE plane,
-                          QVector3D center, int r)
+                          QVector3D center, double radius)
 {
-  if (plane < 0 || 2 < plane || r < 0)
+  if (plane < 0 || 2 < plane || radius < 0)
     return;
 
   bool expandX = vtkSliceView::AXIAL    == plane
@@ -99,21 +106,25 @@ void FreeFormSource::draw(vtkSliceView::VIEW_PLANE plane,
   int prevExtent[6];
   memcpy(prevExtent, Extent, 6*sizeof(int));
 
-  Extent[0] = std::min(Extent[0], expandX?cx - r:cx);
-  Extent[1] = std::max(Extent[1], expandX?cx + r:cx);
-  Extent[2] = std::min(Extent[2], expandY?cy - r:cy);
-  Extent[3] = std::max(Extent[3], expandY?cy + r:cy);
-  Extent[4] = std::min(Extent[4], expandZ?cz - r:cz);
-  Extent[5] = std::max(Extent[5], expandZ?cz + r:cz);
+  int rx = round(radius/m_param.spacing()[0]);
+  int ry = round(radius/m_param.spacing()[1]);
+  int rz = round(radius/m_param.spacing()[2]);
+
+  Extent[0] = std::min(Extent[0], expandX?cx - rx:cx);
+  Extent[1] = std::max(Extent[1], expandX?cx + rx:cx);
+  Extent[2] = std::min(Extent[2], expandY?cy - ry:cy);
+  Extent[3] = std::max(Extent[3], expandY?cy + ry:cy);
+  Extent[4] = std::min(Extent[4], expandZ?cz - rz:cz);
+  Extent[5] = std::max(Extent[5], expandZ?cz + rz:cz);
 
   if (m_volume.IsNotNull() && memcmp(prevExtent, Extent, 6*sizeof(int)) == 0)
   {
-    int minX = (expandX?cx - r:cx)-Extent[0];
-    int maxX = (expandX?cx + r:cx)-Extent[0];
-    int minY = (expandY?cy - r:cy)-Extent[2];
-    int maxY = (expandY?cy + r:cy)-Extent[2];
-    int minZ = (expandZ?cz - r:cz)-Extent[4];
-    int maxZ = (expandZ?cz + r:cz)-Extent[4];
+    int minX = (expandX?cx - rx:cx)-Extent[0];
+    int maxX = (expandX?cx + rx:cx)-Extent[0];
+    int minY = (expandY?cy - ry:cy)-Extent[2];
+    int maxY = (expandY?cy + ry:cy)-Extent[2];
+    int minZ = (expandZ?cz - rz:cz)-Extent[4];
+    int maxZ = (expandZ?cz + rz:cz)-Extent[4];
 
     dim = m_volume->GetBufferedRegion().GetSize();
     unsigned char *outputPtr = static_cast<unsigned char *>(m_volume->GetBufferPointer());
@@ -126,7 +137,7 @@ void FreeFormSource::draw(vtkSliceView::VIEW_PLANE plane,
         for (int x = minX; x <= maxX; x++)
         {
           unsigned long long offset = x + yOffset + zOffset;
-          if (drawPixel(x,y,z,cx,cy,cz,r,plane,Extent))
+          if (drawPixel(x,y,z,cx,cy,cz,radius,plane))
             outputPtr[offset] = 255;
         }
       }
@@ -177,7 +188,7 @@ void FreeFormSource::draw(vtkSliceView::VIEW_PLANE plane,
             prevValue = *prevOutputPtr;
             prevOutputPtr++;
           }
-          outputPtr[offset] = drawPixel(x,y,z,cx,cy,cz,r,plane,Extent)?255:prevValue;
+          outputPtr[offset] = drawPixel(x,y,z,cx,cy,cz,radius,plane)?255:prevValue;
         }
       }
     }
@@ -191,7 +202,7 @@ void FreeFormSource::draw(vtkSliceView::VIEW_PLANE plane,
 
 //-----------------------------------------------------------------------------
 void FreeFormSource::erase(vtkSliceView::VIEW_PLANE plane,
-                           QVector3D center, int r)
+                           QVector3D center, double radius)
 {
   if (!m_hasPixels)
     return;
@@ -200,19 +211,23 @@ void FreeFormSource::erase(vtkSliceView::VIEW_PLANE plane,
   int cy = center.y();
   int cz = center.z();
 
-  if (0 <= plane && plane <=2 && r > 0
+  int rx = round(radius/m_param.spacing()[0]);
+  int ry = round(radius/m_param.spacing()[1]);
+  int rz = round(radius/m_param.spacing()[2]);
+
+  if (0 <= plane && plane <=2 && radius > 0
     && m_volume.IsNotNull()
-    && Extent[0] <= cx + r && cx - r <= Extent[1]
-    && Extent[2] <= cy + r && cy - r <= Extent[3]
-    && Extent[4] <= cz + r && cz - r <= Extent[5]
+    && Extent[0] <= cx + rx && cx - rx <= Extent[1]
+    && Extent[2] <= cy + ry && cy - ry <= Extent[3]
+    && Extent[4] <= cz + rz && cz - rz <= Extent[5]
   )
   {
-    DrawExtent[0] = cx - r;
-    DrawExtent[1] = cx + r;
-    DrawExtent[2] = cy - r;
-    DrawExtent[3] = cy + r;
-    DrawExtent[4] = cz - r;
-    DrawExtent[5] = cz + r;
+    DrawExtent[0] = cx - rx;
+    DrawExtent[1] = cx + rx;
+    DrawExtent[2] = cy - ry;
+    DrawExtent[3] = cy + ry;
+    DrawExtent[4] = cz - rz;
+    DrawExtent[5] = cz + rz;
 
     bool expandX = vtkSliceView::AXIAL    == plane
                 || vtkSliceView::CORONAL  == plane;
@@ -220,13 +235,12 @@ void FreeFormSource::erase(vtkSliceView::VIEW_PLANE plane,
                 || vtkSliceView::SAGITTAL == plane;
     bool expandZ = vtkSliceView::SAGITTAL == plane
                 || vtkSliceView::CORONAL  == plane;
-
-    int minX = std::max(Extent[0],(expandX?cx - r:cx))-Extent[0];
-    int maxX = std::min(Extent[1],(expandX?cx + r:cx))-Extent[0];
-    int minY = std::max(Extent[2],(expandY?cy - r:cy))-Extent[2];
-    int maxY = std::min(Extent[3],(expandY?cy + r:cy))-Extent[2];
-    int minZ = std::max(Extent[4],(expandZ?cz - r:cz))-Extent[4];
-    int maxZ = std::min(Extent[5],(expandZ?cz + r:cz))-Extent[4];
+    int minX = std::max(Extent[0],(expandX?cx - rx:cx))-Extent[0];
+    int maxX = std::min(Extent[1],(expandX?cx + rx:cx))-Extent[0];
+    int minY = std::max(Extent[2],(expandY?cy - ry:cy))-Extent[2];
+    int maxY = std::min(Extent[3],(expandY?cy + ry:cy))-Extent[2];
+    int minZ = std::max(Extent[4],(expandZ?cz - rz:cz))-Extent[4];
+    int maxZ = std::min(Extent[5],(expandZ?cz + rz:cz))-Extent[4];
 
     EspinaVolume::SizeType dim;
     dim = m_volume->GetBufferedRegion().GetSize();
@@ -243,7 +257,7 @@ void FreeFormSource::erase(vtkSliceView::VIEW_PLANE plane,
     for (int x = minX; x <= maxX; x++)
     {
       unsigned long long offset = x + yOffset + zOffset;
-      if (drawPixel(x,y,z,cx,cy,cz,r,plane,Extent))
+      if (drawPixel(x,y,z,cx,cy,cz,radius,plane))
         outputPtr[offset] = 0;
     }
       }

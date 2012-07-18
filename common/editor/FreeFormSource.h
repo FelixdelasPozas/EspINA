@@ -74,8 +74,10 @@ public:
                           Arguments args);
   virtual ~FreeFormSource();
 
-  void draw(vtkSliceView::VIEW_PLANE plane,  QVector3D center, int radius = 0);
-  void erase(vtkSliceView::VIEW_PLANE plane, QVector3D center, int radius = 0);
+  void draw(vtkSliceView::VIEW_PLANE plane,
+	    QVector3D center, double radius = 0);
+  void erase(vtkSliceView::VIEW_PLANE plane,
+	     QVector3D center, double radius = 0);
 
   /// Implements Model Item Interface
   virtual QVariant data(int role=Qt::DisplayRole) const;
@@ -90,8 +92,7 @@ public:
 protected:
   bool drawPixel(int x, int y, int z,
                  int cx, int cy, int cz,
-                 int r, int plane,
-                 int extent[6]);
+                 int r, int plane);
 
 private:
   Parameters m_param;

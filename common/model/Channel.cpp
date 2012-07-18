@@ -346,7 +346,7 @@ vtkAlgorithmOutput* Channel::image()
   if (itk2vtk.IsNull())
   {
 
-    qDebug() << "Converting from ITK to VTK (channel)";
+    //qDebug() << " from ITK to VTK (channel)";
     itk2vtk = itk2vtkFilterType::New();
     itk2vtk->ReleaseDataFlagOn();
     itk2vtk->SetInput(m_filter->output(m_args.outputNumber()));
