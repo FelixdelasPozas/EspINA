@@ -62,7 +62,7 @@ bool IOEspinaFile::loadFile(QFileInfo file,
       continue;
     }
 
-    qDebug() << "IOEspinaFile::loadFile: extracting" << file.filePath();
+    //qDebug() << "IOEspinaFile::loadFile: extracting" << file.filePath();
     if(file.fileName() == TAXONOMY )
     {
       Q_ASSERT(taxonomy == NULL);
@@ -181,13 +181,13 @@ bool IOEspinaFile::saveFile(QFileInfo file,
   {
     if (filter->isEdited())
     {
-      qDebug() << "Making" << filter->data().toString() << "snapshot";
+      //qDebug() << "Making" << filter->data().toString() << "snapshot";
       zipVolume(filter,0, tmpDir, outFile);
     }
   }
   foreach(Segmentation *seg, model->segmentations())
   {
-    qDebug() << "Making" << seg->data().toString() << "snapshot";
+    //qDebug() << "Making" << seg->data().toString() << "snapshot";
     zipVolume(seg->filter(), seg->outputNumber(), tmpDir, outFile);
   }
 
@@ -195,7 +195,7 @@ bool IOEspinaFile::saveFile(QFileInfo file,
   filters << "*.mhd" << "*.raw";
   foreach(QFileInfo tmpFile, tmpDir.entryInfoList(filters))
   {
-    qDebug() << "Removing" << tmpFile.fileName();
+    //qDebug() << "Removing" << tmpFile.fileName();
     Q_ASSERT(tmpDir.remove(tmpFile.fileName()));
   }
   tmpDir.cdUp();

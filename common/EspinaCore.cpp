@@ -71,8 +71,10 @@ bool EspinaCore::loadFile(const QFileInfo file)
     status = loadChannel(file);
   } else if ("seg" == ext)
   {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
     status = IOEspinaFile::loadFile(file,
                                     EspinaCore::instance()->model());
+    QApplication::restoreOverrideCursor();
   }else
     status = EspinaFactory::instance()->readFile(file.absoluteFilePath(), ext);
 
