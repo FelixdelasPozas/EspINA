@@ -27,6 +27,8 @@
 #include <QAbstractItemView>
 #include <QPushButton>
 #include <pluginInterfaces/Renderer.h>
+#include <vtkSmartPointer.h>
+#include <vtkRenderer.h>
 
 class QVTKWidget;
 
@@ -67,9 +69,6 @@ public:
   void removeSegmentationRepresentation(Segmentation *seg);
   bool updateSegmentationRepresentation(Segmentation* seg);
 
-//TODO:   void addWidget(pq3DWidget *widget);
-//TODO:   void removeWidget(pq3DWidget *widget);
-
   void setColorEngine(ColorEngine *engine){m_colorEngine = engine;}
   SettingsPtr settings() {return m_settings;}
 
@@ -99,8 +98,6 @@ protected slots:
 private:
   struct Representation
   {
-    //pqOutputPort *outport;
-    //vtkSMRepresentationProxy *proxy;
     bool visible;
     bool selected;
     QColor color;
@@ -114,6 +111,7 @@ private:
   QVTKWidget  *m_viewWidget;
   QPushButton m_snapshot;
   QPushButton m_export;
+  vtkSmartPointer<vtkRenderer> m_renderer;
 
   SettingsPtr m_settings;
 

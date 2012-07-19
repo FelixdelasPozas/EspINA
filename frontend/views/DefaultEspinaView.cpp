@@ -200,7 +200,7 @@ void DefaultEspinaView::forceRender()
   xyView->forceRender();
   yzView->forceRender();
   xzView->forceRender();
-  //volView->forceRender();
+  volView->forceRender();
   //QApplication::restoreOverrideCursor();
 }
 
@@ -210,7 +210,7 @@ void DefaultEspinaView::resetCamera()
   xyView->resetCamera();
   yzView->resetCamera();
   xzView->resetCamera();
-  //volView->resetCamera();
+  volView->resetCamera();
 }
 
 //----------------------------------------------------------------------------
@@ -283,7 +283,7 @@ void DefaultEspinaView::setColorEngine(ColorEngine* engine)
   xyView->setColorEngine(m_colorEngine);
   yzView->setColorEngine(m_colorEngine);
   xzView->setColorEngine(m_colorEngine);
-  //volView->setColorEngine(m_colorEngine);
+  volView->setColorEngine(m_colorEngine);
 }
 
 //----------------------------------------------------------------------------
@@ -336,7 +336,7 @@ void DefaultEspinaView::setCenter(double x, double y, double z, bool force)
   xyView->centerViewOn(center, force);
   yzView->centerViewOn(center, force);
   xzView->centerViewOn(center, force);
-  //volView->centerViewOn(center);
+  volView->centerViewOn(center);
   memcpy(m_center, center, 3 * sizeof(double));
 }
 
@@ -390,7 +390,7 @@ void DefaultEspinaView::addSegmentation(Segmentation* seg)
   xyView->addSegmentationRepresentation(seg);
   yzView->addSegmentationRepresentation(seg);
   xzView->addSegmentationRepresentation(seg);
-  //volView->addSegmentationRepresentation(seg);
+  volView->addSegmentationRepresentation(seg);
 }
 
 //-----------------------------------------------------------------------------
@@ -399,7 +399,7 @@ void DefaultEspinaView::removeSegmentation(Segmentation* seg)
   xyView->removeSegmentationRepresentation(seg);
   yzView->removeSegmentationRepresentation(seg);
   xzView->removeSegmentationRepresentation(seg);
-  //volView->removeSegmentationRepresentation(seg);
+  volView->removeSegmentationRepresentation(seg);
 }
 
 //-----------------------------------------------------------------------------
@@ -409,7 +409,7 @@ bool DefaultEspinaView::updateSegmentation(Segmentation* seg)
   modified = xyView->updateSegmentationRepresentation(seg) || modified;
   modified = yzView->updateSegmentationRepresentation(seg) || modified;
   modified = xzView->updateSegmentationRepresentation(seg) || modified;
-  //modified = volView->updateSegmentationRepresentation(seg) || modified;
+  modified = volView->updateSegmentationRepresentation(seg) || modified;
 
   return modified;
 }
@@ -681,8 +681,7 @@ void DefaultEspinaView::SettingsPanel::acceptChanges()
 //-----------------------------------------------------------------------------
 bool DefaultEspinaView::SettingsPanel::modified() const
 {
-  return m_xyPanel->modified() || m_yzPanel->modified() || m_xzPanel->modified();
-  //|| m_volPanel->modified();
+  return m_xyPanel->modified() || m_yzPanel->modified() || m_xzPanel->modified() || m_volPanel->modified();
 }
 
 //-----------------------------------------------------------------------------

@@ -20,6 +20,8 @@
 #ifndef VOLUMETRICRENDERER_H
 #define VOLUMETRICRENDERER_H
 
+#include <vtkVolume.h>
+
 #include "common/pluginInterfaces/Renderer.h"
 
 #include <QMap>
@@ -28,17 +30,16 @@ class ModelItem;
 class pqOutputPort;
 class vtkSMRepresentationProxy;
 
-class VolumetricRenderer
-: public Renderer
+class VolumetricRenderer: public Renderer
 {
   struct Representation
   {
-    pqOutputPort *outport;
-    vtkSMRepresentationProxy *proxy;
+    vtkVolume *volume;
     bool visible;
     bool selected;
     QColor color;
   };
+
 public:
   virtual const QIcon icon() const {return QIcon(":/espina/voxel.png");}
   virtual const QString name() const {return "Volumetric";}

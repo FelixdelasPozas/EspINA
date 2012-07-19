@@ -75,8 +75,8 @@ EspinaWindow::EspinaWindow()
   QIcon openIcon = qApp->style()->standardIcon(QStyle::SP_DialogOpenButton);
   QIcon saveIcon = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
 
-//   EspinaFactory::instance()->registerRenderer(new CrosshairRenderer());
-//   EspinaFactory::instance()->registerRenderer(new VolumetricRenderer());
+//  EspinaFactory::instance()->registerRenderer(new CrosshairRenderer());
+  EspinaFactory::instance()->registerRenderer(new VolumetricRenderer());
 
   /*** FILE MENU ***/
   QMenu *fileMenu = new QMenu(tr("File"));

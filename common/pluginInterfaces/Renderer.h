@@ -22,6 +22,9 @@
 #include <QString>
 #include <QIcon>
 
+#include <vtkSmartPointer.h>
+#include <vtkRenderer.h>
+
 class ModelItem;
 class vtkSMProxy;
 
@@ -36,9 +39,9 @@ public:
   virtual const QString tooltip() const {return QString();}
   virtual const QIcon icon() const {return QIcon();}
 
-  void setView(vtkSMProxy *view) {m_view = view;};
+  virtual void setVtkRenderer(vtkSmartPointer<vtkRenderer> renderer) {m_renderer = renderer;}
 
-  // Return whether the itme was rendered or not
+  // Return whether the item was rendered or not
   virtual bool addItem(ModelItem *item) {return false;}
   virtual bool updateItem(ModelItem *item) {return false;}
   virtual bool removeItem(ModelItem *item) {return false;}
@@ -68,10 +71,10 @@ signals:
 protected:
   explicit Renderer(QObject* parent = 0)
   : m_enable(true)
-  , m_view(NULL) {}
+  , m_renderer(NULL) {}
 protected:
   bool m_enable;
-  vtkSMProxy *m_view;
+  vtkSmartPointer<vtkRenderer> m_renderer;
 };
 
 #endif // RENDERER

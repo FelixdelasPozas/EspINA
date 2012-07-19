@@ -18,124 +18,164 @@
 
 
 #include "VolumetricRenderer.h"
-
+#include <vtkRenderWindow.h>
 #include <model/Segmentation.h>
 #include <ColorEngine.h>
 #include <EspinaCore.h>
+#include <vtkVolumeRayCastMapper.h>
+#include <vtkVolumeRayCastCompositeFunction.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkPiecewiseFunction.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkVolumeProperty.h>
+#include <vtkSmartPointer.h>
 
 //-----------------------------------------------------------------------------
 bool VolumetricRenderer::addItem(ModelItem* item)
 {
-  Q_ASSERT(false);
-//   if (ModelItem::SEGMENTATION != item->type())
-//     return false;
-// 
-//   Segmentation *seg = dynamic_cast<Segmentation *>(item);
-//   pqOutputPort      *oport = seg->outputPort();
-//   pqPipelineSource *source = oport->getSource();
-//   vtkSMProxyManager   *pxm = vtkSMProxyManager::GetProxyManager();
-// 
-//   vtkSMRepresentationProxy* repProxy = vtkSMRepresentationProxy::SafeDownCast(
-//     pxm->NewProxy("representations", "VolumetricRepresentation"));
-//   Q_ASSERT(repProxy);
-// 
-//   ColorEngine *engine = EspinaCore::instance()->colorSettings().engine();
-//   m_segmentations[seg].outport  = oport;
-//   m_segmentations[seg].proxy    = repProxy;
-//   m_segmentations[seg].selected = !seg->isSelected();
-//   m_segmentations[seg].visible  = seg->visible();
-//   m_segmentations[seg].color    = engine->color(seg);
-// 
-//   // Set the reprProxy's input.
-//   pqSMAdaptor::setInputProperty(repProxy->GetProperty("Input"),
-// 				source->getProxy(),
-// 				oport->getPortNumber());
-// 
-//   updateItem(seg);
-// 
-//   // Add the reprProxy to render module.
-//   pqSMAdaptor::addProxyProperty(
-//     m_view->GetProperty("Representations"), repProxy);
-//   m_view->UpdateVTKObjects();
-// 
-//   return true;
+  if (ModelItem::SEGMENTATION != item->type())
+    return false;
+
+  Segmentation *seg = dynamic_cast<Segmentation *>(item);
+
+  // duplicated item? addItem again
+  if (m_segmentations.contains(item))
+    {
+      m_renderer->RemoveVolume(this->m_segmentations[seg].volume);
+      m_segmentations[seg].volume->Delete();
+      m_segmentations.remove(item);
+    }
+
+  ColorEngine *engine = EspinaCore::instance()->colorSettings().engine();
+  QColor color = engine->color(seg);
+
+  vtkVolumeRayCastMapper *mapper = vtkVolumeRayCastMapper::New();
+  mapper->SetBlendModeToComposite();
+  mapper->SetInputConnection(seg->image());
+
+  vtkSmartPointer<vtkVolumeRayCastCompositeFunction> composite = vtkSmartPointer<vtkVolumeRayCastCompositeFunction>::New();
+  mapper->SetVolumeRayCastFunction(composite);
+
+  vtkSmartPointer<vtkColorTransferFunction> colorfunction = vtkSmartPointer<vtkColorTransferFunction>::New();
+  colorfunction->AllowDuplicateScalarsOff();
+  colorfunction->AddRGBPoint(255, color.redF(), color.greenF(), color.blueF());
+
+  vtkSmartPointer<vtkPiecewiseFunction> piecewise = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  piecewise->AddPoint(0, 0.0);
+  piecewise->AddPoint(255, 1.0);
+
+  vtkSmartPointer<vtkVolumeProperty> property = vtkSmartPointer<vtkVolumeProperty>::New();
+  property->SetColor(colorfunction);
+  property->SetScalarOpacity(piecewise);
+  property->DisableGradientOpacityOff();
+  property->SetSpecular(0.5);
+  property->ShadeOn();
+  property->SetInterpolationTypeToLinear();
+
+  vtkVolume *volume = vtkVolume::New();
+  volume->SetMapper(mapper);
+  volume->SetProperty(property);
+
+  m_segmentations[seg].selected = !seg->isSelected();
+  m_segmentations[seg].visible = seg->visible();
+  m_segmentations[seg].color = engine->color(seg);
+  m_segmentations[seg].volume = volume;
+
+  m_renderer->AddVolume(volume);
+  m_renderer->ResetCamera();
+  m_renderer->GetRenderWindow()->Render();
+  updateItem(seg);
+
+  return true;
 }
 
 //-----------------------------------------------------------------------------
 bool VolumetricRenderer::updateItem(ModelItem* item)
 {
-  Q_ASSERT(false);
-//   if (ModelItem::SEGMENTATION != item->type())
-//     return false;
-// 
-//   bool updated = false;
-//   Segmentation *seg = dynamic_cast<Segmentation *>(item);
-//   Q_ASSERT(m_segmentations.contains(seg));
-//   Representation &rep = m_segmentations[seg];
-//   if (seg->outputPort() != rep.outport)
-//   {
-//     removeItem(seg);
-//     addItem(seg);
-//     updated = true;
-//   } else if (seg->isSelected() != rep.selected
-//           || seg->visible() != rep.visible
-//           || seg->data(Qt::DecorationRole).value<QColor>() != rep.color)
-//   {
-//     rep.selected = seg->isSelected();
-//     rep.visible  = seg->visible();
-//     rep.color = seg->data(Qt::DecorationRole).value<QColor>();
-//     //   repProxy->PrintSelf(std::cout,vtkIndent(0));
-//     double rgb[3] = {rep.color.redF(), rep.color.greenF(), rep.color.blueF()};
-//     vtkSMPropertyHelper(rep.proxy, "Color").Set(rgb, 3);
-//     vtkSMPropertyHelper(rep.proxy, "Opacity").Set(rep.selected?1.0:0.7);
-//     vtkSMPropertyHelper(rep.proxy, "Visibility").Set(rep.visible && m_enable);
-//     rep.proxy->UpdateVTKObjects();
-//     updated = true;
-//   }
-// 
-//   return updated;
+   if (ModelItem::SEGMENTATION != item->type())
+     return false;
+
+   bool updated = false;
+   Segmentation *seg = dynamic_cast<Segmentation *>(item);
+   Q_ASSERT(m_segmentations.contains(seg));
+   Representation &rep = m_segmentations[seg];
+
+   if (seg->isSelected() != rep.selected
+     || seg->visible() != rep.visible
+     || seg->data(Qt::DecorationRole).value<QColor>() != rep.color)
+   {
+     rep.selected = seg->isSelected();
+     rep.visible  = seg->visible();
+     rep.color = seg->data(Qt::DecorationRole).value<QColor>();
+
+     vtkVolumeProperty *property = rep.volume->GetProperty();
+     vtkColorTransferFunction *color = property->GetRGBTransferFunction();
+     color->AddRGBPoint(255, rep.color.redF(), rep.color.greenF(), rep.color.blueF());
+     color->Modified();
+
+     double alpha = ((rep.selected) ? 1.0 : 0.7);
+
+     vtkPiecewiseFunction *piecewise = property->GetGradientOpacity();
+     piecewise->AddPoint(255, ((rep.visible) ? alpha : 0.0));
+     piecewise->Modified();
+
+     property->Modified();
+
+     m_renderer->GetRenderWindow()->Render();
+     updated = true;
+   }
+
+   return updated;
 }
 
 //-----------------------------------------------------------------------------
 bool VolumetricRenderer::removeItem(ModelItem* item)
 {
-  Q_ASSERT(false);
-//   if (ModelItem::SEGMENTATION != item->type())
-//     return false;
-// 
-//   Segmentation *seg = dynamic_cast<Segmentation *>(item);
-//   Q_ASSERT(m_segmentations.contains(seg));
-//   vtkSMRepresentationProxy *repProxy = m_segmentations[seg].proxy;
-//   // Remove the reprProxy to render module.
-//   pqSMAdaptor::removeProxyProperty(
-//     m_view->GetProperty("Representations"), repProxy);
-//   m_view->UpdateVTKObjects();
-//   repProxy->Delete();
-//   m_segmentations.remove(seg);
-// 
-//   return true;
+   if (ModelItem::SEGMENTATION != item->type())
+     return false;
+
+   Segmentation *seg = dynamic_cast<Segmentation *>(item);
+   Q_ASSERT(m_segmentations.contains(seg));
+
+   m_renderer->RemoveVolume(m_segmentations[seg].volume);
+   m_renderer->GetRenderWindow()->Render();
+
+   m_segmentations[seg].volume->Delete();
+   m_segmentations.remove(seg);
+
+   return true;
 }
 
 //-----------------------------------------------------------------------------
 void VolumetricRenderer::hide()
 {
-  Q_ASSERT(false);
-//   foreach(Representation rep, m_segmentations)
-//   {
-//     vtkSMPropertyHelper(rep.proxy, "Visibility").Set(false);
-//     rep.proxy->UpdateVTKObjects();
-//   }
-//   emit renderRequested();
+   foreach(Representation rep, m_segmentations)
+   {
+     m_renderer->RemoveVolume(rep.volume);
+//     std::cout << "Hiding" << std::endl;
+//     vtkVolumeProperty *property = rep.volume->GetProperty();
+//     vtkPiecewiseFunction *piecewise = property->GetGradientOpacity();
+//     piecewise->AddPoint(255, 0.0);
+//     piecewise->Modified();
+//     property->Modified();
+   }
+   m_renderer->GetRenderWindow()->Render();
+   emit renderRequested();
 }
 
 //-----------------------------------------------------------------------------
 void VolumetricRenderer::show()
 {
-  Q_ASSERT(false);
-//   foreach(Representation rep, m_segmentations)
-//   {
-//     vtkSMPropertyHelper(rep.proxy, "Visibility").Set(rep.visible);
-//     rep.proxy->UpdateVTKObjects();
-//   }
-//   emit renderRequested();
+   foreach(Representation rep, m_segmentations)
+   {
+     m_renderer->AddVolume(rep.volume);
+//     vtkVolumeProperty *property = rep.volume->GetProperty();
+//     vtkPiecewiseFunction *piecewise = property->GetGradientOpacity();
+//     double alpha = ((rep.selected) ? 1.0 : 0.7);
+//     piecewise->AddPoint(255, alpha);
+//     piecewise->Modified();
+//     property->Modified();
+   }
+   m_renderer->GetRenderWindow()->Render();
+   emit renderRequested();
 }

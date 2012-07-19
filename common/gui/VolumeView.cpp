@@ -54,6 +54,7 @@ VolumeView::VolumeView(QWidget* parent)
 , m_controlLayout   (new QHBoxLayout())
 , m_settings        (new Settings())
 {
+  init();
   buildControls();
 
   setLayout(m_mainLayout);
@@ -64,8 +65,6 @@ VolumeView::VolumeView(QWidget* parent)
   pal.setColor(QPalette::Base, pal.color(QPalette::Window));
   this->setPalette(pal);
   //   this->setStyleSheet("background-color: grey;");
-
-  init();
 }
 
 //-----------------------------------------------------------------------------
@@ -104,11 +103,11 @@ void VolumeView::buildControls()
     button->setIconSize(QSize(22,22));
     button->setMaximumSize(QSize(32,32));
     button->setToolTip(renderer->tooltip());
-    connect(button, SIGNAL(clicked(bool)),
-	    renderer.data(), SLOT(setEnable(bool)));
-    connect(renderer.data(), SIGNAL(renderRequested()),
-	    this, SLOT(forceRender()));
+    connect(button, SIGNAL(clicked(bool)), renderer.data(), SLOT(setEnable(bool)));
+    connect(renderer.data(), SIGNAL(renderRequested()), this, SLOT(forceRender()));
     m_controlLayout->addWidget(button);
+
+    renderer->setVtkRenderer(this->m_renderer);
   }
 
   m_mainLayout->addLayout(m_controlLayout);
@@ -139,8 +138,7 @@ void VolumeView::setCameraFocus(double center[3])
 //-----------------------------------------------------------------------------
 void VolumeView::resetCamera()
 {
-  Q_ASSERT(false);
-//   m_view->resetCamera();
+  this->m_renderer->ResetCamera();
 }
 
 //-----------------------------------------------------------------------------
@@ -208,32 +206,19 @@ void VolumeView::removeSegmentationRepresentation(Segmentation* seg)
   }
 }
 
-// //-----------------------------------------------------------------------------
-// void VolumeView::addWidget(pq3DWidget* widget)
-// {
-//   widget->setView(m_view);
-//   widget->setWidgetVisible(true);
-//   widget->select();
-//   widget->setEnabled(false);
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void VolumeView::removeWidget(pq3DWidget* widget)
-// {
-//   widget->setWidgetVisible(false);
-//   widget->deselect();
-// }
-// 
-
-//-----------------------------------------------------------------------------
 void VolumeView::init()
 {
-//   qDebug() << this << ": Connecting to a new server";
-  //m_view = vtkVolumeView::New();
-
   m_viewWidget = new QVTKWidget();
-  m_mainLayout->insertWidget(0,m_viewWidget);//To preserver view order
+  m_mainLayout->insertWidget(0,m_viewWidget); //To preserver view order
   m_viewWidget->show();
+  m_renderer = vtkSmartPointer<vtkRenderer>::New();
+  m_renderer->SetOcclusionRatio(0.5);
+  vtkSmartPointer<vtkInteractorStyleTrackballCamera> interactorstyle = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
+  interactorstyle->AutoAdjustCameraClippingRangeOn();
+  interactorstyle->KeyPressActivationOff();
+  m_viewWidget->GetRenderWindow()->AddRenderer(m_renderer);
+  m_viewWidget->GetRenderWindow()->GetInteractor()->SetInteractorStyle(interactorstyle);
+  m_viewWidget->GetRenderWindow()->Render();
 }
 
 //-----------------------------------------------------------------------------
@@ -241,8 +226,7 @@ void VolumeView::forceRender()
 {
   if(isVisible())
   {
-//     qDebug() << "Render 3D View";
-    //TODO:m_view->forceRender();
+      this->m_viewWidget->GetRenderWindow()->Render();
   }
 }
 
@@ -367,6 +351,7 @@ VolumeView::Settings::Settings(const QString prefix)
     if (renderer)
       m_renderers << RendererPtr(renderer->clone());
   }
+
 }
 
 //-----------------------------------------------------------------------------
@@ -387,7 +372,5 @@ void VolumeView::Settings::setRenderers(QList<Renderer *> values)
 //-----------------------------------------------------------------------------
 QList< VolumeView::Settings::RendererPtr> VolumeView::Settings::renderers() const
 {
-  //return settings.value(RENDERERS).toStringList();
   return m_renderers;
-//   return EspinaFactory::instance()->renderers();
 }
