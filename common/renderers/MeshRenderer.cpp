@@ -44,6 +44,7 @@ bool MeshRenderer::addItem(ModelItem* item)
   // duplicated item? addItem again
   if (m_segmentations.contains(item))
     {
+
       m_renderer->RemoveActor(this->m_segmentations[seg].actor);
       m_segmentations[seg].actor->Delete();
       m_segmentations.remove(item);
@@ -147,6 +148,9 @@ bool MeshRenderer::updateItem(ModelItem* item)
 
      rep.actor->GetProperty()->SetColor(rgb[0], rgb[1], rgb[2]);
      rep.actor->GetProperty()->Modified();
+
+     rep.actor->SetVisibility(rep.visible);
+     rep.actor->Modified();
 
      m_renderer->GetRenderWindow()->Render();
      updated = true;
