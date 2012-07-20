@@ -51,9 +51,11 @@ bool VolumetricRenderer::addItem(ModelItem* item)
   ColorEngine *engine = EspinaCore::instance()->colorSettings().engine();
   QColor color = engine->color(seg);
 
+
   vtkSmartPointer<vtkVolumeRayCastMapper> mapper = vtkVolumeRayCastMapper::New();
   mapper->ReleaseDataFlagOn();
   mapper->SetBlendModeToComposite();
+  mapper->IntermixIntersectingGeometryOff();
   mapper->SetInputConnection(seg->image());
 
   vtkSmartPointer<vtkVolumeRayCastCompositeFunction> composite = vtkSmartPointer<vtkVolumeRayCastCompositeFunction>::New();

@@ -212,7 +212,7 @@ void VolumeView::init()
   m_mainLayout->insertWidget(0,m_viewWidget); //To preserver view order
   m_viewWidget->show();
   m_renderer = vtkSmartPointer<vtkRenderer>::New();
-  m_renderer->SetOcclusionRatio(0.5);
+  m_renderer->LightFollowCameraOn();
   vtkSmartPointer<vtkInteractorStyleTrackballCamera> interactorstyle = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
   interactorstyle->AutoAdjustCameraClippingRangeOn();
   interactorstyle->KeyPressActivationOff();

@@ -31,6 +31,7 @@
 #include <vtkActor.h>
 #include <vtkProperty.h>
 #include <vtkImageConstantPad.h>
+#include <vtkAlgorithm.h>
 #include <vtkMath.h>
 
 //-----------------------------------------------------------------------------
@@ -57,7 +58,9 @@ bool MeshRenderer::addItem(ModelItem* item)
   // image (and create morphologicaly correct actors)
   vtkSmartPointer<vtkImageConstantPad> padfilter = vtkSmartPointer<vtkImageConstantPad>::New();
   int extent[6];
-  VolumeExtent(seg->volume(), extent);
+
+  vtkImageData *image = vtkImageData::SafeDownCast(seg->image()->GetProducer()->GetOutputDataObject(0));
+  image->GetExtent(extent);
   padfilter->SetInputConnection(seg->image());
   padfilter->SetOutputWholeExtent(extent[0]-1, extent[1]+1, extent[2]-1, extent[3]+1, extent[4]-1, extent[5]+1);
   padfilter->SetConstant(0);

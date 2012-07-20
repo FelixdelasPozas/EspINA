@@ -35,7 +35,7 @@ const QString UTHRESHOLD = "SeedGrowSegmentation::UpperThreshold";
 ThresholdAction::ThresholdAction(QObject* parent)
 : QWidgetAction(parent)
 {
-  QSettings settings("CeSViMa", "EspIA");
+  QSettings settings("CeSViMa", "EspINA");
   m_threshold[0] = settings.value(LTHRESHOLD, DEFAULT_THRESHOLD).toInt();
   m_threshold[1] = settings.value(UTHRESHOLD, DEFAULT_THRESHOLD).toInt();
 }
@@ -85,7 +85,7 @@ QWidget* ThresholdAction::createWidget(QWidget* parent)
 void ThresholdAction::setLowerThreshold(int th)
 {
   m_threshold[0] = th>0?th:0;
-  QSettings settings("CeSViMa", "EspIA");
+  QSettings settings("CeSViMa", "EspINA");
   settings.setValue(LTHRESHOLD, m_threshold[0]);
   emit lowerThresholdChanged(m_threshold[0]);
 }
@@ -93,7 +93,7 @@ void ThresholdAction::setLowerThreshold(int th)
 void ThresholdAction::setUpperThreshold(int th)
 {
   m_threshold[1] = th>0?th:0;
-  QSettings settings("CeSViMa", "EspIA");
+  QSettings settings("CeSViMa", "EspINA");
   settings.setValue(UTHRESHOLD, m_threshold[1]);
   emit upperThresholdChanged(m_threshold[1]);
 }

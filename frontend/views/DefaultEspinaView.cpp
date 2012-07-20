@@ -131,7 +131,7 @@ void DefaultEspinaView::createViewMenu(QMenu* menu)
   //connect(toggleSegmentationsVisibility, SIGNAL(triggered(bool)),
   //this, SLOT(showSegmentations(bool)));
   //menu->addAction(toggleSegmentationsVisibility);
-  QSettings settings("CeSViMa", "EspIA");
+  QSettings settings("CeSViMa", "EspINA");
 
   bool sr = settings.value("ShowRuler", true).toBool();
   bool st = settings.value("ShowThumbnail", true).toBool();
@@ -320,7 +320,7 @@ void DefaultEspinaView::showSegmentations(bool visible)
 //-----------------------------------------------------------------------------
 void DefaultEspinaView::showThumbnail(bool visible)
 {
-  QSettings settings("CeSViMa", "EspIA");
+  QSettings settings("CeSViMa", "EspINA");
   settings.setValue("ShowThumbnail", m_showThumbnail->isChecked());
   xyView->setThumbnailVisibility(visible);
   yzView->setThumbnailVisibility(visible);
@@ -547,7 +547,7 @@ void DefaultEspinaView::setFitToSlices(bool fit)
 //-----------------------------------------------------------------------------
 void DefaultEspinaView::setRulerVisibility(bool visible)
 {
-  QSettings settings("CeSViMa", "EspIA");
+  QSettings settings("CeSViMa", "EspINA");
   settings.setValue("ShowRuler", m_showRuler->isChecked() );
   xyView->setRulerVisibility(visible);
   yzView->setRulerVisibility(visible);
