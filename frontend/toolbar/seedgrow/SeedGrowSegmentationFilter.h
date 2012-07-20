@@ -76,8 +76,13 @@ public:
       return Arguments::argumentId(name);
     }
 
-    void setSeed(int seed[3])
-      {m_args[SEED] = arg3(seed);}
+    void setSeed(EspinaVolume::IndexType seed)
+    {
+      m_args[SEED] = QString("%1,%2,%3")
+                     .arg(seed[0])
+		     .arg(seed[1])
+		     .arg(seed[2]);
+    }
     EspinaVolume::IndexType seed() const
     {
       EspinaVolume::IndexType res;
@@ -128,8 +133,15 @@ public:
   int lowerThreshold() const {return m_param.lowerThreshold();}
   void setUpperThreshold(int th);
   int upperThreshold() const {return m_param.upperThreshold();}
-  void setSeed(int seed[3]);
-  void seed(int seed[3]) const;
+  /// Convenience method to set symmetrical lower/upper thresholds
+  void setThreshold(int th)
+  {
+    setLowerThreshold(th);
+    setUpperThreshold(th);
+  };
+
+  void setSeed(EspinaVolume::IndexType seed);
+  void seed(EspinaVolume::IndexType seed) const;
   void setVOI(int VOI[6]);
   void voi(int VOI[6]) const {m_param.voi(VOI);}
 

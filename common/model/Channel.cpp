@@ -78,6 +78,16 @@ EspinaVolume *Channel::volume()
 }
 
 //------------------------------------------------------------------------
+// EspinaVolume::IndexType Channel::index(Nm x, Nm y, Nm z)
+// {
+//   EspinaVolume::IndexType res;
+//   res[0] = x / volume()->GetSpacing()[0];
+//   res[1] = y / volume()->GetSpacing()[1];
+//   res[2] = z / volume()->GetSpacing()[2];
+//   return res;
+// }
+
+//------------------------------------------------------------------------
 void Channel::extent(int out[6])
 {
   VolumeExtent(volume(), out);

@@ -36,20 +36,20 @@ const ModelItem::ArgumentId Segmentation::TAXONOMY = ArgumentId("Taxonomy", Argu
 const ModelItem::ArgumentId Segmentation::USERS = ArgumentId("Users", ArgumentId::VARIABLE);
 
 //-----------------------------------------------------------------------------
-Segmentation::SArguments::SArguments(const ModelItem::Arguments args) :
-		Arguments(args)
+Segmentation::SArguments::SArguments(const ModelItem::Arguments args)
+: Arguments(args)
 {
-	m_number = args[NUMBER].toInt();
-	m_outputNumber = args[OUTPUT].toInt();
+  m_number = args[NUMBER].toInt();
+  m_outputNumber = args[OUTPUT].toInt();
 }
 
 //-----------------------------------------------------------------------------
 QString Segmentation::SArguments::serialize(bool key) const
 {
-	QString user = EspinaCore::instance()->settings().userName();
-	SArguments *args = const_cast<SArguments *>(this);
-	args->addUser(user);
-	return ModelItem::Arguments::serialize(key);
+  QString user = EspinaCore::instance()->settings().userName();
+  SArguments *args = const_cast<SArguments *>(this);
+  args->addUser(user);
+  return ModelItem::Arguments::serialize(key);
 }
 
 //-----------------------------------------------------------------------------
@@ -112,7 +112,7 @@ EspinaVolume *Segmentation::volume()
 //------------------------------------------------------------------------
 QString Segmentation::id() const
 {
-	return m_filter->id() + "_" + m_args[OUTPUT];
+  return m_filter->id() + "_" + m_args[OUTPUT];
 }
 
 //------------------------------------------------------------------------
@@ -198,19 +198,19 @@ void Segmentation::notifyModification(bool force)
 //------------------------------------------------------------------------
 bool Segmentation::setData(const QVariant& value, int role)
 {
-	switch (role)
-	{
-		case Qt::EditRole:
-			return true;
-		case Qt::CheckStateRole:
-			setVisible(value.toBool());
-			return true;
-		case SelectionRole:
-			setSelected(value.toBool());
-			return true;
-		default:
-			return false;
-	}
+  switch (role)
+  {
+    case Qt::EditRole:
+      return true;
+    case Qt::CheckStateRole:
+      setVisible(value.toBool());
+      return true;
+    case SelectionRole:
+      setSelected(value.toBool());
+      return true;
+    default:
+      return false;
+  }
 }
 
 //------------------------------------------------------------------------
@@ -297,14 +297,14 @@ QVariant Segmentation::information(QString info)
 //------------------------------------------------------------------------
 void Segmentation::onColorEngineChanged()
 {
-	ColorEngineSettings &settings = EspinaCore::instance()->colorSettings();
-	ColorEngine * engine = settings.engine();
-	QColor color = engine->color(this);
-	if (m_color != color)
-	{
-		m_color = color;
-		notifyModification();
-	}
+  ColorEngineSettings &settings = EspinaCore::instance()->colorSettings();
+  ColorEngine * engine = settings.engine();
+  QColor color = engine->color(this);
+  if (m_color != color)
+  {
+    m_color = color;
+    notifyModification();
+  }
 }
 
 vtkAlgorithmOutput* Segmentation::image()

@@ -59,8 +59,8 @@ public:
 
   virtual QSize sizeHint() const;
 
-  virtual void gridSize(double size[3]);
-  virtual void setGridSize(double size[3]);
+  virtual void slicingStep(Nm steps[3]);
+  virtual void setSlicingStep(Nm steps[3]);
 
   virtual void addWidget(EspinaWidget* widget);
   virtual void removeWidget(EspinaWidget* widget);
@@ -77,8 +77,9 @@ public slots:
   virtual void showSegmentations(bool visible);
   virtual void showThumbnail(bool visible);
 
-  virtual void setCenter(double x, double y, double z, bool force=false);
   virtual void setCameraFocus(double [3]);
+
+  virtual void setCrosshairPoint(Nm x, Nm y, Nm z, bool force = false);
   virtual void setSliceSelectors(SliceView::SliceSelectors selectors);
 
 protected:
@@ -99,8 +100,8 @@ protected slots:
   void setFitToSlices(bool fit);
   void setRulerVisibility(bool visible);
 
-  void selectFromSlice(double slice, vtkSliceView::VIEW_PLANE plane);
-  void selectToSlice(double slice, vtkSliceView::VIEW_PLANE plane);
+  void selectFromSlice(double slice, PlaneType plane);
+  void selectToSlice(double slice, PlaneType plane);
 
   void channelSelected(Channel *channel);
   void segmentationSelected(Segmentation *seg, bool append);
@@ -117,7 +118,7 @@ private:
   VolumeView *volView;
   QDockWidget *volDock, *yzDock, *xzDock;
   QAction     *m_showRuler, *m_showThumbnail;
-  double m_gridSize[3];
+  Nm m_slicingStep[3];
   QMap<EspinaWidget *, Widgtes> m_widgets;
   bool                    m_showProcessing;
 };
@@ -142,6 +143,7 @@ public:
   virtual ISettingsPanel* clone();
 
 private:
+  Nm m_slicingStep;
   SliceView::SettingsPtr m_xy, m_yz, m_xz;
   SliceViewSettingsPanel *m_xyPanel, *m_yzPanel, *m_xzPanel;
   VolumeView::SettingsPtr m_vol;

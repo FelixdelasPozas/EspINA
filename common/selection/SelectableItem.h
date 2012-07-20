@@ -38,6 +38,18 @@ public:
   virtual Filter       *filter() = 0;
   virtual OutputNumber  outputNumber() = 0;
   virtual EspinaVolume *volume() = 0;
+  /// Volume's voxel's index at given spatial position
+  virtual EspinaVolume::IndexType index(Nm x, Nm y, Nm z)
+  {
+    //volume()->Print(std::cout);
+    EspinaVolume::PointType origin = volume()->GetOrigin();
+    EspinaVolume::SpacingType spacing = volume()->GetSpacing();
+    EspinaVolume::IndexType res;
+    res[0] = (x - origin[0] + spacing[0]/2.0) / spacing[0];
+    res[1] = (y - origin[1] + spacing[1]/2.0) / spacing[1];
+    res[2] = (z - origin[2] + spacing[2]/2.0) / spacing[2];
+    return res;
+  }
 
 protected:
   bool m_isSelected;

@@ -75,7 +75,7 @@ vtkAbstractWidget* RectangularRegion::createWidget()
 }
 
 //----------------------------------------------------------------------------
-SliceWidget* RectangularRegion::createSliceWidget(vtkSliceView::VIEW_PLANE plane)
+SliceWidget* RectangularRegion::createSliceWidget(PlaneType plane)
 {
   vtkRectangularWidget *widget = vtkRectangularWidget::New();
   Q_ASSERT(widget);
@@ -105,7 +105,7 @@ void RectangularRegion::setEnabled(bool enable)
 }
 
 //----------------------------------------------------------------------------
-void RectangularRegion::setBounds(double bounds[6])
+void RectangularRegion::setBounds(Nm bounds[6])
 {
   foreach(vtkAbstractWidget *widget, m_widgets)
   {
@@ -114,13 +114,13 @@ void RectangularRegion::setBounds(double bounds[6])
 }
 
 //----------------------------------------------------------------------------
-void RectangularRegion::bounds(double bounds[6])
+void RectangularRegion::bounds(Nm bounds[6])
 {
   Q_ASSERT(!m_widgets.isEmpty());
 
   vtkAbstractWidget *widget = m_widgets[0];
 
-  memcpy(bounds,widget->GetRepresentation()->GetBounds(),6*sizeof(double));
+  memcpy(bounds, widget->GetRepresentation()->GetBounds(), 6*sizeof(double));
 }
 
 // //----------------------------------------------------------------------------

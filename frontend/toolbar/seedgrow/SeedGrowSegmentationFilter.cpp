@@ -123,11 +123,11 @@ void SeedGrowSegmentationFilter::run()
 //   qDebug() << "Upper Intensity:" << std::min(seedIntensity + m_param.upperThreshold(), 255);
 //   qDebug() << "SEED: " << seed[0] << " " << seed[1] << " " << seed[2];
 
-  qDebug() << "Converting from ITK to LabelMap";
-  image2label = Image2LabelFilterType::New();
-  image2label->ReleaseDataFlagOn();
-  image2label->SetInput(ctif->GetOutput());
-  image2label->Update();//TODO: Check if needed
+//   qDebug() << "Converting from ITK to LabelMap";
+//   image2label = Image2LabelFilterType::New();
+//   image2label->ReleaseDataFlagOn();
+//   image2label->SetInput(ctif->GetOutput());
+//   image2label->Update();//TODO: Check if needed
 
 //   qDebug() << "Getting Segmentation Region";
 //   // Get the roi of the object
@@ -175,6 +175,9 @@ void SeedGrowSegmentationFilter::run()
   else
     m_volume = ctif->GetOutput();
 
+//   double newOrigin[3] = {m_volume
+//   m_volume->SetOrigin(m_volume->GetLargestPossibleRegion().GetIndex());
+
   QApplication::restoreOverrideCursor();
   emit modified(this);
   m_needUpdate = false;
@@ -209,13 +212,13 @@ void SeedGrowSegmentationFilter::setVOI(int VOI[6])
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::setSeed(int seed[3])
+void SeedGrowSegmentationFilter::setSeed(EspinaVolume::IndexType seed)
 {
   m_param.setSeed(seed);
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::seed(int seed[3]) const
+void SeedGrowSegmentationFilter::seed(EspinaVolume::IndexType seed) const
 {
   EspinaVolume::IndexType index = m_param.seed();
   for(int i=0; i<3; i++)
@@ -241,7 +244,10 @@ int SeedGrowSegmentationFilter::numberOutputs() const
 EspinaVolume* SeedGrowSegmentationFilter::output(OutputNumber i) const
 {
   if (m_volume && i == 0)
+  {
+    //m_volume->Print(std::cout);
     return m_volume;
+  }
 
   Q_ASSERT(false);
   return NULL;

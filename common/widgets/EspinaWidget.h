@@ -20,7 +20,7 @@
 #ifndef ESPINAWIDGET_H
 #define ESPINAWIDGET_H
 
-#include <common/views/vtkSliceView.h>
+#include <common/EspinaTypes.h>
 
 class vtkAbstractWidget;
 
@@ -29,7 +29,7 @@ class SliceWidget
 public:
   explicit SliceWidget(vtkAbstractWidget *widget);
 
-  virtual void setSlice(double pos, vtkSliceView::VIEW_PLANE plane);
+  virtual void setSlice(double pos, PlaneType plane);
 
   operator vtkAbstractWidget *(){return m_widget;}
   operator const vtkAbstractWidget *const() const {return m_widget;}
@@ -45,7 +45,7 @@ public:
   virtual ~EspinaWidget(){}
 
   virtual vtkAbstractWidget *createWidget() = 0;
-  virtual SliceWidget *createSliceWidget(vtkSliceView::VIEW_PLANE plane) = 0;
+  virtual SliceWidget *createSliceWidget(PlaneType plane) = 0;
 
   virtual void setEnabled(bool enable) = 0;
 };

@@ -429,7 +429,7 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
   double y = bounds[2] + (bounds[3]-bounds[2])/2.0;
   double z = bounds[4] + (bounds[5]-bounds[4])/2.0;
   EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
-  view->setCenter(x, y, z);
+  view->setCrosshairPoint(x, y, z);
 //   Q_ASSERT(seg);
 //   x = seg->information("Centroid X").toInt();
 //   y = seg->information("Centroid Y").toInt();

@@ -116,9 +116,9 @@ SeedGrowSegmentation::SeedGrowSegmentation(QWidget* parent)
   addAction(m_threshold);
   addAction(m_useDefaultVOI);
   addAction(m_segment);
-//   QAction *batch = addAction(tr("Batch"));
-//   connect(batch, SIGNAL(triggered(bool)),
-//           this, SLOT(batchMode()));
+  QAction *batch = addAction(tr("Batch"));
+  connect(batch, SIGNAL(triggered(bool)),
+          this, SLOT(batchMode()));
 
   connect(m_segment, SIGNAL(triggered(QAction*)),
           this, SLOT(waitSeedSelection(QAction*)));
@@ -179,7 +179,7 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
     SelectableItem *input = element.second;
 
     Q_ASSERT(element.first.size() == 1); // with one pixel
-    QVector3D seed = element.first.first();
+    QVector3D seedPoint = element.first.first();//Nm
     //     qDebug() << "Channel:" << input->volume().id();
     //     qDebug() << "Threshold:" << m_threshold->threshold();
     //     qDebug() << "Seed:" << seed;
@@ -187,48 +187,49 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
 
     Q_ASSERT(ModelItem::CHANNEL == input->type());
     Channel *channel = EspinaCore::instance()->activeChannel();//dynamic_cast<Channel *>(input);
+    Q_ASSERT(channel);
 
-    int growSeed[3] = {seed.x(), seed.y(), seed.z()};
+    EspinaVolume::IndexType seed = channel->index(seedPoint.x(), seedPoint.y(), seedPoint.z());
 
-    int VOI[6];
+    Nm voiBounds[6];
     //TODO: Create region // selection base class
     RectangularRegion *currentVOI = dynamic_cast<RectangularRegion*>(SelectionManager::instance()->voi());
     if (currentVOI)
     {
-      double bounds[6];
-      currentVOI->bounds(bounds);
-      double spacing[3];
-      channel->spacing(spacing);
-      for (int i=0; i<6; i++)
-        VOI[i] = bounds[i] / spacing[i/2];
-      //qDebug() << VOI[0] << VOI[1] << VOI[2] << VOI[3] << VOI[4] << VOI[5];
+      currentVOI->bounds(voiBounds);
     }
     else if (m_useDefaultVOI->useDefaultVOI())
     {
-      VOI[0] = seed.x() - m_settings->xSize();
-      VOI[1] = seed.x() + m_settings->xSize();
-      VOI[2] = seed.y() - m_settings->ySize();
-      VOI[3] = seed.y() + m_settings->ySize();
-      VOI[4] = seed.z() - m_settings->zSize();
-      VOI[5] = seed.z() + m_settings->zSize();
+      voiBounds[0] = seedPoint.x() - m_settings->xSize();
+      voiBounds[1] = seedPoint.x() + m_settings->xSize();
+      voiBounds[2] = seedPoint.y() - m_settings->ySize();
+      voiBounds[3] = seedPoint.y() + m_settings->ySize();
+      voiBounds[4] = seedPoint.z() - m_settings->zSize();
+      voiBounds[5] = seedPoint.z() + m_settings->zSize();
     } else
     {
-      channel->extent(VOI);
+      channel->bounds(voiBounds);
     }
 
-    if (VOI[0] <= growSeed[0] && growSeed[0] <= VOI[1] &&
-        VOI[2] <= growSeed[1] && growSeed[1] <= VOI[3] &&
-        VOI[4] <= growSeed[2] && growSeed[2] <= VOI[5])
+    double spacing[3];
+    channel->spacing(spacing);
+    int voiExtent[6];
+    for (int i=0; i<6; i++)
+      voiExtent[i] = voiBounds[i] / spacing[i/2];
+
+    if (voiBounds[0] <= seedPoint.x() && seedPoint.x() <= voiBounds[1] &&
+        voiBounds[2] <= seedPoint.y() && seedPoint.y() <= voiBounds[3] &&
+        voiBounds[4] <= seedPoint.z() && seedPoint.z() <= voiBounds[5])
     {
       QApplication::setOverrideCursor(Qt::WaitCursor);
 
       Filter::NamedInputs inputs;
       Filter::Arguments args;
       SeedGrowSegmentationFilter::Parameters params(args);
-      params.setSeed(growSeed);
+      params.setSeed(seed);
       params.setLowerThreshold(m_threshold->lowerThreshold());
       params.setUpperThreshold(m_threshold->upperThreshold());
-      params.setVOI(VOI);
+      params.setVOI(voiExtent);
       params.setCloseValue(m_settings->closing());
       inputs[INPUTLINK] = channel->filter();
       args[Filter::INPUTS] = INPUTLINK + "_" + QString::number(channel->outputNumber());

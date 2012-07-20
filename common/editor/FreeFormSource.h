@@ -21,8 +21,6 @@
 #define FREEFORMSOURCE_H
 
 #include <model/Filter.h>
-#include <common/views/vtkSliceView.h>
-
 #include <itkChangeInformationImageFilter.h>
 
 #include <QVector3D>
@@ -74,9 +72,9 @@ public:
                           Arguments args);
   virtual ~FreeFormSource();
 
-  void draw(vtkSliceView::VIEW_PLANE plane,
+  void draw(PlaneType plane,
 	    QVector3D center, double radius = 0);
-  void erase(vtkSliceView::VIEW_PLANE plane,
+  void erase(PlaneType plane,
 	     QVector3D center, double radius = 0);
 
   /// Implements Model Item Interface

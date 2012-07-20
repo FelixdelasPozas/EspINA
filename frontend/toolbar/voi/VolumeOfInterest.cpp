@@ -78,10 +78,10 @@ void VolumeOfInterest::changeVOISelector(QAction* action)
   SelectionManager::instance()->setSelectionHandler(m_selector.data());
   EspinaView *currentView = EspinaCore::instance()->viewManger()->currentView();
   currentView->setSliceSelectors(SliceView::From|SliceView::To);
-  connect(currentView, SIGNAL(selectedFromSlice(double, vtkSliceView::VIEW_PLANE)),
-          this, SLOT(setBorderFrom(double, vtkSliceView::VIEW_PLANE)));
-  connect(currentView, SIGNAL(selectedToSlice(double, vtkSliceView::VIEW_PLANE)),
-          this, SLOT(setBorderTo(double, vtkSliceView::VIEW_PLANE)));
+  connect(currentView, SIGNAL(selectedFromSlice(double, PlaneType)),
+          this, SLOT(setBorderFrom(double, PlaneType)));
+  connect(currentView, SIGNAL(selectedToSlice(double, PlaneType)),
+          this, SLOT(setBorderTo(double, PlaneType)));
 }
 
 //-----------------------------------------------------------------------------
@@ -107,7 +107,7 @@ void VolumeOfInterest::defineVOI(SelectionHandler::MultiSelection msel)
   const double YHSIZE = 40;
   const double ZHSIZE = 40;
   double spacing[3];
-  view->gridSize(spacing);
+  view->slicingStep(spacing);
   double bounds[6] = {
      (pos.x() - XHSIZE)*spacing[0], (pos.x() + XHSIZE)*spacing[0],
      (pos.y() - YHSIZE)*spacing[1], (pos.y() + YHSIZE)*spacing[1],
@@ -136,14 +136,14 @@ void VolumeOfInterest::cancelVOI()
   selectorManager->setVOI(NULL);
   EspinaView *currentView = EspinaCore::instance()->viewManger()->currentView();
   currentView->setSliceSelectors(SliceView::NoSelector);
-  disconnect(currentView, SIGNAL(selectedFromSlice(double, vtkSliceView::VIEW_PLANE)),
-             this, SLOT(setBorderFrom(double, vtkSliceView::VIEW_PLANE)));
-  disconnect(currentView, SIGNAL(selectedToSlice(double, vtkSliceView::VIEW_PLANE)),
-             this, SLOT(setBorderTo(double, vtkSliceView::VIEW_PLANE)));
+  disconnect(currentView, SIGNAL(selectedFromSlice(double, PlaneType)),
+             this, SLOT(setBorderFrom(double, PlaneType)));
+  disconnect(currentView, SIGNAL(selectedToSlice(double, PlaneType)),
+             this, SLOT(setBorderTo(double, PlaneType)));
 }
 
 //-----------------------------------------------------------------------------
-void VolumeOfInterest::setBorderFrom(double pos, vtkSliceView::VIEW_PLANE plane)
+void VolumeOfInterest::setBorderFrom(double pos, PlaneType plane)
 {
   if (!m_voiWidget.isNull())
   {
@@ -155,7 +155,7 @@ void VolumeOfInterest::setBorderFrom(double pos, vtkSliceView::VIEW_PLANE plane)
 }
 
 //-----------------------------------------------------------------------------
-void VolumeOfInterest::setBorderTo(double pos, vtkSliceView::VIEW_PLANE plane)
+void VolumeOfInterest::setBorderTo(double pos, PlaneType plane)
 {
   if (!m_voiWidget.isNull())
   {

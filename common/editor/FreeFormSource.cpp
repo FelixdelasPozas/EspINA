@@ -19,7 +19,6 @@
 
 #include "FreeFormSource.h"
 #include <model/EspinaFactory.h>
-#include <vtkSliceView.h>
 #include <EspinaCore.h>
 #include <EspinaView.h>
 #include <itkImageRegionIteratorWithIndex.h>
@@ -38,16 +37,16 @@ bool FreeFormSource::drawPixel(int x, int y, int z,
 			       int r, int plane)
 {
   bool onSlice = false;
-  onSlice |= plane == vtkSliceView::AXIAL    &&  z == cz-Extent[4];
-  onSlice |= plane == vtkSliceView::SAGITTAL &&  x == cx-Extent[0];
-  onSlice |= plane == vtkSliceView::CORONAL  &&  y == cy-Extent[2];
+  onSlice |= plane == AXIAL    &&  z == cz-Extent[4];
+  onSlice |= plane == SAGITTAL &&  x == cx-Extent[0];
+  onSlice |= plane == CORONAL  &&  y == cy-Extent[2];
 
   if (onSlice)
   {
-    double p1 = plane==vtkSliceView::SAGITTAL?
+    double p1 = SAGITTAL==plane?
                 (y-cy+Extent[2])*m_param.spacing()[1]:
                 (x-cx+Extent[0])*m_param.spacing()[0];
-    double p2 = plane==vtkSliceView::AXIAL?
+    double p2 = AXIAL==plane?
                 (y-cy+Extent[2])*m_param.spacing()[1]:
                 (z-cz+Extent[4])*m_param.spacing()[2];
     double dist2= pow(p1, 2) + pow(p2, 2);
@@ -77,18 +76,18 @@ FreeFormSource::~FreeFormSource()
 }
 
 //-----------------------------------------------------------------------------
-void FreeFormSource::draw(vtkSliceView::VIEW_PLANE plane,
+void FreeFormSource::draw(PlaneType plane,
                           QVector3D center, double radius)
 {
   if (plane < 0 || 2 < plane || radius < 0)
     return;
 
-  bool expandX = vtkSliceView::AXIAL    == plane
-              || vtkSliceView::CORONAL  == plane;
-  bool expandY = vtkSliceView::AXIAL    == plane
-              || vtkSliceView::SAGITTAL == plane;
-  bool expandZ = vtkSliceView::SAGITTAL == plane
-              || vtkSliceView::CORONAL  == plane;
+  bool expandX = AXIAL    == plane
+              || CORONAL  == plane;
+  bool expandY = AXIAL    == plane
+              || SAGITTAL == plane;
+  bool expandZ = SAGITTAL == plane
+              || CORONAL  == plane;
 
   int cx = center.x();
   int cy = center.y();
@@ -201,7 +200,7 @@ void FreeFormSource::draw(vtkSliceView::VIEW_PLANE plane,
 }
 
 //-----------------------------------------------------------------------------
-void FreeFormSource::erase(vtkSliceView::VIEW_PLANE plane,
+void FreeFormSource::erase(PlaneType plane,
                            QVector3D center, double radius)
 {
   if (!m_hasPixels)
@@ -229,12 +228,12 @@ void FreeFormSource::erase(vtkSliceView::VIEW_PLANE plane,
     DrawExtent[4] = cz - rz;
     DrawExtent[5] = cz + rz;
 
-    bool expandX = vtkSliceView::AXIAL    == plane
-                || vtkSliceView::CORONAL  == plane;
-    bool expandY = vtkSliceView::AXIAL    == plane
-                || vtkSliceView::SAGITTAL == plane;
-    bool expandZ = vtkSliceView::SAGITTAL == plane
-                || vtkSliceView::CORONAL  == plane;
+    bool expandX = AXIAL    == plane
+                || CORONAL  == plane;
+    bool expandY = AXIAL    == plane
+                || SAGITTAL == plane;
+    bool expandZ = SAGITTAL == plane
+                || CORONAL  == plane;
     int minX = std::max(Extent[0],(expandX?cx - rx:cx))-Extent[0];
     int maxX = std::min(Extent[1],(expandX?cx + rx:cx))-Extent[0];
     int minY = std::max(Extent[2],(expandY?cy - ry:cy))-Extent[2];

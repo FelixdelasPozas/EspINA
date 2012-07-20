@@ -31,7 +31,7 @@ SeedGrowSegmentationFilter::SetupWidget::SetupWidget(Filter* filter)
 {
   setupUi(this);
   m_filter = dynamic_cast<SeedGrowSegmentationFilter *>(filter);
-  int seed[3];
+  EspinaVolume::IndexType seed;
   m_filter->seed(seed);
   m_xSeed->setText(QString("%1").arg(seed[0]));
   m_ySeed->setText(QString("%1").arg(seed[1]));
@@ -85,44 +85,44 @@ bool SeedGrowSegmentationFilter::SetupWidget::eventFilter(QObject* sender, QEven
   {
     EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
     view->setSliceSelectors(SliceView::From| SliceView::To);
-    connect(view, SIGNAL(selectedFromSlice(double,vtkSliceView::VIEW_PLANE)),
-	    this, SLOT(redefineFromVOI(double,vtkSliceView::VIEW_PLANE)));
-    connect(view, SIGNAL(selectedToSlice(double,vtkSliceView::VIEW_PLANE)),
-	    this, SLOT(redefineToVOI(double,vtkSliceView::VIEW_PLANE)));
+    connect(view, SIGNAL(selectedFromSlice(double,PlaneType)),
+	    this, SLOT(redefineFromVOI(double,PlaneType)));
+    connect(view, SIGNAL(selectedToSlice(double,PlaneType)),
+	    this, SLOT(redefineToVOI(double,PlaneType)));
   }
 
   return QObject::eventFilter(sender, e);
 }
 
 //----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::SetupWidget::redefineFromVOI(double value, vtkSliceView::VIEW_PLANE plane)
+void SeedGrowSegmentationFilter::SetupWidget::redefineFromVOI(double value, PlaneType plane)
 {
   switch (plane)
   {
-    case vtkSliceView::AXIAL:
+    case AXIAL:
       m_upperMargin->setValue(value);
       break;
-    case vtkSliceView::SAGITTAL:
+    case SAGITTAL:
       m_leftMargin->setValue(value);
       break;
-    case vtkSliceView::CORONAL:
+    case CORONAL:
       m_topMargin->setValue(value);
       break;
   }
 }
 
 //----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::SetupWidget::redefineToVOI(double value, vtkSliceView::VIEW_PLANE plane)
+void SeedGrowSegmentationFilter::SetupWidget::redefineToVOI(double value, PlaneType plane)
 {
   switch (plane)
   {
-    case vtkSliceView::AXIAL:
+    case AXIAL:
       m_lowerMargin->setValue(value);
       break;
-    case vtkSliceView::SAGITTAL:
+    case SAGITTAL:
       m_rightMargin->setValue(value);
       break;
-    case vtkSliceView::CORONAL:
+    case CORONAL:
       m_bottomMargin->setValue(value);
       break;
   }

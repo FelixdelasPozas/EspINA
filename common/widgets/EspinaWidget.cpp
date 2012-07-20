@@ -29,7 +29,7 @@ SliceWidget::SliceWidget(vtkAbstractWidget *widget)
 }
 
 //----------------------------------------------------------------------------
-void SliceWidget::setSlice(double pos, vtkSliceView::VIEW_PLANE plane)
+void SliceWidget::setSlice(double pos, PlaneType plane)
 {
   double *bounds = m_widget->GetRepresentation()->GetBounds();
   bool visible = bounds[2*plane] <= pos && pos <= bounds[2*plane+1];

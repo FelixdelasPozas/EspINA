@@ -52,7 +52,7 @@ EspinaView(parent, activity), first(true), m_colorEngine(NULL), m_showProcessing
   setObjectName("xyView");
 
   //   qDebug() << "New Default EspinaView";
-  xyView = new SliceView(vtkSliceView::AXIAL);
+  xyView = new SliceView(AXIAL);
   xyView->setCrosshairColors(blue, magenta);
   initSliceView(xyView);
   this->setLayout(new QVBoxLayout());
@@ -68,14 +68,14 @@ EspinaView(parent, activity), first(true), m_colorEngine(NULL), m_showProcessing
 
   yzDock = new QDockWidget(tr("ZY"), parent);
   yzDock->setObjectName("yzDock");
-  yzView = new SliceView(vtkSliceView::SAGITTAL);
+  yzView = new SliceView(SAGITTAL);
   yzView->setCrosshairColors(blue, cyan);
   initSliceView(yzView);
   yzDock->setWidget(yzView);
 
   xzDock = new QDockWidget(tr("XZ"), parent);
   xzDock->setObjectName("xzDock");
-  xzView = new SliceView(vtkSliceView::CORONAL);
+  xzView = new SliceView(CORONAL);
   xzView->setCrosshairColors(cyan, magenta);
   initSliceView(xzView);
   xzDock->setWidget(xzView);
@@ -98,15 +98,14 @@ DefaultEspinaView::~DefaultEspinaView()
 //-----------------------------------------------------------------------------
 void DefaultEspinaView::initSliceView(SliceView* view)
 {
-  view->setFitToGrid(true);
-  connect(view, SIGNAL(centerChanged(double,double,double)),
-          this, SLOT(setCenter(double,double,double)));
+  connect(view, SIGNAL(centerChanged(Nm, Nm, Nm)),
+          this, SLOT(setCrosshairPoint(Nm,Nm,Nm)));
   connect(view, SIGNAL(focusChanged(double[3])),
           this, SLOT(setCameraFocus(double[3])));
-  connect(view, SIGNAL(selectedFromSlice(double, vtkSliceView::VIEW_PLANE)),
-          this, SLOT(selectFromSlice(double, vtkSliceView::VIEW_PLANE)));
-  connect(view, SIGNAL(selectedToSlice(double, vtkSliceView::VIEW_PLANE)),
-          this, SLOT(selectToSlice(double, vtkSliceView::VIEW_PLANE)));
+  connect(view, SIGNAL(selectedFromSlice(double, PlaneType)),
+          this, SLOT(selectFromSlice(double, PlaneType)));
+  connect(view, SIGNAL(selectedToSlice(double, PlaneType)),
+          this, SLOT(selectToSlice(double, PlaneType)));
   connect(view, SIGNAL(channelSelected(Channel*)),
           this, SLOT(channelSelected(Channel*)));
   connect(view, SIGNAL(segmentationSelected(Segmentation*, bool)),
@@ -214,32 +213,32 @@ void DefaultEspinaView::resetCamera()
 }
 
 //----------------------------------------------------------------------------
-void DefaultEspinaView::gridSize(double size[3])
+void DefaultEspinaView::slicingStep(Nm steps[3])
 {
-  memcpy(size, m_gridSize, 3 * sizeof(double));
+  memcpy(steps, m_slicingStep, 3 * sizeof(Nm));
 }
 
 //----------------------------------------------------------------------------
-void DefaultEspinaView::setGridSize(double size[3])
+void DefaultEspinaView::setSlicingStep(Nm steps[3])
 {
-  xyView->setGridSize(size);
-  yzView->setGridSize(size);
-  xzView->setGridSize(size);
-  memcpy(m_gridSize, size, 3 * sizeof(double));
+  xyView->setSlicingStep(steps);
+  yzView->setSlicingStep(steps);
+  xzView->setSlicingStep(steps);
+  memcpy(m_slicingStep, steps, 3 * sizeof(Nm));
 }
 
 //----------------------------------------------------------------------------
 void DefaultEspinaView::addWidget(EspinaWidget* widget)
 {
   Widgtes widgets;
-  widgets.xy  = widget->createSliceWidget(vtkSliceView::AXIAL);
-  widgets.yz  = widget->createSliceWidget(vtkSliceView::SAGITTAL);
-  widgets.xz  = widget->createSliceWidget(vtkSliceView::CORONAL);
+  widgets.xy  = widget->createSliceWidget(AXIAL);
+  widgets.yz  = widget->createSliceWidget(SAGITTAL);
+  widgets.xz  = widget->createSliceWidget(CORONAL);
 //   widgets.vol = widget->createWidget();
 
   xyView->addWidget (widgets.xy);
-//   yzView->addWidget (widgets.yz);
-//   xzView->addWidget (widgets.xz);
+  yzView->addWidget (widgets.yz);
+  xzView->addWidget (widgets.xz);
 //   volView->addWidget(widgets.vol);
 
   m_widgets[widget] = widgets;
@@ -329,15 +328,15 @@ void DefaultEspinaView::showThumbnail(bool visible)
 }
 
 //-----------------------------------------------------------------------------
-void DefaultEspinaView::setCenter(double x, double y, double z, bool force)
+void DefaultEspinaView::setCrosshairPoint(Nm x, Nm y, Nm z, bool force)
 {
-  //   qDebug() << "Espina View Updating centers";
-  double center[3] = { x, y, z };
-  xyView->centerViewOn(center, force);
-  yzView->centerViewOn(center, force);
-  xzView->centerViewOn(center, force);
-  volView->centerViewOn(center);
-  memcpy(m_center, center, 3 * sizeof(double));
+  //qDebug() << "Espina View Updating centers";
+  Nm point[3] = { x, y, z };
+  xyView->centerViewOn(point, force);
+  yzView->centerViewOn(point, force);
+  xzView->centerViewOn(point, force);
+  volView->centerViewOn(point);
+  memcpy(m_crosshairPoint, point, 3*sizeof(Nm));
 }
 
 //-----------------------------------------------------------------------------
@@ -439,12 +438,12 @@ void DefaultEspinaView::rowsInserted(const QModelIndex& parent, int start, int e
         //BEGIN Only at sample LOD
         double spacing[3];
         channel->spacing(spacing);
-        setGridSize(spacing);
+        setSlicingStep(spacing);
         double bounds[6];
         channel->bounds(bounds);
-        xyView->setRanges(bounds);
-        yzView->setRanges(bounds);
-        xzView->setRanges(bounds);
+        xyView->setSlicingRanges(bounds);
+        yzView->setSlicingRanges(bounds);
+        xzView->setSlicingRanges(bounds);
         //END
         addChannelRepresentation(channel);
         QApplication::restoreOverrideCursor();
@@ -491,9 +490,9 @@ void DefaultEspinaView::rowsAboutToBeRemoved(const QModelIndex& parent, int star
         if (model->rowCount(model->channelRoot()) == 0)
         {
           double emptyBounds[6] = { 0, 0, 0, 0, 0, 0 };
-          xyView->setRanges(emptyBounds);
-          yzView->setRanges(emptyBounds);
-          xzView->setRanges(emptyBounds);
+          xyView->setSlicingRanges(emptyBounds);
+          yzView->setSlicingRanges(emptyBounds);
+          xzView->setSlicingRanges(emptyBounds);
         }
         break;
       }
@@ -536,9 +535,13 @@ void DefaultEspinaView::dataChanged(const QModelIndex& topLeft, const QModelInde
 //-----------------------------------------------------------------------------
 void DefaultEspinaView::setFitToSlices(bool fit)
 {
-  xyView->setFitToGrid(fit);
-  yzView->setFitToGrid(fit);
-  xzView->setFitToGrid(fit);
+  Nm step[3] = {1.0, 1.0, 1.0};
+  if (fit)
+    memcpy(step, m_slicingStep, 3*sizeof(Nm));
+
+  xyView->setSlicingStep(step);
+  yzView->setSlicingStep(step);
+  xzView->setSlicingStep(step);
 }
 
 //-----------------------------------------------------------------------------
@@ -552,13 +555,13 @@ void DefaultEspinaView::setRulerVisibility(bool visible)
 }
 
 //-----------------------------------------------------------------------------
-void DefaultEspinaView::selectFromSlice(double slice, vtkSliceView::VIEW_PLANE plane)
+void DefaultEspinaView::selectFromSlice(double slice, PlaneType plane)
 {
   emit selectedFromSlice(slice, plane);
 }
 
 //-----------------------------------------------------------------------------
-void DefaultEspinaView::selectToSlice(double slice, vtkSliceView::VIEW_PLANE plane)
+void DefaultEspinaView::selectToSlice(double slice, PlaneType plane)
 {
   emit selectedToSlice(slice, plane);
 }

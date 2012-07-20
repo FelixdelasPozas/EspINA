@@ -37,7 +37,7 @@ public:
                              double center[3],
                              double bounds[6] ) = 0;
 
-  virtual void setSlicePosition(vtkMatrix4x4 *matrix,
+  virtual void setSlicingPosition(vtkMatrix4x4 *matrix,
                                 double value) = 0;
   virtual void updateActor(vtkProp3D *actor) = 0;
   virtual void updateCamera(vtkCamera *camera,
@@ -56,7 +56,7 @@ public:
                              vtkPolyData* vline,
                              double center[3],
                              double bounds[6]);
-  virtual void setSlicePosition(vtkMatrix4x4 *matrix,
+  virtual void setSlicingPosition(vtkMatrix4x4 *matrix,
                                 double value);
   virtual void updateActor(vtkProp3D *actor){}
   virtual void updateCamera(vtkCamera *camera,
@@ -74,7 +74,7 @@ public:
                              vtkPolyData* vline,
                              double center[3],
                              double bounds[6]);
-  virtual void setSlicePosition(vtkMatrix4x4 *matrix,
+  virtual void setSlicingPosition(vtkMatrix4x4 *matrix,
                                 double value);
   virtual void updateActor(vtkProp3D *actor);
   virtual void updateCamera(vtkCamera *camera,
@@ -92,7 +92,7 @@ public:
                              vtkPolyData* vline,
                              double center[3],
                              double bounds[6]);
-  virtual void setSlicePosition(vtkMatrix4x4 *matrix,
+  virtual void setSlicingPosition(vtkMatrix4x4 *matrix,
                                 double value);
   virtual void updateActor(vtkProp3D *actor);
   virtual void updateCamera(vtkCamera *camera,

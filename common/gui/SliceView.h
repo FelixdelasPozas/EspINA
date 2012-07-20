@@ -25,7 +25,6 @@
 
 #include <QWidget>
 
-#include "common/views/vtkSliceView.h"
 #include "common/settings/ISettingsPanel.h"
 #include "common/selection/SelectableView.h"
 #include "common/widgets/EspinaWidget.h"
@@ -59,8 +58,10 @@ class QHBoxLayout;
 class QPushButton;
 
 /// Slice View Widget
-/// Displays a unique slice of a channel or segmentation
-class SliceView: public QWidget, public SelectableView
+/// Display channels and segmentations as slices
+class SliceView
+: public QWidget
+, public SelectableView
 {
   Q_OBJECT
 
@@ -79,23 +80,25 @@ public:
   typedef QSharedPointer<Settings> SettingsPtr;
 
 public:
-  SliceView(vtkSliceView::VIEW_PLANE plane = vtkSliceView::AXIAL, QWidget* parent = 0);
+  SliceView(PlaneType plane = AXIAL, QWidget* parent = 0);
   virtual ~SliceView();
 
   inline QString title() const;
   void setTitle(const QString &title);
 
-  void setGridSize(double size[3]);
-  void setRanges(double ranges[6]/*nm*/);
-  void setFitToGrid(bool value);
-  void centerViewOn(double center[3]/*nm*/, bool force = false);
+  /// Set the distance between two consecutive slices when
+  /// displacement is set to SLICES
+  void setSlicingStep(Nm steps[3]);
+  /// Set ranges in which slices are contained
+  void setSlicingRanges(Nm ranges[6]);
+  void centerViewOn(Nm center[3], bool force = false);
   void setCrosshairColors(double hcolor[3], double vcolor[3]);
   void setCrosshairVisibility(bool visible);
   void setThumbnailVisibility(bool visible);
   void resetCamera();
 
   // Interface of SelectableView
-  bool pickChannel(int x, int y, double pickPos[3]);
+  bool pickChannel(int x, int y, Nm pickPos[3]);
   virtual void eventPosition(int &x, int &y);
   virtual SelectionHandler::MultiSelection select(SelectionHandler::SelectionFilters filters, SelectionHandler::ViewRegions regions);
   virtual vtkRenderWindow *renderWindow();
@@ -123,6 +126,7 @@ public:
   {
     m_colorEngine = engine;
   }
+
   SettingsPtr settings()
   {
     return m_settings;
@@ -146,7 +150,7 @@ protected slots:
   void minimize();
   void undock();
 
-  void sliceViewCenterChanged(double x, double y, double z);
+  void sliceViewCenterChanged(Nm x, Nm y, Nm z);
   void scrollValueChanged(int value);
   void selectFromSlice();
   void selectToSlice();
@@ -154,7 +158,7 @@ protected slots:
   void updateWidgetVisibility();
 
 signals:
-  void centerChanged(double, double, double);
+  void centerChanged(Nm, Nm, Nm);
   void showCrosshairs(bool);
   void focusChanged(double[3]);
   // Notify the windows manager how to display the view
@@ -165,8 +169,8 @@ signals:
 
   void channelSelected(Channel *);
   void segmentationSelected(Segmentation *, bool);
-  void selectedFromSlice(double, vtkSliceView::VIEW_PLANE);
-  void selectedToSlice(double, vtkSliceView::VIEW_PLANE);
+  void selectedFromSlice(double, PlaneType);
+  void selectedToSlice(double, PlaneType);
 
 protected:
   virtual bool eventFilter(QObject* caller, QEvent* e);
@@ -178,7 +182,7 @@ protected:
 
   double suggestedChannelOpacity();
 
-  double sliceValue() const;
+  Nm slicingPosition() const;
 
   /// Converts point from Display coordinates to World coordinates
   SelectionHandler::VtkRegion display2vtk(const QPolygonF &region);
@@ -194,39 +198,37 @@ private:
     bool visible;
     bool selected;
     QColor color;
-    double pos[3];
+    Nm pos[3];
   };
-
-  //TODO: Possibly remove vtkXXXViews ==> create header file with type definitions
-  vtkSliceView::VIEW_PLANE m_plane;
 
   // GUI
   QHBoxLayout *m_titleLayout;
-  QLabel *m_title;
+  QLabel      *m_title;
   QVBoxLayout *m_mainLayout;
   QHBoxLayout *m_controlLayout;
-  QVTKWidget *m_view;
-  QScrollBar *m_scrollBar;
+  QVTKWidget  *m_view;
+  QScrollBar  *m_scrollBar;
   QPushButton *m_fromSlice;
-  QSpinBox *m_spinBox;
+  QSpinBox    *m_spinBox;
   QPushButton *m_toSlice;
 
   // VTK View
-  vtkSmartPointer<vtkRenderer> m_renderer;
-  vtkSmartPointer<vtkRenderer> m_thumbnail;
+  vtkSmartPointer<vtkRenderer>   m_renderer;
+  vtkSmartPointer<vtkRenderer>   m_thumbnail;
   vtkSmartPointer<vtkPropPicker> m_channelPicker;
   vtkSmartPointer<vtkPropPicker> m_segmentationPicker;
 
+  // View Shared State
+  Nm m_crosshairPoint[3];
+  Nm m_slicingRanges[6];
+  Nm m_slicingStep[3];
+  ColorEngine *m_colorEngine;
+
+  // View State
+  PlaneType m_plane;
   vtkMatrix4x4 *m_slicingMatrix;
   State *m_state;
   SettingsPtr m_settings;
-
-  bool m_fitToGrid;
-  double m_gridSize[3];
-  double m_range[6];
-  double m_center[3];//nm
-  double m_slicePos; //nm
-  ColorEngine *m_colorEngine;
 
   // Crosshairs
   vtkSmartPointer<vtkPolyData> m_HCrossLineData, m_VCrossLineData;
@@ -238,10 +240,9 @@ private:
   bool m_inThumbnail;
 
   // Representations
-  QMap<Channel *, SliceRep> m_channels;
+  QMap<Channel *,      SliceRep> m_channels;
   QMap<Segmentation *, SliceRep> m_segmentations;
   //QMap<pqOutputPort *, RepInfo> m_representations;
-
   QList<SliceWidget *> m_widgets;
   Filter *m_preview;
 };
@@ -255,7 +256,7 @@ class SliceView::Settings
   const QString SHOW_AXIS;
 
 public:
-  explicit Settings(vtkSliceView::VIEW_PLANE plane, const QString prefix = QString());
+  explicit Settings(PlaneType plane, const QString prefix = QString());
 
   void setInvertWheel(bool value);
   bool invertWheel() const
@@ -275,13 +276,13 @@ public:
     return m_ShowAxis;
   }
 
-  vtkSliceView::VIEW_PLANE plane() const
+  PlaneType plane() const
   {
     return m_plane;
   }
 
 private:
-  static const QString view(vtkSliceView::VIEW_PLANE plane);
+  static const QString view(PlaneType plane);
 
 private:
   bool m_InvertWheel;
@@ -289,7 +290,7 @@ private:
   bool m_ShowAxis;
 
 private:
-  vtkSliceView::VIEW_PLANE m_plane;
+  PlaneType m_plane;
   QString viewSettings;
 };
 

@@ -97,7 +97,7 @@ class EditorToolBar::DrawCommand
 {
 public:
   explicit DrawCommand(FreeFormSource *source,
-		      vtkSliceView::VIEW_PLANE plane,
+		      PlaneType plane,
 		      QVector3D center, int radius)
   : m_source(source)
   , m_plane(plane)
@@ -116,10 +116,10 @@ public:
   }
 
 private:
-  FreeFormSource            *m_source;
-  vtkSliceView::VIEW_PLANE m_plane;
-  QVector3D                  m_center;
-  int                        m_radius;
+  FreeFormSource *m_source;
+  PlaneType       m_plane;
+  QVector3D       m_center;
+  int             m_radius;
 };
 
 //----------------------------------------------------------------------------
@@ -128,7 +128,7 @@ class EditorToolBar::EraseCommand
 {
 public:
   explicit EraseCommand(FreeFormSource *source,
-		       vtkSliceView::VIEW_PLANE plane,
+		       PlaneType plane,
 		       QVector3D center, int radius)
   : m_source(source)
   , m_plane(plane)
@@ -147,10 +147,10 @@ public:
   }
 
 private:
-  FreeFormSource            *m_source;
-  vtkSliceView::VIEW_PLANE m_plane;
-  QVector3D                  m_center;
-  int                        m_radius;
+  FreeFormSource *m_source;
+  PlaneType       m_plane;
+  QVector3D       m_center;
+  int             m_radius;
 };
 
 
@@ -361,13 +361,13 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
   QVector3D center = region[0];
   QVector3D rx = region[1];
   QVector3D ry = region[2];
-  vtkSliceView::VIEW_PLANE selectedPlane;
+  PlaneType selectedPlane;
   if (center.x() == rx.x() && rx.x() == ry.x())
-    selectedPlane = vtkSliceView::SAGITTAL;
+    selectedPlane = SAGITTAL;
   else if (rx.y() == center.y() && rx.y() == ry.y())
-    selectedPlane = vtkSliceView::CORONAL;
+    selectedPlane = CORONAL;
   else if (center.z() == rx.z() && rx.z() == ry.z())
-    selectedPlane = vtkSliceView::AXIAL;
+    selectedPlane = AXIAL;
 
   SelectableItem *selectedItem = msel.first().second;
   Q_ASSERT(ModelItem::CHANNEL == selectedItem->type());
@@ -385,7 +385,7 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
   }
 
   int radius = 0;
-  if (selectedPlane != vtkSliceView::SAGITTAL)
+  if (selectedPlane != SAGITTAL)
     radius = abs(center.x() - rx.x())*spacing[0];
   else
     radius = abs(center.y() - region[2].y())*spacing[1];
@@ -393,10 +393,10 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
   QSharedPointer<QUndoStack> undo = EspinaCore::instance()->undoStack();
   if (m_pencilSelector->state() == PencilSelector::DRAWING)
     m_currentSource->draw(selectedPlane, center, radius);
-    //undo->push(new DrawCommand(m_currentSource, vtkSliceView::AXIAL, center, radius));
+    //undo->push(new DrawCommand(m_currentSource, AXIAL, center, radius));
   else if (m_pencilSelector->state() == PencilSelector::ERASING)
     m_currentSource->erase(selectedPlane, center, radius);
-    //undo->push(new EraseCommand(m_currentSource, vtkSliceView::AXIAL, center, radius));
+    //undo->push(new EraseCommand(m_currentSource, AXIAL, center, radius));
   else
     Q_ASSERT(false);
 

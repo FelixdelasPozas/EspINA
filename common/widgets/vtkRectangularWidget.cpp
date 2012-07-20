@@ -315,7 +315,7 @@ void vtkRectangularWidget::EndSelectAction(vtkAbstractWidget *w)
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularWidget::SetPlane(vtkSliceView::VIEW_PLANE plane)
+void vtkRectangularWidget::SetPlane(PlaneType plane)
 {
   if (!this->WidgetRep)
     this->CreateDefaultRepresentation();

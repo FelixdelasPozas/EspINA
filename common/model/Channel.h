@@ -141,6 +141,7 @@ public:
   virtual Filter* filter();
   virtual OutputNumber outputNumber();
   virtual EspinaVolume *volume();
+//   virtual EspinaVolume::IndexType index(Nm x, Nm y, Nm z);
 
   // vtk image of the channel
   vtkAlgorithmOutput* image();

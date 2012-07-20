@@ -21,6 +21,7 @@
 #define RECTANGULARVOI_H
 
 #include <common/widgets/EspinaWidget.h>
+#include <QList>
 
 class vtkImageAlgorithm;
 class RectangularRegion
@@ -31,11 +32,11 @@ public:
   virtual ~RectangularRegion();
 
   virtual vtkAbstractWidget* createWidget();
-  virtual SliceWidget* createSliceWidget(vtkSliceView::VIEW_PLANE plane);
+  virtual SliceWidget* createSliceWidget(PlaneType plane);
 
   virtual void setEnabled(bool enable);
-  virtual void setBounds(double bounds[6]);
-  virtual void bounds(double bounds[6]);
+  virtual void setBounds(Nm bounds[6]);
+  virtual void bounds(Nm bounds[6]);
 
 private:
   vtkImageAlgorithm *m_box;

@@ -6,6 +6,15 @@
 typedef itk::Image<unsigned char, 3> EspinaVolume;
 typedef unsigned int OutputNumber;
 
+typedef double Nm;
+
+enum PlaneType
+{
+  AXIAL = 2,
+  SAGITTAL = 0,
+  CORONAL = 1
+};
+
 void VolumeExtent(EspinaVolume *volume, int extent[6]);
 
 void VolumeBounds(EspinaVolume *volume, double bounds[6]);

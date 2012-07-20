@@ -334,12 +334,12 @@ void EspinaWindow::setActivity(QString activity)
   QSharedPointer<ViewManager> vm = EspinaCore::instance()->viewManger();
   if (activity == "analyse")
   {
-    qDebug() << "Switch to Analyse Activity";
+//     qDebug() << "Switch to Analyse Activity";
     m_view = vm->createView(this, "squared");
   }
   else if (activity == "segmentate")
   {
-    qDebug() << "Switch to Segmentate Activity";
+//     qDebug() << "Switch to Segmentate Activity";
     m_view = new DefaultEspinaView(this);
     m_view->setColorEngine(EspinaCore::instance()->colorSettings().engine());
     vm->setCurrentView(m_view);

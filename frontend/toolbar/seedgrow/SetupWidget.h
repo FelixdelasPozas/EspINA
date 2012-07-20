@@ -24,8 +24,6 @@
 #include <QWidget>
 #include "ui_SetupWidget.h"
 
-#include <common/views/vtkSliceView.h>
-
 class RectangularRegion;
 class SeedGrowSegmentationFilter::SetupWidget
 : public QWidget
@@ -39,8 +37,8 @@ public:
   virtual bool eventFilter(QObject* sender, QEvent* e );
 
 protected slots:
-  void redefineFromVOI(double value, vtkSliceView::VIEW_PLANE plane);
-  void redefineToVOI(double value, vtkSliceView::VIEW_PLANE plane);
+  void redefineFromVOI(double value, PlaneType plane);
+  void redefineToVOI(double value, PlaneType plane);
   void modifyFilter();
 
 private :

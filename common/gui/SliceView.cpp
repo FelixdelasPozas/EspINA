@@ -90,12 +90,16 @@
 // }
 // };
 
+// ColorEngine *SliceView::m_colorEngine = NULL;
+// Nm SliceView::m_crosshairPoint[];
+// Nm SliceView::m_slicingRanges[];
+// Nm SliceView::m_slicingStep[];
+
 //-----------------------------------------------------------------------------
 // SLICE VIEW
 //-----------------------------------------------------------------------------
-SliceView::SliceView(vtkSliceView::VIEW_PLANE plane, QWidget* parent) :
+SliceView::SliceView(PlaneType plane, QWidget* parent) :
 QWidget(parent)
-, m_plane(plane)
 , m_titleLayout(new QHBoxLayout())
 , m_title(new QLabel("Sagital"))
 , m_mainLayout(new QVBoxLayout())
@@ -105,12 +109,13 @@ QWidget(parent)
 , m_fromSlice(new QPushButton("From"))
 , m_spinBox(new QSpinBox())
 , m_toSlice(new QPushButton("To"))
+, m_plane(plane)
 , m_settings(new Settings(m_plane))
-, m_fitToGrid(true)
 , m_inThumbnail(false)
 {
-  memset(m_gridSize, 1, 3 * sizeof(double));
-  memset(m_range, 0, 6 * sizeof(double));
+  memset(m_crosshairPoint, 0, 3*sizeof(Nm));
+  memset(m_slicingRanges, 0, 6 * sizeof(Nm));
+  m_slicingStep[0] = m_slicingStep[1] = m_slicingStep[2] = 1;
 
   setupUI();
 
@@ -125,13 +130,13 @@ QWidget(parent)
 
   switch (m_plane)
   {
-    case vtkSliceView::AXIAL:
+    case AXIAL:
       m_state = new AxialState();
       break;
-    case vtkSliceView::SAGITTAL:
+    case SAGITTAL:
       m_state = new SagittalState();
       break;
-    case vtkSliceView::CORONAL:
+    case CORONAL:
       m_state = new CoronalState();
       break;
   };
@@ -247,7 +252,7 @@ void SliceView::setupUI()
   m_fromSlice->setEnabled(false);
   m_fromSlice->setMaximumHeight(20);
   m_fromSlice->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-  connect(m_fromSlice, SIGNAL(clicked(bool)),	this,SLOT(selectFromSlice()));
+  connect(m_fromSlice, SIGNAL(clicked(bool)), this, SLOT(selectFromSlice()));
 
   m_spinBox->setMaximum(0);
   m_spinBox->setMinimumWidth(40);
@@ -260,10 +265,10 @@ void SliceView::setupUI()
   m_toSlice->setEnabled(false);
   m_toSlice->setMaximumHeight(20);
   m_toSlice->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-  connect(m_toSlice, SIGNAL(clicked(bool)),this,SLOT(selectToSlice()));
-  connect(m_scrollBar, SIGNAL(valueChanged(int)),	m_spinBox, SLOT(setValue(int)));
-  connect(m_scrollBar, SIGNAL(valueChanged(int)),	this, SLOT(scrollValueChanged(int)));
-  connect(m_spinBox, SIGNAL(valueChanged(int)), m_scrollBar, SLOT(setValue(int)));
+  connect(m_toSlice,   SIGNAL(clicked(bool)),     this,        SLOT(selectToSlice()));
+  connect(m_scrollBar, SIGNAL(valueChanged(int)), m_spinBox,   SLOT(setValue(int)));
+  connect(m_scrollBar, SIGNAL(valueChanged(int)), this,        SLOT(scrollValueChanged(int)));
+  connect(m_spinBox,   SIGNAL(valueChanged(int)), m_scrollBar, SLOT(setValue(int)));
 
   //   connect(SelectionManager::instance(),SIGNAL(VOIChanged(IVOI*)),this,SLOT(setVOI(IVOI*)));
   m_mainLayout->addWidget(m_view);
@@ -422,34 +427,29 @@ vtkRenderWindow* SliceView::renderWindow()
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::sliceViewCenterChanged(double x, double y, double z)
+void SliceView::sliceViewCenterChanged(Nm x, Nm y, Nm z)
 {
-  //   qDebug() << "Slice View: " << m_plane << " has new center";
+  qDebug() << "Slice View: " << m_plane << " has new center";
   emit centerChanged(x, y, z);
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::scrollValueChanged(int value)
+void SliceView::scrollValueChanged(int value/*nm*/)
 {
-  m_slicePos = value;  //nm
-
-  if (m_fitToGrid)
-    m_slicePos *= m_gridSize[m_plane];
-
-  m_state->setSlicePosition(m_slicingMatrix, m_slicePos);
+  m_state->setSlicingPosition(m_slicingMatrix, slicingPosition());
   forceRender();
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::selectFromSlice()
 {
-  emit selectedFromSlice(sliceValue(), m_plane);
+  emit selectedFromSlice(slicingPosition(), m_plane);
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::selectToSlice()
 {
-  emit selectedToSlice(sliceValue(), m_plane);
+  emit selectedToSlice(slicingPosition(), m_plane);
 }
 
 //-----------------------------------------------------------------------------
@@ -497,7 +497,7 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
   }
   else if (e->type() == QEvent::MouseMove)
   {
-    QMouseEvent* me = static_cast<QMouseEvent*>(e);
+//     QMouseEvent* me = static_cast<QMouseEvent*>(e);
 //     vtkSMSliceViewProxy* view =
 //     vtkSMSliceViewProxy::SafeDownCast(m_view->getProxy());
 //     Q_ASSERT(view);
@@ -564,11 +564,11 @@ void SliceView::centerCrosshairOnMousePosition()
   int xPos, yPos;
   eventPosition(xPos, yPos);
 
-  double center[3];  //World coordinates
+  Nm center[3];  //World coordinates
   pickChannel(xPos, yPos, center);
 
   centerViewOn(center);
-  emit centerChanged(center[0], center[1], center[2]);
+  emit centerChanged(m_crosshairPoint[0], m_crosshairPoint[1], m_crosshairPoint[2]);
 }
 
 //-----------------------------------------------------------------------------
@@ -630,12 +630,9 @@ QList<Segmentation *> SliceView::pickSegmentations(double vx,
     QVector3D pixel = display2vtk(selectedRegion).first();
     foreach(Segmentation *seg, m_segmentations.keys())
     {
-      EspinaVolume::IndexType index;
-      index[0] = pixel.x() - seg->volume()->GetOrigin()[0];
-      index[1] = pixel.y() - seg->volume()->GetOrigin()[1];
-      index[2] = pixel.z() - seg->volume()->GetOrigin()[2];
+      EspinaVolume::IndexType pickedPixel = seg->index(pixel.x(), pixel.y(), pixel.z());
       if (m_segmentations[seg].slice == pickedProp
-        && seg->volume()->GetPixel(index) > 0)
+        && seg->volume()->GetPixel(pickedPixel) > 0)
       {
         //qDebug() << "Segmentation" << seg->data(Qt::DisplayRole).toString() << "Selected";
         segmentations << seg;
@@ -696,25 +693,19 @@ void SliceView::updateWidgetVisibility()
 {
   foreach(SliceWidget * widget, m_widgets)
   {
-    widget->setSlice(m_slicePos, m_plane);
+    widget->setSlice(slicingPosition(), m_plane);
   }
 }
 
 //-----------------------------------------------------------------------------
-double SliceView::sliceValue() const
+Nm SliceView::slicingPosition() const
 {
-  if (m_fitToGrid)
-    return m_gridSize[m_plane] * m_spinBox->value();
-  else
-    return m_spinBox->value();
+  return m_slicingStep[m_plane] * m_spinBox->value();
 }
 
 //-----------------------------------------------------------------------------
-bool SliceView::pickChannel(int x, int y, double pickPos[3])
+bool SliceView::pickChannel(int x, int y, Nm pickPos[3])
 {
-  //   vtkSMSliceViewProxy* view =
-  //     vtkSMSliceViewProxy::SafeDownCast(m_view->getProxy());
-  //   Q_ASSERT(view);
   //   vtkRenderer * thumbnail = view->GetOverviewRenderer();
   //   Q_ASSERT(thumbnail);
 
@@ -723,14 +714,14 @@ bool SliceView::pickChannel(int x, int y, double pickPos[3])
   //   {
     if (!propPicker->Pick(x, y, 0.1, m_renderer))
     {
-      qDebug() << "ePick Fail!";
+      //qDebug() << "ePick Fail!";
       return false;
     }
     //   }
 
     propPicker->GetPickPosition(pickPos);
 
-    pickPos[m_plane] = m_fitToGrid ? m_scrollBar->value() * m_gridSize[m_plane] : m_scrollBar->value();
+    pickPos[m_plane] = slicingPosition();
     //   qDebug() << "Pick Position" << pickPos[0] << pickPos[1] << pickPos[2];
 
     return true;
@@ -964,39 +955,40 @@ void SliceView::removeWidget(SliceWidget* sWidget)
 //-----------------------------------------------------------------------------
 void SliceView::previewExtent(int VOI[6])
 {
-	memcpy(VOI, m_gridSize, 6 * sizeof(int));
-	VOI[2 * m_plane] = m_scrollBar->value();
-	VOI[2 * m_plane + 1] = m_scrollBar->value();
+  Q_ASSERT(false);
+//   memcpy(VOI, m_gridSize, 6 * sizeof(int));
+//   VOI[2 * m_plane] = m_scrollBar->value();
+//   VOI[2 * m_plane + 1] = m_scrollBar->value();
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::setSegmentationVisibility(bool visible)
 {
-	foreach(SliceRep rep, m_segmentations)
-	{
-		rep.slice->SetVisibility(visible && rep.visible);
-	}
-	forceRender();
+  foreach(SliceRep rep, m_segmentations)
+  {
+    rep.slice->SetVisibility(visible && rep.visible);
+  }
+  forceRender();
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::setShowPreprocessing(bool visible)
 {
-	if (m_channels.size() < 2)
-		return;
+  if (m_channels.size() < 2)
+    return;
 
-	Channel *hiddenChannel = m_channels.keys()[visible];
-	Channel *visibleChannel = m_channels.keys()[1 - visible];
-	hiddenChannel->setData(false, Qt::CheckStateRole);
-	hiddenChannel->notifyModification();
-	visibleChannel->setData(true, Qt::CheckStateRole);
-	visibleChannel->notifyModification();
-	for (int i = 2; i < m_channels.keys().size(); i++)
-	{
-		Channel *otherChannel = m_channels.keys()[i];
-		otherChannel->setData(false, Qt::CheckStateRole);
-		otherChannel->notifyModification();
-	}
+  Channel *hiddenChannel = m_channels.keys()[visible];
+  Channel *visibleChannel = m_channels.keys()[1 - visible];
+  hiddenChannel->setData(false, Qt::CheckStateRole);
+  hiddenChannel->notifyModification();
+  visibleChannel->setData(true, Qt::CheckStateRole);
+  visibleChannel->notifyModification();
+  for (int i = 2; i < m_channels.keys().size(); i++)
+  {
+    Channel *otherChannel = m_channels.keys()[i];
+    otherChannel->setData(false, Qt::CheckStateRole);
+    otherChannel->notifyModification();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -1025,106 +1017,72 @@ void SliceView::forceRender()
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::setGridSize(double size[3])
+void SliceView::setSlicingStep(Nm steps[3])
 {
-	if (size[0] <= 0 || size[1] <= 0 || size[2] <= 0)
-	{
-		qFatal("SliceView: Invalid Grid Size. Grid Size not changed");
-		return;
-	}
+  if (steps[0] <= 0 || steps[1] <= 0 || steps[2] <= 0)
+  {
+    qFatal("SliceView: Invalid Step value. Slicing Step not changed");
+    return;
+  }
 
-	memcpy(m_gridSize, size, 3 * sizeof(double));
-	setRanges(m_range);
+  Nm slicingPos = slicingPosition();
+
+  memcpy(m_slicingStep, steps, 3 * sizeof(Nm));
+  setSlicingRanges(m_slicingRanges);
+
+  m_scrollBar->setValue(slicingPos/m_slicingStep[m_plane]);
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::setRanges(double ranges[6])
+void SliceView::setSlicingRanges(Nm ranges[6])
 {
-	if (ranges[1] < ranges[0] || ranges[3] < ranges[2] || ranges[5] < ranges[4])
-	{
-		qFatal("SliceView: Invalid Ranges. Ranges not changed");
-		return;
-	}
+  if (ranges[1] < ranges[0] || ranges[3] < ranges[2] || ranges[5] < ranges[4])
+  {
+    qFatal("SliceView: Invalid Slicing Ranges. Ranges not changed");
+    return;
+  }
 
-	double min = ranges[2 * m_plane];
-	double max = ranges[2 * m_plane + 1];
-	if (m_fitToGrid)
-	{
-		min = min / m_gridSize[m_plane];
-		max = max / m_gridSize[m_plane];
-	}
-	m_scrollBar->setMinimum(static_cast<int>(min));
-	m_scrollBar->setMaximum(static_cast<int>(max));
-	m_spinBox->setMinimum(static_cast<int>(min));
-	m_spinBox->setMaximum(static_cast<int>(max));
-	memcpy(m_range, ranges, 6 * sizeof(double));
+  double min = ranges[2 * m_plane] / m_slicingStep[m_plane];
+  double max = ranges[2 * m_plane + 1] / m_slicingStep[m_plane];
 
-	bool enabled = m_spinBox->minimum() < m_spinBox->maximum();
-	m_fromSlice->setEnabled(enabled);
-	m_toSlice->setEnabled(enabled);
-}
-//-----------------------------------------------------------------------------
-void SliceView::setFitToGrid(bool value)
-{
-	if (value == m_fitToGrid)
-		return;
+  m_scrollBar->setMinimum(static_cast<int>(min));
+  m_scrollBar->setMaximum(static_cast<int>(max));
+  m_spinBox->setMinimum(static_cast<int>(min));
+  m_spinBox->setMaximum(static_cast<int>(max));
 
-	int currentScrollValue = m_scrollBar->value();
-	m_fitToGrid = value;
-	m_scrollBar->blockSignals(true);
-	m_spinBox->blockSignals(true);
-	setRanges(m_range);
-	if (m_fitToGrid)
-	{
-		m_scrollBar->setValue(currentScrollValue / m_gridSize[m_plane]);
-		m_spinBox->setValue(currentScrollValue / m_gridSize[m_plane]);
-		m_spinBox->setSuffix("");
-	}
-	else
-	{
-		m_scrollBar->setValue(currentScrollValue * m_gridSize[m_plane]);
-		m_spinBox->setValue(currentScrollValue * m_gridSize[m_plane]);
-		m_spinBox->setSuffix("nm");
-	}
-	m_spinBox->blockSignals(false);
-	m_scrollBar->blockSignals(false);
+  memcpy(m_slicingRanges, ranges, 6*sizeof(Nm));
+
+  bool enabled = m_spinBox->minimum() < m_spinBox->maximum();
+  m_fromSlice->setEnabled(enabled);
+  m_toSlice->setEnabled(enabled);
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::centerViewOn(double center[3], bool force)
+void SliceView::centerViewOn(Nm center[3], bool force)
 {
   if (!isVisible() ||
-     (m_center[0] == center[0] &&
-      m_center[1] == center[1] &&
-      m_center[2] == center[2] &&
+     (m_crosshairPoint[0] == center[0] &&
+      m_crosshairPoint[1] == center[1] &&
+      m_crosshairPoint[2] == center[2] &&
       !force))
     return;
 
-  memcpy(m_center, center, 3 * sizeof(double));
-
-  // Round the value to the nearest unit (nm or grid)
+  // Adjust crosshairs to fit slicing steps
+  int sliceNumbers[3];
   for (int i = 0; i < 3; i++)
   {
-    if (m_fitToGrid)
-      m_center[i] = m_center[i] / m_gridSize[i];
-    m_center[i] = floor(m_center[i] + 0.5);
+    sliceNumbers[i] = center[i] / m_slicingStep[i];
+    m_crosshairPoint[i] = floor((center[i]/m_slicingStep[i] + 0.5))*m_slicingStep[i];
   }
 
   // Disable scrollbox signals to avoid calling seting slice
   m_scrollBar->blockSignals(true);
-  m_spinBox->setValue(m_center[m_plane]);
-  m_scrollBar->setValue(m_center[m_plane]);
+  m_spinBox->setValue(sliceNumbers[m_plane]);
+  m_scrollBar->setValue(sliceNumbers[m_plane]);
   m_scrollBar->blockSignals(false);
 
-  // If fitToGrid is enabled, we must center the view on the
-  // corresponding grid's position
-  if (m_fitToGrid)
-    for (int i = 0; i < 3; i++)
-      m_center[i] = floor((m_center[i] * m_gridSize[i]) + 0.5);
-
-  m_slicePos = m_center[m_plane];
-  m_state->setSlicePosition(m_slicingMatrix, m_slicePos);
-  m_state->setCrossHairs(m_HCrossLineData, m_VCrossLineData, m_center, m_range);
+  m_state->setSlicingPosition(m_slicingMatrix, slicingPosition());
+  m_state->setCrossHairs(m_HCrossLineData, m_VCrossLineData, m_crosshairPoint, m_slicingRanges);
 
   // Only center camera if center is out of the display view
   vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
@@ -1136,14 +1094,14 @@ void SliceView::centerViewOn(double center[3], bool force)
   coords->SetValue(1, 1); //UR
   memcpy(ur,coords->GetComputedWorldValue(m_renderer),3*sizeof(double));
 
-  int H = (vtkSliceView::SAGITTAL == m_plane)?2:0;
-  int V = (vtkSliceView::CORONAL  == m_plane)?2:1;
-  bool centerOutOfCamera = m_center[H] < ll[H] || m_center[H] > ur[H] // Horizontally out
-                   || m_center[V] > ll[V] || m_center[V] < ur[V];// Vertically out
+  int H = (SAGITTAL == m_plane)?2:0;
+  int V = (CORONAL  == m_plane)?2:1;
+  bool centerOutOfCamera = m_crosshairPoint[H] < ll[H] || m_crosshairPoint[H] > ur[H] // Horizontally out
+                        || m_crosshairPoint[V] > ll[V] || m_crosshairPoint[V] < ur[V];// Vertically out
 
   if (centerOutOfCamera)
   {
-    m_state->updateCamera(m_renderer->GetActiveCamera(), m_center);
+    m_state->updateCamera(m_renderer->GetActiveCamera(), m_crosshairPoint);
     m_renderer->ResetCameraClippingRange();
   }
 
@@ -1165,10 +1123,10 @@ SelectionHandler::VtkRegion SliceView::display2vtk(const QPolygonF &region)
     if (!pickChannel(point.x(), point.y(), pickPos))
       continue;
 
-    QVector3D vtkPoint;
-    vtkPoint.setX(floor((pickPos[0] / m_gridSize[0])+0.5));
-    vtkPoint.setY(floor((pickPos[1] / m_gridSize[1])+0.5));
-    vtkPoint.setZ(floor((pickPos[2] / m_gridSize[2])+0.5));
+    QVector3D vtkPoint(pickPos[0], pickPos[1], pickPos[2]);
+//     vtkPoint.setX(floor((pickPos[0] / m_gridSize[0])+0.5));
+//     vtkPoint.setY(floor((pickPos[1] / m_gridSize[1])+0.5));
+//     vtkPoint.setZ(floor((pickPos[2] / m_gridSize[2])+0.5));
     vtkRegion << vtkPoint;
   }
   return vtkRegion;
@@ -1176,70 +1134,75 @@ SelectionHandler::VtkRegion SliceView::display2vtk(const QPolygonF &region)
 }
 
 //-----------------------------------------------------------------------------
-SliceView::Settings::Settings(vtkSliceView::VIEW_PLANE plane, const QString prefix) :
-		INVERT_SLICE_ORDER(prefix + view(plane) + "::invertSliceOrder"), INVERT_WHEEL(prefix + view(plane) + "::invertWheel"), SHOW_AXIS(
-				prefix + view(plane) + "::showAxis"), m_InvertWheel(false), m_InvertSliceOrder(false), m_ShowAxis(false), m_plane(plane)
+SliceView::Settings::Settings(PlaneType plane, const QString prefix)
+: INVERT_SLICE_ORDER(prefix + view(plane) + "::invertSliceOrder")
+, INVERT_WHEEL(prefix + view(plane) + "::invertWheel")
+, SHOW_AXIS(prefix + view(plane) + "::showAxis")
+, m_InvertWheel(false)
+, m_InvertSliceOrder(false)
+, m_ShowAxis(false)
+, m_plane(plane)
 {
-	QSettings settings("CeSViMa", "EspINA");
+  QSettings settings("CeSViMa", "EspINA");
 
-	if (!settings.contains(INVERT_SLICE_ORDER))
-		settings.setValue(INVERT_SLICE_ORDER, m_InvertSliceOrder);
-	if (!settings.contains(INVERT_WHEEL))
-		settings.setValue(INVERT_WHEEL, m_InvertWheel);
-	if (!settings.contains(SHOW_AXIS))
-		settings.setValue(SHOW_AXIS, m_ShowAxis);
+  if (!settings.contains(INVERT_SLICE_ORDER))
+    settings.setValue(INVERT_SLICE_ORDER, m_InvertSliceOrder);
+  if (!settings.contains(INVERT_WHEEL))
+    settings.setValue(INVERT_WHEEL, m_InvertWheel);
+  if (!settings.contains(SHOW_AXIS))
+    settings.setValue(SHOW_AXIS, m_ShowAxis);
 
-	m_InvertSliceOrder = settings.value(INVERT_SLICE_ORDER).toBool();
-	m_InvertWheel = settings.value(INVERT_WHEEL).toBool();
-	m_ShowAxis = settings.value(SHOW_AXIS).toBool();
+  m_InvertSliceOrder = settings.value(INVERT_SLICE_ORDER).toBool();
+  m_InvertWheel      = settings.value(INVERT_WHEEL).toBool();
+  m_ShowAxis         = settings.value(SHOW_AXIS).toBool();
 }
 
 //-----------------------------------------------------------------------------
-const QString SliceView::Settings::view(vtkSliceView::VIEW_PLANE plane)
+const QString SliceView::Settings::view(PlaneType plane)
 {
-	// NOTE: break statements added to avoid warnings
-	switch (plane)
-	{
-		case vtkSliceView::AXIAL:
-			return QString("AxialSliceView");
-			break;
-		case vtkSliceView::SAGITTAL:
-			return QString("SagittalSliceView");
-			break;
-		case vtkSliceView::CORONAL:
-			return QString("CoronalSliceView");
-			break;
-		default:
-			Q_ASSERT(false);
-			break;
-	};
+  // NOTE: break statements added to avoid warnings
+  switch (plane)
+  {
+    case AXIAL:
+      return QString("AxialSliceView");
+      break;
+    case SAGITTAL:
+      return QString("SagittalSliceView");
+      break;
+    case CORONAL:
+      return QString("CoronalSliceView");
+      break;
+    default:
+      Q_ASSERT(false);
+      break;
+  };
 
-	return QString("Unknown");
+  return QString("Unknown");
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::Settings::setInvertSliceOrder(bool value)
 {
-	QSettings settings("CeSViMa", "EspINA");
+  QSettings settings("CeSViMa", "EspINA");
 
-	settings.setValue(INVERT_SLICE_ORDER, value);
-	m_InvertSliceOrder = value;
+  settings.setValue(INVERT_SLICE_ORDER, value);
+  m_InvertSliceOrder = value;
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::Settings::setInvertWheel(bool value)
 {
-	QSettings settings("CeSViMa", "EspINA");
+  QSettings settings("CeSViMa", "EspINA");
 
-	settings.setValue(INVERT_WHEEL, value);
-	m_InvertWheel = value;
+  settings.setValue(INVERT_WHEEL, value);
+  m_InvertWheel = value;
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::Settings::setShowAxis(bool value)
 {
-	QSettings settings("CeSViMa", "EspINA");
+  QSettings settings("CeSViMa", "EspINA");
 
-	settings.setValue(SHOW_AXIS, value);
-	m_ShowAxis = value;
+  settings.setValue(SHOW_AXIS, value);
+  m_ShowAxis = value;
 }

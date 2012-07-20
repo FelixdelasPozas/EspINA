@@ -48,7 +48,7 @@ void SliceView::AxialState::setCrossHairs(vtkPolyData* hline, vtkPolyData* vline
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::AxialState::setSlicePosition(vtkMatrix4x4* matrix, double value)
+void SliceView::AxialState::setSlicingPosition(vtkMatrix4x4* matrix, double value)
 {
   matrix->SetElement(2, 3, value);
 }
@@ -92,7 +92,7 @@ void SliceView::SagittalState::setCrossHairs(vtkPolyData* hline,
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::SagittalState::setSlicePosition(vtkMatrix4x4* matrix,
+void SliceView::SagittalState::setSlicingPosition(vtkMatrix4x4* matrix,
                                                 double value)
 {
   matrix->SetElement(0, 3, value);
@@ -145,7 +145,7 @@ void SliceView::CoronalState::setCrossHairs(vtkPolyData* hline,
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::CoronalState::setSlicePosition(vtkMatrix4x4* matrix, double value)
+void SliceView::CoronalState::setSlicingPosition(vtkMatrix4x4* matrix, double value)
 {
   matrix->SetElement(1, 3, value);
 }

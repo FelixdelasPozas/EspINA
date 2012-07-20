@@ -21,7 +21,7 @@ vtkStandardNewMacro(vtkRectangularRepresentation);
 
 //----------------------------------------------------------------------------
 vtkRectangularRepresentation::vtkRectangularRepresentation()
-: Plane(vtkSliceView::AXIAL)
+: Plane(AXIAL)
 {
   // The initial state
   this->InteractionState = vtkRectangularRepresentation::Outside;
@@ -288,19 +288,19 @@ void vtkRectangularRepresentation::updateVertex()
 {
   switch (Plane)
   {
-    case vtkSliceView::AXIAL:
+    case AXIAL:
       this->Vertex->SetPoint(0, InitialBounds[0], InitialBounds[2], -0.1);
       this->Vertex->SetPoint(1, InitialBounds[1], InitialBounds[2], -0.1);
       this->Vertex->SetPoint(2, InitialBounds[1], InitialBounds[3], -0.1);
       this->Vertex->SetPoint(3, InitialBounds[0], InitialBounds[3], -0.1);
       break;
-    case vtkSliceView::CORONAL:
+    case CORONAL:
       this->Vertex->SetPoint(0, InitialBounds[0], 0.1, InitialBounds[4]);
       this->Vertex->SetPoint(1, InitialBounds[1], 0.1, InitialBounds[4]);
       this->Vertex->SetPoint(2, InitialBounds[1], 0.1, InitialBounds[5]);
       this->Vertex->SetPoint(3, InitialBounds[0], 0.1, InitialBounds[5]);
       break;
-    case vtkSliceView::SAGITTAL:
+    case SAGITTAL:
       this->Vertex->SetPoint(0, 0.1, InitialBounds[2], InitialBounds[4]);
       this->Vertex->SetPoint(1, 0.1, InitialBounds[2], InitialBounds[5]);
       this->Vertex->SetPoint(2, 0.1, InitialBounds[3], InitialBounds[5]);
@@ -315,7 +315,7 @@ void vtkRectangularRepresentation::updateVertex()
 
 
 //----------------------------------------------------------------------------
-void vtkRectangularRepresentation::SetPlane(vtkSliceView::VIEW_PLANE plane)
+void vtkRectangularRepresentation::SetPlane(PlaneType plane)
 {
   if (Plane == plane)
     return;
