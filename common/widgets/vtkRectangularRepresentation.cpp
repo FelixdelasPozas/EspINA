@@ -330,9 +330,10 @@ void vtkRectangularRepresentation::PlaceWidget(double bds[6])
   int i;
   double bounds[6], center[3];
 
-  this->AdjustBounds(bds,bounds,center);
+//   this->AdjustBounds(bds,bounds,center);
 //   std::cout << bds[0] << " "<< bds[1] << " "<< bds[2] << " "<< bds[3] << " "<< bds[4] << " "<< bds[5] << std::endl;
 //   std::cout << bounds[0] << " "<< bounds[1] << " "<< bounds[2] << " "<< bounds[3] << " "<< bounds[4] << " "<< bounds[5] << std::endl;
+  memcpy(bounds, bds, 6*sizeof(double));
 
   for (i=0; i<6; i++)
     {
@@ -444,6 +445,7 @@ void vtkRectangularRepresentation::SetInteractionState(int state)
 double *vtkRectangularRepresentation::GetBounds()
 {
   this->BuildRepresentation();
+  return InitialBounds;
   this->BoundingBox->SetBounds(InitialBounds);
   return this->BoundingBox->GetBounds();
 }

@@ -577,9 +577,7 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
 
   input->read(stream);
 //   qDebug() << "Check";
-  //m_relations->updateVertexInformation();
-//   input->write(std::cout,RelationshipGraph::BOOST);
-  input->write(std::cout, RelationshipGraph::GRAPHVIZ);
+//   input->write(std::cout, RelationshipGraph::GRAPHVIZ);
 
   EspinaFactory *factory = EspinaFactory::instance();
 

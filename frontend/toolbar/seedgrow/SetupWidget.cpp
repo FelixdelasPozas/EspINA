@@ -31,31 +31,43 @@ SeedGrowSegmentationFilter::SetupWidget::SetupWidget(Filter* filter)
 {
   setupUi(this);
   m_filter = dynamic_cast<SeedGrowSegmentationFilter *>(filter);
-  EspinaVolume::IndexType seed;
-  m_filter->seed(seed);
+  EspinaVolume::IndexType seed = m_filter->seed();
   m_xSeed->setText(QString("%1").arg(seed[0]));
   m_ySeed->setText(QString("%1").arg(seed[1]));
   m_zSeed->setText(QString("%1").arg(seed[2]));
   m_threshold->setMaximum(255);
   m_threshold->setValue(m_filter->m_param.lowerThreshold());
-  int VOI[6];
-  m_filter->m_param.voi(VOI);
-  m_leftMargin->setValue(VOI[0]);
-  m_rightMargin->setValue(VOI[1]);
-  m_topMargin->setValue(VOI[2]);
-  m_bottomMargin->setValue(VOI[3]);
-  m_upperMargin->setValue(VOI[4]);
-  m_lowerMargin->setValue(VOI[5]);
-  double boudns[6];
+  int voiExtent[6];
+  m_filter->m_param.voi(voiExtent);
+  EspinaVolume::SpacingType spacing = filter->output(0)->GetSpacing();
+  Nm voiBoudns[6];
   for (int i=0; i<6; i++)
-    boudns[i] = VOI[i];
+    voiBoudns[i] = voiExtent[i] * spacing[i/2];
 
+  m_leftMargin->setValue(voiBoudns[0]);
+  m_leftMargin->setSuffix(" nm");
   m_leftMargin->installEventFilter(this);
+
+  m_rightMargin->setValue(voiBoudns[1]);
+  m_rightMargin->setSuffix(" nm");
   m_rightMargin->installEventFilter(this);
+
+  m_topMargin->setValue(voiBoudns[2]);
+  m_topMargin->setSuffix(" nm");
   m_topMargin->installEventFilter(this);
+
+  m_bottomMargin->setValue(voiBoudns[3]);
+  m_bottomMargin->setSuffix(" nm");
   m_bottomMargin->installEventFilter(this);
+
+  m_upperMargin->setValue(voiBoudns[4]);
+  m_upperMargin->setSuffix(" nm");
   m_upperMargin->installEventFilter(this);
+
+  m_lowerMargin->setValue(voiBoudns[5]);
+  m_lowerMargin->setSuffix(" nm");
   m_lowerMargin->installEventFilter(this);
+
 //   connect(m_threshold, SIGNAL(valueChanged(int)),
 // 	  this, SLOT(modifyFilter()));
   connect(m_modify, SIGNAL(clicked(bool)),
@@ -64,7 +76,7 @@ SeedGrowSegmentationFilter::SetupWidget::SetupWidget(Filter* filter)
 
   m_region = new RectangularRegion();
   EspinaCore::instance()->viewManger()->currentView()->addWidget(m_region);
-  m_region->setBounds(boudns);
+  m_region->setBounds(voiBoudns);
 }
 
 //----------------------------------------------------------------------------
@@ -131,13 +143,14 @@ void SeedGrowSegmentationFilter::SetupWidget::redefineToVOI(double value, PlaneT
 //----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::SetupWidget::modifyFilter()
 {
+  EspinaVolume::SpacingType spacing = m_filter->output(0)->GetSpacing();
   int VOI[6];
-  VOI[0] = m_leftMargin->value();
-  VOI[1] = m_rightMargin->value();
-  VOI[2] = m_topMargin->value();
-  VOI[3] = m_bottomMargin->value();
-  VOI[4] = m_upperMargin->value();
-  VOI[5] = m_lowerMargin->value();
+  VOI[0] = m_leftMargin->value()/spacing[0];
+  VOI[1] = m_rightMargin->value()/spacing[0];
+  VOI[2] = m_topMargin->value()/spacing[1];
+  VOI[3] = m_bottomMargin->value()/spacing[1];
+  VOI[4] = m_upperMargin->value()/spacing[2];
+  VOI[5] = m_lowerMargin->value()/spacing[2];
 
   int x = m_xSeed->text().toInt();
   int y = m_ySeed->text().toInt();

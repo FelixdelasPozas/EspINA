@@ -215,7 +215,7 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
     channel->spacing(spacing);
     int voiExtent[6];
     for (int i=0; i<6; i++)
-      voiExtent[i] = voiBounds[i] / spacing[i/2];
+      voiExtent[i] = (voiBounds[i] / spacing[i/2]) + 0.5;
 
     if (voiBounds[0] <= seedPoint.x() && seedPoint.x() <= voiBounds[1] &&
         voiBounds[2] <= seedPoint.y() && seedPoint.y() <= voiBounds[3] &&

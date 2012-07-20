@@ -1030,6 +1030,11 @@ void SliceView::setSlicingStep(Nm steps[3])
   memcpy(m_slicingStep, steps, 3 * sizeof(Nm));
   setSlicingRanges(m_slicingRanges);
 
+  if (m_slicingStep[0] == 1 && m_slicingStep[1] == 1 && m_slicingStep[2] == 1)
+    m_spinBox->setSuffix(" nm");
+  else
+    m_spinBox->setSuffix("");
+
   m_scrollBar->setValue(slicingPos/m_slicingStep[m_plane]);
 }
 

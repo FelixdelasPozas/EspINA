@@ -103,16 +103,20 @@ void VolumeOfInterest::defineVOI(SelectionHandler::MultiSelection msel)
   Q_ASSERT(m_voiWidget);
   view->addWidget(m_voiWidget.data());
 
-  const double XHSIZE = 40;
-  const double YHSIZE = 40;
-  const double ZHSIZE = 40;
-  double spacing[3];
+  Nm spacing[3];
   view->slicingStep(spacing);
-  double bounds[6] = {
-     (pos.x() - XHSIZE)*spacing[0], (pos.x() + XHSIZE)*spacing[0],
-     (pos.y() - YHSIZE)*spacing[1], (pos.y() + YHSIZE)*spacing[1],
-     (pos.z() - ZHSIZE)*spacing[2], (pos.z() + ZHSIZE)*spacing[2]};
+
+  const Nm HALF_VOXEL = 0.5;
+  const Nm XHSIZE = (40 + HALF_VOXEL)*spacing[0];
+  const Nm YHSIZE = (40 + HALF_VOXEL)*spacing[1];
+  const Nm ZHSIZE = (40 + HALF_VOXEL)*spacing[2];
+
+  Nm bounds[6] = {
+     pos.x() - XHSIZE, pos.x() + XHSIZE,
+     pos.y() - YHSIZE, pos.y() + YHSIZE,
+     pos.z() - ZHSIZE, pos.z() + ZHSIZE};
   m_voiWidget->setBounds(bounds);
+
   SelectionManager *selectionManager = SelectionManager::instance();
   selectionManager->unsetSelectionHandler(m_selector.data());
   selectionManager->setVOI(m_voiWidget.data());

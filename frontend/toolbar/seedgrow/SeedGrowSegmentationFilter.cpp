@@ -63,7 +63,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(Filter::NamedInputs input
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationFilter::~SeedGrowSegmentationFilter()
 {
-  qDebug() << "Destroying" << TYPE;
+//   qDebug() << "Destroying" << TYPE;
 }
 
 //-----------------------------------------------------------------------------
@@ -83,7 +83,7 @@ void SeedGrowSegmentationFilter::run()
   m_input = m_inputs.first();
   Q_ASSERT(m_input);
 
-  qDebug() << "Bound VOI to input extent";
+//   qDebug() << "Bound VOI to input extent";
   int inputExtent[6];
   VolumeExtent(m_input, inputExtent);
   for (int i = 0; i < 3; i++)
@@ -93,7 +93,7 @@ void SeedGrowSegmentationFilter::run()
     voi[sup] = std::min(voi[sup], inputExtent[sup]);
   }
 
-  qDebug() << "Apply VOI";
+//   qDebug() << "Apply VOI";
   extractFilter = ExtractType::New();
   ExtractType::InputImageRegionType roi;
   for (int i = 0; i < 3; i++)
@@ -107,7 +107,7 @@ void SeedGrowSegmentationFilter::run()
   extractFilter->SetExtractionRegion(roi);
   extractFilter->Update();
 
-  qDebug() << "Computing Original Size Connected Threshold";
+//   qDebug() << "Computing Original Size Connected Threshold";
   EspinaVolume::IndexType seed = m_param.seed();
   double seedIntensity = m_input->GetPixel(seed);
   ctif = ConnectedThresholdFilterType::New();
@@ -158,7 +158,7 @@ void SeedGrowSegmentationFilter::run()
 
   if (m_param.closeValue() > 0)
   {
-    qDebug() << "Closing Segmentation";
+//     qDebug() << "Closing Segmentation";
     StructuringElementType ball;
     ball.SetRadius(4);
     ball.CreateStructuringElement();
@@ -218,11 +218,9 @@ void SeedGrowSegmentationFilter::setSeed(EspinaVolume::IndexType seed)
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::seed(EspinaVolume::IndexType seed) const
+EspinaVolume::IndexType SeedGrowSegmentationFilter::seed() const
 {
-  EspinaVolume::IndexType index = m_param.seed();
-  for(int i=0; i<3; i++)
-    seed[i] = index[i];
+  return m_param.seed();
 }
 
 //-----------------------------------------------------------------------------

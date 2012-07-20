@@ -141,7 +141,7 @@ public:
   };
 
   void setSeed(EspinaVolume::IndexType seed);
-  void seed(EspinaVolume::IndexType seed) const;
+  EspinaVolume::IndexType seed() const;
   void setVOI(int VOI[6]);
   void voi(int VOI[6]) const {m_param.voi(VOI);}
 
