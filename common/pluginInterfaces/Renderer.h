@@ -58,11 +58,12 @@ public:
 public slots:
   virtual void setEnable(bool value)
   {
-    m_enable = value;
-    if (m_enable)
+    if (value)
       show();
     else
       hide();
+
+    m_enable = value;
   }
 
 signals:

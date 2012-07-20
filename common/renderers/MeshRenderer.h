@@ -17,31 +17,30 @@
 */
 
 
-#ifndef VOLUMETRICRENDERER_H
-#define VOLUMETRICRENDERER_H
-
-#include <vtkVolume.h>
+#ifndef MESHRENDERER_H
+#define MESHRENDERER_H
 
 #include "common/pluginInterfaces/Renderer.h"
 
 #include <QMap>
+#include <vtkActor.h>
 
 class ModelItem;
 
-class VolumetricRenderer: public Renderer
+class MeshRenderer: public Renderer
 {
   struct Representation
   {
-    vtkVolume *volume;
+    vtkActor *actor;
     bool visible;
     bool selected;
     QColor color;
   };
 
 public:
-  virtual const QIcon icon() const {return QIcon(":/espina/voxel.png");}
-  virtual const QString name() const {return "Volumetric";}
-  virtual const QString tooltip() const {return "Segmentation's Volumes";}
+  virtual const QIcon icon() const {return QIcon(":/espina/mesh.png");}
+  virtual const QString name() const {return "Mesh";}
+  virtual const QString tooltip() const {return "Segmentation's Meshes";}
 
   virtual bool addItem(ModelItem* item);
   virtual bool updateItem(ModelItem* item);
@@ -50,10 +49,10 @@ public:
   virtual void hide();
   virtual void show();
 
-  virtual Renderer* clone() {return new VolumetricRenderer();}
+  virtual Renderer* clone() {return new MeshRenderer();}
 
 private:
   QMap<ModelItem *, Representation> m_segmentations;
 };
 
-#endif // VOLUMETRICRENDERER_H
+#endif // MESHRENDERER_H

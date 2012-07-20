@@ -29,6 +29,7 @@
 #include <vtkColorTransferFunction.h>
 #include <vtkVolumeProperty.h>
 #include <vtkSmartPointer.h>
+#include <vtkMath.h>
 
 //-----------------------------------------------------------------------------
 bool VolumetricRenderer::addItem(ModelItem* item)
@@ -41,7 +42,8 @@ bool VolumetricRenderer::addItem(ModelItem* item)
   // duplicated item? addItem again
   if (m_segmentations.contains(item))
     {
-      m_renderer->RemoveVolume(this->m_segmentations[seg].volume);
+      if (this->m_segmentations[seg].visible)
+        m_renderer->RemoveVolume(this->m_segmentations[seg].volume);
       m_segmentations[seg].volume->Delete();
       m_segmentations.remove(item);
     }
@@ -49,7 +51,8 @@ bool VolumetricRenderer::addItem(ModelItem* item)
   ColorEngine *engine = EspinaCore::instance()->colorSettings().engine();
   QColor color = engine->color(seg);
 
-  vtkVolumeRayCastMapper *mapper = vtkVolumeRayCastMapper::New();
+  vtkSmartPointer<vtkVolumeRayCastMapper> mapper = vtkVolumeRayCastMapper::New();
+  mapper->ReleaseDataFlagOn();
   mapper->SetBlendModeToComposite();
   mapper->SetInputConnection(seg->image());
 
@@ -81,7 +84,9 @@ bool VolumetricRenderer::addItem(ModelItem* item)
   m_segmentations[seg].color = engine->color(seg);
   m_segmentations[seg].volume = volume;
 
-  m_renderer->AddVolume(volume);
+  if (this->m_enable)
+    m_renderer->AddVolume(volume);
+
   m_renderer->ResetCamera();
   m_renderer->GetRenderWindow()->Render();
   updateItem(seg);
@@ -105,21 +110,27 @@ bool VolumetricRenderer::updateItem(ModelItem* item)
      || seg->data(Qt::DecorationRole).value<QColor>() != rep.color)
    {
      rep.selected = seg->isSelected();
-     rep.visible  = seg->visible();
      rep.color = seg->data(Qt::DecorationRole).value<QColor>();
 
      vtkVolumeProperty *property = rep.volume->GetProperty();
      vtkColorTransferFunction *color = property->GetRGBTransferFunction();
-     color->AddRGBPoint(255, rep.color.redF(), rep.color.greenF(), rep.color.blueF());
+     double rgb[3] = { rep.color.redF(), rep.color.greenF(), rep.color.blueF() };
+     double hsv[3] = { 0.0, 0.0, 0.0 };
+     vtkMath::RGBToHSV(rgb,hsv);
+     color->AddHSVPoint(255, hsv[0], hsv[1], rep.selected ? 1.0 : 0.6);
      color->Modified();
 
-     double alpha = ((rep.selected) ? 1.0 : 0.7);
-
-     vtkPiecewiseFunction *piecewise = property->GetGradientOpacity();
-     piecewise->AddPoint(255, ((rep.visible) ? alpha : 0.0));
-     piecewise->Modified();
-
-     property->Modified();
+     if (rep.visible != seg->visible())
+     {
+         if (seg->visible())
+         {
+           if (m_enable)
+             m_renderer->AddVolume(rep.volume);
+         }
+         else
+           m_renderer->RemoveVolume(rep.volume);
+     }
+     rep.visible = seg->visible();
 
      m_renderer->GetRenderWindow()->Render();
      updated = true;
@@ -137,7 +148,9 @@ bool VolumetricRenderer::removeItem(ModelItem* item)
    Segmentation *seg = dynamic_cast<Segmentation *>(item);
    Q_ASSERT(m_segmentations.contains(seg));
 
-   m_renderer->RemoveVolume(m_segmentations[seg].volume);
+   if (this->m_enable && m_segmentations[seg].visible)
+     m_renderer->RemoveVolume(m_segmentations[seg].volume);
+
    m_renderer->GetRenderWindow()->Render();
 
    m_segmentations[seg].volume->Delete();
@@ -149,16 +162,13 @@ bool VolumetricRenderer::removeItem(ModelItem* item)
 //-----------------------------------------------------------------------------
 void VolumetricRenderer::hide()
 {
+  if (!this->m_enable)
+    return;
+
    foreach(Representation rep, m_segmentations)
-   {
-     m_renderer->RemoveVolume(rep.volume);
-//     std::cout << "Hiding" << std::endl;
-//     vtkVolumeProperty *property = rep.volume->GetProperty();
-//     vtkPiecewiseFunction *piecewise = property->GetGradientOpacity();
-//     piecewise->AddPoint(255, 0.0);
-//     piecewise->Modified();
-//     property->Modified();
-   }
+     if (rep.visible)
+       m_renderer->RemoveVolume(rep.volume);
+
    m_renderer->GetRenderWindow()->Render();
    emit renderRequested();
 }
@@ -166,16 +176,13 @@ void VolumetricRenderer::hide()
 //-----------------------------------------------------------------------------
 void VolumetricRenderer::show()
 {
+  if (this->m_enable)
+    return;
+
    foreach(Representation rep, m_segmentations)
-   {
-     m_renderer->AddVolume(rep.volume);
-//     vtkVolumeProperty *property = rep.volume->GetProperty();
-//     vtkPiecewiseFunction *piecewise = property->GetGradientOpacity();
-//     double alpha = ((rep.selected) ? 1.0 : 0.7);
-//     piecewise->AddPoint(255, alpha);
-//     piecewise->Modified();
-//     property->Modified();
-   }
+     if (rep.visible)
+       m_renderer->AddVolume(rep.volume);
+
    m_renderer->GetRenderWindow()->Render();
    emit renderRequested();
 }

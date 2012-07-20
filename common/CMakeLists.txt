@@ -114,6 +114,7 @@ set (CORE_SOURCES
   model/proxies/TaxonomyProxy.cpp
   renderers/CrosshairRenderer.cpp
   renderers/VolumetricRenderer.cpp
+  renderers/MeshRenderer.cpp
   selection/PixelSelector.cpp
   selection/SelectionHandler.cpp
   selection/SelectionManager.cpp

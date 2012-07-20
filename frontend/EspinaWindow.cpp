@@ -49,6 +49,7 @@
 #include <model/EspinaFactory.h>
 #include <renderers/VolumetricRenderer.h>
 #include <renderers/CrosshairRenderer.h>
+#include <renderers/MeshRenderer.h>
 #include <selection/SelectionManager.h>
 #include "toolbar/editor/EditorToolBar.h"
 #include "toolbar/seedgrow/SeedGrowSegmentation.h"
@@ -77,6 +78,7 @@ EspinaWindow::EspinaWindow()
 
 //  EspinaFactory::instance()->registerRenderer(new CrosshairRenderer());
   EspinaFactory::instance()->registerRenderer(new VolumetricRenderer());
+  EspinaFactory::instance()->registerRenderer(new MeshRenderer());
 
   /*** FILE MENU ***/
   QMenu *fileMenu = new QMenu(tr("File"));
