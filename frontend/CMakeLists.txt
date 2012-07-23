@@ -13,6 +13,7 @@ find_package(Boost REQUIRED COMPONENTS  system filesystem graph)
 include_directories(
   ${CMAKE_SOURCE_DIR}/common 
   ${CMAKE_SOURCE_DIR}
+  ${CMAKE_BINARY_DIR} # Generated EspinaConfig.h
   ${CMAKE_CURRENT_SOURCE_DIR} 
   ${CMAKE_CURRENT_BINARY_DIR}  #For wrap/ui files
   )

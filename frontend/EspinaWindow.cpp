@@ -21,7 +21,6 @@
 
 // Data Model
 #include "EspinaCore.h"
-#include "common/model/ModelTest.h"
 #include "common/model/EspinaModel.h"
 
 #include <gui/EspinaView.h>
@@ -57,7 +56,9 @@
 #include <IO/FilePack.h>
 #include <pluginInterfaces/ToolBarInterface.h>
 
-#define DEBUG
+#ifdef TEST_ESPINA_MODELS
+  #include "common/model/ModelTest.h"
+#endif
 
 //------------------------------------------------------------------------
 EspinaWindow::EspinaWindow()
@@ -67,7 +68,7 @@ EspinaWindow::EspinaWindow()
 , m_currentActivity("NONE")
 , m_view(NULL)
 {
-#ifdef DEBUG
+#ifdef TEST_ESPINA_MODELS
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model.data()));
 #endif
 

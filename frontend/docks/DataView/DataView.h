@@ -26,9 +26,7 @@
 #include "InformationProxy.h"
 #include <QSortFilterProxyModel>
 
-#define DEBUG
-
-#ifdef DEBUG
+#ifdef TEST_ESPINA_MODELS
 class ModelTest;
 #endif
 
@@ -50,7 +48,7 @@ protected slots:
 private:
   QSharedPointer<InformationProxy>      m_model;
   QSharedPointer<QSortFilterProxyModel> m_sort;
-#ifdef DEBUG
+#ifdef TEST_ESPINA_MODELS
   QSharedPointer<ModelTest>             m_modelTester;
 #endif
   QStringList m_query;

@@ -29,9 +29,7 @@
 
 class EspinaModel;
 
-#define DEBUG
-
-#ifdef DEBUG
+#ifdef TEST_ESPINA_MODELS
 class ModelTest;
 #endif
 
@@ -68,7 +66,7 @@ protected:
   Layout         *m_layout;
 
 private:
-#ifdef DEBUG
+#ifdef TEST_ESPINA_MODELS
   QSharedPointer<ModelTest>   m_modelTester;
 #endif
 };

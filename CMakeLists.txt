@@ -8,6 +8,7 @@ set (ESPINA_VERSION_MINOR 1)
 set (ESPINA_VERSION_PATCH 1)
 
 
+SET (TEST_ESPINA_MODELS CACHE BOOL "Build EspINA Model Test wrappers")
 #SET (BUILD_TESTING OFF CACHE BOOL "Build EspINA Unitary Tests")
 #SET (USE_DASHBOARD OFF CACHE BOOL "Use EspINA Unitary Tests Dashboard")
 
@@ -28,8 +29,13 @@ set (ESPINA_USE_FILE "${PROJECT_SOURCE_DIR}/EspinaUse.cmake")
 
 set (ESPINA_LIBRARY_DIRS
   ${PROJECT_BINARY_DIR}/common
-  #${PROJECT_BINARY_DIR}/frontend/plugins
   )
+
+configure_file(
+  "${PROJECT_SOURCE_DIR}/EspinaConfig.h.in"
+  "${PROJECT_BINARY_DIR}/EspinaConfig.h"
+)
+
 
 configure_file (
   "${PROJECT_SOURCE_DIR}/EspinaConfig.cmake.in"
@@ -45,10 +51,6 @@ endif (${USE_DASHBOARD})
 ### TODO: Review from previous version
 # TRANSLATIONS
 #set( DEFAULT_TRANSLATION_DIR "/usr/share/espina/translations/" )
-# configure_file(
-#   "${PROJECT_SOURCE_DIR}/frontend/Config.h.in"
-#   "${PROJECT_SOURCE_DIR}/frontend/Config.h"
-# )
 # Generate translation file
 # add_custom_command( OUTPUT es_ES.qm #TARGET DEFAULT_TRANSLATION_DIR POST_BUILD
 #       COMMAND lrelease ${PROJECT_SOURCE_DIR}/frontend/translationFiles/translation_es.ts -qm ${CMAKE_BINARY_DIR}/es_ES.qm

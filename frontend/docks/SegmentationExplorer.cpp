@@ -19,7 +19,7 @@
 
 #include "SegmentationExplorer.h"
 
-#ifdef DEBUG
+#ifdef TEST_ESPINA_MODELS
 #include "common/model/ModelTest.h"
 #endif
 
@@ -404,7 +404,7 @@ void SegmentationExplorer::changeLayout(int index)
 	    this, SLOT(updateSelection(QModelIndex)));
   }
   m_layout = m_layouts[index];
-#ifdef DEBUG
+#ifdef TEST_ESPINA_MODELS
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_layout->model()));
 #endif
   m_gui->view->setModel(m_layout->model());

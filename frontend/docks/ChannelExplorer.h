@@ -30,8 +30,7 @@
 #include <QSortFilterProxyModel>
 #include <model/proxies/ChannelProxy.h>
 
-#define DEBUG
-#ifdef DEBUG
+#ifdef TEST_ESPINA_MODELS
 class ModelTest;
 #endif
 
@@ -62,7 +61,7 @@ private:
   QSharedPointer<ChannelProxy> m_channelProxy;
   QSharedPointer<QSortFilterProxyModel> m_sort;
 
-#ifdef DEBUG
+#ifdef TEST_ESPINA_MODELS
   QSharedPointer<ModelTest>   m_modelTester;
 #endif
 };

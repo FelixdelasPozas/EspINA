@@ -21,8 +21,10 @@
 
 #include <ui_ChannelExplorer.h>
 
-#ifdef DEBUG
-#include "common/model/ModelTest.h"
+#include "EspinaConfig.h"
+
+#ifdef TEST_ESPINA_MODELS
+  #include "common/model/ModelTest.h"
 #endif
 
 #include <model/Channel.h>

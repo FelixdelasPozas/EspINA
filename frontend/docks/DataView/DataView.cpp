@@ -19,13 +19,16 @@
 
 #include "DataView.h"
 
-#include <EspinaCore.h>
-#include <QFileDialog>
-#include "QueryView.h"
+// Espina
+#include "common/EspinaCore.h"
+#include "common/model/Segmentation.h"
+#include "frontend/docks/DataView/QueryView.h"
 
-#ifdef DEBUG
+// Qt
+#include <QFileDialog>
+
+#ifdef TEST_ESPINA_MODELS
   #include "common/model/ModelTest.h"
-#include <model/Segmentation.h>
 #endif
 
 //------------------------------------------------------------------------
@@ -42,7 +45,7 @@ DataView::DataView(QWidget* parent, Qt::WindowFlags f)
   m_sort->setDynamicSortFilter(true);
   m_sort->setSortRole(Qt::UserRole+1);
 
-#ifdef DEBUG
+#ifdef TEST_ESPINA_MODELS
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model.data()));
 #endif
 

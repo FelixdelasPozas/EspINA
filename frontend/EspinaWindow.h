@@ -22,6 +22,9 @@
 
 #include <QMainWindow>
 #include <gui/DynamicWidget.h>
+
+#include "EspinaConfig.h"
+
 #include "RecentDocuments.h"
 
 class QAction;
@@ -31,9 +34,7 @@ class MainToolBar;
 class QFrame;
 class QUndoStack;
 
-#define DEBUG
-
-#ifdef DEBUG
+#ifdef TEST_ESPINA_MODELS
 class ModelTest;
 #endif
 
@@ -89,7 +90,7 @@ private:
   EspinaView                 *m_view;
   RecentDocuments             m_recentDocuments1;
   RecentDocuments             m_recentDocuments2; // fixes duplicated actions warning in some systems
-#ifdef DEBUG
+#ifdef TEST_ESPINA_MODELS
   QSharedPointer<ModelTest>   m_modelTester;
 #endif
   enum MenuState {OPEN_STATE, ADD_STATE};
