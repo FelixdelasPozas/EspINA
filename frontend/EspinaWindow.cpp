@@ -92,12 +92,14 @@ EspinaWindow::EspinaWindow()
 
       openMenu->addAction(openAction);
       openMenu->addSeparator();
-      openMenu->addActions(m_recentDocuments.list());
+      openMenu->addActions(m_recentDocuments1.list());
 
-      connect(openMenu, SIGNAL(aboutToShow()),
-	      this, SLOT(openState()));
-      connect(openAction, SIGNAL(triggered(bool)),
-	      this, SLOT(openAnalysis()));
+      for (int i = 0; i < m_recentDocuments1.list().size(); i++)
+        connect(m_recentDocuments1.list()[i], SIGNAL(triggered()), this, SLOT(openRecentAnalysis()));
+
+      connect(openMenu, SIGNAL(aboutToShow()), this, SLOT(openState()));
+      connect(openAction, SIGNAL(triggered(bool)), this, SLOT(openAnalysis()));
+
     }
 
     m_addMenu = new QMenu(tr("&Add"),this);
@@ -110,29 +112,28 @@ EspinaWindow::EspinaWindow()
 
       m_addMenu->addAction(addAction);
       m_addMenu->addSeparator();
-      m_addMenu->addActions(m_recentDocuments.list());
+      m_addMenu->addActions(m_recentDocuments2.list());
 
-      connect(m_addMenu, SIGNAL(aboutToShow()),
-	      this, SLOT(addState()));
-      connect(addAction, SIGNAL(triggered(bool)),
-	      this, SLOT(addToAnalysis()));
+      for (int i = 0; i < m_recentDocuments2.list().size(); i++)
+        connect(m_recentDocuments2.list()[i], SIGNAL(triggered()), this, SLOT(openRecentAnalysis()));
+
+      connect(m_addMenu, SIGNAL(aboutToShow()), this, SLOT(addState()));
+      connect(addAction, SIGNAL(triggered(bool)), this, SLOT(addToAnalysis()));
     }
 
     QAction *saveAnalysis = new QAction(saveIcon, tr("&Save"),this);
-    connect(saveAnalysis,SIGNAL(triggered(bool)),
-	    this,SLOT(saveAnalysis()));
+    connect(saveAnalysis,SIGNAL(triggered(bool)), this,SLOT(saveAnalysis()));
 
     QAction *exit = new QAction(tr("&Exit"), this);
-    connect(exit, SIGNAL(triggered(bool)),
-	    QApplication::instance(), SLOT(quit()));
+    connect(exit, SIGNAL(triggered(bool)), QApplication::instance(), SLOT(quit()));
 
     fileMenu->addMenu(openMenu);
     fileMenu->addMenu(m_addMenu);
     fileMenu->addAction(saveAnalysis);
     fileMenu->addAction(exit);
   }
-  connect(fileMenu, SIGNAL(triggered(QAction*)),
-	  this, SLOT(openRecentAnalysis(QAction*)));
+
+  connect(fileMenu, SIGNAL(triggered(QAction*)), this, SLOT(openRecentAnalysis()));
   menuBar()->addMenu(fileMenu);
 
   /*** EDIT MENU ***/
@@ -428,7 +429,10 @@ void EspinaWindow::openAnalysis(const QString file)
 		    QMessageBox::Yes|QMessageBox::No);
 
     if (box.exec() == QMessageBox::Yes)
-      m_recentDocuments.removeDocument(file);
+    {
+      m_recentDocuments1.removeDocument(file);
+      m_recentDocuments2.updateDocumentList();
+    }
     QApplication::restoreOverrideCursor();
     return;
   }
@@ -454,13 +458,17 @@ void EspinaWindow::openAnalysis(const QString file)
 
   updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
   QApplication::restoreOverrideCursor();
-  m_recentDocuments.addDocument(file);
+  m_recentDocuments1.addDocument(file);
+  m_recentDocuments2.updateDocumentList();
+
   setWindowTitle(EspinaCore::instance()->sample()->data(Qt::DisplayRole).toString());
 }
 
 //------------------------------------------------------------------------
-void EspinaWindow::openRecentAnalysis(QAction *action)
+void EspinaWindow::openRecentAnalysis()
 {
+  QAction *action = qobject_cast<QAction *>(sender());
+
   if (action && !action->data().isNull())
   {
     if (OPEN_STATE == m_menuState)
@@ -469,7 +477,7 @@ void EspinaWindow::openRecentAnalysis(QAction *action)
       m_model->markAsSaved();
     }
     else
-      addToAnalysis(action->data().toString());
+      addFileToAnalysis(action->data().toString());
   }
 }
 
@@ -481,8 +489,7 @@ void EspinaWindow::addToAnalysis()
   filters << CHANNEL_FILES;
   filters << SEG_FILES;
 
-  QFileDialog fileDialog(this,
-			tr("Analyse:"));
+  QFileDialog fileDialog(this, tr("Analyse:"));
   fileDialog.setObjectName("AddToAnalysisFileDialog");
   fileDialog.setFileMode(QFileDialog::ExistingFiles);
   fileDialog.setFilters(filters);
@@ -499,11 +506,39 @@ void EspinaWindow::addToAnalysis()
     return; //Multi-channels is not supported
   }
   const QString file = fileDialog.selectedFiles().first();
-  addToAnalysis(file);
+  addFileToAnalysis(file);
 }
 
 //------------------------------------------------------------------------
-void EspinaWindow::addToAnalysis(const QString file)
+void EspinaWindow::addRecentToAnalysis()
+{
+  QAction *action = qobject_cast<QAction *>(sender());
+
+  if (!action || action->data().isNull())
+    return;
+
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  QElapsedTimer timer;
+  timer.start();
+
+  EspinaCore::instance()->loadFile(action->data().toString());
+
+  int secs = timer.elapsed()/1000.0;
+  int mins = 0;
+  if (secs > 60)
+  {
+    mins = secs / 60;
+    secs = secs % 60;
+  }
+
+  updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
+  QApplication::restoreOverrideCursor();
+  m_recentDocuments1.addDocument(action->data().toString());
+  m_recentDocuments2.updateDocumentList();
+}
+
+//------------------------------------------------------------------------
+void EspinaWindow::addFileToAnalysis(const QString file)
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);
   QElapsedTimer timer;
@@ -521,7 +556,8 @@ void EspinaWindow::addToAnalysis(const QString file)
 
   updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
   QApplication::restoreOverrideCursor();
-  m_recentDocuments.addDocument(file);
+  m_recentDocuments1.addDocument(file);
+  m_recentDocuments2.updateDocumentList();
 }
 
 
@@ -552,7 +588,8 @@ void EspinaWindow::saveAnalysis()
     updateStatus(QString("File Saved Successfuly in %1").arg(analysisFile));
     m_busy = false;
 
-    m_recentDocuments.addDocument(analysisFile);
+    m_recentDocuments1.addDocument(analysisFile);
+    m_recentDocuments2.updateDocumentList();
   }
   m_model->markAsSaved();
 }

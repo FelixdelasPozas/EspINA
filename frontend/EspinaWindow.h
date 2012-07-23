@@ -52,13 +52,14 @@ public slots:
 
   void closeCurrentAnalysis();
 
-  void openRecentAnalysis(QAction *action);
+  void openRecentAnalysis();
   /// Close former analysis and load a new one
   void openAnalysis();
   void openAnalysis(const QString file);
   /// Add new data from file to current analysis
   void addToAnalysis();
-  void addToAnalysis(const QString file);
+  void addRecentToAnalysis();
+  void addFileToAnalysis(const QString file);
   /// Save Current Analysis
   void saveAnalysis();
 
@@ -86,7 +87,8 @@ private:
   QSharedPointer<QUndoStack>  m_undoStack;
   QString                     m_currentActivity;
   EspinaView                 *m_view;
-  RecentDocuments             m_recentDocuments;
+  RecentDocuments             m_recentDocuments1;
+  RecentDocuments             m_recentDocuments2; // fixes duplicated actions warning in some systems
 #ifdef DEBUG
   QSharedPointer<ModelTest>   m_modelTester;
 #endif

@@ -33,6 +33,7 @@ public:
 
   void addDocument(QString path);
   void removeDocument(QString path);
+  void updateDocumentList(void);
   QList<QAction *> list() const {return m_actionList;}
 
 private:
