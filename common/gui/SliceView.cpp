@@ -71,7 +71,7 @@
 #include <vtkCoordinate.h>
 #include <vtkCellArray.h>
 #include <vtkCellPicker.h>
-#include <../../../ParaView-3.14.1-Source/VTK/Rendering/vtkProp3DCollection.h>
+#include <vtkProp3DCollection.h>
 #include <vtkPropPicker.h>
 
 // class MouseMoveCallback : public vtkCommand

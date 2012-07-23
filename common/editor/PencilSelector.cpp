@@ -53,12 +53,12 @@ bool PencilSelector::filterEvent(QEvent* e, SelectableView* view)
   if (e->type() == QEvent::Enter)
   {
     setRadius(m_radius);
-    view->view()->grabKeyboard();
+    //view->view()->grabKeyboard();
     return SelectionHandler::filterEvent(e, view);
   }
   else if (e->type() == QEvent::Leave)
   {
-    view->view()->releaseKeyboard();
+    //view->view()->releaseKeyboard();
     return SelectionHandler::filterEvent(e, view);
   } else if (e->type() == QEvent::KeyPress)
   {

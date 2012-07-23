@@ -73,9 +73,9 @@ public:
   virtual ~FreeFormSource();
 
   void draw(PlaneType plane,
-	    QVector3D center, double radius = 0);
+	    QVector3D center/*nm*/,  Nm radius = 0);
   void erase(PlaneType plane,
-	     QVector3D center, double radius = 0);
+	     QVector3D center/*nm*/, Nm radius = 0);
 
   /// Implements Model Item Interface
   virtual QVariant data(int role=Qt::DisplayRole) const;

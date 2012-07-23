@@ -386,9 +386,9 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
 
   int radius = 0;
   if (selectedPlane != SAGITTAL)
-    radius = abs(center.x() - rx.x())*spacing[0];
+    radius = fabs(center.x() - rx.x());
   else
-    radius = abs(center.y() - region[2].y())*spacing[1];
+    radius = fabs(center.y() - region[2].y());
 
   QSharedPointer<QUndoStack> undo = EspinaCore::instance()->undoStack();
   if (m_pencilSelector->state() == PencilSelector::DRAWING)

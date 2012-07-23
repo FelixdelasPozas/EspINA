@@ -77,7 +77,7 @@ FreeFormSource::~FreeFormSource()
 
 //-----------------------------------------------------------------------------
 void FreeFormSource::draw(PlaneType plane,
-                          QVector3D center, double radius)
+                          QVector3D center, Nm radius)
 {
   if (plane < 0 || 2 < plane || radius < 0)
     return;
@@ -89,9 +89,9 @@ void FreeFormSource::draw(PlaneType plane,
   bool expandZ = SAGITTAL == plane
               || CORONAL  == plane;
 
-  int cx = center.x();
-  int cy = center.y();
-  int cz = center.z();
+  int cx = center.x() / m_param.spacing()[0] + 0.5;
+  int cy = center.y() / m_param.spacing()[1] + 0.5;
+  int cz = center.z() / m_param.spacing()[2] + 0.5;
 
   if (!m_init)
   {
@@ -201,14 +201,14 @@ void FreeFormSource::draw(PlaneType plane,
 
 //-----------------------------------------------------------------------------
 void FreeFormSource::erase(PlaneType plane,
-                           QVector3D center, double radius)
+                           QVector3D center, Nm radius)
 {
   if (!m_hasPixels)
     return;
 
-  int cx = center.x();
-  int cy = center.y();
-  int cz = center.z();
+  int cx = center.x() / m_param.spacing()[0] + 0.5;
+  int cy = center.y() / m_param.spacing()[1] + 0.5;
+  int cz = center.z() / m_param.spacing()[2] + 0.5;
 
   int rx = round(radius/m_param.spacing()[0]);
   int ry = round(radius/m_param.spacing()[1]);
