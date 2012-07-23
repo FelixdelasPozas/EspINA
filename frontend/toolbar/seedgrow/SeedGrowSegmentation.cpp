@@ -116,6 +116,7 @@ SeedGrowSegmentation::SeedGrowSegmentation(QWidget* parent)
   addAction(m_threshold);
   addAction(m_useDefaultVOI);
   addAction(m_segment);
+  m_threshold->setSymmetricalThreshold(true);
   QAction *batch = addAction(tr("Batch"));
   connect(batch, SIGNAL(triggered(bool)),
           this, SLOT(batchMode()));

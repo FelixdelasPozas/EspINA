@@ -22,6 +22,8 @@
 
 #include <QWidgetAction>
 
+class QSpinBox;
+class QLabel;
 
 class ThresholdAction
 : public QWidgetAction
@@ -34,7 +36,8 @@ public:
   virtual QWidget* createWidget(QWidget* parent);
 
   int lowerThreshold() {return m_threshold[0];}
-  int upperThreshold() {return m_threshold[1];}
+  int upperThreshold() {return m_threshold[m_symmetrical?1:0];}
+  void setSymmetricalThreshold(bool symmetrical);
 
 public slots:
   void setLowerThreshold(int th);
@@ -45,7 +48,11 @@ signals:
   void upperThresholdChanged(int);
 
 private:
-  int m_threshold[2];
+  QLabel   *m_lthLabel, *m_uthLabel;
+  QSpinBox *m_lth, *m_uth;
+
+  int  m_threshold[2];
+  bool m_symmetrical;
 };
 
 #endif // THRESHOLDACTION_H

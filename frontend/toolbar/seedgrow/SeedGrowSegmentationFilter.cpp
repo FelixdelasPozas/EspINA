@@ -119,8 +119,8 @@ void SeedGrowSegmentationFilter::run()
   ctif->AddSeed(seed);
 
 //   qDebug() << "Intensity at Seed:" << seedIntensity;
-//   qDebug() << "Lower Intensity:" << std::max(seedIntensity - m_param.lowerThreshold(), 0);
-//   qDebug() << "Upper Intensity:" << std::min(seedIntensity + m_param.upperThreshold(), 255);
+//   qDebug() << "Lower Intensity:" << std::max(seedIntensity - m_param.lowerThreshold(), 0.0);
+//   qDebug() << "Upper Intensity:" << std::min(seedIntensity + m_param.upperThreshold(), 255.0);
 //   qDebug() << "SEED: " << seed[0] << " " << seed[1] << " " << seed[2];
 
 //   qDebug() << "Converting from ITK to LabelMap";

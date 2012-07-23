@@ -48,48 +48,62 @@ QWidget* ThresholdAction::createWidget(QWidget* parent)
   w->setLayout(layout);
 
   // Lower Threshold Widget
-  QLabel *lthresholdLabel = new QLabel(tr("Lower Th."));
-  QSpinBox *lthreshold = new QSpinBox();
-  lthreshold->setMinimum(0);
-  lthreshold->setMaximum(255);
-  lthreshold->setValue(m_threshold[0]);
-  lthreshold->setToolTip(tr("Determine the size of color value range for a given pixel"));
+  m_lthLabel = new QLabel(tr("Lower Th."));
+  m_lth = new QSpinBox();
+  m_lth->setMinimum(0);
+  m_lth->setMaximum(255);
+  m_lth->setValue(m_threshold[0]);
+  m_lth->setToolTip(tr("Determine the size of color value range for a given pixel"));
 
-  connect(lthreshold,SIGNAL(valueChanged(int)),
+  connect(m_lth,SIGNAL(valueChanged(int)),
           this, SLOT(setLowerThreshold(int)));
   connect(this, SIGNAL(lowerThresholdChanged(int)),
-          lthreshold, SLOT(setValue(int)));
+          m_lth, SLOT(setValue(int)));
 
   // Upper Threshold Widget
-  QLabel *uthresholdLabel = new QLabel(tr("Upper Th."));
-  QSpinBox *uthreshold = new QSpinBox();
-  uthreshold->setMinimum(0);
-  uthreshold->setMaximum(255);
-  uthreshold->setValue(m_threshold[1]);
-  uthreshold->setToolTip(tr("Determine the size of color value range for a given pixel"));
+  m_uthLabel = new QLabel(tr("Upper Th."));
+  m_uth = new QSpinBox();
+  m_uth->setMinimum(0);
+  m_uth->setMaximum(255);
+  m_uth->setValue(m_threshold[1]);
+  m_uth->setToolTip(tr("Determine the size of color value range for a given pixel"));
 
-  connect(uthreshold,SIGNAL(valueChanged(int)),
+  connect(m_uth,SIGNAL(valueChanged(int)),
           this, SLOT(setUpperThreshold(int)));
   connect(this, SIGNAL(upperThresholdChanged(int)),
-          uthreshold, SLOT(setValue(int)));
+          m_uth, SLOT(setValue(int)));
 
-  layout->addWidget(lthresholdLabel);
-  layout->addWidget(lthreshold);
-  layout->addWidget(uthresholdLabel);
-  layout->addWidget(uthreshold);
-
+  layout->addWidget(m_lthLabel);
+  layout->addWidget(m_lth);
+  layout->addWidget(m_uthLabel);
+  layout->addWidget(m_uth);
 
   return w;
 }
 
+//-----------------------------------------------------------------------------
+void ThresholdAction::setSymmetricalThreshold(bool symmetrical)
+{
+  m_uthLabel->setVisible(!symmetrical);
+  m_uth->setVisible(!symmetrical);
+
+  m_lthLabel->setText(symmetrical?tr("Threshold"):tr("Lower Th."));
+}
+
+
+//-----------------------------------------------------------------------------
 void ThresholdAction::setLowerThreshold(int th)
 {
   m_threshold[0] = th>0?th:0;
   QSettings settings("CeSViMa", "EspINA");
   settings.setValue(LTHRESHOLD, m_threshold[0]);
   emit lowerThresholdChanged(m_threshold[0]);
+
+  if (m_symmetrical)
+    setUpperThreshold(th);
 }
 
+//-----------------------------------------------------------------------------
 void ThresholdAction::setUpperThreshold(int th)
 {
   m_threshold[1] = th>0?th:0;
