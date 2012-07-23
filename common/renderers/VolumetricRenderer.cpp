@@ -30,6 +30,7 @@
 #include <vtkVolumeProperty.h>
 #include <vtkSmartPointer.h>
 #include <vtkMath.h>
+#include <QApplication>
 
 //-----------------------------------------------------------------------------
 bool VolumetricRenderer::addItem(ModelItem* item)
@@ -63,7 +64,10 @@ bool VolumetricRenderer::addItem(ModelItem* item)
 
   vtkSmartPointer<vtkColorTransferFunction> colorfunction = vtkSmartPointer<vtkColorTransferFunction>::New();
   colorfunction->AllowDuplicateScalarsOff();
-  colorfunction->AddRGBPoint(255, color.redF(), color.greenF(), color.blueF());
+  double rgb[3] = { color.redF(), color.greenF(), color.blueF() };
+  double hsv[3] = { 0.0, 0.0, 0.0 };
+  vtkMath::RGBToHSV(rgb,hsv);
+  colorfunction->AddHSVPoint(255, hsv[0], hsv[1], seg->isSelected() ? 1.0 : 0.6);
 
   vtkSmartPointer<vtkPiecewiseFunction> piecewise = vtkSmartPointer<vtkPiecewiseFunction>::New();
   piecewise->AddPoint(0, 0.0);
@@ -82,16 +86,9 @@ bool VolumetricRenderer::addItem(ModelItem* item)
   volume->SetProperty(property);
 
   m_segmentations[seg].selected = !seg->isSelected();
-  m_segmentations[seg].visible = seg->visible();
   m_segmentations[seg].color = engine->color(seg);
   m_segmentations[seg].volume = volume;
-
-  if (this->m_enable)
-    m_renderer->AddVolume(volume);
-
-  m_renderer->ResetCamera();
-  m_renderer->GetRenderWindow()->Render();
-  updateItem(seg);
+  m_segmentations[seg].visible = false; // always false when adding
 
   return true;
 }
@@ -107,37 +104,39 @@ bool VolumetricRenderer::updateItem(ModelItem* item)
    Q_ASSERT(m_segmentations.contains(seg));
    Representation &rep = m_segmentations[seg];
 
-   if (seg->isSelected() != rep.selected
-     || seg->visible() != rep.visible
-     || seg->data(Qt::DecorationRole).value<QColor>() != rep.color)
+   if (m_enable && seg->visible()) // is visible?
    {
-     rep.selected = seg->isSelected();
-     rep.color = seg->data(Qt::DecorationRole).value<QColor>();
-
-     vtkVolumeProperty *property = rep.volume->GetProperty();
-     vtkColorTransferFunction *color = property->GetRGBTransferFunction();
-     double rgb[3] = { rep.color.redF(), rep.color.greenF(), rep.color.blueF() };
-     double hsv[3] = { 0.0, 0.0, 0.0 };
-     vtkMath::RGBToHSV(rgb,hsv);
-     color->AddHSVPoint(255, hsv[0], hsv[1], rep.selected ? 1.0 : 0.6);
-     color->Modified();
-
-     if (rep.visible != seg->visible())
+     if (seg->isSelected() != rep.selected
+       || seg->visible() != rep.visible
+       || seg->data(Qt::DecorationRole).value<QColor>() != rep.color)
      {
-         if (seg->visible())
-         {
-           if (m_enable)
-             m_renderer->AddVolume(rep.volume);
-         }
-         else
-           m_renderer->RemoveVolume(rep.volume);
+       rep.selected = seg->isSelected();
+       rep.color = seg->data(Qt::DecorationRole).value<QColor>();
+
+       vtkVolumeProperty *property = rep.volume->GetProperty();
+       vtkColorTransferFunction *color = property->GetRGBTransferFunction();
+       double rgb[3] = { rep.color.redF(), rep.color.greenF(), rep.color.blueF() };
+       double hsv[3] = { 0.0, 0.0, 0.0 };
+       vtkMath::RGBToHSV(rgb,hsv);
+       color->AddHSVPoint(255, hsv[0], hsv[1], rep.selected ? 1.0 : 0.6);
+       color->Modified();
+
+       if (!rep.visible)
+       {
+         m_renderer->AddVolume(rep.volume);
+         rep.visible = true;
+       }
      }
-     rep.visible = seg->visible();
-
-     m_renderer->GetRenderWindow()->Render();
      updated = true;
-   }
-
+    }
+    else
+    {
+      if (rep.visible)
+      {
+        m_renderer->RemoveVolume(rep.volume);
+        rep.visible = false;
+      }
+    }
    return updated;
 }
 
@@ -150,10 +149,8 @@ bool VolumetricRenderer::removeItem(ModelItem* item)
    Segmentation *seg = dynamic_cast<Segmentation *>(item);
    Q_ASSERT(m_segmentations.contains(seg));
 
-   if (this->m_enable && m_segmentations[seg].visible)
+   if (m_enable && m_segmentations[seg].visible)
      m_renderer->RemoveVolume(m_segmentations[seg].volume);
-
-   m_renderer->GetRenderWindow()->Render();
 
    m_segmentations[seg].volume->Delete();
    m_segmentations.remove(seg);
@@ -167,11 +164,15 @@ void VolumetricRenderer::hide()
   if (!this->m_enable)
     return;
 
-   foreach(Representation rep, m_segmentations)
-     if (rep.visible)
-       m_renderer->RemoveVolume(rep.volume);
+  QMap<ModelItem *, Representation>::iterator it;
 
-   m_renderer->GetRenderWindow()->Render();
+  for (it = m_segmentations.begin(); it != m_segmentations.end(); it++)
+    if ((*it).visible)
+    {
+      m_renderer->RemoveVolume((*it).volume);
+      (*it).visible = false;
+    }
+
    emit renderRequested();
 }
 
@@ -181,10 +182,16 @@ void VolumetricRenderer::show()
   if (this->m_enable)
     return;
 
-   foreach(Representation rep, m_segmentations)
-     if (rep.visible)
-       m_renderer->AddVolume(rep.volume);
+  QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 
-   m_renderer->GetRenderWindow()->Render();
+  QMap<ModelItem *, Representation>::iterator it;
+
+  for (it = m_segmentations.begin(); it != m_segmentations.end(); it++)
+  {
+    m_renderer->AddVolume((*it).volume);
+    (*it).visible = true;
+  }
+
+   QApplication::restoreOverrideCursor();
    emit renderRequested();
 }

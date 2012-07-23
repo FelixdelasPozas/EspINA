@@ -71,7 +71,7 @@ signals:
 
 protected:
   explicit Renderer(QObject* parent = 0)
-  : m_enable(true)
+  : m_enable(false)
   , m_renderer(NULL) {}
 protected:
   bool m_enable;

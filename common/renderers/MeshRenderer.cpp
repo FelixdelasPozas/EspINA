@@ -33,6 +33,7 @@
 #include <vtkImageConstantPad.h>
 #include <vtkAlgorithm.h>
 #include <vtkMath.h>
+#include <QApplication>
 
 //-----------------------------------------------------------------------------
 bool MeshRenderer::addItem(ModelItem* item)
@@ -45,7 +46,6 @@ bool MeshRenderer::addItem(ModelItem* item)
   // duplicated item? addItem again
   if (m_segmentations.contains(item))
     {
-
       m_renderer->RemoveActor(this->m_segmentations[seg].actor);
       m_segmentations[seg].actor->Delete();
       m_segmentations.remove(item);
@@ -105,21 +105,19 @@ bool MeshRenderer::addItem(ModelItem* item)
 
   vtkActor *actor = vtkActor::New();
   actor->SetMapper(isoMapper);
-  actor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
+  double rgb[3] = { color.redF(), color.greenF(), color.blueF() };
+  double hsv[3] = { 0.0, 0.0, 0.0 };
+  vtkMath::RGBToHSV(rgb,hsv);
+  hsv[2] = (seg->isSelected() ? 1.0 : 0.6);
+  vtkMath::HSVToRGB(hsv, rgb);
+  actor->GetProperty()->SetColor(rgb[0], rgb[1], rgb[2]);
   actor->GetProperty()->SetSpecular(0.2);
   actor->GetProperty()->SetOpacity(1);
 
-  m_segmentations[seg].selected = !seg->isSelected();
-  m_segmentations[seg].visible = seg->visible();
+  m_segmentations[seg].selected = seg->isSelected();
   m_segmentations[seg].color = engine->color(seg);
   m_segmentations[seg].actor = actor;
-
-  if (this->m_enable)
-    m_renderer->AddActor(actor);
-
-  m_renderer->ResetCamera();
-  m_renderer->GetRenderWindow()->Render();
-  updateItem(seg);
+  m_segmentations[seg].visible = false;
 
   return true;
 }
@@ -127,7 +125,7 @@ bool MeshRenderer::addItem(ModelItem* item)
 //-----------------------------------------------------------------------------
 bool MeshRenderer::updateItem(ModelItem* item)
 {
-   if (ModelItem::SEGMENTATION != item->type())
+  if (ModelItem::SEGMENTATION != item->type())
      return false;
 
    bool updated = false;
@@ -135,28 +133,38 @@ bool MeshRenderer::updateItem(ModelItem* item)
    Q_ASSERT(m_segmentations.contains(seg));
    Representation &rep = m_segmentations[seg];
 
-   if (seg->isSelected() != rep.selected
-     || seg->visible() != rep.visible
-     || seg->data(Qt::DecorationRole).value<QColor>() != rep.color)
+   if (m_enable && seg->visible()) // is visible?
    {
-     rep.selected = seg->isSelected();
-     rep.visible  = seg->visible();
-     rep.color = seg->data(Qt::DecorationRole).value<QColor>();
+     if (seg->isSelected() != rep.selected
+       || seg->visible() != rep.visible
+       || seg->data(Qt::DecorationRole).value<QColor>() != rep.color)
+     {
+       rep.selected = seg->isSelected();
+       rep.color = seg->data(Qt::DecorationRole).value<QColor>();
 
-     double rgb[3] = { rep.color.redF(), rep.color.greenF(), rep.color.blueF() };
-     double hsv[3] = { 0.0, 0.0, 0.0 };
-     vtkMath::RGBToHSV(rgb,hsv);
-     hsv[2] = (rep.selected ? 1.0 : 0.6);
-     vtkMath::HSVToRGB(hsv, rgb);
+       double rgb[3] = { rep.color.redF(), rep.color.greenF(), rep.color.blueF() };
+       double hsv[3] = { 0.0, 0.0, 0.0 };
+       vtkMath::RGBToHSV(rgb,hsv);
+       hsv[2] = (rep.selected ? 1.0 : 0.6);
+       vtkMath::HSVToRGB(hsv, rgb);
 
-     rep.actor->GetProperty()->SetColor(rgb[0], rgb[1], rgb[2]);
-     rep.actor->GetProperty()->Modified();
+       rep.actor->GetProperty()->SetColor(rgb[0], rgb[1], rgb[2]);
 
-     rep.actor->SetVisibility(rep.visible);
-     rep.actor->Modified();
-
-     m_renderer->GetRenderWindow()->Render();
+       if (!rep.visible)
+       {
+           m_renderer->AddActor(rep.actor);
+           rep.visible = true;
+       }
+     }
      updated = true;
+   }
+   else
+   {
+     if (rep.visible)
+     {
+       m_renderer->RemoveActor(rep.actor);
+       rep.visible = false;
+     }
    }
 
    return updated;
@@ -171,10 +179,8 @@ bool MeshRenderer::removeItem(ModelItem* item)
    Segmentation *seg = dynamic_cast<Segmentation *>(item);
    Q_ASSERT(m_segmentations.contains(seg));
 
-   if (this->m_enable)
+   if (m_segmentations[seg].visible)
      m_renderer->RemoveActor(m_segmentations[seg].actor);
-
-   m_renderer->GetRenderWindow()->Render();
 
    m_segmentations[seg].actor->Delete();
    m_segmentations.remove(seg);
@@ -188,10 +194,15 @@ void MeshRenderer::hide()
   if (!this->m_enable)
     return;
 
-   foreach(Representation rep, m_segmentations)
-     m_renderer->RemoveActor(rep.actor);
+  QMap<ModelItem *, Representation>::iterator it;
 
-   m_renderer->GetRenderWindow()->Render();
+  for (it = m_segmentations.begin(); it != m_segmentations.end(); it++)
+    if ((*it).visible)
+    {
+      m_renderer->RemoveActor((*it).actor);
+      (*it).visible = false;
+    }
+
    emit renderRequested();
 }
 
@@ -201,9 +212,16 @@ void MeshRenderer::show()
   if (this->m_enable)
     return;
 
-   foreach(Representation rep, m_segmentations)
-     m_renderer->AddActor(rep.actor);
+  QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 
-   m_renderer->GetRenderWindow()->Render();
-   emit renderRequested();
+  QMap<ModelItem *, Representation>::iterator it;
+
+  for (it = m_segmentations.begin(); it != m_segmentations.end(); it++)
+  {
+    m_renderer->AddActor((*it).actor);
+    (*it).visible = true;
+  }
+
+  QApplication::restoreOverrideCursor();
+  emit renderRequested();
 }

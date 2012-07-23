@@ -99,7 +99,7 @@ void VolumeView::buildControls()
     button = new QPushButton(renderer->icon(), "");
     button->setFlat(true);
     button->setCheckable(true);
-    button->setChecked(true);
+    button->setChecked(false);
     button->setIconSize(QSize(22,22));
     button->setMaximumSize(QSize(32,32));
     button->setToolTip(renderer->tooltip());
@@ -183,11 +183,17 @@ void VolumeView::addSegmentationRepresentation(Segmentation *seg)
   {
     modified |= renderer->addItem(seg);
   }
+
+  if (modified)
+    updateSegmentationRepresentation(seg);
 }
 
 //-----------------------------------------------------------------------------
 bool VolumeView::updateSegmentationRepresentation(Segmentation* seg)
 {
+  if (!isVisible())
+    return false;
+
   bool updated = false;
   foreach(Settings::RendererPtr renderer, m_settings->renderers())
   {
@@ -225,9 +231,7 @@ void VolumeView::init()
 void VolumeView::forceRender()
 {
   if(isVisible())
-  {
-      this->m_viewWidget->GetRenderWindow()->Render();
-  }
+    this->m_viewWidget->GetRenderWindow()->Render();
 }
 
 //-----------------------------------------------------------------------------
