@@ -70,6 +70,9 @@
 #include <itkImageToVTKImageFilter.h>
 #include <vtkCoordinate.h>
 #include <vtkCellArray.h>
+#include <vtkCellPicker.h>
+#include <../../../ParaView-3.14.1-Source/VTK/Rendering/vtkProp3DCollection.h>
+#include <vtkPropPicker.h>
 
 // class MouseMoveCallback : public vtkCommand
 // {
@@ -144,9 +147,9 @@ QWidget(parent)
   m_renderer = vtkSmartPointer<vtkRenderer>::New();
   m_renderer->GetActiveCamera()->ParallelProjectionOn();
   m_slicingMatrix = vtkMatrix4x4::New();
-  m_channelPicker = vtkSmartPointer<vtkPropPicker>::New();
+  m_channelPicker = vtkSmartPointer<vtkCellPicker>::New();
   m_channelPicker->PickFromListOn();
-  m_segmentationPicker = vtkSmartPointer<vtkPropPicker>::New();
+  m_segmentationPicker = vtkSmartPointer<vtkCellPicker>::New();
   m_segmentationPicker->PickFromListOn();
 
   m_state->updateSlicingMatrix(m_slicingMatrix);
@@ -588,24 +591,26 @@ void SliceView::centerViewOnMousePosition()
 }
 
 //-----------------------------------------------------------------------------
-QList<Channel *> SliceView::pickChannels(double vx, double vy, vtkRenderer* renderer, bool repeatable)
+QList<Channel *> SliceView::pickChannels(double vx,
+					 double vy,
+					 vtkRenderer* renderer,
+					 bool repeatable)
 {
   QList<Channel *> channels;
 
   if (m_channelPicker->Pick(vx, vy, 0.1, renderer))
   {
-    vtkProp3D *pickedProp = m_channelPicker->GetProp3D();
-    vtkImageActor *slice = vtkImageActor::SafeDownCast(pickedProp);
-
-    foreach(Channel * channel, m_channels.keys())
+    m_channelPicker->GetProp3Ds()->InitTraversal();
+    vtkProp3D *pickedProp;
+    while ((pickedProp = m_channelPicker->GetProp3Ds()->GetNextProp3D()))
     {
-      if (m_channels[channel].slice == slice)
-      {
-        //qDebug() << "Channel" << channel->data(Qt::DisplayRole).toString() << "Selected";
-        channels << channel;
-        if (!repeatable)
-          return channels;
-      }
+      Channel *pickedChannel = property3DChannel(pickedProp);
+      Q_ASSERT(pickedChannel);
+//       qDebug() << "Picked" << pickedChannel->data().toString();
+      channels << pickedChannel;
+
+      if (!repeatable)
+	return channels;
     }
   }
 
@@ -620,25 +625,29 @@ QList<Segmentation *> SliceView::pickSegmentations(double vx,
 {
   QList<Segmentation *> segmentations;
 
-  vtkPropPicker *picker = m_segmentationPicker;
-  if (picker->Pick(vx, vy, 0.1, renderer))
+  if (m_segmentationPicker->Pick(vx, vy, 0.1, renderer))
   {
-    vtkProp3D *pickedProp = picker->GetProp3D();
-
     QPolygonF selectedRegion;
     selectedRegion << QPointF(vx, vy);
     QVector3D pixel = display2vtk(selectedRegion).first();
-    foreach(Segmentation *seg, m_segmentations.keys())
+ 
+    m_segmentationPicker->GetProp3Ds()->InitTraversal();
+    vtkProp3D *pickedProp;
+    while ((pickedProp = m_segmentationPicker->GetProp3Ds()->GetNextProp3D()))
     {
-      EspinaVolume::IndexType pickedPixel = seg->index(pixel.x(), pixel.y(), pixel.z());
-      if (m_segmentations[seg].slice == pickedProp
-        && seg->volume()->GetPixel(pickedPixel) > 0)
-      {
-        //qDebug() << "Segmentation" << seg->data(Qt::DisplayRole).toString() << "Selected";
-        segmentations << seg;
-        if (!repeatable)
-          return segmentations;
-      }
+      Segmentation *pickedSeg = property3DSegmentation(pickedProp);
+      Q_ASSERT(pickedSeg);
+//       qDebug() << "Picked" << pickedSeg->data().toString() << "bounds";
+      EspinaVolume::IndexType pickedPixel = pickedSeg->index(pixel.x(), pixel.y(), pixel.z());
+      if (!pickedSeg->volume()->GetLargestPossibleRegion().IsInside(pickedPixel) ||
+          pickedSeg->volume()->GetPixel(pickedPixel) == 0)
+	continue;
+
+//       qDebug() <<  pickedSeg->data().toString() << "picked";
+      segmentations << pickedSeg;
+
+      if (!repeatable)
+	return segmentations;
     }
   }
 
@@ -704,12 +713,35 @@ Nm SliceView::slicingPosition() const
 }
 
 //-----------------------------------------------------------------------------
+Channel* SliceView::property3DChannel(vtkProp3D* prop)
+{
+  foreach(Channel *channel, m_channels.keys())
+  {
+    if (m_channels[channel].slice == prop)
+      return channel;
+  }
+  return NULL;
+}
+
+//-----------------------------------------------------------------------------
+Segmentation* SliceView::property3DSegmentation(vtkProp3D* prop)
+{
+  foreach(Segmentation *seg, m_segmentations.keys())
+  {
+    if (m_segmentations[seg].slice == prop)
+      return seg;
+  }
+  return NULL;
+}
+
+
+//-----------------------------------------------------------------------------
 bool SliceView::pickChannel(int x, int y, Nm pickPos[3])
 {
   //   vtkRenderer * thumbnail = view->GetOverviewRenderer();
   //   Q_ASSERT(thumbnail);
 
-  vtkSmartPointer < vtkPropPicker > propPicker = vtkSmartPointer < vtkPropPicker > ::New();
+  vtkSmartPointer<vtkPropPicker> propPicker = vtkSmartPointer<vtkPropPicker> ::New();
   //   if (!thumbnail->GetDraw() || !propPicker->Pick(x, y, 0.1, thumbnail))
   //   {
     if (!propPicker->Pick(x, y, 0.1, m_renderer))

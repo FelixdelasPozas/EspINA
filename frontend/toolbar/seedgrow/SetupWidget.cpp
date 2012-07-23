@@ -74,9 +74,9 @@ SeedGrowSegmentationFilter::SetupWidget::SetupWidget(Filter* filter)
 	  this, SLOT(modifyFilter()));
 
 
-  m_region = new RectangularRegion();
-  EspinaCore::instance()->viewManger()->currentView()->addWidget(m_region);
-  m_region->setBounds(voiBoudns);
+//   m_region = new RectangularRegion();
+//   EspinaCore::instance()->viewManger()->currentView()->addWidget(m_region);
+//   m_region->setBounds(voiBoudns);
 }
 
 //----------------------------------------------------------------------------
@@ -86,8 +86,8 @@ SeedGrowSegmentationFilter::SetupWidget::~SetupWidget()
   if (!SelectionManager::instance()->voi())
     view->setSliceSelectors(SliceView::NoSelector);
 
-  EspinaCore::instance()->viewManger()->currentView()->removeWidget(m_region);
-  delete m_region;
+//   EspinaCore::instance()->viewManger()->currentView()->removeWidget(m_region);
+//   delete m_region;
 }
 
 //----------------------------------------------------------------------------

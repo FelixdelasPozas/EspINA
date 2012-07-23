@@ -31,7 +31,7 @@
 
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
-#include <vtkPropPicker.h>
+#include <vtkCellPicker.h>
 #include <vtkPolyData.h>
 #include <itkImageToVTKImageFilter.h>
 
@@ -40,6 +40,7 @@ class vtkImageActor;
 class QVTKWidget;
 class vtkRenderWindow;
 class vtkView;
+
 //Forward declaration
 class Channel;
 class ColorEngine;
@@ -47,7 +48,6 @@ class Representation;
 class Segmentation;
 
 class vtkInteractorStyleEspinaSlice;
-class vtkPropPicker;
 
 // GUI
 class QLabel;
@@ -184,6 +184,11 @@ protected:
 
   Nm slicingPosition() const;
 
+  /// Convenience funtion to get vtkProp3D's chanenl
+  Channel *property3DChannel(vtkProp3D *prop);
+  /// Convenience funtion to get vtkProp3D's segmentation
+  Segmentation *property3DSegmentation(vtkProp3D *prop);
+
   /// Converts point from Display coordinates to World coordinates
   SelectionHandler::VtkRegion display2vtk(const QPolygonF &region);
 
@@ -215,8 +220,8 @@ private:
   // VTK View
   vtkSmartPointer<vtkRenderer>   m_renderer;
   vtkSmartPointer<vtkRenderer>   m_thumbnail;
-  vtkSmartPointer<vtkPropPicker> m_channelPicker;
-  vtkSmartPointer<vtkPropPicker> m_segmentationPicker;
+  vtkSmartPointer<vtkCellPicker> m_channelPicker;
+  vtkSmartPointer<vtkCellPicker> m_segmentationPicker;
 
   // View Shared State
   Nm m_crosshairPoint[3];
