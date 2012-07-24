@@ -133,37 +133,39 @@ bool MeshRenderer::updateItem(ModelItem* item)
    Q_ASSERT(m_segmentations.contains(seg));
    Representation &rep = m_segmentations[seg];
 
-   if (m_enable && seg->visible()) // is visible?
+   // the representation must be updated, whether displayed or not
+   if (seg->isSelected() != rep.selected
+     || seg->visible() != rep.visible
+     || seg->data(Qt::DecorationRole).value<QColor>() != rep.color)
    {
-     if (seg->isSelected() != rep.selected
-       || seg->visible() != rep.visible
-       || seg->data(Qt::DecorationRole).value<QColor>() != rep.color)
-     {
-       rep.selected = seg->isSelected();
-       rep.color = seg->data(Qt::DecorationRole).value<QColor>();
-
-       double rgb[3] = { rep.color.redF(), rep.color.greenF(), rep.color.blueF() };
-       double hsv[3] = { 0.0, 0.0, 0.0 };
-       vtkMath::RGBToHSV(rgb,hsv);
-       hsv[2] = (rep.selected ? 1.0 : 0.6);
-       vtkMath::HSVToRGB(hsv, rgb);
-
-       rep.actor->GetProperty()->SetColor(rgb[0], rgb[1], rgb[2]);
-
-       if (!rep.visible)
-       {
-           m_renderer->AddActor(rep.actor);
-           rep.visible = true;
-       }
-     }
      updated = true;
-   }
-   else
-   {
-     if (rep.visible)
+     rep.selected = seg->isSelected();
+     rep.color = seg->data(Qt::DecorationRole).value<QColor>();
+
+     double rgb[3] = { rep.color.redF(), rep.color.greenF(), rep.color.blueF() };
+     double hsv[3] = { 0.0, 0.0, 0.0 };
+     vtkMath::RGBToHSV(rgb,hsv);
+     hsv[2] = (rep.selected ? 1.0 : 0.6);
+     vtkMath::HSVToRGB(hsv, rgb);
+
+     rep.actor->GetProperty()->SetColor(rgb[0], rgb[1], rgb[2]);
+
+     // now handle visibility
+     if (m_enable && seg->visible())
      {
-       m_renderer->RemoveActor(rep.actor);
-       rep.visible = false;
+         if (!rep.visible)
+         {
+             m_renderer->AddActor(rep.actor);
+             rep.visible = true;
+         }
+     }
+     else
+     {
+       if (rep.visible)
+       {
+         m_renderer->RemoveActor(rep.actor);
+         rep.visible = false;
+       }
      }
    }
 
@@ -217,11 +219,25 @@ void MeshRenderer::show()
   QMap<ModelItem *, Representation>::iterator it;
 
   for (it = m_segmentations.begin(); it != m_segmentations.end(); it++)
-  {
-    m_renderer->AddActor((*it).actor);
-    (*it).visible = true;
-  }
+    if (!(*it).visible)
+    {
+      m_renderer->AddActor((*it).actor);
+      (*it).visible = true;
+    }
 
-  QApplication::restoreOverrideCursor();
   emit renderRequested();
+  QApplication::restoreOverrideCursor();
+}
+
+//-----------------------------------------------------------------------------
+unsigned int MeshRenderer::getNumberOfvtkActors()
+{
+  unsigned int numActors = 0;
+
+  QMap<ModelItem *, Representation>::iterator it;
+  for (it = m_segmentations.begin(); it != m_segmentations.end(); it++)
+    if ((*it).visible)
+      numActors++;
+
+  return numActors;
 }

@@ -48,6 +48,7 @@ public:
 
   virtual void hide();
   virtual void show();
+  virtual unsigned int getNumberOfvtkActors();
 
   virtual Renderer* clone() {return new MeshRenderer();}
 

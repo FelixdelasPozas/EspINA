@@ -342,7 +342,7 @@ void DefaultEspinaView::setCrosshairPoint(Nm x, Nm y, Nm z, bool force)
 //-----------------------------------------------------------------------------
 void DefaultEspinaView::setCameraFocus(double focus[3])
 {
-  //volView->setCameraFocus(focus);
+  volView->setCameraFocus(focus);
 }
 
 //-----------------------------------------------------------------------------

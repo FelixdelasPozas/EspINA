@@ -55,6 +55,9 @@ public:
 
   virtual Renderer *clone() {return NULL;}
 
+  // get number of vtkActors added to vtkRendered from this Renderer
+  virtual unsigned int getNumberOfvtkActors(void) { return 0; }
+
 public slots:
   virtual void setEnable(bool value)
   {

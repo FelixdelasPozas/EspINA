@@ -104,30 +104,31 @@ bool VolumetricRenderer::updateItem(ModelItem* item)
    Q_ASSERT(m_segmentations.contains(seg));
    Representation &rep = m_segmentations[seg];
 
-   if (m_enable && seg->visible()) // is visible?
-   {
-     if (seg->isSelected() != rep.selected
-       || seg->visible() != rep.visible
-       || seg->data(Qt::DecorationRole).value<QColor>() != rep.color)
-     {
-       rep.selected = seg->isSelected();
-       rep.color = seg->data(Qt::DecorationRole).value<QColor>();
+  if (seg->isSelected() != rep.selected || seg->visible() != rep.visible
+      || seg->data(Qt::DecorationRole).value<QColor>() != rep.color)
+  {
+    updated = true;
+    rep.selected = seg->isSelected();
+    rep.color = seg->data(Qt::DecorationRole).value<QColor>();
 
-       vtkVolumeProperty *property = rep.volume->GetProperty();
-       vtkColorTransferFunction *color = property->GetRGBTransferFunction();
-       double rgb[3] = { rep.color.redF(), rep.color.greenF(), rep.color.blueF() };
-       double hsv[3] = { 0.0, 0.0, 0.0 };
-       vtkMath::RGBToHSV(rgb,hsv);
-       color->AddHSVPoint(255, hsv[0], hsv[1], rep.selected ? 1.0 : 0.6);
-       color->Modified();
+    vtkVolumeProperty *property = rep.volume->GetProperty();
+    vtkColorTransferFunction *color = property->GetRGBTransferFunction();
+    double rgb[3] =
+    { rep.color.redF(), rep.color.greenF(), rep.color.blueF() };
+    double hsv[3] =
+    { 0.0, 0.0, 0.0 };
+    vtkMath::RGBToHSV(rgb, hsv);
+    color->AddHSVPoint(255, hsv[0], hsv[1], rep.selected ? 1.0 : 0.6);
+    color->Modified();
 
-       if (!rep.visible)
-       {
-         m_renderer->AddVolume(rep.volume);
-         rep.visible = true;
-       }
-     }
-     updated = true;
+    // now handle visibility
+    if (m_enable && seg->visible())
+    {
+      if (!rep.visible)
+      {
+        m_renderer->AddVolume(rep.volume);
+        rep.visible = true;
+      }
     }
     else
     {
@@ -137,6 +138,8 @@ bool VolumetricRenderer::updateItem(ModelItem* item)
         rep.visible = false;
       }
     }
+  }
+
    return updated;
 }
 
@@ -173,7 +176,7 @@ void VolumetricRenderer::hide()
       (*it).visible = false;
     }
 
-   emit renderRequested();
+  emit renderRequested();
 }
 
 //-----------------------------------------------------------------------------
@@ -187,11 +190,12 @@ void VolumetricRenderer::show()
   QMap<ModelItem *, Representation>::iterator it;
 
   for (it = m_segmentations.begin(); it != m_segmentations.end(); it++)
-  {
-    m_renderer->AddVolume((*it).volume);
-    (*it).visible = true;
-  }
+    if(!(*it).visible)
+    {
+      m_renderer->AddVolume((*it).volume);
+      (*it).visible = true;
+    }
 
-   QApplication::restoreOverrideCursor();
-   emit renderRequested();
+  emit renderRequested();
+  QApplication::restoreOverrideCursor();
 }

@@ -37,6 +37,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QMouseEvent>
+#include <QMessageBox>
 
 #include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkRenderer.h>
@@ -44,8 +45,15 @@
 #include <vtkRenderWindowInteractor.h>
 #include <vtkPropPicker.h>
 #include <vtkPolyDataMapper.h>
-#include <vtkSphereSource.h>
 #include <QVTKWidget.h>
+#include <vtkCamera.h>
+#include <vtkPOVExporter.h>
+#include <vtkVRMLExporter.h>
+#include <vtkX3DExporter.h>
+#include <vtkPNGWriter.h>
+#include <vtkJPEGWriter.h>
+#include <vtkRenderLargeImage.h>
+#include <QApplication>
 
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(QWidget* parent)
@@ -131,8 +139,7 @@ void VolumeView::centerViewOn(double center[3])
 //-----------------------------------------------------------------------------
 void VolumeView::setCameraFocus(double center[3])
 {
-  Q_ASSERT(false);
-  //TODO:m_view->SetCameraFocus(m_center[0], m_center[1], m_center[2]);
+  m_renderer->GetActiveCamera()->SetFocalPoint(center[0],center[1],center[2]);
 }
 
 //-----------------------------------------------------------------------------
@@ -318,25 +325,155 @@ bool VolumeView::eventFilter(QObject* caller, QEvent* e)
   return QObject::eventFilter(caller, e);
 }
 
-
 //-----------------------------------------------------------------------------
 void VolumeView::exportScene()
 {
-  Q_ASSERT(false);
-//   pqViewExporterManager *exporter = new pqViewExporterManager();
-//   exporter->setView(m_view);
-//   QString fileName = QFileDialog::getSaveFileName(this,
-//      tr("Save Scene"), "", tr("3D Scene (*.x3d *.pov *.vrml)"));
-//   exporter->write(fileName);
-//   delete exporter;
+  // only mesh actors are exported in a 3D scene, not volumes
+  unsigned int numActors = 0;
+  foreach(Settings::RendererPtr renderer, m_settings->renderers())
+    numActors += renderer->getNumberOfvtkActors();
+
+  if (0 == numActors)
+  {
+    QMessageBox msgBox;
+    QString message(tr("The scene can not be exported because there are no mesh objects in it."));
+    msgBox.setIcon(QMessageBox::Information);
+    msgBox.setText(message);
+    msgBox.exec();
+    return;
+  }
+
+  QFileDialog fileDialog(this, tr("Save Scene"), QString(), tr("3D Scene (*.x3d *.pov *.vrml)"));
+  fileDialog.setObjectName("SaveSceneFileDialog");
+  fileDialog.setWindowTitle("Save View as a 3D Scene");
+  fileDialog.setAcceptMode(QFileDialog::AcceptSave);
+  fileDialog.setDefaultSuffix(QString(tr("vrml")));
+  fileDialog.setFileMode(QFileDialog::AnyFile);
+  fileDialog.selectFile("");
+
+  if (fileDialog.exec() == QDialog::Accepted)
+  {
+    const QString selectedFile = fileDialog.selectedFiles().first();
+
+    QStringList splittedName = selectedFile.split(".");
+    QString extension = splittedName[((splittedName.size())-1)].toUpper();
+
+    QStringList validFileExtensions;
+    validFileExtensions << "X3D" << "POV" << "VRML";
+
+    if (validFileExtensions.contains(extension))
+    {
+      if (QString("POV") == extension)
+      {
+        vtkPOVExporter *exporter = vtkPOVExporter::New();
+        exporter->DebugOn();
+        exporter->SetGlobalWarningDisplay(true);
+        exporter->SetFileName(selectedFile.toStdString().c_str());
+        exporter->SetRenderWindow(m_renderer->GetRenderWindow());
+        QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+        exporter->Write();
+        QApplication::restoreOverrideCursor();
+        exporter->Delete();
+      }
+
+      if (QString("VRML") == extension)
+      {
+        vtkVRMLExporter *exporter = vtkVRMLExporter::New();
+        exporter->DebugOn();
+        exporter->SetFileName(selectedFile.toStdString().c_str());
+        exporter->SetRenderWindow(m_renderer->GetRenderWindow());
+        QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+        exporter->Write();
+        QApplication::restoreOverrideCursor();
+        exporter->Delete();
+      }
+
+      if (QString("X3D") == extension)
+      {
+        vtkX3DExporter *exporter = vtkX3DExporter::New();
+        exporter->DebugOn();
+        exporter->SetFileName(selectedFile.toStdString().c_str());
+        exporter->SetRenderWindow(m_renderer->GetRenderWindow());
+        QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+        exporter->Write();
+        QApplication::restoreOverrideCursor();
+        exporter->Delete();
+      }
+    }
+    else
+    {
+      QMessageBox msgBox;
+      QString message(tr("Scene not exported. Unrecognized extension "));
+      message.append(extension).append(".");
+      msgBox.setIcon(QMessageBox::Critical);
+      msgBox.setText(message);
+      msgBox.exec();
+    }
+  }
 }
 
 void VolumeView::takeSnapshot()
 {
-  Q_ASSERT(false);
-//   QString fileName = QFileDialog::getSaveFileName(this,
-//      tr("Save Scene"), "", tr("Image Files (*.jpg *.png)"));
-//   m_view->saveImage(1024,768,fileName);
+  QFileDialog fileDialog(this, tr("Save Scene As Image"), QString(), tr("Image Files (*.jpg *.png)"));
+  fileDialog.setObjectName("SaveSnapshotFileDialog");
+  fileDialog.setWindowTitle("Save Scene As Image");
+  fileDialog.setAcceptMode(QFileDialog::AcceptSave);
+  fileDialog.setDefaultSuffix(QString(tr("png")));
+  fileDialog.setFileMode(QFileDialog::AnyFile);
+  fileDialog.selectFile("");
+
+  if (fileDialog.exec() == QDialog::Accepted)
+  {
+    const QString selectedFile = fileDialog.selectedFiles().first();
+
+    QStringList splittedName = selectedFile.split(".");
+    QString extension = splittedName[((splittedName.size()) - 1)].toUpper();
+
+    QStringList validFileExtensions;
+    validFileExtensions << "JPG" << "PNG";
+
+    if (validFileExtensions.contains(extension))
+    {
+      vtkRenderLargeImage *image = vtkRenderLargeImage::New();
+      image->SetInput(m_renderer);
+      image->SetMagnification(1);
+      image->Update();
+
+      if (QString("PNG") == extension)
+      {
+        vtkPNGWriter *writer = vtkPNGWriter::New();
+        writer->SetFileDimensionality(2);
+        writer->SetFileName(selectedFile.toStdString().c_str());
+        writer->SetInputConnection(image->GetOutputPort());
+        QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+        writer->Write();
+        QApplication::restoreOverrideCursor();
+      }
+
+      if (QString("JPG") == extension)
+      {
+        vtkJPEGWriter *writer = vtkJPEGWriter::New();
+        writer->SetQuality(100);
+        writer->ProgressiveOff();
+        writer->WriteToMemoryOff();
+        writer->SetFileDimensionality(2);
+        writer->SetFileName(selectedFile.toStdString().c_str());
+        writer->SetInputConnection(image->GetOutputPort());
+        QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+        writer->Write();
+        QApplication::restoreOverrideCursor();
+      }
+    }
+    else
+    {
+      QMessageBox msgBox;
+      QString message(tr("Snapshot not exported. Unrecognized extension "));
+      message.append(extension).append(".");
+      msgBox.setIcon(QMessageBox::Critical);
+      msgBox.setText(message);
+      msgBox.exec();
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -346,7 +483,7 @@ VolumeView::Settings::Settings(const QString prefix)
   QSettings settings("CeSViMa", "EspINA");
 
   if (!settings.contains(RENDERERS))
-    settings.setValue(RENDERERS, QStringList() << "Crosshairs" << "Volumetric");
+    settings.setValue(RENDERERS, QStringList() << "Crosshairs" << "Volumetric" << "Mesh");
 
   QMap<QString, Renderer *> renderers = EspinaFactory::instance()->renderers();
   foreach(QString name, settings.value(RENDERERS).toStringList())
