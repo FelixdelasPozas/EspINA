@@ -621,6 +621,8 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
           filter->update();
           Channel *channel = factory->createChannel(filter, link[1].toUInt());
           channel->initialize(args);
+	  if (channel->volume() == NULL)
+	    return;
           addChannel(channel);
           nonInitializedItems << NonInitilizedItem(channel, args);
           input->setItem(v.vId, channel);

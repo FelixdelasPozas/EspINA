@@ -128,7 +128,6 @@ EspinaVolume* ChannelReader::output(OutputNumber i) const
   if (m_volume && 0 == i)
     return m_volume;
 
-  Q_ASSERT(false);
   return NULL;
 }
 

@@ -113,10 +113,10 @@ bool EspinaCore::loadChannel(const QFileInfo file)
   Filter::Arguments readerArgs;
   readerArgs[ChannelReader::FILE] = file.absoluteFilePath();
   ChannelReader *reader = new ChannelReader(noInputs, readerArgs);
+  reader->update();
   if (reader->numberOutputs() == 0)
     return false;
 
-  reader->update();
 
   Channel::CArguments args;
   args[Channel::ID] = file.fileName();
