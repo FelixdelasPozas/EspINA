@@ -66,6 +66,7 @@ public slots:
 
 protected slots:
   void updateStatus(QString msg);
+  void updateTooltip(QAction *action);
   void showPreferencesDialog();
 
   void openState() {m_menuState = OPEN_STATE;}

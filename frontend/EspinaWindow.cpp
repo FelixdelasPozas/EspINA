@@ -99,6 +99,7 @@ EspinaWindow::EspinaWindow()
         connect(m_recentDocuments1.list()[i], SIGNAL(triggered()), this, SLOT(openRecentAnalysis()));
 
       connect(openMenu, SIGNAL(aboutToShow()), this, SLOT(openState()));
+      connect(openMenu, SIGNAL(hovered(QAction*)), this, SLOT(updateTooltip(QAction*)));
       connect(openAction, SIGNAL(triggered(bool)), this, SLOT(openAnalysis()));
 
     }
@@ -602,6 +603,13 @@ void EspinaWindow::updateStatus(QString msg)
     statusBar()->clearMessage();
   else
     statusBar()->showMessage(msg);
+}
+
+//------------------------------------------------------------------------
+void EspinaWindow::updateTooltip(QAction* action)
+{
+  QMenu *menu = dynamic_cast<QMenu *>(sender());
+  menu->setToolTip(action->toolTip());
 }
 
 //------------------------------------------------------------------------

@@ -68,16 +68,14 @@ void ChannelReader::run()
   QFileInfo file = m_args[FILE];
   if (!file.exists())
   {
-    QString filters; //TODO: Get previous extension
-    QFileDialog fileDialog(0,
-                           QString(),
-                           QString(),
-                           filters);
+    QFileDialog fileDialog;
     fileDialog.setObjectName("SelectChannelFile");
     fileDialog.setFileMode(QFileDialog::ExistingFiles);
-    fileDialog.setWindowTitle(QString("Select file for %1:").arg(m_args[ID]));
+    fileDialog.setWindowTitle(QString("Select file for %1:").arg(file.fileName()));
+    fileDialog.setFilter(tr("Channel File (*.%1)").arg(file.completeSuffix()));
 
-    Q_ASSERT(fileDialog.exec() == QDialog::Accepted);
+    if (fileDialog.exec() != QDialog::Accepted)
+      return;
 
     m_args[FILE] = fileDialog.selectedFiles().first();
   }
