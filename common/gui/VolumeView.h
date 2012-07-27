@@ -27,6 +27,7 @@
 #include <QAbstractItemView>
 #include <QPushButton>
 #include <pluginInterfaces/Renderer.h>
+#include <common/EspinaTypes.h>
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
 
@@ -42,7 +43,6 @@ class QVBoxLayout;
 class Renderer;
 class Sample;
 class Segmentation;
-class vtkVolumeView;
 
 /// VolumeView
 class VolumeView
@@ -57,8 +57,8 @@ public:
   explicit VolumeView(QWidget* parent = 0);
   virtual ~VolumeView(){}
 
-  void centerViewOn(double center[3]/*nm*/);
-  void setCameraFocus(double center[3]);
+  void centerViewOn(Nm center[3]/*nm*/);
+  void setCameraFocus(Nm center[3]);
   void resetCamera();
 
   void addChannelRepresentation(Channel *channel);
@@ -103,8 +103,6 @@ private:
     QColor color;
   };
 
-  vtkVolumeView *m_view;
-
   // GUI
   QVBoxLayout *m_mainLayout;
   QHBoxLayout *m_controlLayout;
@@ -115,7 +113,7 @@ private:
 
   SettingsPtr m_settings;
 
-  double m_center[3];
+  Nm m_center[3];
   ColorEngine *m_colorEngine;
 
   QMap<Segmentation *, Representation> m_segmentations;
