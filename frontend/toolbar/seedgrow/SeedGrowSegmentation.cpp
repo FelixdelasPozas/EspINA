@@ -265,10 +265,11 @@ void SeedGrowSegmentation::batchMode()
     while (!in.atEnd())
     {
       QString line = in.readLine();
-      QStringList seedparams = line.split(";");
-      QString Seed = seedparams[1].split("=")[1];
-      QString Threshold = seedparams[2].split("=")[1];
-      QString VOI = seedparams[3].split("=")[1];
+      QStringList seedParams = line.split(" ");
+      QString Seed = seedParams[0].split("=")[1];
+      QString Threshold = seedParams[1].split("=")[1];
+      QString VOI = seedParams[2].split("=")[1];
+      QString taxonomy = seedParams[3].split("=")[1];
 
       Channel *channel = EspinaCore::instance()->activeChannel();
 
@@ -287,7 +288,15 @@ void SeedGrowSegmentation::batchMode()
       filter->update();
       Q_ASSERT(filter->numberOutputs() == 1);
 
-      TaxonomyNode *tax = EspinaCore::instance()->activeTaxonomy();
+      QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
+      Taxonomy * const currentTax = model->taxonomy();
+      TaxonomyNode *tax = currentTax->element(taxonomy);
+      if (tax == NULL)
+      {
+	QModelIndex taxRoot = model->taxonomyRoot();
+	model->addTaxonomyElement(taxRoot, taxonomy);
+	tax = currentTax->element(taxonomy);
+      }
       Q_ASSERT(tax);
 
       QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());

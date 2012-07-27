@@ -814,7 +814,6 @@ void EspinaModel::addTaxonomy(TaxonomyNode *root)
 //------------------------------------------------------------------------
 QModelIndex EspinaModel::addTaxonomyElement(const QModelIndex& parent, QString qualifiedName)
 {
-  int newTaxRow = rowCount(parent);
   TaxonomyNode *parentNode = m_tax->root();
   if (parent != taxonomyRoot())
   {
@@ -823,12 +822,20 @@ QModelIndex EspinaModel::addTaxonomyElement(const QModelIndex& parent, QString q
     parentNode = dynamic_cast<TaxonomyNode *>(item);
   }
   Q_ASSERT(parentNode);
-  TaxonomyNode *requestedNode = parentNode->element(qualifiedName);
-  if (!requestedNode)
+  QStringList subTaxonomies = qualifiedName.split("/");
+  TaxonomyNode *requestedNode = NULL;
+  foreach (QString subTax, subTaxonomies)
   {
-    beginInsertRows(parent, newTaxRow, newTaxRow);
-    requestedNode = m_tax->addElement(qualifiedName, parentNode->qualifiedName());
-    endInsertRows();
+    requestedNode = parentNode->element(subTax);
+    if (!requestedNode)
+    {
+      QModelIndex parentItem = taxonomyIndex(parentNode);
+      int newTaxRow = rowCount(parentItem);
+      beginInsertRows(parentItem, newTaxRow, newTaxRow);
+      requestedNode = m_tax->addElement(subTax, parentNode->qualifiedName());
+      endInsertRows();
+    }
+    parentNode = requestedNode;
   }
   markAsChanged();
   return taxonomyIndex(requestedNode);
@@ -837,6 +844,7 @@ QModelIndex EspinaModel::addTaxonomyElement(const QModelIndex& parent, QString q
 //------------------------------------------------------------------------
 void EspinaModel::addTaxonomyElement(QString qualifiedName)
 {
+  
 
 }
 

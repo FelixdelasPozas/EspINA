@@ -117,7 +117,7 @@ void DefaultEspinaView::initSliceView(SliceView* view)
 //-----------------------------------------------------------------------------
 void DefaultEspinaView::createViewMenu(QMenu* menu)
 {
-  QMenu *renderMenu = new QMenu(tr("Renderers"), this);
+  QMenu *renderMenu = new QMenu(tr("Views"), this);
   renderMenu->addAction(yzDock->toggleViewAction());
   renderMenu->addAction(xzDock->toggleViewAction());
   renderMenu->addAction(volDock->toggleViewAction());
