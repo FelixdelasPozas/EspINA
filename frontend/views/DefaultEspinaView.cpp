@@ -359,7 +359,7 @@ void DefaultEspinaView::addChannelRepresentation(Channel* channel)
   xyView->addChannelRepresentation(channel);
   yzView->addChannelRepresentation(channel);
   xzView->addChannelRepresentation(channel);
-  //volView->addChannelRepresentation(channel);
+  volView->addChannelRepresentation(channel);
 }
 
 //-----------------------------------------------------------------------------
@@ -368,7 +368,7 @@ void DefaultEspinaView::removeChannelRepresentation(Channel* channel)
   xyView->removeChannelRepresentation(channel);
   yzView->removeChannelRepresentation(channel);
   xzView->removeChannelRepresentation(channel);
-  //volView->removeChannelRepresentation(channel);
+  volView->removeChannelRepresentation(channel);
 }
 
 //-----------------------------------------------------------------------------
@@ -378,7 +378,7 @@ bool DefaultEspinaView::updateChannel(Channel* channel)
   modified = xyView->updateChannelRepresentation(channel) || modified;
   modified = yzView->updateChannelRepresentation(channel) || modified;
   modified = xzView->updateChannelRepresentation(channel) || modified;
-  //modified = volView->updateChannelRepresentation(channel) || modified;
+  modified = volView->updateChannelRepresentation(channel) || modified;
 
   return modified;
 }

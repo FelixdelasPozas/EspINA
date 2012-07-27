@@ -28,6 +28,7 @@
 #include <model/Representation.h>
 #include <model/EspinaFactory.h>
 #include <pluginInterfaces/Renderer.h>
+#include "common/renderers/CrosshairRenderer.h"
 
 // GUI
 #include <QEvent>
@@ -66,7 +67,7 @@ VolumeView::VolumeView(QWidget* parent)
   buildControls();
 
   setLayout(m_mainLayout);
-  //   connect(SelectionManager::instance(),SIGNAL(VOIChanged(IVOI*)),this,SLOT(setVOI(IVOI*)));
+  // connect(SelectionManager::instance(),SIGNAL(VOIChanged(IVOI*)),this,SLOT(setVOI(IVOI*)));
 
   // Color background
   QPalette pal = this->palette();
@@ -123,7 +124,7 @@ void VolumeView::buildControls()
 
 
 //-----------------------------------------------------------------------------
-void VolumeView::centerViewOn(double center[3])
+void VolumeView::centerViewOn(Nm center[3])
 {
   if (!isVisible() ||
       (m_center[0] == center[0] &&
@@ -133,11 +134,16 @@ void VolumeView::centerViewOn(double center[3])
 
   memcpy(m_center, center, 3*sizeof(double));
 
-  //TODO:m_view->SetCrosshair(m_center[0], m_center[1], m_center[2]);
+  foreach(Settings::RendererPtr ren, this->m_settings->renderers())
+    if (QString("Crosshairs") == ren->name())
+    {
+      CrosshairRenderer *crossren = reinterpret_cast<CrosshairRenderer *>(ren.data());
+      crossren->setCrosshair(center);
+    }
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::setCameraFocus(double center[3])
+void VolumeView::setCameraFocus(Nm center[3])
 {
   m_renderer->GetActiveCamera()->SetFocalPoint(center[0],center[1],center[2]);
 }
@@ -244,17 +250,7 @@ void VolumeView::forceRender()
 //-----------------------------------------------------------------------------
 double VolumeView::suggestedChannelOpacity()
 {
-//   double numVisibleRep = 0;
-// 
-//   foreach(Channel *channel, m_channels.keys())
-//     if (channel->isVisible())
-//       numVisibleRep++;
-// 
-//   if (numVisibleRep == 0)
-//     return 0.0;
-// 
-//   return 1.0 /  numVisibleRep;
-return 1;
+  return 1.0;
 }
 
 //-----------------------------------------------------------------------------
@@ -308,6 +304,7 @@ void VolumeView::selectPickedItems(bool append)
 //     }
 //   }
 }
+
 //-----------------------------------------------------------------------------
 bool VolumeView::eventFilter(QObject* caller, QEvent* e)
 {

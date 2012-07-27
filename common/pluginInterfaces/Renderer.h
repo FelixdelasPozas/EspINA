@@ -26,7 +26,6 @@
 #include <vtkRenderer.h>
 
 class ModelItem;
-class vtkSMProxy;
 
 class Renderer
 : public QObject
