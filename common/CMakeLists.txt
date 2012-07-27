@@ -76,13 +76,11 @@ set (CORE_SOURCES
   editor/ImageLogicFilter.cpp
   editor/vtkImageLogicFilter.cpp
   IO/FilePack.cpp
-  extensions/ChannelExtension.cpp
 #   extensions/Margins/MarginsChannelExtension.cpp
 #   extensions/Margins/MarginsSegmentationExtension.cpp
-#   extensions/ModelItemExtension.cpp
-#   extensions/Morphological/MorphologicalExtension.cpp
+  extensions/ModelItemExtension.cpp
+  extensions/Morphological/MorphologicalExtension.cpp
   extensions/SampleExtension.cpp
-  extensions/SegmentationExtension.cpp
   gui/ActionSelector.cpp
   gui/ActionSelectorWidget.cpp
   gui/DynamicWidget.cpp

@@ -29,23 +29,33 @@ class ModelItemExtension
 : public QObject
 {
 public:
+  typedef QString ExtId;
+  typedef QString InfoTag;
+  typedef QString RepTag;
+  typedef QList<ExtId>   ExtIdList;
+  typedef QList<InfoTag> InfoList;
+  typedef QList<RepTag>  RepList;
+
+public:
   virtual ~ModelItemExtension(){}
 
-  virtual QString id() = 0;
-  virtual QStringList dependencies() const  = 0;
-  virtual QStringList availableInformations()    const = 0;
-  virtual QStringList availableRepresentations() const = 0;
-  virtual QVariant    information(QString info)  const = 0;
+  virtual ExtId id() = 0;
+  /// List of extension names which need to be loaded to use the extension
+  virtual ExtIdList dependencies() const  = 0;
+  /// List of information tags provided by the extension
+  virtual InfoList availableInformations()    const = 0;
+  /// List of representation tags provided by the extension
+  virtual RepList availableRepresentations() const = 0;
+  /// Information associated with @tag
+  virtual QVariant information(ModelItemExtension::InfoTag tag)  const = 0;
   virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments()) {}
-//   virtual SegmentationRepresentation *representation(QString rep) = 0;
-//   virtual void setArguments(QString args) {}
 
 protected:
   ModelItemExtension() : m_init(false) {}
   mutable bool m_init;
 
-  QStringList m_availableRepresentations;
-  QStringList m_availableInformations;
+  InfoList m_availableInformations;
+  RepList  m_availableRepresentations;
 };
 
 #endif // MODELITEMEXTENSION_H

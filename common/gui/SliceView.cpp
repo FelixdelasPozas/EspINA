@@ -637,10 +637,12 @@ QList<Segmentation *> SliceView::pickSegmentations(double vx,
     {
       Segmentation *pickedSeg = property3DSegmentation(pickedProp);
       Q_ASSERT(pickedSeg);
+      Q_ASSERT(pickedSeg->volume());
 //       qDebug() << "Picked" << pickedSeg->data().toString() << "bounds";
       EspinaVolume::IndexType pickedPixel = pickedSeg->index(pixel.x(), pixel.y(), pixel.z());
-      if (!pickedSeg->volume()->GetLargestPossibleRegion().IsInside(pickedPixel) ||
-          pickedSeg->volume()->GetPixel(pickedPixel) == 0)
+      if (!pickedSeg->volume()->GetLargestPossibleRegion().IsInside(pickedPixel))
+	continue;
+      if (pickedSeg->volume()->GetPixel(pickedPixel) == 0)
 	continue;
 
 //       qDebug() <<  pickedSeg->data().toString() << "picked";

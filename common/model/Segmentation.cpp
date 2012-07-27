@@ -77,7 +77,10 @@ void Segmentation::changeFilter(Filter* filter, unsigned int outputNb)
 {
   disconnect(m_filter, SIGNAL(modified(ModelItem *)),
              this, SLOT(notifyModification()));
+//   m_filter->releaseDataFlagOn();
+//   filter->releaseDataFlagOff();
   filter->update();
+  filter->markAsModified();
   itk2vtk->SetInput(filter->output(outputNb));
   itk2vtk->Update();
   m_filter = filter;
@@ -289,7 +292,6 @@ QVariant Segmentation::information(QString info)
 	if (info == "Taxonomy")
 		return m_taxonomy->qualifiedName();
 
-	qDebug() << info;
 	Q_ASSERT(m_informations.contains(info));
 	return m_informations[info]->information(info);
 }

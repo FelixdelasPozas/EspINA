@@ -50,7 +50,6 @@ void ClosingFilter::run()
   Q_ASSERT(m_inputs.size() == 1);
   m_input = m_inputs.first();
 
-  qDebug() << "Compute Image Closing";
   StructuringElementType ball;
   ball.SetRadius(m_params.radius());
   ball.CreateStructuringElement();

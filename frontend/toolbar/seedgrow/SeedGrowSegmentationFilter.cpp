@@ -67,9 +67,37 @@ SeedGrowSegmentationFilter::~SeedGrowSegmentationFilter()
 }
 
 //-----------------------------------------------------------------------------
+void SeedGrowSegmentationFilter::markAsModified()
+{
+  if (bmcif.IsNull())
+    ctif->Modified();
+  else
+    bmcif->Modified();
+}
+
+//-----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::needUpdate() const
 {
   return (m_volume == NULL || m_needUpdate);
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationFilter::releaseDataFlagOn()
+{
+  ctif->ReleaseDataFlagOn();
+  if (bmcif.IsNotNull())
+    bmcif->ReleaseDataFlagOn();
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationFilter::releaseDataFlagOff()
+{
+  ctif->ReleaseDataFlagOn();
+  if (bmcif.IsNotNull())
+  {
+    ctif->ReleaseDataFlagOn();
+    bmcif->ReleaseDataFlagOff();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -111,12 +139,12 @@ void SeedGrowSegmentationFilter::run()
   EspinaVolume::IndexType seed = m_param.seed();
   double seedIntensity = m_input->GetPixel(seed);
   ctif = ConnectedThresholdFilterType::New();
-  ctif->ReleaseDataFlagOn();
   ctif->SetInput(extractFilter->GetOutput());
   ctif->SetReplaceValue(LABEL_VALUE);
   ctif->SetLower(std::max(seedIntensity - m_param.lowerThreshold(), 0.0));
   ctif->SetUpper(std::min(seedIntensity + m_param.upperThreshold(), 255.0));
   ctif->AddSeed(seed);
+  ctif->Update();
 
 //   qDebug() << "Intensity at Seed:" << seedIntensity;
 //   qDebug() << "Lower Intensity:" << std::max(seedIntensity - m_param.lowerThreshold(), 0.0);
@@ -167,16 +195,12 @@ void SeedGrowSegmentationFilter::run()
     bmcif->SetInput(ctif->GetOutput());
     bmcif->SetKernel(ball);
     bmcif->SetForegroundValue(LABEL_VALUE);
-    //   bmcif->ReleaseDataFlagOn();
     bmcif->Update();
 
     m_volume = bmcif->GetOutput();
   }
   else
     m_volume = ctif->GetOutput();
-
-//   double newOrigin[3] = {m_volume
-//   m_volume->SetOrigin(m_volume->GetLargestPossibleRegion().GetIndex());
 
   QApplication::restoreOverrideCursor();
   emit modified(this);

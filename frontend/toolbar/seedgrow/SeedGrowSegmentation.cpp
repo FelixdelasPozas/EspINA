@@ -173,7 +173,7 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
 {
   if (msel.size() > 0)
   {
-    qDebug() << "Start Segmentation";
+//     qDebug() << "Start Segmentation";
     Q_ASSERT(msel.size() == 1);// Only one element selected
     SelectionHandler::Selelection element = msel.first();
 

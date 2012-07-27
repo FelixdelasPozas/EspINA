@@ -19,50 +19,69 @@
 
 #include "MorphologicalExtension.h"
 
-#include "common/cache/CachedObjectBuilder.h"
 #include <common/model/Segmentation.h>
 
+// ITK
+#include <itkShapeLabelObject.h>
+
+// Qt
 #include <QApplication>
+#include <QDebug>
 
-#include <pqPipelineSource.h>
-#include <vtkSMPropertyHelper.h>
-#include <vtkSMProxy.h>
+const ModelItemExtension::ExtId MorphologicalExtension::ID = "MorphologicalExtension";
 
-
-const QString MorphologicalExtension::ID = "MorphologicalExtension";
+// NOTE: Should it be public?
+const ModelItemExtension::InfoTag SIZE = "Size";
+const ModelItemExtension::InfoTag PS = "Physical Size";
+const ModelItemExtension::InfoTag Cx = "Centroid X";
+const ModelItemExtension::InfoTag Cy = "Centroid Y";
+const ModelItemExtension::InfoTag Cz = "Centroid Z";
+const ModelItemExtension::InfoTag Rx = "Region X";
+const ModelItemExtension::InfoTag Ry = "Region Y";
+const ModelItemExtension::InfoTag Rz = "Region Z";
+const ModelItemExtension::InfoTag BPMx = "Binary Principal Moments X";
+const ModelItemExtension::InfoTag BPMy = "Binary Principal Moments Y";
+const ModelItemExtension::InfoTag BPMz = "Binary Principal Moments Z";
+const ModelItemExtension::InfoTag BPA00 = "Binary Principal Axes (0 0)";
+const ModelItemExtension::InfoTag BPA01 = "Binary Principal Axes (0 1)";
+const ModelItemExtension::InfoTag BPA02 = "Binary Principal Axes (0 2)";
+const ModelItemExtension::InfoTag BPA10 = "Binary Principal Axes (1 0)";
+const ModelItemExtension::InfoTag BPA11 = "Binary Principal Axes (1 1)";
+const ModelItemExtension::InfoTag BPA12 = "Binary Principal Axes (1 2)";
+const ModelItemExtension::InfoTag BPA20 = "Binary Principal Axes (2 0)";
+const ModelItemExtension::InfoTag BPA21 = "Binary Principal Axes (2 1)";
+const ModelItemExtension::InfoTag BPA22 = "Binary Principal Axes (2 2)";
+const ModelItemExtension::InfoTag FD = "Feret Diameter";
+const ModelItemExtension::InfoTag EESx = "Equivalent Ellipsoid Size X";
+const ModelItemExtension::InfoTag EESy = "Equivalent Ellipsoid Size Y";
+const ModelItemExtension::InfoTag EESz = "Equivalent Ellipsoid Size Z";
+//TODO: Review values to be used from new ITK version
 
 //------------------------------------------------------------------------
 MorphologicalExtension::MorphologicalExtension()
-: m_features(NULL)
+: m_statistic(NULL)
 , m_validInfo(false)
 , m_validFeret(false)
 {
-  m_availableInformations << "Size";
-  m_availableInformations << "Physical Size";
-  m_availableInformations << "Centroid X" << "Centroid Y" << "Centroid Z";
-  m_availableInformations << "Region X" << "Region Y" << "Region Z"; 
-  m_availableInformations << "Binary Principal Moments X" << "Binary Principal Moments Y" << "Binary Principal Moments Z";
-  m_availableInformations << "Binary Principal Axes (0 0)" << "Binary Principal Axes (0 1)" << "Binary Principal Axes (0 2)";
-  m_availableInformations << "Binary Principal Axes (1 0)" << "Binary Principal Axes (1 1)" << "Binary Principal Axes (1 2)";
-  m_availableInformations << "Binary Principal Axes (2 0)" << "Binary Principal Axes (2 1)" << "Binary Principal Axes (2 2)";
-  m_availableInformations << "Feret Diameter";
-  m_availableInformations << "Equivalent Ellipsoid Size X" << "Equivalent Ellipsoid Size Y" << "Equivalent Ellipsoid Size Z";
+  m_availableInformations << SIZE;
+  m_availableInformations << PS;
+  m_availableInformations << Cx << Cy << Cz;
+//   m_availableInformations << Rx << Ry << Rz;
+  m_availableInformations << BPMx << BPMy << BPMz;
+  m_availableInformations << BPA00 << BPA01 << BPA02;
+  m_availableInformations << BPA10 << BPA11 << BPA12;
+  m_availableInformations << BPA20 << BPA21 << BPA22;
+  m_availableInformations << FD;
+//   m_availableInformations << EESx << EESy << EESz;
 }
 
 //------------------------------------------------------------------------
 MorphologicalExtension::~MorphologicalExtension()
 {
-  if (m_features)
-  {
-//     EXTENSION_DEBUG("Deleted " << ID << " Extension from " << m_seg->id());
-    CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-    cob->removeFilter(m_features);
-    m_features = NULL;
-  }
 }
 
 //------------------------------------------------------------------------
-QString MorphologicalExtension::id()
+ModelItemExtension::ExtId MorphologicalExtension::id()
 {
   return ID;
 }
@@ -72,12 +91,13 @@ QString MorphologicalExtension::id()
 void MorphologicalExtension::initialize(Segmentation* seg)
 {
   m_seg = seg;
-  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
 
-  pqFilter::Arguments featuresArgs;
-  featuresArgs << pqFilter::Argument("Input", pqFilter::Argument::INPUT, m_seg->volume().id());
-  m_features = cob->createFilter("filters","MorphologicalFeatures", featuresArgs);
-  Q_ASSERT(m_features);
+//   qDebug() << "Converting from ITK to LabelMap";
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  m_labelMap = Image2LabelFilterType::New();
+  m_labelMap->SetComputeFeretDiameter(false);
+
+  QApplication::restoreOverrideCursor();
   m_init = true;
 }
 
@@ -95,97 +115,80 @@ QVariant MorphologicalExtension::information(QString info) const
   if (!m_init)
     return QVariant();
 
-  if (!m_validInfo)
+  if (m_statistic == NULL
+      || m_seg->volume()->GetTimeStamp() > m_labelMap->GetTimeStamp()
+      || (info == FD && !m_validFeret)
+     )
   {
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    m_validInfo = true;
-    m_features->pipelineSource()->updatePipeline();
+//     qDebug() << "Updating morphological extension";
+//     qDebug() << "Volume TS:" << m_seg->volume()->GetTimeStamp().GetMTime();
+//     qDebug() << "LabelMap TS:" << m_labelMap->GetTimeStamp().GetMTime();
+    if (info == FD)
+    {
+      m_labelMap->SetComputeFeretDiameter(true);
+      m_validFeret = true;
+    }
+    m_labelMap->SetInput(m_seg->volume());
+    m_labelMap->Update();
+    m_labelMap->Modified();
 
-    vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"Size").UpdateValueFromServer();
-    vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"Size").Get(&m_Size,1);
-    vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"PhysicalSize").UpdateValueFromServer();
-    vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"PhysicalSize").Get(&m_PhysicalSize,1);
-    vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"Centroid").UpdateValueFromServer();
-    vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"Centroid").Get(m_Centroid,3);
-    vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"Region").UpdateValueFromServer();
-    vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"Region").Get(m_Region,3);
-    vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"BinaryPrincipalMoments").UpdateValueFromServer();
-    vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"BinaryPrincipalMoments").Get(m_BinaryPrincipalMoments,3);
-    vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"BinaryPrincipalAxes").UpdateValueFromServer();
-    vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"BinaryPrincipalAxes").Get(m_BinaryPrincipalAxes,9);
-//     vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"FeretDiameter").UpdateValueFromServer();
-//     vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"FeretDiameter").Get(&m_FeretDiameter,1);
-    vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"EquivalentEllipsoidSize").UpdateValueFromServer();
-    vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"EquivalentEllipsoidSize").Get(m_EquivalentEllipsoidSize,3);
+    LabelMapType *labelMap = m_labelMap->GetOutput();
+    labelMap->Update();
+    Q_ASSERT(labelMap->GetNumberOfLabelObjects() == 1);
+    m_statistic = labelMap->GetNthLabelObject(0);
     QApplication::restoreOverrideCursor();
   }
 
-  //TODO: Get segmentation's spacing
-  double spacing[3] = {1, 1, 1};
-//   m_seg->origin()->spacing(spacing);
-
-  if (info == "Size")
-      return m_Size;
-  if (info == "Physical Size")
-    return m_PhysicalSize;
-  if (info == "Centroid X")
-      return m_Centroid[0];
-  if (info == "Centroid Y")
-      return m_Centroid[1];
-  if (info == "Centroid Z")
-      return m_Centroid[2];
-  if (info == "Region X")
-      return m_Region[0]*spacing[0];
-  if (info == "Region Y")
-      return m_Region[1]*spacing[1];
-  if (info == "Region Z")
-    return m_Region[2]*spacing[2];
-  if (info == "Binary Principal Moments X")
-      return m_BinaryPrincipalMoments[0];
-  if (info == "Binary Principal Moments Y")
-      return m_BinaryPrincipalMoments[1];
-  if (info == "Binary Principal Moments Z")
-      return m_BinaryPrincipalMoments[2];
-  if (info == "Binary Principal Axes (0 0)")
-      return m_BinaryPrincipalAxes[0];
-  if (info == "Binary Principal Axes (0 1)")
-      return m_BinaryPrincipalAxes[1];
-  if (info == "Binary Principal Axes (0 2)")
-      return m_BinaryPrincipalAxes[2];
-  if (info == "Binary Principal Axes (1 0)")
-      return m_BinaryPrincipalAxes[3];
-  if (info == "Binary Principal Axes (1 1)")
-      return m_BinaryPrincipalAxes[4];
-  if (info == "Binary Principal Axes (1 2)")
-      return m_BinaryPrincipalAxes[5];
-  if (info == "Binary Principal Axes (2 0)")
-      return m_BinaryPrincipalAxes[6];
-  if (info == "Binary Principal Axes (2 1)")
-      return m_BinaryPrincipalAxes[7];
-  if (info == "Binary Principal Axes (2 2)")
-      return m_BinaryPrincipalAxes[8];
-  if (info == "Feret Diameter")
-  {
-    if (!m_validFeret)
-    {
-      m_validFeret = true;
-      int compute = 1;
-      QApplication::setOverrideCursor(Qt::WaitCursor);
-      vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"ComputeFeret").Set(compute);
-      m_features->pipelineSource()->getProxy()->UpdateVTKObjects();
-      m_features->pipelineSource()->updatePipeline();
-      vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"FeretDiameter").UpdateValueFromServer();
-      vtkSMPropertyHelper(m_features->pipelineSource()->getProxy(),"FeretDiameter").Get(&m_FeretDiameter,1);
-      QApplication::restoreOverrideCursor();
-    }
-    return m_FeretDiameter;
-  }
-  if (info == "Equivalent Ellipsoid Size X")
-      return m_EquivalentEllipsoidSize[0];
-  if (info == "Equivalent Ellipsoid Size Y")
-      return m_EquivalentEllipsoidSize[1];
-  if (info == "Equivalent Ellipsoid Size Z")
-      return m_EquivalentEllipsoidSize[2];
+//   EspinaVolume::SpacingType spacing = m_seg->volume()->GetSpacing();
+  if (info == SIZE)
+      return int(m_statistic->GetNumberOfPixels());//TODO REVIEW: Casting
+  if (info == PS)
+    return m_statistic->GetPhysicalSize();
+  if (info == Cx)
+    return m_statistic->GetCentroid()[0];
+  if (info == Cy)
+    return m_statistic->GetCentroid()[1];
+  if (info == Cz)
+    return m_statistic->GetCentroid()[2];
+//   if (info == Rx)
+//       return m_Region[0]*spacing[0];
+//   if (info == "Region Y")
+//       return m_Region[1]*spacing[1];
+//   if (info == "Region Z")
+//     return m_Region[2]*spacing[2];
+  if (info == BPMx)
+      return m_statistic->GetPrincipalMoments()[0];
+  if (info == BPMy)
+      return m_statistic->GetPrincipalMoments()[1];
+  if (info == BPMz)
+      return m_statistic->GetPrincipalMoments()[2];
+  if (info == BPA00)
+      return m_statistic->GetPrincipalAxes()[0][0];
+  if (info == BPA01)
+      return m_statistic->GetPrincipalAxes()[0][1];
+  if (info == BPA02)
+      return m_statistic->GetPrincipalAxes()[0][2];
+  if (info == BPA10)
+      return m_statistic->GetPrincipalAxes()[1][0];
+  if (info == BPA11)
+      return m_statistic->GetPrincipalAxes()[1][1];
+  if (info == BPA12)
+      return m_statistic->GetPrincipalAxes()[1][2];
+  if (info == BPA20)
+      return m_statistic->GetPrincipalAxes()[2][0];
+  if (info == BPA21)
+      return m_statistic->GetPrincipalAxes()[2][1];
+  if (info == BPA22)
+      return m_statistic->GetPrincipalAxes()[2][2];
+  if (info == FD)
+    return m_statistic->GetFeretDiameter();
+//   if (info == EESx)
+//       return m_EquivalentEllipsoidSize[0];
+//   if (info == "Equivalent Ellipsoid Size Y")
+//       return m_EquivalentEllipsoidSize[1];
+//   if (info == "Equivalent Ellipsoid Size Z")
+//       return m_EquivalentEllipsoidSize[2];
 
   qWarning() << ID << ":"  << info << " is not provided";
   Q_ASSERT(false);

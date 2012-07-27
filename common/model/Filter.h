@@ -71,11 +71,16 @@ public:
   virtual int numberOutputs() const {return 0;}
   /// Return the i-th output
   virtual EspinaVolume *output(OutputNumber i) const {Q_ASSERT(false); return NULL;};
+  virtual void markAsModified(){}
   /// Interface to be overload by subclasses
   virtual bool needUpdate() const {return true;}
   /// Updates filter outputs.
   /// If a snapshot exits it will try to load it from disk
   void update();
+  /// Turn on internal filters' release data flags
+  virtual void releaseDataFlagOn(){}
+  /// Turn off internal filters' release data flags
+  virtual void releaseDataFlagOff(){}
   /// Method which actually executes the filter
   virtual void run() {};
 

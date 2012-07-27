@@ -149,8 +149,11 @@ public:
   virtual QVariant data(int role=Qt::DisplayRole) const;
 
   /// Implements Filter Interface
+  virtual void markAsModified();
   virtual bool needUpdate() const;
-  void run();
+  virtual void releaseDataFlagOn();
+  virtual void releaseDataFlagOff();
+  virtual void run();
   virtual int numberOutputs() const;
   virtual EspinaVolume* output(OutputNumber i) const;
   virtual bool prefetchFilter();
