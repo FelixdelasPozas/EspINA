@@ -113,6 +113,7 @@ void VolumeView::buildControls()
     button->setMaximumSize(QSize(32,32));
     button->setToolTip(renderer->tooltip());
     connect(button, SIGNAL(clicked(bool)), renderer.data(), SLOT(setEnable(bool)));
+    connect(button, SIGNAL(clicked(bool)), this, SLOT(countEnabledRenderers(bool)));
     connect(renderer.data(), SIGNAL(renderRequested()), this, SLOT(forceRender()));
     m_controlLayout->addWidget(button);
 
@@ -183,8 +184,6 @@ void VolumeView::removeChannelRepresentation(Channel* channel)
   {
     modified |= renderer->removeItem(channel);
   }
-  Q_ASSERT(false);
-  //TODO:m_view->resetCamera();
 }
 
 
@@ -340,7 +339,7 @@ void VolumeView::exportScene()
     return;
   }
 
-  QFileDialog fileDialog(this, tr("Save Scene"), QString(), tr("3D Scene (*.x3d *.pov *.vrml)"));
+  QFileDialog fileDialog(this, tr("Save Scene"), QString(), tr("All supported formats (*.x3d *.pov *.vrml);; POV-Ray files (*.pov);; VRML files (*.vrml);; X3D format (*.x3d)"));
   fileDialog.setObjectName("SaveSceneFileDialog");
   fileDialog.setWindowTitle("Save View as a 3D Scene");
   fileDialog.setAcceptMode(QFileDialog::AcceptSave);
@@ -411,7 +410,7 @@ void VolumeView::exportScene()
 
 void VolumeView::takeSnapshot()
 {
-  QFileDialog fileDialog(this, tr("Save Scene As Image"), QString(), tr("Image Files (*.jpg *.png)"));
+  QFileDialog fileDialog(this, tr("Save Scene As Image"), QString(), tr("All supported formats (*.jpg *.png);; JPEG images (*.jpg);; PNG images (*.png)"));
   fileDialog.setObjectName("SaveSnapshotFileDialog");
   fileDialog.setWindowTitle("Save Scene As Image");
   fileDialog.setAcceptMode(QFileDialog::AcceptSave);
@@ -489,7 +488,6 @@ VolumeView::Settings::Settings(const QString prefix)
     if (renderer)
       m_renderers << RendererPtr(renderer->clone());
   }
-
 }
 
 //-----------------------------------------------------------------------------
@@ -511,4 +509,33 @@ void VolumeView::Settings::setRenderers(QList<Renderer *> values)
 QList< VolumeView::Settings::RendererPtr> VolumeView::Settings::renderers() const
 {
   return m_renderers;
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::changePlanePosition(PlaneType plane, Nm dist)
+{
+  foreach(Settings::RendererPtr ren, this->m_settings->renderers())
+    if (QString("Crosshairs") == ren->name())
+    {
+      CrosshairRenderer *crossren = reinterpret_cast<CrosshairRenderer *>(ren.data());
+      crossren->setPlanePosition(plane, dist);
+    }
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::countEnabledRenderers(bool value)
+{
+  static int numActive = 0;
+
+  if ((true == value) && (0 == numActive))
+  {
+    m_renderer->ResetCamera();
+    forceRender();
+  }
+
+  if (true == value)
+    numActive++;
+  else
+    numActive--;
+
 }

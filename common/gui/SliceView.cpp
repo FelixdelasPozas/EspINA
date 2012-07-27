@@ -31,6 +31,7 @@
 #include <vtkRectangularWidget.h>
 #include <vtkRectangularRepresentation.h>
 #include <vtkLookupTable.h>
+#include "common/gui/VolumeView.h"
 
 // Debug
 #include <QDebug>
@@ -184,10 +185,6 @@ void SliceView::buildCrosshairs()
   m_HCrossLine->SetMapper(HMapper);
   m_HCrossLine->GetProperty()->SetLineWidth(2);
   m_HCrossLine->SetPickable(false);
-  //   HCrossLine->GetProperty()->SetLineStipplePattern(0xF0F0);
-
-//   NonCompositedRenderer->AddActor(HCrossLine);
-//   OverviewRenderer->AddActor(HCrossLine);
 
   vtkSmartPointer<vtkPoints> VPoints = vtkSmartPointer<vtkPoints>::New();
   VPoints->InsertNextPoint(0, -0.5, 0);
@@ -441,6 +438,7 @@ void SliceView::scrollValueChanged(int value/*nm*/)
 {
   m_state->setSlicingPosition(m_slicingMatrix, slicingPosition());
   forceRender();
+  emit sliceChanged(this->m_settings->plane(), slicingPosition());
 }
 
 //-----------------------------------------------------------------------------
@@ -640,9 +638,8 @@ QList<Segmentation *> SliceView::pickSegmentations(double vx,
       Q_ASSERT(pickedSeg->volume());
 //       qDebug() << "Picked" << pickedSeg->data().toString() << "bounds";
       EspinaVolume::IndexType pickedPixel = pickedSeg->index(pixel.x(), pixel.y(), pixel.z());
-      if (!pickedSeg->volume()->GetLargestPossibleRegion().IsInside(pickedPixel))
-	continue;
-      if (pickedSeg->volume()->GetPixel(pickedPixel) == 0)
+      if (!pickedSeg->volume()->GetLargestPossibleRegion().IsInside(pickedPixel) ||
+          (pickedSeg->volume()->GetPixel(pickedPixel) == 0))
 	continue;
 
 //       qDebug() <<  pickedSeg->data().toString() << "picked";
@@ -819,7 +816,7 @@ bool SliceView::updateChannelRepresentation(Channel* channel)
     memcpy(rep.pos, pos, 3 * sizeof(double));
 
     rep.slice->SetPosition(rep.pos);
-    double color = channel->color();
+    // double color = channel->color();
     //TODO:vtkSMPropertyHelper(rep.proxy, "Color").Set(&color,1);
     rep.slice->SetVisibility(rep.visible);
     double opacity = suggestedChannelOpacity();

@@ -53,6 +53,10 @@ EspinaView(parent, activity), first(true), m_colorEngine(NULL), m_showProcessing
 
   //   qDebug() << "New Default EspinaView";
   xyView = new SliceView(AXIAL);
+  xzView = new SliceView(CORONAL);
+  yzView = new SliceView(SAGITTAL);
+  volView = new VolumeView(this);
+
   xyView->setCrosshairColors(blue, magenta);
   initSliceView(xyView);
   this->setLayout(new QVBoxLayout());
@@ -61,21 +65,18 @@ EspinaView(parent, activity), first(true), m_colorEngine(NULL), m_showProcessing
 
   volDock = new QDockWidget(tr("3D"), parent);
   volDock->setObjectName("volDock");
-  volView = new VolumeView(this);
   connect(volView, SIGNAL(channelSelected(Channel*)), this, SLOT(channelSelected(Channel*)));
   connect(volView, SIGNAL(segmentationSelected(Segmentation*, bool)), this, SLOT(segmentationSelected(Segmentation*, bool)));
   volDock->setWidget(volView);
 
   yzDock = new QDockWidget(tr("ZY"), parent);
   yzDock->setObjectName("yzDock");
-  yzView = new SliceView(SAGITTAL);
   yzView->setCrosshairColors(blue, cyan);
   initSliceView(yzView);
   yzDock->setWidget(yzView);
 
   xzDock = new QDockWidget(tr("XZ"), parent);
   xzDock->setObjectName("xzDock");
-  xzView = new SliceView(CORONAL);
   xzView->setCrosshairColors(cyan, magenta);
   initSliceView(xzView);
   xzDock->setWidget(xzView);
@@ -100,8 +101,8 @@ void DefaultEspinaView::initSliceView(SliceView* view)
 {
   connect(view, SIGNAL(centerChanged(Nm, Nm, Nm)),
           this, SLOT(setCrosshairPoint(Nm,Nm,Nm)));
-  connect(view, SIGNAL(focusChanged(double[3])),
-          this, SLOT(setCameraFocus(double[3])));
+  connect(view, SIGNAL(focusChanged(Nm[3])),
+          this, SLOT(setCameraFocus(Nm[3])));
   connect(view, SIGNAL(selectedFromSlice(double, PlaneType)),
           this, SLOT(selectFromSlice(double, PlaneType)));
   connect(view, SIGNAL(selectedToSlice(double, PlaneType)),
@@ -112,6 +113,7 @@ void DefaultEspinaView::initSliceView(SliceView* view)
           this, SLOT(segmentationSelected(Segmentation*, bool)));
   connect(view, SIGNAL(showCrosshairs(bool)),
           this, SLOT(showCrosshair(bool)));
+  connect(view, SIGNAL(sliceChanged(PlaneType, Nm)), this, SLOT(changePlanePosition(PlaneType, Nm)));
 }
 
 //-----------------------------------------------------------------------------
@@ -257,24 +259,6 @@ void DefaultEspinaView::removeWidget(EspinaWidget* widget)
   m_widgets.remove(widget);
 }
 
-// //-----------------------------------------------------------------------------
-// void DefaultEspinaView::addRepresentation(pqOutputPort* oport, QColor color)
-// {
-//   xyView->addRepresentation(oport, color);
-//   yzView->addRepresentation(oport, color);
-//   xzView->addRepresentation(oport, color);
-//   //volView->addRepresentation(oport);
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void DefaultEspinaView::removeRepresentation(pqOutputPort* oport)
-// {
-//   xyView->removeRepresentation(oport);
-//   yzView->removeRepresentation(oport);
-//   xzView->removeRepresentation(oport);
-//   //volView->removeRepresentation(oport);
-// }
-
 //----------------------------------------------------------------------------
 void DefaultEspinaView::setColorEngine(ColorEngine* engine)
 {
@@ -343,6 +327,7 @@ void DefaultEspinaView::setCrosshairPoint(Nm x, Nm y, Nm z, bool force)
 void DefaultEspinaView::setCameraFocus(double focus[3])
 {
   volView->setCameraFocus(focus);
+  volView->forceRender();
 }
 
 //-----------------------------------------------------------------------------
@@ -694,3 +679,8 @@ ISettingsPanel* DefaultEspinaView::SettingsPanel::clone()
 }
 
 //-----------------------------------------------------------------------------
+void DefaultEspinaView::changePlanePosition(PlaneType plane, Nm dist)
+{
+  volView->changePlanePosition(plane, dist);
+  volView->forceRender();
+}

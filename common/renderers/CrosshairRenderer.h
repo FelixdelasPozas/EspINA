@@ -71,6 +71,7 @@ public:
   virtual unsigned int getNumberOfvtkActors();
   void setCrosshairColors(double axialColor[3], double coronalColor[3], double sagittalColor[3]);
   void setCrosshair(Nm point[3]);
+  void setPlanePosition(PlaneType plane, Nm dist);
 
   virtual Renderer* clone() {return new CrosshairRenderer();}
 

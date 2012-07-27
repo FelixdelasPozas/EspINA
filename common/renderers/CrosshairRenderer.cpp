@@ -562,3 +562,31 @@ void CrosshairRenderer::setCrosshair(Nm point[3])
     }
   }
 }
+
+//-----------------------------------------------------------------------------
+void CrosshairRenderer::setPlanePosition(PlaneType plane, Nm dist)
+{
+  QMap<ModelItem *, Representation>::iterator it;
+  if (m_channels.empty())
+    return;
+
+  Nm point[3] = { m_channels.begin()->point[0], m_channels.begin()->point[1], m_channels.begin()->point[2] };
+
+  switch(plane)
+  {
+  case AXIAL:
+    point[2] = dist;
+    break;
+  case CORONAL:
+    point[1] = dist;
+    break;
+  case SAGITTAL:
+    point[0] = dist;
+    break;
+  default:
+    break;
+  }
+
+  setCrosshair(point);
+}
+

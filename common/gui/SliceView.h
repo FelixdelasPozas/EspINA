@@ -160,7 +160,8 @@ protected slots:
 signals:
   void centerChanged(Nm, Nm, Nm);
   void showCrosshairs(bool);
-  void focusChanged(double[3]);
+  void focusChanged(Nm[3]);
+
   // Notify the windows manager how to display the view
   void closeRequest();
   void maximizeRequest();
@@ -171,6 +172,7 @@ signals:
   void segmentationSelected(Segmentation *, bool);
   void selectedFromSlice(double, PlaneType);
   void selectedToSlice(double, PlaneType);
+  void sliceChanged(PlaneType, Nm);
 
 protected:
   virtual bool eventFilter(QObject* caller, QEvent* e);

@@ -21,6 +21,7 @@
 #define DEFAULTESPINAVIEW_H
 
 #include <common/gui/EspinaView.h>
+#include <common/EspinaTypes.h>
 #include <gui/VolumeView.h>
 
 class VolumeViewSettingsPanel;
@@ -77,10 +78,11 @@ public slots:
   virtual void showSegmentations(bool visible);
   virtual void showThumbnail(bool visible);
 
-  virtual void setCameraFocus(double [3]);
+  virtual void setCameraFocus(Nm[3]);
 
   virtual void setCrosshairPoint(Nm x, Nm y, Nm z, bool force = false);
   virtual void setSliceSelectors(SliceView::SliceSelectors selectors);
+  virtual void changePlanePosition(PlaneType, Nm);
 
 protected:
   void addChannelRepresentation(Channel *channel);

@@ -72,9 +72,10 @@ public:
   void setColorEngine(ColorEngine *engine){m_colorEngine = engine;}
   SettingsPtr settings() {return m_settings;}
 
+  void changePlanePosition(PlaneType, Nm);
 public slots:
   void forceRender();
-
+  void countEnabledRenderers(bool);
 signals:
   void channelSelected(Channel *);
   void segmentationSelected(Segmentation *, bool);
