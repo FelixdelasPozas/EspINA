@@ -777,9 +777,26 @@ void SliceView::addChannelRepresentation(Channel* channel)
   channelRep.slice->GetMapper()->SetInputConnection(channelRep.resliceToColors->GetOutputPort());
   m_state->updateActor(channelRep.slice);
 
+    // if hue is -1 then use 0 saturation to make a grayscale image
+  double hue = channel->color();
+  double sat = hue >= 0?1.0:0.0;
+
   channelRep.selected = false;
   channelRep.visible = !channel->isVisible();  // Force initialization
-  channelRep.color = QColor("red");
+  channelRep.color = channel->color();
+  channelRep.lut = vtkLookupTable::New();
+  channelRep.lut->Allocate();
+  channelRep.lut->SetTableRange(0,255);
+  channelRep.lut->SetHueRange(hue, hue);
+  channelRep.lut->SetSaturationRange(0.0, sat);
+  channelRep.lut->SetValueRange(0.0, 1.0);
+  channelRep.lut->SetAlphaRange(1.0,1.0);
+  channelRep.lut->SetNumberOfColors(256);
+  channelRep.lut->SetRampToLinear();
+  channelRep.lut->Build();
+
+  channelRep.resliceToColors->SetLookupTable(channelRep.lut);
+  channelRep.resliceToColors->Update();
 
   m_channels.insert(channel, channelRep);
   m_renderer->AddActor(channelRep.slice);
@@ -816,8 +833,25 @@ bool SliceView::updateChannelRepresentation(Channel* channel)
     memcpy(rep.pos, pos, 3 * sizeof(double));
 
     rep.slice->SetPosition(rep.pos);
-    // double color = channel->color();
-    //TODO:vtkSMPropertyHelper(rep.proxy, "Color").Set(&color,1);
+    // don't want to update the color table everytime
+    if (channel->color() != rep.color.hueF())
+    {
+      // if hue is -1 then use 0 saturation to make a grayscale image
+      double hue = channel->color();
+      double sat = hue >= 0?1.0:0.0;
+
+      rep.lut->Allocate();
+      rep.lut->SetTableRange(0,255);
+      rep.lut->SetHueRange(hue, hue);
+      rep.lut->SetSaturationRange(0.0, sat);
+      rep.lut->SetSaturationRange(0.0, 1.0);
+      rep.lut->SetValueRange(0.0, 1.0);
+      rep.lut->SetAlphaRange(1.0,1.0);
+      rep.lut->SetNumberOfColors(256);
+      rep.lut->Build();
+      rep.lut->Modified();
+    }
+    rep.color.setHsvF(channel->color(), 1.0, 1.0);
     rep.slice->SetVisibility(rep.visible);
     double opacity = suggestedChannelOpacity();
     rep.slice->GetProperty()->SetOpacity(opacity);

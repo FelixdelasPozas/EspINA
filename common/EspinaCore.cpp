@@ -122,7 +122,7 @@ bool EspinaCore::loadChannel(const QFileInfo file)
   args[Channel::ID] = file.fileName();
   args.setColor(stainColor.hueF());
   Channel *channel = factory->createChannel(reader, 0);
-  channel->initialize(args);
+  channel->setColor(stainColor.hueF());// It is needed to display proper stain color
   if (m_activeChannel == NULL)
     m_activeChannel = channel;
     //file.absoluteFilePath(), args);
@@ -134,10 +134,11 @@ bool EspinaCore::loadChannel(const QFileInfo file)
   m_undoStack->beginMacro("Add Data To Analysis");
   m_undoStack->push(new AddChannel(reader, channel));
   m_undoStack->push(new AddRelation(existingSample, channel, Channel::STAINLINK));
-  existingSample->initialize();
-  channel->initialize();
-
   m_undoStack->endMacro();
+
+  existingSample->initialize();//TODO: Review if needed
+  channel->initialize(args);
+
   QApplication::restoreOverrideCursor();
 
   return true;

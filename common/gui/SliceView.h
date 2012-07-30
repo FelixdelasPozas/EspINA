@@ -202,6 +202,7 @@ private:
   {
     vtkImageResliceToColors *resliceToColors;
     vtkImageActor *slice;
+    vtkLookupTable *lut;
     bool visible;
     bool selected;
     QColor color;

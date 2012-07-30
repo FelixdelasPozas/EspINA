@@ -116,19 +116,19 @@ bool CrosshairRenderer::addItem(ModelItem* item)
   sagittalReslice->SetOutputDimensionality(2);
   sagittalReslice->SetResliceAxes(m_channels[channel].matSagittal);
 
-  // if given hue is -1 then just use 0 and make a grayscale image
-  double color = channel->color();
-  if (-1 == channel->color())
-    color = 0;
+  // if hue is -1 then use 0 saturation to make a grayscale image
+  double hue = channel->color();
+  double sat = hue >= 0?1.0:0.0;
 
   m_channels[channel].lut = vtkLookupTable::New();
   m_channels[channel].lut->Allocate();
   m_channels[channel].lut->SetTableRange(0,255);
+  m_channels[channel].lut->SetHueRange(hue, hue);
+  m_channels[channel].lut->SetSaturationRange(0.0, sat);
   m_channels[channel].lut->SetValueRange(0.0, 1.0);
-  m_channels[channel].lut->SetHueRange(color, color);
-  m_channels[channel].lut->SetSaturationRange(0.0, 0.0);
   m_channels[channel].lut->SetAlphaRange(1.0,1.0);
   m_channels[channel].lut->SetNumberOfColors(256);
+  m_channels[channel].lut->SetRampToLinear();
   m_channels[channel].lut->Build();
   channel->bounds(m_channels[channel].bounds);
 
@@ -325,17 +325,17 @@ bool CrosshairRenderer::updateItem(ModelItem* item)
   if (channel->isVisible() != rep.visible
       || channel->color() != rep.color.hueF())
   {
-    double color = channel->color();
-    if (-1 == channel->color())
-      color = 0;
+    // if hue is -1 then use 0 saturation to make a grayscale image
+    double hue = channel->color();
+    double sat = hue >= 0? 1.0:0.0;
 
     // don't want to update the color table everytime
     if (channel->color() != rep.color.hueF())
     {
       rep.lut->Allocate();
       rep.lut->SetTableRange(0,255);
-      rep.lut->SetHueRange(color, color);
-      rep.lut->SetSaturationRange(0.0, 0.0);
+      rep.lut->SetHueRange(hue, hue);
+      rep.lut->SetSaturationRange(0.0, sat);
       rep.lut->SetValueRange(0.0, 1.0);
       rep.lut->SetAlphaRange(1.0,1.0);
       rep.lut->SetNumberOfColors(256);
