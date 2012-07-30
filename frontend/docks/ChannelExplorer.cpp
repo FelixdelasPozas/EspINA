@@ -297,7 +297,13 @@ void ChannelExplorer::moveRight()
 void ChannelExplorer::changeChannelColor()
 {
   QModelIndex index = m_sort->mapToSource(m_gui->view->currentIndex());
+  if (!index.isValid())
+    return;
+
   ModelItem *item = indexPtr(index);
+  if (ModelItem::CHANNEL != item->type())
+    return;
+
   Channel *channel = dynamic_cast<Channel *>(item);
 
   QColor currentColor;
