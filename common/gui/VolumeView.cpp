@@ -74,6 +74,8 @@ VolumeView::VolumeView(QWidget* parent)
   pal.setColor(QPalette::Base, pal.color(QPalette::Window));
   this->setPalette(pal);
   //   this->setStyleSheet("background-color: grey;");
+
+  memset(m_center,0,3*sizeof(double));
 }
 
 //-----------------------------------------------------------------------------
@@ -141,6 +143,8 @@ void VolumeView::centerViewOn(Nm center[3])
       CrosshairRenderer *crossren = reinterpret_cast<CrosshairRenderer *>(ren.data());
       crossren->setCrosshair(center);
     }
+
+  forceRender();
 }
 
 //-----------------------------------------------------------------------------

@@ -162,22 +162,14 @@ bool CrosshairRenderer::addItem(ModelItem* item)
 
   // rotate actors
   double center[3], origin[3];
-  origin[0] = m_channels[channel].coronal->GetOrigin()[0];
-  origin[1] = m_channels[channel].coronal->GetOrigin()[1];
-  origin[2] = m_channels[channel].coronal->GetOrigin()[2];
-  center[0] = m_channels[channel].coronal->GetCenter()[0];
-  center[1] = m_channels[channel].coronal->GetCenter()[1];
-  center[2] = m_channels[channel].coronal->GetCenter()[2];
+  memcpy(origin, m_channels[channel].coronal->GetOrigin(), 3*sizeof(double));
+  memcpy(center, m_channels[channel].coronal->GetCenter(), 3*sizeof(double));
   m_channels[channel].coronal->SetOrigin(center);
   m_channels[channel].coronal->RotateX(90);
   m_channels[channel].coronal->SetOrigin(origin);
 
-  origin[0] = m_channels[channel].sagittal->GetOrigin()[0];
-  origin[1] = m_channels[channel].sagittal->GetOrigin()[1];
-  origin[2] = m_channels[channel].sagittal->GetOrigin()[2];
-  center[0] = m_channels[channel].sagittal->GetCenter()[0];
-  center[1] = m_channels[channel].sagittal->GetCenter()[1];
-  center[2] = m_channels[channel].sagittal->GetCenter()[2];
+  memcpy(origin, m_channels[channel].sagittal->GetOrigin(), 3*sizeof(double));
+  memcpy(center, m_channels[channel].sagittal->GetCenter(), 3*sizeof(double));
   m_channels[channel].sagittal->SetOrigin(center);
   m_channels[channel].sagittal->RotateX(90);
   m_channels[channel].sagittal->RotateY(90);
@@ -185,9 +177,7 @@ bool CrosshairRenderer::addItem(ModelItem* item)
 
   m_channels[channel].selected = channel->isSelected();
   m_channels[channel].visible = false;
-  m_channels[channel].point[0] = 0;
-  m_channels[channel].point[1] = 0;
-  m_channels[channel].point[2] = 0;
+  memset(m_channels[channel].point, 0, 3*sizeof(double));
   m_channels[channel].color.setHsvF(channel->color(), 1.0, 1.0);
 
   double bounds[6];
@@ -299,21 +289,21 @@ bool CrosshairRenderer::addItem(ModelItem* item)
   m_channels[channel].axialBorder->SetMapper(axialSquareMapper);
   m_channels[channel].axialBorder->GetProperty()->SetColor(cyan);
   m_channels[channel].axialBorder->GetProperty()->SetPointSize(2);
-  m_channels[channel].axialBorder->GetProperty()->SetLineWidth(2);
+  m_channels[channel].axialBorder->GetProperty()->SetLineWidth(1);
   m_channels[channel].axialBorder->SetPickable(false);
 
   m_channels[channel].coronalBorder = vtkActor::New();
   m_channels[channel].coronalBorder->SetMapper(coronalSquareMapper);
   m_channels[channel].coronalBorder->GetProperty()->SetColor(blue);
   m_channels[channel].coronalBorder->GetProperty()->SetPointSize(2);
-  m_channels[channel].coronalBorder->GetProperty()->SetLineWidth(2);
+  m_channels[channel].coronalBorder->GetProperty()->SetLineWidth(1);
   m_channels[channel].coronalBorder->SetPickable(false);
 
   m_channels[channel].sagittalBorder = vtkActor::New();
   m_channels[channel].sagittalBorder->SetMapper(sagittalSquareMapper);
   m_channels[channel].sagittalBorder->GetProperty()->SetColor(magenta);
   m_channels[channel].sagittalBorder->GetProperty()->SetPointSize(2);
-  m_channels[channel].sagittalBorder->GetProperty()->SetLineWidth(2);
+  m_channels[channel].sagittalBorder->GetProperty()->SetLineWidth(1);
   m_channels[channel].sagittalBorder->SetPickable(false);
 
   return true;
