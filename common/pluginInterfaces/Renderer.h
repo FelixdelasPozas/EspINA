@@ -57,6 +57,7 @@ public:
   // get number of vtkActors added to vtkRendered from this Renderer
   virtual unsigned int getNumberOfvtkActors(void) { return 0; }
 
+  virtual bool isHidden() { return !m_enable; }
 public slots:
   virtual void setEnable(bool value)
   {
@@ -64,8 +65,7 @@ public slots:
       show();
     else
       hide();
-
-    m_enable = value;
+    // the subclass will alter the m_enable value
   }
 
 signals:

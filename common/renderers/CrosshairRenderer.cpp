@@ -422,6 +422,7 @@ void CrosshairRenderer::hide()
   if (!this->m_enable)
     return;
 
+  m_enable = false;
   QMap<ModelItem *, Representation>::iterator it;
   for (it = m_channels.begin(); it != m_channels.end(); it++)
     if ((*it).visible)
@@ -444,6 +445,7 @@ void CrosshairRenderer::show()
   if (this->m_enable)
     return;
 
+  m_enable = true;
   QMap<ModelItem *, Representation>::iterator it;
   for (it = m_channels.begin(); it != m_channels.end(); it++)
     if (!(*it).visible)

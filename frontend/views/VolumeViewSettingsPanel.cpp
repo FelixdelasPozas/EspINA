@@ -37,9 +37,11 @@ VolumeViewSettingsPanel::VolumeViewSettingsPanel(VolumeView::SettingsPtr setting
   foreach(Renderer *renderer, EspinaFactory::instance()->renderers())
   {
     QStandardItem *item = new QStandardItem(renderer->icon(), renderer->name());
+    item->setDropEnabled(false);
+    item->setDragEnabled(true);
     item->setToolTip(renderer->tooltip());
     bool isActive = false;
-    foreach(VolumeView::Settings::RendererPtr activeRenderer, m_settings->renderers())
+    foreach(Renderer* activeRenderer, m_settings->renderers())
     {
       if (renderer->name() == activeRenderer->name())
 	isActive = true;
@@ -78,7 +80,7 @@ bool VolumeViewSettingsPanel::modified() const
   for(int i=0; i < activeModel->rowCount(); i++)
     current << activeModel->index(i,0).data().toString();
 
-  foreach(VolumeView::Settings::RendererPtr activeRenderer, m_settings->renderers())
+  foreach(Renderer* activeRenderer, m_settings->renderers())
     previous << activeRenderer->name();
 
   return current != previous;

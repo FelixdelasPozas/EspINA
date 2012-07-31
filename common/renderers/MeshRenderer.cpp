@@ -46,7 +46,8 @@ bool MeshRenderer::addItem(ModelItem* item)
   // duplicated item? addItem again
   if (m_segmentations.contains(item))
     {
-      m_renderer->RemoveActor(this->m_segmentations[seg].actor);
+      if (m_enable)
+        m_renderer->RemoveActor(this->m_segmentations[seg].actor);
       m_segmentations[seg].actor->Delete();
       m_segmentations.remove(item);
     }
@@ -196,6 +197,7 @@ void MeshRenderer::hide()
   if (!this->m_enable)
     return;
 
+  m_enable = false;
   QMap<ModelItem *, Representation>::iterator it;
 
   for (it = m_segmentations.begin(); it != m_segmentations.end(); it++)
@@ -214,6 +216,7 @@ void MeshRenderer::show()
   if (this->m_enable)
     return;
 
+  m_enable = true;
   QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 
   QMap<ModelItem *, Representation>::iterator it;

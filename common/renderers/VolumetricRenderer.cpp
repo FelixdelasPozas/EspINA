@@ -167,6 +167,7 @@ void VolumetricRenderer::hide()
   if (!this->m_enable)
     return;
 
+  m_enable = false;
   QMap<ModelItem *, Representation>::iterator it;
 
   for (it = m_segmentations.begin(); it != m_segmentations.end(); it++)
@@ -185,6 +186,7 @@ void VolumetricRenderer::show()
   if (this->m_enable)
     return;
 
+  m_enable = true;
   QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 
   QMap<ModelItem *, Representation>::iterator it;

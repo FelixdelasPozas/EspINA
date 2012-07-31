@@ -50,7 +50,20 @@ class VolumeView
 {
   Q_OBJECT
 public:
-  class Settings;
+  class Settings
+  {
+    const QString RENDERERS;
+  public:
+    explicit Settings(const QString prefix=QString(), VolumeView *parent=NULL);
+
+    void setRenderers(QList< Renderer* > values);
+    QList<Renderer *> renderers() const;
+
+  private:
+    QList<Renderer *> m_renderers;
+    VolumeView *parent;
+  };
+
   typedef QSharedPointer<Settings> SettingsPtr;
 
 public:
@@ -73,6 +86,8 @@ public:
   SettingsPtr settings() {return m_settings;}
 
   void changePlanePosition(PlaneType, Nm);
+  void addRendererControls(Renderer *);
+  void removeRendererControls(Renderer *);
 public slots:
   void forceRender();
   void countEnabledRenderers(bool);
@@ -87,14 +102,13 @@ protected:
 
 private:
 //   void selectSegmentations(int x, int y, int z);
+  void buildControls();
 
 protected slots:
   virtual bool eventFilter(QObject* caller, QEvent* e);
 
   void exportScene();
   void takeSnapshot();
-
-  void buildControls();
 
 private:
   struct Representation
@@ -115,23 +129,11 @@ private:
   SettingsPtr m_settings;
 
   Nm m_center[3];
+  unsigned int m_numEnabledRenders;
   ColorEngine *m_colorEngine;
 
   QMap<Segmentation *, Representation> m_segmentations;
-};
-
-class VolumeView::Settings
-{
-  const QString RENDERERS;
-public:
-  typedef QSharedPointer<Renderer> RendererPtr;
-  explicit Settings(const QString prefix=QString());
-
-  void setRenderers(QList< Renderer* > values);
-  QList<RendererPtr> renderers() const;
-
-private:
-  QList<RendererPtr> m_renderers;
+  QList<ModelItem*> m_addedItems;
 };
 
 #endif // VOLUMEVIEW_H
