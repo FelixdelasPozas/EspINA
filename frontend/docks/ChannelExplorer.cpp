@@ -18,6 +18,10 @@
 
 
 #include "ChannelExplorer.h"
+#include <model/ModelItem.h>
+#include <model/EspinaModel.h>
+#include <common/EspinaCore.h>
+#include <QMessageBox>
 
 #include <ui_ChannelExplorer.h>
 
@@ -60,28 +64,18 @@ ChannelExplorer::ChannelExplorer(QSharedPointer< EspinaModel > model,
   m_sort->setSourceModel(m_channelProxy.data());
   m_gui->view->setModel(m_sort.data());
 
-  connect(m_gui->channelColor, SIGNAL(clicked(bool)),
-	  this, SLOT(changeChannelColor()));
-  connect(m_gui->alignLeft, SIGNAL(clicked(bool)),
-	  this, SLOT(alignLeft()));
-  connect(m_gui->alignCenter, SIGNAL(clicked(bool)),
-	  this, SLOT(alignCenter()));
-  connect(m_gui->alignRight, SIGNAL(clicked(bool)),
-	  this, SLOT(alignRight()));
-  connect(m_gui->moveLeft, SIGNAL(clicked(bool)),
-	  this, SLOT(moveLelft()));
-  connect(m_gui->moveRight, SIGNAL(clicked(bool)),
-	  this, SLOT(moveRight()));
-  connect(m_gui->view, SIGNAL(clicked(QModelIndex)),
-	  this, SLOT(channelSelected()));
-  connect(m_gui->xPos, SIGNAL(valueChanged(int)),
-	  this, SLOT(updateChannelPosition()));
-  connect(m_gui->yPos, SIGNAL(valueChanged(int)),
-	  this, SLOT(updateChannelPosition()));
-  connect(m_gui->zPos, SIGNAL(valueChanged(int)),
-	  this, SLOT(updateChannelPosition()));
-  connect(m_gui->coordinateSelector, SIGNAL(currentIndexChanged(int)),
-	  this, SLOT(updateTooltips(int)));
+  connect(m_gui->channelColor, SIGNAL(clicked(bool)), this, SLOT(changeChannelColor()));
+  connect(m_gui->alignLeft, SIGNAL(clicked(bool)), this, SLOT(alignLeft()));
+  connect(m_gui->alignCenter, SIGNAL(clicked(bool)), this, SLOT(alignCenter()));
+  connect(m_gui->alignRight, SIGNAL(clicked(bool)), this, SLOT(alignRight()));
+  connect(m_gui->moveLeft, SIGNAL(clicked(bool)), this, SLOT(moveLelft()));
+  connect(m_gui->moveRight, SIGNAL(clicked(bool)), this, SLOT(moveRight()));
+  connect(m_gui->view, SIGNAL(clicked(QModelIndex)), this, SLOT(channelSelected()));
+  connect(m_gui->xPos, SIGNAL(valueChanged(int)), this, SLOT(updateChannelPosition()));
+  connect(m_gui->yPos, SIGNAL(valueChanged(int)), this, SLOT(updateChannelPosition()));
+  connect(m_gui->zPos, SIGNAL(valueChanged(int)), this, SLOT(updateChannelPosition()));
+  connect(m_gui->coordinateSelector, SIGNAL(currentIndexChanged(int)), this, SLOT(updateTooltips(int)));
+  connect(m_gui->unloadChannel, SIGNAL(clicked(bool)), this, SLOT(unloadChannel()));
 
   updateTooltips(0);
   setWidget(m_gui);
@@ -366,4 +360,67 @@ void ChannelExplorer::updateTooltips(int index)
     m_gui->moveRight->setToolTip(tr("Move next to Upper Margin"));
   }else
     Q_ASSERT(false);
+}
+
+//------------------------------------------------------------------------
+void ChannelExplorer::unloadChannel()
+{
+  QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
+  QModelIndex index = m_sort->mapToSource(m_gui->view->currentIndex());
+  if (!index.isValid())
+    return;
+
+  ModelItem *item = indexPtr(index);
+  if (ModelItem::CHANNEL != item->type())
+    return;
+
+  Channel *channel = dynamic_cast<Channel *>(item);
+  ModelItem::Vector relItems = channel->relatedItems(ModelItem::OUT);
+
+  if (!relItems.empty())
+  {
+    QString msgText;
+    if (relItems.size() > 1)
+    {
+      QString number;
+      number.setNum(relItems.size());
+      msgText = QString("That channel cannot be deleted because there are ") + number + QString(" segmentations that depend on it.");
+    }
+
+    else
+      msgText = QString("That channel cannot be deleted because there is a segmentation that depends on it.");
+    QMessageBox msgBox;
+    msgBox.setIcon(QMessageBox::Information);
+    msgBox.setText(msgText);
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.exec();
+    return;
+  }
+  else
+  {
+    relItems = channel->relatedItems(ModelItem::IN);
+    ModelItem::Vector::Iterator it = relItems.begin();
+    Q_ASSERT(relItems.size() == 2);
+    while (it != relItems.end())
+    {
+      if ((*it)->type() == ModelItem::SAMPLE)
+      {
+        ModelItem::Vector relatedItems = (*it)->relatedItems(ModelItem::OUT);
+        if (relatedItems.size() == 1)
+        {
+          model->removeRelation((*it), item, Channel::STAINLINK);
+          model->removeSample(reinterpret_cast<Sample *>(*it));
+          delete (*it);
+        }
+      }
+      else
+      {
+        model->removeRelation((*it), item, Channel::VOLUMELINK);
+        model->removeFilter(reinterpret_cast<Filter *>(*it));
+        delete (*it);
+      }
+      it++;
+    }
+    model->removeChannel(channel);
+  }
 }

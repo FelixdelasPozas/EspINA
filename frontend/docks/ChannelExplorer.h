@@ -54,6 +54,7 @@ protected slots:
   void changeChannelColor();
   void updateChannelPosition();
   void updateTooltips(int index);
+  void unloadChannel();
 
 private:
   CentralWidget *m_gui;

@@ -658,6 +658,7 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
         }
         default:
           Q_ASSERT(false);
+          break;
       }
     }
   }
@@ -716,6 +717,7 @@ QModelIndex EspinaModel::index(ModelItem* item) const
       break;
     default:
       Q_ASSERT(false);
+      break;
   }
   return res;
 }
