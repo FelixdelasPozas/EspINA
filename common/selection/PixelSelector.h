@@ -27,13 +27,19 @@ class PixelSelector
 {
 public:
   PixelSelector(SelectionHandler *succesor=NULL)
-  : SelectionHandler(succesor) {}
+  : SelectionHandler(succesor)
+  , m_handled(true) {}
   virtual ~PixelSelector(){}
 
   virtual void onMouseDown(const QPoint &pos, SelectableView* view);
   virtual void onMouseMove(const QPoint &pos, SelectableView* view);
   virtual void onMouseUp  (const QPoint &pos, SelectableView* view);
   virtual bool filterEvent(QEvent* e, SelectableView* view = 0);
+
+  bool setHandleEvent(bool handled) {m_handled = handled;}
+
+private:
+  bool m_handled;
 };
 
 class QSize;

@@ -54,7 +54,8 @@ bool PixelSelector::filterEvent(QEvent* e, SelectableView* view)
     if (me->button() == Qt::LeftButton)
     {
       onMouseDown(me->pos(), view);
-      return true; // Prevent other elements to filter the event
+      // If handled, prevent other elements to filter the event
+      return m_handled;
     }
   }
 
