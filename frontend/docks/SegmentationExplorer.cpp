@@ -416,7 +416,6 @@ void SegmentationExplorer::changeLayout(int index)
 //------------------------------------------------------------------------
 void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
 {
-  return;
   ModelItem *item = m_layout->item(index);
 
   if (ModelItem::SEGMENTATION != item->type())
@@ -430,6 +429,8 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
   double z = bounds[4] + (bounds[5]-bounds[4])/2.0;
   EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
   view->setCrosshairPoint(x, y, z);
+  double focusPoint[3] = { x,y,z};
+  view->setCameraFocus(focusPoint);
 //   Q_ASSERT(seg);
 //   x = seg->information("Centroid X").toInt();
 //   y = seg->information("Centroid Y").toInt();
