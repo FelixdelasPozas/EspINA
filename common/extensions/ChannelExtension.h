@@ -23,8 +23,6 @@
 #include "common/extensions/ModelItemExtension.h"
 
 #include <QSharedPointer>
-#include <QStringList>
-#include <QVariant>
 
 class Channel;
 

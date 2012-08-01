@@ -3,6 +3,8 @@
 
 #include <itkImage.h>
 
+const unsigned int SEG_VOXEL_VALUE = 255;
+typedef itk::Image<unsigned short,3> SegmentationLabelMap;
 typedef itk::Image<unsigned char, 3> EspinaVolume;
 typedef unsigned int OutputNumber;
 

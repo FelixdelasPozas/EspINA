@@ -313,7 +313,6 @@ bool CrosshairRenderer::addItem(ModelItem* item)
 //-----------------------------------------------------------------------------
 bool CrosshairRenderer::updateItem(ModelItem* item)
 {
-
   if (ModelItem::CHANNEL != item->type())
     return false;
 
@@ -322,56 +321,50 @@ bool CrosshairRenderer::updateItem(ModelItem* item)
   Q_ASSERT(m_channels.contains(channel));
   Representation &rep = m_channels[channel];
 
-  if (channel->isVisible() != rep.visible
-      || channel->color() != rep.color.hueF())
+  if (channel->color() != rep.color.hueF())
   {
     // if hue is -1 then use 0 saturation to make a grayscale image
     double hue = channel->color();
     double sat = hue >= 0? 1.0:0.0;
 
-    // don't want to update the color table everytime
-    if (channel->color() != rep.color.hueF())
-    {
-      rep.lut->Allocate();
-      rep.lut->SetTableRange(0,255);
-      rep.lut->SetHueRange(hue, hue);
-      rep.lut->SetSaturationRange(0.0, sat);
-      rep.lut->SetValueRange(0.0, 1.0);
-      rep.lut->SetAlphaRange(1.0,1.0);
-      rep.lut->SetNumberOfColors(256);
-      rep.lut->Build();
-      rep.lut->Modified();
-    }
+    rep.lut->Allocate();
+    rep.lut->SetTableRange(0,255);
+    rep.lut->SetHueRange(hue, hue);
+    rep.lut->SetSaturationRange(0.0, sat);
+    rep.lut->SetValueRange(0.0, 1.0);
+    rep.lut->SetAlphaRange(1.0,1.0);
+    rep.lut->SetNumberOfColors(256);
+    rep.lut->Build();
+    rep.lut->Modified();
+
     rep.color.setHsvF(channel->color(), 1.0, 1.0);
     updated = true;
+  }
 
-    // now handle visibility
-    if (m_enable && channel->isVisible())
+  if (m_enable && channel->isVisible())
+  {
+    if (!rep.visible)
     {
-      if (!rep.visible)
-      {
-        m_renderer->AddActor(rep.axial);
-        m_renderer->AddActor(rep.coronal);
-        m_renderer->AddActor(rep.sagittal);
-        m_renderer->AddActor(rep.axialBorder);
-        m_renderer->AddActor(rep.coronalBorder);
-        m_renderer->AddActor(rep.sagittalBorder);
-        rep.visible = true;
-      }
+      m_renderer->AddActor(rep.axial);
+      m_renderer->AddActor(rep.coronal);
+      m_renderer->AddActor(rep.sagittal);
+      m_renderer->AddActor(rep.axialBorder);
+      m_renderer->AddActor(rep.coronalBorder);
+      m_renderer->AddActor(rep.sagittalBorder);
+      rep.visible = true;
+      updated = true;
     }
-    else
-    {
-      if (rep.visible)
-      {
-        m_renderer->RemoveActor(rep.axial);
-        m_renderer->RemoveActor(rep.coronal);
-        m_renderer->RemoveActor(rep.sagittal);
-        m_renderer->RemoveActor(rep.axialBorder);
-        m_renderer->RemoveActor(rep.coronalBorder);
-        m_renderer->RemoveActor(rep.sagittalBorder);
-        rep.visible = false;
-      }
-    }
+  }
+  else if (rep.visible)
+  {
+    m_renderer->RemoveActor(rep.axial);
+    m_renderer->RemoveActor(rep.coronal);
+    m_renderer->RemoveActor(rep.sagittal);
+    m_renderer->RemoveActor(rep.axialBorder);
+    m_renderer->RemoveActor(rep.coronalBorder);
+    m_renderer->RemoveActor(rep.sagittalBorder);
+    rep.visible = false;
+    updated = true;
   }
 
   return updated;

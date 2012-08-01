@@ -127,7 +127,7 @@ set (Espina_SOURCE_FILES
 set (Espina_LIBRARIES
   EspinaCore
   QVTK
-  QtGui
+  #QtGui
 #   ${Boost_LIBRARIES}
 )
 

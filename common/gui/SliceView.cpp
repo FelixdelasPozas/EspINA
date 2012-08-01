@@ -882,14 +882,13 @@ void SliceView::addSegmentationRepresentation(Segmentation* seg)
   segRep.slice->GetMapper()->SetInputConnection(segRep.resliceToColors->GetOutputPort());
   m_state->updateActor(segRep.slice);
 
-  segRep.selected = !seg->isSelected();
+  segRep.selected = seg->isSelected();
   segRep.visible = seg->visible();
   segRep.color = m_colorEngine->color(seg);
 
   m_segmentations.insert(seg, segRep);
   m_renderer->AddActor(segRep.slice);
   m_segmentationPicker->AddPickList(segRep.slice);
-  forceRender();  // m_view->GetRenderWindow()->Render();
 }
 
 //-----------------------------------------------------------------------------

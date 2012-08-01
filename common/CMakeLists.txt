@@ -53,7 +53,6 @@ qt4_wrap_cpp(CORE_MOC
   model/proxies/ChannelProxy.h
   model/proxies/SampleProxy.h
   model/proxies/TaxonomyProxy.h
-  pluginInterfaces/ToolBarInterface.h
   pluginInterfaces/Renderer.h
   selection/SelectionHandler.h
   selection/SelectionManager.h

@@ -136,10 +136,8 @@ bool MeshRenderer::updateItem(ModelItem* item)
 
    // the representation must be updated, whether displayed or not
    if (seg->isSelected() != rep.selected
-     || seg->visible() != rep.visible
      || seg->data(Qt::DecorationRole).value<QColor>() != rep.color)
    {
-     updated = true;
      rep.selected = seg->isSelected();
      rep.color = seg->data(Qt::DecorationRole).value<QColor>();
 
@@ -148,26 +146,25 @@ bool MeshRenderer::updateItem(ModelItem* item)
      vtkMath::RGBToHSV(rgb,hsv);
      hsv[2] = (rep.selected ? 1.0 : 0.6);
      vtkMath::HSVToRGB(hsv, rgb);
-
      rep.actor->GetProperty()->SetColor(rgb[0], rgb[1], rgb[2]);
 
-     // now handle visibility
-     if (m_enable && seg->visible())
+     updated = true;
+   }
+
+   if (m_enable && seg->visible())
+   {
+     if (!rep.visible)
      {
-         if (!rep.visible)
-         {
-             m_renderer->AddActor(rep.actor);
-             rep.visible = true;
-         }
+       m_renderer->AddActor(rep.actor);
+       rep.visible = true;
+       updated = true;
      }
-     else
-     {
-       if (rep.visible)
-       {
-         m_renderer->RemoveActor(rep.actor);
-         rep.visible = false;
-       }
-     }
+   }
+   else if (rep.visible)
+   {
+     m_renderer->RemoveActor(rep.actor);
+     rep.visible = false;
+     updated = true;
    }
 
    return updated;

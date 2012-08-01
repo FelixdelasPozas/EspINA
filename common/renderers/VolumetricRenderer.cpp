@@ -85,7 +85,7 @@ bool VolumetricRenderer::addItem(ModelItem* item)
   volume->SetMapper(mapper);
   volume->SetProperty(property);
 
-  m_segmentations[seg].selected = !seg->isSelected();
+  m_segmentations[seg].selected = seg->isSelected();
   m_segmentations[seg].color = engine->color(seg);
   m_segmentations[seg].volume = volume;
   m_segmentations[seg].visible = false; // always false when adding
@@ -104,10 +104,9 @@ bool VolumetricRenderer::updateItem(ModelItem* item)
    Q_ASSERT(m_segmentations.contains(seg));
    Representation &rep = m_segmentations[seg];
 
-  if (seg->isSelected() != rep.selected || seg->visible() != rep.visible
+  if (seg->isSelected() != rep.selected
       || seg->data(Qt::DecorationRole).value<QColor>() != rep.color)
   {
-    updated = true;
     rep.selected = seg->isSelected();
     rep.color = seg->data(Qt::DecorationRole).value<QColor>();
 
@@ -121,23 +120,23 @@ bool VolumetricRenderer::updateItem(ModelItem* item)
     color->AddHSVPoint(255, hsv[0], hsv[1], rep.selected ? 1.0 : 0.6);
     color->Modified();
 
-    // now handle visibility
-    if (m_enable && seg->visible())
+    updated = true;
+  }
+
+  if (m_enable && seg->visible())
+  {
+    if (!rep.visible)
     {
-      if (!rep.visible)
-      {
-        m_renderer->AddVolume(rep.volume);
-        rep.visible = true;
-      }
+      m_renderer->AddVolume(rep.volume);
+      rep.visible = true;
+      updated = true;
     }
-    else
-    {
-      if (rep.visible)
-      {
-        m_renderer->RemoveVolume(rep.volume);
-        rep.visible = false;
-      }
-    }
+  }
+  else if (rep.visible)
+  {
+    m_renderer->RemoveVolume(rep.volume);
+    rep.visible = false;
+    updated = true;
   }
 
    return updated;

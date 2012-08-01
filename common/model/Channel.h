@@ -106,7 +106,6 @@ public:
   };
 
 public:
-  explicit Channel(Filter *filter, OutputNumber output);
   virtual ~Channel();
 
   void extent(int out[6]);
@@ -150,6 +149,9 @@ public:
   /// Extesion won't be available until requirements are satisfied
   void addExtension(ChannelExtension *ext);
 
+private:
+  explicit Channel(Filter *filter, OutputNumber output);
+  friend class EspinaFactory;
 private:
   bool   m_visible;
   int    m_extent[6];

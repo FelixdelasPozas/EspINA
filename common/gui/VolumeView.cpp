@@ -197,17 +197,17 @@ void VolumeView::resetCamera()
 //-----------------------------------------------------------------------------
 void VolumeView::addChannelRepresentation(Channel* channel)
 {
-  bool modified = false;
   m_addedItems << channel;
   foreach(Renderer* renderer, m_settings->renderers())
-  {
-    modified |= renderer->addItem(channel);
-  }
+    renderer->addItem(channel);
 }
 
 //-----------------------------------------------------------------------------
 bool VolumeView::updateChannelRepresentation(Channel* channel)
 {
+  if (!isVisible())
+    return false;
+
   bool updated = false;
   foreach(Renderer* renderer, m_settings->renderers())
   {
@@ -219,27 +219,18 @@ bool VolumeView::updateChannelRepresentation(Channel* channel)
 //-----------------------------------------------------------------------------
 void VolumeView::removeChannelRepresentation(Channel* channel)
 {
-  bool modified = false;
   m_addedItems.removeAll(channel);
   foreach(Renderer* renderer, m_settings->renderers())
-  {
-    modified |= renderer->removeItem(channel);
-  }
+    renderer->removeItem(channel);
 }
 
 
 //-----------------------------------------------------------------------------
 void VolumeView::addSegmentationRepresentation(Segmentation *seg)
 {
-  bool modified = false;
   m_addedItems << seg;
   foreach(Renderer* renderer, m_settings->renderers())
-  {
-    modified |= renderer->addItem(seg);
-  }
-
-  if (modified)
-    updateSegmentationRepresentation(seg);
+    renderer->addItem(seg);
 }
 
 //-----------------------------------------------------------------------------
@@ -259,12 +250,9 @@ bool VolumeView::updateSegmentationRepresentation(Segmentation* seg)
 //-----------------------------------------------------------------------------
 void VolumeView::removeSegmentationRepresentation(Segmentation* seg)
 {
-  bool modified = false;
   m_addedItems.removeAll(seg);
   foreach(Renderer* renderer, m_settings->renderers())
-  {
-    modified |= renderer->removeItem(seg);
-  }
+    renderer->removeItem(seg);
 }
 
 void VolumeView::init()
