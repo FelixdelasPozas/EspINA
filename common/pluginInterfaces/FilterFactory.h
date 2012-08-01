@@ -31,5 +31,6 @@ public:
                                Filter::NamedInputs inputs,
                                const ModelItem::Arguments args) = 0;
 };
-
+Q_DECLARE_INTERFACE(FilterFactory,
+                    "es.upm.cesvima.EspINA.FilterFactory/1.0")
 #endif // FILTERFACTORY_H

@@ -20,13 +20,22 @@
 #ifndef READERFACTORY_H
 #define READERFACTORY_H
 
-#include <QString>
+#include <QtPlugin>
+
+class QFileInfo;
+class QString;
+
+typedef QString ReaderId;
 
 class ReaderFactory
 {
 public:
   virtual ~ReaderFactory(){}
-  virtual bool readFile(const QString) = 0;
+
+  virtual bool readFile(const QFileInfo) = 0;
 };
+
+Q_DECLARE_INTERFACE(ReaderFactory,
+                    "es.upm.cesvima.EspINA.ReaderFactory/1.0")
 
 #endif // READERFACTORY_H

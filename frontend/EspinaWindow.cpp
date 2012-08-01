@@ -375,23 +375,14 @@ void EspinaWindow::closeCurrentAnalysis()
   //SelectionManager::instance()->setVOI(NULL);
 }
 
-static const QString CHANNEL_FILES = QObject::tr("Channel Files (*.mha *.mhd *.tif *.tiff)");
-static const QString SEG_FILES     = QObject::tr("Espina Analysis (*.seg)");
-static const QString ESPINA_FILES  = QObject::tr("Espina Files (*.mha *.mhd *.tif *.tiff *.seg)");
-
 //------------------------------------------------------------------------
 void EspinaWindow::openAnalysis()
 {
-  QStringList filters;
-  filters << ESPINA_FILES;
-  filters << CHANNEL_FILES;
-  filters << SEG_FILES;
-
   QFileDialog fileDialog(this,
 			tr("Start Analysis from:"));
   fileDialog.setObjectName("OpenAnalysisFileDialog");
   fileDialog.setFileMode(QFileDialog::ExistingFiles);
-  fileDialog.setFilters(filters);
+  fileDialog.setFilters(EspinaFactory::instance()->supportedFiles());
   fileDialog.setWindowTitle("Analyse Data");
   fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
   if (fileDialog.exec() != QDialog::Accepted)
@@ -435,6 +426,7 @@ void EspinaWindow::openAnalysis(const QString file)
       m_recentDocuments1.removeDocument(file);
       m_recentDocuments2.updateDocumentList();
     }
+    closeCurrentAnalysis();
     QApplication::restoreOverrideCursor();
     return;
   }
@@ -486,15 +478,10 @@ void EspinaWindow::openRecentAnalysis()
 //------------------------------------------------------------------------
 void EspinaWindow::addToAnalysis()
 {
-  QStringList filters;
-  filters << ESPINA_FILES;
-  filters << CHANNEL_FILES;
-  filters << SEG_FILES;
-
   QFileDialog fileDialog(this, tr("Analyse:"));
   fileDialog.setObjectName("AddToAnalysisFileDialog");
   fileDialog.setFileMode(QFileDialog::ExistingFiles);
-  fileDialog.setFilters(filters);
+  fileDialog.setFilters(EspinaFactory::instance()->supportedFiles());
   fileDialog.setWindowTitle("Add data to Analysis");
   fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
   if (fileDialog.exec() != QDialog::Accepted)
@@ -561,7 +548,6 @@ void EspinaWindow::addFileToAnalysis(const QString file)
   m_recentDocuments1.addDocument(file);
   m_recentDocuments2.updateDocumentList();
 }
-
 
 //------------------------------------------------------------------------
 void EspinaWindow::saveAnalysis()

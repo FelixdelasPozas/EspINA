@@ -20,72 +20,122 @@
 
 #include <common/model/Filter.h>
 
-#include <common/model/Segmentation.h>
+// ITK
+#include <itkImageFileReader.h>
+#include <itkExtractImageFilter.h>
+#include <itkImageFileReader.h>
+#include <itkImageToVTKImageFilter.h>
+#include <itkLabelImageToShapeLabelMapFilter.h>
+#include <itkMetaImageIO.h>
+#include <itkShapeLabelObject.h>
+#include <itkVTKImageToImageFilter.h>
+
+// Qt
+#include <QColor>
 
 class Channel;
-static const QString SIF = "SegmhaImporter::SegmhaImporterFilter";
+class TaxonomyNode;
+class Taxonomy;
 
 class SegmhaImporterFilter 
 : public Filter
 {
-  static const ArgumentId FILE;
-  static const ArgumentId BLOCKS;
+  typedef itk::ImageFileReader<SegmentationLabelMap> LabelMapReader;
+typedef itk::ImageToVTKImageFilter<SegmentationLabelMap> ImageToVTKImageFilterType;
+typedef itk::VTKImageToImageFilter<SegmentationLabelMap> VTKImageToImageFilterType;
+typedef itk::ShapeLabelObject<unsigned int, 3> LabelObjectType;
+typedef itk::LabelMap<LabelObjectType> LabelMapType;
+typedef itk::LabelImageToShapeLabelMapFilter<SegmentationLabelMap, LabelMapType>
+  Image2LabelFilterType;
+typedef itk::LabelMapToLabelImageFilter<LabelMapType, EspinaVolume>
+  Label2ImageFilterType;
+typedef itk::ExtractImageFilter<EspinaVolume, EspinaVolume> ExtractFilterType;
 
-  class SArguments : public Arguments
+  struct SegmentationObject
   {
-  public:
-    explicit SArguments() {}
-    explicit SArguments(const Arguments args) : Arguments(args) {}
+    SegmentationObject(const QString &line);
 
-    virtual ArgumentId argumentId(QString name) const
-    {
-      if (name == FILE)
-	return FILE;
-      if (name == BLOCKS)
-	return BLOCKS;
-      return Arguments::argumentId(name);
-    }
-    void setBlocks(QStringList blockList)
-    {
-      (*this)[BLOCKS] = blockList.join(",");
-    }
-    QStringList blocks() const
-    {
-      return (*this)[BLOCKS].split(",");
-    }
+    unsigned int label;
+    unsigned int taxonomyId;
+    unsigned char selected;
+  };
+
+  struct TaxonomyObject
+  {
+    TaxonomyObject(const QString &line);
+
+    QString name;
+    unsigned int label;
+    QColor color;
+  };
+
+  struct Output
+  {
+    LabelMapType::Pointer labelMap;
+    Label2ImageFilterType::Pointer image;
   };
 
 public:
-//   /// Constructor interactivo
-  explicit SegmhaImporterFilter(const QString file);
-  /// Create a new filter from given arguments
-  explicit SegmhaImporterFilter(Arguments args);
+  static const QString TYPE;
+  static const QString SUPPORTED_FILES;
+
+  static const ArgumentId FILE;
+  static const ArgumentId BLOCKS;
+
+  class Parameters
+  {
+  public:
+    explicit Parameters(Arguments &args) : m_args(args) {}
+
+    virtual ArgumentId argumentId(QString name) const
+    {
+      if (FILE == name)
+	return FILE;
+      if (BLOCKS == name)
+	return BLOCKS;
+      return Arguments::argumentId(name);
+    }
+
+    void setBlocks(QStringList blockList)
+    {
+      m_args[BLOCKS] = blockList.join(",");
+    }
+    QStringList blocks() const
+    {
+      return m_args[BLOCKS].split(",");
+    }
+  private:
+    Arguments &m_args;
+  };
+
+public:
+  explicit SegmhaImporterFilter(NamedInputs inputs,
+				Arguments args);
   virtual ~SegmhaImporterFilter();
 
   // Implements Model Item Interface
-  virtual QString  id() const {return m_args.hash();}
-  virtual QVariant data(int role) const;
-  virtual QString  serialize() const;
-  virtual ItemType type() const {return ModelItem::FILTER;}
+  virtual QVariant data(int role=Qt::DisplayRole) const;
 
-  //Implements Filter Interface
-  virtual pqData preview(){return pqData();}
-  virtual int numProducts() const {return m_blocks.size();}
-  virtual Segmentation *product(int index) const;
-  virtual QWidget* createConfigurationWidget()
-  {return Filter::createConfigurationWidget();}
+  // Implements Filter Interface
+  virtual void markAsModified();
+  virtual bool needUpdate() const;
+  virtual void run();
+  virtual int numberOutputs() const;
+  virtual EspinaVolume* output(OutputNumber i) const;
+  virtual bool prefetchFilter();
 
-  //Own methods
-  Channel *channel() const {return m_channel;}
-  QList<Segmentation *> segmentations() {return m_blocks.values();}
+  /// Return full taxonomy contained in segmha's meta-data
+  Taxonomy *taxonomy() {return m_taxonomy;}
+  /// Return the taxonomy associated with the i-th output
+  TaxonomyNode *taxonomy(OutputNumber i);
 
 private:
-  pqFilter *m_segReader;
-  Channel  *m_channel; 
-  QMap<QString, Segmentation *> m_blocks;
-
-  SArguments m_args;
-//   friend class SetupWidget;
+  bool       m_needUpdate;
+  Parameters m_param;
+  LabelMapReader::Pointer  m_lmapReader;
+  QList<Output>            m_volumes;
+  QList<TaxonomyNode *>    m_taxonomies;
+  Taxonomy *m_taxonomy;
 };
 
 

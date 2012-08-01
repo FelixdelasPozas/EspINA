@@ -18,6 +18,7 @@
 
 #ifndef TOOLBARINTERFACE_H
 #define TOOLBARINTERFACE_H
+
 #include <QToolBar>
 
 class ToolBarInterface
@@ -32,5 +33,5 @@ public:
 };
 
 Q_DECLARE_INTERFACE(ToolBarInterface,
-                    "es.upm.cesvima.ToolBarInterface/1.0")
+                    "es.upm.cesvima.EspINA.ToolBarInterface/1.0")
 #endif //TOOLBARINTERFACE_H

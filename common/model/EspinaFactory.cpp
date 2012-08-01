@@ -21,10 +21,11 @@
 
 #include "common/model/Segmentation.h"
 #include "ChannelReader.h"
-//#include "common/extensions/Margins/MarginsChannelExtension.h"
+// #include "common/extensions/Margins/MarginsChannelExtension.h"
 //#include "common/extensions/Margins/MarginsSegmentationExtension.h"
 #include "common/extensions/Morphological/MorphologicalExtension.h"
 #include <pluginInterfaces/Renderer.h>
+
 
 //------------------------------------------------------------------------
 EspinaFactory *EspinaFactory::m_instance = NULL;
@@ -33,9 +34,14 @@ EspinaFactory *EspinaFactory::m_instance = NULL;
 EspinaFactory::EspinaFactory()
 {
   // Register Default Extensions
-//   registerChannelExtension(ChannelExtension::SPtr(new MarginsChannelExtension()));
+ // registerChannelExtension(ChannelExtension::SPtr(new MarginsChannelExtension()));
 //   registerSegmentationExtension(SegmentationExtension::SPtr(new MarginsSegmentationExtension()));
   registerSegmentationExtension(SegmentationExtension::SPtr(new MorphologicalExtension()));
+
+  m_supportedFiles << CHANNEL_FILES;
+  m_supportedExtensions << "*.mhd" << "*.mha" << "*.tif";
+  m_supportedFiles << SEG_FILES;
+  m_supportedExtensions << "*.seg";
 }
 
 //------------------------------------------------------------------------
@@ -47,6 +53,16 @@ EspinaFactory* EspinaFactory::instance()
 }
 
 //------------------------------------------------------------------------
+QStringList EspinaFactory::supportedFiles() const
+{
+  QStringList files;
+  QString espinaFiles =  QObject::tr("EspINA Files (%1)").arg(m_supportedExtensions.join(" "));
+
+  files << espinaFiles << m_supportedFiles;
+  return files;
+}
+
+//------------------------------------------------------------------------
 void EspinaFactory::registerFilter(const QString filter, FilterFactory* factory)
 {
   Q_ASSERT(m_filterFactory.contains(filter) == false);
@@ -54,10 +70,17 @@ void EspinaFactory::registerFilter(const QString filter, FilterFactory* factory)
 }
 
 //------------------------------------------------------------------------
-void EspinaFactory::registerReader(const QString extension, ReaderFactory* factory)
+void EspinaFactory::registerReaderFactory(ReaderFactory* readerFactory,
+				   const QString description,
+				   const QStringList extensions)
 {
-  Q_ASSERT(m_readers.contains(extension) == false);
-  m_readers[extension] = factory;
+  m_supportedFiles << description;
+  foreach(QString extension, extensions)
+  {
+    Q_ASSERT(m_readers.contains(extension) == false);
+    m_readers[extension] = readerFactory;
+    m_supportedExtensions << QString("*.%1").arg(extension);
+  }
 }
 
 //------------------------------------------------------------------------
@@ -123,17 +146,6 @@ Channel* EspinaFactory::createChannel(Filter *filter,
     channel->addExtension(ext->clone());
 
   return channel;
-}
-
-//------------------------------------------------------------------------
-Channel* EspinaFactory::createChannel(const QString id, const ModelItem::Arguments args)
-{
-  Q_ASSERT(false);
-//   Channel *channel = new Channel(id, args);
-//   foreach(ChannelExtension::SPtr ext, m_channelExtensions)
-//     channel->addExtension(ext->clone());
-// 
-//   return channel;
 }
 
 //------------------------------------------------------------------------

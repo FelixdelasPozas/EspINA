@@ -97,12 +97,13 @@ bool IOEspinaFile::loadFile(QFileInfo file,
     return false;
   }
 
+  bool status;
   model->addTaxonomy(taxonomy);
   std::istringstream trace(traceContent.toStdString().c_str());
-  model->loadSerialization(trace);
+  status = model->loadSerialization(trace);
 
   espinaZip.close();
-  return true;
+  return status;
 }
 
 //-----------------------------------------------------------------------------

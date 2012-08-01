@@ -130,7 +130,7 @@ public:
   RelationshipGraph *relationships() {return m_relations;}
 
   void serializeRelations(std::ostream& stream, RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
-  void loadSerialization (std::istream &stream, RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
+  bool loadSerialization (std::istream &stream, RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
 
 private slots:
   void itemModified(ModelItem *item);

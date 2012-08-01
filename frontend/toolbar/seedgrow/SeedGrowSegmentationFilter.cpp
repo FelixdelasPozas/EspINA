@@ -51,11 +51,11 @@ SeedGrowSegmentationFilter::Parameters::Parameters(ModelItem::Arguments &args)
 
 SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(Filter::NamedInputs inputs,
                                                        ModelItem::Arguments args)
-: Filter(inputs, args)
-, m_needUpdate(false)
-, m_param(m_args)
-, m_input(NULL)
-, m_volume(NULL)
+: Filter       (inputs, args)
+, m_needUpdate (false)
+, m_param      (m_args)
+, m_input      (NULL)
+, m_volume     (NULL)
 {
 //   qDebug() << TYPE << "arguments" << m_args;
 }

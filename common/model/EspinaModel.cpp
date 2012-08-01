@@ -571,7 +571,7 @@ void EspinaModel::serializeRelations(std::ostream& stream, RelationshipGraph::Pr
 // }
 
 //------------------------------------------------------------------------
-void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::PrintFormat format)
+bool EspinaModel::loadSerialization(istream& stream, RelationshipGraph::PrintFormat format)
 {
   QSharedPointer<RelationshipGraph> input(new RelationshipGraph());
 
@@ -622,7 +622,7 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
           Channel *channel = factory->createChannel(filter, link[1].toUInt());
           channel->initialize(args);
 	  if (channel->volume() == NULL)
-	    return;
+	    return false;
           addChannel(channel);
           nonInitializedItems << NonInitilizedItem(channel, args);
           input->setItem(v.vId, channel);
@@ -670,6 +670,8 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
     ModelItem *item = ancestors.first().item;
     Filter *filter =  dynamic_cast<Filter *>(item);
     filter->update();
+    if (filter->numberOutputs() == 0)
+      return false;
     ModelItem::Arguments args(QString(v.args.c_str()));
     Segmentation *seg = factory->createSegmentation(filter, args[Segmentation::OUTPUT].toInt());
     seg->setNumber(args[Segmentation::NUMBER].toInt());
@@ -692,6 +694,8 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
 
   foreach(NonInitilizedItem item, nonInitializedItems)
     item.first->initialize(item.second);
+
+  return true;
 }
 
 //------------------------------------------------------------------------

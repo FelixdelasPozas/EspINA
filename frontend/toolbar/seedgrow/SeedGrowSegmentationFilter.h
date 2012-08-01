@@ -34,7 +34,6 @@ class vtkImageData;
 class vtkConnectedThresholdImageFilter;
 
 class Channel;
-class pqFilter;
 
 class SeedGrowSegmentationFilter
 : public Filter
@@ -145,10 +144,10 @@ public:
   void setVOI(int VOI[6]);
   void voi(int VOI[6]) const {m_param.voi(VOI);}
 
-  /// Implements Model Item Interface
+  // Implements Model Item Interface
   virtual QVariant data(int role=Qt::DisplayRole) const;
 
-  /// Implements Filter Interface
+  // Implements Filter Interface
   virtual void markAsModified();
   virtual bool needUpdate() const;
   virtual void releaseDataFlagOn();
