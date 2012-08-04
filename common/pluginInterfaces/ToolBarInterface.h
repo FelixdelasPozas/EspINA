@@ -30,6 +30,8 @@ public:
   explicit ToolBarInterface(const QString& title, QWidget* parent = 0)
   : QToolBar(title, parent){}
   virtual ~ToolBarInterface(){}
+
+  virtual void reset() = 0;
 };
 
 Q_DECLARE_INTERFACE(ToolBarInterface,
