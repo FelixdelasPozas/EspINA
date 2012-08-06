@@ -244,7 +244,6 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
 
       QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
       undo->push(new UndoCommand(channel, filter, tax));
-      EspinaCore::instance()->viewManger()->currentView()->forceRender();
       QApplication::restoreOverrideCursor();
     }
   }

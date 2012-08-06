@@ -114,6 +114,7 @@ QWidget(parent)
 , m_spinBox(new QSpinBox())
 , m_toSlice(new QPushButton("To"))
 , m_plane(plane)
+, m_showSegmentations(true)
 , m_settings(new Settings(m_plane))
 , m_inThumbnail(false)
 {
@@ -598,8 +599,8 @@ QList<Channel *> SliceView::pickChannels(double vx,
 
   if (m_channelPicker->Pick(vx, vy, 0.1, renderer))
   {
-    m_channelPicker->GetProp3Ds()->InitTraversal();
     vtkProp3D *pickedProp;
+    m_channelPicker->GetProp3Ds()->InitTraversal();
     while ((pickedProp = m_channelPicker->GetProp3Ds()->GetNextProp3D()))
     {
       Channel *pickedChannel = property3DChannel(pickedProp);
@@ -883,7 +884,7 @@ void SliceView::addSegmentationRepresentation(Segmentation* seg)
   m_state->updateActor(segRep.slice);
 
   segRep.selected = seg->isSelected();
-  segRep.visible = seg->visible();
+  segRep.visible = seg->visible() && m_showSegmentations;
   segRep.color = m_colorEngine->color(seg);
 
   m_segmentations.insert(seg, segRep);
@@ -916,22 +917,31 @@ bool SliceView::updateSegmentationRepresentation(Segmentation* seg)
   Q_ASSERT(m_segmentations.contains(seg));
   SliceRep &rep = m_segmentations[seg];
 
+  bool updated = false;
   if ((seg->isSelected() != rep.selected)
-    || (seg->visible() != rep.visible)
     || (seg->data(Qt::DecorationRole).value<QColor>() != rep.color)
     || seg->updateForced())
   {
     rep.selected = seg->isSelected();
-    rep.visible = seg->visible();
     rep.color = seg->data(Qt::DecorationRole).value<QColor>();
 
     rep.resliceToColors->SetLookupTable(m_colorEngine->lut(seg));
     rep.resliceToColors->Update();
 
-    m_segmentations[seg].slice->SetVisibility(seg->visible());
-    return true;
+    updated = true;
   }
-  return false;
+
+  if (rep.visible != seg->visible())
+  {
+    rep.visible = seg->visible();
+    updated = m_showSegmentations;
+  }
+  rep.slice->SetVisibility(rep.visible && m_showSegmentations);
+
+//   if (updated)
+//     qDebug() << "Update Segmentation Representation" << m_plane;
+
+  return updated;
 }
 
 // //-----------------------------------º------------------------------------------
@@ -1028,6 +1038,7 @@ void SliceView::previewExtent(int VOI[6])
 //-----------------------------------------------------------------------------
 void SliceView::setSegmentationVisibility(bool visible)
 {
+  m_showSegmentations = visible;
   foreach(SliceRep rep, m_segmentations)
   {
     rep.slice->SetVisibility(visible && rep.visible);
@@ -1073,7 +1084,7 @@ void SliceView::forceRender()
 {
   if (isVisible())
   {
-    //     qDebug() << "Rendering View" << m_plane;
+//     qDebug() << "Rendering View" << m_plane;
     updateWidgetVisibility();
     m_view->GetRenderWindow()->Render();
     m_view->update();

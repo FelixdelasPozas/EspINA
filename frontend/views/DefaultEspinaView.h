@@ -109,7 +109,7 @@ protected slots:
   void segmentationSelected(Segmentation *seg, bool append);
   void updateSelection(QModelIndex index);
 
-private:
+
   void initSliceView(SliceView *view);
 
 private:
@@ -123,6 +123,7 @@ private:
   Nm m_slicingStep[3];
   QMap<EspinaWidget *, Widgtes> m_widgets;
   bool                    m_showProcessing;
+  bool                    m_showSegmentations;
 };
 
 class DefaultEspinaView::SettingsPanel

@@ -226,16 +226,16 @@ private:
   vtkSmartPointer<vtkCellPicker> m_channelPicker;
   vtkSmartPointer<vtkCellPicker> m_segmentationPicker;
 
-  // View Shared State
+  // View State
   Nm m_crosshairPoint[3];
   Nm m_slicingRanges[6];
   Nm m_slicingStep[3];
   ColorEngine *m_colorEngine;
 
-  // View State
   PlaneType m_plane;
   vtkMatrix4x4 *m_slicingMatrix;
   State *m_state;
+  bool m_showSegmentations;
   SettingsPtr m_settings;
 
   // Crosshairs

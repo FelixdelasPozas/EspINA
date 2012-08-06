@@ -42,8 +42,12 @@
 #include <EspinaCore.h>
 
 //----------------------------------------------------------------------------
-DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity) :
-EspinaView(parent, activity), first(true), m_colorEngine(NULL), m_showProcessing(false)
+DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity)
+: EspinaView(parent, activity)
+, first(true)
+, m_colorEngine(NULL)
+, m_showProcessing(false)
+, m_showSegmentations(true)
 {
   double cyan[3] = { 0, 1, 1 };
   double blue[3] = { 0, 0, 1 };
@@ -299,6 +303,7 @@ void DefaultEspinaView::showSegmentations(bool visible)
   yzView->setSegmentationVisibility(visible);
   xzView->setSegmentationVisibility(visible);
   //   EspinaCore::instance()->model()->serializeRelations(std::cout, RelationshipGraph::GRAPHVIZ);
+  m_showSegmentations = visible;
 }
 
 //-----------------------------------------------------------------------------
@@ -441,7 +446,7 @@ void DefaultEspinaView::rowsInserted(const QModelIndex& parent, int start, int e
         Segmentation *seg = dynamic_cast<Segmentation *>(item);
         // 	qDebug() << "Add Segmentation:" << seg->data(Qt::DisplayRole).toString();
         addSegmentation(seg);
-        render = true;
+        render = m_showSegmentations;
         break;
       }
       default:
