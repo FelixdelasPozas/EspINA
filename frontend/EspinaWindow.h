@@ -22,6 +22,7 @@
 
 #include <QMainWindow>
 #include <gui/DynamicWidget.h>
+#include <pluginInterfaces/IDynamicMenu.h>
 
 #include "EspinaConfig.h"
 
@@ -74,6 +75,7 @@ protected slots:
 
 protected:
   void createActivityMenu();
+  void createDynamicMenu(MenuEntry entry);
   void createLODMenu();
   virtual void closeEvent(QCloseEvent* );
 
@@ -96,6 +98,13 @@ private:
 #endif
   enum MenuState {OPEN_STATE, ADD_STATE};
   MenuState m_menuState;
+
+  struct DynamicMenuNode
+  {
+    QMenu *menu;
+    QList<DynamicMenuNode *> submenus;
+  };
+  DynamicMenuNode *m_dynamicMenuRoot;
 };
 
 #endif // ESPinaModelWINDOW_H

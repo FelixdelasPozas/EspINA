@@ -121,41 +121,44 @@ QString Segmentation::id() const
 //------------------------------------------------------------------------
 QVariant Segmentation::data(int role) const
 {
-	switch (role)
-	{
-		case Qt::DisplayRole:
-			return QString("Segmentation %1").arg(m_args.number());
-		case Qt::DecorationRole:
-		{
-			return EspinaCore::instance()->colorSettings().engine()->color(this);
-//       QPixmap segIcon(3,16);
-//       segIcon.fill(m_taxonomy->color());
-//       return segIcon;
-		}
-		case Qt::ToolTipRole:
-			return QString("<b>Name:</b> %1<br>"
-					"<b>Taxonomy:</b> %2<br>"
-					"<b>Filter:</b> %3<br>"
-					"<b>Users:</b><br>"
-					"%4<br>"
-					"<b>Id:</b> %5<br>").arg(data(Qt::DisplayRole).toString()).arg(m_taxonomy->qualifiedName()).arg(filter()->data(Qt::DisplayRole).toString()).arg(
-					m_args[USERS]).arg(id());
-		case Qt::CheckStateRole:
-			return visible() ? Qt::Checked : Qt::Unchecked;
-// //     case Qt::FontRole:
-// //     {
-// //       QFont myFont;
-// // //       if (this->availableInformations().contains("Discarted"))
-// // //       {
-// // 	myFont.setStrikeOut(!visible());
-// // //       }
-// //       return myFont;
-// //     }
-		case Qt::UserRole + 1:
-			return number();
-		default:
-			return QVariant();
-	}
+  switch (role)
+  {
+    case Qt::DisplayRole:
+      return QString("Segmentation %1").arg(m_args.number());
+    case Qt::DecorationRole:
+    {
+      return EspinaCore::instance()->colorSettings().engine()->color(this);
+      //       QPixmap segIcon(3,16);
+      //       segIcon.fill(m_taxonomy->color());
+      //       return segIcon;
+    }
+    case Qt::ToolTipRole:
+      return QString("<b>Name:</b> %1<br>"
+                     "<b>Taxonomy:</b> %2<br>"
+                     "<b>Filter:</b> %3<br>"
+                     "<b>Users:</b><br>"
+                     "%4<br>"
+                     "<b>Id:</b> %5<br>")
+                     .arg(data(Qt::DisplayRole).toString())
+                     .arg(m_taxonomy->qualifiedName())
+                     .arg(filter()->data(Qt::DisplayRole).toString())
+                     .arg(m_args[USERS]).arg(id());
+    case Qt::CheckStateRole:
+      return visible() ? Qt::Checked : Qt::Unchecked;
+      // //     case Qt::FontRole:
+      // //     {
+        // //       QFont myFont;
+      // // //       if (this->availableInformations().contains("Discarted"))
+      // // //       {
+        // // 	myFont.setStrikeOut(!visible());
+      // // //       }
+      // //       return myFont;
+      // //     }
+    case Qt::UserRole + 1:
+      return number();
+    default:
+      return QVariant();
+  }
 }
 
 //------------------------------------------------------------------------

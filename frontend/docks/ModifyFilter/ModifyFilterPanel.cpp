@@ -56,18 +56,19 @@ void ModifyFilterPanel::showOriginFilter(QModelIndex index)
       return;
     else if (seg->isSelected())
     {
-      ModelItem::Vector filters = item->relatedItems(ModelItem::IN, "CreateSegmentation");
+      ModelItem::Vector filters = item->relatedItems(ModelItem::IN, CREATELINK);
       if (filters.size() > 0)
       {
-	Filter *filter = dynamic_cast<Filter *>(filters.first());
-	Q_ASSERT(filter);
-    QWidget *prevWidget = widget();
-	setWidget(filter->createConfigurationWidget());
-    delete prevWidget;
-	m_currentSeg = seg;
+        Filter *filter = dynamic_cast<Filter *>(filters.first());
+        Q_ASSERT(filter);
+        QWidget *prevWidget = widget();
+        setWidget(filter->createConfigurationWidget());
+        if (prevWidget)
+          delete prevWidget;
+        m_currentSeg = seg;
       }else{
-	setWidget(NULL);
-	m_currentSeg = NULL;
+        setWidget(NULL);
+        m_currentSeg = NULL;
       }
     }
   }

@@ -54,7 +54,7 @@
 #include "toolbar/seedgrow/SeedGrowSegmentation.h"
 #include "toolbar/voi/VolumeOfInterest.h"
 #include <IO/FilePack.h>
-#include <pluginInterfaces/ToolBarInterface.h>
+#include <pluginInterfaces/IToolBar.h>
 
 #ifdef TEST_ESPINA_MODELS
   #include "common/model/ModelTest.h"
@@ -71,6 +71,9 @@ EspinaWindow::EspinaWindow()
 #ifdef TEST_ESPINA_MODELS
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model.data()));
 #endif
+
+  m_dynamicMenuRoot = new DynamicMenuNode();
+  m_dynamicMenuRoot->menu = NULL;
 
   QIcon addIcon = QIcon(":espina/add.svg");
   QIcon fileIcon = qApp->style()->standardIcon(QStyle::SP_FileIcon);
@@ -233,9 +236,17 @@ void EspinaWindow::loadPlugins()
     if (plugin)
     {
       qDebug() << " -" << fileName;
-      ToolBarInterface *toolbar = qobject_cast<ToolBarInterface*>(plugin);
+      IToolBar *toolbar = qobject_cast<IToolBar *>(plugin);
       if (toolbar)
         addToolBar(toolbar);
+      IDynamicMenu *menu = qobject_cast< IDynamicMenu* >(plugin);
+      if (menu)
+      {
+        foreach(MenuEntry entry, menu->menuEntries())
+        {
+          createDynamicMenu(entry);
+        }
+      }
     }
   }
 }
@@ -246,7 +257,7 @@ void EspinaWindow::createActivityMenu()
 {
   QSignalMapper *sigMapper = new QSignalMapper(this);
 
-  QMenu *activityMenu = new QMenu(tr("Activity"));
+  QMenu *activityMenu = new QMenu(tr("acceptmodeActivity"));
   menuBar()->addMenu(activityMenu);
 
   QAction *analyse = new QAction(tr("Analyse"),activityMenu);
@@ -266,6 +277,39 @@ void EspinaWindow::createActivityMenu()
 
   connect(sigMapper,SIGNAL(mapped(QString)),this, SLOT(setActivity(QString)));
 }
+
+//------------------------------------------------------------------------
+void EspinaWindow::createDynamicMenu(MenuEntry entry)
+{
+  DynamicMenuNode *node = m_dynamicMenuRoot;
+  for(int i=0; i<entry.first.size(); i++)
+  {
+    QString entryName = entry.first[i];
+
+    int index = -1;
+    for(int m=0; m<node->submenus.size(); m++)
+    {
+      if (node->submenus[m]->menu->title() == entryName)
+      {
+        index = m;
+        node = node->submenus[m];
+        break;
+      }
+    }
+    if (-1 == index)
+    {
+      DynamicMenuNode *subnode = new DynamicMenuNode();
+      if (node == m_dynamicMenuRoot)
+        subnode->menu = menuBar()->addMenu(entryName);
+      else
+        subnode->menu = node->menu->addMenu(entryName);
+      node->submenus << subnode;
+      node = subnode;
+    }
+  }
+  node->menu->addAction(entry.second);
+}
+
 
 //------------------------------------------------------------------------
 void EspinaWindow::createLODMenu()

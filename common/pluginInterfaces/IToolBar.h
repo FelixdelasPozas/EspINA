@@ -16,24 +16,23 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef TOOLBARINTERFACE_H
-#define TOOLBARINTERFACE_H
-
+#ifndef ITOOLBAR_H
+#define ITOOLBAR_H
 #include <QToolBar>
 
-class ToolBarInterface
+class IToolBar
 : public QToolBar
 {
 public:
-  explicit ToolBarInterface(QWidget* parent = 0)
+  explicit IToolBar(QWidget* parent = 0)
   : QToolBar(parent){}
-  explicit ToolBarInterface(const QString& title, QWidget* parent = 0)
+  explicit IToolBar(const QString& title, QWidget* parent = 0)
   : QToolBar(title, parent){}
-  virtual ~ToolBarInterface(){}
+  virtual ~IToolBar(){}
 
   virtual void reset() = 0;
 };
 
-Q_DECLARE_INTERFACE(ToolBarInterface,
+Q_DECLARE_INTERFACE(IToolBar,
                     "es.upm.cesvima.EspINA.ToolBarInterface/1.0")
-#endif //TOOLBARINTERFACE_H
+#endif //ITOOLBAR_H
