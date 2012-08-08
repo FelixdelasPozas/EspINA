@@ -27,7 +27,7 @@
 #include <QApplication>
 #include <QDebug>
 #include <QMessageBox>
-#include "MarginDetector.h"
+//#include "MarginDetector.h"
 
 typedef ModelItem::ArgumentId ArgumentId;
 
@@ -91,10 +91,10 @@ void MarginsChannelExtension::initialize(Channel* channel, ModelItem::Arguments 
   }
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
-  MarginDetector *marginDetector = new MarginDetector(channel);
-  connect(marginDetector, SIGNAL(finished()),
-          marginDetector, SLOT(deleteLater()));
-  marginDetector->start();
+//   MarginDetector *marginDetector = new MarginDetector(channel);
+//   connect(marginDetector, SIGNAL(finished()),
+//           marginDetector, SLOT(deleteLater()));
+//   marginDetector->start();
   QApplication::restoreOverrideCursor();
 
 //   if (computeMargin)
