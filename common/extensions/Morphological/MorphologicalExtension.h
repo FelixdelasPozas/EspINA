@@ -21,6 +21,7 @@
 #define MORPHOLOGICALHEXTENSION_H
 
 #include "common/extensions/SegmentationExtension.h"
+
 #include "common/EspinaTypes.h"
 
 // ITK

@@ -26,6 +26,7 @@
 #include <vtkActor.h>
 
 class ModelItem;
+class vtkImageConstantPad;
 
 class MeshRenderer: public Renderer
 {
@@ -35,6 +36,7 @@ class MeshRenderer: public Renderer
     bool visible;
     bool selected;
     QColor color;
+    int extent[6];
   };
 
 public:
@@ -54,6 +56,7 @@ public:
 
 private:
   QMap<ModelItem *, Representation> m_segmentations;
+  vtkSmartPointer<vtkImageConstantPad> m_padfilter;
 };
 
 #endif // MESHRENDERER_H

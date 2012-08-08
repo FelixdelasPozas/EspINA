@@ -23,6 +23,7 @@
 #include "common/model/ModelItem.h"
 
 #include <iostream>
+#undef foreach // Due to Qt-Boost incompatibility
 #include <boost/graph/graphviz.hpp>
 #include <boost/graph/adjacency_list_io.hpp>
 #include <boost/algorithm/string.hpp>
