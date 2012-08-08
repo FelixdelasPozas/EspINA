@@ -29,7 +29,7 @@ class SliceWidget
 public:
   explicit SliceWidget(vtkAbstractWidget *widget);
 
-  virtual void setSlice(double pos, PlaneType plane);
+  virtual void setSlice(Nm pos, PlaneType plane);
 
   operator vtkAbstractWidget *(){return m_widget;}
   operator const vtkAbstractWidget *const() const {return m_widget;}

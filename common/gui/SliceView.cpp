@@ -1009,12 +1009,11 @@ void SliceView::removePreview(Filter* filter)
 //-----------------------------------------------------------------------------
 void SliceView::addWidget(SliceWidget *sWidget)
 {
+  sWidget->setSlice(slicingPosition(), m_plane);
   vtkAbstractWidget *widget = *sWidget;
   widget->SetInteractor(m_view->GetRenderWindow()->GetInteractor());
   widget->GetRepresentation()->SetVisibility(true);
   widget->On();
-//   connect(widget, SIGNAL(modified()),
-// 	  this, SLOT(updateWidgetVisibility()));
   m_renderer->ResetCameraClippingRange();
   m_widgets << sWidget;
 }
