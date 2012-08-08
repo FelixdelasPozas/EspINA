@@ -56,7 +56,7 @@ void SegmhaImporter::UndoCommand::redo()
     for (int i=0; i < m_filter->numberOutputs(); i++)
     {
       seg = factory->createSegmentation(m_filter, i);
-      seg->setTaxonomy(m_filter->taxonomy(i));
+      m_filter->initSegmentation(seg, i);
       m_segs << seg;
     }
   }

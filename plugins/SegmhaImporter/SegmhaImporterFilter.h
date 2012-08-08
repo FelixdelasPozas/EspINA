@@ -33,6 +33,7 @@
 // Qt
 #include <QColor>
 
+class Segmentation;
 class Channel;
 class TaxonomyNode;
 class Taxonomy;
@@ -129,13 +130,17 @@ public:
   /// Return the taxonomy associated with the i-th output
   TaxonomyNode *taxonomy(OutputNumber i);
 
+  void initSegmentation(Segmentation *seg, int segId);
+
 private:
   bool       m_needUpdate;
   Parameters m_param;
-  LabelMapReader::Pointer  m_lmapReader;
-  QList<Output>            m_volumes;
-  QList<TaxonomyNode *>    m_taxonomies;
-  Taxonomy *m_taxonomy;
+  LabelMapReader::Pointer m_lmapReader;
+  QList<Output>           m_volumes;
+
+  QList<TaxonomyNode *>   m_taxonomies;
+  QList<int>              m_labels;
+  Taxonomy               *m_taxonomy;
 };
 
 

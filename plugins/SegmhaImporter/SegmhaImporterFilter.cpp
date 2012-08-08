@@ -22,6 +22,7 @@
 // EspINA
 #include <common/EspinaCore.h>
 #include <common/model/EspinaFactory.h>
+#include <common/model/Segmentation.h>
 
 // ITK
 
@@ -326,6 +327,7 @@ void SegmhaImporterFilter::run()
 
       m_volumes << output;
       m_taxonomies << taxonomies[seg.taxonomyId-1];
+      m_labels << seg.label;
     } catch (...)
     {
       std::cerr << "Couldn't import segmentation " << seg.label << std::endl;
@@ -367,4 +369,11 @@ bool SegmhaImporterFilter::prefetchFilter()
 TaxonomyNode* SegmhaImporterFilter::taxonomy(OutputNumber i)
 {
   return m_taxonomies.value(i, NULL);
+}
+
+//-----------------------------------------------------------------------------
+void SegmhaImporterFilter::initSegmentation(Segmentation* seg, int segId)
+{
+  seg->setTaxonomy(taxonomy(segId));
+  seg->setNumber(m_labels.value(segId,-1));
 }
