@@ -57,14 +57,14 @@ bool MeshRenderer::addItem(ModelItem* item)
 
   // segmentation image need to be padded to avoid segmentation voxels from touching the edges of the
   // image (and create morphologicaly correct actors)
-  vtkSmartPointer<vtkImageConstantPad> padfilter = vtkSmartPointer<vtkImageConstantPad>::New();
   int extent[6];
-
   vtkImageData *image = vtkImageData::SafeDownCast(seg->image()->GetProducer()->GetOutputDataObject(0));
   image->GetExtent(extent);
-  padfilter->SetInputConnection(seg->image());
-  padfilter->SetOutputWholeExtent(extent[0]-1, extent[1]+1, extent[2]-1, extent[3]+1, extent[4]-1, extent[5]+1);
-  padfilter->SetConstant(0);
+
+  m_padfilter = vtkSmartPointer<vtkImageConstantPad>::New();
+  m_padfilter->SetInputConnection(seg->image());
+  m_padfilter->SetOutputWholeExtent(extent[0]-1, extent[1]+1, extent[2]-1, extent[3]+1, extent[4]-1, extent[5]+1);
+  m_padfilter->SetConstant(0);
 
   vtkSmartPointer<vtkDiscreteMarchingCubes> march = vtkSmartPointer<vtkDiscreteMarchingCubes>::New();
   march->ReleaseDataFlagOn();
@@ -73,7 +73,7 @@ bool MeshRenderer::addItem(ModelItem* item)
   march->ComputeScalarsOff();
   march->ComputeNormalsOff();
   march->ComputeGradientsOff();
-  march->SetInputConnection(padfilter->GetOutputPort());
+  march->SetInputConnection(m_padfilter->GetOutputPort());
 
   vtkSmartPointer<vtkDecimatePro> decimate = vtkSmartPointer<vtkDecimatePro>::New();
   decimate->ReleaseDataFlagOn();
@@ -119,6 +119,7 @@ bool MeshRenderer::addItem(ModelItem* item)
   m_segmentations[seg].color = engine->color(seg);
   m_segmentations[seg].actor = actor;
   m_segmentations[seg].visible = false;
+  memcpy(m_segmentations[seg].extent, extent, 6*sizeof(int));
 
   return true;
 }
@@ -148,6 +149,16 @@ bool MeshRenderer::updateItem(ModelItem* item)
      vtkMath::HSVToRGB(hsv, rgb);
      rep.actor->GetProperty()->SetColor(rgb[0], rgb[1], rgb[2]);
 
+     updated = true;
+   }
+
+   int extent[6];
+   vtkImageData *image = vtkImageData::SafeDownCast(seg->image()->GetProducer()->GetOutputDataObject(0));
+   image->GetExtent(extent);
+   if (memcmp(extent, rep.extent, 6*sizeof(int)) != 0)
+   {
+     m_padfilter->SetOutputWholeExtent(extent[0]-1, extent[1]+1, extent[2]-1, extent[3]+1, extent[4]-1, extent[5]+1);
+     memcpy(m_segmentations[seg].extent, extent, 6*sizeof(int));
      updated = true;
    }
 

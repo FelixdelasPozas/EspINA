@@ -30,10 +30,6 @@ include_directories(
   ${CMAKE_CURRENT_BINARY_DIR}  #For wrap/ui files
 )
 
-#   extensions/Margins/vtkChannelBorderDetector.cpp
-#   extensions/Morphological/vtkMorphologicalFeaturesFilter.cpp
-
-
 ####### EspinaCore #########
 # Add extra library containing custom code for the client.
 qt4_wrap_cpp(CORE_MOC
@@ -75,7 +71,8 @@ set (CORE_SOURCES
   editor/ImageLogicFilter.cpp
   editor/vtkImageLogicFilter.cpp
   IO/FilePack.cpp
-#   extensions/Margins/MarginsChannelExtension.cpp
+  extensions/Margins/MarginDetector.cpp
+  extensions/Margins/MarginsChannelExtension.cpp
 #   extensions/Margins/MarginsSegmentationExtension.cpp
   extensions/ModelItemExtension.cpp
   extensions/Morphological/MorphologicalExtension.cpp

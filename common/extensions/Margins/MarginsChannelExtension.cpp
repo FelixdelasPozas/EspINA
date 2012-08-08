@@ -19,40 +19,39 @@
 
 #include "MarginsChannelExtension.h"
 
-#include "MarginsSegmentationExtension.h"
+//#include "MarginsSegmentationExtension.h"
 
-#include "common/cache/CachedObjectBuilder.h"
 #include "common/model/Channel.h"
-#include "common/processing/pqFilter.h"
 #include "common/model/Segmentation.h"
 
-#include <QMessageBox>
 #include <QApplication>
+#include <QDebug>
+#include <QMessageBox>
+#include "MarginDetector.h"
 
 typedef ModelItem::ArgumentId ArgumentId;
 
-const QString MarginsChannelExtension::ID = "MarginsExtension";
+const ModelItemExtension::ExtId MarginsChannelExtension::ID = "MarginsExtension";
 
-const QString MarginsChannelExtension::LeftMargin   = "Left Margin";
-const QString MarginsChannelExtension::TopMargin    = "Top Margin";
-const QString MarginsChannelExtension::UpperMargin  = "Upper Margin";
-const QString MarginsChannelExtension::RightMargin  = "Right Margin";
-const QString MarginsChannelExtension::BottomMargin = "Bottom Margin";
-const QString MarginsChannelExtension::LowerMargin  = "Lower Margin";
+const ModelItemExtension::InfoTag MarginsChannelExtension::LEFT_MARGIN   = "Left Margin";
+const ModelItemExtension::InfoTag MarginsChannelExtension::TOP_MARGIN    = "Top Margin";
+const ModelItemExtension::InfoTag MarginsChannelExtension::UPPER_MARGIN  = "Upper Margin";
+const ModelItemExtension::InfoTag MarginsChannelExtension::RIGHT_MARGIN  = "Right Margin";
+const ModelItemExtension::InfoTag MarginsChannelExtension::BOTTOM_MARGIN = "Bottom Margin";
+const ModelItemExtension::InfoTag MarginsChannelExtension::LOWER_MARGIN  = "Lower Margin";
 
 const ArgumentId MarginsChannelExtension::MARGINTYPE = ArgumentId("MarginType", ArgumentId::VARIABLE);
 
 //-----------------------------------------------------------------------------
 MarginsChannelExtension::MarginsChannelExtension()
 : m_useExtentMargins(true)
-, m_borderDetector(NULL)
 {
-//   m_availableInformations << LeftMargin;
-//   m_availableInformations << TopMargin;
-//   m_availableInformations << UpperMargin;
-//   m_availableInformations << RightMargin;
-//   m_availableInformations << BottomMargin;
-//   m_availableInformations << LowerMargin;
+//   m_availableInformations << LEFT_MARGIN;
+//   m_availableInformations << TOP_MARGIN;
+//   m_availableInformations << UPPER_MARGIN;
+//   m_availableInformations << RIGHT_MARGIN;
+//   m_availableInformations << BOTTOM_MARGIN;
+//   m_availableInformations << LOWER_MARGIN;
 }
 
 //-----------------------------------------------------------------------------
@@ -62,7 +61,7 @@ MarginsChannelExtension::~MarginsChannelExtension()
 }
 
 //-----------------------------------------------------------------------------
-QString MarginsChannelExtension::id()
+ModelItemExtension::ExtId MarginsChannelExtension::id()
 {
   return ID;
 }
@@ -74,8 +73,8 @@ void MarginsChannelExtension::initialize(Channel* channel, ModelItem::Arguments 
     return;
 
   m_channel = channel;
-
 //   qDebug() << args;
+
   bool computeMargin = false;
   if (args.contains(MARGINTYPE))
   {
@@ -83,26 +82,34 @@ void MarginsChannelExtension::initialize(Channel* channel, ModelItem::Arguments 
   } else
   {
     QMessageBox msgBox;
-    msgBox.setText(QString("Compute %1's margins").arg(channel->data(Qt::DisplayRole).toString()));
+    msgBox.setWindowTitle("Margins Channel Extension");
+    msgBox.setText(tr("Compute %1's margins").arg(channel->data().toString()));
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     msgBox.setDefaultButton(QMessageBox::No);
     computeMargin = msgBox.exec() == QMessageBox::Yes;
     args[MARGINTYPE] = computeMargin?"Yes":"No";
   }
 
-  if (computeMargin)
-  {
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-    pqFilter::Arguments marginArgs;
-    marginArgs << pqFilter::Argument("Input", pqFilter::Argument::INPUT, m_channel->volume().id());
-    m_borderDetector = cob->createFilter("filters","ChannelBorderDetector", marginArgs);
-    Q_ASSERT(m_borderDetector);
-    m_borderDetector->pipelineSource()->updatePipeline();
-    Q_ASSERT(m_borderDetector->getNumberOfData() == 1);
-    m_useExtentMargins = false;
-    QApplication::restoreOverrideCursor();
-  }
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  MarginDetector *marginDetector = new MarginDetector(channel);
+  connect(marginDetector, SIGNAL(finished()),
+          marginDetector, SLOT(deleteLater()));
+  marginDetector->start();
+  QApplication::restoreOverrideCursor();
+
+//   if (computeMargin)
+//   {
+//     QApplication::setOverrideCursor(Qt::WaitCursor);
+//     CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+//     pqFilter::Arguments marginArgs;
+//     marginArgs << pqFilter::Argument("Input", pqFilter::Argument::INPUT, m_channel->volume().id());
+//     m_borderDetector = cob->createFilter("filters","ChannelBorderDetector", marginArgs);
+//     Q_ASSERT(m_borderDetector);
+//     m_borderDetector->pipelineSource()->updatePipeline();
+//     Q_ASSERT(m_borderDetector->getNumberOfData() == 1);
+//     m_useExtentMargins = false;
+//     QApplication::restoreOverrideCursor();
+//   }
   m_init = true;
   m_args = args;
 }
@@ -114,12 +121,9 @@ QString MarginsChannelExtension::serialize() const
 }
 
 //-----------------------------------------------------------------------------
-QVariant MarginsChannelExtension::information(QString info) const
+QVariant MarginsChannelExtension::information(ModelItemExtension::InfoTag tag) const
 {
-//   if (LeftMargin == info)
-//     return "0";
-
-  qWarning() << ID << ":"  << info << " is not provided";
+  qWarning() << ID << ":"  << tag << " is not provided";
   Q_ASSERT(false);
   return QVariant();
 }
@@ -135,17 +139,17 @@ void MarginsChannelExtension::computeMarginDistance(Segmentation* seg)
 {
   ModelItemExtension *ext = seg->extension(ID);
   Q_ASSERT(ext);
-  MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext);
-  Q_ASSERT(marginExt);
+//   MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext);
+//   Q_ASSERT(marginExt);
   if (m_useExtentMargins)
   {
     double cmargins[6], smargins[6], margins[6];
     m_channel->bounds(cmargins);
-    seg->bounds(smargins);
+    VolumeBounds(seg->volume(), smargins);
     for(int i = 0; i < 6; i++)
       margins[i] = abs(smargins[i] - cmargins[i]);
 
-    marginExt->setMargins(margins);
+    //marginExt->setMargins(margins);
   }else
   {
   }
