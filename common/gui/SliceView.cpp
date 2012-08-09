@@ -657,6 +657,7 @@ QList<Segmentation *> SliceView::pickSegmentations(double vx,
 //-----------------------------------------------------------------------------
 void SliceView::selectPickedItems(bool append)
 {
+  //BUG: return;
   int vx, vy;
   eventPosition(vx, vy);
 
@@ -741,17 +742,16 @@ bool SliceView::pickChannel(int x, int y, Nm pickPos[3])
   //   vtkRenderer * thumbnail = view->GetOverviewRenderer();
   //   Q_ASSERT(thumbnail);
 
-  vtkSmartPointer<vtkPropPicker> propPicker = vtkSmartPointer<vtkPropPicker> ::New();
   //   if (!thumbnail->GetDraw() || !propPicker->Pick(x, y, 0.1, thumbnail))
   //   {
-    if (!propPicker->Pick(x, y, 0.1, m_renderer))
+    if (!m_channelPicker->Pick(x, y, 0.1, m_renderer))
     {
       //qDebug() << "ePick Fail!";
       return false;
     }
     //   }
 
-    propPicker->GetPickPosition(pickPos);
+    m_channelPicker->GetPickPosition(pickPos);
 
     pickPos[m_plane] = slicingPosition();
     //   qDebug() << "Pick Position" << pickPos[0] << pickPos[1] << pickPos[2];
