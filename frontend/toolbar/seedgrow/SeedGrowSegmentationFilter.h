@@ -166,8 +166,9 @@ private:
   EspinaVolume *m_volume;
   EspinaVolumeReader::Pointer m_cachedFilter;
 
-  ExtractType::Pointer extractFilter;
   ConnectedThresholdFilterType::Pointer ctif;
+  ExtractType::Pointer voiFilter;
+  ExtractType::Pointer extractFilter;
   Image2LabelFilterType::Pointer image2label;
   bmcifType::Pointer bmcif;
 

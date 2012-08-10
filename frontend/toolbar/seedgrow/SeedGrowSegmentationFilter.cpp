@@ -70,7 +70,7 @@ SeedGrowSegmentationFilter::~SeedGrowSegmentationFilter()
 void SeedGrowSegmentationFilter::markAsModified()
 {
   if (bmcif.IsNull())
-    ctif->Modified();
+    extractFilter->Modified();
   else
     bmcif->Modified();
 }
@@ -84,7 +84,7 @@ bool SeedGrowSegmentationFilter::needUpdate() const
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::releaseDataFlagOn()
 {
-  ctif->ReleaseDataFlagOn();
+  extractFilter->ReleaseDataFlagOn();
   if (bmcif.IsNotNull())
     bmcif->ReleaseDataFlagOn();
 }
@@ -92,10 +92,10 @@ void SeedGrowSegmentationFilter::releaseDataFlagOn()
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::releaseDataFlagOff()
 {
-  ctif->ReleaseDataFlagOn();
+  extractFilter->ReleaseDataFlagOn();
   if (bmcif.IsNotNull())
   {
-    ctif->ReleaseDataFlagOn();
+    extractFilter->ReleaseDataFlagOn();
     bmcif->ReleaseDataFlagOff();
   }
 }
@@ -122,7 +122,7 @@ void SeedGrowSegmentationFilter::run()
   }
 
 //   qDebug() << "Apply VOI";
-  extractFilter = ExtractType::New();
+  voiFilter = ExtractType::New();
   ExtractType::InputImageRegionType roi;
   for (int i = 0; i < 3; i++)
   {
@@ -130,16 +130,16 @@ void SeedGrowSegmentationFilter::run()
     roi.SetIndex(i, voi[inf]);
     roi.SetSize (i, voi[sup] - voi[inf] + 1);
   }
-  extractFilter->SetNumberOfThreads(1);
-  extractFilter->SetInput(m_input);
-  extractFilter->SetExtractionRegion(roi);
-  extractFilter->Update();
+  voiFilter->SetNumberOfThreads(1);
+  voiFilter->SetInput(m_input);
+  voiFilter->SetExtractionRegion(roi);
+  voiFilter->Update();
 
 //   qDebug() << "Computing Original Size Connected Threshold";
   EspinaVolume::IndexType seed = m_param.seed();
   double seedIntensity = m_input->GetPixel(seed);
   ctif = ConnectedThresholdFilterType::New();
-  ctif->SetInput(extractFilter->GetOutput());
+  ctif->SetInput(voiFilter->GetOutput());
   ctif->SetReplaceValue(LABEL_VALUE);
   ctif->SetLower(std::max(seedIntensity - m_param.lowerThreshold(), 0.0));
   ctif->SetUpper(std::min(seedIntensity + m_param.upperThreshold(), 255.0));
@@ -152,32 +152,21 @@ void SeedGrowSegmentationFilter::run()
 //   qDebug() << "SEED: " << seed[0] << " " << seed[1] << " " << seed[2];
 
 //   qDebug() << "Converting from ITK to LabelMap";
-//   image2label = Image2LabelFilterType::New();
-//   image2label->ReleaseDataFlagOn();
-//   image2label->SetInput(ctif->GetOutput());
-//   image2label->Update();//TODO: Check if needed
+  image2label = Image2LabelFilterType::New();
+  image2label->ReleaseDataFlagOn();
+  image2label->SetInput(ctif->GetOutput());
+  image2label->Update();//TODO: Check if needed
 
 //   qDebug() << "Getting Segmentation Region";
-//   // Get the roi of the object
-//   LabelMapType *    labelMap = image2label->GetOutput();
-//   LabelObjectType * object   = labelMap->GetLabelObject(LABEL_VALUE);
-//   LabelObjectType::RegionType objectROI = object->GetBoundingBox();
-// //   objectROI.Print(std::cout);
-//   SegExtent[0] = objectROI.GetIndex(0);
-//   SegExtent[1] = SegExtent[0] + objectROI.GetSize(0) - 1;
-//   SegExtent[2] = objectROI.GetIndex(1);
-//   SegExtent[3] = SegExtent[2] + objectROI.GetSize(1) - 1;
-//   SegExtent[4] = objectROI.GetIndex(2);
-//   SegExtent[5] = SegExtent[4] + objectROI.GetSize(2) - 1;
-
+  // Get the roi of the object
+  LabelMapType *    labelMap = image2label->GetOutput();
+  LabelObjectType * object   = labelMap->GetLabelObject(LABEL_VALUE);
+  LabelObjectType::RegionType objectROI = object->GetBoundingBox();
 //   vtkDebugMacro(<< "Extracting Segmentation Region");
-  
-//   typedef itk::ExtractImageFilter<InputImageType,InputImageType> ExtractFilterType;
-//   ExtractFilterType::Pointer extract = ExtractFilterType::New();
-  
-//   extract->SetInput(ctif->GetOutput());
-//   extract->SetExtractionRegion(objectROI);
-//   extract->Update();
+  extractFilter = ExtractType::New();
+  extractFilter->SetInput(ctif->GetOutput());
+  extractFilter->SetExtractionRegion(objectROI);
+  extractFilter->Update();
   //typedef itk::ImageFileWriter< OutputImageType >  WriterType;
   //WriterType::Pointer writer = WriterType::New();
   //writer->SetFileName("Test.mha");
@@ -192,7 +181,7 @@ void SeedGrowSegmentationFilter::run()
     ball.CreateStructuringElement();
 
     bmcif = bmcifType::New();
-    bmcif->SetInput(ctif->GetOutput());
+    bmcif->SetInput(extractFilter->GetOutput());
     bmcif->SetKernel(ball);
     bmcif->SetForegroundValue(LABEL_VALUE);
     bmcif->Update();
@@ -200,7 +189,7 @@ void SeedGrowSegmentationFilter::run()
     m_volume = bmcif->GetOutput();
   }
   else
-    m_volume = ctif->GetOutput();
+    m_volume = extractFilter->GetOutput();
 
   QApplication::restoreOverrideCursor();
   emit modified(this);
