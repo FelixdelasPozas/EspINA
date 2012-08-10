@@ -21,15 +21,12 @@
 #define FREEFORMSOURCE_H
 
 #include <model/Filter.h>
-#include <itkChangeInformationImageFilter.h>
 
 #include <QVector3D>
-
 
 class FreeFormSource
 : public Filter
 {
-  typedef itk::ChangeInformationImageFilter<EspinaVolume> FilterType;
 public:
   static const QString TYPE;
 
@@ -100,7 +97,6 @@ private:
   int        DrawExtent[6];
 
   EspinaVolume::Pointer m_volume;
-  FilterType::Pointer m_filter;
   EspinaVolume::SpacingType m_spacing;
   EspinaVolumeReader::Pointer m_cachedFilter;
 };

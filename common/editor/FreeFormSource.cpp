@@ -65,7 +65,6 @@ FreeFormSource::FreeFormSource(Filter::NamedInputs inputs,
 , m_hasPixels(false)
 , m_init(false)
 , m_volume(NULL)
-, m_filter(FilterType::New())
 {
   Q_ASSERT(inputs.isEmpty());
 }
@@ -192,9 +191,9 @@ void FreeFormSource::draw(PlaneType plane,
       }
     }
     m_volume = img;
-    m_filter->SetInput(m_volume);
   }
-  m_filter->Update();
+
+  emit modified(this);
 
   m_hasPixels = true;
 }
@@ -261,9 +260,10 @@ void FreeFormSource::erase(PlaneType plane,
     }
       }
     }
-
     m_volume->Modified();
   }
+
+  emit modified(this);
 }
 
 //-----------------------------------------------------------------------------
@@ -292,7 +292,7 @@ int FreeFormSource::numberOutputs() const
 EspinaVolume* FreeFormSource::output(OutputNumber i) const
 {
   if (m_volume.IsNotNull() && i == 0)
-    return m_filter->GetOutput();
+    return m_volume.GetPointer();
 
   return NULL;
 }
@@ -306,7 +306,7 @@ bool FreeFormSource::prefetchFilter()
   if (m_cachedFilter.IsNotNull())
   {
     m_volume = m_cachedFilter->GetOutput();
-    m_filter->SetInput(m_volume);
+    m_hasPixels = true;
     emit modified(this);
     return true;
   }
