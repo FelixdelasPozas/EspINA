@@ -17,40 +17,29 @@
 */
 
 
-#ifndef SEGMENTATIONEXTENSION_H
-#define SEGMENTATIONEXTENSION_H
+#ifndef MARGINDETECTOR_H
+#define MARGINDETECTOR_H
 
-#include "common/extensions/ModelItemExtension.h"
+#include <QThread>
 
-#include <QSharedPointer>
+class MarginsChannelExtension;
+class Channel;
 
-class Segmentation;
-class SegmentationRepresentation;
-
-/// Interface to extend segmentation's behaviour
-class SegmentationExtension
-: public ModelItemExtension
+class MarginDetector
+: public QThread
 {
 public:
-  typedef QSharedPointer<SegmentationExtension> SPtr;
-
-public:
-  virtual ~SegmentationExtension(){}
-
-  virtual void initialize(Segmentation *seg) = 0;
-
-  virtual SegmentationRepresentation *representation(QString rep) = 0;
-
-  virtual Segmentation *segmentation() {return m_seg;}
-
-  /// Prototype
-  virtual SegmentationExtension *clone() = 0;
+  explicit MarginDetector(MarginsChannelExtension *extension, QObject* parent = 0);
+  virtual ~MarginDetector();
 
 protected:
-  SegmentationExtension() : m_seg(NULL){}
-  Segmentation *m_seg;
+  virtual void run();
+
+private:
+  MarginsChannelExtension *m_extension;
+
+  double m_totalVolume;
+  double m_totalAdativeVolume;
 };
 
-
-
-#endif // SEGMENTATIONEXTENSION_H
+#endif // MARGINDETECTOR_H

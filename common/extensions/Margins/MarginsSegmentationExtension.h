@@ -26,34 +26,34 @@
 class MarginsSegmentationExtension
 : public SegmentationExtension
 {
-  static const QString ID;
+  static const ExtId ID;
 
 public:
-  static const QString LeftMargin;
-  static const QString TopMargin;
-  static const QString UpperMargin;
-  static const QString RightMargin;
-  static const QString BottomMargin;
-  static const QString LowerMargin;
+  static const InfoTag LEFT_MARGIN;
+  static const InfoTag TOP_MARGIN;
+  static const InfoTag UPPER_MARGIN;
+  static const InfoTag RIGHT_MARGIN;
+  static const InfoTag BOTTOM_MARGIN;
+  static const InfoTag LOWER_MARGIN;
 
   explicit MarginsSegmentationExtension();
   virtual ~MarginsSegmentationExtension();
 
-  virtual QString id();
+  virtual ExtId id();
   virtual void initialize(Segmentation* seg);
-  
-  virtual QStringList dependencies() const
-    {return SegmentationExtension::dependencies();}
 
-  virtual QStringList availableRepresentations() const
-    {return SegmentationExtension::availableRepresentations();}
+  virtual ModelItemExtension::ExtIdList dependencies() const
+  { return SegmentationExtension::dependencies(); }
+
+  virtual InfoList availableInformations() const
+  { return SegmentationExtension::availableInformations(); }
+
+  virtual RepList availableRepresentations() const
+  { return SegmentationExtension::availableRepresentations(); }
+
+  virtual QVariant information(InfoTag tag) const;
 
   virtual SegmentationRepresentation *representation(QString rep);
-
-  virtual QStringList availableInformations() const
-    {return SegmentationExtension::availableInformations();}
-
-  virtual QVariant information(QString info) const;
 
   virtual SegmentationExtension* clone();
 

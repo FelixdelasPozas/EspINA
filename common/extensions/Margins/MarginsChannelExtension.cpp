@@ -27,7 +27,8 @@
 #include <QApplication>
 #include <QDebug>
 #include <QMessageBox>
-//#include "MarginDetector.h"
+#include "MarginDetector.h"
+#include "MarginsSegmentationExtension.h"
 
 typedef ModelItem::ArgumentId ArgumentId;
 
@@ -90,27 +91,19 @@ void MarginsChannelExtension::initialize(Channel* channel, ModelItem::Arguments 
     args[MARGINTYPE] = computeMargin?"Yes":"No";
   }
 
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-//   MarginDetector *marginDetector = new MarginDetector(channel);
-//   connect(marginDetector, SIGNAL(finished()),
-//           marginDetector, SLOT(deleteLater()));
-//   marginDetector->start();
-  QApplication::restoreOverrideCursor();
+  if (computeMargin)
+  {
+    m_borders = vtkSmartPointer<vtkPolyData>::New();
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    MarginDetector *marginDetector = new MarginDetector(this);
+    connect(marginDetector, SIGNAL(finished()),
+	    marginDetector, SLOT(deleteLater()));
+    marginDetector->start();
+    QApplication::restoreOverrideCursor();
+  }
 
-//   if (computeMargin)
-//   {
-//     QApplication::setOverrideCursor(Qt::WaitCursor);
-//     CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-//     pqFilter::Arguments marginArgs;
-//     marginArgs << pqFilter::Argument("Input", pqFilter::Argument::INPUT, m_channel->volume().id());
-//     m_borderDetector = cob->createFilter("filters","ChannelBorderDetector", marginArgs);
-//     Q_ASSERT(m_borderDetector);
-//     m_borderDetector->pipelineSource()->updatePipeline();
-//     Q_ASSERT(m_borderDetector->getNumberOfData() == 1);
-//     m_useExtentMargins = false;
-//     QApplication::restoreOverrideCursor();
-//   }
   m_init = true;
+  m_useExtentMargins = !computeMargin;
   m_args = args;
 }
 
@@ -139,18 +132,23 @@ void MarginsChannelExtension::computeMarginDistance(Segmentation* seg)
 {
   ModelItemExtension *ext = seg->extension(ID);
   Q_ASSERT(ext);
-//   MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext);
-//   Q_ASSERT(marginExt);
+  MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext);
+  Q_ASSERT(marginExt);
+  double distance[6], smargins[6];
+  VolumeBounds(seg->volume(), smargins);
   if (m_useExtentMargins)
   {
-    double cmargins[6], smargins[6], margins[6];
+    double cmargins[6];
     m_channel->bounds(cmargins);
-    VolumeBounds(seg->volume(), smargins);
     for(int i = 0; i < 6; i++)
-      margins[i] = abs(smargins[i] - cmargins[i]);
-
-    //marginExt->setMargins(margins);
+      distance[i] = fabs(smargins[i] - cmargins[i]);
   }else
   {
+    m_borderMutex.lock();
+    Q_ASSERT(m_borders->GetNumberOfPoints() > 0);
+    for(int i = 0; i < 6; i++)
+      distance[i] = smargins[i];
+    m_borderMutex.unlock();
   }
+  marginExt->setMargins(distance);
 }

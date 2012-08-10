@@ -25,25 +25,25 @@
 #include <common/model/Segmentation.h>
 #include <common/model/Channel.h>
 
-const QString MarginsSegmentationExtension::ID = "MarginsExtension";
+const ModelItemExtension::ExtId MarginsSegmentationExtension::ID = "MarginsExtension";
 
-const QString MarginsSegmentationExtension::LeftMargin   = "Left Margin";
-const QString MarginsSegmentationExtension::TopMargin    = "Top Margin";
-const QString MarginsSegmentationExtension::UpperMargin  = "Upper Margin";
-const QString MarginsSegmentationExtension::RightMargin  = "Right Margin";
-const QString MarginsSegmentationExtension::BottomMargin = "Bottom Margin";
-const QString MarginsSegmentationExtension::LowerMargin  = "Lower Margin";
+const ModelItemExtension::InfoTag MarginsSegmentationExtension::LEFT_MARGIN   = "Left Margin";
+const ModelItemExtension::InfoTag MarginsSegmentationExtension::TOP_MARGIN    = "Top Margin";
+const ModelItemExtension::InfoTag MarginsSegmentationExtension::UPPER_MARGIN  = "Upper Margin";
+const ModelItemExtension::InfoTag MarginsSegmentationExtension::RIGHT_MARGIN  = "Right Margin";
+const ModelItemExtension::InfoTag MarginsSegmentationExtension::BOTTOM_MARGIN = "Bottom Margin";
+const ModelItemExtension::InfoTag MarginsSegmentationExtension::LOWER_MARGIN  = "Lower Margin";
 
 //-----------------------------------------------------------------------------
 MarginsSegmentationExtension::MarginsSegmentationExtension()
 {
   memset(m_distances, 0, 6*sizeof(double));
-  m_availableInformations << LeftMargin;
-  m_availableInformations << TopMargin;
-  m_availableInformations << UpperMargin;
-  m_availableInformations << RightMargin;
-  m_availableInformations << BottomMargin;
-  m_availableInformations << LowerMargin;
+  m_availableInformations << LEFT_MARGIN;
+  m_availableInformations << RIGHT_MARGIN;
+  m_availableInformations << TOP_MARGIN;
+  m_availableInformations << BOTTOM_MARGIN;
+  m_availableInformations << UPPER_MARGIN;
+  m_availableInformations << LOWER_MARGIN;
 }
 
 //-----------------------------------------------------------------------------
@@ -52,7 +52,7 @@ MarginsSegmentationExtension::~MarginsSegmentationExtension()
 }
 
 //-----------------------------------------------------------------------------
-QString MarginsSegmentationExtension::id()
+ModelItemExtension::ExtId MarginsSegmentationExtension::id()
 {
   return ID;
 }
@@ -71,7 +71,32 @@ void MarginsSegmentationExtension::initialize(Segmentation* seg)
     Q_ASSERT(ext);
     MarginsChannelExtension *marginExt = dynamic_cast<MarginsChannelExtension *>(ext);
     marginExt->computeMarginDistance(seg);
+    m_init = true;
   }
+}
+
+//-----------------------------------------------------------------------------
+QVariant MarginsSegmentationExtension::information(ModelItemExtension::InfoTag tag) const
+{
+  if (!m_init)
+    return QString(QObject::tr("Unknown"));
+
+  if (LEFT_MARGIN == tag)
+    return m_distances[0];
+  if (RIGHT_MARGIN == tag)
+    return m_distances[1];
+  if (TOP_MARGIN == tag)
+    return m_distances[2];
+  if (BOTTOM_MARGIN == tag)
+    return m_distances[3];
+  if (UPPER_MARGIN == tag)
+    return m_distances[4];
+  if (LOWER_MARGIN == tag)
+    return m_distances[5];
+
+  qWarning() << ID << ":"  << tag << " is not provided";
+  Q_ASSERT(false);
+  return QVariant();
 }
 
 //-----------------------------------------------------------------------------
@@ -79,30 +104,6 @@ SegmentationRepresentation* MarginsSegmentationExtension::representation(QString
 {
   Q_ASSERT(false);
   return NULL;
-}
-
-//-----------------------------------------------------------------------------
-QVariant MarginsSegmentationExtension::information(QString info) const
-{
-  if (!m_init)
-    return QString(QObject::tr("Unknown"));
-
-  if (LeftMargin == info)
-    return m_distances[0];
-  if (TopMargin == info)
-    return m_distances[1];
-  if (UpperMargin == info)
-    return m_distances[2];
-  if (RightMargin == info)
-    return m_distances[3];
-  if (BottomMargin == info)
-    return m_distances[4];
-  if (LowerMargin == info)
-    return m_distances[5];
-
-  qWarning() << ID << ":"  << info << " is not provided";
-  Q_ASSERT(false);
-  return QVariant();
 }
 
 //-----------------------------------------------------------------------------

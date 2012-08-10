@@ -21,6 +21,10 @@
 #define MARGINSCHANNELEXTENSION_H
 
 #include "common/extensions/ChannelExtension.h"
+#include <vtkSmartPointer.h>
+#include <vtkPolyData.h>
+
+#include <QMutex>
 
 class Channel;
 class Segmentation;
@@ -63,8 +67,12 @@ public:
   void computeMarginDistance(Segmentation *seg);
 
 private:
-  bool      m_useExtentMargins;
-  ModelItem::Arguments m_args;
+  bool                         m_useExtentMargins;
+  ModelItem::Arguments         m_args;
+  vtkSmartPointer<vtkPolyData> m_borders;
+  QMutex                       m_borderMutex;
+
+  friend class MarginDetector;
 };
 
 #endif // MARGINSCHANNELEXTENSION_H

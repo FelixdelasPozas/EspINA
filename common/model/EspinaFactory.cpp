@@ -21,8 +21,8 @@
 
 #include "common/model/Segmentation.h"
 #include "ChannelReader.h"
-// #include "common/extensions/Margins/MarginsChannelExtension.h"
-//#include "common/extensions/Margins/MarginsSegmentationExtension.h"
+#include "common/extensions/Margins/MarginsChannelExtension.h"
+#include "common/extensions/Margins/MarginsSegmentationExtension.h"
 #include "common/extensions/Morphological/MorphologicalExtension.h"
 #include <pluginInterfaces/Renderer.h>
 
@@ -34,8 +34,8 @@ EspinaFactory *EspinaFactory::m_instance = NULL;
 EspinaFactory::EspinaFactory()
 {
   // Register Default Extensions
- // registerChannelExtension(ChannelExtension::SPtr(new MarginsChannelExtension()));
-//   registerSegmentationExtension(SegmentationExtension::SPtr(new MarginsSegmentationExtension()));
+  registerChannelExtension(ChannelExtension::SPtr(new MarginsChannelExtension()));
+  registerSegmentationExtension(SegmentationExtension::SPtr(new MarginsSegmentationExtension()));
   registerSegmentationExtension(SegmentationExtension::SPtr(new MorphologicalExtension()));
 
   m_supportedFiles << CHANNEL_FILES;

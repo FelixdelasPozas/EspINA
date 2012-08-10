@@ -71,9 +71,9 @@ set (CORE_SOURCES
   editor/ImageLogicFilter.cpp
   editor/vtkImageLogicFilter.cpp
   IO/FilePack.cpp
-  #extensions/Margins/MarginDetector.cpp
+  extensions/Margins/MarginDetector.cpp
   extensions/Margins/MarginsChannelExtension.cpp
-#   extensions/Margins/MarginsSegmentationExtension.cpp
+  extensions/Margins/MarginsSegmentationExtension.cpp
   extensions/ModelItemExtension.cpp
   extensions/Morphological/MorphologicalExtension.cpp
   extensions/SampleExtension.cpp
