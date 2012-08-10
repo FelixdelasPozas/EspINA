@@ -628,6 +628,11 @@ QList<Segmentation *> SliceView::pickSegmentations(double vx,
   {
     QPolygonF selectedRegion;
     selectedRegion << QPointF(vx, vy);
+
+    // BUG: kills app when picking a node in TubularWidget in ZY view (not only that one?)
+    if (display2vtk(selectedRegion).isEmpty())
+      return segmentations;
+
     QVector3D pixel = display2vtk(selectedRegion).first();
  
     m_segmentationPicker->GetProp3Ds()->InitTraversal();
