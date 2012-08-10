@@ -267,6 +267,9 @@ EspinaVolume* SeedGrowSegmentationFilter::output(OutputNumber i) const
 //-----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::prefetchFilter()
 {
+  if (m_needUpdate)
+    return false;
+
   QString tmpFile = id() + "_0.mhd";
   m_cachedFilter = tmpFileReader(tmpFile);
 

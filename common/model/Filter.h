@@ -81,8 +81,6 @@ public:
   virtual void releaseDataFlagOn(){}
   /// Turn off internal filters' release data flags
   virtual void releaseDataFlagOff(){}
-  /// Method which actually executes the filter
-  virtual void run() {};
 
   /// Return a widget used to configure filter's parameters
   virtual QWidget *createConfigurationWidget();
@@ -91,6 +89,8 @@ protected:
   explicit Filter(NamedInputs namedInputs,
                   Arguments args);
 
+  /// Method which actually executes the filter
+  virtual void run() {};
   /// Try to locate an snapshot of the filter in the hard drive
   virtual bool prefetchFilter();
   EspinaVolumeReader::Pointer tmpFileReader(const QString file);

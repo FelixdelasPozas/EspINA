@@ -45,14 +45,15 @@ public:
 
   /// Implements Filter Interface
   virtual bool needUpdate() const;
-  virtual void run();
 
   virtual int numberOutputs() const;
   virtual EspinaVolume* output(OutputNumber i) const;
 
 protected:
-    void setSpacing(double value[3]);
-    void spacing(double value[3]);
+  virtual void run();
+
+  void setSpacing(double value[3]);
+  void spacing(double value[3]);
 
 private:
   EspinaVolume *m_volume;

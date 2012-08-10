@@ -152,12 +152,14 @@ public:
   virtual bool needUpdate() const;
   virtual void releaseDataFlagOn();
   virtual void releaseDataFlagOff();
-  virtual void run();
   virtual int numberOutputs() const;
   virtual EspinaVolume* output(OutputNumber i) const;
   virtual bool prefetchFilter();
 
   virtual QWidget* createConfigurationWidget();
+
+protected:
+  virtual void run();
 
 private:
   bool         m_needUpdate;

@@ -60,9 +60,10 @@ public:
   virtual QWidget* createConfigurationWidget();
 
   unsigned int radius() const {return m_params.radius();}
-  void setRadius(int radius) {m_params.setRadius(radius); run();}
+  void setRadius(int radius) {m_params.setRadius(radius); m_needUpdate = true;}
 
 protected:
+  bool             m_needUpdate;
   Parameters       m_params;
   EspinaVolume    *m_input;
   EspinaVolume    *m_volume;

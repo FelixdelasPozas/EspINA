@@ -171,7 +171,7 @@ void SeedGrowSegmentationFilter::SetupWidget::modifyFilter()
   m_filter->setVOI(VOI);
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
-  m_filter->run();
+  m_filter->update();
   EspinaCore::instance()->viewManger()->currentView()->forceRender();
   QApplication::restoreOverrideCursor();
 }

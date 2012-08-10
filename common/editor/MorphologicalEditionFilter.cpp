@@ -51,7 +51,7 @@ MorphologicalEditionFilter::~MorphologicalEditionFilter()
 //-----------------------------------------------------------------------------
 bool MorphologicalEditionFilter::needUpdate() const
 {
-  return m_volume == NULL;
+  return (m_volume == NULL || m_needUpdate);
 }
 
 
@@ -74,6 +74,9 @@ EspinaVolume* MorphologicalEditionFilter::output(OutputNumber i) const
 //-----------------------------------------------------------------------------
 bool MorphologicalEditionFilter::prefetchFilter()
 {
+  if (m_needUpdate)
+    return false;
+
   QString tmpFile = id() + "_0.mhd";
   m_cachedFilter = tmpFileReader(tmpFile);
 

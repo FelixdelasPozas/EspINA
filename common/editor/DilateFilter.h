@@ -44,6 +44,7 @@ public:
   /// Implements Model Item Interface
   virtual QVariant data(int role=Qt::DisplayRole) const;
 
+protected:
   /// Implements Filter Interface
   void run();
 

@@ -79,12 +79,13 @@ public:
 
   /// Implements Filter Interface
   virtual bool needUpdate() const;
-  virtual void run(){}
   virtual int numberOutputs() const;
   virtual EspinaVolume* output(OutputNumber i) const;
   virtual bool prefetchFilter();
 
 protected:
+  virtual void run(){}
+
   bool drawPixel(int x, int y, int z,
                  int cx, int cy, int cz,
                  int r, int plane);

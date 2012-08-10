@@ -27,6 +27,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <QApplication>
 
 //----------------------------------------------------------------------------
 CODESettings::CODESettings(MorphologicalEditionFilter *filter)
@@ -71,5 +72,8 @@ CODESettings::~CODESettings()
 void CODESettings::modifyFilter()
 {
   m_filter->setRadius(m_spinbox->value());
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  m_filter->update();
   EspinaCore::instance()->viewManger()->currentView()->forceRender();
+  QApplication::restoreOverrideCursor();
 }

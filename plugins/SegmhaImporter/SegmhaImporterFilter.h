@@ -120,7 +120,6 @@ public:
   // Implements Filter Interface
   virtual void markAsModified();
   virtual bool needUpdate() const;
-  virtual void run();
   virtual int numberOutputs() const;
   virtual EspinaVolume* output(OutputNumber i) const;
   virtual bool prefetchFilter();
@@ -131,6 +130,9 @@ public:
   TaxonomyNode *taxonomy(OutputNumber i);
 
   void initSegmentation(Segmentation *seg, int segId);
+
+protected:
+  virtual void run();
 
 private:
   bool       m_needUpdate;
