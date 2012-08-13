@@ -321,11 +321,13 @@ bool CrosshairRenderer::updateItem(ModelItem* item)
   Q_ASSERT(m_channels.contains(channel));
   Representation &rep = m_channels[channel];
 
-  if (channel->color() != rep.color.hueF())
+  if (((channel->color() != -1) && ((rep.color.hueF() != channel->color()) || (rep.color.saturation() != 0))) ||
+     (((channel->color() == -1) && ((rep.color.hue() != 0) || (rep.color.saturation() != 1.0)))))
   {
     // if hue is -1 then use 0 saturation to make a grayscale image
-    double hue = channel->color();
-    double sat = hue >= 0? 1.0:0.0;
+    double hue = (channel->color() == -1) ? 0 : channel->color();
+    double sat = channel->color() >= 0 ? 1.0 : 0.0;
+    rep.color.setHsvF(hue, sat, 1.0);
 
     rep.lut->Allocate();
     rep.lut->SetTableRange(0,255);
@@ -337,7 +339,6 @@ bool CrosshairRenderer::updateItem(ModelItem* item)
     rep.lut->Build();
     rep.lut->Modified();
 
-    rep.color.setHsvF(channel->color(), 1.0, 1.0);
     updated = true;
   }
 

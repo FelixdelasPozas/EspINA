@@ -42,6 +42,7 @@ qt4_wrap_cpp(CORE_MOC
   gui/SliceView.h
   gui/ViewManager.h
   gui/VolumeView.h
+  gui/HueSelector.h
   model/EspinaModel.h
   model/ModelTest.h
   model/ModelItem.h
@@ -55,8 +56,13 @@ qt4_wrap_cpp(CORE_MOC
   settings/ColorEngineSettings.h
   )
 
+qt4_wrap_ui (CORE_UI
+  gui/HueSelector.ui
+  )
+
 set (CORE_SOURCES
   ${CORE_MOC}
+  ${CORE_UI}
   EspinaCore.cpp
   cache/CacheHash.cpp
   editor/CODESettings.cpp
@@ -91,6 +97,7 @@ set (CORE_SOURCES
   gui/ViewFrame.cpp
   gui/ViewManager.cpp
   gui/VolumeView.cpp
+  gui/HueSelector.cpp
   model/Channel.cpp
   model/ChannelReader.cpp
   model/EspinaFactory.cpp
@@ -127,22 +134,6 @@ set (CORE_SOURCES
   widgets/EspinaWidget.cpp
   widgets/RectangularSelection.cpp
   )
-
-# Make debug output clearer
-#foreach(arg ${CORE_SOURCES})
-#   set(MSG_SOURCES "${MSG_SOURCES}\n *${arg}")
-# endforeach(arg ${CORE_SOURCES})
-#message("SOURCES:${MSG_SOURCES}")
-#
-#foreach(arg ${PVCORE_SOURCES})
-#   set(MSG_PVSOURCES "${MSG_PVSOURCES}\n *${arg}")
-# endforeach(arg ${PVCORE_SOURCES})
-#message("PV SOURCES:${MSG_PVSOURCES}")
-#
-#foreach(arg ${PVCORE_XML})
-#   set(MSG_PVXML "${MSG_PVXML}\n *${arg}")
-# endforeach(arg ${PVCORE_XML})
-#message("PV XML:${MSG_PVXML}")
 
 set(CORE_EXTERNAL_LIBS
   ${QUAZIP_LIBRARIES}

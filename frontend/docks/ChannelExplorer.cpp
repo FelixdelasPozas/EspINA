@@ -32,8 +32,7 @@
 #endif
 
 #include <model/Channel.h>
-#include <QColorDialog>
-
+#include <gui/HueSelector.h>
 
 //------------------------------------------------------------------------
 class ChannelExplorer::CentralWidget
@@ -300,15 +299,16 @@ void ChannelExplorer::changeChannelColor()
 
   Channel *channel = dynamic_cast<Channel *>(item);
 
-  QColor currentColor;
-  currentColor.setHsvF(channel->color(), 1.0, 1.0);
-  QColorDialog colorSelector;
-  colorSelector.setCurrentColor(currentColor);
-  if( colorSelector.exec() == QDialog::Accepted)
+  HueSelector *hueSelector = new HueSelector(channel->color(), this);
+  hueSelector->exec();
+
+  if(hueSelector->ModifiedData())
   {
-    channel->setColor(colorSelector.selectedColor().hueF());
+    double value = (hueSelector->GetHueValue() == -1) ? -1 : (hueSelector->GetHueValue() / 359.);
+    channel->setColor(value);
     channel->notifyModification();
   }
+  delete hueSelector;
 }
 
 //------------------------------------------------------------------------
