@@ -854,12 +854,12 @@ bool SliceView::updateChannelRepresentation(Channel* channel)
     updated = true;
   }
 
-  if (((channel->color() != -1) && ((rep.color.hueF() != channel->color()) || (rep.color.saturation() != 0))) ||
-     (((channel->color() == -1) && ((rep.color.hue() != 0) || (rep.color.saturation() != 1.0)))))
+  if (((channel->color() != -1) && ((rep.color.hueF() != channel->color()) || (rep.color.saturation() != 1.0))) ||
+     (((channel->color() == -1) && ((rep.color.hue() != 0) || (rep.color.saturation() != 0)))))
   {
     // if hue is -1 then use 0 saturation to make a grayscale image
     double hue = (channel->color() == -1) ? 0 : channel->color();
-    double sat = channel->color() >= 0 ? 1.0 : 0.0;
+    double sat = (channel->color() >= 0) ? 1.0 : 0.0;
     rep.color.setHsvF(hue, sat, 1.0);
 
     rep.lut->Allocate();
