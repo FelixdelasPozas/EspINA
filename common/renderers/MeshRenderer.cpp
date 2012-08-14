@@ -55,33 +55,13 @@ bool MeshRenderer::addItem(ModelItem* item)
   ColorEngine *engine = EspinaCore::instance()->colorSettings().engine();
   QColor color = engine->color(seg);
 
-  // segmentation image need to be padded to avoid segmentation voxels from touching the edges of the
-  // image (and create morphologicaly correct actors)
-  int extent[6];
-  vtkImageData *image = vtkImageData::SafeDownCast(seg->image()->GetProducer()->GetOutputDataObject(0));
-  image->GetExtent(extent);
-
-  m_padfilter = vtkSmartPointer<vtkImageConstantPad>::New();
-  m_padfilter->SetInputConnection(seg->image());
-  m_padfilter->SetOutputWholeExtent(extent[0]-1, extent[1]+1, extent[2]-1, extent[3]+1, extent[4]-1, extent[5]+1);
-  m_padfilter->SetConstant(0);
-
-  vtkSmartPointer<vtkDiscreteMarchingCubes> march = vtkSmartPointer<vtkDiscreteMarchingCubes>::New();
-  march->ReleaseDataFlagOn();
-  march->SetNumberOfContours(1);
-  march->GenerateValues(1, 255, 255);
-  march->ComputeScalarsOff();
-  march->ComputeNormalsOff();
-  march->ComputeGradientsOff();
-  march->SetInputConnection(m_padfilter->GetOutputPort());
-
   vtkSmartPointer<vtkDecimatePro> decimate = vtkSmartPointer<vtkDecimatePro>::New();
   decimate->ReleaseDataFlagOn();
   decimate->SetGlobalWarningDisplay(false);
   decimate->SetTargetReduction(0.95);
   decimate->PreserveTopologyOn();
   decimate->SplittingOff();
-  decimate->SetInputConnection(march->GetOutputPort());
+  decimate->SetInputConnection(seg->mesh());
 
   vtkSmartPointer<vtkWindowedSincPolyDataFilter> smoother = vtkSmartPointer<vtkWindowedSincPolyDataFilter>::New();
   smoother->ReleaseDataFlagOn();
@@ -119,6 +99,10 @@ bool MeshRenderer::addItem(ModelItem* item)
   m_segmentations[seg].color = engine->color(seg);
   m_segmentations[seg].actor = actor;
   m_segmentations[seg].visible = false;
+
+  int extent[6];
+  vtkImageData *image = vtkImageData::SafeDownCast(seg->vtkVolume()->GetProducer()->GetOutputDataObject(0));
+  image->GetExtent(extent);
   memcpy(m_segmentations[seg].extent, extent, 6*sizeof(int));
 
   return true;
@@ -153,11 +137,10 @@ bool MeshRenderer::updateItem(ModelItem* item)
    }
 
    int extent[6];
-   vtkImageData *image = vtkImageData::SafeDownCast(seg->image()->GetProducer()->GetOutputDataObject(0));
+   vtkImageData *image = vtkImageData::SafeDownCast(seg->vtkVolume()->GetProducer()->GetOutputDataObject(0));
    image->GetExtent(extent);
    if (memcmp(extent, rep.extent, 6*sizeof(int)) != 0)
    {
-     m_padfilter->SetOutputWholeExtent(extent[0]-1, extent[1]+1, extent[2]-1, extent[3]+1, extent[4]-1, extent[5]+1);
      memcpy(m_segmentations[seg].extent, extent, 6*sizeof(int));
      updated = true;
    }

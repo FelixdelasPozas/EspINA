@@ -68,7 +68,7 @@ bool CrosshairRenderer::addItem(ModelItem* item)
     m_channels.remove(item);
   }
 
-  itk::Matrix<double,3,3> direction = channel->volume()->GetDirection();
+  itk::Matrix<double,3,3> direction = channel->itkVolume()->GetDirection();
 
   // copy direction matrix to reslice matrices
   double axialMat[16] = { direction(0,0), direction(0,1), direction(0,2), 0,
@@ -98,21 +98,21 @@ bool CrosshairRenderer::addItem(ModelItem* item)
   vtkSmartPointer<vtkImageReslice> axialReslice = vtkSmartPointer<vtkImageReslice>::New();
   axialReslice->SetOptimization(true);
   axialReslice->BorderOn();
-  axialReslice->SetInputConnection(channel->image());
+  axialReslice->SetInputConnection(channel->vtkVolume());
   axialReslice->SetOutputDimensionality(2);
   axialReslice->SetResliceAxes(m_channels[channel].matAxial);
 
   vtkSmartPointer<vtkImageReslice> coronalReslice = vtkSmartPointer<vtkImageReslice>::New();
   coronalReslice->SetOptimization(true);
   coronalReslice->BorderOn();
-  coronalReslice->SetInputConnection(channel->image());
+  coronalReslice->SetInputConnection(channel->vtkVolume());
   coronalReslice->SetOutputDimensionality(2);
   coronalReslice->SetResliceAxes(m_channels[channel].matCoronal);
 
   vtkSmartPointer<vtkImageReslice> sagittalReslice = vtkSmartPointer<vtkImageReslice>::New();
   sagittalReslice->SetOptimization(true);
   sagittalReslice->BorderOn();
-  sagittalReslice->SetInputConnection(channel->image());
+  sagittalReslice->SetInputConnection(channel->vtkVolume());
   sagittalReslice->SetOutputDimensionality(2);
   sagittalReslice->SetResliceAxes(m_channels[channel].matSagittal);
 

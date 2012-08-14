@@ -56,7 +56,6 @@ public:
 
 private:
   QMap<ModelItem *, Representation> m_segmentations;
-  vtkSmartPointer<vtkImageConstantPad> m_padfilter;
 };
 
 #endif // MESHRENDERER_H

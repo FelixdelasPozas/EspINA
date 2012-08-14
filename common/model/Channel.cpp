@@ -72,7 +72,7 @@ OutputNumber Channel::outputNumber()
 }
 
 //------------------------------------------------------------------------
-EspinaVolume *Channel::volume()
+EspinaVolume *Channel::itkVolume()
 {
   return m_filter->output(m_args.outputNumber());
 }
@@ -90,14 +90,14 @@ EspinaVolume *Channel::volume()
 //------------------------------------------------------------------------
 void Channel::extent(int out[6])
 {
-  VolumeExtent(volume(), out);
+  VolumeExtent(itkVolume(), out);
   //memcpy(out,m_extent,6*sizeof(int));
 }
 
 //------------------------------------------------------------------------
 void Channel::bounds(double out[6])
 {
-  VolumeBounds(volume(), out);
+  VolumeBounds(itkVolume(), out);
   //memcpy(val,m_bounds,6*sizeof(double));
 }
 
@@ -105,7 +105,7 @@ void Channel::bounds(double out[6])
 void Channel::spacing(double out[3])
 {
   EspinaVolume::SpacingType spacing;
-  spacing = volume()->GetSpacing();
+  spacing = itkVolume()->GetSpacing();
   for (int i=0; i<3; i++)
     out[i] = spacing[i];
 }
@@ -351,7 +351,7 @@ Sample *Channel::sample()
 //     ext->initialize(this);
 // }
 
-vtkAlgorithmOutput* Channel::image()
+vtkAlgorithmOutput* Channel::vtkVolume()
 {
   if (itk2vtk.IsNull())
   {

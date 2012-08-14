@@ -31,6 +31,11 @@
 #include "Filter.h"
 #include <itkImageToVTKImageFilter.h>
 #include <vtkAlgorithmOutput.h>
+#include <itkCommand.h>
+#include <itkSmartPointer.h>
+#include <vtkSmartPointer.h>
+#include <vtkImageConstantPad.h>
+#include <vtkDiscreteMarchingCubes.h>
 
 // Forward declarations
 class Sample;
@@ -111,9 +116,10 @@ public:
   /// Selectable Item Interface
   virtual Filter* filter(){return m_filter;}
   virtual OutputNumber outputNumber() {return m_args.outputNumber();}
-  virtual EspinaVolume *volume();
+  virtual EspinaVolume *itkVolume();
 
-  virtual vtkAlgorithmOutput* image();
+  virtual vtkAlgorithmOutput* vtkVolume();
+  virtual vtkAlgorithmOutput* mesh();
 
   void setNumber(unsigned int number) {m_args.setNumber(number);}
   unsigned int number() const {return m_args.number();}
@@ -151,6 +157,33 @@ private:
   // itk to vtk filter
   typedef itk::ImageToVTKImageFilter<EspinaVolume> itk2vtkFilterType;
   itk2vtkFilterType::Pointer itk2vtk;
+
+  // vtkPolydata generation filter
+  vtkSmartPointer<vtkImageConstantPad> m_padfilter;
+  vtkSmartPointer<vtkDiscreteMarchingCubes> m_march;
+  void updateExtent();
+
+  class updateCommand : public itk::Command
+  {
+    public:
+    explicit updateCommand(Segmentation *seg) { parent = seg; };
+    ~updateCommand() {};
+
+    public:
+      void Execute(itk::Object *caller, const itk::EventObject & event)
+      {
+        Execute( (const itk::Object *)caller, event);
+      }
+
+      void Execute(const itk::Object * object, const itk::EventObject & event)
+      {
+        parent->updateExtent();
+      }
+    private:
+      Segmentation* parent;
+  };
+
+  updateCommand *m_updateMeshCommand;
 
   friend class Filter;
 };

@@ -621,7 +621,7 @@ bool EspinaModel::loadSerialization(istream& stream, RelationshipGraph::PrintFor
           filter->update();
           Channel *channel = factory->createChannel(filter, link[1].toUInt());
           channel->initialize(args);
-	  if (channel->volume() == NULL)
+	  if (channel->itkVolume() == NULL)
 	    return false;
           addChannel(channel);
           nonInitializedItems << NonInitilizedItem(channel, args);

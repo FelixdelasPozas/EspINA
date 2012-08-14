@@ -57,7 +57,7 @@ bool VolumetricRenderer::addItem(ModelItem* item)
   mapper->ReleaseDataFlagOn();
   mapper->SetBlendModeToComposite();
   mapper->IntermixIntersectingGeometryOff();
-  mapper->SetInputConnection(seg->image());
+  mapper->SetInputConnection(seg->vtkVolume());
 
   vtkSmartPointer<vtkVolumeRayCastCompositeFunction> composite = vtkSmartPointer<vtkVolumeRayCastCompositeFunction>::New();
   mapper->SetVolumeRayCastFunction(composite);

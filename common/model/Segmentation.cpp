@@ -58,6 +58,9 @@ Segmentation::Segmentation(Filter* filter, unsigned int outputNb)
 , m_taxonomy(NULL)
 , m_extInitialized(false)
 , m_isVisible(true)
+, m_padfilter(NULL)
+, m_march(NULL)
+, m_updateMeshCommand(NULL)
 {
   m_isSelected = false;
   //   memset(m_bounds, 0, 6*sizeof(double));
@@ -92,6 +95,8 @@ void Segmentation::changeFilter(Filter* filter, unsigned int outputNb)
 //------------------------------------------------------------------------
 Segmentation::~Segmentation()
 {
+  m_updateMeshCommand = NULL;
+
 //   int size = m_insertionOrderedExtensions.size()-1;
 //   for (int i = size; i >= 0; i--)
 //     delete m_insertionOrderedExtensions[i];
@@ -107,7 +112,7 @@ Segmentation::~Segmentation()
 }
 
 //------------------------------------------------------------------------
-EspinaVolume *Segmentation::volume()
+EspinaVolume *Segmentation::itkVolume()
 {
   return m_filter->output(m_args.outputNumber());
 }
@@ -312,7 +317,7 @@ void Segmentation::onColorEngineChanged()
   }
 }
 
-vtkAlgorithmOutput* Segmentation::image()
+vtkAlgorithmOutput* Segmentation::vtkVolume()
 {
   if (itk2vtk.IsNull())
   {
@@ -325,3 +330,47 @@ vtkAlgorithmOutput* Segmentation::image()
 
   return itk2vtk->GetOutput()->GetProducerPort();
 }
+
+void Segmentation::updateExtent()
+{
+  if (NULL == m_padfilter)
+    return;
+
+  int extent[6];
+  vtkImageData *image = vtkImageData::SafeDownCast(this->vtkVolume()->GetProducer()->GetOutputDataObject(0));
+  image->GetExtent(extent);
+  m_padfilter->SetOutputWholeExtent(extent[0]-1, extent[1]+1, extent[2]-1, extent[3]+1, extent[4]-1, extent[5]+1);
+  m_padfilter->Update();
+}
+
+vtkAlgorithmOutput* Segmentation::mesh()
+{
+  if (NULL == m_padfilter)
+  {
+    // segmentation image need to be padded to avoid segmentation voxels from touching the edges of the
+    // image (and create morphologicaly correct actors)
+    int extent[6];
+    vtkImageData *image = vtkImageData::SafeDownCast(this->vtkVolume()->GetProducer()->GetOutputDataObject(0));
+    image->GetExtent(extent);
+
+    m_padfilter = vtkSmartPointer<vtkImageConstantPad>::New();
+    m_padfilter->SetInputConnection(this->vtkVolume());
+    m_padfilter->SetOutputWholeExtent(extent[0]-1, extent[1]+1, extent[2]-1, extent[3]+1, extent[4]-1, extent[5]+1);
+    m_padfilter->SetConstant(0);
+
+    m_march = vtkSmartPointer<vtkDiscreteMarchingCubes>::New();
+    m_march->ReleaseDataFlagOn();
+    m_march->SetNumberOfContours(1);
+    m_march->GenerateValues(1, 255, 255);
+    m_march->ComputeScalarsOff();
+    m_march->ComputeNormalsOff();
+    m_march->ComputeGradientsOff();
+    m_march->SetInputConnection(m_padfilter->GetOutputPort());
+
+    m_updateMeshCommand = new updateCommand(this);
+    itk2vtk->AddObserver(itk::ModifiedEvent(), m_updateMeshCommand);
+  }
+
+  return m_march->GetOutput()->GetProducerPort();
+}
+

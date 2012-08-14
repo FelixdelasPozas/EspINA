@@ -641,11 +641,11 @@ QList<Segmentation *> SliceView::pickSegmentations(double vx,
     {
       Segmentation *pickedSeg = property3DSegmentation(pickedProp);
       Q_ASSERT(pickedSeg);
-      Q_ASSERT(pickedSeg->volume());
+      Q_ASSERT(pickedSeg->itkVolume());
 //       qDebug() << "Picked" << pickedSeg->data().toString() << "bounds";
       EspinaVolume::IndexType pickedPixel = pickedSeg->index(pixel.x(), pixel.y(), pixel.z());
-      if (!pickedSeg->volume()->GetLargestPossibleRegion().IsInside(pickedPixel) ||
-          (pickedSeg->volume()->GetPixel(pickedPixel) == 0))
+      if (!pickedSeg->itkVolume()->GetLargestPossibleRegion().IsInside(pickedPixel) ||
+          (pickedSeg->itkVolume()->GetPixel(pickedPixel) == 0))
 	continue;
 
 //       qDebug() <<  pickedSeg->data().toString() << "picked";
@@ -774,7 +774,7 @@ void SliceView::addChannelRepresentation(Channel* channel)
   channelRep.resliceToColors = vtkImageResliceToColors::New();
   channelRep.resliceToColors->ReleaseDataFlagOn();
   channelRep.resliceToColors->SetResliceAxes(m_slicingMatrix);
-  channelRep.resliceToColors->SetInputConnection(channel->image());
+  channelRep.resliceToColors->SetInputConnection(channel->vtkVolume());
   channelRep.resliceToColors->SetOutputDimensionality(2);
 
   channelRep.slice = vtkImageActor::New();
@@ -887,7 +887,7 @@ void SliceView::addSegmentationRepresentation(Segmentation* seg)
   segRep.resliceToColors = vtkImageResliceToColors::New();
   segRep.resliceToColors->ReleaseDataFlagOn();
   segRep.resliceToColors->SetResliceAxes(m_slicingMatrix);
-  segRep.resliceToColors->SetInputConnection(seg->image());
+  segRep.resliceToColors->SetInputConnection(seg->vtkVolume());
   segRep.resliceToColors->SetOutputDimensionality(2);
 
   segRep.resliceToColors->SetLookupTable(m_colorEngine->lut(seg));

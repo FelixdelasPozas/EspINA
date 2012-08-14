@@ -116,7 +116,7 @@ QVariant MorphologicalExtension::information(QString info) const
     return QVariant();
 
   if (m_statistic == NULL
-      || m_seg->volume()->GetTimeStamp() > m_labelMap->GetTimeStamp()
+      || m_seg->itkVolume()->GetTimeStamp() > m_labelMap->GetTimeStamp()
       || (info == FD && !m_validFeret)
      )
   {
@@ -129,7 +129,7 @@ QVariant MorphologicalExtension::information(QString info) const
       m_labelMap->SetComputeFeretDiameter(true);
       m_validFeret = true;
     }
-    m_labelMap->SetInput(m_seg->volume());
+    m_labelMap->SetInput(m_seg->itkVolume());
     m_labelMap->Update();
     m_labelMap->Modified();
 

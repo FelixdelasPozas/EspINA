@@ -30,6 +30,10 @@
 #include "MarginDetector.h"
 #include "MarginsSegmentationExtension.h"
 
+#include <vtkDistancePolyDataFilter.h>
+#include <vtkPlaneSource.h>
+#include <vtkPointData.h>
+
 typedef ModelItem::ArgumentId ArgumentId;
 
 const ModelItemExtension::ExtId MarginsChannelExtension::ID = "MarginsExtension";
@@ -128,25 +132,45 @@ ChannelExtension* MarginsChannelExtension::clone()
 }
 
 //-----------------------------------------------------------------------------
-void MarginsChannelExtension::computeMarginDistance(Segmentation* seg)
+void
+MarginsChannelExtension::computeMarginDistance(Segmentation* seg)
 {
   ModelItemExtension *ext = seg->extension(ID);
   Q_ASSERT(ext);
   MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext);
   Q_ASSERT(marginExt);
-  double distance[6], smargins[6];
-  VolumeBounds(seg->volume(), smargins);
+  Nm distance[6], smargins[6];
+  VolumeBounds(seg->itkVolume(), smargins);
   if (m_useExtentMargins)
   {
     double cmargins[6];
     m_channel->bounds(cmargins);
-    for(int i = 0; i < 6; i++)
+    for (int i = 0; i < 6; i++)
       distance[i] = fabs(smargins[i] - cmargins[i]);
-  }else
+  }
+  else
   {
     m_borderMutex.lock();
+
+    /////
+    vtkPoints *borderPoints = m_borders->GetPoints();
+
+    vtkSmartPointer<vtkPlaneSource> borderPlane = vtkSmartPointer<vtkPlaneSource>::New();
+    borderPlane->SetXResolution(100);
+    borderPlane->SetYResolution(100);
+    borderPlane->SetNormal(0,1,0);
+    borderPlane->SetCenter(0,0,0);
+
+    vtkSmartPointer<vtkDistancePolyDataFilter> distanceFilter = vtkSmartPointer<vtkDistancePolyDataFilter>::New();
+    distanceFilter->SetInputConnection( 0, seg->mesh() );
+    distanceFilter->SetInputConnection( 1, borderPlane->GetOutputPort(0));
+    distanceFilter->Update();
+
+    double minimumDistance = distanceFilter->GetSecondDistanceOutput()->GetPointData()->GetScalars()->GetRange()[0];
+
+    /////
     Q_ASSERT(m_borders->GetNumberOfPoints() > 0);
-    for(int i = 0; i < 6; i++)
+    for (int i = 0; i < 6; i++)
       distance[i] = smargins[i];
     m_borderMutex.unlock();
   }

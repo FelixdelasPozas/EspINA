@@ -37,13 +37,13 @@ public:
   virtual void setSelected(bool value) {m_isSelected = value;}
   virtual Filter       *filter() = 0;
   virtual OutputNumber  outputNumber() = 0;
-  virtual EspinaVolume *volume() = 0;
+  virtual EspinaVolume *itkVolume() = 0;
   /// Volume's voxel's index at given spatial position
   virtual EspinaVolume::IndexType index(Nm x, Nm y, Nm z)
   {
     //volume()->Print(std::cout);
-    EspinaVolume::PointType origin = volume()->GetOrigin();
-    EspinaVolume::SpacingType spacing = volume()->GetSpacing();
+    EspinaVolume::PointType origin = itkVolume()->GetOrigin();
+    EspinaVolume::SpacingType spacing = itkVolume()->GetSpacing();
     EspinaVolume::IndexType res;
     // add 0.5 before int conversion rounds the index
     res[0] = (x - origin[0]) / spacing[0] + 0.5;

@@ -423,7 +423,7 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
 
   Segmentation *seg = dynamic_cast<Segmentation *>(item);
   double bounds[6];
-  VolumeBounds(seg->volume(), bounds);
+  VolumeBounds(seg->itkVolume(), bounds);
   double x = bounds[0] + (bounds[1]-bounds[0])/2.0;
   double y = bounds[2] + (bounds[3]-bounds[2])/2.0;
   double z = bounds[4] + (bounds[5]-bounds[4])/2.0;

@@ -83,7 +83,7 @@ void MarginDetector::run()
 {
   m_extension->m_borderMutex.lock();
   Channel *channel       = m_extension->channel();
-  vtkAlgorithm *producer = channel->image()->GetProducer();
+  vtkAlgorithm *producer = channel->vtkVolume()->GetProducer();
   vtkDataObject *output  = producer->GetOutputDataObject(0);
   vtkImageData *image    = vtkImageData::SafeDownCast(output);
 

@@ -139,11 +139,11 @@ public:
   /// Selectable Item Interface
   virtual Filter* filter();
   virtual OutputNumber outputNumber();
-  virtual EspinaVolume *volume();
+  virtual EspinaVolume *itkVolume();
 //   virtual EspinaVolume::IndexType index(Nm x, Nm y, Nm z);
 
   // vtk image of the channel
-  vtkAlgorithmOutput* image();
+  vtkAlgorithmOutput *vtkVolume();
 
   /// Add a new extension to the segmentation
   /// Extesion won't be available until requirements are satisfied
