@@ -28,32 +28,27 @@ class RectangularBoundingRegion
   Q_OBJECT
 public:
   explicit RectangularBoundingRegion(CountingRegionSampleExtension *samplExt,
-				     double borders[6],
-				     double inclusion[3],
-				     double exclusion[3]);
+				     Nm borders[6],
+				     Nm inclusion[3],
+				     Nm exclusion[3]);
   virtual ~RectangularBoundingRegion();
 
   // Implements QStandardItem interface
   virtual QVariant data(int role = Qt::UserRole + 1) const;
 
   // Implements EspinaWidget interface
-  virtual pq3DWidget  *createWidget();
-  virtual SliceWidget *createSliceWidget(vtkPVSliceView::VIEW_PLANE plane);
-  virtual void setBounds(double bounds[6]);
-  virtual void bounds(double bounds[6]);
+  virtual SliceWidget *createSliceWidget(PlaneType plane);
+  virtual vtkAbstractWidget *createWidget();
+
   virtual void setEnabled(bool enable);
+
+  virtual void updateBoundingRegion();
 
 signals:
   void modified(BoundingRegion *);
 
-protected slots:
-  void resetWidgets();
-
 private:
-  pq3DWidget *createWidget(QString name);
-
-private:
-  QList<pq3DWidget *> m_widgets;
+  Nm m_borders[6];
 };
 
 #endif // RECTANGULARBOUNDINGREGION_H

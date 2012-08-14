@@ -38,23 +38,27 @@ public:
   virtual QVariant data(int role = Qt::UserRole + 1) const;
 
   // Implements EspinaWidget itnerface
-  virtual pq3DWidget  *createWidget();
-  virtual SliceWidget *createSliceWidget(vtkPVSliceView::VIEW_PLANE plane);
-  virtual void setBounds(double bounds[6]);
-  virtual void bounds(double bounds[6]);
+  virtual SliceWidget *createSliceWidget(PlaneType plane);
+  virtual vtkAbstractWidget *createWidget();
+
   virtual void setEnabled(bool enable);
+
+  virtual void updateBoundingRegion();
 
 signals:
   void modified(BoundingRegion *);
-
-protected slots:
-  void resetWidgets();
+protected:
+  double leftOffset()   const {return  m_inclusion[0];}
+  double topOffset()    const {return  m_inclusion[1];}
+  double upperOffset()  const {return  m_inclusion[2];}
+  double rightOffset()  const {return -m_exclusion[0];}
+  double bottomOffset() const {return -m_exclusion[1];}
+  double lowerOffset()  const {return -m_exclusion[2];}
+  void roundToSlice(double &var, double offset)
+  {var = floor(var + offset + 0.5);}
 
 private:
-  pq3DWidget *createWidget(QString name);
-
-private:
-  QList<pq3DWidget *> m_widgets;
+  Channel *m_channel;
 };
 
 #endif // ADAPTIVEBOUNDINGREGION_H

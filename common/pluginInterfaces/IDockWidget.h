@@ -16,38 +16,22 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef IDOCKWIDGET_H
+#define IDOCKWIDGET_H
 
-#ifndef CHANNELEXTENSION_H
-#define CHANNELEXTENSION_H
+#include "common/gui/EspinaDockWidget.h"
 
-#include "common/extensions/ModelItemExtension.h"
-
-#include <QSharedPointer>
-
-class Channel;
-
-/// Interface to extend channel's behaviour
-class ChannelExtension
-: public ModelItemExtension
+class IDockWidget
+: public EspinaDockWidget
 {
 public:
-  typedef QSharedPointer<ChannelExtension> SPtr;
+  explicit IDockWidget(QWidget* parent = 0)
+  : EspinaDockWidget(parent){}
+  virtual ~IDockWidget(){}
 
-public:
-  virtual ~ChannelExtension(){}
-
-  virtual void initialize(Channel *channel, ModelItem::Arguments args = ModelItem::Arguments()) = 0;
-  virtual QString serialize() const = 0;
-
-  virtual Channel *channel() const {return m_channel;}
-
-  /// Prototype
-  virtual ChannelExtension *clone() = 0;
-
-protected:
-  explicit ChannelExtension() : m_channel(NULL){}
-
-  Channel *m_channel;
+  virtual void reset() = 0;
 };
 
-#endif // CHANNELEXTENSION_H
+Q_DECLARE_INTERFACE(IDockWidget,
+                    "es.upm.cesvima.EspINA.DockWidgetInterface/1.0")
+#endif //IDOCKWIDGET_H

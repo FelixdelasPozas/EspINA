@@ -98,7 +98,6 @@ static const QString SEGMHA = "segmha";
 //-----------------------------------------------------------------------------
 SegmhaImporter::SegmhaImporter()
 {
-  qDebug() << "SegmhaImporter Loaded";
   // Register filter and reader factories
   QStringList supportedExtensions;
   supportedExtensions << SEGMHA;

@@ -1,13 +1,13 @@
 <RCC>
-  <qresource prefix="/espina">
-    <file>allPlanes.png</file>
-    <file>lower.png</file>
-    <file>upper.png</file>
-    <file>top.png</file>
-    <file>bottom.png</file>
-    <file>right.png</file>
-    <file>left.png</file>
-    <file>trash-full.svg</file>
-    <file>apply.svg</file>
-  </qresource>
+    <qresource prefix="/">
+        <file>allPlanes.png</file>
+        <file>lower.png</file>
+        <file>upper.png</file>
+        <file>top.png</file>
+        <file>bottom.png</file>
+        <file>right.png</file>
+        <file>left.png</file>
+        <file>trash-full.svg</file>
+        <file>apply.svg</file>
+    </qresource>
 </RCC>

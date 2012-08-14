@@ -17,37 +17,31 @@
 */
 
 
-#ifndef CHANNELEXTENSION_H
-#define CHANNELEXTENSION_H
+#ifndef VTKBOUNDINGREGIONWIDGET_H
+#define VTKBOUNDINGREGIONWIDGET_H
 
-#include "common/extensions/ModelItemExtension.h"
+#include <vtkAbstractWidget.h>
+#include <common/EspinaTypes.h>
 
-#include <QSharedPointer>
+class vtkPolyData;
 
-class Channel;
-
-/// Interface to extend channel's behaviour
-class ChannelExtension
-: public ModelItemExtension
+/// Base class for bounding region widgets
+class VTK_WIDGETS_EXPORT vtkBoundingRegionWidget
+: public vtkAbstractWidget
 {
 public:
-  typedef QSharedPointer<ChannelExtension> SPtr;
+  vtkTypeMacro(vtkBoundingRegionWidget, vtkAbstractWidget);
 
-public:
-  virtual ~ChannelExtension(){}
+  vtkSetVector3Macro(InclusionOffset, Nm);
+  vtkGetVector3Macro(InclusionOffset, Nm);
+  vtkSetVector3Macro(ExclusionOffset, Nm);
+  vtkGetVector3Macro(ExclusionOffset, Nm);
 
-  virtual void initialize(Channel *channel, ModelItem::Arguments args = ModelItem::Arguments()) = 0;
-  virtual QString serialize() const = 0;
-
-  virtual Channel *channel() const {return m_channel;}
-
-  /// Prototype
-  virtual ChannelExtension *clone() = 0;
+  virtual void SetBoundingRegion(vtkPolyData *region) = 0;
 
 protected:
-  explicit ChannelExtension() : m_channel(NULL){}
-
-  Channel *m_channel;
+  Nm InclusionOffset[3];
+  Nm ExclusionOffset[3];
 };
 
-#endif // CHANNELEXTENSION_H
+#endif // VTKBOUNDINGREGIONWIDGET_H

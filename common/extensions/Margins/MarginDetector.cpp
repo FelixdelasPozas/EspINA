@@ -167,45 +167,28 @@ void MarginDetector::run()
     vtkSmartPointer<vtkPoints> face = plane(corner,max,mid,min);
     assert(face->GetNumberOfPoints() == 4);
 
-    double leftBottom[3], rightBottom[3], rightTop[3], leftTop[3];
-
-    double point[3];
+    //NOTE: Espina's Counting Region Definition is used here.
+    // Upper slice is the first of the stack and lower the last one
+    // Left Top Corner corresponds to pixel (0,0,0), Right Top to (N,0,0)
+    // and so on
+    double LB[3], LT[3], RT[3], RB[3];
     vtkIdType cell[4];
-    // Left Top Corner
-    face->GetPoint(0, point);
-    face->GetPoint(0, leftTop);
-    int leftMargin = point[0];
-    int topMargin = point[1];
-    cell[0] = borderVertices->InsertNextPoint(point);
-    //     std::cout << "Point " << cell[0] << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
-
-    // Right Top Corner
-    face->GetPoint(2, point);
-    face->GetPoint(2, rightTop);
-    cell[1] = borderVertices->InsertNextPoint(point);
-    //     std::cout << "Point " << cell[1] << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
-
-    // Right Bottom Corner
-    face->GetPoint(3, point);//WARNING: I use clockwise order from 0,0,0 according to espina's view
-    face->GetPoint(3, rightBottom);
-    int rightMargin = point[0];
-    int bottomMargin = point[1];
-    cell[2] = borderVertices->InsertNextPoint(point);
-    //     std::cout << "Point " << cell[2] << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
 
     // Left Bottom Corner
-    face->GetPoint(1, point);//WARNING: I use clockwise order from 0,0,0 according to espina's view
-    face->GetPoint(1, leftBottom);
-    cell[3] = borderVertices->InsertNextPoint(point);
-    //     std::cout << "Point " << cell[3] << ": " << point[0] << " " << point[1] << " " << point[2] << std::endl;
-    //     std::cout << "Face: " << cell[0] << " " << cell[1] << " " << cell[2] << " " << cell[3] << std::endl;
+    face->GetPoint(1, LB);
+    cell[0] = borderVertices->InsertNextPoint(LB);
 
-//TODO     TotalAdaptiveVolume += ((rightMargin - leftMargin + 1)*(bottomMargin - topMargin+1));
+    // Left Top Corner
+    face->GetPoint(0, LT);
+    cell[1] = borderVertices->InsertNextPoint(LT);
 
-//     assert(leftBottom[0] < rightBottom[0]);
-//     assert(leftTop[0] < rightTop[0]);
-//     assert(leftBottom[1] > leftTop[1]);
-//     assert(rightBottom[1] > rightTop[1]);
+    // Right Top Corner
+    face->GetPoint(2, RT);
+    cell[2] = borderVertices->InsertNextPoint(RT);
+
+    // Right Bottom Corner
+    face->GetPoint(3, RB);
+    cell[3] = borderVertices->InsertNextPoint(RB);
 
     if (z == zMin)
     {

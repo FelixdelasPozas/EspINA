@@ -27,7 +27,9 @@
 #include "DynamicWidget.h"
 
 
-class EspinaDockWidget : public QDockWidget, public DynamicWidget
+class EspinaDockWidget
+: public QDockWidget
+, public DynamicWidget
 {
 
 public:

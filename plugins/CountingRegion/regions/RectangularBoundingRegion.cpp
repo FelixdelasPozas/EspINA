@@ -19,56 +19,44 @@
 
 #include "regions/RectangularBoundingRegion.h"
 
-#include <common/cache/CachedObjectBuilder.h>
-#include <pqPipelineSource.h>
-#include <pq3DWidget.h>
-#include <vtkRectangularBoundingRegionWidget.h>
-#include <vtkSMNewWidgetRepresentationProxy.h>
-#include <vtkSMPropertyHelper.h>
-#include <extensions/CountingRegionSampleExtension.h>
-#include <pq3DWidgetInterface.h>
-#include <pqApplicationCore.h>
-#include <pqInterfaceTracker.h>
+#include "extensions/CountingRegionSampleExtension.h"
+#include "regions/vtkBoundingRegionSliceWidget.h"
+
+#include <vtkCellArray.h>
+#include <vtkCellData.h>
+#include <vtkPolyData.h>
+#include <vtkSmartPointer.h>
+#include <common/EspinaCore.h>
+#include <common/gui/EspinaView.h>
+
 
 //-----------------------------------------------------------------------------
 RectangularBoundingRegion::RectangularBoundingRegion(CountingRegionSampleExtension *sampleExt,
-						     double borders[6],
-						     double inclusion[3],
-						     double exclusion[3])
+						     Nm borders[6],
+						     Nm inclusion[3],
+						     Nm exclusion[3])
 : BoundingRegion(sampleExt, inclusion, exclusion)
 {
-  // Configuration of Bounding Region interface
-  pqFilter::Arguments regionArgs;
-  QString margin = QString("%1,%2,%3,%4,%5,%6").arg((int)borders[0]).arg((int)borders[1])
-                                               .arg((int)borders[2]).arg((int)borders[3])
-				               .arg((int)borders[4]).arg((int)borders[5]);
+  memcpy(m_borders, borders, 6*sizeof(Nm));
 
-  regionArgs << pqFilter::Argument("Margin",pqFilter::Argument::DOUBLEVECT, margin);
-  QString inclusionArg = QString("%1,%2,%3").arg(left()).arg(top()).arg(upper());
-  regionArgs << pqFilter::Argument("InclusionOffset", pqFilter::Argument::DOUBLEVECT, inclusionArg);
-  QString exclusionArg = QString("%1,%2,%3").arg(right()).arg(bottom()).arg(lower());
-  regionArgs << pqFilter::Argument("ExclusionOffset", pqFilter::Argument::DOUBLEVECT, exclusionArg);
-
-  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-  m_boundingRegion = cob->createFilter("filters","RectangularBoundingRegion", regionArgs);
-
-  Q_ASSERT(m_boundingRegion);
+  m_boundingRegion = vtkPolyData::New();
+  updateBoundingRegion();
 }
+
 
 //-----------------------------------------------------------------------------
 RectangularBoundingRegion::~RectangularBoundingRegion()
 {
   m_sampleExt->removeRegion(this);
-  foreach(pq3DWidget *widget, m_widgets)
+  foreach(vtkAbstractWidget *w, m_widgets)
   {
-    widget->deselect();
-    widget->deleteLater();
+    w->EnabledOn();
+    w->Delete();
   }
   m_widgets.clear();
 
-  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
   if (m_boundingRegion)
-    cob->removeFilter(m_boundingRegion);
+    m_boundingRegion->Delete();
 }
 
 //-----------------------------------------------------------------------------
@@ -86,55 +74,23 @@ QVariant RectangularBoundingRegion::data(int role) const
 }
 
 //-----------------------------------------------------------------------------
-pq3DWidget* RectangularBoundingRegion::createWidget()
+SliceWidget* RectangularBoundingRegion::createSliceWidget(PlaneType plane)
 {
-  pq3DWidget *widget = createWidget("RectangularBoundingVolume");
-  Q_ASSERT(widget);
-  // By default ParaView doesn't "Apply" the changes to the widget. So we set
-  // up a slot to "Apply" when the interaction ends.
-  QObject::connect(widget, SIGNAL(widgetEndInteraction()),
-		   widget, SLOT(accept()));
-  QObject::connect(widget, SIGNAL(widgetEndInteraction()),
-		   this, SLOT(resetWidgets()));
-  
-  m_widgets << widget;
+  vtkBoundingRegionSliceWidget *w = vtkBoundingRegionSliceWidget::New();
+  Q_ASSERT(w);
+  w->AddObserver(vtkCommand::EndInteractionEvent, this);
+  w->SetPlane(plane);
+  w->SetBoundingRegion(m_boundingRegion);
 
-  return widget;
+  m_widgets << w;
+
+  return new SliceWidget(w);
 }
 
 //-----------------------------------------------------------------------------
-SliceWidget *RectangularBoundingRegion::createSliceWidget(vtkPVSliceView::VIEW_PLANE plane)
+vtkAbstractWidget *RectangularBoundingRegion::createWidget()
 {
-  pq3DWidget *widget = createWidget("RectangularBoundingRegion");
-  Q_ASSERT(widget);
-  // By default ParaView doesn't "Apply" the changes to the widget. So we set
-  // up a slot to "Apply" when the interaction ends.
-  QObject::connect(widget, SIGNAL(widgetEndInteraction()),
-		   widget, SLOT(accept()));
-  QObject::connect(widget, SIGNAL(widgetEndInteraction()),
-		   this, SLOT(resetWidgets()));
-
-  vtkAbstractWidget *aw = widget->getWidgetProxy()->GetWidget();
-  vtkRectangularBoundingRegionWidget *regionWidget =
-    dynamic_cast<vtkRectangularBoundingRegionWidget*>(aw);
-  Q_ASSERT(regionWidget);
-  regionWidget->SetPlane(plane);
-
-  m_widgets << widget;
-
-  return new SliceWidget(widget);
-}
-
-//-----------------------------------------------------------------------------
-void RectangularBoundingRegion::setBounds(double bounds[6])
-{
-  Q_ASSERT(false);
-}
-
-//-----------------------------------------------------------------------------
-void RectangularBoundingRegion::bounds(double bounds[6])
-{
-  Q_ASSERT(false);
+  return NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -143,40 +99,79 @@ void RectangularBoundingRegion::setEnabled(bool enable)
   Q_ASSERT(false);
 }
 
-//TODO: Widget related methods seem to be common in both regions
 //-----------------------------------------------------------------------------
-void RectangularBoundingRegion::resetWidgets()
+void RectangularBoundingRegion::updateBoundingRegion()
 {
-  foreach(pq3DWidget *widget, m_widgets)
-    widget->reset();
+  vtkSmartPointer<vtkPoints> vertex = vtkSmartPointer<vtkPoints>::New();
+  vtkSmartPointer<vtkCellArray> faces = vtkSmartPointer<vtkCellArray>::New();
+  vtkSmartPointer<vtkIntArray> faceData = vtkSmartPointer<vtkIntArray>::New();
 
-  vtkSMProxy *proxy = m_boundingRegion->pipelineSource()->getProxy();
-  vtkSMPropertyHelper(proxy, "InclusionOffset").Get(m_inclusion, 3);
-  vtkSMPropertyHelper(proxy, "ExclusionOffset").Get(m_exclusion, 3);
-  emitDataChanged();
-  emit modified(this);
-}
+  vtkIdType upperFace[4], leftFace[4], topFace[4];
+  vtkIdType lowerFace[4], rightFace[4], bottomFace[4];
 
-//-----------------------------------------------------------------------------
-pq3DWidget* RectangularBoundingRegion::createWidget(QString name)
-{
-  vtkSMProxy *proxy = m_boundingRegion->pipelineSource()->getProxy();
-//   vtkPVXMLElement *hints = proxy->GetHints();
-//   Q_ASSERT(hints->GetNumberOfNestedElements() == 1);
-//   vtkPVXMLElement* element = hints->GetNestedElement(0);
-  QList<pq3DWidgetInterface *> interfaces =
-  pqApplicationCore::instance()->interfaceTracker()->interfaces<pq3DWidgetInterface*>();
-  pq3DWidget *widget = 0;
+  Nm Left   = m_borders[0] + m_inclusion[0];
+  Nm Top    = m_borders[2] + m_inclusion[1];
+  Nm Upper  = m_borders[4] + m_inclusion[2];
+  Nm Right  = m_borders[1] - m_exclusion[0];
+  Nm Bottom = m_borders[3] - m_exclusion[1];
+  Nm Lower  = m_borders[5] - m_exclusion[2];
 
-  // Create the widget from plugins.
-  foreach (pq3DWidgetInterface* iface, interfaces)
-  {
-    widget = iface->newWidget(name, proxy, proxy);
-    if (widget)
-    {
-//       widget->setHints(element);
-      return widget;
-    }
-  }
-  return NULL;
+    // Upper Inclusion Face
+  upperFace[0] = vertex->InsertNextPoint(Left,  Bottom, Upper);
+  upperFace[1] = vertex->InsertNextPoint(Left,  Top,    Upper);
+  upperFace[2] = vertex->InsertNextPoint(Right, Top,    Upper);
+  upperFace[3] = vertex->InsertNextPoint(Right, Bottom, Upper);
+  faces->InsertNextCell(4, upperFace);
+  faceData->InsertNextValue(INCLUSION_FACE);
+
+  // Lower Exclusion Face
+  lowerFace[0] = vertex->InsertNextPoint(Left,  Bottom, Lower);
+  lowerFace[1] = vertex->InsertNextPoint(Left,  Top,    Lower);
+  lowerFace[2] = vertex->InsertNextPoint(Right, Top,    Lower);
+  lowerFace[3] = vertex->InsertNextPoint(Right, Bottom, Lower);
+  faces->InsertNextCell(4, lowerFace);
+  faceData->InsertNextValue(EXCLUSION_FACE);
+
+  // Left Inclusion Face
+  leftFace[0] = upperFace[0];
+  leftFace[1] = upperFace[1];
+  leftFace[2] = lowerFace[1];
+  leftFace[3] = lowerFace[0];
+  faces->InsertNextCell(4, leftFace);
+  faceData->InsertNextValue(INCLUSION_FACE);
+
+  // Right Exclusion Face
+  rightFace[0] = upperFace[2];
+  rightFace[1] = upperFace[3];
+  rightFace[2] = lowerFace[3];
+  rightFace[3] = lowerFace[2];
+  faces->InsertNextCell(4, rightFace);
+  faceData->InsertNextValue(EXCLUSION_FACE);
+
+  // Top Inclusion Face
+  topFace[0] = upperFace[1];
+  topFace[1] = upperFace[2];
+  topFace[2] = lowerFace[2];
+  topFace[3] = lowerFace[1];
+  faces->InsertNextCell(4, topFace);
+  faceData->InsertNextValue(INCLUSION_FACE);
+
+  // Bottom Exclusion Face
+  bottomFace[0] = upperFace[3];
+  bottomFace[1] = upperFace[0];
+  bottomFace[2] = lowerFace[0];
+  bottomFace[3] = lowerFace[3];
+  faces->InsertNextCell(4, bottomFace);
+  faceData->InsertNextValue(EXCLUSION_FACE);
+
+  m_boundingRegion->SetPoints(vertex);
+  m_boundingRegion->SetPolys(faces);
+  vtkCellData *data = m_boundingRegion->GetCellData();
+  data->SetScalars(faceData);
+  data->GetScalars()->SetName("Type");
+
+  m_totalVolume = (m_borders[1]-m_borders[0]+1)*
+                  (m_borders[3]-m_borders[2]+1)*
+                  (m_borders[5]-m_borders[4]+1);
+  m_inclusionVolume = (Right-Left)*(Top-Bottom)*(Upper-Lower);
 }

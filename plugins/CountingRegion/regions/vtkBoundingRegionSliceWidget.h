@@ -16,43 +16,39 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef VTKRECTANGULARBOUNDINGREGIONWIDGET_H
-#define VTKRECTANGULARBOUNDINGREGIONWIDGET_H
+#ifndef VTKRBOUNDINGREGIONSLICEWIDGET_H
+#define VTKRBOUNDINGREGIONSLICEWIDGET_H
 
-#include "vtkAbstractWidget.h"
-#include <common/views/vtkPVSliceView.h>
+#include "vtkBoundingRegionWidget.h"
 
-class vtkPolyDataAlgorithm;
-class vtkRectangularBoundingRegionRepresentation;
+#include <common/EspinaTypes.h>
 
-class VTK_WIDGETS_EXPORT vtkRectangularBoundingRegionWidget
-: public vtkAbstractWidget
+class vtkPolyData;
+class vtkBoundingRegionSliceRepresentation;
+
+class VTK_WIDGETS_EXPORT vtkBoundingRegionSliceWidget
+: public vtkBoundingRegionWidget
 {
 public:
   // Description:
   // Instantiate the object.
-  static vtkRectangularBoundingRegionWidget *New();
+  static vtkBoundingRegionSliceWidget *New();
 
   // Description:
   // Standard class methods for type information and printing.
-  vtkTypeMacro(vtkRectangularBoundingRegionWidget,vtkAbstractWidget);
+  vtkTypeMacro(vtkBoundingRegionSliceWidget, vtkBoundingRegionWidget);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
   // Specify an instance of vtkWidgetRepresentation used to represent this
   // widget in the scene. Note that the representation is a subclass of vtkProp
   // so it can be added to the renderer independent of the widget.
-  void SetRepresentation(vtkRectangularBoundingRegionRepresentation *r)
-    {this->Superclass::SetWidgetRepresentation(reinterpret_cast<vtkWidgetRepresentation*>(r));}
+//   void SetRepresentation(vtkRectangularBoundingRegionRepresentation *r)
+//     {this->Superclass::SetWidgetRepresentation(reinterpret_cast<vtkWidgetRepresentation*>(r));}
 
-  vtkSetVector3Macro(InclusionOffset, double);
-  vtkGetVector3Macro(InclusionOffset, double);
-  vtkSetVector3Macro(ExclusionOffset, double);
-  vtkGetVector3Macro(ExclusionOffset, double);
-
-  virtual void SetPlane(vtkPVSliceView::VIEW_PLANE plane);
-  virtual void SetSlice(double pos/*nm*/);
-  virtual void SetRegion(vtkPolyDataAlgorithm *region);
+  virtual void SetPlane(PlaneType plane);
+  virtual void SetSlice(Nm pos);
+  virtual void SetBoundingRegion(vtkPolyData* region);
 
   // Description:
   // Create the default widget representation if one is not set. By default,
@@ -60,8 +56,8 @@ public:
   void CreateDefaultRepresentation();
 
 protected:
-  vtkRectangularBoundingRegionWidget();
-  ~vtkRectangularBoundingRegionWidget();
+  vtkBoundingRegionSliceWidget();
+  ~vtkBoundingRegionSliceWidget();
 
 //BTX - manage the state of the widget
   int WidgetState;
@@ -73,20 +69,16 @@ protected:
   static void EndSelectAction(vtkAbstractWidget*);
   static void TranslateAction(vtkAbstractWidget*);
   static void MoveAction(vtkAbstractWidget*);
-  
+
   // helper methods for cursoe management
   virtual void SetCursor(int state);
 
-  double InclusionOffset[3];
-  double ExclusionOffset[3];
-
-  vtkPVSliceView::VIEW_PLANE Plane;
-  vtkPolyDataAlgorithm *Region;
-  double Slice;
+  PlaneType Plane;
+  Nm Slice;
 
 private:
-  vtkRectangularBoundingRegionWidget(const vtkRectangularBoundingRegionWidget&);  //Not implemented
-  void operator=(const vtkRectangularBoundingRegionWidget&);  //Not implemented
+  vtkBoundingRegionSliceWidget(const vtkBoundingRegionSliceWidget&);  //Not implemented
+  void operator=(const vtkBoundingRegionSliceWidget&);  //Not implemented
 };
 
-#endif // VTKRECTANGULARBOUNDINGREGIONWIDGET_H
+#endif //VTKRBOUNDINGREGIONSLICEWIDGET_H

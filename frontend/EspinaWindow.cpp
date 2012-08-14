@@ -55,6 +55,7 @@
 #include "toolbar/voi/VolumeOfInterest.h"
 #include <IO/FilePack.h>
 #include <pluginInterfaces/IToolBar.h>
+#include <pluginInterfaces/IDockWidget.h>
 
 #ifdef TEST_ESPINA_MODELS
   #include "common/model/ModelTest.h"
@@ -233,19 +234,29 @@ void EspinaWindow::loadPlugins()
   foreach (QString fileName, pluginsDir.entryList(QDir::Files)) {
     QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
     QObject *plugin = loader.instance();
+    qDebug() << fileName;
     if (plugin)
     {
-      qDebug() << " -" << fileName;
       IToolBar *toolbar = qobject_cast<IToolBar *>(plugin);
       if (toolbar)
+      {
+	qDebug() << "- ToolBar ... OK";
         addToolBar(toolbar);
-      IDynamicMenu *menu = qobject_cast< IDynamicMenu* >(plugin);
+      }
+
+      IDynamicMenu *menu = qobject_cast<IDynamicMenu *>(plugin);
       if (menu)
       {
+	qDebug() << "- Menus ..... OK";
         foreach(MenuEntry entry, menu->menuEntries())
-        {
           createDynamicMenu(entry);
-        }
+      }
+
+      IDockWidget *dock = qobject_cast<IDockWidget *>(plugin);
+      if (dock)
+      {
+	qDebug() << "- Dock ...... OK";
+	addDockWidget(Qt::LeftDockWidgetArea, dock);
       }
     }
   }

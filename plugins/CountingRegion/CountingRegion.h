@@ -22,22 +22,25 @@
 #ifndef COUNTINGREGION_H
 #define COUNTINGREGION_H
 
-#include <common/gui/EspinaDockWidget.h>
-#include <common/model/EspinaModel.h>
+#include <common/pluginInterfaces/IDockWidget.h>
 
+#include <common/model/EspinaModel.h>
 #include <QStandardItemModel>
 
 // Forward declaration
+
+/// Counting Region Plugin
 class CountingRegion
-: public EspinaDockWidget
+: public IDockWidget
 {
   Q_OBJECT
+  Q_INTERFACES(IDockWidget)
   class GUI;
 public:
   static const QString ID;
 
 public:
-  explicit CountingRegion(QWidget* parent);
+  explicit CountingRegion(QWidget* parent=NULL);
   virtual ~CountingRegion();
 
   void createAdaptiveRegion(double inclusion[3], double exclusion[3]);
@@ -53,6 +56,8 @@ protected slots:
   void sampleChanged(Sample *sample);
   void showInfo(const QModelIndex& index);
   void saveRegionDescription();
+
+  virtual void reset(){}
 
 private:
   GUI *m_gui;

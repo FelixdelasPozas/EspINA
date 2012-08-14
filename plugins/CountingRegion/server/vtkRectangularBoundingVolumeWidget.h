@@ -73,8 +73,6 @@ protected:
   // helper methods for cursoe management
   virtual void SetCursor(int state);
 
-  double InclusionOffset[3];
-  double ExclusionOffset[3];
 
   vtkPolyDataAlgorithm *Volume;
 

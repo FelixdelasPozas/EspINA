@@ -67,21 +67,21 @@ bool CountingRegion::GUI::eventFilter(QObject* object, QEvent* event)
   if (event->type() == QEvent::FocusIn)
   {
     if (object == leftMargin)
-      preview->setPixmap(QPixmap(":/espina/left.png"));
+      preview->setPixmap(QPixmap(":/left.png"));
     else if (object == rightMargin)
-      preview->setPixmap(QPixmap(":/espina/right.png"));
+      preview->setPixmap(QPixmap(":/right.png"));
     else if (object == topMargin)
-      preview->setPixmap(QPixmap(":/espina/top.png"));
+      preview->setPixmap(QPixmap(":/top.png"));
     else if (object == bottomMargin)
-      preview->setPixmap(QPixmap(":/espina/bottom.png"));
+      preview->setPixmap(QPixmap(":/bottom.png"));
     else if (object == upperSlice)
-      preview->setPixmap(QPixmap(":/espina/upper.png"));
+      preview->setPixmap(QPixmap(":/upper.png"));
     else if (object == lowerSlice)
-      preview->setPixmap(QPixmap(":/espina/lower.png"));
+      preview->setPixmap(QPixmap(":/lower.png"));
 
   }else if (event->type() == QEvent::FocusOut)
   {
-    preview->setPixmap(QPixmap(":/espina/allPlanes.png"));
+    preview->setPixmap(QPixmap(":/allPlanes.png"));
   }
   return QObject::eventFilter(object, event);
 }
@@ -104,12 +104,11 @@ void CountingRegion::GUI::setOffsetRanges(int min, int max)
   lowerSlice->setMaximum(max);
 }
 
-
 const QString CountingRegion::ID = "CountingRegionExtension";
 
 //------------------------------------------------------------------------
 CountingRegion::CountingRegion(QWidget * parent)
-: EspinaDockWidget(parent)
+: IDockWidget(parent)
 , m_gui(new GUI())
 {
   setObjectName("CountingRegionDock");
@@ -152,7 +151,6 @@ CountingRegion::CountingRegion(QWidget * parent)
 
   connect(EspinaCore::instance(), SIGNAL(currentAnalysisClosed()),
 	  this, SLOT(clearBoundingRegions()));
-
 }
 
 //------------------------------------------------------------------------
@@ -163,21 +161,18 @@ CountingRegion::~CountingRegion()
 //------------------------------------------------------------------------
 void CountingRegion::createAdaptiveRegion(double inclusion[3], double exclusion[3])
 {
-  QSharedPointer<ViewManager> vm = EspinaCore::instance()->viewManger();
-  EspinaView *view = vm->currentView();
+  EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
 
-  Sample *sample = EspinaCore::instance()->sample();
+  Channel *channel = EspinaCore::instance()->activeChannel();
+  Q_ASSERT(channel);
+
+  Sample *sample = channel->sample();
   Q_ASSERT(sample);
-  ModelItem::Vector channels = sample->relatedItems(ModelItem::OUT,
-                                                    Channel::STAINLINK);
-  Q_ASSERT(channels.size() > 0);
 
   ModelItemExtension *ext = sample->extension(CountingRegionSampleExtension::ID);
   Q_ASSERT(ext);
   CountingRegionSampleExtension *sampleExt = dynamic_cast<CountingRegionSampleExtension *>(ext);
   Q_ASSERT(sampleExt);
-
-  Channel *channel = dynamic_cast<Channel *>(channels.first());
 
   AdaptiveBoundingRegion *region(new AdaptiveBoundingRegion(sampleExt, channel, inclusion, exclusion));
   sampleExt->addRegion(region);
@@ -189,19 +184,21 @@ void CountingRegion::createAdaptiveRegion(double inclusion[3], double exclusion[
 //------------------------------------------------------------------------
 void CountingRegion::createRectangularRegion(double inclusion[3], double exclusion[3])
 {
-  QSharedPointer<ViewManager> vm = EspinaCore::instance()->viewManger();
-  EspinaView *view = vm->currentView();
+  EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
 
-  Sample *sample = EspinaCore::instance()->sample();
+  Channel *channel = EspinaCore::instance()->activeChannel();
+  Q_ASSERT(channel);
+
+  Sample *sample = channel->sample();
   Q_ASSERT(sample);
 
   ModelItemExtension *ext = sample->extension(CountingRegionSampleExtension::ID);
   Q_ASSERT(ext);
   CountingRegionSampleExtension *sampleExt = dynamic_cast<CountingRegionSampleExtension *>(ext);
   Q_ASSERT(sampleExt);
-  
+
   double borders[6];
-  sample->bounds(borders);
+  channel->bounds(borders);
 
   RectangularBoundingRegion *region(new RectangularBoundingRegion(sampleExt, borders, inclusion, exclusion));
   sampleExt->addRegion(region);
@@ -234,13 +231,12 @@ void CountingRegion::createBoundingRegion()
   exclusion[1] = m_gui->bottomMargin->value();
   exclusion[2] = m_gui->lowerSlice->value();
 
-  if (m_gui->regionType->currentIndex() == ADAPTIVE)
+  if (ADAPTIVE == m_gui->regionType->currentIndex())
     createAdaptiveRegion(inclusion, exclusion);
-  else if (m_gui->regionType->currentIndex() == RECTANGULAR)
+  else if (RECTANGULAR == m_gui->regionType->currentIndex())
     createRectangularRegion(inclusion, exclusion);
   else
     Q_ASSERT(false);
-
 
   QApplication::restoreOverrideCursor();
 }
@@ -290,3 +286,5 @@ void CountingRegion::saveRegionDescription()
     file.close();
   }
 }
+
+Q_EXPORT_PLUGIN2(CountingRegionPlugin, CountingRegion)

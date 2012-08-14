@@ -2,7 +2,8 @@
 #define VTKRECTANGULARBOUNDINGBOXREPRESENTATION_H
 
 #include "vtkWidgetRepresentation.h"
-#include <common/views/vtkPVSliceView.h>
+
+#include <common/EspinaTypes.h>
 
 class vtkLookupTable;
 class vtkPolyDataAlgorithm;
@@ -22,8 +23,7 @@ class vtkBox;
 class vtkDoubleArray;
 class vtkMatrix4x4;
 
-
-class VTK_WIDGETS_EXPORT vtkRectangularBoundingRegionRepresentation : public vtkWidgetRepresentation
+class VTK_WIDGETS_EXPORT vtkBoundingRegionSliceRepresentation : public vtkWidgetRepresentation
 {
   //BTX
   enum EDGE {LEFT, TOP, RIGHT, BOTTOM};
@@ -32,11 +32,11 @@ class VTK_WIDGETS_EXPORT vtkRectangularBoundingRegionRepresentation : public vtk
 public:
   // Description:
   // Instantiate the class.
-  static vtkRectangularBoundingRegionRepresentation *New();
+  static vtkBoundingRegionSliceRepresentation *New();
 
   // Description:
   // Standard methods for the class.
-  vtkTypeMacro(vtkRectangularBoundingRegionRepresentation,vtkWidgetRepresentation);
+  vtkTypeMacro(vtkBoundingRegionSliceRepresentation,vtkWidgetRepresentation);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
@@ -64,9 +64,9 @@ public:
   // and which slice (in case of planar views) is selected
 //   vtkSetMacro(ViewType,int);
 //   vtkSetMacro(Slice,int);
-  virtual void SetPlane(vtkPVSliceView::VIEW_PLANE plane);
-  virtual void SetSlice(double pos);
-  virtual void SetRegion(vtkPolyDataAlgorithm *region);
+  virtual void SetPlane(PlaneType plane);
+  virtual void SetSlice(Nm pos);
+  virtual void SetRegion(vtkPolyData *region);
 
   // Description:
   // These are methods to communicate with the 3d_widget
@@ -108,8 +108,8 @@ public:
   void SetInteractionState(int state);
 
 protected:
-  vtkRectangularBoundingRegionRepresentation();
-  ~vtkRectangularBoundingRegionRepresentation();
+  vtkBoundingRegionSliceRepresentation();
+  ~vtkBoundingRegionSliceRepresentation();
 
   // Manage how the representation appears
   double LastEventPosition[3];
@@ -137,14 +137,14 @@ protected:
 
   virtual void CreateDefaultProperties();
 
-  int hCoord() const {return Plane==vtkPVSliceView::SAGITTAL?2:0;}
-  int vCoord() const {return Plane==vtkPVSliceView::CORONAL?2:1;}
+  int hCoord() const {return SAGITTAL == Plane?2:0;}
+  int vCoord() const {return CORONAL  == Plane?2:1;}
   double leftEdge() {return GetBounds()[hCoord()*2] + Shift[LEFT];}
   double topEdge() {return GetBounds()[vCoord()*2] + Shift[TOP];}
   double rightEdge() {return GetBounds()[hCoord()*2+1] + Shift[RIGHT];}
   double bottomEdge() {return GetBounds()[vCoord()*2+1] + Shift[BOTTOM];}
 
-  int sliceNumber(double pos/*nm*/, vtkPVSliceView::VIEW_PLANE plane) const;
+  int sliceNumber(Nm pos, PlaneType plane) const;
 
   // Helper methods to create face representations
   virtual void CreateRegion();
@@ -160,16 +160,15 @@ protected:
   void MoveTopEdge(double *p1, double *p2);
   void MoveBottomEdge(double *p1, double *p2);
 
-  vtkPVSliceView::VIEW_PLANE Plane;
-  vtkPolyDataAlgorithm *Region;
-  double Slice;
+  PlaneType Plane;
+  vtkPolyData *Region;
+  Nm Slice;
   double Shift[4];
   bool Init;
 
-
 private:
-  vtkRectangularBoundingRegionRepresentation(const vtkRectangularBoundingRegionRepresentation&);  //Not implemented
-  void operator=(const vtkRectangularBoundingRegionRepresentation&);  //Not implemented
+  vtkBoundingRegionSliceRepresentation(const vtkBoundingRegionSliceRepresentation&);  //Not implemented
+  void operator=(const vtkBoundingRegionSliceRepresentation&);  //Not implemented
 
   double InclusionOffset[3];
   double ExclusionOffset[3];
@@ -177,6 +176,8 @@ private:
   int NumPoints;
   int NumSlices;
   int NumVertex;
+
+  double RepBounds[6];
 };
 
 #endif

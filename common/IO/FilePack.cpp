@@ -67,7 +67,7 @@ bool IOEspinaFile::loadFile(QFileInfo file,
     {
       Q_ASSERT(taxonomy == NULL);
       taxonomy = IOTaxonomy::loadXMLTaxonomy(espinaFile.readAll());
-      taxonomy->print(3);
+      //taxonomy->print(3);
     } else if(file.fileName() == TRACE)
     {
       Q_ASSERT(traceContent.isEmpty());

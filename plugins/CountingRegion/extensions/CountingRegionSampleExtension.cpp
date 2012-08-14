@@ -19,15 +19,18 @@
 
 #include "CountingRegionSampleExtension.h"
 
+#include "CountingRegion.h"
+#include "CountingRegionSegmentationExtension.h"
+#include "regions/RectangularBoundingRegion.h"
+
 #include <common/model/ModelItem.h>
 #include <common/model/Sample.h>
 
-#include "CountingRegionSegmentationExtension.h"
+typedef ModelItem::ArgumentId ArgumentId;
 
-#include <regions/RectangularBoundingRegion.h>
-#include <CountingRegion.h>
+const ModelItemExtension::ExtId CountingRegionSampleExtension::ID = "CountingRegionExtension";
 
-const QString CountingRegionSampleExtension::ID = "CountingRegionExtension";
+const ArgumentId CountingRegionSampleExtension::REGIONS = ArgumentId("Regions", ArgumentId::VARIABLE);
 
 //-----------------------------------------------------------------------------
 CountingRegionSampleExtension::CountingRegionSampleExtension(CountingRegion *plugin)
@@ -42,21 +45,17 @@ CountingRegionSampleExtension::~CountingRegionSampleExtension()
 }
 
 //-----------------------------------------------------------------------------
-QString CountingRegionSampleExtension::id()
+ModelItemExtension::ExtId CountingRegionSampleExtension::id()
 {
   return ID;
 }
 
 //-----------------------------------------------------------------------------
-void CountingRegionSampleExtension::initialize(Sample* sample)
+void CountingRegionSampleExtension::initialize(Sample* sample,
+					       ModelItem::Arguments args)
 {
   m_sample = sample;
-}
-
-//-----------------------------------------------------------------------------
-void CountingRegionSampleExtension::setArguments(QString args)
-{
-  QStringList regions = args.split(";");
+  QStringList regions = args[REGIONS].split(";");
 
   foreach (QString region, regions)
   {
@@ -80,7 +79,6 @@ void CountingRegionSampleExtension::setArguments(QString args)
 // 			     exclusion[0], exclusion[1], exclusion[2], row);
   }
 }
-
 
 //-----------------------------------------------------------------------------
 SampleExtension *CountingRegionSampleExtension::clone()

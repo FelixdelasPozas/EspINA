@@ -28,28 +28,26 @@ class CountingRegionSampleExtension
 : public SampleExtension
 {
 public:
-  static const QString ID;
+  static const ExtId ID;
+  static const ModelItem::ArgumentId REGIONS;
 
   explicit CountingRegionSampleExtension(CountingRegion *plugin);;
   virtual ~CountingRegionSampleExtension();
 
-  virtual QString id();
-  virtual void initialize(Sample* sample);
+  virtual ExtId id();
+  virtual void initialize(Sample *sample, ModelItem::Arguments args = ModelItem::Arguments());
 
-  virtual QStringList dependencies() const
-  {return SampleExtension::dependencies();}
+  virtual ModelItemExtension::ExtIdList dependencies() const
+  { return SampleExtension::dependencies(); }
 
-  virtual QStringList availableRepresentations() const
-  {return SampleExtension::availableRepresentations();}
+  virtual ModelItemExtension::InfoList availableInformations() const
+  { return SampleExtension::availableInformations(); }
 
+  virtual RepList availableRepresentations() const
+  { return SampleExtension::availableRepresentations(); }
 
-  virtual QStringList availableInformations() const
-  {return SampleExtension::availableInformations();}
-
-  virtual QVariant information(QString info) const
-  {return SampleExtension::information(info);}
-
-  virtual void setArguments(QString args);
+  virtual QVariant information(InfoTag tag) const
+  { return SampleExtension::information(tag); }
 
   virtual SampleExtension *clone();
 

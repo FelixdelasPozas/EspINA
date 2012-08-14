@@ -18,16 +18,15 @@
 
 
 #include "regions/BoundingRegion.h"
-
-#include <vtkSMPropertyHelper.h>
-#include <vtkSMProxy.h>
-#include <pqPipelineSource.h>
+#include "vtkBoundingRegionSliceWidget.h"
 
 //-----------------------------------------------------------------------------
 BoundingRegion::BoundingRegion(CountingRegionSampleExtension *sampleExt,
 			       double inclusion[3],
 			       double exclusion[3])
 : QStandardItem()
+, INCLUSION_FACE(255)
+, EXCLUSION_FACE(0)
 , m_sampleExt(sampleExt)
 {
   memcpy(m_inclusion, inclusion, 3*sizeof(double));
@@ -65,40 +64,26 @@ QVariant BoundingRegion::data(int role) const
 }
 
 //-----------------------------------------------------------------------------
-double BoundingRegion::totalVolume() const
+void BoundingRegion::Execute(vtkObject* caller, long unsigned int eventId, void* callData)
 {
-  double vol;
+  vtkBoundingRegionSliceWidget *widget = static_cast<vtkBoundingRegionSliceWidget *>(caller);
 
-  m_boundingRegion->pipelineSource()->updatePipeline();
-  vtkSMProxy *proxy = m_boundingRegion->pipelineSource()->getProxy();
-  proxy->UpdatePropertyInformation();
-  vtkSMPropertyHelper(proxy,"TotalVolume").Get(&vol,1);
+  if (widget)
+  {
+    Nm inOffset[3], exOffset[3];
+    widget->GetInclusionOffset(inOffset);
+    widget->GetExclusionOffset(exOffset);
+    for (int i = 0; i < 3; i++)
+    {
+      m_inclusion[i] += inOffset[i];
+      m_exclusion[i] += exOffset[i];
+    }
 
-  return vol;
-}
+    updateBoundingRegion();
 
-//-----------------------------------------------------------------------------
-double BoundingRegion::inclusionVolume() const
-{
-  double vol;
+    foreach(vtkBoundingRegionWidget *w, m_widgets)
+      w->SetBoundingRegion(m_boundingRegion);
+  }
 
-  m_boundingRegion->pipelineSource()->updatePipeline();
-  vtkSMProxy *proxy = m_boundingRegion->pipelineSource()->getProxy();
-  proxy->UpdatePropertyInformation();
-  vtkSMPropertyHelper(proxy,"InclusionVolume").Get(&vol,1);
-
-  return vol;
-}
-
-//-----------------------------------------------------------------------------
-double BoundingRegion::exclusionVolume() const
-{
-  double vol;
-
-  m_boundingRegion->pipelineSource()->updatePipeline();
-  vtkSMProxy *proxy = m_boundingRegion->pipelineSource()->getProxy();
-  proxy->UpdatePropertyInformation();
-  vtkSMPropertyHelper(proxy,"ExclusionVolume").Get(&vol,1);
-
-  return vol;
+  emitDataChanged();
 }

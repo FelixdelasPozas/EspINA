@@ -1,4 +1,4 @@
-#include "vtkRectangularBoundingRegionRepresentation.h"
+#include "vtkBoundingRegionSliceRepresentation.h"
 
 #include <vtkActor.h>
 #include <vtkAssemblyPath.h>
@@ -29,11 +29,11 @@
 
 const double MIN_SLICE_SPACING = 2;
 
-vtkStandardNewMacro(vtkRectangularBoundingRegionRepresentation);
+vtkStandardNewMacro(vtkBoundingRegionSliceRepresentation);
 
 //----------------------------------------------------------------------------
-vtkRectangularBoundingRegionRepresentation::vtkRectangularBoundingRegionRepresentation()
-: Plane(vtkPVSliceView::AXIAL)
+vtkBoundingRegionSliceRepresentation::vtkBoundingRegionSliceRepresentation()
+: Plane(AXIAL)
 , Region(NULL)
 , Slice(0)
 , Init(false)
@@ -41,7 +41,7 @@ vtkRectangularBoundingRegionRepresentation::vtkRectangularBoundingRegionRepresen
 , NumSlices(0)
 {
   // The initial state
-  this->InteractionState = vtkRectangularBoundingRegionRepresentation::Outside;
+  this->InteractionState = vtkBoundingRegionSliceRepresentation::Outside;
 
   memset(this->InclusionOffset, 0, 3*sizeof(double));
   memset(this->ExclusionOffset, 0, 3*sizeof(double));
@@ -83,7 +83,7 @@ vtkRectangularBoundingRegionRepresentation::vtkRectangularBoundingRegionRepresen
 }
 
 //----------------------------------------------------------------------------
-vtkRectangularBoundingRegionRepresentation::~vtkRectangularBoundingRegionRepresentation()
+vtkBoundingRegionSliceRepresentation::~vtkBoundingRegionSliceRepresentation()
 {
   for(int i=0; i<4; i++)
   {
@@ -102,15 +102,14 @@ vtkRectangularBoundingRegionRepresentation::~vtkRectangularBoundingRegionReprese
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::GetPolyData(vtkPolyData *pd)
+void vtkBoundingRegionSliceRepresentation::GetPolyData(vtkPolyData *pd)
 {
-  Q_ASSERT(false);
 //   pd->SetPoints(this->RegionPolyData->GetPoints());
 //   pd->SetPolys(this->RegionPolyData->GetPolys());
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::reset()
+void vtkBoundingRegionSliceRepresentation::reset()
 {
 //   std::cout << "Shift's been reset" << std::endl;
   memset(this->Shift, 0, 4*sizeof(double));
@@ -119,7 +118,7 @@ void vtkRectangularBoundingRegionRepresentation::reset()
 
 
 //----------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::StartWidgetInteraction(double e[2])
+void vtkBoundingRegionSliceRepresentation::StartWidgetInteraction(double e[2])
 {
   // Store the start position
   this->StartEventPosition[0] = e[0];
@@ -135,7 +134,7 @@ void vtkRectangularBoundingRegionRepresentation::StartWidgetInteraction(double e
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::WidgetInteraction(double e[2])
+void vtkBoundingRegionSliceRepresentation::WidgetInteraction(double e[2])
 {
   // Convert events to appropriate coordinate systems
   vtkCamera *camera = this->Renderer->GetActiveCamera();
@@ -162,22 +161,22 @@ void vtkRectangularBoundingRegionRepresentation::WidgetInteraction(double e[2])
   vtkInteractorObserver::ComputeDisplayToWorld(this->Renderer, e[0], e[1], z, pickPoint);
 
   // Process the motion
-  if ( this->InteractionState == vtkRectangularBoundingRegionRepresentation::MoveLeft )
+  if ( this->InteractionState == vtkBoundingRegionSliceRepresentation::MoveLeft )
   {
     this->MoveLeftEdge(prevPickPoint,pickPoint);
   }
 
-  else if ( this->InteractionState == vtkRectangularBoundingRegionRepresentation::MoveRight )
+  else if ( this->InteractionState == vtkBoundingRegionSliceRepresentation::MoveRight )
   {
     this->MoveRightEdge(prevPickPoint,pickPoint);
   }
 
-  else if ( this->InteractionState == vtkRectangularBoundingRegionRepresentation::MoveTop )
+  else if ( this->InteractionState == vtkBoundingRegionSliceRepresentation::MoveTop )
   {
     this->MoveTopEdge(prevPickPoint,pickPoint);
   }
 
-  else if ( this->InteractionState == vtkRectangularBoundingRegionRepresentation::MoveBottom )
+  else if ( this->InteractionState == vtkBoundingRegionSliceRepresentation::MoveBottom )
   {
     this->MoveBottomEdge(prevPickPoint,pickPoint);
   }
@@ -189,11 +188,11 @@ void vtkRectangularBoundingRegionRepresentation::WidgetInteraction(double e[2])
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::MoveLeftEdge(double* p1, double* p2)
+void vtkBoundingRegionSliceRepresentation::MoveLeftEdge(double* p1, double* p2)
 {
   double shift = p2[hCoord()] - p1[hCoord()];
   bool crossRightEdge = leftEdge() + shift + MIN_SLICE_SPACING >= rightEdge();
-  bool validOffset = vtkPVSliceView::SAGITTAL != Plane
+  bool validOffset = SAGITTAL != Plane
                   || InclusionOffset[hCoord()] + shift >= 0;
   if (!crossRightEdge && validOffset)
   {
@@ -204,11 +203,11 @@ void vtkRectangularBoundingRegionRepresentation::MoveLeftEdge(double* p1, double
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::MoveRightEdge(double* p1, double* p2)
+void vtkBoundingRegionSliceRepresentation::MoveRightEdge(double* p1, double* p2)
 {
   double shift = p2[hCoord()] - p1[hCoord()];
   bool crossLeftEdge = leftEdge() + MIN_SLICE_SPACING >= rightEdge() + shift;
-  bool validOffset = vtkPVSliceView::SAGITTAL != Plane
+  bool validOffset = SAGITTAL != Plane
                   || ExclusionOffset[hCoord()] - shift >= 0;
   if (!crossLeftEdge && validOffset)
   {
@@ -218,11 +217,11 @@ void vtkRectangularBoundingRegionRepresentation::MoveRightEdge(double* p1, doubl
   }
 }
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::MoveTopEdge(double* p1, double* p2)
+void vtkBoundingRegionSliceRepresentation::MoveTopEdge(double* p1, double* p2)
 {
   double shift = p2[vCoord()] - p1[vCoord()];
   double crossBottomEdge = topEdge() + shift + MIN_SLICE_SPACING >= bottomEdge();
-  bool validOffset = vtkPVSliceView::CORONAL != Plane
+  bool validOffset = CORONAL != Plane
                   || InclusionOffset[vCoord()] + shift >= 0;
   if (!crossBottomEdge && validOffset)
   {
@@ -232,11 +231,11 @@ void vtkRectangularBoundingRegionRepresentation::MoveTopEdge(double* p1, double*
   }
 }
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::MoveBottomEdge(double* p1, double* p2)
+void vtkBoundingRegionSliceRepresentation::MoveBottomEdge(double* p1, double* p2)
 {
   double shift = p2[vCoord()] - p1[vCoord()];
   double crossTopEdge = topEdge() + MIN_SLICE_SPACING >= bottomEdge() + shift;
-  bool validOffset = vtkPVSliceView::CORONAL != Plane
+  bool validOffset = CORONAL != Plane
                   || ExclusionOffset[vCoord()] - shift >= 0;
   if (!crossTopEdge && validOffset)
   {
@@ -247,7 +246,7 @@ void vtkRectangularBoundingRegionRepresentation::MoveBottomEdge(double* p1, doub
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::CreateDefaultProperties()
+void vtkBoundingRegionSliceRepresentation::CreateDefaultProperties()
 {
   // Edge properties
   this->InclusionEdgeProperty = vtkProperty::New();
@@ -282,13 +281,13 @@ void vtkRectangularBoundingRegionRepresentation::CreateDefaultProperties()
 }
 
 //----------------------------------------------------------------------------
-int vtkRectangularBoundingRegionRepresentation::sliceNumber(double pos,
-				vtkPVSliceView::VIEW_PLANE plane) const
+int vtkBoundingRegionSliceRepresentation::sliceNumber(Nm pos,
+							    PlaneType plane) const
 {
   double point[3];
   for (int number = 0; number < NumSlices; number++)
   {
-    this->Region->GetOutput()->GetPoints()->GetPoint(4*number, point);
+    this->Region->GetPoints()->GetPoint(4*number, point);
 //     this->Region->GetOutput()->GetPoints()->GetPoint(4*(number+1), next);
 //     if (point[Plane] <= pos && pos < next[Plane])
     if (pos <= point[plane])
@@ -298,44 +297,45 @@ int vtkRectangularBoundingRegionRepresentation::sliceNumber(double pos,
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::CreateRegion()
+void vtkBoundingRegionSliceRepresentation::CreateRegion()
 {
-  switch (Plane)
+  if (Region)
   {
-    case vtkPVSliceView::AXIAL:
-      CreateXYFace();
-      break;
-    case vtkPVSliceView::SAGITTAL:
-      CreateYZFace();
-      break;
-    case vtkPVSliceView::CORONAL:
-      CreateXZFace();
-      break;
-  };
+    switch (Plane)
+    {
+      case AXIAL:
+	CreateXYFace();
+	break;
+      case SAGITTAL:
+	CreateYZFace();
+	break;
+      case CORONAL:
+	CreateXZFace();
+	break;
+    };
+  }
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::UpdateRegion()
+void vtkBoundingRegionSliceRepresentation::UpdateRegion()
 {
   switch (Plane)
   {
-    case vtkPVSliceView::AXIAL:
+    case AXIAL:
       UpdateXYFace();
       break;
-    case vtkPVSliceView::SAGITTAL:
+    case SAGITTAL:
       CreateYZFace();
       break;
-    case vtkPVSliceView::CORONAL:
+    case CORONAL:
       CreateXZFace();
       break;
   };
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::CreateXYFace()
+void vtkBoundingRegionSliceRepresentation::CreateXYFace()
 {
-  Region->UpdateWholeExtent();
-
   // Corners of the rectangular region
   this->Vertex->SetNumberOfPoints(4);
 
@@ -373,15 +373,15 @@ void intersection(double A1[2], double A2[2], double B1[2], double B2[2], double
   p[1] = mA*A1[0] + bA;
 }
 
-void vtkRectangularBoundingRegionRepresentation::UpdateXYFace()
+void vtkBoundingRegionSliceRepresentation::UpdateXYFace()
 {
   double LB[3], LT[3], RT[3], RB[3];
 
   // Get original Region Points
-  Region->GetOutput()->GetPoint(Slice*4+0, LB);
-  Region->GetOutput()->GetPoint(Slice*4+1, LT);
-  Region->GetOutput()->GetPoint(Slice*4+2, RT);
-  Region->GetOutput()->GetPoint(Slice*4+3, RB);
+  Region->GetPoint(Slice*4+0, LB);
+  Region->GetPoint(Slice*4+1, LT);
+  Region->GetPoint(Slice*4+2, RT);
+  Region->GetPoint(Slice*4+3, RB);
 
   // Change its depth to be always on top of the XY plane
   // according to Espina's Camera
@@ -408,24 +408,29 @@ void vtkRectangularBoundingRegionRepresentation::UpdateXYFace()
   for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
     this->EdgePolyData[i]->Modified();
 
-  BuildRepresentation();
+  RepBounds[0] = LB[0];
+  RepBounds[1] = RB[0];
+  RepBounds[2] = LT[1];
+  RepBounds[3] = LB[1];
+  RepBounds[4] = RB[2];
+  RepBounds[5] = RB[2];
 }
 
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::CreateYZFace()
+void vtkBoundingRegionSliceRepresentation::CreateYZFace()
 {
 //   std::cout << "Created YZ FACE" << std::endl;
   double LB[3], RB[3];
-  this->Region->GetOutput()->GetPoint(0, LB);
-  this->Region->GetOutput()->GetPoint(NumPoints-1, RB);
+  this->Region->GetPoint(0, LB);
+  this->Region->GetPoint(NumPoints-1, RB);
 
 //   std::cout << "LB: " << LB[2] << std::endl;
 //   std::cout << "RB: " << RB[2] << std::endl;
 //   std::cout << "LB+Shift: " << LB[2] + Shift[LEFT]  << std::endl;
 //   std::cout << "RB+Shift: " << RB[2]+ Shift[RIGHT] << std::endl;
-  int UpperSlice = sliceNumber(LB[2] + Shift[LEFT], vtkPVSliceView::AXIAL);
-  int LowerSlice = sliceNumber(RB[2] + Shift[RIGHT], vtkPVSliceView::AXIAL);
+  int UpperSlice = sliceNumber(LB[2] + Shift[LEFT],  AXIAL);
+  int LowerSlice = sliceNumber(RB[2] + Shift[RIGHT], AXIAL);
 //   std::cout << "Upper Slice: " << UpperSlice << std::endl;
 //   std::cout << "Lower Slice: " << LowerSlice << std::endl;
 
@@ -440,7 +445,7 @@ void vtkRectangularBoundingRegionRepresentation::CreateYZFace()
   // First pair belongs to the left edge
   // Last pair belongs to the right edge
   // Odd indexed points belong to the top edge
-  // Pair indexed points belong to the bottom edge
+  // Even indexed points belong to the bottom edge
   /*
    *   1\ /5-7\ /11
    *   | 3     9 |
@@ -489,8 +494,8 @@ void vtkRectangularBoundingRegionRepresentation::CreateYZFace()
   {
     int interval = slice - UpperSlice;
     // Bottom
-    Region->GetOutput()->GetPoint(slice*4+0,point);
-    point[0] = -0.1;
+    Region->GetPoint(slice*4+0,point);
+    point[0] = 0.1;
     point[1] += Shift[BOTTOM];
     if (slice == 0)
       point[2] += Shift[LEFT];
@@ -498,8 +503,8 @@ void vtkRectangularBoundingRegionRepresentation::CreateYZFace()
       point[2] += Shift[RIGHT];
     this->Vertex->SetPoint(2*interval, point);
     // Top
-    Region->GetOutput()->GetPoint(slice*4+1,point);
-    point[0] = -0.1;
+    Region->GetPoint(slice*4+1,point);
+    point[0] = 0.1;
     point[1] += Shift[TOP];
     if (slice == 0)
       point[2] += Shift[LEFT];
@@ -510,21 +515,19 @@ void vtkRectangularBoundingRegionRepresentation::CreateYZFace()
 
   for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
     this->EdgePolyData[i]->Modified();
-
-  BuildRepresentation();
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::CreateXZFace()
+void vtkBoundingRegionSliceRepresentation::CreateXZFace()
 {
   double LT[3], LB[3];
-  this->Region->GetOutput()->GetPoint(1, LT);
-  this->Region->GetOutput()->GetPoint(NumPoints-4, LB);
+  this->Region->GetPoint(1, LT);
+  this->Region->GetPoint(NumPoints-4, LB);
 
 //   std::cout << "LT: " << LT[2] << std::endl;
 //   std::cout << "LB: " << LB[2] << std::endl;
-  int UpperSlice = sliceNumber(LT[2] + Shift[TOP], vtkPVSliceView::AXIAL);
-  int LowerSlice = sliceNumber(LB[2] + Shift[BOTTOM], vtkPVSliceView::AXIAL);
+  int UpperSlice = sliceNumber(LT[2] + Shift[TOP],    AXIAL);
+  int LowerSlice = sliceNumber(LB[2] + Shift[BOTTOM], AXIAL);
 //   std::cout << "Upper Slice: " << UpperSlice << std::endl;
 //   std::cout << "Lower Slice: " << LowerSlice << std::endl;
 
@@ -538,7 +541,7 @@ void vtkRectangularBoundingRegionRepresentation::CreateXZFace()
   // Set of point pairs. Each pair belong to the same slice .
   // First pair belongs to the top edge
   // Last pair belongs to the bottom edge
-  // Pair indexed points belong to the left edge
+  // Even indexed points belong to the left edge
   // Odd indexed points belong to the right edge
   /*
    *   0---------1
@@ -590,18 +593,18 @@ void vtkRectangularBoundingRegionRepresentation::CreateXZFace()
   {
     int interval = slice - UpperSlice;
     // LEFT
-    Region->GetOutput()->GetPoint(slice*4+1,point);
+    Region->GetPoint(slice*4+1,point);
     point[0] += Shift[LEFT];
-    point[1] = -0.1;
+    point[1] = 0.1;
     if (slice == 0)
       point[2] += Shift[TOP];
     else if (slice == NumSlices -1)
       point[2] += Shift[BOTTOM];
     this->Vertex->SetPoint(2*interval+0, point);
     //RIGHT
-    Region->GetOutput()->GetPoint(slice*4+3,point);
+    Region->GetPoint(slice*4+3,point);
     point[0] += Shift[RIGHT];
-    point[1] = -0.1;
+    point[1] = 0.1;
     if (slice == 0)
       point[2] += Shift[TOP];
     else if (slice == NumSlices -1)
@@ -611,19 +614,16 @@ void vtkRectangularBoundingRegionRepresentation::CreateXZFace()
 
   for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
     this->EdgePolyData[i]->Modified();
-
-  BuildRepresentation();
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::SetPlane(vtkPVSliceView::VIEW_PLANE plane)
+void vtkBoundingRegionSliceRepresentation::SetPlane(PlaneType plane)
 {
   if (Plane == plane && Init)
     return;
 
   Init = true;
   Plane = plane;
-
 //   double bounds[6];
 //   BoundingBox->GetBounds(bounds);
 
@@ -631,7 +631,7 @@ void vtkRectangularBoundingRegionRepresentation::SetPlane(vtkPVSliceView::VIEW_P
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::SetSlice(double pos)
+void vtkBoundingRegionSliceRepresentation::SetSlice(double pos)
 {
 //   std::cout << "Plane: " << Plane << ", Slice: " << pos << /*", Spacing: " << spacing[0] << " " << spacing[1] << " " << spacing[2] <<*/ std::endl;
   Slice = sliceNumber(pos, Plane);
@@ -639,32 +639,32 @@ void vtkRectangularBoundingRegionRepresentation::SetSlice(double pos)
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::SetRegion(vtkPolyDataAlgorithm *region)
+void vtkBoundingRegionSliceRepresentation::SetRegion(vtkPolyData *region)
 {
   Region = region;
   this->Region->Update();
-  this->Region->UpdateWholeExtent();
-  this->NumPoints = this->Region->GetOutput()->GetPoints()->GetNumberOfPoints();
+  this->NumPoints = this->Region->GetPoints()->GetNumberOfPoints();
   this->NumSlices = this->NumPoints / 4;
   this->NumVertex = this->NumSlices * 2;
 
+  memset(this->InclusionOffset, 0, 3*sizeof(double));
+  memset(this->ExclusionOffset, 0, 3*sizeof(double));
+  memset(this->Shift, 0, 4*sizeof(double));
+
   CreateRegion();
-//   RegionPolyData->SetPoints(region->GetOutput()->GetPoints());
-//   RegionPolyData->SetPolys(region->GetOutput()->GetPolys());
-//   RegionPolyData->GetCellData()->SetScalars(region->GetOutput()->GetCellData()->GetScalars("Type"));
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::PlaceWidget(double bds[6])
+void vtkBoundingRegionSliceRepresentation::PlaceWidget(double bds[6])
 {
 //   std::cout << "Place Widget: ";
   int i;
   double bounds[6], center[3];
-  
+
   this->AdjustBounds(bds,bounds,center);
 //   std::cout << bds[0] << " "<< bds[1] << " "<< bds[2] << " "<< bds[3] << " "<< bds[4] << " "<< bds[5] << std::endl;
 //   std::cout << bounds[0] << " "<< bounds[1] << " "<< bounds[2] << " "<< bounds[3] << " "<< bounds[4] << " "<< bounds[5] << std::endl;
-  
+
   this->Vertex->SetPoint(0, bounds[0], bounds[2], bounds[4]);
   this->Vertex->SetPoint(1, bounds[1], bounds[2], bounds[4]);
   this->Vertex->SetPoint(2, bounds[1], bounds[3], bounds[4]);
@@ -682,16 +682,16 @@ void vtkRectangularBoundingRegionRepresentation::PlaceWidget(double bds[6])
 }
 
 //----------------------------------------------------------------------------
-int vtkRectangularBoundingRegionRepresentation::ComputeInteractionState(int X, int Y, int modify)
+int vtkBoundingRegionSliceRepresentation::ComputeInteractionState(int X, int Y, int modify)
 {
   // Okay, we can process this. Try to pick handles first;
   // if no handles picked, then pick the bounding box.
   if (!this->Renderer || !this->Renderer->IsInViewport(X, Y))
     {
-    this->InteractionState = vtkRectangularBoundingRegionRepresentation::Outside;
+    this->InteractionState = vtkBoundingRegionSliceRepresentation::Outside;
     return this->InteractionState;
     }
-  
+
   vtkAssemblyPath *path;
   // Try and pick a handle first
   this->LastPicker = NULL;
@@ -707,19 +707,19 @@ int vtkRectangularBoundingRegionRepresentation::ComputeInteractionState(int X, i
       reinterpret_cast<vtkActor *>(path->GetFirstNode()->GetViewProp());
     if (this->CurrentEdge == this->EdgeActor[LEFT])
     {
-      this->InteractionState = vtkRectangularBoundingRegionRepresentation::MoveLeft;
+      this->InteractionState = vtkBoundingRegionSliceRepresentation::MoveLeft;
     }
     else if (this->CurrentEdge == this->EdgeActor[RIGHT])
     {
-      this->InteractionState = vtkRectangularBoundingRegionRepresentation::MoveRight;
+      this->InteractionState = vtkBoundingRegionSliceRepresentation::MoveRight;
     } 
     else if (this->CurrentEdge == this->EdgeActor[TOP])
     {
-      this->InteractionState = vtkRectangularBoundingRegionRepresentation::MoveTop;
+      this->InteractionState = vtkBoundingRegionSliceRepresentation::MoveTop;
     } 
     else if (this->CurrentEdge == this->EdgeActor[BOTTOM])
     {
-      this->InteractionState = vtkRectangularBoundingRegionRepresentation::MoveBottom;
+      this->InteractionState = vtkBoundingRegionSliceRepresentation::MoveBottom;
     }
     else
     {
@@ -728,28 +728,28 @@ int vtkRectangularBoundingRegionRepresentation::ComputeInteractionState(int X, i
   }
   else
   {
-    this->InteractionState = vtkRectangularBoundingRegionRepresentation::Outside;
+    this->InteractionState = vtkBoundingRegionSliceRepresentation::Outside;
   }
   return this->InteractionState;
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::SetInteractionState(int state)
+void vtkBoundingRegionSliceRepresentation::SetInteractionState(int state)
 {
   // Clamp to allowable values
-  state = state < vtkRectangularBoundingRegionRepresentation::Outside ? vtkRectangularBoundingRegionRepresentation::Outside : state;
+  state = state < vtkBoundingRegionSliceRepresentation::Outside ? vtkBoundingRegionSliceRepresentation::Outside : state;
 
   // Depending on state, highlight appropriate parts of representation
   this->InteractionState = state;
   switch (state)
     {
-    case vtkRectangularBoundingRegionRepresentation::MoveLeft:
-    case vtkRectangularBoundingRegionRepresentation::MoveRight:
-    case vtkRectangularBoundingRegionRepresentation::MoveTop:
-    case vtkRectangularBoundingRegionRepresentation::MoveBottom:
+    case vtkBoundingRegionSliceRepresentation::MoveLeft:
+    case vtkBoundingRegionSliceRepresentation::MoveRight:
+    case vtkBoundingRegionSliceRepresentation::MoveTop:
+    case vtkBoundingRegionSliceRepresentation::MoveBottom:
       this->HighlightEdge(this->CurrentEdge);
       break;
-    case vtkRectangularBoundingRegionRepresentation::Translating:
+    case vtkBoundingRegionSliceRepresentation::Translating:
       this->HighlightEdge(this->CurrentEdge);
       break;
     default:
@@ -758,14 +758,14 @@ void vtkRectangularBoundingRegionRepresentation::SetInteractionState(int state)
 }
 
 //----------------------------------------------------------------------
-double *vtkRectangularBoundingRegionRepresentation::GetBounds()
+double *vtkBoundingRegionSliceRepresentation::GetBounds()
 {
   this->BuildRepresentation();
-  return Region->GetOutput()->GetBounds();
+  return Region->GetBounds();
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::BuildRepresentation()
+void vtkBoundingRegionSliceRepresentation::BuildRepresentation()
 {
   // Rebuild only if necessary
   if ( this->GetMTime() > this->BuildTime ||
@@ -778,7 +778,7 @@ void vtkRectangularBoundingRegionRepresentation::BuildRepresentation()
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::ReleaseGraphicsResources(vtkWindow *w)
+void vtkBoundingRegionSliceRepresentation::ReleaseGraphicsResources(vtkWindow *w)
 {
   for (EDGE i=LEFT; i <= BOTTOM; i = EDGE(i+1))
     this->EdgeActor[i]->ReleaseGraphicsResources(w);
@@ -786,7 +786,7 @@ void vtkRectangularBoundingRegionRepresentation::ReleaseGraphicsResources(vtkWin
 }
 
 //----------------------------------------------------------------------------
-int vtkRectangularBoundingRegionRepresentation::RenderOpaqueGeometry(vtkViewport *v)
+int vtkBoundingRegionSliceRepresentation::RenderOpaqueGeometry(vtkViewport *v)
 {
   int count=0;
   this->BuildRepresentation();
@@ -798,7 +798,7 @@ int vtkRectangularBoundingRegionRepresentation::RenderOpaqueGeometry(vtkViewport
 }
 
 //----------------------------------------------------------------------------
-int vtkRectangularBoundingRegionRepresentation::RenderTranslucentPolygonalGeometry(vtkViewport *v)
+int vtkBoundingRegionSliceRepresentation::RenderTranslucentPolygonalGeometry(vtkViewport *v)
 {
   int count=0;
   this->BuildRepresentation();
@@ -810,7 +810,7 @@ int vtkRectangularBoundingRegionRepresentation::RenderTranslucentPolygonalGeomet
 }
 
 //----------------------------------------------------------------------------
-int vtkRectangularBoundingRegionRepresentation::HasTranslucentPolygonalGeometry()
+int vtkBoundingRegionSliceRepresentation::HasTranslucentPolygonalGeometry()
 {
   int result=0;
   this->BuildRepresentation();
@@ -822,7 +822,7 @@ int vtkRectangularBoundingRegionRepresentation::HasTranslucentPolygonalGeometry(
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::HighlightEdge(vtkActor* actor)
+void vtkBoundingRegionSliceRepresentation::HighlightEdge(vtkActor* actor)
 {
   for (EDGE edge=LEFT; edge <= BOTTOM; edge = EDGE(edge+1))
   {
@@ -841,7 +841,7 @@ void vtkRectangularBoundingRegionRepresentation::HighlightEdge(vtkActor* actor)
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingRegionRepresentation::PrintSelf(ostream& os, vtkIndent indent)
+void vtkBoundingRegionSliceRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 

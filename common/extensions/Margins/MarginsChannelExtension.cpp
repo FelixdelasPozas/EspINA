@@ -152,3 +152,9 @@ void MarginsChannelExtension::computeMarginDistance(Segmentation* seg)
   }
   marginExt->setMargins(distance);
 }
+
+//-----------------------------------------------------------------------------
+vtkSmartPointer< vtkPolyData > MarginsChannelExtension::margins()
+{
+  return m_borders;
+}

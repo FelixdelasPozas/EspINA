@@ -22,19 +22,23 @@
 
 #include <QStandardItemModel>
 #include <common/widgets/RectangularSelection.h>
-
-#include <common/processing/pqFilter.h>
-#include <common/processing/pqData.h>
+#include <vtkCommand.h>
 
 class CountingRegionSampleExtension;
+class vtkBoundingRegionWidget;
+class vtkPolyData;
 
 /// Bounding Regions' base class
 class BoundingRegion
 : public QStandardItem
 , public QObject
 , public EspinaWidget
+, public vtkCommand
 {
 public:
+  const int INCLUSION_FACE;
+  const int EXCLUSION_FACE;
+
   enum Role
   {
     DescriptionRole = Qt::UserRole + 1
@@ -48,17 +52,24 @@ public:
   virtual QVariant data(int role = Qt::UserRole + 1) const;
 
   /// Return total volume in pixels
-  double totalVolume() const;
+  virtual double totalVolume() const
+  { return m_totalVolume; }
   /// Return inclusion volume in pixels
-  double inclusionVolume() const;
+  virtual double inclusionVolume() const
+  { return m_inclusionVolume; }
   /// Return exclusion volume in pixels
-  double exclusionVolume() const;
+  virtual double exclusionVolume() const
+  { return totalVolume() - inclusionVolume(); }
 
-  virtual pqData region() const {return m_boundingRegion->data(0);}
+  virtual vtkPolyData *region() const {return m_boundingRegion;}
+
+  virtual void Execute(vtkObject* caller, long unsigned int eventId, void* callData);
 
   void modified(BoundingRegion *){};
 
 protected:
+  virtual void updateBoundingRegion() = 0;
+
   double left()  const {return m_inclusion[0];}
   double top()   const {return m_inclusion[1];}
   double upper() const {return m_inclusion[2];}
@@ -67,10 +78,14 @@ protected:
   double lower() const {return m_exclusion[2];}
 
 protected:
-  pqFilter *m_boundingRegion;
+  vtkPolyData *m_boundingRegion;
   CountingRegionSampleExtension *m_sampleExt;
+
   double  m_inclusion[3];
   double  m_exclusion[3];
+  double  m_totalVolume, m_inclusionVolume;
+
+  QList<vtkBoundingRegionWidget *> m_widgets;
 };
 
 #endif // BOUNDINGREGION_H

@@ -32,9 +32,9 @@ class Segmentation;
 class MarginsChannelExtension
 : public ChannelExtension
 {
+public:
   static const ExtId ID;
 
-public:
   static const InfoTag LEFT_MARGIN;
   static const InfoTag TOP_MARGIN;
   static const InfoTag UPPER_MARGIN;
@@ -65,6 +65,8 @@ public:
   virtual ChannelExtension* clone();
 
   void computeMarginDistance(Segmentation *seg);
+
+  vtkSmartPointer<vtkPolyData> margins();
 
 private:
   bool                         m_useExtentMargins;

@@ -24,37 +24,36 @@
 
 
 // Forward declaration
-class pqFilter;
-class Segmentation;
 class BoundingRegion;
+class Segmentation;
 
 class CountingRegionSegmentationExtension
 : public SegmentationExtension
 {
   Q_OBJECT
 public:
-  static const QString ID;
-  static const QString Discarted;
+  static const ExtId ID;
+  static const InfoTag DISCARTED;
 
 public:
   explicit CountingRegionSegmentationExtension();
   virtual ~CountingRegionSegmentationExtension();
 
-  virtual QString id();
+  virtual ExtId id();
   virtual void initialize(Segmentation* seg);
 
-  virtual QStringList dependencies() const
-    {return SegmentationExtension::dependencies();}
+  virtual ExtIdList dependencies() const
+  { return SegmentationExtension::dependencies(); }
 
-  virtual QStringList availableRepresentations() const
-    {return SegmentationExtension::availableRepresentations();}
+  virtual InfoList availableInformations() const
+  { return SegmentationExtension::availableInformations(); }
+
+  virtual RepList availableRepresentations() const
+  { return SegmentationExtension::availableRepresentations(); }
+
+  virtual QVariant information(InfoTag tag) const;
 
   virtual SegmentationRepresentation *representation(QString rep);
-
-  virtual QStringList availableInformations() const
-    {return SegmentationExtension::availableInformations();}
-
-  virtual QVariant information(QString info) const;
 
   void updateRegions(QList<BoundingRegion *> regions);
 
@@ -62,9 +61,6 @@ public:
 
 protected slots:
   void regionUpdated(BoundingRegion *region);
-
-private:
-  pqFilter *m_countingRegion;
 };
 
 #endif // COUNTINGREGIONSEGMENTATIONEXTENSION_H

@@ -248,6 +248,8 @@ void DefaultEspinaView::addWidget(EspinaWidget* widget)
 //   volView->addWidget(widgets.vol);
 
   m_widgets[widget] = widgets;
+
+  forceRender();
 }
 
 //----------------------------------------------------------------------------
