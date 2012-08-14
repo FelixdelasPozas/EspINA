@@ -783,9 +783,9 @@ void SliceView::addChannelRepresentation(Channel* channel)
   channelRep.slice->GetMapper()->SetInputConnection(channelRep.resliceToColors->GetOutputPort());
   m_state->updateActor(channelRep.slice);
 
-    // if hue is -1 then use 0 saturation to make a grayscale image
-  double hue = channel->color();
-  double sat = hue >= 0?1.0:0.0;
+  // if hue is -1 then use 0 saturation to make a grayscale image
+  double hue = (channel->color() == -1) ? 0 : channel->color();
+  double sat = channel->color() >= 0 ? 1.0 : 0.0;
 
   channelRep.selected = false;
   channelRep.visible = !channel->isVisible();  // Force initialization
@@ -832,38 +832,49 @@ bool SliceView::updateChannelRepresentation(Channel* channel)
   double pos[3];
   channel->position(pos);
 
-  if (channel->isVisible() != rep.visible || channel->color() != rep.color.hueF() || memcmp(pos, rep.pos, 3 * sizeof(double)))
+  bool updated = false;
+
+  if (this->suggestedChannelOpacity() != rep.slice->GetProperty()->GetOpacity())
+  {
+    rep.slice->GetProperty()->SetOpacity(this->suggestedChannelOpacity());
+    updated = true;
+  }
+
+  if (channel->isVisible() != rep.visible)
   {
     rep.visible = channel->isVisible();
-    rep.color.setHsvF(channel->color(), 1.0, 1.0);
-    memcpy(rep.pos, pos, 3 * sizeof(double));
-
-    rep.slice->SetPosition(rep.pos);
-    // don't want to update the color table everytime
-    if (channel->color() != rep.color.hueF())
-    {
-      // if hue is -1 then use 0 saturation to make a grayscale image
-      double hue = channel->color();
-      double sat = hue >= 0?1.0:0.0;
-
-      rep.lut->Allocate();
-      rep.lut->SetTableRange(0,255);
-      rep.lut->SetHueRange(hue, hue);
-      rep.lut->SetSaturationRange(0.0, sat);
-      rep.lut->SetSaturationRange(0.0, 1.0);
-      rep.lut->SetValueRange(0.0, 1.0);
-      rep.lut->SetAlphaRange(1.0,1.0);
-      rep.lut->SetNumberOfColors(256);
-      rep.lut->Build();
-      rep.lut->Modified();
-    }
-    rep.color.setHsvF(channel->color(), 1.0, 1.0);
     rep.slice->SetVisibility(rep.visible);
-    double opacity = suggestedChannelOpacity();
-    rep.slice->GetProperty()->SetOpacity(opacity);
-    return true;
+    updated = true;
   }
-  return false;
+
+  if (memcmp(pos, rep.pos, 3 * sizeof(double)))
+  {
+    memcpy(rep.pos, pos, 3 * sizeof(double));
+    rep.slice->SetPosition(rep.pos);
+    updated = true;
+  }
+
+  if (((channel->color() != -1) && ((rep.color.hueF() != channel->color()) || (rep.color.saturation() != 1.0))) ||
+     (((channel->color() == -1) && ((rep.color.hue() != 0) || (rep.color.saturation() != 0)))))
+  {
+    // if hue is -1 then use 0 saturation to make a grayscale image
+    double hue = (channel->color() == -1) ? 0 : channel->color();
+    double sat = (channel->color() >= 0) ? 1.0 : 0.0;
+    rep.color.setHsvF(hue, sat, 1.0);
+
+    rep.lut->Allocate();
+    rep.lut->SetTableRange(0, 255);
+    rep.lut->SetHueRange(hue, hue);
+    rep.lut->SetSaturationRange(0.0, sat);
+    rep.lut->SetValueRange(0.0, 1.0);
+    rep.lut->SetAlphaRange(1.0, 1.0);
+    rep.lut->SetNumberOfColors(256);
+    rep.lut->Build();
+    rep.lut->Modified();
+    updated = true;
+  }
+
+  return updated;
 }
 
 //-----------------------------------------------------------------------------
