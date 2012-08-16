@@ -24,6 +24,8 @@
 #include <QDebug>
 #include <QApplication>
 #include <QSpinBox>
+#include <itkConstantPadImageFilter.h>
+#include <itkSmartPointer.h>
 
 const QString DilateFilter::TYPE = "EditorToolBar::DilateFilter";
 
@@ -60,13 +62,33 @@ void DilateFilter::run()
   Q_ASSERT(m_inputs.size() == 1);
   m_input = m_inputs.first();
 
-//   qDebug() << "Compute Image Dilate";
+  //   qDebug() << "Compute Image Dilate";
+
+  int extent[6];
+  VolumeExtent(m_input, extent);
+
+  EspinaVolume::SizeType lowerExtendRegion;
+  lowerExtendRegion[0] = extent[0] - m_params.radius();
+  lowerExtendRegion[1] = extent[2] - m_params.radius();
+  lowerExtendRegion[2] = extent[4] - m_params.radius();
+
+  EspinaVolume::SizeType upperExtendRegion;
+  upperExtendRegion[0] = extent[1] + m_params.radius();
+  upperExtendRegion[1] = extent[3] + m_params.radius();
+  upperExtendRegion[2] = extent[5] + m_params.radius();
+
+  itk::SmartPointer<itk::ConstantPadImageFilter<EspinaVolume,EspinaVolume> > padFilter = itk::ConstantPadImageFilter<EspinaVolume,EspinaVolume>::New();
+  padFilter->SetConstant(0);
+  padFilter->SetInput(m_input);
+  padFilter->SetPadLowerBound(lowerExtendRegion);
+  padFilter->SetPadUpperBound(upperExtendRegion);
+
   StructuringElementType ball;
   ball.SetRadius(m_params.radius());
   ball.CreateStructuringElement();
 
   m_filter = FilterType::New();
-  m_filter->SetInput(m_input);
+  m_filter->SetInput(padFilter->GetOutput());
   m_filter->SetKernel(ball);
   m_filter->SetObjectValue(LABEL_VALUE);
   m_filter->SetReleaseDataFlag(false);
