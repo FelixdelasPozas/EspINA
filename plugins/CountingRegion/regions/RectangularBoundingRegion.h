@@ -25,7 +25,6 @@
 class RectangularBoundingRegion
 : public BoundingRegion
 {
-  Q_OBJECT
 public:
   explicit RectangularBoundingRegion(CountingRegionSampleExtension *samplExt,
 				     Nm borders[6],
@@ -43,9 +42,6 @@ public:
   virtual void setEnabled(bool enable);
 
   virtual void updateBoundingRegion();
-
-signals:
-  void modified(BoundingRegion *);
 
 private:
   Nm m_borders[6];

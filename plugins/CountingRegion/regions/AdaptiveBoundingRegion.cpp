@@ -28,6 +28,7 @@
 #include <vtkCellArray.h>
 #include <common/extensions/Margins/MarginsChannelExtension.h>
 #include <vtkCellData.h>
+#include "vtkBoundingRegion3DWidget.h"
 
 class AdaptiveRegionWidget
 : public SliceWidget
@@ -99,13 +100,19 @@ SliceWidget* AdaptiveBoundingRegion::createSliceWidget(PlaneType plane)
 
   m_widgets << w;
 
-  return new SliceWidget(w);
+  return new AdaptiveRegionWidget(w);
 }
 
 //-----------------------------------------------------------------------------
 vtkAbstractWidget* AdaptiveBoundingRegion::createWidget()
 {
-  return NULL;
+  vtkBoundingRegion3DWidget *w = vtkBoundingRegion3DWidget::New();
+  Q_ASSERT(w);
+  w->SetBoundingRegion(m_boundingRegion);
+
+  m_widgets << w;
+
+  return w;
 }
 
 //-----------------------------------------------------------------------------
@@ -241,4 +248,6 @@ void AdaptiveBoundingRegion::updateBoundingRegion()
   vtkCellData *data = m_boundingRegion->GetCellData();
   data->SetScalars(faceData);
   data->GetScalars()->SetName("Type");
+
+  emit modified(this);
 }

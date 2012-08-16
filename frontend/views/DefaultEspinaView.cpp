@@ -240,12 +240,12 @@ void DefaultEspinaView::addWidget(EspinaWidget* widget)
   widgets.xy  = widget->createSliceWidget(AXIAL);
   widgets.yz  = widget->createSliceWidget(SAGITTAL);
   widgets.xz  = widget->createSliceWidget(CORONAL);
-//   widgets.vol = widget->createWidget();
+  widgets.vol = widget->createWidget();
 
   xyView->addWidget (widgets.xy);
   yzView->addWidget (widgets.yz);
   xzView->addWidget (widgets.xz);
-//   volView->addWidget(widgets.vol);
+  volView->addWidget(widgets.vol);
 
   m_widgets[widget] = widgets;
 

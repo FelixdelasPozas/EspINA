@@ -56,7 +56,6 @@ QString Segmentation::SArguments::serialize(bool key) const
 Segmentation::Segmentation(Filter* filter, unsigned int outputNb)
 : m_filter(filter)
 , m_taxonomy(NULL)
-, m_extInitialized(false)
 , m_isVisible(true)
 , m_padfilter(NULL)
 , m_march(NULL)
@@ -169,31 +168,31 @@ QVariant Segmentation::data(int role) const
 //------------------------------------------------------------------------
 QString Segmentation::serialize() const
 {
-	return m_args.serialize();
+  return m_args.serialize();
 }
 
 //------------------------------------------------------------------------
 void Segmentation::initialize(ModelItem::Arguments args)
 {
-	// Prevent overriding segmentation id assigned from model
-	if (ModelItem::Arguments() != args)
-		m_args = SArguments(args);
-//   qDebug() << "Users" << m_args.users() << m_args[USERS];
+  // Prevent overriding segmentation id assigned from model
+  if (ModelItem::Arguments() != args)
+    m_args = SArguments(args);
+  initializeExtensions();
+  //   qDebug() << "Users" << m_args.users() << m_args[USERS];
 }
 
 //------------------------------------------------------------------------
 void Segmentation::initializeExtensions()
 {
-	foreach(ModelItemExtension *ext, m_extensions)
-	{
-		SegmentationExtension *segExt = dynamic_cast<SegmentationExtension *>(ext);
-		Q_ASSERT(segExt);
-		segExt->initialize(this);
-	}
-	onColorEngineChanged();
-
-	m_extInitialized = true;
-//   qDebug() << data(Qt::DisplayRole).toString() << " initialized";
+  //qDebug() << data().toString() << "extensions:";
+  foreach(ModelItemExtension *ext, m_insertionOrderedExtensions)
+  {
+    SegmentationExtension *segExt = dynamic_cast<SegmentationExtension *>(ext);
+    Q_ASSERT(segExt);
+    segExt->initialize(this);
+    //qDebug() << segExt->id() << "...OK";
+  }
+  onColorEngineChanged();
 }
 
 //------------------------------------------------------------------------
@@ -246,62 +245,41 @@ void Segmentation::setTaxonomy(TaxonomyNode* tax)
 //------------------------------------------------------------------------
 void Segmentation::setVisible(bool visible)
 {
-	m_isVisible = visible;
+  m_isVisible = visible;
 }
 
 //------------------------------------------------------------------------
-void Segmentation::addExtension(SegmentationExtension * ext)
+void Segmentation::addExtension(SegmentationExtension* ext)
 {
-	ModelItem::addExtension(ext);
+  ModelItem::addExtension(ext);
 }
-
-// //------------------------------------------------------------------------
-// ISegmentationExtension *Segmentation::extension(ExtensionId extId)
-// {
-//   assert(m_extensions.contains(extId));
-//   return m_extensions[extId];
-// }
-// 
-// //------------------------------------------------------------------------
-// QStringList Segmentation::availableRepresentations() const
-// {
-//   QStringList represnetations;
-//   foreach (ISegmentationExtension *ext, m_insertionOrderedExtensions)
-//     represnetations << ext->availableRepresentations();
-//   
-//   return represnetations;
-// }
-// 
-// //------------------------------------------------------------------------
-// ISegmentationRepresentation* Segmentation::representation(QString rep)
-// {
-//   return m_representations[rep]->representation(rep);
-// }
 
 //------------------------------------------------------------------------
 QStringList Segmentation::availableInformations() const
 {
-	QStringList informations;
-	informations << "Name" << "Taxonomy";
-	informations << ModelItem::availableInformations();
+  QStringList informations;
+  informations << "Name" << "Taxonomy";
+  informations << ModelItem::availableInformations();
 
-	return informations;
+  return informations;
 }
 
 //------------------------------------------------------------------------
 QVariant Segmentation::information(QString info)
 {
-	if (!m_extInitialized)
-	{
-		this->initializeExtensions();
-	}
-	if (info == "Name")
-		return data(Qt::DisplayRole);
-	if (info == "Taxonomy")
-		return m_taxonomy->qualifiedName();
+  if (info == "Name")
+    return data(Qt::DisplayRole);
+  if (info == "Taxonomy")
+    return m_taxonomy->qualifiedName();
 
-	Q_ASSERT(m_informations.contains(info));
-	return m_informations[info]->information(info);
+  Q_ASSERT(m_informations.contains(info));
+  return m_informations[info]->information(info);
+}
+
+//------------------------------------------------------------------------
+ModelItemExtension* Segmentation::extension(QString name)
+{
+  return ModelItem::extension(name);
 }
 
 //------------------------------------------------------------------------

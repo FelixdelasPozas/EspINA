@@ -10,7 +10,6 @@ class vtkPolyDataAlgorithm;
 class vtkActor;
 class vtkPolyDataMapper;
 class vtkLineSource;
-class vtkSphereSource;
 class vtkCellPicker;
 class vtkProperty;
 class vtkPolyData;
@@ -66,7 +65,7 @@ public:
 //   vtkSetMacro(Slice,int);
   virtual void SetPlane(PlaneType plane);
   virtual void SetSlice(Nm pos);
-  virtual void SetRegion(vtkPolyData *region);
+  virtual void SetBoundingRegion(vtkPolyData *region);
 
   // Description:
   // These are methods to communicate with the 3d_widget

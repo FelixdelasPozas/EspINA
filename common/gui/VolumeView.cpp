@@ -55,6 +55,8 @@
 #include <vtkJPEGWriter.h>
 #include <vtkRenderLargeImage.h>
 #include <QApplication>
+#include <vtkAbstractWidget.h>
+#include <vtkWidgetRepresentation.h>
 
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(QWidget* parent)
@@ -255,6 +257,24 @@ void VolumeView::removeSegmentationRepresentation(Segmentation* seg)
     renderer->removeItem(seg);
 }
 
+//-----------------------------------------------------------------------------
+void VolumeView::addWidget(vtkAbstractWidget *widget)
+{
+  widget->SetInteractor(m_viewWidget->GetRenderWindow()->GetInteractor());
+  widget->GetRepresentation()->SetVisibility(true);
+  widget->On();
+  m_renderer->ResetCameraClippingRange();
+//TODO:   m_widgets << sWidget;
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::removeWidget(vtkAbstractWidget* widget)
+{
+  //TODO:
+
+}
+
+//-----------------------------------------------------------------------------
 void VolumeView::init()
 {
   m_viewWidget = new QVTKWidget();

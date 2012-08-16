@@ -39,13 +39,6 @@ public:
   vtkTypeMacro(vtkBoundingRegionSliceWidget, vtkBoundingRegionWidget);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  // Description:
-  // Specify an instance of vtkWidgetRepresentation used to represent this
-  // widget in the scene. Note that the representation is a subclass of vtkProp
-  // so it can be added to the renderer independent of the widget.
-//   void SetRepresentation(vtkRectangularBoundingRegionRepresentation *r)
-//     {this->Superclass::SetWidgetRepresentation(reinterpret_cast<vtkWidgetRepresentation*>(r));}
-
   virtual void SetPlane(PlaneType plane);
   virtual void SetSlice(Nm pos);
   virtual void SetBoundingRegion(vtkPolyData* region);

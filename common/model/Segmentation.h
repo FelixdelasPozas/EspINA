@@ -138,8 +138,9 @@ public:
   //   QStringList availableRepresentations() const;
   //   ISegmentationRepresentation *representation(QString rep);
 
-  QStringList availableInformations() const;
-  QVariant information(QString info);
+  virtual QStringList availableInformations() const;
+  virtual QVariant information(QString info);
+  virtual ModelItemExtension* extension(QString name);
 
 private slots:
   void onColorEngineChanged();
@@ -149,7 +150,6 @@ private:
   SArguments m_args;
   TaxonomyNode *m_taxonomy;
 
-  bool m_extInitialized;
   bool m_isVisible;
   QColor m_color;
   //   mutable double m_bounds[6];

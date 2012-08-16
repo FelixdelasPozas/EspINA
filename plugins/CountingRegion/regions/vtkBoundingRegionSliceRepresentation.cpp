@@ -293,7 +293,7 @@ int vtkBoundingRegionSliceRepresentation::sliceNumber(Nm pos,
     if (pos <= point[plane])
       return number;
   }
-  return NumSlices - 1;
+  return -1;
 }
 
 //----------------------------------------------------------------------------
@@ -375,6 +375,13 @@ void intersection(double A1[2], double A2[2], double B1[2], double B2[2], double
 
 void vtkBoundingRegionSliceRepresentation::UpdateXYFace()
 {
+  if (-1 == Slice)
+  {
+    for(EDGE i = LEFT; i <= BOTTOM; i = EDGE(i+1))
+      this->EdgeActor[i]->SetProperty(InvisibleProperty);
+    return;
+  }
+
   double LB[3], LT[3], RT[3], RB[3];
 
   // Get original Region Points
@@ -639,7 +646,7 @@ void vtkBoundingRegionSliceRepresentation::SetSlice(double pos)
 }
 
 //----------------------------------------------------------------------------
-void vtkBoundingRegionSliceRepresentation::SetRegion(vtkPolyData *region)
+void vtkBoundingRegionSliceRepresentation::SetBoundingRegion(vtkPolyData *region)
 {
   Region = region;
   this->Region->Update();

@@ -28,6 +28,7 @@
 #include <vtkSmartPointer.h>
 #include <common/EspinaCore.h>
 #include <common/gui/EspinaView.h>
+#include "vtkBoundingRegion3DWidget.h"
 
 
 //-----------------------------------------------------------------------------
@@ -90,7 +91,13 @@ SliceWidget* RectangularBoundingRegion::createSliceWidget(PlaneType plane)
 //-----------------------------------------------------------------------------
 vtkAbstractWidget *RectangularBoundingRegion::createWidget()
 {
-  return NULL;
+  vtkBoundingRegion3DWidget *w = vtkBoundingRegion3DWidget::New();
+  Q_ASSERT(w);
+  w->SetBoundingRegion(m_boundingRegion);
+
+  m_widgets << w;
+
+  return w;
 }
 
 //-----------------------------------------------------------------------------

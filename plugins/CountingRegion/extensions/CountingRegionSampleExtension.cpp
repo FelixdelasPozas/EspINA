@@ -72,6 +72,7 @@ void CountingRegionSampleExtension::initialize(Sample* sample,
     }
     if (type == "RectangularRegion")
       m_plugin->createRectangularRegion(inclusion, exclusion);
+    //TODO
 //       createRectangularRegion(inclusion[0],inclusion[1],inclusion[2],
 // 			      exclusion[0], exclusion[1], exclusion[2], row);
 //       else if (type == AdaptiveRegion::ID)
@@ -100,7 +101,7 @@ void CountingRegionSampleExtension::addRegion(BoundingRegion* region)
       ModelItemExtension *ext = item->extension(CountingRegionSegmentationExtension::ID);
       Q_ASSERT(ext);
       CountingRegionSegmentationExtension *segExt = dynamic_cast<CountingRegionSegmentationExtension *>(ext);
-      segExt->updateRegions(m_regions);
+      segExt->setBoundingRegions(m_regions);
     }
   }
 }
@@ -119,7 +120,7 @@ void CountingRegionSampleExtension::removeRegion(BoundingRegion* region)
       ModelItemExtension *ext = item->extension(CountingRegionSegmentationExtension::ID);
       Q_ASSERT(ext);
       CountingRegionSegmentationExtension *segExt = dynamic_cast<CountingRegionSegmentationExtension *>(ext);
-      segExt->updateRegions(m_regions);
+      segExt->setBoundingRegions(m_regions);
     }
   }
 }

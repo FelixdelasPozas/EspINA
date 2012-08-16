@@ -30,11 +30,12 @@ class vtkPolyData;
 
 /// Bounding Regions' base class
 class BoundingRegion
-: public QStandardItem
-, public QObject
+: public QObject
+, public QStandardItem
 , public EspinaWidget
 , public vtkCommand
 {
+  Q_OBJECT
 public:
   const int INCLUSION_FACE;
   const int EXCLUSION_FACE;
@@ -65,7 +66,8 @@ public:
 
   virtual void Execute(vtkObject* caller, long unsigned int eventId, void* callData);
 
-  void modified(BoundingRegion *){};
+signals:
+  void modified(BoundingRegion *);
 
 protected:
   virtual void updateBoundingRegion() = 0;

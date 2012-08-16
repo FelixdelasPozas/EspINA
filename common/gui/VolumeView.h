@@ -31,6 +31,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
 
+class vtkAbstractWidget;
 class QVTKWidget;
 
 //Forward declaration
@@ -81,6 +82,9 @@ public:
   void addSegmentationRepresentation(Segmentation *seg);
   void removeSegmentationRepresentation(Segmentation *seg);
   bool updateSegmentationRepresentation(Segmentation* seg);
+
+  void addWidget(vtkAbstractWidget *widget);
+  void removeWidget(vtkAbstractWidget *widget);
 
   void setColorEngine(ColorEngine *engine){m_colorEngine = engine;}
   SettingsPtr settings() {return m_settings;}

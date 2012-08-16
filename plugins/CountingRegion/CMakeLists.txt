@@ -39,8 +39,7 @@ qt4_wrap_ui (UI_BUILT_SOURCES
 qt4_wrap_cpp(MOC_SRCS 
   CountingRegion.h
   extensions/CountingRegionSegmentationExtension.h
-  regions/AdaptiveBoundingRegion.h
-  regions/RectangularBoundingRegion.h
+  regions/BoundingRegion.h
   )
 
 
@@ -57,15 +56,9 @@ set (REGION_SOURCES
   regions/RectangularBoundingRegion.cpp
   regions/vtkBoundingRegionSliceRepresentation.cpp
   regions/vtkBoundingRegionSliceWidget.cpp
+  regions/vtkBoundingRegion3DRepresentation.cpp
+  regions/vtkBoundingRegion3DWidget.cpp
   )
-
-set (SERVER_SOURCES
-  #server/vtkAdaptiveBoundingRegionFilter.cpp
-  #server/vtkRectangularBoundingRegionFilter.cpp
-  #server/vtkCountingRegionFilter.cpp
-  #server/vtkRectangularBoundingVolumeRepresentation.cpp
-  #server/vtkRectangularBoundingVolumeWidget.cpp
-)
 
 set (PLUGIN_SOURCES
   ${RCC_BUILT_SOURCES}
@@ -73,7 +66,6 @@ set (PLUGIN_SOURCES
   ${MOC_SRCS}
   ${LOCAL_SOURCES}
   ${REGION_SOURCES}
-  ${SERVER_SOURCES}
   )
 
 set (PLUGIN_LIBRARIES

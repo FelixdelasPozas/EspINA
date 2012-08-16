@@ -87,7 +87,7 @@ vtkBoundingRegionSliceWidget::vtkBoundingRegionSliceWidget()
 
 //----------------------------------------------------------------------------
 vtkBoundingRegionSliceWidget::~vtkBoundingRegionSliceWidget()
-{  
+{
 }
 
 //----------------------------------------------------------------------
@@ -99,7 +99,7 @@ void vtkBoundingRegionSliceWidget::SelectAction(vtkAbstractWidget *w)
   // Get the event position
   int X = self->Interactor->GetEventPosition()[0];
   int Y = self->Interactor->GetEventPosition()[1];
-  
+
   // Okay, make sure that the pick is in the current renderer
   if ( !self->CurrentRenderer || 
        !self->CurrentRenderer->IsInViewport(X,Y) )
@@ -107,7 +107,7 @@ void vtkBoundingRegionSliceWidget::SelectAction(vtkAbstractWidget *w)
     self->WidgetState = vtkBoundingRegionSliceWidget::Start;
     return;
     }
-  
+
   // Begin the widget interaction which has the side effect of setting the
   // interaction state.
   double e[2];
@@ -119,15 +119,15 @@ void vtkBoundingRegionSliceWidget::SelectAction(vtkAbstractWidget *w)
     {
     return;
     }
-  
+
   // We are definitely selected
   self->WidgetState = vtkBoundingRegionSliceWidget::Active;
   self->GrabFocus(self->EventCallbackCommand);
-  
+
   // The SetInteractionState has the side effect of highlighting the widget
   reinterpret_cast<vtkBoundingRegionSliceRepresentation*>(self->WidgetRep)->
     SetInteractionState(interactionState);
- 
+
   // start the interaction
   self->EventCallbackCommand->SetAbortFlag(1);
   self->StartInteraction();
@@ -287,7 +287,7 @@ void vtkBoundingRegionSliceWidget::SetSlice(Nm pos)
   vtkBoundingRegionSliceRepresentation *rep = reinterpret_cast<vtkBoundingRegionSliceRepresentation*>(this->WidgetRep);
   rep->SetSlice(pos);
   Slice = pos;
-//  Render();
+  this->Render();
 }
 
 //----------------------------------------------------------------------
@@ -296,7 +296,7 @@ void vtkBoundingRegionSliceWidget::SetBoundingRegion(vtkPolyData *region)
   if (!this->WidgetRep)
     CreateDefaultRepresentation();
   vtkBoundingRegionSliceRepresentation *rep = reinterpret_cast<vtkBoundingRegionSliceRepresentation*>(this->WidgetRep);
-  rep->SetRegion(region);
+  rep->SetBoundingRegion(region);
   rep->GetInclusionOffset(this->InclusionOffset);
   rep->GetExclusionOffset(this->ExclusionOffset);
   this->Render();

@@ -39,10 +39,10 @@ class DefaultEspinaView
 
   struct Widgtes
   {
-    SliceWidget *xy;
-    SliceWidget *yz;
-    SliceWidget *xz;
-//     pq3DWidget  *vol;
+    SliceWidget  *xy;
+    SliceWidget  *yz;
+    SliceWidget  *xz;
+    vtkAbstractWidget *vol;
   };
 
   class SettingsPanel;

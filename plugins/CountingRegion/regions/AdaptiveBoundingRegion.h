@@ -26,7 +26,6 @@ class Channel;
 class AdaptiveBoundingRegion
 : public BoundingRegion
 {
-  Q_OBJECT
 public:
   explicit AdaptiveBoundingRegion(CountingRegionSampleExtension *sampleExt,
 				  Channel *channel,
@@ -45,8 +44,6 @@ public:
 
   virtual void updateBoundingRegion();
 
-signals:
-  void modified(BoundingRegion *);
 protected:
   double leftOffset()   const {return  m_inclusion[0];}
   double topOffset()    const {return  m_inclusion[1];}

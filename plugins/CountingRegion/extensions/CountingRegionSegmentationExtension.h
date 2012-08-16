@@ -42,8 +42,7 @@ public:
   virtual ExtId id();
   virtual void initialize(Segmentation* seg);
 
-  virtual ExtIdList dependencies() const
-  { return SegmentationExtension::dependencies(); }
+  virtual ExtIdList dependencies() const;
 
   virtual InfoList availableInformations() const
   { return SegmentationExtension::availableInformations(); }
@@ -55,12 +54,16 @@ public:
 
   virtual SegmentationRepresentation *representation(QString rep);
 
-  void updateRegions(QList<BoundingRegion *> regions);
+  void setBoundingRegions(QList<BoundingRegion *> bRegions);
 
   virtual SegmentationExtension* clone();
 
 protected slots:
-  void regionUpdated(BoundingRegion *region);
+  void evaluateBoundingRegions();
+
+private:
+  bool m_isDiscarted;
+  QList<BoundingRegion *> m_boundingRegions;
 };
 
 #endif // COUNTINGREGIONSEGMENTATIONEXTENSION_H

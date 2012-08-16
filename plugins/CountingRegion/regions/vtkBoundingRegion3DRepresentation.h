@@ -16,17 +16,18 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef VTKRECTANGULARBOUNDINGBOXREPRESENTATION_H
-#define VTKRECTANGULARBOUNDINGBOXREPRESENTATION_H
+#ifndef VTKBOUNDINGREGION3DRESENTATION_H
+#define VTKBOUNDINGREGION3DRESENTATION_H
 
 #include "vtkWidgetRepresentation.h"
+
+#include <common/EspinaTypes.h>
 
 class vtkLookupTable;
 class vtkPolyDataAlgorithm;
 class vtkActor;
 class vtkPolyDataMapper;
 class vtkLineSource;
-class vtkSphereSource;
 class vtkCellPicker;
 class vtkProperty;
 class vtkPolyData;
@@ -39,7 +40,8 @@ class vtkDoubleArray;
 class vtkMatrix4x4;
 
 
-class VTK_WIDGETS_EXPORT vtkRectangularBoundingVolumeRepresentation : public vtkWidgetRepresentation
+class VTK_WIDGETS_EXPORT vtkBoundingRegion3DRepresentation
+: public vtkWidgetRepresentation
 {
   //BTX
   enum MARGIN {LEFT, TOP, UPPER, RIGHT, BOTTOM, LOWER, VOLUME};
@@ -47,11 +49,11 @@ class VTK_WIDGETS_EXPORT vtkRectangularBoundingVolumeRepresentation : public vtk
 public:
   // Description:
   // Instantiate the class.
-  static vtkRectangularBoundingVolumeRepresentation *New();
+  static vtkBoundingRegion3DRepresentation *New();
 
   // Description:
   // Standard methods for the class.
-  vtkTypeMacro(vtkRectangularBoundingVolumeRepresentation,vtkWidgetRepresentation);
+  vtkTypeMacro(vtkBoundingRegion3DRepresentation, vtkWidgetRepresentation);
   void PrintSelf(ostream& os, vtkIndent indent);
 
   // Description:
@@ -64,7 +66,7 @@ public:
   // or EndInteractionEvent events are invoked. The user provides the
   // vtkPolyData and the points and cells are added to it.
   void GetPolyData(vtkPolyData *pd);
-  
+
   void reset();
 
   // Description:
@@ -73,23 +75,22 @@ public:
   // set.
   vtkGetObjectMacro(FaceProperty,vtkProperty);
   vtkGetObjectMacro(SelectedFaceProperty,vtkProperty);
-  
+
   // Description:
   // Get the outline properties (the outline of the box). The 
   // properties of the outline when selected and normal can be 
   // set.
-//   vtkGetObjectMacro(OutlineProperty,vtkProperty);
   vtkGetObjectMacro(SelectedOutlineProperty,vtkProperty);
 
-  virtual void SetVolume(vtkPolyDataAlgorithm *region);
-  
+  virtual void SetBoundingRegion(vtkPolyData *region);
+
   // Description:
   // These are methods to communicate with the 3d_widget
   vtkSetVector3Macro(InclusionOffset, double);
   vtkGetVector3Macro(InclusionOffset, double);
   vtkSetVector3Macro(ExclusionOffset, double);
   vtkGetVector3Macro(ExclusionOffset, double);
-  
+
   // Description:
   // These are methods that satisfy vtkWidgetRepresentation's API.
   virtual void PlaceWidget(double bounds[6]);
@@ -98,14 +99,14 @@ public:
   virtual void StartWidgetInteraction(double e[2]);
   virtual void WidgetInteraction(double e[2]);
   virtual double *GetBounds();
-  
+
   // Description:
   // Methods supporting, and required by, the rendering process.
   virtual void ReleaseGraphicsResources(vtkWindow*);
   virtual int  RenderOpaqueGeometry(vtkViewport*);
   virtual int  RenderTranslucentPolygonalGeometry(vtkViewport*);
   virtual int  HasTranslucentPolygonalGeometry();
-  
+
 //BTX - used to manage the state of the widget
   enum {Outside=0,
     MoveLeft, MoveRight, MoveTop, MoveBottom, MoveUpper, MoveLower,
@@ -123,8 +124,8 @@ public:
   void SetInteractionState(int state);
 
 protected:
-  vtkRectangularBoundingVolumeRepresentation();
-  ~vtkRectangularBoundingVolumeRepresentation();
+  vtkBoundingRegion3DRepresentation();
+  ~vtkBoundingRegion3DRepresentation();
 
   // Manage how the representation appears
   double LastEventPosition[3];
@@ -155,7 +156,7 @@ protected:
 
   // Support GetBounds() method
   vtkBox *BoundingBox;
-  
+
   // Properties used to control the appearance of selected objects and
   // the manipulator in general.
   vtkProperty *FaceProperty;
@@ -176,11 +177,11 @@ protected:
   void MoveUpperMargin(double *p1, double *p2);
   void MoveLowerMargin(double *p1, double *p2);
 
-  vtkPolyDataAlgorithm *Volume;
+  vtkPolyData *BoundingRegion;
 
 private:
-  vtkRectangularBoundingVolumeRepresentation(const vtkRectangularBoundingVolumeRepresentation&);  //Not implemented
-  void operator=(const vtkRectangularBoundingVolumeRepresentation&);  //Not implemented
+  vtkBoundingRegion3DRepresentation(const vtkBoundingRegion3DRepresentation&);  //Not implemented
+  void operator=(const vtkBoundingRegion3DRepresentation&);  //Not implemented
 
   double InclusionOffset[3];
   double ExclusionOffset[3];

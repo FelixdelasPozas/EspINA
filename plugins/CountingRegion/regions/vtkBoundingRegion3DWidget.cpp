@@ -16,86 +16,87 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "vtkRectangularBoundingVolumeWidget.h"
-#include "vtkRectangularBoundingVolumeRepresentation.h"
-#include "vtkCommand.h"
+#include "vtkBoundingRegion3DWidget.h"
+
+#include "regions/vtkBoundingRegion3DRepresentation.h"
+
+
 #include "vtkCallbackCommand.h"
-#include "vtkRenderWindowInteractor.h"
-#include "vtkObjectFactory.h"
-#include "vtkWidgetEventTranslator.h"
-#include "vtkWidgetCallbackMapper.h" 
+#include "vtkCommand.h"
 #include "vtkEvent.h"
-#include "vtkWidgetEvent.h"
+#include "vtkObjectFactory.h"
 #include "vtkRenderWindow.h"
+#include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
-#include "vtkRectangularBoundingVolumeRepresentation.h"
+#include "vtkWidgetCallbackMapper.h" 
+#include "vtkWidgetEvent.h"
+#include "vtkWidgetEventTranslator.h"
 #include <vtkPolyDataAlgorithm.h>
 
-
-vtkStandardNewMacro(vtkRectangularBoundingVolumeWidget);
+vtkStandardNewMacro(vtkBoundingRegion3DWidget);
 
 //----------------------------------------------------------------------------
-vtkRectangularBoundingVolumeWidget::vtkRectangularBoundingVolumeWidget()
+vtkBoundingRegion3DWidget::vtkBoundingRegion3DWidget()
 : Volume(NULL)
 {
-  this->WidgetState = vtkRectangularBoundingVolumeWidget::Start;
+  this->WidgetState = vtkBoundingRegion3DWidget::Start;
   this->ManagesCursor = 1;
 
   memset(InclusionOffset, 0, 3*sizeof(double));
   memset(ExclusionOffset, 0, 3*sizeof(double));
-  
+
   // Define widget events
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
                                           vtkEvent::NoModifier,
                                           0, 0, NULL,
                                           vtkWidgetEvent::Select,
-                                          this, vtkRectangularBoundingVolumeWidget::SelectAction);
+                                          this, vtkBoundingRegion3DWidget::SelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonReleaseEvent,
                                           vtkEvent::NoModifier,
                                           0, 0, NULL,
                                           vtkWidgetEvent::EndSelect,
-                                          this, vtkRectangularBoundingVolumeWidget::EndSelectAction);
+                                          this, vtkBoundingRegion3DWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::MiddleButtonReleaseEvent,
                                           vtkWidgetEvent::EndTranslate,
-                                          this, vtkRectangularBoundingVolumeWidget::EndSelectAction);
+                                          this, vtkBoundingRegion3DWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonReleaseEvent,
                                             vtkEvent::ControlModifier,
                                             0, 0, NULL,
                                           vtkWidgetEvent::EndTranslate,
-                                          this, vtkRectangularBoundingVolumeWidget::EndSelectAction);
+                                          this, vtkBoundingRegion3DWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonReleaseEvent,
                                             vtkEvent::ShiftModifier,
                                             0, 0, NULL,
                                           vtkWidgetEvent::EndTranslate,
-                                          this, vtkRectangularBoundingVolumeWidget::EndSelectAction);
+                                          this, vtkBoundingRegion3DWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::RightButtonReleaseEvent,
                                           vtkWidgetEvent::EndScale,
-                                          this, vtkRectangularBoundingVolumeWidget::EndSelectAction);
+                                          this, vtkBoundingRegion3DWidget::EndSelectAction);
 }
 
 //----------------------------------------------------------------------------
-vtkRectangularBoundingVolumeWidget::~vtkRectangularBoundingVolumeWidget()
-{  
+vtkBoundingRegion3DWidget::~vtkBoundingRegion3DWidget()
+{
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularBoundingVolumeWidget::SelectAction(vtkAbstractWidget *w)
+void vtkBoundingRegion3DWidget::SelectAction(vtkAbstractWidget *w)
 {
   // We are in a static method, cast to ourself
-  vtkRectangularBoundingVolumeWidget *self = reinterpret_cast<vtkRectangularBoundingVolumeWidget*>(w);
+  vtkBoundingRegion3DWidget *self = reinterpret_cast<vtkBoundingRegion3DWidget*>(w);
 
   // Get the event position
   int X = self->Interactor->GetEventPosition()[0];
   int Y = self->Interactor->GetEventPosition()[1];
-  
+
   // Okay, make sure that the pick is in the current renderer
   if ( !self->CurrentRenderer || 
        !self->CurrentRenderer->IsInViewport(X,Y) )
     {
-    self->WidgetState = vtkRectangularBoundingVolumeWidget::Start;
+    self->WidgetState = vtkBoundingRegion3DWidget::Start;
     return;
     }
-  
+
   // Begin the widget interaction which has the side effect of setting the
   // interaction state.
   double e[2];
@@ -103,19 +104,19 @@ void vtkRectangularBoundingVolumeWidget::SelectAction(vtkAbstractWidget *w)
   e[1] = static_cast<double>(Y);
   self->WidgetRep->StartWidgetInteraction(e);
   int interactionState = self->WidgetRep->GetInteractionState();
-  if ( interactionState == vtkRectangularBoundingVolumeRepresentation::Outside )
+  if ( interactionState == vtkBoundingRegion3DRepresentation::Outside )
     {
     return;
     }
-  
+
   // We are definitely selected
-  self->WidgetState = vtkRectangularBoundingVolumeWidget::Active;
+  self->WidgetState = vtkBoundingRegion3DWidget::Active;
   self->GrabFocus(self->EventCallbackCommand);
-  
+
   // The SetInteractionState has the side effect of highlighting the widget
-  reinterpret_cast<vtkRectangularBoundingVolumeRepresentation*>(self->WidgetRep)->
+  reinterpret_cast<vtkBoundingRegion3DRepresentation*>(self->WidgetRep)->
     SetInteractionState(interactionState);
- 
+
   // start the interaction
   self->EventCallbackCommand->SetAbortFlag(1);
   self->StartInteraction();
@@ -124,44 +125,44 @@ void vtkRectangularBoundingVolumeWidget::SelectAction(vtkAbstractWidget *w)
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularBoundingVolumeWidget::SetCursor(int state)
+void vtkBoundingRegion3DWidget::SetCursor(int state)
 {
-    switch (state)
-    {
-      case vtkRectangularBoundingVolumeRepresentation::MoveLeft:
-      case vtkRectangularBoundingVolumeRepresentation::MoveRight:
-	  this->RequestCursorShape(VTK_CURSOR_SIZEWE);
-	break;
-      case vtkRectangularBoundingVolumeRepresentation::MoveTop:
-      case vtkRectangularBoundingVolumeRepresentation::MoveBottom:
-	  this->RequestCursorShape(VTK_CURSOR_SIZENS);
-	break;
-      case vtkRectangularBoundingVolumeRepresentation::MoveUpper:
-      case vtkRectangularBoundingVolumeRepresentation::MoveLower:
-	  this->RequestCursorShape(VTK_CURSOR_SIZENS);
-	break;
-      case vtkRectangularBoundingVolumeRepresentation::Outside:
-	this->RequestCursorShape(VTK_CURSOR_DEFAULT);
-	break;
-      default:
-	this->RequestCursorShape(VTK_CURSOR_DEFAULT);
-    };
+  switch (state)
+  {
+    case vtkBoundingRegion3DRepresentation::MoveLeft:
+    case vtkBoundingRegion3DRepresentation::MoveRight:
+      this->RequestCursorShape(VTK_CURSOR_SIZEWE);
+      break;
+    case vtkBoundingRegion3DRepresentation::MoveTop:
+    case vtkBoundingRegion3DRepresentation::MoveBottom:
+      this->RequestCursorShape(VTK_CURSOR_SIZENS);
+      break;
+    case vtkBoundingRegion3DRepresentation::MoveUpper:
+    case vtkBoundingRegion3DRepresentation::MoveLower:
+      this->RequestCursorShape(VTK_CURSOR_SIZENS);
+      break;
+    case vtkBoundingRegion3DRepresentation::Outside:
+      this->RequestCursorShape(VTK_CURSOR_DEFAULT);
+      break;
+    default:
+      this->RequestCursorShape(VTK_CURSOR_DEFAULT);
+  };
 }
 
 
 //----------------------------------------------------------------------
-void vtkRectangularBoundingVolumeWidget::EndSelectAction(vtkAbstractWidget *w)
+void vtkBoundingRegion3DWidget::EndSelectAction(vtkAbstractWidget *w)
 {
-  vtkRectangularBoundingVolumeWidget *self = reinterpret_cast<vtkRectangularBoundingVolumeWidget*>(w);
-  if ( self->WidgetState == vtkRectangularBoundingVolumeWidget::Start )
+  vtkBoundingRegion3DWidget *self = reinterpret_cast<vtkBoundingRegion3DWidget*>(w);
+  if ( self->WidgetState == vtkBoundingRegion3DWidget::Start )
     {
     return;
     }
-  
+
   // Return state to not active
-  self->WidgetState = vtkRectangularBoundingVolumeWidget::Start;
-  reinterpret_cast<vtkRectangularBoundingVolumeRepresentation*>(self->WidgetRep)->
-    SetInteractionState(vtkRectangularBoundingVolumeRepresentation::Outside);
+  self->WidgetState = vtkBoundingRegion3DWidget::Start;
+  reinterpret_cast<vtkBoundingRegion3DRepresentation*>(self->WidgetRep)->
+    SetInteractionState(vtkBoundingRegion3DRepresentation::Outside);
   self->ReleaseFocus();
 
   self->EventCallbackCommand->SetAbortFlag(1);
@@ -172,33 +173,25 @@ void vtkRectangularBoundingVolumeWidget::EndSelectAction(vtkAbstractWidget *w)
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularBoundingVolumeWidget::SetVolume(vtkPolyDataAlgorithm *region)
+void vtkBoundingRegion3DWidget::SetBoundingRegion(vtkPolyData *region)
 {
-  Volume = region;
-  if (WidgetRep)
-  {
-    vtkRectangularBoundingVolumeRepresentation *rep =
-      reinterpret_cast<vtkRectangularBoundingVolumeRepresentation*>(this->WidgetRep);
-    rep->SetVolume(region);
-    rep->reset();
-  }
-  else
-    std::cout << "There is no representation" << std::endl;
+  if (!this->WidgetRep)
+    CreateDefaultRepresentation();
+
+  vtkBoundingRegion3DRepresentation *rep = reinterpret_cast<vtkBoundingRegion3DRepresentation*>(this->WidgetRep);
+  rep->SetBoundingRegion(region);
+  rep->reset();
 }
 
-  
 //----------------------------------------------------------------------
-void vtkRectangularBoundingVolumeWidget::CreateDefaultRepresentation()
+void vtkBoundingRegion3DWidget::CreateDefaultRepresentation()
 {
   if ( ! this->WidgetRep )
-    {
-    this->WidgetRep = vtkRectangularBoundingVolumeRepresentation::New();
-    reinterpret_cast<vtkRectangularBoundingVolumeRepresentation*>(this->WidgetRep)->SetVolume(Volume);
-    }
+    this->WidgetRep = vtkBoundingRegion3DRepresentation::New();
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingVolumeWidget::PrintSelf(ostream& os, vtkIndent indent)
+void vtkBoundingRegion3DWidget::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 }

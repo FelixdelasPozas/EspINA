@@ -16,50 +16,37 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef VTKRECTANGULARBOUNDINGVOLUMEWIDGET_H
-#define VTKRECTANGULARBOUNDINGVOLUMEWIDGET_H
+#ifndef VTKBOUNDINGREGION3DWIDGET_H
+#define VTKBOUNDINGREGION3DWIDGET_H
 
-#include <vtkAbstractWidget.h>
+#include "vtkBoundingRegionWidget.h"
 
-#include <common/views/vtkPVSliceView.h>
-
+class vtkPolyData;
 class vtkPolyDataAlgorithm;
-class vtkRectangularBoundingVolumeRepresentation;
 
-class VTK_WIDGETS_EXPORT vtkRectangularBoundingVolumeWidget : public vtkAbstractWidget
+class VTK_WIDGETS_EXPORT vtkBoundingRegion3DWidget
+: public vtkBoundingRegionWidget
 {
 public:
   // Description:
   // Instantiate the object.
-  static vtkRectangularBoundingVolumeWidget *New();
+  static vtkBoundingRegion3DWidget *New();
 
   // Description:
   // Standard class methods for type information and printing.
-  vtkTypeMacro(vtkRectangularBoundingVolumeWidget,vtkAbstractWidget);
+  vtkTypeMacro(vtkBoundingRegion3DWidget, vtkBoundingRegionWidget);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  // Description:
-  // Specify an instance of vtkWidgetRepresentation used to represent this
-  // widget in the scene. Note that the representation is a subclass of vtkProp
-  // so it can be added to the renderer independent of the widget.
-  void SetRepresentation(vtkRectangularBoundingVolumeRepresentation *r)
-    {this->Superclass::SetWidgetRepresentation(reinterpret_cast<vtkWidgetRepresentation*>(r));}
-
-  vtkSetVector3Macro(InclusionOffset, double);
-  vtkGetVector3Macro(InclusionOffset, double);
-  vtkSetVector3Macro(ExclusionOffset, double);
-  vtkGetVector3Macro(ExclusionOffset, double);
-
-  virtual void SetVolume(vtkPolyDataAlgorithm *region);
+  virtual void SetBoundingRegion(vtkPolyData *region);
 
   // Description:
   // Create the default widget representation if one is not set. By default,
-  // this is an instance of the vtkRectangularBoundingVolumeRepresentation class.
+  // this is an instance of the vtkBoundingRegion3DRepresentation class.
   void CreateDefaultRepresentation();
 
 protected:
-  vtkRectangularBoundingVolumeWidget();
-  ~vtkRectangularBoundingVolumeWidget();
+  vtkBoundingRegion3DWidget();
+  ~vtkBoundingRegion3DWidget();
 
 //BTX - manage the state of the widget
   int WidgetState;
@@ -73,12 +60,11 @@ protected:
   // helper methods for cursoe management
   virtual void SetCursor(int state);
 
-
-  vtkPolyDataAlgorithm *Volume;
+  vtkPolyData *Volume;
 
 private:
-  vtkRectangularBoundingVolumeWidget(const vtkRectangularBoundingVolumeWidget&);  //Not implemented
-  void operator=(const vtkRectangularBoundingVolumeWidget&);  //Not implemented
+  vtkBoundingRegion3DWidget(const vtkBoundingRegion3DWidget&);  //Not implemented
+  void operator=(const vtkBoundingRegion3DWidget&);  //Not implemented
 };
 
-#endif
+#endif // VTKBOUNDINGREGION3DWIDGET_H

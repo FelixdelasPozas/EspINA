@@ -80,6 +80,7 @@ void BoundingRegion::Execute(vtkObject* caller, long unsigned int eventId, void*
     }
 
     updateBoundingRegion();
+    emit modified(this);
 
     foreach(vtkBoundingRegionWidget *w, m_widgets)
       w->SetBoundingRegion(m_boundingRegion);

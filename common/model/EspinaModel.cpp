@@ -435,7 +435,6 @@ void EspinaModel::addSegmentation(Segmentation *seg)
   m_relations->addItem(seg);
   connect(seg, SIGNAL(modified(ModelItem*)),
 	  this, SLOT(itemModified(ModelItem*)));
-//   seg->initialize();
   endInsertRows();
   markAsChanged();;
 }
@@ -458,7 +457,6 @@ void EspinaModel::addSegmentation(QList<Segmentation *> segs)
     m_relations->addItem(seg);
     connect(seg, SIGNAL(modified(ModelItem*)),
 	    this, SLOT(itemModified(ModelItem*)));
-//     seg->initialize();
   }
   endInsertRows();
   markAsChanged();;

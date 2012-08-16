@@ -26,9 +26,9 @@
 class MarginsSegmentationExtension
 : public SegmentationExtension
 {
+public:
   static const ExtId ID;
 
-public:
   static const InfoTag LEFT_MARGIN;
   static const InfoTag TOP_MARGIN;
   static const InfoTag UPPER_MARGIN;

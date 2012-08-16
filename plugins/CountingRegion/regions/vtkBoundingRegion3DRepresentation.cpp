@@ -16,7 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "vtkRectangularBoundingVolumeRepresentation.h"
+#include "vtkBoundingRegion3DRepresentation.h"
 
 #include "vtkActor.h"
 #include "vtkSphereSource.h"
@@ -48,16 +48,16 @@
 #include <vtkLookupTable.h>
 
 
-vtkStandardNewMacro(vtkRectangularBoundingVolumeRepresentation);
+vtkStandardNewMacro(vtkBoundingRegion3DRepresentation);
 
 enum View {XY=2,YZ=0,XZ=1,VOL=3};
 
 //----------------------------------------------------------------------------
-vtkRectangularBoundingVolumeRepresentation::vtkRectangularBoundingVolumeRepresentation()
+vtkBoundingRegion3DRepresentation::vtkBoundingRegion3DRepresentation()
 {
   // The initial state
-  this->InteractionState = vtkRectangularBoundingVolumeRepresentation::Outside;
-  this->Volume = NULL;
+  this->InteractionState = vtkBoundingRegion3DRepresentation::Outside;
+  this->BoundingRegion = NULL;
   memset(this->InclusionOffset, 0, 3*sizeof(double));
   memset(this->ExclusionOffset, 0, 3*sizeof(double));
 
@@ -117,7 +117,7 @@ vtkRectangularBoundingVolumeRepresentation::vtkRectangularBoundingVolumeRepresen
 }
 
 //----------------------------------------------------------------------------
-vtkRectangularBoundingVolumeRepresentation::~vtkRectangularBoundingVolumeRepresentation()
+vtkBoundingRegion3DRepresentation::~vtkBoundingRegion3DRepresentation()
 {
   //TODO: Review deletes
 
@@ -137,20 +137,20 @@ vtkRectangularBoundingVolumeRepresentation::~vtkRectangularBoundingVolumeReprese
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularBoundingVolumeRepresentation::GetPolyData(vtkPolyData *pd)
+void vtkBoundingRegion3DRepresentation::GetPolyData(vtkPolyData *pd)
 {
   pd->SetPoints(this->VolumePolyData->GetPoints());
   pd->SetPolys(this->VolumePolyData->GetPolys());
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularBoundingVolumeRepresentation::reset()
+void vtkBoundingRegion3DRepresentation::reset()
 {
 }
 
 
 //----------------------------------------------------------------------
-void vtkRectangularBoundingVolumeRepresentation::StartWidgetInteraction(double e[2])
+void vtkBoundingRegion3DRepresentation::StartWidgetInteraction(double e[2])
 {
   // Store the start position
   this->StartEventPosition[0] = e[0];
@@ -166,7 +166,7 @@ void vtkRectangularBoundingVolumeRepresentation::StartWidgetInteraction(double e
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularBoundingVolumeRepresentation::WidgetInteraction(double e[2])
+void vtkBoundingRegion3DRepresentation::WidgetInteraction(double e[2])
 {
   // Convert events to appropriate coordinate systems
   vtkCamera *camera = this->Renderer->GetActiveCamera();
@@ -193,32 +193,32 @@ void vtkRectangularBoundingVolumeRepresentation::WidgetInteraction(double e[2])
   vtkInteractorObserver::ComputeDisplayToWorld(this->Renderer, e[0], e[1], z, pickPoint);
 
   // Process the motion
-  if ( this->InteractionState == vtkRectangularBoundingVolumeRepresentation::MoveLeft )
+  if ( this->InteractionState == vtkBoundingRegion3DRepresentation::MoveLeft )
     {
     this->MoveLeftMargin(prevPickPoint,pickPoint);
     }
 
-  else if ( this->InteractionState == vtkRectangularBoundingVolumeRepresentation::MoveRight )
+  else if ( this->InteractionState == vtkBoundingRegion3DRepresentation::MoveRight )
     {
     this->MoveRightMargin(prevPickPoint,pickPoint);
     }
 
-  else if ( this->InteractionState == vtkRectangularBoundingVolumeRepresentation::MoveTop )
+  else if ( this->InteractionState == vtkBoundingRegion3DRepresentation::MoveTop )
     {
     this->MoveTopMargin(prevPickPoint,pickPoint);
     }
 
-  else if ( this->InteractionState == vtkRectangularBoundingVolumeRepresentation::MoveBottom )
+  else if ( this->InteractionState == vtkBoundingRegion3DRepresentation::MoveBottom )
     {
     this->MoveBottomMargin(prevPickPoint,pickPoint);
     }
 
-  else if ( this->InteractionState == vtkRectangularBoundingVolumeRepresentation::MoveUpper )
+  else if ( this->InteractionState == vtkBoundingRegion3DRepresentation::MoveUpper )
     {
     this->MoveUpperMargin(prevPickPoint,pickPoint);
     }
 
-  else if ( this->InteractionState == vtkRectangularBoundingVolumeRepresentation::MoveLower)
+  else if ( this->InteractionState == vtkBoundingRegion3DRepresentation::MoveLower)
     {
     this->MoveLowerMargin(prevPickPoint,pickPoint);
     }
@@ -230,7 +230,7 @@ void vtkRectangularBoundingVolumeRepresentation::WidgetInteraction(double e[2])
 }
 
 // //----------------------------------------------------------------------------
-// void vtkRectangularBoundingVolumeRepresentation::MoveFace(double *p1, double *p2, double *dir,
+// void vtkBoundingRegion3DRepresentation::MoveFace(double *p1, double *p2, double *dir,
 //                                     double *x1, double *x2, double *x3, double *x4,
 //                                     double *x5)
 //   {
@@ -259,7 +259,7 @@ void vtkRectangularBoundingVolumeRepresentation::WidgetInteraction(double e[2])
 // }
 // 
 // //----------------------------------------------------------------------------
-// void vtkRectangularBoundingVolumeRepresentation::GetDirection(const double Nx[3],const double Ny[3],
+// void vtkBoundingRegion3DRepresentation::GetDirection(const double Nx[3],const double Ny[3],
 //                                         const double Nz[3], double dir[3])
 // {
 //   double dotNy, dotNz;
@@ -299,7 +299,7 @@ void vtkRectangularBoundingVolumeRepresentation::WidgetInteraction(double e[2])
 // }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingVolumeRepresentation::MoveLeftMargin(double* p1, double* p2)
+void vtkBoundingRegion3DRepresentation::MoveLeftMargin(double* p1, double* p2)
 {
 //   double *pts =
 //     static_cast<vtkDoubleArray *>(this->MarginPoints->GetData())->GetPointer(0);
@@ -333,7 +333,7 @@ void vtkRectangularBoundingVolumeRepresentation::MoveLeftMargin(double* p1, doub
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingVolumeRepresentation::MoveRightMargin(double* p1, double* p2)
+void vtkBoundingRegion3DRepresentation::MoveRightMargin(double* p1, double* p2)
 {
 //   double *pts =
 //     static_cast<vtkDoubleArray *>(this->MarginPoints->GetData())->GetPointer(0);
@@ -369,7 +369,7 @@ void vtkRectangularBoundingVolumeRepresentation::MoveRightMargin(double* p1, dou
 //   this->MarginPolyData[contBorder2]->Modified();
 }
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingVolumeRepresentation::MoveTopMargin(double* p1, double* p2)
+void vtkBoundingRegion3DRepresentation::MoveTopMargin(double* p1, double* p2)
 {
 //   double *pts =
 //     static_cast<vtkDoubleArray *>(this->MarginPoints->GetData())->GetPointer(0);
@@ -402,7 +402,7 @@ void vtkRectangularBoundingVolumeRepresentation::MoveTopMargin(double* p1, doubl
 //   this->MarginPolyData[contBorder2]->Modified();
 }
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingVolumeRepresentation::MoveBottomMargin(double* p1, double* p2)
+void vtkBoundingRegion3DRepresentation::MoveBottomMargin(double* p1, double* p2)
 {
 //   double *pts =
 //     static_cast<vtkDoubleArray *>(this->MarginPoints->GetData())->GetPointer(0);
@@ -436,7 +436,7 @@ void vtkRectangularBoundingVolumeRepresentation::MoveBottomMargin(double* p1, do
 //   this->MarginPolyData[contBorder2]->Modified();
 }
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingVolumeRepresentation::MoveUpperMargin(double* p1, double* p2)
+void vtkBoundingRegion3DRepresentation::MoveUpperMargin(double* p1, double* p2)
 {
 //   double *pts =
 //     static_cast<vtkDoubleArray *>(this->MarginPoints->GetData())->GetPointer(0);
@@ -460,7 +460,7 @@ void vtkRectangularBoundingVolumeRepresentation::MoveUpperMargin(double* p1, dou
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingVolumeRepresentation::MoveLowerMargin(double* p1, double* p2)
+void vtkBoundingRegion3DRepresentation::MoveLowerMargin(double* p1, double* p2)
 {
 //   double *pts =
 //     static_cast<vtkDoubleArray *>(this->MarginPoints->GetData())->GetPointer(0);
@@ -486,7 +486,7 @@ void vtkRectangularBoundingVolumeRepresentation::MoveLowerMargin(double* p1, dou
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingVolumeRepresentation::CreateDefaultProperties()
+void vtkBoundingRegion3DRepresentation::CreateDefaultProperties()
 {
   // Face properties
   this->FaceProperty = vtkProperty::New();
@@ -521,24 +521,24 @@ void vtkRectangularBoundingVolumeRepresentation::CreateDefaultProperties()
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingVolumeRepresentation::CreateVolume()
+void vtkBoundingRegion3DRepresentation::CreateVolume()
 {
 //   std::cout << "Created XY FACE" << std::endl;
-  Volume->UpdateWholeExtent();
+  //BoundingRegion->UpdateWholeExtent();
 
   m_prevInclusion[0] = InclusionOffset[0]; // Use in Move Left Margin
   m_prevExclusion[0] = ExclusionOffset[0]; // Use in Move Right Margin
   m_prevInclusion[1] = InclusionOffset[1]; // Use in Move Top Margin
   m_prevExclusion[1] = ExclusionOffset[1]; // Use in Move Bottom Margin
-  
+
   double point[3];
   vtkCellArray *inLines;
   vtkSmartPointer<vtkIntArray> lineData;
   vtkSmartPointer<vtkLine> line = vtkSmartPointer<vtkLine>::New();
 
   // We need it to get lower limits
-  int numPoints = this->Volume->GetOutput()->GetPoints()->GetNumberOfPoints();
-  this->Volume->GetOutput()->GetPoint(numPoints-1,point);
+  int numPoints = this->BoundingRegion->GetPoints()->GetNumberOfPoints();
+  this->BoundingRegion->GetPoint(numPoints-1,point);
   m_lastExclusionMargin[2] = point[2];
 
   this->MarginPoints->SetNumberOfPoints(4);
@@ -552,12 +552,12 @@ void vtkRectangularBoundingVolumeRepresentation::CreateVolume()
   lineData = vtkSmartPointer<vtkIntArray>::New();
 
   // Point 0
-  Volume->GetOutput()->GetPoint(0*4+0,point);
+  BoundingRegion->GetPoint(0*4+0,point);
   point[2] = -0.1;
   this->MarginPoints->SetPoint(0, point);
 
   //Point 1
-  Volume->GetOutput()->GetPoint(0*4+1,point);
+  BoundingRegion->GetPoint(0*4+1,point);
   point[2] = -0.1;
   this->MarginPoints->SetPoint(1, point);
   m_lastInclusionMargin[1] = point[1];
@@ -579,7 +579,7 @@ void vtkRectangularBoundingVolumeRepresentation::CreateVolume()
   lineData = vtkSmartPointer<vtkIntArray>::New();
 
   // Point 2
-  Volume->GetOutput()->GetPoint(0*4+2,point);
+  BoundingRegion->GetPoint(0*4+2,point);
   point[2] = -0.1;
   this->MarginPoints->SetPoint(2, point);
   m_lastExclusionMargin[0] = point[0];
@@ -600,7 +600,7 @@ void vtkRectangularBoundingVolumeRepresentation::CreateVolume()
   lineData = vtkSmartPointer<vtkIntArray>::New();
 
   // Point 3
-  Volume->GetOutput()->GetPoint(0*4+3,point);
+  BoundingRegion->GetPoint(0*4+3,point);
   point[2] = -0.1;
   this->MarginPoints->SetPoint(3, point);
   m_lastInclusionMargin[0] = point[0];
@@ -632,17 +632,17 @@ void vtkRectangularBoundingVolumeRepresentation::CreateVolume()
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingVolumeRepresentation::SetVolume(vtkPolyDataAlgorithm *region)
+void vtkBoundingRegion3DRepresentation::SetBoundingRegion(vtkPolyData *region)
 {
-  Volume = region;
-  region->Update();
-  VolumePolyData->SetPoints(region->GetOutput()->GetPoints());
-  VolumePolyData->SetPolys(region->GetOutput()->GetPolys());
-  VolumePolyData->GetCellData()->SetScalars(region->GetOutput()->GetCellData()->GetScalars("Type"));
+  BoundingRegion = region;
+  BoundingRegion->Update();
+  VolumePolyData->SetPoints(BoundingRegion->GetPoints());
+  VolumePolyData->SetPolys(BoundingRegion->GetPolys());
+  VolumePolyData->GetCellData()->SetScalars(BoundingRegion->GetCellData()->GetScalars("Type"));
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingVolumeRepresentation::PlaceWidget(double bds[6])
+void vtkBoundingRegion3DRepresentation::PlaceWidget(double bds[6])
 {
 //   std::cout << "Place Widget: ";
   int i;
@@ -669,13 +669,13 @@ void vtkRectangularBoundingVolumeRepresentation::PlaceWidget(double bds[6])
 }
 
 //----------------------------------------------------------------------------
-int vtkRectangularBoundingVolumeRepresentation::ComputeInteractionState(int X, int Y, int modify)
+int vtkBoundingRegion3DRepresentation::ComputeInteractionState(int X, int Y, int modify)
 {
   // Okay, we can process this. Try to pick handles first;
   // if no handles picked, then pick the bounding box.
   if (!this->Renderer || !this->Renderer->IsInViewport(X, Y))
     {
-    this->InteractionState = vtkRectangularBoundingVolumeRepresentation::Outside;
+    this->InteractionState = vtkBoundingRegion3DRepresentation::Outside;
     return this->InteractionState;
     }
   
@@ -694,27 +694,27 @@ int vtkRectangularBoundingVolumeRepresentation::ComputeInteractionState(int X, i
       reinterpret_cast<vtkActor *>(path->GetFirstNode()->GetViewProp());
     if (this->CurrentHandle == this->MarginActor[LEFT])
     {
-      this->InteractionState = vtkRectangularBoundingVolumeRepresentation::MoveLeft;
+      this->InteractionState = vtkBoundingRegion3DRepresentation::MoveLeft;
     }
     else if (this->CurrentHandle == this->MarginActor[RIGHT])
     {
-      this->InteractionState = vtkRectangularBoundingVolumeRepresentation::MoveRight;
+      this->InteractionState = vtkBoundingRegion3DRepresentation::MoveRight;
     } 
     else if (this->CurrentHandle == this->MarginActor[TOP])
     {
-      this->InteractionState = vtkRectangularBoundingVolumeRepresentation::MoveTop;
+      this->InteractionState = vtkBoundingRegion3DRepresentation::MoveTop;
     } 
     else if (this->CurrentHandle == this->MarginActor[BOTTOM])
     {
-      this->InteractionState = vtkRectangularBoundingVolumeRepresentation::MoveBottom;
+      this->InteractionState = vtkBoundingRegion3DRepresentation::MoveBottom;
     }
     else if (this->CurrentHandle == this->MarginActor[UPPER])
     {
-      this->InteractionState = vtkRectangularBoundingVolumeRepresentation::MoveUpper;
+      this->InteractionState = vtkBoundingRegion3DRepresentation::MoveUpper;
     } 
     else if (this->CurrentHandle == this->MarginActor[LOWER])
     {
-      this->InteractionState = vtkRectangularBoundingVolumeRepresentation::MoveLower;
+      this->InteractionState = vtkBoundingRegion3DRepresentation::MoveLower;
     }
     else
     {
@@ -723,28 +723,28 @@ int vtkRectangularBoundingVolumeRepresentation::ComputeInteractionState(int X, i
   }
   else
   {
-    this->InteractionState = vtkRectangularBoundingVolumeRepresentation::Outside;
+    this->InteractionState = vtkBoundingRegion3DRepresentation::Outside;
   }
   return this->InteractionState;
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularBoundingVolumeRepresentation::SetInteractionState(int state)
+void vtkBoundingRegion3DRepresentation::SetInteractionState(int state)
 {
   // Clamp to allowable values
-  state = ( state < vtkRectangularBoundingVolumeRepresentation::Outside ? vtkRectangularBoundingVolumeRepresentation::Outside :state);
+  state = ( state < vtkBoundingRegion3DRepresentation::Outside ? vtkBoundingRegion3DRepresentation::Outside :state);
   
   // Depending on state, highlight appropriate parts of representation
 //   int handle;
   this->InteractionState = state;
   switch (state)
     {
-    case vtkRectangularBoundingVolumeRepresentation::MoveLeft:
-    case vtkRectangularBoundingVolumeRepresentation::MoveRight:
-    case vtkRectangularBoundingVolumeRepresentation::MoveTop:
-    case vtkRectangularBoundingVolumeRepresentation::MoveBottom:
-    case vtkRectangularBoundingVolumeRepresentation::MoveUpper:
-    case vtkRectangularBoundingVolumeRepresentation::MoveLower:
+    case vtkBoundingRegion3DRepresentation::MoveLeft:
+    case vtkBoundingRegion3DRepresentation::MoveRight:
+    case vtkBoundingRegion3DRepresentation::MoveTop:
+    case vtkBoundingRegion3DRepresentation::MoveBottom:
+    case vtkBoundingRegion3DRepresentation::MoveUpper:
+    case vtkBoundingRegion3DRepresentation::MoveLower:
       this->HighlightMargin(this->CurrentHandle);
       break;
     default:
@@ -756,7 +756,7 @@ void vtkRectangularBoundingVolumeRepresentation::SetInteractionState(int state)
 }
 
 //----------------------------------------------------------------------
-double *vtkRectangularBoundingVolumeRepresentation::GetBounds()
+double *vtkBoundingRegion3DRepresentation::GetBounds()
 {
   this->BuildRepresentation();
   this->BoundingBox->SetBounds(this->VolumeActor->GetBounds());
@@ -764,7 +764,7 @@ double *vtkRectangularBoundingVolumeRepresentation::GetBounds()
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingVolumeRepresentation::BuildRepresentation()
+void vtkBoundingRegion3DRepresentation::BuildRepresentation()
 {
   // Rebuild only if necessary
   if ( this->GetMTime() > this->BuildTime ||
@@ -777,7 +777,7 @@ void vtkRectangularBoundingVolumeRepresentation::BuildRepresentation()
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingVolumeRepresentation::ReleaseGraphicsResources(vtkWindow *w)
+void vtkBoundingRegion3DRepresentation::ReleaseGraphicsResources(vtkWindow *w)
 {
   this->VolumeActor->ReleaseGraphicsResources(w);
   for (unsigned int i=0; i<6; i++)
@@ -788,7 +788,7 @@ void vtkRectangularBoundingVolumeRepresentation::ReleaseGraphicsResources(vtkWin
 }
 
 //----------------------------------------------------------------------------
-int vtkRectangularBoundingVolumeRepresentation::RenderOpaqueGeometry(vtkViewport *v)
+int vtkBoundingRegion3DRepresentation::RenderOpaqueGeometry(vtkViewport *v)
 {
   int count=0;
   this->BuildRepresentation();
@@ -799,7 +799,7 @@ int vtkRectangularBoundingVolumeRepresentation::RenderOpaqueGeometry(vtkViewport
 }
 
 //----------------------------------------------------------------------------
-int vtkRectangularBoundingVolumeRepresentation::RenderTranslucentPolygonalGeometry(vtkViewport *v)
+int vtkBoundingRegion3DRepresentation::RenderTranslucentPolygonalGeometry(vtkViewport *v)
 {
   int count=0;
   this->BuildRepresentation();
@@ -810,7 +810,7 @@ int vtkRectangularBoundingVolumeRepresentation::RenderTranslucentPolygonalGeomet
 }
 
 //----------------------------------------------------------------------------
-int vtkRectangularBoundingVolumeRepresentation::HasTranslucentPolygonalGeometry()
+int vtkBoundingRegion3DRepresentation::HasTranslucentPolygonalGeometry()
 {
   int result=0;
   this->BuildRepresentation();
@@ -830,7 +830,7 @@ int vtkRectangularBoundingVolumeRepresentation::HasTranslucentPolygonalGeometry(
 }
 
 //----------------------------------------------------------------------------
-// int vtkRectangularBoundingVolumeRepresentation::HighlightHandle(vtkProp *prop)
+// int vtkBoundingRegion3DRepresentation::HighlightHandle(vtkProp *prop)
 // {
 //   // first unhighlight anything picked
 //   this->HighlightOutline(0);
@@ -863,7 +863,7 @@ int vtkRectangularBoundingVolumeRepresentation::HasTranslucentPolygonalGeometry(
 // }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingVolumeRepresentation::HighlightMargin(vtkActor* actor)
+void vtkBoundingRegion3DRepresentation::HighlightMargin(vtkActor* actor)
 {
   for(unsigned char margin=0; margin < 6; margin++)
   {
@@ -874,7 +874,7 @@ void vtkRectangularBoundingVolumeRepresentation::HighlightMargin(vtkActor* actor
   }
 }
 //----------------------------------------------------------------------------
-// void vtkRectangularBoundingVolumeRepresentation::HighlightFace(int cellId)
+// void vtkBoundingRegion3DRepresentation::HighlightFace(int cellId)
 // {
 //   if ( cellId >= 0 )
 //     {
@@ -899,7 +899,7 @@ void vtkRectangularBoundingVolumeRepresentation::HighlightMargin(vtkActor* actor
 // }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingVolumeRepresentation::HighlightOutline(int highlight)
+void vtkBoundingRegion3DRepresentation::HighlightOutline(int highlight)
 {
   if ( highlight )
     {
@@ -916,7 +916,7 @@ void vtkRectangularBoundingVolumeRepresentation::HighlightOutline(int highlight)
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularBoundingVolumeRepresentation::PrintSelf(ostream& os, vtkIndent indent)
+void vtkBoundingRegion3DRepresentation::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
