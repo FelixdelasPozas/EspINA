@@ -346,7 +346,7 @@ vtkAlgorithmOutput* Segmentation::mesh()
     m_march->SetInputConnection(m_padfilter->GetOutputPort());
 
     m_updateMeshCommand = new updateCommand(this);
-    itk2vtk->AddObserver(itk::ModifiedEvent(), m_updateMeshCommand);
+    itk2vtk->AddObserver(itk::AnyEvent(), m_updateMeshCommand);
   }
 
   return m_march->GetOutput()->GetProducerPort();
