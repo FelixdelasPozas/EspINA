@@ -74,6 +74,11 @@ private:
   vtkSmartPointer<vtkPolyData> m_borders;
   QMutex                       m_borderMutex;
 
+  vtkSmartPointer<vtkPolyData> m_PolyDataFaces[6];
+
+  // builds a surface for each face the first time one is needed
+  void ComputeSurfaces();
+
   friend class MarginDetector;
 };
 
