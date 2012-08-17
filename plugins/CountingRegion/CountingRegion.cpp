@@ -27,8 +27,8 @@
 
 #include "regions/RectangularBoundingRegion.h"
 #include "regions/AdaptiveBoundingRegion.h"
-#include "extensions/CountingRegionSampleExtension.h"
 #include "extensions/CountingRegionSegmentationExtension.h"
+#include "extensions/CountingRegionChannelExtension.h"
 
 #include <QFileDialog>
 
@@ -121,8 +121,8 @@ CountingRegion::CountingRegion(QWidget * parent)
   connect(m_gui->saveDescription, SIGNAL(clicked(bool)),
 	  this, SLOT(saveRegionDescription()));
 
-  SampleExtension::SPtr sampleExtension(new CountingRegionSampleExtension(this));
-  EspinaFactory::instance()->registerSampleExtension(sampleExtension);
+  ChannelExtension::SPtr channelExtension(new CountingRegionChannelExtension(this));
+  EspinaFactory::instance()->registerChannelExtension(channelExtension);
   SegmentationExtension::SPtr segExtension(new CountingRegionSegmentationExtension());
   EspinaFactory::instance()->registerSegmentationExtension(segExtension);
 
@@ -160,49 +160,41 @@ CountingRegion::~CountingRegion()
 }
 
 //------------------------------------------------------------------------
-void CountingRegion::createAdaptiveRegion(double inclusion[3], double exclusion[3])
+void CountingRegion::createAdaptiveRegion(Channel *channel,
+                                          Nm inclusion[3],
+                                          Nm exclusion[3])
 {
   EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
 
-  Channel *channel = SelectionManager::instance()->activeChannel();
-  Q_ASSERT(channel);
-
-  Sample *sample = channel->sample();
-  Q_ASSERT(sample);
-
-  ModelItemExtension *ext = sample->extension(CountingRegionSampleExtension::ID);
+  ModelItemExtension *ext = channel->extension(CountingRegionChannelExtension::ID);
   Q_ASSERT(ext);
-  CountingRegionSampleExtension *sampleExt = dynamic_cast<CountingRegionSampleExtension *>(ext);
-  Q_ASSERT(sampleExt);
+  CountingRegionChannelExtension *channelExt = dynamic_cast<CountingRegionChannelExtension *>(ext);
+  Q_ASSERT(channelExt);
 
-  AdaptiveBoundingRegion *region(new AdaptiveBoundingRegion(sampleExt, channel, inclusion, exclusion));
-  sampleExt->addRegion(region);
+  AdaptiveBoundingRegion *region(new AdaptiveBoundingRegion(channelExt, inclusion, exclusion));
+  channelExt->addRegion(region);
   m_regionModel.appendRow(region);
   view->addWidget(region);
   m_gui->removeRegion->setEnabled(true);
 }
 
 //------------------------------------------------------------------------
-void CountingRegion::createRectangularRegion(double inclusion[3], double exclusion[3])
+void CountingRegion::createRectangularRegion(Channel *channel,
+                                             Nm inclusion[3],
+                                             Nm exclusion[3])
 {
   EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
 
-  Channel *channel = SelectionManager::instance()->activeChannel();
-  Q_ASSERT(channel);
-
-  Sample *sample = channel->sample();
-  Q_ASSERT(sample);
-
-  ModelItemExtension *ext = sample->extension(CountingRegionSampleExtension::ID);
+  ModelItemExtension *ext = channel->extension(CountingRegionChannelExtension::ID);
   Q_ASSERT(ext);
-  CountingRegionSampleExtension *sampleExt = dynamic_cast<CountingRegionSampleExtension *>(ext);
-  Q_ASSERT(sampleExt);
+  CountingRegionChannelExtension *channelExt = dynamic_cast<CountingRegionChannelExtension *>(ext);
+  Q_ASSERT(channelExt);
 
   double borders[6];
   channel->bounds(borders);
 
-  RectangularBoundingRegion *region(new RectangularBoundingRegion(sampleExt, borders, inclusion, exclusion));
-  sampleExt->addRegion(region);
+  RectangularBoundingRegion *region(new RectangularBoundingRegion(channelExt, borders, inclusion, exclusion));
+  channelExt->addRegion(region);
   m_regionModel.appendRow(region);
   view->addWidget(region);
   m_gui->removeRegion->setEnabled(true);
@@ -222,20 +214,23 @@ void CountingRegion::createBoundingRegion()
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);
 
-  double inclusion[3];
+  Nm inclusion[3];
   inclusion[0] = m_gui->leftMargin->value();
   inclusion[1] = m_gui->topMargin->value();
   inclusion[2] = m_gui->upperSlice->value();
 
-  double exclusion[3];
+  Nm exclusion[3];
   exclusion[0] = m_gui->rightMargin->value();
   exclusion[1] = m_gui->bottomMargin->value();
   exclusion[2] = m_gui->lowerSlice->value();
 
+  Channel *channel = SelectionManager::instance()->activeChannel();
+  Q_ASSERT(channel);
+
   if (ADAPTIVE == m_gui->regionType->currentIndex())
-    createAdaptiveRegion(inclusion, exclusion);
+    createAdaptiveRegion(channel, inclusion, exclusion);
   else if (RECTANGULAR == m_gui->regionType->currentIndex())
-    createRectangularRegion(inclusion, exclusion);
+    createRectangularRegion(channel, inclusion, exclusion);
   else
     Q_ASSERT(false);
 

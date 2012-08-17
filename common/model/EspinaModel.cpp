@@ -388,6 +388,7 @@ void EspinaModel::addChannel(Channel *channel)
   connect(channel, SIGNAL(modified(ModelItem*)),
 	  this, SLOT(itemModified(ModelItem*)));
   endInsertRows();
+  SelectionManager::instance()->setActiveChannel(channel);
   markAsChanged();;
 }
 
@@ -403,6 +404,7 @@ void EspinaModel::removeChannel(Channel *channel)
   m_channels.removeOne(channel);
   Q_ASSERT(m_channels.contains(channel) == false);
   endRemoveRows();
+  SelectionManager::instance()->setActiveChannel(m_channels.value(0, NULL));
   markAsChanged();;
 }
 
@@ -616,11 +618,15 @@ bool EspinaModel::loadSerialization(istream& stream, RelationshipGraph::PrintFor
           Filter *filter =  dynamic_cast<Filter *>(item);
           filter->update();
           Channel *channel = factory->createChannel(filter, link[1].toUInt());
-          channel->initialize(args);
+          ModelItem::Arguments cArgs = args;
+          cArgs.remove(ModelItem::EXTENSIONS);
+          channel->initialize(cArgs);
 	  if (channel->itkVolume() == NULL)
 	    return false;
           addChannel(channel);
-          nonInitializedItems << NonInitilizedItem(channel, args);
+          ModelItem::Arguments extArgs;
+          extArgs[ModelItem::EXTENSIONS] = args[ModelItem::EXTENSIONS];
+          nonInitializedItems << NonInitilizedItem(channel, extArgs);
           input->setItem(v.vId, channel);
           break;
         }

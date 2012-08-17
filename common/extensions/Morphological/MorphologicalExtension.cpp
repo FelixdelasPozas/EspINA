@@ -90,8 +90,6 @@ ModelItemExtension::ExtId MorphologicalExtension::id()
 //------------------------------------------------------------------------
 void MorphologicalExtension::initialize(Segmentation* seg)
 {
-  m_seg = seg;
-
 //   qDebug() << "Converting from ITK to LabelMap";
   QApplication::setOverrideCursor(Qt::WaitCursor);
   m_labelMap = Image2LabelFilterType::New();

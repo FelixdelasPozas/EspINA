@@ -24,7 +24,7 @@
 #include <common/widgets/RectangularSelection.h>
 #include <vtkCommand.h>
 
-class CountingRegionSampleExtension;
+class CountingRegionChannelExtension;
 class vtkBoundingRegionWidget;
 class vtkPolyData;
 
@@ -46,12 +46,13 @@ public:
   };
 public:
   vtkTypeMacro(BoundingRegion, vtkCommand);
-  explicit BoundingRegion(CountingRegionSampleExtension *sampleExt,
-			  double inclusion[3],
-			  double exclusion[3]);
+  explicit BoundingRegion(CountingRegionChannelExtension *channelExt,
+			  Nm inclusion[3],
+			  Nm exclusion[3]);
   virtual ~BoundingRegion(){}
 
   virtual QVariant data(int role = Qt::UserRole + 1) const;
+  virtual QString serialize() const = 0;
 
   /// Return total volume in pixels
   virtual double totalVolume() const
@@ -82,11 +83,11 @@ protected:
 
 protected:
   vtkPolyData *m_boundingRegion;
-  CountingRegionSampleExtension *m_sampleExt;
+  CountingRegionChannelExtension *m_channelExt;
 
-  double  m_inclusion[3];
-  double  m_exclusion[3];
-  double  m_totalVolume, m_inclusionVolume;
+  Nm m_inclusion[3];
+  Nm m_exclusion[3];
+  Nm m_totalVolume, m_inclusionVolume;
 
   QList<vtkBoundingRegionWidget *> m_widgets;
 };

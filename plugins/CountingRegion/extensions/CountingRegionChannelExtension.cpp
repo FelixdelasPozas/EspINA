@@ -17,44 +17,43 @@
 */
 
 
-#include "CountingRegionSampleExtension.h"
+#include "CountingRegionChannelExtension.h"
 
-#include "CountingRegion.h"
 #include "CountingRegionSegmentationExtension.h"
-#include "regions/RectangularBoundingRegion.h"
+#include "regions/BoundingRegion.h"
+#include <regions/RectangularBoundingRegion.h>
+#include <regions/AdaptiveBoundingRegion.h>
+#include <CountingRegion.h>
 
-#include <common/model/ModelItem.h>
 #include <common/model/Sample.h>
+#include <common/model/Channel.h>
+#include <common/extensions/Margins/MarginsSegmentationExtension.h>
+
+#include <QDebug>
 
 typedef ModelItem::ArgumentId ArgumentId;
 
-const ModelItemExtension::ExtId CountingRegionSampleExtension::ID = "CountingRegionExtension";
+const ModelItemExtension::ExtId CountingRegionChannelExtension::ID = "CountingRegionExtension";
 
-const ArgumentId CountingRegionSampleExtension::REGIONS = ArgumentId("Regions", ArgumentId::VARIABLE);
+const ArgumentId CountingRegionChannelExtension::REGIONS = ArgumentId("Regions", ArgumentId::VARIABLE);
 
 //-----------------------------------------------------------------------------
-CountingRegionSampleExtension::CountingRegionSampleExtension(CountingRegion *plugin)
+CountingRegionChannelExtension::CountingRegionChannelExtension(CountingRegion* plugin)
 : m_plugin(plugin)
 {
+
 }
 
 //-----------------------------------------------------------------------------
-CountingRegionSampleExtension::~CountingRegionSampleExtension()
+CountingRegionChannelExtension::~CountingRegionChannelExtension()
 {
 
 }
 
 //-----------------------------------------------------------------------------
-ModelItemExtension::ExtId CountingRegionSampleExtension::id()
+void CountingRegionChannelExtension::initialize(ModelItem::Arguments args)
 {
-  return ID;
-}
-
-//-----------------------------------------------------------------------------
-void CountingRegionSampleExtension::initialize(Sample* sample,
-					       ModelItem::Arguments args)
-{
-  m_sample = sample;
+  qDebug() << args;
   QStringList regions = args[REGIONS].split(";");
 
   foreach (QString region, regions)
@@ -64,36 +63,53 @@ void CountingRegionSampleExtension::initialize(Sample* sample,
 
     QString type = region.section('=',0,0);
     QStringList margins = region.section('=',-1).split(',');
-    double inclusion[3], exclusion[3];
+    Nm inclusion[3], exclusion[3];
     for (int i=0; i<3; i++)
     {
       inclusion[i] = margins[i].toInt();
       exclusion[i] = margins[3+i].toInt();
     }
-    if (type == "RectangularRegion")
-      m_plugin->createRectangularRegion(inclusion, exclusion);
-    //TODO
-//       createRectangularRegion(inclusion[0],inclusion[1],inclusion[2],
-// 			      exclusion[0], exclusion[1], exclusion[2], row);
-//       else if (type == AdaptiveRegion::ID)
-// 	createAdaptiveRegion(inclusion[0],inclusion[1],inclusion[2],
-// 			     exclusion[0], exclusion[1], exclusion[2], row);
+    if (RectangularBoundingRegion::ID == type)
+      m_plugin->createRectangularRegion(m_channel, inclusion, exclusion);
+    else if (AdaptiveBoundingRegion::ID == type)
+      m_plugin->createAdaptiveRegion(m_channel, inclusion, exclusion);
   }
 }
 
 //-----------------------------------------------------------------------------
-SampleExtension *CountingRegionSampleExtension::clone()
+QString CountingRegionChannelExtension::serialize() const
 {
-  return new CountingRegionSampleExtension(m_plugin);
+  QStringList regionValue;
+  foreach(BoundingRegion *region, m_regions)
+    regionValue << region->serialize();
+
+  m_args[REGIONS] = regionValue.join(";");
+  return m_args.serialize();
 }
 
 //-----------------------------------------------------------------------------
-void CountingRegionSampleExtension::addRegion(BoundingRegion* region)
+ModelItemExtension::ExtIdList CountingRegionChannelExtension::dependencies() const
+{
+  ExtIdList deps;
+  deps << MarginsSegmentationExtension::ID;
+  return deps;
+}
+
+//-----------------------------------------------------------------------------
+ChannelExtension* CountingRegionChannelExtension::clone()
+{
+  return new CountingRegionChannelExtension(m_plugin);
+}
+
+//-----------------------------------------------------------------------------
+void CountingRegionChannelExtension::addRegion(BoundingRegion* region)
 {
   Q_ASSERT(!m_regions.contains(region));
   m_regions << region;
 
-  ModelItem::Vector items = m_sample->relatedItems(ModelItem::OUT, "where");
+  Sample *sample = m_channel->sample();
+  Q_ASSERT(sample);
+  ModelItem::Vector items = sample->relatedItems(ModelItem::OUT, "where");
   foreach(ModelItem *item, items)
   {
     if (ModelItem::SEGMENTATION == item->type())
@@ -107,12 +123,14 @@ void CountingRegionSampleExtension::addRegion(BoundingRegion* region)
 }
 
 //-----------------------------------------------------------------------------
-void CountingRegionSampleExtension::removeRegion(BoundingRegion* region)
+void CountingRegionChannelExtension::removeRegion(BoundingRegion* region)
 {
   Q_ASSERT(m_regions.contains(region));
   m_regions.removeOne(region);
 
-  ModelItem::Vector items = m_sample->relatedItems(ModelItem::OUT, "where");
+  Sample *sample = m_channel->sample();
+  Q_ASSERT(sample);
+  ModelItem::Vector items = sample->relatedItems(ModelItem::OUT, "where");
   foreach(ModelItem *item, items)
   {
     if (ModelItem::SEGMENTATION == item->type())
@@ -124,3 +142,4 @@ void CountingRegionSampleExtension::removeRegion(BoundingRegion* region)
     }
   }
 }
+

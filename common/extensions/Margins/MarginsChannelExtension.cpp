@@ -82,12 +82,10 @@ ModelItemExtension::ExtId MarginsChannelExtension::id()
 }
 
 //-----------------------------------------------------------------------------
-void MarginsChannelExtension::initialize(Channel* channel, ModelItem::Arguments args)
+void MarginsChannelExtension::initialize(ModelItem::Arguments args)
 {
-  if (m_init && m_channel == channel)
+  if (m_init)
     return;
-
-  m_channel = channel;
 //   qDebug() << args;
 
   bool computeMargin = false;
@@ -98,7 +96,7 @@ void MarginsChannelExtension::initialize(Channel* channel, ModelItem::Arguments 
   {
     QMessageBox msgBox;
     msgBox.setWindowTitle("Margins Channel Extension");
-    msgBox.setText(tr("Compute %1's margins").arg(channel->data().toString()));
+    msgBox.setText(tr("Compute %1's margins").arg(m_channel->data().toString()));
     msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
     msgBox.setDefaultButton(QMessageBox::No);
     computeMargin = msgBox.exec() == QMessageBox::Yes;

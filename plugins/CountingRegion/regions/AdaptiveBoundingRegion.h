@@ -23,18 +23,21 @@
 #include "regions/BoundingRegion.h"
 
 class Channel;
+
 class AdaptiveBoundingRegion
 : public BoundingRegion
 {
 public:
-  explicit AdaptiveBoundingRegion(CountingRegionSampleExtension *sampleExt,
-				  Channel *channel,
-				  double inclusion[3],
-				  double exclusion[3]);
+  static const QString ID;
+
+  explicit AdaptiveBoundingRegion(CountingRegionChannelExtension *channelExt,
+				  Nm inclusion[3],
+				  Nm exclusion[3]);
   virtual ~AdaptiveBoundingRegion();
 
   // Implements QStandardItem interface
   virtual QVariant data(int role = Qt::UserRole + 1) const;
+  virtual QString serialize() const;
 
   // Implements EspinaWidget itnerface
   virtual SliceWidget *createSliceWidget(PlaneType plane);

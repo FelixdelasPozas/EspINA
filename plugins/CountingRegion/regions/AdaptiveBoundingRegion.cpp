@@ -21,12 +21,12 @@
 
 #include <common/model/Channel.h>
 #include "vtkBoundingRegionSliceWidget.h"
+#include <common/extensions/Margins/MarginsChannelExtension.h>
+#include <extensions/CountingRegionChannelExtension.h>
 
 #include <vtkPolyData.h>
-#include <extensions/CountingRegionSampleExtension.h>
 #include <vtkSmartPointer.h>
 #include <vtkCellArray.h>
-#include <common/extensions/Margins/MarginsChannelExtension.h>
 #include <vtkCellData.h>
 #include "vtkBoundingRegion3DWidget.h"
 
@@ -49,12 +49,14 @@ private:
 };
 
 //-----------------------------------------------------------------------------
-AdaptiveBoundingRegion::AdaptiveBoundingRegion(CountingRegionSampleExtension *sampleExt,
-					       Channel* channel,
-					       double inclusion[3],
-					       double exclusion[3])
-: BoundingRegion(sampleExt, inclusion, exclusion)
-, m_channel(channel)
+const QString AdaptiveBoundingRegion::ID = "AdaptiveBoundingRegion";
+
+//-----------------------------------------------------------------------------
+AdaptiveBoundingRegion::AdaptiveBoundingRegion(CountingRegionChannelExtension *channelExt,
+					       Nm inclusion[3],
+					       Nm exclusion[3])
+: BoundingRegion(channelExt, inclusion, exclusion)
+, m_channel(channelExt->channel())
 {
   m_boundingRegion = vtkPolyData::New();
   updateBoundingRegion();
@@ -63,7 +65,7 @@ AdaptiveBoundingRegion::AdaptiveBoundingRegion(CountingRegionSampleExtension *sa
 //-----------------------------------------------------------------------------
 AdaptiveBoundingRegion::~AdaptiveBoundingRegion()
 {
-  m_sampleExt->removeRegion(this);
+  m_channelExt->removeRegion(this);
   foreach(vtkAbstractWidget *w, m_widgets)
   {
     w->EnabledOn();
@@ -87,6 +89,19 @@ QVariant AdaptiveBoundingRegion::data(int role) const
   }
 
   return BoundingRegion::data(role);
+}
+
+//-----------------------------------------------------------------------------
+QString AdaptiveBoundingRegion::serialize() const
+{
+  return QString("[%1=%2,%3,%4,%5,%6,%7]")
+         .arg(ID)
+         .arg(m_inclusion[0])
+         .arg(m_inclusion[1])
+         .arg(m_inclusion[2])
+         .arg(m_exclusion[0])
+         .arg(m_exclusion[1])
+         .arg(m_exclusion[2]);
 }
 
 //-----------------------------------------------------------------------------
@@ -135,6 +150,7 @@ void AdaptiveBoundingRegion::updateBoundingRegion()
   Q_ASSERT(marginsExt);
 
   vtkSmartPointer<vtkPolyData> margins = marginsExt->margins();
+  Q_ASSERT(margins.GetPointer());
 
   int inSliceOffset = upperOffset() / spacing[2];
   int exSliceOffset = lowerOffset() / spacing[2];

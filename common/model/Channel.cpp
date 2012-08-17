@@ -205,7 +205,7 @@ QString Channel::serialize() const
 //-----------------------------------------------------------------------------
 void Channel::initialize(ModelItem::Arguments args)
 {
-  //qDebug() << "Init channel with args:" << args;
+//   qDebug() << "Init channel with args:" << args;
   foreach(ArgumentId argId, args.keys())
   {
     if (argId != EXTENSIONS)
@@ -213,15 +213,19 @@ void Channel::initialize(ModelItem::Arguments args)
       m_args[argId] = args[argId];
     }
   }
+
+  if (!args.contains(EXTENSIONS))
+    return;
+
   ModelItem::Arguments extArgs(args[EXTENSIONS]);
-  foreach(ModelItemExtension *ext, m_extensions)
+  foreach(ModelItemExtension *ext, m_insertionOrderedExtensions)
   {
     ChannelExtension *channelExt = dynamic_cast<ChannelExtension *>(ext);
     Q_ASSERT(channelExt);
-//     qDebug() << extArgs;
+    //     qDebug() << extArgs;
     ArgumentId argId(channelExt->id(), false);
     ModelItem::Arguments cArgs(extArgs.value(argId, QString()));
-    channelExt->initialize(this, cArgs);
+    channelExt->initialize(cArgs);
   }
 }
 
@@ -237,6 +241,7 @@ QVariant Channel::information(QString name)
 void Channel::addExtension(ChannelExtension* ext)
 {
   ModelItem::addExtension(ext);
+  ext->setChannel(this);
 }
 
 
@@ -247,109 +252,6 @@ Sample *Channel::sample()
   Q_ASSERT(relatedSamples.size() == 1);
   return dynamic_cast<Sample *>(relatedSamples[0]);
 }
-
-
-// //------------------------------------------------------------------------
-// void Channel::addExtension(IChannelExtension* ext)
-// {
-//   EXTENSION_DEBUG("Added " << ext->id() << " to sample " << id());
-//   if (m_extensions.contains(ext->id()))
-//   {
-//      qWarning() << "Channel: Extension already registered";
-//      assert(false);
-//   }
-//   
-//   bool hasDependencies = true;
-//   foreach(QString reqExtId, ext->dependencies())
-//     hasDependencies = hasDependencies && m_extensions.contains(reqExtId);
-//   
-//   if (hasDependencies)
-//   {
-//     m_extensions.insert(ext->id(),ext);
-//     m_insertionOrderedExtensions.push_back(ext);
-//     foreach(IChannelRepresentation::RepresentationId rep, ext->availableRepresentations())
-//       m_representations.insert(rep, ext);
-//     foreach(QString info, ext->availableInformations())
-//     {
-//       m_informations.insert(info, ext);
-//       EXTENSION_DEBUG("New Information: " << info);
-//     }
-//     // Try to satisfy pending extensions
-//     foreach(IChannelExtension *pending, m_pendingExtensions)
-//       addExtension(pending);
-//   } 
-//   else
-//   {
-//     if (!m_pendingExtensions.contains(ext->id()))
-//       m_pendingExtensions.insert(ext->id(),ext);
-//   }
-// }
-// 
-// //------------------------------------------------------------------------
-// IChannelExtension* Channel::extension(ExtensionId extId)
-// {
-//   if (m_extensions.contains(extId))
-//     return m_extensions[extId];
-//   else
-//     return NULL;
-// }
-// 
-// //------------------------------------------------------------------------
-// QStringList Channel::availableRepresentations()
-// {
-//   QStringList represnetations;
-//   foreach (IChannelExtension *ext, m_insertionOrderedExtensions)
-//     represnetations << ext->availableRepresentations();
-//   
-//   return represnetations;
-// }
-// 
-// //------------------------------------------------------------------------
-// IChannelRepresentation* Channel::representation(QString rep)
-// {
-//   if (!m_representations.contains(rep))
-//   {
-//     // Update extensions
-//     foreach(IChannelExtension *ext, m_insertionOrderedExtensions)
-//     {
-//       foreach(IChannelRepresentation::RepresentationId rep, ext->availableRepresentations())
-// 	m_representations.insert(rep, ext);
-//     }
-//     if (!m_representations.contains(rep))
-//     {
-//       qWarning() << "FATAL ERROR: Representation not available after update";
-//       assert(false);
-//     }
-//   }
-//   return m_representations[rep]->representation(rep);
-// }
-// 
-// //------------------------------------------------------------------------
-// QStringList Channel::availableInformations()
-// {
-//   QStringList informations;
-//   informations << "Name";
-//   foreach (IChannelExtension *ext, m_insertionOrderedExtensions)
-//     informations << ext->availableInformations();
-//   
-//   return informations;
-// }
-// 
-// //------------------------------------------------------------------------
-// QVariant Channel::information(QString info)
-// {
-//   if (info == "Name")
-//     return data(Qt::DisplayRole);
-//     
-//   return m_informations[info]->information(info);
-// }
-// 
-// //------------------------------------------------------------------------
-// void Channel::initialize()
-// {
-//   foreach(IChannelExtension *ext, m_insertionOrderedExtensions)
-//     ext->initialize(this);
-// }
 
 vtkAlgorithmOutput* Channel::vtkVolume()
 {

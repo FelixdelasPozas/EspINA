@@ -19,7 +19,7 @@
 
 #include "regions/RectangularBoundingRegion.h"
 
-#include "extensions/CountingRegionSampleExtension.h"
+#include <extensions/CountingRegionChannelExtension.h>
 #include "regions/vtkBoundingRegionSliceWidget.h"
 
 #include <vtkCellArray.h>
@@ -31,12 +31,14 @@
 #include "vtkBoundingRegion3DWidget.h"
 
 
+const QString RectangularBoundingRegion::ID = "RectangularBoundingRegion";
+
 //-----------------------------------------------------------------------------
-RectangularBoundingRegion::RectangularBoundingRegion(CountingRegionSampleExtension *sampleExt,
+RectangularBoundingRegion::RectangularBoundingRegion(CountingRegionChannelExtension *channelExt,
 						     Nm borders[6],
 						     Nm inclusion[3],
 						     Nm exclusion[3])
-: BoundingRegion(sampleExt, inclusion, exclusion)
+: BoundingRegion(channelExt, inclusion, exclusion)
 {
   memcpy(m_borders, borders, 6*sizeof(Nm));
 
@@ -48,7 +50,7 @@ RectangularBoundingRegion::RectangularBoundingRegion(CountingRegionSampleExtensi
 //-----------------------------------------------------------------------------
 RectangularBoundingRegion::~RectangularBoundingRegion()
 {
-  m_sampleExt->removeRegion(this);
+  m_channelExt->removeRegion(this);
   foreach(vtkAbstractWidget *w, m_widgets)
   {
     w->EnabledOff();
@@ -74,6 +76,20 @@ QVariant RectangularBoundingRegion::data(int role) const
 
   return BoundingRegion::data(role);
 }
+
+//-----------------------------------------------------------------------------
+QString RectangularBoundingRegion::serialize() const
+{
+  return QString("[%1=%2,%3,%4,%5,%6,%7]")
+         .arg(ID)
+         .arg(m_inclusion[0])
+         .arg(m_inclusion[1])
+         .arg(m_inclusion[2])
+         .arg(m_exclusion[0])
+         .arg(m_exclusion[1])
+         .arg(m_exclusion[2]);
+}
+
 
 //-----------------------------------------------------------------------------
 SliceWidget* RectangularBoundingRegion::createSliceWidget(PlaneType plane)

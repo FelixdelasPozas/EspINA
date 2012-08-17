@@ -48,7 +48,7 @@ public:
   virtual ~MarginsChannelExtension();
 
   virtual ExtId id();
-  virtual void initialize(Channel* channel, ModelItem::Arguments args);
+  virtual void initialize(ModelItem::Arguments args);
   virtual QString serialize() const;
 
   virtual ExtIdList dependencies() const

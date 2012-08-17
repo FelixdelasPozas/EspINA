@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2012  <copyright holder> <email>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,40 +16,43 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef COUNTINGREGIONSAMPLEEXTENSION_H
-#define COUNTINGREGIONSAMPLEEXTENSION_H
 
-#include <common/extensions/SampleExtension.h>
+#ifndef COUNTINGREGIONCHANNELEXTENSION_H
+#define COUNTINGREGIONCHANNELEXTENSION_H
 
-class CountingRegion;
+#include "common/extensions/ChannelExtension.h"
+
 class BoundingRegion;
+class CountingRegion;
 
-class CountingRegionSampleExtension
-: public SampleExtension
+class CountingRegionChannelExtension
+: public ChannelExtension
 {
 public:
   static const ExtId ID;
   static const ModelItem::ArgumentId REGIONS;
 
-  explicit CountingRegionSampleExtension(CountingRegion *plugin);;
-  virtual ~CountingRegionSampleExtension();
+  explicit CountingRegionChannelExtension(CountingRegion *plugin);;
+  virtual ~CountingRegionChannelExtension();
 
-  virtual ExtId id();
-  virtual void initialize(Sample *sample, ModelItem::Arguments args = ModelItem::Arguments());
+  virtual ModelItemExtension::ExtId id()
+  { return ID; }
 
-  virtual ModelItemExtension::ExtIdList dependencies() const
-  { return SampleExtension::dependencies(); }
+  virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
+  virtual QString serialize() const;
+
+  virtual ModelItemExtension::ExtIdList dependencies() const;
 
   virtual ModelItemExtension::InfoList availableInformations() const
-  { return SampleExtension::availableInformations(); }
+  { return ChannelExtension::availableInformations(); }
 
-  virtual RepList availableRepresentations() const
-  { return SampleExtension::availableRepresentations(); }
+  virtual ModelItemExtension::RepList availableRepresentations() const
+  { return ChannelExtension::availableRepresentations(); }
 
-  virtual QVariant information(InfoTag tag) const
-  { return SampleExtension::information(tag); }
+  virtual QVariant information(ModelItemExtension::InfoTag tag) const
+  { return ChannelExtension::information(tag); }
 
-  virtual SampleExtension *clone();
+  virtual ChannelExtension* clone();
 
   void addRegion(BoundingRegion *region);
   void removeRegion(BoundingRegion *region);
@@ -58,6 +61,7 @@ public:
 private:
   CountingRegion         *m_plugin;
   QList<BoundingRegion *> m_regions;
+  mutable ModelItem::Arguments    m_args;
 };
 
-#endif // COUNTINGREGIONSAMPLEEXTENSION_H
+#endif // COUNTINGREGIONCHANNELEXTENSION_H

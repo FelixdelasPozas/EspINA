@@ -50,28 +50,7 @@ RectangularRegion::~RectangularRegion()
 //----------------------------------------------------------------------------
 vtkAbstractWidget* RectangularRegion::createWidget()
 {
-//   pq3DWidget *widget = createWidget("NonRotatingBox");
-//   Q_ASSERT(widget);
-//   // By default ParaView doesn't "Apply" the changes to the widget. So we set
-//   // up a slot to "Apply" when the interaction ends.
-//   QObject::connect(widget, SIGNAL(widgetEndInteraction()),
-// 		   widget, SLOT(accept()));
-// //   QObject::connect(widgets[0], SIGNAL(widgetEndInteraction()),
-// // 		   this, SLOT(modifyVOI()));
-// 
-//   vtkAbstractWidget *aw = widget->getWidgetProxy()->GetWidget();
-//   vtkNonRotatingBoxWidget *boxwidget = dynamic_cast<vtkNonRotatingBoxWidget*>(aw);
-//   Q_ASSERT(boxwidget);
-// 
-//   vtkBoxRepresentation *repbox =  dynamic_cast<vtkBoxRepresentation*>(boxwidget->GetRepresentation());
-//   repbox->HandlesOff();
-//   repbox->OutlineCursorWiresOff();
-//   vtkProperty *outline = repbox->GetOutlineProperty();
-//   outline->SetColor(1.0,1.0,0);
-// 
-//   m_widgets << widget;
-// 
-//   return widget;
+  return NULL;
 }
 
 //----------------------------------------------------------------------------
@@ -79,13 +58,6 @@ SliceWidget* RectangularRegion::createSliceWidget(PlaneType plane)
 {
   vtkRectangularWidget *widget = vtkRectangularWidget::New();
   Q_ASSERT(widget);
-  //TODO: By default ParaView doesn't "Apply" the changes to the widget. So we set
-  // up a slot to "Apply" when the interaction ends.
-//   QObject::connect(widget, SIGNAL(widgetEndInteraction()),
-// 		   widget, SLOT(accept()));
-// //   QObject::connect(widgets[0], SIGNAL(widgetEndInteraction()),
-// // 		   this, SLOT(modifyVOI()));
-
   widget->SetPlane(plane);
 
   m_widgets << widget;

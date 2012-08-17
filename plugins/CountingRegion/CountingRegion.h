@@ -27,6 +27,7 @@
 #include <common/model/EspinaModel.h>
 #include <QStandardItemModel>
 
+class Channel;
 // Forward declaration
 
 /// Counting Region Plugin
@@ -43,8 +44,12 @@ public:
   explicit CountingRegion(QWidget* parent=NULL);
   virtual ~CountingRegion();
 
-  void createAdaptiveRegion(double inclusion[3], double exclusion[3]);
-  void createRectangularRegion(double inclusion[3], double exclusion[3]);
+  void createAdaptiveRegion(Channel *channel,
+                            Nm inclusion[3],
+                            Nm exclusion[3]);
+  void createRectangularRegion(Channel *channel,
+                               Nm inclusion[3],
+                               Nm exclusion[3]);
 
 protected slots:
   void clearBoundingRegions();

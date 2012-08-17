@@ -36,7 +36,7 @@ public:
   virtual void onMouseUp  (const QPoint &pos, SelectableView* view);
   virtual bool filterEvent(QEvent* e, SelectableView* view = 0);
 
-  bool setHandleEvent(bool handled) {m_handled = handled;}
+  void setHandleEvent(bool handled) {m_handled = handled;}
 
 private:
   bool m_handled;

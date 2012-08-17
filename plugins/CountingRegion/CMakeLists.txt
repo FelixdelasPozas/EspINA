@@ -46,7 +46,7 @@ qt4_wrap_cpp(MOC_SRCS
 # file ( GLOB LOCAL_SOURCES *.cpp )
 set (LOCAL_SOURCES
   CountingRegion.cpp
-  extensions/CountingRegionSampleExtension.cpp
+  extensions/CountingRegionChannelExtension.cpp
   extensions/CountingRegionSegmentationExtension.cpp
   )
 

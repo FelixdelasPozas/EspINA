@@ -61,7 +61,6 @@ ModelItemExtension::ExtId MarginsSegmentationExtension::id()
 //-----------------------------------------------------------------------------
 void MarginsSegmentationExtension::initialize(Segmentation* seg)
 {
-  m_seg = seg;
 }
 
 //-----------------------------------------------------------------------------

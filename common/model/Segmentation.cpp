@@ -180,8 +180,18 @@ void Segmentation::initialize(ModelItem::Arguments args)
   // Prevent overriding segmentation id assigned from model
   if (ModelItem::Arguments() != args)
     m_args = SArguments(args);
-  initializeExtensions();
+
   //   qDebug() << "Users" << m_args.users() << m_args[USERS];
+  if (!args.contains(EXTENSIONS))
+    return;
+
+  foreach(ModelItemExtension *ext, m_insertionOrderedExtensions)
+  {
+    SegmentationExtension *segExt = dynamic_cast<SegmentationExtension *>(ext);
+    Q_ASSERT(segExt);
+    segExt->initialize(this);
+    //qDebug() << segExt->id() << "...OK";
+  }
 }
 
 //------------------------------------------------------------------------
@@ -255,6 +265,7 @@ void Segmentation::setVisible(bool visible)
 void Segmentation::addExtension(SegmentationExtension* ext)
 {
   ModelItem::addExtension(ext);
+  ext->setSegmentation(this);
 }
 
 //------------------------------------------------------------------------

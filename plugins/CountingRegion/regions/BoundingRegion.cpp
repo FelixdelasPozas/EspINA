@@ -19,18 +19,20 @@
 
 #include "regions/BoundingRegion.h"
 #include "vtkBoundingRegionSliceWidget.h"
+#include <extensions/CountingRegionChannelExtension.h>
+#include <common/model/Channel.h>
 
 //-----------------------------------------------------------------------------
-BoundingRegion::BoundingRegion(CountingRegionSampleExtension *sampleExt,
+BoundingRegion::BoundingRegion(CountingRegionChannelExtension *channelExt,
 			       double inclusion[3],
 			       double exclusion[3])
 : QStandardItem()
 , INCLUSION_FACE(255)
 , EXCLUSION_FACE(0)
-, m_sampleExt(sampleExt)
+, m_channelExt(channelExt)
 {
-  memcpy(m_inclusion, inclusion, 3*sizeof(double));
-  memcpy(m_exclusion, exclusion, 3*sizeof(double));
+  memcpy(m_inclusion, inclusion, 3*sizeof(Nm));
+  memcpy(m_exclusion, exclusion, 3*sizeof(Nm));
 }
 
 //-----------------------------------------------------------------------------
@@ -51,12 +53,15 @@ QVariant BoundingRegion::data(int role) const
     "    %7 %3\n"
     );
 
-    double totalPixelVolume = totalVolume();// /volPixel;
-    double inclusionPixelVolume = inclusionVolume();// /volPixel;
-    double exclusionPixelVolume = exclusionVolume();// /volPixel;
-    desc = desc.arg(totalPixelVolume,0).arg(totalVolume(),0,'f',2).arg("nm");
-    desc = desc.arg(inclusionPixelVolume,0).arg(inclusionVolume(),0,'f',2);
-    desc = desc.arg(exclusionPixelVolume,0).arg(exclusionVolume(),0,'f',2);
+    double spacing[3];
+    m_channelExt->channel()->spacing(spacing);
+    Nm volPixel = spacing[0]*spacing[1]*spacing[2];
+    Nm totalPixelVolume = totalVolume() /volPixel;
+    Nm inclusionPixelVolume = inclusionVolume() / volPixel;
+    Nm exclusionPixelVolume = exclusionVolume() / volPixel;
+    desc = desc.arg(totalPixelVolume,0,'f',2).arg(totalVolume(),0,'f',2).arg("nm");
+    desc = desc.arg(inclusionPixelVolume,0, 'f', 2).arg(inclusionVolume(),0,'f',2);
+    desc = desc.arg(exclusionPixelVolume,0, 'f', 2).arg(exclusionVolume(),0,'f',2);
 
     return desc;
   }

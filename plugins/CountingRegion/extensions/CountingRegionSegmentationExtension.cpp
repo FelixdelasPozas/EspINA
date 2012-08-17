@@ -17,18 +17,19 @@
 */
 
 #include "CountingRegionSegmentationExtension.h"
+#include "CountingRegionChannelExtension.h"
 
 //#include "CountingRegionSampleExtension.h"
 
 #include <common/model/Segmentation.h>
 #include <common/model/Sample.h>
+#include <common/model/Channel.h>
 //#include <regions/BoundingRegion.h>
 
 #include <QDebug>
 #include <regions/BoundingRegion.h>
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
-#include "CountingRegionSampleExtension.h"
 #include <common/extensions/Margins/MarginsSegmentationExtension.h>
 
 
@@ -108,6 +109,7 @@ const ModelItemExtension::InfoTag CountingRegionSegmentationExtension::DISCARTED
 
 //------------------------------------------------------------------------
 CountingRegionSegmentationExtension::CountingRegionSegmentationExtension()
+: m_isDiscarted(false)
 {
   m_availableInformations << DISCARTED;
 }
@@ -126,19 +128,21 @@ ModelItemExtension::ExtId CountingRegionSegmentationExtension::id()
 //------------------------------------------------------------------------
 void CountingRegionSegmentationExtension::initialize(Segmentation* seg)
 {
-  if (m_seg == seg)
-    return;
-
-  m_seg = seg;
-
   ModelItem::Vector relatedSamples = m_seg->relatedItems(ModelItem::IN, "where");
   Q_ASSERT(relatedSamples.size() == 1);
   Sample *sample = dynamic_cast<Sample *>(relatedSamples[0]);
-  ModelItemExtension *ext = sample->extension(CountingRegionSampleExtension::ID);
-  Q_ASSERT(ext);
-  CountingRegionSampleExtension *sampleExt =
-    dynamic_cast<CountingRegionSampleExtension *>(ext);
-  setBoundingRegions(sampleExt->regions());
+  ModelItem::Vector relatedChannels = sample->relatedItems(ModelItem::OUT, Channel::STAINLINK);
+  Q_ASSERT(relatedChannels.size() > 0);
+  QList<BoundingRegion *> regions;
+  for (int i = 0; i < relatedChannels.size(); i++)
+  {
+    Channel *channel = dynamic_cast<Channel *>(relatedChannels[i]);
+    ModelItemExtension *ext = channel->extension(CountingRegionChannelExtension::ID);
+    Q_ASSERT(ext);
+    CountingRegionChannelExtension *channelExt = dynamic_cast<CountingRegionChannelExtension *>(ext);
+    regions << channelExt->regions();
+  }
+  setBoundingRegions(regions);
 }
 
 //------------------------------------------------------------------------

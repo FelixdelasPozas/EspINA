@@ -22,11 +22,15 @@
 
 #include "regions/BoundingRegion.h"
 
+class CountingRegionChannelExtension;
+
 class RectangularBoundingRegion
 : public BoundingRegion
 {
 public:
-  explicit RectangularBoundingRegion(CountingRegionSampleExtension *samplExt,
+  static const QString ID;
+
+  explicit RectangularBoundingRegion(CountingRegionChannelExtension *channelExt,
 				     Nm borders[6],
 				     Nm inclusion[3],
 				     Nm exclusion[3]);
@@ -34,6 +38,7 @@ public:
 
   // Implements QStandardItem interface
   virtual QVariant data(int role = Qt::UserRole + 1) const;
+  virtual QString serialize() const;
 
   // Implements EspinaWidget interface
   virtual SliceWidget *createSliceWidget(PlaneType plane);
