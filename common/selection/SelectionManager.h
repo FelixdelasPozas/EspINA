@@ -38,6 +38,7 @@ class SelectionManager
 {
   Q_OBJECT
 public:
+  typedef QList<SelectableItem *> Selection;
   ~SelectionManager(){}
 
   /// Returns a SelectionManager singleton
@@ -60,8 +61,8 @@ public:
   void onMouseUp  (const QPoint &pos, SelectableView *view) const;
   bool filterEvent(QEvent *e, SelectableView *view=NULL) const;
 
-  void setSelection(SelectionHandler::MultiSelection sel);
-  SelectionHandler::MultiSelection selection() const
+  void setSelection(Selection selection);
+  Selection selection() const
   { return m_selection; }
   const Nm *selectionCenter() const
   { return m_selectionCenter; }
@@ -79,7 +80,7 @@ public slots:
 signals:
   void activeChannelChanged(Channel *);
   void activeTaxonomyChanged(TaxonomyNode *);
-  void selectionChanged(SelectionHandler::MultiSelection);
+  void selectionChanged(SelectionManager::Selection);
 
 private:
   explicit SelectionManager();
@@ -93,8 +94,8 @@ private:
 
   Channel      *m_activeChannel;
   TaxonomyNode *m_activeTaxonomy;
-  SelectionHandler::MultiSelection m_selection;
-  Nm m_selectionCenter[3];
+  Selection     m_selection;
+  Nm            m_selectionCenter[3];
 };
 
 #endif // SELECTIONMANAGER_H

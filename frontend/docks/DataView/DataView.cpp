@@ -31,11 +31,28 @@
   #include "common/model/ModelTest.h"
 #endif
 
+class DataSortFiler
+: public QSortFilterProxyModel
+{
+protected:
+  virtual bool lessThan(const QModelIndex& left, const QModelIndex& right) const
+  {
+    int role = left.column()>0?Qt::DisplayRole:Qt::UserRole+1;
+    bool ok1, ok2;
+    double lv = left.data(role).toDouble(&ok1);
+    double rv = right.data(role).toDouble(&ok2);
+    if (ok1 && ok2)
+      return left.data(role).toDouble() < right.data(role).toDouble();
+    else
+      return left.data(role).toString() < right.data(role).toString();
+  }
+};
+
 //------------------------------------------------------------------------
 DataView::DataView(QWidget* parent, Qt::WindowFlags f)
 : QWidget(parent, f)
 , m_model(new InformationProxy())
-, m_sort (new QSortFilterProxyModel())
+, m_sort (new DataSortFiler())
 {
   setupUi(this);
 
@@ -43,7 +60,6 @@ DataView::DataView(QWidget* parent, Qt::WindowFlags f)
   m_model->setSourceModel(model);
   m_sort->setSourceModel(m_model.data());
   m_sort->setDynamicSortFilter(true);
-  m_sort->setSortRole(Qt::UserRole+1);
 
 #ifdef TEST_ESPINA_MODELS
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model.data()));
@@ -53,6 +69,7 @@ DataView::DataView(QWidget* parent, Qt::WindowFlags f)
   tableView->setSortingEnabled(true);
   tableView->sortByColumn(0, Qt::AscendingOrder);
 //   tableView->horizontalHeader()->setMovable(true);
+  tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
 
   QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
   writeDataToFile->setIcon(iconSave);
@@ -62,14 +79,31 @@ DataView::DataView(QWidget* parent, Qt::WindowFlags f)
 	  this,SLOT(defineQuery()));
   connect(tableView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
 	  this, SLOT(updateSelection(QItemSelection,QItemSelection)));
-  connect(m_sort.data(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-	  this, SLOT(updateSelection(QModelIndex)));
+  connect(SelectionManager::instance(), SIGNAL(selectionChanged(SelectionManager::Selection)),
+	  this, SLOT(updateSelection(SelectionManager::Selection)));
 }
 
 //------------------------------------------------------------------------
 DataView::~DataView()
 {
 
+}
+
+//------------------------------------------------------------------------
+QModelIndex DataView::index(ModelItem* item) const
+{
+  QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
+
+  QModelIndex baseModelIndex = model->index(item);
+  QModelIndex informationIndex = m_model->mapFromSource(baseModelIndex);
+  return m_sort->mapFromSource(informationIndex);
+
+}
+
+//------------------------------------------------------------------------
+ModelItem* DataView::item(QModelIndex index) const
+{
+  return indexPtr(m_sort->mapToSource(index));
 }
 
 //------------------------------------------------------------------------
@@ -109,50 +143,43 @@ void DataView::extractInformation()
 }
 
 //------------------------------------------------------------------------
-void DataView::updateSelection(QModelIndex index)
+void DataView::updateSelection(SelectionManager::Selection selection)
 {
-  if (index.isValid())
+  if (!isVisible())
+    return;
+//   qDebug() << "Update Data Selection from Selection Manager";
+  tableView->blockSignals(true);
+  tableView->selectionModel()->blockSignals(true);
+  tableView->selectionModel()->reset();
+  foreach(SelectableItem *item, selection)
   {
-    QString data = index.data().toString();
-    ModelItem *item = indexPtr(m_sort->mapToSource(index));
-    if (ModelItem::SEGMENTATION == item->type())
-    {
-      tableView->blockSignals(true);
-      Segmentation *seg = dynamic_cast<Segmentation *>(item);
-      if (seg->isSelected())
-      {
-	int row = index.row();
-// 	tableView->selectionModel()->select(index.sibling(row,0), QItemSelectionModel::SelectCurrent);
-	tableView->selectionModel()->setCurrentIndex(index.sibling(row,0),QItemSelectionModel::Select);
-	for (int c = 1; c < m_sort->columnCount(); c++)
-	  tableView->selectionModel()->select(index.sibling(row,c), QItemSelectionModel::Select);
-// 	tableView->selectRow(index.row());
-      }
-      else
-      {
-	int row = index.row();
-	for (int c = 0; c < m_sort->columnCount(); c++)
-	  tableView->selectionModel()->select(index.sibling(row,c), QItemSelectionModel::Deselect);
-      }
-      tableView->blockSignals(false);
-    }
+    QModelIndex selIndex = index(item);
+    if (selIndex.isValid())
+      tableView->selectRow(selIndex.row());
   }
+  tableView->selectionModel()->blockSignals(false);
+  tableView->blockSignals(false);
+  // Center the view at the first selected item
+  if (!selection.isEmpty())
+  {
+    QModelIndex currentIndex = index(selection.first());
+    tableView->selectionModel()->setCurrentIndex(currentIndex, QItemSelectionModel::Select);
+  }
+  // Update all visible items
+  tableView->viewport()->update();
 }
 
 //------------------------------------------------------------------------
 void DataView::updateSelection(QItemSelection selected, QItemSelection deselected)
 {
-  m_sort->blockSignals(true);
-  foreach(QModelIndex index, selected.indexes())
+  SelectionManager::Selection selection;
+
+  foreach(QModelIndex index, tableView->selectionModel()->selectedRows())
   {
-    if (index.column() == 0)
-      m_sort->setData(index, true, Segmentation::SelectionRole);
+    ModelItem *sItem = item(index);
+    if (ModelItem::SEGMENTATION == sItem->type())
+      selection << dynamic_cast<SelectableItem *>(sItem);
   }
 
-  foreach(QModelIndex index, deselected.indexes())
-  {
-    if (index.column() == 0)
-      m_sort->setData(index, false, Segmentation::SelectionRole);
-  }
-  m_sort->blockSignals(false);
+  SelectionManager::instance()->setSelection(selection);
 }

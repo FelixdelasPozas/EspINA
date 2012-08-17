@@ -69,8 +69,10 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
 
   volDock = new QDockWidget(tr("3D"), parent);
   volDock->setObjectName("volDock");
-  connect(volView, SIGNAL(channelSelected(Channel*)), this, SLOT(channelSelected(Channel*)));
-  connect(volView, SIGNAL(segmentationSelected(Segmentation*, bool)), this, SLOT(segmentationSelected(Segmentation*, bool)));
+  connect(volView, SIGNAL(channelSelected(Channel*)),
+          this, SLOT(channelSelected(Channel*)));
+  connect(volView, SIGNAL(segmentationSelected(Segmentation*, bool)),
+          this, SLOT(segmentationSelected(Segmentation*, bool)));
   volDock->setWidget(volView);
 
   yzDock = new QDockWidget(tr("ZY"), parent);
@@ -518,7 +520,6 @@ void DefaultEspinaView::dataChanged(const QModelIndex& topLeft, const QModelInde
   else if (ModelItem::SEGMENTATION == item->type())
   {
     Segmentation *seg = dynamic_cast<Segmentation *>(item);
-    updateSelection(topLeft);
     if (updateSegmentation(seg))
       forceRender();
   }
@@ -561,64 +562,44 @@ void DefaultEspinaView::selectToSlice(double slice, PlaneType plane)
 //-----------------------------------------------------------------------------
 void DefaultEspinaView::channelSelected(Channel* channel)
 {
-  blockSignals(true);
-  foreach(QModelIndex index, selectionModel()->selectedIndexes())
-  {
-    ModelItem *item = indexPtr(index);
-    if (ModelItem::SEGMENTATION == item->type())
-    {
-      Segmentation *selSeg = dynamic_cast<Segmentation *>(item);
-      selSeg->setSelected(false);
-      selSeg->notifyModification();
-      selectionModel()->select(index, QItemSelectionModel::Deselect);
-    }
-  }
-  blockSignals(false);
+  SelectionManager::Selection selection;
+
+  selection << channel;
+
+  SelectionManager::instance()->setSelection(selection);
 }
 
 //-----------------------------------------------------------------------------
 void DefaultEspinaView::segmentationSelected(Segmentation* seg, bool append)
 {
-  if (append == false)
-  {
-    blockSignals(true);
-    foreach(QModelIndex index, selectionModel()->selectedIndexes())
-    {
-      ModelItem *item = indexPtr(index);
-      if (ModelItem::SEGMENTATION == item->type())
-      {
-        Segmentation *selSeg = dynamic_cast<Segmentation *>(item);
-        if (selSeg != seg)
-        {
-          selSeg->setSelected(false);
-          selSeg->notifyModification();
-          selectionModel()->select(index, QItemSelectionModel::Deselect);
-        }
-      }
-    }
-    blockSignals(false);
-  }
-  seg->setSelected(true);
-  seg->notifyModification();
+  SelectionManager::Selection selection;
+
+  if (append)
+    selection = SelectionManager::instance()->selection();
+
+  if (!selection.contains(seg))
+    selection << seg;
+
+  SelectionManager::instance()->setSelection(selection);
 }
 
 //-----------------------------------------------------------------------------
-void DefaultEspinaView::updateSelection(QModelIndex index)
+void DefaultEspinaView::updateSelection(SelectionManager::Selection selection)
 {
-  if (index.isValid())
-  {
-    ModelItem *item = indexPtr(index);
-    if (ModelItem::SEGMENTATION == item->type())
-    {
-      blockSignals(true);
-      Segmentation *seg = dynamic_cast<Segmentation *>(item);
-      if (seg->isSelected())
-        selectionModel()->setCurrentIndex(index, QItemSelectionModel::Select);
-      else
-        selectionModel()->select(index, QItemSelectionModel::Deselect);
-      blockSignals(false);
-    }
-  }
+//   if (index.isValid())
+//   {
+//     ModelItem *item = indexPtr(index);
+//     if (ModelItem::SEGMENTATION == item->type())
+//     {
+//       blockSignals(true);
+//       Segmentation *seg = dynamic_cast<Segmentation *>(item);
+//       if (seg->isSelected())
+//         selectionModel()->setCurrentIndex(index, QItemSelectionModel::Select);
+//       else
+//         selectionModel()->select(index, QItemSelectionModel::Deselect);
+//       blockSignals(false);
+//     }
+//   }
 }
 
 //-----------------------------------------------------------------------------

@@ -161,8 +161,8 @@ QWidget(parent)
 
   buildCrosshairs();
 
-  connect(SelectionManager::instance(), SIGNAL(selectionChanged(SelectionHandler::MultiSelection)),
-          this, SLOT(updateSelection(SelectionHandler::MultiSelection)));
+  connect(SelectionManager::instance(), SIGNAL(selectionChanged(SelectionManager::Selection)),
+          this, SLOT(updateSelection(SelectionManager::Selection)));
 }
 
 //-----------------------------------------------------------------------------
@@ -419,11 +419,11 @@ SelectionHandler::MultiSelection SliceView::select(SelectionHandler::SelectionFi
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::updateSelection(SelectionHandler::MultiSelection msel)
+void SliceView::updateSelection(SelectionManager::Selection selection)
 {
-  qDebug() << "Update Selection in" << m_plane;
-  foreach(Segmentation *seg, m_segmentations.keys())
-    updateSegmentationRepresentation(seg);
+  if (isVisible())
+    foreach(Segmentation *seg, m_segmentations.keys())
+      updateSegmentationRepresentation(seg);
 }
 
 //-----------------------------------------------------------------------------
@@ -673,7 +673,7 @@ QList<Segmentation *> SliceView::pickSegmentations(double vx,
 //-----------------------------------------------------------------------------
 void SliceView::selectPickedItems(bool append)
 {
-  //BUG: return;
+  //BUG: picking channels if previously channel was closed
   int vx, vy;
   eventPosition(vx, vy);
 
@@ -1112,7 +1112,7 @@ void SliceView::forceRender()
 {
   if (isVisible())
   {
-    qDebug() << "Rendering View" << m_plane;
+//     qDebug() << "Rendering View" << m_plane;
     updateWidgetVisibility();
     m_view->GetRenderWindow()->Render();
     m_view->update();

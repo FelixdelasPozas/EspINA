@@ -505,15 +505,12 @@ void EditorToolBar::closeSegmentations()
 //----------------------------------------------------------------------------
 QList< Segmentation* > EditorToolBar::selectedSegmentations()
 {
-  QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
-
   QList<Segmentation *> selection;
-  foreach(Segmentation *seg, model->segmentations())
+
+  foreach(SelectableItem *item, SelectionManager::instance()->selection())
   {
-    if (seg->isSelected())
-    {
-      selection << seg;
-    }
+    if (ModelItem::SEGMENTATION == item->type())
+      selection << dynamic_cast<Segmentation *>(item);
   }
 
   return selection;

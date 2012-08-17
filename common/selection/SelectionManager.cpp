@@ -23,6 +23,8 @@
 
 #include <RectangularSelection.h>
 #include <model/Segmentation.h>
+#include <EspinaCore.h>
+#include <EspinaView.h>
 
 
 SelectionManager *SelectionManager::m_singleton = NULL;//new SelectionManager();
@@ -55,10 +57,22 @@ bool SelectionManager::filterEvent(QEvent* e, SelectableView* view) const
 }
 
 //------------------------------------------------------------------------
-void SelectionManager::setSelection(SelectionHandler::MultiSelection sel)
+void SelectionManager::setSelection(Selection selection)
 {
-  m_selection = sel;
+  for (int i = 0; i < m_selection.size(); i++)
+    m_selection[i]->setSelected(false);
+
+  m_selection = selection;
+
+//   qDebug() << "Selection Changed";
+  for (int i = 0; i < m_selection.size(); i++)
+  {
+    m_selection[i]->setSelected(true);
+//     qDebug() << "-" << m_selection[i]->data().toString();
+  }
+
   computeSelectionCenter();
+  EspinaCore::instance()->viewManger()->currentView()->forceRender();
   emit selectionChanged(m_selection);
 }
 
@@ -78,7 +92,7 @@ void SelectionManager::computeSelectionCenter()
 
   for (int i = 0; i < m_selection.size(); i++)
   {
-    SelectableItem *item = m_selection[i].second;
+    SelectableItem *item = m_selection[i];
     if (ModelItem::SEGMENTATION == item->type())
     {
       Segmentation *seg = dynamic_cast<Segmentation *>(item);

@@ -28,6 +28,7 @@
 #include <QPushButton>
 #include <pluginInterfaces/Renderer.h>
 #include <common/EspinaTypes.h>
+#include <selection/SelectionManager.h>
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
 
@@ -92,9 +93,13 @@ public:
   void changePlanePosition(PlaneType, Nm);
   void addRendererControls(Renderer *);
   void removeRendererControls(Renderer *);
+
 public slots:
   void forceRender();
   void countEnabledRenderers(bool);
+  /// Update Selected Items
+  virtual void updateSelection(SelectionManager::Selection selection);
+
 signals:
   void channelSelected(Channel *);
   void segmentationSelected(Segmentation *, bool);
@@ -137,7 +142,7 @@ private:
   ColorEngine *m_colorEngine;
   QList<vtkAbstractWidget *> m_widgets;
 
-  QMap<Segmentation *, Representation> m_segmentations;
+  QList<Segmentation *> m_segmentations;
   QList<ModelItem*> m_addedItems;
 };
 

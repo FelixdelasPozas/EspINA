@@ -64,6 +64,7 @@ public:
   virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
   virtual QModelIndex parent(const QModelIndex& child) const;
   virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
+  QModelIndex index(ModelItem *item) const;
   //     virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 
   // Special Nodes of the model to refer different roots
@@ -137,7 +138,6 @@ private slots:
 
 private:
   void addTaxonomy(TaxonomyNode *tax);
-  QModelIndex index(ModelItem *item) const;
 
 private:
   Taxonomy             *m_tax;

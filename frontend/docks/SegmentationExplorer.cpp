@@ -70,6 +70,8 @@ public:
 
   virtual QAbstractItemModel *model() {return m_model.data();}
   virtual ModelItem *item(const QModelIndex &index) const {return indexPtr(index);}
+  virtual QModelIndex index(ModelItem *item) const
+  { return m_model->index(item); }
   virtual void deleteSegmentation(QModelIndexList indices) {};
 
 protected:
@@ -113,7 +115,10 @@ public:
   virtual ~SampleLayout(){}
 
   virtual QAbstractItemModel* model() {return m_sort.data();}
-  virtual ModelItem* item(const QModelIndex& index) const;
+  virtual ModelItem* item(const QModelIndex& index) const
+  { return indexPtr(m_sort->mapToSource(index)); }
+  virtual QModelIndex index(ModelItem* item) const
+  { return m_sort->mapFromSource(m_proxy->mapFromSource(Layout::index(item))); }
   virtual void deleteSegmentation(QModelIndexList indices);
 
 private:
@@ -133,13 +138,6 @@ SampleLayout::SampleLayout(QSharedPointer<EspinaModel> model)
 }
 
 //------------------------------------------------------------------------
-ModelItem* SampleLayout::item(const QModelIndex& index) const
-{
-  return indexPtr(m_sort->mapToSource(index));
-}
-
-
-//------------------------------------------------------------------------
 void SampleLayout::deleteSegmentation(QModelIndexList indices)
 {
   QSet<Segmentation *> toDelete;
@@ -151,71 +149,71 @@ void SampleLayout::deleteSegmentation(QModelIndexList indices)
     {
       case ModelItem::SEGMENTATION:
       {
-	Segmentation *seg = dynamic_cast<Segmentation *>(item);
-	Q_ASSERT(seg);
-	toDelete << seg;
-	break;
+        Segmentation *seg = dynamic_cast<Segmentation *>(item);
+        Q_ASSERT(seg);
+        toDelete << seg;
+        break;
       }
       case ModelItem::SAMPLE:
       {
-	int totalSeg  = m_proxy->numSegmentations(index, true);
-	int directSeg = m_proxy->numSegmentations(index);
+        int totalSeg  = m_proxy->numSegmentations(index, true);
+        int directSeg = m_proxy->numSegmentations(index);
 
-	if (totalSeg == 0)
-	  continue;
-	
-	Sample *sample = dynamic_cast<Sample *>(item);
-	QMessageBox msgBox;
-	msgBox.setText(QString("Delete %1's segmentations").arg(sample->id()));
-	msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-	msgBox.setDefaultButton(QMessageBox::No);
+        if (totalSeg == 0)
+          continue;
 
-	if (directSeg > 0)
-	{
-	  if (directSeg < totalSeg)
-	  {
-	    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::YesAll |  QMessageBox::No);
-	    msgBox.setText(QString("Delete %1's segmentations. If you want to delete recursively select Yes To All").arg(sample->id()));
-	  }
-	} else
-	{
-	  msgBox.setText(QString("Delete recursively %1's segmentations").arg(sample->id()));
-	  msgBox.setStandardButtons(QMessageBox::YesAll |  QMessageBox::No);
-	}
+        Sample *sample = dynamic_cast<Sample *>(item);
+        QMessageBox msgBox;
+        msgBox.setText(QString("Delete %1's segmentations").arg(sample->id()));
+        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+        msgBox.setDefaultButton(QMessageBox::No);
 
-	bool recursive = false;
-	switch (msgBox.exec())
-	{
-	  case QMessageBox::YesAll:
-	    recursive = true;
-	  case QMessageBox::Yes:
-	  {
-	    QModelIndexList subSegs = m_proxy->segmentations(index, recursive);
-	    foreach(QModelIndex subIndex, subSegs)
-	    {
-	      ModelItem *subItem = indexPtr(subIndex);
-	      Segmentation *seg = dynamic_cast<Segmentation *>(subItem);
-	      Q_ASSERT(seg);
-	      toDelete << seg;
-	    }
-	    break;
-	  }
-	  default:
-	    break;
-	}
-	break;
+        if (directSeg > 0)
+        {
+          if (directSeg < totalSeg)
+          {
+            msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::YesAll |  QMessageBox::No);
+            msgBox.setText(QString("Delete %1's segmentations. If you want to delete recursively select Yes To All").arg(sample->id()));
+          }
+        } else
+        {
+          msgBox.setText(QString("Delete recursively %1's segmentations").arg(sample->id()));
+          msgBox.setStandardButtons(QMessageBox::YesAll |  QMessageBox::No);
+        }
+
+        bool recursive = false;
+        switch (msgBox.exec())
+        {
+          case QMessageBox::YesAll:
+            recursive = true;
+          case QMessageBox::Yes:
+          {
+            QModelIndexList subSegs = m_proxy->segmentations(index, recursive);
+            foreach(QModelIndex subIndex, subSegs)
+            {
+              ModelItem *subItem = indexPtr(subIndex);
+              Segmentation *seg = dynamic_cast<Segmentation *>(subItem);
+              Q_ASSERT(seg);
+              toDelete << seg;
+            }
+            break;
+          }
+          default:
+            break;
+        }
+        break;
       }
-      default:
-	Q_ASSERT(false);
+          default:
+            Q_ASSERT(false);
     }
   }
 
   if (!toDelete.isEmpty())
   {
-  QSharedPointer<QUndoStack> undoStack = EspinaCore::instance()->undoStack();
-  undoStack->beginMacro("Delete Segmentations");
-  undoStack->push(new RemoveSegmentation(toDelete.toList()));
-  undoStack->endMacro();
+    QSharedPointer<QUndoStack> undoStack = EspinaCore::instance()->undoStack();
+    undoStack->beginMacro("Delete Segmentations");
+    undoStack->push(new RemoveSegmentation(toDelete.toList()));
+    undoStack->endMacro();
   }
 
 }
@@ -231,12 +229,12 @@ class TaxonomyLayout : public SegmentationExplorer::Layout
       ModelItem *leftItem = indexPtr(left);
       ModelItem *rightItem = indexPtr(right);
       if (leftItem->type() == rightItem->type())
-	if (ModelItem::SEGMENTATION == leftItem->type())
-	  return sortSegmentationLessThan(leftItem, rightItem);
-	else
-	  return leftItem->data(Qt::DisplayRole).toString() < rightItem->data(Qt::DisplayRole).toString();
-      else
-	return leftItem->type() == ModelItem::TAXONOMY;
+        if (ModelItem::SEGMENTATION == leftItem->type())
+          return sortSegmentationLessThan(leftItem, rightItem);
+        else
+          return leftItem->data(Qt::DisplayRole).toString() < rightItem->data(Qt::DisplayRole).toString();
+        else
+          return leftItem->type() == ModelItem::TAXONOMY;
     }
   };
 public:
@@ -244,7 +242,10 @@ public:
   virtual ~TaxonomyLayout(){}
 
   virtual QAbstractItemModel* model() {return m_sort.data();}
-  virtual ModelItem* item(const QModelIndex& index) const;
+  virtual ModelItem* item(const QModelIndex& index) const
+  { return indexPtr(m_sort->mapToSource(index)); }
+  virtual QModelIndex index(ModelItem* item) const
+  { return m_sort->mapFromSource(m_proxy->mapFromSource(Layout::index(item))); }
   virtual void deleteSegmentation(QModelIndexList indices);
 
 private:
@@ -263,12 +264,6 @@ TaxonomyLayout::TaxonomyLayout(QSharedPointer<EspinaModel> model)
   m_sort->setDynamicSortFilter(true);
 }
 
-ModelItem* TaxonomyLayout::item(const QModelIndex& index) const
-{
-  return indexPtr(m_sort->mapToSource(index));
-}
-
-
 //------------------------------------------------------------------------
 void TaxonomyLayout::deleteSegmentation(QModelIndexList indices)
 {
@@ -281,71 +276,71 @@ void TaxonomyLayout::deleteSegmentation(QModelIndexList indices)
     {
       case ModelItem::SEGMENTATION:
       {
-	Segmentation *seg = dynamic_cast<Segmentation *>(item);
-	Q_ASSERT(seg);
-	toDelete << seg;
-	break;
+        Segmentation *seg = dynamic_cast<Segmentation *>(item);
+        Q_ASSERT(seg);
+        toDelete << seg;
+        break;
       }
       case ModelItem::TAXONOMY:
       {
-	int totalSeg = m_proxy->numSegmentations(index, true);
-	int directSeg = m_proxy->numSegmentations(index);
+        int totalSeg = m_proxy->numSegmentations(index, true);
+        int directSeg = m_proxy->numSegmentations(index);
 
-	if (totalSeg == 0)
-	  continue;
-	
-	TaxonomyNode *taxonmy = dynamic_cast<TaxonomyNode *>(item);
-	QMessageBox msgBox;
-	msgBox.setText(QString("Delete %1's segmentations").arg(taxonmy->qualifiedName()));
-	msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-	msgBox.setDefaultButton(QMessageBox::No);
+        if (totalSeg == 0)
+          continue;
 
-	if (directSeg > 0)
-	{
-	  if (directSeg < totalSeg)
-	  {
-	    msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::YesAll |  QMessageBox::No);
-	    msgBox.setText(QString("Delete %1's segmentations. If you want to delete recursively select Yes To All").arg(taxonmy->qualifiedName()));
-	  }
-	} else
-	{
-	  msgBox.setText(QString("Delete recursively %1's segmentations").arg(taxonmy->qualifiedName()));
-	  msgBox.setStandardButtons(QMessageBox::YesAll |  QMessageBox::No);
-	}
-	
-	bool recursive = false;
-	switch (msgBox.exec())
-	{
-	  case QMessageBox::YesAll:
-	    recursive = true;
-	  case QMessageBox::Yes:
-	  {
-	    QModelIndexList subSegs = m_proxy->segmentations(index, recursive);
-	    foreach(QModelIndex subIndex, subSegs)
-	    {
-	      ModelItem *subItem = indexPtr(subIndex);
-	      Segmentation *seg = dynamic_cast<Segmentation *>(subItem);
-	      Q_ASSERT(seg);
-	      toDelete << seg;
-	    }
-	    break;
-	  }
-	  default:
-	    break;
-	}
-	break;
+        TaxonomyNode *taxonmy = dynamic_cast<TaxonomyNode *>(item);
+        QMessageBox msgBox;
+        msgBox.setText(QString("Delete %1's segmentations").arg(taxonmy->qualifiedName()));
+        msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+        msgBox.setDefaultButton(QMessageBox::No);
+
+        if (directSeg > 0)
+        {
+          if (directSeg < totalSeg)
+          {
+            msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::YesAll |  QMessageBox::No);
+            msgBox.setText(QString("Delete %1's segmentations. If you want to delete recursively select Yes To All").arg(taxonmy->qualifiedName()));
+          }
+        } else
+        {
+          msgBox.setText(QString("Delete recursively %1's segmentations").arg(taxonmy->qualifiedName()));
+          msgBox.setStandardButtons(QMessageBox::YesAll |  QMessageBox::No);
+        }
+
+        bool recursive = false;
+        switch (msgBox.exec())
+        {
+          case QMessageBox::YesAll:
+            recursive = true;
+          case QMessageBox::Yes:
+          {
+            QModelIndexList subSegs = m_proxy->segmentations(index, recursive);
+            foreach(QModelIndex subIndex, subSegs)
+            {
+              ModelItem *subItem = indexPtr(subIndex);
+              Segmentation *seg = dynamic_cast<Segmentation *>(subItem);
+              Q_ASSERT(seg);
+              toDelete << seg;
+            }
+            break;
+          }
+          default:
+            break;
+        }
+        break;
       }
-      default:
-	Q_ASSERT(false);
+          default:
+            Q_ASSERT(false);
     }
   }
 
   if (!toDelete.isEmpty())
   {
-  QSharedPointer<QUndoStack> undoStack = EspinaCore::instance()->undoStack();
-  undoStack->beginMacro("Delete Segmentations");
-  undoStack->push(new RemoveSegmentation(toDelete.toList()));
-  undoStack->endMacro();
+    QSharedPointer<QUndoStack> undoStack = EspinaCore::instance()->undoStack();
+    undoStack->beginMacro("Delete Segmentations");
+    undoStack->push(new RemoveSegmentation(toDelete.toList()));
+    undoStack->endMacro();
   }
 }
 
@@ -379,6 +374,8 @@ SegmentationExplorer::SegmentationExplorer(QSharedPointer<EspinaModel> model,
           this, SLOT(deleteSegmentation()));
   connect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
           this, SLOT(updateSelection(QItemSelection, QItemSelection)));
+  connect(SelectionManager::instance(), SIGNAL(selectionChanged(SelectionManager::Selection)),
+          this, SLOT(updateSelection(SelectionManager::Selection)));
 
   setWidget(m_gui);
 }
@@ -395,23 +392,16 @@ void SegmentationExplorer::addLayout(const QString id, SegmentationExplorer::Lay
   m_layouts << proxy;
 }
 
-//------------------------------------------------------------------------
+//------------------------------------------------------------------------sele
 void SegmentationExplorer::changeLayout(int index)
 {
   Q_ASSERT(index < m_layouts.size());
-  if (m_layout)
-  {
-    disconnect(m_layout->model(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-	    this, SLOT(updateSelection(QModelIndex)));
-  }
   m_layout = m_layouts[index];
 #ifdef TEST_ESPINA_MODELS
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_layout->model()));
 #endif
   m_gui->view->setModel(m_layout->model());
   m_gui->view->setItemDelegate(new SegmentationDelegate());
-  connect(m_layout->model(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-	  this, SLOT(updateSelection(QModelIndex)));
 }
 
 //------------------------------------------------------------------------
@@ -459,54 +449,41 @@ void SegmentationExplorer::deleteSegmentation()
 }
 
 //------------------------------------------------------------------------
-void SegmentationExplorer::updateSelection(QModelIndex index)
+void SegmentationExplorer::updateSelection(SelectionManager::Selection selection)
 {
-  if (index.isValid())
+//   qDebug() << "Update Seg Explorer Selection from Selection Manager";
+  m_gui->view->blockSignals(true);
+  m_gui->view->selectionModel()->blockSignals(true);
+  m_gui->view->selectionModel()->reset();
+  foreach(SelectableItem *item, selection)
   {
-    ModelItem *item = m_layout->item(index);
-    if (ModelItem::SEGMENTATION == item->type())
-    {
-      m_gui->view->blockSignals(true);
-      Segmentation *seg = dynamic_cast<Segmentation *>(item);
-      if (seg->isSelected())
-        m_gui->view->selectionModel()->setCurrentIndex(index, QItemSelectionModel::Select);
-      else
-        m_gui->view->selectionModel()->select(index, QItemSelectionModel::Deselect);
-      m_gui->view->blockSignals(false);
-    }
+    QModelIndex index = m_layout->index(item);
+    if (index.isValid())
+      m_gui->view->selectionModel()->select(index, QItemSelectionModel::Select);
   }
+  m_gui->view->selectionModel()->blockSignals(false);
+  m_gui->view->blockSignals(false);
+  // Center the view at the first selected item
+  if (!selection.isEmpty())
+  {
+    QModelIndex currentIndex = m_layout->index(selection.first());
+    m_gui->view->selectionModel()->setCurrentIndex(currentIndex, QItemSelectionModel::Select);
+  }
+  // Update all visible items
+  m_gui->view->viewport()->update();
 }
 
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSelection(QItemSelection selected, QItemSelection deselected)
 {
-  m_layout->model()->blockSignals(true);
-  SelectionHandler::MultiSelection selection;
-  qDebug() << "Current Selection";
-  foreach(QModelIndex index, selected.indexes())
+  SelectionManager::Selection selection;
+
+  foreach(QModelIndex index, m_gui->view->selectionModel()->selection().indexes())
   {
     ModelItem *item = m_layout->item(index);
     if (ModelItem::SEGMENTATION == item->type())
-    {
-      SelectableItem *sItem = dynamic_cast<SelectableItem *>(item);
-      sItem->setSelected(true);
-      qDebug() << sItem->data().toString();
-      selection << SelectionHandler::Selelection(SelectionHandler::VtkRegion(), sItem);
-    }
-//     m_layout->model()->setData(index, true, Segmentation::SelectionRole);
+      selection << dynamic_cast<SelectableItem *>(item);
   }
 
-  foreach(QModelIndex index, deselected.indexes())
-  {
-    ModelItem *item = m_layout->item(index);
-    if (ModelItem::SEGMENTATION == item->type())
-    {
-      Segmentation *seg = dynamic_cast<Segmentation *>(item);
-      seg->setSelected(false);
-    }
-  }
   SelectionManager::instance()->setSelection(selection);
-//     m_layout->model()->setData(index, false, Segmentation::SelectionRole);
-  m_layout->model()->blockSignals(false);
-  EspinaCore::instance()->viewManger()->currentView()->forceRender();
 }

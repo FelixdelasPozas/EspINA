@@ -79,6 +79,8 @@ VolumeView::VolumeView(QWidget* parent)
 
   memset(m_center,0,3*sizeof(double));
   m_numEnabledRenders = 0;
+  connect(SelectionManager::instance(), SIGNAL(selectionChanged(SelectionManager::Selection)),
+          this, SLOT(updateSelection(SelectionManager::Selection)));
 }
 
 //-----------------------------------------------------------------------------
@@ -230,9 +232,13 @@ void VolumeView::removeChannelRepresentation(Channel* channel)
 //-----------------------------------------------------------------------------
 void VolumeView::addSegmentationRepresentation(Segmentation *seg)
 {
+  Q_ASSERT(!m_segmentations.contains(seg));
+
   m_addedItems << seg;
   foreach(Renderer* renderer, m_settings->renderers())
     renderer->addItem(seg);
+
+  m_segmentations << seg;
 }
 
 //-----------------------------------------------------------------------------
@@ -252,9 +258,13 @@ bool VolumeView::updateSegmentationRepresentation(Segmentation* seg)
 //-----------------------------------------------------------------------------
 void VolumeView::removeSegmentationRepresentation(Segmentation* seg)
 {
+  Q_ASSERT(m_segmentations.contains(seg));
+
   m_addedItems.removeAll(seg);
   foreach(Renderer* renderer, m_settings->renderers())
     renderer->removeItem(seg);
+
+  m_segmentations.removeOne(seg);
 }
 
 //-----------------------------------------------------------------------------
@@ -299,7 +309,10 @@ void VolumeView::init()
 void VolumeView::forceRender()
 {
   if(isVisible())
+  {
     this->m_viewWidget->GetRenderWindow()->Render();
+    this->m_viewWidget->update();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -620,4 +633,12 @@ void VolumeView::countEnabledRenderers(bool value)
   else
     m_numEnabledRenders--;
 
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::updateSelection(SelectionManager::Selection selection)
+{
+  if (isVisible())
+    foreach(Segmentation *seg, m_segmentations)
+      updateSegmentationRepresentation(seg);
 }

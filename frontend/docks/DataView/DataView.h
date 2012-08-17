@@ -24,6 +24,7 @@
 #include <ui_DataView.h>
 
 #include "InformationProxy.h"
+#include <selection/SelectionManager.h>
 #include <QSortFilterProxyModel>
 
 #ifdef TEST_ESPINA_MODELS
@@ -39,10 +40,14 @@ public:
   explicit DataView(QWidget* parent = 0, Qt::WindowFlags f = 0);
   virtual ~DataView();
 
+protected:
+  QModelIndex index(ModelItem *item) const;
+  ModelItem *item(QModelIndex index) const;
+
 protected slots:
   void defineQuery();
   void extractInformation();
-  void updateSelection(QModelIndex index);
+  void updateSelection(SelectionManager::Selection selection);
   void updateSelection(QItemSelection selected, QItemSelection deselected);
 
 private:

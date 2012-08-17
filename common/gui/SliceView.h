@@ -27,6 +27,7 @@
 
 #include "common/settings/ISettingsPanel.h"
 #include "common/selection/SelectableView.h"
+#include "common/selection/SelectionManager.h"
 #include "common/widgets/EspinaWidget.h"
 
 #include <vtkSmartPointer.h>
@@ -143,7 +144,7 @@ public slots:
   void setSliceSelectors(SliceSelectors selectors);
 
   /// Update Selected Items
-  virtual void updateSelection(SelectionHandler::MultiSelection msel);
+  virtual void updateSelection(SelectionManager::Selection selection);
 
   void forceRender();
 
