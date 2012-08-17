@@ -142,8 +142,7 @@ ChannelExtension* MarginsChannelExtension::clone()
 }
 
 //-----------------------------------------------------------------------------
-void
-MarginsChannelExtension::computeMarginDistance(Segmentation* seg)
+void MarginsChannelExtension::computeMarginDistance(Segmentation* seg)
 {
   std::map<unsigned int, unsigned long int>::iterator it = m_ComputedSegmentations.find(seg->number());
   if (it != m_ComputedSegmentations.end())
@@ -188,8 +187,11 @@ MarginsChannelExtension::computeMarginDistance(Segmentation* seg)
 }
 
 //-----------------------------------------------------------------------------
-vtkSmartPointer< vtkPolyData > MarginsChannelExtension::margins()
+vtkSmartPointer<vtkPolyData> MarginsChannelExtension::margins()
 {
+  // Ensure Margin Detector's finished
+  m_borderMutex.lock();
+  m_borderMutex.unlock();
   return m_borders;
 }
 

@@ -416,11 +416,6 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
   EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
   view->setCrosshairPoint(p[0], p[1], p[2]);
   view->setCameraFocus(p);
-//   Q_ASSERT(seg);
-//   x = seg->information("Centroid X").toInt();
-//   y = seg->information("Centroid Y").toInt();
-//   z = seg->information("Centroid Z").toInt();
-//   view->setCenter(x, y, z);
 }
 
 //------------------------------------------------------------------------
