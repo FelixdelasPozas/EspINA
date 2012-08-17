@@ -161,29 +161,6 @@ private:
   // vtkPolydata generation filter
   vtkSmartPointer<vtkImageConstantPad> m_padfilter;
   vtkSmartPointer<vtkDiscreteMarchingCubes> m_march;
-  void updateExtent();
-
-  class updateCommand : public itk::Command
-  {
-    public:
-    explicit updateCommand(Segmentation *seg) { parent = seg; };
-    ~updateCommand() {};
-
-    public:
-      void Execute(itk::Object *caller, const itk::EventObject & event)
-      {
-        Execute( (const itk::Object *)caller, event);
-      }
-
-      void Execute(const itk::Object * object, const itk::EventObject & event)
-      {
-        parent->updateExtent();
-      }
-    private:
-      Segmentation* parent;
-  };
-
-  updateCommand *m_updateMeshCommand;
 
   friend class Filter;
 };

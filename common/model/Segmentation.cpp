@@ -59,7 +59,6 @@ Segmentation::Segmentation(Filter* filter, unsigned int outputNb)
 , m_isVisible(true)
 , m_padfilter(NULL)
 , m_march(NULL)
-, m_updateMeshCommand(NULL)
 {
   m_isSelected = false;
   //   memset(m_bounds, 0, 6*sizeof(double));
@@ -89,13 +88,17 @@ void Segmentation::changeFilter(Filter* filter, unsigned int outputNb)
   m_args.setOutputNumber(outputNb);
   connect(filter, SIGNAL(modified(ModelItem *)),
           this, SLOT(notifyModification()));
+
+  // update modified mesh extent to get a correct representation
+  int extent[6];
+  VolumeExtent(filter->output(outputNb), extent);
+  this->m_padfilter->SetOutputWholeExtent(extent[0]-1, extent[1]+1, extent[2]-1, extent[3]+1, extent[4]-1, extent[5]+1);
+  this->m_padfilter->Update();
 }
 
 //------------------------------------------------------------------------
 Segmentation::~Segmentation()
 {
-  m_updateMeshCommand = NULL;
-
 //   int size = m_insertionOrderedExtensions.size()-1;
 //   for (int i = size; i >= 0; i--)
 //     delete m_insertionOrderedExtensions[i];
@@ -309,18 +312,6 @@ vtkAlgorithmOutput* Segmentation::vtkVolume()
   return itk2vtk->GetOutput()->GetProducerPort();
 }
 
-void Segmentation::updateExtent()
-{
-  if (NULL == m_padfilter)
-    return;
-
-  int extent[6];
-  vtkImageData *image = vtkImageData::SafeDownCast(this->vtkVolume()->GetProducer()->GetOutputDataObject(0));
-  image->GetExtent(extent);
-  m_padfilter->SetOutputWholeExtent(extent[0]-1, extent[1]+1, extent[2]-1, extent[3]+1, extent[4]-1, extent[5]+1);
-  m_padfilter->Update();
-}
-
 vtkAlgorithmOutput* Segmentation::mesh()
 {
   if (NULL == m_padfilter)
@@ -344,9 +335,6 @@ vtkAlgorithmOutput* Segmentation::mesh()
     m_march->ComputeNormalsOff();
     m_march->ComputeGradientsOff();
     m_march->SetInputConnection(m_padfilter->GetOutputPort());
-
-    m_updateMeshCommand = new updateCommand(this);
-    itk2vtk->AddObserver(itk::AnyEvent(), m_updateMeshCommand);
   }
 
   return m_march->GetOutput()->GetProducerPort();
