@@ -185,7 +185,7 @@ void VolumeView::centerViewOn(Nm center[3])
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::setCameraFocus(Nm center[3])
+void VolumeView::setCameraFocus(const Nm center[3])
 {
   m_renderer->GetActiveCamera()->SetFocalPoint(center[0],center[1],center[2]);
 }
@@ -260,18 +260,23 @@ void VolumeView::removeSegmentationRepresentation(Segmentation* seg)
 //-----------------------------------------------------------------------------
 void VolumeView::addWidget(vtkAbstractWidget *widget)
 {
+  Q_ASSERT(widget);
+  Q_ASSERT(!m_widgets.contains(widget));
+
   widget->SetInteractor(m_viewWidget->GetRenderWindow()->GetInteractor());
   widget->GetRepresentation()->SetVisibility(true);
   widget->On();
   m_renderer->ResetCameraClippingRange();
-//TODO:   m_widgets << sWidget;
+  m_widgets << widget;
 }
 
 //-----------------------------------------------------------------------------
 void VolumeView::removeWidget(vtkAbstractWidget* widget)
 {
-  //TODO:
+  Q_ASSERT(widget);
+  Q_ASSERT(m_widgets.contains(widget));
 
+  m_widgets.removeOne(widget);
 }
 
 //-----------------------------------------------------------------------------

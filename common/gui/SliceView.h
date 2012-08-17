@@ -142,6 +142,9 @@ public slots:
   /// Show/Hide Slice Selector
   void setSliceSelectors(SliceSelectors selectors);
 
+  /// Update Selected Items
+  virtual void updateSelection(SelectionHandler::MultiSelection msel);
+
   void forceRender();
 
 protected slots:
@@ -160,7 +163,7 @@ protected slots:
 signals:
   void centerChanged(Nm, Nm, Nm);
   void showCrosshairs(bool);
-  void focusChanged(Nm[3]);
+  void focusChanged(const Nm[3]);
 
   // Notify the windows manager how to display the view
   void closeRequest();

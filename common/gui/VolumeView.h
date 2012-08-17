@@ -72,7 +72,7 @@ public:
   virtual ~VolumeView(){}
 
   void centerViewOn(Nm center[3]/*nm*/);
-  void setCameraFocus(Nm center[3]);
+  void setCameraFocus(const Nm center[3]);
   void resetCamera();
 
   void addChannelRepresentation(Channel *channel);
@@ -135,6 +135,7 @@ private:
   Nm m_center[3];
   unsigned int m_numEnabledRenders;
   ColorEngine *m_colorEngine;
+  QList<vtkAbstractWidget *> m_widgets;
 
   QMap<Segmentation *, Representation> m_segmentations;
   QList<ModelItem*> m_addedItems;

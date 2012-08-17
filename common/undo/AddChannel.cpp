@@ -23,6 +23,7 @@
 #include "common/model/Channel.h"
 #include <model/ChannelReader.h>
 #include "common/EspinaCore.h"
+#include <selection/SelectionManager.h>
 
 AddChannel::AddChannel(ChannelReader *reader,
                        Channel* channel,
@@ -39,6 +40,7 @@ void AddChannel::redo()
 
   model->addFilter(m_reader);
   model->addChannel(m_channel);
+  SelectionManager::instance()->setActiveChannel(m_channel);
   model->addRelation(m_reader, m_channel, Channel::VOLUMELINK);
 }
 

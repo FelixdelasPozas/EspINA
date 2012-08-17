@@ -78,7 +78,7 @@ public slots:
   virtual void showSegmentations(bool visible);
   virtual void showThumbnail(bool visible);
 
-  virtual void setCameraFocus(Nm[3]);
+  virtual void setCameraFocus(const Nm focus[3]);
 
   virtual void setCrosshairPoint(Nm x, Nm y, Nm z, bool force = false);
   virtual void setSliceSelectors(SliceView::SliceSelectors selectors);

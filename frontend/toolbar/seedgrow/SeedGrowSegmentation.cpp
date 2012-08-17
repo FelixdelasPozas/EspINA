@@ -187,7 +187,7 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
     //     qDebug() << "Use Default VOI:" << m_useDefaultVOI->useDefaultVOI();
 
     Q_ASSERT(ModelItem::CHANNEL == input->type());
-    Channel *channel = EspinaCore::instance()->activeChannel();//dynamic_cast<Channel *>(input);
+    Channel *channel = SelectionManager::instance()->activeChannel();//dynamic_cast<Channel *>(input);
     Q_ASSERT(channel);
 
     EspinaVolume::IndexType seed = channel->index(seedPoint.x(), seedPoint.y(), seedPoint.z());
@@ -239,7 +239,7 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
       filter->update();
       Q_ASSERT(filter->numberOutputs() == 1);
 
-      TaxonomyNode *tax = EspinaCore::instance()->activeTaxonomy();
+      TaxonomyNode *tax = SelectionManager::instance()->activeTaxonomy();
       Q_ASSERT(tax);
 
       QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
@@ -270,7 +270,7 @@ void SeedGrowSegmentation::batchMode()
       QString VOI = seedParams[2].split("=")[1];
       QString taxonomy = seedParams[3].split("=")[1];
 
-      Channel *channel = EspinaCore::instance()->activeChannel();
+      Channel *channel = SelectionManager::instance()->activeChannel();
 
       Filter::NamedInputs inputs;
       Filter::Arguments args;

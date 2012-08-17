@@ -42,7 +42,9 @@ public:
   virtual void previewExtent(int VOI[6]) = 0;
   virtual bool pickChannel(int x, int y, double pickPos[3]) = 0;
   virtual void eventPosition(int &x, int &y) = 0;
+
   virtual SelectionHandler::MultiSelection select(SelectionHandler::SelectionFilters filters, SelectionHandler::ViewRegions regions) = 0;
+  virtual void updateSelection(SelectionHandler::MultiSelection msel) = 0;
 
   virtual vtkRenderWindow *renderWindow() = 0;
   virtual QVTKWidget *view() = 0;

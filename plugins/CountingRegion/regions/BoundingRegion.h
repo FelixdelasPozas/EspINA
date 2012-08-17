@@ -45,6 +45,7 @@ public:
     DescriptionRole = Qt::UserRole + 1
   };
 public:
+  vtkTypeMacro(BoundingRegion, vtkCommand);
   explicit BoundingRegion(CountingRegionSampleExtension *sampleExt,
 			  double inclusion[3],
 			  double exclusion[3]);

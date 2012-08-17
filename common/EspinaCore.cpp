@@ -28,6 +28,7 @@
 #include "undo/AddChannel.h"
 #include "undo/AddRelation.h"
 #include "IO/FilePack.h"
+#include "selection/SelectionManager.h"
 
 #include <QUndoStack>
 #include <QColorDialog>
@@ -37,9 +38,7 @@ EspinaCore *EspinaCore::m_singleton = NULL;
 
 //------------------------------------------------------------------------
 EspinaCore::EspinaCore()
-: m_activeChannel(NULL)
-, m_activeTaxonomy(NULL)
-, m_sample        (NULL)
+: m_sample        (NULL)
 , m_model         (new EspinaModel())
 , m_undoStack     (new QUndoStack())
 , m_viewManager   (new ViewManager())
@@ -53,12 +52,6 @@ EspinaCore* EspinaCore::instance()
     m_singleton = new EspinaCore();
 
   return m_singleton;
-}
-
-//------------------------------------------------------------------------
-void EspinaCore::setActiveTaxonomy(TaxonomyNode* tax)
-{
-  m_activeTaxonomy = tax;
 }
 
 //------------------------------------------------------------------------
@@ -123,8 +116,6 @@ bool EspinaCore::loadChannel(const QFileInfo file)
   args.setColor(stainColor.hueF());
   Channel *channel = factory->createChannel(reader, 0);
   channel->setColor(stainColor.hueF());// It is needed to display proper stain color
-  if (m_activeChannel == NULL)
-    m_activeChannel = channel;
     //file.absoluteFilePath(), args);
 
   double pos[3];
@@ -148,8 +139,8 @@ bool EspinaCore::loadChannel(const QFileInfo file)
 void EspinaCore::closeCurrentAnalysis()
 {
   emit currentAnalysisClosed();
-  m_activeChannel = NULL;
-  m_activeTaxonomy = NULL;
+  SelectionManager::instance()->setActiveChannel(NULL);
+  SelectionManager::instance()->setActiveTaxonomy(NULL);
   m_sample = NULL;
   m_model->reset();
   m_undoStack->clear();

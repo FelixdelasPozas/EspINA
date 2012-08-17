@@ -160,6 +160,9 @@ QWidget(parent)
   m_view->GetRenderWindow()->Render();
 
   buildCrosshairs();
+
+  connect(SelectionManager::instance(), SIGNAL(selectionChanged(SelectionHandler::MultiSelection)),
+          this, SLOT(updateSelection(SelectionHandler::MultiSelection)));
 }
 
 //-----------------------------------------------------------------------------
@@ -413,6 +416,14 @@ SelectionHandler::MultiSelection SliceView::select(SelectionHandler::SelectionFi
   }
 
   return msel;
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::updateSelection(SelectionHandler::MultiSelection msel)
+{
+  qDebug() << "Update Selection in" << m_plane;
+  foreach(Segmentation *seg, m_segmentations.keys())
+    updateSegmentationRepresentation(seg);
 }
 
 //-----------------------------------------------------------------------------
@@ -1101,7 +1112,7 @@ void SliceView::forceRender()
 {
   if (isVisible())
   {
-//     qDebug() << "Rendering View" << m_plane;
+    qDebug() << "Rendering View" << m_plane;
     updateWidgetVisibility();
     m_view->GetRenderWindow()->Render();
     m_view->update();

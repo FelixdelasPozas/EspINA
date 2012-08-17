@@ -23,6 +23,7 @@
 
 #include <common/model/Channel.h>
 #include <model/EspinaFactory.h>
+#include <selection/SelectionManager.h>
 
 const QString INPUTLINK     = "Input";
 const QString MERGELINK     = "Merge";
@@ -49,7 +50,7 @@ ImageLogicCommand::ImageLogicCommand(QList<Segmentation *> segmentations,
   m_filter = new ImageLogicFilter(inputs, args);
   m_filter->update();
   m_seg = EspinaFactory::instance()->createSegmentation(m_filter, 0);
-  m_tax = EspinaCore::instance()->activeTaxonomy();
+  m_tax = SelectionManager::instance()->activeTaxonomy();
 }
 
 //----------------------------------------------------------------------------

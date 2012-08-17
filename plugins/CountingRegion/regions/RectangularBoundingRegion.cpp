@@ -51,7 +51,8 @@ RectangularBoundingRegion::~RectangularBoundingRegion()
   m_sampleExt->removeRegion(this);
   foreach(vtkAbstractWidget *w, m_widgets)
   {
-    w->EnabledOn();
+    w->EnabledOff();
+    w->RemoveAllObservers();
     w->Delete();
   }
   m_widgets.clear();

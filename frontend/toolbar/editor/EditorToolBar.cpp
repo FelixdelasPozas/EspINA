@@ -403,7 +403,7 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
   if (!m_currentSeg && m_currentSource->numberOutputs() == 1)
   {
     m_currentSeg = EspinaFactory::instance()->createSegmentation(m_currentSource, 0);
-    TaxonomyNode *tax = EspinaCore::instance()->activeTaxonomy();
+    TaxonomyNode *tax = SelectionManager::instance()->activeTaxonomy();
     undo->push(new FreeFormCommand(channel, m_currentSource, m_currentSeg, tax));
   }
 

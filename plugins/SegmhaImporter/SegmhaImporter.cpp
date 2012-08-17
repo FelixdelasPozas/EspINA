@@ -28,6 +28,7 @@
 #include <common/undo/AddChannel.h>
 #include <common/undo/AddRelation.h>
 #include <common/model/Segmentation.h>
+#include <common/selection/SelectionManager.h>
 #include <QApplication>
 
 const QString INPUTLINK = "Input";
@@ -133,6 +134,7 @@ bool SegmhaImporter::readFile(const QFileInfo file)
     fileDialog.setObjectName("SelectChannelFile");
     fileDialog.setFileMode(QFileDialog::ExistingFiles);
     fileDialog.setWindowTitle(QString("Select channel file for %1:").arg(file.fileName()));
+    fileDialog.setDirectory(file.dir());
     fileDialog.setFilter(CHANNEL_FILES);
 
     if (fileDialog.exec() != QDialog::Accepted)
@@ -154,7 +156,7 @@ bool SegmhaImporter::readFile(const QFileInfo file)
     delete filter;
     return false;
   }
-  undo->push(new UndoCommand(espina->sample(), espina->activeChannel(), filter));
+  undo->push(new UndoCommand(espina->sample(), SelectionManager::instance()->activeChannel(), filter));
   undo->endMacro();
   QApplication::restoreOverrideCursor();
 

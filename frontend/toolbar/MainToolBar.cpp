@@ -107,7 +107,7 @@ void MainToolBar::setActiveTaxonomy(QModelIndex index)
   Q_ASSERT(item->type() == ModelItem::TAXONOMY);
   TaxonomyNode *tax = dynamic_cast<TaxonomyNode *>(item);
   Q_ASSERT(tax);
-  EspinaCore::instance()->setActiveTaxonomy(tax);
+  SelectionManager::instance()->setActiveTaxonomy(tax);
 }
 
 //----------------------------------------------------------------------------

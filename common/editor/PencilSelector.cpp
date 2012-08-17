@@ -20,6 +20,7 @@
 #include "PencilSelector.h"
 
 #include <selection/SelectableView.h>
+#include <selection/SelectionManager.h>
 #include <EspinaCore.h>
 #include <vtkCommand.h>
 #include <vtkInteractorStyle.h>
@@ -124,9 +125,9 @@ void PencilSelector::setRadius(int radius)
     QPixmap pix(width, width);
     pix.fill(Qt::transparent);
     QPainter p(&pix);
-    if (EspinaCore::instance()->activeTaxonomy())
+    if (SelectionManager::instance()->activeTaxonomy())
     {
-      QColor taxColor = EspinaCore::instance()->activeTaxonomy()->color();
+      QColor taxColor = SelectionManager::instance()->activeTaxonomy()->color();
 //       p.setPen(QPen(taxColor));
       taxColor.setAlphaF(0.8);
       p.setBrush(QBrush(taxColor));

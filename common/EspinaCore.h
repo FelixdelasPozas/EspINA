@@ -45,11 +45,6 @@ public:
   QSharedPointer<EspinaModel> model() {return m_model;}
   QSharedPointer<QUndoStack>  undoStack() {return m_undoStack;}
 
-  void setActiveChannel(Channel *channel){m_activeChannel=channel;}
-  Channel *activeChannel(){return m_activeChannel;}
-  void setActiveTaxonomy(TaxonomyNode *tax);
-  TaxonomyNode *activeTaxonomy(){return m_activeTaxonomy;}
-
   void setSample(Sample *sample) {m_sample = sample; emit sampleSelected(sample);}
   Sample *sample(){return m_sample;}
 
@@ -78,8 +73,6 @@ private:
 
   static EspinaCore *m_singleton;
 
-  Channel                    *m_activeChannel;
-  TaxonomyNode               *m_activeTaxonomy;
   Sample                     *m_sample;
   QSharedPointer<EspinaModel> m_model;
   QSharedPointer<QUndoStack>  m_undoStack;

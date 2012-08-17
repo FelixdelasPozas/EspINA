@@ -22,6 +22,7 @@
 #include <QApplication>
 
 #include <RectangularSelection.h>
+#include <model/Segmentation.h>
 
 
 SelectionManager *SelectionManager::m_singleton = NULL;//new SelectionManager();
@@ -34,11 +35,13 @@ SelectionManager* SelectionManager::instance()
   return m_singleton;
 }
 
-
 SelectionManager::SelectionManager()
-  : m_handler(NULL)
-  , m_voi(NULL)
+: m_handler(NULL)
+, m_voi(NULL)
+, m_activeChannel(NULL)
+, m_activeTaxonomy(NULL)
 {
+  memset(m_selectionCenter, 0, 3*sizeof(Nm));
 }
 
 //------------------------------------------------------------------------
@@ -52,10 +55,11 @@ bool SelectionManager::filterEvent(QEvent* e, SelectableView* view) const
 }
 
 //------------------------------------------------------------------------
-void SelectionManager::setSelection(SelectionHandler::MultiSelection sel) const
+void SelectionManager::setSelection(SelectionHandler::MultiSelection sel)
 {
-  if (m_handler)
-    m_handler->setSelection(sel);
+  m_selection = sel;
+  computeSelectionCenter();
+  emit selectionChanged(m_selection);
 }
 
 //------------------------------------------------------------------------
@@ -65,6 +69,28 @@ QCursor SelectionManager::cursor() const
     return m_handler->cursor();
   else
     return QCursor(Qt::ArrowCursor);
+}
+
+//------------------------------------------------------------------------
+void SelectionManager::computeSelectionCenter()
+{
+  memset(m_selectionCenter, 0, 3*sizeof(Nm));
+
+  for (int i = 0; i < m_selection.size(); i++)
+  {
+    SelectableItem *item = m_selection[i].second;
+    if (ModelItem::SEGMENTATION == item->type())
+    {
+      Segmentation *seg = dynamic_cast<Segmentation *>(item);
+      double bounds[6];
+      VolumeBounds(seg->itkVolume(), bounds);
+      m_selectionCenter[0] += bounds[0] + (bounds[1]-bounds[0])/2.0;
+      m_selectionCenter[1] += bounds[2] + (bounds[3]-bounds[2])/2.0;
+      m_selectionCenter[2] += bounds[4] + (bounds[5]-bounds[4])/2.0;
+    }
+  }
+  for (int i = 0; i < 3; i++)
+    m_selectionCenter[i] /= m_selection.size();
 }
 
 //------------------------------------------------------------------------

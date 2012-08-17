@@ -23,6 +23,7 @@
 #include <common/model/Channel.h>
 #include <common/gui/EspinaView.h>
 #include <common/model/EspinaFactory.h>
+#include <common/selection/SelectionManager.h>
 
 #include "regions/RectangularBoundingRegion.h"
 #include "regions/AdaptiveBoundingRegion.h"
@@ -163,7 +164,7 @@ void CountingRegion::createAdaptiveRegion(double inclusion[3], double exclusion[
 {
   EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
 
-  Channel *channel = EspinaCore::instance()->activeChannel();
+  Channel *channel = SelectionManager::instance()->activeChannel();
   Q_ASSERT(channel);
 
   Sample *sample = channel->sample();
@@ -186,7 +187,7 @@ void CountingRegion::createRectangularRegion(double inclusion[3], double exclusi
 {
   EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
 
-  Channel *channel = EspinaCore::instance()->activeChannel();
+  Channel *channel = SelectionManager::instance()->activeChannel();
   Q_ASSERT(channel);
 
   Sample *sample = channel->sample();
@@ -246,7 +247,16 @@ void CountingRegion::removeSelectedBoundingRegion()
 {
   int selectedRegion = m_gui->regionView->currentIndex().row();
   if (selectedRegion >= 0 && selectedRegion < m_regionModel.rowCount())
+  {
+    QStandardItem *item = m_regionModel.item(selectedRegion);
+    BoundingRegion *widget = dynamic_cast<BoundingRegion *>(item);
+    Q_ASSERT(widget);
+    EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
+    view->removeWidget(widget);
+    delete widget;
+    view->forceRender();
     m_regionModel.removeRow(selectedRegion);
+  }
 
   m_gui->regionDescription->clear();
   m_gui->saveDescription->setEnabled(false);

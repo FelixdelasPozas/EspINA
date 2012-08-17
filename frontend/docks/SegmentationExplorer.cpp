@@ -32,6 +32,7 @@
 #include "common/model/proxies/SampleProxy.h"
 #include "common/model/proxies/TaxonomyProxy.h"
 #include <model/Segmentation.h>
+#include <selection/SelectionManager.h>
 
 #include <iostream>
 #include <cstdio>
@@ -421,16 +422,10 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
   if (ModelItem::SEGMENTATION != item->type())
     return;
 
-  Segmentation *seg = dynamic_cast<Segmentation *>(item);
-  double bounds[6];
-  VolumeBounds(seg->itkVolume(), bounds);
-  double x = bounds[0] + (bounds[1]-bounds[0])/2.0;
-  double y = bounds[2] + (bounds[3]-bounds[2])/2.0;
-  double z = bounds[4] + (bounds[5]-bounds[4])/2.0;
+  const Nm *p = SelectionManager::instance()->selectionCenter();
   EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
-  view->setCrosshairPoint(x, y, z);
-  double focusPoint[3] = { x,y,z};
-  view->setCameraFocus(focusPoint);
+  view->setCrosshairPoint(p[0], p[1], p[2]);
+  view->setCameraFocus(p);
 //   Q_ASSERT(seg);
 //   x = seg->information("Centroid X").toInt();
 //   y = seg->information("Centroid Y").toInt();
@@ -486,10 +481,32 @@ void SegmentationExplorer::updateSelection(QModelIndex index)
 void SegmentationExplorer::updateSelection(QItemSelection selected, QItemSelection deselected)
 {
   m_layout->model()->blockSignals(true);
+  SelectionHandler::MultiSelection selection;
+  qDebug() << "Current Selection";
   foreach(QModelIndex index, selected.indexes())
-    m_layout->model()->setData(index, true, Segmentation::SelectionRole);
+  {
+    ModelItem *item = m_layout->item(index);
+    if (ModelItem::SEGMENTATION == item->type())
+    {
+      SelectableItem *sItem = dynamic_cast<SelectableItem *>(item);
+      sItem->setSelected(true);
+      qDebug() << sItem->data().toString();
+      selection << SelectionHandler::Selelection(SelectionHandler::VtkRegion(), sItem);
+    }
+//     m_layout->model()->setData(index, true, Segmentation::SelectionRole);
+  }
 
   foreach(QModelIndex index, deselected.indexes())
-    m_layout->model()->setData(index, false, Segmentation::SelectionRole);
+  {
+    ModelItem *item = m_layout->item(index);
+    if (ModelItem::SEGMENTATION == item->type())
+    {
+      Segmentation *seg = dynamic_cast<Segmentation *>(item);
+      seg->setSelected(false);
+    }
+  }
+  SelectionManager::instance()->setSelection(selection);
+//     m_layout->model()->setData(index, false, Segmentation::SelectionRole);
   m_layout->model()->blockSignals(false);
+  EspinaCore::instance()->viewManger()->currentView()->forceRender();
 }

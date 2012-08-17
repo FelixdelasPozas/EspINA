@@ -105,8 +105,8 @@ void DefaultEspinaView::initSliceView(SliceView* view)
 {
   connect(view, SIGNAL(centerChanged(Nm, Nm, Nm)),
           this, SLOT(setCrosshairPoint(Nm,Nm,Nm)));
-  connect(view, SIGNAL(focusChanged(Nm[3])),
-          this, SLOT(setCameraFocus(Nm[3])));
+  connect(view, SIGNAL(focusChanged(const Nm[3])),
+          this, SLOT(setCameraFocus(const Nm[3])));
   connect(view, SIGNAL(selectedFromSlice(double, PlaneType)),
           this, SLOT(selectFromSlice(double, PlaneType)));
   connect(view, SIGNAL(selectedToSlice(double, PlaneType)),
@@ -260,7 +260,7 @@ void DefaultEspinaView::removeWidget(EspinaWidget* widget)
   xyView->removeWidget (widgets.xy);
   yzView->removeWidget (widgets.yz);
   xzView->removeWidget (widgets.xz);
-//   volView->removeWidget(widgets.vol);
+  volView->removeWidget(widgets.vol);
 
   m_widgets.remove(widget);
 }
@@ -331,7 +331,7 @@ void DefaultEspinaView::setCrosshairPoint(Nm x, Nm y, Nm z, bool force)
 }
 
 //-----------------------------------------------------------------------------
-void DefaultEspinaView::setCameraFocus(double focus[3])
+void DefaultEspinaView::setCameraFocus(const Nm focus[3])
 {
   volView->setCameraFocus(focus);
   volView->forceRender();

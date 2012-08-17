@@ -25,6 +25,8 @@
 #include "SelectionHandler.h"
 #include <QCursor>
 
+class TaxonomyNode;
+class Channel;
 class EspinaWidget;
 class QPoint;
 class SelectableView;
@@ -38,13 +40,31 @@ class SelectionManager
 public:
   ~SelectionManager(){}
 
+  /// Returns a SelectionManager singleton
+  static SelectionManager *instance();
+
+  // Active Elements: These are specified by the user to be used when
+  // one element of the proper type is required
+  void setActiveChannel(Channel *channel)
+  { m_activeChannel=channel; }
+  Channel *activeChannel()
+  { return m_activeChannel; }
+  void setActiveTaxonomy(TaxonomyNode *taxonomy)
+  { m_activeTaxonomy = taxonomy; }
+  TaxonomyNode *activeTaxonomy()
+  { return m_activeTaxonomy; }
+
   // Delegates calls on active SelectionHandler
   void onMouseDown(const QPoint &pos, SelectableView *view) const;
   void onMouseMove(const QPoint &pos, SelectableView *view) const;
   void onMouseUp  (const QPoint &pos, SelectableView *view) const;
   bool filterEvent(QEvent *e, SelectableView *view=NULL) const;
 
-  void setSelection(SelectionHandler::MultiSelection sel) const;
+  void setSelection(SelectionHandler::MultiSelection sel);
+  SelectionHandler::MultiSelection selection() const
+  { return m_selection; }
+  const Nm *selectionCenter() const
+  { return m_selectionCenter; }
   void setVOI(EspinaWidget *voi);
   EspinaWidget *voi() const {return m_voi;}
 
@@ -57,20 +77,24 @@ public slots:
   void unsetSelectionHandler(SelectionHandler *sh);
 
 signals:
-//   void VOIChanged(IVOI *voi);
-
-public:
-  /// Returns a SelectionManager singleton
-  static SelectionManager *instance();
+  void activeChannelChanged(Channel *);
+  void activeTaxonomyChanged(TaxonomyNode *);
+  void selectionChanged(SelectionHandler::MultiSelection);
 
 private:
   explicit SelectionManager();
+  void computeSelectionCenter();
 
 private:
+  static SelectionManager *m_singleton;
+
   SelectionHandler *m_handler;
   EspinaWidget     *m_voi;
 
-  static SelectionManager *m_singleton;
+  Channel      *m_activeChannel;
+  TaxonomyNode *m_activeTaxonomy;
+  SelectionHandler::MultiSelection m_selection;
+  Nm m_selectionCenter[3];
 };
 
 #endif // SELECTIONMANAGER_H

@@ -32,6 +32,7 @@
 #include "common/model/EspinaFactory.h"
 #include "common/EspinaCore.h"
 #include "common/gui/EspinaView.h"
+#include <selection/SelectionManager.h>
 
 //------------------------------------------------------------------------
 EspinaModel::EspinaModel ( QObject* parent )
@@ -376,9 +377,6 @@ void EspinaModel::removeSample(Sample *sample)
 void EspinaModel::addChannel(Channel *channel)
 {
   Q_ASSERT(m_channels.contains(channel) == false);
-
-  if (m_channels.isEmpty())
-    EspinaCore::instance()->setActiveChannel(channel);
 
   int row = m_channels.size();
 
