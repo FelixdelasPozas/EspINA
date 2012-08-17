@@ -63,19 +63,15 @@ void DilateFilter::run()
   m_input = m_inputs.first();
 
   //   qDebug() << "Compute Image Dilate";
-
-  int extent[6];
-  VolumeExtent(m_input, extent);
-
   EspinaVolume::SizeType lowerExtendRegion;
-  lowerExtendRegion[0] = extent[0] - m_params.radius();
-  lowerExtendRegion[1] = extent[2] - m_params.radius();
-  lowerExtendRegion[2] = extent[4] - m_params.radius();
+  lowerExtendRegion[0] = m_params.radius();
+  lowerExtendRegion[1] = m_params.radius();
+  lowerExtendRegion[2] = m_params.radius();
 
   EspinaVolume::SizeType upperExtendRegion;
-  upperExtendRegion[0] = extent[1] + m_params.radius();
-  upperExtendRegion[1] = extent[3] + m_params.radius();
-  upperExtendRegion[2] = extent[5] + m_params.radius();
+  upperExtendRegion[0] = m_params.radius();
+  upperExtendRegion[1] = m_params.radius();
+  upperExtendRegion[2] = m_params.radius();
 
   itk::SmartPointer<itk::ConstantPadImageFilter<EspinaVolume,EspinaVolume> > padFilter = itk::ConstantPadImageFilter<EspinaVolume,EspinaVolume>::New();
   padFilter->SetConstant(0);
