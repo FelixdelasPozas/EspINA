@@ -75,6 +75,7 @@ private:
   QMutex                       m_borderMutex;
 
   vtkSmartPointer<vtkPolyData> m_PolyDataFaces[6];
+  std::map<unsigned int, unsigned long int> m_ComputedSegmentations;
 
   // builds a surface for each face the first time one is needed
   void ComputeSurfaces();

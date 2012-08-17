@@ -145,6 +145,17 @@ ChannelExtension* MarginsChannelExtension::clone()
 void
 MarginsChannelExtension::computeMarginDistance(Segmentation* seg)
 {
+  std::map<unsigned int, unsigned long int>::iterator it = m_ComputedSegmentations.find(seg->number());
+  if (it != m_ComputedSegmentations.end())
+  {
+    // using itkVolume()->MTime and not mesh()->MTime() to avoid triggering lazy computations
+    if ((*it).second == seg->itkVolume()->GetMTime())
+      return;
+
+    m_ComputedSegmentations.erase(seg->number());
+  }
+  m_ComputedSegmentations.insert(std::pair<unsigned int, unsigned long int>(seg->number(), seg->itkVolume()->GetMTime()));
+
   ModelItemExtension *ext = seg->extension(ID);
   Q_ASSERT(ext);
   MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext);
