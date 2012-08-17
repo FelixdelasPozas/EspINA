@@ -22,6 +22,8 @@
 #include <model/EspinaModel.h>
 #include <common/EspinaCore.h>
 #include <QMessageBox>
+#include <common/EspinaTypes.h>
+#include <gui/EspinaView.h>
 
 #include <ui_ChannelExplorer.h>
 
@@ -70,6 +72,7 @@ ChannelExplorer::ChannelExplorer(QSharedPointer< EspinaModel > model,
   connect(m_gui->moveLeft, SIGNAL(clicked(bool)), this, SLOT(moveLelft()));
   connect(m_gui->moveRight, SIGNAL(clicked(bool)), this, SLOT(moveRight()));
   connect(m_gui->view, SIGNAL(clicked(QModelIndex)), this, SLOT(channelSelected()));
+  connect(m_gui->view, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(focusOnChannel()));
   connect(m_gui->xPos, SIGNAL(valueChanged(int)), this, SLOT(updateChannelPosition()));
   connect(m_gui->yPos, SIGNAL(valueChanged(int)), this, SLOT(updateChannelPosition()));
   connect(m_gui->zPos, SIGNAL(valueChanged(int)), this, SLOT(updateChannelPosition()));
@@ -422,5 +425,26 @@ void ChannelExplorer::unloadChannel()
       it++;
     }
     model->removeChannel(channel);
+  }
+}
+
+//------------------------------------------------------------------------
+void ChannelExplorer::focusOnChannel()
+{
+  QModelIndex currentIndex = m_gui->view->currentIndex();
+  if (!currentIndex.parent().isValid())
+    return;
+
+  QModelIndex index = m_sort->mapToSource(currentIndex);
+  ModelItem *currentItem = indexPtr(index);
+  if (ModelItem::CHANNEL == currentItem->type())
+  {
+    Channel *channel = dynamic_cast<Channel *>(currentItem);
+    Nm bounds[6];
+    VolumeBounds(channel->itkVolume(), bounds);
+    double pos[3] = { (bounds[1]-bounds[0])/2, (bounds[3]-bounds[2])/2, (bounds[5]-bounds[4])/2 };
+    EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
+    view->setCameraFocus(pos);
+    view->forceRender();
   }
 }
