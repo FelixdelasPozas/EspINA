@@ -74,6 +74,8 @@ public:
 
   /// Implements ModelItem
   virtual QString id() const {return qualifiedName();}
+  virtual void initialize(Arguments args = Arguments()){};
+  virtual void initializeExtensions(Arguments args = Arguments()){};
   virtual QVariant data(int role = Qt::UserRole + 1) const;
   virtual QString serialize() const {return ModelItem::serialize();}
   virtual ItemType type() const {return TAXONOMY;}

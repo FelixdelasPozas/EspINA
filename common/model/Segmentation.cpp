@@ -180,32 +180,22 @@ void Segmentation::initialize(ModelItem::Arguments args)
   // Prevent overriding segmentation id assigned from model
   if (ModelItem::Arguments() != args)
     m_args = SArguments(args);
-
-  //   qDebug() << "Users" << m_args.users() << m_args[USERS];
-  if (!args.contains(EXTENSIONS))
-    return;
-
-  foreach(ModelItemExtension *ext, m_insertionOrderedExtensions)
-  {
-    SegmentationExtension *segExt = dynamic_cast<SegmentationExtension *>(ext);
-    Q_ASSERT(segExt);
-    segExt->initialize(this);
-    //qDebug() << segExt->id() << "...OK";
-  }
 }
 
 //------------------------------------------------------------------------
-void Segmentation::initializeExtensions()
+void Segmentation::initializeExtensions(ModelItem::Arguments args)
 {
-  //qDebug() << data().toString() << "extensions:";
+//   qDebug() << "Initializing" << data().toString() << "extensions:";
   foreach(ModelItemExtension *ext, m_insertionOrderedExtensions)
   {
     SegmentationExtension *segExt = dynamic_cast<SegmentationExtension *>(ext);
     Q_ASSERT(segExt);
-    segExt->initialize(this);
-    //qDebug() << segExt->id() << "...OK";
+    ArgumentId extId(ext->id(), false);
+    ModelItem::Arguments extArgs(args.value(extId, QString()));
+//     qDebug() << ext->id();
+//     if (!args.isEmpty()) qDebug() << "*" << extArgs;
+    ext->initialize(extArgs);
   }
-  onColorEngineChanged();
 }
 
 //------------------------------------------------------------------------

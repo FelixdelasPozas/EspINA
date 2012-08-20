@@ -40,7 +40,6 @@ public:
   virtual ~MarginsSegmentationExtension();
 
   virtual ExtId id();
-  virtual void initialize(Segmentation* seg);
 
   virtual ModelItemExtension::ExtIdList dependencies() const
   { return SegmentationExtension::dependencies(); }
@@ -54,6 +53,8 @@ public:
   virtual QVariant information(InfoTag tag) const;
 
   virtual SegmentationRepresentation *representation(QString rep);
+
+  virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
 
   virtual SegmentationExtension* clone();
 

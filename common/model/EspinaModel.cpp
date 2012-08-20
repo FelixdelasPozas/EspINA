@@ -608,6 +608,8 @@ bool EspinaModel::loadSerialization(istream& stream, RelationshipGraph::PrintFor
         case ModelItem::CHANNEL:
         {
           ModelItem::Arguments args(v.args.c_str());
+          ModelItem::Arguments extArgs(args.value(ModelItem::EXTENSIONS, QString()));
+          args.remove(ModelItem::EXTENSIONS);
           // TODO: Move link management code inside Channel's Arguments class
           QStringList link = args[Channel::VOLUME].split("_");
           Q_ASSERT(link.size() == 2);
@@ -618,14 +620,10 @@ bool EspinaModel::loadSerialization(istream& stream, RelationshipGraph::PrintFor
           Filter *filter =  dynamic_cast<Filter *>(item);
           filter->update();
           Channel *channel = factory->createChannel(filter, link[1].toUInt());
-          ModelItem::Arguments cArgs = args;
-          cArgs.remove(ModelItem::EXTENSIONS);
-          channel->initialize(cArgs);
+          channel->initialize(args);
 	  if (channel->itkVolume() == NULL)
 	    return false;
           addChannel(channel);
-          ModelItem::Arguments extArgs;
-          extArgs[ModelItem::EXTENSIONS] = args[ModelItem::EXTENSIONS];
           nonInitializedItems << NonInitilizedItem(channel, extArgs);
           input->setItem(v.vId, channel);
           break;
@@ -675,13 +673,15 @@ bool EspinaModel::loadSerialization(istream& stream, RelationshipGraph::PrintFor
     if (filter->numberOutputs() == 0)
       return false;
     ModelItem::Arguments args(QString(v.args.c_str()));
+    ModelItem::Arguments extArgs(args.value(ModelItem::EXTENSIONS, QString()));
+    args.remove(ModelItem::EXTENSIONS);
     Segmentation *seg = factory->createSegmentation(filter, args[Segmentation::OUTPUT].toInt());
     seg->setNumber(args[Segmentation::NUMBER].toInt());
     TaxonomyNode *taxonomy = m_tax->element(args[Segmentation::TAXONOMY]);
     if (taxonomy)
       seg->setTaxonomy(taxonomy);
     newSegmentations << seg;
-    nonInitializedItems << NonInitilizedItem(seg, args);
+    nonInitializedItems << NonInitilizedItem(seg, extArgs);
     input->setItem(v.vId, seg);
   }
 
@@ -695,7 +695,7 @@ bool EspinaModel::loadSerialization(istream& stream, RelationshipGraph::PrintFor
   }
 
   foreach(NonInitilizedItem item, nonInitializedItems)
-    item.first->initialize(item.second);
+    item.first->initializeExtensions(item.second);
 
   return true;
 }

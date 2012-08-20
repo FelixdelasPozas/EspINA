@@ -124,15 +124,16 @@ QString Sample::serialize() const
 //------------------------------------------------------------------------
 void Sample::initialize(ModelItem::Arguments args)
 {
-  qDebug() << args;
   foreach(ArgumentId argId, args.keys())
   {
     if (argId != EXTENSIONS)
-    {
       m_args[argId] = args[argId];
-    }
   }
+}
 
+//------------------------------------------------------------------------
+void Sample::initializeExtensions(ModelItem::Arguments args)
+{
   ModelItem::Arguments extArgs(args[EXTENSIONS]);
   foreach(ModelItemExtension *ext, m_extensions)
   {
@@ -145,7 +146,9 @@ void Sample::initialize(ModelItem::Arguments args)
     qDebug() << sArgs;
     sampleExt->initialize(this, sArgs);
   }
+
 }
+
 
 //------------------------------------------------------------------------
 void Sample::addExtension(SampleExtension *ext)

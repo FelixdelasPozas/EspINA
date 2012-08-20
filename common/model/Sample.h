@@ -57,6 +57,7 @@ public:
   virtual QString serialize() const;
   virtual ItemType type() const {return SAMPLE;}
   virtual void initialize(Arguments args = Arguments());
+  virtual void initializeExtensions(Arguments args = Arguments());
 
   void setId(const QString id) {m_ID = id;}
 

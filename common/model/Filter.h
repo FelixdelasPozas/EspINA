@@ -47,6 +47,8 @@ public:
   // Implements Model Item Interface common to filters
   virtual ItemType type() const {return ModelItem::FILTER;}
   virtual QString id() const {return m_args[ID];}
+  virtual void initialize(Arguments args = Arguments()){};
+  virtual void initializeExtensions(Arguments args = Arguments()){};
   virtual QString serialize() const {return m_args.serialize();}
 
   static void resetId();

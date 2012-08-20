@@ -48,7 +48,8 @@ public:
   virtual RepList availableRepresentations() const = 0;
   /// Information associated with @tag
   virtual QVariant information(ModelItemExtension::InfoTag tag)  const = 0;
-  virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments()) {}
+
+  virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments()) = 0;
 
 protected:
   ModelItemExtension() : m_init(false) {}

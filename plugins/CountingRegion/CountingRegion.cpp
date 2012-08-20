@@ -146,7 +146,7 @@ CountingRegion::CountingRegion(QWidget * parent)
 	  this, SLOT(showInfo(QModelIndex)));
   connect(&m_regionModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
 	  this, SLOT(showInfo(QModelIndex)));
-  
+
   connect(&m_regionModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
 	  m_gui->regionView, SLOT(setCurrentIndex(QModelIndex)));
 

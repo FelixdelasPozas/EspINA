@@ -48,7 +48,7 @@ public:
   virtual ~MarginsChannelExtension();
 
   virtual ExtId id();
-  virtual void initialize(ModelItem::Arguments args);
+  virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
   virtual QString serialize() const;
 
   virtual ExtIdList dependencies() const
@@ -69,7 +69,7 @@ public:
   vtkSmartPointer<vtkPolyData> margins();
 
 private:
-  bool                         m_useExtentMargins;
+  bool                         m_useChannelBounds;
   ModelItem::Arguments         m_args;
   vtkSmartPointer<vtkPolyData> m_borders;
   QMutex                       m_borderMutex;

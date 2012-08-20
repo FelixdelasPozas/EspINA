@@ -59,8 +59,9 @@ ModelItemExtension::ExtId MarginsSegmentationExtension::id()
 }
 
 //-----------------------------------------------------------------------------
-void MarginsSegmentationExtension::initialize(Segmentation* seg)
+void MarginsSegmentationExtension::initialize(ModelItem::Arguments args)
 {
+
 }
 
 //-----------------------------------------------------------------------------

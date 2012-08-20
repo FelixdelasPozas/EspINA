@@ -50,7 +50,7 @@ void AddSegmentation::redo()
   model->addRelation(m_filter, m_seg, CREATELINK);
   model->addRelation(m_sample, m_seg, "where");
   model->addRelation(m_channel, m_seg, "Channel");
-  m_seg->initialize();
+  m_seg->initializeExtensions();
 }
 
 //----------------------------------------------------------------------------

@@ -270,7 +270,9 @@ void VolumeView::removeSegmentationRepresentation(Segmentation* seg)
 //-----------------------------------------------------------------------------
 void VolumeView::addWidget(vtkAbstractWidget *widget)
 {
-  Q_ASSERT(widget);
+  if (!widget)
+    return;
+
   Q_ASSERT(!m_widgets.contains(widget));
 
   widget->SetInteractor(m_viewWidget->GetRenderWindow()->GetInteractor());
@@ -283,7 +285,9 @@ void VolumeView::addWidget(vtkAbstractWidget *widget)
 //-----------------------------------------------------------------------------
 void VolumeView::removeWidget(vtkAbstractWidget* widget)
 {
-  Q_ASSERT(widget);
+  if (!widget)
+    return;
+
   Q_ASSERT(m_widgets.contains(widget));
 
   m_widgets.removeOne(widget);

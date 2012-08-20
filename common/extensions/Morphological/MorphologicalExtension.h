@@ -43,26 +43,21 @@ public:
   virtual ~MorphologicalExtension();
 
   virtual ExtId id();
-  virtual void initialize(Segmentation* seg);
 
   virtual ExtIdList dependencies() const
-  {
-    return SegmentationExtension::dependencies();
-  }
+  { return SegmentationExtension::dependencies(); }
 
   virtual InfoList availableInformations() const
-  {
-    return SegmentationExtension::availableInformations();
-  }
+  { return SegmentationExtension::availableInformations(); }
 
   virtual RepList availableRepresentations() const
-  {
-    return SegmentationExtension::availableRepresentations();
-  }
+  { return SegmentationExtension::availableRepresentations(); }
 
   virtual QVariant information(InfoTag tag) const;
 
   virtual SegmentationRepresentation *representation(QString rep);
+
+  virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
 
   virtual SegmentationExtension* clone();
 

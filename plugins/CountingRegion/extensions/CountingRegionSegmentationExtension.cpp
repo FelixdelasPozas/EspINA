@@ -33,42 +33,21 @@
 #include <common/extensions/Margins/MarginsSegmentationExtension.h>
 
 
-class BoundingBox
-{
-public:
-  double xMin, xMax;
-  double yMin, yMax;
-  double zMin, zMax;
-
-  BoundingBox(vtkPoints *points);
-  BoundingBox(EspinaVolume *image);
-  bool intersect(BoundingBox &bb);
-  BoundingBox intersection(BoundingBox &bb);
-
-private:
-  BoundingBox(){}
-};
-
-BoundingBox::BoundingBox(vtkPoints* points)
+CountingRegionSegmentationExtension::BoundingBox::BoundingBox(vtkPoints* points)
 {
   assert(points->GetNumberOfPoints());
   // Init Bounding Box
-  xMax = xMin = points->GetPoint(0)[0];
-  yMax = yMin = points->GetPoint(0)[1];
-  zMax = zMin = points->GetPoint(0)[2];
-
-  for (int p=1; p < points->GetNumberOfPoints(); p++)
-  {
-    xMin = std::min(xMin, points->GetPoint(p)[0]);
-    xMax = std::max(xMax, points->GetPoint(p)[0]);
-    yMin = std::min(yMin, points->GetPoint(p)[1]);
-    yMax = std::max(yMax, points->GetPoint(p)[1]);
-    zMin = std::min(zMin, points->GetPoint(p)[2]);
-    zMax = std::max(zMax, points->GetPoint(p)[2]);
-  }
+  double bounds[6];
+  points->GetBounds(bounds);
+  xMin = bounds[0];
+  xMax = bounds[1];
+  yMin = bounds[2];
+  yMax = bounds[3];
+  zMin = bounds[4];
+  zMax = bounds[5];
 }
 
-BoundingBox::BoundingBox(EspinaVolume* image)
+CountingRegionSegmentationExtension::BoundingBox::BoundingBox(EspinaVolume* image)
 {
   double bounds[6];
   VolumeBounds(image, bounds);
@@ -81,7 +60,7 @@ BoundingBox::BoundingBox(EspinaVolume* image)
 }
 
 
-bool BoundingBox::intersect(BoundingBox& bb)
+bool CountingRegionSegmentationExtension::BoundingBox::intersect(BoundingBox& bb)
 {
   bool xOverlap = xMin <= bb.xMax && xMax >= bb.xMin;
   bool yOverlap = yMin <= bb.yMax && yMax >= bb.yMin;
@@ -90,7 +69,7 @@ bool BoundingBox::intersect(BoundingBox& bb)
   return xOverlap && yOverlap && zOverlap;
 }
 
-BoundingBox BoundingBox::intersection(BoundingBox& bb)
+CountingRegionSegmentationExtension::BoundingBox CountingRegionSegmentationExtension::BoundingBox::intersection(BoundingBox& bb)
 {
   BoundingBox res;
   res.xMin = std::max(xMin, bb.xMin);
@@ -126,7 +105,7 @@ ModelItemExtension::ExtId CountingRegionSegmentationExtension::id()
 }
 
 //------------------------------------------------------------------------
-void CountingRegionSegmentationExtension::initialize(Segmentation* seg)
+void CountingRegionSegmentationExtension::initialize(ModelItem::Arguments args)
 {
   ModelItem::Vector relatedSamples = m_seg->relatedItems(ModelItem::IN, "where");
   Q_ASSERT(relatedSamples.size() == 1);
@@ -200,26 +179,7 @@ SegmentationExtension* CountingRegionSegmentationExtension::clone()
 }
 
 //------------------------------------------------------------------------
-bool realCollision(EspinaVolume *input, BoundingBox interscetion)
-{
-  EspinaVolume::SpacingType spacing = input->GetSpacing();
-  for (int z = interscetion.zMin; z <= interscetion.zMax; z++)
-    for (int y = interscetion.yMin; y <= interscetion.yMax; y++)
-      for (int x = interscetion.xMin; x <= interscetion.xMax; x++)
-      {
-	EspinaVolume::IndexType index;
-	index[0] = floor((x/spacing[0])+0.5);
-	index[1] = floor((y/spacing[1])+0.5);
-	index[2] = floor((z/spacing[2])+0.5);
-	if (input->GetLargestPossibleRegion().IsInside(index) && input->GetPixel(index))
-	  return true;
-      }
-
-  return false;
-}
-
-//------------------------------------------------------------------------
-bool discartedByRegion(EspinaVolume *input, BoundingBox &inputBB, vtkPolyData *region)
+bool CountingRegionSegmentationExtension::discartedByRegion(BoundingBox inputBB, vtkPolyData* region)
 {
   vtkPoints *regionPoints = region->GetPoints();
   vtkCellArray *regionFaces = region->GetPolys();
@@ -245,7 +205,7 @@ bool discartedByRegion(EspinaVolume *input, BoundingBox &inputBB, vtkPolyData *r
       facePoints->InsertNextPoint(regionPoints->GetPoint(pts[i]));
 
     BoundingBox faceBB(facePoints);
-    if (inputBB.intersect(faceBB) && realCollision(input, inputBB.intersection(faceBB)))
+    if (inputBB.intersect(faceBB) && realCollision(inputBB.intersection(faceBB)))
     {
       if (faceData->GetScalars()->GetComponent(f,0) == 0)
 	return true;
@@ -264,7 +224,7 @@ bool discartedByRegion(EspinaVolume *input, BoundingBox &inputBB, vtkPolyData *r
 	slicePoints->InsertNextPoint(regionPoints->GetPoint(p+i));
 
     BoundingBox sliceBB(slicePoints);
-    if (inputBB.intersect(sliceBB) &&  realCollision(input, inputBB.intersection(sliceBB)))
+    if (inputBB.intersect(sliceBB) &&  realCollision(inputBB.intersection(sliceBB)))
       return false;//;
   }
 
@@ -272,6 +232,23 @@ bool discartedByRegion(EspinaVolume *input, BoundingBox &inputBB, vtkPolyData *r
   // bounding region
   return true;
 }
+
+//------------------------------------------------------------------------
+bool CountingRegionSegmentationExtension::realCollision(BoundingBox interscetion)
+{
+  EspinaVolume *input = m_seg->itkVolume();
+  for (int z = interscetion.zMin; z <= interscetion.zMax; z++)
+    for (int y = interscetion.yMin; y <= interscetion.yMax; y++)
+      for (int x = interscetion.xMin; x <= interscetion.xMax; x++)
+      {
+	EspinaVolume::IndexType index = m_seg->index(x, y, z);
+	if (input->GetLargestPossibleRegion().IsInside(index) && input->GetPixel(index))
+	  return true;
+      }
+
+  return false;
+}
+
 
 //------------------------------------------------------------------------
 void CountingRegionSegmentationExtension::evaluateBoundingRegions()
@@ -297,13 +274,10 @@ void CountingRegionSegmentationExtension::evaluateBoundingRegions()
 
   if (!m_isDiscarted)
   {
-    foreach(BoundingRegion *br, m_boundingRegions)
-    {
-      BoundingBox inputBB(m_seg->itkVolume());
-      vtkPolyData *margins = br->region();
+    BoundingBox inputBB(m_seg->itkVolume());
 
-      m_isDiscarted |= discartedByRegion(m_seg->itkVolume(), inputBB, margins);
-    }
+    foreach(BoundingRegion *br, m_boundingRegions)
+      m_isDiscarted |= discartedByRegion(inputBB, br->region());
   }
 
   m_seg->setVisible(!m_isDiscarted);

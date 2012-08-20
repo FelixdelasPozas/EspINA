@@ -57,7 +57,7 @@ const ArgumentId MarginsChannelExtension::MARGINTYPE = ArgumentId("MarginType", 
 
 //-----------------------------------------------------------------------------
 MarginsChannelExtension::MarginsChannelExtension()
-: m_useExtentMargins(true)
+: m_useChannelBounds(true)
 {
   for (int face = 0; face < 6; face++)
     m_PolyDataFaces[face] = NULL;
@@ -84,10 +84,6 @@ ModelItemExtension::ExtId MarginsChannelExtension::id()
 //-----------------------------------------------------------------------------
 void MarginsChannelExtension::initialize(ModelItem::Arguments args)
 {
-  if (m_init)
-    return;
-//   qDebug() << args;
-
   bool computeMargin = false;
   if (args.contains(MARGINTYPE))
   {
@@ -115,7 +111,7 @@ void MarginsChannelExtension::initialize(ModelItem::Arguments args)
   }
 
   m_init = true;
-  m_useExtentMargins = !computeMargin;
+  m_useChannelBounds = !computeMargin;
   m_args = args;
 }
 
@@ -159,7 +155,7 @@ void MarginsChannelExtension::computeMarginDistance(Segmentation* seg)
   Q_ASSERT(marginExt);
   Nm distance[6], smargins[6];
   VolumeBounds(seg->itkVolume(), smargins);
-  if (m_useExtentMargins)
+  if (m_useChannelBounds)
   {
     double cmargins[6];
     m_channel->bounds(cmargins);

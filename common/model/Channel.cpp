@@ -205,28 +205,29 @@ QString Channel::serialize() const
 //-----------------------------------------------------------------------------
 void Channel::initialize(ModelItem::Arguments args)
 {
-//   qDebug() << "Init channel with args:" << args;
+  qDebug() << "Init" << data().toString() << "with args:" << args;
   foreach(ArgumentId argId, args.keys())
   {
     if (argId != EXTENSIONS)
-    {
       m_args[argId] = args[argId];
-    }
   }
+}
 
-  if (!args.contains(EXTENSIONS))
-    return;
-
-  ModelItem::Arguments extArgs(args[EXTENSIONS]);
+//------------------------------------------------------------------------
+void Channel::initializeExtensions(ModelItem::Arguments args)
+{
+//   qDebug() << "Initializing" << data().toString() << "extensions:";
   foreach(ModelItemExtension *ext, m_insertionOrderedExtensions)
   {
     ChannelExtension *channelExt = dynamic_cast<ChannelExtension *>(ext);
     Q_ASSERT(channelExt);
-    //     qDebug() << extArgs;
-    ArgumentId argId(channelExt->id(), false);
-    ModelItem::Arguments cArgs(extArgs.value(argId, QString()));
-    channelExt->initialize(cArgs);
+    ArgumentId extId(channelExt->id(), false);
+    ModelItem::Arguments extArgs(args.value(extId, QString()));
+//     qDebug() << channelExt->id();
+//     if (!args.isEmpty()) qDebug() << "*" << extArgs;
+    channelExt->initialize(extArgs);
   }
+
 }
 
 //------------------------------------------------------------------------

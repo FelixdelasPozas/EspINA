@@ -1036,7 +1036,9 @@ void SliceView::removePreview(Filter* filter)
 //-----------------------------------------------------------------------------
 void SliceView::addWidget(SliceWidget *sWidget)
 {
-  Q_ASSERT(sWidget);
+  if (!sWidget)
+    return;
+
   sWidget->setSlice(slicingPosition(), m_plane);
   vtkAbstractWidget *widget = *sWidget;
   widget->SetInteractor(m_view->GetRenderWindow()->GetInteractor());
@@ -1049,7 +1051,9 @@ void SliceView::addWidget(SliceWidget *sWidget)
 //-----------------------------------------------------------------------------
 void SliceView::removeWidget(SliceWidget* sWidget)
 {
-  Q_ASSERT(sWidget);
+  if (!sWidget)
+    return;
+
   Q_ASSERT(m_widgets.contains(sWidget));
   m_widgets.removeOne(sWidget);
 }

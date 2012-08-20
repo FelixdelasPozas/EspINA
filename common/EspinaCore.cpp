@@ -127,8 +127,9 @@ bool EspinaCore::loadChannel(const QFileInfo file)
   m_undoStack->push(new AddRelation(existingSample, channel, Channel::STAINLINK));
   m_undoStack->endMacro();
 
-  existingSample->initialize();//TODO: Review if needed
+  //existingSample->initialize();//TODO: Review if needed
   channel->initialize(args);
+  channel->initializeExtensions();
 
   QApplication::restoreOverrideCursor();
 

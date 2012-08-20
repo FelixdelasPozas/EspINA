@@ -108,8 +108,9 @@ public:
   virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
   virtual ItemType type() const {return ModelItem::SEGMENTATION;}
   virtual QString serialize() const;
+
   virtual void initialize(Arguments args = Arguments());
-  virtual void initializeExtensions();
+  virtual void initializeExtensions(Arguments args = Arguments());
 
   virtual void notifyModification(bool force = false);
 

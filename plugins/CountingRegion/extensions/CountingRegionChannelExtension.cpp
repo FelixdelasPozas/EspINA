@@ -53,7 +53,6 @@ CountingRegionChannelExtension::~CountingRegionChannelExtension()
 //-----------------------------------------------------------------------------
 void CountingRegionChannelExtension::initialize(ModelItem::Arguments args)
 {
-  qDebug() << args;
   QStringList regions = args[REGIONS].split(";");
 
   foreach (QString region, regions)

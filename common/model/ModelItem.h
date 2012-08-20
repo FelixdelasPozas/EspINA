@@ -56,7 +56,8 @@ public:
 
   typedef QList<Relation> RelationList;
 
-  class ArgumentId : public QString
+  class ArgumentId
+  : public QString
   {
   public:
     static const bool KEY = true;
@@ -70,7 +71,8 @@ public:
 
   typedef QString Argument;
 
-  class Arguments : public QMap<ArgumentId, Argument>
+  class Arguments
+  : public QMap<ArgumentId, Argument>
   {
   public:
     explicit Arguments();
@@ -113,7 +115,7 @@ public:
   virtual bool setData(const QVariant& value, int role = Qt::UserRole +1) {return false;}
   virtual QString  serialize() const = 0;
   virtual ItemType type() const = 0;
-  
+
   Vector relatedItems(RelationType rel, const QString filter = "");
   RelationList relations(const QString filter = "");
 
@@ -123,11 +125,12 @@ public:
   virtual Representation *representation(QString name) const;
   ModelItemExtension *extension(QString name) const;
 
+  virtual void initialize(Arguments args = Arguments()) = 0;
   /// Used to initialize its extension
   /// It's important to call initialize once the item has stablished
   /// its relations with other items. It's up to the developer to
   /// satisfy this condition
-  virtual void initialize(Arguments args = Arguments()) {};
+  virtual void initializeExtensions(Arguments args = Arguments()) = 0;
 
   bool updateForced() const {return m_modified;}
 public slots:

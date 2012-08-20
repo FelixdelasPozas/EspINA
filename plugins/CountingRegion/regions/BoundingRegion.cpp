@@ -21,6 +21,8 @@
 #include "vtkBoundingRegionSliceWidget.h"
 #include <extensions/CountingRegionChannelExtension.h>
 #include <common/model/Channel.h>
+#include <common/EspinaCore.h>
+#include <common/gui/EspinaView.h>
 
 //-----------------------------------------------------------------------------
 BoundingRegion::BoundingRegion(CountingRegionChannelExtension *channelExt,
@@ -90,6 +92,7 @@ void BoundingRegion::Execute(vtkObject* caller, long unsigned int eventId, void*
     foreach(vtkBoundingRegionWidget *w, m_widgets)
       w->SetBoundingRegion(m_boundingRegion);
   }
+  EspinaCore::instance()->viewManger()->currentView()->forceRender();
 
   emitDataChanged();
 }

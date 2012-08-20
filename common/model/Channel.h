@@ -127,11 +127,13 @@ public:
   virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
   virtual ItemType type() const {return ModelItem::CHANNEL;}
   virtual QString  serialize() const;
-  virtual void initialize(Arguments args = Arguments());
 
   virtual QStringList availableInformations() const;
   virtual QStringList availableRepresentations() const;
   virtual QVariant information(QString name);
+
+  virtual void initialize(Arguments args = Arguments());
+  virtual void initializeExtensions(Arguments args = Arguments());
 
   /// Get the sample which channel belongs to
   Sample *sample();

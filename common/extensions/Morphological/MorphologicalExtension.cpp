@@ -88,7 +88,7 @@ ModelItemExtension::ExtId MorphologicalExtension::id()
 
 
 //------------------------------------------------------------------------
-void MorphologicalExtension::initialize(Segmentation* seg)
+void MorphologicalExtension::initialize(ModelItem::Arguments args)
 {
 //   qDebug() << "Converting from ITK to LabelMap";
   QApplication::setOverrideCursor(Qt::WaitCursor);

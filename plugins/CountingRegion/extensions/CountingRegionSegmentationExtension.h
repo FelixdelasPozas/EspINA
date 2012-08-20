@@ -21,16 +21,36 @@
 #define COUNTINGREGIONSEGMENTATIONEXTENSION_H
 
 #include <common/extensions/SegmentationExtension.h>
+#include <common/EspinaTypes.h>
 
+class vtkPoints;
 
 // Forward declaration
 class BoundingRegion;
 class Segmentation;
+class vtkPolyData;
 
 class CountingRegionSegmentationExtension
 : public SegmentationExtension
 {
   Q_OBJECT
+private:
+  class BoundingBox
+  {
+  public:
+    Nm xMin, xMax;
+    Nm yMin, yMax;
+    Nm zMin, zMax;
+
+    BoundingBox(vtkPoints *points);
+    BoundingBox(EspinaVolume *image);
+    bool intersect(BoundingBox &bb);
+    BoundingBox intersection(BoundingBox &bb);
+
+  private:
+    BoundingBox(){}
+  };
+
 public:
   static const ExtId ID;
   static const InfoTag DISCARTED;
@@ -40,7 +60,6 @@ public:
   virtual ~CountingRegionSegmentationExtension();
 
   virtual ExtId id();
-  virtual void initialize(Segmentation* seg);
 
   virtual ExtIdList dependencies() const;
 
@@ -56,9 +75,13 @@ public:
 
   void setBoundingRegions(QList<BoundingRegion *> bRegions);
 
+  virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
+
   virtual SegmentationExtension* clone();
 
 protected slots:
+  bool discartedByRegion(BoundingBox inputBB, vtkPolyData *region);
+  bool realCollision(BoundingBox interscetion);
   void evaluateBoundingRegions();
 
 private:
