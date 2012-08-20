@@ -68,6 +68,9 @@ public:
 
   vtkSmartPointer<vtkPolyData> margins();
 
+protected:
+  void computeMargins();
+
 private:
   bool                         m_useChannelBounds;
   ModelItem::Arguments         m_args;

@@ -100,19 +100,23 @@ void MarginsChannelExtension::initialize(ModelItem::Arguments args)
   }
 
   if (computeMargin)
-  {
-    m_borders = vtkSmartPointer<vtkPolyData>::New();
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    MarginDetector *marginDetector = new MarginDetector(this);
-    connect(marginDetector, SIGNAL(finished()),
-	    marginDetector, SLOT(deleteLater()));
-    marginDetector->start();
-    QApplication::restoreOverrideCursor();
-  }
+    computeMargins();
 
   m_init = true;
   m_useChannelBounds = !computeMargin;
   m_args = args;
+}
+
+//-----------------------------------------------------------------------------
+void MarginsChannelExtension::computeMargins()
+{
+  m_borders = vtkSmartPointer<vtkPolyData>::New();
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  MarginDetector *marginDetector = new MarginDetector(this);
+  connect(marginDetector, SIGNAL(finished()),
+	  marginDetector, SLOT(deleteLater()));
+  marginDetector->start();
+  QApplication::restoreOverrideCursor();
 }
 
 //-----------------------------------------------------------------------------
@@ -184,8 +188,12 @@ void MarginsChannelExtension::computeMarginDistance(Segmentation* seg)
 vtkSmartPointer<vtkPolyData> MarginsChannelExtension::margins()
 {
   // Ensure Margin Detector's finished
+  if (m_borders.GetPointer() == NULL)
+    computeMargins();
+
   m_borderMutex.lock();
   m_borderMutex.unlock();
+  Q_ASSERT(m_borders.GetPointer() != NULL);
   return m_borders;
 }
 

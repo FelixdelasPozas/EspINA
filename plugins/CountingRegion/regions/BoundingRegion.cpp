@@ -58,12 +58,12 @@ QVariant BoundingRegion::data(int role) const
     double spacing[3];
     m_channelExt->channel()->spacing(spacing);
     Nm volPixel = spacing[0]*spacing[1]*spacing[2];
-    Nm totalPixelVolume = totalVolume() /volPixel;
-    Nm inclusionPixelVolume = inclusionVolume() / volPixel;
-    Nm exclusionPixelVolume = exclusionVolume() / volPixel;
-    desc = desc.arg(totalPixelVolume,0,'f',2).arg(totalVolume(),0,'f',2).arg("nm");
-    desc = desc.arg(inclusionPixelVolume,0, 'f', 2).arg(inclusionVolume(),0,'f',2);
-    desc = desc.arg(exclusionPixelVolume,0, 'f', 2).arg(exclusionVolume(),0,'f',2);
+    int totalPixelVolume = totalVolume() /volPixel;
+    int inclusionPixelVolume = inclusionVolume() / volPixel;
+    int exclusionPixelVolume = exclusionVolume() / volPixel;
+    desc = desc.arg(totalPixelVolume).arg(totalVolume(),0,'f',2).arg("nm");
+    desc = desc.arg(inclusionPixelVolume).arg(inclusionVolume(),0,'f',2);
+    desc = desc.arg(exclusionPixelVolume).arg(exclusionVolume(),0,'f',2);
 
     return desc;
   }

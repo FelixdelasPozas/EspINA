@@ -83,8 +83,8 @@ QVariant AdaptiveBoundingRegion::data(int role) const
   if (role == Qt::DisplayRole)
   {
     QString repName = QString("Adaptive Region (%1,%2,%3,%4,%5,%6)")
-      .arg(left()).arg(top()).arg(upper())
-      .arg(right()).arg(bottom()).arg(lower());
+      .arg(left(),0,'f',2).arg(top(),0,'f',2).arg(upper(),0,'f',2)
+      .arg(right(),0,'f',2).arg(bottom(),0,'f',2).arg(lower(),0,'f',2);
     return repName;
   }
 
@@ -96,12 +96,8 @@ QString AdaptiveBoundingRegion::serialize() const
 {
   return QString("[%1=%2,%3,%4,%5,%6,%7]")
          .arg(ID)
-         .arg(m_inclusion[0])
-         .arg(m_inclusion[1])
-         .arg(m_inclusion[2])
-         .arg(m_exclusion[0])
-         .arg(m_exclusion[1])
-         .arg(m_exclusion[2]);
+	 .arg(left(),0,'f',2).arg(top(),0,'f',2).arg(upper(),0,'f',2)
+         .arg(right(),0,'f',2).arg(bottom(),0,'f',2).arg(lower(),0,'f',2);
 }
 
 //-----------------------------------------------------------------------------
@@ -143,6 +139,9 @@ void AdaptiveBoundingRegion::updateBoundingRegion()
   m_channel->spacing(spacing);
   int extent[6];
   m_channel->extent(extent);
+
+  m_inclusionVolume = 0;
+  m_totalVolume = 0;
 
   ModelItemExtension *ext = m_channel->extension(MarginsChannelExtension::ID);
   Q_ASSERT(ext);
@@ -253,10 +252,13 @@ void AdaptiveBoundingRegion::updateBoundingRegion()
     memcpy(lastCell,cell,4*sizeof(vtkIdType));
 
     // Update Volumes
-    m_totalVolume += ((RT[0] - LT[0] + 1)*(LB[1] - LT[1] + 1));
-//     if (slice != lowerSlice) // Don't include last exclusion face
-//       InclusionVolume += (((RT[0] + rightOffset())  - (LT[0] + leftOffset()))*
-//                           ((LB[1] + bottomOffset()) - (LT[1] + topOffset())));
+    if (slice != lowerSlice)
+    {
+      m_totalVolume += ((RT[0] - LT[0] + 1)*(LB[1] - LT[1] + 1))*spacing[2];
+      m_inclusionVolume += (((RT[0] + rightOffset())  - (LT[0] + leftOffset()))*
+                           ((LB[1] + bottomOffset()) - (LT[1] + topOffset())))*
+                           spacing[2];
+    }
   }
 
   m_boundingRegion->SetPoints(regionVertex);

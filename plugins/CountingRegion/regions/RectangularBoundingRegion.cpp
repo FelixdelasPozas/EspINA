@@ -69,8 +69,8 @@ QVariant RectangularBoundingRegion::data(int role) const
   if (role == Qt::DisplayRole)
   {
     QString repName = QString(tr("Rectangular (%1,%2,%3,%4,%5,%6)"))
-      .arg(left()).arg(top()).arg(upper())
-      .arg(right()).arg(bottom()).arg(lower());
+      .arg(left(),0,'f',2).arg(top(),0,'f',2).arg(upper(),0,'f',2)
+      .arg(right(),0,'f',2).arg(bottom(),0,'f',2).arg(lower(),0,'f',2);
     return repName;
   }
 
@@ -82,12 +82,8 @@ QString RectangularBoundingRegion::serialize() const
 {
   return QString("[%1=%2,%3,%4,%5,%6,%7]")
          .arg(ID)
-         .arg(m_inclusion[0])
-         .arg(m_inclusion[1])
-         .arg(m_inclusion[2])
-         .arg(m_exclusion[0])
-         .arg(m_exclusion[1])
-         .arg(m_exclusion[2]);
+         .arg(left(),0,'f',2).arg(top(),0,'f',2).arg(upper(),0,'f',2)
+         .arg(right(),0,'f',2).arg(bottom(),0,'f',2).arg(lower(),0,'f',2);
 }
 
 

@@ -37,9 +37,6 @@ protected:
 
 private:
   MarginsChannelExtension *m_extension;
-
-  double m_totalVolume;
-  double m_totalAdativeVolume;
 };
 
 #endif // MARGINDETECTOR_H

@@ -70,7 +70,7 @@ MarginDetector::MarginDetector(MarginsChannelExtension *extension,
 : QThread(parent)
 , m_extension(extension)
 {
-
+  m_extension->m_borderMutex.lock();
 }
 
 //------------------------------------------------------------------------
@@ -81,7 +81,6 @@ MarginDetector::~MarginDetector()
 //------------------------------------------------------------------------
 void MarginDetector::run()
 {
-  m_extension->m_borderMutex.lock();
   Channel *channel       = m_extension->channel();
   vtkAlgorithm *producer = channel->vtkVolume()->GetProducer();
   vtkDataObject *output  = producer->GetOutputDataObject(0);
@@ -240,7 +239,5 @@ void MarginDetector::run()
   m_extension->m_borders->SetPoints(borderVertices);
   m_extension->m_borders->SetPolys(faces);
 
-  m_totalVolume = (extent[1]-extent[0]+1)*(extent[3]-extent[2]+1)*(extent[5]-extent[4]+1);
-  qDebug() << "Total Volume" << m_totalVolume;
   m_extension->m_borderMutex.unlock();
 }

@@ -65,8 +65,8 @@ void CountingRegionChannelExtension::initialize(ModelItem::Arguments args)
     Nm inclusion[3], exclusion[3];
     for (int i=0; i<3; i++)
     {
-      inclusion[i] = margins[i].toInt();
-      exclusion[i] = margins[3+i].toInt();
+      inclusion[i] = margins[i].toDouble();
+      exclusion[i] = margins[3+i].toDouble();
     }
     if (RectangularBoundingRegion::ID == type)
       m_plugin->createRectangularRegion(m_channel, inclusion, exclusion);

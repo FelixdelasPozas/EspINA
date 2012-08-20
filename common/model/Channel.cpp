@@ -196,16 +196,15 @@ QString Channel::serialize() const
       extensionArgs.append(ext->id()+"=["+serializedArgs+"];");
   }
   if (!extensionArgs.isEmpty())
-  {
     m_args[EXTENSIONS] = QString("[%1]").arg(extensionArgs);
-  }
+
   return m_args.serialize();
 }
 
 //-----------------------------------------------------------------------------
 void Channel::initialize(ModelItem::Arguments args)
 {
-  qDebug() << "Init" << data().toString() << "with args:" << args;
+  //qDebug() << "Init" << data().toString() << "with args:" << args;
   foreach(ArgumentId argId, args.keys())
   {
     if (argId != EXTENSIONS)
