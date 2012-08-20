@@ -65,6 +65,7 @@ ChannelExplorer::ChannelExplorer(QSharedPointer< EspinaModel > model,
   m_sort->setSourceModel(m_channelProxy.data());
   m_gui->view->setModel(m_sort.data());
 
+  connect(m_gui->activeChannel, SIGNAL(clicked(bool)), this, SLOT(activeChannel()));
   connect(m_gui->channelColor, SIGNAL(clicked(bool)), this, SLOT(changeChannelColor()));
   connect(m_gui->alignLeft, SIGNAL(clicked(bool)), this, SLOT(alignLeft()));
   connect(m_gui->alignCenter, SIGNAL(clicked(bool)), this, SLOT(alignCenter()));
@@ -425,6 +426,10 @@ void ChannelExplorer::unloadChannel()
       it++;
     }
     model->removeChannel(channel);
+    if (SelectionManager::instance()->activeChannel() == channel)
+    {
+      SelectionManager::instance()->setActiveChannel(NULL);
+    }
   }
 }
 
@@ -446,5 +451,21 @@ void ChannelExplorer::focusOnChannel()
     EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
     view->setCameraFocus(pos);
     view->forceRender();
+  }
+}
+
+//------------------------------------------------------------------------
+void ChannelExplorer::activeChannel()
+{
+    QModelIndex currentIndex = m_gui->view->currentIndex();
+  if (!currentIndex.parent().isValid())
+    return;
+
+  QModelIndex index = m_sort->mapToSource(currentIndex);
+  ModelItem *currentItem = indexPtr(index);
+  if (ModelItem::CHANNEL == currentItem->type())
+  {
+    Channel *currentChannel = dynamic_cast<Channel *>(currentItem);
+    SelectionManager::instance()->setActiveChannel(currentChannel);
   }
 }

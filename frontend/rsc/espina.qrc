@@ -35,5 +35,6 @@
         <file>close.png</file>
         <file>open.png</file>
         <file>dilate.png</file>
+        <file>activeChannel.svg</file>
     </qresource>
 </RCC>

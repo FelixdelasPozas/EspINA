@@ -56,6 +56,7 @@ protected slots:
   void updateTooltips(int index);
   void unloadChannel();
   void focusOnChannel();
+  void activeChannel();
 
 private:
   CentralWidget *m_gui;
