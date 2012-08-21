@@ -545,6 +545,7 @@ void DefaultEspinaView::setRulerVisibility(bool visible)
   xyView->setRulerVisibility(visible);
   yzView->setRulerVisibility(visible);
   xzView->setRulerVisibility(visible);
+  forceRender();
 }
 
 //-----------------------------------------------------------------------------

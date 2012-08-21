@@ -30,11 +30,13 @@
 #include "common/selection/SelectionManager.h"
 #include "common/widgets/EspinaWidget.h"
 
+#include <itkImageToVTKImageFilter.h>
+
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
 #include <vtkCellPicker.h>
 #include <vtkPolyData.h>
-#include <itkImageToVTKImageFilter.h>
+#include <vtkAxisActor2D.h>
 
 class vtkImageResliceToColors;
 class vtkImageActor;
@@ -81,7 +83,7 @@ public:
   typedef QSharedPointer<Settings> SettingsPtr;
 
 public:
-  SliceView(PlaneType plane = AXIAL, QWidget* parent = 0);
+  explicit SliceView(PlaneType plane = AXIAL, QWidget* parent = 0);
   virtual ~SliceView();
 
   inline QString title() const;
@@ -198,6 +200,8 @@ protected:
   /// Converts point from Display coordinates to World coordinates
   SelectionHandler::VtkRegion display2vtk(const QPolygonF &region);
 
+  void updateRuler();
+
   void buildCrosshairs();
   void buildTitle();
   void setupUI();
@@ -225,10 +229,12 @@ private:
   QPushButton *m_toSlice;
 
   // VTK View
-  vtkSmartPointer<vtkRenderer>   m_renderer;
-  vtkSmartPointer<vtkRenderer>   m_thumbnail;
-  vtkSmartPointer<vtkCellPicker> m_channelPicker;
-  vtkSmartPointer<vtkCellPicker> m_segmentationPicker;
+  vtkSmartPointer<vtkRenderer>    m_renderer;
+  vtkSmartPointer<vtkRenderer>    m_thumbnail;
+  vtkSmartPointer<vtkCellPicker>  m_channelPicker;
+  vtkSmartPointer<vtkCellPicker>  m_segmentationPicker;
+  vtkSmartPointer<vtkAxisActor2D> m_ruler;
+  bool                            m_rulerVisibility;
 
   // View State
   Nm m_crosshairPoint[3];

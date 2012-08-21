@@ -115,6 +115,7 @@ QWidget(parent)
 , m_toSlice(new QPushButton("To"))
 , m_plane(plane)
 , m_showSegmentations(true)
+, m_ruler(vtkSmartPointer<vtkAxisActor2D>::New())
 , m_settings(new Settings(m_plane))
 , m_inThumbnail(false)
 {
@@ -146,13 +147,27 @@ QWidget(parent)
       break;
   };
 
+  // Init Renderers
   m_renderer = vtkSmartPointer<vtkRenderer>::New();
   m_renderer->GetActiveCamera()->ParallelProjectionOn();
   m_slicingMatrix = vtkMatrix4x4::New();
+
+  // Init Pickers
   m_channelPicker = vtkSmartPointer<vtkCellPicker>::New();
   m_channelPicker->PickFromListOn();
   m_segmentationPicker = vtkSmartPointer<vtkCellPicker>::New();
   m_segmentationPicker->PickFromListOn();
+
+  // Init Ruler
+  m_ruler->SetPosition(0.02, 0.98);
+  m_ruler->SetPosition2(0.15, 0.98);
+  m_ruler->SetPickable(false);
+  m_ruler->SetLabelFactor(0.8);
+  m_ruler->SetFontFactor(1);
+  m_ruler->SetTitle("nm");
+  m_ruler->SetAdjustLabels(false);
+  m_ruler->SetNumberOfLabels(3);
+  m_renderer->AddActor(m_ruler);
 
   m_state->updateSlicingMatrix(m_slicingMatrix);
   m_view->GetRenderWindow()->AddRenderer(m_renderer);
@@ -163,6 +178,47 @@ QWidget(parent)
 
   connect(SelectionManager::instance(), SIGNAL(selectionChanged(SelectionManager::Selection)),
           this, SLOT(updateSelection(SelectionManager::Selection)));
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::updateRuler()
+{
+//   if (!m_ruler->GetVisibility())
+//     return;
+
+  if (!m_renderer || !m_renderer->GetRenderWindow())
+    return;
+
+  double *value;
+  Nm left, right;
+  double wPad = 60, hPad  = 100;
+
+  int *ws = m_renderer->GetRenderWindow()->GetSize();
+
+  vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
+  coords->SetCoordinateSystemToNormalizedViewport();
+
+  int c = m_plane==SAGITTAL?2:0;
+  coords->SetValue(0, 0); //Viewport Lower Left Corner
+  value = coords->GetComputedWorldValue(m_renderer);
+  left = value[c];
+//   qDebug() << "LL" << value[0] << value[1] << value[2];
+  coords->SetValue(1, 0); // Viewport Lower Right Corner
+  value = coords->GetComputedWorldValue(m_renderer);
+  right = value[c];
+//   qDebug() << "LR" << value[0] << value[1] << value[2];
+
+  Nm rulerLength = 100;
+  Nm rulerRatio = rulerLength/fabs(left-right);
+//   qDebug() << ws[0] << left << right << rulerRatio;
+  int labels = rulerRatio*15;
+  if ((labels - 1)%2 != 0)
+    labels--;
+  m_ruler->SetNumberOfLabels(labels);
+  m_ruler->SetRange(0, rulerLength);
+  m_ruler->SetPosition(wPad/ws[0], hPad/ws[1]);
+  m_ruler->SetPoint2(wPad/ws[0]+rulerRatio,hPad/ws[1]);
+  m_ruler->SetVisibility(m_rulerVisibility && rulerRatio > 0.05 && rulerRatio < 0.8);
 }
 
 //-----------------------------------------------------------------------------
@@ -568,6 +624,7 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
       emit showCrosshairs(false);
   }
 
+  updateRuler();
   return QWidget::eventFilter(caller, e);
 }
 
@@ -971,54 +1028,6 @@ bool SliceView::updateSegmentationRepresentation(Segmentation* seg)
   return updated;
 }
 
-// //-----------------------------------º------------------------------------------
-// void SliceView::addRepresentation(pqOutputPort* oport, QColor color)
-// {
-//   pqPipelineSource *source = oport->getSource();
-//   vtkSMProxyManager   *pxm = vtkSMProxyManager::GetProxyManager();
-// 
-//   vtkSMRepresentationProxy* reprProxy = vtkSMRepresentationProxy::SafeDownCast(
-//     pxm->NewProxy("representations", "SegmentationRepresentation"));
-//   Q_ASSERT(reprProxy);
-//   m_representations[oport].proxy  = reprProxy;
-//   m_representations[oport].color  = color;
-// 
-//   // Set the reprProxy's input.
-//   pqSMAdaptor::setInputProperty(reprProxy->GetProperty("Input"),
-//                                 source->getProxy(), oport->getPortNumber());
-// 
-//   double colorD[3] = {color.redF(), color.greenF(), color.blueF()};
-//   vtkSMPropertyHelper(reprProxy, "RGBColor").Set(colorD,3);
-// 
-//   reprProxy->UpdateVTKObjects();
-// 
-//   vtkSMProxy* viewModuleProxy = m_view->getProxy();
-//   // Add the reprProxy to render module.
-//   pqSMAdaptor::addProxyProperty(
-//     viewModuleProxy->GetProperty("Representations"), reprProxy);
-//   viewModuleProxy->UpdateVTKObjects();
-// }
-// 
-// //-----------------------------------------------------------------------------
-// void SliceView::removeRepresentation(pqOutputPort* oport)
-// {
-//   vtkSMProxy* viewModuleProxy = m_view->getProxy();
-// 
-//   if (!m_representations.contains(oport))
-//     return;
-//   //Q_ASSERT(m_representations.contains(rep));
-// 
-//   RepInfo sliceRep = m_representations[oport];
-//   // Remove the reprProxy to render module.
-//   pqSMAdaptor::removeProxyProperty(
-//     viewModuleProxy->GetProperty("Representations"), sliceRep.proxy);
-//   viewModuleProxy->UpdateVTKObjects();
-//   m_view->getProxy()->UpdateVTKObjects();
-// 
-//   sliceRep.proxy->Delete();
-//   m_representations.remove(oport);
-// }
-
 //-----------------------------------------------------------------------------
 void SliceView::addPreview(Filter* filter)
 {
@@ -1101,7 +1110,8 @@ void SliceView::setShowPreprocessing(bool visible)
 //-----------------------------------------------------------------------------
 void SliceView::setRulerVisibility(bool visible)
 {
-	//m_view->SetShowRuler(visible);
+  m_rulerVisibility = visible;
+  updateRuler();
 }
 
 //-----------------------------------------------------------------------------
@@ -1117,6 +1127,7 @@ void SliceView::forceRender()
   if (isVisible())
   {
 //     qDebug() << "Rendering View" << m_plane;
+    updateRuler();
     updateWidgetVisibility();
     m_view->GetRenderWindow()->Render();
     m_view->update();
