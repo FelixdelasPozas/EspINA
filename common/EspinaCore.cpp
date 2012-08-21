@@ -58,7 +58,7 @@ EspinaCore* EspinaCore::instance()
 bool EspinaCore::loadFile(const QFileInfo file)
 {
   bool status = false;
-  const QString ext = file.completeSuffix();//:::fileName() extension(file);
+  const QString ext = file.suffix();
   if ("mha" == ext || "mhd" == ext || "tiff" == ext || "tif" == ext)
   {
     status = loadChannel(file);

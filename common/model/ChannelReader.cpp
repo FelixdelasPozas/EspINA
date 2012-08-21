@@ -72,7 +72,7 @@ void ChannelReader::run()
     fileDialog.setObjectName("SelectChannelFile");
     fileDialog.setFileMode(QFileDialog::ExistingFiles);
     fileDialog.setWindowTitle(QString("Select file for %1:").arg(file.fileName()));
-    fileDialog.setFilter(tr("Channel File (*.%1)").arg(file.completeSuffix()));
+    fileDialog.setFilter(tr("Channel File (*.%1)").arg(file.suffix()));
 
     if (fileDialog.exec() != QDialog::Accepted)
       return;
