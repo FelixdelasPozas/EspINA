@@ -56,19 +56,7 @@ public:
 
   typedef QList<Relation> RelationList;
 
-  class ArgumentId
-  : public QString
-  {
-  public:
-    static const bool KEY = true;
-    static const bool VARIABLE = false;
-  public:
-    explicit ArgumentId() : isKey(false) {}
-    explicit ArgumentId(QString string, bool key)
-    : QString(string), isKey(key) {}
-    bool isKey;
-  };
-
+  typedef QString ArgumentId;
   typedef QString Argument;
 
   class Arguments
@@ -80,9 +68,7 @@ public:
     explicit Arguments(const QString args);
     virtual ~Arguments(){}
 
-    static ArgumentId argumentId(QString name) {return ArgumentId(name, false);}
-
-    virtual QString serialize(bool key=false) const;
+    virtual QString serialize() const;
     virtual QString hash() const;
   protected:
     inline QString argument(const QString name, const QString value) const

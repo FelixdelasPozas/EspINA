@@ -18,17 +18,21 @@
 
 #include "ImageLogicFilter.h"
 
+#include <EspinaRegions.h>
 #include <model/EspinaFactory.h>
+
+#include <itkImageRegionIteratorWithIndex.h>
 #include <vtkImageAlgorithm.h>
 
 #include <QApplication>
 #include <QDebug>
+#include <itkImageAlgorithm.h>
 
 const QString ImageLogicFilter::TYPE = "EditorToolBar::ImageLogicFilter";
 
 //-----------------------------------------------------------------------------
 typedef ModelItem::ArgumentId ArgumentId;
-const ArgumentId ImageLogicFilter::OPERATION = ArgumentId("Operation", true);
+const ArgumentId ImageLogicFilter::OPERATION = "Operation";
 
 
 //-----------------------------------------------------------------------------
@@ -36,8 +40,6 @@ ImageLogicFilter::ImageLogicFilter(Filter::NamedInputs inputs,
                                    ModelItem::Arguments args)
 : Filter(inputs, args)
 , m_param(m_args)
-, m_volume(NULL)
-, m_filter(FilterType::New())
 // , m_pad1(PadFilterType::New())
 // , m_pad2(PadFilterType::New())
 // , m_orFilter(OrFilterType::New())
@@ -58,23 +60,6 @@ QVariant ImageLogicFilter::data(int role) const
     return QVariant();
 }
 
-
-//-----------------------------------------------------------------------------
-int ImageLogicFilter::numberOutputs() const
-{
-  return m_volume?1:0;
-}
-
-//-----------------------------------------------------------------------------
-EspinaVolume* ImageLogicFilter::output(OutputNumber i) const
-{
-  if (m_volume && i == 0)
-    return m_filter->GetOutput();
-
-  Q_ASSERT(false);
-  return NULL;
-}
-
 //-----------------------------------------------------------------------------
 bool ImageLogicFilter::prefetchFilter()
 {
@@ -83,9 +68,7 @@ bool ImageLogicFilter::prefetchFilter()
 
   if (m_cachedFilter.IsNotNull())
   {
-    m_volume = m_cachedFilter->GetOutput();
-    m_filter->SetInput(m_volume);
-    m_filter->Update();
+    m_outputs[0] = m_cachedFilter->GetOutput();
     emit modified(this);
     return true;
   }
@@ -96,7 +79,7 @@ bool ImageLogicFilter::prefetchFilter()
 //-----------------------------------------------------------------------------
 bool ImageLogicFilter::needUpdate() const
 {
-  return m_volume.IsNull();
+  return m_outputs[0].IsNull();
 }
 
 //-----------------------------------------------------------------------------
@@ -104,39 +87,6 @@ void ImageLogicFilter::run() //TODO: Parallelize
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);
   Q_ASSERT(m_inputs.size() > 1);
-
-  m_inputExtents.clear();
-
-  qDebug() << "Compute output boundaries";
-  int *inExt1 = new int[6];
-  int *inExt2 = new int[6];
-
-  m_inputExtents << inExt1 << inExt2;
-
-  VolumeExtent(m_inputs[0], inExt1);
-  VolumeExtent(m_inputs[1], inExt2);
-
-//   EspinaVolume::PointType origin1 = m_inputs[0]->GetOrigin();
-//   EspinaVolume::PointType origin2 = m_inputs[1]->GetOrigin();
-//   EspinaVolume::PointType outOrigin;
-
-  Q_ASSERT(m_inputs[0]->GetSpacing() == m_inputs[1]->GetSpacing());
-
-  for (int i=0; i<3; i++)
-  {
-    int lower = 2*i;
-    int upper = lower + 1;
-    m_outputExtent[lower] = std::min(inExt1[lower], inExt2[lower]);
-    m_outputExtent[upper] = std::max(inExt1[upper], inExt2[upper]);
-//     outOrigin[i] = std::min(origin1[i], origin2[i]);
-  }
-
-  m_volume = EspinaVolume::New();
-  EspinaVolume::RegionType buffer = ExtentToRegion(m_outputExtent);
-  m_volume->SetRegions(buffer);
-  m_volume->SetSpacing(m_inputs[0]->GetSpacing());
-//   m_volume->SetOrigin(outOrigin);
-  m_volume->Allocate();
 
   switch (m_param.operation())
   {
@@ -149,139 +99,83 @@ void ImageLogicFilter::run() //TODO: Parallelize
     default:
       Q_ASSERT(false);
   };
-
-  m_filter->SetInput(m_volume);
-  m_filter->Update();
-
   QApplication::restoreOverrideCursor();
+  emit modified(this);
 }
-
-// NOTE: Alternative implementation using itk logic image filters (not working)
-// //-----------------------------------------------------------------------------
-// void ImageLogicFilter::run()
-// {
-//   QApplication::setOverrideCursor(Qt::WaitCursor);
-//   Q_ASSERT(m_inputs.size() > 1);
-// 
-//   qDebug() << "Compute output boundaries";
-//   int inExt1[6], inExt2[6], m_outputExtent[6];
-// 
-//   VolumeExtent(m_inputs[0], inExt1);
-//   VolumeExtent(m_inputs[1], inExt2);
-// 
-//   for (int i=0; i<3; i++)
-//   {
-//     int lower = 2*i;
-//     int upper = lower + 1;
-//     m_outputExtent[lower] = std::min(inExt1[lower], inExt2[lower]);
-//     m_outputExtent[upper] = std::max(inExt1[upper], inExt2[upper]);
-//   }
-// 
-// 
-//   qDebug() << "Expand Input 1";
-//   EspinaVolume::SizeType lowerPad1;
-//   lowerPad1[0] = inExt1[0] - m_outputExtent[0];
-//   lowerPad1[1] = inExt1[2] - m_outputExtent[2];
-//   lowerPad1[2] = inExt1[4] - m_outputExtent[4];
-//   EspinaVolume::SizeType upperPad1;
-//   upperPad1[0] = m_outputExtent[1] - inExt1[1];
-//   upperPad1[1] = m_outputExtent[3] - inExt1[3];
-//   upperPad1[2] = m_outputExtent[5] - inExt1[5];
-//   m_pad1->SetInput(m_inputs[0]);
-//   m_pad1->SetPadLowerBound(lowerPad1);
-//   m_pad1->SetPadUpperBound(upperPad1);
-//   m_pad1->SetConstant(0);
-//   m_pad1->Update();
-//   //Debug only
-//   EspinaVolume::RegionType reg1 = m_pad1->GetOutput()->GetLargestPossibleRegion();
-// 
-//   qDebug() << "Expand Input 2";
-//   EspinaVolume::SizeType lowerPad2;
-//   lowerPad2[0] = inExt2[0] - m_outputExtent[0];
-//   lowerPad2[1] = inExt2[2] - m_outputExtent[2];
-//   lowerPad2[2] = inExt2[4] - m_outputExtent[4];
-//   EspinaVolume::SizeType upperPad2;
-//   upperPad2[0] = m_outputExtent[1] - inExt2[1];
-//   upperPad2[1] = m_outputExtent[3] - inExt2[3];
-//   upperPad2[2] = m_outputExtent[5] - inExt2[5];
-//   m_pad2->SetInput(m_inputs[0]);
-//   m_pad2->SetPadLowerBound(lowerPad2);
-//   m_pad2->SetPadUpperBound(upperPad2);
-//   m_pad2->SetConstant(0);
-//   m_pad2->Update();
-//   //Debug only
-//   EspinaVolume::RegionType reg2 = m_pad2->GetOutput()->GetLargestPossibleRegion();
-// 
-//   m_orFilter->SetInput1(m_pad1->GetOutput());
-//   m_orFilter->SetInput2(m_pad2->GetOutput());
-//   m_orFilter->Update();
-// 
-//   m_volume = m_orFilter->GetOutput();
-//   QApplication::restoreOverrideCursor();
-// }
 
 //-----------------------------------------------------------------------------
 void ImageLogicFilter::addition()
 {
-  unsigned char *input1Ptr = static_cast<unsigned char *>(m_inputs[0]->GetBufferPointer());
-  unsigned char *input2Ptr = static_cast<unsigned char *>(m_inputs[1]->GetBufferPointer());
-  unsigned char *outputPtr = static_cast<unsigned char *>(m_volume->GetBufferPointer());
+  QList<EspinaVolume::RegionType> regions;
 
-  for (int z = m_outputExtent[4]; z <= m_outputExtent[5]; z++)
+  EspinaVolume::SpacingType spacing = m_inputs[0]->GetSpacing();
+  EspinaVolume::RegionType br = NormalizedRegion(m_inputs[0]);
+  regions << br;
+  for (int i = 1; i < m_inputs.size(); i++)
   {
-    for (int y = m_outputExtent[2]; y <= m_outputExtent[3]; y++)
+    Q_ASSERT(spacing == m_inputs[i]->GetSpacing());
+    EspinaVolume::RegionType nr = NormalizedRegion(m_inputs[i]);
+    br = BoundingBoxRegion(br, nr);
+    regions << nr;
+  }
+
+  m_outputs[0] = EspinaVolume::New();
+  m_outputs[0]->SetRegions(br);
+  m_outputs[0]->SetSpacing(spacing);
+  m_outputs[0]->Allocate();
+  m_outputs[0]->FillBuffer(0);
+
+  for (int i = 0; i < regions.size(); i++)
+  {
+    itk::ImageRegionConstIteratorWithIndex<EspinaVolume> it(m_inputs[i], regions[i]);
+    itk::ImageRegionIteratorWithIndex<EspinaVolume> ot(m_outputs[0], regions[i]);
+    it.GoToBegin();
+    ot.GetRegion();
+    for (; !it.IsAtEnd(); ++it,++ot)
     {
-      for (int x = m_outputExtent[0]; x <= m_outputExtent[1]; x++)
-      {
-        if (isExtentPixel(x, y, z, m_inputExtents[0]))
-        {
-          if (isExtentPixel(x, y, z, m_inputExtents[1]))
-          {
-            *outputPtr = (*input1Ptr) | (*input2Ptr);
-            input2Ptr++;
-          }else
-            *outputPtr = *input1Ptr;
-
-          input1Ptr++;
-        } else if (isExtentPixel(x, y, z, m_inputExtents[1]))
-        {
-          *outputPtr = *input2Ptr;
-          input2Ptr++;
-        } else
-          *outputPtr = 0;
-
-        outputPtr++;
-      }
+      ot.Set(it.Value()+ot.Value());
     }
   }
 }
 
 void ImageLogicFilter::substraction()
 {
-  unsigned char *input1Ptr = static_cast<unsigned char *>(m_inputs[0]->GetBufferPointer());
-  unsigned char *input2Ptr = static_cast<unsigned char *>(m_inputs[1]->GetBufferPointer());
-  unsigned char *outputPtr = static_cast<unsigned char *>(m_volume->GetBufferPointer());
+  QList<EspinaVolume *> validInputs;
+  QList<EspinaVolume::RegionType> regions;
 
-  for (int z = m_outputExtent[4]; z <= m_outputExtent[5]; z++)
+  EspinaVolume::SpacingType spacing = m_inputs[0]->GetSpacing();
+  EspinaVolume::RegionType outputRegion = NormalizedRegion(m_inputs[0]);
+  validInputs << m_inputs[0];
+  regions     << outputRegion;
+
+  for (int i = 1; i < m_inputs.size(); i++)
   {
-    for (int y = m_outputExtent[2]; y <= m_outputExtent[3]; y++)
+    Q_ASSERT(spacing == m_inputs[i]->GetSpacing());
+    EspinaVolume::RegionType nr = NormalizedRegion(m_inputs[i]);
+    if (nr.Crop(outputRegion))
     {
-      for (int x = m_outputExtent[0]; x <= m_outputExtent[1]; x++)
-      {
-        *outputPtr = 0;
-        if (isExtentPixel(x, y, z, m_inputExtents[0]))
-        {
-          *outputPtr = *input1Ptr;
-          input1Ptr++;
-        }
-        if (isExtentPixel(x, y, z, m_inputExtents[1]))
-        {
-          if (*outputPtr)
-            *outputPtr ^= *input2Ptr;
-          input2Ptr++;
-        }
-        outputPtr++;
-      }
+      validInputs << m_inputs[i];
+      regions     << nr;
+    }
+  }
+
+  m_outputs[0] = EspinaVolume::New();
+  m_outputs[0]->SetRegions(outputRegion);
+  m_outputs[0]->SetSpacing(spacing);
+  m_outputs[0]->Allocate();
+  m_outputs[0]->FillBuffer(0);
+
+  itk::ImageAlgorithm::Copy(m_inputs[0], m_outputs[0].GetPointer(), m_inputs[0]->GetLargestPossibleRegion(), regions[0]);
+  for (int i = 1; i < validInputs.size(); i++)
+  {
+    itk::ImageRegionConstIteratorWithIndex<EspinaVolume> it(m_inputs[i], regions[i]);
+    itk::ImageRegionIteratorWithIndex<EspinaVolume> ot(m_outputs[0], regions[i]);
+    it.GoToBegin();
+    ot.GetRegion();
+    for (; !it.IsAtEnd(); ++it,++ot)
+    {
+      if (it.Value() == SEG_VOXEL_VALUE)
+	ot.Set(0);
     }
   }
 }

@@ -26,7 +26,7 @@
 #include <QApplication>
 
 typedef ModelItem::ArgumentId ArgumentId;
-const ArgumentId MorphologicalEditionFilter::RADIUS = ArgumentId("Radius", true);
+const ArgumentId MorphologicalEditionFilter::RADIUS = "Radius";
 
 const unsigned int LABEL_VALUE = 255;
 
@@ -37,7 +37,6 @@ MorphologicalEditionFilter::MorphologicalEditionFilter(Filter::NamedInputs input
 : Filter(inputs, args)
 , m_params(m_args)
 , m_input(NULL)
-, m_volume(NULL)
 {
 }
 
@@ -51,25 +50,9 @@ MorphologicalEditionFilter::~MorphologicalEditionFilter()
 //-----------------------------------------------------------------------------
 bool MorphologicalEditionFilter::needUpdate() const
 {
-  return (m_volume == NULL || m_needUpdate);
+  return (!m_outputs.contains(0) || m_needUpdate);
 }
 
-
-//-----------------------------------------------------------------------------
-int MorphologicalEditionFilter::numberOutputs() const
-{
-  return m_volume?1:0;
-}
-
-//-----------------------------------------------------------------------------
-EspinaVolume* MorphologicalEditionFilter::output(OutputNumber i) const
-{
-  if (m_volume && i == 0)
-    return m_volume;
-
-  Q_ASSERT(false);
-  return NULL;
-}
 
 //-----------------------------------------------------------------------------
 bool MorphologicalEditionFilter::prefetchFilter()
@@ -82,7 +65,7 @@ bool MorphologicalEditionFilter::prefetchFilter()
 
   if (m_cachedFilter.IsNotNull())
   {
-    m_volume = m_cachedFilter->GetOutput();
+    m_outputs[0] = m_cachedFilter->GetOutput();
     emit modified(this);
     return true;
   }

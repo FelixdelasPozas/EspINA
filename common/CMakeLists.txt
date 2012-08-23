@@ -64,6 +64,7 @@ set (CORE_SOURCES
   ${CORE_MOC}
   ${CORE_UI}
   EspinaCore.cpp
+  EspinaRegions.cpp
   cache/CacheHash.cpp
   editor/CODESettings.cpp
   editor/PencilSelector.cpp

@@ -18,8 +18,9 @@
 #include "SeedGrowSegmentationFilter.h"
 #include "SetupWidget.h"
 
+#include "EspinaCore.h"
+#include "EspinaRegions.h"
 #include "common/model/EspinaModel.h"
-#include <EspinaCore.h>
 
 #include <QDebug>
 #include <QCryptographicHash>
@@ -34,11 +35,11 @@
 const QString SeedGrowSegmentationFilter::TYPE = "SeedGrowSegmentation::SeedGrowSegmentationFilter";
 
 typedef ModelItem::ArgumentId ArgumentId;
-const ArgumentId SeedGrowSegmentationFilter::SEED = ArgumentId("Seed", true);
-const ArgumentId SeedGrowSegmentationFilter::LTHRESHOLD = ArgumentId("LowerThreshold", true);
-const ArgumentId SeedGrowSegmentationFilter::UTHRESHOLD = ArgumentId("UpperThreshold", true);
-const ArgumentId SeedGrowSegmentationFilter::VOI = ArgumentId("VOI", true);
-const ArgumentId SeedGrowSegmentationFilter::CLOSE = ArgumentId("Close", true);
+const ArgumentId SeedGrowSegmentationFilter::SEED       = "Seed";
+const ArgumentId SeedGrowSegmentationFilter::LTHRESHOLD = "LowerThreshold";
+const ArgumentId SeedGrowSegmentationFilter::UTHRESHOLD = "UpperThreshold";
+const ArgumentId SeedGrowSegmentationFilter::VOI        = "VOI";
+const ArgumentId SeedGrowSegmentationFilter::CLOSE      = "Close";
 
 const unsigned char LABEL_VALUE = 255;
 
@@ -55,7 +56,6 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(Filter::NamedInputs input
 , m_needUpdate (false)
 , m_param      (m_args)
 , m_input      (NULL)
-, m_volume     (NULL)
 {
 //   qDebug() << TYPE << "arguments" << m_args;
 }
@@ -78,7 +78,7 @@ void SeedGrowSegmentationFilter::markAsModified()
 //-----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::needUpdate() const
 {
-  return (m_volume == NULL || m_needUpdate);
+  return (!m_outputs.contains(0) || m_needUpdate);
 }
 
 //-----------------------------------------------------------------------------
@@ -186,10 +186,10 @@ void SeedGrowSegmentationFilter::run()
     bmcif->SetForegroundValue(LABEL_VALUE);
     bmcif->Update();
 
-    m_volume = bmcif->GetOutput();
+    m_outputs[0] = bmcif->GetOutput();
   }
   else
-    m_volume = extractFilter->GetOutput();
+    m_outputs[0] = extractFilter->GetOutput();
 
   QApplication::restoreOverrideCursor();
   emit modified(this);
@@ -246,25 +246,6 @@ QVariant SeedGrowSegmentationFilter::data(int role) const
 }
 
 //-----------------------------------------------------------------------------
-int SeedGrowSegmentationFilter::numberOutputs() const
-{
-  return m_volume?1:0;
-}
-
-//-----------------------------------------------------------------------------
-EspinaVolume* SeedGrowSegmentationFilter::output(OutputNumber i) const
-{
-  if (m_volume && i == 0)
-  {
-    //m_volume->Print(std::cout);
-    return m_volume;
-  }
-
-  Q_ASSERT(false);
-  return NULL;
-}
-
-//-----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::prefetchFilter()
 {
   if (m_needUpdate)
@@ -275,7 +256,7 @@ bool SeedGrowSegmentationFilter::prefetchFilter()
 
   if (m_cachedFilter.IsNotNull())
   {
-    m_volume = m_cachedFilter->GetOutput();
+    m_outputs[0] = m_cachedFilter->GetOutput();
     emit modified(this);
     return true;
   }

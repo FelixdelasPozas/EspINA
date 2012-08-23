@@ -35,7 +35,7 @@ typedef ModelItem::ArgumentId ArgumentId;
 
 const ModelItemExtension::ExtId CountingRegionChannelExtension::ID = "CountingRegionExtension";
 
-const ArgumentId CountingRegionChannelExtension::REGIONS = ArgumentId("Regions", ArgumentId::VARIABLE);
+const ArgumentId CountingRegionChannelExtension::REGIONS = "Regions";
 
 //-----------------------------------------------------------------------------
 CountingRegionChannelExtension::CountingRegionChannelExtension(CountingRegion* plugin)

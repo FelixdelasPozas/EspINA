@@ -25,6 +25,7 @@
 #include "common/EspinaTypes.h"
 #include <itkImageFileReader.h>
 
+class vtkImplicitFunction;
 const QString CREATELINK = "CreateSegmentation";
 
 class Filter
@@ -51,6 +52,7 @@ public:
   virtual void initializeExtensions(Arguments args = Arguments()){};
   virtual QString serialize() const {return m_args.serialize();}
 
+
   static void resetId();
   static QString generateId();
 
@@ -60,21 +62,31 @@ public:
     OutputNumber outputPort;
   };
 
-  // Defines Filter's Interface
+  ///WARNING: Current implementation will expand the image
+  ///         when drawing with value = 0!
+
   /// Manually Edit Filter Output
-  virtual void changePixelValue(int x,
-                                int y,
-                                int z,
-                                EspinaVolume::PixelType value,
-                                OutputNumber output){/*TODO*/}
+  virtual void draw(OutputNumber i,
+		    vtkImplicitFunction *brush,
+		    double bounds[6],
+		    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+  virtual void draw(OutputNumber i,
+		    EspinaVolume::IndexType index,
+		    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+  virtual void draw(OutputNumber i,
+		    Nm x, Nm y, Nm z,
+		    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+
   /// Returns whether or not the filter was edited by the user
   bool isEdited() const;
+  /// Returns a list of modified outputs
+  QList<OutputNumber> editedOutputs() const;
   /// Specify how many outputs this filter generates
-  virtual int numberOutputs() const {return 0;}
+  virtual int numberOutputs() const;
   /// Return the i-th output
-  virtual EspinaVolume *output(OutputNumber i) const {Q_ASSERT(false); return NULL;};
+  virtual EspinaVolume *output(OutputNumber i) const;
   virtual void markAsModified(){}
-  /// Interface to be overload by subclasses
+  /// Determine whether the filter needs to be updated or not
   virtual bool needUpdate() const {return true;}
   /// Updates filter outputs.
   /// If a snapshot exits it will try to load it from disk
@@ -95,12 +107,19 @@ protected:
   virtual void run() {};
   /// Try to locate an snapshot of the filter in the hard drive
   virtual bool prefetchFilter();
+
   EspinaVolumeReader::Pointer tmpFileReader(const QString file);
+
+  EspinaVolume::Pointer addRegionToVolume(EspinaVolume::Pointer volume,
+					  EspinaVolume::RegionType region);
 
 protected:
   QList<EspinaVolume *> m_inputs;
   NamedInputs           m_namedInputs;
   Arguments             m_args;
+
+  QStringList        m_editedOutputs;
+  QMap<OutputNumber, EspinaVolume::Pointer> m_outputs;
 
 private:
   static unsigned int m_lastId;

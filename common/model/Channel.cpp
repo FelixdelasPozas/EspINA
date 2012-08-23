@@ -18,12 +18,18 @@
 */
 #include "common/model/Channel.h"
 
+#include "Filter.h"
+#include "EspinaRegions.h"
 #include "common/extensions/ChannelExtension.h"
 #include "common/extensions/ModelItemExtension.h"
-#include "common/model/Sample.h"
 #include "common/model/RelationshipGraph.h"
 #include "common/model/Representation.h"
-#include "Filter.h"
+#include "common/model/Sample.h"
+
+#include <itkImageFileReader.h>
+#include <itkMetaImageIO.h>
+#include <itkTIFFImageIO.h>
+
 #include <vtkImageAlgorithm.h>
 #include <vtkDataObject.h>
 #include <vtkImageData.h>
@@ -31,14 +37,10 @@
 #include <QDebug>
 #include <QFileDialog>
 
-#include "EspinaTypes.h"
-#include <itkImageFileReader.h>
-#include <itkMetaImageIO.h>
-#include <itkTIFFImageIO.h>
 
-const ModelItem::ArgumentId Channel::ID     = ArgumentId("ID",     true);
-const ModelItem::ArgumentId Channel::COLOR  = ArgumentId("Color",  true);
-const ModelItem::ArgumentId Channel::VOLUME = ArgumentId("Volume", true);
+const ModelItem::ArgumentId Channel::ID     = "ID";
+const ModelItem::ArgumentId Channel::COLOR  = "Color";
+const ModelItem::ArgumentId Channel::VOLUME = "Volume";
 
 const QString Channel::STAINLINK  = "stain";
 const QString Channel::VOLUMELINK = "volume";
@@ -91,14 +93,12 @@ EspinaVolume *Channel::itkVolume()
 void Channel::extent(int out[6])
 {
   VolumeExtent(itkVolume(), out);
-  //memcpy(out,m_extent,6*sizeof(int));
 }
 
 //------------------------------------------------------------------------
 void Channel::bounds(double out[6])
 {
   VolumeBounds(itkVolume(), out);
-  //memcpy(val,m_bounds,6*sizeof(double));
 }
 
 //------------------------------------------------------------------------
@@ -220,8 +220,7 @@ void Channel::initializeExtensions(ModelItem::Arguments args)
   {
     ChannelExtension *channelExt = dynamic_cast<ChannelExtension *>(ext);
     Q_ASSERT(channelExt);
-    ArgumentId extId(channelExt->id(), false);
-    ModelItem::Arguments extArgs(args.value(extId, QString()));
+    ModelItem::Arguments extArgs(args.value(channelExt->id(), QString()));
 //     qDebug() << channelExt->id();
 //     if (!args.isEmpty()) qDebug() << "*" << extArgs;
     channelExt->initialize(extArgs);

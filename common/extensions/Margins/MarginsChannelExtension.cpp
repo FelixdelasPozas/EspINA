@@ -15,18 +15,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-
 #include "MarginsChannelExtension.h"
 
-//#include "MarginsSegmentationExtension.h"
-
+#include "EspinaRegions.h"
 #include "common/model/Channel.h"
 #include "common/model/Segmentation.h"
 
-#include <QApplication>
-#include <QDebug>
-#include <QMessageBox>
 #include "MarginDetector.h"
 #include "MarginsSegmentationExtension.h"
 
@@ -42,6 +36,10 @@
 #include <vtkAppendPolyData.h>
 #include <vtkCellArray.h>
 
+#include <QApplication>
+#include <QDebug>
+#include <QMessageBox>
+
 typedef ModelItem::ArgumentId ArgumentId;
 
 const ModelItemExtension::ExtId MarginsChannelExtension::ID = "MarginsExtension";
@@ -53,7 +51,7 @@ const ModelItemExtension::InfoTag MarginsChannelExtension::RIGHT_MARGIN  = "Righ
 const ModelItemExtension::InfoTag MarginsChannelExtension::BOTTOM_MARGIN = "Bottom Margin";
 const ModelItemExtension::InfoTag MarginsChannelExtension::LOWER_MARGIN  = "Lower Margin";
 
-const ArgumentId MarginsChannelExtension::MARGINTYPE = ArgumentId("MarginType", ArgumentId::VARIABLE);
+const ArgumentId MarginsChannelExtension::MARGINTYPE = "MarginType";
 
 //-----------------------------------------------------------------------------
 MarginsChannelExtension::MarginsChannelExtension()

@@ -19,9 +19,10 @@
 #include "Segmentation.h"
 
 #include "Filter.h"
+#include "EspinaRegions.h"
+#include "common/EspinaCore.h"
+#include "common/gui/ColorEngine.h"
 
-#include <common/EspinaCore.h>
-#include <common/gui/ColorEngine.h>
 #include <vtkAlgorithm.h>
 #include <vtkAlgorithmOutput.h>
 #include <vtkImageData.h>
@@ -30,10 +31,10 @@
 
 using namespace std;
 
-const ModelItem::ArgumentId Segmentation::NUMBER = ArgumentId("Number", ArgumentId::KEY);
-const ModelItem::ArgumentId Segmentation::OUTPUT = ArgumentId("Output", ArgumentId::KEY);
-const ModelItem::ArgumentId Segmentation::TAXONOMY = ArgumentId("Taxonomy", ArgumentId::VARIABLE);
-const ModelItem::ArgumentId Segmentation::USERS = ArgumentId("Users", ArgumentId::VARIABLE);
+const ModelItem::ArgumentId Segmentation::NUMBER   = "Number";
+const ModelItem::ArgumentId Segmentation::OUTPUT   = "Output";
+const ModelItem::ArgumentId Segmentation::TAXONOMY = "Taxonomy";
+const ModelItem::ArgumentId Segmentation::USERS    = "Users";
 
 //-----------------------------------------------------------------------------
 Segmentation::SArguments::SArguments(const ModelItem::Arguments args)
@@ -44,12 +45,12 @@ Segmentation::SArguments::SArguments(const ModelItem::Arguments args)
 }
 
 //-----------------------------------------------------------------------------
-QString Segmentation::SArguments::serialize(bool key) const
+QString Segmentation::SArguments::serialize() const
 {
   QString user = EspinaCore::instance()->settings().userName();
   SArguments *args = const_cast<SArguments *>(this);
   args->addUser(user);
-  return ModelItem::Arguments::serialize(key);
+  return ModelItem::Arguments::serialize();
 }
 
 //-----------------------------------------------------------------------------
@@ -190,8 +191,7 @@ void Segmentation::initializeExtensions(ModelItem::Arguments args)
   {
     SegmentationExtension *segExt = dynamic_cast<SegmentationExtension *>(ext);
     Q_ASSERT(segExt);
-    ArgumentId extId(ext->id(), false);
-    ModelItem::Arguments extArgs(args.value(extId, QString()));
+    ModelItem::Arguments extArgs(args.value(ext->id(), QString()));
 //     qDebug() << ext->id();
 //     if (!args.isEmpty()) qDebug() << "*" << extArgs;
     ext->initialize(extArgs);

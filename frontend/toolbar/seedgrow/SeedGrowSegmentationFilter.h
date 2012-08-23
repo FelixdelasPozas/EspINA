@@ -62,19 +62,6 @@ public:
   public:
     explicit Parameters(Arguments &args);
 
-    virtual ArgumentId argumentId(QString name) const
-    {
-      if (SEED == name)
-        return SEED;
-      if (LTHRESHOLD == name)
-        return LTHRESHOLD;
-      if (UTHRESHOLD == name)
-        return UTHRESHOLD;
-      if (VOI == name)
-        return VOI;
-      return Arguments::argumentId(name);
-    }
-
     void setSeed(EspinaVolume::IndexType seed)
     {
       m_args[SEED] = QString("%1,%2,%3")
@@ -152,8 +139,6 @@ public:
   virtual bool needUpdate() const;
   virtual void releaseDataFlagOn();
   virtual void releaseDataFlagOff();
-  virtual int numberOutputs() const;
-  virtual EspinaVolume* output(OutputNumber i) const;
   virtual bool prefetchFilter();
 
   virtual QWidget* createConfigurationWidget();
@@ -162,10 +147,9 @@ protected:
   virtual void run();
 
 private:
-  bool         m_needUpdate;
-  Parameters   m_param;
+  bool          m_needUpdate;
+  Parameters    m_param;
   EspinaVolume *m_input;
-  EspinaVolume *m_volume;
   EspinaVolumeReader::Pointer m_cachedFilter;
 
   ConnectedThresholdFilterType::Pointer ctif;

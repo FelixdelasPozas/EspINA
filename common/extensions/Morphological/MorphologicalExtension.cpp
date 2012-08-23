@@ -52,9 +52,9 @@ const ModelItemExtension::InfoTag BPA20 = "Binary Principal Axes (2 0)";
 const ModelItemExtension::InfoTag BPA21 = "Binary Principal Axes (2 1)";
 const ModelItemExtension::InfoTag BPA22 = "Binary Principal Axes (2 2)";
 const ModelItemExtension::InfoTag FD = "Feret Diameter";
-const ModelItemExtension::InfoTag EESx = "Equivalent Ellipsoid Size X";
-const ModelItemExtension::InfoTag EESy = "Equivalent Ellipsoid Size Y";
-const ModelItemExtension::InfoTag EESz = "Equivalent Ellipsoid Size Z";
+const ModelItemExtension::InfoTag EEDx = "Equivalent Ellipsoid Diameter X";
+const ModelItemExtension::InfoTag EEDy = "Equivalent Ellipsoid Diameter Y";
+const ModelItemExtension::InfoTag EEDz = "Equivalent Ellipsoid Diameter Z";
 //TODO: Review values to be used from new ITK version
 
 //------------------------------------------------------------------------
@@ -72,7 +72,7 @@ MorphologicalExtension::MorphologicalExtension()
   m_availableInformations << BPA10 << BPA11 << BPA12;
   m_availableInformations << BPA20 << BPA21 << BPA22;
   m_availableInformations << FD;
-//   m_availableInformations << EESx << EESy << EESz;
+  m_availableInformations << EEDx << EEDy << EEDz;
 }
 
 //------------------------------------------------------------------------
@@ -85,7 +85,6 @@ ModelItemExtension::ExtId MorphologicalExtension::id()
 {
   return ID;
 }
-
 
 //------------------------------------------------------------------------
 void MorphologicalExtension::initialize(ModelItem::Arguments args)
@@ -181,12 +180,12 @@ QVariant MorphologicalExtension::information(QString info) const
       return m_statistic->GetPrincipalAxes()[2][2];
   if (info == FD)
     return m_statistic->GetFeretDiameter();
-//   if (info == EESx)
-//       return m_EquivalentEllipsoidSize[0];
-//   if (info == "Equivalent Ellipsoid Size Y")
-//       return m_EquivalentEllipsoidSize[1];
-//   if (info == "Equivalent Ellipsoid Size Z")
-//       return m_EquivalentEllipsoidSize[2];
+  if (info == EEDx)
+      return m_statistic->GetEquivalentEllipsoidDiameter()[0];
+  if (info == EEDy)
+      return m_statistic->GetEquivalentEllipsoidDiameter()[1];
+  if (info == EEDz)
+      return m_statistic->GetEquivalentEllipsoidDiameter()[2];
 
   qWarning() << ID << ":"  << info << " is not provided";
   Q_ASSERT(false);

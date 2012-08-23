@@ -77,7 +77,7 @@ private:
   QAction *m_close;
 
   PencilSelector *m_pencilSelector;
-  FreeFormSource *m_currentSource;
+  Filter         *m_currentSource;
   Segmentation   *m_currentSeg;
 };
 

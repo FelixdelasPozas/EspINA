@@ -49,7 +49,7 @@
 const int DEFAULT_THRESHOLD = 30;
 const QString INPUTLINK = "Input";
 
-const ModelItem::ArgumentId TYPE = ModelItem::ArgumentId("Type", true);
+const ModelItem::ArgumentId TYPE = "Type";
 
 
 //-----------------------------------------------------------------------------

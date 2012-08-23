@@ -15,26 +15,23 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-
 #include "ChannelExplorer.h"
-#include <model/ModelItem.h>
-#include <model/EspinaModel.h>
-#include <common/EspinaCore.h>
-#include <QMessageBox>
-#include <common/EspinaTypes.h>
-#include <gui/EspinaView.h>
-
 #include <ui_ChannelExplorer.h>
 
 #include "EspinaConfig.h"
-
+#include "EspinaRegions.h"
+#include "common/EspinaCore.h"
+#include "gui/EspinaView.h"
+#include "gui/HueSelector.h"
+#include "model/Channel.h"
+#include "model/EspinaModel.h"
+#include "model/ModelItem.h"
 #ifdef TEST_ESPINA_MODELS
   #include "common/model/ModelTest.h"
 #endif
 
-#include <model/Channel.h>
-#include <gui/HueSelector.h>
+#include <QMessageBox>
+
 
 //------------------------------------------------------------------------
 class ChannelExplorer::CentralWidget

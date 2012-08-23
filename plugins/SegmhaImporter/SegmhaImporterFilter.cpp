@@ -36,8 +36,8 @@
 #include <vtkImageChangeInformation.h>
 
 
-const ModelItem::ArgumentId SegmhaImporterFilter::FILE = ModelItem::ArgumentId("File", true);
-const ModelItem::ArgumentId SegmhaImporterFilter::BLOCKS = ModelItem::ArgumentId("Blocks", true);
+const ModelItem::ArgumentId SegmhaImporterFilter::FILE = "File";
+const ModelItem::ArgumentId SegmhaImporterFilter::BLOCKS = "Blocks";
 
 SegmhaImporterFilter::SegmentationObject::SegmentationObject(const QString& line)
 {

@@ -328,7 +328,7 @@ void vtkRectangularRepresentation::SetPlane(PlaneType plane)
 void vtkRectangularRepresentation::PlaceWidget(double bds[6])
 {
   int i;
-  double bounds[6], center[3];
+  double bounds[6];
 
 //   this->AdjustBounds(bds,bounds,center);
 //   std::cout << bds[0] << " "<< bds[1] << " "<< bds[2] << " "<< bds[3] << " "<< bds[4] << " "<< bds[5] << std::endl;

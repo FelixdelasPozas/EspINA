@@ -86,7 +86,7 @@ private:
 
     QStringList users() const {return (*this)[USERS].split(',');}
 
-    virtual QString serialize(bool key = false) const;
+    virtual QString serialize() const;
 
   private:
     unsigned int m_number;

@@ -69,36 +69,24 @@ public:
                           Arguments args);
   virtual ~FreeFormSource();
 
-  void draw(PlaneType plane,
-	    QVector3D center/*nm*/,  Nm radius = 0);
-  void erase(PlaneType plane,
-	     QVector3D center/*nm*/, Nm radius = 0);
+  virtual void draw(OutputNumber i, vtkImplicitFunction* brush, double bounds[6], EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+  virtual void draw(OutputNumber i, EspinaVolume::IndexType index, EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+  virtual void draw(OutputNumber i, Nm x, Nm y, Nm z, EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
 
   /// Implements Model Item Interface
   virtual QVariant data(int role=Qt::DisplayRole) const;
 
   /// Implements Filter Interface
   virtual bool needUpdate() const;
-  virtual int numberOutputs() const;
-  virtual EspinaVolume* output(OutputNumber i) const;
   virtual bool prefetchFilter();
 
 protected:
   virtual void run(){}
 
-  bool drawPixel(int x, int y, int z,
-                 int cx, int cy, int cz,
-                 int r, int plane);
-
 private:
   Parameters m_param;
-  bool       m_hasPixels;
-  bool       m_init;
-  int        Extent[6];
-  int        DrawExtent[6];
 
-  EspinaVolume::Pointer m_volume;
-  EspinaVolume::SpacingType m_spacing;
+  EspinaVolume::SpacingType   m_spacing;
   EspinaVolumeReader::Pointer m_cachedFilter;
 };
 

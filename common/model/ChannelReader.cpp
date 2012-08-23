@@ -29,8 +29,8 @@
 const QString ChannelReader::TYPE = "Channel Reader";
 
 typedef ModelItem::ArgumentId ArgumentId;
-const ArgumentId ChannelReader::FILE    = ArgumentId("File", true);
-const ArgumentId ChannelReader::SPACING = ArgumentId("Spacing", true);
+const ArgumentId ChannelReader::FILE    = "File";
+const ArgumentId ChannelReader::SPACING = "Spacing";
 
 //----------------------------------------------------------------------------
 ChannelReader::ChannelReader(Filter::NamedInputs inputs,

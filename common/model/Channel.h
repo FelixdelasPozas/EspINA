@@ -64,18 +64,6 @@ public:
     explicit CArguments(){}
     explicit CArguments(const Arguments args) : Arguments(args) {}
 
-    virtual ArgumentId argumentId(QString name) const
-    {
-      if (ID == name)
-        return ID;
-      if (COLOR == name)
-        return COLOR;
-      if (VOLUME == name)
-        return VOLUME;
-
-      return Arguments::argumentId(name);
-    }
-
     /// Channel dye color. Hue's value in range (0,1)
     void setColor(double color)
     {
@@ -156,8 +144,6 @@ private:
   friend class EspinaFactory;
 private:
   bool   m_visible;
-  int    m_extent[6];
-  double m_bounds[6];
   double m_pos[3];/*in nm*/
 
   Filter            *m_filter;

@@ -37,6 +37,7 @@
 #include <undo/RemoveSegmentation.h>
 #include <gui/EspinaView.h>
 #include "frontend/toolbar/editor/MorphologicalSettingsPanel.h"
+#include <vtkSphere.h>
 
 //----------------------------------------------------------------------------
 class EditorToolBar::FreeFormCommand
@@ -44,7 +45,7 @@ class EditorToolBar::FreeFormCommand
 {
 public:
   explicit FreeFormCommand(Channel * channel,
-                           FreeFormSource *filter,
+                           Filter *filter,
                            Segmentation *seg,
                            TaxonomyNode *taxonomy)
   : m_channel (channel)
@@ -84,14 +85,15 @@ public:
   }
 
 private:
-  Sample         *m_sample;
-  Channel        *m_channel;
-  FreeFormSource *m_filter;
-  Segmentation   *m_seg;
-  TaxonomyNode   *m_taxonomy;
+  Sample       *m_sample;
+  Channel      *m_channel;
+  Filter       *m_filter;
+  Segmentation *m_seg;
+  TaxonomyNode *m_taxonomy;
 };
 
 //----------------------------------------------------------------------------
+// FIXME
 class EditorToolBar::DrawCommand
 : public QUndoCommand
 {
@@ -108,11 +110,11 @@ public:
 
   virtual void redo()
   {
-    m_source->draw(m_plane, m_center, m_radius);
+//     m_source->draw(m_plane, m_center, m_radius);
   }
   virtual void undo()
   {
-    m_source->erase(m_plane, m_center, m_radius);
+//     m_source->draw(m_plane, m_center, m_radius);
   }
 
 private:
@@ -123,6 +125,7 @@ private:
 };
 
 //----------------------------------------------------------------------------
+//FIXME
 class EditorToolBar::EraseCommand
 : public QUndoCommand
 {
@@ -139,11 +142,11 @@ public:
 
   virtual void redo()
   {
-    m_source->erase(m_plane, m_center, m_radius);
+//     m_source->draw(m_plane, m_center, m_radius);
   }
   virtual void undo()
   {
-    m_source->draw(m_plane, m_center, m_radius);
+//     m_source->draw(m_plane, m_center, m_radius);
   }
 
 private:
@@ -339,7 +342,16 @@ Filter* EditorToolBar::createFilter(const QString filter, Filter::NamedInputs in
 void EditorToolBar::startDrawing(bool draw)
 {
   if (draw)
+  {
+    QList<Segmentation *> selSegs = selectedSegmentations();
+    if (selSegs.size() == 1)
+    {
+      m_currentSeg = selSegs.first();
+      m_currentSource = m_currentSeg->filter();
+      qDebug() << "Editing" << m_currentSeg->data().toString();
+    }
     SelectionManager::instance()->setSelectionHandler(m_pencilSelector);
+  }
   else
   {
     SelectionManager::instance()->setSelectionHandler(NULL);
@@ -355,7 +367,7 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
     return;
 
   SelectionHandler::VtkRegion region = msel.first().first;
-  if (region.size() < 2)
+  if (region.size() < 3)
     return;
 
   QVector3D center = region[0];
@@ -369,13 +381,33 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
   else if (center.z() == rx.z() && rx.z() == ry.z())
     selectedPlane = AXIAL;
 
+  int radius = 0;
+  if (selectedPlane != SAGITTAL)
+    radius = fabs(center.x() - rx.x());
+  else
+    radius = fabs(center.y() - region[2].y());
+
+  vtkSmartPointer<vtkSphere> brush = vtkSmartPointer<vtkSphere>::New();
+  brush->SetCenter(center.x(), center.y(), center.z());
+  brush->SetRadius(radius);
+
+
   SelectableItem *selectedItem = msel.first().second;
   Q_ASSERT(ModelItem::CHANNEL == selectedItem->type());
   Channel *channel = dynamic_cast<Channel *>(selectedItem);
   double spacing[3];
   channel->spacing(spacing);
 
-  if (!m_currentSource)
+  double bounds[6];
+  channel->bounds(bounds);
+  bounds[0] = std::max(center.x() - radius, bounds[0]);
+  bounds[1] = std::min(center.x() + radius, bounds[1]);
+  bounds[2] = std::max(center.y() - radius, bounds[2]);
+  bounds[3] = std::min(center.y() + radius, bounds[3]);
+  bounds[4] = std::max(center.z() - radius, bounds[4]);
+  bounds[5] = std::min(center.z() + radius, bounds[5]);
+
+  if (!m_currentSource && !m_currentSeg)
   {
     Filter::NamedInputs inputs;
     Filter::Arguments args;
@@ -384,31 +416,41 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
     m_currentSource = new FreeFormSource(inputs, args);
   }
 
-  int radius = 0;
-  if (selectedPlane != SAGITTAL)
-    radius = fabs(center.x() - rx.x());
-  else
-    radius = fabs(center.y() - region[2].y());
-
   QSharedPointer<QUndoStack> undo = EspinaCore::instance()->undoStack();
-  if (m_pencilSelector->state() == PencilSelector::DRAWING)
-    m_currentSource->draw(selectedPlane, center, radius);
-    //undo->push(new DrawCommand(m_currentSource, AXIAL, center, radius));
-  else if (m_pencilSelector->state() == PencilSelector::ERASING)
-    m_currentSource->erase(selectedPlane, center, radius);
-    //undo->push(new EraseCommand(m_currentSource, AXIAL, center, radius));
-  else
-    Q_ASSERT(false);
-
-  if (!m_currentSeg && m_currentSource->numberOutputs() == 1)
+  if (!m_currentSeg && m_currentSource)
   {
+    // Create a new segmentation
+    if (m_pencilSelector->state() == PencilSelector::DRAWING)
+      m_currentSource->draw(0, brush, bounds);
     m_currentSeg = EspinaFactory::instance()->createSegmentation(m_currentSource, 0);
     TaxonomyNode *tax = SelectionManager::instance()->activeTaxonomy();
     undo->push(new FreeFormCommand(channel, m_currentSource, m_currentSeg, tax));
+  } else
+  {
+    unsigned int output = m_currentSeg->outputNumber();
+    if (m_pencilSelector->state() == PencilSelector::DRAWING)
+      m_currentSource->draw(output, brush, bounds);
+    else if (m_pencilSelector->state() == PencilSelector::ERASING)
+      m_currentSource->draw(output, brush, bounds, 0);
+    else
+      Q_ASSERT(false);
   }
 
   if (m_currentSeg)
     m_currentSeg->notifyModification(true);
+
+
+//   if (m_pencilSelector->state() == PencilSelector::DRAWING)
+//     m_currentSource->draw(selectedPlane, center, radius);
+//     //undo->push(new DrawCommand(m_currentSource, AXIAL, center, radius));
+//   else if (m_pencilSelector->state() == PencilSelector::ERASING)
+//     m_currentSource->erase(selectedPlane, center, radius);
+//     //undo->push(new EraseCommand(m_currentSource, AXIAL, center, radius));
+//   else
+//     Q_ASSERT(false);
+// 
+//   if (m_currentSeg)
+//     m_currentSeg->notifyModification(true);
 }
 
 //----------------------------------------------------------------------------
@@ -439,7 +481,7 @@ void EditorToolBar::combineSegmentations()
 {
   QList<Segmentation *> input = selectedSegmentations();
 
-  if (input.size() == 2)
+  if (input.size() > 1)
   {
     QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
     undo->beginMacro("Combine Segmentations");
@@ -453,7 +495,7 @@ void EditorToolBar::substractSegmentations()
 {
   QList<Segmentation *> input = selectedSegmentations();
 
-  if (input.size() == 2)
+  if (input.size() > 1)
   {
     QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
     undo->beginMacro("Substract Segmentations");

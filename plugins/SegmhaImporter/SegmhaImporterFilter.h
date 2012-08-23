@@ -88,15 +88,6 @@ public:
   public:
     explicit Parameters(Arguments &args) : m_args(args) {}
 
-    virtual ArgumentId argumentId(QString name) const
-    {
-      if (FILE == name)
-	return FILE;
-      if (BLOCKS == name)
-	return BLOCKS;
-      return Arguments::argumentId(name);
-    }
-
     void setBlocks(QStringList blockList)
     {
       m_args[BLOCKS] = blockList.join(",");

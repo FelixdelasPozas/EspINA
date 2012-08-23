@@ -23,15 +23,12 @@
 #include <model/Filter.h>
 #include <model/Segmentation.h>
 
-#include <itkChangeInformationImageFilter.h>
 // #include <itkConstantPadImageFilter.h>
 // #include <itkOrImageFilter.h>
 
 class ImageLogicFilter
 : public Filter
 {
-  typedef itk::ChangeInformationImageFilter<EspinaVolume> FilterType;
-
 //   typedef itk::ConstantPadImageFilter<EspinaVolume, EspinaVolume> PadFilterType;
 //   typedef itk::OrImageFilter<EspinaVolume, EspinaVolume, EspinaVolume> OrFilterType;
 public:
@@ -63,32 +60,22 @@ public:
   explicit ImageLogicFilter(NamedInputs inputs, Arguments args);
   virtual ~ImageLogicFilter();
 
-
   /// Implements Model Item Interface
   virtual QVariant data(int role=Qt::DisplayRole) const;
 
   /// Implements Filter Interface
-  virtual int numberOutputs() const;
-  virtual EspinaVolume* output(OutputNumber i) const;
   virtual bool prefetchFilter();
   virtual bool needUpdate() const;
   void run();
 
 protected:
+  //TODO: Use iterators
   void addition();
   void substraction();
 
 private:
   Parameters   m_param;
-  QList<int *> m_inputExtents;
-  int          m_outputExtent[6];
-
-  EspinaVolume::Pointer m_volume;
-  FilterType::Pointer   m_filter;
   EspinaVolumeReader::Pointer m_cachedFilter;
-//   PadFilterType::Pointer m_pad1;
-//   PadFilterType::Pointer m_pad2;
-//   OrFilterType::Pointer  m_orFilter;
 };
 
 

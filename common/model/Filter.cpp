@@ -18,16 +18,25 @@
 
 
 #include "Filter.h"
-#include <EspinaCore.h>
+
+#include "EspinaCore.h"
+#include "EspinaRegions.h"
+
+#include <itkImageAlgorithm.h>
+#include <itkImageRegionExclusionIteratorWithIndex.h>
+#include <itkImageRegionIteratorWithIndex.h>
 #include <itkMetaImageIO.h>
 
+#include <vtkImplicitFunction.h>
+
+#include <QMessageBox>
 #include <QWidget>
 
 typedef ModelItem::ArgumentId ArgumentId;
 
-const ArgumentId Filter::ID     = ArgumentId("ID", true);
-const ArgumentId Filter::INPUTS = ArgumentId("Inputs", true);
-const ArgumentId Filter::EDIT   = ArgumentId("Edit", true);
+const ArgumentId Filter::ID     = "ID";
+const ArgumentId Filter::INPUTS = "Inputs";
+const ArgumentId Filter::EDIT   = "Edit";
 
 unsigned int Filter::m_lastId = 0;
 
@@ -62,6 +71,33 @@ bool Filter::isEdited() const
 }
 
 //----------------------------------------------------------------------------
+QList<OutputNumber> Filter::editedOutputs() const
+{
+  QList<OutputNumber> res;
+  QStringList values = m_args.value(EDIT, QString()).split(",");
+  foreach (QString value, values)
+  {
+    res << value.toInt();
+  }
+
+  return res;
+}
+
+
+//----------------------------------------------------------------------------
+int Filter::numberOutputs() const
+{
+  return m_outputs.size();
+}
+
+//----------------------------------------------------------------------------
+EspinaVolume* Filter::output(OutputNumber i) const
+{
+  Q_ASSERT(m_outputs.contains(i));
+  return m_outputs.value(i, NULL);
+}
+
+//----------------------------------------------------------------------------
 void Filter::update()
 {
   if (!needUpdate())
@@ -69,6 +105,17 @@ void Filter::update()
 
   if (!prefetchFilter())
   {
+    if (m_args.contains(EDIT))
+    {
+      QMessageBox msg;
+      msg.setText("Current Segmentation has been modified by the user."
+                   "Changes will be lost if you decide to recompute it."
+                   "Do you want to proceed?");
+      msg.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
+      if (msg.exec() != QMessageBox::Yes)
+	return;
+      m_args.remove(EDIT);
+    }
     m_inputs.clear();
     QStringList namedInputList = m_args[INPUTS].split(",", QString::SkipEmptyParts);
     foreach(QString namedInput, namedInputList)
@@ -106,6 +153,110 @@ Filter::EspinaVolumeReader::Pointer Filter::tmpFileReader(const QString file)
     return reader;
   }
   return NULL;
+}
+
+//----------------------------------------------------------------------------
+void Filter::draw(OutputNumber i,
+		  vtkImplicitFunction* brush,
+		  double bounds[6],
+		  EspinaVolume::PixelType value)
+{
+  EspinaVolume::SpacingType spacing = m_outputs[i]->GetSpacing();
+  EspinaVolume::RegionType region = BoundsToRegion(bounds, spacing);
+  m_outputs[i] = addRegionToVolume(m_outputs[i], region);
+
+  itk::ImageRegionIteratorWithIndex<EspinaVolume> it(m_outputs[i], region);
+  it.GoToBegin();
+  for (; !it.IsAtEnd(); ++it )
+  {
+    double tx = it.GetIndex()[0]*spacing[0];
+    double ty = it.GetIndex()[1]*spacing[1];
+    double tz = it.GetIndex()[2]*spacing[2];
+
+    if (brush->FunctionValue(tx, ty, tz) <= 0)
+      it.Set(value);
+  }
+  m_outputs[i]->Modified();
+  if (!m_editedOutputs.contains(QString::number(i)))
+    m_editedOutputs << QString::number(i);
+
+  m_args[EDIT] = m_editedOutputs.join(",");
+  emit modified(this);
+}
+
+//----------------------------------------------------------------------------
+void Filter::draw(OutputNumber i,
+		  EspinaVolume::IndexType index,
+		  EspinaVolume::PixelType value)
+{
+  EspinaVolume::RegionType region;
+  region.SetIndex(index);
+  EspinaVolume::SizeType size;
+  size.Fill(1);
+  region.SetSize(size);
+  m_outputs[i] = addRegionToVolume(m_outputs[i], region);
+
+  EspinaVolume *image = m_outputs[i];
+  if (image && image->GetLargestPossibleRegion().IsInside(index))
+  {
+    image->SetPixel(index, value);
+    image->Modified();
+    m_args[EDIT] = "Yes";
+  }
+}
+
+//----------------------------------------------------------------------------
+void Filter::draw(OutputNumber i,
+		  Nm x, Nm y, Nm z,
+		  EspinaVolume::PixelType value)
+{
+  EspinaVolume *image = output(i);
+  if (image)
+  {
+    EspinaVolume::SpacingType spacing = image->GetSpacing();
+    EspinaVolume::IndexType index;
+    index[0] = x/spacing[0]+0.5;
+    index[1] = y/spacing[1]+0.5;
+    index[2] = z/spacing[2]+0.5;
+    draw(i, index, value);
+  }
+}
+
+//----------------------------------------------------------------------------
+EspinaVolume::Pointer Filter::addRegionToVolume(EspinaVolume::Pointer volume,
+						EspinaVolume::RegionType region)
+{
+  EspinaVolume::Pointer res = volume;
+
+  if (volume->GetLargestPossibleRegion() != volume->GetBufferedRegion())
+  {
+    volume->SetBufferedRegion(volume->GetLargestPossibleRegion());
+    volume->Update();
+  }
+
+  EspinaVolume::RegionType imageRegion = volume->GetLargestPossibleRegion();
+  EspinaVolume::RegionType normRegion = NormalizedRegion(volume);
+  if (!normRegion.IsInside(region))
+  {
+//     qDebug() << "Resize Image";
+    EspinaVolume::RegionType br = BoundingBoxRegion(normRegion, region);
+    EspinaVolume::Pointer expandedImage = EspinaVolume::New();
+    expandedImage->SetRegions(br);
+    expandedImage->SetSpacing(volume->GetSpacing());
+    expandedImage->Allocate();
+    // Do a block copy for the overlapping region.
+    itk::ImageAlgorithm::Copy(volume.GetPointer(), expandedImage.GetPointer(), imageRegion, normRegion);
+    itk::ImageRegionExclusionIteratorWithIndex<EspinaVolume> outIter(expandedImage.GetPointer(), br);
+    outIter.SetExclusionRegion(normRegion);
+    outIter.GoToBegin();
+    while ( !outIter.IsAtEnd() )
+    {
+      outIter.Set(0);
+      ++outIter;
+    }
+    res = expandedImage;
+  }
+  return res;
 }
 
 //----------------------------------------------------------------------------

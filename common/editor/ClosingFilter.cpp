@@ -61,7 +61,7 @@ void ClosingFilter::run()
   m_filter->Update();
   QApplication::restoreOverrideCursor();
 
-  m_volume = m_filter->GetOutput();
+  m_outputs[0] = m_filter->GetOutput();
 }
 
 //-----------------------------------------------------------------------------

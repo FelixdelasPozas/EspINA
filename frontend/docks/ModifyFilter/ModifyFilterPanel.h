@@ -24,6 +24,7 @@
 
 #include "common/model/EspinaModel.h"
 
+class Segmentation;
 class ModifyFilterPanel
 : public EspinaDockWidget
 {
@@ -32,12 +33,14 @@ public:
   explicit ModifyFilterPanel(QWidget* parent = 0);
   virtual ~ModifyFilterPanel();
 
+  virtual void showEvent(QShowEvent* e);
+
 protected slots:
-  void showOriginFilter(QModelIndex index);
+  void updatePannel();
 
 private:
-  QSharedPointer<EspinaModel> m_model;
-  Segmentation *              m_currentSeg;
+  Filter       *m_filter;
+  Segmentation *m_seg;
 };
 
 #endif // MODIFYFILTERPANEL_H

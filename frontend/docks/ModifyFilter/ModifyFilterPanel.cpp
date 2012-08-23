@@ -23,17 +23,19 @@
 #include <model/Segmentation.h>
 
 #include <QDebug>
+#include <selection/SelectionManager.h>
 
 //----------------------------------------------------------------------------
 ModifyFilterPanel::ModifyFilterPanel(QWidget* parent)
 : EspinaDockWidget(parent)
-, m_model(EspinaCore::instance()->model())
+, m_filter(NULL)
+, m_seg   (NULL)
 {
   setWindowTitle("Filter Inspector");
   setObjectName("Filter Inspector Panel");
 
-  connect(m_model.data(), SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-	  this, SLOT(showOriginFilter(QModelIndex)));
+  connect(SelectionManager::instance(), SIGNAL(selectionChanged(SelectionManager::Selection)),
+	  this, SLOT(updatePannel()));
 }
 
 //----------------------------------------------------------------------------
@@ -42,34 +44,64 @@ ModifyFilterPanel::~ModifyFilterPanel()
 }
 
 //----------------------------------------------------------------------------
-void ModifyFilterPanel::showOriginFilter(QModelIndex index)
+void ModifyFilterPanel::showEvent(QShowEvent *e)
+{
+  QWidget::showEvent(e);
+  updatePannel();
+}
+
+//----------------------------------------------------------------------------
+void ModifyFilterPanel::updatePannel()
 {
   if (!isVisible())
     return;
 
-  if (index.parent() == m_model->segmentationRoot())
-  {
-    ModelItem *item = indexPtr(index);
-    Segmentation *seg = dynamic_cast<Segmentation *>(item);
+  Segmentation *seg = NULL;
+  bool changeWidget = false;
 
-    if (seg == m_currentSeg)
-      return;
-    else if (seg->isSelected())
+  SelectionManager::Selection selection = SelectionManager::instance()->selection();
+  if (selection.size() == 1)
+  {
+    SelectableItem *item = selection.first();
+    if (ModelItem::SEGMENTATION == selection.first()->type())
+      seg = dynamic_cast<Segmentation *>(item);
+  }
+
+  // Update if segmentation are different
+  if (seg != m_seg)
+  {
+    if (m_seg)
     {
-      ModelItem::Vector filters = item->relatedItems(ModelItem::IN, CREATELINK);
-      if (filters.size() > 0)
-      {
-        Filter *filter = dynamic_cast<Filter *>(filters.first());
-        Q_ASSERT(filter);
-        QWidget *prevWidget = widget();
-        setWidget(filter->createConfigurationWidget());
-        if (prevWidget)
-          delete prevWidget;
-        m_currentSeg = seg;
-      }else{
-        setWidget(NULL);
-        m_currentSeg = NULL;
-      }
+      disconnect(m_seg, SIGNAL(modified(ModelItem*)),
+		 this, SLOT(updatePannel()));
+    }
+
+    if (seg)
+    {
+      connect(seg, SIGNAL(modified(ModelItem*)),
+	      this, SLOT(updatePannel()));
+    }
+    m_seg = seg;
+    changeWidget = true;
+  } else if (m_filter && m_filter != seg->filter())
+  {
+    changeWidget = true;
+  }
+
+  if (changeWidget)
+  {
+    QWidget *prevWidget = widget();
+    if (prevWidget)
+      delete prevWidget;
+
+    if (m_seg)
+    {
+      m_filter = seg->filter();
+      setWidget(m_filter->createConfigurationWidget());
+    } else
+    {
+      m_filter = NULL;
+      setWidget(NULL);
     }
   }
 }

@@ -19,13 +19,13 @@
 
 #include "SelectionManager.h"
 
+#include "EspinaCore.h"
+#include "EspinaRegions.h"
+#include "EspinaView.h"
+#include "RectangularSelection.h"
+#include "model/Segmentation.h"
+
 #include <QApplication>
-
-#include <RectangularSelection.h>
-#include <model/Segmentation.h>
-#include <EspinaCore.h>
-#include <EspinaView.h>
-
 
 SelectionManager *SelectionManager::m_singleton = NULL;//new SelectionManager();
 
@@ -59,6 +59,9 @@ bool SelectionManager::filterEvent(QEvent* e, SelectableView* view) const
 //------------------------------------------------------------------------
 void SelectionManager::setSelection(Selection selection)
 {
+  if (m_selection == selection)
+    return;
+
   for (int i = 0; i < m_selection.size(); i++)
     m_selection[i]->setSelected(false);
 

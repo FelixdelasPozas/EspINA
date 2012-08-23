@@ -17,25 +17,24 @@
 */
 
 #include "CountingRegionSegmentationExtension.h"
+
 #include "CountingRegionChannelExtension.h"
+#include "regions/BoundingRegion.h"
 
-//#include "CountingRegionSampleExtension.h"
-
+#include <common/EspinaRegions.h>
+#include <common/extensions/Margins/MarginsSegmentationExtension.h>
 #include <common/model/Segmentation.h>
 #include <common/model/Sample.h>
 #include <common/model/Channel.h>
-//#include <regions/BoundingRegion.h>
 
-#include <QDebug>
-#include <regions/BoundingRegion.h>
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
-#include <common/extensions/Margins/MarginsSegmentationExtension.h>
 
+#include <QDebug>
 
 CountingRegionSegmentationExtension::BoundingBox::BoundingBox(vtkPoints* points)
 {
-  assert(points->GetNumberOfPoints());
+  Q_ASSERT(points->GetNumberOfPoints());
   // Init Bounding Box
   double bounds[6];
   points->GetBounds(bounds);

@@ -53,8 +53,6 @@ public:
 
   /// Implements Filter Interface
   virtual bool needUpdate() const;
-  virtual int numberOutputs() const;
-  virtual EspinaVolume* output(OutputNumber i) const;
   virtual bool prefetchFilter();
 
   virtual QWidget* createConfigurationWidget();
@@ -66,7 +64,6 @@ protected:
   bool             m_needUpdate;
   Parameters       m_params;
   EspinaVolume    *m_input;
-  EspinaVolume    *m_volume;
   EspinaVolumeReader::Pointer m_cachedFilter;
 };
 

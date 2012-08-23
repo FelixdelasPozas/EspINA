@@ -140,9 +140,7 @@ void Sample::initializeExtensions(ModelItem::Arguments args)
     SampleExtension *sampleExt = dynamic_cast<SampleExtension *>(ext);
     Q_ASSERT(sampleExt);
     qDebug() << extArgs;
-    ArgumentId argId(sampleExt->id(), false);
-    qDebug() << "Arg Id" << argId;
-    ModelItem::Arguments sArgs(extArgs.value(argId, QString()));
+    ModelItem::Arguments sArgs(extArgs.value(sampleExt->id(), QString()));
     qDebug() << sArgs;
     sampleExt->initialize(this, sArgs);
   }

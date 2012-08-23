@@ -178,18 +178,33 @@ bool IOEspinaFile::saveFile(QFileInfo file,
   if( !IOEspinaFile::zipFile(QString(TRACE),  trace.str().c_str(), outFile) )
     return false;
 
+  typedef QPair<Filter *, OutputNumber> Output;
+  QList<Output> saved;
   foreach(Filter *filter, model->filters())
   {
     if (filter->isEdited())
     {
       //qDebug() << "Making" << filter->data().toString() << "snapshot";
-      zipVolume(filter,0, tmpDir, outFile);
+      foreach(OutputNumber i, filter->editedOutputs())
+      {
+	Output output(filter, i);
+	if (!saved.contains(output))
+	{
+	  zipVolume(filter, i, tmpDir, outFile);
+	  saved << output;
+	}
+      }
     }
   }
   foreach(Segmentation *seg, model->segmentations())
   {
     //qDebug() << "Making" << seg->data().toString() << "snapshot";
-    zipVolume(seg->filter(), seg->outputNumber(), tmpDir, outFile);
+    Output output(seg->filter(), seg->outputNumber());
+    if (!saved.contains(output))
+    {
+      zipVolume(seg->filter(), seg->outputNumber(), tmpDir, outFile);
+      saved << output;
+    }
   }
 
   QStringList filters;
