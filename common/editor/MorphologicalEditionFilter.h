@@ -61,9 +61,9 @@ public:
   void setRadius(int radius) {m_params.setRadius(radius); m_needUpdate = true;}
 
 protected:
-  bool             m_needUpdate;
   Parameters       m_params;
   EspinaVolume    *m_input;
+  bool             m_needUpdate;
   EspinaVolumeReader::Pointer m_cachedFilter;
 };
 
