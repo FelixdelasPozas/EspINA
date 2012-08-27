@@ -85,6 +85,7 @@ private:
   QSharedPointer<EspinaModel> m_model;
   MainToolBar                *m_mainToolBar;
   QMenu                      *m_viewMenu;
+  QMenu                      *m_dockMenu;
   QMenu                      *m_addMenu;
   bool                        m_busy;
 

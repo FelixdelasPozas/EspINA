@@ -25,13 +25,13 @@
 #include "common/model/EspinaModel.h"
 
 class Segmentation;
-class ModifyFilterPanel
+class FilterInspector
 : public EspinaDockWidget
 {
   Q_OBJECT
 public:
-  explicit ModifyFilterPanel(QWidget* parent = 0);
-  virtual ~ModifyFilterPanel();
+  explicit FilterInspector(QWidget* parent = 0);
+  virtual ~FilterInspector();
 
   virtual void showEvent(QShowEvent* e);
 

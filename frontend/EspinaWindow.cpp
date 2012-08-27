@@ -28,7 +28,7 @@
 #include "common/gui/ViewManager.h"
 #include "docks/SegmentationExplorer.h"
 #include "docks/TaxonomyExplorer.h"
-#include "docks/ModifyFilter/ModifyFilterPanel.h"
+#include "docks/FilterInspector/FilterInspector.h"
 #include "toolbar/MainToolBar.h"
 #include <model/Channel.h>
 #include <model/Taxonomy.h>
@@ -156,6 +156,7 @@ EspinaWindow::EspinaWindow()
 
   /*** VIEW MENU ***/
   m_viewMenu = new QMenu(tr("View"));
+  m_dockMenu = new QMenu(tr("Panels"));
 
   menuBar()->addMenu(m_viewMenu);
 
@@ -186,18 +187,24 @@ EspinaWindow::EspinaWindow()
 
   ChannelExplorer *channelExplorer = new ChannelExplorer(m_model, this);
   addDockWidget(Qt::LeftDockWidgetArea, channelExplorer);
-
-  SegmentationExplorer *segExplorer = new SegmentationExplorer(m_model, this);
-  addDockWidget(Qt::LeftDockWidgetArea, segExplorer);
-
-  TaxonomyExplorer *taxExplorer = new TaxonomyExplorer(m_model, this);
-  addDockWidget(Qt::LeftDockWidgetArea, taxExplorer);
-
-  ModifyFilterPanel *filterPanel = new ModifyFilterPanel(this);
-  addDockWidget(Qt::LeftDockWidgetArea, filterPanel);
+  m_dockMenu->addAction(channelExplorer->toggleViewAction());
 
   DataViewPanel *dataView = new DataViewPanel(this);
   addDockWidget(Qt::BottomDockWidgetArea, dataView);
+  m_dockMenu->addAction(dataView->toggleViewAction());
+
+  FilterInspector *filterInspector = new FilterInspector(this);
+  addDockWidget(Qt::LeftDockWidgetArea, filterInspector);
+  m_dockMenu->addAction(filterInspector->toggleViewAction());
+
+  SegmentationExplorer *segExplorer = new SegmentationExplorer(m_model, this);
+  addDockWidget(Qt::LeftDockWidgetArea, segExplorer);
+  m_dockMenu->addAction(segExplorer->toggleViewAction());
+
+  TaxonomyExplorer *taxExplorer = new TaxonomyExplorer(m_model, this);
+  addDockWidget(Qt::LeftDockWidgetArea, taxExplorer);
+  m_dockMenu->addAction(taxExplorer->toggleViewAction());
+
 
   setActivity("segmentate");
 //   QSettings settings("CeSViMa", "EspinaModel");
@@ -257,6 +264,7 @@ void EspinaWindow::loadPlugins()
       {
 	qDebug() << "- Dock ...... OK";
 	addDockWidget(Qt::LeftDockWidgetArea, dock);
+        m_dockMenu->addAction(dock->toggleViewAction());
       }
     }
   }
@@ -386,6 +394,7 @@ void EspinaWindow::setActivity(QString activity)
     m_view->saveLayout();
 
   m_viewMenu->clear();
+  m_viewMenu->addMenu(m_dockMenu);
   m_viewMenu->addMenu(EspinaCore::instance()->colorSettings().availableEngines());
   m_viewMenu->addSeparator();
 

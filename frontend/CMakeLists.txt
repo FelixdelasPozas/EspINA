@@ -34,7 +34,7 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
   docks/DataView/DataView.h
   docks/DataView/QueryView.h
   docks/DataView/InformationProxy.h
-  docks/ModifyFilter/ModifyFilterPanel.h
+  docks/FilterInspector/FilterInspector.h
   docks/ChannelExplorer.h
   docks/SegmentationExplorer.h
   docks/SegmentationInspector.h
@@ -78,7 +78,7 @@ set (DOCKS_SOURCES
   docks/DataView/DataViewPanel.cpp
   docks/DataView/QueryView.cpp
   docks/DataView/InformationProxy.cpp
-  docks/ModifyFilter/ModifyFilterPanel.cpp
+  docks/FilterInspector/FilterInspector.cpp
   docks/ChannelExplorer.cpp
   docks/SegmentationDelegate.cpp
   docks/SegmentationExplorer.cpp

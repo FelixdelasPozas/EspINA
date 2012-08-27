@@ -17,7 +17,7 @@
 */
 
 
-#include "ModifyFilterPanel.h"
+#include "FilterInspector.h"
 
 #include <EspinaCore.h>
 #include <model/Segmentation.h>
@@ -26,7 +26,7 @@
 #include <selection/SelectionManager.h>
 
 //----------------------------------------------------------------------------
-ModifyFilterPanel::ModifyFilterPanel(QWidget* parent)
+FilterInspector::FilterInspector(QWidget* parent)
 : EspinaDockWidget(parent)
 , m_filter(NULL)
 , m_seg   (NULL)
@@ -39,19 +39,19 @@ ModifyFilterPanel::ModifyFilterPanel(QWidget* parent)
 }
 
 //----------------------------------------------------------------------------
-ModifyFilterPanel::~ModifyFilterPanel()
+FilterInspector::~FilterInspector()
 {
 }
 
 //----------------------------------------------------------------------------
-void ModifyFilterPanel::showEvent(QShowEvent *e)
+void FilterInspector::showEvent(QShowEvent *e)
 {
   QWidget::showEvent(e);
   updatePannel();
 }
 
 //----------------------------------------------------------------------------
-void ModifyFilterPanel::updatePannel()
+void FilterInspector::updatePannel()
 {
   if (!isVisible())
     return;
