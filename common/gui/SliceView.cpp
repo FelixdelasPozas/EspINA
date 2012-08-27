@@ -159,14 +159,16 @@ QWidget(parent)
   m_segmentationPicker->PickFromListOn();
 
   // Init Ruler
-  m_ruler->SetPosition(0.02, 0.98);
-  m_ruler->SetPosition2(0.15, 0.98);
+  m_ruler->SetPosition(0.1, 0.1);
+  m_ruler->SetPosition2(0.1, 0.1);
   m_ruler->SetPickable(false);
   m_ruler->SetLabelFactor(0.8);
   m_ruler->SetFontFactor(1);
   m_ruler->SetTitle("nm");
+  m_ruler->RulerModeOff();
+  m_ruler->SetLabelFormat("%.0f");
   m_ruler->SetAdjustLabels(false);
-  m_ruler->SetNumberOfLabels(3);
+  m_ruler->SetNumberOfLabels(2);
   m_renderer->AddActor(m_ruler);
 
   m_state->updateSlicingMatrix(m_slicingMatrix);
@@ -180,6 +182,25 @@ QWidget(parent)
           this, SLOT(updateSelection(SelectionManager::Selection)));
 }
 
+
+//-----------------------------------------------------------------------------
+Nm rulerScale(Nm value)
+{
+  int factor = 100;
+
+  if (value < 10)
+    factor = 1;
+  else if (value < 25)
+    factor = 5;
+  else if (value < 100)
+    factor = 10;
+  else if (value < 250)
+    factor = 50;
+
+  int res = int(value/factor)*factor;
+  return std::max(res,1);
+}
+
 //-----------------------------------------------------------------------------
 void SliceView::updateRuler()
 {
@@ -191,10 +212,6 @@ void SliceView::updateRuler()
 
   double *value;
   Nm left, right;
-  double wPad = 60, hPad  = 100;
-
-  int *ws = m_renderer->GetRenderWindow()->GetSize();
-
   vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
   coords->SetCoordinateSystemToNormalizedViewport();
 
@@ -208,17 +225,16 @@ void SliceView::updateRuler()
   right = value[c];
 //   qDebug() << "LR" << value[0] << value[1] << value[2];
 
-  Nm rulerLength = 100;
-  Nm rulerRatio = rulerLength/fabs(left-right);
+  Nm rulerLength = 0.15;//viewport coordinates - Configuration file
+  Nm viewWidth = fabs(left-right);
+
+  Nm scale = rulerLength * viewWidth;
+  scale = rulerScale(scale);
+  rulerLength = scale / viewWidth;
 //   qDebug() << ws[0] << left << right << rulerRatio;
-  int labels = rulerRatio*15;
-  if ((labels - 1)%2 != 0)
-    labels--;
-  m_ruler->SetNumberOfLabels(labels);
-  m_ruler->SetRange(0, rulerLength);
-  m_ruler->SetPosition(wPad/ws[0], hPad/ws[1]);
-  m_ruler->SetPoint2(wPad/ws[0]+rulerRatio,hPad/ws[1]);
-  m_ruler->SetVisibility(m_rulerVisibility && rulerRatio > 0.05 && rulerRatio < 0.8);
+  m_ruler->SetRange(0, scale);
+  m_ruler->SetPoint2(0.1+rulerLength, 0.1);
+  m_ruler->SetVisibility(m_rulerVisibility && rulerLength > 0.05 && rulerLength < 0.8);
 }
 
 //-----------------------------------------------------------------------------
