@@ -166,4 +166,6 @@ private:
   friend class Filter;
 };
 
+typedef QList<Segmentation *> SegmentationList;
+
 #endif // PRODUCTS_H

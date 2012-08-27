@@ -120,6 +120,7 @@ protected:
 
   QStringList        m_editedOutputs;
   QMap<OutputNumber, EspinaVolume::Pointer> m_outputs;
+  EspinaVolumeReader::Pointer m_cachedFilter;
 
 private:
   static unsigned int m_lastId;

@@ -34,6 +34,8 @@
 #include <editor/ErodeFilter.h>
 #include <editor/DilateFilter.h>
 #include <editor/OpeningFilter.h>
+#include <editor/FillHolesCommand.h>
+#include <editor/FillHolesFilter.h>
 #include <undo/RemoveSegmentation.h>
 #include <gui/EspinaView.h>
 #include "frontend/toolbar/editor/MorphologicalSettingsPanel.h"
@@ -219,7 +221,7 @@ public:
 
       model->removeRelation(oldConnection.first, seg, CREATELINK);
       model->addFilter(newConnection.first);
-      model->addRelation(oldConnection.first, newConnection.first, "Input");
+      model->addRelation(oldConnection.first, newConnection.first, INPUTLINK);
       model->addRelation(newConnection.first, seg, CREATELINK);
       seg->changeFilter(newConnection.first, newConnection.second);
       seg->notifyModification(true);
@@ -237,7 +239,7 @@ public:
       Connection newConnection = m_newConnections[i];
 
       model->removeRelation(newConnection.first, seg, CREATELINK);
-      model->removeRelation(oldConnection.first, newConnection.first, "Input");
+      model->removeRelation(oldConnection.first, newConnection.first, INPUTLINK);
       model->removeFilter(newConnection.first);
       model->addRelation(oldConnection.first, seg, CREATELINK);
       seg->changeFilter(oldConnection.first, oldConnection.second);
@@ -263,12 +265,14 @@ EditorToolBar::EditorToolBar(QWidget* parent)
 , m_dilate(addAction(tr("Dilate Selected Segmentations")))
 , m_open(addAction(tr("Open Selected Segmentations")))
 , m_close(addAction(tr("Close Selected Segmentations")))
+, m_fill(addAction(tr("Fill Holes in Selected Segmentations")))
 , m_pencilSelector(new PencilSelector())
 , m_currentSource(NULL)
 , m_currentSeg(NULL)
 {
   setObjectName("EditorToolBar");
   setWindowTitle("Editor Tool Bar");
+
   EspinaFactory *factory = EspinaFactory::instance();
   factory->registerFilter(ClosingFilter::TYPE,  this);
   factory->registerFilter(OpeningFilter::TYPE,  this);
@@ -276,6 +280,7 @@ EditorToolBar::EditorToolBar(QWidget* parent)
   factory->registerFilter(ErodeFilter::TYPE,    this);
   factory->registerFilter(FreeFormSource::TYPE, this);
   factory->registerFilter(ImageLogicFilter::TYPE, this);
+  factory->registerFilter(FillHolesFilter::TYPE, this);
 
   factory->registerSettingsPanel(new MorphologicalFiltersPreferences());
 
@@ -308,6 +313,10 @@ EditorToolBar::EditorToolBar(QWidget* parent)
   connect(m_close, SIGNAL(triggered(bool)),
           this, SLOT(closeSegmentations()));
 
+  m_fill->setIcon(QIcon(":/espina/fillHoles.svg"));
+  connect(m_fill, SIGNAL(triggered(bool)),
+          this, SLOT(fillHoles()));
+
   m_pencilSelector->setSelectable(SelectionHandler::EspINA_Channel);
   connect(m_pencilSelector, SIGNAL(selectionChanged(SelectionHandler::MultiSelection)),
           this, SLOT(drawSegmentation(SelectionHandler::MultiSelection)));
@@ -332,6 +341,8 @@ Filter* EditorToolBar::createFilter(const QString filter, Filter::NamedInputs in
     return new FreeFormSource(inputs, args);
   if (ImageLogicFilter::TYPE == filter)
     return new ImageLogicFilter(inputs, args);
+  if (FillHolesFilter::TYPE == filter)
+    return new FillHolesFilter(inputs, args);
   else
     Q_ASSERT(false);
 
@@ -343,7 +354,7 @@ void EditorToolBar::startDrawing(bool draw)
 {
   if (draw)
   {
-    QList<Segmentation *> selSegs = selectedSegmentations();
+    SegmentationList selSegs = selectedSegmentations();
     if (selSegs.size() == 1)
     {
       m_currentSeg = selSegs.first();
@@ -479,7 +490,7 @@ void EditorToolBar::stateChanged(PencilSelector::State state)
 //----------------------------------------------------------------------------
 void EditorToolBar::combineSegmentations()
 {
-  QList<Segmentation *> input = selectedSegmentations();
+  SegmentationList input = selectedSegmentations();
 
   if (input.size() > 1)
   {
@@ -493,7 +504,7 @@ void EditorToolBar::combineSegmentations()
 //----------------------------------------------------------------------------
 void EditorToolBar::substractSegmentations()
 {
-  QList<Segmentation *> input = selectedSegmentations();
+  SegmentationList input = selectedSegmentations();
 
   if (input.size() > 1)
   {
@@ -507,7 +518,7 @@ void EditorToolBar::substractSegmentations()
 //----------------------------------------------------------------------------
 void EditorToolBar::erodeSegmentations()
 {
-  QList<Segmentation *> input = selectedSegmentations();
+  SegmentationList input = selectedSegmentations();
   if (input.size() > 0)
   {
     EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODECommand::ERODE, 3));
@@ -517,7 +528,7 @@ void EditorToolBar::erodeSegmentations()
 //----------------------------------------------------------------------------
 void EditorToolBar::dilateSegmentations()
 {
-  QList<Segmentation *> input = selectedSegmentations();
+  SegmentationList input = selectedSegmentations();
   if (input.size() > 0)
   {
     EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODECommand::DILATE, 3));
@@ -527,7 +538,7 @@ void EditorToolBar::dilateSegmentations()
 //----------------------------------------------------------------------------
 void EditorToolBar::openSegmentations()
 {
-  QList<Segmentation *> input = selectedSegmentations();
+  SegmentationList input = selectedSegmentations();
   if (input.size() > 0)
   {
     EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODECommand::OPEN, 3));
@@ -537,7 +548,7 @@ void EditorToolBar::openSegmentations()
 //----------------------------------------------------------------------------
 void EditorToolBar::closeSegmentations()
 {
-  QList<Segmentation *> input = selectedSegmentations();
+  SegmentationList input = selectedSegmentations();
   if (input.size() > 0)
   {
     EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODECommand::CLOSE, 3));
@@ -545,9 +556,20 @@ void EditorToolBar::closeSegmentations()
 }
 
 //----------------------------------------------------------------------------
-QList< Segmentation* > EditorToolBar::selectedSegmentations()
+void EditorToolBar::fillHoles()
 {
-  QList<Segmentation *> selection;
+  SegmentationList input = selectedSegmentations();
+  if (input.size() > 0)
+  {
+    EspinaCore::instance()->undoStack()->push(new FillHolesCommand(input));
+  }
+}
+
+
+//----------------------------------------------------------------------------
+SegmentationList EditorToolBar::selectedSegmentations()
+{
+  SegmentationList selection;
 
   foreach(SelectableItem *item, SelectionManager::instance()->selection())
   {

@@ -251,17 +251,7 @@ bool SeedGrowSegmentationFilter::prefetchFilter()
   if (m_needUpdate)
     return false;
 
-  QString tmpFile = id() + "_0.mhd";
-  m_cachedFilter = tmpFileReader(tmpFile);
-
-  if (m_cachedFilter.IsNotNull())
-  {
-    m_outputs[0] = m_cachedFilter->GetOutput();
-    emit modified(this);
-    return true;
-  }
-
-  return false;
+  return Filter::prefetchFilter();
 }
 
 //-----------------------------------------------------------------------------

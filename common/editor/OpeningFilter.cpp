@@ -26,8 +26,6 @@
 
 const QString OpeningFilter::TYPE = "EditorToolBar::OpeningFilter";
 
-const unsigned int LABEL_VALUE = 255;
-
 OpeningFilter::OpeningFilter(Filter::NamedInputs inputs,
                              ModelItem::Arguments args)
 : MorphologicalEditionFilter(inputs, args)
@@ -58,7 +56,7 @@ void OpeningFilter::run()
   m_filter = FilterType::New();
   m_filter->SetInput(m_input);
   m_filter->SetKernel(ball);
-  m_filter->SetForegroundValue(LABEL_VALUE);
+  m_filter->SetForegroundValue(SEG_VOXEL_VALUE);
   m_filter->Update();
   QApplication::restoreOverrideCursor();
 

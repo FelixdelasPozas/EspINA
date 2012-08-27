@@ -23,11 +23,11 @@
 #include <QToolBar>
 #include <common/gui/DynamicWidget.h>
 
-#include <selection/SelectionHandler.h>
-#include <editor/PencilSelector.h>
-#include <pluginInterfaces/FilterFactory.h>
+#include <common/editor/PencilSelector.h>
+#include <common/model/Segmentation.h>
+#include <common/pluginInterfaces/FilterFactory.h>
+#include <common/selection/SelectionHandler.h>
 
-class Segmentation;
 class FreeFormSource;
 
 
@@ -64,8 +64,9 @@ protected slots:
   void dilateSegmentations();
   void openSegmentations();
   void closeSegmentations();
+  void fillHoles();
 
-  QList<Segmentation *> selectedSegmentations();
+  SegmentationList selectedSegmentations();
 
 private:
   QAction *m_draw;
@@ -75,6 +76,7 @@ private:
   QAction *m_dilate;
   QAction *m_open;
   QAction *m_close;
+  QAction *m_fill;
 
   PencilSelector *m_pencilSelector;
   Filter         *m_currentSource;

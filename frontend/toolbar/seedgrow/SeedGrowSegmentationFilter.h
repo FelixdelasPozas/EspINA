@@ -150,7 +150,6 @@ private:
   bool          m_needUpdate;
   Parameters    m_param;
   EspinaVolume *m_input;
-  EspinaVolumeReader::Pointer m_cachedFilter;
 
   ConnectedThresholdFilterType::Pointer ctif;
   ExtractType::Pointer voiFilter;

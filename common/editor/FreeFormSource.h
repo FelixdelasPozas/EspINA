@@ -78,7 +78,6 @@ public:
 
   /// Implements Filter Interface
   virtual bool needUpdate() const;
-  virtual bool prefetchFilter();
 
 protected:
   virtual void run(){}
@@ -87,7 +86,6 @@ private:
   Parameters m_param;
 
   EspinaVolume::SpacingType   m_spacing;
-  EspinaVolumeReader::Pointer m_cachedFilter;
 };
 
 #endif // FREEFORMSOURCE_H

@@ -26,8 +26,6 @@
 
 const QString ErodeFilter::TYPE = "EditorToolBar::ErodeFilter";
 
-const unsigned int LABEL_VALUE = 255;
-
 ErodeFilter::ErodeFilter(Filter::NamedInputs inputs,
                              ModelItem::Arguments args)
 : MorphologicalEditionFilter(inputs, args)
@@ -58,7 +56,7 @@ void ErodeFilter::run()
   m_filter = FilterType::New();
   m_filter->SetInput(m_input);
   m_filter->SetKernel(ball);
-  m_filter->SetObjectValue(LABEL_VALUE);
+  m_filter->SetObjectValue(SEG_VOXEL_VALUE);
   m_filter->Update();
   QApplication::restoreOverrideCursor();
 

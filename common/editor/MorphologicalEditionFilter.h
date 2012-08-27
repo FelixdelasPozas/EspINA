@@ -52,19 +52,20 @@ public:
   virtual ~MorphologicalEditionFilter();
 
   /// Implements Filter Interface
-  virtual bool needUpdate() const;
-  virtual bool prefetchFilter();
-
   virtual QWidget* createConfigurationWidget();
 
   unsigned int radius() const {return m_params.radius();}
   void setRadius(int radius) {m_params.setRadius(radius); m_needUpdate = true;}
 
 protected:
+  /// Implements Filter Interface
+  virtual bool needUpdate() const;
+  virtual bool prefetchFilter();
+
+protected:
   Parameters       m_params;
   EspinaVolume    *m_input;
   bool             m_needUpdate;
-  EspinaVolumeReader::Pointer m_cachedFilter;
 };
 
 

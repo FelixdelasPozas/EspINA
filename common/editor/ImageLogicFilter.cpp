@@ -61,22 +61,6 @@ QVariant ImageLogicFilter::data(int role) const
 }
 
 //-----------------------------------------------------------------------------
-bool ImageLogicFilter::prefetchFilter()
-{
-  QString tmpFile = id() + "_0.mhd";
-  m_cachedFilter = tmpFileReader(tmpFile);
-
-  if (m_cachedFilter.IsNotNull())
-  {
-    m_outputs[0] = m_cachedFilter->GetOutput();
-    emit modified(this);
-    return true;
-  }
-
-  return false;
-}
-
-//-----------------------------------------------------------------------------
 bool ImageLogicFilter::needUpdate() const
 {
   return m_outputs[0].IsNull();
@@ -113,7 +97,7 @@ void ImageLogicFilter::addition()
   regions << br;
   for (int i = 1; i < m_inputs.size(); i++)
   {
-    Q_ASSERT(spacing == m_inputs[i]->GetSpacing());
+    //Q_ASSERT(spacing == m_inputs[i]->GetSpacing());
     EspinaVolume::RegionType nr = NormalizedRegion(m_inputs[i]);
     br = BoundingBoxRegion(br, nr);
     regions << nr;
@@ -150,7 +134,7 @@ void ImageLogicFilter::substraction()
 
   for (int i = 1; i < m_inputs.size(); i++)
   {
-    Q_ASSERT(spacing == m_inputs[i]->GetSpacing());
+//     Q_ASSERT(spacing == m_inputs[i]->GetSpacing());
     EspinaVolume::RegionType nr = NormalizedRegion(m_inputs[i]);
     if (nr.Crop(outputRegion))
     {

@@ -29,8 +29,6 @@
 
 const QString DilateFilter::TYPE = "EditorToolBar::DilateFilter";
 
-const unsigned int LABEL_VALUE = 255;
-
 DilateFilter::DilateFilter(Filter::NamedInputs inputs,
                              ModelItem::Arguments args)
 : MorphologicalEditionFilter(inputs, args)
@@ -48,7 +46,7 @@ DilateFilter::~DilateFilter()
 //-----------------------------------------------------------------------------
 QVariant DilateFilter::data(int role) const
 {
-  if (role == Qt::DisplayRole)
+  if (Qt::DisplayRole == role)
     return TYPE;
   else
     return QVariant();
@@ -86,7 +84,7 @@ void DilateFilter::run()
   m_filter = FilterType::New();
   m_filter->SetInput(padFilter->GetOutput());
   m_filter->SetKernel(ball);
-  m_filter->SetObjectValue(LABEL_VALUE);
+  m_filter->SetObjectValue(SEG_VOXEL_VALUE);
   m_filter->SetReleaseDataFlag(false);
   m_filter->Update();
   QApplication::restoreOverrideCursor();

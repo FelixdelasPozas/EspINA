@@ -68,6 +68,8 @@ set (CORE_SOURCES
   cache/CacheHash.cpp
   editor/CODESettings.cpp
   editor/PencilSelector.cpp
+  editor/FillHolesFilter.cpp
+  editor/FillHolesCommand.cpp
   editor/FreeFormSource.cpp
   editor/ImageLogicCommand.cpp
   editor/MorphologicalEditionFilter.cpp

@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge PeÃ±a Pastor <email>
+    Copyright (C) 2012  <copyright holder> <email>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,55 +17,50 @@
 */
 
 
-#include "MorphologicalEditionFilter.h"
-#include "CODESettings.h"
-
-#include <model/EspinaFactory.h>
-
-#include <QDebug>
+#include "FillHolesFilter.h"
 #include <QApplication>
 
-typedef ModelItem::ArgumentId ArgumentId;
-const ArgumentId MorphologicalEditionFilter::RADIUS = "Radius";
-
-const unsigned int LABEL_VALUE = 255;
-
+const QString FillHolesFilter::TYPE = "EditorToolBar::FillHolesFilter";
+const QString FillHolesFilter::INPUTLINK = "Input";
 
 //-----------------------------------------------------------------------------
-MorphologicalEditionFilter::MorphologicalEditionFilter(Filter::NamedInputs inputs,
-                                                       ModelItem::Arguments args)
+FillHolesFilter::FillHolesFilter(Filter::NamedInputs inputs,
+                                 ModelItem::Arguments args)
 : Filter(inputs, args)
-, m_params(m_args)
-, m_input(NULL)
-, m_needUpdate(false)
 {
 }
 
-
 //-----------------------------------------------------------------------------
-MorphologicalEditionFilter::~MorphologicalEditionFilter()
+FillHolesFilter::~FillHolesFilter()
 {
-//   qDebug() << "Destroying" << TYPE;
 }
 
 //-----------------------------------------------------------------------------
-bool MorphologicalEditionFilter::needUpdate() const
+QVariant FillHolesFilter::data(int role) const
 {
-  return (!m_outputs.contains(0) || m_needUpdate);
-}
-
-
-//-----------------------------------------------------------------------------
-bool MorphologicalEditionFilter::prefetchFilter()
-{
-  if (m_needUpdate)
-    return false;
-
-  return Filter::prefetchFilter();
+  if (Qt::DisplayRole == role)
+    return TYPE;
+  else
+    return QVariant();
 }
 
 //-----------------------------------------------------------------------------
-QWidget* MorphologicalEditionFilter::createConfigurationWidget()
+bool FillHolesFilter::needUpdate() const
 {
-  return new CODESettings(this);
+  return !m_outputs.contains(0);
+}
+
+//-----------------------------------------------------------------------------
+void FillHolesFilter::run()
+{
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+
+  Q_ASSERT(m_inputs.size() == 1);
+
+  m_filter = FilterType::New();
+  m_filter->SetInput(m_inputs[0]);
+  m_filter->Update();
+  QApplication::restoreOverrideCursor();
+
+  m_outputs[0] = m_filter->GetOutput();
 }

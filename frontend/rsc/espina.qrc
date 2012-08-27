@@ -36,5 +36,6 @@
         <file>open.png</file>
         <file>dilate.png</file>
         <file>activeChannel.svg</file>
+        <file>fillHoles.svg</file>
     </qresource>
 </RCC>

@@ -64,20 +64,18 @@ public:
   virtual QVariant data(int role=Qt::DisplayRole) const;
 
   /// Implements Filter Interface
-  virtual bool prefetchFilter();
   virtual bool needUpdate() const;
+
+protected:
   void run();
 
 protected:
-  //TODO: Use iterators
   void addition();
   void substraction();
 
 private:
   Parameters   m_param;
-  EspinaVolumeReader::Pointer m_cachedFilter;
 };
-
 
 
 #endif // IMAGELOGICFILTER_H
