@@ -25,12 +25,12 @@
 class TaxonomyColorEngine: public ColorEngine
 {
 
-	public:
-		virtual QColor color(const Segmentation* seg);
-		virtual vtkLookupTable *lut(const Segmentation* seg);
+public:
+  virtual QColor color(const Segmentation* seg);
+  virtual vtkSmartPointer< vtkLookupTable > lut(const Segmentation* seg);
 
-	private:
-		QMap<QString, vtkLookupTable *> m_LUT;
+private:
+  QMap<QString, vtkSmartPointer<vtkLookupTable> > m_LUT;
 };
 
 #endif // TAXONOMYCOLORENGINE_H

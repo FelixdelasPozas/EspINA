@@ -19,15 +19,17 @@
 #ifndef COLORENGINE_H
 #define COLORENGINE_H
 #include <QColor>
+
 #include <vtkLookupTable.h>
+#include <vtkSmartPointer.h>
 
 class Segmentation;
 
 class ColorEngine
 {
-	public:
-		virtual QColor color(const Segmentation *seg) = 0;
-		virtual vtkLookupTable* lut(const Segmentation *seg) = 0;
+public:
+  virtual QColor color(const Segmentation *seg) = 0;
+  virtual vtkSmartPointer<vtkLookupTable> lut(const Segmentation *seg) = 0;
 };
 
 #endif // COLORENGINE_H

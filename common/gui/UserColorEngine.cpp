@@ -22,34 +22,34 @@
 
 //-----------------------------------------------------------------------------
 UserColorEngine::UserColorEngine() :
-		m_lastColor(0)
+m_lastColor(0)
 {
-	m_colors << QColor(31, 120, 180) << QColor(51, 160, 44) << QColor(227, 26, 28) << QColor(255, 127, 0) << QColor(106, 61, 154) << QColor(166, 206, 227)
-			<< QColor(178, 223, 138) << QColor(251, 154, 153) << QColor(253, 191, 111) << QColor(202, 178, 214);
+  m_colors << QColor(31, 120, 180) << QColor(51, 160, 44) << QColor(227, 26, 28) << QColor(255, 127, 0) << QColor(106, 61, 154) << QColor(166, 206, 227)
+  << QColor(178, 223, 138) << QColor(251, 154, 153) << QColor(253, 191, 111) << QColor(202, 178, 214);
 }
 
 //-----------------------------------------------------------------------------
-vtkLookupTable* UserColorEngine::lut(const Segmentation* seg)
+vtkSmartPointer< vtkLookupTable > UserColorEngine::lut(const Segmentation* seg)
 {
-	return NULL;
+  return NULL;
 }
 
 //-----------------------------------------------------------------------------
 QColor UserColorEngine::color(const Segmentation* seg)
 {
-	QString user = seg->users().last();
+  QString user = seg->users().last();
 
-	if (!m_userColors.contains(user))
-	{
-		m_userColors[user] = nextColor();
-	}
+  if (!m_userColors.contains(user))
+  {
+    m_userColors[user] = nextColor();
+  }
 
-	return m_userColors[user];
+  return m_userColors[user];
 }
 
 //-----------------------------------------------------------------------------
 QColor UserColorEngine::nextColor()
 {
-	return m_colors[m_lastColor++];
+  return m_colors[m_lastColor++];
 }
 

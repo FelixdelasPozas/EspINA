@@ -19,9 +19,9 @@
 
 #include "common/model/Segmentation.h"
 
-vtkLookupTable* NumberColorEngine::lut(const Segmentation* seg)
+vtkSmartPointer<vtkLookupTable> NumberColorEngine::lut(const Segmentation* seg)
 {
-	return NULL;
+  return vtkSmartPointer<vtkLookupTable>();
 //	// Get (or create if it doesn't exit) the lut for the segmentations' images
 //	if (lut)
 //	{

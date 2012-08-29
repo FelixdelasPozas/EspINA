@@ -46,6 +46,7 @@
 #include <QVBoxLayout>
 #include <QVector3D>
 #include <QWheelEvent>
+#include <boost/concept_check.hpp>
 
 #include <vtkInteractorStyleImage.h>
 #include <vtkObjectFactory.h>
@@ -64,7 +65,7 @@
 #include <vtkAbstractWidget.h>
 #include <vtkWidgetRepresentation.h>
 #include <QVTKWidget.h>
-#include <vtkSphereSource.h>
+#include <vtkCylinderSource.h>
 #include <vtkImageResliceToColors.h>
 #include <vtkMatrix4x4.h>
 #include <vtkAlgorithmOutput.h>
@@ -113,9 +114,9 @@ QWidget(parent)
 , m_fromSlice(new QPushButton("From"))
 , m_spinBox(new QSpinBox())
 , m_toSlice(new QPushButton("To"))
+, m_ruler(vtkSmartPointer<vtkAxisActor2D>::New())
 , m_plane(plane)
 , m_showSegmentations(true)
-, m_ruler(vtkSmartPointer<vtkAxisActor2D>::New())
 , m_settings(new Settings(m_plane))
 , m_inThumbnail(false)
 {
@@ -150,6 +151,7 @@ QWidget(parent)
   // Init Renderers
   m_renderer = vtkSmartPointer<vtkRenderer>::New();
   m_renderer->GetActiveCamera()->ParallelProjectionOn();
+  m_renderer->LightFollowCameraOn();
   m_slicingMatrix = vtkMatrix4x4::New();
 
   // Init Pickers
@@ -169,12 +171,30 @@ QWidget(parent)
   m_ruler->SetLabelFormat("%.0f");
   m_ruler->SetAdjustLabels(false);
   m_ruler->SetNumberOfLabels(2);
-  m_renderer->AddActor(m_ruler);
+  //m_renderer->AddActor(m_ruler);
 
   m_state->updateSlicingMatrix(m_slicingMatrix);
+  vtkSmartPointer<vtkInteractorStyleEspinaSlice> interactor = vtkSmartPointer<vtkInteractorStyleEspinaSlice>::New();
+  //vtkSmartPointer<vtkInteractorStyleTrackballCamera> interactor = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
+  interactor->AutoAdjustCameraClippingRangeOn();
+  interactor->KeyPressActivationOff();
   m_view->GetRenderWindow()->AddRenderer(m_renderer);
-  m_view->GetInteractor()->SetInteractorStyle(vtkInteractorStyleEspinaSlice::New());
+  m_view->GetInteractor()->SetInteractorStyle(interactor);
   m_view->GetRenderWindow()->Render();
+
+  vtkCylinderSource *sphere = vtkCylinderSource::New();
+  sphere->SetCenter(0,0,0);
+  sphere->SetRadius(50);
+  sphere->SetHeight(100);
+
+  vtkPolyDataMapper *mapper = vtkPolyDataMapper::New();
+  mapper->SetInput(sphere->GetOutput());
+
+  vtkActor *actor = vtkActor::New();
+  actor->SetMapper(mapper);
+
+  //m_renderer->AddActor(actor);
+
 
   buildCrosshairs();
 
@@ -231,7 +251,7 @@ void SliceView::updateRuler()
   Nm scale = rulerLength * viewWidth;
   scale = rulerScale(scale);
   rulerLength = scale / viewWidth;
-//   qDebug() << ws[0] << left << right << rulerRatio;
+  //qDebug() << ws[0] << left << right << rulerLength << scale;
   m_ruler->SetRange(0, scale);
   m_ruler->SetPoint2(0.1+rulerLength, 0.1);
   m_ruler->SetVisibility(m_rulerVisibility && rulerLength > 0.05 && rulerLength < 0.8);
@@ -392,7 +412,7 @@ void SliceView::setCrosshairVisibility(bool visible)
 //     boxWidget->SetInteractor(m_view->GetRenderWindow()->GetInteractor());
 //     boxWidget->CreateDefaultRepresentation();
 //     boxWidget->SetPlane(m_plane);
-//     boxWidget->SetEnabled(true);
+////     boxWidget->SetEnabled(true)//;
 //     boxWidget->GetRepresentation()->PlaceWidget(m_range);
 //     boxWidget->On();
 //     vtkRectangularRepresentation *rep = vtkRectangularRepresentation::SafeDownCast(boxWidget->GetRepresentation());
@@ -855,18 +875,6 @@ void SliceView::addChannelRepresentation(Channel* channel)
 
   SliceRep channelRep;
 
-  channelRep.resliceToColors = vtkImageResliceToColors::New();
-  channelRep.resliceToColors->ReleaseDataFlagOn();
-  channelRep.resliceToColors->SetResliceAxes(m_slicingMatrix);
-  channelRep.resliceToColors->SetInputConnection(channel->vtkVolume());
-  channelRep.resliceToColors->SetOutputDimensionality(2);
-
-  channelRep.slice = vtkImageActor::New();
-  channelRep.slice->SetInterpolate(false);
-  channelRep.slice->GetMapper()->BorderOn();
-  channelRep.slice->GetMapper()->SetInputConnection(channelRep.resliceToColors->GetOutputPort());
-  m_state->updateActor(channelRep.slice);
-
   // if hue is -1 then use 0 saturation to make a grayscale image
   double hue = (channel->color() == -1) ? 0 : channel->color();
   double sat = channel->color() >= 0 ? 1.0 : 0.0;
@@ -874,6 +882,7 @@ void SliceView::addChannelRepresentation(Channel* channel)
   channelRep.selected = false;
   channelRep.visible = !channel->isVisible();  // Force initialization
   channelRep.color = channel->color();
+  channel->position(channelRep.pos);
   channelRep.lut = vtkLookupTable::New();
   channelRep.lut->Allocate();
   channelRep.lut->SetTableRange(0,255);
@@ -885,8 +894,20 @@ void SliceView::addChannelRepresentation(Channel* channel)
   channelRep.lut->SetRampToLinear();
   channelRep.lut->Build();
 
+  channelRep.resliceToColors = vtkImageResliceToColors::New();
+  channelRep.resliceToColors->SetResliceAxes(m_slicingMatrix);
+  channelRep.resliceToColors->SetInputConnection(channel->vtkVolume());
+  channelRep.resliceToColors->SetOutputDimensionality(2);
   channelRep.resliceToColors->SetLookupTable(channelRep.lut);
   channelRep.resliceToColors->Update();
+
+  channelRep.slice = vtkImageActor::New();
+  channelRep.slice->SetInterpolate(false);
+  channelRep.slice->GetMapper()->BorderOn();
+  channelRep.slice->GetMapper()->SetInputConnection(channelRep.resliceToColors->GetOutputPort());
+   m_state->updateActor(channelRep.slice);
+  channelRep.slice->Update();
+
 
   m_channels.insert(channel, channelRep);
   m_renderer->AddActor(channelRep.slice);
@@ -904,8 +925,9 @@ void SliceView::removeChannelRepresentation(Channel* channel)
   m_channelPicker->DeletePickList(rep.slice);
 
   m_channels.remove(channel);
-  rep.slice->Delete();
   rep.resliceToColors->Delete();
+  rep.lut->Delete();
+  rep.slice->Delete();
 }
 
 //-----------------------------------------------------------------------------
@@ -969,12 +991,12 @@ void SliceView::addSegmentationRepresentation(Segmentation* seg)
 
   SliceRep segRep;
 
+  seg->filter()->update();
+
   segRep.resliceToColors = vtkImageResliceToColors::New();
-  segRep.resliceToColors->ReleaseDataFlagOn();
   segRep.resliceToColors->SetResliceAxes(m_slicingMatrix);
   segRep.resliceToColors->SetInputConnection(seg->vtkVolume());
   segRep.resliceToColors->SetOutputDimensionality(2);
-
   segRep.resliceToColors->SetLookupTable(m_colorEngine->lut(seg));
   segRep.resliceToColors->Update();
 
@@ -982,6 +1004,7 @@ void SliceView::addSegmentationRepresentation(Segmentation* seg)
   segRep.slice->SetInterpolate(false);
   segRep.slice->GetMapper()->BorderOn();
   segRep.slice->GetMapper()->SetInputConnection(segRep.resliceToColors->GetOutputPort());
+  segRep.slice->Update();
   m_state->updateActor(segRep.slice);
 
   segRep.selected = seg->isSelected();
@@ -1004,8 +1027,9 @@ void SliceView::removeSegmentationRepresentation(Segmentation* seg)
   m_segmentationPicker->DeletePickList(rep.slice);
 
   // itkvtk filter is handled by a smartpointer, these two are not
-  rep.slice->Delete();
   rep.resliceToColors->Delete();
+  rep.lut->Delete();
+  rep.slice->Delete();
 
   m_segmentations.remove(seg);
 
@@ -1101,6 +1125,7 @@ void SliceView::setSegmentationVisibility(bool visible)
   {
     rep.slice->SetVisibility(visible && rep.visible);
   }
+  m_channels[m_channels.keys().first()].slice->SetPosition(0,0,0);
   forceRender();
 }
 
@@ -1134,8 +1159,8 @@ void SliceView::setRulerVisibility(bool visible)
 //-----------------------------------------------------------------------------
 void SliceView::setSliceSelectors(SliceView::SliceSelectors selectors)
 {
-	m_fromSlice->setVisible(selectors.testFlag(From));
-	m_toSlice->setVisible(selectors.testFlag(To));
+  m_fromSlice->setVisible(selectors.testFlag(From));
+  m_toSlice->setVisible(selectors.testFlag(To));
 }
 
 //-----------------------------------------------------------------------------

@@ -22,39 +22,39 @@
 
 QColor TaxonomyColorEngine::color(const Segmentation* seg)
 {
-	if (seg && seg->taxonomy())
-		return seg->taxonomy()->color();
-	else
-		return Qt::red;
+  if (seg && seg->taxonomy())
+    return seg->taxonomy()->color();
+  else
+    return Qt::red;
 }
 
-vtkLookupTable* TaxonomyColorEngine::lut(const Segmentation* seg)
+vtkSmartPointer< vtkLookupTable > TaxonomyColorEngine::lut(const Segmentation* seg)
 {
-	// Get (or create if it doesn't exit) the lut for the segmentations' images
-	QString lutName = seg->taxonomy()->qualifiedName();
-	if (seg->isSelected())
-		lutName.append("_selected");
+  // Get (or create if it doesn't exit) the lut for the segmentations' images
+  QString lutName = seg->taxonomy()->qualifiedName();
+  if (seg->isSelected())
+    lutName.append("_selected");
 
-	vtkLookupTable *seg_lut;
+  vtkSmartPointer<vtkLookupTable> seg_lut;
 
-	if (m_LUT.find(lutName) == m_LUT.end())
-	{
-		double alpha = (seg->isSelected() ? 1.0 : 0.7);
-		QColor c = color(seg);
+  if (m_LUT.find(lutName) == m_LUT.end())
+  {
+    double alpha = (seg->isSelected() ? 1.0 : 0.7);
+    QColor c = color(seg);
 
-		seg_lut = vtkLookupTable::New();
-		seg_lut->Allocate();
-		seg_lut->SetNumberOfTableValues(2);
-		seg_lut->Build();
-		seg_lut->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
-		seg_lut->SetTableValue(1, c.redF(), c.greenF(), c.blueF(), alpha);
-		seg_lut->Modified();
+    seg_lut = vtkLookupTable::New();
+    seg_lut->Allocate();
+    seg_lut->SetNumberOfTableValues(2);
+    seg_lut->Build();
+    seg_lut->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
+    seg_lut->SetTableValue(1, c.redF(), c.greenF(), c.blueF(), alpha);
+    seg_lut->Modified();
 
-		m_LUT.insert(lutName, seg_lut);
-	}
-	else
-		seg_lut = m_LUT.find(lutName).value();
+    m_LUT.insert(lutName, seg_lut);
+  }
+  else
+    seg_lut = m_LUT.find(lutName).value();
 
-	return seg_lut;
+  return seg_lut;
 }
 

@@ -23,10 +23,9 @@
 
 class NumberColorEngine: public ColorEngine
 {
-
-	public:
-		virtual QColor color(const Segmentation* seg);
-		virtual vtkLookupTable* lut(const Segmentation* seg);
+public:
+  virtual QColor color(const Segmentation* seg);
+  virtual vtkSmartPointer<vtkLookupTable> lut(const Segmentation* seg);
 };
 
 #endif // NUMBERCOLORENGINE_H

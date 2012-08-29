@@ -208,9 +208,9 @@ protected:
 private:
   struct SliceRep
   {
-    vtkImageResliceToColors *resliceToColors;
+    vtkSmartPointer<vtkImageResliceToColors> resliceToColors;
+    vtkSmartPointer<vtkLookupTable> lut;
     vtkImageActor *slice;
-    vtkLookupTable *lut;
     bool visible;
     bool selected;
     QColor color;

@@ -100,8 +100,8 @@ public:
   void bounds(double out[6]);
   void spacing(double out[3]);
 
-  void setPosition(double pos[3]);
-  void position(double pos[3]);
+  void setPosition(Nm pos[3]);
+  void position(Nm pos[3]);
 
   void setColor(double color);
   double color() const;
@@ -144,7 +144,7 @@ private:
   friend class EspinaFactory;
 private:
   bool   m_visible;
-  double m_pos[3];/*in nm*/
+  Nm m_pos[3];
 
   Filter            *m_filter;
   mutable CArguments m_args;

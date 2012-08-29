@@ -53,6 +53,7 @@ Channel::Channel(Filter* filter, OutputNumber outputNumber)
 : m_visible(true)
 , m_filter(filter)
 {
+  memset(m_pos, 0, 3*sizeof(Nm));
   m_args.setOutputNumber(outputNumber);
 }
 
@@ -111,15 +112,15 @@ void Channel::spacing(double out[3])
 }
 
 //------------------------------------------------------------------------
-void Channel::setPosition(double pos[3])
+void Channel::setPosition(Nm pos[3])
 {
-  memcpy(m_pos, pos, 3*sizeof(double));
+  memcpy(m_pos, pos, 3*sizeof(Nm));
 }
 
 //------------------------------------------------------------------------
-void Channel::position(double pos[3])
+void Channel::position(Nm pos[3])
 {
-  memcpy(pos, m_pos, 3*sizeof(double));
+  memcpy(pos, m_pos, 3*sizeof(Nm));
 }
 
 //------------------------------------------------------------------------
