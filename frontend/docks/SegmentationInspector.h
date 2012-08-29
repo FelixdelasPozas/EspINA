@@ -23,8 +23,11 @@
 #include <QDialog>
 #include "ui_SegmentationInspector.h"
 
-class VolumeView;
-class pqRenderView;
+#include <model/EspinaModel.h>
+#include "DataView/InformationProxy.h"
+
+#include <QSortFilterProxyModel>
+
 class Segmentation;
 
 class SegmentationInspector
@@ -45,7 +48,9 @@ protected:
 
 private:
   Segmentation *m_seg;
-  VolumeView   *m_view;
+  QSharedPointer<EspinaModel> m_model;
+  QSharedPointer<InformationProxy> m_info;
+  QSharedPointer<QSortFilterProxyModel> m_sort;
 
   static QMap<Segmentation *, SegmentationInspector *> m_inspectors;
 };

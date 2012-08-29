@@ -52,7 +52,7 @@ public:
   // Remove all items rendered by the Renderer
   virtual void clean() {}
 
-  virtual Renderer *clone() {return NULL;}
+  virtual Renderer *clone() = 0;
 
   // get number of vtkActors added to vtkRendered from this Renderer
   virtual unsigned int getNumberOfvtkActors(void) { return 0; }

@@ -144,6 +144,7 @@ private:
 
   QList<Segmentation *> m_segmentations;
   QList<ModelItem*> m_addedItems;
+  QList<Renderer *> m_itemRenderers;
 };
 
 #endif // VOLUMEVIEW_H

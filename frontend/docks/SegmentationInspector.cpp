@@ -25,6 +25,7 @@
 #include <model/Segmentation.h>
 #include <model/Filter.h>
 #include <gui/VolumeView.h>
+#include <EspinaCore.h>
 
 QMap<Segmentation *, SegmentationInspector *> SegmentationInspector::m_inspectors;
 
@@ -46,12 +47,11 @@ SegmentationInspector* SegmentationInspector::CreateInspector(Segmentation* seg)
 SegmentationInspector::SegmentationInspector(Segmentation *seg, QWidget* parent, Qt::WindowFlags f)
 : QWidget(parent, f)
 , m_seg(seg)
-, m_view(NULL)
+, m_model(EspinaCore::instance()->model())
+, m_info(new InformationProxy())
+, m_sort(new QSortFilterProxyModel())
 {
   setupUi(this);
-
-  m_view = new VolumeView();
-  this->hlayout->insertWidget(0, m_view);
 
   m_view->addSegmentationRepresentation(seg);
   m_view->resetCamera();
@@ -60,11 +60,21 @@ SegmentationInspector::SegmentationInspector(Segmentation *seg, QWidget* parent,
   connect(seg, SIGNAL(modified(ModelItem*)),
 	  this, SLOT(updateScene()));
 
-  ModelItem::Vector filters = seg->relatedItems(ModelItem::IN, "CreateSegmentation");
-  Q_ASSERT(filters.size() > 0);
-  Filter *filter = dynamic_cast<Filter *>(filters.first());
+  Filter *filter = seg->filter();
   Q_ASSERT(filter);
-  this->pluginLayout->insertWidget(0, filter->createConfigurationWidget());
+  QWidget *widget = filter->createConfigurationWidget();
+  m_filterInspector->setWidget(widget);
+  m_filterInspector->setMinimumWidth(widget->minimumSize().width());;
+
+  m_info->setQuery(seg->availableInformations());
+  m_info->setSourceModel(m_model.data());
+  m_sort->setSourceModel(m_info.data());
+  m_sort->setFilterRegExp(seg->data().toString());
+  m_sort->setDynamicSortFilter(true);
+
+  m_dataView->setModel(m_sort.data());
+  m_dataView->setSortingEnabled(true);// Needed to update values when segmentation is modified
+  m_dataView->sortByColumn(0, Qt::AscendingOrder);
 
   m_inspectors[m_seg] = this;
 }
@@ -79,8 +89,6 @@ void SegmentationInspector::closeEvent(QCloseEvent *e)
 //------------------------------------------------------------------------
 SegmentationInspector::~SegmentationInspector()
 {
-  delete m_view;
-
   m_inspectors.remove(m_seg);
 }
 
@@ -90,22 +98,3 @@ void SegmentationInspector::updateScene()
   m_view->updateSegmentationRepresentation(m_seg);
   m_view->forceRender();
 }
-
-// //------------------------------------------------------------------------
-// void SegmentationInspector::takeSnapshot()
-// {
-//   QString fileName = QFileDialog::getSaveFileName(this,
-//      tr("Save Scene"), "", tr("Image Files (*.jpg *.png)"));
-//   m_view->saveImage(1024,768,fileName);
-// }
-// 
-// //------------------------------------------------------------------------
-// void SegmentationInspector::exportScene()
-// {
-//   pqViewExporterManager *exporter = new pqViewExporterManager();
-//   exporter->setView(m_view);
-//   QString fileName = QFileDialog::getSaveFileName(this,
-//      tr("Save Scene"), "", tr("3D Scene (*.x3d *.pov *.vrml)"));
-//   exporter->write(fileName);
-//   delete exporter;
-// }

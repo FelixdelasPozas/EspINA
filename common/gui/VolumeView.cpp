@@ -98,21 +98,16 @@ void VolumeView::addRendererControls(Renderer* renderer)
   button->setObjectName(renderer->name());
   connect(button, SIGNAL(clicked(bool)), renderer, SLOT(setEnable(bool)));
   connect(button, SIGNAL(clicked(bool)), this, SLOT(countEnabledRenderers(bool)));
+  connect(button, SIGNAL(destroyed(QObject*)), renderer, SLOT(deleteLater()));
   connect(renderer, SIGNAL(renderRequested()), this, SLOT(forceRender()));
   m_controlLayout->addWidget(button);
   renderer->setVtkRenderer(this->m_renderer);
 
   // add all model items to the renderer
-  if (!m_addedItems.empty())
-  {
-    QList<ModelItem *>::Iterator it = m_addedItems.begin();
+  foreach(ModelItem *item, m_addedItems)
+    renderer->addItem(item);
 
-    while (it != m_addedItems.end())
-    {
-      renderer->addItem(*it);
-      it++;
-    }
-  }
+  m_itemRenderers << renderer;
 }
 
 //-----------------------------------------------------------------------------
@@ -130,6 +125,8 @@ void VolumeView::removeRendererControls(Renderer* renderer)
       delete button;
     }
   }
+  m_itemRenderers.removeAll(renderer);
+  delete renderer;
 }
 
 //-----------------------------------------------------------------------------
@@ -151,7 +148,7 @@ void VolumeView::buildControls()
   m_export.setIconSize(QSize(22,22));
   m_export.setMaximumSize(QSize(32,32));
   connect(&m_export,SIGNAL(clicked(bool)),this,SLOT(exportScene()));
-  
+
   QSpacerItem * horizontalSpacer = new QSpacerItem(4000, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
   m_controlLayout->addWidget(&m_snapshot);
@@ -159,7 +156,7 @@ void VolumeView::buildControls()
   m_controlLayout->addItem(horizontalSpacer);
 
   foreach(Renderer* renderer, m_settings->renderers())
-    this->addRendererControls(renderer);
+    this->addRendererControls(renderer->clone());
 
   m_mainLayout->addLayout(m_controlLayout);
 }
@@ -176,12 +173,14 @@ void VolumeView::centerViewOn(Nm center[3])
 
   memcpy(m_center, center, 3*sizeof(double));
 
-  foreach(Renderer* ren, this->m_settings->renderers())
+  foreach(Renderer* ren, m_itemRenderers)
+  {
     if (QString("Crosshairs") == ren->name())
     {
       CrosshairRenderer *crossren = reinterpret_cast<CrosshairRenderer *>(ren);
       crossren->setCrosshair(center);
     }
+  }
 
   forceRender();
 }
@@ -202,7 +201,7 @@ void VolumeView::resetCamera()
 void VolumeView::addChannelRepresentation(Channel* channel)
 {
   m_addedItems << channel;
-  foreach(Renderer* renderer, m_settings->renderers())
+  foreach(Renderer* renderer, m_itemRenderers)
     renderer->addItem(channel);
 }
 
@@ -213,10 +212,9 @@ bool VolumeView::updateChannelRepresentation(Channel* channel)
     return false;
 
   bool updated = false;
-  foreach(Renderer* renderer, m_settings->renderers())
-  {
+  foreach(Renderer* renderer, m_itemRenderers)
     updated = renderer->updateItem(channel) | updated;
-  }
+
   return updated;
 }
 
@@ -224,7 +222,8 @@ bool VolumeView::updateChannelRepresentation(Channel* channel)
 void VolumeView::removeChannelRepresentation(Channel* channel)
 {
   m_addedItems.removeAll(channel);
-  foreach(Renderer* renderer, m_settings->renderers())
+
+  foreach(Renderer* renderer, m_itemRenderers)
     renderer->removeItem(channel);
 }
 
@@ -235,7 +234,7 @@ void VolumeView::addSegmentationRepresentation(Segmentation *seg)
   Q_ASSERT(!m_segmentations.contains(seg));
 
   m_addedItems << seg;
-  foreach(Renderer* renderer, m_settings->renderers())
+  foreach(Renderer* renderer, m_itemRenderers)
     renderer->addItem(seg);
 
   m_segmentations << seg;
@@ -248,10 +247,9 @@ bool VolumeView::updateSegmentationRepresentation(Segmentation* seg)
     return false;
 
   bool updated = false;
-  foreach(Renderer* renderer, m_settings->renderers())
-  {
+  foreach(Renderer* renderer, m_itemRenderers)
     updated = renderer->updateItem(seg) | updated;
-  }
+
   return updated;
 }
 
@@ -261,7 +259,7 @@ void VolumeView::removeSegmentationRepresentation(Segmentation* seg)
   Q_ASSERT(m_segmentations.contains(seg));
 
   m_addedItems.removeAll(seg);
-  foreach(Renderer* renderer, m_settings->renderers())
+  foreach(Renderer* renderer, m_itemRenderers)
     renderer->removeItem(seg);
 
   m_segmentations.removeOne(seg);
@@ -399,7 +397,7 @@ void VolumeView::exportScene()
 {
   // only mesh actors are exported in a 3D scene, not volumes
   unsigned int numActors = 0;
-  foreach(Renderer* renderer, m_settings->renderers())
+  foreach(Renderer* renderer, m_itemRenderers)
     numActors += renderer->getNumberOfvtkActors();
 
   if (0 == numActors)
@@ -615,7 +613,7 @@ QList<Renderer*> VolumeView::Settings::renderers() const
 //-----------------------------------------------------------------------------
 void VolumeView::changePlanePosition(PlaneType plane, Nm dist)
 {
-  foreach(Renderer* ren, this->m_settings->renderers())
+  foreach(Renderer* ren, m_itemRenderers)
     if (QString("Crosshairs") == ren->name())
     {
       CrosshairRenderer *crossren = reinterpret_cast<CrosshairRenderer *>(ren);
