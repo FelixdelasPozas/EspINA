@@ -190,6 +190,27 @@ SegmhaImporterFilter::~SegmhaImporterFilter()
 }
 
 //-----------------------------------------------------------------------------
+QVariant SegmhaImporterFilter::data(int role) const
+{
+  if (role == Qt::DisplayRole)
+    return TYPE;
+  else
+    return QVariant();
+}
+
+//-----------------------------------------------------------------------------
+QString SegmhaImporterFilter::serialize() const
+{
+  QStringList blockList;
+  foreach(OutputNumber i, m_outputs.keys())
+    blockList << QString::number(i);
+
+  m_args[BLOCKS] = blockList.join(",");
+  return Filter::serialize();
+}
+
+
+//-----------------------------------------------------------------------------
 void SegmhaImporterFilter::markAsModified()
 {
   Filter::markAsModified();
@@ -198,7 +219,7 @@ void SegmhaImporterFilter::markAsModified()
 //-----------------------------------------------------------------------------
 bool SegmhaImporterFilter::needUpdate() const
 {
-  return m_lmapReader.IsNull() || m_needUpdate;
+  return m_sources.isEmpty() || m_needUpdate;
 }
 
 //-----------------------------------------------------------------------------
@@ -297,35 +318,39 @@ void SegmhaImporterFilter::run()
   Image2LabelFilterType::Pointer image2label =
     Image2LabelFilterType::New();
   image2label->SetInput(vtk2itk_filter->GetOutput());
-  image2label->Update();//TODO: Check if needed
+  image2label->Update();
 
   LabelMapType *labelMap = image2label->GetOutput();
   qDebug() << "Number of Label Objects" << labelMap->GetNumberOfLabelObjects();
 
   LabelObjectType * object;
+  OutputNumber id = 0;
   foreach(SegmentationObject seg, metaData)
   {
     try
     {
       //qDebug() << "Loading Segmentation " << seg.label;
-      Output output;
+      Source source;
 
       object = labelMap->GetLabelObject(seg.label);
       LabelObjectType::RegionType region = object->GetBoundingBox();
 
-      output.labelMap = LabelMapType::New();
-      output.labelMap->SetSpacing(labelMap->GetSpacing());
-      output.labelMap->SetRegions(region);
-      output.labelMap->Allocate();
+      source.labelMap = LabelMapType::New();
+      source.labelMap->SetSpacing(labelMap->GetSpacing());
+      source.labelMap->SetRegions(region);
+      source.labelMap->Allocate();
       object->SetLabel(SEG_VOXEL_VALUE);
-      output.labelMap->AddLabelObject(object);
-      output.labelMap->Update();
+      source.labelMap->AddLabelObject(object);
+      source.labelMap->Update();
 
-      output.image = Label2ImageFilterType::New();
-      output.image->SetInput(output.labelMap);
-      output.image->Update();
+      Label2ImageFilterType::Pointer image = Label2ImageFilterType::New();
+      image->SetInput(source.labelMap);
+      image->Update();
 
-      m_volumes << output;
+      source.image = image;
+
+      m_outputs[id++] = image->GetOutput();
+      m_sources << source;
       m_taxonomies << taxonomies[seg.taxonomyId-1];
       m_labels << seg.label;
     } catch (...)
@@ -336,33 +361,25 @@ void SegmhaImporterFilter::run()
 }
 
 //-----------------------------------------------------------------------------
-QVariant SegmhaImporterFilter::data(int role) const
-{
-  if (role == Qt::DisplayRole)
-    return TYPE;
-  else
-    return QVariant();
-}
-
-//-----------------------------------------------------------------------------
-int SegmhaImporterFilter::numberOutputs() const
-{
-  return m_volumes.size();
-}
-
-//-----------------------------------------------------------------------------
-EspinaVolume* SegmhaImporterFilter::output(OutputNumber i) const
-{
-  if (i < m_volumes.size())
-    return m_volumes.value(i).image->GetOutput();
-  else
-    return NULL;
-}
-
-//-----------------------------------------------------------------------------
 bool SegmhaImporterFilter::prefetchFilter()
 {
-  return Filter::prefetchFilter();
+  QStringList blockList = m_args[BLOCKS].split(",");
+
+  foreach(QString block, blockList)
+  {
+    QString tmpFile = id() + "_" + block + ".mhd";
+    Source source;
+    source.image = tmpFileReader(tmpFile);
+
+    if (source.image.IsNull())
+      return false;
+
+    m_outputs[block.toInt()] = source.image->GetOutput();
+    m_sources << source;
+  }
+
+  emit modified(this);
+  return true;
 }
 
 //-----------------------------------------------------------------------------

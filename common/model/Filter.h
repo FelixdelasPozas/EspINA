@@ -116,7 +116,7 @@ protected:
 protected:
   QList<EspinaVolume *> m_inputs;
   NamedInputs           m_namedInputs;
-  Arguments             m_args;
+  mutable Arguments     m_args;
 
   QStringList        m_editedOutputs;
   QMap<OutputNumber, EspinaVolume::Pointer> m_outputs;

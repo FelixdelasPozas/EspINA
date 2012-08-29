@@ -70,10 +70,12 @@ typedef itk::ExtractImageFilter<EspinaVolume, EspinaVolume> ExtractFilterType;
     QColor color;
   };
 
-  struct Output
+  typedef itk::ImageSource<EspinaVolume> EspinaSource;
+
+  struct Source
   {
     LabelMapType::Pointer labelMap;
-    Label2ImageFilterType::Pointer image;
+    EspinaSource::Pointer image;
   };
 
 public:
@@ -107,13 +109,11 @@ public:
 
   // Implements Model Item Interface
   virtual QVariant data(int role=Qt::DisplayRole) const;
+  virtual QString serialize() const;
 
   // Implements Filter Interface
   virtual void markAsModified();
   virtual bool needUpdate() const;
-  virtual int numberOutputs() const;
-  virtual EspinaVolume* output(OutputNumber i) const;
-  virtual bool prefetchFilter();
 
   /// Return full taxonomy contained in segmha's meta-data
   Taxonomy *taxonomy() {return m_taxonomy;}
@@ -124,12 +124,13 @@ public:
 
 protected:
   virtual void run();
+  virtual bool prefetchFilter();
 
 private:
   bool       m_needUpdate;
   Parameters m_param;
   LabelMapReader::Pointer m_lmapReader;
-  QList<Output>           m_volumes;
+  QList<Source>           m_sources;
 
   QList<TaxonomyNode *>   m_taxonomies;
   QList<int>              m_labels;
