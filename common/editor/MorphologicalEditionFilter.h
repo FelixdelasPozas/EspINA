@@ -51,9 +51,6 @@ public:
                                       Arguments args);
   virtual ~MorphologicalEditionFilter();
 
-  /// Implements Filter Interface
-  virtual QWidget* createConfigurationWidget();
-
   unsigned int radius() const {return m_params.radius();}
   void setRadius(int radius) {m_params.setRadius(radius); m_needUpdate = true;}
 

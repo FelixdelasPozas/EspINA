@@ -30,11 +30,11 @@
 #include <QApplication>
 
 //----------------------------------------------------------------------------
-CODESettings::CODESettings(MorphologicalEditionFilter *filter)
+CODESettings::CODESettings(MorphologicalEditionFilter* filter, QString title)
 : QWidget()
 , m_filter(filter)
 {
-  QGroupBox *group = new QGroupBox(tr("Morphological Edition Tool"), this);
+  QGroupBox *group = new QGroupBox(title, this);
   QLabel *label = new QLabel(tr("Radius"));
   m_spinbox = new QSpinBox();
   m_spinbox->setMinimum(0);
@@ -60,6 +60,9 @@ CODESettings::CODESettings(MorphologicalEditionFilter *filter)
 
   connect(modifyButton, SIGNAL(clicked(bool)),
           this, SLOT(modifyFilter()));
+
+  setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
+  setMinimumWidth(150);
 }
 
 //----------------------------------------------------------------------------

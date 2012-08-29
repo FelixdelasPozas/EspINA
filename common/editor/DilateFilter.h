@@ -21,10 +21,13 @@
 #define DILATEFILTER_H
 
 #include "MorphologicalEditionFilter.h"
+
 #include <model/Segmentation.h>
+#include <common/editor/CODESettings.h>
 
 #include <itkBinaryBallStructuringElement.h>
 #include <itkDilateObjectMorphologyImageFilter.h>
+
 
 
 class DilateFilter
@@ -43,6 +46,9 @@ public:
 
   /// Implements Model Item Interface
   virtual QVariant data(int role=Qt::DisplayRole) const;
+
+  virtual QWidget* createConfigurationWidget()
+  { return new CODESettings(this, tr("Dilate")); }
 
 protected:
   /// Implements Filter Interface

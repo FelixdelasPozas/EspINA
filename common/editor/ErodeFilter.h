@@ -21,6 +21,7 @@
 #define ERODEFILTER_H
 
 #include "MorphologicalEditionFilter.h"
+#include "CODESettings.h"
 
 #include <itkBinaryBallStructuringElement.h>
 #include <itkErodeObjectMorphologyImageFilter.h>
@@ -42,6 +43,8 @@ public:
   /// Implements Model Item Interface
   virtual QVariant data(int role=Qt::DisplayRole) const;
 
+  virtual QWidget* createConfigurationWidget()
+  { return new CODESettings(this, tr("Erode")); }
 protected:
   /// Implements Filter Interface
   void run();

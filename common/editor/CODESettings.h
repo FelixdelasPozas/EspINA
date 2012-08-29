@@ -30,7 +30,7 @@ class CODESettings
 {
   Q_OBJECT
 public:
-  explicit CODESettings(MorphologicalEditionFilter *filter);
+  explicit CODESettings(MorphologicalEditionFilter *filter, QString title);
   virtual ~CODESettings();
 
 protected slots:

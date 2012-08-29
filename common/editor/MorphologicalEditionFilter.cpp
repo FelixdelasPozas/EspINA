@@ -63,9 +63,3 @@ bool MorphologicalEditionFilter::prefetchFilter()
 
   return Filter::prefetchFilter();
 }
-
-//-----------------------------------------------------------------------------
-QWidget* MorphologicalEditionFilter::createConfigurationWidget()
-{
-  return new CODESettings(this);
-}

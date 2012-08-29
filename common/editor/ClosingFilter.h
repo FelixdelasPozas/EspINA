@@ -21,6 +21,7 @@
 #define CLOSINGFILTER_H
 
 #include "MorphologicalEditionFilter.h"
+#include "CODESettings.h"
 
 #include <itkBinaryBallStructuringElement.h>
 #include <itkBinaryMorphologicalClosingImageFilter.h>
@@ -42,6 +43,9 @@ public:
 
   /// Implements Model Item Interface
   virtual QVariant data(int role=Qt::DisplayRole) const;
+
+  virtual QWidget* createConfigurationWidget()
+  { return new CODESettings(this, tr("Close")); }
 
 protected:
   /// Implements Filter Interface
