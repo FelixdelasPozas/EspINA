@@ -901,6 +901,7 @@ void SliceView::removeChannelRepresentation(Channel* channel)
 
   SliceRep rep = m_channels[channel];
   m_renderer->RemoveActor(rep.slice);
+  m_channelPicker->DeletePickList(rep.slice);
 
   m_channels.remove(channel);
   rep.slice->Delete();

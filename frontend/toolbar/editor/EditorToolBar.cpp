@@ -359,7 +359,7 @@ void EditorToolBar::startDrawing(bool draw)
     {
       m_currentSeg = selSegs.first();
       m_currentSource = m_currentSeg->filter();
-      qDebug() << "Editing" << m_currentSeg->data().toString();
+//       qDebug() << "Editing" << m_currentSeg->data().toString();
     }
     SelectionManager::instance()->setSelectionHandler(m_pencilSelector);
   }

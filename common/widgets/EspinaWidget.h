@@ -45,6 +45,7 @@ public:
   virtual ~EspinaWidget(){}
 
   virtual vtkAbstractWidget *createWidget() = 0;
+  virtual void deleteWidget(vtkAbstractWidget *widget) = 0;
   virtual SliceWidget *createSliceWidget(PlaneType plane) = 0;
 
   virtual void setEnabled(bool enable) = 0;

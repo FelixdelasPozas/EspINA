@@ -101,6 +101,30 @@ QString AdaptiveBoundingRegion::serialize() const
 }
 
 //-----------------------------------------------------------------------------
+vtkAbstractWidget* AdaptiveBoundingRegion::createWidget()
+{
+  vtkBoundingRegion3DWidget *w = vtkBoundingRegion3DWidget::New();
+  Q_ASSERT(w);
+  w->SetBoundingRegion(m_boundingRegion);
+
+  m_widgets << w;
+
+  return w;
+}
+
+//-----------------------------------------------------------------------------
+void AdaptiveBoundingRegion::deleteWidget(vtkAbstractWidget* widget)
+{
+  widget->Off();
+  widget->RemoveAllObservers();
+
+  vtkBoundingRegionWidget *brw = dynamic_cast<vtkBoundingRegionWidget *>(widget);
+  m_widgets.removeAll(brw);
+
+  widget->Delete();
+}
+
+//-----------------------------------------------------------------------------
 SliceWidget* AdaptiveBoundingRegion::createSliceWidget(PlaneType plane)
 {
   vtkBoundingRegionSliceWidget *w = vtkBoundingRegionSliceWidget::New();
@@ -114,17 +138,6 @@ SliceWidget* AdaptiveBoundingRegion::createSliceWidget(PlaneType plane)
   return new AdaptiveRegionWidget(w);
 }
 
-//-----------------------------------------------------------------------------
-vtkAbstractWidget* AdaptiveBoundingRegion::createWidget()
-{
-  vtkBoundingRegion3DWidget *w = vtkBoundingRegion3DWidget::New();
-  Q_ASSERT(w);
-  w->SetBoundingRegion(m_boundingRegion);
-
-  m_widgets << w;
-
-  return w;
-}
 
 //-----------------------------------------------------------------------------
 void AdaptiveBoundingRegion::setEnabled(bool enable)

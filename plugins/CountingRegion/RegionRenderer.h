@@ -20,24 +20,41 @@
 #ifndef REGIONRENDERER_H
 #define REGIONRENDERER_H
 
-#include "EspinaPlugin.h"
-
 #include <QMap>
+#include <common/pluginInterfaces/Renderer.h>
 
+class BoundingRegion;
+class CountingRegion;
 class Sample;
-class pqPipelineSource;
+class vtkAbstractWidget;
 
-class RegionRenderer : public IViewWidget
+class RegionRenderer
+: public Renderer
 {
   Q_OBJECT
 public:
-  RegionRenderer(QWidget* parent = 0);
-  
-  virtual IViewWidget* clone();
-  
+  explicit RegionRenderer(CountingRegion *plugin);
+  virtual ~RegionRenderer();
+
+  virtual const QIcon icon() const
+  { return QIcon(":/apply.svg"); }
+  virtual const QString name() const
+  { return tr("Counting Region");}
+  virtual const QString tooltip() const
+  { return tr("Counting Region's Borders");}
+
+  virtual void hide();
+  virtual void show();
+
+  virtual Renderer* clone();
+
 public slots:
-  virtual void updateState(bool checked);
-  virtual void renderInView(QModelIndex index, pqView* view);
+  void regionCreated(BoundingRegion *region);
+  void regionRemoved(BoundingRegion *region);
+
+private:
+  CountingRegion *m_plugin;
+  QMap<BoundingRegion *, vtkAbstractWidget *> m_widgets;
 };
 
 #endif // REGIONRENDERER_H

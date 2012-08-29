@@ -87,6 +87,31 @@ QString RectangularBoundingRegion::serialize() const
 }
 
 
+
+//-----------------------------------------------------------------------------
+vtkAbstractWidget *RectangularBoundingRegion::createWidget()
+{
+  vtkBoundingRegion3DWidget *w = vtkBoundingRegion3DWidget::New();
+  Q_ASSERT(w);
+  w->SetBoundingRegion(m_boundingRegion);
+
+  m_widgets << w;
+
+  return w;
+}
+
+//-----------------------------------------------------------------------------
+void RectangularBoundingRegion::deleteWidget(vtkAbstractWidget* widget)
+{
+  widget->Off();
+  widget->RemoveAllObservers();
+
+  vtkBoundingRegionWidget *brw = dynamic_cast<vtkBoundingRegionWidget *>(widget);
+  m_widgets.removeAll(brw);
+
+  widget->Delete();
+}
+
 //-----------------------------------------------------------------------------
 SliceWidget* RectangularBoundingRegion::createSliceWidget(PlaneType plane)
 {
@@ -99,18 +124,6 @@ SliceWidget* RectangularBoundingRegion::createSliceWidget(PlaneType plane)
   m_widgets << w;
 
   return new SliceWidget(w);
-}
-
-//-----------------------------------------------------------------------------
-vtkAbstractWidget *RectangularBoundingRegion::createWidget()
-{
-  vtkBoundingRegion3DWidget *w = vtkBoundingRegion3DWidget::New();
-  Q_ASSERT(w);
-  w->SetBoundingRegion(m_boundingRegion);
-
-  m_widgets << w;
-
-  return w;
 }
 
 //-----------------------------------------------------------------------------

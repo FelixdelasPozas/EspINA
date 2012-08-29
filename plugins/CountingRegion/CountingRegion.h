@@ -27,6 +27,7 @@
 #include <common/model/EspinaModel.h>
 #include <QStandardItemModel>
 
+class BoundingRegion;
 class Channel;
 // Forward declaration
 
@@ -40,6 +41,8 @@ class CountingRegion
 public:
   static const QString ID;
 
+  typedef QList<BoundingRegion *> RegionList;
+
 public:
   explicit CountingRegion(QWidget* parent=NULL);
   virtual ~CountingRegion();
@@ -50,6 +53,8 @@ public:
   void createRectangularRegion(Channel *channel,
                                Nm inclusion[3],
                                Nm exclusion[3]);
+
+  RegionList regions() const {return m_regions;}
 
 protected slots:
   void clearBoundingRegions();
@@ -64,10 +69,15 @@ protected slots:
 
   virtual void reset(){}
 
+signals:
+  void regionCreated(BoundingRegion *);
+  void regionRemoved(BoundingRegion *);
+
 private:
   GUI *m_gui;
   QStandardItemModel m_regionModel;
   QSharedPointer<EspinaModel> m_espinaModel;
+  RegionList m_regions;
 };
 
 #endif // COUNTINGREGION_H

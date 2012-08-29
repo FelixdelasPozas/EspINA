@@ -38,6 +38,7 @@ qt4_wrap_ui (UI_BUILT_SOURCES
 # We need to wrap for Qt stuff such as signals/slots etc. to work correctly.
 qt4_wrap_cpp(MOC_SRCS 
   CountingRegion.h
+  RegionRenderer.h
   extensions/CountingRegionSegmentationExtension.h
   regions/BoundingRegion.h
   )
@@ -46,6 +47,7 @@ qt4_wrap_cpp(MOC_SRCS
 # file ( GLOB LOCAL_SOURCES *.cpp )
 set (LOCAL_SOURCES
   CountingRegion.cpp
+  RegionRenderer.cpp
   extensions/CountingRegionChannelExtension.cpp
   extensions/CountingRegionSegmentationExtension.cpp
   )

@@ -40,8 +40,9 @@ public:
   virtual QString serialize() const;
 
   // Implements EspinaWidget itnerface
-  virtual SliceWidget *createSliceWidget(PlaneType plane);
   virtual vtkAbstractWidget *createWidget();
+  virtual void deleteWidget(vtkAbstractWidget* widget);
+  virtual SliceWidget *createSliceWidget(PlaneType plane);
 
   virtual void setEnabled(bool enable);
 

@@ -29,6 +29,7 @@
 #include "regions/AdaptiveBoundingRegion.h"
 #include "extensions/CountingRegionSegmentationExtension.h"
 #include "extensions/CountingRegionChannelExtension.h"
+#include "RegionRenderer.h"
 
 #include <QFileDialog>
 
@@ -125,6 +126,7 @@ CountingRegion::CountingRegion(QWidget * parent)
   EspinaFactory::instance()->registerChannelExtension(channelExtension);
   SegmentationExtension::SPtr segExtension(new CountingRegionSegmentationExtension());
   EspinaFactory::instance()->registerSegmentationExtension(segExtension);
+  EspinaFactory::instance()->registerRenderer(new RegionRenderer(this));
 
   m_gui->regionView->setModel(&m_regionModel);
   m_regionModel.setHorizontalHeaderItem(0, new QStandardItem(tr("Name")));
@@ -176,6 +178,8 @@ void CountingRegion::createAdaptiveRegion(Channel *channel,
   m_regionModel.appendRow(region);
   view->addWidget(region);
   m_gui->removeRegion->setEnabled(true);
+  m_regions << region;
+  emit regionCreated(region);
 }
 
 //------------------------------------------------------------------------
@@ -198,6 +202,8 @@ void CountingRegion::createRectangularRegion(Channel *channel,
   m_regionModel.appendRow(region);
   view->addWidget(region);
   m_gui->removeRegion->setEnabled(true);
+  m_regions << region;
+  emit regionCreated(region);
 }
 
 //------------------------------------------------------------------------
@@ -244,11 +250,13 @@ void CountingRegion::removeSelectedBoundingRegion()
   if (selectedRegion >= 0 && selectedRegion < m_regionModel.rowCount())
   {
     QStandardItem *item = m_regionModel.item(selectedRegion);
-    BoundingRegion *widget = dynamic_cast<BoundingRegion *>(item);
-    Q_ASSERT(widget);
+    BoundingRegion *region = dynamic_cast<BoundingRegion *>(item);
+    Q_ASSERT(region);
     EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
-    view->removeWidget(widget);
-    delete widget;
+    view->removeWidget(region);
+    m_regions.removeAll(region);
+    emit regionRemoved(region);
+    delete region;
     view->forceRender();
     m_regionModel.removeRow(selectedRegion);
   }

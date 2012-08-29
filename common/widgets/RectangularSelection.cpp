@@ -52,6 +52,12 @@ vtkAbstractWidget* RectangularRegion::createWidget()
 {
   return NULL;
 }
+//----------------------------------------------------------------------------
+void RectangularRegion::deleteWidget(vtkAbstractWidget* widget)
+{
+  Q_ASSERT(false);
+}
+
 
 //----------------------------------------------------------------------------
 SliceWidget* RectangularRegion::createSliceWidget(PlaneType plane)
