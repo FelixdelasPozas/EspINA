@@ -69,10 +69,13 @@ SeedGrowSegmentationFilter::~SeedGrowSegmentationFilter()
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::markAsModified()
 {
-  if (bmcif.IsNull())
-    extractFilter->Modified();
-  else
-    bmcif->Modified();
+  if (m_outputs.contains(0))
+    m_outputs[0]->Modified();
+  
+//   if (bmcif.IsNull())
+//     extractFilter->Modified();
+//   else
+//     bmcif->Modified();
 }
 
 //-----------------------------------------------------------------------------
