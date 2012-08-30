@@ -107,8 +107,6 @@ protected slots:
 
   void channelSelected(Channel *channel);
   void segmentationSelected(Segmentation *seg, bool append);
-  void updateSelection(SelectionManager::Selection selection);
-
 
   void initSliceView(SliceView *view);
 

@@ -585,25 +585,6 @@ void DefaultEspinaView::segmentationSelected(Segmentation* seg, bool append)
 }
 
 //-----------------------------------------------------------------------------
-void DefaultEspinaView::updateSelection(SelectionManager::Selection selection)
-{
-//   if (index.isValid())
-//   {
-//     ModelItem *item = indexPtr(index);
-//     if (ModelItem::SEGMENTATION == item->type())
-//     {
-//       blockSignals(true);
-//       Segmentation *seg = dynamic_cast<Segmentation *>(item);
-//       if (seg->isSelected())
-//         selectionModel()->setCurrentIndex(index, QItemSelectionModel::Select);
-//       else
-//         selectionModel()->select(index, QItemSelectionModel::Deselect);
-//       blockSignals(false);
-//     }
-//   }
-}
-
-//-----------------------------------------------------------------------------
 DefaultEspinaView::SettingsPanel::SettingsPanel(SliceView::SettingsPtr xy, SliceView::SettingsPtr yz, SliceView::SettingsPtr xz, VolumeView::SettingsPtr vol) :
 m_xy(xy), m_yz(yz), m_xz(xz), m_vol(vol)
 {

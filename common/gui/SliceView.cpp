@@ -165,6 +165,7 @@ QWidget(parent)
   m_ruler->SetLabelFormat("%.0f");
   m_ruler->SetAdjustLabels(false);
   m_ruler->SetNumberOfLabels(2);
+  m_ruler->SizeFontRelativeToAxisOff();
   m_renderer->AddActor(m_ruler);
 
   m_state->updateSlicingMatrix(m_slicingMatrix);
@@ -225,7 +226,7 @@ void SliceView::updateRuler()
   right = value[c];
 //   qDebug() << "LR" << value[0] << value[1] << value[2];
 
-  Nm rulerLength = 0.15;//viewport coordinates - Configuration file
+  Nm rulerLength = 0.07;//viewport coordinates - Configuration file
   Nm viewWidth = fabs(left-right);
 
   Nm scale = rulerLength * viewWidth;
@@ -565,7 +566,7 @@ void SliceView::undock()
 bool SliceView::eventFilter(QObject* caller, QEvent* e)
 {
   if (SelectionManager::instance()->filterEvent(e, this))
-    return true;
+    return QWidget::eventFilter(caller, e);
 
   if (e->type() == QEvent::Wheel)
   {
@@ -746,7 +747,6 @@ QList<Segmentation *> SliceView::pickSegmentations(double vx,
 //-----------------------------------------------------------------------------
 void SliceView::selectPickedItems(bool append)
 {
-  //BUG: picking channels if previously channel was closed
   int vx, vy;
   eventPosition(vx, vy);
 
@@ -906,7 +906,6 @@ void SliceView::removeChannelRepresentation(Channel* channel)
 
   m_channels.remove(channel);
   rep.resliceToColors->Delete();
-  rep.lut->Delete();
   rep.slice->Delete();
 }
 
@@ -1008,7 +1007,6 @@ void SliceView::removeSegmentationRepresentation(Segmentation* seg)
 
   // itkvtk filter is handled by a smartpointer, these two are not
   rep.resliceToColors->Delete();
-  rep.lut->Delete();
   rep.slice->Delete();
 
   m_segmentations.remove(seg);
