@@ -111,13 +111,14 @@ void ImageLogicFilter::addition()
 
   for (int i = 0; i < regions.size(); i++)
   {
-    itk::ImageRegionConstIteratorWithIndex<EspinaVolume> it(m_inputs[i], regions[i]);
+    itk::ImageRegionConstIteratorWithIndex<EspinaVolume> it(m_inputs[i], VolumeRegion(m_inputs[i], regions[i]));
     itk::ImageRegionIteratorWithIndex<EspinaVolume> ot(m_outputs[0], regions[i]);
     it.GoToBegin();
     ot.GetRegion();
     for (; !it.IsAtEnd(); ++it,++ot)
     {
-      ot.Set(it.Value()+ot.Value());
+      if (it.Value() || ot.Value())
+        ot.Set(SEG_VOXEL_VALUE);
     }
   }
 }
@@ -152,7 +153,7 @@ void ImageLogicFilter::substraction()
   itk::ImageAlgorithm::Copy(m_inputs[0], m_outputs[0].GetPointer(), m_inputs[0]->GetLargestPossibleRegion(), regions[0]);
   for (int i = 1; i < validInputs.size(); i++)
   {
-    itk::ImageRegionConstIteratorWithIndex<EspinaVolume> it(m_inputs[i], regions[i]);
+    itk::ImageRegionConstIteratorWithIndex<EspinaVolume> it(m_inputs[i], VolumeRegion(m_inputs[i], regions[i]));
     itk::ImageRegionIteratorWithIndex<EspinaVolume> ot(m_outputs[0], regions[i]);
     it.GoToBegin();
     ot.GetRegion();

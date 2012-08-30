@@ -43,7 +43,8 @@ EspinaVolume::RegionType BoundingBoxRegion(EspinaVolume::RegionType r1,
 
 /// Return a normalized region for volume's largest region
 EspinaVolume::RegionType NormalizedRegion(EspinaVolume *volume);
-
-// bool isExtentPixel(int x, int y, int z, int extent[6]);
+/// Return the equivalent volume region for a volume's normalized region 
+EspinaVolume::RegionType VolumeRegion(EspinaVolume *volume,
+                                      EspinaVolume::RegionType normalizedRegion);
 
 #endif // ESPINAREGIONS_H

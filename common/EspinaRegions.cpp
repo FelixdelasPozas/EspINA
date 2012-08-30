@@ -113,10 +113,18 @@ EspinaVolume::RegionType NormalizedRegion(EspinaVolume* volume)
   return region;
 }
 
-// //-----------------------------------------------------------------------------
-// bool isExtentPixel(int x, int y, int z, int extent[6])
-// {
-//   return (extent[0] <= x && x <= extent[1]
-//        && extent[2] <= y && y <= extent[3]
-//        && extent[4] <= z && z <= extent[5]);
-// }
+//-----------------------------------------------------------------------------
+EspinaVolume::RegionType VolumeRegion(EspinaVolume* volume,
+                                      EspinaVolume::RegionType normalizedRegion)
+{
+  EspinaVolume::RegionType region = normalizedRegion;
+  EspinaVolume::PointType  origin = volume->GetOrigin();
+  if (origin[0] != 0 || origin[1] != 0 || origin[2] != 0)
+  {
+    EspinaVolume::SpacingType spacing = volume->GetSpacing();
+    for (int i = 0; i < 3; i++)
+      region.SetIndex(i, region.GetIndex(i)-(origin[i]/spacing[i]+0.5));
+  }
+
+  return region;
+}
