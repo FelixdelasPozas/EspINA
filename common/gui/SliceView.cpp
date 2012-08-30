@@ -65,7 +65,6 @@
 #include <vtkAbstractWidget.h>
 #include <vtkWidgetRepresentation.h>
 #include <QVTKWidget.h>
-#include <vtkCylinderSource.h>
 #include <vtkImageResliceToColors.h>
 #include <vtkMatrix4x4.h>
 #include <vtkAlgorithmOutput.h>
@@ -94,11 +93,6 @@
 //   }
 // }
 // };
-
-// ColorEngine *SliceView::m_colorEngine = NULL;
-// Nm SliceView::m_crosshairPoint[];
-// Nm SliceView::m_slicingRanges[];
-// Nm SliceView::m_slicingStep[];
 
 //-----------------------------------------------------------------------------
 // SLICE VIEW
@@ -171,7 +165,7 @@ QWidget(parent)
   m_ruler->SetLabelFormat("%.0f");
   m_ruler->SetAdjustLabels(false);
   m_ruler->SetNumberOfLabels(2);
-  //m_renderer->AddActor(m_ruler);
+  m_renderer->AddActor(m_ruler);
 
   m_state->updateSlicingMatrix(m_slicingMatrix);
   vtkSmartPointer<vtkInteractorStyleEspinaSlice> interactor = vtkSmartPointer<vtkInteractorStyleEspinaSlice>::New();
@@ -181,20 +175,6 @@ QWidget(parent)
   m_view->GetRenderWindow()->AddRenderer(m_renderer);
   m_view->GetInteractor()->SetInteractorStyle(interactor);
   m_view->GetRenderWindow()->Render();
-
-  vtkCylinderSource *sphere = vtkCylinderSource::New();
-  sphere->SetCenter(0,0,0);
-  sphere->SetRadius(50);
-  sphere->SetHeight(100);
-
-  vtkPolyDataMapper *mapper = vtkPolyDataMapper::New();
-  mapper->SetInput(sphere->GetOutput());
-
-  vtkActor *actor = vtkActor::New();
-  actor->SetMapper(mapper);
-
-  //m_renderer->AddActor(actor);
-
 
   buildCrosshairs();
 

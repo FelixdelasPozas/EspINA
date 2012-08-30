@@ -48,7 +48,7 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
   toolbar/seedgrow/SetupWidget.h
   toolbar/seedgrow/gui/DefaultVOIAction.h
   toolbar/seedgrow/gui/ThresholdAction.h
-  toolbar/editor/MorphologicalSettingsPanel.h
+  toolbar/editor/SettingsPanel.h
   toolbar/voi/VolumeOfInterest.h
   toolbar/LODToolBar.h
   views/DefaultEspinaView.h
@@ -66,7 +66,7 @@ qt4_wrap_ui (UI_BUILT_SOURCES
   docks/TaxonomyExplorer.ui
   toolbar/seedgrow/SetupWidget.ui
   toolbar/seedgrow/SettingsPanel.ui
-  toolbar/editor/MorphologicalSettingsPanel.ui
+  toolbar/editor/EditorToolBarSettingsPanel.ui
   views/SliceViewSettingsPanel.ui
   views/VolumeViewSettingsPanel.ui
   GeneralSettingsPanel.ui
@@ -92,7 +92,8 @@ set (TOOLBAR_SOURCES
   toolbar/MainToolBar.cpp
   toolbar/LODToolBar.cpp
   toolbar/editor/EditorToolBar.cpp
-  toolbar/editor/MorphologicalSettingsPanel.cpp
+  toolbar/editor/Settings.cpp
+  toolbar/editor/SettingsPanel.cpp
   toolbar/seedgrow/SeedGrowSegmentation.cpp
   toolbar/seedgrow/SeedGrowSegmentationFilter.cpp
   toolbar/seedgrow/SeedGrowSelector.cpp

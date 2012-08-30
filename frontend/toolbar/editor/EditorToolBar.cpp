@@ -19,6 +19,9 @@
 
 #include "EditorToolBar.h"
 
+#include "frontend/toolbar/editor/Settings.h"
+#include "frontend/toolbar/editor/SettingsPanel.h"
+
 #include <selection/SelectionManager.h>
 #include <selection/SelectableItem.h>
 #include <selection/PixelSelector.h>
@@ -38,7 +41,6 @@
 #include <editor/FillHolesFilter.h>
 #include <undo/RemoveSegmentation.h>
 #include <gui/EspinaView.h>
-#include "frontend/toolbar/editor/MorphologicalSettingsPanel.h"
 #include <vtkSphere.h>
 
 //----------------------------------------------------------------------------
@@ -266,6 +268,7 @@ EditorToolBar::EditorToolBar(QWidget* parent)
 , m_open(addAction(tr("Open Selected Segmentations")))
 , m_close(addAction(tr("Close Selected Segmentations")))
 , m_fill(addAction(tr("Fill Holes in Selected Segmentations")))
+, m_settings(new Settings())
 , m_pencilSelector(new PencilSelector())
 , m_currentSource(NULL)
 , m_currentSeg(NULL)
@@ -282,7 +285,7 @@ EditorToolBar::EditorToolBar(QWidget* parent)
   factory->registerFilter(ImageLogicFilter::TYPE, this);
   factory->registerFilter(FillHolesFilter::TYPE, this);
 
-  factory->registerSettingsPanel(new MorphologicalFiltersPreferences());
+  factory->registerSettingsPanel(new EditorToolBar::SettingsPanel(m_settings));
 
   m_draw->setIcon(QIcon(":/espina/pencil.png"));
   m_draw->setCheckable(true);
@@ -361,6 +364,7 @@ void EditorToolBar::startDrawing(bool draw)
       m_currentSource = m_currentSeg->filter();
 //       qDebug() << "Editing" << m_currentSeg->data().toString();
     }
+    m_pencilSelector->setRadius(m_settings->brushRadius());
     SelectionManager::instance()->setSelectionHandler(m_pencilSelector);
   }
   else
@@ -521,7 +525,9 @@ void EditorToolBar::erodeSegmentations()
   SegmentationList input = selectedSegmentations();
   if (input.size() > 0)
   {
-    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODECommand::ERODE, 3));
+    int r = m_settings->erodeRadius();
+    CODECommand * command = new CODECommand(input, CODECommand::ERODE, r);
+    EspinaCore::instance()->undoStack()->push(command);
   }
 }
 
@@ -531,7 +537,9 @@ void EditorToolBar::dilateSegmentations()
   SegmentationList input = selectedSegmentations();
   if (input.size() > 0)
   {
-    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODECommand::DILATE, 3));
+    int r = m_settings->dilateRadius();
+    CODECommand * command = new CODECommand(input, CODECommand::DILATE, r);
+    EspinaCore::instance()->undoStack()->push(command);
   }
 }
 
@@ -541,7 +549,9 @@ void EditorToolBar::openSegmentations()
   SegmentationList input = selectedSegmentations();
   if (input.size() > 0)
   {
-    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODECommand::OPEN, 3));
+    int r = m_settings->openRadius();
+    CODECommand * command = new CODECommand(input, CODECommand::OPEN, r);
+    EspinaCore::instance()->undoStack()->push(command);
   }
 }
 
@@ -551,7 +561,9 @@ void EditorToolBar::closeSegmentations()
   SegmentationList input = selectedSegmentations();
   if (input.size() > 0)
   {
-    EspinaCore::instance()->undoStack()->push(new CODECommand(input, CODECommand::CLOSE, 3));
+    int r = m_settings->closeRadius();
+    CODECommand * command = new CODECommand(input, CODECommand::CLOSE, r);
+    EspinaCore::instance()->undoStack()->push(command);
   }
 }
 

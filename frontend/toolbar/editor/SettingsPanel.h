@@ -19,43 +19,39 @@
 #ifndef MORPHOLOGICALFILTERSPREFERENCES_H
 #define MORPHOLOGICALFILTERSPREFERENCES_H
 
+#include "EditorToolBar.h"
 #include <common/settings/ISettingsPanel.h>
-#include "ui_MorphologicalSettingsPanel.h"
+#include "ui_EditorToolBarSettingsPanel.h"
 
-const QString RADIUS("MorphologicalFilters::Radius");
 
-class MorphologicalFiltersPreferences: public ISettingsPanel, public Ui::MorphologicalSettingsPanel
+class EditorToolBar::SettingsPanel
+: public ISettingsPanel
+, public Ui::EditorToolBarSettingsPanel
 {
-    Q_OBJECT
-    public:
-        MorphologicalFiltersPreferences();
-        virtual ~MorphologicalFiltersPreferences()
-        {
-        }
+  Q_OBJECT
+public:
+  SettingsPanel(Settings *settings);
+  virtual ~SettingsPanel(){}
 
-        virtual const QString shortDescription()
-        {
-            return "Morphological Filters";
-        }
-        virtual const QString longDescription()
-        {
-            return "Morphological Filters Settings";
-        }
-        virtual const QIcon icon()
-        {
-            return QIcon(":/close.png");
-        }
+  virtual const QString shortDescription()
+  { return "Edition Tools"; }
 
-        virtual void acceptChanges();
+  virtual const QString longDescription()
+  { return "Edition Tools Settings"; }
 
-        virtual bool modified() const;
+  virtual const QIcon icon()
+  { return QIcon(":/espina/pencil.png"); }
 
-        virtual ISettingsPanel *clone();
+  virtual void acceptChanges();
 
-    public slots:
+  virtual bool modified() const;
 
-    private:
-        int m_radius;
+  virtual ISettingsPanel *clone();
+
+public slots:
+
+private:
+  Settings *m_settings;
 };
 
 #endif // SEEDGROWSEGMENTATIONPREFERENCES_H

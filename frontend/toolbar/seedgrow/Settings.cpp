@@ -22,11 +22,18 @@
 #include <QSettings>
 #include <common/selection/PixelSelector.h>
 
+const QString BEST_PIXEL("SeedGrowSegmentation::BestPixelValue");
+const QString DEFAULT_VOI_X("SeedGrowSegmentation::DafaultVOI::X");
+const QString DEFAULT_VOI_Y("SeedGrowSegmentation::DafaultVOI::Y");
+const QString DEFAULT_VOI_Z("SeedGrowSegmentation::DafaultVOI::Z");
+const QString CLOSING("SeedGrowSegmentation::Closing");
+
+
 //------------------------------------------------------------------------
 SeedGrowSegmentation::Settings::Settings(BestPixelSelector *selector)
 : m_selector(selector) 
 {
-  QSettings settings;
+  QSettings settings("CeSViMa", "EspINA");
 
   m_selector->setBestPixelValue(settings.value(BEST_PIXEL, 0).toInt());
   m_xSize   = settings.value(DEFAULT_VOI_X, 60).toInt();
@@ -38,7 +45,7 @@ SeedGrowSegmentation::Settings::Settings(BestPixelSelector *selector)
 //------------------------------------------------------------------------
 void SeedGrowSegmentation::Settings::setXSize(int value)
 {
-  QSettings settings;
+  QSettings settings("CeSViMa", "EspINA");
 
   settings.setValue(DEFAULT_VOI_X, value);
   m_xSize = value;
@@ -47,7 +54,7 @@ void SeedGrowSegmentation::Settings::setXSize(int value)
 //------------------------------------------------------------------------
 void SeedGrowSegmentation::Settings::setYSize(int value)
 {
-  QSettings settings;
+  QSettings settings("CeSViMa", "EspINA");
 
   settings.setValue(DEFAULT_VOI_Y, value);
   m_ySize = value;
@@ -56,7 +63,7 @@ void SeedGrowSegmentation::Settings::setYSize(int value)
 //------------------------------------------------------------------------
 void SeedGrowSegmentation::Settings::setZSize(int value)
 {
-  QSettings settings;
+  QSettings settings("CeSViMa", "EspINA");
 
   settings.setValue(DEFAULT_VOI_Z, value);
   m_zSize = value;
@@ -65,7 +72,7 @@ void SeedGrowSegmentation::Settings::setZSize(int value)
 //------------------------------------------------------------------------
 void SeedGrowSegmentation::Settings::setBestPixelValue(int value)
 {
-  QSettings settings;
+  QSettings settings("CeSViMa", "EspINA");
 
   settings.setValue(BEST_PIXEL, value);
   m_selector->setBestPixelValue(value);
@@ -74,7 +81,7 @@ void SeedGrowSegmentation::Settings::setBestPixelValue(int value)
 //------------------------------------------------------------------------
 int SeedGrowSegmentation::Settings::bestPixelValue() const
 {
-  QSettings settings;
+  QSettings settings("CeSViMa", "EspINA");
 
   return settings.value(BEST_PIXEL).toInt();
 }
@@ -82,7 +89,7 @@ int SeedGrowSegmentation::Settings::bestPixelValue() const
 //------------------------------------------------------------------------
 void SeedGrowSegmentation::Settings::setClosing(int value)
 {
-  QSettings settings;
+  QSettings settings("CeSViMa", "EspINA");
 
   settings.setValue(CLOSING, value);
   m_closing = value;

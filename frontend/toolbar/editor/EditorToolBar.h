@@ -41,6 +41,11 @@ class EditorToolBar
   class DrawCommand;
   class EraseCommand;
   class CODECommand;//CloseOpenDilateErode Command
+
+public:
+  class Settings;
+  class SettingsPanel;
+
 public:
   explicit EditorToolBar(QWidget *parent = 0);
 
@@ -78,6 +83,7 @@ private:
   QAction *m_close;
   QAction *m_fill;
 
+  Settings       *m_settings;
   PencilSelector *m_pencilSelector;
   Filter         *m_currentSource;
   Segmentation   *m_currentSeg;

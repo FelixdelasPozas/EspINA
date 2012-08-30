@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2012  <copyright holder> <email>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,37 +17,44 @@
 */
 
 
-#ifndef SETTINGS_H
-#define SETTINGS_H
+#ifndef EDITORTOOLBAR_SETTINGS_H
+#define EDITORTOOLBAR_SETTINGS_H
 
-#include "SeedGrowSegmentation.h"
+#include "frontend/toolbar/editor/EditorToolBar.h"
 
-class BestPixelSelector;
 
-class SeedGrowSegmentation::Settings
+class EditorToolBar::Settings
 {
 public:
-  explicit Settings(BestPixelSelector *selector);
-  virtual ~Settings(){}
+  Settings();
 
-  void setXSize(int value);
-  int xSize() const {return m_xSize;}
+  void setBrushRadius(int r);
+  int brushRadius() const
+  {return m_brushRadius;}
 
-  void setYSize(int value);
-  int ySize() const {return m_ySize;}
+  void setErodeRadius(int r);
+  int erodeRadius() const
+  {return m_erodeRadius;}
 
-  void setZSize(int value);
-  int zSize() const {return m_zSize;}
+  void setDilateRadius(int r);
+  int dilateRadius() const
+  {return m_dilateRadius;}
 
-  void setBestPixelValue(int value);
-  int bestPixelValue() const;
+  void setOpenRadius(int r);
+  int openRadius() const
+  {return m_openRadius;}
 
-  void setClosing(int value);
-  int closing() const {return m_closing;}
+  void setCloseRadius(int r);
+  int closeRadius() const
+  {return m_closeRadius;}
+
 
 private:
-  BestPixelSelector *m_selector;
-  int m_xSize, m_ySize, m_zSize, m_closing;
+  int m_brushRadius;
+  int m_erodeRadius;
+  int m_dilateRadius;
+  int m_openRadius;
+  int m_closeRadius;
 };
 
-#endif // SETTINGS_H
+#endif // EDITORTOOLBAR_SETTINGS_H
