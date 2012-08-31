@@ -99,6 +99,8 @@ public:
   void setCrosshairVisibility(bool visible);
   void setThumbnailVisibility(bool visible);
   void resetCamera();
+  void addActor(vtkProp *actor);
+  void removeActor(vtkProp *actor);
 
   // Interface of SelectableView
   bool pickChannel(int x, int y, Nm pickPos[3]);
@@ -201,6 +203,13 @@ protected:
   SelectionHandler::VtkRegion display2vtk(const QPolygonF &region);
 
   void updateRuler();
+  void updateThumbnail();
+
+  void initBorder(vtkPolyData* data, vtkActor* actor);
+  void updateBorder(vtkPolyData *data,
+                    double left, double right,
+                    double upper, double lower);
+
 
   void buildCrosshairs();
   void buildTitle();
@@ -229,6 +238,7 @@ private:
   QPushButton *m_toSlice;
 
   // VTK View
+  vtkRenderWindow               *m_renderWindow;
   vtkSmartPointer<vtkRenderer>    m_renderer;
   vtkSmartPointer<vtkRenderer>    m_thumbnail;
   vtkSmartPointer<vtkCellPicker>  m_channelPicker;
@@ -246,6 +256,7 @@ private:
   vtkMatrix4x4 *m_slicingMatrix;
   State *m_state;
   bool m_showSegmentations;
+  bool m_showThumbnail;
   SettingsPtr m_settings;
 
   // Crosshairs
@@ -256,6 +267,10 @@ private:
 
   // Thumbnail
   bool m_inThumbnail;
+  vtkSmartPointer<vtkPolyData> m_channelBorderData, m_viewportBorderData;
+  vtkSmartPointer<vtkActor>    m_channelBorder, m_viewportBorder;
+
+  bool m_sceneReady;
 
   // Representations
   QMap<Channel *,      SliceRep> m_channels;

@@ -113,6 +113,7 @@ QWidget(parent)
 , m_showSegmentations(true)
 , m_settings(new Settings(m_plane))
 , m_inThumbnail(false)
+, m_sceneReady(false)
 {
   memset(m_crosshairPoint, 0, 3*sizeof(Nm));
   memset(m_slicingRanges, 0, 6 * sizeof(Nm));
@@ -120,8 +121,6 @@ QWidget(parent)
 
   setupUI();
 
-  this->setAutoFillBackground(true);
-  setLayout(m_mainLayout);
 
   // Color background
   QPalette pal = this->palette();
@@ -142,10 +141,23 @@ QWidget(parent)
       break;
   };
 
+  // Init Render Window
+  m_renderWindow = m_view->GetRenderWindow();
+//   m_renderWindow->AlphaBitPlanesOn();
+  m_renderWindow->DoubleBufferOn();
+  m_renderWindow->SetNumberOfLayers(2);
+
   // Init Renderers
   m_renderer = vtkSmartPointer<vtkRenderer>::New();
   m_renderer->GetActiveCamera()->ParallelProjectionOn();
   m_renderer->LightFollowCameraOn();
+  m_renderer->SetLayer(0);
+  m_thumbnail = vtkSmartPointer<vtkRenderer>::New();
+  m_thumbnail->SetViewport(0.75, 0.0, 1.0, 0.25);
+  m_thumbnail->SetLayer(1);
+  m_thumbnail->InteractiveOff();
+  m_thumbnail->DrawOff();
+
   m_slicingMatrix = vtkMatrix4x4::New();
 
   // Init Pickers
@@ -173,11 +185,23 @@ QWidget(parent)
   //vtkSmartPointer<vtkInteractorStyleTrackballCamera> interactor = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
   interactor->AutoAdjustCameraClippingRangeOn();
   interactor->KeyPressActivationOff();
-  m_view->GetRenderWindow()->AddRenderer(m_renderer);
+  m_renderWindow->AddRenderer(m_renderer);
+  m_renderWindow->AddRenderer(m_thumbnail);
   m_view->GetInteractor()->SetInteractorStyle(interactor);
-  m_view->GetRenderWindow()->Render();
+
+  m_channelBorderData = vtkPolyData::New();
+  m_channelBorder     = vtkActor::New();
+  initBorder(m_channelBorderData, m_channelBorder);
+
+  m_viewportBorderData = vtkPolyData::New();
+  m_viewportBorder     = vtkActor::New();
+  initBorder(m_viewportBorderData, m_viewportBorder);
+  //m_renderWindow->Render();
 
   buildCrosshairs();
+
+  this->setAutoFillBackground(true);
+  setLayout(m_mainLayout);
 
   connect(SelectionManager::instance(), SIGNAL(selectionChanged(SelectionManager::Selection)),
           this, SLOT(updateSelection(SelectionManager::Selection)));
@@ -208,7 +232,7 @@ void SliceView::updateRuler()
 //   if (!m_ruler->GetVisibility())
 //     return;
 
-  if (!m_renderer || !m_renderer->GetRenderWindow())
+  if (!m_renderer || !m_renderWindow)
     return;
 
   double *value;
@@ -236,6 +260,117 @@ void SliceView::updateRuler()
   m_ruler->SetRange(0, scale);
   m_ruler->SetPoint2(0.1+rulerLength, 0.1);
   m_ruler->SetVisibility(m_rulerVisibility && rulerLength > 0.05 && rulerLength < 0.8);
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::updateThumbnail()
+{
+  if (!m_showThumbnail || !m_sceneReady)
+    return;
+
+  double *value;
+  // Position of world margins acording to the display
+  // Depending on the plane being shown can refer to different
+  // bound components
+  double viewLeft, viewRight, viewUpper, viewLower;
+  vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
+
+  coords->SetViewport(m_renderer);
+  coords->SetCoordinateSystemToNormalizedViewport();
+
+  int h = m_plane==SAGITTAL?2:0;
+  int v = m_plane==CORONAL?2:1;
+  coords->SetValue(0, 0); // Viewport Lower Left Corner
+  value = coords->GetComputedWorldValue(m_renderer);
+  viewLower = value[v]; // Lower Margin in World Coordinates
+  viewLeft  = value[h]; // Left Margin in World Coordinates
+  //   qDebug() << "LL" << value[0] << value[1] << value[2];
+  coords->SetValue(1, 1);
+  value = coords->GetComputedWorldValue(m_renderer);
+  viewUpper = value[v]; // Upper Margin in World Coordinates
+  viewRight = value[h]; // Right Margin in Worl Coordinates
+  //   qDebug() << "UR" << value[0] << value[1] << value[2];
+
+  double sceneLeft  = m_slicingRanges[2*h];
+  double sceneRight = m_slicingRanges[2*h+1];
+  double sceneUpper = m_slicingRanges[2*v];
+  double sceneLower = m_slicingRanges[2*v+1];
+
+  bool leftHidden   = sceneLeft  < viewLeft;
+  bool rightHidden  = sceneRight > viewRight;
+  bool upperHidden  = sceneUpper < viewUpper;
+  bool lowerHidden  = sceneLower > viewLower;
+
+  if (leftHidden || rightHidden || upperHidden || lowerHidden)
+  {
+    m_thumbnail->DrawOn();
+    updateBorder(m_channelBorderData, sceneLeft, sceneRight, sceneUpper, sceneLower);
+    updateBorder(m_viewportBorderData, viewLeft, viewRight, viewUpper, viewLower);
+  }
+  else
+    m_thumbnail->DrawOff();
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::initBorder(vtkPolyData* data, vtkActor* actor)
+{
+  vtkSmartPointer<vtkPoints> corners = vtkSmartPointer<vtkPoints>::New();
+  corners->InsertNextPoint(m_slicingRanges[0], m_slicingRanges[2], 0); //UL
+  corners->InsertNextPoint(m_slicingRanges[0], m_slicingRanges[3], 0); //UR
+  corners->InsertNextPoint(m_slicingRanges[1], m_slicingRanges[3], 0); //LR
+  corners->InsertNextPoint(m_slicingRanges[1], m_slicingRanges[2], 0); //LL
+  vtkSmartPointer<vtkCellArray> borders = vtkSmartPointer<vtkCellArray>::New();
+  borders->EstimateSize(4, 2);
+  for (int i=0; i < 4; i++)
+  {
+    borders->InsertNextCell (2);
+    borders->InsertCellPoint(i);
+    borders->InsertCellPoint((i+1)%4);
+  }
+  data->SetPoints(corners);
+  data->SetLines(borders);
+  data->Update();
+
+  vtkSmartPointer<vtkPolyDataMapper> Mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  Mapper->SetInput(data);
+  actor->SetMapper(Mapper);
+  actor->GetProperty()->SetLineWidth(2);
+  actor->SetPickable(false);
+
+  m_thumbnail->AddActor(actor);
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::updateBorder(vtkPolyData* data,
+                             double left, double right,
+                             double upper, double lower)
+{
+  vtkPoints *corners = data->GetPoints();
+
+  switch (m_plane)
+  {
+    case AXIAL:
+      corners->SetPoint(0, left,  upper, 0); //UL
+      corners->SetPoint(1, right, upper, 0); //UR
+      corners->SetPoint(2, right, lower, 0); //LR
+      corners->SetPoint(3, left,  lower, 0); //LL
+      break;
+    case SAGITTAL:
+      corners->SetPoint(0, 0, upper,  left); //UL
+      corners->SetPoint(1, 0, lower,  left); //UR
+      corners->SetPoint(2, 0, lower, right); //LR
+      corners->SetPoint(3, 0, upper, right); //LL
+      break;
+    case CORONAL:
+      corners->SetPoint(0, left,  0, upper); //UL
+      corners->SetPoint(1, right, 0, upper); //UR
+      corners->SetPoint(2, right, 0, lower); //LR
+      corners->SetPoint(3, left,  0, lower); //LL
+      break;
+    default:
+      Q_ASSERT(false);
+  }
+  data->Modified();
 }
 
 //-----------------------------------------------------------------------------
@@ -389,14 +524,6 @@ void SliceView::setCrosshairVisibility(bool visible)
   {
     m_renderer->AddActor(m_HCrossLine);
     m_renderer->AddActor(m_VCrossLine);
-//     vtkRectangularWidget *boxWidget = vtkRectangularWidget::New();
-//     boxWidget->SetInteractor(m_view->GetRenderWindow()->GetInteractor());
-//     boxWidget->CreateDefaultRepresentation();
-//     boxWidget->SetPlane(m_plane);
-////     boxWidget->SetEnabled(true)//;
-//     boxWidget->GetRepresentation()->PlaceWidget(m_range);
-//     boxWidget->On();
-//     vtkRectangularRepresentation *rep = vtkRectangularRepresentation::SafeDownCast(boxWidget->GetRepresentation());
   }else
   {
     m_renderer->RemoveActor(m_HCrossLine);
@@ -408,7 +535,8 @@ void SliceView::setCrosshairVisibility(bool visible)
 //-----------------------------------------------------------------------------
 void SliceView::setThumbnailVisibility(bool visible)
 {
-  //TODO:vtkSMPropertyHelper(m_view->getViewProxy(),"ShowThumbnail").Set(visible);
+  m_showThumbnail = visible;
+  m_thumbnail->SetDraw(visible && m_sceneReady);
   forceRender();
 }
 
@@ -416,14 +544,34 @@ void SliceView::setThumbnailVisibility(bool visible)
 void SliceView::resetCamera()
 {
   double origin[3] = { 0, 0, 0 };
-  m_state->updateCamera(m_renderer->GetActiveCamera(), origin);
-  m_renderer->ResetCamera();
+
+  m_state->updateCamera(m_renderer ->GetActiveCamera(), origin);
+  m_state->updateCamera(m_thumbnail->GetActiveCamera(), origin);
+
+  m_renderer ->ResetCamera();
+  m_thumbnail->ResetCamera();
+  m_sceneReady = !m_channels.isEmpty();
 }
+
+//-----------------------------------------------------------------------------
+void SliceView::addActor(vtkProp* actor)
+{
+  m_renderer->AddActor(actor);
+  m_thumbnail->AddActor(actor);
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::removeActor(vtkProp* actor)
+{
+  m_renderer->RemoveActor(actor);
+  m_thumbnail->RemoveActor(actor);
+}
+
 
 //-----------------------------------------------------------------------------
 void SliceView::eventPosition(int& x, int& y)
 {
-  vtkRenderWindowInteractor *rwi = m_view->GetRenderWindow()->GetInteractor();
+  vtkRenderWindowInteractor *rwi = m_renderWindow->GetInteractor();
   Q_ASSERT(rwi);
   rwi->GetEventPosition(x, y);
 }
@@ -508,7 +656,7 @@ QVTKWidget *SliceView::view()
 //-----------------------------------------------------------------------------
 vtkRenderWindow* SliceView::renderWindow()
 {
-  return m_view->GetRenderWindow();
+  return m_renderWindow;
 }
 
 //-----------------------------------------------------------------------------
@@ -565,83 +713,70 @@ void SliceView::undock()
 //-----------------------------------------------------------------------------
 bool SliceView::eventFilter(QObject* caller, QEvent* e)
 {
-  if (SelectionManager::instance()->filterEvent(e, this))
-    return QWidget::eventFilter(caller, e);
-
-  if (e->type() == QEvent::Wheel)
+  if (m_inThumbnail || !SelectionManager::instance()->filterEvent(e, this))
   {
-    QWheelEvent *we = static_cast<QWheelEvent *>(e);
-    int numSteps = we->delta() / 8 / 15 * (m_settings->invertWheel() ? -1 : 1);  //Refer to QWheelEvent doc.
-    m_spinBox->setValue(m_spinBox->value() - numSteps);
-    e->ignore();
-  }
-  else if (e->type() == QEvent::Enter)
-  {
-    QWidget::enterEvent(e);
-    m_view->setCursor(SelectionManager::instance()->cursor());
-    e->accept();
-  }
-  else if (e->type() == QEvent::MouseMove)
-  {
-//     QMouseEvent* me = static_cast<QMouseEvent*>(e);
-//     vtkSMSliceViewProxy* view =
-//     vtkSMSliceViewProxy::SafeDownCast(m_view->getProxy());
-//     Q_ASSERT(view);
-//     vtkRenderer * thumbnail = view->GetOverviewRenderer();
-//     Q_ASSERT(thumbnail);
-//     vtkPropPicker *propPicker = vtkPropPicker::New();
-//     int x, y;
-//     eventPosition(x, y);
-//     if (thumbnail->GetDraw() && propPicker->Pick(x, y, 0.1, thumbnail))
-//     {
-//       if (!m_inThumbnail)
-//         QApplication::setOverrideCursor(Qt::ArrowCursor);
-//       m_inThumbnail = true;
-//     }
-//     else
-//     {
-//       if (m_inThumbnail)
-//         QApplication::restoreOverrideCursor();
-//       m_inThumbnail = false;
-//     }
-// 
-//     if (m_inThumbnail && me->buttons() == Qt::LeftButton)
-//     {
-//       centerViewOnMousePosition();
-//       if (me->modifiers() == Qt::CTRL)
-//       {
-//         centerCrosshairOnMousePosition();
-//       }
-//     }
-  }
-  else if (e->type() == QEvent::MouseButtonPress)
-  {
-    QMouseEvent* me = static_cast<QMouseEvent*>(e);
-    if (me->button() == Qt::LeftButton)
+    if (QEvent::Wheel == e->type())
     {
-      if (me->modifiers() == Qt::CTRL)
-      {
-        centerCrosshairOnMousePosition();
-        emit showCrosshairs(true);
-      }
-      else if (m_inThumbnail)
+      QWheelEvent *we = static_cast<QWheelEvent *>(e);
+      int numSteps = we->delta() / 8 / 15 * (m_settings->invertWheel() ? -1 : 1);  //Refer to QWheelEvent doc.
+      m_spinBox->setValue(m_spinBox->value() - numSteps);
+      e->ignore();
+    }
+    else if (QEvent::Enter == e->type())
+    {
+      QWidget::enterEvent(e);
+      m_view->setCursor(SelectionManager::instance()->cursor());
+      e->accept();
+    }
+    else if (QEvent::MouseMove == e->type())
+    {
+      QMouseEvent* me = static_cast<QMouseEvent*>(e);
+      int x, y;
+      eventPosition(x, y);
+      m_inThumbnail = m_thumbnail->GetDraw() && m_channelPicker->Pick(x, y, 0.1, m_thumbnail);
+
+      if (m_inThumbnail)
+        m_view->setCursor(Qt::ArrowCursor);
+      else
+        m_view->setCursor(SelectionManager::instance()->cursor());
+
+      if (m_inThumbnail && me->buttons() == Qt::LeftButton)
       {
         centerViewOnMousePosition();
-      }
-      else
-      {
-        selectPickedItems(me->modifiers() == Qt::SHIFT);
+        if (me->modifiers() == Qt::CTRL)
+          centerCrosshairOnMousePosition();
       }
     }
-  }
-  else if (e->type() == QEvent::KeyRelease)
-  {
-    QKeyEvent *ke = static_cast<QKeyEvent *>(e);
-    if (ke->key() == Qt::Key_Control && ke->count() == 1)
-      emit showCrosshairs(false);
+    else if (e->type() == QEvent::MouseButtonPress)
+    {
+      QMouseEvent* me = static_cast<QMouseEvent*>(e);
+      if (me->button() == Qt::LeftButton)
+      {
+        if (me->modifiers() == Qt::CTRL)
+        {
+          centerCrosshairOnMousePosition();
+          emit showCrosshairs(true);
+        }
+        else if (m_inThumbnail)
+        {
+          centerViewOnMousePosition();
+        }
+        else
+        {
+          selectPickedItems(me->modifiers() == Qt::SHIFT);
+        }
+      }
+    }
+    else if (e->type() == QEvent::KeyRelease)
+    {
+      QKeyEvent *ke = static_cast<QKeyEvent *>(e);
+      if (ke->key() == Qt::Key_Control && ke->count() == 1)
+        emit showCrosshairs(false);
+    }
   }
 
   updateRuler();
+  updateThumbnail();
   return QWidget::eventFilter(caller, e);
 }
 
@@ -652,10 +787,21 @@ void SliceView::centerCrosshairOnMousePosition()
   eventPosition(xPos, yPos);
 
   Nm center[3];  //World coordinates
-  pickChannel(xPos, yPos, center);
+  bool channelPicked = false;
+  if (m_inThumbnail)
+  {
+    channelPicked = m_channelPicker->Pick(xPos, yPos, 0.1, m_thumbnail);
+    if (channelPicked)
+      m_channelPicker->GetPickPosition(center);
+  }
+  else
+    channelPicked = pickChannel(xPos, yPos, center);
 
-  centerViewOn(center);
-  emit centerChanged(m_crosshairPoint[0], m_crosshairPoint[1], m_crosshairPoint[2]);
+  if (channelPicked)
+  {
+    centerViewOn(center);
+    emit centerChanged(m_crosshairPoint[0], m_crosshairPoint[1], m_crosshairPoint[2]);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -665,13 +811,11 @@ void SliceView::centerViewOnMousePosition()
   eventPosition(xPos, yPos);
 
   double center[3];  //World coordinates
-  pickChannel(xPos, yPos, center);
-
-  Q_ASSERT(false);
-
-  //vtkCamera * camera = m_view->getRenderViewProxy()->GetRenderer()->GetActiveCamera();
-  //camera->SetFocalPoint(center);
-  //m_view->render();
+  if (m_channelPicker->Pick(xPos, yPos, 0.1, m_thumbnail))
+  {
+    m_channelPicker->GetPickPosition(center);
+    centerViewOn(center, true);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -828,24 +972,17 @@ Segmentation* SliceView::property3DSegmentation(vtkProp3D* prop)
 //-----------------------------------------------------------------------------
 bool SliceView::pickChannel(int x, int y, Nm pickPos[3])
 {
-  //   vtkRenderer * thumbnail = view->GetOverviewRenderer();
-  //   Q_ASSERT(thumbnail);
+  if (m_thumbnail->GetDraw() && m_channelPicker->Pick(x, y, 0.1, m_thumbnail))
+    return false;//ePick Fail
 
-  //   if (!thumbnail->GetDraw() || !propPicker->Pick(x, y, 0.1, thumbnail))
-  //   {
-    if (!m_channelPicker->Pick(x, y, 0.1, m_renderer))
-    {
-      //qDebug() << "ePick Fail!";
-      return false;
-    }
-    //   }
+  if (!m_channelPicker->Pick(x, y, 0.1, m_renderer))
+      return false;//ePick Fail
 
-    m_channelPicker->GetPickPosition(pickPos);
+  m_channelPicker->GetPickPosition(pickPos);
+  pickPos[m_plane] = slicingPosition();
+  //   qDebug() << "Pick Position" << pickPos[0] << pickPos[1] << pickPos[2];
 
-    pickPos[m_plane] = slicingPosition();
-    //   qDebug() << "Pick Position" << pickPos[0] << pickPos[1] << pickPos[2];
-
-    return true;
+  return true;
 }
 
 //-----------------------------------------------------------------------------
@@ -890,7 +1027,7 @@ void SliceView::addChannelRepresentation(Channel* channel)
 
 
   m_channels.insert(channel, channelRep);
-  m_renderer->AddActor(channelRep.slice);
+  addActor(channelRep.slice);
   m_channelPicker->AddPickList(channelRep.slice);
   forceRender();  // m_view->GetRenderWindow()->Render();
 }
@@ -901,7 +1038,7 @@ void SliceView::removeChannelRepresentation(Channel* channel)
   Q_ASSERT(m_channels.contains(channel));
 
   SliceRep rep = m_channels[channel];
-  m_renderer->RemoveActor(rep.slice);
+  removeActor(rep.slice);
   m_channelPicker->DeletePickList(rep.slice);
 
   m_channels.remove(channel);
@@ -991,7 +1128,7 @@ void SliceView::addSegmentationRepresentation(Segmentation* seg)
   segRep.color = m_colorEngine->color(seg);
 
   m_segmentations.insert(seg, segRep);
-  m_renderer->AddActor(segRep.slice);
+  addActor(segRep.slice);
   m_segmentationPicker->AddPickList(segRep.slice);
 }
 
@@ -1002,7 +1139,7 @@ void SliceView::removeSegmentationRepresentation(Segmentation* seg)
 
   SliceRep rep = m_segmentations[seg];
 
-  m_renderer->RemoveActor(rep.slice);
+  removeActor(rep.slice);
   m_segmentationPicker->DeletePickList(rep.slice);
 
   // itkvtk filter is handled by a smartpointer, these two are not
@@ -1069,7 +1206,7 @@ void SliceView::addWidget(SliceWidget *sWidget)
 
   sWidget->setSlice(slicingPosition(), m_plane);
   vtkAbstractWidget *widget = *sWidget;
-  widget->SetInteractor(m_view->GetRenderWindow()->GetInteractor());
+  widget->SetInteractor(m_renderWindow->GetInteractor());
   widget->GetRepresentation()->SetVisibility(true);
   widget->On();
   m_renderer->ResetCameraClippingRange();
@@ -1242,7 +1379,7 @@ void SliceView::centerViewOn(Nm center[3], bool force)
   bool centerOutOfCamera = m_crosshairPoint[H] < ll[H] || m_crosshairPoint[H] > ur[H] // Horizontally out
                         || m_crosshairPoint[V] > ll[V] || m_crosshairPoint[V] < ur[V];// Vertically out
 
-  if (centerOutOfCamera)
+  if (centerOutOfCamera || force)
   {
     m_state->updateCamera(m_renderer->GetActiveCamera(), m_crosshairPoint);
     m_renderer->ResetCameraClippingRange();
