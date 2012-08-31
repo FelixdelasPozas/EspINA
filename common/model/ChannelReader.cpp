@@ -80,9 +80,6 @@ void ChannelReader::run()
     m_args[FILE] = fileDialog.selectedFiles().first();
   }
 
-  double channelSpacing[3];
-  //spacing(spacing);
-
   m_reader = EspinaVolumeReader::New();
 
   QString ext = file.suffix();
@@ -98,18 +95,12 @@ void ChannelReader::run()
     Q_ASSERT(false);
   }
   m_io->SetFileName(m_args[FILE].toAscii());
-  //   if (spacing[0] > 0)
-  //   {
-    //     for(int i=0; i<3; i++)
-  //       io->SetSpacing(i, spacing[i]);
-  //   }
   m_reader->SetImageIO(m_io);
   m_reader->SetFileName(m_args[FILE].toStdString());
   m_reader->Update();
-  for(int i=0; i<3; i++)
-    channelSpacing[i] = m_io->GetSpacing(i);
 
-  setSpacing(channelSpacing);
+  if (m_args.contains(SPACING))
+    m_reader->GetOutput()->SetSpacing(spacing());
 
   m_volume = m_reader->GetOutput();
 }
@@ -132,17 +123,20 @@ EspinaVolume* ChannelReader::output(OutputNumber i) const
 }
 
 //----------------------------------------------------------------------------
-void ChannelReader::setSpacing(double value[3])
+void ChannelReader::setSpacing(itk::Image< unsigned int, 3 >::SpacingType spacing)
 {
-//       memcpy(m_spacing, value, 3*sizeof(double));
-//       (*this)[SPACING] = QString("%1,%2,%3")
-//                          .arg(value[0])
-//                          .arg(value[1])
-//                          .arg(value[2]);
+  m_args[SPACING] = QString("%1,%2,%3")
+  .arg(spacing[0]).arg(spacing[1]).arg(spacing[2]);
+  m_volume->SetSpacing(spacing);
+  emit modified(this);
 }
 
 //----------------------------------------------------------------------------
-void ChannelReader::spacing(double value[3])
+EspinaVolume::SpacingType ChannelReader::spacing()
 {
-//       memcpy(value, m_spacing, 3*sizeof(double));
+  EspinaVolume::SpacingType res;
+  QStringList values = m_args.value(SPACING, "-1,-1,-1").split(",");
+  for(int i = 0; i < 3; i++)
+    res[i] = values[i].toDouble();
+  return res;
 }

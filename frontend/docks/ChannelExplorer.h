@@ -46,6 +46,9 @@ public:
 
 protected slots:
   void channelSelected();
+  void showInformation();
+  void activateChannel();
+  void unloadChannel();
   void alignLeft();
   void alignCenter();
   void alignRight();
@@ -54,9 +57,7 @@ protected slots:
   void changeChannelColor();
   void updateChannelPosition();
   void updateTooltips(int index);
-  void unloadChannel();
   void focusOnChannel();
-  void activeChannel();
 
 private:
   CentralWidget *m_gui;

@@ -112,7 +112,6 @@ public:
   virtual void initialize(Arguments args = Arguments());
   virtual void initializeExtensions(Arguments args = Arguments());
 
-  virtual void notifyModification(bool force = false);
 
   /// Selectable Item Interface
   virtual Filter* filter(){return m_filter;}
@@ -142,6 +141,9 @@ public:
   virtual QStringList availableInformations() const;
   virtual QVariant information(QString info);
   virtual ModelItemExtension* extension(QString name);
+
+public slots:
+  virtual void notifyModification(bool force = false);
 
 private slots:
   void onColorEngineChanged();

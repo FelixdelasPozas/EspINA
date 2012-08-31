@@ -44,6 +44,7 @@ class Channel
 : public SelectableItem
 {
   typedef itk::ImageFileReader<EspinaVolume> EspinaVolumeReader;
+public:
 
 public:
   // Argument Ids
@@ -52,6 +53,7 @@ public:
   static const ArgumentId VOLUME;
 
   static const QString STAINLINK;
+  static const QString LINK;
   static const QString VOLUMELINK;
 
 // Extended Information and representation tags
@@ -138,6 +140,9 @@ public:
   /// Add a new extension to the segmentation
   /// Extesion won't be available until requirements are satisfied
   void addExtension(ChannelExtension *ext);
+
+public slots:
+  virtual void notifyModification(bool force = false);
 
 private:
   explicit Channel(Filter *filter, OutputNumber output);

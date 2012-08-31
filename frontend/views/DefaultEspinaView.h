@@ -108,20 +108,23 @@ protected slots:
   void channelSelected(Channel *channel);
   void segmentationSelected(Segmentation *seg, bool append);
 
+  void updateSceneRanges();
+
   void initSliceView(SliceView *view);
 
 private:
-  bool first;
+  bool m_showProcessing;
+  bool m_showSegmentations;
+  Nm   m_slicingStep[3];
 
   ColorEngine *m_colorEngine;
   SliceView  *xyView, *yzView, *xzView;
   VolumeView *volView;
   QDockWidget *volDock, *yzDock, *xzDock;
   QAction     *m_showRuler, *m_showThumbnail;
-  Nm m_slicingStep[3];
+
+  QList<Channel *> m_channels;
   QMap<EspinaWidget *, Widgtes> m_widgets;
-  bool                    m_showProcessing;
-  bool                    m_showSegmentations;
 };
 
 class DefaultEspinaView::SettingsPanel

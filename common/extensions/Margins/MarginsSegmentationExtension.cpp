@@ -71,7 +71,7 @@ QVariant MarginsSegmentationExtension::information(ModelItemExtension::InfoTag t
   {
     //qDebug() << m_seg->data().toString() << "Updating Margins";
     QApplication::setOverrideCursor(Qt::WaitCursor);
-    ModelItem::Vector channels = m_seg->relatedItems(ModelItem::IN, "Channel");
+    ModelItem::Vector channels = m_seg->relatedItems(ModelItem::IN, Channel::LINK);
     //Q_ASSERT(!channels.isEmpty());
     if (!channels.isEmpty())
     {

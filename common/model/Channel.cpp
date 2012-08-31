@@ -42,8 +42,9 @@ const ModelItem::ArgumentId Channel::ID     = "ID";
 const ModelItem::ArgumentId Channel::COLOR  = "Color";
 const ModelItem::ArgumentId Channel::VOLUME = "Volume";
 
-const QString Channel::STAINLINK  = "stain";
-const QString Channel::VOLUMELINK = "volume";
+const QString Channel::LINK       = "Channel";
+const QString Channel::STAINLINK  = "Stain";
+const QString Channel::VOLUMELINK = "Volume";
 
 const QString Channel::NAME       = "Name";
 const QString Channel::VOLUMETRIC = "Volumetric";
@@ -244,6 +245,13 @@ void Channel::addExtension(ChannelExtension* ext)
   ext->setChannel(this);
 }
 
+
+//-----------------------------------------------------------------------------
+void Channel::notifyModification(bool force)
+{
+  itk2vtk->Update();
+  ModelItem::notifyModification(force);
+}
 
 //-----------------------------------------------------------------------------
 Sample *Channel::sample()

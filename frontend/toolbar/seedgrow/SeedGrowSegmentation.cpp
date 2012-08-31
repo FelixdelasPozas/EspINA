@@ -79,7 +79,7 @@ void SeedGrowSegmentation::UndoCommand::redo()
   model->addSegmentation(m_seg);
   model->addRelation(m_filter, m_seg, CREATELINK);
   model->addRelation(m_sample, m_seg, "where");
-  model->addRelation(m_channel, m_seg, "Channel");
+  model->addRelation(m_channel, m_seg, Channel::LINK);
   m_seg->initializeExtensions();
 }
 
@@ -92,7 +92,7 @@ void SeedGrowSegmentation::UndoCommand::undo()
   model->removeRelation(m_sample, m_seg, "where");
   model->removeRelation(m_filter, m_seg, CREATELINK);
   model->removeSegmentation(m_seg);
-  model->removeRelation(m_channel, m_filter, "Channel");
+  model->removeRelation(m_channel, m_filter, Channel::LINK);
   model->removeFilter(m_filter);
 }
 

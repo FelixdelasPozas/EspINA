@@ -44,7 +44,6 @@
 //----------------------------------------------------------------------------
 DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity)
 : EspinaView(parent, activity)
-, first(true)
 , m_colorEngine(NULL)
 , m_showProcessing(false)
 , m_showSegmentations(true)
@@ -354,6 +353,9 @@ void DefaultEspinaView::addChannelRepresentation(Channel* channel)
   yzView->addChannelRepresentation(channel);
   xzView->addChannelRepresentation(channel);
   volView->addChannelRepresentation(channel);
+  connect(channel, SIGNAL(modified(ModelItem*)),
+	  this, SLOT(updateSceneRanges()));
+  m_channels << channel;
 }
 
 //-----------------------------------------------------------------------------
@@ -363,6 +365,9 @@ void DefaultEspinaView::removeChannelRepresentation(Channel* channel)
   yzView->removeChannelRepresentation(channel);
   xzView->removeChannelRepresentation(channel);
   volView->removeChannelRepresentation(channel);
+  disconnect(channel, SIGNAL(modified(ModelItem*)),
+	  this, SLOT(updateSceneRanges()));
+  m_channels.removeAll(channel);
 }
 
 //-----------------------------------------------------------------------------
@@ -429,17 +434,8 @@ void DefaultEspinaView::rowsInserted(const QModelIndex& parent, int start, int e
         //       item.dynamicCast<ChannelPtr>();
         // 	qDebug() << "Add Channel:" << channel->data(Qt::DisplayRole).toString();
 
-        //BEGIN Only at sample LOD
-        double spacing[3];
-        channel->spacing(spacing);
-        setSlicingStep(spacing);
-        double bounds[6];
-        channel->bounds(bounds);
-        xyView->setSlicingRanges(bounds);
-        yzView->setSlicingRanges(bounds);
-        xzView->setSlicingRanges(bounds);
-        //END
         addChannelRepresentation(channel);
+	updateSceneRanges();
         QApplication::restoreOverrideCursor();
         resetCamera();
         render = true;
@@ -480,14 +476,8 @@ void DefaultEspinaView::rowsAboutToBeRemoved(const QModelIndex& parent, int star
         Channel *channel = dynamic_cast<Channel *>(item);
         // 	qDebug() << "Remove Channel:" << channel->data(Qt::DisplayRole).toString();
         removeChannelRepresentation(channel);
+	updateSceneRanges();
 
-        if (model->rowCount(model->channelRoot()) == 0)
-        {
-          double emptyBounds[6] = { 0, 0, 0, 0, 0, 0 };
-          xyView->setSlicingRanges(emptyBounds);
-          yzView->setSlicingRanges(emptyBounds);
-          xzView->setSlicingRanges(emptyBounds);
-        }
         break;
       }
       case ModelItem::SEGMENTATION:
@@ -582,6 +572,41 @@ void DefaultEspinaView::segmentationSelected(Segmentation* seg, bool append)
     selection << seg;
 
   SelectionManager::instance()->setSelection(selection);
+}
+
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::updateSceneRanges()
+{
+  double spacing[3];
+  double minSpacing[3] = {1, 1, 1};
+  double bounds[6];
+  double ranges[6] = { 0, 1, 0, 1, 0, 1};
+
+  Channel *channel;
+  for(int c = 0; c < m_channels.size(); c++)
+  {
+    channel = m_channels[c];
+    if (0 == c)
+    {
+      channel->spacing(minSpacing);
+      channel->bounds(ranges);
+    }else
+    {
+      channel->spacing(spacing);
+      channel->bounds(bounds);
+      for (int i = 0; i < 3; i++)
+      {
+	minSpacing[i] = std::min(minSpacing[i], spacing[i]);
+	ranges[i] = std::min(ranges[i], bounds[i]);
+	ranges[2*i+1] = std::max(ranges[2*i+1], bounds[2*i+1]);
+      }
+    }
+  }
+
+  setSlicingStep(minSpacing);
+  xyView->setSlicingRanges(ranges);
+  yzView->setSlicingRanges(ranges);
+  xzView->setSlicingRanges(ranges);
 }
 
 //-----------------------------------------------------------------------------

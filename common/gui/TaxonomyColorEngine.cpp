@@ -39,7 +39,7 @@ vtkSmartPointer< vtkLookupTable > TaxonomyColorEngine::lut(const Segmentation* s
 
   if (m_LUT.find(lutName) == m_LUT.end())
   {
-    double alpha = (seg->isSelected() ? 1.0 : 0.7);
+    double alpha = (seg->isSelected() ? 1.0 : 0.6);
     QColor c = color(seg);
 
     seg_lut = vtkLookupTable::New();

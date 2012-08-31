@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) <year>  <name of author>
+    Copyright (C) 2012  Jorge Peña <jorge.pena.pastor@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,28 +21,30 @@
 #define SAMPLEEDITOR_H
 
 #include <QDialog>
-#include "ui_sampleEditor.h"
+#include "ui_ChannelInspector.h"
 
-class Sample;
+class Channel;
 
-class SampleEditor : public QDialog, private Ui::SampleEditor
+class ChannelInspector
+: public QDialog
+, private Ui::ChannelInspector
 {
  Q_OBJECT
 public:
-  SampleEditor(QWidget* parent = 0, Qt::WindowFlags f = 0);
-    
-  virtual void setSample(Sample *sample);
-  void spacing(double value[3]);
+  //static ChannelInspector *CreateInspector(Channel *channel);
+  explicit ChannelInspector(Channel *channel,
+			    QWidget* parent = 0,
+			    Qt::WindowFlags f = 0);
+
 
 public slots:
-  void unitChanged(int unitIndex);
   void updateSpacing();
-  
+  void unitChanged(int unitIndex);
+
 protected:
-  virtual void enterEvent(QEvent *event);
-  virtual void leaveEvent(QEvent *event);
-  
 private:
-  Sample* m_sample;
+//   static QMap<Channel *, ChannelInspector *> m_inspectors;
+
+  Channel *m_channel;
 };
 #endif // SAMPLEEDITOR_H

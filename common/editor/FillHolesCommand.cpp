@@ -50,7 +50,7 @@ void FillHolesCommand::redo()
 {
   QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
 
-  for(unsigned int i=0; i<m_newConnections.size(); i++)
+  for(int i=0; i<m_newConnections.size(); i++)
   {
     Segmentation *seg        = m_segmentations[i];
     Connection oldConnection = m_oldConnections[i];
@@ -70,7 +70,7 @@ void FillHolesCommand::undo()
 {
   QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
 
-  for(unsigned int i=0; i<m_newConnections.size(); i++)
+  for(int i=0; i<m_newConnections.size(); i++)
   {
     Segmentation *seg        = m_segmentations[i];
     Connection oldConnection = m_oldConnections[i];

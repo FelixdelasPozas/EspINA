@@ -49,11 +49,12 @@ public:
   virtual int numberOutputs() const;
   virtual EspinaVolume* output(OutputNumber i) const;
 
+  void setSpacing(EspinaVolume::SpacingType spacing);
+
 protected:
   virtual void run();
 
-  void setSpacing(double value[3]);
-  void spacing(double value[3]);
+  EspinaVolume::SpacingType spacing();
 
 private:
   EspinaVolume *m_volume;

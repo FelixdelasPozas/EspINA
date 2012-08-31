@@ -80,7 +80,7 @@ void ImageLogicCommand::redo()
   QSet<Channel *> channels;
   foreach(Segmentation *seg, m_input)
   {
-    ModelItem::Vector relatedChannels = seg->relatedItems(ModelItem::IN, "Channel");
+    ModelItem::Vector relatedChannels = seg->relatedItems(ModelItem::IN, Channel::LINK);
     foreach(ModelItem *item, relatedChannels)
     {
       Channel *channel = dynamic_cast<Channel *>(item);
@@ -116,7 +116,7 @@ void ImageLogicCommand::redo()
     Sample *sample = channel->sample();
     model->addRelation(m_filter, m_seg, CREATELINK);
     model->addRelation(sample, m_seg, "where");
-    model->addRelation(channel, m_seg, "Channel");
+    model->addRelation(channel, m_seg, Channel::LINK);
   }
   m_seg->initializeExtensions();
 }

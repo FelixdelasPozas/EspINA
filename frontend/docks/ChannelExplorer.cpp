@@ -18,6 +18,7 @@
 #include "ChannelExplorer.h"
 #include <ui_ChannelExplorer.h>
 
+#include "ChannelInspector.h"
 #include "EspinaConfig.h"
 #include "EspinaRegions.h"
 #include "common/EspinaCore.h"
@@ -43,6 +44,9 @@ public:
   {
     setupUi(this);
     groupBox->setVisible(false);
+
+    showInformation->setIcon(
+      qApp->style()->standardIcon(QStyle::SP_MessageBoxInformation));
   }
 };
 
@@ -62,20 +66,36 @@ ChannelExplorer::ChannelExplorer(QSharedPointer< EspinaModel > model,
   m_sort->setSourceModel(m_channelProxy.data());
   m_gui->view->setModel(m_sort.data());
 
-  connect(m_gui->activeChannel, SIGNAL(clicked(bool)), this, SLOT(activeChannel()));
-  connect(m_gui->channelColor, SIGNAL(clicked(bool)), this, SLOT(changeChannelColor()));
-  connect(m_gui->alignLeft, SIGNAL(clicked(bool)), this, SLOT(alignLeft()));
-  connect(m_gui->alignCenter, SIGNAL(clicked(bool)), this, SLOT(alignCenter()));
-  connect(m_gui->alignRight, SIGNAL(clicked(bool)), this, SLOT(alignRight()));
-  connect(m_gui->moveLeft, SIGNAL(clicked(bool)), this, SLOT(moveLelft()));
-  connect(m_gui->moveRight, SIGNAL(clicked(bool)), this, SLOT(moveRight()));
-  connect(m_gui->view, SIGNAL(clicked(QModelIndex)), this, SLOT(channelSelected()));
-  connect(m_gui->view, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(focusOnChannel()));
-  connect(m_gui->xPos, SIGNAL(valueChanged(int)), this, SLOT(updateChannelPosition()));
-  connect(m_gui->yPos, SIGNAL(valueChanged(int)), this, SLOT(updateChannelPosition()));
-  connect(m_gui->zPos, SIGNAL(valueChanged(int)), this, SLOT(updateChannelPosition()));
-  connect(m_gui->coordinateSelector, SIGNAL(currentIndexChanged(int)), this, SLOT(updateTooltips(int)));
-  connect(m_gui->unloadChannel, SIGNAL(clicked(bool)), this, SLOT(unloadChannel()));
+  connect(m_gui->showInformation, SIGNAL(clicked(bool)),
+          this, SLOT(showInformation()));
+  connect(m_gui->activeChannel, SIGNAL(clicked(bool)),
+	  this, SLOT(activateChannel()));
+  connect(m_gui->channelColor, SIGNAL(clicked(bool)),
+	  this, SLOT(changeChannelColor()));
+  connect(m_gui->alignLeft, SIGNAL(clicked(bool)),
+	  this, SLOT(alignLeft()));
+  connect(m_gui->alignCenter, SIGNAL(clicked(bool)),
+	  this, SLOT(alignCenter()));
+  connect(m_gui->alignRight, SIGNAL(clicked(bool)),
+	  this, SLOT(alignRight()));
+  connect(m_gui->moveLeft, SIGNAL(clicked(bool)),
+	  this, SLOT(moveLelft()));
+  connect(m_gui->moveRight, SIGNAL(clicked(bool)),
+	  this, SLOT(moveRight()));
+  connect(m_gui->view, SIGNAL(clicked(QModelIndex)),
+	  this, SLOT(channelSelected()));
+  connect(m_gui->view, SIGNAL(doubleClicked(QModelIndex)),
+	  this, SLOT(focusOnChannel()));
+  connect(m_gui->xPos, SIGNAL(valueChanged(int)),
+	  this, SLOT(updateChannelPosition()));
+  connect(m_gui->yPos, SIGNAL(valueChanged(int)),
+	  this, SLOT(updateChannelPosition()));
+  connect(m_gui->zPos, SIGNAL(valueChanged(int)),
+	  this, SLOT(updateChannelPosition()));
+  connect(m_gui->coordinateSelector, SIGNAL(currentIndexChanged(int)),
+	  this, SLOT(updateTooltips(int)));
+  connect(m_gui->unloadChannel, SIGNAL(clicked(bool)),
+	  this, SLOT(unloadChannel()));
 
   updateTooltips(0);
   setWidget(m_gui);
@@ -452,7 +472,25 @@ void ChannelExplorer::focusOnChannel()
 }
 
 //------------------------------------------------------------------------
-void ChannelExplorer::activeChannel()
+void ChannelExplorer::showInformation()
+{
+  foreach(QModelIndex index, m_gui->view->selectionModel()->selectedIndexes())
+  {
+    QModelIndex currentIndex = m_sort->mapToSource(index);
+    ModelItem *currentItem = indexPtr(currentIndex);
+    Q_ASSERT(currentItem);
+
+    if (ModelItem::CHANNEL == currentItem->type())
+    {
+      Channel *channel = dynamic_cast<Channel *>(currentItem);
+      ChannelInspector *inspector = new ChannelInspector(channel);
+      inspector->exec();
+    }
+  }
+}
+
+//------------------------------------------------------------------------
+void ChannelExplorer::activateChannel()
 {
     QModelIndex currentIndex = m_gui->view->currentIndex();
   if (!currentIndex.parent().isValid())

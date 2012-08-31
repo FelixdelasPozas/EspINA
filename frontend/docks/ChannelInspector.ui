@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>SampleEditor</class>
- <widget class="QWidget" name="SampleEditor">
+ <class>ChannelInspector</class>
+ <widget class="QWidget" name="ChannelInspector">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>294</width>
-    <height>150</height>
+    <width>135</width>
+    <height>132</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -35,7 +35,7 @@
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
        <property name="suffix">
-        <string>nm</string>
+        <string> nm</string>
        </property>
        <property name="maximum">
         <double>99999.990000000005239</double>
@@ -65,7 +65,7 @@
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
        <property name="suffix">
-        <string>nm</string>
+        <string> nm</string>
        </property>
        <property name="maximum">
         <double>99999.990000000005239</double>
@@ -95,7 +95,7 @@
         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
        </property>
        <property name="suffix">
-        <string>nm</string>
+        <string> nm</string>
        </property>
        <property name="maximum">
         <double>99999.990000000005239</double>
@@ -126,50 +126,51 @@
       <widget class="QComboBox" name="m_unit">
        <item>
         <property name="text">
-         <string>um</string>
+         <string> nm</string>
         </property>
        </item>
        <item>
         <property name="text">
-         <string>nm</string>
+         <string> um</string>
         </property>
        </item>
       </widget>
      </item>
-    </layout>
-   </item>
-   <item>
-    <spacer name="verticalSpacer_2">
-     <property name="orientation">
-      <enum>Qt::Vertical</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>20</width>
-       <height>40</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <spacer name="horizontalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
      <item>
       <widget class="QPushButton" name="pushButton">
+       <property name="minimumSize">
+        <size>
+         <width>32</width>
+         <height>32</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>32</width>
+         <height>32</height>
+        </size>
+       </property>
+       <property name="baseSize">
+        <size>
+         <width>32</width>
+         <height>32</height>
+        </size>
+       </property>
        <property name="text">
-        <string>Apply</string>
+        <string/>
+       </property>
+       <property name="icon">
+        <iconset resource="../rsc/espina.qrc">
+         <normaloff>:/espina/tick.png</normaloff>:/espina/tick.png</iconset>
+       </property>
+       <property name="iconSize">
+        <size>
+         <width>22</width>
+         <height>22</height>
+        </size>
+       </property>
+       <property name="flat">
+        <bool>true</bool>
        </property>
       </widget>
      </item>
@@ -177,6 +178,8 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../rsc/espina.qrc"/>
+ </resources>
  <connections/>
 </ui>
