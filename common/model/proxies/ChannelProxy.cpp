@@ -22,6 +22,8 @@
 #include <QPixmap>
 #include <QSet>
 #include <model/Channel.h>
+#include <selection/SelectionManager.h>
+#include <QFont>
 
 typedef QSet<ModelItem *> ChannelSet;
 
@@ -80,6 +82,11 @@ QVariant ChannelProxy::data(const QModelIndex& proxyIndex, int role) const
 	QPixmap channelIcon(3,16);
 	channelIcon.fill(proxyIndex.parent().data(role).value<QColor>());
 	return channelIcon;
+      }else if (Qt::FontRole == role)
+      {
+	QFont myFont;
+	myFont.setBold(SelectionManager::instance()->activeChannel() == item);
+	return myFont;
       }else
 	return item->data(role);
     default:
