@@ -71,7 +71,7 @@ void SegmhaImporter::UndoCommand::redo()
     model->addRelation(m_filter, seg, CREATELINK);
     model->addRelation(m_sample, seg, "where");
     model->addRelation(m_channel, seg, Channel::LINK);
-    seg->initialize();
+    seg->initializeExtensions();
   }
 }
 
