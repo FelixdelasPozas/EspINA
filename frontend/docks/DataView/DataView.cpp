@@ -150,12 +150,16 @@ void DataView::updateSelection(SelectionManager::Selection selection)
   tableView->blockSignals(true);
   tableView->selectionModel()->blockSignals(true);
   tableView->selectionModel()->reset();
+  tableView->setSelectionMode(QAbstractItemView::MultiSelection);
   foreach(SelectableItem *item, selection)
   {
     QModelIndex selIndex = index(item);
     if (selIndex.isValid())
+    {
       tableView->selectRow(selIndex.row());
+    }
   }
+  tableView->setSelectionMode(QAbstractItemView::ExtendedSelection);
   tableView->selectionModel()->blockSignals(false);
   tableView->blockSignals(false);
   // Center the view at the first selected item
@@ -163,6 +167,7 @@ void DataView::updateSelection(SelectionManager::Selection selection)
   {
     QModelIndex currentIndex = index(selection.first());
     tableView->selectionModel()->setCurrentIndex(currentIndex, QItemSelectionModel::Select);
+    tableView->scrollTo(currentIndex);
   }
   // Update all visible items
   tableView->viewport()->update();

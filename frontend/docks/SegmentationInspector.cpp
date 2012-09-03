@@ -69,7 +69,7 @@ SegmentationInspector::SegmentationInspector(Segmentation *seg, QWidget* parent,
   m_info->setQuery(seg->availableInformations());
   m_info->setSourceModel(m_model.data());
   m_sort->setSourceModel(m_info.data());
-  m_sort->setFilterRegExp(seg->data().toString());
+  m_sort->setFilterRegExp("^"+seg->data().toString()+"$");
   m_sort->setDynamicSortFilter(true);
 
   m_dataView->setModel(m_sort.data());

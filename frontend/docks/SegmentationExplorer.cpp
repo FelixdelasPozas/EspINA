@@ -463,6 +463,7 @@ void SegmentationExplorer::updateSelection(SelectionManager::Selection selection
   {
     QModelIndex currentIndex = m_layout->index(selection.first());
     m_gui->view->selectionModel()->setCurrentIndex(currentIndex, QItemSelectionModel::Select);
+    m_gui->view->scrollTo(currentIndex);
   }
   // Update all visible items
   m_gui->view->viewport()->update();
