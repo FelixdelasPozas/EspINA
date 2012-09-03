@@ -501,9 +501,10 @@ void VolumeView::takeSnapshot()
 
     if (validFileExtensions.contains(extension))
     {
+      int witdh = m_renderer->GetRenderWindow()->GetSize()[0];
       vtkRenderLargeImage *image = vtkRenderLargeImage::New();
       image->SetInput(m_renderer);
-      image->SetMagnification(1);
+      image->SetMagnification(4096.0/witdh+0.5);
       image->Update();
 
       if (QString("PNG") == extension)
