@@ -1240,7 +1240,6 @@ void SliceView::setSegmentationVisibility(bool visible)
   {
     rep.slice->SetVisibility(visible && rep.visible);
   }
-  m_channels[m_channels.keys().first()].slice->SetPosition(0,0,0);
   forceRender();
 }
 
