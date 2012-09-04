@@ -59,7 +59,6 @@ signals:
 private:
   int     m_radius;
   QCursor m_cursor;
-  bool    m_tracking;
   State   m_state;
   int     m_xRef, m_yRef;
 };

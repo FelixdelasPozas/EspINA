@@ -39,9 +39,17 @@
 #include <editor/OpeningFilter.h>
 #include <editor/FillHolesCommand.h>
 #include <editor/FillHolesFilter.h>
+#include <editor/vtkTube.h>
 #include <undo/RemoveSegmentation.h>
 #include <gui/EspinaView.h>
+
 #include <vtkSphere.h>
+
+enum BrushType {
+  CIRCULAR,
+  RECTANGULAR,
+  SPHERICAL
+};
 
 //----------------------------------------------------------------------------
 class EditorToolBar::FreeFormCommand
@@ -385,42 +393,86 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
   if (region.size() < 3)
     return;
 
-  QVector3D center = region[0];
-  QVector3D rx = region[1];
-  QVector3D ry = region[2];
-  PlaneType selectedPlane;
-  if (center.x() == rx.x() && rx.x() == ry.x())
-    selectedPlane = SAGITTAL;
-  else if (rx.y() == center.y() && rx.y() == ry.y())
-    selectedPlane = CORONAL;
-  else if (center.z() == rx.z() && rx.z() == ry.z())
-    selectedPlane = AXIAL;
-
-  int radius = 0;
-  if (selectedPlane != SAGITTAL)
-    radius = fabs(center.x() - rx.x());
-  else
-    radius = fabs(center.y() - region[2].y());
-
-  vtkSmartPointer<vtkSphere> brush = vtkSmartPointer<vtkSphere>::New();
-  brush->SetCenter(center.x(), center.y(), center.z());
-  brush->SetRadius(radius);
-
-
   SelectableItem *selectedItem = msel.first().second;
   Q_ASSERT(ModelItem::CHANNEL == selectedItem->type());
   Channel *channel = dynamic_cast<Channel *>(selectedItem);
   double spacing[3];
   channel->spacing(spacing);
 
+  double points[5][3];
+  double *center = points[0];
+  double *right  = points[1];
+  double *top    = points[2];
+  double *left   = points[3];
+  double *bottom = points[4];
+
+  for (int i=0; i<5; i++)
+  {
+    points[i][0] = int(region[i].x()/spacing[0]+0.5)*spacing[0];
+    points[i][1] = int(region[i].y()/spacing[1]+0.5)*spacing[1];
+    points[i][2] = int(region[i].z()/spacing[2]+0.5)*spacing[2];
+  }
+
+  PlaneType selectedPlane;
+  if (center[0] == right[0] && right[0] == top[0])
+    selectedPlane = SAGITTAL;
+  else if (right[1] == center[1] && right[1] == top[1])
+    selectedPlane = CORONAL;
+  else if (center[2] == right[2] && right[2] == top[2])
+    selectedPlane = AXIAL;
+
+  double baseCenter[3], topCenter[3];
+  for (int i=0; i<3; i++)
+    baseCenter[i] = topCenter[i] = center[i];
+
+  topCenter[selectedPlane] += 0.5*spacing[selectedPlane];
+
+  int radius = 0;
+  if (selectedPlane != SAGITTAL)
+    radius = fabs(region[0].x() - region[1].x());
+  else
+    radius = fabs(region[0].y() - region[2].y());
+
+//   qDebug() << "Regions:" << region[0] << region[1] << region[2];
+//   qDebug() << "Puntos:" <<center[0] << right[0] << top[0] << left[0] << bottom[0];
+//   qDebug() << "Centro:" << baseCenter[0] << baseCenter[1];
+//   qDebug() << "Radio:" << radius;
+
+  vtkSmartPointer<vtkImplicitFunction> brush;
+
+  BrushType brushType = CIRCULAR;
+  switch (brushType)
+  {
+    case CIRCULAR:
+    {
+      vtkSmartPointer<vtkTube> circularBrush = vtkSmartPointer<vtkTube>::New();
+      circularBrush->SetBaseCenter(baseCenter);
+      circularBrush->SetBaseRadius(radius);
+      circularBrush->SetTopCenter(topCenter);
+      circularBrush->SetTopRadius(radius);
+      brush = circularBrush;
+    }
+      break;
+    case SPHERICAL:
+    {
+      vtkSmartPointer<vtkSphere> sphericalBrush = vtkSmartPointer<vtkSphere>::New();
+      sphericalBrush->SetCenter(baseCenter);
+      sphericalBrush->SetRadius(radius);
+      brush = sphericalBrush;
+    }
+      break;
+    default:
+      Q_ASSERT(false);
+  };
+
   double bounds[6];
   channel->bounds(bounds);
-  bounds[0] = std::max(center.x() - radius, bounds[0]);
-  bounds[1] = std::min(center.x() + radius, bounds[1]);
-  bounds[2] = std::max(center.y() - radius, bounds[2]);
-  bounds[3] = std::min(center.y() + radius, bounds[3]);
-  bounds[4] = std::max(center.z() - radius, bounds[4]);
-  bounds[5] = std::min(center.z() + radius, bounds[5]);
+  bounds[0] = std::max(center[0] - radius, bounds[0]);
+  bounds[1] = std::min(center[0] + radius, bounds[1]);
+  bounds[2] = std::max(center[1] - radius, bounds[2]);
+  bounds[3] = std::min(center[1] + radius, bounds[3]);
+  bounds[4] = std::max(center[2] - radius, bounds[4]);
+  bounds[5] = std::min(center[2] + radius, bounds[5]);
 
   if (!m_currentSource && !m_currentSeg)
   {
@@ -436,10 +488,12 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
   {
     // Create a new segmentation
     if (m_pencilSelector->state() == PencilSelector::DRAWING)
+    {
       m_currentSource->draw(0, brush, bounds);
-    m_currentSeg = EspinaFactory::instance()->createSegmentation(m_currentSource, 0);
-    TaxonomyNode *tax = SelectionManager::instance()->activeTaxonomy();
-    undo->push(new FreeFormCommand(channel, m_currentSource, m_currentSeg, tax));
+      m_currentSeg = EspinaFactory::instance()->createSegmentation(m_currentSource, 0);
+      TaxonomyNode *tax = SelectionManager::instance()->activeTaxonomy();
+      undo->push(new FreeFormCommand(channel, m_currentSource, m_currentSeg, tax));
+    }
   } else
   {
     unsigned int output = m_currentSeg->outputNumber();

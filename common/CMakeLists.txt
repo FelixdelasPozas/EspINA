@@ -79,6 +79,7 @@ set (CORE_SOURCES
   editor/ErodeFilter.cpp
   editor/ImageLogicFilter.cpp
   editor/vtkImageLogicFilter.cpp
+  editor/vtkTube.cxx
   IO/FilePack.cpp
   extensions/Margins/MarginDetector.cpp
   extensions/Margins/MarginsChannelExtension.cpp

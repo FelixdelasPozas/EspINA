@@ -41,7 +41,6 @@
 //-----------------------------------------------------------------------------
 PencilSelector::PencilSelector(SelectionHandler* succesor)
 : SelectionHandler(succesor)
-, m_tracking(false)
 , m_state(DRAWING)
 {
   setRadius(20);
@@ -54,12 +53,12 @@ bool PencilSelector::filterEvent(QEvent* e, SelectableView* view)
   if (e->type() == QEvent::Enter)
   {
     setRadius(m_radius);
-    //view->view()->grabKeyboard();
+    view->view()->grabKeyboard();
     return SelectionHandler::filterEvent(e, view);
   }
   else if (e->type() == QEvent::Leave)
   {
-    //view->view()->releaseKeyboard();
+    view->view()->releaseKeyboard();
     return SelectionHandler::filterEvent(e, view);
   } else if (e->type() == QEvent::KeyPress)
   {
@@ -86,7 +85,9 @@ bool PencilSelector::filterEvent(QEvent* e, SelectableView* view)
       setRadius(m_radius+numSteps);
       view->view()->setCursor(cursor());
       return true;
-    }else if (we->buttons() == Qt::LeftButton)
+    }
+
+    if (we->buttons() == Qt::LeftButton)
     {
       startSelection(we->x(), we->y(), view);
       return false;
@@ -100,9 +101,6 @@ bool PencilSelector::filterEvent(QEvent* e, SelectableView* view)
       startSelection(me->x(), me->y(), view);
       return true;
     }
-  }
-  else {
-    m_tracking = false;
   }
   return SelectionHandler::filterEvent(e, view);
 }
@@ -161,7 +159,9 @@ void PencilSelector::startSelection(int x, int y, SelectableView *view)
 
   brushRadius << QPoint(xPos,yPos)
               << QPoint(xPos+radius(), yPos)
-              << QPoint(xPos, yPos+radius());
+              << QPoint(xPos, yPos+radius())
+              << QPoint(xPos-radius(), yPos)
+              << QPoint(xPos, yPos-radius());
   regions << brushRadius;
 
   MultiSelection msel = view->select(m_filters, regions);
