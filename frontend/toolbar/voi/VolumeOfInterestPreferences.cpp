@@ -49,11 +49,11 @@ VolumeOfInterestPreferences::VolumeOfInterestPreferences()
   QSettings settings;
   
   if (!settings.allKeys().contains(DEFAULT_VOI_X))
-    settings.setValue(DEFAULT_VOI_X,60);
+    settings.setValue(DEFAULT_VOI_X,250);
   if (!settings.allKeys().contains(DEFAULT_VOI_Y))
-    settings.setValue(DEFAULT_VOI_Y,60);
+    settings.setValue(DEFAULT_VOI_Y,250);
   if (!settings.allKeys().contains(DEFAULT_VOI_Z))
-    settings.setValue(DEFAULT_VOI_Z,60);
+    settings.setValue(DEFAULT_VOI_Z,250);
 
   m_xSize = settings.value(DEFAULT_VOI_X).toInt();
   m_ySize = settings.value(DEFAULT_VOI_Y).toInt();

@@ -20,12 +20,16 @@
 #define NUMBERCOLORENGINE_H
 
 #include <ColorEngine.h>
+#include <QMap>
 
 class NumberColorEngine: public ColorEngine
 {
 public:
   virtual QColor color(const Segmentation* seg);
   virtual vtkSmartPointer<vtkLookupTable> lut(const Segmentation* seg);
+
+private:
+  QMap<QString, vtkSmartPointer<vtkLookupTable> > m_LUT;
 };
 
 #endif // NUMBERCOLORENGINE_H

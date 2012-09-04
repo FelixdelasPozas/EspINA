@@ -36,9 +36,9 @@ SeedGrowSegmentation::Settings::Settings(BestPixelSelector *selector)
   QSettings settings("CeSViMa", "EspINA");
 
   m_selector->setBestPixelValue(settings.value(BEST_PIXEL, 0).toInt());
-  m_xSize   = settings.value(DEFAULT_VOI_X, 60).toInt();
-  m_ySize   = settings.value(DEFAULT_VOI_Y, 60).toInt();
-  m_zSize   = settings.value(DEFAULT_VOI_Z, 60).toInt();
+  m_xSize   = settings.value(DEFAULT_VOI_X, 250).toInt();
+  m_ySize   = settings.value(DEFAULT_VOI_Y, 250).toInt();
+  m_zSize   = settings.value(DEFAULT_VOI_Z, 250).toInt();
   m_closing = settings.value(CLOSING, 0).toInt();
 }
 

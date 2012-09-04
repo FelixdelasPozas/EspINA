@@ -168,6 +168,8 @@ void DefaultEspinaView::createViewMenu(QMenu* menu)
   menu->addAction(fitToSlices);
   connect(fitToSlices, SIGNAL(toggled(bool)),
 	  this, SLOT(setFitToSlices(bool)));
+  connect(&EspinaCore::instance()->colorSettings(), SIGNAL(colorEngineChanged(ColorEngine*)),
+          this, SLOT(setColorEngine(ColorEngine*)));
 
   setRulerVisibility(sr);
   showThumbnail(st);
@@ -274,6 +276,7 @@ void DefaultEspinaView::setColorEngine(ColorEngine* engine)
   yzView->setColorEngine(m_colorEngine);
   xzView->setColorEngine(m_colorEngine);
   volView->setColorEngine(m_colorEngine);
+  forceRender();
 }
 
 //----------------------------------------------------------------------------

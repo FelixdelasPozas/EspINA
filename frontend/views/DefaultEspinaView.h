@@ -69,10 +69,10 @@ public:
 //   virtual void addRepresentation(pqOutputPort *oport, QColor color);
 //   virtual void removeRepresentation(pqOutputPort *oport);
 
-  virtual void setColorEngine(ColorEngine *engine);
   virtual ISettingsPanel* settingsPanel();
 
 public slots:
+  virtual void setColorEngine(ColorEngine *engine);
   virtual void showCrosshair(bool visible);
   virtual void switchPreprocessing();
   virtual void showSegmentations(bool visible);

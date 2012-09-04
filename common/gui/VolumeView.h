@@ -87,12 +87,20 @@ public:
   void addWidget(vtkAbstractWidget *widget);
   void removeWidget(vtkAbstractWidget *widget);
 
-  void setColorEngine(ColorEngine *engine){m_colorEngine = engine;}
+  void setColorEngine(ColorEngine *engine)
+  {
+    m_colorEngine = engine;
+    updateSegmentationRepresentations();
+  }
+
   SettingsPtr settings() {return m_settings;}
 
   void changePlanePosition(PlaneType, Nm);
   void addRendererControls(Renderer *);
   void removeRendererControls(Renderer *);
+
+protected:
+  void updateSegmentationRepresentations();
 
 public slots:
   void forceRender();

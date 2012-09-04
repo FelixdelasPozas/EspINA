@@ -69,8 +69,8 @@ Segmentation::Segmentation(Filter* filter, unsigned int outputNb)
   m_args[TAXONOMY] = "Unknown";
   connect(filter, SIGNAL(modified(ModelItem *)),
           this, SLOT(notifyModification()));
-  connect(&EspinaCore::instance()->colorSettings(),
-          SIGNAL(colorEngineChanged()), this, SLOT(onColorEngineChanged()));
+  connect(&EspinaCore::instance()->colorSettings(),SIGNAL(colorEngineChanged(ColorEngine*)),
+          this, SLOT(onColorEngineChanged()));
 
 }
 
@@ -292,11 +292,11 @@ void Segmentation::onColorEngineChanged()
   ColorEngineSettings &settings = EspinaCore::instance()->colorSettings();
   ColorEngine * engine = settings.engine();
   QColor color = engine->color(this);
-  if (m_color != color)
-  {
-    m_color = color;
-    notifyModification();
-  }
+//   if (m_color != color)
+//   {
+//     m_color = color;
+//     notifyModification();
+//   }
 }
 
 vtkAlgorithmOutput* Segmentation::vtkVolume()

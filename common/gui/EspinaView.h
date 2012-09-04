@@ -65,13 +65,13 @@ public:
   virtual void setSlicingStep(Nm steps[3]) = 0;
   void crosshairPoint(Nm point[3]){memcpy(point, m_crosshairPoint, 3*sizeof(Nm));}
 
-  virtual void setColorEngine(ColorEngine *engine) {};
   virtual ISettingsPanel *settingsPanel() = 0;
 
 public slots:
-  virtual void showSegmentations(bool visible) = 0;
-  virtual void setCrosshairPoint(Nm x, Nm y, Nm z, bool force=false) = 0;
   virtual void setCameraFocus(const Nm focus[3]) = 0;
+  virtual void setColorEngine(ColorEngine *engine) {};
+  virtual void setCrosshairPoint(Nm x, Nm y, Nm z, bool force=false) = 0;
+  virtual void showSegmentations(bool visible) = 0;
   //TODO: use a stack-like method to support interactions between different
   // components
   virtual void setSliceSelectors(SliceView::SliceSelectors selectors) = 0;

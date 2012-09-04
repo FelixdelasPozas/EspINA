@@ -19,27 +19,46 @@
 
 #include "common/model/Segmentation.h"
 
+const double SELECTED_ALPHA = 1.0;
+const double UNSELECTED_ALPHA = 0.6;
+
 vtkSmartPointer<vtkLookupTable> NumberColorEngine::lut(const Segmentation* seg)
 {
-  return vtkSmartPointer<vtkLookupTable>();
-//	// Get (or create if it doesn't exit) the lut for the segmentations' images
-//	if (lut)
-//	{
-//		double alpha = (seg->isSelected() ? 1.0 : 0.7);
-//		QColor c = color(seg);
-//		double colors[8] = { 0, 0, 0, 0, 255, c.redF() * alpha, c.greenF() * alpha, c.blueF() * alpha };
-//		vtkSMPropertyHelper(lut->getProxy(), "RGBPoints").Set(colors, 8);
-//		lut->getProxy()->UpdateVTKObjects();
-//	}
-//
-//	return lut->getProxy();
+  // Get (or create if it doesn't exit) the lut for the segmentations' images
+  QString lutName = QString::number(seg->number());
+  if (seg->isSelected())
+    lutName.append("_selected");
+
+  vtkSmartPointer<vtkLookupTable> seg_lut;
+
+  bool updateLut = false;
+
+  if (!m_LUT.contains(lutName))
+  {
+    double alpha = (seg->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA);
+    QColor c = color(seg);
+
+    seg_lut = vtkLookupTable::New();
+    seg_lut->Allocate();
+    seg_lut->SetNumberOfTableValues(2);
+    seg_lut->Build();
+    seg_lut->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
+    seg_lut->SetTableValue(1, c.redF(), c.greenF(), c.blueF(), alpha);
+    seg_lut->Modified();
+
+    m_LUT.insert(lutName, seg_lut);
+  }
+  else
+    seg_lut = m_LUT[lutName];
+
+  return seg_lut;
 }
 
 QColor NumberColorEngine::color(const Segmentation* seg)
 {
-	if (seg)
-		return QColor((seg->number() * 25) % 255, (seg->number() * 73) % 255, (seg->number() * 53) % 255);
-	else
-		return Qt::red;
+  if (seg)
+    return QColor((seg->number() * 25) % 255, (seg->number() * 73) % 255, (seg->number() * 53) % 255);
+  else
+    return Qt::red;
 }
 

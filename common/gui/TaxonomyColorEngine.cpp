@@ -20,6 +20,13 @@
 
 #include "common/model/Segmentation.h"
 
+const double SELECTED_ALPHA = 1.0;
+const double UNSELECTED_ALPHA = 0.6;
+
+//-----------------------------------------------------------------------------
+TaxonomyColorEngine *TaxonomyColorEngine::m_singleton = NULL;
+
+//-----------------------------------------------------------------------------
 QColor TaxonomyColorEngine::color(const Segmentation* seg)
 {
   if (seg && seg->taxonomy())
@@ -28,7 +35,8 @@ QColor TaxonomyColorEngine::color(const Segmentation* seg)
     return Qt::red;
 }
 
-vtkSmartPointer< vtkLookupTable > TaxonomyColorEngine::lut(const Segmentation* seg)
+//-----------------------------------------------------------------------------
+vtkSmartPointer<vtkLookupTable> TaxonomyColorEngine::lut(const Segmentation* seg)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
   QString lutName = seg->taxonomy()->qualifiedName();
@@ -37,9 +45,11 @@ vtkSmartPointer< vtkLookupTable > TaxonomyColorEngine::lut(const Segmentation* s
 
   vtkSmartPointer<vtkLookupTable> seg_lut;
 
-  if (m_LUT.find(lutName) == m_LUT.end())
+  bool updateLut = false;
+
+  if (!m_LUT.contains(lutName))
   {
-    double alpha = (seg->isSelected() ? 1.0 : 0.6);
+    double alpha = (seg->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA);
     QColor c = color(seg);
 
     seg_lut = vtkLookupTable::New();
@@ -53,8 +63,29 @@ vtkSmartPointer< vtkLookupTable > TaxonomyColorEngine::lut(const Segmentation* s
     m_LUT.insert(lutName, seg_lut);
   }
   else
-    seg_lut = m_LUT.find(lutName).value();
+    seg_lut = m_LUT[lutName];
 
   return seg_lut;
+}
+
+//-----------------------------------------------------------------------------
+void TaxonomyColorEngine::updateTaxonomyColor(TaxonomyNode* tax)
+{
+  QString lutName = tax->qualifiedName();
+  QColor c = tax->color();
+
+  if (!m_LUT.contains(lutName))
+    return;
+
+  m_LUT[lutName]->SetTableValue(1, c.redF(), c.greenF(), c.blueF(), UNSELECTED_ALPHA);
+  m_LUT[lutName]->Modified();
+
+  lutName.append("_selected");
+
+  if (!m_LUT.contains(lutName))
+    return;
+
+  m_LUT[lutName]->SetTableValue(1, c.redF(), c.greenF(), c.blueF(), SELECTED_ALPHA);
+  m_LUT[lutName]->Modified();
 }
 

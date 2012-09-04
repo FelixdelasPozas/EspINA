@@ -130,12 +130,16 @@ public:
   void setColorEngine(ColorEngine *engine)
   {
     m_colorEngine = engine;
+    updateSegmentationRepresentations();
   }
 
   SettingsPtr settings()
   {
     return m_settings;
   }
+
+protected:
+  void updateSegmentationRepresentations();
 
 public slots:
   /// Show/Hide segmentations
@@ -149,6 +153,7 @@ public slots:
 
   /// Update Selected Items
   virtual void updateSelection(SelectionManager::Selection selection);
+
 
   void forceRender();
 

@@ -32,6 +32,7 @@
 #include <vtkRectangularRepresentation.h>
 #include <vtkLookupTable.h>
 #include "common/gui/VolumeView.h"
+#include <EspinaCore.h>
 
 // Debug
 #include <QDebug>
@@ -642,10 +643,17 @@ SelectionHandler::MultiSelection SliceView::select(SelectionHandler::SelectionFi
 //-----------------------------------------------------------------------------
 void SliceView::updateSelection(SelectionManager::Selection selection)
 {
+  updateSegmentationRepresentations();
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::updateSegmentationRepresentations()
+{
   if (isVisible())
     foreach(Segmentation *seg, m_segmentations.keys())
       updateSegmentationRepresentation(seg);
 }
+
 
 //-----------------------------------------------------------------------------
 QVTKWidget *SliceView::view()

@@ -22,15 +22,27 @@
 #include "common/gui/ColorEngine.h"
 #include <QMap>
 
-class TaxonomyColorEngine: public ColorEngine
+class TaxonomyNode;
+class TaxonomyColorEngine
+: public ColorEngine
 {
-
 public:
+  static TaxonomyColorEngine *instance()
+  {
+    if (NULL == m_singleton)
+      m_singleton = new TaxonomyColorEngine();
+    return m_singleton;
+  }
+
   virtual QColor color(const Segmentation* seg);
   virtual vtkSmartPointer< vtkLookupTable > lut(const Segmentation* seg);
+  void updateTaxonomyColor(TaxonomyNode *tax);
 
 private:
+  explicit TaxonomyColorEngine(){}
+
   QMap<QString, vtkSmartPointer<vtkLookupTable> > m_LUT;
+  static TaxonomyColorEngine *m_singleton;
 };
 
 #endif // TAXONOMYCOLORENGINE_H

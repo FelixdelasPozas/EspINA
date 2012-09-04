@@ -312,6 +312,7 @@ void VolumeView::forceRender()
 {
   if(isVisible())
   {
+//     qDebug() << "Render Volume View";
     this->m_viewWidget->GetRenderWindow()->Render();
     this->m_viewWidget->update();
   }
@@ -640,6 +641,12 @@ void VolumeView::countEnabledRenderers(bool value)
 
 //-----------------------------------------------------------------------------
 void VolumeView::updateSelection(SelectionManager::Selection selection)
+{
+  updateSegmentationRepresentations();
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::updateSegmentationRepresentations()
 {
   if (isVisible())
     foreach(Segmentation *seg, m_segmentations)

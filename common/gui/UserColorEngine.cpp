@@ -19,6 +19,8 @@
 #include "UserColorEngine.h"
 
 #include <common/model/Segmentation.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkMath.h>
 
 //-----------------------------------------------------------------------------
 UserColorEngine::UserColorEngine() :
@@ -29,9 +31,34 @@ m_lastColor(0)
 }
 
 //-----------------------------------------------------------------------------
-vtkSmartPointer< vtkLookupTable > UserColorEngine::lut(const Segmentation* seg)
+vtkSmartPointer<vtkLookupTable> UserColorEngine::lut(const Segmentation* seg)
 {
-  return NULL;
+  // Get (or create if it doesn't exit) the lut for the segmentations' images
+  QString lutName = seg->taxonomy()->qualifiedName();
+  if (seg->isSelected())
+    lutName.append("_selected");
+
+  vtkSmartPointer<vtkLookupTable> seg_lut;
+
+  if (m_LUT.find(lutName) == m_LUT.end())
+  {
+    double alpha = (seg->isSelected() ? 1.0 : 0.6);
+    QColor c = color(seg);
+
+    seg_lut = vtkLookupTable::New();
+    seg_lut->Allocate();
+    seg_lut->SetNumberOfTableValues(2);
+    seg_lut->Build();
+    seg_lut->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
+    seg_lut->SetTableValue(1, c.redF(), c.greenF(), c.blueF(), alpha);
+    seg_lut->Modified();
+
+    m_LUT.insert(lutName, seg_lut);
+  }
+  else
+    seg_lut = m_LUT.find(lutName).value();
+
+  return seg_lut;
 }
 
 //-----------------------------------------------------------------------------
