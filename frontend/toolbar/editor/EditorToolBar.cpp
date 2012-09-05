@@ -370,8 +370,14 @@ void EditorToolBar::startDrawing(bool draw)
     {
       m_currentSeg = selSegs.first();
       m_currentSource = m_currentSeg->filter();
-//       qDebug() << "Editing" << m_currentSeg->data().toString();
+      m_pencilSelector->changeState(PencilSelector::DRAWING);
+      m_pencilSelector->setColor(m_currentSeg->taxonomy()->color());
+    } else
+    {
+      m_pencilSelector->changeState(PencilSelector::CREATING);
+      m_pencilSelector->setColor(SelectionManager::instance()->activeTaxonomy()->color());
     }
+
     m_pencilSelector->setRadius(m_settings->brushRadius());
     SelectionManager::instance()->setSelectionHandler(m_pencilSelector);
   }
@@ -487,19 +493,20 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
   if (!m_currentSeg && m_currentSource)
   {
     // Create a new segmentation
-    if (m_pencilSelector->state() == PencilSelector::DRAWING)
+    if (PencilSelector::CREATING == m_pencilSelector->state())
     {
       m_currentSource->draw(0, brush, bounds);
       m_currentSeg = EspinaFactory::instance()->createSegmentation(m_currentSource, 0);
       TaxonomyNode *tax = SelectionManager::instance()->activeTaxonomy();
       undo->push(new FreeFormCommand(channel, m_currentSource, m_currentSeg, tax));
+      m_pencilSelector->changeState(PencilSelector::DRAWING);
     }
   } else
   {
     unsigned int output = m_currentSeg->outputNumber();
     if (m_pencilSelector->state() == PencilSelector::DRAWING)
       m_currentSource->draw(output, brush, bounds);
-    else if (m_pencilSelector->state() == PencilSelector::ERASING)
+    else if (PencilSelector::ERASING == m_pencilSelector->state())
       m_currentSource->draw(output, brush, bounds, 0);
     else
       Q_ASSERT(false);

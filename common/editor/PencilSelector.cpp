@@ -123,22 +123,19 @@ void PencilSelector::setRadius(int radius)
     QPixmap pix(width, width);
     pix.fill(Qt::transparent);
     QPainter p(&pix);
-    if (SelectionManager::instance()->activeTaxonomy())
+    p.setBrush(QBrush(m_color));
+    switch (m_state)
     {
-      QColor taxColor = SelectionManager::instance()->activeTaxonomy()->color();
-//       p.setPen(QPen(taxColor));
-      taxColor.setAlphaF(0.8);
-      p.setBrush(QBrush(taxColor));
-    }
-    else
-    {
-      p.setBrush(QBrush(QColor(0,255,0,120)));
-//       p.setPen(QPen(QColor(0,255,0,255)));
-    }
-    if (m_state == DRAWING)
-      p.setPen(QPen(Qt::green));
-    else
-      p.setPen(QPen(Qt::red));
+      case CREATING:
+	p.setPen(QPen(Qt::blue));
+	break;
+      case DRAWING:
+	p.setPen(QPen(Qt::green));
+	break;
+      case ERASING:
+	p.setPen(QPen(Qt::red));
+    };
+
     p.drawEllipse(0, 0, width-1, width-1);
     Q_ASSERT(pix.hasAlpha());
 

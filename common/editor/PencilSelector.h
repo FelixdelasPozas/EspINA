@@ -21,6 +21,7 @@
 #define PENCILSELECTOR_H
 
 #include <common/selection/SelectionHandler.h>
+#include <QColor>
 
 
 class PencilSelector
@@ -28,13 +29,18 @@ class PencilSelector
 {
   Q_OBJECT
 public:
-  enum State {DRAWING, ERASING};
+  enum State {CREATING, DRAWING, ERASING};
 public:
   explicit PencilSelector(SelectionHandler* succesor = NULL);
 
   virtual bool filterEvent(QEvent* e, SelectableView* view = 0);
   virtual QCursor cursor();
 
+  void setColor(QColor color)
+  {
+    m_color = color;
+    m_color.setAlphaF(0.8);
+  }
   void setRadius(int radius);
   int radius() const {return m_radius;}
 
@@ -55,12 +61,12 @@ private:
 signals:
   void stateChanged(PencilSelector::State);
 
-
 private:
   int     m_radius;
   QCursor m_cursor;
   State   m_state;
   int     m_xRef, m_yRef;
+  QColor  m_color;
 };
 
 #endif // PENCILSELECTOR_H
