@@ -151,8 +151,11 @@ bool IOEspinaFile::saveFile(QFileInfo file,
   // Create tmp dir
 //   qDebug() << file.absolutePath();
   QDir tmpDir = file.absoluteDir();
-  tmpDir.mkdir(file.baseName());
-  tmpDir.cd(file.baseName());
+  if (!file.baseName().isEmpty())
+  {
+    tmpDir.mkdir(file.baseName());
+    tmpDir.cd(file.baseName());
+  }
 //   qDebug() << "Temporal Dir" << tmpDir;
 
   QFile zFile(file.filePath());
@@ -214,8 +217,12 @@ bool IOEspinaFile::saveFile(QFileInfo file,
     //qDebug() << "Removing" << tmpFile.fileName();
     Q_ASSERT(tmpDir.remove(tmpFile.fileName()));
   }
-  tmpDir.cdUp();
-  tmpDir.rmdir(file.baseName());
+
+  if (!file.baseName().isEmpty())
+  {
+    tmpDir.cdUp();
+    tmpDir.rmdir(file.baseName());
+  }
 
   return true;
 }

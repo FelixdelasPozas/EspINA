@@ -28,6 +28,8 @@
 
 #include "RecentDocuments.h"
 
+#include <QTimer>
+
 class QAction;
 class EspinaModel;
 class EspinaView;
@@ -73,6 +75,8 @@ protected slots:
   void openState() {m_menuState = OPEN_STATE;}
   void addState()  {m_menuState = ADD_STATE;}
 
+  void autosave();
+
 protected:
   void createActivityMenu();
   void createDynamicMenu(MenuEntry entry);
@@ -106,6 +110,7 @@ private:
     QList<DynamicMenuNode *> submenus;
   };
   DynamicMenuNode *m_dynamicMenuRoot;
+  QTimer m_autosave;
 };
 
 #endif // ESPinaModelWINDOW_H

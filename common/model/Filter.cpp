@@ -175,13 +175,14 @@ void Filter::draw(OutputNumber i,
   EspinaVolume::RegionType region = BoundsToRegion(bounds, spacing);
   m_outputs[i] = addRegionToVolume(m_outputs[i], region);
 
-  itk::ImageRegionIteratorWithIndex<EspinaVolume> it(m_outputs[i], region);
+  EspinaVolume::RegionType outputRegion = VolumeRegion(m_outputs[i], region);
+  itk::ImageRegionIteratorWithIndex<EspinaVolume> it(m_outputs[i], outputRegion);
   it.GoToBegin();
   for (; !it.IsAtEnd(); ++it )
   {
-    double tx = it.GetIndex()[0]*spacing[0];
-    double ty = it.GetIndex()[1]*spacing[1];
-    double tz = it.GetIndex()[2]*spacing[2];
+    double tx = it.GetIndex()[0]*spacing[0] + m_outputs[i]->GetOrigin()[0];
+    double ty = it.GetIndex()[1]*spacing[1] + m_outputs[i]->GetOrigin()[1];
+    double tz = it.GetIndex()[2]*spacing[2] + m_outputs[i]->GetOrigin()[2];
 
     if (brush->FunctionValue(tx, ty, tz) <= 0)
       it.Set(value);
