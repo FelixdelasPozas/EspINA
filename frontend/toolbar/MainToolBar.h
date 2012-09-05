@@ -51,6 +51,7 @@ public slots:
 
 protected slots:
   void setActiveTaxonomy(QModelIndex index);
+  void setActiveTaxonomy(QString taxonomy);
   void updateTaxonomy(QModelIndex left, QModelIndex right);
   void removeSegmentation(bool active);
   void removeSelectedSegmentation(SelectionHandler::MultiSelection msel);

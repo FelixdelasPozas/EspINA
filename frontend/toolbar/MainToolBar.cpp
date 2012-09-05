@@ -68,6 +68,8 @@ MainToolBar::MainToolBar(QSharedPointer<EspinaModel> model, QWidget* parent)
 
   connect(m_taxonomyView, SIGNAL(entered(QModelIndex)),
           this, SLOT(setActiveTaxonomy(QModelIndex)));
+  connect(m_taxonomySelector,SIGNAL(currentIndexChanged(QString)),
+          this, SLOT(setActiveTaxonomy(QString)));
 
   m_selector = new PixelSelector();
   m_selector->setMultiSelection(false);
@@ -109,6 +111,18 @@ void MainToolBar::setActiveTaxonomy(QModelIndex index)
   Q_ASSERT(tax);
   SelectionManager::instance()->setActiveTaxonomy(tax);
 }
+
+//----------------------------------------------------------------------------
+void MainToolBar::setActiveTaxonomy(QString taxonomy)
+{
+  if (taxonomy.isEmpty())
+    return;
+
+  TaxonomyNode *tax = EspinaCore::instance()->model()->taxonomy()->element(taxonomy);
+  if (tax)
+    SelectionManager::instance()->setActiveTaxonomy(tax);
+}
+
 
 //----------------------------------------------------------------------------
 void MainToolBar::updateTaxonomy(QModelIndex left, QModelIndex right)

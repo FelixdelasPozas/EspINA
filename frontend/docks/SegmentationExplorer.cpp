@@ -376,6 +376,8 @@ SegmentationExplorer::SegmentationExplorer(QSharedPointer<EspinaModel> model,
           this, SLOT(updateSelection(QItemSelection, QItemSelection)));
   connect(SelectionManager::instance(), SIGNAL(selectionChanged(SelectionManager::Selection)),
           this, SLOT(updateSelection(SelectionManager::Selection)));
+  connect(&EspinaCore::instance()->colorSettings(), SIGNAL(colorEngineChanged(ColorEngine*)),
+	  m_gui->view, SLOT(update()));
 
   setWidget(m_gui);
 }
