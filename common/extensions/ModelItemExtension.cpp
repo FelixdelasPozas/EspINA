@@ -20,25 +20,25 @@
 #include "ModelItemExtension.h"
 
 //-----------------------------------------------------------------------------
-QStringList ModelItemExtension::dependencies() const
+ModelItemExtension::ExtIdList ModelItemExtension::dependencies() const
 {
   return QStringList();
 }
 
 //-----------------------------------------------------------------------------
-QStringList ModelItemExtension::availableRepresentations() const
+ModelItemExtension::RepList ModelItemExtension::availableRepresentations() const
 {
   return m_availableRepresentations;
 }
 
 //-----------------------------------------------------------------------------
-QStringList ModelItemExtension::availableInformations() const
+ModelItemExtension::InfoList ModelItemExtension::availableInformations() const
 {
   return m_availableInformations;
 }
 
 //-----------------------------------------------------------------------------
-QVariant ModelItemExtension::information(QString info) const
+QVariant ModelItemExtension::information(ModelItemExtension::InfoTag tag) const
 {
   return QVariant();
 }

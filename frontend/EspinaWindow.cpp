@@ -21,7 +21,6 @@
 
 // Data Model
 #include "EspinaCore.h"
-#include "common/model/ModelTest.h"
 #include "common/model/EspinaModel.h"
 
 #include <gui/EspinaView.h>
@@ -29,7 +28,7 @@
 #include "common/gui/ViewManager.h"
 #include "docks/SegmentationExplorer.h"
 #include "docks/TaxonomyExplorer.h"
-#include "docks/ModifyFilter/ModifyFilterPanel.h"
+#include "docks/FilterInspector/FilterInspector.h"
 #include "toolbar/MainToolBar.h"
 #include <model/Channel.h>
 #include <model/Taxonomy.h>
@@ -47,47 +46,20 @@
 #include "toolbar/LODToolBar.h"
 #include "views/DefaultEspinaView.h"
 #include <model/EspinaFactory.h>
-#include <pqActiveObjects.h>
-#include <pqAlwaysConnectedBehavior.h>
-#include <pqApplicationCore.h>
-#include <pqAutoLoadPluginXMLBehavior.h>
-#include <pqCommandLineOptionsBehavior.h>
-#include <pqDataTimeStepBehavior.h>
-#include <pqDeleteBehavior.h>
-#include <pqFileDialog.h>
-#include <pqFixPathsInStateFilesBehavior.h>
-#include <pqInterfaceTracker.h>
-#include <pqLoadDataReaction.h>
-#include <pqManagePluginsReaction.h>
-#include <pqObjectBuilder.h>
-#include <pqObjectPickingBehavior.h>
-#include <pqPVNewSourceBehavior.h>
-#include <pqParaViewBehaviors.h>
-#include <pqParaViewMenuBuilders.h>
-#include <pqPersistentMainWindowStateBehavior.h>
-#include <pqPipelineFilter.h>
-#include <pqPipelineSource.h>
-#include <pqPluginActionGroupBehavior.h>
-#include <pqPluginDockWidgetsBehavior.h>
-#include <pqSetName.h>
-#include <pqServer.h>
-#include <pqServerManagerObserver.h>
-#include <pqStandardViewModules.h>
-#include <pqVerifyRequiredPluginBehavior.h>
-#include <processing/pqData.h>
-#include <processing/pqFilter.h>
 #include <renderers/VolumetricRenderer.h>
 #include <renderers/CrosshairRenderer.h>
-#include <vtkSMPropertyHelper.h>
-#include <vtkSMProxy.h>
-#include <vtkSMProxyManager.h>
-#include <vtkSMReaderFactory.h>
-#include <vtkSMStringVectorProperty.h>
+#include <renderers/MeshRenderer.h>
+#include <selection/SelectionManager.h>
+#include "toolbar/editor/EditorToolBar.h"
+#include "toolbar/seedgrow/SeedGrowSegmentation.h"
+#include "toolbar/voi/VolumeOfInterest.h"
+#include <IO/FilePack.h>
+#include <pluginInterfaces/IToolBar.h>
+#include <pluginInterfaces/IDockWidget.h>
 
-#define DEBUG
-
-static const QString CHANNEL_FILES = QObject::tr("Channel (*.mha; *.segmha)");
-static const QString SEG_FILES     = QObject::tr("Espina Analysis (*.seg)");
+#ifdef TEST_ESPINA_MODELS
+  #include "common/model/ModelTest.h"
+#endif
 
 //------------------------------------------------------------------------
 EspinaWindow::EspinaWindow()
@@ -97,9 +69,12 @@ EspinaWindow::EspinaWindow()
 , m_currentActivity("NONE")
 , m_view(NULL)
 {
-#ifdef DEBUG
+#ifdef TEST_ESPINA_MODELS
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model.data()));
 #endif
+
+  m_dynamicMenuRoot = new DynamicMenuNode();
+  m_dynamicMenuRoot->menu = NULL;
 
   QIcon addIcon = QIcon(":espina/add.svg");
   QIcon fileIcon = qApp->style()->standardIcon(QStyle::SP_FileIcon);
@@ -108,6 +83,7 @@ EspinaWindow::EspinaWindow()
 
   EspinaFactory::instance()->registerRenderer(new CrosshairRenderer());
   EspinaFactory::instance()->registerRenderer(new VolumetricRenderer());
+  EspinaFactory::instance()->registerRenderer(new MeshRenderer());
 
   /*** FILE MENU ***/
   QMenu *fileMenu = new QMenu(tr("File"));
@@ -121,12 +97,15 @@ EspinaWindow::EspinaWindow()
 
       openMenu->addAction(openAction);
       openMenu->addSeparator();
-      openMenu->addActions(m_recentDocuments.list());
+      openMenu->addActions(m_recentDocuments1.list());
 
-      connect(openMenu, SIGNAL(aboutToShow()),
-	      this, SLOT(openState()));
-      connect(openAction, SIGNAL(triggered(bool)),
-	      this, SLOT(openAnalysis()));
+      for (int i = 0; i < m_recentDocuments1.list().size(); i++)
+        connect(m_recentDocuments1.list()[i], SIGNAL(triggered()), this, SLOT(openRecentAnalysis()));
+
+      connect(openMenu, SIGNAL(aboutToShow()), this, SLOT(openState()));
+      connect(openMenu, SIGNAL(hovered(QAction*)), this, SLOT(updateTooltip(QAction*)));
+      connect(openAction, SIGNAL(triggered(bool)), this, SLOT(openAnalysis()));
+
     }
 
     m_addMenu = new QMenu(tr("&Add"),this);
@@ -139,29 +118,28 @@ EspinaWindow::EspinaWindow()
 
       m_addMenu->addAction(addAction);
       m_addMenu->addSeparator();
-      m_addMenu->addActions(m_recentDocuments.list());
+      m_addMenu->addActions(m_recentDocuments2.list());
 
-      connect(m_addMenu, SIGNAL(aboutToShow()),
-	      this, SLOT(addState()));
-      connect(addAction, SIGNAL(triggered(bool)),
-	      this, SLOT(addToAnalysis()));
+      for (int i = 0; i < m_recentDocuments2.list().size(); i++)
+        connect(m_recentDocuments2.list()[i], SIGNAL(triggered()), this, SLOT(openRecentAnalysis()));
+
+      connect(m_addMenu, SIGNAL(aboutToShow()), this, SLOT(addState()));
+      connect(addAction, SIGNAL(triggered(bool)), this, SLOT(addToAnalysis()));
     }
 
     QAction *saveAnalysis = new QAction(saveIcon, tr("&Save"),this);
-    connect(saveAnalysis,SIGNAL(triggered(bool)),
-	    this,SLOT(saveAnalysis()));
+    connect(saveAnalysis,SIGNAL(triggered(bool)), this,SLOT(saveAnalysis()));
 
     QAction *exit = new QAction(tr("&Exit"), this);
-    connect(exit, SIGNAL(triggered(bool)),
-	    QApplication::instance(), SLOT(quit()));
+    connect(exit, SIGNAL(triggered(bool)), QApplication::instance(), SLOT(quit()));
 
     fileMenu->addMenu(openMenu);
     fileMenu->addMenu(m_addMenu);
     fileMenu->addAction(saveAnalysis);
     fileMenu->addAction(exit);
   }
-  connect(fileMenu, SIGNAL(triggered(QAction*)),
-	  this, SLOT(openRecentAnalysis(QAction*)));
+
+  connect(fileMenu, SIGNAL(triggered(QAction*)), this, SLOT(openRecentAnalysis()));
   menuBar()->addMenu(fileMenu);
 
   /*** EDIT MENU ***/
@@ -178,6 +156,7 @@ EspinaWindow::EspinaWindow()
 
   /*** VIEW MENU ***/
   m_viewMenu = new QMenu(tr("View"));
+  m_dockMenu = new QMenu(tr("Panels"));
 
   menuBar()->addMenu(m_viewMenu);
 
@@ -187,10 +166,6 @@ EspinaWindow::EspinaWindow()
   /*** Settings MENU ***/
   QMenu *settings = new QMenu(tr("&Settings"));
   {
-    QAction *managePlugins = settings->addAction("Manage Plugins");
-    managePlugins << pqSetName("actionManage_Plugins");
-    new pqManagePluginsReaction(managePlugins);
-
     QAction *configure = new QAction(tr("&Configure EspINA"), this);
     connect(configure, SIGNAL(triggered(bool)),
 	    this, SLOT(showPreferencesDialog()));
@@ -198,51 +173,49 @@ EspinaWindow::EspinaWindow()
   }
   menuBar()->addMenu(settings);
 
-
-  pqServerManagerObserver *server =
-    pqApplicationCore::instance()->getServerManagerObserver();
-  connect(server,SIGNAL(connectionClosed(vtkIdType)),
-	  this,SLOT(onConnect()));
-//   QAction *action = new QAction(tr("Open - ParaView mode"),this);
-//   action->setShortcut(tr("Ctrl+O"));
-//   fileMenu->addAction(action);
-//   pqLoadDataReaction * loadReaction = new pqLoadDataReaction(action);
-//   QObject::connect(loadReaction, SIGNAL(loadedData(pqPipelineSource *)),
-// 		    this, SLOT( loadSource(pqPipelineSource *)));
-
-
   m_mainToolBar = new MainToolBar(m_model);
 //   m_mainToolBar->setMovable(false);
   addToolBar(m_mainToolBar);
+  addToolBar(new VolumeOfInterest());
+  addToolBar(new SeedGrowSegmentation());
+  addToolBar(new EditorToolBar());
 
+  loadPlugins();
 //   QToolBar *lod = new LODToolBar();
 // //   lod->setMovable(false);
 //   addToolBar(lod);
 
   ChannelExplorer *channelExplorer = new ChannelExplorer(m_model, this);
   addDockWidget(Qt::LeftDockWidgetArea, channelExplorer);
-
-  SegmentationExplorer *segExplorer = new SegmentationExplorer(m_model, this);
-  addDockWidget(Qt::LeftDockWidgetArea, segExplorer);
-
-  TaxonomyExplorer *taxExplorer = new TaxonomyExplorer(m_model, this);
-  addDockWidget(Qt::LeftDockWidgetArea, taxExplorer);
-
-  ModifyFilterPanel *filterPanel = new ModifyFilterPanel(this);
-  addDockWidget(Qt::LeftDockWidgetArea, filterPanel);
+  m_dockMenu->addAction(channelExplorer->toggleViewAction());
 
   DataViewPanel *dataView = new DataViewPanel(this);
   addDockWidget(Qt::BottomDockWidgetArea, dataView);
+  m_dockMenu->addAction(dataView->toggleViewAction());
 
-  loadParaviewBehavior();
+  FilterInspector *filterInspector = new FilterInspector(this);
+  addDockWidget(Qt::LeftDockWidgetArea, filterInspector);
+  m_dockMenu->addAction(filterInspector->toggleViewAction());
+
+  SegmentationExplorer *segExplorer = new SegmentationExplorer(m_model, this);
+  addDockWidget(Qt::LeftDockWidgetArea, segExplorer);
+  m_dockMenu->addAction(segExplorer->toggleViewAction());
+
+  TaxonomyExplorer *taxExplorer = new TaxonomyExplorer(m_model, this);
+  addDockWidget(Qt::LeftDockWidgetArea, taxExplorer);
+  m_dockMenu->addAction(taxExplorer->toggleViewAction());
+
 
   setActivity("segmentate");
 //   QSettings settings("CeSViMa", "EspinaModel");
-//   
 //   restoreGeometry(settings.value("geometry").toByteArray());
 //   restoreState(settings.value("state").toByteArray(),0);
-//   
   statusBar()->clearMessage();
+
+  m_autosave.setInterval(10*60*1000);
+  m_autosave.start();
+  connect(&m_autosave, SIGNAL(timeout()),
+	  this, SLOT(autosave()));
 }
 
 //------------------------------------------------------------------------
@@ -251,11 +224,64 @@ EspinaWindow::~EspinaWindow()
 }
 
 //------------------------------------------------------------------------
+void EspinaWindow::loadPlugins()
+{
+  QDir pluginsDir = QDir(qApp->applicationDirPath());
+
+  #if defined(Q_OS_WIN)
+  if (pluginsDir.dirName().toLower() == "debug" || pluginsDir.dirName().toLower() == "release")
+    pluginsDir.cdUp();
+  #elif defined(Q_OS_MAC)
+  if (pluginsDir.dirName() == "MacOS")
+  {
+    pluginsDir.cdUp();
+    pluginsDir.cdUp();
+    pluginsDir.cdUp();
+  }
+  #endif
+
+  pluginsDir.cd("plugins");
+
+  qDebug() << "Loading Plugins: ";
+  foreach (QString fileName, pluginsDir.entryList(QDir::Files)) {
+    QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
+    QObject *plugin = loader.instance();
+    qDebug() << fileName;
+    if (plugin)
+    {
+      IToolBar *toolbar = qobject_cast<IToolBar *>(plugin);
+      if (toolbar)
+      {
+	qDebug() << "- ToolBar ... OK";
+        addToolBar(toolbar);
+      }
+
+      IDynamicMenu *menu = qobject_cast<IDynamicMenu *>(plugin);
+      if (menu)
+      {
+	qDebug() << "- Menus ..... OK";
+        foreach(MenuEntry entry, menu->menuEntries())
+          createDynamicMenu(entry);
+      }
+
+      IDockWidget *dock = qobject_cast<IDockWidget *>(plugin);
+      if (dock)
+      {
+	qDebug() << "- Dock ...... OK";
+	addDockWidget(Qt::LeftDockWidgetArea, dock);
+        m_dockMenu->addAction(dock->toggleViewAction());
+      }
+    }
+  }
+}
+
+
+//------------------------------------------------------------------------
 void EspinaWindow::createActivityMenu()
 {
   QSignalMapper *sigMapper = new QSignalMapper(this);
 
-  QMenu *activityMenu = new QMenu(tr("Activity"));
+  QMenu *activityMenu = new QMenu(tr("acceptmodeActivity"));
   menuBar()->addMenu(activityMenu);
 
   QAction *analyse = new QAction(tr("Analyse"),activityMenu);
@@ -275,6 +301,39 @@ void EspinaWindow::createActivityMenu()
 
   connect(sigMapper,SIGNAL(mapped(QString)),this, SLOT(setActivity(QString)));
 }
+
+//------------------------------------------------------------------------
+void EspinaWindow::createDynamicMenu(MenuEntry entry)
+{
+  DynamicMenuNode *node = m_dynamicMenuRoot;
+  for(int i=0; i<entry.first.size(); i++)
+  {
+    QString entryName = entry.first[i];
+
+    int index = -1;
+    for(int m=0; m<node->submenus.size(); m++)
+    {
+      if (node->submenus[m]->menu->title() == entryName)
+      {
+        index = m;
+        node = node->submenus[m];
+        break;
+      }
+    }
+    if (-1 == index)
+    {
+      DynamicMenuNode *subnode = new DynamicMenuNode();
+      if (node == m_dynamicMenuRoot)
+        subnode->menu = menuBar()->addMenu(entryName);
+      else
+        subnode->menu = node->menu->addMenu(entryName);
+      node->submenus << subnode;
+      node = subnode;
+    }
+  }
+  node->menu->addAction(entry.second);
+}
+
 
 //------------------------------------------------------------------------
 void EspinaWindow::createLODMenu()
@@ -297,6 +356,23 @@ void EspinaWindow::closeEvent(QCloseEvent* event)
     }
   }
 
+  if (m_model->hasChanged())
+  {
+    QMessageBox warning;
+    warning.setWindowTitle(tr("EspINA"));
+    warning.setText(tr("Current session has not been saved. Do you want to save it now?"));
+    warning.setStandardButtons(QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel);
+    int res = warning.exec();
+    if (QMessageBox::Yes == res)
+    {
+      saveAnalysis();
+    } else if (QMessageBox::Cancel == res)
+    {
+      event->ignore();
+      return;
+    }
+  }
+
   if (m_view)
     m_view->saveLayout();
 
@@ -307,74 +383,6 @@ void EspinaWindow::closeEvent(QCloseEvent* event)
 //   settings.setValue(m_currentActivity+"/geometry", saveGeometry());
 //   settings.setValue(m_currentActivity+"/state", saveState());
   exit(0);
-}
-
-
-//------------------------------------------------------------------------
-void EspinaWindow::loadParaviewBehavior()
-{
-  // Register ParaView interfaces.
-  pqInterfaceTracker* pgm = pqApplicationCore::instance()->interfaceTracker();
-
-  // * adds support for standard paraview views.
-  pgm->addInterface(new pqStandardViewModules(pgm));
-
-  // Load plugins distributed with application.
-  pqApplicationCore::instance()->loadDistributedPlugins();
-
-  // Define application behaviors.
-  new pqDataTimeStepBehavior(this);
-  new pqAlwaysConnectedBehavior(this);
-  // Crashes while loading pqPipelineSource after a re-connecting
-  // the server and loading the same source
-  // new pqPVNewSourceBehavior(this);
-  new pqDeleteBehavior(this);
-  new pqAutoLoadPluginXMLBehavior(this);
-  new pqPluginDockWidgetsBehavior(this);
-  new pqVerifyRequiredPluginBehavior(this);
-  new pqPluginActionGroupBehavior(this);
-  new pqFixPathsInStateFilesBehavior(this);//??
-  new pqCommandLineOptionsBehavior(this);//Maybe useful
-  new pqObjectPickingBehavior(this);//Maybe useful
-}
-
-//------------------------------------------------------------------------
-void EspinaWindow::onConnect()
-{
-  m_model->reset();
-  m_undoStack->clear();
-//   pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
-//   pqServer * server = pqActiveObjects::instance().activeServer();
-// 
-//   //EspinaView *view = qobject_cast<EspinaView*>(
-//     m_view = ob->createView( "EspinaView", server);
-// //   m_view = view;
-//   setCentralWidget(m_view->getWidget());
-//     qDebug() << "Connected";
-}
-
-//------------------------------------------------------------------------
-void EspinaWindow::loadSource(pqPipelineSource * source)
-{
-  
-//   pqDisplayPolicy *dp = pqApplicationCore::instance()->getDisplayPolicy();
-//   dp->createPreferredRepresentation(source->getOutputPort(0),pqActiveObjects::instance().activeView(),true);
-//   pqView * view=pqActiveObjects::instance().activeView();
-//   vtkSMEspinaViewProxy *ep =  vtkSMEspinaViewProxy::SafeDownCast(view->getViewProxy());
-//   assert(ep);
-//   vtkSMProxy* reprProxy = 0;
-//   reprProxy = view->getViewProxy()->CreateDefaultRepresentation(source->getProxy(),0);
-//   vtkSMProxy* viewModuleProxy = view->getProxy();
-//     // Set the reprProxy's input.
-//   pqSMAdaptor::setInputProperty(reprProxy->GetProperty("Input"), source->getProxy(),0);
-//   reprProxy->UpdateVTKObjects();
-//       // Add the reprProxy to render module.
-//   pqSMAdaptor::addProxyProperty(
-//     viewModuleProxy->GetProperty("Representations"), reprProxy);
-//   viewModuleProxy->UpdateVTKObjects();
-//   view->resetDisplay();
-//   view->render();
-
 }
 
 //------------------------------------------------------------------------
@@ -391,18 +399,19 @@ void EspinaWindow::setActivity(QString activity)
     m_view->saveLayout();
 
   m_viewMenu->clear();
+  m_viewMenu->addMenu(m_dockMenu);
   m_viewMenu->addMenu(EspinaCore::instance()->colorSettings().availableEngines());
   m_viewMenu->addSeparator();
 
   QSharedPointer<ViewManager> vm = EspinaCore::instance()->viewManger();
   if (activity == "analyse")
   {
-    qDebug() << "Switch to Analyse Activity";
+//     qDebug() << "Switch to Analyse Activity";
     m_view = vm->createView(this, "squared");
   }
   else if (activity == "segmentate")
   {
-    qDebug() << "Switch to Segmentate Activity";
+//     qDebug() << "Switch to Segmentate Activity";
     m_view = new DefaultEspinaView(this);
     m_view->setColorEngine(EspinaCore::instance()->colorSettings().engine());
     vm->setCurrentView(m_view);
@@ -414,7 +423,7 @@ void EspinaWindow::setActivity(QString activity)
 
   if (m_view)
     connect(m_mainToolBar, SIGNAL(showSegmentations(bool)),
-	    m_view, SLOT(setShowSegmentations(bool)));
+	    m_view, SLOT(showSegmentations(bool)));
 
   if (m_view)
   {
@@ -431,34 +440,33 @@ void EspinaWindow::setActivity(QString activity)
 void EspinaWindow::closeCurrentAnalysis()
 {
   EspinaCore::instance()->closeCurrentAnalysis();
+  SelectionManager::instance()->setSelectionHandler(NULL);
+  //SelectionManager::instance()->setVOI(NULL);
 }
 
 //------------------------------------------------------------------------
 void EspinaWindow::openAnalysis()
 {
-  pqServer *server = pqActiveObjects::instance().activeServer();
-  vtkSMReaderFactory *readerFactory =
-    vtkSMProxyManager::GetProxyManager()->GetReaderFactory();
-  QString filters = readerFactory->GetSupportedFileTypes(server->session());
-  filters.replace("Meta Image Files", "Channel Files");
-
-  pqFileDialog fileDialog(server,
-    this,
-    tr("Start Analysis from:"), QString(), filters);
+  QFileDialog fileDialog(this,
+			tr("Start Analysis from:"));
   fileDialog.setObjectName("OpenAnalysisFileDialog");
-  fileDialog.setFileMode(pqFileDialog::ExistingFiles);
+  fileDialog.setFileMode(QFileDialog::ExistingFiles);
+  fileDialog.setFilters(EspinaFactory::instance()->supportedFiles());
   fileDialog.setWindowTitle("Analyse Data");
+  fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
   if (fileDialog.exec() != QDialog::Accepted)
     return;
 
-  if (fileDialog.getSelectedFiles().size() != 1)
+  if (fileDialog.selectedFiles().size() != 1)
   {
-    QMessageBox::warning(this, tr("EspinaModel"),
-				  tr("Loading multiple files at a time is not supported"));
+    QMessageBox::warning(this,
+			tr("EspinaModel"),
+			tr("Loading multiple files at a time is not supported"));
     return; //Multi-channels is not supported
   }
-  const QString file = fileDialog.getSelectedFiles().first();
+  const QString file = fileDialog.selectedFiles().first();
   openAnalysis(file);
+  m_model->markAsSaved();
 }
 
 //------------------------------------------------------------------------
@@ -467,21 +475,27 @@ void EspinaWindow::openAnalysis(const QString file)
   QElapsedTimer timer;
   timer.start();
 
+  QFileInfo fileInfo(file);
+
   QApplication::setOverrideCursor(Qt::WaitCursor);
   closeCurrentAnalysis();
   QApplication::restoreOverrideCursor();
 
   if (!EspinaCore::instance()->loadFile(file))
   {
+    QApplication::setOverrideCursor(Qt::ArrowCursor);
     QMessageBox box(QMessageBox::Warning,
 		    tr("Espina"),
 	            tr("File %1 could not be loaded.\nDo you want to remove it from recent documents?")
-		    .arg(File::extendedName(file)),
+		    .arg(fileInfo.fileName()),
 		    QMessageBox::Yes|QMessageBox::No);
 
     if (box.exec() == QMessageBox::Yes)
-      m_recentDocuments.removeDocument(file);
-
+    {
+      m_recentDocuments1.removeDocument(file);
+      m_recentDocuments2.updateDocumentList();
+    }
+    closeCurrentAnalysis();
     QApplication::restoreOverrideCursor();
     return;
   }
@@ -507,52 +521,82 @@ void EspinaWindow::openAnalysis(const QString file)
 
   updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
   QApplication::restoreOverrideCursor();
-  m_recentDocuments.addDocument(file);
+  m_recentDocuments1.addDocument(file);
+  m_recentDocuments2.updateDocumentList();
+
+  setWindowTitle(EspinaCore::instance()->sample()->data(Qt::DisplayRole).toString());
 }
 
 //------------------------------------------------------------------------
-void EspinaWindow::openRecentAnalysis(QAction *action)
+void EspinaWindow::openRecentAnalysis()
 {
+  QAction *action = qobject_cast<QAction *>(sender());
+
   if (action && !action->data().isNull())
   {
     if (OPEN_STATE == m_menuState)
+    {
       openAnalysis(action->data().toString());
+      m_model->markAsSaved();
+    }
     else
-      addToAnalysis(action->data().toString());
+      addFileToAnalysis(action->data().toString());
   }
 }
 
 //------------------------------------------------------------------------
 void EspinaWindow::addToAnalysis()
 {
-  pqServer *server = pqActiveObjects::instance().activeServer();
-  vtkSMReaderFactory *readerFactory =
-    vtkSMProxyManager::GetProxyManager()->GetReaderFactory();
-  QString filters = readerFactory->GetSupportedFileTypes(server->session());
-  filters.replace("Meta Image Files", "Channel Files");
-
-  pqFileDialog fileDialog(server,
-    this,
-    tr("Analyse:"), QString(), filters);
+  QFileDialog fileDialog(this, tr("Analyse:"));
   fileDialog.setObjectName("AddToAnalysisFileDialog");
-  fileDialog.setFileMode(pqFileDialog::ExistingFiles);
+  fileDialog.setFileMode(QFileDialog::ExistingFiles);
+  fileDialog.setFilters(EspinaFactory::instance()->supportedFiles());
   fileDialog.setWindowTitle("Add data to Analysis");
+  fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
   if (fileDialog.exec() != QDialog::Accepted)
     return;
 
-  if (fileDialog.getSelectedFiles().size() != 1)
+  if (fileDialog.selectedFiles().size() != 1)
   {
     QMessageBox::warning(this,
 			 tr("EspinaModel"),
 			 tr("Loading multiple files at a time is not supported"));
     return; //Multi-channels is not supported
   }
-  const QString file = fileDialog.getSelectedFiles().first();
-  addToAnalysis(file);
+  const QString file = fileDialog.selectedFiles().first();
+  addFileToAnalysis(file);
 }
 
 //------------------------------------------------------------------------
-void EspinaWindow::addToAnalysis(const QString file)
+void EspinaWindow::addRecentToAnalysis()
+{
+  QAction *action = qobject_cast<QAction *>(sender());
+
+  if (!action || action->data().isNull())
+    return;
+
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  QElapsedTimer timer;
+  timer.start();
+
+  EspinaCore::instance()->loadFile(action->data().toString());
+
+  int secs = timer.elapsed()/1000.0;
+  int mins = 0;
+  if (secs > 60)
+  {
+    mins = secs / 60;
+    secs = secs % 60;
+  }
+
+  updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
+  QApplication::restoreOverrideCursor();
+  m_recentDocuments1.addDocument(action->data().toString());
+  m_recentDocuments2.updateDocumentList();
+}
+
+//------------------------------------------------------------------------
+void EspinaWindow::addFileToAnalysis(const QString file)
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);
   QElapsedTimer timer;
@@ -570,79 +614,41 @@ void EspinaWindow::addToAnalysis(const QString file)
 
   updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
   QApplication::restoreOverrideCursor();
-  m_recentDocuments.addDocument(file);
+  m_recentDocuments1.addDocument(file);
+  m_recentDocuments2.updateDocumentList();
 }
-
 
 //------------------------------------------------------------------------
 void EspinaWindow::saveAnalysis()
 {
-//   closeCurrentAnalysis();
-//   return;
-  pqServer* server = pqActiveObjects::instance().activeServer();
   QString filters(SEG_FILES);
-  pqFileDialog fileDialog(server, 
-    this,
-    tr("Save Analysis:"), QString(), filters);
+
+  QFileDialog fileDialog(this, tr("Save Analysis:"), QString(), filters);
   fileDialog.setObjectName("SaveAnalysisFileDialog");
-  fileDialog.setFileMode(pqFileDialog::AnyFile);
   fileDialog.setWindowTitle("Save Espina Analysis");
+  fileDialog.setAcceptMode(QFileDialog::AcceptSave);
+  fileDialog.setDefaultSuffix(QString(tr("seg")));
+  fileDialog.setFileMode(QFileDialog::AnyFile);
+  fileDialog.selectFile("");
+
   if (fileDialog.exec() == QDialog::Accepted)
   {
     QApplication::setOverrideCursor(Qt::WaitCursor);
     m_busy = true;
 
-    const QString analysisFile = fileDialog.getSelectedFiles().first();
-//     const QStrin analysisName = fileNameWithExtension(analysisFile);
-    Q_ASSERT(server);
-    pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
-    pqPipelineSource* writer = ob->createFilter("filters", "EspinaWriter",
-                   QMap<QString, QList< pqOutputPort*> >(),
-                   pqApplicationCore::instance()->getActiveServer() );
+    const QString analysisFile = fileDialog.selectedFiles().first();
 
-    // Set the file name
-    vtkSMPropertyHelper(writer->getProxy(), "FileName").Set(analysisFile.toStdString().c_str());
-
-    // Set Taxonomy
-    QString taxonomySerialization;
-    IOTaxonomy::writeXMLTaxonomy(m_model->taxonomy(), taxonomySerialization);
-    vtkSMPropertyHelper(writer->getProxy(), "Taxonomy").Set(taxonomySerialization.toStdString().c_str());
-
-    // Set Trace
-    std::ostringstream relationsSerialization;
-    m_model->serializeRelations(relationsSerialization);
-
-    vtkSMPropertyHelper(writer->getProxy(), "Trace").Set(relationsSerialization.str().c_str());
-
-    // Save the segmentations in different files
-    QString filePath = analysisFile;
-    filePath.remove(QRegExp("\\..*$"));
-    QDir tmpDir(filePath);
-    Segmentation *seg;
-    foreach(seg, m_model->segmentations())
-    {
-      QString tmpfilePath(seg->id() + ".pvd");
-      tmpfilePath = tmpDir.filePath(tmpfilePath);
-      qDebug() << "EspINA::saveSegementation" << tmpfilePath;
-      pqPipelineSource *segWriter = ob->createFilter("writers","XMLPVDWriter", seg->volume().pipelineSource(), seg->volume().portNumber());
-      vtkSMPropertyHelper(segWriter->getProxy(), "FileName").Set(tmpfilePath.toStdString().c_str());
-      segWriter->getProxy()->UpdateVTKObjects();
-      segWriter->updatePipeline();
-//       EspinaSaveDataReaction::saveActiveData(tmpfilePath);
-    }
-
-    //Update the pipeline to obtain the content of the file
-    writer->getProxy()->UpdateVTKObjects();
-    writer->updatePipeline();
-    // Destroy de segFileWriter object
-    ob->destroy(writer);
+    IOEspinaFile::saveFile(analysisFile,
+                           m_model);
 
     QApplication::restoreOverrideCursor();
     updateStatus(QString("File Saved Successfuly in %1").arg(analysisFile));
     m_busy = false;
 
-   m_recentDocuments.addDocument(analysisFile);
+    m_recentDocuments1.addDocument(analysisFile);
+    m_recentDocuments2.updateDocumentList();
   }
+  m_model->markAsSaved();
 }
 
 //------------------------------------------------------------------------
@@ -652,6 +658,13 @@ void EspinaWindow::updateStatus(QString msg)
     statusBar()->clearMessage();
   else
     statusBar()->showMessage(msg);
+}
+
+//------------------------------------------------------------------------
+void EspinaWindow::updateTooltip(QAction* action)
+{
+  QMenu *menu = dynamic_cast<QMenu *>(sender());
+  menu->setToolTip(action->toolTip());
 }
 
 //------------------------------------------------------------------------
@@ -669,5 +682,18 @@ void EspinaWindow::showPreferencesDialog()
   dialog.exec();
 }
 
+//------------------------------------------------------------------------
+void EspinaWindow::autosave()
+{
+  if (!m_model->hasChanged())
+    return;
 
+  m_busy = true;
 
+  const QString analysisFile = ".espina-autosave.seg";
+
+  IOEspinaFile::saveFile(analysisFile, m_model);
+
+  updateStatus(QString("Analysis autosaved at %1").arg(QTime::currentTime().toString()));
+  m_busy = false;
+}

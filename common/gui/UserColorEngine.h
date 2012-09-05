@@ -29,8 +29,8 @@ class UserColorEngine : public ColorEngine
 public:
   explicit UserColorEngine();
 
-  virtual vtkSMProxy* lut(const Segmentation* seg);
   virtual QColor color(const Segmentation* seg);
+  virtual vtkSmartPointer< vtkLookupTable > lut(const Segmentation* seg);
 
 private:
   QColor nextColor();
@@ -39,6 +39,7 @@ private:
   QMap<QString, QColor> m_userColors;
   QList<QColor>         m_colors;
   int                   m_lastColor;
+  QMap<QString, vtkSmartPointer<vtkLookupTable> > m_LUT;
 };
 
 #endif // USERCOLORENGINE_H

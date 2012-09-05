@@ -25,13 +25,12 @@
 // Purpose: Dock widget to manage segmentations in the model
 //----------------------------------------------------------------------------
 #include <common/gui/EspinaDockWidget.h>
+#include <selection/SelectionManager.h>
 #include <ui_SegmentationExplorer.h>
 
 class EspinaModel;
 
-#define DEBUG
-
-#ifdef DEBUG
+#ifdef TEST_ESPINA_MODELS
 class ModelTest;
 #endif
 
@@ -56,7 +55,7 @@ protected slots:
   void focusOnSegmentation(const QModelIndex &index);
   void showInformation();
   void deleteSegmentation();
-  void updateSelection(QModelIndex index);
+  void updateSelection(SelectionManager::Selection selection);
   void updateSelection(QItemSelection selected, QItemSelection deselected);
 
 protected:
@@ -68,7 +67,7 @@ protected:
   Layout         *m_layout;
 
 private:
-#ifdef DEBUG
+#ifdef TEST_ESPINA_MODELS
   QSharedPointer<ModelTest>   m_modelTester;
 #endif
 };

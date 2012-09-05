@@ -24,11 +24,10 @@
 #include <ui_DataView.h>
 
 #include "InformationProxy.h"
+#include <selection/SelectionManager.h>
 #include <QSortFilterProxyModel>
 
-#define DEBUG
-
-#ifdef DEBUG
+#ifdef TEST_ESPINA_MODELS
 class ModelTest;
 #endif
 
@@ -41,16 +40,20 @@ public:
   explicit DataView(QWidget* parent = 0, Qt::WindowFlags f = 0);
   virtual ~DataView();
 
+protected:
+  QModelIndex index(ModelItem *item) const;
+  ModelItem *item(QModelIndex index) const;
+
 protected slots:
   void defineQuery();
   void extractInformation();
-  void updateSelection(QModelIndex index);
+  void updateSelection(SelectionManager::Selection selection);
   void updateSelection(QItemSelection selected, QItemSelection deselected);
 
 private:
   QSharedPointer<InformationProxy>      m_model;
   QSharedPointer<QSortFilterProxyModel> m_sort;
-#ifdef DEBUG
+#ifdef TEST_ESPINA_MODELS
   QSharedPointer<ModelTest>             m_modelTester;
 #endif
   QStringList m_query;

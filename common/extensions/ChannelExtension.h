@@ -23,8 +23,6 @@
 #include "common/extensions/ModelItemExtension.h"
 
 #include <QSharedPointer>
-#include <QStringList>
-#include <QVariant>
 
 class Channel;
 
@@ -38,7 +36,8 @@ public:
 public:
   virtual ~ChannelExtension(){}
 
-  virtual void initialize(Channel *channel, ModelItem::Arguments args) = 0;
+    void setChannel(Channel* channel) {m_channel = channel;}
+  virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments()) = 0;
   virtual QString serialize() const = 0;
 
   virtual Channel *channel() const {return m_channel;}

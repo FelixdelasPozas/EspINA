@@ -54,8 +54,10 @@ public:
   /// ModelItem Interface
   virtual QString id() const {return m_ID;}
   virtual QVariant data(int role) const;
+  virtual QString serialize() const;
   virtual ItemType type() const {return SAMPLE;}
   virtual void initialize(Arguments args = Arguments());
+  virtual void initializeExtensions(Arguments args = Arguments());
 
   void setId(const QString id) {m_ID = id;}
 
@@ -64,6 +66,8 @@ public:
   void addExtension(SampleExtension *ext);
 
 private:
+  mutable Arguments m_args;
+
   QString m_ID;
   double  m_position[3];//nm
   double  m_bounds[6];//nm

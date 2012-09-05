@@ -33,7 +33,9 @@ class PixelSelector;
 class EspinaModel;
 class QComboBox;
 class QTreeView;
-class MainToolBar : public QToolBar, public DynamicWidget
+class MainToolBar
+: public QToolBar,
+public DynamicWidget
 {
   Q_OBJECT
 public:
@@ -49,6 +51,7 @@ public slots:
 
 protected slots:
   void setActiveTaxonomy(QModelIndex index);
+  void setActiveTaxonomy(QString taxonomy);
   void updateTaxonomy(QModelIndex left, QModelIndex right);
   void removeSegmentation(bool active);
   void removeSelectedSegmentation(SelectionHandler::MultiSelection msel);

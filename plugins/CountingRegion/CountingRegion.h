@@ -22,26 +22,39 @@
 #ifndef COUNTINGREGION_H
 #define COUNTINGREGION_H
 
-#include <common/gui/EspinaDockWidget.h>
-#include <common/model/EspinaModel.h>
+#include <common/pluginInterfaces/IDockWidget.h>
 
+#include <common/model/EspinaModel.h>
 #include <QStandardItemModel>
 
+class BoundingRegion;
+class Channel;
 // Forward declaration
+
+/// Counting Region Plugin
 class CountingRegion
-: public EspinaDockWidget
+: public IDockWidget
 {
   Q_OBJECT
+  Q_INTERFACES(IDockWidget)
   class GUI;
 public:
   static const QString ID;
 
+  typedef QList<BoundingRegion *> RegionList;
+
 public:
-  explicit CountingRegion(QWidget* parent);
+  explicit CountingRegion(QWidget* parent=NULL);
   virtual ~CountingRegion();
 
-  void createAdaptiveRegion(double inclusion[3], double exclusion[3]);
-  void createRectangularRegion(double inclusion[3], double exclusion[3]);
+  void createAdaptiveRegion(Channel *channel,
+                            Nm inclusion[3],
+                            Nm exclusion[3]);
+  void createRectangularRegion(Channel *channel,
+                               Nm inclusion[3],
+                               Nm exclusion[3]);
+
+  RegionList regions() const {return m_regions;}
 
 protected slots:
   void clearBoundingRegions();
@@ -54,10 +67,17 @@ protected slots:
   void showInfo(const QModelIndex& index);
   void saveRegionDescription();
 
+  virtual void reset(){}
+
+signals:
+  void regionCreated(BoundingRegion *);
+  void regionRemoved(BoundingRegion *);
+
 private:
   GUI *m_gui;
   QStandardItemModel m_regionModel;
   QSharedPointer<EspinaModel> m_espinaModel;
+  RegionList m_regions;
 };
 
 #endif // COUNTINGREGION_H

@@ -18,20 +18,23 @@
 
 
 #include "regions/BoundingRegion.h"
-
-#include <vtkSMPropertyHelper.h>
-#include <vtkSMProxy.h>
-#include <pqPipelineSource.h>
+#include "vtkBoundingRegionSliceWidget.h"
+#include <extensions/CountingRegionChannelExtension.h>
+#include <common/model/Channel.h>
+#include <common/EspinaCore.h>
+#include <common/gui/EspinaView.h>
 
 //-----------------------------------------------------------------------------
-BoundingRegion::BoundingRegion(CountingRegionSampleExtension *sampleExt,
+BoundingRegion::BoundingRegion(CountingRegionChannelExtension *channelExt,
 			       double inclusion[3],
 			       double exclusion[3])
 : QStandardItem()
-, m_sampleExt(sampleExt)
+, INCLUSION_FACE(255)
+, EXCLUSION_FACE(0)
+, m_channelExt(channelExt)
 {
-  memcpy(m_inclusion, inclusion, 3*sizeof(double));
-  memcpy(m_exclusion, exclusion, 3*sizeof(double));
+  memcpy(m_inclusion, inclusion, 3*sizeof(Nm));
+  memcpy(m_exclusion, exclusion, 3*sizeof(Nm));
 }
 
 //-----------------------------------------------------------------------------
@@ -52,12 +55,15 @@ QVariant BoundingRegion::data(int role) const
     "    %7 %3\n"
     );
 
-    double totalPixelVolume = totalVolume();// /volPixel;
-    double inclusionPixelVolume = inclusionVolume();// /volPixel;
-    double exclusionPixelVolume = exclusionVolume();// /volPixel;
-    desc = desc.arg(totalPixelVolume,0).arg(totalVolume(),0,'f',2).arg("nm");
-    desc = desc.arg(inclusionPixelVolume,0).arg(inclusionVolume(),0,'f',2);
-    desc = desc.arg(exclusionPixelVolume,0).arg(exclusionVolume(),0,'f',2);
+    double spacing[3];
+    m_channelExt->channel()->spacing(spacing);
+    Nm volPixel = spacing[0]*spacing[1]*spacing[2];
+    int totalPixelVolume = totalVolume() /volPixel;
+    int inclusionPixelVolume = inclusionVolume() / volPixel;
+    int exclusionPixelVolume = exclusionVolume() / volPixel;
+    desc = desc.arg(totalPixelVolume).arg(totalVolume(),0,'f',2).arg("nm");
+    desc = desc.arg(inclusionPixelVolume).arg(inclusionVolume(),0,'f',2);
+    desc = desc.arg(exclusionPixelVolume).arg(exclusionVolume(),0,'f',2);
 
     return desc;
   }
@@ -65,40 +71,28 @@ QVariant BoundingRegion::data(int role) const
 }
 
 //-----------------------------------------------------------------------------
-double BoundingRegion::totalVolume() const
+void BoundingRegion::Execute(vtkObject* caller, long unsigned int eventId, void* callData)
 {
-  double vol;
+  vtkBoundingRegionSliceWidget *widget = static_cast<vtkBoundingRegionSliceWidget *>(caller);
 
-  m_boundingRegion->pipelineSource()->updatePipeline();
-  vtkSMProxy *proxy = m_boundingRegion->pipelineSource()->getProxy();
-  proxy->UpdatePropertyInformation();
-  vtkSMPropertyHelper(proxy,"TotalVolume").Get(&vol,1);
+  if (widget)
+  {
+    Nm inOffset[3], exOffset[3];
+    widget->GetInclusionOffset(inOffset);
+    widget->GetExclusionOffset(exOffset);
+    for (int i = 0; i < 3; i++)
+    {
+      m_inclusion[i] += inOffset[i];
+      m_exclusion[i] += exOffset[i];
+    }
 
-  return vol;
-}
+    updateBoundingRegion();
+    emit modified(this);
 
-//-----------------------------------------------------------------------------
-double BoundingRegion::inclusionVolume() const
-{
-  double vol;
+    foreach(vtkBoundingRegionWidget *w, m_widgets)
+      w->SetBoundingRegion(m_boundingRegion);
+  }
+  EspinaCore::instance()->viewManger()->currentView()->forceRender();
 
-  m_boundingRegion->pipelineSource()->updatePipeline();
-  vtkSMProxy *proxy = m_boundingRegion->pipelineSource()->getProxy();
-  proxy->UpdatePropertyInformation();
-  vtkSMPropertyHelper(proxy,"InclusionVolume").Get(&vol,1);
-
-  return vol;
-}
-
-//-----------------------------------------------------------------------------
-double BoundingRegion::exclusionVolume() const
-{
-  double vol;
-
-  m_boundingRegion->pipelineSource()->updatePipeline();
-  vtkSMProxy *proxy = m_boundingRegion->pipelineSource()->getProxy();
-  proxy->UpdatePropertyInformation();
-  vtkSMPropertyHelper(proxy,"ExclusionVolume").Get(&vol,1);
-
-  return vol;
+  emitDataChanged();
 }

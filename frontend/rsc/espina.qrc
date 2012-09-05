@@ -1,5 +1,6 @@
 <RCC>
   <qresource prefix="/espina">
+    <file>tick.png</file>
     <file>rightIn.png</file>
     <file>rightOut.png</file>
     <file>centerIn.png</file>
@@ -29,5 +30,13 @@
     <file>snapshot_scene.svg</file>
     <file>removeSeg.svg</file>
     <file>defaultTaxonomy.xml</file>
+    <file>pencil.png</file>
+    <file>eraser.png</file>
+    <file>erode.png</file>
+    <file>close.png</file>
+    <file>open.png</file>
+    <file>dilate.png</file>
+    <file>activeChannel.svg</file>
+    <file>fillHoles.svg</file>
   </qresource>
 </RCC>

@@ -27,7 +27,13 @@
 #include <QAbstractItemView>
 #include <QPushButton>
 #include <pluginInterfaces/Renderer.h>
+#include <common/EspinaTypes.h>
+#include <selection/SelectionManager.h>
+#include <vtkSmartPointer.h>
+#include <vtkRenderer.h>
 
+class vtkAbstractWidget;
+class QVTKWidget;
 
 //Forward declaration
 class Channel;
@@ -36,15 +42,9 @@ class IViewWidget;
 class QHBoxLayout;
 class QToolButton;
 class QVBoxLayout;
-class QWidget;
 class Renderer;
 class Sample;
 class Segmentation;
-class pq3DWidget;
-class pqOutputPort;
-class pqPipelineRepresentation;
-class pqVolumeView;
-class vtkSMRepresentationProxy;
 
 /// VolumeView
 class VolumeView
@@ -52,15 +52,28 @@ class VolumeView
 {
   Q_OBJECT
 public:
-  class Settings;
+  class Settings
+  {
+    const QString RENDERERS;
+  public:
+    explicit Settings(const QString prefix=QString(), VolumeView *parent=NULL);
+
+    void setRenderers(QList< Renderer* > values);
+    QList<Renderer *> renderers() const;
+
+  private:
+    QList<Renderer *> m_renderers;
+    VolumeView *parent;
+  };
+
   typedef QSharedPointer<Settings> SettingsPtr;
 
 public:
   explicit VolumeView(QWidget* parent = 0);
   virtual ~VolumeView(){}
 
-  void centerViewOn(double center[3]/*nm*/);
-  void setCameraFocus(double center[3]);
+  void centerViewOn(Nm center[3]/*nm*/);
+  void setCameraFocus(const Nm center[3]);
   void resetCamera();
 
   void addChannelRepresentation(Channel *channel);
@@ -71,28 +84,42 @@ public:
   void removeSegmentationRepresentation(Segmentation *seg);
   bool updateSegmentationRepresentation(Segmentation* seg);
 
-  void addWidget(pq3DWidget *widget);
-  void removeWidget(pq3DWidget *widget);
+  void addWidget(vtkAbstractWidget *widget);
+  void removeWidget(vtkAbstractWidget *widget);
 
-  void setColorEngine(ColorEngine *engine){m_colorEngine = engine;}
+  void setColorEngine(ColorEngine *engine)
+  {
+    m_colorEngine = engine;
+    updateSegmentationRepresentations();
+  }
+
   SettingsPtr settings() {return m_settings;}
 
-public slots:
-  void onConnect();
-  void onDisconnect();
+  void changePlanePosition(PlaneType, Nm);
+  void addRendererControls(Renderer *);
+  void removeRendererControls(Renderer *);
 
+protected:
+  void updateSegmentationRepresentations();
+
+public slots:
   void forceRender();
+  void countEnabledRenderers(bool);
+  /// Update Selected Items
+  virtual void updateSelection(SelectionManager::Selection selection);
 
 signals:
   void channelSelected(Channel *);
   void segmentationSelected(Segmentation *, bool);
 
 protected:
+  void init();
   double suggestedChannelOpacity();
   void selectPickedItems(bool append);
 
 private:
 //   void selectSegmentations(int x, int y, int z);
+  void buildControls();
 
 protected slots:
   virtual bool eventFilter(QObject* caller, QEvent* e);
@@ -100,47 +127,32 @@ protected slots:
   void exportScene();
   void takeSnapshot();
 
-  void buildControls();
-
 private:
   struct Representation
   {
-    pqOutputPort *outport;
-    vtkSMRepresentationProxy *proxy;
     bool visible;
     bool selected;
     QColor color;
   };
 
-  pqVolumeView *m_view;
-
   // GUI
   QVBoxLayout *m_mainLayout;
   QHBoxLayout *m_controlLayout;
-  QWidget *m_viewWidget;
+  QVTKWidget  *m_viewWidget;
   QPushButton m_snapshot;
   QPushButton m_export;
+  vtkSmartPointer<vtkRenderer> m_renderer;
 
   SettingsPtr m_settings;
 
-  double m_center[3];
+  Nm m_center[3];
+  unsigned int m_numEnabledRenders;
   ColorEngine *m_colorEngine;
+  QList<vtkAbstractWidget *> m_widgets;
 
-  QMap<Segmentation *, Representation> m_segmentations;
-};
-
-class VolumeView::Settings
-{
-  const QString RENDERERS;
-public:
-  typedef QSharedPointer<Renderer> RendererPtr;
-  explicit Settings(const QString prefix=QString());
-
-  void setRenderers(QList< Renderer* > values);
-  QList<RendererPtr> renderers() const;
-
-private:
-  QList<RendererPtr> m_renderers;
+  QList<Segmentation *> m_segmentations;
+  QList<ModelItem*> m_addedItems;
+  QList<Renderer *> m_itemRenderers;
 };
 
 #endif // VOLUMEVIEW_H

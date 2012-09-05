@@ -22,24 +22,108 @@
 
 #include "common/model/ModelItem.h"
 
-#include "common/model/Segmentation.h"
-#include "common/processing/pqData.h"
+#include "common/EspinaTypes.h"
+#include <itkImageFileReader.h>
 
-#include <QMap>
+class vtkImplicitFunction;
+const QString CREATELINK = "CreateSegmentation";
 
-class Filter : public ModelItem
+class Filter
+: public ModelItem
 {
+protected:
+  typedef itk::ImageFileReader<EspinaVolume> EspinaVolumeReader;
+
+public:
+  typedef QMap<QString, Filter *> NamedInputs;
+
+  static const ModelItem::ArgumentId ID;
+  static const ModelItem::ArgumentId INPUTS;
+  static const ModelItem::ArgumentId EDIT;
 public:
   virtual ~Filter(){}
 
-  virtual int numProducts() const = 0;
-  virtual Segmentation *product(int index) const = 0;
+  void setId(QString id) {m_args[ID] = id;}
 
-  virtual pqData preview() = 0;
-  virtual QWidget *createConfigurationWidget() = 0;
+  // Implements Model Item Interface common to filters
+  virtual ItemType type() const {return ModelItem::FILTER;}
+  virtual QString id() const {return m_args[ID];}
+  virtual void initialize(Arguments args = Arguments()){};
+  virtual void initializeExtensions(Arguments args = Arguments()){};
+  virtual QString serialize() const {return m_args.serialize();}
+
+
+  static void resetId();
+  static QString generateId();
+
+  struct Link
+  {
+    Filter      *filter;
+    OutputNumber outputPort;
+  };
+
+  ///WARNING: Current implementation will expand the image
+  ///         when drawing with value = 0!
+
+  /// Manually Edit Filter Output
+  virtual void draw(OutputNumber i,
+		    vtkImplicitFunction *brush,
+		    double bounds[6],
+		    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+  virtual void draw(OutputNumber i,
+		    EspinaVolume::IndexType index,
+		    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+  virtual void draw(OutputNumber i,
+		    Nm x, Nm y, Nm z,
+		    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+
+  /// Returns whether or not the filter was edited by the user
+  bool isEdited() const;
+  /// Returns a list of modified outputs
+  QList<OutputNumber> editedOutputs() const;
+  /// Specify how many outputs this filter generates
+  virtual int numberOutputs() const;
+  /// Return the i-th output
+  virtual EspinaVolume *output(OutputNumber i) const;
+  virtual void markAsModified(){}
+  /// Determine whether the filter needs to be updated or not
+  virtual bool needUpdate() const {return true;}
+  /// Updates filter outputs.
+  /// If a snapshot exits it will try to load it from disk
+  void update();
+  /// Turn on internal filters' release data flags
+  virtual void releaseDataFlagOn(){}
+  /// Turn off internal filters' release data flags
+  virtual void releaseDataFlagOff(){}
+
+  /// Return a widget used to configure filter's parameters
+  virtual QWidget *createConfigurationWidget();
 
 protected:
-  void setSegmentationData(Segmentation *seg, pqData data);
+  explicit Filter(NamedInputs namedInputs,
+                  Arguments args);
+
+  /// Method which actually executes the filter
+  virtual void run() {};
+  /// Try to locate an snapshot of the filter in the hard drive
+  virtual bool prefetchFilter();
+
+  EspinaVolumeReader::Pointer tmpFileReader(const QString file);
+
+  EspinaVolume::Pointer addRegionToVolume(EspinaVolume::Pointer volume,
+					  EspinaVolume::RegionType region);
+
+protected:
+  QList<EspinaVolume *> m_inputs;
+  NamedInputs           m_namedInputs;
+  mutable Arguments     m_args;
+
+  QStringList        m_editedOutputs;
+  QMap<OutputNumber, EspinaVolume::Pointer> m_outputs;
+  EspinaVolumeReader::Pointer m_cachedFilter;
+
+private:
+  static unsigned int m_lastId;
 };
 
 #endif // FILTER_H

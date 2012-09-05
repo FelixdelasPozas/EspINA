@@ -36,11 +36,11 @@ const QString SliceViewSettingsPanel::shortDescription()
 {
   switch (m_settings->plane())
   {
-    case vtkPVSliceView::AXIAL:
+    case AXIAL:
       return QString("XY Slice View");
-    case vtkPVSliceView::SAGITTAL:
+    case SAGITTAL:
       return QString("YZ Slice View");
-    case vtkPVSliceView::CORONAL:
+    case CORONAL:
       return QString("XZ Slice View");
     default:
       Q_ASSERT(false);

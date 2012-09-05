@@ -22,38 +22,35 @@
 
 #include "regions/BoundingRegion.h"
 
+class CountingRegionChannelExtension;
+
 class RectangularBoundingRegion
 : public BoundingRegion
 {
-  Q_OBJECT
 public:
-  explicit RectangularBoundingRegion(CountingRegionSampleExtension *samplExt,
-				     double borders[6],
-				     double inclusion[3],
-				     double exclusion[3]);
+  static const QString ID;
+
+  explicit RectangularBoundingRegion(CountingRegionChannelExtension *channelExt,
+				     Nm borders[6],
+				     Nm inclusion[3],
+				     Nm exclusion[3]);
   virtual ~RectangularBoundingRegion();
 
   // Implements QStandardItem interface
   virtual QVariant data(int role = Qt::UserRole + 1) const;
+  virtual QString serialize() const;
 
   // Implements EspinaWidget interface
-  virtual pq3DWidget  *createWidget();
-  virtual SliceWidget *createSliceWidget(vtkPVSliceView::VIEW_PLANE plane);
-  virtual void setBounds(double bounds[6]);
-  virtual void bounds(double bounds[6]);
+  virtual vtkAbstractWidget *createWidget();
+  virtual void deleteWidget(vtkAbstractWidget* widget);
+  virtual SliceWidget *createSliceWidget(PlaneType plane);
+
   virtual void setEnabled(bool enable);
 
-signals:
-  void modified(BoundingRegion *);
-
-protected slots:
-  void resetWidgets();
+  virtual void updateBoundingRegion();
 
 private:
-  pq3DWidget *createWidget(QString name);
-
-private:
-  QList<pq3DWidget *> m_widgets;
+  Nm m_borders[6];
 };
 
 #endif // RECTANGULARBOUNDINGREGION_H

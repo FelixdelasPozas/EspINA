@@ -20,7 +20,7 @@
 #define VTKRECTANGULARREPRESENTATION_H
 
 #include "vtkWidgetRepresentation.h"
-#include <vtkPVSliceView.h>
+#include <EspinaTypes.h>
 
 class vtkActor;
 class vtkBox;
@@ -58,7 +58,7 @@ public:
   // Description:
   // Get the view type properties. In which plane it is been shown
   // and which slice (in case of planar views) is selected
-  virtual void SetPlane(vtkPVSliceView::VIEW_PLANE plane);
+  virtual void SetPlane(PlaneType plane);
 
   // Description:
   // These are methods that satisfy vtkWidgetRepresentation's API.
@@ -132,13 +132,13 @@ protected:
   virtual void CreateDefaultProperties();
 
   // Helper functions to get bounds according to to plane
-  int leftIndex() const   {return Plane==vtkPVSliceView::SAGITTAL?4:0;}
-  int rightIndex() const  {return Plane==vtkPVSliceView::SAGITTAL?5:1;}
-  int topIndex() const    {return Plane==vtkPVSliceView::CORONAL?4:2;}
-  int bottomIndex() const {return Plane==vtkPVSliceView::CORONAL?5:3;}
+  int leftIndex() const   {return Plane==SAGITTAL?4:0;}
+  int rightIndex() const  {return Plane==SAGITTAL?5:1;}
+  int topIndex() const    {return Plane==CORONAL?4:2;}
+  int bottomIndex() const {return Plane==CORONAL?5:3;}
 
-  int hCoord() const {return Plane==vtkPVSliceView::SAGITTAL?2:0;}
-  int vCoord() const {return Plane==vtkPVSliceView::CORONAL?2:1;}
+  int hCoord() const {return Plane==SAGITTAL?2:0;}
+  int vCoord() const {return Plane==CORONAL?2:1;}
 
   // Helper method to place every vertex according to Plane
   virtual void updateVertex();
@@ -152,7 +152,7 @@ protected:
   void MoveTopEdge(double *p1, double *p2);
   void MoveBottomEdge(double *p1, double *p2);
 
-  vtkPVSliceView::VIEW_PLANE Plane;
+  PlaneType Plane;
 
 private:
   vtkRectangularRepresentation(const vtkRectangularRepresentation&);  //Not implemented

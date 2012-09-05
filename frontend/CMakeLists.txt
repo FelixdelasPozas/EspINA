@@ -1,25 +1,29 @@
-find_package (VTK REQUIRED)
-include (${VTK_USE_FILE})
+find_package(Qt4 REQUIRED)
+include(${QT_USE_FILE})
 
-find_package (ITK REQUIRED)
-include (${ITK_USE_FILE})
+find_package (VTK REQUIRED)
+include(${VTK_USE_FILE})
+
+find_package(ITK REQUIRED)
+include(${ITK_USE_FILE})
 
 find_package(Boost REQUIRED COMPONENTS  system filesystem graph)
 
-# link_directories ( ${Boost_LIBRARY_DIRS} )
 
 include_directories(
   ${CMAKE_SOURCE_DIR}/common 
   ${CMAKE_SOURCE_DIR}
+  ${CMAKE_BINARY_DIR} # Generated EspinaConfig.h
+  ${CMAKE_BINARY_DIR}/common
   ${CMAKE_CURRENT_SOURCE_DIR} 
   ${CMAKE_CURRENT_BINARY_DIR}  #For wrap/ui files
-#   ${Boost_INCLUDE_DIRS}
-#   ${ITK_DIR}/../
   )
 
 #------------------------------------------------------------------------------
 # Add Qt Resource files
 qt4_add_resources(RCC_BUILT_SOURCES
+  toolbar/seedgrow/rsc/SeedGrowSegmentation.qrc
+  toolbar/voi/rsc/VolumeOfInterest.qrc
   rsc/espina.qrc
   )
 
@@ -30,12 +34,23 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
   docks/DataView/DataView.h
   docks/DataView/QueryView.h
   docks/DataView/InformationProxy.h
-  docks/ModifyFilter/ModifyFilterPanel.h
+  docks/FilterInspector/FilterInspector.h
   docks/ChannelExplorer.h
+  docks/ChannelInspector.h
   docks/SegmentationExplorer.h
   docks/SegmentationInspector.h
   docks/TaxonomyExplorer.h
   toolbar/MainToolBar.h
+  toolbar/editor/EditorToolBar.h
+  toolbar/seedgrow/SeedGrowSegmentation.h
+  toolbar/seedgrow/SeedGrowSegmentationFilter.h
+  toolbar/seedgrow/SeedGrowSelector.h
+  toolbar/seedgrow/SettingsPanel.h
+  toolbar/seedgrow/SetupWidget.h
+  toolbar/seedgrow/gui/DefaultVOIAction.h
+  toolbar/seedgrow/gui/ThresholdAction.h
+  toolbar/editor/SettingsPanel.h
+  toolbar/voi/VolumeOfInterest.h
   toolbar/LODToolBar.h
   views/DefaultEspinaView.h
   views/SliceViewSettingsPanel.h
@@ -47,9 +62,13 @@ qt4_wrap_ui (UI_BUILT_SOURCES
   docks/DataView/DataView.ui
   docks/DataView/QueryView.ui
   docks/ChannelExplorer.ui
+  docks/ChannelInspector.ui
   docks/SegmentationExplorer.ui
   docks/SegmentationInspector.ui
   docks/TaxonomyExplorer.ui
+  toolbar/seedgrow/SetupWidget.ui
+  toolbar/seedgrow/SettingsPanel.ui
+  toolbar/editor/EditorToolBarSettingsPanel.ui
   views/SliceViewSettingsPanel.ui
   views/VolumeViewSettingsPanel.ui
   GeneralSettingsPanel.ui
@@ -61,8 +80,9 @@ set (DOCKS_SOURCES
   docks/DataView/DataViewPanel.cpp
   docks/DataView/QueryView.cpp
   docks/DataView/InformationProxy.cpp
-  docks/ModifyFilter/ModifyFilterPanel.cpp
+  docks/FilterInspector/FilterInspector.cpp
   docks/ChannelExplorer.cpp
+  docks/ChannelInspector.cpp
   docks/SegmentationDelegate.cpp
   docks/SegmentationExplorer.cpp
   docks/SegmentationInspector.cpp
@@ -74,6 +94,18 @@ set (DOCKS_SOURCES
 set (TOOLBAR_SOURCES
   toolbar/MainToolBar.cpp
   toolbar/LODToolBar.cpp
+  toolbar/editor/EditorToolBar.cpp
+  toolbar/editor/Settings.cpp
+  toolbar/editor/SettingsPanel.cpp
+  toolbar/seedgrow/SeedGrowSegmentation.cpp
+  toolbar/seedgrow/SeedGrowSegmentationFilter.cpp
+  toolbar/seedgrow/SeedGrowSelector.cpp
+  toolbar/seedgrow/Settings.cpp
+  toolbar/seedgrow/SettingsPanel.cpp
+  toolbar/seedgrow/SetupWidget.cpp
+  toolbar/seedgrow/gui/DefaultVOIAction.cpp
+  toolbar/seedgrow/gui/ThresholdAction.cpp
+  toolbar/voi/VolumeOfInterest.cpp
   )
 
 set (VIEW_SOURCES
@@ -81,6 +113,7 @@ set (VIEW_SOURCES
   )
 
 set (LOCAL_SOURCES
+  main.cpp
   EspinaWindow.cpp
   SettingsDialog.cpp
   RecentDocuments.cpp
@@ -98,42 +131,22 @@ set (Espina_SOURCE_FILES
 
 set (Espina_LIBRARIES
   EspinaCore
+  QVTK
+  #QtGui
 #   ${Boost_LIBRARIES}
 )
 
 
-#------------------------------------------------------------------------------
-# Build the client
-build_paraview_client(espina
-  APPLICATION_NAME "EspINA"
-  TITLE "EspINA"
-  ORGANIZATION  "CeSViMa"
-  VERSION_MAJOR ${ESPINA_VERSION_MAJOR}
-  VERSION_MINOR ${ESPINA_VERSION_MINOR}
-  VERSION_PATCH ${ESPINA_VERSION_PATCH}
-  SPLASH_IMAGE "${CMAKE_CURRENT_SOURCE_DIR}/rsc/SplashScreen.png"
-  PVMAIN_WINDOW EspinaWindow
-  PVMAIN_WINDOW_INCLUDE EspinaWindow.h
-#   BUNDLE_ICON   "${CMAKE_CURRENT_SOURCE_DIR}/rsc/MacIcon.icns"
-#   APPLICATION_ICON  "${CMAKE_CURRENT_SOURCE_DIR}/rsc/WinIcon.ico"
-  GUI_CONFIGURATION_XMLS
-  ${CMAKE_CURRENT_SOURCE_DIR}/rsc/EspinaReaders.xml
-  ${CMAKE_CURRENT_SOURCE_DIR}/rsc/EspinaWriters.xml
-  #${PARAVIEW_EXTRA_GUI_RESOURCES} # Add any compiled in GUI configuration xmls
-  #COMPRESSED_HELP_FILE "${ParaView_BINARY_DIR}/Documentation/paraview.qch"
-  SOURCES ${Espina_SOURCE_FILES}
-	#INSTALL_BIN_DIR "${PV_INSTALL_BIN_DIR}"
-	#INSTALL_LIB_DIR "${PV_INSTALL_LIB_DIR}"
-  )
+add_executable(espina ${Espina_SOURCE_FILES})
 
 target_link_libraries (espina ${Espina_LIBRARIES})
 
-install (
-  TARGETS espina
-  RUNTIME
-  DESTINATION bin
-#  COMPONENT espina
-  )
-
-
-add_subdirectory (plugins)
+#install (
+#  TARGETS espina
+#  RUNTIME
+#  DESTINATION bin
+##  COMPONENT espina
+#  )
+#
+#
+#add_subdirectory (plugins)

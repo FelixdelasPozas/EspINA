@@ -22,37 +22,45 @@
 #include <common/pluginInterfaces/ReaderFactory.h>
 #include <QUndoCommand>
 
-static const QString SFRF = "SegmhaReader::SegmhaImporterFilter";
 
 class Channel;
 class Sample;
+class Segmentation;
 class SegmhaImporterFilter;
 
 /// Segmha Reader Plugin
 class SegmhaImporter
-      : public QObject
-      , public FilterFactory
-      , public ReaderFactory
+: public QObject
+, public FilterFactory
+, public ReaderFactory
 {
-  class UndoCommand : public QUndoCommand
+  Q_OBJECT
+  Q_INTERFACES(FilterFactory ReaderFactory)
+
+  class UndoCommand
+  : public QUndoCommand
   {
   public:
-    explicit UndoCommand(SegmhaImporterFilter *filter);
+    explicit UndoCommand(Sample *sample,
+			 Channel *channel,
+			 SegmhaImporterFilter *filter);
     virtual void redo();
     virtual void undo();
   private:
     Sample               *m_sample;
     Channel              *m_channel;
     SegmhaImporterFilter *m_filter;
+    QList<Segmentation *> m_segs;
   };
+
 public:
-  SegmhaImporter(QObject* parent=0);
+  explicit SegmhaImporter();
+  virtual ~SegmhaImporter(){}
 
-  void onStartup();
-  void onShutdown(){}
-
-  virtual Filter *createFilter(const QString filter, const ModelItem::Arguments args);
-  virtual bool readFile(const QString file);
+  virtual Filter* createFilter(const QString filter,
+			       Filter::NamedInputs inputs,
+			       const ModelItem::Arguments args);
+  virtual bool readFile(const QFileInfo file);
 };
 
 #endif// SEGMHAIMPORTER_H

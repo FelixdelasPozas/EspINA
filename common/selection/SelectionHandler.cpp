@@ -21,6 +21,7 @@
 
 const QString SelectionHandler::EspINA_Channel = "EspINA_Channel";
 const QString SelectionHandler::EspINA_Segmentation = "EspINA_Segmentation";
+const QString SelectionHandler::EspINA_Representation = "EspINA_Representation";
 
 //-----------------------------------------------------------------------------
 bool SelectionHandler::filterEvent(QEvent* e, SelectableView* view)

@@ -32,6 +32,7 @@
 #include "common/model/EspinaFactory.h"
 #include "common/EspinaCore.h"
 #include "common/gui/EspinaView.h"
+#include <selection/SelectionManager.h>
 
 //------------------------------------------------------------------------
 EspinaModel::EspinaModel ( QObject* parent )
@@ -39,6 +40,7 @@ EspinaModel::EspinaModel ( QObject* parent )
 , m_tax       (NULL)
 , m_relations (new RelationshipGraph())
 , m_lastId    (0)
+, m_changed   (false)
 {
 }
 
@@ -330,6 +332,7 @@ void EspinaModel::addSample (Sample *sample)
   m_samples << sample;
   m_relations->addItem(sample);
   endInsertRows();
+  markAsChanged();;
 }
 
 //------------------------------------------------------------------------
@@ -340,6 +343,7 @@ void EspinaModel::addSample(QList<Sample *> samples)
 //   {
 //     Q_ASSERT(m_samples.contains(sample) == false);
 //   }
+  markAsChanged();;
 }
 
 
@@ -366,6 +370,7 @@ void EspinaModel::removeSample(Sample *sample)
   Q_ASSERT (m_samples.contains(sample) == false );
   //   m_analysis->removeNode(sample);
   endRemoveRows();
+  markAsChanged();;
 }
 
 //------------------------------------------------------------------------
@@ -383,6 +388,8 @@ void EspinaModel::addChannel(Channel *channel)
   connect(channel, SIGNAL(modified(ModelItem*)),
 	  this, SLOT(itemModified(ModelItem*)));
   endInsertRows();
+  SelectionManager::instance()->setActiveChannel(channel);
+  markAsChanged();;
 }
 
 //------------------------------------------------------------------------
@@ -397,6 +404,8 @@ void EspinaModel::removeChannel(Channel *channel)
   m_channels.removeOne(channel);
   Q_ASSERT(m_channels.contains(channel) == false);
   endRemoveRows();
+  SelectionManager::instance()->setActiveChannel(m_channels.value(0, NULL));
+  markAsChanged();;
 }
 
 //------------------------------------------------------------------------
@@ -426,8 +435,8 @@ void EspinaModel::addSegmentation(Segmentation *seg)
   m_relations->addItem(seg);
   connect(seg, SIGNAL(modified(ModelItem*)),
 	  this, SLOT(itemModified(ModelItem*)));
-//   seg->initialize();
   endInsertRows();
+  markAsChanged();;
 }
 
 //------------------------------------------------------------------------
@@ -448,9 +457,9 @@ void EspinaModel::addSegmentation(QList<Segmentation *> segs)
     m_relations->addItem(seg);
     connect(seg, SIGNAL(modified(ModelItem*)),
 	    this, SLOT(itemModified(ModelItem*)));
-//     seg->initialize();
   }
   endInsertRows();
+  markAsChanged();;
 }
 
 
@@ -465,6 +474,7 @@ void EspinaModel::removeSegmentation(Segmentation *seg)
   m_relations->removeItem(seg);
   Q_ASSERT(m_segmentations.contains(seg) == false);
   endRemoveRows();
+  markAsChanged();;
 }
 
 //------------------------------------------------------------------------
@@ -475,6 +485,7 @@ void EspinaModel::removeSegmentation(QList<Segmentation *> segs)
   {
     removeSegmentation(seg);
   }
+  markAsChanged();;
 }
 
 //------------------------------------------------------------------------
@@ -484,6 +495,7 @@ void EspinaModel::changeTaxonomy(Segmentation* seg, TaxonomyNode* taxonomy)
 
   QModelIndex segIndex = segmentationIndex(seg);
   emit dataChanged(segIndex, segIndex);
+  markAsChanged();;
 }
 
 
@@ -498,6 +510,7 @@ void EspinaModel::addFilter(Filter *filter)
   m_filters << filter;
   m_relations->addItem(filter);
   endInsertRows();
+  markAsChanged();;
 }
 
 //------------------------------------------------------------------------
@@ -510,6 +523,7 @@ void EspinaModel::removeFilter(Filter *filter)
   m_relations->removeItem(filter);
   Q_ASSERT(m_filters.contains(filter) == false);
   endRemoveRows();
+  markAsChanged();;
 }
 
 //------------------------------------------------------------------------
@@ -517,9 +531,11 @@ void EspinaModel::addRelation(ModelItem* ancestor, ModelItem* successor, QString
 {
   m_relations->addRelation(ancestor, successor, relation);
   QModelIndex ancestorIndex = index(ancestor);
-  QModelIndex succesorIndex = index(successor);
+  QModelIndex successorIndex = index(successor);
+//   qDebug() << ancestorIndex.data().toString() << "==" << relation << "==>" << successorIndex.data().toString();
   emit dataChanged(ancestorIndex, ancestorIndex);
-  emit dataChanged(succesorIndex, succesorIndex);
+  emit dataChanged(successorIndex, successorIndex);
+  markAsChanged();;
 }
 
 //------------------------------------------------------------------------
@@ -530,11 +546,14 @@ void EspinaModel::removeRelation(ModelItem* ancestor, ModelItem* successor, QStr
   QModelIndex succesorIndex = index(successor);
   emit dataChanged(ancestorIndex, ancestorIndex);
   emit dataChanged(succesorIndex, succesorIndex);
+  markAsChanged();;
 }
 
 //------------------------------------------------------------------------
 void EspinaModel::serializeRelations(std::ostream& stream, RelationshipGraph::PrintFormat format)
 {
+  Filter::resetId();
+  m_relations->updateVertexInformation();
   m_relations->write(stream, format);
 }
 
@@ -550,20 +569,19 @@ void EspinaModel::serializeRelations(std::ostream& stream, RelationshipGraph::Pr
 // }
 
 //------------------------------------------------------------------------
-void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::PrintFormat format)
+bool EspinaModel::loadSerialization(istream& stream, RelationshipGraph::PrintFormat format)
 {
   QSharedPointer<RelationshipGraph> input(new RelationshipGraph());
 
   input->read(stream);
 //   qDebug() << "Check";
-  m_relations->updateVertexInformation();
-//   input->write(std::cout,RelationshipGraph::BOOST);
-//   input->write(std::cout,RelationshipGraph::GRAPHVIZ);
+//   input->write(std::cout, RelationshipGraph::GRAPHVIZ);
 
   EspinaFactory *factory = EspinaFactory::instance();
 
   typedef QPair<ModelItem *, ModelItem::Arguments> NonInitilizedItem;
   QList<NonInitilizedItem> nonInitializedItems;
+  QList<VertexProperty> segmentationNodes;
   QList<Segmentation *> newSegmentations;
 
   foreach(VertexProperty v, input->vertices())
@@ -577,52 +595,94 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
     {
       switch (RelationshipGraph::type(v))
       {
-	case ModelItem::SAMPLE:
-	{
-	  ModelItem::Arguments args(v.args.c_str());
-	  Sample *sample = factory->createSample(v.name.c_str(), v.args.c_str());
-	  addSample(sample);
-	  nonInitializedItems << NonInitilizedItem(sample, args);
-	  EspinaCore::instance()->setSample(sample);
-	  input->setItem(v.vId, sample);
-	  break;
-	}
-	case ModelItem::CHANNEL:
-	{
-	  ModelItem::Arguments args(v.args.c_str());
-	  Channel *channel = factory->createChannel(v.name.c_str(), args);
-	  addChannel(channel);
-	  nonInitializedItems << NonInitilizedItem(channel, args);
-	  input->setItem(v.vId, channel);
-	  break;
-	}
-	case ModelItem::FILTER:
-	{
-	  Filter *filter = factory->createFilter(v.name.c_str(), ModelItem::Arguments(v.args.c_str()));
-	  addFilter(filter);
-	  input->setItem(v.vId, filter);
-	  break;
-	}
-	case ModelItem::SEGMENTATION:
-	{
-	  Vertices ancestors = input->ancestors(v.vId, "CreateSegmentation");
-	  Q_ASSERT(ancestors.size() == 1);
-	  Filter *filter =  dynamic_cast<Filter *>(ancestors.first().item);
-	  ModelItem::Arguments args(QString(v.args.c_str()));
-	  Segmentation *seg = filter->product(args[Segmentation::OUTPUT].toInt());
-	  seg->setNumber(args[Segmentation::NUMBER].toInt());
-	  TaxonomyNode *taxonomy = m_tax->element(args[Segmentation::TAXONOMY]);
-	  if (taxonomy)
-	    seg->setTaxonomy(taxonomy);
-	  newSegmentations << seg;
-	  nonInitializedItems << NonInitilizedItem(seg, args);
-	  input->setItem(v.vId, seg);
-	  break;
-	}
-	default:
-	  Q_ASSERT(false);
+        case ModelItem::SAMPLE:
+        {
+          ModelItem::Arguments args(v.args.c_str());
+          Sample *sample = factory->createSample(v.name.c_str(), v.args.c_str());
+          addSample(sample);
+          nonInitializedItems << NonInitilizedItem(sample, args);
+          EspinaCore::instance()->setSample(sample);
+          input->setItem(v.vId, sample);
+          break;
+        }
+        case ModelItem::CHANNEL:
+        {
+          ModelItem::Arguments args(v.args.c_str());
+          ModelItem::Arguments extArgs(args.value(ModelItem::EXTENSIONS, QString()));
+          args.remove(ModelItem::EXTENSIONS);
+          // TODO: Move link management code inside Channel's Arguments class
+          QStringList link = args[Channel::VOLUME].split("_");
+          Q_ASSERT(link.size() == 2);
+          Vertices ancestors = input->ancestors(v.vId, link[0]);
+          Q_ASSERT(ancestors.size() == 1);
+          ModelItem *item = ancestors.first().item;
+          Q_ASSERT(ModelItem::FILTER == item->type());
+          Filter *filter =  dynamic_cast<Filter *>(item);
+          filter->update();
+          Channel *channel = factory->createChannel(filter, link[1].toUInt());
+          channel->initialize(args);
+	  if (channel->itkVolume() == NULL)
+	    return false;
+          addChannel(channel);
+          nonInitializedItems << NonInitilizedItem(channel, extArgs);
+          input->setItem(v.vId, channel);
+          break;
+        }
+        case ModelItem::FILTER:
+        {
+          Filter::NamedInputs inputs;
+          Filter::Arguments args(v.args.c_str());
+          QStringList inputLinks = args[Filter::INPUTS].split(",", QString::SkipEmptyParts);
+          // We need to update id values for future filters
+          foreach(QString inputLink, inputLinks)
+          {
+            QStringList link = inputLink.split("_");
+            Q_ASSERT(link.size() == 2);
+            Vertices ancestors = input->ancestors(v.vId, link[0]);
+            Q_ASSERT(ancestors.size() == 1);
+            ModelItem *item = ancestors.first().item;
+            Q_ASSERT(ModelItem::FILTER == item->type());
+            Filter *filter =  dynamic_cast<Filter *>(item);
+            inputs[link[0]] = filter;
+          }
+          Filter *filter = factory->createFilter(v.name.c_str(), inputs, args);
+          //filter->update();
+          addFilter(filter);
+          input->setItem(v.vId, filter);
+          break;
+        }
+        case ModelItem::SEGMENTATION:
+        {
+          segmentationNodes << v;
+          break;
+        }
+        default:
+          Q_ASSERT(false);
+          break;
       }
     }
+  }
+
+  foreach(VertexProperty v, segmentationNodes)
+  {
+    Vertices ancestors = input->ancestors(v.vId, CREATELINK);
+    Q_ASSERT(ancestors.size() == 1);
+    ModelItem *item = ancestors.first().item;
+    Filter *filter =  dynamic_cast<Filter *>(item);
+    filter->update();
+    if (filter->numberOutputs() == 0)
+      return false;
+    ModelItem::Arguments args(QString(v.args.c_str()));
+    ModelItem::Arguments extArgs(args.value(ModelItem::EXTENSIONS, QString()));
+    args.remove(ModelItem::EXTENSIONS);
+    Segmentation *seg = factory->createSegmentation(filter, args[Segmentation::OUTPUT].toInt());
+    seg->setNumber(args[Segmentation::NUMBER].toInt());
+    TaxonomyNode *taxonomy = m_tax->element(args[Segmentation::TAXONOMY]);
+    if (taxonomy)
+      seg->setTaxonomy(taxonomy);
+    newSegmentations << seg;
+    nonInitializedItems << NonInitilizedItem(seg, extArgs);
+    input->setItem(v.vId, seg);
   }
 
   addSegmentation(newSegmentations);
@@ -635,7 +695,9 @@ void EspinaModel::loadSerialization(std::istream& stream, RelationshipGraph::Pri
   }
 
   foreach(NonInitilizedItem item, nonInitializedItems)
-    item.first->initialize(item.second);
+    item.first->initializeExtensions(item.second);
+
+  return true;
 }
 
 //------------------------------------------------------------------------
@@ -658,6 +720,10 @@ QModelIndex EspinaModel::index(ModelItem* item) const
       break;
     case ModelItem::SEGMENTATION:
       res = segmentationIndex(dynamic_cast<Segmentation *>(item));
+      break;
+    default:
+      Q_ASSERT(false);
+      break;
   }
   return res;
 }
@@ -750,12 +816,12 @@ void EspinaModel::addTaxonomy(TaxonomyNode *root)
     addTaxonomyElement(taxonomyRoot(), node->qualifiedName());
     addTaxonomy(node);
   }
+  markAsChanged();
 }
 
 //------------------------------------------------------------------------
 QModelIndex EspinaModel::addTaxonomyElement(const QModelIndex& parent, QString qualifiedName)
 {
-  int newTaxRow = rowCount(parent);
   TaxonomyNode *parentNode = m_tax->root();
   if (parent != taxonomyRoot())
   {
@@ -764,19 +830,29 @@ QModelIndex EspinaModel::addTaxonomyElement(const QModelIndex& parent, QString q
     parentNode = dynamic_cast<TaxonomyNode *>(item);
   }
   Q_ASSERT(parentNode);
-  TaxonomyNode *requestedNode = parentNode->element(qualifiedName);
-  if (!requestedNode)
+  QStringList subTaxonomies = qualifiedName.split("/");
+  TaxonomyNode *requestedNode = NULL;
+  foreach (QString subTax, subTaxonomies)
   {
-    beginInsertRows(parent, newTaxRow, newTaxRow);
-    requestedNode = m_tax->addElement(qualifiedName, parentNode->qualifiedName());
-    endInsertRows();
+    requestedNode = parentNode->element(subTax);
+    if (!requestedNode)
+    {
+      QModelIndex parentItem = taxonomyIndex(parentNode);
+      int newTaxRow = rowCount(parentItem);
+      beginInsertRows(parentItem, newTaxRow, newTaxRow);
+      requestedNode = m_tax->addElement(subTax, parentNode->qualifiedName());
+      endInsertRows();
+    }
+    parentNode = requestedNode;
   }
+  markAsChanged();
   return taxonomyIndex(requestedNode);
 }
 
 //------------------------------------------------------------------------
 void EspinaModel::addTaxonomyElement(QString qualifiedName)
 {
+  
 
 }
 
@@ -789,6 +865,7 @@ void EspinaModel::removeTaxonomyElement(const QModelIndex &index)
     beginRemoveRows(index.parent(), index.row(), index.row());
     node->parentNode()->removeChild(node->name());
     endRemoveRows();
+    markAsChanged();
 }
 
 //------------------------------------------------------------------------

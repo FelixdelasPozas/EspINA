@@ -18,166 +18,156 @@
 
 #include "CountingRegionSegmentationExtension.h"
 
-#include "CountingRegionSampleExtension.h"
+#include "CountingRegionChannelExtension.h"
+#include "regions/BoundingRegion.h"
 
-#include <common/cache/CachedObjectBuilder.h>
+#include <common/EspinaRegions.h>
+#include <common/extensions/Margins/MarginsSegmentationExtension.h>
 #include <common/model/Segmentation.h>
 #include <common/model/Sample.h>
-#include <regions/BoundingRegion.h>
+#include <common/model/Channel.h>
 
-#include <pqPipelineSource.h>
-#include <vtkSMPropertyHelper.h>
-#include <vtkSMProxy.h>
-#include <vtkSMInputProperty.h>
+#include <vtkCellArray.h>
+#include <vtkCellData.h>
 
-const QString CountingRegionSegmentationExtension::ID = "CountingRegionExtension";
+#include <QDebug>
 
-const QString CountingRegionSegmentationExtension::Discarted = "Discarted";
+CountingRegionSegmentationExtension::BoundingBox::BoundingBox(vtkPoints* points)
+{
+  Q_ASSERT(points->GetNumberOfPoints());
+  // Init Bounding Box
+  double bounds[6];
+  points->GetBounds(bounds);
+  xMin = bounds[0];
+  xMax = bounds[1];
+  yMin = bounds[2];
+  yMax = bounds[3];
+  zMin = bounds[4];
+  zMax = bounds[5];
+}
+
+CountingRegionSegmentationExtension::BoundingBox::BoundingBox(EspinaVolume* image)
+{
+  double bounds[6];
+  VolumeBounds(image, bounds);
+  xMin = bounds[0];
+  xMax = bounds[1];
+  yMin = bounds[2];
+  yMax = bounds[3];
+  zMin = bounds[4];
+  zMax = bounds[5];
+}
+
+
+bool CountingRegionSegmentationExtension::BoundingBox::intersect(BoundingBox& bb)
+{
+  bool xOverlap = xMin <= bb.xMax && xMax >= bb.xMin;
+  bool yOverlap = yMin <= bb.yMax && yMax >= bb.yMin;
+  bool zOverlap = zMin <= bb.zMax && zMax >= bb.zMin;
+
+  return xOverlap && yOverlap && zOverlap;
+}
+
+CountingRegionSegmentationExtension::BoundingBox CountingRegionSegmentationExtension::BoundingBox::intersection(BoundingBox& bb)
+{
+  BoundingBox res;
+  res.xMin = std::max(xMin, bb.xMin);
+  res.xMax = std::min(xMax, bb.xMax);
+  res.yMin = std::max(yMin, bb.yMin);
+  res.yMax = std::min(yMax, bb.yMax);
+  res.zMin = std::max(zMin, bb.zMin);
+  res.zMax = std::min(zMax, bb.zMax);
+  return res;
+}
+
+
+const ModelItemExtension::ExtId CountingRegionSegmentationExtension::ID = "CountingRegionExtension";
+
+const ModelItemExtension::InfoTag CountingRegionSegmentationExtension::DISCARTED = "Discarted";
 
 //------------------------------------------------------------------------
 CountingRegionSegmentationExtension::CountingRegionSegmentationExtension()
-: m_countingRegion(NULL)
+: m_isDiscarted(false)
 {
-  m_availableInformations << Discarted;
+  m_availableInformations << DISCARTED;
 }
 
 //------------------------------------------------------------------------
 CountingRegionSegmentationExtension::~CountingRegionSegmentationExtension()
 {
-  if (m_countingRegion)
-  {
-//     EXTENSION_DEBUG("Deleted " << ID << " from " << m_seg->id());
-    CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-    cob->removeFilter(m_countingRegion);
-    m_countingRegion = NULL;
-  }
 }
 
 //------------------------------------------------------------------------
-QString CountingRegionSegmentationExtension::id()
+ModelItemExtension::ExtId CountingRegionSegmentationExtension::id()
 {
   return ID;
 }
 
 //------------------------------------------------------------------------
-void CountingRegionSegmentationExtension::initialize(Segmentation* seg)
+void CountingRegionSegmentationExtension::initialize(ModelItem::Arguments args)
 {
-  m_seg = seg;
-  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-
-  m_seg->volume().pipelineSource()->updatePipeline();
-  pqFilter::Arguments countingArgs;
-  countingArgs << pqFilter::Argument("Input",pqFilter::Argument::INPUT, m_seg->volume().id());
-  m_countingRegion = cob->createFilter("filters", "CountingRegion", countingArgs);
-  Q_ASSERT(m_countingRegion);
-
-  ModelItem::Vector samples = m_seg->relatedItems(ModelItem::IN, "where");
-  //Q_ASSERT(!samples.isEmpty());
-  if (!samples.isEmpty())
+  ModelItem::Vector relatedSamples = m_seg->relatedItems(ModelItem::IN, "where");
+  Q_ASSERT(relatedSamples.size() == 1);
+  Sample *sample = dynamic_cast<Sample *>(relatedSamples[0]);
+  ModelItem::Vector relatedChannels = sample->relatedItems(ModelItem::OUT, Channel::STAINLINK);
+  Q_ASSERT(relatedChannels.size() > 0);
+  QList<BoundingRegion *> regions;
+  for (int i = 0; i < relatedChannels.size(); i++)
   {
-    Sample *sample = dynamic_cast<Sample *>(samples.first());
-    ModelItemExtension *ext = sample->extension(CountingRegionSampleExtension::ID);
+    Channel *channel = dynamic_cast<Channel *>(relatedChannels[i]);
+    ModelItemExtension *ext = channel->extension(CountingRegionChannelExtension::ID);
     Q_ASSERT(ext);
-    CountingRegionSampleExtension *sampleExt =
-    dynamic_cast<CountingRegionSampleExtension *>(ext);
-
-    updateRegions(sampleExt->regions());
+    CountingRegionChannelExtension *channelExt = dynamic_cast<CountingRegionChannelExtension *>(ext);
+    regions << channelExt->regions();
   }
+  setBoundingRegions(regions);
 }
 
 //------------------------------------------------------------------------
-SegmentationRepresentation *CountingRegionSegmentationExtension::representation(QString rep)
+ModelItemExtension::ExtIdList CountingRegionSegmentationExtension::dependencies() const
+{
+  ExtIdList deps;
+  deps << MarginsSegmentationExtension::ID;
+  return deps;
+}
+
+
+//------------------------------------------------------------------------
+QVariant CountingRegionSegmentationExtension::information(ModelItemExtension::InfoTag tag) const
+{
+  if (DISCARTED == tag)
+  {
+    m_seg->setVisible(!m_isDiscarted);
+    return m_isDiscarted;
+  }
+
+  qWarning() << ID << ":"  << tag << " is not provided";
+  Q_ASSERT(false);
+  return QVariant();
+}
+
+//------------------------------------------------------------------------
+SegmentationRepresentation* CountingRegionSegmentationExtension::representation(QString rep)
 {
   qWarning() << ID << ":" << rep << " is not provided";
   Q_ASSERT(false);
   return NULL;
 }
 
-//------------------------------------------------------------------------
-QVariant CountingRegionSegmentationExtension::information(QString info) const
-{
-  if (info == Discarted)
-  {
-    int isDiscarted = 0;
-    if (m_init)
-    {
-      m_countingRegion->pipelineSource()->updatePipeline();
-      vtkSMProxy *proxy = m_countingRegion->pipelineSource()->getProxy();
-      vtkSMPropertyHelper(proxy,"Discarted").UpdateValueFromServer();
-      vtkSMPropertyHelper(proxy,"Discarted").Get(&isDiscarted,1);
-
-      ModelItemExtension *ext = m_seg->extension("MarginsExtension");
-      if (ext)
-      {
-	bool ok;
-	double margin;
-	QStringList marginInfoList = ext->availableInformations();
-	int i = 0;
-	while(i < marginInfoList.size() && !isDiscarted)
-	{
-	  margin = ext->information(marginInfoList[i++]).toDouble(&ok);
-	  if (ok && margin < 1)
-	    isDiscarted = true;
-	}
-      }
-    }
-    m_seg->setVisible(!isDiscarted);
-    return (bool)isDiscarted;
-  }
-
-  qWarning() << ID << ":"  << info << " is not provided";
-  Q_ASSERT(false);
-  return QVariant();
-}
 
 //------------------------------------------------------------------------
-void CountingRegionSegmentationExtension::updateRegions(QList< BoundingRegion* > regions)
+void CountingRegionSegmentationExtension::setBoundingRegions(QList<BoundingRegion *> bRegions)
 {
 //   EXTENSION_DEBUG("Updating " << m_seg->id() << " bounding regions...");
 //   EXTENSION_DEBUG("\tNumber of regions applied:" << regions.size());
-  m_init = !regions.isEmpty();
-  if (!m_init)
-    return;
-
-  vtkSMProperty *p;
-
-  vtkstd::vector<vtkSMProxy *> inputs;
-  vtkstd::vector<unsigned int> ports;
-
-  // First input is the segmentation object
-  inputs.push_back(m_seg->volume().pipelineSource()->getProxy());
-  ports.push_back(0);
-
-  foreach(BoundingRegion *region, regions)
+  foreach(BoundingRegion *region, bRegions)
   {
-    region->region().pipelineSource()->updatePipeline();
-    inputs.push_back(region->region().pipelineSource()->getProxy());
-    ports.push_back(0);
-    connect(region, SIGNAL(modified(BoundingRegion *)),
-	    this, SLOT(regionUpdated(BoundingRegion*)));
+    connect(region, SIGNAL(modified(BoundingRegion*)),
+	    this, SLOT(evaluateBoundingRegions()));
   }
 
-  vtkSMProxy *proxy =  m_countingRegion->pipelineSource()->getProxy();
-  p = proxy->GetProperty("Input");
-  vtkSMInputProperty *inputRegions = vtkSMInputProperty::SafeDownCast(p);
-  Q_ASSERT(inputRegions);
-  if (inputRegions)
-  {
-    inputRegions->SetProxies(static_cast<unsigned int>(inputs.size())
-    , &inputs[0]
-    , &ports[0]);
-  }
-
-  m_countingRegion->pipelineSource()->updatePipeline();
-
-  int isDiscarted = 0;
-  vtkSMPropertyHelper(proxy, "Discarted").UpdateValueFromServer();
-  vtkSMPropertyHelper(proxy, "Discarted").Get(&isDiscarted,1);
-  if (m_seg->visible() != !isDiscarted)
-  {
-    m_seg->setVisible(!isDiscarted);
-    m_seg->notifyModification();
-  }
+  m_boundingRegions = bRegions;
+  evaluateBoundingRegions();
 //   EXTENSION_DEBUG("Counting Region Extension request Segmentation Update");
 }
 
@@ -188,17 +178,106 @@ SegmentationExtension* CountingRegionSegmentationExtension::clone()
 }
 
 //------------------------------------------------------------------------
-void CountingRegionSegmentationExtension::regionUpdated(BoundingRegion* region)
+bool CountingRegionSegmentationExtension::discartedByRegion(BoundingBox inputBB, vtkPolyData* region)
 {
-  m_countingRegion->pipelineSource()->updatePipeline();
+  vtkPoints *regionPoints = region->GetPoints();
+  vtkCellArray *regionFaces = region->GetPolys();
+  vtkCellData *faceData = region->GetCellData();
 
-  int isDiscarted = 0;
-  vtkSMProxy *proxy =  m_countingRegion->pipelineSource()->getProxy();
-  vtkSMPropertyHelper(proxy, "Discarted").UpdateValueFromServer();
-  vtkSMPropertyHelper(proxy, "Discarted").Get(&isDiscarted,1);
-  if (m_seg->visible() != !isDiscarted)
+  BoundingBox regionBB(regionPoints);
+
+  // If there is no intersection (nor is inside), then it is discarted
+  if (!inputBB.intersect(regionBB))
+    return true;
+
+  bool collisionDected = false;
+  // Otherwise, we have to test all faces collisions
+  int numOfCells = regionFaces->GetNumberOfCells();
+  regionFaces->InitTraversal();
+  for(int f=0; f < numOfCells; f++)
   {
-    m_seg->setVisible(!isDiscarted);
-    m_seg->notifyModification();
+    vtkIdType npts, *pts;
+    regionFaces->GetNextCell(npts, pts);
+
+    vtkSmartPointer<vtkPoints> facePoints = vtkSmartPointer<vtkPoints>::New();
+    for (int i=0; i < npts; i++)
+      facePoints->InsertNextPoint(regionPoints->GetPoint(pts[i]));
+
+    BoundingBox faceBB(facePoints);
+    if (inputBB.intersect(faceBB) && realCollision(inputBB.intersection(faceBB)))
+    {
+      if (faceData->GetScalars()->GetComponent(f,0) == 0)
+	return true;
+      collisionDected = true;
+    }
   }
+
+  if (collisionDected)
+    return false;
+
+  // If no collision was detected we have to check for inclusion
+  for (int p=0; p + 7 < regionPoints->GetNumberOfPoints(); p +=4)
+  {
+    vtkSmartPointer<vtkPoints> slicePoints = vtkSmartPointer<vtkPoints>::New();
+    for (int i=0; i < 8; i++)
+	slicePoints->InsertNextPoint(regionPoints->GetPoint(p+i));
+
+    BoundingBox sliceBB(slicePoints);
+    if (inputBB.intersect(sliceBB) &&  realCollision(inputBB.intersection(sliceBB)))
+      return false;//;
+  }
+
+  // If no internal collision was detected, then the input was indeed outside our
+  // bounding region
+  return true;
+}
+
+//------------------------------------------------------------------------
+bool CountingRegionSegmentationExtension::realCollision(BoundingBox interscetion)
+{
+  EspinaVolume *input = m_seg->itkVolume();
+  for (int z = interscetion.zMin; z <= interscetion.zMax; z++)
+    for (int y = interscetion.yMin; y <= interscetion.yMax; y++)
+      for (int x = interscetion.xMin; x <= interscetion.xMax; x++)
+      {
+	EspinaVolume::IndexType index = m_seg->index(x, y, z);
+	if (input->GetLargestPossibleRegion().IsInside(index) && input->GetPixel(index))
+	  return true;
+      }
+
+  return false;
+}
+
+
+//------------------------------------------------------------------------
+void CountingRegionSegmentationExtension::evaluateBoundingRegions()
+{
+  m_isDiscarted = false;
+
+  if (m_boundingRegions.size() == 0)
+    return;
+
+  ModelItemExtension *ext = m_seg->extension(MarginsSegmentationExtension::ID);
+  MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext);
+  if (marginExt)
+  {
+    InfoList tags = marginExt->availableInformations();
+    int i = 0;
+    while (!m_isDiscarted && i < tags.size())
+    {
+      bool ok = false;
+      double dist = m_seg->information(tags[i++]).toDouble(&ok);
+      m_isDiscarted = ok && dist < 1.0;
+    }
+  }
+
+  if (!m_isDiscarted)
+  {
+    BoundingBox inputBB(m_seg->itkVolume());
+
+    foreach(BoundingRegion *br, m_boundingRegions)
+      m_isDiscarted |= discartedByRegion(inputBB, br->region());
+  }
+
+  m_seg->setVisible(!m_isDiscarted);
 }

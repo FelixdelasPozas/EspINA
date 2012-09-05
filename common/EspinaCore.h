@@ -24,11 +24,14 @@
 #include "model/EspinaModel.h"
 
 #include <QSharedPointer>
+#include <QFileInfo>
+#include <QDir>
 #include <QUndoStack>
 #include "common/gui/ViewManager.h"
 #include "common/settings/GeneralSettings.h"
 #include "common/settings/ColorEngineSettings.h"
 
+class Channel;
 
 class EspinaCore
 : public QObject
@@ -42,9 +45,6 @@ public:
   QSharedPointer<EspinaModel> model() {return m_model;}
   QSharedPointer<QUndoStack>  undoStack() {return m_undoStack;}
 
-  void setActiveTaxonomy(TaxonomyNode *tax);
-  TaxonomyNode *activeTaxonomy(){return m_activeTaxonomy;}
-
   void setSample(Sample *sample) {m_sample = sample; emit sampleSelected(sample);}
   Sample *sample(){return m_sample;}
 
@@ -53,10 +53,13 @@ public:
 
   QSharedPointer<ViewManager> viewManger() {return m_viewManager;}
 
-  bool loadFile(const QString file);
+  QDir temporalDir() const {return m_tmpDir;}
+  void setTemporalDir(QDir tmpDir) {m_tmpDir = tmpDir;}
+
+  bool loadFile(const QFileInfo file);
 
 protected:
-  bool loadChannel(const QString file);
+  bool loadChannel(const QFileInfo file);
 
 public slots:
   void closeCurrentAnalysis();
@@ -70,13 +73,13 @@ private:
 
   static EspinaCore *m_singleton;
 
-  TaxonomyNode               *m_activeTaxonomy;
   Sample                     *m_sample;
   QSharedPointer<EspinaModel> m_model;
   QSharedPointer<QUndoStack>  m_undoStack;
   QSharedPointer<ViewManager> m_viewManager;
   GeneralSettings             m_settings;
   ColorEngineSettings         m_colorSettigns;
+  QDir                        m_tmpDir;
 };
 
 #endif // ESPINACORE_H

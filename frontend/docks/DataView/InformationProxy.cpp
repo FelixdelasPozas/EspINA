@@ -20,6 +20,7 @@
 #include "InformationProxy.h"
 
 #include "common/model/EspinaModel.h"
+#include <model/Segmentation.h>
 
 //------------------------------------------------------------------------
 void InformationProxy::setSourceModel(EspinaModel* sourceModel)
@@ -41,6 +42,8 @@ void InformationProxy::setSourceModel(EspinaModel* sourceModel)
           this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex, int, int)));
   connect(sourceModel, SIGNAL(dataChanged(const QModelIndex &, const QModelIndex &)),
           this, SLOT(sourceDataChanged(const QModelIndex &,const QModelIndex &)));
+
+  sourceRowsInserted(m_model->segmentationRoot(), 0, m_model->rowCount(m_model->segmentationRoot())-1);
   QAbstractProxyModel::setSourceModel(sourceModel);
 }
 
@@ -212,7 +215,7 @@ void InformationProxy::sourceRowsInserted(const QModelIndex& sourceParent, int s
 	setQuery(item->availableInformations());
       }
     }
-    // Avoid population the view if no query is selected
+    // Avoid populating the view if no query is selected
     if (!m_query.isEmpty())
       beginInsertRows(mapFromSource(sourceParent), start, end);
     for (int row = start; row <= end; row++)

@@ -1,35 +1,38 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña Pastor <jpena@cesvima.es>
+ <one line to give the program's name and a brief idea of what it does.>
+ Copyright (C) 2011  Jorge Peña Pastor <jpena@cesvima.es>
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-// NOTE: vtkRenderer::RemoveAllViewProps()  maybe free the memory of the representations...
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include "common/gui/SliceView.h"
 
-// #include "espina_debug.h"
-//
 // // EspINA
+#include "EspinaTypes.h"
 #include "common/settings/ISettingsPanel.h"
 #include "common/model/Channel.h"
 #include "common/model/Representation.h"
 #include "common/model/Segmentation.h"
-#include "common/processing/pqData.h"
 #include "common/selection/SelectionManager.h"
-#include "common/views/pqSliceView.h"
-#include "common/views/vtkSMSliceViewProxy.h"
 #include "ColorEngine.h"
+#include "common/gui/SliceViewState.h"
+#include "vtkInteractorStyleEspinaSlice.h"
+#include <vtkRectangularWidget.h>
+#include <vtkRectangularRepresentation.h>
+#include <vtkLookupTable.h>
+#include "common/gui/VolumeView.h"
+#include <EspinaCore.h>
 
 // Debug
 #include <QDebug>
@@ -44,97 +47,380 @@
 #include <QVBoxLayout>
 #include <QVector3D>
 #include <QWheelEvent>
+#include <boost/concept_check.hpp>
 
-// ParaQ includes
-#include <pq3DWidget.h>
-#include <pqActiveObjects.h>
-#include <pqApplicationCore.h>
-#include <pqDataRepresentation.h>
-#include <pqDisplayPolicy.h>
-#include <pqObjectBuilder.h>
-#include <pqOutputPort.h>
-#include <pqPipelineRepresentation.h>
-#include <pqPipelineSource.h>
-#include <pqRenderView.h>
-#include <pqSMAdaptor.h>
-#include <pqServer.h>
-#include <pqServerManagerModel.h>
-#include <pqServerManagerObserver.h>
-#include <pqTwoDRenderView.h>
 #include <vtkInteractorStyleImage.h>
 #include <vtkObjectFactory.h>
 #include <vtkPropCollection.h>
-#include <vtkPropCollection.h>
-#include <vtkPropPicker.h>
+#include <vtkCommand.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
-#include <vtkSMPropertyHelper.h>
-#include <vtkSMPropertyHelper.h>
-#include <vtkSMProxyManager.h>
-#include <vtkSMProxyManager.h>
-#include <vtkSMRepresentationProxy.h>
-#include <vtkSMTwoDRenderViewProxy.h>
 #include <vtkWorldPointPicker.h>
 #include <vtkCamera.h>
+#include <vtkPolyDataMapper.h>
+#include <vtkImageActor.h>
+#include <vtkImageMapper3D.h>
+#include <vtkImageProperty.h>
+#include <vtkProperty.h>
 #include <vtkAbstractWidget.h>
-#include <vtkSMNewWidgetRepresentationProxy.h>
 #include <vtkWidgetRepresentation.h>
-#include <vtkSMProperty.h>
-#include <vtkChannelRepresentation.h>
+#include <QVTKWidget.h>
+#include <vtkImageResliceToColors.h>
+#include <vtkMatrix4x4.h>
+#include <vtkAlgorithmOutput.h>
+#include <itkImageToVTKImageFilter.h>
+#include <vtkCoordinate.h>
+#include <vtkCellArray.h>
+#include <vtkCellPicker.h>
+#include <vtkProp3DCollection.h>
+#include <vtkPropPicker.h>
 
+// class MouseMoveCallback : public vtkCommand
+// {
+//   static MouseMoveCallback *New()
+//   {
+//     return new MouseMoveCallback();
+//   }
+// 
+// virtual void execute(vtkobject* caller, long unsigned int eventid, void* calldata)
+// {
+//   //vtkinteractorstyle *style = static_cast<vtkinteractorstyle *>(caller);
+// 
+//   switch(eventid)
+//   {
+//     case vtkcommand::mousemoveevent:
+//       qdebug() << "moviendose";
+//   }
+// }
+// };
 
 //-----------------------------------------------------------------------------
 // SLICE VIEW
 //-----------------------------------------------------------------------------
-SliceView::SliceView(vtkPVSliceView::VIEW_PLANE plane, QWidget* parent)
-: QWidget           (parent)
-, m_plane           (plane)
-, m_titleLayout     (new QHBoxLayout())
-, m_title           (new QLabel("Sagital"))
-, m_mainLayout      (new QVBoxLayout())
-, m_controlLayout   (new QHBoxLayout())
-, m_viewWidget      (NULL)
-, m_scrollBar       (new QScrollBar(Qt::Horizontal))
-, m_fromSlice       (new QPushButton("From"))
-, m_spinBox         (new QSpinBox())
-, m_toSlice         (new QPushButton("To"))
-, m_settings        (new Settings(m_plane))
-, m_fitToGrid       (true)
-, m_inThumbnail     (false)
+SliceView::SliceView(PlaneType plane, QWidget* parent) :
+QWidget(parent)
+, m_titleLayout(new QHBoxLayout())
+, m_title(new QLabel("Sagital"))
+, m_mainLayout(new QVBoxLayout())
+, m_controlLayout(new QHBoxLayout())
+, m_view(new QVTKWidget())
+, m_scrollBar(new QScrollBar(Qt::Horizontal))
+, m_fromSlice(new QPushButton("From"))
+, m_spinBox(new QSpinBox())
+, m_toSlice(new QPushButton("To"))
+, m_ruler(vtkSmartPointer<vtkAxisActor2D>::New())
+, m_plane(plane)
+, m_showSegmentations(true)
+, m_settings(new Settings(m_plane))
+, m_inThumbnail(false)
+, m_sceneReady(false)
 {
-  memset(m_gridSize, 1, 3*sizeof(double));
-  memset(m_range, 0, 6*sizeof(double));
+  memset(m_crosshairPoint, 0, 3*sizeof(Nm));
+  memset(m_slicingRanges, 0, 6 * sizeof(Nm));
+  m_slicingStep[0] = m_slicingStep[1] = m_slicingStep[2] = 1;
 
-//   buildTitle(); 
-//   m_viewWidget->setSizePolicy(
-//        QSizePolicy::Expanding,
-//        QSizePolicy::Expanding);
-//   m_viewWidget->setStyleSheet("background-color: black;");
-//   m_mainLayout->addWidget(m_viewWidget);
+  setupUI();
 
-  buildControls();
-
-  this->setAutoFillBackground(true);
-  setLayout(m_mainLayout);
 
   // Color background
   QPalette pal = this->palette();
   pal.setColor(QPalette::Base, pal.color(QPalette::Window));
   this->setPalette(pal);
   this->setStyleSheet("QSpinBox { background-color: white;}");
-  
-  pqServerManagerObserver *SMObserver = pqApplicationCore::instance()->getServerManagerObserver();
-  connect(SMObserver, SIGNAL(connectionCreated(vtkIdType)),
-	  this, SLOT(onConnect()));
-  connect(SMObserver, SIGNAL(connectionClosed(vtkIdType)),
-	  this, SLOT(onDisconnect()));
 
-  if (pqApplicationCore::instance()->getActiveServer())
-    onConnect();
+  switch (m_plane)
+  {
+    case AXIAL:
+      m_state = new AxialState();
+      break;
+    case SAGITTAL:
+      m_state = new SagittalState();
+      break;
+    case CORONAL:
+      m_state = new CoronalState();
+      break;
+  };
+
+  // Init Render Window
+  m_renderWindow = m_view->GetRenderWindow();
+//   m_renderWindow->AlphaBitPlanesOn();
+  m_renderWindow->DoubleBufferOn();
+  m_renderWindow->SetNumberOfLayers(2);
+
+  // Init Renderers
+  m_renderer = vtkSmartPointer<vtkRenderer>::New();
+  m_renderer->GetActiveCamera()->ParallelProjectionOn();
+  m_renderer->LightFollowCameraOn();
+  m_renderer->SetLayer(0);
+  m_thumbnail = vtkSmartPointer<vtkRenderer>::New();
+  m_thumbnail->SetViewport(0.75, 0.0, 1.0, 0.25);
+  m_thumbnail->SetLayer(1);
+  m_thumbnail->InteractiveOff();
+  m_thumbnail->DrawOff();
+
+  m_slicingMatrix = vtkMatrix4x4::New();
+
+  // Init Pickers
+  m_channelPicker = vtkSmartPointer<vtkCellPicker>::New();
+  m_channelPicker->PickFromListOn();
+  m_segmentationPicker = vtkSmartPointer<vtkCellPicker>::New();
+  m_segmentationPicker->PickFromListOn();
+
+  // Init Ruler
+  m_ruler->SetPosition(0.1, 0.1);
+  m_ruler->SetPosition2(0.1, 0.1);
+  m_ruler->SetPickable(false);
+  m_ruler->SetLabelFactor(0.8);
+  m_ruler->SetFontFactor(1);
+  m_ruler->SetTitle("nm");
+  m_ruler->RulerModeOff();
+  m_ruler->SetLabelFormat("%.0f");
+  m_ruler->SetAdjustLabels(false);
+  m_ruler->SetNumberOfLabels(2);
+  m_ruler->SizeFontRelativeToAxisOff();
+  m_renderer->AddActor(m_ruler);
+
+  m_state->updateSlicingMatrix(m_slicingMatrix);
+  vtkSmartPointer<vtkInteractorStyleEspinaSlice> interactor = vtkSmartPointer<vtkInteractorStyleEspinaSlice>::New();
+  //vtkSmartPointer<vtkInteractorStyleTrackballCamera> interactor = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
+  interactor->AutoAdjustCameraClippingRangeOn();
+  interactor->KeyPressActivationOff();
+  m_renderWindow->AddRenderer(m_renderer);
+  m_renderWindow->AddRenderer(m_thumbnail);
+  m_view->GetInteractor()->SetInteractorStyle(interactor);
+
+  m_channelBorderData = vtkPolyData::New();
+  m_channelBorder     = vtkActor::New();
+  initBorder(m_channelBorderData, m_channelBorder);
+
+  m_viewportBorderData = vtkPolyData::New();
+  m_viewportBorder     = vtkActor::New();
+  initBorder(m_viewportBorderData, m_viewportBorder);
+  //m_renderWindow->Render();
+
+  buildCrosshairs();
+
+  this->setAutoFillBackground(true);
+  setLayout(m_mainLayout);
+
+  connect(SelectionManager::instance(), SIGNAL(selectionChanged(SelectionManager::Selection)),
+          this, SLOT(updateSelection(SelectionManager::Selection)));
+}
 
 
-//   qDebug() << this << ": Created";
+//-----------------------------------------------------------------------------
+Nm rulerScale(Nm value)
+{
+  int factor = 100;
+
+  if (value < 10)
+    factor = 1;
+  else if (value < 25)
+    factor = 5;
+  else if (value < 100)
+    factor = 10;
+  else if (value < 250)
+    factor = 50;
+
+  int res = int(value/factor)*factor;
+  return std::max(res,1);
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::updateRuler()
+{
+//   if (!m_ruler->GetVisibility())
+//     return;
+
+  if (!m_renderer || !m_renderWindow)
+    return;
+
+  double *value;
+  Nm left, right;
+  vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
+  coords->SetCoordinateSystemToNormalizedViewport();
+
+  int c = m_plane==SAGITTAL?2:0;
+  coords->SetValue(0, 0); //Viewport Lower Left Corner
+  value = coords->GetComputedWorldValue(m_renderer);
+  left = value[c];
+//   qDebug() << "LL" << value[0] << value[1] << value[2];
+  coords->SetValue(1, 0); // Viewport Lower Right Corner
+  value = coords->GetComputedWorldValue(m_renderer);
+  right = value[c];
+//   qDebug() << "LR" << value[0] << value[1] << value[2];
+
+  Nm rulerLength = 0.07;//viewport coordinates - Configuration file
+  Nm viewWidth = fabs(left-right);
+
+  Nm scale = rulerLength * viewWidth;
+  scale = rulerScale(scale);
+  rulerLength = scale / viewWidth;
+  //qDebug() << ws[0] << left << right << rulerLength << scale;
+  m_ruler->SetRange(0, scale);
+  m_ruler->SetPoint2(0.1+rulerLength, 0.1);
+  m_ruler->SetVisibility(m_rulerVisibility && rulerLength > 0.05 && rulerLength < 0.8);
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::updateThumbnail()
+{
+  if (!m_showThumbnail || !m_sceneReady)
+    return;
+
+  double *value;
+  // Position of world margins acording to the display
+  // Depending on the plane being shown can refer to different
+  // bound components
+  double viewLeft, viewRight, viewUpper, viewLower;
+  vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
+
+  coords->SetViewport(m_renderer);
+  coords->SetCoordinateSystemToNormalizedViewport();
+
+  int h = m_plane==SAGITTAL?2:0;
+  int v = m_plane==CORONAL?2:1;
+  coords->SetValue(0, 0); // Viewport Lower Left Corner
+  value = coords->GetComputedWorldValue(m_renderer);
+  viewLower = value[v]; // Lower Margin in World Coordinates
+  viewLeft  = value[h]; // Left Margin in World Coordinates
+  //   qDebug() << "LL" << value[0] << value[1] << value[2];
+  coords->SetValue(1, 1);
+  value = coords->GetComputedWorldValue(m_renderer);
+  viewUpper = value[v]; // Upper Margin in World Coordinates
+  viewRight = value[h]; // Right Margin in Worl Coordinates
+  //   qDebug() << "UR" << value[0] << value[1] << value[2];
+
+  double sceneLeft  = m_slicingRanges[2*h];
+  double sceneRight = m_slicingRanges[2*h+1];
+  double sceneUpper = m_slicingRanges[2*v];
+  double sceneLower = m_slicingRanges[2*v+1];
+
+  bool leftHidden   = sceneLeft  < viewLeft;
+  bool rightHidden  = sceneRight > viewRight;
+  bool upperHidden  = sceneUpper < viewUpper;
+  bool lowerHidden  = sceneLower > viewLower;
+
+  if (leftHidden || rightHidden || upperHidden || lowerHidden)
+  {
+    m_thumbnail->DrawOn();
+    updateBorder(m_channelBorderData, sceneLeft, sceneRight, sceneUpper, sceneLower);
+    updateBorder(m_viewportBorderData, viewLeft, viewRight, viewUpper, viewLower);
+  }
+  else
+    m_thumbnail->DrawOff();
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::initBorder(vtkPolyData* data, vtkActor* actor)
+{
+  vtkSmartPointer<vtkPoints> corners = vtkSmartPointer<vtkPoints>::New();
+  corners->InsertNextPoint(m_slicingRanges[0], m_slicingRanges[2], 0); //UL
+  corners->InsertNextPoint(m_slicingRanges[0], m_slicingRanges[3], 0); //UR
+  corners->InsertNextPoint(m_slicingRanges[1], m_slicingRanges[3], 0); //LR
+  corners->InsertNextPoint(m_slicingRanges[1], m_slicingRanges[2], 0); //LL
+  vtkSmartPointer<vtkCellArray> borders = vtkSmartPointer<vtkCellArray>::New();
+  borders->EstimateSize(4, 2);
+  for (int i=0; i < 4; i++)
+  {
+    borders->InsertNextCell (2);
+    borders->InsertCellPoint(i);
+    borders->InsertCellPoint((i+1)%4);
+  }
+  data->SetPoints(corners);
+  data->SetLines(borders);
+  data->Update();
+
+  vtkSmartPointer<vtkPolyDataMapper> Mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  Mapper->SetInput(data);
+  actor->SetMapper(Mapper);
+  actor->GetProperty()->SetLineWidth(2);
+  actor->SetPickable(false);
+
+  m_thumbnail->AddActor(actor);
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::updateBorder(vtkPolyData* data,
+                             double left, double right,
+                             double upper, double lower)
+{
+  vtkPoints *corners = data->GetPoints();
+
+  switch (m_plane)
+  {
+    case AXIAL:
+      corners->SetPoint(0, left,  upper, 0); //UL
+      corners->SetPoint(1, right, upper, 0); //UR
+      corners->SetPoint(2, right, lower, 0); //LR
+      corners->SetPoint(3, left,  lower, 0); //LL
+      break;
+    case SAGITTAL:
+      corners->SetPoint(0, 0, upper,  left); //UL
+      corners->SetPoint(1, 0, lower,  left); //UR
+      corners->SetPoint(2, 0, lower, right); //LR
+      corners->SetPoint(3, 0, upper, right); //LL
+      break;
+    case CORONAL:
+      corners->SetPoint(0, left,  0, upper); //UL
+      corners->SetPoint(1, right, 0, upper); //UR
+      corners->SetPoint(2, right, 0, lower); //LR
+      corners->SetPoint(3, left,  0, lower); //LL
+      break;
+    default:
+      Q_ASSERT(false);
+  }
+  data->Modified();
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::buildCrosshairs()
+{
+ vtkSmartPointer<vtkPoints> HPoints = vtkSmartPointer<vtkPoints>::New();
+  HPoints->InsertNextPoint(-0.5, 0, 0);
+  HPoints->InsertNextPoint(0.5, 0, 0);
+  vtkSmartPointer<vtkCellArray> HLine = vtkSmartPointer<vtkCellArray>::New();
+  HLine->EstimateSize(1, 2);
+  HLine->InsertNextCell (2);
+  HLine->InsertCellPoint(0);
+  HLine->InsertCellPoint(1);
+
+  m_HCrossLineData = vtkSmartPointer<vtkPolyData>::New();
+  m_HCrossLineData->SetPoints(HPoints);
+  m_HCrossLineData->SetLines (HLine);
+  m_HCrossLineData->Update();
+
+  vtkSmartPointer<vtkPolyDataMapper> HMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  HMapper->SetInput(m_HCrossLineData);
+
+  m_HCrossLine = vtkSmartPointer<vtkActor>::New();
+  m_HCrossLine->SetMapper(HMapper);
+  m_HCrossLine->GetProperty()->SetLineWidth(2);
+  m_HCrossLine->SetPickable(false);
+
+  vtkSmartPointer<vtkPoints> VPoints = vtkSmartPointer<vtkPoints>::New();
+  VPoints->InsertNextPoint(0, -0.5, 0);
+  VPoints->InsertNextPoint(0, 0.5, 0);
+  vtkSmartPointer<vtkCellArray> VLine = vtkSmartPointer<vtkCellArray>::New();
+  VLine->EstimateSize(1, 2);
+  VLine->InsertNextCell (2);
+  VLine->InsertCellPoint(0);
+  VLine->InsertCellPoint(1);
+
+  m_VCrossLineData = vtkSmartPointer<vtkPolyData>::New();
+  m_VCrossLineData->SetPoints(VPoints);
+  m_VCrossLineData->SetLines(VLine);
+  m_VCrossLineData->Update();
+
+  vtkSmartPointer<vtkPolyDataMapper> VMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  VMapper->SetInput(m_VCrossLineData);
+
+  m_VCrossLine = vtkSmartPointer<vtkActor>::New();
+  m_VCrossLine->SetMapper(VMapper);
+  m_VCrossLine->GetProperty()->SetLineWidth(2);
+  m_VCrossLine->SetPickable(false);
+
 }
 
 //-----------------------------------------------------------------------------
@@ -142,23 +428,23 @@ void SliceView::buildTitle()
 {
   QPushButton *close = new QPushButton("x");
   close->setMaximumHeight(20);
-  close->setMaximumWidth (20);
+  close->setMaximumWidth(20);
 
   QPushButton *max = new QPushButton("-");
   max->setMaximumHeight(20);
-  max->setMaximumWidth (20);
-  
+  max->setMaximumWidth(20);
+
   QPushButton *undock = new QPushButton("^");
   undock->setMaximumHeight(20);
-  undock->setMaximumWidth (20);
-  
+  undock->setMaximumWidth(20);
+
   connect(close, SIGNAL(clicked(bool)),
-	  this, SLOT(close()));
+          this, SLOT(close()));
   connect(max, SIGNAL(clicked(bool)),
-	  this, SLOT(maximize()));
+          this, SLOT(maximize()));
   connect(undock, SIGNAL(clicked(bool)),
-	  this, SLOT(undock()));
-  
+          this, SLOT(undock()));
+
   m_titleLayout->addWidget(m_title);
   m_titleLayout->addWidget(max);
   m_titleLayout->addWidget(undock);
@@ -168,49 +454,37 @@ void SliceView::buildTitle()
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::buildControls()
+void SliceView::setupUI()
 {
+  m_view->installEventFilter(this);
   m_scrollBar->setMaximum(0);
-  m_scrollBar->setSizePolicy(
-      QSizePolicy::Expanding,
-      QSizePolicy::Preferred);
+  m_scrollBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
   m_fromSlice->setFlat(true);
   m_fromSlice->setVisible(false);
   m_fromSlice->setEnabled(false);
   m_fromSlice->setMaximumHeight(20);
-  m_fromSlice->setSizePolicy(
-      QSizePolicy::Minimum,
-      QSizePolicy::Minimum);
-  connect(m_fromSlice, SIGNAL(clicked(bool)),
-	  this,SLOT(selectFromSlice()));
+  m_fromSlice->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+  connect(m_fromSlice, SIGNAL(clicked(bool)), this, SLOT(selectFromSlice()));
 
   m_spinBox->setMaximum(0);
   m_spinBox->setMinimumWidth(40);
   m_spinBox->setMaximumHeight(20);
-  m_spinBox->setSizePolicy(
-      QSizePolicy::Minimum,
-      QSizePolicy::Preferred);
+  m_spinBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
   m_spinBox->setAlignment(Qt::AlignRight);
 
   m_toSlice->setFlat(true);
   m_toSlice->setVisible(false);
   m_toSlice->setEnabled(false);
   m_toSlice->setMaximumHeight(20);
-  m_toSlice->setSizePolicy(
-      QSizePolicy::Minimum,
-      QSizePolicy::Minimum);
-  connect(m_toSlice, SIGNAL(clicked(bool)),
-	  this,SLOT(selectToSlice()));
+  m_toSlice->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+  connect(m_toSlice,   SIGNAL(clicked(bool)),     this,        SLOT(selectToSlice()));
+  connect(m_scrollBar, SIGNAL(valueChanged(int)), m_spinBox,   SLOT(setValue(int)));
+  connect(m_scrollBar, SIGNAL(valueChanged(int)), this,        SLOT(scrollValueChanged(int)));
+  connect(m_spinBox,   SIGNAL(valueChanged(int)), m_scrollBar, SLOT(setValue(int)));
 
-  connect(m_scrollBar, SIGNAL(valueChanged(int)),
-	  m_spinBox, SLOT(setValue(int)));
-  connect(m_scrollBar, SIGNAL(valueChanged(int)),
-	  this, SLOT(scrollValueChanged(int)));
-  connect(m_spinBox, SIGNAL(valueChanged(int)),
-	  m_scrollBar, SLOT(setValue(int)));
-  
-//   connect(SelectionManager::instance(),SIGNAL(VOIChanged(IVOI*)),this,SLOT(setVOI(IVOI*)));
+  //   connect(SelectionManager::instance(),SIGNAL(VOIChanged(IVOI*)),this,SLOT(setVOI(IVOI*)));
+  m_mainLayout->addWidget(m_view);
   m_controlLayout->addWidget(m_scrollBar);
   m_controlLayout->addWidget(m_fromSlice);
   m_controlLayout->addWidget(m_spinBox);
@@ -219,12 +493,10 @@ void SliceView::buildControls()
   m_mainLayout->addLayout(m_controlLayout);
 }
 
-
 //-----------------------------------------------------------------------------
 SliceView::~SliceView()
 {
-  disconnect();
-//   qDebug() << this << ": Destroyed";
+  delete m_state;
 }
 
 //-----------------------------------------------------------------------------
@@ -240,54 +512,84 @@ void SliceView::setTitle(const QString& title)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::setCrossHairColors(double hcolor[3], double vcolor[3])
+void SliceView::setCrosshairColors(double hcolor[3], double vcolor[3])
 {
-  vtkSMPropertyHelper(m_view->getViewProxy(),"HCrossLineColor").Set(hcolor,3);
-  vtkSMPropertyHelper(m_view->getViewProxy(),"VCrossLineColor").Set(vcolor,3);
-  m_view->getProxy()->UpdateVTKObjects();
+  m_HCrossLine->GetProperty()->SetColor(hcolor);
+  m_VCrossLine->GetProperty()->SetColor(vcolor);
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::setCrosshairVisibility(bool visible)
+{
+  if (visible)
+  {
+    m_renderer->AddActor(m_HCrossLine);
+    m_renderer->AddActor(m_VCrossLine);
+  }else
+  {
+    m_renderer->RemoveActor(m_HCrossLine);
+    m_renderer->RemoveActor(m_VCrossLine);
+  }
+  forceRender();
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::setThumbnailVisibility(bool visible)
+{
+  m_showThumbnail = visible;
+  m_thumbnail->SetDraw(visible && m_sceneReady);
+  forceRender();
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::resetCamera()
 {
-  m_view->resetCamera();
+  double origin[3] = { 0, 0, 0 };
+
+  m_state->updateCamera(m_renderer ->GetActiveCamera(), origin);
+  m_state->updateCamera(m_thumbnail->GetActiveCamera(), origin);
+
+  m_renderer ->ResetCamera();
+  m_thumbnail->ResetCamera();
+  m_sceneReady = !m_channels.isEmpty();
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::addActor(vtkProp* actor)
+{
+  m_renderer->AddActor(actor);
+  m_thumbnail->AddActor(actor);
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::removeActor(vtkProp* actor)
+{
+  m_renderer->RemoveActor(actor);
+  m_thumbnail->RemoveActor(actor);
 }
 
 
 //-----------------------------------------------------------------------------
 void SliceView::eventPosition(int& x, int& y)
 {
-  //Use Render Window Interactor's to obtain event's position
-  vtkSMSliceViewProxy* view =
-    vtkSMSliceViewProxy::SafeDownCast(m_view->getProxy());
-  vtkRenderWindowInteractor *rwi =
-    vtkRenderWindowInteractor::SafeDownCast(
-      view->GetRenderWindow()->GetInteractor());
+  vtkRenderWindowInteractor *rwi = m_renderWindow->GetInteractor();
   Q_ASSERT(rwi);
-
   rwi->GetEventPosition(x, y);
 }
 
-
 //-----------------------------------------------------------------------------
-SelectionHandler::MultiSelection SliceView::select(
-  SelectionHandler::SelectionFilters filters,
-  SelectionHandler::ViewRegions regions)
+SelectionHandler::MultiSelection SliceView::select(SelectionHandler::SelectionFilters filters, SelectionHandler::ViewRegions regions)
 {
   bool multiSelection = false;
   SelectionHandler::MultiSelection msel;
 
-  if (m_inThumbnail)
-    return msel;
+  //if (m_inThumbnail)
+  //  return msel;
 
-  vtkSMSliceViewProxy* view =
-    vtkSMSliceViewProxy::SafeDownCast(m_view->getProxy());
-  Q_ASSERT(view);
-  vtkRenderer *renderer = view->GetRenderer();
+  vtkRenderer *renderer = m_renderer;
   Q_ASSERT(renderer);
-  vtkPropPicker *propPicker = vtkPropPicker::New();
 
-//   qDebug() << "EspINA::SliceView" << m_plane << ": Making selection";
+  ////   qDebug() << "EspINA::SliceView" << m_plane << ": Making selection";
   // Select all products that belongs to all the regions
   foreach(const QPolygonF &region, regions)
   {
@@ -298,124 +600,98 @@ SelectionHandler::MultiSelection SliceView::select(
     if (vtkRegion.isEmpty())
       return msel;
 
-//     qDebug() << "Analyze Region:";
-    foreach(QPointF p, region)
-    {
-//       qDebug() << "\tPick at:" << p;
-      if (propPicker->Pick(p.x(), p.y(), 0.1, renderer))
+    //     qDebug() << "Analyze Region:";
+      foreach(QPointF p, region)
       {
-// 	qDebug() << "\t\tObject Found";
-	foreach(QString filter, filters)
-	{
-// 	  qDebug() << "\t\tLooking for" << filter;
-	  if (filter == SelectionHandler::EspINA_Channel)
-	  {
-	    foreach(Channel *channel, pickChannels(propPicker, multiSelection))
-	    {
-	      SelectionHandler::Selelection selection(vtkRegion,channel);
-	      msel.append(selection);
-	    }
-	  }
-	  else if (filter == SelectionHandler::EspINA_Segmentation)
-	  {
-	    foreach(Segmentation *seg, pickSegmentations(propPicker, multiSelection))
-	    {
-	      SelectionHandler::Selelection selection(vtkRegion, seg);
-	      msel.append(selection);
-	    }
-	  }else
-	  {
-	    Q_ASSERT(false);
-	  }
-	}
+        foreach(QString filter, filters)
+        {
+          //        qDebug() << "\t\tLooking for" << filter;
+          if (filter == SelectionHandler::EspINA_Channel)
+          {
+            foreach(Channel *channel, pickChannels(p.x(), p.y(), renderer, multiSelection))
+            {
+              SelectionHandler::Selelection selection(vtkRegion,channel);
+              msel.append(selection);
+            }
+          }
+          else if (filter == SelectionHandler::EspINA_Segmentation)
+          {
+            foreach(Segmentation *seg, pickSegmentations(p.x(), p.y(), renderer, multiSelection))
+            {
+              SelectionHandler::Selelection selection(vtkRegion, seg);
+              msel.append(selection);
+            }
+            // 	} else if (filter == SelectionHandler::EspINA_Representation)
+            // 	{
+              // 	  foreach(Representation *rep, pickRepresentation(propPicker, multiSelection))
+              // 	  {
+                // 	    SelectionHandler::Selelection selection(vtkRegion, rep);
+                // 	    msel.append(selection);
+                // 	  }
+          }
+          else
+          {
+            Q_ASSERT(false);
+          }
+        }
       }
-    }
   }
 
   return msel;
 }
 
+//-----------------------------------------------------------------------------
+void SliceView::updateSelection(SelectionManager::Selection selection)
+{
+  updateSegmentationRepresentations();
+}
 
 //-----------------------------------------------------------------------------
-pqRenderViewBase* SliceView::view()
+void SliceView::updateSegmentationRepresentations()
+{
+  if (isVisible())
+    foreach(Segmentation *seg, m_segmentations.keys())
+      updateSegmentationRepresentation(seg);
+}
+
+
+//-----------------------------------------------------------------------------
+QVTKWidget *SliceView::view()
 {
   return m_view;
 }
 
-
 //-----------------------------------------------------------------------------
-void SliceView::onConnect()
+vtkRenderWindow* SliceView::renderWindow()
 {
-//   qDebug() << this << ": Connecting to a new server";
-
-  pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
-  pqServer    *server = pqActiveObjects::instance().activeServer();
-
-  m_view = qobject_cast<pqSliceView*>(ob->createView(
-             pqSliceView::espinaRenderViewType(), server));
-
-  m_view->setSlicingPlane(m_plane);
-  connect(m_view, SIGNAL(centerChanged(double,double,double)),
-	  this, SLOT(sliceViewCenterChanged(double,double,double)));
-
-  m_viewWidget = m_view->getWidget();
-  // We want to manage events on the view
-  m_viewWidget->installEventFilter(this);
-  m_mainLayout->insertWidget(0, m_viewWidget);//To preserve view order
-
-  double black[] = {0,0,0};
-  vtkSMPropertyHelper(m_view->getViewProxy(),"Background").Set(black,3);
-  vtkSMPropertyHelper(m_view->getViewProxy(),"CenterAxesVisibility").Set(false);
-  m_view->getViewProxy()->UpdateVTKObjects();
-
-//   // Disable menu
-//   // TODO: OLDVERSION m_view->getWidget()->removeAction(m_view->getWidget()->actions().first());
-
+  return m_renderWindow;
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::onDisconnect()
+void SliceView::sliceViewCenterChanged(Nm x, Nm y, Nm z)
 {
-//   qDebug() << this << ": Disconnecting from server";
-//   pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
-  m_viewWidget = NULL;
-//   if (m_view)
-//   {
-//     m_mainLayout->removeWidget(m_viewWidget);
-//     m_style->Deete();
-//     m_view = NULL;
-//     m_viewWdget = NULL;
-//   }
+  qDebug() << "Slice View: " << m_plane << " has new center";
+  emit centerChanged(x, y, z);
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::sliceViewCenterChanged(double x, double y, double z)
+void SliceView::scrollValueChanged(int value/*nm*/)
 {
-//   qDebug() << "Slice View: " << m_plane << " has new center";
-  emit centerChanged(x,y,z);
-}
-
-//-----------------------------------------------------------------------------
-void SliceView::scrollValueChanged(int value)
-{
-  double pos = value;//nm
-
-  if (m_fitToGrid)
-    pos *= m_gridSize[m_plane];
-
-  m_view->setSlice(pos);
+  m_state->setSlicingPosition(m_slicingMatrix, slicingPosition());
+  forceRender();
+  emit sliceChanged(this->m_settings->plane(), slicingPosition());
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::selectFromSlice()
 {
-  emit selectedFromSlice(sliceValue(), m_plane);
+  emit selectedFromSlice(slicingPosition(), m_plane);
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::selectToSlice()
 {
-  emit selectedToSlice(sliceValue(), m_plane);
+  emit selectedToSlice(slicingPosition(), m_plane);
 }
 
 //-----------------------------------------------------------------------------
@@ -445,74 +721,70 @@ void SliceView::undock()
 //-----------------------------------------------------------------------------
 bool SliceView::eventFilter(QObject* caller, QEvent* e)
 {
-  if (SelectionManager::instance()->filterEvent(e, this))
-    return true;
-
-  if (e->type() == QEvent::Wheel)
+  if (m_inThumbnail || !SelectionManager::instance()->filterEvent(e, this))
   {
-    QWheelEvent *we = static_cast<QWheelEvent *>(e);
-    int numSteps = we->delta()/8/15*(m_settings->invertWheel()?-1:1);//Refer to QWheelEvent doc.
-    m_spinBox->setValue(m_spinBox->value() - numSteps);
-    e->ignore();
-  }else if (e->type() == QEvent::Enter)
-  {
-    QWidget::enterEvent(e);
-    QApplication::setOverrideCursor(SelectionManager::instance()->cursor());
-    e->accept();
-  }else if (e->type() == QEvent::Leave)
-  {
-    QWidget::leaveEvent(e);
-    QApplication::restoreOverrideCursor();
-    e->accept();
-  }else if (e->type() == QEvent::MouseMove)
-  {
-    QMouseEvent* me = static_cast<QMouseEvent*>(e);
-    vtkSMSliceViewProxy* view =
-    vtkSMSliceViewProxy::SafeDownCast(m_view->getProxy());
-    Q_ASSERT(view);
-    vtkRenderer * thumbnail = view->GetOverviewRenderer();
-    Q_ASSERT(thumbnail);
-    vtkPropPicker *propPicker = vtkPropPicker::New();
-    int x, y;
-    eventPosition(x, y);
-    if (thumbnail->GetDraw() && propPicker->Pick(x, y, 0.1, thumbnail))
+    if (QEvent::Wheel == e->type())
     {
-      if (!m_inThumbnail)
-	QApplication::setOverrideCursor(Qt::ArrowCursor);
-      m_inThumbnail = true;
+      QWheelEvent *we = static_cast<QWheelEvent *>(e);
+      int numSteps = we->delta() / 8 / 15 * (m_settings->invertWheel() ? -1 : 1);  //Refer to QWheelEvent doc.
+      m_spinBox->setValue(m_spinBox->value() - numSteps);
+      e->ignore();
     }
-    else
+    else if (QEvent::Enter == e->type())
     {
+      QWidget::enterEvent(e);
+      m_view->setCursor(SelectionManager::instance()->cursor());
+      e->accept();
+    }
+    else if (QEvent::MouseMove == e->type())
+    {
+      QMouseEvent* me = static_cast<QMouseEvent*>(e);
+      int x, y;
+      eventPosition(x, y);
+      m_inThumbnail = m_thumbnail->GetDraw() && m_channelPicker->Pick(x, y, 0.1, m_thumbnail);
+
       if (m_inThumbnail)
-	QApplication::restoreOverrideCursor();;
-      m_inThumbnail = false;
-    }
+        m_view->setCursor(Qt::ArrowCursor);
+      else
+        m_view->setCursor(SelectionManager::instance()->cursor());
 
-    if (m_inThumbnail && me->buttons() == Qt::LeftButton)
-    {
-      centerViewOnMousePosition();
-      if (me->modifiers() == Qt::CTRL)
+      if (m_inThumbnail && me->buttons() == Qt::LeftButton)
       {
-	centerCrosshairOnMousePosition();
+        centerViewOnMousePosition();
+        if (me->modifiers() == Qt::CTRL)
+          centerCrosshairOnMousePosition();
       }
     }
-  }else if (e->type() == QEvent::MouseButtonPress)
-  {
-    QMouseEvent* me = static_cast<QMouseEvent*>(e);
-    if (me->button() == Qt::LeftButton)
+    else if (e->type() == QEvent::MouseButtonPress)
     {
-      if (me->modifiers() == Qt::CTRL)
-	centerCrosshairOnMousePosition();
-      else if (m_inThumbnail)
+      QMouseEvent* me = static_cast<QMouseEvent*>(e);
+      if (me->button() == Qt::LeftButton)
       {
-	centerViewOnMousePosition();
-      } else
-      {
-	selectPickedItems(me->modifiers() == Qt::SHIFT);
+        if (me->modifiers() == Qt::CTRL)
+        {
+          centerCrosshairOnMousePosition();
+          emit showCrosshairs(true);
+        }
+        else if (m_inThumbnail)
+        {
+          centerViewOnMousePosition();
+        }
+        else
+        {
+          selectPickedItems(me->modifiers() == Qt::SHIFT);
+        }
       }
+    }
+    else if (e->type() == QEvent::KeyRelease)
+    {
+      QKeyEvent *ke = static_cast<QKeyEvent *>(e);
+      if (ke->key() == Qt::Key_Control && ke->count() == 1)
+        emit showCrosshairs(false);
     }
   }
 
+  updateRuler();
+  updateThumbnail();
   return QWidget::eventFilter(caller, e);
 }
 
@@ -522,11 +794,22 @@ void SliceView::centerCrosshairOnMousePosition()
   int xPos, yPos;
   eventPosition(xPos, yPos);
 
-  double center[3];//World coordinates
-  pickChannel(xPos, yPos, center);
+  Nm center[3];  //World coordinates
+  bool channelPicked = false;
+  if (m_inThumbnail)
+  {
+    channelPicked = m_channelPicker->Pick(xPos, yPos, 0.1, m_thumbnail);
+    if (channelPicked)
+      m_channelPicker->GetPickPosition(center);
+  }
+  else
+    channelPicked = pickChannel(xPos, yPos, center);
 
-  centerViewOn(center);
-  emit focusChanged(center);
+  if (channelPicked)
+  {
+    centerViewOn(center);
+    emit centerChanged(m_crosshairPoint[0], m_crosshairPoint[1], m_crosshairPoint[2]);
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -535,31 +818,33 @@ void SliceView::centerViewOnMousePosition()
   int xPos, yPos;
   eventPosition(xPos, yPos);
 
-  double center[3];//World coordinates
-  pickChannel(xPos, yPos, center);
-
-  vtkCamera * camera = m_view->getRenderViewProxy()->GetRenderer()->GetActiveCamera();
-  camera->SetFocalPoint(center);
-  m_view->render();
+  double center[3];  //World coordinates
+  if (m_channelPicker->Pick(xPos, yPos, 0.1, m_thumbnail))
+  {
+    m_channelPicker->GetPickPosition(center);
+    centerViewOn(center, true);
+  }
 }
 
 //-----------------------------------------------------------------------------
-QList<Channel *> SliceView::pickChannels(vtkPropPicker* picker, bool repeatable)
+QList<Channel *> SliceView::pickChannels(double vx,
+					 double vy,
+					 vtkRenderer* renderer,
+					 bool repeatable)
 {
-  vtkProp3D *pickedProp = picker->GetProp3D();
-  vtkObjectBase *object;
-  vtkSliceRepresentation *rep;
-
   QList<Channel *> channels;
-  foreach(Channel *channel, m_channels.keys())
+
+  if (m_channelPicker->Pick(vx, vy, 0.1, renderer))
   {
-    object = m_channels[channel].proxy->GetClientSideObject();
-    rep = dynamic_cast<vtkSliceRepresentation *>(object);
-    Q_ASSERT(rep);
-    if (rep->GetSliceProp() == pickedProp)
+    vtkProp3D *pickedProp;
+    m_channelPicker->GetProp3Ds()->InitTraversal();
+    while ((pickedProp = m_channelPicker->GetProp3Ds()->GetNextProp3D()))
     {
-//       qDebug() << "Channel" << channel->data(Qt::DisplayRole).toString() << "Selected";
-      channels << channel;
+      Channel *pickedChannel = property3DChannel(pickedProp);
+      Q_ASSERT(pickedChannel);
+//       qDebug() << "Picked" << pickedChannel->data().toString();
+      channels << pickedChannel;
+
       if (!repeatable)
 	return channels;
     }
@@ -568,24 +853,41 @@ QList<Channel *> SliceView::pickChannels(vtkPropPicker* picker, bool repeatable)
   return channels;
 }
 
-
 //-----------------------------------------------------------------------------
-QList< Segmentation* > SliceView::pickSegmentations(vtkPropPicker* picker, bool repeatable)
+QList<Segmentation *> SliceView::pickSegmentations(double vx,
+                                                   double vy,
+                                                   vtkRenderer* renderer,
+                                                   bool repeatable)
 {
-  vtkProp3D *pickedProp = picker->GetProp3D();
-  vtkObjectBase *object;
-  vtkSliceRepresentation *rep;
-
   QList<Segmentation *> segmentations;
-  foreach(Segmentation *seg, m_segmentations.keys())
+
+  if (m_segmentationPicker->Pick(vx, vy, 0.1, renderer))
   {
-    object = m_segmentations[seg].proxy->GetClientSideObject();
-    rep = dynamic_cast<vtkSliceRepresentation *>(object);
-    Q_ASSERT(rep);
-    if (rep->GetSliceProp() == pickedProp)
+    QPolygonF selectedRegion;
+    selectedRegion << QPointF(vx, vy);
+
+    // BUG: kills app when picking a node in TubularWidget in ZY view (not only that one?)
+    if (display2vtk(selectedRegion).isEmpty())
+      return segmentations;
+
+    QVector3D pixel = display2vtk(selectedRegion).first();
+ 
+    m_segmentationPicker->GetProp3Ds()->InitTraversal();
+    vtkProp3D *pickedProp;
+    while ((pickedProp = m_segmentationPicker->GetProp3Ds()->GetNextProp3D()))
     {
-//       qDebug() << "Segmentation" << seg->data(Qt::DisplayRole).toString() << "Selected";
-      segmentations << seg;
+      Segmentation *pickedSeg = property3DSegmentation(pickedProp);
+      Q_ASSERT(pickedSeg);
+      Q_ASSERT(pickedSeg->itkVolume());
+//       qDebug() << "Picked" << pickedSeg->data().toString() << "bounds";
+      EspinaVolume::IndexType pickedPixel = pickedSeg->index(pixel.x(), pixel.y(), pixel.z());
+      if (!pickedSeg->itkVolume()->GetLargestPossibleRegion().IsInside(pickedPixel) ||
+          (pickedSeg->itkVolume()->GetPixel(pickedPixel) == 0))
+	continue;
+
+//       qDebug() <<  pickedSeg->data().toString() << "picked";
+      segmentations << pickedSeg;
+
       if (!repeatable)
 	return segmentations;
     }
@@ -597,32 +899,28 @@ QList< Segmentation* > SliceView::pickSegmentations(vtkPropPicker* picker, bool 
 //-----------------------------------------------------------------------------
 void SliceView::selectPickedItems(bool append)
 {
-//   qDebug() << "SliceView::SelectPickedItems";
-  vtkSMSliceViewProxy* view =
-    vtkSMSliceViewProxy::SafeDownCast(m_view->getProxy());
-  Q_ASSERT(view);
-  vtkRenderer *renderer = view->GetRenderer();
-  Q_ASSERT(renderer);
+  int vx, vy;
+  eventPosition(vx, vy);
 
-  int x, y;
-  eventPosition(x, y);
-
-  vtkPropPicker *propPicker = vtkPropPicker::New();
-  if (propPicker->Pick(x, y, 0.1, renderer))
+  bool segPicked = false;
+  // If no append, segmentations have priority over channels
+  foreach(Segmentation *seg, pickSegmentations(vx, vy, m_renderer, append))
   {
-    foreach(Channel *channel, pickChannels(propPicker, append))
-    {
-      emit channelSelected(channel);
-      if (!append)
-	return;
-    }
+    segPicked = true;
+    emit segmentationSelected(seg, append);
+    if (!append)
+      return;
+  }
 
-    foreach(Segmentation *seg, pickSegmentations(propPicker, append))
-    {
-      emit segmentationSelected(seg, append);
-      if (!append)
-	return;
-    }
+  // Heterogeneus picking is not supported
+  if (segPicked)
+    return;
+
+  foreach(Channel *channel, pickChannels(vx, vy, m_renderer, append))
+  {
+    emit channelSelected(channel);
+    if (!append)
+      return;
   }
 }
 
@@ -631,325 +929,353 @@ double SliceView::suggestedChannelOpacity()
 {
   double numVisibleRep = 0;
 
-  foreach(Channel *channel, m_channels.keys())
+  foreach(Channel * channel, m_channels.keys())
     if (channel->isVisible())
       numVisibleRep++;
 
-  if (numVisibleRep == 0)
-    return 0.0;
+    if (numVisibleRep == 0)
+      return 0.0;
 
-  return 1.0 /  numVisibleRep;
+    return 1.0 / numVisibleRep;
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::updateWidgetVisibility()
 {
-  foreach(SliceWidget *widget, m_widgets)
+  foreach(SliceWidget * widget, m_widgets)
   {
-    widget->setSlice(m_center[m_plane], m_plane);
+    widget->setSlice(slicingPosition(), m_plane);
   }
+}
+
+//-----------------------------------------------------------------------------
+Nm SliceView::slicingPosition() const
+{
+  return m_slicingStep[m_plane] * m_spinBox->value();
+}
+
+//-----------------------------------------------------------------------------
+Channel* SliceView::property3DChannel(vtkProp3D* prop)
+{
+  foreach(Channel *channel, m_channels.keys())
+  {
+    if (m_channels[channel].slice == prop)
+      return channel;
+  }
+  return NULL;
+}
+
+//-----------------------------------------------------------------------------
+Segmentation* SliceView::property3DSegmentation(vtkProp3D* prop)
+{
+  foreach(Segmentation *seg, m_segmentations.keys())
+  {
+    if (m_segmentations[seg].slice == prop)
+      return seg;
+  }
+  return NULL;
 }
 
 
 //-----------------------------------------------------------------------------
-double SliceView::sliceValue() const
+bool SliceView::pickChannel(int x, int y, Nm pickPos[3])
 {
-  if (m_fitToGrid)
-    return m_gridSize[m_plane]*m_spinBox->value();
-  else
-    return m_spinBox->value();
-}
+  if (m_thumbnail->GetDraw() && m_channelPicker->Pick(x, y, 0.1, m_thumbnail))
+    return false;//ePick Fail
 
+  if (!m_channelPicker->Pick(x, y, 0.1, m_renderer))
+      return false;//ePick Fail
 
-//-----------------------------------------------------------------------------
-bool SliceView::pickChannel(int x, int y, double pickPos[3])
-{
-  vtkSMSliceViewProxy* view =
-    vtkSMSliceViewProxy::SafeDownCast(m_view->getProxy());
-  Q_ASSERT(view);
-  vtkRenderer * thumbnail = view->GetOverviewRenderer();
-  Q_ASSERT(thumbnail);
-
-  vtkPropPicker *propPicker = vtkPropPicker::New();
-  if (!propPicker->Pick(x, y, 0.1, thumbnail))
-  {
-    vtkRenderer *renderer = view->GetRenderer();
-    Q_ASSERT(renderer);
-    if (!propPicker->Pick(x, y, 0.1, renderer))
-    {
-//       qDebug() << "ePick Fail!";
-      return false;
-    }
-  }
-
-  propPicker->GetPickPosition(pickPos);
-
-  pickPos[m_plane] = m_fitToGrid?m_scrollBar->value()*m_gridSize[m_plane]:m_scrollBar->value();
-//   qDebug() << "Pick Position" << pickPos[0] << pickPos[1] << pickPos[2];
-  propPicker->Delete();
+  m_channelPicker->GetPickPosition(pickPos);
+  pickPos[m_plane] = slicingPosition();
+  //   qDebug() << "Pick Position" << pickPos[0] << pickPos[1] << pickPos[2];
 
   return true;
 }
 
-
 //-----------------------------------------------------------------------------
 void SliceView::addChannelRepresentation(Channel* channel)
 {
-  pqData volumetric = channel->representation("Volumetric")->output();
-  pqOutputPort      *oport = volumetric.outputPort();
-  pqPipelineSource *source = oport->getSource();
-  vtkSMProxyManager   *pxm = vtkSMProxyManager::GetProxyManager();
+  Q_ASSERT(!m_channels.contains(channel));
 
-  vtkSMRepresentationProxy* reprProxy = vtkSMRepresentationProxy::SafeDownCast(
-    pxm->NewProxy("representations", "ChannelRepresentation"));
-  Q_ASSERT(reprProxy);
-  m_channels[channel].outport  = oport;
-  m_channels[channel].proxy    = reprProxy;
-  m_channels[channel].selected = false;
-  m_channels[channel].visible  = !channel->isVisible();// Force initialization
-  m_channels[channel].color    = QColor("red");
+  SliceRep channelRep;
 
-    // Set the reprProxy's input.
-  pqSMAdaptor::setInputProperty(reprProxy->GetProperty("Input"),
-				source->getProxy(), oport->getPortNumber());
-  updateChannelRepresentation(channel);
+  // if hue is -1 then use 0 saturation to make a grayscale image
+  double hue = (channel->color() == -1) ? 0 : channel->color();
+  double sat = channel->color() >= 0 ? 1.0 : 0.0;
 
-  vtkSMProxy* viewModuleProxy = m_view->getProxy();
-  // Add the reprProxy to render module.
-  pqSMAdaptor::addProxyProperty(
-    viewModuleProxy->GetProperty("Representations"), reprProxy);
-  viewModuleProxy->UpdateVTKObjects();
+  channelRep.selected = false;
+  channelRep.visible = !channel->isVisible();  // Force initialization
+  channelRep.color = channel->color();
+  channel->position(channelRep.pos);
+  channelRep.lut = vtkLookupTable::New();
+  channelRep.lut->Allocate();
+  channelRep.lut->SetTableRange(0,255);
+  channelRep.lut->SetHueRange(hue, hue);
+  channelRep.lut->SetSaturationRange(0.0, sat);
+  channelRep.lut->SetValueRange(0.0, 1.0);
+  channelRep.lut->SetAlphaRange(1.0,1.0);
+  channelRep.lut->SetNumberOfColors(256);
+  channelRep.lut->SetRampToLinear();
+  channelRep.lut->Build();
+
+  channelRep.resliceToColors = vtkImageResliceToColors::New();
+  channelRep.resliceToColors->SetResliceAxes(m_slicingMatrix);
+  channelRep.resliceToColors->SetInputConnection(channel->vtkVolume());
+  channelRep.resliceToColors->SetOutputDimensionality(2);
+  channelRep.resliceToColors->SetLookupTable(channelRep.lut);
+  channelRep.resliceToColors->Update();
+
+  channelRep.slice = vtkImageActor::New();
+  channelRep.slice->SetInterpolate(false);
+  channelRep.slice->GetMapper()->BorderOn();
+  channelRep.slice->GetMapper()->SetInputConnection(channelRep.resliceToColors->GetOutputPort());
+   m_state->updateActor(channelRep.slice);
+  channelRep.slice->Update();
+
+
+  m_channels.insert(channel, channelRep);
+  addActor(channelRep.slice);
+  m_channelPicker->AddPickList(channelRep.slice);
+  forceRender();  // m_view->GetRenderWindow()->Render();
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::removeChannelRepresentation(Channel* channel)
 {
-  vtkSMProxy* viewModuleProxy = m_view->getProxy();
   Q_ASSERT(m_channels.contains(channel));
-  vtkSMRepresentationProxy *repProxy = m_channels[channel].proxy;
-  // Remove the reprProxy to render module.
-  pqSMAdaptor::removeProxyProperty(
-    viewModuleProxy->GetProperty("Representations"), repProxy);
-  viewModuleProxy->UpdateVTKObjects();
-  m_view->getProxy()->UpdateVTKObjects();
-  repProxy->Delete();
-  m_channels.remove(channel);
 
-  m_view->resetCamera();
+  SliceRep rep = m_channels[channel];
+  removeActor(rep.slice);
+  m_channelPicker->DeletePickList(rep.slice);
+
+  m_channels.remove(channel);
+  rep.resliceToColors->Delete();
+  rep.slice->Delete();
 }
 
 //-----------------------------------------------------------------------------
 bool SliceView::updateChannelRepresentation(Channel* channel)
 {
   Q_ASSERT(m_channels.contains(channel));
-  Representation &rep = m_channels[channel];
+  SliceRep &rep = m_channels[channel];
 
   double pos[3];
   channel->position(pos);
 
-  if (channel->isVisible() != rep.visible
-    || channel->color() != rep.color.hueF()
-    || memcmp(pos, rep.pos, 3*sizeof(double)))
-  {
-    rep.visible  = channel->isVisible();
-    rep.color.setHsvF(channel->color(),1.0,1.0);
-    memcpy(rep.pos, pos, 3*sizeof(double));
+  bool updated = false;
 
-    vtkSMPropertyHelper(rep.proxy, "Position").Set(rep.pos,3);
-    double color = channel->color();
-    vtkSMPropertyHelper(rep.proxy, "Color").Set(&color,1);
-    vtkSMPropertyHelper(rep.proxy, "Visibility").Set(rep.visible);
-    double opacity = suggestedChannelOpacity();
-    vtkSMPropertyHelper(rep.proxy, "Opacity").Set(&opacity,1);
-    rep.proxy->UpdateVTKObjects();
-    return true;
+  if (this->suggestedChannelOpacity() != rep.slice->GetProperty()->GetOpacity())
+  {
+    rep.slice->GetProperty()->SetOpacity(this->suggestedChannelOpacity());
+    updated = true;
   }
-  return false;
+
+  if (channel->isVisible() != rep.visible)
+  {
+    rep.visible = channel->isVisible();
+    rep.slice->SetVisibility(rep.visible);
+    updated = true;
+  }
+
+  if (memcmp(pos, rep.pos, 3 * sizeof(double)))
+  {
+    memcpy(rep.pos, pos, 3 * sizeof(double));
+    rep.slice->SetPosition(rep.pos);
+    updated = true;
+  }
+
+  if (((channel->color() != -1) && ((rep.color.hueF() != channel->color()) || (rep.color.saturation() != 1.0))) ||
+     (((channel->color() == -1) && ((rep.color.hue() != 0) || (rep.color.saturation() != 0)))))
+  {
+    // if hue is -1 then use 0 saturation to make a grayscale image
+    double hue = (channel->color() == -1) ? 0 : channel->color();
+    double sat = (channel->color() >= 0) ? 1.0 : 0.0;
+    rep.color.setHsvF(hue, sat, 1.0);
+
+    rep.lut->Allocate();
+    rep.lut->SetTableRange(0, 255);
+    rep.lut->SetHueRange(hue, hue);
+    rep.lut->SetSaturationRange(0.0, sat);
+    rep.lut->SetValueRange(0.0, 1.0);
+    rep.lut->SetAlphaRange(1.0, 1.0);
+    rep.lut->SetNumberOfColors(256);
+    rep.lut->Build();
+    rep.lut->Modified();
+    updated = true;
+  }
+
+  return updated;
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::addSegmentationRepresentation(Segmentation* seg)
 {
-  pqOutputPort      *oport = seg->outputPort();
-  pqPipelineSource *source = oport->getSource();
-  vtkSMProxyManager   *pxm = vtkSMProxyManager::GetProxyManager();
+  Q_ASSERT(!m_segmentations.contains(seg));
 
-  vtkSMRepresentationProxy* reprProxy = vtkSMRepresentationProxy::SafeDownCast(
-    pxm->NewProxy("representations", "SegmentationRepresentation"));
-  Q_ASSERT(reprProxy);
-  m_segmentations[seg].outport  = oport;
-  m_segmentations[seg].proxy    = reprProxy;
-  m_segmentations[seg].selected = !seg->selected();
-  m_segmentations[seg].visible  = seg->visible();
-  m_segmentations[seg].color  = m_colorEngine->color(seg);
+  SliceRep segRep;
 
-  // Set the reprProxy's input.
-  pqSMAdaptor::setInputProperty(reprProxy->GetProperty("Input"),
-				source->getProxy(), oport->getPortNumber());
-  updateSegmentationRepresentation(seg);
-//   reprProxy->UpdateVTKObjects();
+  seg->filter()->update();
 
-  vtkSMProxy* viewModuleProxy = m_view->getProxy();
-  // Add the reprProxy to render module.
-  pqSMAdaptor::addProxyProperty(
-    viewModuleProxy->GetProperty("Representations"), reprProxy);
-  viewModuleProxy->UpdateVTKObjects();
+  segRep.resliceToColors = vtkImageResliceToColors::New();
+  segRep.resliceToColors->SetResliceAxes(m_slicingMatrix);
+  segRep.resliceToColors->SetInputConnection(seg->vtkVolume());
+  segRep.resliceToColors->SetOutputDimensionality(2);
+  segRep.resliceToColors->SetLookupTable(m_colorEngine->lut(seg));
+  segRep.resliceToColors->Update();
+
+  segRep.slice = vtkImageActor::New();
+  segRep.slice->SetInterpolate(false);
+  segRep.slice->GetMapper()->BorderOn();
+  segRep.slice->GetMapper()->SetInputConnection(segRep.resliceToColors->GetOutputPort());
+  segRep.slice->Update();
+  m_state->updateActor(segRep.slice);
+
+  segRep.selected = seg->isSelected();
+  segRep.visible = seg->visible() && m_showSegmentations;
+  segRep.color = m_colorEngine->color(seg);
+
+  m_segmentations.insert(seg, segRep);
+  addActor(segRep.slice);
+  m_segmentationPicker->AddPickList(segRep.slice);
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::removeSegmentationRepresentation(Segmentation* seg)
 {
-  vtkSMProxy* viewModuleProxy = m_view->getProxy();
   Q_ASSERT(m_segmentations.contains(seg));
-  Representation rep = m_segmentations[seg];
-  // Remove the reprProxy to render module.
-  pqSMAdaptor::removeProxyProperty(
-    viewModuleProxy->GetProperty("Representations"), rep.proxy);
-  viewModuleProxy->UpdateVTKObjects();
-  m_view->getProxy()->UpdateVTKObjects();
 
-  rep.proxy->Delete();
+  SliceRep rep = m_segmentations[seg];
+
+  removeActor(rep.slice);
+  m_segmentationPicker->DeletePickList(rep.slice);
+
+  // itkvtk filter is handled by a smartpointer, these two are not
+  rep.resliceToColors->Delete();
+  rep.slice->Delete();
+
   m_segmentations.remove(seg);
-}
 
-//-----------------------------------------------------------------------------
-void SliceView::addRepresentation(pqOutputPort* oport, QColor color)
-{
-  pqPipelineSource *source = oport->getSource();
-  vtkSMProxyManager   *pxm = vtkSMProxyManager::GetProxyManager();
-
-  vtkSMRepresentationProxy* reprProxy = vtkSMRepresentationProxy::SafeDownCast(
-    pxm->NewProxy("representations", "SegmentationRepresentation"));
-  Q_ASSERT(reprProxy);
-  m_representations[oport].proxy  = reprProxy;
-  m_representations[oport].color  = color;
-
-  // Set the reprProxy's input.
-  pqSMAdaptor::setInputProperty(reprProxy->GetProperty("Input"),
-                                source->getProxy(), oport->getPortNumber());
-
-  double colorD[3] = {color.redF(), color.greenF(), color.blueF()};
-  vtkSMPropertyHelper(reprProxy, "RGBColor").Set(colorD,3);
-
-  reprProxy->UpdateVTKObjects();
-
-  vtkSMProxy* viewModuleProxy = m_view->getProxy();
-  // Add the reprProxy to render module.
-  pqSMAdaptor::addProxyProperty(
-    viewModuleProxy->GetProperty("Representations"), reprProxy);
-  viewModuleProxy->UpdateVTKObjects();
-}
-
-//-----------------------------------------------------------------------------
-void SliceView::removeRepresentation(pqOutputPort* oport)
-{
-  vtkSMProxy* viewModuleProxy = m_view->getProxy();
-  Q_ASSERT(m_representations.contains(oport));
-  Representation rep = m_representations[oport];
-  // Remove the reprProxy to render module.
-  pqSMAdaptor::removeProxyProperty(
-    viewModuleProxy->GetProperty("Representations"), rep.proxy);
-  viewModuleProxy->UpdateVTKObjects();
-  m_view->getProxy()->UpdateVTKObjects();
-
-  rep.proxy->Delete();
-  m_representations.remove(oport);
+  forceRender();
 }
 
 //-----------------------------------------------------------------------------
 bool SliceView::updateSegmentationRepresentation(Segmentation* seg)
 {
   Q_ASSERT(m_segmentations.contains(seg));
-  Representation &rep = m_segmentations[seg];
-  if (seg->outputPort() != rep.outport)
+  SliceRep &rep = m_segmentations[seg];
+
+  bool updated = false;
+  if ((seg->isSelected() != rep.selected)
+    || (seg->data(Qt::DecorationRole).value<QColor>() != rep.color)
+    || seg->updateForced())
   {
-    //remove representation using previous proxy
-    removeSegmentationRepresentation(seg);
-    //add representation using new proxy
-    addSegmentationRepresentation(seg);
-    return true;
-  }
-  if (seg->selected() != rep.selected
-    || seg->visible() != rep.visible
-    || seg->data(Qt::DecorationRole).value<QColor>() != rep.color)
-  {
-    rep.selected = seg->selected();
-    rep.visible  = seg->visible();
+    rep.selected = seg->isSelected();
     rep.color = seg->data(Qt::DecorationRole).value<QColor>();
-    //   repProxy->PrintSelf(std::cout,vtkIndent(0));
-    double color[3] = {rep.color.redF(), rep.color.greenF(), rep.color.blueF()};
-    vtkSMPropertyHelper(rep.proxy, "RGBColor").Set(color,3);
-    vtkSMPropertyHelper(rep.proxy, "Visibility").Set(rep.visible);
-    double opacity = rep.selected?1.0:0.7;
-    vtkSMPropertyHelper(rep.proxy, "Opacity").Set(&opacity, 1);
-    rep.proxy->UpdateVTKObjects();
-    return true;
+
+    rep.resliceToColors->SetLookupTable(m_colorEngine->lut(seg));
+    rep.resliceToColors->Update();
+
+    updated = true;
   }
-  return false;
+
+  if (rep.visible != seg->visible())
+  {
+    rep.visible = seg->visible();
+    updated = m_showSegmentations;
+  }
+  rep.slice->SetVisibility(rep.visible && m_showSegmentations);
+
+//   if (updated)
+//     qDebug() << "Update Segmentation Representation" << m_plane;
+
+  return updated;
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::addPreview(Filter* filter)
 {
-  addPreview(filter->preview().outputPort());
-  m_preview = filter;
+	Q_ASSERT(false);
+//   addPreview(filter->preview().outputPort());
+//   m_preview = filter;
 }
 
 void SliceView::removePreview(Filter* filter)
 {
-  removePreview(filter->preview().outputPort());
-}
-
-
-//-----------------------------------------------------------------------------
-void SliceView::addPreview(pqOutputPort* preview)
-{
-    addRepresentation(preview, QColor(255,0,0));
-}
-
-void SliceView::removePreview(pqOutputPort* preview)
-{
-  removeRepresentation(preview);
+	Q_ASSERT(false);
+//   removePreview(filter->preview().outputPort());
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::addWidget(SliceWidget *sWidget)
 {
-  pq3DWidget *widget = *sWidget;
-  widget->setView(m_view);
-  widget->setWidgetVisible(true);
-  widget->select();
-  connect(widget, SIGNAL(modified()),
-	  this, SLOT(updateWidgetVisibility()));
+  if (!sWidget)
+    return;
+
+  sWidget->setSlice(slicingPosition(), m_plane);
+  vtkAbstractWidget *widget = *sWidget;
+  widget->SetInteractor(m_renderWindow->GetInteractor());
+  widget->GetRepresentation()->SetVisibility(true);
+  widget->On();
+  m_renderer->ResetCameraClippingRange();
   m_widgets << sWidget;
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::removeWidget(SliceWidget* sWidget)
 {
+  if (!sWidget)
+    return;
+
   Q_ASSERT(m_widgets.contains(sWidget));
   m_widgets.removeOne(sWidget);
 }
 
-
 //-----------------------------------------------------------------------------
 void SliceView::previewExtent(int VOI[6])
 {
-  memcpy(VOI, m_gridSize,6*sizeof(int));
-  VOI[2*m_plane] = m_scrollBar->value();
-  VOI[2*m_plane+1] = m_scrollBar->value();
+  Q_ASSERT(false);
+//   memcpy(VOI, m_gridSize, 6 * sizeof(int));
+//   VOI[2 * m_plane] = m_scrollBar->value();
+//   VOI[2 * m_plane + 1] = m_scrollBar->value();
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::setSegmentationVisibility(bool visible)
 {
-  m_view->setShowSegmentations(visible);
+  m_showSegmentations = visible;
+  foreach(SliceRep rep, m_segmentations)
+  {
+    rep.slice->SetVisibility(visible && rep.visible);
+  }
+  forceRender();
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::setShowPreprocessing(bool visible)
+{
+  if (m_channels.size() < 2)
+    return;
+
+  Channel *hiddenChannel = m_channels.keys()[visible];
+  Channel *visibleChannel = m_channels.keys()[1 - visible];
+  hiddenChannel->setData(false, Qt::CheckStateRole);
+  hiddenChannel->notifyModification();
+  visibleChannel->setData(true, Qt::CheckStateRole);
+  visibleChannel->notifyModification();
+  for (int i = 2; i < m_channels.keys().size(); i++)
+  {
+    Channel *otherChannel = m_channels.keys()[i];
+    otherChannel->setData(false, Qt::CheckStateRole);
+    otherChannel->notifyModification();
+  }
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::setRulerVisibility(bool visible)
 {
-  m_view->setRulerVisibility(visible);
+  m_rulerVisibility = visible;
+  updateRuler();
 }
 
 //-----------------------------------------------------------------------------
@@ -965,109 +1291,108 @@ void SliceView::forceRender()
   if (isVisible())
   {
 //     qDebug() << "Rendering View" << m_plane;
+    updateRuler();
     updateWidgetVisibility();
-    m_view->forceRender();
+    m_view->GetRenderWindow()->Render();
+    m_view->update();
   }
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::setGridSize(double size[3])
+void SliceView::setSlicingStep(Nm steps[3])
 {
-  if (size[0] <= 0 || size[1] <= 0 || size[2] <= 0)
+  if (steps[0] <= 0 || steps[1] <= 0 || steps[2] <= 0)
   {
-    qFatal("SliceView: Invalid Grid Size. Grid Size not changed");
+    qFatal("SliceView: Invalid Step value. Slicing Step not changed");
     return;
   }
 
-  memcpy(m_gridSize, size, 3*sizeof(double));
-  setRanges(m_range);
+  Nm slicingPos = slicingPosition();
+
+  memcpy(m_slicingStep, steps, 3 * sizeof(Nm));
+  setSlicingRanges(m_slicingRanges);
+
+  if (m_slicingStep[0] == 1 && m_slicingStep[1] == 1 && m_slicingStep[2] == 1)
+    m_spinBox->setSuffix(" nm");
+  else
+    m_spinBox->setSuffix("");
+
+  m_scrollBar->setValue(slicingPos/m_slicingStep[m_plane]);
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::setRanges(double ranges[6])
+void SliceView::setSlicingRanges(Nm ranges[6])
 {
   if (ranges[1] < ranges[0] || ranges[3] < ranges[2] || ranges[5] < ranges[4])
   {
-    qFatal("SliceView: Invalid Ranges. Ranges not changed");
+    qFatal("SliceView: Invalid Slicing Ranges. Ranges not changed");
     return;
   }
 
-  double min = ranges[2*m_plane];
-  double max = ranges[2*m_plane+1];
-  if (m_fitToGrid)
-  {
-    min = min / m_gridSize[m_plane];
-    max = max / m_gridSize[m_plane];
-  }
+  double min = ranges[2 * m_plane] / m_slicingStep[m_plane];
+  double max = ranges[2 * m_plane + 1] / m_slicingStep[m_plane];
+
   m_scrollBar->setMinimum(static_cast<int>(min));
   m_scrollBar->setMaximum(static_cast<int>(max));
   m_spinBox->setMinimum(static_cast<int>(min));
   m_spinBox->setMaximum(static_cast<int>(max));
-  memcpy(m_range, ranges, 6*sizeof(double));
+
+  memcpy(m_slicingRanges, ranges, 6*sizeof(Nm));
 
   bool enabled = m_spinBox->minimum() < m_spinBox->maximum();
   m_fromSlice->setEnabled(enabled);
   m_toSlice->setEnabled(enabled);
 }
-//-----------------------------------------------------------------------------
-void SliceView::setFitToGrid(bool value)
-{
-  if (value == m_fitToGrid)
-    return;
-
-  int currentScrollValue = m_scrollBar->value();
-  m_fitToGrid = value;
-  m_scrollBar->blockSignals(true);
-  m_spinBox->blockSignals(true);
-  setRanges(m_range);
-  if (m_fitToGrid)
-  {
-    m_scrollBar->setValue(currentScrollValue/m_gridSize[m_plane]);
-    m_spinBox->setValue(currentScrollValue/m_gridSize[m_plane]);
-    m_spinBox->setSuffix("");
-  }
-  else
-  {
-    m_scrollBar->setValue(currentScrollValue*m_gridSize[m_plane]);
-    m_spinBox->setValue(currentScrollValue*m_gridSize[m_plane]);
-    m_spinBox->setSuffix("nm");
-  }
-  m_spinBox->blockSignals(false);
-  m_scrollBar->blockSignals(false);
-}
 
 //-----------------------------------------------------------------------------
-void SliceView::centerViewOn(double center[3])
+void SliceView::centerViewOn(Nm center[3], bool force)
 {
-  if (m_center[0] == center[0] &&
-      m_center[1] == center[1] &&
-      m_center[2] == center[2])
+  if (!isVisible() ||
+     (m_crosshairPoint[0] == center[0] &&
+      m_crosshairPoint[1] == center[1] &&
+      m_crosshairPoint[2] == center[2] &&
+      !force))
     return;
 
-  memcpy(m_center, center, 3*sizeof(double));
-
-  // Round the value to the nearest unit (nm or grid)
+  // Adjust crosshairs to fit slicing steps
+  int sliceNumbers[3];
   for (int i = 0; i < 3; i++)
   {
-    if (m_fitToGrid)
-      m_center[i] = m_center[i]/m_gridSize[i];
-    m_center[i] = floor(m_center[i]+0.5);
+    sliceNumbers[i] = center[i] / m_slicingStep[i];
+    m_crosshairPoint[i] = floor((center[i]/m_slicingStep[i] + 0.5))*m_slicingStep[i];
   }
 
   // Disable scrollbox signals to avoid calling seting slice
   m_scrollBar->blockSignals(true);
-  m_spinBox->setValue(m_center[m_plane]);
-  m_scrollBar->setValue(m_center[m_plane]);
+  m_spinBox->setValue(sliceNumbers[m_plane]);
+  m_scrollBar->setValue(sliceNumbers[m_plane]);
   m_scrollBar->blockSignals(false);
 
-  // If fitToGrid is enabled, we must center the view on the
-  // corresponding grid's position
-  if (m_fitToGrid)
-    for (int i = 0; i < 3; i++)
-      m_center[i] = floor((m_center[i]*m_gridSize[i])+0.5);
+  m_state->setSlicingPosition(m_slicingMatrix, slicingPosition());
+  m_state->setCrossHairs(m_HCrossLineData, m_VCrossLineData, m_crosshairPoint, m_slicingRanges);
 
-  m_view->centerViewOn(m_center[0], m_center[1], m_center[2]);
-  updateWidgetVisibility();
+  // Only center camera if center is out of the display view
+  vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
+  coords->SetViewport(m_renderer);
+  coords->SetCoordinateSystemToNormalizedViewport();
+  double ll[3], ur[3];
+  coords->SetValue(0, 0); //LL
+  memcpy(ll,coords->GetComputedWorldValue(m_renderer),3*sizeof(double));
+  coords->SetValue(1, 1); //UR
+  memcpy(ur,coords->GetComputedWorldValue(m_renderer),3*sizeof(double));
+
+  int H = (SAGITTAL == m_plane)?2:0;
+  int V = (CORONAL  == m_plane)?2:1;
+  bool centerOutOfCamera = m_crosshairPoint[H] < ll[H] || m_crosshairPoint[H] > ur[H] // Horizontally out
+                        || m_crosshairPoint[V] > ll[V] || m_crosshairPoint[V] < ur[V];// Vertically out
+
+  if (centerOutOfCamera || force)
+  {
+    m_state->updateCamera(m_renderer->GetActiveCamera(), m_crosshairPoint);
+    m_renderer->ResetCameraClippingRange();
+  }
+
+  forceRender();
 }
 
 //-----------------------------------------------------------------------------
@@ -1078,29 +1403,28 @@ SelectionHandler::VtkRegion SliceView::display2vtk(const QPolygonF &region)
   //vtkSMRenderViewProxy* renModule = view->GetRenderWindow()->GetInteractor()->GetRenderView();
   SelectionHandler::VtkRegion vtkRegion;
 
-//   vtkWorldPointPicker *wpicker = vtkWorldPointPicker::New();
-  double pickPos[3];//World coordinates
+  //   vtkWorldPointPicker *wpicker = vtkWorldPointPicker::New();
+  double pickPos[3];  //World coordinates
   foreach(QPointF point, region)
   {
     if (!pickChannel(point.x(), point.y(), pickPos))
       continue;
 
-    QVector3D vtkPoint;
-    vtkPoint.setX(floor((pickPos[0] / m_gridSize[0])+0.5));
-    vtkPoint.setY(floor((pickPos[1] / m_gridSize[1])+0.5));
-    vtkPoint.setZ(floor((pickPos[2] / m_gridSize[2])+0.5));
+    QVector3D vtkPoint(pickPos[0], pickPos[1], pickPos[2]);
+//     vtkPoint.setX(floor((pickPos[0] / m_gridSize[0])+0.5));
+//     vtkPoint.setY(floor((pickPos[1] / m_gridSize[1])+0.5));
+//     vtkPoint.setZ(floor((pickPos[2] / m_gridSize[2])+0.5));
     vtkRegion << vtkPoint;
   }
   return vtkRegion;
 
 }
 
-
 //-----------------------------------------------------------------------------
-SliceView::Settings::Settings(vtkPVSliceView::VIEW_PLANE plane, const QString prefix)
-: INVERT_SLICE_ORDER (prefix + view(plane) + "::invertSliceOrder")
-, INVERT_WHEEL       (prefix + view(plane) + "::invertWheel")
-, SHOW_AXIS          (prefix + view(plane) + "::showAxis")
+SliceView::Settings::Settings(PlaneType plane, const QString prefix)
+: INVERT_SLICE_ORDER(prefix + view(plane) + "::invertSliceOrder")
+, INVERT_WHEEL(prefix + view(plane) + "::invertWheel")
+, SHOW_AXIS(prefix + view(plane) + "::showAxis")
 , m_InvertWheel(false)
 , m_InvertSliceOrder(false)
 , m_ShowAxis(false)
@@ -1116,24 +1440,30 @@ SliceView::Settings::Settings(vtkPVSliceView::VIEW_PLANE plane, const QString pr
     settings.setValue(SHOW_AXIS, m_ShowAxis);
 
   m_InvertSliceOrder = settings.value(INVERT_SLICE_ORDER).toBool();
-  m_InvertWheel      = settings.value(INVERT_WHEEL      ).toBool();
-  m_ShowAxis         = settings.value(SHOW_AXIS         ).toBool();
+  m_InvertWheel      = settings.value(INVERT_WHEEL).toBool();
+  m_ShowAxis         = settings.value(SHOW_AXIS).toBool();
 }
 
 //-----------------------------------------------------------------------------
-const QString SliceView::Settings::view(vtkPVSliceView::VIEW_PLANE plane)
+const QString SliceView::Settings::view(PlaneType plane)
 {
+  // NOTE: break statements added to avoid warnings
   switch (plane)
   {
-    case vtkPVSliceView::AXIAL:
+    case AXIAL:
       return QString("AxialSliceView");
-    case vtkPVSliceView::SAGITTAL:
+      break;
+    case SAGITTAL:
       return QString("SagittalSliceView");
-    case vtkPVSliceView::CORONAL:
+      break;
+    case CORONAL:
       return QString("CoronalSliceView");
+      break;
     default:
       Q_ASSERT(false);
+      break;
   };
+
   return QString("Unknown");
 }
 

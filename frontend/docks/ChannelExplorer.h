@@ -30,8 +30,7 @@
 #include <QSortFilterProxyModel>
 #include <model/proxies/ChannelProxy.h>
 
-#define DEBUG
-#ifdef DEBUG
+#ifdef TEST_ESPINA_MODELS
 class ModelTest;
 #endif
 
@@ -47,6 +46,9 @@ public:
 
 protected slots:
   void channelSelected();
+  void showInformation();
+  void activateChannel();
+  void unloadChannel();
   void alignLeft();
   void alignCenter();
   void alignRight();
@@ -55,6 +57,7 @@ protected slots:
   void changeChannelColor();
   void updateChannelPosition();
   void updateTooltips(int index);
+  void focusOnChannel();
 
 private:
   CentralWidget *m_gui;
@@ -62,7 +65,7 @@ private:
   QSharedPointer<ChannelProxy> m_channelProxy;
   QSharedPointer<QSortFilterProxyModel> m_sort;
 
-#ifdef DEBUG
+#ifdef TEST_ESPINA_MODELS
   QSharedPointer<ModelTest>   m_modelTester;
 #endif
 };

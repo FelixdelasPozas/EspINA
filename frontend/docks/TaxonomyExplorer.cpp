@@ -22,6 +22,8 @@
 
 #include "common/model/EspinaModel.h"
 #include "common/model/Taxonomy.h"
+#include <EspinaCore.h>
+#include <gui/TaxonomyColorEngine.h>
 
 #include <QColorDialog>
 #include <QSortFilterProxyModel>
@@ -103,8 +105,15 @@ void TaxonomyExplorer::changeColor()
   {
     QModelIndex index = m_sort->mapToSource(m_gui->treeView->currentIndex());
     m_baseModel->setData(index,
-			 colorSelector.selectedColor(),
-			 Qt::DecorationRole);
+                         colorSelector.selectedColor(),
+                         Qt::DecorationRole);
+    ModelItem *item = indexPtr(index);
+    Q_ASSERT(ModelItem::TAXONOMY == item->type());
+    TaxonomyNode *tax = dynamic_cast<TaxonomyNode *>(item);
+    TaxonomyColorEngine::instance()->updateTaxonomyColor(tax);
+    //TODO: Make volumetric/mesh renderers use color engine luts
+    //      so updating the lut will result in updating the view
+    EspinaCore::instance()->colorSettings().setColorEngine(TaxonomyColorEngine::instance());
   }
 }
 

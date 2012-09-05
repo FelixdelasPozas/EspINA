@@ -22,8 +22,10 @@
 #include <QString>
 #include <QIcon>
 
+#include <vtkSmartPointer.h>
+#include <vtkRenderer.h>
+
 class ModelItem;
-class vtkSMProxy;
 
 class Renderer
 : public QObject
@@ -36,9 +38,9 @@ public:
   virtual const QString tooltip() const {return QString();}
   virtual const QIcon icon() const {return QIcon();}
 
-  void setView(vtkSMProxy *view) {m_view = view;};
+  virtual void setVtkRenderer(vtkSmartPointer<vtkRenderer> renderer) {m_renderer = renderer;}
 
-  // Return whether the itme was rendered or not
+  // Return whether the item was rendered or not
   virtual bool addItem(ModelItem *item) {return false;}
   virtual bool updateItem(ModelItem *item) {return false;}
   virtual bool removeItem(ModelItem *item) {return false;}
@@ -50,16 +52,20 @@ public:
   // Remove all items rendered by the Renderer
   virtual void clean() {}
 
-  virtual Renderer *clone() {return NULL;}
+  virtual Renderer *clone() = 0;
 
+  // get number of vtkActors added to vtkRendered from this Renderer
+  virtual unsigned int getNumberOfvtkActors(void) { return 0; }
+
+  virtual bool isHidden() { return !m_enable; }
 public slots:
   virtual void setEnable(bool value)
   {
-    m_enable = value;
-    if (m_enable)
+    if (value)
       show();
     else
       hide();
+    // the subclass will alter the m_enable value
   }
 
 signals:
@@ -67,11 +73,11 @@ signals:
 
 protected:
   explicit Renderer(QObject* parent = 0)
-  : m_enable(true)
-  , m_view(NULL) {}
+  : m_enable(false)
+  , m_renderer(NULL) {}
 protected:
   bool m_enable;
-  vtkSMProxy *m_view;
+  vtkSmartPointer<vtkRenderer> m_renderer;
 };
 
 #endif // RENDERER

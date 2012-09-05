@@ -21,24 +21,24 @@
 
 #include "model/EspinaModel.h"
 
-#include <QUndoStack>
 #include "model/EspinaFactory.h"
 #include "model/Channel.h"
-#include <QColorDialog>
-#include <QApplication>
-#include "cache/CachedObjectBuilder.h"
+#include "model/ChannelReader.h"
 #include "undo/AddSample.h"
 #include "undo/AddChannel.h"
 #include "undo/AddRelation.h"
-#include "File.h"
+#include "IO/FilePack.h"
+#include "selection/SelectionManager.h"
 
+#include <QUndoStack>
+#include <QColorDialog>
+#include <QApplication>
 
 EspinaCore *EspinaCore::m_singleton = NULL;
 
 //------------------------------------------------------------------------
 EspinaCore::EspinaCore()
-: m_activeTaxonomy(NULL)
-, m_sample        (NULL)
+: m_sample        (NULL)
 , m_model         (new EspinaModel())
 , m_undoStack     (new QUndoStack())
 , m_viewManager   (new ViewManager())
@@ -55,77 +55,82 @@ EspinaCore* EspinaCore::instance()
 }
 
 //------------------------------------------------------------------------
-void EspinaCore::setActiveTaxonomy(TaxonomyNode* tax)
-{
-  m_activeTaxonomy = tax;
-}
-
-//------------------------------------------------------------------------
-bool EspinaCore::loadFile(const QString file)
+bool EspinaCore::loadFile(const QFileInfo file)
 {
   bool status = false;
-  const QString ext = File::extension(file);
-  if (ext == "pvd" || ext == "mha" || ext == "mhd")
+  const QString ext = file.suffix();
+  if ("mha" == ext || "mhd" == ext || "tiff" == ext || "tif" == ext)
   {
     status = loadChannel(file);
+  } else if ("seg" == ext)
+  {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    status = IOEspinaFile::loadFile(file,
+                                    EspinaCore::instance()->model());
+    QApplication::restoreOverrideCursor();
   }else
-    status = EspinaFactory::instance()->readFile(file, ext);
+    status = EspinaFactory::instance()->readFile(file.absoluteFilePath(), ext);
 
   return status;
 }
 
 //------------------------------------------------------------------------
-bool EspinaCore::loadChannel(const QString file)
+bool EspinaCore::loadChannel(const QFileInfo file)
 {
   // Try to recover sample form DB using channel information
   Sample *existingSample = EspinaCore::instance()->sample();
 
+  EspinaFactory *factory = EspinaFactory::instance();
+
   if (!existingSample)
   {
-    File channelFile(file);
-    // TODO: Check for channel sample
-    const QString SampleName  = channelFile.name();
-    const QString channelName = channelFile.extendedName(file);
-
+    // TODO: Look for real channel's sample in DB or prompt dialog
     // Try to recover sample form DB using channel information
-    Sample *sample = EspinaFactory::instance()->createSample(SampleName);
+    Sample *sample = factory->createSample(file.baseName());
     EspinaCore::instance()->setSample(sample);
 
     m_undoStack->push(new AddSample(sample));
     existingSample = sample;
   }
 
-  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-  pqFilter *channelReader = cob->loadFile(file);
-  Q_ASSERT(channelReader->getNumberOfData() == 1);
+  //TODO: Check for channel information in DB
+  QColor stainColor = QColor(Qt::black);
+//   QColorDialog stainColorSelector;
+//   stainColorSelector.setWindowTitle("Select Stain Color");
+//   if (stainColorSelector.exec() == QDialog::Accepted)
+//     stainColor = stainColorSelector.selectedColor();
+
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+
+  Filter::NamedInputs noInputs;
+  Filter::Arguments readerArgs;
+  readerArgs[ChannelReader::FILE] = file.absoluteFilePath();
+  ChannelReader *reader = new ChannelReader(noInputs, readerArgs);
+  reader->update();
+  if (reader->numberOutputs() == 0)
+    return false;
 
 
   Channel::CArguments args;
-
-  pqData channelData(channelReader, 0);
-  args[Channel::ID] = channelData.id();
-
-  //TODO: Check for channel information in DB
-  QColorDialog dyeSelector;
-  if (dyeSelector.exec() == QDialog::Accepted)
-  {
-    args.setColor(dyeSelector.selectedColor().hueF());
-  }
-
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-  Channel *channel = EspinaFactory::instance()->createChannel(file, args);
+  args[Channel::ID] = file.fileName();
+  args.setColor(stainColor.hueF());
+  Channel *channel = factory->createChannel(reader, 0);
+  channel->setColor(stainColor.hueF());// It is needed to display proper stain color
+    //file.absoluteFilePath(), args);
 
   double pos[3];
   existingSample->position(pos);
   channel->setPosition(pos);
 
   m_undoStack->beginMacro("Add Data To Analysis");
-  m_undoStack->push(new AddChannel(channel));
-  m_undoStack->push(new AddRelation(existingSample, channel, "mark"));//TODO: como se llama esto???
-  existingSample->initialize();
-  channel->initialize();
-
+  m_undoStack->push(new AddChannel(reader, channel));
+  m_undoStack->push(new AddRelation(existingSample, channel, Channel::STAINLINK));
   m_undoStack->endMacro();
+
+  //existingSample->initialize();//TODO: Review if needed
+  channel->initialize(args);
+  channel->initializeExtensions();
+
   QApplication::restoreOverrideCursor();
 
   return true;
@@ -135,8 +140,10 @@ bool EspinaCore::loadChannel(const QString file)
 void EspinaCore::closeCurrentAnalysis()
 {
   emit currentAnalysisClosed();
-  m_activeTaxonomy = NULL;
+  SelectionManager::instance()->setActiveChannel(NULL);
+  SelectionManager::instance()->setActiveTaxonomy(NULL);
   m_sample = NULL;
   m_model->reset();
   m_undoStack->clear();
+  Filter::resetId();
 }

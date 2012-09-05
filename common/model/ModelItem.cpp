@@ -27,7 +27,7 @@
 #include <QCryptographicHash>
 #include "Representation.h"
 
-const ModelItem::ArgumentId ModelItem::EXTENSIONS = ArgumentId("Extensions", ArgumentId::VARIABLE);
+const ModelItem::ArgumentId ModelItem::EXTENSIONS = "Extensions";
 
 //------------------------------------------------------------------------
 ModelItem::Arguments::Arguments()
@@ -69,7 +69,7 @@ ModelItem::Arguments::Arguments(const QString args)
     {
       value = buffer;
       buffer = "";
-      insert(argumentId(name), value);
+      insert(name, value);
     }
     else
     {
@@ -79,14 +79,12 @@ ModelItem::Arguments::Arguments(const QString args)
 }
 
 //------------------------------------------------------------------------
-QString ModelItem::Arguments::serialize(bool key) const
+QString ModelItem::Arguments::serialize() const
 {
   QString args;
   foreach(ArgumentId id, keys())
-  {
-    if (false == key || id.isKey)
       args += argument(id, value(id));
-  }
+
   return args;
 }
 
@@ -100,6 +98,12 @@ QString ModelItem::Arguments::hash() const
   return QString(hasher.result().toHex());
 }
 
+
+//------------------------------------------------------------------------
+QString ModelItem::serialize() const
+{
+  return QString("none");
+}
 
 
 //------------------------------------------------------------------------

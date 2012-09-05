@@ -21,52 +21,69 @@
 #define MARGINSCHANNELEXTENSION_H
 
 #include "common/extensions/ChannelExtension.h"
+#include <vtkSmartPointer.h>
+#include <vtkPolyData.h>
+
+#include <QMutex>
 
 class Channel;
 class Segmentation;
-class pqFilter;
 
 class MarginsChannelExtension
 : public ChannelExtension
 {
-  static const QString ID;
 public:
-  static const QString LeftMargin;
-  static const QString TopMargin;
-  static const QString UpperMargin;
-  static const QString RightMargin;
-  static const QString BottomMargin;
-  static const QString LowerMargin;
+  static const ExtId ID;
+
+  static const InfoTag LEFT_MARGIN;
+  static const InfoTag TOP_MARGIN;
+  static const InfoTag UPPER_MARGIN;
+  static const InfoTag RIGHT_MARGIN;
+  static const InfoTag BOTTOM_MARGIN;
+  static const InfoTag LOWER_MARGIN;
 
   static const ModelItem::ArgumentId MARGINTYPE;
 
   explicit MarginsChannelExtension();
   virtual ~MarginsChannelExtension();
 
-  virtual QString id();
-  virtual void initialize(Channel* channel, ModelItem::Arguments args);
+  virtual ExtId id();
+  virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
   virtual QString serialize() const;
 
-  virtual QStringList dependencies() const
+  virtual ExtIdList dependencies() const
   {return ChannelExtension::dependencies();}
 
-  virtual QStringList availableRepresentations() const
-  {return ChannelExtension::availableRepresentations();}
-
-  
-  virtual QStringList availableInformations() const
+  virtual InfoList availableInformations() const
   {return ChannelExtension::availableInformations();}
 
-  virtual QVariant information(QString info) const;
+  virtual RepList availableRepresentations() const
+  {return ChannelExtension::availableRepresentations();}
+
+  virtual QVariant information(InfoTag tag) const;
 
   virtual ChannelExtension* clone();
 
   void computeMarginDistance(Segmentation *seg);
 
+  vtkSmartPointer<vtkPolyData> margins();
+
+protected:
+  void computeMargins();
+
 private:
-  bool      m_useExtentMargins;
-  pqFilter *m_borderDetector;
-  ModelItem::Arguments m_args;
+  bool                         m_useChannelBounds;
+  ModelItem::Arguments         m_args;
+  vtkSmartPointer<vtkPolyData> m_borders;
+  QMutex                       m_borderMutex;
+
+  vtkSmartPointer<vtkPolyData> m_PolyDataFaces[6];
+  std::map<unsigned int, unsigned long int> m_ComputedSegmentations;
+
+  // builds a surface for each face the first time one is needed
+  void ComputeSurfaces();
+
+  friend class MarginDetector;
 };
 
 #endif // MARGINSCHANNELEXTENSION_H

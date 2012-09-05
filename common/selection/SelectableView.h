@@ -20,10 +20,13 @@
 #ifndef SELECTABLEVIEW_H
 #define SELECTABLEVIEW_H
 
+#include "SelectionManager.h"
 #include "common/selection/SelectionHandler.h"
 #include "common/model/Filter.h"
 
-class pqRenderViewBase;
+class QVTKWidget;
+class vtkView;
+class vtkRenderWindow;
 
 /// Interface for Views where user can select data
 class SelectableView
@@ -40,9 +43,12 @@ public:
   virtual void previewExtent(int VOI[6]) = 0;
   virtual bool pickChannel(int x, int y, double pickPos[3]) = 0;
   virtual void eventPosition(int &x, int &y) = 0;
-  virtual SelectionHandler::MultiSelection select(SelectionHandler::SelectionFilters filters, SelectionHandler::ViewRegions regions) = 0;
 
-  virtual pqRenderViewBase *view() = 0;
+  virtual SelectionHandler::MultiSelection select(SelectionHandler::SelectionFilters filters, SelectionHandler::ViewRegions regions) = 0;
+  virtual void updateSelection(SelectionManager::Selection msel) = 0;
+
+  virtual vtkRenderWindow *renderWindow() = 0;
+  virtual QVTKWidget *view() = 0;
 
 // protected:
 //   virtual void setVOI(IVOI *voi) = 0;

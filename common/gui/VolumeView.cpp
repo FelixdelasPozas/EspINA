@@ -23,7 +23,12 @@
 
 // EspINA
 #include <common/model/Segmentation.h>
-#include <common/views/pqVolumeView.h>
+#include "ColorEngine.h"
+#include <model/Channel.h>
+#include <model/Representation.h>
+#include <model/EspinaFactory.h>
+#include <pluginInterfaces/Renderer.h>
+#include "common/renderers/CrosshairRenderer.h"
 
 // GUI
 #include <QEvent>
@@ -32,54 +37,39 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QVBoxLayout>
-
-// ParaView
-#include <pqActiveObjects.h>
-#include <pqApplicationCore.h>
-#include <pqObjectBuilder.h>
-#include <pqServer.h>
-#include <pqServerManagerObserver.h>
-#include <pqViewExporterManager.h>
+#include <QMouseEvent>
+#include <QMessageBox>
 
 #include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 #include <vtkRenderWindowInteractor.h>
-#include <vtkSMRenderViewProxy.h>
-#include <pqDisplayPolicy.h>
-#include <pqDataRepresentation.h>
-#include <pqPipelineRepresentation.h>
-#include <pqScalarsToColors.h>
-#include <pq3DWidget.h>
-#include <pqOutputPort.h>
-#include "ColorEngine.h"
-#include <vtkSMPropertyHelper.h>
-#include <vtkSMProxyProperty.h>
-#include <pqRenderView.h>
-#include <pqPipelineSource.h>
-#include <vtkSMProxyManager.h>
-#include <vtkSMRepresentationProxy.h>
-#include <pqSMAdaptor.h>
-#include <model/Channel.h>
-#include <model/Representation.h>
-#include <model/EspinaFactory.h>
-#include <QMouseEvent>
 #include <vtkPropPicker.h>
-#include <vtkVolumetricRepresentation.h>
-#include <vtkCrosshairRepresentation.h>
-#include <pluginInterfaces/Renderer.h>
+#include <vtkPolyDataMapper.h>
+#include <QVTKWidget.h>
+#include <vtkCamera.h>
+#include <vtkPOVExporter.h>
+#include <vtkVRMLExporter.h>
+#include <vtkX3DExporter.h>
+#include <vtkPNGWriter.h>
+#include <vtkJPEGWriter.h>
+#include <vtkRenderLargeImage.h>
+#include <QApplication>
+#include <vtkAbstractWidget.h>
+#include <vtkWidgetRepresentation.h>
 
 //-----------------------------------------------------------------------------
 VolumeView::VolumeView(QWidget* parent)
 : QWidget(parent)
 , m_mainLayout      (new QVBoxLayout())
 , m_controlLayout   (new QHBoxLayout())
-, m_settings        (new Settings())
+, m_settings        (new Settings(QString(), this))
 {
+  init();
   buildControls();
 
   setLayout(m_mainLayout);
-  //   connect(SelectionManager::instance(),SIGNAL(VOIChanged(IVOI*)),this,SLOT(setVOI(IVOI*)));
+  // connect(SelectionManager::instance(),SIGNAL(VOIChanged(IVOI*)),this,SLOT(setVOI(IVOI*)));
 
   // Color background
   QPalette pal = this->palette();
@@ -87,14 +77,56 @@ VolumeView::VolumeView(QWidget* parent)
   this->setPalette(pal);
   //   this->setStyleSheet("background-color: grey;");
 
-  pqServerManagerObserver *SMObserver = pqApplicationCore::instance()->getServerManagerObserver();
-  connect(SMObserver, SIGNAL(connectionCreated(vtkIdType)),
-	  this, SLOT(onConnect()));
-  connect(SMObserver, SIGNAL(connectionClosed(vtkIdType)),
-	  this, SLOT(onDisconnect()));
+  memset(m_center,0,3*sizeof(double));
+  m_numEnabledRenders = 0;
+  connect(SelectionManager::instance(), SIGNAL(selectionChanged(SelectionManager::Selection)),
+          this, SLOT(updateSelection(SelectionManager::Selection)));
+}
 
-  if (pqApplicationCore::instance()->getActiveServer())
-    onConnect();
+//-----------------------------------------------------------------------------
+void VolumeView::addRendererControls(Renderer* renderer)
+{
+  QPushButton *button;
+
+  button = new QPushButton(renderer->icon(), "");
+  button->setFlat(true);
+  button->setCheckable(true);
+  button->setChecked(false);
+  button->setIconSize(QSize(22, 22));
+  button->setMaximumSize(QSize(32, 32));
+  button->setToolTip(renderer->tooltip());
+  button->setObjectName(renderer->name());
+  connect(button, SIGNAL(clicked(bool)), renderer, SLOT(setEnable(bool)));
+  connect(button, SIGNAL(clicked(bool)), this, SLOT(countEnabledRenderers(bool)));
+  connect(button, SIGNAL(destroyed(QObject*)), renderer, SLOT(deleteLater()));
+  connect(renderer, SIGNAL(renderRequested()), this, SLOT(forceRender()));
+  m_controlLayout->addWidget(button);
+  renderer->setVtkRenderer(this->m_renderer);
+
+  // add all model items to the renderer
+  foreach(ModelItem *item, m_addedItems)
+    renderer->addItem(item);
+
+  m_itemRenderers << renderer;
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::removeRendererControls(Renderer* renderer)
+{
+  for (int i = 0; i < m_controlLayout->count(); i++)
+  {
+    if (m_controlLayout->itemAt(i)->isEmpty())
+      continue;
+
+    if (m_controlLayout->itemAt(i)->widget()->objectName() == renderer->name())
+    {
+      QWidget *button = m_controlLayout->itemAt(i)->widget();
+      m_controlLayout->removeWidget(button);
+      delete button;
+    }
+  }
+  m_itemRenderers.removeAll(renderer);
+  delete renderer;
 }
 
 //-----------------------------------------------------------------------------
@@ -116,186 +148,163 @@ void VolumeView::buildControls()
   m_export.setIconSize(QSize(22,22));
   m_export.setMaximumSize(QSize(32,32));
   connect(&m_export,SIGNAL(clicked(bool)),this,SLOT(exportScene()));
-  
+
   QSpacerItem * horizontalSpacer = new QSpacerItem(4000, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
   m_controlLayout->addWidget(&m_snapshot);
   m_controlLayout->addWidget(&m_export);
   m_controlLayout->addItem(horizontalSpacer);
 
-  QPushButton *button;
-  foreach(Settings::RendererPtr renderer, m_settings->renderers())
-  {
-    button = new QPushButton(renderer->icon(), "");
-    button->setFlat(true);
-    button->setCheckable(true);
-    button->setChecked(true);
-    button->setIconSize(QSize(22,22));
-    button->setMaximumSize(QSize(32,32));
-    button->setToolTip(renderer->tooltip());
-    connect(button, SIGNAL(clicked(bool)),
-	    renderer.data(), SLOT(setEnable(bool)));
-    connect(renderer.data(), SIGNAL(renderRequested()),
-	    this, SLOT(forceRender()));
-    m_controlLayout->addWidget(button);
-  }
+  foreach(Renderer* renderer, m_settings->renderers())
+    this->addRendererControls(renderer->clone());
 
   m_mainLayout->addLayout(m_controlLayout);
 }
 
 
 //-----------------------------------------------------------------------------
-void VolumeView::centerViewOn(double center[3])
+void VolumeView::centerViewOn(Nm center[3])
 {
-  if (m_center[0] == center[0] &&
-      m_center[1] == center[1] &&
-      m_center[2] == center[2])
+  if (!isVisible() ||
+      (m_center[0] == center[0] &&
+       m_center[1] == center[1] &&
+       m_center[2] == center[2]))
     return;
 
   memcpy(m_center, center, 3*sizeof(double));
 
-  m_view->setCrosshairCenter(m_center[0], m_center[1], m_center[2]);
+  foreach(Renderer* ren, m_itemRenderers)
+  {
+    if (QString("Crosshairs") == ren->name())
+    {
+      CrosshairRenderer *crossren = reinterpret_cast<CrosshairRenderer *>(ren);
+      crossren->setCrosshair(center);
+    }
+  }
+
+  forceRender();
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::setCameraFocus(double center[3])
+void VolumeView::setCameraFocus(const Nm center[3])
 {
-  m_view->setCameraFocus(m_center[0], m_center[1], m_center[2]);
+  m_renderer->GetActiveCamera()->SetFocalPoint(center[0],center[1],center[2]);
 }
 
 //-----------------------------------------------------------------------------
 void VolumeView::resetCamera()
 {
-  m_view->resetCamera();
+  this->m_renderer->ResetCamera();
 }
 
 //-----------------------------------------------------------------------------
 void VolumeView::addChannelRepresentation(Channel* channel)
 {
-  bool modified = false;
-  foreach(Settings::RendererPtr renderer, m_settings->renderers())
-  {
-    modified |= renderer->addItem(channel);
-  }
+  m_addedItems << channel;
+  foreach(Renderer* renderer, m_itemRenderers)
+    renderer->addItem(channel);
 }
 
 //-----------------------------------------------------------------------------
 bool VolumeView::updateChannelRepresentation(Channel* channel)
 {
+  if (!isVisible())
+    return false;
+
   bool updated = false;
-  foreach(Settings::RendererPtr renderer, m_settings->renderers())
-  {
+  foreach(Renderer* renderer, m_itemRenderers)
     updated = renderer->updateItem(channel) | updated;
-  }
+
   return updated;
 }
 
 //-----------------------------------------------------------------------------
 void VolumeView::removeChannelRepresentation(Channel* channel)
 {
-  bool modified = false;
-  foreach(Settings::RendererPtr renderer, m_settings->renderers())
-  {
-    modified |= renderer->removeItem(channel);
-  }
-  m_view->resetCamera();
+  m_addedItems.removeAll(channel);
+
+  foreach(Renderer* renderer, m_itemRenderers)
+    renderer->removeItem(channel);
 }
 
 
 //-----------------------------------------------------------------------------
 void VolumeView::addSegmentationRepresentation(Segmentation *seg)
 {
-  bool modified = false;
-  foreach(Settings::RendererPtr renderer, m_settings->renderers())
-  {
-    modified |= renderer->addItem(seg);
-  }
+  Q_ASSERT(!m_segmentations.contains(seg));
+
+  m_addedItems << seg;
+  foreach(Renderer* renderer, m_itemRenderers)
+    renderer->addItem(seg);
+
+  m_segmentations << seg;
 }
 
 //-----------------------------------------------------------------------------
 bool VolumeView::updateSegmentationRepresentation(Segmentation* seg)
 {
+  if (!isVisible())
+    return false;
+
   bool updated = false;
-  foreach(Settings::RendererPtr renderer, m_settings->renderers())
-  {
+  foreach(Renderer* renderer, m_itemRenderers)
     updated = renderer->updateItem(seg) | updated;
-  }
+
   return updated;
 }
 
 //-----------------------------------------------------------------------------
 void VolumeView::removeSegmentationRepresentation(Segmentation* seg)
 {
-  bool modified = false;
-  foreach(Settings::RendererPtr renderer, m_settings->renderers())
-  {
-    modified |= renderer->removeItem(seg);
-  }
+  Q_ASSERT(m_segmentations.contains(seg));
+
+  m_addedItems.removeAll(seg);
+  foreach(Renderer* renderer, m_itemRenderers)
+    renderer->removeItem(seg);
+
+  m_segmentations.removeOne(seg);
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::addWidget(pq3DWidget* widget)
+void VolumeView::addWidget(vtkAbstractWidget *widget)
 {
-  widget->setView(m_view);
-  widget->setWidgetVisible(true);
-  widget->select();
-  widget->setEnabled(false);
+  if (!widget)
+    return;
+
+  Q_ASSERT(!m_widgets.contains(widget));
+
+  widget->SetInteractor(m_viewWidget->GetRenderWindow()->GetInteractor());
+  widget->GetRepresentation()->SetVisibility(true);
+  widget->On();
+  m_renderer->ResetCameraClippingRange();
+  m_widgets << widget;
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::removeWidget(pq3DWidget* widget)
+void VolumeView::removeWidget(vtkAbstractWidget* widget)
 {
-  widget->setWidgetVisible(false);
-  widget->deselect();
-}
+  if (!widget)
+    return;
 
+  Q_ASSERT(m_widgets.contains(widget));
 
-//-----------------------------------------------------------------------------
-void VolumeView::onConnect()
-{
-//   qDebug() << this << ": Connecting to a new server";
-  pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
-  pqServer    *server = pqActiveObjects::instance().activeServer();
-
-  m_view = qobject_cast<pqVolumeView *>(ob->createView(
-             pqVolumeView::espinaRenderViewType(), server));
-
-  m_viewWidget = m_view->getWidget();
-  // We want to manage events on the view
-  m_viewWidget->installEventFilter(this);
-  m_mainLayout->insertWidget(0,m_viewWidget);//To preserver view order
-
-  vtkSMRenderViewProxy *viewProxy = vtkSMRenderViewProxy::SafeDownCast(m_view->getProxy());
-
-  // Change Render Window Interactor
-  vtkRenderWindowInteractor *rwi = vtkRenderWindowInteractor::SafeDownCast(
-    viewProxy->GetRenderWindow()->GetInteractor());
-  Q_ASSERT(rwi);
-
-  vtkInteractorStyleTrackballCamera *style = vtkInteractorStyleTrackballCamera::New();
-  rwi->SetInteractorStyle(style);
-  style->Delete();
-
-  double black[3] = {0,0,0};
-  viewProxy->GetRenderer()->SetBackground(black);
-
-  foreach(Settings::RendererPtr renderer, m_settings->renderers())
-  {
-    renderer->setView(m_view->getProxy());
-  }
+  m_widgets.removeOne(widget);
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::onDisconnect()
+void VolumeView::init()
 {
-//   pqObjectBuilder *ob = pqApplicationCore::instance()->getObjectBuilder();
-//    qDebug() << this << ": Disconnecting from server";
-//   if (m_view)
-//   {
-//     m_mainLayout->removeWidget(m_viewWidget);
-//     ob->destroy(m_view);
-//     m_view = NULL;
-//   }
+  m_viewWidget = new QVTKWidget();
+  m_mainLayout->insertWidget(0,m_viewWidget); //To preserver view order
+  m_viewWidget->show();
+  m_renderer = vtkSmartPointer<vtkRenderer>::New();
+  m_renderer->LightFollowCameraOn();
+  vtkSmartPointer<vtkInteractorStyleTrackballCamera> interactorstyle = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
+  interactorstyle->AutoAdjustCameraClippingRangeOn();
+  interactorstyle->KeyPressActivationOff();
+  m_viewWidget->GetRenderWindow()->AddRenderer(m_renderer);
+  m_viewWidget->GetRenderWindow()->GetInteractor()->SetInteractorStyle(interactorstyle);
+  m_viewWidget->GetRenderWindow()->Render();
 }
 
 //-----------------------------------------------------------------------------
@@ -303,25 +312,16 @@ void VolumeView::forceRender()
 {
   if(isVisible())
   {
-//     qDebug() << "Render 3D View";
-    m_view->forceRender();
+//     qDebug() << "Render Volume View";
+    this->m_viewWidget->GetRenderWindow()->Render();
+    this->m_viewWidget->update();
   }
 }
 
 //-----------------------------------------------------------------------------
 double VolumeView::suggestedChannelOpacity()
 {
-//   double numVisibleRep = 0;
-// 
-//   foreach(Channel *channel, m_channels.keys())
-//     if (channel->isVisible())
-//       numVisibleRep++;
-// 
-//   if (numVisibleRep == 0)
-//     return 0.0;
-// 
-//   return 1.0 /  numVisibleRep;
-return 1;
+  return 1.0;
 }
 
 //-----------------------------------------------------------------------------
@@ -375,6 +375,7 @@ void VolumeView::selectPickedItems(bool append)
 //     }
 //   }
 }
+
 //-----------------------------------------------------------------------------
 bool VolumeView::eventFilter(QObject* caller, QEvent* e)
 {
@@ -392,40 +393,174 @@ bool VolumeView::eventFilter(QObject* caller, QEvent* e)
   return QObject::eventFilter(caller, e);
 }
 
-
 //-----------------------------------------------------------------------------
 void VolumeView::exportScene()
 {
-  pqViewExporterManager *exporter = new pqViewExporterManager();
-  exporter->setView(m_view);
-  QString fileName = QFileDialog::getSaveFileName(this,
-     tr("Save Scene"), "", tr("3D Scene (*.x3d *.pov *.vrml)"));
-  exporter->write(fileName);
-  delete exporter;
+  // only mesh actors are exported in a 3D scene, not volumes
+  unsigned int numActors = 0;
+  foreach(Renderer* renderer, m_itemRenderers)
+    numActors += renderer->getNumberOfvtkActors();
+
+  if (0 == numActors)
+  {
+    QMessageBox msgBox;
+    QString message(tr("The scene can not be exported because there are no mesh objects in it."));
+    msgBox.setIcon(QMessageBox::Information);
+    msgBox.setText(message);
+    msgBox.exec();
+    return;
+  }
+
+  QFileDialog fileDialog(this, tr("Save Scene"), QString(), tr("All supported formats (*.x3d *.pov *.vrml);; POV-Ray files (*.pov);; VRML files (*.vrml);; X3D format (*.x3d)"));
+  fileDialog.setObjectName("SaveSceneFileDialog");
+  fileDialog.setWindowTitle("Save View as a 3D Scene");
+  fileDialog.setAcceptMode(QFileDialog::AcceptSave);
+  fileDialog.setDefaultSuffix(QString(tr("vrml")));
+  fileDialog.setFileMode(QFileDialog::AnyFile);
+  fileDialog.selectFile("");
+
+  if (fileDialog.exec() == QDialog::Accepted)
+  {
+    const QString selectedFile = fileDialog.selectedFiles().first();
+
+    QStringList splittedName = selectedFile.split(".");
+    QString extension = splittedName[((splittedName.size())-1)].toUpper();
+
+    QStringList validFileExtensions;
+    validFileExtensions << "X3D" << "POV" << "VRML";
+
+    if (validFileExtensions.contains(extension))
+    {
+      if (QString("POV") == extension)
+      {
+        vtkPOVExporter *exporter = vtkPOVExporter::New();
+        exporter->DebugOn();
+        exporter->SetGlobalWarningDisplay(true);
+        exporter->SetFileName(selectedFile.toStdString().c_str());
+        exporter->SetRenderWindow(m_renderer->GetRenderWindow());
+        QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+        exporter->Write();
+        QApplication::restoreOverrideCursor();
+        exporter->Delete();
+      }
+
+      if (QString("VRML") == extension)
+      {
+        vtkVRMLExporter *exporter = vtkVRMLExporter::New();
+        exporter->DebugOn();
+        exporter->SetFileName(selectedFile.toStdString().c_str());
+        exporter->SetRenderWindow(m_renderer->GetRenderWindow());
+        QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+        exporter->Write();
+        QApplication::restoreOverrideCursor();
+        exporter->Delete();
+      }
+
+      if (QString("X3D") == extension)
+      {
+        vtkX3DExporter *exporter = vtkX3DExporter::New();
+        exporter->DebugOn();
+        exporter->SetFileName(selectedFile.toStdString().c_str());
+        exporter->SetRenderWindow(m_renderer->GetRenderWindow());
+        QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+        exporter->Write();
+        QApplication::restoreOverrideCursor();
+        exporter->Delete();
+      }
+    }
+    else
+    {
+      QMessageBox msgBox;
+      QString message(tr("Scene not exported. Unrecognized extension "));
+      message.append(extension).append(".");
+      msgBox.setIcon(QMessageBox::Critical);
+      msgBox.setText(message);
+      msgBox.exec();
+    }
+  }
 }
 
 void VolumeView::takeSnapshot()
 {
-  QString fileName = QFileDialog::getSaveFileName(this,
-     tr("Save Scene"), "", tr("Image Files (*.jpg *.png)"));
-  m_view->saveImage(1024,768,fileName);
+  QFileDialog fileDialog(this, tr("Save Scene As Image"), QString(), tr("All supported formats (*.jpg *.png);; JPEG images (*.jpg);; PNG images (*.png)"));
+  fileDialog.setObjectName("SaveSnapshotFileDialog");
+  fileDialog.setWindowTitle("Save Scene As Image");
+  fileDialog.setAcceptMode(QFileDialog::AcceptSave);
+  fileDialog.setDefaultSuffix(QString(tr("png")));
+  fileDialog.setFileMode(QFileDialog::AnyFile);
+  fileDialog.selectFile("");
+
+  if (fileDialog.exec() == QDialog::Accepted)
+  {
+    const QString selectedFile = fileDialog.selectedFiles().first();
+
+    QStringList splittedName = selectedFile.split(".");
+    QString extension = splittedName[((splittedName.size()) - 1)].toUpper();
+
+    QStringList validFileExtensions;
+    validFileExtensions << "JPG" << "PNG";
+
+    if (validFileExtensions.contains(extension))
+    {
+      int witdh = m_renderer->GetRenderWindow()->GetSize()[0];
+      vtkRenderLargeImage *image = vtkRenderLargeImage::New();
+      image->SetInput(m_renderer);
+      image->SetMagnification(4096.0/witdh+0.5);
+      image->Update();
+
+      if (QString("PNG") == extension)
+      {
+        vtkPNGWriter *writer = vtkPNGWriter::New();
+        writer->SetFileDimensionality(2);
+        writer->SetFileName(selectedFile.toStdString().c_str());
+        writer->SetInputConnection(image->GetOutputPort());
+        QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+        writer->Write();
+        QApplication::restoreOverrideCursor();
+      }
+
+      if (QString("JPG") == extension)
+      {
+        vtkJPEGWriter *writer = vtkJPEGWriter::New();
+        writer->SetQuality(100);
+        writer->ProgressiveOff();
+        writer->WriteToMemoryOff();
+        writer->SetFileDimensionality(2);
+        writer->SetFileName(selectedFile.toStdString().c_str());
+        writer->SetInputConnection(image->GetOutputPort());
+        QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
+        writer->Write();
+        QApplication::restoreOverrideCursor();
+      }
+    }
+    else
+    {
+      QMessageBox msgBox;
+      QString message(tr("Snapshot not exported. Unrecognized extension "));
+      message.append(extension).append(".");
+      msgBox.setIcon(QMessageBox::Critical);
+      msgBox.setText(message);
+      msgBox.exec();
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
-VolumeView::Settings::Settings(const QString prefix)
+VolumeView::Settings::Settings(const QString prefix, VolumeView* parent)
 : RENDERERS(prefix + "VolumeView::renderers")
 {
+  this->parent = parent;
   QSettings settings("CeSViMa", "EspINA");
 
   if (!settings.contains(RENDERERS))
-    settings.setValue(RENDERERS, QStringList() << "Crosshairs" << "Volumetric");
+    settings.setValue(RENDERERS, QStringList() << "Crosshairs" << "Volumetric" << "Mesh");
 
   QMap<QString, Renderer *> renderers = EspinaFactory::instance()->renderers();
   foreach(QString name, settings.value(RENDERERS).toStringList())
   {
     Renderer *renderer = renderers.value(name, NULL);
     if (renderer)
-      m_renderers << RendererPtr(renderer->clone());
+      m_renderers << renderer;
   }
 }
 
@@ -433,21 +568,87 @@ VolumeView::Settings::Settings(const QString prefix)
 void VolumeView::Settings::setRenderers(QList<Renderer *> values)
 {
   QSettings settings("CeSViMa", "EspINA");
-  QStringList activeRenderers;
+  QStringList activeRenderersNames;
+  QList<Renderer *> activeRenderers;
 
-  m_renderers.clear();
-  foreach(Renderer *renderer, values)
+  // remove controls for unused renderers
+  QList<Renderer*>::Iterator it;
+  for (it = m_renderers.begin(); it != m_renderers.end(); it++)
   {
-    m_renderers << RendererPtr(renderer->clone());
-    activeRenderers << renderer->name();
+    if (!values.contains(*it))
+    {
+      parent->removeRendererControls(*it);
+      if (!(*it)->isHidden())
+      {
+        (*it)->hide();
+        parent->countEnabledRenderers(false);
+      }
+
+      (*it)->setVtkRenderer(NULL);
+    }
+    else
+      activeRenderers << (*it);
   }
-  settings.setValue(RENDERERS, activeRenderers);
+
+  // add controls for added renderers
+  for (it = values.begin(); it != values.end(); it++)
+  {
+    activeRenderersNames << (*it)->name();
+    if (!activeRenderers.contains(*it))
+    {
+      activeRenderers << (*it);
+      parent->addRendererControls(*it);
+    }
+  }
+
+  settings.setValue(RENDERERS, activeRenderersNames);
+  settings.sync();
+  m_renderers = activeRenderers;
 }
 
 //-----------------------------------------------------------------------------
-QList< VolumeView::Settings::RendererPtr> VolumeView::Settings::renderers() const
+QList<Renderer*> VolumeView::Settings::renderers() const
 {
-  //return settings.value(RENDERERS).toStringList();
   return m_renderers;
-//   return EspinaFactory::instance()->renderers();
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::changePlanePosition(PlaneType plane, Nm dist)
+{
+  foreach(Renderer* ren, m_itemRenderers)
+    if (QString("Crosshairs") == ren->name())
+    {
+      CrosshairRenderer *crossren = reinterpret_cast<CrosshairRenderer *>(ren);
+      crossren->setPlanePosition(plane, dist);
+    }
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::countEnabledRenderers(bool value)
+{
+  if ((true == value) && (0 == this->m_numEnabledRenders))
+  {
+    m_renderer->ResetCamera();
+    forceRender();
+  }
+
+  if (true == value)
+    m_numEnabledRenders++;
+  else
+    m_numEnabledRenders--;
+
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::updateSelection(SelectionManager::Selection selection)
+{
+  updateSegmentationRepresentations();
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::updateSegmentationRepresentations()
+{
+  if (isVisible())
+    foreach(Segmentation *seg, m_segmentations)
+      updateSegmentationRepresentation(seg);
 }

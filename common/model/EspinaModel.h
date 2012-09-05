@@ -64,6 +64,7 @@ public:
   virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
   virtual QModelIndex parent(const QModelIndex& child) const;
   virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
+  QModelIndex index(ModelItem *item) const;
   //     virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 
   // Special Nodes of the model to refer different roots
@@ -81,6 +82,10 @@ public:
 
   QModelIndex filterRoot() const;
   QModelIndex filterIndex(Filter *filter) const;
+
+  bool hasChanged() const {return m_changed;}
+  void markAsChanged() {m_changed = true;}
+  void markAsSaved(){m_changed = false;}
 
 
   // Taxonomies
@@ -114,6 +119,7 @@ public:
 
   void addFilter(Filter *filter);
   void removeFilter(Filter *filter);
+  QList<Filter *> filters() const {return m_filters;}
 
   void addRelation(ModelItem *ancestor,
 		   ModelItem *succesor,
@@ -125,14 +131,13 @@ public:
   RelationshipGraph *relationships() {return m_relations;}
 
   void serializeRelations(std::ostream& stream, RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
-  void loadSerialization (std::istream &stream, RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
+  bool loadSerialization (std::istream &stream, RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
 
 private slots:
   void itemModified(ModelItem *item);
 
 private:
   void addTaxonomy(TaxonomyNode *tax);
-  QModelIndex index(ModelItem *item) const;
 
 private:
   Taxonomy             *m_tax;
@@ -143,7 +148,8 @@ private:
 
   RelationshipGraph    *m_relations;
 
-  unsigned int           m_lastId;
+  unsigned int          m_lastId;
+  bool                  m_changed;
 };
 
 #endif // ESPinaModelMODEL_H

@@ -19,8 +19,16 @@
 
 #include "RemoveSegmentation.h"
 
-#include <common/EspinaCore.h>
+#include "common/EspinaCore.h"
+#include "common/model/Segmentation.h"
 
+//------------------------------------------------------------------------
+RemoveSegmentation::SegInfo::SegInfo(Segmentation* seg)
+: filter(seg->filter())
+, relations(seg->relations())
+, segmentation(seg)
+{
+}
 
 //------------------------------------------------------------------------
 RemoveSegmentation::RemoveSegmentation(QList<Segmentation *> segs,
@@ -34,11 +42,7 @@ RemoveSegmentation::RemoveSegmentation(QList<Segmentation *> segs,
   Segmentation *seg;
   foreach(seg, segs)
   {
-    SegInfo info;
-    info.filter = seg->filter();
-    info.relations = seg->relations();
-    info.segmentation = seg;
-    m_segmentations << info;
+    m_segmentations << SegInfo(seg);
   }
 }
 
@@ -51,12 +55,11 @@ void RemoveSegmentation::redo()
   QList<Segmentation *> segsToRemove;
   QList<Filter *>    filtersToRemove;
 
-  SegInfo segInfo;
-  foreach(segInfo, m_segmentations)
+  foreach(SegInfo segInfo, m_segmentations)
   {
     removeRelations(segInfo.relations);
     segsToRemove << segInfo.segmentation;
-    ModelItem::Vector segs = segInfo.filter->relatedItems(ModelItem::OUT, "CreateSegmentation");
+    ModelItem::Vector segs = segInfo.filter->relatedItems(ModelItem::OUT, CREATELINK);
     if (segs.size() == 0)
     {
 //       qDebug() << segInfo.filter->data(Qt::DisplayRole).toString() << "has no segmentations==>Must be deleted";
@@ -88,13 +91,12 @@ void RemoveSegmentation::undo()
   m_removedFilters.clear();
 
   QList<Segmentation *> segsToAdd;
-  SegInfo segInfo;
-  foreach(segInfo, m_segmentations)
+  foreach(SegInfo segInfo, m_segmentations)
   {
     segsToAdd << segInfo.segmentation;
   }
   model->addSegmentation(segsToAdd);
-  foreach(segInfo, m_segmentations)
+  foreach(SegInfo segInfo, m_segmentations)
   {
     addRelations(segInfo.relations);
   }

@@ -28,6 +28,9 @@
 #include "common/pluginInterfaces/FilterFactory.h"
 #include "common/pluginInterfaces/ReaderFactory.h"
 
+const QString CHANNEL_FILES = QObject::tr("Channel Files (*.mha *.mhd *.tif *.tiff)");
+const QString SEG_FILES     = QObject::tr("Espina Analysis (*.seg)");
+
 class Renderer;
 class ISettingsPanel;
 class EspinaFactory
@@ -35,8 +38,12 @@ class EspinaFactory
 public:
   static EspinaFactory *instance();
 
+  QStringList supportedFiles() const;
+
   void registerFilter(const QString filter, FilterFactory *factory);
-  void registerReader(const QString extension, ReaderFactory *factory);
+  void registerReaderFactory(ReaderFactory *readerFactory,
+			     const QString description,
+			     const QStringList extensions);
   void registerSampleExtension(SampleExtension::SPtr extension);
   void registerChannelExtension(ChannelExtension::SPtr extension);
   void registerSegmentationExtension(SegmentationExtension::SPtr extension);
@@ -46,10 +53,12 @@ public:
   QList<ISettingsPanel *> settingsPanels() const {return m_settingsPanels;}
   QMap<QString, Renderer *> renderers() const {return m_renderers;}
 
-  Filter  *createFilter (const QString filter, const ModelItem::Arguments args);
+  Filter  *createFilter (const QString filter,
+                         Filter::NamedInputs inputs,
+                         const ModelItem::Arguments args);
   Sample  *createSample (const QString id, const QString args = "");
-  Channel *createChannel(const QString id, const ModelItem::Arguments args);
-  Segmentation *createSegmentation(Filter* parent, int output, pqData data);
+  Channel *createChannel(Filter *filter, OutputNumber output);
+  Segmentation *createSegmentation(Filter* parent, OutputNumber output);
 
   bool readFile(const QString file, const QString ext);
 
@@ -65,6 +74,8 @@ private:
   QMap<QString, ReaderFactory *>     m_readers;
   QList<ISettingsPanel *>            m_settingsPanels;
   QMap<QString, Renderer *>          m_renderers;
+  QStringList                        m_supportedFiles;
+  QStringList                        m_supportedExtensions;
 };
 
 #endif // ESPinaFACTORY_H

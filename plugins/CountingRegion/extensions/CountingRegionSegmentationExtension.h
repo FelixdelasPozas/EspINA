@@ -21,50 +21,72 @@
 #define COUNTINGREGIONSEGMENTATIONEXTENSION_H
 
 #include <common/extensions/SegmentationExtension.h>
+#include <common/EspinaTypes.h>
 
+class vtkPoints;
 
 // Forward declaration
-class pqFilter;
-class Segmentation;
 class BoundingRegion;
+class Segmentation;
+class vtkPolyData;
 
 class CountingRegionSegmentationExtension
 : public SegmentationExtension
 {
   Q_OBJECT
+private:
+  class BoundingBox
+  {
+  public:
+    Nm xMin, xMax;
+    Nm yMin, yMax;
+    Nm zMin, zMax;
+
+    BoundingBox(vtkPoints *points);
+    BoundingBox(EspinaVolume *image);
+    bool intersect(BoundingBox &bb);
+    BoundingBox intersection(BoundingBox &bb);
+
+  private:
+    BoundingBox(){}
+  };
+
 public:
-  static const QString ID;
-  static const QString Discarted;
+  static const ExtId ID;
+  static const InfoTag DISCARTED;
 
 public:
   explicit CountingRegionSegmentationExtension();
   virtual ~CountingRegionSegmentationExtension();
 
-  virtual QString id();
-  virtual void initialize(Segmentation* seg);
+  virtual ExtId id();
 
-  virtual QStringList dependencies() const
-    {return SegmentationExtension::dependencies();}
+  virtual ExtIdList dependencies() const;
 
-  virtual QStringList availableRepresentations() const
-    {return SegmentationExtension::availableRepresentations();}
+  virtual InfoList availableInformations() const
+  { return SegmentationExtension::availableInformations(); }
+
+  virtual RepList availableRepresentations() const
+  { return SegmentationExtension::availableRepresentations(); }
+
+  virtual QVariant information(InfoTag tag) const;
 
   virtual SegmentationRepresentation *representation(QString rep);
 
-  virtual QStringList availableInformations() const
-    {return SegmentationExtension::availableInformations();}
+  void setBoundingRegions(QList<BoundingRegion *> bRegions);
 
-  virtual QVariant information(QString info) const;
-
-  void updateRegions(QList<BoundingRegion *> regions);
+  virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
 
   virtual SegmentationExtension* clone();
 
 protected slots:
-  void regionUpdated(BoundingRegion *region);
+  bool discartedByRegion(BoundingBox inputBB, vtkPolyData *region);
+  bool realCollision(BoundingBox interscetion);
+  void evaluateBoundingRegions();
 
 private:
-  pqFilter *m_countingRegion;
+  bool m_isDiscarted;
+  QList<BoundingRegion *> m_boundingRegions;
 };
 
 #endif // COUNTINGREGIONSEGMENTATIONEXTENSION_H

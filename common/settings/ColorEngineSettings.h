@@ -28,9 +28,9 @@ class ColorEngine;
 class QAction;
 class QMenu;
 
-const QString COLOR_ENGINE("ColorEngine");
 
-class ColorEngineSettings : public QObject
+class ColorEngineSettings
+: public QObject
 {
   Q_OBJECT
 public:
@@ -46,7 +46,7 @@ protected slots:
   void setColorEngine(QAction *engine);
 
 signals:
-  void colorEngineChanged();
+  void colorEngineChanged(ColorEngine *);
 
 private:
   ColorEngine  *m_engine;

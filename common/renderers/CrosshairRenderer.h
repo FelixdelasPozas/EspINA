@@ -21,24 +21,40 @@
 #define CROSSHAIRRENDERER_H
 
 #include "common/pluginInterfaces/Renderer.h"
+#include "common/EspinaTypes.h"
 
 #include <QMap>
+#include <vtkImageActor.h>
+#include <vtkActor.h>
+#include <vtkPolyData.h>
+#include <vtkMatrix4x4.h>
+#include <vtkLookupTable.h>
 
-class pqOutputPort;
 class ModelItem;
-class vtkSMRepresentationProxy;
 
 class CrosshairRenderer
 : public Renderer
 {
   struct Representation
   {
-    pqOutputPort *outport;
-    vtkSMRepresentationProxy *proxy;
+    vtkImageActor *axial;
+    vtkImageActor *coronal;
+    vtkImageActor *sagittal;
+    vtkActor *axialBorder;
+    vtkActor *coronalBorder;
+    vtkActor *sagittalBorder;
+    vtkPolyData *axialSquare;
+    vtkPolyData *coronalSquare;
+    vtkPolyData *sagittalSquare;
+    vtkMatrix4x4 *matAxial;
+    vtkMatrix4x4 *matCoronal;
+    vtkMatrix4x4 *matSagittal;
+    vtkLookupTable *lut;
+    double bounds[6];
     bool visible;
     bool selected;
     QColor color;
-    double pos[3];
+    Nm point[3];
   };
 
 public:
@@ -52,6 +68,10 @@ public:
 
   virtual void hide();
   virtual void show();
+  virtual unsigned int getNumberOfvtkActors();
+  void setCrosshairColors(double axialColor[3], double coronalColor[3], double sagittalColor[3]);
+  void setCrosshair(Nm point[3]);
+  void setPlanePosition(PlaneType plane, Nm dist);
 
   virtual Renderer* clone() {return new CrosshairRenderer();}
 

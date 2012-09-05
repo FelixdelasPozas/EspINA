@@ -103,15 +103,50 @@ QVariant Sample::data(int role) const
 }
 
 //------------------------------------------------------------------------
-void Sample::initialize(ModelItem::Arguments args)
+QString Sample::serialize() const
 {
+  QString extensionArgs;
   foreach(ModelItemExtension *ext, m_extensions)
   {
     SampleExtension *sampleExt = dynamic_cast<SampleExtension *>(ext);
     Q_ASSERT(sampleExt);
-    sampleExt->initialize(this);
+    QString serializedArgs = sampleExt->serialize(); //Independizar los argumentos?
+    if (!serializedArgs.isEmpty())
+      extensionArgs.append(ext->id()+"=["+serializedArgs+"];");
+  }
+  if (!extensionArgs.isEmpty())
+  {
+    m_args[EXTENSIONS] = QString("[%1]").arg(extensionArgs);
+  }
+  return m_args.serialize();
+}
+
+//------------------------------------------------------------------------
+void Sample::initialize(ModelItem::Arguments args)
+{
+  foreach(ArgumentId argId, args.keys())
+  {
+    if (argId != EXTENSIONS)
+      m_args[argId] = args[argId];
   }
 }
+
+//------------------------------------------------------------------------
+void Sample::initializeExtensions(ModelItem::Arguments args)
+{
+  ModelItem::Arguments extArgs(args[EXTENSIONS]);
+  foreach(ModelItemExtension *ext, m_extensions)
+  {
+    SampleExtension *sampleExt = dynamic_cast<SampleExtension *>(ext);
+    Q_ASSERT(sampleExt);
+    qDebug() << extArgs;
+    ModelItem::Arguments sArgs(extArgs.value(sampleExt->id(), QString()));
+    qDebug() << sArgs;
+    sampleExt->initialize(this, sArgs);
+  }
+
+}
+
 
 //------------------------------------------------------------------------
 void Sample::addExtension(SampleExtension *ext)

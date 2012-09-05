@@ -32,7 +32,7 @@ TaxonomyNode::TaxonomyNode(const QString name, const QString RGBColor)
 //------------------------------------------------------------------------
 TaxonomyNode::~TaxonomyNode()
 {
-  qDebug() << "Destroy node " << m_name;
+//  qDebug() << "Destroy node " << m_name;
   TaxonomyNode *node;
   foreach(node, m_elements)
   {
@@ -333,7 +333,7 @@ Taxonomy::Taxonomy()
 //-----------------------------------------------------------------------------
 Taxonomy::~Taxonomy()
 {
-  qDebug() << "Destroy taxonomy";
+//  qDebug() << "Destroy taxonomy";
   if (m_root)
     delete m_root;
 }

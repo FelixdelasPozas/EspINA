@@ -22,38 +22,48 @@
 
 #include "common/extensions/SegmentationExtension.h"
 
-class pqFilter;
+#include "common/EspinaTypes.h"
+
+// ITK
+#include <itkLabelImageToShapeLabelMapFilter.h>
+#include <itkStatisticsLabelObject.h>
 
 class MorphologicalExtension
 : public SegmentationExtension
 {
-  static const QString ID;
+  static const ExtId ID;
+
+  typedef itk::StatisticsLabelObject<unsigned int, 3> LabelObjectType;
+  typedef itk::LabelMap<LabelObjectType> LabelMapType;
+  typedef itk::LabelImageToShapeLabelMapFilter<EspinaVolume, LabelMapType> Image2LabelFilterType;
+
 
 public:
   explicit MorphologicalExtension();
   virtual ~MorphologicalExtension();
 
-  virtual QString id();
-  virtual void initialize(Segmentation* seg);
+  virtual ExtId id();
 
-  virtual QStringList dependencies() const
-    {return SegmentationExtension::dependencies();}
+  virtual ExtIdList dependencies() const
+  { return SegmentationExtension::dependencies(); }
 
-  virtual QStringList availableRepresentations() const
-    {return SegmentationExtension::availableRepresentations();}
+  virtual InfoList availableInformations() const
+  { return SegmentationExtension::availableInformations(); }
+
+  virtual RepList availableRepresentations() const
+  { return SegmentationExtension::availableRepresentations(); }
+
+  virtual QVariant information(InfoTag tag) const;
 
   virtual SegmentationRepresentation *representation(QString rep);
 
-  virtual QStringList availableInformations() const
-    {return SegmentationExtension::availableInformations();}
-
-  virtual QVariant information(QString info) const;
+  virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
 
   virtual SegmentationExtension* clone();
 
 private:
-  pqFilter *m_features;
-
+  Image2LabelFilterType::Pointer m_labelMap;
+  mutable LabelObjectType       *m_statistic;
   // Variable to cache filter results
   mutable bool   m_validInfo;
   mutable double m_Size;

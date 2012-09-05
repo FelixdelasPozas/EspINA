@@ -28,7 +28,7 @@
 
 #include <QAbstractItemView>
 #include <QDockWidget>
-#include "common/widgets/RectangularSelection.h"
+
 #include "common/gui/SliceView.h"
 
 // Forward-declaration
@@ -58,18 +58,20 @@ public:
   virtual void addWidget(EspinaWidget *widget) = 0;
   virtual void removeWidget(EspinaWidget *widget) = 0;
 
-  virtual void addRepresentation(pqOutputPort *oport, QColor color) = 0;
-  virtual void removeRepresentation(pqOutputPort *oport) = 0;
+//   virtual void addRepresentation(pqOutputPort *oport, QColor color) = 0;
+//   virtual void removeRepresentation(pqOutputPort *oport) = 0;
 
-  virtual void gridSize(double size[3]) = 0;
-  virtual void setGridSize(double size[3]) = 0;
+  virtual void slicingStep(Nm steps[3]) = 0;
+  virtual void setSlicingStep(Nm steps[3]) = 0;
+  void crosshairPoint(Nm point[3]){memcpy(point, m_crosshairPoint, 3*sizeof(Nm));}
 
-  virtual void setColorEngine(ColorEngine *engine) {};
   virtual ISettingsPanel *settingsPanel() = 0;
 
 public slots:
-  virtual void setShowSegmentations(bool visibility) = 0;
-  virtual void setCenter(double x, double y, double z) = 0;
+  virtual void setCameraFocus(const Nm focus[3]) = 0;
+  virtual void setColorEngine(ColorEngine *engine) {};
+  virtual void setCrosshairPoint(Nm x, Nm y, Nm z, bool force=false) = 0;
+  virtual void showSegmentations(bool visible) = 0;
   //TODO: use a stack-like method to support interactions between different
   // components
   virtual void setSliceSelectors(SliceView::SliceSelectors selectors) = 0;
@@ -77,8 +79,8 @@ public slots:
 signals:
   void statusMsg(QString);
 
-  void selectedFromSlice(double, vtkPVSliceView::VIEW_PLANE);
-  void selectedToSlice(double, vtkPVSliceView::VIEW_PLANE);
+  void selectedFromSlice(double, PlaneType);
+  void selectedToSlice  (double, PlaneType);
 
 protected:
   // AbstractItemView Interfacec
@@ -93,6 +95,7 @@ protected:
 protected:
   QString      m_activity;
   QMainWindow *m_window;
+  Nm           m_crosshairPoint[3];
 };
 
 

@@ -41,6 +41,8 @@ class RemoveSegmentation
   };
   struct SegInfo
   {
+    SegInfo(Segmentation *seg);
+
     Filter * filter;
     ModelItem::RelationList relations;
     Segmentation *segmentation;

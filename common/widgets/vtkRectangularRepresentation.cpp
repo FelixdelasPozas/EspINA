@@ -21,7 +21,7 @@ vtkStandardNewMacro(vtkRectangularRepresentation);
 
 //----------------------------------------------------------------------------
 vtkRectangularRepresentation::vtkRectangularRepresentation()
-: Plane(vtkPVSliceView::AXIAL)
+: Plane(AXIAL)
 {
   // The initial state
   this->InteractionState = vtkRectangularRepresentation::Outside;
@@ -288,19 +288,19 @@ void vtkRectangularRepresentation::updateVertex()
 {
   switch (Plane)
   {
-    case vtkPVSliceView::AXIAL:
+    case AXIAL:
       this->Vertex->SetPoint(0, InitialBounds[0], InitialBounds[2], -0.1);
       this->Vertex->SetPoint(1, InitialBounds[1], InitialBounds[2], -0.1);
       this->Vertex->SetPoint(2, InitialBounds[1], InitialBounds[3], -0.1);
       this->Vertex->SetPoint(3, InitialBounds[0], InitialBounds[3], -0.1);
       break;
-    case vtkPVSliceView::CORONAL:
+    case CORONAL:
       this->Vertex->SetPoint(0, InitialBounds[0], 0.1, InitialBounds[4]);
       this->Vertex->SetPoint(1, InitialBounds[1], 0.1, InitialBounds[4]);
       this->Vertex->SetPoint(2, InitialBounds[1], 0.1, InitialBounds[5]);
       this->Vertex->SetPoint(3, InitialBounds[0], 0.1, InitialBounds[5]);
       break;
-    case vtkPVSliceView::SAGITTAL:
+    case SAGITTAL:
       this->Vertex->SetPoint(0, 0.1, InitialBounds[2], InitialBounds[4]);
       this->Vertex->SetPoint(1, 0.1, InitialBounds[2], InitialBounds[5]);
       this->Vertex->SetPoint(2, 0.1, InitialBounds[3], InitialBounds[5]);
@@ -315,7 +315,7 @@ void vtkRectangularRepresentation::updateVertex()
 
 
 //----------------------------------------------------------------------------
-void vtkRectangularRepresentation::SetPlane(vtkPVSliceView::VIEW_PLANE plane)
+void vtkRectangularRepresentation::SetPlane(PlaneType plane)
 {
   if (Plane == plane)
     return;
@@ -328,11 +328,12 @@ void vtkRectangularRepresentation::SetPlane(vtkPVSliceView::VIEW_PLANE plane)
 void vtkRectangularRepresentation::PlaceWidget(double bds[6])
 {
   int i;
-  double bounds[6], center[3];
+  double bounds[6];
 
-  this->AdjustBounds(bds,bounds,center);
+//   this->AdjustBounds(bds,bounds,center);
 //   std::cout << bds[0] << " "<< bds[1] << " "<< bds[2] << " "<< bds[3] << " "<< bds[4] << " "<< bds[5] << std::endl;
 //   std::cout << bounds[0] << " "<< bounds[1] << " "<< bounds[2] << " "<< bounds[3] << " "<< bounds[4] << " "<< bounds[5] << std::endl;
+  memcpy(bounds, bds, 6*sizeof(double));
 
   for (i=0; i<6; i++)
     {
@@ -444,6 +445,7 @@ void vtkRectangularRepresentation::SetInteractionState(int state)
 double *vtkRectangularRepresentation::GetBounds()
 {
   this->BuildRepresentation();
+  return InitialBounds;
   this->BoundingBox->SetBounds(InitialBounds);
   return this->BoundingBox->GetBounds();
 }

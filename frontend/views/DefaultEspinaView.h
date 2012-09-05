@@ -21,6 +21,7 @@
 #define DEFAULTESPINAVIEW_H
 
 #include <common/gui/EspinaView.h>
+#include <common/EspinaTypes.h>
 #include <gui/VolumeView.h>
 
 class VolumeViewSettingsPanel;
@@ -38,16 +39,17 @@ class DefaultEspinaView
 
   struct Widgtes
   {
-    SliceWidget *xy;
-    SliceWidget *yz;
-    SliceWidget *xz;
-    pq3DWidget  *vol;
+    SliceWidget  *xy;
+    SliceWidget  *yz;
+    SliceWidget  *xz;
+    vtkAbstractWidget *vol;
   };
 
   class SettingsPanel;
 
 public:
   explicit DefaultEspinaView(QMainWindow* parent, const QString activity = QString());
+  virtual ~DefaultEspinaView();
 
   virtual void createViewMenu(QMenu* menu);
   virtual void restoreLayout();
@@ -58,23 +60,29 @@ public:
 
   virtual QSize sizeHint() const;
 
-  virtual void gridSize(double size[3]);
-  virtual void setGridSize(double size[3]);
+  virtual void slicingStep(Nm steps[3]);
+  virtual void setSlicingStep(Nm steps[3]);
 
   virtual void addWidget(EspinaWidget* widget);
   virtual void removeWidget(EspinaWidget* widget);
 
-  virtual void addRepresentation(pqOutputPort *oport, QColor color);
-  virtual void removeRepresentation(pqOutputPort *oport);
+//   virtual void addRepresentation(pqOutputPort *oport, QColor color);
+//   virtual void removeRepresentation(pqOutputPort *oport);
 
-  virtual void setColorEngine(ColorEngine *engine);
   virtual ISettingsPanel* settingsPanel();
 
 public slots:
-  virtual void setShowSegmentations(bool visibility);
-  virtual void setCenter(double x, double y, double z);
-  virtual void setCameraFocus(double [3]);
+  virtual void setColorEngine(ColorEngine *engine);
+  virtual void showCrosshair(bool visible);
+  virtual void switchPreprocessing();
+  virtual void showSegmentations(bool visible);
+  virtual void showThumbnail(bool visible);
+
+  virtual void setCameraFocus(const Nm focus[3]);
+
+  virtual void setCrosshairPoint(Nm x, Nm y, Nm z, bool force = false);
   virtual void setSliceSelectors(SliceView::SliceSelectors selectors);
+  virtual void changePlanePosition(PlaneType, Nm);
 
 protected:
   void addChannelRepresentation(Channel *channel);
@@ -94,24 +102,28 @@ protected slots:
   void setFitToSlices(bool fit);
   void setRulerVisibility(bool visible);
 
-  void selectFromSlice(double slice, vtkPVSliceView::VIEW_PLANE plane);
-  void selectToSlice(double slice, vtkPVSliceView::VIEW_PLANE plane);
+  void selectFromSlice(double slice, PlaneType plane);
+  void selectToSlice(double slice, PlaneType plane);
 
   void channelSelected(Channel *channel);
   void segmentationSelected(Segmentation *seg, bool append);
-  void updateSelection(QModelIndex index);
 
-private:
+  void updateSceneRanges();
+
   void initSliceView(SliceView *view);
 
 private:
-  bool first;
+  bool m_showProcessing;
+  bool m_showSegmentations;
+  Nm   m_slicingStep[3];
 
   ColorEngine *m_colorEngine;
   SliceView  *xyView, *yzView, *xzView;
   VolumeView *volView;
   QDockWidget *volDock, *yzDock, *xzDock;
-  double m_gridSize[3];
+  QAction     *m_showRuler, *m_showThumbnail;
+
+  QList<Channel *> m_channels;
   QMap<EspinaWidget *, Widgtes> m_widgets;
 };
 
@@ -135,6 +147,7 @@ public:
   virtual ISettingsPanel* clone();
 
 private:
+  Nm m_slicingStep;
   SliceView::SettingsPtr m_xy, m_yz, m_xz;
   SliceViewSettingsPanel *m_xyPanel, *m_yzPanel, *m_xzPanel;
   VolumeView::SettingsPtr m_vol;

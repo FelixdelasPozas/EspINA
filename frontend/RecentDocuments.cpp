@@ -28,22 +28,15 @@ const int MAX_FILES = 10;
 //------------------------------------------------------------------------
 RecentDocuments::RecentDocuments()
 {
-  QSettings settings;
-  m_recentDocuments = settings.value("recentFileList").toStringList();
-  for(int i = 0; i < MAX_FILES; i++)
-  {
-    QAction *action = new QAction(this);
-    action->setVisible(false);
-    m_actionList << action;
-  }
-  updateActions();
+  updateDocumentList();
 }
 
 //------------------------------------------------------------------------
 RecentDocuments::~RecentDocuments()
 {
-  QSettings settings;
+  QSettings settings("CeSViMa", "EspINA");
   settings.setValue("recentFileList", m_recentDocuments);
+  settings.sync();
 }
 
 //------------------------------------------------------------------------
@@ -59,8 +52,9 @@ void RecentDocuments::addDocument(QString path)
 
   updateActions();
 
-  QSettings settings;
+  QSettings settings("CeSViMa", "EspINA");
   settings.setValue("recentFileList", m_recentDocuments);
+  settings.sync();
 }
 
 //------------------------------------------------------------------------
@@ -71,8 +65,9 @@ void RecentDocuments::removeDocument(QString path)
 
   updateActions();
 
-  QSettings settings;
+  QSettings settings("CeSViMa", "EspINA");
   settings.setValue("recentFileList", m_recentDocuments);
+  settings.sync();
 }
 
 
@@ -89,7 +84,25 @@ void RecentDocuments::updateActions()
   }
 
   for(int i = numberFiles; i < MAX_FILES; i++)
-  {
     m_actionList[i]->setVisible(false);
+}
+
+//------------------------------------------------------------------------
+void RecentDocuments::updateDocumentList()
+{
+  QSettings settings("CeSViMa", "EspINA");
+
+  if (settings.contains("recentFileList"))
+    m_recentDocuments = settings.value("recentFileList").toStringList();
+  else
+    m_recentDocuments = QStringList();
+
+  for(int i = 0; i < MAX_FILES; i++)
+  {
+    QAction *action = new QAction(this);
+    action->setVisible(false);
+    m_actionList << action;
   }
+
+  updateActions();
 }

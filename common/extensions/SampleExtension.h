@@ -21,6 +21,7 @@
 #define SAMPLEEXTENSION_H
 
 #include "common/extensions/ModelItemExtension.h"
+
 #include <QSharedPointer>
 
 class Sample;
@@ -30,10 +31,12 @@ class SampleExtension
 {
 public:
   typedef QSharedPointer<SampleExtension> SPtr;
+
 public:
   virtual ~SampleExtension(){}
 
-  virtual void initialize(Sample *sample) = 0;
+  virtual void initialize(Sample *sample, ModelItem::Arguments arg = ModelItem::Arguments()) = 0;
+  virtual QString serialize() const = 0;
 
   virtual SampleExtension *clone() = 0;
 

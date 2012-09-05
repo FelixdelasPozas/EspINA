@@ -1,0 +1,7 @@
+/* Espina Configuration Header 
+ * --------------------------
+ * 
+ * Define variables to be used by espina
+ */
+
+#cmakedefine TEST_ESPINA_MODELS

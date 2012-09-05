@@ -15,18 +15,23 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-
 #include "ChannelExplorer.h"
-
 #include <ui_ChannelExplorer.h>
 
-#ifdef DEBUG
-#include "common/model/ModelTest.h"
+#include "ChannelInspector.h"
+#include "EspinaConfig.h"
+#include "EspinaRegions.h"
+#include "common/EspinaCore.h"
+#include "gui/EspinaView.h"
+#include "gui/HueSelector.h"
+#include "model/Channel.h"
+#include "model/EspinaModel.h"
+#include "model/ModelItem.h"
+#ifdef TEST_ESPINA_MODELS
+  #include "common/model/ModelTest.h"
 #endif
 
-#include <model/Channel.h>
-#include <QColorDialog>
+#include <QMessageBox>
 
 
 //------------------------------------------------------------------------
@@ -39,6 +44,9 @@ public:
   {
     setupUi(this);
     groupBox->setVisible(false);
+
+    showInformation->setIcon(
+      qApp->style()->standardIcon(QStyle::SP_MessageBoxInformation));
   }
 };
 
@@ -58,6 +66,10 @@ ChannelExplorer::ChannelExplorer(QSharedPointer< EspinaModel > model,
   m_sort->setSourceModel(m_channelProxy.data());
   m_gui->view->setModel(m_sort.data());
 
+  connect(m_gui->showInformation, SIGNAL(clicked(bool)),
+          this, SLOT(showInformation()));
+  connect(m_gui->activeChannel, SIGNAL(clicked(bool)),
+	  this, SLOT(activateChannel()));
   connect(m_gui->channelColor, SIGNAL(clicked(bool)),
 	  this, SLOT(changeChannelColor()));
   connect(m_gui->alignLeft, SIGNAL(clicked(bool)),
@@ -72,6 +84,8 @@ ChannelExplorer::ChannelExplorer(QSharedPointer< EspinaModel > model,
 	  this, SLOT(moveRight()));
   connect(m_gui->view, SIGNAL(clicked(QModelIndex)),
 	  this, SLOT(channelSelected()));
+  connect(m_gui->view, SIGNAL(doubleClicked(QModelIndex)),
+	  this, SLOT(focusOnChannel()));
   connect(m_gui->xPos, SIGNAL(valueChanged(int)),
 	  this, SLOT(updateChannelPosition()));
   connect(m_gui->yPos, SIGNAL(valueChanged(int)),
@@ -80,6 +94,8 @@ ChannelExplorer::ChannelExplorer(QSharedPointer< EspinaModel > model,
 	  this, SLOT(updateChannelPosition()));
   connect(m_gui->coordinateSelector, SIGNAL(currentIndexChanged(int)),
 	  this, SLOT(updateTooltips(int)));
+  connect(m_gui->unloadChannel, SIGNAL(clicked(bool)),
+	  this, SLOT(unloadChannel()));
 
   updateTooltips(0);
   setWidget(m_gui);
@@ -295,18 +311,25 @@ void ChannelExplorer::moveRight()
 void ChannelExplorer::changeChannelColor()
 {
   QModelIndex index = m_sort->mapToSource(m_gui->view->currentIndex());
+  if (!index.isValid())
+    return;
+
   ModelItem *item = indexPtr(index);
+  if (ModelItem::CHANNEL != item->type())
+    return;
+
   Channel *channel = dynamic_cast<Channel *>(item);
 
-  QColor currentColor;
-  currentColor.setHsvF(channel->color(), 1.0, 1.0);
-  QColorDialog colorSelector;
-  colorSelector.setCurrentColor(currentColor);
-  if( colorSelector.exec() == QDialog::Accepted)
+  HueSelector *hueSelector = new HueSelector(channel->color(), this);
+  hueSelector->exec();
+
+  if(hueSelector->ModifiedData())
   {
-    channel->setColor(colorSelector.selectedColor().hueF());
+    double value = (hueSelector->GetHueValue() == -1) ? -1 : (hueSelector->GetHueValue() / 359.);
+    channel->setColor(value);
     channel->notifyModification();
   }
+  delete hueSelector;
 }
 
 //------------------------------------------------------------------------
@@ -358,4 +381,126 @@ void ChannelExplorer::updateTooltips(int index)
     m_gui->moveRight->setToolTip(tr("Move next to Upper Margin"));
   }else
     Q_ASSERT(false);
+}
+
+//------------------------------------------------------------------------
+void ChannelExplorer::unloadChannel()
+{
+  QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
+  QModelIndex index = m_sort->mapToSource(m_gui->view->currentIndex());
+  if (!index.isValid())
+    return;
+
+  ModelItem *item = indexPtr(index);
+  if (ModelItem::CHANNEL != item->type())
+    return;
+
+  Channel *channel = dynamic_cast<Channel *>(item);
+  ModelItem::Vector relItems = channel->relatedItems(ModelItem::OUT);
+
+  if (!relItems.empty())
+  {
+    QString msgText;
+    if (relItems.size() > 1)
+    {
+      QString number;
+      number.setNum(relItems.size());
+      msgText = QString("That channel cannot be deleted because there are ") + number + QString(" segmentations that depend on it.");
+    }
+
+    else
+      msgText = QString("That channel cannot be deleted because there is a segmentation that depends on it.");
+    QMessageBox msgBox;
+    msgBox.setIcon(QMessageBox::Information);
+    msgBox.setText(msgText);
+    msgBox.setStandardButtons(QMessageBox::Ok);
+    msgBox.exec();
+    return;
+  }
+  else
+  {
+    relItems = channel->relatedItems(ModelItem::IN);
+    ModelItem::Vector::Iterator it = relItems.begin();
+    Q_ASSERT(relItems.size() == 2);
+    while (it != relItems.end())
+    {
+      if ((*it)->type() == ModelItem::SAMPLE)
+      {
+        ModelItem::Vector relatedItems = (*it)->relatedItems(ModelItem::OUT);
+        if (relatedItems.size() == 1)
+        {
+          model->removeRelation((*it), item, Channel::STAINLINK);
+          model->removeSample(reinterpret_cast<Sample *>(*it));
+          delete (*it);
+        }
+      }
+      else
+      {
+        model->removeRelation((*it), item, Channel::VOLUMELINK);
+        model->removeFilter(reinterpret_cast<Filter *>(*it));
+        delete (*it);
+      }
+      it++;
+    }
+    model->removeChannel(channel);
+    if (SelectionManager::instance()->activeChannel() == channel)
+    {
+      SelectionManager::instance()->setActiveChannel(NULL);
+    }
+  }
+}
+
+//------------------------------------------------------------------------
+void ChannelExplorer::focusOnChannel()
+{
+  QModelIndex currentIndex = m_gui->view->currentIndex();
+  if (!currentIndex.parent().isValid())
+    return;
+
+  QModelIndex index = m_sort->mapToSource(currentIndex);
+  ModelItem *currentItem = indexPtr(index);
+  if (ModelItem::CHANNEL == currentItem->type())
+  {
+    Channel *channel = dynamic_cast<Channel *>(currentItem);
+    Nm bounds[6];
+    VolumeBounds(channel->itkVolume(), bounds);
+    double pos[3] = { (bounds[1]-bounds[0])/2, (bounds[3]-bounds[2])/2, (bounds[5]-bounds[4])/2 };
+    EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
+    view->setCameraFocus(pos);
+    view->forceRender();
+  }
+}
+
+//------------------------------------------------------------------------
+void ChannelExplorer::showInformation()
+{
+  foreach(QModelIndex index, m_gui->view->selectionModel()->selectedIndexes())
+  {
+    QModelIndex currentIndex = m_sort->mapToSource(index);
+    ModelItem *currentItem = indexPtr(currentIndex);
+    Q_ASSERT(currentItem);
+
+    if (ModelItem::CHANNEL == currentItem->type())
+    {
+      Channel *channel = dynamic_cast<Channel *>(currentItem);
+      ChannelInspector *inspector = new ChannelInspector(channel);
+      inspector->exec();
+    }
+  }
+}
+
+//------------------------------------------------------------------------
+void ChannelExplorer::activateChannel()
+{
+    QModelIndex currentIndex = m_gui->view->currentIndex();
+  if (!currentIndex.parent().isValid())
+    return;
+
+  QModelIndex index = m_sort->mapToSource(currentIndex);
+  ModelItem *currentItem = indexPtr(index);
+  if (ModelItem::CHANNEL == currentItem->type())
+  {
+    Channel *currentChannel = dynamic_cast<Channel *>(currentItem);
+    SelectionManager::instance()->setActiveChannel(currentChannel);
+  }
 }

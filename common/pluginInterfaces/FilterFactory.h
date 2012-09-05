@@ -26,10 +26,11 @@ class FilterFactory
 {
 public:
   virtual ~FilterFactory(){}
-  virtual Filter *createFilter(const QString filter, const ModelItem::Arguments args) = 0;
 
-protected:
-  QString m_factoryName;
+  virtual Filter *createFilter(const QString filter,
+                               Filter::NamedInputs inputs,
+                               const ModelItem::Arguments args) = 0;
 };
-
+Q_DECLARE_INTERFACE(FilterFactory,
+                    "es.upm.cesvima.EspINA.FilterFactory/1.0")
 #endif // FILTERFACTORY_H

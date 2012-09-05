@@ -20,6 +20,7 @@
 #include "MainToolBar.h"
 
 #include <common/model/EspinaModel.h>
+#include <model/Segmentation.h>
 
 #include <QAction>
 #include <QComboBox>
@@ -28,13 +29,14 @@
 #include <EspinaCore.h>
 #include <selection/PixelSelector.h>
 #include <undo/RemoveSegmentation.h>
+#include <iostream>
 
 //----------------------------------------------------------------------------
 MainToolBar::MainToolBar(QSharedPointer<EspinaModel> model, QWidget* parent)
 : QToolBar(parent)
 {
-  setWindowTitle("EspinaModel");
   setObjectName("MainToolBar");
+  setWindowTitle("Main Tool Bar");
 
   m_toggleSegVisibility = addAction(//showIcon,
 				  tr("Toggle Segmentations Visibility"));
@@ -66,6 +68,8 @@ MainToolBar::MainToolBar(QSharedPointer<EspinaModel> model, QWidget* parent)
 
   connect(m_taxonomyView, SIGNAL(entered(QModelIndex)),
           this, SLOT(setActiveTaxonomy(QModelIndex)));
+  connect(m_taxonomySelector,SIGNAL(currentIndexChanged(QString)),
+          this, SLOT(setActiveTaxonomy(QString)));
 
   m_selector = new PixelSelector();
   m_selector->setMultiSelection(false);
@@ -90,6 +94,8 @@ void MainToolBar::setShowSegmentations(bool visible)
   else
     m_toggleSegVisibility->setIcon(QIcon(":/espina/hide_all.svg"));
 
+  //EspinaCore::instance()->model()->relationships()->write(std::cout, RelationshipGraph::GRAPHVIZ);
+
   emit showSegmentations(visible);
 }
 
@@ -103,8 +109,20 @@ void MainToolBar::setActiveTaxonomy(QModelIndex index)
   Q_ASSERT(item->type() == ModelItem::TAXONOMY);
   TaxonomyNode *tax = dynamic_cast<TaxonomyNode *>(item);
   Q_ASSERT(tax);
-  EspinaCore::instance()->setActiveTaxonomy(tax);
+  SelectionManager::instance()->setActiveTaxonomy(tax);
 }
+
+//----------------------------------------------------------------------------
+void MainToolBar::setActiveTaxonomy(QString taxonomy)
+{
+  if (taxonomy.isEmpty())
+    return;
+
+  TaxonomyNode *tax = EspinaCore::instance()->model()->taxonomy()->element(taxonomy);
+  if (tax)
+    SelectionManager::instance()->setActiveTaxonomy(tax);
+}
+
 
 //----------------------------------------------------------------------------
 void MainToolBar::updateTaxonomy(QModelIndex left, QModelIndex right)

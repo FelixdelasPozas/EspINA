@@ -21,7 +21,7 @@
 
 #include "vtkAbstractWidget.h"
 
-#include <common/views/vtkPVSliceView.h>
+#include <EspinaTypes.h>
 
 class vtkPolyDataAlgorithm;
 class vtkRectangularRepresentation;
@@ -57,9 +57,7 @@ public:
   vtkGetMacro(ScalingEnabled,int);
   vtkBooleanMacro(ScalingEnabled,int);
 
-  virtual void SetPlane(vtkPVSliceView::VIEW_PLANE plane);
-//   virtual void SetSlice(int slice, double spacing[3]);
-//   virtual void SetRegion(vtkPolyDataAlgorithm *region);
+  virtual void SetPlane(PlaneType plane);
 
   // Description:
   // Create the default widget representation if one is not set. By default,
@@ -89,7 +87,7 @@ protected:
   int TranslationEnabled;
   int ScalingEnabled;
 
-  vtkPVSliceView::VIEW_PLANE Plane;
+  PlaneType Plane;
 
 //   vtkPolyDataAlgorithm *Region;
 private:

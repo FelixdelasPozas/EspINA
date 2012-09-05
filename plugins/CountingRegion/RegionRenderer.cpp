@@ -15,64 +15,107 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-
 #include "RegionRenderer.h"
 
-#include "sample.h"
-
-#include <pqDisplayPolicy.h>
-#include <pqApplicationCore.h>
-#include <pqPipelineSource.h>
-#include <espina.h>
-
-#include <assert.h>
-#include <QDebug>
 #include "CountingRegion.h"
+#include "regions/BoundingRegion.h"
+#include <common/model/ModelItem.h>
 
-RegionRenderer::RegionRenderer(QWidget* parent)
-: IViewWidget(parent)
+#include <vtkRenderWindowInteractor.h>
+#include <vtkRenderWindow.h>
+#include <vtkAbstractWidget.h>
+#include <vtkWidgetRepresentation.h>
+
+//-----------------------------------------------------------------------------
+RegionRenderer::RegionRenderer(CountingRegion* plugin)
+: m_plugin(plugin)
 {
-  setIcon(QIcon(":/espina/apply.svg"));
+  connect(m_plugin, SIGNAL(regionCreated(BoundingRegion*)),
+          this, SLOT(regionCreated(BoundingRegion*)));
+  connect(m_plugin, SIGNAL(regionRemoved(BoundingRegion*)),
+          this, SLOT(regionRemoved(BoundingRegion*)));
 }
 
-IViewWidget* RegionRenderer::clone()
+//-----------------------------------------------------------------------------
+RegionRenderer::~RegionRenderer()
 {
-  return new RegionRenderer();
+
 }
 
-
-void RegionRenderer::updateState(bool checked)
+//-----------------------------------------------------------------------------
+void RegionRenderer::hide()
 {
-  //setIcon(checked?QIcon(":/espina/showPlanes"):QIcon(":/espina/hidePlanes"));
-}
-
-void RegionRenderer::renderInView(QModelIndex index, pqView* view)
-{
-  if (!index.isValid())
+  if (!m_enable)
     return;
- 
-  IModelItem *item = static_cast<IModelItem *>(index.internalPointer());
-  Sample *sample = dynamic_cast<Sample *>(item);
-  if (sample)
-  {
-    ISampleExtension *ext = sample->extension(CountingRegion::ID);
-    assert(ext);
-    
-    if (isChecked())
-    {
-      foreach(QString rep, ext->availableRepresentations())
-	sample->representation(rep)->render(view);
-    }else
-    {
-      foreach(QString rep, ext->availableRepresentations())
-	sample->representation(rep)->clear(view);
-    }
-  }
 
-  for (int row = 0; row < index.model()->rowCount(index); row++)
+  m_enable = false;
+  vtkRenderWindow *rw = m_renderer->GetRenderWindow();
+  vtkRenderWindowInteractor *interactor = rw->GetInteractor();
+
+  foreach(BoundingRegion *region, m_widgets.keys())
   {
-    renderInView(index.child(row,0),view);
+    region->deleteWidget(m_widgets[region]);
   }
+  m_widgets.clear();
+
+  emit renderRequested();
 }
 
+//-----------------------------------------------------------------------------
+void RegionRenderer::show()
+{
+  if (m_enable)
+    return;
+
+  m_enable = true;
+  vtkRenderWindow *rw = m_renderer->GetRenderWindow();
+  vtkRenderWindowInteractor *interactor = rw->GetInteractor();
+
+  foreach(BoundingRegion *region, m_plugin->regions())
+  {
+    m_widgets[region] = region->createWidget();
+    m_widgets[region]->SetInteractor(interactor);
+    m_widgets[region]->GetRepresentation()->SetVisibility(true);
+    m_widgets[region]->On();
+  }
+
+  emit renderRequested();
+}
+
+
+//-----------------------------------------------------------------------------
+void RegionRenderer::regionCreated(BoundingRegion* region)
+{
+  if (!m_enable)
+    return;
+
+  vtkRenderWindow *rw = m_renderer->GetRenderWindow();
+  vtkRenderWindowInteractor *interactor = rw->GetInteractor();
+
+  m_widgets[region] = region->createWidget();
+  m_widgets[region]->SetInteractor(interactor);
+  m_widgets[region]->GetRepresentation()->SetVisibility(true);
+  m_widgets[region]->On();
+}
+
+//-----------------------------------------------------------------------------
+void RegionRenderer::regionRemoved(BoundingRegion* region)
+{
+  if (!m_enable)
+    return;
+
+  region->deleteWidget(m_widgets[region]);
+  m_widgets.remove(region);
+
+}
+
+//-----------------------------------------------------------------------------
+Renderer* RegionRenderer::clone()
+{
+  RegionRenderer *rr = new RegionRenderer(m_plugin);
+//   connect(m_plugin, SIGNAL(regionCreated(BoundingRegion*)),
+//           rr, SLOT(regionCreated(BoundingRegion*)));
+//   connect(m_plugin, SIGNAL(regionRemoved(BoundingRegion*)),
+//           rr, SLOT(regionRemoved(BoundingRegion*)));
+  return rr;
+}

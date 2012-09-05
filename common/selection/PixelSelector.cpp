@@ -1,7 +1,6 @@
 #include "PixelSelector.h"
 
 #include "common/selection/SelectableView.h"
-#include "common/views/vtkSMSliceViewProxy.h"
 
 #include <QDebug>
 
@@ -9,10 +8,11 @@
 #include <QWidget>
 #include <QSize>
 
-#include <pqRenderView.h>
 #include <vtkImageData.h>
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderWindow.h>
+#include <vtkSmartPointer.h>
+#include <vtkWindowToImageFilter.h>
 
 //-----------------------------------------------------------------------------
 void PixelSelector::onMouseDown(const QPoint &pos, SelectableView* view)
@@ -54,7 +54,8 @@ bool PixelSelector::filterEvent(QEvent* e, SelectableView* view)
     if (me->button() == Qt::LeftButton)
     {
       onMouseDown(me->pos(), view);
-      return true; // Prevent other elements to filter the event
+      // If handled, prevent other elements to filter the event
+      return m_handled;
     }
   }
 
@@ -85,16 +86,21 @@ BestPixelSelector::BestPixelSelector(SelectionHandler* succesor)
 //-----------------------------------------------------------------------------
 void BestPixelSelector::onMouseDown(const QPoint& pos, SelectableView* view)
 {
-  pqRenderViewBase *rw = dynamic_cast<pqRenderViewBase *>(view->view());
-  Q_ASSERT(rw);
-  vtkImageData *img = rw->captureImage(1);
+  vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter =
+  vtkSmartPointer<vtkWindowToImageFilter>::New();
+  windowToImageFilter->SetInput(view->renderWindow());
+  //windowToImageFilter->SetMagnification(3); //set the resolution of the output image (3 times the current resolution of vtk render window)
+  windowToImageFilter->SetInputBufferTypeToRGBA(); //also record the alpha (transparency) channel
+  windowToImageFilter->Update();
+
+  vtkImageData *img = windowToImageFilter->GetOutput();
 
   int xPos, yPos;
   view->eventPosition(xPos, yPos);
 
   int extent[6];
   img->GetExtent(extent);
-  qDebug() << extent[0] << extent[1] << extent[2] << extent[3] << extent[4] << extent[5];
+  //qDebug() << extent[0] << extent[1] << extent[2] << extent[3] << extent[4] << extent[5];
 
   int leftPixel = xPos - m_window->width()/2;
   if (leftPixel < extent[0])
@@ -121,7 +127,7 @@ void BestPixelSelector::onMouseDown(const QPoint& pos, SelectableView* view)
   bestValue = abs(pixel[0]-m_bestPixel);
 
   //qDebug() << "EspINA::BestPixelSelector: Scalar componets:" <<img->GetNumberOfScalarComponents();
-
+  //TODO: Use iterators
   for (int x = leftPixel; x <= rightPixel; x++)
   {
     for (int y = topPixel; y <= bottomPixel; y++)
@@ -144,8 +150,6 @@ void BestPixelSelector::onMouseDown(const QPoint& pos, SelectableView* view)
 
   //qDebug() << "EspINA::BestPixelSelector: Best Pixel(" << bestPixel.x() << "," << bestPixel.y()
   //<< ") value :" << bestValue;
-
-  img->Delete();
 
   ViewRegions regions;
   QPolygon singlePixel;

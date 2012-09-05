@@ -19,101 +19,149 @@
 #include "SegmhaImporter.h"
 
 #include <common/model/EspinaFactory.h>
-#include <common/File.h>
 
+#include <QDebug>
 #include "SegmhaImporterFilter.h"
 #include <common/EspinaCore.h>
-#include <common/model/Channel.h>
+#include <QFileDialog>
+#include <common/undo/AddSample.h>
+#include <common/undo/AddChannel.h>
+#include <common/undo/AddRelation.h>
+#include <common/model/Segmentation.h>
+#include <common/selection/SelectionManager.h>
+#include <QApplication>
 
-static const QString SEGMHA = "segmha";
+const QString INPUTLINK = "Input";
 
 //-----------------------------------------------------------------------------
-SegmhaImporter::UndoCommand::UndoCommand(SegmhaImporterFilter *filter)
-: m_filter(filter)
+SegmhaImporter::UndoCommand::UndoCommand(Sample* sample, Channel* channel, SegmhaImporterFilter* filter)
+: m_sample (sample)
+, m_channel(channel)
+, m_filter(filter)
 {
-  m_channel = m_filter->channel();
-  ModelItem::Vector samples = m_channel->relatedItems(ModelItem::IN, "mark");
-  Q_ASSERT(samples.size() > 0);
-  m_sample = dynamic_cast<Sample *>(samples.first());
 }
 
 //-----------------------------------------------------------------------------
 void SegmhaImporter::UndoCommand::redo()
 {
-  QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
+  EspinaCore    *espina  = EspinaCore::instance();
+  EspinaFactory *factory = EspinaFactory::instance();
+  QSharedPointer<EspinaModel> model(espina->model());
 
-  QList<Segmentation *> segs = m_filter->segmentations();
+  // update taxonomy
+  espina->model()->setTaxonomy(m_filter->taxonomy());
+
+  if (m_segs.isEmpty())
+  {
+    Segmentation *seg;
+    for (int i=0; i < m_filter->numberOutputs(); i++)
+    {
+      seg = factory->createSegmentation(m_filter, i);
+      m_filter->initSegmentation(seg, i);
+      m_segs << seg;
+    }
+  }
 
   model->addFilter(m_filter);
-  model->addSegmentation(segs);
+  model->addSegmentation(m_segs);
 
-  model->addRelation(m_channel, m_filter, "Channel");
-  m_channel->initialize();
-  foreach(Segmentation *seg, segs)
+  model->addRelation(m_channel, m_filter, Channel::LINK);
+  foreach(Segmentation *seg, m_segs)
   {
-    model->addRelation(m_filter, seg, "CreateSegmentation");
+    model->addRelation(m_filter, seg, CREATELINK);
     model->addRelation(m_sample, seg, "where");
-    model->addRelation(m_channel, seg, "Channel");
-    seg->initialize();
+    model->addRelation(m_channel, seg, Channel::LINK);
+    seg->initializeExtensions();
   }
 }
 
 //-----------------------------------------------------------------------------
 void SegmhaImporter::UndoCommand::undo()
 {
-  QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
-
-  QList<Segmentation *> segs = m_filter->segmentations();
-
-
-  model->removeRelation(m_channel, m_filter, "Channel");
-  foreach(Segmentation *seg, segs)
-  {
-    model->removeRelation(m_filter, seg, "CreateSegmentation");
-    model->removeRelation(m_sample, seg, "where");
-    model->removeRelation(m_channel, seg, "Channel");
-    model->removeSegmentation(seg);
-  }
-  model->removeFilter(m_filter);
+//   QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
+//
+//   QList<Segmentation *> segs = m_filter->segmentations();
+//
+//
+//   model->removeRelation(m_channel, m_filter, "Channel");
+//   foreach(Segmentation *seg, segs)
+//   {
+//     model->removeRelation(m_filter, seg, CREATELINK);
+//     model->removeRelation(m_sample, seg, "where");
+//     model->removeRelation(m_channel, seg, "Channel");
+//     model->removeSegmentation(seg);
+//   }
+//   model->removeFilter(m_filter);
 }
 
+static const QString SEGMHA = "segmha";
 
 //-----------------------------------------------------------------------------
-SegmhaImporter::SegmhaImporter(QObject* parent)
-{
-}
-
-void SegmhaImporter::onStartup()
+SegmhaImporter::SegmhaImporter()
 {
   // Register filter and reader factories
-  EspinaFactory::instance()->registerReader(SEGMHA, this);
-  EspinaFactory::instance()->registerFilter(SIF, this);
+  QStringList supportedExtensions;
+  supportedExtensions << SEGMHA;
+  EspinaFactory::instance()->registerReaderFactory(this,
+						   SegmhaImporterFilter::SUPPORTED_FILES,
+						   supportedExtensions);
+  EspinaFactory::instance()->registerFilter(SegmhaImporterFilter::TYPE, this);
 }
 
 //-----------------------------------------------------------------------------
-Filter *SegmhaImporter::createFilter(const QString filter, const ModelItem::Arguments args)
+Filter* SegmhaImporter::createFilter(const QString filter,
+				     Filter::NamedInputs inputs,
+				     const ModelItem::Arguments args)
 {
-  Q_ASSERT(filter == SIF);
+  Q_ASSERT(SegmhaImporterFilter::TYPE == filter);
 
-  return new SegmhaImporterFilter(args);
+  return new SegmhaImporterFilter(inputs, args);
 }
 
 //-----------------------------------------------------------------------------
-bool SegmhaImporter::readFile(const QString file)
+bool SegmhaImporter::readFile(const QFileInfo file)
 {
-  Q_ASSERT(File::extension(file) == SEGMHA);
+  qDebug() << file.absoluteFilePath();
+  Q_ASSERT(SEGMHA == file.suffix());
+  EspinaCore *espina = EspinaCore::instance();
 
-  SegmhaImporterFilter *filter = new SegmhaImporterFilter(file);
-  if (filter->numProducts() > 0)
+  QSharedPointer<QUndoStack> undo(espina->undoStack());
+  undo->beginMacro("Import Segmha");
+
+  if (!espina->sample())
   {
-    QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
-    undo->beginMacro("Import Segmha");
-    undo->push(new UndoCommand(filter));
-    undo->endMacro();
-  } else
+    QFileDialog fileDialog;
+    fileDialog.setObjectName("SelectChannelFile");
+    fileDialog.setFileMode(QFileDialog::ExistingFiles);
+    fileDialog.setWindowTitle(QString("Select channel file for %1:").arg(file.fileName()));
+    fileDialog.setDirectory(file.dir());
+    fileDialog.setFilter(CHANNEL_FILES);
+
+    if (fileDialog.exec() != QDialog::Accepted)
+      return false;
+
+    if (!espina->loadFile(fileDialog.selectedFiles().first()))
+      return false;
+  }
+
+  Filter::NamedInputs inputs;
+  Filter::Arguments args;
+  args[SegmhaImporterFilter::FILE] = file.absoluteFilePath();
+
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  SegmhaImporterFilter *filter = new SegmhaImporterFilter(inputs, args);
+  filter->update();
+  if (filter->numberOutputs() == 0)
   {
     delete filter;
     return false;
   }
+  undo->push(new UndoCommand(espina->sample(), SelectionManager::instance()->activeChannel(), filter));
+  undo->endMacro();
+  QApplication::restoreOverrideCursor();
+
   return true;
 }
+
+Q_EXPORT_PLUGIN2(SegmhaImporterPlugin, SegmhaImporter)
+

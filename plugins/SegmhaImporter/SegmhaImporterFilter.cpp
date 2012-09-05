@@ -19,180 +19,151 @@
 
 #include "SegmhaImporterFilter.h"
 
-#include <common/cache/CachedObjectBuilder.h>
+// EspINA
 #include <common/EspinaCore.h>
-#include <pqServer.h>
-#include <pqActiveObjects.h>
-#include <pqFileDialog.h>
-#include <pqCoreUtilities.h>
-#include <QApplication>
-
-#include <QDebug>
-#include <pqPipelineSource.h>
-#include <vtkSMProxy.h>
-#include <vtkSMStringVectorProperty.h>
-#include <vtkSMPropertyHelper.h>
-#include <common/File.h>
 #include <common/model/EspinaFactory.h>
+#include <common/model/Segmentation.h>
 
-// #include <plugins/CountingRegion/extensions/CountingRegionSampleExtension.h>
+// ITK
 
-const ModelItem::ArgumentId SegmhaImporterFilter::FILE = ModelItem::ArgumentId("File", true);
-const ModelItem::ArgumentId SegmhaImporterFilter::BLOCKS = ModelItem::ArgumentId("Blocks", true);
+// Qt
+#include <QApplication>
+#include <QDebug>
+#include <QFileDialog>
 
-// SegmhaImporterFilter::SetupWidget::SetupWidget(EspinaFilter *parent)
-// : QWidget()
-// {
-//   setupUi(this);
-//   SegmhaImporterFilter *filter = dynamic_cast<SegmhaImporterFilter *>(parent);
-//   m_xSeed->setText(QString("%1").arg(filter->m_seed[0]));
-//   m_ySeed->setText(QString("%1").arg(filter->m_seed[1]));
-//   m_zSeed->setText(QString("%1").arg(filter->m_seed[2]));
-//   m_threshold->setValue(filter->m_threshold);
-// }
+// VTK
+#include <vtkImageReslice.h>
+#include <vtkImageChangeInformation.h>
 
 
-//-----------------------------------------------------------------------------
-SegmhaImporterFilter::SegmhaImporterFilter(const QString file)
-: m_segReader(NULL)
-, m_channel  (NULL)
+const ModelItem::ArgumentId SegmhaImporterFilter::FILE = "File";
+const ModelItem::ArgumentId SegmhaImporterFilter::BLOCKS = "Blocks";
+
+SegmhaImporterFilter::SegmentationObject::SegmentationObject(const QString& line)
 {
-  CachedObjectBuilder *cob = CachedObjectBuilder::instance();
+  QStringList elements = line.split(" ");
 
-  bool isRefChannelLoaded = false;
-  if (false == isRefChannelLoaded)
-  {
-    pqServer* server = pqActiveObjects::instance().activeServer();
-//     vtkSMReaderFactory* readerFactory =
-//       vtkSMProxyManager::GetProxyManager()->GetReaderFactory();
-
-      QString filters = "MetaImage File (*.mha, *.mhd)";
-      if (!filters.isEmpty())
-      {
-	filters += ";;";
-      }
-      filters += "All files (*)";
-
-      pqFileDialog fileDialog(server, pqCoreUtilities::mainWidget(),
-			      QObject::tr("Open Channel File:"), QString(), filters);
-      fileDialog.setObjectName("ChannelOpenDialog");
-      fileDialog.setFileMode(pqFileDialog::ExistingFiles);
-
-
-      QApplication::setOverrideCursor(Qt::ArrowCursor);
-      if (fileDialog.exec() != QDialog::Accepted)
-      {
-	QApplication::restoreOverrideCursor();
-	return;
-      }
-      QApplication::restoreOverrideCursor();
-
-      File channelFile(fileDialog.getSelectedFiles()[0]);
-      EspinaCore::instance()->loadFile(channelFile);
-      m_channel = EspinaCore::instance()->model()->channel(channelFile.name());
-  }
-
-  m_args[FILE] = file;
-  m_segReader = cob->loadFile(file);
-  Q_ASSERT(m_segReader->getNumberOfData() > 0);
-  m_segReader->pipelineSource()->updatePipeline();
-
-  vtkSMProxy *readerProxy = m_segReader->pipelineSource()->getProxy();
-  readerProxy->UpdatePropertyInformation();
-
-  ModelItem::Vector samples = m_channel->relatedItems(IN, "mark");
-  Q_ASSERT(!samples.isEmpty());
-  Sample *sample = dynamic_cast<Sample *>(samples.first());
-
-  ModelItemExtension *crExtension = sample->extension("CountingRegionExtension");
-  if (crExtension)
-  {
-    int margins[6];
-    vtkSMPropertyHelper(readerProxy, "CountingBrick").Get(margins,6);
-
-    // NOTE: Counting Region margin's order
-    QString rcb = QString("RectangularRegion=%1,%2,%3,%4,%5,%6;")
-      .arg(margins[0]).arg(margins[3])
-      .arg(margins[1]).arg(margins[4])
-      .arg(margins[2]).arg(margins[5]);
-    qDebug() << "Using Counting Region" << rcb;
-    ModelItem::Arguments args;
-    args[ArgumentId("REGION", ArgumentId::KEY)] = rcb;
-    crExtension->initialize(args);
-  }
-
-  vtkSMProperty *p;
-  // Load Taxonomy
-  p = readerProxy->GetProperty("Taxonomy");
-  vtkSMStringVectorProperty* TaxProp = vtkSMStringVectorProperty::SafeDownCast(p);
-  QString TaxonomySerialization(TaxProp->GetElement(0));
-
-  QStringList taxonomies = TaxonomySerialization.split(";");
-
-  Taxonomy *tax = new Taxonomy();
-  QStringList availableTaxonomies;
-  foreach(QString taxonomy, taxonomies)
-  {
-    if (taxonomy == "")
-      continue;
-
-    QStringList values = taxonomy.split(",");
-    QChar zero = '0';
-    QString color = QString("#%1%2%3")
-    .arg(values[2].toInt(),2,16,zero)
-    .arg(values[3].toInt(),2,16,zero)
-    .arg(values[4].toInt(),2,16,zero);
-
-    TaxonomyNode *node = tax->addElement(values[1]);
-    node->setColor(QColor(color));
-    availableTaxonomies.append(values[1]);
-  }
-
-  EspinaCore::instance()->model()->setTaxonomy(tax);
-  tax->print();
-
-  int numSegs;
-  vtkSMPropertyHelper(readerProxy, "NumSegmentations").Get(&numSegs,1);
-
-  // Create segmentation's taxonomy list
-  p = readerProxy->GetProperty("SegTaxonomies");
-  vtkSMStringVectorProperty* SegTaxProp = vtkSMStringVectorProperty::SafeDownCast(p);
-  QString segTaxonomiesProp(SegTaxProp->GetElement(0));
-
-  QStringList segTaxonomies = segTaxonomiesProp.split(";");
-  QString readerId = File::extendedName(file) + ":0";
-
-  for (int p=0; p < numSegs; p++)
-  {
-    // Extract Seg Filter
-    pqFilter::Arguments extractArgs;
-    extractArgs << pqFilter::Argument(QString("Input"),pqFilter::Argument::INPUT, readerId);
-    extractArgs << pqFilter::Argument(QString("Block"),pqFilter::Argument::INTVECT, QString::number(p));
-    pqFilter *segImage = cob->createFilter("filters","ExtractBlockAsImage",extractArgs);
-    segImage->pipelineSource()->updatePipeline();
-    vtkSMProxy *proxy = segImage->pipelineSource()->getProxy();
-    proxy->UpdatePropertyInformation();
-
-    Segmentation *seg = EspinaFactory::instance()->createSegmentation(this, p, segImage->data(0));
-    QString qualifiedName = availableTaxonomies[segTaxonomies[p].toInt()-1];
-    TaxonomyNode *node = tax->element(qualifiedName);
-    Q_ASSERT(node);
-    std::cout << "Getting taxonomy "<< segTaxonomies[p].toStdString() << ": " << node->qualifiedName().toStdString() << std::endl;
-    seg->setTaxonomy(node);
-    seg->setNumber(vtkSMPropertyHelper(proxy,"Label").GetAsInt());
-    qDebug() << "Loading Segmentation" << seg->id() << "Taxonomy: " << seg->taxonomy()->name();
-
-    m_blocks[QString::number(p)] = seg;
-  }
-
-  m_args.setBlocks(m_blocks.keys());
+  label      = elements[1].split("=")[1].toUInt();
+  taxonomyId = elements[2].split("=")[1].toUInt();
+  selected   = elements[3].split("=")[1].toUInt();
 }
 
-SegmhaImporterFilter::SegmhaImporterFilter(ModelItem::Arguments args)
-: m_segReader(NULL)
-, m_channel  (NULL)
-, m_args     (args)
+SegmhaImporterFilter::TaxonomyObject::TaxonomyObject(const QString& line)
 {
+  QStringList elements = line.split(" ");
+  QStringList rgb;
+
+  int nameIdx  = line.indexOf("name=")+6;
+  int valueIdx = line.indexOf("value=")+6;
+  int colorIdx = line.indexOf("color=")+6;
+
+  name  = line.mid(nameIdx,valueIdx-2-nameIdx-6);
+  label = line.mid(valueIdx, colorIdx-valueIdx-6).toInt();
+  rgb = line.mid(colorIdx).split(",");
+  int r = rgb[0].replace(',',"").toInt();
+  int g = rgb[1].replace(',',"").toInt();
+  int b = rgb[2].toInt();
+  color = QColor(r, g, b);
+}
+
+const QString SegmhaImporterFilter::TYPE = "Segmha Importer";
+const QString SegmhaImporterFilter::SUPPORTED_FILES = tr("Segmentation LabelMaps (*.segmha)");
+
+//-----------------------------------------------------------------------------
+SegmhaImporterFilter::SegmhaImporterFilter(Filter::NamedInputs inputs,
+					   ModelItem::Arguments args)
+: Filter       (inputs, args)
+, m_needUpdate (false)
+, m_param      (m_args)
+, m_taxonomy   (new Taxonomy())
+{
+
+}
+
+//   ModelItemExtension *crExtension = sample->extension("CountingRegionExtension");
+//   if (crExtension)
+//   {
+//     int margins[6];
+//     vtkSMPropertyHelper(readerProxy, "CountingBrick").Get(margins,6);
+// 
+//     // NOTE: Counting Region margin's order
+//     QString rcb = QString("RectangularRegion=%1,%2,%3,%4,%5,%6;")
+//       .arg(margins[0]).arg(margins[3])
+//       .arg(margins[1]).arg(margins[4])
+//       .arg(margins[2]).arg(margins[5]);
+//     qDebug() << "Using Counting Region" << rcb;
+//     ModelItem::Arguments args;
+//     args[ArgumentId("REGION", ArgumentId::KEY)] = rcb;
+//     crExtension->initialize(args);
+//   }
+// 
+//   vtkSMProperty *p;
+//   // Load Taxonomy
+//   p = readerProxy->GetProperty("Taxonomy");
+//   vtkSMStringVectorProperty* TaxProp = vtkSMStringVectorProperty::SafeDownCast(p);
+//   QString TaxonomySerialization(TaxProp->GetElement(0));
+// 
+//   QStringList taxonomies = TaxonomySerialization.split(";");
+// 
+//   Taxonomy *tax = new Taxonomy();
+//   QStringList availableTaxonomies;
+//   foreach(QString taxonomy, taxonomies)
+//   {
+//     if (taxonomy == "")
+//       continue;
+// 
+//     QStringList values = taxonomy.split(",");
+//     QChar zero = '0';
+//     QString color = QString("#%1%2%3")
+//     .arg(values[2].toInt(),2,16,zero)
+//     .arg(values[3].toInt(),2,16,zero)
+//     .arg(values[4].toInt(),2,16,zero);
+// 
+//     TaxonomyNode *node = tax->addElement(values[1]);
+//     node->setColor(QColor(color));
+//     availableTaxonomies.append(values[1]);
+//   }
+// 
+//   EspinaCore::instance()->model()->setTaxonomy(tax);
+//   tax->print();
+// 
+//   int numSegs;
+//   vtkSMPropertyHelper(readerProxy, "NumSegmentations").Get(&numSegs,1);
+// 
+//   // Create segmentation's taxonomy list
+//   p = readerProxy->GetProperty("SegTaxonomies");
+//   vtkSMStringVectorProperty* SegTaxProp = vtkSMStringVectorProperty::SafeDownCast(p);
+//   QString segTaxonomiesProp(SegTaxProp->GetElement(0));
+// 
+//   QStringList segTaxonomies = segTaxonomiesProp.split(";");
+//   QString readerId = File::extendedName(file) + ":0";
+// 
+//   for (int p=0; p < numSegs; p++)
+//   {
+//     // Extract Seg Filter
+//     pqFilter::Arguments extractArgs;
+//     extractArgs << pqFilter::Argument(QString("Input"),pqFilter::Argument::INPUT, readerId);
+//     extractArgs << pqFilter::Argument(QString("Block"),pqFilter::Argument::INTVECT, QString::number(p));
+//     pqFilter *segImage = cob->createFilter("filters","ExtractBlockAsImage",extractArgs);
+//     segImage->pipelineSource()->updatePipeline();
+//     vtkSMProxy *proxy = segImage->pipelineSource()->getProxy();
+//     proxy->UpdatePropertyInformation();
+// 
+//     Segmentation *seg = EspinaFactory::instance()->createSegmentation(this, p, segImage->data(0));
+//     QString qualifiedName = availableTaxonomies[segTaxonomies[p].toInt()-1];
+//     TaxonomyNode *node = tax->element(qualifiedName);
+//     Q_ASSERT(node);
+//     std::cout << "Getting taxonomy "<< segTaxonomies[p].toStdString() << ": " << node->qualifiedName().toStdString() << std::endl;
+//     seg->setTaxonomy(node);
+//     seg->setNumber(vtkSMPropertyHelper(proxy,"Label").GetAsInt());
+//     qDebug() << "Loading Segmentation" << seg->id() << "Taxonomy: " << seg->taxonomy()->name();
+// 
+//     m_blocks[QString::number(p)] = seg;
+//   }
+// 
+//   m_args.setBlocks(m_blocks.keys());
+// }
+/*
   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
 
   pqFilter *segFilter;
@@ -210,65 +181,216 @@ SegmhaImporterFilter::SegmhaImporterFilter(ModelItem::Arguments args)
   }
 
 //   ModelItem::Vector channels = 
-}
+}*/
 
 
 //-----------------------------------------------------------------------------
 SegmhaImporterFilter::~SegmhaImporterFilter()
 {
-//   CachedObjectBuilder *cob = CachedObjectBuilder::instance();
-//   if (m_restoreFilter)
-//     delete m_restoreFilter;
-//   if (m_segReader)
-//     cob->removeFilter(m_segReader);
-//   if (m_applyFilter)
-//     delete m_applyFilter;
-}
-
-//-----------------------------------------------------------------------------
-QString SegmhaImporterFilter::serialize() const
-{
-  return m_args.serialize();
 }
 
 //-----------------------------------------------------------------------------
 QVariant SegmhaImporterFilter::data(int role) const
 {
   if (role == Qt::DisplayRole)
-    return SIF;
+    return TYPE;
   else
     return QVariant();
 }
 
 //-----------------------------------------------------------------------------
-Segmentation *SegmhaImporterFilter::product(int index) const
+QString SegmhaImporterFilter::serialize() const
 {
-  return m_blocks[QString::number(index)];
+  QStringList blockList;
+  foreach(OutputNumber i, m_outputs.keys())
+    blockList << QString::number(i);
+
+  m_args[BLOCKS] = blockList.join(",");
+  return Filter::serialize();
 }
 
 
-// //-----------------------------------------------------------------------------
-// void SegmhaImporterFilter::removeProduct(vtkProduct* product
-// )
-// {
-//   assert(m_numSeg > 0);
-//   m_blocks.remove(product);
-//   m_numSeg--;
-//   assert(m_blocks.size() == m_numSeg);
-// 
-//   QStringList prevArgs = m_args.split(';',QString::SkipEmptyParts);
-//   QStringList newBlocks;
-//   foreach(QString blockNo, m_blocks)
-//     newBlocks.append(blockNo);
-// 
-//   QString blockList = newBlocks.join(",");
-//   prevArgs[0] = "Blocks="+blockList;
-// 
-//   m_args = prevArgs.join(";");
-//   m_args.append(';');
-// }
-// 
-// QWidget* SegmhaImporterFilter::createWidget()
-// {
-//   return new QLabel("There is no information\n available for imported\n segmentations");
-// }
+//-----------------------------------------------------------------------------
+void SegmhaImporterFilter::markAsModified()
+{
+  Filter::markAsModified();
+}
+
+//-----------------------------------------------------------------------------
+bool SegmhaImporterFilter::needUpdate() const
+{
+  return m_sources.isEmpty() || m_needUpdate;
+}
+
+//-----------------------------------------------------------------------------
+void SegmhaImporterFilter::run()
+{
+  QFileInfo file = m_args[FILE];
+  if (!file.exists())
+  {
+    QFileDialog fileDialog;
+    fileDialog.setObjectName("SelectSegmhaFile");
+    fileDialog.setFileMode(QFileDialog::ExistingFiles);
+    fileDialog.setWindowTitle(QString("Select file for %1:").arg(file.fileName()));
+    fileDialog.setFilter(SUPPORTED_FILES);
+
+    if (fileDialog.exec() != QDialog::Accepted)
+      return;
+
+    m_args[FILE] = fileDialog.selectedFiles().first();
+  }
+
+  m_lmapReader = LabelMapReader::New();
+
+  qDebug() << "Reading segmentation's meta data from file:";
+  QList<SegmentationObject> metaData;
+  QList<TaxonomyNode *> taxonomies;
+
+  QFile metaDataReader(m_args[FILE]);
+  metaDataReader.open(QIODevice::ReadOnly);
+  QTextStream stream(&metaDataReader);
+
+  QString line;
+  while (!(line = stream.readLine()).isNull())
+  {
+    QString infoType = line.split(":")[0];
+
+    if (infoType == "Object")
+    {
+      SegmentationObject seg(line);
+      metaData << seg;
+    }
+    else if (infoType == "Segment")
+    {
+      TaxonomyObject tax(line);
+      TaxonomyNode *taxonomy = m_taxonomy->addElement(tax.name);
+      //QColor color(tax.color[0], tax.color[1], tax.color[1]);
+      taxonomy->setColor(tax.color);
+      taxonomies << taxonomy;
+    }
+    else if (infoType == "Counting Brick")
+    {
+//       TODO: Create counting region
+//       int cb[6];
+//       parseCountingBrick(line,cb);
+//       this->SetCountingBrick(cb);
+    }
+  }
+  metaDataReader.close();
+  int numSegmentations = metaData.size();
+  //this->SetSegTaxonomies(segTaxonomies.toUtf8());
+  std::cout << "  Total Number of Segmentations: " << numSegmentations << std::endl;
+  //this->SetTaxonomy(taxonomies.toUtf8());
+////   std::cout << "Total Number of Taxonomies: " << taxonomies.split(";").size() << std::endl;
+
+  qDebug() << "Reading ITK image from file";
+  // Read the original image, whose pixels are indeed labelmap object ids
+  m_lmapReader->SetFileName(m_args[FILE].toStdString());
+  m_lmapReader->SetImageIO(itk::MetaImageIO::New());
+  m_lmapReader->Update();
+
+  qDebug() << "Invert ITK image's slices";
+  // EspINA python used an inversed representation of the samples
+  ImageToVTKImageFilterType::Pointer originalImage =
+    ImageToVTKImageFilterType::New();
+  originalImage->SetInput(m_lmapReader->GetOutput());
+  originalImage->Update();
+
+  vtkSmartPointer<vtkImageReslice> reslicer =
+    vtkSmartPointer<vtkImageReslice>::New();
+  reslicer->SetInput(originalImage->GetOutput());
+  reslicer->SetResliceAxesDirectionCosines(1,0,0,0,-1,0,0,0,-1);
+  reslicer->Update();
+
+  vtkSmartPointer<vtkImageChangeInformation> infoChanger =
+    vtkSmartPointer<vtkImageChangeInformation>::New();
+  infoChanger->SetInput(reslicer->GetOutput());
+  infoChanger->SetInformationInput(originalImage->GetOutput());
+  infoChanger->Update();
+
+  VTKImageToImageFilterType::Pointer vtk2itk_filter =
+    VTKImageToImageFilterType::New();
+  vtk2itk_filter->SetInput(infoChanger->GetOutput());
+  vtk2itk_filter->Update();
+
+  qDebug() << "Converting from ITK to LabelMap";
+  // Convert labeled image to label map
+  Image2LabelFilterType::Pointer image2label =
+    Image2LabelFilterType::New();
+  image2label->SetInput(vtk2itk_filter->GetOutput());
+  image2label->Update();
+
+  LabelMapType *labelMap = image2label->GetOutput();
+  qDebug() << "Number of Label Objects" << labelMap->GetNumberOfLabelObjects();
+
+  LabelObjectType * object;
+  OutputNumber id = 0;
+  foreach(SegmentationObject seg, metaData)
+  {
+    try
+    {
+      //qDebug() << "Loading Segmentation " << seg.label;
+      Source source;
+
+      object = labelMap->GetLabelObject(seg.label);
+      LabelObjectType::RegionType region = object->GetBoundingBox();
+
+      source.labelMap = LabelMapType::New();
+      source.labelMap->SetSpacing(labelMap->GetSpacing());
+      source.labelMap->SetRegions(region);
+      source.labelMap->Allocate();
+      object->SetLabel(SEG_VOXEL_VALUE);
+      source.labelMap->AddLabelObject(object);
+      source.labelMap->Update();
+
+      Label2ImageFilterType::Pointer image = Label2ImageFilterType::New();
+      image->SetInput(source.labelMap);
+      image->Update();
+
+      source.image = image;
+
+      m_outputs[id++] = image->GetOutput();
+      m_sources << source;
+      m_taxonomies << taxonomies[seg.taxonomyId-1];
+      m_labels << seg.label;
+    } catch (...)
+    {
+      std::cerr << "Couldn't import segmentation " << seg.label << std::endl;
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+bool SegmhaImporterFilter::prefetchFilter()
+{
+  QStringList blockList = m_args[BLOCKS].split(",");
+
+  foreach(QString block, blockList)
+  {
+    QString tmpFile = id() + "_" + block + ".mhd";
+    Source source;
+    source.image = tmpFileReader(tmpFile);
+
+    if (source.image.IsNull())
+      return false;
+
+    m_outputs[block.toInt()] = source.image->GetOutput();
+    m_sources << source;
+  }
+
+  emit modified(this);
+  return true;
+}
+
+//-----------------------------------------------------------------------------
+TaxonomyNode* SegmhaImporterFilter::taxonomy(OutputNumber i)
+{
+  return m_taxonomies.value(i, NULL);
+}
+
+//-----------------------------------------------------------------------------
+void SegmhaImporterFilter::initSegmentation(Segmentation* seg, int segId)
+{
+  seg->setTaxonomy(taxonomy(segId));
+  seg->setNumber(m_labels.value(segId,-1));
+}

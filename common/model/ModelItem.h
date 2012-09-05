@@ -56,21 +56,11 @@ public:
 
   typedef QList<Relation> RelationList;
 
-  class ArgumentId : public QString
-  {
-  public:
-    static const bool KEY = true;
-    static const bool VARIABLE = false;
-  public:
-    explicit ArgumentId() : isKey(false) {}
-    explicit ArgumentId(QString string, bool key)
-    : QString(string), isKey(key) {}
-    bool isKey;
-  };
-
+  typedef QString ArgumentId;
   typedef QString Argument;
 
-  class Arguments : public QMap<ArgumentId, Argument>
+  class Arguments
+  : public QMap<ArgumentId, Argument>
   {
   public:
     explicit Arguments();
@@ -78,9 +68,7 @@ public:
     explicit Arguments(const QString args);
     virtual ~Arguments(){}
 
-    virtual ArgumentId argumentId(QString name) const {return ArgumentId(name, false);}
-
-    virtual QString serialize(bool key=false) const;
+    virtual QString serialize() const;
     virtual QString hash() const;
   protected:
     inline QString argument(const QString name, const QString value) const
@@ -105,15 +93,15 @@ public:
 
   static const ArgumentId EXTENSIONS;
 
-  ModelItem() : m_vertex(0), m_relations(NULL) {}
+  ModelItem() : m_modified(false), m_vertex(0), m_relations(NULL) {}
   virtual ~ModelItem(){}
 
   virtual QString  id() const = 0;
-  virtual QVariant data(int role) const = 0;
+  virtual QVariant data(int role=Qt::DisplayRole) const = 0;
   virtual bool setData(const QVariant& value, int role = Qt::UserRole +1) {return false;}
-  virtual QString  serialize() const {return QString("none");}
+  virtual QString  serialize() const = 0;
   virtual ItemType type() const = 0;
-  
+
   Vector relatedItems(RelationType rel, const QString filter = "");
   RelationList relations(const QString filter = "");
 
@@ -123,14 +111,17 @@ public:
   virtual Representation *representation(QString name) const;
   ModelItemExtension *extension(QString name) const;
 
+  virtual void initialize(Arguments args = Arguments()) = 0;
   /// Used to initialize its extension
   /// It's important to call initialize once the item has stablished
   /// its relations with other items. It's up to the developer to
   /// satisfy this condition
-  virtual void initialize(Arguments args = Arguments()) {};
+  virtual void initializeExtensions(Arguments args = Arguments()) = 0;
 
+  bool updateForced() const {return m_modified;}
 public slots:
-  virtual void notifyModification() {emit modified(this);}
+  virtual void notifyModification(bool force=false)
+  {m_modified = force; emit modified(this);}
 
 signals:
   void modified(ModelItem *);
@@ -138,6 +129,7 @@ signals:
 protected:
   void addExtension(ModelItemExtension *ext);
 
+  bool               m_modified;
   size_t             m_vertex;
   RelationshipGraph *m_relations;
 

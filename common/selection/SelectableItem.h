@@ -21,8 +21,11 @@
 #define SELECTABLEITEM_H
 
 #include <common/model/ModelItem.h>
-#include <common/processing/pqData.h>
 
+#include "common/EspinaTypes.h"
+
+class Filter;
+class vtkAlgorithmOutput;
 
 class SelectableItem
 : public ModelItem
@@ -30,7 +33,27 @@ class SelectableItem
 public:
   ~SelectableItem(){}
 
-  virtual pqData volume() = 0;
+  virtual bool isSelected() const {return m_isSelected;}
+  virtual void setSelected(bool value) {m_isSelected = value;}
+  virtual Filter       *filter() = 0;
+  virtual OutputNumber  outputNumber() = 0;
+  virtual EspinaVolume *itkVolume() = 0;
+  /// Volume's voxel's index at given spatial position
+  virtual EspinaVolume::IndexType index(Nm x, Nm y, Nm z)
+  {
+    //volume()->Print(std::cout);
+    EspinaVolume::PointType origin = itkVolume()->GetOrigin();
+    EspinaVolume::SpacingType spacing = itkVolume()->GetSpacing();
+    EspinaVolume::IndexType res;
+    // add 0.5 before int conversion rounds the index
+    res[0] = (x - origin[0]) / spacing[0] + 0.5;
+    res[1] = (y - origin[1]) / spacing[1] + 0.5;
+    res[2] = (z - origin[2]) / spacing[2] + 0.5;
+    return res;
+  }
+
+protected:
+  bool m_isSelected;
 };
 
 typedef QSharedPointer<SelectableItem> SelectableItemPtr;

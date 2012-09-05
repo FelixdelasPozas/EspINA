@@ -20,18 +20,16 @@
 #ifndef REPRESENTATION_H
 #define REPRESENTATION_H
 
-#include "common/processing/pqData.h"
-
 class Representation
 {
 public:
-  explicit Representation(pqData data) : m_data(data) {}
-  virtual ~Representation(){}
-
-  virtual pqData output() const {return m_data;}
-
-protected:
-  pqData m_data;
+//   explicit Representation(pqData data) : m_data(data) {}
+//   virtual ~Representation(){}
+// 
+//   //virtual pqData output() const {return m_data;}
+// 
+// protected:
+//   pqData m_data;
 };
 
 #endif // REPRESENTATION_H

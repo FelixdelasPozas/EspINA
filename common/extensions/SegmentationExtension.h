@@ -37,7 +37,7 @@ public:
 public:
   virtual ~SegmentationExtension(){}
 
-  virtual void initialize(Segmentation *seg) = 0;
+  virtual void setSegmentation(Segmentation *seg) {m_seg = seg;}
 
   virtual SegmentationRepresentation *representation(QString rep) = 0;
 
@@ -45,6 +45,7 @@ public:
 
   /// Prototype
   virtual SegmentationExtension *clone() = 0;
+
 protected:
   SegmentationExtension() : m_seg(NULL){}
   Segmentation *m_seg;

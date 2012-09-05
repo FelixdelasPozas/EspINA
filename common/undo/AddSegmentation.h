@@ -23,18 +23,30 @@
 #include <QSharedPointer>
 #include <QUndoCommand>
 
+// Forward declarations
+class Channel;
+class Filter;
+class Sample;
 class Segmentation;
+class TaxonomyNode;
 
-class AddSegmentation : public QUndoCommand
+class AddSegmentation
+: public QUndoCommand
 {
 public:
-  explicit AddSegmentation(Segmentation *seg,
-			   QUndoCommand *parent=0);
+  explicit AddSegmentation(Channel     *channel,
+                           Filter      *filter,
+                           Segmentation *seg,
+                           TaxonomyNode *taxonomy);
   virtual void redo();
   virtual void undo();
 
 private:
-  Segmentation *m_segmentation;
+  Sample       *m_sample;
+  Channel      *m_channel;
+  Filter       *m_filter;
+  Segmentation *m_seg;
+  TaxonomyNode *m_taxonomy;
 };
 
 #endif // ADDSEGMENTATION_H
