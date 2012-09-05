@@ -4,8 +4,8 @@ cmake_minimum_required (VERSION 2.8)
 
 # Version Number
 set (ESPINA_VERSION_MAJOR 1)
-set (ESPINA_VERSION_MINOR 1)
-set (ESPINA_VERSION_PATCH 1)
+set (ESPINA_VERSION_MINOR 2)
+set (ESPINA_VERSION_PATCH 0)
 
 
 SET (TEST_ESPINA_MODELS CACHE BOOL "Build EspINA Model Test wrappers")
