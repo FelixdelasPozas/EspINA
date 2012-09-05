@@ -396,7 +396,7 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
     return;
 
   SelectionHandler::VtkRegion region = msel.first().first;
-  if (region.size() < 3)
+  if (region.size() < 5)
     return;
 
   SelectableItem *selectedItem = msel.first().second;
