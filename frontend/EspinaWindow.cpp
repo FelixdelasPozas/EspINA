@@ -53,6 +53,7 @@
 #include "toolbar/editor/EditorToolBar.h"
 #include "toolbar/seedgrow/SeedGrowSegmentation.h"
 #include "toolbar/voi/VolumeOfInterest.h"
+#include "AboutDialog.h"
 #include <IO/FilePack.h>
 #include <pluginInterfaces/IToolBar.h>
 #include <pluginInterfaces/IDockWidget.h>
@@ -170,6 +171,11 @@ EspinaWindow::EspinaWindow()
     connect(configure, SIGNAL(triggered(bool)),
 	    this, SLOT(showPreferencesDialog()));
     settings->addAction(configure);
+    
+    QAction *about = new QAction(tr("About"), this);
+    connect(about, SIGNAL(triggered(bool)),
+	    this, SLOT(showAboutDialog()));
+    settings->addAction(about);
   }
   menuBar()->addMenu(settings);
 
@@ -679,6 +685,14 @@ void EspinaWindow::showPreferencesDialog()
     dialog.addPanel(panel);
   }
 
+  dialog.exec();
+}
+
+//------------------------------------------------------------------------
+void EspinaWindow::showAboutDialog()
+{
+  AboutDialog dialog;
+  
   dialog.exec();
 }
 

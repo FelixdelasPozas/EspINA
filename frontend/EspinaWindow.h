@@ -71,6 +71,7 @@ protected slots:
   void updateStatus(QString msg);
   void updateTooltip(QAction *action);
   void showPreferencesDialog();
+  void showAboutDialog();
 
   void openState() {m_menuState = OPEN_STATE;}
   void addState()  {m_menuState = ADD_STATE;}

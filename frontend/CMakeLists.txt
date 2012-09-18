@@ -71,6 +71,7 @@ qt4_wrap_ui (UI_BUILT_SOURCES
   toolbar/editor/EditorToolBarSettingsPanel.ui
   views/SliceViewSettingsPanel.ui
   views/VolumeViewSettingsPanel.ui
+  AboutDialog.ui
   GeneralSettingsPanel.ui
   SettingsDialog.ui
   )
@@ -114,6 +115,7 @@ set (VIEW_SOURCES
 
 set (LOCAL_SOURCES
   main.cpp
+  AboutDialog.cpp
   EspinaWindow.cpp
   SettingsDialog.cpp
   RecentDocuments.cpp

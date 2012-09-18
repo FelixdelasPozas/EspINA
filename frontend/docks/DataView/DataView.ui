@@ -99,7 +99,7 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Add taxonomy node</string>
+        <string>Select Information Fields</string>
        </property>
        <property name="text">
         <string/>

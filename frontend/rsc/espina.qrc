@@ -1,5 +1,8 @@
 <RCC>
   <qresource prefix="/espina">
+    <file>cajalbbp.svg</file>
+    <file>cesvima.svg</file>
+    <file>upm.gif</file>
     <file>tick.png</file>
     <file>rightIn.png</file>
     <file>rightOut.png</file>
