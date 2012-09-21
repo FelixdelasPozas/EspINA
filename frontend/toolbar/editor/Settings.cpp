@@ -18,6 +18,7 @@
 
 
 #include "Settings.h"
+#include <settings/EspinaSettings.h>
 
 #include <QSettings>
 
@@ -30,7 +31,7 @@ const QString CLOSE ("EditorToolBar::CloseRadius" );
 //------------------------------------------------------------------------
 EditorToolBar::Settings::Settings()
 {
-  QSettings settings("CeSViMa", "EspINA");
+  QSettings settings(CESVIMA, ESPINA);
 
   m_brushRadius  = settings.value(BRUSH, 20).toInt();
   m_erodeRadius  = settings.value(ERODE, 3).toInt();
@@ -42,7 +43,7 @@ EditorToolBar::Settings::Settings()
 //------------------------------------------------------------------------
 void EditorToolBar::Settings::setBrushRadius(int r)
 {
-  QSettings settings("CeSViMa", "EspINA");
+  QSettings settings(CESVIMA, ESPINA);
 
   settings.setValue(BRUSH, r);
   m_brushRadius = r;
@@ -51,7 +52,7 @@ void EditorToolBar::Settings::setBrushRadius(int r)
 //------------------------------------------------------------------------
 void EditorToolBar::Settings::setErodeRadius(int r)
 {
-  QSettings settings("CeSViMa", "EspINA");
+  QSettings settings(CESVIMA, ESPINA);
 
   settings.setValue(ERODE, r);
   m_erodeRadius = r;
@@ -60,7 +61,7 @@ void EditorToolBar::Settings::setErodeRadius(int r)
 //------------------------------------------------------------------------
 void EditorToolBar::Settings::setDilateRadius(int r)
 {
-  QSettings settings("CeSViMa", "EspINA");
+  QSettings settings(CESVIMA, ESPINA);
 
   settings.setValue(DILATE, r);
   m_dilateRadius = r;
@@ -69,7 +70,7 @@ void EditorToolBar::Settings::setDilateRadius(int r)
 //------------------------------------------------------------------------
 void EditorToolBar::Settings::setOpenRadius(int r)
 {
-  QSettings settings("CeSViMa", "EspINA");
+  QSettings settings(CESVIMA, ESPINA);
 
   settings.setValue(OPEN, r);
   m_openRadius = r;
@@ -78,7 +79,7 @@ void EditorToolBar::Settings::setOpenRadius(int r)
 //------------------------------------------------------------------------
 void EditorToolBar::Settings::setCloseRadius(int r)
 {
-  QSettings settings("CeSViMa", "EspINA");
+  QSettings settings(CESVIMA, ESPINA);
 
   settings.setValue(CLOSE, r);
   m_closeRadius = r;

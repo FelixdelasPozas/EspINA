@@ -18,38 +18,45 @@
 
 
 #include "GeneralSettings.h"
+#include "EspinaSettings.h"
 
 #include <QDir>
 #include <QSettings>
 
 //-----------------------------------------------------------------------------
 GeneralSettings::GeneralSettings()
+: m_settings(new QSettings(CESVIMA, ESPINA))
 {
-  QSettings settings;
-
-  if (!settings.allKeys().contains(STACK_DIR))
-    settings.setValue(STACK_DIR, QDir::homePath()+"/Stacks");
-  if (!settings.allKeys().contains(USER_NAME))
-    settings.setValue(USER_NAME, "");
-
-  m_stackDir = settings.value(STACK_DIR).toString();
-  m_userName = settings.value(USER_NAME).toString();
+  //m_stackDir = m_settings->value(STACK_DIR, QDir::homePath()+"/Stacks").toString();
+  m_userName = m_settings->value(USER_NAME, "User").toString();
+  m_autosaveInterval = m_settings->value(AUTOSAVE_INTERVAL, 10).toInt();
+  m_autosavePath     = m_settings->value(AUTOSAVE_PATH, QDir::homePath()+"/.espina").toString();
 }
 
-//-----------------------------------------------------------------------------
-void GeneralSettings::setStackDirectory(QString path)
-{
-  QSettings settings;
-
-  m_stackDir = path;
-  settings.setValue(STACK_DIR, m_stackDir);
-}
+////-----------------------------------------------------------------------------
+//void GeneralSettings::setStackDirectory(QString path)
+//{
+//  m_stackDir = path;
+//  m_settings->setValue(STACK_DIR, m_stackDir);
+//}
 
 //-----------------------------------------------------------------------------
 void GeneralSettings::setUserName(QString name)
 {
-  QSettings settings;
-
   m_userName = name;
-  settings.setValue(USER_NAME, m_userName);
+  m_settings->setValue(USER_NAME, m_userName);
+}
+
+//-----------------------------------------------------------------------------
+void GeneralSettings::setAutosaveInterval(int min)
+{
+  m_autosaveInterval = min;
+  m_settings->setValue(AUTOSAVE_INTERVAL, min);
+}
+
+//-----------------------------------------------------------------------------
+void GeneralSettings::setAutosavePath(const QString path)
+{
+  m_autosavePath = QDir(path);
+  m_settings->setValue(AUTOSAVE_PATH, path);
 }

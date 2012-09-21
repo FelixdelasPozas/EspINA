@@ -21,6 +21,7 @@
 // // EspINA
 #include "EspinaTypes.h"
 #include "common/settings/ISettingsPanel.h"
+#include <settings/EspinaSettings.h>
 #include "common/model/Channel.h"
 #include "common/model/Representation.h"
 #include "common/model/Segmentation.h"
@@ -121,7 +122,6 @@ QWidget(parent)
   m_slicingStep[0] = m_slicingStep[1] = m_slicingStep[2] = 1;
 
   setupUI();
-
 
   // Color background
   QPalette pal = this->palette();
@@ -1430,18 +1430,11 @@ SliceView::Settings::Settings(PlaneType plane, const QString prefix)
 , m_ShowAxis(false)
 , m_plane(plane)
 {
-  QSettings settings("CeSViMa", "EspINA");
+  QSettings settings(CESVIMA, ESPINA);
 
-  if (!settings.contains(INVERT_SLICE_ORDER))
-    settings.setValue(INVERT_SLICE_ORDER, m_InvertSliceOrder);
-  if (!settings.contains(INVERT_WHEEL))
-    settings.setValue(INVERT_WHEEL, m_InvertWheel);
-  if (!settings.contains(SHOW_AXIS))
-    settings.setValue(SHOW_AXIS, m_ShowAxis);
-
-  m_InvertSliceOrder = settings.value(INVERT_SLICE_ORDER).toBool();
-  m_InvertWheel      = settings.value(INVERT_WHEEL).toBool();
-  m_ShowAxis         = settings.value(SHOW_AXIS).toBool();
+  m_InvertSliceOrder = settings.value(INVERT_SLICE_ORDER, false).toBool();
+  m_InvertWheel      = settings.value(INVERT_WHEEL, false).toBool();
+  m_ShowAxis         = settings.value(SHOW_AXIS, false).toBool();
 }
 
 //-----------------------------------------------------------------------------
@@ -1470,7 +1463,7 @@ const QString SliceView::Settings::view(PlaneType plane)
 //-----------------------------------------------------------------------------
 void SliceView::Settings::setInvertSliceOrder(bool value)
 {
-  QSettings settings("CeSViMa", "EspINA");
+  QSettings settings(CESVIMA, ESPINA);
 
   settings.setValue(INVERT_SLICE_ORDER, value);
   m_InvertSliceOrder = value;
@@ -1479,7 +1472,7 @@ void SliceView::Settings::setInvertSliceOrder(bool value)
 //-----------------------------------------------------------------------------
 void SliceView::Settings::setInvertWheel(bool value)
 {
-  QSettings settings("CeSViMa", "EspINA");
+  QSettings settings(CESVIMA, ESPINA);
 
   settings.setValue(INVERT_WHEEL, value);
   m_InvertWheel = value;
@@ -1488,7 +1481,7 @@ void SliceView::Settings::setInvertWheel(bool value)
 //-----------------------------------------------------------------------------
 void SliceView::Settings::setShowAxis(bool value)
 {
-  QSettings settings("CeSViMa", "EspINA");
+  QSettings settings(CESVIMA, ESPINA);
 
   settings.setValue(SHOW_AXIS, value);
   m_ShowAxis = value;

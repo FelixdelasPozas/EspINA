@@ -29,6 +29,7 @@
 #include <model/EspinaFactory.h>
 #include <pluginInterfaces/Renderer.h>
 #include "common/renderers/CrosshairRenderer.h"
+#include <settings/EspinaSettings.h>
 
 // GUI
 #include <QEvent>
@@ -111,22 +112,33 @@ void VolumeView::addRendererControls(Renderer* renderer)
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::removeRendererControls(Renderer* renderer)
+void VolumeView::removeRendererControls(const QString name)
 {
   for (int i = 0; i < m_controlLayout->count(); i++)
   {
     if (m_controlLayout->itemAt(i)->isEmpty())
       continue;
 
-    if (m_controlLayout->itemAt(i)->widget()->objectName() == renderer->name())
+    if (m_controlLayout->itemAt(i)->widget()->objectName() == name)
     {
       QWidget *button = m_controlLayout->itemAt(i)->widget();
       m_controlLayout->removeWidget(button);
       delete button;
     }
   }
-  m_itemRenderers.removeAll(renderer);
-  delete renderer;
+
+  Renderer *removedRenderer = NULL;
+  foreach (Renderer *renderer, m_itemRenderers)
+  {
+    if (renderer->name() == name)
+    {
+      removedRenderer = renderer;
+      break;
+    }
+  }
+
+  m_itemRenderers.removeAll(removedRenderer);
+  delete removedRenderer;
 }
 
 //-----------------------------------------------------------------------------
@@ -550,7 +562,7 @@ VolumeView::Settings::Settings(const QString prefix, VolumeView* parent)
 : RENDERERS(prefix + "VolumeView::renderers")
 {
   this->parent = parent;
-  QSettings settings("CeSViMa", "EspINA");
+  QSettings settings(CESVIMA, ESPINA);
 
   if (!settings.contains(RENDERERS))
     settings.setValue(RENDERERS, QStringList() << "Crosshairs" << "Volumetric" << "Mesh");
@@ -567,37 +579,40 @@ VolumeView::Settings::Settings(const QString prefix, VolumeView* parent)
 //-----------------------------------------------------------------------------
 void VolumeView::Settings::setRenderers(QList<Renderer *> values)
 {
-  QSettings settings("CeSViMa", "EspINA");
+  QSettings settings(CESVIMA, ESPINA);
   QStringList activeRenderersNames;
   QList<Renderer *> activeRenderers;
 
   // remove controls for unused renderers
-  QList<Renderer*>::Iterator it;
-  for (it = m_renderers.begin(); it != m_renderers.end(); it++)
+  foreach(Renderer *oldRenderer, m_renderers)
   {
-    if (!values.contains(*it))
+    bool selected = false;
+    int i = 0;
+    while (!selected && i < values.size())
+      selected = values[i++]->name() == oldRenderer->name();
+
+    if (!selected)
     {
-      parent->removeRendererControls(*it);
-      if (!(*it)->isHidden())
+      parent->removeRendererControls(oldRenderer->name());
+      if (!oldRenderer->isHidden())
       {
-        (*it)->hide();
+        oldRenderer->hide();
         parent->countEnabledRenderers(false);
       }
-
-      (*it)->setVtkRenderer(NULL);
+      oldRenderer->setVtkRenderer(NULL);
     }
     else
-      activeRenderers << (*it);
+      activeRenderers << oldRenderer;
   }
 
   // add controls for added renderers
-  for (it = values.begin(); it != values.end(); it++)
+  foreach(Renderer *renderer, values)
   {
-    activeRenderersNames << (*it)->name();
-    if (!activeRenderers.contains(*it))
+    activeRenderersNames << renderer->name();
+    if (!activeRenderers.contains(renderer))
     {
-      activeRenderers << (*it);
-      parent->addRendererControls(*it);
+      activeRenderers << renderer;
+      parent->addRendererControls(renderer->clone());
     }
   }
 

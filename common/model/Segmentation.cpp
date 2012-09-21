@@ -289,9 +289,9 @@ ModelItemExtension* Segmentation::extension(QString name)
 //------------------------------------------------------------------------
 void Segmentation::onColorEngineChanged()
 {
-  ColorEngineSettings &settings = EspinaCore::instance()->colorSettings();
-  ColorEngine * engine = settings.engine();
-  QColor color = engine->color(this);
+//   ColorEngineSettings &settings = EspinaCore::instance()->colorSettings();
+//   ColorEngine * engine = settings.engine();
+//   QColor color = engine->color(this);
 //   if (m_color != color)
 //   {
 //     m_color = color;

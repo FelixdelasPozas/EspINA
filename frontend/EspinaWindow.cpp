@@ -218,10 +218,10 @@ EspinaWindow::EspinaWindow()
 //   restoreState(settings.value("state").toByteArray(),0);
   statusBar()->clearMessage();
 
-  m_autosave.setInterval(10*60*1000);
+  m_autosave.setInterval(EspinaCore::instance()->settings().autosaveInterval()*60*1000);
   m_autosave.start();
   connect(&m_autosave, SIGNAL(timeout()),
-	  this, SLOT(autosave()));
+          this, SLOT(autosave()));
 }
 
 //------------------------------------------------------------------------
@@ -692,7 +692,7 @@ void EspinaWindow::showPreferencesDialog()
 void EspinaWindow::showAboutDialog()
 {
   AboutDialog dialog;
-  
+
   dialog.exec();
 }
 
@@ -704,10 +704,15 @@ void EspinaWindow::autosave()
 
   m_busy = true;
 
-  const QString analysisFile = ".espina-autosave.seg";
+  QDir autosavePath = EspinaCore::instance()->settings().autosavePath();
+  if (!autosavePath.exists())
+    autosavePath.mkpath(autosavePath.absolutePath());
+
+  const QFileInfo analysisFile = autosavePath.absoluteFilePath("espina-autosave.seg");
 
   IOEspinaFile::saveFile(analysisFile, m_model);
 
   updateStatus(QString("Analysis autosaved at %1").arg(QTime::currentTime().toString()));
   m_busy = false;
+  m_autosave.setInterval(EspinaCore::instance()->settings().autosaveInterval()*60*1000);
 }

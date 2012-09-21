@@ -2,6 +2,7 @@
 #define ESPINATYPES_H
 
 #include <itkImage.h>
+#include <QString>
 
 typedef itk::Image<unsigned short,3> SegmentationLabelMap;
 typedef itk::Image<unsigned char, 3> EspinaVolume;

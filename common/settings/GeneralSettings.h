@@ -22,7 +22,11 @@
 
 #include <QObject>
 #include <QString>
+#include <QDir>
 
+class QSettings;
+const QString AUTOSAVE_PATH("Autosave::Path");
+const QString AUTOSAVE_INTERVAL("Autosave::Interval");
 const QString STACK_DIR("StackDirectory");
 const QString USER_NAME("UserName");
 
@@ -31,15 +35,25 @@ class GeneralSettings
 public:
   explicit GeneralSettings();
 
-  QString stackDirectory() const {return m_stackDir;}
-  void setStackDirectory(QString path);
+  //QString stackDirectory() const {return m_stackDir;}
+  //void setStackDirectory(QString path);
 
   QString userName() const {return m_userName;}
   void setUserName(QString name);
 
+  int autosaveInterval() const {return m_autosaveInterval;}
+  void setAutosaveInterval(int min);
+
+  QDir autosavePath() const {return m_autosavePath;}
+  void setAutosavePath(const QString path);
+
 private:
+  QSettings *m_settings;
+
   QString m_stackDir;
   QString m_userName;
+  int     m_autosaveInterval;
+  QDir    m_autosavePath;
 };
 
 #endif // GENERALSETTINGS_H

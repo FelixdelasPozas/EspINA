@@ -97,7 +97,7 @@ public:
 
   void changePlanePosition(PlaneType, Nm);
   void addRendererControls(Renderer *);
-  void removeRendererControls(Renderer *);
+  void removeRendererControls(const QString name);
 
 protected:
   void updateSegmentationRepresentations();
