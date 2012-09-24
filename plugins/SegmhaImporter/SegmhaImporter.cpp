@@ -62,6 +62,27 @@ void SegmhaImporter::UndoCommand::redo()
     }
   }
 
+  ModelItemExtension *countingRegionExt = m_channel->extension("CountingRegionExtension");
+  if (countingRegionExt)
+  {
+    Nm inclusive[3], exclusive[3];
+    m_filter->countingRegion(inclusive, exclusive);
+    EspinaVolume::SpacingType spacing = m_channel->itkVolume()->GetSpacing();
+    for(int i=0; i<3;i++)
+    {
+      inclusive[i] = inclusive[i]*spacing[i];
+      exclusive[i] = exclusive[i]*spacing[i];
+    }
+
+    QString rcb = QString("RectangularBoundingRegion=%1,%2,%3,%4,%5,%6;")
+      .arg(inclusive[0]).arg(inclusive[1]).arg(inclusive[2])
+      .arg(exclusive[0]).arg(exclusive[1]).arg(exclusive[2]);
+    //qDebug() << "Using Counting Region" << rcb;
+    ModelItem::Arguments args;
+    args["Regions"] = rcb;
+    countingRegionExt->initialize(args);
+  }
+
   model->addFilter(m_filter);
   model->addSegmentation(m_segs);
 
@@ -78,20 +99,18 @@ void SegmhaImporter::UndoCommand::redo()
 //-----------------------------------------------------------------------------
 void SegmhaImporter::UndoCommand::undo()
 {
-//   QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
-//
-//   QList<Segmentation *> segs = m_filter->segmentations();
-//
-//
-//   model->removeRelation(m_channel, m_filter, "Channel");
-//   foreach(Segmentation *seg, segs)
-//   {
-//     model->removeRelation(m_filter, seg, CREATELINK);
-//     model->removeRelation(m_sample, seg, "where");
-//     model->removeRelation(m_channel, seg, "Channel");
-//     model->removeSegmentation(seg);
-//   }
-//   model->removeFilter(m_filter);
+  QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
+
+  model->removeRelation(m_channel, m_filter, Channel::LINK);
+  foreach(Segmentation *seg, m_segs)
+  {
+    model->removeRelation(m_filter, seg, CREATELINK);
+    model->removeRelation(m_sample, seg, "where");
+    model->removeRelation(m_channel, seg, Channel::LINK);
+  }
+
+  model->removeSegmentation(m_segs);
+  model->removeFilter(m_filter);
 }
 
 static const QString SEGMHA = "segmha";
