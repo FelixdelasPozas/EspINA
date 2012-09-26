@@ -99,7 +99,6 @@ public:
   void addRendererControls(Renderer *);
   void removeRendererControls(const QString name);
 
-protected:
   void updateSegmentationRepresentations();
 
 public slots:

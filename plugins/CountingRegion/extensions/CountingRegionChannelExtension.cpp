@@ -28,6 +28,8 @@
 #include <common/model/Sample.h>
 #include <common/model/Channel.h>
 #include <common/extensions/Margins/MarginsSegmentationExtension.h>
+#include <common/EspinaCore.h>
+#include <common/gui/EspinaView.h>
 
 #include <QDebug>
 
@@ -73,6 +75,7 @@ void CountingRegionChannelExtension::initialize(ModelItem::Arguments args)
     else if (AdaptiveBoundingRegion::ID == type)
       m_plugin->createAdaptiveRegion(m_channel, inclusion, exclusion);
   }
+  EspinaCore::instance()->viewManger()->currentView()->updateSegmentationRepresentations();
 }
 
 //-----------------------------------------------------------------------------
@@ -82,7 +85,7 @@ QString CountingRegionChannelExtension::serialize() const
   foreach(BoundingRegion *region, m_regions)
     regionValue << region->serialize();
 
-  m_args[REGIONS] = regionValue.join(";");
+  m_args[REGIONS] = "[" + regionValue.join(";") + "]";
   return m_args.serialize();
 }
 
@@ -119,6 +122,7 @@ void CountingRegionChannelExtension::addRegion(BoundingRegion* region)
       segExt->setBoundingRegions(m_regions);
     }
   }
+  EspinaCore::instance()->viewManger()->currentView()->updateSegmentationRepresentations();
 }
 
 //-----------------------------------------------------------------------------
@@ -140,5 +144,6 @@ void CountingRegionChannelExtension::removeRegion(BoundingRegion* region)
       segExt->setBoundingRegions(m_regions);
     }
   }
+  EspinaCore::instance()->viewManger()->currentView()->updateSegmentationRepresentations();
 }
 

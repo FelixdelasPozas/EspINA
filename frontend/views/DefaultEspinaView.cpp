@@ -281,6 +281,17 @@ void DefaultEspinaView::setColorEngine(ColorEngine* engine)
 }
 
 //----------------------------------------------------------------------------
+void DefaultEspinaView::updateSegmentationRepresentations()
+{
+  xyView->updateSegmentationRepresentations();
+  yzView->updateSegmentationRepresentations();
+  xzView->updateSegmentationRepresentations();
+  volView->updateSegmentationRepresentations();
+  forceRender();
+}
+
+
+//----------------------------------------------------------------------------
 ISettingsPanel* DefaultEspinaView::settingsPanel()
 {
   return new SettingsPanel(xyView->settings(), yzView->settings(), xzView->settings(), volView->settings());

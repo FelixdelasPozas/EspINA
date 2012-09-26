@@ -94,7 +94,7 @@ QVariant AdaptiveBoundingRegion::data(int role) const
 //-----------------------------------------------------------------------------
 QString AdaptiveBoundingRegion::serialize() const
 {
-  return QString("[%1=%2,%3,%4,%5,%6,%7]")
+  return QString("%1=%2,%3,%4,%5,%6,%7")
          .arg(ID)
 	 .arg(left(),0,'f',2).arg(top(),0,'f',2).arg(upper(),0,'f',2)
          .arg(right(),0,'f',2).arg(bottom(),0,'f',2).arg(lower(),0,'f',2);

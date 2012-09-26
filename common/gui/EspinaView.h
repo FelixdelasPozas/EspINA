@@ -64,6 +64,8 @@ public:
   virtual void slicingStep(Nm steps[3]) = 0;
   virtual void setSlicingStep(Nm steps[3]) = 0;
   void crosshairPoint(Nm point[3]){memcpy(point, m_crosshairPoint, 3*sizeof(Nm));}
+  
+  virtual void updateSegmentationRepresentations() = 0;
 
   virtual ISettingsPanel *settingsPanel() = 0;
 
