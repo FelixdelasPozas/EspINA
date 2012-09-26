@@ -29,6 +29,8 @@ public:
   explicit ActionSelectorWidget(QWidget* parent = 0);
 
   void addAction(QAction *action);
+  void setButtonAction(QAction *action);
+  QAction* getButtonAction();
 
 public slots:
   void cancelAction();

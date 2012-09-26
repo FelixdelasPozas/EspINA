@@ -193,7 +193,7 @@ void SegmhaImporterFilter::run()
 
   qDebug() << "Reading ITK image from file";
   // Read the original image, whose pixels are indeed labelmap object ids
-  m_lmapReader->SetFileName(m_args[FILE].toStdString());
+  m_lmapReader->SetFileName(m_args[FILE].toUtf8().constData());
   m_lmapReader->SetImageIO(itk::MetaImageIO::New());
   m_lmapReader->Update();
 

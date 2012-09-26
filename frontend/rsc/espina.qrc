@@ -33,13 +33,18 @@
     <file>snapshot_scene.svg</file>
     <file>removeSeg.svg</file>
     <file>defaultTaxonomy.xml</file>
-    <file>pencil.png</file>
-    <file>eraser.png</file>
+    <file>pencil2D.png</file>
+    <file>pencil3D.png</file>
+    <file>eraser2D.png</file>
+    <file>eraser3D.png</file>
     <file>erode.png</file>
     <file>close.png</file>
     <file>open.png</file>
     <file>dilate.png</file>
     <file>activeChannel.svg</file>
     <file>fillHoles.svg</file>
+    <file>lasso.png</file>
+    <file>cross-plus.png</file>
+    <file>cross-minus.png</file>
   </qresource>
 </RCC>

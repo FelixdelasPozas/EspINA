@@ -118,15 +118,11 @@ SeedGrowSegmentation::SeedGrowSegmentation(QWidget* parent)
   addAction(m_segment);
   m_threshold->setSymmetricalThreshold(true);
   QAction *batch = addAction(tr("Batch"));
-  connect(batch, SIGNAL(triggered(bool)),
-          this, SLOT(batchMode()));
+  connect(batch, SIGNAL(triggered(bool)), this, SLOT(batchMode()));
 
-  connect(m_segment, SIGNAL(triggered(QAction*)),
-          this, SLOT(waitSeedSelection(QAction*)));
-  connect(m_selector.data(), SIGNAL(selectionAborted()),
-          this, SLOT(onSelectionAborted()));
-  connect(m_segment, SIGNAL(actionCanceled()),
-          this, SLOT(abortSelection()));
+  connect(m_segment, SIGNAL(triggered(QAction*)), this, SLOT(waitSeedSelection(QAction*)));
+  connect(m_selector.data(), SIGNAL(selectionAborted()), this, SLOT(onSelectionAborted()));
+  connect(m_segment, SIGNAL(actionCanceled()), this, SLOT(abortSelection()));
 }
 
 
@@ -325,20 +321,14 @@ void SeedGrowSegmentation::buildSelectors()
   QAction *action;
 
   // Exact Pixel Selector
-  action = new QAction(
-    QIcon(":pixelSelector.svg")
-    , tr("Add synapse (Ctrl +). Exact Pixel"),
-    m_segment);
+  action = new QAction(QIcon(":pixelSelector.svg"), tr("Add synapse (Ctrl +). Exact Pixel"), m_segment);
   selector = new PixelSelector();
   selector->setMultiSelection(false);
   selector->setSelectable(SelectionHandler::EspINA_Channel);
   addPixelSelector(action, selector);
 
-//   // Best Pixel Selector
-  action = new QAction(
-    QIcon(":bestPixelSelector.svg")
-    , tr("Add synapse (Ctrl +). Best Pixel"),
-    m_segment);
+  // Best Pixel Selector
+  action = new QAction(QIcon(":bestPixelSelector.svg"), tr("Add synapse (Ctrl +). Best Pixel"), m_segment);
   BestPixelSelector *bestSelector = new BestPixelSelector();
   m_settings = new Settings(bestSelector);
   m_settingsPanel = new SettingsPanel(m_settings);

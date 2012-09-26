@@ -24,6 +24,7 @@
 
 class QMenu;
 class SelectionHandler;
+class ActionSelectorWidget;
 
 class ActionSelector
 : public QWidgetAction
@@ -35,7 +36,12 @@ public:
   virtual QWidget* createWidget(QWidget *parent);
 
   void addAction(QAction *action);
+  void setDefaultAction(QAction *action);
+  QAction* getCurrentAction();
+  QString getCurrentActionAsQString();
   void cancel() {emit cancelAction();}
+  bool isChecked();
+  void setIcon(const QIcon &);
 
 protected slots:
   void actionTriggered(QAction *action);
@@ -48,6 +54,7 @@ signals:
 
 private:
   QList<QAction *>  m_actions;
+  ActionSelectorWidget *m_button;
 };
 
 #endif // ACTIONSELECTOR_H

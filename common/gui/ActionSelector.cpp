@@ -18,7 +18,6 @@
 
 
 #include "common/gui/ActionSelector.h"
-
 #include "common/gui/ActionSelectorWidget.h"
 
 #include <QDebug>
@@ -27,40 +26,37 @@
 ActionSelector::ActionSelector(QObject *parent)
 : QWidgetAction(parent)
 {
+  m_button = NULL;
 }
 
 //------------------------------------------------------------------------
 QWidget* ActionSelector::createWidget(QWidget* parent)
 {
-//   qDebug() << "Create Segment Widget";
-  // Segmentation Button
-  ActionSelectorWidget *button = new ActionSelectorWidget(parent);
-  button->setIconSize(QSize(22,22));
+  m_button = new ActionSelectorWidget(parent);
+  m_button->setIconSize(QSize(22,22));
 
   foreach(QAction *action, m_actions)
-    button->addAction(action);
+    m_button->addAction(action);
 
-  connect(button, SIGNAL(actionTriggered(QAction*)),
-	  this, SLOT(actionTriggered(QAction*)));
-  connect(this, SIGNAL(cancelAction()),
-	  button, SLOT(cancelAction()));
-  connect(button, SIGNAL(actionCanceled()),
-	  this, SLOT(onActionCanceled()));
+  connect(m_button, SIGNAL(actionTriggered(QAction*)), this, SLOT(actionTriggered(QAction*)));
+  connect(m_button, SIGNAL(actionCanceled()), this, SLOT(onActionCanceled()));
+  connect(this, SIGNAL(cancelAction()), m_button, SLOT(cancelAction()));
 
-  return button;
+  return m_button;
 }
 
 //------------------------------------------------------------------------
 void ActionSelector::addAction(QAction* action)
 {
   m_actions.append(action);
-}
 
+  if (NULL != m_button)
+    m_button->addAction(action);
+}
 
 //------------------------------------------------------------------------
 void ActionSelector::actionTriggered(QAction* action)
 {
-//   qDebug() << action->text() << "has been triggered";
   emit triggered(action);
 }
 
@@ -68,4 +64,34 @@ void ActionSelector::actionTriggered(QAction* action)
 void ActionSelector::onActionCanceled()
 {
   emit actionCanceled();
+}
+
+//------------------------------------------------------------------------
+void ActionSelector::setDefaultAction(QAction *action)
+{
+  if (m_actions.contains(action))
+    m_button->setButtonAction(action);
+}
+
+//------------------------------------------------------------------------
+bool ActionSelector::isChecked()
+{
+  return m_button->isChecked();
+}
+
+//------------------------------------------------------------------------
+QAction* ActionSelector::getCurrentAction()
+{
+  return this->m_button->getButtonAction();
+}
+
+//------------------------------------------------------------------------
+QString ActionSelector::getCurrentActionAsQString()
+{
+  return this->m_button->getButtonAction()->text();
+}
+
+void ActionSelector::setIcon(const QIcon &icon)
+{
+  this->m_button->setIcon(icon);
 }

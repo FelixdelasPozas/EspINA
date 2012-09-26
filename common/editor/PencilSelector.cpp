@@ -60,9 +60,10 @@ bool PencilSelector::filterEvent(QEvent* e, SelectableView* view)
   {
     view->view()->releaseKeyboard();
     return SelectionHandler::filterEvent(e, view);
-  } else if (e->type() == QEvent::KeyPress)
+  }
+  else if (e->type() == QEvent::KeyPress)
   {
-   QKeyEvent *ke = static_cast<QKeyEvent *>(e);
+    QKeyEvent *ke = static_cast<QKeyEvent *>(e);
     if (ke->key() == Qt::Key_Control && ke->count() == 1)
       changeState(ERASING);
     view->view()->setCursor(cursor());
@@ -70,7 +71,7 @@ bool PencilSelector::filterEvent(QEvent* e, SelectableView* view)
   }
   if (e->type() == QEvent::KeyRelease)
   {
-   QKeyEvent *ke = static_cast<QKeyEvent *>(e);
+    QKeyEvent *ke = static_cast<QKeyEvent *>(e);
     if (ke->key() == Qt::Key_Control && ke->count() == 1)
       changeState(DRAWING);
     view->view()->setCursor(cursor());
@@ -81,8 +82,8 @@ bool PencilSelector::filterEvent(QEvent* e, SelectableView* view)
     QWheelEvent* we = dynamic_cast<QWheelEvent*>(e);
     if (we->modifiers() == Qt::CTRL)
     {
-      int numSteps = we->delta()/8/15;//Refer to QWheelEvent doc.
-      setRadius(m_radius+numSteps);
+      int numSteps = we->delta() / 8 / 15; //Refer to QWheelEvent doc.
+      setRadius(m_radius + numSteps);
       view->view()->setCursor(cursor());
       return true;
     }
@@ -92,8 +93,8 @@ bool PencilSelector::filterEvent(QEvent* e, SelectableView* view)
       startSelection(we->x(), we->y(), view);
       return false;
     }
-  }else if (QEvent::MouseButtonPress == e->type()
-      || QEvent::MouseMove == e->type())
+  }
+  else if (QEvent::MouseButtonPress == e->type() || QEvent::MouseMove == e->type())
   {
     QMouseEvent *me = dynamic_cast<QMouseEvent *>(e);
     if (me->buttons() == Qt::LeftButton)
@@ -127,13 +128,14 @@ void PencilSelector::setRadius(int radius)
     switch (m_state)
     {
       case CREATING:
-	p.setPen(QPen(Qt::blue));
-	break;
+        p.setPen(QPen(Qt::blue));
+        break;
       case DRAWING:
-	p.setPen(QPen(Qt::green));
-	break;
+        p.setPen(QPen(Qt::green));
+        break;
       case ERASING:
-	p.setPen(QPen(Qt::red));
+        p.setPen(QPen(Qt::red));
+        break;
     };
 
     p.drawEllipse(0, 0, width-1, width-1);

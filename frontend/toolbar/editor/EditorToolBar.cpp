@@ -30,6 +30,7 @@
 #include <EspinaCore.h>
 #include <model/Channel.h>
 #include <model/EspinaFactory.h>
+#include <common/gui/ActionSelector.h>
 #include <editor/ImageLogicCommand.h>
 #include <editor/PencilSelector.h>
 #include <editor/FreeFormSource.h>
@@ -40,6 +41,7 @@
 #include <editor/FillHolesCommand.h>
 #include <editor/FillHolesFilter.h>
 #include <editor/vtkTube.h>
+#include <editor/ContourSelector.h>
 #include <undo/RemoveSegmentation.h>
 #include <gui/EspinaView.h>
 
@@ -48,7 +50,8 @@
 enum BrushType {
   CIRCULAR,
   RECTANGULAR,
-  SPHERICAL
+  SPHERICAL,
+  CONTOUR
 };
 
 //----------------------------------------------------------------------------
@@ -268,16 +271,10 @@ const QString EditorToolBar::CODECommand::INPUTLINK = "Input";
 //----------------------------------------------------------------------------
 EditorToolBar::EditorToolBar(QWidget* parent)
 : QToolBar(parent)
-, m_draw(addAction(tr("Draw segmentations")))
-, m_addition(addAction(tr("Combine Selected Segmentations")))
-, m_substraction(addAction(tr("Substract Selected Segmentations")))
-, m_erode(addAction(tr("Erode Selected Segmentations")))
-, m_dilate(addAction(tr("Dilate Selected Segmentations")))
-, m_open(addAction(tr("Open Selected Segmentations")))
-, m_close(addAction(tr("Close Selected Segmentations")))
-, m_fill(addAction(tr("Fill Holes in Selected Segmentations")))
+, m_actionGroup(new ActionSelector(this))
 , m_settings(new Settings())
 , m_pencilSelector(new PencilSelector())
+, m_contourSelector(new ContourSelector())
 , m_currentSource(NULL)
 , m_currentSeg(NULL)
 {
@@ -295,46 +292,69 @@ EditorToolBar::EditorToolBar(QWidget* parent)
 
   factory->registerSettingsPanel(new EditorToolBar::SettingsPanel(m_settings));
 
-  m_draw->setIcon(QIcon(":/espina/pencil.png"));
-  m_draw->setCheckable(true);
-  connect(m_draw, SIGNAL(triggered(bool)),
-          this, SLOT(startDrawing(bool)));
+  // draw with a disc
+  m_pencilDisc = new QAction(QIcon(":/espina/pencil2D.png"), tr("Drew segmentations using a disc"), m_actionGroup);
+  m_actionGroup->addAction(m_pencilDisc);
 
+  // draw with a sphere
+  m_pencilSphere = new QAction(QIcon(":espina/pencil3D.png"), tr("Draw segmentations using a sphere"), m_actionGroup);
+  m_actionGroup->addAction(m_pencilSphere);
+
+  // draw with contour
+  m_contour = new QAction(QIcon(":espina/lasso.png"), tr("Draw segmentations using contours"), m_actionGroup);
+  m_actionGroup->addAction(m_contour);
+
+  m_actionGroup->setCheckable(true);
+  addAction(m_actionGroup);
+  connect(m_actionGroup, SIGNAL(actionCanceled()), this, SLOT(cancelDrawOperation()));
+  connect(m_actionGroup, SIGNAL(triggered(QAction*)), this, SLOT(startDrawOperation(QAction*)));
+  m_actionGroup->setDefaultAction(m_pencilDisc);
+
+  m_addition = addAction(tr("Combine Selected Segmentations"));
   m_addition->setIcon(QIcon(":/espina/add.svg"));
   connect(m_addition, SIGNAL(triggered(bool)),
           this, SLOT(combineSegmentations()));
 
+  m_substraction = addAction(tr("Subtract Selected Segmentations"));
   m_substraction->setIcon(QIcon(":/espina/remove.svg"));
   connect(m_substraction, SIGNAL(triggered(bool)),
           this, SLOT(substractSegmentations()));
 
+  m_erode = addAction(tr("Erode Selected Segmentations"));
   m_erode->setIcon(QIcon(":/espina/erode.png"));
   connect(m_erode, SIGNAL(triggered(bool)),
           this, SLOT(erodeSegmentations()));
 
+  m_dilate = addAction(tr("Dilate Selected Segmentations"));
   m_dilate->setIcon(QIcon(":/espina/dilate.png"));
   connect(m_dilate, SIGNAL(triggered(bool)),
           this, SLOT(dilateSegmentations()));
 
+  m_open = addAction(tr("Open Selected Segmentations"));
   m_open->setIcon(QIcon(":/espina/open.png"));
   connect(m_open, SIGNAL(triggered(bool)),
           this, SLOT(openSegmentations()));
 
+  m_close = addAction(tr("Close Selected Segmentations"));
   m_close->setIcon(QIcon(":/espina/close.png"));
   connect(m_close, SIGNAL(triggered(bool)),
           this, SLOT(closeSegmentations()));
 
+  m_fill = addAction(tr("Fill Holes in Selected Segmentations"));
   m_fill->setIcon(QIcon(":/espina/fillHoles.svg"));
   connect(m_fill, SIGNAL(triggered(bool)),
           this, SLOT(fillHoles()));
 
   m_pencilSelector->setSelectable(SelectionHandler::EspINA_Channel);
+  m_pencilSelector->changeState(PencilSelector::CREATING);
   connect(m_pencilSelector, SIGNAL(selectionChanged(SelectionHandler::MultiSelection)),
           this, SLOT(drawSegmentation(SelectionHandler::MultiSelection)));
   connect(m_pencilSelector, SIGNAL(selectionAborted()),
           this, SLOT(stopDrawing()));
   connect(m_pencilSelector, SIGNAL(stateChanged(PencilSelector::State)),
           this, SLOT(stateChanged(PencilSelector::State)));
+
+  m_contourSelector->setSelectable(SelectionHandler::EspINA_Channel);
 }
 
 //----------------------------------------------------------------------------
@@ -361,9 +381,9 @@ Filter* EditorToolBar::createFilter(const QString filter, Filter::NamedInputs in
 }
 
 //----------------------------------------------------------------------------
-void EditorToolBar::startDrawing(bool draw)
+void EditorToolBar::startPencilDrawing()
 {
-  if (draw)
+  if (m_actionGroup->isChecked())
   {
     SegmentationList selSegs = selectedSegmentations();
     if (selSegs.size() == 1)
@@ -372,20 +392,17 @@ void EditorToolBar::startDrawing(bool draw)
       m_currentSource = m_currentSeg->filter();
       m_pencilSelector->changeState(PencilSelector::DRAWING);
       m_pencilSelector->setColor(m_currentSeg->taxonomy()->color());
-    } else
+    }
+    else
     {
+      m_currentSeg = NULL;
+      m_currentSource = NULL;
       m_pencilSelector->changeState(PencilSelector::CREATING);
       m_pencilSelector->setColor(SelectionManager::instance()->activeTaxonomy()->color());
     }
 
     m_pencilSelector->setRadius(m_settings->brushRadius());
     SelectionManager::instance()->setSelectionHandler(m_pencilSelector);
-  }
-  else
-  {
-    SelectionManager::instance()->setSelectionHandler(NULL);
-    m_currentSource = NULL;
-    m_currentSeg = NULL;
   }
 }
 
@@ -439,14 +456,18 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
   else
     radius = fabs(region[0].y() - region[2].y());
 
-//   qDebug() << "Regions:" << region[0] << region[1] << region[2];
-//   qDebug() << "Puntos:" <<center[0] << right[0] << top[0] << left[0] << bottom[0];
-//   qDebug() << "Centro:" << baseCenter[0] << baseCenter[1];
-//   qDebug() << "Radio:" << radius;
-
   vtkSmartPointer<vtkImplicitFunction> brush;
-
   BrushType brushType = CIRCULAR;
+
+  if (m_actionGroup->getCurrentAction() == m_pencilDisc)
+    brushType = CIRCULAR;
+  else
+    if (m_actionGroup->getCurrentAction() == m_pencilSphere)
+      brushType = SPHERICAL;
+    else
+      if (m_actionGroup->getCurrentAction() == m_contour)
+        brushType = CONTOUR;
+
   switch (brushType)
   {
     case CIRCULAR:
@@ -467,8 +488,20 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
       brush = sphericalBrush;
     }
       break;
+    case CONTOUR:
+    {
+      // TODO: make contour implicit function
+      vtkSmartPointer<vtkTube> circularBrush = vtkSmartPointer<vtkTube>::New();
+      circularBrush->SetBaseCenter(baseCenter);
+      circularBrush->SetBaseRadius(radius);
+      circularBrush->SetTopCenter(topCenter);
+      circularBrush->SetTopRadius(radius);
+      brush = circularBrush;
+    }
+      break;
     default:
       Q_ASSERT(false);
+      break;
   };
 
   double bounds[6];
@@ -493,28 +526,33 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
   if (!m_currentSeg && m_currentSource)
   {
     // Create a new segmentation
-    if (PencilSelector::CREATING == m_pencilSelector->state())
-    {
-      m_currentSource->draw(0, brush, bounds);
-      m_currentSeg = EspinaFactory::instance()->createSegmentation(m_currentSource, 0);
-      TaxonomyNode *tax = SelectionManager::instance()->activeTaxonomy();
-      undo->push(new FreeFormCommand(channel, m_currentSource, m_currentSeg, tax));
-      m_pencilSelector->changeState(PencilSelector::DRAWING);
-    }
-  } else
+    Q_ASSERT (PencilSelector::CREATING == m_pencilSelector->state());
+
+    m_currentSource->draw(0, brush, bounds);
+    m_currentSeg = EspinaFactory::instance()->createSegmentation(m_currentSource, 0);
+    TaxonomyNode *tax = SelectionManager::instance()->activeTaxonomy();
+    undo->push(new FreeFormCommand(channel, m_currentSource, m_currentSeg, tax));
+    m_pencilSelector->changeState(PencilSelector::DRAWING);
+  }
+  else
   {
     unsigned int output = m_currentSeg->outputNumber();
-    if (m_pencilSelector->state() == PencilSelector::DRAWING)
-      m_currentSource->draw(output, brush, bounds);
-    else if (PencilSelector::ERASING == m_pencilSelector->state())
-      m_currentSource->draw(output, brush, bounds, 0);
-    else
-      Q_ASSERT(false);
+    switch (m_pencilSelector->state())
+    {
+      case PencilSelector::DRAWING:
+        m_currentSource->draw(output, brush, bounds);
+        break;
+      case PencilSelector::ERASING:
+        m_currentSource->draw(output, brush, bounds, 0);
+        break;
+      case PencilSelector::CREATING:
+      default:
+        Q_ASSERT(FALSE);
+        break;
+    }
   }
 
-  if (m_currentSeg)
-    m_currentSeg->notifyModification(true);
-
+  m_currentSeg->notifyModification(true);
 
 //   if (m_pencilSelector->state() == PencilSelector::DRAWING)
 //     m_currentSource->draw(selectedPlane, center, radius);
@@ -532,10 +570,10 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
 //----------------------------------------------------------------------------
 void EditorToolBar::stopDrawing()
 {
-  m_draw->blockSignals(true);
-  m_draw->setChecked(false);
+  m_actionGroup->blockSignals(true);
+  m_actionGroup->setChecked(false);
   m_pencilSelector->changeState(PencilSelector::DRAWING);
-  m_draw->blockSignals(false);
+  m_actionGroup->blockSignals(false);
 }
 
 //----------------------------------------------------------------------------
@@ -544,10 +582,21 @@ void EditorToolBar::stateChanged(PencilSelector::State state)
   switch (state)
   {
     case PencilSelector::DRAWING:
-      m_draw->setIcon(QIcon(":/espina/pencil.png"));
+      if (m_pencilDisc == m_actionGroup->getCurrentAction())
+        m_actionGroup->setIcon(QIcon(":/espina/pencil2D.png"));
+      else
+        m_actionGroup->setIcon(QIcon(":/espina/pencil3D.png"));
       break;
     case PencilSelector::ERASING:
-      m_draw->setIcon(QIcon(":/espina/eraser.png"));
+      if (m_pencilDisc == m_actionGroup->getCurrentAction())
+        m_actionGroup->setIcon(QIcon(":/espina/eraser2D.png"));
+      else
+        m_actionGroup->setIcon(QIcon(":/espina/eraser3D.png"));
+      break;
+    case PencilSelector::CREATING:
+      break;
+    default:
+      Q_ASSERT(false);
       break;
   };
 }
@@ -638,7 +687,6 @@ void EditorToolBar::fillHoles()
   }
 }
 
-
 //----------------------------------------------------------------------------
 SegmentationList EditorToolBar::selectedSegmentations()
 {
@@ -651,4 +699,58 @@ SegmentationList EditorToolBar::selectedSegmentations()
   }
 
   return selection;
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::startContourDrawing()
+{
+  if (m_actionGroup->isChecked())
+  {
+    m_contourWidget = new ContourWidget();
+    EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
+    view->addWidget(m_contourWidget);
+    m_contourWidget->setEnabled(true);
+
+    SegmentationList selSegs = selectedSegmentations();
+    if (selSegs.size() == 1)
+    {
+      m_currentSeg = selSegs.first();
+      m_currentSource = m_currentSeg->filter();
+    }
+    else
+    {
+      m_currentSeg = NULL;
+      m_currentSource = NULL;
+    }
+
+    SelectionManager::instance()->setSelectionHandler(m_contourSelector);
+  }
+}
+
+void EditorToolBar::cancelDrawOperation()
+{
+  this->m_actionGroup->cancel();
+
+  SelectionManager::instance()->setSelectionHandler(NULL);
+  m_currentSource = NULL;
+  m_currentSeg = NULL;
+
+  // additional contour cleaning
+  if (this->m_contour == this->m_actionGroup->getCurrentAction())
+  {
+    EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
+    m_contourWidget->setEnabled(false);
+    view->removeWidget(m_contourWidget);
+    delete m_contourWidget;
+    view->forceRender();
+  }
+}
+
+void EditorToolBar::startDrawOperation(QAction *action)
+{
+  if (m_pencilDisc == action || m_pencilSphere == action)
+    startPencilDrawing();
+  else
+    if (m_contour == action)
+      startContourDrawing();
 }

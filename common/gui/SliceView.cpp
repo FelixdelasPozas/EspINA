@@ -370,6 +370,7 @@ void SliceView::updateBorder(vtkPolyData* data,
       break;
     default:
       Q_ASSERT(false);
+      break;
   }
   data->Modified();
 }

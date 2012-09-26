@@ -32,7 +32,8 @@ class vtkRenderWindow;
 class SelectableView
 {
 public:
-  SelectableView(){}// : m_VOIWidget(NULL){}
+  SelectableView() {}; // : m_VOIWidget(NULL){}
+  virtual ~SelectableView() {};
 
   /// Set a selection to all elements which belong to regions
   /// and pass the filtering criteria
