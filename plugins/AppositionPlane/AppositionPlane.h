@@ -1,20 +1,21 @@
 #ifndef APPOSITIONPLANE_H
 #define APPOSITIONPLANE_H
 
-#include <EspinaPlugin.h>
-#include <selectionManager.h>
-
-class Product;
+#include <common/pluginInterfaces/IExtensionProvider.h>
 
 //! Apposition Plane Plugin
 class AppositionPlane
-      : public QObject
+: public QObject
+, public IExtensionProvider
 {
+  Q_OBJECT
+  Q_INTERFACES(IExtensionProvider)
+
 public:
-  AppositionPlane(QObject* parent=0);
+  explicit AppositionPlane();
+  virtual ~AppositionPlane(){}
   
-  void onStartup();
-  void onShutdown(){}
+  virtual void registerExtensions(){}
 };
 
 #endif// APPOSITIONPLANE_H

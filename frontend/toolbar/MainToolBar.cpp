@@ -18,6 +18,7 @@
 
 
 #include "MainToolBar.h"
+#include <docks/SegmentationInspector.h>
 
 #include <common/model/EspinaModel.h>
 #include <model/Segmentation.h>
@@ -159,6 +160,8 @@ void MainToolBar::removeSelectedSegmentation(SelectionHandler::MultiSelection ms
   Q_ASSERT(ModelItem::SEGMENTATION == input->type());
   QList<Segmentation *> removedSegs;
   removedSegs << dynamic_cast<Segmentation *>(input);
+  SegmentationInspector::RemoveInspector(removedSegs);
+  
   QSharedPointer<QUndoStack> undoStack = EspinaCore::instance()->undoStack();
   undoStack->beginMacro(tr("Delete Segmentation"));
   undoStack->push(new RemoveSegmentation(removedSegs));

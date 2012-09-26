@@ -42,6 +42,24 @@ SegmentationInspector* SegmentationInspector::CreateInspector(Segmentation* seg)
   return inspector;
 }
 
+//------------------------------------------------------------------------
+void SegmentationInspector::RemoveInspector(Segmentation* seg)
+{
+  if (m_inspectors.contains(seg))
+  {
+    m_inspectors[seg]->hide();
+    delete m_inspectors[seg];
+    m_inspectors.remove(seg);
+  }
+}
+
+//------------------------------------------------------------------------
+void SegmentationInspector::RemoveInspector(QList< Segmentation* > segs)
+{
+  foreach(Segmentation *seg, segs)
+    RemoveInspector(seg);
+}
+
 
 //------------------------------------------------------------------------
 SegmentationInspector::SegmentationInspector(Segmentation *seg, QWidget* parent, Qt::WindowFlags f)

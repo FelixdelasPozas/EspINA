@@ -1,23 +1,18 @@
 #include "AppositionPlane.h"
-
-// Debug
-#include <espina_debug.h>
-
-// EspINA
-#include <espina.h>
-#include <sample.h>
-
-#include <espINAFactory.h>
 #include "AppositionPlaneExtension.h"
+#include "AppositionPlaneRenderer.h"
+#include <common/extensions/SegmentationExtension.h>
+#include <common/model/EspinaFactory.h>
+
+#include <QDebug>
 
 //-----------------------------------------------------------------------------
-AppositionPlane::AppositionPlane(QObject* parent)
+AppositionPlane::AppositionPlane()
 {
+  qDebug() << "Loading AP";
+  SegmentationExtension::SPtr segExtension(new AppositionPlaneExtension());
+  EspinaFactory::instance()->registerSegmentationExtension(segExtension);
+  EspinaFactory::instance()->registerRenderer(new AppositionPlaneRenderer());
 }
 
-//-----------------------------------------------------------------------------
-void AppositionPlane::onStartup()
-{
-  AppositionPlaneExtension appPlane;
-  EspINAFactory::instance()->addSegmentationExtension(&appPlane);
-}
+Q_EXPORT_PLUGIN2(AppositionPlanePlugin, AppositionPlane)
