@@ -439,8 +439,7 @@ class VTK_WIDGETS_EXPORT vtkPlaneContourRepresentation : public vtkContourRepres
     PlaneType Orientation;
   private:
     vtkPlaneContourRepresentation(const vtkPlaneContourRepresentation&); //Not implemented
-    void
-    operator=(const vtkPlaneContourRepresentation&); //Not implemented
+    void operator=(const vtkPlaneContourRepresentation&); //Not implemented
 };
 
 #endif // _VTKPLANECONTOURREPRESENTATION_H_

@@ -1571,9 +1571,6 @@ bool vtkPlaneContourRepresentation::NodesIntersection(int nodeA, int nodeC)
     this->GetNthNodeWorldPosition(nodeD, d);
   }
 
-  std::cout << "Nodes: A(" << nodeA << " ->" << a[0] << "," << a[1] << "," << a[2] << ") B(" << nodeB << " ->" << b[0] << "," << b[1] << "," << b[2];
-  std::cout <<") C(" << nodeC << " ->" << c[0] << "," << c[1] << "," << c[2] << ") D(" << nodeD << " ->" << d[0] << "," << d[1] << "," << d[2] <<")\n" << std::flush;
-
   // NOTE: from now on we'll only use [0] and [1] (we're working in a plane)
   switch(this->Orientation)
   {

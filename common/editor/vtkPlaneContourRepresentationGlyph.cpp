@@ -1032,3 +1032,34 @@ void vtkPlaneContourRepresentationGlyph::UseContourPolygon(bool value)
       break;
   }
 }
+
+double vtkPlaneContourRepresentationGlyph::Distance2BetweenPoints(int displayPosX, int displayPosY, int node)
+{
+  double displayPos[2] = { displayPosX, displayPosY };
+  double nodePos[3];
+  this->GetNthNodeWorldPosition(node, nodePos);
+
+  double pointPos[3];
+  double worldOrient[9] = { 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0 };
+
+  // Compute the world position from the display position based on the concrete representation's constraints
+  // If this is not a valid display location return 0
+  if (!this->PointPlacer->ComputeWorldPosition(this->Renderer, displayPos, pointPos, worldOrient))
+    return 0;
+
+  switch(this->Orientation)
+  {
+    case AXIAL:
+      pointPos[this->Orientation] = -0.1;
+      break;
+    case CORONAL:
+    case SAGITTAL:
+      pointPos[this->Orientation] = 0.1;
+      break;
+    default:
+      Q_ASSERT(false);
+      break;
+  }
+
+  return ((pointPos[0] - nodePos[0]) * (pointPos[0] - nodePos[0])) + ((pointPos[1] - nodePos[1]) * (pointPos[1] - nodePos[1])) + ((pointPos[2] - nodePos[2]) * (pointPos[2] - nodePos[2]));
+}

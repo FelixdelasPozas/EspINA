@@ -41,6 +41,8 @@ vtkPlaneContourWidget::vtkPlaneContourWidget()
 , ContinuousDraw(true)
 , ContinuousActive(0)
 , Orientation(CORONAL)
+, ContinuousDrawTolerance(40)
+, mouseButtonDown(false)
 {
   this->ManagesCursor = 0; // from Superclass
   this->CreateDefaultRepresentation();
@@ -142,7 +144,10 @@ void vtkPlaneContourWidget::SelectAction(vtkAbstractWidget *w)
   pos[1] = Y;
 
   if (self->ContinuousDraw)
+  {
+    self->mouseButtonDown = true;
     self->ContinuousActive = 0;
+  }
 
   switch (self->WidgetState)
   {
@@ -327,6 +332,8 @@ void vtkPlaneContourWidget::AddNode()
       return;
     }
   }
+
+  // check we are in continuous mode and try not to add too many points
 
   if (rep->AddNodeAtDisplayPosition(X, Y))
   {
@@ -524,6 +531,8 @@ void vtkPlaneContourWidget::MoveAction(vtkAbstractWidget *w)
           {
             if (self->ContinuousDraw && self->ContinuousActive)
             {
+              if (self->IsPointTooClose(X,Y) && (rep->GetNumberOfNodes() > 2))
+                return;
               rep->AddNodeAtDisplayPosition(X, Y);
               self->InvokeEvent(vtkCommand::InteractionEvent, NULL);
 
@@ -588,7 +597,10 @@ void vtkPlaneContourWidget::EndSelectAction(vtkAbstractWidget *w)
   vtkPlaneContourRepresentation *rep = reinterpret_cast<vtkPlaneContourRepresentation*>(self->WidgetRep);
 
   if (self->ContinuousDraw)
+  {
+    self->mouseButtonDown = false;
     self->ContinuousActive = 0;
+  }
 
   // Do nothing if inactive
   if (rep->GetCurrentOperation() == vtkPlaneContourRepresentation::Inactive)
@@ -774,4 +786,10 @@ void vtkPlaneContourWidget::SetOrientation(PlaneType plane)
 PlaneType vtkPlaneContourWidget::GetOrientation()
 {
   return Orientation;
+}
+
+bool vtkPlaneContourWidget::IsPointTooClose(int X, int Y)
+{
+  vtkPlaneContourRepresentationGlyph *rep = reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(this->WidgetRep);
+  return (rep->Distance2BetweenPoints(X,Y, rep->GetNumberOfNodes()-2) < this->ContinuousDrawTolerance);
 }

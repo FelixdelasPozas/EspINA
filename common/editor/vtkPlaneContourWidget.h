@@ -93,6 +93,9 @@ class VTK_WIDGETS_EXPORT vtkPlaneContourWidget : public vtkAbstractWidget
     vtkGetMacro( ContinuousDraw, int );
     vtkBooleanMacro( ContinuousDraw, int );
 
+    vtkGetMacro(ContinuousDrawTolerance, double);
+    vtkSetMacro(ContinuousDrawTolerance, double);
+
     // Description:
     // Initialize the contour widget from a user supplied set of points. The
     // state of the widget decides if you are still defining the widget, or
@@ -120,7 +123,6 @@ class VTK_WIDGETS_EXPORT vtkPlaneContourWidget : public vtkAbstractWidget
     };
 
 //ETX
-
     int WidgetState;
     int CurrentHandle;
     int AllowNodePicking;
@@ -128,6 +130,7 @@ class VTK_WIDGETS_EXPORT vtkPlaneContourWidget : public vtkAbstractWidget
     int ContinuousDraw;
     int ContinuousActive;
     PlaneType Orientation;
+    double ContinuousDrawTolerance;
 
     // Callback interface to capture events when placing the widget.
     static void SelectAction(vtkAbstractWidget*);
@@ -144,15 +147,18 @@ class VTK_WIDGETS_EXPORT vtkPlaneContourWidget : public vtkAbstractWidget
     void SelectNode();
     void AddNode();
 
-    // helper methods for cursor management
-    virtual void
-    SetCursor(int State);
+    // helper method for cursor management
+    virtual void SetCursor(int State);
+
+    // helper method to avoid creating too many points in continuos drawing
+    virtual bool IsPointTooClose(int,int);
 
   private:
     vtkPlaneContourWidget(const vtkPlaneContourWidget&); //Not implemented
     void operator=(const vtkPlaneContourWidget&); //Not implemented
 
     QCursor crossMinusCursor, crossPlusCursor;
+    bool mouseButtonDown; // to create almost equally spaced points when using continuous drawing
 };
 
 #endif // _VTKPLANECONTOURWIDGET_H_

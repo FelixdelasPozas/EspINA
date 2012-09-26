@@ -99,6 +99,7 @@ class VTK_WIDGETS_EXPORT vtkPlaneContourRepresentationGlyph : public vtkPlaneCon
     // spacing is needed for interaction calculations, together with bounds
     vtkSetVector2Macro(Spacing, double);
 
+    double Distance2BetweenPoints(int displayPosX, int displayPosY, int node);
   protected:
     vtkPlaneContourRepresentationGlyph();
     ~vtkPlaneContourRepresentationGlyph();
@@ -157,6 +158,7 @@ class VTK_WIDGETS_EXPORT vtkPlaneContourRepresentationGlyph : public vtkPlaneCon
 
     virtual void BuildLines();
     virtual void UseContourPolygon(bool value);
+
   private:
     vtkPlaneContourRepresentationGlyph(const vtkPlaneContourRepresentationGlyph&); //Not implemented
     void operator=(const vtkPlaneContourRepresentationGlyph&); //Not implemented

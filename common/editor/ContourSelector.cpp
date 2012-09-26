@@ -26,8 +26,6 @@ ContourSelector::~ContourSelector()
 
 bool ContourSelector::filterEvent(QEvent* e, SelectableView* view)
 {
-  QMouseEvent *me = NULL;
-
   switch (e->type())
   {
     case QEvent::Enter:
@@ -38,8 +36,11 @@ bool ContourSelector::filterEvent(QEvent* e, SelectableView* view)
       view->view()->releaseKeyboard();
       return SelectionHandler::filterEvent(e, view);
       break;
-    default:
+    case QEvent::Wheel:
       return SelectionHandler::filterEvent(e, view);
+      break;
+    default:
+//      return SelectionHandler::filterEvent(e, view);
       break;
   }
 
