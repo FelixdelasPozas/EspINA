@@ -151,7 +151,13 @@ bookmarksopen=false
 \newcommand{\Uni}[1]{\ensuremath{\textbf{U}(k_\text{#1})}}
 %Variables
 %%Prob
-\newcommand{\Dom}[2]{\ensuremath{\textbf{D}_\text{#1} = \{#2\}}}
+\newcommand{\Tool}[3]{
+\begin{tabular}{m{0.8cm} m{13cm}}
+\frame{\includegraphics[width=0.7cm{#2}} &
+\textbf{#1}: #3
+\end{tabular}
+
+}
 %%Control
 \newcommand{\Roll}[1][]{
 \ifthenelse{\equal{#1}{}}{\text{Roll}}{[\text{Roll} = #1]}
@@ -227,9 +233,9 @@ bookmarksopen=false
 
 \input{segmentation.tex}
 
-\input{edition.tex}
+%\input{edition.tex}
 
-\input{analysis.tex}
+%\input{analysis.tex}
 
 %\bibliographystyle{alpha}
 %\bibliography{rapport-mosig}

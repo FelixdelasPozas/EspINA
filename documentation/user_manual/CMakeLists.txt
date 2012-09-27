@@ -28,17 +28,16 @@ MESSAGE(STATUS "Found sty Files: " ${rapport_asys} )
 
 #Basically it's going to copy all required files to the build dir
 ADD_LATEX_DOCUMENT( espina-user-manual.tex  #your main file
-				BIBFILES
-			 		${rapport_bib}
-			 	INPUTS 
-					${rapport_inputs}
-					${rapport_stys}
-					${rapport_asys}
-				IMAGE_DIRS
-					fig
-					fig/prob
-					fig/coax
-					fig/mavs
-					fig/anim/coa_R-Sl^Sr
-					fig/vision
-				)
+		BIBFILES
+		  ${rapport_bib}
+		INPUTS 
+		  ${rapport_inputs}
+		  ${rapport_stys}
+		  ${rapport_asys}
+		IMAGE_DIRS
+		  fig
+		  ../../frontend/rsc
+		  ../../frontend/toolbar/seedgrow/rsc
+		  ../../frontend/toolbar/voi/rsc
+		DEFAULT_PDF
+		)

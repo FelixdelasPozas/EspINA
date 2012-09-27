@@ -1,3 +1,209 @@
-\section{Segmentation}
+\section{Supported Files}
+\begin{itemize}
+  \item tiff
+  \item mhd, mha\\
+    Note: Files containing \% are not supported.
+  \item segmha
+  \item seg
+\end{itemize}
 
-One of the main functionalities of \espina is to segment new structures.
+\section{Using \espina}
+
+\subsection{General Purpose Tools}
+\begin{center}
+\includegraphics{fig/MainToolbar}
+\end{center}
+\vspace{0.3cm}
+
+\begin{tabular}{m{0.8cm} m{13cm}}
+\includegraphics[width=0.7cm]{../../frontend/rsc/show_all} &
+\textbf{Show Segmentations}: Segmentations are shown in planar views.\\
+\includegraphics[width=0.7cm]{../../frontend/rsc/hide_all} &
+\textbf{Hide Segmentations}: Segmentation are hidden in planar views.\\
+ & %No icon
+\textbf{Taxonomy Selector}: Some tools may require the user to specify a
+taxonomy label to be applied when segmentations are created.\\
+\includegraphics[width=0.7cm]{../../frontend/rsc/removeSeg} &
+\textbf{Delete Segmentation}: Select segmentations and delete them.
+\end{tabular}
+
+\subsection{Channel Explorer}
+
+\begin{center}
+\includegraphics{fig/ChannelExplorer}
+\end{center}
+
+\begin{tabular}{m{0.8cm} m{13cm}}
+ &
+\textbf{Spacing Information}: Modify channel's spacing.\\
+\includegraphics[width=0.7cm]{../../frontend/rsc/activeChannel} &
+\textbf{Activate Channel}: Mark selected channel as active channel. Operations
+are always applied to the active channel independently whether they are visible
+or not.\\
+\includegraphics[width=0.7cm]{../../frontend/rsc/rainbow} &
+\textbf{Change Stain}: Display stain color selector for selected channel.\\
+\includegraphics[width=0.7cm]{../../frontend/rsc/trash-full} &
+\textbf{Unload Channel}: Unload current channel from \espina. The channel itself
+is not modified nor deleted from disk.
+\end{tabular}
+\vspace{0.3cm}
+
+\subsection{Taxonomy Explorer}
+
+\begin{center}
+\includegraphics{fig/TaxonomyExplorer}
+\end{center}
+
+\begin{tabular}{m{0.8cm} m{13cm}}
+\includegraphics[width=0.7cm]{../../frontend/rsc/rainbow} &
+\textbf{Change Color}: Display taxonomy color selector for selected taxonomy.\\
+\includegraphics[width=0.7cm]{../../frontend/rsc/add} &
+\textbf{Add Taxonomy}: Create a new segmentation at the same level than the
+selected one.\\
+\includegraphics[width=0.7cm]{../../frontend/rsc/add_child} &
+\textbf{Add SubTaxonomy}: Create a new segmentation as a child of the selected
+one.\\
+\includegraphics[width=0.7cm]{../../frontend/rsc/remove} &
+\textbf{Delete Taxonomy}: Delete selected taxonomy.
+\end{tabular}
+\vspace{0.3cm}
+
+\subsection{Segmentation Explorer}
+
+\begin{center}
+\includegraphics{fig/SegmentationExplorer}
+\end{center}
+
+\begin{tabular}{m{0.8cm} m{13cm}}
+ & %No icon
+\textbf{Segmentation Information}: Open the segmentation inspectors for the
+selected segmentations.\\
+\includegraphics[width=0.7cm]{../../frontend/rsc/trash-full} &
+\textbf{Delete Segmentation}: Delete selected segmentations.
+\end{tabular}
+\vspace{0.3cm}
+
+\subsubsection{Segmentation Explorer}
+
+Window composed of a 3D window, a filter inspector and a data view for a given
+segmentation.
+
+\begin{center}
+\includegraphics[width=\linewidth]{fig/SegmentationInspector}
+\end{center}
+
+For more specific information, please refer to the corresponding section.
+
+\subsection{Volume Of Interest}
+
+Define a volume to limit the effect of other tools.\\
+
+\begin{tabular}{m{0.8cm} m{13cm}}
+\includegraphics[width=0.7cm]{../../frontend/toolbar/voi/rsc/roi} &
+\textbf{Rectangular Cuboid}: Define an axis aligned rectangular cuboid as volume
+of interest.
+ \end{tabular}
+
+\subsection{Seed Grow Segmentation}
+
+This tool provides a semi-automated segmentation algorithm. Select a voxel
+belonging to the object being segmented. A new segmentation will be createad
+including all voxel which are equivalent (in gray scale values) to the selected
+one, the seed.
+
+\begin{center}
+\includegraphics{fig/SeedGrowSegmentation}
+\end{center}
+\vspace{0.3cm}
+
+\begin{tabular}{m{0.8cm} m{13cm}}
+& %No icon
+\textbf{Threshold}: Gray scale difference admisible to consider a voxel equal to
+the one selected as seed. \\
+
+& %No icon
+\textbf{Default VOI}: Determine whether or not a rectangular volume of interest
+centered on the selection point is applied. If you have defined your own volume
+of interest, then that is used instead of the default one.\\
+
+\includegraphics[width=0.7cm]{../../frontend/toolbar/seedgrow/rsc/pixelSelector} &
+\textbf{Pixel Selector}: Create a new segmentation using the voxel under the
+cursor as seed for the Seed Grow Algorithm.\\
+
+\includegraphics[width=0.7cm]{../../frontend/toolbar/seedgrow/rsc/bestPixelSelector} &
+\textbf{Best Pixel Selector}: Create a new segmentation using the best voxel
+,within the neighborhood of the voxel under the cursor, as seed for the Seed
+Grow Algorithm. Best voxel is defined in terms of gray scale similarity with a
+reference gray scale value. The reference value can be configured at Seed Grow
+Segmentation settings panel.
+\end{tabular}
+
+Tip: Use Ctrl+Wheel to change threshold while any selector is active.
+
+\subsubsection{Filter Inspector}
+
+\begin{center}
+\includegraphics{fig/SeedGrowSegmentationFilterInspector}
+\end{center}
+\vspace{0.3cm}
+
+\subsection{Edition Tools}
+To start creating a new segmentation select your tool and then with no other
+segmentation being selected, start drawing on the 2D views.
+
+\begin{center}
+\includegraphics{fig/EditorToolbar}
+\end{center}
+\vspace{0.3cm}
+
+Brush tools will behave different depending on whether there is a selected
+segmentation or not. If there is only one segmentation selected then
+drawing/erasing will modify it. Otherwise, a new segmentation will be created
+until the tool is deactivated. \\
+
+Tip: As a visual help, the brush border color will change from blue (creating a
+new segmentation) to green (editing current segmentation).
+
+\begin{tabular}{m{0.8cm} m{13cm}}
+\includegraphics[width=0.7cm]{../../frontend/rsc/pencil2D} &
+\textbf{2D Brush}: Use a circle to draw on current slice. Use Ctrl+Wheel to
+change brush radius.\\
+
+\includegraphics[width=0.7cm]{../../frontend/rsc/pencil3D} &
+\textbf{3D Brush}: Use a sphere to draw on current and adjacent slices. Use
+Ctrl+Wheel to change brush radius.\\
+
+\includegraphics[width=0.7cm]{../../frontend/rsc/lasso} &
+\textbf{Contour}: Use a free-form contour to draw on current slice.\\
+
+\includegraphics[width=0.7cm]{../../frontend/rsc/eraser} &
+\textbf{Eraser}: Ctrl click while using any of the previous tools to erase
+instead of draw.
+\end{tabular}
+
+Sometimes, it can be convenient to use different tools to segement different
+parts of the same segmentation and then combine the to create the segmentation.
+
+\begin{tabular}{m{0.8cm} m{13cm}}
+\includegraphics[width=0.7cm]{../../frontend/rsc/add} &
+\textbf{Combine}: Create a unique segmentation using all voxels from all
+selected segmentations.\\
+
+\includegraphics[width=0.7cm]{../../frontend/rsc/remove} &
+\textbf{Substract}: Use the first selected input as final segmentation and erase
+all voxels which belong to any of the rest of the segmentations.
+\end{tabular}
+
+\begin{tabular}{m{0.8cm} m{13cm}}
+\includegraphics[width=0.7cm]{../../frontend/rsc/erode} &
+\textbf{Erode}: Apply Morphological Erode\\
+\includegraphics[width=0.7cm]{../../frontend/rsc/dilate} &
+\textbf{Dilate}: Apply Morphological Dilate\\
+\includegraphics[width=0.7cm]{../../frontend/rsc/open} &
+\textbf{Open}: Apply Morphological Open\\
+\includegraphics[width=0.7cm]{../../frontend/rsc/close} &
+\textbf{Close}: Apply Morphological Close\\
+\includegraphics[width=0.7cm]{../../frontend/rsc/fillHoles} &
+\textbf{Fill Holes}: Fill all the voxels which are totally surrounded by
+segmentation voxels.
+\end{tabular}
