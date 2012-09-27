@@ -134,10 +134,8 @@ set (CORE_SOURCES
   undo/AddSample.cpp
   undo/AddSegmentation.cpp
   undo/RemoveSegmentation.cpp
-  #views/vtkSliceView.cpp
-  #views/vtkVolumeView.cpp
-  widgets/vtkRectangularRepresentation.cpp
-  widgets/vtkRectangularWidget.cpp
+  widgets/vtkRectangularSliceRepresentation.cpp
+  widgets/vtkRectangularSliceWidget.cpp
   widgets/EspinaWidget.cpp
   widgets/RectangularSelection.cpp
   editor/ContourWidget.cpp

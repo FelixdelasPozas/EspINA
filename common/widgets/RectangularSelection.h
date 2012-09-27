@@ -21,14 +21,18 @@
 #define RECTANGULARVOI_H
 
 #include <common/widgets/EspinaWidget.h>
+#include <vtkCommand.h>
+
 #include <QList>
 
-class vtkImageAlgorithm;
+class vtkRectangularSliceWidget;
+
 class RectangularRegion
 : public EspinaWidget
+, public vtkCommand
 {
 public:
-  explicit RectangularRegion();
+  explicit RectangularRegion(double bounds[6]);
   virtual ~RectangularRegion();
 
   virtual vtkAbstractWidget* createWidget();
@@ -39,9 +43,11 @@ public:
   virtual void setBounds(Nm bounds[6]);
   virtual void bounds(Nm bounds[6]);
 
+  virtual void Execute(vtkObject* caller, long unsigned int eventId, void* callData);
+
 private:
-  vtkImageAlgorithm *m_box;
-  QList<vtkAbstractWidget *> m_widgets;
+  double m_bounds[6];
+  QList<vtkRectangularSliceWidget *> m_widgets;
 };
 
 #endif // RECTANGULARVOI_H

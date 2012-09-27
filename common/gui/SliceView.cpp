@@ -29,8 +29,6 @@
 #include "ColorEngine.h"
 #include "common/gui/SliceViewState.h"
 #include "vtkInteractorStyleEspinaSlice.h"
-#include <vtkRectangularWidget.h>
-#include <vtkRectangularRepresentation.h>
 #include <vtkLookupTable.h>
 #include "common/gui/VolumeView.h"
 #include <EspinaCore.h>

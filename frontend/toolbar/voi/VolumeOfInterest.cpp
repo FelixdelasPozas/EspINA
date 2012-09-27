@@ -99,9 +99,6 @@ void VolumeOfInterest::defineVOI(SelectionHandler::MultiSelection msel)
 
   QSharedPointer<ViewManager> vm = EspinaCore::instance()->viewManger();
   EspinaView *view = vm->currentView();
-  m_voiWidget = QSharedPointer<RectangularRegion>(new RectangularRegion());
-  Q_ASSERT(m_voiWidget);
-  view->addWidget(m_voiWidget.data());
 
   Nm spacing[3];
   view->slicingStep(spacing);
@@ -115,7 +112,10 @@ void VolumeOfInterest::defineVOI(SelectionHandler::MultiSelection msel)
      pos.x() - XHSIZE, pos.x() + XHSIZE,
      pos.y() - YHSIZE, pos.y() + YHSIZE,
      pos.z() - ZHSIZE, pos.z() + ZHSIZE};
-  m_voiWidget->setBounds(bounds);
+
+  m_voiWidget = QSharedPointer<RectangularRegion>(new RectangularRegion(bounds));
+  Q_ASSERT(m_voiWidget);
+  view->addWidget(m_voiWidget.data());
 
   SelectionManager *selectionManager = SelectionManager::instance();
   selectionManager->unsetSelectionHandler(m_selector.data());

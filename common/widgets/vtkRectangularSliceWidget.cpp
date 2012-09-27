@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2011  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,93 +16,88 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "vtkRectangularWidget.h"
+#include "vtkRectangularSliceWidget.h"
 
-#include "vtkRectangularRepresentation.h"
+#include "vtkRectangularSliceRepresentation.h"
 
-#include <vtkCallbackCommand.h>
-#include <vtkCommand.h>
-#include <vtkEvent.h>
-#include <vtkObjectFactory.h>
-#include <vtkPolyDataAlgorithm.h>
-#include <vtkRectangularRepresentation.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkRenderer.h>
-#include <vtkWidgetCallbackMapper.h>
-#include <vtkWidgetEvent.h>
-#include <vtkWidgetEventTranslator.h>
+#include "vtkCommand.h"
+#include "vtkCallbackCommand.h"
+#include "vtkRenderWindowInteractor.h"
+#include "vtkObjectFactory.h"
+#include "vtkWidgetEventTranslator.h"
+#include "vtkWidgetCallbackMapper.h"
+#include "vtkEvent.h"
+#include "vtkWidgetEvent.h"
+#include "vtkRenderWindow.h"
+#include "vtkRenderer.h"
+#include <vtkPolyData.h>
 
 
-vtkStandardNewMacro(vtkRectangularWidget);
+vtkStandardNewMacro(vtkRectangularSliceWidget);
 
 //----------------------------------------------------------------------------
-vtkRectangularWidget::vtkRectangularWidget()
+vtkRectangularSliceWidget::vtkRectangularSliceWidget()
 {
-  this->WidgetState = vtkRectangularWidget::Start;
+  this->WidgetState = vtkRectangularSliceWidget::Start;
   this->ManagesCursor = 1;
 
-  this->TranslationEnabled = 1;
-  this->ScalingEnabled = 1;
+  memset(Bounds, 0, 6*sizeof(double));
 
   // Define widget events
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
                                           vtkEvent::NoModifier,
                                           0, 0, NULL,
                                           vtkWidgetEvent::Select,
-                                          this, vtkRectangularWidget::SelectAction);
+                                          this, vtkRectangularSliceWidget::SelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonReleaseEvent,
                                           vtkEvent::NoModifier,
                                           0, 0, NULL,
                                           vtkWidgetEvent::EndSelect,
-                                          this, vtkRectangularWidget::EndSelectAction);
+                                          this, vtkRectangularSliceWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::MiddleButtonPressEvent,
                                           vtkWidgetEvent::Translate,
-                                          this, vtkRectangularWidget::TranslateAction);
+                                          this, vtkRectangularSliceWidget::TranslateAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::MiddleButtonReleaseEvent,
                                           vtkWidgetEvent::EndTranslate,
-                                          this, vtkRectangularWidget::EndSelectAction);
+                                          this, vtkRectangularSliceWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
                                           vtkEvent::ControlModifier,
                                           0, 0, NULL,
                                           vtkWidgetEvent::Translate,
-                                          this, vtkRectangularWidget::TranslateAction);
+                                          this, vtkRectangularSliceWidget::TranslateAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonReleaseEvent,
                                             vtkEvent::ControlModifier,
                                             0, 0, NULL,
                                           vtkWidgetEvent::EndTranslate,
-                                          this, vtkRectangularWidget::EndSelectAction);
+                                          this, vtkRectangularSliceWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
                                           vtkEvent::ShiftModifier,
                                           0, 0, NULL,
                                           vtkWidgetEvent::Translate,
-                                          this, vtkRectangularWidget::TranslateAction);
+                                          this, vtkRectangularSliceWidget::TranslateAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonReleaseEvent,
                                             vtkEvent::ShiftModifier,
                                             0, 0, NULL,
                                           vtkWidgetEvent::EndTranslate,
-                                          this, vtkRectangularWidget::EndSelectAction);
-  this->CallbackMapper->SetCallbackMethod(vtkCommand::RightButtonPressEvent,
-                                          vtkWidgetEvent::Scale,
-                                          this, vtkRectangularWidget::ScaleAction);
+                                          this, vtkRectangularSliceWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::RightButtonReleaseEvent,
                                           vtkWidgetEvent::EndScale,
-                                          this, vtkRectangularWidget::EndSelectAction);
+                                          this, vtkRectangularSliceWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::MouseMoveEvent,
                                           vtkWidgetEvent::Move,
-                                          this, vtkRectangularWidget::MoveAction);
+                                          this, vtkRectangularSliceWidget::MoveAction);
 }
 
 //----------------------------------------------------------------------------
-vtkRectangularWidget::~vtkRectangularWidget()
-{  
+vtkRectangularSliceWidget::~vtkRectangularSliceWidget()
+{
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularWidget::SelectAction(vtkAbstractWidget *w)
+void vtkRectangularSliceWidget::SelectAction(vtkAbstractWidget *w)
 {
   // We are in a static method, cast to ourself
-  vtkRectangularWidget *self = reinterpret_cast<vtkRectangularWidget*>(w);
+  vtkRectangularSliceWidget *self = reinterpret_cast<vtkRectangularSliceWidget*>(w);
 
   // Get the event position
   int X = self->Interactor->GetEventPosition()[0];
@@ -111,10 +106,10 @@ void vtkRectangularWidget::SelectAction(vtkAbstractWidget *w)
   // Okay, make sure that the pick is in the current renderer
   if ( !self->CurrentRenderer || 
        !self->CurrentRenderer->IsInViewport(X,Y) )
-  {
-    self->WidgetState = vtkRectangularWidget::Start;
+    {
+    self->WidgetState = vtkRectangularSliceWidget::Start;
     return;
-  }
+    }
 
   // Begin the widget interaction which has the side effect of setting the
   // interaction state.
@@ -123,19 +118,19 @@ void vtkRectangularWidget::SelectAction(vtkAbstractWidget *w)
   e[1] = static_cast<double>(Y);
   self->WidgetRep->StartWidgetInteraction(e);
   int interactionState = self->WidgetRep->GetInteractionState();
-  if ( interactionState == vtkRectangularRepresentation::Outside )
-  {
+  if ( interactionState == vtkRectangularSliceRepresentation::Outside )
+    {
     return;
-  }
+    }
 
   // We are definitely selected
-  self->WidgetState = vtkRectangularWidget::Active;
+  self->WidgetState = vtkRectangularSliceWidget::Active;
   self->GrabFocus(self->EventCallbackCommand);
-  
+
   // The SetInteractionState has the side effect of highlighting the widget
-  reinterpret_cast<vtkRectangularRepresentation*>(self->WidgetRep)->
+  reinterpret_cast<vtkRectangularSliceRepresentation*>(self->WidgetRep)->
     SetInteractionState(interactionState);
- 
+
   // start the interaction
   self->EventCallbackCommand->SetAbortFlag(1);
   self->StartInteraction();
@@ -144,10 +139,10 @@ void vtkRectangularWidget::SelectAction(vtkAbstractWidget *w)
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularWidget::TranslateAction(vtkAbstractWidget *w)
+void vtkRectangularSliceWidget::TranslateAction(vtkAbstractWidget *w)
 {
   // We are in a static method, cast to ourself
-  vtkRectangularWidget *self = reinterpret_cast<vtkRectangularWidget*>(w);
+  vtkRectangularSliceWidget *self = reinterpret_cast<vtkRectangularSliceWidget*>(w);
 
   // Get the event position
   int X = self->Interactor->GetEventPosition()[0];
@@ -157,10 +152,10 @@ void vtkRectangularWidget::TranslateAction(vtkAbstractWidget *w)
   if ( !self->CurrentRenderer || 
        !self->CurrentRenderer->IsInViewport(X,Y) )
     {
-    self->WidgetState = vtkRectangularWidget::Start;
+    self->WidgetState = vtkRectangularSliceWidget::Start;
     return;
     }
-  
+
   // Begin the widget interaction which has the side effect of setting the
   // interaction state.
   double e[2];
@@ -168,16 +163,16 @@ void vtkRectangularWidget::TranslateAction(vtkAbstractWidget *w)
   e[1] = static_cast<double>(Y);
   self->WidgetRep->StartWidgetInteraction(e);
   int interactionState = self->WidgetRep->GetInteractionState();
-  if ( interactionState == vtkRectangularRepresentation::Outside )
+  if ( interactionState == vtkRectangularSliceRepresentation::Outside )
     {
     return;
     }
   
   // We are definitely selected
-  self->WidgetState = vtkRectangularWidget::Active;
+  self->WidgetState = vtkRectangularSliceWidget::Active;
   self->GrabFocus(self->EventCallbackCommand);
-  reinterpret_cast<vtkRectangularRepresentation*>(self->WidgetRep)->
-    SetInteractionState(vtkRectangularRepresentation::Translating);
+  reinterpret_cast<vtkRectangularSliceRepresentation*>(self->WidgetRep)->
+    SetInteractionState(vtkRectangularSliceRepresentation::Translating);
   
   // start the interaction
   self->EventCallbackCommand->SetAbortFlag(1);
@@ -187,60 +182,16 @@ void vtkRectangularWidget::TranslateAction(vtkAbstractWidget *w)
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularWidget::ScaleAction(vtkAbstractWidget *w)
+void vtkRectangularSliceWidget::MoveAction(vtkAbstractWidget *w)
 {
-  return; //NOTE: Disabled
-  // We are in a static method, cast to ourself
-  vtkRectangularWidget *self = reinterpret_cast<vtkRectangularWidget*>(w);
-
-  // Get the event position
-  int X = self->Interactor->GetEventPosition()[0];
-  int Y = self->Interactor->GetEventPosition()[1];
-  
-  // Okay, make sure that the pick is in the current renderer
-  if ( !self->CurrentRenderer || 
-       !self->CurrentRenderer->IsInViewport(X,Y) )
-    {
-    self->WidgetState = vtkRectangularWidget::Start;
-    return;
-    }
-  
-  // Begin the widget interaction which has the side effect of setting the
-  // interaction state.
-  double e[2];
-  e[0] = static_cast<double>(X);
-  e[1] = static_cast<double>(Y);
-  self->WidgetRep->StartWidgetInteraction(e);
-  int interactionState = self->WidgetRep->GetInteractionState();
-  if ( interactionState == vtkRectangularRepresentation::Outside )
-    {
-    return;
-    }
-  
-  // We are definitely selected
-  self->WidgetState = vtkRectangularWidget::Active;
-  self->GrabFocus(self->EventCallbackCommand);
-  reinterpret_cast<vtkRectangularRepresentation*>(self->WidgetRep)->
-    SetInteractionState(vtkRectangularRepresentation::Scaling);
-
-  // start the interaction
-  self->EventCallbackCommand->SetAbortFlag(1);
-  self->StartInteraction();
-  self->InvokeEvent(vtkCommand::StartInteractionEvent,NULL);
-  self->Render();
-}
-
-//----------------------------------------------------------------------
-void vtkRectangularWidget::MoveAction(vtkAbstractWidget *w)
-{
-  vtkRectangularWidget *self = reinterpret_cast<vtkRectangularWidget*>(w);
+  vtkRectangularSliceWidget *self = reinterpret_cast<vtkRectangularSliceWidget*>(w);
 
   // compute some info we need for all cases
   int X = self->Interactor->GetEventPosition()[0];
   int Y = self->Interactor->GetEventPosition()[1];
 
   // See whether we're active
-  if ( self->WidgetState == vtkRectangularWidget::Start )
+  if ( self->WidgetState == vtkRectangularSliceWidget::Start )
   {
     self->WidgetRep->ComputeInteractionState(X, Y);
     int stateAfter = self->WidgetRep->GetInteractionState();
@@ -254,7 +205,16 @@ void vtkRectangularWidget::MoveAction(vtkAbstractWidget *w)
   e[1] = static_cast<double>(Y);
   self->WidgetRep->WidgetInteraction(e);
 
-
+//   vtkRectangularSliceRepresentation *rep =
+//     vtkRectangularSliceRepresentation::SafeDownCast(self->WidgetRep);
+//   if (rep)
+//   {
+// //     std::cout << "updating offset" << std::endl;
+//     rep->GetInclusionOffset(self->InclusionOffset);
+// //     std::cout << "Inclusion Offset: " << self->InclusionOffset[0] << " " << self->InclusionOffset[1]  << " " << self->InclusionOffset[2] << std::endl;
+//     rep->GetExclusionOffset(self->ExclusionOffset);
+// //     std::cout << "Exclusion Offset: " << self->ExclusionOffset[0] << " " << self->ExclusionOffset[1]  << " " << self->ExclusionOffset[2] << std::endl;
+//   }
   // moving something
   self->EventCallbackCommand->SetAbortFlag(1);
   self->InvokeEvent(vtkCommand::InteractionEvent,NULL);
@@ -262,28 +222,22 @@ void vtkRectangularWidget::MoveAction(vtkAbstractWidget *w)
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularWidget::SetCursor(int state)
+void vtkRectangularSliceWidget::SetCursor(int state)
 {
     switch (state)
     {
-      case vtkRectangularRepresentation::Translating:
+      case vtkRectangularSliceRepresentation::Translating:
 	this->RequestCursorShape(VTK_CURSOR_SIZEALL);
 	break;
-      case vtkRectangularRepresentation::MoveLeft:
-      case vtkRectangularRepresentation::MoveRight:
-// 	if (this->Plane == vtkSliceView::CORONAL)
-// 	  this->RequestCursorShape(VTK_CURSOR_SIZENS);
-// 	else
-	  this->RequestCursorShape(VTK_CURSOR_SIZEWE);
+      case vtkRectangularSliceRepresentation::MoveLeft:
+      case vtkRectangularSliceRepresentation::MoveRight:
+	this->RequestCursorShape(VTK_CURSOR_SIZEWE);
 	break;
-      case vtkRectangularRepresentation::MoveTop:
-      case vtkRectangularRepresentation::MoveBottom:
-// 	if (this->Plane == vtkSliceView::CORONAL)
-// 	  this->RequestCursorShape(VTK_CURSOR_SIZEWE);
-// 	else
-	  this->RequestCursorShape(VTK_CURSOR_SIZENS);
+      case vtkRectangularSliceRepresentation::MoveTop:
+      case vtkRectangularSliceRepresentation::MoveBottom:
+	this->RequestCursorShape(VTK_CURSOR_SIZENS);
 	break;
-      case vtkRectangularRepresentation::Outside:
+      case vtkRectangularSliceRepresentation::Outside:
 	this->RequestCursorShape(VTK_CURSOR_DEFAULT);
 	break;
       default:
@@ -293,18 +247,18 @@ void vtkRectangularWidget::SetCursor(int state)
 
 
 //----------------------------------------------------------------------
-void vtkRectangularWidget::EndSelectAction(vtkAbstractWidget *w)
+void vtkRectangularSliceWidget::EndSelectAction(vtkAbstractWidget *w)
 {
-  vtkRectangularWidget *self = reinterpret_cast<vtkRectangularWidget*>(w);
-  if ( self->WidgetState == vtkRectangularWidget::Start )
+  vtkRectangularSliceWidget *self = reinterpret_cast<vtkRectangularSliceWidget*>(w);
+  if ( self->WidgetState == vtkRectangularSliceWidget::Start )
     {
     return;
     }
-  
+
   // Return state to not active
-  self->WidgetState = vtkRectangularWidget::Start;
-  reinterpret_cast<vtkRectangularRepresentation*>(self->WidgetRep)->
-    SetInteractionState(vtkRectangularRepresentation::Outside);
+  self->WidgetState = vtkRectangularSliceWidget::Start;
+  reinterpret_cast<vtkRectangularSliceRepresentation*>(self->WidgetRep)->
+    SetInteractionState(vtkRectangularSliceRepresentation::Outside);
   self->ReleaseFocus();
 
   self->EventCallbackCommand->SetAbortFlag(1);
@@ -315,33 +269,67 @@ void vtkRectangularWidget::EndSelectAction(vtkAbstractWidget *w)
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularWidget::SetPlane(PlaneType plane)
+void vtkRectangularSliceWidget::SetPlane(PlaneType plane)
 {
   if (!this->WidgetRep)
-    this->CreateDefaultRepresentation();
+    CreateDefaultRepresentation();
 
-  vtkRectangularRepresentation *rep =
-    reinterpret_cast<vtkRectangularRepresentation*>(this->WidgetRep);
-    rep->SetPlane(plane);
+  vtkRectangularSliceRepresentation *rep =
+    reinterpret_cast<vtkRectangularSliceRepresentation*>(this->WidgetRep);
+  rep->SetPlane(plane);
 
   Plane = plane;
 }
 
 //----------------------------------------------------------------------
-void vtkRectangularWidget::CreateDefaultRepresentation()
+void vtkRectangularSliceWidget::SetSlice(Nm pos)
+{
+  if (!this->WidgetRep)
+    CreateDefaultRepresentation();
+
+  vtkRectangularSliceRepresentation *rep = reinterpret_cast<vtkRectangularSliceRepresentation*>(this->WidgetRep);
+  rep->SetSlice(pos);
+  Slice = pos;
+  this->Render();
+}
+
+//----------------------------------------------------------------------
+void vtkRectangularSliceWidget::SetBounds(double bounds[6])
+{
+  if (!this->WidgetRep)
+    CreateDefaultRepresentation();
+
+  vtkRectangularSliceRepresentation *rep = reinterpret_cast<vtkRectangularSliceRepresentation*>(this->WidgetRep);
+  rep->SetBounds(bounds);
+  memcpy(Bounds, bounds, 6*sizeof(double));
+  this->Render();
+}
+
+//----------------------------------------------------------------------
+void vtkRectangularSliceWidget::GetBounds(double bounds[6])
+{
+  if (!this->WidgetRep)
+    CreateDefaultRepresentation();
+
+  vtkRectangularSliceRepresentation *rep = reinterpret_cast<vtkRectangularSliceRepresentation*>(this->WidgetRep);
+  rep->GetBounds(Bounds);
+  rep->GetBounds(bounds);
+  this->Render();
+
+}
+
+//----------------------------------------------------------------------
+void vtkRectangularSliceWidget::CreateDefaultRepresentation()
 {
   if ( ! this->WidgetRep )
-    {
-    this->WidgetRep = vtkRectangularRepresentation::New();
-//     reinterpret_cast<vtkRectangularRepresentation*>(this->WidgetRep)->SetRegion(Region);
-    }
+  {
+    std::cout << "Create default rep" << std::endl;
+    this->WidgetRep = vtkRectangularSliceRepresentation::New();
+  }
 }
 
 //----------------------------------------------------------------------------
-void vtkRectangularWidget::PrintSelf(ostream& os, vtkIndent indent)
+void vtkRectangularSliceWidget::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
-
-  os << indent << "Translation Enabled: " << (this->TranslationEnabled ? "On\n" : "Off\n");
-  os << indent << "Scaling Enabled: " << (this->ScalingEnabled ? "On\n" : "Off\n");
 }

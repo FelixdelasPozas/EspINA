@@ -214,9 +214,9 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
     for (int i=0; i<6; i++)
       voiExtent[i] = (voiBounds[i] / spacing[i/2]) + 0.5;
 
-    if (voiBounds[0] <= seedPoint.x() && seedPoint.x() <= voiBounds[1] &&
-        voiBounds[2] <= seedPoint.y() && seedPoint.y() <= voiBounds[3] &&
-        voiBounds[4] <= seedPoint.z() && seedPoint.z() <= voiBounds[5])
+    if (voiExtent[0] <= seed[0] && seed[0] <= voiExtent[1] &&
+        voiExtent[2] <= seed[1] && seed[1] <= voiExtent[3] &&
+        voiExtent[4] <= seed[2] && seed[2] <= voiExtent[5])
     {
       QApplication::setOverrideCursor(Qt::WaitCursor);
 

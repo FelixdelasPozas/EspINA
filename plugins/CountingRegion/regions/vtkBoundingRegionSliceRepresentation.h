@@ -22,7 +22,8 @@ class vtkBox;
 class vtkDoubleArray;
 class vtkMatrix4x4;
 
-class VTK_WIDGETS_EXPORT vtkBoundingRegionSliceRepresentation : public vtkWidgetRepresentation
+class VTK_WIDGETS_EXPORT vtkBoundingRegionSliceRepresentation
+: public vtkWidgetRepresentation
 {
   //BTX
   enum EDGE {LEFT, TOP, RIGHT, BOTTOM};

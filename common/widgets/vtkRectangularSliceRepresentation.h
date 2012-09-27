@@ -1,50 +1,54 @@
-/*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-#ifndef VTKRECTANGULARREPRESENTATION_H
-#define VTKRECTANGULARREPRESENTATION_H
+#ifndef VTKRECTANGULARSLICEREPRESENTATION_H
+#define VTKRECTANGULARSLICEREPRESENTATION_H
 
 #include "vtkWidgetRepresentation.h"
-#include <EspinaTypes.h>
 
+#include <common/EspinaTypes.h>
+
+class vtkLookupTable;
+class vtkPolyDataAlgorithm;
 class vtkActor;
-class vtkBox;
-class vtkCellPicker;
-class vtkPoints;
-class vtkPolyData;
 class vtkPolyDataMapper;
+class vtkLineSource;
+class vtkCellPicker;
 class vtkProperty;
+class vtkPolyData;
+class vtkPoints;
+class vtkPolyDataAlgorithm;
+class vtkPointHandleRepresentation3D;
+class vtkTransform;
+class vtkPlanes;
+class vtkBox;
+class vtkDoubleArray;
+class vtkMatrix4x4;
 
-class VTK_WIDGETS_EXPORT vtkRectangularRepresentation
+class VTK_WIDGETS_EXPORT vtkRectangularSliceRepresentation
 : public vtkWidgetRepresentation
 {
   //BTX
-  enum EDGE {TOP, RIGHT, BOTTOM, LEFT};
+  enum EDGE {LEFT, TOP, RIGHT, BOTTOM};
   //ETX
+
 public:
   // Description:
   // Instantiate the class.
-  static vtkRectangularRepresentation *New();
+  static vtkRectangularSliceRepresentation *New();
 
   // Description:
   // Standard methods for the class.
-  vtkTypeMacro(vtkRectangularRepresentation,vtkWidgetRepresentation);
+  vtkTypeMacro(vtkRectangularSliceRepresentation,vtkWidgetRepresentation);
   void PrintSelf(ostream& os, vtkIndent indent);
+
+  // Description:
+  // Grab the polydata (including points) that define the box widget. The
+  // polydata consists of 6 quadrilateral faces and 15 points. The first
+  // eight points define the eight corner vertices; the next six define the
+  // -x,+x, -y,+y, -z,+z face points; and the final point (the 15th out of 15
+  // points) defines the center of the box. These point values are guaranteed
+  // to be up-to-date when either the widget's corresponding InteractionEvent
+  // or EndInteractionEvent events are invoked. The user provides the
+  // vtkPolyData and the points and cells are added to it.
+  void GetPolyData(vtkPolyData *pd);
 
   void reset();
 
@@ -58,7 +62,12 @@ public:
   // Description:
   // Get the view type properties. In which plane it is been shown
   // and which slice (in case of planar views) is selected
+//   vtkSetMacro(ViewType,int);
+//   vtkSetMacro(Slice,int);
   virtual void SetPlane(PlaneType plane);
+  virtual void SetSlice(Nm pos);
+  virtual void SetBounds(double bounds[6]);
+  virtual void GetBounds(double bounds[6]);
 
   // Description:
   // These are methods that satisfy vtkWidgetRepresentation's API.
@@ -70,16 +79,19 @@ public:
   virtual double *GetBounds();
 
   // Description:
+
   // Methods supporting, and required by, the rendering process.
   virtual void ReleaseGraphicsResources(vtkWindow*);
   virtual int  RenderOpaqueGeometry(vtkViewport*);
   virtual int  RenderTranslucentPolygonalGeometry(vtkViewport*);
   virtual int  HasTranslucentPolygonalGeometry();
 
+
 //BTX - used to manage the state of the widget
   enum {Outside=0,
-    MoveLeft, MoveRight, MoveTop, MoveBottom,
-    Translating,Scaling};
+    MoveLeft, MoveRight, MoveTop, MoveBottom, Translating
+  };
+
 //ETX
 
   // Description:
@@ -93,70 +105,68 @@ public:
   void SetInteractionState(int state);
 
 protected:
-  vtkRectangularRepresentation();
-  ~vtkRectangularRepresentation();
+  vtkRectangularSliceRepresentation();
+  ~vtkRectangularSliceRepresentation();
 
   // Manage how the representation appears
   double LastEventPosition[3];
 
-  // Rectangle's edges
+  // Counting Region Edge
   vtkActor 	    *EdgeActor[4];
   vtkPolyDataMapper *EdgeMapper[4];
   vtkPolyData 	    *EdgePolyData[4];
   vtkPoints	    *Vertex;
 
-  // Rectangular Region
-  vtkActor 	    *RegionActor;
-  vtkPolyDataMapper *RegionMapper;
-  vtkPolyData 	    *RegionPolyData;
-
   void HighlightEdge(vtkActor *actor);
-  void HighlightOutline(int highlight);
 
   // Do the picking
   vtkCellPicker *EdgePicker;
-  vtkCellPicker *RegionPicker;
   vtkCellPicker *LastPicker;
-  vtkActor *CurrentHandle;
-
-  // Support GetBounds() method
-  vtkBox *BoundingBox;
+  vtkActor *CurrentEdge;
 
   // Properties used to control the appearance of selected objects and
   // the manipulator in general.
   vtkProperty *EdgeProperty;
-  vtkProperty *RegionProperty;
   vtkProperty *SelectedEdgeProperty;
   vtkProperty *InvisibleProperty;
 
   virtual void CreateDefaultProperties();
 
-  // Helper functions to get bounds according to to plane
-  int leftIndex() const   {return Plane==SAGITTAL?4:0;}
-  int rightIndex() const  {return Plane==SAGITTAL?5:1;}
-  int topIndex() const    {return Plane==CORONAL?4:2;}
-  int bottomIndex() const {return Plane==CORONAL?5:3;}
+  int hCoord() const {return SAGITTAL == Plane?2:0;}
+  int vCoord() const {return CORONAL  == Plane?2:1;}
+  double leftEdge() {return Bounds[hCoord()*2];}
+  double topEdge() {return Bounds[vCoord()*2];}
+  double rightEdge() {return Bounds[hCoord()*2+1];}
+  double bottomEdge() {return Bounds[vCoord()*2+1];}
 
-  int hCoord() const {return Plane==SAGITTAL?2:0;}
-  int vCoord() const {return Plane==CORONAL?2:1;}
-
-  // Helper method to place every vertex according to Plane
-  virtual void updateVertex();
+  // Helper methods to create face representations
+  virtual void CreateRegion();
+  virtual void UpdateRegion();
+  virtual void UpdateXYFace();
+  virtual void UpdateYZFace();
+  virtual void UpdateXZFace();
 
   // Helper methods
-  virtual void Translate(double *p1, double *p2);
-  virtual void Scale(double *p1, double *p2, int X, int Y);
-  // Directions are relative to the plane selected
   void MoveLeftEdge(double *p1, double *p2);
   void MoveRightEdge(double *p1, double *p2);
   void MoveTopEdge(double *p1, double *p2);
   void MoveBottomEdge(double *p1, double *p2);
 
   PlaneType Plane;
+  Nm Slice;
+  bool Init;
 
 private:
-  vtkRectangularRepresentation(const vtkRectangularRepresentation&);  //Not implemented
-  void operator=(const vtkRectangularRepresentation&);  //Not implemented
+  vtkRectangularSliceRepresentation(const vtkRectangularSliceRepresentation&);  //Not implemented
+  void operator=(const vtkRectangularSliceRepresentation&);  //Not implemented
+
+  double Bounds[6];
+
+  int NumPoints;
+  int NumSlices;
+  int NumVertex;
+
+  double RepBounds[6];
 };
 
 #endif
