@@ -56,6 +56,7 @@ qt4_wrap_cpp(CORE_MOC
   settings/ColorEngineSettings.h
   editor/ContourSelector.h
   editor/ContourWidget.h
+  widgets/RectangularSelection.h
   )
 
 qt4_wrap_ui (CORE_UI

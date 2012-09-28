@@ -37,13 +37,16 @@ public:
   virtual bool eventFilter(QObject* sender, QEvent* e );
 
 protected slots:
+  void redefineVOI(double *bounds);
   void redefineFromVOI(double value, PlaneType plane);
   void redefineToVOI(double value, PlaneType plane);
   void modifyFilter();
+  void updateRegionBounds();
 
-private :
+private:
   SeedGrowSegmentationFilter *m_filter;
   RectangularRegion          *m_region;
+  Nm m_voiBounds[6];
 };
 
 #endif // SETUPWIDGET_H

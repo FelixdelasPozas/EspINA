@@ -24,13 +24,16 @@
 #include <vtkCommand.h>
 
 #include <QList>
+#include <QObject>
 
 class vtkRectangularSliceWidget;
 
 class RectangularRegion
-: public EspinaWidget
+: public QObject
+, public EspinaWidget
 , public vtkCommand
 {
+  Q_OBJECT
 public:
   explicit RectangularRegion(double bounds[6]);
   virtual ~RectangularRegion();
@@ -44,6 +47,9 @@ public:
   virtual void bounds(Nm bounds[6]);
 
   virtual void Execute(vtkObject* caller, long unsigned int eventId, void* callData);
+
+signals:
+  void modified(double *);
 
 private:
   double m_bounds[6];

@@ -131,6 +131,6 @@ void RectangularRegion::Execute(vtkObject* caller, long unsigned int eventId, vo
       if (w != widget)
         w->SetBounds(m_bounds);
   }
+  emit modified(m_bounds);
   EspinaCore::instance()->viewManger()->currentView()->forceRender();
-
 }

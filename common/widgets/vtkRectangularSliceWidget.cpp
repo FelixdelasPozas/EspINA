@@ -322,10 +322,7 @@ void vtkRectangularSliceWidget::GetBounds(double bounds[6])
 void vtkRectangularSliceWidget::CreateDefaultRepresentation()
 {
   if ( ! this->WidgetRep )
-  {
-    std::cout << "Create default rep" << std::endl;
     this->WidgetRep = vtkRectangularSliceRepresentation::New();
-  }
 }
 
 //----------------------------------------------------------------------------
