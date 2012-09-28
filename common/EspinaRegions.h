@@ -42,7 +42,7 @@ EspinaVolume::RegionType BoundingBoxRegion(EspinaVolume::RegionType r1,
 					   EspinaVolume::RegionType r2);
 
 /// Return a normalized region for volume's largest region
-EspinaVolume::RegionType NormalizedRegion(EspinaVolume *volume);
+EspinaVolume::RegionType NormalizedRegion(const EspinaVolume *volume);
 /// Return the equivalent volume region for a volume's normalized region 
 EspinaVolume::RegionType VolumeRegion(EspinaVolume *volume,
                                       EspinaVolume::RegionType normalizedRegion);

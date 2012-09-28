@@ -748,6 +748,13 @@ void EditorToolBar::cancelDrawOperation()
 
 void EditorToolBar::startDrawOperation(QAction *action)
 {
+  if (!SelectionManager::instance()->activeChannel()
+   || !SelectionManager::instance()->activeTaxonomy()) 
+  {
+    m_actionGroup->setChecked(false);
+    return;
+  }
+  
   if (m_pencilDisc == action || m_pencilSphere == action)
     startPencilDrawing();
   else

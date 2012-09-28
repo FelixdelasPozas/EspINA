@@ -117,8 +117,8 @@ SeedGrowSegmentation::SeedGrowSegmentation(QWidget* parent)
   addAction(m_useDefaultVOI);
   addAction(m_segment);
   m_threshold->setSymmetricalThreshold(true);
-  QAction *batch = addAction(tr("Batch"));
-  connect(batch, SIGNAL(triggered(bool)), this, SLOT(batchMode()));
+  //QAction *batch = addAction(tr("Batch"));
+  //connect(batch, SIGNAL(triggered(bool)), this, SLOT(batchMode()));
 
   connect(m_segment, SIGNAL(triggered(QAction*)), this, SLOT(waitSeedSelection(QAction*)));
   connect(m_selector.data(), SIGNAL(selectionAborted()), this, SLOT(onSelectionAborted()));

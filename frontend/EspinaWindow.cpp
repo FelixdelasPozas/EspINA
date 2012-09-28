@@ -143,8 +143,13 @@ EspinaWindow::EspinaWindow()
   connect(fileMenu, SIGNAL(triggered(QAction*)), this, SLOT(openRecentAnalysis()));
   menuBar()->addMenu(fileMenu);
 
+  /*** ANALYSIS MENU ***/
+  DynamicMenuNode *subnode = new DynamicMenuNode();
+  subnode->menu = menuBar()->addMenu(tr("Analysis"));
+  m_dynamicMenuRoot->submenus << subnode;
+  
   /*** EDIT MENU ***/
-  QMenu *editMenu = new QMenu("Edit");
+  QMenu *editMenu = new QMenu(tr("Edit"));
   QAction *undo = m_undoStack->createUndoAction(editMenu);
   undo->setShortcut(QString("Ctrl+Z"));
   undo->setIcon(QIcon(":espina/edit-undo.svg"));
@@ -186,18 +191,13 @@ EspinaWindow::EspinaWindow()
   addToolBar(new SeedGrowSegmentation());
   addToolBar(new EditorToolBar());
 
-  loadPlugins();
-//   QToolBar *lod = new LODToolBar();
-// //   lod->setMovable(false);
-//   addToolBar(lod);
-
   ChannelExplorer *channelExplorer = new ChannelExplorer(m_model, this);
   addDockWidget(Qt::LeftDockWidgetArea, channelExplorer);
   m_dockMenu->addAction(channelExplorer->toggleViewAction());
 
   DataViewPanel *dataView = new DataViewPanel(this);
   addDockWidget(Qt::BottomDockWidgetArea, dataView);
-  m_dockMenu->addAction(dataView->toggleViewAction());
+  m_dynamicMenuRoot->submenus[0]->menu->addAction(dataView->toggleViewAction());
 
   FilterInspector *filterInspector = new FilterInspector(this);
   addDockWidget(Qt::LeftDockWidgetArea, filterInspector);
@@ -211,6 +211,7 @@ EspinaWindow::EspinaWindow()
   addDockWidget(Qt::LeftDockWidgetArea, taxExplorer);
   m_dockMenu->addAction(taxExplorer->toggleViewAction());
 
+  loadPlugins();
 
   setActivity("segmentate");
 //   QSettings settings("CeSViMa", "EspinaModel");

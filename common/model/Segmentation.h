@@ -116,6 +116,7 @@ public:
   /// Selectable Item Interface
   virtual Filter* filter(){return m_filter;}
   virtual OutputNumber outputNumber() {return m_args.outputNumber();}
+  virtual EspinaVolume *itkVolume() const;
   virtual EspinaVolume *itkVolume();
 
   virtual vtkAlgorithmOutput* vtkVolume();

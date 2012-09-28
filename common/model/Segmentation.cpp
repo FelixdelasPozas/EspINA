@@ -115,6 +115,11 @@ Segmentation::~Segmentation()
 }
 
 //------------------------------------------------------------------------
+EspinaVolume *Segmentation::itkVolume() const
+{
+  return m_filter->output(m_args.outputNumber());
+}
+//------------------------------------------------------------------------
 EspinaVolume *Segmentation::itkVolume()
 {
   return m_filter->output(m_args.outputNumber());
@@ -141,16 +146,24 @@ QVariant Segmentation::data(int role) const
       //       return segIcon;
     }
     case Qt::ToolTipRole:
+      double bounds[6];
+      VolumeBounds(itkVolume(), bounds);
       return QString("<b>Name:</b> %1<br>"
                      "<b>Taxonomy:</b> %2<br>"
                      "<b>Filter:</b> %3<br>"
                      "<b>Users:</b><br>"
                      "%4<br>"
-                     "<b>Id:</b> %5<br>")
+                     "<b>Sections:</b><br>"
+		     "X: %5 nm-%6 nm <br>"
+		     "Y: %7 nm-%8 nm <br>"
+		     "Z: %9 nm-%10 nm")
                      .arg(data(Qt::DisplayRole).toString())
                      .arg(m_taxonomy->qualifiedName())
                      .arg(filter()->data(Qt::DisplayRole).toString())
-                     .arg(m_args[USERS]).arg(id());
+                     .arg(m_args[USERS])
+		     .arg(bounds[0]).arg(bounds[1])
+		     .arg(bounds[2]).arg(bounds[3])
+		     .arg(bounds[4]).arg(bounds[5]);
     case Qt::CheckStateRole:
       return visible() ? Qt::Checked : Qt::Unchecked;
       // //     case Qt::FontRole:

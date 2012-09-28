@@ -102,7 +102,6 @@ bookmarksopen=false
 % U R L
 \usepackage{url}
 
-
 % PAGE
 \usepackage[headings]{fullpage}
 \usepackage{placeins}
@@ -142,73 +141,12 @@ bookmarksopen=false
 
 %Formulas
 \newcommand{\ela}{\\ \nonumber}
-%Probability Definitions
-\newcommand{\Pb}[3][]{\ensuremath{\text{P}(#2\mid #3\ \pi_{#1})}}
-%\newcommand{\Pb}[3][\pi]{\ensuremath{\text{P}(#2\mid #3\ #1)}}
-%\newcommand{\PK}[1]{\ensuremath{\pi_{\text{#1}}}}
-%\newcommand{\PK}[1]{\ensuremath{\textit{PK}_{\textit{#1}}}}
-\newcommand{\Gauss}[3]{\ensuremath{G_{\mu(\text{#1}),\sigma(\text{#2})}(#3)}}
-\newcommand{\Uni}[1]{\ensuremath{\textbf{U}(k_\text{#1})}}
 %Variables
 %%Prob
-\newcommand{\Tool}[3]{
+\newcommand{\desc}[3]{
 \begin{tabular}{m{0.8cm} m{13cm}}
-\frame{\includegraphics[width=0.7cm{#2}} &
-\textbf{#1}: #3
+\includegraphics[width=0.7cm]{#2} & \textbf{#1}: #3
 \end{tabular}
-
-}
-%%Control
-\newcommand{\Roll}[1][]{
-\ifthenelse{\equal{#1}{}}{\text{Roll}}{[\text{Roll} = #1]}
-}
-\newcommand{\Pitch}[1][]{
-\ifthenelse{\equal{#1}{}}{\text{Pitch}}{[\text{Pitch} = #1]}
-}
-\newcommand{\Yaw}[1][]{
-\ifthenelse{\equal{#1}{}}{\text{Yaw}}{[\text{Yaw} = #1]}
-}
-\newcommand{\Throttle}{\ensuremath{\delta{\text{Throttle}}}}
-%%Sensors
-\newcommand{\Sl}[1][]{
-\ifthenelse{\equal{#1}{}}
-	{
-	\ensuremath{\text{Sonar}_\text{L}}
-	}
-%else
-	{
-	\ensuremath{[\text{Sonar}_\text{L} = #1]}
-	}
-}
-\newcommand{\Sr}[1][]{
-\ifthenelse{\equal{#1}{}}
-	{
-	\ensuremath{\text{Sonar}_\text{R}}
-	}
-%else
-	{
-	\ensuremath{[\text{Sonar}_\text{R} = #1]}
-	}
-}
-\newcommand{\Sf}[1][]{
-\ifthenelse{\equal{#1}{}}
-	{
-	\ensuremath{\text{Sonar}_\text{F}}
-	}
-%else
-	{
-	\ensuremath{[\text{Sonar}_\text{F} = #1]}
-	}
-}
-\newcommand{\Sd}[1][]{
-\ifthenelse{\equal{#1}{}}
-	{
-	\ensuremath{\text{Sonar}_\text{D}}
-	}
-%else
-	{
-	\ensuremath{[\text{Sonar}_\text{D} = #1]}
-	}
 }
 
 %%CONSTANTS
@@ -235,7 +173,7 @@ bookmarksopen=false
 
 %\input{edition.tex}
 
-%\input{analysis.tex}
+\input{analysis.tex}
 
 %\bibliographystyle{alpha}
 %\bibliography{rapport-mosig}

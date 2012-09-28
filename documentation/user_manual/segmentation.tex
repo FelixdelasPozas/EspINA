@@ -15,6 +15,8 @@
 \end{center}
 \vspace{0.3cm}
 
+%\desc{Show Segmentations}{../../frontend/rsc/show_all}
+%{Segmentations are shown in planar views}
 \begin{tabular}{m{0.8cm} m{13cm}}
 \includegraphics[width=0.7cm]{../../frontend/rsc/show_all} &
 \textbf{Show Segmentations}: Segmentations are shown in planar views.\\
@@ -26,6 +28,32 @@ taxonomy label to be applied when segmentations are created.\\
 \includegraphics[width=0.7cm]{../../frontend/rsc/removeSeg} &
 \textbf{Delete Segmentation}: Select segmentations and delete them.
 \end{tabular}
+
+\subsection{3D View}
+
+\begin{center}
+\includegraphics{fig/VolumeView}
+\end{center}
+
+\begin{tabular}{m{0.8cm} m{13cm}}
+\includegraphics[width=0.7cm]{../../frontend/rsc/snapshot_scene} &
+\textbf{Take Snapshot}: Save an snapshot of the current view.\\
+\includegraphics[width=0.7cm]{../../frontend/rsc/export_scene} &
+\textbf{Export 3D Scene}: Export current displayed scene into a 3D compatible format.\\
+\end{tabular}
+
+On the right side there are all available renderers, which can be configured in
+Volume View's settings panel.\\
+
+\begin{tabular}{m{0.8cm} m{13cm}}
+\includegraphics[width=0.7cm]{../../frontend/rsc/show_planes} &
+\textbf{Crosshair Renderer}: Toggle channel's crosshair planes visibility.\\
+\includegraphics[width=0.7cm]{../../frontend/rsc/mesh} &
+\textbf{Mesh Renderer}: Toggle segmentation's mesh rendering.\\
+\includegraphics[width=0.7cm]{../../frontend/rsc/voxel} &
+\textbf{Volumetric Renderer}: Toggle segmentation's volumetric rendering.\\
+\end{tabular}
+\vspace{0.3cm}
 
 \subsection{Channel Explorer}
 
@@ -57,10 +85,10 @@ is not modified nor deleted from disk.
 \begin{tabular}{m{0.8cm} m{13cm}}
 \includegraphics[width=0.7cm]{../../frontend/rsc/rainbow} &
 \textbf{Change Color}: Display taxonomy color selector for selected taxonomy.\\
-\includegraphics[width=0.7cm]{../../frontend/rsc/add} &
+\includegraphics[width=0.7cm]{../../frontend/rsc/create_node} &
 \textbf{Add Taxonomy}: Create a new segmentation at the same level than the
 selected one.\\
-\includegraphics[width=0.7cm]{../../frontend/rsc/add_child} &
+\includegraphics[width=0.7cm]{../../frontend/rsc/create_subnode} &
 \textbf{Add SubTaxonomy}: Create a new segmentation as a child of the selected
 one.\\
 \includegraphics[width=0.7cm]{../../frontend/rsc/remove} &
@@ -196,13 +224,13 @@ all voxels which belong to any of the rest of the segmentations.
 
 \begin{tabular}{m{0.8cm} m{13cm}}
 \includegraphics[width=0.7cm]{../../frontend/rsc/erode} &
-\textbf{Erode}: Apply Morphological Erode\\
+\textbf{Erode}: Gradually shrink the boundaries of selected segmentations.\\
 \includegraphics[width=0.7cm]{../../frontend/rsc/dilate} &
-\textbf{Dilate}: Apply Morphological Dilate\\
+\textbf{Dilate}: Gradually enlarge the boundaries of selected segmentations. \\
 \includegraphics[width=0.7cm]{../../frontend/rsc/open} &
-\textbf{Open}: Apply Morphological Open\\
+\textbf{Opening}: Structural removal of some voxels from the edges of the segmmentations. Contrary to erode, opening preserve those parts of the segmentation which have a similar shape to the structuring element, or that can completely contain the structuring element, a sphere of given radius (default 3 voxels).\\
 \includegraphics[width=0.7cm]{../../frontend/rsc/close} &
-\textbf{Close}: Apply Morphological Close\\
+\textbf{Closing}: Structural enlargement of voxels from the edges of the segmmentations. Contrary to dilate, closing preserve those cavities of the segmentation which have a similar shape to the structuring element, or that can completely contain the structuring element, a sphere of given radius (default 3 voxels).\\
 \includegraphics[width=0.7cm]{../../frontend/rsc/fillHoles} &
 \textbf{Fill Holes}: Fill all the voxels which are totally surrounded by
 segmentation voxels.
