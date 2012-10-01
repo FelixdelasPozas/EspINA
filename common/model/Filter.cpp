@@ -82,9 +82,7 @@ QList<OutputNumber> Filter::editedOutputs() const
   QList<OutputNumber> res;
   QStringList values = m_args.value(EDIT, QString()).split(",");
   foreach (QString value, values)
-  {
     res << value.toInt();
-  }
 
   return res;
 }
@@ -285,8 +283,6 @@ void Filter::draw(OutputNumber i, vtkPolyData *contour, Nm slice, PlaneType plan
       break;
   }
 
-  std::cout << "changed extent:" << extent[0] << "," << extent[1] << "," << extent[2] << "," << extent[3] << "," << extent[4] << "," << extent[5] << "]\n" << std::flush;
-
   vtkSmartPointer<vtkPolyDataToImageStencil> polyDataToStencil = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
   polyDataToStencil = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
   polyDataToStencil->SetInputConnection(contour->GetProducerPort());
@@ -294,8 +290,6 @@ void Filter::draw(OutputNumber i, vtkPolyData *contour, Nm slice, PlaneType plan
   polyDataToStencil->SetOutputSpacing(spacing[0], spacing[1], spacing[2]);
   polyDataToStencil->SetOutputWholeExtent(extent[0], extent[1], extent[2], extent[3], vtkMath::Round(slice/spacing[2]), vtkMath::Round(slice/spacing[2]));
   polyDataToStencil->SetTolerance(0);
-
-  std::cout << "p2s extent:" << extent[0] << "," << extent[1] << "," << extent[2] << "," << extent[3] << "," << slice/spacing[2] << "," << slice/spacing[2] << "]\n" << std::flush;
 
   vtkSmartPointer<vtkImageStencilToImage> stencilToImage = vtkSmartPointer<vtkImageStencilToImage>::New();
   stencilToImage->SetInputConnection(polyDataToStencil->GetOutputPort());
@@ -323,7 +317,6 @@ void Filter::draw(OutputNumber i, vtkPolyData *contour, Nm slice, PlaneType plan
   importer->Update();
 
   VolumeExtent(importer->GetOutput(), extent);
-  std::cout << "importer extent:" << extent[0] << "," << extent[1] << "," << extent[2] << "," << extent[3] << "," << extent[4] << "," << extent[5] << "]\n" << std::flush;
 
   itk::Index<3> index;
   itk::ImageRegionIteratorWithIndex<EspinaVolume> init(importer->GetOutput(), importer->GetOutput()->GetLargestPossibleRegion());

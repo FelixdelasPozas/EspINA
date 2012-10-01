@@ -84,12 +84,6 @@ void ContourSource::draw(OutputNumber i, vtkPolyData *contour, Nm slice, PlaneTy
   }
   else
   {
-    for (int j = 0; j < contour->GetPoints()->GetNumberOfPoints(); j++)
-    {
-      double pos[3];
-      contour->GetPoint(j, pos);
-      std::cout << "point " << j << " [ " << pos[0] << ", " << pos[1] << ", " << pos[2] << "]\n" << std::flush;
-    }
     contour->ComputeBounds();
     contour->GetBounds(bounds);
     if (true == ImageInitializedByFilter)

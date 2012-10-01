@@ -526,6 +526,20 @@ void vtkPlaneContourRepresentation::SetNthNodeWorldPositionInternal(int n, doubl
   this->Internal->Nodes[n]->WorldPosition[1] = worldPos[1];
   this->Internal->Nodes[n]->WorldPosition[2] = worldPos[2];
 
+  switch(this->Orientation)
+  {
+    case AXIAL:
+      this->Internal->Nodes[n]->WorldPosition[this->Orientation] = -0.1;
+      break;
+    case CORONAL:
+    case SAGITTAL:
+      this->Internal->Nodes[n]->WorldPosition[this->Orientation] = 0.1;
+      break;
+    default:
+      Q_ASSERT(false);
+      break;
+  }
+
   this->GetRendererComputedDisplayPositionFromWorldPosition(worldPos, worldOrient, this->Internal->Nodes[n]->NormalizedDisplayPosition);
   this->Renderer->DisplayToNormalizedDisplay(this->Internal->Nodes[n]->NormalizedDisplayPosition[0], this->Internal->Nodes[n]->NormalizedDisplayPosition[1]);
 
@@ -1411,11 +1425,14 @@ bool vtkPlaneContourRepresentation::LineIntersection(int n, double *intersection
 
     if (NodesIntersection(node,i))
     {
-      int tempNode = i + 1 ;
+      int j = i + 1 ;
       this->GetNthNodeWorldPosition(i, p3);
-      this->GetNthNodeWorldPosition(tempNode++ % numNodes, p4);
+      this->GetNthNodeWorldPosition(j % numNodes, p4);
       while ((p3[0] == p4[0]) && (p3[1] == p4[1]) && (p3[2] == p4[2]))
-        this->GetNthNodeWorldPosition((tempNode++) % numNodes, p4);
+      {
+        j++;
+        this->GetNthNodeWorldPosition(j  % numNodes, p4);
+      }
 
       vtkLine::Intersection(p1, p2, p3, p4, u, v);
       *intersectionNode = i;

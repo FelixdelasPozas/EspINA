@@ -540,6 +540,7 @@ void vtkPlaneContourWidget::MoveAction(vtkAbstractWidget *w)
             {
               if (self->IsPointTooClose(X,Y) && (rep->GetNumberOfNodes() > 2))
                 return;
+
               rep->AddNodeAtDisplayPosition(X, Y);
               self->InvokeEvent(vtkCommand::InteractionEvent, NULL);
 
