@@ -57,10 +57,13 @@ qt4_wrap_cpp(CORE_MOC
   editor/ContourSelector.h
   editor/ContourWidget.h
   widgets/RectangularSelection.h
+  editor/ContourSourceInspector.h
+  editor/ContourSource.h
   )
 
 qt4_wrap_ui (CORE_UI
   gui/HueSelector.ui
+  editor/ContourSourceInspector.ui
   )
 
 set (CORE_SOURCES
@@ -146,6 +149,8 @@ set (CORE_SOURCES
   editor/SliceContourWidget.cpp
   editor/vtkClipClosedSurface.cxx
   editor/vtkContourToPolygonFilter.cxx
+  editor/ContourSource.cpp
+  editor/ContourSourceInspector.cpp
   )
 
 set(CORE_EXTERNAL_LIBS

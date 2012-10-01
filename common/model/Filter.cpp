@@ -26,8 +26,14 @@
 #include <itkImageRegionExclusionIteratorWithIndex.h>
 #include <itkImageRegionIteratorWithIndex.h>
 #include <itkMetaImageIO.h>
+#include <itkVTKImageToImageFilter.h>
 
 #include <vtkImplicitFunction.h>
+#include <vtkSmartPointer.h>
+#include <vtkPolyDataToImageStencil.h>
+#include <vtkImageStencilToImage.h>
+#include <vtkImageExport.h>
+#include <vtkMath.h>
 
 #include <QMessageBox>
 #include <QWidget>
@@ -231,6 +237,137 @@ void Filter::draw(OutputNumber i,
     index[2] = z/spacing[2]+0.5;
     draw(i, index, value);
   }
+}
+
+//----------------------------------------------------------------------------
+void Filter::draw(OutputNumber i, vtkPolyData *contour, Nm slice, PlaneType plane,
+      EspinaVolume::PixelType value)
+{
+  int extent[6];
+  VolumeExtent(m_outputs[i], extent);
+  EspinaVolume::SpacingType spacing = m_outputs[i]->GetSpacing();
+
+  double temporal;
+  int temporalvalues[2];
+  // extent and spacing should be changed because vtkPolyDataToImageStencil filter only works in XY plane.
+  // the contour already has been rotated in the ContourSource part of this filter.
+  switch(plane)
+  {
+    case AXIAL:
+      break;
+    case CORONAL:
+      temporal = spacing[1];
+      spacing[1] = spacing[2];
+      spacing[2] = temporal;
+      temporalvalues[0] = extent[2];
+      temporalvalues[1] = extent[3];
+      extent[2] = extent[4];
+      extent[3] = extent[5];
+      extent[4] = temporalvalues[0];
+      extent[5] = temporalvalues[1];
+      break;
+    case SAGITTAL:
+      temporal = spacing[0];
+      spacing[0] = spacing[1];
+      spacing[1] = spacing[2];
+      spacing[2] = temporal;
+      temporalvalues[0] = extent[0];
+      temporalvalues[1] = extent[1];
+      extent[0] = extent[2];
+      extent[1] = extent[3];
+      extent[2] = extent[4];
+      extent[3] = extent[5];
+      extent[4] = temporalvalues[0];
+      extent[5] = temporalvalues[1];
+      break;
+    default:
+      Q_ASSERT(false);
+      break;
+  }
+
+  std::cout << "changed extent:" << extent[0] << "," << extent[1] << "," << extent[2] << "," << extent[3] << "," << extent[4] << "," << extent[5] << "]\n" << std::flush;
+
+  vtkSmartPointer<vtkPolyDataToImageStencil> polyDataToStencil = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
+  polyDataToStencil = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
+  polyDataToStencil->SetInputConnection(contour->GetProducerPort());
+  polyDataToStencil->SetOutputOrigin(0,0,0);
+  polyDataToStencil->SetOutputSpacing(spacing[0], spacing[1], spacing[2]);
+  polyDataToStencil->SetOutputWholeExtent(extent[0], extent[1], extent[2], extent[3], vtkMath::Round(slice/spacing[2]), vtkMath::Round(slice/spacing[2]));
+  polyDataToStencil->SetTolerance(0);
+
+  std::cout << "p2s extent:" << extent[0] << "," << extent[1] << "," << extent[2] << "," << extent[3] << "," << slice/spacing[2] << "," << slice/spacing[2] << "]\n" << std::flush;
+
+  vtkSmartPointer<vtkImageStencilToImage> stencilToImage = vtkSmartPointer<vtkImageStencilToImage>::New();
+  stencilToImage->SetInputConnection(polyDataToStencil->GetOutputPort());
+  stencilToImage->SetOutputScalarTypeToUnsignedChar();
+  stencilToImage->SetInsideValue(1);
+  stencilToImage->SetOutsideValue(0);
+
+  vtkSmartPointer<vtkImageExport> exporter = vtkSmartPointer<vtkImageExport>::New();
+  exporter->SetInputConnection(stencilToImage->GetOutputPort());
+
+  typedef itk::VTKImageToImageFilter<EspinaVolume> VTKImporterType;
+  VTKImporterType::Pointer importer = VTKImporterType::New();
+  importer->SetUpdateInformationCallback(exporter->GetUpdateInformationCallback());
+  importer->SetPipelineModifiedCallback(exporter->GetPipelineModifiedCallback());
+  importer->SetWholeExtentCallback(exporter->GetWholeExtentCallback());
+  importer->SetSpacingCallback(exporter->GetSpacingCallback());
+  importer->SetOriginCallback(exporter->GetOriginCallback());
+  importer->SetScalarTypeCallback(exporter->GetScalarTypeCallback());
+  importer->SetNumberOfComponentsCallback(exporter->GetNumberOfComponentsCallback());
+  importer->SetPropagateUpdateExtentCallback(exporter->GetPropagateUpdateExtentCallback());
+  importer->SetUpdateDataCallback(exporter->GetUpdateDataCallback());
+  importer->SetDataExtentCallback(exporter->GetDataExtentCallback());
+  importer->SetBufferPointerCallback(exporter->GetBufferPointerCallback());
+  importer->SetCallbackUserData(exporter->GetCallbackUserData());
+  importer->Update();
+
+  VolumeExtent(importer->GetOutput(), extent);
+  std::cout << "importer extent:" << extent[0] << "," << extent[1] << "," << extent[2] << "," << extent[3] << "," << extent[4] << "," << extent[5] << "]\n" << std::flush;
+
+  itk::Index<3> index;
+  itk::ImageRegionIteratorWithIndex<EspinaVolume> init(importer->GetOutput(), importer->GetOutput()->GetLargestPossibleRegion());
+  init.GoToBegin();
+  while(!init.IsAtEnd())
+  {
+    if (1 == init.Value())
+    {
+      int temporal;
+      index[0] = init.GetIndex()[0];
+      index[1] = init.GetIndex()[1];
+      index[2] = init.GetIndex()[2];
+
+      switch(plane)
+      {
+        case AXIAL:
+          break;
+        case CORONAL:
+          temporal = index[2];
+          index[2] = index[1];
+          index[1] = temporal;
+          break;
+        case SAGITTAL:
+          temporal = index[2];
+          index[2] = index[1];
+          index[1] = index[0];
+          index[0] = temporal;
+          break;
+        default:
+          Q_ASSERT(false);
+          break;
+      }
+      Q_ASSERT(m_outputs[i]->GetLargestPossibleRegion().IsInside(index));
+      m_outputs[i]->SetPixel(index, value);
+    }
+    ++init;
+  }
+
+  m_outputs[i]->Modified();
+
+  if (!m_editedOutputs.contains(QString::number(i)))
+    m_editedOutputs << QString::number(i);
+
+  m_args[EDIT] = m_editedOutputs.join(",");
 }
 
 //----------------------------------------------------------------------------

@@ -11,30 +11,30 @@
 #include <iostream>
 
 ContourWidget::ContourWidget()
-: m_axialPlaneWidget(NULL)
-, m_coronalPlaneWidget(NULL)
-, m_sagittalPlaneWidget(NULL)
+: m_axialSliceContourWidget(NULL)
+, m_coronalSliceContourWidget(NULL)
+, m_sagittalSliceContourWidget(NULL)
 {
 }
 
 ContourWidget::~ContourWidget()
 {
-  if (NULL != m_axialPlaneWidget)
+  if (NULL != m_axialSliceContourWidget)
   {
-    m_axialPlaneWidget->EnabledOn();
-    m_axialPlaneWidget->Delete();
+    m_axialSliceContourWidget->SetEnabled(false);
+    delete m_axialSliceContourWidget;
   }
 
-  if (NULL != m_coronalPlaneWidget)
+  if (NULL != m_coronalSliceContourWidget)
   {
-    m_coronalPlaneWidget->EnabledOn();
-    m_coronalPlaneWidget->Delete();
+    m_coronalSliceContourWidget->SetEnabled(false);
+    delete m_coronalSliceContourWidget;
   }
 
-  if (NULL != m_sagittalPlaneWidget)
+  if (NULL != m_sagittalSliceContourWidget)
   {
-    m_sagittalPlaneWidget->EnabledOn();
-    m_sagittalPlaneWidget->Delete();
+    m_sagittalSliceContourWidget->SetEnabled(false);
+    delete m_sagittalSliceContourWidget;
   }
 }
 
@@ -56,33 +56,64 @@ SliceWidget *ContourWidget::createSliceWidget(PlaneType plane)
   switch(plane)
   {
     case AXIAL:
-      Q_ASSERT(NULL == m_axialPlaneWidget);
-      m_axialPlaneWidget = widget;
+      Q_ASSERT(NULL == m_axialSliceContourWidget);
+      m_axialSliceContourWidget = new SliceContourWidget(widget);
+      return m_axialSliceContourWidget;
       break;
     case CORONAL:
-      Q_ASSERT(NULL == m_coronalPlaneWidget);
-      m_coronalPlaneWidget = widget;
+      Q_ASSERT(NULL == m_coronalSliceContourWidget);
+      m_coronalSliceContourWidget = new SliceContourWidget(widget);
+      return m_coronalSliceContourWidget;
       break;
     case SAGITTAL:
-      Q_ASSERT(NULL == m_sagittalPlaneWidget);
-      m_sagittalPlaneWidget = widget;
+      Q_ASSERT(NULL == m_sagittalSliceContourWidget);
+      m_sagittalSliceContourWidget = new SliceContourWidget(widget);
+      return m_sagittalSliceContourWidget;
       break;
     default:
       Q_ASSERT(false);
       break;
   }
 
-  return new SliceContourWidget(widget);
+  // dead code
+  return NULL;
 }
 
 void ContourWidget::setEnabled(bool enable)
 {
-  if (NULL != m_axialPlaneWidget)
-    m_axialPlaneWidget->SetEnabled(enable);
+  if (NULL != m_axialSliceContourWidget)
+    m_axialSliceContourWidget->SetEnabled(enable);
 
-  if (NULL != m_coronalPlaneWidget)
-    m_coronalPlaneWidget->SetEnabled(enable);
+  if (NULL != m_coronalSliceContourWidget)
+    m_coronalSliceContourWidget->SetEnabled(enable);
 
-  if (NULL != m_sagittalPlaneWidget)
-    m_sagittalPlaneWidget->SetEnabled(enable);
+  if (NULL != m_sagittalSliceContourWidget)
+    m_sagittalSliceContourWidget->SetEnabled(enable);
+}
+
+QMap<PlaneType, QMap<Nm, vtkPolyData*> > ContourWidget::GetContours()
+{
+  QMap<PlaneType, QMap<Nm, vtkPolyData*> > contours;
+  contours.insert(AXIAL, this->m_axialSliceContourWidget->GetContours());
+  contours.insert(CORONAL, this->m_coronalSliceContourWidget->GetContours());
+  contours.insert(SAGITTAL, this->m_sagittalSliceContourWidget->GetContours());
+
+  return contours;
+}
+
+void ContourWidget::SetContours(QMap<PlaneType, QMap<Nm, vtkPolyData*> > contours)
+{
+  this->m_axialSliceContourWidget->SetContours(contours[AXIAL]);
+  this->m_coronalSliceContourWidget->SetContours(contours[CORONAL]);
+  this->m_sagittalSliceContourWidget->SetContours(contours[SAGITTAL]);
+}
+
+unsigned int ContourWidget::GetContoursNumber()
+{
+  unsigned int result = 0;
+  result += this->m_axialSliceContourWidget->GetContoursNumber();
+  result += this->m_coronalSliceContourWidget->GetContoursNumber();
+  result += this->m_sagittalSliceContourWidget->GetContoursNumber();
+
+  return result;
 }

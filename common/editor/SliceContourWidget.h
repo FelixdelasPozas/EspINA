@@ -23,9 +23,15 @@ class SliceContourWidget: public SliceWidget
     virtual ~SliceContourWidget();
     virtual void setSlice(Nm pos, PlaneType plane);
 
-    void setContours(QMap<Nm, vtkPolyData*> contours);
-    QMap<Nm, vtkPolyData*> getContours();
+    virtual void SetEnabled(int);
+
+    void SetContours(QMap<Nm, vtkPolyData*> contours);
+    QMap<Nm, vtkPolyData*> GetContours();
+    unsigned int GetContoursNumber();
   private:
+    // helper method
+    void AddActualContour();
+
     bool m_initialized;
     PlaneType m_plane;
     Nm m_pos;

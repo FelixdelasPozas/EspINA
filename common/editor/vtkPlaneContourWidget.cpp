@@ -116,9 +116,16 @@ void vtkPlaneContourWidget::SetEnabled(int enabling)
   if (enabling)
   {
     if (this->WidgetState == vtkPlaneContourWidget::Start)
+    {
       reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep)->VisibilityOff();
+      reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep)->UseContourPolygon(false);
+    }
     else
+    {
       reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep)->VisibilityOn();
+      if (this->WidgetState == vtkPlaneContourWidget::Manipulate)
+        reinterpret_cast<vtkPlaneContourRepresentation*>(this->WidgetRep)->UseContourPolygon(true);
+    }
   }
 
   this->Superclass::SetEnabled(enabling);

@@ -1405,7 +1405,8 @@ bool vtkPlaneContourRepresentation::LineIntersection(int n, double *intersection
   // segments (0,1)-(1,2)- ... -(numNodes-1, numNodes);
   for (int i = 0; i < numNodes; i++)
   {
-    if ((node == i) || (previousNode == i) || (nextNode == i))
+    // we already know we're colliding with those nodes
+    if ((node == i) || (previousNode == i))
       continue;
 
     if (NodesIntersection(node,i))

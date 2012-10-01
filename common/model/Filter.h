@@ -24,6 +24,7 @@
 
 #include "common/EspinaTypes.h"
 #include <itkImageFileReader.h>
+#include <vtkPolyData.h>
 
 class vtkImplicitFunction;
 const QString CREATELINK = "CreateSegmentation";
@@ -76,6 +77,8 @@ public:
   virtual void draw(OutputNumber i,
 		    Nm x, Nm y, Nm z,
 		    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+  virtual void draw(OutputNumber i, vtkPolyData *contour, Nm slice, PlaneType plane,
+        EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
 
   /// Returns whether or not the filter was edited by the user
   bool isEdited() const;

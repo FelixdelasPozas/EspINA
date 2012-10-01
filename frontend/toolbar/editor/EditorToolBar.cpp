@@ -40,6 +40,7 @@
 #include <editor/OpeningFilter.h>
 #include <editor/FillHolesCommand.h>
 #include <editor/FillHolesFilter.h>
+#include <editor/ContourSource.h>
 #include <editor/vtkTube.h>
 #include <editor/ContourSelector.h>
 #include <undo/RemoveSegmentation.h>
@@ -289,6 +290,7 @@ EditorToolBar::EditorToolBar(QWidget* parent)
   factory->registerFilter(FreeFormSource::TYPE, this);
   factory->registerFilter(ImageLogicFilter::TYPE, this);
   factory->registerFilter(FillHolesFilter::TYPE, this);
+  factory->registerFilter(ContourSource::TYPE, this);
 
   factory->registerSettingsPanel(new EditorToolBar::SettingsPanel(m_settings));
 
@@ -435,6 +437,7 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
     points[i][1] = int(region[i].y()/spacing[1]+0.5)*spacing[1];
     points[i][2] = int(region[i].z()/spacing[2]+0.5)*spacing[2];
   }
+  std::cout << "paint p: " << points[0][2] << std::flush;
 
   PlaneType selectedPlane;
   if (center[0] == right[0] && right[0] == top[0])
@@ -465,8 +468,7 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
     if (m_actionGroup->getCurrentAction() == m_pencilSphere)
       brushType = SPHERICAL;
     else
-      if (m_actionGroup->getCurrentAction() == m_contour)
-        brushType = CONTOUR;
+      return;
 
   switch (brushType)
   {
@@ -489,16 +491,6 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
     }
       break;
     case CONTOUR:
-    {
-      // TODO: make contour implicit function
-      vtkSmartPointer<vtkTube> circularBrush = vtkSmartPointer<vtkTube>::New();
-      circularBrush->SetBaseCenter(baseCenter);
-      circularBrush->SetBaseRadius(radius);
-      circularBrush->SetTopCenter(topCenter);
-      circularBrush->SetTopRadius(radius);
-      brush = circularBrush;
-    }
-      break;
     default:
       Q_ASSERT(false);
       break;
@@ -731,19 +723,74 @@ void EditorToolBar::cancelDrawOperation()
 {
   this->m_actionGroup->cancel();
 
-  SelectionManager::instance()->setSelectionHandler(NULL);
-  m_currentSource = NULL;
-  m_currentSeg = NULL;
-
   // additional contour cleaning
   if (this->m_contour == this->m_actionGroup->getCurrentAction())
   {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+
     EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
     m_contourWidget->setEnabled(false);
+
+    if (0 != m_contourWidget->GetContoursNumber())
+    {
+      Channel *channel = SelectionManager::instance()->activeChannel();
+      double spacing[3];
+      channel->spacing(spacing);
+
+      if (!m_currentSource && !m_currentSeg)
+      {
+        Filter::NamedInputs inputs;
+        Filter::Arguments args;
+        FreeFormSource::Parameters params(args);
+        params.setSpacing(spacing);
+        m_currentSource = new ContourSource(inputs, args);
+      }
+
+      if (!m_currentSeg && m_currentSource)
+      {
+        m_currentSource->draw(0, NULL, 0, AXIAL);
+        m_currentSeg = EspinaFactory::instance()->createSegmentation(m_currentSource, 0);
+        QSharedPointer<QUndoStack> undo = EspinaCore::instance()->undoStack();
+        TaxonomyNode *tax = SelectionManager::instance()->activeTaxonomy();
+        undo->push(new FreeFormCommand(channel, m_currentSource, m_currentSeg, tax));
+      }
+
+      QMap<PlaneType, QMap<Nm, vtkPolyData*> > contours = m_contourWidget->GetContours();
+      QMap<Nm, vtkPolyData*>::iterator it = contours[AXIAL].begin();
+      while (it != contours[AXIAL].end())
+      {
+        m_currentSource->draw(0, it.value(), it.key(), AXIAL);
+        ++it;
+      }
+
+      it = contours[CORONAL].begin();
+      while (it != contours[CORONAL].end())
+      {
+        m_currentSource->draw(0, it.value(), it.key(), CORONAL);
+        ++it;
+      }
+
+      it = contours[SAGITTAL].begin();
+      while (it != contours[SAGITTAL].end())
+      {
+        m_currentSource->draw(0, it.value(), it.key(), SAGITTAL);
+        ++it;
+      }
+
+      ContourSource *filter = dynamic_cast<ContourSource *>(m_currentSource);
+      filter->signalAsModified();
+    }
+
     view->removeWidget(m_contourWidget);
     delete m_contourWidget;
     view->forceRender();
+
+    QApplication::restoreOverrideCursor();
   }
+
+  SelectionManager::instance()->setSelectionHandler(NULL);
+  m_currentSource = NULL;
+  m_currentSeg = NULL;
 }
 
 void EditorToolBar::startDrawOperation(QAction *action)

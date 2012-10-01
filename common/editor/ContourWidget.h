@@ -15,7 +15,8 @@
 #include <QList>
 #include <QObject>
 
-class vtkPlaneContourWidget;
+class SliceContourWidget;
+class vtkPolyData;
 
 class ContourWidget
 : public QObject
@@ -31,10 +32,14 @@ class ContourWidget
     virtual SliceWidget *createSliceWidget(PlaneType plane);
     virtual void setEnabled(bool enable);
 
+    virtual QMap<PlaneType, QMap<Nm, vtkPolyData*> > GetContours();
+    virtual void SetContours(QMap<PlaneType, QMap<Nm, vtkPolyData*> >);
+    virtual unsigned int GetContoursNumber();
+
   private:
-    vtkPlaneContourWidget *m_axialPlaneWidget;
-    vtkPlaneContourWidget *m_coronalPlaneWidget;
-    vtkPlaneContourWidget *m_sagittalPlaneWidget;
+    SliceContourWidget *m_axialSliceContourWidget;
+    SliceContourWidget *m_coronalSliceContourWidget;
+    SliceContourWidget *m_sagittalSliceContourWidget;
 };
 
 #endif /* CONTOURWIDGET_H_ */
