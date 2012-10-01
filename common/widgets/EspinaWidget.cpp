@@ -27,12 +27,3 @@ SliceWidget::SliceWidget(vtkAbstractWidget *widget)
 : m_widget(widget)
 {
 }
-
-//----------------------------------------------------------------------------
-void SliceWidget::setSlice(double pos, PlaneType plane)
-{
-//   double *bounds = m_widget->GetRepresentation()->GetBounds();
-//   bool visible = bounds[2*plane] <= pos && pos <= bounds[2*plane+1];
-//   m_widget->GetRepresentation()->SetVisibility(visible);
-}
-

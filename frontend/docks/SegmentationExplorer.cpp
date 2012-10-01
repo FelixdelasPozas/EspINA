@@ -210,9 +210,11 @@ void SampleLayout::deleteSegmentation(QModelIndexList indices)
 
   if (!toDelete.isEmpty())
   {
+    QList<Segmentation *> deletedSegmentations = toDelete.toList();
+    SegmentationInspector::RemoveInspector(deletedSegmentations);
     QSharedPointer<QUndoStack> undoStack = EspinaCore::instance()->undoStack();
     undoStack->beginMacro("Delete Segmentations");
-    undoStack->push(new RemoveSegmentation(toDelete.toList()));
+    undoStack->push(new RemoveSegmentation(deletedSegmentations));
     undoStack->endMacro();
   }
 
@@ -337,9 +339,11 @@ void TaxonomyLayout::deleteSegmentation(QModelIndexList indices)
 
   if (!toDelete.isEmpty())
   {
+    QList<Segmentation *> deletedSegmentations = toDelete.toList();
+    SegmentationInspector::RemoveInspector(deletedSegmentations);
     QSharedPointer<QUndoStack> undoStack = EspinaCore::instance()->undoStack();
     undoStack->beginMacro("Delete Segmentations");
-    undoStack->push(new RemoveSegmentation(toDelete.toList()));
+    undoStack->push(new RemoveSegmentation(deletedSegmentations));
     undoStack->endMacro();
   }
 }

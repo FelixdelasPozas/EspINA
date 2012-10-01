@@ -31,6 +31,7 @@
 #include <vtkCellData.h>
 
 #include <QDebug>
+#include <QApplication>
 
 CountingRegionSegmentationExtension::BoundingBox::BoundingBox(vtkPoints* points)
 {
@@ -257,6 +258,7 @@ void CountingRegionSegmentationExtension::evaluateBoundingRegions()
   if (m_boundingRegions.size() == 0)
     return;
 
+  QApplication::setOverrideCursor(Qt::WaitCursor);
   ModelItemExtension *ext = m_seg->extension(MarginsSegmentationExtension::ID);
   MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext);
   if (marginExt)
@@ -278,6 +280,7 @@ void CountingRegionSegmentationExtension::evaluateBoundingRegions()
     foreach(BoundingRegion *br, m_boundingRegions)
       m_isDiscarted |= discartedByRegion(inputBB, br->region());
   }
+  QApplication::restoreOverrideCursor();
 
   m_seg->setVisible(!m_isDiscarted);
 }

@@ -74,7 +74,7 @@ void VolumeViewSettingsPanel::acceptChanges()
 //-----------------------------------------------------------------------------
 bool VolumeViewSettingsPanel::modified() const
 {
-  QStringList current, previous;
+  QSet<QString> current, previous;
 
   QAbstractItemModel *activeModel = activeRenderers->model();
   for(int i=0; i < activeModel->rowCount(); i++)

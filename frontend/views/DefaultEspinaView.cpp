@@ -40,6 +40,7 @@
 #include <QApplication>
 #include <QGroupBox>
 #include <EspinaCore.h>
+#include <settings/EspinaSettings.h>
 
 //----------------------------------------------------------------------------
 DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity)
@@ -138,7 +139,7 @@ void DefaultEspinaView::createViewMenu(QMenu* menu)
   //connect(toggleSegmentationsVisibility, SIGNAL(triggered(bool)),
   //this, SLOT(showSegmentations(bool)));
   //menu->addAction(toggleSegmentationsVisibility);
-  QSettings settings("CeSViMa", "EspINA");
+  QSettings settings(CESVIMA, ESPINA);
 
   bool sr = settings.value("ShowRuler", true).toBool();
   bool st = settings.value("ShowThumbnail", true).toBool();
@@ -179,7 +180,7 @@ void DefaultEspinaView::createViewMenu(QMenu* menu)
 void DefaultEspinaView::restoreLayout()
 {
   //   qDebug() << "Restore " << m_activity << volDock->objectName();
-  QSettings settings("CeSViMa", "EspINA");
+  QSettings settings(CESVIMA, ESPINA);
 
   m_window->restoreState(settings.value(m_activity + "/state").toByteArray());
   m_window->restoreGeometry(settings.value(m_activity + "/geometry").toByteArray());
@@ -278,6 +279,17 @@ void DefaultEspinaView::setColorEngine(ColorEngine* engine)
   volView->setColorEngine(m_colorEngine);
   forceRender();
 }
+
+//----------------------------------------------------------------------------
+void DefaultEspinaView::updateSegmentationRepresentations()
+{
+  xyView->updateSegmentationRepresentations();
+  yzView->updateSegmentationRepresentations();
+  xzView->updateSegmentationRepresentations();
+  volView->updateSegmentationRepresentations();
+  forceRender();
+}
+
 
 //----------------------------------------------------------------------------
 ISettingsPanel* DefaultEspinaView::settingsPanel()
@@ -667,7 +679,10 @@ void DefaultEspinaView::SettingsPanel::acceptChanges()
 //-----------------------------------------------------------------------------
 bool DefaultEspinaView::SettingsPanel::modified() const
 {
-  return m_xyPanel->modified() || m_yzPanel->modified() || m_xzPanel->modified() || m_volPanel->modified();
+  return m_xyPanel->modified()
+      || m_yzPanel->modified()
+      || m_xzPanel->modified()
+      || m_volPanel->modified();
 }
 
 //-----------------------------------------------------------------------------

@@ -25,7 +25,7 @@
 DataViewPanel::DataViewPanel(QWidget* parent)
 : EspinaDockWidget(parent)
 {
-  setWindowTitle(tr("Data View"));
+  setWindowTitle(tr("Segmentation Information"));
   setObjectName("Data View Panel");
   DataView *view = new DataView();
   setWidget(view);

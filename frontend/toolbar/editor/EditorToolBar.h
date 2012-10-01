@@ -22,14 +22,17 @@
 
 #include <QToolBar>
 #include <common/gui/DynamicWidget.h>
+#include <editor/ContourWidget.h>
 
 #include <common/editor/PencilSelector.h>
+#include <common/editor/ContourSelector.h>
 #include <common/model/Segmentation.h>
 #include <common/pluginInterfaces/FilterFactory.h>
 #include <common/selection/SelectionHandler.h>
 
 class FreeFormSource;
-
+class ActionSelector;
+class QAction;
 
 class EditorToolBar
 : public QToolBar
@@ -37,6 +40,7 @@ class EditorToolBar
 , public FilterFactory
 {
   Q_OBJECT
+  Q_INTERFACES(FilterFactory)
   class FreeFormCommand;
   class DrawCommand;
   class EraseCommand;
@@ -59,7 +63,7 @@ public:
                                const ModelItem::Arguments args);
 
 protected slots:
-  void startDrawing(bool draw);
+  void startDrawOperation(QAction*);
   void drawSegmentation(SelectionHandler::MultiSelection msel);
   void stopDrawing();
   void stateChanged(PencilSelector::State state);
@@ -70,11 +74,18 @@ protected slots:
   void openSegmentations();
   void closeSegmentations();
   void fillHoles();
+  void cancelDrawOperation();
 
   SegmentationList selectedSegmentations();
 
 private:
-  QAction *m_draw;
+  void startPencilDrawing();
+  void startContourDrawing();
+
+  ActionSelector *m_actionGroup;
+  QAction *m_pencilDisc;
+  QAction *m_pencilSphere;
+  QAction *m_contour;
   QAction *m_addition;
   QAction *m_substraction;
   QAction *m_erode;
@@ -82,9 +93,11 @@ private:
   QAction *m_open;
   QAction *m_close;
   QAction *m_fill;
+  ContourWidget *m_contourWidget;
 
   Settings       *m_settings;
   PencilSelector *m_pencilSelector;
+  ContourSelector *m_contourSelector;
   Filter         *m_currentSource;
   Segmentation   *m_currentSeg;
 };

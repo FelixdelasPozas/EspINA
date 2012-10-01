@@ -18,56 +18,113 @@
 #ifndef APPOSITIONPLANEXTENSION_H
 #define APPOSITIONPLANEXTENSION_H
 
-#include <EspinaPlugin.h>
 
-class vtkProduct;
-class vtkFilter;
+#include <common/extensions/SegmentationExtension.h>
+#include <common/EspinaTypes.h>
 
-class AppositionPlaneRepresentation : public ISegmentationRepresentation
+#include <itkConstantPadImageFilter.h>
+#include <itkExtractImageFilter.h>
+#include <itkGradientImageFilter.h>
+#include <itkImageRegionConstIterator.h>
+#include <itkSignedDanielssonDistanceMapImageFilter.h>
+#include <itkImageToVTKImageFilter.h>
+#include <vtkGridTransform.h>
+#include <vtkOBBTree.h>
+#include <vtkPlaneSource.h>
+#include <vtkPoints.h>
+#include <vtkPolyData.h>
+#include <vtkSmartPointer.h>
+#include <vtkTransformPolyDataFilter.h>
+
+class vtkImageData;
+class AppositionPlaneExtension 
+: public SegmentationExtension
 {
-public:
-  static const ISegmentationRepresentation::RepresentationId ID;
-  
-  AppositionPlaneRepresentation(Segmentation* seg);
-  virtual ~AppositionPlaneRepresentation();
-  
-  virtual QString id();
-  virtual void render(pqView* view);
-  virtual pqPipelineSource* pipelineSource();
-  
-public slots:
-  virtual void requestUpdate(bool force = false);
-  
-private:
-  vtkProduct *m_rep;
-};
+  typedef float DistanceType;
+  typedef vtkSmartPointer<vtkPoints>   Points;
+  typedef vtkSmartPointer<vtkPolyData> PolyData;
+  typedef vtkSmartPointer<vtkOBBTree>  OBBTreeType;
 
-class AppositionPlaneExtension : public ISegmentationExtension
-{
+  typedef itk::ImageRegionConstIterator<EspinaVolume>  VoxelIterator;
+  typedef itk::ImageToVTKImageFilter<EspinaVolume> ItkToVtkFilterType;
+  typedef itk::ExtractImageFilter<EspinaVolume, EspinaVolume> ExtractFilterType;
+  typedef itk::ConstantPadImageFilter<EspinaVolume, EspinaVolume> PadFilterType;
+  typedef itk::Image<DistanceType,3> DistanceMapType;
+  typedef itk::ImageRegionConstIterator<DistanceMapType> DistanceIterator;
+  typedef itk::SignedDanielssonDistanceMapImageFilter
+  <EspinaVolume, DistanceMapType>  SDDistanceMapFilterType;
+  typedef vtkSmartPointer<vtkPlaneSource> PlaneSourceType;
+  typedef itk::GradientImageFilter<DistanceMapType, float> GradientFilterType;
+  typedef vtkSmartPointer<vtkGridTransform> GridTransform;
+  typedef vtkSmartPointer<vtkTransformPolyDataFilter>  TransformPolyDataFilter;
+  typedef itk::CovariantVector<float, 3> CovariantVectorType;
+  typedef itk::Image<CovariantVectorType,3> CovariantVectorImageType;
+  
 public:
-  static const ExtensionId ID;
+  static const ExtId ID;
+  static const InfoTag AREA;
+  static const InfoTag PERIMETER;
 
 public:
-  AppositionPlaneExtension();
+  explicit AppositionPlaneExtension();
   virtual ~AppositionPlaneExtension();
   
-  virtual ExtensionId id();
-  virtual void initialize(Segmentation* seg);
-  virtual QStringList dependencies() {return ISegmentationExtension::dependencies();}
-  virtual QStringList availableRepresentations() {return ISegmentationExtension::availableRepresentations();}
-  virtual ISegmentationRepresentation *representation(QString rep);
-  virtual QStringList availableInformations() {return ISegmentationExtension::availableInformations();}
-  virtual QVariant information(QString info);
+  virtual ExtId id();
   
-  virtual ISegmentationExtension* clone();
+  virtual ExtIdList dependencies() const
+  { return SegmentationExtension::dependencies(); }
   
+  virtual InfoList availableInformations() const
+  { return SegmentationExtension::availableInformations(); }
+  
+  virtual RepList availableRepresentations() const
+  { return SegmentationExtension::availableRepresentations(); }
+  
+  virtual QVariant information(InfoTag tag) const;
+  
+  virtual SegmentationRepresentation* representation(QString rep);
+  
+  virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
+  
+  virtual SegmentationExtension* clone();
+  
+  PolyData appositionPlane() const
+  { return m_ap; }
+  
+  //NOTE: Constness is required by information call
+  bool updateAppositionPlane() const;
 private:
-  vtkFilter *m_features;
-  double m_Size;
-  bool m_init;
-  double m_Area;
-  double m_Perimeter;
-  AppositionPlaneRepresentation *m_planeRep;
+  // Apposition Plane Auxiliar Functions
+  PolyData clipPlane(AppositionPlaneExtension::PolyData plane, vtkImageData* image) const;
+  DistanceMapType::Pointer computeDistanceMap(EspinaVolume::Pointer volume) const;
+  /// Return the 8 corners of an OBB
+  Points corners(double corner[3], double max[3], double mid[3], double min[3]) const;
+  void maxDistancePoint(DistanceMapType::Pointer map, Points points, double avgMaxDistPoint[3]) const;
+  /// Return a cloud of points representing the segmentation
+  /// Segmentations are represented by labelmap-like vtkDataImages
+  /// with background pixels being 0 and foreground ones being 255.
+  /// Nevertheless, non-0 pixels are also considered foreground.
+  Points segmentationPoints(EspinaVolume::Pointer seg) const;
+  /// Find the projection of A on B
+  void project(const double *A, const double *B, double *Projection) const;
+  void projectVectors(vtkImageData * vectors_image, double * unitary) const;
+  void vectorImageToVTKImage(CovariantVectorImageType::Pointer vectorImage, vtkImageData *image) const;
+  
+  // Apposition Plane Metrics
+  double computeArea() const;
+  double computePerimeter() const;
+  bool isPerimeter(vtkIdType cellId, vtkIdType p1, vtkIdType p2) const;
+
+private:
+  int      m_resolution;
+  int      m_iterations;
+  bool     m_converge;
+  
+  mutable double   m_area;
+  mutable double   m_perimeter;
+  mutable PolyData m_ap;
+  
+  mutable itk::TimeStamp m_lastUpdate;
 };
 
 #endif // APPOSITIONPLANEEXTENSION_H

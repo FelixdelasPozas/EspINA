@@ -16,24 +16,19 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "ActionSelectorWidget.h"
-
 #include <QMenu>
-
-#include <QDebug>
 
 ActionSelectorWidget::ActionSelectorWidget(QWidget* parent)
 : QToolButton(parent)
 , m_actions(new QMenu())
 {
+  m_selectedAction = NULL;
   setCheckable(true);
   setAutoRaise(true);
   setMenu(m_actions);
-  connect(this, SIGNAL(triggered(QAction*)),
-	  this, SLOT(changeAction(QAction*)));
-  connect(this, SIGNAL(toggled(bool)),
-	  this, SLOT(triggerAction(bool)));
+  connect(this, SIGNAL(triggered(QAction*)), this, SLOT(changeAction(QAction*)));
+  connect(this, SIGNAL(toggled(bool)), this, SLOT(triggerAction(bool)));
 }
 
 void ActionSelectorWidget::addAction(QAction* action)
@@ -58,8 +53,30 @@ void ActionSelectorWidget::triggerAction(bool trigger)
 
 void ActionSelectorWidget::changeAction(QAction* action)
 {
-  setIcon(action->icon());
-  m_selectedAction = action;
   if (isChecked())
-    emit actionTriggered(action);
+  {
+    setChecked(false);          // cancels previous action
+    setIcon(action->icon());
+    m_selectedAction = action;
+    setChecked(true);           // starts the new action
+  }
+  else
+  {
+    setIcon(action->icon());
+    m_selectedAction = action;
+  }
+}
+
+void ActionSelectorWidget::setButtonAction(QAction *action)
+{
+  if (m_actions->actions().contains(action))
+  {
+    setIcon(action->icon());
+    m_selectedAction = action;
+  }
+}
+
+QAction* ActionSelectorWidget::getButtonAction()
+{
+  return this->m_selectedAction;
 }

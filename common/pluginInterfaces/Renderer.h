@@ -27,6 +27,9 @@
 
 class ModelItem;
 
+/// Base class which define the API to render and manage
+/// item visibily in Espina Views (currently only supported
+/// for VolumeView class)
 class Renderer
 : public QObject
 {
@@ -34,6 +37,8 @@ class Renderer
 public:
   virtual ~Renderer(){}
 
+  /// Following methods are used by view settings' panel and the
+  /// view itself to create the corresponding UI to manage rendering
   virtual const QString name() const {return QString();}
   virtual const QString tooltip() const {return QString();}
   virtual const QIcon icon() const {return QIcon();}

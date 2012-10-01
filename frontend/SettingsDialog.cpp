@@ -35,8 +35,9 @@ GeneralSettingsPanel::GeneralSettingsPanel()
 
   GeneralSettings &settings = EspinaCore::instance()->settings();
 
-  samplePath->setText(settings.stackDirectory());
   userName->setText(settings.userName());
+  autosavePath->setText(settings.autosavePath().absolutePath());
+  autosaveInterval->setValue(settings.autosaveInterval());
 }
 
 //------------------------------------------------------------------------
@@ -44,8 +45,9 @@ void GeneralSettingsPanel::acceptChanges()
 {
   GeneralSettings &settings = EspinaCore::instance()->settings();
 
-  settings.setStackDirectory(samplePath->text());
   settings.setUserName(userName->text());
+  settings.setAutosavePath(autosavePath->text());
+  settings.setAutosaveInterval(autosaveInterval->value());
 }
 
 //------------------------------------------------------------------------
@@ -53,8 +55,9 @@ bool GeneralSettingsPanel::modified() const
 {
   GeneralSettings &settings = EspinaCore::instance()->settings();
 
-  return samplePath->text() != settings.stackDirectory()
-  || userName->text() != settings.userName();
+  return userName->text() != settings.userName()
+      || autosavePath->text() != settings.autosavePath().absolutePath()
+      || autosaveInterval->value() != settings.autosaveInterval();
 }
 
 //------------------------------------------------------------------------
@@ -138,4 +141,3 @@ void SettingsDialog::changePreferencePanel(int panel)
   icon->setPixmap( m_activePanel->icon().pixmap(icon->size()) );
   scrollArea->setWidget(m_activePanel);
 }
-

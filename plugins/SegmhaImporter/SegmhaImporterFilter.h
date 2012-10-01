@@ -119,6 +119,12 @@ public:
   Taxonomy *taxonomy() {return m_taxonomy;}
   /// Return the taxonomy associated with the i-th output
   TaxonomyNode *taxonomy(OutputNumber i);
+  /// Return Counting Region Definition
+  void countingRegion(double inclusive[3], double exclusive[3])
+  {
+    memcpy(inclusive, m_inclusive, 3*sizeof(Nm));
+    memcpy(exclusive, m_exclusive, 3*sizeof(Nm));
+  }
 
   void initSegmentation(Segmentation *seg, int segId);
 
@@ -135,6 +141,7 @@ private:
   QList<TaxonomyNode *>   m_taxonomies;
   QList<int>              m_labels;
   Taxonomy               *m_taxonomy;
+  Nm                      m_inclusive[3], m_exclusive[3];
 };
 
 

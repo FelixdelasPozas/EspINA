@@ -117,7 +117,7 @@
        </property>
        <property name="icon">
         <iconset resource="../rsc/espina.qrc">
-         <normaloff>:/espina/add.svg</normaloff>:/espina/add.svg</iconset>
+         <normaloff>:/espina/create_node.png</normaloff>:/espina/create_node.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -164,7 +164,7 @@
        </property>
        <property name="icon">
         <iconset resource="../rsc/espina.qrc">
-         <normaloff>:/espina/add_child.svg</normaloff>:/espina/add_child.svg</iconset>
+         <normaloff>:/espina/create_subnode.png</normaloff>:/espina/create_subnode.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -211,7 +211,7 @@
        </property>
        <property name="icon">
         <iconset resource="../rsc/espina.qrc">
-         <normaloff>:/espina/remove.svg</normaloff>:/espina/remove.svg</iconset>
+         <normaloff>:/espina/trash-full.svg</normaloff>:/espina/trash-full.svg</iconset>
        </property>
        <property name="iconSize">
         <size>

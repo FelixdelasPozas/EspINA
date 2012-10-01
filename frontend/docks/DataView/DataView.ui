@@ -15,7 +15,49 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
+    <widget class="QTableView" name="tableView">
+     <property name="styleSheet">
+      <string notr="true">QTableView::indicator {
+     width: 15px;
+     height: 15px;
+ }
+QTableView::indicator:checked {
+     image: url(:/espina/show_all.svg);
+ } 
+QTableView::indicator:unchecked {
+     image: url(:/espina/hide_all.svg);
+ } 
+</string>
+     </property>
+     <property name="dragDropMode">
+      <enum>QAbstractItemView::InternalMove</enum>
+     </property>
+     <property name="defaultDropAction">
+      <enum>Qt::MoveAction</enum>
+     </property>
+     <property name="selectionBehavior">
+      <enum>QAbstractItemView::SelectRows</enum>
+     </property>
+     <attribute name="verticalHeaderVisible">
+      <bool>false</bool>
+     </attribute>
+    </widget>
+   </item>
+   <item>
     <layout class="QHBoxLayout" name="horizontalLayout_5">
+     <item>
+      <spacer name="horizontalSpacer_5">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
      <item>
       <widget class="QPushButton" name="writeDataToFile">
        <property name="sizePolicy">
@@ -60,19 +102,6 @@
       </widget>
      </item>
      <item>
-      <spacer name="horizontalSpacer_5">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
       <widget class="QPushButton" name="changeQuery">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
@@ -99,14 +128,14 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Add taxonomy node</string>
+        <string>Select Information Fields</string>
        </property>
        <property name="text">
         <string/>
        </property>
        <property name="icon">
         <iconset resource="../../rsc/espina.qrc">
-         <normaloff>:/espina/add.svg</normaloff>:/espina/add.svg</iconset>
+         <normaloff>:/espina/settings.png</normaloff>:/espina/settings.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -120,35 +149,6 @@
       </widget>
      </item>
     </layout>
-   </item>
-   <item>
-    <widget class="QTableView" name="tableView">
-     <property name="styleSheet">
-      <string notr="true">QTableView::indicator {
-     width: 15px;
-     height: 15px;
- }
-QTableView::indicator:checked {
-     image: url(:/espina/show_all.svg);
- } 
-QTableView::indicator:unchecked {
-     image: url(:/espina/hide_all.svg);
- } 
-</string>
-     </property>
-     <property name="dragDropMode">
-      <enum>QAbstractItemView::InternalMove</enum>
-     </property>
-     <property name="defaultDropAction">
-      <enum>Qt::MoveAction</enum>
-     </property>
-     <property name="selectionBehavior">
-      <enum>QAbstractItemView::SelectRows</enum>
-     </property>
-     <attribute name="verticalHeaderVisible">
-      <bool>false</bool>
-     </attribute>
-    </widget>
    </item>
   </layout>
  </widget>

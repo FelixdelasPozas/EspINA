@@ -28,6 +28,7 @@
 
 //----------------------------------------------------------------------------
 SeedGrowSegmentationFilter::SetupWidget::SetupWidget(Filter* filter)
+: m_region(NULL)
 {
   setupUi(this);
   m_filter = dynamic_cast<SeedGrowSegmentationFilter *>(filter);
@@ -40,43 +41,49 @@ SeedGrowSegmentationFilter::SetupWidget::SetupWidget(Filter* filter)
   int voiExtent[6];
   m_filter->m_param.voi(voiExtent);
   EspinaVolume::SpacingType spacing = filter->output(0)->GetSpacing();
-  Nm voiBoudns[6];
   for (int i=0; i<6; i++)
-    voiBoudns[i] = voiExtent[i] * spacing[i/2];
+    m_voiBounds[i] = voiExtent[i] * spacing[i/2];
 
-  m_leftMargin->setValue(voiBoudns[0]);
+  m_leftMargin->setValue(m_voiBounds[0]);
   m_leftMargin->setSuffix(" nm");
   m_leftMargin->installEventFilter(this);
+  connect(m_leftMargin, SIGNAL(valueChanged(int)),
+          this, SLOT(updateRegionBounds()));
 
-  m_rightMargin->setValue(voiBoudns[1]);
+  m_rightMargin->setValue(m_voiBounds[1]);
   m_rightMargin->setSuffix(" nm");
   m_rightMargin->installEventFilter(this);
+  connect(m_rightMargin, SIGNAL(valueChanged(int)),
+          this, SLOT(updateRegionBounds()));
 
-  m_topMargin->setValue(voiBoudns[2]);
+  m_topMargin->setValue(m_voiBounds[2]);
   m_topMargin->setSuffix(" nm");
   m_topMargin->installEventFilter(this);
+  connect(m_topMargin, SIGNAL(valueChanged(int)),
+          this, SLOT(updateRegionBounds()));
 
-  m_bottomMargin->setValue(voiBoudns[3]);
+  m_bottomMargin->setValue(m_voiBounds[3]);
   m_bottomMargin->setSuffix(" nm");
   m_bottomMargin->installEventFilter(this);
+  connect(m_bottomMargin, SIGNAL(valueChanged(int)),
+          this, SLOT(updateRegionBounds()));
 
-  m_upperMargin->setValue(voiBoudns[4]);
+  m_upperMargin->setValue(m_voiBounds[4]);
   m_upperMargin->setSuffix(" nm");
   m_upperMargin->installEventFilter(this);
+  connect(m_upperMargin, SIGNAL(valueChanged(int)),
+          this, SLOT(updateRegionBounds()));
 
-  m_lowerMargin->setValue(voiBoudns[5]);
+  m_lowerMargin->setValue(m_voiBounds[5]);
   m_lowerMargin->setSuffix(" nm");
   m_lowerMargin->installEventFilter(this);
+  connect(m_lowerMargin, SIGNAL(valueChanged(int)),
+          this, SLOT(updateRegionBounds()));
 
 //   connect(m_threshold, SIGNAL(valueChanged(int)),
 // 	  this, SLOT(modifyFilter()));
   connect(m_modify, SIGNAL(clicked(bool)),
 	  this, SLOT(modifyFilter()));
-
-
-//   m_region = new RectangularRegion();
-//   EspinaCore::instance()->viewManger()->currentView()->addWidget(m_region);
-//   m_region->setBounds(voiBoudns);
 }
 
 //----------------------------------------------------------------------------
@@ -86,8 +93,11 @@ SeedGrowSegmentationFilter::SetupWidget::~SetupWidget()
   if (!SelectionManager::instance()->voi())
     view->setSliceSelectors(SliceView::NoSelector);
 
-//   EspinaCore::instance()->viewManger()->currentView()->removeWidget(m_region);
-//   delete m_region;
+  if (m_region)
+  {
+    EspinaCore::instance()->viewManger()->currentView()->removeWidget(m_region);
+    delete m_region;
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -97,6 +107,14 @@ bool SeedGrowSegmentationFilter::SetupWidget::eventFilter(QObject* sender, QEven
   {
     EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
     view->setSliceSelectors(SliceView::From| SliceView::To);
+    if (!m_region)
+    {
+      m_region = new RectangularRegion(m_voiBounds);
+      connect(m_region, SIGNAL(modified(double*)),
+              this, SLOT(redefineVOI(double*)));
+      EspinaCore::instance()->viewManger()->currentView()->addWidget(m_region);
+      m_region->setEnabled(false);
+    }
     connect(view, SIGNAL(selectedFromSlice(double,PlaneType)),
 	    this, SLOT(redefineFromVOI(double,PlaneType)));
     connect(view, SIGNAL(selectedToSlice(double,PlaneType)),
@@ -104,6 +122,17 @@ bool SeedGrowSegmentationFilter::SetupWidget::eventFilter(QObject* sender, QEven
   }
 
   return QObject::eventFilter(sender, e);
+}
+
+//----------------------------------------------------------------------------
+void SeedGrowSegmentationFilter::SetupWidget::redefineVOI(double* bounds)
+{
+  m_leftMargin->setValue(bounds[0]);
+  m_rightMargin->setValue(bounds[1]);
+  m_topMargin->setValue(bounds[2]);
+  m_bottomMargin->setValue(bounds[3]);
+  m_upperMargin->setValue(bounds[4]);
+  m_lowerMargin->setValue(bounds[5]);
 }
 
 //----------------------------------------------------------------------------
@@ -121,6 +150,7 @@ void SeedGrowSegmentationFilter::SetupWidget::redefineFromVOI(double value, Plan
       m_topMargin->setValue(value);
       break;
   }
+  updateRegionBounds();
 }
 
 //----------------------------------------------------------------------------
@@ -138,6 +168,7 @@ void SeedGrowSegmentationFilter::SetupWidget::redefineToVOI(double value, PlaneT
       m_bottomMargin->setValue(value);
       break;
   }
+  updateRegionBounds();
 }
 
 //----------------------------------------------------------------------------
@@ -174,4 +205,18 @@ void SeedGrowSegmentationFilter::SetupWidget::modifyFilter()
   m_filter->update();
   EspinaCore::instance()->viewManger()->currentView()->forceRender();
   QApplication::restoreOverrideCursor();
+}
+
+//----------------------------------------------------------------------------
+void SeedGrowSegmentationFilter::SetupWidget::updateRegionBounds()
+{
+  m_voiBounds[0] = m_leftMargin->value();
+  m_voiBounds[1] = m_rightMargin->value();
+  m_voiBounds[2] = m_topMargin->value();
+  m_voiBounds[3] = m_bottomMargin->value();
+  m_voiBounds[4] = m_upperMargin->value();
+  m_voiBounds[5] = m_lowerMargin->value();
+
+  if (m_region)
+    m_region->setBounds(m_voiBounds);
 }

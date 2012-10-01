@@ -37,6 +37,8 @@ class SegmentationInspector
   Q_OBJECT
 public:
   static SegmentationInspector *CreateInspector(Segmentation *seg);
+  static void RemoveInspector(Segmentation *seg);
+  static void RemoveInspector(QList<Segmentation *> segs);
   virtual ~SegmentationInspector();
 
 public slots:

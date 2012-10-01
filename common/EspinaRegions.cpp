@@ -98,7 +98,7 @@ EspinaVolume::RegionType BoundingBoxRegion(EspinaVolume::RegionType r1,
 }
 
 //-----------------------------------------------------------------------------
-EspinaVolume::RegionType NormalizedRegion(EspinaVolume* volume)
+EspinaVolume::RegionType NormalizedRegion(const EspinaVolume* volume)
 {
   EspinaVolume::RegionType region = volume->GetLargestPossibleRegion();
   EspinaVolume::PointType  origin = volume->GetOrigin();

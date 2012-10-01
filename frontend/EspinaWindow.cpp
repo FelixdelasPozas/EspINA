@@ -53,6 +53,7 @@
 #include "toolbar/editor/EditorToolBar.h"
 #include "toolbar/seedgrow/SeedGrowSegmentation.h"
 #include "toolbar/voi/VolumeOfInterest.h"
+#include "AboutDialog.h"
 #include <IO/FilePack.h>
 #include <pluginInterfaces/IToolBar.h>
 #include <pluginInterfaces/IDockWidget.h>
@@ -142,8 +143,13 @@ EspinaWindow::EspinaWindow()
   connect(fileMenu, SIGNAL(triggered(QAction*)), this, SLOT(openRecentAnalysis()));
   menuBar()->addMenu(fileMenu);
 
+  /*** ANALYSIS MENU ***/
+  DynamicMenuNode *subnode = new DynamicMenuNode();
+  subnode->menu = menuBar()->addMenu(tr("Analysis"));
+  m_dynamicMenuRoot->submenus << subnode;
+  
   /*** EDIT MENU ***/
-  QMenu *editMenu = new QMenu("Edit");
+  QMenu *editMenu = new QMenu(tr("Edit"));
   QAction *undo = m_undoStack->createUndoAction(editMenu);
   undo->setShortcut(QString("Ctrl+Z"));
   undo->setIcon(QIcon(":espina/edit-undo.svg"));
@@ -170,6 +176,11 @@ EspinaWindow::EspinaWindow()
     connect(configure, SIGNAL(triggered(bool)),
 	    this, SLOT(showPreferencesDialog()));
     settings->addAction(configure);
+    
+    QAction *about = new QAction(tr("About"), this);
+    connect(about, SIGNAL(triggered(bool)),
+	    this, SLOT(showAboutDialog()));
+    settings->addAction(about);
   }
   menuBar()->addMenu(settings);
 
@@ -180,18 +191,13 @@ EspinaWindow::EspinaWindow()
   addToolBar(new SeedGrowSegmentation());
   addToolBar(new EditorToolBar());
 
-  loadPlugins();
-//   QToolBar *lod = new LODToolBar();
-// //   lod->setMovable(false);
-//   addToolBar(lod);
-
   ChannelExplorer *channelExplorer = new ChannelExplorer(m_model, this);
   addDockWidget(Qt::LeftDockWidgetArea, channelExplorer);
   m_dockMenu->addAction(channelExplorer->toggleViewAction());
 
   DataViewPanel *dataView = new DataViewPanel(this);
   addDockWidget(Qt::BottomDockWidgetArea, dataView);
-  m_dockMenu->addAction(dataView->toggleViewAction());
+  m_dynamicMenuRoot->submenus[0]->menu->addAction(dataView->toggleViewAction());
 
   FilterInspector *filterInspector = new FilterInspector(this);
   addDockWidget(Qt::LeftDockWidgetArea, filterInspector);
@@ -205,6 +211,7 @@ EspinaWindow::EspinaWindow()
   addDockWidget(Qt::LeftDockWidgetArea, taxExplorer);
   m_dockMenu->addAction(taxExplorer->toggleViewAction());
 
+  loadPlugins();
 
   setActivity("segmentate");
 //   QSettings settings("CeSViMa", "EspinaModel");
@@ -212,10 +219,10 @@ EspinaWindow::EspinaWindow()
 //   restoreState(settings.value("state").toByteArray(),0);
   statusBar()->clearMessage();
 
-  m_autosave.setInterval(10*60*1000);
+  m_autosave.setInterval(EspinaCore::instance()->settings().autosaveInterval()*60*1000);
   m_autosave.start();
   connect(&m_autosave, SIGNAL(timeout()),
-	  this, SLOT(autosave()));
+          this, SLOT(autosave()));
 }
 
 //------------------------------------------------------------------------
@@ -683,6 +690,14 @@ void EspinaWindow::showPreferencesDialog()
 }
 
 //------------------------------------------------------------------------
+void EspinaWindow::showAboutDialog()
+{
+  AboutDialog dialog;
+
+  dialog.exec();
+}
+
+//------------------------------------------------------------------------
 void EspinaWindow::autosave()
 {
   if (!m_model->hasChanged())
@@ -690,10 +705,15 @@ void EspinaWindow::autosave()
 
   m_busy = true;
 
-  const QString analysisFile = ".espina-autosave.seg";
+  QDir autosavePath = EspinaCore::instance()->settings().autosavePath();
+  if (!autosavePath.exists())
+    autosavePath.mkpath(autosavePath.absolutePath());
+
+  const QFileInfo analysisFile = autosavePath.absoluteFilePath("espina-autosave.seg");
 
   IOEspinaFile::saveFile(analysisFile, m_model);
 
   updateStatus(QString("Analysis autosaved at %1").arg(QTime::currentTime().toString()));
   m_busy = false;
+  m_autosave.setInterval(EspinaCore::instance()->settings().autosaveInterval()*60*1000);
 }

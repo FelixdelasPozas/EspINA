@@ -60,8 +60,8 @@ void SliceViewSettingsPanel::acceptChanges()
 bool SliceViewSettingsPanel::modified() const
 {
   return invertSliceOrder->isChecked() != m_settings->invertSliceOrder()
-  || invertWheel->isChecked() != m_settings->invertWheel()
-  || showAxis->isChecked() != m_settings->showAxis();
+      || invertWheel->isChecked()      != m_settings->invertWheel()
+      || showAxis->isChecked()         != m_settings->showAxis();
 }
 
 //------------------------------------------------------------------------

@@ -20,28 +20,43 @@
 #include "RectangularSelection.h"
 
 #include "vtkNonRotatingBoxWidget.h"
+#include "vtkRectangularSliceWidget.h"
+#include <EspinaCore.h>
+#include <EspinaView.h>
+#include <vtkWidgetRepresentation.h>
 
-#include <vtkBoxRepresentation.h>
-#include <vtkProperty.h>
-#include "vtkRectangularWidget.h"
-#include "vtkRectangularRepresentation.h"
 
 #include <QDebug>
 
-//----------------------------------------------------------------------------
-RectangularRegion::RectangularRegion()
-: m_box(NULL)
+class RectangularSliceWidget
+: public SliceWidget
 {
+public:
+    explicit RectangularSliceWidget(vtkRectangularSliceWidget* widget)
+    : SliceWidget(widget)
+    , m_widget(widget)
+    { }
+    virtual void setSlice(Nm pos, PlaneType plane)
+    { m_widget->SetSlice(pos); }
+
+private:
+  vtkRectangularSliceWidget *m_widget;
+};
+
+//----------------------------------------------------------------------------
+RectangularRegion::RectangularRegion(double bounds[6])
+{
+  memcpy(m_bounds, bounds, 6*sizeof(double));
 }
 
 //----------------------------------------------------------------------------
 RectangularRegion::~RectangularRegion()
 {
-//   qDebug() << "Destroying RectangularRegion";
-//   qDebug() << "  containing" << m_widgets.size() << "widgets";
-  foreach(vtkAbstractWidget *widget, m_widgets)
+  foreach(vtkAbstractWidget *w, m_widgets)
   {
-    widget->Off();
+    w->EnabledOff();
+    w->RemoveAllObservers();
+    w->Delete();
   }
   m_widgets.clear();
 }
@@ -62,13 +77,15 @@ void RectangularRegion::deleteWidget(vtkAbstractWidget* widget)
 //----------------------------------------------------------------------------
 SliceWidget* RectangularRegion::createSliceWidget(PlaneType plane)
 {
-  vtkRectangularWidget *widget = vtkRectangularWidget::New();
-  Q_ASSERT(widget);
-  widget->SetPlane(plane);
+  vtkRectangularSliceWidget *w = vtkRectangularSliceWidget::New();
+  Q_ASSERT(w);
+  w->AddObserver(vtkCommand::EndInteractionEvent, this);
+  w->SetPlane(plane);
+  w->SetBounds(m_bounds);
 
-  m_widgets << widget;
+  m_widgets << w;
 
-  return new SliceWidget(widget);
+  return new RectangularSliceWidget(w);
 }
 
 //----------------------------------------------------------------------------
@@ -85,9 +102,9 @@ void RectangularRegion::setEnabled(bool enable)
 //----------------------------------------------------------------------------
 void RectangularRegion::setBounds(Nm bounds[6])
 {
-  foreach(vtkAbstractWidget *widget, m_widgets)
+  foreach(vtkRectangularSliceWidget *widget, m_widgets)
   {
-    widget->GetRepresentation()->PlaceWidget(bounds);
+    widget->SetBounds(bounds);
   }
 }
 
@@ -96,31 +113,24 @@ void RectangularRegion::bounds(Nm bounds[6])
 {
   Q_ASSERT(!m_widgets.isEmpty());
 
-  vtkAbstractWidget *widget = m_widgets[0];
+  vtkRectangularSliceWidget *widget = m_widgets[0];
 
-  memcpy(bounds, widget->GetRepresentation()->GetBounds(), 6*sizeof(double));
+  widget->GetBounds(bounds);
 }
 
-// //----------------------------------------------------------------------------
-// pq3DWidget* RectangularRegion::createWidget(QString name)
-// {
-//   vtkPVXMLElement* hints = getProxy()->GetHints();
-//   Q_ASSERT(hints->GetNumberOfNestedElements() == 1);
-//   vtkPVXMLElement* element = hints->GetNestedElement(0);
-//   QList<pq3DWidgetInterface *> interfaces =
-//   pqApplicationCore::instance()->interfaceTracker()->interfaces<pq3DWidgetInterface*>();
-//   pq3DWidget *widget = 0;
-// 
-//   // Create the widget from plugins.
-//   foreach (pq3DWidgetInterface* iface, interfaces)
-//   {
-//     widget = iface->newWidget(name, getProxy(), getProxy());
-//     if (widget)
-//     {
-//       widget->setHints(element);
-//       return widget;
-//     }
-//   }
-//   return NULL;
-// }
-// 
+//----------------------------------------------------------------------------
+void RectangularRegion::Execute(vtkObject* caller, long unsigned int eventId, void* callData)
+{
+  vtkRectangularSliceWidget *widget = static_cast<vtkRectangularSliceWidget *>(caller);
+
+  if (widget)
+  {
+    widget->GetBounds(m_bounds);
+
+    foreach(vtkRectangularSliceWidget *w, m_widgets)
+      if (w != widget)
+        w->SetBounds(m_bounds);
+  }
+  emit modified(m_bounds);
+  EspinaCore::instance()->viewManger()->currentView()->forceRender();
+}

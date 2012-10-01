@@ -138,7 +138,6 @@ public:
     return m_settings;
   }
 
-protected:
   void updateSegmentationRepresentations();
 
 public slots:

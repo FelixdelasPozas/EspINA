@@ -54,10 +54,16 @@ qt4_wrap_cpp(CORE_MOC
   selection/SelectionHandler.h
   selection/SelectionManager.h
   settings/ColorEngineSettings.h
+  editor/ContourSelector.h
+  editor/ContourWidget.h
+  widgets/RectangularSelection.h
+  editor/ContourSourceInspector.h
+  editor/ContourSource.h
   )
 
 qt4_wrap_ui (CORE_UI
   gui/HueSelector.ui
+  editor/ContourSourceInspector.ui
   )
 
 set (CORE_SOURCES
@@ -68,6 +74,7 @@ set (CORE_SOURCES
   cache/CacheHash.cpp
   editor/CODESettings.cpp
   editor/PencilSelector.cpp
+  editor/ContourSelector.cpp
   editor/FillHolesFilter.cpp
   editor/FillHolesCommand.cpp
   editor/FreeFormSource.cpp
@@ -131,12 +138,19 @@ set (CORE_SOURCES
   undo/AddSample.cpp
   undo/AddSegmentation.cpp
   undo/RemoveSegmentation.cpp
-  #views/vtkSliceView.cpp
-  #views/vtkVolumeView.cpp
-  widgets/vtkRectangularRepresentation.cpp
-  widgets/vtkRectangularWidget.cpp
+  widgets/vtkRectangularSliceRepresentation.cpp
+  widgets/vtkRectangularSliceWidget.cpp
   widgets/EspinaWidget.cpp
   widgets/RectangularSelection.cpp
+  editor/ContourWidget.cpp
+  editor/vtkPlaneContourWidget.cpp
+  editor/vtkPlaneContourRepresentation.cpp
+  editor/vtkPlaneContourRepresentationGlyph.cpp
+  editor/SliceContourWidget.cpp
+  editor/vtkClipClosedSurface.cxx
+  editor/vtkContourToPolygonFilter.cxx
+  editor/ContourSource.cpp
+  editor/ContourSourceInspector.cpp
   )
 
 set(CORE_EXTERNAL_LIBS

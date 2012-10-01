@@ -68,6 +68,8 @@ public:
 
 //   virtual void addRepresentation(pqOutputPort *oport, QColor color);
 //   virtual void removeRepresentation(pqOutputPort *oport);
+  
+  virtual void updateSegmentationRepresentations();
 
   virtual ISettingsPanel* settingsPanel();
 
