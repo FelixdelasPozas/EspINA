@@ -181,7 +181,6 @@ QWidget(parent)
 
   m_state->updateSlicingMatrix(m_slicingMatrix);
   vtkSmartPointer<vtkInteractorStyleEspinaSlice> interactor = vtkSmartPointer<vtkInteractorStyleEspinaSlice>::New();
-  //vtkSmartPointer<vtkInteractorStyleTrackballCamera> interactor = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
   interactor->AutoAdjustCameraClippingRangeOn();
   interactor->KeyPressActivationOff();
   m_renderWindow->AddRenderer(m_renderer);
@@ -195,7 +194,6 @@ QWidget(parent)
   m_viewportBorderData = vtkPolyData::New();
   m_viewportBorder     = vtkActor::New();
   initBorder(m_viewportBorderData, m_viewportBorder);
-  //m_renderWindow->Render();
 
   buildCrosshairs();
 
@@ -720,9 +718,32 @@ void SliceView::undock()
 //-----------------------------------------------------------------------------
 bool SliceView::eventFilter(QObject* caller, QEvent* e)
 {
+  static bool inFocus = false;
+
+  // prevent other widgets from stealing the focus while the mouse cursor over
+  // this widget
+  if (true == inFocus && QEvent::FocusOut == e->type())
+  {
+    this->setFocus(Qt::OtherFocusReason);
+    QKeyEvent event(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
+    qApp->sendEvent(this, &event);
+  }
+
   if (m_inThumbnail || !SelectionManager::instance()->filterEvent(e, this))
   {
-    if (QEvent::Wheel == e->type())
+    if (QEvent::KeyPress == e->type())
+    {
+      QKeyEvent *ke = static_cast<QKeyEvent *>(e);
+      if (ke->key() == Qt::Key_Control && ke->count() == 1)
+        emit showCrosshairs(true);
+    }
+    else if (QEvent::KeyRelease == e->type())
+    {
+      QKeyEvent *ke = static_cast<QKeyEvent *>(e);
+      if (ke->key() == Qt::Key_Control && ke->count() == 1)
+        emit showCrosshairs(false);
+    }
+    else if (QEvent::Wheel == e->type())
     {
       QWheelEvent *we = static_cast<QWheelEvent *>(e);
       int numSteps = we->delta() / 8 / 15 * (m_settings->invertWheel() ? -1 : 1);  //Refer to QWheelEvent doc.
@@ -732,12 +753,22 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
     else if (QEvent::Enter == e->type())
     {
       QWidget::enterEvent(e);
+
+      // get the focus this very moment
+      inFocus = true;
+      this->setFocus(Qt::OtherFocusReason);
+      QKeyEvent event(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
+      qApp->sendEvent(this, &event);
+
       m_view->setCursor(SelectionManager::instance()->cursor());
       e->accept();
     }
+    else if (QEvent::Leave == e->type())
+    {
+      inFocus = false;
+    }
     else if (QEvent::MouseMove == e->type())
     {
-      QMouseEvent* me = static_cast<QMouseEvent*>(e);
       int x, y;
       eventPosition(x, y);
       m_inThumbnail = m_thumbnail->GetDraw() && m_channelPicker->Pick(x, y, 0.1, m_thumbnail);
@@ -746,13 +777,6 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
         m_view->setCursor(Qt::ArrowCursor);
       else
         m_view->setCursor(SelectionManager::instance()->cursor());
-
-      if (m_inThumbnail && me->buttons() == Qt::LeftButton)
-      {
-        centerViewOnMousePosition();
-        if (me->modifiers() == Qt::CTRL)
-          centerCrosshairOnMousePosition();
-      }
     }
     else if (e->type() == QEvent::MouseButtonPress)
     {
@@ -760,18 +784,12 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
       if (me->button() == Qt::LeftButton)
       {
         if (me->modifiers() == Qt::CTRL)
-        {
           centerCrosshairOnMousePosition();
-          emit showCrosshairs(true);
-        }
-        else if (m_inThumbnail)
-        {
-          centerViewOnMousePosition();
-        }
         else
-        {
-          selectPickedItems(me->modifiers() == Qt::SHIFT);
-        }
+          if (m_inThumbnail)
+            centerViewOnMousePosition();
+          else
+            selectPickedItems(me->modifiers() == Qt::SHIFT);
       }
     }
     else if (e->type() == QEvent::KeyRelease)
@@ -1317,6 +1335,7 @@ void SliceView::setSlicingStep(Nm steps[3])
     m_spinBox->setSuffix("");
 
   m_scrollBar->setValue(slicingPos/m_slicingStep[m_plane]);
+  m_state->setCrossHairs(m_HCrossLineData, m_VCrossLineData, m_crosshairPoint, m_slicingRanges);
 }
 
 //-----------------------------------------------------------------------------
@@ -1341,6 +1360,9 @@ void SliceView::setSlicingRanges(Nm ranges[6])
   bool enabled = m_spinBox->minimum() < m_spinBox->maximum();
   m_fromSlice->setEnabled(enabled);
   m_toSlice->setEnabled(enabled);
+
+  // update crosshair
+  m_state->setCrossHairs(m_HCrossLineData, m_VCrossLineData, m_crosshairPoint, m_slicingRanges);
 }
 
 //-----------------------------------------------------------------------------
@@ -1484,4 +1506,14 @@ void SliceView::Settings::setShowAxis(bool value)
 
   settings.setValue(SHOW_AXIS, value);
   m_ShowAxis = value;
+}
+
+void SliceView::UpdateCrosshairPoint(PlaneType plane, Nm slicepos)
+{
+  this->m_crosshairPoint[plane] = slicepos;
+  m_state->setCrossHairs(m_HCrossLineData, m_VCrossLineData, m_crosshairPoint, m_slicingRanges);
+
+  // render if present
+  if (this->m_renderer->HasViewProp(this->m_HCrossLine))
+    forceRender();
 }

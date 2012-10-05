@@ -36,7 +36,7 @@ public:
   virtual void OnMouseWheelBackward() {}
 
   // Disable modifying brightness and saturation
-  virtual void OnLeftButtonDown() { }
+  virtual void OnLeftButtonDown() {}
   virtual void OnLeftButtonUp() {}
   //   virtual void OnMouseMove();
 protected:

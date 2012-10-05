@@ -139,6 +139,7 @@ public:
   }
 
   void updateSegmentationRepresentations();
+  void UpdateCrosshairPoint(PlaneType plane, Nm slicepos);
 
 public slots:
   /// Show/Hide segmentations

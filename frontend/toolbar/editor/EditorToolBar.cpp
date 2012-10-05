@@ -437,7 +437,6 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
     points[i][1] = int(region[i].y()/spacing[1]+0.5)*spacing[1];
     points[i][2] = int(region[i].z()/spacing[2]+0.5)*spacing[2];
   }
-  std::cout << "paint p: " << points[0][2] << std::flush;
 
   PlaneType selectedPlane;
   if (center[0] == right[0] && right[0] == top[0])
@@ -517,9 +516,11 @@ void EditorToolBar::drawSegmentation(SelectionHandler::MultiSelection msel)
   QSharedPointer<QUndoStack> undo = EspinaCore::instance()->undoStack();
   if (!m_currentSeg && m_currentSource)
   {
-    // Create a new segmentation
-    Q_ASSERT (PencilSelector::CREATING == m_pencilSelector->state());
+    // prevent this case
+    if (PencilSelector::ERASING == m_pencilSelector->state())
+      return;
 
+    // Create a new segmentation
     m_currentSource->draw(0, brush, bounds);
     m_currentSeg = EspinaFactory::instance()->createSegmentation(m_currentSource, 0);
     TaxonomyNode *tax = SelectionManager::instance()->activeTaxonomy();

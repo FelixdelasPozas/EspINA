@@ -132,10 +132,17 @@ QVariant MorphologicalExtension::information(QString info) const
 
     LabelMapType *labelMap = m_labelMap->GetOutput();
     labelMap->Update();
-    Q_ASSERT(labelMap->GetNumberOfLabelObjects() == 1);
+
+    if (labelMap->GetNumberOfLabelObjects() != 0)
+      return QVariant(-1);
+
     m_statistic = labelMap->GetNthLabelObject(0);
     QApplication::restoreOverrideCursor();
   }
+
+
+  if (NULL == m_statistic)
+    return QVariant(-1);
 
 //   EspinaVolume::SpacingType spacing = m_seg->volume()->GetSpacing();
   if (info == SIZE)

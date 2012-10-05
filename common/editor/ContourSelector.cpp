@@ -29,22 +29,18 @@ bool ContourSelector::filterEvent(QEvent* e, SelectableView* view)
   switch (e->type())
   {
     case QEvent::Enter:
-      view->view()->grabKeyboard();
       return SelectionHandler::filterEvent(e, view);
       break;
     case QEvent::Leave:
-      view->view()->releaseKeyboard();
       return SelectionHandler::filterEvent(e, view);
       break;
     case QEvent::Wheel:
       return SelectionHandler::filterEvent(e, view);
       break;
     default:
-//      return SelectionHandler::filterEvent(e, view);
       break;
   }
 
-  // dead code, switch() handles all possibilities
   return true;
 }
 

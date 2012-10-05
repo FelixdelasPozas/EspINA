@@ -694,6 +694,24 @@ ISettingsPanel* DefaultEspinaView::SettingsPanel::clone()
 //-----------------------------------------------------------------------------
 void DefaultEspinaView::changePlanePosition(PlaneType plane, Nm dist)
 {
+  switch(plane)
+  {
+    case AXIAL:
+      this->yzView->UpdateCrosshairPoint(plane, dist);
+      this->xzView->UpdateCrosshairPoint(plane, dist);
+      break;
+    case CORONAL:
+      this->xyView->UpdateCrosshairPoint(plane, dist);
+      this->yzView->UpdateCrosshairPoint(plane, dist);
+      break;
+    case SAGITTAL:
+      this->xyView->UpdateCrosshairPoint(plane, dist);
+      this->xzView->UpdateCrosshairPoint(plane, dist);
+      break;
+    default:
+      Q_ASSERT(false);
+      break;
+  }
   volView->changePlanePosition(plane, dist);
   volView->forceRender();
 }
