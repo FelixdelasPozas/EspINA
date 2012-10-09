@@ -133,17 +133,23 @@ bookmarksopen=false
 \renewcommand{\headrulewidth}{0.5pt}
 \renewcommand{\footrulewidth}{0.5pt}
 
+% avoid text going farther than the footer line
+\addtolength{\footskip}{20pt}
+
 \usepackage{lastpage}
 \usepackage{a4wide} 
 \usepackage{moreverb}
 \usepackage{hangcaption}
 \usepackage{listings}
 
+% NOTAS 
+\usepackage[tikz]{bclogo}
+
 %Formulas
 \newcommand{\ela}{\\ \nonumber}
 %Variables
 %%Prob
-\newcommand{\desc}[3]{
+\newcommand{\desc}[3]{\\
 \begin{tabular}{m{0.8cm} m{13cm}}
 \includegraphics[width=0.7cm]{#2} & \textbf{#1}: #3
 \end{tabular}
@@ -156,9 +162,9 @@ bookmarksopen=false
 \newcommand{\ToDo}[1]{\textit{\textbf{ToDo: } #1}}
 
 %P O R T A D A
-\author{Jorge PEÑA PASTOR}
-\title{\textbf{Esp}ina \textbf{I}nteractive \textbf{N}euron \textbf{A}nalizer}
+\author{Jorge Peña Pastor \and Félix de las Pozas Álvarez}
 
+\title{\textbf{Esp}ina \textbf{I}nteractive \textbf{N}euron \textbf{A}nalizer}
 
 \begin{document}
 
@@ -174,6 +180,12 @@ bookmarksopen=false
 %\input{edition.tex}
 
 \input{analysis.tex}
+
+\input{shortcuts.tex}
+
+\input{menus.tex}
+
+\input{configuration.tex}
 
 %\bibliographystyle{alpha}
 %\bibliography{rapport-mosig}
