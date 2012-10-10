@@ -26,7 +26,6 @@
 #include "common/model/Channel.h"
 #include "common/model/EspinaModel.h"
 #include "common/model/ModelItem.h"
-#include "common/selection/SelectionManager.h"
 #include "EspinaConfig.h"
 #include "frontend/docks/ChannelInspector.h"
 
@@ -468,8 +467,8 @@ void ChannelExplorer::focusOnChannel()
     Channel *channel = dynamic_cast<Channel *>(currentItem);
     Nm bounds[6];
     VolumeBounds(channel->itkVolume(), bounds);
-    double pos[3] = { (bounds[1]-bounds[0])/2, (bounds[3]-bounds[2])/2, (bounds[5]-bounds[4])/2 };
     //TODO 2012-10-04: Use setSelection instead of setCameraFocus
+//     double pos[3] = { (bounds[1]-bounds[0])/2, (bounds[3]-bounds[2])/2, (bounds[5]-bounds[4])/2 };
 //     EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
 //     view->setCameraFocus(pos);
 //     view->forceRender();

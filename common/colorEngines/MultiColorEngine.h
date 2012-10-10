@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2012  <copyright holder> <email>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,41 +17,25 @@
 */
 
 
-#ifndef COLORENGINESETTINGS_H
-#define COLORENGINESETTINGS_H
+#ifndef MULTICOLORENGINE_H
+#define MULTICOLORENGINE_H
 
-#include <QObject>
-#include <QMap>
+#include "common/colorEngines/ColorEngine.h"
 
-class QActionGroup;
-class ColorEngine;
-class QAction;
-class QMenu;
+#include <QList>
 
-
-class ColorEngineSettings
-: public QObject
+class MultiColorEngine
+: public ColorEngine
 {
-  Q_OBJECT
 public:
-  explicit ColorEngineSettings();
+  virtual QColor color(const Segmentation* seg);
+  virtual vtkSmartPointer< vtkLookupTable > lut(const Segmentation* seg);
 
-  ColorEngine *engine() const {return m_engine;}
-  QMenu *availableEngines();
-
-public slots:
-  void setColorEngine(ColorEngine *engine);
-
-protected slots:
-  void setColorEngine(QAction *engine);
-
-signals:
-  void colorEngineChanged(ColorEngine *);
+  void addColorEngine(ColorEnginePtr engine);
+  void removeColorEngine(ColorEnginePtr engine);
 
 private:
-  ColorEngine  *m_engine;
-  QActionGroup *m_actions;
-  QMap<QAction *, ColorEngine *> m_availableEngines;
+  QList<ColorEnginePtr> m_engines;
 };
 
-#endif // COLORENGINESETTINGS_H
+#endif // MULTICOLORENGINE_H

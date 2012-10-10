@@ -20,7 +20,7 @@
 #include "MeshRenderer.h"
 #include <vtkRenderWindow.h>
 #include <model/Segmentation.h>
-#include <ColorEngine.h>
+#include "common/colorEngines/ColorEngine.h"
 #include <vtkSmartPointer.h>
 #include <vtkDiscreteMarchingCubes.h>
 #include <vtkWindowedSincPolyDataFilter.h>

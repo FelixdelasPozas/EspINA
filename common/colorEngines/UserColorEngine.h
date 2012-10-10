@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
+    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,17 +17,29 @@
 */
 
 
-#ifndef SAMPLEDELEGATE_H
-#define SAMPLEDELEGATE_H
+#ifndef USERCOLORENGINE_H
+#define USERCOLORENGINE_H
 
-#include <QStyledItemDelegate>
+#include <common/colorEngines/ColorEngine.h>
 
-class SampleDelegate : public QStyledItemDelegate
+#include <QMap>
+
+class UserColorEngine : public ColorEngine
 {
 public:
-  virtual QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const;
-  virtual void setEditorData(QWidget* editor, const QModelIndex& index) const;
-  virtual void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const;
+  explicit UserColorEngine();
+
+  virtual QColor color(const Segmentation* seg);
+  virtual vtkSmartPointer< vtkLookupTable > lut(const Segmentation* seg);
+
+private:
+  QColor nextColor();
+
+private:
+  QMap<QString, QColor> m_userColors;
+  QList<QColor>         m_colors;
+  int                   m_lastColor;
+  QMap<QString, vtkSmartPointer<vtkLookupTable> > m_LUT;
 };
 
-#endif // SAMPLEDELEGATE_H
+#endif // USERCOLORENGINE_H

@@ -15,19 +15,30 @@
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include "NumberColorEngine.h"
+
+#include "TaxonomyColorEngine.h"
 
 #include "common/model/Segmentation.h"
 
 const double SELECTED_ALPHA = 1.0;
 const double UNSELECTED_ALPHA = 0.6;
 
-vtkSmartPointer<vtkLookupTable> NumberColorEngine::lut(const Segmentation* seg)
+//-----------------------------------------------------------------------------
+QColor TaxonomyColorEngine::color(const Segmentation* seg)
+{
+  if (seg && seg->taxonomy())
+    return seg->taxonomy()->color();
+  else
+    return Qt::red;
+}
+
+//-----------------------------------------------------------------------------
+vtkSmartPointer<vtkLookupTable> TaxonomyColorEngine::lut(const Segmentation* seg)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
-  QString lutName = QString::number(seg->number());
-  if (seg->isSelected())
-    lutName.append("_selected");
+  QString lutName = seg->taxonomy()->qualifiedName();
+//   if (seg->isSelected())
+//     lutName.append("_selected");
 
   vtkSmartPointer<vtkLookupTable> seg_lut;
 
@@ -54,11 +65,23 @@ vtkSmartPointer<vtkLookupTable> NumberColorEngine::lut(const Segmentation* seg)
   return seg_lut;
 }
 
-QColor NumberColorEngine::color(const Segmentation* seg)
+//-----------------------------------------------------------------------------
+void TaxonomyColorEngine::updateTaxonomyColor(TaxonomyElement* tax)
 {
-  if (seg)
-    return QColor((seg->number() * 25) % 255, (seg->number() * 73) % 255, (seg->number() * 53) % 255);
-  else
-    return Qt::red;
-}
+  QString lutName = tax->qualifiedName();
+  QColor c = tax->color();
 
+  if (!m_LUT.contains(lutName))
+    return;
+
+  m_LUT[lutName]->SetTableValue(1, c.redF(), c.greenF(), c.blueF(), UNSELECTED_ALPHA);
+  m_LUT[lutName]->Modified();
+
+  lutName.append("_selected");
+
+  if (!m_LUT.contains(lutName))
+    return;
+
+  m_LUT[lutName]->SetTableValue(1, c.redF(), c.greenF(), c.blueF(), SELECTED_ALPHA);
+  m_LUT[lutName]->Modified();
+}

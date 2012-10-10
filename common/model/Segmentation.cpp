@@ -20,7 +20,7 @@
 
 #include "Filter.h"
 #include "EspinaRegions.h"
-#include "common/gui/ColorEngine.h"
+#include "common/colorEngines/ColorEngine.h"
 
 #include <vtkAlgorithm.h>
 #include <vtkAlgorithmOutput.h>

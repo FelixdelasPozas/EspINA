@@ -29,6 +29,7 @@ qt4_add_resources(RCC_BUILT_SOURCES
 
 # Create header's MOC files
 qt4_wrap_cpp (MOC_BUILT_SOURCES
+  ColorEngineMenu.h
   EspinaWindow.h
   SettingsDialog.h
   docks/DataView/DataView.h
@@ -114,6 +115,7 @@ set (VIEW_SOURCES
 set (LOCAL_SOURCES
   main.cpp
   AboutDialog.cpp
+  ColorEngineMenu.cpp
   EspinaWindow.cpp
   SettingsDialog.cpp
   RecentDocuments.cpp

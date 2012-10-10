@@ -32,8 +32,7 @@
 #include "common/model/EspinaFactory.h"
 #include "common/model/EspinaModel.h"
 #include "common/selection/PixelSelector.h"
-#include "common/selection/SelectableItem.h"
-#include "common/selection/SelectionManager.h"
+#include "common/selection/PickableItem.h"
 #include "common/undo/AddFilter.h"
 #include "common/undo/AddRelation.h"
 #include "common/undo/AddSegmentation.h"
@@ -250,7 +249,6 @@ void SeedGrowSegmentation::startSegmentation(IPicker::PickList msel)
       Q_ASSERT(tax);
 
       m_undoStack->push(new UndoCommand(channel, filter, tax, m_model));
-      m_viewManager->updateViews();
       QApplication::restoreOverrideCursor();
     }
   }

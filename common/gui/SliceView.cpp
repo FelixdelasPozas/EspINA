@@ -20,16 +20,16 @@
 
 // // EspINA
 #include "EspinaTypes.h"
-#include "common/settings/ISettingsPanel.h"
-#include "common/settings/EspinaSettings.h"
+#include "common/colorEngines/ColorEngine.h"
 #include "common/model/Channel.h"
 #include "common/model/Representation.h"
 #include "common/model/Segmentation.h"
 #include "common/gui/SliceViewState.h"
 #include "common/gui/VolumeView.h"
+#include "common/gui/ViewManager.h"
 #include "common/gui/vtkInteractorStyleEspinaSlice.h"
-#include "common/gui/ColorEngine.h"
-#include "ViewManager.h"
+#include "common/settings/ISettingsPanel.h"
+#include "common/settings/EspinaSettings.h"
 
 // Debug
 #include <QDebug>
@@ -800,28 +800,31 @@ bool SliceView::updateSegmentation(Segmentation* seg)
   SliceRep &rep = m_segmentationReps[seg];
 
   bool updated = false;
-  if ((seg->isSelected() != rep.selected)
-    || (seg->data(Qt::DecorationRole).value<QColor>() != rep.color)
-    || seg->updateForced())
+  if (rep.visible != (seg->visible() && m_showSegmentations))
   {
-    rep.selected = seg->isSelected();
-    rep.color = seg->data(Qt::DecorationRole).value<QColor>();
-
-    rep.resliceToColors->SetLookupTable(m_viewManager->lut(seg));
-    rep.resliceToColors->Update();
-
+    rep.visible = seg->visible() && m_showSegmentations;
+    rep.slice->SetVisibility(rep.visible && m_showSegmentations);
     updated = true;
   }
 
-  if (rep.visible != seg->visible())
+  if (rep.visible)
   {
-    rep.visible = seg->visible();
-    updated = m_showSegmentations;
-  }
-  rep.slice->SetVisibility(rep.visible && m_showSegmentations);
+    QColor segColor = m_viewManager->color(seg);
+    if ((seg->isSelected() != rep.selected)
+      || (segColor != rep.color)
+      || seg->updateForced())
+    {
+      rep.selected = seg->isSelected();
+      rep.color = segColor;
 
-//   if (updated)
-//     qDebug() << "Update Segmentation Representation" << m_plane;
+      rep.resliceToColors->SetLookupTable(m_viewManager->lut(seg));
+      rep.resliceToColors->Update();
+      updated = true;
+    }
+  }
+
+  //   if (updated)
+  //     qDebug() << "Update Segmentation Representation" << m_plane;
 
   return updated;
 }
@@ -885,6 +888,7 @@ void SliceView::removeActor(vtkProp* actor)
 void SliceView::updateSelection(ViewManager::Selection selection)
 {
   updateSegmentationRepresentations();
+  updateView();
 }
 
 //-----------------------------------------------------------------------------
@@ -1142,7 +1146,11 @@ void SliceView::selectPickedItems(bool append)
   // If no append, segmentations have priority over channels
   foreach(Segmentation *seg, pickSegmentations(vx, vy, m_renderer, append))
   {
-    selection << seg;
+    if (selection.contains(seg))
+      selection.removeAll(seg);
+    else
+      selection << seg;
+
     if (!append)
       break;
   }

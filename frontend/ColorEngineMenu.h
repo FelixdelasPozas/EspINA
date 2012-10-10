@@ -17,32 +17,42 @@
 */
 
 
-#ifndef SEEDGROWSELECTOR_H
-#define SEEDGROWSELECTOR_H
+#ifndef COLORENGINESETTINGS_H
+#define COLORENGINESETTINGS_H
 
-#include "common/selection/IPicker.h"
+#include <QMenu>
 
-class SeedGrowSegmentationFilter;
-class ThresholdAction;
+#include <common/colorEngines/ColorEngine.h>
+#include <common/colorEngines/MultiColorEngine.h>
 
-class SeedGrowSelector
-: public IPicker
+#include <QMap>
+
+class ColorEngine;
+class ViewManager;
+
+class ColorEngineMenu
+: public QMenu
 {
   Q_OBJECT
 public:
-  explicit SeedGrowSelector(ThresholdAction *th, IPicker *succesor = NULL);
+  explicit ColorEngineMenu(ViewManager *vm, const QString &title, QWidget *parent = 0);
+  virtual ~ColorEngineMenu();
 
-  virtual bool filterEvent(QEvent* e, EspinaRenderView *view = 0);
-  virtual QCursor cursor();
+  ColorEnginePtr engine() const {return m_engine;}
 
-  void previewOn();
-  void previewOff();
+  void addColorEngine(const QString &title, ColorEnginePtr engine);
+  void restoreUserSettings();
 
-  void setPixelSelector(IPicker *sel) {m_succesor = sel;}
+protected slots:
+  void setColorEngine(QAction *action);
+
+signals:
+  void colorEngineChanged(ColorEnginePtr);
 
 private:
-  ThresholdAction *m_threshold;
-  SeedGrowSegmentationFilter *m_preview;
+  ViewManager *m_viewManager;
+  QSharedPointer<MultiColorEngine> m_engine;
+  QMap<QAction *, ColorEnginePtr>  m_availableEngines;
 };
 
-#endif // SEEDGROWSELECTOR_H
+#endif // COLORENGINESETTINGS_H

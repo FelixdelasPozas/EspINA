@@ -23,7 +23,6 @@
 
 // EspINA
 #include <common/model/Segmentation.h>
-#include "ColorEngine.h"
 #include <model/Channel.h>
 #include <model/Representation.h>
 #include <model/EspinaFactory.h>

@@ -23,7 +23,7 @@
 // EspINA
 #include "common/model/EspinaModel.h"
 #include "common/model/Taxonomy.h"
-#include "common/gui/TaxonomyColorEngine.h" //TODO 2012-10-04 Use old color engine
+#include "common/gui/ViewManager.h"
 
 // Qt
 #include <QColorDialog>
@@ -38,10 +38,15 @@ public:
 };
 
 //------------------------------------------------------------------------
-TaxonomyExplorer::TaxonomyExplorer(EspinaModel *model, QWidget *parent)
+TaxonomyExplorer::TaxonomyExplorer(EspinaModel* model,
+                                   ViewManager* vm,
+                                   TaxonomyColorEnginePtr engine,
+                                   QWidget* parent)
 : QDockWidget(parent)
 , m_gui(new GUI())
 , m_baseModel(model)
+, m_viewManager(vm)
+, m_engine(engine)
 , m_sort(new QSortFilterProxyModel())
 {
   setWindowTitle(tr("Taxonomy Explorer"));
@@ -109,10 +114,9 @@ void TaxonomyExplorer::changeColor()
     ModelItem *item = indexPtr(index);
     Q_ASSERT(ModelItem::TAXONOMY == item->type());
     TaxonomyElement *tax = dynamic_cast<TaxonomyElement *>(item);
-    // TODO 2012-10-04 Avoid singleton!
-    TaxonomyColorEngine::instance()->updateTaxonomyColor(tax);
-    // TODO 20120-10-04 Propagate color changes
-    //EspinaCore::instance()->colorSettings().setColorEngine(TaxonomyColorEngine::instance());
+    m_engine->updateTaxonomyColor(tax);
+    //TDO
+    //m_viewManager->updateViews();
   }
 }
 

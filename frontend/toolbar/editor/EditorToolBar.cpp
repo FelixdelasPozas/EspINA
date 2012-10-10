@@ -21,7 +21,6 @@
 
 // EspINA
 #include "common/editor/ImageLogicCommand.h"
-#include "common/editor/PencilSelector.h"
 #include "common/editor/FreeFormSource.h"
 #include "common/editor/ClosingFilter.h"
 #include "common/editor/ErodeFilter.h"
@@ -38,8 +37,7 @@
 #include "common/model/EspinaModel.h"
 #include "common/gui/ActionSelector.h"
 #include "common/gui/ViewManager.h"
-#include "common/selection/SelectionManager.h"
-#include "common/selection/SelectableItem.h"
+#include "common/selection/PickableItem.h"
 #include "common/undo/RemoveSegmentation.h"
 #include "frontend/toolbar/editor/Settings.h"
 #include "frontend/toolbar/editor/SettingsPanel.h"

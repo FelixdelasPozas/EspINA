@@ -21,7 +21,7 @@
 #include <QToolBar>
 
 #include "common/pluginInterfaces/FilterFactory.h"
-#include "common/selection/SelectionHandler.h"
+#include "common/selection/IPicker.h"
 #include <model/Taxonomy.h>
 #include <model/Segmentation.h>
 #include "SeedGrowSelector.h"

@@ -20,11 +20,10 @@
 #include "ViewManager.h"
 
 // EspINA
+#include "common/colorEngines/ColorEngine.h"
 #include "common/gui/IEspinaView.h"
-#include "ColorEngine.h"
-#include "EspinaRenderView.h"
-#include <selection/SelectableItem.h>
-#include <selection/SelectionHandler.h>
+#include "common/gui/EspinaRenderView.h"
+#include <selection/PickableItem.h>
 
 // Qt
 #include <QDebug>
@@ -34,6 +33,7 @@ ViewManager::ViewManager()
 : m_picker(NULL)
 , m_activeChannel(NULL)
 , m_activeTaxonomy(NULL)
+, m_colorEngine(NULL)
 {
 }
 
@@ -171,11 +171,20 @@ void ViewManager::resetViewCameras()
 }
 
 //----------------------------------------------------------------------------
+void ViewManager::updateSegmentationRepresentations()
+{
+  foreach(IEspinaView *view, m_espinaViews)
+  {
+    view->updateSegmentationRepresentations();
+  }
+}
+
+//----------------------------------------------------------------------------
 QColor ViewManager::color(const Segmentation* seg)
 {
   QColor segColor(Qt::blue);
-  if (!m_engines.isEmpty())
-    segColor = m_engines.keys().first()->color(seg);
+  if (m_colorEngine)
+    segColor = m_colorEngine->color(seg);
 
   return segColor;
 }
@@ -184,8 +193,11 @@ QColor ViewManager::color(const Segmentation* seg)
 vtkSmartPointer<vtkLookupTable> ViewManager::lut(const Segmentation* seg)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
+  if (m_colorEngine)
+    return m_colorEngine->lut(seg);
+
   double alpha = 0.8;
-  QColor c = color(seg);
+  QColor c(Qt::blue);
   seg_lut = vtkLookupTable::New();
   seg_lut->Allocate();
   seg_lut->SetNumberOfTableValues(2);
@@ -198,22 +210,9 @@ vtkSmartPointer<vtkLookupTable> ViewManager::lut(const Segmentation* seg)
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::registerColorEngine(ColorEngine* engine)
+void ViewManager::setColorEngine(ColorEngine* engine)
 {
-  Q_ASSERT(!m_engines.contains(engine));
-  m_engines.insert(engine, false);
-}
-
-//----------------------------------------------------------------------------
-void ViewManager::setEnabled(ColorEngine* engine, bool enable)
-{
-  Q_ASSERT(m_engines.contains(engine));
-  m_engines[engine] = enable;
-}
-
-//----------------------------------------------------------------------------
-void ViewManager::unregisterColorEngine(ColorEngine* engine)
-{
-  Q_ASSERT(m_engines.contains(engine));
-  m_engines.remove(engine);
+  m_colorEngine = engine;
+  updateSegmentationRepresentations();
+  updateViews();
 }

@@ -20,7 +20,7 @@
 #ifndef PIXELSELECTOR_H_
 #define PIXELSELECTOR_H_
 
-#include "SelectionHandler.h"
+#include "common/selection/IPicker.h"
 
 class PixelSelector 
 : public IPicker

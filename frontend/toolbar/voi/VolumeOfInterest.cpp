@@ -19,7 +19,7 @@
 
 // EspINA
 #include "common/gui/ActionSelector.h"
-#include <selection/SelectableItem.h>
+#include <selection/PickableItem.h>
 #include "common/gui/ViewManager.h"
 #include <model/Channel.h>
 

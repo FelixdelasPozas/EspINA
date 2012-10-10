@@ -24,7 +24,7 @@
 #include "common/gui/IEspinaView.h"
 
 #include "common/EspinaTypes.h"
-#include "common/selection/SelectionHandler.h"
+#include "common/selection/IPicker.h"
 
 class Channel;
 class Segmentation;

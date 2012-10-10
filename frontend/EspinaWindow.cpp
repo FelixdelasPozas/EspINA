@@ -31,7 +31,10 @@
 #include "common/renderers/CrosshairRenderer.h"
 #include "common/renderers/MeshRenderer.h"
 #include "common/settings/GeneralSettings.h"
-#include <settings/EspinaSettings.h>
+#include "common/settings/EspinaSettings.h"
+#include "common/colorEngines/TaxonomyColorEngine.h"
+#include "common/colorEngines/NumberColorEngine.h"
+#include "common/colorEngines/UserColorEngine.h"
 #include "frontend/docks/ChannelExplorer.h"
 #include "frontend/docks/DataView/DataViewPanel.h"
 #include "frontend/docks/SegmentationExplorer.h"
@@ -43,7 +46,8 @@
 #include "frontend/toolbar/voi/VolumeOfInterest.h"
 #include "frontend/SettingsDialog.h"
 #include "frontend/AboutDialog.h"
-#include "views/DefaultEspinaView.h"
+#include "frontend/views/DefaultEspinaView.h"
+#include "frontend/ColorEngineMenu.h"
 
 #ifdef TEST_ESPINA_MODELS
   #include "common/model/ModelTest.h"
@@ -160,9 +164,17 @@ EspinaWindow::EspinaWindow()
 
   /*** VIEW MENU ***/
   m_viewMenu = new QMenu(tr("View"));
+
+  m_colorEngines = new ColorEngineMenu(m_viewManager, tr("Color By"));
+  m_colorEngines->addColorEngine(tr("Number"), ColorEnginePtr(new NumberColorEngine()));
+  TaxonomyColorEnginePtr taxonomyEngine(new TaxonomyColorEngine());
+  m_colorEngines->addColorEngine(tr("Taxonomy"),taxonomyEngine);
+  m_colorEngines->addColorEngine(tr("User"), ColorEnginePtr(new UserColorEngine()));
+
   m_dockMenu = new QMenu(tr("Panels"));
 
   menuBar()->addMenu(m_viewMenu);
+  m_viewMenu->addMenu(m_colorEngines);
 
   /*** Settings MENU ***/
   QMenu *settingsMenu = new QMenu(tr("&Settings"));
@@ -202,14 +214,14 @@ EspinaWindow::EspinaWindow()
   addDockWidget(Qt::LeftDockWidgetArea, segExplorer);
   m_dockMenu->addAction(segExplorer->toggleViewAction());
 
-  TaxonomyExplorer *taxExplorer = new TaxonomyExplorer(m_model, this);
+  TaxonomyExplorer *taxExplorer = new TaxonomyExplorer(m_model, m_viewManager, taxonomyEngine, this);
   addDockWidget(Qt::LeftDockWidgetArea, taxExplorer);
   m_dockMenu->addAction(taxExplorer->toggleViewAction());
 
   loadPlugins();
 
+  m_colorEngines->restoreUserSettings();
   m_viewMenu->addMenu(m_dockMenu);
-  // TODO 2012-10-05 ColorEngine Menu m_viewMenu->addMenu(EspinaCore::instance()->colorSettings().availableEngines());
   m_viewMenu->addSeparator();
 
   DefaultEspinaView *defaultView = new DefaultEspinaView(m_model, m_viewManager, this);

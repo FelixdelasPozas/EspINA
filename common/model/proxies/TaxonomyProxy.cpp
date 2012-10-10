@@ -608,31 +608,31 @@ void TaxonomyProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const QM
 
   foreach(QModelIndex source, sources)
   {
-    bool indexChanged = true;
     if (source.parent() == m_model->segmentationRoot())
     {
+      bool indexChanged = true;
       ModelItem *sourceItem = indexPtr(source);
       Segmentation *seg = dynamic_cast<Segmentation*>(sourceItem);
       TaxonomyElement *prevTaxonomy = NULL;
       foreach(TaxonomyElement *taxonomy, m_segmentations.keys())
       {
-	if (m_segmentations[taxonomy].contains(sourceItem))
-	{
-	  indexChanged = taxonomy != seg->taxonomy();
-	  prevTaxonomy = taxonomy;
-	  break;
-	}
+        if (m_segmentations[taxonomy].contains(sourceItem))
+        {
+          indexChanged = taxonomy != seg->taxonomy();
+          prevTaxonomy = taxonomy;
+          break;
+        }
       }
       if (prevTaxonomy && indexChanged)
       {
-	QModelIndex source = mapFromSource(m_model->taxonomyIndex(prevTaxonomy));
-	QModelIndex destination = mapFromSource(m_model->taxonomyIndex(seg->taxonomy()));
-	int currentRow = numTaxonomies(prevTaxonomy) + m_segmentations[prevTaxonomy].indexOf(sourceItem);
-	int newRow = rowCount(destination);
-	beginMoveRows(source, currentRow, currentRow, destination, newRow);
-	m_segmentations[prevTaxonomy].removeOne(sourceItem);
-	m_segmentations[seg->taxonomy()] << sourceItem;
-	endMoveRows();
+        QModelIndex source = mapFromSource(m_model->taxonomyIndex(prevTaxonomy));
+        QModelIndex destination = mapFromSource(m_model->taxonomyIndex(seg->taxonomy()));
+        int currentRow = numTaxonomies(prevTaxonomy) + m_segmentations[prevTaxonomy].indexOf(sourceItem);
+        int newRow = rowCount(destination);
+        beginMoveRows(source, currentRow, currentRow, destination, newRow);
+        m_segmentations[prevTaxonomy].removeOne(sourceItem);
+        m_segmentations[seg->taxonomy()] << sourceItem;
+        endMoveRows();
       }
     }
     QModelIndex proxyIndex = mapFromSource(source);

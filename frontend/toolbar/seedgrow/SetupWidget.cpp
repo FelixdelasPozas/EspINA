@@ -18,7 +18,6 @@
 #include "SetupWidget.h"
 
 // EspINA
-#include "common/selection/SelectionManager.h"
 #include "common/gui/ViewManager.h"
 #include "common/widgets/RectangularSelection.h"
 

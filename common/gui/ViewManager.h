@@ -106,6 +106,7 @@ public:
   /// Reset Camera
   void resetViewCameras();
   /// Update Segmentation Representation
+  void updateSegmentationRepresentations();
 
 public slots:
   /// Request all registered views to update themselves
@@ -133,11 +134,9 @@ signals:
   //---------------------------------------------------------------------------
 public:
   QColor color(const Segmentation *seg);
-  virtual vtkSmartPointer<vtkLookupTable> lut(const Segmentation *seg);
+  vtkSmartPointer<vtkLookupTable> lut(const Segmentation *seg);
 
-  void registerColorEngine(ColorEngine *engine);
-  void setEnabled(ColorEngine *engine, bool enable=true);
-  void unregisterColorEngine(ColorEngine *engine);
+  void setColorEngine(ColorEngine *engine);
 
 private:
   Nm m_slicingStep[3];
@@ -148,7 +147,7 @@ private:
   Channel      *m_activeChannel;
   TaxonomyElement *m_activeTaxonomy;
 
-  QMap<ColorEngine *, bool> m_engines;
+  ColorEngine * m_colorEngine;
   vtkSmartPointer<vtkLookupTable> seg_lut;
 };
 

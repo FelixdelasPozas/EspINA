@@ -24,8 +24,7 @@
 #include "common/pluginInterfaces/FilterFactory.h"
 
 // EspINA
-#include "common/selection/SelectionHandler.h"
-#include "common/editor/PencilSelector.h"
+#include "common/editor/BrushSelector.h"
 #include "common/model/Segmentation.h"
 
 class ViewManager;

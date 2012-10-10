@@ -35,8 +35,8 @@ vtkSmartPointer<vtkLookupTable> UserColorEngine::lut(const Segmentation* seg)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
   QString lutName = seg->taxonomy()->qualifiedName();
-  if (seg->isSelected())
-    lutName.append("_selected");
+//   if (seg->isSelected())
+//     lutName.append("_selected");
 
   vtkSmartPointer<vtkLookupTable> seg_lut;
 

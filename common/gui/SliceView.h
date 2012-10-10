@@ -75,6 +75,8 @@ public:
     NoSelector = 0x0, From = 0x1, To = 0x2
   };Q_DECLARE_FLAGS(SliceSelectors, SliceSelector)
 
+  class SelectionColorEngine;
+
   class Settings;
   typedef QSharedPointer<Settings> SettingsPtr;
 
@@ -311,5 +313,6 @@ private:
   PlaneType m_plane;
   QString viewSettings;
 };
+
 
 #endif // SLICEVIEW_H

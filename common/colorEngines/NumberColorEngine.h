@@ -19,7 +19,9 @@
 #ifndef NUMBERCOLORENGINE_H
 #define NUMBERCOLORENGINE_H
 
-#include <ColorEngine.h>
+
+#include "common/colorEngines/ColorEngine.h"
+
 #include <QMap>
 
 class NumberColorEngine: public ColorEngine

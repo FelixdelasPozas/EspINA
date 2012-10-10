@@ -28,7 +28,7 @@
 
 #include <QToolBar>
 
-#include "common/selection/SelectionHandler.h"
+#include "common/selection/IPicker.h"
 
 #include <QModelIndex>
 

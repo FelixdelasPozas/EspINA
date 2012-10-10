@@ -16,33 +16,25 @@
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TAXONOMYCOLORENGINE_H
-#define TAXONOMYCOLORENGINE_H
+#ifndef COLORENGINE_H
+#define COLORENGINE_H
 
-#include "common/gui/ColorEngine.h"
-#include <QMap>
+#include <QSharedPointer>
 
-class TaxonomyElement;
-class TaxonomyColorEngine
-: public ColorEngine
+#include <QColor>
+#include <vtkLookupTable.h>
+#include <vtkSmartPointer.h>
+
+class Segmentation;
+
+class ColorEngine
+: public QObject
 {
 public:
-  static TaxonomyColorEngine *instance()
-  {
-    if (NULL == m_singleton)
-      m_singleton = new TaxonomyColorEngine();
-    return m_singleton;
-  }
-
-  virtual QColor color(const Segmentation* seg);
-  virtual vtkSmartPointer< vtkLookupTable > lut(const Segmentation* seg);
-  void updateTaxonomyColor(TaxonomyElement *tax);
-
-private:
-  explicit TaxonomyColorEngine(){}
-
-  QMap<QString, vtkSmartPointer<vtkLookupTable> > m_LUT;
-  static TaxonomyColorEngine *m_singleton;
+  virtual QColor color(const Segmentation *seg) = 0;
+  virtual vtkSmartPointer<vtkLookupTable> lut(const Segmentation *seg) = 0;
 };
 
-#endif // TAXONOMYCOLORENGINE_H
+typedef QSharedPointer<ColorEngine> ColorEnginePtr;
+
+#endif // COLORENGINE_H

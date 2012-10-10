@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2012  <copyright holder> <email>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,29 +17,15 @@
 */
 
 
-#ifndef USERCOLORENGINE_H
-#define USERCOLORENGINE_H
+#include "SliceViewSelectionColorEngine.h"
 
-#include <common/gui/ColorEngine.h>
-
-#include <QMap>
-
-class UserColorEngine : public ColorEngine
+vtkSmartPointer<vtkLookupTable> SliceView::SelectionColorEngine::lut(const Segmentation* seg)
 {
-public:
-  explicit UserColorEngine();
 
-  virtual QColor color(const Segmentation* seg);
-  virtual vtkSmartPointer< vtkLookupTable > lut(const Segmentation* seg);
+}
 
-private:
-  QColor nextColor();
+QColor SliceView::SelectionColorEngine::color(const Segmentation* seg)
+{
 
-private:
-  QMap<QString, QColor> m_userColors;
-  QList<QColor>         m_colors;
-  int                   m_lastColor;
-  QMap<QString, vtkSmartPointer<vtkLookupTable> > m_LUT;
-};
+}
 
-#endif // USERCOLORENGINE_H

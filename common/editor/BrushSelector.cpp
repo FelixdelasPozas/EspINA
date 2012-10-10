@@ -17,7 +17,7 @@
 */
 
 
-#include "PencilSelector.h"
+#include "BrushSelector.h"
 
 #include <EspinaRenderView.h>
 #include <vtkCommand.h>

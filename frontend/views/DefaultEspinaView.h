@@ -69,11 +69,11 @@ protected:
 
   void addChannel(Channel *channel);
   void removeChannel(Channel *channel);
-  void updateChannel(Channel *channel);
+  bool updateChannel(Channel *channel);
 
   void addSegmentation(Segmentation *seg);
   void removeSegmentation(Segmentation *seg);
-  void updateSegmentation(Segmentation *seg);
+  bool updateSegmentation(Segmentation *seg);
 
 protected slots:
   virtual void rowsInserted(const QModelIndex& parent, int start, int end);

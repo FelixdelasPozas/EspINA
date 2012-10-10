@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2012  <copyright holder> <email>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,4 +16,21 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "ColorEngine.h"
+
+#ifndef SLICEVIEWSELECTIONCOLORENGINE_H
+#define SLICEVIEWSELECTIONCOLORENGINE_H
+
+
+#include "common/gui/SliceView.h"
+
+#include "common/colorEngines/ColorEngine.h"
+
+class SliceView::SelectionColorEngine
+: public ColorEngine
+{
+public:
+    virtual QColor color(const Segmentation* seg);
+    virtual vtkSmartPointer< vtkLookupTable > lut(const Segmentation* seg);
+};
+
+#endif // SLICEVIEWSELECTIONCOLORENGINE_H

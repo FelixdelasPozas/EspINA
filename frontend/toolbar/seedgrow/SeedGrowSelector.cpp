@@ -20,7 +20,7 @@
 #include "SeedGrowSelector.h"
 
 #include "common/gui/EspinaRenderView.h"
-#include "common/selection/SelectableItem.h"
+#include "common/selection/PickableItem.h"
 #include "frontend/toolbar/seedgrow/SeedGrowSegmentationFilter.h"
 #include "frontend/toolbar/seedgrow/gui/ThresholdAction.h"
 

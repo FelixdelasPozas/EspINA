@@ -6,8 +6,8 @@
  */
 #include "vtkPlaneContourRepresentationGlyph.h"
 #include <common/model/Segmentation.h>
-#include <ColorEngine.h>
-#include <selection/SelectableItem.h>
+#include "common/colorEngines/ColorEngine.h"
+#include <selection/PickableItem.h>
 
 #include <vtkCleanPolyData.h>
 #include <vtkPolyDataMapper.h>

@@ -20,7 +20,7 @@
 #include "VolumetricRenderer.h"
 #include <vtkRenderWindow.h>
 #include <model/Segmentation.h>
-#include <ColorEngine.h>
+#include "common/colorEngines/ColorEngine.h"
 #include <vtkVolumeRayCastMapper.h>
 #include <vtkVolumeRayCastCompositeFunction.h>
 #include <vtkColorTransferFunction.h>

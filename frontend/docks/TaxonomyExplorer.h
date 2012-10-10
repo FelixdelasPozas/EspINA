@@ -26,9 +26,11 @@
 //----------------------------------------------------------------------------
 #include <QDockWidget>
 
+#include <common/colorEngines/TaxonomyColorEngine.h>
 #include <QSortFilterProxyModel>
 
 class EspinaModel;
+class ViewManager;
 
 class TaxonomyExplorer
 : public QDockWidget
@@ -37,7 +39,10 @@ class TaxonomyExplorer
 
   class GUI;
 public:
-  explicit TaxonomyExplorer(EspinaModel *model, QWidget *parent = 0);
+  explicit TaxonomyExplorer(EspinaModel *model,
+                            ViewManager *vm,
+                            TaxonomyColorEnginePtr engine,
+                            QWidget *parent = 0);
   virtual ~TaxonomyExplorer();
 
 protected slots:
@@ -53,6 +58,8 @@ protected slots:
 protected:
   GUI *m_gui;
   EspinaModel *m_baseModel;
+  ViewManager *m_viewManager;
+  TaxonomyColorEnginePtr m_engine;
   QSharedPointer<QSortFilterProxyModel> m_sort;
 };
 

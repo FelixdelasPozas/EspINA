@@ -33,7 +33,7 @@ include_directories(
 ####### EspinaCore #########
 # Add extra library containing custom code for the client.
 qt4_wrap_cpp(CORE_MOC
-  editor/PencilSelector.h
+  editor/BrushSelector.h
   editor/CODESettings.h
   gui/ActionSelector.h
   gui/ActionSelectorWidget.h
@@ -49,9 +49,8 @@ qt4_wrap_cpp(CORE_MOC
   model/proxies/SampleProxy.h
   model/proxies/TaxonomyProxy.h
   pluginInterfaces/Renderer.h
-  selection/SelectionHandler.h
+  selection/IPicker.h
   gui/ViewManager.h
-  settings/ColorEngineSettings.h
   editor/ContourSelector.h
   editor/ContourWidget.h
   widgets/RectangularSelection.h
@@ -68,8 +67,13 @@ set (CORE_SOURCES
   ${CORE_MOC}
   ${CORE_UI}
   EspinaRegions.cpp
+  colorEngines/MultiColorEngine.cpp
+  colorEngines/NumberColorEngine.cpp
+  colorEngines/SliceViewSelectionColorEngine.cpp
+  colorEngines/TaxonomyColorEngine.cpp
+  colorEngines/UserColorEngine.cpp
   editor/CODESettings.cpp
-  editor/PencilSelector.cpp
+  editor/BrushSelector.cpp
   editor/ContourSelector.cpp
   editor/FillHolesFilter.cpp
   editor/FillHolesCommand.cpp
@@ -95,9 +99,6 @@ set (CORE_SOURCES
   gui/SliceView.cpp
   gui/SliceViewState.cpp
   gui/vtkInteractorStyleEspinaSlice.cpp
-  gui/NumberColorEngine.cpp
-  gui/TaxonomyColorEngine.cpp
-  gui/UserColorEngine.cpp
   gui/ViewManager.cpp
   gui/VolumeView.cpp
   gui/HueSelector.cpp
@@ -120,8 +121,7 @@ set (CORE_SOURCES
   renderers/VolumetricRenderer.cpp
   renderers/MeshRenderer.cpp
   selection/PixelSelector.cpp
-  selection/SelectionHandler.cpp
-  settings/ColorEngineSettings.cpp
+  selection/IPicker.cpp
   settings/GeneralSettings.cpp
   undo/AddChannel.cpp
   undo/AddFilter.cpp

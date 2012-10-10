@@ -24,7 +24,6 @@
 
 // EspINA
 #include "common/gui/SliceView.h"
-#include "common/gui/TaxonomyColorEngine.h"
 #include "common/gui/VolumeView.h"
 #include "common/model/ModelItem.h"
 #include "common/model/Channel.h"
@@ -223,17 +222,6 @@ void DefaultEspinaView::setColorEngine(ColorEngine* engine)
   forceRender();
 }*/
 
-// //----------------------------------------------------------------------------
-// void DefaultEspinaView::updateSegmentationRepresentations()
-// {
-//   xyView->updateSegmentationRepresentations();
-//   yzView->updateSegmentationRepresentations();
-//   xzView->updateSegmentationRepresentations();
-//   volView->updateSegmentationRepresentations();
-//   updateViews();
-// }
-
-
 //----------------------------------------------------------------------------
 ISettingsPanel* DefaultEspinaView::settingsPanel()
 {
@@ -259,12 +247,14 @@ void DefaultEspinaView::removeChannel(Channel* channel)
 }
 
 //-----------------------------------------------------------------------------
-void DefaultEspinaView::updateChannel(Channel* channel)
+bool DefaultEspinaView::updateChannel(Channel* channel)
 {
-  xyView->updateChannel(channel);
-  yzView->updateChannel(channel);
-  xzView->updateChannel(channel);
-  volView->updateChannel(channel);
+  bool modified = false;
+  modified |= xyView->updateChannel(channel);
+  modified |= yzView->updateChannel(channel);
+  modified |= xzView->updateChannel(channel);
+  modified |= volView->updateChannel(channel);
+  return modified;
 }
 
 //-----------------------------------------------------------------------------
@@ -287,12 +277,14 @@ void DefaultEspinaView::removeSegmentation(Segmentation* seg)
 }
 
 //-----------------------------------------------------------------------------
-void DefaultEspinaView::updateSegmentation(Segmentation* seg)
+bool DefaultEspinaView::updateSegmentation(Segmentation* seg)
 {
-  xyView->updateSegmentation(seg);
-  yzView->updateSegmentation(seg);
-  xzView->updateSegmentation(seg);
-  volView->updateSegmentation(seg);
+  bool modified = false;
+  modified |= xyView->updateSegmentation(seg);
+  modified |= yzView->updateSegmentation(seg);
+  modified |= xzView->updateSegmentation(seg);
+  modified |= volView->updateSegmentation(seg);
+  return modified;
 }
 
 //-----------------------------------------------------------------------------
@@ -367,8 +359,6 @@ void DefaultEspinaView::rowsAboutToBeRemoved(const QModelIndex& parent, int star
 //-----------------------------------------------------------------------------
 void DefaultEspinaView::dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight)
 {
-  return;
-  /*NOTE: Renders are now managed by ViewManager instead
   if (!topLeft.isValid() || !topLeft.parent().isValid())
     return;
 
@@ -377,15 +367,14 @@ void DefaultEspinaView::dataChanged(const QModelIndex& topLeft, const QModelInde
   {
     Channel *channel = dynamic_cast<Channel *>(item);
     if (updateChannel(channel))
-      forceRender();
+      updateViews();
   }
   else if (ModelItem::SEGMENTATION == item->type())
   {
     Segmentation *seg = dynamic_cast<Segmentation *>(item);
     if (updateSegmentation(seg))
-      forceRender();
+      updateViews();
   }
-  */
 }
 
 //----------------------------------------------------------------------------

@@ -28,6 +28,7 @@
 
 #include <QTimer>
 
+class ColorEngineMenu;
 class DefaultEspinaView;
 class SelectionManager;
 class GeneralSettings;
@@ -88,9 +89,10 @@ protected:
   void loadPlugins();
 
 private:
-  QMenu       *m_viewMenu;
-  QMenu       *m_dockMenu;
-  QMenu       *m_addMenu;
+  QMenu           *m_viewMenu;
+  ColorEngineMenu *m_colorEngines;
+  QMenu           *m_dockMenu;
+  QMenu           *m_addMenu;
 
   MainToolBar *m_mainToolBar;
   DefaultEspinaView *m_view;
