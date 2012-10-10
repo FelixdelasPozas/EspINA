@@ -19,11 +19,10 @@
 #include "CountingRegion.h"
 #include "ui_CountingRegion.h"
 
-#include <common/EspinaCore.h>
 #include <common/model/Channel.h>
-#include <common/gui/EspinaView.h>
+#include <common/model/EspinaModel.h>
 #include <common/model/EspinaFactory.h>
-#include <common/selection/SelectionManager.h>
+#include <common/gui/ViewManager.h>
 
 #include "regions/RectangularBoundingRegion.h"
 #include "regions/AdaptiveBoundingRegion.h"
@@ -112,6 +111,8 @@ const QString CountingRegion::ID = "CountingRegionExtension";
 CountingRegion::CountingRegion(QWidget * parent)
 : IDockWidget(parent)
 , m_gui(new GUI())
+, m_espinaModel(NULL)
+, m_viewManager(NULL)
 {
   setObjectName("CountingRegionDock");
   setWindowTitle(tr("Counting Region"));
@@ -120,13 +121,8 @@ CountingRegion::CountingRegion(QWidget * parent)
   QIcon iconSave = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
   m_gui->saveDescription->setIcon(iconSave);
   connect(m_gui->saveDescription, SIGNAL(clicked(bool)),
-	  this, SLOT(saveRegionDescription()));
+          this, SLOT(saveRegionDescription()));
 
-  ChannelExtension::SPtr channelExtension(new CountingRegionChannelExtension(this));
-  EspinaFactory::instance()->registerChannelExtension(channelExtension);
-  SegmentationExtension::SPtr segExtension(new CountingRegionSegmentationExtension());
-  EspinaFactory::instance()->registerSegmentationExtension(segExtension);
-  EspinaFactory::instance()->registerRenderer(new RegionRenderer(this));
 
   m_gui->regionView->setModel(&m_regionModel);
   m_regionModel.setHorizontalHeaderItem(0, new QStandardItem(tr("Name")));
@@ -134,10 +130,11 @@ CountingRegion::CountingRegion(QWidget * parent)
 //   m_regionModel.setHorizontalHeaderItem(2, new QStandardItem(tr("YZ")));
 //   m_regionModel.setHorizontalHeaderItem(3, new QStandardItem(tr("XZ")));
 //   m_regionModel.setHorizontalHeaderItem(4, new QStandardItem(tr("3D")));
-  m_espinaModel = EspinaCore::instance()->model();
 
+  /* TODO 2012-10-09
   connect(EspinaCore::instance(), SIGNAL(sampleSelected(Sample*)),
 	  this, SLOT(sampleChanged(Sample*)));
+	  */
 
   connect(m_gui->createRegion, SIGNAL(clicked()),
           this, SLOT(createBoundingRegion()));
@@ -145,15 +142,13 @@ CountingRegion::CountingRegion(QWidget * parent)
           this, SLOT(removeSelectedBoundingRegion()));
 
   connect(m_gui->regionView, SIGNAL(clicked(QModelIndex)),
-	  this, SLOT(showInfo(QModelIndex)));
+          this, SLOT(showInfo(QModelIndex)));
   connect(&m_regionModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-	  this, SLOT(showInfo(QModelIndex)));
+          this, SLOT(showInfo(QModelIndex)));
 
   connect(&m_regionModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-	  m_gui->regionView, SLOT(setCurrentIndex(QModelIndex)));
+          m_gui->regionView, SLOT(setCurrentIndex(QModelIndex)));
 
-  connect(EspinaCore::instance(), SIGNAL(currentAnalysisClosed()),
-	  this, SLOT(clearBoundingRegions()));
 }
 
 //------------------------------------------------------------------------
@@ -162,21 +157,41 @@ CountingRegion::~CountingRegion()
 }
 
 //------------------------------------------------------------------------
+void CountingRegion::initDockWidget(EspinaModel* model, QUndoStack* undoStack, ViewManager* viewManager)
+{
+  m_espinaModel = model;
+  m_viewManager = viewManager;
+
+  ChannelExtension::SPtr channelExtension(new CountingRegionChannelExtension(this, m_viewManager));
+  m_espinaModel->factory()->registerChannelExtension(channelExtension);
+  SegmentationExtension::SPtr segExtension(new CountingRegionSegmentationExtension());
+  m_espinaModel->factory()->registerSegmentationExtension(segExtension);
+  m_espinaModel->factory()->registerRenderer(new RegionRenderer(this));
+}
+
+//------------------------------------------------------------------------
+void CountingRegion::reset()
+{
+  clearBoundingRegions();
+}
+
+//------------------------------------------------------------------------
 void CountingRegion::createAdaptiveRegion(Channel *channel,
                                           Nm inclusion[3],
                                           Nm exclusion[3])
 {
-  EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
-
   ModelItemExtension *ext = channel->extension(CountingRegionChannelExtension::ID);
   Q_ASSERT(ext);
   CountingRegionChannelExtension *channelExt = dynamic_cast<CountingRegionChannelExtension *>(ext);
   Q_ASSERT(channelExt);
 
-  AdaptiveBoundingRegion *region(new AdaptiveBoundingRegion(channelExt, inclusion, exclusion));
+  AdaptiveBoundingRegion *region(new AdaptiveBoundingRegion(channelExt,
+                                                            inclusion,
+                                                            exclusion,
+                                                            m_viewManager));
   channelExt->addRegion(region);
   m_regionModel.appendRow(region);
-  view->addWidget(region);
+  m_viewManager->addWidget(region);
   m_gui->removeRegion->setEnabled(true);
   m_regions << region;
   emit regionCreated(region);
@@ -187,8 +202,6 @@ void CountingRegion::createRectangularRegion(Channel *channel,
                                              Nm inclusion[3],
                                              Nm exclusion[3])
 {
-  EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
-
   ModelItemExtension *ext = channel->extension(CountingRegionChannelExtension::ID);
   Q_ASSERT(ext);
   CountingRegionChannelExtension *channelExt = dynamic_cast<CountingRegionChannelExtension *>(ext);
@@ -197,10 +210,14 @@ void CountingRegion::createRectangularRegion(Channel *channel,
   double borders[6];
   channel->bounds(borders);
 
-  RectangularBoundingRegion *region(new RectangularBoundingRegion(channelExt, borders, inclusion, exclusion));
+  RectangularBoundingRegion *region(new RectangularBoundingRegion(channelExt,
+                                                                  borders,
+                                                                  inclusion,
+                                                                  exclusion,
+                                                                  m_viewManager));
   channelExt->addRegion(region);
   m_regionModel.appendRow(region);
-  view->addWidget(region);
+  m_viewManager->addWidget(region);
   m_gui->removeRegion->setEnabled(true);
   m_regions << region;
   emit regionCreated(region);
@@ -230,7 +247,7 @@ void CountingRegion::createBoundingRegion()
   exclusion[1] = m_gui->bottomMargin->value();
   exclusion[2] = m_gui->lowerSlice->value();
 
-  Channel *channel = SelectionManager::instance()->activeChannel();
+  Channel *channel = m_viewManager->activeChannel();
   Q_ASSERT(channel);
 
   if (ADAPTIVE == m_gui->regionType->currentIndex())
@@ -252,12 +269,11 @@ void CountingRegion::removeSelectedBoundingRegion()
     QStandardItem *item = m_regionModel.item(selectedRegion);
     BoundingRegion *region = dynamic_cast<BoundingRegion *>(item);
     Q_ASSERT(region);
-    EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
-    view->removeWidget(region);
+    m_viewManager->removeWidget(region);
     m_regions.removeAll(region);
     emit regionRemoved(region);
     delete region;
-    view->forceRender();
+    m_viewManager->updateViews();
     m_regionModel.removeRow(selectedRegion);
   }
 

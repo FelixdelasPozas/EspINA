@@ -36,28 +36,29 @@ class QXmlStreamWriter;
 
 static const QString RED = "#00FF00";
 
-class TaxonomyNode : public ModelItem
+class TaxonomyElement
+: public ModelItem
 {
 public:
-  TaxonomyNode(const QString name, const QString RGBColor = RED );
-  ~TaxonomyNode();
+  explicit TaxonomyElement(const QString name, const QString RGBColor = RED );
+  ~TaxonomyElement();
 
   /// Add a new node at the location specified by @qualifiedName
-  TaxonomyNode *addElement(const QString qualifiedName);
+  TaxonomyElement *addElement(const QString qualifiedName);
   /// Return taxonomy node for qualified taxonomy elements
-  TaxonomyNode* element(const QString qualifiedName);
+  TaxonomyElement* element(const QString qualifiedName);
 
-  TaxonomyNode *parentNode() const;
-  QVector<TaxonomyNode*> subElements() const {return m_elements;}
+  TaxonomyElement *parentNode() const;
+  QVector<TaxonomyElement*> subElements() const {return m_elements;}
 
   void setName(QString name);
   const QString name() const;
   /// Return node's qualified name
   const QString qualifiedName() const;
-  
+
   void setColor(const QColor &color) {m_color = color;} 
   QColor color() const {return m_color;}
-  
+
   void addProperty(const QString &prop, const QVariant &value);
   void removeProperty(const QString &prop);
   QVariant property(const QString &prop) const;
@@ -69,7 +70,7 @@ public:
   // exists in all the tree that this object has it returns an Error.
   // Note that to check the existence of the subElement name, it is necesarry to insert all 
   // the elements through the TaxonoyNode object at the top of the tree.
-  TaxonomyNode* addElement( QString subElement, QString supElement);//, QString RGBColor = "");
+  TaxonomyElement* addElement( QString subElement, QString supElement);//, QString RGBColor = "");
   void removeChild(QString name);
 
   /// Implements ModelItem
@@ -83,11 +84,11 @@ public:
 
 private:
 //  TaxonomyNode *insertElement( QString subElement, QString RGBColor ); // Without checking
- TaxonomyNode *insertNode(const QString &name);
+ TaxonomyElement *insertNode(const QString &name);
 
 private:
- TaxonomyNode *m_parent;
- QVector<TaxonomyNode *> m_elements;
+ TaxonomyElement *m_parent;
+ QVector<TaxonomyElement *> m_elements;
  QMap<QString, QVariant> m_properties;
  QString m_name;
  QColor m_color;
@@ -102,16 +103,16 @@ public:
 
 //   QString name() {return m_root->name();}
 
-  TaxonomyNode *addElement(const QString name, const QString parent = QString());
+  TaxonomyElement *addElement(const QString name, const QString parent = QString());
   void removeElement(const QString qualifiedName);
-  TaxonomyNode *element(const QString qualifiedName);
-  TaxonomyNode *root(){return m_root;}
-  QVector<TaxonomyNode *> elements() {return m_root->subElements();}
+  TaxonomyElement *element(const QString qualifiedName);
+  TaxonomyElement *root(){return m_root;}
+  QVector<TaxonomyElement *> elements() {return m_root->subElements();}
 
   void print(int indent = 0);
 
 private:
-  TaxonomyNode *m_root;
+  TaxonomyElement *m_root;
 };
 
 class IOTaxonomy
@@ -126,7 +127,7 @@ private:
   ~IOTaxonomy();
 
   static void writeTaxonomy(Taxonomy *tax, QXmlStreamWriter& stream);
-  static void writeTaxonomyNode(TaxonomyNode *node, QXmlStreamWriter& stream);
+  static void writeTaxonomyElement(TaxonomyElement *node, QXmlStreamWriter& stream);
   static Taxonomy *readXML(QXmlStreamReader &xmlStream);
 
   //static void writeXMLTaxonomy(TaxonomyNode& tax, QString fileName);

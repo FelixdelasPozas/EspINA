@@ -1,9 +1,8 @@
 #include "PixelSelector.h"
 
-#include "common/selection/SelectableView.h"
+#include <EspinaRenderView.h>
 
 #include <QDebug>
-
 #include <QMouseEvent>
 #include <QWidget>
 #include <QSize>
@@ -15,9 +14,9 @@
 #include <vtkWindowToImageFilter.h>
 
 //-----------------------------------------------------------------------------
-void PixelSelector::onMouseDown(const QPoint &pos, SelectableView* view)
+void PixelSelector::onMouseDown(const QPoint &pos, EspinaRenderView* view)
 {
-  ViewRegions regions;
+  DisplayRegionList regions;
   QPolygon singlePixel;
 
   int xPos, yPos;
@@ -26,26 +25,26 @@ void PixelSelector::onMouseDown(const QPoint &pos, SelectableView* view)
   singlePixel << QPoint(xPos,yPos);
   regions << singlePixel;
 
-  MultiSelection msel = view->select(m_filters, regions);
+  PickList pickList = view->pick(m_filters, regions);
 
-  emit selectionChanged(msel);
+  emit itemsPicked(pickList);
 }
 
 //-----------------------------------------------------------------------------
-void PixelSelector::onMouseMove(const QPoint &pos, SelectableView* view)
+void PixelSelector::onMouseMove(const QPoint &pos, EspinaRenderView* view)
 {
   //Do nothing
   //qDebug() << "EspINA::PixelSelector: Mouse Moving: " << pos.x() << pos.y();
 }
 
 //-----------------------------------------------------------------------------
-void PixelSelector::onMouseUp(const QPoint &pos, SelectableView* view)
+void PixelSelector::onMouseUp(const QPoint &pos, EspinaRenderView* view)
 {
   //qDebug() << "EspINA::PixelSelector: Mouse released";
 }
 
 //-----------------------------------------------------------------------------
-bool PixelSelector::filterEvent(QEvent* e, SelectableView* view)
+bool PixelSelector::filterEvent(QEvent* e, EspinaRenderView* view)
 {
   // If succesor didn't abort the filtering, apply its own filtering
   if (e->type() == QEvent::MouseButtonPress)
@@ -59,7 +58,7 @@ bool PixelSelector::filterEvent(QEvent* e, SelectableView* view)
     }
   }
 
-  return SelectionHandler::filterEvent(e,view);
+  return IPicker::filterEvent(e,view);
 }
 
 
@@ -77,14 +76,14 @@ int quadDist(int cx, int cy, int x, int y)
 //!      |
 //!      v    BR
 //-----------------------------------------------------------------------------
-BestPixelSelector::BestPixelSelector(SelectionHandler* succesor)
+BestPixelSelector::BestPixelSelector(IPicker* succesor)
 : PixelSelector(succesor)
 , m_window     (new QSize(14,14))
 , m_bestPixel  (0)
 {}
 
 //-----------------------------------------------------------------------------
-void BestPixelSelector::onMouseDown(const QPoint& pos, SelectableView* view)
+void BestPixelSelector::onMouseDown(const QPoint& pos, EspinaRenderView* view)
 {
   vtkSmartPointer<vtkWindowToImageFilter> windowToImageFilter =
   vtkSmartPointer<vtkWindowToImageFilter>::New();
@@ -151,12 +150,12 @@ void BestPixelSelector::onMouseDown(const QPoint& pos, SelectableView* view)
   //qDebug() << "EspINA::BestPixelSelector: Best Pixel(" << bestPixel.x() << "," << bestPixel.y()
   //<< ") value :" << bestValue;
 
-  ViewRegions regions;
+  DisplayRegionList regions;
   QPolygon singlePixel;
   singlePixel << bestPixel;
   regions << singlePixel;
 
-  MultiSelection msel = view->select(m_filters, regions);
+  PickList pickList = view->pick(m_filters, regions);
 
-  emit selectionChanged(msel);
+  emit itemsPicked(pickList);
 }

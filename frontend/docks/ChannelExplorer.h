@@ -24,24 +24,29 @@
 // File:    ChannelExplorer.h
 // Purpose: Dock widget to manage channels in the model
 //----------------------------------------------------------------------------
-#include <gui/EspinaDockWidget.h>
+#include <QDockWidget>
 
-#include <model/EspinaModel.h>
+// EspINA
+#include "common/model/EspinaModel.h"
+#include "model/proxies/ChannelProxy.h"
+
+//Qt
 #include <QSortFilterProxyModel>
-#include <model/proxies/ChannelProxy.h>
 
+class ViewManager;
 #ifdef TEST_ESPINA_MODELS
 class ModelTest;
 #endif
 
 class ChannelExplorer
-: public EspinaDockWidget
+: public QDockWidget
 {
   Q_OBJECT
   class CentralWidget;
 public:
-  explicit ChannelExplorer(QSharedPointer<EspinaModel> model,
-			   QWidget* parent = 0);
+  explicit ChannelExplorer(EspinaModel *model,
+                           ViewManager *vm,
+                           QWidget     *parent = 0);
   virtual ~ChannelExplorer();
 
 protected slots:
@@ -61,7 +66,8 @@ protected slots:
 
 private:
   CentralWidget *m_gui;
-  QSharedPointer<EspinaModel> m_model;
+  EspinaModel   *m_model;
+  ViewManager   *m_viewManager;
   QSharedPointer<ChannelProxy> m_channelProxy;
   QSharedPointer<QSortFilterProxyModel> m_sort;
 

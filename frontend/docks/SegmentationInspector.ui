@@ -23,16 +23,6 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>
-      <widget class="VolumeView" name="m_view" native="true">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QScrollArea" name="m_filterInspector">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
@@ -51,7 +41,7 @@
          <rect>
           <x>0</x>
           <y>0</y>
-          <width>70</width>
+          <width>579</width>
           <height>301</height>
          </rect>
         </property>
@@ -100,14 +90,6 @@ QTableView::indicator:unchecked {
    </item>
   </layout>
  </widget>
- <customwidgets>
-  <customwidget>
-   <class>VolumeView</class>
-   <extends>QWidget</extends>
-   <header>common/gui/VolumeView.h</header>
-   <container>1</container>
-  </customwidget>
- </customwidgets>
  <resources>
   <include location="../rsc/espina.qrc"/>
  </resources>

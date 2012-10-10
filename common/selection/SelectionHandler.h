@@ -16,76 +16,73 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SELECTIONHANDLER_H
-#define SELECTIONHANDLER_H
+#ifndef IPICKER_H
+#define IPICKER_H
 
 #include <QObject>
 
-#include "SelectableItem.h"
-
-#include <QSharedPointer>
-#include <QStringList>
-#include <QPolygon>
-#include <QVector3D>
-#include <QPair>
 #include <QCursor>
+#include <QPair>
+#include <QVector3D>
+#include <QPolygonF>
 
-class SelectableView;
+class PickableItem;
+class EspinaRenderView;
 
 /// Interface to handle selections
 /// Classes that implement this interface have to specify
 /// which selection method has to be used and which type of
 /// products must be selected
-class SelectionHandler
+class IPicker
 : public QObject
 {
   Q_OBJECT
 public:
-  /// List of taxonomy ids which can be selected
-  /// WARNING: Special EspINA_Sample is used to refer to the sample itself
-  static  const QString                 EspINA_Channel;
-  static  const QString                 EspINA_Segmentation;
-  static  const QString                 EspINA_Representation;
+  typedef QString Tag;
+  /// Pickable ModelItems identifiers
+  static  const Tag SAMPLE;
+  static  const Tag CHANNEL;
+  static  const Tag SEGMENTATION;
 
-  typedef QStringList                   SelectionFilters;
-  typedef QList<QPolygon>               ViewRegions;
-  typedef QList<QVector3D>              VtkRegion;
-  typedef QList<VtkRegion>              VtkRegions;
-  typedef QPair<VtkRegion, SelectableItem *> Selelection;
-  typedef QList<Selelection>            MultiSelection;
+  typedef QList<Tag>              PickableItems;
+  typedef QPolygonF               DisplayRegion;
+  typedef QList<DisplayRegion>    DisplayRegionList;
+  typedef QList<QVector3D>        WorldRegion;
+  typedef QPair<WorldRegion,
+                PickableItem *> PickedItem;
+  typedef QList<PickedItem>       PickList;
 
 public:
-  explicit SelectionHandler(SelectionHandler *succesor=NULL)
+  explicit IPicker(IPicker *succesor=NULL)
   : m_multiSelection(false)
   , m_succesor(succesor)
   , m_cursor(Qt::CrossCursor)
   {}
-  virtual ~SelectionHandler(){};
+  virtual ~IPicker(){};
 
-  virtual bool filterEvent(QEvent *e, SelectableView *view=NULL);
+  virtual bool filterEvent(QEvent *e, EspinaRenderView *view=NULL);
 
   virtual QCursor cursor() {return m_cursor;}
   virtual void setCursor(QCursor cursor) {m_cursor = cursor;}
 
-
-  void setSelection(SelectionHandler::MultiSelection msel);
-  void abortSelection();
+  void setSelection(PickList msel);
+  virtual void abortPick();
 
   /// The types of products which are requested for selection
-  void setSelectable(QString type, bool sel=true);
+  void setPickable(const Tag type, bool pick=true);
   /// Whether multiple products can be selected or not
   bool multiSelection() {return m_multiSelection;}
   void setMultiSelection(bool value) {m_multiSelection = value;}
 
 signals:
-  void selectionChanged(SelectionHandler::MultiSelection);
+  void itemsPicked(IPicker::PickList);
   void selectionAborted();
 
 protected:
-  SelectionFilters  m_filters;
-  bool              m_multiSelection;
-  SelectionHandler *m_succesor;
-  QCursor	    m_cursor;
+  PickableItems m_filters;
+  bool          m_multiSelection;
+  IPicker      *m_succesor;
+  QCursor       m_cursor;
 };
 
-#endif // SELECTIONHANDLER_H
+#endif // IPICKER_H

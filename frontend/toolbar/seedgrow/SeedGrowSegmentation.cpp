@@ -23,12 +23,12 @@
 #include "SeedGrowSelector.h"
 #include "Settings.h"
 #include "SettingsPanel.h"
+#include "gui/DefaultVOIAction.h"
+#include "gui/ThresholdAction.h"
 
 // EspinaModel
-#include "common/EspinaCore.h"
 #include "common/gui/ActionSelector.h"
-#include <common/gui/EspinaView.h>
-#include "common/model/Channel.h"
+#include <gui/ViewManager.h>
 #include "common/model/EspinaFactory.h"
 #include "common/model/EspinaModel.h"
 #include "common/selection/PixelSelector.h"
@@ -38,8 +38,6 @@
 #include "common/undo/AddRelation.h"
 #include "common/undo/AddSegmentation.h"
 #include "common/widgets/RectangularSelection.h"
-#include "gui/DefaultVOIAction.h"
-#include "gui/ThresholdAction.h"
 
 //GUI includes
 #include <QSettings>
@@ -55,8 +53,10 @@ const ModelItem::ArgumentId TYPE = "Type";
 //-----------------------------------------------------------------------------
 SeedGrowSegmentation::UndoCommand::UndoCommand(Channel* channel,
                                                SeedGrowSegmentationFilter* filter,
-                                               TaxonomyNode* taxonomy)
-: m_channel (channel)
+                                               TaxonomyElement* taxonomy,
+                                               EspinaModel *model)
+: m_model   (model)
+, m_channel (channel)
 , m_filter  (filter)
 , m_taxonomy(taxonomy)
 {
@@ -64,42 +64,44 @@ SeedGrowSegmentation::UndoCommand::UndoCommand(Channel* channel,
                                                       Channel::STAINLINK);
   Q_ASSERT(samples.size() > 0);
   m_sample = dynamic_cast<Sample *>(samples.first());
-  m_seg = EspinaFactory::instance()->createSegmentation(m_filter, 0);
+  m_seg = m_model->factory()->createSegmentation(m_filter, 0);
 }
 
 
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentation::UndoCommand::redo()
 {
-  QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
-
-  model->addFilter(m_filter);
-  model->addRelation(m_channel->filter(), m_filter, INPUTLINK);
+  m_model->addFilter(m_filter);
+  m_model->addRelation(m_channel->filter(), m_filter, INPUTLINK);
   m_seg->setTaxonomy(m_taxonomy);
-  model->addSegmentation(m_seg);
-  model->addRelation(m_filter, m_seg, CREATELINK);
-  model->addRelation(m_sample, m_seg, "where");
-  model->addRelation(m_channel, m_seg, Channel::LINK);
+  m_model->addSegmentation(m_seg);
+  m_model->addRelation(m_filter, m_seg, CREATELINK);
+  m_model->addRelation(m_sample, m_seg, Sample::WHERE);
+  m_model->addRelation(m_channel, m_seg, Channel::LINK);
   m_seg->initializeExtensions();
 }
 
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentation::UndoCommand::undo()
 {
-  QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
-
-  model->removeRelation(m_channel->filter(), m_seg, INPUTLINK);
-  model->removeRelation(m_sample, m_seg, "where");
-  model->removeRelation(m_filter, m_seg, CREATELINK);
-  model->removeSegmentation(m_seg);
-  model->removeRelation(m_channel, m_filter, Channel::LINK);
-  model->removeFilter(m_filter);
+  m_model->removeRelation(m_channel->filter(), m_seg, INPUTLINK);
+  m_model->removeRelation(m_sample, m_seg, Sample::WHERE);
+  m_model->removeRelation(m_filter, m_seg, CREATELINK);
+  m_model->removeSegmentation(m_seg);
+  m_model->removeRelation(m_channel, m_filter, Channel::LINK);
+  m_model->removeFilter(m_filter);
 }
 
 
 //-----------------------------------------------------------------------------
-SeedGrowSegmentation::SeedGrowSegmentation(QWidget* parent)
+SeedGrowSegmentation::SeedGrowSegmentation(EspinaModel *model,
+                                           QUndoStack *undoStack,
+                                           ViewManager *vm,
+                                           QWidget* parent)
 : QToolBar(parent)
+, m_model(model)
+, m_undoStack(undoStack)
+, m_viewManager(vm)
 // , m_defaultVOI(NULL)
 , m_threshold     (new ThresholdAction(this))
 , m_useDefaultVOI (new DefaultVOIAction(this))
@@ -108,9 +110,8 @@ SeedGrowSegmentation::SeedGrowSegmentation(QWidget* parent)
 {
   setObjectName("SeedGrowSegmentation");
   setWindowTitle("Seed Grow Segmentation Tool Bar");
-  // Register Factory's filters
-  EspinaFactory::instance()->registerFilter(SeedGrowSegmentationFilter::TYPE, this);
 
+  initFilterFactory(m_model->factory());
   buildSelectors();
 
   addAction(m_threshold);
@@ -120,15 +121,25 @@ SeedGrowSegmentation::SeedGrowSegmentation(QWidget* parent)
   //QAction *batch = addAction(tr("Batch"));
   //connect(batch, SIGNAL(triggered(bool)), this, SLOT(batchMode()));
 
-  connect(m_segment, SIGNAL(triggered(QAction*)), this, SLOT(waitSeedSelection(QAction*)));
-  connect(m_selector.data(), SIGNAL(selectionAborted()), this, SLOT(onSelectionAborted()));
-  connect(m_segment, SIGNAL(actionCanceled()), this, SLOT(abortSelection()));
+  connect(m_segment, SIGNAL(triggered(QAction*)),
+          this, SLOT(waitSeedSelection(QAction*)));
+  connect(m_selector.data(), SIGNAL(selectionAborted()),
+          this, SLOT(onSelectionAborted()));
+  connect(m_segment, SIGNAL(actionCanceled()),
+          this, SLOT(abortSelection()));
 }
 
 
 //-----------------------------------------------------------------------------
 SeedGrowSegmentation::~SeedGrowSegmentation()
 {
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentation::initFilterFactory(EspinaFactory* factory)
+{
+  // Register Factory's filters
+  factory->registerFilter(SeedGrowSegmentationFilter::TYPE, this);
 }
 
 //-----------------------------------------------------------------------------
@@ -148,14 +159,14 @@ void SeedGrowSegmentation::waitSeedSelection(QAction* action)
   Q_ASSERT(m_selectors.contains(action));
   m_selector->setPixelSelector(m_selectors[action]);
   m_selector->previewOn();
-  SelectionManager::instance()->setSelectionHandler(m_selector.data());
+  m_viewManager->setPicker(m_selector.data());
 }
 
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentation::abortSelection()
 {
   m_selector->previewOff();
-  SelectionManager::instance()->setSelectionHandler(NULL);
+  m_viewManager->setPicker(NULL);
 }
 
 //-----------------------------------------------------------------------------
@@ -165,15 +176,15 @@ void SeedGrowSegmentation::onSelectionAborted()
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection msel)
+void SeedGrowSegmentation::startSegmentation(IPicker::PickList msel)
 {
   if (msel.size() > 0)
   {
 //     qDebug() << "Start Segmentation";
     Q_ASSERT(msel.size() == 1);// Only one element selected
-    SelectionHandler::Selelection element = msel.first();
+    IPicker::PickedItem element = msel.first();
 
-    SelectableItem *input = element.second;
+    PickableItem *input = element.second;
 
     Q_ASSERT(element.first.size() == 1); // with one pixel
     QVector3D seedPoint = element.first.first();//Nm
@@ -183,14 +194,14 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
     //     qDebug() << "Use Default VOI:" << m_useDefaultVOI->useDefaultVOI();
 
     Q_ASSERT(ModelItem::CHANNEL == input->type());
-    Channel *channel = SelectionManager::instance()->activeChannel();//dynamic_cast<Channel *>(input);
+    Channel *channel = m_viewManager->activeChannel();
     Q_ASSERT(channel);
 
     EspinaVolume::IndexType seed = channel->index(seedPoint.x(), seedPoint.y(), seedPoint.z());
 
     Nm voiBounds[6];
     //TODO: Create region // selection base class
-    RectangularRegion *currentVOI = dynamic_cast<RectangularRegion*>(SelectionManager::instance()->voi());
+    RectangularRegion *currentVOI = NULL; // TODO 2012-10-07 dynamic_cast<RectangularRegion*>(SelectionManager::instance()->voi());
     if (currentVOI)
     {
       currentVOI->bounds(voiBounds);
@@ -235,11 +246,11 @@ void SeedGrowSegmentation::startSegmentation(SelectionHandler::MultiSelection ms
       filter->update();
       Q_ASSERT(filter->numberOutputs() == 1);
 
-      TaxonomyNode *tax = SelectionManager::instance()->activeTaxonomy();
+      TaxonomyElement *tax = m_viewManager->activeTaxonomy();
       Q_ASSERT(tax);
 
-      QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
-      undo->push(new UndoCommand(channel, filter, tax));
+      m_undoStack->push(new UndoCommand(channel, filter, tax, m_model));
+      m_viewManager->updateViews();
       QApplication::restoreOverrideCursor();
     }
   }
@@ -266,7 +277,7 @@ void SeedGrowSegmentation::batchMode()
       QString VOI = seedParams[2].split("=")[1];
       QString taxonomy = seedParams[3].split("=")[1];
 
-      Channel *channel = SelectionManager::instance()->activeChannel();
+      Channel *channel = m_viewManager->activeChannel();
 
       Filter::NamedInputs inputs;
       Filter::Arguments args;
@@ -283,33 +294,30 @@ void SeedGrowSegmentation::batchMode()
       filter->update();
       Q_ASSERT(filter->numberOutputs() == 1);
 
-      QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
-      Taxonomy * const currentTax = model->taxonomy();
-      TaxonomyNode *tax = currentTax->element(taxonomy);
+      Taxonomy * const currentTax = m_model->taxonomy();
+      TaxonomyElement *tax = currentTax->element(taxonomy);
       if (tax == NULL)
       {
-	QModelIndex taxRoot = model->taxonomyRoot();
-	model->addTaxonomyElement(taxRoot, taxonomy);
+	QModelIndex taxRoot = m_model->taxonomyRoot();
+	m_model->addTaxonomyElement(taxRoot, taxonomy);
 	tax = currentTax->element(taxonomy);
       }
       Q_ASSERT(tax);
 
-      QSharedPointer<QUndoStack> undo(EspinaCore::instance()->undoStack());
-      undo->push(new UndoCommand(channel, filter, tax));
+      m_undoStack->push(new UndoCommand(channel, filter, tax, m_model));
     }
-    EspinaCore::instance()->viewManger()->currentView()->forceRender();
     QApplication::restoreOverrideCursor();
   }
 }
 
 
 //------------------------------------------------------------------------
-void SeedGrowSegmentation::addPixelSelector(QAction* action, SelectionHandler* handler)
+void SeedGrowSegmentation::addPixelSelector(QAction* action, IPicker* handler)
 {
   m_segment->addAction(action);
   m_selectors[action] = handler;
-  connect(handler, SIGNAL(selectionChanged(SelectionHandler::MultiSelection)),
-	  this, SLOT(startSegmentation(SelectionHandler::MultiSelection)));
+  connect(handler, SIGNAL(itemsPicked(IPicker::PickList)),
+	  this, SLOT(startSegmentation(IPicker::PickList)));
 //   connect(handler, SIGNAL(selectionAborted()),
 // 	  this, SLOT(abortSelection()));
 }
@@ -317,14 +325,14 @@ void SeedGrowSegmentation::addPixelSelector(QAction* action, SelectionHandler* h
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentation::buildSelectors()
 {
-  SelectionHandler *selector;
+  IPicker *selector;
   QAction *action;
 
   // Exact Pixel Selector
   action = new QAction(QIcon(":pixelSelector.svg"), tr("Add synapse (Ctrl +). Exact Pixel"), m_segment);
   selector = new PixelSelector();
   selector->setMultiSelection(false);
-  selector->setSelectable(SelectionHandler::EspINA_Channel);
+  selector->setPickable(IPicker::CHANNEL);
   addPixelSelector(action, selector);
 
   // Best Pixel Selector
@@ -332,11 +340,11 @@ void SeedGrowSegmentation::buildSelectors()
   BestPixelSelector *bestSelector = new BestPixelSelector();
   m_settings = new Settings(bestSelector);
   m_settingsPanel = new SettingsPanel(m_settings);
-  EspinaFactory::instance()->registerSettingsPanel(m_settingsPanel);
+  m_model->factory()->registerSettingsPanel(m_settingsPanel);
 //     bestSelector->setBestPixelValue(settings.value(BEST_PIXEL).toInt());
   selector = bestSelector;
   selector->setMultiSelection(false);
-  selector->setSelectable(SelectionHandler::EspINA_Channel);
+  selector->setPickable(IPicker::CHANNEL);
   selector->setCursor(QCursor(QPixmap(":crossRegion.svg")));
   addPixelSelector(action, selector);
 }

@@ -17,16 +17,34 @@
 */
 
 
-#include "EspinaDockWidget.h"
+//----------------------------------------------------------------------------
+// File:    IEspinaView.h
+// Purpose: Group different specific views and the way they are displayed
+//          (i.e. main window widget, dock widgets, independent widget, etc)
+//----------------------------------------------------------------------------
 
-EspinaDockWidget::EspinaDockWidget(QWidget *parent)
-: QDockWidget(parent)
+#ifndef IESPINAVIEW_H
+#define IESPINAVIEW_H
+
+#include <QString>
+
+// Forward-declaration
+class EspinaModel;
+class ISettingsPanel;
+
+class IEspinaView
 {
+public:
+  explicit IEspinaView(){}
+  virtual ~IEspinaView(){}
 
-}
+  virtual void updateSelection() = 0;
+  virtual void updateSegmentationRepresentations() = 0;
 
-EspinaDockWidget::~EspinaDockWidget()
-{
+/*TODO BUG 2012-10-05
+signals:
+  void statusMsg(QString);
+  */
+};
 
-}
-
+#endif //IESPINAVIEW_H

@@ -25,16 +25,21 @@
 #include "common/model/Filter.h"
 #include <QSharedPointer>
 
+class EspinaModel;
 
-class AddFilter : public QUndoCommand
+class AddFilter
+: public QUndoCommand
 {
 public:
-  explicit AddFilter(Filter *filter, QUndoCommand *parent = 0);
+  explicit AddFilter(Filter *filter,
+                     EspinaModel *,
+                     QUndoCommand *parent = 0);
 
   virtual void redo();
   virtual void undo();
 
 private:
+  EspinaModel *m_model;
   Filter *m_filter;
 };
 

@@ -26,8 +26,6 @@
 #include <vtkCellData.h>
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
-#include <common/EspinaCore.h>
-#include <common/gui/EspinaView.h>
 #include "vtkBoundingRegion3DWidget.h"
 
 
@@ -35,10 +33,11 @@ const QString RectangularBoundingRegion::ID = "RectangularBoundingRegion";
 
 //-----------------------------------------------------------------------------
 RectangularBoundingRegion::RectangularBoundingRegion(CountingRegionChannelExtension *channelExt,
-						     Nm borders[6],
-						     Nm inclusion[3],
-						     Nm exclusion[3])
-: BoundingRegion(channelExt, inclusion, exclusion)
+                                                     Nm borders[6],
+                                                     Nm inclusion[3],
+                                                     Nm exclusion[3],
+                                                     ViewManager *vm)
+: BoundingRegion(channelExt, inclusion, exclusion, vm)
 {
   memcpy(m_borders, borders, 6*sizeof(Nm));
 

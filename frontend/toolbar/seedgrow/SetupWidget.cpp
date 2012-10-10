@@ -15,20 +15,21 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
-
 #include "SetupWidget.h"
-#include <common/EspinaCore.h>
-#include <common/gui/EspinaView.h>
-#include <common/selection/SelectionManager.h>
-#include <widgets/RectangularSelection.h>
 
+// EspINA
+#include "common/selection/SelectionManager.h"
+#include "common/gui/ViewManager.h"
+#include "common/widgets/RectangularSelection.h"
+
+// Qt
 #include <QDebug>
 #include <QMessageBox>
 
 //----------------------------------------------------------------------------
-SeedGrowSegmentationFilter::SetupWidget::SetupWidget(Filter* filter)
-: m_region(NULL)
+SeedGrowSegmentationFilter::SetupWidget::SetupWidget(Filter* filter, ViewManager* vm)
+: m_viewManager(vm)
+, m_region(NULL)
 {
   setupUi(this);
   m_filter = dynamic_cast<SeedGrowSegmentationFilter *>(filter);
@@ -89,6 +90,7 @@ SeedGrowSegmentationFilter::SetupWidget::SetupWidget(Filter* filter)
 //----------------------------------------------------------------------------
 SeedGrowSegmentationFilter::SetupWidget::~SetupWidget()
 {
+  /* BUG TODO 2012-10-05
   EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
   if (!SelectionManager::instance()->voi())
     view->setSliceSelectors(SliceView::NoSelector);
@@ -98,6 +100,7 @@ SeedGrowSegmentationFilter::SetupWidget::~SetupWidget()
     EspinaCore::instance()->viewManger()->currentView()->removeWidget(m_region);
     delete m_region;
   }
+  */
 }
 
 //----------------------------------------------------------------------------
@@ -105,20 +108,24 @@ bool SeedGrowSegmentationFilter::SetupWidget::eventFilter(QObject* sender, QEven
 {
   if (e->type() == QEvent::FocusIn)
   {
+  /* BUG TODO 2012-10-05
     EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
     view->setSliceSelectors(SliceView::From| SliceView::To);
+    */
     if (!m_region)
     {
-      m_region = new RectangularRegion(m_voiBounds);
+      m_region = new RectangularRegion(m_voiBounds, m_viewManager);
       connect(m_region, SIGNAL(modified(double*)),
               this, SLOT(redefineVOI(double*)));
-      EspinaCore::instance()->viewManger()->currentView()->addWidget(m_region);
+      m_viewManager->addWidget(m_region);
       m_region->setEnabled(false);
     }
+    /* BUG TODO 2012-10-05
     connect(view, SIGNAL(selectedFromSlice(double,PlaneType)),
 	    this, SLOT(redefineFromVOI(double,PlaneType)));
     connect(view, SIGNAL(selectedToSlice(double,PlaneType)),
 	    this, SLOT(redefineToVOI(double,PlaneType)));
+	    */
   }
 
   return QObject::eventFilter(sender, e);
@@ -192,9 +199,9 @@ void SeedGrowSegmentationFilter::SetupWidget::modifyFilter()
     || VOI[4] > z || VOI[5] < z )
   {
     QMessageBox::warning(this,
-			 tr("Seed Grow Segmentation"),
-			 tr("Segmentation couldn't be modified. Seed is outside VOI"));
-    return;
+                         tr("Seed Grow Segmentation"),
+                         tr("Segmentation couldn't be modified. Seed is outside VOI"));
+                         return;
   }
 
   m_filter->setLowerThreshold(m_threshold->value());
@@ -203,7 +210,7 @@ void SeedGrowSegmentationFilter::SetupWidget::modifyFilter()
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
   m_filter->update();
-  EspinaCore::instance()->viewManger()->currentView()->forceRender();
+  m_viewManager->updateViews();
   QApplication::restoreOverrideCursor();
 }
 

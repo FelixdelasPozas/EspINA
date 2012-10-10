@@ -19,12 +19,12 @@
 
 #include "SelectionHandler.h"
 
-const QString SelectionHandler::EspINA_Channel = "EspINA_Channel";
-const QString SelectionHandler::EspINA_Segmentation = "EspINA_Segmentation";
-const QString SelectionHandler::EspINA_Representation = "EspINA_Representation";
+const IPicker::Tag IPicker::SAMPLE = "EspINA_Sample";
+const IPicker::Tag IPicker::CHANNEL = "EspINA_Channel";
+const IPicker::Tag IPicker::SEGMENTATION = "EspINA_Segmentation";
 
 //-----------------------------------------------------------------------------
-bool SelectionHandler::filterEvent(QEvent* e, SelectableView* view)
+bool IPicker::filterEvent(QEvent* e, EspinaRenderView* view)
 {
   if (m_succesor)
     return m_succesor->filterEvent(e, view);
@@ -33,23 +33,23 @@ bool SelectionHandler::filterEvent(QEvent* e, SelectableView* view)
 }
 
 //-----------------------------------------------------------------------------
-void SelectionHandler::setSelection(SelectionHandler::MultiSelection msel)
+void IPicker::setSelection(IPicker::PickList pickList)
 {
 //   qDebug("Selection Changed");
-  emit selectionChanged(msel);
+  emit itemsPicked(pickList);
 }
 
 //-----------------------------------------------------------------------------
-void SelectionHandler::abortSelection()
+void IPicker::abortPick()
 {
 //   qDebug("Selection Aborted");
   emit selectionAborted();
 }
 
 //-----------------------------------------------------------------------------
-void SelectionHandler::setSelectable(QString type, bool sel)
+void IPicker::setPickable(QString type, bool pick)
 {
-  if (sel)
+  if (pick)
     m_filters.append(type);
   else
     m_filters.removeAll(type);

@@ -19,37 +19,137 @@
 
 //----------------------------------------------------------------------------
 // File:    ViewManager.h
-// Purpose: Create new views and keep them valid whenever the server
-//          connection changes.
+// Purpose: Singleton to register and keep views updated
 //----------------------------------------------------------------------------
 #ifndef VIEWMANAGER_H
 #define VIEWMANAGER_H
 
-#include <QObject>
+// EspINA
+#include "common/EspinaTypes.h"
+#include "common/widgets/EspinaWidget.h"
 
-class QMainWindow;
-class EspinaView;
-class QWidget;
-class ViewFrame;
+// Qt
+#include <QList>
+#include <QMap>
+#include <QColor>
 
-class ViewManager : public QObject
+// VTK
+#include <vtkLookupTable.h>
+#include <vtkSmartPointer.h>
+
+class QCursor;
+class IPicker;
+class QEvent;
+class EspinaRenderView;
+class Channel;
+class Segmentation;
+class TaxonomyElement;
+class PickableItem;
+class ColorEngine;
+class IEspinaView;
+
+class ViewManager
+: public QObject
 {
   Q_OBJECT
 public:
   explicit ViewManager();
   ~ViewManager();
 
-  void setCurrentView(EspinaView *view) {m_currentView = view;}
-  EspinaView *currentView() {return m_currentView;}
-  EspinaView *createView(QMainWindow *window, const QString &layout = QString()); //NOTE: Should be move into the factory?
-//   void saveView(const QString &layout) const;
-//   void restoreView(const QString &layout);
+  void registerView(IEspinaView *view);
+  void registerView(EspinaRenderView *view);
 
-protected:
-  EspinaView *createDefaultLayout(QMainWindow *window);
-  EspinaView *createSquaredLayout(QMainWindow *window);
+  //---------------------------------------------------------------------------
+  /*************************** Selection API *********************************/
+  //---------------------------------------------------------------------------
+public:
+  typedef QList<PickableItem *> Selection;
 
-  EspinaView *m_currentView;
+  void setSelection(Selection selection);
+  /// Returns current selection
+  Selection selection() const { return m_selection; }
+//   const Nm *selectionCenter() const
+//   { return m_selectionCenter; }
+
+signals:
+  void selectionChanged(ViewManager::Selection);
+
+private:
+  Selection m_selection;
+
+  //---------------------------------------------------------------------------
+  /*************************** Picking API *********************************/
+  //---------------------------------------------------------------------------
+public:
+  /// Register @picker as active Picker
+  void setPicker(IPicker *sh);
+  /// Disable @picker as active Picker
+  void unsetPicker(IPicker *picker);
+  /// Filter event according to responsabilty chain
+  bool filterEvent(QEvent *e, EspinaRenderView *view=NULL) const;
+  /// Return cursor of active picker
+  QCursor cursor() const;
+
+private:
+  IPicker *m_picker;
+  //---------------------------------------------------------------------------
+  /***************************** Widget API **********************************/
+  //---------------------------------------------------------------------------
+public:
+  void addWidget(EspinaWidget *widget);
+  void removeWidget(EspinaWidget *widget);
+
+  //---------------------------------------------------------------------------
+  /*********************** View Synchronization API **************************/
+  //---------------------------------------------------------------------------
+public:
+  /// Reset Camera
+  void resetViewCameras();
+  /// Update Segmentation Representation
+
+public slots:
+  /// Request all registered views to update themselves
+  void updateViews();
+
+
+  //---------------------------------------------------------------------------
+  /*********************** Active Elements API *******************************/
+  //---------------------------------------------------------------------------
+  // These are specified by the user to be used when one element of the      //
+  // proper type is required                                                 //
+  //---------------------------------------------------------------------------
+public:
+  void setActiveChannel(Channel *channel) { m_activeChannel=channel; }
+  Channel *activeChannel() { return m_activeChannel; }
+  void setActiveTaxonomy(TaxonomyElement *taxonomy) { m_activeTaxonomy = taxonomy; }
+  TaxonomyElement *activeTaxonomy() { return m_activeTaxonomy; }
+
+signals:
+  void activeChannelChanged(Channel *);
+  void activeTaxonomyChanged(TaxonomyElement *);
+
+  //---------------------------------------------------------------------------
+  /************************* Color Engine API ********************************/
+  //---------------------------------------------------------------------------
+public:
+  QColor color(const Segmentation *seg);
+  virtual vtkSmartPointer<vtkLookupTable> lut(const Segmentation *seg);
+
+  void registerColorEngine(ColorEngine *engine);
+  void setEnabled(ColorEngine *engine, bool enable=true);
+  void unregisterColorEngine(ColorEngine *engine);
+
+private:
+  Nm m_slicingStep[3];
+
+  QList<IEspinaView *>      m_espinaViews;
+  QList<EspinaRenderView *> m_renderViews;
+
+  Channel      *m_activeChannel;
+  TaxonomyElement *m_activeTaxonomy;
+
+  QMap<ColorEngine *, bool> m_engines;
+  vtkSmartPointer<vtkLookupTable> seg_lut;
 };
 
 #endif // VIEWMANAGER_H

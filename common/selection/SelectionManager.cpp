@@ -19,9 +19,7 @@
 
 #include "SelectionManager.h"
 
-#include "EspinaCore.h"
 #include "EspinaRegions.h"
-#include "EspinaView.h"
 #include "RectangularSelection.h"
 #include "model/Segmentation.h"
 
@@ -40,14 +38,12 @@ SelectionManager* SelectionManager::instance()
 SelectionManager::SelectionManager()
 : m_handler(NULL)
 , m_voi(NULL)
-, m_activeChannel(NULL)
-, m_activeTaxonomy(NULL)
 {
   memset(m_selectionCenter, 0, 3*sizeof(Nm));
 }
 
 //------------------------------------------------------------------------
-bool SelectionManager::filterEvent(QEvent* e, SelectableView* view) const
+bool SelectionManager::filterEvent(QEvent* e, EspinaRenderView* view) const
 {
   bool res = false;
   if (m_handler)
@@ -75,7 +71,7 @@ void SelectionManager::setSelection(Selection selection)
   }
 
   computeSelectionCenter();
-  EspinaCore::instance()->viewManger()->currentView()->forceRender();
+  //TODO 2012-10-04: EspinaCore::instance()->viewManger()->currentView()->forceRender();
   emit selectionChanged(m_selection);
 }
 
@@ -95,7 +91,7 @@ void SelectionManager::computeSelectionCenter()
 
   for (int i = 0; i < m_selection.size(); i++)
   {
-    SelectableItem *item = m_selection[i];
+    PickableItem *item = m_selection[i];
     if (ModelItem::SEGMENTATION == item->type())
     {
       Segmentation *seg = dynamic_cast<Segmentation *>(item);
@@ -111,7 +107,7 @@ void SelectionManager::computeSelectionCenter()
 }
 
 //------------------------------------------------------------------------
-void SelectionManager::setSelectionHandler(SelectionHandler* sh)
+void SelectionManager::setSelectionHandler(IPicker* sh)
 {
   if (m_handler && m_handler != sh)
     m_handler->abortSelection();
@@ -125,7 +121,7 @@ void SelectionManager::setSelectionHandler(SelectionHandler* sh)
 }
 
 //------------------------------------------------------------------------
-void SelectionManager::unsetSelectionHandler(SelectionHandler* sh)
+void SelectionManager::unsetSelectionHandler(IPicker* sh)
 {
   if (m_handler == sh)
   {

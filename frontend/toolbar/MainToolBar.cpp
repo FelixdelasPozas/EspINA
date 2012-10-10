@@ -20,46 +20,54 @@
 #include "MainToolBar.h"
 #include <docks/SegmentationInspector.h>
 
-#include <common/model/EspinaModel.h>
-#include <model/Segmentation.h>
+// EspINA
+#include "common/model/EspinaModel.h"
+#include "common/model/Segmentation.h"
+#include "common/model/Taxonomy.h"
+#include "common/selection/PixelSelector.h"
+#include "common/undo/RemoveSegmentation.h"
+#include <gui/ViewManager.h>
 
+// Qt
 #include <QAction>
 #include <QComboBox>
 #include <QIcon>
 #include <QTreeView>
-#include <EspinaCore.h>
-#include <selection/PixelSelector.h>
-#include <undo/RemoveSegmentation.h>
-#include <iostream>
+#include <QUndoStack>
 
 //----------------------------------------------------------------------------
-MainToolBar::MainToolBar(QSharedPointer<EspinaModel> model, QWidget* parent)
+MainToolBar::MainToolBar(EspinaModel *model,
+                         QUndoStack  *undoStack,
+                         ViewManager *vm,
+                         QWidget     *parent)
 : QToolBar(parent)
+, m_model(model)
+, m_undoStack(undoStack)
+, m_viewManager(vm)
 {
   setObjectName("MainToolBar");
   setWindowTitle("Main Tool Bar");
 
-  m_toggleSegVisibility = addAction(//showIcon,
-				  tr("Toggle Segmentations Visibility"));
+  m_toggleSegVisibility = addAction(tr("Toggle Segmentations Visibility"));
 
   m_toggleSegVisibility->setShortcut(QString("Space"));
   m_toggleSegVisibility->setCheckable(true);
   m_toggleSegVisibility->setChecked(true);
   setShowSegmentations(true);
   connect(m_toggleSegVisibility,SIGNAL(triggered(bool)),
-	  this,SLOT(setShowSegmentations(bool)));
+          this,SLOT(setShowSegmentations(bool)));
 
 
-   // User selected Taxonomy Selection List
+  // User selected Taxonomy Selection List
   m_taxonomyView = new QTreeView(this);
   m_taxonomyView->setHeaderHidden(true);
 
   m_taxonomySelector = new QComboBox(this);
   m_taxonomySelector->setView(m_taxonomyView); //Brutal!
-  m_taxonomySelector->setModel(model.data());
+  m_taxonomySelector->setModel(model);
   m_taxonomySelector->setRootModelIndex(model->taxonomyRoot());
-  connect(model.data(),SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-	  this,SLOT(updateTaxonomy(QModelIndex,QModelIndex)));
+  connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
+          this,  SLOT(updateTaxonomy(QModelIndex,QModelIndex)));
 
   m_taxonomySelector->setMinimumWidth(160);
   m_taxonomySelector->setToolTip( tr("Type of new segmentation") );
@@ -74,17 +82,17 @@ MainToolBar::MainToolBar(QSharedPointer<EspinaModel> model, QWidget* parent)
 
   m_selector = new PixelSelector();
   m_selector->setMultiSelection(false);
-  m_selector->setSelectable(SelectionHandler::EspINA_Segmentation);
+  m_selector->setPickable(IPicker::SEGMENTATION);
   connect(m_selector, SIGNAL(selectionAborted()),
-	  this, SLOT(abortSelection()));
-  connect(m_selector, SIGNAL(selectionChanged(SelectionHandler::MultiSelection)),
-	  this, SLOT(removeSelectedSegmentation(SelectionHandler::MultiSelection)));
+          this, SLOT(abortSelection()));
+  connect(m_selector, SIGNAL(itemsPicked(IPicker::PickList)),
+          this, SLOT(removeSelectedSegmentation(IPicker::PickList)));
 
   m_removeSegmentation = addAction(QIcon(":/espina/removeSeg.svg"),
-					  tr("Remove Segmentation"));
+                                   tr("Remove Segmentation"));
   m_removeSegmentation->setCheckable(true);
   connect(m_removeSegmentation, SIGNAL(toggled(bool)),
-	  this, SLOT(removeSegmentation(bool)));
+          this, SLOT(removeSegmentation(bool)));
 }
 
 //----------------------------------------------------------------------------
@@ -94,8 +102,6 @@ void MainToolBar::setShowSegmentations(bool visible)
     m_toggleSegVisibility->setIcon(QIcon(":/espina/show_all.svg"));
   else
     m_toggleSegVisibility->setIcon(QIcon(":/espina/hide_all.svg"));
-
-  //EspinaCore::instance()->model()->relationships()->write(std::cout, RelationshipGraph::GRAPHVIZ);
 
   emit showSegmentations(visible);
 }
@@ -108,9 +114,9 @@ void MainToolBar::setActiveTaxonomy(QModelIndex index)
 
   ModelItem *item = static_cast<ModelItem *>(index.internalPointer());
   Q_ASSERT(item->type() == ModelItem::TAXONOMY);
-  TaxonomyNode *tax = dynamic_cast<TaxonomyNode *>(item);
+  TaxonomyElement *tax = dynamic_cast<TaxonomyElement *>(item);
   Q_ASSERT(tax);
-  SelectionManager::instance()->setActiveTaxonomy(tax);
+  m_viewManager->setActiveTaxonomy(tax);
 }
 
 //----------------------------------------------------------------------------
@@ -119,9 +125,9 @@ void MainToolBar::setActiveTaxonomy(QString taxonomy)
   if (taxonomy.isEmpty())
     return;
 
-  TaxonomyNode *tax = EspinaCore::instance()->model()->taxonomy()->element(taxonomy);
+  TaxonomyElement *tax = m_model->taxonomy()->element(taxonomy);
   if (tax)
-    SelectionManager::instance()->setActiveTaxonomy(tax);
+    m_viewManager->setActiveTaxonomy(tax);
 }
 
 
@@ -140,32 +146,29 @@ void MainToolBar::updateTaxonomy(QModelIndex left, QModelIndex right)
 void MainToolBar::removeSegmentation(bool active)
 {
   if (active)
-  {
-    SelectionManager::instance()->setSelectionHandler(m_selector);
-  }else
-  {
-    SelectionManager::instance()->setSelectionHandler(NULL);
-  }
+    m_viewManager->setPicker(m_selector);
+  else
+    m_viewManager->setPicker(NULL);
 }
 
 //----------------------------------------------------------------------------
-void MainToolBar::removeSelectedSegmentation(SelectionHandler::MultiSelection msel)
+void MainToolBar::removeSelectedSegmentation(IPicker::PickList msel)
 {
   if (msel.size() != 1)
     return;
 
-  SelectionHandler::Selelection element = msel.first();
+  IPicker::PickedItem element = msel.first();
 
-  SelectableItem *input = element.second;
+  PickableItem *input = element.second;
   Q_ASSERT(ModelItem::SEGMENTATION == input->type());
   QList<Segmentation *> removedSegs;
   removedSegs << dynamic_cast<Segmentation *>(input);
-  SegmentationInspector::RemoveInspector(removedSegs);
-  
-  QSharedPointer<QUndoStack> undoStack = EspinaCore::instance()->undoStack();
-  undoStack->beginMacro(tr("Delete Segmentation"));
-  undoStack->push(new RemoveSegmentation(removedSegs));
-  undoStack->endMacro();
+  //TODO 2012-10-04: Gestion de memoria...y evitar que siga abierto cuando se elimina la segementacion
+  //SegmentationInspector::RemoveInspector(removedSegs);
+
+  m_undoStack->beginMacro(tr("Delete Segmentation"));
+  m_undoStack->push(new RemoveSegmentation(removedSegs, m_model));
+  m_undoStack->endMacro();
 }
 
 //----------------------------------------------------------------------------

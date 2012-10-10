@@ -18,74 +18,49 @@
 
 #include "SegmentationInspector.h"
 
+// EspINA
+#include "common/model/ModelItem.h"
+#include "common/model/Segmentation.h"
+#include "common/model/Filter.h"
+#include "common/gui/VolumeView.h"
+#include "common/gui/ViewManager.h"
+
+// Qt
 #include <QFileDialog>
 #include <QDebug>
 
-#include <model/ModelItem.h>
-#include <model/Segmentation.h>
-#include <model/Filter.h>
-#include <gui/VolumeView.h>
-#include <EspinaCore.h>
-
-QMap<Segmentation *, SegmentationInspector *> SegmentationInspector::m_inspectors;
-
 //------------------------------------------------------------------------
-SegmentationInspector* SegmentationInspector::CreateInspector(Segmentation* seg)
-{
-  SegmentationInspector *inspector;
-
-  if (m_inspectors.contains(seg))
-    inspector = m_inspectors[seg];
-  else
-    inspector = new SegmentationInspector(seg);
-
-  return inspector;
-}
-
-//------------------------------------------------------------------------
-void SegmentationInspector::RemoveInspector(Segmentation* seg)
-{
-  if (m_inspectors.contains(seg))
-  {
-    m_inspectors[seg]->hide();
-    delete m_inspectors[seg];
-    m_inspectors.remove(seg);
-  }
-}
-
-//------------------------------------------------------------------------
-void SegmentationInspector::RemoveInspector(QList< Segmentation* > segs)
-{
-  foreach(Segmentation *seg, segs)
-    RemoveInspector(seg);
-}
-
-
-//------------------------------------------------------------------------
-SegmentationInspector::SegmentationInspector(Segmentation *seg, QWidget* parent, Qt::WindowFlags f)
+SegmentationInspector::SegmentationInspector(Segmentation *seg,
+                                             EspinaModel *model,
+                                             ViewManager *vm,
+                                             QWidget* parent,
+                                             Qt::WindowFlags f)
 : QWidget(parent, f)
+, m_viewManager(vm)
 , m_seg(seg)
-, m_model(EspinaCore::instance()->model())
+, m_model(model)
+, m_view(new VolumeView(vm))
 , m_info(new InformationProxy())
 , m_sort(new QSortFilterProxyModel())
 {
   setupUi(this);
 
-  m_view->addSegmentationRepresentation(seg);
+  m_view->addSegmentation(seg);
   m_view->resetCamera();
-  m_view->forceRender();
+  m_view->updateView();
+  horizontalLayout->insertWidget(0, m_view);
 
   connect(seg, SIGNAL(modified(ModelItem*)),
-	  this, SLOT(updateScene()));
+          this, SLOT(updateScene()));
 
   Filter *filter = seg->filter();
   Q_ASSERT(filter);
-  QWidget *widget = filter->createConfigurationWidget();
+  QWidget *widget = filter->createConfigurationWidget(m_viewManager);
   m_filterInspector->setWidget(widget);
   m_filterInspector->setMinimumWidth(widget->minimumSize().width());;
 
   m_info->setQuery(seg->availableInformations());
-  m_info->setSourceModel(m_model.data());
+  m_info->setSourceModel(m_model);
   m_sort->setSourceModel(m_info.data());
   m_sort->setFilterRegExp("^"+seg->data().toString()+"$");
   m_sort->setDynamicSortFilter(true);
@@ -93,26 +68,23 @@ SegmentationInspector::SegmentationInspector(Segmentation *seg, QWidget* parent,
   m_dataView->setModel(m_sort.data());
   m_dataView->setSortingEnabled(true);// Needed to update values when segmentation is modified
   m_dataView->sortByColumn(0, Qt::AscendingOrder);
-
-  m_inspectors[m_seg] = this;
 }
 
 //------------------------------------------------------------------------
 void SegmentationInspector::closeEvent(QCloseEvent *e)
 {
   QWidget::closeEvent(e);
-  deleteLater();
+  emit inspectorClosed(this);
 }
 
 //------------------------------------------------------------------------
 SegmentationInspector::~SegmentationInspector()
 {
-  m_inspectors.remove(m_seg);
 }
 
 //
 void SegmentationInspector::updateScene()
 {
-  m_view->updateSegmentationRepresentation(m_seg);
-  m_view->forceRender();
+  m_view->updateSegmentation(m_seg);
+  m_view->updateView();
 }

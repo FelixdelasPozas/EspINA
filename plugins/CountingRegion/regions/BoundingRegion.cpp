@@ -21,16 +21,17 @@
 #include "vtkBoundingRegionSliceWidget.h"
 #include <extensions/CountingRegionChannelExtension.h>
 #include <common/model/Channel.h>
-#include <common/EspinaCore.h>
-#include <common/gui/EspinaView.h>
+#include <common/gui/ViewManager.h>
 
 //-----------------------------------------------------------------------------
 BoundingRegion::BoundingRegion(CountingRegionChannelExtension *channelExt,
-			       double inclusion[3],
-			       double exclusion[3])
+                               double inclusion[3],
+                               double exclusion[3],
+                               ViewManager *vm)
 : QStandardItem()
 , INCLUSION_FACE(255)
 , EXCLUSION_FACE(0)
+, m_viewManager(vm)
 , m_channelExt(channelExt)
 {
   memcpy(m_inclusion, inclusion, 3*sizeof(Nm));
@@ -92,7 +93,7 @@ void BoundingRegion::Execute(vtkObject* caller, long unsigned int eventId, void*
     foreach(vtkBoundingRegionWidget *w, m_widgets)
       w->SetBoundingRegion(m_boundingRegion);
   }
-  EspinaCore::instance()->viewManger()->currentView()->forceRender();
+  m_viewManager->updateViews();
 
   emitDataChanged();
 }

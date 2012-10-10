@@ -16,39 +16,31 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 */
-
 #include "ChannelInspector.h"
 
-#include <model/Channel.h>
+#include "common/model/Channel.h"
+#include "common/model/ChannelReader.h"
+#include "common/model/Segmentation.h"
+#include "common/gui/ViewManager.h"
 
+// Qt
 #include <QDebug>
-#include <model/Segmentation.h>
-#include <model/ChannelReader.h>
-#include <EspinaCore.h>
-#include <gui/EspinaView.h>
-
-// QMap<Channel *, ChannelInspector *> ChannelInspector::m_inspectors;
-// 
-// //------------------------------------------------------------------------
-// ChannelInspector* ChannelInspector::CreateInspector(Channel* channel)
-// {
-//   if (!m_inspectors.contains(channel))
-//     m_inspectors[channel] = new ChannelInspector(channel);
-// 
-//   return m_inspectors[channel];
-// }
 
 //------------------------------------------------------------------------
 ChannelInspector::ChannelInspector(Channel *channel,
-				   QWidget* parent,
-				   Qt::WindowFlags f)
+                                   ViewManager *vm,
+                                   QWidget *parent,
+                                   Qt::WindowFlags f)
 : QDialog(parent, f)
 , m_channel(channel)
+, m_viewManager(vm)
 {
   setupUi(this);
 
-  connect(m_unit,SIGNAL(currentIndexChanged(int)),this,SLOT(unitChanged(int)));
-  connect(pushButton, SIGNAL(clicked(bool)), this, SLOT(updateSpacing()));
+  connect(m_unit, SIGNAL(currentIndexChanged(int)),
+          this, SLOT(unitChanged(int)));
+  connect(pushButton, SIGNAL(clicked(bool)),
+          this, SLOT(updateSpacing()));
 
   double spacing[3];
   channel->spacing(spacing);
@@ -93,7 +85,7 @@ void ChannelInspector::updateSpacing()
       seg->notifyModification();
     }
   }
-  EspinaCore::instance()->viewManger()->currentView()->resetCamera();
+  m_viewManager->resetViewCameras();
   setResult(QDialog::Accepted);
   accept();
 }

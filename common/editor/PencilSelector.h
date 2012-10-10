@@ -24,16 +24,16 @@
 #include <QColor>
 
 
-class PencilSelector
-: public SelectionHandler
+class BrushSelector
+: public IPicker
 {
   Q_OBJECT
 public:
   enum State {CREATING, DRAWING, ERASING};
 public:
-  explicit PencilSelector(SelectionHandler* succesor = NULL);
+  explicit BrushSelector(IPicker *succesor = NULL);
 
-  virtual bool filterEvent(QEvent* e, SelectableView* view = 0);
+  virtual bool filterEvent(QEvent* e, EspinaRenderView *view = 0);
   virtual QCursor cursor();
 
   void setColor(QColor color)
@@ -56,10 +56,10 @@ public:
   }
 
 private:
-  void startSelection(int x, int y, SelectableView *view);
+  void startSelection(int x, int y, EspinaRenderView *view);
 
 signals:
-  void stateChanged(PencilSelector::State);
+  void stateChanged(BrushSelector::State);
 
 private:
   int     m_radius;

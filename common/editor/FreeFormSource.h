@@ -29,7 +29,6 @@ class FreeFormSource
 {
 public:
   static const QString TYPE;
-
   static const ModelItem::ArgumentId SPACING;
 
   class Parameters
@@ -51,9 +50,9 @@ public:
       for(int i=0; i<3; i++)
         m_spacing[i] = value[i];
       m_args[SPACING] = QString("%1,%2,%3")
-                       .arg(value[0])
-                       .arg(value[1])
-                       .arg(value[2]);
+      .arg(value[0])
+      .arg(value[1])
+      .arg(value[2]);
     }
     EspinaVolume::SpacingType spacing() const
     {

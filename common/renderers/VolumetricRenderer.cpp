@@ -21,7 +21,6 @@
 #include <vtkRenderWindow.h>
 #include <model/Segmentation.h>
 #include <ColorEngine.h>
-#include <EspinaCore.h>
 #include <vtkVolumeRayCastMapper.h>
 #include <vtkVolumeRayCastCompositeFunction.h>
 #include <vtkColorTransferFunction.h>
@@ -49,8 +48,11 @@ bool VolumetricRenderer::addItem(ModelItem* item)
       m_segmentations.remove(item);
     }
 
+  /*TODO 2012-10-05 
   ColorEngine *engine = EspinaCore::instance()->colorSettings().engine();
   QColor color = engine->color(seg);
+  */
+  QColor color(Qt::red);
 
 
   vtkSmartPointer<vtkVolumeRayCastMapper> mapper = vtkVolumeRayCastMapper::New();
@@ -86,7 +88,7 @@ bool VolumetricRenderer::addItem(ModelItem* item)
   volume->SetProperty(property);
 
   m_segmentations[seg].selected = seg->isSelected();
-  m_segmentations[seg].color = engine->color(seg);
+  //TODO 2012-10-05 m_segmentations[seg].color = engine->color(seg);
   m_segmentations[seg].volume = volume;
   m_segmentations[seg].visible = false; // always false when adding
 

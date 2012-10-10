@@ -20,11 +20,16 @@
 #ifndef RECTANGULARVOI_H
 #define RECTANGULARVOI_H
 
-#include <common/widgets/EspinaWidget.h>
-#include <vtkCommand.h>
+#include "common/widgets/EspinaWidget.h"
 
+// Qt
 #include <QList>
 #include <QObject>
+
+// VTK
+#include <vtkCommand.h>
+
+class ViewManager;
 
 class vtkRectangularSliceWidget;
 
@@ -35,7 +40,7 @@ class RectangularRegion
 {
   Q_OBJECT
 public:
-  explicit RectangularRegion(double bounds[6]);
+  explicit RectangularRegion(double bounds[6], ViewManager *vm);
   virtual ~RectangularRegion();
 
   virtual vtkAbstractWidget* createWidget();
@@ -52,6 +57,7 @@ signals:
   void modified(double *);
 
 private:
+  ViewManager *m_viewManager;
   double m_bounds[6];
   QList<vtkRectangularSliceWidget *> m_widgets;
 };

@@ -9,8 +9,6 @@
 
 #include <QFileDialog>
 #include <QTextStream>
-#include <common/EspinaCore.h>
-#include <common/gui/EspinaView.h>
 
 ContourSource::ContourSourceInspector::ContourSourceInspector(ContourSource* source)
 : m_source  (source)

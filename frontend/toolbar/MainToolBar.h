@@ -18,33 +18,36 @@
 
 //----------------------------------------------------------------------------
 // File:    MainToolBar.h
-// Purpose: Provide tool buttons for most common actions in EspinaModel
+// Purpose: Provide tool buttons to:
+//          - Toggle Segmentation Visibility
+//          - Select Active Taxonomy
+//          - Remove Segmentation by clicking on them
 //----------------------------------------------------------------------------
 #ifndef MAINTOOLBAR_H
 #define MAINTOOLBAR_H
 
 #include <QToolBar>
-#include <common/gui/DynamicWidget.h>
+
+#include "common/selection/SelectionHandler.h"
 
 #include <QModelIndex>
-#include <common/selection/SelectionHandler.h>
 
 class PixelSelector;
 class EspinaModel;
 class QComboBox;
 class QTreeView;
+class QUndoStack;
+class ViewManager;
+
 class MainToolBar
-: public QToolBar,
-public DynamicWidget
+: public QToolBar
 {
   Q_OBJECT
 public:
-  explicit MainToolBar(QSharedPointer<EspinaModel> model, QWidget* parent = 0);
-
-  virtual void increaseLOD(){}
-  virtual void decreaseLOD(){}
-  virtual void setLOD(){}
-  virtual void setActivity(QString activity){}
+  explicit MainToolBar(EspinaModel *model,
+                       QUndoStack  *undoStack,
+                       ViewManager *vm,
+                       QWidget* parent = 0);
 
 public slots:
   void setShowSegmentations(bool visible);
@@ -54,13 +57,17 @@ protected slots:
   void setActiveTaxonomy(QString taxonomy);
   void updateTaxonomy(QModelIndex left, QModelIndex right);
   void removeSegmentation(bool active);
-  void removeSelectedSegmentation(SelectionHandler::MultiSelection msel);
+  void removeSelectedSegmentation(IPicker::PickList msel);
   void abortSelection();
 
 signals:
   void showSegmentations(bool);
 
 private:
+  EspinaModel   *m_model;
+  QUndoStack    *m_undoStack;
+  ViewManager   *m_viewManager;
+
   QAction       *m_toggleSegVisibility, *m_removeSegmentation;
   QComboBox     *m_taxonomySelector;
   QTreeView     *m_taxonomyView;

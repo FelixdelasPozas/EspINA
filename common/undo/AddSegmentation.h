@@ -20,33 +20,36 @@
 #ifndef ADDSEGMENTATION_H
 #define ADDSEGMENTATION_H
 
-#include <QSharedPointer>
 #include <QUndoCommand>
 
 // Forward declarations
 class Channel;
+class EspinaModel;
 class Filter;
 class Sample;
 class Segmentation;
-class TaxonomyNode;
+class TaxonomyElement;
 
 class AddSegmentation
 : public QUndoCommand
 {
 public:
-  explicit AddSegmentation(Channel     *channel,
-                           Filter      *filter,
-                           Segmentation *seg,
-                           TaxonomyNode *taxonomy);
+  explicit AddSegmentation(Channel         *channel,
+                           Filter          *filter,
+                           Segmentation    *seg,
+                           TaxonomyElement *taxonomy,
+                           EspinaModel     *model
+                          );
   virtual void redo();
   virtual void undo();
 
 private:
-  Sample       *m_sample;
-  Channel      *m_channel;
-  Filter       *m_filter;
-  Segmentation *m_seg;
-  TaxonomyNode *m_taxonomy;
+  Sample          *m_sample;
+  Channel         *m_channel;
+  Filter          *m_filter;
+  Segmentation    *m_seg;
+  TaxonomyElement *m_taxonomy;
+  EspinaModel     *m_model;
 };
 
 #endif // ADDSEGMENTATION_H

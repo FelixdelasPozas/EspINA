@@ -22,8 +22,11 @@
 
 #include <QtPlugin>
 
+class EspinaModel;
 class QFileInfo;
 class QString;
+class QUndoStack;
+class ViewManager;
 
 typedef QString ReaderId;
 
@@ -32,10 +35,14 @@ class ReaderFactory
 public:
   virtual ~ReaderFactory(){}
 
+  virtual void initReaderFactory(EspinaModel* model,
+                                 QUndoStack* undoStack,
+                                 ViewManager *vm) = 0;
+
   virtual bool readFile(const QFileInfo) = 0;
 };
 
 Q_DECLARE_INTERFACE(ReaderFactory,
-                    "es.upm.cesvima.EspINA.ReaderFactory/1.0")
+                    "es.upm.cesvima.EspINA.ReaderFactory/1.1")
 
 #endif // READERFACTORY_H

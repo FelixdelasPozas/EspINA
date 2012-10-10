@@ -8,9 +8,7 @@
 #include "ContourSource.h"
 #include "ContourSourceInspector.h"
 
-#include <EspinaCore.h>
 #include <EspinaRegions.h>
-#include <EspinaView.h>
 #include <model/EspinaFactory.h>
 
 #include <itkImageRegionIteratorWithIndex.h>
@@ -132,7 +130,9 @@ void ContourSource::signalAsModified()
 vtkPolyData* ContourSource::TransformContour(PlaneType plane, vtkPolyData* contour)
 {
   double spacing[3], pos[3], temporal;
-  SelectionManager::instance()->activeChannel()->spacing(spacing);
+  //BUG 2012-10-04: Coger spacing del canal seccionado, en lugar del activo
+  //SelectionManager::instance()->activeChannel()->spacing(spacing);
+  Q_ASSERT(false);
   int count = contour->GetPoints()->GetNumberOfPoints();
   vtkPolyData *rotatedContour = vtkPolyData::New();
 

@@ -20,21 +20,21 @@
 #ifndef PIXELSELECTOR_H_
 #define PIXELSELECTOR_H_
 
-#include "SelectionManager.h"
+#include "SelectionHandler.h"
 
 class PixelSelector 
-: public SelectionHandler
+: public IPicker
 {
 public:
-  PixelSelector(SelectionHandler *succesor=NULL)
-  : SelectionHandler(succesor)
+  PixelSelector(IPicker *succesor=NULL)
+  : IPicker(succesor)
   , m_handled(true) {}
   virtual ~PixelSelector(){}
 
-  virtual void onMouseDown(const QPoint &pos, SelectableView* view);
-  virtual void onMouseMove(const QPoint &pos, SelectableView* view);
-  virtual void onMouseUp  (const QPoint &pos, SelectableView* view);
-  virtual bool filterEvent(QEvent* e, SelectableView* view = 0);
+  virtual void onMouseDown(const QPoint &pos, EspinaRenderView* view);
+  virtual void onMouseMove(const QPoint &pos, EspinaRenderView* view);
+  virtual void onMouseUp  (const QPoint &pos, EspinaRenderView* view);
+  virtual bool filterEvent(QEvent* e, EspinaRenderView* view = 0);
 
   void setHandleEvent(bool handled) {m_handled = handled;}
 
@@ -48,12 +48,12 @@ class BestPixelSelector
 : public PixelSelector
 {
 public:
-  BestPixelSelector(SelectionHandler *succesor=NULL);
+  BestPixelSelector(IPicker *succesor=NULL);
   virtual ~BestPixelSelector(){}
 
   void setBestPixelValue(int value) {m_bestPixel = value;}
 
-  virtual void onMouseDown(const QPoint& pos, SelectableView* view);
+  virtual void onMouseDown(const QPoint& pos, EspinaRenderView* view);
 
 private:
   QSize *m_window;

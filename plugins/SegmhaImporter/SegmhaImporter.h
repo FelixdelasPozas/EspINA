@@ -24,9 +24,11 @@
 
 
 class Channel;
+class EspinaModel;
 class Sample;
 class Segmentation;
 class SegmhaImporterFilter;
+class ViewManager;
 
 /// Segmha Reader Plugin
 class SegmhaImporter
@@ -42,11 +44,13 @@ class SegmhaImporter
   {
   public:
     explicit UndoCommand(Sample *sample,
-			 Channel *channel,
-			 SegmhaImporterFilter *filter);
+                         Channel *channel,
+                         SegmhaImporterFilter *filter,
+                         EspinaModel *model);
     virtual void redo();
     virtual void undo();
   private:
+    EspinaModel          *m_model;
     Sample               *m_sample;
     Channel              *m_channel;
     SegmhaImporterFilter *m_filter;
@@ -57,10 +61,22 @@ public:
   explicit SegmhaImporter();
   virtual ~SegmhaImporter(){}
 
+  virtual void initFilterFactory(EspinaFactory* factory);
+
   virtual Filter* createFilter(const QString filter,
-			       Filter::NamedInputs inputs,
-			       const ModelItem::Arguments args);
+                               Filter::NamedInputs inputs,
+                               const ModelItem::Arguments args);
+
+  virtual void initReaderFactory(EspinaModel* model,
+                                 QUndoStack* undoStack,
+                                 ViewManager *vm);
+
   virtual bool readFile(const QFileInfo file);
+
+private:
+  EspinaModel *m_model;
+  QUndoStack  *m_undoStack;
+  ViewManager *m_viewManager;
 };
 
 #endif// SEGMHAIMPORTER_H

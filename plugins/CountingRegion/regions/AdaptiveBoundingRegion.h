@@ -31,8 +31,10 @@ public:
   static const QString ID;
 
   explicit AdaptiveBoundingRegion(CountingRegionChannelExtension *channelExt,
-				  Nm inclusion[3],
-				  Nm exclusion[3]);
+                                  Nm inclusion[3],
+                                  Nm exclusion[3],
+                                  ViewManager *vm);
+
   virtual ~AdaptiveBoundingRegion();
 
   // Implements QStandardItem interface

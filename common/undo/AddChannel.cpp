@@ -19,37 +19,32 @@
 
 #include "AddChannel.h"
 
-#include "common/model/EspinaModel.h"
 #include "common/model/Channel.h"
-#include <model/ChannelReader.h>
-#include "common/EspinaCore.h"
-#include <selection/SelectionManager.h>
+#include "common/model/ChannelReader.h"
+#include "common/model/EspinaModel.h"
 
 AddChannel::AddChannel(ChannelReader *reader,
-                       Channel* channel,
-                       QUndoCommand* parent)
+                       Channel       *channel,
+                       EspinaModel   *model,
+                       QUndoCommand  *parent)
 : QUndoCommand(parent)
-, m_reader(reader)
+, m_reader (reader)
 , m_channel(channel)
+, m_model  (model)
 {
 }
 
 void AddChannel::redo()
 {
-  QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
-
-  model->addFilter(m_reader);
-  model->addChannel(m_channel);
-  SelectionManager::instance()->setActiveChannel(m_channel);
-  model->addRelation(m_reader, m_channel, Channel::VOLUMELINK);
+  m_model->addFilter(m_reader);
+  m_model->addChannel(m_channel);
+  m_model->addRelation(m_reader, m_channel, Channel::VOLUMELINK);
 }
 
 void AddChannel::undo()
 {
-  QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
-
-  model->removeRelation(m_reader, m_channel, Channel::VOLUMELINK);
-  model->removeChannel(m_channel);
-  model->removeFilter(m_reader);
+  m_model->removeRelation(m_reader, m_channel, Channel::VOLUMELINK);
+  m_model->removeChannel(m_channel);
+  m_model->removeFilter(m_reader);
 }
 

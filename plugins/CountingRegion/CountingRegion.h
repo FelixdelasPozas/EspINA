@@ -25,6 +25,8 @@
 #include <common/pluginInterfaces/IDockWidget.h>
 
 #include <common/model/EspinaModel.h>
+#include <common/EspinaTypes.h>
+
 #include <QStandardItemModel>
 
 class BoundingRegion;
@@ -47,6 +49,11 @@ public:
   explicit CountingRegion(QWidget* parent=NULL);
   virtual ~CountingRegion();
 
+  virtual void initDockWidget(EspinaModel* model,
+                              QUndoStack* undoStack,
+                              ViewManager* viewManager);
+  virtual void reset();
+
   void createAdaptiveRegion(Channel *channel,
                             Nm inclusion[3],
                             Nm exclusion[3]);
@@ -67,7 +74,6 @@ protected slots:
   void showInfo(const QModelIndex& index);
   void saveRegionDescription();
 
-  virtual void reset(){}
 
 signals:
   void regionCreated(BoundingRegion *);
@@ -76,7 +82,8 @@ signals:
 private:
   GUI *m_gui;
   QStandardItemModel m_regionModel;
-  QSharedPointer<EspinaModel> m_espinaModel;
+  EspinaModel *m_espinaModel;
+  ViewManager *m_viewManager;
   RegionList m_regions;
 };
 

@@ -19,24 +19,29 @@
 
 #include "AddFilter.h"
 
-#include "common/EspinaCore.h"
+#include "common/model/EspinaModel.h"
 
-AddFilter::AddFilter(Filter* filter, QUndoCommand* parent)
+//------------------------------------------------------------------------
+AddFilter::AddFilter(Filter* filter,
+                     EspinaModel *model,
+                     QUndoCommand* parent)
 : QUndoCommand(parent)
+, m_model(model)
 , m_filter(filter)
 {
 
 }
 
+//------------------------------------------------------------------------
 void AddFilter::redo()
 {
-  EspinaCore::instance()->model()->addFilter(m_filter);
+  m_model->addFilter(m_filter);
 }
 
-
+//------------------------------------------------------------------------
 void AddFilter::undo()
 {
-  EspinaCore::instance()->model()->removeFilter(m_filter);
+  m_model->removeFilter(m_filter);
 }
 
 

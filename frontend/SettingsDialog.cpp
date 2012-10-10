@@ -19,51 +19,45 @@
 
 #include "SettingsDialog.h"
 
-#include <EspinaCore.h>
+#include "common/settings/GeneralSettings.h"
 
-#include <QSettings>
 #include <QDir>
-#include <QTime>
-#include <QPushButton>
 #include <QMessageBox>
-// #include <EspinaPluginManager.h>
+#include <QPushButton>
+#include <QSettings>
+#include <QTime>
 
 //------------------------------------------------------------------------
-GeneralSettingsPanel::GeneralSettingsPanel()
+GeneralSettingsPanel::GeneralSettingsPanel(GeneralSettings *settings)
+: m_settings(settings)
 {
   setupUi(this);
 
-  GeneralSettings &settings = EspinaCore::instance()->settings();
-
-  userName->setText(settings.userName());
-  autosavePath->setText(settings.autosavePath().absolutePath());
-  autosaveInterval->setValue(settings.autosaveInterval());
+  userName->setText(m_settings->userName());
+  autosavePath->setText(m_settings->autosavePath().absolutePath());
+  autosaveInterval->setValue(m_settings->autosaveInterval());
 }
 
 //------------------------------------------------------------------------
 void GeneralSettingsPanel::acceptChanges()
 {
-  GeneralSettings &settings = EspinaCore::instance()->settings();
-
-  settings.setUserName(userName->text());
-  settings.setAutosavePath(autosavePath->text());
-  settings.setAutosaveInterval(autosaveInterval->value());
+  m_settings->setUserName(userName->text());
+  m_settings->setAutosavePath(autosavePath->text());
+  m_settings->setAutosaveInterval(autosaveInterval->value());
 }
 
 //------------------------------------------------------------------------
 bool GeneralSettingsPanel::modified() const
 {
-  GeneralSettings &settings = EspinaCore::instance()->settings();
-
-  return userName->text() != settings.userName()
-      || autosavePath->text() != settings.autosavePath().absolutePath()
-      || autosaveInterval->value() != settings.autosaveInterval();
+  return userName->text() != m_settings->userName()
+      || autosavePath->text() != m_settings->autosavePath().absolutePath()
+      || autosaveInterval->value() != m_settings->autosaveInterval();
 }
 
 //------------------------------------------------------------------------
 ISettingsPanel *GeneralSettingsPanel::clone()
 {
-  return new GeneralSettingsPanel();
+  return new GeneralSettingsPanel(m_settings);
 }
 
 //------------------------------------------------------------------------
@@ -72,9 +66,6 @@ SettingsDialog::SettingsDialog(QWidget* parent, Qt::WindowFlags f)
 , m_activePanel(NULL)
 {
   setupUi(this);
-
-  GeneralSettingsPanel *general = new GeneralSettingsPanel();
-  addPanel(general);
 
   connect(components,SIGNAL(currentRowChanged(int)),
 	  this, SLOT(changePreferencePanel(int)));

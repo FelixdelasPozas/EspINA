@@ -20,14 +20,13 @@
 #include "TaxonomyExplorer.h"
 #include <ui_TaxonomyExplorer.h>
 
+// EspINA
 #include "common/model/EspinaModel.h"
 #include "common/model/Taxonomy.h"
-#include <EspinaCore.h>
-#include <gui/TaxonomyColorEngine.h>
+#include "common/gui/TaxonomyColorEngine.h" //TODO 2012-10-04 Use old color engine
 
+// Qt
 #include <QColorDialog>
-#include <QSortFilterProxyModel>
-
 
 //------------------------------------------------------------------------
 class TaxonomyExplorer::GUI
@@ -39,15 +38,15 @@ public:
 };
 
 //------------------------------------------------------------------------
-TaxonomyExplorer::TaxonomyExplorer(QSharedPointer<EspinaModel> model, QWidget* parent)
-: EspinaDockWidget(parent)
+TaxonomyExplorer::TaxonomyExplorer(EspinaModel *model, QWidget *parent)
+: QDockWidget(parent)
 , m_gui(new GUI())
 , m_baseModel(model)
 , m_sort(new QSortFilterProxyModel())
 {
   setWindowTitle(tr("Taxonomy Explorer"));
   setObjectName("TaxonomyExplorer");
-  m_sort->setSourceModel(m_baseModel.data());
+  m_sort->setSourceModel(m_baseModel);
   m_sort->setDynamicSortFilter(true);
   m_gui->treeView->setModel(m_sort.data());
   m_gui->treeView->setRootIndex(m_sort->mapFromSource(m_baseModel->taxonomyRoot()));
@@ -68,7 +67,7 @@ TaxonomyExplorer::TaxonomyExplorer(QSharedPointer<EspinaModel> model, QWidget* p
 //------------------------------------------------------------------------
 TaxonomyExplorer::~TaxonomyExplorer()
 {
-
+  delete m_gui;
 }
 
 //------------------------------------------------------------------------
@@ -109,11 +108,11 @@ void TaxonomyExplorer::changeColor()
                          Qt::DecorationRole);
     ModelItem *item = indexPtr(index);
     Q_ASSERT(ModelItem::TAXONOMY == item->type());
-    TaxonomyNode *tax = dynamic_cast<TaxonomyNode *>(item);
+    TaxonomyElement *tax = dynamic_cast<TaxonomyElement *>(item);
+    // TODO 2012-10-04 Avoid singleton!
     TaxonomyColorEngine::instance()->updateTaxonomyColor(tax);
-    //TODO: Make volumetric/mesh renderers use color engine luts
-    //      so updating the lut will result in updating the view
-    EspinaCore::instance()->colorSettings().setColorEngine(TaxonomyColorEngine::instance());
+    // TODO 20120-10-04 Propagate color changes
+    //EspinaCore::instance()->colorSettings().setColorEngine(TaxonomyColorEngine::instance());
   }
 }
 

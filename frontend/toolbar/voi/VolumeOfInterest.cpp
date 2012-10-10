@@ -17,16 +17,19 @@
 */
 #include "VolumeOfInterest.h"
 
+// EspINA
 #include "common/gui/ActionSelector.h"
-#include "common/selection/SelectionManager.h"
-#include "common/gui/EspinaView.h"
-#include "common/EspinaCore.h"
+#include <selection/SelectableItem.h>
+#include "common/gui/ViewManager.h"
+#include <model/Channel.h>
 
+// Qt
 #include <QDebug>
 
 //-----------------------------------------------------------------------------
-VolumeOfInterest::VolumeOfInterest(QWidget *parent)
+VolumeOfInterest::VolumeOfInterest(ViewManager *vm, QWidget *parent)
 : QToolBar   (parent)
+, m_viewManager(vm)
 , m_voi      (new ActionSelector(this))
 , m_selector (new PixelSelector())
 {
@@ -35,7 +38,7 @@ VolumeOfInterest::VolumeOfInterest(QWidget *parent)
 
   m_selector->setCursor(QCursor(QPixmap(":roi_go.svg").scaled(32,32)));
   m_selector->setMultiSelection(false);
-  m_selector->setSelectable(SelectionHandler::EspINA_Channel);
+  m_selector->setPickable(IPicker::CHANNEL);
 
   buildVOIs();
 
@@ -43,13 +46,10 @@ VolumeOfInterest::VolumeOfInterest(QWidget *parent)
 
   connect(m_voi, SIGNAL(triggered(QAction*)),
           this, SLOT(changeVOISelector(QAction*)));
-  connect(m_selector.data(), SIGNAL(selectionChanged(SelectionHandler::MultiSelection)),
-          this, SLOT(defineVOI(SelectionHandler::MultiSelection)));
+  connect(m_selector.data(), SIGNAL(itemsPicked(IPicker::PickList)),
+          this, SLOT(defineVOI(IPicker::PickList)));
   connect(m_voi, SIGNAL(actionCanceled()),
           this, SLOT(cancelVOI()));
-
-  //   m_preferences = new VolumeOfInterestPreferences();
-  //   EspinaPluginManager::instance()->registerPreferencePanel(m_preferences);
 }
 
 //-----------------------------------------------------------------------------
@@ -75,33 +75,35 @@ void VolumeOfInterest::buildVOIs()
 //-----------------------------------------------------------------------------
 void VolumeOfInterest::changeVOISelector(QAction* action)
 {
-  SelectionManager::instance()->setSelectionHandler(m_selector.data());
-  EspinaView *currentView = EspinaCore::instance()->viewManger()->currentView();
-  currentView->setSliceSelectors(SliceView::From|SliceView::To);
+  m_viewManager->setPicker(m_selector.data());
+  /*TODO 2012-10-10 currentView->setSliceSelectors(SliceView::From|SliceView::To);
   connect(currentView, SIGNAL(selectedFromSlice(double, PlaneType)),
           this, SLOT(setBorderFrom(double, PlaneType)));
   connect(currentView, SIGNAL(selectedToSlice(double, PlaneType)),
           this, SLOT(setBorderTo(double, PlaneType)));
+          */
 }
 
 //-----------------------------------------------------------------------------
-void VolumeOfInterest::defineVOI(SelectionHandler::MultiSelection msel)
+void VolumeOfInterest::defineVOI(IPicker::PickList pickList)
 {
-  if (msel.size() == 0)
+  if (pickList.size() == 0)
     return;
 
   // Compute default bounds
-  Q_ASSERT(msel.size() == 1); //Only one element is selected
-  SelectionHandler::Selelection selection = msel.first();
+  Q_ASSERT(pickList.size() == 1); //Only one element is selected
+  IPicker::PickedItem pickedItem = pickList.first();
 
-  Q_ASSERT(selection.first.size() == 1); //Only one pixel's selected
-  QVector3D pos = selection.first.first();
+  Q_ASSERT(pickedItem.first.size() == 1); //Only one pixel's selected
+  QVector3D pos = pickedItem.first.first();
 
-  QSharedPointer<ViewManager> vm = EspinaCore::instance()->viewManger();
-  EspinaView *view = vm->currentView();
+  PickableItem *pItem = pickedItem.second;
+  if (ModelItem::CHANNEL != pItem->type())
+    return;
 
-  Nm spacing[3];
-  view->slicingStep(spacing);
+  Channel *pickedChannel = dynamic_cast<Channel *>(pItem);
+  double spacing[3];
+  pickedChannel->spacing(spacing);
 
   const Nm HALF_VOXEL = 0.5;
   const Nm XHSIZE = (40 + HALF_VOXEL)*spacing[0];
@@ -113,14 +115,15 @@ void VolumeOfInterest::defineVOI(SelectionHandler::MultiSelection msel)
      pos.y() - YHSIZE, pos.y() + YHSIZE,
      pos.z() - ZHSIZE, pos.z() + ZHSIZE};
 
-  m_voiWidget = QSharedPointer<RectangularRegion>(new RectangularRegion(bounds));
+  m_voiWidget = QSharedPointer<RectangularRegion>(new RectangularRegion(bounds, m_viewManager));
   Q_ASSERT(m_voiWidget);
-  view->addWidget(m_voiWidget.data());
+  m_viewManager->addWidget(m_voiWidget.data());
 
-  SelectionManager *selectionManager = SelectionManager::instance();
-  selectionManager->unsetSelectionHandler(m_selector.data());
-  selectionManager->setVOI(m_voiWidget.data());
-  view->forceRender();
+  m_viewManager->unsetPicker(m_selector.data());
+/* TODO 2012-10-07 Apply VOIs
+//   selectionManager->setVOI(m_voiWidget.data());
+*/
+  m_viewManager->updateViews();
 }
 
 //-----------------------------------------------------------------------------
@@ -128,13 +131,12 @@ void VolumeOfInterest::cancelVOI()
 {
   if (!m_voiWidget.isNull())
   {
-    QSharedPointer<ViewManager> vm = EspinaCore::instance()->viewManger();
-    EspinaView *view = vm->currentView();
-    view->removeWidget(m_voiWidget.data());
+    m_viewManager->removeWidget(m_voiWidget.data());
     m_voiWidget.clear();
-    view->forceRender();
+    m_viewManager->updateViews();
   }
 
+  /* BUG TODO 2012-10-05 
   SelectionManager *selectorManager = SelectionManager::instance();
   selectorManager->unsetSelectionHandler(m_selector.data());
   selectorManager->setVOI(NULL);
@@ -144,6 +146,7 @@ void VolumeOfInterest::cancelVOI()
              this, SLOT(setBorderFrom(double, PlaneType)));
   disconnect(currentView, SIGNAL(selectedToSlice(double, PlaneType)),
              this, SLOT(setBorderTo(double, PlaneType)));
+             */
 }
 
 //-----------------------------------------------------------------------------

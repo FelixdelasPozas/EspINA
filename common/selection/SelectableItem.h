@@ -20,6 +20,7 @@
 #ifndef SELECTABLEITEM_H
 #define SELECTABLEITEM_H
 
+//TODO Rename file
 #include <common/model/ModelItem.h>
 
 #include "common/EspinaTypes.h"
@@ -27,11 +28,11 @@
 class Filter;
 class vtkAlgorithmOutput;
 
-class SelectableItem
+class PickableItem
 : public ModelItem
 {
 public:
-  ~SelectableItem(){}
+  ~PickableItem(){}
 
   virtual bool isSelected() const {return m_isSelected;}
   virtual void setSelected(bool value) {m_isSelected = value;}
@@ -56,6 +57,6 @@ protected:
   bool m_isSelected;
 };
 
-typedef QSharedPointer<SelectableItem> SelectableItemPtr;
+typedef QSharedPointer<PickableItem> SelectableItemPtr;
 
 #endif // SELECTABLEITEM_H

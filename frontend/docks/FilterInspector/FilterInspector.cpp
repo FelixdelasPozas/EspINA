@@ -16,26 +16,25 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "FilterInspector.h"
 
-#include <EspinaCore.h>
 #include <model/Segmentation.h>
+#include "common/gui/ViewManager.h"
 
 #include <QDebug>
-#include <selection/SelectionManager.h>
 
 //----------------------------------------------------------------------------
-FilterInspector::FilterInspector(QWidget* parent)
-: EspinaDockWidget(parent)
+FilterInspector::FilterInspector(ViewManager* vm, QWidget* parent)
+: QDockWidget(parent)
+, m_viewManager(vm)
 , m_filter(NULL)
 , m_seg   (NULL)
 {
   setWindowTitle("Filter Inspector");
   setObjectName("Filter Inspector Panel");
 
-  connect(SelectionManager::instance(), SIGNAL(selectionChanged(SelectionManager::Selection)),
-	  this, SLOT(updatePannel()));
+  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection)),
+          this, SLOT(updatePannel()));
 }
 
 //----------------------------------------------------------------------------
@@ -59,13 +58,15 @@ void FilterInspector::updatePannel()
   Segmentation *seg = NULL;
   bool changeWidget = false;
 
-  SelectionManager::Selection selection = SelectionManager::instance()->selection();
-  if (selection.size() == 1)
+  SegmentationList selectedSegs;
+  foreach (PickableItem *item, m_viewManager->selection())
   {
-    SelectableItem *item = selection.first();
-    if (ModelItem::SEGMENTATION == selection.first()->type())
-      seg = dynamic_cast<Segmentation *>(item);
+    if (ModelItem::SEGMENTATION == item->type())
+      selectedSegs << dynamic_cast<Segmentation *>(item);
   }
+
+  if (selectedSegs.size() == 1)
+    seg = selectedSegs[0];
 
   // Update if segmentation are different
   if (seg != m_seg)
@@ -97,7 +98,7 @@ void FilterInspector::updatePannel()
     if (m_seg)
     {
       m_filter = seg->filter();
-      setWidget(m_filter->createConfigurationWidget());
+      setWidget(m_filter->createConfigurationWidget(m_viewManager));
     } else
     {
       m_filter = NULL;

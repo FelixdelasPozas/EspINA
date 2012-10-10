@@ -20,7 +20,6 @@
 
 #include "Filter.h"
 #include "EspinaRegions.h"
-#include "common/EspinaCore.h"
 #include "common/gui/ColorEngine.h"
 
 #include <vtkAlgorithm.h>
@@ -47,9 +46,10 @@ Segmentation::SArguments::SArguments(const ModelItem::Arguments args)
 //-----------------------------------------------------------------------------
 QString Segmentation::SArguments::serialize() const
 {
-  QString user = EspinaCore::instance()->settings().userName();
+  /*TODO 2012-10-05 QString user = EspinaCore::instance()->settings().userName();
   SArguments *args = const_cast<SArguments *>(this);
   args->addUser(user);
+  */
   return ModelItem::Arguments::serialize();
 }
 
@@ -69,9 +69,6 @@ Segmentation::Segmentation(Filter* filter, unsigned int outputNb)
   m_args[TAXONOMY] = "Unknown";
   connect(filter, SIGNAL(modified(ModelItem *)),
           this, SLOT(notifyModification()));
-  connect(&EspinaCore::instance()->colorSettings(),SIGNAL(colorEngineChanged(ColorEngine*)),
-          this, SLOT(onColorEngineChanged()));
-
 }
 
 //------------------------------------------------------------------------
@@ -91,10 +88,13 @@ void Segmentation::changeFilter(Filter* filter, unsigned int outputNb)
           this, SLOT(notifyModification()));
 
   // update modified mesh extent to get a correct representation
-  int extent[6];
-  VolumeExtent(filter->output(outputNb), extent);
-  this->m_padfilter->SetOutputWholeExtent(extent[0]-1, extent[1]+1, extent[2]-1, extent[3]+1, extent[4]-1, extent[5]+1);
-  this->m_padfilter->Update();
+  if (NULL != m_padfilter)
+  {
+    int extent[6];
+    VolumeExtent(filter->output(outputNb), extent);
+    this->m_padfilter->SetOutputWholeExtent(extent[0]-1, extent[1]+1, extent[2]-1, extent[3]+1, extent[4]-1, extent[5]+1);
+    this->m_padfilter->Update();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -140,7 +140,7 @@ QVariant Segmentation::data(int role) const
       return QString("Segmentation %1").arg(m_args.number());
     case Qt::DecorationRole:
     {
-      return EspinaCore::instance()->colorSettings().engine()->color(this);
+      return QColor(Qt::red);//TODO 2012-10-05 ::instance()->colorSettings().engine()->color(this);
       //       QPixmap segIcon(3,16);
       //       segIcon.fill(m_taxonomy->color());
       //       return segIcon;
@@ -240,7 +240,7 @@ bool Segmentation::setData(const QVariant& value, int role)
 }
 
 //------------------------------------------------------------------------
-void Segmentation::setTaxonomy(TaxonomyNode* tax)
+void Segmentation::setTaxonomy(TaxonomyElement* tax)
 {
 	m_taxonomy = tax;
 	m_args[TAXONOMY] = Argument(tax->qualifiedName());
@@ -300,18 +300,6 @@ ModelItemExtension* Segmentation::extension(QString name)
 }
 
 //------------------------------------------------------------------------
-void Segmentation::onColorEngineChanged()
-{
-//   ColorEngineSettings &settings = EspinaCore::instance()->colorSettings();
-//   ColorEngine * engine = settings.engine();
-//   QColor color = engine->color(this);
-//   if (m_color != color)
-//   {
-//     m_color = color;
-//     notifyModification();
-//   }
-}
-
 vtkAlgorithmOutput* Segmentation::vtkVolume()
 {
   if (itk2vtk.IsNull())

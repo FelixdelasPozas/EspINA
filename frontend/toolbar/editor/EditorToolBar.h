@@ -21,22 +21,25 @@
 #define EDITORTOOLBAR_H
 
 #include <QToolBar>
-#include <common/gui/DynamicWidget.h>
-#include <editor/ContourWidget.h>
+#include "common/pluginInterfaces/FilterFactory.h"
 
-#include <common/editor/PencilSelector.h>
-#include <common/editor/ContourSelector.h>
-#include <common/model/Segmentation.h>
-#include <common/pluginInterfaces/FilterFactory.h>
-#include <common/selection/SelectionHandler.h>
+// EspINA
+#include "common/selection/SelectionHandler.h"
+#include "common/editor/PencilSelector.h"
+#include "common/model/Segmentation.h"
 
-class FreeFormSource;
+class ViewManager;
+class ViewManager;
 class ActionSelector;
+class ContourSelector;
+class ContourWidget;
+class EspinaModel;
+class FreeFormSource;
 class QAction;
+class QUndoStack;
 
 class EditorToolBar
 : public QToolBar
-, public DynamicWidget
 , public FilterFactory
 {
   Q_OBJECT
@@ -51,22 +54,21 @@ public:
   class SettingsPanel;
 
 public:
-  explicit EditorToolBar(QWidget *parent = 0);
+  explicit EditorToolBar(EspinaModel *model,
+                         QUndoStack *undoStack,
+                         ViewManager *vm,
+                         QWidget *parent = 0);
 
-  virtual void setActivity(QString activity){}
-  virtual void setLOD(){}
-  virtual void decreaseLOD(){}
-  virtual void increaseLOD(){}
-
+  virtual void initFilterFactory(EspinaFactory* factory);
   virtual Filter* createFilter(const QString filter,
                                Filter::NamedInputs inputs,
                                const ModelItem::Arguments args);
 
 protected slots:
-  void startDrawOperation(QAction*);
-  void drawSegmentation(SelectionHandler::MultiSelection msel);
+  void startDrawOperation(QAction *);
+  void drawSegmentation(IPicker::PickList msel);
   void stopDrawing();
-  void stateChanged(PencilSelector::State state);
+  void stateChanged(BrushSelector::State state);
   void combineSegmentations();
   void substractSegmentations();
   void erodeSegmentations();
@@ -82,6 +84,7 @@ private:
   void startPencilDrawing();
   void startContourDrawing();
 
+private:
   ActionSelector *m_actionGroup;
   QAction *m_pencilDisc;
   QAction *m_pencilSphere;
@@ -95,11 +98,15 @@ private:
   QAction *m_fill;
   ContourWidget *m_contourWidget;
 
-  Settings       *m_settings;
-  PencilSelector *m_pencilSelector;
+  EspinaModel *m_model;
+  QUndoStack  *m_undoStack;
+  ViewManager *m_viewManager;
+
+  Settings        *m_settings;
+  BrushSelector   *m_brush;
   ContourSelector *m_contourSelector;
-  Filter         *m_currentSource;
-  Segmentation   *m_currentSeg;
+  Filter          *m_currentSource;
+  Segmentation    *m_currentSeg;
 };
 
 #endif // EDITORTOOLBAR_H

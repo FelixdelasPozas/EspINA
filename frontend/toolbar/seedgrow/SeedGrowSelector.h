@@ -26,19 +26,19 @@ class SeedGrowSegmentationFilter;
 class ThresholdAction;
 
 class SeedGrowSelector
-: public SelectionHandler
+: public IPicker
 {
   Q_OBJECT
 public:
-  explicit SeedGrowSelector(ThresholdAction *th, SelectionHandler *succesor = NULL);
+  explicit SeedGrowSelector(ThresholdAction *th, IPicker *succesor = NULL);
 
-  virtual bool filterEvent(QEvent* e, SelectableView* view = 0);
+  virtual bool filterEvent(QEvent* e, EspinaRenderView *view = 0);
   virtual QCursor cursor();
 
   void previewOn();
   void previewOff();
 
-  void setPixelSelector(SelectionHandler *sel) {m_succesor = sel;}
+  void setPixelSelector(IPicker *sel) {m_succesor = sel;}
 
 private:
   ThresholdAction *m_threshold;

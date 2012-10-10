@@ -20,14 +20,18 @@
 #ifndef DATAVIEWPANEL_H
 #define DATAVIEWPANEL_H
 
-#include <gui/EspinaDockWidget.h>
+#include <QDockWidget>
 
+class EspinaModel;
+class ViewManager;
 
 class DataViewPanel
-: public EspinaDockWidget
+: public QDockWidget
 {
 public:
-  explicit DataViewPanel(QWidget* parent = 0);
+  explicit DataViewPanel(EspinaModel *model,
+                         ViewManager *vm,
+                         QWidget* parent = 0);
   virtual ~DataViewPanel();
 };
 

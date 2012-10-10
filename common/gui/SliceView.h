@@ -23,11 +23,10 @@
 #ifndef SLICEVIEW_H
 #define SLICEVIEW_H
 
-#include <QWidget>
+#include "EspinaRenderView.h"
 
 #include "common/settings/ISettingsPanel.h"
-#include "common/selection/SelectableView.h"
-#include "common/selection/SelectionManager.h"
+#include "common/gui/ViewManager.h"
 #include "common/widgets/EspinaWidget.h"
 
 #include <itkImageToVTKImageFilter.h>
@@ -38,19 +37,18 @@
 #include <vtkPolyData.h>
 #include <vtkAxisActor2D.h>
 
-class vtkImageResliceToColors;
-class vtkImageActor;
-class QVTKWidget;
-class vtkRenderWindow;
-class vtkView;
-
 //Forward declaration
 class Channel;
 class ColorEngine;
 class Representation;
 class Segmentation;
 
+class vtkImageResliceToColors;
+class vtkImageActor;
 class vtkInteractorStyleEspinaSlice;
+class vtkRenderWindow;
+class vtkView;
+class QVTKWidget;
 
 // GUI
 class QLabel;
@@ -63,11 +61,9 @@ class QPushButton;
 /// Slice View Widget
 /// Display channels and segmentations as slices
 class SliceView
-: public QWidget
-, public SelectableView
+: public EspinaRenderView
 {
   Q_OBJECT
-
   class State;
   class AxialState;
   class SagittalState;
@@ -83,63 +79,51 @@ public:
   typedef QSharedPointer<Settings> SettingsPtr;
 
 public:
-  explicit SliceView(PlaneType plane = AXIAL, QWidget* parent = 0);
+  explicit SliceView(ViewManager *vm, PlaneType plane = AXIAL, QWidget* parent = 0);
   virtual ~SliceView();
 
   inline QString title() const;
   void setTitle(const QString &title);
 
+  void slicingStep(Nm steps[3]);
   /// Set the distance between two consecutive slices when
   /// displacement is set to SLICES
   void setSlicingStep(Nm steps[3]);
-  /// Set ranges in which slices are contained
-  void setSlicingRanges(Nm ranges[6]);
   void centerViewOn(Nm center[3], bool force = false);
   void setCrosshairColors(double hcolor[3], double vcolor[3]);
   void setCrosshairVisibility(bool visible);
   void setThumbnailVisibility(bool visible);
-  void resetCamera();
-  void addActor(vtkProp *actor);
-  void removeActor(vtkProp *actor);
 
-  // Interface of SelectableView
-  bool pickChannel(int x, int y, Nm pickPos[3]);
+  virtual void addChannel(Channel* channel);
+  virtual void removeChannel(Channel* channel);
+  virtual bool updateChannel(Channel* channel);
+
+  virtual void addSegmentation(Segmentation* seg);
+  virtual void removeSegmentation(Segmentation* seg);
+  virtual bool updateSegmentation(Segmentation* seg);
+
+  virtual void addWidget(EspinaWidget* widget);
+  virtual void removeWidget(EspinaWidget* eWidget);
+
+  virtual void addPreview(vtkProp *preview);
+  virtual void removePreview(vtkProp *preview);
+
+  virtual void setCursor(const QCursor& cursor);
+
   virtual void eventPosition(int &x, int &y);
-  virtual SelectionHandler::MultiSelection select(SelectionHandler::SelectionFilters filters, SelectionHandler::ViewRegions regions);
+  virtual IPicker::PickList pick(IPicker::PickableItems filter,
+                                 IPicker::DisplayRegionList regions);
   virtual vtkRenderWindow *renderWindow();
-  virtual QVTKWidget *view();
 
-  void addChannelRepresentation(Channel *channel);
-  void removeChannelRepresentation(Channel *channel);
-  bool updateChannelRepresentation(Channel *channel);
+  virtual void updateView();
+  virtual void resetCamera();
 
-  void addSegmentationRepresentation(Segmentation *seg);
-  void removeSegmentationRepresentation(Segmentation *seg);
-  bool updateSegmentationRepresentation(Segmentation* seg);
-
-  //void addRepresentation(pqOutputPort *oport, QColor color);
-  //void removeRepresentation(pqOutputPort *oport);
-
-  virtual void addPreview(Filter* filter);
-  virtual void removePreview(Filter* filter);
-  virtual void previewExtent(int VOI[6]);
-
-  void addWidget(SliceWidget *sWidget);
-  void removeWidget(SliceWidget *sWidget);
-
-  void setColorEngine(ColorEngine *engine)
-  {
-    m_colorEngine = engine;
-    updateSegmentationRepresentations();
-  }
-
-  SettingsPtr settings()
-  {
-    return m_settings;
-  }
+  SettingsPtr settings() { return m_settings; }
 
   void updateSegmentationRepresentations();
   void UpdateCrosshairPoint(PlaneType plane, Nm slicepos);
+
+  virtual void updateSelection(){}
 
 public slots:
   /// Show/Hide segmentations
@@ -152,17 +136,10 @@ public slots:
   void setSliceSelectors(SliceSelectors selectors);
 
   /// Update Selected Items
-  virtual void updateSelection(SelectionManager::Selection selection);
-
-
-  void forceRender();
+  virtual void updateSelection(ViewManager::Selection selection);
+  virtual void updateSceneBounds();
 
 protected slots:
-  void close();
-  void maximize();
-  void minimize();
-  void undock();
-
   void sliceViewCenterChanged(Nm x, Nm y, Nm z);
   void scrollValueChanged(int value);
   void selectFromSlice();
@@ -175,12 +152,6 @@ signals:
   void showCrosshairs(bool);
   void focusChanged(const Nm[3]);
 
-  // Notify the windows manager how to display the view
-  void closeRequest();
-  void maximizeRequest();
-  void minimizeRequest();
-  void undockRequest();
-
   void channelSelected(Channel *);
   void segmentationSelected(Segmentation *, bool);
   void selectedFromSlice(double, PlaneType);
@@ -188,14 +159,21 @@ signals:
   void sliceChanged(PlaneType, Nm);
 
 protected:
+  /// Update GUI controls
+  void setSlicingBounds(Nm bounds[6]);
+
+  /// Perform a picking operation at (x,y) in picker.
+  /// Picked position is returned via pickPos parameter
+  /// If no item was picked return false, and therefore pickPos values
+  /// are invalid
+  bool pick(vtkPicker *picker, int x, int y, Nm pickPos[3]);
+
   virtual bool eventFilter(QObject* caller, QEvent* e);
   void centerCrosshairOnMousePosition();
   void centerViewOnMousePosition();
   QList<Channel *> pickChannels(double vx, double vy, vtkRenderer *renderer, bool repeatable = true);
   QList<Segmentation *> pickSegmentations(double vx, double vy, vtkRenderer *renderer, bool repeatable = true);
   void selectPickedItems(bool append);
-
-  double suggestedChannelOpacity();
 
   Nm slicingPosition() const;
 
@@ -205,8 +183,9 @@ protected:
   Segmentation *property3DSegmentation(vtkProp3D *prop);
 
   /// Converts point from Display coordinates to World coordinates
-  SelectionHandler::VtkRegion display2vtk(const QPolygonF &region);
+  IPicker::WorldRegion worldRegion(const IPicker::DisplayRegion &region, PickableItem *item);
 
+private:
   void updateRuler();
   void updateThumbnail();
 
@@ -215,10 +194,13 @@ protected:
                     double left, double right,
                     double upper, double lower);
 
-
   void buildCrosshairs();
   void buildTitle();
   void setupUI();
+
+  void addActor(vtkProp *actor);
+  void removeActor(vtkProp *actor);
+
 private:
   struct SliceRep
   {
@@ -230,6 +212,8 @@ private:
     QColor color;
     Nm pos[3];
   };
+
+  ViewManager *m_viewManager;
 
   // GUI
   QHBoxLayout *m_titleLayout;
@@ -253,9 +237,7 @@ private:
 
   // View State
   Nm m_crosshairPoint[3];
-  Nm m_slicingRanges[6];
   Nm m_slicingStep[3];
-  ColorEngine *m_colorEngine;
 
   PlaneType m_plane;
   vtkMatrix4x4 *m_slicingMatrix;
@@ -278,11 +260,9 @@ private:
   bool m_sceneReady;
 
   // Representations
-  QMap<Channel *,      SliceRep> m_channels;
-  QMap<Segmentation *, SliceRep> m_segmentations;
-  //QMap<pqOutputPort *, RepInfo> m_representations;
-  QList<SliceWidget *> m_widgets;
-  Filter *m_preview;
+  QMap<Channel *,      SliceRep> m_channelReps;
+  QMap<Segmentation *, SliceRep> m_segmentationReps;
+  QMap<EspinaWidget *, SliceWidget *> m_widgets;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(SliceView::SliceSelectors)

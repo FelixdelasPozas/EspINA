@@ -19,7 +19,6 @@
 
 #include "Filter.h"
 
-#include "EspinaCore.h"
 #include "EspinaRegions.h"
 
 #include <itkImageAlgorithm.h>
@@ -35,6 +34,7 @@
 #include <vtkImageExport.h>
 #include <vtkMath.h>
 
+#include <QDir>
 #include <QMessageBox>
 #include <QWidget>
 
@@ -152,7 +152,7 @@ bool Filter::prefetchFilter()
 //----------------------------------------------------------------------------
 Filter::EspinaVolumeReader::Pointer Filter::tmpFileReader(const QString file)
 {
-  QDir tmpDir = EspinaCore::instance()->temporalDir();
+  QDir tmpDir; //TODO BUG 2012-10-05 FIXME ALERT = EspinaCore::instance()->temporalDir();
   if (tmpDir.exists(file))
   {
     itk::MetaImageIO::Pointer io = itk::MetaImageIO::New();
@@ -401,7 +401,7 @@ EspinaVolume::Pointer Filter::addRegionToVolume(EspinaVolume::Pointer volume,
 }
 
 //----------------------------------------------------------------------------
-QWidget* Filter::createConfigurationWidget()
+QWidget* Filter::createConfigurationWidget(ViewManager *vm)
 {
   return new QWidget();
 }

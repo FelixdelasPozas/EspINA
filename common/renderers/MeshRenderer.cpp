@@ -21,7 +21,6 @@
 #include <vtkRenderWindow.h>
 #include <model/Segmentation.h>
 #include <ColorEngine.h>
-#include <EspinaCore.h>
 #include <vtkSmartPointer.h>
 #include <vtkDiscreteMarchingCubes.h>
 #include <vtkWindowedSincPolyDataFilter.h>
@@ -52,8 +51,11 @@ bool MeshRenderer::addItem(ModelItem* item)
       m_segmentations.remove(item);
     }
 
+  /*TODO 2012-10-05
   ColorEngine *engine = EspinaCore::instance()->colorSettings().engine();
   QColor color = engine->color(seg);
+  */
+  QColor color(Qt::blue);
 
   vtkSmartPointer<vtkDecimatePro> decimate = vtkSmartPointer<vtkDecimatePro>::New();
   decimate->ReleaseDataFlagOn();
@@ -96,7 +98,7 @@ bool MeshRenderer::addItem(ModelItem* item)
   actor->GetProperty()->SetOpacity(1);
 
   m_segmentations[seg].selected = seg->isSelected();
-  m_segmentations[seg].color = engine->color(seg);
+  //TODO 2012-10-05 m_segmentations[seg].color = engine->color(seg);
   m_segmentations[seg].actor = actor;
   m_segmentations[seg].visible = false;
 

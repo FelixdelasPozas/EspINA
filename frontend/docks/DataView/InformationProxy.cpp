@@ -23,6 +23,14 @@
 #include <model/Segmentation.h>
 
 //------------------------------------------------------------------------
+InformationProxy::InformationProxy()
+: QAbstractProxyModel()
+, m_model(NULL)
+{
+
+}
+
+//------------------------------------------------------------------------
 void InformationProxy::setSourceModel(EspinaModel* sourceModel)
 {
   if (m_model)

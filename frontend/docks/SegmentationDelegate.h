@@ -22,14 +22,28 @@
 
 #include <QStyledItemDelegate>
 
+class ViewManager;
+class EspinaModel;
+class Segmentation;
+class SegmentationInspector;
+
 class SegmentationDelegate
 : public QStyledItemDelegate
 {
-
 public:
-    virtual QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const;
-    virtual void setEditorData(QWidget* editor, const QModelIndex& index) const;
-    virtual void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const;
+  explicit SegmentationDelegate(EspinaModel *model, ViewManager *vm);
+
+  virtual QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const;
+  virtual void setEditorData(QWidget* editor, const QModelIndex& index) const;
+  virtual void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const;
+
+private slots:
+  void freeInspector(SegmentationInspector *inspector);
+
+private:
+  EspinaModel *m_model;
+  ViewManager *m_viewManager;
+  mutable QMap<Segmentation *, SegmentationInspector *> m_inspectors;
 };
 
 #endif // SEGMENTATIONDELEGATE_H

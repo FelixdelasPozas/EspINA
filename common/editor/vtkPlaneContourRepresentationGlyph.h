@@ -11,7 +11,8 @@ class vtkPolyData;
 class vtkGlyph3D;
 class vtkPoints;
 
-class VTK_WIDGETS_EXPORT vtkPlaneContourRepresentationGlyph : public vtkPlaneContourRepresentation
+class VTK_WIDGETS_EXPORT vtkPlaneContourRepresentationGlyph
+: public vtkPlaneContourRepresentation
 {
   public:
     // Description:

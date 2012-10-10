@@ -29,6 +29,8 @@
 #include <QSharedPointer>
 #include <QUndoCommand>
 
+class ViewManager;
+class EspinaModel;
 //Forward declarations
 class ActionSelector;
 class DefaultVOIAction;
@@ -47,27 +49,35 @@ class SeedGrowSegmentation
   class SettingsPanel;
   class Settings;
 
-  class UndoCommand : public QUndoCommand
+  class UndoCommand
+  : public QUndoCommand
   {
   public:
     explicit UndoCommand(Channel * channel,
-			SeedGrowSegmentationFilter *filter,
-			TaxonomyNode *taxonomy);
+                         SeedGrowSegmentationFilter *filter,
+                         TaxonomyElement *taxonomy,
+                         EspinaModel *model);
     virtual void redo();
     virtual void undo();
   private:
+    EspinaModel                *m_model;
     Sample                     *m_sample;
     Channel                    *m_channel;
     SeedGrowSegmentationFilter *m_filter;
     Segmentation               *m_seg;
-    TaxonomyNode               *m_taxonomy;
+    TaxonomyElement            *m_taxonomy;
   };
 
   Q_OBJECT
+  Q_INTERFACES(FilterFactory)
 public:
-  SeedGrowSegmentation(QWidget *parent=NULL);
+  SeedGrowSegmentation(EspinaModel *model,
+                       QUndoStack *undoStack,
+                       ViewManager *vm,
+                       QWidget *parent=NULL);
   virtual ~SeedGrowSegmentation();
 
+  virtual void initFilterFactory(EspinaFactory* factory);
   virtual Filter* createFilter(const QString filter,
                                Filter::NamedInputs inputs,
                                const ModelItem::Arguments args);
@@ -79,24 +89,30 @@ protected slots:
   void abortSelection();
   void onSelectionAborted();
   /// Starts the segmentation filter putting using @msel as seed
-  void startSegmentation(SelectionHandler::MultiSelection msel);
+  void startSegmentation(IPicker::PickList msel);
 
   void batchMode();
 
 signals:
 //   void productCreated(Segmentation *);
-  void selectionAborted(SelectionHandler *);
+  void selectionAborted(IPicker *);
 
 private:
-  void addPixelSelector(QAction *action, SelectionHandler *handler);
+  void addPixelSelector(QAction *action, IPicker *handler);
   void buildSelectors();
 
 private:
+  EspinaModel      *m_model;
+  QUndoStack       *m_undoStack;
+  ViewManager      *m_viewManager;
+
   ThresholdAction  *m_threshold;
   DefaultVOIAction *m_useDefaultVOI;
   ActionSelector   *m_segment;
-  QMap<QAction *, SelectionHandler *> m_selectors;
-  QSharedPointer<SeedGrowSelector> m_selector;
+
+  QMap<QAction *, IPicker *> m_selectors;
+  QSharedPointer<SeedGrowSelector>    m_selector;
+
   Settings      *m_settings;
   SettingsPanel *m_settingsPanel;
 };

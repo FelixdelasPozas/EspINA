@@ -21,8 +21,7 @@
 
 #include "vtkNonRotatingBoxWidget.h"
 #include "vtkRectangularSliceWidget.h"
-#include <EspinaCore.h>
-#include <EspinaView.h>
+#include <ViewManager.h>
 #include <vtkWidgetRepresentation.h>
 
 
@@ -44,7 +43,8 @@ private:
 };
 
 //----------------------------------------------------------------------------
-RectangularRegion::RectangularRegion(double bounds[6])
+RectangularRegion::RectangularRegion(double bounds[6], ViewManager *vm)
+: m_viewManager(vm)
 {
   memcpy(m_bounds, bounds, 6*sizeof(double));
 }
@@ -132,5 +132,6 @@ void RectangularRegion::Execute(vtkObject* caller, long unsigned int eventId, vo
         w->SetBounds(m_bounds);
   }
   emit modified(m_bounds);
-  EspinaCore::instance()->viewManger()->currentView()->forceRender();
+  //NOTE 2012-10-04: Avoid singleton?
+  m_viewManager->updateViews();
 }

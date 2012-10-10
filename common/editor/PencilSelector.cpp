@@ -19,9 +19,7 @@
 
 #include "PencilSelector.h"
 
-#include <selection/SelectableView.h>
-#include <selection/SelectionManager.h>
-#include <EspinaCore.h>
+#include <EspinaRenderView.h>
 #include <vtkCommand.h>
 #include <vtkInteractorStyle.h>
 #include <vtkRenderWindow.h>
@@ -36,11 +34,9 @@
 
 #include <QDebug>
 
-
-//TODO: Generalize to Circular selector
 //-----------------------------------------------------------------------------
-PencilSelector::PencilSelector(SelectionHandler* succesor)
-: SelectionHandler(succesor)
+BrushSelector::BrushSelector(IPicker* succesor)
+: IPicker(succesor)
 , m_state(DRAWING)
 {
   setRadius(20);
@@ -48,25 +44,25 @@ PencilSelector::PencilSelector(SelectionHandler* succesor)
 
 //-----------------------------------------------------------------------------
 //TODO: Pass only the QVTKWidget which contains the elements which we are interested in
-bool PencilSelector::filterEvent(QEvent* e, SelectableView* view)
+bool BrushSelector::filterEvent(QEvent* e, EspinaRenderView* view)
 {
   if (e->type() == QEvent::Enter)
   {
     setRadius(m_radius);
     // view->view()->grabKeyboard();
-    return SelectionHandler::filterEvent(e, view);
+    return IPicker::filterEvent(e, view);
   }
   else if (e->type() == QEvent::Leave)
   {
-    view->view()->releaseKeyboard();
-    return SelectionHandler::filterEvent(e, view);
+    //TODO 2012-10-07 view->view()->releaseKeyboard();
+    return IPicker::filterEvent(e, view);
   }
   else if (e->type() == QEvent::KeyPress)
   {
     QKeyEvent *ke = static_cast<QKeyEvent *>(e);
     if (ke->key() == Qt::Key_Control && ke->count() == 1)
       changeState(ERASING);
-    view->view()->setCursor(cursor());
+    view->setCursor(cursor());
     return true;
   }
   if (e->type() == QEvent::KeyRelease)
@@ -74,7 +70,7 @@ bool PencilSelector::filterEvent(QEvent* e, SelectableView* view)
     QKeyEvent *ke = static_cast<QKeyEvent *>(e);
     if (ke->key() == Qt::Key_Control && ke->count() == 1)
       changeState(DRAWING);
-    view->view()->setCursor(cursor());
+    view->setCursor(cursor());
     return true;
   }
   if (e->type() == QEvent::Wheel)
@@ -84,7 +80,7 @@ bool PencilSelector::filterEvent(QEvent* e, SelectableView* view)
     {
       int numSteps = we->delta() / 8 / 15; //Refer to QWheelEvent doc.
       setRadius(m_radius + numSteps);
-      view->view()->setCursor(cursor());
+      view->setCursor(cursor());
       return true;
     }
 
@@ -103,17 +99,17 @@ bool PencilSelector::filterEvent(QEvent* e, SelectableView* view)
       return true;
     }
   }
-  return SelectionHandler::filterEvent(e, view);
+  return IPicker::filterEvent(e, view);
 }
 
 //-----------------------------------------------------------------------------
-QCursor PencilSelector::cursor()
+QCursor BrushSelector::cursor()
 {
   return m_cursor;
 }
 
 //-----------------------------------------------------------------------------
-void PencilSelector::setRadius(int radius)
+void BrushSelector::setRadius(int radius)
 {
   static const int MAX_RADIUS = 32;
   if (radius > 0 && radius <= MAX_RADIUS)
@@ -146,9 +142,9 @@ void PencilSelector::setRadius(int radius)
 }
 
 //-----------------------------------------------------------------------------
-void PencilSelector::startSelection(int x, int y, SelectableView *view)
+void BrushSelector::startSelection(int x, int y, EspinaRenderView *view)
 {
-  ViewRegions regions;
+  DisplayRegionList regions;
   QPolygon brushRadius;
 
   int *winSize = view->renderWindow()->GetSize();
@@ -163,8 +159,8 @@ void PencilSelector::startSelection(int x, int y, SelectableView *view)
               << QPoint(xPos, yPos-radius());
   regions << brushRadius;
 
-  MultiSelection msel = view->select(m_filters, regions);
+  PickList pickList = view->pick(m_filters, regions);
 
-  emit selectionChanged(msel);
+  emit itemsPicked(pickList);
 }
 

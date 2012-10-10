@@ -18,7 +18,6 @@
 #include "SeedGrowSegmentationFilter.h"
 #include "SetupWidget.h"
 
-#include "EspinaCore.h"
 #include "EspinaRegions.h"
 #include "common/model/EspinaModel.h"
 
@@ -258,7 +257,7 @@ bool SeedGrowSegmentationFilter::prefetchFilter()
 }
 
 //-----------------------------------------------------------------------------
-QWidget* SeedGrowSegmentationFilter::createConfigurationWidget()
+QWidget* SeedGrowSegmentationFilter::createConfigurationWidget(ViewManager* vm)
 {
-  return new SetupWidget(this);
+  return new SetupWidget(this, vm);
 }

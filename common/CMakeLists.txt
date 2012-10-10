@@ -33,14 +33,12 @@ include_directories(
 ####### EspinaCore #########
 # Add extra library containing custom code for the client.
 qt4_wrap_cpp(CORE_MOC
-  EspinaCore.h
   editor/PencilSelector.h
   editor/CODESettings.h
   gui/ActionSelector.h
   gui/ActionSelectorWidget.h
-  gui/EspinaView.h
+  gui/EspinaRenderView.h
   gui/SliceView.h
-  gui/ViewManager.h
   gui/VolumeView.h
   gui/HueSelector.h
   model/EspinaModel.h
@@ -52,7 +50,7 @@ qt4_wrap_cpp(CORE_MOC
   model/proxies/TaxonomyProxy.h
   pluginInterfaces/Renderer.h
   selection/SelectionHandler.h
-  selection/SelectionManager.h
+  gui/ViewManager.h
   settings/ColorEngineSettings.h
   editor/ContourSelector.h
   editor/ContourWidget.h
@@ -69,9 +67,7 @@ qt4_wrap_ui (CORE_UI
 set (CORE_SOURCES
   ${CORE_MOC}
   ${CORE_UI}
-  EspinaCore.cpp
   EspinaRegions.cpp
-  cache/CacheHash.cpp
   editor/CODESettings.cpp
   editor/PencilSelector.cpp
   editor/ContourSelector.cpp
@@ -85,9 +81,8 @@ set (CORE_SOURCES
   editor/DilateFilter.cpp
   editor/ErodeFilter.cpp
   editor/ImageLogicFilter.cpp
-  editor/vtkImageLogicFilter.cpp
   editor/vtkTube.cxx
-  IO/FilePack.cpp
+  IO/EspinaIO.cpp
   extensions/Margins/MarginDetector.cpp
   extensions/Margins/MarginsChannelExtension.cpp
   extensions/Margins/MarginsSegmentationExtension.cpp
@@ -96,16 +91,13 @@ set (CORE_SOURCES
   extensions/SampleExtension.cpp
   gui/ActionSelector.cpp
   gui/ActionSelectorWidget.cpp
-  gui/DynamicWidget.cpp
-  gui/EspinaDockWidget.cpp
-  gui/EspinaView.cpp
+  gui/EspinaRenderView.cpp
   gui/SliceView.cpp
   gui/SliceViewState.cpp
   gui/vtkInteractorStyleEspinaSlice.cpp
   gui/NumberColorEngine.cpp
   gui/TaxonomyColorEngine.cpp
   gui/UserColorEngine.cpp
-  gui/ViewFrame.cpp
   gui/ViewManager.cpp
   gui/VolumeView.cpp
   gui/HueSelector.cpp
@@ -129,7 +121,6 @@ set (CORE_SOURCES
   renderers/MeshRenderer.cpp
   selection/PixelSelector.cpp
   selection/SelectionHandler.cpp
-  selection/SelectionManager.cpp
   settings/ColorEngineSettings.cpp
   settings/GeneralSettings.cpp
   undo/AddChannel.cpp

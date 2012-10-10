@@ -19,21 +19,23 @@
 
 #include "AddSample.h"
 
-#include "common/model/EspinaModel.h"
 #include "common/model/Sample.h"
-#include "common/EspinaCore.h"
+#include "common/model/EspinaModel.h"
 
-AddSample::AddSample(Sample *sample)
-: m_sample(sample)
+//------------------------------------------------------------------------
+AddSample::AddSample(Sample *sample, EspinaModel *model)
+: m_model(model),
+m_sample(sample)
 {}
 
-
+//------------------------------------------------------------------------
 void AddSample::redo()
 {
-  EspinaCore::instance()->model()->addSample(m_sample);
+  m_model->addSample(m_sample);
 }
 
+//------------------------------------------------------------------------
 void AddSample::undo()
 {
-  EspinaCore::instance()->model()->removeSample(m_sample);
+  m_model->removeSample(m_sample);
 }

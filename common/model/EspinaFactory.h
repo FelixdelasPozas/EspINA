@@ -36,14 +36,15 @@ class ISettingsPanel;
 class EspinaFactory
 {
 public:
-  static EspinaFactory *instance();
+  explicit EspinaFactory();
+  ~EspinaFactory();
 
   QStringList supportedFiles() const;
 
   void registerFilter(const QString filter, FilterFactory *factory);
   void registerReaderFactory(ReaderFactory *readerFactory,
-			     const QString description,
-			     const QStringList extensions);
+                             const QString description,
+                             const QStringList extensions);
   void registerSampleExtension(SampleExtension::SPtr extension);
   void registerChannelExtension(ChannelExtension::SPtr extension);
   void registerSegmentationExtension(SegmentationExtension::SPtr extension);
@@ -63,10 +64,6 @@ public:
   bool readFile(const QString file, const QString ext);
 
 private:
-  EspinaFactory();
-
-  static EspinaFactory *m_instance;
-
   QMap<QString, FilterFactory *>     m_filterFactory;
   QList<SegmentationExtension::SPtr> m_segExtensions;
   QList<SampleExtension::SPtr>       m_sampleExtensions;

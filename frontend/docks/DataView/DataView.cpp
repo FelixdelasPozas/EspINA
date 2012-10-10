@@ -20,7 +20,7 @@
 #include "DataView.h"
 
 // Espina
-#include "common/EspinaCore.h"
+#include "common/model/EspinaModel.h"
 #include "common/model/Segmentation.h"
 #include "frontend/docks/DataView/QueryView.h"
 
@@ -42,22 +42,26 @@ protected:
     double lv = left.data(role).toDouble(&ok1);
     double rv = right.data(role).toDouble(&ok2);
     if (ok1 && ok2)
-      return left.data(role).toDouble() < right.data(role).toDouble();
+      return lv < rv;
     else
       return left.data(role).toString() < right.data(role).toString();
   }
 };
 
 //------------------------------------------------------------------------
-DataView::DataView(QWidget* parent, Qt::WindowFlags f)
+DataView::DataView(EspinaModel *model,
+                   ViewManager *vm,
+                   QWidget     *parent,
+                   Qt::WindowFlags f)
 : QWidget(parent, f)
+, m_baseModel(model)
+, m_viewManager(vm)
 , m_model(new InformationProxy())
 , m_sort (new DataSortFiler())
 {
   setupUi(this);
 
-  EspinaModel *model = EspinaCore::instance()->model().data();
-  m_model->setSourceModel(model);
+  m_model->setSourceModel(m_baseModel);
   m_sort->setSourceModel(m_model.data());
   m_sort->setDynamicSortFilter(true);
 
@@ -79,8 +83,8 @@ DataView::DataView(QWidget* parent, Qt::WindowFlags f)
 	  this,SLOT(defineQuery()));
   connect(tableView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
 	  this, SLOT(updateSelection(QItemSelection,QItemSelection)));
-  connect(SelectionManager::instance(), SIGNAL(selectionChanged(SelectionManager::Selection)),
-	  this, SLOT(updateSelection(SelectionManager::Selection)));
+  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection)),
+	  this, SLOT(updateSelection(ViewManager::Selection)));
 }
 
 //------------------------------------------------------------------------
@@ -91,12 +95,9 @@ DataView::~DataView()
 //------------------------------------------------------------------------
 QModelIndex DataView::index(ModelItem* item) const
 {
-  QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
-
-  QModelIndex baseModelIndex = model->index(item);
+  QModelIndex baseModelIndex = m_baseModel->index(item);
   QModelIndex informationIndex = m_model->mapFromSource(baseModelIndex);
   return m_sort->mapFromSource(informationIndex);
-
 }
 
 //------------------------------------------------------------------------
@@ -133,7 +134,7 @@ void DataView::extractInformation()
     for (int c = 0; c < m_sort->columnCount(); c++)
     {
       if (c)
-	out << ",";
+        out << ",";
       out << m_sort->index(r,c).data().toString();
     }
     out << "\n";
@@ -142,7 +143,7 @@ void DataView::extractInformation()
 }
 
 //------------------------------------------------------------------------
-void DataView::updateSelection(SelectionManager::Selection selection)
+void DataView::updateSelection(ViewManager::Selection selection)
 {
   if (!isVisible())
     return;
@@ -151,7 +152,7 @@ void DataView::updateSelection(SelectionManager::Selection selection)
   tableView->selectionModel()->blockSignals(true);
   tableView->selectionModel()->reset();
   tableView->setSelectionMode(QAbstractItemView::MultiSelection);
-  foreach(SelectableItem *item, selection)
+  foreach(PickableItem *item, selection)
   {
     QModelIndex selIndex = index(item);
     if (selIndex.isValid())
@@ -176,14 +177,14 @@ void DataView::updateSelection(SelectionManager::Selection selection)
 //------------------------------------------------------------------------
 void DataView::updateSelection(QItemSelection selected, QItemSelection deselected)
 {
-  SelectionManager::Selection selection;
+  ViewManager::Selection selection;
 
   foreach(QModelIndex index, tableView->selectionModel()->selectedRows())
   {
     ModelItem *sItem = item(index);
     if (ModelItem::SEGMENTATION == sItem->type())
-      selection << dynamic_cast<SelectableItem *>(sItem);
+      selection << dynamic_cast<PickableItem *>(sItem);
   }
 
-  SelectionManager::instance()->setSelection(selection);
+  m_viewManager->setSelection(selection);
 }

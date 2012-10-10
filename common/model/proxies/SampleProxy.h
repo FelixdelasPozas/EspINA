@@ -16,20 +16,24 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+//----------------------------------------------------------------------------
+// File:    SampleProxy.h
+// Purpose: Rearrange model items to group Segmentations by Samples
+//----------------------------------------------------------------------------
 #ifndef SAMPLEPROXY_H
 #define SAMPLEPROXY_H
 
 #include <QAbstractProxyModel>
 
-class ModelItem;
 // Forward declaration
 class EspinaModel;
+class ModelItem;
 class Sample;
 class Segmentation;
 
-/// Group by Sample Espina Proxy
-class SampleProxy : public QAbstractProxyModel
+/// Group Segmentations by Sample
+class SampleProxy
+: public QAbstractProxyModel
 {
   Q_OBJECT
 public:

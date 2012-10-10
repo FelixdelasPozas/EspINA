@@ -28,9 +28,6 @@
 
 
 //------------------------------------------------------------------------
-EspinaFactory *EspinaFactory::m_instance = NULL;
-
-//------------------------------------------------------------------------
 EspinaFactory::EspinaFactory()
 {
   // Register Default Extensions
@@ -42,14 +39,6 @@ EspinaFactory::EspinaFactory()
   m_supportedExtensions << "*.mhd" << "*.mha" << "*.tif";
   m_supportedFiles << SEG_FILES;
   m_supportedExtensions << "*.seg";
-}
-
-//------------------------------------------------------------------------
-EspinaFactory* EspinaFactory::instance()
-{
-  if (!m_instance)
-    m_instance = new EspinaFactory();
-  return m_instance;
 }
 
 //------------------------------------------------------------------------

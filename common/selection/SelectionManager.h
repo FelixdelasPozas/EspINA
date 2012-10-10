@@ -23,13 +23,15 @@
 #include <QObject>
 
 #include "SelectionHandler.h"
+#include <EspinaTypes.h>
 #include <QCursor>
 
-class TaxonomyNode;
+class EspinaRenderView;
+class TaxonomyElement;
 class Channel;
 class EspinaWidget;
 class QPoint;
-class SelectableView;
+class EspinaRenderView;
 
 /// Singleton instance to coordinate selections through different
 /// components such as views and plugins
@@ -38,28 +40,17 @@ class SelectionManager
 {
   Q_OBJECT
 public:
-  typedef QList<SelectableItem *> Selection;
+  typedef QList<PickableItem *> Selection;
   ~SelectionManager(){}
 
   /// Returns a SelectionManager singleton
-  static SelectionManager *instance();
-
-  // Active Elements: These are specified by the user to be used when
-  // one element of the proper type is required
-  void setActiveChannel(Channel *channel)
-  { m_activeChannel=channel; }
-  Channel *activeChannel()
-  { return m_activeChannel; }
-  void setActiveTaxonomy(TaxonomyNode *taxonomy)
-  { m_activeTaxonomy = taxonomy; }
-  TaxonomyNode *activeTaxonomy()
-  { return m_activeTaxonomy; }
+  //static SelectionManager *instance();
 
   // Delegates calls on active SelectionHandler
-  void onMouseDown(const QPoint &pos, SelectableView *view) const;
-  void onMouseMove(const QPoint &pos, SelectableView *view) const;
-  void onMouseUp  (const QPoint &pos, SelectableView *view) const;
-  bool filterEvent(QEvent *e, SelectableView *view=NULL) const;
+  void onMouseDown(const QPoint &pos, EspinaRenderView *view) const;
+  void onMouseMove(const QPoint &pos, EspinaRenderView *view) const;
+  void onMouseUp  (const QPoint &pos, EspinaRenderView *view) const;
+  bool filterEvent(QEvent *e, EspinaRenderView *view=NULL) const;
 
   void setSelection(Selection selection);
   Selection selection() const
@@ -73,13 +64,13 @@ public:
 
 public slots:
   /// Register @sh as active Selection Handler
-  void setSelectionHandler(SelectionHandler *sh);
+  void setSelectionHandler(IPicker *sh);
   /// Unregister @sh as active Selection Handler
-  void unsetSelectionHandler(SelectionHandler *sh);
+  void unsetSelectionHandler(IPicker *sh);
 
 signals:
   void activeChannelChanged(Channel *);
-  void activeTaxonomyChanged(TaxonomyNode *);
+  void activeTaxonomyChanged(TaxonomyElement *);
   void selectionChanged(SelectionManager::Selection);
 
 private:
@@ -89,11 +80,9 @@ private:
 private:
   static SelectionManager *m_singleton;
 
-  SelectionHandler *m_handler;
+  IPicker *m_handler;
   EspinaWidget     *m_voi;
 
-  Channel      *m_activeChannel;
-  TaxonomyNode *m_activeTaxonomy;
   Selection     m_selection;
   Nm            m_selectionCenter[3];
 };

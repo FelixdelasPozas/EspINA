@@ -7,8 +7,6 @@
 #include "vtkPlaneContourRepresentationGlyph.h"
 #include <common/model/Segmentation.h>
 #include <ColorEngine.h>
-#include <EspinaCore.h>
-#include <selection/SelectionManager.h>
 #include <selection/SelectableItem.h>
 
 #include <vtkCleanPolyData.h>
@@ -994,7 +992,7 @@ void vtkPlaneContourRepresentationGlyph::UseContourPolygon(bool value)
       this->m_polygon->SetMapper(this->m_polygonMapper);
 
       // TODO: change later to correct way of doing things
-      color = SelectionManager::instance()->activeTaxonomy()->color();
+      color = QColor(Qt::blue);// TODO 2012-10-07 SelectionManager::instance()->activeTaxonomy()->color();
 
       this->m_polygon->GetProperty()->SetColor(color.redF(), color.greenF(), color.greenF());
       this->m_polygon->GetProperty()->SetOpacity(0.5);

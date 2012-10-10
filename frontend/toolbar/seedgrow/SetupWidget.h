@@ -31,7 +31,7 @@ class SeedGrowSegmentationFilter::SetupWidget
 {
   Q_OBJECT
 public:
-  explicit SetupWidget(Filter *filter);
+  explicit SetupWidget(Filter *filter, ViewManager *vm);
   virtual ~SetupWidget();
 
   virtual bool eventFilter(QObject* sender, QEvent* e );
@@ -44,6 +44,7 @@ protected slots:
   void updateRegionBounds();
 
 private:
+  ViewManager                *m_viewManager;
   SeedGrowSegmentationFilter *m_filter;
   RectangularRegion          *m_region;
   Nm m_voiBounds[6];

@@ -4,7 +4,8 @@
 #include <QWidget>
 #include <QIcon>
 
-class ISettingsPanel : public QWidget
+class ISettingsPanel
+: public QWidget
 {
 public:
   virtual ~ISettingsPanel(){}

@@ -24,6 +24,7 @@
 #include <common/widgets/RectangularSelection.h>
 #include <QSharedPointer>
 
+class ViewManager;
 class ActionSelector;
 class QAction;
 
@@ -33,12 +34,12 @@ class VolumeOfInterest
 {
   Q_OBJECT
 public:
-  explicit VolumeOfInterest(QWidget *parent=NULL);
+  explicit VolumeOfInterest(ViewManager *vm, QWidget *parent=NULL);
   virtual ~VolumeOfInterest();
 
 protected slots:
   void changeVOISelector(QAction *action);
-  void defineVOI(SelectionHandler::MultiSelection msel);
+  void defineVOI(IPicker::PickList msel);
   void cancelVOI();
 
   void setBorderFrom(double pos/*nm*/, PlaneType plane);
@@ -50,6 +51,7 @@ private:
 //   void addVOI(QAction *action, IVOI *voi);
 
 private:
+  ViewManager    *m_viewManager;
   ActionSelector *m_voi;
   QSharedPointer<PixelSelector> m_selector;
   QSharedPointer<RectangularRegion> m_voiWidget;

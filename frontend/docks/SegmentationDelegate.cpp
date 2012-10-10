@@ -25,7 +25,19 @@
 #include <model/Segmentation.h>
 #include "SegmentationInspector.h"
 
-QWidget* SegmentationDelegate::createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const
+//------------------------------------------------------------------------
+SegmentationDelegate::SegmentationDelegate(EspinaModel *model,
+                                           ViewManager *vm)
+: QStyledItemDelegate()
+, m_model(model)
+, m_viewManager(vm)
+{
+}
+
+//------------------------------------------------------------------------
+QWidget* SegmentationDelegate::createEditor(QWidget* parent,
+                                            const QStyleOptionViewItem& option,
+                                            const QModelIndex& index) const
 {
   ModelItem *item =  indexPtr(index);
   Q_ASSERT(item);
@@ -33,21 +45,37 @@ QWidget* SegmentationDelegate::createEditor(QWidget* parent, const QStyleOptionV
   if (ModelItem::SEGMENTATION == item->type())
   {
     Segmentation *seg = dynamic_cast<Segmentation *>(item);
-    SegmentationInspector *inspector = SegmentationInspector::CreateInspector(seg);
-    inspector->setFocusPolicy(Qt::StrongFocus);
-    return inspector;
+    if (!m_inspectors.contains(seg))
+    {
+      m_inspectors[seg] = new SegmentationInspector(seg, m_model, m_viewManager);
+      connect(m_inspectors[seg], SIGNAL(inspectorClosed(SegmentationInspector*)),
+              this, SLOT(freeInspector(SegmentationInspector*)));
+    }
+
+    m_inspectors[seg]->setFocusPolicy(Qt::StrongFocus);
+    return m_inspectors[seg];
   } else
     return QStyledItemDelegate::createEditor(parent, option, index);
 
 }
 
+//------------------------------------------------------------------------
 void SegmentationDelegate::setEditorData(QWidget* editor, const QModelIndex& index) const
 {
   QStyledItemDelegate::setEditorData(editor, index);
 }
 
+//------------------------------------------------------------------------
 void SegmentationDelegate::setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const
 {
   QStyledItemDelegate::setModelData(editor, model, index);
+}
+
+//------------------------------------------------------------------------
+void SegmentationDelegate::freeInspector(SegmentationInspector* inspector)
+{
+  Segmentation *seg = m_inspectors.key(inspector);
+  m_inspectors.remove(seg);
+  delete inspector;
 }
 

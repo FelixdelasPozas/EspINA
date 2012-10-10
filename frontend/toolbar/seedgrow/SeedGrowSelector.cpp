@@ -19,26 +19,26 @@
 
 #include "SeedGrowSelector.h"
 
-#include "gui/ThresholdAction.h"
+#include "common/gui/EspinaRenderView.h"
 #include "common/selection/SelectableItem.h"
-#include "common/selection/SelectableView.h"
-#include "SeedGrowSegmentationFilter.h"
+#include "frontend/toolbar/seedgrow/SeedGrowSegmentationFilter.h"
+#include "frontend/toolbar/seedgrow/gui/ThresholdAction.h"
 
 #include <QWheelEvent>
 
 //-----------------------------------------------------------------------------
-SeedGrowSelector::SeedGrowSelector(ThresholdAction* th, SelectionHandler* succesor)
-: SelectionHandler(succesor)
+SeedGrowSelector::SeedGrowSelector(ThresholdAction* th, IPicker* succesor)
+: IPicker(succesor)
 , m_threshold(th)
 , m_preview(NULL)
 {
   Q_ASSERT(m_threshold);
   m_filters.clear();
-  m_filters << SelectionHandler::EspINA_Channel;
+  m_filters << IPicker::CHANNEL;
 }
 
 //-----------------------------------------------------------------------------
-bool SeedGrowSelector::filterEvent(QEvent* e, SelectableView* view)
+bool SeedGrowSelector::filterEvent(QEvent* e, EspinaRenderView *view)
 {
   if (e->type() == QEvent::Wheel)
   {
@@ -48,11 +48,11 @@ bool SeedGrowSelector::filterEvent(QEvent* e, SelectableView* view)
       int numSteps = we->delta()/8/15;//Refer to QWheelEvent doc.
       m_threshold->setUpperThreshold(m_threshold->upperThreshold() + numSteps);//Using stepBy highlight the input text
       m_threshold->setLowerThreshold(m_threshold->lowerThreshold() + numSteps);//Using stepBy highlight the input text
-//       if (m_preview)
-//       {
-// 	m_preview->setThreshold(m_threshold->threshold());
-//       }
-//       view->view()->forceRender();
+      //       if (m_preview)
+      //       {
+        //         m_preview->setThreshold(m_threshold->threshold());
+      //       }
+      //       view->view()->forceRender();
 
       return true;
     }
@@ -61,62 +61,60 @@ bool SeedGrowSelector::filterEvent(QEvent* e, SelectableView* view)
     QMouseEvent *me = dynamic_cast<QMouseEvent*>(e);
     if (me->modifiers() == Qt::SHIFT)
     {
-      ViewRegions regions;
-      QPolygon singlePixel;
+      DisplayRegionList regions;
+      DisplayRegion singlePixel;
 
       int xPos, yPos;
       view->eventPosition(xPos, yPos);
       singlePixel << QPoint(xPos,yPos);
       regions << singlePixel;
 
-      MultiSelection sel = view->select(m_filters, regions);
-      if (sel.size() == 0)
-	return false;
+      PickList pickList = view->pick(m_filters, regions);
+      if (pickList.size() == 0)
+        return false;
 
-      Q_ASSERT(sel.size() == 1);// Only one element selected
-      SelectionHandler::Selelection element = sel.first();
-
-      SelectableItem *input = element.second;
-
-      Q_ASSERT(element.first.size() == 1); // with one pixel
-      QVector3D pick = element.first.first();
-      int seed[3] = {pick.x(), pick.y(), pick.z()};
-//       if (NULL == m_preview)
-//       {
-// // 	  const int W = 40;
-// // 	  int VOI[6] = {seed[0] - W, seed[0] + W,
-// // 	  seed[1] - W, seed[1] + W,
-// // 	  seed[2] - W, seed[2] + W};
+//       Q_ASSERT(pickList.size() == 1);// Only one element selected
+//       IPicker::PickedItem element = pickList.first();
+//       Q_ASSERT(element.first.size() == 1); // with one pixel
 // 
-//         int VOI[6];
-// 	view->previewExtent(VOI);
-// 	m_preview = new SeedGrowSegmentationFilter(input->volume(), seed, m_threshold->threshold(), VOI);
-// 	view->addPreview(m_preview);
-//       }
-//       else
-//       {
-// 	m_preview->setInput(input->volume());
-// 	m_preview->setSeed(seed);
-//       }
-//       view->view()->forceRender();
+//       QVector3D pick = element.first.first();
+//       SelectableItem *input = element.second;
+//       int seed[3] = {pick.x(), pick.y(), pick.z()};
+      //       if (null == m_preview)
+      //       {
+        // //     const int w = 40;
+      // //       int voi[6] = {seed[0] - w, seed[0] + w,
+      // //       seed[1] - w, seed[1] + w,
+      // //       seed[2] - w, seed[2] + w};
+      //
+      //         int voi[6];
+      //        view->previewextent(voi);
+      //        m_preview = new seedgrowsegmentationfilter(input->volume(), seed, m_threshold->threshold(), voi);
+      //        view->addpreview(m_preview);
+      //       }
+      //       else
+      //       {
+        //      m_preview->setinput(input->volume());
+      //        m_preview->setseed(seed);
+      //       }
+      //       view->view()->forcerender();
     }else
     {
-//       if (m_preview)
-//       {
-// 	view->removePreview(m_preview);
-// 	delete m_preview;
-// 	m_preview = NULL;
-// 	view->view()->forceRender();
-//       }
+      //       if (m_preview)
+      //       {
+        // 	view->removePreview(m_preview);
+        // 	delete m_preview;
+        // 	m_preview = NULL;
+        // 	view->view()->forceRender();
+        //       }
     }
   }else if(e->type() == QEvent::MouseButtonPress)
   {
     QMouseEvent *me = dynamic_cast<QMouseEvent*>(e);
     if (me->modifiers() != Qt::CTRL && m_succesor)
-    {
       return m_succesor->filterEvent(e,view);
-    }
   }
+
   return false;
 }
 
@@ -126,7 +124,7 @@ QCursor SeedGrowSelector::cursor()
   if (m_succesor)
     return m_succesor->cursor();
   else
-    return SelectionHandler::cursor();
+    return IPicker::cursor();
 }
 
 //-----------------------------------------------------------------------------

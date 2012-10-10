@@ -31,9 +31,10 @@ public:
   static const QString ID;
 
   explicit RectangularBoundingRegion(CountingRegionChannelExtension *channelExt,
-				     Nm borders[6],
-				     Nm inclusion[3],
-				     Nm exclusion[3]);
+                                     Nm borders[6],
+                                     Nm inclusion[3],
+                                     Nm exclusion[3],
+                                     ViewManager *vm);
   virtual ~RectangularBoundingRegion();
 
   // Implements QStandardItem interface

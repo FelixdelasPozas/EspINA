@@ -19,14 +19,17 @@
 
 #include "FreeFormSource.h"
 
-#include <EspinaCore.h>
-#include <EspinaRegions.h>
-#include <EspinaView.h>
-#include <model/EspinaFactory.h>
+// EspINA
+#include "common/EspinaRegions.h"
+#include "common/model/EspinaFactory.h"
 
+// ITK
 #include <itkImageRegionIteratorWithIndex.h>
 
+// Qt
 #include <QDebug>
+
+
 const QString FreeFormSource::TYPE = "EditorToolBar::FreeFormSource";
 
 typedef ModelItem::ArgumentId ArgumentId;

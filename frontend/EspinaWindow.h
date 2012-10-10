@@ -21,27 +21,30 @@
 #define ESPinaModelWINDOW_H
 
 #include <QMainWindow>
-#include <gui/DynamicWidget.h>
-#include <pluginInterfaces/IDynamicMenu.h>
 
 #include "EspinaConfig.h"
-
+#include <pluginInterfaces/IDynamicMenu.h>
 #include "RecentDocuments.h"
 
 #include <QTimer>
 
+class DefaultEspinaView;
+class SelectionManager;
+class GeneralSettings;
+class EspinaFactory;
 class QAction;
 class EspinaModel;
-class EspinaView;
 class MainToolBar;
 class QFrame;
 class QUndoStack;
+class ViewManager;
 
 #ifdef TEST_ESPINA_MODELS
 class ModelTest;
 #endif
 
-class EspinaWindow : public QMainWindow, public DynamicWidget
+class EspinaWindow
+: public QMainWindow
 {
   Q_OBJECT
 public:
@@ -49,11 +52,6 @@ public:
     virtual ~EspinaWindow();
 
 public slots:
-  virtual void increaseLOD(){}
-  virtual void decreaseLOD(){}
-  virtual void setActivity(QString activity);
-  virtual void setLOD(){}
-
   void closeCurrentAnalysis();
 
   void openRecentAnalysis();
@@ -78,6 +76,9 @@ protected slots:
 
   void autosave();
 
+signals:
+  void analysisClosed();
+
 protected:
   void createActivityMenu();
   void createDynamicMenu(MenuEntry entry);
@@ -87,23 +88,30 @@ protected:
   void loadPlugins();
 
 private:
-  QSharedPointer<EspinaModel> m_model;
-  MainToolBar                *m_mainToolBar;
-  QMenu                      *m_viewMenu;
-  QMenu                      *m_dockMenu;
-  QMenu                      *m_addMenu;
-  bool                        m_busy;
+  QMenu       *m_viewMenu;
+  QMenu       *m_dockMenu;
+  QMenu       *m_addMenu;
 
-  QSharedPointer<QUndoStack>  m_undoStack;
-  QString                     m_currentActivity;
-  EspinaView                 *m_view;
-  RecentDocuments             m_recentDocuments1;
-  RecentDocuments             m_recentDocuments2; // fixes duplicated actions warning in some systems
+  MainToolBar *m_mainToolBar;
+  DefaultEspinaView *m_view;
+
+  EspinaFactory    *m_factory;
+  EspinaModel      *m_model;
+  QUndoStack       *m_undoStack;
+  ViewManager      *m_viewManager;
+  GeneralSettings  *m_settings;
+
+  RecentDocuments m_recentDocuments1;
+  RecentDocuments m_recentDocuments2; // fixes duplicated actions warning in some systems
+
 #ifdef TEST_ESPINA_MODELS
   QSharedPointer<ModelTest>   m_modelTester;
 #endif
+
   enum MenuState {OPEN_STATE, ADD_STATE};
   MenuState m_menuState;
+
+  bool m_busy;
 
   struct DynamicMenuNode
   {

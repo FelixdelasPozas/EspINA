@@ -25,7 +25,7 @@
 class EspinaModel;
 class ModelItem;
 class Segmentation;
-class TaxonomyNode;
+class TaxonomyElement;
 
 /// Group by Taxonomy Espina Proxy
 class TaxonomyProxy : public QAbstractProxyModel
@@ -71,19 +71,19 @@ protected:
   Segmentation *findSegmentation(QString tooltip);
   QModelIndexList sourceIndices(const QModelIndex& parent, int start, int end) const;
   QModelIndexList proxyIndices(const QModelIndex& parent, int start, int end) const;
-  void removeTaxonomy(TaxonomyNode *taxonomy);
-  int numSegmentations(TaxonomyNode *taxonomy, bool recursive = false) const;
-  int numTaxonomies(TaxonomyNode *taxonomy) const;
+  void removeTaxonomy(TaxonomyElement *taxonomy);
+  int numSegmentations(TaxonomyElement *taxonomy, bool recursive = false) const;
+  int numTaxonomies(TaxonomyElement *taxonomy) const;
 
 private:
   EspinaModel *m_model;
   // Keep a reference to the taxonomy which belong to the root taxonomy
-  QList<TaxonomyNode *> m_rootTaxonomies;
+  QList<TaxonomyElement *> m_rootTaxonomies;
   // We need to rely on our own row count for each item in the proxy's model
   // If we rely on the source's model, there are some inconsistencies during
   // rows insertion/deletion
-  mutable QMap<TaxonomyNode *, int> m_numTaxonomies;
-  mutable QMap<TaxonomyNode *, QList<ModelItem *> > m_segmentations;
+  mutable QMap<TaxonomyElement *, int> m_numTaxonomies;
+  mutable QMap<TaxonomyElement *, QList<ModelItem *> > m_segmentations;
 };
 
 #endif // TAXONOMYPROXY_H

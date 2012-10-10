@@ -24,13 +24,14 @@
 #ifndef VOLUMEVIEW_H
 #define VOLUMEVIEW_H
 
-#include <QAbstractItemView>
-#include <QPushButton>
+#include "ViewManager.h"
+#include "EspinaRenderView.h"
+
 #include <pluginInterfaces/Renderer.h>
 #include <common/EspinaTypes.h>
-#include <selection/SelectionManager.h>
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
+#include <QPushButton>
 
 class vtkAbstractWidget;
 class QVTKWidget;
@@ -48,7 +49,7 @@ class Segmentation;
 
 /// VolumeView
 class VolumeView
-: public QWidget
+: public EspinaRenderView
 {
   Q_OBJECT
 public:
@@ -69,29 +70,34 @@ public:
   typedef QSharedPointer<Settings> SettingsPtr;
 
 public:
-  explicit VolumeView(QWidget* parent = 0);
+  explicit VolumeView(ViewManager *vm, QWidget* parent = 0);
   virtual ~VolumeView(){}
 
   void centerViewOn(Nm center[3]/*nm*/);
   void setCameraFocus(const Nm center[3]);
-  void resetCamera();
 
-  void addChannelRepresentation(Channel *channel);
-  bool updateChannelRepresentation(Channel *channel);
-  void removeChannelRepresentation(Channel *channel);
+  virtual void updateView();
+  virtual void resetCamera();
 
-  void addSegmentationRepresentation(Segmentation *seg);
-  void removeSegmentationRepresentation(Segmentation *seg);
-  bool updateSegmentationRepresentation(Segmentation* seg);
+  virtual void addChannel(Channel *channel);
+  virtual void removeChannel(Channel *channel);
+  virtual bool updateChannel(Channel *channel);
 
-  void addWidget(vtkAbstractWidget *widget);
-  void removeWidget(vtkAbstractWidget *widget);
+  virtual void addSegmentation(Segmentation *seg);
+  virtual void removeSegmentation(Segmentation *seg);
+  virtual bool updateSegmentation(Segmentation* seg);
 
-  void setColorEngine(ColorEngine *engine)
-  {
-    m_colorEngine = engine;
-    updateSegmentationRepresentations();
-  }
+  virtual void addWidget(EspinaWidget *widget);
+  virtual void removeWidget(EspinaWidget *widget);
+
+  virtual void addPreview(vtkProp* preview){}
+  virtual void removePreview(vtkProp* preview){}
+
+  virtual void setCursor(const QCursor& cursor);
+  virtual void eventPosition(int& x, int& y);
+  virtual IPicker::PickList pick(IPicker::PickableItems filter,
+                                 IPicker::DisplayRegionList regions);
+  virtual vtkRenderWindow* renderWindow();
 
   SettingsPtr settings() {return m_settings;}
 
@@ -100,24 +106,23 @@ public:
   void removeRendererControls(const QString name);
 
   void updateSegmentationRepresentations();
+  virtual void updateSelection(){}
 
 public slots:
-  void forceRender();
   void countEnabledRenderers(bool);
   /// Update Selected Items
-  virtual void updateSelection(SelectionManager::Selection selection);
+  virtual void updateSelection(ViewManager::Selection selection);
 
 signals:
   void channelSelected(Channel *);
   void segmentationSelected(Segmentation *, bool);
 
 protected:
-  void init();
-  double suggestedChannelOpacity();
   void selectPickedItems(bool append);
 
 private:
 //   void selectSegmentations(int x, int y, int z);
+  void setupUI();
   void buildControls();
 
 protected slots:
@@ -134,10 +139,12 @@ private:
     QColor color;
   };
 
+  ViewManager *m_viewManager;
+
   // GUI
   QVBoxLayout *m_mainLayout;
   QHBoxLayout *m_controlLayout;
-  QVTKWidget  *m_viewWidget;
+  QVTKWidget  *m_view;
   QPushButton m_snapshot;
   QPushButton m_export;
   vtkSmartPointer<vtkRenderer> m_renderer;

@@ -45,7 +45,8 @@ public:
   virtual bool pickChannel(int x, int y, double pickPos[3]) = 0;
   virtual void eventPosition(int &x, int &y) = 0;
 
-  virtual SelectionHandler::MultiSelection select(SelectionHandler::SelectionFilters filters, SelectionHandler::ViewRegions regions) = 0;
+  virtual IPicker::PickList select(IPicker::PickableItems filters,
+                                   IPicker::DisplayRegionList regions) = 0;
   virtual void updateSelection(SelectionManager::Selection msel) = 0;
 
   virtual vtkRenderWindow *renderWindow() = 0;

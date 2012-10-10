@@ -69,7 +69,7 @@ vtkSmartPointer<vtkLookupTable> TaxonomyColorEngine::lut(const Segmentation* seg
 }
 
 //-----------------------------------------------------------------------------
-void TaxonomyColorEngine::updateTaxonomyColor(TaxonomyNode* tax)
+void TaxonomyColorEngine::updateTaxonomyColor(TaxonomyElement* tax)
 {
   QString lutName = tax->qualifiedName();
   QColor c = tax->color();

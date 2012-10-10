@@ -18,18 +18,24 @@
 
 #include "ChannelProxy.h"
 
-#include <common/EspinaCore.h>
+// Espina
+#include "common/model/Channel.h"
+#include "common/model/EspinaModel.h"
+#include "common/model/Sample.h"
+#include "common/gui/ViewManager.h"
+
+// Qt
 #include <QPixmap>
 #include <QSet>
-#include <model/Channel.h>
-#include <selection/SelectionManager.h>
 #include <QFont>
 
 typedef QSet<ModelItem *> ChannelSet;
 
 //------------------------------------------------------------------------
-ChannelProxy::ChannelProxy(QObject* parent)
+ChannelProxy::ChannelProxy(ViewManager *vm, QObject* parent)
 : QAbstractProxyModel(parent)
+, m_model(NULL)
+, m_viewManager(vm)
 {
 }
 
@@ -40,7 +46,7 @@ ChannelProxy::~ChannelProxy()
 }
 
 //------------------------------------------------------------------------
-void ChannelProxy::setSourceModel(EspinaModel* sourceModel)
+void ChannelProxy::setSourceModel(EspinaModel *sourceModel)
 {
   m_model = sourceModel;
   connect(sourceModel, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
@@ -85,7 +91,7 @@ QVariant ChannelProxy::data(const QModelIndex& proxyIndex, int role) const
       }else if (Qt::FontRole == role)
       {
 	QFont myFont;
-	myFont.setBold(SelectionManager::instance()->activeChannel() == item);
+	myFont.setBold(m_viewManager->activeChannel() == item);
 	return myFont;
       }else
 	return item->data(role);

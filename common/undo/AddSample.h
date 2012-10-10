@@ -28,15 +28,17 @@ class EspinaModel;
 class Sample;
 
 //------------------------------------------------------------------------
-class AddSample : public QUndoCommand
+class AddSample
+: public QUndoCommand
 {
 public:
-  explicit AddSample(Sample *sample);
+  explicit AddSample(Sample *sample, EspinaModel *model);
 
   virtual void redo();
   virtual void undo();
 
 private:
-  Sample *m_sample;
+  EspinaModel *m_model;
+  Sample      *m_sample;
 };
 #endif // ADDSAMPLE_H

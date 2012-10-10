@@ -34,6 +34,7 @@ VolumeViewSettingsPanel::VolumeViewSettingsPanel(VolumeView::SettingsPtr setting
   active    = new QStandardItemModel(this);
   available = new QStandardItemModel(this);
 
+  /* TODO BUG 2012-10-05 Configure renderers
   foreach(Renderer *renderer, EspinaFactory::instance()->renderers())
   {
     QStandardItem *item = new QStandardItem(renderer->icon(), renderer->name());
@@ -51,7 +52,7 @@ VolumeViewSettingsPanel::VolumeViewSettingsPanel(VolumeView::SettingsPtr setting
     else
       available->appendRow(item);
   }
-
+  */
   activeRenderers->setModel(active);
   availableRenderers->setModel(available);
 }
@@ -59,6 +60,7 @@ VolumeViewSettingsPanel::VolumeViewSettingsPanel(VolumeView::SettingsPtr setting
 //-----------------------------------------------------------------------------
 void VolumeViewSettingsPanel::acceptChanges()
 {
+  /* TODO BUG 2012-10-05 Configure renderers
   QList<Renderer *> renderers;
   QMap<QString, Renderer *> rendererFactory = EspinaFactory::instance()->renderers();
 
@@ -69,6 +71,7 @@ void VolumeViewSettingsPanel::acceptChanges()
   }
 
   m_settings->setRenderers(renderers);
+  */
 }
 
 //-----------------------------------------------------------------------------

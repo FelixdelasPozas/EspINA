@@ -28,8 +28,8 @@
 #include <model/Representation.h>
 #include <model/EspinaFactory.h>
 #include <pluginInterfaces/Renderer.h>
-#include "common/renderers/CrosshairRenderer.h"
 #include <settings/EspinaSettings.h>
+#include <renderers/CrosshairRenderer.h>
 
 // GUI
 #include <QEvent>
@@ -60,13 +60,14 @@
 #include <vtkWidgetRepresentation.h>
 
 //-----------------------------------------------------------------------------
-VolumeView::VolumeView(QWidget* parent)
-: QWidget(parent)
+VolumeView::VolumeView(ViewManager* vm, QWidget* parent)
+: EspinaRenderView(parent)
+, m_viewManager(vm)
 , m_mainLayout      (new QVBoxLayout())
 , m_controlLayout   (new QHBoxLayout())
 , m_settings        (new Settings(QString(), this))
 {
-  init();
+  setupUI();
   buildControls();
 
   setLayout(m_mainLayout);
@@ -80,8 +81,8 @@ VolumeView::VolumeView(QWidget* parent)
 
   memset(m_center,0,3*sizeof(double));
   m_numEnabledRenders = 0;
-  connect(SelectionManager::instance(), SIGNAL(selectionChanged(SelectionManager::Selection)),
-          this, SLOT(updateSelection(SelectionManager::Selection)));
+  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection)),
+          this, SLOT(updateSelection(ViewManager::Selection)));
 }
 
 //-----------------------------------------------------------------------------
@@ -100,7 +101,7 @@ void VolumeView::addRendererControls(Renderer* renderer)
   connect(button, SIGNAL(clicked(bool)), renderer, SLOT(setEnable(bool)));
   connect(button, SIGNAL(clicked(bool)), this, SLOT(countEnabledRenderers(bool)));
   connect(button, SIGNAL(destroyed(QObject*)), renderer, SLOT(deleteLater()));
-  connect(renderer, SIGNAL(renderRequested()), this, SLOT(forceRender()));
+  connect(renderer, SIGNAL(renderRequested()), this, SLOT(updateView()));
   m_controlLayout->addWidget(button);
   renderer->setVtkRenderer(this->m_renderer);
 
@@ -194,7 +195,7 @@ void VolumeView::centerViewOn(Nm center[3])
     }
   }
 
-  forceRender();
+  updateView();
 }
 
 //-----------------------------------------------------------------------------
@@ -210,7 +211,7 @@ void VolumeView::resetCamera()
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::addChannelRepresentation(Channel* channel)
+void VolumeView::addChannel(Channel* channel)
 {
   m_addedItems << channel;
   foreach(Renderer* renderer, m_itemRenderers)
@@ -218,7 +219,7 @@ void VolumeView::addChannelRepresentation(Channel* channel)
 }
 
 //-----------------------------------------------------------------------------
-bool VolumeView::updateChannelRepresentation(Channel* channel)
+bool VolumeView::updateChannel(Channel* channel)
 {
   if (!isVisible())
     return false;
@@ -231,7 +232,7 @@ bool VolumeView::updateChannelRepresentation(Channel* channel)
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::removeChannelRepresentation(Channel* channel)
+void VolumeView::removeChannel(Channel* channel)
 {
   m_addedItems.removeAll(channel);
 
@@ -241,7 +242,7 @@ void VolumeView::removeChannelRepresentation(Channel* channel)
 
 
 //-----------------------------------------------------------------------------
-void VolumeView::addSegmentationRepresentation(Segmentation *seg)
+void VolumeView::addSegmentation(Segmentation *seg)
 {
   Q_ASSERT(!m_segmentations.contains(seg));
 
@@ -253,7 +254,7 @@ void VolumeView::addSegmentationRepresentation(Segmentation *seg)
 }
 
 //-----------------------------------------------------------------------------
-bool VolumeView::updateSegmentationRepresentation(Segmentation* seg)
+bool VolumeView::updateSegmentation(Segmentation* seg)
 {
   if (!isVisible())
     return false;
@@ -266,7 +267,7 @@ bool VolumeView::updateSegmentationRepresentation(Segmentation* seg)
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::removeSegmentationRepresentation(Segmentation* seg)
+void VolumeView::removeSegmentation(Segmentation* seg)
 {
   Q_ASSERT(m_segmentations.contains(seg));
 
@@ -278,8 +279,9 @@ void VolumeView::removeSegmentationRepresentation(Segmentation* seg)
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::addWidget(vtkAbstractWidget *widget)
+void VolumeView::addWidget(EspinaWidget* widget)
 {
+  /* TODO 2012-10-09
   if (!widget)
     return;
 
@@ -290,50 +292,74 @@ void VolumeView::addWidget(vtkAbstractWidget *widget)
   widget->On();
   m_renderer->ResetCameraClippingRange();
   m_widgets << widget;
+  */
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::removeWidget(vtkAbstractWidget* widget)
+void VolumeView::removeWidget(EspinaWidget* widget)
 {
+  /* TODO 2012-10-09
   if (!widget)
     return;
 
   Q_ASSERT(m_widgets.contains(widget));
 
   m_widgets.removeOne(widget);
+  */
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::init()
+void VolumeView::setCursor(const QCursor& cursor)
 {
-  m_viewWidget = new QVTKWidget();
-  m_mainLayout->insertWidget(0,m_viewWidget); //To preserver view order
-  m_viewWidget->show();
+  m_view->setCursor(cursor);
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::eventPosition(int& x, int& y)
+{
+//   vtkRenderWindowInteractor *rwi = m_renderWindow->GetInteractor();
+//   Q_ASSERT(rwi);
+//   rwi->GetEventPosition(x, y);
+}
+
+//-----------------------------------------------------------------------------
+IPicker::PickList VolumeView::pick(IPicker::PickableItems filter, IPicker::DisplayRegionList regions)
+{
+  return IPicker::PickList();
+}
+
+//-----------------------------------------------------------------------------
+vtkRenderWindow* VolumeView::renderWindow()
+{
+  return m_view->GetRenderWindow();
+}
+
+
+//-----------------------------------------------------------------------------
+void VolumeView::setupUI()
+{
+  m_view = new QVTKWidget();
+  m_mainLayout->insertWidget(0,m_view); //To preserver view order
+  m_view->show();
   m_renderer = vtkSmartPointer<vtkRenderer>::New();
   m_renderer->LightFollowCameraOn();
   vtkSmartPointer<vtkInteractorStyleTrackballCamera> interactorstyle = vtkSmartPointer<vtkInteractorStyleTrackballCamera>::New();
   interactorstyle->AutoAdjustCameraClippingRangeOn();
   interactorstyle->KeyPressActivationOff();
-  m_viewWidget->GetRenderWindow()->AddRenderer(m_renderer);
-  m_viewWidget->GetRenderWindow()->GetInteractor()->SetInteractorStyle(interactorstyle);
-  m_viewWidget->GetRenderWindow()->Render();
+  m_view->GetRenderWindow()->AddRenderer(m_renderer);
+  m_view->GetRenderWindow()->GetInteractor()->SetInteractorStyle(interactorstyle);
+  m_view->GetRenderWindow()->Render();
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::forceRender()
+void VolumeView::updateView()
 {
   if(isVisible())
   {
 //     qDebug() << "Render Volume View";
-    this->m_viewWidget->GetRenderWindow()->Render();
-    this->m_viewWidget->update();
+    this->m_view->GetRenderWindow()->Render();
+    this->m_view->update();
   }
-}
-
-//-----------------------------------------------------------------------------
-double VolumeView::suggestedChannelOpacity()
-{
-  return 1.0;
 }
 
 //-----------------------------------------------------------------------------
@@ -567,6 +593,7 @@ VolumeView::Settings::Settings(const QString prefix, VolumeView* parent)
   if (!settings.contains(RENDERERS))
     settings.setValue(RENDERERS, QStringList() << "Crosshairs" << "Volumetric" << "Mesh");
 
+  /*BUG TODO 2012-10-05
   QMap<QString, Renderer *> renderers = EspinaFactory::instance()->renderers();
   foreach(QString name, settings.value(RENDERERS).toStringList())
   {
@@ -574,6 +601,7 @@ VolumeView::Settings::Settings(const QString prefix, VolumeView* parent)
     if (renderer)
       m_renderers << renderer;
   }
+  */
 }
 
 //-----------------------------------------------------------------------------
@@ -644,7 +672,7 @@ void VolumeView::countEnabledRenderers(bool value)
   if ((true == value) && (0 == this->m_numEnabledRenders))
   {
     m_renderer->ResetCamera();
-    forceRender();
+    updateView();
   }
 
   if (true == value)
@@ -655,7 +683,7 @@ void VolumeView::countEnabledRenderers(bool value)
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::updateSelection(SelectionManager::Selection selection)
+void VolumeView::updateSelection(ViewManager::Selection selection)
 {
   updateSegmentationRepresentations();
 }
@@ -665,5 +693,5 @@ void VolumeView::updateSegmentationRepresentations()
 {
   if (isVisible())
     foreach(Segmentation *seg, m_segmentations)
-      updateSegmentationRepresentation(seg);
+      updateSegmentation(seg);
 }

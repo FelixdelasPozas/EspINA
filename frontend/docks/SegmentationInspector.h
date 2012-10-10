@@ -28,6 +28,8 @@
 
 #include <QSortFilterProxyModel>
 
+class VolumeView;
+class ViewManager;
 class Segmentation;
 
 class SegmentationInspector
@@ -36,25 +38,28 @@ class SegmentationInspector
 {
   Q_OBJECT
 public:
-  static SegmentationInspector *CreateInspector(Segmentation *seg);
-  static void RemoveInspector(Segmentation *seg);
-  static void RemoveInspector(QList<Segmentation *> segs);
+  SegmentationInspector(Segmentation *seg,
+                        EspinaModel *model,
+                        ViewManager *vm,
+                        QWidget* parent = 0,
+                        Qt::WindowFlags f = 0);
   virtual ~SegmentationInspector();
 
 public slots:
   void updateScene();
 
+signals:
+  void inspectorClosed(SegmentationInspector *);
 protected:
-  SegmentationInspector(Segmentation *seg, QWidget* parent = 0, Qt::WindowFlags f = 0);
   virtual void closeEvent(QCloseEvent *e);
 
 private:
+  ViewManager  *m_viewManager;
   Segmentation *m_seg;
-  QSharedPointer<EspinaModel> m_model;
+  EspinaModel  *m_model;
+  VolumeView   *m_view;
   QSharedPointer<InformationProxy> m_info;
   QSharedPointer<QSortFilterProxyModel> m_sort;
-
-  static QMap<Segmentation *, SegmentationInspector *> m_inspectors;
 };
 
 #endif // SEGMENTATIONINSPECTOR_H

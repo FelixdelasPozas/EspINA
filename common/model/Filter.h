@@ -26,6 +26,7 @@
 #include <itkImageFileReader.h>
 #include <vtkPolyData.h>
 
+class ViewManager;
 class vtkImplicitFunction;
 const QString CREATELINK = "CreateSegmentation";
 
@@ -64,7 +65,7 @@ public:
   };
 
   ///WARNING: Current implementation will expand the image
-  ///         when drawing with value = 0!
+  ///         when drawing with value != 0
 
   /// Manually Edit Filter Output
   virtual void draw(OutputNumber i,
@@ -100,7 +101,7 @@ public:
   virtual void releaseDataFlagOff(){}
 
   /// Return a widget used to configure filter's parameters
-  virtual QWidget *createConfigurationWidget();
+  virtual QWidget *createConfigurationWidget(ViewManager *vm);
 
 protected:
   explicit Filter(NamedInputs namedInputs,
@@ -114,7 +115,7 @@ protected:
   EspinaVolumeReader::Pointer tmpFileReader(const QString file);
 
   EspinaVolume::Pointer addRegionToVolume(EspinaVolume::Pointer volume,
-					  EspinaVolume::RegionType region);
+                                          EspinaVolume::RegionType region);
 
 protected:
   QList<EspinaVolume *> m_inputs;

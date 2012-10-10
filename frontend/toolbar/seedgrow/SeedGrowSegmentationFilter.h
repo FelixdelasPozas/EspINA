@@ -30,6 +30,7 @@
 #include <itkBinaryMorphologicalClosingImageFilter.h>
 #include <itkExtractImageFilter.h>
 
+class ViewManager;
 class vtkImageData;
 class vtkConnectedThresholdImageFilter;
 
@@ -141,7 +142,7 @@ public:
   virtual void releaseDataFlagOff();
   virtual bool prefetchFilter();
 
-  virtual QWidget* createConfigurationWidget();
+  virtual QWidget* createConfigurationWidget(ViewManager *vm);
 
 protected:
   virtual void run();

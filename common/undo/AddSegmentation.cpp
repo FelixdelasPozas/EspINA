@@ -19,49 +19,49 @@
 
 #include "AddSegmentation.h"
 
-#include "common/EspinaCore.h"
-#include <model/Channel.h>
-#include <model/Segmentation.h>
+#include "common/model/Channel.h"
+#include "common/model/EspinaModel.h"
+#include "common/model/Sample.h"
+#include "common/model/Segmentation.h"
 
 //----------------------------------------------------------------------------
-AddSegmentation::AddSegmentation(Channel      *channel,
-                                 Filter       *filter,
-                                 Segmentation *seg,
-                                 TaxonomyNode *taxonomy)
+AddSegmentation::AddSegmentation(Channel         *channel,
+                                 Filter          *filter,
+                                 Segmentation    *seg,
+                                 TaxonomyElement *taxonomy,
+                                 EspinaModel     *model)
 : m_channel (channel)
 , m_filter  (filter)
 , m_seg     (seg)
 , m_taxonomy(taxonomy)
+, m_model   (model)
 {
-  ModelItem::Vector samples = m_channel->relatedItems(ModelItem::IN, Channel::STAINLINK);
-  Q_ASSERT(samples.size() > 0);
-  m_sample = dynamic_cast<Sample *>(samples.first());
+  //TODO: Poner punto de interrupcion y comprobar si SIEMPRE se crean segmentacion antes de invocar a este método
+  //      en cuyo caso hay que destruirlas en el destructor
+  m_sample = m_channel->sample();
+  Q_ASSERT(m_sample);
 }
 
 //----------------------------------------------------------------------------
 void AddSegmentation::redo()
 {
-  QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
-
-  model->addFilter(m_filter);
-  model->addRelation(m_channel, m_filter, Channel::LINK);
+  m_model->addFilter(m_filter);
+  m_model->addRelation(m_channel, m_filter, Channel::LINK);
   m_seg->setTaxonomy(m_taxonomy);
-  model->addSegmentation(m_seg);
-  model->addRelation(m_filter, m_seg, CREATELINK);
-  model->addRelation(m_sample, m_seg, "where");
-  model->addRelation(m_channel, m_seg, Channel::LINK);
+  m_model->addSegmentation(m_seg);
+  m_model->addRelation(m_filter, m_seg, CREATELINK);
+  m_model->addRelation(m_sample, m_seg, Sample::WHERE);
+  m_model->addRelation(m_channel, m_seg, Channel::LINK);
   m_seg->initializeExtensions();
 }
 
 //----------------------------------------------------------------------------
 void AddSegmentation::undo()
 {
-  QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
-
-  model->removeRelation(m_channel, m_seg, Channel::LINK);
-  model->removeRelation(m_sample, m_seg, "where");
-  model->removeRelation(m_filter, m_seg, CREATELINK);
-  model->removeSegmentation(m_seg);
-  model->removeRelation(m_channel, m_filter, Channel::LINK);
-  model->removeFilter(m_filter);
+  m_model->removeRelation(m_channel, m_seg, Channel::LINK);
+  m_model->removeRelation(m_sample, m_seg, "where");
+  m_model->removeRelation(m_filter, m_seg, CREATELINK);
+  m_model->removeSegmentation(m_seg);
+  m_model->removeRelation(m_channel, m_filter, Channel::LINK);
+  m_model->removeFilter(m_filter);
 }

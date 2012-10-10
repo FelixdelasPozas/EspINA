@@ -35,7 +35,7 @@
 
 class Segmentation;
 class Channel;
-class TaxonomyNode;
+class TaxonomyElement;
 class Taxonomy;
 
 class SegmhaImporterFilter 
@@ -118,7 +118,7 @@ public:
   /// Return full taxonomy contained in segmha's meta-data
   Taxonomy *taxonomy() {return m_taxonomy;}
   /// Return the taxonomy associated with the i-th output
-  TaxonomyNode *taxonomy(OutputNumber i);
+  TaxonomyElement *taxonomy(OutputNumber i);
   /// Return Counting Region Definition
   void countingRegion(double inclusive[3], double exclusive[3])
   {
@@ -138,7 +138,7 @@ private:
   LabelMapReader::Pointer m_lmapReader;
   QList<Source>           m_sources;
 
-  QList<TaxonomyNode *>   m_taxonomies;
+  QList<TaxonomyElement *>   m_taxonomies;
   QList<int>              m_labels;
   Taxonomy               *m_taxonomy;
   Nm                      m_inclusive[3], m_exclusive[3];

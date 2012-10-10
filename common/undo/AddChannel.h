@@ -16,16 +16,18 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+//----------------------------------------------------------------------------
+// File:    AddChannel.h
+// Purpose: Undo-able action to add channels to the model
+//----------------------------------------------------------------------------
 #ifndef ADDCHANNEL_H
 #define ADDCHANNEL_H
 
 #include <QUndoStack>
-#include <QSharedPointer>
 
-class EspinaModel;
-class ChannelReader;
 class Channel;
+class ChannelReader;
+class EspinaModel;
 class Sample;
 
 class AddChannel
@@ -33,8 +35,9 @@ class AddChannel
 {
 public:
   explicit AddChannel(ChannelReader *reader,
-                      Channel *channel,
-                      QUndoCommand *parent=0);
+                      Channel       *channel,
+                      EspinaModel   *model,
+                      QUndoCommand  *parent=0);
 
   virtual void redo();
   virtual void undo();
@@ -42,6 +45,7 @@ public:
 private:
   ChannelReader *m_reader;
   Channel       *m_channel;
+  EspinaModel   *m_model;
 };
 
 #endif // ADDCHANNEL_H

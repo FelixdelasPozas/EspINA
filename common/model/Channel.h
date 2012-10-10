@@ -41,7 +41,7 @@ class ChannelExtension;
 class vtkAlgorithmOutput;
 
 class Channel
-: public SelectableItem
+: public PickableItem
 {
   typedef itk::ImageFileReader<EspinaVolume> EspinaVolumeReader;
 public:

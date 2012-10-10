@@ -1,18 +1,29 @@
-#include "FilePack.h"
+#include "EspinaIO.h"
 
-#include <quazipfile.h>
 
-#include <QDebug>
-#include <QFile>
-#include <QDir>
-#include "espina_debug.h"
-#include <model/Segmentation.h>
-#include <EspinaCore.h>
+// EspINA
+#include "common/model/EspinaFactory.h"
+#include "common/model/Segmentation.h"
+#include "common/model/ChannelReader.h"
+#include "common/undo/AddChannel.h"
+#include "common/undo/AddRelation.h"
+#include "common/undo/AddSample.h"
 
+// ITK
 #include <itkImageFileWriter.h>
 #include <itkMetaImageIO.h>
+
+// VTK
 #include <vtkMetaImageReader.h>
 #include <vtkTIFFReader.h>
+
+// Qt
+#include <QDebug>
+#include <QDir>
+#include <QUndoStack>
+
+// Quazip
+#include <quazipfile.h>
 
 const QString TRACE    = "trace.dot";
 const QString TAXONOMY = "taxonomy.xml";
@@ -20,29 +31,92 @@ const QString TAXONOMY = "taxonomy.xml";
 typedef itk::ImageFileWriter<EspinaVolume> EspinaVolumeWriter;
 
 //-----------------------------------------------------------------------------
-/**
- * It set the @param TraceContent and @param TaxonomyContent with trace.dot and 
- * taxonomy.xml files inside @param filePath file.
- * If there are extra files (for the cached disk). They are extracted in a 
- * directory with the same name as seg file (without the extension).
- */
+EspinaIO::STATUS EspinaIO::loadFile(QFileInfo file, EspinaModel* model, QUndoStack *undoStack)
+{
+  const QString ext = file.suffix();
+  if ("mha" == ext || "mhd" == ext || "tiff" == ext || "tif" == ext)
+    return loadChannel(file, model, undoStack);
+
+  if ("seg" == ext)
+    return loadSegFile(file, model);
+
+  return model->factory()->readFile(file.absoluteFilePath(), ext)?SUCCESS:ERROR;
+}
+
 //-----------------------------------------------------------------------------
-bool IOEspinaFile::loadFile(QFileInfo file,
-                            QSharedPointer<EspinaModel> model)
+EspinaIO::STATUS EspinaIO::loadChannel(QFileInfo file, EspinaModel* model, QUndoStack* undoStack, Channel** channelPtr)
+{
+  //TODO 2012-10-07
+  // Try to recover sample form DB using channel information
+  Sample *existingSample = NULL;
+
+  EspinaFactory *factory = model->factory();
+
+  if (!existingSample)
+  {
+    // TODO: Look for real channel's sample in DB or prompt dialog
+    // Try to recover sample form DB using channel information
+    Sample *sample = factory->createSample(file.baseName());
+
+    undoStack->push(new AddSample(sample, model));
+    existingSample = sample;
+  }
+
+  //TODO: Check for channel information in DB
+  QColor stainColor = QColor(Qt::black);
+
+  Filter::NamedInputs noInputs;
+  Filter::Arguments readerArgs;
+  readerArgs[ChannelReader::FILE] = file.absoluteFilePath();
+  ChannelReader *reader = new ChannelReader(noInputs, readerArgs);
+  reader->update();
+  if (reader->numberOutputs() == 0)
+    return ERROR;
+
+
+  Channel::CArguments args;
+  args[Channel::ID] = file.fileName();
+  args.setColor(stainColor.hueF());
+  Channel *channel = factory->createChannel(reader, 0);
+  channel->setColor(stainColor.hueF());// It is needed to display proper stain color
+  //file.absoluteFilePath(), args);
+
+  double pos[3];
+  existingSample->position(pos);
+  channel->setPosition(pos);
+
+  undoStack->beginMacro("Add Data To Analysis");
+  undoStack->push(new AddChannel(reader, channel, model));
+  undoStack->push(new AddRelation(existingSample, channel, Channel::STAINLINK, model));
+  undoStack->endMacro();
+
+  //existingSample->initialize();//TODO: Review if needed
+  channel->initialize(args);
+  channel->initializeExtensions();
+
+  if (channelPtr)
+    *channelPtr = channel;
+
+  return SUCCESS;
+}
+
+
+//-----------------------------------------------------------------------------
+EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo file, EspinaModel* model)
 {
   // Create tmp dir
-//   qDebug() << file.absolutePath();
+  //qDebug() << file.absolutePath();
   QDir tmpDir = file.absoluteDir();
   tmpDir.mkdir(file.baseName());
   tmpDir.cd(file.baseName());
-  EspinaCore::instance()->setTemporalDir(tmpDir);
-//   qDebug() << "Temporal Dir" << tmpDir;
+  // TODO BUG 2012-10-05 EspinaCore::instance()->setTemporalDir(tmpDir);
+  //qDebug() << "Temporal Dir" << tmpDir;
 
   QuaZip espinaZip(file.filePath());
   if( !espinaZip.open(QuaZip::mdUnzip) )
   {
     qWarning() << "IOEspinaFile: Could not open file" << file.filePath();
-    return false;
+    return FILE_NOT_FOUND;
   }
 
   QuaZipFile espinaFile(&espinaZip);
@@ -58,7 +132,7 @@ bool IOEspinaFile::loadFile(QFileInfo file,
     {
       qWarning() << "IOEspinaFile: Could not extract the file" << file.filePath();
       if( file == TAXONOMY || file == TRACE )
-        return false;
+        return ERROR;
       continue;
     }
 
@@ -94,21 +168,21 @@ bool IOEspinaFile::loadFile(QFileInfo file,
   if(!taxonomy || traceContent.isEmpty())
   {
     qWarning() << "IOEspinaFile::loadFile: could not find taxonomy and/or trace files";
-    return false;
+    return ERROR;
   }
 
-  bool status;
+  STATUS status;
   model->addTaxonomy(taxonomy);
   std::istringstream trace(traceContent.toStdString().c_str());
-  status = model->loadSerialization(trace);
+  status = model->loadSerialization(trace)?SUCCESS:ERROR;
 
   espinaZip.close();
   return status;
 }
 
 //-----------------------------------------------------------------------------
-bool IOEspinaFile::zipVolume(Filter* filter, OutputNumber outputNumber,
-                             QDir tmpDir, QuaZipFile& outFile)
+bool EspinaIO::zipVolume(Filter* filter, OutputNumber outputNumber,
+                         QDir tmpDir, QuaZipFile& outFile)
 {
   itk::MetaImageIO::Pointer io = itk::MetaImageIO::New();
   EspinaVolumeWriter::Pointer writer = EspinaVolumeWriter::New();
@@ -129,12 +203,12 @@ bool IOEspinaFile::zipVolume(Filter* filter, OutputNumber outputNumber,
   mhdFile.open(QIODevice::ReadOnly);
   QFile rawFile(raw);
   rawFile.open(QIODevice::ReadOnly);
-  if( !IOEspinaFile::zipFile(volumeName + ".mhd", mhdFile.readAll() , outFile) )
+  if( !zipFile(volumeName + ".mhd", mhdFile.readAll() , outFile) )
   {
     qWarning() << "IOEspinaFile::saveFile: Error while zipping" << (volumeName + ".mhd");
     return false;
   }
-  if( !IOEspinaFile::zipFile(volumeName + ".raw", rawFile.readAll() , outFile) )
+  if( !zipFile(volumeName + ".raw", rawFile.readAll() , outFile) )
   {
     qWarning() << "IOEspinaFile::saveFile: Error while zipping" << (volumeName + ".raw");
     return false;
@@ -145,8 +219,7 @@ bool IOEspinaFile::zipVolume(Filter* filter, OutputNumber outputNumber,
 }
 
 //-----------------------------------------------------------------------------
-bool IOEspinaFile::saveFile(QFileInfo file,
-                            QSharedPointer<EspinaModel> model)
+EspinaIO::STATUS EspinaIO::saveFile(QFileInfo file, EspinaModel *model)
 {
   // Create tmp dir
 //   qDebug() << file.absolutePath();
@@ -163,7 +236,7 @@ bool IOEspinaFile::saveFile(QFileInfo file,
   if(!zip.open(QuaZip::mdCreate)) 
   {
     qWarning() << "IOEspinaFile::saveFile" << file.fileName() << "error while creating file";
-    return false;
+    return ERROR;
   }
   QuaZipFile outFile(&zip);
   //TODO: File header
@@ -172,14 +245,14 @@ bool IOEspinaFile::saveFile(QFileInfo file,
   // Save Taxonomy
   QString taxonomy;
   IOTaxonomy::writeXMLTaxonomy(model->taxonomy(), taxonomy);
-  if( !IOEspinaFile::zipFile(QString(TAXONOMY), taxonomy.toAscii(), outFile) )
-    return false;
+  if( !zipFile(QString(TAXONOMY), taxonomy.toAscii(), outFile) )
+    return ERROR;
 
   // Save Trace
   std::ostringstream trace;
   model->serializeRelations(trace);
-  if( !IOEspinaFile::zipFile(QString(TRACE),  trace.str().c_str(), outFile) )
-    return false;
+  if( !zipFile(QString(TRACE),  trace.str().c_str(), outFile) )
+    return ERROR;
 
   typedef QPair<Filter *, OutputNumber> Output;
   QList<Output> saved;
@@ -224,11 +297,11 @@ bool IOEspinaFile::saveFile(QFileInfo file,
     tmpDir.rmdir(file.baseName());
   }
 
-  return true;
+  return SUCCESS;
 }
 
 //-----------------------------------------------------------------------------
-bool IOEspinaFile::zipFile(QString fileName, QByteArray content, QuaZipFile& zFile)
+bool EspinaIO::zipFile(QString fileName, QByteArray content, QuaZipFile& zFile)
 {
   QuaZipNewInfo zFileInfo = QuaZipNewInfo(fileName, fileName);
   zFileInfo.externalAttr = 0x01A40000; // Permissions of the files 644
