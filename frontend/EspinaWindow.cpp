@@ -85,8 +85,8 @@ EspinaWindow::EspinaWindow()
   QIcon saveIcon = qApp->style()->standardIcon(QStyle::SP_DialogSaveButton);
 
   m_factory->registerRenderer(new CrosshairRenderer());
-  m_factory->registerRenderer(new VolumetricRenderer());
-  m_factory->registerRenderer(new MeshRenderer());
+  m_factory->registerRenderer(new VolumetricRenderer(m_viewManager));
+  m_factory->registerRenderer(new MeshRenderer(m_viewManager));
 
   /*** FILE MENU ***/
   QMenu *fileMenu = new QMenu(tr("File"));

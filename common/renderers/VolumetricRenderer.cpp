@@ -21,6 +21,7 @@
 #include <vtkRenderWindow.h>
 #include <model/Segmentation.h>
 #include "common/colorEngines/ColorEngine.h"
+#include <ViewManager.h>
 #include <vtkVolumeRayCastMapper.h>
 #include <vtkVolumeRayCastCompositeFunction.h>
 #include <vtkColorTransferFunction.h>
@@ -30,6 +31,13 @@
 #include <vtkSmartPointer.h>
 #include <vtkMath.h>
 #include <QApplication>
+
+//-----------------------------------------------------------------------------
+VolumetricRenderer::VolumetricRenderer(ViewManager* vm, QObject* parent)
+: Renderer(parent)
+, m_viewManager(vm)
+{
+}
 
 //-----------------------------------------------------------------------------
 bool VolumetricRenderer::addItem(ModelItem* item)
@@ -48,11 +56,7 @@ bool VolumetricRenderer::addItem(ModelItem* item)
       m_segmentations.remove(item);
     }
 
-  /*TODO 2012-10-05 
-  ColorEngine *engine = EspinaCore::instance()->colorSettings().engine();
-  QColor color = engine->color(seg);
-  */
-  QColor color(Qt::red);
+  QColor color = m_viewManager->color(seg);
 
 
   vtkSmartPointer<vtkVolumeRayCastMapper> mapper = vtkVolumeRayCastMapper::New();
@@ -88,7 +92,7 @@ bool VolumetricRenderer::addItem(ModelItem* item)
   volume->SetProperty(property);
 
   m_segmentations[seg].selected = seg->isSelected();
-  //TODO 2012-10-05 m_segmentations[seg].color = engine->color(seg);
+  m_segmentations[seg].color = m_viewManager->color(seg);
   m_segmentations[seg].volume = volume;
   m_segmentations[seg].visible = false; // always false when adding
 
@@ -107,10 +111,10 @@ bool VolumetricRenderer::updateItem(ModelItem* item)
    Representation &rep = m_segmentations[seg];
 
   if (seg->isSelected() != rep.selected
-      || seg->data(Qt::DecorationRole).value<QColor>() != rep.color)
+      || m_viewManager->color(seg) != rep.color)
   {
     rep.selected = seg->isSelected();
-    rep.color = seg->data(Qt::DecorationRole).value<QColor>();
+    rep.color = m_viewManager->color(seg);
 
     vtkVolumeProperty *property = rep.volume->GetProperty();
     vtkColorTransferFunction *color = property->GetRGBTransferFunction();

@@ -42,8 +42,6 @@ vtkSmartPointer<vtkLookupTable> TaxonomyColorEngine::lut(const Segmentation* seg
 
   vtkSmartPointer<vtkLookupTable> seg_lut;
 
-  bool updateLut = false;
-
   if (!m_LUT.contains(lutName))
   {
     double alpha = (seg->isSelected() ? SELECTED_ALPHA : UNSELECTED_ALPHA);
