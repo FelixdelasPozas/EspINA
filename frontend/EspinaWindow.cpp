@@ -27,6 +27,7 @@
 #include "common/gui/ViewManager.h"
 #include "common/pluginInterfaces/IToolBar.h"
 #include "common/pluginInterfaces/IDockWidget.h"
+#include <pluginInterfaces/IExtensionProvider.h>
 #include "common/renderers/VolumetricRenderer.h"
 #include "common/renderers/CrosshairRenderer.h"
 #include "common/renderers/MeshRenderer.h"
@@ -314,6 +315,12 @@ void EspinaWindow::loadPlugins()
         {
           qDebug() << "- Reader Factory ...... OK";
           readerFactory->initReaderFactory(m_model, m_undoStack, m_viewManager);
+        }
+        IExtensionProvider *extensionProvider = qobject_cast<IExtensionProvider*>(plugin);
+        if (extensionProvider)
+        {
+          qDebug() << "- Extension Provider ...... OK";
+          extensionProvider->initExtensionProvider(m_factory);
         }
       }
     }

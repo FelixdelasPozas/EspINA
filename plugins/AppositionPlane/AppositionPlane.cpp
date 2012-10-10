@@ -9,10 +9,14 @@
 //-----------------------------------------------------------------------------
 AppositionPlane::AppositionPlane()
 {
-  qDebug() << "Loading AP";
+}
+
+//-----------------------------------------------------------------------------
+void AppositionPlane::initExtensionProvider(EspinaFactory* factory)
+{
   SegmentationExtension::SPtr segExtension(new AppositionPlaneExtension());
-  EspinaFactory::instance()->registerSegmentationExtension(segExtension);
-  EspinaFactory::instance()->registerRenderer(new AppositionPlaneRenderer());
+  factory->registerSegmentationExtension(segExtension);
+  factory->registerRenderer(new AppositionPlaneRenderer());
 }
 
 Q_EXPORT_PLUGIN2(AppositionPlanePlugin, AppositionPlane)

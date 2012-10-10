@@ -14,8 +14,8 @@ class AppositionPlane
 public:
   explicit AppositionPlane();
   virtual ~AppositionPlane(){}
-  
-  virtual void registerExtensions(){}
+
+  virtual void initExtensionProvider(EspinaFactory* factory);
 };
 
 #endif// APPOSITIONPLANE_H

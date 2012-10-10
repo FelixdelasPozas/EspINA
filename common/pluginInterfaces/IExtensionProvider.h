@@ -22,13 +22,14 @@
 
 #include <QtPlugin>
 
+class EspinaFactory;
 class IExtensionProvider
 {
 public:
   virtual ~IExtensionProvider(){}
 
-  virtual void registerExtensions() = 0;
+  virtual void initExtensionProvider(EspinaFactory *factory) = 0;
 };
 Q_DECLARE_INTERFACE(IExtensionProvider,
-		    "es.upm.cesvima.EspINA.ExtensionProvider/1.0")
+                    "es.upm.cesvima.EspINA.ExtensionProvider/1.1")
 #endif // IEXTENSIONPROVIDER_H
