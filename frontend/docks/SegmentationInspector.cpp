@@ -39,7 +39,7 @@ SegmentationInspector::SegmentationInspector(Segmentation *seg,
 , m_viewManager(vm)
 , m_seg(seg)
 , m_model(model)
-, m_view(new VolumeView(vm))
+, m_view(new VolumeView(model->factory(), vm))
 , m_info(new InformationProxy())
 , m_sort(new QSortFilterProxyModel())
 {

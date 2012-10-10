@@ -25,12 +25,14 @@
 
 #include <common/gui/VolumeView.h>
 
+class EspinaFactory;
 class VolumeViewSettingsPanel
 : public ISettingsPanel
 , Ui::VolumeViewSettingsPanel 
 {
 public:
-  explicit VolumeViewSettingsPanel(VolumeView::SettingsPtr settings);
+  explicit VolumeViewSettingsPanel(const EspinaFactory *factory,
+                                   VolumeView::SettingsPtr settings);
 
   virtual const QString shortDescription() {return tr("3D View");}
   virtual const QString longDescription() {return tr("%1 Settings").arg(shortDescription());}
@@ -39,10 +41,11 @@ public:
   virtual void acceptChanges();
 
   virtual bool modified() const;
-  
+
   virtual ISettingsPanel* clone();
 
 private:
+  const EspinaFactory *m_factory;
   VolumeView::SettingsPtr m_settings;
 };
 

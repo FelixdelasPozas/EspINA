@@ -170,23 +170,23 @@ bool AppositionPlaneRenderer::removeItem(ModelItem* item)
 {
   if (ModelItem::SEGMENTATION != item->type())
     return false;
-  
+
   Segmentation *seg = dynamic_cast<Segmentation *>(item);
-  
+
   Q_ASSERT(m_representations.contains(item));
   Q_ASSERT(m_state.contains(item));
-  
+
   State *state = m_state[item];
   if (state->visible)
     m_renderer->RemoveActor(state->actor);
-  
+
   state->actor->Delete();
   delete state;
   m_state.remove(item);
-  
+
   if (m_representations.contains(item))
     m_representations.remove(item);
-  
+
   return true;
 }
 

@@ -47,6 +47,7 @@ DefaultEspinaView::DefaultEspinaView(EspinaModel* model, ViewManager* vm, QMainW
 : QAbstractItemView(parent)
 , m_showProcessing(false)
 , m_showSegmentations(true)
+, m_model(model)
 {
   double cyan[3] = { 0, 1, 1 };
   double blue[3] = { 0, 0, 1 };
@@ -58,7 +59,7 @@ DefaultEspinaView::DefaultEspinaView(EspinaModel* model, ViewManager* vm, QMainW
   xyView = new SliceView(vm, AXIAL);
   xzView = new SliceView(vm, CORONAL);
   yzView = new SliceView(vm, SAGITTAL);
-  volView = new VolumeView(vm, this);
+  volView = new VolumeView(m_model->factory(), vm, this);
 
   xyView->setCrosshairColors(blue, magenta);
   initSliceView(xyView);
@@ -225,7 +226,11 @@ void DefaultEspinaView::setColorEngine(ColorEngine* engine)
 //----------------------------------------------------------------------------
 ISettingsPanel* DefaultEspinaView::settingsPanel()
 {
-  return new SettingsPanel(xyView->settings(), yzView->settings(), xzView->settings(), volView->settings());
+  return new SettingsPanel(xyView->settings(),
+                           yzView->settings(),
+                           xzView->settings(),
+                           volView->settings(),
+                           m_model->factory());
 }
 
 //-----------------------------------------------------------------------------
@@ -485,8 +490,16 @@ void DefaultEspinaView::setFitToSlices(bool fit)
 // }
 
 //-----------------------------------------------------------------------------
-DefaultEspinaView::SettingsPanel::SettingsPanel(SliceView::SettingsPtr xy, SliceView::SettingsPtr yz, SliceView::SettingsPtr xz, VolumeView::SettingsPtr vol) :
-m_xy(xy), m_yz(yz), m_xz(xz), m_vol(vol)
+DefaultEspinaView::SettingsPanel::SettingsPanel(SliceView::SettingsPtr xy,
+                                                SliceView::SettingsPtr yz,
+                                                SliceView::SettingsPtr xz,
+                                                VolumeView::SettingsPtr vol,
+                                                EspinaFactory *factory)
+: m_xy(xy)
+, m_yz(yz)
+, m_xz(xz)
+, m_vol(vol)
+, m_factory(factory)
 {
   QVBoxLayout *layout = new QVBoxLayout();
   QGroupBox *group;
@@ -517,7 +530,7 @@ m_xy(xy), m_yz(yz), m_xz(xz), m_vol(vol)
   layout->addWidget(group);
 
   // 3D View
-  m_volPanel = new VolumeViewSettingsPanel(vol);
+  m_volPanel = new VolumeViewSettingsPanel(factory, vol);
   group = new QGroupBox(m_volPanel->shortDescription());
   groupLayout = new QVBoxLayout();
   groupLayout->addWidget(m_volPanel);
@@ -548,7 +561,7 @@ bool DefaultEspinaView::SettingsPanel::modified() const
 //-----------------------------------------------------------------------------
 ISettingsPanel* DefaultEspinaView::SettingsPanel::clone()
 {
-  return new SettingsPanel(m_xy, m_yz, m_xz, m_vol);
+  return new SettingsPanel(m_xy, m_yz, m_xz, m_vol, m_factory);
 }
 
 //-----------------------------------------------------------------------------

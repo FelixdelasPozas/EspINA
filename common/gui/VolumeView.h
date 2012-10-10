@@ -33,6 +33,7 @@
 #include <vtkRenderer.h>
 #include <QPushButton>
 
+class EspinaFactory;
 class vtkAbstractWidget;
 class QVTKWidget;
 
@@ -57,7 +58,9 @@ public:
   {
     const QString RENDERERS;
   public:
-    explicit Settings(const QString prefix=QString(), VolumeView *parent=NULL);
+    explicit Settings(const EspinaFactory *factory,
+                      const QString prefix=QString(),
+                      VolumeView *parent=NULL);
 
     void setRenderers(QList< Renderer* > values);
     QList<Renderer *> renderers() const;
@@ -70,13 +73,18 @@ public:
   typedef QSharedPointer<Settings> SettingsPtr;
 
 public:
-  explicit VolumeView(ViewManager *vm, QWidget* parent = 0);
+  explicit VolumeView(const EspinaFactory *factory,
+                      ViewManager* vm,
+                      QWidget* parent = 0);
   virtual ~VolumeView(){}
 
   void centerViewOn(Nm center[3]/*nm*/);
   void setCameraFocus(const Nm center[3]);
 
+public slots: //Needed to interact with renderers
   virtual void updateView();
+
+public:
   virtual void resetCamera();
 
   virtual void addChannel(Channel *channel);

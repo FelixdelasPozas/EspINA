@@ -26,6 +26,7 @@
 #include "common/gui/SliceView.h"
 #include "common/gui/VolumeView.h"
 
+class EspinaFactory;
 // Forward-declaration
 class SliceViewSettingsPanel;
 class ColorEngine;
@@ -111,6 +112,8 @@ private:
   VolumeView *volView;
   QDockWidget *volDock, *yzDock, *xzDock;
   QAction     *m_showRuler, *m_showThumbnail;
+
+  EspinaModel *m_model;
 };
 
 class DefaultEspinaView::SettingsPanel
@@ -120,7 +123,8 @@ public:
   explicit SettingsPanel(SliceView::SettingsPtr xy,
                          SliceView::SettingsPtr yz,
                          SliceView::SettingsPtr xz,
-                         VolumeView::SettingsPtr vol);
+                         VolumeView::SettingsPtr vol,
+                         EspinaFactory *factory);
 
   virtual const QString shortDescription() {return tr("View");}
   virtual const QString longDescription() {return tr("%1 Settings").arg(shortDescription());}
@@ -133,8 +137,9 @@ public:
   virtual ISettingsPanel* clone();
 
 private:
-  Nm m_slicingStep;
   SliceView::SettingsPtr m_xy, m_yz, m_xz;
+  EspinaFactory *m_factory;
+  Nm m_slicingStep;
   SliceViewSettingsPanel *m_xyPanel, *m_yzPanel, *m_xzPanel;
   VolumeView::SettingsPtr m_vol;
   VolumeViewSettingsPanel *m_volPanel;

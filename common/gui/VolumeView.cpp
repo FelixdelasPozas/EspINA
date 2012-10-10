@@ -59,12 +59,14 @@
 #include <vtkWidgetRepresentation.h>
 
 //-----------------------------------------------------------------------------
-VolumeView::VolumeView(ViewManager* vm, QWidget* parent)
+VolumeView::VolumeView(const EspinaFactory *factory,
+                       ViewManager* vm,
+                       QWidget* parent)
 : EspinaRenderView(parent)
 , m_viewManager(vm)
 , m_mainLayout      (new QVBoxLayout())
 , m_controlLayout   (new QHBoxLayout())
-, m_settings        (new Settings(QString(), this))
+, m_settings        (new Settings(factory, QString(), this))
 {
   setupUI();
   buildControls();
@@ -583,7 +585,9 @@ void VolumeView::takeSnapshot()
 }
 
 //-----------------------------------------------------------------------------
-VolumeView::Settings::Settings(const QString prefix, VolumeView* parent)
+VolumeView::Settings::Settings(const EspinaFactory *factory,
+                               const QString prefix,
+                               VolumeView* parent)
 : RENDERERS(prefix + "VolumeView::renderers")
 {
   this->parent = parent;
@@ -592,15 +596,14 @@ VolumeView::Settings::Settings(const QString prefix, VolumeView* parent)
   if (!settings.contains(RENDERERS))
     settings.setValue(RENDERERS, QStringList() << "Crosshairs" << "Volumetric" << "Mesh");
 
-  /*BUG TODO 2012-10-05
-  QMap<QString, Renderer *> renderers = EspinaFactory::instance()->renderers();
+  QMap<QString, Renderer *> renderers = factory->renderers();
   foreach(QString name, settings.value(RENDERERS).toStringList())
   {
     Renderer *renderer = renderers.value(name, NULL);
     if (renderer)
       m_renderers << renderer;
   }
-  */
+
 }
 
 //-----------------------------------------------------------------------------
