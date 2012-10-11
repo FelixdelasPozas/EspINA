@@ -138,7 +138,6 @@ QVariant CountingRegionSegmentationExtension::information(ModelItemExtension::In
 {
   if (DISCARTED == tag)
   {
-    m_seg->setVisible(!m_isDiscarted);
     return m_isDiscarted;
   }
 
@@ -281,6 +280,8 @@ void CountingRegionSegmentationExtension::evaluateBoundingRegions()
       m_isDiscarted |= discartedByRegion(inputBB, br->region());
   }
   QApplication::restoreOverrideCursor();
-
-  m_seg->setVisible(!m_isDiscarted);
+  QString condition = m_isDiscarted?
+                      "<font color=\"red\">Outside</font>":
+                      "<font color=\"green\">Inside</font>";
+  m_seg->addCondition(condition, ":/apply.svg");
 }

@@ -120,7 +120,7 @@ public slots:
   // proper type is required                                                 //
   //---------------------------------------------------------------------------
 public:
-  void setActiveChannel(Channel *channel) { m_activeChannel=channel; }
+  void setActiveChannel(Channel *channel);
   Channel *activeChannel() { return m_activeChannel; }
   void setActiveTaxonomy(TaxonomyElement *taxonomy) { m_activeTaxonomy = taxonomy; }
   TaxonomyElement *activeTaxonomy() { return m_activeTaxonomy; }

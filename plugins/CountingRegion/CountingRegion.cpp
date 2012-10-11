@@ -131,11 +131,6 @@ CountingRegion::CountingRegion(QWidget * parent)
 //   m_regionModel.setHorizontalHeaderItem(3, new QStandardItem(tr("XZ")));
 //   m_regionModel.setHorizontalHeaderItem(4, new QStandardItem(tr("3D")));
 
-  /* TODO 2012-10-09
-  connect(EspinaCore::instance(), SIGNAL(sampleSelected(Sample*)),
-	  this, SLOT(sampleChanged(Sample*)));
-	  */
-
   connect(m_gui->createRegion, SIGNAL(clicked()),
           this, SLOT(createBoundingRegion()));
   connect(m_gui->removeRegion, SIGNAL(clicked()),
@@ -161,6 +156,8 @@ void CountingRegion::initDockWidget(EspinaModel* model, QUndoStack* undoStack, V
 {
   m_espinaModel = model;
   m_viewManager = viewManager;
+  connect(m_viewManager, SIGNAL(activeChannelChanged(Channel*)),
+          this, SLOT(channelChanged(Channel*)));
 
   ChannelExtension::SPtr channelExtension(new CountingRegionChannelExtension(this, m_viewManager));
   m_espinaModel->factory()->registerChannelExtension(channelExtension);
@@ -283,10 +280,10 @@ void CountingRegion::removeSelectedBoundingRegion()
 }
 
 //------------------------------------------------------------------------
-void CountingRegion::sampleChanged(Sample* sample)
+void CountingRegion::channelChanged(Channel* channel)
 {
-  m_gui->createRegion->setEnabled(sample != NULL);
-  if (sample)
+  m_gui->createRegion->setEnabled(channel != NULL);
+  if (channel)
     m_gui->setOffsetRanges(-1000,1000);
   else
     m_gui->setOffsetRanges(0,0);

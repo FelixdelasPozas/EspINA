@@ -144,6 +144,12 @@ void ViewManager::updateViews()
 }
 
 //----------------------------------------------------------------------------
+void ViewManager::setActiveChannel(Channel* channel)
+{
+  m_activeChannel = channel;
+  emit activeChannelChanged(channel);
+}
+//----------------------------------------------------------------------------
 void ViewManager::addWidget(EspinaWidget* widget)
 {
   foreach(EspinaRenderView *rView, m_renderViews)

@@ -25,6 +25,8 @@
 
 #include "common/EspinaTypes.h"
 
+#include <QIcon>
+
 class Filter;
 class vtkAlgorithmOutput;
 
@@ -53,8 +55,17 @@ public:
     return res;
   }
 
+  /// Add a new condition to the item:
+  /// Conditions provide extra information about the state of the item
+  /// i.e. Discarted by Counting Region
+  void addCondition(QString state, QString icon)
+  {
+    m_conditions[state] = icon;
+  }
+
 protected:
   bool m_isSelected;
+  QMap<QString, QString> m_conditions;
 };
 
 typedef QSharedPointer<PickableItem> SelectableItemPtr;

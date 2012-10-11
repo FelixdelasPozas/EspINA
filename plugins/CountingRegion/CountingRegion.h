@@ -70,7 +70,7 @@ protected slots:
   /// extension discarting those that are out of the region
   void createBoundingRegion();
   void removeSelectedBoundingRegion();
-  void sampleChanged(Sample *sample);
+  void channelChanged(Channel *channel);
   void showInfo(const QModelIndex& index);
   void saveRegionDescription();
 
