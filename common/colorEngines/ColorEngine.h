@@ -27,12 +27,18 @@
 
 class Segmentation;
 
+typedef vtkSmartPointer<vtkLookupTable> LUTPtr;
+
 class ColorEngine
 : public QObject
 {
+  Q_OBJECT
 public:
   virtual QColor color(const Segmentation *seg) = 0;
-  virtual vtkSmartPointer<vtkLookupTable> lut(const Segmentation *seg) = 0;
+  virtual LUTPtr lut(const Segmentation *seg) = 0;
+
+signals:
+  void lutModified();
 };
 
 typedef QSharedPointer<ColorEngine> ColorEnginePtr;

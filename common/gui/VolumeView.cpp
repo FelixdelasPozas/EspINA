@@ -688,6 +688,7 @@ void VolumeView::countEnabledRenderers(bool value)
 void VolumeView::updateSelection(ViewManager::Selection selection)
 {
   updateSegmentationRepresentations();
+  updateView();
 }
 
 //-----------------------------------------------------------------------------

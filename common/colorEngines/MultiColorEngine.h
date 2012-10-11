@@ -29,12 +29,12 @@ class MultiColorEngine
 {
 public:
   virtual QColor color(const Segmentation* seg);
-  virtual vtkSmartPointer< vtkLookupTable > lut(const Segmentation* seg);
+  virtual LUTPtr lut(const Segmentation* seg);
 
-  void addColorEngine(ColorEnginePtr engine);
-  void removeColorEngine(ColorEnginePtr engine);
+  virtual void addColorEngine(ColorEnginePtr engine);
+  virtual void removeColorEngine(ColorEnginePtr engine);
 
-private:
+protected:
   QList<ColorEnginePtr> m_engines;
 };
 

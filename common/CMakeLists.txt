@@ -33,6 +33,7 @@ include_directories(
 ####### EspinaCore #########
 # Add extra library containing custom code for the client.
 qt4_wrap_cpp(CORE_MOC
+  colorEngines/ColorEngine.h
   editor/BrushSelector.h
   editor/CODESettings.h
   gui/ActionSelector.h
@@ -69,7 +70,7 @@ set (CORE_SOURCES
   EspinaRegions.cpp
   colorEngines/MultiColorEngine.cpp
   colorEngines/NumberColorEngine.cpp
-  colorEngines/SliceViewSelectionColorEngine.cpp
+  colorEngines/TransparencySelectionHighlighter.cpp
   colorEngines/TaxonomyColorEngine.cpp
   colorEngines/UserColorEngine.cpp
   editor/CODESettings.cpp

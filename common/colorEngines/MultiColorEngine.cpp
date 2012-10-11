@@ -45,14 +45,14 @@ QColor MultiColorEngine::color(const Segmentation* seg)
 }
 
 //-----------------------------------------------------------------------------
-vtkSmartPointer<vtkLookupTable> MultiColorEngine::lut(const Segmentation* seg)
+LUTPtr MultiColorEngine::lut(const Segmentation* seg)
 {
   if (m_engines.size() == 1)
     return m_engines.first()->lut(seg);
 
   double alpha = 0.8;
   QColor c = color(seg);
-  vtkSmartPointer<vtkLookupTable> seg_lut = vtkLookupTable::New();
+  LUTPtr seg_lut = LUTPtr::New();
   seg_lut->Allocate();
   seg_lut->SetNumberOfTableValues(2);
   seg_lut->Build();

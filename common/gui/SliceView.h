@@ -42,6 +42,7 @@ class Channel;
 class ColorEngine;
 class Representation;
 class Segmentation;
+class TransparencySelectionHighlighter;
 
 class vtkImageResliceToColors;
 class vtkImageActor;
@@ -74,8 +75,6 @@ public:
   {
     NoSelector = 0x0, From = 0x1, To = 0x2
   };Q_DECLARE_FLAGS(SliceSelectors, SliceSelector)
-
-  class SelectionColorEngine;
 
   class Settings;
   typedef QSharedPointer<Settings> SettingsPtr;
@@ -260,10 +259,11 @@ private:
   vtkSmartPointer<vtkActor>    m_channelBorder, m_viewportBorder;
 
   bool m_sceneReady;
-
   // Representations
-  QMap<Channel *,      SliceRep> m_channelReps;
-  QMap<Segmentation *, SliceRep> m_segmentationReps;
+
+  TransparencySelectionHighlighter   *m_highlighter;
+  QMap<Channel *,      SliceRep>      m_channelReps;
+  QMap<Segmentation *, SliceRep>      m_segmentationReps;
   QMap<EspinaWidget *, SliceWidget *> m_widgets;
 };
 

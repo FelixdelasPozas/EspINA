@@ -115,8 +115,8 @@ void TaxonomyExplorer::changeColor()
     Q_ASSERT(ModelItem::TAXONOMY == item->type());
     TaxonomyElement *tax = dynamic_cast<TaxonomyElement *>(item);
     m_engine->updateTaxonomyColor(tax);
-    //TDO
-    //m_viewManager->updateViews();
+    m_viewManager->updateSegmentationRepresentations();
+    m_viewManager->updateViews();
   }
 }
 

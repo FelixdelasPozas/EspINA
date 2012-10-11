@@ -17,20 +17,27 @@
 */
 
 
-#ifndef SLICEVIEWSELECTIONCOLORENGINE_H
-#define SLICEVIEWSELECTIONCOLORENGINE_H
-
-
-#include "common/gui/SliceView.h"
+#ifndef TRANSPARENCYSELECTIONHIGHLIGHTER_H
+#define TRANSPARENCYSELECTIONHIGHLIGHTER_H
 
 #include "common/colorEngines/ColorEngine.h"
 
-class SliceView::SelectionColorEngine
-: public ColorEngine
+#include <QMap>
+
+// NOTE 2012-10-11 Consider unifying its interface with ColorEngine
+class TransparencySelectionHighlighter
 {
+  typedef QMap<QString, LUTPtr> LUTMap;
+
 public:
-    virtual QColor color(const Segmentation* seg);
-    virtual vtkSmartPointer< vtkLookupTable > lut(const Segmentation* seg);
+  QColor color(const QColor &orignal, bool highlight=false);
+  LUTPtr lut(const QColor &original, bool highlight=false);
+
+private:
+  QString colorKey(const QColor &color) const;
+
+private:
+  static LUTMap m_LUT;
 };
 
-#endif // SLICEVIEWSELECTIONCOLORENGINE_H
+#endif // TRANSPARENCYSELECTIONHIGHLIGHTER_H

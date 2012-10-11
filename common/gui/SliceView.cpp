@@ -21,6 +21,7 @@
 // // EspINA
 #include "EspinaTypes.h"
 #include "common/colorEngines/ColorEngine.h"
+#include "common/colorEngines/TransparencySelectionHighlighter.h"
 #include "common/model/Channel.h"
 #include "common/model/Representation.h"
 #include "common/model/Segmentation.h"
@@ -115,6 +116,7 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
 , m_settings(new Settings(m_plane))
 , m_inThumbnail(false)
 , m_sceneReady(false)
+, m_highlighter(new TransparencySelectionHighlighter())
 {
   memset(m_crosshairPoint, 0, 3*sizeof(Nm));
 
@@ -809,15 +811,18 @@ bool SliceView::updateSegmentation(Segmentation* seg)
 
   if (rep.visible)
   {
-    QColor segColor = m_viewManager->color(seg);
+    QColor segColor =  m_viewManager->color(seg);
+    bool highlight = seg->isSelected();
+    QColor highlightedColor = m_highlighter->color(segColor, highlight);
+
     if ((seg->isSelected() != rep.selected)
-      || (segColor != rep.color)
+      || (highlightedColor != rep.color)
       || seg->updateForced())
     {
       rep.selected = seg->isSelected();
-      rep.color = segColor;
+      rep.color = highlightedColor;
 
-      rep.resliceToColors->SetLookupTable(m_viewManager->lut(seg));
+      rep.resliceToColors->SetLookupTable(m_highlighter->lut(segColor, highlight));
       rep.resliceToColors->Update();
       updated = true;
     }
