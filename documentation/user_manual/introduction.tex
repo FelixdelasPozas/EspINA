@@ -3,3 +3,20 @@
 \espina{} is a tool for segmenting, editing and analyzing neuroscientific images acquired using microscopy.
 The program is been developed by the CesViMa (Centro de Supercomputación y Visualización de Madrid)
 for the Cajal Blue Brain Project.
+
+\section{Supported Files}
+\espina{} con read images in the following formats:
+\begin{itemize}
+  \item TIFF (Tagged Image File Format)
+  \item MHD/MHA (MetaImage)\\
+% note on mhd, mha formats
+\begin{bclogo}[couleur = yellow!33, logo=\bcattention]
+{Note} In MetaImage files using the character \% in the name of the file are unsupported.
+\end{bclogo}
+  \item SEGMHA (former \espina{} format, provided for compatibility)
+  \item SEG (\espina{} format)
+\end{itemize}
+TIFF and MHD/MHA formats contains channels, while SEGMHA format contains both the channel and the
+segmentation images, and SEG formats contain segmentation images and additional data. SEG 
+files containt a reference to the channel image used for segmentation. Segmentation images
+produced by \espina{} con only be saved in SEG format.

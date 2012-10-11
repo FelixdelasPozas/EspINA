@@ -17,7 +17,7 @@ SET (TEST_ESPINA_MODELS CACHE BOOL "Build EspINA Model Test wrappers")
 #  enable_testing()
 #endif (${BUILD_TESTING})
 
-#SET(LIBRARY_OUTPUT_PATH "${CMAKE_BINARY_DIR}/frontend/plugins")
+#SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/frontend/plugins CACHE_PATH "Single directory for all plugin binaries.")
 
 add_subdirectory(common  )
 add_subdirectory(frontend)

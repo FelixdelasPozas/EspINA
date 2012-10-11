@@ -1,20 +1,3 @@
-\section{Supported Files}
-\espina{} con read images in the following formats:
-\begin{itemize}
-  \item TIFF (Tagged Image File Format)
-  \item MHD/MHA (MetaImage)\\
-% note on mhd, mha formats
-\begin{bclogo}[couleur = yellow!33, logo=\bcattention]
-{Note} In MetaImage files using the character \% in the name of the file are unsupported.
-\end{bclogo}
-  \item SEGMHA (former \espina{} format, provided for compatibility)
-  \item SEG (\espina{} format)
-\end{itemize}
-TIFF and MHD/MHA formats contains channels, while SEGMHA format contains both the channel and the
-segmentation images, and SEG formats contain segmentation images and additional data. SEG 
-files containt a reference to the channel image used for segmentation. Segmentation images
-produced by \espina{} con only be saved in SEG format.
-
 \section{Using \espina}
 
 \subsection{General Purpose Tools}
@@ -26,7 +9,7 @@ produced by \espina{} con only be saved in SEG format.
 
 %\desc{Show Segmentations}{../../frontend/rsc/show_all}
 %{Segmentations are shown in planar views}
-\begin{tabular}{| m{1.3cm} | m{13.5cm} |}
+\begin{tabular}{| m{1.3cm} | m{12cm} |}
 \hline
 \textbf{Button} & \textbf{Description}\\
 \hline
@@ -45,64 +28,6 @@ taxonomy label to be applied when segmentations are created.\\
 \hline
 \end{tabular}
 
-\subsection{Three-dimensional View}
-Shows the tridimensional representation of segmentations using different rendering methods. Also contains
-other information as crosshair position or plugin data visualizations.
-\begin{figure}[H]
-\centering
-\includegraphics{fig/VolumeView}
-\caption{Three-dimensional view widget.}
-\end{figure}
-
-\begin{tabular}{| m{1.3cm} | m{13.5cm} |}
-\hline
-\textbf{Button} & \textbf{Description}\\
-\hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/snapshot_scene} & 
-\textbf{Take Snapshot}: Save an snapshot of the current view. Supported formats:
-\begin{itemize}
-\item JPG (Joint Photographic Experts Group)
-\item PNG (Portable Network Graphics)
-\end{itemize}\\
-\hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/export_scene} &
-\textbf{Export 3D Scene}: Export current displayed scene into a 3D compatible format. Supported formats:
-\begin{itemize}
-\item POV (Persistence Of Vison)
-\item VRML (Virtual Reality Modelling Languange)
-\item X3D (XML-based format, the successor of VRML)
-\end{itemize}
-\begin{bclogo}[couleur = yellow!33, logo=\bcattention]
-{Note} Only the mesh objects of the scene are exported, volumetric objects are not. This is a limitation of the destination formats.
-\end{bclogo}\\
-\hline
-\end{tabular}
-\vspace{0.3cm}
-
-On the right side there are all available renderers, which can be configured in
-Volume View's settings panel.\\
-
-\begin{tabular}{| m{1.3cm} | m{13.5cm} |}
-\hline
-\textbf{Button} & \textbf{Description}\\
-\hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/show_planes} &
-\textbf{Crosshair Renderer}: Toggle channel's crosshair planes visibility.\\
-\hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/mesh} &
-\textbf{Mesh Renderer}: Toggle segmentation's mesh rendering.\\
-\hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/voxel} &
-\textbf{Volumetric Renderer}: Toggle segmentation's volumetric rendering.\\
-\hline
-\end{tabular}
-\vspace{0.3cm}
-
-\begin{bclogo}[couleur = yellow!33, logo=\bcattention]
-{Note} Plugins can add additional renderers in the right side of the widget. Refer to
-the plugin documentation for information.
-\end{bclogo}
-
 \subsection{Channel Explorer}
 Allows the user to individually toggle the visibility of each channel using a toogle button
 located next to the channel's name whose function is similar of that described in the
@@ -114,7 +39,7 @@ general-purpose tools section.
 \caption{Channel explorer widget.}
 \end{figure}
 
-\begin{tabular}{| m{1.3cm} | m{13.5cm} |}
+\begin{tabular}{| m{1.3cm} | m{12cm} |}
 \hline
 \textbf{Button} & \textbf{Description}\\
 \hline
@@ -143,7 +68,7 @@ is not modified nor deleted from disk.\\
 \caption{Taxonomy explorer widget.}
 \end{figure}
 
-\begin{tabular}{| m{1.3cm} | m{13.5cm} |}
+\begin{tabular}{| m{1.3cm} | m{12cm} |}
 \hline
 \textbf{Button} & \textbf{Description}\\
 \hline
@@ -174,7 +99,7 @@ general-purpose tools section.
 \caption{Segmentation explorer widget.}
 \end{figure}
 
-\begin{tabular}{| m{1.3cm} | m{13.5cm} |}
+\begin{tabular}{| m{1.3cm} | m{12cm} |}
 \hline
 \textbf{Button} & \textbf{Description}\\
 \hline
@@ -208,9 +133,15 @@ For more specific information, please refer to the corresponding section.
 
 \subsection{Volume Of Interest}
 
-Define a volume to limit the effect of other tools.\\
+It's a volume to limit the effect of other tools, so the tool algorithm will not
+go farther than the boundaries that define the volume.\\
+To use it, just click on the toolbar button an then left click on the center of
+the view area you want to place the volume of interest. Once the volume has been
+placed the user can modify it's dimensions by clicking and dragging on the edges.\\
+The user can define no more than one volume of interest at a given time. 
 
-\begin{tabular}{| m{1.3cm} | m{13.5cm} |}
+\vspace{0.3cm}
+\begin{tabular}{| m{1.3cm} | m{12cm} |}
 \hline
 \textbf{Button} & \textbf{Description}\\
 \hline
@@ -220,12 +151,16 @@ of interest.\\
 \hline
 \end{tabular}
 
+
 \subsection{Seed Grow Segmentation}
 
 This tool provides a semi-automated segmentation algorithm. Select a voxel
 belonging to the object being segmented. A new segmentation will be createad
 including all voxel which are equivalent (in gray scale values) to the selected
-one, the seed.
+one, the seed.\\
+If you have defined your own ``volume of interest'', then that is used instead of
+the default one when applying the algorithm. The volume of interest will limit the
+effect of the algorithm to the space enclosed within the volume.\\
 
 \begin{figure}[H]
 \centering
@@ -234,7 +169,7 @@ one, the seed.
 \end{figure}
 \vspace{0.3cm}
 
-\begin{tabular}{| m{1.3cm} | m{13.5cm} |}
+\begin{tabular}{| m{1.3cm} | m{12cm} |}
 \hline
 \textbf{Button} & \textbf{Description}\\
 \hline
@@ -244,8 +179,7 @@ the one selected as seed. \\
 \hline
 & %No icon
 \textbf{Default VOI}: Determine whether or not a rectangular volume of interest
-centered on the selection point is applied. If you have defined your own volume
-of interest, then that is used instead of the default one.\\
+centered on the selection point is applied.\\
 \hline
 \includegraphics[width=0.7cm]{../../frontend/toolbar/seedgrow/rsc/pixelSelector} &
 \textbf{Pixel Selector}: Create a new segmentation using the voxel under the
@@ -254,13 +188,19 @@ cursor as seed for the Seed Grow Algorithm.\\
 \includegraphics[width=0.7cm]{../../frontend/toolbar/seedgrow/rsc/bestPixelSelector} &
 \textbf{Best Pixel Selector}: Create a new segmentation using the best voxel
 ,within the neighborhood of the voxel under the cursor, as seed for the Seed
-Grow Algorithm. Best voxel is defined in terms of gray scale similarity with a
-reference gray scale value. The reference value can be configured at Seed Grow
-Segmentation settings panel.\\
+Grow Algorithm. \\
 \hline
 \end{tabular}
 
-Tip: Use Ctrl+Wheel to change threshold while any selector is active.
+\vspace{0.3cm}
+\begin{bclogo}[couleur = yellow!33, logo= \bcbook]
+{Tip} Use Ctrl+Wheel to change threshold while any selector is active. 
+\end{bclogo}
+\vspace{0.3cm}
+
+Best voxel is defined in terms of gray scale similarity with a
+reference gray scale value. The reference value can be configured at Seed Grow
+Segmentation settings panel.\\
 
 \subsubsection{Filter Inspector}
 The filter inspector shows relevant information about the filter that created the segmentation,
@@ -272,92 +212,3 @@ therefore the information shown is dependent on the filter or plugin filter used
 \caption{Filter inspector widget showing the information of a seed grow filter.}
 \end{figure}
 
-\subsection{Edition Tools}
-To start creating a new segmentation select your tool and then with no other
-segmentation being selected, start drawing on the 2D views.
-
-\begin{figure}[H]
-\centering
-\includegraphics{fig/EditorToolbar}
-\caption{Edition toolbar.}
-\end{figure}
-
-Brush tools will behave different depending on whether there is a selected
-segmentation or not. If there is only one segmentation selected then
-drawing/erasing will modify it. Otherwise, a new segmentation will be created
-until the tool is deactivated. \\
-
-\begin{bclogo}[couleur = yellow!33, logo= \bcbook]
-{Tip} As a visual help, the brush border color will change from blue (creating a
-new segmentation) to green (editing current segmentation). 
-\end{bclogo}
-\vspace{0.3cm}
-
-\begin{tabular}{| m{1.3cm} | m{13.5cm} |}
-\hline
-\textbf{Button} & \textbf{Description}\\
-\hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/pencil2D} &
-\textbf{2D Brush}: Use a circle to draw on current slice. Use Ctrl+Wheel to
-change brush radius.\\
-\hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/pencil3D} &
-\textbf{3D Brush}: Use a sphere to draw on current and adjacent slices. Use
-Ctrl+Wheel to change brush radius.\\
-\hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/eraser2D} &
-\textbf{Eraser}: Ctrl click while using any of the previous brushes to erase
-instead of draw.\\
-\includegraphics[width=0.7cm]{../../frontend/rsc/eraser3D} & \\
-\hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/lasso} &
-\textbf{Contour}: Use a free-form contour to draw on current slice.\\
-\hline
-\end{tabular}
-\vspace{0.3cm}
-
-Sometimes, it can be convenient to use different tools to segement different
-parts of the same segmentation and then combine the results to create the final 
-segmentation.
-\vspace{0.3cm}
-
-\begin{tabular}{| m{1.3cm} | m{13.5cm} |}
-\hline
-\textbf{Button} & \textbf{Description}\\
-\hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/add} &
-\textbf{Combine}: Create a unique segmentation using all voxels from all
-selected segmentations.\\
-\hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/remove} &
-\textbf{Substract}: Use the first selected input as final segmentation and erase
-all voxels which belong to any of the rest of the segmentations.\\
-\hline
-\end{tabular}
-\vspace{0.3cm}
-
-The edition toolbar also provides some operations that affect the morphology of the 
-selected semgentation.
-\vspace{0.3cm}
-
-\begin{tabular}{| m{1.3cm} | m{13.5cm} |}
-\hline
-\textbf{Button} & \textbf{Description}\\
-\hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/erode} &
-\textbf{Erode}: Gradually shrink the boundaries of selected segmentations by eroding the surface using a structuring element (default 3 voxels).\\
-\hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/dilate} &
-\textbf{Dilate}: Gradually enlarge the boundaries of selected segmentations by dilating the surface using a structuring element (default 3 voxels). \\
-\hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/open} &
-\textbf{Opening}: Structural removal of some voxels from the edges of the segmmentations. Contrary to erode, opening preserve those parts of the segmentation which have a similar shape to the structuring element, or that can completely contain the structuring element, a sphere of given radius (default 3 voxels).\\
-\hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/close} &
-\textbf{Closing}: Structural enlargement of voxels from the edges of the segmmentations. Contrary to dilate, closing preserve those cavities of the segmentation which have a similar shape to the structuring element, or that can completely contain the structuring element, a sphere of given radius (default 3 voxels).\\
-\hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/fillHoles} &
-\textbf{Fill Holes}: Fill all the voxels which are totally surrounded by
-segmentation voxels.\\
-\hline
-\end{tabular}

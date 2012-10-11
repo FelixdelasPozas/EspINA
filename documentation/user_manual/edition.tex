@@ -1,3 +1,128 @@
-\section{Edition}
+\section{Edition Tools}
 
-Segmentation tools, even if they are semi-automatic, need to be retouched in order to improve some analitical results.
+Sometimes the user needs to modify the result of a segmentation algorithm, 
+group several segmentations into one, or create a new segmentation. These kind
+of modifications can be done with the edition tools, located in the respective
+toolbar.\\
+
+\begin{figure}[H]
+\centering
+\includegraphics{fig/EditorToolbar}
+\caption{Edition toolbar.}
+\end{figure}
+
+The first is a multi-state button that combines all the manual edition tools,
+particularly:\\
+
+\vspace{0.1cm}
+\begin{tabular}{| m{1.3cm} | m{12cm} |}
+\hline
+\textbf{Button} & \textbf{Description}\\
+\hline
+\includegraphics[width=0.7cm]{../../frontend/rsc/pencil2D} &
+\textbf{2D Brush}: Use a circle to draw on current slice. Use Ctrl+Wheel to
+change brush radius.\\
+\hline
+\includegraphics[width=0.7cm]{../../frontend/rsc/pencil3D} &
+\textbf{3D Brush}: Use a sphere to draw on current and adjacent slices. Use
+Ctrl+Wheel to change brush radius.\\
+\hline
+\includegraphics[width=0.7cm]{../../frontend/rsc/eraser2D} &
+\textbf{Eraser}: Ctrl click while using any of the previous brushes to erase
+instead of draw.\\
+\includegraphics[width=0.7cm]{../../frontend/rsc/eraser3D} & \\
+\hline
+\includegraphics[width=0.7cm]{../../frontend/rsc/lasso} &
+\textbf{Contour}: Use a free-form contour to draw on current slice.\\
+\hline
+\end{tabular}
+\vspace{0.3cm}
+
+To start creating a new segmentation select your tool and then with no other
+segmentation being selected, start drawing on the 2D views. To modify an existing
+segmentation just select your tool with the segmentation you need the modify 
+selected in the segmentation explorer.\\
+When holding the control key, the brush tool will erase instead of drawing.\\
+
+\vspace{0.3cm}
+\begin{bclogo}[couleur = yellow!33, logo= \bcbook]
+{Tip} As a visual help, the brush border color will change from blue (creating a
+new segmentation) to green (editing current segmentation). 
+\end{bclogo}
+\vspace{0.3cm}
+
+The contour drawing, when started, will allow us to put nodes on the view using the left
+mouse button. You can maintain the left button down to draw continuously over the slice.
+While the contour is ``open'' nodes can be added anywhere of the slice, until the last point
+of the contour is added using the right mouse button or, when adding a node with the left
+button, the new segment intersects with the contour. In that case the contour will delete
+unused nodes and will set the contour as ``closed''.\\
+A closed contour can be modified: a node can be added when the mouse cursor is near the edge
+of the contour, nodes can be translated if the user clicks and drags the node with the left
+button, and can be deleted if the user holds down the shift key while left-clicking over a node.
+Also a contour can be tranlated over the plane (click and drag inside the contour) or simply
+erased completely (using the backspace key).\\
+In every one of these states the mouse cursor will change to indicate the outcome of the action.
+\vspace{0.3cm}
+
+\begin{tabular}{| m{1.3cm} | m{12cm} |}
+\hline
+\textbf{Cursor} & \textbf{Description}\\
+\hline
+Hand & Translate whole contour\\
+\hline
+Pointing hand & Translate node\\
+\hline
+\includegraphics[width=0.7cm]{../../frontend/rsc/cross-plus} & Add a node in this position.\\
+\hline
+\includegraphics[width=0.7cm]{../../frontend/rsc/cross-minus} & Delete a node in this position (holding shift key).\\
+\hline
+\end{tabular}
+\vspace{0.3cm}
+
+Sometimes, it can be convenient to use different tools to segment different
+parts of the same segmentation and then combine the results to create the final 
+segmentation. 
+\vspace{0.3cm}
+
+\begin{tabular}{| m{1.3cm} | m{13.5cm} |}
+\hline
+\textbf{Button} & \textbf{Description}\\
+\hline
+\includegraphics[width=0.7cm]{../../frontend/rsc/add} &
+\textbf{Combine}: Create a unique segmentation using all voxels from all
+selected segmentations.\\
+\hline
+\includegraphics[width=0.7cm]{../../frontend/rsc/remove} &
+\textbf{Substract}: Use the first selected input as final segmentation and erase
+all voxels which belong to any of the rest of the segmentations.\\
+\hline
+\end{tabular}
+\vspace{0.3cm}
+
+The edition toolbar also provides some operations that affect the morphology of the 
+selected semgentation. To apply them the only requirement is to have the segmentation
+we want selected when clicking on the action.\\
+\vspace{0.3cm}
+
+\begin{tabular}{| m{1.3cm} | m{13.5cm} |}
+\hline
+\textbf{Button} & \textbf{Description}\\
+\hline
+\includegraphics[width=0.7cm]{../../frontend/rsc/erode} &
+\textbf{Erode}: Gradually shrink the boundaries of selected segmentations by eroding the surface using a structuring element (default 3 voxels).\\
+\hline
+\includegraphics[width=0.7cm]{../../frontend/rsc/dilate} &
+\textbf{Dilate}: Gradually enlarge the boundaries of selected segmentations by dilating the surface using a structuring element (default 3 voxels). \\
+\hline
+\includegraphics[width=0.7cm]{../../frontend/rsc/open} &
+\textbf{Opening}: Structural removal of some voxels from the edges of the segmmentations. Contrary to erode, opening preserve those parts of the segmentation which have a similar shape to the structuring element, or that can completely contain the structuring element, a sphere of given radius (default 3 voxels).\\
+\hline
+\includegraphics[width=0.7cm]{../../frontend/rsc/close} &
+\textbf{Closing}: Structural enlargement of voxels from the edges of the segmmentations. Contrary to dilate, closing preserve those cavities of the segmentation which have a similar shape to the structuring element, or that can completely contain the structuring element, a sphere of given radius (default 3 voxels).\\
+\hline
+\includegraphics[width=0.7cm]{../../frontend/rsc/fillHoles} &
+\textbf{Fill Holes}: Fill all the voxels which are totally surrounded by
+segmentation voxels.\\
+\hline
+\end{tabular}
