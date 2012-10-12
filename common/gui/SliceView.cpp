@@ -41,6 +41,7 @@
 #include <QPushButton>
 #include <QScrollBar>
 #include <QSettings>
+#include <QDate>
 #include <QSpinBox>
 #include <QVBoxLayout>
 #include <QVector3D>
@@ -913,7 +914,7 @@ vtkRenderWindow *SliceView::renderWindow()
 //-----------------------------------------------------------------------------
 void SliceView::sliceViewCenterChanged(Nm x, Nm y, Nm z)
 {
-  qDebug() << "Slice View: " << m_plane << " has new center";
+  //qDebug() << "Slice View: " << m_plane << " has new center";
   emit centerChanged(x, y, z);
 }
 
@@ -1020,7 +1021,21 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
       if (ke->key() == Qt::Key_Control && ke->count() == 1)
         emit showCrosshairs(false);
     }
+    else if (QEvent::ToolTip == e->type())
+    {
+      int x, y;
+      eventPosition(x, y);
+      SegmentationList segs = pickSegmentations(x, y, m_renderer);
+      QString toopTip;
+      foreach(Segmentation *seg, segs)
+      {
+        toopTip = toopTip.append("<b>%1</b><br>").arg(seg->data().toString());
+        toopTip = toopTip.append(seg->data(Qt::ToolTipRole).toString());
+      }
+      m_view->setToolTip(toopTip);
+    }
   }
+
 
   updateRuler();
   updateThumbnail();
@@ -1114,24 +1129,30 @@ QList<Segmentation *> SliceView::pickSegmentations(double vx,
 
     // Verify BUG: kills app when picking a node in TubularWidget in ZY view (not only that one?)
     m_segmentationPicker->GetProp3Ds()->InitTraversal();
-    vtkProp3D *pickedProp;
-    while ((pickedProp = m_segmentationPicker->GetProp3Ds()->GetNextProp3D()))
+
+    vtkProp3DCollection* props = m_segmentationPicker->GetProp3Ds();
+
+    QList<vtkProp3D *> pickedProps;
+    for(vtkIdType i = 0; i < props->GetNumberOfItems(); i++)
+      pickedProps << props->GetNextProp3D();
+
+    // We need to do it in two separate loops to avoid reseting picker on worldRegion call
+    foreach(vtkProp3D *pickedProp, pickedProps)
     {
       Segmentation *pickedSeg = property3DSegmentation(pickedProp);
       Q_ASSERT(pickedSeg);
       Q_ASSERT(pickedSeg->itkVolume());
-      //       qDebug() << "Picked" << pickedSeg->data().toString() << "bounds";
+
       QVector3D pixel = worldRegion(selectedRegion, pickedSeg).first();
       EspinaVolume::IndexType pickedPixel = pickedSeg->index(pixel.x(), pixel.y(), pixel.z());
       if (!pickedSeg->itkVolume()->GetLargestPossibleRegion().IsInside(pickedPixel) ||
         (pickedSeg->itkVolume()->GetPixel(pickedPixel) == 0))
         continue;
 
-//       qDebug() <<  pickedSeg->data().toString() << "picked";
-        segmentations << pickedSeg;
+      segmentations << pickedSeg;
 
-        if (!repeatable)
-          return segmentations;
+      if (!repeatable)
+        return segmentations;
     }
   }
 

@@ -73,7 +73,7 @@ QVariant AppositionPlaneExtension::information(ModelItemExtension::InfoTag tag) 
 
   if (updateAppositionPlane() || UNDEFINED == m_area || UNDEFINED == m_perimeter)
   {
-    qDebug() << "Update Apposition Plane";
+    //qDebug() << "Update Apposition Plane";
     m_area = computeArea();
     m_perimeter = computePerimeter();
   }
@@ -619,7 +619,7 @@ double AppositionPlaneExtension::computePerimeter() const
     totalPerimeter = max_per;
   }catch (...)
   {
-    std::cerr << "Couldn't compute perimter" << std::endl;
+    //std::cerr << "Warning: Couldn't compute " << m_seg->data().toString().toStdString() << "'s Apposition Plane perimter" << std::endl;
     totalPerimeter = UNDEFINED;
   }
 

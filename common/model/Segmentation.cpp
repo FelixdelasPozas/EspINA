@@ -153,34 +153,21 @@ QVariant Segmentation::data(int role) const
       tooltip = tooltip.append("<b>Name:</b> %1<br>").arg(data().toString());
       tooltip = tooltip.append("<b>Taxonomy:</b> %1<br>").arg(m_taxonomy->qualifiedName());
       tooltip = tooltip.append("<b>Filter:</b> %1<br>").arg(filter()->data().toString());
+      tooltip = tooltip.append("<b>Users:</b> %1<br>").arg(m_args[USERS]);
+      tooltip = tooltip.append("<b>Sections:</b><br>");
+      tooltip = tooltip.append("X: %1 nm-%2 nm <br>").arg(bounds[0]).arg(bounds[1]);
+      tooltip = tooltip.append("Y: %1 nm-%2 nm <br>").arg(bounds[2]).arg(bounds[3]);
+      tooltip = tooltip.append("Z: %1 nm-%2 nm <br>").arg(bounds[4]).arg(bounds[5]);
+
       if (!m_conditions.isEmpty())
       {
-        tooltip = tooltip.append("<b>Condtions:</b><br>");
+        tooltip = tooltip.append("<b>Conditions:</b><br>");
         foreach(ConditionInfo condition, m_conditions)
           tooltip = tooltip.append("<img src='%1' width=16 height=16>: %2<br>").arg(condition.first).arg(condition.second);
       }
 
       return tooltip;
     }
-      /*
-      return QString("<b>Name:</b> %1<br>"
-                     "<b>Taxonomy:</b> %2<br>"
-                     "<b>Filter:</b> %3<br>"
-                     "<b>Users:</b><br>"
-                     "%4<br>"
-                     "<b>Sections:</b><br>"
-                     "X: %5 nm-%6 nm <br>"
-                     "Y: %7 nm-%8 nm <br>"
-                     "Z: %9 nm-%10 nm"
-                     "Conditions:")
-                     .arg(data(Qt::DisplayRole).toString())
-                     .arg(m_taxonomy->qualifiedName())
-                     .arg(filter()->data(Qt::DisplayRole).toString())
-                     .arg(m_args[USERS])
-                     .arg(bounds[0]).arg(bounds[1])
-                     .arg(bounds[2]).arg(bounds[3])
-                     .arg(bounds[4]).arg(bounds[5]);
-                     */
     case Qt::CheckStateRole:
       return visible() ? Qt::Checked : Qt::Unchecked;
       // //     case Qt::FontRole:
