@@ -55,8 +55,8 @@ const ModelItemExtension::InfoTag FD = "Feret Diameter";
 const ModelItemExtension::InfoTag EEDx = "Equivalent Ellipsoid Diameter X";
 const ModelItemExtension::InfoTag EEDy = "Equivalent Ellipsoid Diameter Y";
 const ModelItemExtension::InfoTag EEDz = "Equivalent Ellipsoid Diameter Z";
-//TODO: Review values to be used from new ITK version
 
+//TODO: Review values to be used from new ITK version
 //------------------------------------------------------------------------
 MorphologicalExtension::MorphologicalExtension()
 : m_statistic(NULL)
@@ -125,7 +125,7 @@ QVariant MorphologicalExtension::information(QString info) const
   if (!m_init)
     return QVariant();
 
-  if (m_statistic == NULL
+  if (NULL == m_statistic
       || m_seg->itkVolume()->GetTimeStamp() > m_labelMap->GetTimeStamp()
       || (info == FD && !m_validFeret)
      )
@@ -147,14 +147,13 @@ QVariant MorphologicalExtension::information(QString info) const
     labelMap->Update();
 
     QApplication::restoreOverrideCursor();
-    if (labelMap->GetNumberOfLabelObjects() != 0)
-      return QVariant(-1);
+    m_validInfo = labelMap->GetNumberOfLabelObjects() == 1;
 
-    m_statistic = labelMap->GetNthLabelObject(0);
+    if (m_validInfo)
+      m_statistic = labelMap->GetNthLabelObject(0);
   }
 
-
-  if (NULL == m_statistic)
+  if (!m_validInfo)
     return QVariant(-1);
 
 //   EspinaVolume::SpacingType spacing = m_seg->volume()->GetSpacing();
