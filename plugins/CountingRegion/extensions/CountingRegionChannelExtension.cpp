@@ -77,7 +77,8 @@ void CountingRegionChannelExtension::initialize(ModelItem::Arguments args)
       m_plugin->createAdaptiveRegion(m_channel, inclusion, exclusion);
   }
 
-  m_viewManager->updateViews();//TODO 2012-10-09: Update Segmentation Representations
+  m_viewManager->updateSegmentationRepresentations();
+  m_viewManager->updateViews();
 }
 
 //-----------------------------------------------------------------------------
@@ -124,7 +125,8 @@ void CountingRegionChannelExtension::addRegion(BoundingRegion* region)
       segExt->setBoundingRegions(m_regions);
     }
   }
-  m_viewManager->updateViews();//TODO 2012-10-09: Update Segmentation Representations
+  m_viewManager->updateSegmentationRepresentations();
+  m_viewManager->updateViews();
 }
 
 //-----------------------------------------------------------------------------
@@ -146,5 +148,6 @@ void CountingRegionChannelExtension::removeRegion(BoundingRegion* region)
       segExt->setBoundingRegions(m_regions);
     }
   }
-  m_viewManager->updateViews();//TODO 2012-10-09: Update Segmentation Representations
+  m_viewManager->updateSegmentationRepresentations();
+  m_viewManager->updateViews();
 }

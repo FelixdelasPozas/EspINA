@@ -20,11 +20,13 @@
 #include "EspinaFactory.h"
 
 #include "common/model/Segmentation.h"
-#include "ChannelReader.h"
+#include "common/model/ChannelReader.h"
 #include "common/extensions/Margins/MarginsChannelExtension.h"
 #include "common/extensions/Margins/MarginsSegmentationExtension.h"
 #include "common/extensions/Morphological/MorphologicalExtension.h"
-#include <pluginInterfaces/Renderer.h>
+#include "common/gui/Renderer.h"
+#include "common/pluginInterfaces/IFileReader.h"
+#include "common/pluginInterfaces/IFilterCreator.h"
 
 
 //------------------------------------------------------------------------
@@ -52,22 +54,22 @@ QStringList EspinaFactory::supportedFiles() const
 }
 
 //------------------------------------------------------------------------
-void EspinaFactory::registerFilter(const QString filter, FilterFactory* factory)
+void EspinaFactory::registerFilter(IFilterCreator* creator, const QString filter)
 {
-  Q_ASSERT(m_filterFactory.contains(filter) == false);
-  m_filterFactory[filter] = factory;
+  Q_ASSERT(m_filterCreators.contains(filter) == false);
+  m_filterCreators[filter] = creator;
 }
 
 //------------------------------------------------------------------------
-void EspinaFactory::registerReaderFactory(ReaderFactory* readerFactory,
-				   const QString description,
-				   const QStringList extensions)
+void EspinaFactory::registerReaderFactory(IFileReader* reader,
+                                          const QString description,
+                                          const QStringList extensions)
 {
   m_supportedFiles << description;
   foreach(QString extension, extensions)
   {
-    Q_ASSERT(m_readers.contains(extension) == false);
-    m_readers[extension] = readerFactory;
+    Q_ASSERT(m_fileReaders.contains(extension) == false);
+    m_fileReaders[extension] = reader;
     m_supportedExtensions << QString("*.%1").arg(extension);
   }
 }
@@ -107,8 +109,15 @@ Filter *EspinaFactory::createFilter(const QString filter,
   if (ChannelReader::TYPE == filter)
     return new ChannelReader(inputs, args);
 
-  Q_ASSERT(m_filterFactory.contains(filter));
-  return m_filterFactory[filter]->createFilter(filter, inputs, args);
+  Q_ASSERT(m_filterCreators.contains(filter));
+  return m_filterCreators[filter]->createFilter(filter, inputs, args);
+}
+
+//------------------------------------------------------------------------
+bool EspinaFactory::readFile(const QString file, const QString ext)
+{
+  Q_ASSERT(m_fileReaders.contains(ext));
+  return m_fileReaders[ext]->readFile(file);
 }
 
 //------------------------------------------------------------------------
@@ -147,48 +156,3 @@ Segmentation *EspinaFactory::createSegmentation(Filter* parent, OutputNumber out
 
   return seg;
 }
-
-//------------------------------------------------------------------------
-bool EspinaFactory::readFile(const QString file, const QString ext)
-{
-  Q_ASSERT(m_readers.contains(ext));
-  return m_readers[ext]->readFile(file);
-}
-
-
-// 
-// void EspinaFactory::addSampleExtension(ISampleExtension* ext)
-// {
-// //   qDebug() << ext->id() << "registered in Sample Factory";
-//   m_sampleExtensions.append(ext->clone());
-// }
-
-// QStringList EspinaFactory::segmentationAvailableInformations()
-// {
-//   QStringList informations;
-//   informations << "Name" << "Taxonomy";
-//   foreach (ISegmentationExtension *ext, m_segExtensions)
-//     informations << ext->availableInformations();
-//   
-//   return informations;
-// }
-// 
-// 
-// VolumeView* EspinaFactory::CreateVolumeView()
-// {
-//   VolumeView *view = new VolumeView();
-//   foreach(IViewWidget *widget, m_widgets)
-//   {
-//     view->addWidget(widget);
-//   }
-//   return view;
-// }
-// 
-// void EspinaFactory::addViewWidget(IViewWidget* widget)
-// {
-// //   qDebug() << "registered new widget in Factory";
-//   m_widgets.append(widget/*->clone()*/); //TODO clone method hasn't an implementation
-// }
-// 
-
-

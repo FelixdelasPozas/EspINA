@@ -28,8 +28,9 @@ class MultiColorEngine
 : public ColorEngine
 {
 public:
-  virtual QColor color(const Segmentation* seg);
-  virtual LUTPtr lut(const Segmentation* seg);
+  virtual QColor color(Segmentation* seg);
+  virtual LUTPtr lut(Segmentation* seg);
+  virtual ColorEngine::Composition supportedComposition() const;
 
   virtual void addColorEngine(ColorEnginePtr engine);
   virtual void removeColorEngine(ColorEnginePtr engine);

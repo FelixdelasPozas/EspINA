@@ -283,5 +283,5 @@ void CountingRegionSegmentationExtension::evaluateBoundingRegions()
   QString condition = m_isDiscarted?
                       "<font color=\"red\">Outside</font>":
                       "<font color=\"green\">Inside</font>";
-  m_seg->addCondition(condition, ":/apply.svg");
+  m_seg->addCondition("CountingRegionCondition", ":/apply.svg", condition);
 }

@@ -34,6 +34,9 @@ class PickableItem
 : public ModelItem
 {
 public:
+  typedef QPair<QString, QString> ConditionInfo;
+
+public:
   ~PickableItem(){}
 
   virtual bool isSelected() const {return m_isSelected;}
@@ -58,14 +61,14 @@ public:
   /// Add a new condition to the item:
   /// Conditions provide extra information about the state of the item
   /// i.e. Discarted by Counting Region
-  void addCondition(QString state, QString icon)
+  void addCondition(QString state, QString icon, QString description)
   {
-    m_conditions[state] = icon;
+    m_conditions[state] = ConditionInfo(icon, description);
   }
 
 protected:
   bool m_isSelected;
-  QMap<QString, QString> m_conditions;
+  QMap<QString, ConditionInfo> m_conditions;
 };
 
 typedef QSharedPointer<PickableItem> SelectableItemPtr;

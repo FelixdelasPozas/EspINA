@@ -186,7 +186,7 @@ void ViewManager::updateSegmentationRepresentations()
 }
 
 //----------------------------------------------------------------------------
-QColor ViewManager::color(const Segmentation* seg)
+QColor ViewManager::color(Segmentation* seg)
 {
   QColor segColor(Qt::blue);
   if (m_colorEngine)
@@ -196,7 +196,7 @@ QColor ViewManager::color(const Segmentation* seg)
 }
 
 //----------------------------------------------------------------------------
-vtkSmartPointer<vtkLookupTable> ViewManager::lut(const Segmentation* seg)
+LUTPtr ViewManager::lut(Segmentation* seg)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
   if (m_colorEngine)

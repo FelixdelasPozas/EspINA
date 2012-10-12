@@ -24,11 +24,14 @@
 
 #include <QMap>
 
-class NumberColorEngine: public ColorEngine
+class NumberColorEngine
+: public ColorEngine
 {
 public:
-  virtual QColor color(const Segmentation* seg);
-  virtual vtkSmartPointer<vtkLookupTable> lut(const Segmentation* seg);
+  virtual QColor color(Segmentation* seg);
+  virtual LUTPtr lut(Segmentation* seg);
+  virtual ColorEngine::Composition supportedComposition() const
+  { return ColorEngine::Color; }
 
 private:
   QMap<QString, vtkSmartPointer<vtkLookupTable> > m_LUT;

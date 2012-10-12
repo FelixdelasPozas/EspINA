@@ -33,14 +33,26 @@ class ColorEngine
 : public QObject
 {
   Q_OBJECT
+
 public:
-  virtual QColor color(const Segmentation *seg) = 0;
-  virtual LUTPtr lut(const Segmentation *seg) = 0;
+  enum Components
+  {
+    None = 0x0, Color = 0x1, Transparency = 0x2
+  };
+  Q_DECLARE_FLAGS(Composition, Components)
+
+public:
+  virtual QColor color(Segmentation *seg) = 0;
+  virtual LUTPtr lut(Segmentation *seg) = 0;
+
+  virtual Composition supportedComposition() const = 0;
 
 signals:
   void lutModified();
 };
 
 typedef QSharedPointer<ColorEngine> ColorEnginePtr;
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(ColorEngine::Composition)
 
 #endif // COLORENGINE_H

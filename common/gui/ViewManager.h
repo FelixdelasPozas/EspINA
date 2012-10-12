@@ -26,6 +26,7 @@
 
 // EspINA
 #include "common/EspinaTypes.h"
+#include "common/colorEngines/ColorEngine.h"
 #include "common/widgets/EspinaWidget.h"
 
 // Qt
@@ -45,7 +46,6 @@ class Channel;
 class Segmentation;
 class TaxonomyElement;
 class PickableItem;
-class ColorEngine;
 class IEspinaView;
 
 class ViewManager
@@ -133,8 +133,8 @@ signals:
   /************************* Color Engine API ********************************/
   //---------------------------------------------------------------------------
 public:
-  QColor color(const Segmentation *seg);
-  vtkSmartPointer<vtkLookupTable> lut(const Segmentation *seg);
+  QColor color(Segmentation *seg);
+  LUTPtr lut(Segmentation *seg);
 
   void setColorEngine(ColorEngine *engine);
 

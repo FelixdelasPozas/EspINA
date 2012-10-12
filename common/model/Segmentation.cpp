@@ -156,8 +156,8 @@ QVariant Segmentation::data(int role) const
       if (!m_conditions.isEmpty())
       {
         tooltip = tooltip.append("<b>Condtions:</b><br>");
-        foreach(QString condition, m_conditions.keys())
-          tooltip = tooltip.append("<img src='%1' width=16 height=16>: %2<br>").arg(m_conditions[condition]).arg(condition);
+        foreach(ConditionInfo condition, m_conditions)
+          tooltip = tooltip.append("<img src='%1' width=16 height=16>: %2<br>").arg(condition.first).arg(condition.second);
       }
 
       return tooltip;

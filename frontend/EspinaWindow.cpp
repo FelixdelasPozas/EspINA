@@ -27,7 +27,9 @@
 #include "common/gui/ViewManager.h"
 #include "common/pluginInterfaces/IToolBar.h"
 #include "common/pluginInterfaces/IDockWidget.h"
-#include <pluginInterfaces/IExtensionProvider.h>
+#include "common/pluginInterfaces/IFactoryExtension.h"
+#include "common/pluginInterfaces/IFileReader.h"
+#include <pluginInterfaces/IColorEngineProvider.h>
 #include "common/renderers/VolumetricRenderer.h"
 #include "common/renderers/CrosshairRenderer.h"
 #include "common/renderers/MeshRenderer.h"
@@ -268,62 +270,65 @@ void EspinaWindow::loadPlugins()
       pluginsDir.cdUp();
       pluginsDir.cdUp();
     }
-    #endif
+  #endif
 
-    pluginsDir.cd("plugins");
+  pluginsDir.cd("plugins");
 
-    qDebug() << "Loading Plugins: ";
-    foreach (QString fileName, pluginsDir.entryList(QDir::Files)) {
-      QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
-      QObject *plugin = loader.instance();
-      qDebug() << fileName;
-      if (plugin)
+  qDebug() << "Loading Plugins: ";
+  foreach (QString fileName, pluginsDir.entryList(QDir::Files))
+  {
+    QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
+    QObject *plugin = loader.instance();
+    qDebug() << fileName;
+    if (plugin)
+    {
+      IFactoryExtension *factoryExtension = qobject_cast<IFactoryExtension *>(plugin);
+      if (factoryExtension)
       {
-        IToolBar *toolbar = qobject_cast<IToolBar *>(plugin);
-        if (toolbar)
-        {
-          qDebug() << "- ToolBar ... OK";
-          addToolBar(toolbar);
-        }
+        qDebug() << "- Factory Extension...... OK";
+        factoryExtension->initFactoryExtension(m_factory);
+      }
 
-        IDynamicMenu *menu = qobject_cast<IDynamicMenu *>(plugin);
-        if (menu)
-        {
-          qDebug() << "- Menus ..... OK";
-          foreach(MenuEntry entry, menu->menuEntries())
-            createDynamicMenu(entry);
-        }
+      IToolBar *toolbar = qobject_cast<IToolBar *>(plugin);
+      if (toolbar)
+      {
+        qDebug() << "- ToolBar ... OK";
+        addToolBar(toolbar);
+      }
 
-        IDockWidget *dock = qobject_cast<IDockWidget *>(plugin);
-        if (dock)
-        {
-          qDebug() << "- Dock ...... OK";
-          addDockWidget(Qt::LeftDockWidgetArea, dock);
-          m_dockMenu->addAction(dock->toggleViewAction());
-          dock->initDockWidget(m_model, m_undoStack, m_viewManager);
-        }
+      IDynamicMenu *menu = qobject_cast<IDynamicMenu *>(plugin);
+      if (menu)
+      {
+        qDebug() << "- Menus ..... OK";
+        foreach(MenuEntry entry, menu->menuEntries())
+          createDynamicMenu(entry);
+      }
 
-        FilterFactory *filterFactory = qobject_cast<FilterFactory *>(plugin);
-        if (filterFactory)
-        {
-          qDebug() << "- Filter Factory ...... OK";
-          filterFactory->initFilterFactory(m_factory);
-        }
+      IColorEngineProvider *provider = qobject_cast<IColorEngineProvider *>(plugin);
+      if (provider)
+      {
+        qDebug() << "- Color Engine Provider ..... OK";
+        foreach(IColorEngineProvider::Engine engine, provider->colorEngines())
+          m_colorEngines->addColorEngine(engine.first, engine.second);
+      }
 
-        ReaderFactory *readerFactory = qobject_cast<ReaderFactory *>(plugin);
-        if (readerFactory)
-        {
-          qDebug() << "- Reader Factory ...... OK";
-          readerFactory->initReaderFactory(m_model, m_undoStack, m_viewManager);
-        }
-        IExtensionProvider *extensionProvider = qobject_cast<IExtensionProvider*>(plugin);
-        if (extensionProvider)
-        {
-          qDebug() << "- Extension Provider ...... OK";
-          extensionProvider->initExtensionProvider(m_factory);
-        }
+      IDockWidget *dock = qobject_cast<IDockWidget *>(plugin);
+      if (dock)
+      {
+        qDebug() << "- Dock ...... OK";
+        addDockWidget(Qt::LeftDockWidgetArea, dock);
+        m_dockMenu->addAction(dock->toggleViewAction());
+        dock->initDockWidget(m_model, m_undoStack, m_viewManager);
+      }
+
+      IFileReader *fileReader = qobject_cast<IFileReader *>(plugin);
+      if (fileReader)
+      {
+        qDebug() << "- File Reader ...... OK";
+        fileReader->initFileReader(m_model, m_undoStack, m_viewManager);
       }
     }
+  }
 }
 
 

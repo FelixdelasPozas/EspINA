@@ -123,9 +123,9 @@ SegmhaImporter::SegmhaImporter()
 }
 
 //-----------------------------------------------------------------------------
-void SegmhaImporter::initFilterFactory(EspinaFactory* factory)
+void SegmhaImporter::initFactoryExtension(EspinaFactory* factory)
 {
-  factory->registerFilter(SegmhaImporterFilter::TYPE, this);
+  factory->registerFilter(this, SegmhaImporterFilter::TYPE);
 }
 
 //-----------------------------------------------------------------------------
@@ -139,9 +139,9 @@ Filter* SegmhaImporter::createFilter(const QString filter,
 }
 
 //-----------------------------------------------------------------------------
-void SegmhaImporter::initReaderFactory(EspinaModel* model,
-                                       QUndoStack *undoStack,
-                                       ViewManager *vm)
+void SegmhaImporter::initFileReader(EspinaModel* model,
+                                    QUndoStack* undoStack,
+                                    ViewManager* vm)
 {
   m_model = model;
   m_undoStack = undoStack;

@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2012  <copyright holder> <email>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -16,30 +16,24 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef IDOCKWIDGET_H
-#define IDOCKWIDGET_H
+
+#ifndef ICOLORENGINEPROVIDER_H
+#define ICOLORENGINEPROVIDER_H
 
 #include <QtPlugin>
-#include <QDockWidget>
+#include <QPair>
+#include <common/colorEngines/ColorEngine.h>
 
-class ViewManager;
-class QUndoStack;
-class EspinaModel;
-class IDockWidget
-: public QDockWidget
+class IColorEngineProvider
 {
 public:
-  explicit IDockWidget(QWidget* parent = 0)
-  : QDockWidget(parent){}
-  virtual ~IDockWidget(){}
+  typedef QPair<QString, ColorEnginePtr> Engine;
+  typedef QList<IColorEngineProvider::Engine> EngineList;
 
-  virtual void initDockWidget(EspinaModel *model,
-                              QUndoStack  *undoStack,
-                              ViewManager *viewManager) = 0;
-  // Reset All Components in the Dock Widget
-  virtual void reset() = 0;
+  virtual ~IColorEngineProvider(){}
+
+  virtual EngineList colorEngines() = 0;
 };
-
-Q_DECLARE_INTERFACE(IDockWidget,
-                    "es.upm.cesvima.EspINA.DockWidgetInterface/1.2")
-#endif //IDOCKWIDGET_H
+Q_DECLARE_INTERFACE(IColorEngineProvider,
+                    "es.upm.cesvima.EspINA.ColorEngineProviderInterface/1.0")
+#endif // ICOLORENGINEPROVIDER_H

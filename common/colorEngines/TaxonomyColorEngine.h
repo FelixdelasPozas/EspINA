@@ -29,8 +29,10 @@ class TaxonomyColorEngine
 public:
   explicit TaxonomyColorEngine(){}
 
-  virtual QColor color(const Segmentation* seg);
-  virtual vtkSmartPointer< vtkLookupTable > lut(const Segmentation* seg);
+  virtual QColor color(Segmentation* seg);
+  virtual LUTPtr lut(Segmentation* seg);
+  virtual ColorEngine::Composition supportedComposition() const
+  { return ColorEngine::Color; }
 
   void updateTaxonomyColor(TaxonomyElement *tax);
 

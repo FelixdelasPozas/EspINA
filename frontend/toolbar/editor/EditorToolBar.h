@@ -21,7 +21,8 @@
 #define EDITORTOOLBAR_H
 
 #include <QToolBar>
-#include "common/pluginInterfaces/FilterFactory.h"
+#include <pluginInterfaces/IFactoryExtension.h>
+#include <pluginInterfaces/IFilterCreator.h>
 
 // EspINA
 #include "common/editor/BrushSelector.h"
@@ -39,10 +40,11 @@ class QUndoStack;
 
 class EditorToolBar
 : public QToolBar
-, public FilterFactory
+, public IFactoryExtension
+, public IFilterCreator
 {
   Q_OBJECT
-  Q_INTERFACES(FilterFactory)
+  Q_INTERFACES(IFactoryExtension IFilterCreator)
   class FreeFormCommand;
   class DrawCommand;
   class EraseCommand;
@@ -58,7 +60,8 @@ public:
                          ViewManager *vm,
                          QWidget *parent = 0);
 
-  virtual void initFilterFactory(EspinaFactory* factory);
+  virtual void initFactoryExtension(EspinaFactory* factory);
+
   virtual Filter* createFilter(const QString filter,
                                Filter::NamedInputs inputs,
                                const ModelItem::Arguments args);

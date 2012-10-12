@@ -12,7 +12,7 @@ AppositionPlane::AppositionPlane()
 }
 
 //-----------------------------------------------------------------------------
-void AppositionPlane::initExtensionProvider(EspinaFactory* factory)
+void AppositionPlane::initFactoryExtension(EspinaFactory* factory)
 {
   SegmentationExtension::SPtr segExtension(new AppositionPlaneExtension());
   factory->registerSegmentationExtension(segExtension);

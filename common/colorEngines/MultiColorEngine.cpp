@@ -20,32 +20,51 @@
 #include "MultiColorEngine.h"
 
 //-----------------------------------------------------------------------------
-QColor MultiColorEngine::color(const Segmentation* seg)
+QColor MultiColorEngine::color(Segmentation* seg)
 {
   if (m_engines.isEmpty())
     return QColor(Qt::red);
 
+  if (m_engines.size() == 1)
+    return m_engines[0]->color(seg);
+
   int r=0, g=0, b=0, a=0;
+  int rgbComponents=0, alphaComponents=0;
 
   for(int i=0; i<m_engines.size(); i++)
   {
     QColor c = m_engines[i]->color(seg);
-    r += c.red();
-    g += c.green();
-    b += c.blue();
-    a += c.alpha();
+    if (m_engines[i]->supportedComposition().testFlag(Color))
+    {
+      r += c.red();
+      g += c.green();
+      b += c.blue();
+      rgbComponents++;
+    }
+    if (m_engines[i]->supportedComposition().testFlag(Transparency))
+    {
+      a += c.alpha();
+      alphaComponents++;
+    }
   }
 
-  r /= m_engines.size();
-  g /= m_engines.size();
-  b /= m_engines.size();
-  a /= m_engines.size();
+  if (rgbComponents > 0)
+  {
+    r /= rgbComponents;
+    g /= rgbComponents;
+    b /= rgbComponents;
+  }
+
+  if (alphaComponents > 0)
+    a /= alphaComponents;
+  else // Prevent transparent color if no engine supports deals transparency
+    a = 255;
 
   return QColor(r,g,b,a);
 }
 
 //-----------------------------------------------------------------------------
-LUTPtr MultiColorEngine::lut(const Segmentation* seg)
+LUTPtr MultiColorEngine::lut(Segmentation* seg)
 {
   if (m_engines.size() == 1)
     return m_engines.first()->lut(seg);
@@ -61,6 +80,17 @@ LUTPtr MultiColorEngine::lut(const Segmentation* seg)
   seg_lut->Modified();
 
   return seg_lut;
+}
+
+//-----------------------------------------------------------------------------
+ColorEngine::Composition MultiColorEngine::supportedComposition() const
+{
+  ColorEngine::Composition composition = None;
+
+  foreach(ColorEnginePtr engine, m_engines)
+    composition |= engine->supportedComposition();
+
+  return composition;
 }
 
 //-----------------------------------------------------------------------------

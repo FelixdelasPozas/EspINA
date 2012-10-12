@@ -22,7 +22,7 @@
 
 #include <vtkVolume.h>
 
-#include "common/pluginInterfaces/Renderer.h"
+#include "common/gui/Renderer.h"
 
 #include <QMap>
 

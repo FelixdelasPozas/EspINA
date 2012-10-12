@@ -20,7 +20,7 @@
 #ifndef MESHRENDERER_H
 #define MESHRENDERER_H
 
-#include "common/pluginInterfaces/Renderer.h"
+#include "common/gui/Renderer.h"
 
 #include <QMap>
 #include <vtkActor.h>

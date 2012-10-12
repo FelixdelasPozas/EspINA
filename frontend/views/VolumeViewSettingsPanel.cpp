@@ -19,7 +19,7 @@
 
 #include "VolumeViewSettingsPanel.h"
 #include <model/EspinaFactory.h>
-#include <pluginInterfaces/Renderer.h>
+#include "common/gui/Renderer.h"
 
 #include <QStandardItemModel>
 

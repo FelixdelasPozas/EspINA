@@ -20,7 +20,7 @@
 #ifndef APPOSITIONPLANERENDERER_H
 #define APPOSITIONPLANERENDERER_H
 
-#include <common/pluginInterfaces/Renderer.h>
+#include <common/gui/Renderer.h>
 
 #include <QMap>
 
@@ -34,21 +34,21 @@ class AppositionPlaneRenderer
 
 public:
   virtual ~AppositionPlaneRenderer(){}
-  
+
   virtual const QIcon icon() const
   { return QIcon(":/AppPlane.svg"); }
   virtual const QString name() const
   { return tr("Apposition Plane");}
   virtual const QString tooltip() const
   { return tr("Segmentation's Apposition Plane");}
-  
+
   virtual bool addItem(ModelItem* item);
   virtual bool updateItem(ModelItem* item);
   virtual bool removeItem(ModelItem* item);
- 
+
   virtual void hide();
   virtual void show();
-  
+
   virtual Renderer* clone();
 
 private:

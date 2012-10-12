@@ -53,6 +53,7 @@ set (LOCAL_SOURCES
   )
 
 set (REGION_SOURCES
+  colorEngines/CountingRegionColorEngine.cpp
   regions/AdaptiveBoundingRegion.cpp
   regions/BoundingRegion.cpp
   regions/RectangularBoundingRegion.cpp

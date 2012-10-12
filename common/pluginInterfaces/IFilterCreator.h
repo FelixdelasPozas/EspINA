@@ -16,30 +16,23 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef IDOCKWIDGET_H
-#define IDOCKWIDGET_H
 
-#include <QtPlugin>
-#include <QDockWidget>
+#ifndef FILTERFACTORY_H
+#define FILTERFACTORY_H
 
-class ViewManager;
-class QUndoStack;
-class EspinaModel;
-class IDockWidget
-: public QDockWidget
+#include "common/model/Filter.h"
+
+class EspinaFactory;
+
+class IFilterCreator
 {
 public:
-  explicit IDockWidget(QWidget* parent = 0)
-  : QDockWidget(parent){}
-  virtual ~IDockWidget(){}
+  virtual ~IFilterCreator(){}
 
-  virtual void initDockWidget(EspinaModel *model,
-                              QUndoStack  *undoStack,
-                              ViewManager *viewManager) = 0;
-  // Reset All Components in the Dock Widget
-  virtual void reset() = 0;
+  virtual Filter *createFilter(const QString filter,
+                               Filter::NamedInputs inputs,
+                               const ModelItem::Arguments args) = 0;
 };
-
-Q_DECLARE_INTERFACE(IDockWidget,
-                    "es.upm.cesvima.EspINA.DockWidgetInterface/1.2")
-#endif //IDOCKWIDGET_H
+Q_DECLARE_INTERFACE(IFilterCreator,
+                    "es.upm.cesvima.EspINA.IFilterCreator/1.0")
+#endif // FILTERFACTORY_H

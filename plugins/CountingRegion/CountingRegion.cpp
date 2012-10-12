@@ -29,6 +29,7 @@
 #include "extensions/CountingRegionSegmentationExtension.h"
 #include "extensions/CountingRegionChannelExtension.h"
 #include "RegionRenderer.h"
+#include "colorEngines/CountingRegionColorEngine.h"
 
 #include <QFileDialog>
 
@@ -167,6 +168,15 @@ void CountingRegion::initDockWidget(EspinaModel* model, QUndoStack* undoStack, V
 }
 
 //------------------------------------------------------------------------
+IColorEngineProvider::EngineList CountingRegion::colorEngines()
+{
+  EngineList engines;
+  engines << Engine(tr("Counting Region"), ColorEnginePtr(new CountingRegionColorEngine()));
+
+  return engines;
+}
+
+//------------------------------------------------------------------------
 void CountingRegion::reset()
 {
   clearBoundingRegions();
@@ -294,6 +304,8 @@ void CountingRegion::showInfo(const QModelIndex& index)
 {
   m_gui->regionDescription->setText(index.data(BoundingRegion::DescriptionRole).toString());
   m_gui->saveDescription->setEnabled(index.isValid());
+  m_viewManager->updateSegmentationRepresentations();
+  m_viewManager->updateViews();
 }
 
 //------------------------------------------------------------------------

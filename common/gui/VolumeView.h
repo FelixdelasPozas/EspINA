@@ -24,13 +24,14 @@
 #ifndef VOLUMEVIEW_H
 #define VOLUMEVIEW_H
 
-#include "ViewManager.h"
-#include "EspinaRenderView.h"
+#include "common/EspinaTypes.h"
+#include "common/gui/EspinaRenderView.h"
+#include "common/gui/Renderer.h"
+#include "common/gui/ViewManager.h"
 
-#include <pluginInterfaces/Renderer.h>
-#include <common/EspinaTypes.h>
 #include <vtkSmartPointer.h>
 #include <vtkRenderer.h>
+
 #include <QPushButton>
 
 class EspinaFactory;

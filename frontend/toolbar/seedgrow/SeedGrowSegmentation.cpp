@@ -110,7 +110,7 @@ SeedGrowSegmentation::SeedGrowSegmentation(EspinaModel *model,
   setObjectName("SeedGrowSegmentation");
   setWindowTitle("Seed Grow Segmentation Tool Bar");
 
-  initFilterFactory(m_model->factory());
+  initFactoryExtension(m_model->factory());
   buildSelectors();
 
   addAction(m_threshold);
@@ -135,10 +135,10 @@ SeedGrowSegmentation::~SeedGrowSegmentation()
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentation::initFilterFactory(EspinaFactory* factory)
+void SeedGrowSegmentation::initFactoryExtension(EspinaFactory* factory)
 {
   // Register Factory's filters
-  factory->registerFilter(SeedGrowSegmentationFilter::TYPE, this);
+  factory->registerFilter(this, SeedGrowSegmentationFilter::TYPE);
 }
 
 //-----------------------------------------------------------------------------

@@ -1,21 +1,21 @@
 #ifndef APPOSITIONPLANE_H
 #define APPOSITIONPLANE_H
 
-#include <common/pluginInterfaces/IExtensionProvider.h>
+#include <common/pluginInterfaces/IFactoryExtension.h>
 
 //! Apposition Plane Plugin
 class AppositionPlane
 : public QObject
-, public IExtensionProvider
+, public IFactoryExtension
 {
   Q_OBJECT
-  Q_INTERFACES(IExtensionProvider)
+  Q_INTERFACES(IFactoryExtension)
 
 public:
   explicit AppositionPlane();
   virtual ~AppositionPlane(){}
 
-  virtual void initExtensionProvider(EspinaFactory* factory);
+  virtual void initFactoryExtension(EspinaFactory* factory);
 };
 
 #endif// APPOSITIONPLANE_H

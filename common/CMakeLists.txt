@@ -39,6 +39,7 @@ qt4_wrap_cpp(CORE_MOC
   gui/ActionSelector.h
   gui/ActionSelectorWidget.h
   gui/EspinaRenderView.h
+  gui/Renderer.h
   gui/SliceView.h
   gui/VolumeView.h
   gui/HueSelector.h
@@ -49,7 +50,6 @@ qt4_wrap_cpp(CORE_MOC
   model/proxies/ChannelProxy.h
   model/proxies/SampleProxy.h
   model/proxies/TaxonomyProxy.h
-  pluginInterfaces/Renderer.h
   selection/IPicker.h
   gui/ViewManager.h
   editor/ContourSelector.h

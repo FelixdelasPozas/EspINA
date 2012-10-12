@@ -20,10 +20,11 @@
 
 #include <QToolBar>
 
-#include "common/pluginInterfaces/FilterFactory.h"
 #include "common/selection/IPicker.h"
 #include <model/Taxonomy.h>
 #include <model/Segmentation.h>
+#include "common/pluginInterfaces/IFactoryExtension.h"
+#include "common/pluginInterfaces/IFilterCreator.h"
 #include "SeedGrowSelector.h"
 
 #include <QSharedPointer>
@@ -44,7 +45,8 @@ class Channel;
 /// Seed Growing Segmenation Plugin
 class SeedGrowSegmentation
 : public QToolBar
-, public FilterFactory
+, public IFactoryExtension
+, public IFilterCreator
 {
   class SettingsPanel;
   class Settings;
@@ -69,7 +71,7 @@ class SeedGrowSegmentation
   };
 
   Q_OBJECT
-  Q_INTERFACES(FilterFactory)
+  Q_INTERFACES(IFactoryExtension IFilterCreator)
 public:
   SeedGrowSegmentation(EspinaModel *model,
                        QUndoStack *undoStack,
@@ -77,7 +79,8 @@ public:
                        QWidget *parent=NULL);
   virtual ~SeedGrowSegmentation();
 
-  virtual void initFilterFactory(EspinaFactory* factory);
+  virtual void initFactoryExtension(EspinaFactory* factory);
+
   virtual Filter* createFilter(const QString filter,
                                Filter::NamedInputs inputs,
                                const ModelItem::Arguments args);

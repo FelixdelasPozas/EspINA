@@ -16,30 +16,21 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef IDOCKWIDGET_H
-#define IDOCKWIDGET_H
+
+#ifndef IEXTENSIONPROVIDER_H
+#define IEXTENSIONPROVIDER_H
 
 #include <QtPlugin>
-#include <QDockWidget>
 
-class ViewManager;
-class QUndoStack;
-class EspinaModel;
-class IDockWidget
-: public QDockWidget
+class EspinaFactory;
+
+class IFactoryExtension
 {
 public:
-  explicit IDockWidget(QWidget* parent = 0)
-  : QDockWidget(parent){}
-  virtual ~IDockWidget(){}
+  virtual ~IFactoryExtension(){}
 
-  virtual void initDockWidget(EspinaModel *model,
-                              QUndoStack  *undoStack,
-                              ViewManager *viewManager) = 0;
-  // Reset All Components in the Dock Widget
-  virtual void reset() = 0;
+  virtual void initFactoryExtension(EspinaFactory *factory) = 0;
 };
-
-Q_DECLARE_INTERFACE(IDockWidget,
-                    "es.upm.cesvima.EspINA.DockWidgetInterface/1.2")
-#endif //IDOCKWIDGET_H
+Q_DECLARE_INTERFACE(IFactoryExtension,
+                    "es.upm.cesvima.EspINA.IFactoryExtension/1.0")
+#endif // IEXTENSIONPROVIDER_H

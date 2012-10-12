@@ -31,7 +31,20 @@ m_lastColor(0)
 }
 
 //-----------------------------------------------------------------------------
-vtkSmartPointer<vtkLookupTable> UserColorEngine::lut(const Segmentation* seg)
+QColor UserColorEngine::color(Segmentation* seg)
+{
+  QString user = seg->users().last();
+
+  if (!m_userColors.contains(user))
+  {
+    m_userColors[user] = nextColor();
+  }
+
+  return m_userColors[user];
+}
+
+//-----------------------------------------------------------------------------
+LUTPtr UserColorEngine::lut(Segmentation* seg)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
   QString lutName = seg->taxonomy()->qualifiedName();
@@ -61,18 +74,6 @@ vtkSmartPointer<vtkLookupTable> UserColorEngine::lut(const Segmentation* seg)
   return seg_lut;
 }
 
-//-----------------------------------------------------------------------------
-QColor UserColorEngine::color(const Segmentation* seg)
-{
-  QString user = seg->users().last();
-
-  if (!m_userColors.contains(user))
-  {
-    m_userColors[user] = nextColor();
-  }
-
-  return m_userColors[user];
-}
 
 //-----------------------------------------------------------------------------
 QColor UserColorEngine::nextColor()

@@ -22,7 +22,17 @@
 const double SELECTED_ALPHA = 1.0;
 const double UNSELECTED_ALPHA = 0.6;
 
-vtkSmartPointer<vtkLookupTable> NumberColorEngine::lut(const Segmentation* seg)
+//-----------------------------------------------------------------------------
+QColor NumberColorEngine::color(Segmentation* seg)
+{
+  if (seg)
+    return QColor((seg->number() * 25) % 255, (seg->number() * 73) % 255, (seg->number() * 53) % 255);
+  else
+    return Qt::red;
+}
+
+//-----------------------------------------------------------------------------
+LUTPtr NumberColorEngine::lut(Segmentation* seg)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
   QString lutName = QString::number(seg->number());
@@ -51,12 +61,3 @@ vtkSmartPointer<vtkLookupTable> NumberColorEngine::lut(const Segmentation* seg)
 
   return seg_lut;
 }
-
-QColor NumberColorEngine::color(const Segmentation* seg)
-{
-  if (seg)
-    return QColor((seg->number() * 25) % 255, (seg->number() * 73) % 255, (seg->number() * 53) % 255);
-  else
-    return Qt::red;
-}
-

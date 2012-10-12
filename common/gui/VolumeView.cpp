@@ -26,7 +26,6 @@
 #include <model/Channel.h>
 #include <model/Representation.h>
 #include <model/EspinaFactory.h>
-#include <pluginInterfaces/Renderer.h>
 #include <settings/EspinaSettings.h>
 #include <renderers/CrosshairRenderer.h>
 

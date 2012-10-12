@@ -16,30 +16,33 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef IDOCKWIDGET_H
-#define IDOCKWIDGET_H
+
+#ifndef READERFACTORY_H
+#define READERFACTORY_H
 
 #include <QtPlugin>
-#include <QDockWidget>
 
-class ViewManager;
-class QUndoStack;
 class EspinaModel;
-class IDockWidget
-: public QDockWidget
+class QFileInfo;
+class QString;
+class QUndoStack;
+class ViewManager;
+
+typedef QString ReaderId;
+
+class IFileReader
 {
 public:
-  explicit IDockWidget(QWidget* parent = 0)
-  : QDockWidget(parent){}
-  virtual ~IDockWidget(){}
+  virtual ~IFileReader(){}
 
-  virtual void initDockWidget(EspinaModel *model,
-                              QUndoStack  *undoStack,
-                              ViewManager *viewManager) = 0;
-  // Reset All Components in the Dock Widget
-  virtual void reset() = 0;
+  virtual void initFileReader(EspinaModel* model,
+                              QUndoStack* undoStack,
+                              ViewManager *vm) = 0;
+
+  virtual bool readFile(const QFileInfo) = 0;
 };
 
-Q_DECLARE_INTERFACE(IDockWidget,
-                    "es.upm.cesvima.EspINA.DockWidgetInterface/1.2")
-#endif //IDOCKWIDGET_H
+Q_DECLARE_INTERFACE(IFileReader,
+                    "es.upm.cesvima.EspINA.IFileReader/1.0")
+
+#endif // READERFACTORY_H

@@ -287,7 +287,7 @@ EditorToolBar::EditorToolBar(EspinaModel *model,
   setObjectName("EditorToolBar");
   setWindowTitle("Editor Tool Bar");
 
-  initFilterFactory(m_model->factory());
+  initFactoryExtension(m_model->factory());
 
   m_model->factory()->registerSettingsPanel(new EditorToolBar::SettingsPanel(m_settings));
 
@@ -357,16 +357,16 @@ EditorToolBar::EditorToolBar(EspinaModel *model,
 }
 
 //----------------------------------------------------------------------------
-void EditorToolBar::initFilterFactory(EspinaFactory* factory)
+void EditorToolBar::initFactoryExtension(EspinaFactory* factory)
 {
-  factory->registerFilter(ClosingFilter::TYPE,  this);
-  factory->registerFilter(OpeningFilter::TYPE,  this);
-  factory->registerFilter(DilateFilter::TYPE,   this);
-  factory->registerFilter(ErodeFilter::TYPE,    this);
-  factory->registerFilter(FreeFormSource::TYPE, this);
-  factory->registerFilter(ImageLogicFilter::TYPE, this);
-  factory->registerFilter(FillHolesFilter::TYPE, this);
-  factory->registerFilter(ContourSource::TYPE, this);
+  factory->registerFilter(this, ClosingFilter::TYPE);
+  factory->registerFilter(this, OpeningFilter::TYPE);
+  factory->registerFilter(this, DilateFilter::TYPE);
+  factory->registerFilter(this, ErodeFilter::TYPE);
+  factory->registerFilter(this, FreeFormSource::TYPE);
+  factory->registerFilter(this, ImageLogicFilter::TYPE);
+  factory->registerFilter(this, FillHolesFilter::TYPE);
+  factory->registerFilter(this, ContourSource::TYPE);
 }
 
 //----------------------------------------------------------------------------
