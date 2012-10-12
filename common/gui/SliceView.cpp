@@ -825,12 +825,10 @@ bool SliceView::updateSegmentation(Segmentation* seg)
 
       rep.resliceToColors->SetLookupTable(m_highlighter->lut(segColor, highlight));
       rep.resliceToColors->Update();
-      updated = true;
+      /* NOTE 2012-10-12 To avoid using DefaultEspinaView::dataChanged()
+      updated = true;*/
     }
   }
-
-  //   if (updated)
-  //     qDebug() << "Update Segmentation Representation" << m_plane;
 
   return updated;
 }

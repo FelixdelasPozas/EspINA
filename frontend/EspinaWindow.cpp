@@ -536,6 +536,8 @@ void EspinaWindow::openAnalysis(const QString file)
   m_viewManager->setActiveChannel(m_model->channels().first());
   // TODO 2012-10-05 Set proper title
   setWindowTitle(file);
+  m_viewManager->updateSegmentationRepresentations();
+  m_viewManager->updateViews();
 }
 
 //------------------------------------------------------------------------

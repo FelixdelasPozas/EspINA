@@ -257,6 +257,7 @@ void CountingRegionSegmentationExtension::evaluateBoundingRegions()
   if (m_boundingRegions.size() == 0)
     return;
 
+//   qDebug() << "EValuate Region";
   QApplication::setOverrideCursor(Qt::WaitCursor);
   ModelItemExtension *ext = m_seg->extension(MarginsSegmentationExtension::ID);
   MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext);

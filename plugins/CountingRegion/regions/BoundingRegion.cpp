@@ -93,7 +93,7 @@ void BoundingRegion::Execute(vtkObject* caller, long unsigned int eventId, void*
     foreach(vtkBoundingRegionWidget *w, m_widgets)
       w->SetBoundingRegion(m_boundingRegion);
   }
-  m_viewManager->updateViews();
+  //m_viewManager->updateViews();
 
   emitDataChanged();
 }
