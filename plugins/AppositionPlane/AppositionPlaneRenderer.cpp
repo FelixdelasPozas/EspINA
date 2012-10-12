@@ -171,8 +171,6 @@ bool AppositionPlaneRenderer::removeItem(ModelItem* item)
   if (ModelItem::SEGMENTATION != item->type())
     return false;
 
-  Segmentation *seg = dynamic_cast<Segmentation *>(item);
-
   Q_ASSERT(m_representations.contains(item));
   Q_ASSERT(m_state.contains(item));
 
