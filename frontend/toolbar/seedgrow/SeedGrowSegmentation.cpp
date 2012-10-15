@@ -200,7 +200,7 @@ void SeedGrowSegmentation::startSegmentation(IPicker::PickList msel)
 
     Nm voiBounds[6];
     //TODO: Create region // selection base class
-    RectangularRegion *currentVOI = NULL; // TODO 2012-10-07 dynamic_cast<RectangularRegion*>(SelectionManager::instance()->voi());
+    RectangularRegion *currentVOI = dynamic_cast<RectangularRegion*>(m_viewManager->voi());
     if (currentVOI)
     {
       currentVOI->bounds(voiBounds);

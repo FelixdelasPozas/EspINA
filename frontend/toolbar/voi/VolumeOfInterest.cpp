@@ -120,9 +120,8 @@ void VolumeOfInterest::defineVOI(IPicker::PickList pickList)
   m_viewManager->addWidget(m_voiWidget.data());
 
   m_viewManager->unsetPicker(m_selector.data());
-/* TODO 2012-10-07 Apply VOIs
-//   selectionManager->setVOI(m_voiWidget.data());
-*/
+  // TODO 2012-10-07 Apply VOIs
+  m_viewManager->setVOI(m_voiWidget.data());
   m_viewManager->updateViews();
 }
 
@@ -133,13 +132,12 @@ void VolumeOfInterest::cancelVOI()
   {
     m_viewManager->removeWidget(m_voiWidget.data());
     m_voiWidget.clear();
+    m_viewManager->setVOI(NULL);
+    m_viewManager->unsetPicker(m_selector.data());
     m_viewManager->updateViews();
   }
 
   /* BUG TODO 2012-10-05 
-  SelectionManager *selectorManager = SelectionManager::instance();
-  selectorManager->unsetSelectionHandler(m_selector.data());
-  selectorManager->setVOI(NULL);
   EspinaView *currentView = EspinaCore::instance()->viewManger()->currentView();
   currentView->setSliceSelectors(SliceView::NoSelector);
   disconnect(currentView, SIGNAL(selectedFromSlice(double, PlaneType)),
