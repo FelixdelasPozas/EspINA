@@ -70,6 +70,7 @@ public:
   const Nm *sceneBounds() const {return m_sceneBounds;}
   const Nm *sceneResolution() const {return m_sceneResolution;}
 
+  virtual void centerViewOn(Nm *, bool) = 0;
 protected slots:
   virtual void updateSceneBounds();
 

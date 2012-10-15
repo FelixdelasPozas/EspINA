@@ -148,7 +148,7 @@ void MainToolBar::removeSegmentation(bool active)
   if (active)
     m_viewManager->setPicker(m_selector);
   else
-    m_viewManager->setPicker(NULL);
+    m_viewManager->unsetPicker(m_selector);
 }
 
 //----------------------------------------------------------------------------

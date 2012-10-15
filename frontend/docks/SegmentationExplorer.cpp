@@ -29,6 +29,7 @@
 #include "common/undo/RemoveSegmentation.h"
 #include "frontend/docks/SegmentationInspector.h"
 #include "frontend/docks/SegmentationDelegate.h"
+#include "common/EspinaRegions.h"
 
 #ifdef TEST_ESPINA_MODELS
 #include "common/model/ModelTest.h"
@@ -414,6 +415,13 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
   if (ModelItem::SEGMENTATION != item->type())
     return;
 
+  Nm bounds[6];
+  Segmentation *seg = reinterpret_cast<Segmentation*>(item);
+  VolumeBounds(seg->filter()->output(0), bounds);
+
+  Nm center[3] = { (bounds[1] + bounds[0])/2, (bounds[3] + bounds[2])/2, (bounds[5] + bounds[4])/2 };
+  m_viewManager->focusViewsOn(center);
+
   /* TODO BUG 2012-10-05 Use "center on" selection
   const Nm *p = SelectionManager::instance()->selectionCenter();
   EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
@@ -517,5 +525,5 @@ void SegmentationExplorer::updateSegmentationRepresentations()
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSelection()
 {
-
+  std::cout << "update selection\n" << std::flush;
 }

@@ -31,6 +31,7 @@
 //----------------------------------------------------------------------------
 ViewManager::ViewManager()
 : m_picker(NULL)
+, m_VOI_picker(NULL)
 , m_activeChannel(NULL)
 , m_activeTaxonomy(NULL)
 , m_colorEngine(NULL)
@@ -89,18 +90,13 @@ void ViewManager::setPicker(IPicker* picker)
 
   m_picker = picker;
 
-  if (m_picker)
+  if (m_VOI_picker)
     foreach(EspinaRenderView *rView, m_renderViews)
-    {
-      rView->setCursor(m_picker->cursor());
-    }
-
-  /*TODO 2012-10-07
-   * if (m_voi)
-   * {
-   *   m_voi->setEnabled(!m_handler);
-   }
-   */
+      rView->setCursor(m_VOI_picker->cursor());
+  else
+    if (m_picker)
+      foreach(EspinaRenderView *rView, m_renderViews)
+        rView->setCursor(m_picker->cursor());
 }
 
 //----------------------------------------------------------------------------
@@ -109,9 +105,18 @@ void ViewManager::unsetPicker(IPicker* picker)
   if (m_picker == picker)
     m_picker = NULL;
 
+  if(m_VOI_picker == picker)
+    m_VOI_picker = NULL;
+
   foreach(EspinaRenderView *rView, m_renderViews)
   {
-    rView->setCursor(Qt::ArrowCursor);
+    if (m_VOI_picker)
+      rView->setCursor(m_VOI_picker->cursor());
+    else
+      if (m_picker)
+        rView->setCursor(m_picker->cursor());
+      else
+        rView->setCursor(Qt::ArrowCursor);
   }
 }
 
@@ -119,8 +124,13 @@ void ViewManager::unsetPicker(IPicker* picker)
 bool ViewManager::filterEvent(QEvent* e, EspinaRenderView* view) const
 {
   bool res = false;
-  if (m_picker)
-    res = m_picker->filterEvent(e, view);
+
+  if (m_VOI_picker)
+    res = m_VOI_picker->filterEvent(e, view);
+
+  if (!res)
+    if (m_picker)
+      res = m_picker->filterEvent(e, view);
 
   return res;
 }
@@ -128,10 +138,13 @@ bool ViewManager::filterEvent(QEvent* e, EspinaRenderView* view) const
 //----------------------------------------------------------------------------
 QCursor ViewManager::cursor() const
 {
-  if (m_picker)
-    return m_picker->cursor();
+  if (m_VOI_picker)
+    return m_VOI_picker->cursor();
   else
-    return QCursor(Qt::ArrowCursor);
+    if (m_picker)
+      return m_picker->cursor();
+    else
+      return QCursor(Qt::ArrowCursor);
 }
 
 //----------------------------------------------------------------------------
@@ -221,4 +234,28 @@ void ViewManager::setColorEngine(ColorEngine* engine)
   m_colorEngine = engine;
   updateSegmentationRepresentations();
   updateViews();
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::setVOIPicker(IPicker *picker)
+{
+  if (m_VOI_picker && m_VOI_picker != picker)
+    m_VOI_picker->abortPick();
+
+  m_VOI_picker = picker;
+
+  if (m_VOI_picker)
+    foreach(EspinaRenderView *rView, m_renderViews)
+      rView->setCursor(m_VOI_picker->cursor());
+  else
+    if (m_picker)
+      foreach(EspinaRenderView *rView, m_renderViews)
+        rView->setCursor(m_picker->cursor());
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::focusViewsOn(Nm *center)
+{
+  foreach(EspinaRenderView *rView, m_renderViews)
+    rView->centerViewOn(center, true);
 }

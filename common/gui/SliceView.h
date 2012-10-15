@@ -125,7 +125,6 @@ public:
   void UpdateCrosshairPoint(PlaneType plane, Nm slicepos);
 
   virtual void updateSelection(){}
-
 public slots:
   /// Show/Hide segmentations
   void setSegmentationVisibility(bool visible);

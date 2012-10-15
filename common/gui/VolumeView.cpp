@@ -83,6 +83,8 @@ VolumeView::VolumeView(const EspinaFactory *factory,
   m_numEnabledRenders = 0;
   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection)),
           this, SLOT(updateSelection(ViewManager::Selection)));
+
+  vm->registerView(this);
 }
 
 //-----------------------------------------------------------------------------
@@ -176,7 +178,7 @@ void VolumeView::buildControls()
 
 
 //-----------------------------------------------------------------------------
-void VolumeView::centerViewOn(Nm center[3])
+void VolumeView::centerViewOn(Nm *center, bool notUsed)
 {
   if (!isVisible() ||
       (m_center[0] == center[0] &&
@@ -195,6 +197,7 @@ void VolumeView::centerViewOn(Nm center[3])
     }
   }
 
+  setCameraFocus(center);
   updateView();
 }
 

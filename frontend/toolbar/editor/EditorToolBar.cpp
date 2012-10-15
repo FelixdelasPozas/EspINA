@@ -709,22 +709,24 @@ void EditorToolBar::startContourDrawing()
   if (m_actionGroup->isChecked())
   {
     m_contourWidget = new ContourWidget();
-    m_viewManager->addWidget(m_contourWidget);
-    m_contourWidget->setEnabled(true);
 
     SegmentationList selSegs = selectedSegmentations();
     if (selSegs.size() == 1)
     {
       m_currentSeg = selSegs.first();
       m_currentSource = m_currentSeg->filter();
+      m_contourWidget->setPolygonColor(m_viewManager->color(m_currentSeg));
     }
     else
     {
       m_currentSeg = NULL;
       m_currentSource = NULL;
+      m_contourWidget->setPolygonColor(m_viewManager->activeTaxonomy()->color());
     }
 
     m_viewManager->setPicker(m_contourSelector);
+    m_viewManager->addWidget(m_contourWidget);
+    m_contourWidget->setEnabled(true);
   }
 }
 
@@ -789,20 +791,25 @@ void EditorToolBar::cancelDrawOperation()
     }
 
     m_viewManager->removeWidget(m_contourWidget);
+    m_viewManager->unsetPicker(m_contourSelector);
     delete m_contourWidget;
     m_viewManager->updateViews();
     QApplication::restoreOverrideCursor();
+
+  }
+  else
+  {
+    // only for paint operations
+    m_viewManager->unsetPicker(m_brush);
   }
 
-  m_viewManager->setPicker(NULL);
   m_currentSource = NULL;
   m_currentSeg = NULL;
 }
 
 void EditorToolBar::startDrawOperation(QAction *action)
 {
-  if (!m_viewManager->activeChannel()
-   || !m_viewManager->activeTaxonomy())
+  if (!m_viewManager->activeChannel() || !m_viewManager->activeTaxonomy())
   {
     m_actionGroup->setChecked(false);
     return;

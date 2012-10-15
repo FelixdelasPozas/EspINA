@@ -54,7 +54,7 @@ bool PixelSelector::filterEvent(QEvent* e, EspinaRenderView* view)
     {
       onMouseDown(me->pos(), view);
       // If handled, prevent other elements to filter the event
-      return m_handled;
+      return true;
     }
   }
 
@@ -135,14 +135,15 @@ void BestPixelSelector::onMouseDown(const QPoint& pos, EspinaRenderView* view)
       pixelValue = abs(pixel[0] - m_bestPixel);
       if (pixelValue < bestValue)
       {
-	bestValue = pixelValue;
-	bestPixel = QPoint(x,y);
-      } else if (pixelValue == bestValue &&
-	quadDist(xPos,yPos,x,y) < quadDist(xPos,yPos,bestPixel.x(),bestPixel.y()))
-      {
-	bestValue = pixelValue;
-	bestPixel = QPoint(x,y);
+        bestValue = pixelValue;
+        bestPixel = QPoint(x,y);
       }
+      else
+        if (pixelValue == bestValue &&	quadDist(xPos,yPos,x,y) < quadDist(xPos,yPos,bestPixel.x(),bestPixel.y()))
+        {
+          bestValue = pixelValue;
+          bestPixel = QPoint(x,y);
+        }
       //qDebug() << "Pixel(" << x << "," << y<< ") value :" << pixel[0] << pixel[1] << pixel[2];
     }
   }

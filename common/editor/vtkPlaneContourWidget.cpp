@@ -43,6 +43,7 @@ vtkPlaneContourWidget::vtkPlaneContourWidget()
 , Orientation(CORONAL)
 , ContinuousDrawTolerance(40)
 , mouseButtonDown(false)
+, m_polygonColor(Qt::black)
 {
   this->ManagesCursor = 0; // from Superclass
   this->CreateDefaultRepresentation();
@@ -801,3 +802,16 @@ bool vtkPlaneContourWidget::IsPointTooClose(int X, int Y)
   vtkPlaneContourRepresentationGlyph *rep = reinterpret_cast<vtkPlaneContourRepresentationGlyph*>(this->WidgetRep);
   return (rep->Distance2BetweenPoints(X,Y, rep->GetNumberOfNodes()-2) < this->ContinuousDrawTolerance);
 }
+
+void vtkPlaneContourWidget::setPolygonColor(QColor color)
+{
+  this->m_polygonColor = color;
+  vtkPlaneContourRepresentationGlyph *rep = reinterpret_cast<vtkPlaneContourRepresentationGlyph *>(this->WidgetRep);
+  rep->setPolygonColor(color);
+}
+
+QColor vtkPlaneContourWidget::getPolygonColor()
+{
+  return this->m_polygonColor;
+}
+

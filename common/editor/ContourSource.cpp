@@ -129,10 +129,8 @@ void ContourSource::signalAsModified()
 
 vtkPolyData* ContourSource::TransformContour(PlaneType plane, vtkPolyData* contour)
 {
-  double spacing[3], pos[3], temporal;
-  //BUG 2012-10-04: Coger spacing del canal seccionado, en lugar del activo
-  //SelectionManager::instance()->activeChannel()->spacing(spacing);
-  Q_ASSERT(false);
+  double pos[3], temporal;
+
   int count = contour->GetPoints()->GetNumberOfPoints();
   vtkPolyData *rotatedContour = vtkPolyData::New();
 
@@ -153,18 +151,18 @@ vtkPolyData* ContourSource::TransformContour(PlaneType plane, vtkPolyData* conto
       switch (plane)
       {
         case AXIAL:
-//          pos[2] -= 0.5 * spacing[2];
+          pos[2] -= 0.5 * m_param.spacing()[2];
           break;
         case CORONAL:
           temporal = pos[1];
           pos[1] = pos[2];
-          pos[2] = temporal; // - 0.5 * spacing[1];
+          pos[2] = temporal - 0.5 * m_param.spacing()[1];
           break;
         case SAGITTAL:
           temporal = pos[0];
           pos[0] = pos[1];
           pos[1] = pos[2];
-          pos[2] = temporal;// - 0.5 * spacing[0];
+          pos[2] = temporal - 0.5 * m_param.spacing()[0];
           break;
         default:
           Q_ASSERT(false);

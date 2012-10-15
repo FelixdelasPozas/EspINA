@@ -48,8 +48,6 @@ protected slots:
 private:
   void buildVOIs();
 
-//   void addVOI(QAction *action, IVOI *voi);
-
 private:
   ViewManager    *m_viewManager;
   ActionSelector *m_voi;

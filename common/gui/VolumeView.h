@@ -79,7 +79,7 @@ public:
                       QWidget* parent = 0);
   virtual ~VolumeView(){}
 
-  void centerViewOn(Nm center[3]/*nm*/);
+  void centerViewOn(Nm *center, bool);
   void setCameraFocus(const Nm center[3]);
 
 public slots: //Needed to interact with renderers

@@ -29,7 +29,6 @@
 #include "common/model/Segmentation.h"
 
 class ViewManager;
-class ViewManager;
 class ActionSelector;
 class ContourSelector;
 class ContourWidget;
@@ -37,6 +36,7 @@ class EspinaModel;
 class FreeFormSource;
 class QAction;
 class QUndoStack;
+class ModelItem;
 
 class EditorToolBar
 : public QToolBar
@@ -65,7 +65,6 @@ public:
   virtual Filter* createFilter(const QString filter,
                                Filter::NamedInputs inputs,
                                const ModelItem::Arguments args);
-
 protected slots:
   void startDrawOperation(QAction *);
   void drawSegmentation(IPicker::PickList msel);

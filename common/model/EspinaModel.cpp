@@ -45,7 +45,7 @@ EspinaModel::EspinaModel(EspinaFactory *factory, QObject* parent)
 EspinaModel::~EspinaModel()
 {
   if (m_tax)
-    delete m_tax;;
+    delete m_tax;
 }
 
 //------------------------------------------------------------------------
@@ -324,7 +324,7 @@ void EspinaModel::addSample (Sample *sample)
   m_samples << sample;
   m_relations->addItem(sample);
   endInsertRows();
-  markAsChanged();;
+  markAsChanged();
 }
 
 //------------------------------------------------------------------------
@@ -335,7 +335,7 @@ void EspinaModel::addSample(QList<Sample *> samples)
 //   {
 //     Q_ASSERT(m_samples.contains(sample) == false);
 //   }
-  markAsChanged();;
+  markAsChanged();
 }
 
 
@@ -362,7 +362,7 @@ void EspinaModel::removeSample(Sample *sample)
   Q_ASSERT (m_samples.contains(sample) == false );
   //   m_analysis->removeNode(sample);
   endRemoveRows();
-  markAsChanged();;
+  markAsChanged();
 }
 
 //------------------------------------------------------------------------
@@ -380,7 +380,7 @@ void EspinaModel::addChannel(Channel *channel)
   connect(channel, SIGNAL(modified(ModelItem*)),
 	  this, SLOT(itemModified(ModelItem*)));
   endInsertRows();
-  markAsChanged();;
+  markAsChanged();
 }
 
 //------------------------------------------------------------------------
@@ -395,7 +395,7 @@ void EspinaModel::removeChannel(Channel *channel)
   m_channels.removeOne(channel);
   Q_ASSERT(m_channels.contains(channel) == false);
   endRemoveRows();
-  markAsChanged();;
+  markAsChanged();
 }
 
 //------------------------------------------------------------------------
@@ -427,7 +427,7 @@ void EspinaModel::addSegmentation(Segmentation *seg)
   connect(seg, SIGNAL(modified(ModelItem*)),
 	  this, SLOT(itemModified(ModelItem*)));
   endInsertRows();
-  markAsChanged();;
+  markAsChanged();
 }
 
 //------------------------------------------------------------------------
@@ -450,7 +450,7 @@ void EspinaModel::addSegmentation(QList<Segmentation *> segs)
 	    this, SLOT(itemModified(ModelItem*)));
   }
   endInsertRows();
-  markAsChanged();;
+  markAsChanged();
 }
 
 
@@ -465,7 +465,7 @@ void EspinaModel::removeSegmentation(Segmentation *seg)
   m_relations->removeItem(seg);
   Q_ASSERT(m_segmentations.contains(seg) == false);
   endRemoveRows();
-  markAsChanged();;
+  markAsChanged();
 }
 
 //------------------------------------------------------------------------
@@ -476,7 +476,7 @@ void EspinaModel::removeSegmentation(QList<Segmentation *> segs)
   {
     removeSegmentation(seg);
   }
-  markAsChanged();;
+  markAsChanged();
 }
 
 //------------------------------------------------------------------------
@@ -486,7 +486,7 @@ void EspinaModel::changeTaxonomy(Segmentation* seg, TaxonomyElement* taxonomy)
 
   QModelIndex segIndex = segmentationIndex(seg);
   emit dataChanged(segIndex, segIndex);
-  markAsChanged();;
+  markAsChanged();
 }
 
 
@@ -501,7 +501,7 @@ void EspinaModel::addFilter(Filter *filter)
   m_filters << filter;
   m_relations->addItem(filter);
   endInsertRows();
-  markAsChanged();;
+  markAsChanged();
 }
 
 //------------------------------------------------------------------------
@@ -514,7 +514,7 @@ void EspinaModel::removeFilter(Filter *filter)
   m_relations->removeItem(filter);
   Q_ASSERT(m_filters.contains(filter) == false);
   endRemoveRows();
-  markAsChanged();;
+  markAsChanged();
 }
 
 //------------------------------------------------------------------------
@@ -526,7 +526,7 @@ void EspinaModel::addRelation(ModelItem* ancestor, ModelItem* successor, QString
 //   qDebug() << ancestorIndex.data().toString() << "==" << relation << "==>" << successorIndex.data().toString();
   emit dataChanged(ancestorIndex, ancestorIndex);
   emit dataChanged(successorIndex, successorIndex);
-  markAsChanged();;
+  markAsChanged();
 }
 
 //------------------------------------------------------------------------
@@ -537,7 +537,7 @@ void EspinaModel::removeRelation(ModelItem* ancestor, ModelItem* successor, QStr
   QModelIndex succesorIndex = index(successor);
   emit dataChanged(ancestorIndex, ancestorIndex);
   emit dataChanged(succesorIndex, succesorIndex);
-  markAsChanged();;
+  markAsChanged();
 }
 
 //------------------------------------------------------------------------

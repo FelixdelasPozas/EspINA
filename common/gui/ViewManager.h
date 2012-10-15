@@ -87,11 +87,14 @@ public:
   void unsetPicker(IPicker *picker);
   /// Filter event according to responsabilty chain
   bool filterEvent(QEvent *e, EspinaRenderView *view=NULL) const;
+  // Register VOI picker. VOI picker has highest priority
+  void setVOIPicker(IPicker *);
   /// Return cursor of active picker
   QCursor cursor() const;
 
 private:
   IPicker *m_picker;
+  IPicker *m_VOI_picker;
   //---------------------------------------------------------------------------
   /***************************** Widget API **********************************/
   //---------------------------------------------------------------------------
@@ -105,6 +108,8 @@ public:
 public:
   /// Reset Camera
   void resetViewCameras();
+  /// Focus
+  void focusViewsOn(Nm *);
   /// Update Segmentation Representation
   void updateSegmentationRepresentations();
 
@@ -147,7 +152,7 @@ private:
   Channel      *m_activeChannel;
   TaxonomyElement *m_activeTaxonomy;
 
-  ColorEngine * m_colorEngine;
+  ColorEngine *m_colorEngine;
   vtkSmartPointer<vtkLookupTable> seg_lut;
 };
 

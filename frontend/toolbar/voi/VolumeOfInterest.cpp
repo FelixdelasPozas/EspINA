@@ -75,7 +75,7 @@ void VolumeOfInterest::buildVOIs()
 //-----------------------------------------------------------------------------
 void VolumeOfInterest::changeVOISelector(QAction* action)
 {
-  m_viewManager->setPicker(m_selector.data());
+  m_viewManager->setVOIPicker(m_selector.data());
   /*TODO 2012-10-10 currentView->setSliceSelectors(SliceView::From|SliceView::To);
   connect(currentView, SIGNAL(selectedFromSlice(double, PlaneType)),
           this, SLOT(setBorderFrom(double, PlaneType)));

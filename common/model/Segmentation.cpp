@@ -140,10 +140,10 @@ QVariant Segmentation::data(int role) const
       return QString("Segmentation %1").arg(m_args.number());
     case Qt::DecorationRole:
     {
-      return QColor(Qt::red);//TODO 2012-10-05 ::instance()->colorSettings().engine()->color(this);
-      //       QPixmap segIcon(3,16);
-      //       segIcon.fill(m_taxonomy->color());
-      //       return segIcon;
+      if (m_taxonomy)
+        return m_taxonomy->color();
+      else
+        return QColor(Qt::red);
     }
     case Qt::ToolTipRole:
     {
@@ -172,11 +172,11 @@ QVariant Segmentation::data(int role) const
       return visible() ? Qt::Checked : Qt::Unchecked;
       // //     case Qt::FontRole:
       // //     {
-        // //       QFont myFont;
-      // // //       if (this->availableInformations().contains("Discarted"))
-      // // //       {
-        // // 	myFont.setStrikeOut(!visible());
-      // // //       }
+      // //       QFont myFont;
+      // //          if (this->availableInformations().contains("Discarted"))
+      // //          {
+      // // 	          myFont.setStrikeOut(!visible());
+      // //          }
       // //       return myFont;
       // //     }
     case Qt::UserRole + 1:

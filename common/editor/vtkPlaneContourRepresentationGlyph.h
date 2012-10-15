@@ -3,6 +3,7 @@
 
 #include "vtkPlaneContourRepresentation.h"
 #include "vtkContourToPolygonFilter.h"
+#include <QColor>
 
 class vtkProperty;
 class vtkActor;
@@ -101,6 +102,10 @@ class VTK_WIDGETS_EXPORT vtkPlaneContourRepresentationGlyph
     vtkSetVector2Macro(Spacing, double);
 
     double Distance2BetweenPoints(int displayPosX, int displayPosY, int node);
+
+    // get/set polygon color
+    virtual void setPolygonColor(QColor);
+    virtual QColor getPolygonColor();
   protected:
     vtkPlaneContourRepresentationGlyph();
     ~vtkPlaneContourRepresentationGlyph();
@@ -158,6 +163,8 @@ class VTK_WIDGETS_EXPORT vtkPlaneContourRepresentationGlyph
     double Spacing[2];
 
     virtual void BuildLines();
+
+    // toggles the use of a filled polygon as part of the representation
     virtual void UseContourPolygon(bool value);
 
   private:
@@ -168,6 +175,7 @@ class VTK_WIDGETS_EXPORT vtkPlaneContourRepresentationGlyph
     vtkSmartPointer<vtkContourToPolygonFilter> m_polygonFilter;
     vtkSmartPointer<vtkPolyDataMapper> m_polygonMapper;
     bool useContourPolygon;
+    QColor m_polygonColor;
 };
 
 #endif // _VTKPLANECONTOURREPRESENTATIONGLYPH_H_

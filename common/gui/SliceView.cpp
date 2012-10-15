@@ -793,7 +793,7 @@ void SliceView::removeSegmentation(Segmentation* seg)
 
   m_segmentationReps.remove(seg);
 
-  //NOTE 2012-10-09 It shoud be VM: forceRender();
+  //NOTE 2012-10-09 It should be VM: forceRender();
 }
 
 //-----------------------------------------------------------------------------
@@ -948,6 +948,7 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
     this->setFocus(Qt::OtherFocusReason);
     QKeyEvent event(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
     qApp->sendEvent(this, &event);
+    return true;
   }
 
   if (m_inThumbnail || !m_viewManager->filterEvent(e, this))
@@ -1033,7 +1034,6 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
       m_view->setToolTip(toopTip);
     }
   }
-
 
   updateRuler();
   updateThumbnail();
@@ -1487,6 +1487,7 @@ void SliceView::Settings::setShowAxis(bool value)
   m_ShowAxis = value;
 }
 
+//-----------------------------------------------------------------------------
 void SliceView::UpdateCrosshairPoint(PlaneType plane, Nm slicepos)
 {
   this->m_crosshairPoint[plane] = slicepos;

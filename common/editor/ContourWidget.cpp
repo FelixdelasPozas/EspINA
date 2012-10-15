@@ -14,6 +14,7 @@ ContourWidget::ContourWidget()
 : m_axialSliceContourWidget(NULL)
 , m_coronalSliceContourWidget(NULL)
 , m_sagittalSliceContourWidget(NULL)
+, m_color(Qt::black)
 {
 }
 
@@ -51,7 +52,7 @@ void ContourWidget::deleteWidget(vtkAbstractWidget *widget)
 SliceWidget *ContourWidget::createSliceWidget(PlaneType plane)
 {
   vtkPlaneContourWidget *widget = vtkPlaneContourWidget::New();
-  Q_ASSERT(widget);
+  widget->setPolygonColor(this->m_color);
 
   switch(plane)
   {
@@ -116,4 +117,14 @@ unsigned int ContourWidget::GetContoursNumber()
   result += this->m_sagittalSliceContourWidget->GetContoursNumber();
 
   return result;
+}
+
+void ContourWidget::setPolygonColor(QColor color)
+{
+  m_color = color;
+}
+
+QColor ContourWidget::getPolygonColor()
+{
+  return m_color;
 }

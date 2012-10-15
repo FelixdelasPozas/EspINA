@@ -447,7 +447,7 @@ void DefaultEspinaView::setCrosshairPoint(Nm x, Nm y, Nm z, bool force)
   xyView->centerViewOn(point, force);
   yzView->centerViewOn(point, force);
   xzView->centerViewOn(point, force);
-  volView->centerViewOn(point);
+  volView->centerViewOn(point, force);
 }
 
 // //-----------------------------------------------------------------------------

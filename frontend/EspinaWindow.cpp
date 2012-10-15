@@ -279,9 +279,10 @@ void EspinaWindow::loadPlugins()
   {
     QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
     QObject *plugin = loader.instance();
-    qDebug() << fileName;
+
     if (plugin)
     {
+      qDebug() << "Found plugin " << fileName;;
       IFactoryExtension *factoryExtension = qobject_cast<IFactoryExtension *>(plugin);
       if (factoryExtension)
       {
@@ -340,9 +341,9 @@ void EspinaWindow::createActivityMenu()
   QMenu *activityMenu = new QMenu(tr("acceptmodeActivity"));
   menuBar()->addMenu(activityMenu);
 
-  QAction *analyse = new QAction(tr("Analyse"),activityMenu);
+  QAction *analyse = new QAction(tr("Analyze"),activityMenu);
   activityMenu->addAction(analyse);
-  sigMapper->setMapping(analyse,QString("analyse"));
+  sigMapper->setMapping(analyse,QString("analyze"));
   connect(analyse,SIGNAL(triggered(bool)), sigMapper, SLOT(map()));
   
   QAction *reload = new QAction(tr("Reload"),activityMenu);

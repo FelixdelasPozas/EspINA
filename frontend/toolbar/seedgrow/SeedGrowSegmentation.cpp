@@ -165,7 +165,7 @@ void SeedGrowSegmentation::waitSeedSelection(QAction* action)
 void SeedGrowSegmentation::abortSelection()
 {
   m_selector->previewOff();
-  m_viewManager->setPicker(NULL);
+  m_viewManager->unsetPicker(m_selector.data());
 }
 
 //-----------------------------------------------------------------------------

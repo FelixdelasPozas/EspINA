@@ -52,6 +52,7 @@ vtkPlaneContourRepresentationGlyph::vtkPlaneContourRepresentationGlyph()
   this->m_polygonFilter = NULL;
   this->m_polygonMapper = NULL;
   this->useContourPolygon = false;
+  this->m_polygonColor = Qt::black;
 
   // Initialize state
   this->InteractionState = vtkPlaneContourRepresentation::Outside;
@@ -991,10 +992,7 @@ void vtkPlaneContourRepresentationGlyph::UseContourPolygon(bool value)
       this->m_polygon = vtkSmartPointer<vtkActor>::New();
       this->m_polygon->SetMapper(this->m_polygonMapper);
 
-      // TODO: change later to correct way of doing things
-      color = QColor(Qt::blue);// TODO 2012-10-07 SelectionManager::instance()->activeTaxonomy()->color();
-
-      this->m_polygon->GetProperty()->SetColor(color.redF(), color.greenF(), color.greenF());
+      this->m_polygon->GetProperty()->SetColor(m_polygonColor.redF(), m_polygonColor.greenF(), m_polygonColor.blueF());
       this->m_polygon->GetProperty()->SetOpacity(0.5);
 
       double position[3];
@@ -1060,4 +1058,20 @@ double vtkPlaneContourRepresentationGlyph::Distance2BetweenPoints(int displayPos
   }
 
   return ((pointPos[0] - nodePos[0]) * (pointPos[0] - nodePos[0])) + ((pointPos[1] - nodePos[1]) * (pointPos[1] - nodePos[1])) + ((pointPos[2] - nodePos[2]) * (pointPos[2] - nodePos[2]));
+}
+
+void vtkPlaneContourRepresentationGlyph::setPolygonColor(QColor color)
+{
+  this->m_polygonColor = color;
+  if (this->m_polygon)
+  {
+    this->m_polygon->GetProperty()->SetColor(m_polygonColor.redF(), m_polygonColor.greenF(), m_polygonColor.greenF());
+    this->m_polygon->GetProperty()->SetOpacity(0.5);
+    this->m_polygon->Modified();
+  }
+}
+
+QColor vtkPlaneContourRepresentationGlyph::getPolygonColor()
+{
+  return this->m_polygonColor;
 }

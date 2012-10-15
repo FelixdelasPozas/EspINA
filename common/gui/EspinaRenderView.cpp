@@ -104,5 +104,3 @@ void EspinaRenderView::updateSceneBounds()
   else
     resetSceneBounds();
 }
-
-
