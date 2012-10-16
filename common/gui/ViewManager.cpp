@@ -249,7 +249,6 @@ void ViewManager::setVOIPicker(IPicker *picker)
 {
   if (m_VOI_picker && m_VOI_picker != picker)
     m_VOI_picker->abortPick();
-  
 
   m_VOI_picker = picker;
 

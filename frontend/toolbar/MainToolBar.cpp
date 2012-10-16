@@ -57,6 +57,11 @@ MainToolBar::MainToolBar(EspinaModel *model,
   connect(m_toggleSegVisibility,SIGNAL(triggered(bool)),
           this,SLOT(setShowSegmentations(bool)));
 
+  m_toggleCrosshair = addAction(QIcon(":/espina/hide_planes.svg"),
+                                tr("Toggle Crosshair"));
+  m_toggleCrosshair->setCheckable(true);
+  connect(m_toggleCrosshair, SIGNAL(toggled(bool)),
+          this, SLOT(toggleCrosshair(bool)));
 
   // User selected Taxonomy Selection List
   m_taxonomyView = new QTreeView(this);
@@ -93,13 +98,6 @@ MainToolBar::MainToolBar(EspinaModel *model,
   m_removeSegmentation->setCheckable(true);
   connect(m_removeSegmentation, SIGNAL(toggled(bool)),
           this, SLOT(removeSegmentation(bool)));
-
-
-  m_toggleCrosshair = addAction(QIcon(":/espina/hide_planes.svg"),
-                                tr("Toggle Crosshair"));
-  m_toggleCrosshair->setCheckable(true);
-  connect(m_toggleCrosshair, SIGNAL(toggled(bool)),
-          this, SLOT(toggleCrosshair(bool)));
 }
 
 //----------------------------------------------------------------------------
