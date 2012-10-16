@@ -112,6 +112,8 @@ public:
   void focusViewsOn(Nm *);
   /// Update Segmentation Representation
   void updateSegmentationRepresentations();
+  // Toggle crosshair
+  void showCrosshair(bool);
 
 public slots:
   /// Request all registered views to update themselves

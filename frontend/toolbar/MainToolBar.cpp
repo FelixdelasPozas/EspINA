@@ -93,6 +93,13 @@ MainToolBar::MainToolBar(EspinaModel *model,
   m_removeSegmentation->setCheckable(true);
   connect(m_removeSegmentation, SIGNAL(toggled(bool)),
           this, SLOT(removeSegmentation(bool)));
+
+
+  m_toggleCrosshair = addAction(QIcon(":/espina/hide_planes.svg"),
+                                tr("Toggle Crosshair"));
+  m_toggleCrosshair->setCheckable(true);
+  connect(m_toggleCrosshair, SIGNAL(toggled(bool)),
+          this, SLOT(toggleCrosshair(bool)));
 }
 
 //----------------------------------------------------------------------------
@@ -177,4 +184,14 @@ void MainToolBar::abortSelection()
   m_removeSegmentation->blockSignals(true);
   m_removeSegmentation->setChecked(false);
   m_removeSegmentation->blockSignals(false);
+}
+
+//----------------------------------------------------------------------------
+void MainToolBar::toggleCrosshair(bool value)
+{
+  if (value)
+    this->m_toggleCrosshair->setIcon(QIcon(":/espina/show_planes.svg"));
+  else
+    this->m_toggleCrosshair->setIcon(QIcon(":/espina/hide_planes.svg"));
+  m_viewManager->showCrosshair(value);
 }

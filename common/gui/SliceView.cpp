@@ -527,7 +527,7 @@ void SliceView::setCrosshairColors(double hcolor[3], double vcolor[3])
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::setCrosshairVisibility(bool visible)
+void SliceView::showCrosshairs(bool visible)
 {
   if (visible)
   {
@@ -953,19 +953,7 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
 
   if (m_inThumbnail || !m_viewManager->filterEvent(e, this))
   {
-    if (QEvent::KeyPress == e->type())
-    {
-      QKeyEvent *ke = static_cast<QKeyEvent *>(e);
-      if (ke->key() == Qt::Key_Control && ke->count() == 1)
-        emit showCrosshairs(true);
-    }
-    else if (QEvent::KeyRelease == e->type())
-    {
-      QKeyEvent *ke = static_cast<QKeyEvent *>(e);
-      if (ke->key() == Qt::Key_Control && ke->count() == 1)
-        emit showCrosshairs(false);
-    }
-    else if (QEvent::Wheel == e->type())
+    if (QEvent::Wheel == e->type())
     {
       QWheelEvent *we = static_cast<QWheelEvent *>(e);
       int numSteps = we->delta() / 8 / 15 * (m_settings->invertWheel() ? -1 : 1);  //Refer to QWheelEvent doc.
@@ -1013,12 +1001,6 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
           else
             selectPickedItems(me->modifiers() == Qt::SHIFT);
       }
-    }
-    else if (e->type() == QEvent::KeyRelease)
-    {
-      QKeyEvent *ke = static_cast<QKeyEvent *>(e);
-      if (ke->key() == Qt::Key_Control && ke->count() == 1)
-        emit showCrosshairs(false);
     }
     else if (QEvent::ToolTip == e->type())
     {
@@ -1490,6 +1472,7 @@ void SliceView::Settings::setShowAxis(bool value)
 //-----------------------------------------------------------------------------
 void SliceView::UpdateCrosshairPoint(PlaneType plane, Nm slicepos)
 {
+
   this->m_crosshairPoint[plane] = slicepos;
   m_state->setCrossHairs(m_HCrossLineData, m_VCrossLineData,
                          m_crosshairPoint, m_sceneBounds);
@@ -1498,3 +1481,4 @@ void SliceView::UpdateCrosshairPoint(PlaneType plane, Nm slicepos)
   if (this->m_renderer->HasViewProp(this->m_HCrossLine))
     updateView();
 }
+

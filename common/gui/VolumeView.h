@@ -114,6 +114,7 @@ public:
   void addRendererControls(Renderer *);
   void removeRendererControls(const QString name);
 
+  void showCrosshairs(bool) {};
   void updateSegmentationRepresentations();
   virtual void updateSelection(){}
 

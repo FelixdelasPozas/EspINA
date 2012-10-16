@@ -58,6 +58,7 @@ protected slots:
   void updateTaxonomy(QModelIndex left, QModelIndex right);
   void removeSegmentation(bool active);
   void removeSelectedSegmentation(IPicker::PickList msel);
+  void toggleCrosshair(bool);
   void abortSelection();
 
 signals:
@@ -68,7 +69,7 @@ private:
   QUndoStack    *m_undoStack;
   ViewManager   *m_viewManager;
 
-  QAction       *m_toggleSegVisibility, *m_removeSegmentation;
+  QAction       *m_toggleSegVisibility, *m_removeSegmentation, *m_toggleCrosshair;
   QComboBox     *m_taxonomySelector;
   QTreeView     *m_taxonomyView;
   PixelSelector *m_selector;

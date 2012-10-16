@@ -112,8 +112,6 @@ void DefaultEspinaView::initSliceView(SliceView* view)
 //           this, SLOT(selectFromSlice(double, PlaneType)));
 //   connect(view, SIGNAL(selectedToSlice(double, PlaneType)),
 //           this, SLOT(selectToSlice(double, PlaneType)));
-  connect(view, SIGNAL(showCrosshairs(bool)),
-          this, SLOT(showCrosshair(bool)));
   connect(view, SIGNAL(sliceChanged(PlaneType, Nm)),
           this, SLOT(changePlanePosition(PlaneType, Nm)));
 }
@@ -385,9 +383,9 @@ void DefaultEspinaView::dataChanged(const QModelIndex& topLeft, const QModelInde
 //----------------------------------------------------------------------------
 void DefaultEspinaView::showCrosshair(bool visible)
 {
-  xyView->setCrosshairVisibility(visible);
-  yzView->setCrosshairVisibility(visible);
-  xzView->setCrosshairVisibility(visible);
+  xyView->showCrosshairs(visible);
+  yzView->showCrosshairs(visible);
+  xzView->showCrosshairs(visible);
 }
 
 //-----------------------------------------------------------------------------

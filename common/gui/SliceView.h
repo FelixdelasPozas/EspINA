@@ -92,7 +92,6 @@ public:
   void setSlicingStep(Nm steps[3]);
   void centerViewOn(Nm center[3], bool force = false);
   void setCrosshairColors(double hcolor[3], double vcolor[3]);
-  void setCrosshairVisibility(bool visible);
   void setThumbnailVisibility(bool visible);
 
   virtual void addChannel(Channel* channel);
@@ -118,6 +117,7 @@ public:
 
   virtual void updateView();
   virtual void resetCamera();
+  virtual void showCrosshairs(bool);
 
   SettingsPtr settings() { return m_settings; }
 
@@ -149,7 +149,6 @@ protected slots:
 
 signals:
   void centerChanged(Nm, Nm, Nm);
-  void showCrosshairs(bool);
   void focusChanged(const Nm[3]);
 
   void channelSelected(Channel *);

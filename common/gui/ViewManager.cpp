@@ -259,3 +259,10 @@ void ViewManager::focusViewsOn(Nm *center)
   foreach(EspinaRenderView *rView, m_renderViews)
     rView->centerViewOn(center, true);
 }
+
+//----------------------------------------------------------------------------
+void ViewManager::showCrosshair(bool value)
+{
+  foreach(EspinaRenderView *rView, m_renderViews)
+    rView->showCrosshairs(value);
+}
