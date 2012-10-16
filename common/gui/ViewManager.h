@@ -89,12 +89,15 @@ public:
   bool filterEvent(QEvent *e, EspinaRenderView *view=NULL) const;
   // Register VOI picker. VOI picker has highest priority
   void setVOIPicker(IPicker *);
+  void setVOI(EspinaWidget *voi) {m_voi = voi;}
+  EspinaWidget *voi() const {return m_voi;}
   /// Return cursor of active picker
   QCursor cursor() const;
 
 private:
   IPicker *m_picker;
   IPicker *m_VOI_picker;
+  EspinaWidget *m_voi;
   //---------------------------------------------------------------------------
   /***************************** Widget API **********************************/
   //---------------------------------------------------------------------------

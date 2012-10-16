@@ -32,6 +32,7 @@
 ViewManager::ViewManager()
 : m_picker(NULL)
 , m_VOI_picker(NULL)
+, m_voi(NULL)
 , m_activeChannel(NULL)
 , m_activeTaxonomy(NULL)
 , m_colorEngine(NULL)
@@ -97,13 +98,20 @@ void ViewManager::setPicker(IPicker* picker)
     if (m_picker)
       foreach(EspinaRenderView *rView, m_renderViews)
         rView->setCursor(m_picker->cursor());
+      
+  if (m_voi)
+    m_voi->setEnabled(false);
 }
 
 //----------------------------------------------------------------------------
 void ViewManager::unsetPicker(IPicker* picker)
 {
   if (m_picker == picker)
+  {
     m_picker = NULL;
+    if (m_voi)
+      m_voi->setEnabled(true);
+  }
 
   if(m_VOI_picker == picker)
     m_VOI_picker = NULL;
@@ -241,12 +249,20 @@ void ViewManager::setVOIPicker(IPicker *picker)
 {
   if (m_VOI_picker && m_VOI_picker != picker)
     m_VOI_picker->abortPick();
+  
 
   m_VOI_picker = picker;
 
   if (m_VOI_picker)
+  {
+    if (m_picker)
+    {
+      m_picker->abortPick();
+      m_picker = NULL;
+    }
     foreach(EspinaRenderView *rView, m_renderViews)
       rView->setCursor(m_VOI_picker->cursor());
+  }
   else
     if (m_picker)
       foreach(EspinaRenderView *rView, m_renderViews)
