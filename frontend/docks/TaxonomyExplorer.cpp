@@ -23,10 +23,12 @@
 // EspINA
 #include "common/model/EspinaModel.h"
 #include "common/model/Taxonomy.h"
+#include <model/Segmentation.h>
 #include "common/gui/ViewManager.h"
 
 // Qt
 #include <QColorDialog>
+#include <QMessageBox>
 
 //------------------------------------------------------------------------
 class TaxonomyExplorer::GUI
@@ -126,6 +128,27 @@ void TaxonomyExplorer::removeSelectedTaxonomy()
   if (m_gui->treeView->currentIndex().isValid())
   {
     QModelIndex index = m_sort->mapToSource(m_gui->treeView->currentIndex());
-    m_baseModel->removeTaxonomyElement(index);
+    ModelItem *item = indexPtr(index);
+    TaxonomyElement *tax = dynamic_cast<TaxonomyElement *>(item);
+
+    if (tax->subElements().isEmpty())
+    {
+      bool inUse = false;
+      int i = 0;
+      while (!inUse && i < m_baseModel->segmentations().size())
+	inUse = m_baseModel->segmentations()[i++]->taxonomy() == tax;
+
+      if (!inUse)
+	m_baseModel->removeTaxonomyElement(index);
+      else
+	QMessageBox::warning(this,
+			     tr("Couldn't Remove Taxonomy's Element"),
+			     tr("Selected taxonomical element is assigned to a segmentation."));
+    }
+    else
+      QMessageBox::warning(this,
+			   tr("Couldn't Remove Taxonomy's Element"),
+			   tr("Other taxonomical elements depend on this taxonomy's element.\n"
+			   "If you want to remove it, remove dependent taxonomies first."));
   }
 }
