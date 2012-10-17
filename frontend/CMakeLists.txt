@@ -52,6 +52,7 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
   toolbar/seedgrow/gui/ThresholdAction.h
   toolbar/editor/SettingsPanel.h
   toolbar/voi/VolumeOfInterest.h
+  toolbar/voi/RectangularVOI.h
   views/DefaultEspinaView.h
   views/SliceViewSettingsPanel.h
   )
@@ -105,6 +106,7 @@ set (TOOLBAR_SOURCES
   toolbar/seedgrow/gui/DefaultVOIAction.cpp
   toolbar/seedgrow/gui/ThresholdAction.cpp
   toolbar/voi/VolumeOfInterest.cpp
+  toolbar/voi/RectangularVOI.cpp
   )
 
 set (VIEW_SOURCES

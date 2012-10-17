@@ -23,16 +23,16 @@
 #include "common/colorEngines/ColorEngine.h"
 #include "common/gui/IEspinaView.h"
 #include "common/gui/EspinaRenderView.h"
-#include <selection/PickableItem.h>
+#include "common/tools/PickableItem.h"
+#include "common/tools/IVOI.h"
 
 // Qt
 #include <QDebug>
 
 //----------------------------------------------------------------------------
 ViewManager::ViewManager()
-: m_picker(NULL)
-, m_VOI_picker(NULL)
-, m_voi(NULL)
+: m_voi(NULL)
+, m_tool(NULL)
 , m_activeChannel(NULL)
 , m_activeTaxonomy(NULL)
 , m_colorEngine(NULL)
@@ -84,61 +84,73 @@ void ViewManager::setSelection(ViewManager::Selection selection)
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::setPicker(IPicker* picker)
+void ViewManager::setVOI(IVOI *voi)
 {
-  if (m_picker && m_picker != picker)
-    m_picker->abortPick();
-
-  m_picker = picker;
-
-  if (m_VOI_picker)
-    foreach(EspinaRenderView *rView, m_renderViews)
-      rView->setCursor(m_VOI_picker->cursor());
-  else
-    if (m_picker)
-      foreach(EspinaRenderView *rView, m_renderViews)
-        rView->setCursor(m_picker->cursor());
-      
-  if (m_voi)
+  if (m_voi && m_voi != voi)
     m_voi->setEnabled(false);
+
+  m_voi = voi;
+
+  if (m_tool && m_voi)
+  {
+    m_tool->setEnabled(false);
+    m_tool = NULL;
+  }
+
+  if (m_voi)
+    m_voi->setEnabled(true);
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::unsetPicker(IPicker* picker)
+void ViewManager::setActiveTool(ITool* tool)
 {
-  if (m_picker == picker)
-  {
-    m_picker = NULL;
-    if (m_voi)
-      m_voi->setEnabled(true);
-  }
+  if (m_tool && m_tool != tool)
+    m_tool->setEnabled(false);
 
-  if(m_VOI_picker == picker)
-    m_VOI_picker = NULL;
+  m_tool = tool;
 
-  foreach(EspinaRenderView *rView, m_renderViews)
-  {
-    if (m_VOI_picker)
-      rView->setCursor(m_VOI_picker->cursor());
-    else
-      if (m_picker)
-        rView->setCursor(m_picker->cursor());
-      else
-        rView->setCursor(Qt::ArrowCursor);
-  }
+  if (m_voi)
+    m_voi->setInteraction(m_tool?false:true);
+
+  if (m_tool)
+    m_tool->setEnabled(true);
 }
 
+// //----------------------------------------------------------------------------
+// void ViewManager::unsetPicker(IPicker* picker)
+// {
+//   if (m_picker == picker)
+//   {
+//     m_picker = NULL;
+//     if (m_voi)
+//       m_voi->setEnabled(true);
+//   }
+// 
+//   if(m_VOI_picker == picker)
+//     m_VOI_picker = NULL;
+// 
+//   foreach(EspinaRenderView *rView, m_renderViews)
+//   {
+//     if (m_VOI_picker)
+//       rView->setCursor(m_VOI_picker->cursor());
+//     else
+//       if (m_picker)
+//         rView->setCursor(m_picker->cursor());
+//       else
+//         rView->setCursor(Qt::ArrowCursor);
+//   }
+// }
+
 //----------------------------------------------------------------------------
-bool ViewManager::filterEvent(QEvent* e, EspinaRenderView* view) const
+bool ViewManager::filterEvent(QEvent* e, EspinaRenderView* view)
 {
   bool res = false;
 
-  if (m_VOI_picker)
-    res = m_VOI_picker->filterEvent(e, view);
+  if (m_voi)
+    res = m_voi->filterEvent(e, view);
 
-  if (!res)
-    if (m_picker)
-      res = m_picker->filterEvent(e, view);
+  if (!res && m_tool)
+    res = m_tool->filterEvent(e, view);
 
   return res;
 }
@@ -146,13 +158,14 @@ bool ViewManager::filterEvent(QEvent* e, EspinaRenderView* view) const
 //----------------------------------------------------------------------------
 QCursor ViewManager::cursor() const
 {
-  if (m_VOI_picker)
-    return m_VOI_picker->cursor();
-  else
-    if (m_picker)
-      return m_picker->cursor();
-    else
-      return QCursor(Qt::ArrowCursor);
+  QCursor activeCursor(Qt::ArrowCursor);
+
+  if (m_voi && m_voi->interactive())
+    activeCursor = m_voi->cursor();
+  else if (m_tool)
+    activeCursor = m_tool->cursor();
+
+  return activeCursor;
 }
 
 //----------------------------------------------------------------------------
@@ -173,6 +186,7 @@ void ViewManager::setActiveChannel(Channel* channel)
 //----------------------------------------------------------------------------
 void ViewManager::addWidget(EspinaWidget* widget)
 {
+  widget->setViewManager(this);
   foreach(EspinaRenderView *rView, m_renderViews)
   {
     rView->addWidget(widget);
@@ -242,30 +256,6 @@ void ViewManager::setColorEngine(ColorEngine* engine)
   m_colorEngine = engine;
   updateSegmentationRepresentations();
   updateViews();
-}
-
-//----------------------------------------------------------------------------
-void ViewManager::setVOIPicker(IPicker *picker)
-{
-  if (m_VOI_picker && m_VOI_picker != picker)
-    m_VOI_picker->abortPick();
-
-  m_VOI_picker = picker;
-
-  if (m_VOI_picker)
-  {
-    if (m_picker)
-    {
-      m_picker->abortPick();
-      m_picker = NULL;
-    }
-    foreach(EspinaRenderView *rView, m_renderViews)
-      rView->setCursor(m_VOI_picker->cursor());
-  }
-  else
-    if (m_picker)
-      foreach(EspinaRenderView *rView, m_renderViews)
-        rView->setCursor(m_picker->cursor());
 }
 
 //----------------------------------------------------------------------------

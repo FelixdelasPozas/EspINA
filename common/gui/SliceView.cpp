@@ -951,71 +951,71 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
     return true;
   }
 
-  if (m_inThumbnail || !m_viewManager->filterEvent(e, this))
+  if (m_viewManager->filterEvent(e, this))
+    return true;
+
+  if (QEvent::Wheel == e->type())
   {
-    if (QEvent::Wheel == e->type())
-    {
-      QWheelEvent *we = static_cast<QWheelEvent *>(e);
-      int numSteps = we->delta() / 8 / 15 * (m_settings->invertWheel() ? -1 : 1);  //Refer to QWheelEvent doc.
-      m_spinBox->setValue(m_spinBox->value() - numSteps);
-      e->ignore();
-    }
-    else if (QEvent::Enter == e->type())
-    {
-      QWidget::enterEvent(e);
-
-      // get the focus this very moment
-      inFocus = true;
-      this->setFocus(Qt::OtherFocusReason);
-      QKeyEvent event(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
-      qApp->sendEvent(this, &event);
-
-      m_view->setCursor(m_viewManager->cursor());
-      e->accept();
-    }
-    else if (QEvent::Leave == e->type())
-    {
-      inFocus = false;
-    }
-    else if (QEvent::MouseMove == e->type())
-    {
-      int x, y;
-      eventPosition(x, y);
-      m_inThumbnail = m_thumbnail->GetDraw() && m_channelPicker->Pick(x, y, 0.1, m_thumbnail);
-
-      if (m_inThumbnail)
-        m_view->setCursor(Qt::ArrowCursor);
-      else
-        m_view->setCursor(m_viewManager->cursor());
-    }
-    else if (e->type() == QEvent::MouseButtonPress)
-    {
-      QMouseEvent* me = static_cast<QMouseEvent*>(e);
-      if (me->button() == Qt::LeftButton)
-      {
-        if (me->modifiers() == Qt::CTRL)
-          centerCrosshairOnMousePosition();
-        else
-          if (m_inThumbnail)
-            centerViewOnMousePosition();
-          else
-            selectPickedItems(me->modifiers() == Qt::SHIFT);
-      }
-    }
-    else if (QEvent::ToolTip == e->type())
-    {
-      int x, y;
-      eventPosition(x, y);
-      SegmentationList segs = pickSegmentations(x, y, m_renderer);
-      QString toopTip;
-      foreach(Segmentation *seg, segs)
-      {
-        toopTip = toopTip.append("<b>%1</b><br>").arg(seg->data().toString());
-        toopTip = toopTip.append(seg->data(Qt::ToolTipRole).toString());
-      }
-      m_view->setToolTip(toopTip);
-    }
+    QWheelEvent *we = static_cast<QWheelEvent *>(e);
+    int numSteps = we->delta() / 8 / 15 * (m_settings->invertWheel() ? -1 : 1);  //Refer to QWheelEvent doc.
+    m_spinBox->setValue(m_spinBox->value() - numSteps);
+    e->ignore();
   }
+  //     else if (QEvent::Enter == e->type())
+  //     {
+    //       QWidget::enterEvent(e);
+    //
+    //       // get the focus this very moment
+    //       inFocus = true;
+    //       this->setFocus(Qt::OtherFocusReason);
+    //       QKeyEvent event(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
+    //       qApp->sendEvent(this, &event);
+    //
+    //       m_view->setCursor(m_viewManager->cursor());
+    //       e->accept();
+    //     }
+    //     else if (QEvent::Leave == e->type())
+    //     {
+      //       inFocus = false;
+      //     }
+      else if (QEvent::MouseMove == e->type())
+      {
+        int x, y;
+        eventPosition(x, y);
+        m_inThumbnail = m_thumbnail->GetDraw() && m_channelPicker->Pick(x, y, 0.1, m_thumbnail);
+
+        if (m_inThumbnail)
+          m_view->setCursor(Qt::ArrowCursor);
+        else
+          m_view->setCursor(m_viewManager->cursor());
+      }
+      else if (e->type() == QEvent::MouseButtonPress)
+      {
+        QMouseEvent* me = static_cast<QMouseEvent*>(e);
+        if (me->button() == Qt::LeftButton)
+        {
+          if (me->modifiers() == Qt::CTRL)
+            centerCrosshairOnMousePosition();
+          else
+            if (m_inThumbnail)
+              centerViewOnMousePosition();
+            else
+              selectPickedItems(me->modifiers() == Qt::SHIFT);
+        }
+      }
+      else if (QEvent::ToolTip == e->type())
+      {
+        int x, y;
+        eventPosition(x, y);
+        SegmentationList segs = pickSegmentations(x, y, m_renderer);
+        QString toopTip;
+        foreach(Segmentation *seg, segs)
+        {
+          toopTip = toopTip.append("<b>%1</b><br>").arg(seg->data().toString());
+          toopTip = toopTip.append(seg->data(Qt::ToolTipRole).toString());
+        }
+        m_view->setToolTip(toopTip);
+      }
 
   updateRuler();
   updateThumbnail();

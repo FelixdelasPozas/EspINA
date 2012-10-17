@@ -28,6 +28,7 @@
 #include "common/EspinaTypes.h"
 #include "common/colorEngines/ColorEngine.h"
 #include "common/widgets/EspinaWidget.h"
+#include "common/tools/IVOI.h"
 
 // Qt
 #include <QList>
@@ -38,6 +39,8 @@
 #include <vtkLookupTable.h>
 #include <vtkSmartPointer.h>
 
+class IVOI;
+class ITool;
 class QCursor;
 class IPicker;
 class QEvent;
@@ -81,23 +84,23 @@ private:
   /*************************** Picking API *********************************/
   //---------------------------------------------------------------------------
 public:
-  /// Register @picker as active Picker
-  void setPicker(IPicker *sh);
-  /// Disable @picker as active Picker
-  void unsetPicker(IPicker *picker);
-  /// Filter event according to responsabilty chain
-  bool filterEvent(QEvent *e, EspinaRenderView *view=NULL) const;
-  // Register VOI picker. VOI picker has highest priority
-  void setVOIPicker(IPicker *);
-  void setVOI(EspinaWidget *voi) {m_voi = voi;}
-  EspinaWidget *voi() const {return m_voi;}
-  /// Return cursor of active picker
+  void setVOI(IVOI *);
+  IVOI *voi() {return m_voi;}
+  IVOI::Region voiRegion() {return m_voi?m_voi->region():NULL;}
+  /// Set @tool as active tool. If other tool is already active,
+  /// it will be disactivated
+  void setActiveTool(ITool *tool);
+  /// Filter @view's @event.
+  /// Delegate active voi event handling. If the event is not filtered by
+  /// active voi, then active tool, if any, filter the event. If it neither
+  /// filter the event, the function returns false. Otherwise, returns true.
+  bool filterEvent(QEvent *event, EspinaRenderView *view=NULL);
   QCursor cursor() const;
 
 private:
-  IPicker *m_picker;
-  IPicker *m_VOI_picker;
-  EspinaWidget *m_voi;
+  IVOI   *m_voi;
+  ITool  *m_tool;
+
   //---------------------------------------------------------------------------
   /***************************** Widget API **********************************/
   //---------------------------------------------------------------------------

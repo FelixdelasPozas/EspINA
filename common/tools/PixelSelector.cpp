@@ -31,19 +31,6 @@ void PixelSelector::onMouseDown(const QPoint &pos, EspinaRenderView* view)
 }
 
 //-----------------------------------------------------------------------------
-void PixelSelector::onMouseMove(const QPoint &pos, EspinaRenderView* view)
-{
-  //Do nothing
-  //qDebug() << "EspINA::PixelSelector: Mouse Moving: " << pos.x() << pos.y();
-}
-
-//-----------------------------------------------------------------------------
-void PixelSelector::onMouseUp(const QPoint &pos, EspinaRenderView* view)
-{
-  //qDebug() << "EspINA::PixelSelector: Mouse released";
-}
-
-//-----------------------------------------------------------------------------
 bool PixelSelector::filterEvent(QEvent* e, EspinaRenderView* view)
 {
   // If succesor didn't abort the filtering, apply its own filtering
@@ -53,7 +40,6 @@ bool PixelSelector::filterEvent(QEvent* e, EspinaRenderView* view)
     if (me->button() == Qt::LeftButton)
     {
       onMouseDown(me->pos(), view);
-      // If handled, prevent other elements to filter the event
       return true;
     }
   }
@@ -76,9 +62,8 @@ int quadDist(int cx, int cy, int x, int y)
 //!      |
 //!      v    BR
 //-----------------------------------------------------------------------------
-BestPixelSelector::BestPixelSelector(IPicker* succesor)
-: PixelSelector(succesor)
-, m_window     (new QSize(14,14))
+BestPixelSelector::BestPixelSelector()
+: m_window     (new QSize(14,14))
 , m_bestPixel  (0)
 {}
 

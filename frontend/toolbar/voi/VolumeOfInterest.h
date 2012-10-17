@@ -20,12 +20,14 @@
 
 #include <QToolBar>
 
-#include "common/selection/PixelSelector.h"
-#include <common/widgets/RectangularSelection.h>
-#include <QSharedPointer>
+#include "common/tools/PixelSelector.h"
+#include "common/EspinaTypes.h"
 
-class ViewManager;
+#include <QMap>
+
 class ActionSelector;
+class IVOI;
+class ViewManager;
 class QAction;
 
 /// Volume Of Interest Plugin
@@ -38,8 +40,7 @@ public:
   virtual ~VolumeOfInterest();
 
 protected slots:
-  void changeVOISelector(QAction *action);
-  void defineVOI(IPicker::PickList msel);
+  void changeVOI(QAction *action);
   void cancelVOI();
 
   void setBorderFrom(double pos/*nm*/, PlaneType plane);
@@ -49,10 +50,9 @@ private:
   void buildVOIs();
 
 private:
-  ViewManager    *m_viewManager;
-  ActionSelector *m_voi;
-  QSharedPointer<PixelSelector> m_selector;
-  QSharedPointer<RectangularRegion> m_voiWidget;
+  ViewManager     *m_viewManager;
+  ActionSelector  *m_voiSelector;
+  QMap<QAction *, IVOI *> m_vois;
 };
 
 #endif// VOLUMEOFINTEREST_H

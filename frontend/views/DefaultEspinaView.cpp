@@ -30,7 +30,7 @@
 #include "common/model/EspinaModel.h"
 #include "common/model/Segmentation.h"
 #include "common/settings/EspinaSettings.h"
-#include "common/widgets/RectangularSelection.h"
+#include "common/widgets/RectangularRegion.h"
 
 // Qt
 #include <QApplication>

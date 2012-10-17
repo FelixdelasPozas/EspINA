@@ -26,7 +26,7 @@
 #define SEGMENTATION_H
 
 #include <common/extensions/SegmentationExtension.h>
-#include "common/selection/PickableItem.h"
+#include "common/tools/PickableItem.h"
 #include "common/model/Taxonomy.h"
 #include "Filter.h"
 #include <itkImageToVTKImageFilter.h>

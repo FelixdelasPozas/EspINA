@@ -23,8 +23,9 @@
 
 #include <QCursor>
 #include <QPair>
-#include <QVector3D>
 #include <QPolygonF>
+#include <QSet>
+#include <QVector3D>
 
 class PickableItem;
 class EspinaRenderView;
@@ -44,7 +45,7 @@ public:
   static  const Tag CHANNEL;
   static  const Tag SEGMENTATION;
 
-  typedef QList<Tag>              PickableItems;
+  typedef QSet<Tag>              PickableItems;
   typedef QPolygonF               DisplayRegion;
   typedef QList<DisplayRegion>    DisplayRegionList;
   typedef QList<QVector3D>        WorldRegion;
@@ -53,17 +54,17 @@ public:
   typedef QList<PickedItem>       PickList;
 
 public:
-  explicit IPicker(IPicker *succesor=NULL)
+  explicit IPicker()
   : m_multiSelection(false)
-  , m_succesor(succesor)
   , m_cursor(Qt::CrossCursor)
   {}
   virtual ~IPicker(){};
 
+  //TODO: 2012-10-17 Hacer abstracto
   virtual bool filterEvent(QEvent *e, EspinaRenderView *view=NULL);
 
-  virtual QCursor cursor() {return m_cursor;}
-  virtual void setCursor(QCursor cursor) {m_cursor = cursor;}
+  virtual QCursor cursor() const {return m_cursor;}
+  virtual void setCursor(QCursor cursor);
 
   void setSelection(PickList msel);
   virtual void abortPick();
@@ -81,7 +82,6 @@ signals:
 protected:
   PickableItems m_filters;
   bool          m_multiSelection;
-  IPicker      *m_succesor;
   QCursor       m_cursor;
 };
 

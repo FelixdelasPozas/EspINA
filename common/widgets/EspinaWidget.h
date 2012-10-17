@@ -22,6 +22,9 @@
 
 #include <common/EspinaTypes.h>
 
+class ViewManager;
+class EspinaRenderView;
+class QEvent;
 class vtkAbstractWidget;
 
 class SliceWidget
@@ -43,13 +46,19 @@ protected:
 class EspinaWidget
 {
 public:
+  explicit EspinaWidget() : m_viewManager(NULL) {}
   virtual ~EspinaWidget(){}
 
+  void setViewManager(ViewManager *vm) {m_viewManager = vm;}
   virtual vtkAbstractWidget *createWidget() = 0;
   virtual void deleteWidget(vtkAbstractWidget *widget) = 0;
   virtual SliceWidget *createSliceWidget(PlaneType plane) = 0;
 
+  virtual bool filterEvent(QEvent *e, EspinaRenderView *view) = 0;
   virtual void setEnabled(bool enable) = 0;
+
+protected:
+  ViewManager *m_viewManager;
 };
 
 #endif // ESPINAWIDGET_H

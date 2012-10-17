@@ -37,7 +37,7 @@
 #include "common/model/EspinaModel.h"
 #include "common/gui/ActionSelector.h"
 #include "common/gui/ViewManager.h"
-#include "common/selection/PickableItem.h"
+#include "common/tools/PickableItem.h"
 #include "common/undo/RemoveSegmentation.h"
 #include "frontend/toolbar/editor/Settings.h"
 #include "frontend/toolbar/editor/SettingsPanel.h"
@@ -414,7 +414,7 @@ void EditorToolBar::startPencilDrawing()
     }
 
     m_brush->setRadius(m_settings->brushRadius());
-    m_viewManager->setPicker(m_brush);
+    //TODO 2012-10-16 m_viewManager->setPicker(m_brush);
   }
 }
 
@@ -724,7 +724,7 @@ void EditorToolBar::startContourDrawing()
       m_contourWidget->setPolygonColor(m_viewManager->activeTaxonomy()->color());
     }
 
-    m_viewManager->setPicker(m_contourSelector);
+    //TODO 2012-10-17 m_viewManager->setActiveTool(m_contourSelector);
     m_viewManager->addWidget(m_contourWidget);
     m_contourWidget->setEnabled(true);
   }
@@ -791,7 +791,7 @@ void EditorToolBar::cancelDrawOperation()
     }
 
     m_viewManager->removeWidget(m_contourWidget);
-    m_viewManager->unsetPicker(m_contourSelector);
+    //TODO 2012-10-17 m_viewManager->unsetPicker(m_contourSelector);
     delete m_contourWidget;
     m_viewManager->updateViews();
     QApplication::restoreOverrideCursor();
@@ -800,7 +800,7 @@ void EditorToolBar::cancelDrawOperation()
   else
   {
     // only for paint operations
-    m_viewManager->unsetPicker(m_brush);
+    //TODO 2012-10-17 m_viewManager->unsetPicker(m_brush);
   }
 
   m_currentSource = NULL;

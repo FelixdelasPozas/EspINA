@@ -24,7 +24,7 @@
 #include "common/model/EspinaModel.h"
 #include "common/model/Segmentation.h"
 #include "common/model/Taxonomy.h"
-#include "common/selection/PixelSelector.h"
+#include "common/tools/PixelSelector.h"
 #include "common/undo/RemoveSegmentation.h"
 #include <gui/ViewManager.h>
 
@@ -151,10 +151,12 @@ void MainToolBar::updateTaxonomy(QModelIndex left, QModelIndex right)
 //----------------------------------------------------------------------------
 void MainToolBar::removeSegmentation(bool active)
 {
+  /*TODO 2012-10-16
   if (active)
-    m_viewManager->setPicker(m_selector);
+    m_viewManager->setActiveTool(m_selector);
   else
     m_viewManager->unsetPicker(m_selector);
+  */
 }
 
 //----------------------------------------------------------------------------

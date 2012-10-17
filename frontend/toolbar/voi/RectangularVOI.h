@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña Pastor <jpena@cesvima.es>
+    Copyright (C) 2012  <copyright holder> <email>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,46 +20,40 @@
 #ifndef RECTANGULARVOI_H
 #define RECTANGULARVOI_H
 
-#include "common/widgets/EspinaWidget.h"
+#include "common/tools/IVOI.h"
 
-// Qt
-#include <QList>
-#include <QObject>
-
-// VTK
-#include <vtkCommand.h>
+#include "common/tools/PixelSelector.h"
+#include "common/widgets/RectangularRegion.h"
 
 class ViewManager;
-
-class vtkRectangularSliceWidget;
-
-class RectangularRegion
-: public QObject
-, public EspinaWidget
-, public vtkCommand
+class RectangularVOI
+: public IVOI
 {
   Q_OBJECT
 public:
-  explicit RectangularRegion(double bounds[6], ViewManager *vm);
-  virtual ~RectangularRegion();
+  explicit RectangularVOI(ViewManager *vm);
+  virtual ~RectangularVOI();
 
-  virtual vtkAbstractWidget* createWidget();
-  virtual void deleteWidget(vtkAbstractWidget* widget);
-  virtual SliceWidget* createSliceWidget(PlaneType plane);
-
+  virtual QCursor cursor() const;
+  virtual bool filterEvent(QEvent* e, EspinaRenderView* view = 0);
   virtual void setEnabled(bool enable);
-  virtual void setBounds(Nm bounds[6]);
-  virtual void bounds(Nm bounds[6]);
+  virtual void setInteraction(bool enable);
+  virtual bool interactive() const {return m_interactive;}
 
-  virtual void Execute(vtkObject* caller, long unsigned int eventId, void* callData);
+  virtual IVOI::Region region();
 
-signals:
-  void modified(double *);
+private slots:
+  void defineVOI(IPicker::PickList channels);
 
 private:
   ViewManager *m_viewManager;
-  double m_bounds[6];
-  QList<vtkRectangularSliceWidget *> m_widgets;
+
+  bool m_enabled;
+  bool m_interactive;
+
+  PixelSelector      m_picker;
+  RectangularRegion *m_widget;
+  double             m_bounds[6];
 };
 
 #endif // RECTANGULARVOI_H

@@ -8,7 +8,7 @@
 #ifndef _CONTOURSELECTION_H_
 #define _CONTOURSELECTION_H_
 
-#include <common/selection/IPicker.h>
+#include <common/tools/IPicker.h>
 
 class QCursor;
 

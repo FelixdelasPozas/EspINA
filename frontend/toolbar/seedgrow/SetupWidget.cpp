@@ -19,7 +19,7 @@
 
 // EspINA
 #include "common/gui/ViewManager.h"
-#include "common/widgets/RectangularSelection.h"
+#include "common/widgets/RectangularRegion.h"
 
 // Qt
 #include <QDebug>

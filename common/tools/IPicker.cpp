@@ -26,10 +26,13 @@ const IPicker::Tag IPicker::SEGMENTATION = "EspINA_Segmentation";
 //-----------------------------------------------------------------------------
 bool IPicker::filterEvent(QEvent* e, EspinaRenderView* view)
 {
-  if (m_succesor)
-    return m_succesor->filterEvent(e, view);
-  else
-    return false;
+  return false;
+}
+
+//-----------------------------------------------------------------------------
+void IPicker::setCursor(QCursor cursor)
+{
+  m_cursor = cursor;
 }
 
 //-----------------------------------------------------------------------------
@@ -50,7 +53,7 @@ void IPicker::abortPick()
 void IPicker::setPickable(QString type, bool pick)
 {
   if (pick)
-    m_filters.append(type);
+    m_filters.insert(type);
   else
-    m_filters.removeAll(type);
+    m_filters.remove(type);
 }

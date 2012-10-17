@@ -25,7 +25,7 @@
 #ifndef CHANNEL_H
 #define CHANNEL_H
 
-#include "common/selection/PickableItem.h"
+#include "common/tools/PickableItem.h"
 #include <itkImageIOBase.h>
 #include <itkImageFileReader.h>
 #include <itkImageToVTKImageFilter.h>

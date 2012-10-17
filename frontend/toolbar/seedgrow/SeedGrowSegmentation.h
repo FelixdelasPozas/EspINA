@@ -20,7 +20,7 @@
 
 #include <QToolBar>
 
-#include "common/selection/IPicker.h"
+#include "common/tools/IPicker.h"
 #include <model/Taxonomy.h>
 #include <model/Segmentation.h>
 #include "common/pluginInterfaces/IFactoryExtension.h"
@@ -30,6 +30,7 @@
 #include <QSharedPointer>
 #include <QUndoCommand>
 
+class Channel;
 class ViewManager;
 class EspinaModel;
 //Forward declarations
@@ -86,13 +87,14 @@ public:
                                const ModelItem::Arguments args);
 
 protected slots:
-  /// Wait for Seed Selection
-  void waitSeedSelection(QAction *action);
+  /// Change picker
+  void changePicker(QAction *action);
   /// Abort current selection
   void abortSelection();
   void onSelectionAborted();
+  void startSegmentation(Channel *channel, EspinaVolume::IndexType seed);
   /// Starts the segmentation filter putting using @msel as seed
-  void startSegmentation(IPicker::PickList msel);
+  //void startSegmentation(IPicker::PickList msel);
 
   void batchMode();
 
@@ -111,10 +113,10 @@ private:
 
   ThresholdAction  *m_threshold;
   DefaultVOIAction *m_useDefaultVOI;
-  ActionSelector   *m_segment;
+  ActionSelector   *m_pickerSelector;
 
   QMap<QAction *, IPicker *> m_selectors;
-  QSharedPointer<SeedGrowSelector>    m_selector;
+  QSharedPointer<SeedGrowSelector> m_seedSelector;
 
   Settings      *m_settings;
   SettingsPanel *m_settingsPanel;

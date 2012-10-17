@@ -20,7 +20,7 @@
 #include "Settings.h"
 
 #include <QSettings>
-#include <common/selection/PixelSelector.h>
+#include <common/tools/PixelSelector.h>
 
 const QString BEST_PIXEL("SeedGrowSegmentation::BestPixelValue");
 const QString DEFAULT_VOI_X("SeedGrowSegmentation::DafaultVOI::X");

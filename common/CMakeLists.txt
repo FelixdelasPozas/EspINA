@@ -50,10 +50,10 @@ qt4_wrap_cpp(CORE_MOC
   model/proxies/ChannelProxy.h
   model/proxies/SampleProxy.h
   model/proxies/TaxonomyProxy.h
-  selection/IPicker.h
+  tools/IPicker.h
   gui/ViewManager.h
   editor/ContourWidget.h
-  widgets/RectangularSelection.h
+  widgets/RectangularRegion.h
   editor/ContourSourceInspector.h
   )
 
@@ -119,8 +119,8 @@ set (CORE_SOURCES
   renderers/CrosshairRenderer.cpp
   renderers/VolumetricRenderer.cpp
   renderers/MeshRenderer.cpp
-  selection/PixelSelector.cpp
-  selection/IPicker.cpp
+  tools/PixelSelector.cpp
+  tools/IPicker.cpp
   settings/GeneralSettings.cpp
   undo/AddChannel.cpp
   undo/AddFilter.cpp
@@ -131,7 +131,7 @@ set (CORE_SOURCES
   widgets/vtkRectangularSliceRepresentation.cpp
   widgets/vtkRectangularSliceWidget.cpp
   widgets/EspinaWidget.cpp
-  widgets/RectangularSelection.cpp
+  widgets/RectangularRegion.cpp
   editor/ContourWidget.cpp
   editor/vtkPlaneContourWidget.cpp
   editor/vtkPlaneContourRepresentation.cpp

@@ -18,7 +18,7 @@
 
 #include "SettingsPanel.h"
 
-#include <common/selection/PixelSelector.h>
+#include <common/tools/PixelSelector.h>
 #include "Settings.h"
 
 #include <QSettings>

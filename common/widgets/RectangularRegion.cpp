@@ -17,15 +17,19 @@
 */
 
 
-#include "RectangularSelection.h"
+#include "RectangularRegion.h"
 
 #include "vtkNonRotatingBoxWidget.h"
 #include "vtkRectangularSliceWidget.h"
 #include <ViewManager.h>
+#include <EspinaRenderView.h>
 #include <vtkWidgetRepresentation.h>
+#include <vtkRenderWindow.h>
+#include <vtkRenderWindowInteractor.h>
 
 
 #include <QDebug>
+#include <QMouseEvent>
 
 class RectangularSliceWidget
 : public SliceWidget
@@ -89,6 +93,80 @@ SliceWidget* RectangularRegion::createSliceWidget(PlaneType plane)
 }
 
 //----------------------------------------------------------------------------
+bool RectangularRegion::filterEvent(QEvent* e, EspinaRenderView* view)
+{
+  if ( QEvent::MouseButtonPress != e->type()
+    && QEvent::MouseButtonRelease != e->type()
+    && QEvent::MouseMove != e->type() )
+    return false;
+
+  QMouseEvent *e2 = static_cast<QMouseEvent*>(e);
+
+  // give interactor the event information
+  vtkRenderWindowInteractor *iren = view->renderWindow()->GetInteractor();
+  iren->SetEventInformationFlipY(e2->x(), e2->y(),
+                                 (e2->modifiers() & Qt::ControlModifier) > 0 ? 1 : 0,
+                                 (e2->modifiers() & Qt::ShiftModifier ) > 0 ? 1 : 0,
+                                 0,
+                                 e2->type() == QEvent::MouseButtonDblClick ? 1 : 0);
+
+  bool res = false;
+  foreach(vtkAbstractWidget *widget, m_widgets)
+  {
+    if (widget->GetInteractor() == view->renderWindow()->GetInteractor())
+    {
+      const QEvent::Type t = e->type();
+    if(t == QEvent::MouseMove)
+      {
+      res = widget->InvokeEvent(vtkCommand::MouseMoveEvent, e2);
+      }
+    else if(t == QEvent::MouseButtonPress || t == QEvent::MouseButtonDblClick)
+      {
+      switch(e2->button())
+        {
+        case Qt::LeftButton:
+          res = widget->InvokeEvent(vtkCommand::LeftButtonPressEvent, e2);
+          break;
+
+        case Qt::MidButton:
+          res = widget->InvokeEvent(vtkCommand::MiddleButtonPressEvent, e2);
+          break;
+
+        case Qt::RightButton:
+          res = widget->InvokeEvent(vtkCommand::RightButtonPressEvent, e2);
+          break;
+
+        default:
+          break;
+        }
+      }
+    else if(t == QEvent::MouseButtonRelease)
+      {
+      switch(e2->button())
+        {
+        case Qt::LeftButton:
+          res = widget->InvokeEvent(vtkCommand::LeftButtonReleaseEvent, e2);
+          break;
+
+        case Qt::MidButton:
+          res = widget->InvokeEvent(vtkCommand::MiddleButtonReleaseEvent, e2);
+          break;
+
+        case Qt::RightButton:
+          res = widget->InvokeEvent(vtkCommand::RightButtonReleaseEvent, e2);
+          break;
+
+        default:
+          break;
+        }
+      }
+    }
+  }
+  qDebug() << res;
+  return true;
+}
+
+//----------------------------------------------------------------------------
 void RectangularRegion::setEnabled(bool enable)
 {
   vtkAbstractWidget *widget;
@@ -132,6 +210,6 @@ void RectangularRegion::Execute(vtkObject* caller, long unsigned int eventId, vo
         w->SetBounds(m_bounds);
   }
   emit modified(m_bounds);
-  //NOTE 2012-10-04: Avoid singleton?
-  m_viewManager->updateViews();
+  if (m_viewManager)
+    m_viewManager->updateViews();
 }

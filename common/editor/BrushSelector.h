@@ -20,7 +20,7 @@
 #ifndef PENCILSELECTOR_H
 #define PENCILSELECTOR_H
 
-#include <common/selection/IPicker.h>
+#include <common/tools/IPicker.h>
 #include <QColor>
 
 

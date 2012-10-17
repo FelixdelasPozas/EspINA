@@ -20,28 +20,50 @@
 #ifndef SEEDGROWSELECTOR_H
 #define SEEDGROWSELECTOR_H
 
-#include "common/selection/IPicker.h"
+#include "common/tools/IPicker.h"
+#include "common/tools/ITool.h"
+#include <EspinaTypes.h>
 
+class Channel;
 class SeedGrowSegmentationFilter;
 class ThresholdAction;
+class ViewManager;
 
 class SeedGrowSelector
-: public IPicker
+: public ITool
 {
   Q_OBJECT
 public:
-  explicit SeedGrowSelector(ThresholdAction *th, IPicker *succesor = NULL);
+  explicit SeedGrowSelector(ThresholdAction *th,
+                            ViewManager *vm,
+                            IPicker *picker = NULL);
 
+  virtual QCursor cursor() const;
   virtual bool filterEvent(QEvent* e, EspinaRenderView *view = 0);
-  virtual QCursor cursor();
+  virtual void setEnabled(bool enable);
+  virtual void setInteraction(bool enable);
+  virtual bool interactive() const {return m_interactive;}
 
   void previewOn();
   void previewOff();
 
-  void setPixelSelector(IPicker *sel) {m_succesor = sel;}
+  void setChannelPicker(IPicker *picker);
+
+public slots:
+  void extractSeed(IPicker::PickList pickedItems);
+  void abortSelection(){}
+
+signals:
+  void seedSelected(Channel *, EspinaVolume::IndexType);
+  void selectionAborted();
 
 private:
   ThresholdAction *m_threshold;
+  ViewManager *m_viewManager;
+  IPicker *m_picker;
+
+  bool m_enabled;
+  bool m_interactive;
   SeedGrowSegmentationFilter *m_preview;
 };
 

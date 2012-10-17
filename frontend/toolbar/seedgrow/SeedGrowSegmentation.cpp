@@ -31,12 +31,13 @@
 #include <gui/ViewManager.h>
 #include "common/model/EspinaFactory.h"
 #include "common/model/EspinaModel.h"
-#include "common/selection/PixelSelector.h"
-#include "common/selection/PickableItem.h"
+#include "common/tools/PixelSelector.h"
+#include "common/tools/PickableItem.h"
+#include <tools/IVOI.h>
 #include "common/undo/AddFilter.h"
 #include "common/undo/AddRelation.h"
 #include "common/undo/AddSegmentation.h"
-#include "common/widgets/RectangularSelection.h"
+#include "common/widgets/RectangularRegion.h"
 
 //GUI includes
 #include <QSettings>
@@ -104,8 +105,8 @@ SeedGrowSegmentation::SeedGrowSegmentation(EspinaModel *model,
 // , m_defaultVOI(NULL)
 , m_threshold     (new ThresholdAction(this))
 , m_useDefaultVOI (new DefaultVOIAction(this))
-, m_segment       (new ActionSelector(this))
-, m_selector      (new SeedGrowSelector(m_threshold))
+, m_pickerSelector(new ActionSelector(this))
+, m_seedSelector  (new SeedGrowSelector(m_threshold, m_viewManager))
 {
   setObjectName("SeedGrowSegmentation");
   setWindowTitle("Seed Grow Segmentation Tool Bar");
@@ -115,19 +116,20 @@ SeedGrowSegmentation::SeedGrowSegmentation(EspinaModel *model,
 
   addAction(m_threshold);
   addAction(m_useDefaultVOI);
-  addAction(m_segment);
+  addAction(m_pickerSelector);
   m_threshold->setSymmetricalThreshold(true);
   //QAction *batch = addAction(tr("Batch"));
   //connect(batch, SIGNAL(triggered(bool)), this, SLOT(batchMode()));
 
-  connect(m_segment, SIGNAL(triggered(QAction*)),
-          this, SLOT(waitSeedSelection(QAction*)));
-  connect(m_selector.data(), SIGNAL(selectionAborted()),
-          this, SLOT(onSelectionAborted()));
-  connect(m_segment, SIGNAL(actionCanceled()),
+  connect(m_pickerSelector, SIGNAL(triggered(QAction*)),
+          this, SLOT(changePicker(QAction*)));
+  connect(m_pickerSelector, SIGNAL(actionCanceled()),
           this, SLOT(abortSelection()));
+  connect(m_seedSelector.data(), SIGNAL(selectionAborted()),
+          this, SLOT(onSelectionAborted()));
+  connect(m_seedSelector.data(), SIGNAL(seedSelected(Channel*, EspinaVolume::IndexType)),
+          this, SLOT(startSegmentation(Channel*,EspinaVolume::IndexType)));
 }
-
 
 //-----------------------------------------------------------------------------
 SeedGrowSegmentation::~SeedGrowSegmentation()
@@ -153,104 +155,84 @@ Filter* SeedGrowSegmentation::createFilter(const QString filter,
 
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentation::waitSeedSelection(QAction* action)
+void SeedGrowSegmentation::changePicker(QAction* action)
 {
   Q_ASSERT(m_selectors.contains(action));
-  m_selector->setPixelSelector(m_selectors[action]);
-  m_selector->previewOn();
-  m_viewManager->setPicker(m_selector.data());
+  m_seedSelector->setChannelPicker(m_selectors[action]);
+  m_seedSelector->previewOn();
+  m_viewManager->setActiveTool(m_seedSelector.data());
 }
 
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentation::abortSelection()
 {
-  m_selector->previewOff();
-  m_viewManager->unsetPicker(m_selector.data());
+  m_seedSelector->previewOff();
+  m_viewManager->setActiveTool(NULL);
+  //TODO 2012-10-16 m_viewManager->unsetPicker(m_selector.data());
 }
 
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentation::onSelectionAborted()
 {
-  m_segment->cancel();
+  m_pickerSelector->cancel();
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentation::startSegmentation(IPicker::PickList msel)
+void SeedGrowSegmentation::startSegmentation(Channel* channel,
+                                             EspinaVolume::IndexType seed )
 {
-  if (msel.size() > 0)
+  double spacing[3];
+  channel->spacing(spacing);
+
+  Nm voiBounds[6];
+  IVOI::Region currentVOI = m_viewManager->voiRegion();
+  if (currentVOI)
   {
-//     qDebug() << "Start Segmentation";
-    Q_ASSERT(msel.size() == 1);// Only one element selected
-    IPicker::PickedItem element = msel.first();
+    memcpy(voiBounds, currentVOI, 6*sizeof(double));
+  }
+  else if (m_useDefaultVOI->useDefaultVOI())
+  {
+    voiBounds[0] = seed[0]*spacing[0] - m_settings->xSize();
+    voiBounds[1] = seed[0]*spacing[0] + m_settings->xSize();
+    voiBounds[2] = seed[1]*spacing[1] - m_settings->ySize();
+    voiBounds[3] = seed[1]*spacing[1] + m_settings->ySize();
+    voiBounds[4] = seed[2]*spacing[2] - m_settings->zSize();
+    voiBounds[5] = seed[2]*spacing[2] + m_settings->zSize();
+  } else
+  {
+    channel->bounds(voiBounds);
+  }
 
-    PickableItem *input = element.second;
+  int voiExtent[6];
+  for (int i=0; i<6; i++)
+    voiExtent[i] = (voiBounds[i] / spacing[i/2]) + 0.5;
 
-    Q_ASSERT(element.first.size() == 1); // with one pixel
-    QVector3D seedPoint = element.first.first();//Nm
-    //     qDebug() << "Channel:" << input->volume().id();
-    //     qDebug() << "Threshold:" << m_threshold->threshold();
-    //     qDebug() << "Seed:" << seed;
-    //     qDebug() << "Use Default VOI:" << m_useDefaultVOI->useDefaultVOI();
+  if (voiExtent[0] <= seed[0] && seed[0] <= voiExtent[1] &&
+    voiExtent[2] <= seed[1] && seed[1] <= voiExtent[3] &&
+    voiExtent[4] <= seed[2] && seed[2] <= voiExtent[5])
+  {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
 
-    Q_ASSERT(ModelItem::CHANNEL == input->type());
-    Channel *channel = m_viewManager->activeChannel();
-    Q_ASSERT(channel);
+    Filter::NamedInputs inputs;
+    Filter::Arguments args;
+    SeedGrowSegmentationFilter::Parameters params(args);
+    params.setSeed(seed);
+    params.setLowerThreshold(m_threshold->lowerThreshold());
+    params.setUpperThreshold(m_threshold->upperThreshold());
+    params.setVOI(voiExtent);
+    params.setCloseValue(m_settings->closing());
+    inputs[INPUTLINK] = channel->filter();
+    args[Filter::INPUTS] = INPUTLINK + "_" + QString::number(channel->outputNumber());
+    SeedGrowSegmentationFilter *filter;
+    filter = new SeedGrowSegmentationFilter(inputs, args);
+    filter->update();
+    Q_ASSERT(filter->numberOutputs() == 1);
 
-    EspinaVolume::IndexType seed = channel->index(seedPoint.x(), seedPoint.y(), seedPoint.z());
+    TaxonomyElement *tax = m_viewManager->activeTaxonomy();
+    Q_ASSERT(tax);
 
-    Nm voiBounds[6];
-    //TODO: Create region // selection base class
-    RectangularRegion *currentVOI = dynamic_cast<RectangularRegion*>(m_viewManager->voi());
-    if (currentVOI)
-    {
-      currentVOI->bounds(voiBounds);
-    }
-    else if (m_useDefaultVOI->useDefaultVOI())
-    {
-      voiBounds[0] = seedPoint.x() - m_settings->xSize();
-      voiBounds[1] = seedPoint.x() + m_settings->xSize();
-      voiBounds[2] = seedPoint.y() - m_settings->ySize();
-      voiBounds[3] = seedPoint.y() + m_settings->ySize();
-      voiBounds[4] = seedPoint.z() - m_settings->zSize();
-      voiBounds[5] = seedPoint.z() + m_settings->zSize();
-    } else
-    {
-      channel->bounds(voiBounds);
-    }
-
-    double spacing[3];
-    channel->spacing(spacing);
-    int voiExtent[6];
-    for (int i=0; i<6; i++)
-      voiExtent[i] = (voiBounds[i] / spacing[i/2]) + 0.5;
-
-    if (voiExtent[0] <= seed[0] && seed[0] <= voiExtent[1] &&
-        voiExtent[2] <= seed[1] && seed[1] <= voiExtent[3] &&
-        voiExtent[4] <= seed[2] && seed[2] <= voiExtent[5])
-    {
-      QApplication::setOverrideCursor(Qt::WaitCursor);
-
-      Filter::NamedInputs inputs;
-      Filter::Arguments args;
-      SeedGrowSegmentationFilter::Parameters params(args);
-      params.setSeed(seed);
-      params.setLowerThreshold(m_threshold->lowerThreshold());
-      params.setUpperThreshold(m_threshold->upperThreshold());
-      params.setVOI(voiExtent);
-      params.setCloseValue(m_settings->closing());
-      inputs[INPUTLINK] = channel->filter();
-      args[Filter::INPUTS] = INPUTLINK + "_" + QString::number(channel->outputNumber());
-      SeedGrowSegmentationFilter *filter;
-      filter = new SeedGrowSegmentationFilter(inputs, args);
-      filter->update();
-      Q_ASSERT(filter->numberOutputs() == 1);
-
-      TaxonomyElement *tax = m_viewManager->activeTaxonomy();
-      Q_ASSERT(tax);
-
-      m_undoStack->push(new UndoCommand(channel, filter, tax, m_model));
-      QApplication::restoreOverrideCursor();
-    }
+    m_undoStack->push(new UndoCommand(channel, filter, tax, m_model));
+    QApplication::restoreOverrideCursor();
   }
 }
 
@@ -296,9 +278,9 @@ void SeedGrowSegmentation::batchMode()
       TaxonomyElement *tax = currentTax->element(taxonomy);
       if (tax == NULL)
       {
-	QModelIndex taxRoot = m_model->taxonomyRoot();
-	m_model->addTaxonomyElement(taxRoot, taxonomy);
-	tax = currentTax->element(taxonomy);
+        QModelIndex taxRoot = m_model->taxonomyRoot();
+        m_model->addTaxonomyElement(taxRoot, taxonomy);
+        tax = currentTax->element(taxonomy);
       }
       Q_ASSERT(tax);
 
@@ -312,12 +294,8 @@ void SeedGrowSegmentation::batchMode()
 //------------------------------------------------------------------------
 void SeedGrowSegmentation::addPixelSelector(QAction* action, IPicker* handler)
 {
-  m_segment->addAction(action);
+  m_pickerSelector->addAction(action);
   m_selectors[action] = handler;
-  connect(handler, SIGNAL(itemsPicked(IPicker::PickList)),
-	  this, SLOT(startSegmentation(IPicker::PickList)));
-//   connect(handler, SIGNAL(selectionAborted()),
-// 	  this, SLOT(abortSelection()));
 }
 
 //-----------------------------------------------------------------------------
@@ -327,14 +305,14 @@ void SeedGrowSegmentation::buildSelectors()
   QAction *action;
 
   // Exact Pixel Selector
-  action = new QAction(QIcon(":pixelSelector.svg"), tr("Add synapse (Ctrl +). Exact Pixel"), m_segment);
+  action = new QAction(QIcon(":pixelSelector.svg"), tr("Add synapse (Ctrl +). Exact Pixel"), m_pickerSelector);
   selector = new PixelSelector();
   selector->setMultiSelection(false);
   selector->setPickable(IPicker::CHANNEL);
   addPixelSelector(action, selector);
 
   // Best Pixel Selector
-  action = new QAction(QIcon(":bestPixelSelector.svg"), tr("Add synapse (Ctrl +). Best Pixel"), m_segment);
+  action = new QAction(QIcon(":bestPixelSelector.svg"), tr("Add synapse (Ctrl +). Best Pixel"), m_pickerSelector);
   BestPixelSelector *bestSelector = new BestPixelSelector();
   m_settings = new Settings(bestSelector);
   m_settingsPanel = new SettingsPanel(m_settings);

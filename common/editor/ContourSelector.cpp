@@ -13,8 +13,7 @@
 #include <QVTKWidget.h>
 
 ContourSelector::ContourSelector(IPicker *succesor)
-: IPicker(succesor)
-, m_cursor(Qt::CrossCursor)
+: m_cursor(Qt::CrossCursor)
 {
 }
 

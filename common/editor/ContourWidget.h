@@ -31,6 +31,8 @@ class ContourWidget
     virtual vtkAbstractWidget *createWidget();
     virtual void deleteWidget(vtkAbstractWidget *widget);
     virtual SliceWidget *createSliceWidget(PlaneType plane);
+
+    virtual bool filterEvent(QEvent* e, EspinaRenderView* view) {return false;}
     virtual void setEnabled(bool enable);
 
     virtual QMap<PlaneType, QMap<Nm, vtkPolyData*> > GetContours();

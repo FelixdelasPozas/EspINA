@@ -451,7 +451,7 @@ void EspinaWindow::closeCurrentAnalysis()
   emit analysisClosed();
   m_viewManager->setActiveChannel(NULL);
   m_viewManager->setActiveTaxonomy(NULL);
-  m_viewManager->setPicker(NULL);
+  m_viewManager->setActiveTool(NULL);
   m_model->reset();
   m_undoStack->clear();
 }
