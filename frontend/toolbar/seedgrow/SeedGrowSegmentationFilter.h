@@ -142,7 +142,7 @@ public:
   virtual void releaseDataFlagOff();
   virtual bool prefetchFilter();
 
-  virtual QWidget* createConfigurationWidget(ViewManager *vm);
+  virtual QWidget* createFilterInspector(QUndoStack* undoStack, ViewManager* vm);
 
 protected:
   virtual void run();

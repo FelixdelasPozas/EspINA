@@ -401,7 +401,7 @@ EspinaVolume::Pointer Filter::addRegionToVolume(EspinaVolume::Pointer volume,
 }
 
 //----------------------------------------------------------------------------
-QWidget* Filter::createConfigurationWidget(ViewManager *vm)
+QWidget* Filter::createFilterInspector(QUndoStack* undoStack, ViewManager* vm)
 {
   return new QWidget();
 }

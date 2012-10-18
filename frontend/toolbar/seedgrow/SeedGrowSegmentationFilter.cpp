@@ -257,7 +257,7 @@ bool SeedGrowSegmentationFilter::prefetchFilter()
 }
 
 //-----------------------------------------------------------------------------
-QWidget* SeedGrowSegmentationFilter::createConfigurationWidget(ViewManager* vm)
+QWidget* SeedGrowSegmentationFilter::createFilterInspector(QUndoStack* undoStack, ViewManager* vm)
 {
   return new SetupWidget(this, vm);
 }

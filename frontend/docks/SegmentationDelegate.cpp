@@ -27,9 +27,11 @@
 
 //------------------------------------------------------------------------
 SegmentationDelegate::SegmentationDelegate(EspinaModel *model,
+                                           QUndoStack  *undoStack,
                                            ViewManager *vm)
 : QStyledItemDelegate()
 , m_model(model)
+, m_undoStack(undoStack)
 , m_viewManager(vm)
 {
 }
@@ -47,7 +49,7 @@ QWidget* SegmentationDelegate::createEditor(QWidget* parent,
     Segmentation *seg = dynamic_cast<Segmentation *>(item);
     if (!m_inspectors.contains(seg))
     {
-      m_inspectors[seg] = new SegmentationInspector(seg, m_model, m_viewManager);
+      m_inspectors[seg] = new SegmentationInspector(seg, m_model, m_undoStack, m_viewManager);
       connect(m_inspectors[seg], SIGNAL(inspectorClosed(SegmentationInspector*)),
               this, SLOT(freeInspector(SegmentationInspector*)));
     }

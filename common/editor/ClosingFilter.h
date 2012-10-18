@@ -44,7 +44,7 @@ public:
   /// Implements Model Item Interface
   virtual QVariant data(int role=Qt::DisplayRole) const;
 
-  virtual QWidget* createConfigurationWidget(ViewManager *vm)
+  virtual QWidget* createFilerInspector(ViewManager *vm)
   { return new CODESettings(tr("Close"), this, vm); }
 
 protected:

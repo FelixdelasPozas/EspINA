@@ -28,6 +28,7 @@
 
 #include <QSortFilterProxyModel>
 
+class QUndoStack;
 class VolumeView;
 class ViewManager;
 class Segmentation;
@@ -40,6 +41,7 @@ class SegmentationInspector
 public:
   SegmentationInspector(Segmentation *seg,
                         EspinaModel *model,
+                        QUndoStack *undoStack,
                         ViewManager *vm,
                         QWidget* parent = 0,
                         Qt::WindowFlags f = 0);
@@ -54,6 +56,7 @@ protected:
   virtual void closeEvent(QCloseEvent *e);
 
 private:
+  QUndoStack   *m_undoStack;
   ViewManager  *m_viewManager;
   Segmentation *m_seg;
   EspinaModel  *m_model;

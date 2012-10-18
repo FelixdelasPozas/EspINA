@@ -24,8 +24,11 @@
 #include <QDebug>
 
 //----------------------------------------------------------------------------
-FilterInspector::FilterInspector(ViewManager* vm, QWidget* parent)
+FilterInspector::FilterInspector(QUndoStack *undoStack,
+                                 ViewManager* vm,
+                                 QWidget* parent)
 : QDockWidget(parent)
+, m_undoStack(undoStack)
 , m_viewManager(vm)
 , m_filter(NULL)
 , m_seg   (NULL)
@@ -98,7 +101,7 @@ void FilterInspector::updatePannel()
     if (m_seg)
     {
       m_filter = seg->filter();
-      setWidget(m_filter->createConfigurationWidget(m_viewManager));
+      setWidget(m_filter->createFilterInspector(m_undoStack, m_viewManager));
     } else
     {
       m_filter = NULL;

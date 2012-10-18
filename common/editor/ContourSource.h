@@ -71,7 +71,7 @@ public:
   // to emit modified(this) after the last contour has been drawn to update views
   virtual void signalAsModified();
 
-  virtual QWidget* createConfigurationWidget();
+  virtual QWidget* createFilterInspector(QUndoStack* undoStack, ViewManager* vm);
 
 protected:
   virtual void run(){}

@@ -22,9 +22,10 @@
 #include <QtPlugin>
 #include <QDockWidget>
 
+class EspinaModel;
 class ViewManager;
 class QUndoStack;
-class EspinaModel;
+
 class IDockWidget
 : public QDockWidget
 {

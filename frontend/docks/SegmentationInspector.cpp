@@ -32,10 +32,12 @@
 //------------------------------------------------------------------------
 SegmentationInspector::SegmentationInspector(Segmentation *seg,
                                              EspinaModel *model,
+                                             QUndoStack *undoStack,
                                              ViewManager *vm,
                                              QWidget* parent,
                                              Qt::WindowFlags f)
 : QWidget(parent, f)
+, m_undoStack(undoStack)
 , m_viewManager(vm)
 , m_seg(seg)
 , m_model(model)
@@ -55,7 +57,7 @@ SegmentationInspector::SegmentationInspector(Segmentation *seg,
 
   Filter *filter = seg->filter();
   Q_ASSERT(filter);
-  QWidget *widget = filter->createConfigurationWidget(m_viewManager);
+  QWidget *widget = filter->createFilterInspector(m_undoStack, m_viewManager);
   m_filterInspector->setWidget(widget);
   m_filterInspector->setMinimumWidth(widget->minimumSize().width());;
 

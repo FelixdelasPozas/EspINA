@@ -22,6 +22,7 @@
 
 #include <QStyledItemDelegate>
 
+class QUndoStack;
 class ViewManager;
 class EspinaModel;
 class Segmentation;
@@ -31,7 +32,9 @@ class SegmentationDelegate
 : public QStyledItemDelegate
 {
 public:
-  explicit SegmentationDelegate(EspinaModel *model, ViewManager *vm);
+  explicit SegmentationDelegate(EspinaModel *model,
+                                QUndoStack *undoStack,
+                                ViewManager *vm);
 
   virtual QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index) const;
   virtual void setEditorData(QWidget* editor, const QModelIndex& index) const;
@@ -42,6 +45,7 @@ private slots:
 
 private:
   EspinaModel *m_model;
+  QUndoStack  *m_undoStack;
   ViewManager *m_viewManager;
   mutable QMap<Segmentation *, SegmentationInspector *> m_inspectors;
 };

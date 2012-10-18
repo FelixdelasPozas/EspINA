@@ -189,7 +189,7 @@ vtkPolyData* ContourSource::TransformContour(PlaneType plane, vtkPolyData* conto
   return rotatedContour;
 }
 
-QWidget* ContourSource::createConfigurationWidget()
+QWidget* ContourSource::createFilterInspector(QUndoStack* undoStack, ViewManager* vm)
 {
   return new ContourSource::ContourSourceInspector(this);
 }

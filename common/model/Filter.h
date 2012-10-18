@@ -26,6 +26,7 @@
 #include <itkImageFileReader.h>
 #include <vtkPolyData.h>
 
+class QUndoStack;
 class ViewManager;
 class vtkImplicitFunction;
 const QString CREATELINK = "CreateSegmentation";
@@ -101,7 +102,7 @@ public:
   virtual void releaseDataFlagOff(){}
 
   /// Return a widget used to configure filter's parameters
-  virtual QWidget *createConfigurationWidget(ViewManager *vm);
+  virtual QWidget *createFilterInspector(QUndoStack *undoStack, ViewManager *vm);
 
 protected:
   explicit Filter(NamedInputs namedInputs,

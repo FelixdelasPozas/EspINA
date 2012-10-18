@@ -406,7 +406,7 @@ void SegmentationExplorer::changeLayout(int index)
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_layout->model()));
 #endif
   m_gui->view->setModel(m_layout->model());
-  m_gui->view->setItemDelegate(new SegmentationDelegate(m_baseModel, m_viewManager)); //TODO 2012-10-05 Sigue sirviendo para algo??
+  m_gui->view->setItemDelegate(new SegmentationDelegate(m_baseModel, m_undoStack, m_viewManager)); //TODO 2012-10-05 Sigue sirviendo para algo??
 }
 
 //------------------------------------------------------------------------
@@ -444,7 +444,7 @@ void SegmentationExplorer::showInformation()
       Segmentation *seg = dynamic_cast<Segmentation *>(item);
       //TODO 2012-10-05: gestionar memoria
       SegmentationInspector *inspector;
-      inspector = new SegmentationInspector(seg, m_baseModel, m_viewManager);
+      inspector = new SegmentationInspector(seg, m_baseModel, m_undoStack, m_viewManager);
       inspector->show();
       inspector->raise();
     }
@@ -458,14 +458,13 @@ void SegmentationExplorer::deleteSegmentation()
   {
     QModelIndexList selected = m_gui->view->selectionModel()->selectedIndexes();
     SegmentationList toDelete = m_layout->deletedSegmentations(selected);
-  if (!toDelete.isEmpty())
-  {
-    //TODO 2012-10-05 SegmentationInspector::RemoveInspector(toDelete);
-    m_undoStack->beginMacro("Delete Segmentations");
-    m_undoStack->push(new RemoveSegmentation(toDelete, m_baseModel));
-    m_undoStack->endMacro();
-  }
-
+    if (!toDelete.isEmpty())
+    {
+      //TODO 2012-10-05 SegmentationInspector::RemoveInspector(toDelete);
+      m_undoStack->beginMacro("Delete Segmentations");
+      m_undoStack->push(new RemoveSegmentation(toDelete, m_baseModel));
+      m_undoStack->endMacro();
+    }
   }
 }
 

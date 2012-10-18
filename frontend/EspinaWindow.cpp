@@ -209,7 +209,7 @@ EspinaWindow::EspinaWindow()
   addDockWidget(Qt::BottomDockWidgetArea, dataView);
   m_dynamicMenuRoot->submenus[0]->menu->addAction(dataView->toggleViewAction());
 
-  FilterInspector *filterInspector = new FilterInspector(m_viewManager, this);
+  FilterInspector *filterInspector = new FilterInspector(m_undoStack, m_viewManager, this);
   addDockWidget(Qt::LeftDockWidgetArea, filterInspector);
   m_dockMenu->addAction(filterInspector->toggleViewAction());
 
@@ -295,6 +295,7 @@ void EspinaWindow::loadPlugins()
       {
         qDebug() << "- ToolBar ... OK";
         addToolBar(toolbar);
+        toolbar->initToolBar(m_model, m_undoStack, m_viewManager);
       }
 
       IDynamicMenu *menu = qobject_cast<IDynamicMenu *>(plugin);
