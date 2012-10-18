@@ -60,6 +60,7 @@ MainToolBar::MainToolBar(EspinaModel *model,
   m_toggleCrosshair = addAction(QIcon(":/espina/hide_planes.svg"),
                                 tr("Toggle Crosshair"));
   m_toggleCrosshair->setCheckable(true);
+  m_toggleCrosshair->setShortcut(QKeySequence("C"));
   connect(m_toggleCrosshair, SIGNAL(toggled(bool)),
           this, SLOT(toggleCrosshair(bool)));
 
