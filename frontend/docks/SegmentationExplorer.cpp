@@ -209,6 +209,7 @@ SegmentationList SampleLayout::deletedSegmentations(QModelIndexList indices)
       }
           default:
             Q_ASSERT(false);
+            break;
     }
   }
 
@@ -333,6 +334,7 @@ SegmentationList TaxonomyLayout::deletedSegmentations(QModelIndexList indices)
       }
           default:
             Q_ASSERT(false);
+            break;
     }
   }
 
@@ -416,10 +418,9 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
     return;
 
   Nm bounds[6];
-  Segmentation *seg = reinterpret_cast<Segmentation*>(item);
-  VolumeBounds(seg->filter()->output(0), bounds);
-
-  Nm center[3] = { (bounds[1] + bounds[0])/2, (bounds[3] + bounds[2])/2, (bounds[5] + bounds[4])/2 };
+  Segmentation *seg = dynamic_cast<Segmentation*>(item);
+  VolumeBounds(seg->itkVolume(), bounds);
+  Nm center[3] = { (bounds[0] + bounds[1])/2, (bounds[2] + bounds[3])/2, (bounds[4] + bounds[5])/2 };
   m_viewManager->focusViewsOn(center);
 
   /* TODO BUG 2012-10-05 Use "center on" selection

@@ -1422,7 +1422,6 @@ SliceView::Settings::Settings(PlaneType plane, const QString prefix)
 //-----------------------------------------------------------------------------
 const QString SliceView::Settings::view(PlaneType plane)
 {
-  // NOTE: break statements added to avoid warnings
   switch (plane)
   {
     case AXIAL:
