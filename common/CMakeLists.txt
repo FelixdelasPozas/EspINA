@@ -52,11 +52,9 @@ qt4_wrap_cpp(CORE_MOC
   model/proxies/TaxonomyProxy.h
   selection/IPicker.h
   gui/ViewManager.h
-  editor/ContourSelector.h
   editor/ContourWidget.h
   widgets/RectangularSelection.h
   editor/ContourSourceInspector.h
-  editor/ContourSource.h
   )
 
 qt4_wrap_ui (CORE_UI

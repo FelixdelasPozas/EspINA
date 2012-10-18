@@ -813,8 +813,8 @@ void EspinaModel::removeTaxonomyElement(const QModelIndex &index)
 //------------------------------------------------------------------------
 void EspinaModel::removeTaxonomyElement(QString qualifiedName)
 {
-  bool deprecated = false;
-  Q_ASSERT(deprecated);
+  // deprecated
+  Q_ASSERT(false);
 }
 
 //------------------------------------------------------------------------

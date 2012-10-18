@@ -54,7 +54,6 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
   toolbar/voi/VolumeOfInterest.h
   views/DefaultEspinaView.h
   views/SliceViewSettingsPanel.h
-  views/VolumeViewSettingsPanel.h
   )
 
 # Create Interface files

@@ -206,8 +206,7 @@ void Segmentation::initializeExtensions(ModelItem::Arguments args)
 //   qDebug() << "Initializing" << data().toString() << "extensions:";
   foreach(ModelItemExtension *ext, m_insertionOrderedExtensions)
   {
-    SegmentationExtension *segExt = dynamic_cast<SegmentationExtension *>(ext);
-    Q_ASSERT(segExt);
+    Q_ASSERT(ext);
     ModelItem::Arguments extArgs(args.value(ext->id(), QString()));
 //     qDebug() << ext->id();
 //     if (!args.isEmpty()) qDebug() << "*" << extArgs;
