@@ -32,8 +32,10 @@
 
 #include <QModelIndex>
 
-class PixelSelector;
 class EspinaModel;
+class PixelSelector;
+class Segmentation;
+class SegRemover;
 class QComboBox;
 class QTreeView;
 class QUndoStack;
@@ -57,9 +59,9 @@ protected slots:
   void setActiveTaxonomy(QString taxonomy);
   void updateTaxonomy(QModelIndex left, QModelIndex right);
   void removeSegmentation(bool active);
-  void removeSelectedSegmentation(IPicker::PickList msel);
+  void removeSegmentation(Segmentation *seg);
   void toggleCrosshair(bool);
-  void abortSelection();
+  void abortRemoval();
 
 signals:
   void showSegmentations(bool);
@@ -69,10 +71,10 @@ private:
   QUndoStack    *m_undoStack;
   ViewManager   *m_viewManager;
 
-  QAction       *m_toggleSegVisibility, *m_removeSegmentation, *m_toggleCrosshair;
-  QComboBox     *m_taxonomySelector;
-  QTreeView     *m_taxonomyView;
-  PixelSelector *m_selector;
+  QAction    *m_toggleSegVisibility, *m_removeSegmentation, *m_toggleCrosshair;
+  QComboBox  *m_taxonomySelector;
+  QTreeView  *m_taxonomyView;
+  SegRemover *m_segRemover;
 };
 
 #endif // MAINTOOLBAR_H

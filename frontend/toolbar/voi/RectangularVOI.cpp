@@ -61,7 +61,7 @@ bool RectangularVOI::filterEvent(QEvent* e, EspinaRenderView* view)
 {
   bool eventHandled = false;
 
-  if (m_interactive || true) //TODO 2012-10-17 Until we manage to process vtkWidget's events we have to disable voi's interaction
+  if (m_interactive)
   {
     if (m_widget)
       eventHandled = m_widget->filterEvent(e,view);
@@ -100,9 +100,8 @@ void RectangularVOI::setInteraction(bool enable)
     return;
 
   m_interactive = enable;
-  // TODO 2012-10-17 Commented to test processing widget events
-//   if (m_widget)
-//     m_widget->setEnabled(enable);
+  if (m_widget)
+    m_widget->setEnabled(enable);
 }
 
 //-----------------------------------------------------------------------------

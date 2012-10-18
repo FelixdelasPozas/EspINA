@@ -18,6 +18,7 @@
 
 
 #include "MainToolBar.h"
+#include "SegRemover.h"
 #include <docks/SegmentationInspector.h>
 
 // EspINA
@@ -86,13 +87,11 @@ MainToolBar::MainToolBar(EspinaModel *model,
   connect(m_taxonomySelector,SIGNAL(currentIndexChanged(QString)),
           this, SLOT(setActiveTaxonomy(QString)));
 
-  m_selector = new PixelSelector();
-  m_selector->setMultiSelection(false);
-  m_selector->setPickable(IPicker::SEGMENTATION);
-  connect(m_selector, SIGNAL(selectionAborted()),
-          this, SLOT(abortSelection()));
-  connect(m_selector, SIGNAL(itemsPicked(IPicker::PickList)),
-          this, SLOT(removeSelectedSegmentation(IPicker::PickList)));
+  m_segRemover = new SegRemover();
+  connect(m_segRemover, SIGNAL(removalAborted()),
+          this, SLOT(abortRemoval()));
+  connect(m_segRemover, SIGNAL(removeSegmentation(Segmentation*)),
+          this, SLOT(removeSegmentation(Segmentation*)));
 
   m_removeSegmentation = addAction(QIcon(":/espina/removeSeg.svg"),
                                    tr("Remove Segmentation"));
@@ -151,36 +150,25 @@ void MainToolBar::updateTaxonomy(QModelIndex left, QModelIndex right)
 //----------------------------------------------------------------------------
 void MainToolBar::removeSegmentation(bool active)
 {
-  /*TODO 2012-10-16
   if (active)
-    m_viewManager->setActiveTool(m_selector);
+    m_viewManager->setActiveTool(m_segRemover);
   else
-    m_viewManager->unsetPicker(m_selector);
-  */
+    m_viewManager->setActiveTool(NULL);
 }
 
 //----------------------------------------------------------------------------
-void MainToolBar::removeSelectedSegmentation(IPicker::PickList msel)
+void MainToolBar::removeSegmentation(Segmentation *seg)
 {
-  if (msel.size() != 1)
-    return;
 
-  IPicker::PickedItem element = msel.first();
-
-  PickableItem *input = element.second;
-  Q_ASSERT(ModelItem::SEGMENTATION == input->type());
-  QList<Segmentation *> removedSegs;
-  removedSegs << dynamic_cast<Segmentation *>(input);
   //TODO 2012-10-04: Gestion de memoria...y evitar que siga abierto cuando se elimina la segementacion
   //SegmentationInspector::RemoveInspector(removedSegs);
-
   m_undoStack->beginMacro(tr("Delete Segmentation"));
-  m_undoStack->push(new RemoveSegmentation(removedSegs, m_model));
+  m_undoStack->push(new RemoveSegmentation(seg, m_model));
   m_undoStack->endMacro();
 }
 
 //----------------------------------------------------------------------------
-void MainToolBar::abortSelection()
+void MainToolBar::abortRemoval()
 {
   m_removeSegmentation->blockSignals(true);
   m_removeSegmentation->setChecked(false);

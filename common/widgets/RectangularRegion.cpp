@@ -95,6 +95,7 @@ SliceWidget* RectangularRegion::createSliceWidget(PlaneType plane)
 //----------------------------------------------------------------------------
 bool RectangularRegion::filterEvent(QEvent* e, EspinaRenderView* view)
 {
+  return false;
   if ( QEvent::MouseButtonPress != e->type()
     && QEvent::MouseButtonRelease != e->type()
     && QEvent::MouseMove != e->type() )

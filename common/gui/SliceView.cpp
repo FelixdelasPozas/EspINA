@@ -46,6 +46,7 @@
 #include <QVBoxLayout>
 #include <QVector3D>
 #include <QWheelEvent>
+#include <QMenu>
 
 #include <boost/concept_check.hpp>
 
@@ -1003,6 +1004,14 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
               selectPickedItems(me->modifiers() == Qt::SHIFT);
         }
       }
+//       else if (QEvent::ContextMenu == e->type())
+//       {
+//         QContextMenuEvent *cme = dynamic_cast<QContextMenuEvent*>(e);
+//         QMenu *menu = new QMenu(this);
+//         menu->addAction(tr("Info"));
+//         menu->popup(mapToGlobal(cme->pos()));
+//         return true;
+//       }
       else if (QEvent::ToolTip == e->type())
       {
         int x, y;

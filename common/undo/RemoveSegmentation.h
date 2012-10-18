@@ -36,6 +36,10 @@ class RemoveSegmentation
 : public QUndoCommand
 {
 public:
+  explicit RemoveSegmentation(Segmentation *seg,
+                              EspinaModel  *model,
+                              QUndoCommand *parent=0
+                             );
   explicit RemoveSegmentation(QList<Segmentation *> segs,
                               EspinaModel          *model,
                               QUndoCommand         *parent=0

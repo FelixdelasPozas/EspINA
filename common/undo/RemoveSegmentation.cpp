@@ -31,16 +31,22 @@ RemoveSegmentation::SegInfo::SegInfo(Segmentation* seg)
 }
 
 //------------------------------------------------------------------------
-RemoveSegmentation::RemoveSegmentation(QList<Segmentation *> segs,
-                                       EspinaModel          *model,
-                                       QUndoCommand         *parent
-                                      )
+RemoveSegmentation::RemoveSegmentation(Segmentation* seg,
+                                       EspinaModel* model,
+                                       QUndoCommand* parent)
 : QUndoCommand(parent)
 , m_model(model)
 {
-  m_segmentations.clear();
-  m_removedFilters.clear();
+  m_segmentations << SegInfo(seg);
+}
 
+//------------------------------------------------------------------------
+RemoveSegmentation::RemoveSegmentation(QList<Segmentation *> segs,
+                                       EspinaModel          *model,
+                                       QUndoCommand         *parent)
+: QUndoCommand(parent)
+, m_model(model)
+{
   foreach(Segmentation *seg, segs)
     m_segmentations << SegInfo(seg);
 }

@@ -41,7 +41,8 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
   docks/SegmentationExplorer.h
   docks/SegmentationInspector.h
   docks/TaxonomyExplorer.h
-  toolbar/MainToolBar.h
+  toolbar/main/MainToolBar.h
+  toolbar/main/SegRemover.h
   toolbar/editor/EditorToolBar.h
   toolbar/seedgrow/SeedGrowSegmentation.h
   toolbar/seedgrow/SeedGrowSegmentationFilter.h
@@ -93,7 +94,8 @@ set (DOCKS_SOURCES
   )
 
 set (TOOLBAR_SOURCES
-  toolbar/MainToolBar.cpp
+  toolbar/main/MainToolBar.cpp
+  toolbar/main/SegRemover.cpp
   toolbar/editor/EditorToolBar.cpp
   toolbar/editor/Settings.cpp
   toolbar/editor/SettingsPanel.cpp
