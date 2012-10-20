@@ -73,7 +73,7 @@ public:
 
   /// Manually Edit Filter Output
   virtual void draw(OutputNumber i,
-                    vtkImplicitFunction *brush,
+                    QList<vtkImplicitFunction *> brushes,
                     double bounds[6],
                     EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
   virtual void draw(OutputNumber i,

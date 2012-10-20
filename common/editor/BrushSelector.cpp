@@ -35,7 +35,7 @@
 #include <QDebug>
 
 //-----------------------------------------------------------------------------
-BrushSelector::BrushSelector(IPicker* succesor)
+BrushSelector::BrushSelector()
 : m_state(DRAWING)
 {
   setRadius(20);
@@ -114,30 +114,29 @@ void BrushSelector::setRadius(int radius)
   if (radius > 0 && radius <= MAX_RADIUS)
   {
     m_radius = radius;
-    // Mega TODO 2012-10-17
-//     int width = 2*radius;
-// 
-//     QPixmap pix(width, width);
-//     pix.fill(Qt::transparent);
-//     QPainter p(&pix);
-//     p.setBrush(QBrush(m_color));
-//     switch (m_state)
-//     {
-//       case CREATING:
-//         p.setPen(QPen(Qt::blue));
-//         break;
-//       case DRAWING:
-//         p.setPen(QPen(Qt::green));
-//         break;
-//       case ERASING:
-//         p.setPen(QPen(Qt::red));
-//         break;
-//     };
-// 
-//     p.drawEllipse(0, 0, width-1, width-1);
-//     Q_ASSERT(pix.hasAlpha());
-// 
-//     m_cursor = QCursor(pix);
+    int width = 2*radius;
+
+    QPixmap pix(width, width);
+    pix.fill(Qt::transparent);
+    QPainter p(&pix);
+    p.setBrush(QBrush(m_color));
+    switch (m_state)
+    {
+      case CREATING:
+        p.setPen(QPen(Qt::blue));
+        break;
+      case DRAWING:
+        p.setPen(QPen(Qt::green));
+        break;
+      case ERASING:
+        p.setPen(QPen(Qt::red));
+        break;
+    };
+
+    p.drawEllipse(0, 0, width-1, width-1);
+    Q_ASSERT(pix.hasAlpha());
+
+    m_cursor = QCursor(pix);
   }
 }
 

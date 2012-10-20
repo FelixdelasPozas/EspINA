@@ -153,7 +153,7 @@ void MainToolBar::removeSegmentation(bool active)
   if (active)
     m_viewManager->setActiveTool(m_segRemover);
   else
-    m_viewManager->setActiveTool(NULL);
+    m_viewManager->unsetActiveTool(m_segRemover);
 }
 
 //----------------------------------------------------------------------------

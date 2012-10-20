@@ -28,6 +28,9 @@
 #include "common/editor/BrushSelector.h"
 #include "common/model/Segmentation.h"
 
+class Channel;
+class ITool;
+class Brush;
 class ViewManager;
 class ActionSelector;
 class ContourSelector;
@@ -66,8 +69,11 @@ public:
                                Filter::NamedInputs inputs,
                                const ModelItem::Arguments args);
 protected slots:
-  void startDrawOperation(QAction *);
-  void drawSegmentation(IPicker::PickList msel);
+  void changeDrawTool(QAction *);
+  void drawDiscs(Channel *channel, IPicker::WorldRegion centers, Nm radius, PlaneType plane);
+  void eraseDiscs(Channel *channel, IPicker::WorldRegion centers, Nm radius, PlaneType plane);
+  void drawSpheres(Channel *channel, IPicker::WorldRegion centers, Nm radius, PlaneType plane);
+  void eraseSpheres(Channel *channel, IPicker::WorldRegion centers, Nm radius, PlaneType plane);
   void stopDrawing();
   void stateChanged(BrushSelector::State state);
   void combineSegmentations();
@@ -82,14 +88,11 @@ protected slots:
   SegmentationList selectedSegmentations();
 
 private:
-  void startPencilDrawing();
   void startContourDrawing();
 
 private:
-  ActionSelector *m_actionGroup;
-  QAction *m_pencilDisc;
-  QAction *m_pencilSphere;
-  QAction *m_contour;
+  ActionSelector *m_drawToolSelector;
+  QMap<QAction *, ITool *> m_drawTools;
   QAction *m_addition;
   QAction *m_substraction;
   QAction *m_erode;
@@ -104,8 +107,6 @@ private:
   ViewManager *m_viewManager;
 
   Settings        *m_settings;
-  BrushSelector   *m_brush;
-  ContourSelector *m_contourSelector;
   Filter          *m_currentSource;
   Segmentation    *m_currentSeg;
 };

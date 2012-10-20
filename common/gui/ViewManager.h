@@ -90,6 +90,10 @@ public:
   /// Set @tool as active tool. If other tool is already active,
   /// it will be disactivated
   void setActiveTool(ITool *tool);
+  /// Unset any active tool
+  void unsetActiveTool();
+  /// Unset @tool as active tool
+  void unsetActiveTool(ITool *tool);
   /// Filter @view's @event.
   /// Delegate active voi event handling. If the event is not filtered by
   /// active voi, then active tool, if any, filter the event. If it neither

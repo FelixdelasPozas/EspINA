@@ -31,7 +31,7 @@ class BrushSelector
 public:
   enum State {CREATING, DRAWING, ERASING};
 public:
-  explicit BrushSelector(IPicker *succesor = NULL);
+  explicit BrushSelector();
 
   virtual bool filterEvent(QEvent* e, EspinaRenderView *view = 0);
   virtual QCursor cursor();

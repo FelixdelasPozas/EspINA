@@ -218,8 +218,11 @@ void Segmentation::initializeExtensions(ModelItem::Arguments args)
 void Segmentation::notifyModification(bool force)
 {
   m_filter->output(m_args.outputNumber())->Update();
-  itk2vtk->SetInput(m_filter->output(m_args.outputNumber()));
-  itk2vtk->Update();
+  if (itk2vtk)
+  {
+    itk2vtk->SetInput(m_filter->output(m_args.outputNumber()));
+    itk2vtk->Update();
+  }
   ModelItem::notifyModification(force);
 }
 

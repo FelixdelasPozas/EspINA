@@ -104,6 +104,8 @@ void ViewManager::setVOI(IVOI *voi)
 //----------------------------------------------------------------------------
 void ViewManager::setActiveTool(ITool* tool)
 {
+  Q_ASSERT(tool); //NOTE Change all setActiveTool(NULL) to unsetActiveTool(tool)
+
   if (m_tool && m_tool != tool)
     m_tool->setEnabled(false);
 
@@ -116,30 +118,19 @@ void ViewManager::setActiveTool(ITool* tool)
     m_tool->setEnabled(true);
 }
 
-// //----------------------------------------------------------------------------
-// void ViewManager::unsetPicker(IPicker* picker)
-// {
-//   if (m_picker == picker)
-//   {
-//     m_picker = NULL;
-//     if (m_voi)
-//       m_voi->setEnabled(true);
-//   }
-// 
-//   if(m_VOI_picker == picker)
-//     m_VOI_picker = NULL;
-// 
-//   foreach(EspinaRenderView *rView, m_renderViews)
-//   {
-//     if (m_VOI_picker)
-//       rView->setCursor(m_VOI_picker->cursor());
-//     else
-//       if (m_picker)
-//         rView->setCursor(m_picker->cursor());
-//       else
-//         rView->setCursor(Qt::ArrowCursor);
-//   }
-// }
+//----------------------------------------------------------------------------
+void ViewManager::unsetActiveTool()
+{
+  if (m_tool)
+    m_tool->setEnabled(false);
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::unsetActiveTool(ITool* tool)
+{
+  if (m_tool == tool)
+    m_tool = NULL;
+}
 
 //----------------------------------------------------------------------------
 bool ViewManager::filterEvent(QEvent* e, EspinaRenderView* view)

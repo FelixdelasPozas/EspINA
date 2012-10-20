@@ -68,9 +68,16 @@ public:
                           Arguments args);
   virtual ~FreeFormSource();
 
-  virtual void draw(OutputNumber i, vtkImplicitFunction* brush, double bounds[6], EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
-  virtual void draw(OutputNumber i, EspinaVolume::IndexType index, EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
-  virtual void draw(OutputNumber i, Nm x, Nm y, Nm z, EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+  virtual void draw(OutputNumber i,
+                    QList< vtkImplicitFunction* > brushes,
+                    double bounds[6],
+                    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+  virtual void draw(OutputNumber i,
+                    EspinaVolume::IndexType index,
+                    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+  virtual void draw(OutputNumber i,
+                    Nm x, Nm y, Nm z,
+                    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
 
   /// Implements Model Item Interface
   virtual QVariant data(int role=Qt::DisplayRole) const;

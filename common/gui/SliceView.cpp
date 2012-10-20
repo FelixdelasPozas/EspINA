@@ -570,6 +570,8 @@ IPicker::PickList SliceView::pick(IPicker::PickableItems filter,
   // NOTE: Should first loop be removed? Only useful to select disconnected regions...
   foreach(const IPicker::DisplayRegion &region, regions)
   {
+    QList<vtkProp *> pickedChannels;
+    QList<vtkProp *> pickedSegmentations;
     foreach(QPointF p, region)
     {
       foreach(IPicker::Tag tag, filter)
@@ -580,6 +582,11 @@ IPicker::PickList SliceView::pick(IPicker::PickableItems filter,
           {
             IPicker::WorldRegion wRegion = worldRegion(region, channel);
             pickedItems << IPicker::PickedItem(wRegion, channel);
+            // remove it from picking list to prevent other points of the region
+            // to select it again
+            vtkProp *channelProp = m_channelReps[channel].slice;
+            m_channelPicker->DeletePickList(channelProp);
+            pickedChannels << channelProp;
           }
         } else if (IPicker::SEGMENTATION == tag)
         {
@@ -587,11 +594,21 @@ IPicker::PickList SliceView::pick(IPicker::PickableItems filter,
             {
               IPicker::WorldRegion wRegion = worldRegion(region, seg);
               pickedItems << IPicker::PickedItem(wRegion, seg);
+            // remove it from picking list to prevent other points of the region
+            // to select it again
+            vtkProp *segProp = m_segmentationReps[seg].slice;
+            m_segmentationPicker->DeletePickList(segProp);
+            pickedSegmentations << segProp;
             }
         } else
           Q_ASSERT(false);
       }
     }
+    // Restore picked items to picker's pick lists
+    foreach(vtkProp *channel, pickedChannels)
+      m_channelPicker->AddPickList(channel);
+    foreach(vtkProp *seg, pickedSegmentations)
+      m_segmentationPicker->AddPickList(seg);
   }
 
   return pickedItems;
@@ -985,10 +1002,6 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
         eventPosition(x, y);
         m_inThumbnail = m_thumbnail->GetDraw() && m_channelPicker->Pick(x, y, 0.1, m_thumbnail);
 
-        if (m_inThumbnail)
-          m_view->setCursor(Qt::ArrowCursor);
-        else
-          m_view->setCursor(m_viewManager->cursor());
       }
       else if (e->type() == QEvent::MouseButtonPress)
       {
@@ -1026,8 +1039,19 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
         m_view->setToolTip(toopTip);
       }
 
-  updateRuler();
-  updateThumbnail();
+  if ( QEvent::MouseMove == e->type()
+    || QEvent::MouseButtonPress == e->type()
+    || QEvent::KeyPress == e->type()
+    || QEvent::KeyRelease == e->type())
+  {
+    if (m_inThumbnail)
+      m_view->setCursor(Qt::ArrowCursor);
+    else
+      m_view->setCursor(m_viewManager->cursor());
+
+    updateRuler();
+    updateThumbnail();
+  }
   return QWidget::eventFilter(caller, e);
 }
 

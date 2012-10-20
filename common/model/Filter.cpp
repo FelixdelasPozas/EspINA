@@ -168,11 +168,12 @@ Filter::EspinaVolumeReader::Pointer Filter::tmpFileReader(const QString file)
   return NULL;
 }
 
+//TODO 2012-10-19 Try to use threaded method similar to tubular source
 //----------------------------------------------------------------------------
 void Filter::draw(OutputNumber i,
-		  vtkImplicitFunction* brush,
-		  double bounds[6],
-		  EspinaVolume::PixelType value)
+                  QList<vtkImplicitFunction *> brushes,
+                  double bounds[6],
+                  EspinaVolume::PixelType value)
 {
   EspinaVolume::SpacingType spacing = m_outputs[i]->GetSpacing();
   EspinaVolume::RegionType region = BoundsToRegion(bounds, spacing);
@@ -187,8 +188,14 @@ void Filter::draw(OutputNumber i,
     double ty = it.GetIndex()[1]*spacing[1] + m_outputs[i]->GetOrigin()[1];
     double tz = it.GetIndex()[2]*spacing[2] + m_outputs[i]->GetOrigin()[2];
 
-    if (brush->FunctionValue(tx, ty, tz) <= 0)
-      it.Set(value);
+    for (int i=0; i < brushes.size(); i++)
+    {
+      if (brushes.value(i)->FunctionValue(tx, ty, tz) <= 0)
+      {
+        it.Set(value);
+        continue;
+      }
+    }
   }
   m_outputs[i]->Modified();
   if (!m_editedOutputs.contains(QString::number(i)))
@@ -200,8 +207,8 @@ void Filter::draw(OutputNumber i,
 
 //----------------------------------------------------------------------------
 void Filter::draw(OutputNumber i,
-		  EspinaVolume::IndexType index,
-		  EspinaVolume::PixelType value)
+                  EspinaVolume::IndexType index,
+                  EspinaVolume::PixelType value)
 {
   EspinaVolume::RegionType region;
   region.SetIndex(index);

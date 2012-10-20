@@ -167,8 +167,7 @@ void SeedGrowSegmentation::changePicker(QAction* action)
 void SeedGrowSegmentation::abortSelection()
 {
   m_seedSelector->previewOff();
-  m_viewManager->setActiveTool(NULL);
-  //TODO 2012-10-16 m_viewManager->unsetPicker(m_selector.data());
+  m_viewManager->unsetActiveTool(m_seedSelector.data());
 }
 
 //-----------------------------------------------------------------------------

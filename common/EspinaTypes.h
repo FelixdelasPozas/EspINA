@@ -11,6 +11,7 @@ typedef unsigned int OutputNumber;
 typedef double Nm;
 
 const EspinaVolume::PixelType SEG_VOXEL_VALUE = 255;
+const EspinaVolume::PixelType SEG_BG_VALUE = 0;
 
 enum PlaneType
 {

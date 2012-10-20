@@ -39,8 +39,11 @@
 #include "common/gui/ViewManager.h"
 #include "common/tools/PickableItem.h"
 #include "common/undo/RemoveSegmentation.h"
+#include <undo/AddSegmentation.h>
 #include "frontend/toolbar/editor/Settings.h"
 #include "frontend/toolbar/editor/SettingsPanel.h"
+#include "Brush.h"
+#include "FilledContour.h"
 
 // Qt
 #include <QAction>
@@ -55,123 +58,71 @@ enum BrushType {
   CONTOUR
 };
 
-//----------------------------------------------------------------------------
-class EditorToolBar::FreeFormCommand
-: public QUndoCommand
-{
-public:
-  explicit FreeFormCommand(Channel         *channel,
-                           Filter          *filter,
-                           Segmentation    *seg,
-                           TaxonomyElement *taxonomy,
-                           EspinaModel     *model
-                          )
-  : m_model   (model)
-  , m_channel (channel)
-  , m_filter  (filter)
-  , m_seg     (seg)
-  , m_taxonomy(taxonomy)
-  {
-    m_sample = m_channel->sample();
-    Q_ASSERT(m_sample);
-  }
-
-  virtual void redo()
-  {
-    m_model->addFilter(m_filter);
-    m_model->addRelation(m_channel, m_filter, Channel::LINK);
-    m_seg->setTaxonomy(m_taxonomy);
-    m_model->addSegmentation(m_seg);
-    m_model->addRelation(m_filter, m_seg, CREATELINK);
-    m_model->addRelation(m_sample, m_seg, "where");
-    m_model->addRelation(m_channel, m_seg, Channel::LINK);
-    m_seg->initializeExtensions();
-  }
-
-  virtual void undo()
-  {
-    m_model->removeRelation(m_channel, m_seg, Channel::LINK);
-    m_model->removeRelation(m_sample, m_seg, "where");
-    m_model->removeRelation(m_filter, m_seg, CREATELINK);
-    m_model->removeSegmentation(m_seg);
-    m_model->removeRelation(m_channel, m_filter, Channel::LINK);
-    m_model->removeFilter(m_filter);
-  }
-
-private:
-  EspinaModel  *m_model;
-  Sample       *m_sample;
-  Channel      *m_channel;
-  Filter       *m_filter;
-  Segmentation *m_seg;
-  TaxonomyElement *m_taxonomy;
-};
+typedef vtkSmartPointer<vtkSphere> SphericalBrush;
 
 //----------------------------------------------------------------------------
-// FIXME
 class EditorToolBar::DrawCommand
 : public QUndoCommand
 {
 public:
-  explicit DrawCommand(FreeFormSource *source,
-		      PlaneType plane,
-		      QVector3D center, int radius)
+  explicit DrawCommand(Filter *source,
+                       QList<SphericalBrush> brushes,
+                       double bounds[6])
   : m_source(source)
-  , m_plane(plane)
-  , m_center(center)
-  , m_radius(radius)
+  , m_brushes(brushes)
   {
+    memcpy(m_bounds, bounds, 6*sizeof(double));
+    foreach(SphericalBrush brush, brushes)
+      m_brushPointers << brush;
   }
 
   virtual void redo()
   {
-//     m_source->draw(m_plane, m_center, m_radius);
+    m_source->draw(0, m_brushPointers, m_bounds, SEG_VOXEL_VALUE);
   }
   virtual void undo()
   {
-//     m_source->draw(m_plane, m_center, m_radius);
+    m_source->draw(0, m_brushPointers, m_bounds, SEG_BG_VALUE);
   }
 
 private:
-  FreeFormSource *m_source;
-  PlaneType       m_plane;
-  QVector3D       m_center;
-  int             m_radius;
+  Filter *m_source;
+  QList<SphericalBrush> m_brushes;
+  QList<vtkImplicitFunction *> m_brushPointers;
+  double m_bounds[6];
 };
 
 //----------------------------------------------------------------------------
-//FIXME
 class EditorToolBar::EraseCommand
 : public QUndoCommand
 {
 public:
   explicit EraseCommand(FreeFormSource *source,
-		       PlaneType plane,
-		       QVector3D center, int radius)
+                        QList<SphericalBrush> brushes,
+                        double bounds[6])
   : m_source(source)
-  , m_plane(plane)
-  , m_center(center)
-  , m_radius(radius)
+  , m_brushes(brushes)
   {
+    memcpy(m_bounds, bounds, 6*sizeof(double));
+    foreach(SphericalBrush brush, brushes)
+      m_brushPointers << brush;
   }
 
   virtual void redo()
   {
-//     m_source->draw(m_plane, m_center, m_radius);
+    m_source->draw(0, m_brushPointers, m_bounds, SEG_BG_VALUE);
   }
   virtual void undo()
   {
-//     m_source->draw(m_plane, m_center, m_radius);
+    m_source->draw(0, m_brushPointers, m_bounds, SEG_VOXEL_VALUE);
   }
 
 private:
-  FreeFormSource *m_source;
-  PlaneType       m_plane;
-  QVector3D       m_center;
-  int             m_radius;
+  Filter *m_source;
+  QList<SphericalBrush> m_brushes;
+  QList<vtkImplicitFunction *> m_brushPointers;
+  double m_bounds[6];
 };
-
-
 
 //----------------------------------------------------------------------------
 class EditorToolBar::CODECommand :
@@ -274,13 +225,11 @@ EditorToolBar::EditorToolBar(EspinaModel *model,
                              ViewManager *vm,
                              QWidget* parent)
 : QToolBar(parent)
-, m_actionGroup(new ActionSelector(this))
+, m_drawToolSelector(new ActionSelector(this))
 , m_model(model)
 , m_undoStack(undoStack)
 , m_viewManager(vm)
 , m_settings(new Settings())
-, m_brush(new BrushSelector())
-, m_contourSelector(new ContourSelector())
 , m_currentSource(NULL)
 , m_currentSeg(NULL)
 {
@@ -292,22 +241,47 @@ EditorToolBar::EditorToolBar(EspinaModel *model,
   m_model->factory()->registerSettingsPanel(new EditorToolBar::SettingsPanel(m_settings));
 
   // draw with a disc
-  m_pencilDisc = new QAction(QIcon(":/espina/pencil2D.png"), tr("Drew segmentations using a disc"), m_actionGroup);
-  m_actionGroup->addAction(m_pencilDisc);
+  QAction *discTool = new QAction(QIcon(":/espina/pencil2D.png"),
+                                   tr("Drew segmentations using a disc"),
+                                   m_drawToolSelector);
+  Brush *discBrush = new Brush(m_viewManager);
+  connect(discBrush, SIGNAL(brushCenters(Channel*,IPicker::WorldRegion,Nm,PlaneType)),
+          this, SLOT(drawDiscs(Channel*,IPicker::WorldRegion,Nm,PlaneType)));
+  connect(discBrush, SIGNAL(eraserCenters(Channel*,IPicker::WorldRegion,Nm,PlaneType)),
+          this, SLOT(eraseDiscs(Channel*,IPicker::WorldRegion,Nm,PlaneType)));
+  connect(discBrush, SIGNAL(stopDrawing()),
+          this, SLOT(cancelDrawOperation()));
+  m_drawTools[discTool] = discBrush;
+  m_drawToolSelector->addAction(discTool);
 
   // draw with a sphere
-  m_pencilSphere = new QAction(QIcon(":espina/pencil3D.png"), tr("Draw segmentations using a sphere"), m_actionGroup);
-  m_actionGroup->addAction(m_pencilSphere);
+  QAction *sphereTool = new QAction(QIcon(":espina/pencil3D.png"),
+                                    tr("Draw segmentations using a sphere"),
+                                    m_drawToolSelector);
+  Brush *sphereBrush = new Brush(m_viewManager);
+  connect(sphereBrush, SIGNAL(brushCenters(Channel*,IPicker::WorldRegion,Nm,PlaneType)),
+          this, SLOT(drawSpheres(Channel*,IPicker::WorldRegion,Nm,PlaneType)));
+  connect(sphereBrush, SIGNAL(eraserCenters(Channel*,IPicker::WorldRegion,Nm,PlaneType)),
+          this, SLOT(eraseSpheres(Channel*,IPicker::WorldRegion,Nm,PlaneType)));
+  connect(sphereBrush, SIGNAL(stopDrawing()),
+          this, SLOT(cancelDrawOperation()));
+  m_drawTools[sphereTool] = sphereBrush;
+  m_drawToolSelector->addAction(sphereTool);
 
   // draw with contour
-  m_contour = new QAction(QIcon(":espina/lasso.png"), tr("Draw segmentations using contours"), m_actionGroup);
-  m_actionGroup->addAction(m_contour);
+  QAction *contourTool = new QAction(QIcon(":espina/lasso.png"),
+                                       tr("Draw segmentations using contours"),
+                                       m_drawToolSelector);
+  m_drawTools[contourTool] = new FilledContour();
+  m_drawToolSelector->addAction(contourTool);
 
-  m_actionGroup->setCheckable(true);
-  addAction(m_actionGroup);
-  connect(m_actionGroup, SIGNAL(actionCanceled()), this, SLOT(cancelDrawOperation()));
-  connect(m_actionGroup, SIGNAL(triggered(QAction*)), this, SLOT(startDrawOperation(QAction*)));
-  m_actionGroup->setDefaultAction(m_pencilDisc);
+  m_drawToolSelector->setCheckable(true);
+  addAction(m_drawToolSelector);
+  connect(m_drawToolSelector, SIGNAL(triggered(QAction*)),
+          this, SLOT(changeDrawTool(QAction*)));
+  connect(m_drawToolSelector, SIGNAL(actionCanceled()),
+          this, SLOT(cancelDrawOperation()));
+  m_drawToolSelector->setDefaultAction(discTool);
 
   m_addition = addAction(tr("Combine Selected Segmentations"));
   m_addition->setIcon(QIcon(":/espina/add.svg"));
@@ -344,16 +318,7 @@ EditorToolBar::EditorToolBar(EspinaModel *model,
   connect(m_fill, SIGNAL(triggered(bool)),
           this, SLOT(fillHoles()));
 
-  m_brush->setPickable(IPicker::CHANNEL);
-  m_brush->changeState(BrushSelector::CREATING);
-  connect(m_brush, SIGNAL(itemsPicked(IPicker::PickList)),
-          this, SLOT(drawSegmentation(IPicker::PickList)));
-  connect(m_brush, SIGNAL(selectionAborted()),
-          this, SLOT(stopDrawing()));
-  connect(m_brush, SIGNAL(stateChanged(BrushSelector::State)),
-          this, SLOT(stateChanged(BrushSelector::State)));
 
-  m_contourSelector->setPickable(IPicker::CHANNEL);
 }
 
 //----------------------------------------------------------------------------
@@ -392,195 +357,175 @@ Filter* EditorToolBar::createFilter(const QString filter, Filter::NamedInputs in
   return NULL;
 }
 
-//----------------------------------------------------------------------------
-void EditorToolBar::startPencilDrawing()
-{
-  if (m_actionGroup->isChecked())
-  {
-    SegmentationList selSegs = selectedSegmentations();
-    if (selSegs.size() == 1)
-    {
-      m_currentSeg = selSegs.first();
-      m_currentSource = m_currentSeg->filter();
-      m_brush->changeState(BrushSelector::DRAWING);
-      m_brush->setColor(m_currentSeg->taxonomy()->color());
-    }
-    else
-    {
-      m_currentSeg = NULL;
-      m_currentSource = NULL;
-      m_brush->changeState(BrushSelector::CREATING);
-      m_brush->setColor(m_viewManager->activeTaxonomy()->color());
-    }
 
-    m_brush->setRadius(m_settings->brushRadius());
-    //TODO 2012-10-16 m_viewManager->setPicker(m_brush);
-  }
-}
-
-//----------------------------------------------------------------------------
-void EditorToolBar::drawSegmentation(IPicker::PickList pickedList)
-{
-  if (pickedList.size() == 0)
-    return;
-
-  IPicker::WorldRegion region = pickedList.first().first;
-  if (region.size() < 5)
-    return;
-
-  PickableItem *pickedItem = pickedList.first().second;
-  Q_ASSERT(ModelItem::CHANNEL == pickedItem->type());
-  Channel *channel = dynamic_cast<Channel *>(pickedItem);
-  double spacing[3];
-  channel->spacing(spacing);
-
-  double points[5][3];
-  double *center = points[0];
-  double *right  = points[1];
-  double *top    = points[2];
-//   double *left   = points[3];
-//   double *bottom = points[4];
-
-  for (int i=0; i<5; i++)
-  {
-    points[i][0] = int(region[i].x()/spacing[0]+0.5)*spacing[0];
-    points[i][1] = int(region[i].y()/spacing[1]+0.5)*spacing[1];
-    points[i][2] = int(region[i].z()/spacing[2]+0.5)*spacing[2];
-  }
-
-  PlaneType selectedPlane;
-  if (center[0] == right[0] && right[0] == top[0])
-    selectedPlane = SAGITTAL;
-  else if (right[1] == center[1] && right[1] == top[1])
-    selectedPlane = CORONAL;
-  else if (center[2] == right[2] && right[2] == top[2])
-    selectedPlane = AXIAL;
-
-  double baseCenter[3], topCenter[3];
-  for (int i=0; i<3; i++)
-    baseCenter[i] = topCenter[i] = center[i];
-
-  topCenter[selectedPlane] += 0.5*spacing[selectedPlane];
-
-  int radius = 0;
-  if (selectedPlane != SAGITTAL)
-    radius = fabs(region[0].x() - region[1].x());
-  else
-    radius = fabs(region[0].y() - region[2].y());
-
-  vtkSmartPointer<vtkImplicitFunction> brush;
-  BrushType brushType = CIRCULAR;
-
-  if (m_actionGroup->getCurrentAction() == m_pencilDisc)
-    brushType = CIRCULAR;
-  else
-    if (m_actionGroup->getCurrentAction() == m_pencilSphere)
-      brushType = SPHERICAL;
-    else
-      return;
-
-  switch (brushType)
-  {
-    case CIRCULAR:
-    {
-      vtkSmartPointer<vtkTube> circularBrush = vtkSmartPointer<vtkTube>::New();
-      circularBrush->SetBaseCenter(baseCenter);
-      circularBrush->SetBaseRadius(radius);
-      circularBrush->SetTopCenter(topCenter);
-      circularBrush->SetTopRadius(radius);
-      brush = circularBrush;
-    }
-      break;
-    case SPHERICAL:
-    {
-      vtkSmartPointer<vtkSphere> sphericalBrush = vtkSmartPointer<vtkSphere>::New();
-      sphericalBrush->SetCenter(baseCenter);
-      sphericalBrush->SetRadius(radius);
-      brush = sphericalBrush;
-    }
-      break;
-    case CONTOUR:
-    default:
-      Q_ASSERT(false);
-      break;
-  };
-
-  double bounds[6];
-  channel->bounds(bounds);
-  bounds[0] = std::max(center[0] - radius, bounds[0]);
-  bounds[1] = std::min(center[0] + radius, bounds[1]);
-  bounds[2] = std::max(center[1] - radius, bounds[2]);
-  bounds[3] = std::min(center[1] + radius, bounds[3]);
-  bounds[4] = std::max(center[2] - radius, bounds[4]);
-  bounds[5] = std::min(center[2] + radius, bounds[5]);
-
-  if (!m_currentSource && !m_currentSeg)
-  {
-    Filter::NamedInputs inputs;
-    Filter::Arguments args;
-    FreeFormSource::Parameters params(args);
-    params.setSpacing(spacing);
-    m_currentSource = new FreeFormSource(inputs, args);
-  }
-
-  if (!m_currentSeg && m_currentSource)
-  {
-    // prevent this case
-    if (BrushSelector::ERASING == m_brush->state())
-      return;
-
-    // Create a new segmentation
-    m_currentSource->draw(0, brush, bounds);
-    m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, 0);
-    TaxonomyElement *tax = m_viewManager->activeTaxonomy();
-    m_undoStack->push(new FreeFormCommand(channel, m_currentSource, m_currentSeg, tax, m_model));
-    m_brush->changeState(BrushSelector::DRAWING);
-  }
-  else
-  {
-    unsigned int output = m_currentSeg->outputNumber();
-    switch (m_brush->state())
-    {
-      case BrushSelector::DRAWING:
-        m_currentSource->draw(output, brush, bounds);
-        break;
-      case BrushSelector::ERASING:
-        m_currentSource->draw(output, brush, bounds, 0);
-        break;
-      case BrushSelector::CREATING:
-      default:
-        Q_ASSERT(FALSE);
-        break;
-    }
-  }
-
-  m_viewManager->updateViews();
-
-//   if (m_pencilSelector->state() == PencilSelector::DRAWING)
-//     m_currentSource->draw(selectedPlane, center, radius);
-//     //undo->push(new DrawCommand(m_currentSource, AXIAL, center, radius));
-//   else if (m_pencilSelector->state() == PencilSelector::ERASING)
-//     m_currentSource->erase(selectedPlane, center, radius);
-//     //undo->push(new EraseCommand(m_currentSource, AXIAL, center, radius));
-//   else
-//     Q_ASSERT(false);
+// //----------------------------------------------------------------------------
+// void EditorToolBar::drawSegmentation(IPicker::PickList pickedList)
+// {
+//   if (pickedList.size() == 0)
+//     return;
 // 
-//   if (m_currentSeg)
-//     m_currentSeg->notifyModification(true);
-}
+//   IPicker::WorldRegion region = pickedList.first().first;
+//   if (region.size() < 5)
+//     return;
+// 
+//   PickableItem *pickedItem = pickedList.first().second;
+//   Q_ASSERT(ModelItem::CHANNEL == pickedItem->type());
+//   Channel *channel = dynamic_cast<Channel *>(pickedItem);
+//   double spacing[3];
+//   channel->spacing(spacing);
+// 
+//   double points[5][3];
+//   double *center = points[0];
+//   double *right  = points[1];
+//   double *top    = points[2];
+// //   double *left   = points[3];
+// //   double *bottom = points[4];
+// 
+//   for (int i=0; i<5; i++)
+//   {
+//     points[i][0] = int(region[i].x()/spacing[0]+0.5)*spacing[0];
+//     points[i][1] = int(region[i].y()/spacing[1]+0.5)*spacing[1];
+//     points[i][2] = int(region[i].z()/spacing[2]+0.5)*spacing[2];
+//   }
+// 
+//   PlaneType selectedPlane;
+//   if (center[0] == right[0] && right[0] == top[0])
+//     selectedPlane = SAGITTAL;
+//   else if (right[1] == center[1] && right[1] == top[1])
+//     selectedPlane = CORONAL;
+//   else if (center[2] == right[2] && right[2] == top[2])
+//     selectedPlane = AXIAL;
+// 
+//   double baseCenter[3], topCenter[3];
+//   for (int i=0; i<3; i++)
+//     baseCenter[i] = topCenter[i] = center[i];
+// 
+//   topCenter[selectedPlane] += 0.5*spacing[selectedPlane];
+// 
+//   int radius = 0;
+//   if (selectedPlane != SAGITTAL)
+//     radius = fabs(region[0].x() - region[1].x());
+//   else
+//     radius = fabs(region[0].y() - region[2].y());
+// 
+//   vtkSmartPointer<vtkImplicitFunction> brush;
+//   BrushType brushType = CIRCULAR;
+// 
+//   /*TODO 2012-10-18
+//   if (m_actionGroup->getCurrentAction() == m_pencilDisc)
+//     brushType = CIRCULAR;
+//   else
+//     if (m_actionGroup->getCurrentAction() == m_pencilSphere)
+//       brushType = SPHERICAL;
+//     else
+//       return;
+// 
+//   switch (brushType)
+//   {
+//     case CIRCULAR:
+//     {
+//       vtkSmartPointer<vtkTube> circularBrush = vtkSmartPointer<vtkTube>::New();
+//       circularBrush->SetBaseCenter(baseCenter);
+//       circularBrush->SetBaseRadius(radius);
+//       circularBrush->SetTopCenter(topCenter);
+//       circularBrush->SetTopRadius(radius);
+//       brush = circularBrush;
+//     }
+//       break;
+//     case SPHERICAL:
+//     {
+//       vtkSmartPointer<vtkSphere> sphericalBrush = vtkSmartPointer<vtkSphere>::New();
+//       sphericalBrush->SetCenter(baseCenter);
+//       sphericalBrush->SetRadius(radius);
+//       brush = sphericalBrush;
+//     }
+//       break;
+//     case CONTOUR:
+//     default:
+//       Q_ASSERT(false);
+//       break;
+//   };
+// 
+//   double bounds[6];
+//   channel->bounds(bounds);
+//   bounds[0] = std::max(center[0] - radius, bounds[0]);
+//   bounds[1] = std::min(center[0] + radius, bounds[1]);
+//   bounds[2] = std::max(center[1] - radius, bounds[2]);
+//   bounds[3] = std::min(center[1] + radius, bounds[3]);
+//   bounds[4] = std::max(center[2] - radius, bounds[4]);
+//   bounds[5] = std::min(center[2] + radius, bounds[5]);
+// 
+//   if (!m_currentSource && !m_currentSeg)
+//   {
+//     Filter::NamedInputs inputs;
+//     Filter::Arguments args;
+//     FreeFormSource::Parameters params(args);
+//     params.setSpacing(spacing);
+//     m_currentSource = new FreeFormSource(inputs, args);
+//   }
+// 
+//   if (!m_currentSeg && m_currentSource)
+//   {
+//     // prevent this case
+//     if (BrushSelector::ERASING == m_brush->state())
+//       return;
+// 
+//     // Create a new segmentation
+//     m_currentSource->draw(0, brush, bounds);
+//     m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, 0);
+//     TaxonomyElement *tax = m_viewManager->activeTaxonomy();
+//     m_undoStack->push(new FreeFormCommand(channel, m_currentSource, m_currentSeg, tax, m_model));
+//     m_brush->changeState(BrushSelector::DRAWING);
+//   }
+//   else
+//   {
+//     unsigned int output = m_currentSeg->outputNumber();
+//     switch (m_brush->state())
+//     {
+//       case BrushSelector::DRAWING:
+//         m_currentSource->draw(output, brush, bounds);
+//         break;
+//       case BrushSelector::ERASING:
+//         m_currentSource->draw(output, brush, bounds, 0);
+//         break;
+//       case BrushSelector::CREATING:
+//       default:
+//         Q_ASSERT(FALSE);
+//         break;
+//     }
+//   }
+//   */
+// 
+//   m_viewManager->updateViews();
+// 
+// //   if (m_pencilSelector->state() == PencilSelector::DRAWING)
+// //     m_currentSource->draw(selectedPlane, center, radius);
+// //     //undo->push(new DrawCommand(m_currentSource, AXIAL, center, radius));
+// //   else if (m_pencilSelector->state() == PencilSelector::ERASING)
+// //     m_currentSource->erase(selectedPlane, center, radius);
+// //     //undo->push(new EraseCommand(m_currentSource, AXIAL, center, radius));
+// //   else
+// //     Q_ASSERT(false);
+// // 
+// //   if (m_currentSeg)
+// //     m_currentSeg->notifyModification(true);
+// }
 
 //----------------------------------------------------------------------------
 void EditorToolBar::stopDrawing()
 {
+  /* TODO 2012-10-18
   m_actionGroup->blockSignals(true);
   m_actionGroup->setChecked(false);
   m_brush->changeState(BrushSelector::DRAWING);
   m_actionGroup->blockSignals(false);
+  */
 }
 
 //----------------------------------------------------------------------------
 void EditorToolBar::stateChanged(BrushSelector::State state)
 {
+  /* TODO 2012-10-18
   switch (state)
   {
     case BrushSelector::DRAWING:
@@ -601,6 +546,7 @@ void EditorToolBar::stateChanged(BrushSelector::State state)
       Q_ASSERT(false);
       break;
   };
+  */
 }
 
 //----------------------------------------------------------------------------
@@ -706,6 +652,7 @@ SegmentationList EditorToolBar::selectedSegmentations()
 //----------------------------------------------------------------------------
 void EditorToolBar::startContourDrawing()
 {
+  /* TODO 2012-10-18
   if (m_actionGroup->isChecked())
   {
     m_contourWidget = new ContourWidget();
@@ -728,12 +675,18 @@ void EditorToolBar::startContourDrawing()
     m_viewManager->addWidget(m_contourWidget);
     m_contourWidget->setEnabled(true);
   }
+  */
 }
 
 void EditorToolBar::cancelDrawOperation()
 {
-  this->m_actionGroup->cancel();
+  m_drawToolSelector->cancel();
 
+  QAction *activeAction = m_drawToolSelector->getCurrentAction();
+  ITool *activeTool = m_drawTools[activeAction];
+  m_viewManager->unsetActiveTool(activeTool);
+
+  /*
   // additional contour cleaning
   if (this->m_contour == this->m_actionGroup->getCurrentAction())
   {
@@ -802,22 +755,247 @@ void EditorToolBar::cancelDrawOperation()
     // only for paint operations
     //TODO 2012-10-17 m_viewManager->unsetPicker(m_brush);
   }
+  */
 
   m_currentSource = NULL;
   m_currentSeg = NULL;
 }
 
-void EditorToolBar::startDrawOperation(QAction *action)
+//----------------------------------------------------------------------------
+void EditorToolBar::changeDrawTool(QAction *action)
 {
-  if (!m_viewManager->activeChannel() || !m_viewManager->activeTaxonomy())
+  Q_ASSERT(m_drawTools.contains(action));
+  SegmentationList selSegs = selectedSegmentations();
+  if (selSegs.size() == 1)
   {
-    m_actionGroup->setChecked(false);
+    m_currentSeg = selSegs.first();
+    m_currentSource = m_currentSeg->filter();
+    //m_drawTools[action]->setColor(m_viewManager->color(m_currentSeg));
+  }
+  else
+  {
+    m_currentSeg = NULL;
+    m_currentSource = NULL;
+    //m_brush->setColor(m_viewManager->activeTaxonomy()->color());
+  }
+  // m_brush->setRadius(m_settings->brushRadius());
+  m_viewManager->setActiveTool(m_drawTools[action]);
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::drawDiscs(Channel* channel, IPicker::WorldRegion centers, Nm radius, PlaneType plane)
+{
+  qDebug() << "Draw Disc Centers" << centers;
+//   double baseCenter[3], topCenter[3];
+//   for (int i=0; i<3; i++)
+//     baseCenter[i] = topCenter[i] = center[i];
+
+//   topCenter[plane] += 0.5*spacing[plane];
+// 
+//   int radius = 0;
+//   if (selectedPlane != SAGITTAL)
+//     radius = fabs(region[0].x() - region[1].x());
+//   else
+//     radius = fabs(region[0].y() - region[2].y());
+// 
+//   vtkSmartPointer<vtkImplicitFunction> brush;
+//   BrushType brushType = CIRCULAR;
+// 
+//   /*TODO 2012-10-18
+//   if (m_actionGroup->getCurrentAction() == m_pencilDisc)
+//     brushType = CIRCULAR;
+//   else
+//     if (m_actionGroup->getCurrentAction() == m_pencilSphere)
+//       brushType = SPHERICAL;
+//     else
+//       return;
+// 
+//   switch (brushType)
+//   {
+//     case CIRCULAR:
+//     {
+//       vtkSmartPointer<vtkTube> circularBrush = vtkSmartPointer<vtkTube>::New();
+//       circularBrush->SetBaseCenter(baseCenter);
+//       circularBrush->SetBaseRadius(radius);
+//       circularBrush->SetTopCenter(topCenter);
+//       circularBrush->SetTopRadius(radius);
+//       brush = circularBrush;
+//     }
+//       break;
+//     case SPHERICAL:
+//     {
+//       vtkSmartPointer<vtkSphere> sphericalBrush = vtkSmartPointer<vtkSphere>::New();
+//       sphericalBrush->SetCenter(baseCenter);
+//       sphericalBrush->SetRadius(radius);
+//       brush = sphericalBrush;
+//     }
+//       break;
+//     case CONTOUR:
+//     default:
+//       Q_ASSERT(false);
+//       break;
+//   };
+// 
+//   double bounds[6];
+//   channel->bounds(bounds);
+//   bounds[0] = std::max(center[0] - radius, bounds[0]);
+//   bounds[1] = std::min(center[0] + radius, bounds[1]);
+//   bounds[2] = std::max(center[1] - radius, bounds[2]);
+//   bounds[3] = std::min(center[1] + radius, bounds[3]);
+//   bounds[4] = std::max(center[2] - radius, bounds[4]);
+//   bounds[5] = std::min(center[2] + radius, bounds[5]);
+// 
+//   if (!m_currentSource && !m_currentSeg)
+//   {
+//     Filter::NamedInputs inputs;
+//     Filter::Arguments args;
+//     FreeFormSource::Parameters params(args);
+//     params.setSpacing(spacing);
+//     m_currentSource = new FreeFormSource(inputs, args);
+//   }
+// 
+//   if (!m_currentSeg && m_currentSource)
+//   {
+//     // prevent this case
+//     if (BrushSelector::ERASING == m_brush->state())
+//       return;
+// 
+//     // Create a new segmentation
+//     m_currentSource->draw(0, brush, bounds);
+//     m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, 0);
+//     TaxonomyElement *tax = m_viewManager->activeTaxonomy();
+//     m_undoStack->push(new FreeFormCommand(channel, m_currentSource, m_currentSeg, tax, m_model));
+//     m_brush->changeState(BrushSelector::DRAWING);
+//   }
+//   else
+//   {
+//     unsigned int output = m_currentSeg->outputNumber();
+//     switch (m_brush->state())
+//     {
+//       case BrushSelector::DRAWING:
+//         m_currentSource->draw(output, brush, bounds);
+//         break;
+//       case BrushSelector::ERASING:
+//         m_currentSource->draw(output, brush, bounds, 0);
+//         break;
+//       case BrushSelector::CREATING:
+//       default:
+//         Q_ASSERT(FALSE);
+//         break;
+//     }
+//   }
+//   */
+// 
+//   m_viewManager->updateViews();
+// 
+// //   if (m_pencilSelector->state() == PencilSelector::DRAWING)
+// //     m_currentSource->draw(selectedPlane, center, radius);
+// //     //undo->push(new DrawCommand(m_currentSource, AXIAL, center, radius));
+// //   else if (m_pencilSelector->state() == PencilSelector::ERASING)
+// //     m_currentSource->erase(selectedPlane, center, radius);
+// //     //undo->push(new EraseCommand(m_currentSource, AXIAL, center, radius));
+// //   else
+// //     Q_ASSERT(false);
+// // 
+// //   if (m_currentSeg)
+// //     m_currentSeg->notifyModification(true);
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::eraseDiscs(Channel* channel, IPicker::WorldRegion centers, Nm radius, PlaneType plane)
+{
+  qDebug() << "Remove Disc Centers" << centers;
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::drawSpheres(Channel* channel, IPicker::WorldRegion centers, Nm radius, PlaneType plane)
+{
+  if (centers.isEmpty())
     return;
+
+  //qDebug() << "Draw Sphere Centers" << centers;
+
+  QList<SphericalBrush> brushes;
+  double brushBounds[6];
+  for (int i=0; i < centers.size(); i++)
+  {
+    double brushCenter[3] = {centers[i].x(), centers[i].y(), centers[i].z()};
+
+    if (i == 0)
+    {
+      brushBounds[0] = brushCenter[0] - radius;
+      brushBounds[1] = brushCenter[0] + radius;
+      brushBounds[2] = brushCenter[1] - radius;
+      brushBounds[3] = brushCenter[1] + radius;
+      brushBounds[4] = brushCenter[2] - radius;
+      brushBounds[5] = brushCenter[2] + radius;
+    } else
+    {
+      brushBounds[0] = std::min(brushCenter[0] - radius, brushBounds[0]);
+      brushBounds[1] = std::max(brushCenter[0] + radius, brushBounds[1]);
+      brushBounds[2] = std::min(brushCenter[1] - radius, brushBounds[2]);
+      brushBounds[3] = std::max(brushCenter[1] + radius, brushBounds[3]);
+      brushBounds[4] = std::min(brushCenter[2] - radius, brushBounds[4]);
+      brushBounds[5] = std::max(brushCenter[2] + radius, brushBounds[5]);
+    }
+
+    SphericalBrush brush = SphericalBrush::New();
+    brush->SetCenter(brushCenter);
+    brush->SetRadius(radius);
+    brushes << brush;
   }
 
-  if (m_pencilDisc == action || m_pencilSphere == action)
-    startPencilDrawing();
-  else
-    if (m_contour == action)
-      startContourDrawing();
+  double bounds[6];
+  channel->bounds(bounds);
+  bounds[0] = std::max(brushBounds[0], bounds[0]);
+  bounds[1] = std::min(brushBounds[1], bounds[1]);
+  bounds[2] = std::max(brushBounds[2], bounds[2]);
+  bounds[3] = std::min(brushBounds[3], bounds[3]);
+  bounds[4] = std::max(brushBounds[4], bounds[4]);
+  bounds[5] = std::min(brushBounds[5], bounds[5]);
+
+  if (!m_currentSource)
+  {
+    Q_ASSERT(!m_currentSeg);
+
+    double spacing[3];
+    channel->spacing(spacing);
+
+    Filter::NamedInputs inputs;
+    Filter::Arguments args;
+    FreeFormSource::Parameters params(args);
+    params.setSpacing(spacing);
+    m_currentSource = new FreeFormSource(inputs, args);
+    m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, 0);
+
+    m_undoStack->beginMacro("Draw Segmentation");
+    // We can't add empty segmentations to the model
+    m_undoStack->push(new DrawCommand(m_currentSource,
+                                      brushes,
+                                      bounds));
+    m_undoStack->push(new AddSegmentation(channel,
+                                          m_currentSource,
+                                          m_currentSeg,
+                                          m_viewManager->activeTaxonomy(),
+                                          m_model));
+    m_undoStack->endMacro();
+  }else
+  {
+    Q_ASSERT(m_currentSource && m_currentSeg);
+    m_undoStack->push(new DrawCommand(m_currentSource,
+                                      brushes,
+                                      bounds));
+  }
+
+//   if (m_currentSeg)
+//     m_currentSeg->notifyModification(true);
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::eraseSpheres(Channel* channel, IPicker::WorldRegion centers, Nm radius, PlaneType plane)
+{
+  if (centers.isEmpty())
+    return;
+
+  //qDebug() << "Remove Sphere Centers" << centers;
 }
