@@ -438,6 +438,8 @@ void EspinaWindow::closeEvent(QCloseEvent* event)
   settings.sync();
   event->accept();
 
+  m_model->reset();
+
   exit(0);
 }
 
@@ -491,7 +493,10 @@ void EspinaWindow::openAnalysis(const QString file)
   QApplication::setOverrideCursor(Qt::WaitCursor);
   closeCurrentAnalysis();
 
-  if (EspinaIO::SUCCESS != EspinaIO::loadFile(file, m_model, m_undoStack))
+  if (EspinaIO::SUCCESS != EspinaIO::loadFile(file,
+                                              m_model,
+                                              m_undoStack,
+                                              m_settings->autosavePath()))
   {
     QApplication::setOverrideCursor(Qt::ArrowCursor);
     QMessageBox box(QMessageBox::Warning,
@@ -574,8 +579,8 @@ void EspinaWindow::addToAnalysis()
   if (fileDialog.selectedFiles().size() != 1)
   {
     QMessageBox::warning(this,
-			 tr("EspinaModel"),
-			 tr("Loading multiple files at a time is not supported"));
+                         tr("EspinaModel"),
+                         tr("Loading multiple files at a time is not supported"));
     return; //Multi-channels is not supported
   }
   const QString file = fileDialog.selectedFiles().first();
@@ -590,24 +595,7 @@ void EspinaWindow::addRecentToAnalysis()
   if (!action || action->data().isNull())
     return;
 
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-  QElapsedTimer timer;
-  timer.start();
-
-  EspinaIO::loadFile(action->data().toString(), m_model, m_undoStack);
-
-  int secs = timer.elapsed()/1000.0;
-  int mins = 0;
-  if (secs > 60)
-  {
-    mins = secs / 60;
-    secs = secs % 60;
-  }
-
-  updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
-  QApplication::restoreOverrideCursor();
-  m_recentDocuments1.addDocument(action->data().toString());
-  m_recentDocuments2.updateDocumentList();
+  addFileToAnalysis(action->data().toString());
 }
 
 //------------------------------------------------------------------------
@@ -617,20 +605,24 @@ void EspinaWindow::addFileToAnalysis(const QString file)
   QElapsedTimer timer;
   timer.start();
 
-  EspinaIO::loadFile(file, m_model, m_undoStack);
-
-  int secs = timer.elapsed()/1000.0;
-  int mins = 0;
-  if (secs > 60)
+  if (EspinaIO::SUCCESS == EspinaIO::loadFile(file,
+                                              m_model,
+                                              m_undoStack,
+                                              m_settings->autosavePath()))
   {
-    mins = secs / 60;
-    secs = secs % 60;
-  }
+    int secs = timer.elapsed()/1000.0;
+    int mins = 0;
+    if (secs > 60)
+    {
+      mins = secs / 60;
+      secs = secs % 60;
+    }
 
-  updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
-  QApplication::restoreOverrideCursor();
-  m_recentDocuments1.addDocument(file);
-  m_recentDocuments2.updateDocumentList();
+    updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
+    QApplication::restoreOverrideCursor();
+    m_recentDocuments1.addDocument(file);
+    m_recentDocuments2.updateDocumentList();
+  }
 }
 
 //------------------------------------------------------------------------

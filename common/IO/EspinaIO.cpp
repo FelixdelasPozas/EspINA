@@ -31,20 +31,26 @@ const QString TAXONOMY = "taxonomy.xml";
 typedef itk::ImageFileWriter<EspinaVolume> EspinaVolumeWriter;
 
 //-----------------------------------------------------------------------------
-EspinaIO::STATUS EspinaIO::loadFile(QFileInfo file, EspinaModel* model, QUndoStack *undoStack)
+EspinaIO::STATUS EspinaIO::loadFile(QFileInfo file,
+                                    EspinaModel* model,
+                                    QUndoStack *undoStack,
+                                    QDir tmpDir)
 {
   const QString ext = file.suffix();
   if ("mha" == ext || "mhd" == ext || "tiff" == ext || "tif" == ext)
     return loadChannel(file, model, undoStack);
 
   if ("seg" == ext)
-    return loadSegFile(file, model);
+    return loadSegFile(file, model, tmpDir);
 
   return model->factory()->readFile(file.absoluteFilePath(), ext)?SUCCESS:ERROR;
 }
 
 //-----------------------------------------------------------------------------
-EspinaIO::STATUS EspinaIO::loadChannel(QFileInfo file, EspinaModel* model, QUndoStack* undoStack, Channel** channelPtr)
+EspinaIO::STATUS EspinaIO::loadChannel(QFileInfo file,
+                                       EspinaModel* model,
+                                       QUndoStack* undoStack,
+                                       Channel** channelPtr)
 {
   //TODO 2012-10-07
   // Try to recover sample form DB using channel information
@@ -102,15 +108,14 @@ EspinaIO::STATUS EspinaIO::loadChannel(QFileInfo file, EspinaModel* model, QUndo
 
 
 //-----------------------------------------------------------------------------
-EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo file, EspinaModel* model)
+EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo file,
+                                       EspinaModel* model,
+                                       QDir tmpDir)
 {
   // Create tmp dir
-  //qDebug() << file.absolutePath();
-  QDir tmpDir = file.absoluteDir();
-  tmpDir.mkdir(file.baseName());
-  tmpDir.cd(file.baseName());
-  // TODO BUG 2012-10-05 EspinaCore::instance()->setTemporalDir(tmpDir);
-  //qDebug() << "Temporal Dir" << tmpDir;
+  QString tmpSegDir = QString::number(rand());
+  tmpDir.mkdir(tmpSegDir);
+  tmpDir.cd(tmpSegDir);
 
   QuaZip espinaZip(file.filePath());
   if( !espinaZip.open(QuaZip::mdUnzip) )
@@ -174,7 +179,7 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo file, EspinaModel* model)
   STATUS status;
   model->addTaxonomy(taxonomy);
   std::istringstream trace(traceContent.toStdString().c_str());
-  status = model->loadSerialization(trace)?SUCCESS:ERROR;
+  status = model->loadSerialization(trace, tmpDir)?SUCCESS:ERROR;
 
   espinaZip.close();
   return status;

@@ -26,7 +26,10 @@ public:
    * @param model is the EspinaModel in which the file is loaded into
    * @return Success if no other error is reported.
    */
-  static STATUS loadFile(QFileInfo file, EspinaModel* model, QUndoStack* undoStack);
+  static STATUS loadFile(QFileInfo file,
+                         EspinaModel* model,
+                         QUndoStack* undoStack,
+                         QDir tmpDir);
 
   /**
    * Load channel files supported by EspINA. Current implementation
@@ -43,9 +46,12 @@ public:
    * Loads a seg file which must contain at least a trace and a taxonomy file.
    * @param filepath is the path of the seg file
    * @param model is the EspinaModel in which the file is loaded into
+   * @param tmpDir is the directory where temporal files are stored in
    * @return Success if no other error is reported.
    */
-  static STATUS loadSegFile(QFileInfo file, EspinaModel *model);
+  static STATUS loadSegFile(QFileInfo file,
+                            EspinaModel* model,
+                            QDir tmpDir);
 
   /**
    * Create a new seg file containing all information provided by @param model

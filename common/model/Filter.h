@@ -25,6 +25,7 @@
 #include "common/EspinaTypes.h"
 #include <itkImageFileReader.h>
 #include <vtkPolyData.h>
+#include <QDir>
 
 class QUndoStack;
 class ViewManager;
@@ -45,6 +46,8 @@ public:
   static const ModelItem::ArgumentId EDIT;
 public:
   virtual ~Filter(){}
+
+  void setTmpDir(QDir dir) {m_tmpDir = dir;}
 
   void setId(QString id) {m_args[ID] = id;}
 
@@ -70,17 +73,17 @@ public:
 
   /// Manually Edit Filter Output
   virtual void draw(OutputNumber i,
-		    vtkImplicitFunction *brush,
-		    double bounds[6],
-		    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+                    vtkImplicitFunction *brush,
+                    double bounds[6],
+                    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
   virtual void draw(OutputNumber i,
-		    EspinaVolume::IndexType index,
-		    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+                    EspinaVolume::IndexType index,
+                    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
   virtual void draw(OutputNumber i,
-		    Nm x, Nm y, Nm z,
-		    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+                    Nm x, Nm y, Nm z,
+                    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
   virtual void draw(OutputNumber i, vtkPolyData *contour, Nm slice, PlaneType plane,
-        EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+                    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
 
   /// Returns whether or not the filter was edited by the user
   bool isEdited() const;
@@ -128,6 +131,7 @@ protected:
   EspinaVolumeReader::Pointer m_cachedFilter;
 
 private:
+  QDir m_tmpDir;
   static unsigned int m_lastId;
 };
 

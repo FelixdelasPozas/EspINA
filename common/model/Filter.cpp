@@ -152,13 +152,12 @@ bool Filter::prefetchFilter()
 //----------------------------------------------------------------------------
 Filter::EspinaVolumeReader::Pointer Filter::tmpFileReader(const QString file)
 {
-  QDir tmpDir; //TODO BUG 2012-10-05 FIXME ALERT = EspinaCore::instance()->temporalDir();
-  if (tmpDir.exists(file))
+  if (m_tmpDir.exists(file))
   {
     itk::MetaImageIO::Pointer io = itk::MetaImageIO::New();
     EspinaVolumeReader::Pointer reader = EspinaVolumeReader::New();
 
-    std::string tmpFile = tmpDir.absoluteFilePath(file).toStdString();
+    std::string tmpFile = m_tmpDir.absoluteFilePath(file).toStdString();
     io->SetFileName(tmpFile.c_str());
     reader->SetImageIO(io);
     reader->SetFileName(tmpFile);

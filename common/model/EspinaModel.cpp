@@ -79,6 +79,16 @@ void EspinaModel::reset()
   m_relations->clear();//NOTE: Should we remove every item in the previous blocks?
   Filter::resetId();
   m_lastId = 0;
+
+  foreach(QDir tmpDir, m_tmpDirs)
+  {
+    QDir parentDir = tmpDir;
+    parentDir.cdUp();
+    foreach(QFileInfo file, tmpDir.entryInfoList())
+      QFile::remove(file.absoluteFilePath());
+
+    parentDir.rmdir(tmpDir.absolutePath());
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -549,9 +559,12 @@ void EspinaModel::serializeRelations(std::ostream& stream, RelationshipGraph::Pr
 }
 
 //------------------------------------------------------------------------
-bool EspinaModel::loadSerialization(istream& stream, RelationshipGraph::PrintFormat format)
+bool EspinaModel::loadSerialization(istream& stream,
+                                    QDir tmpDir,
+                                    RelationshipGraph::PrintFormat format)
 {
   QSharedPointer<RelationshipGraph> input(new RelationshipGraph());
+  m_tmpDirs << tmpDir;
 
   input->read(stream);
 //   qDebug() << "Check";
@@ -623,6 +636,7 @@ bool EspinaModel::loadSerialization(istream& stream, RelationshipGraph::PrintFor
             inputs[link[0]] = filter;
           }
           Filter *filter = m_factory->createFilter(v.name.c_str(), inputs, args);
+          filter->setTmpDir(tmpDir);
           //filter->update();
           addFilter(filter);
           input->setItem(v.vId, filter);

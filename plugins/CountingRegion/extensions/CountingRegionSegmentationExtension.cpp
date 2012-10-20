@@ -107,7 +107,7 @@ ModelItemExtension::ExtId CountingRegionSegmentationExtension::id()
 //------------------------------------------------------------------------
 void CountingRegionSegmentationExtension::initialize(ModelItem::Arguments args)
 {
-  ModelItem::Vector relatedSamples = m_seg->relatedItems(ModelItem::IN, "where");
+  ModelItem::Vector relatedSamples = m_seg->relatedItems(ModelItem::IN, Sample::WHERE);
   Q_ASSERT(relatedSamples.size() == 1);
   Sample *sample = dynamic_cast<Sample *>(relatedSamples[0]);
   ModelItem::Vector relatedChannels = sample->relatedItems(ModelItem::OUT, Channel::STAINLINK);

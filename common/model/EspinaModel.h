@@ -26,6 +26,7 @@
 #define ESPinaModelMODEL_H
 
 #include <QAbstractItemModel>
+#include <QDir>
 
 #include "common/model/RelationshipGraph.h"
 
@@ -139,16 +140,16 @@ public:
   QList<Filter *> filters() const {return m_filters;}
 
   void addRelation(ModelItem *ancestor,
-		   ModelItem *succesor,
-		   QString relation);
+                   ModelItem *succesor,
+                   QString relation);
   void removeRelation(ModelItem *ancestor,
-		      ModelItem *succesor,
-		      QString relation);
+                      ModelItem *succesor,
+                      QString relation);
 
   RelationshipGraph *relationships() {return m_relations;}
 
   void serializeRelations(std::ostream& stream, RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
-  bool loadSerialization (std::istream &stream, RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
+  bool loadSerialization (std::istream &stream, QDir tmpDir, RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
 
 private slots:
   void itemModified(ModelItem *item);
@@ -164,6 +165,7 @@ private:
   QList<Segmentation *> m_segmentations;
   QList<Filter *>       m_filters;
 
+  QList<QDir>           m_tmpDirs;
   RelationshipGraph    *m_relations;
 
   unsigned int          m_lastId;
