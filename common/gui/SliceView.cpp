@@ -358,22 +358,22 @@ void SliceView::updateBorder(vtkPolyData* data,
   switch (m_plane)
   {
     case AXIAL:
-      corners->SetPoint(0, left,  upper, 0); //UL
-      corners->SetPoint(1, right, upper, 0); //UR
-      corners->SetPoint(2, right, lower, 0); //LR
-      corners->SetPoint(3, left,  lower, 0); //LL
+      corners->SetPoint(0, left,  upper, -0.1); //UL
+      corners->SetPoint(1, right, upper, -0.1); //UR
+      corners->SetPoint(2, right, lower, -0.1); //LR
+      corners->SetPoint(3, left,  lower, -0.1); //LL
       break;
     case SAGITTAL:
-      corners->SetPoint(0, 0, upper,  left); //UL
-      corners->SetPoint(1, 0, lower,  left); //UR
-      corners->SetPoint(2, 0, lower, right); //LR
-      corners->SetPoint(3, 0, upper, right); //LL
+      corners->SetPoint(0, 0.1, upper,  left); //UL
+      corners->SetPoint(1, 0.1, lower,  left); //UR
+      corners->SetPoint(2, 0.1, lower, right); //LR
+      corners->SetPoint(3, 0.1, upper, right); //LL
       break;
     case CORONAL:
-      corners->SetPoint(0, left,  0, upper); //UL
-      corners->SetPoint(1, right, 0, upper); //UR
-      corners->SetPoint(2, right, 0, lower); //LR
-      corners->SetPoint(3, left,  0, lower); //LL
+      corners->SetPoint(0, left,  0.1, upper); //UL
+      corners->SetPoint(1, right, 0.1, upper); //UR
+      corners->SetPoint(2, right, 0.1, lower); //LR
+      corners->SetPoint(3, left,  0.1, lower); //LL
       break;
     default:
       Q_ASSERT(false);
