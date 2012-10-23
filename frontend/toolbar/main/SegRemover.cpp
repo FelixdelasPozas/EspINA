@@ -58,19 +58,19 @@ bool SegRemover::filterEvent(QEvent* e, EspinaRenderView* view)
 }
 
 //----------------------------------------------------------------------------
-void SegRemover::setEnabled(bool enable)
+void SegRemover::setInUse(bool enable)
 {
   if (!enable)
     emit removalAborted();
 }
 
 //----------------------------------------------------------------------------
-void SegRemover::setInteraction(bool enable)
+void SegRemover::setEnabled(bool enable)
 {
 }
 
 //----------------------------------------------------------------------------
-bool SegRemover::interactive() const
+bool SegRemover::enabled() const
 {
 
 }

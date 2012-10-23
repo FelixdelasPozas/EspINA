@@ -337,6 +337,12 @@ vtkRenderWindow* VolumeView::renderWindow()
   return m_view->GetRenderWindow();
 }
 
+//-----------------------------------------------------------------------------
+vtkRenderer* VolumeView::mainRenderer()
+{
+  return m_renderer;
+}
+
 
 //-----------------------------------------------------------------------------
 void VolumeView::setupUI()

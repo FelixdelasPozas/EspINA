@@ -879,17 +879,26 @@ void SliceView::removeWidget(EspinaWidget *eWidget)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::addPreview(vtkProp* preview)
+void SliceView::addPreview(vtkProp3D *preview)
 {
   m_renderer->AddActor(preview);
+  m_state->updateActor(preview);
   //m_thumbnail->AddActor(actor);
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::removePreview(vtkProp* preview)
+void SliceView::removePreview(vtkProp3D *preview)
 {
   m_renderer->RemoveActor(preview);
   //m_thumbnail->RemoveActor(actor);
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::previewBounds(Nm bounds[6])
+{
+  memcpy(bounds, m_sceneBounds, 6*sizeof(Nm));
+  bounds[2*m_plane]   = slicingPosition();
+  bounds[2*m_plane+1] = slicingPosition();
 }
 
 //-----------------------------------------------------------------------------
@@ -926,6 +935,13 @@ vtkRenderWindow *SliceView::renderWindow()
 {
   return m_renderWindow;
 }
+
+//-----------------------------------------------------------------------------
+vtkRenderer* SliceView::mainRenderer()
+{
+  return m_renderer;
+}
+
 
 //-----------------------------------------------------------------------------
 void SliceView::sliceViewCenterChanged(Nm x, Nm y, Nm z)
@@ -1156,8 +1172,10 @@ QList<Segmentation *> SliceView::pickSegmentations(double vx,
       Q_ASSERT(pickedSeg);
       Q_ASSERT(pickedSeg->itkVolume());
 
-      QVector3D pixel = worldRegion(selectedRegion, pickedSeg).first();
-      EspinaVolume::IndexType pickedPixel = pickedSeg->index(pixel.x(), pixel.y(), pixel.z());
+      //TODO 2012-10-23 Check all the region, not just the first point!
+      double pixel[3];
+      worldRegion(selectedRegion, pickedSeg)->GetPoint(0, pixel);
+      EspinaVolume::IndexType pickedPixel = pickedSeg->index(pixel[0], pixel[1], pixel[2]);
       if (!pickedSeg->itkVolume()->GetLargestPossibleRegion().IsInside(pickedPixel) ||
         (pickedSeg->itkVolume()->GetPixel(pickedPixel) == 0))
         continue;
@@ -1417,7 +1435,7 @@ IPicker::WorldRegion SliceView::worldRegion(const IPicker::DisplayRegion& region
   //Use Render Window Interactor's Picker to find the world coordinates
   //of the stack
   //vtkSMRenderViewProxy* renModule = view->GetRenderWindow()->GetInteractor()->GetRenderView();
-  IPicker::WorldRegion wRegion;
+  IPicker::WorldRegion wRegion = IPicker::WorldRegion::New();
   vtkPicker *picker;
 
   if (ModelItem::CHANNEL == item->type())
@@ -1429,7 +1447,7 @@ IPicker::WorldRegion SliceView::worldRegion(const IPicker::DisplayRegion& region
   {
     double pickPos[3];  //World coordinates
     if (pick(picker, point.x(), point.y(), pickPos))
-      wRegion << QVector3D(pickPos[0], pickPos[1], pickPos[2]);
+      wRegion->InsertNextPoint(pickPos);
   }
 
   return wRegion;

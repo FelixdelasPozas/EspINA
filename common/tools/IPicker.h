@@ -27,6 +27,9 @@
 #include <QSet>
 #include <QVector3D>
 
+#include <vtkSmartPointer.h>
+#include <vtkPoints.h>
+
 class PickableItem;
 class EspinaRenderView;
 
@@ -45,13 +48,13 @@ public:
   static  const Tag CHANNEL;
   static  const Tag SEGMENTATION;
 
-  typedef QSet<Tag>              PickableItems;
-  typedef QPolygonF               DisplayRegion;
-  typedef QList<DisplayRegion>    DisplayRegionList;
-  typedef QList<QVector3D>        WorldRegion;
+  typedef QSet<Tag>                  PickableItems;
+  typedef QPolygonF                  DisplayRegion;
+  typedef QList<DisplayRegion>       DisplayRegionList;
+  typedef vtkSmartPointer<vtkPoints> WorldRegion;
   typedef QPair<WorldRegion,
-                PickableItem *> PickedItem;
-  typedef QList<PickedItem>       PickList;
+                PickableItem *>      PickedItem;
+  typedef QList<PickedItem>          PickList;
 
 public:
   explicit IPicker()
@@ -60,14 +63,10 @@ public:
   {}
   virtual ~IPicker(){};
 
-  //TODO: 2012-10-17 Hacer abstracto
-  virtual bool filterEvent(QEvent *e, EspinaRenderView *view=NULL);
+  virtual bool filterEvent(QEvent *e, EspinaRenderView *view=NULL) = 0;
 
   virtual QCursor cursor() const {return m_cursor;}
   virtual void setCursor(QCursor cursor);
-
-  void setSelection(PickList msel);
-  virtual void abortPick();
 
   /// The types of products which are requested for selection
   void setPickable(const Tag type, bool pick=true);

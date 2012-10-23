@@ -22,6 +22,9 @@
 
 #include "common/EspinaTypes.h"
 
+/// Volume's voxel's index at given spatial position
+EspinaVolume::IndexType VolumeIndex(Nm x, Nm y, Nm z, EspinaVolume *volume);
+
 /// Get the vtk-equivalent extent defining volume
 void VolumeExtent(EspinaVolume *volume, int extent[6]);
 /// Get the vtk-equivalent bounds defining volume

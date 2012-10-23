@@ -23,23 +23,34 @@
 #include "common/gui/EspinaRenderView.h"
 #include "common/gui/ViewManager.h"
 #include "common/model/Taxonomy.h"
-#include <model/Channel.h>
-#include "common/tools/IPicker.h"
+#include "common/model/Channel.h"
+#include "common/tools/BrushPicker.h"
+
 #include <vtkRenderWindow.h>
 
 #include <QDebug>
+#include <QUndoStack>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPixmap>
 
 //-----------------------------------------------------------------------------
-Brush::Brush(ViewManager *vm)
-: m_viewManager(vm)
+Brush::Brush(EspinaModel* model,
+             QUndoStack* undoStack,
+             ViewManager* viewManager)
+: m_model(model)
+, m_undoStack(undoStack)
+, m_viewManager(viewManager)
 , m_mode(CREATE)
 , m_erasing(false)
-, m_tracking(false)
-, m_radius(20)
+, m_brush(new BrushPicker())
+, m_currentSource(NULL)
+, m_currentSeg(NULL)
 {
+  connect(m_brush, SIGNAL(stroke(PickableItem *,IPicker::WorldRegion, Nm, PlaneType)),
+          this,  SLOT(drawStroke(PickableItem *,IPicker::WorldRegion, Nm, PlaneType)));
+  connect(m_brush, SIGNAL(stroke(PickableItem*,double,double,double,Nm,PlaneType)),
+          this,  SLOT(drawStrokeStep(PickableItem*,double,double,double,Nm,PlaneType)));
 }
 
 //-----------------------------------------------------------------------------
@@ -50,7 +61,7 @@ Brush::~Brush()
 //-----------------------------------------------------------------------------
 QCursor Brush::cursor() const
 {
-  return m_cursor;
+  return m_brush->cursor();
 }
 
 //-----------------------------------------------------------------------------
@@ -70,8 +81,11 @@ bool Brush::filterEvent(QEvent* e, EspinaRenderView* view)
         m_erasing = false;
     }
     if (!m_erasing)
-      buildCursor();
-  } else
+    {
+      m_brush->setBorderColor(QColor(Qt::green));
+      m_brush->setPreviewVisibility(true);
+    }
+  } else if (m_currentSource)
   {
     if (QEvent::KeyPress == e->type())
     {
@@ -85,170 +99,75 @@ bool Brush::filterEvent(QEvent* e, EspinaRenderView* view)
         m_erasing = true;
     }
     if (m_erasing)
-      buildCursor();
-  }
-
-  if (!m_tracking && QEvent::MouseButtonPress == e->type())
-  {
-    QMouseEvent *me = static_cast<QMouseEvent*>(e);
-    if (me->button() == Qt::LeftButton)
     {
-      m_tracking = true;
-      m_dots << me->pos();
+      m_brush->setBorderColor(QColor(Qt::red));
+      m_brush->setPreviewVisibility(false);
+    }
+  }
+  if (e->type() == QEvent::Wheel)
+  {
+    QWheelEvent* we = dynamic_cast<QWheelEvent*>(e);
+    if (we->modifiers() == Qt::CTRL)
+    {
+      int numSteps = we->delta() / 8 / 15; //Refer to QWheelEvent doc.
+      m_brush->setRadius(m_brush->radius() + numSteps);
+      view->setCursor(cursor());
       return true;
     }
-  } else if (m_tracking && QEvent::MouseMove == e->type())
-  {
-    QMouseEvent *me = static_cast<QMouseEvent*>(e);
-    m_dots << me->pos();
-    return true;
-  }else if (m_tracking && QEvent::MouseButtonRelease == e->type())
-  {
-    processTrack(m_dots, view);
-
-    m_tracking = false;
-    m_dots.clear();
-    return true;
   }
-  return false;
+
+  return m_brush->filterEvent(e, view);
 }
 
 //-----------------------------------------------------------------------------
-void Brush::setEnabled(bool enable)
+void Brush::setInUse(bool enable)
 {
-  if (enable)
-    buildCursor();
+  if (enable && m_viewManager->activeTaxonomy() && m_viewManager->activeChannel())
+  {
+    m_brush->setBrushColor(m_viewManager->activeTaxonomy()->color());
+    SegmentationList segs = selectedSegmentations();
+    if (segs.size() == 1)
+    {
+      m_currentSeg = segs.first();
+      m_currentSource = m_currentSeg->filter();
+
+      m_brush->setBorderColor(QColor(Qt::green));
+      m_brush->setReferenceItem(m_currentSeg);
+    }
+    else
+    {
+      m_currentSeg = NULL;
+      m_currentSource = NULL;
+
+      m_brush->setBorderColor(QColor(Qt::blue));
+      m_brush->setReferenceItem(m_viewManager->activeChannel());
+    }
+  }
   else
     emit stopDrawing();
 }
 
 //-----------------------------------------------------------------------------
-void Brush::setInteraction(bool enable)
+void Brush::setEnabled(bool enable)
 {
 }
 
 //-----------------------------------------------------------------------------
-bool Brush::interactive() const
+bool Brush::enabled() const
 {
   return true;
 }
 
 //-----------------------------------------------------------------------------
-void Brush::buildCursor()
+SegmentationList Brush::selectedSegmentations() const
 {
-  int width = 2*m_radius;
+  SegmentationList selection;
 
-  QColor color(Qt::blue);
-
-  if (m_viewManager->activeTaxonomy())
-    color = m_viewManager->activeTaxonomy()->color();
-
-  QPixmap pix(width, width);
-  pix.fill(Qt::transparent);
-  QPainter p(&pix);
-  p.setBrush(QBrush(color));
-
-  if (m_erasing)
-    p.setPen(Qt::red);
-  else if (CREATE == m_mode)
-      p.setPen(QPen(Qt::blue));
-  else
-      p.setPen(QPen(Qt::green));
-
-  p.drawEllipse(0, 0, width-1, width-1);
-  Q_ASSERT(pix.hasAlpha());
-
-  m_cursor = QCursor(pix);
-}
-
-//-----------------------------------------------------------------------------
-void Brush::processTrack(QList<QPoint> dots, EspinaRenderView *view)
-{
-  IPicker::DisplayRegionList displayBrushes;
-
-  int *winSize = view->renderWindow()->GetSize();
-
-  foreach(QPoint c, dots)
+  foreach(PickableItem *item, m_viewManager->selection())
   {
-    int xPos, yPos;
-    xPos = c.x();
-    yPos = winSize[1] - c.y();
-
-    IPicker::DisplayRegion brushPolygon;
-        brushPolygon << QPoint(xPos,yPos)
-                     << QPoint(xPos+m_radius, yPos)
-                     << QPoint(xPos, yPos+m_radius)
-                     << QPoint(xPos-m_radius, yPos)
-                     << QPoint(xPos, yPos-m_radius);
-        displayBrushes << brushPolygon;
+    if (ModelItem::SEGMENTATION == item->type())
+      selection << dynamic_cast<Segmentation *>(item);
   }
 
-  IPicker::PickableItems filter;
-  filter << IPicker::CHANNEL;
-
-  IPicker::PickList brushList = view->pick(filter, displayBrushes);
-
-  Channel *channel = NULL;
-  double spacing[3];
-  PlaneType selectedPlane;
-  Nm radius = -1;
-
-  IPicker::WorldRegion trace;
-
-  foreach(IPicker::PickedItem brush, brushList)
-  {
-    PickableItem *pickedItem = brush.second;
-    Q_ASSERT(ModelItem::CHANNEL == pickedItem->type());
-    if (!channel)
-    {
-      channel = dynamic_cast<Channel *>(pickedItem);
-      channel->spacing(spacing);
-    }
-
-    IPicker::WorldRegion brushRegion = brush.first;
-    if (brushRegion.size() != 5)
-      continue;
-
-    double points[5][3];
-    double *center = points[0];
-    double *right  = points[1];
-    double *top    = points[2];
-    //   double *left   = points[3];
-    //   double *bottom = points[4];
-
-    for (int i=0; i<5; i++)
-    {
-      points[i][0] = int(brushRegion[i].x()/spacing[0]+0.5)*spacing[0];
-      points[i][1] = int(brushRegion[i].y()/spacing[1]+0.5)*spacing[1];
-      points[i][2] = int(brushRegion[i].z()/spacing[2]+0.5)*spacing[2];
-    }
-
-    trace << brushRegion[0];
-
-    if (radius <= 0)
-    {
-      if (center[0] == right[0] && right[0] == top[0])
-        selectedPlane = SAGITTAL;
-      else if (right[1] == center[1] && right[1] == top[1])
-        selectedPlane = CORONAL;
-      else if (center[2] == right[2] && right[2] == top[2])
-        selectedPlane = AXIAL;
-
-      double baseCenter[3], topCenter[3];
-      for (int i=0; i<3; i++)
-        baseCenter[i] = topCenter[i] = center[i];
-
-      topCenter[selectedPlane] += 0.5*spacing[selectedPlane];
-
-      if (selectedPlane != SAGITTAL)
-        radius = fabs(brushRegion[0].x() - brushRegion[1].x());
-      else
-        radius = fabs(brushRegion[0].y() - brushRegion[2].y());
-    }
-  }
-
-  if (m_erasing)
-    emit eraserCenters(channel, trace, radius, selectedPlane);
-  else
-    emit brushCenters(channel, trace, radius, selectedPlane);
+  return selection;
 }

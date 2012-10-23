@@ -51,6 +51,7 @@ qt4_wrap_cpp(CORE_MOC
   model/proxies/SampleProxy.h
   model/proxies/TaxonomyProxy.h
   tools/IPicker.h
+  tools/BrushPicker.h
   gui/ViewManager.h
   editor/ContourWidget.h
   widgets/RectangularRegion.h
@@ -65,6 +66,7 @@ qt4_wrap_ui (CORE_UI
 set (CORE_SOURCES
   ${CORE_MOC}
   ${CORE_UI}
+  BoundingBox.cpp
   EspinaRegions.cpp
   colorEngines/MultiColorEngine.cpp
   colorEngines/NumberColorEngine.cpp
@@ -120,6 +122,7 @@ set (CORE_SOURCES
   renderers/VolumetricRenderer.cpp
   renderers/MeshRenderer.cpp
   tools/PixelSelector.cpp
+  tools/BrushPicker.cpp
   tools/IPicker.cpp
   settings/GeneralSettings.cpp
   undo/AddChannel.cpp

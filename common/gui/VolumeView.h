@@ -99,14 +99,15 @@ public:
   virtual void addWidget(EspinaWidget *widget);
   virtual void removeWidget(EspinaWidget *widget);
 
-  virtual void addPreview(vtkProp* preview){}
-  virtual void removePreview(vtkProp* preview){}
+  virtual void addPreview(vtkProp3D *preview){}
+  virtual void removePreview(vtkProp3D *preview){}
 
   virtual void setCursor(const QCursor& cursor);
   virtual void eventPosition(int& x, int& y);
   virtual IPicker::PickList pick(IPicker::PickableItems filter,
                                  IPicker::DisplayRegionList regions);
   virtual vtkRenderWindow* renderWindow();
+  virtual vtkRenderer* mainRenderer();
 
   SettingsPtr settings() {return m_settings;}
 

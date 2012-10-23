@@ -87,18 +87,18 @@ void ViewManager::setSelection(ViewManager::Selection selection)
 void ViewManager::setVOI(IVOI *voi)
 {
   if (m_voi && m_voi != voi)
-    m_voi->setEnabled(false);
+    m_voi->setInUse(false);
 
   m_voi = voi;
 
   if (m_tool && m_voi)
   {
-    m_tool->setEnabled(false);
+    m_tool->setInUse(false);
     m_tool = NULL;
   }
 
   if (m_voi)
-    m_voi->setEnabled(true);
+    m_voi->setInUse(true);
 }
 
 //----------------------------------------------------------------------------
@@ -107,22 +107,22 @@ void ViewManager::setActiveTool(ITool* tool)
   Q_ASSERT(tool); //NOTE Change all setActiveTool(NULL) to unsetActiveTool(tool)
 
   if (m_tool && m_tool != tool)
-    m_tool->setEnabled(false);
+    m_tool->setInUse(false);
 
   m_tool = tool;
 
   if (m_voi)
-    m_voi->setInteraction(m_tool?false:true);
+    m_voi->setEnabled(m_tool?false:true);
 
   if (m_tool)
-    m_tool->setEnabled(true);
+    m_tool->setInUse(true);
 }
 
 //----------------------------------------------------------------------------
 void ViewManager::unsetActiveTool()
 {
   if (m_tool)
-    m_tool->setEnabled(false);
+    m_tool->setInUse(false);
 }
 
 //----------------------------------------------------------------------------
@@ -151,7 +151,7 @@ QCursor ViewManager::cursor() const
 {
   QCursor activeCursor(Qt::ArrowCursor);
 
-  if (m_voi && m_voi->interactive())
+  if (m_voi && m_voi->enabled())
     activeCursor = m_voi->cursor();
   else if (m_tool)
     activeCursor = m_tool->cursor();

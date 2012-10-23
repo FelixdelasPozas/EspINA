@@ -17,38 +17,31 @@
 */
 
 
-#ifndef SEGREMOVER_H
-#define SEGREMOVER_H
+#ifndef BRUSHUNDOCOMMAND_H
+#define BRUSHUNDOCOMMAND_H
 
-#include <tools/ITool.h>
-#include <tools/IPicker.h>
+#include "Brush.h"
+#include <QUndoCommand>
 
-class PixelSelector;
-class Segmentation;
+class Filter;
+class vtkImplicitFunction;
 
-class SegRemover
-: public ITool
+class Brush::DrawCommand
+: public QUndoCommand
 {
-  Q_OBJECT
 public:
-  explicit SegRemover();
-  virtual ~SegRemover();
-
-  virtual QCursor cursor() const;
-  virtual bool filterEvent(QEvent* e, EspinaRenderView* view = 0);
-  virtual void setInUse(bool enable);
-  virtual void setEnabled(bool enable);
-  virtual bool enabled() const;
-
-private slots:
-  void removeSegmentation(IPicker::PickList pickedSeg);
-
-signals:
-  void removeSegmentation(Segmentation *);
-  void removalAborted();
+  explicit DrawCommand(Filter *source,
+                       QList<vtkImplicitFunction *> brushes,
+                       double bounds[6],
+                       EspinaVolume::PixelType value);
+  virtual void redo();
+  virtual void undo();
 
 private:
-  PixelSelector *m_picker;
+  Filter *m_source;
+  QList<vtkImplicitFunction *> m_brushes;
+  double m_bounds[6];
+  EspinaVolume::PixelType m_value;
 };
 
-#endif // SEGREMOVER_H
+#endif // BRUSHUNDOCOMMAND_H

@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2012  <copyright holder> <email>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,29 +17,31 @@
 */
 
 
-#include "IPicker.h"
+#include "BrushUndoCommand.h"
 
-const IPicker::Tag IPicker::SAMPLE = "EspINA_Sample";
-const IPicker::Tag IPicker::CHANNEL = "EspINA_Channel";
-const IPicker::Tag IPicker::SEGMENTATION = "EspINA_Segmentation";
+#include "common/model/Filter.h"
 
 //-----------------------------------------------------------------------------
-bool IPicker::filterEvent(QEvent* e, EspinaRenderView* view)
+Brush::DrawCommand::DrawCommand(Filter* source,
+                                QList<vtkImplicitFunction *> brushes,
+                                double bounds[6],
+                                EspinaVolume::PixelType value)
+: m_source(source)
+, m_brushes(brushes)
+, m_value(value)
 {
-  return false;
+  memcpy(m_bounds, bounds, 6*sizeof(double));
 }
 
 //-----------------------------------------------------------------------------
-void IPicker::setCursor(QCursor cursor)
+void Brush::DrawCommand::redo()
 {
-  m_cursor = cursor;
+  m_source->draw(0, m_brushes, m_bounds, m_value);
 }
 
+
 //-----------------------------------------------------------------------------
-void IPicker::setPickable(QString type, bool pick)
+void Brush::DrawCommand::undo()
 {
-  if (pick)
-    m_filters.insert(type);
-  else
-    m_filters.remove(type);
+//     m_source->draw(0, m_brushPointers, m_bounds, SEG_VOXEL_VALUE);
 }

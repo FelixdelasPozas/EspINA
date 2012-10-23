@@ -23,10 +23,15 @@
 #include "common/tools/ITool.h"
 #include <tools/IPicker.h>
 #include <EspinaTypes.h>
+#include "common/model/Segmentation.h"
 
-class Channel;
+class EspinaModel;
+class QUndoStack;
 class ViewManager;
-class BrushSelector;
+class BrushPicker;
+class Channel;
+class Filter;
+class Segmentation;
 
 class Brush
 : public ITool
@@ -34,37 +39,46 @@ class Brush
   Q_OBJECT
 public:
   enum Mode {CREATE, MODIFY};
+  class DrawCommand;
 
 public:
-  explicit Brush(ViewManager *vm);
+  explicit Brush(EspinaModel *model,
+                 QUndoStack  *undoStack,
+                 ViewManager *viewManager);
   virtual ~Brush();
 
   virtual QCursor cursor() const;
   virtual bool filterEvent(QEvent* e, EspinaRenderView* view = 0);
+  virtual bool enabled() const;
   virtual void setEnabled(bool enable);
-  virtual void setInteraction(bool enable);
-  virtual bool interactive() const;
+  virtual void setInUse(bool enable);
 
-private:
-  void buildCursor();
-  void processTrack(QList<QPoint> dots, EspinaRenderView *view);
+protected:
+  virtual SegmentationList selectedSegmentations() const;
 
+protected slots:
+  virtual void drawStroke(PickableItem *item,
+                          IPicker::WorldRegion centers,
+                          Nm radius,
+                          PlaneType plane) = 0;
+virtual void drawStrokeStep(PickableItem *item,
+                            double x, double y, double z,
+                            Nm radius,
+                            PlaneType plane) = 0;
 signals:
-  void brushCenters(Channel *channel, IPicker::WorldRegion centers, Nm radius, PlaneType plane);
-  void eraserCenters(Channel *channel, IPicker::WorldRegion centers, Nm radius, PlaneType plane);
   void stopDrawing();
 
-private:
+protected:
+  EspinaModel *m_model;
+  QUndoStack  *m_undoStack;
   ViewManager *m_viewManager;
 
-  Mode    m_mode;
-  bool    m_erasing;
-  bool    m_tracking;
-  Nm      m_radius;
-  QCursor m_cursor;
-  QList<QPoint> m_dots;
+  Mode         m_mode;
+  bool         m_erasing;
+  BrushPicker *m_brush;
 
-  static const int MAX_RADIUS = 32;
+  Filter       *m_currentSource;
+  Segmentation *m_currentSeg;
 };
 
 #endif // BRUSH_H

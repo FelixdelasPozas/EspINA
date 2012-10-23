@@ -105,8 +105,9 @@ public:
   virtual void addWidget(EspinaWidget* widget);
   virtual void removeWidget(EspinaWidget* eWidget);
 
-  virtual void addPreview(vtkProp *preview);
-  virtual void removePreview(vtkProp *preview);
+  virtual void addPreview(vtkProp3D *preview);
+  virtual void removePreview(vtkProp3D *preview);
+  virtual void previewBounds(Nm bounds[6]);
 
   virtual void setCursor(const QCursor& cursor);
 
@@ -114,6 +115,7 @@ public:
   virtual IPicker::PickList pick(IPicker::PickableItems filter,
                                  IPicker::DisplayRegionList regions);
   virtual vtkRenderWindow *renderWindow();
+  virtual vtkRenderer* mainRenderer();
 
   virtual void updateView();
   virtual void resetCamera();

@@ -17,49 +17,49 @@
 */
 
 
-#include "FilledContour.h"
+#include "BoundingBox.h"
 
-#include "common/editor/ContourSelector.h"
+#include "EspinaRegions.h"
 
 //-----------------------------------------------------------------------------
-FilledContour::FilledContour()
-: m_picker(new ContourSelector())
+BoundingBox::BoundingBox()
 {
-  m_picker->setPickable(IPicker::CHANNEL);
+  m_bounds[0] = m_bounds[2] = m_bounds[4] = 0;
+  m_bounds[1] = m_bounds[3] = m_bounds[5] = -1;
 }
 
 //-----------------------------------------------------------------------------
-FilledContour::~FilledContour()
+BoundingBox::BoundingBox(Nm bounds[6])
 {
-
+  memcpy(m_bounds, bounds, 6*sizeof(Nm));
 }
 
 //-----------------------------------------------------------------------------
-QCursor FilledContour::cursor() const
+BoundingBox::BoundingBox(EspinaVolume* image)
 {
+  VolumeBounds(image, m_bounds);
+}
 
+
+//-----------------------------------------------------------------------------
+bool BoundingBox::intersect(BoundingBox& bb)
+{
+  bool xOverlap = xMin() <= bb.xMax() && xMax() >= bb.xMin();
+  bool yOverlap = yMin() <= bb.yMax() && yMax() >= bb.yMin();
+  bool zOverlap = zMin() <= bb.zMax() && zMax() >= bb.zMin();
+
+  return xOverlap && yOverlap && zOverlap;
 }
 
 //-----------------------------------------------------------------------------
-bool FilledContour::filterEvent(QEvent* e, EspinaRenderView* view)
+BoundingBox BoundingBox::intersection(BoundingBox& bb)
 {
-
-}
-
-//-----------------------------------------------------------------------------
-void FilledContour::setInUse(bool enable)
-{
-
-}
-
-//-----------------------------------------------------------------------------
-void FilledContour::setEnabled(bool enable)
-{
-
-}
-
-//-----------------------------------------------------------------------------
-bool FilledContour::enabled() const
-{
-
+  BoundingBox res;
+  res.m_bounds[0] = std::max(xMin(), bb.xMin());
+  res.m_bounds[1] = std::min(xMax(), bb.xMax());
+  res.m_bounds[2] = std::max(yMin(), bb.yMin());
+  res.m_bounds[3] = std::min(yMax(), bb.yMax());
+  res.m_bounds[4] = std::max(zMin(), bb.zMin());
+  res.m_bounds[5] = std::min(zMax(), bb.zMax());
+  return res;
 }

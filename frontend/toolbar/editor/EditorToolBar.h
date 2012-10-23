@@ -49,8 +49,6 @@ class EditorToolBar
   Q_OBJECT
   Q_INTERFACES(IFactoryExtension IFilterCreator)
   class FreeFormCommand;
-  class DrawCommand;
-  class EraseCommand;
   class CODECommand;//CloseOpenDilateErode Command
 
 public:
@@ -70,12 +68,6 @@ public:
                                const ModelItem::Arguments args);
 protected slots:
   void changeDrawTool(QAction *);
-  void drawDiscs(Channel *channel, IPicker::WorldRegion centers, Nm radius, PlaneType plane);
-  void eraseDiscs(Channel *channel, IPicker::WorldRegion centers, Nm radius, PlaneType plane);
-  void drawSpheres(Channel *channel, IPicker::WorldRegion centers, Nm radius, PlaneType plane);
-  void eraseSpheres(Channel *channel, IPicker::WorldRegion centers, Nm radius, PlaneType plane);
-  void stopDrawing();
-  void stateChanged(BrushSelector::State state);
   void combineSegmentations();
   void substractSegmentations();
   void erodeSegmentations();

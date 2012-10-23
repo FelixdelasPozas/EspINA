@@ -40,6 +40,14 @@ EspinaRenderView::~EspinaRenderView()
 }
 
 //-----------------------------------------------------------------------------
+void EspinaRenderView::previewBounds(Nm bounds[6])
+{
+  bounds[0] = bounds[2] = bounds[4] =  0;
+  bounds[1] = bounds[3] = bounds[5] = -1;
+}
+
+
+//-----------------------------------------------------------------------------
 void EspinaRenderView::addChannelBounds(Channel* channel)
 {
   Q_ASSERT(!m_channels.contains(channel));

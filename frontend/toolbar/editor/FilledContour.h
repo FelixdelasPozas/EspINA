@@ -33,9 +33,9 @@ public:
 
   virtual QCursor cursor() const;
   virtual bool filterEvent(QEvent* e, EspinaRenderView* view = 0);
+  virtual void setInUse(bool enable);
   virtual void setEnabled(bool enable);
-  virtual void setInteraction(bool enable);
-  virtual bool interactive() const;
+  virtual bool enabled() const;
 
 private:
   ContourSelector *m_picker;

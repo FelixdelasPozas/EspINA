@@ -139,7 +139,7 @@ bool SeedGrowSelector::filterEvent(QEvent* e, EspinaRenderView *view)
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSelector::setEnabled(bool enable)
+void SeedGrowSelector::setInUse(bool enable)
 {
   if (m_enabled != enable)
   {
@@ -150,7 +150,7 @@ void SeedGrowSelector::setEnabled(bool enable)
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSelector::setInteraction(bool enable)
+void SeedGrowSelector::setEnabled(bool enable)
 {
   if (m_interactive != enable)
   {
@@ -200,8 +200,9 @@ void SeedGrowSelector::extractSeed(IPicker::PickList pickedItems)
   IPicker::PickedItem element = pickedItems.first();
   PickableItem *input = element.second;
 
-  Q_ASSERT(element.first.size() == 1); // with one pixel
-  QVector3D seedPoint = element.first.first();//Nm
+  Q_ASSERT(element.first->GetNumberOfPoints() == 1); // with one pixel
+  Nm seedPoint[3];
+  element.first->GetPoint(0, seedPoint);
   //     qDebug() << "Channel:" << input->volume().id();
   //     qDebug() << "Threshold:" << m_threshold->threshold();
   //     qDebug() << "Seed:" << seed;
@@ -212,7 +213,7 @@ void SeedGrowSelector::extractSeed(IPicker::PickList pickedItems)
 
   if (channel)
   {
-    EspinaVolume::IndexType seed = channel->index(seedPoint.x(), seedPoint.y(), seedPoint.z());
+    EspinaVolume::IndexType seed = channel->index(seedPoint[0], seedPoint[1], seedPoint[2]);
     if (seed[0] >= 0 && seed[1] >= 0 && seed[2] >= 0)
       emit seedSelected(channel, seed);
   }

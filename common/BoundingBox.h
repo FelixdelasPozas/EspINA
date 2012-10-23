@@ -17,5 +17,31 @@
 */
 
 
-#include "ITool.h"
+#ifndef BOUNDINGBOX_H
+#define BOUNDINGBOX_H
 
+#include "EspinaTypes.h"
+
+class BoundingBox
+{
+public:
+  explicit BoundingBox(Nm bounds[6]);
+  explicit BoundingBox(EspinaVolume *image);
+
+  Nm xMin() const {return m_bounds[0];}
+  Nm xMax() const {return m_bounds[1];}
+  Nm yMin() const {return m_bounds[2];}
+  Nm yMax() const {return m_bounds[3];}
+  Nm zMin() const {return m_bounds[4];}
+  Nm zMax() const {return m_bounds[5];}
+
+  Nm *bounds(){return m_bounds;}
+
+  bool intersect(BoundingBox &bb);
+  BoundingBox intersection(BoundingBox &bb);
+
+private:
+  explicit BoundingBox();
+  Nm m_bounds[6];
+};
+#endif // BOUNDINGBOX_H

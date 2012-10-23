@@ -36,9 +36,9 @@ public:
 
   virtual QCursor cursor() const;
   virtual bool filterEvent(QEvent* e, EspinaRenderView* view = 0);
+  virtual void setInUse(bool enable);
   virtual void setEnabled(bool enable);
-  virtual void setInteraction(bool enable);
-  virtual bool interactive() const {return m_interactive;}
+  virtual bool enabled() const {return m_interactive;}
 
   virtual IVOI::Region region();
 

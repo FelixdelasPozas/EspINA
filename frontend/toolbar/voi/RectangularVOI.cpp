@@ -74,7 +74,7 @@ bool RectangularVOI::filterEvent(QEvent* e, EspinaRenderView* view)
 }
 
 //-----------------------------------------------------------------------------
-void RectangularVOI::setEnabled(bool enable)
+void RectangularVOI::setInUse(bool enable)
 {
   if (m_enabled == enable)
     return;
@@ -94,7 +94,7 @@ void RectangularVOI::setEnabled(bool enable)
 }
 
 //-----------------------------------------------------------------------------
-void RectangularVOI::setInteraction(bool enable)
+void RectangularVOI::setEnabled(bool enable)
 {
   if (m_interactive == enable)
     return;
@@ -125,8 +125,9 @@ void RectangularVOI::defineVOI(IPicker::PickList channels)
   Q_ASSERT(channels.size() == 1); //Only one element is selected
   IPicker::PickedItem pickedItem = channels.first();
 
-  Q_ASSERT(pickedItem.first.size() == 1); //Only one pixel's selected
-  QVector3D pos = pickedItem.first.first();
+  Q_ASSERT(pickedItem.first->GetNumberOfPoints() == 1); //Only one pixel's selected
+  double pos[3];
+  pickedItem.first->GetPoint(0, pos);
 
   PickableItem *pItem = pickedItem.second;
   if (ModelItem::CHANNEL != pItem->type())
@@ -142,9 +143,9 @@ void RectangularVOI::defineVOI(IPicker::PickList channels)
   const Nm ZHSIZE = (40 + HALF_VOXEL)*spacing[2];
 
   Nm bounds[6] = {
-     pos.x() - XHSIZE, pos.x() + XHSIZE,
-     pos.y() - YHSIZE, pos.y() + YHSIZE,
-     pos.z() - ZHSIZE, pos.z() + ZHSIZE};
+     pos[0] - XHSIZE, pos[0] + XHSIZE,
+     pos[1] - YHSIZE, pos[1] + YHSIZE,
+     pos[2] - ZHSIZE, pos[2] + ZHSIZE};
 
   m_widget = new RectangularRegion(bounds, m_viewManager);
   Q_ASSERT(m_widget);

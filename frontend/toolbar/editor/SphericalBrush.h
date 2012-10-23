@@ -17,38 +17,30 @@
 */
 
 
-#ifndef SEGREMOVER_H
-#define SEGREMOVER_H
+#ifndef SPHERICALBRUSH_H
+#define SPHERICALBRUSH_H
 
-#include <tools/ITool.h>
-#include <tools/IPicker.h>
+#include "frontend/toolbar/editor/Brush.h"
 
-class PixelSelector;
-class Segmentation;
+class vtkImplicitFunction;
 
-class SegRemover
-: public ITool
+class SphericalBrush
+: public Brush
 {
-  Q_OBJECT
 public:
-  explicit SegRemover();
-  virtual ~SegRemover();
+  explicit SphericalBrush(EspinaModel* model,
+                          QUndoStack* undoStack,
+                          ViewManager* viewManager);
 
-  virtual QCursor cursor() const;
-  virtual bool filterEvent(QEvent* e, EspinaRenderView* view = 0);
-  virtual void setInUse(bool enable);
-  virtual void setEnabled(bool enable);
-  virtual bool enabled() const;
-
-private slots:
-  void removeSegmentation(IPicker::PickList pickedSeg);
-
-signals:
-  void removeSegmentation(Segmentation *);
-  void removalAborted();
-
-private:
-  PixelSelector *m_picker;
+protected:
+  virtual void drawStroke(PickableItem *item,
+                          IPicker::WorldRegion centers,
+                          Nm radius,
+                          PlaneType plane);
+  virtual void drawStrokeStep(PickableItem* item,
+                              double x, double y, double z,
+                              Nm radius,
+                              PlaneType plane);
 };
 
-#endif // SEGREMOVER_H
+#endif // SPHERICALBRUSH_H

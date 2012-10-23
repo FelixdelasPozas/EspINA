@@ -26,10 +26,11 @@
 #include "common/EspinaTypes.h"
 #include "common/tools/IPicker.h"
 
+class vtkRenderer;
 class Channel;
 class Segmentation;
 class EspinaWidget;
-class vtkProp;
+class vtkProp3D;
 class vtkRenderWindow;
 
 class EspinaRenderView
@@ -53,8 +54,9 @@ public:
   virtual void addWidget(EspinaWidget *widget) = 0;
   virtual void removeWidget(EspinaWidget *widget) = 0;
 
-  virtual void addPreview(vtkProp *) = 0;
-  virtual void removePreview(vtkProp *) = 0;
+  virtual void addPreview(vtkProp3D *) = 0;
+  virtual void removePreview(vtkProp3D *) = 0;
+  virtual void previewBounds(Nm bounds[6]);
 
   virtual void setCursor(const QCursor& cursor) = 0;
 
@@ -63,6 +65,7 @@ public:
                                  IPicker::DisplayRegionList regions) = 0;
 
   virtual vtkRenderWindow *renderWindow() = 0;
+  virtual vtkRenderer *mainRenderer() = 0;
 
   virtual void updateView() = 0;
   virtual void resetCamera() = 0;

@@ -98,6 +98,9 @@ set (TOOLBAR_SOURCES
   toolbar/main/MainToolBar.cpp
   toolbar/main/SegRemover.cpp
   toolbar/editor/Brush.cpp
+  toolbar/editor/BrushUndoCommand.cpp
+  toolbar/editor/CircularBrush.cpp
+  toolbar/editor/SphericalBrush.cpp
   toolbar/editor/EditorToolBar.cpp
   toolbar/editor/Settings.cpp
   toolbar/editor/SettingsPanel.cpp
