@@ -32,6 +32,7 @@
 #include <vtkImageData.h>
 
 const QString SeedGrowSegmentationFilter::TYPE = "SeedGrowSegmentation::SeedGrowSegmentationFilter";
+const QString SeedGrowSegmentationFilter::INPUTLINK = "Input";
 
 typedef ModelItem::ArgumentId ArgumentId;
 const ArgumentId SeedGrowSegmentationFilter::SEED       = "Seed";
@@ -70,7 +71,7 @@ void SeedGrowSegmentationFilter::markAsModified()
 {
   if (m_outputs.contains(0))
     m_outputs[0]->Modified();
-  
+
 //   if (bmcif.IsNull())
 //     extractFilter->Modified();
 //   else

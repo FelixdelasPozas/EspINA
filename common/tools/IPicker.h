@@ -76,7 +76,6 @@ public:
 
 signals:
   void itemsPicked(IPicker::PickList);
-  void selectionAborted();
 
 protected:
   PickableItems m_filters;

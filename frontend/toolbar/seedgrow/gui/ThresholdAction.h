@@ -38,6 +38,7 @@ public:
   int lowerThreshold() {return m_threshold[0];}
   int upperThreshold() {return m_threshold[m_symmetrical?1:0];}
   void setSymmetricalThreshold(bool symmetrical);
+  bool isSymmetrical() const {return m_symmetrical;}
 
 public slots:
   void setLowerThreshold(int th);

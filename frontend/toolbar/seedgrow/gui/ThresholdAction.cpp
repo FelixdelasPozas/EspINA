@@ -19,14 +19,17 @@
 
 #include "ThresholdAction.h"
 
+#include "common/settings/EspinaSettings.h"
+
+#include <QDebug>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QSpinBox>
-
-#include <QDebug>
 #include <QSettings>
 
-#define DEFAULT_THRESHOLD 30
+const int DEFAULT_THRESHOLD = 30;
+const int MIN_THRESHOLD = 0;
+const int MAX_THRESHOLD = 255;
 
 const QString LTHRESHOLD = "SeedGrowSegmentation::LowerThreshold";
 const QString UTHRESHOLD = "SeedGrowSegmentation::UpperThreshold";
@@ -34,8 +37,9 @@ const QString UTHRESHOLD = "SeedGrowSegmentation::UpperThreshold";
 //------------------------------------------------------------------------
 ThresholdAction::ThresholdAction(QObject* parent)
 : QWidgetAction(parent)
+, m_symmetrical(false)
 {
-  QSettings settings("CeSViMa", "EspINA");
+  QSettings settings(CESVIMA, ESPINA);
   m_threshold[0] = settings.value(LTHRESHOLD, DEFAULT_THRESHOLD).toInt();
   m_threshold[1] = settings.value(UTHRESHOLD, DEFAULT_THRESHOLD).toInt();
 }
@@ -88,15 +92,23 @@ void ThresholdAction::setSymmetricalThreshold(bool symmetrical)
   m_uth->setVisible(!symmetrical);
 
   m_lthLabel->setText(symmetrical?tr("Threshold"):tr("Lower Th."));
+  m_symmetrical = symmetrical;
 }
 
 
 //-----------------------------------------------------------------------------
 void ThresholdAction::setLowerThreshold(int th)
 {
-  m_threshold[0] = th>0?th:0;
-  QSettings settings("CeSViMa", "EspINA");
+  if (th < MIN_THRESHOLD)
+    m_threshold[0] = MIN_THRESHOLD;
+  else if (th > MAX_THRESHOLD)
+    m_threshold[0] = MAX_THRESHOLD;
+  else
+    m_threshold[0] = th;
+
+  QSettings settings(CESVIMA, ESPINA);
   settings.setValue(LTHRESHOLD, m_threshold[0]);
+
   emit lowerThresholdChanged(m_threshold[0]);
 
   if (m_symmetrical)
@@ -106,9 +118,15 @@ void ThresholdAction::setLowerThreshold(int th)
 //-----------------------------------------------------------------------------
 void ThresholdAction::setUpperThreshold(int th)
 {
-  m_threshold[1] = th>0?th:0;
-  QSettings settings("CeSViMa", "EspINA");
+  if (th < MIN_THRESHOLD)
+    m_threshold[1] = MIN_THRESHOLD;
+  else if (th > MAX_THRESHOLD)
+    m_threshold[1] = MAX_THRESHOLD;
+  else
+    m_threshold[1] = th;
+
+  QSettings settings(CESVIMA, ESPINA);
   settings.setValue(UTHRESHOLD, m_threshold[1]);
+
   emit upperThresholdChanged(m_threshold[1]);
 }
-

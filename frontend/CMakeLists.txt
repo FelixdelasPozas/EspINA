@@ -47,7 +47,7 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
   toolbar/editor/EditorToolBar.h
   toolbar/seedgrow/SeedGrowSegmentation.h
   toolbar/seedgrow/SeedGrowSegmentationFilter.h
-  toolbar/seedgrow/SeedGrowSelector.h
+  toolbar/seedgrow/SeedGrowSegmentationTool.h
   toolbar/seedgrow/SettingsPanel.h
   toolbar/seedgrow/SetupWidget.h
   toolbar/seedgrow/gui/DefaultVOIAction.h
@@ -107,7 +107,7 @@ set (TOOLBAR_SOURCES
   toolbar/editor/FilledContour.cpp
   toolbar/seedgrow/SeedGrowSegmentation.cpp
   toolbar/seedgrow/SeedGrowSegmentationFilter.cpp
-  toolbar/seedgrow/SeedGrowSelector.cpp
+  toolbar/seedgrow/SeedGrowSegmentationTool.cpp
   toolbar/seedgrow/Settings.cpp
   toolbar/seedgrow/SettingsPanel.cpp
   toolbar/seedgrow/SetupWidget.cpp

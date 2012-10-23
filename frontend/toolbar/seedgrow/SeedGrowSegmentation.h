@@ -19,29 +19,19 @@
 #define SEEDGROWINGSEGMENTATION_H
 
 #include <QToolBar>
+#include <common/pluginInterfaces/IFactoryExtension.h>
+#include <common/pluginInterfaces/IFilterCreator.h>
 
-#include "common/tools/IPicker.h"
-#include <model/Taxonomy.h>
-#include <model/Segmentation.h>
-#include "common/pluginInterfaces/IFactoryExtension.h"
-#include "common/pluginInterfaces/IFilterCreator.h"
-#include "SeedGrowSelector.h"
-
-#include <QSharedPointer>
-#include <QUndoCommand>
-
-class Channel;
-class ViewManager;
-class EspinaModel;
 //Forward declarations
+class SeedGrowSegmentationTool;
 class ActionSelector;
 class DefaultVOIAction;
-class SeedGrowSegmentationFilter;
 class ThresholdAction;
-class SeedGrowSegmentationPanel;
-class SeedGrowSegmentationSettings;
-class Channel;
-
+class IPicker;
+class QAction;
+class ViewManager;
+class QUndoStack;
+class EspinaModel;
 
 /// Seed Growing Segmenation Plugin
 class SeedGrowSegmentation
@@ -49,33 +39,18 @@ class SeedGrowSegmentation
 , public IFactoryExtension
 , public IFilterCreator
 {
-  class SettingsPanel;
+public:
   class Settings;
 
-  class UndoCommand
-  : public QUndoCommand
-  {
-  public:
-    explicit UndoCommand(Channel * channel,
-                         SeedGrowSegmentationFilter *filter,
-                         TaxonomyElement *taxonomy,
-                         EspinaModel *model);
-    virtual void redo();
-    virtual void undo();
-  private:
-    EspinaModel                *m_model;
-    Sample                     *m_sample;
-    Channel                    *m_channel;
-    SeedGrowSegmentationFilter *m_filter;
-    Segmentation               *m_seg;
-    TaxonomyElement            *m_taxonomy;
-  };
+private:
+  class SettingsPanel;
 
   Q_OBJECT
   Q_INTERFACES(IFactoryExtension IFilterCreator)
+
 public:
   SeedGrowSegmentation(EspinaModel *model,
-                       QUndoStack *undoStack,
+                       QUndoStack  *undoStack,
                        ViewManager *vm,
                        QWidget *parent=NULL);
   virtual ~SeedGrowSegmentation();
@@ -89,18 +64,9 @@ public:
 protected slots:
   /// Change picker
   void changePicker(QAction *action);
-  /// Abort current selection
-  void abortSelection();
-  void onSelectionAborted();
-  void startSegmentation(Channel *channel, EspinaVolume::IndexType seed);
-  /// Starts the segmentation filter putting using @msel as seed
-  //void startSegmentation(IPicker::PickList msel);
+  void cancelSegmentationOperation();
 
   void batchMode();
-
-signals:
-//   void productCreated(Segmentation *);
-  void selectionAborted(IPicker *);
 
 private:
   void addPixelSelector(QAction *action, IPicker *handler);
@@ -116,7 +82,7 @@ private:
   ActionSelector   *m_pickerSelector;
 
   QMap<QAction *, IPicker *> m_selectors;
-  QSharedPointer<SeedGrowSelector> m_seedSelector;
+  SeedGrowSegmentationTool * m_tool;
 
   Settings      *m_settings;
   SettingsPanel *m_settingsPanel;

@@ -51,6 +51,7 @@ class SeedGrowSegmentationFilter
 
 public:
   static const QString TYPE;
+  static const QString INPUTLINK;
 
   static const ModelItem::ArgumentId SEED;
   static const ModelItem::ArgumentId LTHRESHOLD;
