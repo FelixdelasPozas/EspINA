@@ -38,6 +38,8 @@ public:
                            QUndoStack  *undoStack,
                            ViewManager *viewManager) = 0;
   virtual void reset() = 0;
+public slots:
+  void resetState();
 };
 
 Q_DECLARE_INTERFACE(IToolBar,

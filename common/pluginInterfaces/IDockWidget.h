@@ -39,6 +39,8 @@ public:
                               ViewManager *viewManager) = 0;
   // Reset All Components in the Dock Widget
   virtual void reset() = 0;
+public slots:
+  void resetState();
 };
 
 Q_DECLARE_INTERFACE(IDockWidget,

@@ -325,4 +325,10 @@ void CountingRegion::saveRegionDescription()
   }
 }
 
+//------------------------------------------------------------------------
+void CountingRegion::resetState()
+{
+  clearBoundingRegions();
+}
+
 Q_EXPORT_PLUGIN2(CountingRegionPlugin, CountingRegion)

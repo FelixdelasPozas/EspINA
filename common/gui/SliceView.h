@@ -226,7 +226,7 @@ private:
   QPushButton *m_toSlice;
 
   // VTK View
-  vtkRenderWindow               *m_renderWindow;
+  vtkRenderWindow                *m_renderWindow;
   vtkSmartPointer<vtkRenderer>    m_renderer;
   vtkSmartPointer<vtkRenderer>    m_thumbnail;
   vtkSmartPointer<vtkCellPicker>  m_channelPicker;

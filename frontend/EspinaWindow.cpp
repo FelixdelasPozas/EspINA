@@ -296,6 +296,7 @@ void EspinaWindow::loadPlugins()
         qDebug() << "- ToolBar ... OK";
         addToolBar(toolbar);
         toolbar->initToolBar(m_model, m_undoStack, m_viewManager);
+        connect(this, SIGNAL(analysisClosed()), toolbar, SLOT(resetState()));
       }
 
       IDynamicMenu *menu = qobject_cast<IDynamicMenu *>(plugin);
@@ -321,6 +322,7 @@ void EspinaWindow::loadPlugins()
         addDockWidget(Qt::LeftDockWidgetArea, dock);
         m_dockMenu->addAction(dock->toggleViewAction());
         dock->initDockWidget(m_model, m_undoStack, m_viewManager);
+        connect(this, SIGNAL(analysisClosed()), dock, SLOT(resetState()));
       }
 
       IFileReader *fileReader = qobject_cast<IFileReader *>(plugin);
@@ -446,12 +448,12 @@ void EspinaWindow::closeEvent(QCloseEvent* event)
 //------------------------------------------------------------------------
 void EspinaWindow::closeCurrentAnalysis()
 {
+  emit analysisClosed();
   m_viewManager->setActiveChannel(NULL);
   m_viewManager->setActiveTaxonomy(NULL);
   m_viewManager->setPicker(NULL);
   m_model->reset();
   m_undoStack->clear();
-  emit analysisClosed();
 }
 
 //------------------------------------------------------------------------

@@ -65,6 +65,9 @@ public:
 
   RegionList regions() const {return m_regions;}
 
+public slots:
+  void resetState();
+
 protected slots:
   void clearBoundingRegions();
   /// Creates a bounding region on the current focused/active
@@ -75,7 +78,6 @@ protected slots:
   void channelChanged(Channel *channel);
   void showInfo(const QModelIndex& index);
   void saveRegionDescription();
-
 
 signals:
   void regionCreated(BoundingRegion *);
