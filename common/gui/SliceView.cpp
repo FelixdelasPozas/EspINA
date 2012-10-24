@@ -115,7 +115,10 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
 , m_ruler(vtkSmartPointer<vtkAxisActor2D>::New())
 , m_plane(plane)
 , m_showSegmentations(true)
+, m_showThumbnail(true)
 , m_settings(new Settings(m_plane))
+, m_fromCount(0)
+, m_toCount(0)
 , m_inThumbnail(false)
 , m_sceneReady(false)
 , m_highlighter(new TransparencySelectionHighlighter())
@@ -961,13 +964,13 @@ void SliceView::scrollValueChanged(int value/*nm*/)
 //-----------------------------------------------------------------------------
 void SliceView::selectFromSlice()
 {
-  emit selectedFromSlice(slicingPosition(), m_plane);
+  emit sliceSelected(slicingPosition(), m_plane, ViewManager::From);
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::selectToSlice()
 {
-  emit selectedToSlice(slicingPosition(), m_plane);
+  emit sliceSelected(slicingPosition(), m_plane, ViewManager::To);
 }
 
 //-----------------------------------------------------------------------------
@@ -1315,10 +1318,35 @@ void SliceView::setRulerVisibility(bool visible)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::setSliceSelectors(SliceView::SliceSelectors selectors)
+void SliceView::showSliceSelectors(ViewManager::SliceSelectors selectors)
 {
-  m_fromSlice->setVisible(selectors.testFlag(From));
-  m_toSlice->setVisible(selectors.testFlag(To));
+  if (selectors.testFlag(ViewManager::From))
+  {
+    m_fromCount++;
+    m_fromSlice->setVisible(true);
+  }
+  if (selectors.testFlag(ViewManager::To))
+  {
+    m_toCount++;
+    m_toSlice->setVisible(true);
+  }
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::hideSliceSelectors(ViewManager::SliceSelectors selectors)
+{
+  if (m_fromCount && selectors.testFlag(ViewManager::From))
+  {
+    m_fromCount--;
+    if (0 == m_fromCount)
+      m_fromSlice->setVisible(false);
+  }
+  if (m_toCount && selectors.testFlag(ViewManager::To))
+  {
+    m_toCount--;
+    if (0 == m_toCount)
+      m_toSlice->setVisible(false);
+  }
 }
 
 

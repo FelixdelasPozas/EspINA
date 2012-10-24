@@ -17,29 +17,30 @@
 */
 
 
-#ifndef SETUPWIDGET_H
-#define SETUPWIDGET_H
+#ifndef SEEDGROWSEGMENTATIONFILTERINSPECTOR_H
+#define SEEDGROWSEGMENTATIONFILTERINSPECTOR_H
 
 #include "SeedGrowSegmentationFilter.h"
 #include <QWidget>
-#include "ui_SetupWidget.h"
+#include "ui_FilterInspector.h"
+
+#include "common/gui/ViewManager.h"
 
 class RectangularRegion;
-class SeedGrowSegmentationFilter::SetupWidget
+class SeedGrowSegmentationFilter::FilterInspector
 : public QWidget
-, Ui::SetupWidget
+, Ui::FilterInspector
 {
   Q_OBJECT
 public:
-  explicit SetupWidget(Filter *filter, ViewManager *vm);
-  virtual ~SetupWidget();
+  explicit FilterInspector(Filter *filter, ViewManager *vm);
+  virtual ~FilterInspector();
 
   virtual bool eventFilter(QObject* sender, QEvent* e );
 
 protected slots:
   void redefineVOI(double *bounds);
-  void redefineFromVOI(double value, PlaneType plane);
-  void redefineToVOI(double value, PlaneType plane);
+  void redefineVOI(Nm pos, PlaneType plane, ViewManager::SliceSelectors flags);
   void modifyFilter();
   void updateRegionBounds();
 
@@ -50,4 +51,4 @@ private:
   Nm m_voiBounds[6];
 };
 
-#endif // SETUPWIDGET_H
+#endif // SEEDGROWSEGMENTATIONFILTERINSPECTOR_H

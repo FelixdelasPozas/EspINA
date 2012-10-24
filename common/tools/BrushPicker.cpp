@@ -121,7 +121,7 @@ void BrushPicker::setReferenceItem(PickableItem* item)
 }
 
 //-----------------------------------------------------------------------------
-void BrushPicker::setPreviewVisibility(bool visible)
+void BrushPicker::setStrokeVisibility(bool visible)
 {
   m_previewVisible = visible;
 }

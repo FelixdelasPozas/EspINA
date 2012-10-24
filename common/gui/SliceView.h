@@ -71,11 +71,6 @@ class SliceView
   class CoronalState;
 
 public:
-  enum SliceSelector
-  {
-    NoSelector = 0x0, From = 0x1, To = 0x2
-  };Q_DECLARE_FLAGS(SliceSelectors, SliceSelector)
-
   class Settings;
   typedef QSharedPointer<Settings> SettingsPtr;
 
@@ -134,8 +129,10 @@ public slots:
   void setShowPreprocessing(bool visible);
   /// Show/Hide the ruler
   void setRulerVisibility(bool visible);
-  /// Show/Hide Slice Selector
-  void setSliceSelectors(SliceSelectors selectors);
+  /// Show Slice Selectors
+  void showSliceSelectors(ViewManager::SliceSelectors selectors);
+  /// Hide Slice Selectors
+  void hideSliceSelectors(ViewManager::SliceSelectors selectors);
 
   /// Update Selected Items
   virtual void updateSelection(ViewManager::Selection selection);
@@ -155,8 +152,7 @@ signals:
 
   void channelSelected(Channel *);
   void segmentationSelected(Segmentation *, bool);
-  void selectedFromSlice(double, PlaneType);
-  void selectedToSlice(double, PlaneType);
+  void sliceSelected(Nm, PlaneType, ViewManager::SliceSelectors);
   void sliceChanged(PlaneType, Nm);
 
 protected:
@@ -247,6 +243,10 @@ private:
   bool m_showThumbnail;
   SettingsPtr m_settings;
 
+  // Slice Selectors
+  unsigned int m_fromCount;
+  unsigned int m_toCount;
+
   // Crosshairs
   vtkSmartPointer<vtkPolyData> m_HCrossLineData, m_VCrossLineData;
   vtkSmartPointer<vtkActor>    m_HCrossLine, m_VCrossLine;
@@ -259,15 +259,15 @@ private:
   vtkSmartPointer<vtkActor>    m_channelBorder, m_viewportBorder;
 
   bool m_sceneReady;
-  // Representations
 
+  // Representations
   TransparencySelectionHighlighter   *m_highlighter;
   QMap<Channel *,      SliceRep>      m_channelReps;
   QMap<Segmentation *, SliceRep>      m_segmentationReps;
   QMap<EspinaWidget *, SliceWidget *> m_widgets;
+
 };
 
-Q_DECLARE_OPERATORS_FOR_FLAGS(SliceView::SliceSelectors)
 
 class SliceView::Settings
 {

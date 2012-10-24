@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "SetupWidget.h"
+#include "FilterInspector.h"
 
 // EspINA
 #include "common/gui/ViewManager.h"
@@ -26,7 +26,7 @@
 #include <QMessageBox>
 
 //----------------------------------------------------------------------------
-SeedGrowSegmentationFilter::SetupWidget::SetupWidget(Filter* filter, ViewManager* vm)
+SeedGrowSegmentationFilter::FilterInspector::FilterInspector(Filter* filter, ViewManager* vm)
 : m_viewManager(vm)
 , m_region(NULL)
 {
@@ -87,30 +87,22 @@ SeedGrowSegmentationFilter::SetupWidget::SetupWidget(Filter* filter, ViewManager
 }
 
 //----------------------------------------------------------------------------
-SeedGrowSegmentationFilter::SetupWidget::~SetupWidget()
+SeedGrowSegmentationFilter::FilterInspector::~FilterInspector()
 {
-  /* BUG TODO 2012-10-05
-  EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
-  if (!SelectionManager::instance()->voi())
-    view->setSliceSelectors(SliceView::NoSelector);
-
   if (m_region)
   {
-    EspinaCore::instance()->viewManger()->currentView()->removeWidget(m_region);
+    m_viewManager->hideSliceSelectors(ViewManager::From|ViewManager::To);
+    m_viewManager->removeWidget(m_region);
     delete m_region;
   }
-  */
 }
 
 //----------------------------------------------------------------------------
-bool SeedGrowSegmentationFilter::SetupWidget::eventFilter(QObject* sender, QEvent* e)
+bool SeedGrowSegmentationFilter::FilterInspector::eventFilter(QObject* sender, QEvent* e)
 {
   if (e->type() == QEvent::FocusIn)
   {
-  /* BUG TODO 2012-10-05
-    EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
-    view->setSliceSelectors(SliceView::From| SliceView::To);
-    */
+    m_viewManager->showSliceSelectors(ViewManager::From|ViewManager::To);
     if (!m_region)
     {
       m_region = new RectangularRegion(m_voiBounds, m_viewManager);
@@ -118,20 +110,17 @@ bool SeedGrowSegmentationFilter::SetupWidget::eventFilter(QObject* sender, QEven
               this, SLOT(redefineVOI(double*)));
       m_viewManager->addWidget(m_region);
       m_region->setEnabled(false);
+      m_viewManager->updateViews();
     }
-    /* BUG TODO 2012-10-05
-    connect(view, SIGNAL(selectedFromSlice(double,PlaneType)),
-	    this, SLOT(redefineFromVOI(double,PlaneType)));
-    connect(view, SIGNAL(selectedToSlice(double,PlaneType)),
-	    this, SLOT(redefineToVOI(double,PlaneType)));
-	    */
+    connect(m_viewManager, SIGNAL(sliceSelected(Nm,PlaneType,ViewManager::SliceSelectors)),
+            this, SLOT(redefineVOI(Nm,PlaneType,ViewManager::SliceSelectors)));
   }
 
   return QObject::eventFilter(sender, e);
 }
 
 //----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::SetupWidget::redefineVOI(double* bounds)
+void SeedGrowSegmentationFilter::FilterInspector::redefineVOI(double* bounds)
 {
   m_leftMargin->setValue(bounds[0]);
   m_rightMargin->setValue(bounds[1]);
@@ -142,43 +131,36 @@ void SeedGrowSegmentationFilter::SetupWidget::redefineVOI(double* bounds)
 }
 
 //----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::SetupWidget::redefineFromVOI(double value, PlaneType plane)
+void SeedGrowSegmentationFilter::FilterInspector::redefineVOI(Nm pos,
+                                                          PlaneType plane,
+                                                          ViewManager::SliceSelectors flags)
 {
   switch (plane)
   {
     case AXIAL:
-      m_upperMargin->setValue(value);
+      if (flags.testFlag(ViewManager::From))
+        m_upperMargin->setValue(pos);
+      if (flags.testFlag(ViewManager::To))
+        m_lowerMargin->setValue(pos);
       break;
     case SAGITTAL:
-      m_leftMargin->setValue(value);
+      if (flags.testFlag(ViewManager::From))
+        m_leftMargin->setValue(pos);
+      if (flags.testFlag(ViewManager::To))
+        m_rightMargin->setValue(pos);
       break;
     case CORONAL:
-      m_topMargin->setValue(value);
+      if (flags.testFlag(ViewManager::From))
+        m_topMargin->setValue(pos);
+      if (flags.testFlag(ViewManager::To))
+        m_bottomMargin->setValue(pos);
       break;
   }
   updateRegionBounds();
 }
 
 //----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::SetupWidget::redefineToVOI(double value, PlaneType plane)
-{
-  switch (plane)
-  {
-    case AXIAL:
-      m_lowerMargin->setValue(value);
-      break;
-    case SAGITTAL:
-      m_rightMargin->setValue(value);
-      break;
-    case CORONAL:
-      m_bottomMargin->setValue(value);
-      break;
-  }
-  updateRegionBounds();
-}
-
-//----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::SetupWidget::modifyFilter()
+void SeedGrowSegmentationFilter::FilterInspector::modifyFilter()
 {
   EspinaVolume::SpacingType spacing = m_filter->output(0)->GetSpacing();
   int VOI[6];
@@ -214,7 +196,7 @@ void SeedGrowSegmentationFilter::SetupWidget::modifyFilter()
 }
 
 //----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::SetupWidget::updateRegionBounds()
+void SeedGrowSegmentationFilter::FilterInspector::updateRegionBounds()
 {
   m_voiBounds[0] = m_leftMargin->value();
   m_voiBounds[1] = m_rightMargin->value();

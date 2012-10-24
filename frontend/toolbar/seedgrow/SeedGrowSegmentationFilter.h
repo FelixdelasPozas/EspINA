@@ -40,7 +40,7 @@ class SeedGrowSegmentationFilter
 : public Filter
 {
   Q_OBJECT
-  class SetupWidget;
+  class FilterInspector;
   typedef itk::ExtractImageFilter<EspinaVolume, EspinaVolume> ExtractType;
   typedef itk::ConnectedThresholdImageFilter<EspinaVolume, EspinaVolume> ConnectedThresholdFilterType;
   typedef itk::StatisticsLabelObject<unsigned int, 3> LabelObjectType;
@@ -67,9 +67,9 @@ public:
     void setSeed(EspinaVolume::IndexType seed)
     {
       m_args[SEED] = QString("%1,%2,%3")
-                     .arg(seed[0])
-		     .arg(seed[1])
-		     .arg(seed[2]);
+                            .arg(seed[0])
+                            .arg(seed[1])
+                            .arg(seed[2]);
     }
     EspinaVolume::IndexType seed() const
     {
@@ -159,7 +159,7 @@ private:
   Image2LabelFilterType::Pointer image2label;
   bmcifType::Pointer bmcif;
 
-  friend class SetupWidget;
+  friend class FilterInspector;
 };
 
 #endif // SEEDGROWSEGMENTATIONFILTER_H

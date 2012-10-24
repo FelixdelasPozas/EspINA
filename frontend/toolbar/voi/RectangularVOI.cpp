@@ -85,9 +85,14 @@ void RectangularVOI::setInUse(bool enable)
     m_interactive = true;
   else if (m_widget)
   {
+    m_viewManager->hideSliceSelectors(ViewManager::From|ViewManager::To);
+    disconnect(m_viewManager, SIGNAL(sliceSelected(Nm,PlaneType,ViewManager::SliceSelectors)),
+               this, SLOT(setBorder(Nm,PlaneType,ViewManager::SliceSelectors)));
+
     m_viewManager->removeWidget(m_widget);
     delete m_widget;
     m_widget = NULL;
+
     m_viewManager->updateViews();
   }
 
@@ -150,6 +155,36 @@ void RectangularVOI::defineVOI(IPicker::PickList channels)
   m_widget = new RectangularRegion(bounds, m_viewManager);
   Q_ASSERT(m_widget);
   m_viewManager->addWidget(m_widget);
-
+  m_viewManager->showSliceSelectors(ViewManager::From|ViewManager::To);
+  connect(m_viewManager, SIGNAL(sliceSelected(Nm,PlaneType,ViewManager::SliceSelectors)),
+          this, SLOT(setBorder(Nm,PlaneType,ViewManager::SliceSelectors)));
   m_viewManager->updateViews();
+}
+
+//-----------------------------------------------------------------------------
+void RectangularVOI::setBorder(Nm pos, PlaneType plane, ViewManager::SliceSelectors flags)
+{
+  if (!m_widget)
+    return;
+
+  if (flags.testFlag(ViewManager::From))
+  {
+    double bounds[6];
+    m_widget->bounds(bounds);
+    if (pos < bounds[2*plane+1])
+    {
+      bounds[2*plane] = pos;
+      m_widget->setBounds(bounds);
+    }
+  }
+  if (flags.testFlag(ViewManager::To))
+  {
+    double bounds[6];
+    m_widget->bounds(bounds);
+    if (bounds[2*plane] < pos)
+    {
+      bounds[2*plane+1] = pos;
+      m_widget->setBounds(bounds);
+    }
+  }
 }

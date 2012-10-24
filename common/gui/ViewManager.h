@@ -27,8 +27,8 @@
 // EspINA
 #include "common/EspinaTypes.h"
 #include "common/colorEngines/ColorEngine.h"
-#include "common/widgets/EspinaWidget.h"
 #include "common/tools/IVOI.h"
+#include "common/widgets/EspinaWidget.h"
 
 // Qt
 #include <QList>
@@ -39,17 +39,18 @@
 #include <vtkLookupTable.h>
 #include <vtkSmartPointer.h>
 
-class IVOI;
-class ITool;
-class QCursor;
-class IPicker;
-class QEvent;
-class EspinaRenderView;
 class Channel;
-class Segmentation;
-class TaxonomyElement;
-class PickableItem;
+class EspinaRenderView;
 class IEspinaView;
+class IPicker;
+class ITool;
+class IVOI;
+class PickableItem;
+class QCursor;
+class QEvent;
+class Segmentation;
+class SliceView;
+class TaxonomyElement;
 
 class ViewManager
 : public QObject
@@ -61,10 +62,16 @@ public:
 
   void registerView(IEspinaView *view);
   void registerView(EspinaRenderView *view);
+  void registerView(SliceView *view);
+
+private:
+  QList<IEspinaView *>      m_espinaViews;
+  QList<EspinaRenderView *> m_renderViews;
+  QList<SliceView *>        m_sliceViews;
 
   //---------------------------------------------------------------------------
   /*************************** Selection API *********************************/
-  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------?
 public:
   typedef QList<PickableItem *> Selection;
 
@@ -116,18 +123,33 @@ public:
   /*********************** View Synchronization API **************************/
   //---------------------------------------------------------------------------
 public:
+  enum SliceSelector
+  {
+    From = 0x1, To = 0x2
+  };Q_DECLARE_FLAGS(SliceSelectors, SliceSelector)
+
   /// Reset Camera
   void resetViewCameras();
   /// Focus
   void focusViewsOn(Nm *);
   /// Update Segmentation Representation
   void updateSegmentationRepresentations();
-  // Toggle crosshair
+  /// Toggle crosshair
   void showCrosshair(bool);
+  /// Set Slice Selection flags to all registered Slice Views
+  void showSliceSelectors(SliceSelectors selectors);
+  /// Unset Slice Selection flags to all registered Slice Views
+  void hideSliceSelectors(SliceSelectors selectors);
 
 public slots:
   /// Request all registered views to update themselves
   void updateViews();
+
+protected slots:
+  void selectSlice(Nm pos, PlaneType plane, SliceSelectors flags);
+
+signals:
+  void sliceSelected(Nm, PlaneType, ViewManager::SliceSelectors);
 
 
   //---------------------------------------------------------------------------
@@ -158,14 +180,13 @@ public:
 private:
   Nm m_slicingStep[3];
 
-  QList<IEspinaView *>      m_espinaViews;
-  QList<EspinaRenderView *> m_renderViews;
-
   Channel      *m_activeChannel;
   TaxonomyElement *m_activeTaxonomy;
 
   ColorEngine *m_colorEngine;
   vtkSmartPointer<vtkLookupTable> seg_lut;
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(ViewManager::SliceSelectors)
 
 #endif // VIEWMANAGER_H

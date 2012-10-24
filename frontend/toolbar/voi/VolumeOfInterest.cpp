@@ -70,60 +70,10 @@ void VolumeOfInterest::changeVOI(QAction* action)
 {
   Q_ASSERT(m_vois.contains(action));
   m_viewManager->setVOI(m_vois[action]);
-  /*TODO 2012-10-10 currentView->setSliceSelectors(SliceView::From|SliceView::To);
-  connect(currentView, SIGNAL(selectedFromSlice(double, PlaneType)),
-          this, SLOT(setBorderFrom(double, PlaneType)));
-  connect(currentView, SIGNAL(selectedToSlice(double, PlaneType)),
-          this, SLOT(setBorderTo(double, PlaneType)));
-          */
 }
 
 //-----------------------------------------------------------------------------
 void VolumeOfInterest::cancelVOI()
 {
   m_viewManager->setVOI(NULL);
-  //TODO 2012-10-17
-//   if (!m_voiWidget.isNull())
-//   {
-//     m_viewManager->removeWidget(m_voiWidget.data());
-//     m_voiWidget.clear();
-//     m_viewManager->setVOI(NULL);
-//     // TODO 2012-10-16 m_viewManager->unsetPicker(m_selector.data());
-//     m_viewManager->updateViews();
-//   }
-
-  /* BUG TODO 2012-10-05 
-  EspinaView *currentView = EspinaCore::instance()->viewManger()->currentView();
-  currentView->setSliceSelectors(SliceView::NoSelector);
-  disconnect(currentView, SIGNAL(selectedFromSlice(double, PlaneType)),
-             this, SLOT(setBorderFrom(double, PlaneType)));
-  disconnect(currentView, SIGNAL(selectedToSlice(double, PlaneType)),
-             this, SLOT(setBorderTo(double, PlaneType)));
-             */
-}
-
-//-----------------------------------------------------------------------------
-void VolumeOfInterest::setBorderFrom(double pos, PlaneType plane)
-{
-  //TODO 2012-10-17
-//   if (!m_voiWidget.isNull())
-//   {
-//     double bounds[6];
-//     m_voiWidget->bounds(bounds);
-//     bounds[plane*2] = pos;
-//     m_voiWidget->setBounds(bounds);
-//   }
-}
-
-//-----------------------------------------------------------------------------
-void VolumeOfInterest::setBorderTo(double pos, PlaneType plane)
-{
-  //TODO 2012-10-17
-//   if (!m_voiWidget.isNull())
-//   {
-//     double bounds[6];
-//     m_voiWidget->bounds(bounds);
-//     bounds[plane*2+1] = pos;
-//     m_voiWidget->setBounds(bounds);
-//   }
 }

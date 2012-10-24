@@ -155,9 +155,9 @@ QVariant Segmentation::data(int role) const
       tooltip = tooltip.append("<b>Filter:</b> %1<br>").arg(filter()->data().toString());
       tooltip = tooltip.append("<b>Users:</b> %1<br>").arg(m_args[USERS]);
       tooltip = tooltip.append("<b>Sections:</b><br>");
-      tooltip = tooltip.append("X: %1 nm-%2 nm <br>").arg(bounds[0]).arg(bounds[1]);
-      tooltip = tooltip.append("Y: %1 nm-%2 nm <br>").arg(bounds[2]).arg(bounds[3]);
-      tooltip = tooltip.append("Z: %1 nm-%2 nm <br>").arg(bounds[4]).arg(bounds[5]);
+      tooltip = tooltip.append("  X: %1 nm-%2 nm <br>").arg(bounds[0]).arg(bounds[1]);
+      tooltip = tooltip.append("  Y: %1 nm-%2 nm <br>").arg(bounds[2]).arg(bounds[3]);
+      tooltip = tooltip.append("  Z: %1 nm-%2 nm <br>").arg(bounds[4]).arg(bounds[5]);
 
       if (!m_conditions.isEmpty())
       {

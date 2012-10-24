@@ -83,7 +83,7 @@ bool Brush::filterEvent(QEvent* e, EspinaRenderView* view)
     if (!m_erasing)
     {
       m_brush->setBorderColor(QColor(Qt::green));
-      m_brush->setPreviewVisibility(true);
+      m_brush->setStrokeVisibility(true);
     }
   } else if (m_currentSource)
   {
@@ -101,7 +101,7 @@ bool Brush::filterEvent(QEvent* e, EspinaRenderView* view)
     if (m_erasing)
     {
       m_brush->setBorderColor(QColor(Qt::red));
-      m_brush->setPreviewVisibility(false);
+      m_brush->setStrokeVisibility(false);
     }
   }
   if (e->type() == QEvent::Wheel)

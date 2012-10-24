@@ -22,6 +22,7 @@
 
 #include "common/tools/PixelSelector.h"
 #include "common/EspinaTypes.h"
+#include <gui/ViewManager.h>
 
 #include <QMap>
 
@@ -42,9 +43,6 @@ public:
 protected slots:
   void changeVOI(QAction *action);
   void cancelVOI();
-
-  void setBorderFrom(double pos/*nm*/, PlaneType plane);
-  void setBorderTo  (double pos/*nm*/, PlaneType plane);
 
 private:
   void buildVOIs();

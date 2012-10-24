@@ -16,7 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "SeedGrowSegmentationFilter.h"
-#include "SetupWidget.h"
+#include "FilterInspector.h"
 
 #include "EspinaRegions.h"
 #include "common/model/EspinaModel.h"
@@ -260,5 +260,5 @@ bool SeedGrowSegmentationFilter::prefetchFilter()
 //-----------------------------------------------------------------------------
 QWidget* SeedGrowSegmentationFilter::createFilterInspector(QUndoStack* undoStack, ViewManager* vm)
 {
-  return new SetupWidget(this, vm);
+  return new FilterInspector(this, vm);
 }

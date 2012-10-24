@@ -49,7 +49,7 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
   toolbar/seedgrow/SeedGrowSegmentationFilter.h
   toolbar/seedgrow/SeedGrowSegmentationTool.h
   toolbar/seedgrow/SettingsPanel.h
-  toolbar/seedgrow/SetupWidget.h
+  toolbar/seedgrow/FilterInspector.h
   toolbar/seedgrow/gui/DefaultVOIAction.h
   toolbar/seedgrow/gui/ThresholdAction.h
   toolbar/editor/SettingsPanel.h
@@ -68,7 +68,7 @@ qt4_wrap_ui (UI_BUILT_SOURCES
   docks/SegmentationExplorer.ui
   docks/SegmentationInspector.ui
   docks/TaxonomyExplorer.ui
-  toolbar/seedgrow/SetupWidget.ui
+  toolbar/seedgrow/FilterInspector.ui
   toolbar/seedgrow/SettingsPanel.ui
   toolbar/editor/EditorToolBarSettingsPanel.ui
   views/SliceViewSettingsPanel.ui
@@ -110,7 +110,7 @@ set (TOOLBAR_SOURCES
   toolbar/seedgrow/SeedGrowSegmentationTool.cpp
   toolbar/seedgrow/Settings.cpp
   toolbar/seedgrow/SettingsPanel.cpp
-  toolbar/seedgrow/SetupWidget.cpp
+  toolbar/seedgrow/FilterInspector.cpp
   toolbar/seedgrow/gui/DefaultVOIAction.cpp
   toolbar/seedgrow/gui/ThresholdAction.cpp
   toolbar/voi/VolumeOfInterest.cpp

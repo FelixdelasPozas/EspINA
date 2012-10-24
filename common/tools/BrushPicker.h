@@ -58,7 +58,7 @@ public:
   /// @item is used to specify the spacing of the stroke
   void setReferenceItem(PickableItem *item);
 
-  void setPreviewVisibility(bool visible);
+  void setStrokeVisibility(bool visible);
 
 signals:
   void stroke(PickableItem *, double, double, double, Nm, PlaneType);

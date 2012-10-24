@@ -23,6 +23,7 @@
 #include "common/colorEngines/ColorEngine.h"
 #include "common/gui/IEspinaView.h"
 #include "common/gui/EspinaRenderView.h"
+#include "SliceView.h"
 #include "common/tools/PickableItem.h"
 #include "common/tools/IVOI.h"
 
@@ -59,6 +60,20 @@ void ViewManager::registerView(EspinaRenderView* view)
   Q_ASSERT(!m_espinaViews.contains(view));
   m_espinaViews << view;
 }
+
+//----------------------------------------------------------------------------
+void ViewManager::registerView(SliceView* view)
+{
+  Q_ASSERT(!m_renderViews.contains(view));
+  m_renderViews << view;
+  Q_ASSERT(!m_espinaViews.contains(view));
+  m_espinaViews << view;
+  Q_ASSERT(!m_sliceViews.contains(view));
+  m_sliceViews << view;
+  connect(view, SIGNAL(sliceSelected(Nm,PlaneType,ViewManager::SliceSelectors)),
+          this, SIGNAL(sliceSelected(Nm,PlaneType,ViewManager::SliceSelectors)));
+}
+
 
 //----------------------------------------------------------------------------
 void ViewManager::setSelection(ViewManager::Selection selection)
@@ -104,7 +119,7 @@ void ViewManager::setVOI(IVOI *voi)
 //----------------------------------------------------------------------------
 void ViewManager::setActiveTool(ITool* tool)
 {
-  Q_ASSERT(tool); //NOTE Change all setActiveTool(NULL) to unsetActiveTool(tool)
+  Q_ASSERT(tool); 
 
   if (m_tool && m_tool != tool)
     m_tool->setInUse(false);
@@ -169,6 +184,13 @@ void ViewManager::updateViews()
 }
 
 //----------------------------------------------------------------------------
+void ViewManager::selectSlice(Nm pos, PlaneType plane, SliceSelectors flags )
+{
+  emit sliceSelected(pos, plane, flags);
+}
+
+
+//----------------------------------------------------------------------------
 void ViewManager::setActiveChannel(Channel* channel)
 {
   m_activeChannel = channel;
@@ -210,6 +232,28 @@ void ViewManager::updateSegmentationRepresentations()
     view->updateSegmentationRepresentations();
   }
 }
+
+//----------------------------------------------------------------------------
+void ViewManager::showCrosshair(bool value)
+{
+  foreach(EspinaRenderView *rView, m_renderViews)
+    rView->showCrosshairs(value);
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::showSliceSelectors(ViewManager::SliceSelectors selectors)
+{
+  foreach(SliceView *view, m_sliceViews)
+    view->showSliceSelectors(selectors);
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::hideSliceSelectors(ViewManager::SliceSelectors selectors)
+{
+  foreach(SliceView *view, m_sliceViews)
+    view->hideSliceSelectors(selectors);
+}
+
 
 //----------------------------------------------------------------------------
 QColor ViewManager::color(Segmentation* seg)
@@ -254,11 +298,4 @@ void ViewManager::focusViewsOn(Nm *center)
 {
   foreach(EspinaRenderView *rView, m_renderViews)
     rView->centerViewOn(center, true);
-}
-
-//----------------------------------------------------------------------------
-void ViewManager::showCrosshair(bool value)
-{
-  foreach(EspinaRenderView *rView, m_renderViews)
-    rView->showCrosshairs(value);
 }

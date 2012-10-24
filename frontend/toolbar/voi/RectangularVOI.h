@@ -22,10 +22,10 @@
 
 #include "common/tools/IVOI.h"
 
+#include "common/gui/ViewManager.h"
 #include "common/tools/PixelSelector.h"
 #include "common/widgets/RectangularRegion.h"
 
-class ViewManager;
 class RectangularVOI
 : public IVOI
 {
@@ -44,6 +44,7 @@ public:
 
 private slots:
   void defineVOI(IPicker::PickList channels);
+  void setBorder(Nm pos, PlaneType plane, ViewManager::SliceSelectors flags);
 
 private:
   ViewManager *m_viewManager;
