@@ -273,7 +273,7 @@ void BrushPicker::stopStroke(EspinaRenderView* view)
   if (m_stroke->GetNumberOfPoints() > 0)
     emit stroke(m_referenceItem, m_stroke, m_radius, m_plane);
 
-  qDebug() << "Stroke with" << m_stroke->GetNumberOfPoints() << "points";
+  //qDebug() << "Stroke with" << m_stroke->GetNumberOfPoints() << "points";
   m_tracking = false;
   m_stroke->Reset();
   stopPreview(view);

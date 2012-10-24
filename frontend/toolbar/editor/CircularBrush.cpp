@@ -53,8 +53,7 @@ void CircularBrush::drawStroke(PickableItem *item,
     if (centers->GetNumberOfPoints() == 0)
     return;
 
-    QList<vtkImplicitFunction *> brushes;
-    double strokeBounds[6];
+    DrawCommand::BrushList brushes;
 
     double sRadius = (plane == SAGITTAL)?0:radius;
     double cRadius = (plane ==  CORONAL)?0:radius;
@@ -67,23 +66,13 @@ void CircularBrush::drawStroke(PickableItem *item,
       double brushCenter[3];
       centers->GetPoint(i, brushCenter);
 
-      if (i == 0)
-      {
-        strokeBounds[0] = brushCenter[0] - sRadius;
-        strokeBounds[1] = brushCenter[0] + sRadius;
-        strokeBounds[2] = brushCenter[1] - cRadius;
-        strokeBounds[3] = brushCenter[1] + cRadius;
-        strokeBounds[4] = brushCenter[2] - aRadius;
-        strokeBounds[5] = brushCenter[2] + aRadius;
-      } else
-      {
-        strokeBounds[0] = std::min(brushCenter[0] - sRadius, strokeBounds[0]);
-        strokeBounds[1] = std::max(brushCenter[0] + sRadius, strokeBounds[1]);
-        strokeBounds[2] = std::min(brushCenter[1] - cRadius, strokeBounds[2]);
-        strokeBounds[3] = std::max(brushCenter[1] + cRadius, strokeBounds[3]);
-        strokeBounds[4] = std::min(brushCenter[2] - aRadius, strokeBounds[4]);
-        strokeBounds[5] = std::max(brushCenter[2] + aRadius, strokeBounds[5]);
-      }
+      double brushBounds[6];//TODO 2012-10-24 Crop bounds
+      brushBounds[0] = brushCenter[0] - sRadius;
+      brushBounds[1] = brushCenter[0] + sRadius;
+      brushBounds[2] = brushCenter[1] - cRadius;
+      brushBounds[3] = brushCenter[1] + cRadius;
+      brushBounds[4] = brushCenter[2] - aRadius;
+      brushBounds[5] = brushCenter[2] + aRadius;
 
       double baseCenter[3], topCenter[3];
       for (int i=0; i<3; i++)
@@ -95,18 +84,8 @@ void CircularBrush::drawStroke(PickableItem *item,
       brush->SetBaseRadius(radius);
       brush->SetTopCenter(topCenter);
       brush->SetTopRadius(radius);
-      brushes << brush;
+      brushes << DrawCommand::Brush(brush,BoundingBox(brushBounds));
     }
-
-    // TODO 2012-10-23 Crop to corresponding channel bounds
-//     double bounds[6];
-//     channel->bounds(bounds);
-//     bounds[0] = std::max(strokeBounds[0], bounds[0]);
-//     bounds[1] = std::min(strokeBounds[1], bounds[1]);
-//     bounds[2] = std::max(strokeBounds[2], bounds[2]);
-//     bounds[3] = std::min(strokeBounds[3], bounds[3]);
-//     bounds[4] = std::max(strokeBounds[4], bounds[4]);
-//     bounds[5] = std::min(strokeBounds[5], bounds[5]);
 
     if (!m_currentSource)
     {
@@ -126,8 +105,8 @@ void CircularBrush::drawStroke(PickableItem *item,
       m_undoStack->beginMacro("Draw Segmentation");
       // We can't add empty segmentations to the model
       m_undoStack->push(new DrawCommand(m_currentSource,
+                                        0,
                                         brushes,
-                                        strokeBounds, //TODO 2012-10-23 Use cropped bounds
                                         SEG_VOXEL_VALUE));
       m_undoStack->push(new AddSegmentation(channel,
                                             m_currentSource,
@@ -142,8 +121,8 @@ void CircularBrush::drawStroke(PickableItem *item,
       EspinaVolume::PixelType value = m_erasing?SEG_BG_VALUE:SEG_VOXEL_VALUE;
 
       m_undoStack->push(new DrawCommand(m_currentSource,
+                                        m_currentSeg->outputNumber(),
                                         brushes,
-                                        strokeBounds,
                                         value));
     }
     //   if (m_currentSeg)

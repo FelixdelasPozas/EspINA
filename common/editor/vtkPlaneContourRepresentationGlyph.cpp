@@ -1031,7 +1031,10 @@ void vtkPlaneContourRepresentationGlyph::UseContourPolygon(bool value)
 
 double vtkPlaneContourRepresentationGlyph::Distance2BetweenPoints(int displayPosX, int displayPosY, int node)
 {
-  double displayPos[2] = { displayPosX, displayPosY };
+  double displayPos[2];
+  displayPos[0] = displayPosX;
+  displayPos[1] = displayPosY;
+
   double nodePos[3];
   this->GetNthNodeWorldPosition(node, nodePos);
 

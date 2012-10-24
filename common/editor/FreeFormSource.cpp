@@ -51,7 +51,7 @@ FreeFormSource::~FreeFormSource()
 
 //-----------------------------------------------------------------------------
 void FreeFormSource::draw(OutputNumber i,
-                          QList<vtkImplicitFunction *> brushes,
+                          vtkImplicitFunction * brush,
                           double bounds[6],
                           EspinaVolume::PixelType value)
 {
@@ -66,7 +66,7 @@ void FreeFormSource::draw(OutputNumber i,
     img->FillBuffer(0);
     m_outputs[i] = img;
   }
-  Filter::draw(i, brushes, bounds, value);
+  Filter::draw(i, brush, bounds, value);
 }
 
 //-----------------------------------------------------------------------------

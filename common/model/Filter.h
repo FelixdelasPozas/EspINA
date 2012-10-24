@@ -73,7 +73,7 @@ public:
 
   /// Manually Edit Filter Output
   virtual void draw(OutputNumber i,
-                    QList<vtkImplicitFunction *> brushes,
+                    vtkImplicitFunction *brush,
                     double bounds[6],
                     EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
   virtual void draw(OutputNumber i,
@@ -82,8 +82,16 @@ public:
   virtual void draw(OutputNumber i,
                     Nm x, Nm y, Nm z,
                     EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
-  virtual void draw(OutputNumber i, vtkPolyData *contour, Nm slice, PlaneType plane,
+  virtual void draw(OutputNumber i,
+                    vtkPolyData *contour,
+                    Nm slice,
+                    PlaneType plane,
                     EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+  virtual void draw(OutputNumber i,
+                    EspinaVolume::Pointer volume);
+
+  virtual void restoreOutput(OutputNumber i,
+                           EspinaVolume::Pointer volume);
 
   /// Returns whether or not the filter was edited by the user
   bool isEdited() const;
@@ -120,6 +128,7 @@ protected:
 
   EspinaVolume::Pointer addRegionToVolume(EspinaVolume::Pointer volume,
                                           EspinaVolume::RegionType region);
+  void markAsEdited(OutputNumber i);
 
 protected:
   QList<EspinaVolume *> m_inputs;
@@ -129,7 +138,6 @@ protected:
   QStringList        m_editedOutputs;
   QMap<OutputNumber, EspinaVolume::Pointer> m_outputs;
   EspinaVolumeReader::Pointer m_cachedFilter;
-
 private:
   QDir m_tmpDir;
   static unsigned int m_lastId;

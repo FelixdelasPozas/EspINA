@@ -78,7 +78,7 @@ public:
   virtual ~FreeFormSource();
 
   virtual void draw(OutputNumber i,
-                    QList< vtkImplicitFunction* > brushes,
+                    vtkImplicitFunction* brush,
                     double bounds[6],
                     EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
   virtual void draw(OutputNumber i,

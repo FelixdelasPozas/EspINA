@@ -23,6 +23,8 @@
 #include "Brush.h"
 #include <QUndoCommand>
 
+#include <BoundingBox.h>
+
 class Filter;
 class vtkImplicitFunction;
 
@@ -30,18 +32,26 @@ class Brush::DrawCommand
 : public QUndoCommand
 {
 public:
+  typedef QPair<vtkImplicitFunction *, BoundingBox> Brush;
+  typedef QList<DrawCommand::Brush> BrushList;
+public:
   explicit DrawCommand(Filter *source,
-                       QList<vtkImplicitFunction *> brushes,
-                       double bounds[6],
+                       OutputNumber output,
+                       BrushList brushes,
                        EspinaVolume::PixelType value);
   virtual void redo();
   virtual void undo();
 
+  void backup(EspinaVolume::Pointer &output, EspinaVolume *volume);
+
 private:
   Filter *m_source;
-  QList<vtkImplicitFunction *> m_brushes;
-  double m_bounds[6];
+  OutputNumber m_output;
+  BrushList m_brushes;
+  double m_strokeBounds[6];
   EspinaVolume::PixelType m_value;
+  EspinaVolume::Pointer m_prevVolume;
+  EspinaVolume::Pointer m_newVolume;
 };
 
 #endif // BRUSHUNDOCOMMAND_H

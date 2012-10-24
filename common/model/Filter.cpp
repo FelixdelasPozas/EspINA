@@ -34,6 +34,7 @@
 #include <vtkImageExport.h>
 #include <vtkMath.h>
 
+#include <QDebug>
 #include <QDir>
 #include <QMessageBox>
 #include <QWidget>
@@ -168,10 +169,9 @@ Filter::EspinaVolumeReader::Pointer Filter::tmpFileReader(const QString file)
   return NULL;
 }
 
-//TODO 2012-10-19 Try to use threaded method similar to tubular source
 //----------------------------------------------------------------------------
 void Filter::draw(OutputNumber i,
-                  QList<vtkImplicitFunction *> brushes,
+                  vtkImplicitFunction* brush,
                   double bounds[6],
                   EspinaVolume::PixelType value)
 {
@@ -188,20 +188,11 @@ void Filter::draw(OutputNumber i,
     double ty = it.GetIndex()[1]*spacing[1] + m_outputs[i]->GetOrigin()[1];
     double tz = it.GetIndex()[2]*spacing[2] + m_outputs[i]->GetOrigin()[2];
 
-    for (int i=0; i < brushes.size(); i++)
-    {
-      if (brushes.value(i)->FunctionValue(tx, ty, tz) <= 0)
-      {
-        it.Set(value);
-        continue;
-      }
-    }
+    if (brush->FunctionValue(tx, ty, tz) <= 0)
+      it.Set(value);
   }
   m_outputs[i]->Modified();
-  if (!m_editedOutputs.contains(QString::number(i)))
-    m_editedOutputs << QString::number(i);
-
-  m_args[EDIT] = m_editedOutputs.join(",");
+  markAsEdited(i);
   emit modified(this);
 }
 
@@ -222,14 +213,15 @@ void Filter::draw(OutputNumber i,
   {
     image->SetPixel(index, value);
     image->Modified();
-    m_args[EDIT] = "Yes";
+    markAsEdited(i);
+    emit modified(this);
   }
 }
 
 //----------------------------------------------------------------------------
 void Filter::draw(OutputNumber i,
-		  Nm x, Nm y, Nm z,
-		  EspinaVolume::PixelType value)
+                  Nm x, Nm y, Nm z,
+                  EspinaVolume::PixelType value)
 {
   EspinaVolume *image = output(i);
   if (image)
@@ -362,16 +354,45 @@ void Filter::draw(OutputNumber i, vtkPolyData *contour, Nm slice, PlaneType plan
   }
 
   m_outputs[i]->Modified();
-
-  if (!m_editedOutputs.contains(QString::number(i)))
-    m_editedOutputs << QString::number(i);
-
-  m_args[EDIT] = m_editedOutputs.join(",");
+  markAsEdited(i);
+  emit modified(this);
 }
 
 //----------------------------------------------------------------------------
+void Filter::draw(OutputNumber i,
+                  EspinaVolume::Pointer volume)
+{
+  EspinaVolume::RegionType region = NormalizedRegion(volume);
+  m_outputs[i] = addRegionToVolume(m_outputs[i], region);
+
+  EspinaVolume::RegionType inputRegion  = VolumeRegion(volume, region);
+  EspinaVolume::RegionType outputRegion = VolumeRegion(m_outputs[i], region);
+  itk::ImageRegionIteratorWithIndex<EspinaVolume> it(volume, inputRegion);
+  itk::ImageRegionIteratorWithIndex<EspinaVolume> ot(m_outputs[i], outputRegion);
+  it.GoToBegin();
+  ot.GoToBegin();
+  for (; !it.IsAtEnd(); ++it, ++ot )
+  {
+    ot.Set(it.Get());
+  }
+  m_outputs[i]->Modified();
+  markAsEdited(i);
+  emit modified(this);
+}
+
+//----------------------------------------------------------------------------
+void Filter::restoreOutput(OutputNumber i, EspinaVolume::Pointer volume)
+{
+  m_outputs[i] = volume;
+  m_outputs[i]->Modified();
+  markAsEdited(i);
+  emit modified(this);
+}
+
+
+//----------------------------------------------------------------------------
 EspinaVolume::Pointer Filter::addRegionToVolume(EspinaVolume::Pointer volume,
-						EspinaVolume::RegionType region)
+                                                EspinaVolume::RegionType region)
 {
   EspinaVolume::Pointer res = volume;
 
@@ -385,7 +406,7 @@ EspinaVolume::Pointer Filter::addRegionToVolume(EspinaVolume::Pointer volume,
   EspinaVolume::RegionType normRegion = NormalizedRegion(volume);
   if (!normRegion.IsInside(region))
   {
-//     qDebug() << "Resize Image";
+    //qDebug() << "Resize Image";
     EspinaVolume::RegionType br = BoundingBoxRegion(normRegion, region);
     EspinaVolume::Pointer expandedImage = EspinaVolume::New();
     expandedImage->SetRegions(br);
@@ -404,6 +425,15 @@ EspinaVolume::Pointer Filter::addRegionToVolume(EspinaVolume::Pointer volume,
     res = expandedImage;
   }
   return res;
+}
+
+//----------------------------------------------------------------------------
+void Filter::markAsEdited(OutputNumber i)
+{
+  if (!m_editedOutputs.contains(QString::number(i)))
+    m_editedOutputs << QString::number(i);
+
+  m_args[EDIT] = m_editedOutputs.join(",");
 }
 
 //----------------------------------------------------------------------------

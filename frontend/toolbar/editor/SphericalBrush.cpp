@@ -50,45 +50,25 @@ void SphericalBrush::drawStroke(PickableItem *item,
   if (centers->GetNumberOfPoints() == 0)
     return;
 
-    QList<vtkImplicitFunction *> brushes;
-    double strokeBounds[6];
+    DrawCommand::BrushList brushes;
     for (int i=0; i < centers->GetNumberOfPoints(); i++)
     {
       double brushCenter[3];
       centers->GetPoint(i, brushCenter);
 
-      if (i == 0)
-      {
-        strokeBounds[0] = brushCenter[0] - radius;
-        strokeBounds[1] = brushCenter[0] + radius;
-        strokeBounds[2] = brushCenter[1] - radius;
-        strokeBounds[3] = brushCenter[1] + radius;
-        strokeBounds[4] = brushCenter[2] - radius;
-        strokeBounds[5] = brushCenter[2] + radius;
-      } else
-      {
-        strokeBounds[0] = std::min(brushCenter[0] - radius, strokeBounds[0]);
-        strokeBounds[1] = std::max(brushCenter[0] + radius, strokeBounds[1]);
-        strokeBounds[2] = std::min(brushCenter[1] - radius, strokeBounds[2]);
-        strokeBounds[3] = std::max(brushCenter[1] + radius, strokeBounds[3]);
-        strokeBounds[4] = std::min(brushCenter[2] - radius, strokeBounds[4]);
-        strokeBounds[5] = std::max(brushCenter[2] + radius, strokeBounds[5]);
-      }
+      double brushBounds[6];//TODO 2012-10-24 Crop bounds
+      brushBounds[0] = brushCenter[0] - radius;
+      brushBounds[1] = brushCenter[0] + radius;
+      brushBounds[2] = brushCenter[1] - radius;
+      brushBounds[3] = brushCenter[1] + radius;
+      brushBounds[4] = brushCenter[2] - radius;
+      brushBounds[5] = brushCenter[2] + radius;
 
       vtkSphere *brush = vtkSphere::New();
       brush->SetCenter(brushCenter);
       brush->SetRadius(radius);
-      brushes << brush;
+      brushes << DrawCommand::Brush(brush,BoundingBox(brushBounds));
     }
-
-//     double bounds[6];
-//     channel->bounds(bounds);
-//     bounds[0] = std::max(strokeBounds[0], bounds[0]);
-//     bounds[1] = std::min(strokeBounds[1], bounds[1]);
-//     bounds[2] = std::max(strokeBounds[2], bounds[2]);
-//     bounds[3] = std::min(strokeBounds[3], bounds[3]);
-//     bounds[4] = std::max(strokeBounds[4], bounds[4]);
-//     bounds[5] = std::min(strokeBounds[5], bounds[5]);
 
     if (!m_currentSource)
     {
@@ -110,8 +90,8 @@ void SphericalBrush::drawStroke(PickableItem *item,
       m_undoStack->beginMacro("Draw Segmentation");
       // We can't add empty segmentations to the model
       m_undoStack->push(new DrawCommand(m_currentSource,
+                                        0,
                                         brushes,
-                                        strokeBounds, //TODO 2012-10-23 Use cropped bounds
                                         SEG_VOXEL_VALUE));
       m_undoStack->push(new AddSegmentation(channel,
                                             m_currentSource,
@@ -126,8 +106,8 @@ void SphericalBrush::drawStroke(PickableItem *item,
       EspinaVolume::PixelType value = m_erasing?SEG_BG_VALUE:SEG_VOXEL_VALUE;
 
       m_undoStack->push(new DrawCommand(m_currentSource,
+                                        m_currentSeg->outputNumber(),
                                         brushes,
-                                        strokeBounds, //TODO 2012-10-23 Use cropped bounds
                                         value));
     }
     //   if (m_currentSeg)

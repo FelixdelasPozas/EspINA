@@ -22,8 +22,10 @@
 #include <model/ModelItem.h>
 #include <model/Channel.h>
 #include <model/Segmentation.h>
+#include <vtkMath.h>
 
 #include <QApplication>
+#include <QDebug>
 
 //-----------------------------------------------------------------------------
 EspinaRenderView::EspinaRenderView(QWidget* parent)
@@ -42,6 +44,8 @@ EspinaRenderView::~EspinaRenderView()
 //-----------------------------------------------------------------------------
 void EspinaRenderView::previewBounds(Nm bounds[6])
 {
+  vtkMath::UninitializeBounds(bounds);
+  qDebug() << bounds[0] << bounds[1] << bounds[2] << bounds[3] << bounds[4] << bounds[5];
   bounds[0] = bounds[2] = bounds[4] =  0;
   bounds[1] = bounds[3] = bounds[5] = -1;
 }
