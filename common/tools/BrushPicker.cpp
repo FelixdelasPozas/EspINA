@@ -150,24 +150,9 @@ void BrushPicker::createBrush(double brush[3], QPoint pos)
   int V = (CORONAL  == m_plane)?2:1;
 
   double wPos[3];
-  switch (m_plane)
-  {
-    case SAGITTAL:
-      wPos[0] = m_pBounds[0];
-      wPos[1] = m_UR[V] + pos.y()*m_worldSize[1]/m_windowSize[1];
-      wPos[2] = m_LL[H] + pos.x()*m_worldSize[0]/m_windowSize[0];
-      break;
-    case CORONAL:
-      wPos[0] = m_LL[H] + pos.x()*m_worldSize[0]/m_windowSize[0];
-      wPos[1] = m_pBounds[2];
-      wPos[2] = m_UR[V] + pos.y()*m_worldSize[0]/m_windowSize[0];
-      break;
-    case AXIAL:
-      wPos[0] = m_LL[H] + pos.x()*m_worldSize[0]/m_windowSize[0];
-      wPos[1] = m_UR[V] + pos.y()*m_worldSize[1]/m_windowSize[1];
-      wPos[2] = m_pBounds[4];
-      break;
-  };
+  wPos[m_plane] = m_pBounds[2*m_plane];
+  wPos[H] = m_LL[H] + pos.x()*m_worldSize[0]/m_windowSize[0];
+  wPos[V] = m_UR[V] + pos.y()*m_worldSize[1]/m_windowSize[1];
 
   //qDebug() << QString("Center (%1,%2,%3)").arg(wPos[0]).arg(wPos[1]).arg(wPos[2]);
   for(int i=0; i < 3; i++)
