@@ -18,13 +18,18 @@
 
 
 #include "Brush.h"
+#include "BrushUndoCommand.h"
 
 #include "common/editor/BrushSelector.h"
+#include "common/editor/FreeFormSource.h"
 #include "common/gui/EspinaRenderView.h"
 #include "common/gui/ViewManager.h"
-#include "common/model/Taxonomy.h"
 #include "common/model/Channel.h"
+#include "common/model/EspinaFactory.h"
+#include "common/model/EspinaModel.h"
+#include "common/model/Taxonomy.h"
 #include "common/tools/BrushPicker.h"
+#include <undo/AddSegmentation.h>
 
 #include <vtkRenderWindow.h>
 
@@ -46,6 +51,7 @@ Brush::Brush(EspinaModel* model,
 , m_brush(new BrushPicker())
 , m_currentSource(NULL)
 , m_currentSeg(NULL)
+, m_eraseCommand(NULL)
 {
   connect(m_brush, SIGNAL(stroke(PickableItem *,IPicker::WorldRegion, Nm, PlaneType)),
           this,  SLOT(drawStroke(PickableItem *,IPicker::WorldRegion, Nm, PlaneType)));
@@ -130,14 +136,16 @@ void Brush::setInUse(bool enable)
     {
       m_currentSeg = segs.first();
       m_currentSource = m_currentSeg->filter();
+      m_currentOutput = m_currentSeg->outputNumber();
 
       m_brush->setBorderColor(QColor(Qt::green));
       m_brush->setReferenceItem(m_currentSeg);
     }
     else
     {
-      m_currentSeg = NULL;
+      m_currentSeg    = NULL;
       m_currentSource = NULL;
+      m_currentOutput = -1;
 
       m_brush->setBorderColor(QColor(Qt::blue));
       m_brush->setReferenceItem(m_viewManager->activeChannel());
@@ -170,4 +178,98 @@ SegmentationList Brush::selectedSegmentations() const
   }
 
   return selection;
+}
+
+//-----------------------------------------------------------------------------
+void Brush::drawStroke(PickableItem* item,
+                       IPicker::WorldRegion centers,
+                       Nm radius,
+                       PlaneType plane)
+{
+  if (centers->GetNumberOfPoints() == 0)
+    return;
+
+  if (m_erasing)
+  {
+    Q_ASSERT(m_eraseCommand);
+    m_undoStack->push(m_eraseCommand);
+    m_eraseCommand = NULL;
+  }else
+  {
+    BrushShapeList brushes;
+
+    for (int i=0; i < centers->GetNumberOfPoints(); i++)
+      brushes << createBrushShape(item,
+                                  centers->GetPoint(i),
+                                  radius,
+                                  plane);
+
+    if (!m_currentSource)
+    {
+      Q_ASSERT(!m_currentSeg);
+
+      Q_ASSERT(ModelItem::CHANNEL == item->type());
+
+      Channel *channel = dynamic_cast<Channel *>(item);
+      double spacing[3];
+      channel->spacing(spacing);
+
+      Filter::NamedInputs inputs;
+      Filter::Arguments args;
+      FreeFormSource::Parameters params(args);
+      params.setSpacing(spacing);
+      m_currentSource = new FreeFormSource(inputs, args);
+      m_currentOutput = 0;
+      m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, m_currentOutput);
+
+      m_undoStack->beginMacro("Draw Segmentation");
+      // We can't add empty segmentations to the model
+      m_undoStack->push(new DrawCommand(m_currentSource,
+                                        m_currentOutput,
+                                        brushes,
+                                        SEG_VOXEL_VALUE));
+      m_undoStack->push(new AddSegmentation(channel,
+                                            m_currentSource,
+                                            m_currentSeg,
+                                            m_viewManager->activeTaxonomy(),
+                                            m_model));
+      m_undoStack->endMacro();
+      m_brush->setBorderColor(QColor(Qt::green));
+    }else
+    {
+      Q_ASSERT(m_currentSource && m_currentSeg);
+      EspinaVolume::PixelType value = m_erasing?SEG_BG_VALUE:SEG_VOXEL_VALUE;
+
+      m_undoStack->push(new DrawCommand(m_currentSource,
+                                        m_currentOutput,
+                                        brushes,
+                                        value));
+    }
+  }
+
+}
+
+//-----------------------------------------------------------------------------
+void Brush::drawStrokeStep(PickableItem* item,
+                           double x, double y, double z,
+                           Nm radius,
+                           PlaneType plane)
+{
+  if (!m_erasing)
+    return;
+
+  Q_ASSERT(m_currentSeg);
+
+  if (!m_eraseCommand)
+  {
+    m_eraseCommand = new SnapshotCommand(m_currentSource,
+                                         m_currentOutput);
+  }
+  double center[3] = {x, y, z};
+  BrushShape brush = createBrushShape(item, center, radius, plane);
+  m_currentSource->draw(m_currentOutput,
+                        brush.first,
+                        brush.second.bounds(),
+                        SEG_BG_VALUE);
+  m_viewManager->updateViews();
 }

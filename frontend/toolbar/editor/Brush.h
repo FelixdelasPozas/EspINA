@@ -20,10 +20,11 @@
 #ifndef BRUSH_H
 #define BRUSH_H
 
-#include "common/tools/ITool.h"
-#include <tools/IPicker.h>
-#include <EspinaTypes.h>
+#include "common/BoundingBox.h"
+#include "common/EspinaTypes.h"
 #include "common/model/Segmentation.h"
+#include "common/tools/IPicker.h"
+#include "common/tools/ITool.h"
 
 class EspinaModel;
 class QUndoStack;
@@ -39,7 +40,12 @@ class Brush
   Q_OBJECT
 public:
   enum Mode {CREATE, MODIFY};
+
+  typedef QPair<vtkImplicitFunction *, BoundingBox> BrushShape;
+  typedef QList<BrushShape> BrushShapeList;
+
   class DrawCommand;
+  class SnapshotCommand;
 
 public:
   explicit Brush(EspinaModel *model,
@@ -57,14 +63,20 @@ protected:
   virtual SegmentationList selectedSegmentations() const;
 
 protected slots:
+  virtual BrushShape createBrushShape(PickableItem *item,
+                                      double center[3],
+                                      Nm radius,
+                                      PlaneType plane)=0;
+
   virtual void drawStroke(PickableItem *item,
                           IPicker::WorldRegion centers,
                           Nm radius,
-                          PlaneType plane) = 0;
+                          PlaneType plane);
+
 virtual void drawStrokeStep(PickableItem *item,
                             double x, double y, double z,
                             Nm radius,
-                            PlaneType plane) = 0;
+                            PlaneType plane);
 signals:
   void stopDrawing();
 
@@ -79,6 +91,10 @@ protected:
 
   Filter       *m_currentSource;
   Segmentation *m_currentSeg;
+  OutputNumber  m_currentOutput;
+
+private:
+  SnapshotCommand *m_eraseCommand;
 };
 
 #endif // BRUSH_H

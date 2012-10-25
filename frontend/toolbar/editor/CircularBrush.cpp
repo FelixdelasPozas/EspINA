@@ -20,17 +20,7 @@
 #include "CircularBrush.h"
 
 
-#include "common/editor/FreeFormSource.h"
 #include "common/editor/vtkTube.h"
-#include "common/model/Channel.h"
-#include "common/model/EspinaModel.h"
-#include "common/model/EspinaFactory.h"
-#include "common/gui/ViewManager.h"
-#include "common/undo/AddSegmentation.h"
-#include <tools/BrushPicker.h>
-#include <EspinaRegions.h>
-#include "frontend/toolbar/editor/BrushUndoCommand.h"
-
 
 #include <QDebug>
 #include <QUndoStack>
@@ -45,97 +35,33 @@ CircularBrush::CircularBrush(EspinaModel* model,
 
 
 //-----------------------------------------------------------------------------
-void CircularBrush::drawStroke(PickableItem *item,
-                               IPicker::WorldRegion centers,
-                               Nm radius,
-                               PlaneType plane)
+Brush::BrushShape CircularBrush::createBrushShape(PickableItem* item, double center[3], Nm radius, PlaneType plane)
 {
-    if (centers->GetNumberOfPoints() == 0)
-    return;
+  EspinaVolume::SpacingType spacing = item->itkVolume()->GetSpacing();
 
-    DrawCommand::BrushList brushes;
+  double sRadius = (plane == SAGITTAL)?0:radius;
+  double cRadius = (plane ==  CORONAL)?0:radius;
+  double aRadius = (plane ==    AXIAL)?0:radius;
 
-    double sRadius = (plane == SAGITTAL)?0:radius;
-    double cRadius = (plane ==  CORONAL)?0:radius;
-    double aRadius = (plane ==    AXIAL)?0:radius;
 
-    EspinaVolume::SpacingType spacing = item->itkVolume()->GetSpacing();
+  double brushBounds[6];//TODO 2012-10-24 Crop bounds
+  brushBounds[0] = center[0] - sRadius;
+  brushBounds[1] = center[0] + sRadius;
+  brushBounds[2] = center[1] - cRadius;
+  brushBounds[3] = center[1] + cRadius;
+  brushBounds[4] = center[2] - aRadius;
+  brushBounds[5] = center[2] + aRadius;
 
-    for (int i=0; i < centers->GetNumberOfPoints(); i++)
-    {
-      double brushCenter[3];
-      centers->GetPoint(i, brushCenter);
+  double baseCenter[3], topCenter[3];
+  for (int i=0; i<3; i++)
+    baseCenter[i] = topCenter[i] = center[i];
+  topCenter[plane] += 0.5*spacing[plane];
 
-      double brushBounds[6];//TODO 2012-10-24 Crop bounds
-      brushBounds[0] = brushCenter[0] - sRadius;
-      brushBounds[1] = brushCenter[0] + sRadius;
-      brushBounds[2] = brushCenter[1] - cRadius;
-      brushBounds[3] = brushCenter[1] + cRadius;
-      brushBounds[4] = brushCenter[2] - aRadius;
-      brushBounds[5] = brushCenter[2] + aRadius;
+  vtkTube *brush = vtkTube::New();
+  brush->SetBaseCenter(baseCenter);
+  brush->SetBaseRadius(radius);
+  brush->SetTopCenter(topCenter);
+  brush->SetTopRadius(radius);
 
-      double baseCenter[3], topCenter[3];
-      for (int i=0; i<3; i++)
-        baseCenter[i] = topCenter[i] = brushCenter[i];
-      topCenter[plane] += 0.5*spacing[plane];
-
-      vtkTube *brush = vtkTube::New();
-      brush->SetBaseCenter(baseCenter);
-      brush->SetBaseRadius(radius);
-      brush->SetTopCenter(topCenter);
-      brush->SetTopRadius(radius);
-      brushes << DrawCommand::Brush(brush,BoundingBox(brushBounds));
-    }
-
-    if (!m_currentSource)
-    {
-      Q_ASSERT(!m_currentSeg);
-
-      Q_ASSERT(ModelItem::CHANNEL == item->type());
-
-      Channel *channel = dynamic_cast<Channel *>(item);
-
-      Filter::NamedInputs inputs;
-      Filter::Arguments args;
-      FreeFormSource::Parameters params(args);
-      params.setSpacing(spacing);
-      m_currentSource = new FreeFormSource(inputs, args);
-      m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, 0);
-
-      m_undoStack->beginMacro("Draw Segmentation");
-      // We can't add empty segmentations to the model
-      m_undoStack->push(new DrawCommand(m_currentSource,
-                                        0,
-                                        brushes,
-                                        SEG_VOXEL_VALUE));
-      m_undoStack->push(new AddSegmentation(channel,
-                                            m_currentSource,
-                                            m_currentSeg,
-                                            m_viewManager->activeTaxonomy(),
-                                            m_model));
-      m_undoStack->endMacro();
-      m_brush->setBorderColor(QColor(Qt::green));
-    }else
-    {
-      Q_ASSERT(m_currentSource && m_currentSeg);
-      EspinaVolume::PixelType value = m_erasing?SEG_BG_VALUE:SEG_VOXEL_VALUE;
-
-      m_undoStack->push(new DrawCommand(m_currentSource,
-                                        m_currentSeg->outputNumber(),
-                                        brushes,
-                                        value));
-    }
-    //   if (m_currentSeg)
-    //     m_currentSeg->notifyModification(true);
-}
-
-//-----------------------------------------------------------------------------
-void CircularBrush::drawStrokeStep(PickableItem* item,
-                                   double x, double y, double z,
-                                   Nm radius,
-                                   PlaneType plane)
-{
-  if (!m_erasing)
-    return;
-  qDebug() << "Erasing";
+  return BrushShape(brush,BoundingBox(brushBounds));
 }

@@ -27,9 +27,23 @@
 typedef itk::ExtractImageFilter<EspinaVolume, EspinaVolume> ExtractType;
 
 //-----------------------------------------------------------------------------
+EspinaVolume::Pointer backup(EspinaVolume* volume)
+{
+  ExtractType::Pointer extractor = ExtractType::New();
+  extractor->SetNumberOfThreads(1);
+  extractor->SetInput(volume);
+  extractor->SetExtractionRegion(volume->GetLargestPossibleRegion());
+  extractor->Update();
+
+  EspinaVolume::Pointer res = extractor->GetOutput();
+  res->DisconnectPipeline();
+  return res;
+}
+
+//-----------------------------------------------------------------------------
 Brush::DrawCommand::DrawCommand(Filter* source,
                                 OutputNumber output,
-                                BrushList brushes,
+                                BrushShapeList brushes,
                                 EspinaVolume::PixelType value)
 : m_source(source)
 , m_output(output)
@@ -38,7 +52,7 @@ Brush::DrawCommand::DrawCommand(Filter* source,
 {
   for (int i = 0; i < m_brushes.size(); i++)
   {
-    Brush &brush = m_brushes[i];
+    BrushShape &brush = m_brushes[i];
     if (0 == i)
       memcpy(m_strokeBounds, brush.second.bounds(), 6*sizeof(double));
     else
@@ -60,18 +74,18 @@ void Brush::DrawCommand::redo()
   }else
   {
     if (m_source->numberOutputs() > 0)
-      backup(m_prevVolume, m_source->output(m_output));
+      m_prevVolume = backup(m_source->output(m_output));
 
     for (int i=0; i<m_brushes.size(); i++)
     {
-      Brush &brush = m_brushes[i];
+      BrushShape &brush = m_brushes[i];
       if (0 == i) // Prevent resizing on each brush
         m_source->draw(m_output, brush.first, m_strokeBounds, m_value);
       else
         m_source->draw(m_output, brush.first, brush.second.bounds(), m_value);
     }
     if (m_source->numberOutputs() > 0)
-      backup(m_newVolume, m_source->output(m_output));
+      m_newVolume = backup(m_source->output(m_output));
   }
 }
 
@@ -83,37 +97,30 @@ void Brush::DrawCommand::undo()
     m_source->restoreOutput(m_output, m_prevVolume);
 }
 
-//-----------------------------------------------------------------------------
-void Brush::DrawCommand::backup(EspinaVolume::Pointer &output, EspinaVolume* volume)
-{
-  ExtractType::Pointer extractor = ExtractType::New();
-  extractor->SetNumberOfThreads(1);
-  extractor->SetInput(volume);
-  extractor->SetExtractionRegion(volume->GetLargestPossibleRegion());
-  extractor->Update();
 
-  output = extractor->GetOutput();
-//   // Old version storing only stroke volume
-//   double volumeBounds[6];
-//   VolumeBounds(volume, volumeBounds);
-// 
-//   BoundingBox strokeBB(m_strokeBounds);
-//   BoundingBox volumeBB(volumeBounds);
-// 
-//   if (strokeBB.intersect(volumeBB))
-//   {
-//     BoundingBox interectionBB = strokeBB.intersection(volumeBB);
-// 
-//     typedef EspinaVolume::RegionType Region;
-//     Region strokeRegion = BoundsToRegion(interectionBB.bounds(), volume->GetSpacing());
-//     Region subVolumeRegion = VolumeRegion(volume, strokeRegion);
-// 
-//     ExtractType::Pointer extractor = ExtractType::New();
-//     extractor->SetNumberOfThreads(1);
-//     extractor->SetInput(volume);
-//     extractor->SetExtractionRegion(subVolumeRegion);
-//     extractor->Update();
-// 
-//     output = extractor->GetOutput();
-//   }
+
+
+//-----------------------------------------------------------------------------
+Brush::SnapshotCommand::SnapshotCommand(Filter* source,
+                                OutputNumber output)
+: m_source(source)
+, m_output(output)
+{
+  m_prevVolume = backup(source->output(output));
+}
+
+//-----------------------------------------------------------------------------
+void Brush::SnapshotCommand::redo()
+{
+  if (m_newVolume.IsNotNull())
+    m_source->restoreOutput(m_output, m_newVolume);
+}
+
+//-----------------------------------------------------------------------------
+void Brush::SnapshotCommand::undo()
+{
+  if (m_newVolume.IsNull())
+    m_newVolume = backup(m_source->output(m_output));
+  if (m_prevVolume.IsNotNull())
+    m_source->restoreOutput(m_output, m_prevVolume);
 }

@@ -33,14 +33,9 @@ public:
                           ViewManager* viewManager);
 
 protected:
-  virtual void drawStroke(PickableItem *item,
-                          IPicker::WorldRegion centers,
-                          Nm radius,
-                          PlaneType plane);
-  virtual void drawStrokeStep(PickableItem* item,
-                              double x, double y, double z,
-                              Nm radius,
-                              PlaneType plane);
+  virtual BrushShape createBrushShape(PickableItem* item,
+                                      double center[3],
+                                      Nm radius, PlaneType plane);
 };
 
 #endif // SPHERICALBRUSH_H
