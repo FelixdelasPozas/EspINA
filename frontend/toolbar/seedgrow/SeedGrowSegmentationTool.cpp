@@ -26,6 +26,7 @@
 #include "common/gui/EspinaRenderView.h"
 #include "common/gui/ViewManager.h"
 #include "common/tools/PickableItem.h"
+#include <EspinaRegions.h>
 #include "frontend/toolbar/seedgrow/SeedGrowSegmentationFilter.h"
 #include "frontend/toolbar/seedgrow/gui/ThresholdAction.h"
 #include "gui/DefaultVOIAction.h"
@@ -33,21 +34,24 @@
 
 #include <QApplication>
 #include <QWheelEvent>
+#include <QMessageBox>
+
+const QString SGS_VOI = "SGS VOI";
 
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationTool::CreateSegmentation::CreateSegmentation(Channel* channel,
                                                                  SeedGrowSegmentationFilter* filter,
+                                                                 Segmentation *segmentation,
                                                                  TaxonomyElement* taxonomy,
                                                                  EspinaModel* model)
 : m_model   (model)
 , m_channel (channel)
 , m_filter  (filter)
+, m_seg(segmentation)
 , m_taxonomy(taxonomy)
 {
   m_sample = m_channel->sample();
   Q_ASSERT(m_sample);
-
-  m_seg = m_model->factory()->createSegmentation(m_filter, 0);
 }
 
 
@@ -281,12 +285,12 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
   }
   else if (m_defaultVOI->useDefaultVOI())
   {
-    voiBounds[0] = seed[0]*spacing[0] - 60;//m_settings->xSize();
-    voiBounds[1] = seed[0]*spacing[0] + 60;//m_settings->xSize();
-    voiBounds[2] = seed[1]*spacing[1] - 60;//m_settings->ySize();
-    voiBounds[3] = seed[1]*spacing[1] + 60;//m_settings->ySize();
-    voiBounds[4] = seed[2]*spacing[2] - 60;//m_settings->zSize();
-    voiBounds[5] = seed[2]*spacing[2] + 60;//m_settings->zSize();
+    voiBounds[0] = seed[0]*spacing[0] - m_settings->xSize();
+    voiBounds[1] = seed[0]*spacing[0] + m_settings->xSize();
+    voiBounds[2] = seed[1]*spacing[1] - m_settings->ySize();
+    voiBounds[3] = seed[1]*spacing[1] + m_settings->ySize();
+    voiBounds[4] = seed[2]*spacing[2] - m_settings->zSize();
+    voiBounds[5] = seed[2]*spacing[2] + m_settings->zSize();
   } else
   {
     channel->bounds(voiBounds);
@@ -328,7 +332,28 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
     TaxonomyElement *tax = m_viewManager->activeTaxonomy();
     Q_ASSERT(tax);
 
-    m_undoStack->push(new CreateSegmentation(channel, filter, tax, m_model));
+    Segmentation *seg = m_model->factory()->createSegmentation(filter, 0);
+
+    double segBounds[6];
+    VolumeBounds(seg->itkVolume(), segBounds);
+
+    bool incompleteSeg = false;
+    for (int i=0, j=1; i<6; i+=2, j+=2)
+      if (segBounds[i] <= voiBounds[i] || voiBounds[j] <= segBounds[j])
+        incompleteSeg = true;
+
+    if (incompleteSeg)
+    {
+      QMessageBox warning;
+      warning.setIcon(QMessageBox::Warning);
+      warning.setWindowTitle(tr("Seed Grow Segmentation Filter Information"));
+      warning.setText(tr("New segmentation may be incomplete due to VOI restriction."));
+      warning.exec();
+      QString condition = tr("Touch VOI");
+      seg->addCondition(SGS_VOI, ":roi.svg", condition);
+    }
+
+    m_undoStack->push(new CreateSegmentation(channel, filter, seg, tax, m_model));
     QApplication::restoreOverrideCursor();
   }
 }

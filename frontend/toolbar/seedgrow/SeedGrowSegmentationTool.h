@@ -45,17 +45,18 @@ class SeedGrowSegmentationTool
   public:
     explicit CreateSegmentation(Channel * channel,
                                 SeedGrowSegmentationFilter *filter,
+                                Segmentation *segmentation,
                                 TaxonomyElement *taxonomy,
                                 EspinaModel *model);
     virtual void redo();
     virtual void undo();
   private:
-    EspinaModel                *m_model;
     Sample                     *m_sample;
     Channel                    *m_channel;
     SeedGrowSegmentationFilter *m_filter;
     Segmentation               *m_seg;
     TaxonomyElement            *m_taxonomy;
+    EspinaModel                *m_model;
   };
 
   Q_OBJECT

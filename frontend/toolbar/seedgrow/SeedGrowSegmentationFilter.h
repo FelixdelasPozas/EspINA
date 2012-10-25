@@ -116,7 +116,6 @@ public:
                                       Arguments args);
   virtual ~SeedGrowSegmentationFilter();
 
-
   void setLowerThreshold(int th);
   int lowerThreshold() const {return m_param.lowerThreshold();}
   void setUpperThreshold(int th);

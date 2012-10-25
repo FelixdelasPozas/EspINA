@@ -1049,12 +1049,12 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
     if (me->button() == Qt::LeftButton)
     {
       if (me->modifiers() == Qt::CTRL)
-	centerCrosshairOnMousePosition();
+        centerCrosshairOnMousePosition();
       else
-	if (m_inThumbnail)
-	  centerViewOnMousePosition();
-	else if (m_selectionEnabled)
-	  selectPickedItems(me->modifiers() == Qt::SHIFT);
+        if (m_inThumbnail)
+          centerViewOnMousePosition();
+        else if (m_selectionEnabled)
+          selectPickedItems(me->modifiers() == Qt::SHIFT);
     }
   }
   //else if (QEvent::ContextMenu == e->type())

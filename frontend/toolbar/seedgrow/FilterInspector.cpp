@@ -20,6 +20,7 @@
 // EspINA
 #include "common/gui/ViewManager.h"
 #include "common/widgets/RectangularRegion.h"
+#include <EspinaRegions.h>
 
 // Qt
 #include <QDebug>
@@ -163,13 +164,17 @@ void SeedGrowSegmentationFilter::FilterInspector::redefineVOI(Nm pos,
 void SeedGrowSegmentationFilter::FilterInspector::modifyFilter()
 {
   EspinaVolume::SpacingType spacing = m_filter->output(0)->GetSpacing();
+  double voiBounds[6];
+  voiBounds[0] = m_leftMargin->value();
+  voiBounds[1] = m_rightMargin->value();
+  voiBounds[2] = m_topMargin->value();
+  voiBounds[3] = m_bottomMargin->value();
+  voiBounds[4] = m_upperMargin->value();
+  voiBounds[5] = m_lowerMargin->value();
+
   int VOI[6];
-  VOI[0] = m_leftMargin->value()/spacing[0];
-  VOI[1] = m_rightMargin->value()/spacing[0];
-  VOI[2] = m_topMargin->value()/spacing[1];
-  VOI[3] = m_bottomMargin->value()/spacing[1];
-  VOI[4] = m_upperMargin->value()/spacing[2];
-  VOI[5] = m_lowerMargin->value()/spacing[2];
+  for(int i=0; i < 6; i++)
+    VOI[i] = voiBounds[i]/spacing[i/2];
 
   int x = m_xSeed->text().toInt();
   int y = m_ySeed->text().toInt();
@@ -191,6 +196,31 @@ void SeedGrowSegmentationFilter::FilterInspector::modifyFilter()
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
   m_filter->update();
+
+  // TODO 2012-10-25 Change FilerInspector API to pass segmentations
+  // it can be needed to modify their conditions or even to delete them
+  double segBounds[6];
+  VolumeBounds(m_filter->output(0), segBounds);
+  //VolumeBounds(m_seg->itkVolume(), segBounds);
+
+  bool incompleteSeg = false;
+  for (int i=0, j=1; i<6; i+=2, j+=2)
+  {
+    if (segBounds[i] <= voiBounds[i] || voiBounds[j] <= segBounds[j])
+      incompleteSeg = true;
+  }
+
+  if (incompleteSeg)
+  {
+    QMessageBox warning;
+    warning.setIcon(QMessageBox::Warning);
+    warning.setWindowTitle(tr("Seed Grow Segmentation Filter Information"));
+    warning.setText(tr("New segmentation may be incomplete due to VOI restriction."));
+    warning.exec();
+    QString condition = tr("Touch VOI");
+    //seg->addCondition(SGS_VOI, ":roi.svg", condition);
+  }
+
   m_viewManager->updateViews();
   QApplication::restoreOverrideCursor();
 }
