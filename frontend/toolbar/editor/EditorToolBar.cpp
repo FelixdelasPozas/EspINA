@@ -171,6 +171,8 @@ EditorToolBar::EditorToolBar(EspinaModel *model,
   CircularBrush *circularBrush = new CircularBrush(m_model, m_undoStack, m_viewManager);
   connect(circularBrush, SIGNAL(stopDrawing()),
           this, SLOT(cancelDrawOperation()));
+  connect(circularBrush, SIGNAL(brushModeChanged(Brush::BrushMode)),
+          this, SLOT(changeCircularBrushMode(Brush::BrushMode)));
   m_drawTools[discTool] = circularBrush;
   m_drawToolSelector->addAction(discTool);
 
@@ -181,6 +183,8 @@ EditorToolBar::EditorToolBar(EspinaModel *model,
   SphericalBrush *sphericalBrush = new SphericalBrush(m_model, m_undoStack, m_viewManager);
   connect(sphericalBrush, SIGNAL(stopDrawing()),
           this, SLOT(cancelDrawOperation()));
+  connect(sphericalBrush, SIGNAL(brushModeChanged(Brush::BrushMode)),
+          this, SLOT(changeSphericalBrushMode(Brush::BrushMode)));
   m_drawTools[sphereTool] = sphericalBrush;
   m_drawToolSelector->addAction(sphereTool);
 
@@ -490,4 +494,28 @@ void EditorToolBar::changeDrawTool(QAction *action)
 {
   Q_ASSERT(m_drawTools.contains(action));
   m_viewManager->setActiveTool(m_drawTools[action]);
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::changeCircularBrushMode(Brush::BrushMode mode)
+{
+  QString icon;
+  if (Brush::BRUSH == mode)
+    icon = ":/espina/pencil2D.png";
+  else
+    icon = ":/espina/eraser2D.png";
+
+  m_drawToolSelector->setIcon(QIcon(icon));
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::changeSphericalBrushMode(Brush::BrushMode mode)
+{
+  QString icon;
+  if (Brush::BRUSH == mode)
+    icon = ":/espina/pencil2D.png";
+  else
+    icon = ":/espina/eraser2D.png";
+
+  m_drawToolSelector->setIcon(QIcon(icon));
 }

@@ -38,8 +38,11 @@ class Brush
 : public ITool
 {
   Q_OBJECT
+
+  enum DrawMode {CREATE, MODIFY};
+
 public:
-  enum Mode {CREATE, MODIFY};
+  enum BrushMode {BRUSH, ERASER};
 
   typedef QPair<vtkImplicitFunction *, BoundingBox> BrushShape;
   typedef QList<BrushShape> BrushShapeList;
@@ -78,6 +81,7 @@ virtual void drawStrokeStep(PickableItem *item,
                             Nm radius,
                             PlaneType plane);
 signals:
+  void brushModeChanged(Brush::BrushMode);
   void stopDrawing();
 
 protected:
@@ -85,7 +89,7 @@ protected:
   QUndoStack  *m_undoStack;
   ViewManager *m_viewManager;
 
-  Mode         m_mode;
+  DrawMode     m_mode;
   bool         m_erasing;
   BrushPicker *m_brush;
 

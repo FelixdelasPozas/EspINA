@@ -90,6 +90,7 @@ bool Brush::filterEvent(QEvent* e, EspinaRenderView* view)
     {
       m_brush->setBorderColor(QColor(Qt::green));
       m_brush->setStrokeVisibility(true);
+      emit brushModeChanged(BRUSH);
     }
   } else if (m_currentSource)
   {
@@ -108,6 +109,7 @@ bool Brush::filterEvent(QEvent* e, EspinaRenderView* view)
     {
       m_brush->setBorderColor(QColor(Qt::red));
       m_brush->setStrokeVisibility(false);
+      emit brushModeChanged(ERASER);
     }
   }
   if (e->type() == QEvent::Wheel)
@@ -191,9 +193,11 @@ void Brush::drawStroke(PickableItem* item,
 
   if (m_erasing)
   {
-    Q_ASSERT(m_eraseCommand);
-    m_undoStack->push(m_eraseCommand);
-    m_eraseCommand = NULL;
+    if (m_eraseCommand)
+    {
+      m_undoStack->push(m_eraseCommand);
+      m_eraseCommand = NULL;
+    }
   }else
   {
     BrushShapeList brushes;

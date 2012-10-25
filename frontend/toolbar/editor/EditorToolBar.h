@@ -27,6 +27,7 @@
 // EspINA
 #include "common/editor/BrushSelector.h"
 #include "common/model/Segmentation.h"
+#include "Brush.h"
 
 class Channel;
 class ITool;
@@ -68,6 +69,8 @@ public:
                                const ModelItem::Arguments args);
 protected slots:
   void changeDrawTool(QAction *);
+  void changeCircularBrushMode(Brush::BrushMode mode);
+  void changeSphericalBrushMode(Brush::BrushMode mode);
   void combineSegmentations();
   void substractSegmentations();
   void erodeSegmentations();
