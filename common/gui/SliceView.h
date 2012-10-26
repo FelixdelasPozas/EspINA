@@ -109,6 +109,8 @@ public:
   virtual void eventPosition(int &x, int &y);
   virtual IPicker::PickList pick(IPicker::PickableItems filter,
                                  IPicker::DisplayRegionList regions);
+  virtual void setSelectionEnabled(bool enabe);
+  
   virtual vtkRenderWindow *renderWindow();
   virtual vtkRenderer* mainRenderer();
 
@@ -239,6 +241,7 @@ private:
   PlaneType m_plane;
   vtkMatrix4x4 *m_slicingMatrix;
   State *m_state;
+  bool m_selectionEnabled;
   bool m_showSegmentations;
   bool m_showThumbnail;
   SettingsPtr m_settings;
@@ -313,6 +316,5 @@ private:
   PlaneType m_plane;
   QString viewSettings;
 };
-
 
 #endif // SLICEVIEW_H

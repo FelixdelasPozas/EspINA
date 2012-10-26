@@ -114,6 +114,7 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
 , m_toSlice(new QPushButton("To"))
 , m_ruler(vtkSmartPointer<vtkAxisActor2D>::New())
 , m_plane(plane)
+, m_selectionEnabled(true)
 , m_showSegmentations(true)
 , m_showThumbnail(true)
 , m_settings(new Settings(m_plane))
@@ -618,6 +619,12 @@ IPicker::PickList SliceView::pick(IPicker::PickableItems filter,
 }
 
 //-----------------------------------------------------------------------------
+void SliceView::setSelectionEnabled(bool enabe)
+{
+  m_selectionEnabled = enabe;
+}
+
+//-----------------------------------------------------------------------------
 void SliceView::updateView()
 {
   if (isVisible())
@@ -1016,65 +1023,59 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
     m_spinBox->setValue(m_spinBox->value() - numSteps);
     e->ignore();
   }
-  //     else if (QEvent::Enter == e->type())
-  //     {
-    //       QWidget::enterEvent(e);
-    //
-    //       // get the focus this very moment
-    //       inFocus = true;
-    //       this->setFocus(Qt::OtherFocusReason);
-    //       QKeyEvent event(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
-    //       qApp->sendEvent(this, &event);
-    //
-    //       m_view->setCursor(m_viewManager->cursor());
-    //       e->accept();
-    //     }
-    //     else if (QEvent::Leave == e->type())
-    //     {
-      //       inFocus = false;
-      //     }
-      else if (QEvent::MouseMove == e->type())
-      {
-        int x, y;
-        eventPosition(x, y);
-        m_inThumbnail = m_thumbnail->GetDraw() && m_channelPicker->Pick(x, y, 0.1, m_thumbnail);
+  //else if (QEvent::Enter == e->type())
+  //{ QWidget::enterEvent(e);
+  //
+  //   // get the focus this very moment
+  //   inFocus = true;
+  //   this->setFocus(Qt::OtherFocusReason);
+  //   QKeyEvent event(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
+  //   qApp->sendEvent(this, &event);
+  //
+  //   m_view->setCursor(m_viewManager->cursor());
+  //   e->accept();}
+  //  else if (QEvent::Leave == e->type())
+  //  {inFocus = false; }
+  else if (QEvent::MouseMove == e->type())
+  {
+    int x, y;
+    eventPosition(x, y);
+    m_inThumbnail = m_thumbnail->GetDraw() && m_channelPicker->Pick(x, y, 0.1, m_thumbnail);
 
-      }
-      else if (e->type() == QEvent::MouseButtonPress)
-      {
-        QMouseEvent* me = static_cast<QMouseEvent*>(e);
-        if (me->button() == Qt::LeftButton)
-        {
-          if (me->modifiers() == Qt::CTRL)
-            centerCrosshairOnMousePosition();
-          else
-            if (m_inThumbnail)
-              centerViewOnMousePosition();
-            else
-              selectPickedItems(me->modifiers() == Qt::SHIFT);
-        }
-      }
-//       else if (QEvent::ContextMenu == e->type())
-//       {
-//         QContextMenuEvent *cme = dynamic_cast<QContextMenuEvent*>(e);
-//         QMenu *menu = new QMenu(this);
-//         menu->addAction(tr("Info"));
-//         menu->popup(mapToGlobal(cme->pos()));
-//         return true;
-//       }
-      else if (QEvent::ToolTip == e->type())
-      {
-        int x, y;
-        eventPosition(x, y);
-        SegmentationList segs = pickSegmentations(x, y, m_renderer);
-        QString toopTip;
-        foreach(Segmentation *seg, segs)
-        {
-          toopTip = toopTip.append("<b>%1</b><br>").arg(seg->data().toString());
-          toopTip = toopTip.append(seg->data(Qt::ToolTipRole).toString());
-        }
-        m_view->setToolTip(toopTip);
-      }
+  }
+  else if (e->type() == QEvent::MouseButtonPress)
+  {
+    QMouseEvent* me = static_cast<QMouseEvent*>(e);
+    if (me->button() == Qt::LeftButton)
+    {
+      if (me->modifiers() == Qt::CTRL)
+	centerCrosshairOnMousePosition();
+      else
+	if (m_inThumbnail)
+	  centerViewOnMousePosition();
+	else if (m_selectionEnabled)
+	  selectPickedItems(me->modifiers() == Qt::SHIFT);
+    }
+  }
+  //else if (QEvent::ContextMenu == e->type())
+  //{ QContextMenuEvent *cme = dynamic_cast<QContextMenuEvent*>(e);
+  //  QMenu *menu = new QMenu(this);
+  //  menu->addAction(tr("Info"));
+  //  menu->popup(mapToGlobal(cme->pos()));
+  //  return true; }
+  else if (QEvent::ToolTip == e->type())
+  {
+    int x, y;
+    eventPosition(x, y);
+    SegmentationList segs = pickSegmentations(x, y, m_renderer);
+    QString toopTip;
+    foreach(Segmentation *seg, segs)
+    {
+      toopTip = toopTip.append("<b>%1</b><br>").arg(seg->data().toString());
+      toopTip = toopTip.append(seg->data(Qt::ToolTipRole).toString());
+    }
+    m_view->setToolTip(toopTip);
+  }
 
   if ( QEvent::MouseMove == e->type()
     || QEvent::MouseButtonPress == e->type()

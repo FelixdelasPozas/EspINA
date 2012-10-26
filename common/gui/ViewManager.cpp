@@ -76,6 +76,13 @@ void ViewManager::registerView(SliceView* view)
 
 
 //----------------------------------------------------------------------------
+void ViewManager::setSelectionEnabled(bool enable)
+{
+  foreach(EspinaRenderView *view, m_renderViews)
+    view->setSelectionEnabled(enable);
+}
+
+//----------------------------------------------------------------------------
 void ViewManager::setSelection(ViewManager::Selection selection)
 {
   if (m_selection == selection)
@@ -131,6 +138,8 @@ void ViewManager::setActiveTool(ITool* tool)
 
   if (m_tool)
     m_tool->setInUse(true);
+  else
+    setSelectionEnabled(true);
 }
 
 //----------------------------------------------------------------------------
@@ -140,6 +149,7 @@ void ViewManager::unsetActiveTool()
   {
     m_tool->setInUse(false);
     m_tool = NULL;
+    setSelectionEnabled(true);
   }
 }
 
@@ -150,6 +160,7 @@ void ViewManager::unsetActiveTool(ITool* tool)
   {
     m_tool->setInUse(false);
     m_tool = NULL;
+    setSelectionEnabled(true);
   }
 }
 

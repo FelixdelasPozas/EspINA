@@ -36,9 +36,9 @@ public:
 
   virtual QCursor cursor() const;
   virtual bool filterEvent(QEvent* e, EspinaRenderView* view = 0);
-  virtual void setInUse(bool enable);
+  virtual void setInUse(bool value);
   virtual void setEnabled(bool enable);
-  virtual bool enabled() const {return m_interactive;}
+  virtual bool enabled() const {return m_enabled;}
 
   virtual IVOI::Region region();
 
@@ -49,8 +49,8 @@ private slots:
 private:
   ViewManager *m_viewManager;
 
+  bool m_inUse;
   bool m_enabled;
-  bool m_interactive;
 
   PixelSelector      m_picker;
   RectangularRegion *m_widget;

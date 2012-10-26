@@ -50,7 +50,6 @@ public:
   virtual void removeSegmentation(Segmentation *seg) = 0;
   virtual bool updateSegmentation(Segmentation *seg) = 0;
 
-
   virtual void addWidget(EspinaWidget *widget) = 0;
   virtual void removeWidget(EspinaWidget *widget) = 0;
 
@@ -63,6 +62,7 @@ public:
   virtual void eventPosition(int &x, int &y) = 0;
   virtual IPicker::PickList pick(IPicker::PickableItems filter,
                                  IPicker::DisplayRegionList regions) = 0;
+  virtual void setSelectionEnabled(bool enabe) = 0;
 
   virtual vtkRenderWindow *renderWindow() = 0;
   virtual vtkRenderer *mainRenderer() = 0;
@@ -75,6 +75,7 @@ public:
 
   virtual void centerViewOn(Nm *, bool) = 0;
   virtual void showCrosshairs(bool) = 0;
+
 protected slots:
   virtual void updateSceneBounds();
 

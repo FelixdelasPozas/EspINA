@@ -27,8 +27,8 @@
 //-----------------------------------------------------------------------------
 RectangularVOI::RectangularVOI(ViewManager *vm)
 : m_viewManager(vm)
+, m_inUse(false)
 , m_enabled(true)
-, m_interactive(true)
 , m_widget (NULL)
 {
   m_picker.setCursor(QCursor(QPixmap(":roi_go.svg").scaled(32,32)));
@@ -61,7 +61,7 @@ bool RectangularVOI::filterEvent(QEvent* e, EspinaRenderView* view)
 {
   bool eventHandled = false;
 
-  if (m_interactive)
+  if (m_enabled)
   {
     if (m_widget)
       eventHandled = m_widget->filterEvent(e,view);
@@ -74,15 +74,18 @@ bool RectangularVOI::filterEvent(QEvent* e, EspinaRenderView* view)
 }
 
 //-----------------------------------------------------------------------------
-void RectangularVOI::setInUse(bool enable)
+void RectangularVOI::setInUse(bool value)
 {
-  if (m_enabled == enable)
+  if (m_inUse == value)
     return;
 
-  m_enabled = enable;
+  m_inUse = value;
 
-  if (m_enabled)
-    m_interactive = true;
+  if (m_inUse)
+  {
+    m_enabled = true;
+    m_viewManager->setSelectionEnabled(false);
+  }
   else if (m_widget)
   {
     m_viewManager->hideSliceSelectors(ViewManager::From|ViewManager::To);
@@ -101,10 +104,10 @@ void RectangularVOI::setInUse(bool enable)
 //-----------------------------------------------------------------------------
 void RectangularVOI::setEnabled(bool enable)
 {
-  if (m_interactive == enable)
+  if (m_enabled == enable)
     return;
 
-  m_interactive = enable;
+  m_enabled = enable;
   if (m_widget)
     m_widget->setEnabled(enable);
 }

@@ -75,6 +75,9 @@ private:
 public:
   typedef QList<PickableItem *> Selection;
 
+  /// Enable item selection in render views
+  void setSelectionEnabled(bool enable);
+  /// Synchronize @selection between all registered views
   void setSelection(Selection selection);
   /// Returns current selection
   Selection selection() const { return m_selection; }
