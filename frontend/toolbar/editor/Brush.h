@@ -60,7 +60,7 @@ public:
   virtual bool filterEvent(QEvent* e, EspinaRenderView* view = 0);
   virtual bool enabled() const;
   virtual void setEnabled(bool enable);
-  virtual void setInUse(bool enable);
+  virtual void setInUse(bool value);
 
 protected:
   virtual SegmentationList selectedSegmentations() const;
@@ -89,6 +89,7 @@ protected:
   QUndoStack  *m_undoStack;
   ViewManager *m_viewManager;
 
+  bool         m_inUse;
   DrawMode     m_mode;
   bool         m_erasing;
   BrushPicker *m_brush;

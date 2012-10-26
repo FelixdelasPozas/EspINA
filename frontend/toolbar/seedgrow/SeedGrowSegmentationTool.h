@@ -70,9 +70,9 @@ public:
 
   virtual QCursor cursor() const;
   virtual bool filterEvent(QEvent* e, EspinaRenderView *view = 0);
-  virtual bool enabled() const {return m_interactive;}
+  virtual bool enabled() const {return m_enabled;}
   virtual void setEnabled(bool enable);
-  virtual void setInUse(bool enable);
+  virtual void setInUse(bool value);
 
   void setChannelPicker(IPicker *picker);
 
@@ -97,8 +97,8 @@ private:
   ThresholdAction  *m_threshold;
   IPicker *m_picker;
 
+  bool m_inUse;
   bool m_enabled;
-  bool m_interactive;
   SeedGrowSegmentationFilter *m_preview;
 };
 

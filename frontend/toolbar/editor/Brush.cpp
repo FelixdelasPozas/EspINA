@@ -46,6 +46,7 @@ Brush::Brush(EspinaModel* model,
 : m_model(model)
 , m_undoStack(undoStack)
 , m_viewManager(viewManager)
+, m_inUse(false)
 , m_mode(CREATE)
 , m_erasing(false)
 , m_brush(new BrushPicker())
@@ -128,9 +129,14 @@ bool Brush::filterEvent(QEvent* e, EspinaRenderView* view)
 }
 
 //-----------------------------------------------------------------------------
-void Brush::setInUse(bool enable)
+void Brush::setInUse(bool value)
 {
-  if (enable && m_viewManager->activeTaxonomy() && m_viewManager->activeChannel())
+  if (value == m_inUse)
+    return;
+  
+  m_inUse = value;
+
+  if (value && m_viewManager->activeTaxonomy() && m_viewManager->activeChannel())
   {
     m_brush->setBrushColor(m_viewManager->activeTaxonomy()->color());
     SegmentationList segs = selectedSegmentations();

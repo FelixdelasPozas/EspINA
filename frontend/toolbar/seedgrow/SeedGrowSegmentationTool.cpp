@@ -90,8 +90,8 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(EspinaModel *model,
 , m_defaultVOI(voi)
 , m_settings(settings)
 , m_picker(NULL)
+, m_inUse(true)
 , m_enabled(true)
-, m_interactive(true)
 , m_preview(NULL)
 {
   Q_ASSERT(m_threshold);
@@ -103,7 +103,7 @@ QCursor SeedGrowSegmentationTool::cursor() const
 {
   QCursor cursor(Qt::ArrowCursor);
 
-  if (m_picker && m_enabled)
+  if (m_picker && m_inUse)
     cursor = m_picker->cursor();
 
   return cursor;
@@ -112,7 +112,7 @@ QCursor SeedGrowSegmentationTool::cursor() const
 //-----------------------------------------------------------------------------
 bool SeedGrowSegmentationTool::filterEvent(QEvent* e, EspinaRenderView *view)
 {
-  if (!m_interactive)
+  if (!m_enabled)
     return false;
 
   if (e->type() == QEvent::Wheel)
@@ -196,17 +196,17 @@ bool SeedGrowSegmentationTool::filterEvent(QEvent* e, EspinaRenderView *view)
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::setEnabled(bool enable)
 {
-  if (m_interactive != enable)
-    m_interactive = enable;
+  if (m_enabled != enable)
+    m_enabled = enable;
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::setInUse(bool enable)
+void SeedGrowSegmentationTool::setInUse(bool value)
 {
-  if (m_enabled != enable)
+  if (m_inUse != value)
   {
-    m_enabled = enable;
-    if (!m_enabled)
+    m_inUse = value;
+    if (!m_inUse)
       emit segmentationStopped();
   }
 }
