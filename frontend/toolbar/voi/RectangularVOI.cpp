@@ -86,19 +86,22 @@ void RectangularVOI::setInUse(bool value)
     m_enabled = true;
     m_viewManager->setSelectionEnabled(false);
   }
-  else if (m_widget)
+  else
   {
-    m_viewManager->hideSliceSelectors(ViewManager::From|ViewManager::To);
-    disconnect(m_viewManager, SIGNAL(sliceSelected(Nm,PlaneType,ViewManager::SliceSelectors)),
-               this, SLOT(setBorder(Nm,PlaneType,ViewManager::SliceSelectors)));
+    if (m_widget)
+    {
+      m_viewManager->hideSliceSelectors(ViewManager::From|ViewManager::To);
+      disconnect(m_viewManager, SIGNAL(sliceSelected(Nm,PlaneType,ViewManager::SliceSelectors)),
+                 this, SLOT(setBorder(Nm,PlaneType,ViewManager::SliceSelectors)));
 
-    m_viewManager->removeWidget(m_widget);
-    delete m_widget;
-    m_widget = NULL;
+      m_viewManager->removeWidget(m_widget);
+      delete m_widget;
+      m_widget = NULL;
 
-    m_viewManager->updateViews();
+      m_viewManager->updateViews();
+    }
+    emit voiDeactivated();
   }
-
 }
 
 //-----------------------------------------------------------------------------

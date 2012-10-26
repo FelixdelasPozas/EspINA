@@ -46,6 +46,9 @@ private slots:
   void defineVOI(IPicker::PickList channels);
   void setBorder(Nm pos, PlaneType plane, ViewManager::SliceSelectors flags);
 
+signals:
+  void voiDeactivated();
+
 private:
   ViewManager *m_viewManager;
 

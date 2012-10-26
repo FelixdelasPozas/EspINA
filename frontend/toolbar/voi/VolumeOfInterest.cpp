@@ -62,7 +62,10 @@ void VolumeOfInterest::buildVOIs()
   action = new QAction(QIcon(":roi.svg"), tr("Volume Of Interest"), m_voiSelector);
 
   m_voiSelector->addAction(action);
-  m_vois[action] = new RectangularVOI(m_viewManager);
+  RectangularVOI *voi = new RectangularVOI(m_viewManager);
+  m_vois[action] = voi;
+  connect(voi, SIGNAL(voiDeactivated()),
+          this, SLOT(cancelVOI()));
 }
 
 //-----------------------------------------------------------------------------
@@ -75,5 +78,6 @@ void VolumeOfInterest::changeVOI(QAction* action)
 //-----------------------------------------------------------------------------
 void VolumeOfInterest::cancelVOI()
 {
+  m_voiSelector->cancel();
   m_viewManager->setVOI(NULL);
 }
