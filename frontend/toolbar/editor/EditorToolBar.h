@@ -79,6 +79,7 @@ protected slots:
   void erodeSegmentations();
   void fillHoles();
   void cancelDrawOperation();
+  void updateAvailableOperations();
 
   SegmentationList selectedSegmentations();
 

@@ -166,7 +166,7 @@ EditorToolBar::EditorToolBar(EspinaModel *model,
 
   // draw with a disc
   QAction *discTool = new QAction(QIcon(":/espina/pencil2D.png"),
-                                   tr("Drew segmentations using a disc"),
+                                   tr("Draw segmentations using a disc"),
                                    m_drawToolSelector);
   CircularBrush *circularBrush = new CircularBrush(m_model, m_undoStack, m_viewManager);
   connect(circularBrush, SIGNAL(stopDrawing()),
@@ -238,7 +238,10 @@ EditorToolBar::EditorToolBar(EspinaModel *model,
   connect(m_fill, SIGNAL(triggered(bool)),
           this, SLOT(fillHoles()));
 
+  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection)),
+          this, SLOT(updateAvailableOperations()));
 
+  updateAvailableOperations();
 }
 
 //----------------------------------------------------------------------------
@@ -418,6 +421,7 @@ void EditorToolBar::startContourDrawing()
   */
 }
 
+//----------------------------------------------------------------------------
 void EditorToolBar::cancelDrawOperation()
 {
   m_drawToolSelector->cancel();
@@ -500,6 +504,43 @@ void EditorToolBar::cancelDrawOperation()
   m_currentSource = NULL;
   m_currentSeg = NULL;
 }
+
+//----------------------------------------------------------------------------
+void EditorToolBar::updateAvailableOperations()
+{
+  SegmentationList segs = selectedSegmentations();
+
+  bool one = segs.size() == 1;
+  QString oneToolTip;
+  if (!one)
+    oneToolTip = tr(" (This tool requires just one segmentation to be selected)");
+
+  bool atLeastTwo = segs.size()  > 1;
+  QString atLeastTwoToolTip;
+  if (!atLeastTwo)
+    atLeastTwoToolTip = tr(" (This tool requires at least two segmentation to be selected)");
+
+  bool several    = segs.size()  > 0;
+  QString severalToolTip;
+  if (!several)
+    severalToolTip = tr(" (This tool requires at least one segmentation to be selected)");
+
+  m_addition->setEnabled(atLeastTwo);
+  m_addition->setToolTip(tr("Combine Selected Segmentations") + atLeastTwoToolTip);
+  m_substraction->setEnabled(atLeastTwo);
+  m_substraction->setToolTip(tr("Subtract Selected Segmentations") + atLeastTwoToolTip);
+  m_close->setEnabled(several);
+  m_close->setToolTip(tr("Close Selected Segmentations") + severalToolTip);
+  m_open->setEnabled(several);
+  m_open->setToolTip(tr("Open Selected Segmentations") + severalToolTip);
+  m_dilate->setEnabled(several);
+  m_dilate->setToolTip(tr("Dilate Selected Segmentations") + severalToolTip);
+  m_erode->setEnabled(several);
+  m_erode->setToolTip(tr("Erode Selected Segmentations") + severalToolTip);
+  m_fill->setEnabled(several);
+  m_fill->setToolTip(tr("Fill Holes in Selected Segmentations") + severalToolTip);
+}
+
 
 //----------------------------------------------------------------------------
 void EditorToolBar::changeDrawTool(QAction *action)
