@@ -144,7 +144,10 @@ void ViewManager::unsetActiveTool()
 void ViewManager::unsetActiveTool(ITool* tool)
 {
   if (m_tool == tool)
+  {
+    m_tool->setInUse(false);
     m_tool = NULL;
+  }
 }
 
 //----------------------------------------------------------------------------

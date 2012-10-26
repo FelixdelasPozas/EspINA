@@ -16,7 +16,6 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "EspinaWindow.h"
 
 // EspINA
@@ -279,6 +278,9 @@ void EspinaWindow::loadPlugins()
   {
     QPluginLoader loader(pluginsDir.absoluteFilePath(fileName));
     QObject *plugin = loader.instance();
+
+    // for debuggin plugins
+    // qDebug() << loader.errorString();
 
     if (plugin)
     {
