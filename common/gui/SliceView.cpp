@@ -1023,19 +1023,22 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
     m_spinBox->setValue(m_spinBox->value() - numSteps);
     e->ignore();
   }
-  //else if (QEvent::Enter == e->type())
-  //{ QWidget::enterEvent(e);
-  //
-  //   // get the focus this very moment
-  //   inFocus = true;
-  //   this->setFocus(Qt::OtherFocusReason);
-  //   QKeyEvent event(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
-  //   qApp->sendEvent(this, &event);
-  //
-  //   m_view->setCursor(m_viewManager->cursor());
-  //   e->accept();}
-  //  else if (QEvent::Leave == e->type())
-  //  {inFocus = false; }
+  else if (QEvent::Enter == e->type())
+  {
+    QWidget::enterEvent(e);
+
+    // get the focus this very moment
+    inFocus = true;
+    this->setFocus(Qt::OtherFocusReason);
+    QKeyEvent event(QEvent::KeyPress, Qt::Key_Tab, Qt::NoModifier);
+    qApp->sendEvent(this, &event);
+
+    m_view->setCursor(m_viewManager->cursor());
+    e->accept();}
+   else if (QEvent::Leave == e->type())
+   {
+     inFocus = false;
+  }
   else if (QEvent::MouseMove == e->type())
   {
     int x, y;
@@ -1075,6 +1078,15 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
       toopTip = toopTip.append(seg->data(Qt::ToolTipRole).toString());
     }
     m_view->setToolTip(toopTip);
+  }
+
+  if (QEvent::KeyPress == e->type())
+  {
+    QKeyEvent *ke = dynamic_cast<QKeyEvent *>(e);
+    if (ke->modifiers() != Qt::CTRL &&
+        ke->modifiers() != Qt::SHIFT &&
+        ke->key() != Qt::Key_Backspace)
+      return true;
   }
 
   if ( QEvent::MouseMove == e->type()

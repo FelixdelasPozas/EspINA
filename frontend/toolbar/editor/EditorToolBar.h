@@ -73,10 +73,10 @@ protected slots:
   void changeSphericalBrushMode(Brush::BrushMode mode);
   void combineSegmentations();
   void substractSegmentations();
-  void erodeSegmentations();
-  void dilateSegmentations();
-  void openSegmentations();
   void closeSegmentations();
+  void openSegmentations();
+  void dilateSegmentations();
+  void erodeSegmentations();
   void fillHoles();
   void cancelDrawOperation();
 

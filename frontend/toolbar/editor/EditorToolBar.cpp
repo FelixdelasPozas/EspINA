@@ -280,8 +280,9 @@ Filter* EditorToolBar::createFilter(const QString filter, Filter::NamedInputs in
 //----------------------------------------------------------------------------
 void EditorToolBar::combineSegmentations()
 {
-  SegmentationList input = selectedSegmentations();
+  m_viewManager->unsetActiveTool();
 
+  SegmentationList input = selectedSegmentations();
   if (input.size() > 1)
   {
     m_undoStack->beginMacro("Combine Segmentations");
@@ -296,8 +297,9 @@ void EditorToolBar::combineSegmentations()
 //----------------------------------------------------------------------------
 void EditorToolBar::substractSegmentations()
 {
-  SegmentationList input = selectedSegmentations();
+  m_viewManager->unsetActiveTool();
 
+  SegmentationList input = selectedSegmentations();
   if (input.size() > 1)
   {
     m_undoStack->beginMacro("Substract Segmentations");
@@ -310,41 +312,10 @@ void EditorToolBar::substractSegmentations()
 }
 
 //----------------------------------------------------------------------------
-void EditorToolBar::erodeSegmentations()
-{
-  SegmentationList input = selectedSegmentations();
-  if (input.size() > 0)
-  {
-    int r = m_settings->erodeRadius();
-    m_undoStack->push(new CODECommand(input, CODECommand::ERODE, r, m_model));
-  }
-}
-
-//----------------------------------------------------------------------------
-void EditorToolBar::dilateSegmentations()
-{
-  SegmentationList input = selectedSegmentations();
-  if (input.size() > 0)
-  {
-    int r = m_settings->dilateRadius();
-    m_undoStack->push(new CODECommand(input, CODECommand::DILATE, r, m_model));
-  }
-}
-
-//----------------------------------------------------------------------------
-void EditorToolBar::openSegmentations()
-{
-  SegmentationList input = selectedSegmentations();
-  if (input.size() > 0)
-  {
-    int r = m_settings->openRadius();
-    m_undoStack->push(new CODECommand(input, CODECommand::OPEN, r, m_model));
-  }
-}
-
-//----------------------------------------------------------------------------
 void EditorToolBar::closeSegmentations()
 {
+  m_viewManager->unsetActiveTool();
+
   SegmentationList input = selectedSegmentations();
   if (input.size() > 0)
   {
@@ -354,8 +325,49 @@ void EditorToolBar::closeSegmentations()
 }
 
 //----------------------------------------------------------------------------
+void EditorToolBar::openSegmentations()
+{
+  m_viewManager->unsetActiveTool();
+
+  SegmentationList input = selectedSegmentations();
+  if (input.size() > 0)
+  {
+    int r = m_settings->openRadius();
+    m_undoStack->push(new CODECommand(input, CODECommand::OPEN, r, m_model));
+  }
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::dilateSegmentations()
+{
+  m_viewManager->unsetActiveTool();
+
+  SegmentationList input = selectedSegmentations();
+  if (input.size() > 0)
+  {
+    int r = m_settings->dilateRadius();
+    m_undoStack->push(new CODECommand(input, CODECommand::DILATE, r, m_model));
+  }
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::erodeSegmentations()
+{
+  m_viewManager->unsetActiveTool();
+
+  SegmentationList input = selectedSegmentations();
+  if (input.size() > 0)
+  {
+    int r = m_settings->erodeRadius();
+    m_undoStack->push(new CODECommand(input, CODECommand::ERODE, r, m_model));
+  }
+}
+
+//----------------------------------------------------------------------------
 void EditorToolBar::fillHoles()
 {
+  m_viewManager->unsetActiveTool();
+
   SegmentationList input = selectedSegmentations();
   if (input.size() > 0)
   {

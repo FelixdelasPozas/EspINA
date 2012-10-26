@@ -45,18 +45,7 @@ BrushSelector::BrushSelector()
 //TODO: Pass only the QVTKWidget which contains the elements which we are interested in
 bool BrushSelector::filterEvent(QEvent* e, EspinaRenderView* view)
 {
-  if (e->type() == QEvent::Enter)
-  {
-    setRadius(m_radius);
-    // view->view()->grabKeyboard();
-    return IPicker::filterEvent(e, view);
-  }
-  else if (e->type() == QEvent::Leave)
-  {
-    //TODO 2012-10-07 view->view()->releaseKeyboard();
-    return IPicker::filterEvent(e, view);
-  }
-  else if (e->type() == QEvent::KeyPress)
+  if (e->type() == QEvent::KeyPress)
   {
     QKeyEvent *ke = static_cast<QKeyEvent *>(e);
     if (ke->key() == Qt::Key_Control && ke->count() == 1)
@@ -162,4 +151,3 @@ void BrushSelector::startSelection(int x, int y, EspinaRenderView *view)
 
   emit itemsPicked(pickList);
 }
-

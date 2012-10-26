@@ -33,8 +33,8 @@ public:
 public:
   explicit BrushSelector();
 
-  virtual bool filterEvent(QEvent* e, EspinaRenderView *view = 0);
   virtual QCursor cursor();
+  virtual bool filterEvent(QEvent* e, EspinaRenderView *view = 0);
 
   void setColor(QColor color)
   {

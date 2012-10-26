@@ -35,6 +35,12 @@ public:
   virtual void OnMouseWheelForward() {}
   virtual void OnMouseWheelBackward() {}
 
+  // Disable keyboard
+  virtual void OnKeyPress(){}
+  virtual void OnKeyRelease(){}
+  virtual void OnKeyUp(){}
+  virtual void OnKeyDown(){}
+
   // Disable modifying brightness and saturation
   virtual void OnLeftButtonDown() {}
   virtual void OnLeftButtonUp() {}
@@ -43,6 +49,7 @@ protected:
   explicit vtkInteractorStyleEspinaSlice()
   {
     AutoAdjustCameraClippingRangeOn();
+    KeyPressActivationOff();
   }
   virtual ~vtkInteractorStyleEspinaSlice(){}
 

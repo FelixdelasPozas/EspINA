@@ -32,8 +32,8 @@ class ITool
 public:
   virtual QCursor cursor() const = 0;
   virtual bool filterEvent(QEvent *e, EspinaRenderView *view=NULL) = 0;
-  virtual void setInUse(bool enable) = 0;
-  virtual void setEnabled(bool enable) = 0;
+  virtual void setInUse(bool value) = 0;
+  virtual void setEnabled(bool value) = 0;
   virtual bool enabled() const = 0;
 };
 
