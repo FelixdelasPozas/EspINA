@@ -1,162 +1,8 @@
-\section{Using \espina}
+\section{Segmentation}
 
-\subsection{General Purpose Tools}
-\begin{figure}[H]
-\centering
-\includegraphics[scale=0.75]{fig/MainToolbar}
-\caption{General purpose toolbar.}
-\end{figure}
-
-%\desc{Show Segmentations}{../../frontend/rsc/show_all}
-%{Segmentations are shown in planar views}
-\begin{tabular}{| m{1.3cm} | m{12cm} |}
-\hline
-\textbf{Button} & \textbf{Description}\\
-\hline
-& Visibility button is a toggle button with two states.\\ 
-\includegraphics[width=0.7cm]{../../frontend/rsc/show_all} &
-\textbf{Show Segmentations}: All segmentations are shown in planar views.\\
-\includegraphics[width=0.7cm]{../../frontend/rsc/hide_all} &
-\textbf{Hide Segmentations}: All segmentations are hidden in planar views.\\
-\hline
-& Crosshair button is a toggle button with two states.\\ 
-\includegraphics[width=0.7cm]{../../frontend/rsc/show_planes} &
-\textbf{Show Crosshair}: Crosshair is shown in planar views.\\
-\includegraphics[width=0.7cm]{../../frontend/rsc/hide_planes} &
-\textbf{Hide Crosshair}: Crosshair is hidden in planar views.\\
-\hline
- & %No icon
-\textbf{Taxonomy Selector}: Some tools may require the user to specify a
-taxonomy label to be applied when segmentations are created.\\
-\hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/removeSeg} &
-\textbf{Delete Segmentation}: Deletes segmentations by clicking on them on one of the planar views.\\
-\hline
-\end{tabular}
-
-\subsection{Channel Explorer}
-Allows the user to individually toggle the visibility of each channel using a toogle button
-located next to the channel's name whose function is similar of that described in the
-general-purpose tools section.
-
-\begin{figure}[H]
-\centering
-\includegraphics{fig/ChannelExplorer}
-\caption{Channel explorer widget.}
-\end{figure}
-
-\begin{tabular}{| m{1.3cm} | m{12cm} |}
-\hline
-\textbf{Button} & \textbf{Description}\\
-\hline
- & \textbf{Spacing Information}: Modify channel's spacing.\\
-\hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/activeChannel} &
-\textbf{Activate Channel}: Mark selected channel as active channel. Operations
-are always applied to the active channel independently whether they are visible
-or not.\\
-\hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/rainbow} &
-\textbf{Change Stain}: Display stain color selector for selected channel.\\
-\hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/trash-full} &
-\textbf{Unload Channel}: Unload current channel from \espina. The channel itself
-is not modified nor deleted from disk.\\
-\hline
-\end{tabular}
-\vspace{0.3cm}
-
-\subsection{Taxonomy Explorer}
-
-\begin{figure}[H]
-\centering
-\includegraphics{fig/TaxonomyExplorer}
-\caption{Taxonomy explorer widget.}
-\end{figure}
-
-\begin{tabular}{| m{1.3cm} | m{12cm} |}
-\hline
-\textbf{Button} & \textbf{Description}\\
-\hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/rainbow} &
-\textbf{Change Color}: Display taxonomy color selector for selected taxonomy.\\
-\hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/create_node} &
-\textbf{Add Taxonomy}: Create a new segmentation at the same level than the
-selected one.\\
-\hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/create_subnode} &
-\textbf{Add SubTaxonomy}: Create a new segmentation as a child of the selected
-one.\\
-\hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/remove} &
-\textbf{Delete Taxonomy}: Delete selected taxonomy.\\
-\hline
-\end{tabular}
-\vspace{0.3cm}
-
-\subsection{Segmentation Explorer}
-Allows the user to individually toggle the visibility of each segmentation using a toogle button
-located next to the segmentation's name whose function is similar of that described in the
-general-purpose tools section.
-\begin{figure}[H]
-\centering
-\includegraphics{fig/SegmentationExplorer}
-\caption{Segmentation explorer widget.}
-\end{figure}
-
-\begin{tabular}{| m{1.3cm} | m{12cm} |}
-\hline
-\textbf{Button} & \textbf{Description}\\
-\hline
- & %No icon
-\textbf{Segmentation Information}: Open the segmentation inspectors for the
-selected segmentations.\\
-\hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/trash-full} &
-\textbf{Delete Segmentation}: Delete selected segmentations.\\
-\hline
-\end{tabular}
-\vspace{0.3cm}
-
-\subsubsection{Segmentation Inspector}
-
-Window composed of several widgets:
-\begin{itemize}
-\item a three-dimensional view
-\item a filter inspector 
-\item a data view
-\end{itemize}
-These widgets contain information about a single segmentation.
-
-\begin{figure}[H]
-\centering
-\includegraphics[width=\linewidth]{fig/SegmentationInspector}
-\caption{Segmentation inspector widget.}
-\end{figure}
-
-For more specific information, please refer to the corresponding section.
-
-\subsection{Volume Of Interest}
-
-It's a volume to limit the effect of other tools, so the tool algorithm will not
-go farther than the boundaries that define the volume.\\
-To use it, just click on the toolbar button an then left click on the center of
-the view area you want to place the volume of interest. Once the volume has been
-placed the user can modify it's dimensions by clicking and dragging on the edges.\\
-The user can define no more than one volume of interest at a given time. 
-
-\vspace{0.3cm}
-\begin{tabular}{| m{1.3cm} | m{12cm} |}
-\hline
-\textbf{Button} & \textbf{Description}\\
-\hline
-\includegraphics[width=0.7cm]{../../frontend/toolbar/voi/rsc/roi} &
-\textbf{Rectangular Cuboid}: Define an axis aligned rectangular cuboid as volume
-of interest.\\
-\hline
-\end{tabular}
-
+Current \espina\ version offers one semi-automatic tool to create new
+segmentations, the Seed Grow Segmentation Tool. In addition, new segmentations
+an be created using drawing tools exposed in the next section.
 
 \subsection{Seed Grow Segmentation}
 
@@ -185,36 +31,28 @@ the one selected as seed. \\
 \hline
 & %No icon
 \textbf{Default VOI}: Determine whether or not a rectangular volume of interest
-centered on the selection point is applied.\\
+centered on the selection point is applied. The size of the default VOI can be
+specified in the Seed Grow Segmentation Settings Panel.\\
 \hline
-\includegraphics[width=0.7cm]{../../frontend/toolbar/seedgrow/rsc/pixelSelector} &
+\includegraphics[width=0.6cm]{../../frontend/toolbar/seedgrow/rsc/pixelSelector} &
 \textbf{Pixel Selector}: Create a new segmentation using the voxel under the
 cursor as seed for the Seed Grow Algorithm.\\
 \hline
-\includegraphics[width=0.7cm]{../../frontend/toolbar/seedgrow/rsc/bestPixelSelector} &
-\textbf{Best Pixel Selector}: Create a new segmentation using the best voxel
-,within the neighborhood of the voxel under the cursor, as seed for the Seed
-Grow Algorithm. \\
+\includegraphics[width=0.6cm]{../../frontend/toolbar/seedgrow/rsc/bestPixelSelector} &
+\textbf{Best Pixel Selector}: Create a new segmentation placing the seed in the
+voxel whose gray scale value is the closest to the one specified in the Seed
+Grow Segmentation Settings Panel (black by default). Best pixel selector check
+all voxels within the area under the cursor's region.\\
 \hline
 \end{tabular}
 
 \vspace{0.3cm}
 \begin{bclogo}[couleur = yellow!33, logo= \bcbook]
-{Tip} Use Ctrl+Wheel to change threshold while any selector is active. 
+{Tip} Use Ctrl+Wheel to change threshold while this tool is active.
 \end{bclogo}
 \vspace{0.3cm}
 
 Best voxel is defined in terms of gray scale similarity with a
 reference gray scale value. The reference value can be configured at Seed Grow
 Segmentation settings panel.\\
-
-\subsubsection{Filter Inspector}
-The filter inspector shows relevant information about the filter that created the segmentation,
-therefore the information shown is dependent on the filter or plugin filter used.
-
-\begin{figure}[H]
-\centering
-\includegraphics{fig/SeedGrowSegmentationFilterInspector}
-\caption{Filter inspector widget showing the information of a seed grow filter.}
-\end{figure}
 

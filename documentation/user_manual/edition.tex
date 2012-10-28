@@ -19,20 +19,20 @@ particularly:\\
 \hline
 \textbf{Button} & \textbf{Description}\\
 \hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/pencil2D} &
+\includegraphics[width=0.6cm]{../../frontend/rsc/pencil2D} &
 \textbf{2D Brush}: Use a circle to draw on current slice. Use Ctrl+Wheel to
 change brush radius.\\
 \hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/pencil3D} &
+\includegraphics[width=0.6cm]{../../frontend/rsc/pencil3D} &
 \textbf{3D Brush}: Use a sphere to draw on current and adjacent slices. Use
 Ctrl+Wheel to change brush radius.\\
 \hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/eraser2D} &
+\includegraphics[width=0.6cm]{../../frontend/rsc/eraser2D} &
 \textbf{Eraser}: Ctrl click while using any of the previous brushes to erase
 instead of draw.\\
-\includegraphics[width=0.7cm]{../../frontend/rsc/eraser3D} & \\
+\includegraphics[width=0.6cm]{../../frontend/rsc/eraser3D} & \\
 \hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/lasso} &
+\includegraphics[width=0.6cm]{../../frontend/rsc/lasso} &
 \textbf{Contour}: Use a free-form contour to draw on current slice.\\
 \hline
 \end{tabular}
@@ -73,27 +73,28 @@ Hand & Translate whole contour\\
 \hline
 Pointing hand & Translate node\\
 \hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/cross-plus} & Add a node in this position.\\
+\includegraphics[width=0.6cm]{../../frontend/rsc/cross-plus} & Add a node in this position.\\
 \hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/cross-minus} & Delete a node in this position (holding shift key).\\
+\includegraphics[width=0.6cm]{../../frontend/rsc/cross-minus} & Delete a node in this position (holding shift key).\\
 \hline
 \end{tabular}
 \vspace{0.3cm}
 
 Sometimes, it can be convenient to use different tools to segment different
 parts of the same segmentation and then combine the results to create the final 
-segmentation. 
+segmentation.\\
+
 \vspace{0.3cm}
 
-\begin{tabular}{| m{1.3cm} | m{13.5cm} |}
+\begin{tabular}{| m{1.3cm} | m{12cm} |}
 \hline
 \textbf{Button} & \textbf{Description}\\
 \hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/add} &
+\includegraphics[width=0.6cm]{../../frontend/rsc/add} &
 \textbf{Combine}: Create a unique segmentation using all voxels from all
 selected segmentations.\\
 \hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/remove} &
+\includegraphics[width=0.6cm]{../../frontend/rsc/remove} &
 \textbf{Substract}: Use the first selected input as final segmentation and erase
 all voxels which belong to any of the rest of the segmentations.\\
 \hline
@@ -109,19 +110,19 @@ we want selected when clicking on the action.\\
 \hline
 \textbf{Button} & \textbf{Description}\\
 \hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/erode} &
+\includegraphics[width=0.6cm]{../../frontend/rsc/erode} &
 \textbf{Erode}: Gradually shrink the boundaries of selected segmentations by eroding the surface using a structuring element (default 3 voxels).\\
 \hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/dilate} &
+\includegraphics[width=0.6cm]{../../frontend/rsc/dilate} &
 \textbf{Dilate}: Gradually enlarge the boundaries of selected segmentations by dilating the surface using a structuring element (default 3 voxels). \\
 \hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/open} &
+\includegraphics[width=0.6cm]{../../frontend/rsc/open} &
 \textbf{Opening}: Structural removal of some voxels from the edges of the segmmentations. Contrary to erode, opening preserve those parts of the segmentation which have a similar shape to the structuring element, or that can completely contain the structuring element, a sphere of given radius (default 3 voxels).\\
 \hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/close} &
+\includegraphics[width=0.6cm]{../../frontend/rsc/close} &
 \textbf{Closing}: Structural enlargement of voxels from the edges of the segmmentations. Contrary to dilate, closing preserve those cavities of the segmentation which have a similar shape to the structuring element, or that can completely contain the structuring element, a sphere of given radius (default 3 voxels).\\
 \hline
-\includegraphics[width=0.7cm]{../../frontend/rsc/fillHoles} &
+\includegraphics[width=0.6cm]{../../frontend/rsc/fillHoles} &
 \textbf{Fill Holes}: Fill all the voxels which are totally surrounded by
 segmentation voxels.\\
 \hline

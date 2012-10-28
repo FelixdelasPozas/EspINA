@@ -1,22 +1,28 @@
 \section{Introduction}
 
-\espina{} is a tool for segmenting, editing and analyzing neuroscientific images acquired using microscopy.
-The program is been developed by the CesViMa (Centro de Supercomputación y Visualización de Madrid)
-for the Cajal Blue Brain Project.
+\espina\ is a tool designed for segmenting, editing and analyzing
+neuroscientific images acquired using microscopy.
+It is developed by CesViMa (Centro de Supercomputación y Visualización de
+Madrid) for the Cajal Blue Brain Project.\\
+
+Users can load several channels, stack of images representing a volume,
+associated with a physical sample.  Each channel is used to visualize using
+different techniques the the brain tissue contained in the sample.
 
 \section{Supported Files}
-\espina{} con read images in the following formats:
+\espina\ can load channels from stacks of images stored in the following formats:
 \begin{itemize}
   \item TIFF (Tagged Image File Format)
   \item MHD/MHA (MetaImage)\\
 % note on mhd, mha formats
 \begin{bclogo}[couleur = yellow!33, logo=\bcattention]
-{Note} In MetaImage files using the character \% in the name of the file are unsupported.
+{Note} Using the character \% in the file name is not supported
+by MetaImage file format.
 \end{bclogo}
-  \item SEGMHA (former \espina{} format, provided for compatibility)
-  \item SEG (\espina{} format)
 \end{itemize}
-TIFF and MHD/MHA formats contains channels, while SEGMHA format contains both the channel and the
-segmentation images, and SEG formats contain segmentation images and additional data. SEG 
-files containt a reference to the channel image used for segmentation. Segmentation images
-produced by \espina{} con only be saved in SEG format.
+Segmentations images and additional data produced with \espina\ is stored using
+\espina\ native formats. 
+\begin{itemize}
+  \item SEG (\espina\ format)
+  \item SEGMHA (former \espina\ format, provided for compatibility)
+\end{itemize}
