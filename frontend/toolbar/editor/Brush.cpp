@@ -52,8 +52,10 @@ Brush::Brush(EspinaModel* model,
 , m_brush(new BrushPicker())
 , m_currentSource(NULL)
 , m_currentSeg(NULL)
+, m_drawCommand(NULL)
 , m_eraseCommand(NULL)
 {
+  m_brush->setStrokeVisibility(false);//TODO 2012-10-26 Change once stroke preview is working
   connect(m_brush, SIGNAL(stroke(PickableItem *,IPicker::WorldRegion, Nm, PlaneType)),
           this,  SLOT(drawStroke(PickableItem *,IPicker::WorldRegion, Nm, PlaneType)));
   connect(m_brush, SIGNAL(stroke(PickableItem*,double,double,double,Nm,PlaneType)),
@@ -90,7 +92,7 @@ bool Brush::filterEvent(QEvent* e, EspinaRenderView* view)
     if (!m_erasing)
     {
       m_brush->setBorderColor(QColor(Qt::green));
-      m_brush->setStrokeVisibility(true);
+      m_brush->setStrokeVisibility(false);//TODO 2012-10-26 Change once stroke preview is working
       emit brushModeChanged(BRUSH);
     }
   } else if (m_currentSource)
@@ -206,55 +208,61 @@ void Brush::drawStroke(PickableItem* item,
     }
   }else
   {
-    BrushShapeList brushes;
-
-    for (int i=0; i < centers->GetNumberOfPoints(); i++)
-      brushes << createBrushShape(item,
-                                  centers->GetPoint(i),
-                                  radius,
-                                  plane);
-
-    if (!m_currentSource)
+    if (m_drawCommand)
     {
-      Q_ASSERT(!m_currentSeg);
-
-      Q_ASSERT(ModelItem::CHANNEL == item->type());
-
-      Channel *channel = dynamic_cast<Channel *>(item);
-      double spacing[3];
-      channel->spacing(spacing);
-
-      Filter::NamedInputs inputs;
-      Filter::Arguments args;
-      FreeFormSource::Parameters params(args);
-      params.setSpacing(spacing);
-      m_currentSource = new FreeFormSource(inputs, args);
-      m_currentOutput = 0;
-      m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, m_currentOutput);
-
-      m_undoStack->beginMacro("Draw Segmentation");
-      // We can't add empty segmentations to the model
-      m_undoStack->push(new DrawCommand(m_currentSource,
-                                        m_currentOutput,
-                                        brushes,
-                                        SEG_VOXEL_VALUE));
-      m_undoStack->push(new AddSegmentation(channel,
-                                            m_currentSource,
-                                            m_currentSeg,
-                                            m_viewManager->activeTaxonomy(),
-                                            m_model));
-      m_undoStack->endMacro();
+      m_undoStack->push(m_drawCommand);
+      m_drawCommand = NULL;
       m_brush->setBorderColor(QColor(Qt::green));
-    }else
-    {
-      Q_ASSERT(m_currentSource && m_currentSeg);
-      EspinaVolume::PixelType value = m_erasing?SEG_BG_VALUE:SEG_VOXEL_VALUE;
-
-      m_undoStack->push(new DrawCommand(m_currentSource,
-                                        m_currentOutput,
-                                        brushes,
-                                        value));
     }
+//     BrushShapeList brushes;
+// 
+//     for (int i=0; i < centers->GetNumberOfPoints(); i++)
+//       brushes << createBrushShape(item,
+//                                   centers->GetPoint(i),
+//                                   radius,
+//                                   plane);
+// 
+//     if (!m_currentSource)
+//     {
+//       Q_ASSERT(!m_currentSeg);
+// 
+//       Q_ASSERT(ModelItem::CHANNEL == item->type());
+// 
+//       Channel *channel = dynamic_cast<Channel *>(item);
+//       double spacing[3];
+//       channel->spacing(spacing);
+// 
+//       Filter::NamedInputs inputs;
+//       Filter::Arguments args;
+//       FreeFormSource::Parameters params(args);
+//       params.setSpacing(spacing);
+//       m_currentSource = new FreeFormSource(inputs, args);
+//       m_currentOutput = 0;
+//       m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, m_currentOutput);
+// 
+//       m_undoStack->beginMacro("Draw Segmentation");
+//       // We can't add empty segmentations to the model
+//       m_undoStack->push(new DrawCommand(m_currentSource,
+//                                         m_currentOutput,
+//                                         brushes,
+//                                         SEG_VOXEL_VALUE));
+//       m_undoStack->push(new AddSegmentation(channel,
+//                                             m_currentSource,
+//                                             m_currentSeg,
+//                                             m_viewManager->activeTaxonomy(),
+//                                             m_model));
+//       m_undoStack->endMacro();
+//       m_brush->setBorderColor(QColor(Qt::green));
+//     }else
+//     {
+//       Q_ASSERT(m_currentSource && m_currentSeg);
+//       EspinaVolume::PixelType value = m_erasing?SEG_BG_VALUE:SEG_VOXEL_VALUE;
+// 
+//       m_undoStack->push(new DrawCommand(m_currentSource,
+//                                         m_currentOutput,
+//                                         brushes,
+//                                         value));
+//     }
   }
 
 }
@@ -266,20 +274,69 @@ void Brush::drawStrokeStep(PickableItem* item,
                            PlaneType plane)
 {
   if (!m_erasing)
-    return;
-
-  Q_ASSERT(m_currentSeg);
-
-  if (!m_eraseCommand)
   {
-    m_eraseCommand = new SnapshotCommand(m_currentSource,
-                                         m_currentOutput);
+    double center[3] = {x, y, z};
+    BrushShape brush = createBrushShape(item, center, radius, plane);
+    if (!m_drawCommand)
+    {
+      if (!m_currentSeg)
+      {
+
+        Q_ASSERT(ModelItem::CHANNEL == item->type());
+
+        Channel *channel = dynamic_cast<Channel *>(item);
+        double spacing[3];
+        channel->spacing(spacing);
+
+        Filter::NamedInputs inputs;
+        Filter::Arguments args;
+        FreeFormSource::Parameters params(args);
+        params.setSpacing(spacing);
+        m_currentSource = new FreeFormSource(inputs, args);
+        m_currentOutput = 0;
+        m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, m_currentOutput);
+        m_currentSource->draw(m_currentOutput,
+                              brush.first,
+                              brush.second.bounds(),
+                              SEG_VOXEL_VALUE);
+
+        m_undoStack->beginMacro("Draw Segmentation");
+        // We can't add empty segmentations to the model
+        m_undoStack->push(new AddSegmentation(channel,
+                                              m_currentSource,
+                                              m_currentSeg,
+                                              m_viewManager->activeTaxonomy(),
+                                              m_model));
+        m_undoStack->endMacro();
+      }
+      m_drawCommand = new SnapshotCommand(m_currentSource,
+                                          m_currentOutput);
+    }
+    else
+    {
+      Q_ASSERT(m_currentSeg);
+      m_currentSource->draw(m_currentOutput,
+                            brush.first,
+                            brush.second.bounds(),
+                            SEG_VOXEL_VALUE);
+    }
+    m_viewManager->updateViews();
   }
-  double center[3] = {x, y, z};
-  BrushShape brush = createBrushShape(item, center, radius, plane);
-  m_currentSource->draw(m_currentOutput,
-                        brush.first,
-                        brush.second.bounds(),
-                        SEG_BG_VALUE);
-  m_viewManager->updateViews();
+  else
+  {
+    Q_ASSERT(m_currentSeg);
+
+    if (!m_eraseCommand)
+    {
+      m_eraseCommand = new SnapshotCommand(m_currentSource,
+                                           m_currentOutput);
+    }
+    double center[3] = {x, y, z};
+    BrushShape brush = createBrushShape(item, center, radius, plane);
+    m_currentSource->draw(m_currentOutput,
+                          brush.first,
+                          brush.second.bounds(),
+                          SEG_BG_VALUE);
+    m_viewManager->updateViews();
+  }
 }

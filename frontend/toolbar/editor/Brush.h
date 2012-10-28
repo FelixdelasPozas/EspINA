@@ -99,6 +99,7 @@ protected:
   OutputNumber  m_currentOutput;
 
 private:
+  SnapshotCommand *m_drawCommand;
   SnapshotCommand *m_eraseCommand;
 };
 
