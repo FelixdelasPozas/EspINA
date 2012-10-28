@@ -306,7 +306,8 @@ void BrushPicker::startPreview(EspinaRenderView* view)
 
   double pos[3];
   memset(pos, 0, 3*sizeof(double));
-  pos[m_plane] = -1;//(m_pBounds[m_plane]+1);
+  int sign = ((m_plane == AXIAL) ? -1 : 1);
+  pos[m_plane] = -m_pBounds[2*m_plane] + (sign*0.1);
   m_actor->SetPosition(pos);
   m_actor->Update();
 

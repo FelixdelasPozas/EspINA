@@ -23,12 +23,18 @@
 #include <tools/ITool.h>
 
 class ContourSelector;
+class ViewManager;
+class QUndoStack;
+class EspinaModel;
+class ContourWidget;
+class Filter;
+class Segmentation;
 
 class FilledContour
 : public ITool //NOTE Change to IVOI to use countour as VOI
 {
 public:
-  explicit FilledContour();
+  explicit FilledContour(EspinaModel *, QUndoStack *, ViewManager *);
   virtual ~FilledContour();
 
   virtual QCursor cursor() const;
@@ -38,7 +44,16 @@ public:
   virtual bool enabled() const;
 
 private:
+  ViewManager *m_viewManager;
+  QUndoStack *m_undoStack;
+  EspinaModel *m_model;
   ContourSelector *m_picker;
+  bool m_enabled;
+  bool m_inUse;
+  ContourWidget *m_contourWidget;
+  Filter *m_currentSource;
+  Segmentation *m_currentSeg;
+
 };
 
 #endif // FILLEDCONTOUR_H

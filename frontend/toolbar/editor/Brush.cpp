@@ -52,6 +52,7 @@ Brush::Brush(EspinaModel* model,
 , m_brush(new BrushPicker())
 , m_currentSource(NULL)
 , m_currentSeg(NULL)
+, m_currentOutput(NULL)
 , m_drawCommand(NULL)
 , m_eraseCommand(NULL)
 {

@@ -84,9 +84,6 @@ protected slots:
   SegmentationList selectedSegmentations();
 
 private:
-  void startContourDrawing();
-
-private:
   ActionSelector *m_drawToolSelector;
   QMap<QAction *, ITool *> m_drawTools;
   QAction *m_addition;
@@ -103,8 +100,6 @@ private:
   ViewManager *m_viewManager;
 
   Settings        *m_settings;
-  Filter          *m_currentSource;
-  Segmentation    *m_currentSeg;
 };
 
 #endif // EDITORTOOLBAR_H

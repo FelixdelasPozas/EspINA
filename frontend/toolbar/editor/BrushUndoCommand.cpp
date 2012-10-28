@@ -97,9 +97,6 @@ void Brush::DrawCommand::undo()
     m_source->restoreOutput(m_output, m_prevVolume);
 }
 
-
-
-
 //-----------------------------------------------------------------------------
 Brush::SnapshotCommand::SnapshotCommand(Filter* source,
                                 OutputNumber output)

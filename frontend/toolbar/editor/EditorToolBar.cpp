@@ -154,8 +154,6 @@ EditorToolBar::EditorToolBar(EspinaModel *model,
 , m_undoStack(undoStack)
 , m_viewManager(vm)
 , m_settings(new Settings())
-, m_currentSource(NULL)
-, m_currentSeg(NULL)
 {
   setObjectName("EditorToolBar");
   setWindowTitle("Editor Tool Bar");
@@ -192,7 +190,7 @@ EditorToolBar::EditorToolBar(EspinaModel *model,
   QAction *contourTool = new QAction(QIcon(":espina/lasso.png"),
                                        tr("Draw segmentations using contours"),
                                        m_drawToolSelector);
-  m_drawTools[contourTool] = new FilledContour();
+  m_drawTools[contourTool] = new FilledContour(m_model, m_undoStack, m_viewManager);
   m_drawToolSelector->addAction(contourTool);
 
   m_drawToolSelector->setCheckable(true);
@@ -393,35 +391,6 @@ SegmentationList EditorToolBar::selectedSegmentations()
 }
 
 //----------------------------------------------------------------------------
-void EditorToolBar::startContourDrawing()
-{
-  /* TODO 2012-10-18
-  if (m_actionGroup->isChecked())
-  {
-    m_contourWidget = new ContourWidget();
-
-    SegmentationList selSegs = selectedSegmentations();
-    if (selSegs.size() == 1)
-    {
-      m_currentSeg = selSegs.first();
-      m_currentSource = m_currentSeg->filter();
-      m_contourWidget->setPolygonColor(m_viewManager->color(m_currentSeg));
-    }
-    else
-    {
-      m_currentSeg = NULL;
-      m_currentSource = NULL;
-      m_contourWidget->setPolygonColor(m_viewManager->activeTaxonomy()->color());
-    }
-
-    //TODO 2012-10-17 m_viewManager->setActiveTool(m_contourSelector);
-    m_viewManager->addWidget(m_contourWidget);
-    m_contourWidget->setEnabled(true);
-  }
-  */
-}
-
-//----------------------------------------------------------------------------
 void EditorToolBar::cancelDrawOperation()
 {
   m_drawToolSelector->cancel();
@@ -429,80 +398,6 @@ void EditorToolBar::cancelDrawOperation()
   QAction *activeAction = m_drawToolSelector->getCurrentAction();
   ITool *activeTool = m_drawTools[activeAction];
   m_viewManager->unsetActiveTool(activeTool);
-
-  /*
-  // additional contour cleaning
-  if (this->m_contour == this->m_actionGroup->getCurrentAction())
-  {
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-
-    m_contourWidget->setEnabled(false);
-
-    if (0 != m_contourWidget->GetContoursNumber())
-    {
-      Channel *channel = m_viewManager->activeChannel();
-      double spacing[3];
-      channel->spacing(spacing);
-
-      if (!m_currentSource && !m_currentSeg)
-      {
-        Filter::NamedInputs inputs;
-        Filter::Arguments args;
-        FreeFormSource::Parameters params(args);
-        params.setSpacing(spacing);
-        m_currentSource = new ContourSource(inputs, args);
-      }
-
-      if (!m_currentSeg && m_currentSource)
-      {
-        m_currentSource->draw(0, NULL, 0, AXIAL);
-        m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, 0);
-        TaxonomyElement *tax = m_viewManager->activeTaxonomy();
-        m_undoStack->push(new FreeFormCommand(channel, m_currentSource, m_currentSeg, tax, m_model));
-      }
-
-      QMap<PlaneType, QMap<Nm, vtkPolyData*> > contours = m_contourWidget->GetContours();
-      QMap<Nm, vtkPolyData*>::iterator it = contours[AXIAL].begin();
-      while (it != contours[AXIAL].end())
-      {
-        m_currentSource->draw(0, it.value(), it.key(), AXIAL);
-        ++it;
-      }
-
-      it = contours[CORONAL].begin();
-      while (it != contours[CORONAL].end())
-      {
-        m_currentSource->draw(0, it.value(), it.key(), CORONAL);
-        ++it;
-      }
-
-      it = contours[SAGITTAL].begin();
-      while (it != contours[SAGITTAL].end())
-      {
-        m_currentSource->draw(0, it.value(), it.key(), SAGITTAL);
-        ++it;
-      }
-
-      ContourSource *filter = dynamic_cast<ContourSource *>(m_currentSource);
-      filter->signalAsModified();
-    }
-
-    m_viewManager->removeWidget(m_contourWidget);
-    //TODO 2012-10-17 m_viewManager->unsetPicker(m_contourSelector);
-    delete m_contourWidget;
-    m_viewManager->updateViews();
-    QApplication::restoreOverrideCursor();
-
-  }
-  else
-  {
-    // only for paint operations
-    //TODO 2012-10-17 m_viewManager->unsetPicker(m_brush);
-  }
-  */
-
-  m_currentSource = NULL;
-  m_currentSeg = NULL;
 }
 
 //----------------------------------------------------------------------------
