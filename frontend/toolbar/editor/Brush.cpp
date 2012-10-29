@@ -136,7 +136,7 @@ void Brush::setInUse(bool value)
 {
   if (value == m_inUse)
     return;
-  
+
   m_inUse = value;
 
   if (value && m_viewManager->activeTaxonomy() && m_viewManager->activeChannel())
@@ -309,9 +309,18 @@ void Brush::drawStrokeStep(PickableItem* item,
                                               m_viewManager->activeTaxonomy(),
                                               m_model));
         m_undoStack->endMacro();
-      }
-      m_drawCommand = new SnapshotCommand(m_currentSource,
+	m_drawCommand = new SnapshotCommand(m_currentSource,
                                           m_currentOutput);
+      }
+      else
+      {
+        m_drawCommand = new SnapshotCommand(m_currentSource,
+                                            m_currentOutput);
+        m_currentSource->draw(m_currentOutput,
+                              brush.first,
+                              brush.second.bounds(),
+                              SEG_VOXEL_VALUE);
+      }
     }
     else
     {

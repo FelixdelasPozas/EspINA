@@ -230,6 +230,7 @@ void BrushPicker::startStroke(QPoint pos, EspinaRenderView* view)
   {
     m_lastDot = pos;
     m_stroke->InsertNextPoint(brush);
+    emit stroke(m_referenceItem, brush[0], brush[1], brush[2], m_radius, m_plane);
     updatePreview(brush, view);
   }
 }
