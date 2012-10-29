@@ -265,7 +265,7 @@ void SliceView::updateRuler()
   //qDebug() << ws[0] << left << right << rulerLength << scale;
   m_ruler->SetRange(0, scale);
   m_ruler->SetPoint2(0.1+rulerLength, 0.1);
-  m_ruler->SetVisibility(m_rulerVisibility && rulerLength > 0.05 && rulerLength < 0.8);
+  m_ruler->SetVisibility(m_rulerVisibility && 0.02 < rulerLength && rulerLength < 0.8);
 }
 
 //-----------------------------------------------------------------------------
