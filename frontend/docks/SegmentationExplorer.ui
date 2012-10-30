@@ -185,6 +185,9 @@ QTreeView::indicator:unchecked {
          <height>22</height>
         </size>
        </property>
+       <property name="shortcut">
+        <string>Del</string>
+       </property>
        <property name="flat">
         <bool>true</bool>
        </property>
