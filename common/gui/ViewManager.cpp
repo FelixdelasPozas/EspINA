@@ -121,6 +121,8 @@ void ViewManager::setVOI(IVOI *voi)
 
   if (m_voi)
     m_voi->setInUse(true);
+  else if (!m_tool)
+    setSelectionEnabled(true);
 }
 
 //----------------------------------------------------------------------------
