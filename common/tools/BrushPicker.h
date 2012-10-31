@@ -30,10 +30,10 @@
 #include <QColor>
 
 class vtkLookupTable;
-class ImplicitImageSource;
+class vtkImageResliceToColors;
 class vtkImageActor;
-class FreeFormSource;
-class vtkTube;
+class ImplicitImageSource;
+class vtkImageData;
 class Channel;
 class PickableItem;
 
@@ -57,8 +57,8 @@ public:
 
   /// @item is used to specify the spacing of the stroke
   void setReferenceItem(PickableItem *item);
-
-  void setStrokeVisibility(bool visible);
+  void DrawingOn();
+  void DrawingOff();
 
 signals:
   void stroke(PickableItem *, double, double, double, Nm, PlaneType);
@@ -82,7 +82,6 @@ private:
   QColor m_borderColor;
   QColor m_brushColor;
 
-  bool m_previewVisible;
   bool m_tracking;
   QPoint m_lastDot;
   IPicker::WorldRegion m_stroke;
@@ -96,9 +95,9 @@ private:
   double    m_worldSize[2];
 
   vtkSmartPointer<vtkLookupTable> m_lut;
-  EspinaVolume::Pointer m_preview;
-  itk2vtkFilterType::Pointer itk2vtk;
-  vtkImageActor  *m_actor;
+  vtkSmartPointer<vtkImageData> m_preview;
+  vtkSmartPointer<vtkImageActor> m_actor;
+  bool m_drawing;
 
   static const int MAX_RADIUS = 32;
 };
