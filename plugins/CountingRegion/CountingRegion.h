@@ -79,6 +79,13 @@ protected slots:
   void showInfo(const QModelIndex& index);
   void saveRegionDescription();
 
+private:
+  /// Find margin values which discard all segmentations that
+  /// touch the channel margins
+  void computeOptimalMargins(Channel *channel,
+                             Nm inclusion[3],
+                             Nm exclusion[3]);
+
 signals:
   void regionCreated(BoundingRegion *);
   void regionRemoved(BoundingRegion *);

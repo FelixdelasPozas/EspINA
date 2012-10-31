@@ -67,23 +67,7 @@ void MarginsSegmentationExtension::initialize(ModelItem::Arguments args)
 //-----------------------------------------------------------------------------
 QVariant MarginsSegmentationExtension::information(ModelItemExtension::InfoTag tag) const
 {
-  if (!m_init)
-  {
-    //qDebug() << m_seg->data().toString() << "Updating Margins";
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    ModelItem::Vector channels = m_seg->relatedItems(ModelItem::IN, Channel::LINK);
-    //Q_ASSERT(!channels.isEmpty());
-    if (!channels.isEmpty())
-    {
-      Channel *channel = dynamic_cast<Channel *>(channels.first());
-      ModelItemExtension *ext = channel->extension(ID);
-      Q_ASSERT(ext);
-      MarginsChannelExtension *marginExt = dynamic_cast<MarginsChannelExtension *>(ext);
-      marginExt->computeMarginDistance(m_seg);
-      QApplication::restoreOverrideCursor();
-      m_init = true;
-    }
-  }
+  updateDistances();
 
   if (LEFT_MARGIN == tag)
     return m_distances[0];
@@ -117,8 +101,30 @@ SegmentationExtension* MarginsSegmentationExtension::clone()
 }
 
 //-----------------------------------------------------------------------------
-void MarginsSegmentationExtension::setMargins(double distances[6])
+void MarginsSegmentationExtension::updateDistances() const
 {
-  memcpy(m_distances, distances, 6*sizeof(double));
+  if (!m_init)
+  {
+    //qDebug() << m_seg->data().toString() << "Updating Margins";
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    ModelItem::Vector channels = m_seg->relatedItems(ModelItem::IN, Channel::LINK);
+    //Q_ASSERT(!channels.isEmpty());
+    if (!channels.isEmpty())
+    {
+      Channel *channel = dynamic_cast<Channel *>(channels.first());
+      ModelItemExtension *ext = channel->extension(ID);
+      Q_ASSERT(ext);
+      MarginsChannelExtension *marginExt = dynamic_cast<MarginsChannelExtension *>(ext);
+      marginExt->computeMarginDistance(m_seg);
+      QApplication::restoreOverrideCursor();
+      m_init = true;
+    }
+  }
+}
+
+//-----------------------------------------------------------------------------
+void MarginsSegmentationExtension::setMargins(Nm distances[6])
+{
+  memcpy(m_distances, distances, 6*sizeof(Nm));
   m_init = true;
 }

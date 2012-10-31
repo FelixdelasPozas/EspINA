@@ -22,7 +22,10 @@
 #include <common/model/Channel.h>
 #include <common/model/EspinaModel.h>
 #include <common/model/EspinaFactory.h>
+#include <common/model/Segmentation.h>
 #include <common/gui/ViewManager.h>
+#include <common/extensions/Margins/MarginsSegmentationExtension.h>
+#include <common/EspinaRegions.h>
 
 #include "regions/RectangularBoundingRegion.h"
 #include "regions/AdaptiveBoundingRegion.h"
@@ -257,6 +260,8 @@ void CountingRegion::createBoundingRegion()
   Channel *channel = m_viewManager->activeChannel();
   Q_ASSERT(channel);
 
+  computeOptimalMargins(channel, inclusion, exclusion);
+
   if (ADAPTIVE == m_gui->regionType->currentIndex())
     createAdaptiveRegion(channel, inclusion, exclusion);
   else if (RECTANGULAR == m_gui->regionType->currentIndex())
@@ -322,6 +327,48 @@ void CountingRegion::saveRegionDescription()
     QTextStream out(&file);
     out << m_gui->regionDescription->toPlainText();
     file.close();
+  }
+}
+
+//------------------------------------------------------------------------
+void CountingRegion::computeOptimalMargins(Channel* channel,
+                                           Nm inclusion[3],
+                                           Nm exclusion[3])
+{
+  static const Nm delta = 0.1;
+
+  memset(inclusion, 0, 3*sizeof(Nm));
+  memset(exclusion, 0, 3*sizeof(Nm));
+
+  ModelItem::Vector items = channel->relatedItems(ModelItem::OUT, Channel::LINK);
+  SegmentationList channelSegs;
+  foreach(ModelItem *item, items)
+  {
+    if (ModelItem::SEGMENTATION == item->type())
+      channelSegs << dynamic_cast<Segmentation *>(item);
+  }
+
+  foreach(Segmentation *seg, channelSegs)
+  {
+    ModelItemExtension *ext = seg->extension(MarginsSegmentationExtension::ID);
+    MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext);
+    if (marginExt)
+    {
+      Nm dist2Margin[6];
+      marginExt->margins(dist2Margin);
+      double segBounds[6];
+      VolumeBounds(seg->itkVolume(), segBounds);
+      Nm size[3];
+
+      for (int i=0; i < 3; i++)
+      {
+        size[i] = segBounds[2*i+1] - segBounds[2*i] + 1;
+        if (dist2Margin[2*i] < delta)
+          inclusion[i] = std::max(size[i], inclusion[i]);
+        if (dist2Margin[2*i+1] < delta)
+          exclusion[i] = std::max(size[i], exclusion[i]);
+      }
+    }
   }
 }
 

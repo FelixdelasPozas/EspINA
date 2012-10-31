@@ -21,6 +21,7 @@
 #define MARGINSSEGMENTATIONEXTENSION_H
 
 #include "common/extensions/SegmentationExtension.h"
+#include "common/EspinaTypes.h"
 
 
 class MarginsSegmentationExtension
@@ -58,11 +59,18 @@ public:
 
   virtual SegmentationExtension* clone();
 
-private:
-  void setMargins(double distances[6]);
+  void margins(Nm margins[6]) const
+  {
+    updateDistances();
+    memcpy(margins, m_distances, 6*sizeof(Nm));
+  }
 
 private:
-  mutable double m_distances[6];
+  void updateDistances() const;
+  void setMargins(Nm distances[6]);
+
+private:
+  mutable Nm m_distances[6];
 
   friend class MarginsChannelExtension;
 };
