@@ -142,8 +142,8 @@ void BrushPicker::createBrush(double brush[3], QPoint pos)
 
   double wPos[3];
   wPos[m_plane] = m_pBounds[2*m_plane];
-  wPos[H] = m_LL[H] + pos.x()*m_worldSize[0]/m_windowSize[0];
-  wPos[V] = m_UR[V] + pos.y()*m_worldSize[1]/m_windowSize[1];
+  wPos[H] = m_LL[H] + pos.x()*m_worldSize[0]/m_viewSize[0];
+  wPos[V] = m_UR[V] + pos.y()*m_worldSize[1]/m_viewSize[1];
 
   for(int i=0; i < 3; i++)
     brush[i] = int(wPos[i]/m_spacing[i]+0.5)*m_spacing[i];
@@ -207,7 +207,7 @@ void BrushPicker::startStroke(QPoint pos, EspinaRenderView* view)
 
   m_tracking = true;
 
-  memcpy(m_windowSize, view->renderWindow()->GetSize(), 2*sizeof(int));
+  memcpy(m_viewSize, view->renderWindow()->GetSize(), 2*sizeof(int));
 
   // Display bounds in world coordinates
   vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
@@ -225,7 +225,7 @@ void BrushPicker::startStroke(QPoint pos, EspinaRenderView* view)
   m_worldSize[0] = fabs(m_UR[H] - m_LL[H]);
   m_worldSize[1] = fabs(m_UR[V] - m_LL[V]);
 
-  m_radius = m_displayRadius*m_worldSize[0]/m_windowSize[0];
+  m_radius = m_displayRadius*m_worldSize[0]/m_viewSize[0];
 
   double brush[3];
   createBrush(brush, pos);

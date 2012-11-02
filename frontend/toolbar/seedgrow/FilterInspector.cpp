@@ -110,7 +110,6 @@ bool SeedGrowSegmentationFilter::FilterInspector::eventFilter(QObject* sender, Q
       connect(m_region, SIGNAL(modified(double*)),
               this, SLOT(redefineVOI(double*)));
       m_viewManager->addWidget(m_region);
-      m_region->setEnabled(false);
       m_viewManager->updateViews();
     }
     connect(m_viewManager, SIGNAL(sliceSelected(Nm,PlaneType,ViewManager::SliceSelectors)),

@@ -96,6 +96,7 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(EspinaModel *model,
 , m_picker(NULL)
 , m_inUse(true)
 , m_enabled(true)
+, m_validPos(true)
 , m_preview(NULL)
 {
   Q_ASSERT(m_threshold);
@@ -108,7 +109,10 @@ QCursor SeedGrowSegmentationTool::cursor() const
   QCursor cursor(Qt::ArrowCursor);
 
   if (m_picker && m_inUse)
-    cursor = m_picker->cursor();
+    if (m_validPos)
+      cursor = m_picker->cursor();
+    else
+      cursor = QCursor(Qt::ForbiddenCursor);
 
   return cursor;
 }
@@ -125,7 +129,6 @@ bool SeedGrowSegmentationTool::filterEvent(QEvent* e, EspinaRenderView *view)
     if (we->modifiers() == Qt::CTRL)
     {
       int numSteps = we->delta()/8/15;//Refer to QWheelEvent doc.
-      m_threshold->setUpperThreshold(m_threshold->upperThreshold() + numSteps);//Using stepBy highlight the input text
       m_threshold->setLowerThreshold(m_threshold->lowerThreshold() + numSteps);//Using stepBy highlight the input text
       //       if (m_preview)
       //       {
@@ -138,6 +141,19 @@ bool SeedGrowSegmentationTool::filterEvent(QEvent* e, EspinaRenderView *view)
   }else if(e->type() == QEvent::MouseMove)
   {
     QMouseEvent *me = dynamic_cast<QMouseEvent*>(e);
+
+    if (m_viewManager->voi())
+    {
+      IVOI::Region currentVOI = m_viewManager->voiRegion();
+      double cursorPos[3];
+      view->worldCoordinates(me->pos(), cursorPos);
+
+      m_validPos = currentVOI[0] <= cursorPos[0] && cursorPos[0] <= currentVOI[1]
+                && currentVOI[2] <= cursorPos[1] && cursorPos[1] <= currentVOI[3]
+                && currentVOI[4] <= cursorPos[2] && cursorPos[2] <= currentVOI[5];
+    } else
+      m_validPos = true;
+
     if (me->modifiers() == Qt::SHIFT)
     {
 //       DisplayRegionList regions;
@@ -190,8 +206,10 @@ bool SeedGrowSegmentationTool::filterEvent(QEvent* e, EspinaRenderView *view)
   }else if(e->type() == QEvent::MouseButtonPress)
   {
     QMouseEvent *me = dynamic_cast<QMouseEvent*>(e);
-    if (me->modifiers() != Qt::CTRL && m_picker)
-      return m_picker->filterEvent(e,view);
+    if (me->modifiers() != Qt::CTRL && m_picker && m_validPos)
+    {
+        return m_picker->filterEvent(e,view);
+    }
   }
 
   return false;

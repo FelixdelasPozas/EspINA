@@ -89,7 +89,7 @@ private:
   PlaneType m_plane;
   Nm        m_radius;
   Spacing   m_spacing;
-  int       m_windowSize[2];
+  int       m_viewSize[2];
   double    m_LL[3], m_UR[3];
   Nm        m_pBounds[6];
   double    m_worldSize[2];

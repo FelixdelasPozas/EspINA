@@ -6,10 +6,15 @@
  */
 
 #include "ContourWidget.h"
+
+#include <EspinaInteractorAdapter.h>
 #include <vtkPlaneContourWidget.h>
 #include <SliceContourWidget.h>
 #include <iostream>
 
+typedef EspinaInteractorAdapter<vtkPlaneContourWidget> ContourWidgetAdapter;
+
+//----------------------------------------------------------------------------
 ContourWidget::ContourWidget()
 : m_axialSliceContourWidget(NULL)
 , m_coronalSliceContourWidget(NULL)
@@ -18,6 +23,7 @@ ContourWidget::ContourWidget()
 {
 }
 
+//----------------------------------------------------------------------------
 ContourWidget::~ContourWidget()
 {
   if (NULL != m_axialSliceContourWidget)
@@ -39,20 +45,24 @@ ContourWidget::~ContourWidget()
   }
 }
 
+//----------------------------------------------------------------------------
 vtkAbstractWidget *ContourWidget::createWidget()
 {
   return NULL;
 }
 
+//----------------------------------------------------------------------------
 void ContourWidget::deleteWidget(vtkAbstractWidget *widget)
 {
   Q_ASSERT(false);
 }
 
+//----------------------------------------------------------------------------
 SliceWidget *ContourWidget::createSliceWidget(PlaneType plane)
 {
-  vtkPlaneContourWidget *widget = vtkPlaneContourWidget::New();
+  ContourWidgetAdapter *widget = new ContourWidgetAdapter();
   widget->setPolygonColor(this->m_color);
+  m_widgets << widget;
 
   switch(plane)
   {
@@ -76,10 +86,27 @@ SliceWidget *ContourWidget::createSliceWidget(PlaneType plane)
       break;
   }
 
-  // dead code
+  Q_ASSERT(false);
   return NULL;
 }
 
+//----------------------------------------------------------------------------
+bool ContourWidget::processEvent(vtkRenderWindowInteractor* iren,
+                                 long unsigned int event)
+{
+  foreach(vtkAbstractWidget *widget, m_widgets)
+  {
+    if (widget->GetInteractor() == iren)
+    {
+      ContourWidgetAdapter *sw = dynamic_cast<ContourWidgetAdapter *>(widget);
+      return sw->ProcessEventsHandler(event);
+    }
+  }
+
+  return false;
+}
+
+//----------------------------------------------------------------------------
 void ContourWidget::setEnabled(bool enable)
 {
   if (NULL != m_axialSliceContourWidget)
@@ -92,6 +119,7 @@ void ContourWidget::setEnabled(bool enable)
     m_sagittalSliceContourWidget->SetEnabled(enable);
 }
 
+//----------------------------------------------------------------------------
 QMap<PlaneType, QMap<Nm, vtkPolyData*> > ContourWidget::GetContours()
 {
   QMap<PlaneType, QMap<Nm, vtkPolyData*> > contours;
@@ -102,6 +130,7 @@ QMap<PlaneType, QMap<Nm, vtkPolyData*> > ContourWidget::GetContours()
   return contours;
 }
 
+//----------------------------------------------------------------------------
 void ContourWidget::SetContours(QMap<PlaneType, QMap<Nm, vtkPolyData*> > contours)
 {
   this->m_axialSliceContourWidget->SetContours(contours[AXIAL]);
@@ -109,6 +138,7 @@ void ContourWidget::SetContours(QMap<PlaneType, QMap<Nm, vtkPolyData*> > contour
   this->m_sagittalSliceContourWidget->SetContours(contours[SAGITTAL]);
 }
 
+//----------------------------------------------------------------------------
 unsigned int ContourWidget::GetContoursNumber()
 {
   unsigned int result = 0;
@@ -119,11 +149,13 @@ unsigned int ContourWidget::GetContoursNumber()
   return result;
 }
 
+//----------------------------------------------------------------------------
 void ContourWidget::setPolygonColor(QColor color)
 {
   m_color = color;
 }
 
+//----------------------------------------------------------------------------
 QColor ContourWidget::getPolygonColor()
 {
   return m_color;

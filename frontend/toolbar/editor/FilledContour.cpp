@@ -66,7 +66,10 @@ QCursor FilledContour::cursor() const
 //-----------------------------------------------------------------------------
 bool FilledContour::filterEvent(QEvent* e, EspinaRenderView* view)
 {
-  return false;
+  if (!m_enabled || !m_contourWidget)
+    return false;
+
+  return m_contourWidget->filterEvent(e, view);
 }
 
 //-----------------------------------------------------------------------------
@@ -103,7 +106,6 @@ void FilledContour::setInUse(bool enable)
     }
 
     m_viewManager->addWidget(m_contourWidget);
-    m_viewManager->setSelectionEnabled(false);
     m_contourWidget->setEnabled(true);
   }
   else
@@ -173,7 +175,7 @@ void FilledContour::setInUse(bool enable)
 
     QApplication::restoreOverrideCursor();
     m_viewManager->removeWidget(m_contourWidget);
-    m_viewManager->setSelectionEnabled(true);
+    //DEPRECATED m_viewManager->setSelectionEnabled(true);
     m_contourWidget->setEnabled(false);
     delete m_contourWidget;
     m_currentSeg = NULL;

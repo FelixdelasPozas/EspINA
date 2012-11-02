@@ -133,6 +133,7 @@ set (CORE_SOURCES
   undo/RemoveSegmentation.cpp
   widgets/vtkRectangularSliceRepresentation.cpp
   widgets/vtkRectangularSliceWidget.cpp
+  widgets/EspinaInteractorAdapter.cpp
   widgets/EspinaWidget.cpp
   widgets/RectangularRegion.cpp
   editor/ContourWidget.cpp

@@ -100,6 +100,7 @@ private:
 
   bool m_inUse;
   bool m_enabled;
+  bool m_validPos;
   SeedGrowSegmentationFilter *m_preview;
 };
 

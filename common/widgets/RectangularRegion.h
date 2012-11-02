@@ -47,7 +47,8 @@ public:
   virtual void deleteWidget(vtkAbstractWidget* widget);
   virtual SliceWidget* createSliceWidget(PlaneType plane);
 
-  virtual bool filterEvent(QEvent* e, EspinaRenderView* view);
+  virtual bool processEvent(vtkRenderWindowInteractor* iren,
+                            long unsigned int event);
   virtual void setEnabled(bool enable);
 
   virtual void setBounds(Nm bounds[6]);

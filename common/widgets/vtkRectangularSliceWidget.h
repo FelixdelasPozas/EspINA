@@ -22,6 +22,7 @@
 #include "vtkAbstractWidget.h"
 
 #include <common/EspinaTypes.h>
+#include "RectangularRegion.h"
 
 class vtkPolyData;
 class vtkRectangularSliceRepresentation;

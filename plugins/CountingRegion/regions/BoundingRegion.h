@@ -58,6 +58,7 @@ public:
   virtual QString serialize() const = 0;
 
   virtual bool filterEvent(QEvent* e, EspinaRenderView* view){return false;}
+  virtual bool processEvent(vtkRenderWindowInteractor* iren, long unsigned int event){}//TODO 2012-10-31
 
   /// Return total volume in pixels
   virtual double totalVolume() const
