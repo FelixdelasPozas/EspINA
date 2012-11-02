@@ -90,7 +90,7 @@ void BestPixelSelector::onMouseDown(const QPoint& pos, EspinaRenderView* view)
   regions << singlePixel;
 
   PickList pickList = view->pick(m_filters, regions);
-  if ((pickList.first().second->type() != ModelItem::CHANNEL) || pickList.empty())
+  if (pickList.empty() || (pickList.first().second->type() != ModelItem::CHANNEL))
     return;
 
   EspinaVolume *channel = pickList.first().second->itkVolume();
