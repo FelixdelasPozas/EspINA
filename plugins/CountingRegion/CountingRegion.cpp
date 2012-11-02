@@ -335,7 +335,11 @@ void CountingRegion::computeOptimalMargins(Channel* channel,
                                            Nm inclusion[3],
                                            Nm exclusion[3])
 {
-  static const Nm delta = 0.1;
+  const Nm delta[3] = {
+    0.5*channel->itkVolume()->GetSpacing()[0],
+    0.5*channel->itkVolume()->GetSpacing()[1],
+    0.5*channel->itkVolume()->GetSpacing()[2]
+  };
 
   memset(inclusion, 0, 3*sizeof(Nm));
   memset(exclusion, 0, 3*sizeof(Nm));
@@ -358,18 +362,20 @@ void CountingRegion::computeOptimalMargins(Channel* channel,
       marginExt->margins(dist2Margin);
       double segBounds[6];
       VolumeBounds(seg->itkVolume(), segBounds);
-      Nm size[3];
 
       for (int i=0; i < 3; i++)
       {
-        size[i] = segBounds[2*i+1] - segBounds[2*i] + 1;
-        if (dist2Margin[2*i] < delta)
-          inclusion[i] = std::max(size[i], inclusion[i]);
-        if (dist2Margin[2*i+1] < delta)
-          exclusion[i] = std::max(size[i], exclusion[i]);
+        double length = segBounds[2*i+1] - segBounds[2*i];
+        length += seg->itkVolume()->GetSpacing()[i];
+        if (dist2Margin[2*i] < delta[i])
+          inclusion[i] = std::max(length, inclusion[i]);
+        if (dist2Margin[2*i+1] < delta[i])
+          exclusion[i] = std::max(length, exclusion[i]);
       }
     }
   }
+  //qDebug() << "Inclusion:" << inclusion[0] << inclusion[1] << inclusion[2];
+  //qDebug() << "Exclusion:" << exclusion[0] << exclusion[1] << exclusion[2];
 }
 
 //------------------------------------------------------------------------

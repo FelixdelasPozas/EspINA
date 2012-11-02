@@ -46,6 +46,8 @@ public:
   virtual void deleteWidget(vtkAbstractWidget* widget);
   virtual SliceWidget *createSliceWidget(PlaneType plane);
 
+  virtual bool processEvent(vtkRenderWindowInteractor* iren,
+                            long unsigned int event);
   virtual void setEnabled(bool enable);
 
   virtual void updateBoundingRegion();

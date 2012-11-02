@@ -139,6 +139,13 @@ SliceWidget* AdaptiveBoundingRegion::createSliceWidget(PlaneType plane)
   return new AdaptiveRegionWidget(w);
 }
 
+//-----------------------------------------------------------------------------
+bool AdaptiveBoundingRegion::processEvent(vtkRenderWindowInteractor* iren,
+                                          long unsigned int event)
+{
+  return false;
+}
+
 
 //-----------------------------------------------------------------------------
 void AdaptiveBoundingRegion::setEnabled(bool enable)

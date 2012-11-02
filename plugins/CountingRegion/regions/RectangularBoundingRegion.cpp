@@ -126,10 +126,18 @@ SliceWidget* RectangularBoundingRegion::createSliceWidget(PlaneType plane)
 }
 
 //-----------------------------------------------------------------------------
+bool RectangularBoundingRegion::processEvent(vtkRenderWindowInteractor* iren,
+                                             long unsigned int event)
+{
+  return false;
+}
+
+//-----------------------------------------------------------------------------
 void RectangularBoundingRegion::setEnabled(bool enable)
 {
   Q_ASSERT(false);
 }
+
 
 //-----------------------------------------------------------------------------
 void RectangularBoundingRegion::updateBoundingRegion()
