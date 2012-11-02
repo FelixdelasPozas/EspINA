@@ -24,7 +24,6 @@
 
 #include "common/EspinaTypes.h"
 
-#include <itkImageToVTKImageFilter.h>
 #include <vtkSmartPointer.h>
 
 #include <QColor>
@@ -42,7 +41,6 @@ class BrushPicker
 {
   Q_OBJECT
   typedef EspinaVolume::SpacingType Spacing;
-  typedef itk::ImageToVTKImageFilter<EspinaVolume> itk2vtkFilterType;
 
 public:
   explicit BrushPicker(PickableItem *item=NULL);

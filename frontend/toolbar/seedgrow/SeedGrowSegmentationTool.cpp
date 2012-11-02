@@ -36,6 +36,8 @@
 #include <QWheelEvent>
 #include <QMessageBox>
 
+#include "common/tools/IPicker.h"
+
 const QString SGS_VOI = "SGS VOI";
 
 //-----------------------------------------------------------------------------
@@ -156,52 +158,53 @@ bool SeedGrowSegmentationTool::filterEvent(QEvent* e, EspinaRenderView *view)
 
     if (me->modifiers() == Qt::SHIFT)
     {
-//       DisplayRegionList regions;
-//       DisplayRegion singlePixel;
-// 
+      m_picker->filterEvent(e,view);
+//       IPicker::DisplayRegionList regions;
+//       IPicker::DisplayRegion singlePixel;
+//
 //       int xPos, yPos;
 //       view->eventPosition(xPos, yPos);
 //       singlePixel << QPoint(xPos,yPos);
 //       regions << singlePixel;
-// 
-//       PickList pickList = view->pick(m_filters, regions);
+//
+//       IPicker::PickList pickList = view->pick(m_filters, regions);
 //       if (pickList.size() == 0)
 //         return false;
-
+//
 //       Q_ASSERT(pickList.size() == 1);// Only one element selected
 //       IPicker::PickedItem element = pickList.first();
 //       Q_ASSERT(element.first.size() == 1); // with one pixel
-// 
+//
 //       QVector3D pick = element.first.first();
 //       SelectableItem *input = element.second;
 //       int seed[3] = {pick.x(), pick.y(), pick.z()};
-      //       if (null == m_preview)
-      //       {
-        // //     const int w = 40;
-      // //       int voi[6] = {seed[0] - w, seed[0] + w,
-      // //       seed[1] - w, seed[1] + w,
-      // //       seed[2] - w, seed[2] + w};
-      //
-      //         int voi[6];
-      //        view->previewextent(voi);
-      //        m_preview = new seedgrowsegmentationfilter(input->volume(), seed, m_threshold->threshold(), voi);
-      //        view->addpreview(m_preview);
-      //       }
-      //       else
-      //       {
-        //      m_preview->setinput(input->volume());
-      //        m_preview->setseed(seed);
-      //       }
-      //       view->view()->forcerender();
+//             if (null == m_preview)
+//             {
+         //     const int w = 40;
+       //       int voi[6] = {seed[0] - w, seed[0] + w,
+       //       seed[1] - w, seed[1] + w,
+       //       seed[2] - w, seed[2] + w};
+//
+//               int voi[6];
+//              view->previewextent(voi);
+//              m_preview = new seedgrowsegmentationfilter(input->volume(), seed, m_threshold->threshold(), voi);
+//              view->addPreview(m_preview);
+//             }
+//             else
+//             {
+//              m_preview->setinput(input->volume());
+//              m_preview->setseed(seed);
+//             }
+//             view->view()->forcerender();
     }else
     {
-      //       if (m_preview)
-      //       {
-        // 	view->removePreview(m_preview);
-        // 	delete m_preview;
-        // 	m_preview = NULL;
-        // 	view->view()->forceRender();
-        //       }
+//             if (m_preview)
+//             {
+//         	view->removePreview(m_preview);
+//         	delete m_preview;
+//         	m_preview = NULL;
+//         	view->view()->forceRender();
+//               }
     }
   }else if(e->type() == QEvent::MouseButtonPress)
   {

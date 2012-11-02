@@ -30,6 +30,7 @@ public:
   virtual ~PixelSelector(){}
 
   virtual void onMouseDown(const QPoint &pos, EspinaRenderView* view);
+  virtual void onMouseMove(const QPoint& pos, EspinaRenderView* view){};
   virtual bool filterEvent(QEvent* e, EspinaRenderView* view = 0);
 };
 
@@ -45,6 +46,7 @@ public:
   void setBestPixelValue(int value) {m_bestPixel = value;}
 
   virtual void onMouseDown(const QPoint& pos, EspinaRenderView* view);
+  virtual void onMouseMove(const QPoint& pos, EspinaRenderView* view);
 
 private:
   QSize *m_window;

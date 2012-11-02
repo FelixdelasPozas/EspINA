@@ -57,13 +57,11 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(Filter::NamedInputs input
 , m_param      (m_args)
 , m_input      (NULL)
 {
-//   qDebug() << TYPE << "arguments" << m_args;
 }
 
 //-----------------------------------------------------------------------------
 SeedGrowSegmentationFilter::~SeedGrowSegmentationFilter()
 {
-//   qDebug() << "Destroying" << TYPE;
 }
 
 //-----------------------------------------------------------------------------
@@ -71,11 +69,6 @@ void SeedGrowSegmentationFilter::markAsModified()
 {
   if (m_outputs.contains(0))
     m_outputs[0]->Modified();
-
-//   if (bmcif.IsNull())
-//     extractFilter->Modified();
-//   else
-//     bmcif->Modified();
 }
 
 //-----------------------------------------------------------------------------
@@ -95,12 +88,9 @@ void SeedGrowSegmentationFilter::releaseDataFlagOn()
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::releaseDataFlagOff()
 {
-  extractFilter->ReleaseDataFlagOn();
+  extractFilter->ReleaseDataFlagOff();
   if (bmcif.IsNotNull())
-  {
-    extractFilter->ReleaseDataFlagOn();
     bmcif->ReleaseDataFlagOff();
-  }
 }
 
 //-----------------------------------------------------------------------------
