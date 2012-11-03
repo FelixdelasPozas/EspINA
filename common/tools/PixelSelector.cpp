@@ -17,6 +17,7 @@
 #include <vtkMath.h>
 
 #include <itkImageRegionConstIterator.h>
+#include <itkExtractImageFilter.h>
 
 //-----------------------------------------------------------------------------
 void PixelSelector::onMouseDown(const QPoint &pos, EspinaRenderView* view)
@@ -47,11 +48,6 @@ bool PixelSelector::filterEvent(QEvent* e, EspinaRenderView* view)
       onMouseDown(me->pos(), view);
       return true;
     }
-  }
-  else if (e->type() == QEvent::MouseMove)
-  {
-    QMouseEvent* me = static_cast<QMouseEvent*>(e);
-    onMouseMove(me->pos(), view);
   }
 
   return IPicker::filterEvent(e,view);
@@ -250,22 +246,3 @@ void BestPixelSelector::onMouseDown(const QPoint& pos, EspinaRenderView* view)
   emit itemsPicked(pickList);
 }
 
-//-----------------------------------------------------------------------------
-void BestPixelSelector::onMouseMove(const QPoint &pos, EspinaRenderView *view)
-{
-  DisplayRegionList regions;
-  QPolygon singlePixel;
-
-  int xPos, yPos;
-  view->eventPosition(xPos, yPos);
-
-  singlePixel << QPoint(xPos,yPos);
-  regions << singlePixel;
-
-  PickList pickList = view->pick(m_filters, regions);
-
-  if ((pickList.first().second->type() != ModelItem::CHANNEL) || pickList.empty())
-    return;
-
-  // TODO: continuar con la preview
-}
