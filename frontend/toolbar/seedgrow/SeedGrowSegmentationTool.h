@@ -87,10 +87,6 @@ public:
 public slots:
   void startSegmentation(IPicker::PickList pickedItems);
 
-private:
-  void previewOn();
-  void previewOff();
-
 signals:
   void seedSelected(Channel *, EspinaVolume::IndexType);
   void segmentationStopped();
@@ -101,6 +97,7 @@ private:
 
   // helper methods
   void removePreview(EspinaRenderView*);
+  void addPreview(EspinaRenderView*);
 
   EspinaModel *m_model;
   QUndoStack  *m_undoStack;

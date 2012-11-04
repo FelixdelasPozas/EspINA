@@ -31,6 +31,8 @@ public:
 
   virtual void onMouseDown(const QPoint &pos, EspinaRenderView* view);
   virtual bool filterEvent(QEvent* e, EspinaRenderView* view = 0);
+  virtual double *getPickPoint(EspinaRenderView *view);
+  virtual IPicker::PickList generatePickList(EspinaRenderView*);
 };
 
 class QSize;
@@ -45,6 +47,7 @@ public:
   void setBestPixelValue(int value) {m_bestPixel = value;}
 
   virtual void onMouseDown(const QPoint& pos, EspinaRenderView* view);
+  virtual double *getPickPoint(EspinaRenderView *view);
 
 private:
   QSize *m_window;
