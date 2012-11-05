@@ -150,7 +150,6 @@ void Brush::setInUse(bool value)
 
   if (value && m_viewManager->activeTaxonomy() && m_viewManager->activeChannel())
   {
-    m_brush->setBrushColor(m_viewManager->activeTaxonomy()->color());
     SegmentationList segs = selectedSegmentations();
     if (segs.size() == 1)
     {
@@ -158,6 +157,7 @@ void Brush::setInUse(bool value)
       m_currentSource = m_currentSeg->filter();
       m_currentOutput = m_currentSeg->outputNumber();
 
+      m_brush->setBrushColor(m_currentSeg->taxonomy()->color());
       m_brush->setBorderColor(QColor(Qt::green));
       m_brush->setReferenceItem(m_currentSeg);
     }
@@ -167,6 +167,7 @@ void Brush::setInUse(bool value)
       m_currentSource = NULL;
       m_currentOutput = -1;
 
+      m_brush->setBrushColor(m_viewManager->activeTaxonomy()->color());
       m_brush->setBorderColor(QColor(Qt::blue));
       m_brush->setReferenceItem(m_viewManager->activeChannel());
     }
