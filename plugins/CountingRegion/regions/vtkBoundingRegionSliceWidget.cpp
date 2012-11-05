@@ -193,6 +193,8 @@ void vtkBoundingRegionSliceWidget::MoveAction(vtkAbstractWidget *w)
     self->WidgetRep->ComputeInteractionState(X, Y);
     int stateAfter = self->WidgetRep->GetInteractionState();
     self->SetCursor(stateAfter);
+    if (stateAfter != vtkBoundingRegionSliceRepresentation::Outside)
+      self->EventCallbackCommand->SetAbortFlag(1);
     return;
   }
 
@@ -221,25 +223,25 @@ void vtkBoundingRegionSliceWidget::MoveAction(vtkAbstractWidget *w)
 //----------------------------------------------------------------------
 void vtkBoundingRegionSliceWidget::SetCursor(int state)
 {
-    switch (state)
-    {
-      case vtkBoundingRegionSliceRepresentation::Translating:
-	this->RequestCursorShape(VTK_CURSOR_SIZEALL);
-	break;
-      case vtkBoundingRegionSliceRepresentation::MoveLeft:
-      case vtkBoundingRegionSliceRepresentation::MoveRight:
-	this->RequestCursorShape(VTK_CURSOR_SIZEWE);
-	break;
-      case vtkBoundingRegionSliceRepresentation::MoveTop:
-      case vtkBoundingRegionSliceRepresentation::MoveBottom:
-	this->RequestCursorShape(VTK_CURSOR_SIZENS);
-	break;
-      case vtkBoundingRegionSliceRepresentation::Outside:
-	this->RequestCursorShape(VTK_CURSOR_DEFAULT);
-	break;
-      default:
-	this->RequestCursorShape(VTK_CURSOR_DEFAULT);
-    };
+  switch (state)
+  {
+    case vtkBoundingRegionSliceRepresentation::Translating:
+      this->RequestCursorShape(VTK_CURSOR_SIZEALL);
+      break;
+    case vtkBoundingRegionSliceRepresentation::MoveLeft:
+    case vtkBoundingRegionSliceRepresentation::MoveRight:
+      this->RequestCursorShape(VTK_CURSOR_SIZEWE);
+      break;
+    case vtkBoundingRegionSliceRepresentation::MoveTop:
+    case vtkBoundingRegionSliceRepresentation::MoveBottom:
+      this->RequestCursorShape(VTK_CURSOR_SIZENS);
+      break;
+    case vtkBoundingRegionSliceRepresentation::Outside:
+      this->RequestCursorShape(VTK_CURSOR_DEFAULT);
+      break;
+    default:
+      this->RequestCursorShape(VTK_CURSOR_DEFAULT);
+  };
 }
 
 
@@ -295,6 +297,7 @@ void vtkBoundingRegionSliceWidget::SetBoundingRegion(vtkPolyData *region)
 {
   if (!this->WidgetRep)
     CreateDefaultRepresentation();
+
   vtkBoundingRegionSliceRepresentation *rep = reinterpret_cast<vtkBoundingRegionSliceRepresentation*>(this->WidgetRep);
   rep->SetBoundingRegion(region);
   rep->GetInclusionOffset(this->InclusionOffset);

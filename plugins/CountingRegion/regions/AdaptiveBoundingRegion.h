@@ -64,6 +64,7 @@ protected:
 
 private:
   Channel *m_channel;
+
 };
 
 #endif // ADAPTIVEBOUNDINGREGION_H

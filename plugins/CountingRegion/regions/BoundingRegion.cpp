@@ -39,6 +39,16 @@ BoundingRegion::BoundingRegion(CountingRegionChannelExtension *channelExt,
 }
 
 //-----------------------------------------------------------------------------
+void BoundingRegion::setMargins(Nm inclusion[3], Nm exclusion[3])
+{
+  memcpy(m_inclusion, inclusion, 3*sizeof(Nm));
+  memcpy(m_exclusion, exclusion, 3*sizeof(Nm));
+
+  updateBoundingRegion();
+  emit modified(this);
+}
+
+//-----------------------------------------------------------------------------
 QVariant BoundingRegion::data(int role) const
 {
   if (role == DescriptionRole)
@@ -90,8 +100,13 @@ void BoundingRegion::Execute(vtkObject* caller, long unsigned int eventId, void*
     updateBoundingRegion();
     emit modified(this);
 
-    foreach(vtkBoundingRegionWidget *w, m_widgets)
-      w->SetBoundingRegion(m_boundingRegion);
+    foreach(vtkBoundingRegionWidget *w, m_widgets2D)
+      if (w != widget)
+        w->SetBoundingRegion(m_boundingRegion);
+
+    foreach(vtkBoundingRegionWidget *w, m_widgets3D)
+      if (w != widget)
+        w->SetBoundingRegion(m_boundingRegion);
   }
   //m_viewManager->updateViews();
 

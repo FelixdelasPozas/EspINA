@@ -22,11 +22,16 @@
 
 #include <QStandardItemModel>
 #include <common/widgets/RectangularRegion.h>
+#include <common/widgets/EspinaInteractorAdapter.h>
+
+#include "vtkBoundingRegionSliceWidget.h"
+#include "vtkBoundingRegion3DWidget.h"
+
+
 #include <vtkCommand.h>
 
-class ViewManager;
 class CountingRegionChannelExtension;
-class vtkBoundingRegionWidget;
+class ViewManager;
 class vtkPolyData;
 
 /// Bounding Regions' base class
@@ -37,6 +42,11 @@ class BoundingRegion
 , public vtkCommand
 {
   Q_OBJECT
+
+protected:
+  typedef EspinaInteractorAdapter<vtkBoundingRegionSliceWidget> BoundingRegion2DWidgetAdapter;
+  typedef EspinaInteractorAdapter<vtkBoundingRegion3DWidget>    BoundingRegion3DWidgetAdapter;
+
 public:
   const int INCLUSION_FACE;
   const int EXCLUSION_FACE;
@@ -53,6 +63,8 @@ public:
                           ViewManager *vm);
 
   virtual ~BoundingRegion(){}
+
+  void setMargins(Nm inclusion[3], Nm exclusion[3]);
 
   virtual QVariant data(int role = Qt::UserRole + 1) const;
   virtual QString serialize() const = 0;
@@ -71,18 +83,19 @@ public:
 
   virtual void Execute(vtkObject* caller, long unsigned int eventId, void* callData);
 
+  Nm left()  const {return m_inclusion[0];}
+  Nm top()   const {return m_inclusion[1];}
+  Nm upper() const {return m_inclusion[2];}
+  Nm right() const {return m_exclusion[0];}
+  Nm bottom()const {return m_exclusion[1];}
+  Nm lower() const {return m_exclusion[2];}
+
+
 signals:
   void modified(BoundingRegion *);
 
 protected:
   virtual void updateBoundingRegion() = 0;
-
-  double left()  const {return m_inclusion[0];}
-  double top()   const {return m_inclusion[1];}
-  double upper() const {return m_inclusion[2];}
-  double right() const {return m_exclusion[0];}
-  double bottom()const {return m_exclusion[1];}
-  double lower() const {return m_exclusion[2];}
 
 protected:
   ViewManager *m_viewManager;
@@ -93,7 +106,8 @@ protected:
   Nm m_exclusion[3];
   Nm m_totalVolume, m_inclusionVolume;
 
-  QList<vtkBoundingRegionWidget *> m_widgets;
+  QList<BoundingRegion2DWidgetAdapter *> m_widgets2D;
+  QList<BoundingRegion3DWidgetAdapter *> m_widgets3D;
 };
 
 #endif // BOUNDINGREGION_H

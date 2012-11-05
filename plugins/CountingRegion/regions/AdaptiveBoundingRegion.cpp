@@ -22,6 +22,7 @@
 #include <common/model/Channel.h>
 #include "vtkBoundingRegionSliceWidget.h"
 #include <common/extensions/Margins/MarginsChannelExtension.h>
+#include <common/widgets/EspinaInteractorAdapter.h>
 #include <extensions/CountingRegionChannelExtension.h>
 
 #include <vtkPolyData.h>
@@ -67,12 +68,18 @@ AdaptiveBoundingRegion::AdaptiveBoundingRegion(CountingRegionChannelExtension *c
 AdaptiveBoundingRegion::~AdaptiveBoundingRegion()
 {
   m_channelExt->removeRegion(this);
-  foreach(vtkAbstractWidget *w, m_widgets)
+  foreach(vtkAbstractWidget *w, m_widgets2D)
   {
     w->EnabledOn();
     w->Delete();
   }
-  m_widgets.clear();
+  foreach(vtkAbstractWidget *w, m_widgets3D)
+  {
+    w->EnabledOn();
+    w->Delete();
+  }
+  m_widgets2D.clear();
+  m_widgets3D.clear();
 
   if (m_boundingRegion)
     m_boundingRegion->Delete();
@@ -82,12 +89,7 @@ AdaptiveBoundingRegion::~AdaptiveBoundingRegion()
 QVariant AdaptiveBoundingRegion::data(int role) const
 {
   if (role == Qt::DisplayRole)
-  {
-    QString repName = QString("Adaptive Region (%1,%2,%3,%4,%5,%6)")
-      .arg(left(),0,'f',2).arg(top(),0,'f',2).arg(upper(),0,'f',2)
-      .arg(right(),0,'f',2).arg(bottom(),0,'f',2).arg(lower(),0,'f',2);
-    return repName;
-  }
+    return tr("%1 - Adaptive Region").arg(m_channelExt->channel()->data().toString());
 
   return BoundingRegion::data(role);
 }
@@ -97,20 +99,20 @@ QString AdaptiveBoundingRegion::serialize() const
 {
   return QString("%1=%2,%3,%4,%5,%6,%7")
          .arg(ID)
-	 .arg(left(),0,'f',2).arg(top(),0,'f',2).arg(upper(),0,'f',2)
+         .arg(left(),0,'f',2).arg(top(),0,'f',2).arg(upper(),0,'f',2)
          .arg(right(),0,'f',2).arg(bottom(),0,'f',2).arg(lower(),0,'f',2);
 }
 
 //-----------------------------------------------------------------------------
 vtkAbstractWidget* AdaptiveBoundingRegion::createWidget()
 {
-  vtkBoundingRegion3DWidget *w = vtkBoundingRegion3DWidget::New();
-  Q_ASSERT(w);
-  w->SetBoundingRegion(m_boundingRegion);
+  BoundingRegion3DWidgetAdapter *wa = new BoundingRegion3DWidgetAdapter();
+  Q_ASSERT(wa);
+  wa->SetBoundingRegion(m_boundingRegion);
 
-  m_widgets << w;
+  m_widgets3D << wa;
 
-  return w;
+  return wa;
 }
 
 //-----------------------------------------------------------------------------
@@ -119,8 +121,17 @@ void AdaptiveBoundingRegion::deleteWidget(vtkAbstractWidget* widget)
   widget->Off();
   widget->RemoveAllObservers();
 
-  vtkBoundingRegionWidget *brw = dynamic_cast<vtkBoundingRegionWidget *>(widget);
-  m_widgets.removeAll(brw);
+  BoundingRegion3DWidgetAdapter *brwa3D = dynamic_cast<BoundingRegion3DWidgetAdapter *>(widget);
+  if (brwa3D)
+    m_widgets3D.removeAll(brwa3D);
+  else
+  {
+    BoundingRegion2DWidgetAdapter *brwa2D = dynamic_cast<BoundingRegion2DWidgetAdapter *>(widget);
+    if (brwa2D)
+      m_widgets2D.removeAll(brwa2D);
+    else
+      Q_ASSERT(false);
+  }
 
   widget->Delete();
 }
@@ -128,22 +139,21 @@ void AdaptiveBoundingRegion::deleteWidget(vtkAbstractWidget* widget)
 //-----------------------------------------------------------------------------
 SliceWidget* AdaptiveBoundingRegion::createSliceWidget(PlaneType plane)
 {
-  vtkBoundingRegionSliceWidget *w = vtkBoundingRegionSliceWidget::New();
-  Q_ASSERT(w);
-  w->AddObserver(vtkCommand::EndInteractionEvent, this);
-  w->SetPlane(plane);
-  w->SetBoundingRegion(m_boundingRegion);
+  BoundingRegion2DWidgetAdapter *wa = new BoundingRegion2DWidgetAdapter();
+  Q_ASSERT(wa);
+  wa->AddObserver(vtkCommand::EndInteractionEvent, this);
+  wa->SetPlane(plane);
+  wa->SetBoundingRegion(m_boundingRegion);
 
-  m_widgets << w;
+  m_widgets2D << wa;
 
-  return new AdaptiveRegionWidget(w);
+  return new AdaptiveRegionWidget(wa);
 }
 
 //-----------------------------------------------------------------------------
 bool AdaptiveBoundingRegion::processEvent(vtkRenderWindowInteractor* iren,
                                           long unsigned int event)
 {
-  return false;
 }
 
 
