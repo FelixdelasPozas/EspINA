@@ -157,10 +157,7 @@ bool SeedGrowSegmentationTool::filterEvent(QEvent* e, EspinaRenderView *view)
           return true;
         }
         else
-        {
-          if (m_actor != NULL)
             removePreview(view);
-        }
       }
       else
         if (e->type() == QEvent::MouseMove)
@@ -190,9 +187,7 @@ bool SeedGrowSegmentationTool::filterEvent(QEvent* e, EspinaRenderView *view)
             QMouseEvent *me = dynamic_cast<QMouseEvent*>(e);
             if (me->modifiers() != Qt::CTRL && m_picker && m_validPos)
             {
-              if (m_actor != NULL)
-                removePreview(view);
-
+              removePreview(view);
               return m_picker->filterEvent(e, view);
             }
           }
@@ -354,14 +349,14 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationTool::removePreview(EspinaRenderView *view)
 {
-  if (m_actor != NULL)
-  {
-    view->removePreview(m_actor);
-    connectFilter = NULL;
-    i2v = NULL;
-    m_actor = NULL;
-    view->updateView();
-  }
+  if (m_actor == NULL)
+    return;
+
+  view->removePreview(m_actor);
+  connectFilter = NULL;
+  i2v = NULL;
+  m_actor = NULL;
+  view->updateView();
 }
 
 //-----------------------------------------------------------------------------
@@ -391,8 +386,8 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
   double *point = selector->getPickPoint(view);
   if (point == NULL)
   {
-    if (m_actor != NULL)
-      removePreview(view);
+    delete point;
+    removePreview(view);
     return;
   }
 
@@ -402,19 +397,6 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
   seed[0] = point[0]/spacing[0];
   seed[1] = point[1]/spacing[1];
   seed[2] = point[2]/spacing[2];
-
-  if (connectFilter.IsNotNull())
-  {
-    int seedValue = connectFilter->GetInput()->GetPixel(seed);
-    connectFilter->ClearSeeds();
-    connectFilter->SetSeed(seed);
-    connectFilter->SetLower(static_cast<unsigned char>(((seedValue - m_threshold->lowerThreshold()) < 0 ? 0 : (seedValue - m_threshold->lowerThreshold()))));
-    connectFilter->SetUpper(static_cast<unsigned char>(((seedValue + m_threshold->upperThreshold()) > 255 ? 255 : (seedValue + m_threshold->upperThreshold()))));
-    connectFilter->Update();
-    i2v->Update();
-    view->updateView();
-    return;
-  }
 
   EspinaVolume::IndexType index;
   EspinaVolume::SizeType size;
@@ -430,11 +412,32 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
     extent[3] = bounds[3]/spacing[1];
     extent[4] = bounds[4]/spacing[2];
     extent[5] = bounds[5]/spacing[2];
+
+    if (m_defaultVOI->useDefaultVOI())
+    {
+      int voiExtent[6];
+      voiExtent[0] = seed[0] - (m_settings->xSize()/spacing[0]);
+      voiExtent[1] = seed[0] + (m_settings->xSize()/spacing[0]);
+      voiExtent[2] = seed[1] - (m_settings->ySize()/spacing[1]);
+      voiExtent[3] = seed[1] + (m_settings->ySize()/spacing[1]);
+      voiExtent[4] = seed[2] - (m_settings->zSize()/spacing[2]);
+      voiExtent[5] = seed[2] + (m_settings->zSize()/spacing[2]);
+
+      extent[0] = (voiExtent[0] > extent[0]) ? voiExtent[0] : extent[0];
+      extent[1] = (voiExtent[1] < extent[1]) ? voiExtent[1] : extent[1];
+      extent[2] = (voiExtent[2] > extent[2]) ? voiExtent[2] : extent[2];
+      extent[3] = (voiExtent[3] < extent[3]) ? voiExtent[3] : extent[3];
+      extent[4] = (voiExtent[4] > extent[4]) ? voiExtent[4] : extent[4];
+      extent[5] = (voiExtent[5] < extent[5]) ? voiExtent[5] : extent[5];
+    }
   }
   else
   {
     if (!m_validPos)
+    {
+      removePreview(view);
       return;
+    }
 
     IVOI::Region currentVOI = m_viewManager->voiRegion();
 
@@ -463,22 +466,34 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
   extract->SetExtractionRegion(region);
   extract->Update();
 
-  int seedValue = static_cast<int>(extract->GetOutput()->GetPixel(seed));
+  double seedValue = static_cast<int>(extract->GetOutput()->GetPixel(seed));
 
-  connectFilter = ConnectedThresholdFilterType::New();
+  if (m_actor == NULL)
+  {
+    connectFilter = ConnectedThresholdFilterType::New();
+    connectFilter->SetConnectivity(itk::ConnectedThresholdImageFilter<EspinaVolume, EspinaVolume>::FullConnectivity);
+    connectFilter->ReleaseDataFlagOff();
+    connectFilter->SetReplaceValue(1);
+  }
   connectFilter->SetInput(extract->GetOutput());
-  connectFilter->SetConnectivity(itk::ConnectedThresholdImageFilter<EspinaVolume, EspinaVolume>::FullConnectivity);
-  connectFilter->SetLower(std::max(static_cast<unsigned char>(seedValue - m_threshold->lowerThreshold()), static_cast<unsigned char>(0)));
-  connectFilter->SetUpper(std::min(static_cast<unsigned char>(seedValue + m_threshold->upperThreshold()), static_cast<unsigned char>(255)));
+  connectFilter->SetLower(std::max(seedValue - m_threshold->lowerThreshold(), 0.0));
+  connectFilter->SetUpper(std::min(seedValue + m_threshold->upperThreshold(), 255.0));
   connectFilter->SetSeed(seed);
-  connectFilter->ReleaseDataFlagOff();
-  connectFilter->SetReplaceValue(1);
   connectFilter->Update();
 
-  i2v = itk2vtkFilterType::New();
-  i2v->ReleaseDataFlagOff();
-  i2v->SetInput(connectFilter->GetOutput());
+  if (m_actor == NULL)
+  {
+    i2v = itk2vtkFilterType::New();
+    i2v->ReleaseDataFlagOff();
+    i2v->SetInput(connectFilter->GetOutput());
+  }
   i2v->Update();
+
+  if (m_actor != NULL)
+  {
+    view->updateView();
+    return;
+  }
 
   QColor color = m_viewManager->activeTaxonomy()->color();
 
