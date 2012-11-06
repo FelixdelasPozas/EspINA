@@ -45,7 +45,6 @@ vtkBoundingRegionSliceRepresentation::vtkBoundingRegionSliceRepresentation()
 
   memset(this->InclusionOffset, 0, 3*sizeof(double));
   memset(this->ExclusionOffset, 0, 3*sizeof(double));
-  memset(this->Shift, 0, 4*sizeof(double));
 
   this->CreateDefaultProperties();
 
@@ -112,7 +111,8 @@ void vtkBoundingRegionSliceRepresentation::GetPolyData(vtkPolyData *pd)
 void vtkBoundingRegionSliceRepresentation::reset()
 {
 //   std::cout << "Shift's been reset" << std::endl;
-  memset(this->Shift, 0, 4*sizeof(double));
+  memset(this->InclusionOffset, 0, 3*sizeof(Nm));
+  memset(this->ExclusionOffset, 0, 3*sizeof(Nm));
   CreateRegion();
 }
 
@@ -191,51 +191,86 @@ void vtkBoundingRegionSliceRepresentation::WidgetInteraction(double e[2])
 void vtkBoundingRegionSliceRepresentation::MoveLeftEdge(double* p1, double* p2)
 {
   double shift = p2[hCoord()] - p1[hCoord()];
-  bool crossRightEdge = leftEdge() + shift + SlicingStep[hCoord()] >= rightEdge();
-  if (!crossRightEdge)
+
+  Nm offset   = InclusionOffset[hCoord()] + shift;
+
+  if (offset < 0)
+    offset = 0;
+  else
   {
-    Shift[LEFT] += shift;
-    InclusionOffset[hCoord()] += shift;
-    UpdateRegion();
+    Nm nextLeftEdge = realLeftEdge() + offset;
+    Nm rightEdgeLimit  = rightEdge() - SlicingStep[hCoord()];
+
+    if (nextLeftEdge > rightEdgeLimit)
+      offset = rightEdgeLimit - realLeftEdge();
   }
+
+  InclusionOffset[hCoord()] = offset;
+  UpdateRegion();
 }
 
 //----------------------------------------------------------------------------
 void vtkBoundingRegionSliceRepresentation::MoveRightEdge(double* p1, double* p2)
 {
   double shift = p2[hCoord()] - p1[hCoord()];
-  std::cout << "Shift" << shift << std::endl;
-  bool crossLeftEdge = leftEdge() + SlicingStep[hCoord()] >= rightEdge() + shift;
-  if (!crossLeftEdge)
+
+  Nm offset = ExclusionOffset[hCoord()] - shift;
+
+  if (offset < 0)
+    offset = 0;
+  else
   {
-    Shift[RIGHT] += shift;
-    ExclusionOffset[hCoord()] -= shift;
-    UpdateRegion();
+    Nm nextRightEdge = realRightEdge() - offset;
+    Nm leftEdgeLimit = leftEdge() + SlicingStep[hCoord()];
+
+    if (leftEdgeLimit > nextRightEdge)
+      offset = realRightEdge() - leftEdgeLimit;
   }
+
+  ExclusionOffset[hCoord()] = offset;
+  UpdateRegion();
 }
 //----------------------------------------------------------------------------
 void vtkBoundingRegionSliceRepresentation::MoveTopEdge(double* p1, double* p2)
 {
   double shift = p2[vCoord()] - p1[vCoord()];
-  double crossBottomEdge = topEdge() + shift + SlicingStep[vCoord()] >= bottomEdge();
-  if (!crossBottomEdge)
+  Nm offset = InclusionOffset[vCoord()] + shift;
+
+  if (offset < 0)
+    offset = 0;
+  else
   {
-    Shift[TOP] += shift;
-    InclusionOffset[vCoord()] += shift;
-    UpdateRegion();
+    Nm nextTopEdge = realTopEdge() + offset;
+    Nm bottomEdgeLimit  = bottomEdge() - SlicingStep[hCoord()];
+
+    if (nextTopEdge > bottomEdgeLimit)
+      offset = bottomEdgeLimit - realTopEdge();
   }
+
+
+  InclusionOffset[vCoord()] = offset;
+  UpdateRegion();
 }
 //----------------------------------------------------------------------------
 void vtkBoundingRegionSliceRepresentation::MoveBottomEdge(double* p1, double* p2)
 {
   double shift = p2[vCoord()] - p1[vCoord()];
-  double crossTopEdge = topEdge() + SlicingStep[vCoord()] >= bottomEdge() + shift;
-  if (!crossTopEdge)
+
+  Nm offset = ExclusionOffset[vCoord()] - shift;
+
+  if (offset < 0)
+    offset = 0;
+  else
   {
-    Shift[BOTTOM] += shift;
-    ExclusionOffset[vCoord()] -= shift;
-    UpdateRegion();
+    Nm nextBottomEdge = realBottomEdge() - offset;
+    Nm topEdgeLimit = topEdge() + SlicingStep[hCoord()];
+
+    if (topEdgeLimit > nextBottomEdge)
+      offset = realBottomEdge() - topEdgeLimit;
   }
+
+  ExclusionOffset[vCoord()] = offset;
+  UpdateRegion();
 }
 
 //----------------------------------------------------------------------------
@@ -388,17 +423,17 @@ void vtkBoundingRegionSliceRepresentation::UpdateXYFace()
   LB[2] = LT[2] = RT[2] = RB[2] = -0.1;
 
   // Shift edges' points
-  LB[0] += Shift[LEFT];
-  LT[0] += Shift[LEFT];
+  LB[0] += InclusionOffset[hCoord()];
+  LT[0] += InclusionOffset[hCoord()];
 
-  LT[1] += Shift[TOP];
-  RT[1] += Shift[TOP];
+  LT[1] += InclusionOffset[vCoord()];
+  RT[1] += InclusionOffset[vCoord()];
 
-  RB[0] += Shift[RIGHT];
-  RT[0] += Shift[RIGHT];
+  RB[0] -= ExclusionOffset[hCoord()];
+  RT[0] -= ExclusionOffset[hCoord()];
 
-  RB[1] += Shift[BOTTOM];
-  LB[1] += Shift[BOTTOM];
+  RB[1] -= ExclusionOffset[vCoord()];
+  LB[1] -= ExclusionOffset[vCoord()];
 
   this->Vertex->SetPoint(0, LB);
   this->Vertex->SetPoint(1, LT);
@@ -427,10 +462,12 @@ void vtkBoundingRegionSliceRepresentation::CreateYZFace()
 
 //   std::cout << "LB: " << LB[2] << std::endl;
 //   std::cout << "RB: " << RB[2] << std::endl;
-//   std::cout << "LB+Shift: " << LB[2] + Shift[LEFT]  << std::endl;
-//   std::cout << "RB+Shift: " << RB[2]+ Shift[RIGHT] << std::endl;
-  int UpperSlice = sliceNumber(LB[2] + Shift[LEFT],  AXIAL);
-  int LowerSlice = sliceNumber(RB[2] + Shift[RIGHT], AXIAL);
+//   std::cout << "LB+Shift: " << LB[2] + InclusionOffset[hCoord()]  << std::endl;
+//   std::cout << "RB+Shift: " << RB[2]+ ExclusionOffset[hCoord()] << std::endl;
+  int UpperSlice = sliceNumber(LB[2] + InclusionOffset[hCoord()],  AXIAL);
+  int LowerSlice = sliceNumber(RB[2] - ExclusionOffset[hCoord()], AXIAL);
+  if (UpperSlice == LowerSlice)
+    UpperSlice--;
 //   std::cout << "Upper Slice: " << UpperSlice << std::endl;
 //   std::cout << "Lower Slice: " << LowerSlice << std::endl;
 
@@ -496,20 +533,20 @@ void vtkBoundingRegionSliceRepresentation::CreateYZFace()
     // Bottom
     Region->GetPoint(slice*4+0,point);
     point[0] = 0.1;
-    point[1] += Shift[BOTTOM];
+    point[1] -= ExclusionOffset[vCoord()];
     if (slice == 0)
-      point[2] += Shift[LEFT];
+      point[2] += InclusionOffset[hCoord()];
     else if (slice == NumSlices - 1)
-      point[2] += Shift[RIGHT];
+      point[2] -= ExclusionOffset[hCoord()];
     this->Vertex->SetPoint(2*interval, point);
     // Top
     Region->GetPoint(slice*4+1,point);
     point[0] = 0.1;
-    point[1] += Shift[TOP];
+    point[1] += InclusionOffset[vCoord()];
     if (slice == 0)
-      point[2] += Shift[LEFT];
+      point[2] += InclusionOffset[hCoord()];
     else if (slice == NumSlices - 1)
-      point[2] += Shift[RIGHT];
+      point[2] -= ExclusionOffset[hCoord()];
     this->Vertex->SetPoint(2*interval+1, point);
   }
 
@@ -526,8 +563,10 @@ void vtkBoundingRegionSliceRepresentation::CreateXZFace()
 
 //   std::cout << "LT: " << LT[2] << std::endl;
 //   std::cout << "LB: " << LB[2] << std::endl;
-  int UpperSlice = sliceNumber(LT[2] + Shift[TOP],    AXIAL);
-  int LowerSlice = sliceNumber(LB[2] + Shift[BOTTOM], AXIAL);
+  int UpperSlice = sliceNumber(LT[2] + InclusionOffset[vCoord()], AXIAL);
+  int LowerSlice = sliceNumber(LB[2] - ExclusionOffset[vCoord()], AXIAL);
+  if (UpperSlice == LowerSlice)
+    UpperSlice--;
 //   std::cout << "Upper Slice: " << UpperSlice << std::endl;
 //   std::cout << "Lower Slice: " << LowerSlice << std::endl;
 
@@ -594,21 +633,21 @@ void vtkBoundingRegionSliceRepresentation::CreateXZFace()
     int interval = slice - UpperSlice;
     // LEFT
     Region->GetPoint(slice*4+1,point);
-    point[0] += Shift[LEFT];
+    point[0] += InclusionOffset[hCoord()];
     point[1] = 0.1;
     if (slice == 0)
-      point[2] += Shift[TOP];
+      point[2] += InclusionOffset[vCoord()];
     else if (slice == NumSlices -1)
-      point[2] += Shift[BOTTOM];
+      point[2] -= ExclusionOffset[vCoord()];
     this->Vertex->SetPoint(2*interval+0, point);
     //RIGHT
     Region->GetPoint(slice*4+3,point);
-    point[0] += Shift[RIGHT];
+    point[0] -= ExclusionOffset[hCoord()];
     point[1] = 0.1;
     if (slice == 0)
-      point[2] += Shift[TOP];
+      point[2] += InclusionOffset[vCoord()];
     else if (slice == NumSlices -1)
-      point[2] += Shift[BOTTOM];
+      point[2] -= ExclusionOffset[vCoord()];
     this->Vertex->SetPoint(2*interval+1, point);
   }
 
@@ -639,20 +678,20 @@ void vtkBoundingRegionSliceRepresentation::SetSlice(double pos)
 }
 
 //----------------------------------------------------------------------------
-void vtkBoundingRegionSliceRepresentation::SetBoundingRegion(vtkSmartPointer< vtkPolyData > region,
+void vtkBoundingRegionSliceRepresentation::SetBoundingRegion(vtkSmartPointer<vtkPolyData> region,
+                                                             Nm inclusionOffset[3],
+                                                             Nm exclusionOffset[3],
                                                              Nm slicingStep[3])
 {
   Region = region;
+  memcpy(InclusionOffset, inclusionOffset, 3*sizeof(Nm));
+  memcpy(ExclusionOffset, exclusionOffset, 3*sizeof(Nm));
   memcpy(SlicingStep, slicingStep, 3*sizeof(Nm));
 
   this->Region->Update();
   this->NumPoints = this->Region->GetPoints()->GetNumberOfPoints();
   this->NumSlices = this->NumPoints / 4;
   this->NumVertex = this->NumSlices * 2;
-
-  memset(this->InclusionOffset, 0, 3*sizeof(double));
-  memset(this->ExclusionOffset, 0, 3*sizeof(double));
-  memset(this->Shift, 0, 4*sizeof(double));
 
   CreateRegion();
 }

@@ -52,6 +52,14 @@ public:
 
   virtual void updateBoundingRegionImplementation();
 
+protected:
+  vtkSmartPointer<vtkPolyData> createRectangularRegion(Nm left,
+                                                       Nm top,
+                                                       Nm upper,
+                                                       Nm right,
+                                                       Nm bottom,
+                                                       Nm lower);
+
 private:
   Nm m_borders[6];
 };

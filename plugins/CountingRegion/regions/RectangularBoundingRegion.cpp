@@ -89,7 +89,7 @@ vtkAbstractWidget *RectangularBoundingRegion::createWidget()
 {
   BoundingRegion3DWidgetAdapter *wa = new BoundingRegion3DWidgetAdapter();
   Q_ASSERT(wa);
-  wa->SetBoundingRegion(m_boundingRegion);
+  wa->SetBoundingRegion(m_boundingRegion, m_inclusion, m_exclusion);
 
   m_widgets3D << wa;
 
@@ -129,7 +129,7 @@ SliceWidget* RectangularBoundingRegion::createSliceWidget(PlaneType plane)
   wa->AddObserver(vtkCommand::EndInteractionEvent, this);
   wa->SetPlane(plane);
   wa->SetSlicingStep(spacing);
-  wa->SetBoundingRegion(m_boundingRegion);
+  wa->SetBoundingRegion(m_boundingRegion, m_inclusion, m_exclusion);
 
   m_widgets2D << wa;
 
@@ -166,13 +166,6 @@ void RectangularBoundingRegion::setEnabled(bool enable)
 //-----------------------------------------------------------------------------
 void RectangularBoundingRegion::updateBoundingRegionImplementation()
 {
-  m_boundingRegion = vtkSmartPointer<vtkPolyData>::New();
-  vtkSmartPointer<vtkPoints> vertex = vtkSmartPointer<vtkPoints>::New();
-  vtkSmartPointer<vtkCellArray> faces = vtkSmartPointer<vtkCellArray>::New();
-  vtkSmartPointer<vtkIntArray> faceData = vtkSmartPointer<vtkIntArray>::New();
-
-  vtkIdType upperFace[4], leftFace[4], topFace[4];
-  vtkIdType lowerFace[4], rightFace[4], bottomFace[4];
 
   Nm Left   = m_borders[0] + m_inclusion[0];
   Nm Top    = m_borders[2] + m_inclusion[1];
@@ -181,19 +174,47 @@ void RectangularBoundingRegion::updateBoundingRegionImplementation()
   Nm Bottom = m_borders[3] - m_exclusion[1];
   Nm Lower  = m_borders[5] - m_exclusion[2];
 
+  m_boundingRegion = createRectangularRegion(Left, Top, Upper,
+                                             Right, Bottom, Lower);
+
+  m_representation = createRectangularRegion(m_borders[0], m_borders[2], m_borders[4],
+                                             m_borders[1], m_borders[3], m_borders[5]);
+
+  m_totalVolume = (m_borders[1]-m_borders[0]+1)*
+                  (m_borders[3]-m_borders[2]+1)*
+                  (m_borders[5]-m_borders[4]+1);
+  m_inclusionVolume = (Right-Left)*(Top-Bottom)*(Upper-Lower);
+}
+
+//-----------------------------------------------------------------------------
+vtkSmartPointer<vtkPolyData> RectangularBoundingRegion::createRectangularRegion(Nm left,
+                                                                                Nm top,
+                                                                                Nm upper,
+                                                                                Nm right,
+                                                                                Nm bottom,
+                                                                                Nm lower)
+{
+  vtkSmartPointer<vtkPolyData> region = vtkSmartPointer<vtkPolyData>::New();
+  vtkSmartPointer<vtkPoints> vertex = vtkSmartPointer<vtkPoints>::New();
+  vtkSmartPointer<vtkCellArray> faces = vtkSmartPointer<vtkCellArray>::New();
+  vtkSmartPointer<vtkIntArray> faceData = vtkSmartPointer<vtkIntArray>::New();
+
+  vtkIdType upperFace[4], leftFace[4], topFace[4];
+  vtkIdType lowerFace[4], rightFace[4], bottomFace[4];
+
     // Upper Inclusion Face
-  upperFace[0] = vertex->InsertNextPoint(Left,  Bottom, Upper);
-  upperFace[1] = vertex->InsertNextPoint(Left,  Top,    Upper);
-  upperFace[2] = vertex->InsertNextPoint(Right, Top,    Upper);
-  upperFace[3] = vertex->InsertNextPoint(Right, Bottom, Upper);
+  upperFace[0] = vertex->InsertNextPoint(left,  bottom, upper);
+  upperFace[1] = vertex->InsertNextPoint(left,  top,    upper);
+  upperFace[2] = vertex->InsertNextPoint(right, top,    upper);
+  upperFace[3] = vertex->InsertNextPoint(right, bottom, upper);
   faces->InsertNextCell(4, upperFace);
   faceData->InsertNextValue(INCLUSION_FACE);
 
   // Lower Exclusion Face
-  lowerFace[0] = vertex->InsertNextPoint(Left,  Bottom, Lower);
-  lowerFace[1] = vertex->InsertNextPoint(Left,  Top,    Lower);
-  lowerFace[2] = vertex->InsertNextPoint(Right, Top,    Lower);
-  lowerFace[3] = vertex->InsertNextPoint(Right, Bottom, Lower);
+  lowerFace[0] = vertex->InsertNextPoint(left,  bottom, lower);
+  lowerFace[1] = vertex->InsertNextPoint(left,  top,    lower);
+  lowerFace[2] = vertex->InsertNextPoint(right, top,    lower);
+  lowerFace[3] = vertex->InsertNextPoint(right, bottom, lower);
   faces->InsertNextCell(4, lowerFace);
   faceData->InsertNextValue(EXCLUSION_FACE);
 
@@ -229,14 +250,11 @@ void RectangularBoundingRegion::updateBoundingRegionImplementation()
   faces->InsertNextCell(4, bottomFace);
   faceData->InsertNextValue(EXCLUSION_FACE);
 
-  m_boundingRegion->SetPoints(vertex);
-  m_boundingRegion->SetPolys(faces);
-  vtkCellData *data = m_boundingRegion->GetCellData();
+  region->SetPoints(vertex);
+  region->SetPolys(faces);
+  vtkCellData *data = region->GetCellData();
   data->SetScalars(faceData);
   data->GetScalars()->SetName("Type");
 
-  m_totalVolume = (m_borders[1]-m_borders[0]+1)*
-                  (m_borders[3]-m_borders[2]+1)*
-                  (m_borders[5]-m_borders[4]+1);
-  m_inclusionVolume = (Right-Left)*(Top-Bottom)*(Upper-Lower);
+  return region;
 }

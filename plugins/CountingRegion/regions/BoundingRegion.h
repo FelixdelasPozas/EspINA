@@ -101,8 +101,10 @@ protected:
 
 protected:
   ViewManager *m_viewManager;
-  vtkSmartPointer<vtkPolyData>    m_boundingRegion;
   CountingRegionChannelExtension *m_channelExt;
+
+  vtkSmartPointer<vtkPolyData> m_boundingRegion;
+  vtkSmartPointer<vtkPolyData> m_representation;
 
   Nm m_inclusion[3];
   Nm m_exclusion[3];

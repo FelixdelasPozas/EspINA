@@ -92,11 +92,11 @@ void BoundingRegion::Execute(vtkObject* caller, long unsigned int eventId, void*
     widget->GetExclusionOffset(exOffset);
     for (int i = 0; i < 3; i++)
     {
-      m_inclusion[i] += inOffset[i];
+      m_inclusion[i] = inOffset[i];
       if (m_inclusion[i] < 0)
         m_inclusion[i] = 0;
 
-      m_exclusion[i] += exOffset[i];
+      m_exclusion[i] = exOffset[i];
       if (m_exclusion[i] < 0)
         m_exclusion[i] = 0;
     }
@@ -114,10 +114,10 @@ void BoundingRegion::updateBoundingRegion()
   updateBoundingRegionImplementation();
 
   foreach(vtkBoundingRegionWidget *w, m_widgets2D)
-    w->SetBoundingRegion(m_boundingRegion);
+    w->SetBoundingRegion(m_representation, m_inclusion, m_exclusion);
 
   foreach(vtkBoundingRegionWidget *w, m_widgets3D)
-    w->SetBoundingRegion(m_boundingRegion);
+    w->SetBoundingRegion(m_boundingRegion, m_inclusion, m_exclusion);
 
   emit modified(this);
 }

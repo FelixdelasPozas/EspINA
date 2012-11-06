@@ -104,7 +104,7 @@ vtkAbstractWidget* AdaptiveBoundingRegion::createWidget()
 {
   BoundingRegion3DWidgetAdapter *wa = new BoundingRegion3DWidgetAdapter();
   Q_ASSERT(wa);
-  wa->SetBoundingRegion(m_boundingRegion);
+  wa->SetBoundingRegion(m_boundingRegion, m_inclusion, m_exclusion);
 
   m_widgets3D << wa;
 
@@ -144,7 +144,7 @@ SliceWidget* AdaptiveBoundingRegion::createSliceWidget(PlaneType plane)
   wa->AddObserver(vtkCommand::EndInteractionEvent, this);
   wa->SetPlane(plane);
   wa->SetSlicingStep(spacing);
-  wa->SetBoundingRegion(m_boundingRegion);
+  wa->SetBoundingRegion(m_representation, m_inclusion, m_exclusion);
 
   m_widgets2D << wa;
 
@@ -212,6 +212,8 @@ void AdaptiveBoundingRegion::updateBoundingRegionImplementation()
   Q_ASSERT(upperSlice <= lowerSlice);
 
   m_boundingRegion = vtkSmartPointer<vtkPolyData>::New();
+  m_representation = margins;
+
   vtkSmartPointer<vtkPoints> regionVertex = vtkSmartPointer<vtkPoints>::New();
   vtkSmartPointer<vtkCellArray> faces = vtkSmartPointer<vtkCellArray>::New();
   vtkSmartPointer<vtkIntArray> faceData = vtkSmartPointer<vtkIntArray>::New();

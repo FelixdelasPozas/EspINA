@@ -42,7 +42,9 @@ public:
   virtual void SetPlane(PlaneType plane);
   virtual void SetSlice(Nm pos);
   virtual void SetSlicingStep(Nm slicingStep[3]);
-  virtual void SetBoundingRegion(vtkSmartPointer<vtkPolyData> region);
+  virtual void SetBoundingRegion(vtkSmartPointer<vtkPolyData> region,
+                                 Nm inclusionOffset[3],
+                                 Nm exclusionOffset[3]);
 
   // Description:
   // Create the default widget representation if one is not set. By default,

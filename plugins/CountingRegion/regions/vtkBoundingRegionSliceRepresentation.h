@@ -69,6 +69,8 @@ public:
   virtual void SetPlane(PlaneType plane);
   virtual void SetSlice(Nm pos);
   virtual void SetBoundingRegion(vtkSmartPointer<vtkPolyData> region,
+                                 Nm inclusionOffset[3],
+                                 Nm exclusionOffset[3],
                                  Nm slicingStep[3]);
 
   // Description:
@@ -142,10 +144,16 @@ protected:
 
   int hCoord() const {return SAGITTAL == Plane?2:0;}
   int vCoord() const {return CORONAL  == Plane?2:1;}
-  double leftEdge() {return GetBounds()[hCoord()*2] + Shift[LEFT];}
-  double topEdge() {return GetBounds()[vCoord()*2] + Shift[TOP];}
-  double rightEdge() {return GetBounds()[hCoord()*2+1] + Shift[RIGHT];}
-  double bottomEdge() {return GetBounds()[vCoord()*2+1] + Shift[BOTTOM];}
+
+  Nm realLeftEdge()   {return GetBounds()[hCoord()*2];  }
+  Nm realTopEdge()    {return GetBounds()[vCoord()*2];  }
+  Nm realRightEdge()  {return GetBounds()[hCoord()*2+1];}
+  Nm realBottomEdge() {return GetBounds()[vCoord()*2+1];}
+
+  Nm leftEdge()   {return realLeftEdge()   + InclusionOffset[hCoord()];}
+  Nm topEdge()    {return realTopEdge()    + InclusionOffset[vCoord()];}
+  Nm rightEdge()  {return realRightEdge()  - ExclusionOffset[hCoord()];}
+  Nm bottomEdge() {return realBottomEdge() - ExclusionOffset[vCoord()];}
 
   int sliceNumber(Nm pos, PlaneType plane) const;
 
@@ -167,7 +175,6 @@ protected:
   vtkSmartPointer<vtkPolyData> Region;
   Nm Slice;
   Nm SlicingStep[3];
-  double Shift[4];
   bool Init;
 
 private:
