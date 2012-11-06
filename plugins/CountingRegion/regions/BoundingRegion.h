@@ -29,10 +29,11 @@
 
 
 #include <vtkCommand.h>
+#include <vtkSmartPointer.h>
+#include <vtkPolyData.h>
 
 class CountingRegionChannelExtension;
 class ViewManager;
-class vtkPolyData;
 
 /// Bounding Regions' base class
 class BoundingRegion
@@ -79,7 +80,7 @@ public:
   virtual double exclusionVolume() const
   { return totalVolume() - inclusionVolume(); }
 
-  virtual vtkPolyData *region() const {return m_boundingRegion;}
+  virtual vtkSmartPointer<vtkPolyData> region() const {return m_boundingRegion;}
 
   virtual void Execute(vtkObject* caller, long unsigned int eventId, void* callData);
 
@@ -95,11 +96,12 @@ signals:
   void modified(BoundingRegion *);
 
 protected:
-  virtual void updateBoundingRegion() = 0;
+  void updateBoundingRegion();
+  virtual void updateBoundingRegionImplementation() = 0;
 
 protected:
   ViewManager *m_viewManager;
-  vtkPolyData *m_boundingRegion;
+  vtkSmartPointer<vtkPolyData>    m_boundingRegion;
   CountingRegionChannelExtension *m_channelExt;
 
   Nm m_inclusion[3];

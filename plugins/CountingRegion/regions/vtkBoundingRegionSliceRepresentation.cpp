@@ -27,8 +27,6 @@
 #include <vtkPolyDataAlgorithm.h>
 #include <vtkSmartPointer.h>
 
-const double MIN_SLICE_SPACING = 2;
-
 vtkStandardNewMacro(vtkBoundingRegionSliceRepresentation);
 
 //----------------------------------------------------------------------------
@@ -42,6 +40,8 @@ vtkBoundingRegionSliceRepresentation::vtkBoundingRegionSliceRepresentation()
 {
   // The initial state
   this->InteractionState = vtkBoundingRegionSliceRepresentation::Outside;
+
+  SlicingStep[0] = SlicingStep[1] = SlicingStep[2] = 1;
 
   memset(this->InclusionOffset, 0, 3*sizeof(double));
   memset(this->ExclusionOffset, 0, 3*sizeof(double));
@@ -191,10 +191,8 @@ void vtkBoundingRegionSliceRepresentation::WidgetInteraction(double e[2])
 void vtkBoundingRegionSliceRepresentation::MoveLeftEdge(double* p1, double* p2)
 {
   double shift = p2[hCoord()] - p1[hCoord()];
-  bool crossRightEdge = leftEdge() + shift + MIN_SLICE_SPACING >= rightEdge();
-  bool validOffset = SAGITTAL != Plane
-                  || InclusionOffset[hCoord()] + shift >= 0;
-  if (!crossRightEdge && validOffset)
+  bool crossRightEdge = leftEdge() + shift + SlicingStep[hCoord()] >= rightEdge();
+  if (!crossRightEdge)
   {
     Shift[LEFT] += shift;
     InclusionOffset[hCoord()] += shift;
@@ -206,10 +204,9 @@ void vtkBoundingRegionSliceRepresentation::MoveLeftEdge(double* p1, double* p2)
 void vtkBoundingRegionSliceRepresentation::MoveRightEdge(double* p1, double* p2)
 {
   double shift = p2[hCoord()] - p1[hCoord()];
-  bool crossLeftEdge = leftEdge() + MIN_SLICE_SPACING >= rightEdge() + shift;
-  bool validOffset = SAGITTAL != Plane
-                  || ExclusionOffset[hCoord()] - shift >= 0;
-  if (!crossLeftEdge && validOffset)
+  std::cout << "Shift" << shift << std::endl;
+  bool crossLeftEdge = leftEdge() + SlicingStep[hCoord()] >= rightEdge() + shift;
+  if (!crossLeftEdge)
   {
     Shift[RIGHT] += shift;
     ExclusionOffset[hCoord()] -= shift;
@@ -220,10 +217,8 @@ void vtkBoundingRegionSliceRepresentation::MoveRightEdge(double* p1, double* p2)
 void vtkBoundingRegionSliceRepresentation::MoveTopEdge(double* p1, double* p2)
 {
   double shift = p2[vCoord()] - p1[vCoord()];
-  double crossBottomEdge = topEdge() + shift + MIN_SLICE_SPACING >= bottomEdge();
-  bool validOffset = CORONAL != Plane
-                  || InclusionOffset[vCoord()] + shift >= 0;
-  if (!crossBottomEdge && validOffset)
+  double crossBottomEdge = topEdge() + shift + SlicingStep[vCoord()] >= bottomEdge();
+  if (!crossBottomEdge)
   {
     Shift[TOP] += shift;
     InclusionOffset[vCoord()] += shift;
@@ -234,10 +229,8 @@ void vtkBoundingRegionSliceRepresentation::MoveTopEdge(double* p1, double* p2)
 void vtkBoundingRegionSliceRepresentation::MoveBottomEdge(double* p1, double* p2)
 {
   double shift = p2[vCoord()] - p1[vCoord()];
-  double crossTopEdge = topEdge() + MIN_SLICE_SPACING >= bottomEdge() + shift;
-  bool validOffset = CORONAL != Plane
-                  || ExclusionOffset[vCoord()] - shift >= 0;
-  if (!crossTopEdge && validOffset)
+  double crossTopEdge = topEdge() + SlicingStep[vCoord()] >= bottomEdge() + shift;
+  if (!crossTopEdge)
   {
     Shift[BOTTOM] += shift;
     ExclusionOffset[vCoord()] -= shift;
@@ -282,7 +275,7 @@ void vtkBoundingRegionSliceRepresentation::CreateDefaultProperties()
 
 //----------------------------------------------------------------------------
 int vtkBoundingRegionSliceRepresentation::sliceNumber(Nm pos,
-							    PlaneType plane) const
+                                                      PlaneType plane) const
 {
   double point[3];
   for (int number = 0; number < NumSlices; number++)
@@ -293,7 +286,7 @@ int vtkBoundingRegionSliceRepresentation::sliceNumber(Nm pos,
     if (pos <= point[plane])
       return number;
   }
-  return -1;
+  return NumSlices-1;
 }
 
 //----------------------------------------------------------------------------
@@ -646,9 +639,12 @@ void vtkBoundingRegionSliceRepresentation::SetSlice(double pos)
 }
 
 //----------------------------------------------------------------------------
-void vtkBoundingRegionSliceRepresentation::SetBoundingRegion(vtkPolyData *region)
+void vtkBoundingRegionSliceRepresentation::SetBoundingRegion(vtkSmartPointer< vtkPolyData > region,
+                                                             Nm slicingStep[3])
 {
   Region = region;
+  memcpy(SlicingStep, slicingStep, 3*sizeof(Nm));
+
   this->Region->Update();
   this->NumPoints = this->Region->GetPoints()->GetNumberOfPoints();
   this->NumSlices = this->NumPoints / 4;

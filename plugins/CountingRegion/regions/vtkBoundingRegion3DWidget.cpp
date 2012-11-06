@@ -173,7 +173,7 @@ void vtkBoundingRegion3DWidget::EndSelectAction(vtkAbstractWidget *w)
 }
 
 //----------------------------------------------------------------------
-void vtkBoundingRegion3DWidget::SetBoundingRegion(vtkPolyData *region)
+void vtkBoundingRegion3DWidget::SetBoundingRegion(vtkSmartPointer<vtkPolyData> region)
 {
   if (!this->WidgetRep)
     CreateDefaultRepresentation();

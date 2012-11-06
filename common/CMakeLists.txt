@@ -34,7 +34,6 @@ include_directories(
 # Add extra library containing custom code for the client.
 qt4_wrap_cpp(CORE_MOC
   colorEngines/ColorEngine.h
-  editor/BrushSelector.h
   editor/CODESettings.h
   gui/ActionSelector.h
   gui/ActionSelectorWidget.h
@@ -74,7 +73,6 @@ set (CORE_SOURCES
   colorEngines/TaxonomyColorEngine.cpp
   colorEngines/UserColorEngine.cpp
   editor/CODESettings.cpp
-  editor/BrushSelector.cpp
   editor/ContourSelector.cpp
   editor/FillHolesFilter.cpp
   editor/FillHolesCommand.cpp

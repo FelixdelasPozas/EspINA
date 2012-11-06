@@ -41,7 +41,8 @@ public:
 
   virtual void SetPlane(PlaneType plane);
   virtual void SetSlice(Nm pos);
-  virtual void SetBoundingRegion(vtkPolyData* region);
+  virtual void SetSlicingStep(Nm slicingStep[3]);
+  virtual void SetBoundingRegion(vtkSmartPointer<vtkPolyData> region);
 
   // Description:
   // Create the default widget representation if one is not set. By default,
@@ -68,6 +69,7 @@ protected:
 
   PlaneType Plane;
   Nm Slice;
+  Nm SlicingStep[3];
 
 private:
   vtkBoundingRegionSliceWidget(const vtkBoundingRegionSliceWidget&);  //Not implemented

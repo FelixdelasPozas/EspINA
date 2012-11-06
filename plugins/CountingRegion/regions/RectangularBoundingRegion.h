@@ -50,7 +50,7 @@ public:
                             long unsigned int event);
   virtual void setEnabled(bool enable);
 
-  virtual void updateBoundingRegion();
+  virtual void updateBoundingRegionImplementation();
 
 private:
   Nm m_borders[6];

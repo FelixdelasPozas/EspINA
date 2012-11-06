@@ -984,8 +984,12 @@ void SliceView::updateSelection(ViewManager::Selection selection)
 void SliceView::updateSegmentationRepresentations()
 {
   if (isVisible())
+  {
     foreach(Segmentation *seg, m_segmentationReps.keys())
+    {
       updateSegmentation(seg);
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------

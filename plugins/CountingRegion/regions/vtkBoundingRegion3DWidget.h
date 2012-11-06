@@ -37,7 +37,7 @@ public:
   vtkTypeMacro(vtkBoundingRegion3DWidget, vtkBoundingRegionWidget);
   void PrintSelf(ostream& os, vtkIndent indent);
 
-  virtual void SetBoundingRegion(vtkPolyData *region);
+  virtual void SetBoundingRegion(vtkSmartPointer<vtkPolyData> region);
 
   // Description:
   // Create the default widget representation if one is not set. By default,

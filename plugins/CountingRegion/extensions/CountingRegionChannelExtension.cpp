@@ -31,6 +31,7 @@
 #include <common/gui/ViewManager.h>
 
 #include <QDebug>
+#include <QApplication>
 
 typedef ModelItem::ArgumentId ArgumentId;
 
@@ -125,8 +126,10 @@ void CountingRegionChannelExtension::addRegion(BoundingRegion* region)
       segExt->setBoundingRegions(m_regions);
     }
   }
-  m_viewManager->updateSegmentationRepresentations();
-  m_viewManager->updateViews();
+  connect(region, SIGNAL(modified(BoundingRegion*)),
+          this, SLOT(regionUpdated(BoundingRegion*)));
+  //m_viewManager->updateSegmentationRepresentations();
+  //m_viewManager->updateViews();
 }
 
 //-----------------------------------------------------------------------------
@@ -148,6 +151,26 @@ void CountingRegionChannelExtension::removeRegion(BoundingRegion* region)
       segExt->setBoundingRegions(m_regions);
     }
   }
-  m_viewManager->updateSegmentationRepresentations();
-  m_viewManager->updateViews();
+  //m_viewManager->updateSegmentationRepresentations();
+  //m_viewManager->updateViews();
+}
+
+//-----------------------------------------------------------------------------
+void CountingRegionChannelExtension::regionUpdated(BoundingRegion* region)
+{
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+  Sample *sample = m_channel->sample();
+  Q_ASSERT(sample);
+  ModelItem::Vector items = sample->relatedItems(ModelItem::OUT, "where");
+  foreach(ModelItem *item, items)
+  {
+    if (ModelItem::SEGMENTATION == item->type())
+    {
+      ModelItemExtension *ext = item->extension(CountingRegionSegmentationExtension::ID);
+      Q_ASSERT(ext);
+      CountingRegionSegmentationExtension *segExt = dynamic_cast<CountingRegionSegmentationExtension *>(ext);
+      segExt->evaluateBoundingRegions();
+    }
+  }
+  QApplication::restoreOverrideCursor();
 }

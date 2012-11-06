@@ -50,7 +50,7 @@ public:
                             long unsigned int event);
   virtual void setEnabled(bool enable);
 
-  virtual void updateBoundingRegion();
+  virtual void updateBoundingRegionImplementation();
 
 protected:
   double leftOffset()   const {return  m_inclusion[0];}
@@ -64,7 +64,6 @@ protected:
 
 private:
   Channel *m_channel;
-
 };
 
 #endif // ADAPTIVEBOUNDINGREGION_H

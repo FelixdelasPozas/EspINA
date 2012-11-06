@@ -208,16 +208,6 @@ void vtkRectangularSliceWidget::MoveAction(vtkAbstractWidget *w)
   e[1] = static_cast<double>(Y);
   self->WidgetRep->WidgetInteraction(e);
 
-//   vtkRectangularSliceRepresentation *rep =
-//     vtkRectangularSliceRepresentation::SafeDownCast(self->WidgetRep);
-//   if (rep)
-//   {
-// //     std::cout << "updating offset" << std::endl;
-//     rep->GetInclusionOffset(self->InclusionOffset);
-// //     std::cout << "Inclusion Offset: " << self->InclusionOffset[0] << " " << self->InclusionOffset[1]  << " " << self->InclusionOffset[2] << std::endl;
-//     rep->GetExclusionOffset(self->ExclusionOffset);
-// //     std::cout << "Exclusion Offset: " << self->ExclusionOffset[0] << " " << self->ExclusionOffset[1]  << " " << self->ExclusionOffset[2] << std::endl;
-//   }
   // moving something
   self->EventCallbackCommand->SetAbortFlag(1);
   self->InvokeEvent(vtkCommand::InteractionEvent,NULL);

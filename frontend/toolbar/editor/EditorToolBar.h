@@ -25,7 +25,6 @@
 #include <pluginInterfaces/IFilterCreator.h>
 
 // EspINA
-#include "common/editor/BrushSelector.h"
 #include "common/model/Segmentation.h"
 #include "Brush.h"
 

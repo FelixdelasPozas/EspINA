@@ -42,8 +42,7 @@ RectangularBoundingRegion::RectangularBoundingRegion(CountingRegionChannelExtens
 {
   memcpy(m_borders, borders, 6*sizeof(Nm));
 
-  m_boundingRegion = vtkPolyData::New();
-  updateBoundingRegion();
+  updateBoundingRegionImplementation();
 }
 
 
@@ -63,9 +62,6 @@ RectangularBoundingRegion::~RectangularBoundingRegion()
   }
   m_widgets2D.clear();
   m_widgets3D.clear();
-
-  if (m_boundingRegion)
-    m_boundingRegion->Delete();
 }
 
 //-----------------------------------------------------------------------------
@@ -124,10 +120,15 @@ void RectangularBoundingRegion::deleteWidget(vtkAbstractWidget* widget)
 //-----------------------------------------------------------------------------
 SliceWidget* RectangularBoundingRegion::createSliceWidget(PlaneType plane)
 {
+  Channel *channel = m_channelExt->channel();
+  double spacing[3];
+  channel->spacing(spacing);
+
   BoundingRegion2DWidgetAdapter *wa = new BoundingRegion2DWidgetAdapter();
   Q_ASSERT(wa);
   wa->AddObserver(vtkCommand::EndInteractionEvent, this);
   wa->SetPlane(plane);
+  wa->SetSlicingStep(spacing);
   wa->SetBoundingRegion(m_boundingRegion);
 
   m_widgets2D << wa;
@@ -139,6 +140,17 @@ SliceWidget* RectangularBoundingRegion::createSliceWidget(PlaneType plane)
 bool RectangularBoundingRegion::processEvent(vtkRenderWindowInteractor* iren,
                                              long unsigned int event)
 {
+  foreach(BoundingRegion2DWidgetAdapter *wa, m_widgets2D)
+  {
+    if (wa->GetInteractor() == iren)
+      return wa->ProcessEventsHandler(event);
+  }
+  foreach(BoundingRegion3DWidgetAdapter *wa, m_widgets3D)
+  {
+    if (wa->GetInteractor() == iren)
+      return wa->ProcessEventsHandler(event);
+  }
+
   return false;
 }
 
@@ -149,9 +161,12 @@ void RectangularBoundingRegion::setEnabled(bool enable)
 }
 
 
+#include <QDebug>
+
 //-----------------------------------------------------------------------------
-void RectangularBoundingRegion::updateBoundingRegion()
+void RectangularBoundingRegion::updateBoundingRegionImplementation()
 {
+  m_boundingRegion = vtkSmartPointer<vtkPolyData>::New();
   vtkSmartPointer<vtkPoints> vertex = vtkSmartPointer<vtkPoints>::New();
   vtkSmartPointer<vtkCellArray> faces = vtkSmartPointer<vtkCellArray>::New();
   vtkSmartPointer<vtkIntArray> faceData = vtkSmartPointer<vtkIntArray>::New();

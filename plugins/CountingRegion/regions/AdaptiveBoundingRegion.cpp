@@ -60,7 +60,6 @@ AdaptiveBoundingRegion::AdaptiveBoundingRegion(CountingRegionChannelExtension *c
 : BoundingRegion(channelExt, inclusion, exclusion, vm)
 , m_channel(channelExt->channel())
 {
-  m_boundingRegion = vtkPolyData::New();
   updateBoundingRegion();
 }
 
@@ -80,9 +79,6 @@ AdaptiveBoundingRegion::~AdaptiveBoundingRegion()
   }
   m_widgets2D.clear();
   m_widgets3D.clear();
-
-  if (m_boundingRegion)
-    m_boundingRegion->Delete();
 }
 
 //-----------------------------------------------------------------------------
@@ -139,10 +135,15 @@ void AdaptiveBoundingRegion::deleteWidget(vtkAbstractWidget* widget)
 //-----------------------------------------------------------------------------
 SliceWidget* AdaptiveBoundingRegion::createSliceWidget(PlaneType plane)
 {
+  Channel *channel = m_channelExt->channel();
+  double spacing[3];
+  channel->spacing(spacing);
+
   BoundingRegion2DWidgetAdapter *wa = new BoundingRegion2DWidgetAdapter();
   Q_ASSERT(wa);
   wa->AddObserver(vtkCommand::EndInteractionEvent, this);
   wa->SetPlane(plane);
+  wa->SetSlicingStep(spacing);
   wa->SetBoundingRegion(m_boundingRegion);
 
   m_widgets2D << wa;
@@ -154,6 +155,18 @@ SliceWidget* AdaptiveBoundingRegion::createSliceWidget(PlaneType plane)
 bool AdaptiveBoundingRegion::processEvent(vtkRenderWindowInteractor* iren,
                                           long unsigned int event)
 {
+  foreach(BoundingRegion2DWidgetAdapter *wa, m_widgets2D)
+  {
+    if (wa->GetInteractor() == iren)
+      return wa->ProcessEventsHandler(event);
+  }
+  foreach(BoundingRegion3DWidgetAdapter *wa, m_widgets3D)
+  {
+    if (wa->GetInteractor() == iren)
+      return wa->ProcessEventsHandler(event);
+  }
+
+  return false;
 }
 
 
@@ -163,8 +176,10 @@ void AdaptiveBoundingRegion::setEnabled(bool enable)
   Q_ASSERT(false);
 }
 
+#include <QDebug>
+
 //-----------------------------------------------------------------------------
-void AdaptiveBoundingRegion::updateBoundingRegion()
+void AdaptiveBoundingRegion::updateBoundingRegionImplementation()
 {
   double spacing[3];
   m_channel->spacing(spacing);
@@ -196,6 +211,7 @@ void AdaptiveBoundingRegion::updateBoundingRegion()
   // upper and lower refer to Espina's orientation
   Q_ASSERT(upperSlice <= lowerSlice);
 
+  m_boundingRegion = vtkSmartPointer<vtkPolyData>::New();
   vtkSmartPointer<vtkPoints> regionVertex = vtkSmartPointer<vtkPoints>::New();
   vtkSmartPointer<vtkCellArray> faces = vtkSmartPointer<vtkCellArray>::New();
   vtkSmartPointer<vtkIntArray> faceData = vtkSmartPointer<vtkIntArray>::New();
@@ -297,6 +313,4 @@ void AdaptiveBoundingRegion::updateBoundingRegion()
   vtkCellData *data = m_boundingRegion->GetCellData();
   data->SetScalars(faceData);
   data->GetScalars()->SetName("Type");
-
-  emit modified(this);
 }

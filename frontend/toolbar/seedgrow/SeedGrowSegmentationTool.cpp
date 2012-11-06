@@ -74,6 +74,8 @@ void SeedGrowSegmentationTool::CreateSegmentation::redo()
   m_model->addRelation(m_sample, m_seg, Sample::WHERE);
   m_model->addRelation(m_channel, m_seg, Channel::LINK);
   m_seg->initializeExtensions();
+  //Request views to update its rep after initilizing extensions
+  m_seg->notifyModification();
 }
 
 //-----------------------------------------------------------------------------

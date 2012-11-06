@@ -45,7 +45,6 @@ void BoundingRegion::setMargins(Nm inclusion[3], Nm exclusion[3])
   memcpy(m_exclusion, exclusion, 3*sizeof(Nm));
 
   updateBoundingRegion();
-  emit modified(this);
 }
 
 //-----------------------------------------------------------------------------
@@ -94,21 +93,31 @@ void BoundingRegion::Execute(vtkObject* caller, long unsigned int eventId, void*
     for (int i = 0; i < 3; i++)
     {
       m_inclusion[i] += inOffset[i];
+      if (m_inclusion[i] < 0)
+        m_inclusion[i] = 0;
+
       m_exclusion[i] += exOffset[i];
+      if (m_exclusion[i] < 0)
+        m_exclusion[i] = 0;
     }
 
     updateBoundingRegion();
-    emit modified(this);
-
-    foreach(vtkBoundingRegionWidget *w, m_widgets2D)
-      if (w != widget)
-        w->SetBoundingRegion(m_boundingRegion);
-
-    foreach(vtkBoundingRegionWidget *w, m_widgets3D)
-      if (w != widget)
-        w->SetBoundingRegion(m_boundingRegion);
   }
   //m_viewManager->updateViews();
 
   emitDataChanged();
+}
+
+//-----------------------------------------------------------------------------
+void BoundingRegion::updateBoundingRegion()
+{
+  updateBoundingRegionImplementation();
+
+  foreach(vtkBoundingRegionWidget *w, m_widgets2D)
+    w->SetBoundingRegion(m_boundingRegion);
+
+  foreach(vtkBoundingRegionWidget *w, m_widgets3D)
+    w->SetBoundingRegion(m_boundingRegion);
+
+  emit modified(this);
 }

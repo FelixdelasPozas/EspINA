@@ -2,6 +2,8 @@
 #define VTKRECTANGULARBOUNDINGBOXREPRESENTATION_H
 
 #include "vtkWidgetRepresentation.h"
+#include <vtkSmartPointer.h>
+#include <vtkPolyData.h>
 
 #include <common/EspinaTypes.h>
 
@@ -66,14 +68,15 @@ public:
 //   vtkSetMacro(Slice,int);
   virtual void SetPlane(PlaneType plane);
   virtual void SetSlice(Nm pos);
-  virtual void SetBoundingRegion(vtkPolyData *region);
+  virtual void SetBoundingRegion(vtkSmartPointer<vtkPolyData> region,
+                                 Nm slicingStep[3]);
 
   // Description:
   // These are methods to communicate with the 3d_widget
   vtkSetVector3Macro(InclusionOffset, double);
   vtkGetVector3Macro(InclusionOffset, double);
-  vtkSetVector3Macro(ExclusionOffset, double);
-  vtkGetVector3Macro(ExclusionOffset, double);
+  vtkSetVector3Macro(ExclusionOffset, Nm);
+  vtkGetVector3Macro(ExclusionOffset, Nm);
 
   // Description:
   // These are methods that satisfy vtkWidgetRepresentation's API.
@@ -161,8 +164,9 @@ protected:
   void MoveBottomEdge(double *p1, double *p2);
 
   PlaneType Plane;
-  vtkPolyData *Region;
+  vtkSmartPointer<vtkPolyData> Region;
   Nm Slice;
+  Nm SlicingStep[3];
   double Shift[4];
   bool Init;
 
@@ -170,8 +174,8 @@ private:
   vtkBoundingRegionSliceRepresentation(const vtkBoundingRegionSliceRepresentation&);  //Not implemented
   void operator=(const vtkBoundingRegionSliceRepresentation&);  //Not implemented
 
-  double InclusionOffset[3];
-  double ExclusionOffset[3];
+  Nm InclusionOffset[3];
+  Nm ExclusionOffset[3];
 
   int NumPoints;
   int NumSlices;

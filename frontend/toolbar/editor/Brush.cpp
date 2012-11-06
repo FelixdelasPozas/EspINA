@@ -20,7 +20,6 @@
 #include "Brush.h"
 #include "BrushUndoCommand.h"
 
-#include "common/editor/BrushSelector.h"
 #include "common/editor/FreeFormSource.h"
 #include "common/gui/EspinaRenderView.h"
 #include "common/gui/ViewManager.h"

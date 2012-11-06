@@ -20,6 +20,8 @@
 #define VTKBOUNDINGREGION3DRESENTATION_H
 
 #include "vtkWidgetRepresentation.h"
+#include <vtkSmartPointer.h>
+#include <vtkPolyData.h>
 
 #include <common/EspinaTypes.h>
 
@@ -30,7 +32,6 @@ class vtkPolyDataMapper;
 class vtkLineSource;
 class vtkCellPicker;
 class vtkProperty;
-class vtkPolyData;
 class vtkPoints;
 class vtkPolyDataAlgorithm;
 class vtkPointHandleRepresentation3D;
@@ -82,7 +83,7 @@ public:
   // set.
   vtkGetObjectMacro(SelectedOutlineProperty,vtkProperty);
 
-  virtual void SetBoundingRegion(vtkPolyData *region);
+  virtual void SetBoundingRegion(vtkSmartPointer<vtkPolyData> region);
 
   // Description:
   // These are methods to communicate with the 3d_widget
@@ -177,7 +178,7 @@ protected:
   void MoveUpperMargin(double *p1, double *p2);
   void MoveLowerMargin(double *p1, double *p2);
 
-  vtkPolyData *BoundingRegion;
+  vtkSmartPointer<vtkPolyData> BoundingRegion;
 
 private:
   vtkBoundingRegion3DRepresentation(const vtkBoundingRegion3DRepresentation&);  //Not implemented

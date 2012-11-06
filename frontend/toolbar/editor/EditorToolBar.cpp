@@ -116,6 +116,8 @@ public:
       m_model->addRelation(newConnection.first, seg, CREATELINK);
       seg->changeFilter(newConnection.first, newConnection.second);
       seg->notifyModification(true);
+      // TODO 2012-11-05 Extensesions need to be updated when
+      // notifyModification method is called (at least with true)
     }
   }
 

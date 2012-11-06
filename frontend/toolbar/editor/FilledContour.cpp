@@ -131,7 +131,6 @@ void FilledContour::setInUse(bool enable)
       {
         m_currentSource->draw(0, NULL, 0, AXIAL);
         m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, 0);
-        TaxonomyElement *tax = m_viewManager->activeTaxonomy();
         m_undoStack->beginMacro("Draw segmentation using contours");
         m_undoStack->push(new AddSegmentation(channel,
                                               m_currentSource,

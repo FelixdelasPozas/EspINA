@@ -39,6 +39,7 @@ qt4_wrap_ui (UI_BUILT_SOURCES
 qt4_wrap_cpp(MOC_SRCS 
   CountingRegion.h
   RegionRenderer.h
+  extensions/CountingRegionChannelExtension.h
   extensions/CountingRegionSegmentationExtension.h
   regions/BoundingRegion.h
   )

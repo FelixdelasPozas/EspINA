@@ -157,6 +157,7 @@ CountingRegion::CountingRegion(QWidget * parent)
 //------------------------------------------------------------------------
 CountingRegion::~CountingRegion()
 {
+  clearBoundingRegions();
 }
 
 //------------------------------------------------------------------------
@@ -236,6 +237,15 @@ void CountingRegion::clearBoundingRegions()
   m_gui->regionDescription->clear();
   m_gui->createRegion->setEnabled(false);
   m_gui->removeRegion->setEnabled(false);
+
+  // TODO 2012-11-06 It should be removed due to channel being destroyed
+  foreach(BoundingRegion *region, m_regions)
+  {
+    m_viewManager->removeWidget(region);
+    delete region;
+  }
+
+  m_regions.clear();
 }
 
 //------------------------------------------------------------------------
@@ -329,8 +339,7 @@ void CountingRegion::removeSelectedBoundingRegion()
   m_viewManager->removeWidget(m_activeRegion);
   m_regions.removeAll(m_activeRegion);
 
-  emit regionRemoved(m_activeRegion);
-  m_activeRegion->deleteLater();
+  delete m_activeRegion;
   m_activeRegion = NULL;
 
   m_gui->regions->removeItem(m_gui->regions->currentIndex());
@@ -343,7 +352,20 @@ void CountingRegion::channelChanged(Channel* channel)
 {
   m_gui->createRegion->setEnabled(channel != NULL);
   if (channel)
-    m_gui->setOffsetRanges(-1000,1000);
+  {
+    double bounds[6];
+    channel->bounds(bounds);
+    double lenght[3];
+    for (int i=0; i < 3; i++)
+      lenght[i] = bounds[2*i+1]-bounds[2*i];
+
+    m_gui->leftMargin  ->setMaximum(lenght[0]);
+    m_gui->topMargin   ->setMaximum(lenght[1]);
+    m_gui->upperMargin ->setMaximum(lenght[2]);
+    m_gui->rightMargin ->setMaximum(lenght[0]);
+    m_gui->bottomMargin->setMaximum(lenght[1]);
+    m_gui->lowerMargin ->setMaximum(lenght[2]);
+  }
   else
     m_gui->setOffsetRanges(0,0);
 }
@@ -356,12 +378,26 @@ void CountingRegion::showInfo(BoundingRegion* region)
   int regionIndex = m_regions.indexOf(region);
   m_gui->regions->setCurrentIndex(regionIndex + NUM_FIXED_ROWS);
 
+  m_gui->leftMargin  ->blockSignals(true);
+  m_gui->topMargin   ->blockSignals(true);
+  m_gui->upperMargin ->blockSignals(true);
+  m_gui->rightMargin ->blockSignals(true);
+  m_gui->bottomMargin->blockSignals(true);
+  m_gui->lowerMargin ->blockSignals(true);
+
   m_gui->leftMargin  ->setValue(region->left()  );
   m_gui->topMargin   ->setValue(region->top()   );
   m_gui->upperMargin ->setValue(region->upper() );
   m_gui->rightMargin ->setValue(region->right() );
   m_gui->bottomMargin->setValue(region->bottom());
   m_gui->lowerMargin ->setValue(region->lower() );
+
+  m_gui->leftMargin  ->blockSignals(false);
+  m_gui->topMargin   ->blockSignals(false);
+  m_gui->upperMargin ->blockSignals(false);
+  m_gui->rightMargin ->blockSignals(false);
+  m_gui->bottomMargin->blockSignals(false);
+  m_gui->lowerMargin ->blockSignals(false);
 
   m_gui->regionDescription->setText(region->data(BoundingRegion::DescriptionRole).toString());
 

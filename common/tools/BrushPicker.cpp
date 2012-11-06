@@ -56,6 +56,11 @@ BrushPicker::BrushPicker(PickableItem* item)
 , m_actor(NULL)
 , m_drawing(true)
 {
+  memset(m_viewSize, 0, 2*sizeof(int));
+  memset(m_LL, 0, 3*sizeof(double));
+  memset(m_UR, 0, 3*sizeof(double));
+  memset(m_pBounds, 0, 6*sizeof(Nm));
+  memset(m_worldSize, 0, 2*sizeof(double));
 }
 
 //-----------------------------------------------------------------------------
