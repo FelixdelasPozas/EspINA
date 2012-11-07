@@ -72,6 +72,7 @@ set (CORE_SOURCES
   colorEngines/TransparencySelectionHighlighter.cpp
   colorEngines/TaxonomyColorEngine.cpp
   colorEngines/UserColorEngine.cpp
+  editor/EspinaVolume.cpp
   editor/CODESettings.cpp
   editor/ContourSelector.cpp
   editor/FillHolesFilter.cpp
@@ -85,6 +86,7 @@ set (CORE_SOURCES
   editor/ErodeFilter.cpp
   editor/ImageLogicFilter.cpp
   editor/vtkTube.cxx
+  editor/split/SplitFilter.cpp
   IO/EspinaIO.cpp
   extensions/Margins/MarginDetector.cpp
   extensions/Margins/MarginsChannelExtension.cpp

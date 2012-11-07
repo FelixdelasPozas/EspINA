@@ -21,11 +21,12 @@
 
 // EspINA
 #include "common/colorEngines/ColorEngine.h"
-#include "common/gui/IEspinaView.h"
 #include "common/gui/EspinaRenderView.h"
-#include "SliceView.h"
-#include "common/tools/PickableItem.h"
+#include "common/gui/IEspinaView.h"
+#include "common/gui/SliceView.h"
+#include "common/model/Segmentation.h"
 #include "common/tools/IVOI.h"
+#include "common/tools/PickableItem.h"
 
 // Qt
 #include <QDebug>
@@ -103,6 +104,20 @@ void ViewManager::setSelection(ViewManager::Selection selection)
   //TODO 2012-10-07 computeSelectionCenter();
 
   emit selectionChanged(m_selection);
+}
+
+//----------------------------------------------------------------------------
+SegmentationList ViewManager::selectedSegmentations() const
+{
+  SegmentationList selection;
+
+  foreach(PickableItem *item, m_selection)
+  {
+    if (ModelItem::SEGMENTATION == item->type())
+      selection << dynamic_cast<Segmentation *>(item);
+  }
+
+  return selection;
 }
 
 //----------------------------------------------------------------------------

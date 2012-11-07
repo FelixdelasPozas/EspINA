@@ -503,7 +503,7 @@ void EspinaWindow::openAnalysis(const QString file)
                                               m_undoStack,
                                               m_settings->autosavePath()))
   {
-    QApplication::setOverrideCursor(Qt::ArrowCursor);
+    QApplication::restoreOverrideCursor();
     QMessageBox box(QMessageBox::Warning,
                     tr("Espina"),
                     tr("File %1 could not be loaded.\n"
@@ -517,7 +517,6 @@ void EspinaWindow::openAnalysis(const QString file)
       m_recentDocuments2.updateDocumentList();
     }
     closeCurrentAnalysis();
-    QApplication::restoreOverrideCursor();
     return;
   }
 

@@ -295,6 +295,7 @@ void CountingRegion::createBoundingRegion()
   QApplication::setOverrideCursor(Qt::WaitCursor);
 
   computeOptimalMargins(channel, inclusion, exclusion);
+  memset(exclusion, 0, 3*sizeof(Nm));
 
   if (m_activeRegion)
   {

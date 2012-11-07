@@ -81,6 +81,7 @@ public:
   void setSelection(Selection selection);
   /// Returns current selection
   Selection selection() const { return m_selection; }
+  SegmentationList selectedSegmentations() const;
 //   const Nm *selectionCenter() const
 //   { return m_selectionCenter; }
 

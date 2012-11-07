@@ -30,6 +30,9 @@
 
 const QString ImageLogicFilter::TYPE = "EditorToolBar::ImageLogicFilter";
 
+typedef itk::ImageRegionConstIteratorWithIndex<EspinaVolume> ConstIterator;
+typedef itk::ImageRegionIteratorWithIndex<EspinaVolume> Iterator;
+
 //-----------------------------------------------------------------------------
 typedef ModelItem::ArgumentId ArgumentId;
 const ArgumentId ImageLogicFilter::OPERATION = "Operation";
@@ -111,8 +114,8 @@ void ImageLogicFilter::addition()
 
   for (int i = 0; i < regions.size(); i++)
   {
-    itk::ImageRegionConstIteratorWithIndex<EspinaVolume> it(m_inputs[i], VolumeRegion(m_inputs[i], regions[i]));
-    itk::ImageRegionIteratorWithIndex<EspinaVolume> ot(m_outputs[0], regions[i]);
+    ConstIterator it(m_inputs[i], VolumeRegion(m_inputs[i], regions[i]));
+    Iterator ot(m_outputs[0], regions[i]);
     it.GoToBegin();
     ot.GetRegion();
     for (; !it.IsAtEnd(); ++it,++ot)
@@ -153,8 +156,8 @@ void ImageLogicFilter::substraction()
   itk::ImageAlgorithm::Copy(m_inputs[0], m_outputs[0].GetPointer(), m_inputs[0]->GetLargestPossibleRegion(), regions[0]);
   for (int i = 1; i < validInputs.size(); i++)
   {
-    itk::ImageRegionConstIteratorWithIndex<EspinaVolume> it(m_inputs[i], VolumeRegion(m_inputs[i], regions[i]));
-    itk::ImageRegionIteratorWithIndex<EspinaVolume> ot(m_outputs[0], regions[i]);
+    ConstIterator it(m_inputs[i], VolumeRegion(m_inputs[i], regions[i]));
+    Iterator ot(m_outputs[0], regions[i]);
     it.GoToBegin();
     ot.GetRegion();
     for (; !it.IsAtEnd(); ++it,++ot)

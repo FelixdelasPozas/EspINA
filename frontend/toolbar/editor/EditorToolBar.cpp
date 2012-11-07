@@ -31,6 +31,7 @@
 #include "common/editor/ContourSelector.h"
 #include "common/editor/ContourSource.h"
 #include "common/editor/ContourWidget.h"
+#include <editor/split/SplitFilter.h>
 #include "common/model/Channel.h"
 #include "common/model/EspinaFactory.h"
 #include "common/model/EspinaModel.h"
@@ -178,6 +179,7 @@ EditorToolBar::EditorToolBar(EspinaModel *model,
 //----------------------------------------------------------------------------
 void EditorToolBar::initFactoryExtension(EspinaFactory* factory)
 {
+  factory->registerFilter(this, SplitFilter::TYPE);
   factory->registerFilter(this, ClosingFilter::TYPE);
   factory->registerFilter(this, OpeningFilter::TYPE);
   factory->registerFilter(this, DilateFilter::TYPE);
@@ -191,6 +193,8 @@ void EditorToolBar::initFactoryExtension(EspinaFactory* factory)
 //----------------------------------------------------------------------------
 Filter* EditorToolBar::createFilter(const QString filter, Filter::NamedInputs inputs, const ModelItem::Arguments args)
 {
+  if (SplitFilter::TYPE == filter)
+    return new SplitFilter(inputs, args);
   if (ClosingFilter::TYPE == filter)
     return new ClosingFilter(inputs, args);
   if (OpeningFilter::TYPE == filter)
@@ -389,7 +393,9 @@ void EditorToolBar::initDrawTools()
                                   tr("Draw segmentations using a disc"),
                                   m_drawToolSelector);
 
-  CircularBrush *circularBrush = new CircularBrush(m_model, m_undoStack, m_viewManager);
+  CircularBrush *circularBrush = new CircularBrush(m_model,
+                                                   m_undoStack,
+                                                   m_viewManager);
   connect(circularBrush, SIGNAL(stopDrawing()),
           this, SLOT(cancelDrawOperation()));
   connect(circularBrush, SIGNAL(brushModeChanged(Brush::BrushMode)),
@@ -402,7 +408,9 @@ void EditorToolBar::initDrawTools()
                                     tr("Draw segmentations using a sphere"),
                                     m_drawToolSelector);
 
-  SphericalBrush *sphericalBrush = new SphericalBrush(m_model, m_undoStack, m_viewManager);
+  SphericalBrush *sphericalBrush = new SphericalBrush(m_model,
+                                                      m_undoStack,
+                                                      m_viewManager);
   connect(sphericalBrush, SIGNAL(stopDrawing()),
           this, SLOT(cancelDrawOperation()));
   connect(sphericalBrush, SIGNAL(brushModeChanged(Brush::BrushMode)),
@@ -415,7 +423,9 @@ void EditorToolBar::initDrawTools()
                                        tr("Draw segmentations using contours"),
                                        m_drawToolSelector);
 
-  m_drawTools[contourTool] = new FilledContour(m_model, m_undoStack, m_viewManager);
+  m_drawTools[contourTool] = new FilledContour(m_model,
+                                               m_undoStack,
+                                               m_viewManager);
   m_drawToolSelector->addAction(contourTool);
 
   // Add Draw Tool Selector to Editor Tool Bar
@@ -436,7 +446,9 @@ void EditorToolBar::initSplitTools()
                                     tr("Split Segmentations using an orthogonal plane"),
                                     m_splitToolSelector);
 
-  PlanarSplitTool *planarSplitTool = new PlanarSplitTool();
+  PlanarSplitTool *planarSplitTool = new PlanarSplitTool(m_model,
+                                                         m_undoStack,
+                                                         m_viewManager);
   connect(planarSplitTool, SIGNAL(splittingStopped()),
           this, SLOT(cancelSplitOperation()));
   m_splitTools[planarSplit] = planarSplitTool;

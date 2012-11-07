@@ -149,7 +149,7 @@ void Brush::setInUse(bool value)
 
   if (value && m_viewManager->activeTaxonomy() && m_viewManager->activeChannel())
   {
-    SegmentationList segs = selectedSegmentations();
+    SegmentationList segs = m_viewManager->selectedSegmentations();
     if (segs.size() == 1)
     {
       m_currentSeg = segs.first();
@@ -184,20 +184,6 @@ void Brush::setEnabled(bool enable)
 bool Brush::enabled() const
 {
   return true;
-}
-
-//-----------------------------------------------------------------------------
-SegmentationList Brush::selectedSegmentations() const
-{
-  SegmentationList selection;
-
-  foreach(PickableItem *item, m_viewManager->selection())
-  {
-    if (ModelItem::SEGMENTATION == item->type())
-      selection << dynamic_cast<Segmentation *>(item);
-  }
-
-  return selection;
 }
 
 //-----------------------------------------------------------------------------

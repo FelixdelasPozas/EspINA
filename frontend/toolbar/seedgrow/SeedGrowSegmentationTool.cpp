@@ -305,7 +305,8 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
     Filter::NamedInputs inputs;
-    Filter::Arguments args;
+    Filter::Arguments   args;
+
     SeedGrowSegmentationFilter::Parameters params(args);
     params.setSeed(seed);
     params.setLowerThreshold(m_threshold->lowerThreshold());
@@ -313,7 +314,7 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
     params.setVOI(voiExtent);
     params.setCloseValue(m_settings->closing());
     inputs[SeedGrowSegmentationFilter::INPUTLINK] = channel->filter();
-    args[Filter::INPUTS] = SeedGrowSegmentationFilter::INPUTLINK + "_" + QString::number(channel->outputNumber());
+    args[Filter::INPUTS] = args.namedInput(SeedGrowSegmentationFilter::INPUTLINK, channel->outputNumber());
     SeedGrowSegmentationFilter *filter;
     filter = new SeedGrowSegmentationFilter(inputs, args);
     filter->update();

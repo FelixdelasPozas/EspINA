@@ -37,6 +37,7 @@
 #include <vtkImageConstantPad.h>
 #include <vtkDiscreteMarchingCubes.h>
 
+class Channel;
 // Forward declarations
 class Sample;
 class Filter;
@@ -112,6 +113,8 @@ public:
   virtual void initialize(Arguments args = Arguments());
   virtual void initializeExtensions(Arguments args = Arguments());
 
+  /// Get the channel from where segmentation was created
+  Channel *channel();
 
   /// Selectable Item Interface
   virtual Filter* filter(){return m_filter;}
@@ -165,7 +168,5 @@ private:
 
   friend class Filter;
 };
-
-typedef QList<Segmentation *> SegmentationList;
 
 #endif // PRODUCTS_H

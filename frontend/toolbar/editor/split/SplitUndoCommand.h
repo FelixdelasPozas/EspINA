@@ -17,46 +17,41 @@
 */
 
 
-#ifndef PLANARSPLITTOOL_H
-#define PLANARSPLITTOOL_H
+#ifndef SPLITUNDOCOMMAND_H
+#define SPLITUNDOCOMMAND_H
 
-#include <common/tools/ITool.h>
+#include <QUndoStack>
+#include <model/ModelItem.h>
 
+class Sample;
+class Channel;
 class EspinaModel;
-class EspinaWidget;
-class QUndoStack;
-class ViewManager;
+class Filter;
+class Segmentation;
+class SplitFilter;
 
-class PlanarSplitTool
-: public ITool
+class SplitUndoCommand
+: public QUndoCommand
 {
-  Q_OBJECT
 public:
-  explicit PlanarSplitTool(EspinaModel *model,
-                           QUndoStack *undoStack,
-                           ViewManager *viewManager);
+  explicit SplitUndoCommand(Segmentation *input,
+                            SplitFilter  *filter,
+                            EspinaModel  *model);
+  virtual ~SplitUndoCommand();
 
-  virtual QCursor cursor() const;
-  virtual bool filterEvent(QEvent* e, EspinaRenderView* view = 0);
-  virtual bool enabled() const;
-  virtual void setEnabled(bool value);
-  virtual void setInUse(bool value);
-
-  void splitSegmentation();
-
-signals:
-  void splittingStopped();
+  virtual void redo();
+  virtual void undo();
 
 private:
-  EspinaModel *m_model;
-  QUndoStack  *m_undoStack;
-  ViewManager *m_viewManager;
+  EspinaModel  *m_model;
 
-  bool m_inUse;
-  bool m_enable;
+  Channel      *m_channel;
+  Sample       *m_sample;
+  Segmentation *m_seg;
+  SplitFilter  *m_filter;
+  Segmentation *m_subSeg[2];
 
-  // TODO 2012-11-05: Use PlaneWidget
-  EspinaWidget *m_widget;
+  ModelItem::RelationList m_relations;
 };
 
-#endif // PLANARSPLITTOOL_H
+#endif // SPLITUNDOCOMMAND_H

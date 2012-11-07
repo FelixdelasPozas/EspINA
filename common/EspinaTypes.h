@@ -4,6 +4,12 @@
 #include <itkImage.h>
 #include <QString>
 
+class Channel;
+class Segmentation;
+
+typedef QList<Channel *>      ChannelList;
+typedef QList<Segmentation *> SegmentationList;
+
 typedef itk::Image<unsigned short,3> SegmentationLabelMap;
 typedef itk::Image<unsigned char, 3> EspinaVolume;
 typedef unsigned int OutputNumber;

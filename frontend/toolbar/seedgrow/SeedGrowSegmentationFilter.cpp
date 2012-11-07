@@ -148,7 +148,7 @@ void SeedGrowSegmentationFilter::run()
   image2label = Image2LabelFilterType::New();
   image2label->ReleaseDataFlagOn();
   image2label->SetInput(ctif->GetOutput());
-  image2label->Update();//TODO: Check if needed
+  image2label->Update();
 
 //   qDebug() << "Getting Segmentation Region";
   // Get the roi of the object

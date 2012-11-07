@@ -106,6 +106,7 @@ set (TOOLBAR_SOURCES
   toolbar/editor/Settings.cpp
   toolbar/editor/SettingsPanel.cpp
   toolbar/editor/split/PlanarSplitTool.cpp
+  toolbar/editor/split/SplitUndoCommand.cpp
   toolbar/editor/FilledContour.cpp
   toolbar/seedgrow/SeedGrowSegmentation.cpp
   toolbar/seedgrow/SeedGrowSegmentationFilter.cpp
