@@ -129,7 +129,7 @@ SliceWidget* RectangularBoundingRegion::createSliceWidget(PlaneType plane)
   wa->AddObserver(vtkCommand::EndInteractionEvent, this);
   wa->SetPlane(plane);
   wa->SetSlicingStep(spacing);
-  wa->SetBoundingRegion(m_boundingRegion, m_inclusion, m_exclusion);
+  wa->SetBoundingRegion(m_representation, m_inclusion, m_exclusion);
 
   m_widgets2D << wa;
 
