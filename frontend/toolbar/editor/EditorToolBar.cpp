@@ -446,9 +446,7 @@ void EditorToolBar::initSplitTools()
                                     tr("Split Segmentations using an orthogonal plane"),
                                     m_splitToolSelector);
 
-  PlanarSplitTool *planarSplitTool = new PlanarSplitTool(m_model,
-                                                         m_undoStack,
-                                                         m_viewManager);
+  PlanarSplitTool *planarSplitTool = new PlanarSplitTool(m_model, m_undoStack, m_viewManager);
   connect(planarSplitTool, SIGNAL(splittingStopped()),
           this, SLOT(cancelSplitOperation()));
   m_splitTools[planarSplit] = planarSplitTool;

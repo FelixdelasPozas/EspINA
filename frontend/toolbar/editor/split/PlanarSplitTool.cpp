@@ -16,10 +16,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// EspINA
 #include "PlanarSplitTool.h"
 #include "SplitUndoCommand.h"
-
+#include "PlanarSplitWidget.h"
+#include "common/gui/ViewManager.h"
+#include "common/model/EspinaModel.h"
 #include <editor/split/SplitFilter.h>
 #include <gui/ViewManager.h>
 #include <model/Segmentation.h>
@@ -28,31 +30,36 @@
 #include <undo/AddSegmentation.h>
 #include <QUndoStack>
 
-//-----------------------------------------------------------------------------
-PlanarSplitTool::PlanarSplitTool(EspinaModel* model,
-                                 QUndoStack* undoStack,
-                                 ViewManager* viewManager)
-: m_model(model)
-, m_undoStack(undoStack)
-, m_viewManager(viewManager)
-, m_inUse(false)
-, m_enable(true)
-, m_widget(NULL)
-{
+// Qt
+#include <QtGlobal>
+#include <QUndoStack>
+#include <QApplication>
 
+// vtk
+#include <vtkPoints.h>
+
+//-----------------------------------------------------------------------------
+PlanarSplitTool::PlanarSplitTool(EspinaModel *model, QUndoStack *undo, ViewManager *vm)
+: m_inUse(false)
+, m_enabled(false)
+, m_widget(NULL)
+, m_model(model)
+, m_undoStack(undo)
+, m_viewManager(vm)
+{
 }
 
 //-----------------------------------------------------------------------------
 QCursor PlanarSplitTool::cursor() const
 {
-  return QCursor(Qt::ArrowCursor);
+  return QCursor(Qt::CrossCursor);
 }
 
 //-----------------------------------------------------------------------------
 bool PlanarSplitTool::filterEvent(QEvent* e, EspinaRenderView* view)
 {
-  if (m_inUse && m_enable && m_widget)
-    return m_widget;
+  if (m_inUse && m_enabled && m_widget)
+    return m_widget->filterEvent(e, view);
 
   return false;
 }
@@ -60,27 +67,57 @@ bool PlanarSplitTool::filterEvent(QEvent* e, EspinaRenderView* view)
 //-----------------------------------------------------------------------------
 bool PlanarSplitTool::enabled() const
 {
-  return m_enable;
-}
-
-//-----------------------------------------------------------------------------
-void PlanarSplitTool::setEnabled(bool value)
-{
-  if (m_enable != value)
-    m_enable = value;
+  return m_enabled;
 }
 
 //-----------------------------------------------------------------------------
 void PlanarSplitTool::setInUse(bool value)
 {
-  if (m_inUse != value)
+  if (m_enabled != value)
+    m_enabled = value;
+
+  m_inUse = value;
+  m_enabled = value;
+
+  if (value)
   {
-    m_inUse = value;
-    if (!m_inUse)
-      emit splittingStopped();
-    else //Tmp
-      splitSegmentation();
+    m_widget = new PlanarSplitWidget();
+
+    m_viewManager->addWidget(m_widget);
+    m_viewManager->setSelectionEnabled(false);
+    m_widget->setEnabled(true);
   }
+  else
+  {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    PlanarSplitWidget *widget = reinterpret_cast<PlanarSplitWidget*>(m_widget);
+    vtkSmartPointer<vtkPoints> points = widget->getPlanePoints();
+
+    if (points->GetNumberOfPoints() == 2)
+    {
+      // TODO: filtro y creación de segmentaciones
+
+      // TODO: borrar esto, es sólo de control
+      for (int i = 0; i < points->GetNumberOfPoints(); ++i)
+      {
+        double point[3];
+        points->GetPoint(i, point);
+        qDebug() << "point" << i << ":" << point[0] << point[1] << point[2];
+      }
+    }
+
+    QApplication::restoreOverrideCursor();
+    m_widget->setEnabled(false);
+    m_viewManager->removeWidget(m_widget);
+    m_viewManager->setSelectionEnabled(true);
+    delete m_widget;
+  }
+}
+
+//-----------------------------------------------------------------------------
+void PlanarSplitTool::setEnabled(bool value)
+{
+  m_enabled = value;
 }
 
 //-----------------------------------------------------------------------------

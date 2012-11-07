@@ -24,17 +24,16 @@
 
 class EspinaModel;
 class EspinaWidget;
-class QUndoStack;
 class ViewManager;
+class QUndoStack;
+class EspinaModel;
 
 class PlanarSplitTool
 : public ITool
 {
   Q_OBJECT
 public:
-  explicit PlanarSplitTool(EspinaModel *model,
-                           QUndoStack *undoStack,
-                           ViewManager *viewManager);
+  explicit PlanarSplitTool(EspinaModel *, QUndoStack *, ViewManager *);
 
   virtual QCursor cursor() const;
   virtual bool filterEvent(QEvent* e, EspinaRenderView* view = 0);
@@ -48,15 +47,14 @@ signals:
   void splittingStopped();
 
 private:
+  bool m_inUse;
+  bool m_enabled;
+
+  EspinaWidget *m_widget;
   EspinaModel *m_model;
-  QUndoStack  *m_undoStack;
+  QUndoStack *m_undoStack;
   ViewManager *m_viewManager;
 
-  bool m_inUse;
-  bool m_enable;
-
-  // TODO 2012-11-05: Use PlaneWidget
-  EspinaWidget *m_widget;
 };
 
 #endif // PLANARSPLITTOOL_H
