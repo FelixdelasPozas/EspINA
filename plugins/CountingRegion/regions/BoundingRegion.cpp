@@ -52,28 +52,25 @@ QVariant BoundingRegion::data(int role) const
 {
   if (role == DescriptionRole)
   {
-    QString desc("Type: Rectangular Region\n"
-    "Volume Information:\n"
-    "  Total Volume:\n"
-    "    %1 voxl\n"
-    "    %2 %3\n"
-    "  Inclusion Volume:\n"
-    "    %4 px\n"
-    "    %5 %3\n"
-    "  Exclusion Volume:\n"
-    "    %6 px\n"
-    "    %7 %3\n"
-    );
-
     double spacing[3];
     m_channelExt->channel()->spacing(spacing);
-    Nm volPixel = spacing[0]*spacing[1]*spacing[2];
-    int totalPixelVolume = totalVolume() /volPixel;
-    int inclusionPixelVolume = inclusionVolume() / volPixel;
-    int exclusionPixelVolume = exclusionVolume() / volPixel;
-    desc = desc.arg(totalPixelVolume).arg(totalVolume(),0,'f',2).arg("nm");
-    desc = desc.arg(inclusionPixelVolume).arg(inclusionVolume(),0,'f',2);
-    desc = desc.arg(exclusionPixelVolume).arg(exclusionVolume(),0,'f',2);
+    Nm voxelVol = spacing[0]*spacing[1]*spacing[2];
+    int totalVoxelVolume = totalVolume() /voxelVol;
+    int inclusionVoxelVolume = inclusionVolume() / voxelVol;
+    int exclusionVoxelVolume = exclusionVolume() / voxelVol;
+
+    QString desc;
+    desc += tr("Type: %1").arg(regionType())                + "\n";
+    desc += tr("Volume informtation:")                      + "\n";
+    desc += tr("  Total Volume:")                           + "\n";
+    desc += tr("    %1 voxel").arg(totalVoxelVolume)        + "\n";
+    desc += tr("    %1 nm³").arg(totalVolume(),0,'f',2)     + "\n";
+    desc += tr("  Inclusion Volume:")                       + "\n";
+    desc += tr("    %1 voxel").arg(inclusionVoxelVolume)    + "\n";
+    desc += tr("    %1 nm³").arg(inclusionVolume(),0,'f',2) + "\n";
+    desc += tr("  Exclusion Volume:")                       + "\n";
+    desc += tr("    %1 voxel").arg(exclusionVoxelVolume)    + "\n";
+    desc += tr("    %1 nm³").arg(exclusionVolume(),0,'f',2) + "\n";;
 
     return desc;
   }

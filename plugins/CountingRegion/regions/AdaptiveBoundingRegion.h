@@ -40,6 +40,7 @@ public:
   // Implements QStandardItem interface
   virtual QVariant data(int role = Qt::UserRole + 1) const;
   virtual QString serialize() const;
+  virtual QString regionType() const { return tr("Adaptive Region"); }
 
   // Implements EspinaWidget itnerface
   virtual vtkAbstractWidget *createWidget();
@@ -59,7 +60,7 @@ protected:
   double rightOffset()  const {return -m_exclusion[0];}
   double bottomOffset() const {return -m_exclusion[1];}
   double lowerOffset()  const {return -m_exclusion[2];}
-  void roundToSlice(double &var, double offset)
+  void applyOffset(double &var, double offset)
   {var = floor(var + offset + 0.5);}
 
 private:

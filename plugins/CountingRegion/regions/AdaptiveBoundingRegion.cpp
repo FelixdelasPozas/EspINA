@@ -208,27 +208,27 @@ void AdaptiveBoundingRegion::updateBoundingRegionImplementation()
     double LB[3], LT[3], RT[3], RB[3];
 
     margins->GetPoint(4*slice+0, LB);
-    roundToSlice(LB[0], leftOffset());
-    roundToSlice(LB[1], bottomOffset());
-    roundToSlice(LB[2], 0);
+    applyOffset(LB[0], leftOffset());
+    applyOffset(LB[1], bottomOffset());
+    applyOffset(LB[2], 0);
     cell[0] = regionVertex->InsertNextPoint(LB);
 
     margins->GetPoint(4*slice+1, LT);
-    roundToSlice(LT[0], leftOffset());
-    roundToSlice(LT[1], topOffset());
-    roundToSlice(LT[2], 0);
+    applyOffset(LT[0], leftOffset());
+    applyOffset(LT[1], topOffset());
+    applyOffset(LT[2], 0);
     cell[1] = regionVertex->InsertNextPoint(LT);
 
     margins->GetPoint(4*slice+2, RT);
-    roundToSlice(RT[0], rightOffset());
-    roundToSlice(RT[1], topOffset());
-    roundToSlice(RT[2], 0);
+    applyOffset(RT[0], rightOffset());
+    applyOffset(RT[1], topOffset());
+    applyOffset(RT[2], 0);
     cell[2] = regionVertex->InsertNextPoint(RT);
 
     margins->GetPoint(4*slice+3, RB);
-    roundToSlice(RB[0], rightOffset());
-    roundToSlice(RB[1], bottomOffset());
-    roundToSlice(RB[2], 0);
+    applyOffset(RB[0], rightOffset());
+    applyOffset(RB[1], bottomOffset());
+    applyOffset(RB[2], 0);
     cell[3] = regionVertex->InsertNextPoint(RB);
     if (slice == upperSlice)
     {
@@ -285,9 +285,7 @@ void AdaptiveBoundingRegion::updateBoundingRegionImplementation()
     // Update Volumes
     if (slice != lowerSlice)
     {
-      m_inclusionVolume += (((RT[0] + rightOffset())  - (LT[0] + leftOffset()))*
-                           ((LB[1] + bottomOffset()) - (LT[1] + topOffset())))*
-                           spacing[2];
+      m_inclusionVolume += (RT[0] - LT[0])*(LB[1] - LT[1])*spacing[2];
     }
   }
 

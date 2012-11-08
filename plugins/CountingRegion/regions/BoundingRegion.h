@@ -87,6 +87,7 @@ public:
 
   virtual QVariant data(int role = Qt::UserRole + 1) const;
   virtual QString serialize() const = 0;
+  virtual QString regionType() const = 0;
 
   /// Return total volume in pixels
   virtual double totalVolume() const

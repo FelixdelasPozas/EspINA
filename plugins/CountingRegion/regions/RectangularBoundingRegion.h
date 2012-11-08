@@ -40,6 +40,7 @@ public:
   // Implements QStandardItem interface
   virtual QVariant data(int role = Qt::UserRole + 1) const;
   virtual QString serialize() const;
+  virtual QString regionType() const { return tr("Rectangular Region"); }
 
   // Implements EspinaWidget interface
   virtual vtkAbstractWidget *createWidget();
