@@ -27,30 +27,16 @@ class vtkMatrix4x4;
 class VTK_WIDGETS_EXPORT vtkBoundingRegionSliceRepresentation
 : public vtkWidgetRepresentation
 {
+protected:
   //BTX
   enum EDGE {LEFT, TOP, RIGHT, BOTTOM};
   //ETX
 
 public:
   // Description:
-  // Instantiate the class.
-  static vtkBoundingRegionSliceRepresentation *New();
-
-  // Description:
   // Standard methods for the class.
   vtkTypeMacro(vtkBoundingRegionSliceRepresentation,vtkWidgetRepresentation);
   void PrintSelf(ostream& os, vtkIndent indent);
-
-  // Description:
-  // Grab the polydata (including points) that define the box widget. The
-  // polydata consists of 6 quadrilateral faces and 15 points. The first
-  // eight points define the eight corner vertices; the next six define the
-  // -x,+x, -y,+y, -z,+z face points; and the final point (the 15th out of 15
-  // points) defines the center of the box. These point values are guaranteed
-  // to be up-to-date when either the widget's corresponding InteractionEvent
-  // or EndInteractionEvent events are invoked. The user provides the
-  // vtkPolyData and the points and cells are added to it.
-  void GetPolyData(vtkPolyData *pd);
 
   void reset();
 
@@ -66,7 +52,6 @@ public:
   // and which slice (in case of planar views) is selected
 //   vtkSetMacro(ViewType,int);
 //   vtkSetMacro(Slice,int);
-  virtual void SetPlane(PlaneType plane);
   virtual void SetSlice(Nm pos);
   virtual void SetBoundingRegion(vtkSmartPointer<vtkPolyData> region,
                                  Nm inclusionOffset[3],
@@ -142,45 +127,36 @@ protected:
 
   virtual void CreateDefaultProperties();
 
-  int hCoord() const {return SAGITTAL == Plane?2:0;}
-  int vCoord() const {return CORONAL  == Plane?2:1;}
+  void regionBounds(int regionSlice, Nm bounds[6]);
 
-  Nm realLeftEdge()   {return GetBounds()[hCoord()*2];  }
-  Nm realTopEdge()    {return GetBounds()[vCoord()*2];  }
-  Nm realRightEdge()  {return GetBounds()[hCoord()*2+1];}
-  Nm realBottomEdge() {return GetBounds()[vCoord()*2+1];}
+  virtual Nm realLeftEdge  (int slice=0) = 0;
+  virtual Nm realTopEdge   (int slice=0) = 0;
+  virtual Nm realRightEdge (int slice=0) = 0;
+  virtual Nm realBottomEdge(int slice=0) = 0;
 
-  Nm leftEdge()   {return realLeftEdge()   + InclusionOffset[hCoord()];}
-  Nm topEdge()    {return realTopEdge()    + InclusionOffset[vCoord()];}
-  Nm rightEdge()  {return realRightEdge()  - ExclusionOffset[hCoord()];}
-  Nm bottomEdge() {return realBottomEdge() - ExclusionOffset[vCoord()];}
+  virtual Nm leftEdge  (int slice=0) = 0;
+  virtual Nm topEdge   (int slice=0) = 0;
+  virtual Nm rightEdge (int slice=0) = 0;
+  virtual Nm bottomEdge(int slice=0) = 0;
 
-  int sliceNumber(Nm pos, PlaneType plane) const;
+  /// @pos in Z dir
+  int sliceNumber(Nm pos) const;
 
   // Helper methods to create face representations
-  virtual void CreateRegion();
-  virtual void UpdateRegion();
-  virtual void CreateXYFace();
-  virtual void UpdateXYFace();
-  virtual void CreateYZFace();
-  virtual void CreateXZFace();
+  virtual void CreateRegion() = 0;
 
   // Helper methods
-  void MoveLeftEdge(double *p1, double *p2);
-  void MoveRightEdge(double *p1, double *p2);
-  void MoveTopEdge(double *p1, double *p2);
-  void MoveBottomEdge(double *p1, double *p2);
+  virtual void MoveLeftEdge  (double *p1, double *p2) = 0;
+  virtual void MoveRightEdge (double *p1, double *p2) = 0;
+  virtual void MoveTopEdge   (double *p1, double *p2) = 0;
+  virtual void MoveBottomEdge(double *p1, double *p2) = 0;
 
-  PlaneType Plane;
+protected:
   vtkSmartPointer<vtkPolyData> Region;
   Nm Slice;
   Nm SlicingStep[3];
+
   bool Init;
-
-private:
-  vtkBoundingRegionSliceRepresentation(const vtkBoundingRegionSliceRepresentation&);  //Not implemented
-  void operator=(const vtkBoundingRegionSliceRepresentation&);  //Not implemented
-
   Nm InclusionOffset[3];
   Nm ExclusionOffset[3];
 
@@ -188,7 +164,9 @@ private:
   int NumSlices;
   int NumVertex;
 
-  double RepBounds[6];
+private:
+  vtkBoundingRegionSliceRepresentation(const vtkBoundingRegionSliceRepresentation&);  //Not implemented
+  void operator=(const vtkBoundingRegionSliceRepresentation&);  //Not implemented
 };
 
 #endif

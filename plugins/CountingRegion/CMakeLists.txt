@@ -54,6 +54,9 @@ set (LOCAL_SOURCES
   )
 
 set (REGION_SOURCES
+  regions/vtkBoundingRegionAxialSliceRepresentation.cpp
+  regions/vtkBoundingRegionCoronalSliceRepresentation.cpp
+  regions/vtkBoundingRegionSagittalSliceRepresentation.cpp
   colorEngines/CountingRegionColorEngine.cpp
   regions/AdaptiveBoundingRegion.cpp
   regions/BoundingRegion.cpp

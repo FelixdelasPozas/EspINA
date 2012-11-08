@@ -48,6 +48,24 @@ protected:
   typedef EspinaInteractorAdapter<vtkBoundingRegionSliceWidget> BoundingRegion2DWidgetAdapter;
   typedef EspinaInteractorAdapter<vtkBoundingRegion3DWidget>    BoundingRegion3DWidgetAdapter;
 
+  class BoundingRegionSliceWidget
+  : public SliceWidget
+  {
+  public:
+    explicit BoundingRegionSliceWidget(vtkBoundingRegionSliceWidget *widget)
+    : SliceWidget(widget)
+    , m_slicedWidget(widget)
+    {}
+
+    virtual void setSlice(Nm pos, PlaneType plane)
+    {
+      m_slicedWidget->SetSlice(pos);
+      SliceWidget::setSlice(pos, plane);
+    }
+  private:
+    vtkBoundingRegionSliceWidget *m_slicedWidget;
+  };
+
 public:
   const int INCLUSION_FACE;
   const int EXCLUSION_FACE;

@@ -15,6 +15,9 @@
 #include "vtkBoundingRegionSliceWidget.h"
 
 #include "vtkBoundingRegionSliceRepresentation.h"
+#include "vtkBoundingRegionAxialSliceRepresentation.h"
+#include "vtkBoundingRegionCoronalSliceRepresentation.h"
+#include "vtkBoundingRegionSagittalSliceRepresentation.h"
 
 #include "vtkCommand.h"
 #include "vtkCallbackCommand.h"
@@ -31,7 +34,10 @@
 
 vtkStandardNewMacro(vtkBoundingRegionSliceWidget);
 
-typedef vtkBoundingRegionSliceRepresentation SliceRepresentation;
+typedef vtkBoundingRegionSliceRepresentation         SliceRepresentation;
+typedef vtkBoundingRegionAxialSliceRepresentation    AxialSliceRepresentation;
+typedef vtkBoundingRegionCoronalSliceRepresentation  CoronalSliceRepresentation;
+typedef vtkBoundingRegionSagittalSliceRepresentation SagittalSliceRepresentation;
 
 //----------------------------------------------------------------------------
 vtkBoundingRegionSliceWidget::vtkBoundingRegionSliceWidget()
@@ -272,14 +278,13 @@ void vtkBoundingRegionSliceWidget::EndSelectAction(vtkAbstractWidget *w)
 //----------------------------------------------------------------------
 void vtkBoundingRegionSliceWidget::SetPlane(PlaneType plane)
 {
+  Plane = plane;
+
   if (!this->WidgetRep)
     CreateDefaultRepresentation();
 
   SliceRepresentation *rep =
     reinterpret_cast<SliceRepresentation*>(this->WidgetRep);
-  rep->SetPlane(plane);
-
-  Plane = plane;
 }
 
 //----------------------------------------------------------------------
@@ -320,7 +325,20 @@ void vtkBoundingRegionSliceWidget::SetBoundingRegion(vtkSmartPointer<vtkPolyData
 void vtkBoundingRegionSliceWidget::CreateDefaultRepresentation()
 {
   if ( ! this->WidgetRep )
-    this->WidgetRep = SliceRepresentation::New();
+  {
+    switch (Plane)
+    {
+      case AXIAL:
+        this->WidgetRep = AxialSliceRepresentation::New();
+        break;
+      case CORONAL:
+        this->WidgetRep = CoronalSliceRepresentation::New();
+        break;
+      case SAGITTAL:
+        this->WidgetRep = SagittalSliceRepresentation::New();
+        break;
+    }
+  }
 }
 
 //----------------------------------------------------------------------------

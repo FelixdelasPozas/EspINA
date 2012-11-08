@@ -133,7 +133,7 @@ SliceWidget* RectangularBoundingRegion::createSliceWidget(PlaneType plane)
 
   m_widgets2D << wa;
 
-  return new SliceWidget(wa);
+  return new BoundingRegionSliceWidget(wa);
 }
 
 //-----------------------------------------------------------------------------

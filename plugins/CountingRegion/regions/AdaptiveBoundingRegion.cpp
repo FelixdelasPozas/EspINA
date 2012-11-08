@@ -31,24 +31,6 @@
 #include <vtkCellData.h>
 #include "vtkBoundingRegion3DWidget.h"
 
-class AdaptiveRegionWidget
-: public SliceWidget
-{
-public:
-  explicit AdaptiveRegionWidget(vtkBoundingRegionSliceWidget *widget)
-  : SliceWidget(widget)
-  , m_slicedWidget(widget)
-  {}
-
-  virtual void setSlice(Nm pos, PlaneType plane)
-  {
-    m_slicedWidget->SetSlice(pos);
-    SliceWidget::setSlice(pos, plane);
-  }
-private:
-  vtkBoundingRegionSliceWidget *m_slicedWidget;
-};
-
 //-----------------------------------------------------------------------------
 const QString AdaptiveBoundingRegion::ID = "AdaptiveBoundingRegion";
 
@@ -148,7 +130,7 @@ SliceWidget* AdaptiveBoundingRegion::createSliceWidget(PlaneType plane)
 
   m_widgets2D << wa;
 
-  return new AdaptiveRegionWidget(wa);
+  return new BoundingRegionSliceWidget(wa);
 }
 
 //-----------------------------------------------------------------------------
@@ -187,12 +169,12 @@ void AdaptiveBoundingRegion::updateBoundingRegionImplementation()
   m_channel->extent(extent);
 
   m_inclusionVolume = 0;
-  m_totalVolume = 0;
 
   ModelItemExtension *ext = m_channel->extension(MarginsChannelExtension::ID);
   Q_ASSERT(ext);
   MarginsChannelExtension *marginsExt = dynamic_cast<MarginsChannelExtension *>(ext);
   Q_ASSERT(marginsExt);
+  m_totalVolume = marginsExt->computedVolume();
 
   vtkSmartPointer<vtkPolyData> margins = marginsExt->margins();
   Q_ASSERT(margins.GetPointer());
@@ -303,7 +285,6 @@ void AdaptiveBoundingRegion::updateBoundingRegionImplementation()
     // Update Volumes
     if (slice != lowerSlice)
     {
-      m_totalVolume += ((RT[0] - LT[0] + 1)*(LB[1] - LT[1] + 1))*spacing[2];
       m_inclusionVolume += (((RT[0] + rightOffset())  - (LT[0] + leftOffset()))*
                            ((LB[1] + bottomOffset()) - (LT[1] + topOffset())))*
                            spacing[2];

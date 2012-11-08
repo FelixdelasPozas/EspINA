@@ -55,7 +55,7 @@ QVariant BoundingRegion::data(int role) const
     QString desc("Type: Rectangular Region\n"
     "Volume Information:\n"
     "  Total Volume:\n"
-    "    %1 px\n"
+    "    %1 voxl\n"
     "    %2 %3\n"
     "  Inclusion Volume:\n"
     "    %4 px\n"

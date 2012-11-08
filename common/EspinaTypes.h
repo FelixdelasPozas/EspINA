@@ -21,9 +21,9 @@ const EspinaVolume::PixelType SEG_BG_VALUE = 0;
 
 enum PlaneType
 {
-  AXIAL = 2,
-  SAGITTAL = 0,
-  CORONAL = 1
+  AXIAL = 2,    //XY
+  CORONAL = 1,  //ZX
+  SAGITTAL = 0  //YZ
 };
 
 #endif// ESPINATYPES_H
