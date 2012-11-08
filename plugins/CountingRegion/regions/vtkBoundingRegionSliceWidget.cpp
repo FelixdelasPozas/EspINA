@@ -23,6 +23,7 @@
 #include "vtkCallbackCommand.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkObjectFactory.h"
+#include <vtkMath.h>
 #include "vtkWidgetEventTranslator.h"
 #include "vtkWidgetCallbackMapper.h"
 #include "vtkEvent.h"
@@ -190,7 +191,7 @@ void vtkBoundingRegionSliceWidget::TranslateAction(vtkAbstractWidget *w)
 void vtkBoundingRegionSliceWidget::MoveAction(vtkAbstractWidget *w)
 {
   vtkBoundingRegionSliceWidget *self = reinterpret_cast<vtkBoundingRegionSliceWidget*>(w);
-
+  Q_ASSERT(self->WidgetRep);
   // compute some info we need for all cases
   int X = self->Interactor->GetEventPosition()[0];
   int Y = self->Interactor->GetEventPosition()[1];
@@ -261,11 +262,15 @@ void vtkBoundingRegionSliceWidget::EndSelectAction(vtkAbstractWidget *w)
   SliceRepresentation *rep = SliceRepresentation::SafeDownCast(self->WidgetRep);
   if (rep)
   {
-    //std::cout << "updating offset" << std::endl;
     rep->GetInclusionOffset(self->InclusionOffset);
-    //std::cout << "Inclusion Offset: " << self->InclusionOffset[0] << " " << self->InclusionOffset[1]  << " " << self->InclusionOffset[2] << std::endl;
     rep->GetExclusionOffset(self->ExclusionOffset);
-    //std::cout << "Exclusion Offset: " << self->ExclusionOffset[0] << " " << self->ExclusionOffset[1]  << " " << self->ExclusionOffset[2] << std::endl;
+    for (int i = 0; i < 3; i++)
+    {
+      self->InclusionOffset[i] =
+        vtkMath::Round(self->InclusionOffset[i]/self->Resolution[i])*self->Resolution[i];
+      self->ExclusionOffset[i] =
+        vtkMath::Round(self->ExclusionOffset[i]/self->Resolution[i])*self->Resolution[i];
+    }
   }
 
   self->EventCallbackCommand->SetAbortFlag(1);
@@ -302,7 +307,7 @@ void vtkBoundingRegionSliceWidget::SetSlice(Nm pos)
 //----------------------------------------------------------------------
 void vtkBoundingRegionSliceWidget::SetSlicingStep(Nm slicingStep[3])
 {
-  memcpy(SlicingStep, slicingStep, 3*sizeof(Nm));
+  memcpy(Resolution, slicingStep, 3*sizeof(Nm));
 }
 
 //----------------------------------------------------------------------
@@ -317,7 +322,7 @@ void vtkBoundingRegionSliceWidget::SetBoundingRegion(vtkSmartPointer<vtkPolyData
   memcpy(ExclusionOffset, exclusionOffset, 3*sizeof(Nm));
 
   SliceRepresentation *rep = reinterpret_cast<SliceRepresentation*>(this->WidgetRep);
-  rep->SetBoundingRegion(region, inclusionOffset, exclusionOffset, SlicingStep);
+  rep->SetBoundingRegion(region, inclusionOffset, exclusionOffset, Resolution);
   this->Render();
 }
 

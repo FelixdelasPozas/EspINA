@@ -154,7 +154,7 @@ protected:
 protected:
   vtkSmartPointer<vtkPolyData> Region;
   Nm Slice;
-  Nm SlicingStep[3];
+  Nm Resolution[3];
 
   bool Init;
   Nm InclusionOffset[3];

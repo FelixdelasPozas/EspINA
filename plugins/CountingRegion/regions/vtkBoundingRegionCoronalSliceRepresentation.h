@@ -35,20 +35,17 @@ public:
   virtual void SetSlice(Nm pos);
 
 protected:
-  static const int hCoord = 0;
-  static const int vCoord = 2;
-
   virtual void CreateRegion();
 
-  virtual Nm realLeftEdge  (int slice=0) { return Region->GetPoint(slice*4+1)[hCoord];}
-  virtual Nm realTopEdge   (int slice=0) { return Region->GetPoint(0)[vCoord];}
-  virtual Nm realRightEdge (int slice=0) { return Region->GetPoint(slice*4+3)[hCoord];}
-  virtual Nm realBottomEdge(int slice=0) { return Region->GetPoint(NumPoints-4)[vCoord];}
+  virtual Nm realLeftEdge  (int slice=0) { return Region->GetPoint(slice*4+1)[0];}
+  virtual Nm realTopEdge   (int slice=0) { return Region->GetPoint(0)[2];}
+  virtual Nm realRightEdge (int slice=0) { return Region->GetPoint(slice*4+3)[0];}
+  virtual Nm realBottomEdge(int slice=0) { return Region->GetPoint(NumPoints-4)[2];}
 
-  virtual Nm leftEdge  (int slice=0) {return realLeftEdge  (slice) + InclusionOffset[hCoord];}
-  virtual Nm topEdge   (int slice=0) {return realTopEdge   (slice) + InclusionOffset[vCoord];}
-  virtual Nm rightEdge (int slice=0) {return realRightEdge (slice) - ExclusionOffset[hCoord];}
-  virtual Nm bottomEdge(int slice=0) {return realBottomEdge(slice) - ExclusionOffset[vCoord];}
+  virtual Nm leftEdge  (int slice=0) {return realLeftEdge  (slice) + InclusionOffset[0];}
+  virtual Nm topEdge   (int slice=0) {return realTopEdge   (slice) + InclusionOffset[2];}
+  virtual Nm rightEdge (int slice=0) {return realRightEdge (slice) - ExclusionOffset[0];}
+  virtual Nm bottomEdge(int slice=0) {return realBottomEdge(slice) - ExclusionOffset[2];}
 
   virtual void MoveLeftEdge  (double* p1, double* p2);
   virtual void MoveRightEdge (double* p1, double* p2);

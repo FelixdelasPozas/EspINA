@@ -75,8 +75,8 @@ void vtkBoundingRegionCoronalSliceRepresentation::CreateRegion()
 
 //   std::cout << "LT: " << LT[2] << std::endl;
 //   std::cout << "LB: " << LB[2] << std::endl;
-  int UpperSlice = sliceNumber(LT[2] + InclusionOffset[vCoord]);
-  int LowerSlice = sliceNumber(LB[2] - ExclusionOffset[vCoord]);
+  int UpperSlice = sliceNumber(LT[2] + InclusionOffset[2]);
+  int LowerSlice = sliceNumber(LB[2] - ExclusionOffset[2]);
   if (UpperSlice == LowerSlice)
     UpperSlice--;
 //   std::cout << "Upper Slice: " << UpperSlice << std::endl;
@@ -145,21 +145,21 @@ void vtkBoundingRegionCoronalSliceRepresentation::CreateRegion()
     int interval = slice - UpperSlice;
     // LEFT
     Region->GetPoint(slice*4+1,point);
-    point[0] += InclusionOffset[hCoord];
+    point[0] += InclusionOffset[0];
     point[1] = 0.1;
     if (slice == 0)
-      point[2] += InclusionOffset[vCoord];
+      point[2] += InclusionOffset[2];
     else if (slice == NumSlices -1)
-      point[2] -= ExclusionOffset[vCoord];
+      point[2] -= ExclusionOffset[2];
     this->Vertex->SetPoint(2*interval+0, point);
     //RIGHT
     Region->GetPoint(slice*4+3,point);
-    point[0] -= ExclusionOffset[hCoord];
+    point[0] -= ExclusionOffset[0];
     point[1] = 0.1;
     if (slice == 0)
-      point[2] += InclusionOffset[vCoord];
+      point[2] += InclusionOffset[2];
     else if (slice == NumSlices -1)
-      point[2] -= ExclusionOffset[vCoord];
+      point[2] -= ExclusionOffset[2];
     this->Vertex->SetPoint(2*interval+1, point);
   }
 
@@ -171,23 +171,39 @@ void vtkBoundingRegionCoronalSliceRepresentation::CreateRegion()
 //----------------------------------------------------------------------------
 void vtkBoundingRegionCoronalSliceRepresentation::MoveLeftEdge(double* p1, double* p2)
 {
-  double shift = p2[hCoord] - p1[hCoord];
+  double shift = p2[0] - p1[0];
 
-  Nm offset   = InclusionOffset[hCoord] + shift;
+  Nm offset   = InclusionOffset[0] + shift;
 
   if (offset < 0)
     offset = 0;
   else
   {
-  // Invalid Collision Detection
-    Nm nextLeftEdge = realLeftEdge() + offset;
-    Nm rightEdgeLimit  = rightEdge() - SlicingStep[hCoord];
+    double firstSliceBounds[6];
+    double lastSliceBounds[6];
 
-    if (nextLeftEdge > rightEdgeLimit)
-      offset = rightEdgeLimit - realLeftEdge();
+    regionBounds(0, firstSliceBounds);
+    int firstSlice = sliceNumber(firstSliceBounds[4] + InclusionOffset[2]);
+
+    regionBounds(NumSlices-1, lastSliceBounds);
+    int lastSlice = sliceNumber(lastSliceBounds[5] - ExclusionOffset[2]);
+
+    bool collision = false;
+    int  slice   = firstSlice;
+    // cheack all visible slices
+    while (!collision && slice <= lastSlice)
+    {
+      double sliceBounds[6];
+      regionBounds(slice, sliceBounds);
+      collision = sliceBounds[0] + offset >= sliceBounds[1] - ExclusionOffset[0] - Resolution[0];
+      slice++;
+    }
+
+    if (collision)
+      offset -= shift;
   }
 
-  InclusionOffset[hCoord] = offset;
+  InclusionOffset[0] = offset;
   CreateRegion();
 }
 
@@ -195,23 +211,39 @@ void vtkBoundingRegionCoronalSliceRepresentation::MoveLeftEdge(double* p1, doubl
 void vtkBoundingRegionCoronalSliceRepresentation::MoveRightEdge(double* p1, double* p2)
 {
 
-  double shift = p2[hCoord] - p1[hCoord];
+  double shift = p2[0] - p1[0];
 
-  Nm offset = ExclusionOffset[hCoord] - shift;
+  Nm offset = ExclusionOffset[0] - shift;
 
   if (offset < 0)
     offset = 0;
   else
   {
-  // Invalid Collision Detection
-    Nm nextRightEdge = realRightEdge() - offset;
-    Nm leftEdgeLimit = leftEdge() + SlicingStep[hCoord];
+    double firstSliceBounds[6];
+    double lastSliceBounds[6];
 
-    if (leftEdgeLimit > nextRightEdge)
-      offset = realRightEdge() - leftEdgeLimit;
+    regionBounds(0, firstSliceBounds);
+    int firstSlice = sliceNumber(firstSliceBounds[4] + InclusionOffset[2]);
+
+    regionBounds(NumSlices-1, lastSliceBounds);
+    int lastSlice = sliceNumber(lastSliceBounds[5] - ExclusionOffset[2]);
+
+    bool collision = false;
+    int  slice   = firstSlice;
+    // cheack all visible slices
+    while (!collision && slice <= lastSlice)
+    {
+      double sliceBounds[6];
+      regionBounds(slice, sliceBounds);
+      collision = sliceBounds[0] + InclusionOffset[0] >= sliceBounds[1] - offset - Resolution[0];
+      slice++;
+    }
+
+    if (collision)
+      offset += shift;
   }
 
-  ExclusionOffset[hCoord] = offset;
+  ExclusionOffset[0] = offset;
   CreateRegion();
 }
 
@@ -219,22 +251,47 @@ void vtkBoundingRegionCoronalSliceRepresentation::MoveRightEdge(double* p1, doub
 void vtkBoundingRegionCoronalSliceRepresentation::MoveTopEdge(double* p1, double* p2)
 {
 
-  double shift = p2[vCoord] - p1[vCoord];
-  Nm offset = InclusionOffset[vCoord] + shift;
+  double shift = p2[2] - p1[2];
+  Nm offset = InclusionOffset[2] + shift;
 
   if (offset < 0)
     offset = 0;
   else
   {
     Nm nextTopEdge = realTopEdge() + offset;
-    Nm bottomEdgeLimit  = bottomEdge() - SlicingStep[vCoord];
+    Nm bottomEdgeLimit  = bottomEdge() - Resolution[2];
 
     if (nextTopEdge > bottomEdgeLimit)
       offset = bottomEdgeLimit - realTopEdge();
+    else
+    {
+      double firstSliceBounds[6];
+      double lastSliceBounds[6];
+
+      regionBounds(0, firstSliceBounds);
+      int firstSlice = sliceNumber(firstSliceBounds[4] + offset);
+
+      regionBounds(NumSlices-1, lastSliceBounds);
+      int lastSlice = sliceNumber(lastSliceBounds[5] - ExclusionOffset[2]);
+
+      bool collision = false;
+      int  slice = firstSlice;
+      // cheack all visible slices
+      while (!collision && slice < lastSlice)
+      {
+        double sliceBounds[6];
+        regionBounds(slice, sliceBounds);
+        collision = sliceBounds[0] + InclusionOffset[0] >= sliceBounds[1] - ExclusionOffset[0] - Resolution[0];
+        slice++;
+      }
+
+      if (collision)
+        InclusionOffset[0] = ExclusionOffset[0] = 0;
+    }
   }
 
 
-  InclusionOffset[vCoord] = offset;
+  InclusionOffset[2] = offset;
   CreateRegion();
 }
 
@@ -242,21 +299,46 @@ void vtkBoundingRegionCoronalSliceRepresentation::MoveTopEdge(double* p1, double
 void vtkBoundingRegionCoronalSliceRepresentation::MoveBottomEdge(double* p1, double* p2)
 {
 
-  double shift = p2[vCoord] - p1[vCoord];
+  double shift = p2[2] - p1[2];
 
-  Nm offset = ExclusionOffset[vCoord] - shift;
+  Nm offset = ExclusionOffset[2] - shift;
 
   if (offset < 0)
     offset = 0;
   else
   {
     Nm nextBottomEdge = realBottomEdge() - offset;
-    Nm topEdgeLimit = topEdge() + SlicingStep[vCoord];
+    Nm topEdgeLimit = topEdge() + Resolution[2];
 
     if (topEdgeLimit > nextBottomEdge)
       offset = realBottomEdge() - topEdgeLimit;
+    else
+    {
+      double firstSliceBounds[6];
+      double lastSliceBounds[6];
+
+      regionBounds(0, firstSliceBounds);
+      int firstSlice = sliceNumber(firstSliceBounds[4] + InclusionOffset[2]);
+
+      regionBounds(NumSlices-1, lastSliceBounds);
+      int lastSlice = sliceNumber(lastSliceBounds[5] - offset);
+
+      bool collision = false;
+      int  slice = firstSlice;
+      // cheack all visible slices
+      while (!collision && slice < lastSlice)
+      {
+        double sliceBounds[6];
+        regionBounds(slice, sliceBounds);
+        collision = sliceBounds[0] + InclusionOffset[0] >= sliceBounds[1] - ExclusionOffset[0] - Resolution[0];
+        slice++;
+      }
+
+      if (collision)
+        InclusionOffset[0] = ExclusionOffset[0] = 0;
+    }
   }
 
-  ExclusionOffset[vCoord] = offset;
+  ExclusionOffset[2] = offset;
   CreateRegion();
 }

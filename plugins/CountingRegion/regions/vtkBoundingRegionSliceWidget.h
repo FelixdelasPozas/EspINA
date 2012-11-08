@@ -71,7 +71,7 @@ protected:
 
   PlaneType Plane;
   Nm Slice;
-  Nm SlicingStep[3];
+  Nm Resolution[3];
 
 private:
   vtkBoundingRegionSliceWidget(const vtkBoundingRegionSliceWidget&);  //Not implemented

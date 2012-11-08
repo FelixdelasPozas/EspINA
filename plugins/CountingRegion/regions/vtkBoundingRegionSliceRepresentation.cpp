@@ -39,7 +39,7 @@ vtkBoundingRegionSliceRepresentation::vtkBoundingRegionSliceRepresentation()
   // The initial state
   this->InteractionState = vtkBoundingRegionSliceRepresentation::Outside;
 
-  SlicingStep[0] = SlicingStep[1] = SlicingStep[2] = 1;
+  Resolution[0] = Resolution[1] = Resolution[2] = 1;
 
   memset(this->InclusionOffset, 0, 3*sizeof(double));
   memset(this->ExclusionOffset, 0, 3*sizeof(double));
@@ -297,7 +297,7 @@ void vtkBoundingRegionSliceRepresentation::SetBoundingRegion(vtkSmartPointer<vtk
   Region = region;
   memcpy(InclusionOffset, inclusionOffset, 3*sizeof(Nm));
   memcpy(ExclusionOffset, exclusionOffset, 3*sizeof(Nm));
-  memcpy(SlicingStep, slicingStep, 3*sizeof(Nm));
+  memcpy(Resolution, slicingStep, 3*sizeof(Nm));
 
   this->Region->Update();
   this->NumPoints = this->Region->GetPoints()->GetNumberOfPoints();
@@ -359,7 +359,7 @@ int vtkBoundingRegionSliceRepresentation::ComputeInteractionState(int X, int Y, 
     this->CurrentEdge =
       reinterpret_cast<vtkActor *>(path->GetFirstNode()->GetViewProp());
     if (this->CurrentEdge == this->EdgeActor[LEFT])
-    {
+    {http://www.boardgamegeek.com/user/IcantExplain
       this->InteractionState = vtkBoundingRegionSliceRepresentation::MoveLeft;
     }
     else if (this->CurrentEdge == this->EdgeActor[RIGHT])
