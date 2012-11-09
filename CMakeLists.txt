@@ -12,13 +12,14 @@ set (ESPINA_VERSION_PATCH 2)
 
 
 SET (TEST_ESPINA_MODELS CACHE BOOL "Build EspINA Model Test wrappers")
-#SET (BUILD_TESTING OFF CACHE BOOL "Build EspINA Unitary Tests")
-#SET (USE_DASHBOARD OFF CACHE BOOL "Use EspINA Unitary Tests Dashboard")
+SET (BUILD_TESTING OFF CACHE BOOL "Build EspINA Unitary Tests")
+SET (USE_DASHBOARD OFF CACHE BOOL "Use EspINA Unitary Tests Dashboard")
 
-#if (${BUILD_TESTING})
-#  include (CTest)
-#  enable_testing()
-#endif (${BUILD_TESTING})
+if (${BUILD_TESTING})
+  include (CTest)
+  enable_testing()
+  add_subdirectory(tests)
+endif (${BUILD_TESTING})
 
 set (ESPINA_LIBRARY_DIRS
   ${PROJECT_BINARY_DIR}/common
