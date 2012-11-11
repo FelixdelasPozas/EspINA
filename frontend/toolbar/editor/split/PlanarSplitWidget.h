@@ -12,19 +12,26 @@ class PlanarSplitSliceWidget;
 
 // EspINA
 #include "common/widgets/EspinaWidget.h"
+#include "common/EspinaTypes.h"
 
 // vtk
 #include <vtkSmartPointer.h>
+#include <vtkCommand.h>
 
 // Qt
-#include <QObject>
 #include <QList>
 
 class vtkAbstractWidget;
 class vtkPoints;
+class vtkPlane;
+class vtkAbstractWidget;
+class vtkImageStencilSource;
+
+enum WidgetType { AXIAL_WIDGET = 1, CORONAL_WIDGET, SAGITTAL_WIDGET, VOLUME_WIDGET, NONE };
 
 class PlanarSplitWidget
 : public EspinaWidget
+, public vtkCommand
 {
   public:
     explicit PlanarSplitWidget();
@@ -42,13 +49,21 @@ class PlanarSplitWidget
     // get/set
     virtual void setPlanePoints(vtkSmartPointer<vtkPoints>);
     virtual vtkSmartPointer<vtkPoints> getPlanePoints();
+    virtual vtkSmartPointer<vtkPlane> getImplicitPlane();
+    virtual void setSegmentationBounds(double *);
+    virtual bool planeIsValid();
+
+    virtual WidgetType getMainWidget();
+
+    // vtkCommand
+    virtual void Execute (vtkObject *caller, unsigned long eventId, void *callData);
 
   private:
-    PlanarSplitSliceWidget *m_axialWidget;
-    PlanarSplitSliceWidget *m_coronalWidget;
-    PlanarSplitSliceWidget *m_sagittalWidget;
+    PlanarSplitSliceWidget *m_axial;
+    PlanarSplitSliceWidget *m_coronal;
+    PlanarSplitSliceWidget *m_sagittal;
     QList<vtkAbstractWidget*> m_widgets;
-    PlaneType m_mainWidget;
+    WidgetType m_mainWidget;
 };
 
 #endif /* PLANARSPLITWIDGET_H_ */

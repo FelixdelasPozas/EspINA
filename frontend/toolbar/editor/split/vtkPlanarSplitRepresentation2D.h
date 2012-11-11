@@ -22,7 +22,8 @@ class vtkActor;
 class vtkPointHandleRepresentation2D;
 class vtkHandleRepresentation;
 
-class VTK_WIDGETS_EXPORT vtkPlanarSplitRepresentation2D: public vtkWidgetRepresentation
+class VTK_WIDGETS_EXPORT vtkPlanarSplitRepresentation2D
+: public vtkWidgetRepresentation
 {
     vtkTypeMacro(vtkPlanarSplitRepresentation2D,vtkWidgetRepresentation);
 
@@ -70,6 +71,7 @@ class VTK_WIDGETS_EXPORT vtkPlanarSplitRepresentation2D: public vtkWidgetReprese
     // is invoked by the widget.)
     void SetHandleRepresentation(vtkHandleRepresentation *handle);
     void InstantiateHandleRepresentation();
+    void MoveHandle(int handleNum, int X, int Y);
 
     // Description:
     // Set/Get the two handle representations used for the widget. (Note:
@@ -81,6 +83,10 @@ class VTK_WIDGETS_EXPORT vtkPlanarSplitRepresentation2D: public vtkWidgetReprese
     // set representation orientation
     virtual void setOrientation(PlaneType);
 
+    // set segmentation bounds to draw the actor
+    virtual void setSegmentationBounds(double *);
+    virtual void removeBoundsActor();
+
   protected:
     vtkPlanarSplitRepresentation2D();
     ~vtkPlanarSplitRepresentation2D();
@@ -89,6 +95,8 @@ class VTK_WIDGETS_EXPORT vtkPlanarSplitRepresentation2D: public vtkWidgetReprese
     double m_point2[3];
     vtkSmartPointer<vtkLineSource> m_line;
     vtkSmartPointer<vtkActor> m_lineActor;
+    vtkSmartPointer<vtkPoints> m_boundsPoints;
+    vtkSmartPointer<vtkActor> m_boundsActor;
 
     // definition and clones
     vtkHandleRepresentation *HandleRepresentation;

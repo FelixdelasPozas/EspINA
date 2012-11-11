@@ -10,44 +10,49 @@
 #include "PlanarSplitSliceWidget.h"
 #include "common/widgets/EspinaInteractorAdapter.h"
 #include "vtkPlanarSplitWidget.h"
+#include "common/gui/ViewManager.h"
 
 // vtk
 #include <vtkAbstractWidget.h>
 #include <vtkPoints.h>
+#include <vtkPlane.h>
+#include <vtkMath.h>
 
 typedef EspinaInteractorAdapter<vtkPlanarSplitWidget> PlanarSplitWidgetAdapter;
 
 //-----------------------------------------------------------------------------
 PlanarSplitWidget::PlanarSplitWidget()
-: m_axialWidget(NULL)
-, m_coronalWidget(NULL)
-, m_sagittalWidget(NULL)
-, m_mainWidget(AXIAL)
+: m_axial(NULL)
+, m_coronal(NULL)
+, m_sagittal(NULL)
+, m_mainWidget(NONE)
 {
 }
 
 //-----------------------------------------------------------------------------
 PlanarSplitWidget::~PlanarSplitWidget()
 {
-  if (m_axialWidget)
+  if (m_mainWidget == NONE)
+    foreach(vtkAbstractWidget *widget, m_widgets)
+      widget->RemoveObserver(this);
+
+  if (m_axial)
   {
-    m_axialWidget->setEnabled(false);
-    delete m_axialWidget;
+    m_axial->setEnabled(false);
+    delete m_axial;
   }
 
-  if (m_coronalWidget)
+  if (m_coronal)
   {
-    m_coronalWidget->setEnabled(false);
-    delete m_coronalWidget;
+    m_coronal->setEnabled(false);
+    delete m_coronal;
   }
 
-  if (m_sagittalWidget)
+  if (m_sagittal)
   {
-    m_sagittalWidget->setEnabled(false);
-    delete m_sagittalWidget;
+    m_sagittal->setEnabled(false);
+    delete m_sagittal;
   }
-
-  // m_widgets contents gets deleted when deleting the SliceWidgets
 }
 
 //-----------------------------------------------------------------------------
@@ -65,46 +70,46 @@ void PlanarSplitWidget::deleteWidget(vtkAbstractWidget *widget)
 //-----------------------------------------------------------------------------
 SliceWidget *PlanarSplitWidget::createSliceWidget(PlaneType plane)
 {
-  PlanarSplitWidgetAdapter *widget = new PlanarSplitWidgetAdapter();
-
-  switch (plane)
+  switch(plane)
   {
     case AXIAL:
-      if (!m_axialWidget)
+      if (!m_axial)
       {
-        m_axialWidget = new PlanarSplitSliceWidget(widget);
-        m_axialWidget->setOrientation(AXIAL);
+        PlanarSplitWidgetAdapter *widget = new PlanarSplitWidgetAdapter();
+        widget->AddObserver(vtkCommand::EndInteractionEvent, this);
+        m_axial = new PlanarSplitSliceWidget(widget);
+        m_axial->setOrientation(plane);
+        m_widgets << widget;
       }
-      else
-        delete widget;
-      return m_axialWidget;
+      return m_axial;
       break;
     case CORONAL:
-      if (!m_coronalWidget)
+      if (!m_coronal)
       {
-        m_coronalWidget = new PlanarSplitSliceWidget(widget);
-        m_coronalWidget->setOrientation(CORONAL);
+        PlanarSplitWidgetAdapter *widget = new PlanarSplitWidgetAdapter();
+        widget->AddObserver(vtkCommand::EndInteractionEvent, this);
+        m_coronal = new PlanarSplitSliceWidget(widget);
+        m_coronal->setOrientation(plane);
+        m_widgets << widget;
       }
-      else
-        delete widget;
-      return m_coronalWidget;
+      return m_coronal;
       break;
     case SAGITTAL:
-      if (!m_sagittalWidget)
+      if (!m_sagittal)
       {
-        m_sagittalWidget = new PlanarSplitSliceWidget(widget);
-        m_sagittalWidget->setOrientation(SAGITTAL);
+        PlanarSplitWidgetAdapter *widget = new PlanarSplitWidgetAdapter();
+        widget->AddObserver(vtkCommand::EndInteractionEvent, this);
+        m_sagittal = new PlanarSplitSliceWidget(widget);
+        m_sagittal->setOrientation(plane);
+        m_widgets << widget;
       }
-      else
-        delete widget;
-      return m_sagittalWidget;
+      return m_sagittal;
       break;
     default:
       Q_ASSERT(false);
       break;
   }
 
-  Q_ASSERT(false);
   return NULL; // dead code
 }
 
@@ -113,13 +118,11 @@ bool PlanarSplitWidget::processEvent(vtkRenderWindowInteractor* iren,
                                  long unsigned int event)
 {
   foreach(vtkAbstractWidget *widget, m_widgets)
-  {
     if (widget->GetInteractor() == iren)
     {
       PlanarSplitWidgetAdapter *sw = dynamic_cast<PlanarSplitWidgetAdapter *>(widget);
       return sw->ProcessEventsHandler(event);
     }
-  }
 
   return false;
 }
@@ -127,54 +130,153 @@ bool PlanarSplitWidget::processEvent(vtkRenderWindowInteractor* iren,
 //-----------------------------------------------------------------------------
 void PlanarSplitWidget::setEnabled(bool enable)
 {
-  if (m_axialWidget)
-    m_axialWidget->setEnabled(enable);
+  if (m_axial)
+    m_axial->setEnabled(enable);
 
-  if (m_coronalWidget)
-    m_coronalWidget->setEnabled(enable);
-
-  if (m_sagittalWidget)
-    m_sagittalWidget->setEnabled(enable);
+  if (m_coronal)
+    m_coronal->setEnabled(enable);
+  if (m_sagittal)
+    m_sagittal->setEnabled(enable);
 }
 
 //-----------------------------------------------------------------------------
 void PlanarSplitWidget::setPlanePoints(vtkSmartPointer<vtkPoints> points)
 {
-  if (m_axialWidget)
-    m_axialWidget->setPoints(points);
+  if (m_axial)
+    m_axial->setPoints(points);
 
-  if (m_coronalWidget)
-    m_coronalWidget->setPoints(points);
+  if (m_coronal)
+    m_coronal->setPoints(points);
 
-  if (m_sagittalWidget)
-    m_sagittalWidget->setPoints(points);
+  if (m_sagittal)
+    m_sagittal->setPoints(points);
 }
+
 
 //-----------------------------------------------------------------------------
 vtkSmartPointer<vtkPoints> PlanarSplitWidget::getPlanePoints()
 {
-  vtkSmartPointer<vtkPoints> points;
-  if (!m_axialWidget && !m_coronalWidget && !m_sagittalWidget)
-  {
-    points = vtkSmartPointer<vtkPoints>::New();
-    return points;
-  }
+  vtkSmartPointer<vtkPoints> points = NULL;
 
   switch(m_mainWidget)
   {
-    case AXIAL:
-      points = m_axialWidget->getPoints();
+    case AXIAL_WIDGET:
+      points = m_axial->getPoints();
       break;
-    case CORONAL:
-      points = m_coronalWidget->getPoints();
+    case CORONAL_WIDGET:
+      points = m_coronal->getPoints();
       break;
-    case SAGITTAL:
-      points = m_sagittalWidget->getPoints();
+    case SAGITTAL_WIDGET:
+      points = m_sagittal->getPoints();
       break;
     default:
-      Q_ASSERT(false);
       break;
   }
 
   return points;
+}
+
+//-----------------------------------------------------------------------------
+void PlanarSplitWidget::Execute(vtkObject *caller, unsigned long eventId, void *callData)
+{
+  PlanarSplitWidgetAdapter *widget = static_cast<PlanarSplitWidgetAdapter*>(caller);
+  widget->RemoveObserver(this);
+
+  if (m_axial->getWidget() == widget)
+  {
+    m_mainWidget = AXIAL_WIDGET;
+    m_coronal->disableWidget();
+    m_sagittal->disableWidget();
+  }
+
+  if (m_coronal->getWidget() == widget)
+  {
+    m_mainWidget = CORONAL_WIDGET;
+    m_axial->disableWidget();
+    m_sagittal->disableWidget();
+  }
+
+  if (m_sagittal->getWidget() == widget)
+  {
+    m_mainWidget = SAGITTAL_WIDGET;
+    m_coronal->disableWidget();
+    m_axial->disableWidget();
+  }
+
+  // disabling a widget modifies it's representation (bounds actor)
+  m_viewManager->updateViews();
+}
+
+//-----------------------------------------------------------------------------
+WidgetType PlanarSplitWidget::getMainWidget()
+{
+  return m_mainWidget;
+}
+
+//-----------------------------------------------------------------------------
+void PlanarSplitWidget::setSegmentationBounds(double *bounds)
+{
+  foreach(vtkAbstractWidget *widget, m_widgets)
+    {
+      vtkPlanarSplitWidget *planarSplitWidget = static_cast<vtkPlanarSplitWidget*>(widget);
+      planarSplitWidget->setSegmentationBounds(bounds);
+    }
+}
+
+//-----------------------------------------------------------------------------
+bool PlanarSplitWidget::planeIsValid()
+{
+  if(this->m_mainWidget == NONE)
+    return false;
+
+  vtkSmartPointer<vtkPoints> points = this->getPlanePoints();
+  double point1[3], point2[3];
+  points->GetPoint(0, point1);
+  points->GetPoint(1, point2);
+
+  return ((point1[0] != point2[0]) || (point1[1] != point2[1]) || (point1[2] != point2[2]));
+}
+
+//-----------------------------------------------------------------------------
+vtkSmartPointer<vtkPlane> PlanarSplitWidget::getImplicitPlane()
+{
+  vtkSmartPointer<vtkPlane> plane = NULL;
+
+  if((m_mainWidget != NONE) && this->planeIsValid())
+  {
+    vtkSmartPointer<vtkPoints> points = this->getPlanePoints();
+    double point1[3], point2[3];
+    points->GetPoint(0, point1);
+    points->GetPoint(1, point2);
+
+    double normal[3], upVector[3];
+    double planeVector[3] = { point2[0]-point1[0], point2[1]-point1[1], point2[2]-point1[2] };
+
+    switch(m_mainWidget)
+    {
+      case AXIAL_WIDGET:
+        upVector[0] = upVector[1] = 0;
+        upVector[2] = 1;
+        break;
+      case CORONAL_WIDGET:
+        upVector[0] = upVector[2] = 0;
+        upVector[1] = 1;
+        break;
+      case SAGITTAL_WIDGET:
+        upVector[1] = upVector[2] = 0;
+        upVector[0] = 1;
+        break;
+      default:
+        Q_ASSERT(false);
+        break;
+    }
+
+    plane = vtkSmartPointer<vtkPlane>::New();
+    vtkMath::Cross(planeVector, upVector, normal);
+    plane->SetOrigin(point1);
+    plane->SetNormal(normal);
+    plane->Modified();
+  }
+
+  return plane;
 }

@@ -20,8 +20,9 @@ class vtkPlanarSplitWidgetCallback;
 class vtkPlanarSplitRepresentation2D;
 class vtkWidgetRepresentation;
 class vtkPoints;
+class vtkLineSource;
 
-class vtkPlanarSplitWidget
+class VTK_WIDGETS_EXPORT vtkPlanarSplitWidget
 : public vtkAbstractWidget
 {
   public:
@@ -85,6 +86,9 @@ class vtkPlanarSplitWidget
 
     virtual void PrintSelf(ostream &os, vtkIndent indent);
 
+    virtual void disableWidget();
+    virtual void setSegmentationBounds(double *bounds);
+
   protected:
     vtkPlanarSplitWidget();
     virtual ~vtkPlanarSplitWidget();
@@ -93,6 +97,7 @@ class vtkPlanarSplitWidget
     int WidgetState;
     int CurrentHandle;
     PlaneType m_plane;
+    double m_segmentationBounds[6];
 
     // Callback interface to capture events when
     // placing the widget.
@@ -106,15 +111,17 @@ class vtkPlanarSplitWidget
     vtkPlanarSplitWidgetCallback *m_planarSplitWidgetCallback1;
     vtkPlanarSplitWidgetCallback *m_planarSplitWidgetCallback2;
 
-    // Methods invoked when the handles at the
+    // Method invoked when the handles at the
     // end points of the widget are manipulated
-    void StartInteraction(int handleNum);
-    void Interaction(int handleNum);
-    void EndInteraction(int handleNum);
+    void StartHandleInteraction(int handleNum);
+    void HandleInteraction(int handleNum);
+    void StopHandleInteraction(int handleNum);
 
   //BTX
     friend class vtkPlanarSplitWidgetCallback;
   //ETX
+
+    bool m_permanentlyDisabled;
 };
 
 #endif /* VTKPLANARSPLITWIDGET_H_ */

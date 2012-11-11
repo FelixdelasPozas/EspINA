@@ -22,6 +22,7 @@
 #include <vtkHandleRepresentation.h>
 #include <vtkPointHandleRepresentation2D.h>
 #include <vtkRenderer.h>
+#include <vtkProperty2D.h>
 
 vtkStandardNewMacro(vtkPlanarSplitRepresentation2D);
 
@@ -38,9 +39,17 @@ vtkPlanarSplitRepresentation2D::vtkPlanarSplitRepresentation2D()
   m_line = vtkSmartPointer<vtkLineSource>::New();
   m_line->Update();
   m_lineActor = vtkSmartPointer<vtkActor>::New();
+  m_boundsPoints = NULL;
+  m_boundsActor = NULL;
+
   HandleRepresentation = vtkPointHandleRepresentation2D::New();
+  vtkProperty2D *property = reinterpret_cast<vtkPointHandleRepresentation2D*>(HandleRepresentation)->GetProperty();
+  property->SetColor(0,1,0);
+  property->SetLineWidth(2);
+
   Point1Representation = NULL;
   Point2Representation = NULL;
+
   this->InteractionState = Outside;
 }
 
@@ -55,6 +64,9 @@ vtkPlanarSplitRepresentation2D::~vtkPlanarSplitRepresentation2D()
 
   if (this->Point2Representation)
     this->Point2Representation->Delete();
+
+  if (m_boundsActor != NULL)
+    this->Renderer->RemoveActor(m_boundsActor);
 }
 
 //----------------------------------------------------------------------
@@ -286,4 +298,139 @@ void vtkPlanarSplitRepresentation2D::InstantiateHandleRepresentation()
 void vtkPlanarSplitRepresentation2D::setOrientation(PlaneType plane)
 {
   m_plane = plane;
+}
+
+//----------------------------------------------------------------------
+void vtkPlanarSplitRepresentation2D::MoveHandle(int handleNum, int X, int Y)
+{
+  double displayPos[3] = { X,Y,0 };
+  double worldPos[3];
+
+  this->Renderer->SetDisplayPoint(displayPos);
+  this->Renderer->DisplayToWorld();
+  this->Renderer->GetWorldPoint(worldPos);
+
+  switch(handleNum)
+  {
+    case 0:
+      m_point1[0] = worldPos[0];
+      m_point1[1] = worldPos[1];
+      m_point1[2] = worldPos[2];
+      m_point1[m_plane] = 0;
+      break;
+    case 1:
+      m_point2[0] = worldPos[0];
+      m_point2[1] = worldPos[1];
+      m_point2[2] = worldPos[2];
+      m_point2[m_plane] = 0;
+      break;
+    default:
+      Q_ASSERT(false);
+      break;
+  }
+  this->BuildRepresentation();
+}
+
+//----------------------------------------------------------------------
+void vtkPlanarSplitRepresentation2D::setSegmentationBounds(double *bounds)
+{
+  m_boundsPoints = vtkSmartPointer<vtkPoints>::New();
+  m_boundsPoints->SetNumberOfPoints(4);
+  double point[3];
+
+  switch (this->m_plane)
+  {
+    case AXIAL:
+      point[0] = bounds[0];
+      point[1] = bounds[2];
+      point[2] = 0;
+      m_boundsPoints->InsertPoint(0, point);
+      point[0] = bounds[0];
+      point[1] = bounds[3];
+      point[2] = 0;
+      m_boundsPoints->InsertPoint(1, point);
+      point[0] = bounds[1];
+      point[1] = bounds[3];
+      point[2] = 0;
+      m_boundsPoints->InsertPoint(2, point);
+      point[0] = bounds[1];
+      point[1] = bounds[2];
+      point[2] = 0;
+      m_boundsPoints->InsertPoint(3, point);
+      break;
+    case CORONAL:
+      point[0] = bounds[0];
+      point[1] = 0;
+      point[2] = bounds[4];
+      m_boundsPoints->InsertPoint(0, point);
+      point[0] = bounds[0];
+      point[1] = 0;
+      point[2] = bounds[5];
+      m_boundsPoints->InsertPoint(1, point);
+      point[0] = bounds[1];
+      point[1] = 0;
+      point[2] = bounds[5];
+      m_boundsPoints->InsertPoint(2, point);
+      point[0] = bounds[1];
+      point[1] = 0;
+      point[2] = bounds[4];
+      m_boundsPoints->InsertPoint(3, point);
+      break;
+    case SAGITTAL:
+      point[0] = 0;
+      point[1] = bounds[2];
+      point[2] = bounds[4];
+      m_boundsPoints->InsertPoint(0, point);
+      point[0] = 0;
+      point[1] = bounds[2];
+      point[2] = bounds[5];
+      m_boundsPoints->InsertPoint(1, point);
+      point[0] = 0;
+      point[1] = bounds[3];
+      point[2] = bounds[5];
+      m_boundsPoints->InsertPoint(2, point);
+      point[0] = 0;
+      point[1] = bounds[3];
+      point[2] = bounds[4];
+      m_boundsPoints->InsertPoint(3, point);
+      break;
+    default:
+      Q_ASSERT(false);
+      break;
+  }
+  m_boundsPoints->Modified();
+
+  vtkSmartPointer<vtkPolyData> polyData = vtkSmartPointer<vtkPolyData>::New();
+  polyData->Allocate();
+  polyData->SetPoints(m_boundsPoints);
+  vtkIdType connectivity[2];
+  for (int i = 0; i < 4; ++i)
+  {
+    connectivity[0] = i;
+    connectivity[1] = (i+1)%4;
+    polyData->InsertNextCell(VTK_LINE, 2, connectivity);
+  }
+  polyData->Update();
+
+  vtkSmartPointer<vtkPolyDataMapper> mapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+  mapper->SetInputConnection(polyData->GetProducerPort());
+
+  m_boundsActor = vtkSmartPointer<vtkActor>::New();
+  m_boundsActor->SetMapper(mapper);
+  m_boundsActor->GetProperty()->SetColor(1,1,1);
+  m_boundsActor->GetProperty()->SetLineStipplePattern(0xFFF0);
+  m_boundsActor->GetProperty()->SetLineStippleRepeatFactor(1);
+  m_boundsActor->GetProperty()->SetLineWidth(2);
+
+  this->Renderer->AddActor(m_boundsActor);
+}
+
+//----------------------------------------------------------------------
+void vtkPlanarSplitRepresentation2D::removeBoundsActor()
+{
+  if (m_boundsActor != NULL)
+  {
+    this->Renderer->RemoveActor(m_boundsActor);
+    m_boundsActor = NULL;
+  }
 }

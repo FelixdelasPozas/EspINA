@@ -34,8 +34,12 @@ class PlanarSplitSliceWidget
     vtkSmartPointer<vtkPoints> getPoints();
 
     virtual void setEnabled(bool);
+
+    virtual vtkAbstractWidget* getWidget() { return this->m_widget; };
+    virtual void disableWidget();
   private:
     PlaneType m_plane;
+    bool m_mainWidget;
 };
 
 #endif /* PLANARSPLITSLICEWIDGET_H_ */

@@ -16,6 +16,7 @@
 PlanarSplitSliceWidget::PlanarSplitSliceWidget(vtkAbstractWidget *widget)
 : SliceWidget(widget)
 , m_plane(AXIAL)
+, m_mainWidget(true)
 {
 }
 
@@ -35,21 +36,31 @@ void PlanarSplitSliceWidget::setSlice(Nm pos, PlaneType plane)
 //-----------------------------------------------------------------------------
 void PlanarSplitSliceWidget::setPoints(vtkSmartPointer<vtkPoints> points)
 {
-  vtkPlanarSplitWidget *widget = reinterpret_cast<vtkPlanarSplitWidget*>(m_widget);
-  widget->setPoints(points);
+  if (m_mainWidget)
+  {
+    vtkPlanarSplitWidget *widget = reinterpret_cast<vtkPlanarSplitWidget*>(m_widget);
+    widget->setPoints(points);
+  }
 }
 
 //-----------------------------------------------------------------------------
 void PlanarSplitSliceWidget::setEnabled(bool enabled)
 {
-  m_widget->SetEnabled(enabled);
+  if(m_mainWidget)
+    m_widget->SetEnabled(enabled);
 }
 
 //-----------------------------------------------------------------------------
 vtkSmartPointer<vtkPoints> PlanarSplitSliceWidget::getPoints()
 {
-  vtkPlanarSplitWidget *widget = reinterpret_cast<vtkPlanarSplitWidget*>(m_widget);
-  return widget->getPoints();
+  if (m_mainWidget)
+  {
+    vtkPlanarSplitWidget *widget = reinterpret_cast<vtkPlanarSplitWidget*>(m_widget);
+    return widget->getPoints();
+  }
+
+  vtkSmartPointer<vtkPoints> points = vtkSmartPointer<vtkPoints>::New();
+  return points;
 }
 
 //-----------------------------------------------------------------------------
@@ -59,4 +70,12 @@ void PlanarSplitSliceWidget::setOrientation(PlaneType plane)
   vtkPlanarSplitWidget *widget = reinterpret_cast<vtkPlanarSplitWidget*>(m_widget);
   widget->setOrientation(plane);
 
+}
+
+//-----------------------------------------------------------------------------
+void PlanarSplitSliceWidget::disableWidget()
+{
+  m_mainWidget = false;
+  vtkPlanarSplitWidget* widget = static_cast<vtkPlanarSplitWidget*>(m_widget);
+  widget->disableWidget();
 }
