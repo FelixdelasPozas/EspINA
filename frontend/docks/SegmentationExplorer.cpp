@@ -105,12 +105,12 @@ class SampleLayout
       ModelItem *leftItem = indexPtr(left);
       ModelItem *rightItem = indexPtr(right);
       if (leftItem->type() == rightItem->type())
-	if (ModelItem::SEGMENTATION == leftItem->type())
-	  return sortSegmentationLessThan(leftItem, rightItem);
-	else
-	  return leftItem->data(Qt::DisplayRole).toString() < rightItem->data(Qt::DisplayRole).toString();
-      else
-	return leftItem->type() == ModelItem::TAXONOMY;
+        if (ModelItem::SEGMENTATION == leftItem->type())
+          return sortSegmentationLessThan(leftItem, rightItem);
+        else
+          return leftItem->data(Qt::DisplayRole).toString() < rightItem->data(Qt::DisplayRole).toString();
+        else
+          return leftItem->type() == ModelItem::TAXONOMY;
     }
   };
 
