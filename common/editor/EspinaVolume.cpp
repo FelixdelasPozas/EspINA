@@ -29,7 +29,7 @@ typedef itk::LabelImageToShapeLabelMapFilter<EspinaVolume, LabelMapType> Image2L
 typedef itk::ExtractImageFilter<EspinaVolume, EspinaVolume> ExtractType;
 
 //----------------------------------------------------------------------------
-EspinaVolume::Pointer strechToFiContent(EspinaVolume *volume)
+EspinaVolume::Pointer strechToFitContent(EspinaVolume *volume)
 {
   Image2LabelFilterType::Pointer image2label = Image2LabelFilterType::New();
   image2label->ReleaseDataFlagOn();

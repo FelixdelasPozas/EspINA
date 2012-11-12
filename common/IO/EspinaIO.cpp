@@ -268,12 +268,12 @@ EspinaIO::STATUS EspinaIO::saveFile(QFileInfo file, EspinaModel *model)
       //qDebug() << "Making" << filter->data().toString() << "snapshot";
       foreach(OutputNumber i, filter->editedOutputs())
       {
-	Output output(filter, i);
-	if (!saved.contains(output))
-	{
-	  zipVolume(filter, i, tmpDir, outFile);
-	  saved << output;
-	}
+        Output output(filter, i);
+        if (!saved.contains(output))
+        {
+          zipVolume(filter, i, tmpDir, outFile);
+          saved << output;
+        }
       }
     }
   }

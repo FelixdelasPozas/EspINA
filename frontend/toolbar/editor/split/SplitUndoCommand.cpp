@@ -26,6 +26,7 @@
 //----------------------------------------------------------------------------
 SplitUndoCommand::SplitUndoCommand(Segmentation *input,
                                    SplitFilter  *filter,
+                                   Segmentation *splitSeg[2],
                                    EspinaModel  *model)
 : m_model(model)
 , m_channel(input->channel())
@@ -34,13 +35,7 @@ SplitUndoCommand::SplitUndoCommand(Segmentation *input,
 , m_filter(filter)
 , m_relations(input->relations())
 {
-  EspinaFactory *factory = m_model->factory();
-  for (int i = 0; i < 2;  i++)
-  {
-    m_subSeg[i] = factory->createSegmentation(m_filter, i);
-
-    m_subSeg[i]->setTaxonomy(m_seg->taxonomy());
-  }
+  memcpy(m_subSeg, splitSeg, 2*sizeof(Segmentation*));
 }
 
 //----------------------------------------------------------------------------

@@ -22,8 +22,7 @@
 
 #include <common/tools/ITool.h>
 
-class EspinaModel;
-class EspinaWidget;
+class PlanarSplitWidget;
 class ViewManager;
 class QUndoStack;
 class EspinaModel;
@@ -50,7 +49,7 @@ private:
   bool m_inUse;
   bool m_enabled;
 
-  EspinaWidget *m_widget;
+  PlanarSplitWidget *m_widget;
   EspinaModel *m_model;
   QUndoStack *m_undoStack;
   ViewManager *m_viewManager;

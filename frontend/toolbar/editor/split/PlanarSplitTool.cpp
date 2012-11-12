@@ -40,12 +40,14 @@
 // vtk
 #include <vtkPoints.h>
 #include <vtkImplicitFunctionToImageStencil.h>
+#include <vtkImageStencilData.h>
 #include <vtkSphere.h>
+#include <vtkPlane.h>
 
 //-----------------------------------------------------------------------------
 PlanarSplitTool::PlanarSplitTool(EspinaModel *model, QUndoStack *undo, ViewManager *vm)
 : m_inUse(false)
-, m_enabled(false)
+, m_enabled(true)
 , m_widget(NULL)
 , m_model(model)
 , m_undoStack(undo)
@@ -77,13 +79,12 @@ bool PlanarSplitTool::enabled() const
 //-----------------------------------------------------------------------------
 void PlanarSplitTool::setInUse(bool value)
 {
-  if (m_enabled != value)
-    m_enabled = value;
+  if (m_inUse == value)
+    return;
 
   m_inUse = value;
-  m_enabled = value;
 
-  if (value)
+  if (m_inUse)
   {
     m_widget = new PlanarSplitWidget();
     m_viewManager->addWidget(m_widget);
@@ -102,39 +103,22 @@ void PlanarSplitTool::setInUse(bool value)
     bounds[3] += 0.5*spacing[1];
     bounds[4] -= 0.5*spacing[2];
     bounds[5] += 0.5*spacing[2];
-    static_cast<PlanarSplitWidget*>(m_widget)->setSegmentationBounds(bounds);
+    m_widget->setSegmentationBounds(bounds);
     m_viewManager->updateViews();
   }
   else
   {
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    PlanarSplitWidget *widget = reinterpret_cast<PlanarSplitWidget*>(m_widget);
+    m_viewManager->setSelectionEnabled(true);
 
-    if (widget->planeIsValid())
-    {
-      SegmentationList selectedSegs = m_viewManager->selectedSegmentations();
-      Q_ASSERT(selectedSegs.size() == 1);
-      Segmentation *seg = selectedSegs.first();
-      EspinaVolume::PointType origin = seg->itkVolume()->GetOrigin();
-      EspinaVolume::SpacingType spacing = seg->itkVolume()->GetSpacing();
-      EspinaVolume::SizeType size = seg->itkVolume()->GetLargestPossibleRegion().GetSize();
+    if (m_widget->planeIsValid())
+      splitSegmentation();
 
-      vtkSmartPointer<vtkImplicitFunctionToImageStencil> plane2stencil = vtkSmartPointer<vtkImplicitFunctionToImageStencil>::New();
-      //plane2stencil->SetInput(widget->getImplicitPlane());
-      plane2stencil->SetOutputOrigin(origin[0], origin[1], origin[2]);
-      plane2stencil->SetOutputSpacing(spacing[0], spacing[1], spacing[2]);
-      plane2stencil->SetOutputWholeExtent(origin[0], origin[0]+size[0], origin[1], origin[1]+size[1], origin[2], origin[2]+size[2]);
-      plane2stencil->Update();
-
-      // TODO: filtro y creación de segmentaciones
-    }
-
-    QApplication::restoreOverrideCursor();
     m_widget->setEnabled(false);
     m_viewManager->removeWidget(m_widget);
-    m_viewManager->setSelectionEnabled(true);
     delete m_widget;
     m_viewManager->updateViews();
+
+    emit splittingStopped();
   }
 }
 
@@ -147,22 +131,56 @@ void PlanarSplitTool::setEnabled(bool value)
 //-----------------------------------------------------------------------------
 void PlanarSplitTool::splitSegmentation()
 {
-  Filter::NamedInputs inputs;
-  Filter::Arguments   args;
+  QApplication::setOverrideCursor(Qt::WaitCursor);
 
   SegmentationList selectedSegs = m_viewManager->selectedSegmentations();
   Q_ASSERT(selectedSegs.size() == 1);
 
   Segmentation *seg = selectedSegs.first();
 
+  EspinaVolume::PointType origin = seg->itkVolume()->GetOrigin();
+  EspinaVolume::SpacingType spacing = seg->itkVolume()->GetSpacing();
+  EspinaVolume::SizeType size = seg->itkVolume()->GetLargestPossibleRegion().GetSize();
+  int segExtent[6];
+  VolumeExtent(seg->itkVolume(), segExtent);
+
+  vtkSmartPointer<vtkImplicitFunctionToImageStencil> plane2stencil = vtkSmartPointer<vtkImplicitFunctionToImageStencil>::New();
+  plane2stencil->SetInput(m_widget->getImplicitPlane().GetPointer());
+  plane2stencil->SetOutputOrigin(origin[0], origin[1], origin[2]);
+  plane2stencil->SetOutputSpacing(spacing[0], spacing[1], spacing[2]);
+  //plane2stencil->SetOutputWholeExtent(origin[0], origin[0]+size[0], origin[1], origin[1]+size[1], origin[2], origin[2]+size[2]);
+  plane2stencil->SetOutputWholeExtent(segExtent);
+  plane2stencil->Update();
+
+  Filter::NamedInputs inputs;
+  Filter::Arguments   args;
+
   inputs[SplitFilter::INPUTLINK] = seg->filter();
   args[Filter::INPUTS] = args.namedInput(SplitFilter::INPUTLINK, seg->outputNumber());
 
   SplitFilter *filter = new SplitFilter(inputs, args);
+  vtkSmartPointer<vtkImageStencilData> stencil = plane2stencil->GetOutput();
+  filter->setStencil(stencil);
   filter->update();
 
   if (filter->numberOutputs() == 2)
-    m_undoStack->push(new SplitUndoCommand(seg, filter, m_model));
-  //else
-    //report message
+  {
+    Segmentation  *splitSeg[2];
+    EspinaFactory *factory = m_model->factory();
+    for (int i = 0; i < 2;  i++)
+    {
+      splitSeg[i] = factory->createSegmentation(filter, i);
+      splitSeg[i]->setTaxonomy(seg->taxonomy());
+    }
+
+    if (filter->numberOutputs() == 2)
+      m_undoStack->push(new SplitUndoCommand(seg, filter, splitSeg, m_model));
+    //else
+      //report message
+
+    ViewManager::Selection selection;
+    selection << splitSeg[0];
+    m_viewManager->setSelection(selection);
+  }
+  QApplication::restoreOverrideCursor();
 }

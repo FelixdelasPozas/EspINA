@@ -1023,12 +1023,14 @@ void SliceView::scrollValueChanged(int value/*nm*/)
 //-----------------------------------------------------------------------------
 void SliceView::selectFromSlice()
 {
+  m_fromSlice->setText(tr("From (%1)").arg(m_spinBox->value()));
   emit sliceSelected(slicingPosition(), m_plane, ViewManager::From);
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::selectToSlice()
 {
+  m_fromSlice->setText(tr("To (%1)").arg(m_spinBox->value()));
   emit sliceSelected(slicingPosition(), m_plane, ViewManager::To);
 }
 

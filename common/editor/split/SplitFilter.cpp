@@ -90,39 +90,61 @@ void SplitFilter::run()
   ot1.GoToBegin();
   ot2.GoToBegin();
 
+  bool isEmpty1 = true;
+  bool isEmpty2 = true;
+
   for(; !it.IsAtEnd(); ++it, ++ot1, ++ot2)
   {
     EspinaVolume::IndexType index = it.GetIndex();
     if (m_stencil->IsInside(index[0], index[1], index[2]))
+    {
       ot1.Set(it.Value());
+      if (isEmpty1)
+        isEmpty1 = ot1.Get() != SEG_VOXEL_VALUE;
+    }
     else
+    {
       ot2.Set(it.Value());
+      if (isEmpty2)
+        isEmpty2 = ot2.Get() != SEG_VOXEL_VALUE;
+    }
   }
 
-  for (int i = 0; i < 2; i++)
-    m_outputs[i] = strechToFiContent(m_outputs[i]);
+  if (!isEmpty1 && !isEmpty2)
+  {
+    for (int i = 0; i < 2; i++)
+      m_outputs[i] = strechToFitContent(m_outputs[i]);
 
-  emit modified(this);
+    emit modified(this);
+  }
+  else
+  {
+    m_outputs.clear();
+  }
 }
 
 //-----------------------------------------------------------------------------
 bool SplitFilter::prefetchFilter()
 {
-  // TODO 2012-11-07 Save/Restore blocks (like in segmhaImporter)
+  bool ok = false;
+  // TODO 2012-11-07 Unify save/restore methods for multiple-output filters
   for (int i = 0; i < 2; i++)
   {
     QString tmpFile = QString("%1_%2.mhd").arg(id()).arg(i);
     EspinaVolumeReader::Pointer tmpReader = tmpFileReader(tmpFile);
-    if (tmpReader.IsNull())
-      return false;
-
-    EspinaVolume::Pointer tmpVolume = tmpReader->GetOutput();
-    if (tmpVolume.IsNull())
-      return false;
-
-    m_outputs[i] = tmpVolume;
+    if (tmpReader.IsNotNull())
+    {
+      EspinaVolume::Pointer tmpVolume = tmpReader->GetOutput();
+      if (tmpVolume.IsNotNull())
+      {
+        m_outputs[i] = tmpVolume;
+        ok = true;
+      }
+    }
   }
 
-  emit modified(this);
-  return true;
+//   if (ok)
+//     emit modified(this);
+
+  return ok;
 }

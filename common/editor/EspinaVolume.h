@@ -24,6 +24,6 @@
 
 /// Reduce volume dimensions to adjust it to the bounding box of the
 /// contained segmentation
-EspinaVolume::Pointer strechToFiContent(EspinaVolume *volume);
+EspinaVolume::Pointer strechToFitContent(EspinaVolume *volume);
 
 #endif // ESPINAVOLUME_H

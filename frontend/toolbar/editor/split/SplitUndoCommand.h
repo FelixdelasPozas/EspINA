@@ -36,6 +36,7 @@ class SplitUndoCommand
 public:
   explicit SplitUndoCommand(Segmentation *input,
                             SplitFilter  *filter,
+                            Segmentation *splitSeg[2],
                             EspinaModel  *model);
   virtual ~SplitUndoCommand();
 
