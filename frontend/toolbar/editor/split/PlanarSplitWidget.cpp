@@ -72,7 +72,6 @@ vtkAbstractWidget *PlanarSplitWidget::createWidget()
 {
   m_volume = vtkImplicitPlaneWidget2::New();
   m_volume->AddObserver(vtkCommand::EndInteractionEvent, this);
-  vtkImplicitPlaneRepresentation *rep = static_cast<vtkImplicitPlaneRepresentation*>(m_volume->GetRepresentation());
   return m_volume;
 }
 
@@ -139,6 +138,13 @@ bool PlanarSplitWidget::processEvent(vtkRenderWindowInteractor* iren,
       PlanarSplitWidgetAdapter *sw = dynamic_cast<PlanarSplitWidgetAdapter *>(widget);
       return sw->ProcessEventsHandler(event);
     }
+
+  if (m_volume->GetInteractor() == iren)
+  {
+    PlanarSplitWidgetVolumeAdapter *sw = dynamic_cast<PlanarSplitWidgetVolumeAdapter *>(m_volume);
+    return sw->ProcessEventsHandler(event);
+  }
+
 
   return false;
 }

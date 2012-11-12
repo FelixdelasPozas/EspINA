@@ -110,6 +110,7 @@ void PlanarSplitTool::setInUse(bool value)
     m_widget->setEnabled(false);
     m_viewManager->removeWidget(m_widget);
     delete m_widget;
+    m_viewManager->updateViews();
 
     emit splittingStopped();
   }
