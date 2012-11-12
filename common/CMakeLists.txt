@@ -28,6 +28,7 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/common/widgets
   ${CMAKE_SOURCE_DIR}/common/views
   ${CMAKE_CURRENT_BINARY_DIR}  #For wrap/ui files
+  ${CMAKE_BINARY_DIR} # Generated EspinaConfig.h
 )
 
 ####### EspinaCore #########

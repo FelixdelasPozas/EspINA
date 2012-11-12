@@ -30,6 +30,9 @@ const QString TAXONOMY = "taxonomy.xml";
 
 typedef itk::ImageFileWriter<EspinaVolume> EspinaVolumeWriter;
 
+const QString EspinaIO::VERSION = "version";
+const QString SEG_FILE_VERSION  = "1";
+
 //-----------------------------------------------------------------------------
 EspinaIO::STATUS EspinaIO::loadFile(QFileInfo file,
                                     EspinaModel* model,
@@ -140,9 +143,14 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo file,
         return ERROR;
       continue;
     }
-
-    //qDebug() << "IOEspinaFile::loadFile: extracting" << file.filePath();
-    if(file.fileName() == TAXONOMY )
+    //qDebug() << "EspinaIO::loadSegFile: extracting" << file.filePath();
+    if (file.fileName() == VERSION)
+    {
+      QString versionNumber = espinaFile.readAll();
+      if (versionNumber < SEG_FILE_VERSION)
+        return INVALID_VERSION;
+    }
+    else if(file.fileName() == TAXONOMY )
     {
       Q_ASSERT(taxonomy == NULL);
       taxonomy = IOTaxonomy::loadXMLTaxonomy(espinaFile.readAll());
@@ -224,7 +232,7 @@ bool EspinaIO::zipVolume(Filter* filter, OutputNumber outputNumber,
 }
 
 //-----------------------------------------------------------------------------
-EspinaIO::STATUS EspinaIO::saveFile(QFileInfo file, EspinaModel *model)
+EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, EspinaModel *model)
 {
   // Create tmp dir
 //   qDebug() << file.absolutePath();
@@ -244,8 +252,9 @@ EspinaIO::STATUS EspinaIO::saveFile(QFileInfo file, EspinaModel *model)
     return ERROR;
   }
   QuaZipFile outFile(&zip);
-  //TODO: File header
-  // outFile.write("EspinaSegmenation-1.0\0",21);
+
+  // Store Version Number
+  zipFile(VERSION, SEG_FILE_VERSION.toUtf8(), outFile);
 
   // Save Taxonomy
   QString taxonomy;

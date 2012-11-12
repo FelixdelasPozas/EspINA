@@ -649,7 +649,7 @@ void EspinaWindow::saveAnalysis()
 
     const QString analysisFile = fileDialog.selectedFiles().first();
 
-    EspinaIO::saveFile(analysisFile, m_model);
+    EspinaIO::saveSegFile(analysisFile, m_model);
 
     QApplication::restoreOverrideCursor();
     updateStatus(QString("File Saved Successfuly in %1").arg(analysisFile));
@@ -717,7 +717,7 @@ void EspinaWindow::autosave()
 
   const QFileInfo analysisFile = autosavePath.absoluteFilePath("espina-autosave.seg");
 
-  EspinaIO::saveFile(analysisFile, m_model);
+  EspinaIO::saveSegFile(analysisFile, m_model);
 
   updateStatus(QString("Analysis autosaved at %1").arg(QTime::currentTime().toString()));
   m_busy = false;
