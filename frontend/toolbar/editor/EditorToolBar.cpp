@@ -64,6 +64,7 @@ public:
     DILATE,
     ERODE
   };
+
 public:
   explicit CODECommand(QList<Segmentation *> inputs,
                        Operation op,

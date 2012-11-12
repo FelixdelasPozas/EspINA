@@ -109,9 +109,9 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
 , m_controlLayout(new QHBoxLayout())
 , m_view(new QVTKWidget())
 , m_scrollBar(new QScrollBar(Qt::Horizontal))
-, m_fromSlice(new QPushButton("From"))
+, m_fromSlice(new QPushButton(QIcon(":/from_slice.svg"),""))
 , m_spinBox(new QSpinBox())
-, m_toSlice(new QPushButton("To"))
+, m_toSlice(new QPushButton(QIcon(":/to_slice.svg"),""))
 , m_ruler(vtkSmartPointer<vtkAxisActor2D>::New())
 , m_plane(plane)
 , m_selectionEnabled(true)
@@ -127,6 +127,15 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
   memset(m_crosshairPoint, 0, 3*sizeof(Nm));
 
   setupUI();
+  m_fromSlice->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+  m_fromSlice->setMinimumSize(22,22);
+  m_fromSlice->setMaximumSize(22,22);
+  m_fromSlice->setIconSize(QSize(18,18));
+
+  m_toSlice->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+  m_toSlice->setMinimumSize(22,22);
+  m_toSlice->setMaximumSize(22,22);
+  m_toSlice->setIconSize(QSize(18,18));
 
   // Color background
   QPalette pal = this->palette();
@@ -1023,14 +1032,14 @@ void SliceView::scrollValueChanged(int value/*nm*/)
 //-----------------------------------------------------------------------------
 void SliceView::selectFromSlice()
 {
-  m_fromSlice->setText(tr("From (%1)").arg(m_spinBox->value()));
+  m_fromSlice->setToolTip(tr("From Slice %1").arg(m_spinBox->value()));
   emit sliceSelected(slicingPosition(), m_plane, ViewManager::From);
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::selectToSlice()
 {
-  m_fromSlice->setText(tr("To (%1)").arg(m_spinBox->value()));
+  m_toSlice->setToolTip(tr("To Slice %1").arg(m_spinBox->value()));
   emit sliceSelected(slicingPosition(), m_plane, ViewManager::To);
 }
 
