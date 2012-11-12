@@ -11,28 +11,37 @@
 #include "common/widgets/EspinaInteractorAdapter.h"
 #include "vtkPlanarSplitWidget.h"
 #include "common/gui/ViewManager.h"
+#include "common/EspinaRegions.h"
 
 // vtk
 #include <vtkAbstractWidget.h>
 #include <vtkPoints.h>
 #include <vtkPlane.h>
 #include <vtkMath.h>
+#include <vtkImplicitPlaneWidget2.h>
+#include <vtkAbstractWidget.h>
+#include <vtkImplicitPlaneRepresentation.h>
+#include <vtkImplicitFunctionToImageStencil.h>
+#include <vtkImageStencilData.h>
 
 typedef EspinaInteractorAdapter<vtkPlanarSplitWidget> PlanarSplitWidgetAdapter;
+typedef EspinaInteractorAdapter<vtkImplicitPlaneWidget2> PlanarSplitWidgetVolumeAdapter;
 
 //-----------------------------------------------------------------------------
 PlanarSplitWidget::PlanarSplitWidget()
 : m_axial(NULL)
 , m_coronal(NULL)
 , m_sagittal(NULL)
+, m_volume(NULL)
 , m_mainWidget(NONE)
+, m_vtkVolumeInformation(NULL)
 {
 }
 
 //-----------------------------------------------------------------------------
 PlanarSplitWidget::~PlanarSplitWidget()
 {
-  if (m_mainWidget == NONE)
+  if (m_mainWidget != NONE)
     foreach(vtkAbstractWidget *widget, m_widgets)
       widget->RemoveObserver(this);
 
@@ -53,18 +62,25 @@ PlanarSplitWidget::~PlanarSplitWidget()
     m_sagittal->setEnabled(false);
     delete m_sagittal;
   }
+
+  if (m_volume)
+    m_volume->Delete();
 }
 
 //-----------------------------------------------------------------------------
 vtkAbstractWidget *PlanarSplitWidget::createWidget()
 {
-  return NULL;
+  m_volume = vtkImplicitPlaneWidget2::New();
+  m_volume->AddObserver(vtkCommand::EndInteractionEvent, this);
+  vtkImplicitPlaneRepresentation *rep = static_cast<vtkImplicitPlaneRepresentation*>(m_volume->GetRepresentation());
+  return m_volume;
 }
 
 //-----------------------------------------------------------------------------
 void PlanarSplitWidget::deleteWidget(vtkAbstractWidget *widget)
 {
-  Q_ASSERT(false);
+  if (m_volume)
+    m_volume->Delete();
 }
 
 //-----------------------------------------------------------------------------
@@ -135,8 +151,12 @@ void PlanarSplitWidget::setEnabled(bool enable)
 
   if (m_coronal)
     m_coronal->setEnabled(enable);
+
   if (m_sagittal)
     m_sagittal->setEnabled(enable);
+
+  if (m_volume)
+    m_volume->SetEnabled(enable);
 }
 
 //-----------------------------------------------------------------------------
@@ -150,6 +170,24 @@ void PlanarSplitWidget::setPlanePoints(vtkSmartPointer<vtkPoints> points)
 
   if (m_sagittal)
     m_sagittal->setPoints(points);
+
+  if (m_volume)
+  {
+    Q_ASSERT(m_mainWidget != VOLUME_WIDGET);
+
+    double point1[3], point2[3], normal[3];
+    points->GetPoint(0, point1);
+    points->GetPoint(1, point2);
+    double vector[3] = { point2[0]-point1[0], point2[1]-point1[1], point2[2]-point1[2] };
+    double upVector[3] = { 0,0,0 };
+    upVector[m_mainWidget] = 1;
+
+    vtkMath::Cross(vector, upVector, normal);
+    vtkImplicitPlaneRepresentation *rep = static_cast<vtkImplicitPlaneRepresentation*>(m_volume->GetRepresentation());
+    rep->SetNormal(normal);
+    rep->SetOrigin(point1);
+    rep->Modified();
+  }
 }
 
 
@@ -170,6 +208,7 @@ vtkSmartPointer<vtkPoints> PlanarSplitWidget::getPlanePoints()
       points = m_sagittal->getPoints();
       break;
     default:
+      // return NULL
       break;
   }
 
@@ -179,28 +218,40 @@ vtkSmartPointer<vtkPoints> PlanarSplitWidget::getPlanePoints()
 //-----------------------------------------------------------------------------
 void PlanarSplitWidget::Execute(vtkObject *caller, unsigned long eventId, void *callData)
 {
-  PlanarSplitWidgetAdapter *widget = static_cast<PlanarSplitWidgetAdapter*>(caller);
-  widget->RemoveObserver(this);
+  PlanarSplitWidgetAdapter *sWidget = static_cast<PlanarSplitWidgetAdapter*>(caller);
+  PlanarSplitWidgetVolumeAdapter *pWidget = static_cast<PlanarSplitWidgetVolumeAdapter*>(caller);
+  sWidget->RemoveObserver(this);
 
-  if (m_axial->getWidget() == widget)
+  if (m_axial->getWidget() == sWidget)
   {
     m_mainWidget = AXIAL_WIDGET;
     m_coronal->disableWidget();
     m_sagittal->disableWidget();
+    m_volume->EnabledOff();
   }
 
-  if (m_coronal->getWidget() == widget)
+  if (m_coronal->getWidget() == sWidget)
   {
     m_mainWidget = CORONAL_WIDGET;
     m_axial->disableWidget();
     m_sagittal->disableWidget();
+    m_volume->EnabledOff();
   }
 
-  if (m_sagittal->getWidget() == widget)
+  if (m_sagittal->getWidget() == sWidget)
   {
     m_mainWidget = SAGITTAL_WIDGET;
     m_coronal->disableWidget();
     m_axial->disableWidget();
+    m_volume->EnabledOff();
+  }
+
+  if (m_volume == pWidget)
+  {
+    m_mainWidget = VOLUME_WIDGET;
+    m_coronal->disableWidget();
+    m_axial->disableWidget();
+    m_sagittal->disableWidget();
   }
 
   // disabling a widget modifies it's representation (bounds actor)
@@ -221,6 +272,19 @@ void PlanarSplitWidget::setSegmentationBounds(double *bounds)
       vtkPlanarSplitWidget *planarSplitWidget = static_cast<vtkPlanarSplitWidget*>(widget);
       planarSplitWidget->setSegmentationBounds(bounds);
     }
+
+  if (m_volume)
+  {
+    vtkImplicitPlaneRepresentation *rep = static_cast<vtkImplicitPlaneRepresentation*>(m_volume->GetRepresentation());
+    rep->SetPlaceFactor(1);
+    rep->PlaceWidget(bounds);
+    rep->SetOrigin((bounds[0]+bounds[1])/2,(bounds[2]+bounds[3])/2,(bounds[4]+bounds[5])/2);
+    rep->UpdatePlacement();
+    rep->OutlineTranslationOff();
+    rep->ScaleEnabledOff();
+    rep->OutsideBoundsOff();
+    rep->Modified();
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -228,6 +292,9 @@ bool PlanarSplitWidget::planeIsValid()
 {
   if(this->m_mainWidget == NONE)
     return false;
+
+  if(this->m_mainWidget == VOLUME_WIDGET)
+    return true;
 
   vtkSmartPointer<vtkPoints> points = this->getPlanePoints();
   double point1[3], point2[3];
@@ -242,7 +309,10 @@ vtkSmartPointer<vtkPlane> PlanarSplitWidget::getImplicitPlane()
 {
   vtkSmartPointer<vtkPlane> plane = NULL;
 
-  if((m_mainWidget != NONE) && this->planeIsValid())
+  if (m_mainWidget == NONE || !this->planeIsValid())
+    return plane;
+
+  if(m_mainWidget != VOLUME_WIDGET)
   {
     vtkSmartPointer<vtkPoints> points = this->getPlanePoints();
     double point1[3], point2[3];
@@ -277,6 +347,34 @@ vtkSmartPointer<vtkPlane> PlanarSplitWidget::getImplicitPlane()
     plane->SetNormal(normal);
     plane->Modified();
   }
+  else
+  {
+    plane = vtkSmartPointer<vtkPlane>::New();
+    static_cast<vtkImplicitPlaneRepresentation*>(m_volume->GetRepresentation())->GetPlane(plane);
+  }
 
   return plane;
+}
+
+vtkSmartPointer<vtkImageStencilData> PlanarSplitWidget::getStencilForVolume(EspinaVolume *volume)
+{
+  if (!this->planeIsValid())
+    return NULL;
+
+  EspinaVolume::PointType origin = volume->GetOrigin();
+  EspinaVolume::SpacingType spacing = volume->GetSpacing();
+  int segExtent[6];
+  VolumeExtent(volume, segExtent);
+
+  vtkSmartPointer<vtkImplicitFunctionToImageStencil> plane2stencil = vtkSmartPointer<vtkImplicitFunctionToImageStencil>::New();
+  plane2stencil->SetInput(this->getImplicitPlane());
+  plane2stencil->SetOutputOrigin(0, 0, 0);
+  plane2stencil->SetOutputSpacing(spacing[0], spacing[1], spacing[2]);
+  plane2stencil->SetOutputWholeExtent(segExtent);
+  plane2stencil->Update();
+
+  vtkSmartPointer<vtkImageStencilData> stencil = vtkSmartPointer<vtkImageStencilData>::New();
+  stencil = plane2stencil->GetOutput();
+
+  return stencil;
 }

@@ -53,7 +53,6 @@ private:
   EspinaModel *m_model;
   QUndoStack *m_undoStack;
   ViewManager *m_viewManager;
-
 };
 
 #endif // PLANARSPLITTOOL_H

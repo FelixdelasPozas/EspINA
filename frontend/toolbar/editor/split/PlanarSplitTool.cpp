@@ -36,13 +36,7 @@
 #include <QtGlobal>
 #include <QUndoStack>
 #include <QApplication>
-
-// vtk
-#include <vtkPoints.h>
-#include <vtkImplicitFunctionToImageStencil.h>
-#include <vtkImageStencilData.h>
-#include <vtkSphere.h>
-#include <vtkPlane.h>
+#include <QMessageBox>
 
 //-----------------------------------------------------------------------------
 PlanarSplitTool::PlanarSplitTool(EspinaModel *model, QUndoStack *undo, ViewManager *vm)
@@ -116,7 +110,6 @@ void PlanarSplitTool::setInUse(bool value)
     m_widget->setEnabled(false);
     m_viewManager->removeWidget(m_widget);
     delete m_widget;
-    m_viewManager->updateViews();
 
     emit splittingStopped();
   }
@@ -138,21 +131,6 @@ void PlanarSplitTool::splitSegmentation()
 
   Segmentation *seg = selectedSegs.first();
 
-  EspinaVolume::PointType origin = seg->itkVolume()->GetOrigin();
-  EspinaVolume::SpacingType spacing = seg->itkVolume()->GetSpacing();
-  EspinaVolume::SizeType size = seg->itkVolume()->GetLargestPossibleRegion().GetSize();
-  int segExtent[6];
-  VolumeExtent(seg->itkVolume(), segExtent);
-
-  vtkSmartPointer<vtkImplicitFunctionToImageStencil> plane2stencil = vtkSmartPointer<vtkImplicitFunctionToImageStencil>::New();
-  plane2stencil->SetInput(m_widget->getImplicitPlane().GetPointer());
-  //plane2stencil->SetOutputOrigin(origin[0], origin[1], origin[2]);
-  plane2stencil->SetOutputOrigin(0, 0, 0);
-  plane2stencil->SetOutputSpacing(spacing[0], spacing[1], spacing[2]);
-  //plane2stencil->SetOutputWholeExtent(origin[0], origin[0]+size[0], origin[1], origin[1]+size[1], origin[2], origin[2]+size[2]);
-  plane2stencil->SetOutputWholeExtent(segExtent);
-  plane2stencil->Update();
-
   Filter::NamedInputs inputs;
   Filter::Arguments   args;
 
@@ -160,8 +138,7 @@ void PlanarSplitTool::splitSegmentation()
   args[Filter::INPUTS] = args.namedInput(SplitFilter::INPUTLINK, seg->outputNumber());
 
   SplitFilter *filter = new SplitFilter(inputs, args);
-  vtkSmartPointer<vtkImageStencilData> stencil = plane2stencil->GetOutput();
-  filter->setStencil(stencil);
+  filter->setStencil(m_widget->getStencilForVolume(seg->itkVolume()));
   filter->update();
 
   if (filter->numberOutputs() == 2)
@@ -176,12 +153,37 @@ void PlanarSplitTool::splitSegmentation()
 
     if (filter->numberOutputs() == 2)
       m_undoStack->push(new SplitUndoCommand(seg, filter, splitSeg, m_model));
-    //else
-      //report message
+    else
+    {
+      delete filter;
+      QApplication::restoreOverrideCursor();
+      QMessageBox warning;
+      warning.setWindowModality(Qt::WindowModal);
+      warning.setWindowTitle(tr("EspINA"));
+      warning.setIcon(QMessageBox::Warning);
+      warning.setText(tr("The defined plane does not split the selected segmentation into two different segmentations. Operation has no effect."));
+      warning.setStandardButtons(QMessageBox::Yes);
+      warning.exec();
+      return;
+    }
 
     ViewManager::Selection selection;
     selection << splitSeg[0];
     m_viewManager->setSelection(selection);
   }
+  else
+  {
+    delete filter;
+    QApplication::restoreOverrideCursor();
+    QMessageBox warning;
+    warning.setWindowModality(Qt::WindowModal);
+    warning.setWindowTitle(tr("EspINA"));
+    warning.setIcon(QMessageBox::Warning);
+    warning.setText(tr("The defined plane does not split the selected segmentation into two different segmentations. Operation has no effect."));
+    warning.setStandardButtons(QMessageBox::Yes);
+    warning.exec();
+    return;
+  }
+
   QApplication::restoreOverrideCursor();
 }

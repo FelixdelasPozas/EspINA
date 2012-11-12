@@ -26,8 +26,11 @@ class vtkPoints;
 class vtkPlane;
 class vtkAbstractWidget;
 class vtkImageStencilSource;
+class vtkImplicitPlaneWidget2;
+class vtkAlgorithmOutput;
+class vtkImageStencilData;
 
-enum WidgetType { AXIAL_WIDGET = 1, CORONAL_WIDGET, SAGITTAL_WIDGET, VOLUME_WIDGET, NONE };
+enum WidgetType { AXIAL_WIDGET = 2, CORONAL_WIDGET = 1, SAGITTAL_WIDGET = 0, VOLUME_WIDGET = 3, NONE = 4 };
 
 class PlanarSplitWidget
 : public EspinaWidget
@@ -50,6 +53,7 @@ class PlanarSplitWidget
     virtual void setPlanePoints(vtkSmartPointer<vtkPoints>);
     virtual vtkSmartPointer<vtkPoints> getPlanePoints();
     virtual vtkSmartPointer<vtkPlane> getImplicitPlane();
+    virtual vtkSmartPointer<vtkImageStencilData> getStencilForVolume(EspinaVolume *);
     virtual void setSegmentationBounds(double *);
     virtual bool planeIsValid();
 
@@ -62,8 +66,10 @@ class PlanarSplitWidget
     PlanarSplitSliceWidget *m_axial;
     PlanarSplitSliceWidget *m_coronal;
     PlanarSplitSliceWidget *m_sagittal;
+    vtkImplicitPlaneWidget2 *m_volume;
     QList<vtkAbstractWidget*> m_widgets;
     WidgetType m_mainWidget;
+    vtkAlgorithmOutput *m_vtkVolumeInformation;
 };
 
 #endif /* PLANARSPLITWIDGET_H_ */

@@ -170,7 +170,7 @@ private:
   Nm m_center[3];
   unsigned int m_numEnabledRenders;
   ColorEngine *m_colorEngine;
-  QList<vtkAbstractWidget *> m_widgets;
+  QMap<EspinaWidget *, vtkAbstractWidget *> m_widgets;
 
   QList<Segmentation *> m_segmentations;
   QList<ModelItem*> m_addedItems;
