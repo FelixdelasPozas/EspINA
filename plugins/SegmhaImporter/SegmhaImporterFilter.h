@@ -84,6 +84,8 @@ public:
 
   static const ArgumentId FILE;
   static const ArgumentId BLOCKS;
+  static const ArgumentId SPACING; //Some segmha files have wrong
+                                   // spacing, we need to keep real one
 
   class Parameters
   {
@@ -98,13 +100,31 @@ public:
     {
       return m_args[BLOCKS].split(",");
     }
+
+    void setSpacing(EspinaVolume::SpacingType spacing)
+    {
+      m_args[SPACING] = QString("%1,%2,%3")
+                        .arg(spacing[0])
+                        .arg(spacing[1])
+                        .arg(spacing[2]);
+    }
+    EspinaVolume::SpacingType spacing()
+    {
+      EspinaVolume::SpacingType res;
+      QStringList values = m_args[SPACING].split(",");
+
+      for(int i=0; i<3; i++)
+        res[i] = values[i].toDouble();
+
+      return res;
+    }
   private:
     Arguments &m_args;
   };
 
 public:
   explicit SegmhaImporterFilter(NamedInputs inputs,
-				Arguments args);
+                                Arguments args);
   virtual ~SegmhaImporterFilter();
 
   // Implements Model Item Interface
