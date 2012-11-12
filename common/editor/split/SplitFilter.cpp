@@ -93,9 +93,10 @@ void SplitFilter::run()
   bool isEmpty1 = true;
   bool isEmpty2 = true;
 
+  m_stencil->PrintSelf(std::cout, vtkIndent(0));
   for(; !it.IsAtEnd(); ++it, ++ot1, ++ot2)
   {
-    EspinaVolume::IndexType index = it.GetIndex();
+    EspinaVolume::IndexType index = ot1.GetIndex();
     if (m_stencil->IsInside(index[0], index[1], index[2]))
     {
       ot1.Set(it.Value());

@@ -146,7 +146,8 @@ void PlanarSplitTool::splitSegmentation()
 
   vtkSmartPointer<vtkImplicitFunctionToImageStencil> plane2stencil = vtkSmartPointer<vtkImplicitFunctionToImageStencil>::New();
   plane2stencil->SetInput(m_widget->getImplicitPlane().GetPointer());
-  plane2stencil->SetOutputOrigin(origin[0], origin[1], origin[2]);
+  //plane2stencil->SetOutputOrigin(origin[0], origin[1], origin[2]);
+  plane2stencil->SetOutputOrigin(0, 0, 0);
   plane2stencil->SetOutputSpacing(spacing[0], spacing[1], spacing[2]);
   //plane2stencil->SetOutputWholeExtent(origin[0], origin[0]+size[0], origin[1], origin[1]+size[1], origin[2], origin[2]+size[2]);
   plane2stencil->SetOutputWholeExtent(segExtent);
