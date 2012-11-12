@@ -95,6 +95,13 @@ void PlanarSplitTool::setInUse(bool value)
     Segmentation *seg = selectedSegs.first();
     double bounds[6];
     VolumeBounds(seg->itkVolume(), bounds);
+    EspinaVolume::SpacingType spacing = seg->itkVolume()->GetSpacing();
+    bounds[0] -= 0.5*spacing[0];
+    bounds[1] += 0.5*spacing[0];
+    bounds[2] -= 0.5*spacing[1];
+    bounds[3] += 0.5*spacing[1];
+    bounds[4] -= 0.5*spacing[2];
+    bounds[5] += 0.5*spacing[2];
     static_cast<PlanarSplitWidget*>(m_widget)->setSegmentationBounds(bounds);
     m_viewManager->updateViews();
   }
