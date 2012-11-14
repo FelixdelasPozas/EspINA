@@ -84,6 +84,9 @@ protected:
   void createActivityMenu();
   void createDynamicMenu(MenuEntry entry);
   void createLODMenu();
+
+  void checkAutosave();
+
   virtual void closeEvent(QCloseEvent* );
 
   void loadPlugins();

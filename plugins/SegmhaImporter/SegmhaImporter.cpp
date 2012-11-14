@@ -162,6 +162,7 @@ bool SegmhaImporter::readFile(const QFileInfo file)
 
   m_undoStack->beginMacro("Import Segmha");
 
+  QApplication::setOverrideCursor(Qt::ArrowCursor);
   QFileDialog fileDialog;
   fileDialog.setObjectName("SelectChannelFile");
   fileDialog.setFileMode(QFileDialog::ExistingFiles);
@@ -169,7 +170,10 @@ bool SegmhaImporter::readFile(const QFileInfo file)
   fileDialog.setDirectory(file.dir());
   fileDialog.setFilter(CHANNEL_FILES);
 
-  if (fileDialog.exec() != QDialog::Accepted)
+  int res = fileDialog.exec();
+  QApplication::restoreOverrideCursor();
+
+  if (QDialog::Accepted != res)
     return false;
 
   Channel *channel;
