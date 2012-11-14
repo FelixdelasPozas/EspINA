@@ -159,6 +159,7 @@ void RectangularVOI::defineVOI(IPicker::PickList channels)
 
   m_widget = new RectangularRegion(bounds, m_viewManager);
   Q_ASSERT(m_widget);
+  m_widget->setResolution(spacing);
   m_viewManager->addWidget(m_widget);
   m_viewManager->showSliceSelectors(ViewManager::From|ViewManager::To);
   connect(m_viewManager, SIGNAL(sliceSelected(Nm,PlaneType,ViewManager::SliceSelectors)),
@@ -172,24 +173,22 @@ void RectangularVOI::setBorder(Nm pos, PlaneType plane, ViewManager::SliceSelect
   if (!m_widget)
     return;
 
+  double bounds[6];
+  m_widget->bounds(bounds);
+
   if (flags.testFlag(ViewManager::From))
   {
-    double bounds[6];
-    m_widget->bounds(bounds);
-    if (pos < bounds[2*plane+1])
-    {
-      bounds[2*plane] = pos;
-      m_widget->setBounds(bounds);
-    }
+    bounds[2*plane] = pos;
   }
-  if (flags.testFlag(ViewManager::To))
+  else if (flags.testFlag(ViewManager::To))
   {
-    double bounds[6];
-    m_widget->bounds(bounds);
-    if (bounds[2*plane] < pos)
-    {
       bounds[2*plane+1] = pos;
-      m_widget->setBounds(bounds);
-    }
   }
+  else
+    return;
+
+  if (bounds[2*plane] > bounds[2*plane+1])
+    std::swap(bounds[2*plane], bounds[2*plane+1]);
+
+  m_widget->setBounds(bounds);
 }

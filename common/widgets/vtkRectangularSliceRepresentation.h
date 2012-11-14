@@ -66,8 +66,8 @@ public:
 //   vtkSetMacro(Slice,int);
   virtual void SetPlane(PlaneType plane);
   virtual void SetSlice(Nm pos);
-  virtual void SetBounds(double bounds[6]);
-  virtual void GetBounds(double bounds[6]);
+  virtual void SetCuboidBounds(double bounds[6]);
+  virtual void GetCuboidBounds(double bounds[6]);
 
   // Description:
   // These are methods that satisfy vtkWidgetRepresentation's API.
@@ -134,10 +134,6 @@ protected:
 
   int hCoord() const {return SAGITTAL == Plane?2:0;}
   int vCoord() const {return CORONAL  == Plane?2:1;}
-  double leftEdge() {return Bounds[hCoord()*2];}
-  double topEdge() {return Bounds[vCoord()*2];}
-  double rightEdge() {return Bounds[hCoord()*2+1];}
-  double bottomEdge() {return Bounds[vCoord()*2+1];}
 
   // Helper methods to create face representations
   virtual void CreateRegion();
@@ -167,6 +163,11 @@ private:
   int NumVertex;
 
   double RepBounds[6];
+
+  double LeftEdge;
+  double TopEdge;
+  double RightEdge;
+  double BottomEdge;
 };
 
 #endif
