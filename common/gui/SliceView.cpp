@@ -683,9 +683,11 @@ void SliceView::resetCamera()
   m_state->updateCamera(m_renderer ->GetActiveCamera(), origin);
   m_state->updateCamera(m_thumbnail->GetActiveCamera(), origin);
 
-  m_renderer ->ResetCamera();
+  m_renderer->ResetCamera();
   m_thumbnail->ResetCamera();
+  updateThumbnail();
   m_sceneReady = !m_channelReps.isEmpty();
+
 }
 
 //-----------------------------------------------------------------------------

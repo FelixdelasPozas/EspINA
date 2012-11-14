@@ -23,6 +23,7 @@ include_directories(
 # Add Qt Resource files
 qt4_add_resources(RCC_BUILT_SOURCES
   toolbar/seedgrow/rsc/SeedGrowSegmentation.qrc
+  toolbar/zoom/rsc/zoom.qrc
   toolbar/voi/rsc/VolumeOfInterest.qrc
   rsc/espina.qrc
   )
@@ -58,6 +59,7 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
   toolbar/voi/RectangularVOI.h
   views/DefaultEspinaView.h
   views/SliceViewSettingsPanel.h
+  toolbar/zoom/ZoomToolBar.h
   )
 
 # Create Interface files
@@ -122,6 +124,7 @@ set (TOOLBAR_SOURCES
   toolbar/seedgrow/gui/ThresholdAction.cpp
   toolbar/voi/VolumeOfInterest.cpp
   toolbar/voi/RectangularVOI.cpp
+  toolbar/zoom/ZoomToolBar.cpp
   )
 
 set (VIEW_SOURCES

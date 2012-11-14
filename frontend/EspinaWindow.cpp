@@ -50,6 +50,7 @@
 #include "frontend/AboutDialog.h"
 #include "frontend/views/DefaultEspinaView.h"
 #include "frontend/ColorEngineMenu.h"
+#include "frontend/toolbar/zoom/ZoomToolBar.h"
 
 #ifdef TEST_ESPINA_MODELS
   #include "common/model/ModelTest.h"
@@ -201,6 +202,7 @@ EspinaWindow::EspinaWindow()
   addToolBar(new VolumeOfInterest(m_viewManager));
   addToolBar(new SeedGrowSegmentation(m_model, m_undoStack, m_viewManager));
   addToolBar(new EditorToolBar(m_model, m_undoStack, m_viewManager));
+  addToolBar(new ZoomToolBar(m_viewManager));
 
   ChannelExplorer *channelExplorer = new ChannelExplorer(m_model, m_viewManager, this);
   addDockWidget(Qt::LeftDockWidgetArea, channelExplorer);
