@@ -210,6 +210,10 @@ void VolumeView::setCameraFocus(const Nm center[3])
 //-----------------------------------------------------------------------------
 void VolumeView::resetCamera()
 {
+  this->m_renderer->GetActiveCamera()->SetViewUp(0,1,0);
+  this->m_renderer->GetActiveCamera()->SetPosition(0,0,1);
+  this->m_renderer->GetActiveCamera()->SetFocalPoint(0,0,0);
+  this->m_renderer->GetActiveCamera()->SetRoll(0);
   this->m_renderer->ResetCamera();
 }
 

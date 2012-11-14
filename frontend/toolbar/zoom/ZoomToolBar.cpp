@@ -37,6 +37,8 @@ ZoomToolBar::ZoomToolBar(ViewManager *vm, QWidget* parent)
 //----------------------------------------------------------------------------
 ZoomToolBar::~ZoomToolBar()
 {
+  delete m_resetViews;
+  delete m_zoomTool;
 }
 
 //----------------------------------------------------------------------------
