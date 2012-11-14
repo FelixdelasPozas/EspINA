@@ -54,6 +54,10 @@ public:
   virtual void setBounds(Nm bounds[6]);
   virtual void bounds(Nm bounds[6]);
 
+  void setResolution(Nm resolution[3]);
+  void resolution(Nm resolution[3]) const
+  { memcpy(resolution, m_resolution, 3*sizeof(Nm));}
+
   virtual void Execute(vtkObject* caller, long unsigned int eventId, void* callData);
 
 signals:
@@ -62,6 +66,7 @@ signals:
 private:
   ViewManager *m_viewManager;
   double m_bounds[6];
+  Nm m_resolution[3];
   QList<vtkRectangularSliceWidget *> m_widgets;
 };
 

@@ -54,6 +54,7 @@ RectangularRegion::RectangularRegion(double bounds[6], ViewManager *vm)
 : m_viewManager(vm)
 {
   memcpy(m_bounds, bounds, 6*sizeof(double));
+  m_resolution[0] = m_resolution[1] = m_resolution[2] = 1;
 }
 
 //----------------------------------------------------------------------------
@@ -139,6 +140,16 @@ void RectangularRegion::bounds(Nm bounds[6])
 
   widget->GetBounds(bounds);
 }
+//----------------------------------------------------------------------------
+void RectangularRegion::setResolution(Nm resolution[3])
+{
+  memcpy(m_resolution, resolution, 3*sizeof(Nm));
+  for(int i = 0; i < 6; i++)
+    m_bounds[i] = int(m_bounds[i]/m_resolution[i/2])*m_resolution[i/2];
+
+  foreach(vtkRectangularSliceWidget *w, m_widgets)
+    w->SetBounds(m_bounds);
+}
 
 //----------------------------------------------------------------------------
 void RectangularRegion::Execute(vtkObject* caller, long unsigned int eventId, void* callData)
@@ -148,10 +159,13 @@ void RectangularRegion::Execute(vtkObject* caller, long unsigned int eventId, vo
   if (widget)
   {
     widget->GetBounds(m_bounds);
+    for(int i = 0; i < 6; i++)
+    {
+      m_bounds[i] = int(m_bounds[i]/m_resolution[i/2])*m_resolution[i/2];
+    }
 
     foreach(vtkRectangularSliceWidget *w, m_widgets)
-      if (w != widget)
-        w->SetBounds(m_bounds);
+      w->SetBounds(m_bounds);
   }
   emit modified(m_bounds);
   if (m_viewManager)
