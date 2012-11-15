@@ -73,6 +73,32 @@ void ViewManager::registerView(SliceView* view)
   m_sliceViews << view;
 }
 
+//----------------------------------------------------------------------------
+void ViewManager::unregisterView(IEspinaView* view)
+{
+  Q_ASSERT(m_espinaViews.contains(view));
+  m_espinaViews.removeAll(view);
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::unregisterView(EspinaRenderView* view)
+{
+  Q_ASSERT(m_renderViews.contains(view));
+  m_renderViews.removeAll(view);
+  Q_ASSERT(m_espinaViews.contains(view));
+  m_espinaViews.removeAll(view);
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::unregisterView(SliceView* view)
+{
+  Q_ASSERT(m_renderViews.contains(view));
+  m_renderViews.removeAll(view);
+  Q_ASSERT(m_espinaViews.contains(view));
+  m_espinaViews.removeAll(view);
+  Q_ASSERT(m_sliceViews.contains(view));
+  m_sliceViews.removeAll(view);
+}
 
 //----------------------------------------------------------------------------
 void ViewManager::setSelectionEnabled(bool enable)

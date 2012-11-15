@@ -496,6 +496,7 @@ void SliceView::setupUI()
 //-----------------------------------------------------------------------------
 SliceView::~SliceView()
 {
+  m_viewManager->unregisterView(this);
   delete m_state;
 }
 

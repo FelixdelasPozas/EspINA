@@ -65,6 +65,10 @@ public:
   void registerView(EspinaRenderView *view);
   void registerView(SliceView *view);
 
+  void unregisterView(IEspinaView *view);
+  void unregisterView(EspinaRenderView *view);
+  void unregisterView(SliceView *view);
+
 private:
   QList<IEspinaView *>      m_espinaViews;
   QList<EspinaRenderView *> m_renderViews;

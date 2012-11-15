@@ -77,7 +77,7 @@ public:
   explicit VolumeView(const EspinaFactory *factory,
                       ViewManager* vm,
                       QWidget* parent = 0);
-  virtual ~VolumeView(){}
+  virtual ~VolumeView();
 
   void centerViewOn(Nm *center, bool);
   void setCameraFocus(const Nm center[3]);

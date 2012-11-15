@@ -88,6 +88,13 @@ VolumeView::VolumeView(const EspinaFactory *factory,
 }
 
 //-----------------------------------------------------------------------------
+VolumeView::~VolumeView()
+{
+  m_viewManager->unregisterView(this);
+}
+
+
+//-----------------------------------------------------------------------------
 void VolumeView::addRendererControls(Renderer* renderer)
 {
   QPushButton *button;
