@@ -20,6 +20,7 @@
 #include "RectangularVOI.h"
 #include "common/model/Channel.h"
 #include <gui/ViewManager.h>
+#include <widgets/RectangularRegionSliceSelector.h>
 
 #include <QPixmap>
 #include <boost/concept_check.hpp>
@@ -30,6 +31,7 @@ RectangularVOI::RectangularVOI(ViewManager *vm)
 , m_inUse(false)
 , m_enabled(true)
 , m_widget (NULL)
+, m_sliceSelector(NULL)
 {
   m_picker.setCursor(QCursor(QPixmap(":roi_go.svg").scaled(32,32)));
   m_picker.setMultiSelection(false);
@@ -89,9 +91,9 @@ void RectangularVOI::setInUse(bool value)
   {
     if (m_widget)
     {
-      m_viewManager->hideSliceSelectors(ViewManager::From|ViewManager::To);
-      disconnect(m_viewManager, SIGNAL(sliceSelected(Nm,PlaneType,ViewManager::SliceSelectors)),
-                 this, SLOT(setBorder(Nm,PlaneType,ViewManager::SliceSelectors)));
+      m_viewManager->removeSliceSelectors(m_sliceSelector);
+      delete m_sliceSelector;
+      m_sliceSelector = NULL;
 
       m_viewManager->removeWidget(m_widget);
       delete m_widget;
@@ -161,34 +163,35 @@ void RectangularVOI::defineVOI(IPicker::PickList channels)
   Q_ASSERT(m_widget);
   m_widget->setResolution(spacing);
   m_viewManager->addWidget(m_widget);
-  m_viewManager->showSliceSelectors(ViewManager::From|ViewManager::To);
-  connect(m_viewManager, SIGNAL(sliceSelected(Nm,PlaneType,ViewManager::SliceSelectors)),
-          this, SLOT(setBorder(Nm,PlaneType,ViewManager::SliceSelectors)));
+  m_sliceSelector = new RectangularRegionSliceSelector(m_widget);
+  m_sliceSelector->setLeftLabel ("VOI");
+  m_sliceSelector->setRightLabel("VOI");
+  m_viewManager->addSliceSelectors(m_sliceSelector, ViewManager::From|ViewManager::To);
   m_viewManager->updateViews();
 }
 
-//-----------------------------------------------------------------------------
-void RectangularVOI::setBorder(Nm pos, PlaneType plane, ViewManager::SliceSelectors flags)
-{
-  if (!m_widget)
-    return;
-
-  double bounds[6];
-  m_widget->bounds(bounds);
-
-  if (flags.testFlag(ViewManager::From))
-  {
-    bounds[2*plane] = pos;
-  }
-  else if (flags.testFlag(ViewManager::To))
-  {
-      bounds[2*plane+1] = pos;
-  }
-  else
-    return;
-
-  if (bounds[2*plane] > bounds[2*plane+1])
-    std::swap(bounds[2*plane], bounds[2*plane+1]);
-
-  m_widget->setBounds(bounds);
-}
+// //-----------------------------------------------------------------------------
+// void RectangularVOI::setBorder(Nm pos, PlaneType plane, ViewManager::SliceSelectors flags)
+// {
+//   if (!m_widget)
+//     return;
+// 
+//   double bounds[6];
+//   m_widget->bounds(bounds);
+// 
+//   if (flags.testFlag(ViewManager::From))
+//   {
+//     bounds[2*plane] = pos;
+//   }
+//   else if (flags.testFlag(ViewManager::To))
+//   {
+//       bounds[2*plane+1] = pos;
+//   }
+//   else
+//     return;
+// 
+//   if (bounds[2*plane] > bounds[2*plane+1])
+//     std::swap(bounds[2*plane], bounds[2*plane+1]);
+// 
+//   m_widget->setBounds(bounds);
+// }

@@ -55,6 +55,7 @@ qt4_wrap_cpp(CORE_MOC
   gui/ViewManager.h
   editor/ContourWidget.h
   widgets/RectangularRegion.h
+  widgets/RectangularRegionSliceSelector.h
   editor/ContourSourceInspector.h
   )
 
@@ -132,6 +133,7 @@ set (CORE_SOURCES
   undo/AddSample.cpp
   undo/AddSegmentation.cpp
   undo/RemoveSegmentation.cpp
+  widgets/RectangularRegionSliceSelector.cpp
   widgets/vtkRectangularSliceRepresentation.cpp
   widgets/vtkRectangularSliceWidget.cpp
   widgets/EspinaInteractorAdapter.cpp

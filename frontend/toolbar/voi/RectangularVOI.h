@@ -26,6 +26,7 @@
 #include "common/tools/PixelSelector.h"
 #include "common/widgets/RectangularRegion.h"
 
+class RectangularRegionSliceSelector;
 class RectangularVOI
 : public IVOI
 {
@@ -44,7 +45,6 @@ public:
 
 private slots:
   void defineVOI(IPicker::PickList channels);
-  void setBorder(Nm pos, PlaneType plane, ViewManager::SliceSelectors flags);
 
 signals:
   void voiDeactivated();
@@ -58,6 +58,7 @@ private:
   PixelSelector      m_picker;
   RectangularRegion *m_widget;
   double             m_bounds[6];
+  RectangularRegionSliceSelector *m_sliceSelector;
 };
 
 #endif // RECTANGULARVOI_H

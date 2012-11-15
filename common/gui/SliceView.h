@@ -85,6 +85,8 @@ public:
   /// Set the distance between two consecutive slices when
   /// displacement is set to SLICES
   void setSlicingStep(Nm steps[3]);
+  Nm slicingPosition() const;
+
   void centerViewOn(Nm center[3], bool force = false);
   void setCrosshairColors(double hcolor[3], double vcolor[3]);
   void setThumbnailVisibility(bool visible);
@@ -134,10 +136,11 @@ public slots:
   void setShowPreprocessing(bool visible);
   /// Show/Hide the ruler
   void setRulerVisibility(bool visible);
-  /// Show Slice Selectors
-  void showSliceSelectors(ViewManager::SliceSelectors selectors);
-  /// Hide Slice Selectors
-  void hideSliceSelectors(ViewManager::SliceSelectors selectors);
+  /// Set Slice Selection flags to all registered Slice Views
+  void addSliceSelectors(SliceSelectorWidget *widget,
+                         ViewManager::SliceSelectors selectors);
+  /// Unset Slice Selection flags to all registered Slice Views
+  void removeSliceSelectors(SliceSelectorWidget *widget);
 
   /// Update Selected Items
   virtual void updateSelection(ViewManager::Selection selection);
@@ -157,7 +160,6 @@ signals:
 
   void channelSelected(Channel *);
   void segmentationSelected(Segmentation *, bool);
-  void sliceSelected(Nm, PlaneType, ViewManager::SliceSelectors);
   void sliceChanged(PlaneType, Nm);
 
 protected:
@@ -177,7 +179,6 @@ protected:
   QList<Segmentation *> pickSegmentations(double vx, double vy, vtkRenderer *renderer, bool repeatable = true);
   void selectPickedItems(bool append);
 
-  Nm slicingPosition() const;
 
   /// Convenience function to get vtkProp3D's channel
   Channel *property3DChannel(vtkProp3D *prop);
@@ -222,11 +223,11 @@ private:
   QLabel      *m_title;
   QVBoxLayout *m_mainLayout;
   QHBoxLayout *m_controlLayout;
+  QHBoxLayout *m_fromLayout;
+  QHBoxLayout *m_toLayout;
   QVTKWidget  *m_view;
   QScrollBar  *m_scrollBar;
-  QPushButton *m_fromSlice;
   QSpinBox    *m_spinBox;
-  QPushButton *m_toSlice;
 
   // VTK View
   vtkRenderWindow                *m_renderWindow;
@@ -250,8 +251,7 @@ private:
   SettingsPtr m_settings;
 
   // Slice Selectors
-  unsigned int m_fromCount;
-  unsigned int m_toCount;
+  QPair<SliceSelectorWidget *, SliceSelectorWidget *> m_sliceSelector;
 
   // Crosshairs
   vtkSmartPointer<vtkPolyData> m_HCrossLineData, m_VCrossLineData;

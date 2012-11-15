@@ -29,6 +29,7 @@
 #include "common/gui/VolumeView.h"
 #include "common/gui/ViewManager.h"
 #include "common/gui/vtkInteractorStyleEspinaSlice.h"
+#include "SliceSelectorWidget.h"
 #include "common/settings/ISettingsPanel.h"
 #include "common/settings/EspinaSettings.h"
 
@@ -107,19 +108,18 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
 , m_title(new QLabel("Sagital"))
 , m_mainLayout(new QVBoxLayout())
 , m_controlLayout(new QHBoxLayout())
+, m_fromLayout(new QHBoxLayout())
+, m_toLayout(new QHBoxLayout())
 , m_view(new QVTKWidget())
 , m_scrollBar(new QScrollBar(Qt::Horizontal))
-, m_fromSlice(new QPushButton(QIcon(":/from_slice.svg"),""))
 , m_spinBox(new QSpinBox())
-, m_toSlice(new QPushButton(QIcon(":/to_slice.svg"),""))
 , m_ruler(vtkSmartPointer<vtkAxisActor2D>::New())
 , m_plane(plane)
 , m_selectionEnabled(true)
 , m_showSegmentations(true)
 , m_showThumbnail(true)
 , m_settings(new Settings(m_plane))
-, m_fromCount(0)
-, m_toCount(0)
+, m_sliceSelector(QPair<SliceSelectorWidget*,SliceSelectorWidget*>(NULL, NULL))
 , m_inThumbnail(false)
 , m_sceneReady(false)
 , m_highlighter(new TransparencySelectionHighlighter())
@@ -127,15 +127,6 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
   memset(m_crosshairPoint, 0, 3*sizeof(Nm));
 
   setupUI();
-  m_fromSlice->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-  m_fromSlice->setMinimumSize(22,22);
-  m_fromSlice->setMaximumSize(22,22);
-  m_fromSlice->setIconSize(QSize(18,18));
-
-  m_toSlice->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-  m_toSlice->setMinimumSize(22,22);
-  m_toSlice->setMaximumSize(22,22);
-  m_toSlice->setIconSize(QSize(18,18));
 
   // Color background
   QPalette pal = this->palette();
@@ -482,25 +473,12 @@ void SliceView::setupUI()
   m_scrollBar->setMaximum(0);
   m_scrollBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
-  m_fromSlice->setFlat(true);
-  m_fromSlice->setVisible(false);
-  m_fromSlice->setEnabled(false);
-  m_fromSlice->setMaximumHeight(20);
-  m_fromSlice->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-  connect(m_fromSlice, SIGNAL(clicked(bool)), this, SLOT(selectFromSlice()));
-
   m_spinBox->setMaximum(0);
   m_spinBox->setMinimumWidth(40);
   m_spinBox->setMaximumHeight(20);
   m_spinBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
   m_spinBox->setAlignment(Qt::AlignRight);
 
-  m_toSlice->setFlat(true);
-  m_toSlice->setVisible(false);
-  m_toSlice->setEnabled(false);
-  m_toSlice->setMaximumHeight(20);
-  m_toSlice->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-  connect(m_toSlice,   SIGNAL(clicked(bool)),     this,        SLOT(selectToSlice()));
   connect(m_scrollBar, SIGNAL(valueChanged(int)), m_spinBox,   SLOT(setValue(int)));
   connect(m_scrollBar, SIGNAL(valueChanged(int)), this,        SLOT(scrollValueChanged(int)));
   connect(m_spinBox,   SIGNAL(valueChanged(int)), m_scrollBar, SLOT(setValue(int)));
@@ -508,9 +486,9 @@ void SliceView::setupUI()
   //   connect(SelectionManager::instance(),SIGNAL(VOIChanged(IVOI*)),this,SLOT(setVOI(IVOI*)));
   m_mainLayout->addWidget(m_view);
   m_controlLayout->addWidget(m_scrollBar);
-  m_controlLayout->addWidget(m_fromSlice);
+  m_controlLayout->addLayout(m_fromLayout);
   m_controlLayout->addWidget(m_spinBox);
-  m_controlLayout->addWidget(m_toSlice);
+  m_controlLayout->addLayout(m_toLayout);
 
   m_mainLayout->addLayout(m_controlLayout);
 }
@@ -1034,15 +1012,15 @@ void SliceView::scrollValueChanged(int value/*nm*/)
 //-----------------------------------------------------------------------------
 void SliceView::selectFromSlice()
 {
-  m_fromSlice->setToolTip(tr("From Slice %1").arg(m_spinBox->value()));
-  emit sliceSelected(slicingPosition(), m_plane, ViewManager::From);
+//   m_fromSlice->setToolTip(tr("From Slice %1").arg(m_spinBox->value()));
+//   emit sliceSelected(slicingPosition(), m_plane, ViewManager::From);
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::selectToSlice()
 {
-  m_toSlice->setToolTip(tr("To Slice %1").arg(m_spinBox->value()));
-  emit sliceSelected(slicingPosition(), m_plane, ViewManager::To);
+//   m_toSlice->setToolTip(tr("To Slice %1").arg(m_spinBox->value()));
+//   emit sliceSelected(slicingPosition(), m_plane, ViewManager::To);
 }
 
 //-----------------------------------------------------------------------------
@@ -1325,12 +1303,6 @@ void SliceView::updateWidgetVisibility()
 }
 
 //-----------------------------------------------------------------------------
-Nm SliceView::slicingPosition() const
-{
-  return m_slicingStep[m_plane]*m_spinBox->value();
-}
-
-//-----------------------------------------------------------------------------
 Channel* SliceView::property3DChannel(vtkProp3D* prop)
 {
   foreach(Channel *channel, m_channelReps.keys())
@@ -1409,34 +1381,46 @@ void SliceView::setRulerVisibility(bool visible)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::showSliceSelectors(ViewManager::SliceSelectors selectors)
+void SliceView::addSliceSelectors(SliceSelectorWidget* widget,
+                                  ViewManager::SliceSelectors selectors)
 {
-  if (selectors.testFlag(ViewManager::From))
+  if (m_sliceSelector.first != widget)
   {
-    m_fromCount++;
-    m_fromSlice->setVisible(true);
+    if (m_sliceSelector.second)
+      delete m_sliceSelector.second;
+
+    m_sliceSelector.first  = widget;
+    m_sliceSelector.second = widget->clone();
   }
-  if (selectors.testFlag(ViewManager::To))
-  {
-    m_toCount++;
-    m_toSlice->setVisible(true);
-  }
+
+  SliceSelectorWidget *sliceSelector = m_sliceSelector.second;
+
+  sliceSelector->setPlane(m_plane);
+  sliceSelector->setView (this);
+
+  QWidget *fromWidget = sliceSelector->leftWidget();
+  QWidget *toWidget   = sliceSelector->rightWidget();
+
+  bool showFrom = selectors.testFlag(ViewManager::From);
+  bool showTo   = selectors.testFlag(ViewManager::To  );
+
+  fromWidget->setVisible(showFrom);
+  toWidget  ->setVisible(showTo  );
+
+  m_fromLayout->addWidget (fromWidget );
+  m_toLayout->insertWidget(0, toWidget);
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::hideSliceSelectors(ViewManager::SliceSelectors selectors)
+void SliceView::removeSliceSelectors(SliceSelectorWidget* widget)
 {
-  if (m_fromCount && selectors.testFlag(ViewManager::From))
+  if (m_sliceSelector.first == widget)
   {
-    m_fromCount--;
-    if (0 == m_fromCount)
-      m_fromSlice->setVisible(false);
-  }
-  if (m_toCount && selectors.testFlag(ViewManager::To))
-  {
-    m_toCount--;
-    if (0 == m_toCount)
-      m_toSlice->setVisible(false);
+    if (m_sliceSelector.second)
+      delete m_sliceSelector.second;
+
+    m_sliceSelector.first  = NULL;
+    m_sliceSelector.second = NULL;
   }
 }
 
@@ -1470,6 +1454,13 @@ void SliceView::setSlicingStep(Nm steps[3])
 }
 
 //-----------------------------------------------------------------------------
+Nm SliceView::slicingPosition() const
+{
+  return m_slicingStep[m_plane]*m_spinBox->value();
+}
+
+
+//-----------------------------------------------------------------------------
 void SliceView::setSlicingBounds(Nm bounds[6])
 {
   if (bounds[1] < bounds[0] || bounds[3] < bounds[2] || bounds[5] < bounds[4])
@@ -1487,8 +1478,8 @@ void SliceView::setSlicingBounds(Nm bounds[6])
   m_spinBox->setMaximum(static_cast<int>(max));
 
   bool enabled = m_spinBox->minimum() < m_spinBox->maximum();
-  m_fromSlice->setEnabled(enabled);
-  m_toSlice->setEnabled(enabled);
+  //TODO 2012-11-14 m_fromSlice->setEnabled(enabled);
+  //                m_toSlice->setEnabled(enabled);
 
   // update crosshair
   m_state->setCrossHairs(m_HCrossLineData, m_VCrossLineData,

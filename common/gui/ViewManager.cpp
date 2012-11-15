@@ -71,8 +71,6 @@ void ViewManager::registerView(SliceView* view)
   m_espinaViews << view;
   Q_ASSERT(!m_sliceViews.contains(view));
   m_sliceViews << view;
-  connect(view, SIGNAL(sliceSelected(Nm,PlaneType,ViewManager::SliceSelectors)),
-          this, SIGNAL(sliceSelected(Nm,PlaneType,ViewManager::SliceSelectors)));
 }
 
 
@@ -209,13 +207,6 @@ void ViewManager::updateViews()
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::selectSlice(Nm pos, PlaneType plane, SliceSelectors flags )
-{
-  emit sliceSelected(pos, plane, flags);
-}
-
-
-//----------------------------------------------------------------------------
 void ViewManager::setActiveChannel(Channel* channel)
 {
   m_activeChannel = channel;
@@ -266,17 +257,18 @@ void ViewManager::showCrosshair(bool value)
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::showSliceSelectors(ViewManager::SliceSelectors selectors)
+void ViewManager::addSliceSelectors(SliceSelectorWidget* widget,
+                                    ViewManager::SliceSelectors selectors)
 {
   foreach(SliceView *view, m_sliceViews)
-    view->showSliceSelectors(selectors);
+    view->addSliceSelectors(widget, selectors);
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::hideSliceSelectors(ViewManager::SliceSelectors selectors)
+void ViewManager::removeSliceSelectors(SliceSelectorWidget* widget)
 {
   foreach(SliceView *view, m_sliceViews)
-    view->hideSliceSelectors(selectors);
+    view->removeSliceSelectors(widget);
 }
 
 
