@@ -88,7 +88,7 @@ public:
 
 
 //BTX - used to manage the state of the widget
-  enum {Outside=0,
+  enum {Outside=0, Inside,
     MoveLeft, MoveRight, MoveTop, MoveBottom, Translating
   };
 
@@ -118,6 +118,7 @@ protected:
   vtkPoints	    *Vertex;
 
   void HighlightEdge(vtkActor *actor);
+  void Highlight();
 
   // Do the picking
   vtkCellPicker *EdgePicker;
@@ -147,6 +148,7 @@ protected:
   void MoveRightEdge(double *p1, double *p2);
   void MoveTopEdge(double *p1, double *p2);
   void MoveBottomEdge(double *p1, double *p2);
+  void Translate(double *p1, double *p2);
 
   PlaneType Plane;
   Nm Slice;

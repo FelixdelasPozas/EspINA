@@ -175,6 +175,10 @@ void vtkRectangularSliceRepresentation::WidgetInteraction(double e[2])
   {
     this->MoveBottomEdge(prevPickPoint,pickPoint);
   }
+  else if ( this->InteractionState == vtkRectangularSliceRepresentation::Translating )
+  {
+    this->Translate(prevPickPoint,pickPoint);
+  }
 
   // Store the start position
   this->LastEventPosition[0] = e[0];
@@ -211,6 +215,21 @@ void vtkRectangularSliceRepresentation::MoveBottomEdge(double* p1, double* p2)
   BottomEdge  += shift;
   UpdateRegion();
 }
+
+//----------------------------------------------------------------------------
+void vtkRectangularSliceRepresentation::Translate(double* p1, double* p2)
+{
+  double hShift = p2[hCoord()] - p1[hCoord()];
+  double vShift = p2[vCoord()] - p1[vCoord()];
+
+  LeftEdge   += hShift;
+  RightEdge  += hShift;
+  TopEdge    += vShift;
+  BottomEdge += vShift;
+
+  UpdateRegion();
+}
+
 
 //----------------------------------------------------------------------------
 void vtkRectangularSliceRepresentation::CreateDefaultProperties()
@@ -476,7 +495,13 @@ int vtkRectangularSliceRepresentation::ComputeInteractionState(int X, int Y, int
   }
   else
   {
-    this->InteractionState = vtkRectangularSliceRepresentation::Outside;
+    double pickPoint[3];
+    vtkInteractorObserver::ComputeDisplayToWorld(this->Renderer, X, Y, 0, pickPoint);
+    if ((LeftEdge < pickPoint[hCoord()] && pickPoint[hCoord()] < RightEdge)
+     && (TopEdge  < pickPoint[vCoord()] && pickPoint[vCoord()] < BottomEdge))
+      this->InteractionState = vtkRectangularSliceRepresentation::Inside;
+    else
+      this->InteractionState = vtkRectangularSliceRepresentation::Outside;
   }
   return this->InteractionState;
 }
@@ -498,7 +523,7 @@ void vtkRectangularSliceRepresentation::SetInteractionState(int state)
       this->HighlightEdge(this->CurrentEdge);
       break;
     case vtkRectangularSliceRepresentation::Translating:
-      this->HighlightEdge(this->CurrentEdge);
+      this->Highlight();
       break;
     default:
       this->HighlightEdge(NULL);
@@ -578,6 +603,13 @@ void vtkRectangularSliceRepresentation::HighlightEdge(vtkActor* actor)
     else
       this->EdgeActor[edge]->SetProperty(this->EdgeProperty);
   }
+}
+
+//----------------------------------------------------------------------------
+void vtkRectangularSliceRepresentation::Highlight()
+{
+  for (EDGE edge=LEFT; edge <= BOTTOM; edge = EDGE(edge+1))
+    this->EdgeActor[edge]->SetProperty(this->SelectedEdgeProperty);
 }
 
 //----------------------------------------------------------------------------

@@ -1113,6 +1113,7 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
 
   if ( QEvent::MouseMove == e->type()
     || QEvent::MouseButtonPress == e->type()
+    || QEvent::MouseButtonRelease == e->type()
     || QEvent::KeyPress == e->type()
     || QEvent::KeyRelease == e->type())
   {

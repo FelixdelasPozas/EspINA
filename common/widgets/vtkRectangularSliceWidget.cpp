@@ -60,26 +60,6 @@ vtkRectangularSliceWidget::vtkRectangularSliceWidget()
   this->CallbackMapper->SetCallbackMethod(vtkCommand::MiddleButtonReleaseEvent,
                                           vtkWidgetEvent::EndTranslate,
                                           this, vtkRectangularSliceWidget::EndSelectAction);
-  this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
-                                          vtkEvent::ControlModifier,
-                                          0, 0, NULL,
-                                          vtkWidgetEvent::Translate,
-                                          this, vtkRectangularSliceWidget::TranslateAction);
-  this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonReleaseEvent,
-                                            vtkEvent::ControlModifier,
-                                            0, 0, NULL,
-                                          vtkWidgetEvent::EndTranslate,
-                                          this, vtkRectangularSliceWidget::EndSelectAction);
-  this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonPressEvent,
-                                          vtkEvent::ShiftModifier,
-                                          0, 0, NULL,
-                                          vtkWidgetEvent::Translate,
-                                          this, vtkRectangularSliceWidget::TranslateAction);
-  this->CallbackMapper->SetCallbackMethod(vtkCommand::LeftButtonReleaseEvent,
-                                            vtkEvent::ShiftModifier,
-                                            0, 0, NULL,
-                                          vtkWidgetEvent::EndTranslate,
-                                          this, vtkRectangularSliceWidget::EndSelectAction);
   this->CallbackMapper->SetCallbackMethod(vtkCommand::RightButtonReleaseEvent,
                                           vtkWidgetEvent::EndScale,
                                           this, vtkRectangularSliceWidget::EndSelectAction);
@@ -119,7 +99,7 @@ void vtkRectangularSliceWidget::SelectAction(vtkAbstractWidget *w)
   e[1] = static_cast<double>(Y);
   self->WidgetRep->StartWidgetInteraction(e);
   int interactionState = self->WidgetRep->GetInteractionState();
-  if ( interactionState == vtkRectangularSliceRepresentation::Outside )
+  if ( interactionState <= vtkRectangularSliceRepresentation::Inside )
     {
     return;
     }
@@ -163,18 +143,18 @@ void vtkRectangularSliceWidget::TranslateAction(vtkAbstractWidget *w)
   e[0] = static_cast<double>(X);
   e[1] = static_cast<double>(Y);
   self->WidgetRep->StartWidgetInteraction(e);
+  // Translate only if we are inside the representation
   int interactionState = self->WidgetRep->GetInteractionState();
-  if ( interactionState == vtkRectangularSliceRepresentation::Outside )
-    {
+  if ( interactionState != vtkRectangularSliceRepresentation::Inside )
     return;
-    }
-  
+
   // We are definitely selected
   self->WidgetState = vtkRectangularSliceWidget::Active;
   self->GrabFocus(self->EventCallbackCommand);
   reinterpret_cast<vtkRectangularSliceRepresentation*>(self->WidgetRep)->
     SetInteractionState(vtkRectangularSliceRepresentation::Translating);
-  
+  self->SetCursor(vtkRectangularSliceRepresentation::Translating);
+
   // start the interaction
   self->EventCallbackCommand->SetAbortFlag(1);
   self->StartInteraction();
@@ -197,7 +177,8 @@ void vtkRectangularSliceWidget::MoveAction(vtkAbstractWidget *w)
     self->WidgetRep->ComputeInteractionState(X, Y);
     int stateAfter = self->WidgetRep->GetInteractionState();
     self->SetCursor(stateAfter);
-    if (stateAfter != vtkRectangularSliceRepresentation::Outside)
+    if (vtkRectangularSliceRepresentation::Inside < stateAfter
+     || stateAfter == vtkRectangularSliceRepresentation::Translating)
       self->EventCallbackCommand->SetAbortFlag(1);
     return;
   }
@@ -254,11 +235,11 @@ void vtkRectangularSliceWidget::EndSelectAction(vtkAbstractWidget *w)
     SetInteractionState(vtkRectangularSliceRepresentation::Outside);
   self->ReleaseFocus();
 
-  self->EventCallbackCommand->SetAbortFlag(1);
+  self->EventCallbackCommand->SetAbortFlag(0);
   self->EndInteraction();
   self->InvokeEvent(vtkCommand::EndInteractionEvent,NULL);
   self->Render();
-  self->SetCursor(9999);
+  //self->SetCursor(9999);
 }
 
 //----------------------------------------------------------------------
