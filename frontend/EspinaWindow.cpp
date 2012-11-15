@@ -75,7 +75,7 @@ EspinaWindow::EspinaWindow()
 , m_view(NULL)
 {
 #ifdef TEST_ESPINA_MODELS
-  m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model.data()));
+  m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model));
 #endif
 
   m_dynamicMenuRoot = new DynamicMenuNode();
