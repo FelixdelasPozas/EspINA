@@ -65,6 +65,8 @@ protected slots:
   void updateSelection(ViewManager::Selection selection);
   void updateSelection(QItemSelection selected, QItemSelection deselected);
 
+  void releaseInspectorResources(SegmentationInspector *inspector);
+
   virtual ISettingsPanel* settingsPanel();
   virtual void updateSegmentationRepresentations();
   virtual void updateSelection();

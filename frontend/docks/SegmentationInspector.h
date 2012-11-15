@@ -52,6 +52,7 @@ public slots:
 
 signals:
   void inspectorClosed(SegmentationInspector *);
+
 protected:
   virtual void closeEvent(QCloseEvent *e);
 

@@ -449,6 +449,8 @@ void SegmentationExplorer::showInformation()
       if (!inspector)
       {
         inspector = new SegmentationInspector(seg, m_baseModel, m_undoStack, m_viewManager);
+        connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)),
+                this, SLOT(releaseInspectorResources(SegmentationInspector*)));
         m_inspectors[seg] = inspector;
       }
       inspector->show();
@@ -534,6 +536,21 @@ void SegmentationExplorer::updateSelection(QItemSelection selected, QItemSelecti
   }
 
   m_viewManager->setSelection(selection);
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::releaseInspectorResources(SegmentationInspector* inspector)
+{
+  foreach(Segmentation *seg, m_inspectors.keys())
+  {
+    if (m_inspectors[seg] == inspector)
+    {
+      m_inspectors.remove(seg);
+      delete inspector;
+
+      return;
+    }
+  }
 }
 
 //------------------------------------------------------------------------
