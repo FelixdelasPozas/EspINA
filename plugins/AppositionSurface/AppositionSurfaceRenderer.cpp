@@ -17,9 +17,9 @@
 */
 
 
-#include "AppositionPlaneRenderer.h"
+#include "AppositionSurfaceRenderer.h"
 
-#include "AppositionPlaneExtension.h"
+#include "AppositionSurfaceExtension.h"
 
 #include <common/model/Segmentation.h>
 
@@ -40,13 +40,13 @@ typedef vtkSmartPointer<vtkWindowedSincPolyDataFilter> Smoother;
 typedef vtkSmartPointer<vtkPolyDataNormals> Normals;
 typedef vtkSmartPointer<vtkPolyDataMapper> PolyDataMapper;
 
-struct AppositionPlaneRenderer::State
+struct AppositionSurfaceRenderer::State
 {
   vtkActor *actor;
   bool      visible;
 };
 
-struct AppositionPlaneRenderer::Representation
+struct AppositionSurfaceRenderer::Representation
 {
   DecimatePro    decimate;
   Smoother       smoother;
@@ -55,10 +55,10 @@ struct AppositionPlaneRenderer::Representation
   itk::TimeStamp timeStamp;
 };
 
-QMap<ModelItem *, AppositionPlaneRenderer::Representation *> AppositionPlaneRenderer::m_representations;
+QMap<ModelItem *, AppositionSurfaceRenderer::Representation *> AppositionSurfaceRenderer::m_representations;
 
 //-----------------------------------------------------------------------------
-bool AppositionPlaneRenderer::addItem(ModelItem* item)
+bool AppositionSurfaceRenderer::addItem(ModelItem* item)
 {
   if (ModelItem::SEGMENTATION != item->type())
     return false;
@@ -69,8 +69,8 @@ bool AppositionPlaneRenderer::addItem(ModelItem* item)
   if (!m_representations.contains(item))
   {
     Segmentation *seg = dynamic_cast<Segmentation *>(item);
-    ModelItemExtension       *mie = seg->extension(AppositionPlaneExtension::ID);
-    AppositionPlaneExtension *ape = dynamic_cast<AppositionPlaneExtension*>(mie);
+    ModelItemExtension       *mie = seg->extension(AppositionSurfaceExtension::ID);
+    AppositionSurfaceExtension *ape = dynamic_cast<AppositionSurfaceExtension*>(mie);
 
     rep = new Representation();
     rep->decimate = DecimatePro::New();
@@ -79,7 +79,7 @@ bool AppositionPlaneRenderer::addItem(ModelItem* item)
     rep->decimate->SetTargetReduction(0.95);
     rep->decimate->PreserveTopologyOn();
     rep->decimate->SplittingOff();
-    rep->decimate->SetInputConnection(ape->appositionPlane()->GetProducerPort());
+    rep->decimate->SetInputConnection(ape->appositionSurface()->GetProducerPort());
 
     rep->smoother = Smoother::New();
     rep->smoother->ReleaseDataFlagOn();
@@ -125,7 +125,7 @@ bool AppositionPlaneRenderer::addItem(ModelItem* item)
 }
 
 //-----------------------------------------------------------------------------
-bool AppositionPlaneRenderer::updateItem(ModelItem* item)
+bool AppositionSurfaceRenderer::updateItem(ModelItem* item)
 {
   if (ModelItem::SEGMENTATION != item->type())
     return false;
@@ -144,9 +144,9 @@ bool AppositionPlaneRenderer::updateItem(ModelItem* item)
       Representation *rep = m_representations[item];
       if (rep->timeStamp != seg->itkVolume()->GetTimeStamp())
       {
-        ModelItemExtension       *mie = seg->extension(AppositionPlaneExtension::ID);
-        AppositionPlaneExtension *ape = dynamic_cast<AppositionPlaneExtension*>(mie);
-        ape->updateAppositionPlane();
+        ModelItemExtension       *mie = seg->extension(AppositionSurfaceExtension::ID);
+        AppositionSurfaceExtension *ape = dynamic_cast<AppositionSurfaceExtension*>(mie);
+        ape->updateAppositionSurface();
 
         rep->timeStamp = seg->itkVolume()->GetTimeStamp();
       }
@@ -166,7 +166,7 @@ bool AppositionPlaneRenderer::updateItem(ModelItem* item)
 }
 
 //-----------------------------------------------------------------------------
-bool AppositionPlaneRenderer::removeItem(ModelItem* item)
+bool AppositionSurfaceRenderer::removeItem(ModelItem* item)
 {
   if (ModelItem::SEGMENTATION != item->type())
     return false;
@@ -189,7 +189,7 @@ bool AppositionPlaneRenderer::removeItem(ModelItem* item)
 }
 
 //-----------------------------------------------------------------------------
-void AppositionPlaneRenderer::hide()
+void AppositionSurfaceRenderer::hide()
 {
   if (!this->m_enable)
     return;
@@ -208,7 +208,7 @@ void AppositionPlaneRenderer::hide()
 }
 
 //-----------------------------------------------------------------------------
-void AppositionPlaneRenderer::show()
+void AppositionSurfaceRenderer::show()
 {
   if (this->m_enable)
     return;
@@ -225,9 +225,9 @@ void AppositionPlaneRenderer::show()
       Segmentation *seg = dynamic_cast<Segmentation *>(item);
       if (rep->timeStamp != seg->itkVolume()->GetTimeStamp())
       {
-	ModelItemExtension       *mie = item->extension(AppositionPlaneExtension::ID);
-	AppositionPlaneExtension *ape = dynamic_cast<AppositionPlaneExtension*>(mie);
-	ape->updateAppositionPlane();
+	ModelItemExtension       *mie = item->extension(AppositionSurfaceExtension::ID);
+	AppositionSurfaceExtension *ape = dynamic_cast<AppositionSurfaceExtension*>(mie);
+	ape->updateAppositionSurface();
 	
 	rep->timeStamp = seg->itkVolume()->GetTimeStamp();
       }
@@ -241,8 +241,8 @@ void AppositionPlaneRenderer::show()
 }
 
 //-----------------------------------------------------------------------------
-Renderer* AppositionPlaneRenderer::clone()
+Renderer* AppositionSurfaceRenderer::clone()
 {
-  return new AppositionPlaneRenderer();
+  return new AppositionSurfaceRenderer();
 }
 

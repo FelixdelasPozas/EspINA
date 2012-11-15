@@ -26,21 +26,21 @@
 
 class ModelItem;
 
-class AppositionPlaneRenderer 
+class AppositionSurfaceRenderer
 : public Renderer
 {
   struct Representation;
   struct State;
 
 public:
-  virtual ~AppositionPlaneRenderer(){}
+  virtual ~AppositionSurfaceRenderer(){}
 
   virtual const QIcon icon() const
-  { return QIcon(":/AppPlane.svg"); }
+  { return QIcon(":/AppSurface.svg"); }
   virtual const QString name() const
-  { return tr("Apposition Plane");}
+  { return tr("Apposition Surface");}
   virtual const QString tooltip() const
-  { return tr("Segmentation's Apposition Plane");}
+  { return tr("Segmentation's Apposition Surface");}
 
   virtual bool addItem(ModelItem* item);
   virtual bool updateItem(ModelItem* item);

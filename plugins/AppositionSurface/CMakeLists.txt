@@ -26,17 +26,17 @@ include_directories (
   ${CMAKE_CURRENT_SOURCE_DIR} 
 )
 qt4_add_resources (RCC_BUILT_SOURCES 
-  rsc/AppositionPlane.qrc
+  rsc/AppositionSurface.qrc
   )
 
 QT4_WRAP_CPP(MOC_SOURCES
-  AppositionPlane.h
+  AppositionSurface.h
 )
 
 set (PLUGIN_SOURCES 
-  AppositionPlane.cpp
-  AppositionPlaneExtension.cpp
-  AppositionPlaneRenderer.cpp
+  AppositionSurface.cpp
+  AppositionSurfaceExtension.cpp
+  AppositionSurfaceRenderer.cpp
   ${MOC_SOURCES}
   ${RCC_BUILT_SOURCES}
 )
@@ -45,10 +45,10 @@ set (PLUGIN_LIBRARIES
   EspinaCore
   )
 
-add_library(AppositionPlanePlugin SHARED ${PLUGIN_SOURCES})
-target_link_libraries(AppositionPlanePlugin ${PLUGIN_LIBRARIES})
+add_library(AppositionSurfacePlugin SHARED ${PLUGIN_SOURCES})
+target_link_libraries(AppositionSurfacePlugin ${PLUGIN_LIBRARIES})
 
 if( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
-  set_target_properties(AppositionPlanePlugin PROPERTIES COMPILE_FLAGS "-fPIC")
+  set_target_properties(AppositionSurfacePlugin PROPERTIES COMPILE_FLAGS "-fPIC")
 endif( CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64" )
 #add_subdirectory(tests)
