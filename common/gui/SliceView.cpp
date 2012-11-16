@@ -48,6 +48,7 @@
 #include <QVector3D>
 #include <QWheelEvent>
 #include <QMenu>
+#include <QToolButton>
 
 #include <boost/concept_check.hpp>
 
@@ -113,6 +114,7 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
 , m_view(new QVTKWidget())
 , m_scrollBar(new QScrollBar(Qt::Horizontal))
 , m_spinBox(new QSpinBox())
+, m_zoomButton(new QToolButton())
 , m_ruler(vtkSmartPointer<vtkAxisActor2D>::New())
 , m_plane(plane)
 , m_selectionEnabled(true)
@@ -470,6 +472,12 @@ void SliceView::buildTitle()
 void SliceView::setupUI()
 {
   m_view->installEventFilter(this);
+  QAction *zoomAction = new QAction(QIcon(":zoom_reset.png"), tr("Reset view's camera"), this);
+  zoomAction->setStatusTip(tr("Reset view's camera"));
+  zoomAction->setCheckable(false);
+  connect(zoomAction, SIGNAL(triggered()), this, SLOT(resetView()));
+  m_zoomButton->setDefaultAction(zoomAction);
+
   m_scrollBar->setMaximum(0);
   m_scrollBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 
@@ -485,6 +493,7 @@ void SliceView::setupUI()
 
   //   connect(SelectionManager::instance(),SIGNAL(VOIChanged(IVOI*)),this,SLOT(setVOI(IVOI*)));
   m_mainLayout->addWidget(m_view);
+  m_controlLayout->addWidget(m_zoomButton);
   m_controlLayout->addWidget(m_scrollBar);
   m_controlLayout->addLayout(m_fromLayout);
   m_controlLayout->addWidget(m_spinBox);
@@ -1659,3 +1668,9 @@ void SliceView::UpdateCrosshairPoint(PlaneType plane, Nm slicepos)
     updateView();
 }
 
+//-----------------------------------------------------------------------------
+void SliceView::resetView()
+{
+  resetCamera();
+  updateView();
+}

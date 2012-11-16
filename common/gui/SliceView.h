@@ -50,6 +50,7 @@ class vtkInteractorStyleEspinaSlice;
 class vtkRenderWindow;
 class vtkView;
 class QVTKWidget;
+class QToolButton;
 
 // GUI
 class QLabel;
@@ -151,6 +152,7 @@ protected slots:
   void scrollValueChanged(int value);
   void selectFromSlice();
   void selectToSlice();
+  void resetView();
 
   void updateWidgetVisibility();
 
@@ -228,6 +230,7 @@ private:
   QVTKWidget  *m_view;
   QScrollBar  *m_scrollBar;
   QSpinBox    *m_spinBox;
+  QToolButton *m_zoomButton;
 
   // VTK View
   vtkRenderWindow                *m_renderWindow;
