@@ -89,6 +89,7 @@ public:
   Nm slicingPosition() const;
 
   void centerViewOn(Nm center[3], bool force = false);
+  void centerViewOnPosition(Nm center[3]); // this does not change slice positions
   void setCrosshairColors(double hcolor[3], double vcolor[3]);
   void setThumbnailVisibility(bool visible);
 

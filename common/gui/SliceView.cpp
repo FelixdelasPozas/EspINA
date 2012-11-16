@@ -1160,6 +1160,7 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
         {
           centerViewOnMousePosition();
           updateThumbnail();
+          return true;
         }
         else if (m_selectionEnabled)
           selectPickedItems(me->modifiers() == Qt::SHIFT);
@@ -1203,7 +1204,7 @@ void SliceView::centerViewOnMousePosition()
   {
     double center[3];  //World coordinates
     m_channelPicker->GetPickPosition(center);
-    centerViewOn(center, true);
+    centerViewOnPosition(center);
   }
 }
 
@@ -1561,6 +1562,19 @@ void SliceView::centerViewOn(Nm center[3], bool force)
     m_renderer->ResetCameraClippingRange();
   }
 
+  updateView();
+}
+
+//-----------------------------------------------------------------------------
+void SliceView::centerViewOnPosition(Nm center[3])
+{
+  if (!isVisible() || (m_crosshairPoint[0] == center[0] &&
+     m_crosshairPoint[1] == center[1] &&
+     m_crosshairPoint[2] == center[2]))
+    return;
+
+  m_state->updateCamera(m_renderer->GetActiveCamera(), center);
+  m_renderer->ResetCameraClippingRange();
   updateView();
 }
 
