@@ -22,14 +22,20 @@
 #include "common/model/EspinaModel.h"
 #include "common/model/Taxonomy.h"
 #include "frontend/toolbar/voi/Settings.h"
+#include <QMessageBox>
 
 //------------------------------------------------------------------------
 RectangularVOI::SettingsPanel::SettingsPanel(EspinaModel *model,
                                              RectangularVOI::Settings* settings)
 : m_model(model)
 , m_settings(settings)
+, m_activeTaxonomy(NULL)
 {
   setupUi(this);
+
+  m_xSize->setValue(m_settings->xSize());
+  m_ySize->setValue(m_settings->ySize());
+  m_zSize->setValue(m_settings->zSize());
 
   m_taxonomySelector->setModel(m_model);
 
@@ -37,10 +43,6 @@ RectangularVOI::SettingsPanel::SettingsPanel(EspinaModel *model,
           this, SLOT(updateTaxonomyVOI(QModelIndex)));
 
   m_taxonomySelector->setRootModelIndex(m_model->taxonomyRoot());
-
-  m_xSize->setValue(m_settings->xSize());
-  m_ySize->setValue(m_settings->ySize());
-  m_zSize->setValue(m_settings->zSize());
 }
 
 //------------------------------------------------------------------------
@@ -55,21 +57,7 @@ void RectangularVOI::SettingsPanel::acceptChanges()
   m_settings->setYSize(m_ySize->value());
   m_settings->setZSize(m_zSize->value());
 
-  QModelIndex index = m_taxonomySelector->currentModelIndex();
-
-  if (!index.isValid())
-    return;
-
-  ModelItem *item = indexPtr(index);
-  if (ModelItem::TAXONOMY != item->type())
-    return;
-
-  TaxonomyElement *elem = dynamic_cast<TaxonomyElement *>(item);
-  Q_ASSERT(elem);
-
-  elem->addProperty(TaxonomyElement::X_DIM, m_xTaxSize->value());
-  elem->addProperty(TaxonomyElement::Y_DIM, m_yTaxSize->value());
-  elem->addProperty(TaxonomyElement::Z_DIM, m_zTaxSize->value());
+  writeTaxonomyProperties();
 }
 
 //------------------------------------------------------------------------
@@ -77,13 +65,40 @@ bool RectangularVOI::SettingsPanel::modified() const
 {
   return m_xSize->value() != m_settings->xSize()
       || m_ySize->value() != m_settings->ySize()
-      || m_zSize->value() != m_settings->zSize();
+      || m_zSize->value() != m_settings->zSize()
+      || taxonomyVOIModified();
 }
 
 //------------------------------------------------------------------------
 ISettingsPanel* RectangularVOI::SettingsPanel::clone()
 {
   return new SettingsPanel(m_model, m_settings);
+}
+
+//------------------------------------------------------------------------
+bool RectangularVOI::SettingsPanel::taxonomyVOIModified() const
+{
+  QVariant xOldSize = m_activeTaxonomy->property(TaxonomyElement::X_DIM);
+  QVariant yOldSize = m_activeTaxonomy->property(TaxonomyElement::Y_DIM);
+  QVariant zOldSize = m_activeTaxonomy->property(TaxonomyElement::Z_DIM);
+
+  bool modified = false;
+  modified = modified || xOldSize.toInt() != m_xTaxSize->value();
+  modified = modified || yOldSize.toInt() != m_yTaxSize->value();
+  modified = modified || zOldSize.toInt() != m_zTaxSize->value();
+
+  return modified;
+}
+
+//------------------------------------------------------------------------
+void RectangularVOI::SettingsPanel::writeTaxonomyProperties()
+{
+  if (m_activeTaxonomy)
+  {
+    m_activeTaxonomy->addProperty(TaxonomyElement::X_DIM, m_xTaxSize->value());
+    m_activeTaxonomy->addProperty(TaxonomyElement::Y_DIM, m_yTaxSize->value());
+    m_activeTaxonomy->addProperty(TaxonomyElement::Z_DIM, m_zTaxSize->value());
+  }
 }
 
 //------------------------------------------------------------------------
@@ -99,19 +114,31 @@ void RectangularVOI::SettingsPanel::updateTaxonomyVOI(const QModelIndex& index)
   TaxonomyElement *elem = dynamic_cast<TaxonomyElement *>(item);
   Q_ASSERT(elem);
 
+  if (m_activeTaxonomy && m_activeTaxonomy != elem)
+  {
+    // Check for changes
+    if (taxonomyVOIModified())
+    {
+      QMessageBox msg;
+      msg.setText(tr("Taxonomy properties have changed. Do you want to save them"));
+      msg.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
+      if (msg.exec() == QMessageBox::Yes)
+        writeTaxonomyProperties();
+    }
+  }
+
+  m_activeTaxonomy = elem;
+
   QVariant xSize = elem->property(TaxonomyElement::X_DIM);
   QVariant ySize = elem->property(TaxonomyElement::Y_DIM);
   QVariant zSize = elem->property(TaxonomyElement::Z_DIM);
 
   if (!xSize.isValid() || !ySize.isValid() || !zSize.isValid())
   {
-    qDebug() << "Invalid Property";
     xSize = m_xSize->value();
     ySize = m_ySize->value();
     zSize = m_zSize->value();
   }
-  else
-    qDebug() << "Valid Property" << xSize << ySize << zSize;
 
   m_xTaxSize->setValue(xSize.toInt());
   m_yTaxSize->setValue(ySize.toInt());

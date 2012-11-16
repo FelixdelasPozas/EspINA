@@ -47,12 +47,17 @@ public:
 
   virtual ISettingsPanel* clone();
 
+private:
+  bool taxonomyVOIModified() const;
+  void writeTaxonomyProperties();
+
 private slots:
   void updateTaxonomyVOI(const QModelIndex &index);
 
 private:
   EspinaModel *m_model;
   RectangularVOI::Settings *m_settings;
+  TaxonomyElement *m_activeTaxonomy;
 };
 
 #endif // SETTINGSPANEL_H
