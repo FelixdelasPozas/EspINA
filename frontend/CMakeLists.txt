@@ -125,6 +125,11 @@ set (TOOLBAR_SOURCES
   toolbar/voi/VolumeOfInterest.cpp
   toolbar/voi/RectangularVOI.cpp
   toolbar/zoom/ZoomToolBar.cpp
+  toolbar/zoom/ZoomTool.cpp
+  toolbar/zoom/ZoomSelectionWidget.cpp
+  toolbar/zoom/ZoomSelectionSliceWidget.cpp
+  toolbar/zoom/vtkZoomSelectionWidget.cpp
+  toolbar/zoom/vtkZoomSelectionWidgetRepresentation.cpp
   )
 
 set (VIEW_SOURCES

@@ -12,6 +12,8 @@
 
 class ViewManager;
 class QAction;
+class ITool;
+class ZoomTool;
 
 class ZoomToolBar
 : public QToolBar
@@ -25,12 +27,13 @@ class ZoomToolBar
 
   public slots:
     virtual void ResetViews();
-    virtual void InitZoomTool();
+    virtual void InitZoomTool(bool);
 
   private:
     ViewManager *m_viewManager;
     QAction     *m_resetViews;
-    QAction     *m_zoomTool;
+    QAction     *m_zoomToolAction;
+    ZoomTool    *m_zoomTool;
 };
 
 #endif /* ZOOMTOOLBAR_H_ */

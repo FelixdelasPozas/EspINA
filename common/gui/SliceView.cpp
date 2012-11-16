@@ -647,9 +647,9 @@ void SliceView::updateView()
 {
   if (isVisible())
   {
-//     qDebug() << "Rendering View" << m_plane;
     updateRuler();
     updateWidgetVisibility();
+    updateThumbnail();
     m_view->GetRenderWindow()->Render();
     m_view->update();
   }
@@ -663,10 +663,15 @@ void SliceView::resetCamera()
   m_state->updateCamera(m_thumbnail->GetActiveCamera(), origin);
 
   m_renderer->ResetCamera();
-  m_thumbnail->ResetCamera();
-  updateThumbnail();
-  m_sceneReady = !m_channelReps.isEmpty();
 
+  m_thumbnail->RemoveActor(m_channelBorder);
+  m_thumbnail->RemoveActor(this->m_viewportBorder);
+  this->updateThumbnail();
+  m_thumbnail->ResetCamera();
+  m_thumbnail->AddActor(m_channelBorder);
+  m_thumbnail->AddActor(this->m_viewportBorder);
+
+  m_sceneReady = !m_channelReps.isEmpty();
 }
 
 //-----------------------------------------------------------------------------
@@ -913,14 +918,12 @@ void SliceView::addPreview(vtkProp3D *preview)
 {
   m_renderer->AddActor(preview);
   m_state->updateActor(preview);
-  //m_thumbnail->AddActor(actor);
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::removePreview(vtkProp3D *preview)
 {
   m_renderer->RemoveActor(preview);
-  //m_thumbnail->RemoveActor(actor);
 }
 
 //-----------------------------------------------------------------------------
@@ -954,6 +957,14 @@ void SliceView::addActor(vtkProp* actor)
 {
   m_renderer->AddActor(actor);
   m_thumbnail->AddActor(actor);
+
+  m_thumbnail->RemoveActor(m_channelBorder);
+  m_thumbnail->RemoveActor(this->m_viewportBorder);
+  this->updateThumbnail();
+  m_thumbnail->ResetCamera();
+  this->updateThumbnail();
+  m_thumbnail->AddActor(m_channelBorder);
+  m_thumbnail->AddActor(this->m_viewportBorder);
 }
 
 //-----------------------------------------------------------------------------
@@ -961,6 +972,7 @@ void SliceView::removeActor(vtkProp* actor)
 {
   m_renderer->RemoveActor(actor);
   m_thumbnail->RemoveActor(actor);
+  this->updateThumbnail();
 }
 
 //-----------------------------------------------------------------------------
@@ -1136,7 +1148,10 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
         centerCrosshairOnMousePosition();
       else
         if (m_inThumbnail)
+        {
           centerViewOnMousePosition();
+          updateThumbnail();
+        }
         else if (m_selectionEnabled)
           selectPickedItems(me->modifiers() == Qt::SHIFT);
     }
@@ -1479,7 +1494,7 @@ void SliceView::setSlicingBounds(Nm bounds[6])
   m_spinBox->setMinimum(static_cast<int>(min));
   m_spinBox->setMaximum(static_cast<int>(max));
 
-  bool enabled = m_spinBox->minimum() < m_spinBox->maximum();
+  //bool enabled = m_spinBox->minimum() < m_spinBox->maximum();
   //TODO 2012-11-14 m_fromSlice->setEnabled(enabled);
   //                m_toSlice->setEnabled(enabled);
 
