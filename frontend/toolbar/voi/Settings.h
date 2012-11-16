@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,17 +17,16 @@
 */
 
 
-#ifndef SEEDGROWSEGMENTATION_SETTINGS_H
-#define SEEDGROWSEGMENTATION_SETTINGS_H
+#ifndef VOLUMEOFINTEREST_SETTINGS_H
+#define VOLUMEOFINTEREST_SETTINGS_H
 
-#include "SeedGrowSegmentation.h"
+#include "RectangularVOI.h"
 
-class BestPixelSelector;
 
-class SeedGrowSegmentation::Settings
+class RectangularVOI::Settings
 {
 public:
-  explicit Settings(BestPixelSelector *selector);
+  explicit Settings();
   ~Settings(){}
 
   void setXSize(int value);
@@ -39,19 +38,8 @@ public:
   void setZSize(int value);
   int zSize() const {return m_zSize;}
 
-  void setTaxonomicalVOI(bool value);
-  bool taxonomicalVOI() const { return m_taxonomicalVOI; }
-
-  void setBestPixelValue(int value);
-  int bestPixelValue() const;
-
-  void setClosing(int value);
-  int closing() const {return m_closing;}
-
 private:
-  BestPixelSelector *m_selector;
-  int m_xSize, m_ySize, m_zSize, m_closing;
-  bool m_taxonomicalVOI;
+  int m_xSize, m_ySize, m_zSize;
 };
 
-#endif // SEEDGROWSEGMENTATION_SETTINGS_H
+#endif // VOLUMEOFINTEREST_SETTINGS_H

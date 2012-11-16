@@ -267,6 +267,9 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
   double spacing[3];
   channel->spacing(spacing);
 
+  TaxonomyElement *tax = m_viewManager->activeTaxonomy();
+  Q_ASSERT(tax);
+
   Nm voiBounds[6];
   IVOI::Region currentVOI = m_viewManager->voiRegion();
   if (currentVOI)
@@ -275,12 +278,40 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
   }
   else if (m_defaultVOI->useDefaultVOI())
   {
-    voiBounds[0] = seed[0]*spacing[0] - m_settings->xSize();
-    voiBounds[1] = seed[0]*spacing[0] + m_settings->xSize();
-    voiBounds[2] = seed[1]*spacing[1] - m_settings->ySize();
-    voiBounds[3] = seed[1]*spacing[1] + m_settings->ySize();
-    voiBounds[4] = seed[2]*spacing[2] - m_settings->zSize();
-    voiBounds[5] = seed[2]*spacing[2] + m_settings->zSize();
+    voiBounds[0] = seed[0]*spacing[0];
+    voiBounds[1] = seed[0]*spacing[0];
+    voiBounds[2] = seed[1]*spacing[1];
+    voiBounds[3] = seed[1]*spacing[1];
+    voiBounds[4] = seed[2]*spacing[2];
+    voiBounds[5] = seed[2]*spacing[2];
+
+    QVariant xTaxSize = tax->property(TaxonomyElement::X_DIM);
+    QVariant yTaxSize = tax->property(TaxonomyElement::Y_DIM);
+    QVariant zTaxSize = tax->property(TaxonomyElement::Z_DIM);
+
+    Nm xSize, ySize, zSize;
+
+    if (m_settings->taxonomicalVOI() && xTaxSize.isValid()
+     && yTaxSize.isValid() && zTaxSize.isValid())
+    {
+      xSize = xTaxSize.toDouble();
+      ySize = yTaxSize.toDouble();
+      zSize = zTaxSize.toDouble();
+    }
+    else
+    {
+      xSize = m_settings->xSize();
+      ySize = m_settings->ySize();
+      zSize = m_settings->zSize();
+    }
+
+    voiBounds[0] -= xSize;
+    voiBounds[1] += xSize;
+    voiBounds[2] -= ySize;
+    voiBounds[3] += ySize;
+    voiBounds[4] -= zSize;
+    voiBounds[5] += zSize;
+
   } else
   {
     channel->bounds(voiBounds);
@@ -320,9 +351,6 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
     filter->update();
     Q_ASSERT(filter->numberOutputs() == 1);
 
-    TaxonomyElement *tax = m_viewManager->activeTaxonomy();
-    Q_ASSERT(tax);
-
     Segmentation *seg = m_model->factory()->createSegmentation(filter, 0);
 
     double segBounds[6];
@@ -341,7 +369,7 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
       warning.setText(tr("New segmentation may be incomplete due to VOI restriction."));
       warning.exec();
       QString condition = tr("Touch VOI");
-      seg->addCondition(SGS_VOI, ":roi.svg", condition);
+      seg->addCondition(SGS_VOI, ":voi.svg", condition);
     }
 
     m_undoStack->push(new CreateSegmentation(channel, filter, seg, tax, m_model));

@@ -23,11 +23,12 @@
 #include <common/tools/PixelSelector.h>
 #include <settings/EspinaSettings.h>
 
-const QString BEST_PIXEL("SeedGrowSegmentation::BestPixelValue");
-const QString DEFAULT_VOI_X("SeedGrowSegmentation::DafaultVOI::X");
-const QString DEFAULT_VOI_Y("SeedGrowSegmentation::DafaultVOI::Y");
-const QString DEFAULT_VOI_Z("SeedGrowSegmentation::DafaultVOI::Z");
-const QString CLOSING("SeedGrowSegmentation::Closing");
+const QString BEST_PIXEL     ("SeedGrowSegmentation::BestPixelValue");
+const QString DEFAULT_VOI_X  ("SeedGrowSegmentation::DafaultVOI::X");
+const QString DEFAULT_VOI_Y  ("SeedGrowSegmentation::DafaultVOI::Y");
+const QString DEFAULT_VOI_Z  ("SeedGrowSegmentation::DafaultVOI::Z");
+const QString TAXONOMICAL_VOI("SeedGrowSegmentation::DafaultVOI::USE_TAXONOMY_SIZE");
+const QString CLOSING        ("SeedGrowSegmentation::Closing");
 
 
 //------------------------------------------------------------------------
@@ -40,6 +41,7 @@ SeedGrowSegmentation::Settings::Settings(BestPixelSelector *selector)
   m_xSize   = settings.value(DEFAULT_VOI_X, 250).toInt();
   m_ySize   = settings.value(DEFAULT_VOI_Y, 250).toInt();
   m_zSize   = settings.value(DEFAULT_VOI_Z, 250).toInt();
+  m_taxonomicalVOI = settings.value(TAXONOMICAL_VOI, true).toBool();
   m_closing = settings.value(CLOSING, 0).toInt();
 }
 
@@ -68,6 +70,15 @@ void SeedGrowSegmentation::Settings::setZSize(int value)
 
   settings.setValue(DEFAULT_VOI_Z, value);
   m_zSize = value;
+}
+
+//------------------------------------------------------------------------
+void SeedGrowSegmentation::Settings::setTaxonomicalVOI(bool value)
+{
+  QSettings settings(CESVIMA, ESPINA);
+
+  settings.setValue(TAXONOMICAL_VOI, value);
+  m_taxonomicalVOI = value;
 }
 
 //------------------------------------------------------------------------

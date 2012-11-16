@@ -206,7 +206,7 @@ void SeedGrowSegmentationFilter::FilterInspector::modifyFilter()
     warning.setText(tr("New segmentation may be incomplete due to VOI restriction."));
     warning.exec();
     QString condition = tr("Touch VOI");
-    //seg->addCondition(SGS_VOI, ":roi.svg", condition);
+    //seg->addCondition(SGS_VOI, ":voi.svg", condition);
   }
 
   m_viewManager->updateViews();

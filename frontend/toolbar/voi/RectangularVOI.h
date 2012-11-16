@@ -26,13 +26,18 @@
 #include "common/tools/PixelSelector.h"
 #include "common/widgets/RectangularRegion.h"
 
+class EspinaModel;
 class RectangularRegionSliceSelector;
 class RectangularVOI
 : public IVOI
 {
+  class Settings;
+  class SettingsPanel;
+
   Q_OBJECT
 public:
-  explicit RectangularVOI(ViewManager *vm);
+  explicit RectangularVOI(EspinaModel *model,
+                          ViewManager *viewManager);
   virtual ~RectangularVOI();
 
   virtual QCursor cursor() const;
@@ -50,6 +55,7 @@ signals:
   void voiDeactivated();
 
 private:
+  EspinaModel *m_model;
   ViewManager *m_viewManager;
 
   bool m_inUse;
@@ -59,6 +65,9 @@ private:
   RectangularRegion *m_widget;
   double             m_bounds[6];
   RectangularRegionSliceSelector *m_sliceSelector;
+
+  Settings      *m_settings;
+  SettingsPanel *m_settingsPanel;
 };
 
 #endif // RECTANGULARVOI_H

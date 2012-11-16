@@ -24,15 +24,17 @@
 #include "common/gui/ActionSelector.h"
 #include "common/gui/ViewManager.h"
 #include "common/tools/PickableItem.h"
-
 // Qt
 #include <QDebug>
 
 //-----------------------------------------------------------------------------
-VolumeOfInterest::VolumeOfInterest(ViewManager *vm, QWidget *parent)
-: QToolBar   (parent)
-, m_viewManager(vm)
-, m_voiSelector(new ActionSelector(this))
+VolumeOfInterest::VolumeOfInterest(EspinaModel* model,
+                                   ViewManager* viewManager,
+                                   QWidget* parent)
+: QToolBar       (parent)
+, m_model        (model)
+, m_viewManager  (viewManager)
+, m_voiSelector  (new ActionSelector(this))
 {
   setObjectName ("VolumeOfInterest");
   setWindowTitle("Volume Of Interest");
@@ -45,6 +47,7 @@ VolumeOfInterest::VolumeOfInterest(ViewManager *vm, QWidget *parent)
           this, SLOT(changeVOI(QAction*)));
   connect(m_voiSelector, SIGNAL(actionCanceled()),
           this, SLOT(cancelVOI()));
+
 }
 
 //-----------------------------------------------------------------------------
@@ -59,10 +62,10 @@ void VolumeOfInterest::buildVOIs()
   QAction *action;
 
   // Exact Pixel Selector
-  action = new QAction(QIcon(":roi.svg"), tr("Volume Of Interest"), m_voiSelector);
+  action = new QAction(QIcon(":voi.svg"), tr("Volume Of Interest"), m_voiSelector);
 
   m_voiSelector->addAction(action);
-  RectangularVOI *voi = new RectangularVOI(m_viewManager);
+  RectangularVOI *voi = new RectangularVOI(m_model, m_viewManager);
   m_vois[action] = voi;
   connect(voi, SIGNAL(voiDeactivated()),
           this, SLOT(cancelVOI()));

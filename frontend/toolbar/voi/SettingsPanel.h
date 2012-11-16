@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
+    Copyright (C) 2012  <copyright holder> <email>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,41 +17,42 @@
 */
 
 
-#ifndef SEEDGROWSEGMENTATIONPREFERENCES_H
-#define SEEDGROWSEGMENTATIONPREFERENCES_H
+#ifndef SETTINGSPANEL_H
+#define SETTINGSPANEL_H
 
-#include <common/settings/ISettingsPanel.h>
-#include "ui_SettingsPanel.h"
+#include "RectangularVOI.h"
+#include "common/settings/ISettingsPanel.h"
+#include "ui_RectangularVOISettings.h"
 
-#include "SeedGrowSegmentation.h"
-
-class SeedGrowSegmentation::SettingsPanel
+class RectangularVOI::SettingsPanel
 : public ISettingsPanel
-, public Ui::SettingsPanel
+, public Ui::RectangularVOISettings
 {
   Q_OBJECT
 public:
-  explicit SettingsPanel(SeedGrowSegmentation::Settings *settings);
-  virtual ~SettingsPanel(){}
+  explicit SettingsPanel(EspinaModel *model,
+                         RectangularVOI::Settings *settings);
+  virtual ~SettingsPanel();
 
   virtual const QString shortDescription()
-  { return tr("Seed Grow Segmentation"); }
+  { return tr("Cuboid VOI"); }
   virtual const QString longDescription()
-  { return tr("Seed Grow Segmentation Settings"); }
+  { return tr("Cuboid Volume Of Interest Settings"); }
   virtual const QIcon icon()
-  { return QIcon(":/bestPixelSelector.svg"); }
+  { return QIcon(":/voi.svg"); }
 
   virtual void acceptChanges();
 
   virtual bool modified() const;
 
-  virtual ISettingsPanel *clone();
+  virtual ISettingsPanel* clone();
 
-public slots:
-  void displayColor(int value);
+private slots:
+  void updateTaxonomyVOI(const QModelIndex &index);
 
 private:
-  SeedGrowSegmentation::Settings *m_settings;
+  EspinaModel *m_model;
+  RectangularVOI::Settings *m_settings;
 };
 
-#endif // SEEDGROWSEGMENTATIONPREFERENCES_H
+#endif // SETTINGSPANEL_H

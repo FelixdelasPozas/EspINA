@@ -57,6 +57,7 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
   toolbar/editor/SettingsPanel.h
   toolbar/voi/VolumeOfInterest.h
   toolbar/voi/RectangularVOI.h
+  toolbar/voi/SettingsPanel.h
   views/DefaultEspinaView.h
   views/SliceViewSettingsPanel.h
   toolbar/zoom/ZoomToolBar.h
@@ -73,6 +74,7 @@ qt4_wrap_ui (UI_BUILT_SOURCES
   docks/TaxonomyExplorer.ui
   toolbar/seedgrow/FilterInspector.ui
   toolbar/seedgrow/SettingsPanel.ui
+  toolbar/voi/RectangularVOISettings.ui
   toolbar/editor/EditorToolBarSettingsPanel.ui
   views/SliceViewSettingsPanel.ui
   views/VolumeViewSettingsPanel.ui
@@ -122,8 +124,10 @@ set (TOOLBAR_SOURCES
   toolbar/seedgrow/FilterInspector.cpp
   toolbar/seedgrow/gui/DefaultVOIAction.cpp
   toolbar/seedgrow/gui/ThresholdAction.cpp
-  toolbar/voi/VolumeOfInterest.cpp
   toolbar/voi/RectangularVOI.cpp
+  toolbar/voi/Settings.cpp
+  toolbar/voi/SettingsPanel.cpp
+  toolbar/voi/VolumeOfInterest.cpp
   toolbar/zoom/ZoomToolBar.cpp
   toolbar/zoom/ZoomTool.cpp
   toolbar/zoom/ZoomSelectionWidget.cpp

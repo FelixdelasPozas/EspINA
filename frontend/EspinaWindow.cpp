@@ -199,7 +199,7 @@ EspinaWindow::EspinaWindow()
   m_mainToolBar = new MainToolBar(m_model, m_undoStack, m_viewManager);
 //   m_mainToolBar->setMovable(false);
   addToolBar(m_mainToolBar);
-  addToolBar(new VolumeOfInterest(m_viewManager));
+  addToolBar(new VolumeOfInterest(m_model, m_viewManager));
   addToolBar(new SeedGrowSegmentation(m_model, m_undoStack, m_viewManager));
   addToolBar(new EditorToolBar(m_model, m_undoStack, m_viewManager));
   addToolBar(new ZoomToolBar(m_viewManager));

@@ -21,6 +21,10 @@
   assert(x)
 */
 
+const QString TaxonomyElement::X_DIM = "Dim_X";
+const QString TaxonomyElement::Y_DIM = "Dim_Y";
+const QString TaxonomyElement::Z_DIM = "Dim_Z";
+
 //------------------------------------------------------------------------
 TaxonomyElement::TaxonomyElement(const QString name, const QString RGBColor)
 : m_parent(NULL)

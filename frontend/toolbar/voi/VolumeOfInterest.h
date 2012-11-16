@@ -26,6 +26,7 @@
 
 #include <QMap>
 
+class EspinaModel;
 class ActionSelector;
 class IVOI;
 class ViewManager;
@@ -37,7 +38,9 @@ class VolumeOfInterest
 {
   Q_OBJECT
 public:
-  explicit VolumeOfInterest(ViewManager *vm, QWidget *parent=NULL);
+  explicit VolumeOfInterest(EspinaModel *model,
+                            ViewManager *viewManager,
+                            QWidget *parent=NULL);
   virtual ~VolumeOfInterest();
 
 protected slots:
@@ -48,7 +51,9 @@ private:
   void buildVOIs();
 
 private:
-  ViewManager     *m_viewManager;
+  EspinaModel *m_model;
+  ViewManager *m_viewManager;
+
   ActionSelector  *m_voiSelector;
   QMap<QAction *, IVOI *> m_vois;
 };

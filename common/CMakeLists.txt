@@ -42,6 +42,7 @@ qt4_wrap_cpp(CORE_MOC
   gui/Renderer.h
   gui/SliceView.h
   gui/VolumeView.h
+  gui/QComboTreeView.h
   gui/HueSelector.h
   model/EspinaModel.h
   model/ModelTest.h
@@ -99,6 +100,7 @@ set (CORE_SOURCES
   gui/ActionSelector.cpp
   gui/ActionSelectorWidget.cpp
   gui/EspinaRenderView.cpp
+  gui/QComboTreeView.cpp
   gui/SliceView.cpp
   gui/SliceViewState.cpp
   gui/vtkInteractorStyleEspinaSlice.cpp
