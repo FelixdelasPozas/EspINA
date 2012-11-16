@@ -114,7 +114,7 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
 , m_view(new QVTKWidget())
 , m_scrollBar(new QScrollBar(Qt::Horizontal))
 , m_spinBox(new QSpinBox())
-, m_zoomButton(new QToolButton())
+, m_zoomButton(new QPushButton())
 , m_ruler(vtkSmartPointer<vtkAxisActor2D>::New())
 , m_plane(plane)
 , m_selectionEnabled(true)
@@ -472,11 +472,14 @@ void SliceView::buildTitle()
 void SliceView::setupUI()
 {
   m_view->installEventFilter(this);
-  QAction *zoomAction = new QAction(QIcon(":zoom_reset.png"), tr("Reset view's camera"), this);
-  zoomAction->setStatusTip(tr("Reset view's camera"));
-  zoomAction->setCheckable(false);
-  connect(zoomAction, SIGNAL(triggered()), this, SLOT(resetView()));
-  m_zoomButton->setDefaultAction(zoomAction);
+
+  m_zoomButton->setIcon(QIcon(":zoom_reset.png"));
+  m_zoomButton->setToolTip(tr("Reset view's camera"));
+  m_zoomButton->setFlat(true);
+  m_zoomButton->setIconSize(QSize(20,20));
+  m_zoomButton->setMaximumSize(QSize(22,22));
+  m_zoomButton->setCheckable(false);
+  connect(m_zoomButton, SIGNAL(clicked()), this, SLOT(resetView()));
 
   m_scrollBar->setMaximum(0);
   m_scrollBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);

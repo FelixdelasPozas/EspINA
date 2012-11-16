@@ -231,7 +231,7 @@ private:
   QVTKWidget  *m_view;
   QScrollBar  *m_scrollBar;
   QSpinBox    *m_spinBox;
-  QToolButton *m_zoomButton;
+  QPushButton *m_zoomButton;
 
   // VTK View
   vtkRenderWindow                *m_renderWindow;

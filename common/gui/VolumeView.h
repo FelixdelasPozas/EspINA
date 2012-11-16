@@ -128,6 +128,7 @@ public slots:
   void countEnabledRenderers(bool);
   /// Update Selected Items
   virtual void updateSelection(ViewManager::Selection selection);
+  void resetView();
 
 signals:
   void channelSelected(Channel *);
@@ -163,6 +164,7 @@ private:
   QVTKWidget  *m_view;
   QPushButton m_snapshot;
   QPushButton m_export;
+  QPushButton m_zoom;
   vtkSmartPointer<vtkRenderer> m_renderer;
 
   SettingsPtr m_settings;

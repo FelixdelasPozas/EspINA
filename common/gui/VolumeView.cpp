@@ -157,6 +157,14 @@ void VolumeView::buildControls()
   m_controlLayout = new QHBoxLayout();
   m_controlLayout->addStretch();
 
+  m_zoom.setIcon(QIcon(":zoom_reset.png"));
+  m_zoom.setToolTip(tr("Reset view's camera"));
+  m_zoom.setFlat(true);
+  m_zoom.setIconSize(QSize(22,22));
+  m_zoom.setMaximumSize(QSize(32,32));
+  m_zoom.setCheckable(false);
+  connect(&m_zoom, SIGNAL(clicked()), this, SLOT(resetView()));
+
   m_snapshot.setIcon(QIcon(":/espina/snapshot_scene.svg"));
   m_snapshot.setToolTip(tr("Save Scene as Image"));
   m_snapshot.setFlat(true);
@@ -173,6 +181,7 @@ void VolumeView::buildControls()
 
   QSpacerItem * horizontalSpacer = new QSpacerItem(4000, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
+  m_controlLayout->addWidget(&m_zoom);
   m_controlLayout->addWidget(&m_snapshot);
   m_controlLayout->addWidget(&m_export);
   m_controlLayout->addItem(horizontalSpacer);
@@ -712,4 +721,11 @@ void VolumeView::updateSegmentationRepresentations()
   if (isVisible())
     foreach(Segmentation *seg, m_segmentations)
       updateSegmentation(seg);
+}
+
+//-----------------------------------------------------------------------------
+void VolumeView::resetView()
+{
+  resetCamera();
+  updateView();
 }
