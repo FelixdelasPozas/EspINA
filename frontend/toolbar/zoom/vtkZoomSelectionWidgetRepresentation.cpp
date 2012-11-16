@@ -137,14 +137,13 @@ void vtkZoomSelectionWidgetRepresentation::EndWidgetInteraction(double e[2])
   // compute this last point
   WidgetInteraction(e);
 
-  // volume camera computation vars
-  double proyectionVec[3], pos[3], wPos[3];
-
   // if the distance between corners is too small, reset and return
   double dPos1[3], dPos2[3];
   m_displayPoints->GetPoint(0, dPos1);
   m_displayPoints->GetPoint(2, dPos2);
-  double dist = sqrt((dPos2[0]-dPos1[0])*(dPos2[0]-dPos1[0]) + (dPos2[1]-dPos1[1])*(dPos2[1]-dPos1[1]) + (dPos2[2]-dPos1[2])*(dPos2[2]-dPos1[2]));
+  double dist = sqrt((dPos2[0]-dPos1[0])*(dPos2[0]-dPos1[0]) +
+                     (dPos2[1]-dPos1[1])*(dPos2[1]-dPos1[1]) +
+                     (dPos2[2]-dPos1[2])*(dPos2[2]-dPos1[2]));
 
   if (10 < dist)
   {
@@ -160,18 +159,21 @@ void vtkZoomSelectionWidgetRepresentation::EndWidgetInteraction(double e[2])
     if(m_type != vtkZoomSelectionWidget::NONE)
       point1[m_type] = 0;
 
+    double oldCameraPos[3];
+    this->Renderer->GetActiveCamera()->GetPosition(oldCameraPos);
+
     switch(m_type)
     {
       case vtkZoomSelectionWidget::AXIAL_WIDGET:
-        this->Renderer->GetActiveCamera()->SetPosition(point1[0], point1[1], ((point1[2] < 1) ? (point1[2]-1) : (-point1[2]+1)));
+        this->Renderer->GetActiveCamera()->SetPosition(point1[0], point1[1], oldCameraPos[2]);
         this->Renderer->GetActiveCamera()->SetFocalPoint(point1[0], point1[1], point1[2]);
         break;
       case vtkZoomSelectionWidget::CORONAL_WIDGET:
-        this->Renderer->GetActiveCamera()->SetPosition(point1[0], point1[1]+1, point1[2]);
+        this->Renderer->GetActiveCamera()->SetPosition(point1[0], oldCameraPos[1], point1[2]);
         this->Renderer->GetActiveCamera()->SetFocalPoint(point1[0], point1[1], point1[2]);
         break;
       case vtkZoomSelectionWidget::SAGITTAL_WIDGET:
-        this->Renderer->GetActiveCamera()->SetPosition(point1[0] + 1, point1[1], point1[2]);
+        this->Renderer->GetActiveCamera()->SetPosition(oldCameraPos[0], point1[1], point1[2]);
         this->Renderer->GetActiveCamera()->SetFocalPoint(point1[0], point1[1], point1[2]);
         break;
       default:
@@ -266,7 +268,7 @@ void vtkZoomSelectionWidgetRepresentation::DisplayPointsToWorldPoints()
   if (!Renderer)
     return;
 
-  double worldPos[3], displayPos[3];
+  double worldPos[4], displayPos[3];
 
   m_displayPoints->Modified();
   for (int i = 0; i < m_displayPoints->GetNumberOfPoints(); ++i)
