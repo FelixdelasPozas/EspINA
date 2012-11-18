@@ -47,7 +47,7 @@ public:
   /// Implements Model Item Interface
   virtual QVariant data(int role=Qt::DisplayRole) const;
 
-  virtual QWidget* createFilerInspector(ViewManager *vm)
+  virtual QWidget *createFilterInspector(QUndoStack *undoStack, ViewManager *vm)
   { return new CODESettings(tr("Dilate"), this, vm); }
 
 protected:
