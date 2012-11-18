@@ -13,6 +13,7 @@
 
 class ViewManager;
 class ZoomSelectionWidget;
+class QCursor;
 
 class ZoomTool
 : public ITool
@@ -33,6 +34,7 @@ class ZoomTool
     bool m_inUse;
     ZoomSelectionWidget *m_widget;
     ViewManager *m_viewManager;
+    QCursor zoomCursor;
 };
 
 #endif /* ZOOMTOOL_H_ */

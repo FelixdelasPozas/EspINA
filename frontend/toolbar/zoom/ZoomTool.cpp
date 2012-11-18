@@ -10,6 +10,9 @@
 #include "toolbar/zoom/ZoomSelectionWidget.h"
 #include "common/gui/ViewManager.h"
 
+// Qt
+#include <QPixmap>
+
 //----------------------------------------------------------------------------
 ZoomTool::ZoomTool(ViewManager* vm)
 : m_enabled(false)
@@ -17,6 +20,9 @@ ZoomTool::ZoomTool(ViewManager* vm)
 , m_widget(NULL)
 , m_viewManager(vm)
 {
+  QPixmap cursorBitmap;
+  cursorBitmap.load(":/zoom_cursor.png", "PNG", Qt::ColorOnly);
+  this->zoomCursor = QCursor(cursorBitmap, 0, 0);
 }
 
 //----------------------------------------------------------------------------
@@ -33,7 +39,7 @@ ZoomTool::~ZoomTool()
 //----------------------------------------------------------------------------
 QCursor ZoomTool::cursor() const
 {
-  return QCursor(Qt::ArrowCursor);
+  return this->zoomCursor;
 }
 
 //----------------------------------------------------------------------------
