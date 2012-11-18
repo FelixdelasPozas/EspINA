@@ -26,6 +26,7 @@
 // Qt
 #include <QDebug>
 #include <QMessageBox>
+#include <QCheckBox>
 
 //----------------------------------------------------------------------------
 SeedGrowSegmentationFilter::FilterInspector::FilterInspector(Filter* filter, ViewManager* vm)
@@ -83,8 +84,17 @@ SeedGrowSegmentationFilter::FilterInspector::FilterInspector(Filter* filter, Vie
   connect(m_lowerMargin, SIGNAL(valueChanged(int)),
           this, SLOT(updateRegionBounds()));
 
-//   connect(m_threshold, SIGNAL(valueChanged(int)),
-// 	  this, SLOT(modifyFilter()));
+  bool enabled = m_filter->m_param.closeValue() > 0;
+  m_closeCheckbox->setChecked(enabled);
+  connect(m_closeCheckbox, SIGNAL(stateChanged(int)),
+      this, SLOT(modifyCloseCheckbox(int)));
+
+  m_closeRadius->setEnabled(enabled);
+  m_closeRadius->setValue(m_filter->m_param.closeValue());
+  connect(m_closeRadius, SIGNAL(valueChanged(int)),
+      this, SLOT(modifyCloseValue(int)));
+
+
   connect(m_modify, SIGNAL(clicked(bool)),
 	  this, SLOT(modifyFilter()));
 }
@@ -225,4 +235,20 @@ void SeedGrowSegmentationFilter::FilterInspector::updateRegionBounds()
 
   if (m_region)
     m_region->setBounds(m_voiBounds);
+}
+
+//----------------------------------------------------------------------------
+void SeedGrowSegmentationFilter::FilterInspector::modifyCloseCheckbox(int enable)
+{
+  m_closeRadius->setEnabled(enable);
+
+  if (!enable)
+    m_filter->m_param.setCloseValue(0);
+  else
+      m_filter->m_param.setCloseValue(m_closeRadius->value()); // if 0 == value then is the same as disabled
+}
+
+void SeedGrowSegmentationFilter::FilterInspector::modifyCloseValue(int value)
+{
+  m_filter->m_param.setCloseValue(value);
 }

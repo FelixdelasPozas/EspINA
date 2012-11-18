@@ -43,6 +43,8 @@ protected slots:
   void redefineVOI(double *bounds);
   void modifyFilter();
   void updateRegionBounds();
+  void modifyCloseValue(int);
+  void modifyCloseCheckbox(int);
 
 private:
   ViewManager                *m_viewManager;
