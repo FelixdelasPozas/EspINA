@@ -554,5 +554,12 @@ void EditorToolBar::updateAvailableOperations()
   m_fill->setToolTip(tr("Fill Holes in Selected Segmentations") + severalToolTip);
 }
 
+//----------------------------------------------------------------------------
+void EditorToolBar::resetState()
+{
+  if (m_drawToolSelector->isChecked())
+    cancelDrawOperation();
 
-
+  if (m_splitToolSelector->isChecked())
+    cancelSplitOperation();
+}

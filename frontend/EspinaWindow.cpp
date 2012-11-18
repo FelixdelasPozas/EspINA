@@ -197,12 +197,18 @@ EspinaWindow::EspinaWindow()
   menuBar()->addMenu(settingsMenu);
 
   m_mainToolBar = new MainToolBar(m_model, m_undoStack, m_viewManager);
-//   m_mainToolBar->setMovable(false);
   addToolBar(m_mainToolBar);
-  addToolBar(new VolumeOfInterest(m_model, m_viewManager));
-  addToolBar(new SeedGrowSegmentation(m_model, m_undoStack, m_viewManager));
-  addToolBar(new EditorToolBar(m_model, m_undoStack, m_viewManager));
-  addToolBar(new ZoomToolBar(m_viewManager));
+  VolumeOfInterest *voiBar = new VolumeOfInterest(m_model, m_viewManager);
+  addToolBar(voiBar);
+  SeedGrowSegmentation *seedBar = new SeedGrowSegmentation(m_model, m_undoStack, m_viewManager);
+  connect(this, SIGNAL(analysisClosed()), seedBar, SLOT(cancelSegmentationOperation()));
+  addToolBar(seedBar);
+  EditorToolBar *editorBar = new EditorToolBar(m_model, m_undoStack, m_viewManager);
+  connect(this, SIGNAL(analysisClosed()), editorBar, SLOT(resetState()));
+  addToolBar(editorBar);
+  ZoomToolBar *zoomToolBar = new ZoomToolBar(m_viewManager);
+  connect(this, SIGNAL(analysisClosed()), zoomToolBar, SLOT(resetState()));
+  addToolBar(zoomToolBar);
 
   ChannelExplorer *channelExplorer = new ChannelExplorer(m_model, m_viewManager, this);
   addDockWidget(Qt::LeftDockWidgetArea, channelExplorer);
@@ -251,6 +257,9 @@ EspinaWindow::EspinaWindow()
   m_autosave.start();
   connect(&m_autosave, SIGNAL(timeout()),
           this, SLOT(autosave()));
+
+  QShortcut *cancel = new QShortcut(Qt::Key_Escape, this, SLOT(cancelOperation()));
+//  connect(cancel, SIGNAL(activate()), this, SLOT(cancelOperation()));
 
   checkAutosave();
 }
@@ -757,3 +766,5 @@ void EspinaWindow::autosave()
   m_busy = false;
   m_autosave.setInterval(m_settings->autosaveInterval()*60*1000);
 }
+
+//------------------------------------------------------------------------

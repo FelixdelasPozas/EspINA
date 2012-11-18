@@ -8,7 +8,7 @@
 #ifndef ZOOMTOOLBAR_H_
 #define ZOOMTOOLBAR_H_
 
-#include <qtoolbar.h>
+#include <QToolBar>
 
 class ViewManager;
 class QAction;
@@ -28,6 +28,7 @@ class ZoomToolBar
   public slots:
     virtual void ResetViews();
     virtual void InitZoomTool(bool);
+    virtual void resetState();
 
   private:
     ViewManager *m_viewManager;

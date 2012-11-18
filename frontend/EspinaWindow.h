@@ -76,6 +76,7 @@ protected slots:
   void addState()  {m_menuState = ADD_STATE;}
 
   void autosave();
+  void cancelOperation() {emit analysisClosed(); }
 
 signals:
   void analysisClosed();

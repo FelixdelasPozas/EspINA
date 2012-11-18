@@ -29,6 +29,7 @@ ZoomToolBar::ZoomToolBar(ViewManager *vm, QWidget* parent)
 
   m_resetViews = new QAction(QIcon(":zoom_reset.png"), tr("Reset view's cameras"),this);
   m_resetViews->setStatusTip(tr("Reset views' cameras"));
+  m_resetViews->setCheckable(false);
   connect(m_resetViews, SIGNAL(triggered()), this, SLOT(ResetViews()));
   addAction(m_resetViews);
 
@@ -66,6 +67,7 @@ void ZoomToolBar::InitZoomTool(bool value)
     m_viewManager->setSelectionEnabled(false);
   }
   else
+  {
     if(m_zoomTool)
     {
       m_viewManager->unsetActiveTool(m_zoomTool);
@@ -73,4 +75,15 @@ void ZoomToolBar::InitZoomTool(bool value)
       delete m_zoomTool;
       m_zoomTool = NULL;
     }
+  }
+}
+
+//----------------------------------------------------------------------------
+void ZoomToolBar::resetState()
+{
+  if (m_zoomToolAction->isChecked())
+  {
+    m_zoomToolAction->setChecked(false);
+    InitZoomTool(false);
+  }
 }
