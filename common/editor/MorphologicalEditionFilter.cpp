@@ -37,7 +37,7 @@ MorphologicalEditionFilter::MorphologicalEditionFilter(Filter::NamedInputs input
 : Filter(inputs, args)
 , m_params(m_args)
 , m_input(NULL)
-, m_needUpdate(false)
+, m_paramModified(false)
 {
 }
 
@@ -51,14 +51,25 @@ MorphologicalEditionFilter::~MorphologicalEditionFilter()
 //-----------------------------------------------------------------------------
 bool MorphologicalEditionFilter::needUpdate() const
 {
-  return (!m_outputs.contains(0) || m_needUpdate);
+  bool update = true;
+
+  if (!m_outputs.isEmpty() && !m_paramModified)
+  {
+    Q_ASSERT(m_inputs.size()  == 1);
+    Q_ASSERT(m_outputs.size() == 1);
+    Q_ASSERT(m_outputs[0].volume.IsNotNull());
+
+    update = m_outputs[0].volume->GetTimeStamp() < m_inputs[0]->GetTimeStamp();
+  }
+
+  return update;
 }
 
 
 //-----------------------------------------------------------------------------
 bool MorphologicalEditionFilter::prefetchFilter()
 {
-  if (m_needUpdate)
+  if (m_paramModified)
     return false;
 
   return Filter::prefetchFilter();

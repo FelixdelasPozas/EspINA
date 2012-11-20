@@ -99,8 +99,6 @@ protected:
 
 private:
   Parameters m_param;
-
-  EspinaVolume::SpacingType   m_spacing;
 };
 
 #endif // FREEFORMSOURCE_H

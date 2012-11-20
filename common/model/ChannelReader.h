@@ -46,9 +46,6 @@ public:
   /// Implements Filter Interface
   virtual bool needUpdate() const;
 
-  virtual int numberOutputs() const;
-  virtual EspinaVolume* output(OutputNumber i) const;
-
   void setSpacing(EspinaVolume::SpacingType spacing);
 
 protected:
@@ -57,8 +54,6 @@ protected:
   EspinaVolume::SpacingType spacing();
 
 private:
-  EspinaVolume *m_volume;
-
   itk::ImageIOBase::Pointer   m_io;
   EspinaVolumeReader::Pointer m_reader;
 };

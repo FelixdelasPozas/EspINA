@@ -113,6 +113,8 @@ public:
   virtual void initialize(Arguments args = Arguments());
   virtual void initializeExtensions(Arguments args = Arguments());
 
+  void updateCacheFlag();
+
   /// Get the channel from where segmentation was created
   Channel *channel();
 

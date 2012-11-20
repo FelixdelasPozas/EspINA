@@ -79,7 +79,7 @@ EspinaIO::STATUS EspinaIO::loadChannel(QFileInfo file,
   readerArgs[ChannelReader::FILE] = file.absoluteFilePath();
   ChannelReader *reader = new ChannelReader(noInputs, readerArgs);
   reader->update();
-  if (reader->numberOutputs() == 0)
+  if (reader->outputs().isEmpty())
     return ERROR;
 
 
@@ -115,7 +115,10 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo file,
                                        EspinaModel* model,
                                        QDir tmpDir)
 {
-  // Create tmp dir
+  // Create tmp dir if necessary
+  if (!tmpDir.exists())
+    QDir::root().mkpath(tmpDir.absolutePath());
+
   QString tmpSegDir = QString::number(rand());
   tmpDir.mkdir(tmpSegDir);
   tmpDir.cd(tmpSegDir);
@@ -194,28 +197,32 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo file,
 }
 
 //-----------------------------------------------------------------------------
-bool EspinaIO::zipVolume(Filter* filter, OutputNumber outputNumber,
-                         QDir tmpDir, QuaZipFile& outFile)
+bool EspinaIO::zipVolume(FilterOutput output,
+                         QDir tmpDir,
+                         QuaZipFile& outFile)
 {
   itk::MetaImageIO::Pointer io = itk::MetaImageIO::New();
   EspinaVolumeWriter::Pointer writer = EspinaVolumeWriter::New();
-  QString volumeName = filter->id() + "_" + QString::number(outputNumber);
+  Filter *filter = output.filter;
+  QString volumeName = QString("%1_%2").arg(filter->tmpId()).arg(output.number);
   QString mhd = tmpDir.absoluteFilePath(volumeName + ".mhd");
   QString raw = tmpDir.absoluteFilePath(volumeName + ".raw");
   io->SetFileName(mhd.toStdString());
   writer->SetFileName(mhd.toStdString());
   filter->update();
-  EspinaVolume *volume = filter->output(outputNumber);
+  EspinaVolume::Pointer volume = output.volume;
   bool releaseFlag = volume->GetReleaseDataFlag();
   volume->ReleaseDataFlagOff();
   writer->SetInput(volume);
   writer->SetImageIO(io);
   writer->Write();
   volume->SetReleaseDataFlag(releaseFlag);
+
   QFile mhdFile(mhd);
   mhdFile.open(QIODevice::ReadOnly);
   QFile rawFile(raw);
   rawFile.open(QIODevice::ReadOnly);
+
   if( !zipFile(volumeName + ".mhd", mhdFile.readAll() , outFile) )
   {
     qWarning() << "IOEspinaFile::saveFile: Error while zipping" << (volumeName + ".mhd");
@@ -226,8 +233,10 @@ bool EspinaIO::zipVolume(Filter* filter, OutputNumber outputNumber,
     qWarning() << "IOEspinaFile::saveFile: Error while zipping" << (volumeName + ".raw");
     return false;
   }
+
   mhdFile.close();
   rawFile.close();
+
   return true;
 }
 
@@ -268,32 +277,14 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, EspinaModel *model)
   if( !zipFile(QString(TRACE),  trace.str().c_str(), outFile) )
     return ERROR;
 
-  typedef QPair<Filter *, OutputNumber> Output;
-  QList<Output> saved;
   foreach(Filter *filter, model->filters())
   {
-    if (filter->isEdited())
+    OutputList outputs = filter->outputs();
+    qDebug() << "Making" << filter->data().toString() << "snapshot";
+    foreach(FilterOutput output, outputs)
     {
-      //qDebug() << "Making" << filter->data().toString() << "snapshot";
-      foreach(OutputNumber i, filter->editedOutputs())
-      {
-        Output output(filter, i);
-        if (!saved.contains(output))
-        {
-          zipVolume(filter, i, tmpDir, outFile);
-          saved << output;
-        }
-      }
-    }
-  }
-  foreach(Segmentation *seg, model->segmentations())
-  {
-    //qDebug() << "Making" << seg->data().toString() << "snapshot";
-    Output output(seg->filter(), seg->outputNumber());
-    if (!saved.contains(output))
-    {
-      zipVolume(seg->filter(), seg->outputNumber(), tmpDir, outFile);
-      saved << output;
+      if (output.isCached)
+        zipVolume(output, tmpDir, outFile);
     }
   }
 

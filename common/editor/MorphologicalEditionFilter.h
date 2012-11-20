@@ -52,7 +52,7 @@ public:
   virtual ~MorphologicalEditionFilter();
 
   unsigned int radius() const {return m_params.radius();}
-  void setRadius(int radius) {m_params.setRadius(radius); m_needUpdate = true;}
+  void setRadius(int radius) {m_params.setRadius(radius); m_paramModified = true;}
 
 protected:
   /// Implements Filter Interface
@@ -62,7 +62,8 @@ protected:
 protected:
   Parameters       m_params;
   EspinaVolume    *m_input;
-  bool             m_needUpdate;
+
+  bool             m_paramModified;
 };
 
 

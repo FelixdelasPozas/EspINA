@@ -60,7 +60,10 @@ void OpeningFilter::run()
   m_filter->Update();
   QApplication::restoreOverrideCursor();
 
-  m_outputs[0] = m_filter->GetOutput();
+  m_outputs.clear();
+  m_outputs << FilterOutput(this, 0, m_filter->GetOutput());
+
+  emit modified(this);
 }
 
 //-----------------------------------------------------------------------------

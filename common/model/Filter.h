@@ -44,12 +44,17 @@ public:
   static const ModelItem::ArgumentId ID;
   static const ModelItem::ArgumentId INPUTS;
   static const ModelItem::ArgumentId EDIT;
+  static const ModelItem::ArgumentId OUTPUTS;
+
 public:
   virtual ~Filter(){}
 
   void setTmpDir(QDir dir) {m_tmpDir = dir;}
 
+  //TODO 2012-11-20 Cambiar setTmpId y eliminar el metodo id del model item
+  // ya que ahora mismo no hay ningun id fijo para cada elemento.
   void setId(QString id) {m_args[ID] = id;}
+  QString tmpId() const {return m_args[ID];}
 
   // Implements Model Item Interface common to filters
   virtual ItemType type() const {return ModelItem::FILTER;}
@@ -57,7 +62,6 @@ public:
   virtual void initialize(Arguments args = Arguments()){};
   virtual void initializeExtensions(Arguments args = Arguments()){};
   virtual QString serialize() const {return m_args.serialize();}
-
 
   static void resetId();
   static QString generateId();
@@ -90,23 +94,27 @@ public:
   virtual void draw(OutputNumber i,
                     EspinaVolume::Pointer volume);
 
+  //TODO 2012-11-20 cambiar nombre y usar FilterOutput
   virtual void restoreOutput(OutputNumber i,
                            EspinaVolume::Pointer volume);
 
-  /// Returns whether or not the filter was edited by the user
-  bool isEdited() const;
-  /// Returns a list of modified outputs
-  QList<OutputNumber> editedOutputs() const;
-  /// Specify how many outputs this filter generates
-  virtual int numberOutputs() const;
-  /// Return the i-th output
-  virtual EspinaVolume *output(OutputNumber i) const;
-  virtual void markAsModified(){}
+  /// Returns filter's outputs
+  OutputList outputs() const {return m_outputs;}
+  /// Returns a list of outputs edited by the user //NOTE: Deberia ser private?
+  OutputList editedOutputs() const;
+  // /// Specify how many outputs this filter generates
+  //DEPRECATED: puede confundir a los clientes de esta clase haciendo pensar que sean entradas consecutivas... virtual int numberOutputs() const;
+  /// Return an output with id i. Ids are not necessarily sequential
+  virtual FilterOutput output(OutputNumber i) const;
+  FilterOutput &output(OutputNumber i);
+  /// Convencience method to get the volume associated wit output i
+  EspinaVolume *volume(OutputNumber i) {return output(i).volume;}
   /// Determine whether the filter needs to be updated or not
   virtual bool needUpdate() const {return true;}
   /// Updates filter outputs.
   /// If a snapshot exits it will try to load it from disk
   void update();
+
   /// Turn on internal filters' release data flags
   virtual void releaseDataFlagOn(){}
   /// Turn off internal filters' release data flags
@@ -115,19 +123,28 @@ public:
   /// Return a widget used to configure filter's parameters
   virtual QWidget *createFilterInspector(QUndoStack *undoStack, ViewManager *vm);
 
+  void updateCacheFlags();
+
 protected:
   explicit Filter(NamedInputs namedInputs,
                   Arguments args);
 
   /// Method which actually executes the filter
   virtual void run() {};
-  /// Try to locate an snapshot of the filter in the hard drive
+  /// Try to locate an snapshot of the filter in tmpDir
+  /// Returns true if all volume snapshot can be recovered
+  /// and false otherwise
   virtual bool prefetchFilter();
 
+  /// Reader to access snapshots
   EspinaVolumeReader::Pointer tmpFileReader(const QString file);
 
-  EspinaVolume::Pointer addRegionToVolume(EspinaVolume::Pointer volume,
-                                          EspinaVolume::RegionType region);
+  /// Expands @volume to contain @region. If @volume doesn't need to
+  /// be expanded it returns volume itself, otherwhise a pointer to a
+  /// new volume is returned
+  EspinaVolume::Pointer expandVolume(EspinaVolume::Pointer volume,
+                                     EspinaVolume::RegionType region);
+  /// Update output isEdited flag and filter EDIT argument
   void markAsEdited(OutputNumber i);
 
 protected:
@@ -135,9 +152,8 @@ protected:
   NamedInputs           m_namedInputs;
   mutable Arguments     m_args;
 
-  QStringList        m_editedOutputs;
-  QMap<OutputNumber, EspinaVolume::Pointer> m_outputs;
-  EspinaVolumeReader::Pointer m_cachedFilter;
+  OutputList m_outputs;
+
 private:
   QDir m_tmpDir;
   static unsigned int m_lastId;

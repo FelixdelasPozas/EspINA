@@ -47,14 +47,26 @@ QVariant FillHolesFilter::data(int role) const
 //-----------------------------------------------------------------------------
 bool FillHolesFilter::needUpdate() const
 {
-  return !m_outputs.contains(0);
+  bool update = true;
+
+  if (!m_outputs.isEmpty())
+  {
+    Q_ASSERT(m_inputs.size()  == 1);
+    Q_ASSERT(m_outputs.size() == 1);
+    Q_ASSERT(m_outputs[0].volume.IsNotNull());
+
+    update = m_outputs[0].volume->GetTimeStamp() < m_inputs[0]->GetTimeStamp();
+  }
+
+  return update;
 }
 
 //-----------------------------------------------------------------------------
 void FillHolesFilter::run()
 {
+  // TODO 2012-11-20: Quitar los override cursor de los filtros, deberia ser
+  // responsabilidad de la aplicacion el modificarlo
   QApplication::setOverrideCursor(Qt::WaitCursor);
-
   Q_ASSERT(m_inputs.size() == 1);
 
   m_filter = FilterType::New();
@@ -62,5 +74,16 @@ void FillHolesFilter::run()
   m_filter->Update();
   QApplication::restoreOverrideCursor();
 
-  m_outputs[0] = m_filter->GetOutput();
+  m_outputs.clear();
+  m_outputs << FilterOutput(this, 0, m_filter->GetOutput());
+//   if (m_outputs.isEmpty())
+//     m_outputs << output(this, 0, m_filter->GetOutput());
+//   else if (m_outputs.size() == 1)
+//   {
+//     m_outputs[0].volume   = m_filter->GetOutput();
+//     m_outputs[0].isCached = false;
+//     ...
+//   }
+//   else
+//     Q_ASSERT(false);
 }

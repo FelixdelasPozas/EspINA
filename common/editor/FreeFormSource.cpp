@@ -56,7 +56,7 @@ void FreeFormSource::draw(OutputNumber i,
                           EspinaVolume::PixelType value)
 {
   Q_ASSERT(0 == i);
-  if (m_outputs[i].IsNull())
+  if (m_outputs.isEmpty())
   {
     EspinaVolume::Pointer img = EspinaVolume::New();
     EspinaVolume::RegionType buffer = BoundsToRegion(bounds, m_param.spacing());
@@ -64,7 +64,7 @@ void FreeFormSource::draw(OutputNumber i,
     img->SetSpacing(m_param.spacing());
     img->Allocate();
     img->FillBuffer(0);
-    m_outputs[i] = img;
+    m_outputs << FilterOutput(this, 0, img);
   }
   Filter::draw(i, brush, bounds, value);
 }
@@ -74,7 +74,7 @@ void FreeFormSource::draw(OutputNumber i,
                           EspinaVolume::IndexType index,
                           EspinaVolume::PixelType value)
 {
-  if (m_outputs[i].IsNull())
+  if (m_outputs.isEmpty())
   {
     EspinaVolume::SizeType pixelSize;
     pixelSize.Fill(1);
@@ -84,15 +84,15 @@ void FreeFormSource::draw(OutputNumber i,
     img->SetSpacing(m_param.spacing());
     img->Allocate();
     img->FillBuffer(0);
-    m_outputs[0] = img;
+    m_outputs << FilterOutput(this, 0, img);
   }
   Filter::draw(i, index, value);
 }
 
 //-----------------------------------------------------------------------------
 void FreeFormSource::draw(OutputNumber i,
-			  Nm x, Nm y, Nm z,
-			  EspinaVolume::PixelType value)
+                          Nm x, Nm y, Nm z,
+                          EspinaVolume::PixelType value)
 {
   EspinaVolume::IndexType index;
   index[0] = x / m_param.spacing()[0] + 0.5;
@@ -113,5 +113,5 @@ QVariant FreeFormSource::data(int role) const
 //-----------------------------------------------------------------------------
 bool FreeFormSource::needUpdate() const
 {
-  return m_outputs[0].IsNull();
+  return m_outputs.isEmpty();
 }

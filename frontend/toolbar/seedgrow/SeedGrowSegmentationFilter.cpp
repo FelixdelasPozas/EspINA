@@ -65,16 +65,10 @@ SeedGrowSegmentationFilter::~SeedGrowSegmentationFilter()
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::markAsModified()
-{
-  if (m_outputs.contains(0))
-    m_outputs[0]->Modified();
-}
-
-//-----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::needUpdate() const
 {
-  return (!m_outputs.contains(0) || m_needUpdate);
+  //TODO 2012-11-20 Revisar
+  return (m_outputs.isEmpty() || m_needUpdate);
 }
 
 //-----------------------------------------------------------------------------
@@ -166,6 +160,8 @@ void SeedGrowSegmentationFilter::run()
   //writer->SetInput(extract->GetOutput());
   //writer->Write();
 
+  EspinaVolume::Pointer volume;
+
   if (m_param.closeValue() > 0)
   {
 //     qDebug() << "Closing Segmentation";
@@ -179,14 +175,18 @@ void SeedGrowSegmentationFilter::run()
     bmcif->SetForegroundValue(LABEL_VALUE);
     bmcif->Update();
 
-    m_outputs[0] = bmcif->GetOutput();
+    volume = bmcif->GetOutput();
   }
   else
-    m_outputs[0] = extractFilter->GetOutput();
+    volume = extractFilter->GetOutput();
 
   QApplication::restoreOverrideCursor();
-  emit modified(this);
+
+  m_outputs.clear();
+  m_outputs << FilterOutput(this, 0, volume);
   m_needUpdate = false;
+
+  emit modified(this);
 }
 
 

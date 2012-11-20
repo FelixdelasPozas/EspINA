@@ -661,8 +661,9 @@ bool EspinaModel::loadSerialization(istream& stream,
     ModelItem *item = ancestors.first().item;
     Filter *filter =  dynamic_cast<Filter *>(item);
     filter->update();
-    if (filter->numberOutputs() == 0)
+    if (filter->outputs().isEmpty())
       return false;
+
     ModelItem::Arguments args(QString(v.args.c_str()));
     ModelItem::Arguments extArgs(args.value(ModelItem::EXTENSIONS, QString()));
     args.remove(ModelItem::EXTENSIONS);

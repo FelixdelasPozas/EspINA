@@ -78,7 +78,7 @@ OutputNumber Channel::outputNumber()
 //------------------------------------------------------------------------
 EspinaVolume *Channel::itkVolume()
 {
-  return m_filter->output(m_args.outputNumber());
+  return m_filter->volume(m_args.outputNumber());
 }
 
 //------------------------------------------------------------------------
@@ -269,7 +269,7 @@ vtkAlgorithmOutput* Channel::vtkVolume()
     //qDebug() << " from ITK to VTK (channel)";
     itk2vtk = itk2vtkFilterType::New();
     itk2vtk->ReleaseDataFlagOn();
-    itk2vtk->SetInput(m_filter->output(m_args.outputNumber()));
+    itk2vtk->SetInput(m_filter->volume(m_args.outputNumber()));
     itk2vtk->Update();
   }
 

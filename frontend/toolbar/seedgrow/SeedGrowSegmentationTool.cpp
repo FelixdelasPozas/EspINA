@@ -349,7 +349,7 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
     SeedGrowSegmentationFilter *filter;
     filter = new SeedGrowSegmentationFilter(inputs, args);
     filter->update();
-    Q_ASSERT(filter->numberOutputs() == 1);
+    Q_ASSERT(filter->outputs().size() == 1);
 
     Segmentation *seg = m_model->factory()->createSegmentation(filter, 0);
 

@@ -21,6 +21,7 @@
 
 #include "common/model/Filter.h"
 #include "common/model/ModelItem.h"
+#include "Segmentation.h"
 
 #include <iostream>
 #undef foreach // Due to Qt-Boost incompatibility
@@ -197,13 +198,19 @@ void RelationshipGraph::updateVertexInformation()
         vertex.shape = CHANNEL_SHAPE;
         break;
       case ModelItem::SEGMENTATION:
+      {
+        Segmentation *seg = dynamic_cast<Segmentation *>(item);
+        Q_ASSERT(seg);
+        seg->updateCacheFlag();
         vertex.shape = SEGMENTATION_SHAPE;
         break;
+      }
       case ModelItem::FILTER:
       {
         Filter *filter = dynamic_cast<Filter *>(item);
         Q_ASSERT(filter);
         filter->setId(Filter::generateId());
+        filter->updateCacheFlags();
         vertex.shape = FILTER_SHAPE;
         break;
       }

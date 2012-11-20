@@ -50,7 +50,6 @@ public:
 
 protected:
   virtual void run();
-  virtual bool prefetchFilter();
 
 private:
   vtkSmartPointer<vtkImageStencilData> m_stencil;

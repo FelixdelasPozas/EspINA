@@ -136,7 +136,6 @@ public:
   virtual QVariant data(int role=Qt::DisplayRole) const;
 
   // Implements Filter Interface
-  virtual void markAsModified();
   virtual bool needUpdate() const;
   virtual void releaseDataFlagOn();
   virtual void releaseDataFlagOff();

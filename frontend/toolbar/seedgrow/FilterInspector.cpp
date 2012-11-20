@@ -44,7 +44,7 @@ SeedGrowSegmentationFilter::FilterInspector::FilterInspector(Filter* filter, Vie
   m_threshold->setValue(m_filter->m_param.lowerThreshold());
   int voiExtent[6];
   m_filter->m_param.voi(voiExtent);
-  EspinaVolume::SpacingType spacing = filter->output(0)->GetSpacing();
+  EspinaVolume::SpacingType spacing = filter->volume(0)->GetSpacing();
   for (int i=0; i<6; i++)
     m_voiBounds[i] = voiExtent[i] * spacing[i/2];
 
@@ -161,7 +161,7 @@ void SeedGrowSegmentationFilter::FilterInspector::redefineVOI(double* bounds)
 //----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::FilterInspector::modifyFilter()
 {
-  EspinaVolume::SpacingType spacing = m_filter->output(0)->GetSpacing();
+  EspinaVolume::SpacingType spacing = m_filter->volume(0)->GetSpacing();
   double voiBounds[6];
   voiBounds[0] = m_leftMargin->value();
   voiBounds[1] = m_rightMargin->value();
@@ -198,7 +198,7 @@ void SeedGrowSegmentationFilter::FilterInspector::modifyFilter()
   // TODO 2012-10-25 Change FilerInspector API to pass segmentations
   // it can be needed to modify their conditions or even to delete them
   double segBounds[6];
-  VolumeBounds(m_filter->output(0), segBounds);
+  VolumeBounds(m_filter->volume(0), segBounds);
   //VolumeBounds(m_seg->itkVolume(), segBounds);
 
   bool incompleteSeg = false;
