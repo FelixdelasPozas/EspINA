@@ -58,6 +58,10 @@ public:
   void resolution(Nm resolution[3]) const
   { memcpy(resolution, m_resolution, 3*sizeof(Nm));}
 
+  // modify representation methods
+  void setRepresentationColor(double *);
+  void setRepresentationPattern(int);
+
   virtual void Execute(vtkObject* caller, long unsigned int eventId, void* callData);
 
 signals:
@@ -68,6 +72,8 @@ private:
   double m_bounds[6];
   Nm m_resolution[3];
   QList<vtkRectangularSliceWidget *> m_widgets;
+  double m_color[3];
+  int m_pattern;
 };
 
 #endif // RECTANGULARREGION_H

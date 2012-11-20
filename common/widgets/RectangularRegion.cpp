@@ -52,9 +52,14 @@ private:
 //----------------------------------------------------------------------------
 RectangularRegion::RectangularRegion(double bounds[6], ViewManager *vm)
 : m_viewManager(vm)
+, m_pattern(0xFFFF)
 {
   memcpy(m_bounds, bounds, 6*sizeof(double));
   m_resolution[0] = m_resolution[1] = m_resolution[2] = 1;
+
+  // default color
+  m_color[0] = m_color[1] = 1.0;
+  m_color[2] = 0.0;
 }
 
 //----------------------------------------------------------------------------
@@ -90,6 +95,8 @@ SliceWidget* RectangularRegion::createSliceWidget(PlaneType plane)
   wi->AddObserver(vtkCommand::EndInteractionEvent, this);
   wi->SetPlane(plane);
   wi->SetBounds(m_bounds);
+  wi->setRepresentationColor(m_color);
+  wi->setRepresentationPattern(m_pattern);
   m_widgets << wi;
 
   return new RectangularSliceWidget(wi);
@@ -170,4 +177,28 @@ void RectangularRegion::Execute(vtkObject* caller, long unsigned int eventId, vo
   emit modified(m_bounds);
   if (m_viewManager)
     m_viewManager->updateViews();
+}
+
+//----------------------------------------------------------------------------
+void RectangularRegion::setRepresentationColor(double *color)
+{
+  if (0 == memcmp(m_color, color, sizeof(double)*3))
+    return;
+
+  memcpy(m_color, color, sizeof(double)*3);
+
+  foreach(vtkRectangularSliceWidget *widget, m_widgets)
+    widget->setRepresentationColor(m_color);
+}
+
+//----------------------------------------------------------------------------
+void RectangularRegion::setRepresentationPattern(int pattern)
+{
+  if (pattern == m_pattern)
+    return;
+
+  m_pattern = pattern;
+
+  foreach(vtkRectangularSliceWidget *widget, m_widgets)
+    widget->setRepresentationPattern(m_pattern);
 }

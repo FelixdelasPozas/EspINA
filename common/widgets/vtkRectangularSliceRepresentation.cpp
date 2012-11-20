@@ -33,20 +33,33 @@ vtkStandardNewMacro(vtkRectangularSliceRepresentation);
 
 //----------------------------------------------------------------------------
 vtkRectangularSliceRepresentation::vtkRectangularSliceRepresentation()
-: Plane(AXIAL)
+: Vertex(NULL)
+, EdgePicker(NULL)
+, LastPicker(NULL)
+, CurrentEdge(NULL)
+, EdgeProperty(NULL)
+, SelectedEdgeProperty(NULL)
+, InvisibleProperty(NULL)
+, Plane(AXIAL)
 , Slice(0)
 , Init(false)
 , NumPoints(4)
 , NumSlices(1)
+, NumVertex(0)
 , LeftEdge(0)
 , TopEdge(0)
 , RightEdge(1)
 , BottomEdge(1)
+, m_pattern(0xFFFF)
 {
   // The initial state
   this->InteractionState = vtkRectangularSliceRepresentation::Outside;
 
   memset(this->Bounds, 0, 6*sizeof(double));
+
+  // default representation color
+  m_color[0] = m_color[1] = 1.0;
+  m_color[2] = 0.0;
 
   this->CreateDefaultProperties();
 
@@ -238,15 +251,17 @@ void vtkRectangularSliceRepresentation::CreateDefaultProperties()
   this->EdgeProperty = vtkProperty::New();
   this->EdgeProperty->SetRepresentationToSurface();
   this->EdgeProperty->SetOpacity(1.0);
-  this->EdgeProperty->SetColor(1.0,1.0,0.0);
+  this->EdgeProperty->SetColor(m_color);
   this->EdgeProperty->SetLineWidth(1.0);
+  this->EdgeProperty->SetLineStipplePattern(m_pattern);
 
   // Selected Edge properties
   this->SelectedEdgeProperty = vtkProperty::New();
   this->SelectedEdgeProperty->SetRepresentationToSurface();
   this->SelectedEdgeProperty->SetOpacity(1.0);
-  this->SelectedEdgeProperty->SetColor(1.0,1.0,0.0);
+  this->SelectedEdgeProperty->SetColor(m_color);
   this->SelectedEdgeProperty->SetLineWidth(2.0);
+  this->SelectedEdgeProperty->SetLineStipplePattern(m_pattern);
 
   this->InvisibleProperty = vtkProperty::New();
   this->InvisibleProperty->SetRepresentationToWireframe();
@@ -527,6 +542,7 @@ void vtkRectangularSliceRepresentation::SetInteractionState(int state)
       break;
     default:
       this->HighlightEdge(NULL);
+      break;
     }
 }
 
@@ -622,4 +638,30 @@ void vtkRectangularSliceRepresentation::PrintSelf(ostream& os, vtkIndent indent)
      << "(" << bounds[0] << "," << bounds[1] << ") "
      << "(" << bounds[2] << "," << bounds[3] << ") " 
      << "(" << bounds[4] << "," << bounds[5] << ")\n";
+}
+
+//----------------------------------------------------------------------------
+void vtkRectangularSliceRepresentation::setRepresentationColor(double *color)
+{
+  if (0 == memcmp(m_color, color, sizeof(double)*3))
+    return;
+
+  memcpy(m_color, color, sizeof(double)*3);
+  this->EdgeProperty->SetColor(m_color);
+  this->EdgeProperty->Modified();
+  this->SelectedEdgeProperty->SetColor(m_color);
+  this->SelectedEdgeProperty->Modified();
+}
+
+//----------------------------------------------------------------------------
+void vtkRectangularSliceRepresentation::setRepresentationPattern(int pattern)
+{
+  if (m_pattern == pattern)
+    return;
+
+  m_pattern = pattern;
+  this->EdgeProperty->SetLineStipplePattern(m_pattern);
+  this->EdgeProperty->Modified();
+  this->SelectedEdgeProperty->SetLineStipplePattern(m_pattern);
+  this->SelectedEdgeProperty->Modified();
 }

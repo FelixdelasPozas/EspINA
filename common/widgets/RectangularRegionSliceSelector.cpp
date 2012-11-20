@@ -78,6 +78,7 @@ SliceSelectorWidget* RectangularRegionSliceSelector::clone()
   selector->m_rightLabel = m_rightLabel;
   selector->m_plane      = m_plane;
   selector->m_view       = m_view;
+  return selector;
 }
 
 

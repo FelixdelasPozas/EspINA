@@ -32,11 +32,13 @@
 #include "vtkRenderer.h"
 #include <vtkPolyData.h>
 
-
 vtkStandardNewMacro(vtkRectangularSliceWidget);
 
 //----------------------------------------------------------------------------
 vtkRectangularSliceWidget::vtkRectangularSliceWidget()
+: Plane(AXIAL)
+, Slice(0)
+, m_pattern(0xFFFF)
 {
   this->WidgetState = vtkRectangularSliceWidget::Start;
   this->ManagesCursor = 1;
@@ -66,6 +68,9 @@ vtkRectangularSliceWidget::vtkRectangularSliceWidget()
   this->CallbackMapper->SetCallbackMethod(vtkCommand::MouseMoveEvent,
                                           vtkWidgetEvent::Move,
                                           this, vtkRectangularSliceWidget::MoveAction);
+
+  m_color[0] = m_color[1] = 1;
+  m_color[2] = 0;
 }
 
 //----------------------------------------------------------------------------
@@ -216,6 +221,7 @@ void vtkRectangularSliceWidget::SetCursor(int state)
       break;
     default:
       this->RequestCursorShape(VTK_CURSOR_DEFAULT);
+      break;
   };
 }
 
@@ -296,12 +302,44 @@ void vtkRectangularSliceWidget::GetBounds(double bounds[6])
 //----------------------------------------------------------------------
 void vtkRectangularSliceWidget::CreateDefaultRepresentation()
 {
-  if ( ! this->WidgetRep )
+  if (!this->WidgetRep)
+  {
     this->WidgetRep = vtkRectangularSliceRepresentation::New();
+    static_cast<vtkRectangularSliceRepresentation*>(this->WidgetRep)->setRepresentationColor(m_color);
+    static_cast<vtkRectangularSliceRepresentation*>(this->WidgetRep)->setRepresentationPattern(m_pattern);
+  }
 }
 
 //----------------------------------------------------------------------------
 void vtkRectangularSliceWidget::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
+}
+
+//----------------------------------------------------------------------------
+void vtkRectangularSliceWidget::setRepresentationColor(double *color)
+{
+  if (0 == memcmp(m_color, color, sizeof(double)*3))
+    return;
+
+  memcpy(m_color, color, sizeof(double)*3);
+  if (this->WidgetRep)
+  {
+    static_cast<vtkRectangularSliceRepresentation*>(this->WidgetRep)->setRepresentationColor(m_color);
+    static_cast<vtkRectangularSliceRepresentation*>(this->WidgetRep)->setRepresentationPattern(m_pattern);
+  }
+}
+
+//----------------------------------------------------------------------------
+void vtkRectangularSliceWidget::setRepresentationPattern(int pattern)
+{
+  if (m_pattern == pattern)
+    return;
+
+  m_pattern = pattern;
+  if (this->WidgetRep)
+  {
+    static_cast<vtkRectangularSliceRepresentation*>(this->WidgetRep)->setRepresentationColor(m_color);
+    static_cast<vtkRectangularSliceRepresentation*>(this->WidgetRep)->setRepresentationPattern(m_pattern);
+  }
 }

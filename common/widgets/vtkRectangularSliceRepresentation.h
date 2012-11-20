@@ -104,6 +104,10 @@ public:
   // further.
   void SetInteractionState(int state);
 
+  // modify representation methods
+  void setRepresentationColor(double *);
+  void setRepresentationPattern(int);
+
 protected:
   vtkRectangularSliceRepresentation();
   ~vtkRectangularSliceRepresentation();
@@ -170,6 +174,9 @@ private:
   double TopEdge;
   double RightEdge;
   double BottomEdge;
+
+  double m_color[3];
+  int m_pattern;
 };
 
 #endif
