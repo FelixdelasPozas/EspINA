@@ -62,15 +62,7 @@ void RemoveSegmentation::redo()
   {
     removeRelations(segInfo.relations);
     segsToRemove << segInfo.segmentation;
-    ModelItem::Vector segs = segInfo.filter->relatedItems(ModelItem::OUT, CREATELINK);
-    if (segs.size() == 0)
-    {
-//       qDebug() << segInfo.filter->data(Qt::DisplayRole).toString() << "has no segmentations==>Must be deleted";
-      FilterInfo filterInfo(segInfo.filter, segInfo.filter->relations());
-      removeRelations(filterInfo.relations);
-      filtersToRemove << filterInfo.filter;
-      m_removedFilters << filterInfo;
-    }
+    filtersToRemove << removeFilterDependencies(segInfo.filter);
   }
 
   m_model->removeSegmentation(segsToRemove);
@@ -84,10 +76,11 @@ void RemoveSegmentation::redo()
 void RemoveSegmentation::undo()
 {
   foreach(FilterInfo filterInfo, m_removedFilters)
-  {
     m_model->addFilter(filterInfo.filter);
+
+  foreach(FilterInfo filterInfo, m_removedFilters)
     addRelations(filterInfo.relations);
-  }
+
   m_removedFilters.clear();
 
   QList<Segmentation *> segsToAdd;
@@ -112,4 +105,34 @@ void RemoveSegmentation::removeRelations(ModelItem::RelationList list)
 {
   foreach(ModelItem::Relation rel, list)
     m_model->removeRelation(rel.ancestor, rel.succesor, rel.relation);
+}
+
+//------------------------------------------------------------------------
+QList<Filter *> RemoveSegmentation::removeFilterDependencies(Filter* filter)
+{
+  QList<Filter *> filtersToRemove;
+
+  //qDebug() << "Analyzing Filter" << filter->data().toString();
+  ModelItem::Vector consumers = filter->relatedItems(ModelItem::OUT);
+  if (consumers.isEmpty())
+  {
+    //qDebug() << "* Can be removed";
+    filtersToRemove.push_front(filter);
+
+    ModelItem::Vector ancestors = filter->relatedItems(ModelItem::IN);
+
+    FilterInfo filterInfo(filter, filter->relations());
+    m_removedFilters.push_front(filterInfo);
+    removeRelations(filterInfo.relations);
+
+    foreach(ModelItem *item, ancestors)
+    {
+      if (ModelItem::FILTER == item->type())
+        filtersToRemove << removeFilterDependencies(dynamic_cast<Filter *>(item));
+      else
+        Q_ASSERT(false);
+    }
+  }
+
+  return filtersToRemove;
 }

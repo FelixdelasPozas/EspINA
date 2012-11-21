@@ -548,8 +548,6 @@ void RelationshipGraph::write(std::ostream &stream, RelationshipGraph::PrintForm
     default:
       qWarning("Format Unkown");
   };
-
-  
 }
 
 
