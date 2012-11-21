@@ -5,12 +5,11 @@ set (TEST_NAME ${COMPONENT_NAME}_test)
 # MODIFY WHEN ADDING NEW TESTS
 create_test_sourcelist(TESTS  
   ${TEST_NAME}.cpp
-  loadWithoutSegFile.cpp
-  loadModelFromSegFile.cpp
-  saveModelToSegFile.cpp
+  deleteFiltersWhenDeletingSeg.cpp
+  deletePartialFiltersWhenDeletingSeg.cpp
   )
 
-add_executable(${TEST_NAME} ${TESTS}) #helpers.cpp)
+add_executable(${TEST_NAME} ${TESTS})
 target_link_libraries(${TEST_NAME} ${LIB_DEPENDECIES} )
 
 # Remove the test driver source file

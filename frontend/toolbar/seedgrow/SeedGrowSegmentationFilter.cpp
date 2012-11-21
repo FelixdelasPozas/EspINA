@@ -18,7 +18,7 @@
 #include "SeedGrowSegmentationFilter.h"
 #include "FilterInspector.h"
 
-#include "EspinaRegions.h"
+#include "common/EspinaRegions.h"
 #include "common/model/EspinaModel.h"
 
 #include <QDebug>
