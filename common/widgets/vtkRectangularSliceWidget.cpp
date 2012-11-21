@@ -137,10 +137,16 @@ void vtkRectangularSliceWidget::TranslateAction(vtkAbstractWidget *w)
   // Okay, make sure that the pick is in the current renderer
   if ( !self->CurrentRenderer || 
        !self->CurrentRenderer->IsInViewport(X,Y) )
-    {
+  {
     self->WidgetState = vtkRectangularSliceWidget::Start;
     return;
-    }
+  }
+
+  if (!self->Interactor->GetControlKey())
+  {
+    self->WidgetState = vtkRectangularSliceWidget::Start;
+    return;
+  }
 
   // Begin the widget interaction which has the side effect of setting the
   // interaction state.
