@@ -22,11 +22,11 @@
 #include <model/EspinaFactory.h>
 
 #include <itkImageRegionIteratorWithIndex.h>
+#include <itkImageAlgorithm.h>
+
 #include <vtkImageAlgorithm.h>
 
-#include <QApplication>
 #include <QDebug>
-#include <itkImageAlgorithm.h>
 
 const QString ImageLogicFilter::TYPE = "EditorToolBar::ImageLogicFilter";
 
@@ -63,15 +63,30 @@ QVariant ImageLogicFilter::data(int role) const
 //-----------------------------------------------------------------------------
 bool ImageLogicFilter::needUpdate() const
 {
-  //TODO 2012-11-20 Revisar condicion
-  return m_outputs.isEmpty();
+  bool update = Filter::needUpdate();
+
+  if (!update)
+  {
+    Q_ASSERT(m_inputs.size()  == 1);
+    Q_ASSERT(m_outputs.size() == 1);
+    Q_ASSERT(m_outputs[0].volume.IsNotNull());
+
+    itk::TimeStamp inputTimeStamp = m_inputs[0]->GetTimeStamp();
+    for (int i = 1; i < m_inputs.size(); i++)
+    {
+      if (inputTimeStamp < m_inputs[i]->GetTimeStamp())
+        inputTimeStamp = m_inputs[i]->GetTimeStamp();
+    }
+
+    update = m_outputs[0].volume->GetTimeStamp() < inputTimeStamp;
+  }
+
+  return update;
 }
 
 //-----------------------------------------------------------------------------
 void ImageLogicFilter::run() //TODO: Parallelize
 {
-  //TODO 2012-11-20 Quitar dependencias de la gui
-  QApplication::setOverrideCursor(Qt::WaitCursor);
   Q_ASSERT(m_inputs.size() > 1);
 
   m_outputs.clear();
@@ -87,7 +102,6 @@ void ImageLogicFilter::run() //TODO: Parallelize
     default:
       Q_ASSERT(false);
   };
-  QApplication::restoreOverrideCursor();
 
   emit modified(this);
 }

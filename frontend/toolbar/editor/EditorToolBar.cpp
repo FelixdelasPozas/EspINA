@@ -74,6 +74,8 @@ public:
   : m_model(model)
   , m_segmentations(inputs)
   {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+
     foreach(Segmentation *seg, m_segmentations)
     {
       Filter *filter;
@@ -102,6 +104,8 @@ public:
       m_newConnections << Connection(filter, 0);
       m_oldConnections << Connection(seg->filter(), seg->outputNumber());
     }
+
+    QApplication::restoreOverrideCursor();
   }
 
   virtual void redo()

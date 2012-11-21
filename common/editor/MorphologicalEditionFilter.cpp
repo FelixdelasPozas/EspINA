@@ -23,7 +23,6 @@
 #include <model/EspinaFactory.h>
 
 #include <QDebug>
-#include <QApplication>
 
 typedef ModelItem::ArgumentId ArgumentId;
 const ArgumentId MorphologicalEditionFilter::RADIUS = "Radius";
@@ -41,19 +40,17 @@ MorphologicalEditionFilter::MorphologicalEditionFilter(Filter::NamedInputs input
 {
 }
 
-
 //-----------------------------------------------------------------------------
 MorphologicalEditionFilter::~MorphologicalEditionFilter()
 {
-//   qDebug() << "Destroying" << TYPE;
 }
 
 //-----------------------------------------------------------------------------
 bool MorphologicalEditionFilter::needUpdate() const
 {
-  bool update = true;
+  bool update = m_paramModified || Filter::needUpdate();
 
-  if (!m_outputs.isEmpty() && m_outputs[0].isValid() && m_paramModified)
+  if (!update)
   {
     Q_ASSERT(m_namedInputs.size()  == 1);
     Q_ASSERT(m_outputs.size() == 1);

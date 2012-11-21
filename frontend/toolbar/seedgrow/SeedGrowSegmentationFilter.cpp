@@ -22,7 +22,6 @@
 #include "common/model/EspinaModel.h"
 
 #include <QDebug>
-#include <QCryptographicHash>
 #include <QLayout>
 #include <QMessageBox>
 #include <QSpinBox>
@@ -53,7 +52,7 @@ SeedGrowSegmentationFilter::Parameters::Parameters(ModelItem::Arguments &args)
 SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(Filter::NamedInputs inputs,
                                                        ModelItem::Arguments args)
 : Filter       (inputs, args)
-, m_needUpdate (false)
+, m_paramModified (false)
 , m_param      (m_args)
 , m_input      (NULL)
 {
@@ -67,8 +66,7 @@ SeedGrowSegmentationFilter::~SeedGrowSegmentationFilter()
 //-----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::needUpdate() const
 {
-  //TODO 2012-11-20 Revisar
-  return (m_outputs.isEmpty() || m_needUpdate);
+  return  m_paramModified || Filter::needUpdate();
 }
 
 //-----------------------------------------------------------------------------
@@ -90,7 +88,6 @@ void SeedGrowSegmentationFilter::releaseDataFlagOff()
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::run()
 {
-  QApplication::setOverrideCursor(Qt::WaitCursor);
   int voi[6];
   m_param.voi(voi);
 
@@ -180,11 +177,9 @@ void SeedGrowSegmentationFilter::run()
   else
     volume = extractFilter->GetOutput();
 
-  QApplication::restoreOverrideCursor();
-
   m_outputs.clear();
   m_outputs << FilterOutput(this, 0, volume);
-  m_needUpdate = false;
+  m_paramModified = false;
 
   emit modified(this);
 }
@@ -197,7 +192,7 @@ void SeedGrowSegmentationFilter::setLowerThreshold(int th)
     return;
 
   m_param.setLowerThreshold(th);
-  m_needUpdate = true;
+  m_paramModified = true;
 }
 
 //-----------------------------------------------------------------------------
@@ -207,14 +202,14 @@ void SeedGrowSegmentationFilter::setUpperThreshold(int th)
     return;
 
   m_param.setUpperThreshold(th);
-  m_needUpdate = true;
+  m_paramModified = true;
 }
 
 //-----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::setVOI(int VOI[6])
 {
   m_param.setVOI(VOI);
-  m_needUpdate = true;
+  m_paramModified = true;
 }
 
 //-----------------------------------------------------------------------------
@@ -241,7 +236,7 @@ QVariant SeedGrowSegmentationFilter::data(int role) const
 //-----------------------------------------------------------------------------
 bool SeedGrowSegmentationFilter::prefetchFilter()
 {
-  if (m_needUpdate)
+  if (m_paramModified)
     return false;
 
   return Filter::prefetchFilter();

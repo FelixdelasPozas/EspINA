@@ -180,6 +180,8 @@ void RelationshipGraph::removeItem(ModelItem *item)
 //-----------------------------------------------------------------------------
 void RelationshipGraph::updateVertexInformation()
 {
+  int id = 0;
+
   VertexIterator vi, vi_end;
   for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
   {
@@ -209,7 +211,7 @@ void RelationshipGraph::updateVertexInformation()
       {
         Filter *filter = dynamic_cast<Filter *>(item);
         Q_ASSERT(filter);
-        filter->setId(Filter::generateId());
+        filter->setTmpId(id++);
         filter->updateCacheFlags();
         vertex.shape = FILTER_SHAPE;
         break;

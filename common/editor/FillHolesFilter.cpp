@@ -18,7 +18,6 @@
 
 
 #include "FillHolesFilter.h"
-#include <QApplication>
 
 const QString FillHolesFilter::TYPE = "EditorToolBar::FillHolesFilter";
 const QString FillHolesFilter::INPUTLINK = "Input";
@@ -47,15 +46,19 @@ QVariant FillHolesFilter::data(int role) const
 //-----------------------------------------------------------------------------
 bool FillHolesFilter::needUpdate() const
 {
-  bool update = true;
+  bool update = Filter::needUpdate();
 
-  if (!m_outputs.isEmpty())
+  if (!update)
   {
-    Q_ASSERT(m_inputs.size()  == 1);
+    Q_ASSERT(m_namedInputs.size()  == 1);
     Q_ASSERT(m_outputs.size() == 1);
     Q_ASSERT(m_outputs[0].volume.IsNotNull());
 
-    update = m_outputs[0].volume->GetTimeStamp() < m_inputs[0]->GetTimeStamp();
+    if (!m_inputs.isEmpty())
+    {
+      Q_ASSERT(m_inputs.size() == 1);
+      update = m_outputs[0].volume->GetTimeStamp() < m_inputs[0]->GetTimeStamp();
+    }
   }
 
   return update;
@@ -64,26 +67,12 @@ bool FillHolesFilter::needUpdate() const
 //-----------------------------------------------------------------------------
 void FillHolesFilter::run()
 {
-  // TODO 2012-11-20: Quitar los override cursor de los filtros, deberia ser
-  // responsabilidad de la aplicacion el modificarlo
-  QApplication::setOverrideCursor(Qt::WaitCursor);
   Q_ASSERT(m_inputs.size() == 1);
 
   m_filter = FilterType::New();
   m_filter->SetInput(m_inputs[0]);
   m_filter->Update();
-  QApplication::restoreOverrideCursor();
 
   m_outputs.clear();
   m_outputs << FilterOutput(this, 0, m_filter->GetOutput());
-//   if (m_outputs.isEmpty())
-//     m_outputs << output(this, 0, m_filter->GetOutput());
-//   else if (m_outputs.size() == 1)
-//   {
-//     m_outputs[0].volume   = m_filter->GetOutput();
-//     m_outputs[0].isCached = false;
-//     ...
-//   }
-//   else
-//     Q_ASSERT(false);
 }

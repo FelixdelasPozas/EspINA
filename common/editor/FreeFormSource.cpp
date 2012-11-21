@@ -113,5 +113,5 @@ QVariant FreeFormSource::data(int role) const
 //-----------------------------------------------------------------------------
 bool FreeFormSource::needUpdate() const
 {
-  return m_outputs.isEmpty();
+  return Filter::needUpdate();
 }

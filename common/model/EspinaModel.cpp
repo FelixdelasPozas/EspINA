@@ -77,8 +77,6 @@ void EspinaModel::reset()
   }
   setTaxonomy(NULL);
   m_relations->clear();//NOTE: Should we remove every item in the previous blocks?
-  Filter::resetId();
-  m_lastId = 0;
 
   foreach(QDir tmpDir, m_tmpDirs)
   {
@@ -409,19 +407,6 @@ void EspinaModel::removeChannel(Channel *channel)
 }
 
 //------------------------------------------------------------------------
-Channel* EspinaModel::channel(const QString id) const
-{
-  Q_ASSERT(false);
-  foreach(Channel *channel, m_channels)
-  {
-    if (channel->id() == id)
-      return channel;
-  }
-  return NULL;
-}
-
-
-//------------------------------------------------------------------------
 void EspinaModel::addSegmentation(Segmentation *seg)
 {
   Q_ASSERT(m_segmentations.contains(seg) == false);
@@ -553,7 +538,6 @@ void EspinaModel::removeRelation(ModelItem* ancestor, ModelItem* successor, QStr
 //------------------------------------------------------------------------
 void EspinaModel::serializeRelations(std::ostream& stream, RelationshipGraph::PrintFormat format)
 {
-  Filter::resetId();
   m_relations->updateVertexInformation();
   m_relations->write(stream, format);
 }

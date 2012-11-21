@@ -121,8 +121,7 @@ QVariant ContourSource::data(int role) const
 //-----------------------------------------------------------------------------
 bool ContourSource::needUpdate() const
 {
-  //TODO 2012-11-20 Revisar condiciones
-  return m_outputs.isEmpty();
+  return Filter::needUpdate();
 }
 
 //-----------------------------------------------------------------------------

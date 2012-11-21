@@ -113,7 +113,6 @@ public:
   bool isVisible() const {return m_visible;}
 
   /// Model Item Interface
-  virtual QString id() const {return m_args[ID];}
   virtual QVariant data(int role=Qt::DisplayRole) const;
   virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
   virtual ItemType type() const {return ModelItem::CHANNEL;}

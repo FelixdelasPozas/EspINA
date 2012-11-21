@@ -46,24 +46,6 @@ const ArgumentId Filter::INPUTS  = "Inputs";
 const ArgumentId Filter::EDIT    = "Edit"; // Backwards compatibility
 const ArgumentId Filter::CACHED = "Cached";
 
-unsigned int Filter::m_lastId = 0;
-
-//TODO 2012-11-20 Quitar del filtro y mover al EspinaIO, ya que es
-// ahi en el unico sitio en el que se debe utilizar
-//----------------------------------------------------------------------------
-void Filter::resetId()
-{
-  m_lastId = 0;
-}
-
-//TODO 2012-11-20 Quitar del filtro y mover al EspinaIO, ya que es
-// ahi en el unico sitio en el que se debe utilizar
-//----------------------------------------------------------------------------
-QString Filter::generateId()
-{
-  return QString::number(m_lastId++);
-}
-
 //----------------------------------------------------------------------------
 Filter::Filter(Filter::NamedInputs  namedInputs,
                ModelItem::Arguments args)
@@ -80,11 +62,11 @@ Filter::Filter(Filter::NamedInputs  namedInputs,
     if (m_args.contains(EDIT))
       editList = m_args[EDIT].split(",");
 
-    foreach(QString o, cacheList)
+    foreach(QString number, cacheList)
     {
-      FilterOutput cachedOutput(this, o.toInt());
+      FilterOutput cachedOutput(this, number.toInt());
 
-      if (editList.contains(o))
+      if (editList.contains(number))
         cachedOutput.isEdited = true;
 
       m_outputs << cachedOutput;
@@ -425,16 +407,39 @@ Filter::FilterOutput Filter::output(OutputNumber i) const
 //----------------------------------------------------------------------------
 Filter::FilterOutput &Filter::output(OutputNumber i)
 {
-  for(int j = 0; j < m_outputs.size(); j++)
+  bool found = false;
+  int j = 0;
+
+  while (!found && j < m_outputs.size())
   {
     if (m_outputs[j].number == i)
-      return m_outputs[j];
+      found = true;
+    else
+      j++;
   }
 
-  Q_ASSERT(false);
-  FilterOutput fo;
-  return fo;
+  Q_ASSERT(found);
+
+  return m_outputs[j];
 }
+
+//----------------------------------------------------------------------------
+bool Filter::needUpdate() const
+{
+  bool update = true;
+
+  if (!m_outputs.isEmpty())
+  {
+    update = false;
+    foreach(FilterOutput filterOutput, m_outputs)
+    {
+      update = update || !filterOutput.isValid();
+    }
+  }
+
+  return update;
+}
+
 
 //----------------------------------------------------------------------------
 void Filter::update()

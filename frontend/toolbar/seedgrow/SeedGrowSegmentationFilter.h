@@ -147,7 +147,7 @@ protected:
   virtual void run();
 
 private:
-  bool          m_needUpdate;
+  bool          m_paramModified;
   Parameters    m_param;
   EspinaVolume *m_input;
 

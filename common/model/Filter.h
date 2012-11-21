@@ -74,20 +74,14 @@ public:
 
   void setTmpDir(QDir dir) {m_tmpDir = dir;}
 
-  //TODO 2012-11-20 Cambiar setTmpId y eliminar el metodo id del model item
-  // ya que ahora mismo no hay ningun id fijo para cada elemento.
-  void setId(QString id) {m_args[ID] = id;}
+  void setTmpId(int id) {m_args[ID] = QString::number(id);}
   QString tmpId() const {return m_args[ID];}
 
   // Implements Model Item Interface common to filters
   virtual ItemType type() const {return ModelItem::FILTER;}
-  virtual QString id() const {return m_args[ID];}
   virtual void initialize(Arguments args = Arguments()){};
   virtual void initializeExtensions(Arguments args = Arguments()){};
   virtual QString serialize() const;
-
-  static void resetId();
-  static QString generateId();
 
   struct Link
   {
@@ -133,7 +127,9 @@ public:
   /// Convencience method to get the volume associated wit output i
   EspinaVolume *volume(OutputNumber i) {return output(i).volume;}
   /// Determine whether the filter needs to be updated or not
-  virtual bool needUpdate() const {return true;}
+  /// Default implementation will request an update if there are no filter outputs
+  /// or there is at least one invalid output
+  virtual bool needUpdate() const = 0;
   /// Updates filter outputs.
   /// If a snapshot exits it will try to load it from disk
   void update();
@@ -179,7 +175,6 @@ protected:
 
 private:
   QDir m_tmpDir;
-  static unsigned int m_lastId;
 };
 
 #endif // FILTER_H

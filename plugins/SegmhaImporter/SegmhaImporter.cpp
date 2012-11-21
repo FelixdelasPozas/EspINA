@@ -55,10 +55,10 @@ void SegmhaImporter::UndoCommand::redo()
   if (m_segs.isEmpty())
   {
     Segmentation *seg;
-    for (int i=0; i < m_filter->numberOutputs(); i++)
+    foreach(Filter::FilterOutput output, m_filter->outputs())
     {
-      seg = m_model->factory()->createSegmentation(m_filter, i);
-      m_filter->initSegmentation(seg, i);
+      seg = m_model->factory()->createSegmentation(m_filter, output.number);
+      m_filter->initSegmentation(seg, output.number);
       m_segs << seg;
     }
   }
@@ -189,7 +189,7 @@ bool SegmhaImporter::readFile(const QFileInfo file)
   QApplication::setOverrideCursor(Qt::WaitCursor);
   SegmhaImporterFilter *filter = new SegmhaImporterFilter(inputs, args);
   filter->update();
-  if (filter->numberOutputs() == 0)
+  if (filter->outputs().isEmpty())
   {
     delete filter;
     return false;

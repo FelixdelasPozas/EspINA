@@ -57,18 +57,7 @@ QVariant SplitFilter::data(int role) const
 //-----------------------------------------------------------------------------
 bool SplitFilter::needUpdate() const
 {
-  bool update = true;
-
-  if (!m_outputs.isEmpty())
-  {
-    update = false;
-    foreach(FilterOutput o, m_outputs)
-    {
-      update = update || !o.isValid();
-    }
-  }
-
-  return update;
+  return Filter::needUpdate();
 }
 
 //-----------------------------------------------------------------------------

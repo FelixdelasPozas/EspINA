@@ -158,7 +158,7 @@ QVariant MorphologicalExtension::information(QString info) const
 
 //   EspinaVolume::SpacingType spacing = m_seg->volume()->GetSpacing();
   if (info == SIZE)
-      return int(m_statistic->GetNumberOfPixels());//TODO REVIEW: Casting
+      return static_cast<unsigned int>(m_statistic->GetNumberOfPixels());
   if (info == PS)
     return m_statistic->GetPhysicalSize();
   if (info == Cx)

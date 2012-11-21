@@ -57,7 +57,7 @@ QString ChannelReader::serialize() const
 //----------------------------------------------------------------------------
 bool ChannelReader::needUpdate() const
 {
-  return m_outputs.isEmpty();
+  return Filter::needUpdate();
 }
 
 //----------------------------------------------------------------------------

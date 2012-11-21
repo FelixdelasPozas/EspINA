@@ -127,12 +127,6 @@ EspinaVolume *Segmentation::itkVolume()
 }
 
 //------------------------------------------------------------------------
-QString Segmentation::id() const
-{
-  return m_filter->id() + "_" + m_args[OUTPUT];
-}
-
-//------------------------------------------------------------------------
 QVariant Segmentation::data(int role) const
 {
   switch (role)

@@ -103,7 +103,6 @@ public:
   void changeFilter(Filter *filter, Filter::OutputNumber outputNb);
 
   /// Model Item Interface
-  virtual QString id() const;
   virtual QVariant data(int role=Qt::DisplayRole) const;
   virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
   virtual ItemType type() const {return ModelItem::SEGMENTATION;}

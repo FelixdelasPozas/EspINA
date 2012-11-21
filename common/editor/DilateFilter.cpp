@@ -22,10 +22,8 @@
 #include <model/EspinaFactory.h>
 
 #include <QDebug>
-#include <QApplication>
-#include <QSpinBox>
+
 #include <itkConstantPadImageFilter.h>
-#include <itkSmartPointer.h>
 
 const QString DilateFilter::TYPE = "EditorToolBar::DilateFilter";
 
@@ -55,8 +53,6 @@ QVariant DilateFilter::data(int role) const
 //-----------------------------------------------------------------------------
 void DilateFilter::run()
 {
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-
   Q_ASSERT(m_inputs.size() == 1);
   m_input = m_inputs.first();
 
@@ -87,7 +83,6 @@ void DilateFilter::run()
   m_filter->SetObjectValue(SEG_VOXEL_VALUE);
   m_filter->SetReleaseDataFlag(false);
   m_filter->Update();
-  QApplication::restoreOverrideCursor();
 
   m_outputs.clear();
   m_outputs << FilterOutput(this, 0, m_filter->GetOutput());

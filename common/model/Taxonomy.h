@@ -79,7 +79,6 @@ public:
   void removeChild(QString name);
 
   /// Implements ModelItem
-  virtual QString id() const {return qualifiedName();}
   virtual void initialize(Arguments args = Arguments()){};
   virtual void initializeExtensions(Arguments args = Arguments()){};
   virtual QVariant data(int role = Qt::UserRole + 1) const;
