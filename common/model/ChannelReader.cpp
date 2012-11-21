@@ -104,7 +104,7 @@ void ChannelReader::run()
   EspinaVolume::Pointer volume = m_reader->GetOutput();
 
   m_outputs.clear();
-  m_outputs << FilterOutput(this, 0, volume);
+  m_outputs << Output(this, 0, volume);
 }
 
 //----------------------------------------------------------------------------

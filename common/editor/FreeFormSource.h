@@ -77,14 +77,14 @@ public:
                           Arguments args);
   virtual ~FreeFormSource();
 
-  virtual void draw(OutputNumber i,
+  virtual void draw(OutputId oId,
                     vtkImplicitFunction* brush,
                     double bounds[6],
                     EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
-  virtual void draw(OutputNumber i,
+  virtual void draw(OutputId oId,
                     EspinaVolume::IndexType index,
                     EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
-  virtual void draw(OutputNumber i,
+  virtual void draw(OutputId oId,
                     Nm x, Nm y, Nm z,
                     EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
 

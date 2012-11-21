@@ -40,9 +40,13 @@ public:
 
   virtual bool isSelected() const {return m_isSelected;}
   virtual void setSelected(bool value) {m_isSelected = value;}
+
+  virtual const Filter *filter() const = 0;
   virtual Filter *filter() = 0;
-  virtual Filter::OutputNumber  outputNumber() = 0;
+
+  virtual Filter::OutputId  outputId() = 0;
   virtual EspinaVolume *itkVolume() = 0;
+
   /// Volume's voxel's index at given spatial position
   virtual EspinaVolume::IndexType index(Nm x, Nm y, Nm z)
   {

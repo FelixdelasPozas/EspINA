@@ -39,40 +39,51 @@ protected:
   typedef itk::ImageFileReader<EspinaVolume> EspinaVolumeReader;
 
 public:
-  typedef int OutputNumber;
+  typedef int OutputId;
 
   typedef QMap<QString, Filter *> NamedInputs;
-  static const QString NamedInput(const QString &label, OutputNumber i)
-  { return QString("%1_%2").arg(label).arg(i); }
 
-  struct FilterOutput
+  static const QString NamedInput(const QString &label, OutputId oId)
+  { return QString("%1_%2").arg(label).arg(oId); }
+
+  struct Output
   {
-    static const int INVALID_OUTPUT_NUMBER = -1;
+    explicit Output(Filter               *filter = NULL,
+                    OutputId              id     = INVALID_OUTPUT_ID,
+                    EspinaVolume::Pointer volume = EspinaVolume::Pointer())
+    : isCached(false)
+    , isEdited(false)
+    , filter(filter)
+    , id(id)
+    , volume(volume)
+    {}
 
     bool                  isCached;
     bool                  isEdited;
     Filter               *filter;
-    OutputNumber          number;
+    OutputId              id;
     EspinaVolume::Pointer volume;
 
-    bool isValid() const {return NULL != filter && INVALID_OUTPUT_NUMBER != number && NULL != volume.GetPointer(); }
+    bool isValid() const
+    {
+      return NULL != filter
+          && INVALID_OUTPUT_ID < id
+          && NULL != volume.GetPointer();
+    }
 
-    explicit FilterOutput(Filter *f=NULL, OutputNumber n=INVALID_OUTPUT_NUMBER, EspinaVolume::Pointer v =EspinaVolume::Pointer())
-    : isCached(false), isEdited(false), filter(f), number(n), volume(v)
-    {}
+    static const int INVALID_OUTPUT_ID = -1;
   };
 
-  typedef QList<FilterOutput> OutputList;
+  typedef QList<Output> OutputList;
 
   static const ModelItem::ArgumentId ID;
   static const ModelItem::ArgumentId INPUTS;
   static const ModelItem::ArgumentId EDIT;
-  static const ModelItem::ArgumentId CACHED;
 
 public:
   virtual ~Filter(){}
 
-  void setTmpDir(QDir dir) {m_tmpDir = dir;}
+  void setTmpDir(QDir dir);
 
   void setTmpId(int id) {m_args[ID] = QString::number(id);}
   QString tmpId() const {return m_args[ID];}
@@ -86,33 +97,33 @@ public:
   struct Link
   {
     Filter      *filter;
-    OutputNumber outputPort;
+    OutputId outputPort;
   };
 
   ///NOTE: Current implementation will expand the image
   ///      when drawing with value != 0
 
   /// Manually Edit Filter Output
-  virtual void draw(OutputNumber i,
+  virtual void draw(OutputId oId,
                     vtkImplicitFunction *brush,
                     double bounds[6],
                     EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
-  virtual void draw(OutputNumber i,
+  virtual void draw(OutputId oId,
                     EspinaVolume::IndexType index,
                     EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
-  virtual void draw(OutputNumber i,
+  virtual void draw(OutputId oId,
                     Nm x, Nm y, Nm z,
                     EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
-  virtual void draw(OutputNumber i,
+  virtual void draw(OutputId oId,
                     vtkPolyData *contour,
                     Nm slice,
                     PlaneType plane,
                     EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
-  virtual void draw(OutputNumber i,
+  virtual void draw(OutputId oId,
                     EspinaVolume::Pointer volume);
 
   //TODO 2012-11-20 cambiar nombre y usar FilterOutput
-  virtual void restoreOutput(OutputNumber i,
+  virtual void restoreOutput(OutputId oId,
                            EspinaVolume::Pointer volume);
 
   /// Returns filter's outputs
@@ -120,12 +131,12 @@ public:
   /// Returns a list of outputs edited by the user //NOTE: Deberia ser private?
   OutputList editedOutputs() const;
   /// Return whether or not i is an output of the filter
-  bool validOutput(OutputNumber i);
+  bool validOutput(OutputId oId);
   /// Return an output with id i. Ids are not necessarily sequential
-  virtual FilterOutput output(OutputNumber i) const;
-  FilterOutput &output(OutputNumber i);
+  virtual Output output(OutputId oId) const;
+  Output &output(OutputId oId);
   /// Convencience method to get the volume associated wit output i
-  EspinaVolume *volume(OutputNumber i) {return output(i).volume;}
+  EspinaVolume *volume(OutputId oId) {return output(oId).volume;}
   /// Determine whether the filter needs to be updated or not
   /// Default implementation will request an update if there are no filter outputs
   /// or there is at least one invalid output
@@ -164,7 +175,7 @@ protected:
   EspinaVolume::Pointer expandVolume(EspinaVolume::Pointer volume,
                                      EspinaVolume::RegionType region);
   /// Update output isEdited flag and filter EDIT argument
-  void markAsEdited(OutputNumber i);
+  void markAsEdited(OutputId oId);
 
 protected:
   QList<EspinaVolume *> m_inputs;

@@ -84,7 +84,7 @@ public:
       MorphologicalEditionFilter::Parameters params(args);
       params.setRadius(radius);
       inputs[INPUTLINK] = seg->filter();
-      args[Filter::INPUTS] = INPUTLINK + "_" + QString::number(seg->outputNumber());
+      args[Filter::INPUTS] = Filter::NamedInput(INPUTLINK, seg->outputId());
       switch (op)
       {
         case CLOSE:
@@ -102,7 +102,7 @@ public:
       }
       filter->update();
       m_newConnections << Connection(filter, 0);
-      m_oldConnections << Connection(seg->filter(), seg->outputNumber());
+      m_oldConnections << Connection(seg->filter(), seg->outputId());
     }
 
     QApplication::restoreOverrideCursor();

@@ -43,27 +43,41 @@ public:
 
   QStringList supportedFiles() const;
 
+
   void registerFilter(IFilterCreator *creator, const QString filter);
+
   void registerReaderFactory(IFileReader *reader,
                              const QString description,
                              const QStringList extensions);
+
   void registerSampleExtension(SampleExtension::SPtr extension);
+
   void registerChannelExtension(ChannelExtension::SPtr extension);
+
   void registerSegmentationExtension(SegmentationExtension::SPtr extension);
+
   void registerSettingsPanel(ISettingsPanel *panel){m_settingsPanels << panel;}
+
   void registerRenderer(Renderer *renderer);
 
+
   QList<ISettingsPanel *> settingsPanels() const {return m_settingsPanels;}
+
   QMap<QString, Renderer *> renderers() const {return m_renderers;}
+
 
   Filter  *createFilter (const QString filter,
                          Filter::NamedInputs inputs,
                          const ModelItem::Arguments args);
+
   bool readFile(const QString file, const QString ext);
 
+
   Sample  *createSample (const QString id, const QString args = "");
-  Channel *createChannel(Filter *filter, Filter::OutputNumber output);
-  Segmentation *createSegmentation(Filter* parent, Filter::OutputNumber output);
+
+  Channel *createChannel(Filter *filter, Filter::OutputId oId);
+
+  Segmentation *createSegmentation(Filter* parent, Filter::OutputId oId);
 
 
 private:

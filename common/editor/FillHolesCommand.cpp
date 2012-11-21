@@ -34,11 +34,11 @@ FillHolesCommand::FillHolesCommand(SegmentationList inputs, EspinaModel *model)
     Filter::NamedInputs inputs;
     Filter::Arguments args;
     inputs[FillHolesFilter::INPUTLINK] = seg->filter();
-    args[Filter::INPUTS] = FillHolesFilter::INPUTLINK + "_" + QString::number(seg->outputNumber());
+    args[Filter::INPUTS] = Filter::NamedInput(FillHolesFilter::INPUTLINK, seg->outputId());
     Filter *filter = new FillHolesFilter(inputs, args);
     filter->update();
     m_newConnections << Connection(filter, 0);
-    m_oldConnections << Connection(seg->filter(), seg->outputNumber());
+    m_oldConnections << Connection(seg->filter(), seg->outputId());
   }
   QApplication::restoreOverrideCursor();
 }

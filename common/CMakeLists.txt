@@ -128,6 +128,7 @@ set (CORE_SOURCES
   tools/PixelSelector.cpp
   tools/BrushPicker.cpp
   tools/IPicker.cpp
+  tools/PickableItem.cpp
   settings/GeneralSettings.cpp
   undo/AddChannel.cpp
   undo/AddFilter.cpp

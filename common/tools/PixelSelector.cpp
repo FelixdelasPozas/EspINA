@@ -118,12 +118,9 @@ double *BestPixelSelector::getPickPoint(EspinaRenderView *view)
   double bounds[6];
   view->previewBounds(bounds);
 
-  int extent[6] = { bounds[0]/spacing[0],
-                    bounds[1]/spacing[0],
-                    bounds[2]/spacing[1],
-                    bounds[3]/spacing[1],
-                    bounds[4]/spacing[2],
-                    bounds[5]/spacing[2] };
+  int extent[6];
+  for (int i = 0; i < 6; i++)
+    extent[i] = bounds[i]/spacing[i/2];
 
   // limit extent to defined QSize
   PickList tempPickList;

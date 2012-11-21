@@ -47,7 +47,7 @@ ImageLogicCommand::ImageLogicCommand(QList<Segmentation *> segmentations,
   {
     Segmentation *seg = segmentations[i];
     if (i>0) args[Filter::INPUTS].append(",");
-    args[Filter::INPUTS].append(Filter::NamedInput(link(seg), seg->outputNumber()));
+    args[Filter::INPUTS].append(Filter::NamedInput(link(seg), seg->outputId()));
     inputs[link(seg)] = seg->filter();
     m_infoList << SegInfo(seg);
   }

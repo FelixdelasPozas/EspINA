@@ -69,7 +69,7 @@ private:
    * compression.
    * @return If everythin works well it returns true. Otherwise returns false.
    */
-  static bool zipVolume(Filter::FilterOutput output,
+  static bool zipVolume(Filter::Output output,
                         QDir tmpDir,
                         QuaZipFile &outFile);
   static bool zipFile(QString fileName, QByteArray content, QuaZipFile& zFile);

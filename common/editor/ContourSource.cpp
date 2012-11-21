@@ -62,14 +62,14 @@ ContourSource::~ContourSource()
 }
 
 //-----------------------------------------------------------------------------
-void ContourSource::draw(OutputNumber i,
+void ContourSource::draw(OutputId oId,
                          vtkPolyData *contour,
                          Nm slice, PlaneType plane,
                          EspinaVolume::PixelType value)
 {
   double bounds[6] = { 0,0,0,0,0,0 };
 
-  Q_ASSERT(0 == i);
+  Q_ASSERT(0 == oId);
   if (m_outputs.isEmpty())
   {
     // need to create a dummy image to register the filter/action, we'll change it later.
@@ -80,11 +80,11 @@ void ContourSource::draw(OutputNumber i,
     img->SetSpacing(m_param.spacing());
     img->Allocate();
     img->FillBuffer(0);
-    m_outputs << FilterOutput(this, 0, img);
+    m_outputs << Output(this, 0, img);
   }
   else
   {
-    EspinaVolume::Pointer volume = m_outputs[i].volume;
+    EspinaVolume::Pointer volume = m_outputs[oId].volume;
     contour->ComputeBounds();
     contour->GetBounds(bounds);
     if (true == ImageInitializedByFilter)
@@ -100,12 +100,12 @@ void ContourSource::draw(OutputNumber i,
     {
       EspinaVolume::SpacingType spacing = volume->GetSpacing();
       EspinaVolume::RegionType contourRegion = BoundsToRegion(bounds, spacing);
-      m_outputs[i].volume = expandVolume(volume, contourRegion);
+      m_outputs[oId].volume = expandVolume(volume, contourRegion);
     }
 
     vtkPolyData *newContour = this->TransformContour(plane, contour);
     m_contourMap[plane].insert(slice, newContour);
-    Filter::draw(i, newContour, slice, plane);
+    Filter::draw(oId, newContour, slice, plane);
   }
 }
 

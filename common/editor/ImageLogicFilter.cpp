@@ -141,7 +141,7 @@ void ImageLogicFilter::addition()
     }
   }
 
-  m_outputs << FilterOutput(this, 0, volume);
+  m_outputs << Output(this, 0, volume);
 }
 
 void ImageLogicFilter::substraction()
@@ -185,5 +185,5 @@ void ImageLogicFilter::substraction()
     }
   }
 
-  m_outputs << FilterOutput(this, 0, volume);
+  m_outputs << Output(this, 0, volume);
 }

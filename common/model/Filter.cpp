@@ -44,7 +44,37 @@ typedef ModelItem::ArgumentId ArgumentId;
 const ArgumentId Filter::ID      = "ID";
 const ArgumentId Filter::INPUTS  = "Inputs";
 const ArgumentId Filter::EDIT    = "Edit"; // Backwards compatibility
-const ArgumentId Filter::CACHED = "Cached";
+
+//----------------------------------------------------------------------------
+void Filter::setTmpDir(QDir dir)
+{
+  m_tmpDir = dir;
+
+  // Load cached outputs
+  if (m_outputs.isEmpty())
+  {
+    QStringList editList;
+    if (m_args.contains(EDIT))
+      editList = m_args[EDIT].split(",");
+
+    foreach(QString cachedFile, m_tmpDir.entryList())
+    {
+      QString filterIdTag = tmpId() + "_";
+      if (cachedFile.contains(filterIdTag))
+      {
+        QString id = cachedFile.split("_").last();
+        id = id.split(".").first();
+        if (cachedFile.endsWith("mhd"))
+        {
+          Output cachedOutput(this, id.toInt());
+          if (editList.contains(id))
+            cachedOutput.isEdited = true;
+          m_outputs << cachedOutput;
+        }
+      }
+    }
+  }
+}
 
 //----------------------------------------------------------------------------
 Filter::Filter(Filter::NamedInputs  namedInputs,
@@ -54,58 +84,33 @@ Filter::Filter(Filter::NamedInputs  namedInputs,
 {
   if (!m_args.contains(ID))
     m_args[ID] = "-1";
-
-  if (m_args.contains(CACHED))
-  {
-    QStringList cacheList = m_args[CACHED].split(",");
-    QStringList editList;
-    if (m_args.contains(EDIT))
-      editList = m_args[EDIT].split(",");
-
-    foreach(QString number, cacheList)
-    {
-      FilterOutput cachedOutput(this, number.toInt());
-
-      if (editList.contains(number))
-        cachedOutput.isEdited = true;
-
-      m_outputs << cachedOutput;
-    }
-  }
 }
 
 //----------------------------------------------------------------------------
 QString Filter::serialize() const
 {
-  QStringList cachedList, editList;
-  foreach(FilterOutput o, m_outputs)
+  QStringList editList;
+  foreach(Output filterOutput, m_outputs)
   {
-    if (o.isCached)
-    {
-      cachedList << QString::number(o.number);
-      if (o.isEdited)
-        editList << QString::number(o.number);
-    }
+    if (filterOutput.isCached && filterOutput.isEdited)
+      editList << QString::number(filterOutput.id);
   }
 
   if (!editList.isEmpty())
     m_args[EDIT] = editList.join(",");
 
-  if (!cachedList.isEmpty())
-    m_args[CACHED] = cachedList.join(",");
-
   return m_args.serialize();
 }
 
 //----------------------------------------------------------------------------
-void Filter::draw(OutputNumber i,
+void Filter::draw(OutputId oId,
                   vtkImplicitFunction* brush,
                   double bounds[6],
                   EspinaVolume::PixelType value)
 {
-  FilterOutput &drawOutput = output(i);
+  Output &filterOutput = output(oId);
 
-  EspinaVolume::Pointer     volume  = drawOutput.volume;
+  EspinaVolume::Pointer     volume  = filterOutput.volume;
   EspinaVolume::SpacingType spacing = volume->GetSpacing();
   EspinaVolume::RegionType  region  = BoundsToRegion(bounds, spacing);
 
@@ -126,20 +131,20 @@ void Filter::draw(OutputNumber i,
   }
 
   volume->Modified();
-  drawOutput.volume = volume;
+  filterOutput.volume = volume;
 
-  markAsEdited(i);
+  markAsEdited(oId);
 
   emit modified(this);
 }
 
 //----------------------------------------------------------------------------
-void Filter::draw(OutputNumber i,
+void Filter::draw(OutputId oId,
                   EspinaVolume::IndexType index,
                   EspinaVolume::PixelType value)
 {
-  FilterOutput &drawOutput      = output(i);
-  EspinaVolume::Pointer volume  = drawOutput.volume;
+  Output &filterOutput = output(oId);
+  EspinaVolume::Pointer volume = filterOutput.volume;
 
   EspinaVolume::RegionType region;
   region.SetIndex(index);
@@ -153,21 +158,21 @@ void Filter::draw(OutputNumber i,
     volume->SetPixel(index, value);
     volume->Modified();
 
-    drawOutput.volume = volume;// TODO 2012-11-20 Se podria reemplazar por una referencia en la declaracion de volume
+    filterOutput.volume = volume;// TODO 2012-11-20 Se podria reemplazar por una referencia en la declaracion de volume
 
-    markAsEdited(i);
+    markAsEdited(oId);
 
     emit modified(this);
   }
 }
 
 //----------------------------------------------------------------------------
-void Filter::draw(OutputNumber i,
+void Filter::draw(OutputId oId,
                   Nm x, Nm y, Nm z,
                   EspinaVolume::PixelType value)
 {
-  FilterOutput &drawOutput      = output(i);
-  EspinaVolume::Pointer volume  = drawOutput.volume;
+  Output &filterOutput = output(oId);
+  EspinaVolume::Pointer volume  = filterOutput.volume;
 
   if (volume.IsNotNull())
   {
@@ -178,18 +183,18 @@ void Filter::draw(OutputNumber i,
     index[1] = y/spacing[1]+0.5;
     index[2] = z/spacing[2]+0.5;
 
-    draw(i, index, value);
+    draw(oId, index, value);
   }
 }
 
 //----------------------------------------------------------------------------
-void Filter::draw(OutputNumber i,
+void Filter::draw(OutputId oId,
                   vtkPolyData *contour,
                   Nm slice, PlaneType plane,
       EspinaVolume::PixelType value)
 {
-  FilterOutput &drawOutput      = output(i);
-  EspinaVolume::Pointer volume  = drawOutput.volume;
+  Output &filterOutput = output(oId);
+  EspinaVolume::Pointer volume  = filterOutput.volume;
 
   int extent[6];
   VolumeExtent(volume, extent);
@@ -306,28 +311,28 @@ void Filter::draw(OutputNumber i,
   }
 
   volume->Modified();
-  drawOutput.volume = volume;
+  filterOutput.volume = volume;
 
-  markAsEdited(i);
+  markAsEdited(oId);
 
   emit modified(this);
 }
 
 //----------------------------------------------------------------------------
-void Filter::draw(OutputNumber i,
+void Filter::draw(OutputId oId,
                   EspinaVolume::Pointer volume)
 {
-  FilterOutput &drawOutput         = output(i);
-  EspinaVolume::Pointer oldVolume  = drawOutput.volume;
+  Output &filterOutput = output(oId);
+  EspinaVolume::Pointer filterVolume = filterOutput.volume;
 
   EspinaVolume::RegionType region = NormalizedRegion(volume);
-  oldVolume = expandVolume(oldVolume, region);
+  filterVolume = expandVolume(filterVolume, region);
 
-  EspinaVolume::RegionType inputRegion  = VolumeRegion(volume,    region);
-  EspinaVolume::RegionType outputRegion = VolumeRegion(oldVolume, region);
+  EspinaVolume::RegionType inputRegion  = VolumeRegion(volume,       region);
+  EspinaVolume::RegionType outputRegion = VolumeRegion(filterVolume, region);
 
-  itk::ImageRegionIteratorWithIndex<EspinaVolume> it(volume,    inputRegion);
-  itk::ImageRegionIteratorWithIndex<EspinaVolume> ot(oldVolume, outputRegion);
+  itk::ImageRegionIteratorWithIndex<EspinaVolume> it(volume,       inputRegion);
+  itk::ImageRegionIteratorWithIndex<EspinaVolume> ot(filterVolume, outputRegion);
 
   it.GoToBegin();
   ot.GoToBegin();
@@ -336,22 +341,23 @@ void Filter::draw(OutputNumber i,
     ot.Set(it.Get());
   }
 
-  oldVolume->Modified();
-  drawOutput.volume = oldVolume;
+  filterVolume->Modified();
+  filterOutput.volume = filterVolume;
 
-  markAsEdited(i);
+  markAsEdited(oId);
 
   emit modified(this);
 }
 
 //----------------------------------------------------------------------------
-void Filter::restoreOutput(OutputNumber i, EspinaVolume::Pointer volume)
+void Filter::restoreOutput(OutputId oId, EspinaVolume::Pointer volume)
 {
-  FilterOutput &drawOutput = output(i);
-  drawOutput.volume = volume;
-  drawOutput.volume->Modified();
+  Output &filterOutput = output(oId);
 
-  markAsEdited(i);
+  filterOutput.volume = volume;
+  filterOutput.volume ->Modified();
+
+  markAsEdited(oId);
 
   emit modified(this);
 }
@@ -361,26 +367,26 @@ Filter::OutputList Filter::editedOutputs() const
 {
   OutputList res;
 
-  foreach(FilterOutput output, m_outputs)
+  foreach(Output filterOutput, m_outputs)
   {
-    if (output.isEdited)
-      res << output;
+    if (filterOutput.isEdited)
+      res << filterOutput;
   }
 
   return res;
 }
 
 //----------------------------------------------------------------------------
-bool Filter::validOutput(Filter::OutputNumber i)
+bool Filter::validOutput(Filter::OutputId oId)
 {
   bool res = false;
-  int j = 0;
+  int i = 0;
 
-  while (!res && j < m_outputs.size())
+  while (!res && i < m_outputs.size())
   {
-    if (m_outputs[j].number == i)
+    if (m_outputs[i].id == oId)
       res = true;
-    j++;
+    i++;
   }
 
   return res;
@@ -388,15 +394,15 @@ bool Filter::validOutput(Filter::OutputNumber i)
 }
 
 //----------------------------------------------------------------------------
-Filter::FilterOutput Filter::output(OutputNumber i) const
+Filter::Output Filter::output(OutputId oId) const
 {
-  FilterOutput res;
+  Output res;
 
-  foreach(FilterOutput output, m_outputs)
+  foreach(Output filterOutput, m_outputs)
   {
-    if (output.number == i)
+    if (filterOutput.id == oId)
     {
-      res = output;
+      res = filterOutput;
       break;
     }
   }
@@ -405,22 +411,22 @@ Filter::FilterOutput Filter::output(OutputNumber i) const
 }
 
 //----------------------------------------------------------------------------
-Filter::FilterOutput &Filter::output(OutputNumber i)
+Filter::Output &Filter::output(OutputId oId)
 {
   bool found = false;
-  int j = 0;
+  int i = 0;
 
-  while (!found && j < m_outputs.size())
+  while (!found && i < m_outputs.size())
   {
-    if (m_outputs[j].number == i)
+    if (m_outputs[i].id == oId)
       found = true;
     else
-      j++;
+      i++;
   }
 
   Q_ASSERT(found);
 
-  return m_outputs[j];
+  return m_outputs[i];
 }
 
 //----------------------------------------------------------------------------
@@ -431,7 +437,7 @@ bool Filter::needUpdate() const
   if (!m_outputs.isEmpty())
   {
     update = false;
-    foreach(FilterOutput filterOutput, m_outputs)
+    foreach(Output filterOutput, m_outputs)
     {
       update = update || !filterOutput.isValid();
     }
@@ -439,7 +445,6 @@ bool Filter::needUpdate() const
 
   return update;
 }
-
 
 //----------------------------------------------------------------------------
 void Filter::update()
@@ -488,8 +493,8 @@ bool Filter::prefetchFilter()
 
   for(int i = 0; i < m_outputs.size(); i++)
   {
-    FilterOutput &output = m_outputs[i];
-    QString tmpFile = QString("%1_%2.mhd").arg(tmpId()).arg(output.number);
+    Output &output = m_outputs[i];
+    QString tmpFile = QString("%1_%2.mhd").arg(tmpId()).arg(output.id);
     reader = tmpFileReader(tmpFile);
     if (reader.IsNull())
       return false;
@@ -561,15 +566,15 @@ EspinaVolume::Pointer Filter::expandVolume(EspinaVolume::Pointer volume,
 }
 
 //----------------------------------------------------------------------------
-void Filter::markAsEdited(OutputNumber i)
+void Filter::markAsEdited(OutputId oId)
 {
-  output(i).isEdited = true;
+  output(oId).isEdited = true;
 
   QStringList editedOutputList;
-  foreach(FilterOutput output, m_outputs)
+  foreach(Output filterOutput, m_outputs)
   {
-    if (output.isEdited)
-      editedOutputList << QString::number(output.number);
+    if (filterOutput.isEdited)
+      editedOutputList << QString::number(filterOutput.id);
   }
 
   m_args[EDIT] = editedOutputList.join(",");
@@ -589,11 +594,11 @@ void Filter::updateCacheFlags()
   {
     QStringList input = namedInput.split("_");
     Filter *filter = m_namedInputs[input[0]];
-    OutputNumber outputNumber = input[1].toInt();
+    OutputId oId = input[1].toInt();
 
-    if (filter->validOutput(outputNumber))
+    if (filter->validOutput(oId))
     {
-      FilterOutput &output = filter->output(input[1].toInt());
+      Output &output = filter->output(oId);
       output.isCached = output.isCached || output.isEdited;
     }
   }

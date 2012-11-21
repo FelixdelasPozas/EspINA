@@ -55,10 +55,10 @@ void SegmhaImporter::UndoCommand::redo()
   if (m_segs.isEmpty())
   {
     Segmentation *seg;
-    foreach(Filter::FilterOutput output, m_filter->outputs())
+    foreach(Filter::Output output, m_filter->outputs())
     {
-      seg = m_model->factory()->createSegmentation(m_filter, output.number);
-      m_filter->initSegmentation(seg, output.number);
+      seg = m_model->factory()->createSegmentation(m_filter, output.id);
+      m_filter->initSegmentation(seg, output.id);
       m_segs << seg;
     }
   }

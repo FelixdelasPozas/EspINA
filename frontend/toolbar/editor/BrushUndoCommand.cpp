@@ -42,7 +42,7 @@ EspinaVolume::Pointer backup(EspinaVolume* volume)
 
 //-----------------------------------------------------------------------------
 Brush::DrawCommand::DrawCommand(Filter* source,
-                                Filter::OutputNumber output,
+                                Filter::OutputId output,
                                 BrushShapeList brushes,
                                 EspinaVolume::PixelType value)
 : m_source(source)
@@ -99,7 +99,7 @@ void Brush::DrawCommand::undo()
 
 //-----------------------------------------------------------------------------
 Brush::SnapshotCommand::SnapshotCommand(Filter* source,
-                                Filter::OutputNumber output)
+                                Filter::OutputId output)
 : m_source(source)
 , m_output(output)
 {

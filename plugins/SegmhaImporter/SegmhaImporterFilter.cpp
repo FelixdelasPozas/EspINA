@@ -117,8 +117,8 @@ QVariant SegmhaImporterFilter::data(int role) const
 QString SegmhaImporterFilter::serialize() const
 {
   QStringList blockList;
-  foreach(FilterOutput filterOutput, m_outputs)
-    blockList << QString::number(filterOutput.number);
+  foreach(Output filterOutput, m_outputs)
+    blockList << QString::number(filterOutput.id);
 
   m_args[BLOCKS] = blockList.join(",");
   return Filter::serialize();
@@ -240,7 +240,7 @@ void SegmhaImporterFilter::run()
   qDebug() << "Number of Label Objects" << labelMap->GetNumberOfLabelObjects();
 
   LabelObjectType * object;
-  OutputNumber id = 0;
+  OutputId id = 0;
   foreach(SegmentationObject seg, metaData)
   {
     try
@@ -263,7 +263,7 @@ void SegmhaImporterFilter::run()
       label2volume->SetInput(segLabelMap);
       label2volume->Update();
 
-      FilterOutput segOutput(this, id++, label2volume->GetOutput());
+      Output segOutput(this, id++, label2volume->GetOutput());
       segOutput.volume->DisconnectPipeline();
       m_outputs << segOutput;
       m_taxonomies << taxonomies[seg.taxonomyId-1];
@@ -276,13 +276,13 @@ void SegmhaImporterFilter::run()
 }
 
 //-----------------------------------------------------------------------------
-TaxonomyElement* SegmhaImporterFilter::taxonomy(OutputNumber i)
+TaxonomyElement* SegmhaImporterFilter::taxonomy(OutputId i)
 {
   return m_taxonomies.value(i, NULL);
 }
 
 //-----------------------------------------------------------------------------
-void SegmhaImporterFilter::initSegmentation(Segmentation* seg, Filter::OutputNumber i)
+void SegmhaImporterFilter::initSegmentation(Segmentation* seg, Filter::OutputId i)
 {
   seg->setTaxonomy(taxonomy(i));
 

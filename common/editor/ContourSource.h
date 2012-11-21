@@ -59,8 +59,10 @@ public:
                           Arguments args);
   virtual ~ContourSource();
 
-  virtual void draw(OutputNumber i, vtkPolyData *contour, Nm slice, PlaneType plane,
-        EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+  virtual void draw(OutputId oId,
+                    vtkPolyData *contour,
+                    Nm slice, PlaneType plane,
+                    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
 
   /// Implements Model Item Interface
   virtual QVariant data(int role=Qt::DisplayRole) const;
@@ -73,8 +75,10 @@ public:
 
   virtual QWidget* createFilterInspector(QUndoStack* undoStack, ViewManager* vm);
 
+
 protected:
   virtual void run(){}
+
 
 private:
   friend class ContourSourceInspector;

@@ -178,7 +178,7 @@ void SeedGrowSegmentationFilter::run()
     volume = extractFilter->GetOutput();
 
   m_outputs.clear();
-  m_outputs << FilterOutput(this, 0, volume);
+  m_outputs << Output(this, 0, volume);
   m_paramModified = false;
 
   emit modified(this);

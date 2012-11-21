@@ -345,7 +345,7 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
     params.setVOI(voiExtent);
     params.setCloseValue(m_settings->closing());
     inputs[SeedGrowSegmentationFilter::INPUTLINK] = channel->filter();
-    args[Filter::INPUTS] = Filter::NamedInput(SeedGrowSegmentationFilter::INPUTLINK, channel->outputNumber());
+    args[Filter::INPUTS] = Filter::NamedInput(SeedGrowSegmentationFilter::INPUTLINK, channel->outputId());
     SeedGrowSegmentationFilter *filter;
     filter = new SeedGrowSegmentationFilter(inputs, args);
     filter->update();

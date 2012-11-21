@@ -115,7 +115,7 @@ void SplitFilter::run()
   if (!isEmpty1 && !isEmpty2)
   {
     for (int i = 0; i < 2; i++)
-      m_outputs << FilterOutput(this, i, strechToFitContent(volumes[i]));
+      m_outputs << Output(this, i, strechToFitContent(volumes[i]));
 
     emit modified(this);
   }

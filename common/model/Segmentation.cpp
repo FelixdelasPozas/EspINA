@@ -41,7 +41,7 @@ Segmentation::SArguments::SArguments(const ModelItem::Arguments args)
 : Arguments(args)
 {
   m_number = args[NUMBER].toInt();
-  m_outputNumber = args[OUTPUT].toInt();
+  m_outputId = args[OUTPUT].toInt();
 }
 
 //-----------------------------------------------------------------------------
@@ -55,7 +55,7 @@ QString Segmentation::SArguments::serialize() const
 }
 
 //-----------------------------------------------------------------------------
-Segmentation::Segmentation(Filter* filter, Filter::OutputNumber outputNb)
+Segmentation::Segmentation(Filter* filter, Filter::OutputId oId)
 : m_filter(filter)
 , m_taxonomy(NULL)
 , m_isVisible(true)
@@ -66,25 +66,25 @@ Segmentation::Segmentation(Filter* filter, Filter::OutputNumber outputNb)
   //   memset(m_bounds, 0, 6*sizeof(double));
   //   m_bounds[1] = -1;
   m_args.setNumber(0);
-  m_args.setOutputNumber(outputNb);
+  m_args.setOutputId(oId);
   m_args[TAXONOMY] = "Unknown";
   connect(filter, SIGNAL(modified(ModelItem *)),
           this, SLOT(notifyModification()));
 }
 
 //------------------------------------------------------------------------
-void Segmentation::changeFilter(Filter* filter, Filter::OutputNumber outputNb)
+void Segmentation::changeFilter(Filter* filter, Filter::OutputId oId)
 {
   disconnect(m_filter, SIGNAL(modified(ModelItem *)),
              this, SLOT(notifyModification()));
 //   m_filter->releaseDataFlagOn();
 //   filter->releaseDataFlagOff();
-  Filter::FilterOutput output = filter->output(outputNb);
+  Filter::Output output = filter->output(oId);
   filter->update();
   itk2vtk->SetInput(output.volume);
   itk2vtk->Update();
   m_filter = filter;
-  m_args.setOutputNumber(outputNb);
+  m_args.setOutputId(oId);
   connect(filter, SIGNAL(modified(ModelItem *)),
           this, SLOT(notifyModification()));
 
@@ -118,12 +118,13 @@ Segmentation::~Segmentation()
 //------------------------------------------------------------------------
 EspinaVolume *Segmentation::itkVolume() const
 {
-  return m_filter->volume(m_args.outputNumber());
+  return m_filter->volume(m_args.outputId());
 }
+
 //------------------------------------------------------------------------
 EspinaVolume *Segmentation::itkVolume()
 {
-  return m_filter->volume(m_args.outputNumber());
+  return m_filter->volume(m_args.outputId());
 }
 
 //------------------------------------------------------------------------
@@ -212,7 +213,7 @@ void Segmentation::initializeExtensions(ModelItem::Arguments args)
 //------------------------------------------------------------------------
 void Segmentation::updateCacheFlag()
 {
-  m_filter->output(m_args.outputNumber()).isCached = true;
+  m_filter->output(m_args.outputId()).isCached = true;
 }
 
 //------------------------------------------------------------------------
@@ -234,10 +235,10 @@ Channel* Segmentation::channel()
 //------------------------------------------------------------------------
 void Segmentation::notifyModification(bool force)
 {
-  m_filter->volume(m_args.outputNumber())->Update();
+  m_filter->volume(m_args.outputId())->Update();
   if (itk2vtk)
   {
-    itk2vtk->SetInput(m_filter->volume(m_args.outputNumber()));
+    itk2vtk->SetInput(m_filter->volume(m_args.outputId()));
     itk2vtk->Update();
   }
   ModelItem::notifyModification(force);
@@ -330,7 +331,7 @@ vtkAlgorithmOutput* Segmentation::vtkVolume()
     //qDebug() << "Converting from ITK to VTK";
     itk2vtk = itk2vtkFilterType::New();
     itk2vtk->ReleaseDataFlagOn();
-    itk2vtk->SetInput(m_filter->volume(m_args.outputNumber()));
+    itk2vtk->SetInput(m_filter->volume(m_args.outputId()));
     itk2vtk->Update();
   }
 

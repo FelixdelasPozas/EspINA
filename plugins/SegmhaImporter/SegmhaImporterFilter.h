@@ -108,7 +108,7 @@ public:
   /// Return full taxonomy contained in segmha's meta-data
   Taxonomy *taxonomy() {return m_taxonomy;}
   /// Return the taxonomy associated with the i-th output
-  TaxonomyElement *taxonomy(OutputNumber i);
+  TaxonomyElement *taxonomy(OutputId i);
   /// Return Counting Region Definition
   void countingRegion(double inclusive[3], double exclusive[3])
   {
@@ -116,7 +116,7 @@ public:
     memcpy(exclusive, m_exclusive, 3*sizeof(Nm));
   }
 
-  void initSegmentation(Segmentation *seg, OutputNumber i);
+  void initSegmentation(Segmentation *seg, OutputId i);
 
 protected:
   virtual void run();

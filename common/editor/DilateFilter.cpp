@@ -85,7 +85,7 @@ void DilateFilter::run()
   m_filter->Update();
 
   m_outputs.clear();
-  m_outputs << FilterOutput(this, 0, m_filter->GetOutput());
+  m_outputs << Output(this, 0, m_filter->GetOutput());
 
   emit modified(this);
 }
