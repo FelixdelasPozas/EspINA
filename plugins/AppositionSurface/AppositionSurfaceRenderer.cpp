@@ -130,7 +130,9 @@ bool AppositionSurfaceRenderer::updateItem(ModelItem* item)
   if (ModelItem::SEGMENTATION != item->type())
     return false;
 
-  Q_ASSERT(m_representations.contains(item));
+  if (!m_representations.contains(item))
+    return false;
+
   Q_ASSERT(m_state.contains(item));
 
   bool updated = false;

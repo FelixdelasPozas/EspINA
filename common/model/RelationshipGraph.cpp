@@ -217,6 +217,15 @@ void RelationshipGraph::updateVertexInformation()
       default:
         Q_ASSERT(false);
     }
+  }
+  // We need to do it in two loops to ensure cache flags are set properly
+  for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
+  {
+    VertexProperty &vertex = m_graph[*vi];
+    ModelItem *item = vertex.item;
+    if (!item)
+      continue;
+    Q_ASSERT(item);
     vertex.name = item->data(Qt::DisplayRole).toString().toStdString();
     vertex.args = item->serialize().toStdString();
   }

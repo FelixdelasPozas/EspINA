@@ -609,10 +609,10 @@ bool EspinaModel::loadSerialization(istream& stream,
           Q_ASSERT(ModelItem::FILTER == item->type());
           Filter *filter =  dynamic_cast<Filter *>(item);
           filter->update();
-          Channel *channel = m_factory->createChannel(filter, link[1].toUInt());
+          Channel *channel = m_factory->createChannel(filter, link[1].toInt());
           channel->initialize(args);
-	  if (channel->itkVolume() == NULL)
-	    return false;
+          if (channel->itkVolume() == NULL)
+            return false;
           addChannel(channel);
           nonInitializedItems << NonInitilizedItem(channel, extArgs);
           input->setItem(v.vId, channel);

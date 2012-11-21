@@ -136,7 +136,7 @@ void PlanarSplitTool::splitSegmentation()
   Filter::Arguments   args;
 
   inputs[SplitFilter::INPUTLINK] = seg->filter();
-  args[Filter::INPUTS] = args.namedInput(SplitFilter::INPUTLINK, seg->outputNumber());
+  args[Filter::INPUTS] = Filter::NamedInput(SplitFilter::INPUTLINK, seg->outputNumber());
 
   SplitFilter *filter = new SplitFilter(inputs, args);
   filter->setStencil(m_widget->getStencilForVolume(seg->itkVolume()));

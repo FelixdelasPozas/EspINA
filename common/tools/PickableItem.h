@@ -20,14 +20,13 @@
 #ifndef SELECTABLEITEM_H
 #define SELECTABLEITEM_H
 
-//TODO Rename file
 #include <common/model/ModelItem.h>
 
 #include "common/EspinaTypes.h"
+#include "common/model/Filter.h"
 
 #include <QIcon>
 
-class Filter;
 class vtkAlgorithmOutput;
 
 class PickableItem
@@ -41,8 +40,8 @@ public:
 
   virtual bool isSelected() const {return m_isSelected;}
   virtual void setSelected(bool value) {m_isSelected = value;}
-  virtual Filter       *filter() = 0;
-  virtual OutputNumber  outputNumber() = 0;
+  virtual Filter *filter() = 0;
+  virtual Filter::OutputNumber  outputNumber() = 0;
   virtual EspinaVolume *itkVolume() = 0;
   /// Volume's voxel's index at given spatial position
   virtual EspinaVolume::IndexType index(Nm x, Nm y, Nm z)

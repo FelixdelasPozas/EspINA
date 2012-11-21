@@ -31,7 +31,7 @@ class Brush::DrawCommand
 {
 public:
   explicit DrawCommand(Filter *source,
-                       OutputNumber output,
+                       Filter::OutputNumber output,
                        BrushShapeList brushes,
                        EspinaVolume::PixelType value);
   virtual void redo();
@@ -39,7 +39,7 @@ public:
 
 private:
   Filter        *m_source;
-  OutputNumber   m_output;
+  Filter::OutputNumber   m_output;
   BrushShapeList m_brushes;
 
   double m_strokeBounds[6];
@@ -54,14 +54,14 @@ class Brush::SnapshotCommand
 {
 public:
   explicit SnapshotCommand(Filter *source,
-                       OutputNumber output);
+                       Filter::OutputNumber output);
 
   virtual void redo();
   virtual void undo();
 
 private:
   Filter      *m_source;
-  OutputNumber m_output;
+  Filter::OutputNumber m_output;
 
   EspinaVolume::Pointer m_prevVolume;
   EspinaVolume::Pointer m_newVolume;

@@ -93,7 +93,7 @@ protected:
 
   Filter       *m_currentSource;
   Segmentation *m_currentSeg;
-  OutputNumber  m_currentOutput;
+  Filter::OutputNumber  m_currentOutput;
 
 private:
   SnapshotCommand *m_drawCommand;

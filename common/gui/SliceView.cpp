@@ -864,7 +864,9 @@ void SliceView::removeSegmentation(Segmentation* seg)
 //-----------------------------------------------------------------------------
 bool SliceView::updateSegmentation(Segmentation* seg)
 {
-  Q_ASSERT(m_segmentationReps.contains(seg));
+  if (!m_segmentationReps.contains(seg))
+    return false;
+
   SliceRep &rep = m_segmentationReps[seg];
 
   bool updated = false;

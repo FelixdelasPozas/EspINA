@@ -78,7 +78,7 @@ public:
       return (*this)[COLOR].toFloat();
     }
 
-    void setOutputNumber(OutputNumber number)
+    void setOutputNumber(Filter::OutputNumber number)
     {
       (*this)[VOLUME] = QString("%1_%2")
                         .arg(VOLUMELINK)
@@ -86,13 +86,13 @@ public:
       m_outputNumber = number;
     }
 
-    OutputNumber outputNumber() const
+    Filter::OutputNumber outputNumber() const
     {
       return m_outputNumber;
     }
 
   private:
-    OutputNumber m_outputNumber;
+    Filter::OutputNumber m_outputNumber;
     //double m_spacing[3];
   };
 
@@ -131,7 +131,7 @@ public:
 
   /// Selectable Item Interface
   virtual Filter* filter();
-  virtual OutputNumber outputNumber();
+  virtual Filter::OutputNumber outputNumber();
   virtual EspinaVolume *itkVolume();
 //   virtual EspinaVolume::IndexType index(Nm x, Nm y, Nm z);
 
@@ -146,7 +146,7 @@ public slots:
   virtual void notifyModification(bool force = false);
 
 private:
-  explicit Channel(Filter *filter, OutputNumber output);
+  explicit Channel(Filter *filter, Filter::OutputNumber output);
   friend class EspinaFactory;
 private:
   bool   m_visible;

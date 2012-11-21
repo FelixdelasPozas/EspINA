@@ -197,7 +197,7 @@ EspinaIO::STATUS EspinaIO::loadSegFile(QFileInfo file,
 }
 
 //-----------------------------------------------------------------------------
-bool EspinaIO::zipVolume(FilterOutput output,
+bool EspinaIO::zipVolume(Filter::FilterOutput output,
                          QDir tmpDir,
                          QuaZipFile& outFile)
 {
@@ -279,12 +279,16 @@ EspinaIO::STATUS EspinaIO::saveSegFile(QFileInfo file, EspinaModel *model)
 
   foreach(Filter *filter, model->filters())
   {
-    OutputList outputs = filter->outputs();
+    Filter::OutputList outputs = filter->outputs();
     qDebug() << "Making" << filter->data().toString() << "snapshot";
-    foreach(FilterOutput output, outputs)
+    foreach(Filter::FilterOutput output, outputs)
     {
       if (output.isCached)
-        zipVolume(output, tmpDir, outFile);
+      {
+        filter->update(); // TODO 2012-11-20 Recuperar los .mhd editados sin tener q cargarlos del filtro...
+        //NOTE: In case the filter is updated the output is not (it's just a copy of the old one)
+        zipVolume(filter->output(output.number), tmpDir, outFile);
+      }
     }
   }
 

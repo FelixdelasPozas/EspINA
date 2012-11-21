@@ -50,7 +50,7 @@ const QString Channel::NAME       = "Name";
 const QString Channel::VOLUMETRIC = "Volumetric";
 
 //-----------------------------------------------------------------------------
-Channel::Channel(Filter* filter, OutputNumber outputNumber)
+Channel::Channel(Filter* filter, Filter::OutputNumber outputNumber)
 : m_visible(true)
 , m_filter(filter)
 {
@@ -70,7 +70,7 @@ Filter* Channel::filter()
 }
 
 //------------------------------------------------------------------------
-OutputNumber Channel::outputNumber()
+Filter::OutputNumber Channel::outputNumber()
 {
   return m_args.outputNumber();
 }

@@ -137,7 +137,7 @@ Sample *EspinaFactory::createSample(const QString id, const QString args)
 
 //------------------------------------------------------------------------
 Channel* EspinaFactory::createChannel(Filter *filter,
-                                      OutputNumber outputNumber)
+                                      Filter::OutputNumber outputNumber)
 {
   Channel *channel = new Channel(filter, outputNumber);
   foreach(ChannelExtension::SPtr ext, m_channelExtensions)
@@ -147,7 +147,8 @@ Channel* EspinaFactory::createChannel(Filter *filter,
 }
 
 //------------------------------------------------------------------------
-Segmentation *EspinaFactory::createSegmentation(Filter* parent, OutputNumber output)
+Segmentation *EspinaFactory::createSegmentation(Filter* parent,
+                                                Filter::OutputNumber output)
 {
 //   std::cout << "Factory is going to create a segmentation for vtkObject: " << vtkRef->id().toStdString() << std::endl;
   Segmentation *seg = new Segmentation(parent, output);

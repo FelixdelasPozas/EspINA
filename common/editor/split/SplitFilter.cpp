@@ -57,8 +57,18 @@ QVariant SplitFilter::data(int role) const
 //-----------------------------------------------------------------------------
 bool SplitFilter::needUpdate() const
 {
-  // TODO 2012-11-20 Comprobar condicion
-  return m_outputs.isEmpty();
+  bool update = true;
+
+  if (!m_outputs.isEmpty())
+  {
+    update = false;
+    foreach(FilterOutput o, m_outputs)
+    {
+      update = update || !o.isValid();
+    }
+  }
+
+  return update;
 }
 
 //-----------------------------------------------------------------------------

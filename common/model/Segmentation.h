@@ -28,7 +28,6 @@
 #include <common/extensions/SegmentationExtension.h>
 #include "common/tools/PickableItem.h"
 #include "common/model/Taxonomy.h"
-#include "Filter.h"
 #include <itkImageToVTKImageFilter.h>
 #include <vtkAlgorithmOutput.h>
 #include <itkCommand.h>
@@ -69,13 +68,13 @@ private:
     }
     unsigned int number() const {return m_number;}
 
-    void setOutputNumber(OutputNumber outputNb)
+    void setOutputNumber(Filter::OutputNumber outputNb)
     {
       m_outputNumber = outputNb;
       (*this)[OUTPUT] = QString::number(outputNb);
     }
 
-    OutputNumber outputNumber() const {return m_outputNumber;}
+    Filter::OutputNumber outputNumber() const {return m_outputNumber;}
 
     void addUser(const QString &user)
     {
@@ -95,13 +94,13 @@ private:
   };
 
 public:
-  explicit Segmentation(Filter *filter, OutputNumber outputNb);
+  explicit Segmentation(Filter *filter, Filter::OutputNumber outputNb);
   virtual ~Segmentation();
 
   Filter *filter() const {return m_filter;}
   unsigned int outputNumber() const {return m_args.outputNumber();}
 
-  void changeFilter(Filter *filter, unsigned int outputNb);
+  void changeFilter(Filter *filter, Filter::OutputNumber outputNb);
 
   /// Model Item Interface
   virtual QString id() const;
@@ -120,7 +119,7 @@ public:
 
   /// Selectable Item Interface
   virtual Filter* filter(){return m_filter;}
-  virtual OutputNumber outputNumber() {return m_args.outputNumber();}
+  virtual Filter::OutputNumber outputNumber() {return m_args.outputNumber();}
   virtual EspinaVolume *itkVolume() const;
   virtual EspinaVolume *itkVolume();
 

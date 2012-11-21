@@ -62,8 +62,8 @@ public:
   bool readFile(const QString file, const QString ext);
 
   Sample  *createSample (const QString id, const QString args = "");
-  Channel *createChannel(Filter *filter, OutputNumber output);
-  Segmentation *createSegmentation(Filter* parent, OutputNumber output);
+  Channel *createChannel(Filter *filter, Filter::OutputNumber output);
+  Segmentation *createSegmentation(Filter* parent, Filter::OutputNumber output);
 
 
 private:

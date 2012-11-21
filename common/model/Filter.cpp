@@ -44,7 +44,7 @@ typedef ModelItem::ArgumentId ArgumentId;
 const ArgumentId Filter::ID      = "ID";
 const ArgumentId Filter::INPUTS  = "Inputs";
 const ArgumentId Filter::EDIT    = "Edit"; // Backwards compatibility
-const ArgumentId Filter::OUTPUTS = "Outputs";
+const ArgumentId Filter::CACHED = "Cached";
 
 unsigned int Filter::m_lastId = 0;
 
@@ -72,134 +72,47 @@ Filter::Filter(Filter::NamedInputs  namedInputs,
 {
   if (!m_args.contains(ID))
     m_args[ID] = "-1";
-}
 
-//----------------------------------------------------------------------------
-OutputList Filter::editedOutputs() const
-{
-  OutputList res;
-
-  foreach(FilterOutput output, m_outputs)
+  if (m_args.contains(CACHED))
   {
-    if (output.isEdited)
-      res << output;
-  }
+    QStringList cacheList = m_args[CACHED].split(",");
+    QStringList editList;
+    if (m_args.contains(EDIT))
+      editList = m_args[EDIT].split(",");
 
-  return res;
-}
-
-//----------------------------------------------------------------------------
-FilterOutput Filter::output(OutputNumber i) const
-{
-  FilterOutput res;
-
-  foreach(FilterOutput output, m_outputs)
-  {
-    if (output.number == i)
+    foreach(QString o, cacheList)
     {
-      res = output;
-      break;
+      FilterOutput cachedOutput(this, o.toInt());
+
+      if (editList.contains(o))
+        cachedOutput.isEdited = true;
+
+      m_outputs << cachedOutput;
+    }
+  }
+}
+
+//----------------------------------------------------------------------------
+QString Filter::serialize() const
+{
+  QStringList cachedList, editList;
+  foreach(FilterOutput o, m_outputs)
+  {
+    if (o.isCached)
+    {
+      cachedList << QString::number(o.number);
+      if (o.isEdited)
+        editList << QString::number(o.number);
     }
   }
 
-  return res;
-}
+  if (!editList.isEmpty())
+    m_args[EDIT] = editList.join(",");
 
-//----------------------------------------------------------------------------
-FilterOutput &Filter::output(OutputNumber i)
-{
-  for(int i = 0; i < m_outputs.size(); i++)
-  {
-    if (m_outputs[i].number == i)
-      return m_outputs[i];
-  }
+  if (!cachedList.isEmpty())
+    m_args[CACHED] = cachedList.join(",");
 
-  Q_ASSERT(false);
-  FilterOutput fo;
-  return fo;
-}
-
-//----------------------------------------------------------------------------
-void Filter::update()
-{
-  if (!needUpdate())
-    return;
-
-  if (!prefetchFilter())
-  {
-    if (!editedOutputs().isEmpty())
-    {
-      QMessageBox msg;
-      msg.setText(tr("Filter contains segmentations that have been modified by the user."
-                     "Updating this filter will result in losing user modifications."
-                     "Do you want to proceed?"));
-      msg.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
-      if (msg.exec() != QMessageBox::Yes)
-        return;
-      m_args.remove(EDIT);
-    }
-
-    m_inputs.clear();
-    m_outputs.clear();//WARNING 2012-11-20 Otra opcion seria quitar el flag de edicion a todas las salidas
-
-    QStringList namedInputList = m_args[INPUTS].split(",", QString::SkipEmptyParts);
-    foreach(QString namedInput, namedInputList)
-    {
-      QStringList input = namedInput.split("_");
-      Filter *inputFilter = m_namedInputs[input[0]];
-      inputFilter->update();
-      m_inputs << inputFilter->output(input[1].toUInt()).volume.GetPointer();
-    }
-
-    run();
-  }
-}
-
-//----------------------------------------------------------------------------
-bool Filter::prefetchFilter()
-{
-  if (m_outputs.isEmpty())
-    return false;
-
-  //WARNING: Hace falta que todos filtros carguen las outputs al crearse
-  // aunque estas puedan ser invalidas NULL volume pointer
-  EspinaVolumeReader::Pointer reader;
-
-  for(int i = 0; i < m_outputs.size(); i++)
-  {
-    FilterOutput &output = m_outputs[i];
-    QString tmpFile = QString("%1_%2.mhd").arg(tmpId()).arg(output.number);
-    reader = tmpFileReader(tmpFile);
-    if (reader.IsNull())
-      return false;
-
-    output.volume = reader->GetOutput();
-    output.volume->DisconnectPipeline();
-  }
-
-  emit modified(this);
-
-  return true;
-}
-
-//----------------------------------------------------------------------------
-Filter::EspinaVolumeReader::Pointer Filter::tmpFileReader(const QString file)
-{
-  EspinaVolumeReader::Pointer reader;
-
-  if (m_tmpDir.exists(file))
-  {
-    itk::MetaImageIO::Pointer io = itk::MetaImageIO::New();
-    reader = EspinaVolumeReader::New();
-
-    std::string tmpFile = m_tmpDir.absoluteFilePath(file).toStdString();
-    io->SetFileName(tmpFile.c_str());
-    reader->SetImageIO(io);
-    reader->SetFileName(tmpFile);
-    reader->Update();
-  }
-
-  return reader;
+  return m_args.serialize();
 }
 
 //----------------------------------------------------------------------------
@@ -461,6 +374,149 @@ void Filter::restoreOutput(OutputNumber i, EspinaVolume::Pointer volume)
   emit modified(this);
 }
 
+//----------------------------------------------------------------------------
+Filter::OutputList Filter::editedOutputs() const
+{
+  OutputList res;
+
+  foreach(FilterOutput output, m_outputs)
+  {
+    if (output.isEdited)
+      res << output;
+  }
+
+  return res;
+}
+
+//----------------------------------------------------------------------------
+bool Filter::validOutput(Filter::OutputNumber i)
+{
+  bool res = false;
+  int j = 0;
+
+  while (!res && j < m_outputs.size())
+  {
+    if (m_outputs[j].number == i)
+      res = true;
+    j++;
+  }
+
+  return res;
+
+}
+
+//----------------------------------------------------------------------------
+Filter::FilterOutput Filter::output(OutputNumber i) const
+{
+  FilterOutput res;
+
+  foreach(FilterOutput output, m_outputs)
+  {
+    if (output.number == i)
+    {
+      res = output;
+      break;
+    }
+  }
+
+  return res;
+}
+
+//----------------------------------------------------------------------------
+Filter::FilterOutput &Filter::output(OutputNumber i)
+{
+  for(int j = 0; j < m_outputs.size(); j++)
+  {
+    if (m_outputs[j].number == i)
+      return m_outputs[j];
+  }
+
+  Q_ASSERT(false);
+  FilterOutput fo;
+  return fo;
+}
+
+//----------------------------------------------------------------------------
+void Filter::update()
+{
+  if (!needUpdate())
+    return;
+
+  if (!prefetchFilter())
+  {
+    if (!editedOutputs().isEmpty())
+    {
+      QMessageBox msg;
+      msg.setText(tr("Filter contains segmentations that have been modified by the user."
+                     "Updating this filter will result in losing user modifications."
+                     "Do you want to proceed?"));
+      msg.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
+      if (msg.exec() != QMessageBox::Yes)
+        return;
+    }
+
+    m_inputs.clear();
+    m_outputs.clear();//WARNING 2012-11-20 Otra opcion seria quitar el flag de edicion a todas las salidas
+
+    QStringList namedInputList = m_args[INPUTS].split(",", QString::SkipEmptyParts);
+    foreach(QString namedInput, namedInputList)
+    {
+      QStringList input = namedInput.split("_");
+      Filter *inputFilter = m_namedInputs[input[0]];
+      inputFilter->update();
+      m_inputs << inputFilter->output(input[1].toInt()).volume.GetPointer();
+    }
+
+    run();
+  }
+}
+
+//----------------------------------------------------------------------------
+bool Filter::prefetchFilter()
+{
+  if (m_outputs.isEmpty())
+    return false;
+
+  //WARNING: Hace falta que todos filtros carguen las outputs al crearse
+  // aunque estas puedan ser invalidas NULL volume pointer
+  EspinaVolumeReader::Pointer reader;
+
+  for(int i = 0; i < m_outputs.size(); i++)
+  {
+    FilterOutput &output = m_outputs[i];
+    QString tmpFile = QString("%1_%2.mhd").arg(tmpId()).arg(output.number);
+    reader = tmpFileReader(tmpFile);
+    if (reader.IsNull())
+      return false;
+
+    output.volume = reader->GetOutput();
+    output.volume->DisconnectPipeline();
+  }
+
+  emit modified(this);
+
+  return true;
+}
+
+//----------------------------------------------------------------------------
+Filter::EspinaVolumeReader::Pointer Filter::tmpFileReader(const QString file)
+{
+  EspinaVolumeReader::Pointer reader;
+
+  if (m_tmpDir.exists(file))
+  {
+    itk::MetaImageIO::Pointer io = itk::MetaImageIO::New();
+    reader = EspinaVolumeReader::New();
+
+    std::string tmpFile = m_tmpDir.absoluteFilePath(file).toStdString();
+    io->SetFileName(tmpFile.c_str());
+    reader->SetImageIO(io);
+    reader->SetFileName(tmpFile);
+    reader->Update();
+  }
+
+  return reader;
+}
 
 //----------------------------------------------------------------------------
 EspinaVolume::Pointer Filter::expandVolume(EspinaVolume::Pointer volume,
@@ -523,4 +579,17 @@ QWidget* Filter::createFilterInspector(QUndoStack* undoStack, ViewManager* vm)
 //----------------------------------------------------------------------------
 void Filter::updateCacheFlags()
 {
+  QStringList namedInputList = m_args[INPUTS].split(",", QString::SkipEmptyParts);
+  foreach(QString namedInput, namedInputList)
+  {
+    QStringList input = namedInput.split("_");
+    Filter *filter = m_namedInputs[input[0]];
+    OutputNumber outputNumber = input[1].toInt();
+
+    if (filter->validOutput(outputNumber))
+    {
+      FilterOutput &output = filter->output(input[1].toInt());
+      output.isCached = output.isCached || output.isEdited;
+    }
+  }
 }

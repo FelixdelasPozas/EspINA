@@ -39,12 +39,35 @@ protected:
   typedef itk::ImageFileReader<EspinaVolume> EspinaVolumeReader;
 
 public:
+  typedef int OutputNumber;
+
   typedef QMap<QString, Filter *> NamedInputs;
+  static const QString NamedInput(const QString &label, OutputNumber i)
+  { return QString("%1_%2").arg(label).arg(i); }
+
+  struct FilterOutput
+  {
+    static const int INVALID_OUTPUT_NUMBER = -1;
+
+    bool                  isCached;
+    bool                  isEdited;
+    Filter               *filter;
+    OutputNumber          number;
+    EspinaVolume::Pointer volume;
+
+    bool isValid() const {return NULL != filter && INVALID_OUTPUT_NUMBER != number && NULL != volume.GetPointer(); }
+
+    explicit FilterOutput(Filter *f=NULL, OutputNumber n=INVALID_OUTPUT_NUMBER, EspinaVolume::Pointer v =EspinaVolume::Pointer())
+    : isCached(false), isEdited(false), filter(f), number(n), volume(v)
+    {}
+  };
+
+  typedef QList<FilterOutput> OutputList;
 
   static const ModelItem::ArgumentId ID;
   static const ModelItem::ArgumentId INPUTS;
   static const ModelItem::ArgumentId EDIT;
-  static const ModelItem::ArgumentId OUTPUTS;
+  static const ModelItem::ArgumentId CACHED;
 
 public:
   virtual ~Filter(){}
@@ -61,7 +84,7 @@ public:
   virtual QString id() const {return m_args[ID];}
   virtual void initialize(Arguments args = Arguments()){};
   virtual void initializeExtensions(Arguments args = Arguments()){};
-  virtual QString serialize() const {return m_args.serialize();}
+  virtual QString serialize() const;
 
   static void resetId();
   static QString generateId();
@@ -72,8 +95,8 @@ public:
     OutputNumber outputPort;
   };
 
-  ///WARNING: Current implementation will expand the image
-  ///         when drawing with value != 0
+  ///NOTE: Current implementation will expand the image
+  ///      when drawing with value != 0
 
   /// Manually Edit Filter Output
   virtual void draw(OutputNumber i,
@@ -102,8 +125,8 @@ public:
   OutputList outputs() const {return m_outputs;}
   /// Returns a list of outputs edited by the user //NOTE: Deberia ser private?
   OutputList editedOutputs() const;
-  // /// Specify how many outputs this filter generates
-  //DEPRECATED: puede confundir a los clientes de esta clase haciendo pensar que sean entradas consecutivas... virtual int numberOutputs() const;
+  /// Return whether or not i is an output of the filter
+  bool validOutput(OutputNumber i);
   /// Return an output with id i. Ids are not necessarily sequential
   virtual FilterOutput output(OutputNumber i) const;
   FilterOutput &output(OutputNumber i);

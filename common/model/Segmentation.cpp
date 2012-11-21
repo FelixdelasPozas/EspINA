@@ -55,7 +55,7 @@ QString Segmentation::SArguments::serialize() const
 }
 
 //-----------------------------------------------------------------------------
-Segmentation::Segmentation(Filter* filter, OutputNumber outputNb)
+Segmentation::Segmentation(Filter* filter, Filter::OutputNumber outputNb)
 : m_filter(filter)
 , m_taxonomy(NULL)
 , m_isVisible(true)
@@ -73,13 +73,13 @@ Segmentation::Segmentation(Filter* filter, OutputNumber outputNb)
 }
 
 //------------------------------------------------------------------------
-void Segmentation::changeFilter(Filter* filter, unsigned int outputNb)
+void Segmentation::changeFilter(Filter* filter, Filter::OutputNumber outputNb)
 {
   disconnect(m_filter, SIGNAL(modified(ModelItem *)),
              this, SLOT(notifyModification()));
 //   m_filter->releaseDataFlagOn();
 //   filter->releaseDataFlagOff();
-  FilterOutput output = filter->output(outputNb);
+  Filter::FilterOutput output = filter->output(outputNb);
   filter->update();
   itk2vtk->SetInput(output.volume);
   itk2vtk->Update();
