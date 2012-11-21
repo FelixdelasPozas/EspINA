@@ -251,6 +251,7 @@ void vtkZoomSelectionWidgetRepresentation::DisplayPointsToWorldPoints()
     this->Renderer->SetDisplayPoint(displayPos);
     this->Renderer->DisplayToWorld();
     this->Renderer->GetWorldPoint(worldPos);
+    worldPos[m_type] = ((vtkZoomSelectionWidget::AXIAL_WIDGET == m_type) ? -0.1 : 0.1);
     m_worldPoints->SetPoint(i, worldPos[0], worldPos[1], worldPos[2]);
   }
   m_worldPoints->Modified();
