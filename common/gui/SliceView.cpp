@@ -1082,9 +1082,13 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
   if (QEvent::Wheel == e->type())
   {
     QWheelEvent *we = static_cast<QWheelEvent *>(e);
-    int numSteps = we->delta() / 8 / 15 * (m_settings->invertWheel() ? -1 : 1);  //Refer to QWheelEvent doc.
-    m_spinBox->setValue(m_spinBox->value() - numSteps);
-    e->ignore();
+    if (we->buttons() != Qt::MidButton)
+    {
+      int numSteps = we->delta() / 8 / 15 * (m_settings->invertWheel() ? -1 : 1);  //Refer to QWheelEvent doc.
+      m_spinBox->setValue(m_spinBox->value() - numSteps);
+      e->ignore();
+      return true;
+    }
   }
   else if (QEvent::Enter == e->type())
   {
