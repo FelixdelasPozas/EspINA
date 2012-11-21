@@ -184,8 +184,8 @@ void RectangularVOI::defineVOI(IPicker::PickList channels)
   m_widget->setRepresentationPattern(0xFFF0);
   m_viewManager->addWidget(m_widget);
   m_sliceSelector = new RectangularRegionSliceSelector(m_widget);
-  m_sliceSelector->setLeftLabel ("VOI");
-  m_sliceSelector->setRightLabel("VOI");
+  m_sliceSelector->setLeftLabel ("From");
+  m_sliceSelector->setRightLabel("To");
   m_viewManager->addSliceSelectors(m_sliceSelector, ViewManager::From|ViewManager::To);
   m_viewManager->updateViews();
 }

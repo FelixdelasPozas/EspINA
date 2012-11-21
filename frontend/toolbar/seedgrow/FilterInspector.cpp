@@ -32,7 +32,7 @@
 SeedGrowSegmentationFilter::FilterInspector::FilterInspector(Filter* filter, ViewManager* vm)
 : m_viewManager(vm)
 , m_region(NULL)
-, m_sliceSelctor(NULL)
+//, m_sliceSelctor(NULL)
 {
   setupUi(this);
   m_filter = dynamic_cast<SeedGrowSegmentationFilter *>(filter);
@@ -106,8 +106,8 @@ SeedGrowSegmentationFilter::FilterInspector::~FilterInspector()
   {
     m_viewManager->removeWidget(m_region);
     delete m_region;
-    m_viewManager->removeSliceSelectors(m_sliceSelctor);
-    delete m_sliceSelctor;
+    //m_viewManager->removeSliceSelectors(m_sliceSelctor);
+    //delete m_sliceSelctor;
   }
 }
 
@@ -122,10 +122,10 @@ bool SeedGrowSegmentationFilter::FilterInspector::eventFilter(QObject* sender, Q
       connect(m_region, SIGNAL(modified(double*)),
               this, SLOT(redefineVOI(double*)));
       m_viewManager->addWidget(m_region);
-      m_sliceSelctor = new RectangularRegionSliceSelector(m_region);
-      m_sliceSelctor->setLeftLabel("SVOI");
-      m_sliceSelctor->setRightLabel("SVOI");
-      m_viewManager->addSliceSelectors(m_sliceSelctor, ViewManager::From|ViewManager::To);
+      //m_sliceSelctor = new RectangularRegionSliceSelector(m_region);
+      //m_sliceSelctor->setLeftLabel("SVOI");
+      //m_sliceSelctor->setRightLabel("SVOI");
+      //m_viewManager->addSliceSelectors(m_sliceSelctor, ViewManager::From|ViewManager::To);
       m_viewManager->updateViews();
     }
   }

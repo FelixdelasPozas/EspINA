@@ -51,7 +51,7 @@ private:
   SeedGrowSegmentationFilter *m_filter;
 
   RectangularRegion              *m_region;
-  RectangularRegionSliceSelector *m_sliceSelctor;
+  //RectangularRegionSliceSelector *m_sliceSelctor;
 
   Nm m_voiBounds[6];
 };
