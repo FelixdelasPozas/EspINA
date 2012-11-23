@@ -109,6 +109,7 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(EspinaModel *model,
 , m_validPos(true)
 , connectFilter(NULL)
 , m_actor(NULL)
+, m_viewOfPreview(NULL)
 {
   Q_ASSERT(m_threshold);
   setChannelPicker(picker);
@@ -134,17 +135,23 @@ bool SeedGrowSegmentationTool::filterEvent(QEvent* e, EspinaRenderView *view)
   if (!m_enabled)
     return false;
 
+  if (e->type() == QEvent::FocusOut)
+  {
+    removePreview(view);
+    return false;
+  }
+
   if (e->type() == QEvent::KeyRelease)
   {
     QKeyEvent *ke = static_cast<QKeyEvent *>(e);
-    if ((m_actor != NULL) && (ke->key() == Qt::Key_Shift))
+    if (ke->key() == Qt::Key_Shift)
       removePreview(view);
   }
   else
     if (e->type() == QEvent::KeyPress)
     {
       QKeyEvent *ke = static_cast<QKeyEvent *>(e);
-      if ((m_actor == NULL) && (ke->key() == Qt::Key_Shift))
+      if (ke->key() == Qt::Key_Shift)
         addPreview(view);
     }
     else
@@ -155,6 +162,9 @@ bool SeedGrowSegmentationTool::filterEvent(QEvent* e, EspinaRenderView *view)
         {
           int numSteps = we->delta() / 8 / 15; //Refer to QWheelEvent doc.
           m_threshold->setLowerThreshold(m_threshold->lowerThreshold() + numSteps); //Using stepBy highlight the input text
+
+          if (we->modifiers() == Qt::ShiftModifier)
+            addPreview(view);
 
           return true;
         }
@@ -178,7 +188,7 @@ bool SeedGrowSegmentationTool::filterEvent(QEvent* e, EspinaRenderView *view)
           else
             m_validPos = true;
 
-          if (me->modifiers() == Qt::SHIFT)
+          if (me->modifiers() == Qt::ShiftModifier)
             addPreview(view);
           else
             removePreview(view);
@@ -383,11 +393,12 @@ void SeedGrowSegmentationTool::removePreview(EspinaRenderView *view)
   if (m_actor == NULL)
     return;
 
-  view->removePreview(m_actor);
+  m_viewOfPreview->removePreview(m_actor);
   connectFilter = NULL;
   i2v = NULL;
   m_actor = NULL;
-  view->updateView();
+  m_viewOfPreview->updateView();
+  m_viewOfPreview = NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -421,6 +432,9 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
     removePreview(view);
     return;
   }
+
+  if (view != m_viewOfPreview)
+    removePreview(view);
 
   EspinaVolume *channel = pickList.first().second->itkVolume();
   EspinaVolume::SpacingType spacing = channel->GetSpacing();
@@ -587,5 +601,11 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
   m_actor->SetPosition(pos);
 
   view->addPreview(m_actor);
+  m_viewOfPreview = view;
   view->updateView();
+}
+
+void SeedGrowSegmentationTool::lostEvent(EspinaRenderView *view)
+{
+  removePreview(view);
 }

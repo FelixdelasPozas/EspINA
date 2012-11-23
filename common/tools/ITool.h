@@ -35,6 +35,7 @@ public:
   virtual void setInUse(bool value) = 0;
   virtual void setEnabled(bool value) = 0;
   virtual bool enabled() const = 0;
+  virtual void lostEvent(EspinaRenderView*) {};
 };
 
 #endif // ITOOL_H

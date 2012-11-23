@@ -204,6 +204,9 @@ bool ViewManager::filterEvent(QEvent* e, EspinaRenderView* view)
   if (m_voi)
     res = m_voi->filterEvent(e, view);
 
+  if (res && m_tool)
+    m_tool->lostEvent(view);
+
   if (!res && m_tool)
     res = m_tool->filterEvent(e, view);
 
