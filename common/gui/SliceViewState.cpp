@@ -73,6 +73,15 @@ void SliceView::AxialState::updateSlicingMatrix(vtkMatrix4x4* matrix)
 }
 
 //-----------------------------------------------------------------------------
+void SliceView::AxialState::updateActor(vtkProp3D *actor)
+{
+  double pos[3];
+  actor->GetPosition(pos);
+  pos[1] -= 0.05;
+  actor->SetPosition(pos);
+}
+
+//-----------------------------------------------------------------------------
 double SagitalSliceMatrix[16] =
 {
   0,  0, -1,  0,
@@ -108,6 +117,11 @@ void SliceView::SagittalState::updateActor(vtkProp3D* actor)
 {
   actor->RotateX(-90);
   actor->RotateY(-90);
+
+  double pos[3];
+  actor->GetPosition(pos);
+  pos[0] += 0.05;
+  actor->SetPosition(pos);
 }
 
 //-----------------------------------------------------------------------------
@@ -159,6 +173,11 @@ void SliceView::CoronalState::setSlicingPosition(vtkMatrix4x4* matrix, double va
 void SliceView::CoronalState::updateActor(vtkProp3D* actor)
 {
   actor->RotateX(-90);
+
+  double pos[3];
+  actor->GetPosition(pos);
+  pos[1] += 0.05;
+  actor->SetPosition(pos);
 }
 
 //-----------------------------------------------------------------------------
