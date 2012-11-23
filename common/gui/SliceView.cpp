@@ -649,9 +649,9 @@ void SliceView::worldCoordinates(const QPoint& displayPos,
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::setSelectionEnabled(bool enabe)
+void SliceView::setSelectionEnabled(bool enable)
 {
-  m_selectionEnabled = enabe;
+  m_selectionEnabled = enable;
 }
 
 //-----------------------------------------------------------------------------
@@ -840,6 +840,12 @@ void SliceView::addSegmentation(Segmentation* seg)
   m_segmentationReps.insert(seg, segRep);
   addActor(segRep.slice);
   m_segmentationPicker->AddPickList(segRep.slice);
+
+  // need to reposition the actor so it will always be over the channels actors'
+  double pos[3];
+  segRep.slice->GetPosition(pos);
+  pos[m_plane] = (m_plane == AXIAL) ? -0.05 : 0.05;
+  segRep.slice->SetPosition(pos);
 }
 
 //-----------------------------------------------------------------------------
