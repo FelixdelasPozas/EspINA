@@ -49,6 +49,9 @@ void vtkZoomSelectionWidget::SetWidgetType(vtkZoomSelectionWidget::WidgetType ty
     return;
 
   m_type = type;
+
+  if (WidgetRep)
+    reinterpret_cast<vtkZoomSelectionWidgetRepresentation*>(this->WidgetRep)->SetWidgetType(m_type);
 }
 
 //----------------------------------------------------------------------------

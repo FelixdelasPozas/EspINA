@@ -23,6 +23,7 @@ ZoomSelectionWidget::ZoomSelectionWidget()
 : m_axial(NULL)
 , m_coronal(NULL)
 , m_sagittal(NULL)
+, m_volume(NULL)
 {
 }
 
@@ -50,24 +51,46 @@ ZoomSelectionWidget::~ZoomSelectionWidget()
     m_sagittal = NULL;
   }
 
+  // this deletes m_volume
   foreach(vtkAbstractWidget *widget, m_widgets)
   {
     widget->RemoveObserver(this);
     widget->SetEnabled(false);
     widget->Delete();
   }
+  m_volume = NULL;
 }
 
 //----------------------------------------------------------------------------
 vtkAbstractWidget *ZoomSelectionWidget::createWidget()
 {
   return NULL;
+
+  // dead code, for now
+  if (!m_volume)
+  {
+    m_volume = ZoomSelectionWidgetAdapter::New();
+    m_volume->AddObserver(vtkCommand::EndInteractionEvent, this);
+    m_volume->SetWidgetType(vtkZoomSelectionWidget::VOLUME_WIDGET);
+    m_widgets << m_volume;
+  }
+
+  return m_volume;
 }
 
 //----------------------------------------------------------------------------
 void ZoomSelectionWidget::deleteWidget(vtkAbstractWidget *widget)
 {
   Q_ASSERT(false);
+
+  // dead code, for now
+  if (!m_volume)
+    return;
+
+  m_volume->RemoveObserver(this);
+  m_volume->SetEnabled(false);
+  m_volume->Delete();
+  m_volume = NULL;
 }
 
 //----------------------------------------------------------------------------

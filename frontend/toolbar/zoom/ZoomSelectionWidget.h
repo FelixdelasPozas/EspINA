@@ -46,6 +46,7 @@ class ZoomSelectionWidget
     ZoomSelectionSliceWidget *m_axial;
     ZoomSelectionSliceWidget *m_coronal;
     ZoomSelectionSliceWidget *m_sagittal;
+    vtkZoomSelectionWidget   *m_volume;
     QList<vtkAbstractWidget*> m_widgets;
 };
 

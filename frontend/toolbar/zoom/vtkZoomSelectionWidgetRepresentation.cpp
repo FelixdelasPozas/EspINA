@@ -145,41 +145,45 @@ void vtkZoomSelectionWidgetRepresentation::EndWidgetInteraction(double e[2])
                      (dPos2[1]-dPos1[1])*(dPos2[1]-dPos1[1]) +
                      (dPos2[2]-dPos1[2])*(dPos2[2]-dPos1[2]));
 
+
+  // change camera position
+  double point1[3], point2[3], oldCameraPos[3], focalPoint[3];
+  this->Renderer->GetActiveCamera()->GetPosition(oldCameraPos);
+
+  m_worldPoints->GetPoint(0, point1);
+  m_worldPoints->GetPoint(2, point2);
+  point1[0] = (point1[0] + point2[0]) / 2;
+  point1[1] = (point1[1] + point2[1]) / 2;
+  point1[2] = (point1[2] + point2[2]) / 2;
+
+  switch (m_type)
+  {
+    case vtkZoomSelectionWidget::AXIAL_WIDGET:
+      this->Renderer->GetActiveCamera()->SetPosition(point1[0], point1[1], oldCameraPos[2]);
+      this->Renderer->GetActiveCamera()->SetFocalPoint(point1);
+      break;
+    case vtkZoomSelectionWidget::CORONAL_WIDGET:
+      this->Renderer->GetActiveCamera()->SetPosition(point1[0], oldCameraPos[1], point1[2]);
+      this->Renderer->GetActiveCamera()->SetFocalPoint(point1);
+      break;
+    case vtkZoomSelectionWidget::SAGITTAL_WIDGET:
+      this->Renderer->GetActiveCamera()->SetPosition(oldCameraPos[0], point1[1], point1[2]);
+      this->Renderer->GetActiveCamera()->SetFocalPoint(point1);
+      break;
+    default:
+      this->Renderer->GetActiveCamera()->GetFocalPoint(focalPoint);
+      this->Renderer->GetActiveCamera()->SetPosition(point1[0]-(focalPoint[0] - oldCameraPos[0]),
+                                                     point1[1]-(focalPoint[1] - oldCameraPos[1]),
+                                                     point1[2]-(focalPoint[2] - oldCameraPos[2]));
+      this->Renderer->GetActiveCamera()->SetFocalPoint(point1);
+      break;
+  }
+
   if (10 < dist)
   {
-    // change camera position
-    double point1[3], point2[3], oldCameraPos[3];
-    this->Renderer->GetActiveCamera()->GetPosition(oldCameraPos);
-
-    m_worldPoints->GetPoint(0, point1);
-    m_worldPoints->GetPoint(2, point2);
-    point1[0] = (point1[0] + point2[0])/2;
-    point1[1] = (point1[1] + point2[1])/2;
-    point1[2] = (point1[2] + point2[2])/2;
-
-    switch(m_type)
-    {
-      case vtkZoomSelectionWidget::AXIAL_WIDGET:
-        this->Renderer->GetActiveCamera()->SetPosition(point1[0], point1[1], oldCameraPos[2]);
-        this->Renderer->GetActiveCamera()->SetFocalPoint(point1);
-        break;
-      case vtkZoomSelectionWidget::CORONAL_WIDGET:
-        this->Renderer->GetActiveCamera()->SetPosition(point1[0], oldCameraPos[1], point1[2]);
-        this->Renderer->GetActiveCamera()->SetFocalPoint(point1);
-        break;
-      case vtkZoomSelectionWidget::SAGITTAL_WIDGET:
-        this->Renderer->GetActiveCamera()->SetPosition(oldCameraPos[0], point1[1], point1[2]);
-        this->Renderer->GetActiveCamera()->SetFocalPoint(point1);
-        break;
-      default:
-        Q_ASSERT(false);
-        break;
-    }
-
     // actual zoom over new camera position
     double ll[3], ur[3];
     double factorWidth, factorHeight, zoomFactor;
-
     vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
     coords->SetViewport(this->Renderer);
     coords->SetCoordinateSystemToNormalizedViewport();
@@ -191,6 +195,12 @@ void vtkZoomSelectionWidgetRepresentation::EndWidgetInteraction(double e[2])
     factorHeight = (fabs(ll[1]-ur[1])/fabs(dPos2[1]-dPos1[1]));
     zoomFactor = (factorHeight > factorWidth) ? factorWidth : factorHeight;
     this->Renderer->GetActiveCamera()->Zoom(zoomFactor);
+    this->Renderer->ResetCameraClippingRange();
+  }
+  else
+  {
+    // zoom using the viewport coordinates (0.25,0.25)-(0.75, 0.75) for a default zoom
+    this->Renderer->GetActiveCamera()->Zoom(2);
     this->Renderer->ResetCameraClippingRange();
   }
 
@@ -251,7 +261,10 @@ void vtkZoomSelectionWidgetRepresentation::DisplayPointsToWorldPoints()
     this->Renderer->SetDisplayPoint(displayPos);
     this->Renderer->DisplayToWorld();
     this->Renderer->GetWorldPoint(worldPos);
-    worldPos[m_type] = ((vtkZoomSelectionWidget::AXIAL_WIDGET == m_type) ? -0.1 : 0.1);
+
+    if (m_type != vtkZoomSelectionWidget::VOLUME_WIDGET)
+      worldPos[m_type] = ((vtkZoomSelectionWidget::AXIAL_WIDGET == m_type) ? -0.1 : 0.1);
+
     m_worldPoints->SetPoint(i, worldPos[0], worldPos[1], worldPos[2]);
   }
   m_worldPoints->Modified();
