@@ -25,6 +25,7 @@
 #include <widgets/RectangularRegionSliceSelector.h>
 #include "frontend/toolbar/voi/Settings.h"
 #include "frontend/toolbar/voi/SettingsPanel.h"
+#include <vtkMath.h>
 
 #include <QPixmap>
 #include <boost/concept_check.hpp>
@@ -47,6 +48,7 @@ RectangularVOI::RectangularVOI(EspinaModel* model,
   connect(&m_picker, SIGNAL(itemsPicked(IPicker::PickList)),
           this, SLOT(defineVOI(IPicker::PickList)));
 
+  vtkMath::UninitializeBounds(m_bounds);
   model->factory()->registerSettingsPanel(m_settingsPanel);
 }
 
@@ -139,10 +141,8 @@ void RectangularVOI::setEnabled(bool enable)
 //-----------------------------------------------------------------------------
 IVOI::Region RectangularVOI::region()
 {
-  if (!m_widget)
-    return NULL;
-
-  m_widget->bounds(m_bounds);
+  if (m_widget)
+    m_widget->bounds(m_bounds);
 
   return m_bounds;
 }

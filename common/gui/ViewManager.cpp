@@ -27,9 +27,11 @@
 #include "common/model/Segmentation.h"
 #include "common/tools/IVOI.h"
 #include "common/tools/PickableItem.h"
+#include <vtkMath.h>
 
 // Qt
 #include <QDebug>
+#include <boost/graph/graph_concepts.hpp>
 
 //----------------------------------------------------------------------------
 ViewManager::ViewManager()
@@ -173,7 +175,15 @@ void ViewManager::setActiveTool(ITool* tool)
   m_tool = tool;
 
   if (m_tool)
+  {
+    if (m_voi)
+    {
+      double *voiBounds = m_voi->region();
+      if (!vtkMath::AreBoundsInitialized(voiBounds))
+        setVOI(NULL);
+    }
     m_tool->setInUse(true);
+  }
 }
 
 //----------------------------------------------------------------------------
