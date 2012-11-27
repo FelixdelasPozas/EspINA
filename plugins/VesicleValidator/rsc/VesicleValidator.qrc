@@ -1,7 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>defineArea.svg</file>
-        <file>removeArea.svg</file>
-        <file>validateVesicle.svg</file>
-    </qresource>
-</RCC>
