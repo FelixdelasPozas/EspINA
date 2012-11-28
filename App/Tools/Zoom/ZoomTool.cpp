@@ -22,7 +22,7 @@ ZoomTool::ZoomTool(ViewManager* vm)
 , m_viewManager(vm)
 {
   QPixmap cursorBitmap;
-  cursorBitmap.load(":/zoom_cursor.png", "PNG", Qt::ColorOnly);
+  cursorBitmap.load(":/espina/zoom_cursor.png", "PNG", Qt::ColorOnly);
   this->zoomCursor = QCursor(cursorBitmap, 0, 0);
 }
 

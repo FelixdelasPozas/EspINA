@@ -27,13 +27,13 @@ ZoomToolBar::ZoomToolBar(ViewManager *vm, QWidget* parent)
   setObjectName("ZoomToolBar");
   setWindowTitle("Zoom Tool Bar");
 
-  m_resetViews = new QAction(QIcon(":zoom_reset.png"), tr("Reset view's cameras"),this);
+  m_resetViews = new QAction(QIcon(":/espina/zoom_reset.png"), tr("Reset view's cameras"),this);
   m_resetViews->setStatusTip(tr("Reset views' cameras"));
   m_resetViews->setCheckable(false);
   connect(m_resetViews, SIGNAL(triggered()), this, SLOT(ResetViews()));
   addAction(m_resetViews);
 
-  m_zoomToolAction = new QAction(QIcon(":zoom_selection.png"), tr("Zoom selection tool"), this);
+  m_zoomToolAction = new QAction(QIcon(":/espina/zoom_selection.png"), tr("Zoom selection tool"), this);
   m_zoomToolAction->setStatusTip(tr("Zoom selection tool"));
   m_zoomToolAction->setCheckable(true);
   connect(m_zoomToolAction, SIGNAL(triggered(bool)), this, SLOT(InitZoomTool(bool)));

@@ -39,7 +39,7 @@ public:
   virtual const QString longDescription()
   { return tr("Seed Grow Segmentation Settings"); }
   virtual const QIcon icon()
-  { return QIcon(":/bestPixelSelector.svg"); }
+  { return QIcon(":/espina/bestPixelSelector.svg"); }
 
   virtual void acceptChanges();
 

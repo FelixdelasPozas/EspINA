@@ -41,7 +41,7 @@ public:
   virtual const QString longDescription()
   { return tr("Cuboid Volume Of Interest Settings"); }
   virtual const QIcon icon()
-  { return QIcon(":/voi.svg"); }
+  { return QIcon(":/espina/voi.svg"); }
 
   virtual void acceptChanges();
 

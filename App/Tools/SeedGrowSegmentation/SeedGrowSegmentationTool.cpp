@@ -51,11 +51,11 @@ SeedGrowSegmentationTool::CreateSegmentation::CreateSegmentation(Channel* channe
                                                                  Segmentation *segmentation,
                                                                  TaxonomyElement* taxonomy,
                                                                  EspinaModel* model)
-: m_model   (model)
-, m_channel (channel)
+: m_channel (channel)
 , m_filter  (filter)
 , m_seg(segmentation)
 , m_taxonomy(taxonomy)
+, m_model   (model)
 {
   m_sample = m_channel->sample();
   Q_ASSERT(m_sample);
@@ -99,9 +99,9 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(EspinaModel *model,
 : m_model(model)
 , m_undoStack(undoStack)
 , m_viewManager(viewManager)
-, m_threshold(th)
-, m_defaultVOI(voi)
 , m_settings(settings)
+, m_defaultVOI(voi)
+, m_threshold(th)
 , m_picker(NULL)
 , m_inUse(true)
 , m_enabled(true)
@@ -120,10 +120,12 @@ QCursor SeedGrowSegmentationTool::cursor() const
   QCursor cursor(Qt::ArrowCursor);
 
   if (m_picker && m_inUse)
+  {
     if (m_validPos)
       cursor = m_picker->cursor();
     else
       cursor = QCursor(Qt::ForbiddenCursor);
+  }
 
   return cursor;
 }
@@ -254,7 +256,7 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
     return;
 
   IPicker::PickedItem element = pickedItems.first();
-  PickableItem *input = element.second;
+  // PickableItem *input = element.second;
 
   Q_ASSERT(element.first->GetNumberOfPoints() == 1); // with one pixel
   Nm seedPoint[3];
@@ -378,7 +380,7 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
       warning.setText(tr("New segmentation may be incomplete due to VOI restriction."));
       warning.exec();
       QString condition = tr("Touch VOI");
-      seg->addCondition(SGS_VOI, ":voi.svg", condition);
+      seg->addCondition(SGS_VOI, ":/espina/voi.svg", condition);
     }
 
     m_undoStack->push(new CreateSegmentation(channel, filter, seg, tax, m_model));

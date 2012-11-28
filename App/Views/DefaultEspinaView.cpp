@@ -495,8 +495,8 @@ DefaultEspinaView::SettingsPanel::SettingsPanel(SliceView::SettingsPtr xy,
 : m_xy(xy)
 , m_yz(yz)
 , m_xz(xz)
-, m_vol(vol)
 , m_factory(factory)
+, m_vol(vol)
 {
   QVBoxLayout *layout = new QVBoxLayout();
   QGroupBox *group;

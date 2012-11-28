@@ -53,5 +53,16 @@
         <file>create_subnode.png</file>
         <file>pencil.png</file>
         <file>planar_split.svg</file>
+        <file>bestPixelSelector.svg</file>
+        <file>crossRegion.svg</file>
+        <file>from_slice.svg</file>
+        <file>to_slice.svg</file>
+        <file>pixelSelector.svg</file>
+        <file>roi_go.svg</file>
+        <file>roi_out.svg</file>
+        <file>voi.svg</file>
+        <file>zoom_cursor.png</file>
+        <file>zoom_reset.png</file>
+        <file>zoom_selection.png</file>
     </qresource>
 </RCC>

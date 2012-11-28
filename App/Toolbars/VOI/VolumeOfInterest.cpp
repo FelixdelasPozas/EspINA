@@ -60,7 +60,7 @@ void VolumeOfInterest::buildVOIs()
   QAction *action;
 
   // Exact Pixel Selector
-  action = new QAction(QIcon(":voi.svg"), tr("Volume Of Interest"), m_voiSelector);
+  action = new QAction(QIcon(":/espina/voi.svg"), tr("Volume Of Interest"), m_voiSelector);
 
   m_voiSelector->addAction(action);
   RectangularVOI *voi = new RectangularVOI(m_model, m_viewManager);

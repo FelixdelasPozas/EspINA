@@ -474,7 +474,7 @@ void SliceView::setupUI()
 {
   m_view->installEventFilter(this);
 
-  m_zoomButton->setIcon(QIcon(":zoom_reset.png"));
+  m_zoomButton->setIcon(QIcon(":/espina/zoom_reset.png"));
   m_zoomButton->setToolTip(tr("Reset view's camera"));
   m_zoomButton->setFlat(true);
   m_zoomButton->setIconSize(QSize(20,20));

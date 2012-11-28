@@ -40,6 +40,7 @@ class MainToolBar;
 class QFrame;
 class QUndoStack;
 class ViewManager;
+class QShortcut;
 
 #ifdef TEST_ESPINA_MODELS
 class ModelTest;
@@ -119,6 +120,7 @@ private:
   MenuState m_menuState;
 
   bool m_busy;
+  QShortcut *cancel;
 
   struct DynamicMenuNode
   {

@@ -69,13 +69,13 @@ const QString AUTOSAVE_FILE = "espina-autosave.seg";
 
 //------------------------------------------------------------------------
 EspinaWindow::EspinaWindow()
-: m_factory    (new EspinaFactory())
+: m_view(NULL)
+, m_factory    (new EspinaFactory())
 , m_model      (new EspinaModel(m_factory))
 , m_undoStack  (new QUndoStack())
 , m_viewManager(new ViewManager())
 , m_settings   (new GeneralSettings())
 , m_busy(false)
-, m_view(NULL)
 {
 #ifdef TEST_ESPINA_MODELS
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model));
@@ -261,8 +261,7 @@ EspinaWindow::EspinaWindow()
   connect(&m_autosave, SIGNAL(timeout()),
           this, SLOT(autosave()));
 
-  QShortcut *cancel = new QShortcut(Qt::Key_Escape, this, SLOT(cancelOperation()));
-//  connect(cancel, SIGNAL(activate()), this, SLOT(cancelOperation()));
+  cancel = new QShortcut(Qt::Key_Escape, this, SLOT(cancelOperation()));
 
   checkAutosave();
 }

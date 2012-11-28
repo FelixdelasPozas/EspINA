@@ -198,14 +198,14 @@ void SeedGrowSegmentation::buildSelectors()
   QAction *action;
 
   // Exact Pixel Selector
-  action = new QAction(QIcon(":pixelSelector.svg"), tr("Add synapse (Ctrl +). Exact Pixel"), m_pickerSelector);
+  action = new QAction(QIcon(":/espina/pixelSelector.svg"), tr("Add synapse (Ctrl +). Exact Pixel"), m_pickerSelector);
   selector = new PixelSelector();
   selector->setMultiSelection(false);
   selector->setPickable(IPicker::CHANNEL);
   addPixelSelector(action, selector);
 
   // Best Pixel Selector
-  action = new QAction(QIcon(":bestPixelSelector.svg"), tr("Add synapse (Ctrl +). Best Pixel"), m_pickerSelector);
+  action = new QAction(QIcon(":/espina/bestPixelSelector.svg"), tr("Add synapse (Ctrl +). Best Pixel"), m_pickerSelector);
   BestPixelSelector *bestSelector = new BestPixelSelector();
   m_settings = new Settings(bestSelector);
   m_settingsPanel = new SettingsPanel(m_settings);
@@ -213,6 +213,6 @@ void SeedGrowSegmentation::buildSelectors()
   selector = bestSelector;
   selector->setMultiSelection(false);
   selector->setPickable(IPicker::CHANNEL);
-  selector->setCursor(QCursor(QPixmap(":crossRegion.svg")));
+  selector->setCursor(QCursor(QPixmap(":/espina/crossRegion.svg")));
   addPixelSelector(action, selector);
 }

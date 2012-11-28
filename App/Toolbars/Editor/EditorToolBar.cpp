@@ -111,7 +111,7 @@ public:
 
   virtual void redo()
   {
-    for(unsigned int i=0; i<m_newConnections.size(); i++)
+    for(int i=0; i<m_newConnections.size(); i++)
     {
       Segmentation *seg        = m_segmentations[i];
       Connection oldConnection = m_oldConnections[i];
@@ -130,7 +130,7 @@ public:
 
   virtual void undo()
   {
-    for(unsigned int i=0; i<m_newConnections.size(); i++)
+    for(int i=0; i<m_newConnections.size(); i++)
     {
       Segmentation *seg        = m_segmentations[i];
       Connection oldConnection = m_oldConnections[i];
