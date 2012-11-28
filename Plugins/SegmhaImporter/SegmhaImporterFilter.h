@@ -18,7 +18,7 @@
 #ifndef SEGMHAIMPORTERFILTER_H
 #define SEGMHAIMPORTERNFILTER_H
 
-#include <common/model/Filter.h>
+#include <Core/Model/Filter.h>
 
 // Qt
 #include <QColor>

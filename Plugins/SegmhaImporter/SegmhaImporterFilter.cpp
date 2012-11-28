@@ -20,7 +20,7 @@
 #include "SegmhaImporterFilter.h"
 
 // EspINA
-#include <common/model/Segmentation.h>
+#include <Core/Model/Segmentation.h>
 
 // Qt
 #include <QApplication>

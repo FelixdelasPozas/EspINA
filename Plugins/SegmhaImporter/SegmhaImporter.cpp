@@ -20,13 +20,13 @@
 
 #include "SegmhaImporterFilter.h"
 
-#include <common/model/EspinaFactory.h>
-#include <common/undo/AddSample.h>
-#include <common/undo/AddChannel.h>
-#include <common/undo/AddRelation.h>
-#include <common/model/Segmentation.h>
-#include <common/model/EspinaModel.h>
-#include <common/IO/EspinaIO.h>
+#include <Core/IO/EspinaIO.h>
+#include <Core/Model/EspinaFactory.h>
+#include <Core/Model/EspinaModel.h>
+#include <Core/Model/Segmentation.h>
+#include <Undo/AddChannel.h>
+#include <Undo/AddRelation.h>
+#include <Undo/AddSample.h>
 
 #include <QApplication>
 #include <QFileDialog>

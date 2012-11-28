@@ -101,7 +101,10 @@ void FilterInspector::updatePannel()
     if (m_seg)
     {
       m_filter = seg->filter();
-      setWidget(m_filter->filterInspector()->createWidget(m_undoStack, m_viewManager));
+      Filter::FilterInspectorPtr inspector = m_filter->filterInspector();
+      if (inspector.get())
+        setWidget(inspector->createWidget(m_undoStack, m_viewManager));
+
     } else
     {
       m_filter = NULL;

@@ -18,11 +18,11 @@
 #ifndef SEGMHAIMPORTER_H
 #define SEGMHAIMPORTER_H
 
-#include <common/pluginInterfaces/IFactoryExtension.h>
-#include <common/pluginInterfaces/IFilterCreator.h>
-#include <common/pluginInterfaces/IFileReader.h>
-#include <QUndoCommand>
+#include <Core/Interfaces/IFactoryExtension.h>
+#include <Core/Interfaces/IFilterCreator.h>
+#include <Core/Interfaces/IFileReader.h>
 
+#include <QUndoCommand>
 
 class Channel;
 class EspinaModel;

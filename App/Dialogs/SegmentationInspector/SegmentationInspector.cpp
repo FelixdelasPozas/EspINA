@@ -57,9 +57,13 @@ SegmentationInspector::SegmentationInspector(Segmentation *seg,
 
   Filter *filter = seg->filter();
   Q_ASSERT(filter);
-  QWidget *widget = filter->filterInspector()->createWidget(m_undoStack, m_viewManager);
-  m_filterInspector->setWidget(widget);
-  m_filterInspector->setMinimumWidth(widget->minimumSize().width());;
+  Filter::FilterInspectorPtr inspector = filter->filterInspector();
+  if (inspector.get())
+  {
+    QWidget *widget = inspector->createWidget(m_undoStack, m_viewManager);
+    m_filterInspector->setWidget(widget);
+    m_filterInspector->setMinimumWidth(widget->minimumSize().width());;
+  }
 
   m_info->setQuery(seg->availableInformations());
   m_info->setSourceModel(m_model);
