@@ -3,4 +3,4 @@ SET(LIB_DEPENDECIES
   vtkIO
 )
 
-add_subdirectory(common)
+add_subdirectory( Core )
