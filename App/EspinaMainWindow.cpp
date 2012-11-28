@@ -56,7 +56,7 @@
 
 
 #ifdef TEST_ESPINA_MODELS
-  #include "common/model/ModelTest.h"
+  #include <Core/Model/ModelTest.h>
 #endif
 
 // Std
@@ -68,7 +68,7 @@
 const QString AUTOSAVE_FILE = "espina-autosave.seg";
 
 //------------------------------------------------------------------------
-EspinaWindow::EspinaWindow()
+EspinaMainWindow::EspinaMainWindow()
 : m_view(NULL)
 , m_factory    (new EspinaFactory())
 , m_model      (new EspinaModel(m_factory))
@@ -267,12 +267,12 @@ EspinaWindow::EspinaWindow()
 }
 
 //------------------------------------------------------------------------
-EspinaWindow::~EspinaWindow()
+EspinaMainWindow::~EspinaMainWindow()
 {
 }
 
 //------------------------------------------------------------------------
-void EspinaWindow::loadPlugins()
+void EspinaMainWindow::loadPlugins()
 {
   QDir pluginsDir = QDir(qApp->applicationDirPath());
 
@@ -356,7 +356,7 @@ void EspinaWindow::loadPlugins()
 
 
 //------------------------------------------------------------------------
-void EspinaWindow::createActivityMenu()
+void EspinaMainWindow::createActivityMenu()
 {
   QSignalMapper *sigMapper = new QSignalMapper(this);
 
@@ -382,7 +382,7 @@ void EspinaWindow::createActivityMenu()
 }
 
 //------------------------------------------------------------------------
-void EspinaWindow::createDynamicMenu(MenuEntry entry)
+void EspinaMainWindow::createDynamicMenu(MenuEntry entry)
 {
   DynamicMenuNode *node = m_dynamicMenuRoot;
   for(int i=0; i<entry.first.size(); i++)
@@ -415,13 +415,13 @@ void EspinaWindow::createDynamicMenu(MenuEntry entry)
 
 
 //------------------------------------------------------------------------
-void EspinaWindow::createLODMenu()
+void EspinaMainWindow::createLODMenu()
 {
 }
 
 
 //------------------------------------------------------------------------
-void EspinaWindow::checkAutosave()
+void EspinaMainWindow::checkAutosave()
 {
   QDir autosavePath = m_settings->autosavePath();
   if (autosavePath.exists(AUTOSAVE_FILE))
@@ -439,7 +439,7 @@ void EspinaWindow::checkAutosave()
 }
 
 //------------------------------------------------------------------------
-void EspinaWindow::closeEvent(QCloseEvent* event)
+void EspinaMainWindow::closeEvent(QCloseEvent* event)
 {
   if (m_busy)
   {
@@ -486,7 +486,7 @@ void EspinaWindow::closeEvent(QCloseEvent* event)
 }
 
 //------------------------------------------------------------------------
-void EspinaWindow::closeCurrentAnalysis()
+void EspinaMainWindow::closeCurrentAnalysis()
 {
   emit analysisClosed();
   m_viewManager->setActiveChannel(NULL);
@@ -498,7 +498,7 @@ void EspinaWindow::closeCurrentAnalysis()
 }
 
 //------------------------------------------------------------------------
-void EspinaWindow::openAnalysis()
+void EspinaMainWindow::openAnalysis()
 {
   QFileDialog fileDialog(this,
                          tr("Start Analysis from:"));
@@ -526,7 +526,7 @@ void EspinaWindow::openAnalysis()
 }
 
 //------------------------------------------------------------------------
-void EspinaWindow::openAnalysis(const QString file)
+void EspinaMainWindow::openAnalysis(const QString file)
 {
   QElapsedTimer timer;
   timer.start();
@@ -597,7 +597,7 @@ void EspinaWindow::openAnalysis(const QString file)
 }
 
 //------------------------------------------------------------------------
-void EspinaWindow::openRecentAnalysis()
+void EspinaMainWindow::openRecentAnalysis()
 {
   QAction *action = qobject_cast<QAction *>(sender());
 
@@ -614,7 +614,7 @@ void EspinaWindow::openRecentAnalysis()
 }
 
 //------------------------------------------------------------------------
-void EspinaWindow::addToAnalysis()
+void EspinaMainWindow::addToAnalysis()
 {
   QFileDialog fileDialog(this, tr("Analyse:"));
   fileDialog.setObjectName("AddToAnalysisFileDialog");
@@ -637,7 +637,7 @@ void EspinaWindow::addToAnalysis()
 }
 
 //------------------------------------------------------------------------
-void EspinaWindow::addRecentToAnalysis()
+void EspinaMainWindow::addRecentToAnalysis()
 {
   QAction *action = qobject_cast<QAction *>(sender());
 
@@ -648,7 +648,7 @@ void EspinaWindow::addRecentToAnalysis()
 }
 
 //------------------------------------------------------------------------
-void EspinaWindow::addFileToAnalysis(const QString file)
+void EspinaMainWindow::addFileToAnalysis(const QString file)
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);
   QElapsedTimer timer;
@@ -675,7 +675,7 @@ void EspinaWindow::addFileToAnalysis(const QString file)
 }
 
 //------------------------------------------------------------------------
-void EspinaWindow::saveAnalysis()
+void EspinaMainWindow::saveAnalysis()
 {
   QString filters(SEG_FILES);
 
@@ -707,7 +707,7 @@ void EspinaWindow::saveAnalysis()
 }
 
 //------------------------------------------------------------------------
-void EspinaWindow::updateStatus(QString msg)
+void EspinaMainWindow::updateStatus(QString msg)
 {
   if (msg.isEmpty())
     statusBar()->clearMessage();
@@ -716,14 +716,14 @@ void EspinaWindow::updateStatus(QString msg)
 }
 
 //------------------------------------------------------------------------
-void EspinaWindow::updateTooltip(QAction* action)
+void EspinaMainWindow::updateTooltip(QAction* action)
 {
   QMenu *menu = dynamic_cast<QMenu *>(sender());
   menu->setToolTip(action->toolTip());
 }
 
 //------------------------------------------------------------------------
-void EspinaWindow::showPreferencesDialog()
+void EspinaMainWindow::showPreferencesDialog()
 {
   SettingsDialog dialog;
 
@@ -741,7 +741,7 @@ void EspinaWindow::showPreferencesDialog()
 }
 
 //------------------------------------------------------------------------
-void EspinaWindow::showAboutDialog()
+void EspinaMainWindow::showAboutDialog()
 {
   AboutDialog dialog;
 
@@ -749,7 +749,7 @@ void EspinaWindow::showAboutDialog()
 }
 
 //------------------------------------------------------------------------
-void EspinaWindow::autosave()
+void EspinaMainWindow::autosave()
 {
   if (!m_model->hasChanged())
     return;

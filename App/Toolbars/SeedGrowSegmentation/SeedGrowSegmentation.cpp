@@ -21,6 +21,7 @@
 #include "Settings.h"
 #include <Tools/SeedGrowSegmentation/SeedGrowSegmentationTool.h>
 #include <Settings/SeedGrowSegmentation/SettingsPanel.h>
+#include <FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.h>
 
 #include <QDebug>
 
@@ -109,7 +110,10 @@ Filter* SeedGrowSegmentation::createFilter(const QString filter,
 {
   Q_ASSERT(SeedGrowSegmentationFilter::TYPE == filter);
 
-  return new SeedGrowSegmentationFilter(inputs, args);
+  SeedGrowSegmentationFilter *sgs = new SeedGrowSegmentationFilter(inputs, args);
+  SGSFilterInspector *inspector   = new SGSFilterInspector(sgs); //NOTE its resources are managed by filter
+
+  return sgs;
 }
 
 

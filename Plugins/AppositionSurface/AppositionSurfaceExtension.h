@@ -15,19 +15,23 @@
  *    You should have received a copy of the GNU General Public License
  *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef APPOSITIONPLANEXTENSION_H
-#define APPOSITIONPLANEXTENSION_H
+#ifndef APPOSITIONSURFACEXTENSION_H
+#define APPOSITIONSURFACEXTENSION_H
 
+#include <Core/Extensions/SegmentationExtension.h>
 
-#include <common/extensions/SegmentationExtension.h>
-#include <common/EspinaTypes.h>
+// EspINA
+#include <Core/EspinaTypes.h>
 
+// ITK
 #include <itkConstantPadImageFilter.h>
 #include <itkExtractImageFilter.h>
 #include <itkGradientImageFilter.h>
 #include <itkImageRegionConstIterator.h>
 #include <itkSignedDanielssonDistanceMapImageFilter.h>
 #include <itkImageToVTKImageFilter.h>
+
+// VTK
 #include <vtkGridTransform.h>
 #include <vtkOBBTree.h>
 #include <vtkPlaneSource.h>
@@ -127,4 +131,4 @@ private:
   mutable itk::TimeStamp m_lastUpdate;
 };
 
-#endif // APPOSITIONPLANEEXTENSION_H
+#endif // APPOSITIONSURFACEEXTENSION_H

@@ -20,22 +20,40 @@
 #ifndef SEEDGROWSEGMENTATIONFILTERINSPECTOR_H
 #define SEEDGROWSEGMENTATIONFILTERINSPECTOR_H
 
-#include <QWidget>
-#include <Filters/SeedGrowSegmentationFilter.h>
-#include "ui_FilterInspector.h"
+#include <Core/Model/Filter.h>
 
-#include <GUI/ViewManager.h>
+class QUndoStack;
+class SeedGrowSegmentationFilter;
+class ViewManager;
 
-class RectangularRegionSliceSelector;
+class SGSFilterInspector
+: public Filter::FilterInspector
+{
+  class Widget;
+
+public:
+  explicit SGSFilterInspector(SeedGrowSegmentationFilter *filter);
+
+  virtual QWidget* createWidget(QUndoStack* stack, ViewManager* viewManager);
+
+private:
+  SeedGrowSegmentationFilter *m_filter;
+};
+
+
+#include "ui_SGSFilterInspectorWidget.h"
+
 class RectangularRegion;
-class SeedGrowSegmentationFilter::FilterInspector
+class RectangularRegionSliceSelector;
+
+class SGSFilterInspector::Widget
 : public QWidget
-, Ui::FilterInspector
+, Ui::SGSFilterInspectorWidget
 {
   Q_OBJECT
 public:
-  explicit FilterInspector(Filter *filter, ViewManager *vm);
-  virtual ~FilterInspector();
+  explicit Widget(Filter *filter, ViewManager *vm);
+  virtual ~Widget();
 
   virtual bool eventFilter(QObject* sender, QEvent* e );
 
@@ -50,7 +68,7 @@ private:
   ViewManager                *m_viewManager;
   SeedGrowSegmentationFilter *m_filter;
 
-  RectangularRegion              *m_region;
+  RectangularRegion          *m_region;
   //RectangularRegionSliceSelector *m_sliceSelctor;
 
   Nm m_voiBounds[6];

@@ -39,7 +39,6 @@ class Channel;
 class SeedGrowSegmentationFilter
 : public Filter
 {
-  class FilterInspector;
   typedef itk::ExtractImageFilter<EspinaVolume, EspinaVolume> ExtractType;
   typedef itk::ConnectedThresholdImageFilter<EspinaVolume, EspinaVolume> ConnectedThresholdFilterType;
   typedef itk::StatisticsLabelObject<unsigned int, 3> LabelObjectType;
@@ -117,8 +116,10 @@ public:
 
   void setLowerThreshold(int th);
   int lowerThreshold() const {return m_param.lowerThreshold();}
+
   void setUpperThreshold(int th);
   int upperThreshold() const {return m_param.upperThreshold();}
+
   /// Convenience method to set symmetrical lower/upper thresholds
   void setThreshold(int th)
   {
@@ -128,8 +129,12 @@ public:
 
   void setSeed(EspinaVolume::IndexType seed);
   EspinaVolume::IndexType seed() const;
+
   void setVOI(int VOI[6]);
   void voi(int VOI[6]) const {m_param.voi(VOI);}
+
+  unsigned int closeValue() {return m_param.closeValue();}
+  void setCloseValue(unsigned int value) {m_param.setCloseValue(value);}
 
   // Implements Model Item Interface
   virtual QVariant data(int role=Qt::DisplayRole) const;

@@ -20,6 +20,7 @@
 #include <Toolbars/SeedGrowSegmentation/ThresholdAction.h>
 #include <Toolbars/SeedGrowSegmentation/DefaultVOIAction.h>
 #include <Toolbars/SeedGrowSegmentation/Settings.h>
+#include <FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.h>
 
 #include <Core/Model/Channel.h>
 #include <Core/Model/EspinaModel.h>
@@ -51,11 +52,11 @@ SeedGrowSegmentationTool::CreateSegmentation::CreateSegmentation(Channel* channe
                                                                  Segmentation *segmentation,
                                                                  TaxonomyElement* taxonomy,
                                                                  EspinaModel* model)
-: m_channel (channel)
-, m_filter  (filter)
-, m_seg(segmentation)
-, m_taxonomy(taxonomy)
-, m_model   (model)
+: m_model   ( model        )
+, m_channel ( channel      )
+, m_filter  ( filter       )
+, m_seg     ( segmentation )
+, m_taxonomy( taxonomy     )
 {
   m_sample = m_channel->sample();
   Q_ASSERT(m_sample);
@@ -256,7 +257,7 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
     return;
 
   IPicker::PickedItem element = pickedItems.first();
-  // PickableItem *input = element.second;
+  PickableItem *input = element.second;
 
   Q_ASSERT(element.first->GetNumberOfPoints() == 1); // with one pixel
   Nm seedPoint[3];
@@ -266,7 +267,7 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
   //     qDebug() << "Seed:" << seed;
   //     qDebug() << "Use Default VOI:" << m_useDefaultVOI->useDefaultVOI();
 
-  Q_ASSERT(ModelItem::CHANNEL == input->type());
+  Q_ASSERT(ModelItem::CHANNEL == input->type()); //TODO Define active channel policy
   Channel *channel = m_viewManager->activeChannel();
 
   if (!channel)
@@ -361,6 +362,8 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
     filter = new SeedGrowSegmentationFilter(inputs, args);
     filter->update();
     Q_ASSERT(filter->outputs().size() == 1);
+
+    SGSFilterInspector *inspector = new SGSFilterInspector(filter);
 
     Segmentation *seg = m_model->factory()->createSegmentation(filter, 0);
 

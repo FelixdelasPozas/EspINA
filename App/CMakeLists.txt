@@ -24,7 +24,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Docks/TaxonomyExplorer/TaxonomyExplorer.h
   FilterInspectors/CODE/CODEFilterInspector.h
   FilterInspectors/ContourSource/ContourSourceInspector.h
-  FilterInspectors/SeedGrowSegmentation/FilterInspector.h
+  FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.h
   Menus/ColorEngineMenu.h
   Settings/Editor/SettingsPanel.h
   Settings/SeedGrowSegmentation/SettingsPanel.h
@@ -57,7 +57,7 @@ qt4_wrap_ui (ESPINA_UI
   Docks/TabularReport/DataView.ui
   Docks/TaxonomyExplorer/TaxonomyExplorer.ui
   FilterInspectors/ContourSource/ContourSourceInspector.ui
-  FilterInspectors/SeedGrowSegmentation/FilterInspector.ui
+  FilterInspectors/SeedGrowSegmentation/SGSFilterInspectorWidget.ui
   Settings/GeneralSettingsPanel.ui
   Settings/Editor/EditorToolBarSettingsPanel.ui
   Settings/SeedGrowSegmentation/SettingsPanel.ui
@@ -87,7 +87,7 @@ set (ESPINA_SOURCES
   Docks/TaxonomyExplorer/TaxonomyExplorer.cpp
   FilterInspectors/CODE/CODEFilterInspector.cpp
   FilterInspectors/ContourSource/ContourSourceInspector.cpp
-  FilterInspectors/SeedGrowSegmentation/FilterInspector.cpp
+  FilterInspectors/SeedGrowSegmentation/SGSFilterInspector.cpp
   Menus/ColorEngineMenu.cpp
   Settings/GeneralSettings.cpp
   Settings/Editor/SettingsPanel.cpp

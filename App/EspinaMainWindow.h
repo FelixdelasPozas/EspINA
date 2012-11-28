@@ -46,13 +46,13 @@ class QShortcut;
 class ModelTest;
 #endif
 
-class EspinaWindow
+class EspinaMainWindow
 : public QMainWindow
 {
   Q_OBJECT
 public:
-    explicit EspinaWindow();
-    virtual ~EspinaWindow();
+    explicit EspinaMainWindow();
+    virtual ~EspinaMainWindow();
 
 public slots:
   void closeCurrentAnalysis();

@@ -89,6 +89,8 @@ public:
     virtual QWidget *createWidget(QUndoStack *stack, ViewManager *viewManager) = 0;
   };
 
+  typedef boost::shared_ptr<FilterInspector> FilterInspectorPtr;
+
   static const ModelItem::ArgumentId ID;
   static const ModelItem::ArgumentId INPUTS;
   static const ModelItem::ArgumentId EDIT;
@@ -163,9 +165,10 @@ public:
   /// Turn off internal filters' release data flags
   virtual void releaseDataFlagOff(){}
 
-  void setFilterInspector(boost::shared_ptr<FilterInspector> filterInspector);
+  void setFilterInspector(FilterInspectorPtr filterInspector)
+  { m_filterInspector = filterInspector; }
   /// Return a widget used to configure filter's parameters
-  boost::shared_ptr<FilterInspector> const filterInspector() { return m_filterInspector; }
+  FilterInspectorPtr const filterInspector() { return m_filterInspector; }
 
   void updateCacheFlags();
 
@@ -199,7 +202,7 @@ protected:
   OutputList m_outputs;
 
 private:
-  boost::shared_ptr<FilterInspector> m_filterInspector;
+  FilterInspectorPtr m_filterInspector;
   QDir m_tmpDir;
 };
 

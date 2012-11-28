@@ -17,11 +17,12 @@
 */
 
 
-#ifndef APPOSITIONPLANERENDERER_H
-#define APPOSITIONPLANERENDERER_H
+#ifndef APPOSITIONSURFACERENDERER_H
+#define APPOSITIONSURFACERENDERER_H
 
-#include <common/gui/Renderer.h>
+#include <GUI/Renderers/Renderer.h>
 
+// Qt
 #include <QMap>
 
 class ModelItem;
@@ -56,4 +57,4 @@ private:
   QMap<ModelItem *, State *> m_state;
 };
 
-#endif // APPOSITIONPLANERENDERER_H
+#endif // APPOSITIONSURFACERENDERER_H

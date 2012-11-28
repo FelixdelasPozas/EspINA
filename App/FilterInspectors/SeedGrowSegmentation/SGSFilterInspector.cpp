@@ -15,11 +15,13 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "FilterInspector.h"
-#include <Core/EspinaRegions.h>
-#include <GUI/vtkWidgets/RectangularRegion.h>
+#include "SGSFilterInspector.h"
 
 // EspINA
+#include <Core/EspinaRegions.h>
+#include <Filters/SeedGrowSegmentationFilter.h>
+#include <GUI/ViewManager.h>
+#include <GUI/vtkWidgets/RectangularRegion.h>
 
 // Qt
 #include <QDebug>
@@ -27,7 +29,23 @@
 #include <QCheckBox>
 
 //----------------------------------------------------------------------------
-SeedGrowSegmentationFilter::FilterInspector::FilterInspector(Filter* filter, ViewManager* vm)
+SGSFilterInspector::SGSFilterInspector(SeedGrowSegmentationFilter* filter)
+: m_filter(filter)
+{
+  filter->setFilterInspector(Filter::FilterInspectorPtr(this));
+}
+
+//----------------------------------------------------------------------------
+QWidget* SGSFilterInspector::createWidget(QUndoStack* stack, ViewManager* viewManager)
+{
+  return new Widget(m_filter, viewManager);
+}
+
+
+
+
+//----------------------------------------------------------------------------
+SGSFilterInspector::Widget::Widget(Filter* filter, ViewManager* vm)
 : m_viewManager(vm)
 , m_region(NULL)
 //, m_sliceSelctor(NULL)
@@ -39,9 +57,9 @@ SeedGrowSegmentationFilter::FilterInspector::FilterInspector(Filter* filter, Vie
   m_ySeed->setText(QString("%1").arg(seed[1]));
   m_zSeed->setText(QString("%1").arg(seed[2]));
   m_threshold->setMaximum(255);
-  m_threshold->setValue(m_filter->m_param.lowerThreshold());
+  m_threshold->setValue(m_filter->lowerThreshold());
   int voiExtent[6];
-  m_filter->m_param.voi(voiExtent);
+  m_filter->voi(voiExtent);
   EspinaVolume::SpacingType spacing = filter->volume(0)->GetSpacing();
   for (int i=0; i<6; i++)
     m_voiBounds[i] = voiExtent[i] * spacing[i/2];
@@ -82,23 +100,23 @@ SeedGrowSegmentationFilter::FilterInspector::FilterInspector(Filter* filter, Vie
   connect(m_lowerMargin, SIGNAL(valueChanged(int)),
           this, SLOT(updateRegionBounds()));
 
-  bool enabled = m_filter->m_param.closeValue() > 0;
+  bool enabled = m_filter->closeValue() > 0;
   m_closeCheckbox->setChecked(enabled);
   connect(m_closeCheckbox, SIGNAL(stateChanged(int)),
       this, SLOT(modifyCloseCheckbox(int)));
 
   m_closeRadius->setEnabled(enabled);
-  m_closeRadius->setValue(m_filter->m_param.closeValue());
+  m_closeRadius->setValue(m_filter->closeValue());
   connect(m_closeRadius, SIGNAL(valueChanged(int)),
       this, SLOT(modifyCloseValue(int)));
 
 
   connect(m_modify, SIGNAL(clicked(bool)),
-	  this, SLOT(modifyFilter()));
+          this, SLOT(modifyFilter()));
 }
 
 //----------------------------------------------------------------------------
-SeedGrowSegmentationFilter::FilterInspector::~FilterInspector()
+SGSFilterInspector::Widget::~Widget()
 {
   if (m_region)
   {
@@ -110,7 +128,7 @@ SeedGrowSegmentationFilter::FilterInspector::~FilterInspector()
 }
 
 //----------------------------------------------------------------------------
-bool SeedGrowSegmentationFilter::FilterInspector::eventFilter(QObject* sender, QEvent* e)
+bool SGSFilterInspector::Widget::eventFilter(QObject* sender, QEvent* e)
 {
   if (e->type() == QEvent::FocusIn)
   {
@@ -132,7 +150,7 @@ bool SeedGrowSegmentationFilter::FilterInspector::eventFilter(QObject* sender, Q
 }
 
 //----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::FilterInspector::redefineVOI(double* bounds)
+void SGSFilterInspector::Widget::redefineVOI(double* bounds)
 {
   m_leftMargin  ->blockSignals(true);
   m_rightMargin ->blockSignals(true);
@@ -157,7 +175,7 @@ void SeedGrowSegmentationFilter::FilterInspector::redefineVOI(double* bounds)
 }
 
 //----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::FilterInspector::modifyFilter()
+void SGSFilterInspector::Widget::modifyFilter()
 {
   EspinaVolume::SpacingType spacing = m_filter->volume(0)->GetSpacing();
   double voiBounds[6];
@@ -222,7 +240,7 @@ void SeedGrowSegmentationFilter::FilterInspector::modifyFilter()
 }
 
 //----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::FilterInspector::updateRegionBounds()
+void SGSFilterInspector::Widget::updateRegionBounds()
 {
   m_voiBounds[0] = m_leftMargin->value();
   m_voiBounds[1] = m_rightMargin->value();
@@ -236,17 +254,18 @@ void SeedGrowSegmentationFilter::FilterInspector::updateRegionBounds()
 }
 
 //----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::FilterInspector::modifyCloseCheckbox(int enable)
+void SGSFilterInspector::Widget::modifyCloseCheckbox(int enable)
 {
   m_closeRadius->setEnabled(enable);
 
   if (!enable)
-    m_filter->m_param.setCloseValue(0);
+    m_filter->setCloseValue(0);
   else
-      m_filter->m_param.setCloseValue(m_closeRadius->value()); // if 0 == value then is the same as disabled
+      m_filter->setCloseValue(m_closeRadius->value()); // if 0 == value then is the same as disabled
 }
 
-void SeedGrowSegmentationFilter::FilterInspector::modifyCloseValue(int value)
+//----------------------------------------------------------------------------
+void SGSFilterInspector::Widget::modifyCloseValue(int value)
 {
-  m_filter->m_param.setCloseValue(value);
+  m_filter->setCloseValue(value);
 }

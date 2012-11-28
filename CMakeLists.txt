@@ -75,8 +75,9 @@ add_subdirectory( Filters )
 add_subdirectory( GUI     )
 add_subdirectory( Undo    )
 add_subdirectory( App     )
+add_subdirectory( Plugins )
 
-if (${BUILD_TESTING})
+if (BUILD_TESTING)
 
   include (CTest)
   enable_testing()

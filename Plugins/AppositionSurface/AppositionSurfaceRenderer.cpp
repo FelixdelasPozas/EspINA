@@ -16,21 +16,24 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
 #include "AppositionSurfaceRenderer.h"
 
 #include "AppositionSurfaceExtension.h"
 
-#include <common/model/Segmentation.h>
+// EspINA
+#include <Core/Model/Segmentation.h>
 
+// ITK
 #include <itkTimeStamp.h>
 
+// VTK
 #include <vtkPolyDataMapper.h>
 #include <vtkProperty.h>
 #include <vtkDecimatePro.h>
 #include <vtkWindowedSincPolyDataFilter.h>
 #include <vtkPolyDataNormals.h>
 
+// Qt
 #include <QDebug>
 #include <QApplication>
 

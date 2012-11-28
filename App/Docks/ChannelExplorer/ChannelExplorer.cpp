@@ -31,7 +31,7 @@
 #include <Core/Model/ModelItem.h>
 
 #ifdef TEST_ESPINA_MODELS
-  #include "common/model/ModelTest.h"
+  #include <Core/Model/ModelTest.h>
 #endif
 
 // Qt
@@ -350,9 +350,9 @@ void ChannelExplorer::updateChannelPosition()
   {
     Channel *channel = dynamic_cast<Channel *>(currentItem);
     double pos[3] = {
-      m_gui->xPos->value(),
-      m_gui->yPos->value(),
-      m_gui->zPos->value()
+      static_cast<double>(m_gui->xPos->value()),
+      static_cast<double>(m_gui->yPos->value()),
+      static_cast<double>(m_gui->zPos->value())
     };
 
     channel->setPosition(pos);
