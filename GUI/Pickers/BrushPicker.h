@@ -40,7 +40,7 @@ class BrushPicker
 : public IPicker
 {
   Q_OBJECT
-  typedef EspinaVolume::SpacingType Spacing;
+  typedef itkVolumeType::SpacingType Spacing;
 
 public:
   explicit BrushPicker(PickableItem *item=NULL);

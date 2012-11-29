@@ -27,7 +27,7 @@
 class FillHolesFilter
 : public Filter
 {
-  typedef itk::BinaryFillholeImageFilter<EspinaVolume> FilterType;
+  typedef itk::BinaryFillholeImageFilter<itkVolumeType> FilterType;
 
 public:
   static const QString TYPE;

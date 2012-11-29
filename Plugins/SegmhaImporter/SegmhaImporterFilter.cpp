@@ -47,7 +47,7 @@ typedef itk::ShapeLabelObject<unsigned int, 3> LabelObjectType;
 typedef itk::LabelMap<LabelObjectType> LabelMapType;
 typedef itk::LabelImageToShapeLabelMapFilter<SegmentationLabelMap, LabelMapType>
                Image2LabelFilterType;
-typedef itk::LabelMapToLabelImageFilter<LabelMapType, EspinaVolume>
+typedef itk::LabelMapToLabelImageFilter<LabelMapType, itkVolumeType>
                Label2VolumeFilterType;
 
 //---------------------------------------------------------------------------

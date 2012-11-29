@@ -14,13 +14,13 @@ typedef QList<Channel *>      ChannelList;
 typedef QList<Segmentation *> SegmentationList;
 
 typedef itk::Image<unsigned short,3> SegmentationLabelMap;
-typedef itk::Image<unsigned char, 3> EspinaVolume;
+typedef itk::Image<unsigned char, 3> itkVolumeType;
 
 
 typedef double Nm;
 
-const EspinaVolume::PixelType SEG_VOXEL_VALUE = 255;
-const EspinaVolume::PixelType SEG_BG_VALUE = 0;
+const itkVolumeType::PixelType SEG_VOXEL_VALUE = 255;
+const itkVolumeType::PixelType SEG_BG_VALUE = 0;
 
 enum PlaneType
 {

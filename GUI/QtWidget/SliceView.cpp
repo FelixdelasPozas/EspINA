@@ -715,7 +715,7 @@ void SliceView::addChannel(Channel* channel)
 
   channelRep.resliceToColors = vtkImageResliceToColors::New();
   channelRep.resliceToColors->SetResliceAxes(m_slicingMatrix);
-  channelRep.resliceToColors->SetInputConnection(channel->vtkVolume());
+  channelRep.resliceToColors->SetInputConnection(channel->volume()->toVTK());
   channelRep.resliceToColors->SetOutputDimensionality(2);
   channelRep.resliceToColors->SetLookupTable(channelRep.lut);
   channelRep.resliceToColors->Update();
@@ -822,7 +822,7 @@ void SliceView::addSegmentation(Segmentation* seg)
 
   segRep.resliceToColors = vtkImageResliceToColors::New();
   segRep.resliceToColors->SetResliceAxes(m_slicingMatrix);
-  segRep.resliceToColors->SetInputConnection(seg->vtkVolume());
+  segRep.resliceToColors->SetInputConnection(seg->volume()->toVTK());
   segRep.resliceToColors->SetOutputDimensionality(2);
   segRep.resliceToColors->SetLookupTable(m_viewManager->lut(seg));
   segRep.resliceToColors->Update();
@@ -1285,14 +1285,15 @@ QList<Segmentation *> SliceView::pickSegmentations(double vx,
     {
       Segmentation *pickedSeg = property3DSegmentation(pickedProp);
       Q_ASSERT(pickedSeg);
-      Q_ASSERT(pickedSeg->itkVolume());
+      Q_ASSERT(pickedSeg->volume().get());
+      Q_ASSERT(pickedSeg->volume()->toITK().IsNotNull());
 
       //TODO 2012-10-23 Check all the region, not just the first point!
       double pixel[3];
       worldRegion(selectedRegion, pickedSeg)->GetPoint(0, pixel);
-      EspinaVolume::IndexType pickedPixel = pickedSeg->index(pixel[0], pixel[1], pixel[2]);
-      if (!pickedSeg->itkVolume()->GetLargestPossibleRegion().IsInside(pickedPixel) ||
-        (pickedSeg->itkVolume()->GetPixel(pickedPixel) == 0))
+      itkVolumeType::IndexType pickedPixel = pickedSeg->volume()->index(pixel[0], pixel[1], pixel[2]);
+      if (!pickedSeg->volume()->volumeRegion().IsInside(pickedPixel) ||
+         ( pickedSeg->volume()->toITK()->GetPixel(pickedPixel) == 0))
         continue;
 
       segmentations << pickedSeg;

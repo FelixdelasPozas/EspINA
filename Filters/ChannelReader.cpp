@@ -101,7 +101,7 @@ void ChannelReader::run()
   if (m_args.contains(SPACING))
     m_reader->GetOutput()->SetSpacing(spacing());
 
-  EspinaVolume::Pointer volume = m_reader->GetOutput();
+  ChannelVolume::Pointer volume(new ChannelVolume(m_reader->GetOutput()));
 
   m_outputs.clear();
   m_outputs << Output(this, 0, volume);
@@ -115,15 +115,15 @@ void ChannelReader::setSpacing(itk::Image< unsigned int, 3 >::SpacingType spacin
   m_args[SPACING] = QString("%1,%2,%3")
   .arg(spacing[0]).arg(spacing[1]).arg(spacing[2]);
 
-  m_outputs[0].volume->SetSpacing(spacing);
+  m_outputs[0].volume->toITK()->SetSpacing(spacing);
 
   emit modified(this);
 }
 
 //----------------------------------------------------------------------------
-EspinaVolume::SpacingType ChannelReader::spacing()
+itkVolumeType::SpacingType ChannelReader::spacing()
 {
-  EspinaVolume::SpacingType res;
+  itkVolumeType::SpacingType res;
   QStringList values = m_args.value(SPACING, "-1,-1,-1").split(",");
   for(int i = 0; i < 3; i++)
     res[i] = values[i].toDouble();

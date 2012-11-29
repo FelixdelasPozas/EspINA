@@ -29,7 +29,6 @@
 
 #include <itkImageIOBase.h>
 #include <itkImageFileReader.h>
-#include <itkImageToVTKImageFilter.h>
 #include <vtkAlgorithmOutput.h>
 
 #include <QColor>
@@ -44,9 +43,7 @@ class vtkAlgorithmOutput;
 class Channel
 : public PickableItem
 {
-  typedef itk::ImageFileReader<EspinaVolume> EspinaVolumeReader;
-public:
-
+  typedef itk::ImageFileReader<itkVolumeType> EspinaVolumeReader;
 public:
   // Argument Ids
   static const ArgumentId ID;
@@ -100,13 +97,6 @@ public:
 public:
   virtual ~Channel();
 
-  void extent(int out[6]);
-  void bounds(double out[6]);
-  void spacing(double out[3]);
-
-  void setPosition(Nm pos[3]);
-  void position(Nm pos[3]);
-
   void setColor(double color);
   double color() const;
 
@@ -132,11 +122,13 @@ public:
   /// Pickable Item Interface
   virtual const Filter* filter() const;
   virtual Filter* filter() { return PickableItem::filter(); }
-  virtual Filter::OutputId outputId();
-  virtual EspinaVolume *itkVolume();
+  virtual const Filter::OutputId outputId() const;
 
-  // vtk image of the channel
-  vtkAlgorithmOutput *vtkVolume();
+  ChannelVolume::Pointer volume();
+  const ChannelVolume::Pointer volume() const;
+
+  void setPosition(Nm pos[3]);
+  void position(Nm pos[3]);
 
   /// Add a new extension to the segmentation
   /// Extesion won't be available until requirements are satisfied
@@ -158,7 +150,5 @@ private:
 //   QMap<ExtensionId, IChannelExtension *> m_pendingExtensions;
 //   QList<IChannelExtension *> m_insertionOrderedExtensions;
 //   QMap<IChannelRepresentation::RepresentationId, IChannelExtension *> m_representations;
-  typedef itk::ImageToVTKImageFilter<EspinaVolume> itk2vtkFilterType;
-  itk2vtkFilterType::Pointer itk2vtk;
 };
 #endif // CHANNEL_H

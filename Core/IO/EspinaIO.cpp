@@ -29,7 +29,7 @@
 const QString TRACE    = "trace.dot";
 const QString TAXONOMY = "taxonomy.xml";
 
-typedef itk::ImageFileWriter<EspinaVolume> EspinaVolumeWriter;
+typedef itk::ImageFileWriter<itkVolumeType> EspinaVolumeWriter;
 
 const QString EspinaIO::VERSION = "version";
 const QString SEG_FILE_VERSION  = "1";
@@ -216,7 +216,7 @@ bool EspinaIO::zipVolume(Filter::Output output,
   io->SetFileName(mhd.toStdString());
   writer->SetFileName(mhd.toStdString());
   filter->update();
-  EspinaVolume::Pointer volume = output.volume;
+  itkVolumeType::Pointer volume = output.volume->toITK();
   bool releaseFlag = volume->GetReleaseDataFlag();
   volume->ReleaseDataFlagOff();
   writer->SetInput(volume);

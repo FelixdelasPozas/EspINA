@@ -23,6 +23,7 @@
 #include "Core/Model/ModelItem.h"
 
 #include "Core/EspinaTypes.h"
+#include <Core/EspinaVolume.h>
 
 #include <boost/shared_ptr.hpp>
 
@@ -41,7 +42,7 @@ class Filter
 : public ModelItem
 {
 protected:
-  typedef itk::ImageFileReader<EspinaVolume> EspinaVolumeReader;
+  typedef itk::ImageFileReader<itkVolumeType> EspinaVolumeReader;
 
 public:
   typedef int OutputId;
@@ -55,7 +56,8 @@ public:
   {
     explicit Output(Filter               *filter = NULL,
                     OutputId              id     = INVALID_OUTPUT_ID,
-                    EspinaVolume::Pointer volume = EspinaVolume::Pointer())
+                    EspinaVolume::Pointer volume = EspinaVolume::Pointer()
+                   )
     : isCached(false)
     , isEdited(false)
     , filter(filter)
@@ -73,7 +75,7 @@ public:
     {
       return NULL != filter
           && INVALID_OUTPUT_ID < id
-          && NULL != volume.GetPointer();
+          && volume->toITK().IsNotNull();
     }
 
     static const int INVALID_OUTPUT_ID = -1;
@@ -121,25 +123,25 @@ public:
   /// Manually Edit Filter Output
   virtual void draw(OutputId oId,
                     vtkImplicitFunction *brush,
-                    double bounds[6],
-                    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+                    const Nm bounds[6],
+                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE);
   virtual void draw(OutputId oId,
-                    EspinaVolume::IndexType index,
-                    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+                    itkVolumeType::IndexType index,
+                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE);
   virtual void draw(OutputId oId,
                     Nm x, Nm y, Nm z,
-                    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE);
   virtual void draw(OutputId oId,
                     vtkPolyData *contour,
                     Nm slice,
                     PlaneType plane,
-                    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE);
   virtual void draw(OutputId oId,
-                    EspinaVolume::Pointer volume);
+                    itkVolumeType::Pointer volume);
 
   //TODO 2012-11-20 cambiar nombre y usar FilterOutput
   virtual void restoreOutput(OutputId oId,
-                           EspinaVolume::Pointer volume);
+                           itkVolumeType::Pointer volume);
 
   /// Returns filter's outputs
   OutputList outputs() const {return m_outputs;}
@@ -148,10 +150,11 @@ public:
   /// Return whether or not i is an output of the filter
   bool validOutput(OutputId oId);
   /// Return an output with id i. Ids are not necessarily sequential
-  virtual Output output(OutputId oId) const;
-  Output &output(OutputId oId);
+  virtual const Output output(OutputId oId) const;
+  virtual Output &output(OutputId oId);
   /// Convencience method to get the volume associated wit output i
-  EspinaVolume *volume(OutputId oId) {return output(oId).volume;}
+  EspinaVolume::Pointer volume(OutputId oId) {return output(oId).volume;}
+  const EspinaVolume::Pointer volume(OutputId oId) const {return output(oId).volume;}
   /// Determine whether the filter needs to be updated or not
   /// Default implementation will request an update if there are no filter outputs
   /// or there is at least one invalid output
@@ -186,18 +189,13 @@ protected:
   /// Reader to access snapshots
   EspinaVolumeReader::Pointer tmpFileReader(const QString file);
 
-  /// Expands @volume to contain @region. If @volume doesn't need to
-  /// be expanded it returns volume itself, otherwhise a pointer to a
-  /// new volume is returned
-  EspinaVolume::Pointer expandVolume(EspinaVolume::Pointer volume,
-                                     EspinaVolume::RegionType region);
   /// Update output isEdited flag and filter EDIT argument
   void markAsEdited(OutputId oId);
 
 protected:
-  QList<EspinaVolume *> m_inputs;
-  NamedInputs           m_namedInputs;
-  mutable Arguments     m_args;
+  QList<EspinaVolume::Pointer> m_inputs;
+  NamedInputs                  m_namedInputs;
+  mutable Arguments            m_args;
 
   OutputList m_outputs;
 

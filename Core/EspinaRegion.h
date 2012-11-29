@@ -17,16 +17,18 @@
 */
 
 
-#ifndef BOUNDINGBOX_H
-#define BOUNDINGBOX_H
+#ifndef ESPINAREGION_H
+#define ESPINAREGION_H
 
 #include "EspinaTypes.h"
 
-class BoundingBox
+class EspinaRegion
 {
 public:
-  explicit BoundingBox(Nm bounds[6]);
-  explicit BoundingBox(EspinaVolume *image);
+  explicit EspinaRegion(const Nm  bounds[6]);
+
+  Nm &operator[](int idx) { return m_bounds[idx]; }
+  const Nm &operator[](int idx) const { return m_bounds[idx]; }
 
   Nm xMin() const {return m_bounds[0];}
   Nm xMax() const {return m_bounds[1];}
@@ -35,13 +37,19 @@ public:
   Nm zMin() const {return m_bounds[4];}
   Nm zMax() const {return m_bounds[5];}
 
-  Nm *bounds(){return m_bounds;}
+  const Nm * bounds(            ) const { return m_bounds; }
+  void       bounds(Nm bounds[6]) const { memcpy(bounds, m_bounds, 6*sizeof(m_bounds)); }
 
-  bool intersect(BoundingBox &bb);
-  BoundingBox intersection(BoundingBox &bb);
+  bool isInside(const EspinaRegion &region) const;
+  /// Check region intersection
+  bool intersect(const EspinaRegion &region) const;
+  /// Return intersection region
+  EspinaRegion intersection(const EspinaRegion &region) const;
 
 private:
-  explicit BoundingBox();
   Nm m_bounds[6];
 };
-#endif // BOUNDINGBOX_H
+
+EspinaRegion BoundingBox(EspinaRegion r1, EspinaRegion r2);
+
+#endif // ESPINAREGION_H

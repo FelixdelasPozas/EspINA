@@ -19,7 +19,6 @@
 #include "Channel.h"
 
 #include "Core/Model/Filter.h"
-#include "Core/EspinaRegions.h"
 #include "Core/Extensions/ChannelExtension.h"
 #include "Core/Extensions/ModelItemExtension.h"
 #include "Core/Model/RelationshipGraph.h"
@@ -70,37 +69,35 @@ const Filter* Channel::filter() const
 }
 
 //------------------------------------------------------------------------
-Filter::OutputId Channel::outputId()
+const Filter::OutputId Channel::outputId() const
 {
   return m_args.outputId();
 }
 
 //------------------------------------------------------------------------
-EspinaVolume *Channel::itkVolume()
+ChannelVolume::Pointer Channel::volume()
 {
-  return m_filter->volume(m_args.outputId());
+  EspinaVolume::Pointer ev = m_filter->volume(m_args.outputId());
+
+  // On invalid cast:
+  // The static_pointer_cast will "just do it". This will result in an invalid pointer and will likely cause a crash. The reference count on base will be incremented.
+  // The shared_polymorphic_downcast will come the same as a static cast, but will trigger an assertion in the process. The reference count on base will be incremented.
+  // The dynamic_pointer_cast will simply come out NULL. The reference count on base will be unchanged.
+  return boost::dynamic_pointer_cast<ChannelVolume>(ev);
 }
 
 //------------------------------------------------------------------------
-void Channel::extent(int out[6])
+const ChannelVolume::Pointer Channel::volume() const
 {
-  VolumeExtent(itkVolume(), out);
+  EspinaVolume::Pointer ev = m_filter->volume(m_args.outputId());
+
+  // On invalid cast:
+  // The static_pointer_cast will "just do it". This will result in an invalid pointer and will likely cause a crash. The reference count on base will be incremented.
+  // The shared_polymorphic_downcast will come the same as a static cast, but will trigger an assertion in the process. The reference count on base will be incremented.
+  // The dynamic_pointer_cast will simply come out NULL. The reference count on base will be unchanged.
+  return boost::dynamic_pointer_cast<ChannelVolume>(ev);
 }
 
-//------------------------------------------------------------------------
-void Channel::bounds(double out[6])
-{
-  VolumeBounds(itkVolume(), out);
-}
-
-//------------------------------------------------------------------------
-void Channel::spacing(double out[3])
-{
-  EspinaVolume::SpacingType spacing;
-  spacing = itkVolume()->GetSpacing();
-  for (int i=0; i<3; i++)
-    out[i] = spacing[i];
-}
 
 //------------------------------------------------------------------------
 void Channel::setPosition(Nm pos[3])
@@ -239,7 +236,7 @@ void Channel::addExtension(ChannelExtension* ext)
 //-----------------------------------------------------------------------------
 void Channel::notifyModification(bool force)
 {
-  itk2vtk->Update();
+  m_filter->volume(outputId())->update();
   ModelItem::notifyModification(force);
 }
 
@@ -251,17 +248,18 @@ Sample *Channel::sample()
   return dynamic_cast<Sample *>(relatedSamples[0]);
 }
 
-vtkAlgorithmOutput* Channel::vtkVolume()
-{
-  if (itk2vtk.IsNull())
-  {
-
-    //qDebug() << " from ITK to VTK (channel)";
-    itk2vtk = itk2vtkFilterType::New();
-    itk2vtk->ReleaseDataFlagOn();
-    itk2vtk->SetInput(m_filter->volume(m_args.outputId()));
-    itk2vtk->Update();
-  }
-
-  return itk2vtk->GetOutput()->GetProducerPort();
-}
+//TODO 2012-11-28 vtkAlgorithmOutput* Channel::vtkVolume()
+// {
+//   if (itk2vtk.IsNull())
+//   {
+// 
+//     //qDebug() << " from ITK to VTK (channel)";
+//     itk2vtk = itk2vtkFilterType::New();
+//     itk2vtk->ReleaseDataFlagOn();
+//     itk2vtk->SetInput(m_filter->volume(m_args.outputId()));
+//     itk2vtk->Update();
+//   }
+// 
+//   return itk2vtk->GetOutput()->GetProducerPort();
+// }
+// 

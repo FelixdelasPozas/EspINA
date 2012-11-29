@@ -34,7 +34,7 @@ public:
   explicit DrawCommand(Filter *source,
                        Filter::OutputId output,
                        BrushShapeList brushes,
-                       EspinaVolume::PixelType value);
+                       itkVolumeType::PixelType value);
   virtual void redo();
   virtual void undo();
 
@@ -45,9 +45,9 @@ private:
 
   double m_strokeBounds[6];
 
-  EspinaVolume::PixelType m_value;
-  EspinaVolume::Pointer m_prevVolume;
-  EspinaVolume::Pointer m_newVolume;
+  itkVolumeType::PixelType m_value;
+  itkVolumeType::Pointer m_prevVolume;
+  itkVolumeType::Pointer m_newVolume;
 };
 
 class Brush::SnapshotCommand
@@ -64,8 +64,8 @@ private:
   Filter      *m_source;
   Filter::OutputId m_output;
 
-  EspinaVolume::Pointer m_prevVolume;
-  EspinaVolume::Pointer m_newVolume;
+  itkVolumeType::Pointer m_prevVolume;
+  itkVolumeType::Pointer m_newVolume;
 };
 
 #endif // BRUSHUNDOCOMMAND_H

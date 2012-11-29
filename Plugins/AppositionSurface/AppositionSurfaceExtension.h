@@ -49,14 +49,14 @@ class AppositionSurfaceExtension
   typedef vtkSmartPointer<vtkPolyData> PolyData;
   typedef vtkSmartPointer<vtkOBBTree>  OBBTreeType;
 
-  typedef itk::ImageRegionConstIterator<EspinaVolume>  VoxelIterator;
-  typedef itk::ImageToVTKImageFilter<EspinaVolume> ItkToVtkFilterType;
-  typedef itk::ExtractImageFilter<EspinaVolume, EspinaVolume> ExtractFilterType;
-  typedef itk::ConstantPadImageFilter<EspinaVolume, EspinaVolume> PadFilterType;
+  typedef itk::ImageRegionConstIterator<itkVolumeType>  VoxelIterator;
+  typedef itk::ImageToVTKImageFilter<itkVolumeType> ItkToVtkFilterType;
+  typedef itk::ExtractImageFilter<itkVolumeType, itkVolumeType> ExtractFilterType;
+  typedef itk::ConstantPadImageFilter<itkVolumeType, itkVolumeType> PadFilterType;
   typedef itk::Image<DistanceType,3> DistanceMapType;
   typedef itk::ImageRegionConstIterator<DistanceMapType> DistanceIterator;
   typedef itk::SignedDanielssonDistanceMapImageFilter
-  <EspinaVolume, DistanceMapType>  SDDistanceMapFilterType;
+  <itkVolumeType, DistanceMapType>  SDDistanceMapFilterType;
   typedef vtkSmartPointer<vtkPlaneSource> PlaneSourceType;
   typedef itk::GradientImageFilter<DistanceMapType, float> GradientFilterType;
   typedef vtkSmartPointer<vtkGridTransform> GridTransform;
@@ -100,7 +100,7 @@ public:
 private:
   // Apposition Plane Auxiliar Functions
   PolyData clipPlane(AppositionSurfaceExtension::PolyData plane, vtkImageData* image) const;
-  DistanceMapType::Pointer computeDistanceMap(EspinaVolume::Pointer volume) const;
+  DistanceMapType::Pointer computeDistanceMap(itkVolumeType::Pointer volume) const;
   /// Return the 8 corners of an OBB
   Points corners(double corner[3], double max[3], double mid[3], double min[3]) const;
   void maxDistancePoint(DistanceMapType::Pointer map, Points points, double avgMaxDistPoint[3]) const;
@@ -108,7 +108,7 @@ private:
   /// Segmentations are represented by labelmap-like vtkDataImages
   /// with background pixels being 0 and foreground ones being 255.
   /// Nevertheless, non-0 pixels are also considered foreground.
-  Points segmentationPoints(EspinaVolume::Pointer seg) const;
+  Points segmentationPoints(itkVolumeType::Pointer seg) const;
   /// Find the projection of A on B
   void project(const double *A, const double *B, double *Projection) const;
   void projectVectors(vtkImageData * vectors_image, double * unitary) const;

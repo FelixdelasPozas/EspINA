@@ -19,8 +19,6 @@
 
 #include "Filter.h"
 
-#include "Core/EspinaRegions.h"
-
 #include <itkImageAlgorithm.h>
 #include <itkImageRegionExclusionIteratorWithIndex.h>
 #include <itkImageRegionIteratorWithIndex.h>
@@ -105,33 +103,32 @@ QString Filter::serialize() const
 //----------------------------------------------------------------------------
 void Filter::draw(OutputId oId,
                   vtkImplicitFunction* brush,
-                  double bounds[6],
-                  EspinaVolume::PixelType value)
+                  const Nm bounds[6],
+                  itkVolumeType::PixelType value)
 {
   Output &filterOutput = output(oId);
 
-  EspinaVolume::Pointer     volume  = filterOutput.volume;
-  EspinaVolume::SpacingType spacing = volume->GetSpacing();
-  EspinaVolume::RegionType  region  = BoundsToRegion(bounds, spacing);
+  EspinaRegion region(bounds);
 
-  volume = expandVolume(volume, region);
+  EspinaVolume::Pointer volume = filterOutput.volume;
+  volume->expandToFitRegion(region);
 
-  EspinaVolume::RegionType outputRegion = VolumeRegion(volume, region);
-  itk::ImageRegionIteratorWithIndex<EspinaVolume>   it(volume, outputRegion);
+  itkVolumeType::SpacingType spacing = volume->toITK()->GetSpacing();
+  itkVolumeType::PointType   origin  = volume->toITK()->GetOrigin();
 
+  itkVolumeIterator it = volume->iterator(region);
   it.GoToBegin();
   for (; !it.IsAtEnd(); ++it )
   {
-    double tx = it.GetIndex()[0]*spacing[0] + volume->GetOrigin()[0];
-    double ty = it.GetIndex()[1]*spacing[1] + volume->GetOrigin()[1];
-    double tz = it.GetIndex()[2]*spacing[2] + volume->GetOrigin()[2];
+    double tx = it.GetIndex()[0]*spacing[0] + origin[0];
+    double ty = it.GetIndex()[1]*spacing[1] + origin[1];
+    double tz = it.GetIndex()[2]*spacing[2] + origin[2];
 
     if (brush->FunctionValue(tx, ty, tz) <= 0)
       it.Set(value);
   }
 
-  volume->Modified();
-  filterOutput.volume = volume;
+  volume->toITK()->Modified();
 
   markAsEdited(oId);
 
@@ -140,65 +137,69 @@ void Filter::draw(OutputId oId,
 
 //----------------------------------------------------------------------------
 void Filter::draw(OutputId oId,
-                  EspinaVolume::IndexType index,
-                  EspinaVolume::PixelType value)
+                  itkVolumeType::IndexType index,
+                  itkVolumeType::PixelType value)
 {
-  Output &filterOutput = output(oId);
-  EspinaVolume::Pointer volume = filterOutput.volume;
-
-  EspinaVolume::RegionType region;
-  region.SetIndex(index);
-  EspinaVolume::SizeType size;
-  size.Fill(1);
-  region.SetSize(size);
-  volume = expandVolume(volume, region);
-
-  if (volume && volume->GetLargestPossibleRegion().IsInside(index))
-  {
-    volume->SetPixel(index, value);
-    volume->Modified();
-
-    filterOutput.volume = volume;// TODO 2012-11-20 Se podria reemplazar por una referencia en la declaracion de volume
-
-    markAsEdited(oId);
-
-    emit modified(this);
-  }
+  Q_ASSERT(false); // TODO 2012-11-28 Implementar
+//   Output &filterOutput = output(oId);
+// 
+//   EspinaVolume *volume = filterOutput.volume;
+// 
+//   itkVolumeType::RegionType region;
+//   region.SetIndex(index);
+//   itkVolumeType::SizeType size;
+//   size.Fill(1);
+//   region.SetSize(size);
+// 
+//   volume->expandVolume(region);
+//   volume = expandVolume(volume, region);
+// 
+//   if (volume && volume->GetLargestPossibleRegion().IsInside(index))
+//   {
+//     volume->SetPixel(index, value);
+//     volume->Modified();
+// 
+//     filterOutput.volume = volume;// TODO 2012-11-20 Se podria reemplazar por una referencia en la declaracion de volume
+// 
+//     markAsEdited(oId);
+// 
+//     emit modified(this);
+//   }
 }
 
 //----------------------------------------------------------------------------
 void Filter::draw(OutputId oId,
                   Nm x, Nm y, Nm z,
-                  EspinaVolume::PixelType value)
+                  itkVolumeType::PixelType value)
 {
-  Output &filterOutput = output(oId);
-  EspinaVolume::Pointer volume  = filterOutput.volume;
-
-  if (volume.IsNotNull())
-  {
-    EspinaVolume::SpacingType spacing = volume->GetSpacing();
-
-    EspinaVolume::IndexType index;
-    index[0] = x/spacing[0]+0.5;
-    index[1] = y/spacing[1]+0.5;
-    index[2] = z/spacing[2]+0.5;
-
-    draw(oId, index, value);
-  }
+  Q_ASSERT(false); // TODO 2012-11-28 Implementar
+//   Output &filterOutput = output(oId);
+//   itkVolumeType::Pointer volume  = filterOutput.volume;
+// 
+//   if (volume.IsNotNull())
+//   {
+//     itkVolumeType::SpacingType spacing = volume->GetSpacing();
+// 
+//     itkVolumeType::IndexType index;
+//     index[0] = x/spacing[0]+0.5;
+//     index[1] = y/spacing[1]+0.5;
+//     index[2] = z/spacing[2]+0.5;
+// 
+//     draw(oId, index, value);
+//   }
 }
 
 //----------------------------------------------------------------------------
 void Filter::draw(OutputId oId,
                   vtkPolyData *contour,
                   Nm slice, PlaneType plane,
-      EspinaVolume::PixelType value)
+      itkVolumeType::PixelType value)
 {
-  Output &filterOutput = output(oId);
-  EspinaVolume::Pointer volume  = filterOutput.volume;
+  EspinaVolume::Pointer volume = output(oId).volume;
 
   int extent[6];
-  VolumeExtent(volume, extent);
-  EspinaVolume::SpacingType spacing = volume->GetSpacing();
+  volume->extent(extent);
+  itkVolumeType::SpacingType spacing = volume->toITK()->GetSpacing();
 
   double temporal;
   int temporalvalues[2];
@@ -255,7 +256,7 @@ void Filter::draw(OutputId oId,
   vtkSmartPointer<vtkImageExport> exporter = vtkSmartPointer<vtkImageExport>::New();
   exporter->SetInputConnection(stencilToImage->GetOutputPort());
 
-  typedef itk::VTKImageToImageFilter<EspinaVolume> VTKImporterType;
+  typedef itk::VTKImageToImageFilter<itkVolumeType> VTKImporterType;
   VTKImporterType::Pointer importer = VTKImporterType::New();
   importer->SetUpdateInformationCallback(exporter->GetUpdateInformationCallback());
   importer->SetPipelineModifiedCallback(exporter->GetPipelineModifiedCallback());
@@ -271,10 +272,10 @@ void Filter::draw(OutputId oId,
   importer->SetCallbackUserData(exporter->GetCallbackUserData());
   importer->Update();
 
-  VolumeExtent(importer->GetOutput(), extent);
+  //VolumeExtent(importer->GetOutput(), extent);
 
   itk::Index<3> index;
-  itk::ImageRegionIteratorWithIndex<EspinaVolume> init(importer->GetOutput(), importer->GetOutput()->GetLargestPossibleRegion());
+  itk::ImageRegionIteratorWithIndex<itkVolumeType> init(importer->GetOutput(), importer->GetOutput()->GetLargestPossibleRegion());
   init.GoToBegin();
   while(!init.IsAtEnd())
   {
@@ -304,14 +305,13 @@ void Filter::draw(OutputId oId,
           Q_ASSERT(false);
           break;
       }
-      Q_ASSERT(volume->GetLargestPossibleRegion().IsInside(index));
-      volume->SetPixel(index, value);
+      Q_ASSERT(volume->toITK()->GetLargestPossibleRegion().IsInside(index));
+      volume->toITK()->SetPixel(index, value);
     }
     ++init;
   }
 
-  volume->Modified();
-  filterOutput.volume = volume;
+  volume->toITK()->Modified();
 
   markAsEdited(oId);
 
@@ -320,19 +320,17 @@ void Filter::draw(OutputId oId,
 
 //----------------------------------------------------------------------------
 void Filter::draw(OutputId oId,
-                  EspinaVolume::Pointer volume)
+                  itkVolumeType::Pointer volume)
 {
-  Output &filterOutput = output(oId);
-  EspinaVolume::Pointer filterVolume = filterOutput.volume;
+  EspinaVolume::Pointer filterVolume = output(oId).volume;
+  EspinaVolume drawnVolume(volume);
 
-  EspinaVolume::RegionType region = NormalizedRegion(volume);
-  filterVolume = expandVolume(filterVolume, region);
+  EspinaRegion region = drawnVolume.espinaRegion();
 
-  EspinaVolume::RegionType inputRegion  = VolumeRegion(volume,       region);
-  EspinaVolume::RegionType outputRegion = VolumeRegion(filterVolume, region);
+  filterVolume->expandToFitRegion(region);
 
-  itk::ImageRegionIteratorWithIndex<EspinaVolume> it(volume,       inputRegion);
-  itk::ImageRegionIteratorWithIndex<EspinaVolume> ot(filterVolume, outputRegion);
+  itkVolumeIterator it = drawnVolume  .iterator(region);
+  itkVolumeIterator ot = filterVolume->iterator(region);
 
   it.GoToBegin();
   ot.GoToBegin();
@@ -341,8 +339,7 @@ void Filter::draw(OutputId oId,
     ot.Set(it.Get());
   }
 
-  filterVolume->Modified();
-  filterOutput.volume = filterVolume;
+  filterVolume->toITK()->Modified();
 
   markAsEdited(oId);
 
@@ -350,12 +347,12 @@ void Filter::draw(OutputId oId,
 }
 
 //----------------------------------------------------------------------------
-void Filter::restoreOutput(OutputId oId, EspinaVolume::Pointer volume)
+void Filter::restoreOutput(OutputId oId, itkVolumeType::Pointer volume)
 {
   Output &filterOutput = output(oId);
 
-  filterOutput.volume = volume;
-  filterOutput.volume ->Modified();
+  *filterOutput.volume = volume;
+  filterOutput.volume->toITK()->Modified();
 
   markAsEdited(oId);
 
@@ -394,7 +391,7 @@ bool Filter::validOutput(Filter::OutputId oId)
 }
 
 //----------------------------------------------------------------------------
-Filter::Output Filter::output(OutputId oId) const
+const Filter::Output Filter::output(OutputId oId) const
 {
   Output res;
 
@@ -466,7 +463,7 @@ void Filter::update()
     }
 
     m_inputs.clear();
-    m_outputs.clear();//WARNING 2012-11-20 Otra opcion seria quitar el flag de edicion a todas las salidas
+    m_outputs.clear();//NOTE 2012-11-20 Otra opcion seria quitar el flag de edicion a todas las salidas
 
     QStringList namedInputList = m_args[INPUTS].split(",", QString::SkipEmptyParts);
     foreach(QString namedInput, namedInputList)
@@ -474,7 +471,8 @@ void Filter::update()
       QStringList input = namedInput.split("_");
       Filter *inputFilter = m_namedInputs[input[0]];
       inputFilter->update();
-      m_inputs << inputFilter->output(input[1].toInt()).volume.GetPointer();
+      OutputId oId = input[1].toInt();
+      m_inputs << inputFilter->output(oId).volume;
     }
 
     run();
@@ -499,8 +497,8 @@ bool Filter::prefetchFilter()
     if (reader.IsNull())
       return false;
 
-    output.volume = reader->GetOutput();
-    output.volume->DisconnectPipeline();
+    *output.volume = reader->GetOutput();
+    output.volume->toITK()->DisconnectPipeline();
   }
 
   emit modified(this);
@@ -526,43 +524,6 @@ Filter::EspinaVolumeReader::Pointer Filter::tmpFileReader(const QString file)
   }
 
   return reader;
-}
-
-//----------------------------------------------------------------------------
-EspinaVolume::Pointer Filter::expandVolume(EspinaVolume::Pointer volume,
-                                           EspinaVolume::RegionType region)
-{
-  EspinaVolume::Pointer res = volume;
-
-  if (volume->GetLargestPossibleRegion() != volume->GetBufferedRegion())
-  {
-    volume->SetBufferedRegion(volume->GetLargestPossibleRegion());
-    volume->Update();
-  }
-
-  EspinaVolume::RegionType imageRegion = volume->GetLargestPossibleRegion();
-  EspinaVolume::RegionType normRegion = NormalizedRegion(volume);
-  if (!normRegion.IsInside(region))
-  {
-    //qDebug() << "Resize Image";
-    EspinaVolume::RegionType br = BoundingBoxRegion(normRegion, region);
-    EspinaVolume::Pointer expandedImage = EspinaVolume::New();
-    expandedImage->SetRegions(br);
-    expandedImage->SetSpacing(volume->GetSpacing());
-    expandedImage->Allocate();
-    // Do a block copy for the overlapping region.
-    itk::ImageAlgorithm::Copy(volume.GetPointer(), expandedImage.GetPointer(), imageRegion, normRegion);
-    itk::ImageRegionExclusionIteratorWithIndex<EspinaVolume> outIter(expandedImage.GetPointer(), br);
-    outIter.SetExclusionRegion(normRegion);
-    outIter.GoToBegin();
-    while ( !outIter.IsAtEnd() )
-    {
-      outIter.Set(0);
-      ++outIter;
-    }
-    res = expandedImage;
-  }
-  return res;
 }
 
 //----------------------------------------------------------------------------

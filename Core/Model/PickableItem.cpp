@@ -19,10 +19,23 @@
 #include "PickableItem.h"
 
 
+//----------------------------------------------------------------------------
 Filter* PickableItem::filter()
 {
   return const_cast<Filter *>(
     static_cast<const PickableItem *>(this)->filter()
   );
 
+}
+
+//----------------------------------------------------------------------------
+EspinaVolume::Pointer PickableItem::volume()
+{
+  return filter()->volume(outputId());
+}
+
+//----------------------------------------------------------------------------
+const EspinaVolume::Pointer PickableItem::volume() const
+{
+  return filter()->volume(outputId());
 }

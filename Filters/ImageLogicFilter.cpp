@@ -18,20 +18,13 @@
 
 #include "ImageLogicFilter.h"
 
-#include <Core/EspinaRegions.h>
 #include <Core/Model/EspinaFactory.h>
 
-#include <itkImageRegionIteratorWithIndex.h>
 #include <itkImageAlgorithm.h>
-
-#include <vtkImageAlgorithm.h>
 
 #include <QDebug>
 
 const QString ImageLogicFilter::TYPE = "EditorToolBar::ImageLogicFilter";
-
-typedef itk::ImageRegionConstIteratorWithIndex<EspinaVolume> ConstIterator;
-typedef itk::ImageRegionIteratorWithIndex<EspinaVolume> Iterator;
 
 //-----------------------------------------------------------------------------
 typedef ModelItem::ArgumentId ArgumentId;
@@ -69,16 +62,16 @@ bool ImageLogicFilter::needUpdate() const
   {
     Q_ASSERT(m_inputs.size()  == 1);
     Q_ASSERT(m_outputs.size() == 1);
-    Q_ASSERT(m_outputs[0].volume.IsNotNull());
+    Q_ASSERT(m_outputs[0].volume.get());
 
-    itk::TimeStamp inputTimeStamp = m_inputs[0]->GetTimeStamp();
+    itk::TimeStamp inputTimeStamp = m_inputs[0]->toITK()->GetTimeStamp();
     for (int i = 1; i < m_inputs.size(); i++)
     {
-      if (inputTimeStamp < m_inputs[i]->GetTimeStamp())
-        inputTimeStamp = m_inputs[i]->GetTimeStamp();
+      if (inputTimeStamp < m_inputs[i]->toITK()->GetTimeStamp())
+        inputTimeStamp = m_inputs[i]->toITK()->GetTimeStamp();
     }
 
-    update = m_outputs[0].volume->GetTimeStamp() < inputTimeStamp;
+    update = m_outputs[0].volume->toITK()->GetTimeStamp() < inputTimeStamp;
   }
 
   return update;
@@ -109,29 +102,27 @@ void ImageLogicFilter::run() //TODO: Parallelize
 //-----------------------------------------------------------------------------
 void ImageLogicFilter::addition()
 {
-  QList<EspinaVolume::RegionType> regions;
+  QList<EspinaRegion> regions;
 
-  EspinaVolume::SpacingType spacing = m_inputs[0]->GetSpacing();
-  EspinaVolume::RegionType br = NormalizedRegion(m_inputs[0]);
-  regions << br;
+  EspinaRegion bb = m_inputs[0]->espinaRegion();
+  regions << bb;
+
   for (int i = 1; i < m_inputs.size(); i++)
   {
-    //Q_ASSERT(spacing == m_inputs[i]->GetSpacing());
-    EspinaVolume::RegionType nr = NormalizedRegion(m_inputs[i]);
-    br = BoundingBoxRegion(br, nr);
-    regions << nr;
+    EspinaRegion region = m_inputs[i]->espinaRegion();
+
+    bb = BoundingBox(bb, region);
+    regions << region;
   }
 
-  EspinaVolume::Pointer volume = EspinaVolume::New();
-  volume->SetRegions(br);
-  volume->SetSpacing(spacing);
-  volume->Allocate();
-  volume->FillBuffer(0);
+  itkVolumeType::SpacingType spacing = m_inputs[0]->toITK()->GetSpacing();
+  SegmentationVolume::Pointer volume(new SegmentationVolume(bb, spacing));
 
   for (int i = 0; i < regions.size(); i++)
   {
-    ConstIterator it(m_inputs[i], VolumeRegion(m_inputs[i], regions[i]));
-    Iterator ot(volume, regions[i]);
+    itkVolumeConstIterator it = m_inputs[i]->constIterator(regions[i]);
+    itkVolumeIterator      ot = volume     ->iterator     (regions[i]);
+
     it.GoToBegin();
     ot.GetRegion();
     for (; !it.IsAtEnd(); ++it,++ot)
@@ -146,36 +137,37 @@ void ImageLogicFilter::addition()
 
 void ImageLogicFilter::substraction()
 {
-  QList<EspinaVolume *> validInputs;
-  QList<EspinaVolume::RegionType> regions;
+  // TODO 2012-11-29 Revisar si se puede evitar crear la imagen
+  QList<EspinaVolume::Pointer> validInputs;
+  QList<EspinaRegion> regions;
 
-  EspinaVolume::SpacingType spacing = m_inputs[0]->GetSpacing();
-  EspinaVolume::RegionType outputRegion = NormalizedRegion(m_inputs[0]);
+  EspinaRegion outputRegion = m_inputs[0]->espinaRegion();
+
   validInputs << m_inputs[0];
   regions     << outputRegion;
 
   for (int i = 1; i < m_inputs.size(); i++)
   {
-//     Q_ASSERT(spacing == m_inputs[i]->GetSpacing());
-    EspinaVolume::RegionType nr = NormalizedRegion(m_inputs[i]);
-    if (nr.Crop(outputRegion))
+    EspinaRegion region = m_inputs[i]->espinaRegion();
+    if (outputRegion.intersect(region))
     {
       validInputs << m_inputs[i];
-      regions     << nr;
+      regions     << outputRegion.intersection(region);
     }
   }
 
-  EspinaVolume::Pointer volume = EspinaVolume::New();
-  volume->SetRegions(outputRegion);
-  volume->SetSpacing(spacing);
-  volume->Allocate();
-  volume->FillBuffer(0);
+  itkVolumeType::SpacingType spacing = m_inputs[0]->toITK()->GetSpacing();
+  SegmentationVolume::Pointer volume(new SegmentationVolume(outputRegion, spacing));
 
-  itk::ImageAlgorithm::Copy(m_inputs[0], volume.GetPointer(), m_inputs[0]->GetLargestPossibleRegion(), regions[0]);
+  itk::ImageAlgorithm::Copy(m_inputs[0]->toITK().GetPointer(),
+                            volume->toITK().GetPointer(),
+                            m_inputs[0]->volumeRegion(),
+                            volume->volumeRegion());
+
   for (int i = 1; i < validInputs.size(); i++)
   {
-    ConstIterator it(m_inputs[i], VolumeRegion(m_inputs[i], regions[i]));
-    Iterator ot(volume, regions[i]);
+    itkVolumeConstIterator it = m_inputs[i]->constIterator(regions[i]);
+    itkVolumeIterator      ot = volume     ->iterator     (regions[i]);
     it.GoToBegin();
     ot.GetRegion();
     for (; !it.IsAtEnd(); ++it,++ot)

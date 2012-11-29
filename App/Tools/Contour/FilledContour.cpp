@@ -119,7 +119,7 @@ void FilledContour::setInUse(bool enable)
     {
       Channel *channel = m_viewManager->activeChannel();
       double spacing[3];
-      channel->spacing(spacing);
+      channel->volume()->spacing(spacing);
 
       if (!m_currentSource && !m_currentSeg)
       {

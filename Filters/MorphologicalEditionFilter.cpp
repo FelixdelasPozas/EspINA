@@ -53,12 +53,13 @@ bool MorphologicalEditionFilter::needUpdate() const
   {
     Q_ASSERT(m_namedInputs.size()  == 1);
     Q_ASSERT(m_outputs.size() == 1);
-    Q_ASSERT(m_outputs[0].volume.IsNotNull());
+    Q_ASSERT(m_outputs[0].volume.get());
+    Q_ASSERT(m_outputs[0].volume->toITK().IsNotNull());
 
     if (!m_inputs.isEmpty())
     {
       Q_ASSERT(m_inputs.size() == 1);
-      update = m_outputs[0].volume->GetTimeStamp() < m_inputs[0]->GetTimeStamp();
+      update = m_outputs[0].volume->toITK()->GetTimeStamp() < m_inputs[0]->toITK()->GetTimeStamp();
     }
   }
 

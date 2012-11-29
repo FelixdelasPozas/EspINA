@@ -13,6 +13,7 @@ class PlanarSplitSliceWidget;
 // EspINA
 #include "GUI/vtkWidgets/EspinaWidget.h"
 #include <Core/EspinaTypes.h>
+#include <Core/EspinaVolume.h>
 
 // vtk
 #include <vtkSmartPointer.h>
@@ -53,7 +54,7 @@ class PlanarSplitWidget
     virtual void setPlanePoints(vtkSmartPointer<vtkPoints>);
     virtual vtkSmartPointer<vtkPoints> getPlanePoints();
     virtual vtkSmartPointer<vtkPlane> getImplicitPlane();
-    virtual vtkSmartPointer<vtkImageStencilData> getStencilForVolume(EspinaVolume *);
+    virtual vtkSmartPointer<vtkImageStencilData> getStencilForVolume(EspinaVolume::Pointer volume);
     virtual void setSegmentationBounds(double *);
     virtual bool planeIsValid();
 

@@ -109,7 +109,7 @@ bool MeshRenderer::addItem(ModelItem* item)
   m_segmentations[seg].visible = false;
 
   int extent[6];
-  vtkImageData *image = vtkImageData::SafeDownCast(seg->vtkVolume()->GetProducer()->GetOutputDataObject(0));
+  vtkImageData *image = vtkImageData::SafeDownCast(seg->volume()->toVTK()->GetProducer()->GetOutputDataObject(0));
   image->GetExtent(extent);
   memcpy(m_segmentations[seg].extent, extent, 6*sizeof(int));
 
@@ -148,7 +148,7 @@ bool MeshRenderer::updateItem(ModelItem* item)
    }
 
    int extent[6];
-   vtkImageData *image = vtkImageData::SafeDownCast(seg->vtkVolume()->GetProducer()->GetOutputDataObject(0));
+   vtkImageData *image = vtkImageData::SafeDownCast(seg->volume()->toVTK()->GetProducer()->GetOutputDataObject(0));
    image->GetExtent(extent);
    if (memcmp(extent, rep.extent, 6*sizeof(int)) != 0)
    {

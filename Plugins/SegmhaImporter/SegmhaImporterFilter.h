@@ -72,16 +72,16 @@ public:
       return m_args[BLOCKS].split(",");
     }
 
-    void setSpacing(EspinaVolume::SpacingType spacing)
+    void setSpacing(itkVolumeType::SpacingType spacing)
     {
       m_args[SPACING] = QString("%1,%2,%3")
       .arg(spacing[0])
       .arg(spacing[1])
       .arg(spacing[2]);
     }
-    EspinaVolume::SpacingType spacing()
+    itkVolumeType::SpacingType spacing()
     {
-      EspinaVolume::SpacingType res;
+      itkVolumeType::SpacingType res;
       QStringList values = m_args[SPACING].split(",");
 
       for(int i=0; i<3; i++)

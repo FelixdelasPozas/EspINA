@@ -110,11 +110,13 @@ double *BestPixelSelector::getPickPoint(EspinaRenderView *view)
   if (pickList.empty() || (pickList.first().second->type() != ModelItem::CHANNEL))
     return NULL;
 
-  EspinaVolume *channel = pickList.first().second->itkVolume();
+  PickableItem *pickedItem = pickList.first().second;
+
+  itkVolumeType::Pointer channelVol = pickedItem->volume()->toITK();
   double pickedPoint[3];
   pickList.first().first->GetPoint(0, pickedPoint);
 
-  EspinaVolume::SpacingType spacing = channel->GetSpacing();
+  itkVolumeType::SpacingType spacing = channelVol->GetSpacing();
   double bounds[6];
   view->previewBounds(bounds);
 
@@ -210,26 +212,26 @@ double *BestPixelSelector::getPickPoint(EspinaRenderView *view)
       extent[4] = B_point[2]/spacing[2];
   }
 
-  EspinaVolume::SizeType regionSize;
+  itkVolumeType::SizeType regionSize;
   regionSize[0] = extent[1]-extent[0]+1;
   regionSize[1] = extent[3]-extent[2]+1;
   regionSize[2] = extent[5]-extent[4]+1;
 
-  EspinaVolume::IndexType regionIndex;
+  itkVolumeType::IndexType regionIndex;
   regionIndex[0] = extent[0];
   regionIndex[1] = extent[2];
   regionIndex[2] = extent[4];
 
-  EspinaVolume::RegionType region;
+  itkVolumeType::RegionType region;
   region.SetSize(regionSize);
   region.SetIndex(regionIndex);
 
-  itk::ImageRegionConstIterator<EspinaVolume> it(channel,region);
+  itk::ImageRegionConstIterator<itkVolumeType> it(channelVol,region);
   it.GoToBegin();
 
   unsigned char pixelValue;
   unsigned char bestValue = abs(it.Get() - m_bestPixel);
-  EspinaVolume::IndexType bestPixelIndex = it.GetIndex();
+  itkVolumeType::IndexType bestPixelIndex = it.GetIndex();
   double bestPoint[3] = { bestPixelIndex[0]*spacing[0], bestPixelIndex[1]*spacing[1], bestPixelIndex[2]*spacing[2] };
   double point[3];
 

@@ -7,7 +7,6 @@
 
 #include "ContourSource.h"
 
-#include <Core/EspinaRegions.h>
 #include <Core/Model/EspinaFactory.h>
 
 #include <itkImageRegionIteratorWithIndex.h>
@@ -25,7 +24,6 @@ ContourSource::ContourSource(Filter::NamedInputs inputs,
                                ModelItem::Arguments args)
 : Filter(inputs, args)
 , m_param(m_args)
-, ImageInitializedByFilter(false)
 {
   Q_ASSERT(inputs.isEmpty());
 }
@@ -64,7 +62,7 @@ ContourSource::~ContourSource()
 void ContourSource::draw(OutputId oId,
                          vtkPolyData *contour,
                          Nm slice, PlaneType plane,
-                         EspinaVolume::PixelType value)
+                         itkVolumeType::PixelType value)
 {
   double bounds[6] = { 0,0,0,0,0,0 };
 
@@ -72,35 +70,15 @@ void ContourSource::draw(OutputId oId,
   if (m_outputs.isEmpty())
   {
     // need to create a dummy image to register the filter/action, we'll change it later.
-    ImageInitializedByFilter = true;
-    EspinaVolume::Pointer img = EspinaVolume::New();
-    EspinaVolume::RegionType buffer = BoundsToRegion(bounds, m_param.spacing());
-    img->SetRegions(buffer);
-    img->SetSpacing(m_param.spacing());
-    img->Allocate();
-    img->FillBuffer(0);
-    m_outputs << Output(this, 0, img);
+    SegmentationVolume::Pointer segVolume(new SegmentationVolume(EspinaRegion(bounds), m_param.spacing()));
+    m_outputs << Output(this, 0, segVolume);
   }
   else
   {
     EspinaVolume::Pointer volume = m_outputs[oId].volume;
     contour->ComputeBounds();
     contour->GetBounds(bounds);
-    if (true == ImageInitializedByFilter)
-    {
-      ImageInitializedByFilter = false;
-      EspinaVolume::RegionType buffer = BoundsToRegion(bounds, m_param.spacing());
-      volume->SetRegions(buffer);
-      volume->SetSpacing(m_param.spacing());
-      volume->Allocate();
-      volume->FillBuffer(0);
-    }
-    else
-    {
-      EspinaVolume::SpacingType spacing = volume->GetSpacing();
-      EspinaVolume::RegionType contourRegion = BoundsToRegion(bounds, spacing);
-      m_outputs[oId].volume = expandVolume(volume, contourRegion);
-    }
+    volume->expandToFitRegion(EspinaRegion(bounds));
 
     vtkPolyData *newContour = this->TransformContour(plane, contour);
     m_contourMap[plane].insert(slice, newContour);

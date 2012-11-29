@@ -68,7 +68,7 @@ bool CrosshairRenderer::addItem(ModelItem* item)
     m_channels.remove(item);
   }
 
-  itk::Matrix<double,3,3> direction = channel->itkVolume()->GetDirection();
+  itk::Matrix<double,3,3> direction = channel->volume()->toITK()->GetDirection();
 
   // copy direction matrix to reslice matrices
   double axialMat[16] = { direction(0,0), direction(0,1), direction(0,2), 0,
@@ -95,24 +95,26 @@ bool CrosshairRenderer::addItem(ModelItem* item)
   m_channels[channel].matSagittal = vtkMatrix4x4::New();
   m_channels[channel].matSagittal->DeepCopy(sagittalMat);
 
+  vtkAlgorithmOutput *vtkVolume = channel->volume()->toVTK();
+
   vtkSmartPointer<vtkImageReslice> axialReslice = vtkSmartPointer<vtkImageReslice>::New();
   axialReslice->SetOptimization(true);
   axialReslice->BorderOn();
-  axialReslice->SetInputConnection(channel->vtkVolume());
+  axialReslice->SetInputConnection(vtkVolume);
   axialReslice->SetOutputDimensionality(2);
   axialReslice->SetResliceAxes(m_channels[channel].matAxial);
 
   vtkSmartPointer<vtkImageReslice> coronalReslice = vtkSmartPointer<vtkImageReslice>::New();
   coronalReslice->SetOptimization(true);
   coronalReslice->BorderOn();
-  coronalReslice->SetInputConnection(channel->vtkVolume());
+  coronalReslice->SetInputConnection(vtkVolume);
   coronalReslice->SetOutputDimensionality(2);
   coronalReslice->SetResliceAxes(m_channels[channel].matCoronal);
 
   vtkSmartPointer<vtkImageReslice> sagittalReslice = vtkSmartPointer<vtkImageReslice>::New();
   sagittalReslice->SetOptimization(true);
   sagittalReslice->BorderOn();
-  sagittalReslice->SetInputConnection(channel->vtkVolume());
+  sagittalReslice->SetInputConnection(vtkVolume);
   sagittalReslice->SetOutputDimensionality(2);
   sagittalReslice->SetResliceAxes(m_channels[channel].matSagittal);
 
@@ -130,7 +132,7 @@ bool CrosshairRenderer::addItem(ModelItem* item)
   m_channels[channel].lut->SetNumberOfColors(256);
   m_channels[channel].lut->SetRampToLinear();
   m_channels[channel].lut->Build();
-  channel->bounds(m_channels[channel].bounds);
+  channel->volume()->bounds(m_channels[channel].bounds);
 
   vtkSmartPointer<vtkImageMapToColors> axialImagemap = vtkSmartPointer<vtkImageMapToColors>::New();
   axialImagemap->SetLookupTable(m_channels[channel].lut);
@@ -181,7 +183,7 @@ bool CrosshairRenderer::addItem(ModelItem* item)
   m_channels[channel].color.setHsvF(channel->color(), 1.0, 1.0);
 
   double bounds[6];
-  channel->bounds(bounds);
+  channel->volume()->bounds(bounds);
   double ap0[3] = { bounds[0], bounds[2], bounds[4] };
   double ap1[3] = { bounds[0], bounds[3], bounds[4] };
   double ap2[3] = { bounds[1], bounds[3], bounds[4] };

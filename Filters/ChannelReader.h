@@ -46,12 +46,12 @@ public:
   /// Implements Filter Interface
   virtual bool needUpdate() const;
 
-  void setSpacing(EspinaVolume::SpacingType spacing);
+  void setSpacing(itkVolumeType::SpacingType spacing);
 
 protected:
   virtual void run();
 
-  EspinaVolume::SpacingType spacing();
+  itkVolumeType::SpacingType spacing();
 
 private:
   itk::ImageIOBase::Pointer   m_io;

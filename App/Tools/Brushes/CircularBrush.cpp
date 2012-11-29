@@ -37,7 +37,8 @@ CircularBrush::CircularBrush(EspinaModel* model,
 //-----------------------------------------------------------------------------
 Brush::BrushShape CircularBrush::createBrushShape(PickableItem* item, double center[3], Nm radius, PlaneType plane)
 {
-  EspinaVolume::SpacingType spacing = item->itkVolume()->GetSpacing();
+  double spacing[3];
+  item->volume()->spacing(spacing);
 
   double sRadius = (plane == SAGITTAL)?0:radius;
   double cRadius = (plane ==  CORONAL)?0:radius;
@@ -63,5 +64,5 @@ Brush::BrushShape CircularBrush::createBrushShape(PickableItem* item, double cen
   brush->SetTopCenter(topCenter);
   brush->SetTopRadius(radius);
 
-  return BrushShape(brush,BoundingBox(brushBounds));
+  return BrushShape(brush, EspinaRegion(brushBounds));
 }

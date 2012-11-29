@@ -23,7 +23,6 @@
 #include "Docks/SegmentationExplorer/SegmentationDelegate.h"
 
 // EspINA
-#include <Core/EspinaRegions.h>
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Proxies/SampleProxy.h>
 #include <Core/Model/Proxies/TaxonomyProxy.h>
@@ -422,7 +421,7 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
 
   Nm bounds[6];
   Segmentation *seg = dynamic_cast<Segmentation*>(item);
-  VolumeBounds(seg->itkVolume(), bounds);
+  seg->volume()->bounds(bounds);
   Nm center[3] = { (bounds[0] + bounds[1])/2, (bounds[2] + bounds[3])/2, (bounds[4] + bounds[5])/2 };
   m_viewManager->focusViewsOn(center);
 

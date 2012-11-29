@@ -17,7 +17,6 @@
 */
 #include "SeedGrowSegmentationFilter.h"
 
-#include "Core/EspinaRegions.h"
 #include "Core/Model/EspinaModel.h"
 
 #include <QDebug>
@@ -53,7 +52,7 @@ SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(Filter::NamedInputs input
 : Filter       (inputs, args)
 , m_paramModified (false)
 , m_param      (m_args)
-, m_input      (NULL)
+, m_input      (EspinaVolume::Pointer())
 {
 }
 
@@ -96,7 +95,7 @@ void SeedGrowSegmentationFilter::run()
 
 //   qDebug() << "Bound VOI to input extent";
   int inputExtent[6];
-  VolumeExtent(m_input, inputExtent);
+  m_input->extent(inputExtent);
   for (int i = 0; i < 3; i++)
   {
     int inf = 2*i, sup = 2*i+1;
@@ -114,13 +113,13 @@ void SeedGrowSegmentationFilter::run()
     roi.SetSize (i, voi[sup] - voi[inf] + 1);
   }
   voiFilter->SetNumberOfThreads(1);
-  voiFilter->SetInput(m_input);
+  voiFilter->SetInput(m_input->toITK());
   voiFilter->SetExtractionRegion(roi);
   voiFilter->Update();
 
 //   qDebug() << "Computing Original Size Connected Threshold";
-  EspinaVolume::IndexType seed = m_param.seed();
-  double seedIntensity = m_input->GetPixel(seed);
+  itkVolumeType::IndexType seed = m_param.seed();
+  double seedIntensity = m_input->toITK()->GetPixel(seed);
   ctif = ConnectedThresholdFilterType::New();
   ctif->SetInput(voiFilter->GetOutput());
   ctif->SetReplaceValue(LABEL_VALUE);
@@ -156,7 +155,7 @@ void SeedGrowSegmentationFilter::run()
   //writer->SetInput(extract->GetOutput());
   //writer->Write();
 
-  EspinaVolume::Pointer volume;
+  itkVolumeType::Pointer volume;
 
   if (m_param.closeValue() > 0)
   {
@@ -177,7 +176,8 @@ void SeedGrowSegmentationFilter::run()
     volume = extractFilter->GetOutput();
 
   m_outputs.clear();
-  m_outputs << Output(this, 0, volume);
+  SegmentationVolume::Pointer segVolume(new SegmentationVolume(volume));
+  m_outputs << Output(this, 0, segVolume);
   m_paramModified = false;
 
   emit modified(this);
@@ -212,13 +212,13 @@ void SeedGrowSegmentationFilter::setVOI(int VOI[6])
 }
 
 //-----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::setSeed(EspinaVolume::IndexType seed)
+void SeedGrowSegmentationFilter::setSeed(itkVolumeType::IndexType seed)
 {
   m_param.setSeed(seed);
 }
 
 //-----------------------------------------------------------------------------
-EspinaVolume::IndexType SeedGrowSegmentationFilter::seed() const
+itkVolumeType::IndexType SeedGrowSegmentationFilter::seed() const
 {
   return m_param.seed();
 }

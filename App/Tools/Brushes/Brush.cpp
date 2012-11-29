@@ -223,7 +223,7 @@ void Brush::drawStroke(PickableItem* item,
 
       Channel *channel = dynamic_cast<Channel *>(item);
       double spacing[3];
-      channel->spacing(spacing);
+      channel->volume()->spacing(spacing);
 
       Filter::NamedInputs inputs;
       Filter::Arguments args;
@@ -244,7 +244,7 @@ void Brush::drawStroke(PickableItem* item,
     else
     {
       Q_ASSERT(m_currentSource && m_currentSeg);
-      EspinaVolume::PixelType value = m_erasing ? SEG_BG_VALUE : SEG_VOXEL_VALUE;
+      itkVolumeType::PixelType value = m_erasing ? SEG_BG_VALUE : SEG_VOXEL_VALUE;
 
       m_undoStack->push(new DrawCommand(m_currentSource, m_currentOutput, brushes, value));
     }
@@ -271,7 +271,7 @@ void Brush::drawStrokeStep(PickableItem* item,
 
         Channel *channel = dynamic_cast<Channel *>(item);
         double spacing[3];
-        channel->spacing(spacing);
+        channel->volume()->spacing(spacing);
 
         Filter::NamedInputs inputs;
         Filter::Arguments args;

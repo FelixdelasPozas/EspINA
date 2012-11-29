@@ -170,7 +170,7 @@ void RectangularVOI::defineVOI(IPicker::PickList channels)
 
   Channel *pickedChannel = dynamic_cast<Channel *>(pItem);
   double spacing[3];
-  pickedChannel->spacing(spacing);
+  pickedChannel->volume()->spacing(spacing);
 
   const Nm XHSIZE = m_settings->xSize();
   const Nm YHSIZE = m_settings->ySize();

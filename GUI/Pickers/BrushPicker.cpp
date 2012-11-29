@@ -22,8 +22,7 @@
 #include "GUI/ViewManager.h"
 #include <Core/Model/Channel.h>
 #include <Filters/FreeFormSource.h>
-#include <Core/EspinaRegions.h>
-#include <Core/BoundingBox.h>
+#include <Core/EspinaRegion.h>
 
 // Qt
 #include <QMouseEvent>
@@ -119,7 +118,7 @@ void BrushPicker::setBrushColor(QColor color)
 void BrushPicker::setReferenceItem(PickableItem* item)
 {
   m_referenceItem = item;
-  m_spacing = m_referenceItem->itkVolume()->GetSpacing();
+  m_spacing = m_referenceItem->volume()->toITK()->GetSpacing();
 }
 
 //-----------------------------------------------------------------------------
@@ -187,8 +186,8 @@ bool BrushPicker::validStroke(double brush[3])
       break;
   }
 
-  BoundingBox previewBB(m_pBounds);
-  BoundingBox brushBB(brushBounds);
+  EspinaRegion previewBB(m_pBounds);
+  EspinaRegion brushBB(brushBounds);
 
   return previewBB.intersect(brushBB);
 }
@@ -387,13 +386,13 @@ void BrushPicker::updatePreview(double brush[3], EspinaRenderView* view)
       break;
   }
 
-  BoundingBox previewBB(m_pBounds);
-  BoundingBox brushBB(brushBounds);
+  EspinaRegion previewBB(m_pBounds);
+  EspinaRegion brushBB(brushBounds);
 
   if (previewBB.intersect(brushBB))
   {
-    BoundingBox updateBB = previewBB.intersection(brushBB);
-    double *bounds = updateBB.bounds();
+    EspinaRegion updateBB = previewBB.intersection(brushBB);
+    const Nm * bounds = updateBB.bounds();
 
     double r2 = m_radius*m_radius;
     switch(m_plane)

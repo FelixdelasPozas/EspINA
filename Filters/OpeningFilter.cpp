@@ -43,7 +43,7 @@ OpeningFilter::~OpeningFilter()
 void OpeningFilter::run()
 {
   Q_ASSERT(m_inputs.size() == 1);
-  m_input = m_inputs.first();
+  m_input = m_inputs.first()->toITK();
 
   qDebug() << "Compute Image Opening";
   StructuringElementType ball;
@@ -57,7 +57,8 @@ void OpeningFilter::run()
   m_filter->Update();
 
   m_outputs.clear();
-  m_outputs << Output(this, 0, m_filter->GetOutput());
+  SegmentationVolume::Pointer segVolume(new SegmentationVolume(m_filter->GetOutput()));
+  m_outputs << Output(this, 0, segVolume);
 
   emit modified(this);
 }

@@ -21,9 +21,107 @@
 #define ESPINAVOLUME_H
 
 #include "Core/EspinaTypes.h"
+#include "Core/EspinaRegion.h"
+
+#include <itkImageRegionIteratorWithIndex.h>
+#include <itkImageToVTKImageFilter.h>
+
+#include <boost/shared_ptr.hpp>
+
+class vtkAlgorithmOutput;
+
+typedef itk::ImageRegionIteratorWithIndex<itkVolumeType> itkVolumeIterator;
+typedef itk::ImageRegionConstIteratorWithIndex<itkVolumeType> itkVolumeConstIterator;
+
+class EspinaVolume
+{
+public:
+  typedef itkVolumeType::RegionType       VolumeRegion;
+  typedef boost::shared_ptr<EspinaVolume> Pointer;
+
+  explicit EspinaVolume(itkVolumeType::Pointer volume);
+  explicit EspinaVolume(const EspinaRegion &region, itkVolumeType::SpacingType spacing);
+  virtual ~EspinaVolume(){}
+
+  EspinaVolume operator=(itkVolumeType::Pointer volume);
+
+  /// Volume's voxel's index at given spatial position
+  /// It doesn't check whether the index is valid or not
+  itkVolumeType::IndexType index(Nm x, Nm y, Nm z);
+
+  /// Get the vtk-equivalent extent defining the volume
+  void extent(int out[6]) const;
+  /// Get the vtk-equivalent bounds defining the volume
+  void bounds(double out[6]) const;
+  ///
+  void spacing(double out[3]) const;
+
+  EspinaRegion espinaRegion();/// Equivale al bounds que hay arriba
+
+  VolumeRegion volumeRegion();/// Largest possible region
+  VolumeRegion volumeRegion(const EspinaRegion &region); /// La region del volumen que equivale a la region "normalizada"
+
+  itkVolumeIterator iterator();
+  itkVolumeIterator iterator(const EspinaRegion &region);
+
+  itkVolumeConstIterator constIterator();
+  itkVolumeConstIterator constIterator(const EspinaRegion &region);
+
+  itkVolumeType::Pointer toITK();
+  const itkVolumeType::Pointer toITK() const;
+
+  vtkAlgorithmOutput *toVTK();
+  const vtkAlgorithmOutput *toVTK() const;
+
+  void update();
+
+  /// Expands the volume to contain @region.
+  void expandToFitRegion(EspinaRegion region);
+
+private:
+  VolumeRegion volumeRegion(EspinaRegion region, itkVolumeType::SpacingType spacing);
+
+protected:
+  itkVolumeType::Pointer m_volume;
+
+  // itk to vtk filter
+  typedef itk::ImageToVTKImageFilter<itkVolumeType> itk2vtkFilterType;
+  mutable itk2vtkFilterType::Pointer itk2vtk;
+};
+
+
+class ChannelVolume
+: public EspinaVolume
+{
+public:
+  typedef boost::shared_ptr<ChannelVolume> Pointer;
+public:
+  explicit ChannelVolume(itkVolumeType::Pointer volume);
+  explicit ChannelVolume(const EspinaRegion& region, itkVolumeType::SpacingType spacing);
+  virtual ~ChannelVolume(){}
+};
 
 /// Reduce volume dimensions to adjust it to the bounding box of the
 /// contained segmentation
-EspinaVolume::Pointer strechToFitContent(EspinaVolume *volume);
+itkVolumeType::Pointer strechToFitContent(itkVolumeType::Pointer volume);
+
+class SegmentationVolume
+: public EspinaVolume
+{
+public:
+  typedef boost::shared_ptr<SegmentationVolume> Pointer;
+
+public:
+  explicit SegmentationVolume(itkVolumeType::Pointer volume);
+  explicit SegmentationVolume(const EspinaRegion& region, itkVolumeType::SpacingType spacing);
+  virtual ~SegmentationVolume(){}
+
+  bool collision(SegmentationVolume v);
+
+  /// Reduce volume dimensions to adjust it to the bounding box of the
+  /// contained segmentation
+  void strechToFitContent();
+
+};
 
 #endif // ESPINAVOLUME_H

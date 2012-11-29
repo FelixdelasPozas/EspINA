@@ -20,7 +20,6 @@
 #include "SplitFilter.h"
 
 #include <Core/EspinaVolume.h>
-#include <Core/EspinaRegions.h>
 
 #include <itkImageRegionConstIteratorWithIndex.h>
 #include <itkImageRegionIteratorWithIndex.h>
@@ -28,9 +27,6 @@
 
 const QString SplitFilter::TYPE      = "EditorToolBar::SplitFilter";
 const QString SplitFilter::INPUTLINK = "Segmentation";
-
-typedef itk::ImageRegionIteratorWithIndex<EspinaVolume>      Iterator;
-typedef itk::ImageRegionConstIteratorWithIndex<EspinaVolume> ConstIterator;
 
 //-----------------------------------------------------------------------------
 SplitFilter::SplitFilter(Filter::NamedInputs inputs, ModelItem::Arguments args)
@@ -64,27 +60,21 @@ bool SplitFilter::needUpdate() const
 void SplitFilter::run()
 {
   Q_ASSERT(m_inputs.size() == 1);
-  EspinaVolume *input = m_inputs[0];
-
+  EspinaVolume::Pointer input = m_inputs[0];
   Q_ASSERT(m_stencil.GetPointer());
 
-  EspinaVolume::RegionType  region  = input->GetLargestPossibleRegion();
-  EspinaVolume::RegionType  nRegion = NormalizedRegion(input);
-  EspinaVolume::SpacingType spacing = input->GetSpacing();
+  EspinaRegion region = input->espinaRegion();
+//   itkVolumeType::RegionType  region  = input->GetLargestPossibleRegion();
+//   itkVolumeType::RegionType  nRegion = NormalizedRegion(input);
+  itkVolumeType::SpacingType spacing = input->toITK()->GetSpacing();
 
-  EspinaVolume::Pointer volumes[2];
+  SegmentationVolume::Pointer volumes[2];
   for(int i=0; i < 2; i++)
-  {
-    volumes[i] = EspinaVolume::New();
-    volumes[i]->SetRegions(nRegion);
-    volumes[i]->SetSpacing(spacing);
-    volumes[i]->Allocate();
-    volumes[i]->FillBuffer(0);
-  }
+    volumes[i] = SegmentationVolume::Pointer(new SegmentationVolume(region, spacing));
 
-  ConstIterator it(input, region);
-  Iterator     ot1(volumes[0], nRegion);
-  Iterator     ot2(volumes[1], nRegion);
+  itkVolumeConstIterator it = input      ->iterator(region);
+  itkVolumeIterator     ot1 = volumes[0] ->iterator(region);
+  itkVolumeIterator     ot2 = volumes[1] ->iterator(region);
 
   it .GoToBegin();
   ot1.GoToBegin();
@@ -95,7 +85,7 @@ void SplitFilter::run()
 
   for(; !it.IsAtEnd(); ++it, ++ot1, ++ot2)
   {
-    EspinaVolume::IndexType index = ot1.GetIndex();
+    itkVolumeType::IndexType index = ot1.GetIndex();
     if (m_stencil->IsInside(index[0], index[1], index[2]))
     {
       ot1.Set(it.Value());
@@ -115,7 +105,10 @@ void SplitFilter::run()
   if (!isEmpty1 && !isEmpty2)
   {
     for (int i = 0; i < 2; i++)
-      m_outputs << Output(this, i, strechToFitContent(volumes[i]));
+    {
+      volumes[i]->strechToFitContent();
+      m_outputs << Output(this, i, volumes[i]);
+    }
 
     emit modified(this);
   }

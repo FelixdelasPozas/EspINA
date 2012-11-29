@@ -31,7 +31,6 @@
 #include <GUI/ViewManager.h>
 #include <Core/Model/PickableItem.h>
 #include <GUI/Pickers/PixelPicker.h>
-#include <Core/EspinaRegions.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
 
 #include <QApplication>
@@ -272,12 +271,12 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
 
   if (!channel)
     return;
-  EspinaVolume::IndexType seed = channel->index(seedPoint[0], seedPoint[1], seedPoint[2]);
+  itkVolumeType::IndexType seed = channel->volume()->index(seedPoint[0], seedPoint[1], seedPoint[2]);
   if (seed[0] < 0 || seed[1] < 0 || seed[2] < 0)
     return;
 
   double spacing[3];
-  channel->spacing(spacing);
+  channel->volume()->spacing(spacing);
 
   TaxonomyElement *tax = m_viewManager->activeTaxonomy();
   Q_ASSERT(tax);
@@ -326,7 +325,7 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
 
   } else
   {
-    channel->bounds(voiBounds);
+    channel->volume()->bounds(voiBounds);
   }
 
   int voiExtent[6];
@@ -368,7 +367,7 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
     Segmentation *seg = m_model->factory()->createSegmentation(filter, 0);
 
     double segBounds[6];
-    VolumeBounds(seg->itkVolume(), segBounds);
+    seg->volume()->bounds(segBounds);
 
     bool incompleteSeg = false;
     for (int i=0, j=1; i<6; i+=2, j+=2)
@@ -440,15 +439,17 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
   if (view != m_viewOfPreview)
     removePreview(view);
 
-  EspinaVolume *channel = pickList.first().second->itkVolume();
-  EspinaVolume::SpacingType spacing = channel->GetSpacing();
-  EspinaVolume::IndexType seed;
+  EspinaVolume::Pointer pickedChannel = pickList.first().second->volume();
+  double spacing[3];
+  pickedChannel->spacing(spacing);
+
+  itkVolumeType::IndexType seed;
   seed[0] = point[0]/spacing[0];
   seed[1] = point[1]/spacing[1];
   seed[2] = point[2]/spacing[2];
 
-  EspinaVolume::IndexType index;
-  EspinaVolume::SizeType size;
+  itkVolumeType::IndexType index;
+  itkVolumeType::SizeType size;
 
   double bounds[6];
   int extent[6];
@@ -501,17 +502,17 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
   index[0] = extent[0];
   index[1] = extent[2];
   index[2] = extent[4];
-  size[0] = extent[1]-extent[0] +1;
-  size[1] = extent[3]-extent[2] +1;
-  size[2] = extent[5]-extent[4] +1;
+  size[0]  = extent[1]-extent[0] + 1;
+  size[1]  = extent[3]-extent[2] + 1;
+  size[2]  = extent[5]-extent[4] + 1;
 
-  EspinaVolume::RegionType region(index, size);
+  itkVolumeType::RegionType region(index, size);
 
-  typedef itk::ExtractImageFilter<EspinaVolume, EspinaVolume> ExtractType;
+  typedef itk::ExtractImageFilter<itkVolumeType, itkVolumeType> ExtractType;
   ExtractType::Pointer extract = ExtractType::New();
   extract->SetInPlace(false);
   extract->ReleaseDataFlagOff();
-  extract->SetInput(channel);
+  extract->SetInput(pickedChannel->toITK());
   extract->SetExtractionRegion(region);
   extract->Update();
 
@@ -520,7 +521,7 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
   if (m_actor == NULL)
   {
     connectFilter = ConnectedThresholdFilterType::New();
-    connectFilter->SetConnectivity(itk::ConnectedThresholdImageFilter<EspinaVolume, EspinaVolume>::FullConnectivity);
+    connectFilter->SetConnectivity(itk::ConnectedThresholdImageFilter<itkVolumeType, itkVolumeType>::FullConnectivity);
     connectFilter->ReleaseDataFlagOff();
     connectFilter->SetReplaceValue(1);
   }

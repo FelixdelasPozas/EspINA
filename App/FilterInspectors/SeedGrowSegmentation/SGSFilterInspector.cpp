@@ -18,7 +18,6 @@
 #include "SGSFilterInspector.h"
 
 // EspINA
-#include <Core/EspinaRegions.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
 #include <GUI/ViewManager.h>
 #include <GUI/vtkWidgets/RectangularRegion.h>
@@ -52,7 +51,7 @@ SGSFilterInspector::Widget::Widget(Filter* filter, ViewManager* vm)
 {
   setupUi(this);
   m_filter = dynamic_cast<SeedGrowSegmentationFilter *>(filter);
-  EspinaVolume::IndexType seed = m_filter->seed();
+  itkVolumeType::IndexType seed = m_filter->seed();
   m_xSeed->setText(QString("%1").arg(seed[0]));
   m_ySeed->setText(QString("%1").arg(seed[1]));
   m_zSeed->setText(QString("%1").arg(seed[2]));
@@ -60,7 +59,7 @@ SGSFilterInspector::Widget::Widget(Filter* filter, ViewManager* vm)
   m_threshold->setValue(m_filter->lowerThreshold());
   int voiExtent[6];
   m_filter->voi(voiExtent);
-  EspinaVolume::SpacingType spacing = filter->volume(0)->GetSpacing();
+  itkVolumeType::SpacingType spacing = filter->volume(0)->toITK()->GetSpacing();
   for (int i=0; i<6; i++)
     m_voiBounds[i] = voiExtent[i] * spacing[i/2];
 
@@ -177,7 +176,9 @@ void SGSFilterInspector::Widget::redefineVOI(double* bounds)
 //----------------------------------------------------------------------------
 void SGSFilterInspector::Widget::modifyFilter()
 {
-  EspinaVolume::SpacingType spacing = m_filter->volume(0)->GetSpacing();
+  double spacing[3];
+  m_filter->volume(0)->spacing(spacing);
+
   double voiBounds[6];
   voiBounds[0] = m_leftMargin->value();
   voiBounds[1] = m_rightMargin->value();
@@ -214,8 +215,7 @@ void SGSFilterInspector::Widget::modifyFilter()
   // TODO 2012-10-25 Change FilerInspector API to pass segmentations
   // it can be needed to modify their conditions or even to delete them
   double segBounds[6];
-  VolumeBounds(m_filter->volume(0), segBounds);
-  //VolumeBounds(m_seg->itkVolume(), segBounds);
+  m_filter->volume(0)->bounds(segBounds);
 
   bool incompleteSeg = false;
   for (int i=0, j=1; i<6; i+=2, j+=2)

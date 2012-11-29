@@ -54,7 +54,7 @@ public:
       .arg(value[1])
       .arg(value[2]);
     }
-    void setSpacing(EspinaVolume::SpacingType value)
+    void setSpacing(itkVolumeType::SpacingType value)
     {
       for(int i=0; i<3; i++)
         m_spacing[i] = value[i];
@@ -63,13 +63,13 @@ public:
       .arg(value[1])
       .arg(value[2]);
     }
-    EspinaVolume::SpacingType spacing() const
+    itkVolumeType::SpacingType spacing() const
     {
       return m_spacing;
     }
   private:
     Arguments &m_args;
-    EspinaVolume::SpacingType m_spacing;
+    itkVolumeType::SpacingType m_spacing;
   };
 
 public:
@@ -80,13 +80,13 @@ public:
   virtual void draw(OutputId oId,
                     vtkImplicitFunction* brush,
                     double bounds[6],
-                    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE);
   virtual void draw(OutputId oId,
-                    EspinaVolume::IndexType index,
-                    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+                    itkVolumeType::IndexType index,
+                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE);
   virtual void draw(OutputId oId,
                     Nm x, Nm y, Nm z,
-                    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE);
 
   /// Implements Model Item Interface
   virtual QVariant data(int role=Qt::DisplayRole) const;

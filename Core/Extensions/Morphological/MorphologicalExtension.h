@@ -35,7 +35,7 @@ class MorphologicalExtension
 
   typedef itk::StatisticsLabelObject<unsigned int, 3> LabelObjectType;
   typedef itk::LabelMap<LabelObjectType> LabelMapType;
-  typedef itk::LabelImageToShapeLabelMapFilter<EspinaVolume, LabelMapType> Image2LabelFilterType;
+  typedef itk::LabelImageToShapeLabelMapFilter<itkVolumeType, LabelMapType> Image2LabelFilterType;
 
 
 public:

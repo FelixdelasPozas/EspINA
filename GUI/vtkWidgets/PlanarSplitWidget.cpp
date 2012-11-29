@@ -12,7 +12,6 @@
 #include "vtkPlanarSplitWidget.h"
 
 #include "GUI/ViewManager.h"
-#include <Core/EspinaRegions.h>
 
 // vtk
 #include <vtkAbstractWidget.h>
@@ -363,20 +362,21 @@ vtkSmartPointer<vtkPlane> PlanarSplitWidget::getImplicitPlane()
   return plane;
 }
 
-vtkSmartPointer<vtkImageStencilData> PlanarSplitWidget::getStencilForVolume(EspinaVolume *volume)
+vtkSmartPointer< vtkImageStencilData > PlanarSplitWidget::getStencilForVolume(EspinaVolume::Pointer volume)
 {
   if (!this->planeIsValid())
     return NULL;
 
-  EspinaVolume::PointType origin = volume->GetOrigin();
-  EspinaVolume::SpacingType spacing = volume->GetSpacing();
   int segExtent[6];
-  VolumeExtent(volume, segExtent);
+  volume->extent(segExtent);
+
+  double spacing[3];
+  volume->spacing(spacing);
 
   vtkSmartPointer<vtkImplicitFunctionToImageStencil> plane2stencil = vtkSmartPointer<vtkImplicitFunctionToImageStencil>::New();
   plane2stencil->SetInput(this->getImplicitPlane());
   plane2stencil->SetOutputOrigin(0, 0, 0);
-  plane2stencil->SetOutputSpacing(spacing[0], spacing[1], spacing[2]);
+  plane2stencil->SetOutputSpacing(spacing);
   plane2stencil->SetOutputWholeExtent(segExtent);
   plane2stencil->Update();
 

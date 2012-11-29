@@ -20,10 +20,8 @@
 #include "MarginDetector.h"
 #include "MarginsSegmentationExtension.h"
 
-#include "Core/EspinaRegions.h"
 #include "Core/Model/Channel.h"
 #include "Core/Model/Segmentation.h"
-
 
 #include <vtkDistancePolyDataFilter.h>
 #include <vtkPointData.h>
@@ -140,6 +138,8 @@ ChannelExtension* MarginsChannelExtension::clone()
   return new MarginsChannelExtension();
 }
 
+typedef std::pair<unsigned int, unsigned long int> ComputedSegmentation;
+
 //-----------------------------------------------------------------------------
 void MarginsChannelExtension::computeMarginDistance(Segmentation* seg)
 {
@@ -147,23 +147,24 @@ void MarginsChannelExtension::computeMarginDistance(Segmentation* seg)
   if (it != m_ComputedSegmentations.end())
   {
     // using itkVolume()->MTime and not mesh()->MTime() to avoid triggering lazy computations
-    if ((*it).second == seg->itkVolume()->GetMTime())
+    if ((*it).second == seg->volume()->toITK()->GetMTime())
       return;
 
     m_ComputedSegmentations.erase(seg->number());
   }
-  m_ComputedSegmentations.insert(std::pair<unsigned int, unsigned long int>(seg->number(), seg->itkVolume()->GetMTime()));
+
+  m_ComputedSegmentations.insert(ComputedSegmentation(seg->number(), seg->volume()->toITK()->GetMTime()));
 
   ModelItemExtension *ext = seg->extension(ID);
   Q_ASSERT(ext);
   MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext);
   Q_ASSERT(marginExt);
   Nm distance[6], smargins[6];
-  VolumeBounds(seg->itkVolume(), smargins);
+  seg->volume()->bounds(smargins);
   if (m_useChannelBounds)
   {
     double cmargins[6];
-    m_channel->bounds(cmargins);
+    m_channel->volume()->bounds(cmargins);
     for (int i = 0; i < 6; i++)
       distance[i] = fabs(smargins[i] - cmargins[i]);
   }

@@ -23,8 +23,7 @@ qt4_wrap_cpp(CORE_MOC
 set (CORE_SOURCES
   ${CORE_MOC}
   ${CORE_UI}
-  BoundingBox.cpp
-  EspinaRegions.cpp
+  EspinaRegion.cpp
   EspinaVolume.cpp
   ColorEngines/MultiColorEngine.cpp
   ColorEngines/NumberColorEngine.cpp

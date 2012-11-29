@@ -82,7 +82,7 @@ MarginDetector::~MarginDetector()
 void MarginDetector::run()
 {
   Channel *channel       = m_extension->channel();
-  vtkAlgorithm *producer = channel->vtkVolume()->GetProducer();
+  vtkAlgorithm *producer = channel->volume()->toVTK()->GetProducer();
   vtkDataObject *output  = producer->GetOutputDataObject(0);
   vtkImageData *image    = vtkImageData::SafeDownCast(output);
 

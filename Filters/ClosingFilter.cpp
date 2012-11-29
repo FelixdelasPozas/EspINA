@@ -43,7 +43,7 @@ ClosingFilter::~ClosingFilter()
 void ClosingFilter::run()
 {
   Q_ASSERT(m_inputs.size() == 1);
-  m_input = m_inputs.first();
+  m_input = m_inputs.first()->toITK();
 
   StructuringElementType ball;
   ball.SetRadius(m_params.radius());
@@ -56,7 +56,8 @@ void ClosingFilter::run()
   m_filter->Update();
 
   m_outputs.clear();
-  m_outputs << Output(this, 0, m_filter->GetOutput());
+  SegmentationVolume::Pointer volume(new SegmentationVolume(m_filter->GetOutput()));
+  m_outputs << Output(this, 0, volume);
 
   emit modified(this);
 }

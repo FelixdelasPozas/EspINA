@@ -43,7 +43,7 @@ ChannelInspector::ChannelInspector(Channel *channel,
           this, SLOT(updateSpacing()));
 
   double spacing[3];
-  channel->spacing(spacing);
+  channel->volume()->spacing(spacing);
 
   m_xSize->setValue(spacing[0]);
   m_ySize->setValue(spacing[1]);
@@ -61,7 +61,7 @@ void ChannelInspector::unitChanged(int unitIndex)
 //------------------------------------------------------------------------
 void ChannelInspector::updateSpacing()
 {
-  EspinaVolume::SpacingType spacing;
+  itkVolumeType::SpacingType spacing;
   spacing[0] = m_xSize->value()*pow(1000,m_unit->currentIndex());
   spacing[1] = m_ySize->value()*pow(1000,m_unit->currentIndex());
   spacing[2] = m_zSize->value()*pow(1000,m_unit->currentIndex());
@@ -70,18 +70,18 @@ void ChannelInspector::updateSpacing()
   reader->setSpacing(spacing);
   m_channel->notifyModification();
 
-  EspinaVolume::SpacingType oldSpacing;
   foreach(ModelItem *item, m_channel->relatedItems(ModelItem::OUT, Channel::LINK))
   {
     if (ModelItem::SEGMENTATION == item->type())
     {
       Segmentation *seg = dynamic_cast<Segmentation *>(item);
-      oldSpacing = seg->itkVolume()->GetSpacing();
-      seg->itkVolume()->SetSpacing(spacing);
-      EspinaVolume::PointType origin = seg->itkVolume()->GetOrigin();
+      double oldSpacing[3];
+      seg->volume()->spacing(oldSpacing);
+      seg->volume()->toITK()->SetSpacing(spacing);
+      itkVolumeType::PointType origin = seg->volume()->toITK()->GetOrigin();
       for (int i=0; i < 3; i++)
-	origin[i] = origin[i]/oldSpacing[i]*spacing[i];
-      seg->itkVolume()->SetOrigin(origin);
+        origin[i] = origin[i]/oldSpacing[i]*spacing[i];
+      seg->volume()->toITK()->SetOrigin(origin);
       seg->notifyModification();
     }
   }

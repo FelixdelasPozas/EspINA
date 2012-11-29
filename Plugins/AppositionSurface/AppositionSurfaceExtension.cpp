@@ -130,23 +130,23 @@ SegmentationExtension* AppositionSurfaceExtension::clone()
 //------------------------------------------------------------------------
 bool AppositionSurfaceExtension::updateAppositionSurface() const
 {
-  if (m_seg->itkVolume()->GetTimeStamp() <= m_lastUpdate)
+  if (m_seg->volume().itkVolume()->GetTimeStamp() <= m_lastUpdate)
     return false;
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
   //qDebug() << "Updating Apposition Plane:" << m_seg->data().toString();
   //qDebug() << "Padding Image";
-  EspinaVolume::SizeType bounds;
+  itkVolumeType::SizeType bounds;
   bounds[0] = bounds[1] = bounds[2] = 1;
   PadFilterType::Pointer padder = PadFilterType::New();
-  padder->SetInput(m_seg->itkVolume());
+  padder->SetInput(m_seg->volume().itkVolume());
   padder->SetPadLowerBound(bounds);
   padder->SetPadUpperBound(bounds);
   padder->SetConstant(0); // extend with black pixels
   padder->Update();
-  EspinaVolume::Pointer padImage = padder->GetOutput();
+  itkVolumeType::Pointer padImage = padder->GetOutput();
 
-  EspinaVolume::RegionType  region = padImage->GetLargestPossibleRegion();
+  itkVolumeType::RegionType  region = padImage->GetLargestPossibleRegion();
   region.SetIndex(region.GetIndex() + bounds);
   padImage->SetRegions(region);
 
@@ -266,7 +266,7 @@ bool AppositionSurfaceExtension::updateAppositionSurface() const
   m_ap->SetLines(appositionSurface->GetLines());
   m_ap->Modified();
 
-  m_lastUpdate = m_seg->itkVolume()->GetTimeStamp();
+  m_lastUpdate = m_seg->volume().itkVolume()->GetTimeStamp();
   QApplication::restoreOverrideCursor();
 
   return true;
@@ -294,7 +294,7 @@ AppositionSurfaceExtension::PolyData AppositionSurfaceExtension::clipPlane(Appos
 }
 
 //------------------------------------------------------------------------
-AppositionSurfaceExtension::DistanceMapType::Pointer AppositionSurfaceExtension::computeDistanceMap(EspinaVolume::Pointer volume) const
+AppositionSurfaceExtension::DistanceMapType::Pointer AppositionSurfaceExtension::computeDistanceMap(itkVolumeType::Pointer volume) const
 {
   SDDistanceMapFilterType::Pointer sddm_filter = SDDistanceMapFilterType::New();
   sddm_filter->InsideIsPositiveOn();
@@ -444,18 +444,18 @@ void AppositionSurfaceExtension::projectVectors(vtkImageData* vectors_image, dou
 }
 
 //------------------------------------------------------------------------
-AppositionSurfaceExtension::Points AppositionSurfaceExtension::segmentationPoints(EspinaVolume::Pointer seg) const
+AppositionSurfaceExtension::Points AppositionSurfaceExtension::segmentationPoints(itkVolumeType::Pointer seg) const
 {
-  EspinaVolume::PointType   origin  = seg->GetOrigin();
-  EspinaVolume::SpacingType spacing = seg->GetSpacing();
+  itkVolumeType::PointType   origin  = seg->GetOrigin();
+  itkVolumeType::SpacingType spacing = seg->GetSpacing();
 
   Points points = Points::New();
 
   VoxelIterator it(seg, seg->GetLargestPossibleRegion());
   while (!it.IsAtEnd())
   {
-    EspinaVolume::PixelType val = it.Get();
-    EspinaVolume::IndexType index = it.GetIndex();
+    itkVolumeType::PixelType val = it.Get();
+    itkVolumeType::IndexType index = it.GetIndex();
     if (val != 0)
     {
       double segPoint[3];

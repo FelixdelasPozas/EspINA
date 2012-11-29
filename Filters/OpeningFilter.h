@@ -28,8 +28,8 @@
 class OpeningFilter
 : public MorphologicalEditionFilter
 {
-  typedef itk::BinaryBallStructuringElement<EspinaVolume::PixelType, 3> StructuringElementType;
-  typedef itk::BinaryMorphologicalOpeningImageFilter<EspinaVolume, EspinaVolume, StructuringElementType> FilterType;
+  typedef itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3> StructuringElementType;
+  typedef itk::BinaryMorphologicalOpeningImageFilter<itkVolumeType, itkVolumeType, StructuringElementType> FilterType;
 
 public:
   static const QString TYPE;

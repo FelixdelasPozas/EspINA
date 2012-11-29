@@ -43,23 +43,10 @@ public:
 
   virtual const Filter *filter() const = 0;
   virtual Filter *filter() = 0;
+  virtual const Filter::OutputId  outputId() const = 0;
 
-  virtual Filter::OutputId  outputId() = 0;
-  virtual EspinaVolume *itkVolume() = 0;
-
-  /// Volume's voxel's index at given spatial position
-  virtual EspinaVolume::IndexType index(Nm x, Nm y, Nm z)
-  {
-    //volume()->Print(std::cout);
-    EspinaVolume::PointType origin = itkVolume()->GetOrigin();
-    EspinaVolume::SpacingType spacing = itkVolume()->GetSpacing();
-    EspinaVolume::IndexType res;
-    // add 0.5 before int conversion rounds the index
-    res[0] = (x - origin[0]) / spacing[0] + 0.5;
-    res[1] = (y - origin[1]) / spacing[1] + 0.5;
-    res[2] = (z - origin[2]) / spacing[2] + 0.5;
-    return res;
-  }
+  EspinaVolume::Pointer volume();
+  const EspinaVolume::Pointer volume() const;
 
   /// Add a new condition to the item:
   /// Conditions provide extra information about the state of the item

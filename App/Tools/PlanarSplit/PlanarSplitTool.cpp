@@ -21,7 +21,6 @@
 // EspINA
 #include <GUI/vtkWidgets/PlanarSplitWidget.h>
 #include <GUI/ViewManager.h>
-#include <Core/EspinaRegions.h>
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Model/EspinaModel.h>
@@ -86,8 +85,9 @@ void PlanarSplitTool::setInUse(bool value)
     Q_ASSERT(selectedSegs.size() == 1);
     Segmentation *seg = selectedSegs.first();
     double bounds[6];
-    VolumeBounds(seg->itkVolume(), bounds);
-    EspinaVolume::SpacingType spacing = seg->itkVolume()->GetSpacing();
+    seg->volume()->bounds(bounds);
+    double spacing[3];
+    seg->volume()->spacing(spacing);
     bounds[0] -= 0.5*spacing[0];
     bounds[1] += 0.5*spacing[0];
     bounds[2] -= 0.5*spacing[1];
@@ -136,7 +136,7 @@ void PlanarSplitTool::splitSegmentation()
   args[Filter::INPUTS] = Filter::NamedInput(SplitFilter::INPUTLINK, seg->outputId());
 
   SplitFilter *filter = new SplitFilter(inputs, args);
-  filter->setStencil(m_widget->getStencilForVolume(seg->itkVolume()));
+  filter->setStencil(m_widget->getStencilForVolume(seg->volume()));
   filter->update();
 
   if (filter->outputs().size() == 2)

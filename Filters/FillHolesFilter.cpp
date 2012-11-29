@@ -52,12 +52,12 @@ bool FillHolesFilter::needUpdate() const
   {
     Q_ASSERT(m_namedInputs.size()  == 1);
     Q_ASSERT(m_outputs.size() == 1);
-    Q_ASSERT(m_outputs[0].volume.IsNotNull());
+    Q_ASSERT(m_outputs[0].volume->toITK().IsNotNull());
 
     if (!m_inputs.isEmpty())
     {
       Q_ASSERT(m_inputs.size() == 1);
-      update = m_outputs[0].volume->GetTimeStamp() < m_inputs[0]->GetTimeStamp();
+      update = m_outputs[0].volume->toITK()->GetTimeStamp() < m_inputs[0]->toITK()->GetTimeStamp();
     }
   }
 
@@ -70,9 +70,10 @@ void FillHolesFilter::run()
   Q_ASSERT(m_inputs.size() == 1);
 
   m_filter = FilterType::New();
-  m_filter->SetInput(m_inputs[0]);
+  m_filter->SetInput(m_inputs[0]->toITK());
   m_filter->Update();
 
   m_outputs.clear();
-  m_outputs << Output(this, 0, m_filter->GetOutput());
+  SegmentationVolume::Pointer segVolume(new SegmentationVolume(m_filter->GetOutput()));
+  m_outputs << Output(this, 0, segVolume);
 }

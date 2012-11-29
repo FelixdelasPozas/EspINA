@@ -68,7 +68,7 @@ void SegmhaImporter::UndoCommand::redo()
   {
     Nm inclusive[3], exclusive[3];
     m_filter->countingRegion(inclusive, exclusive);
-    EspinaVolume::SpacingType spacing = m_channel->itkVolume()->GetSpacing();
+    itkVolumeType::SpacingType spacing = m_channel->itkVolume()->GetSpacing();
     for(int i=0; i<3;i++)
     {
       inclusive[i] = inclusive[i]*spacing[i];

@@ -20,7 +20,6 @@
 #include "FreeFormSource.h"
 
 // EspINA
-#include "Core/EspinaRegions.h"
 #include "Core/Model/EspinaFactory.h"
 
 // ITK
@@ -53,38 +52,35 @@ FreeFormSource::~FreeFormSource()
 void FreeFormSource::draw(OutputId oId,
                           vtkImplicitFunction * brush,
                           double bounds[6],
-                          EspinaVolume::PixelType value)
+                          itkVolumeType::PixelType value)
 {
   Q_ASSERT(0 == oId);
   if (m_outputs.isEmpty())
   {
-    EspinaVolume::Pointer img = EspinaVolume::New();
-    EspinaVolume::RegionType buffer = BoundsToRegion(bounds, m_param.spacing());
-    img->SetRegions(buffer);
-    img->SetSpacing(m_param.spacing());
-    img->Allocate();
-    img->FillBuffer(0);
-    m_outputs << Output(this, 0, img);
+    SegmentationVolume::Pointer segVolume(new SegmentationVolume(EspinaRegion(bounds), m_param.spacing()));
+    m_outputs << Output(this, 0, segVolume);
   }
   Filter::draw(oId, brush, bounds, value);
 }
 
 //-----------------------------------------------------------------------------
 void FreeFormSource::draw(OutputId oId,
-                          EspinaVolume::IndexType index,
-                          EspinaVolume::PixelType value)
+                          itkVolumeType::IndexType index,
+                          itkVolumeType::PixelType value)
 {
   if (m_outputs.isEmpty())
   {
-    EspinaVolume::SizeType pixelSize;
+    itkVolumeType::SizeType pixelSize;
     pixelSize.Fill(1);
-    EspinaVolume::RegionType pixelRegion(index, pixelSize);
-    EspinaVolume::Pointer img = EspinaVolume::New();
+    itkVolumeType::RegionType pixelRegion(index, pixelSize);
+    itkVolumeType::Pointer img = itkVolumeType::New();
     img->SetRegions(pixelRegion);
     img->SetSpacing(m_param.spacing());
     img->Allocate();
     img->FillBuffer(0);
-    m_outputs << Output(this, 0, img);
+
+    SegmentationVolume::Pointer segVolume(new SegmentationVolume(img));
+    m_outputs << Output(this, 0, segVolume);
   }
   Filter::draw(oId, index, value);
 }
@@ -92,9 +88,9 @@ void FreeFormSource::draw(OutputId oId,
 //-----------------------------------------------------------------------------
 void FreeFormSource::draw(OutputId oId,
                           Nm x, Nm y, Nm z,
-                          EspinaVolume::PixelType value)
+                          itkVolumeType::PixelType value)
 {
-  EspinaVolume::IndexType index;
+  itkVolumeType::IndexType index;
   index[0] = x / m_param.spacing()[0] + 0.5;
   index[1] = y / m_param.spacing()[1] + 0.5;
   index[2] = z / m_param.spacing()[2] + 0.5;

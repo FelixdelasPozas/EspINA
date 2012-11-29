@@ -39,13 +39,13 @@ class Channel;
 class SeedGrowSegmentationFilter
 : public Filter
 {
-  typedef itk::ExtractImageFilter<EspinaVolume, EspinaVolume> ExtractType;
-  typedef itk::ConnectedThresholdImageFilter<EspinaVolume, EspinaVolume> ConnectedThresholdFilterType;
+  typedef itk::ExtractImageFilter<itkVolumeType, itkVolumeType> ExtractType;
+  typedef itk::ConnectedThresholdImageFilter<itkVolumeType, itkVolumeType> ConnectedThresholdFilterType;
   typedef itk::StatisticsLabelObject<unsigned int, 3> LabelObjectType;
   typedef itk::LabelMap<LabelObjectType> LabelMapType;
-  typedef itk::LabelImageToShapeLabelMapFilter<EspinaVolume, LabelMapType> Image2LabelFilterType;
-  typedef itk::BinaryBallStructuringElement<EspinaVolume::PixelType, 3> StructuringElementType;
-  typedef itk::BinaryMorphologicalClosingImageFilter<EspinaVolume, EspinaVolume, StructuringElementType> bmcifType;
+  typedef itk::LabelImageToShapeLabelMapFilter<itkVolumeType, LabelMapType> Image2LabelFilterType;
+  typedef itk::BinaryBallStructuringElement<itkVolumeType::PixelType, 3> StructuringElementType;
+  typedef itk::BinaryMorphologicalClosingImageFilter<itkVolumeType, itkVolumeType, StructuringElementType> bmcifType;
 
 public:
   static const QString TYPE;
@@ -62,16 +62,16 @@ public:
   public:
     explicit Parameters(Arguments &args);
 
-    void setSeed(EspinaVolume::IndexType seed)
+    void setSeed(itkVolumeType::IndexType seed)
     {
       m_args[SEED] = QString("%1,%2,%3")
                             .arg(seed[0])
                             .arg(seed[1])
                             .arg(seed[2]);
     }
-    EspinaVolume::IndexType seed() const
+    itkVolumeType::IndexType seed() const
     {
-      EspinaVolume::IndexType res;
+      itkVolumeType::IndexType res;
       QStringList values = m_args[SEED].split(",");
       for(int i=0; i<3; i++)
         res[i] = values[i].toInt();
@@ -127,8 +127,8 @@ public:
     setUpperThreshold(th);
   };
 
-  void setSeed(EspinaVolume::IndexType seed);
-  EspinaVolume::IndexType seed() const;
+  void setSeed(itkVolumeType::IndexType seed);
+  itkVolumeType::IndexType seed() const;
 
   void setVOI(int VOI[6]);
   void voi(int VOI[6]) const {m_param.voi(VOI);}
@@ -149,9 +149,9 @@ protected:
   virtual void run();
 
 private:
-  bool          m_paramModified;
-  Parameters    m_param;
-  EspinaVolume *m_input;
+  bool                  m_paramModified;
+  Parameters            m_param;
+  EspinaVolume::Pointer m_input;
 
   ConnectedThresholdFilterType::Pointer ctif;
   ExtractType::Pointer voiFilter;

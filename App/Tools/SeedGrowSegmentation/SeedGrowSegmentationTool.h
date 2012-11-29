@@ -89,12 +89,12 @@ public slots:
   void startSegmentation(IPicker::PickList pickedItems);
 
 signals:
-  void seedSelected(Channel *, EspinaVolume::IndexType);
+  void seedSelected(Channel *, itkVolumeType::IndexType);
   void segmentationStopped();
 
 private:
-  typedef itk::ConnectedThresholdImageFilter<EspinaVolume, EspinaVolume> ConnectedThresholdFilterType;
-  typedef itk::ImageToVTKImageFilter<EspinaVolume> itk2vtkFilterType;
+  typedef itk::ConnectedThresholdImageFilter<itkVolumeType, itkVolumeType> ConnectedThresholdFilterType;
+  typedef itk::ImageToVTKImageFilter<itkVolumeType> itk2vtkFilterType;
 
   // helper methods
   void removePreview(EspinaRenderView*);

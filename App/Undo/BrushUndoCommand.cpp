@@ -20,22 +20,21 @@
 #include "BrushUndoCommand.h"
 
 #include <Core/Model/Filter.h>
-#include <Core/EspinaRegions.h>
 
 #include <itkExtractImageFilter.h>
 
-typedef itk::ExtractImageFilter<EspinaVolume, EspinaVolume> ExtractType;
+typedef itk::ExtractImageFilter<itkVolumeType, itkVolumeType> ExtractType;
 
 //-----------------------------------------------------------------------------
-EspinaVolume::Pointer backup(EspinaVolume* volume)
+itkVolumeType::Pointer backup(EspinaVolume::Pointer volume)
 {
   ExtractType::Pointer extractor = ExtractType::New();
   extractor->SetNumberOfThreads(1);
-  extractor->SetInput(volume);
-  extractor->SetExtractionRegion(volume->GetLargestPossibleRegion());
+  extractor->SetInput(volume->toITK());
+  extractor->SetExtractionRegion(volume->volumeRegion());
   extractor->Update();
 
-  EspinaVolume::Pointer res = extractor->GetOutput();
+  itkVolumeType::Pointer res = extractor->GetOutput();
   res->DisconnectPipeline();
   return res;
 }
@@ -44,7 +43,7 @@ EspinaVolume::Pointer backup(EspinaVolume* volume)
 Brush::DrawCommand::DrawCommand(Filter* source,
                                 Filter::OutputId output,
                                 BrushShapeList brushes,
-                                EspinaVolume::PixelType value)
+                                itkVolumeType::PixelType value)
 : m_source(source)
 , m_output(output)
 , m_brushes(brushes)

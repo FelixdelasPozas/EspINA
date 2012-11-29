@@ -54,20 +54,20 @@ QVariant DilateFilter::data(int role) const
 void DilateFilter::run()
 {
   Q_ASSERT(m_inputs.size() == 1);
-  m_input = m_inputs.first();
+  m_input = m_inputs.first()->toITK();
 
   //   qDebug() << "Compute Image Dilate";
-  EspinaVolume::SizeType lowerExtendRegion;
+  itkVolumeType::SizeType lowerExtendRegion;
   lowerExtendRegion[0] = m_params.radius();
   lowerExtendRegion[1] = m_params.radius();
   lowerExtendRegion[2] = m_params.radius();
 
-  EspinaVolume::SizeType upperExtendRegion;
+  itkVolumeType::SizeType upperExtendRegion;
   upperExtendRegion[0] = m_params.radius();
   upperExtendRegion[1] = m_params.radius();
   upperExtendRegion[2] = m_params.radius();
 
-  itk::SmartPointer<itk::ConstantPadImageFilter<EspinaVolume,EspinaVolume> > padFilter = itk::ConstantPadImageFilter<EspinaVolume,EspinaVolume>::New();
+  itk::SmartPointer<itk::ConstantPadImageFilter<itkVolumeType,itkVolumeType> > padFilter = itk::ConstantPadImageFilter<itkVolumeType,itkVolumeType>::New();
   padFilter->SetConstant(0);
   padFilter->SetInput(m_input);
   padFilter->SetPadLowerBound(lowerExtendRegion);
@@ -85,7 +85,8 @@ void DilateFilter::run()
   m_filter->Update();
 
   m_outputs.clear();
-  m_outputs << Output(this, 0, m_filter->GetOutput());
+  SegmentationVolume::Pointer segVolume(new SegmentationVolume(m_filter->GetOutput()));
+  m_outputs << Output(this, 0, segVolume);
 
   emit modified(this);
 }

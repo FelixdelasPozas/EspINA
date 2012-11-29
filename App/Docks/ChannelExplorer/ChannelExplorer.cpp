@@ -23,7 +23,6 @@
 #include "Docks/ChannelInspector/ChannelInspector.h"
 
 // EspINA
-#include <Core/EspinaRegions.h>
 #include <GUI/QtWidget/HueSelector.h>
 #include <GUI/ViewManager.h>
 #include <Core/Model/Channel.h>
@@ -188,7 +187,7 @@ void ChannelExplorer::alignCenter()
     {
       double pos[3], bounds[6];
       channel->position(pos);
-      channel->bounds(bounds);
+      channel->volume()->bounds(bounds);
       pos[coord] = centerMargin - (bounds[2*coord+1] - bounds[2*coord])/2.0;
       channel->setPosition(pos);
       channel->notifyModification();
@@ -198,7 +197,7 @@ void ChannelExplorer::alignCenter()
     {
       lastChannel = channel;
       lastChannel->position(pos);
-      lastChannel->bounds(bounds);
+      lastChannel->volume()->bounds(bounds);
       centerMargin = pos[coord] + (bounds[2*coord+1] - bounds[2*coord])/2.0;
     }
   }
@@ -224,7 +223,7 @@ void ChannelExplorer::alignRight()
     {
       double pos[3], bounds[6];
       channel->position(pos);
-      channel->bounds(bounds);
+      channel->volume()->bounds(bounds);
       pos[coord] = rightMargin - (bounds[2*coord+1] - bounds[2*coord]);
       channel->setPosition(pos);
       channel->notifyModification();
@@ -234,7 +233,7 @@ void ChannelExplorer::alignRight()
     {
       lastChannel = channel;
       lastChannel->position(pos);
-      lastChannel->bounds(bounds);
+      lastChannel->volume()->bounds(bounds);
       rightMargin = pos[coord] + (bounds[2*coord+1] - bounds[2*coord]);
     }
   }
@@ -260,7 +259,7 @@ void ChannelExplorer::moveLelft()
     {
       double pos[3], bounds[6];
       channel->position(pos);
-      channel->bounds(bounds);
+      channel->volume()->bounds(bounds);
       pos[coord] = leftMargin - (bounds[2*coord+1] - bounds[2*coord]);
       channel->setPosition(pos);
       channel->notifyModification();
@@ -295,7 +294,7 @@ void ChannelExplorer::moveRight()
     {
       double pos[3], bounds[6];
       channel->position(pos);
-      channel->bounds(bounds);
+      channel->volume()->bounds(bounds);
       pos[coord] = rightMargin;
       channel->setPosition(pos);
       channel->notifyModification();
@@ -305,7 +304,7 @@ void ChannelExplorer::moveRight()
     {
       lastChannel = channel;
       lastChannel->position(pos);
-      lastChannel->bounds(bounds);
+      lastChannel->volume()->bounds(bounds);
       rightMargin = pos[coord] + (bounds[2*coord+1] - bounds[2*coord]);
     }
   }
@@ -467,7 +466,7 @@ void ChannelExplorer::focusOnChannel()
   {
     Channel *channel = dynamic_cast<Channel *>(currentItem);
     Nm bounds[6];
-    VolumeBounds(channel->itkVolume(), bounds);
+    channel->volume()->bounds(bounds);
     //TODO 2012-10-04: Use setSelection instead of setCameraFocus
 //     double pos[3] = { (bounds[1]-bounds[0])/2, (bounds[3]-bounds[2])/2, (bounds[5]-bounds[4])/2 };
 //     EspinaView *view = EspinaCore::instance()->viewManger()->currentView();

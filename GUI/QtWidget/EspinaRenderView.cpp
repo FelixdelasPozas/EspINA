@@ -96,16 +96,16 @@ void EspinaRenderView::updateSceneBounds()
 {
   if (!m_channels.isEmpty())
   {
-    m_channels[0]->spacing(m_sceneResolution);
-    m_channels[0]->bounds(m_sceneBounds);
+    m_channels[0]->volume()->spacing(m_sceneResolution);
+    m_channels[0]->volume()->bounds(m_sceneBounds);
 
     for(int c = 1; c < m_channels.size(); c++)
     {
       double spacing[3];
       double bounds[6];
 
-      m_channels[c]->spacing(spacing);
-      m_channels[c]->bounds(bounds);
+      m_channels[c]->volume()->spacing(spacing);
+      m_channels[c]->volume()->bounds(bounds);
       for (int i = 0; i < 3; i++)
       {
         m_sceneResolution[i] = std::min(m_sceneResolution[i], spacing[i]);

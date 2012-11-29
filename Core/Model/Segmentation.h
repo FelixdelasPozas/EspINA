@@ -29,7 +29,6 @@
 #include "Core/Model/PickableItem.h"
 #include "Core/Model/Taxonomy.h"
 
-#include <itkImageToVTKImageFilter.h>
 #include <vtkAlgorithmOutput.h>
 #include <itkCommand.h>
 #include <itkSmartPointer.h>
@@ -117,14 +116,12 @@ public:
   /// Selectable Item Interface
   virtual const Filter* filter() const {return m_filter;}
   virtual Filter* filter() { return PickableItem::filter(); }
+  virtual const Filter::OutputId outputId() const {return m_args.outputId();}
 
-  virtual Filter::OutputId outputId() {return m_args.outputId();}
-  virtual EspinaVolume *itkVolume() const;
+  SegmentationVolume::Pointer volume();
+  const SegmentationVolume::Pointer volume() const;
 
-  virtual EspinaVolume *itkVolume();
-
-  virtual vtkAlgorithmOutput* vtkVolume();
-  virtual vtkAlgorithmOutput* mesh();
+  vtkAlgorithmOutput* mesh();
 
   void setNumber(unsigned int number) {m_args.setNumber(number);}
   unsigned int number() const {return m_args.number();}
@@ -158,10 +155,6 @@ private:
   bool m_isVisible;
   QColor m_color;
   //   mutable double m_bounds[6];
-
-  // itk to vtk filter
-  typedef itk::ImageToVTKImageFilter<EspinaVolume> itk2vtkFilterType;
-  itk2vtkFilterType::Pointer itk2vtk;
 
   // vtkPolydata generation filter
   vtkSmartPointer<vtkImageConstantPad> m_padfilter;

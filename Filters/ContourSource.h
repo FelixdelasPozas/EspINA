@@ -45,13 +45,13 @@ public:
                        .arg(value[1])
                        .arg(value[2]);
     }
-    EspinaVolume::SpacingType spacing() const
+    itkVolumeType::SpacingType spacing() const
     {
       return m_spacing;
     }
   private:
     Arguments &m_args;
-    EspinaVolume::SpacingType m_spacing;
+    itkVolumeType::SpacingType m_spacing;
   };
 
 public:
@@ -62,7 +62,7 @@ public:
   virtual void draw(OutputId oId,
                     vtkPolyData *contour,
                     Nm slice, PlaneType plane,
-                    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+                    itkVolumeType::PixelType value = SEG_VOXEL_VALUE);
 
   /// Implements Model Item Interface
   virtual QVariant data(int role=Qt::DisplayRole) const;
@@ -85,9 +85,8 @@ private:
   vtkPolyData* TransformContour(PlaneType, vtkPolyData*);
 
   Parameters m_param;
-  EspinaVolume::SpacingType   m_spacing;
+  itkVolumeType::SpacingType   m_spacing;
   QMap< PlaneType, QMap<Nm, vtkPolyData*> > m_contourMap;
-  bool ImageInitializedByFilter;
 };
 
 

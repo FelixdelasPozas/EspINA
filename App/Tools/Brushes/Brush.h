@@ -20,7 +20,7 @@
 #ifndef BRUSH_H
 #define BRUSH_H
 
-#include <Core/BoundingBox.h>
+#include <Core/EspinaRegion.h>
 #include <Core/EspinaTypes.h>
 #include <Core/Model/Segmentation.h>
 #include "GUI/Pickers/IPicker.h"
@@ -44,7 +44,7 @@ class Brush // TODO 2012-11-27 Crear una clase base para pintar independientemen
 public:
   enum BrushMode {BRUSH, ERASER};
 
-  typedef QPair<vtkImplicitFunction *, BoundingBox> BrushShape;
+  typedef QPair<vtkImplicitFunction *, EspinaRegion> BrushShape;
   typedef QList<BrushShape> BrushShapeList;
 
   class DrawCommand;

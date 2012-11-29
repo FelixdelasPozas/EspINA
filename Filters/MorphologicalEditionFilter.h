@@ -60,10 +60,10 @@ protected:
   virtual bool prefetchFilter();
 
 protected:
-  Parameters       m_params;
-  EspinaVolume    *m_input;
+  Parameters             m_params;
+  itkVolumeType::Pointer m_input;
 
-  bool             m_paramModified;
+  bool m_paramModified;
 };
 
 

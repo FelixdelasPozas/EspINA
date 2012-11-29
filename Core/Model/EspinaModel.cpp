@@ -594,7 +594,7 @@ bool EspinaModel::loadSerialization(istream& stream,
           filter->update();
           Channel *channel = m_factory->createChannel(filter, link[1].toInt());
           channel->initialize(args);
-          if (channel->itkVolume() == NULL)
+          if (channel->volume()->toITK().IsNull())
             return false;
           addChannel(channel);
           nonInitializedItems << NonInitilizedItem(channel, extArgs);
