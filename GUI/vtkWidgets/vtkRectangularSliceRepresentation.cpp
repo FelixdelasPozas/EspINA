@@ -302,6 +302,10 @@ void vtkRectangularSliceRepresentation::UpdateRegion()
     case CORONAL:
       UpdateXZFace();
       break;
+    case VOLUME:
+    default:
+      Q_ASSERT(false);
+      break;
   };
 }
 

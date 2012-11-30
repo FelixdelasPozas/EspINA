@@ -246,7 +246,6 @@ private:
   Nm m_crosshairPoint[3];
   Nm m_slicingStep[3];
 
-  PlaneType m_plane;
   vtkMatrix4x4 *m_slicingMatrix;
   State *m_state;
   bool m_selectionEnabled;

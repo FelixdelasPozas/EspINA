@@ -59,6 +59,7 @@ DefaultEspinaView::DefaultEspinaView(EspinaModel* model, ViewManager* vm, QMainW
   xzView = new SliceView(vm, CORONAL);
   yzView = new SliceView(vm, SAGITTAL);
   volView = new VolumeView(m_model->factory(), vm, this);
+  volView->setViewType(VOLUME);
 
   xyView->setCrosshairColors(blue, magenta);
   initSliceView(xyView);
@@ -496,6 +497,7 @@ DefaultEspinaView::SettingsPanel::SettingsPanel(SliceView::SettingsPtr xy,
 , m_yz(yz)
 , m_xz(xz)
 , m_factory(factory)
+, m_slicingStep(0)
 , m_vol(vol)
 {
   QVBoxLayout *layout = new QVBoxLayout();
@@ -577,6 +579,8 @@ void DefaultEspinaView::changePlanePosition(PlaneType plane, Nm dist)
     case SAGITTAL:
       this->xyView->UpdateCrosshairPoint(plane, dist);
       this->xzView->UpdateCrosshairPoint(plane, dist);
+      break;
+    case VOLUME:
       break;
     default:
       Q_ASSERT(false);

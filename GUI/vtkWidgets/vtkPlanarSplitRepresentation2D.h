@@ -106,6 +106,7 @@ class VTK_WIDGETS_EXPORT vtkPlanarSplitRepresentation2D
     // Selection tolerance for the handles
     int m_tolerance;
     PlaneType m_plane;
+    double m_epsilon;
   private:
     vtkPlanarSplitRepresentation2D(const vtkPlanarSplitRepresentation2D&);  //Not implemented
     void operator=(const vtkPlanarSplitRepresentation2D&);  //Not implemented

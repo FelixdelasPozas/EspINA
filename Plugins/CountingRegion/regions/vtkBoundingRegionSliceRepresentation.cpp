@@ -30,11 +30,18 @@
 
 //----------------------------------------------------------------------------
 vtkBoundingRegionSliceRepresentation::vtkBoundingRegionSliceRepresentation()
-: Region(NULL)
+: LastPicker(NULL)
+, InclusionEdgeProperty(NULL)
+, ExclusionEdgeProperty(NULL)
+, SelectedInclusionProperty(NULL)
+, SelectedExclusionProperty(NULL)
+, InvisibleProperty(NULL)
+, Region(NULL)
 , Slice(0)
 , Init(false)
 , NumPoints(0)
 , NumSlices(0)
+, NumVertex(0)
 {
   // The initial state
   this->InteractionState = vtkBoundingRegionSliceRepresentation::Outside;
@@ -407,6 +414,7 @@ void vtkBoundingRegionSliceRepresentation::SetInteractionState(int state)
       break;
     default:
       this->HighlightEdge(NULL);
+      break;
     }
 }
 

@@ -63,6 +63,9 @@ public:
   virtual unsigned int getNumberOfvtkActors(void) { return 0; }
 
   virtual bool isHidden() { return !m_enable; }
+
+  // true if this renderer renders segmentations only
+  virtual bool isASegmentationRenderer() { return false; };
 public slots:
   virtual void setEnable(bool value)
   {

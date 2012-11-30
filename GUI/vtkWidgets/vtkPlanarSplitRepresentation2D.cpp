@@ -32,6 +32,7 @@ vtkCxxSetObjectMacro(vtkPlanarSplitRepresentation2D,HandleRepresentation,vtkHand
 vtkPlanarSplitRepresentation2D::vtkPlanarSplitRepresentation2D()
 {
   m_plane = AXIAL;
+  m_epsilon = -0.1;
   m_tolerance = 15;
   m_point1[0] = m_point1[1] = m_point1[2] = 0;
   m_point2[0] = m_point2[1] = m_point2[2] = 0;
@@ -92,8 +93,8 @@ void vtkPlanarSplitRepresentation2D::setPoints(vtkSmartPointer<vtkPoints> points
   if (points->GetNumberOfPoints() == 2)
     points->GetPoint(1, m_point2);
 
-  m_point1[m_plane] = 0;
-  m_point2[m_plane] = 0;
+  m_point1[m_plane] = m_epsilon;
+  m_point2[m_plane] = m_epsilon;
 
   this->BuildRepresentation();
 }
@@ -111,11 +112,11 @@ void vtkPlanarSplitRepresentation2D::setPoint1(Nm *point)
   m_point1[0] = worldPos[0];
   m_point1[1] = worldPos[1];
   m_point1[2] = worldPos[2];
-  m_point1[m_plane] = 0;
+  m_point1[m_plane] = m_epsilon;
   m_point2[0] = worldPos[0];
   m_point2[1] = worldPos[1];
   m_point2[2] = worldPos[2];
-  m_point2[m_plane] = 0;
+  m_point2[m_plane] = m_epsilon;
 
 
   this->BuildRepresentation();
@@ -133,7 +134,7 @@ void vtkPlanarSplitRepresentation2D::setPoint2(Nm *point)
   m_point2[0] = worldPos[0];
   m_point2[1] = worldPos[1];
   m_point2[2] = worldPos[2];
-  m_point2[m_plane] = 0;
+  m_point2[m_plane] = m_epsilon;
 
   this->BuildRepresentation();
 }
@@ -174,6 +175,8 @@ void vtkPlanarSplitRepresentation2D::BuildRepresentation()
     m_lineActor->GetProperty()->SetColor(1,1,1);
     m_lineActor->GetProperty()->SetLineWidth(2);
 
+    m_point1[m_plane] = m_epsilon;
+    m_point2[m_plane] = m_epsilon;
     Point1Representation->SetWorldPosition(m_point1);
     Point1Representation->SetTolerance(m_tolerance);
     Point2Representation->SetWorldPosition(m_point2);
@@ -297,6 +300,7 @@ void vtkPlanarSplitRepresentation2D::InstantiateHandleRepresentation()
 void vtkPlanarSplitRepresentation2D::setOrientation(PlaneType plane)
 {
   m_plane = plane;
+  m_epsilon = ((AXIAL == m_plane) ? -0.1 : 0.1);
 }
 
 //----------------------------------------------------------------------
@@ -315,13 +319,13 @@ void vtkPlanarSplitRepresentation2D::MoveHandle(int handleNum, int X, int Y)
       m_point1[0] = worldPos[0];
       m_point1[1] = worldPos[1];
       m_point1[2] = worldPos[2];
-      m_point1[m_plane] = 0;
+      m_point1[m_plane] = m_epsilon;
       break;
     case 1:
       m_point2[0] = worldPos[0];
       m_point2[1] = worldPos[1];
       m_point2[2] = worldPos[2];
-      m_point2[m_plane] = 0;
+      m_point2[m_plane] = m_epsilon;
       break;
     default:
       Q_ASSERT(false);
@@ -342,53 +346,53 @@ void vtkPlanarSplitRepresentation2D::setSegmentationBounds(double *bounds)
     case AXIAL:
       point[0] = bounds[0];
       point[1] = bounds[2];
-      point[2] = 0;
+      point[2] = m_epsilon;
       m_boundsPoints->InsertPoint(0, point);
       point[0] = bounds[0];
       point[1] = bounds[3];
-      point[2] = 0;
+      point[2] = m_epsilon;
       m_boundsPoints->InsertPoint(1, point);
       point[0] = bounds[1];
       point[1] = bounds[3];
-      point[2] = 0;
+      point[2] = m_epsilon;
       m_boundsPoints->InsertPoint(2, point);
       point[0] = bounds[1];
       point[1] = bounds[2];
-      point[2] = 0;
+      point[2] = m_epsilon;
       m_boundsPoints->InsertPoint(3, point);
       break;
     case CORONAL:
       point[0] = bounds[0];
-      point[1] = 0;
+      point[1] = m_epsilon;
       point[2] = bounds[4];
       m_boundsPoints->InsertPoint(0, point);
       point[0] = bounds[0];
-      point[1] = 0;
+      point[1] = m_epsilon;
       point[2] = bounds[5];
       m_boundsPoints->InsertPoint(1, point);
       point[0] = bounds[1];
-      point[1] = 0;
+      point[1] = m_epsilon;
       point[2] = bounds[5];
       m_boundsPoints->InsertPoint(2, point);
       point[0] = bounds[1];
-      point[1] = 0;
+      point[1] = m_epsilon;
       point[2] = bounds[4];
       m_boundsPoints->InsertPoint(3, point);
       break;
     case SAGITTAL:
-      point[0] = 0;
+      point[0] = m_epsilon;
       point[1] = bounds[2];
       point[2] = bounds[4];
       m_boundsPoints->InsertPoint(0, point);
-      point[0] = 0;
+      point[0] = m_epsilon;
       point[1] = bounds[2];
       point[2] = bounds[5];
       m_boundsPoints->InsertPoint(1, point);
-      point[0] = 0;
+      point[0] = m_epsilon;
       point[1] = bounds[3];
       point[2] = bounds[5];
       m_boundsPoints->InsertPoint(2, point);
-      point[0] = 0;
+      point[0] = m_epsilon;
       point[1] = bounds[3];
       point[2] = bounds[4];
       m_boundsPoints->InsertPoint(3, point);

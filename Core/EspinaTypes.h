@@ -26,7 +26,8 @@ enum PlaneType
 {
   AXIAL = 2,    //XY
   CORONAL = 1,  //ZX
-  SAGITTAL = 0  //YZ
+  SAGITTAL = 0, //YZ
+  VOLUME = 3    //3D
 };
 
 #endif// ESPINATYPES_H

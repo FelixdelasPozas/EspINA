@@ -35,6 +35,7 @@ EspinaRenderView::EspinaRenderView(QWidget* parent)
   m_sceneResolution[0] = m_sceneResolution[1] = m_sceneResolution[2] = 1;
   m_sceneBounds[0] = m_sceneBounds[2] = m_sceneBounds[4] = 0;
   m_sceneBounds[1] = m_sceneBounds[3] = m_sceneBounds[5] = 0;
+  m_plane = VOLUME;
 }
 
 //-----------------------------------------------------------------------------
@@ -116,4 +117,16 @@ void EspinaRenderView::updateSceneBounds()
   }
   else
     resetSceneBounds();
+}
+
+//-----------------------------------------------------------------------------
+void EspinaRenderView::setViewType(PlaneType plane)
+{
+  m_plane = plane;
+}
+
+//-----------------------------------------------------------------------------
+PlaneType EspinaRenderView::getViewType()
+{
+  return m_plane;
 }

@@ -81,25 +81,6 @@
 #include <vtkWidgetRepresentation.h>
 #include <vtkWorldPointPicker.h>
 
-// class MouseMoveCallback : public vtkCommand
-// {
-//   static MouseMoveCallback *New()
-//   {
-//     return new MouseMoveCallback();
-//   }
-// 
-// virtual void execute(vtkobject* caller, long unsigned int eventid, void* calldata)
-// {
-//   //vtkinteractorstyle *style = static_cast<vtkinteractorstyle *>(caller);
-// 
-//   switch(eventid)
-//   {
-//     case vtkcommand::mousemoveevent:
-//       qdebug() << "moviendose";
-//   }
-// }
-// };
-
 //-----------------------------------------------------------------------------
 // SLICE VIEW
 //-----------------------------------------------------------------------------
@@ -117,17 +98,17 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
 , m_spinBox(new QSpinBox())
 , m_zoomButton(new QPushButton())
 , m_ruler(vtkSmartPointer<vtkAxisActor2D>::New())
-, m_plane(plane)
 , m_selectionEnabled(true)
 , m_showSegmentations(true)
 , m_showThumbnail(true)
-, m_settings(new Settings(m_plane))
 , m_sliceSelector(QPair<SliceSelectorWidget*,SliceSelectorWidget*>(NULL, NULL))
 , m_inThumbnail(false)
 , m_sceneReady(false)
 , m_highlighter(new TransparencySelectionHighlighter())
 {
   memset(m_crosshairPoint, 0, 3*sizeof(Nm));
+  m_plane = plane;
+  m_settings = SettingsPtr(new Settings(m_plane));
 
   setupUI();
 
@@ -147,6 +128,10 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
       break;
     case CORONAL:
       m_state = new CoronalState();
+      break;
+    case VOLUME:
+    default:
+      Q_ASSERT(false);
       break;
   };
 
@@ -253,11 +238,10 @@ void SliceView::updateRuler()
   coords->SetValue(0, 0); //Viewport Lower Left Corner
   value = coords->GetComputedWorldValue(m_renderer);
   left = value[c];
-//   qDebug() << "LL" << value[0] << value[1] << value[2];
+
   coords->SetValue(1, 0); // Viewport Lower Right Corner
   value = coords->GetComputedWorldValue(m_renderer);
   right = value[c];
-//   qDebug() << "LR" << value[0] << value[1] << value[2];
 
   Nm rulerLength = 0.07;//viewport coordinates - Configuration file
   Nm viewWidth = fabs(left-right);
@@ -265,7 +249,7 @@ void SliceView::updateRuler()
   Nm scale = rulerLength * viewWidth;
   scale = rulerScale(scale);
   rulerLength = scale / viewWidth;
-  //qDebug() << ws[0] << left << right << rulerLength << scale;
+
   m_ruler->SetRange(0, scale);
   m_ruler->SetPoint2(0.1+rulerLength, 0.1);
   m_ruler->SetVisibility(m_rulerVisibility && 0.02 < rulerLength && rulerLength < 0.8);
@@ -293,12 +277,11 @@ void SliceView::updateThumbnail()
   value = coords->GetComputedWorldValue(m_renderer);
   viewLower = value[v]; // Lower Margin in World Coordinates
   viewLeft  = value[h]; // Left Margin in World Coordinates
-  //   qDebug() << "LL" << value[0] << value[1] << value[2];
+
   coords->SetValue(1, 1);
   value = coords->GetComputedWorldValue(m_renderer);
   viewUpper = value[v]; // Upper Margin in World Coordinates
   viewRight = value[h]; // Right Margin in Worl Coordinates
-  //   qDebug() << "UR" << value[0] << value[1] << value[2];
 
   double sceneLeft  = m_sceneBounds[2*h];
   double sceneRight = m_sceneBounds[2*h+1];
@@ -1040,7 +1023,7 @@ void SliceView::scrollValueChanged(int value/*nm*/)
 {
   m_state->setSlicingPosition(m_slicingMatrix, slicingPosition());
   updateView();
-  emit sliceChanged(this->m_settings->plane(), slicingPosition());
+  emit sliceChanged(m_plane, slicingPosition());
 }
 
 //-----------------------------------------------------------------------------
@@ -1380,7 +1363,6 @@ bool SliceView::pick(vtkPicker *picker, int x, int y, Nm pickPos[3])
 
   picker->GetPickPosition(pickPos);
   pickPos[m_plane] = slicingPosition();
-  //   qDebug() << "Pick Position" << pickPos[0] << pickPos[1] << pickPos[2];
 
   return true;
 }
@@ -1599,8 +1581,7 @@ void SliceView::centerViewOnPosition(Nm center[3])
 IPicker::WorldRegion SliceView::worldRegion(const IPicker::DisplayRegion& region,
                                             PickableItem *item)
 {
-  //Use Render Window Interactor's Picker to find the world coordinates
-  //of the stack
+  //Use Render Window Interactor's Picker to find the world coordinates of the stack
   //vtkSMRenderViewProxy* renModule = view->GetRenderWindow()->GetInteractor()->GetRenderView();
   IPicker::WorldRegion wRegion = IPicker::WorldRegion::New();
   vtkPicker *picker;
@@ -1651,8 +1632,10 @@ const QString SliceView::Settings::view(PlaneType plane)
     case CORONAL:
       return QString("CoronalSliceView");
       break;
+    case VOLUME:
+      return QString("VolumeView");
+      break;
     default:
-      Q_ASSERT(false);
       break;
   };
 

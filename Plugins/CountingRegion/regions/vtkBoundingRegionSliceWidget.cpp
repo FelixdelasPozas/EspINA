@@ -42,6 +42,8 @@ typedef vtkBoundingRegionSagittalSliceRepresentation SagittalSliceRepresentation
 
 //----------------------------------------------------------------------------
 vtkBoundingRegionSliceWidget::vtkBoundingRegionSliceWidget()
+: Plane(AXIAL)
+, Slice(0)
 {
   this->WidgetState = vtkBoundingRegionSliceWidget::Start;
   this->ManagesCursor = 1;
@@ -240,6 +242,7 @@ void vtkBoundingRegionSliceWidget::SetCursor(int state)
       break;
     default:
       this->RequestCursorShape(VTK_CURSOR_DEFAULT);
+      break;
   };
 }
 
@@ -287,9 +290,6 @@ void vtkBoundingRegionSliceWidget::SetPlane(PlaneType plane)
 
   if (!this->WidgetRep)
     CreateDefaultRepresentation();
-
-  SliceRepresentation *rep =
-    reinterpret_cast<SliceRepresentation*>(this->WidgetRep);
 }
 
 //----------------------------------------------------------------------
@@ -341,6 +341,10 @@ void vtkBoundingRegionSliceWidget::CreateDefaultRepresentation()
         break;
       case SAGITTAL:
         this->WidgetRep = SagittalSliceRepresentation::New();
+        break;
+      case VOLUME:
+      default:
+        Q_ASSERT(false);
         break;
     }
   }

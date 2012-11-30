@@ -45,6 +45,8 @@ SegmentationInspector::SegmentationInspector(Segmentation *seg,
 , m_info(new InformationProxy())
 , m_sort(new QSortFilterProxyModel())
 {
+  m_view->setViewType(VOLUME);
+
   setupUi(this);
 
   m_view->addSegmentation(seg);

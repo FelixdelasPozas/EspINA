@@ -79,6 +79,9 @@ public:
   virtual void centerViewOn(Nm *, bool) = 0;
   virtual void showCrosshairs(bool) = 0;
 
+  virtual void setViewType(PlaneType);
+  virtual PlaneType getViewType();
+
 protected slots:
   virtual void updateSceneBounds();
 
@@ -95,6 +98,7 @@ protected:
 
   Nm m_sceneBounds[6];
   Nm m_sceneResolution[3];// Min distance between 2 voxels in each axis
+  PlaneType m_plane;
 };
 
 #endif // ESPINARENDERVIEW_H

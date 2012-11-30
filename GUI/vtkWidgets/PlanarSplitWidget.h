@@ -30,6 +30,7 @@ class vtkImageStencilSource;
 class vtkImplicitPlaneWidget2;
 class vtkAlgorithmOutput;
 class vtkImageStencilData;
+class SliceWidget;
 
 enum WidgetType { AXIAL_WIDGET = 2, CORONAL_WIDGET = 1, SAGITTAL_WIDGET = 0, VOLUME_WIDGET = 3, NONE = 4 };
 
@@ -62,6 +63,8 @@ class PlanarSplitWidget
 
     // vtkCommand
     virtual void Execute (vtkObject *caller, unsigned long eventId, void *callData);
+
+    virtual bool manipulatesSegmentations() { return true; };
 
   private:
     PlanarSplitSliceWidget *m_axial;

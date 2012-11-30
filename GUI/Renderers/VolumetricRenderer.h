@@ -56,6 +56,7 @@ public:
 
   virtual Renderer* clone() {return new VolumetricRenderer(m_viewManager);}
 
+  virtual bool isASegmentationRenderer() { return true; };
 private:
   ViewManager *m_viewManager;
   QMap<ModelItem *, Representation> m_segmentations;

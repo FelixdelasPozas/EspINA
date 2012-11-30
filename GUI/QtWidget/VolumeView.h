@@ -43,7 +43,7 @@ class Channel;
 class ColorEngine;
 class IViewWidget;
 class QHBoxLayout;
-class QToolButton;
+class QPushButton;
 class QVBoxLayout;
 class Renderer;
 class Sample;
@@ -171,8 +171,10 @@ private:
 
   Nm m_center[3];
   unsigned int m_numEnabledRenders;
+  unsigned int m_numEnabledSegmentationRenders;
   ColorEngine *m_colorEngine;
   QMap<EspinaWidget *, vtkAbstractWidget *> m_widgets;
+  QMap<QPushButton *, Renderer *> m_renderers;
 
   QList<Segmentation *> m_segmentations;
   QList<ModelItem*> m_addedItems;

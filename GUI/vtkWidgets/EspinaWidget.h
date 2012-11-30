@@ -60,6 +60,9 @@ public:
                             long unsigned int event) = 0;
   virtual void setEnabled(bool enable) = 0;
 
+  // true if its a widget to manipulate segmentations
+  virtual bool manipulatesSegmentations() { return false; };
+
 protected:
   ViewManager *m_viewManager;
 };

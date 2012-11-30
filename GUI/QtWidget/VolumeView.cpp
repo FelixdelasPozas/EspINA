@@ -66,6 +66,8 @@ VolumeView::VolumeView(const EspinaFactory *factory,
 , m_mainLayout      (new QVBoxLayout())
 , m_controlLayout   (new QHBoxLayout())
 , m_settings        (new Settings(factory, QString(), this))
+, m_numEnabledRenders(0)
+, m_numEnabledSegmentationRenders(0)
 {
   setupUI();
   buildControls();
@@ -80,7 +82,6 @@ VolumeView::VolumeView(const EspinaFactory *factory,
   //   this->setStyleSheet("background-color: grey;");
 
   memset(m_center,0,3*sizeof(double));
-  m_numEnabledRenders = 0;
   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection)),
           this, SLOT(updateSelection(ViewManager::Selection)));
 
@@ -119,6 +120,23 @@ void VolumeView::addRendererControls(Renderer* renderer)
     renderer->addItem(item);
 
   m_itemRenderers << renderer;
+  m_renderers[button] = renderer;
+
+  if (!renderer->isHidden() && renderer->isASegmentationRenderer())
+    this->m_numEnabledSegmentationRenders++;
+
+  if (0 != m_numEnabledSegmentationRenders)
+  {
+    QMap<EspinaWidget *, vtkAbstractWidget *>::const_iterator it = m_widgets.begin();
+    for( ; it != m_widgets.end(); ++it)
+    {
+      if (it.key()->manipulatesSegmentations())
+      {
+        it.value()->SetEnabled(true);
+        it.value()->GetRepresentation()->SetVisibility(true);
+      }
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -147,8 +165,35 @@ void VolumeView::removeRendererControls(const QString name)
     }
   }
 
-  m_itemRenderers.removeAll(removedRenderer);
-  delete removedRenderer;
+  if (removedRenderer != NULL)
+  {
+    if (!removedRenderer->isHidden() && removedRenderer->isASegmentationRenderer())
+      this->m_numEnabledSegmentationRenders--;
+
+    if (0 == m_numEnabledSegmentationRenders)
+    {
+      QMap<EspinaWidget *, vtkAbstractWidget *>::const_iterator it = m_widgets.begin();
+      for( ; it != m_widgets.end(); ++it)
+      {
+        if (it.key()->manipulatesSegmentations())
+        {
+          it.value()->SetEnabled(false);
+          it.value()->GetRepresentation()->SetVisibility(false);
+        }
+      }
+    }
+
+    QMap<QPushButton*, Renderer *>::iterator it = m_renderers.begin();
+    while(it != m_renderers.end())
+    {
+      if (it.value() == removedRenderer)
+        m_renderers.erase(it);
+      ++it;
+    }
+
+    m_itemRenderers.removeAll(removedRenderer);
+    delete removedRenderer;
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -312,8 +357,24 @@ void VolumeView::addWidget(EspinaWidget* eWidget)
 
   widget->SetCurrentRenderer(this->m_renderer);
   widget->SetInteractor(m_view->GetInteractor());
-  widget->GetRepresentation()->SetVisibility(true);
-  widget->On();
+
+  if (m_numEnabledSegmentationRenders != 0)
+  {
+    if (eWidget->manipulatesSegmentations())
+    {
+      widget->SetEnabled(true);
+      widget->GetRepresentation()->SetVisibility(true);
+    }
+  }
+  else
+  {
+    if (eWidget->manipulatesSegmentations())
+    {
+      widget->SetEnabled(false);
+      widget->GetRepresentation()->SetVisibility(false);
+    }
+  }
+
   m_renderer->ResetCameraClippingRange();
   m_widgets[eWidget] = widget;
 }
@@ -701,11 +762,52 @@ void VolumeView::countEnabledRenderers(bool value)
     updateView();
   }
 
-  if (true == value)
-    m_numEnabledRenders++;
-  else
-    m_numEnabledRenders--;
+  Renderer *renderer = NULL;
 
+  QPushButton *button = dynamic_cast<QPushButton*>(sender());
+  if (button)
+    renderer = m_renderers[button];
+
+  if (value)
+  {
+    m_numEnabledRenders++;
+    if (renderer && renderer->isASegmentationRenderer())
+    {
+      m_numEnabledSegmentationRenders++;
+      if (0 != m_numEnabledSegmentationRenders)
+      {
+        QMap<EspinaWidget *, vtkAbstractWidget *>::const_iterator it = m_widgets.begin();
+        for( ; it != m_widgets.end(); ++it)
+        {
+          if (it.key()->manipulatesSegmentations())
+          {
+            it.value()->SetEnabled(true);
+            it.value()->GetRepresentation()->SetVisibility(true);
+          }
+        }
+      }
+    }
+  }
+  else
+  {
+    m_numEnabledRenders--;
+    if (renderer && renderer->isASegmentationRenderer())
+    {
+      m_numEnabledSegmentationRenders--;
+      if (0 == m_numEnabledSegmentationRenders)
+      {
+        QMap<EspinaWidget *, vtkAbstractWidget *>::const_iterator it = m_widgets.begin();
+        for( ; it != m_widgets.end(); ++it)
+        {
+          if (it.key()->manipulatesSegmentations())
+          {
+            it.value()->SetEnabled(false);
+            it.value()->GetRepresentation()->SetVisibility(false);
+          }
+        }
+      }
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------

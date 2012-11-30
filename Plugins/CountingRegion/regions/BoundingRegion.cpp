@@ -33,6 +33,8 @@ BoundingRegion::BoundingRegion(CountingRegionChannelExtension *channelExt,
 , EXCLUSION_FACE(0)
 , m_viewManager(vm)
 , m_channelExt(channelExt)
+, m_totalVolume(0)
+, m_inclusionVolume(0)
 {
   memcpy(m_inclusion, inclusion, 3*sizeof(Nm));
   memcpy(m_exclusion, exclusion, 3*sizeof(Nm));
@@ -64,13 +66,13 @@ QVariant BoundingRegion::data(int role) const
     desc += tr("Volume informtation:")                      + "\n";
     desc += tr("  Total Volume:")                           + "\n";
     desc += tr("    %1 voxel").arg(totalVoxelVolume)        + "\n";
-    desc += tr("    %1 nm³").arg(totalVolume(),0,'f',2)     + "\n";
+    desc += tr("    %1 nmï¿½").arg(totalVolume(),0,'f',2)     + "\n";
     desc += tr("  Inclusion Volume:")                       + "\n";
     desc += tr("    %1 voxel").arg(inclusionVoxelVolume)    + "\n";
-    desc += tr("    %1 nm³").arg(inclusionVolume(),0,'f',2) + "\n";
+    desc += tr("    %1 nmï¿½").arg(inclusionVolume(),0,'f',2) + "\n";
     desc += tr("  Exclusion Volume:")                       + "\n";
     desc += tr("    %1 voxel").arg(exclusionVoxelVolume)    + "\n";
-    desc += tr("    %1 nm³").arg(exclusionVolume(),0,'f',2) + "\n";;
+    desc += tr("    %1 nmï¿½").arg(exclusionVolume(),0,'f',2) + "\n";;
 
     return desc;
   }
