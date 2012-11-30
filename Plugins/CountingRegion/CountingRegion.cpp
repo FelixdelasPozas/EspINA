@@ -19,13 +19,12 @@
 #include "CountingRegion.h"
 #include "ui_CountingRegion.h"
 
-#include <common/model/Channel.h>
-#include <common/model/EspinaModel.h>
-#include <common/model/EspinaFactory.h>
-#include <common/model/Segmentation.h>
-#include <common/gui/ViewManager.h>
-#include <common/extensions/Margins/MarginsSegmentationExtension.h>
-#include <common/EspinaRegions.h>
+#include <Core/Model/Channel.h>
+#include <Core/Model/EspinaModel.h>
+#include <Core/Model/EspinaFactory.h>
+#include <Core/Model/Segmentation.h>
+#include <GUI/ViewManager.h>
+#include <Core/Extensions/Margins/MarginsSegmentationExtension.h>
 
 #include "regions/RectangularBoundingRegion.h"
 #include "regions/AdaptiveBoundingRegion.h"
@@ -218,7 +217,7 @@ void CountingRegion::createRectangularRegion(Channel *channel,
   Q_ASSERT(channelExt);
 
   double borders[6];
-  channel->bounds(borders);
+  channel->volume()->bounds(borders);
 
   RectangularBoundingRegion *region(new RectangularBoundingRegion(channelExt,
                                                                   borders,
@@ -355,7 +354,7 @@ void CountingRegion::channelChanged(Channel* channel)
   if (channel)
   {
     double bounds[6];
-    channel->bounds(bounds);
+    channel->volume()->bounds(bounds);
     double lenght[3];
     for (int i=0; i < 3; i++)
       lenght[i] = bounds[2*i+1]-bounds[2*i];
@@ -434,11 +433,10 @@ void CountingRegion::computeOptimalMargins(Channel* channel,
                                            Nm inclusion[3],
                                            Nm exclusion[3])
 {
-  const Nm delta[3] = {
-    0.5*channel->itkVolume()->GetSpacing()[0],
-    0.5*channel->itkVolume()->GetSpacing()[1],
-    0.5*channel->itkVolume()->GetSpacing()[2]
-  };
+  double spacing[3];
+  channel->volume()->spacing(spacing);
+
+  const Nm delta[3] = { 0.5*spacing[0], 0.5*spacing[1], 0.5*spacing[2] };
 
   memset(inclusion, 0, 3*sizeof(Nm));
   memset(exclusion, 0, 3*sizeof(Nm));
@@ -459,13 +457,16 @@ void CountingRegion::computeOptimalMargins(Channel* channel,
     {
       Nm dist2Margin[6];
       marginExt->margins(dist2Margin);
+
       double segBounds[6];
-      VolumeBounds(seg->itkVolume(), segBounds);
+      seg->volume()->bounds(segBounds);
+      double spacing[3];
+      seg->volume()->spacing(spacing);
 
       for (int i=0; i < 3; i++)
       {
         double length = segBounds[2*i+1] - segBounds[2*i];
-        length += seg->itkVolume()->GetSpacing()[i];
+        length += spacing[i];
         if (dist2Margin[2*i] < delta[i])
           inclusion[i] = std::max(length, inclusion[i]);
         if (dist2Margin[2*i+1] < delta[i])

@@ -26,7 +26,7 @@
 //      so it is the frontend who decides its gui
 //      or use a setConfiguration widget method
 class MorphologicalEditionFilter
-: public Filter
+: public SegmentationFilter
 {
 public:
 
@@ -54,9 +54,10 @@ public:
   unsigned int radius() const {return m_params.radius();}
   void setRadius(int radius) {m_params.setRadius(radius); m_paramModified = true;}
 
+  virtual bool needUpdate() const;
+
 protected:
   /// Implements Filter Interface
-  virtual bool needUpdate() const;
   virtual bool prefetchFilter();
 
 protected:

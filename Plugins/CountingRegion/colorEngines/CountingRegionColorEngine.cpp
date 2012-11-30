@@ -20,8 +20,8 @@
 #include "CountingRegionColorEngine.h"
 #include <extensions/CountingRegionSegmentationExtension.h>
 
-#include <common/extensions/ModelItemExtension.h>
-#include <common/model/Segmentation.h>
+#include <Core/Extensions/ModelItemExtension.h>
+#include <Core/Model/Segmentation.h>
 
 //-----------------------------------------------------------------------------
 CountingRegionColorEngine::CountingRegionColorEngine()

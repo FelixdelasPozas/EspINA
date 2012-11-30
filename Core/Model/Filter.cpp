@@ -32,10 +32,10 @@
 #include <vtkImageExport.h>
 #include <vtkMath.h>
 
-#include <QDebug>
 #include <QDir>
 #include <QMessageBox>
 #include <QWidget>
+#include <boost/graph/graph_concepts.hpp>
 
 typedef ModelItem::ArgumentId ArgumentId;
 
@@ -64,10 +64,12 @@ void Filter::setTmpDir(QDir dir)
         id = id.split(".").first();
         if (cachedFile.endsWith("mhd"))
         {
-          Output cachedOutput(this, id.toInt());
+          OutputId oId = id.toInt();
+
+          createOutput(oId);
+
           if (editList.contains(id))
-            cachedOutput.isEdited = true;
-          m_outputs << cachedOutput;
+            m_outputs[oId].isEdited = true;
         }
       }
     }
@@ -127,7 +129,6 @@ void Filter::draw(OutputId oId,
     if (brush->FunctionValue(tx, ty, tz) <= 0)
       it.Set(value);
   }
-
   volume->toITK()->Modified();
 
   markAsEdited(oId);
@@ -376,54 +377,59 @@ Filter::OutputList Filter::editedOutputs() const
 //----------------------------------------------------------------------------
 bool Filter::validOutput(Filter::OutputId oId)
 {
-  bool res = false;
-  int i = 0;
-
-  while (!res && i < m_outputs.size())
-  {
-    if (m_outputs[i].id == oId)
-      res = true;
-    i++;
-  }
-
-  return res;
-
+  return m_outputs.contains(oId);
+//   bool res = false;
+//   int i = 0;
+// 
+//   while (!res && i < m_outputs.size())
+//   {
+//     if (m_outputs[i].id == oId)
+//       res = true;
+//     i++;
+//   }
+// 
+//   return res;
+// 
 }
 
 //----------------------------------------------------------------------------
 const Filter::Output Filter::output(OutputId oId) const
 {
-  Output res;
+  return m_outputs.value(oId, Output());
 
-  foreach(Output filterOutput, m_outputs)
-  {
-    if (filterOutput.id == oId)
-    {
-      res = filterOutput;
-      break;
-    }
-  }
-
-  return res;
+//   Output res;
+// 
+//   foreach(Output filterOutput, m_outputs)
+//   {
+//     if (filterOutput.id == oId)
+//     {
+//       res = filterOutput;
+//       break;
+//     }
+//   }
+// 
+//   return res;
 }
 
 //----------------------------------------------------------------------------
 Filter::Output &Filter::output(OutputId oId)
 {
-  bool found = false;
-  int i = 0;
+  return m_outputs[oId];
 
-  while (!found && i < m_outputs.size())
-  {
-    if (m_outputs[i].id == oId)
-      found = true;
-    else
-      i++;
-  }
-
-  Q_ASSERT(found);
-
-  return m_outputs[i];
+//   bool found = false;
+//   int i = 0;
+// 
+//   while (!found && i < m_outputs.size())
+//   {
+//     if (m_outputs[i].id == oId)
+//       found = true;
+//     else
+//       i++;
+//   }
+// 
+//   Q_ASSERT(found);
+// 
+//   return m_outputs[i];
 }
 
 //----------------------------------------------------------------------------
@@ -463,7 +469,8 @@ void Filter::update()
     }
 
     m_inputs.clear();
-    m_outputs.clear();//NOTE 2012-11-20 Otra opcion seria quitar el flag de edicion a todas las salidas
+    foreach(OutputId oId, m_outputs.keys())
+      m_outputs[oId].isEdited = false;
 
     QStringList namedInputList = m_args[INPUTS].split(",", QString::SkipEmptyParts);
     foreach(QString namedInput, namedInputList)
@@ -480,6 +487,15 @@ void Filter::update()
 }
 
 //----------------------------------------------------------------------------
+void Filter::createOutput(Filter::OutputId id, EspinaVolume::Pointer volume)
+{
+  if (m_outputs.contains(id))
+    m_outputs[id].volume->setVolume(volume->toITK());
+  else
+    m_outputs[id] = Output(this, id, volume);
+}
+
+//----------------------------------------------------------------------------
 bool Filter::prefetchFilter()
 {
   if (m_outputs.isEmpty())
@@ -489,16 +505,14 @@ bool Filter::prefetchFilter()
   // aunque estas puedan ser invalidas NULL volume pointer
   EspinaVolumeReader::Pointer reader;
 
-  for(int i = 0; i < m_outputs.size(); i++)
+  foreach(OutputId oId, m_outputs.keys())
   {
-    Output &output = m_outputs[i];
-    QString tmpFile = QString("%1_%2.mhd").arg(tmpId()).arg(output.id);
+    QString tmpFile = QString("%1_%2.mhd").arg(tmpId()).arg(oId);
     reader = tmpFileReader(tmpFile);
     if (reader.IsNull())
       return false;
 
-    *output.volume = reader->GetOutput();
-    output.volume->toITK()->DisconnectPipeline();
+    m_outputs[oId].volume->setVolume(reader->GetOutput(), true);
   }
 
   emit modified(this);
@@ -529,7 +543,9 @@ Filter::EspinaVolumeReader::Pointer Filter::tmpFileReader(const QString file)
 //----------------------------------------------------------------------------
 void Filter::markAsEdited(OutputId oId)
 {
-  output(oId).isEdited = true;
+  Q_ASSERT(m_outputs.contains(oId));
+
+  m_outputs[oId].isEdited = true;
 
   QStringList editedOutputList;
   foreach(Output filterOutput, m_outputs)
@@ -557,4 +573,54 @@ void Filter::updateCacheFlags()
       output.isCached = output.isCached || output.isEdited;
     }
   }
+}
+
+//----------------------------------------------------------------------------
+void ChannelFilter::createOutput(Filter::OutputId id, itkVolumeType::Pointer volume)
+{
+  if (m_outputs.contains(id))
+    m_outputs[0].volume->setVolume(volume);
+  else
+    m_outputs[0] = Output(this, id, ChannelVolume::Pointer(new ChannelVolume(volume)));
+}
+
+//----------------------------------------------------------------------------
+void ChannelFilter::createOutput(Filter::OutputId id, EspinaVolume::Pointer volume)
+{
+  Filter::createOutput(id, volume);
+}
+
+//----------------------------------------------------------------------------
+void ChannelFilter::createOutput(Filter::OutputId id, const EspinaRegion& region, itkVolumeType::SpacingType spacing)
+{
+  ChannelVolume::Pointer volume(new ChannelVolume(region, spacing));
+  if (m_outputs.contains(id))
+    m_outputs[0].volume->setVolume(volume->toITK());
+  else
+    m_outputs[0] = Output(this, id, volume);
+}
+
+//----------------------------------------------------------------------------
+void SegmentationFilter::createOutput(Filter::OutputId id, EspinaVolume::Pointer volume)
+{
+  Filter::createOutput(id, volume);
+}
+
+//----------------------------------------------------------------------------
+void SegmentationFilter::createOutput(Filter::OutputId id, itkVolumeType::Pointer volume)
+{
+  if (m_outputs.contains(id))
+    m_outputs[0].volume->setVolume(volume);
+  else
+    m_outputs[0] = Output(this, id, SegmentationVolume::Pointer(new SegmentationVolume(volume)));
+}
+
+//----------------------------------------------------------------------------
+void SegmentationFilter::createOutput(Filter::OutputId id, const EspinaRegion& region, itkVolumeType::SpacingType spacing)
+{
+  SegmentationVolume::Pointer volume(new SegmentationVolume(region, spacing));
+  if (m_outputs.contains(id))
+    m_outputs[0].volume->setVolume(volume->toITK());
+  else
+    m_outputs[0] = Output(this, id, volume);
 }

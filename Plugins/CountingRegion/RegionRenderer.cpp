@@ -19,7 +19,8 @@
 
 #include "CountingRegion.h"
 #include "regions/BoundingRegion.h"
-#include <common/model/ModelItem.h>
+
+#include <Core/Model/ModelItem.h>
 
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderWindow.h>

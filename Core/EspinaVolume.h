@@ -39,11 +39,13 @@ public:
   typedef itkVolumeType::RegionType       VolumeRegion;
   typedef boost::shared_ptr<EspinaVolume> Pointer;
 
+  explicit EspinaVolume(){}
   explicit EspinaVolume(itkVolumeType::Pointer volume);
   explicit EspinaVolume(const EspinaRegion &region, itkVolumeType::SpacingType spacing);
   virtual ~EspinaVolume(){}
 
   EspinaVolume operator=(itkVolumeType::Pointer volume);
+  void setVolume(itkVolumeType::Pointer volume, bool disconnect=false);
 
   /// Volume's voxel's index at given spatial position
   /// It doesn't check whether the index is valid or not
@@ -79,6 +81,8 @@ public:
   void expandToFitRegion(EspinaRegion region);
 
 private:
+  explicit EspinaVolume(const VolumeRegion &region, itkVolumeType::SpacingType spacing);
+
   VolumeRegion volumeRegion(EspinaRegion region, itkVolumeType::SpacingType spacing);
 
 protected:

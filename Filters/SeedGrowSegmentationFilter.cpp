@@ -49,10 +49,10 @@ SeedGrowSegmentationFilter::Parameters::Parameters(ModelItem::Arguments &args)
 
 SeedGrowSegmentationFilter::SeedGrowSegmentationFilter(Filter::NamedInputs inputs,
                                                        ModelItem::Arguments args)
-: Filter       (inputs, args)
-, m_paramModified (false)
-, m_param      (m_args)
-, m_input      (EspinaVolume::Pointer())
+: SegmentationFilter(inputs, args)
+, m_paramModified   (false)
+, m_param           (m_args)
+, m_input           (EspinaVolume::Pointer())
 {
 }
 
@@ -175,9 +175,8 @@ void SeedGrowSegmentationFilter::run()
   else
     volume = extractFilter->GetOutput();
 
-  m_outputs.clear();
-  SegmentationVolume::Pointer segVolume(new SegmentationVolume(volume));
-  m_outputs << Output(this, 0, segVolume);
+  createOutput(0, volume);
+
   m_paramModified = false;
 
   emit modified(this);

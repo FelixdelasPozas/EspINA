@@ -19,11 +19,10 @@
 #ifndef COUNTINGREGION_H
 #define COUNTINGREGION_H
 
-#include <common/pluginInterfaces/IDockWidget.h>
-#include <common/pluginInterfaces/IColorEngineProvider.h>
-
-#include <common/model/EspinaModel.h>
-#include <common/EspinaTypes.h>
+#include <Core/Interfaces/IDockWidget.h>
+#include <Core/Interfaces/IColorEngineProvider.h>
+#include <Core/Model/EspinaModel.h>
+#include <Core/EspinaTypes.h>
 
 #include <QStandardItemModel>
 

@@ -21,11 +21,10 @@
 #include "CountingRegionChannelExtension.h"
 #include "regions/BoundingRegion.h"
 
-#include <common/EspinaRegions.h>
-#include <common/extensions/Margins/MarginsSegmentationExtension.h>
-#include <common/model/Segmentation.h>
-#include <common/model/Sample.h>
-#include <common/model/Channel.h>
+#include <Core/Extensions/Margins/MarginsSegmentationExtension.h>
+#include <Core/Model/Segmentation.h>
+#include <Core/Model/Sample.h>
+#include <Core/Model/Channel.h>
 
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
@@ -47,10 +46,10 @@ CountingRegionSegmentationExtension::BoundingBox::BoundingBox(vtkPoints* points)
   zMax = bounds[5];
 }
 
-CountingRegionSegmentationExtension::BoundingBox::BoundingBox(EspinaVolume* image)
+CountingRegionSegmentationExtension::BoundingBox::BoundingBox(itkVolumeType::Pointer image)
 {
   double bounds[6];
-  VolumeBounds(image, bounds);
+  // VolumeBounds(image, bounds); DEPRECATED
   xMin = bounds[0];
   xMax = bounds[1];
   yMin = bounds[2];
@@ -231,12 +230,12 @@ bool CountingRegionSegmentationExtension::discartedByRegion(BoundingBox inputBB,
 //------------------------------------------------------------------------
 bool CountingRegionSegmentationExtension::realCollision(BoundingBox interscetion)
 {
-  EspinaVolume *input = m_seg->itkVolume();
+  itkVolumeType::Pointer input = m_seg->volume()->toITK(); // NOTE: Considerar usar el API de SegmentationVolume
   for (int z = interscetion.zMin; z <= interscetion.zMax; z++)
     for (int y = interscetion.yMin; y <= interscetion.yMax; y++)
       for (int x = interscetion.xMin; x <= interscetion.xMax; x++)
       {
-	EspinaVolume::IndexType index = m_seg->index(x, y, z);
+	itkVolumeType::IndexType index = m_seg->volume()->index(x, y, z);
 	if (input->GetLargestPossibleRegion().IsInside(index) && input->GetPixel(index))
 	  return true;
       }
@@ -270,7 +269,7 @@ void CountingRegionSegmentationExtension::evaluateBoundingRegions()
 
   if (!m_isDiscarted)
   {
-    BoundingBox inputBB(m_seg->itkVolume());
+    BoundingBox inputBB(m_seg->volume()->toITK());// Usar m_seg->volume()->region();
 
     foreach(BoundingRegion *br, m_boundingRegions)
       m_isDiscarted |= discartedByRegion(inputBB, br->region());

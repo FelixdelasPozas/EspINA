@@ -20,7 +20,7 @@
 #ifndef COUNTINGREGIONCHANNELEXTENSION_H
 #define COUNTINGREGIONCHANNELEXTENSION_H
 
-#include "common/extensions/ChannelExtension.h"
+#include "Core/Extensions/ChannelExtension.h"
 
 class BoundingRegion;
 class CountingRegion;

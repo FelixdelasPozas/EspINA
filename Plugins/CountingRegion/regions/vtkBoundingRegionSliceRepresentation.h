@@ -5,7 +5,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
 
-#include <common/EspinaTypes.h>
+#include <Core/EspinaTypes.h>
 
 class vtkLookupTable;
 class vtkPolyDataAlgorithm;

@@ -68,7 +68,8 @@ void SegmhaImporter::UndoCommand::redo()
   {
     Nm inclusive[3], exclusive[3];
     m_filter->countingRegion(inclusive, exclusive);
-    itkVolumeType::SpacingType spacing = m_channel->itkVolume()->GetSpacing();
+    double spacing[3];
+    m_channel->volume()->spacing(spacing);
     for(int i=0; i<3;i++)
     {
       inclusive[i] = inclusive[i]*spacing[i];
@@ -184,7 +185,7 @@ bool SegmhaImporter::readFile(const QFileInfo file)
   Filter::Arguments args;
   args[SegmhaImporterFilter::FILE] = file.absoluteFilePath();
   SegmhaImporterFilter::Parameters params(args);
-  params.setSpacing(channel->itkVolume()->GetSpacing());
+  params.setSpacing(channel->volume()->toITK()->GetSpacing());
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
   SegmhaImporterFilter *filter = new SegmhaImporterFilter(inputs, args);

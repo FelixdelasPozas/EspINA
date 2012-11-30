@@ -25,10 +25,10 @@
 #include <regions/AdaptiveBoundingRegion.h>
 #include <CountingRegion.h>
 
-#include <common/model/Sample.h>
-#include <common/model/Channel.h>
-#include <common/extensions/Margins/MarginsSegmentationExtension.h>
-#include <common/gui/ViewManager.h>
+#include <Core/Model/Sample.h>
+#include <Core/Model/Channel.h>
+#include <Core/Extensions/Margins/MarginsSegmentationExtension.h>
+#include <GUI/ViewManager.h>
 
 #include <QDebug>
 #include <QApplication>

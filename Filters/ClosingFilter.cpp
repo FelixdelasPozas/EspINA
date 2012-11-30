@@ -55,9 +55,7 @@ void ClosingFilter::run()
   m_filter->SetForegroundValue(SEG_VOXEL_VALUE);
   m_filter->Update();
 
-  m_outputs.clear();
-  SegmentationVolume::Pointer volume(new SegmentationVolume(m_filter->GetOutput()));
-  m_outputs << Output(this, 0, volume);
+  createOutput(0, m_filter->GetOutput());
 
   emit modified(this);
 }

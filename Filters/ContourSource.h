@@ -13,7 +13,7 @@
 #include <QVector3D>
 
 class ContourSource
-: public Filter
+: public SegmentationFilter
 {
 public:
   class ContourSourceInspector;

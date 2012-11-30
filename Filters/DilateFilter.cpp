@@ -84,9 +84,7 @@ void DilateFilter::run()
   m_filter->SetReleaseDataFlag(false);
   m_filter->Update();
 
-  m_outputs.clear();
-  SegmentationVolume::Pointer segVolume(new SegmentationVolume(m_filter->GetOutput()));
-  m_outputs << Output(this, 0, segVolume);
+  createOutput(0, m_filter->GetOutput());
 
   emit modified(this);
 }

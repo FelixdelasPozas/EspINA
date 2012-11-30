@@ -27,7 +27,7 @@
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 #include "vtkBoundingRegion3DWidget.h"
-#include <common/model/Channel.h>
+#include <Core/Model/Channel.h>
 
 
 const QString RectangularBoundingRegion::ID = "RectangularBoundingRegion";
@@ -122,7 +122,7 @@ SliceWidget* RectangularBoundingRegion::createSliceWidget(PlaneType plane)
 {
   Channel *channel = m_channelExt->channel();
   double spacing[3];
-  channel->spacing(spacing);
+  channel->volume()->spacing(spacing);
 
   BoundingRegion2DWidgetAdapter *wa = new BoundingRegion2DWidgetAdapter();
   Q_ASSERT(wa);

@@ -25,7 +25,7 @@
 #include <itkBinaryFillholeImageFilter.h>
 
 class FillHolesFilter
-: public Filter
+: public SegmentationFilter
 {
   typedef itk::BinaryFillholeImageFilter<itkVolumeType> FilterType;
 

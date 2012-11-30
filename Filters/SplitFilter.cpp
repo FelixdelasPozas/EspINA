@@ -30,7 +30,7 @@ const QString SplitFilter::INPUTLINK = "Segmentation";
 
 //-----------------------------------------------------------------------------
 SplitFilter::SplitFilter(Filter::NamedInputs inputs, ModelItem::Arguments args)
-: Filter(inputs, args)
+: SegmentationFilter(inputs, args)
 , m_stencil(NULL)
 {
 }
@@ -100,14 +100,12 @@ void SplitFilter::run()
     }
   }
 
-  m_outputs.clear();
-
   if (!isEmpty1 && !isEmpty2)
   {
     for (int i = 0; i < 2; i++)
     {
       volumes[i]->strechToFitContent();
-      m_outputs << Output(this, i, volumes[i]);
+      createOutput(i, volumes[i]);
     }
 
     emit modified(this);

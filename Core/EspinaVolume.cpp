@@ -49,6 +49,16 @@ EspinaVolume::EspinaVolume(const EspinaRegion& region, itkVolumeType::SpacingTyp
 }
 
 //----------------------------------------------------------------------------
+EspinaVolume::EspinaVolume(const VolumeRegion& region, itkVolumeType::SpacingType spacing)
+: m_volume(itkVolumeType::New())
+{
+  m_volume->SetRegions(region);
+  m_volume->SetSpacing(spacing);
+  m_volume->Allocate();
+  m_volume->FillBuffer(0);
+}
+
+//----------------------------------------------------------------------------
 EspinaVolume EspinaVolume::operator=(itkVolumeType::Pointer volume)
 {
   m_volume = volume;
@@ -60,6 +70,20 @@ EspinaVolume EspinaVolume::operator=(itkVolumeType::Pointer volume)
   }
 
   return *this;
+}
+
+//----------------------------------------------------------------------------
+void EspinaVolume::setVolume(itkVolumeType::Pointer volume, bool disconnect)
+{
+  m_volume = volume;
+  if (disconnect)
+    m_volume->DisconnectPipeline();
+
+  if (itk2vtk.IsNotNull())
+  {
+    itk2vtk->SetInput(m_volume);
+    itk2vtk->Update();
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -154,6 +178,7 @@ itkVolumeIterator EspinaVolume::iterator()
 //----------------------------------------------------------------------------
 itkVolumeIterator EspinaVolume::iterator(const EspinaRegion& region)
 {
+  volumeRegion(region).Print(std::cout);
   return itkVolumeIterator(m_volume, volumeRegion(region));
 }
 
@@ -223,6 +248,26 @@ void EspinaVolume::update()
 
 typedef itk::ImageRegionExclusionIteratorWithIndex<itkVolumeType> ExclusionIterator;
 
+
+// Expand To Fit Region's Auxiliar Function
+//-----------------------------------------------------------------------------
+EspinaVolume::VolumeRegion BoundingBox(EspinaVolume::VolumeRegion v1,
+                                       EspinaVolume::VolumeRegion v2)
+{
+  EspinaVolume::VolumeRegion res;
+  EspinaVolume::VolumeRegion::IndexType minIndex, maxIndex;
+
+  for(unsigned int i = 0; i < 3; i++)
+  {
+    minIndex.SetElement(i, std::min(v1.GetIndex(i),v2.GetIndex(i)));
+    maxIndex.SetElement(i, std::max(v1.GetIndex(i)+v1.GetSize(i) - 1,
+                                    v2.GetIndex(i)+v2.GetSize(i) - 1));
+    res.SetIndex(i, minIndex[i]);
+    res.SetSize (i, maxIndex[i] - minIndex[i] + 1);
+  }
+  return res;
+}
+
 //----------------------------------------------------------------------------
 void EspinaVolume::expandToFitRegion(EspinaRegion region)
 {
@@ -232,20 +277,20 @@ void EspinaVolume::expandToFitRegion(EspinaRegion region)
     m_volume->Update();
   }
 
-  EspinaRegion currentRegion = espinaRegion();
-  if (!region.isInside(currentRegion))
+  VolumeRegion requestedVol = volumeRegion(region, m_volume->GetSpacing());
+  VolumeRegion currentVol   = volumeRegion();
+  if (!requestedVol.IsInside(currentVol))
   {
-    EspinaRegion bb = BoundingBox(region, currentRegion);
+    VolumeRegion bb = BoundingBox(currentVol, requestedVol);
     EspinaVolume expandedVolume(bb, m_volume->GetSpacing());
 
     // Do a block copy for the overlapping region.
     itk::ImageAlgorithm::Copy(this->m_volume.GetPointer(),
                               expandedVolume.m_volume.GetPointer(),
-                              this->volumeRegion(),
-                              expandedVolume.volumeRegion());
+                              currentVol, currentVol);
 
     ExclusionIterator outIter(expandedVolume.m_volume.GetPointer(), expandedVolume.volumeRegion());
-    outIter.SetExclusionRegion(expandedVolume.volumeRegion(this->espinaRegion()));
+    outIter.SetExclusionRegion(currentVol);
     outIter.GoToBegin();
     while ( !outIter.IsAtEnd() )
     {
@@ -253,10 +298,11 @@ void EspinaVolume::expandToFitRegion(EspinaRegion region)
       ++outIter;
     }
 
-    m_volume = expandedVolume.m_volume;
-    update();
+    setVolume(expandedVolume.m_volume);
   }
 }
+
+
 
 //----------------------------------------------------------------------------
 EspinaVolume::VolumeRegion EspinaVolume::volumeRegion(EspinaRegion region, itkVolumeType::SpacingType spacing)

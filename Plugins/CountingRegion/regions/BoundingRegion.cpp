@@ -20,8 +20,8 @@
 #include "regions/BoundingRegion.h"
 #include "vtkBoundingRegionSliceWidget.h"
 #include <extensions/CountingRegionChannelExtension.h>
-#include <common/model/Channel.h>
-#include <common/gui/ViewManager.h>
+#include <Core/Model/Channel.h>
+#include <GUI/ViewManager.h>
 
 //-----------------------------------------------------------------------------
 BoundingRegion::BoundingRegion(CountingRegionChannelExtension *channelExt,
@@ -53,7 +53,7 @@ QVariant BoundingRegion::data(int role) const
   if (role == DescriptionRole)
   {
     double spacing[3];
-    m_channelExt->channel()->spacing(spacing);
+    m_channelExt->channel()->volume()->spacing(spacing);
     Nm voxelVol = spacing[0]*spacing[1]*spacing[2];
     int totalVoxelVolume = totalVolume() /voxelVol;
     int inclusionVoxelVolume = inclusionVolume() / voxelVol;

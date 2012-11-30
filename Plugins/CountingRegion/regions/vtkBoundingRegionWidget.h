@@ -20,10 +20,11 @@
 #ifndef VTKBOUNDINGREGIONWIDGET_H
 #define VTKBOUNDINGREGIONWIDGET_H
 
+#include <Core/EspinaTypes.h>
+
 #include <vtkAbstractWidget.h>
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
-#include <common/EspinaTypes.h>
 
 /// Base class for bounding region widgets
 class VTK_WIDGETS_EXPORT vtkBoundingRegionWidget

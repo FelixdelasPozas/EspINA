@@ -75,6 +75,7 @@ public:
     {
       return NULL != filter
           && INVALID_OUTPUT_ID < id
+          && volume.get()
           && volume->toITK().IsNotNull();
     }
 
@@ -144,7 +145,7 @@ public:
                            itkVolumeType::Pointer volume);
 
   /// Returns filter's outputs
-  OutputList outputs() const {return m_outputs;}
+  OutputList outputs() const {return m_outputs.values();}
   /// Returns a list of outputs edited by the user //NOTE: Deberia ser private?
   OutputList editedOutputs() const;
   /// Return whether or not i is an output of the filter
@@ -179,6 +180,10 @@ protected:
   explicit Filter(NamedInputs namedInputs,
                   Arguments args);
 
+  /// Subclasses need to specify which subtype of EspinaVolume they use
+  virtual void createOutput(OutputId id, itkVolumeType::Pointer volume = NULL) = 0;
+  virtual void createOutput(OutputId id, EspinaVolume::Pointer volume) = 0;
+  virtual void createOutput(OutputId id, const EspinaRegion &region, itkVolumeType::SpacingType spacing) = 0;
   /// Method which actually executes the filter
   virtual void run() {};
   /// Try to locate an snapshot of the filter in tmpDir
@@ -197,11 +202,40 @@ protected:
   NamedInputs                  m_namedInputs;
   mutable Arguments            m_args;
 
-  OutputList m_outputs;
+  QMap<OutputId, Output> m_outputs;
 
 private:
   FilterInspectorPtr m_filterInspector;
   QDir m_tmpDir;
 };
 
+class ChannelFilter
+: public Filter
+{
+public:
+  virtual ~ChannelFilter(){}
+
+protected:
+  explicit ChannelFilter(NamedInputs namedInputs, Arguments args)
+  : Filter(namedInputs, args){}
+
+  virtual void createOutput(OutputId id, itkVolumeType::Pointer volume = NULL);
+  virtual void createOutput(OutputId id, EspinaVolume::Pointer volume);
+  virtual void createOutput(OutputId id, const EspinaRegion &region, itkVolumeType::SpacingType spacing);
+};
+
+class SegmentationFilter
+: public Filter
+{
+public:
+  virtual ~SegmentationFilter(){}
+
+protected:
+  explicit SegmentationFilter(NamedInputs namedInputs, Arguments args)
+  : Filter(namedInputs, args){}
+
+  virtual void createOutput(OutputId id, itkVolumeType::Pointer volume = NULL);
+  virtual void createOutput(OutputId id, EspinaVolume::Pointer volume);
+  virtual void createOutput(OutputId id, const EspinaRegion &region, itkVolumeType::SpacingType spacing);
+};
 #endif // FILTER_H

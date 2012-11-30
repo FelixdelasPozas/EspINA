@@ -22,7 +22,7 @@ const ArgumentId ContourSource::SPACING = "SPACING";
 //-----------------------------------------------------------------------------
 ContourSource::ContourSource(Filter::NamedInputs inputs,
                                ModelItem::Arguments args)
-: Filter(inputs, args)
+: SegmentationFilter(inputs, args)
 , m_param(m_args)
 {
   Q_ASSERT(inputs.isEmpty());
@@ -70,8 +70,7 @@ void ContourSource::draw(OutputId oId,
   if (m_outputs.isEmpty())
   {
     // need to create a dummy image to register the filter/action, we'll change it later.
-    SegmentationVolume::Pointer segVolume(new SegmentationVolume(EspinaRegion(bounds), m_param.spacing()));
-    m_outputs << Output(this, 0, segVolume);
+    createOutput(0, EspinaRegion(bounds), m_param.spacing());
   }
   else
   {

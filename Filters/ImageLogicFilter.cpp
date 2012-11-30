@@ -34,7 +34,7 @@ const ArgumentId ImageLogicFilter::OPERATION = "Operation";
 //-----------------------------------------------------------------------------
 ImageLogicFilter::ImageLogicFilter(Filter::NamedInputs inputs,
                                    ModelItem::Arguments args)
-: Filter(inputs, args)
+: SegmentationFilter(inputs, args)
 , m_param(m_args)
 {
 }
@@ -82,6 +82,7 @@ void ImageLogicFilter::run() //TODO: Parallelize
 {
   Q_ASSERT(m_inputs.size() > 1);
 
+  // NOTE: Updating this filter will result in invalidating previous outputs
   m_outputs.clear();
 
   switch (m_param.operation())
@@ -132,9 +133,10 @@ void ImageLogicFilter::addition()
     }
   }
 
-  m_outputs << Output(this, 0, volume);
+  m_outputs[0] = Output(this, 0, volume);
 }
 
+//-----------------------------------------------------------------------------
 void ImageLogicFilter::substraction()
 {
   // TODO 2012-11-29 Revisar si se puede evitar crear la imagen
@@ -177,5 +179,5 @@ void ImageLogicFilter::substraction()
     }
   }
 
-  m_outputs << Output(this, 0, volume);
+  m_outputs[0] = Output(this, 0, volume);
 }

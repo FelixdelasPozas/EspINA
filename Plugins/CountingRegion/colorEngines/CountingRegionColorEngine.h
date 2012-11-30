@@ -20,8 +20,7 @@
 #ifndef COUNTINGREGIONCOLORENGINE_H
 #define COUNTINGREGIONCOLORENGINE_H
 
-#include <common/colorEngines/ColorEngine.h>
-
+#include <Core/ColorEngines/IColorEngine.h>
 
 class CountingRegionColorEngine
 : public ColorEngine

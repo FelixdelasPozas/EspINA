@@ -359,7 +359,7 @@ int vtkBoundingRegionSliceRepresentation::ComputeInteractionState(int X, int Y, 
     this->CurrentEdge =
       reinterpret_cast<vtkActor *>(path->GetFirstNode()->GetViewProp());
     if (this->CurrentEdge == this->EdgeActor[LEFT])
-    {http://www.boardgamegeek.com/user/IcantExplain
+    {
       this->InteractionState = vtkBoundingRegionSliceRepresentation::MoveLeft;
     }
     else if (this->CurrentEdge == this->EdgeActor[RIGHT])

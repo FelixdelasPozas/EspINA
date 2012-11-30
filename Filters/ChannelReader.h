@@ -27,7 +27,7 @@
 
 
 class ChannelReader
-: public Filter
+: public ChannelFilter
 {
 public:
   static const QString TYPE;

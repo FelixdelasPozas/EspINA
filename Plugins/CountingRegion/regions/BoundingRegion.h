@@ -21,11 +21,11 @@
 #define BOUNDINGREGION_H
 
 #include <QStandardItemModel>
-#include <common/widgets/RectangularRegion.h>
-#include <common/widgets/EspinaInteractorAdapter.h>
 
 #include "vtkBoundingRegionSliceWidget.h"
 #include "vtkBoundingRegion3DWidget.h"
+#include <GUI/vtkWidgets/EspinaWidget.h>
+#include <GUI/vtkWidgets/EspinaInteractorAdapter.h>
 
 
 #include <vtkCommand.h>

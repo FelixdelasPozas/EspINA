@@ -21,7 +21,7 @@
 #define REGIONRENDERER_H
 
 #include <QMap>
-#include <common/gui/Renderer.h>
+#include <GUI/Renderers/Renderer.h>
 
 class BoundingRegion;
 class CountingRegion;

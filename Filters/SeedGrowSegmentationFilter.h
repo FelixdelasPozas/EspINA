@@ -37,7 +37,7 @@ class vtkConnectedThresholdImageFilter;
 class Channel;
 
 class SeedGrowSegmentationFilter
-: public Filter
+: public SegmentationFilter
 {
   typedef itk::ExtractImageFilter<itkVolumeType, itkVolumeType> ExtractType;
   typedef itk::ConnectedThresholdImageFilter<itkVolumeType, itkVolumeType> ConnectedThresholdFilterType;

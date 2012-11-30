@@ -35,7 +35,7 @@ const ArgumentId ChannelReader::SPACING = "Spacing";
 //----------------------------------------------------------------------------
 ChannelReader::ChannelReader(Filter::NamedInputs inputs,
                              ModelItem::Arguments args)
-: Filter(inputs, args)
+: ChannelFilter(inputs, args)
 {
 }
 
@@ -101,10 +101,7 @@ void ChannelReader::run()
   if (m_args.contains(SPACING))
     m_reader->GetOutput()->SetSpacing(spacing());
 
-  ChannelVolume::Pointer volume(new ChannelVolume(m_reader->GetOutput()));
-
-  m_outputs.clear();
-  m_outputs << Output(this, 0, volume);
+  createOutput(0, m_reader->GetOutput());
 }
 
 //----------------------------------------------------------------------------

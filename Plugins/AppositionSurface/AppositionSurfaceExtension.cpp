@@ -130,7 +130,7 @@ SegmentationExtension* AppositionSurfaceExtension::clone()
 //------------------------------------------------------------------------
 bool AppositionSurfaceExtension::updateAppositionSurface() const
 {
-  if (m_seg->volume().itkVolume()->GetTimeStamp() <= m_lastUpdate)
+  if (m_seg->volume()->toITK()->GetTimeStamp() <= m_lastUpdate)
     return false;
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
@@ -139,7 +139,7 @@ bool AppositionSurfaceExtension::updateAppositionSurface() const
   itkVolumeType::SizeType bounds;
   bounds[0] = bounds[1] = bounds[2] = 1;
   PadFilterType::Pointer padder = PadFilterType::New();
-  padder->SetInput(m_seg->volume().itkVolume());
+  padder->SetInput(m_seg->volume()->toITK());
   padder->SetPadLowerBound(bounds);
   padder->SetPadUpperBound(bounds);
   padder->SetConstant(0); // extend with black pixels
@@ -266,7 +266,7 @@ bool AppositionSurfaceExtension::updateAppositionSurface() const
   m_ap->SetLines(appositionSurface->GetLines());
   m_ap->Modified();
 
-  m_lastUpdate = m_seg->volume().itkVolume()->GetTimeStamp();
+  m_lastUpdate = m_seg->volume()->toITK()->GetTimeStamp();
   QApplication::restoreOverrideCursor();
 
   return true;

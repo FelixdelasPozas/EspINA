@@ -29,7 +29,7 @@ class TaxonomyElement;
 class Taxonomy;
 
 class SegmhaImporterFilter 
-: public Filter
+: public SegmentationFilter
 {
   struct SegmentationObject
   {

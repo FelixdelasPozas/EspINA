@@ -29,7 +29,7 @@ class vtkImageStencilData;
 /// Split Segmentation into two components according to
 /// given stencil
 class SplitFilter
-: public Filter
+: public SegmentationFilter
 {
 public:
   static const QString TYPE;

@@ -25,7 +25,7 @@ const QString FillHolesFilter::INPUTLINK = "Input";
 //-----------------------------------------------------------------------------
 FillHolesFilter::FillHolesFilter(Filter::NamedInputs inputs,
                                  ModelItem::Arguments args)
-: Filter(inputs, args)
+: SegmentationFilter(inputs, args)
 {
 }
 
@@ -73,7 +73,5 @@ void FillHolesFilter::run()
   m_filter->SetInput(m_inputs[0]->toITK());
   m_filter->Update();
 
-  m_outputs.clear();
-  SegmentationVolume::Pointer segVolume(new SegmentationVolume(m_filter->GetOutput()));
-  m_outputs << Output(this, 0, segVolume);
+  createOutput(0, m_filter->GetOutput());
 }

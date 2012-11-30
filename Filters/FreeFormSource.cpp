@@ -37,7 +37,7 @@ const ArgumentId FreeFormSource::SPACING = "SPACING";
 //-----------------------------------------------------------------------------
 FreeFormSource::FreeFormSource(Filter::NamedInputs inputs,
                                ModelItem::Arguments args)
-: Filter(inputs, args)
+: SegmentationFilter(inputs, args)
 , m_param(m_args)
 {
   Q_ASSERT(inputs.isEmpty());
@@ -51,15 +51,13 @@ FreeFormSource::~FreeFormSource()
 //-----------------------------------------------------------------------------
 void FreeFormSource::draw(OutputId oId,
                           vtkImplicitFunction * brush,
-                          double bounds[6],
+                          const Nm bounds[6],
                           itkVolumeType::PixelType value)
 {
   Q_ASSERT(0 == oId);
   if (m_outputs.isEmpty())
-  {
-    SegmentationVolume::Pointer segVolume(new SegmentationVolume(EspinaRegion(bounds), m_param.spacing()));
-    m_outputs << Output(this, 0, segVolume);
-  }
+    createOutput(0, EspinaRegion(bounds), m_param.spacing());
+
   Filter::draw(oId, brush, bounds, value);
 }
 
@@ -73,14 +71,13 @@ void FreeFormSource::draw(OutputId oId,
     itkVolumeType::SizeType pixelSize;
     pixelSize.Fill(1);
     itkVolumeType::RegionType pixelRegion(index, pixelSize);
-    itkVolumeType::Pointer img = itkVolumeType::New();
-    img->SetRegions(pixelRegion);
-    img->SetSpacing(m_param.spacing());
-    img->Allocate();
-    img->FillBuffer(0);
+    itkVolumeType::Pointer volume = itkVolumeType::New();
+    volume->SetRegions(pixelRegion);
+    volume->SetSpacing(m_param.spacing());
+    volume->Allocate();
+    volume->FillBuffer(0);
 
-    SegmentationVolume::Pointer segVolume(new SegmentationVolume(img));
-    m_outputs << Output(this, 0, segVolume);
+    createOutput(0, volume);
   }
   Filter::draw(oId, index, value);
 }

@@ -27,7 +27,7 @@
 // #include <itkOrImageFilter.h>
 
 class ImageLogicFilter
-: public Filter
+: public SegmentationFilter
 {
 //   typedef itk::ConstantPadImageFilter<EspinaVolume, EspinaVolume> PadFilterType;
 //   typedef itk::OrImageFilter<EspinaVolume, EspinaVolume, EspinaVolume> OrFilterType;
@@ -67,6 +67,7 @@ public:
   virtual bool needUpdate() const;
 
 protected:
+  /// Implements Filter Interface
   void run();
 
 protected:

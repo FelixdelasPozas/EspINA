@@ -19,10 +19,9 @@
 
 #include "AdaptiveBoundingRegion.h"
 
-#include <common/model/Channel.h>
+#include <Core/Model/Channel.h>
 #include "vtkBoundingRegionSliceWidget.h"
-#include <common/extensions/Margins/MarginsChannelExtension.h>
-#include <common/widgets/EspinaInteractorAdapter.h>
+#include <Core/Extensions/Margins/MarginsChannelExtension.h>
 #include <extensions/CountingRegionChannelExtension.h>
 
 #include <vtkPolyData.h>
@@ -119,7 +118,7 @@ SliceWidget* AdaptiveBoundingRegion::createSliceWidget(PlaneType plane)
 {
   Channel *channel = m_channelExt->channel();
   double spacing[3];
-  channel->spacing(spacing);
+  channel->volume()->spacing(spacing);
 
   BoundingRegion2DWidgetAdapter *wa = new BoundingRegion2DWidgetAdapter();
   Q_ASSERT(wa);
@@ -164,9 +163,9 @@ void AdaptiveBoundingRegion::setEnabled(bool enable)
 void AdaptiveBoundingRegion::updateBoundingRegionImplementation()
 {
   double spacing[3];
-  m_channel->spacing(spacing);
+  m_channel->volume()->spacing(spacing);
   int extent[6];
-  m_channel->extent(extent);
+  m_channel->volume()->extent(extent);
 
   m_inclusionVolume = 0;
 

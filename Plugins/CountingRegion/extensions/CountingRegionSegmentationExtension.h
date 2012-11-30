@@ -20,8 +20,8 @@
 #ifndef COUNTINGREGIONSEGMENTATIONEXTENSION_H
 #define COUNTINGREGIONSEGMENTATIONEXTENSION_H
 
-#include <common/extensions/SegmentationExtension.h>
-#include <common/EspinaTypes.h>
+#include <Core/Extensions/SegmentationExtension.h>
+#include <Core/EspinaTypes.h>
 
 class vtkPoints;
 
@@ -43,7 +43,7 @@ private:
     Nm zMin, zMax;
 
     BoundingBox(vtkPoints *points);
-    BoundingBox(EspinaVolume *image);
+    BoundingBox(itkVolumeType::Pointer image);
     bool intersect(BoundingBox &bb);
     BoundingBox intersection(BoundingBox &bb);
 

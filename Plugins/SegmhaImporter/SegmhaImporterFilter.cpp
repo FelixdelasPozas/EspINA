@@ -91,9 +91,9 @@ const QString SegmhaImporterFilter::SUPPORTED_FILES = tr("Segmentation LabelMaps
 //-----------------------------------------------------------------------------
 SegmhaImporterFilter::SegmhaImporterFilter(Filter::NamedInputs inputs,
                                            ModelItem::Arguments args)
-: Filter       (inputs, args)
-, m_param      (m_args)
-, m_taxonomy   (new Taxonomy())
+: SegmentationFilter(inputs, args)
+, m_param           (m_args)
+, m_taxonomy        (new Taxonomy())
 {
 
 }
@@ -263,11 +263,14 @@ void SegmhaImporterFilter::run()
       label2volume->SetInput(segLabelMap);
       label2volume->Update();
 
-      Output segOutput(this, id++, label2volume->GetOutput());
-      segOutput.volume->DisconnectPipeline();
-      m_outputs << segOutput;
+      createOutput(id, label2volume->GetOutput());
+      output(id).volume->toITK()->DisconnectPipeline();
+
       m_taxonomies << taxonomies[seg.taxonomyId-1];
+
       m_labels << seg.label;
+
+      id++;
     } catch (...)
     {
       std::cerr << "Couldn't import segmentation " << seg.label << std::endl;

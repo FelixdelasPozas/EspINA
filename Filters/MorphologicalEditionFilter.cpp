@@ -32,7 +32,7 @@ const unsigned int LABEL_VALUE = 255;
 //-----------------------------------------------------------------------------
 MorphologicalEditionFilter::MorphologicalEditionFilter(Filter::NamedInputs inputs,
                                                        ModelItem::Arguments args)
-: Filter(inputs, args)
+: SegmentationFilter(inputs, args)
 , m_params(m_args)
 , m_input(NULL)
 , m_paramModified(false)

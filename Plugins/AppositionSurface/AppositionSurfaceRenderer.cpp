@@ -147,13 +147,13 @@ bool AppositionSurfaceRenderer::updateItem(ModelItem* item)
     if (!state->visible)
     {
       Representation *rep = m_representations[item];
-      if (rep->timeStamp != seg->itkVolume()->GetTimeStamp())
+      if (rep->timeStamp != seg->volume()->toITK()->GetTimeStamp())
       {
         ModelItemExtension       *mie = seg->extension(AppositionSurfaceExtension::ID);
         AppositionSurfaceExtension *ape = dynamic_cast<AppositionSurfaceExtension*>(mie);
         ape->updateAppositionSurface();
 
-        rep->timeStamp = seg->itkVolume()->GetTimeStamp();
+        rep->timeStamp = seg->volume()->toITK()->GetTimeStamp();
       }
       m_renderer->AddActor(state->actor);
       state->visible = true;
@@ -217,10 +217,10 @@ void AppositionSurfaceRenderer::show()
 {
   if (this->m_enable)
     return;
-  
+
   m_enable = true;
   QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
-  
+
   foreach(ModelItem *item, m_state.keys())
   {
     State *state = m_state[item];
@@ -228,19 +228,19 @@ void AppositionSurfaceRenderer::show()
     {
       Representation *rep = m_representations[item];
       Segmentation *seg = dynamic_cast<Segmentation *>(item);
-      if (rep->timeStamp != seg->itkVolume()->GetTimeStamp())
+      if (rep->timeStamp != seg->volume()->toITK()->GetTimeStamp())
       {
-	ModelItemExtension       *mie = item->extension(AppositionSurfaceExtension::ID);
-	AppositionSurfaceExtension *ape = dynamic_cast<AppositionSurfaceExtension*>(mie);
-	ape->updateAppositionSurface();
-	
-	rep->timeStamp = seg->itkVolume()->GetTimeStamp();
+        ModelItemExtension       *mie = item->extension(AppositionSurfaceExtension::ID);
+        AppositionSurfaceExtension *ape = dynamic_cast<AppositionSurfaceExtension*>(mie);
+        ape->updateAppositionSurface();
+
+        rep->timeStamp = seg->volume()->toITK()->GetTimeStamp();
       }
       m_renderer->AddActor(state->actor);
       state->visible = true;
     }
   }
-    
+
   emit renderRequested();
   QApplication::restoreOverrideCursor();
 }

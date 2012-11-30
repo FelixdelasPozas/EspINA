@@ -25,7 +25,7 @@
 #include <QVector3D>
 
 class FreeFormSource
-: public Filter
+: public SegmentationFilter
 {
 public:
   static const QString TYPE;
@@ -79,7 +79,7 @@ public:
 
   virtual void draw(OutputId oId,
                     vtkImplicitFunction* brush,
-                    double bounds[6],
+                    const Nm bounds[6],
                     itkVolumeType::PixelType value = SEG_VOXEL_VALUE);
   virtual void draw(OutputId oId,
                     itkVolumeType::IndexType index,
