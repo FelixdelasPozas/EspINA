@@ -171,8 +171,7 @@ void FilledContour::setInUse(bool enable)
         ++it;
       }
 
-      ContourSource *filter = dynamic_cast<ContourSource *>(m_currentSource);
-      filter->signalAsModified();
+      m_currentSource->notifyModification();
     }
 
     QApplication::restoreOverrideCursor();

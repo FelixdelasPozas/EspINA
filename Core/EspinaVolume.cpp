@@ -178,7 +178,6 @@ itkVolumeIterator EspinaVolume::iterator()
 //----------------------------------------------------------------------------
 itkVolumeIterator EspinaVolume::iterator(const EspinaRegion& region)
 {
-  volumeRegion(region).Print(std::cout);
   return itkVolumeIterator(m_volume, volumeRegion(region));
 }
 
