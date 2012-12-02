@@ -579,9 +579,9 @@ void Filter::updateCacheFlags()
 void ChannelFilter::createOutput(Filter::OutputId id, itkVolumeType::Pointer volume)
 {
   if (m_outputs.contains(id))
-    m_outputs[0].volume->setVolume(volume);
+    m_outputs[id].volume->setVolume(volume);
   else
-    m_outputs[0] = Output(this, id, ChannelVolume::Pointer(new ChannelVolume(volume)));
+    m_outputs[id] = Output(this, id, ChannelVolume::Pointer(new ChannelVolume(volume)));
 }
 
 //----------------------------------------------------------------------------
@@ -595,9 +595,9 @@ void ChannelFilter::createOutput(Filter::OutputId id, const EspinaRegion& region
 {
   ChannelVolume::Pointer volume(new ChannelVolume(region, spacing));
   if (m_outputs.contains(id))
-    m_outputs[0].volume->setVolume(volume->toITK());
+    m_outputs[id].volume->setVolume(volume->toITK());
   else
-    m_outputs[0] = Output(this, id, volume);
+    m_outputs[id] = Output(this, id, volume);
 }
 
 //----------------------------------------------------------------------------
@@ -620,7 +620,7 @@ void SegmentationFilter::createOutput(Filter::OutputId id, const EspinaRegion& r
 {
   SegmentationVolume::Pointer volume(new SegmentationVolume(region, spacing));
   if (m_outputs.contains(id))
-    m_outputs[0].volume->setVolume(volume->toITK());
+    m_outputs[id].volume->setVolume(volume->toITK());
   else
-    m_outputs[0] = Output(this, id, volume);
+    m_outputs[id] = Output(this, id, volume);
 }
