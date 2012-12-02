@@ -32,57 +32,7 @@
 #include <QDebug>
 #include <QApplication>
 
-CountingRegionSegmentationExtension::BoundingBox::BoundingBox(vtkPoints* points)
-{
-  Q_ASSERT(points->GetNumberOfPoints());
-  // Init Bounding Box
-  double bounds[6];
-  points->GetBounds(bounds);
-  xMin = bounds[0];
-  xMax = bounds[1];
-  yMin = bounds[2];
-  yMax = bounds[3];
-  zMin = bounds[4];
-  zMax = bounds[5];
-}
-
-CountingRegionSegmentationExtension::BoundingBox::BoundingBox(itkVolumeType::Pointer image)
-{
-  double bounds[6];
-  // VolumeBounds(image, bounds); DEPRECATED
-  xMin = bounds[0];
-  xMax = bounds[1];
-  yMin = bounds[2];
-  yMax = bounds[3];
-  zMin = bounds[4];
-  zMax = bounds[5];
-}
-
-
-bool CountingRegionSegmentationExtension::BoundingBox::intersect(BoundingBox& bb)
-{
-  bool xOverlap = xMin <= bb.xMax && xMax >= bb.xMin;
-  bool yOverlap = yMin <= bb.yMax && yMax >= bb.yMin;
-  bool zOverlap = zMin <= bb.zMax && zMax >= bb.zMin;
-
-  return xOverlap && yOverlap && zOverlap;
-}
-
-CountingRegionSegmentationExtension::BoundingBox CountingRegionSegmentationExtension::BoundingBox::intersection(BoundingBox& bb)
-{
-  BoundingBox res;
-  res.xMin = std::max(xMin, bb.xMin);
-  res.xMax = std::min(xMax, bb.xMax);
-  res.yMin = std::max(yMin, bb.yMin);
-  res.yMax = std::min(yMax, bb.yMax);
-  res.zMin = std::max(zMin, bb.zMin);
-  res.zMax = std::min(zMax, bb.zMax);
-  return res;
-}
-
-
 const ModelItemExtension::ExtId CountingRegionSegmentationExtension::ID = "CountingRegionExtension";
-
 const ModelItemExtension::InfoTag CountingRegionSegmentationExtension::DISCARTED = "Discarted";
 
 //------------------------------------------------------------------------
@@ -173,13 +123,15 @@ SegmentationExtension* CountingRegionSegmentationExtension::clone()
 }
 
 //------------------------------------------------------------------------
-bool CountingRegionSegmentationExtension::discartedByRegion(BoundingBox inputBB, vtkPolyData* region)
+bool CountingRegionSegmentationExtension::discartedByRegion(EspinaRegion inputBB, vtkPolyData* region)
 {
   vtkPoints *regionPoints = region->GetPoints();
   vtkCellArray *regionFaces = region->GetPolys();
   vtkCellData *faceData = region->GetCellData();
 
-  BoundingBox regionBB(regionPoints);
+  double bounds[6];
+  regionPoints->GetBounds(bounds);
+  EspinaRegion regionBB(bounds);
 
   // If there is no intersection (nor is inside), then it is discarted
   if (!inputBB.intersect(regionBB))
@@ -198,11 +150,12 @@ bool CountingRegionSegmentationExtension::discartedByRegion(BoundingBox inputBB,
     for (int i=0; i < npts; i++)
       facePoints->InsertNextPoint(regionPoints->GetPoint(pts[i]));
 
-    BoundingBox faceBB(facePoints);
+    facePoints->GetBounds(bounds);
+    EspinaRegion faceBB(bounds);
     if (inputBB.intersect(faceBB) && realCollision(inputBB.intersection(faceBB)))
     {
       if (faceData->GetScalars()->GetComponent(f,0) == 0)
-	return true;
+        return true;
       collisionDected = true;
     }
   }
@@ -215,10 +168,11 @@ bool CountingRegionSegmentationExtension::discartedByRegion(BoundingBox inputBB,
   {
     vtkSmartPointer<vtkPoints> slicePoints = vtkSmartPointer<vtkPoints>::New();
     for (int i=0; i < 8; i++)
-	slicePoints->InsertNextPoint(regionPoints->GetPoint(p+i));
+      slicePoints->InsertNextPoint(regionPoints->GetPoint(p+i));
 
-    BoundingBox sliceBB(slicePoints);
-    if (inputBB.intersect(sliceBB) &&  realCollision(inputBB.intersection(sliceBB)))
+    slicePoints->GetBounds(bounds);
+    EspinaRegion sliceBB(bounds);
+    if (inputBB.intersect(sliceBB) && realCollision(inputBB.intersection(sliceBB)))
       return false;//;
   }
 
@@ -228,16 +182,16 @@ bool CountingRegionSegmentationExtension::discartedByRegion(BoundingBox inputBB,
 }
 
 //------------------------------------------------------------------------
-bool CountingRegionSegmentationExtension::realCollision(BoundingBox interscetion)
+bool CountingRegionSegmentationExtension::realCollision(EspinaRegion interscetion)
 {
-  itkVolumeType::Pointer input = m_seg->volume()->toITK(); // NOTE: Considerar usar el API de SegmentationVolume
-  for (int z = interscetion.zMin; z <= interscetion.zMax; z++)
-    for (int y = interscetion.yMin; y <= interscetion.yMax; y++)
-      for (int x = interscetion.xMin; x <= interscetion.xMax; x++)
+  itkVolumeType::Pointer input = m_seg->volume()->toITK();
+  for (int z = interscetion.zMin(); z <= interscetion.zMax(); z++)
+    for (int y = interscetion.yMin(); y <= interscetion.yMax(); y++)
+      for (int x = interscetion.xMin(); x <= interscetion.xMax(); x++)
       {
-	itkVolumeType::IndexType index = m_seg->volume()->index(x, y, z);
-	if (input->GetLargestPossibleRegion().IsInside(index) && input->GetPixel(index))
-	  return true;
+        itkVolumeType::IndexType index = m_seg->volume()->index(x, y, z);
+        if (input->GetLargestPossibleRegion().IsInside(index) && input->GetPixel(index))
+          return true;
       }
 
   return false;
@@ -269,10 +223,8 @@ void CountingRegionSegmentationExtension::evaluateBoundingRegions()
 
   if (!m_isDiscarted)
   {
-    BoundingBox inputBB(m_seg->volume()->toITK());// Usar m_seg->volume()->region();
-
     foreach(BoundingRegion *br, m_boundingRegions)
-      m_isDiscarted |= discartedByRegion(inputBB, br->region());
+      m_isDiscarted |= discartedByRegion(m_seg->volume()->espinaRegion(), br->region());
   }
   QString condition = m_isDiscarted?
                       "<font color=\"red\">Outside</font>":

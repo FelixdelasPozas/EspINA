@@ -27,6 +27,7 @@
 
 
 #include "vtkCountingRegionFilter.h"
+#include <Core/EspinaRegion.h>
 
 #include <vtkObjectFactory.h>
 #include <vtkInformation.h>
@@ -35,7 +36,6 @@
 #include <vtkArrayData.h>
 #include <vtkSmartPointer.h>
 #include <vtkIntArray.h>
-
 #include <assert.h>
 #include <vtkPolyData.h>
 #include <vtkStreamingDemandDrivenPipeline.h>
@@ -44,80 +44,10 @@
 
 #include <math.h>
 
-class BoundingBox
-{
-public:
-  double xMin, xMax;
-  double yMin, yMax;
-  double zMin, zMax;
-  
-  BoundingBox(vtkPoints *points);
-  BoundingBox(vtkImageData *image);
-  bool intersect(BoundingBox &bb);
-  BoundingBox intersection(BoundingBox &bb);
-  
-private:
-  BoundingBox(){}
-};
-
-BoundingBox::BoundingBox(vtkPoints* points)
-{
-  assert(points->GetNumberOfPoints());
-  // Init Bounding Box
-  xMax = xMin = points->GetPoint(0)[0];
-  yMax = yMin = points->GetPoint(0)[1];
-  zMax = zMin = points->GetPoint(0)[2];
-  
-  for (int p=1; p < points->GetNumberOfPoints(); p++)
-  {
-    xMin = std::min(xMin, points->GetPoint(p)[0]);
-    xMax = std::max(xMax, points->GetPoint(p)[0]);
-    yMin = std::min(yMin, points->GetPoint(p)[1]);
-    yMax = std::max(yMax, points->GetPoint(p)[1]);
-    zMin = std::min(zMin, points->GetPoint(p)[2]);
-    zMax = std::max(zMax, points->GetPoint(p)[2]);
-  }
-}
-
-BoundingBox::BoundingBox(vtkImageData* image)
-{
-  double bounds[6];
-  image->GetBounds(bounds);
-  xMin = bounds[0];
-  xMax = bounds[1];
-  yMin = bounds[2];
-  yMax = bounds[3];
-  zMin = bounds[4];
-  zMax = bounds[5];
-}
-
-
-bool BoundingBox::intersect(BoundingBox& bb)
-{
-  bool xOverlap = xMin <= bb.xMax && xMax >= bb.xMin;
-  bool yOverlap = yMin <= bb.yMax && yMax >= bb.yMin;
-  bool zOverlap = zMin <= bb.zMax && zMax >= bb.zMin;
-  
-  return xOverlap && yOverlap && zOverlap;
-}
-
-BoundingBox BoundingBox::intersection(BoundingBox& bb)
-{
-  BoundingBox res;
-  res.xMin = std::max(xMin, bb.xMin);
-  res.xMax = std::min(xMax, bb.xMax);
-  res.yMin = std::max(yMin, bb.yMin);
-  res.yMax = std::min(yMax, bb.yMax);
-  res.zMin = std::max(zMin, bb.zMin);
-  res.zMax = std::min(zMax, bb.zMax);
-  return res;
-}
-
-
-
 vtkStandardNewMacro(vtkCountingRegionFilter);
 
 vtkCountingRegionFilter::vtkCountingRegionFilter()
+: Discarted(0)
 {
   this->SetNumberOfInputPorts(1);
 }
@@ -184,31 +114,33 @@ int vtkCountingRegionFilter::FillOutputPortInformation(int port, vtkInformation*
 }
 */
 
-bool realCollision(vtkImageData *input, BoundingBox interscetion)
+bool realCollision(vtkImageData *input, EspinaRegion interscetion)
 {
   double spacing[3];
   input->GetSpacing(spacing);
-  for (int z = interscetion.zMin; z <= interscetion.zMax; z++)
-    for (int y = interscetion.yMin; y <= interscetion.yMax; y++)
-      for (int x = interscetion.xMin; x <= interscetion.xMax; x++)
+  for (int z = interscetion.zMin(); z <= interscetion.zMax(); z++)
+    for (int y = interscetion.yMin(); y <= interscetion.yMax(); y++)
+      for (int x = interscetion.xMin(); x <= interscetion.xMax(); x++)
       {
-	int px = floor((x/spacing[0])+0.5);
-	int py = floor((y/spacing[1])+0.5);
-	int pz = floor((z/spacing[2])+0.5);
-	if (input->GetScalarComponentAsDouble(px,py,pz,0))
-	  return true;
+        int px = floor((x/spacing[0])+0.5);
+        int py = floor((y/spacing[1])+0.5);
+        int pz = floor((z/spacing[2])+0.5);
+        if (input->GetScalarComponentAsDouble(px,py,pz,0))
+          return true;
       }
   
   return false;
 }
 
-bool discartedByRegion(vtkImageData *input, BoundingBox &inputBB, vtkPolyData *region)
+bool discartedByRegion(vtkImageData *input, EspinaRegion &inputBB, vtkPolyData *region)
 {
   vtkPoints *regionPoints = region->GetPoints();
   vtkCellArray *regionFaces = region->GetPolys();
   vtkCellData *faceData = region->GetCellData();
   
-  BoundingBox regionBB(regionPoints);
+  double bounds[6];
+  regionPoints->GetBounds(bounds);
+  EspinaRegion regionBB(bounds);
   
   // If there is no intersection (nor is inside), then it is discarted
   if (!inputBB.intersect(regionBB))
@@ -227,7 +159,8 @@ bool discartedByRegion(vtkImageData *input, BoundingBox &inputBB, vtkPolyData *r
     for (int i=0; i < npts; i++)
       facePoints->InsertNextPoint(regionPoints->GetPoint(pts[i]));
     
-    BoundingBox faceBB(facePoints);
+    facePoints->GetBounds(bounds);
+    EspinaRegion faceBB(bounds);
     if (inputBB.intersect(faceBB) && realCollision(input, inputBB.intersection(faceBB)))
     {
       if (faceData->GetScalars()->GetComponent(f,0) == 0)
@@ -244,9 +177,10 @@ bool discartedByRegion(vtkImageData *input, BoundingBox &inputBB, vtkPolyData *r
   {
     vtkSmartPointer<vtkPoints> slicePoints = vtkSmartPointer<vtkPoints>::New();
     for (int i=0; i < 8; i++)
-	slicePoints->InsertNextPoint(regionPoints->GetPoint(p+i));
+      slicePoints->InsertNextPoint(regionPoints->GetPoint(p+i));
     
-    BoundingBox sliceBB(slicePoints);
+    slicePoints->GetBounds(bounds);
+    EspinaRegion sliceBB(bounds);
     if (inputBB.intersect(sliceBB) &&  realCollision(input, inputBB.intersection(sliceBB)))
       return false;//;
   }
@@ -265,7 +199,9 @@ int vtkCountingRegionFilter::RequestData(vtkInformation* request, vtkInformation
   if (numRegions)
     input = vtkImageData::SafeDownCast(inputInfo->Get(vtkDataObject::DATA_OBJECT()));
 
-  BoundingBox inputBB(input);
+  double bounds[6];
+  input->GetBounds(bounds);
+  EspinaRegion inputBB(bounds);
   
   Discarted = 0;
   for (int r = 1; r < numRegions; r++)

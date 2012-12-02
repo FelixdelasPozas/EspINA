@@ -66,13 +66,13 @@ QVariant BoundingRegion::data(int role) const
     desc += tr("Volume informtation:")                      + "\n";
     desc += tr("  Total Volume:")                           + "\n";
     desc += tr("    %1 voxel").arg(totalVoxelVolume)        + "\n";
-    desc += tr("    %1 nm�").arg(totalVolume(),0,'f',2)     + "\n";
+    desc += tr("    %1 nm").arg(totalVolume(),0,'f',2) + QString::fromUtf8("\u00b2\n");
     desc += tr("  Inclusion Volume:")                       + "\n";
     desc += tr("    %1 voxel").arg(inclusionVoxelVolume)    + "\n";
-    desc += tr("    %1 nm�").arg(inclusionVolume(),0,'f',2) + "\n";
+    desc += tr("    %1 nm").arg(inclusionVolume(),0,'f',2) + QString::fromUtf8("\u00b2\n");
     desc += tr("  Exclusion Volume:")                       + "\n";
     desc += tr("    %1 voxel").arg(exclusionVoxelVolume)    + "\n";
-    desc += tr("    %1 nm�").arg(exclusionVolume(),0,'f',2) + "\n";;
+    desc += tr("    %1 nm").arg(exclusionVolume(),0,'f',2) + QString::fromUtf8("\u00b2\n");
 
     return desc;
   }

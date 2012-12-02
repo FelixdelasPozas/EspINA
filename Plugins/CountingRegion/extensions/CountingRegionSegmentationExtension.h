@@ -22,6 +22,7 @@
 
 #include <Core/Extensions/SegmentationExtension.h>
 #include <Core/EspinaTypes.h>
+#include <Core/EspinaRegion.h>
 
 class vtkPoints;
 
@@ -34,23 +35,6 @@ class CountingRegionSegmentationExtension
 : public SegmentationExtension
 {
   Q_OBJECT
-private:
-  class BoundingBox
-  {
-  public:
-    Nm xMin, xMax;
-    Nm yMin, yMax;
-    Nm zMin, zMax;
-
-    BoundingBox(vtkPoints *points);
-    BoundingBox(itkVolumeType::Pointer image);
-    bool intersect(BoundingBox &bb);
-    BoundingBox intersection(BoundingBox &bb);
-
-  private:
-    BoundingBox(){}
-  };
-
 public:
   static const ExtId ID;
   static const InfoTag DISCARTED;
@@ -85,8 +69,8 @@ public slots:
   void evaluateBoundingRegions();
 
 protected slots:
-  bool discartedByRegion(BoundingBox inputBB, vtkPolyData *region);
-  bool realCollision(BoundingBox interscetion);
+  bool discartedByRegion(EspinaRegion inputBB, vtkPolyData *region);
+  bool realCollision(EspinaRegion interscetion);
 
 private:
   bool m_isDiscarted;
