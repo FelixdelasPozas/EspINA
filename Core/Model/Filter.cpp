@@ -610,9 +610,9 @@ void SegmentationFilter::createOutput(Filter::OutputId id, EspinaVolume::Pointer
 void SegmentationFilter::createOutput(Filter::OutputId id, itkVolumeType::Pointer volume)
 {
   if (m_outputs.contains(id))
-    m_outputs[0].volume->setVolume(volume);
+    m_outputs[id].volume->setVolume(volume);
   else
-    m_outputs[0] = Output(this, id, SegmentationVolume::Pointer(new SegmentationVolume(volume)));
+    m_outputs[id] = Output(this, id, SegmentationVolume::Pointer(new SegmentationVolume(volume)));
 }
 
 //----------------------------------------------------------------------------
