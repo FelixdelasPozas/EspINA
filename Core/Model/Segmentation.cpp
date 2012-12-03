@@ -89,7 +89,8 @@ void Segmentation::changeFilter(Filter* filter, Filter::OutputId oId)
   if (NULL != m_padfilter)
   {
     int extent[6];
-    output.volume->extent(extent);
+    vtkImageData *image = vtkImageData::SafeDownCast(output.volume->toVTK()->GetProducer()->GetOutputDataObject(0));
+    image->GetExtent(extent);
     m_padfilter->SetInputConnection(output.volume->toVTK());
     m_padfilter->SetOutputWholeExtent(extent[0]-1, extent[1]+1, extent[2]-1, extent[3]+1, extent[4]-1, extent[5]+1);
     m_padfilter->Update();
@@ -330,28 +331,13 @@ ModelItemExtension* Segmentation::extension(QString name)
   return ModelItem::extension(name);
 }
 
-// TODO 2012-11-28//------------------------------------------------------------------------
-// vtkAlgorithmOutput* Segmentation::vtkVolume()
-// {
-//   if (itk2vtk.IsNull())
-//   {
-//     //qDebug() << "Converting from ITK to VTK";
-//     itk2vtk = itk2vtkFilterType::New();
-//     itk2vtk->ReleaseDataFlagOn();
-//     itk2vtk->SetInput(m_filter->volume(m_args.outputId()));
-//     itk2vtk->Update();
-//   }
-// 
-//   return itk2vtk->GetOutput()->GetProducerPort();
-// }
-
 vtkAlgorithmOutput* Segmentation::mesh()
 {
   if (NULL == m_padfilter)
   {
     vtkAlgorithmOutput *vtkVolume = volume()->toVTK();
     // segmentation image need to be padded to avoid segmentation voxels from touching the edges of the
-    // image (and create morphologicaly correct actors)
+    // image (and create morphologically correct actors)
     int extent[6];
     vtkImageData *image = vtkImageData::SafeDownCast(vtkVolume->GetProducer()->GetOutputDataObject(0));
     image->GetExtent(extent);

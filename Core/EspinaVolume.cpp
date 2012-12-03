@@ -106,11 +106,12 @@ void EspinaVolume::extent(int out[6]) const
 {
   itkVolumeType::SpacingType spacing = m_volume->GetSpacing();
   itkVolumeType::RegionType  region  = m_volume->GetLargestPossibleRegion();
+  itkVolumeType::PointType origin    = m_volume->GetOrigin();
 
   for(int i=0; i<3; i++)
   {
     int min = 2*i, max = 2*i+1;
-    out[min] = int(m_volume->GetOrigin()[i]/spacing[i] + 0.5) + region.GetIndex(i);
+    out[min] = int(origin[i]/spacing[i] + 0.5) + region.GetIndex(i);
     out[max] = out[min] + region.GetSize(i) - 1;
   }
 }
