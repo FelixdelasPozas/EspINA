@@ -24,6 +24,7 @@
 #include <itkLabelImageToShapeLabelMapFilter.h>
 #include <itkStatisticsLabelObject.h>
 #include <boost/graph/graph_concepts.hpp>
+#include <QDebug>
 
 typedef itk::StatisticsLabelObject<unsigned int, 3> LabelObjectType;
 typedef itk::LabelMap<LabelObjectType> LabelMapType;
@@ -119,13 +120,14 @@ void EspinaVolume::extent(int out[6]) const
 //----------------------------------------------------------------------------
 void EspinaVolume::bounds(double out[6]) const
 {
-  itkVolumeType::SpacingType spacing  = m_volume->GetSpacing();
-  itkVolumeType::RegionType  region   = m_volume->GetLargestPossibleRegion();
+  itkVolumeType::SpacingType spacing = m_volume->GetSpacing();
+  itkVolumeType::RegionType  region  = m_volume->GetLargestPossibleRegion();
+  itkVolumeType::PointType origin    = m_volume->GetOrigin();
 
   for(int i=0; i<3; i++)
   {
     int min = 2*i, max = 2*i+1;
-    out[min] = m_volume->GetOrigin()[i] + region.GetIndex()[i]*spacing[i];
+    out[min] = origin[i] + region.GetIndex()[i]*spacing[i];
     out[max] = out[min] + (region.GetSize()[i] - 1)*spacing[i];
   }
 }

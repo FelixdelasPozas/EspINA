@@ -43,6 +43,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Tools/SegRemover/SegRemover.h
   Tools/VOI/RectangularVOI.h
   Views/DefaultEspinaView.h
+  Dialogs/Connectomics/ConnectomicsDialog.h
   )
 
 # Create Interface files
@@ -64,6 +65,7 @@ qt4_wrap_ui (ESPINA_UI
   Settings/SliceView/SliceViewSettingsPanel.ui
   Settings/VOI/RectangularVOISettings.ui
   Settings/VolumeView/VolumeViewSettingsPanel.ui
+  Dialogs/Connectomics/ConnectomicsDialog.ui
   )
 
 set (ESPINA_SOURCES
@@ -117,6 +119,7 @@ set (ESPINA_SOURCES
   Undo/BrushUndoCommand.cpp
   Undo/SplitUndoCommand.cpp
   Views/DefaultEspinaView.cpp
+  Dialogs/Connectomics/ConnectomicsDialog.cpp
   )
 
 set (ESPINA_LIBRARIES

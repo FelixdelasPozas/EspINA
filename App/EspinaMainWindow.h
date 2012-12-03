@@ -73,6 +73,7 @@ protected slots:
   void updateTooltip(QAction *action);
   void showPreferencesDialog();
   void showAboutDialog();
+  void showConnectomicsInformation();
 
   void openState() {m_menuState = OPEN_STATE;}
   void addState()  {m_menuState = ADD_STATE;}

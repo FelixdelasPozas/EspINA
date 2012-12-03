@@ -13,6 +13,7 @@ qt4_wrap_cpp(CORE_MOC
   Model/Proxies/SampleProxy.h
   Model/Proxies/TaxonomyProxy.h
   Model/Proxies/InformationProxy.h
+  Model/Proxies/ConnectomicProxy.h
   )
 
 # qt4_wrap_ui (CORE_UI
@@ -53,7 +54,9 @@ set (CORE_SOURCES
   Model/Proxies/SampleProxy.cpp
   Model/Proxies/TaxonomyProxy.cpp
   Model/Proxies/InformationProxy.cpp
+  Model/Proxies/ConnectomicProxy.cpp
   VTK/vtkTube.cxx
+  Utils/SegmentationCollision.cpp
   )
 
 set(CORE_EXTERNAL_LIBS

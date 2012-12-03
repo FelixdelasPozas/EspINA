@@ -20,6 +20,7 @@
 
 #include "Dialogs/AboutDialog.h"
 #include "Dialogs/SettingsDialog.h"
+#include "Dialogs/Connectomics/ConnectomicsDialog.h"
 #include "Docks/ChannelExplorer/ChannelExplorer.h"
 #include "Docks/FilterInspector/FilterInspector.h"
 #include "Docks/SegmentationExplorer/SegmentationExplorer.h"
@@ -220,6 +221,10 @@ EspinaMainWindow::EspinaMainWindow()
   DataViewPanel *dataView = new DataViewPanel(m_model, m_viewManager, this);
   addDockWidget(Qt::BottomDockWidgetArea, dataView);
   m_dynamicMenuRoot->submenus[0]->menu->addAction(dataView->toggleViewAction());
+
+  QAction *connectomicsAction = new QAction(tr("Connectomics Information"), this);
+  m_dynamicMenuRoot->submenus[0]->menu->addAction(connectomicsAction);
+  connect(connectomicsAction, SIGNAL(triggered()), this, SLOT(showConnectomicsInformation()));
 
   FilterInspector *filterInspector = new FilterInspector(m_undoStack, m_viewManager, this);
   addDockWidget(Qt::LeftDockWidgetArea, filterInspector);
@@ -770,3 +775,8 @@ void EspinaMainWindow::autosave()
 }
 
 //------------------------------------------------------------------------
+void EspinaMainWindow::showConnectomicsInformation()
+{
+  ConnectomicsDialog *dialog = new ConnectomicsDialog(m_model, m_viewManager, this);
+  dialog->exec();
+}

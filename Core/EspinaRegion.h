@@ -40,11 +40,11 @@ public:
   const Nm * bounds(            ) const { return m_bounds; }
   void       bounds(Nm bounds[6]) const { memcpy(bounds, m_bounds, 6*sizeof(m_bounds)); }
 
-  bool isInside(const EspinaRegion &region) const;
+  bool isInside(const EspinaRegion region) const;
   /// Check region intersection
-  bool intersect(const EspinaRegion &region) const;
+  bool intersect(const EspinaRegion region) const;
   /// Return intersection region
-  EspinaRegion intersection(const EspinaRegion &region) const;
+  EspinaRegion intersection(const EspinaRegion region) const;
 
 private:
   Nm m_bounds[6];

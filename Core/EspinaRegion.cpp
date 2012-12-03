@@ -26,7 +26,7 @@ EspinaRegion::EspinaRegion(const Nm bounds[6])
 }
 
 //-----------------------------------------------------------------------------
-bool EspinaRegion::intersect(const EspinaRegion &region) const
+bool EspinaRegion::intersect(const EspinaRegion region) const
 {
   bool xOverlap = xMin() <= region.xMax() && xMax() >= region.xMin();
   bool yOverlap = yMin() <= region.yMax() && yMax() >= region.yMin();
@@ -36,7 +36,7 @@ bool EspinaRegion::intersect(const EspinaRegion &region) const
 }
 
 //-----------------------------------------------------------------------------
-bool EspinaRegion::isInside(const EspinaRegion &region) const
+bool EspinaRegion::isInside(const EspinaRegion region) const
 {
   bool xInside = region.xMin() <= xMin() && xMax() <= region.xMax();
   bool yInside = region.yMin() <= yMin() && yMax() <= region.yMax();
@@ -46,7 +46,7 @@ bool EspinaRegion::isInside(const EspinaRegion &region) const
 }
 
 //-----------------------------------------------------------------------------
-EspinaRegion EspinaRegion::intersection(const EspinaRegion& region) const
+EspinaRegion EspinaRegion::intersection(const EspinaRegion region) const
 {
   Nm res[6];
 

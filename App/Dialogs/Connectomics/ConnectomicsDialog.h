@@ -16,27 +16,25 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
 #ifndef CONNECTOMICSDIALOG_H
 #define CONNECTOMICSDIALOG_H
 
+// Qt
 #include <QDialog>
 #include <QStringListModel>
-#include "ui_ConnectomicsDialog.h"
-#include "common/gui/ViewManager.h"
 #include <QWidget>
-#include "frontend/docks/DataView/InformationProxy.h"
-#include "common/model/RelationshipGraph.h"
-#include "ConnectomicProxy.h"
 #include <QSortFilterProxyModel>
-#include <model/Segmentation.h>
 
+// EspINA
+#include <GUI/ViewManager.h>
+#include <Core/Model/Proxies/InformationProxy.h>
+#include <Core/Model/RelationshipGraph.h>
+#include <Core/Model/Segmentation.h>
+#include <Core/Model/Proxies/ConnectomicProxy.h>
 
+#include "ui_ConnectomicsDialog.h"
 
 class EspinaModel;
-class ConnectomicProxy;
-
 
 class ConnectomicsDialog
 : public QDialog
@@ -44,33 +42,30 @@ class ConnectomicsDialog
 {
  Q_OBJECT
 public:
-
   explicit ConnectomicsDialog(EspinaModel *model,
-			      ViewManager *vm,
-			      QWidget* parent = 0,
-			      Qt::WindowFlags f = 0);
-  virtual ~ConnectomicsDialog();
+                              ViewManager *vm,
+                              QWidget* parent = 0,
+                              Qt::WindowFlags f = 0);
+  virtual ~ConnectomicsDialog() {};
+
   void generateConectomicGraph(EspinaModel *m_model);
   Segmentation itemSelectedProxy(int row, const QModelIndex& sourceParent) const;
-
-//   QModelIndex mapToSource(const QModelIndex &proxy) const;
+  //   QModelIndex mapToSource(const QModelIndex &proxy) const;
   
 protected slots:
-  
   void showGraphConnectomicsInformation (QModelIndex index);
-//   void showGraphConnectomicsInformationAux(QModelIndex index);
   void updateSelection(ViewManager::Selection selection);
   void updateSelection(QItemSelection selected, QItemSelection deselected);
   void updateSelectionAux(ViewManager::Selection selection);
   void updateSelectionAux(QItemSelection selected, QItemSelection deselected);
-  
+  //   void showGraphConnectomicsInformationAux(QModelIndex index);
+
 private:
   EspinaModel *m_model;
   QStringListModel connectedSegModel;
   ViewManager    *m_viewManager;
   QList<QListView*> m_listView;
   ViewManager::Selection selection;
-
-
 };
+
 #endif // CONNECTOMICSDIALOG_H
