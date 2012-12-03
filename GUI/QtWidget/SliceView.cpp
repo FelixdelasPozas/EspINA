@@ -860,6 +860,14 @@ bool SliceView::updateSegmentation(Segmentation* seg)
   SliceRep &rep = m_segmentationReps[seg];
 
   bool updated = false;
+
+  if (rep.resliceToColors->GetInputConnection(0,0) != seg->volume()->toVTK())
+  {
+    rep.resliceToColors->SetInputConnection(seg->volume()->toVTK());
+    rep.resliceToColors->Update();
+    updated = true;
+  }
+
   if (rep.visible != (seg->visible() && m_showSegmentations))
   {
     rep.visible = seg->visible() && m_showSegmentations;
