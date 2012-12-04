@@ -126,6 +126,7 @@ public:
                     vtkImplicitFunction *brush,
                     const Nm bounds[6],
                     itkVolumeType::PixelType value = SEG_VOXEL_VALUE);
+  // DEPRECATED: ?
   virtual void draw(OutputId oId,
                     itkVolumeType::IndexType index,
                     itkVolumeType::PixelType value = SEG_VOXEL_VALUE);

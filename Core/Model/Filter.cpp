@@ -144,28 +144,6 @@ void Filter::draw(OutputId oId,
   Q_ASSERT(false); // TODO 2012-11-28 Implementar
 //   Output &filterOutput = output(oId);
 // 
-//   EspinaVolume *volume = filterOutput.volume;
-// 
-//   itkVolumeType::RegionType region;
-//   region.SetIndex(index);
-//   itkVolumeType::SizeType size;
-//   size.Fill(1);
-//   region.SetSize(size);
-// 
-//   volume->expandVolume(region);
-//   volume = expandVolume(volume, region);
-// 
-//   if (volume && volume->GetLargestPossibleRegion().IsInside(index))
-//   {
-//     volume->SetPixel(index, value);
-//     volume->Modified();
-// 
-//     filterOutput.volume = volume;// TODO 2012-11-20 Se podria reemplazar por una referencia en la declaracion de volume
-// 
-//     markAsEdited(oId);
-// 
-//     emit modified(this);
-//   }
 }
 
 //----------------------------------------------------------------------------
@@ -173,21 +151,18 @@ void Filter::draw(OutputId oId,
                   Nm x, Nm y, Nm z,
                   itkVolumeType::PixelType value)
 {
-  Q_ASSERT(false); // TODO 2012-11-28 Implementar
-//   Output &filterOutput = output(oId);
-//   itkVolumeType::Pointer volume  = filterOutput.volume;
-// 
-//   if (volume.IsNotNull())
-//   {
-//     itkVolumeType::SpacingType spacing = volume->GetSpacing();
-// 
-//     itkVolumeType::IndexType index;
-//     index[0] = x/spacing[0]+0.5;
-//     index[1] = y/spacing[1]+0.5;
-//     index[2] = z/spacing[2]+0.5;
-// 
-//     draw(oId, index, value);
-//   }
+  EspinaVolume::Pointer volume  = output(oId).volume;
+
+  double voxelBounds[6] = {x, x, y, y, z, z};
+  EspinaRegion voxelRegion(voxelBounds);
+
+  volume->expandToFitRegion(voxelRegion);
+
+  volume->toITK()->SetPixel(volume->index(x, y, z), value);
+
+  markAsEdited(oId);
+
+  emit modified(this);
 }
 
 //----------------------------------------------------------------------------

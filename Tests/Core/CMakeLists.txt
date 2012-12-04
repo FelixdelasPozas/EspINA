@@ -31,3 +31,4 @@ include_directories(
 )
 
 add_subdirectory(IO)
+add_subdirectory(Model)

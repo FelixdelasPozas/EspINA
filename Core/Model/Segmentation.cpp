@@ -35,6 +35,8 @@ const ModelItem::ArgumentId Segmentation::OUTPUT   = "Output";
 const ModelItem::ArgumentId Segmentation::TAXONOMY = "Taxonomy";
 const ModelItem::ArgumentId Segmentation::USERS    = "Users";
 
+const QString Segmentation::COMPOSED_LINK          = "ComposedOf";
+
 //-----------------------------------------------------------------------------
 Segmentation::SArguments::SArguments(const ModelItem::Arguments args)
 : Arguments(args)
@@ -130,17 +132,32 @@ QVariant Segmentation::data(int role) const
     }
     case Qt::ToolTipRole:
     {
-      double bounds[6];
-      volume()->bounds(bounds);
+      QString boundsInfo;
+      QString filterInfo;
+      if (m_filter && outputId() != Filter::Output::INVALID_OUTPUT_ID)
+      {
+        double bounds[6];
+        volume()->bounds(bounds);
+        boundsInfo = tr("<b>Sections:</b><br>");
+        boundsInfo = boundsInfo.append("  X: %1 nm-%2 nm <br>").arg(bounds[0]).arg(bounds[1]);
+        boundsInfo = boundsInfo.append("  Y: %1 nm-%2 nm <br>").arg(bounds[2]).arg(bounds[3]);
+        boundsInfo = boundsInfo.append("  Z: %1 nm-%2 nm <br>").arg(bounds[4]).arg(bounds[5]);
+
+        filterInfo = tr("<b>Filter:</b> %1<br>").arg(filter()->data().toString());
+      }
+
+      QString taxonomyInfo;
+      if (m_taxonomy)
+      {
+        taxonomyInfo = tr("<b>Taxonomy:</b> %1<br>").arg(m_taxonomy->qualifiedName());
+      }
+
       QString tooltip;
       tooltip = tooltip.append("<b>Name:</b> %1<br>").arg(data().toString());
-      tooltip = tooltip.append("<b>Taxonomy:</b> %1<br>").arg(m_taxonomy->qualifiedName());
-      tooltip = tooltip.append("<b>Filter:</b> %1<br>").arg(filter()->data().toString());
+      tooltip = tooltip.append(taxonomyInfo);
+      tooltip = tooltip.append(filterInfo);
       tooltip = tooltip.append("<b>Users:</b> %1<br>").arg(m_args[USERS]);
-      tooltip = tooltip.append("<b>Sections:</b><br>");
-      tooltip = tooltip.append("  X: %1 nm-%2 nm <br>").arg(bounds[0]).arg(bounds[1]);
-      tooltip = tooltip.append("  Y: %1 nm-%2 nm <br>").arg(bounds[2]).arg(bounds[3]);
-      tooltip = tooltip.append("  Z: %1 nm-%2 nm <br>").arg(bounds[4]).arg(bounds[5]);
+      tooltip = tooltip.append(boundsInfo);
 
       if (!m_conditions.isEmpty())
       {
@@ -294,6 +311,22 @@ void Segmentation::setTaxonomy(TaxonomyElement* tax)
 void Segmentation::setVisible(bool visible)
 {
   m_isVisible = visible;
+}
+
+//------------------------------------------------------------------------
+SegmentationList Segmentation::components()
+{
+  SegmentationList res;
+
+  ModelItem::Vector subComponents = relatedItems(OUT, COMPOSED_LINK);
+
+  foreach(ModelItem *item, subComponents)
+  {
+    Q_ASSERT(SEGMENTATION == item->type());
+    res << dynamic_cast<Segmentation *>(item);
+  }
+
+  return res;
 }
 
 //------------------------------------------------------------------------

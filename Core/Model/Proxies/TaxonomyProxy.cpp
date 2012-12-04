@@ -50,7 +50,7 @@ void TaxonomyProxy::setSourceModel(EspinaModel *sourceModel)
   connect(sourceModel, SIGNAL(rowsAboutToBeRemoved(const QModelIndex&, int, int)),
           this, SLOT(sourceRowsAboutToBeRemoved(QModelIndex,int,int)));
   connect(sourceModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-	  this,SLOT(sourceDataChanged(QModelIndex,QModelIndex)));
+          this,SLOT(sourceDataChanged(QModelIndex,QModelIndex)));
   QAbstractProxyModel::setSourceModel(sourceModel);
 }
 
@@ -452,10 +452,7 @@ void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
 //        m_taxonomies << indexTaxonomies(row, 0, sourceParent);
     }
     endInsertRows();
-    return;
-  }
-
-  if (sourceParent == m_model->segmentationRoot())
+  } else if (sourceParent == m_model->segmentationRoot())
   {
     QMap<TaxonomyElement *, QList<ModelItem *> > relations;
     for (int row=start; row <= end; row++)
@@ -466,7 +463,7 @@ void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
       Segmentation *seg = dynamic_cast<Segmentation *>(sourceItem);
       TaxonomyElement *taxonomy = seg->taxonomy();
       if (taxonomy)
-	relations[taxonomy] << sourceItem;
+        relations[taxonomy] << sourceItem;
     }
     foreach(TaxonomyElement *taxonomy, relations.keys())
     {
@@ -479,25 +476,25 @@ void TaxonomyProxy::sourceRowsInserted(const QModelIndex& sourceParent, int star
       m_segmentations[taxonomy] << relations[taxonomy];
       endInsertRows();
     }
-    return;
-  }
-
-  ModelItem *parentItem = indexPtr(sourceParent);
-  if (ModelItem::TAXONOMY == parentItem->type())
+  } else
   {
-    //This is the same code than above, TODO create a function to simplify the code
-    beginInsertRows(mapFromSource(sourceParent), start, end);
-    for (int row = start; row <= end; row++)
+    ModelItem *parentItem = indexPtr(sourceParent);
+    if (ModelItem::TAXONOMY == parentItem->type())
     {
-      ModelItem *sourceRow = indexPtr(m_model->index(row, 0, sourceParent));
-      Q_ASSERT(ModelItem::TAXONOMY == sourceRow->type());
-      TaxonomyElement *taxonomy = dynamic_cast<TaxonomyElement *>(sourceRow);
-      Q_ASSERT(taxonomy);
-      if (!taxonomy->parentNode()->name().isEmpty())
-	m_numTaxonomies[taxonomy->parentNode()] += 1;
-      m_numTaxonomies[taxonomy] = taxonomy->subElements().size();
+      //This is the same code than above, TODO create a function to simplify the code
+      beginInsertRows(mapFromSource(sourceParent), start, end);
+      for (int row = start; row <= end; row++)
+      {
+        ModelItem *sourceRow = indexPtr(m_model->index(row, 0, sourceParent));
+        Q_ASSERT(ModelItem::TAXONOMY == sourceRow->type());
+        TaxonomyElement *taxonomy = dynamic_cast<TaxonomyElement *>(sourceRow);
+        Q_ASSERT(taxonomy);
+        if (!taxonomy->parentNode()->name().isEmpty())
+          m_numTaxonomies[taxonomy->parentNode()] += 1;
+        m_numTaxonomies[taxonomy] = taxonomy->subElements().size();
+      }
+      endInsertRows();
     }
-    endInsertRows();
   }
 }
 
@@ -591,9 +588,11 @@ bool TaxonomyProxy::indices(const QModelIndex& topLeft, const QModelIndex& botto
 Segmentation* TaxonomyProxy::findSegmentation(QString tooltip)
 {
   foreach (TaxonomyElement *tax, m_segmentations.keys())
+  {
     foreach(ModelItem *seg, m_segmentations[tax])
       if (seg->data(Qt::ToolTipRole) == tooltip)
-	return dynamic_cast<Segmentation *>(seg);
+        return dynamic_cast<Segmentation *>(seg);
+  }
 
   return NULL;
 }
@@ -680,9 +679,6 @@ int TaxonomyProxy::numSegmentations(TaxonomyElement* taxonomy, bool recursive) c
 //------------------------------------------------------------------------
 int TaxonomyProxy::numTaxonomies(TaxonomyElement* taxonomy) const
 {
-  return m_numTaxonomies[taxonomy];
   // We can't rely on source's model to deal with row counting
-//   int count = m_model->rowCount(m_model->taxonomyIndex(taxonomy));
-//   Q_ASSERT(taxonomy->subElements().size() == count);//TODO: If never crashed replace model access with taxonomy method
-//   return count;
+  return m_numTaxonomies[taxonomy];
 }

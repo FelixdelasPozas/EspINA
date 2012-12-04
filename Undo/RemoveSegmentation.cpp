@@ -31,9 +31,9 @@ RemoveSegmentation::SegInfo::SegInfo(Segmentation* seg)
 }
 
 //------------------------------------------------------------------------
-RemoveSegmentation::RemoveSegmentation(Segmentation* seg,
-                                       EspinaModel* model,
-                                       QUndoCommand* parent)
+RemoveSegmentation::RemoveSegmentation(Segmentation *seg,
+                                       EspinaModel  *model,
+                                       QUndoCommand *parent)
 : QUndoCommand(parent)
 , m_model(model)
 {
@@ -75,6 +75,8 @@ void RemoveSegmentation::redo()
 //------------------------------------------------------------------------
 void RemoveSegmentation::undo()
 {
+  //BUG: If several segmentations are deleted in a row, common relationships
+  //     are duplicated
   foreach(FilterInfo filterInfo, m_removedFilters)
     m_model->addFilter(filterInfo.filter);
 

@@ -87,11 +87,25 @@ void FreeFormSource::draw(OutputId oId,
                           Nm x, Nm y, Nm z,
                           itkVolumeType::PixelType value)
 {
-  itkVolumeType::IndexType index;
-  index[0] = x / m_param.spacing()[0] + 0.5;
-  index[1] = y / m_param.spacing()[1] + 0.5;
-  index[2] = z / m_param.spacing()[2] + 0.5;
-  FreeFormSource::draw(oId, index, value);
+  if (m_outputs.isEmpty())
+  {
+    itkVolumeType::IndexType index;
+    index[0] = x / m_param.spacing()[0] + 0.5;
+    index[1] = y / m_param.spacing()[1] + 0.5;
+    index[2] = z / m_param.spacing()[2] + 0.5;
+
+    itkVolumeType::SizeType pixelSize;
+    pixelSize.Fill(1);
+    itkVolumeType::RegionType pixelRegion(index, pixelSize);
+    itkVolumeType::Pointer volume = itkVolumeType::New();
+    volume->SetRegions(pixelRegion);
+    volume->SetSpacing(m_param.spacing());
+    volume->Allocate();
+    volume->FillBuffer(0);
+
+    createOutput(0, volume);
+  }
+  Filter::draw(oId, x, y, z, value);
 }
 
 //-----------------------------------------------------------------------------

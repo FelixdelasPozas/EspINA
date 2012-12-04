@@ -34,6 +34,8 @@
 class SegmentationInspector;
 class EspinaModel;
 class QUndoStack;
+
+#include "EspinaConfig.h"
 #ifdef TEST_ESPINA_MODELS
 class ModelTest;
 #endif

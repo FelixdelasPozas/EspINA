@@ -52,6 +52,8 @@ public:
   static const ArgumentId TAXONOMY;
   static const ArgumentId USERS;//who have reviewed this segmentation
 
+  static const QString COMPOSED_LINK;
+
   static const int SelectionRole = Qt::UserRole + 2;
 
 private:
@@ -133,6 +135,9 @@ public:
   bool visible() const {return m_isVisible;}
   void setVisible(bool visible);
   QStringList users() const {return m_args.users();}
+
+  /// Return the list of segmentations which compose this segmentation
+  SegmentationList components();
 
   /// Add a new extension to the segmentation
   /// Extesion won't be available until requirements are satisfied
