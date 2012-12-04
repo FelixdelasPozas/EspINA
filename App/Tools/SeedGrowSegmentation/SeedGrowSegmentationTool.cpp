@@ -386,8 +386,6 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
     }
 
     m_undoStack->push(new CreateSegmentation(channel, filter, seg, tax, m_model));
-    if (m_model->segmentations().size() == 3)
-      m_model->addRelation(m_model->segmentations().first(), seg, Segmentation::COMPOSED_LINK);
     QApplication::restoreOverrideCursor();
   }
 }
