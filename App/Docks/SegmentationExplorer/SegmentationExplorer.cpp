@@ -94,8 +94,6 @@ SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
           this, SLOT(showInformation()));
   connect(m_gui->deleteSegmentation, SIGNAL(clicked(bool)),
           this, SLOT(deleteSegmentations()));
-  connect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
-          this, SLOT(updateSelection(QItemSelection, QItemSelection)));
   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection)),
           this, SLOT(updateSelection(ViewManager::Selection)));
   connect(m_baseModel, SIGNAL(rowsAboutToBeRemoved(QModelIndex, int , int)),
@@ -120,12 +118,21 @@ void SegmentationExplorer::addLayout(const QString id, SegmentationExplorer::Lay
 void SegmentationExplorer::changeLayout(int index)
 {
   Q_ASSERT(index < m_layouts.size());
+  if (m_layout)
+  {
+    disconnect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+               this, SLOT(updateSelection(QItemSelection, QItemSelection)));
+  }
+
   m_layout = m_layouts[index];
 #ifdef TEST_ESPINA_MODELS
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_layout->model()));
 #endif
   m_gui->view->setModel(m_layout->model());
   m_gui->view->setItemDelegate(new SegmentationDelegate(m_baseModel, m_undoStack, m_viewManager)); //TODO 2012-10-05 Sigue sirviendo para algo??
+
+  connect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
+          this, SLOT(updateSelection(QItemSelection, QItemSelection)));
 }
 
 //------------------------------------------------------------------------
@@ -220,7 +227,7 @@ void SegmentationExplorer::deleteSegmentations()
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSelection(ViewManager::Selection selection)
 {
-//   qDebug() << "Update Seg Explorer Selection from Selection Manager";
+  //qDebug() << "Update Seg Explorer Selection from Selection Manager";
   m_gui->view->blockSignals(true);
   m_gui->view->selectionModel()->blockSignals(true);
   m_gui->view->selectionModel()->reset();
@@ -246,6 +253,7 @@ void SegmentationExplorer::updateSelection(ViewManager::Selection selection)
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSelection(QItemSelection selected, QItemSelection deselected)
 {
+  //qDebug() << "Update Selection from Seg Explorer";
   ViewManager::Selection selection;
 
   foreach(QModelIndex index, m_gui->view->selectionModel()->selection().indexes())
