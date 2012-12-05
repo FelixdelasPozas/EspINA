@@ -23,6 +23,7 @@
 #include <Core/Model/Channel.h>
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/EspinaFactory.h>
+#include <Core/EspinaSettings.h>
 #include <GUI/Pickers/BrushPicker.h>
 #include <GUI/QtWidget/EspinaRenderView.h>
 #include <GUI/ViewManager.h>
@@ -248,6 +249,7 @@ void Brush::drawStroke(PickableItem* item,
 
       m_undoStack->push(new DrawCommand(m_currentSource, m_currentOutput, brushes, value));
     }
+    m_currentSeg->modifiedByUser(userName());
   }
 
 }

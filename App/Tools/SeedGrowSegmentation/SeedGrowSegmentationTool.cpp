@@ -30,12 +30,14 @@
 #include <GUI/QtWidget/EspinaRenderView.h>
 #include <GUI/ViewManager.h>
 #include <Core/Model/PickableItem.h>
+#include <Core/EspinaSettings.h>
 #include <GUI/Pickers/PixelPicker.h>
 #include <Filters/SeedGrowSegmentationFilter.h>
 
 #include <QApplication>
 #include <QWheelEvent>
 #include <QMessageBox>
+#include <QSettings>
 
 #include <vtkImageActor.h>
 #include <vtkLookupTable.h>
@@ -385,6 +387,8 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
       QString condition = tr("Touch VOI");
       seg->addCondition(SGS_VOI, ":/espina/voi.svg", condition);
     }
+
+    seg->modifiedByUser(userName());
 
     m_undoStack->push(new CreateSegmentation(channel, filter, seg, tax, m_model));
     QApplication::restoreOverrideCursor();

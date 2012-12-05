@@ -28,7 +28,6 @@ class QSettings;
 const QString AUTOSAVE_PATH("Autosave::Path");
 const QString AUTOSAVE_INTERVAL("Autosave::Interval");
 const QString STACK_DIR("StackDirectory");
-const QString USER_NAME("UserName");
 
 class GeneralSettings
 {

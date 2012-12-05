@@ -24,6 +24,7 @@
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/EspinaFactory.h>
 #include <Core/Model/EspinaModel.h>
+#include <Core/EspinaSettings.h>
 #include <Filters/SplitFilter.h>
 
 #include <QUndoStack>
@@ -147,6 +148,7 @@ void PlanarSplitTool::splitSegmentation()
     {
       splitSeg[i] = factory->createSegmentation(filter, i);
       splitSeg[i]->setTaxonomy(seg->taxonomy());
+      splitSeg[i]->modifiedByUser(userName());
     }
 
     if (filter->outputs().size() == 2)

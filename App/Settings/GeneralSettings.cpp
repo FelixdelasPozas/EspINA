@@ -28,7 +28,7 @@ GeneralSettings::GeneralSettings()
 : m_settings(new QSettings(CESVIMA, ESPINA))
 {
   //m_stackDir = m_settings->value(STACK_DIR, QDir::homePath()+"/Stacks").toString();
-  m_userName = m_settings->value(USER_NAME, "User").toString();
+  m_userName         = m_settings->value(USER_NAME, "User").toString();
   m_autosaveInterval = m_settings->value(AUTOSAVE_INTERVAL, 10).toInt();
   m_autosavePath     = m_settings->value(AUTOSAVE_PATH, QDir::homePath()+"/.espina").toString();
 }

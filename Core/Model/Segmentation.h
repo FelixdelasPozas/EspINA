@@ -132,7 +132,8 @@ public:
   unsigned int number() const {return m_args.number();}
   void setTaxonomy(TaxonomyElement *tax);
   TaxonomyElement *taxonomy() const {return m_taxonomy;}
-  //void bounds(double val[3]);
+
+  void modifiedByUser(QString user) { m_args.addUser(user);  }
 
   // State
   bool visible() const {return m_isVisible;}

@@ -26,6 +26,7 @@ set (CORE_SOURCES
   ${CORE_MOC}
   ${CORE_UI}
   EspinaRegion.cpp
+  EspinaSettings.cpp
   EspinaVolume.cpp
   ColorEngines/MultiColorEngine.cpp
   ColorEngines/NumberColorEngine.cpp

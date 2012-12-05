@@ -48,10 +48,6 @@ Segmentation::SArguments::SArguments(const ModelItem::Arguments &args)
 //-----------------------------------------------------------------------------
 QString Segmentation::SArguments::serialize() const
 {
-  /*TODO 2012-10-05 QString user = EspinaCore::instance()->settings().userName();
-  SArguments *args = const_cast<SArguments *>(this);
-  args->addUser(user);
-  */
   return ModelItem::Arguments::serialize();
 }
 

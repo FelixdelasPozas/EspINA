@@ -16,19 +16,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef ESPINA_SETTINGS_H
-#define ESPINA_SETTINGS_H
+#include "EspinaSettings.h"
 
-#include <QString>
+#include <QSettings>
 
-const QString CESVIMA = "CeSViMa";
-const QString ESPINA  = "EspINA";
+QString userName()
+{
+  QSettings settings(CESVIMA, ESPINA);
 
-const QString USER_NAME("UserName");
-
-// TODO 2012-12-05 Remove this function and pass the general settings to
-// all the tools that require it
-QString userName();
-
-
-#endif//ESPINA_SETTINGS_H
+  return settings.value(USER_NAME, "User").toString();
+}
