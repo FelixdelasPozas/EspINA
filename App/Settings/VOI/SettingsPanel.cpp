@@ -78,14 +78,18 @@ ISettingsPanel* RectangularVOI::SettingsPanel::clone()
 //------------------------------------------------------------------------
 bool RectangularVOI::SettingsPanel::taxonomyVOIModified() const
 {
-  QVariant xOldSize = m_activeTaxonomy->property(TaxonomyElement::X_DIM);
-  QVariant yOldSize = m_activeTaxonomy->property(TaxonomyElement::Y_DIM);
-  QVariant zOldSize = m_activeTaxonomy->property(TaxonomyElement::Z_DIM);
-
   bool modified = false;
-  modified = modified || xOldSize.toInt() != m_xTaxSize->value();
-  modified = modified || yOldSize.toInt() != m_yTaxSize->value();
-  modified = modified || zOldSize.toInt() != m_zTaxSize->value();
+
+  if (m_activeTaxonomy)
+  {
+    QVariant xOldSize = m_activeTaxonomy->property(TaxonomyElement::X_DIM);
+    QVariant yOldSize = m_activeTaxonomy->property(TaxonomyElement::Y_DIM);
+    QVariant zOldSize = m_activeTaxonomy->property(TaxonomyElement::Z_DIM);
+
+    modified = modified || xOldSize.toInt() != m_xTaxSize->value();
+    modified = modified || yOldSize.toInt() != m_yTaxSize->value();
+    modified = modified || zOldSize.toInt() != m_zTaxSize->value();
+  }
 
   return modified;
 }
