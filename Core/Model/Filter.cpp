@@ -108,11 +108,9 @@ void Filter::draw(OutputId oId,
                   const Nm bounds[6],
                   itkVolumeType::PixelType value)
 {
-  Output &filterOutput = output(oId);
-
   EspinaRegion region(bounds);
 
-  EspinaVolume::Pointer volume = filterOutput.volume;
+  EspinaVolume::Pointer volume = output(oId).volume;
   volume->expandToFitRegion(region);
 
   itkVolumeType::SpacingType spacing = volume->toITK()->GetSpacing();

@@ -279,20 +279,20 @@ void EspinaVolume::expandToFitRegion(EspinaRegion region)
     m_volume->Update();
   }
 
-  VolumeRegion requestedVol = volumeRegion(region, m_volume->GetSpacing());
-  VolumeRegion currentVol   = volumeRegion();
-  if (!requestedVol.IsInside(currentVol))
+  EspinaRegion currentRegion = espinaRegion();
+  if (!region.isInside(currentRegion))
   {
-    VolumeRegion bb = BoundingBox(currentVol, requestedVol);
-    EspinaVolume expandedVolume(bb, m_volume->GetSpacing());
+    EspinaRegion expandedRegion = BoundingBox(currentRegion, region);
+    EspinaVolume expandedVolume(expandedRegion, m_volume->GetSpacing());
 
+    VolumeRegion commonRegion = expandedVolume.volumeRegion(currentRegion);
     // Do a block copy for the overlapping region.
     itk::ImageAlgorithm::Copy(this->m_volume.GetPointer(),
                               expandedVolume.m_volume.GetPointer(),
-                              currentVol, currentVol);
+                              volumeRegion(), commonRegion);
 
     ExclusionIterator outIter(expandedVolume.m_volume.GetPointer(), expandedVolume.volumeRegion());
-    outIter.SetExclusionRegion(currentVol);
+    outIter.SetExclusionRegion(commonRegion);
     outIter.GoToBegin();
     while ( !outIter.IsAtEnd() )
     {
