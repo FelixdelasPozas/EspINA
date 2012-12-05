@@ -64,7 +64,7 @@ private:
   {
   public:
     explicit SArguments() : m_number(-1), m_outputId(-1){}
-    explicit SArguments(const ModelItem::Arguments args);
+    explicit SArguments(const ModelItem::Arguments &args);
 
     void setNumber(unsigned int number)
     {
@@ -157,7 +157,7 @@ public slots:
 
 private:
   Filter *m_filter;
-  SArguments m_args;
+  mutable SArguments m_args;
   TaxonomyElement *m_taxonomy;
 
   bool m_isVisible;

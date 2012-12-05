@@ -38,7 +38,7 @@ const ModelItem::ArgumentId Segmentation::USERS    = "Users";
 const QString Segmentation::COMPOSED_LINK          = "ComposedOf";
 
 //-----------------------------------------------------------------------------
-Segmentation::SArguments::SArguments(const ModelItem::Arguments args)
+Segmentation::SArguments::SArguments(const ModelItem::Arguments &args)
 : Arguments(args)
 {
   m_number = args[NUMBER].toInt();
@@ -189,6 +189,8 @@ QVariant Segmentation::data(int role) const
 //------------------------------------------------------------------------
 QString Segmentation::serialize() const
 {
+  // Ensure taxonomy name is updated
+  m_args[TAXONOMY] = Argument(m_taxonomy->qualifiedName());
   return m_args.serialize();
 }
 
@@ -291,8 +293,8 @@ bool Segmentation::setData(const QVariant& value, int role)
 //------------------------------------------------------------------------
 void Segmentation::setTaxonomy(TaxonomyElement* tax)
 {
-	m_taxonomy = tax;
-	m_args[TAXONOMY] = Argument(tax->qualifiedName());
+  m_taxonomy = tax;
+  m_args[TAXONOMY] = Argument(tax->qualifiedName());
 }
 
 // void Segmentation::bounds(double val[3])

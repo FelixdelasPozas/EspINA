@@ -36,7 +36,9 @@ QColor TaxonomyColorEngine::color(Segmentation* seg)
 LUTPtr TaxonomyColorEngine::lut(Segmentation* seg)
 {
   // Get (or create if it doesn't exit) the lut for the segmentations' images
-  QString lutName = seg->taxonomy()->qualifiedName();
+  QString lutName;
+  if (seg && seg->taxonomy())
+    lutName = seg->taxonomy()->qualifiedName();
 
   vtkSmartPointer<vtkLookupTable> seg_lut;
 
