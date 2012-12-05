@@ -111,7 +111,8 @@ Filter* SeedGrowSegmentation::createFilter(const QString filter,
   Q_ASSERT(SeedGrowSegmentationFilter::TYPE == filter);
 
   SeedGrowSegmentationFilter *sgs = new SeedGrowSegmentationFilter(inputs, args);
-  SGSFilterInspector *inspector   = new SGSFilterInspector(sgs); //NOTE its resources are managed by filter
+  // NOTE: automatically assigns widget to filter on new()
+  new SGSFilterInspector(sgs);
 
   return sgs;
 }

@@ -59,6 +59,7 @@ set (CORE_SOURCES
   Model/Proxies/ConnectomicProxy.cpp
   VTK/vtkTube.cxx
   Utils/SegmentationCollision.cpp
+  Model/HierarchyItem.cpp
   )
 
 set(CORE_EXTERNAL_LIBS

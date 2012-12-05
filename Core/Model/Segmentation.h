@@ -27,7 +27,9 @@
 
 #include "Core/Extensions/SegmentationExtension.h"
 #include "Core/Model/PickableItem.h"
+#include "Core/Model/HierarchyItem.h"
 #include "Core/Model/Taxonomy.h"
+
 
 #include <vtkAlgorithmOutput.h>
 #include <itkCommand.h>
@@ -44,6 +46,7 @@ class pqPipelineSource;
 
 class Segmentation
 : public PickableItem
+, public HierarchyItem
 {
   Q_OBJECT
 public:

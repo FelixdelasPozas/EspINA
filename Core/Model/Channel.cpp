@@ -22,7 +22,6 @@
 #include "Core/Extensions/ChannelExtension.h"
 #include "Core/Extensions/ModelItemExtension.h"
 #include "Core/Model/RelationshipGraph.h"
-#include "Core/Model/Representation.h"
 #include "Core/Model/Sample.h"
 
 #include <itkImageFileReader.h>

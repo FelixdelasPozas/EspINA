@@ -24,8 +24,6 @@
 // itk
 #include <itkImageRegionIteratorWithIndex.h>
 
-#include <QDebug>
-
 //-----------------------------------------------------------------------------
 bool checkCollision(EspinaVolume::Pointer seg1, EspinaVolume::Pointer seg2)
 {

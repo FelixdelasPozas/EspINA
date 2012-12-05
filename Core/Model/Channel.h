@@ -26,6 +26,7 @@
 #define CHANNEL_H
 
 #include "Core/Model/PickableItem.h"
+#include "Core/Model/HierarchyItem.h"
 
 #include <itkImageIOBase.h>
 #include <itkImageFileReader.h>
@@ -42,6 +43,7 @@ class vtkAlgorithmOutput;
 
 class Channel
 : public PickableItem
+, public HierarchyItem
 {
   typedef itk::ImageFileReader<itkVolumeType> EspinaVolumeReader;
 public:

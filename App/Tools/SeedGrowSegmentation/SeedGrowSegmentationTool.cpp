@@ -362,7 +362,8 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
     filter->update();
     Q_ASSERT(filter->outputs().size() == 1);
 
-    SGSFilterInspector *inspector = new SGSFilterInspector(filter);
+    // NOTE: automatically assigns widget to filter on new()
+    new SGSFilterInspector(filter);
 
     Segmentation *seg = m_model->factory()->createSegmentation(filter, 0);
 

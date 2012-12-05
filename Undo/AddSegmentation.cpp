@@ -36,7 +36,7 @@ AddSegmentation::AddSegmentation(Channel         *channel,
 , m_taxonomy(taxonomy)
 , m_model   (model)
 {
-  //TODO: Poner punto de interrupcion y comprobar si SIEMPRE se crean segmentacion antes de invocar a este método
+  //TODO: Poner punto de interrupcion y comprobar si SIEMPRE se crean segmentacion antes de invocar a este mï¿½todo
   //      en cuyo caso hay que destruirlas en el destructor
   m_sample = m_channel->sample();
   Q_ASSERT(m_sample);

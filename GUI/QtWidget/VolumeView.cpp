@@ -26,7 +26,6 @@
 #include <Core/EspinaSettings.h>
 #include <Core/Model/Segmentation.h>
 #include <Core/Model/Channel.h>
-#include <Core/Model/Representation.h>
 #include <Core/Model/EspinaFactory.h>
 
 // GUI

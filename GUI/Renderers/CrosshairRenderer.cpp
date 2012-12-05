@@ -21,7 +21,6 @@
 #include <QDebug>
 
 #include "Core/Model/Channel.h"
-#include "Core/Model/Representation.h"
 
 #include <vtkSmartPointer.h>
 #include <vtkImageReslice.h>

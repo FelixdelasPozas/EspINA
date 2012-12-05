@@ -21,6 +21,7 @@
 #define TAXONOMY_H
 
 #include "ModelItem.h"
+#include "HierarchyItem.h"
 
 // Qt dependencies
 #include <QColor>
@@ -38,6 +39,7 @@ static const QString RED = "#00FF00";
 
 class TaxonomyElement
 : public ModelItem
+, public HierarchyItem
 {
 public:
   static const QString X_DIM;

@@ -339,8 +339,6 @@ void CompositionProxy::sourceDataChanged(const QModelIndex& sourceTopLeft, const
 
   for(int row=sourceTopLeft.row(); row <= sourceBottomRight.row(); row++)
   {
-      bool indexChanged = false;
-
       ModelItem    *sourceItem  = indexPtr(sourceParent.child(row, 0));
       Segmentation *seg         = dynamic_cast<Segmentation *>(sourceItem);
       Segmentation *parentSeg   = parentSegmentation(sourceItem);
