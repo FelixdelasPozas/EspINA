@@ -26,7 +26,7 @@ EspinaRegion::EspinaRegion(const Nm bounds[6])
 }
 
 //-----------------------------------------------------------------------------
-bool EspinaRegion::intersect(const EspinaRegion region) const
+bool EspinaRegion::intersect(const EspinaRegion &region) const
 {
   bool xOverlap = xMin() <= region.xMax() && xMax() >= region.xMin();
   bool yOverlap = yMin() <= region.yMax() && yMax() >= region.yMin();
@@ -36,7 +36,7 @@ bool EspinaRegion::intersect(const EspinaRegion region) const
 }
 
 //-----------------------------------------------------------------------------
-bool EspinaRegion::isInside(const EspinaRegion region) const
+bool EspinaRegion::isInside(const EspinaRegion &region) const
 {
   bool xInside = region.xMin() <= xMin() && xMax() <= region.xMax();
   bool yInside = region.yMin() <= yMin() && yMax() <= region.yMax();
@@ -46,7 +46,7 @@ bool EspinaRegion::isInside(const EspinaRegion region) const
 }
 
 //-----------------------------------------------------------------------------
-EspinaRegion EspinaRegion::intersection(const EspinaRegion region) const
+EspinaRegion EspinaRegion::intersection(const EspinaRegion &region) const
 {
   Nm res[6];
 
@@ -65,10 +65,10 @@ EspinaRegion BoundingBox(EspinaRegion r1, EspinaRegion r2)
 {
   Nm bounds[6];
 
-  for(unsigned int i = 0; i < 3; i++)
+  for(unsigned int min = 0, max = 1; min < 6; min += 2, max +=2)
   {
-    bounds[2*i]   = std::min(r1[2*i], r2[2*i]);
-    bounds[2*i+1] = std::max(r1[2*i], r2[2*i+1]);
+    bounds[min] = std::min(r1[min], r2[min]);
+    bounds[max] = std::max(r1[max], r2[max]);
   }
 
   return EspinaRegion(bounds);

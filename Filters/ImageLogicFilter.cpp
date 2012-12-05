@@ -60,7 +60,7 @@ bool ImageLogicFilter::needUpdate() const
 
   if (!update)
   {
-    Q_ASSERT(m_inputs.size()  == 1);
+    Q_ASSERT(m_inputs.size()  >= 1);
     Q_ASSERT(m_outputs.size() == 1);
     Q_ASSERT(m_outputs[0].volume.get());
 
