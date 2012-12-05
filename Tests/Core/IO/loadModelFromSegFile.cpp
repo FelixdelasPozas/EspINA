@@ -22,7 +22,7 @@ class SeedGrowSegmentationCreator
 {
 public:
   virtual ~SeedGrowSegmentationCreator(){}
-  virtual Filter* createFilter(const QString filter, Filter::NamedInputs inputs, const ModelItem::Arguments args)
+  virtual Filter* createFilter(const QString& filter, const Filter::NamedInputs& inputs, const ModelItem::Arguments& args)
   {
     return new SeedGrowSegmentationFilter(inputs, args);
   }

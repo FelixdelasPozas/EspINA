@@ -130,9 +130,9 @@ void SegmhaImporter::initFactoryExtension(EspinaFactory* factory)
 }
 
 //-----------------------------------------------------------------------------
-Filter* SegmhaImporter::createFilter(const QString filter,
-                                     Filter::NamedInputs inputs,
-                                     const ModelItem::Arguments args)
+Filter *SegmhaImporter::createFilter(const QString              &filter,
+                                     const Filter::NamedInputs  &inputs,
+                                     const ModelItem::Arguments &args)
 {
   Q_ASSERT(SegmhaImporterFilter::TYPE == filter);
 

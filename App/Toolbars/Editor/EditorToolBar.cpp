@@ -171,14 +171,14 @@ EditorToolBar::EditorToolBar(EspinaModel *model,
 
   initFactoryExtension(m_model->factory());
 
-  m_model->factory()->registerSettingsPanel(new EditorToolBar::SettingsPanel(m_settings));
-
   initDrawTools();
   initSplitTools();
   initMorphologicalTools();
   initCODETools();
   initFillTool();
 
+  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection)),
+          this, SLOT(updateAvailableOperations()));
   updateAvailableOperations();
 }
 
@@ -194,10 +194,14 @@ void EditorToolBar::initFactoryExtension(EspinaFactory* factory)
   factory->registerFilter(this, ImageLogicFilter::TYPE);
   factory->registerFilter(this, FillHolesFilter::TYPE);
   factory->registerFilter(this, ContourSource::TYPE);
+
+  factory->registerSettingsPanel(new EditorToolBar::SettingsPanel(m_settings));
 }
 
 //----------------------------------------------------------------------------
-Filter* EditorToolBar::createFilter(const QString filter, Filter::NamedInputs inputs, const ModelItem::Arguments args)
+Filter *EditorToolBar::createFilter(const QString              &filter,
+                                    const Filter::NamedInputs  &inputs,
+                                    const ModelItem::Arguments &args)
 {
   if (SplitFilter::TYPE == filter)
     return new SplitFilter(inputs, args);
@@ -284,7 +288,7 @@ void EditorToolBar::combineSegmentations()
 {
   m_viewManager->unsetActiveTool();
 
-  SegmentationList input = selectedSegmentations();
+  SegmentationList input = m_viewManager->selectedSegmentations();
   if (input.size() > 1)
   {
     m_undoStack->beginMacro("Combine Segmentations");
@@ -301,7 +305,7 @@ void EditorToolBar::substractSegmentations()
 {
   m_viewManager->unsetActiveTool();
 
-  SegmentationList input = selectedSegmentations();
+  SegmentationList input = m_viewManager->selectedSegmentations();
   if (input.size() > 1)
   {
     m_undoStack->beginMacro("Substract Segmentations");
@@ -318,7 +322,7 @@ void EditorToolBar::closeSegmentations()
 {
   m_viewManager->unsetActiveTool();
 
-  SegmentationList input = selectedSegmentations();
+  SegmentationList input = m_viewManager->selectedSegmentations();
   if (input.size() > 0)
   {
     int r = m_settings->closeRadius();
@@ -331,7 +335,7 @@ void EditorToolBar::openSegmentations()
 {
   m_viewManager->unsetActiveTool();
 
-  SegmentationList input = selectedSegmentations();
+  SegmentationList input = m_viewManager->selectedSegmentations();
   if (input.size() > 0)
   {
     int r = m_settings->openRadius();
@@ -344,7 +348,7 @@ void EditorToolBar::dilateSegmentations()
 {
   m_viewManager->unsetActiveTool();
 
-  SegmentationList input = selectedSegmentations();
+  SegmentationList input = m_viewManager->selectedSegmentations();
   if (input.size() > 0)
   {
     int r = m_settings->dilateRadius();
@@ -357,7 +361,7 @@ void EditorToolBar::erodeSegmentations()
 {
   m_viewManager->unsetActiveTool();
 
-  SegmentationList input = selectedSegmentations();
+  SegmentationList input = m_viewManager->selectedSegmentations();
   if (input.size() > 0)
   {
     int r = m_settings->erodeRadius();
@@ -370,25 +374,11 @@ void EditorToolBar::fillHoles()
 {
   m_viewManager->unsetActiveTool();
 
-  SegmentationList input = selectedSegmentations();
+  SegmentationList input = m_viewManager->selectedSegmentations();
   if (input.size() > 0)
   {
     m_undoStack->push(new FillHolesCommand(input, m_model));
   }
-}
-
-//----------------------------------------------------------------------------
-SegmentationList EditorToolBar::selectedSegmentations()
-{
-  SegmentationList selection;
-
-  foreach(PickableItem *item, m_viewManager->selection())
-  {
-    if (ModelItem::SEGMENTATION == item->type())
-      selection << dynamic_cast<Segmentation *>(item);
-  }
-
-  return selection;
 }
 
 //----------------------------------------------------------------------------
@@ -513,15 +503,12 @@ void EditorToolBar::initFillTool()
   m_fill->setIcon(QIcon(":/espina/fillHoles.svg"));
   connect(m_fill, SIGNAL(triggered(bool)),
           this, SLOT(fillHoles()));
-
-  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection)),
-          this, SLOT(updateAvailableOperations()));
 }
 
 //----------------------------------------------------------------------------
 void EditorToolBar::updateAvailableOperations()
 {
-  SegmentationList segs = selectedSegmentations();
+  SegmentationList segs = m_viewManager->selectedSegmentations();
 
   bool one = segs.size() == 1;
   QString oneToolTip;

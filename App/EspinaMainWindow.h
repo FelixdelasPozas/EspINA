@@ -60,11 +60,11 @@ public slots:
   void openRecentAnalysis();
   /// Close former analysis and load a new one
   void openAnalysis();
-  void openAnalysis(const QString file);
+  void openAnalysis(const QString& file);
   /// Add new data from file to current analysis
   void addToAnalysis();
   void addRecentToAnalysis();
-  void addFileToAnalysis(const QString file);
+  void addFileToAnalysis(const QString &file);
   /// Save Current Analysis
   void saveAnalysis();
 

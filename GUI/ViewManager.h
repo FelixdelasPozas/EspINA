@@ -182,8 +182,6 @@ public:
   void setColorEngine(ColorEngine *engine);
 
 private:
-  Nm m_slicingStep[3];
-
   Channel      *m_activeChannel;
   TaxonomyElement *m_activeTaxonomy;
 

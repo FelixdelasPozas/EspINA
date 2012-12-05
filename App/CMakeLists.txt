@@ -30,6 +30,7 @@ qt4_wrap_cpp (ESPINA_MOC
   Settings/SeedGrowSegmentation/SettingsPanel.h
   Settings/SliceView/SliceViewSettingsPanel.h
   Settings/VOI/SettingsPanel.h
+  Toolbars/Composition/CompositionToolBar.h
   Toolbars/Editor/EditorToolBar.h
   Toolbars/Main/MainToolBar.h
   Toolbars/SeedGrowSegmentation/DefaultVOIAction.h
@@ -101,6 +102,7 @@ set (ESPINA_SOURCES
   Settings/SliceView/SliceViewSettingsPanel.cpp
   Settings/VOI/SettingsPanel.cpp
   Settings/VolumeView/VolumeViewSettingsPanel.cpp
+  Toolbars/Composition/CompositionToolBar.cpp
   Toolbars/Editor/EditorToolBar.cpp
   Toolbars/Editor/Settings.cpp
   Toolbars/Main/MainToolBar.cpp
@@ -121,6 +123,7 @@ set (ESPINA_SOURCES
   Tools/VOI/RectangularVOI.cpp
   Tools/Zoom/ZoomTool.cpp
   Undo/BrushUndoCommand.cpp
+  Undo/CompositionCommand.cpp
   Undo/SplitUndoCommand.cpp
   Views/DefaultEspinaView.cpp
   Dialogs/Connectomics/ConnectomicsDialog.cpp

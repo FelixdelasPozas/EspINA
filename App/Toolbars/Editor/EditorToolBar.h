@@ -27,7 +27,7 @@
 // EspINA
 #include <Core/Interfaces/IFactoryExtension.h>
 #include <Core/Interfaces/IFilterCreator.h>
-#include "Core/Model/Segmentation.h"
+#include <Core/Model/Segmentation.h>
 
 class Channel;
 class ITool;
@@ -64,9 +64,9 @@ public:
 
   virtual void initFactoryExtension(EspinaFactory* factory);
 
-  virtual Filter* createFilter(const QString filter,
-                               Filter::NamedInputs inputs,
-                               const ModelItem::Arguments args);
+  virtual Filter* createFilter(const QString              &filter,
+                               const Filter::NamedInputs  &inputs,
+                               const ModelItem::Arguments &args);
 protected slots:
   void changeCircularBrushMode(Brush::BrushMode mode);
   void changeSphericalBrushMode(Brush::BrushMode mode);
@@ -83,8 +83,6 @@ protected slots:
   void fillHoles();
   void updateAvailableOperations();
   void resetState();
-
-  SegmentationList selectedSegmentations();
 
 private:
   void initDrawTools();

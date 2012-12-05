@@ -34,6 +34,7 @@
 #include "Toolbars/SeedGrowSegmentation/SeedGrowSegmentation.h"
 #include "Toolbars/VOI/VolumeOfInterest.h"
 #include "Toolbars/Zoom/ZoomToolBar.h"
+#include "Toolbars/Composition/CompositionToolBar.h"
 #include "Views/DefaultEspinaView.h"
 
 // EspINA
@@ -202,6 +203,9 @@ EspinaMainWindow::EspinaMainWindow()
 
   m_mainToolBar = new MainToolBar(m_model, m_undoStack, m_viewManager);
   addToolBar(m_mainToolBar);
+  ZoomToolBar *zoomToolBar = new ZoomToolBar(m_viewManager);
+  connect(this, SIGNAL(analysisClosed()), zoomToolBar, SLOT(resetState()));
+  addToolBar(zoomToolBar);
   VolumeOfInterest *voiBar = new VolumeOfInterest(m_model, m_viewManager);
   addToolBar(voiBar);
   SeedGrowSegmentation *seedBar = new SeedGrowSegmentation(m_model, m_undoStack, m_viewManager);
@@ -210,9 +214,8 @@ EspinaMainWindow::EspinaMainWindow()
   EditorToolBar *editorBar = new EditorToolBar(m_model, m_undoStack, m_viewManager);
   connect(this, SIGNAL(analysisClosed()), editorBar, SLOT(resetState()));
   addToolBar(editorBar);
-  ZoomToolBar *zoomToolBar = new ZoomToolBar(m_viewManager);
-  connect(this, SIGNAL(analysisClosed()), zoomToolBar, SLOT(resetState()));
-  addToolBar(zoomToolBar);
+  CompositionToolBar *compositionBar = new CompositionToolBar(m_model, m_undoStack, m_viewManager);
+  addToolBar(compositionBar);
 
   ChannelExplorer *channelExplorer = new ChannelExplorer(m_model, m_viewManager, this);
   addDockWidget(Qt::LeftDockWidgetArea, channelExplorer);
@@ -531,7 +534,7 @@ void EspinaMainWindow::openAnalysis()
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::openAnalysis(const QString file)
+void EspinaMainWindow::openAnalysis(const QString &file)
 {
   QElapsedTimer timer;
   timer.start();
@@ -653,7 +656,7 @@ void EspinaMainWindow::addRecentToAnalysis()
 }
 
 //------------------------------------------------------------------------
-void EspinaMainWindow::addFileToAnalysis(const QString file)
+void EspinaMainWindow::addFileToAnalysis(const QString &file)
 {
   QApplication::setOverrideCursor(Qt::WaitCursor);
   QElapsedTimer timer;

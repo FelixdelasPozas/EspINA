@@ -64,5 +64,6 @@
         <file>zoom_cursor.png</file>
         <file>zoom_reset.png</file>
         <file>zoom_selection.png</file>
+        <file>create_seg_from_parts.svg</file>
     </qresource>
 </RCC>

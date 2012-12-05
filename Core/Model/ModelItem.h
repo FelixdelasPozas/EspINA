@@ -75,7 +75,7 @@ public:
     virtual QString hash() const;
 
   protected:
-    inline QString argument(const QString name, const QString value) const
+    inline QString argument(const QString &name, const QString &value) const
     {
       return QString("%1=%2;").arg(name).arg(value);
     }

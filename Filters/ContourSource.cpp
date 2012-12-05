@@ -108,7 +108,7 @@ void ContourSource::signalAsModified()
 
 vtkPolyData* ContourSource::TransformContour(PlaneType plane, vtkPolyData* contour)
 {
-  double pos[3], temporal;
+  double pos[3];
 
   int count = contour->GetPoints()->GetNumberOfPoints();
   vtkPolyData *rotatedContour = vtkPolyData::New();
@@ -126,6 +126,7 @@ vtkPolyData* ContourSource::TransformContour(PlaneType plane, vtkPolyData* conto
 
     for (int i = 0; i < count; i++)
     {
+      double temporal;
       contour->GetPoint(i, pos);
       switch (plane)
       {

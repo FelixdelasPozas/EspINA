@@ -37,6 +37,10 @@ const QString UTHRESHOLD = "SeedGrowSegmentation::UpperThreshold";
 //------------------------------------------------------------------------
 ThresholdAction::ThresholdAction(QObject* parent)
 : QWidgetAction(parent)
+, m_lthLabel   (NULL)
+, m_uthLabel   (NULL)
+, m_lth        (NULL)
+, m_uth        (NULL)
 , m_symmetrical(false)
 {
   QSettings settings(CESVIMA, ESPINA);
