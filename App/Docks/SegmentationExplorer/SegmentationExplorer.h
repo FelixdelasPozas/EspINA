@@ -59,12 +59,17 @@ public:
 protected:
   void addLayout(const QString id, Layout *proxy);
 
+  virtual bool eventFilter(QObject *sender, QEvent* e);
+
 protected slots:
   void changeLayout(int index);
-  void focusOnSegmentation(const QModelIndex &index);
-  void showInformation();
+
+  void changeTaxonomy(const QModelIndex &taxIndex);
   void deleteSegmentations();
+  void focusOnSegmentation(const QModelIndex &index);
   void segmentationsDeleted(const QModelIndex parent, int start, int end);
+  void showInformation();
+
   void updateSelection(ViewManager::Selection selection);
   void updateSelection(QItemSelection selected, QItemSelection deselected);
 
@@ -84,6 +89,7 @@ protected:
   QStringList     m_layoutNames;
   QList<Layout *> m_layouts;
   Layout         *m_layout;
+  QMenu          *m_contextMenu;
 
   QMap<Segmentation *, SegmentationInspector *> m_inspectors;
 

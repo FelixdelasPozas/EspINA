@@ -38,9 +38,12 @@
 #endif
 
 // Qt
+#include <QContextMenuEvent>
+#include <QMenu>
 #include <QSortFilterProxyModel>
 #include <QStringListModel>
 #include <QUndoStack>
+#include <QWidgetAction>
 
 //------------------------------------------------------------------------
 class SegmentationExplorer::GUI
@@ -68,11 +71,12 @@ SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
                                            ViewManager *vm,
                                            QWidget* parent)
 : QDockWidget(parent)
-, m_gui(new GUI())
-, m_baseModel(model)
-, m_undoStack(undoStack)
+, m_gui        (new GUI())
+, m_baseModel  (model)
+, m_undoStack  (undoStack)
 , m_viewManager(vm)
-, m_layout(NULL)
+, m_layout     (NULL)
+, m_contextMenu(new QMenu())
 {
   setWindowTitle(tr("Segmentation Explorer"));
   setObjectName("SegmentationExplorer");
@@ -100,6 +104,8 @@ SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
           this, SLOT(segmentationsDeleted(QModelIndex,int,int)));
 
   setWidget(m_gui);
+
+  m_gui->view->installEventFilter(this);
 }
 
 //------------------------------------------------------------------------
@@ -112,6 +118,40 @@ void SegmentationExplorer::addLayout(const QString id, SegmentationExplorer::Lay
 {
   m_layoutNames << id;
   m_layouts << proxy;
+}
+
+//------------------------------------------------------------------------
+bool SegmentationExplorer::eventFilter(QObject *sender, QEvent *e)
+{
+  if (sender == m_gui->view && QEvent::ContextMenu == e->type())
+  {
+    QContextMenuEvent *cme = static_cast<QContextMenuEvent *>(e);
+
+    m_contextMenu->clear();
+
+    QMenu         *changeTaxonomyMenu = new QMenu(tr("Change Taxonomy"));
+    QWidgetAction *taxonomyListAction = new QWidgetAction(changeTaxonomyMenu);
+    QTreeView     *taxonomyList       = new QTreeView();
+    taxonomyList->header()->setVisible(false);
+    taxonomyList->setModel(m_baseModel);
+    taxonomyList->setRootIndex(m_baseModel->taxonomyRoot());
+    taxonomyList->expandAll();
+    connect(taxonomyList, SIGNAL(clicked(QModelIndex)),
+            this, SLOT(changeTaxonomy(QModelIndex)));
+    taxonomyListAction->setDefaultWidget(taxonomyList);
+    changeTaxonomyMenu->addAction(taxonomyListAction);
+    m_contextMenu->addMenu(changeTaxonomyMenu);
+
+    QAction *deleteSegs = m_contextMenu->addAction(tr("Delete"));
+    connect (deleteSegs, SIGNAL(triggered(bool)),
+             this, SLOT(deleteSegmentations()));
+
+    m_contextMenu->exec(cme->globalPos());
+
+    return true;
+  }
+
+  return QObject::eventFilter(sender, e);
 }
 
 //------------------------------------------------------------------------
@@ -136,6 +176,48 @@ void SegmentationExplorer::changeLayout(int index)
 }
 
 //------------------------------------------------------------------------
+void SegmentationExplorer::changeTaxonomy(const QModelIndex& taxIndex)
+{
+  if (m_contextMenu->isVisible())
+    m_contextMenu->hide();
+
+  ModelItem *taxItem = indexPtr(taxIndex);
+  Q_ASSERT(ModelItem::TAXONOMY == taxItem->type());
+  TaxonomyElement *taxonomy = static_cast<TaxonomyElement *>(taxItem);
+  qDebug() << "Changing to " << taxonomy->qualifiedName() << " taxonomical element";
+
+  SegmentationList selectedSegmentations = m_viewManager->selectedSegmentations();
+  foreach(Segmentation *seg, selectedSegmentations)
+  {
+    m_baseModel->changeTaxonomy(seg, taxonomy);
+  }
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::deleteSegmentations()
+{
+  if (m_contextMenu->isVisible())
+    m_contextMenu->hide();
+
+  if (m_layout)
+  {
+    QModelIndexList selected = m_gui->view->selectionModel()->selectedIndexes();
+    SegmentationList toDelete = m_layout->deletedSegmentations(selected);
+    if (!toDelete.isEmpty())
+    {
+      m_undoStack->beginMacro("Delete Segmentations");
+      // BUG: Temporal Fix until RemoveSegmentation's bug is fixed
+      foreach(Segmentation *seg, toDelete)
+      {
+        m_undoStack->push(new RemoveSegmentation(seg, m_baseModel));
+      }
+      m_undoStack->endMacro();
+    }
+  }
+}
+
+
+//------------------------------------------------------------------------
 void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
 {
   ModelItem *item = m_layout->item(index);
@@ -155,31 +237,6 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
   view->setCrosshairPoint(p[0], p[1], p[2]);
   view->setCameraFocus(p);                     cbbp
   */
-}
-
-//------------------------------------------------------------------------
-void SegmentationExplorer::showInformation()
-{
-  foreach(QModelIndex index, m_gui->view->selectionModel()->selectedIndexes())
-  {
-    ModelItem *item = m_layout->item(index);
-    Q_ASSERT(item);
-
-    if (ModelItem::SEGMENTATION == item->type())
-    {
-      Segmentation *seg = dynamic_cast<Segmentation *>(item);
-      SegmentationInspector *inspector = m_inspectors.value(seg, NULL);
-      if (!inspector)
-      {
-        inspector = new SegmentationInspector(seg, m_baseModel, m_undoStack, m_viewManager);
-        connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)),
-                this, SLOT(releaseInspectorResources(SegmentationInspector*)));
-        m_inspectors[seg] = inspector;
-      }
-      inspector->show();
-      inspector->raise();
-    }
-  }
 }
 
 //------------------------------------------------------------------------
@@ -205,21 +262,26 @@ void SegmentationExplorer::segmentationsDeleted(const QModelIndex parent, int st
 }
 
 //------------------------------------------------------------------------
-void SegmentationExplorer::deleteSegmentations()
+void SegmentationExplorer::showInformation()
 {
-  if (m_layout)
+  foreach(QModelIndex index, m_gui->view->selectionModel()->selectedIndexes())
   {
-    QModelIndexList selected = m_gui->view->selectionModel()->selectedIndexes();
-    SegmentationList toDelete = m_layout->deletedSegmentations(selected);
-    if (!toDelete.isEmpty())
+    ModelItem *item = m_layout->item(index);
+    Q_ASSERT(item);
+
+    if (ModelItem::SEGMENTATION == item->type())
     {
-      m_undoStack->beginMacro("Delete Segmentations");
-      // BUG: Temporal Fix until RemoveSegmentation's bug is fixed
-      foreach(Segmentation *seg, toDelete)
+      Segmentation *seg = dynamic_cast<Segmentation *>(item);
+      SegmentationInspector *inspector = m_inspectors.value(seg, NULL);
+      if (!inspector)
       {
-        m_undoStack->push(new RemoveSegmentation(seg, m_baseModel));
+        inspector = new SegmentationInspector(seg, m_baseModel, m_undoStack, m_viewManager);
+        connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)),
+                this, SLOT(releaseInspectorResources(SegmentationInspector*)));
+        m_inspectors[seg] = inspector;
       }
-      m_undoStack->endMacro();
+      inspector->show();
+      inspector->raise();
     }
   }
 }
