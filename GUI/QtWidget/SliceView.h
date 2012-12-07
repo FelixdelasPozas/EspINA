@@ -128,9 +128,8 @@ public:
   SettingsPtr settings() { return m_settings; }
 
   void updateSegmentationRepresentations();
-  void UpdateCrosshairPoint(PlaneType plane, Nm slicepos);
+  void updateCrosshairPoint(PlaneType plane, Nm slicepos);
 
-  virtual void updateSelection(){}
 public slots:
   /// Show/Hide segmentations
   void setSegmentationVisibility(bool visible);
@@ -145,7 +144,7 @@ public slots:
   void removeSliceSelectors(SliceSelectorWidget *widget);
 
   /// Update Selected Items
-  virtual void updateSelection(ViewManager::Selection selection);
+  virtual void updateSelection(ViewManager::Selection selection, bool render);
   virtual void updateSceneBounds();
 
 protected slots:

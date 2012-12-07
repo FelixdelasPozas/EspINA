@@ -73,33 +73,35 @@ ChannelExplorer::ChannelExplorer(EspinaModel *model,
   connect(m_gui->showInformation, SIGNAL(clicked(bool)),
           this, SLOT(showInformation()));
   connect(m_gui->activeChannel, SIGNAL(clicked(bool)),
-	  this, SLOT(activateChannel()));
+          this, SLOT(activateChannel()));
   connect(m_gui->channelColor, SIGNAL(clicked(bool)),
-	  this, SLOT(changeChannelColor()));
+          this, SLOT(changeChannelColor()));
   connect(m_gui->alignLeft, SIGNAL(clicked(bool)),
-	  this, SLOT(alignLeft()));
+          this, SLOT(alignLeft()));
   connect(m_gui->alignCenter, SIGNAL(clicked(bool)),
-	  this, SLOT(alignCenter()));
+          this, SLOT(alignCenter()));
   connect(m_gui->alignRight, SIGNAL(clicked(bool)),
-	  this, SLOT(alignRight()));
+          this, SLOT(alignRight()));
   connect(m_gui->moveLeft, SIGNAL(clicked(bool)),
-	  this, SLOT(moveLelft()));
+          this, SLOT(moveLelft()));
   connect(m_gui->moveRight, SIGNAL(clicked(bool)),
-	  this, SLOT(moveRight()));
+          this, SLOT(moveRight()));
   connect(m_gui->view, SIGNAL(clicked(QModelIndex)),
-	  this, SLOT(channelSelected()));
+          this, SLOT(channelSelected()));
   connect(m_gui->view, SIGNAL(doubleClicked(QModelIndex)),
-	  this, SLOT(focusOnChannel()));
+          this, SLOT(focusOnChannel()));
+  connect(m_gui->view, SIGNAL(itemStateChanged(QModelIndex)),
+          m_viewManager, SLOT(updateViews()));
   connect(m_gui->xPos, SIGNAL(valueChanged(int)),
-	  this, SLOT(updateChannelPosition()));
+          this, SLOT(updateChannelPosition()));
   connect(m_gui->yPos, SIGNAL(valueChanged(int)),
-	  this, SLOT(updateChannelPosition()));
+          this, SLOT(updateChannelPosition()));
   connect(m_gui->zPos, SIGNAL(valueChanged(int)),
-	  this, SLOT(updateChannelPosition()));
+          this, SLOT(updateChannelPosition()));
   connect(m_gui->coordinateSelector, SIGNAL(currentIndexChanged(int)),
-	  this, SLOT(updateTooltips(int)));
+          this, SLOT(updateTooltips(int)));
   connect(m_gui->unloadChannel, SIGNAL(clicked(bool)),
-	  this, SLOT(unloadChannel()));
+          this, SLOT(unloadChannel()));
 
   updateTooltips(0);
   setWidget(m_gui);

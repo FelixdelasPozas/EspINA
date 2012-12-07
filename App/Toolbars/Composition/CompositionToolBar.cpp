@@ -46,7 +46,7 @@ CompositionToolBar::CompositionToolBar(EspinaModel *model,
 
   initComposeTool();
 
-  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection)),
+  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
           this, SLOT(updateAvailableOperations()));
   updateAvailableOperations();
 }
@@ -79,6 +79,7 @@ void CompositionToolBar::createSegmentationFromComponents()
   SegmentationList input = m_viewManager->selectedSegmentations();
   if (input.size() > 1)
   {
+    m_viewManager->clearSelection(true);
     m_undoStack->push(new CompositionCommand(input,
                                              m_viewManager->activeTaxonomy(),
                                              m_model));

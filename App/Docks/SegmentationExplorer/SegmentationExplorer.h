@@ -67,7 +67,7 @@ protected slots:
   void changeTaxonomy(TaxonomyElement *taxonomy);
   void deleteSegmentations();
   void focusOnSegmentation(const QModelIndex &index);
-  void segmentationsDeleted(const QModelIndex parent, int start, int end);
+  void rowsAboutToBeRemoved(const QModelIndex parent, int start, int end);
   void showInformation();
 
   void updateSelection(ViewManager::Selection selection);
@@ -77,7 +77,6 @@ protected slots:
 
   virtual ISettingsPanel* settingsPanel();
   virtual void updateSegmentationRepresentations();
-  virtual void updateSelection();
 
 protected:
   GUI *m_gui;

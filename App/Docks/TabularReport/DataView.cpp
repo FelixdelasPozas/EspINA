@@ -84,7 +84,7 @@ DataView::DataView(EspinaModel *model,
 	  this,SLOT(defineQuery()));
   connect(tableView->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
 	  this, SLOT(updateSelection(QItemSelection,QItemSelection)));
-  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection)),
+  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
 	  this, SLOT(updateSelection(ViewManager::Selection)));
 }
 
@@ -148,6 +148,7 @@ void DataView::updateSelection(ViewManager::Selection selection)
 {
   if (!isVisible())
     return;
+
 //   qDebug() << "Update Data Selection from Selection Manager";
   tableView->blockSignals(true);
   tableView->selectionModel()->blockSignals(true);

@@ -89,9 +89,10 @@ public:
   SegmentationList selectedSegmentations() const;
 //   const Nm *selectionCenter() const
 //   { return m_selectionCenter; }
+  void clearSelection(bool notifyViews = true);
 
 signals:
-  void selectionChanged(ViewManager::Selection);
+  void selectionChanged(ViewManager::Selection, bool);
 
 private:
   Selection m_selection;
@@ -141,8 +142,6 @@ public:
   void resetViewCameras();
   /// Focus
   void focusViewsOn(Nm *);
-  /// Update Segmentation Representation
-  void updateSegmentationRepresentations();
   /// Toggle crosshair
   void showCrosshair(bool);
   /// Set Slice Selection flags to all registered Slice Views
@@ -152,6 +151,8 @@ public:
   void removeSliceSelectors(SliceSelectorWidget *widget);
 
 public slots:
+  /// Update Segmentation Representation
+  void updateSegmentationRepresentations();
   /// Request all registered views to update themselves
   void updateViews();
 

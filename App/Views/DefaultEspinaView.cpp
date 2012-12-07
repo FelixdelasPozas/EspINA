@@ -371,14 +371,12 @@ void DefaultEspinaView::dataChanged(const QModelIndex& topLeft, const QModelInde
   if (ModelItem::CHANNEL == item->type())
   {
     Channel *channel = dynamic_cast<Channel *>(item);
-    if (updateChannel(channel))
-      updateViews();
+    updateChannel(channel);
   }
   else if (ModelItem::SEGMENTATION == item->type())
   {
     Segmentation *seg = dynamic_cast<Segmentation *>(item);
-    if (updateSegmentation(seg))
-      updateViews();
+    updateSegmentation(seg);
   }
 }
 
@@ -412,7 +410,7 @@ void DefaultEspinaView::showSegmentations(bool visible)
 //-----------------------------------------------------------------------------
 void DefaultEspinaView::showThumbnail(bool visible)
 {
-  QSettings settings("CeSViMa", ESPINA);
+  QSettings settings(CESVIMA, ESPINA);
   settings.setValue("ShowThumbnail", m_showThumbnail->isChecked());
   xyView->setThumbnailVisibility(visible);
   yzView->setThumbnailVisibility(visible);
@@ -571,23 +569,20 @@ void DefaultEspinaView::changePlanePosition(PlaneType plane, Nm dist)
   switch(plane)
   {
     case AXIAL:
-      this->yzView->UpdateCrosshairPoint(plane, dist);
-      this->xzView->UpdateCrosshairPoint(plane, dist);
+      this->yzView->updateCrosshairPoint(plane, dist);
+      this->xzView->updateCrosshairPoint(plane, dist);
       break;
     case CORONAL:
-      this->xyView->UpdateCrosshairPoint(plane, dist);
-      this->yzView->UpdateCrosshairPoint(plane, dist);
+      this->xyView->updateCrosshairPoint(plane, dist);
+      this->yzView->updateCrosshairPoint(plane, dist);
       break;
     case SAGITTAL:
-      this->xyView->UpdateCrosshairPoint(plane, dist);
-      this->xzView->UpdateCrosshairPoint(plane, dist);
-      break;
-    case VOLUME:
+      this->xyView->updateCrosshairPoint(plane, dist);
+      this->xzView->updateCrosshairPoint(plane, dist);
       break;
     default:
       Q_ASSERT(false);
       break;
   }
   volView->changePlanePosition(plane, dist);
-  volView->updateView();
 }

@@ -36,7 +36,7 @@ FilterInspector::FilterInspector(QUndoStack *undoStack,
   setWindowTitle("Filter Inspector");
   setObjectName("Filter Inspector Panel");
 
-  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection)),
+  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection,bool)),
           this, SLOT(updatePannel()));
 }
 

@@ -214,7 +214,6 @@ void Filter::draw(OutputId oId,
   }
 
   vtkSmartPointer<vtkPolyDataToImageStencil> polyDataToStencil = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
-  polyDataToStencil = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
   polyDataToStencil->SetInputConnection(contour->GetProducerPort());
   polyDataToStencil->SetOutputOrigin(0,0,0);
   polyDataToStencil->SetOutputSpacing(spacing[0], spacing[1], spacing[2]);

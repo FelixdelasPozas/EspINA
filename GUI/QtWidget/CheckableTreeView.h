@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña Pastor <jpena@cesvima.upm.es>
+    Copyright (C) 2012  Jorge Peña Pastor <jpena@cesvima.upm.es>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -17,33 +17,24 @@
 */
 
 
-//----------------------------------------------------------------------------
-// File:    IEspinaView.h
-// Purpose: Group different specific views and the way they are displayed
-//          (i.e. main window widget, dock widgets, independent widget, etc)
-//----------------------------------------------------------------------------
+#ifndef CHECKABLETREEVIEW_H
+#define CHECKABLETREEVIEW_H
 
-#ifndef IESPINAVIEW_H
-#define IESPINAVIEW_H
+#include <QTreeView>
 
-#include <QString>
 
-// Forward-declaration
-class EspinaModel;
-class ISettingsPanel;
-
-class IEspinaView
+class CheckableTreeView
+: public QTreeView
 {
+  Q_OBJECT
 public:
-  explicit IEspinaView(){}
-  virtual ~IEspinaView(){}
+  explicit CheckableTreeView(QWidget* parent = 0);
+  virtual ~CheckableTreeView();
 
-  virtual void updateSegmentationRepresentations() = 0;
+  virtual void mouseReleaseEvent(QMouseEvent* event);
 
-/*TODO BUG 2012-10-05
 signals:
-  void statusMsg(QString);
-  */
+  void itemStateChanged(const QModelIndex &);
 };
 
-#endif //IESPINAVIEW_H
+#endif // CHECKABLETREEVIEW_H

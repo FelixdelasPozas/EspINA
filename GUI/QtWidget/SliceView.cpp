@@ -196,8 +196,8 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
   this->setAutoFillBackground(true);
   setLayout(m_mainLayout);
 
-  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection)),
-          this, SLOT(updateSelection(ViewManager::Selection)));
+  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
+          this, SLOT(updateSelection(ViewManager::Selection, bool)));
 }
 
 
@@ -642,6 +642,7 @@ void SliceView::updateView()
 {
   if (isVisible())
   {
+    //qDebug() << "Updating View";
     updateRuler();
     updateWidgetVisibility();
     updateThumbnail();
@@ -846,8 +847,6 @@ void SliceView::removeSegmentation(Segmentation* seg)
   rep.slice->Delete();
 
   m_segmentationReps.remove(seg);
-
-  //NOTE 2012-10-09 It should be VM: forceRender();
 }
 
 //-----------------------------------------------------------------------------
@@ -889,8 +888,7 @@ bool SliceView::updateSegmentation(Segmentation* seg)
 
       rep.resliceToColors->SetLookupTable(m_highlighter->lut(segColor, highlight));
       rep.resliceToColors->Update();
-      /* NOTE 2012-10-12 To avoid using DefaultEspinaView::dataChanged()
-      updated = true;*/
+      updated = true;
     }
   }
 
@@ -987,10 +985,11 @@ void SliceView::removeActor(vtkProp* actor)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::updateSelection(ViewManager::Selection selection)
+void SliceView::updateSelection(ViewManager::Selection selection, bool render)
 {
   updateSegmentationRepresentations();
-  updateView();
+  if (render)
+    updateView();
 }
 
 //-----------------------------------------------------------------------------
@@ -1679,7 +1678,7 @@ void SliceView::Settings::setShowAxis(bool value)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::UpdateCrosshairPoint(PlaneType plane, Nm slicepos)
+void SliceView::updateCrosshairPoint(PlaneType plane, Nm slicepos)
 {
 
   this->m_crosshairPoint[plane] = slicepos;

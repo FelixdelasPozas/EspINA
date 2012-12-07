@@ -8,6 +8,7 @@ qt4_wrap_cpp(GUI_MOC
   Pickers/IPicker.h
   QtWidget/ActionSelector.h
   QtWidget/ActionSelectorWidget.h
+  QtWidget/CheckableTreeView.h
   QtWidget/EspinaRenderView.h
   QtWidget/HueSelector.h
   QtWidget/QComboTreeView.h
@@ -33,6 +34,7 @@ set (GUI_SOURCES
   Pickers/PixelPicker.cpp
   QtWidget/ActionSelector.cpp
   QtWidget/ActionSelectorWidget.cpp
+  QtWidget/CheckableTreeView.cpp
   QtWidget/EspinaRenderView.cpp
   QtWidget/HueSelector.cpp
   QtWidget/QComboTreeView.cpp

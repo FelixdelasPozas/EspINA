@@ -94,14 +94,16 @@ SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
           this, SLOT(changeLayout(int)));
   connect(m_gui->view, SIGNAL(doubleClicked(QModelIndex)),
           this, SLOT(focusOnSegmentation(QModelIndex)));
+  connect(m_gui->view, SIGNAL(itemStateChanged(QModelIndex)),
+          m_viewManager, SLOT(updateViews()));
   connect(m_gui->showInformation, SIGNAL(clicked(bool)),
           this, SLOT(showInformation()));
   connect(m_gui->deleteSegmentation, SIGNAL(clicked(bool)),
           this, SLOT(deleteSegmentations()));
-  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection)),
+  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
           this, SLOT(updateSelection(ViewManager::Selection)));
   connect(m_baseModel, SIGNAL(rowsAboutToBeRemoved(QModelIndex, int , int)),
-          this, SLOT(segmentationsDeleted(QModelIndex,int,int)));
+          this, SLOT(rowsAboutToBeRemoved(QModelIndex, int,int)));
 
   setWidget(m_gui);
 
@@ -181,6 +183,10 @@ void SegmentationExplorer::deleteSegmentations()
     SegmentationList toDelete = m_layout->deletedSegmentations(selected);
     if (!toDelete.isEmpty())
     {
+      m_gui->view->selectionModel()->blockSignals(true);
+      m_gui->view->selectionModel()->clear();
+      m_gui->view->selectionModel()->blockSignals(false);
+      m_viewManager->clearSelection(false);
       m_undoStack->beginMacro("Delete Segmentations");
       // BUG: Temporal Fix until RemoveSegmentation's bug is fixed
       foreach(Segmentation *seg, toDelete)
@@ -216,7 +222,7 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
 }
 
 //------------------------------------------------------------------------
-void SegmentationExplorer::segmentationsDeleted(const QModelIndex parent, int start, int end)
+void SegmentationExplorer::rowsAboutToBeRemoved(const QModelIndex parent, int start, int end)
 {
   if (m_baseModel->segmentationRoot() == parent)
   {
@@ -265,6 +271,9 @@ void SegmentationExplorer::showInformation()
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSelection(ViewManager::Selection selection)
 {
+  if (!isVisible())
+    return;
+
   //qDebug() << "Update Seg Explorer Selection from Selection Manager";
   m_gui->view->blockSignals(true);
   m_gui->view->selectionModel()->blockSignals(true);
@@ -330,10 +339,4 @@ ISettingsPanel *SegmentationExplorer::settingsPanel()
 void SegmentationExplorer::updateSegmentationRepresentations()
 {
 
-}
-
-//------------------------------------------------------------------------
-void SegmentationExplorer::updateSelection()
-{
-  std::cout << "update selection\n" << std::flush;
 }

@@ -177,7 +177,7 @@ EditorToolBar::EditorToolBar(EspinaModel *model,
   initCODETools();
   initFillTool();
 
-  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection)),
+  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
           this, SLOT(updateAvailableOperations()));
   updateAvailableOperations();
 }
@@ -291,6 +291,7 @@ void EditorToolBar::combineSegmentations()
   SegmentationList input = m_viewManager->selectedSegmentations();
   if (input.size() > 1)
   {
+    m_viewManager->clearSelection(true);
     m_undoStack->beginMacro("Combine Segmentations");
     m_undoStack->push(new ImageLogicCommand(input,
                                             ImageLogicFilter::ADDITION,
@@ -308,6 +309,7 @@ void EditorToolBar::substractSegmentations()
   SegmentationList input = m_viewManager->selectedSegmentations();
   if (input.size() > 1)
   {
+    m_viewManager->clearSelection(true);
     m_undoStack->beginMacro("Substract Segmentations");
     m_undoStack->push(new ImageLogicCommand(input,
                                             ImageLogicFilter::SUBSTRACTION,

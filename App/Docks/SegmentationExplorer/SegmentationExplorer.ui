@@ -45,7 +45,7 @@
     </layout>
    </item>
    <item>
-    <widget class="QTreeView" name="view">
+    <widget class="CheckableTreeView" name="view">
      <property name="acceptDrops">
       <bool>true</bool>
      </property>
@@ -176,7 +176,7 @@ QTreeView::indicator:unchecked {
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="../rsc/espina.qrc">
+        <iconset resource="../../rsc/espina.qrc">
          <normaloff>:/espina/trash-full.svg</normaloff>:/espina/trash-full.svg</iconset>
        </property>
        <property name="iconSize">
@@ -197,8 +197,15 @@ QTreeView::indicator:unchecked {
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>CheckableTreeView</class>
+   <extends>QTreeView</extends>
+   <header>GUI/QtWidget/CheckableTreeView.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
-  <include location="../rsc/espina.qrc"/>
+  <include location="../../rsc/espina.qrc"/>
  </resources>
  <connections/>
 </ui>

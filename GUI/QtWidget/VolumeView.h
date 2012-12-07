@@ -122,12 +122,11 @@ public:
 
   void showCrosshairs(bool) {};
   void updateSegmentationRepresentations();
-  virtual void updateSelection(){}
 
 public slots:
   void countEnabledRenderers(bool);
   /// Update Selected Items
-  virtual void updateSelection(ViewManager::Selection selection);
+  virtual void updateSelection(ViewManager::Selection selection, bool render);
   void resetView();
 
 signals:

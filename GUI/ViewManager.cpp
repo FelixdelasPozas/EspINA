@@ -128,7 +128,7 @@ void ViewManager::setSelection(ViewManager::Selection selection)
 
   //TODO 2012-10-07 computeSelectionCenter();
 
-  emit selectionChanged(m_selection);
+  emit selectionChanged(m_selection, true);
 }
 
 //----------------------------------------------------------------------------
@@ -144,6 +144,19 @@ SegmentationList ViewManager::selectedSegmentations() const
 
   return selection;
 }
+
+//----------------------------------------------------------------------------
+void ViewManager::clearSelection(bool notifyViews)
+{
+  if (!m_selection.isEmpty())
+  {
+    m_selection.clear();
+
+    emit selectionChanged(m_selection, notifyViews);
+  }
+}
+
+
 
 //----------------------------------------------------------------------------
 void ViewManager::setVOI(IVOI *voi)

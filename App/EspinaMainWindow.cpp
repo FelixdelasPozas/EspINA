@@ -496,13 +496,15 @@ void EspinaMainWindow::closeEvent(QCloseEvent* event)
 //------------------------------------------------------------------------
 void EspinaMainWindow::closeCurrentAnalysis()
 {
-  emit analysisClosed();
   m_viewManager->setActiveChannel(NULL);
   m_viewManager->setActiveTaxonomy(NULL);
   m_viewManager->setVOI(NULL);
   m_viewManager->unsetActiveTool();
+  m_viewManager->clearSelection();
   m_model->reset();
   m_undoStack->clear();
+
+  emit analysisClosed();
 }
 
 //------------------------------------------------------------------------

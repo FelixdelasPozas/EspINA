@@ -81,8 +81,8 @@ VolumeView::VolumeView(const EspinaFactory *factory,
   //   this->setStyleSheet("background-color: grey;");
 
   memset(m_center,0,3*sizeof(double));
-  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection)),
-          this, SLOT(updateSelection(ViewManager::Selection)));
+  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection, bool)),
+          this, SLOT(updateSelection(ViewManager::Selection,bool)));
 
   vm->registerView(this);
 }
@@ -183,11 +183,16 @@ void VolumeView::removeRendererControls(const QString name)
     }
 
     QMap<QPushButton*, Renderer *>::iterator it = m_renderers.begin();
-    while(it != m_renderers.end())
+    bool erased = false;
+    while(!erased && it != m_renderers.end())
     {
       if (it.value() == removedRenderer)
+      {
         m_renderers.erase(it);
-      ++it;
+        erased = true;
+      }
+      else
+        ++it;
     }
 
     m_itemRenderers.removeAll(removedRenderer);
@@ -744,12 +749,18 @@ QList<Renderer*> VolumeView::Settings::renderers() const
 //-----------------------------------------------------------------------------
 void VolumeView::changePlanePosition(PlaneType plane, Nm dist)
 {
+  bool needUpdate = false;
   foreach(Renderer* ren, m_itemRenderers)
+  {
     if (QString("Crosshairs") == ren->name())
     {
       CrosshairRenderer *crossren = reinterpret_cast<CrosshairRenderer *>(ren);
       crossren->setPlanePosition(plane, dist);
+      needUpdate = true;
     }
+  }
+  if (needUpdate)
+    updateView();
 }
 
 //-----------------------------------------------------------------------------
@@ -810,10 +821,11 @@ void VolumeView::countEnabledRenderers(bool value)
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::updateSelection(ViewManager::Selection selection)
+void VolumeView::updateSelection(ViewManager::Selection selection, bool render)
 {
   updateSegmentationRepresentations();
-  updateView();
+  if (render)
+    updateView();
 }
 
 //-----------------------------------------------------------------------------
