@@ -31,6 +31,7 @@
 #include <Core/Model/Sample.h>
 #include <Core/Model/Segmentation.h>
 #include <GUI/ISettingsPanel.h>
+#include <GUI/QtWidget/SegmentationContextualMenu.h>
 #include <Undo/RemoveSegmentation.h>
 
 #ifdef TEST_ESPINA_MODELS
@@ -76,7 +77,6 @@ SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
 , m_undoStack  (undoStack)
 , m_viewManager(vm)
 , m_layout     (NULL)
-, m_contextMenu(new QMenu())
 {
   setWindowTitle(tr("Segmentation Explorer"));
   setObjectName("SegmentationExplorer");
@@ -127,26 +127,13 @@ bool SegmentationExplorer::eventFilter(QObject *sender, QEvent *e)
   {
     QContextMenuEvent *cme = static_cast<QContextMenuEvent *>(e);
 
-    m_contextMenu->clear();
+    SegmentationContextualMenu contextMenu(m_baseModel);
+    connect(&contextMenu, SIGNAL(deleteSegmentations()),
+            this, SLOT(deleteSegmentations()));
+    connect(&contextMenu, SIGNAL(changeTaxonomy(TaxonomyElement*)),
+            this, SLOT(changeTaxonomy(TaxonomyElement*)));
 
-    QMenu         *changeTaxonomyMenu = new QMenu(tr("Change Taxonomy"));
-    QWidgetAction *taxonomyListAction = new QWidgetAction(changeTaxonomyMenu);
-    QTreeView     *taxonomyList       = new QTreeView();
-    taxonomyList->header()->setVisible(false);
-    taxonomyList->setModel(m_baseModel);
-    taxonomyList->setRootIndex(m_baseModel->taxonomyRoot());
-    taxonomyList->expandAll();
-    connect(taxonomyList, SIGNAL(clicked(QModelIndex)),
-            this, SLOT(changeTaxonomy(QModelIndex)));
-    taxonomyListAction->setDefaultWidget(taxonomyList);
-    changeTaxonomyMenu->addAction(taxonomyListAction);
-    m_contextMenu->addMenu(changeTaxonomyMenu);
-
-    QAction *deleteSegs = m_contextMenu->addAction(tr("Delete"));
-    connect (deleteSegs, SIGNAL(triggered(bool)),
-             this, SLOT(deleteSegmentations()));
-
-    m_contextMenu->exec(cme->globalPos());
+    contextMenu.exec(cme->globalPos());
 
     return true;
   }
@@ -176,16 +163,8 @@ void SegmentationExplorer::changeLayout(int index)
 }
 
 //------------------------------------------------------------------------
-void SegmentationExplorer::changeTaxonomy(const QModelIndex& taxIndex)
+void SegmentationExplorer::changeTaxonomy(TaxonomyElement* taxonomy)
 {
-  if (m_contextMenu->isVisible())
-    m_contextMenu->hide();
-
-  ModelItem *taxItem = indexPtr(taxIndex);
-  Q_ASSERT(ModelItem::TAXONOMY == taxItem->type());
-  TaxonomyElement *taxonomy = static_cast<TaxonomyElement *>(taxItem);
-  qDebug() << "Changing to " << taxonomy->qualifiedName() << " taxonomical element";
-
   SegmentationList selectedSegmentations = m_viewManager->selectedSegmentations();
   foreach(Segmentation *seg, selectedSegmentations)
   {
@@ -196,9 +175,6 @@ void SegmentationExplorer::changeTaxonomy(const QModelIndex& taxIndex)
 //------------------------------------------------------------------------
 void SegmentationExplorer::deleteSegmentations()
 {
-  if (m_contextMenu->isVisible())
-    m_contextMenu->hide();
-
   if (m_layout)
   {
     QModelIndexList selected = m_gui->view->selectionModel()->selectedIndexes();

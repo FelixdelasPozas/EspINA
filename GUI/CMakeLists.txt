@@ -11,6 +11,7 @@ qt4_wrap_cpp(GUI_MOC
   QtWidget/EspinaRenderView.h
   QtWidget/HueSelector.h
   QtWidget/QComboTreeView.h
+  QtWidget/SegmentationContextualMenu.h
   QtWidget/SliceView.h
   QtWidget/VolumeView.h
   Renderers/Renderer.h
@@ -35,6 +36,7 @@ set (GUI_SOURCES
   QtWidget/EspinaRenderView.cpp
   QtWidget/HueSelector.cpp
   QtWidget/QComboTreeView.cpp
+  QtWidget/SegmentationContextualMenu.cpp
   QtWidget/SliceView.cpp
   QtWidget/SliceViewState.cpp
   QtWidget/VolumeView.cpp

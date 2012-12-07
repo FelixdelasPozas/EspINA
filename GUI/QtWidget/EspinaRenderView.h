@@ -21,7 +21,9 @@
 #define ESPINARENDERVIEW_H
 
 #include <QWidget>
+#include <QMenu>
 #include "GUI/QtWidget/IEspinaView.h"
+#include "SegmentationContextualMenu.h"
 
 #include "Core/EspinaTypes.h"
 #include "GUI/Pickers/IPicker.h"
@@ -82,6 +84,9 @@ public:
   virtual void setViewType(PlaneType);
   virtual PlaneType getViewType();
 
+  virtual void setContextualMenu(QSharedPointer<SegmentationContextualMenu> contextMenu)
+  { m_contextMenu = contextMenu; }
+
 protected slots:
   virtual void updateSceneBounds();
 
@@ -99,6 +104,8 @@ protected:
   Nm m_sceneBounds[6];
   Nm m_sceneResolution[3];// Min distance between 2 voxels in each axis
   PlaneType m_plane;
+
+  QSharedPointer<SegmentationContextualMenu> m_contextMenu;
 };
 
 #endif // ESPINARENDERVIEW_H

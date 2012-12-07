@@ -1110,12 +1110,14 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
     m_inThumbnail = m_thumbnail->GetDraw() && m_channelPicker->Pick(x, y, 0.1, m_thumbnail);
 
   }
-  //else if (QEvent::ContextMenu == e->type())
-  //{ QContextMenuEvent *cme = dynamic_cast<QContextMenuEvent*>(e);
-  //  QMenu *menu = new QMenu(this);
-  //  menu->addAction(tr("Info"));
-  //  menu->popup(mapToGlobal(cme->pos()));
-  //  return true; }
+  else if (QEvent::ContextMenu == e->type())
+  {
+    QContextMenuEvent *cme = dynamic_cast<QContextMenuEvent*>(e);
+    if (cme->modifiers() == Qt::CTRL && !m_contextMenu.isNull())
+    {
+      //m_contextMenu->exec(mapToGlobal(cme->pos()));
+    }
+  }
   else if (QEvent::ToolTip == e->type())
   {
     int x, y;

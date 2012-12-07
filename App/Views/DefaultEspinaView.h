@@ -25,6 +25,7 @@
 #include <Core/EspinaTypes.h>
 #include <GUI/QtWidget/SliceView.h>
 #include <GUI/QtWidget/VolumeView.h>
+#include <GUI/QtWidget/SegmentationContextualMenu.h>
 
 class EspinaFactory;
 // Forward-declaration
@@ -104,6 +105,8 @@ protected:
   void initSliceView(SliceView *view);
 
 private:
+  EspinaModel *m_model;
+
   bool m_showProcessing;
   bool m_showSegmentations;
   Nm   m_slicingStep[3];
@@ -113,7 +116,7 @@ private:
   QDockWidget *volDock, *yzDock, *xzDock;
   QAction     *m_showRuler, *m_showThumbnail;
 
-  EspinaModel *m_model;
+  QSharedPointer<SegmentationContextualMenu> m_contextMenu;
 };
 
 class DefaultEspinaView::SettingsPanel
@@ -139,7 +142,9 @@ public:
 private:
   SliceView::SettingsPtr m_xy, m_yz, m_xz;
   EspinaFactory *m_factory;
+
   Nm m_slicingStep;
+
   SliceViewSettingsPanel *m_xyPanel, *m_yzPanel, *m_xzPanel;
   VolumeView::SettingsPtr m_vol;
   VolumeViewSettingsPanel *m_volPanel;

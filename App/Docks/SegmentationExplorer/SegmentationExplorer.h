@@ -64,7 +64,7 @@ protected:
 protected slots:
   void changeLayout(int index);
 
-  void changeTaxonomy(const QModelIndex &taxIndex);
+  void changeTaxonomy(TaxonomyElement *taxonomy);
   void deleteSegmentations();
   void focusOnSegmentation(const QModelIndex &index);
   void segmentationsDeleted(const QModelIndex parent, int start, int end);
@@ -89,7 +89,6 @@ protected:
   QStringList     m_layoutNames;
   QList<Layout *> m_layouts;
   Layout         *m_layout;
-  QMenu          *m_contextMenu;
 
   QMap<Segmentation *, SegmentationInspector *> m_inspectors;
 

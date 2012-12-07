@@ -44,9 +44,10 @@
 //----------------------------------------------------------------------------
 DefaultEspinaView::DefaultEspinaView(EspinaModel* model, ViewManager* vm, QMainWindow *parent)
 : QAbstractItemView(parent)
+, m_model(model)
 , m_showProcessing(false)
 , m_showSegmentations(true)
-, m_model(model)
+, m_contextMenu(new SegmentationContextualMenu(m_model))
 {
   double cyan[3] = { 0, 1, 1 };
   double blue[3] = { 0, 0, 1 };
@@ -114,6 +115,7 @@ void DefaultEspinaView::initSliceView(SliceView* view)
 //           this, SLOT(selectToSlice(double, PlaneType)));
   connect(view, SIGNAL(sliceChanged(PlaneType, Nm)),
           this, SLOT(changePlanePosition(PlaneType, Nm)));
+  view->setContextualMenu(m_contextMenu);
 }
 
 //-----------------------------------------------------------------------------
