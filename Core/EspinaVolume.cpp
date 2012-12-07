@@ -166,7 +166,7 @@ EspinaVolume::VolumeRegion EspinaVolume::volumeRegion(const EspinaRegion& region
   if (origin[0] != 0 || origin[1] != 0 || origin[2] != 0)
   {
     for (int i = 0; i < 3; i++)
-      res.SetIndex(i, res.GetIndex(i)-(origin[i]/spacing[i]+0.5));
+      res.SetIndex(i, res.GetIndex(i) - int(origin[i]/spacing[i]+0.5));
   }
 
   return res;
