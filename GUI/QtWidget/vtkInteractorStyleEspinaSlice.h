@@ -45,6 +45,8 @@ public:
   virtual void OnLeftButtonDown() {}
   virtual void OnLeftButtonUp() {}
   //   virtual void OnMouseMove();
+  // Disable zoom if Ctrl is pressed
+  virtual void OnRightButtonDown();
 protected:
   explicit vtkInteractorStyleEspinaSlice()
   {

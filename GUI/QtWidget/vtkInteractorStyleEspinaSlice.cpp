@@ -20,6 +20,15 @@
 #include "vtkInteractorStyleEspinaSlice.h"
 
 #include <vtkObjectFactory.h>
+#include <vtkRenderWindowInteractor.h>
 
 
 vtkStandardNewMacro(vtkInteractorStyleEspinaSlice);
+
+void vtkInteractorStyleEspinaSlice::OnRightButtonDown()
+{
+  if (this->Interactor->GetControlKey() == 0)
+  {
+    vtkInteractorStyleImage::OnRightButtonDown();
+  }
+}
