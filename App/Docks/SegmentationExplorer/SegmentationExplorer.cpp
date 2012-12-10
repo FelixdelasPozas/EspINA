@@ -407,4 +407,6 @@ void SegmentationExplorer::changeFinalFlag(bool value)
 
   foreach(Segmentation *seg, selectedSegmentations)
     seg->notifyModification(true);
+
+  m_viewManager->updateViews();
 }

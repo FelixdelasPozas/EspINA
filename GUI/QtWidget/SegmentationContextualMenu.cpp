@@ -50,7 +50,7 @@ SegmentationContextualMenu::SegmentationContextualMenu(EspinaModel *model,
   changeTaxonomyMenu->addAction(taxonomyListAction);
   this->addMenu(changeTaxonomyMenu);
 
-  m_changeFinalNode = this->addAction(tr("Set Final"));
+  m_changeFinalNode = this->addAction(tr("Set level of detail"));
   m_changeFinalNode->setCheckable(true);
   connect(m_changeFinalNode, SIGNAL(triggered()),
           this, SLOT(changeFinalFlag()));
