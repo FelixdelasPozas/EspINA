@@ -292,6 +292,8 @@ void VolumetricRenderer::createHierarchyProperties(Segmentation *seg)
         m_renderer->RemoveVolume(m_segmentations[seg].volume);
       }
       break;
+    case HierarchyItem::Undefined:
+      break;
     default:
       Q_ASSERT(false);
       break;
@@ -369,6 +371,8 @@ bool VolumetricRenderer::updateHierarchyProperties(Segmentation *seg)
           m_segmentations[seg].visible = false;
           m_renderer->RemoveVolume(m_segmentations[seg].volume);
         }
+        break;
+      case HierarchyItem::Undefined:
         break;
       default:
         Q_ASSERT(false);

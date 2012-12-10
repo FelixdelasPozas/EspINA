@@ -327,6 +327,8 @@ void MeshRenderer::createHierarchyProperties(Segmentation *seg)
         m_renderer->RemoveActor(m_segmentations[seg].actor);
       }
       break;
+    case HierarchyItem::Undefined:
+      break;
     default:
       Q_ASSERT(false);
       break;
@@ -396,6 +398,8 @@ bool MeshRenderer::updateHierarchyProperties(Segmentation *seg)
           m_segmentations[seg].visible = false;
           m_renderer->RemoveActor(m_segmentations[seg].actor);
         }
+        break;
+      case HierarchyItem::Undefined:
         break;
       default:
         Q_ASSERT(false);

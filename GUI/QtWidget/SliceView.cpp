@@ -861,6 +861,8 @@ void SliceView::addSegmentation(Segmentation* seg)
           segRep.slice->SetVisibility(false);
         }
         break;
+      case HierarchyItem::Undefined:
+        break;
       default:
         Q_ASSERT(false);
         break;
@@ -954,6 +956,8 @@ bool SliceView::updateSegmentation(Segmentation* seg)
           rep.visible = false;
           rep.slice->SetVisibility(false);
         }
+        break;
+      case HierarchyItem::Undefined:
         break;
       default:
         Q_ASSERT(false);
