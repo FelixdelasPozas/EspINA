@@ -79,6 +79,14 @@ void CompositionCommand::redo()
 
   // Add new filter
   m_model->addFilter(m_filter);
+  foreach(Segmentation *seg, m_input)
+  {
+    ModelItem::Vector segFilter = seg->relatedItems(ModelItem::IN, CREATELINK);
+    Q_ASSERT(segFilter.size() == 1);
+    ModelItem *item = segFilter[0];
+    Q_ASSERT(ModelItem::FILTER == item->type());
+    m_model->addRelation(item, m_filter, link(seg));
+  }
 
   // Add new segmentation
   m_seg->setTaxonomy(m_tax);
