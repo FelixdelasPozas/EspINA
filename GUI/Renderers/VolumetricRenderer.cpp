@@ -56,7 +56,7 @@ bool VolumetricRenderer::addItem(ModelItem* item)
         m_renderer->RemoveVolume(this->m_segmentations[seg].volume);
       m_segmentations[seg].volume->Delete();
       if (m_segmentations[seg].actorPropertyBackup)
-        m_segmentations[seg].actorPropertyBackup->Delete();
+        m_segmentations[seg].actorPropertyBackup = NULL;
       m_segmentations.remove(item);
     }
 
@@ -199,7 +199,7 @@ bool VolumetricRenderer::removeItem(ModelItem* item)
      m_renderer->RemoveVolume(m_segmentations[seg].volume);
 
    if (m_segmentations[seg].actorPropertyBackup)
-     m_segmentations[seg].actorPropertyBackup->Delete();
+     m_segmentations[seg].actorPropertyBackup = NULL;
 
    m_segmentations[seg].volume->Delete();
    m_segmentations.remove(seg);

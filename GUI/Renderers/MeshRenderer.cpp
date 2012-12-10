@@ -59,6 +59,7 @@ bool MeshRenderer::addItem(ModelItem* item)
       if (m_enable)
         m_renderer->RemoveActor(this->m_segmentations[seg].actor);
       m_segmentations[seg].actor->Delete();
+      m_segmentations[seg].actorPropertyBackup = NULL;
       m_segmentations.remove(item);
     }
 
@@ -223,7 +224,7 @@ bool MeshRenderer::removeItem(ModelItem* item)
      m_renderer->RemoveActor(m_segmentations[seg].actor);
 
    if (m_segmentations[seg].actorPropertyBackup)
-     m_segmentations[seg].actorPropertyBackup->Delete();
+     m_segmentations[seg].actorPropertyBackup = NULL;
 
    m_segmentations[seg].actor->Delete();
    m_segmentations.remove(seg);
