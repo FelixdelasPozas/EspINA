@@ -95,13 +95,13 @@ MainToolBar::MainToolBar(EspinaModel *model,
 //----------------------------------------------------------------------------
 void MainToolBar::setShowSegmentations(bool visible)
 {
-  std::filebuf fb;
-  fb.open("/home/lokifacio/graph.dot", ios::out);
-  std::ostream os(&fb);
-
-  m_model->relationships()->write(os, RelationshipGraph::GRAPHVIZ);
-
-  fb.close();
+//   std::filebuf fb;
+//   fb.open("/home/jpena/graph.dot", ios::out);
+//   std::ostream os(&fb);
+// 
+//   m_model->relationships()->write(os, RelationshipGraph::GRAPHVIZ);
+// 
+//   fb.close();
 
   if (visible)
     m_toggleSegVisibility->setIcon(QIcon(":/espina/show_all.svg"));
