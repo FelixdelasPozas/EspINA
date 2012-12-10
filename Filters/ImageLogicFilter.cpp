@@ -58,9 +58,9 @@ bool ImageLogicFilter::needUpdate() const
 {
   bool update = Filter::needUpdate();
 
-  if (!update)
+  if (!update && !m_inputs.isEmpty()) //TODO 2012-12-10 Check this update
   {
-    Q_ASSERT(m_inputs.size()  >= 1);
+    Q_ASSERT(m_namedInputs.size()  >= 1);
     Q_ASSERT(m_outputs.size() == 1);
     Q_ASSERT(m_outputs[0].volume.get());
 
