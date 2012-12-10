@@ -328,6 +328,22 @@ SegmentationList Segmentation::components()
 }
 
 //------------------------------------------------------------------------
+SegmentationList Segmentation::componentOf()
+{
+  SegmentationList res;
+
+  ModelItem::Vector subComponents = relatedItems(IN, COMPOSED_LINK);
+
+  foreach(ModelItem *item, subComponents)
+  {
+    Q_ASSERT(SEGMENTATION == item->type());
+    res << dynamic_cast<Segmentation *>(item);
+  }
+
+  return res;
+}
+
+//------------------------------------------------------------------------
 void Segmentation::addExtension(SegmentationExtension* ext)
 {
   ModelItem::addExtension(ext);

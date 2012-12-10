@@ -35,6 +35,7 @@
 
 // Debug
 #include <QDebug>
+
 // Qt includes
 #include <QApplication>
 #include <QHBoxLayout>
@@ -830,6 +831,41 @@ void SliceView::addSegmentation(Segmentation* seg)
   segRep.slice->GetPosition(pos);
   pos[m_plane] = (m_plane == AXIAL) ? -0.05 : 0.05;
   segRep.slice->SetPosition(pos);
+  segRep.overridden = seg->OverridesRendering();
+  segRep.renderingType = seg->getHierarchyRenderingType();
+
+  if (segRep.overridden)
+  {
+    switch(segRep.renderingType)
+    {
+      case HierarchyItem::Opaque:
+        segRep.slice->GetProperty()->SetOpacity(1.0);
+        if (!segRep.visible)
+        {
+          segRep.visible = true;
+          segRep.slice->SetVisibility(true);
+        }
+        break;
+      case HierarchyItem::Translucent:
+        segRep.slice->GetProperty()->SetOpacity(0.3);
+        if (!segRep.visible)
+        {
+          segRep.visible = true;
+          segRep.slice->SetVisibility(true);
+        }
+        break;
+      case HierarchyItem::Hidden:
+        if (segRep.visible)
+        {
+          segRep.visible = false;
+          segRep.slice->SetVisibility(false);
+        }
+        break;
+      default:
+        Q_ASSERT(false);
+        break;
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -891,6 +927,50 @@ bool SliceView::updateSegmentation(Segmentation* seg)
       updated = true;
     }
   }
+
+  if (seg->OverridesRendering())
+  {
+    switch(rep.renderingType)
+    {
+      case HierarchyItem::Opaque:
+        rep.slice->GetProperty()->SetOpacity(1.0);
+        if (!rep.visible)
+        {
+          rep.visible = true;
+          rep.slice->SetVisibility(true);
+        }
+        break;
+      case HierarchyItem::Translucent:
+        rep.slice->GetProperty()->SetOpacity(0.3);
+        if (!rep.visible)
+        {
+          rep.visible = true;
+          rep.slice->SetVisibility(true);
+        }
+        break;
+      case HierarchyItem::Hidden:
+        if (rep.visible)
+        {
+          rep.visible = false;
+          rep.slice->SetVisibility(false);
+        }
+        break;
+      default:
+        Q_ASSERT(false);
+        break;
+    }
+  }
+  else
+  {
+    if (rep.overridden)
+      rep.slice->GetProperty()->SetOpacity(1.0);
+  }
+
+  updated |= ((seg->OverridesRendering() != rep.overridden) ||
+              (seg->getHierarchyRenderingType() != rep.renderingType));
+
+  rep.overridden = seg->OverridesRendering();
+  rep.renderingType = seg->getHierarchyRenderingType();
 
   return updated;
 }
@@ -993,14 +1073,19 @@ void SliceView::updateSelection(ViewManager::Selection selection, bool render)
 }
 
 //-----------------------------------------------------------------------------
-void SliceView::updateSegmentationRepresentations()
+void SliceView::updateSegmentationRepresentations(SegmentationList list)
 {
   if (isVisible())
   {
-    foreach(Segmentation *seg, m_segmentationReps.keys())
-    {
+    SegmentationList updateSegmentations;
+
+    if (list.empty())
+      updateSegmentations = m_segmentationReps.keys();
+    else
+      updateSegmentations = list;
+
+    foreach(Segmentation *seg, updateSegmentations)
       updateSegmentation(seg);
-    }
   }
 }
 
@@ -1114,7 +1199,7 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
     QContextMenuEvent *cme = dynamic_cast<QContextMenuEvent*>(e);
     if (cme->modifiers() == Qt::CTRL && !m_contextMenu.isNull())
     {
-      //m_contextMenu->exec(mapToGlobal(cme->pos()));
+      //m_contextMenu->exec(mapToGlobal(cme->pos()), m_viewManager->selectedSegmentations());
     }
   }
   else if (QEvent::ToolTip == e->type())

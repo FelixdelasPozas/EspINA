@@ -47,7 +47,7 @@ DefaultEspinaView::DefaultEspinaView(EspinaModel* model, ViewManager* vm, QMainW
 , m_model(model)
 , m_showProcessing(false)
 , m_showSegmentations(true)
-, m_contextMenu(new SegmentationContextualMenu(m_model))
+, m_contextMenu(new SegmentationContextualMenu(m_model, SegmentationList()))
 {
   double cyan[3] = { 0, 1, 1 };
   double blue[3] = { 0, 0, 1 };

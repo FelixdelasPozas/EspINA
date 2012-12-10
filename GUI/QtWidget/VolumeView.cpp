@@ -829,11 +829,20 @@ void VolumeView::updateSelection(ViewManager::Selection selection, bool render)
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::updateSegmentationRepresentations()
+void VolumeView::updateSegmentationRepresentations(SegmentationList list)
 {
   if (isVisible())
-    foreach(Segmentation *seg, m_segmentations)
+  {
+    SegmentationList updateSegmentations;
+
+    if (list.empty())
+      updateSegmentations = m_segmentations;
+    else
+      updateSegmentations = list;
+
+    foreach(Segmentation *seg, updateSegmentations)
       updateSegmentation(seg);
+  }
 }
 
 //-----------------------------------------------------------------------------

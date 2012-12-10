@@ -5,8 +5,8 @@
  *      Author: Félix de las Pozas Álvarez
  */
 
-#ifndef IHIERARCHYITEM_H_
-#define IHIERARCHYITEM_H_
+#ifndef HIERARCHYITEM_H_
+#define HIERARCHYITEM_H_
 
 #include <QObject>
 
@@ -15,18 +15,20 @@ class HierarchyItem
   public:
     enum HierarchyProperty
     {
-      Empty = 0x0,              // no hierarchy properties set
-      FinalNode = 0x1,          // node is final, meaning is solid rendered and none of it's children will be rendered
+      Empty             = 0x0,  // no hierarchy properties set
+      FinalNode         = 0x1,  // node is final, meaning is solid rendered and none of it's children will be rendered
                                 // by default (unless explicitly stated by the user)
-      OverrideRendering = 0x2   // hierarchy rendering type overrides default rendering properties
+      DependentNode     = 0x2,  // node rendering depends on a lower/upper associated node
+      OverrideRendering = 0x3   // hierarchy rendering type overrides default rendering properties
     };
     Q_DECLARE_FLAGS(HierarchyProperties, HierarchyProperty)
 
     enum HierarchyRenderingType
     {
-      Opaque = 0,
-      Trasnlucent,
-      Contour                   // not implemented, tentative
+      Undefined = 0,
+      Hidden,
+      Opaque,
+      Translucent
     };
 
     explicit HierarchyItem(): m_flags(Empty), m_renderingType(Opaque) {};
@@ -35,10 +37,14 @@ class HierarchyItem
     virtual void setFinalNode(bool value);
     virtual bool IsFinalNode();
 
+    virtual void setDependentNode(bool value);
+    virtual bool IsDependentNode();
+
     virtual void setHierarchyRenderingType(HierarchyRenderingType, bool override);
     virtual HierarchyRenderingType getHierarchyRenderingType();
     virtual bool OverridesRendering();
 
+    virtual void resetHierarchyProperties();
   protected:
     HierarchyProperties m_flags;
     HierarchyRenderingType m_renderingType;
@@ -46,4 +52,4 @@ class HierarchyItem
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(HierarchyItem::HierarchyProperties)
 
-#endif /* IHIERARCHYITEM_H_ */
+#endif /* HIERARCHYITEM_H_ */

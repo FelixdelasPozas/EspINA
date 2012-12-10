@@ -21,13 +21,17 @@
 #define MESHRENDERER_H
 
 #include "GUI/Renderers/Renderer.h"
+#include <Core/Model/HierarchyItem.h>
 
 #include <QMap>
 #include <vtkActor.h>
+#include <vtkSmartPointer.h>
 
 class ModelItem;
 class ViewManager;
 class vtkImageConstantPad;
+class Segmentation;
+class vtkProperty;
 
 class MeshRenderer: public Renderer
 {
@@ -38,6 +42,9 @@ class MeshRenderer: public Renderer
     bool selected;
     QColor color;
     int extent[6];
+    bool overridden;
+    HierarchyItem::HierarchyRenderingType renderingType;
+    vtkSmartPointer<vtkProperty> actorPropertyBackup;
   };
 public:
   explicit MeshRenderer(ViewManager *vm, QObject* parent = 0);
@@ -58,6 +65,9 @@ public:
 
   virtual bool isASegmentationRenderer() { return true; };
 private:
+  void createHierarchyProperties(Segmentation *);
+  bool updateHierarchyProperties(Segmentation *);
+
   ViewManager *m_viewManager;
   QMap<ModelItem *, Representation> m_segmentations;
 };

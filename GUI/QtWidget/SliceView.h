@@ -28,6 +28,7 @@
 #include "GUI/ViewManager.h"
 #include "GUI/ISettingsPanel.h"
 #include "GUI/vtkWidgets/EspinaWidget.h"
+#include <Core/Model/HierarchyItem.h>
 
 #include <itkImageToVTKImageFilter.h>
 
@@ -127,7 +128,7 @@ public:
 
   SettingsPtr settings() { return m_settings; }
 
-  void updateSegmentationRepresentations();
+  virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
   void updateCrosshairPoint(PlaneType plane, Nm slicepos);
 
 public slots:
@@ -146,6 +147,8 @@ public slots:
   /// Update Selected Items
   virtual void updateSelection(ViewManager::Selection selection, bool render);
   virtual void updateSceneBounds();
+
+  virtual void updateSelection() {}
 
 protected slots:
   void sliceViewCenterChanged(Nm x, Nm y, Nm z);
@@ -216,6 +219,8 @@ private:
     bool selected;
     QColor color;
     Nm pos[3];
+    bool overridden;
+    HierarchyItem::HierarchyRenderingType renderingType;
   };
 
   ViewManager *m_viewManager;

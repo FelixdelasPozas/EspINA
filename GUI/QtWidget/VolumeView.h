@@ -121,7 +121,8 @@ public:
   void removeRendererControls(const QString name);
 
   void showCrosshairs(bool) {};
-  void updateSegmentationRepresentations();
+  virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
+  virtual void updateSelection(){}
 
 public slots:
   void countEnabledRenderers(bool);

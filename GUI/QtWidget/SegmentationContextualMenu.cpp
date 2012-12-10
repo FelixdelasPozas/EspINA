@@ -21,15 +21,21 @@
 
 #include <Core/Model/EspinaModel.h>
 #include <Core/Model/Taxonomy.h>
+#include <Core/Model/Segmentation.h>
 
 #include <QWidgetAction>
 #include <QTreeView>
 #include <QHeaderView>
+#include <QStringList>
+#include <QStringListModel>
+#include <QListView>
 
 //------------------------------------------------------------------------
 SegmentationContextualMenu::SegmentationContextualMenu(EspinaModel *model,
+                                                       SegmentationList selection,
                                                        QWidget* parent)
 : QMenu(parent)
+, m_segmentations(selection)
 {
   QMenu         *changeTaxonomyMenu = new QMenu(tr("Change Taxonomy"));
   QWidgetAction *taxonomyListAction = new QWidgetAction(changeTaxonomyMenu);
@@ -39,18 +45,60 @@ SegmentationContextualMenu::SegmentationContextualMenu(EspinaModel *model,
   taxonomyList->setRootIndex(model->taxonomyRoot());
   taxonomyList->expandAll();
   connect(taxonomyList, SIGNAL(clicked(QModelIndex)),
-          this, SLOT(changTaxonomyClicked(QModelIndex)));
+          this, SLOT(changeTaxonomyClicked(QModelIndex)));
   taxonomyListAction->setDefaultWidget(taxonomyList);
   changeTaxonomyMenu->addAction(taxonomyListAction);
   this->addMenu(changeTaxonomyMenu);
 
+  m_changeFinalNode = this->addAction(tr("Set Final"));
+  m_changeFinalNode->setCheckable(true);
+  connect(m_changeFinalNode, SIGNAL(triggered()),
+          this, SLOT(changeFinalFlag()));
+
   QAction *deleteSegs = this->addAction(tr("Delete"));
   connect (deleteSegs, SIGNAL(triggered(bool)),
            this, SLOT(deleteSementationsClicked()));
+
+  bool enabled = false;
+  SegmentationList ancestors, descendents;
+  foreach (Segmentation *seg, m_segmentations)
+  {
+    enabled |= seg->IsFinalNode();
+    ancestors.append(seg->componentOf());
+    descendents.append(seg->components());
+  }
+
+  foreach(Segmentation *seg, ancestors)
+  {
+    if (m_segmentations.contains(seg))
+    {
+      ancestors.removeAll(seg);
+      break;
+    }
+    m_segmentations.append(seg);
+    ancestors.append(seg->componentOf());
+
+    enabled |= seg->IsFinalNode();
+  }
+
+  foreach(Segmentation *seg, descendents)
+  {
+    if (m_segmentations.contains(seg))
+    {
+      descendents.removeAll(seg);
+      break;
+    }
+    m_segmentations.append(seg);
+    descendents.append(seg->components());
+
+    enabled |= seg->IsFinalNode();
+  }
+
+  m_changeFinalNode->setChecked(enabled);
 }
 
 //------------------------------------------------------------------------
-void SegmentationContextualMenu::changTaxonomyClicked(const QModelIndex& index)
+void SegmentationContextualMenu::changeTaxonomyClicked(const QModelIndex& index)
 {
   this->hide();
 
@@ -61,8 +109,22 @@ void SegmentationContextualMenu::changTaxonomyClicked(const QModelIndex& index)
 }
 
 //------------------------------------------------------------------------
+void SegmentationContextualMenu::changeFinalFlag()
+{
+  this->hide();
+  emit changeFinalNode(m_changeFinalNode->isChecked());
+}
+
+
+//------------------------------------------------------------------------
 void SegmentationContextualMenu::deleteSementationsClicked()
 {
   this->hide();
   emit deleteSegmentations();
+}
+
+//------------------------------------------------------------------------
+void SegmentationContextualMenu::setSelection(SegmentationList list)
+{
+  this->m_segmentations = list;
 }

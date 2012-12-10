@@ -65,6 +65,7 @@ protected slots:
   void changeLayout(int index);
 
   void changeTaxonomy(TaxonomyElement *taxonomy);
+  void changeFinalFlag(bool);
   void deleteSegmentations();
   void focusOnSegmentation(const QModelIndex &index);
   void rowsAboutToBeRemoved(const QModelIndex parent, int start, int end);
@@ -76,7 +77,8 @@ protected slots:
   void releaseInspectorResources(SegmentationInspector *inspector);
 
   virtual ISettingsPanel* settingsPanel();
-  virtual void updateSegmentationRepresentations();
+  virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
+  virtual void updateSelection();
 
 protected:
   GUI *m_gui;

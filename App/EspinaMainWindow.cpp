@@ -56,7 +56,6 @@
 #include <GUI/Renderers/VolumetricRenderer.h>
 #include <GUI/ViewManager.h>
 
-
 #ifdef TEST_ESPINA_MODELS
   #include <Core/Model/ModelTest.h>
 #endif
@@ -248,10 +247,7 @@ EspinaMainWindow::EspinaMainWindow()
   m_viewMenu->addSeparator();
 
   DefaultEspinaView *defaultView = new DefaultEspinaView(m_model, m_viewManager, this);
-  /*TODO 2012-10-05 m_view->setColorEngine(EspinaCore::instance()->colorSettings().engine());
-  /connect(m_view, SIGNAL(statusMsg(QString)),
-          this, SLOT(updateStatus(QString)));
-          */
+
   statusBar()->clearMessage();
 
   defaultView->createViewMenu(m_viewMenu);

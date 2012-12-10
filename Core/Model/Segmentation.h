@@ -143,6 +143,10 @@ public:
   /// Return the list of segmentations which compose this segmentation
   SegmentationList components();
 
+  /// Return the list of segmentations which this segmentation is a component
+  SegmentationList componentOf();
+
+
   /// Add a new extension to the segmentation
   /// Extesion won't be available until requirements are satisfied
   void addExtension(SegmentationExtension *ext);

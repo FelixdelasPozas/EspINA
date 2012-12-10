@@ -30,6 +30,7 @@
 #include <Core/Model/Proxies/TaxonomyProxy.h>
 #include <Core/Model/Sample.h>
 #include <Core/Model/Segmentation.h>
+#include <Core/Model/HierarchyItem.h>
 #include <GUI/ISettingsPanel.h>
 #include <GUI/QtWidget/SegmentationContextualMenu.h>
 #include <Undo/RemoveSegmentation.h>
@@ -129,11 +130,13 @@ bool SegmentationExplorer::eventFilter(QObject *sender, QEvent *e)
   {
     QContextMenuEvent *cme = static_cast<QContextMenuEvent *>(e);
 
-    SegmentationContextualMenu contextMenu(m_baseModel);
+    SegmentationContextualMenu contextMenu(m_baseModel, m_viewManager->selectedSegmentations());
     connect(&contextMenu, SIGNAL(deleteSegmentations()),
             this, SLOT(deleteSegmentations()));
     connect(&contextMenu, SIGNAL(changeTaxonomy(TaxonomyElement*)),
             this, SLOT(changeTaxonomy(TaxonomyElement*)));
+    connect(&contextMenu, SIGNAL(changeFinalNode(bool)),
+            this, SLOT(changeFinalFlag(bool)));
 
     contextMenu.exec(cme->globalPos());
 
@@ -336,7 +339,72 @@ ISettingsPanel *SegmentationExplorer::settingsPanel()
 }
 
 //------------------------------------------------------------------------
-void SegmentationExplorer::updateSegmentationRepresentations()
+void SegmentationExplorer::updateSegmentationRepresentations(SegmentationList list)
 {
+}
 
+//------------------------------------------------------------------------
+void SegmentationExplorer::updateSelection()
+{
+  std::cout << "update selection\n" << std::flush;
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::changeFinalFlag(bool value)
+{
+  SegmentationList selectedSegmentations = m_viewManager->selectedSegmentations();
+  SegmentationList dependentSegmentations;
+  SegmentationList rootSegmentations;
+
+  foreach(Segmentation *seg, selectedSegmentations)
+  {
+    seg->setFinalNode(value);
+    seg->setDependentNode(false);
+    if (value)
+      seg->setHierarchyRenderingType(HierarchyItem::Opaque, true);
+    else
+      seg->setHierarchyRenderingType(HierarchyItem::Undefined, false);
+
+    dependentSegmentations.append(seg->components());
+    rootSegmentations.append(seg->componentOf());
+  }
+
+  foreach(Segmentation *seg, dependentSegmentations)
+  {
+    if (selectedSegmentations.contains(seg))
+    {
+      dependentSegmentations.removeAll(seg);
+      break;
+    }
+
+    selectedSegmentations.append(seg);
+    seg->setDependentNode(value);
+
+    if (value)
+      seg->setHierarchyRenderingType(HierarchyItem::Hidden, true);
+    else
+      seg->setHierarchyRenderingType(HierarchyItem::Undefined, false);
+
+    dependentSegmentations.append(seg->components());
+  }
+
+  foreach(Segmentation *seg, rootSegmentations)
+  {
+    if (selectedSegmentations.contains(seg))
+    {
+      rootSegmentations.removeAll(seg);
+      break;
+    }
+
+    selectedSegmentations.append(seg);
+    seg->setDependentNode(value);
+
+    if (value)
+      seg->setHierarchyRenderingType(HierarchyItem::Translucent, true);
+    else
+      seg->setHierarchyRenderingType(HierarchyItem::Undefined, false);
+  }
+
+  foreach(Segmentation *seg, selectedSegmentations)
+    seg->notifyModification(true);
 }

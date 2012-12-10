@@ -152,7 +152,7 @@ public:
 
 public slots:
   /// Update Segmentation Representation
-  void updateSegmentationRepresentations();
+  void updateSegmentationRepresentations(SegmentationList list = SegmentationList());
   /// Request all registered views to update themselves
   void updateViews();
 

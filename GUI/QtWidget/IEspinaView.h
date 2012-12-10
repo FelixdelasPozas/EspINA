@@ -26,11 +26,12 @@
 #ifndef IESPINAVIEW_H
 #define IESPINAVIEW_H
 
-#include <QString>
+#include <Core/EspinaTypes.h>
 
 // Forward-declaration
 class EspinaModel;
 class ISettingsPanel;
+class Segmentation;
 
 class IEspinaView
 {
@@ -38,12 +39,8 @@ public:
   explicit IEspinaView(){}
   virtual ~IEspinaView(){}
 
-  virtual void updateSegmentationRepresentations() = 0;
-
-/*TODO BUG 2012-10-05
-signals:
-  void statusMsg(QString);
-  */
+  virtual void updateSelection() = 0;
+  virtual void updateSegmentationRepresentations(SegmentationList list = SegmentationList()) = 0;
 };
 
 #endif //IESPINAVIEW_H

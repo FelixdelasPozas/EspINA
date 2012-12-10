@@ -20,6 +20,7 @@
 #include "GUI/ViewManager.h"
 #include <Core/Model/Segmentation.h>
 #include <Core/ColorEngines/IColorEngine.h>
+#include <Core/Model/HierarchyItem.h>
 
 #include <vtkRenderWindow.h>
 #include <vtkVolumeRayCastMapper.h>
@@ -54,11 +55,12 @@ bool VolumetricRenderer::addItem(ModelItem* item)
       if (this->m_segmentations[seg].visible)
         m_renderer->RemoveVolume(this->m_segmentations[seg].volume);
       m_segmentations[seg].volume->Delete();
+      if (m_segmentations[seg].actorPropertyBackup)
+        m_segmentations[seg].actorPropertyBackup->Delete();
       m_segmentations.remove(item);
     }
 
   QColor color = m_viewManager->color(seg);
-
 
   vtkSmartPointer<vtkVolumeRayCastMapper> mapper = vtkVolumeRayCastMapper::New();
   mapper->ReleaseDataFlagOn();
@@ -95,41 +97,58 @@ bool VolumetricRenderer::addItem(ModelItem* item)
   m_segmentations[seg].selected = seg->isSelected();
   m_segmentations[seg].color = m_viewManager->color(seg);
   m_segmentations[seg].volume = volume;
-  m_segmentations[seg].visible = false; // always false when adding
+  m_segmentations[seg].visible = false;
+  m_segmentations[seg].overridden = seg->OverridesRendering();
+  m_segmentations[seg].overridden = seg->getHierarchyRenderingType();
+  m_segmentations[seg].actorPropertyBackup = NULL;
 
+  if (this->m_enable)
+  {
+    m_segmentations[seg].visible = true;
+    m_renderer->AddVolume(volume);
+  }
+
+  if (m_segmentations[seg].overridden)
+    this->createHierarchyProperties(seg);
+
+  m_segmentations[seg].volume->Modified();
   return true;
 }
 
 //-----------------------------------------------------------------------------
 bool VolumetricRenderer::updateItem(ModelItem* item)
 {
-   if (ModelItem::SEGMENTATION != item->type())
-     return false;
+  if (ModelItem::SEGMENTATION != item->type())
+    return false;
 
-   bool updated = false;
-   Segmentation *seg = dynamic_cast<Segmentation *>(item);
-   if (!m_segmentations.contains(seg))
-     return false;
+  bool updated = false;
+  bool hierarchiesUpdated = false;
+  Segmentation *seg = dynamic_cast<Segmentation *>(item);
+  if (!m_segmentations.contains(seg))
+    return false;
 
-   Representation &rep = m_segmentations[seg];
+  Representation &rep = m_segmentations[seg];
+  vtkSmartPointer<vtkVolumeProperty> volumeProperty = NULL;
 
-  if (seg->isSelected() != rep.selected
-      || m_viewManager->color(seg) != rep.color)
+  // deal with hierarchies first
+  if (seg->OverridesRendering())
   {
-    rep.selected = seg->isSelected();
-    rep.color = m_viewManager->color(seg);
+    if (m_segmentations[seg].actorPropertyBackup == NULL)
+    {
+      createHierarchyProperties(seg);
+      hierarchiesUpdated = true;
+    }
+    else
+      hierarchiesUpdated = updateHierarchyProperties(seg);
 
-    vtkVolumeProperty *property = rep.volume->GetProperty();
-    vtkColorTransferFunction *color = property->GetRGBTransferFunction();
-    double rgb[3] =
-    { rep.color.redF(), rep.color.greenF(), rep.color.blueF() };
-    double hsv[3] =
-    { 0.0, 0.0, 0.0 };
-    vtkMath::RGBToHSV(rgb, hsv);
-    color->AddHSVPoint(255, hsv[0], hsv[1], rep.selected ? 1.0 : 0.6);
-    color->Modified();
+    volumeProperty = m_segmentations[seg].actorPropertyBackup;
+  }
+  else
+  {
+    if (m_segmentations[seg].overridden != seg->OverridesRendering())
+      hierarchiesUpdated = updateHierarchyProperties(seg);
 
-    updated = true;
+    volumeProperty = m_segmentations[seg].volume->GetProperty();
   }
 
   if (m_enable && seg->visible())
@@ -141,14 +160,30 @@ bool VolumetricRenderer::updateItem(ModelItem* item)
       updated = true;
     }
   }
-  else if (rep.visible)
+  else
+    if (rep.visible)
+    {
+      m_renderer->RemoveVolume(rep.volume);
+      rep.visible = false;
+      updated = true;
+    }
+
+  if (seg->isSelected() != rep.selected || m_viewManager->color(seg) != rep.color)
   {
-    m_renderer->RemoveVolume(rep.volume);
-    rep.visible = false;
+    rep.selected = seg->isSelected();
+    rep.color = m_viewManager->color(seg);
+
+    vtkColorTransferFunction *color = volumeProperty->GetRGBTransferFunction();
+    double rgb[3] = { rep.color.redF(), rep.color.greenF(), rep.color.blueF() };
+    double hsv[3] = { 0.0, 0.0, 0.0 };
+    vtkMath::RGBToHSV(rgb, hsv);
+    color->AddHSVPoint(255, hsv[0], hsv[1], rep.selected ? 1.0 : 0.6);
+    color->Modified();
+
     updated = true;
   }
 
-   return updated;
+  return updated || hierarchiesUpdated;
 }
 
 //-----------------------------------------------------------------------------
@@ -162,6 +197,9 @@ bool VolumetricRenderer::removeItem(ModelItem* item)
 
    if (m_enable && m_segmentations[seg].visible)
      m_renderer->RemoveVolume(m_segmentations[seg].volume);
+
+   if (m_segmentations[seg].actorPropertyBackup)
+     m_segmentations[seg].actorPropertyBackup->Delete();
 
    m_segmentations[seg].volume->Delete();
    m_segmentations.remove(seg);
@@ -208,4 +246,139 @@ void VolumetricRenderer::show()
 
   emit renderRequested();
   QApplication::restoreOverrideCursor();
+}
+
+//-----------------------------------------------------------------------------
+void VolumetricRenderer::createHierarchyProperties(Segmentation *seg)
+{
+  m_segmentations[seg].actorPropertyBackup = m_segmentations[seg].volume->GetProperty();
+  m_segmentations[seg].overridden = true;
+
+  QColor color = m_segmentations[seg].color;
+  double rgb[3], hsv[3] = { 0.0, 0.0, 0.0 };
+
+  vtkSmartPointer<vtkColorTransferFunction> hierarchyColor = vtkSmartPointer<vtkColorTransferFunction>::New();
+  hierarchyColor->AllowDuplicateScalarsOff();
+  rgb[0] = color.redF();
+  rgb[1] = color.greenF();
+  rgb[2] = color.blueF();
+  vtkMath::RGBToHSV(rgb,hsv);
+  hierarchyColor->AddHSVPoint(255, hsv[0], hsv[1], seg->isSelected() ? 1.0 : 0.6);
+
+  vtkSmartPointer<vtkPiecewiseFunction> hierarchyPiecewise = vtkSmartPointer<vtkPiecewiseFunction>::New();
+  hierarchyPiecewise->AddPoint(0, 0.0);
+  switch(seg->getHierarchyRenderingType())
+  {
+    case HierarchyItem::Opaque:
+      hierarchyPiecewise->AddPoint(255, 1.0);
+      if (this->m_enable && !m_segmentations[seg].visible)
+      {
+        m_segmentations[seg].visible = true;
+        m_renderer->AddVolume(m_segmentations[seg].volume);
+      }
+      break;
+    case HierarchyItem::Translucent:
+      hierarchyPiecewise->AddPoint(255, 0.3);
+      if (this->m_enable && !m_segmentations[seg].visible)
+      {
+        m_segmentations[seg].visible = true;
+        m_renderer->AddVolume(m_segmentations[seg].volume);
+      }
+      break;
+    case HierarchyItem::Hidden:
+      if (this->m_enable && m_segmentations[seg].visible)
+      {
+        m_segmentations[seg].visible = false;
+        m_renderer->RemoveVolume(m_segmentations[seg].volume);
+      }
+      break;
+    default:
+      Q_ASSERT(false);
+      break;
+  }
+
+  vtkSmartPointer<vtkVolumeProperty> hierarchyProperty = vtkSmartPointer<vtkVolumeProperty>::New();
+  hierarchyProperty->SetColor(hierarchyColor);
+  hierarchyProperty->SetScalarOpacity(hierarchyPiecewise);
+  hierarchyProperty->DisableGradientOpacityOff();
+  hierarchyProperty->SetSpecular(0.5);
+  hierarchyProperty->ShadeOn();
+  hierarchyProperty->SetInterpolationTypeToLinear();
+
+  m_segmentations[seg].volume->SetProperty(hierarchyProperty);
+}
+
+//-----------------------------------------------------------------------------
+bool VolumetricRenderer::updateHierarchyProperties(Segmentation *seg)
+{
+  Q_ASSERT(m_segmentations[seg].actorPropertyBackup != NULL);
+  bool updated = false;
+
+  vtkSmartPointer<vtkVolumeProperty> volumeProperty = NULL;
+  if (seg->OverridesRendering() != m_segmentations[seg].overridden)
+  {
+    volumeProperty = m_segmentations[seg].volume->GetProperty();
+    m_segmentations[seg].volume->SetProperty(m_segmentations[seg].actorPropertyBackup);
+    m_segmentations[seg].actorPropertyBackup = volumeProperty;
+    m_segmentations[seg].volume->Modified();
+    m_segmentations[seg].overridden = seg->OverridesRendering();
+    updated = true;
+  }
+
+  if (!seg->OverridesRendering())
+    return true;
+
+  volumeProperty = m_segmentations[seg].volume->GetProperty();
+  if (m_segmentations[seg].color != m_viewManager->color(seg))
+  {
+    QColor color = m_viewManager->color(seg);
+    vtkColorTransferFunction *hierarchyColor = volumeProperty->GetRGBTransferFunction();
+    double rgb[3] = { color.redF(), color.greenF(), color.blueF() };
+    double hsv[3] = { 0.0, 0.0, 0.0 };
+    vtkMath::RGBToHSV(rgb, hsv);
+    hierarchyColor->AddHSVPoint(255, hsv[0], hsv[1], m_segmentations[seg].selected ? 1.0 : 0.6);
+    hierarchyColor->Modified();
+    updated = true;
+  }
+
+  if (seg->getHierarchyRenderingType() != m_segmentations[seg].renderingType)
+  {
+    m_segmentations[seg].renderingType = seg->getHierarchyRenderingType();
+    vtkPiecewiseFunction *hierarchyPiecewise = volumeProperty->GetGradientOpacity();
+    switch (m_segmentations[seg].renderingType)
+    {
+      case HierarchyItem::Opaque:
+        hierarchyPiecewise->AddPoint(255, 1.0);
+        if (this->m_enable && !m_segmentations[seg].visible)
+        {
+          m_segmentations[seg].visible = true;
+          m_renderer->AddVolume(m_segmentations[seg].volume);
+        }
+        break;
+      case HierarchyItem::Translucent:
+        hierarchyPiecewise->AddPoint(255, 0.3);
+        if (this->m_enable && !m_segmentations[seg].visible)
+        {
+          m_segmentations[seg].visible = true;
+          m_renderer->AddVolume(m_segmentations[seg].volume);
+        }
+        break;
+      case HierarchyItem::Hidden:
+        if (this->m_enable && m_segmentations[seg].visible)
+        {
+          m_segmentations[seg].visible = false;
+          m_renderer->RemoveVolume(m_segmentations[seg].volume);
+        }
+        break;
+      default:
+        Q_ASSERT(false);
+        break;
+    }
+    updated = true;
+  }
+
+  if (updated)
+    m_segmentations[seg].volume->Modified();
+
+  return updated;
 }

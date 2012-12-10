@@ -20,26 +20,36 @@
 #ifndef SEGMENTATIONCONTEXTUALMENU_H
 #define SEGMENTATIONCONTEXTUALMENU_H
 
+#include <Core/EspinaTypes.h>
+
 #include <QMenu>
 #include <QModelIndex>
 
 class EspinaModel;
 class TaxonomyElement;
 
+
 class SegmentationContextualMenu
 : public QMenu
 {
   Q_OBJECT
 public:
-  explicit SegmentationContextualMenu(EspinaModel *model, QWidget* parent = 0);
+  explicit SegmentationContextualMenu(EspinaModel *model, SegmentationList selection, QWidget* parent = 0);
+  void setSelection(SegmentationList list);
 
 private slots:
-  void changTaxonomyClicked(const QModelIndex &index);
+  void changeTaxonomyClicked(const QModelIndex &index);
   void deleteSementationsClicked();
+  void changeFinalFlag();
 
 signals:
   void changeTaxonomy(TaxonomyElement *);
   void deleteSegmentations();
+  void changeFinalNode(bool);
+
+private:
+  QAction *m_changeFinalNode;
+  SegmentationList m_segmentations;
 };
 
 #endif // SEGMENTATIONCONTEXTUALMENU_H

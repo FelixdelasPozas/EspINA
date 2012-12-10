@@ -21,13 +21,17 @@
 #define VOLUMETRICRENDERER_H
 
 #include <vtkVolume.h>
+#include <vtkSmartPointer.h>
 
+#include <Core/Model/HierarchyItem.h>
 #include "GUI/Renderers/Renderer.h"
 
 #include <QMap>
 
 class ViewManager;
 class ModelItem;
+class Segmentation;
+class vtkVolumeProperty;
 
 class VolumetricRenderer
 : public Renderer
@@ -38,6 +42,9 @@ class VolumetricRenderer
     bool visible;
     bool selected;
     QColor color;
+    bool overridden;
+    HierarchyItem::HierarchyRenderingType renderingType;
+    vtkSmartPointer<vtkVolumeProperty> actorPropertyBackup;
   };
 
 public:
@@ -58,6 +65,10 @@ public:
 
   virtual bool isASegmentationRenderer() { return true; };
 private:
+  // helper methods
+  void createHierarchyProperties(Segmentation *);
+  bool updateHierarchyProperties(Segmentation *);
+
   ViewManager *m_viewManager;
   QMap<ModelItem *, Representation> m_segmentations;
 };

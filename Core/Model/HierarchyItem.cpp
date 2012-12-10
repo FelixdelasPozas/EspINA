@@ -5,7 +5,9 @@
  *      Author: Félix de las Pozas Álvarez
  */
 
+
 #include "HierarchyItem.h"
+#include <QDebug>
 
 //-----------------------------------------------------------------------------
 void HierarchyItem::setFinalNode(bool value)
@@ -20,6 +22,21 @@ void HierarchyItem::setFinalNode(bool value)
 bool HierarchyItem::IsFinalNode()
 {
   return m_flags.testFlag(FinalNode);
+}
+
+//-----------------------------------------------------------------------------
+void HierarchyItem::setDependentNode(bool value)
+{
+  if (value)
+    m_flags |= DependentNode;
+  else
+    m_flags &= ~DependentNode;
+}
+
+//-----------------------------------------------------------------------------
+bool HierarchyItem::IsDependentNode()
+{
+  return m_flags.testFlag(DependentNode);
 }
 
 //-----------------------------------------------------------------------------
@@ -44,3 +61,10 @@ bool HierarchyItem::OverridesRendering()
 {
   return m_flags.testFlag(OverrideRendering);
 }
+
+//-----------------------------------------------------------------------------
+void HierarchyItem::resetHierarchyProperties()
+{
+  m_flags = 0x0;
+}
+
