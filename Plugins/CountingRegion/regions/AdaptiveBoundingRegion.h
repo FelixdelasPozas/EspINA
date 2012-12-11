@@ -30,7 +30,8 @@ class AdaptiveBoundingRegion
 public:
   static const QString ID;
 
-  explicit AdaptiveBoundingRegion(CountingRegionChannelExtension *channelExt,
+  explicit AdaptiveBoundingRegion(RegionId id,
+                                  CountingRegionChannelExtension *channelExt,
                                   Nm inclusion[3],
                                   Nm exclusion[3],
                                   ViewManager *vm);

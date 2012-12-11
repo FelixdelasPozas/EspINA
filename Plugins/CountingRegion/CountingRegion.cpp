@@ -117,6 +117,7 @@ CountingRegion::CountingRegion(QWidget * parent)
 , m_espinaModel(NULL)
 , m_viewManager(NULL)
 , m_activeRegion(NULL)
+, m_nextId(1)
 {
   setObjectName("CountingRegionDock");
   setWindowTitle(tr("Counting Region"));
@@ -199,7 +200,8 @@ void CountingRegion::createAdaptiveRegion(Channel *channel,
   CountingRegionChannelExtension *channelExt = dynamic_cast<CountingRegionChannelExtension *>(ext);
   Q_ASSERT(channelExt);
 
-  AdaptiveBoundingRegion *region(new AdaptiveBoundingRegion(channelExt,
+  AdaptiveBoundingRegion *region(new AdaptiveBoundingRegion(m_nextId,
+                                                            channelExt,
                                                             inclusion,
                                                             exclusion,
                                                             m_viewManager));
@@ -219,7 +221,8 @@ void CountingRegion::createRectangularRegion(Channel *channel,
   double borders[6];
   channel->volume()->bounds(borders);
 
-  RectangularBoundingRegion *region(new RectangularBoundingRegion(channelExt,
+  RectangularBoundingRegion *region(new RectangularBoundingRegion(m_nextId,
+                                                                  channelExt,
                                                                   borders,
                                                                   inclusion,
                                                                   exclusion,
@@ -307,6 +310,7 @@ void CountingRegion::createBoundingRegion()
       createRectangularRegion(channel, inclusion, exclusion);
     else
       Q_ASSERT(false);
+    m_nextId++;
   }
 
   updateSegmentations();
@@ -517,6 +521,7 @@ void CountingRegion::registerRegion(CountingRegionChannelExtension* ext,
 void CountingRegion::resetState()
 {
   clearBoundingRegions();
+  m_nextId = 1;
 }
 
 Q_EXPORT_PLUGIN2(CountingRegionPlugin, CountingRegion)

@@ -97,7 +97,7 @@ QVariant CountingRegionSegmentationExtension::information(ModelItemExtension::In
     foreach(BoundingRegion *region, m_isDiscartedBy.keys())
     {
       if (m_isDiscartedBy[region])
-        discartingRegions << region->data().toString();
+        discartingRegions << QString::number(region->id());
     }
     return discartingRegions.join(", ");
   }
@@ -132,7 +132,6 @@ foreach(BoundingRegion *region, prevRegions.subtract(newRegions))
 
 foreach(BoundingRegion *region, newRegions.subtract(prevRegions))
 {
-  //qDebug() << "Evaluating" << m_seg->data().toString() << "by" << region;
   evaluateBoundingRegion(region);
 }
 //   EXTENSION_DEBUG("Counting Region Extension request Segmentation Update");
@@ -182,11 +181,11 @@ void CountingRegionSegmentationExtension::evaluateBoundingRegion(BoundingRegion*
 
   m_isDiscartedBy[region] = discarted;
 
+  QString tag       = "CountingRegionCondition %1";
   QString condition = discarted?
-                      "<font color=\"red\">Outside</font>":
-                      "<font color=\"green\">Inside</font>";
-                      //TODO 2012-12-11 Usar identificadores unicos para las regiones
-  m_seg->addCondition("CountingRegionCondition", ":/apply.svg", condition);
+                      "<font color=\"red\">"   + tr("Discarted by Counting Frame %1").arg(region->id()) + "</font>":
+                      "<font color=\"green\">" + tr("Inside of Counting Frame %1"   ).arg(region->id()) + "</font>";
+  m_seg->addCondition(tag.arg(region->id()), ":/apply.svg", condition);
 }
 
 

@@ -24,15 +24,17 @@
 #include <GUI/ViewManager.h>
 
 //-----------------------------------------------------------------------------
-BoundingRegion::BoundingRegion(CountingRegionChannelExtension *channelExt,
-                               double inclusion[3],
-                               double exclusion[3],
+BoundingRegion::BoundingRegion(RegionId id,
+                               CountingRegionChannelExtension *channelExt,
+                               Nm inclusion[3],
+                               Nm exclusion[3],
                                ViewManager *vm)
 : QStandardItem()
 , INCLUSION_FACE(255)
 , EXCLUSION_FACE(0)
 , m_viewManager(vm)
 , m_channelExt(channelExt)
+, m_id(id)
 , m_totalVolume(0)
 , m_inclusionVolume(0)
 {
@@ -61,18 +63,21 @@ QVariant BoundingRegion::data(int role) const
     int inclusionVoxelVolume = inclusionVolume() / voxelVol;
     int exclusionVoxelVolume = exclusionVolume() / voxelVol;
 
+    QString sqr = QString::fromUtf8("\u00b2");
+    QString br = "\n";
     QString desc;
-    desc += tr("Type: %1").arg(regionType())                + "\n";
-    desc += tr("Volume informtation:")                      + "\n";
-    desc += tr("  Total Volume:")                           + "\n";
-    desc += tr("    %1 voxel").arg(totalVoxelVolume)        + "\n";
-    desc += tr("    %1 nm").arg(totalVolume(),0,'f',2) + QString::fromUtf8("\u00b2\n");
-    desc += tr("  Inclusion Volume:")                       + "\n";
-    desc += tr("    %1 voxel").arg(inclusionVoxelVolume)    + "\n";
-    desc += tr("    %1 nm").arg(inclusionVolume(),0,'f',2) + QString::fromUtf8("\u00b2\n");
-    desc += tr("  Exclusion Volume:")                       + "\n";
-    desc += tr("    %1 voxel").arg(exclusionVoxelVolume)    + "\n";
-    desc += tr("    %1 nm").arg(exclusionVolume(),0,'f',2) + QString::fromUtf8("\u00b2\n");
+    desc += tr("Region:  %1"         ).arg(m_id)                            + br;
+    desc += tr("Type: %1"            ).arg(regionType())                    + br;
+    desc += tr("Volume informtation:")                                      + br;
+    desc += tr("  Total Volume:"     )                                      + br;
+    desc += tr("    %1 voxel"        ).arg(totalVoxelVolume)                + br;
+    desc += tr("    %1 nm"           ).arg(totalVolume(),0,'f',2)     + sqr + br;
+    desc += tr("  Inclusion Volume:" )                                      + br;
+    desc += tr("    %1 voxel"        ).arg(inclusionVoxelVolume)            + br;
+    desc += tr("    %1 nm"           ).arg(inclusionVolume(),0,'f',2) + sqr + br;
+    desc += tr("  Exclusion Volume:" )                                      + br;
+    desc += tr("    %1 voxel"        ).arg(exclusionVoxelVolume)            + br;
+    desc += tr("    %1 nm"           ).arg(exclusionVolume(),0,'f',2) + sqr + br;
 
     return desc;
   }

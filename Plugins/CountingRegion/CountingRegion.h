@@ -19,6 +19,8 @@
 #ifndef COUNTINGREGION_H
 #define COUNTINGREGION_H
 
+#include "regions/BoundingRegion.h"
+
 #include <Core/Interfaces/IDockWidget.h>
 #include <Core/Interfaces/IColorEngineProvider.h>
 #include <Core/Model/EspinaModel.h>
@@ -27,7 +29,6 @@
 #include <QStandardItemModel>
 
 // Forward declaration
-class BoundingRegion;
 class Channel;
 class CountingRegionChannelExtension;
 
@@ -109,8 +110,9 @@ private:
   EspinaModel *m_espinaModel;
   ViewManager *m_viewManager;
 
-  RegionList m_regions;
-  BoundingRegion *m_activeRegion;
+  RegionList               m_regions;
+  BoundingRegion          *m_activeRegion;
+  BoundingRegion::RegionId m_nextId;
 
   static const int NUM_FIXED_ROWS = 2;
 };

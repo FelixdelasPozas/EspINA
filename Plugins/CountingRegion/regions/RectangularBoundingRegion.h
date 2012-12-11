@@ -30,7 +30,8 @@ class RectangularBoundingRegion
 public:
   static const QString ID;
 
-  explicit RectangularBoundingRegion(CountingRegionChannelExtension *channelExt,
+  explicit RectangularBoundingRegion(RegionId id,
+                                     CountingRegionChannelExtension *channelExt,
                                      Nm borders[6],
                                      Nm inclusion[3],
                                      Nm exclusion[3],
