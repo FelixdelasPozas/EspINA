@@ -1,7 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>zoom_reset.png</file>
-        <file>zoom_selection.png</file>
-        <file>zoom_cursor.png</file>
-    </qresource>
-</RCC>
