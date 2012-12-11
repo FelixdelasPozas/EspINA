@@ -20,6 +20,7 @@
 
 #include "Core/Model/Filter.h"
 #include "Core/Model/Channel.h"
+#include "Sample.h"
 #include "Core/ColorEngines/IColorEngine.h"
 
 #include <vtkAlgorithm.h>
@@ -216,6 +217,15 @@ void Segmentation::initializeExtensions(ModelItem::Arguments args)
 void Segmentation::updateCacheFlag()
 {
   m_filter->output(m_args.outputId()).isCached = true;
+}
+
+//------------------------------------------------------------------------
+Sample* Segmentation::sample()
+{
+  ModelItem::Vector relatedSamples = relatedItems(ModelItem::IN, Sample::WHERE);
+  Q_ASSERT(relatedSamples.size() == 1);
+
+  return dynamic_cast<Sample *>(relatedSamples.first());
 }
 
 //------------------------------------------------------------------------

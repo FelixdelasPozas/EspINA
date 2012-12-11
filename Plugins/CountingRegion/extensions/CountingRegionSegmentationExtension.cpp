@@ -37,7 +37,7 @@ const ModelItemExtension::InfoTag CountingRegionSegmentationExtension::DISCARTED
 
 //------------------------------------------------------------------------
 CountingRegionSegmentationExtension::CountingRegionSegmentationExtension()
-: m_isDiscarted(false)
+: m_isOnEdge(false)
 {
   m_availableInformations << DISCARTED;
 }
@@ -56,11 +56,11 @@ ModelItemExtension::ExtId CountingRegionSegmentationExtension::id()
 //------------------------------------------------------------------------
 void CountingRegionSegmentationExtension::initialize(ModelItem::Arguments args)
 {
-  ModelItem::Vector relatedSamples = m_seg->relatedItems(ModelItem::IN, Sample::WHERE);
-  Q_ASSERT(relatedSamples.size() == 1);
-  Sample *sample = dynamic_cast<Sample *>(relatedSamples[0]);
+  Sample *sample = m_seg->sample();
+
   ModelItem::Vector relatedChannels = sample->relatedItems(ModelItem::OUT, Channel::STAINLINK);
   Q_ASSERT(relatedChannels.size() > 0);
+
   QList<BoundingRegion *> regions;
   for (int i = 0; i < relatedChannels.size(); i++)
   {
@@ -70,7 +70,11 @@ void CountingRegionSegmentationExtension::initialize(ModelItem::Arguments args)
     CountingRegionChannelExtension *channelExt = dynamic_cast<CountingRegionChannelExtension *>(ext);
     regions << channelExt->regions();
   }
+
+  m_isOnEdge = isOnEdge();
+
   setBoundingRegions(regions);
+
   connect(m_seg, SIGNAL(modified(ModelItem*)),
           this, SLOT(evaluateBoundingRegions()));
 }
@@ -89,7 +93,13 @@ QVariant CountingRegionSegmentationExtension::information(ModelItemExtension::In
 {
   if (DISCARTED == tag)
   {
-    return m_isDiscarted;
+    QStringList discartingRegions;
+    foreach(BoundingRegion *region, m_isDiscartedBy.keys())
+    {
+      if (m_isDiscartedBy[region])
+        discartingRegions << region->data().toString();
+    }
+    return discartingRegions.join(", ");
   }
 
   qWarning() << ID << ":"  << tag << " is not provided";
@@ -107,12 +117,24 @@ SegmentationRepresentation* CountingRegionSegmentationExtension::representation(
 
 
 //------------------------------------------------------------------------
-void CountingRegionSegmentationExtension::setBoundingRegions(QList<BoundingRegion *> bRegions)
+void CountingRegionSegmentationExtension::setBoundingRegions(QList<BoundingRegion *> regions)
 {
 //   EXTENSION_DEBUG("Updating " << m_seg->id() << " bounding regions...");
 //   EXTENSION_DEBUG("\tNumber of regions applied:" << regions.size());
-  m_boundingRegions = bRegions;
-  evaluateBoundingRegions();
+QSet<BoundingRegion *> prevRegions = m_isDiscartedBy.keys().toSet();
+QSet<BoundingRegion *> newRegions  = regions.toSet();
+
+// Remove regions that doesn't exist anymore
+foreach(BoundingRegion *region, prevRegions.subtract(newRegions))
+{
+  m_isDiscartedBy.remove(region);
+}
+
+foreach(BoundingRegion *region, newRegions.subtract(prevRegions))
+{
+  //qDebug() << "Evaluating" << m_seg->data().toString() << "by" << region;
+  evaluateBoundingRegion(region);
+}
 //   EXTENSION_DEBUG("Counting Region Extension request Segmentation Update");
 }
 
@@ -123,11 +145,60 @@ SegmentationExtension* CountingRegionSegmentationExtension::clone()
 }
 
 //------------------------------------------------------------------------
-bool CountingRegionSegmentationExtension::discartedByRegion(EspinaRegion inputBB, vtkPolyData* region)
+bool CountingRegionSegmentationExtension::isDiscarted() const
 {
-  vtkPoints *regionPoints = region->GetPoints();
-  vtkCellArray *regionFaces = region->GetPolys();
-  vtkCellData *faceData = region->GetCellData();
+  bool discarted = m_isOnEdge;
+
+  if (!m_isDiscartedBy.isEmpty())
+  {
+    discarted = true;
+
+    int i = 0;
+    QList<BoundingRegion *> regions = m_isDiscartedBy.keys();
+    while (discarted && i < regions.size())
+    {
+      discarted = discarted && m_isDiscartedBy[regions[i]];
+      i++;
+    }
+  }
+
+  return discarted;
+}
+
+//------------------------------------------------------------------------
+void CountingRegionSegmentationExtension::evaluateBoundingRegions()
+{
+  m_isOnEdge = isOnEdge();
+
+  foreach(BoundingRegion *region, m_isDiscartedBy.keys())
+    evaluateBoundingRegion(region);
+
+}
+
+//------------------------------------------------------------------------
+void CountingRegionSegmentationExtension::evaluateBoundingRegion(BoundingRegion* region)
+{
+  bool discarted = m_isOnEdge || isDiscartedByRegion(region);
+
+  m_isDiscartedBy[region] = discarted;
+
+  QString condition = discarted?
+                      "<font color=\"red\">Outside</font>":
+                      "<font color=\"green\">Inside</font>";
+                      //TODO 2012-12-11 Usar identificadores unicos para las regiones
+  m_seg->addCondition("CountingRegionCondition", ":/apply.svg", condition);
+}
+
+
+//------------------------------------------------------------------------
+bool CountingRegionSegmentationExtension::isDiscartedByRegion(BoundingRegion* boundingRegion)
+{
+  EspinaRegion inputBB = m_seg->volume()->espinaRegion();
+
+  vtkPolyData  *region       = boundingRegion->region();
+  vtkPoints    *regionPoints = region->GetPoints();
+  vtkCellArray *regionFaces  = region->GetPolys();
+  vtkCellData  *faceData     = region->GetCellData();
 
   double bounds[6];
   regionPoints->GetBounds(bounds);
@@ -182,6 +253,28 @@ bool CountingRegionSegmentationExtension::discartedByRegion(EspinaRegion inputBB
 }
 
 //------------------------------------------------------------------------
+bool CountingRegionSegmentationExtension::isOnEdge()
+{
+  bool discarted = false;
+
+  ModelItemExtension *ext = m_seg->extension(MarginsSegmentationExtension::ID);
+  MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext);
+  if (marginExt)
+  {
+    InfoList tags = marginExt->availableInformations();
+    int i = 0;
+    while (!discarted && i < tags.size())
+    {
+      bool ok = false;
+      double dist = m_seg->information(tags[i++]).toDouble(&ok);
+      discarted = ok && dist < 1.0;
+    }
+  }
+
+  return discarted;
+}
+
+//------------------------------------------------------------------------
 bool CountingRegionSegmentationExtension::realCollision(EspinaRegion interscetion)
 {
   itkVolumeType::Pointer input = m_seg->volume()->toITK();
@@ -197,37 +290,3 @@ bool CountingRegionSegmentationExtension::realCollision(EspinaRegion interscetio
   return false;
 }
 
-
-//------------------------------------------------------------------------
-void CountingRegionSegmentationExtension::evaluateBoundingRegions()
-{
-  m_isDiscarted = false;
-
-  if (m_boundingRegions.size() == 0)
-    return;
-
-//   qDebug() << "EValuate Region";
-  ModelItemExtension *ext = m_seg->extension(MarginsSegmentationExtension::ID);
-  MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext);
-  if (marginExt)
-  {
-    InfoList tags = marginExt->availableInformations();
-    int i = 0;
-    while (!m_isDiscarted && i < tags.size())
-    {
-      bool ok = false;
-      double dist = m_seg->information(tags[i++]).toDouble(&ok);
-      m_isDiscarted = ok && dist < 1.0;
-    }
-  }
-
-  if (!m_isDiscarted)
-  {
-    foreach(BoundingRegion *br, m_boundingRegions)
-      m_isDiscarted |= discartedByRegion(m_seg->volume()->espinaRegion(), br->region());
-  }
-  QString condition = m_isDiscarted?
-                      "<font color=\"red\">Outside</font>":
-                      "<font color=\"green\">Inside</font>";
-  m_seg->addCondition("CountingRegionCondition", ":/apply.svg", condition);
-}

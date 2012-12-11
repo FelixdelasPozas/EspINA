@@ -63,18 +63,21 @@ public:
 
   virtual SegmentationExtension* clone();
 
-  bool isDiscarted() const {return m_isDiscarted;}
+
+  bool isDiscarted() const;
 
 public slots:
   void evaluateBoundingRegions();
 
-protected slots:
-  bool discartedByRegion(EspinaRegion inputBB, vtkPolyData *region);
+protected:
+  void evaluateBoundingRegion(BoundingRegion *region);
+  bool isDiscartedByRegion(BoundingRegion *boundingRegion);
+  bool isOnEdge();
   bool realCollision(EspinaRegion interscetion);
 
 private:
-  bool m_isDiscarted;
-  QList<BoundingRegion *> m_boundingRegions;
+  bool m_isOnEdge;
+  QMap<BoundingRegion *, bool> m_isDiscartedBy;
 };
 
 #endif // COUNTINGREGIONSEGMENTATIONEXTENSION_H

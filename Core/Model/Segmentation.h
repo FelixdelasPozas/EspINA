@@ -38,6 +38,7 @@
 #include <vtkImageConstantPad.h>
 #include <vtkDiscreteMarchingCubes.h>
 
+class Sample;
 class Channel;
 // Forward declarations
 class Sample;
@@ -115,6 +116,8 @@ public:
 
   void updateCacheFlag();
 
+  /// Get the sample where the segmentation is located
+  Sample *sample();
   /// Get the channel from where segmentation was created
   Channel *channel();
 
