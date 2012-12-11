@@ -22,12 +22,18 @@
 
 #include <QStandardItemModel>
 #include <common/widgets/RectangularRegion.h>
-#include <vtkCommand.h>
+#include <common/widgets/EspinaInteractorAdapter.h>
 
-class ViewManager;
+#include "vtkBoundingRegionSliceWidget.h"
+#include "vtkBoundingRegion3DWidget.h"
+
+
+#include <vtkCommand.h>
+#include <vtkSmartPointer.h>
+#include <vtkPolyData.h>
+
 class CountingRegionChannelExtension;
-class vtkBoundingRegionWidget;
-class vtkPolyData;
+class ViewManager;
 
 /// Bounding Regions' base class
 class BoundingRegion
@@ -37,6 +43,29 @@ class BoundingRegion
 , public vtkCommand
 {
   Q_OBJECT
+
+protected:
+  typedef EspinaInteractorAdapter<vtkBoundingRegionSliceWidget> BoundingRegion2DWidgetAdapter;
+  typedef EspinaInteractorAdapter<vtkBoundingRegion3DWidget>    BoundingRegion3DWidgetAdapter;
+
+  class BoundingRegionSliceWidget
+  : public SliceWidget
+  {
+  public:
+    explicit BoundingRegionSliceWidget(vtkBoundingRegionSliceWidget *widget)
+    : SliceWidget(widget)
+    , m_slicedWidget(widget)
+    {}
+
+    virtual void setSlice(Nm pos, PlaneType plane)
+    {
+      m_slicedWidget->SetSlice(pos);
+      SliceWidget::setSlice(pos, plane);
+    }
+  private:
+    vtkBoundingRegionSliceWidget *m_slicedWidget;
+  };
+
 public:
   const int INCLUSION_FACE;
   const int EXCLUSION_FACE;
@@ -54,10 +83,11 @@ public:
 
   virtual ~BoundingRegion(){}
 
+  void setMargins(Nm inclusion[3], Nm exclusion[3]);
+
   virtual QVariant data(int role = Qt::UserRole + 1) const;
   virtual QString serialize() const = 0;
-
-  virtual bool filterEvent(QEvent* e, EspinaRenderView* view){return false;}
+  virtual QString regionType() const = 0;
 
   /// Return total volume in pixels
   virtual double totalVolume() const
@@ -69,33 +99,38 @@ public:
   virtual double exclusionVolume() const
   { return totalVolume() - inclusionVolume(); }
 
-  virtual vtkPolyData *region() const {return m_boundingRegion;}
+  virtual vtkSmartPointer<vtkPolyData> region() const {return m_boundingRegion;}
 
   virtual void Execute(vtkObject* caller, long unsigned int eventId, void* callData);
+
+  Nm left()  const {return m_inclusion[0];}
+  Nm top()   const {return m_inclusion[1];}
+  Nm upper() const {return m_inclusion[2];}
+  Nm right() const {return m_exclusion[0];}
+  Nm bottom()const {return m_exclusion[1];}
+  Nm lower() const {return m_exclusion[2];}
+
 
 signals:
   void modified(BoundingRegion *);
 
 protected:
-  virtual void updateBoundingRegion() = 0;
-
-  double left()  const {return m_inclusion[0];}
-  double top()   const {return m_inclusion[1];}
-  double upper() const {return m_inclusion[2];}
-  double right() const {return m_exclusion[0];}
-  double bottom()const {return m_exclusion[1];}
-  double lower() const {return m_exclusion[2];}
+  void updateBoundingRegion();
+  virtual void updateBoundingRegionImplementation() = 0;
 
 protected:
   ViewManager *m_viewManager;
-  vtkPolyData *m_boundingRegion;
   CountingRegionChannelExtension *m_channelExt;
+
+  vtkSmartPointer<vtkPolyData> m_boundingRegion;
+  vtkSmartPointer<vtkPolyData> m_representation;
 
   Nm m_inclusion[3];
   Nm m_exclusion[3];
   Nm m_totalVolume, m_inclusionVolume;
 
-  QList<vtkBoundingRegionWidget *> m_widgets;
+  QList<BoundingRegion2DWidgetAdapter *> m_widgets2D;
+  QList<BoundingRegion3DWidgetAdapter *> m_widgets3D;
 };
 
 #endif // BOUNDINGREGION_H

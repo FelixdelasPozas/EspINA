@@ -62,6 +62,9 @@ public:
   virtual void eventPosition(int &x, int &y) = 0;
   virtual IPicker::PickList pick(IPicker::PickableItems filter,
                                  IPicker::DisplayRegionList regions) = 0;
+  virtual void worldCoordinates(const QPoint &displayPos,
+                                double worldPos[3]) = 0;
+
   virtual void setSelectionEnabled(bool enabe) = 0;
 
   virtual vtkRenderWindow *renderWindow() = 0;

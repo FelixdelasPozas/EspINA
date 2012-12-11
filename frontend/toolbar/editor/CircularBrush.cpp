@@ -43,7 +43,6 @@ Brush::BrushShape CircularBrush::createBrushShape(PickableItem* item, double cen
   double cRadius = (plane ==  CORONAL)?0:radius;
   double aRadius = (plane ==    AXIAL)?0:radius;
 
-
   double brushBounds[6];//TODO 2012-10-24 Crop bounds
   brushBounds[0] = center[0] - sRadius;
   brushBounds[1] = center[0] + sRadius;
@@ -56,6 +55,7 @@ Brush::BrushShape CircularBrush::createBrushShape(PickableItem* item, double cen
   for (int i=0; i<3; i++)
     baseCenter[i] = topCenter[i] = center[i];
   topCenter[plane] += 0.5*spacing[plane];
+  baseCenter[plane] -= 0.5*spacing[plane];
 
   vtkTube *brush = vtkTube::New();
   brush->SetBaseCenter(baseCenter);

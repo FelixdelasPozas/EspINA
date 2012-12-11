@@ -179,6 +179,8 @@ bool SegmhaImporter::readFile(const QFileInfo file)
   Filter::NamedInputs inputs;
   Filter::Arguments args;
   args[SegmhaImporterFilter::FILE] = file.absoluteFilePath();
+  SegmhaImporterFilter::Parameters params(args);
+  params.setSpacing(channel->itkVolume()->GetSpacing());
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
   SegmhaImporterFilter *filter = new SegmhaImporterFilter(inputs, args);

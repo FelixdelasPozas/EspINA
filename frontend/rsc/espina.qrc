@@ -52,5 +52,6 @@
         <file>create_node.png</file>
         <file>create_subnode.png</file>
         <file>pencil.png</file>
+        <file>planar_split.svg</file>
     </qresource>
 </RCC>

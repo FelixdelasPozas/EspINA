@@ -122,6 +122,8 @@ void CountingRegionSegmentationExtension::initialize(ModelItem::Arguments args)
     regions << channelExt->regions();
   }
   setBoundingRegions(regions);
+  connect(m_seg, SIGNAL(modified(ModelItem*)),
+          this, SLOT(evaluateBoundingRegions()));
 }
 
 //------------------------------------------------------------------------
@@ -160,12 +162,6 @@ void CountingRegionSegmentationExtension::setBoundingRegions(QList<BoundingRegio
 {
 //   EXTENSION_DEBUG("Updating " << m_seg->id() << " bounding regions...");
 //   EXTENSION_DEBUG("\tNumber of regions applied:" << regions.size());
-  foreach(BoundingRegion *region, bRegions)
-  {
-    connect(region, SIGNAL(modified(BoundingRegion*)),
-	    this, SLOT(evaluateBoundingRegions()));
-  }
-
   m_boundingRegions = bRegions;
   evaluateBoundingRegions();
 //   EXTENSION_DEBUG("Counting Region Extension request Segmentation Update");
@@ -258,7 +254,6 @@ void CountingRegionSegmentationExtension::evaluateBoundingRegions()
     return;
 
 //   qDebug() << "EValuate Region";
-  QApplication::setOverrideCursor(Qt::WaitCursor);
   ModelItemExtension *ext = m_seg->extension(MarginsSegmentationExtension::ID);
   MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext);
   if (marginExt)
@@ -280,7 +275,6 @@ void CountingRegionSegmentationExtension::evaluateBoundingRegions()
     foreach(BoundingRegion *br, m_boundingRegions)
       m_isDiscarted |= discartedByRegion(inputBB, br->region());
   }
-  QApplication::restoreOverrideCursor();
   QString condition = m_isDiscarted?
                       "<font color=\"red\">Outside</font>":
                       "<font color=\"green\">Inside</font>";

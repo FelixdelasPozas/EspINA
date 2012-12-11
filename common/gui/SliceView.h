@@ -109,8 +109,11 @@ public:
   virtual void eventPosition(int &x, int &y);
   virtual IPicker::PickList pick(IPicker::PickableItems filter,
                                  IPicker::DisplayRegionList regions);
+  virtual void worldCoordinates(const QPoint& displayPos,
+                                double worldPos[3]);
+
   virtual void setSelectionEnabled(bool enabe);
-  
+
   virtual vtkRenderWindow *renderWindow();
   virtual vtkRenderer* mainRenderer();
 
@@ -176,9 +179,9 @@ protected:
 
   Nm slicingPosition() const;
 
-  /// Convenience funtion to get vtkProp3D's chanenl
+  /// Convenience function to get vtkProp3D's channel
   Channel *property3DChannel(vtkProp3D *prop);
-  /// Convenience funtion to get vtkProp3D's segmentation
+  /// Convenience function to get vtkProp3D's segmentation
   Segmentation *property3DSegmentation(vtkProp3D *prop);
 
   /// Converts point from Display coordinates to World coordinates
@@ -268,7 +271,6 @@ private:
   QMap<Channel *,      SliceRep>      m_channelReps;
   QMap<Segmentation *, SliceRep>      m_segmentationReps;
   QMap<EspinaWidget *, SliceWidget *> m_widgets;
-
 };
 
 

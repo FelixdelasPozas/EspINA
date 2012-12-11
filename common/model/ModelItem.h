@@ -22,6 +22,8 @@
 
 #include <QModelIndex>
 
+#include "common/EspinaTypes.h"
+
 #include <QSharedPointer>
 #include <QStringList>
 
@@ -68,8 +70,11 @@ public:
     explicit Arguments(const QString args);
     virtual ~Arguments(){}
 
+    static QString namedInput(const QString &name, OutputNumber output)
+    { return QString("%1_%2").arg(name).arg(output); }
     virtual QString serialize() const;
     virtual QString hash() const;
+
   protected:
     inline QString argument(const QString name, const QString value) const
     {

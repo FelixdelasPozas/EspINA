@@ -1,13 +1,6 @@
 SET(LIB_DEPENDECIES
   vtkRendering
-  CajalFilters
   vtkIO
 )
 
-add_subdirectory(ConnectedThresholdImageFilter)
-add_subdirectory(ConnectedThresholdRegionGrowImageFilter)
-add_subdirectory(ImageLabelMapBlend)
-add_subdirectory(MorphologicalFeaturesFilter)
-add_subdirectory(AdaptiveBoundingRegion)
-add_subdirectory(RectangularBoundingRegion)
-add_subdirectory(CountingRegion)
+add_subdirectory(common)

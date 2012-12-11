@@ -106,6 +106,9 @@ public:
   virtual void eventPosition(int& x, int& y);
   virtual IPicker::PickList pick(IPicker::PickableItems filter,
                                  IPicker::DisplayRegionList regions);
+  virtual void worldCoordinates(const QPoint& displayPos,
+                                double worldCoordinatesc[3])
+  { Q_ASSERT(false); }
   virtual void setSelectionEnabled(bool enabe){}
 
   virtual vtkRenderWindow* renderWindow();
@@ -167,7 +170,7 @@ private:
   Nm m_center[3];
   unsigned int m_numEnabledRenders;
   ColorEngine *m_colorEngine;
-  QList<vtkAbstractWidget *> m_widgets;
+  QMap<EspinaWidget *, vtkAbstractWidget *> m_widgets;
 
   QList<Segmentation *> m_segmentations;
   QList<ModelItem*> m_addedItems;

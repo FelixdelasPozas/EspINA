@@ -282,33 +282,29 @@ void VolumeView::removeSegmentation(Segmentation* seg)
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::addWidget(EspinaWidget* widget)
+void VolumeView::addWidget(EspinaWidget* eWidget)
 {
-  /* TODO 2012-10-09
+  Q_ASSERT(!m_widgets.contains(eWidget));
+
+  vtkAbstractWidget *widget = eWidget->createWidget();
   if (!widget)
     return;
 
-  Q_ASSERT(!m_widgets.contains(widget));
-
-  widget->SetInteractor(m_viewWidget->GetRenderWindow()->GetInteractor());
+  widget->SetCurrentRenderer(this->m_renderer);
+  widget->SetInteractor(m_view->GetInteractor());
   widget->GetRepresentation()->SetVisibility(true);
   widget->On();
   m_renderer->ResetCameraClippingRange();
-  m_widgets << widget;
-  */
+  m_widgets[eWidget] = widget;
 }
 
 //-----------------------------------------------------------------------------
-void VolumeView::removeWidget(EspinaWidget* widget)
+void VolumeView::removeWidget(EspinaWidget* eWidget)
 {
-  /* TODO 2012-10-09
-  if (!widget)
+  if (!m_widgets.contains(eWidget))
     return;
 
-  Q_ASSERT(m_widgets.contains(widget));
-
-  m_widgets.removeOne(widget);
-  */
+  m_widgets.remove(eWidget);
 }
 
 //-----------------------------------------------------------------------------

@@ -19,6 +19,7 @@
 #include "Segmentation.h"
 
 #include "Filter.h"
+#include "Channel.h"
 #include "EspinaRegions.h"
 #include "common/colorEngines/ColorEngine.h"
 
@@ -212,6 +213,22 @@ void Segmentation::initializeExtensions(ModelItem::Arguments args)
 //     if (!args.isEmpty()) qDebug() << "*" << extArgs;
     ext->initialize(extArgs);
   }
+}
+
+//------------------------------------------------------------------------
+Channel* Segmentation::channel()
+{
+  ChannelList channels;
+
+  ModelItem::Vector relatedChannels = relatedItems(ModelItem::IN, Channel::LINK);
+  foreach(ModelItem *item, relatedChannels)
+  {
+    Q_ASSERT(CHANNEL == item->type());
+    channels << dynamic_cast<Channel *>(item);
+  }
+  Q_ASSERT(channels.size() == 1);
+
+  return channels.first();
 }
 
 //------------------------------------------------------------------------

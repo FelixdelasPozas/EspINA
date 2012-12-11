@@ -93,6 +93,7 @@ vtkRectangularSliceWidget::~vtkRectangularSliceWidget()
 {
 }
 
+
 //----------------------------------------------------------------------
 void vtkRectangularSliceWidget::SelectAction(vtkAbstractWidget *w)
 {
@@ -196,6 +197,8 @@ void vtkRectangularSliceWidget::MoveAction(vtkAbstractWidget *w)
     self->WidgetRep->ComputeInteractionState(X, Y);
     int stateAfter = self->WidgetRep->GetInteractionState();
     self->SetCursor(stateAfter);
+    if (stateAfter != vtkRectangularSliceRepresentation::Outside)
+      self->EventCallbackCommand->SetAbortFlag(1);
     return;
   }
 
@@ -205,16 +208,6 @@ void vtkRectangularSliceWidget::MoveAction(vtkAbstractWidget *w)
   e[1] = static_cast<double>(Y);
   self->WidgetRep->WidgetInteraction(e);
 
-//   vtkRectangularSliceRepresentation *rep =
-//     vtkRectangularSliceRepresentation::SafeDownCast(self->WidgetRep);
-//   if (rep)
-//   {
-// //     std::cout << "updating offset" << std::endl;
-//     rep->GetInclusionOffset(self->InclusionOffset);
-// //     std::cout << "Inclusion Offset: " << self->InclusionOffset[0] << " " << self->InclusionOffset[1]  << " " << self->InclusionOffset[2] << std::endl;
-//     rep->GetExclusionOffset(self->ExclusionOffset);
-// //     std::cout << "Exclusion Offset: " << self->ExclusionOffset[0] << " " << self->ExclusionOffset[1]  << " " << self->ExclusionOffset[2] << std::endl;
-//   }
   // moving something
   self->EventCallbackCommand->SetAbortFlag(1);
   self->InvokeEvent(vtkCommand::InteractionEvent,NULL);
@@ -224,25 +217,25 @@ void vtkRectangularSliceWidget::MoveAction(vtkAbstractWidget *w)
 //----------------------------------------------------------------------
 void vtkRectangularSliceWidget::SetCursor(int state)
 {
-    switch (state)
-    {
-      case vtkRectangularSliceRepresentation::Translating:
-	this->RequestCursorShape(VTK_CURSOR_SIZEALL);
-	break;
-      case vtkRectangularSliceRepresentation::MoveLeft:
-      case vtkRectangularSliceRepresentation::MoveRight:
-	this->RequestCursorShape(VTK_CURSOR_SIZEWE);
-	break;
-      case vtkRectangularSliceRepresentation::MoveTop:
-      case vtkRectangularSliceRepresentation::MoveBottom:
-	this->RequestCursorShape(VTK_CURSOR_SIZENS);
-	break;
-      case vtkRectangularSliceRepresentation::Outside:
-	this->RequestCursorShape(VTK_CURSOR_DEFAULT);
-	break;
-      default:
-	this->RequestCursorShape(VTK_CURSOR_DEFAULT);
-    };
+  switch (state)
+  {
+    case vtkRectangularSliceRepresentation::Translating:
+      this->RequestCursorShape(VTK_CURSOR_SIZEALL);
+      break;
+    case vtkRectangularSliceRepresentation::MoveLeft:
+    case vtkRectangularSliceRepresentation::MoveRight:
+      this->RequestCursorShape(VTK_CURSOR_SIZEWE);
+      break;
+    case vtkRectangularSliceRepresentation::MoveTop:
+    case vtkRectangularSliceRepresentation::MoveBottom:
+      this->RequestCursorShape(VTK_CURSOR_SIZENS);
+      break;
+    case vtkRectangularSliceRepresentation::Outside:
+      this->RequestCursorShape(VTK_CURSOR_DEFAULT);
+      break;
+    default:
+      this->RequestCursorShape(VTK_CURSOR_DEFAULT);
+  };
 }
 
 
@@ -315,6 +308,7 @@ void vtkRectangularSliceWidget::GetBounds(double bounds[6])
   rep->GetBounds(Bounds);
   rep->GetBounds(bounds);
   this->Render();
+  this->EventCallbackCommand->SetAbortFlag(0);
 
 }
 

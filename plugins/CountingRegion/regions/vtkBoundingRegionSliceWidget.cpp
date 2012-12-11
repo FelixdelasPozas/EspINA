@@ -15,11 +15,15 @@
 #include "vtkBoundingRegionSliceWidget.h"
 
 #include "vtkBoundingRegionSliceRepresentation.h"
+#include "vtkBoundingRegionAxialSliceRepresentation.h"
+#include "vtkBoundingRegionCoronalSliceRepresentation.h"
+#include "vtkBoundingRegionSagittalSliceRepresentation.h"
 
 #include "vtkCommand.h"
 #include "vtkCallbackCommand.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkObjectFactory.h"
+#include <vtkMath.h>
 #include "vtkWidgetEventTranslator.h"
 #include "vtkWidgetCallbackMapper.h"
 #include "vtkEvent.h"
@@ -30,6 +34,11 @@
 
 
 vtkStandardNewMacro(vtkBoundingRegionSliceWidget);
+
+typedef vtkBoundingRegionSliceRepresentation         SliceRepresentation;
+typedef vtkBoundingRegionAxialSliceRepresentation    AxialSliceRepresentation;
+typedef vtkBoundingRegionCoronalSliceRepresentation  CoronalSliceRepresentation;
+typedef vtkBoundingRegionSagittalSliceRepresentation SagittalSliceRepresentation;
 
 //----------------------------------------------------------------------------
 vtkBoundingRegionSliceWidget::vtkBoundingRegionSliceWidget()
@@ -115,7 +124,7 @@ void vtkBoundingRegionSliceWidget::SelectAction(vtkAbstractWidget *w)
   e[1] = static_cast<double>(Y);
   self->WidgetRep->StartWidgetInteraction(e);
   int interactionState = self->WidgetRep->GetInteractionState();
-  if ( interactionState == vtkBoundingRegionSliceRepresentation::Outside )
+  if ( interactionState == SliceRepresentation::Outside )
     {
     return;
     }
@@ -125,7 +134,7 @@ void vtkBoundingRegionSliceWidget::SelectAction(vtkAbstractWidget *w)
   self->GrabFocus(self->EventCallbackCommand);
 
   // The SetInteractionState has the side effect of highlighting the widget
-  reinterpret_cast<vtkBoundingRegionSliceRepresentation*>(self->WidgetRep)->
+  reinterpret_cast<SliceRepresentation*>(self->WidgetRep)->
     SetInteractionState(interactionState);
 
   // start the interaction
@@ -160,17 +169,17 @@ void vtkBoundingRegionSliceWidget::TranslateAction(vtkAbstractWidget *w)
   e[1] = static_cast<double>(Y);
   self->WidgetRep->StartWidgetInteraction(e);
   int interactionState = self->WidgetRep->GetInteractionState();
-  if ( interactionState == vtkBoundingRegionSliceRepresentation::Outside )
+  if ( interactionState == SliceRepresentation::Outside )
     {
     return;
     }
-  
+
   // We are definitely selected
   self->WidgetState = vtkBoundingRegionSliceWidget::Active;
   self->GrabFocus(self->EventCallbackCommand);
-  reinterpret_cast<vtkBoundingRegionSliceRepresentation*>(self->WidgetRep)->
-    SetInteractionState(vtkBoundingRegionSliceRepresentation::Translating);
-  
+  reinterpret_cast<SliceRepresentation*>(self->WidgetRep)->
+    SetInteractionState(SliceRepresentation::Translating);
+
   // start the interaction
   self->EventCallbackCommand->SetAbortFlag(1);
   self->StartInteraction();
@@ -182,7 +191,7 @@ void vtkBoundingRegionSliceWidget::TranslateAction(vtkAbstractWidget *w)
 void vtkBoundingRegionSliceWidget::MoveAction(vtkAbstractWidget *w)
 {
   vtkBoundingRegionSliceWidget *self = reinterpret_cast<vtkBoundingRegionSliceWidget*>(w);
-
+  Q_ASSERT(self->WidgetRep);
   // compute some info we need for all cases
   int X = self->Interactor->GetEventPosition()[0];
   int Y = self->Interactor->GetEventPosition()[1];
@@ -193,6 +202,8 @@ void vtkBoundingRegionSliceWidget::MoveAction(vtkAbstractWidget *w)
     self->WidgetRep->ComputeInteractionState(X, Y);
     int stateAfter = self->WidgetRep->GetInteractionState();
     self->SetCursor(stateAfter);
+    if (stateAfter != SliceRepresentation::Outside)
+      self->EventCallbackCommand->SetAbortFlag(1);
     return;
   }
 
@@ -202,16 +213,6 @@ void vtkBoundingRegionSliceWidget::MoveAction(vtkAbstractWidget *w)
   e[1] = static_cast<double>(Y);
   self->WidgetRep->WidgetInteraction(e);
 
-  vtkBoundingRegionSliceRepresentation *rep =
-    vtkBoundingRegionSliceRepresentation::SafeDownCast(self->WidgetRep);
-  if (rep)
-  {
-//     std::cout << "updating offset" << std::endl;
-    rep->GetInclusionOffset(self->InclusionOffset);
-//     std::cout << "Inclusion Offset: " << self->InclusionOffset[0] << " " << self->InclusionOffset[1]  << " " << self->InclusionOffset[2] << std::endl;
-    rep->GetExclusionOffset(self->ExclusionOffset);
-//     std::cout << "Exclusion Offset: " << self->ExclusionOffset[0] << " " << self->ExclusionOffset[1]  << " " << self->ExclusionOffset[2] << std::endl;
-  }
   // moving something
   self->EventCallbackCommand->SetAbortFlag(1);
   self->InvokeEvent(vtkCommand::InteractionEvent,NULL);
@@ -221,25 +222,25 @@ void vtkBoundingRegionSliceWidget::MoveAction(vtkAbstractWidget *w)
 //----------------------------------------------------------------------
 void vtkBoundingRegionSliceWidget::SetCursor(int state)
 {
-    switch (state)
-    {
-      case vtkBoundingRegionSliceRepresentation::Translating:
-	this->RequestCursorShape(VTK_CURSOR_SIZEALL);
-	break;
-      case vtkBoundingRegionSliceRepresentation::MoveLeft:
-      case vtkBoundingRegionSliceRepresentation::MoveRight:
-	this->RequestCursorShape(VTK_CURSOR_SIZEWE);
-	break;
-      case vtkBoundingRegionSliceRepresentation::MoveTop:
-      case vtkBoundingRegionSliceRepresentation::MoveBottom:
-	this->RequestCursorShape(VTK_CURSOR_SIZENS);
-	break;
-      case vtkBoundingRegionSliceRepresentation::Outside:
-	this->RequestCursorShape(VTK_CURSOR_DEFAULT);
-	break;
-      default:
-	this->RequestCursorShape(VTK_CURSOR_DEFAULT);
-    };
+  switch (state)
+  {
+    case SliceRepresentation::Translating:
+      this->RequestCursorShape(VTK_CURSOR_SIZEALL);
+      break;
+    case SliceRepresentation::MoveLeft:
+    case SliceRepresentation::MoveRight:
+      this->RequestCursorShape(VTK_CURSOR_SIZEWE);
+      break;
+    case SliceRepresentation::MoveTop:
+    case SliceRepresentation::MoveBottom:
+      this->RequestCursorShape(VTK_CURSOR_SIZENS);
+      break;
+    case SliceRepresentation::Outside:
+      this->RequestCursorShape(VTK_CURSOR_DEFAULT);
+      break;
+    default:
+      this->RequestCursorShape(VTK_CURSOR_DEFAULT);
+  };
 }
 
 
@@ -254,9 +255,23 @@ void vtkBoundingRegionSliceWidget::EndSelectAction(vtkAbstractWidget *w)
 
   // Return state to not active
   self->WidgetState = vtkBoundingRegionSliceWidget::Start;
-  reinterpret_cast<vtkBoundingRegionSliceRepresentation*>(self->WidgetRep)->
-    SetInteractionState(vtkBoundingRegionSliceRepresentation::Outside);
+  reinterpret_cast<SliceRepresentation*>(self->WidgetRep)->
+    SetInteractionState(SliceRepresentation::Outside);
   self->ReleaseFocus();
+
+  SliceRepresentation *rep = SliceRepresentation::SafeDownCast(self->WidgetRep);
+  if (rep)
+  {
+    rep->GetInclusionOffset(self->InclusionOffset);
+    rep->GetExclusionOffset(self->ExclusionOffset);
+    for (int i = 0; i < 3; i++)
+    {
+      self->InclusionOffset[i] =
+        vtkMath::Round(self->InclusionOffset[i]/self->Resolution[i])*self->Resolution[i];
+      self->ExclusionOffset[i] =
+        vtkMath::Round(self->ExclusionOffset[i]/self->Resolution[i])*self->Resolution[i];
+    }
+  }
 
   self->EventCallbackCommand->SetAbortFlag(1);
   self->EndInteraction();
@@ -268,14 +283,13 @@ void vtkBoundingRegionSliceWidget::EndSelectAction(vtkAbstractWidget *w)
 //----------------------------------------------------------------------
 void vtkBoundingRegionSliceWidget::SetPlane(PlaneType plane)
 {
+  Plane = plane;
+
   if (!this->WidgetRep)
     CreateDefaultRepresentation();
 
-  vtkBoundingRegionSliceRepresentation *rep =
-    reinterpret_cast<vtkBoundingRegionSliceRepresentation*>(this->WidgetRep);
-  rep->SetPlane(plane);
-
-  Plane = plane;
+  SliceRepresentation *rep =
+    reinterpret_cast<SliceRepresentation*>(this->WidgetRep);
 }
 
 //----------------------------------------------------------------------
@@ -284,21 +298,31 @@ void vtkBoundingRegionSliceWidget::SetSlice(Nm pos)
   if (!this->WidgetRep)
     CreateDefaultRepresentation();
 
-  vtkBoundingRegionSliceRepresentation *rep = reinterpret_cast<vtkBoundingRegionSliceRepresentation*>(this->WidgetRep);
+  SliceRepresentation *rep = reinterpret_cast<SliceRepresentation*>(this->WidgetRep);
   rep->SetSlice(pos);
   Slice = pos;
   this->Render();
 }
 
 //----------------------------------------------------------------------
-void vtkBoundingRegionSliceWidget::SetBoundingRegion(vtkPolyData *region)
+void vtkBoundingRegionSliceWidget::SetSlicingStep(Nm slicingStep[3])
+{
+  memcpy(Resolution, slicingStep, 3*sizeof(Nm));
+}
+
+//----------------------------------------------------------------------
+void vtkBoundingRegionSliceWidget::SetBoundingRegion(vtkSmartPointer<vtkPolyData> region,
+                                                     Nm inclusionOffset[3],
+                                                     Nm exclusionOffset[3])
 {
   if (!this->WidgetRep)
     CreateDefaultRepresentation();
-  vtkBoundingRegionSliceRepresentation *rep = reinterpret_cast<vtkBoundingRegionSliceRepresentation*>(this->WidgetRep);
-  rep->SetBoundingRegion(region);
-  rep->GetInclusionOffset(this->InclusionOffset);
-  rep->GetExclusionOffset(this->ExclusionOffset);
+
+  memcpy(InclusionOffset, inclusionOffset, 3*sizeof(Nm));
+  memcpy(ExclusionOffset, exclusionOffset, 3*sizeof(Nm));
+
+  SliceRepresentation *rep = reinterpret_cast<SliceRepresentation*>(this->WidgetRep);
+  rep->SetBoundingRegion(region, inclusionOffset, exclusionOffset, Resolution);
   this->Render();
 }
 
@@ -306,7 +330,20 @@ void vtkBoundingRegionSliceWidget::SetBoundingRegion(vtkPolyData *region)
 void vtkBoundingRegionSliceWidget::CreateDefaultRepresentation()
 {
   if ( ! this->WidgetRep )
-    this->WidgetRep = vtkBoundingRegionSliceRepresentation::New();
+  {
+    switch (Plane)
+    {
+      case AXIAL:
+        this->WidgetRep = AxialSliceRepresentation::New();
+        break;
+      case CORONAL:
+        this->WidgetRep = CoronalSliceRepresentation::New();
+        break;
+      case SAGITTAL:
+        this->WidgetRep = SagittalSliceRepresentation::New();
+        break;
+    }
+  }
 }
 
 //----------------------------------------------------------------------------

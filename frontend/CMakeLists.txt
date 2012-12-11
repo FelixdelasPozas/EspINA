@@ -45,6 +45,7 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
   toolbar/main/SegRemover.h
   toolbar/editor/Brush.h
   toolbar/editor/EditorToolBar.h
+  toolbar/editor/split/PlanarSplitTool.h
   toolbar/seedgrow/SeedGrowSegmentation.h
   toolbar/seedgrow/SeedGrowSegmentationFilter.h
   toolbar/seedgrow/SeedGrowSegmentationTool.h
@@ -104,6 +105,12 @@ set (TOOLBAR_SOURCES
   toolbar/editor/EditorToolBar.cpp
   toolbar/editor/Settings.cpp
   toolbar/editor/SettingsPanel.cpp
+  toolbar/editor/split/PlanarSplitTool.cpp
+  toolbar/editor/split/SplitUndoCommand.cpp
+  toolbar/editor/split/PlanarSplitWidget.cpp
+  toolbar/editor/split/PlanarSplitSliceWidget.cpp
+  toolbar/editor/split/vtkPlanarSplitWidget.cpp
+  toolbar/editor/split/vtkPlanarSplitRepresentation2D.cpp
   toolbar/editor/FilledContour.cpp
   toolbar/seedgrow/SeedGrowSegmentation.cpp
   toolbar/seedgrow/SeedGrowSegmentationFilter.cpp

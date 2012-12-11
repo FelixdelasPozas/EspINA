@@ -29,6 +29,7 @@ class ViewManager;
 class CountingRegionChannelExtension
 : public ChannelExtension
 {
+  Q_OBJECT
 public:
   static const ExtId ID;
   static const ModelItem::ArgumentId REGIONS;
@@ -58,6 +59,9 @@ public:
   void addRegion(BoundingRegion *region);
   void removeRegion(BoundingRegion *region);
   QList<BoundingRegion *> regions() const {return m_regions;}
+
+protected slots:
+  void regionUpdated(BoundingRegion *region);
 
 private:
   CountingRegion         *m_plugin;

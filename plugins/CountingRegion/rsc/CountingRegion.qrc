@@ -9,5 +9,7 @@
         <file>left.png</file>
         <file>trash-full.svg</file>
         <file>apply.svg</file>
+        <file>update-cr.svg</file>
+        <file>create-cr.svg</file>
     </qresource>
 </RCC>

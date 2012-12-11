@@ -32,8 +32,9 @@
 #include <vtkImageChangeInformation.h>
 
 //---------------------------------------------------------------------------
-const ModelItem::ArgumentId SegmhaImporterFilter::FILE = "File";
-const ModelItem::ArgumentId SegmhaImporterFilter::BLOCKS = "Blocks";
+const ModelItem::ArgumentId SegmhaImporterFilter::FILE    = "File";
+const ModelItem::ArgumentId SegmhaImporterFilter::BLOCKS  = "Blocks";
+const ModelItem::ArgumentId SegmhaImporterFilter::SPACING = "Spacing";
 
 //---------------------------------------------------------------------------
 SegmhaImporterFilter::SegmentationObject::SegmentationObject(const QString& line)
@@ -70,7 +71,7 @@ const QString SegmhaImporterFilter::SUPPORTED_FILES = tr("Segmentation LabelMaps
 
 //-----------------------------------------------------------------------------
 SegmhaImporterFilter::SegmhaImporterFilter(Filter::NamedInputs inputs,
-					   ModelItem::Arguments args)
+                                           ModelItem::Arguments args)
 : Filter       (inputs, args)
 , m_needUpdate (false)
 , m_param      (m_args)
@@ -187,13 +188,13 @@ void SegmhaImporterFilter::run()
   //this->SetTaxonomy(taxonomies.toUtf8());
 ////   std::cout << "Total Number of Taxonomies: " << taxonomies.split(";").size() << std::endl;
 
-  qDebug() << "Reading ITK image from file";
+  //qDebug() << "Reading ITK image from file";
   // Read the original image, whose pixels are indeed labelmap object ids
   m_lmapReader->SetFileName(m_args[FILE].toUtf8().constData());
   m_lmapReader->SetImageIO(itk::MetaImageIO::New());
   m_lmapReader->Update();
 
-  qDebug() << "Invert ITK image's slices";
+  //qDebug() << "Invert ITK image's slices";
   // EspINA python used an inversed representation of the samples
   ImageToVTKImageFilterType::Pointer originalImage =
     ImageToVTKImageFilterType::New();
@@ -240,7 +241,7 @@ void SegmhaImporterFilter::run()
       LabelObjectType::RegionType region = object->GetBoundingBox();
 
       source.labelMap = LabelMapType::New();
-      source.labelMap->SetSpacing(labelMap->GetSpacing());
+      source.labelMap->SetSpacing(m_param.spacing());
       source.labelMap->SetRegions(region);
       source.labelMap->Allocate();
       object->SetLabel(SEG_VOXEL_VALUE);

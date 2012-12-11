@@ -62,9 +62,6 @@ public:
   virtual void setEnabled(bool enable);
   virtual void setInUse(bool value);
 
-protected:
-  virtual SegmentationList selectedSegmentations() const;
-
 protected slots:
   virtual BrushShape createBrushShape(PickableItem *item,
                                       double center[3],

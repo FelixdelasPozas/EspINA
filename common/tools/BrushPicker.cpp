@@ -16,9 +16,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+// EspINA
 #include "BrushPicker.h"
-
 #include "common/model/Channel.h"
 #include "common/gui/EspinaRenderView.h"
 #include <ViewManager.h>
@@ -26,39 +25,42 @@
 #include <EspinaRegions.h>
 #include <BoundingBox.h>
 
-#include <QDebug>
+// Qt
 #include <QMouseEvent>
 #include <QPainter>
 
-#include <itkImageRegionIteratorWithIndex.h>
-
+// VTK
 #include <vtkRenderWindow.h>
 #include <vtkRenderer.h>
 #include <vtkImageActor.h>
 #include <vtkImageMapper3D.h>
-#include <vtkImageProperty.h>
 #include <vtkSmartPointer.h>
 #include <vtkMath.h>
 #include <vtkCoordinate.h>
 #include <vtkSphere.h>
 #include <vtkImageResliceToColors.h>
+#include <vtkMatrix4x4.h>
 
-
-typedef itk::ImageRegionIteratorWithIndex<EspinaVolume> VolumeIterator;
 //-----------------------------------------------------------------------------
 BrushPicker::BrushPicker(PickableItem* item)
 : m_referenceItem(item)
 , m_displayRadius(20)
 , m_borderColor(Qt::blue)
 , m_brushColor(Qt::blue)
-, m_previewVisible(true)
 , m_tracking(false)
 , m_stroke(IPicker::WorldRegion::New())
 , m_plane(AXIAL)
 , m_radius(-1)
+, m_lut(NULL)
 , m_preview(NULL)
+, m_actor(NULL)
+, m_drawing(true)
 {
-
+  memset(m_viewSize, 0, 2*sizeof(int));
+  memset(m_LL, 0, 3*sizeof(double));
+  memset(m_UR, 0, 3*sizeof(double));
+  memset(m_pBounds, 0, 6*sizeof(Nm));
+  memset(m_worldSize, 0, 2*sizeof(double));
 }
 
 //-----------------------------------------------------------------------------
@@ -121,12 +123,6 @@ void BrushPicker::setReferenceItem(PickableItem* item)
 }
 
 //-----------------------------------------------------------------------------
-void BrushPicker::setStrokeVisibility(bool visible)
-{
-  m_previewVisible = visible;
-}
-
-//-----------------------------------------------------------------------------
 void BrushPicker::buildCursor()
 {
   int width = 2*m_displayRadius;
@@ -151,13 +147,11 @@ void BrushPicker::createBrush(double brush[3], QPoint pos)
 
   double wPos[3];
   wPos[m_plane] = m_pBounds[2*m_plane];
-  wPos[H] = m_LL[H] + pos.x()*m_worldSize[0]/m_windowSize[0];
-  wPos[V] = m_UR[V] + pos.y()*m_worldSize[1]/m_windowSize[1];
+  wPos[H] = m_LL[H] + pos.x()*m_worldSize[0]/m_viewSize[0];
+  wPos[V] = m_UR[V] + pos.y()*m_worldSize[1]/m_viewSize[1];
 
-  //qDebug() << QString("Center (%1,%2,%3)").arg(wPos[0]).arg(wPos[1]).arg(wPos[2]);
   for(int i=0; i < 3; i++)
     brush[i] = int(wPos[i]/m_spacing[i]+0.5)*m_spacing[i];
-  //qDebug() << QString("Stroke Point (%1,%2,%3)").arg(brush[0]).arg(brush[1]).arg(brush[2]);
 }
 
 
@@ -165,16 +159,33 @@ void BrushPicker::createBrush(double brush[3], QPoint pos)
 bool BrushPicker::validStroke(double brush[3])
 {
   double brushBounds[6];
-  double sRadius = (m_plane == SAGITTAL)?0:m_radius;
-  double cRadius = (m_plane ==  CORONAL)?0:m_radius;
-  double aRadius = (m_plane ==    AXIAL)?0:m_radius;
 
-  brushBounds[0] = brush[0] - sRadius;
-  brushBounds[1] = brush[0] + sRadius;
-  brushBounds[2] = brush[1] - cRadius;
-  brushBounds[3] = brush[1] + cRadius;
-  brushBounds[4] = brush[2] - aRadius;
-  brushBounds[5] = brush[2] + aRadius;
+  switch(m_plane)
+  {
+    case AXIAL:
+      brushBounds[0] = brush[0] - m_radius;
+      brushBounds[1] = brush[0] + m_radius;
+      brushBounds[2] = brush[1] - m_radius;
+      brushBounds[3] = brush[1] + m_radius;
+      brushBounds[4] = brushBounds[5] = m_pBounds[4];
+      break;
+    case CORONAL:
+      brushBounds[0] = brush[0] - m_radius;
+      brushBounds[1] = brush[0] + m_radius;
+      brushBounds[2] = brushBounds[3] = m_pBounds[2];
+      brushBounds[4] = brush[2] - m_radius;
+      brushBounds[5] = brush[2] + m_radius;
+      break;
+    case SAGITTAL:
+      brushBounds[0] = brushBounds[1] = m_pBounds[0];
+      brushBounds[2] = brush[1] - m_radius;
+      brushBounds[3] = brush[1] + m_radius;
+      brushBounds[4] = brush[2] - m_radius;
+      brushBounds[5] = brush[2] + m_radius;
+      break;
+    default:
+      break;
+  }
 
   BoundingBox previewBB(m_pBounds);
   BoundingBox brushBB(brushBounds);
@@ -201,7 +212,7 @@ void BrushPicker::startStroke(QPoint pos, EspinaRenderView* view)
 
   m_tracking = true;
 
-  memcpy(m_windowSize, view->renderWindow()->GetSize(), 2*sizeof(int));
+  memcpy(m_viewSize, view->renderWindow()->GetSize(), 2*sizeof(int));
 
   // Display bounds in world coordinates
   vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
@@ -219,19 +230,22 @@ void BrushPicker::startStroke(QPoint pos, EspinaRenderView* view)
   m_worldSize[0] = fabs(m_UR[H] - m_LL[H]);
   m_worldSize[1] = fabs(m_UR[V] - m_LL[V]);
 
-  m_radius = m_displayRadius*m_worldSize[0]/m_windowSize[0];
+  m_radius = m_displayRadius*m_worldSize[0]/m_viewSize[0];
 
   double brush[3];
   createBrush(brush, pos);
 
-  startPreview(view);
+  if (m_drawing)
+    startPreview(view);
 
   if (validStroke(brush))
   {
     m_lastDot = pos;
     m_stroke->InsertNextPoint(brush);
-    emit stroke(m_referenceItem, brush[0], brush[1], brush[2], m_radius, m_plane);
-    updatePreview(brush, view);
+    if (m_drawing)
+      updatePreview(brush, view);
+    else
+      emit stroke(m_referenceItem, brush[0], brush[1], brush[2], m_radius, m_plane);
   }
 }
 
@@ -248,8 +262,10 @@ void BrushPicker::updateStroke(QPoint pos, EspinaRenderView* view)
   {
     m_lastDot = pos;
     m_stroke->InsertNextPoint(brush);
-    emit stroke(m_referenceItem, brush[0], brush[1], brush[2], m_radius, m_plane);
-    updatePreview(brush, view);
+    if (m_drawing)
+      updatePreview(brush, view);
+    else
+      emit stroke(m_referenceItem, brush[0], brush[1], brush[2], m_radius, m_plane);
   }
 }
 
@@ -259,7 +275,6 @@ void BrushPicker::stopStroke(EspinaRenderView* view)
   if (m_stroke->GetNumberOfPoints() > 0)
     emit stroke(m_referenceItem, m_stroke, m_radius, m_plane);
 
-  //qDebug() << "Stroke with" << m_stroke->GetNumberOfPoints() << "points";
   m_tracking = false;
   m_stroke->Reset();
   stopPreview(view);
@@ -268,16 +283,6 @@ void BrushPicker::stopStroke(EspinaRenderView* view)
 //-----------------------------------------------------------------------------
 void BrushPicker::startPreview(EspinaRenderView* view)
 {
-  if (!m_previewVisible)
-    return;
-
-  EspinaVolume::PointType origin;
-  origin.Fill(0);
-  //origin[m_plane] = m_pBounds[m_plane] - 10;
-  EspinaVolume::SizeType size;
-  for(int i=0; i<6; i++)
-    size[i] = m_pBounds[i];
-
   m_lut = vtkSmartPointer<vtkLookupTable>::New();
   m_lut->Allocate();
   m_lut->SetNumberOfTableValues(2);
@@ -286,31 +291,66 @@ void BrushPicker::startPreview(EspinaRenderView* view)
   m_lut->SetTableValue(1, m_brushColor.redF(), m_brushColor.greenF(), m_brushColor.blueF(), 1.0);
   m_lut->Modified();
 
-  m_preview = EspinaVolume::New();
-  m_preview->SetOrigin(origin);
-  m_preview->SetRegions(BoundsToRegion(m_pBounds, m_spacing));
-  m_preview->SetSpacing(m_spacing);
-  m_preview->Allocate();
-  m_preview->FillBuffer(0);
+  int extent[6];
+  for (int i = 0; i < 3; ++i)
+  {
+    extent[2*i] = m_pBounds[2*i]/m_spacing[i];
+    extent[(2*i)+1] = m_pBounds[(2*i)+1]/m_spacing[i];
+  }
+
+  m_preview = vtkSmartPointer<vtkImageData>::New();
+  m_preview->SetOrigin(0,0,0);
+  m_preview->SetScalarTypeToUnsignedChar();
+  m_preview->SetExtent(extent);
+  m_preview->SetSpacing(m_spacing[0], m_spacing[1], m_spacing[2]);
+  m_preview->AllocateScalars();
+  memset(m_preview->GetScalarPointer(), 0, m_preview->GetNumberOfPoints());
+
+  vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  if (m_pBounds[4]==m_pBounds[5])
+  {
+    double elements[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, m_pBounds[4], 0, 0, 0, 1 };
+    matrix->DeepCopy(elements);
+    m_preview->SetOrigin(0,0,m_pBounds[4] - (extent[4]*m_spacing[2])); // resolves "Fit to slices" discrepancy
+  }
+  else if (m_pBounds[2] == m_pBounds[3])
+  {
+    double elements[16] = { 1, 0, 0, 0, 0, 0, 1, m_pBounds[2], 0, -1, 0, 0, 0, 0, 0, 1 };
+    matrix->DeepCopy(elements);
+    m_preview->SetOrigin(0,m_pBounds[2] - (extent[2]*m_spacing[1]), 0); // resolves "Fit to slices" discrepancy
+  }
+  else if (m_pBounds[0] == m_pBounds[1])
+  {
+    double elements[16] = { 0, 0, -1, m_pBounds[0], 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 1 };
+    matrix->DeepCopy(elements);
+    m_preview->SetOrigin(m_pBounds[0] - (extent[0]*m_spacing[0]), 0, 0); // resolves "Fit to slices" discrepancy
+  }
   m_preview->Update();
 
-  itk2vtk = itk2vtkFilterType::New();
-  itk2vtk->ReleaseDataFlagOn();
-  itk2vtk->SetInput(m_preview);
-  itk2vtk->Update();
+  vtkSmartPointer<vtkImageResliceToColors> reslice = vtkSmartPointer<vtkImageResliceToColors>::New();
+  reslice->OptimizationOn();
+  reslice->BorderOn();
+  reslice->SetOutputFormatToRGBA();
+  reslice->AutoCropOutputOff();
+  reslice->InterpolateOff();
+  reslice->SetResliceAxes(matrix);
+  reslice->SetInputConnection(m_preview->GetProducerPort());
+  reslice->SetOutputDimensionality(2);
+  reslice->SetLookupTable(m_lut);
+  reslice->Update();
 
-  m_actor = vtkImageActor::New();
+  m_actor = vtkSmartPointer<vtkImageActor>::New();
+  m_actor->SetPickable(false);
   m_actor->SetInterpolate(false);
   m_actor->GetMapper()->BorderOn();
-  m_actor->GetMapper()->SetInputConnection(itk2vtk->GetOutput()->GetProducerPort());
-  m_actor->GetProperty()->SetLookupTable(m_lut);
+  m_actor->GetMapper()->SetInputConnection(reslice->GetOutputPort());
+  m_actor->Update();
 
   double pos[3];
   memset(pos, 0, 3*sizeof(double));
   int sign = ((m_plane == AXIAL) ? -1 : 1);
-  pos[m_plane] = -m_pBounds[2*m_plane] + (sign*0.1);
+  pos[m_plane] += (sign*0.1);
   m_actor->SetPosition(pos);
-  m_actor->Update();
 
   view->addPreview(m_actor);
 }
@@ -318,21 +358,34 @@ void BrushPicker::startPreview(EspinaRenderView* view)
 //-----------------------------------------------------------------------------
 void BrushPicker::updatePreview(double brush[3], EspinaRenderView* view)
 {
-  if (!m_previewVisible)
-    return;
-
-  //qDebug() << "Update Preview" << brush[0] << brush[1] << brush[2];
   double brushBounds[6];
-  double sRadius = (m_plane == SAGITTAL)?0:m_radius;
-  double cRadius = (m_plane ==  CORONAL)?0:m_radius;
-  double aRadius = (m_plane ==    AXIAL)?0:m_radius;
 
-  brushBounds[0] = brush[0] - sRadius;
-  brushBounds[1] = brush[0] + sRadius;
-  brushBounds[2] = brush[1] - cRadius;
-  brushBounds[3] = brush[1] + cRadius;
-  brushBounds[4] = brush[2] - aRadius;
-  brushBounds[5] = brush[2] + aRadius;
+  switch(m_plane)
+  {
+    case AXIAL:
+      brushBounds[0] = brush[0] - m_radius;
+      brushBounds[1] = brush[0] + m_radius;
+      brushBounds[2] = brush[1] - m_radius;
+      brushBounds[3] = brush[1] + m_radius;
+      brushBounds[4] = brushBounds[5] = m_pBounds[4];
+      break;
+    case CORONAL:
+      brushBounds[0] = brush[0] - m_radius;
+      brushBounds[1] = brush[0] + m_radius;
+      brushBounds[2] = brushBounds[3] = m_pBounds[2];
+      brushBounds[4] = brush[2] - m_radius;
+      brushBounds[5] = brush[2] + m_radius;
+      break;
+    case SAGITTAL:
+      brushBounds[0] = brushBounds[1] = m_pBounds[0];
+      brushBounds[2] = brush[1] - m_radius;
+      brushBounds[3] = brush[1] + m_radius;
+      brushBounds[4] = brush[2] - m_radius;
+      brushBounds[5] = brush[2] + m_radius;
+      break;
+    default:
+      break;
+  }
 
   BoundingBox previewBB(m_pBounds);
   BoundingBox brushBB(brushBounds);
@@ -340,19 +393,49 @@ void BrushPicker::updatePreview(double brush[3], EspinaRenderView* view)
   if (previewBB.intersect(brushBB))
   {
     BoundingBox updateBB = previewBB.intersection(brushBB);
-    EspinaVolume::RegionType normRegion = BoundsToRegion(updateBB.bounds(), m_spacing);
+    double *bounds = updateBB.bounds();
 
     double r2 = m_radius*m_radius;
-    VolumeIterator it(m_preview, normRegion);
-    it.GoToBegin();
-    for (; !it.IsAtEnd(); ++it )
+    switch(m_plane)
     {
-      double pixel[3];
-      pixel[0] = it.GetIndex()[0]*m_spacing[0];
-      pixel[1] = it.GetIndex()[1]*m_spacing[1];
-      pixel[2] = it.GetIndex()[2]*m_spacing[2];
-      if (vtkMath::Distance2BetweenPoints(brush,pixel) < r2)
-        it.Set(SEG_VOXEL_VALUE);
+      case AXIAL:
+        for (int x = bounds[0]/m_spacing[0]; x <= bounds[1]/m_spacing[0]; x++)
+          for (int y = bounds[2]/m_spacing[1]; y <= bounds[3]/m_spacing[1]; y++)
+        {
+          double pixel[3] = {x*m_spacing[0], y*m_spacing[1], m_pBounds[4]};
+          if (vtkMath::Distance2BetweenPoints(brush,pixel) < r2)
+          {
+            unsigned char *pixel = static_cast<unsigned char*>(m_preview->GetScalarPointer(x,y,m_pBounds[4]/m_spacing[2]));
+            *pixel = 1;
+          }
+        }
+        break;
+      case CORONAL:
+        for (int x = bounds[0]/m_spacing[0]; x <= bounds[1]/m_spacing[0]; x++)
+          for (int z = bounds[4]/m_spacing[2]; z <= bounds[5]/m_spacing[2]; z++)
+        {
+          double pixel[3] = {x*m_spacing[0], m_pBounds[2], z*m_spacing[2]};
+          if (vtkMath::Distance2BetweenPoints(brush,pixel) < r2)
+          {
+            unsigned char *pixel = static_cast<unsigned char*>(m_preview->GetScalarPointer(x,m_pBounds[2]/m_spacing[1],z));
+            *pixel = 1;
+          }
+        }
+        break;
+      case SAGITTAL:
+        for (int y = bounds[2]/m_spacing[1]; y <= bounds[3]/m_spacing[1]; y++)
+          for (int z = bounds[4]/m_spacing[2]; z <= bounds[5]/m_spacing[2]; z++)
+        {
+          double pixel[3] = {m_pBounds[0], y*m_spacing[1], z*m_spacing[2]};
+          if (vtkMath::Distance2BetweenPoints(brush,pixel) < r2)
+          {
+            unsigned char *pixel = static_cast<unsigned char*>(m_preview->GetScalarPointer(m_pBounds[0]/m_spacing[0],y,z));
+            *pixel = 1;
+          }
+        }
+        break;
+      default:
+        break;
     }
     m_preview->Modified();
     view->updateView();
@@ -362,11 +445,20 @@ void BrushPicker::updatePreview(double brush[3], EspinaRenderView* view)
 //-----------------------------------------------------------------------------
 void BrushPicker::stopPreview(EspinaRenderView* view)
 {
-  if (!m_previewVisible)
-    return;
-
   view->removePreview(m_actor);
-//   m_actor->Delete();
-//   itk2vtk->Delete();
-//   m_preview->Delete();
+  m_lut = NULL;
+  m_preview = NULL;
+  m_actor = NULL;
+}
+
+//-----------------------------------------------------------------------------
+void BrushPicker::DrawingOn()
+{
+  m_drawing = true;
+}
+
+//-----------------------------------------------------------------------------
+void BrushPicker::DrawingOff()
+{
+  m_drawing = false;
 }

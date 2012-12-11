@@ -67,6 +67,7 @@ public:
   void computeMarginDistance(Segmentation *seg);
 
   vtkSmartPointer<vtkPolyData> margins();
+  Nm computedVolume();
 
 protected:
   void computeMargins();
@@ -76,6 +77,7 @@ private:
   ModelItem::Arguments         m_args;
   vtkSmartPointer<vtkPolyData> m_borders;
   QMutex                       m_borderMutex;
+  Nm                           m_computedVolume;
 
   vtkSmartPointer<vtkPolyData> m_PolyDataFaces[6];
   std::map<unsigned int, unsigned long int> m_ComputedSegmentations;

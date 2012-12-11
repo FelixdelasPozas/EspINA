@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>289</width>
+    <width>280</width>
     <height>776</height>
    </rect>
   </property>
@@ -24,8 +24,8 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>275</width>
-        <height>762</height>
+        <width>268</width>
+        <height>747</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -92,244 +92,21 @@
         </widget>
        </item>
        <item>
-        <layout class="QGridLayout" name="gridLayout_2">
-         <item row="2" column="1">
-          <widget class="QLabel" name="label_11">
-           <property name="text">
-            <string>Left Margin</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="2">
-          <widget class="QLabel" name="label_12">
-           <property name="text">
-            <string>Top Margin</string>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="3">
-          <widget class="QLabel" name="label_13">
-           <property name="text">
-            <string>Upper Slice</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QSpinBox" name="leftMargin">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color:rgb(192, 255, 192)</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-           <property name="suffix">
-            <string>nm</string>
-           </property>
-           <property name="maximum">
-            <number>0</number>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="2">
-          <widget class="QSpinBox" name="topMargin">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="autoFillBackground">
-            <bool>false</bool>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color: rgb(192, 255, 192)</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-           <property name="suffix">
-            <string>nm</string>
-           </property>
-           <property name="maximum">
-            <number>0</number>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="3">
-          <widget class="QSpinBox" name="upperSlice">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color:rgb(192, 255, 192)</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-           <property name="suffix">
-            <string>nm</string>
-           </property>
-           <property name="maximum">
-            <number>0</number>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="1">
-          <widget class="QLabel" name="label_14">
-           <property name="text">
-            <string>Right Margin</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="2">
-          <widget class="QLabel" name="label_15">
-           <property name="text">
-            <string>Bottom Margin</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="3">
-          <widget class="QLabel" name="label_16">
-           <property name="text">
-            <string>Lower Slice</string>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="1">
-          <widget class="QSpinBox" name="rightMargin">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color:rgb(255, 192, 192)</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-           <property name="suffix">
-            <string>nm</string>
-           </property>
-           <property name="maximum">
-            <number>0</number>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="2">
-          <widget class="QSpinBox" name="bottomMargin">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color:rgb(255, 192, 192)</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-           <property name="suffix">
-            <string>nm</string>
-           </property>
-           <property name="maximum">
-            <number>0</number>
-           </property>
-          </widget>
-         </item>
-         <item row="6" column="3">
-          <widget class="QSpinBox" name="lowerSlice">
-           <property name="enabled">
-            <bool>true</bool>
-           </property>
-           <property name="styleSheet">
-            <string notr="true">background-color:rgb(255, 192, 192)</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-           <property name="suffix">
-            <string>nm</string>
-           </property>
-           <property name="maximum">
-            <number>0</number>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="4">
-          <spacer name="horizontalSpacer_6">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item row="2" column="4">
-          <spacer name="horizontalSpacer_7">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item row="5" column="4">
-          <spacer name="horizontalSpacer_8">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-         <item row="6" column="4">
-          <spacer name="horizontalSpacer_9">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout">
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
          <item>
-          <widget class="QLabel" name="label_17">
-           <property name="text">
-            <string>Type:</string>
+          <widget class="QComboBox" name="regions">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
            </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="regionType">
-           <property name="currentIndex">
-            <number>1</number>
+           <property name="minimumSize">
+            <size>
+             <width>160</width>
+             <height>0</height>
+            </size>
            </property>
-           <item>
-            <property name="text">
-             <string>Adaptative Region</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>Rectangular Region</string>
-            </property>
-           </item>
           </widget>
          </item>
          <item>
@@ -357,7 +134,7 @@
            </property>
            <property name="icon">
             <iconset resource="rsc/CountingRegion.qrc">
-             <normaloff>:/apply.svg</normaloff>:/apply.svg</iconset>
+             <normaloff>:/create-cr.svg</normaloff>:/create-cr.svg</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -408,23 +185,183 @@
            </property>
           </widget>
          </item>
-         <item>
-          <spacer name="horizontalSpacer_10">
-           <property name="orientation">
-            <enum>Qt::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
         </layout>
        </item>
        <item>
-        <widget class="QTreeView" name="regionView"/>
+        <widget class="QLabel" name="label">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Margins:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <layout class="QGridLayout" name="gridLayout_2">
+         <item row="4" column="0">
+          <widget class="QSpinBox" name="leftMargin">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color:rgb(192, 255, 192)</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+           <property name="suffix">
+            <string>nm</string>
+           </property>
+           <property name="maximum">
+            <number>0</number>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QLabel" name="label_14">
+           <property name="text">
+            <string>Right </string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="2">
+          <widget class="QSpinBox" name="upperMargin">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color:rgb(192, 255, 192)</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+           <property name="suffix">
+            <string>nm</string>
+           </property>
+           <property name="maximum">
+            <number>0</number>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="2">
+          <widget class="QSpinBox" name="lowerMargin">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color:rgb(255, 192, 192)</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+           <property name="suffix">
+            <string>nm</string>
+           </property>
+           <property name="maximum">
+            <number>0</number>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="1">
+          <widget class="QSpinBox" name="bottomMargin">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color:rgb(255, 192, 192)</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+           <property name="suffix">
+            <string>nm</string>
+           </property>
+           <property name="maximum">
+            <number>0</number>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QLabel" name="label_12">
+           <property name="text">
+            <string>Top</string>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QLabel" name="label_15">
+           <property name="text">
+            <string>Bottom </string>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QSpinBox" name="topMargin">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="autoFillBackground">
+            <bool>false</bool>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color: rgb(192, 255, 192)</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+           <property name="suffix">
+            <string>nm</string>
+           </property>
+           <property name="maximum">
+            <number>0</number>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0">
+          <widget class="QSpinBox" name="rightMargin">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">background-color:rgb(255, 192, 192)</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+           <property name="suffix">
+            <string>nm</string>
+           </property>
+           <property name="maximum">
+            <number>0</number>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="2">
+          <widget class="QLabel" name="label_16">
+           <property name="text">
+            <string>Lower</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="2">
+          <widget class="QLabel" name="label_13">
+           <property name="text">
+            <string>Upper</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_11">
+           <property name="text">
+            <string>Left</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
        </item>
        <item>
         <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -478,7 +415,14 @@
         </layout>
        </item>
        <item>
-        <widget class="QTextEdit" name="regionDescription"/>
+        <widget class="QTextEdit" name="regionDescription">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>

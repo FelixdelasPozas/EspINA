@@ -21,9 +21,9 @@
 #define VTKBOUNDINGREGIONWIDGET_H
 
 #include <vtkAbstractWidget.h>
+#include <vtkSmartPointer.h>
+#include <vtkPolyData.h>
 #include <common/EspinaTypes.h>
-
-class vtkPolyData;
 
 /// Base class for bounding region widgets
 class VTK_WIDGETS_EXPORT vtkBoundingRegionWidget
@@ -32,16 +32,23 @@ class VTK_WIDGETS_EXPORT vtkBoundingRegionWidget
 public:
   vtkTypeMacro(vtkBoundingRegionWidget, vtkAbstractWidget);
 
-  vtkSetVector3Macro(InclusionOffset, Nm);
   vtkGetVector3Macro(InclusionOffset, Nm);
-  vtkSetVector3Macro(ExclusionOffset, Nm);
   vtkGetVector3Macro(ExclusionOffset, Nm);
 
-  virtual void SetBoundingRegion(vtkPolyData *region) = 0;
+  virtual void SetBoundingRegion(vtkSmartPointer<vtkPolyData> region,
+                                 Nm inclusionOffset[3],
+                                 Nm exclusionOffset[3]) = 0;
 
 protected:
   Nm InclusionOffset[3];
   Nm ExclusionOffset[3];
+
+protected:
+  vtkBoundingRegionWidget()
+  {
+    memset(InclusionOffset, 0, 3*sizeof(Nm));
+    memset(ExclusionOffset, 0, 3*sizeof(Nm));
+  }
 };
 
 #endif // VTKBOUNDINGREGIONWIDGET_H

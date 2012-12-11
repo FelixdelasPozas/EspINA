@@ -97,6 +97,8 @@ void MarginDetector::run()
   int extent[6];
   image->GetExtent(extent);
 
+  m_extension->m_computedVolume = 0;
+
 //   vtkDebugMacro(<< "Dim: " << dim[0] << "," << dim[1] << "," << dim[2]);
 //   vtkDebugMacro(<< "Spacing: " << spacing[0] << "," << spacing[1] << "," << spacing[2]);
 //   vtkDebugMacro( << "Looking for borders");
@@ -234,6 +236,9 @@ void MarginDetector::run()
       faces->InsertNextCell(4, bottom);
     }
     memcpy(lastCell,cell,4*sizeof(vtkIdType));
+
+    if (z != zMin)
+      m_extension->m_computedVolume += ((RT[0] - LT[0] + 1)*(LB[1] - LT[1] + 1))*spacing[2];
   }
 
   m_extension->m_borders->SetPoints(borderVertices);

@@ -30,6 +30,7 @@
 // Forward declaration
 class BoundingRegion;
 class Channel;
+class CountingRegionChannelExtension;
 
 /// Counting Region Plugin
 class CountingRegion
@@ -70,14 +71,34 @@ public slots:
 
 protected slots:
   void clearBoundingRegions();
+  /// Update UI depending on regions' selected row
+  void updateUI(int row);
+  void showInfo(BoundingRegion *region);
+  void updateSegmentations();
   /// Creates a bounding region on the current focused/active
   /// sample and update all their segmentations counting regions
   /// extension discarting those that are out of the region
   void createBoundingRegion();
+  /// Update active bounding region's margins
+  void updateBoundingMargins();
   void removeSelectedBoundingRegion();
   void channelChanged(Channel *channel);
-  void showInfo(const QModelIndex& index);
   void saveRegionDescription();
+
+private:
+  /// Find margin values which discard all segmentations that
+  /// touch the channel margins
+  void computeOptimalMargins(Channel *channel,
+                             Nm inclusion[3],
+                             Nm exclusion[3]);
+
+  /// Return inclusion margins definded by the UI
+  void inclusionMargins(double values[3]);
+  /// Return exclusion margins definded by the UI
+  void exclusionMargins(double values[3]);
+
+  void registerRegion(CountingRegionChannelExtension *ext,
+                      BoundingRegion *region);
 
 signals:
   void regionCreated(BoundingRegion *);
@@ -85,10 +106,14 @@ signals:
 
 private:
   GUI *m_gui;
-  QStandardItemModel m_regionModel;
+
   EspinaModel *m_espinaModel;
   ViewManager *m_viewManager;
+
   RegionList m_regions;
+  BoundingRegion *m_activeRegion;
+
+  static const int NUM_FIXED_ROWS = 2;
 };
 
 #endif // COUNTINGREGION_H

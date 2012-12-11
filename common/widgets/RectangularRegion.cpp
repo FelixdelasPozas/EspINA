@@ -21,6 +21,7 @@
 
 #include "vtkNonRotatingBoxWidget.h"
 #include "vtkRectangularSliceWidget.h"
+#include "EspinaInteractorAdapter.h"
 #include <ViewManager.h>
 #include <EspinaRenderView.h>
 #include <vtkWidgetRepresentation.h>
@@ -30,6 +31,8 @@
 
 #include <QDebug>
 #include <QMouseEvent>
+
+typedef EspinaInteractorAdapter<vtkRectangularSliceWidget> SliceWidgetAdapter;
 
 class RectangularSliceWidget
 : public SliceWidget
@@ -81,90 +84,30 @@ void RectangularRegion::deleteWidget(vtkAbstractWidget* widget)
 //----------------------------------------------------------------------------
 SliceWidget* RectangularRegion::createSliceWidget(PlaneType plane)
 {
-  vtkRectangularSliceWidget *w = vtkRectangularSliceWidget::New();
-  Q_ASSERT(w);
-  w->AddObserver(vtkCommand::EndInteractionEvent, this);
-  w->SetPlane(plane);
-  w->SetBounds(m_bounds);
+  SliceWidgetAdapter *wi = new SliceWidgetAdapter();
+  Q_ASSERT(wi);
+  wi->AddObserver(vtkCommand::EndInteractionEvent, this);
+  wi->SetPlane(plane);
+  wi->SetBounds(m_bounds);
+  m_widgets << wi;
 
-  m_widgets << w;
-
-  return new RectangularSliceWidget(w);
+  return new RectangularSliceWidget(wi);
 }
 
 //----------------------------------------------------------------------------
-bool RectangularRegion::filterEvent(QEvent* e, EspinaRenderView* view)
+bool RectangularRegion::processEvent(vtkRenderWindowInteractor* iren,
+                                     long unsigned int event)
 {
-  return false;
-  if ( QEvent::MouseButtonPress != e->type()
-    && QEvent::MouseButtonRelease != e->type()
-    && QEvent::MouseMove != e->type() )
-    return false;
-
-  QMouseEvent *e2 = static_cast<QMouseEvent*>(e);
-
-  // give interactor the event information
-  vtkRenderWindowInteractor *iren = view->renderWindow()->GetInteractor();
-  iren->SetEventInformationFlipY(e2->x(), e2->y(),
-                                 (e2->modifiers() & Qt::ControlModifier) > 0 ? 1 : 0,
-                                 (e2->modifiers() & Qt::ShiftModifier ) > 0 ? 1 : 0,
-                                 0,
-                                 e2->type() == QEvent::MouseButtonDblClick ? 1 : 0);
-
-  bool res = false;
   foreach(vtkAbstractWidget *widget, m_widgets)
   {
-    if (widget->GetInteractor() == view->renderWindow()->GetInteractor())
+    if (widget->GetInteractor() == iren)
     {
-      const QEvent::Type t = e->type();
-    if(t == QEvent::MouseMove)
-      {
-      res = widget->InvokeEvent(vtkCommand::MouseMoveEvent, e2);
-      }
-    else if(t == QEvent::MouseButtonPress || t == QEvent::MouseButtonDblClick)
-      {
-      switch(e2->button())
-        {
-        case Qt::LeftButton:
-          res = widget->InvokeEvent(vtkCommand::LeftButtonPressEvent, e2);
-          break;
-
-        case Qt::MidButton:
-          res = widget->InvokeEvent(vtkCommand::MiddleButtonPressEvent, e2);
-          break;
-
-        case Qt::RightButton:
-          res = widget->InvokeEvent(vtkCommand::RightButtonPressEvent, e2);
-          break;
-
-        default:
-          break;
-        }
-      }
-    else if(t == QEvent::MouseButtonRelease)
-      {
-      switch(e2->button())
-        {
-        case Qt::LeftButton:
-          res = widget->InvokeEvent(vtkCommand::LeftButtonReleaseEvent, e2);
-          break;
-
-        case Qt::MidButton:
-          res = widget->InvokeEvent(vtkCommand::MiddleButtonReleaseEvent, e2);
-          break;
-
-        case Qt::RightButton:
-          res = widget->InvokeEvent(vtkCommand::RightButtonReleaseEvent, e2);
-          break;
-
-        default:
-          break;
-        }
-      }
+      SliceWidgetAdapter *sw = dynamic_cast<SliceWidgetAdapter *>(widget);
+      return sw->ProcessEventsHandler(event);
     }
   }
-  qDebug() << res;
-  return true;
+
+  return false;
 }
 
 //----------------------------------------------------------------------------

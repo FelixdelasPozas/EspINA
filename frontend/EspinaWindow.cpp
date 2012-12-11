@@ -503,7 +503,7 @@ void EspinaWindow::openAnalysis(const QString file)
                                               m_undoStack,
                                               m_settings->autosavePath()))
   {
-    QApplication::setOverrideCursor(Qt::ArrowCursor);
+    QApplication::restoreOverrideCursor();
     QMessageBox box(QMessageBox::Warning,
                     tr("Espina"),
                     tr("File %1 could not be loaded.\n"
@@ -517,7 +517,6 @@ void EspinaWindow::openAnalysis(const QString file)
       m_recentDocuments2.updateDocumentList();
     }
     closeCurrentAnalysis();
-    QApplication::restoreOverrideCursor();
     return;
   }
 
@@ -650,7 +649,7 @@ void EspinaWindow::saveAnalysis()
 
     const QString analysisFile = fileDialog.selectedFiles().first();
 
-    EspinaIO::saveFile(analysisFile, m_model);
+    EspinaIO::saveSegFile(analysisFile, m_model);
 
     QApplication::restoreOverrideCursor();
     updateStatus(QString("File Saved Successfuly in %1").arg(analysisFile));
@@ -718,7 +717,7 @@ void EspinaWindow::autosave()
 
   const QFileInfo analysisFile = autosavePath.absoluteFilePath("espina-autosave.seg");
 
-  EspinaIO::saveFile(analysisFile, m_model);
+  EspinaIO::saveSegFile(analysisFile, m_model);
 
   updateStatus(QString("Analysis autosaved at %1").arg(QTime::currentTime().toString()));
   m_busy = false;

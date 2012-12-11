@@ -81,10 +81,12 @@ public:
 
   bool isDiscarted() const {return m_isDiscarted;}
 
+public slots:
+  void evaluateBoundingRegions();
+
 protected slots:
   bool discartedByRegion(BoundingBox inputBB, vtkPolyData *region);
   bool realCollision(BoundingBox interscetion);
-  void evaluateBoundingRegions();
 
 private:
   bool m_isDiscarted;

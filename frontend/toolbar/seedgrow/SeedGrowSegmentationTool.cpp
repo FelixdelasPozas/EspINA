@@ -26,6 +26,7 @@
 #include "common/gui/EspinaRenderView.h"
 #include "common/gui/ViewManager.h"
 #include "common/tools/PickableItem.h"
+#include "common/tools/PixelSelector.h"
 #include <EspinaRegions.h>
 #include "frontend/toolbar/seedgrow/SeedGrowSegmentationFilter.h"
 #include "frontend/toolbar/seedgrow/gui/ThresholdAction.h"
@@ -35,6 +36,13 @@
 #include <QApplication>
 #include <QWheelEvent>
 #include <QMessageBox>
+
+#include "common/tools/IPicker.h"
+#include <vtkImageActor.h>
+#include <vtkLookupTable.h>
+#include <vtkImageMapper3D.h>
+#include <vtkImageResliceToColors.h>
+#include <vtkMatrix4x4.h>
 
 const QString SGS_VOI = "SGS VOI";
 
@@ -66,6 +74,8 @@ void SeedGrowSegmentationTool::CreateSegmentation::redo()
   m_model->addRelation(m_sample, m_seg, Sample::WHERE);
   m_model->addRelation(m_channel, m_seg, Channel::LINK);
   m_seg->initializeExtensions();
+  //Request views to update its rep after initilizing extensions
+  m_seg->notifyModification();
 }
 
 //-----------------------------------------------------------------------------
@@ -96,7 +106,9 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(EspinaModel *model,
 , m_picker(NULL)
 , m_inUse(true)
 , m_enabled(true)
-, m_preview(NULL)
+, m_validPos(true)
+, connectFilter(NULL)
+, m_actor(NULL)
 {
   Q_ASSERT(m_threshold);
   setChannelPicker(picker);
@@ -108,7 +120,10 @@ QCursor SeedGrowSegmentationTool::cursor() const
   QCursor cursor(Qt::ArrowCursor);
 
   if (m_picker && m_inUse)
-    cursor = m_picker->cursor();
+    if (m_validPos)
+      cursor = m_picker->cursor();
+    else
+      cursor = QCursor(Qt::ForbiddenCursor);
 
   return cursor;
 }
@@ -119,80 +134,65 @@ bool SeedGrowSegmentationTool::filterEvent(QEvent* e, EspinaRenderView *view)
   if (!m_enabled)
     return false;
 
-  if (e->type() == QEvent::Wheel)
+  if (e->type() == QEvent::KeyRelease)
   {
-    QWheelEvent* we = dynamic_cast<QWheelEvent*>(e);
-    if (we->modifiers() == Qt::CTRL)
-    {
-      int numSteps = we->delta()/8/15;//Refer to QWheelEvent doc.
-      m_threshold->setUpperThreshold(m_threshold->upperThreshold() + numSteps);//Using stepBy highlight the input text
-      m_threshold->setLowerThreshold(m_threshold->lowerThreshold() + numSteps);//Using stepBy highlight the input text
-      //       if (m_preview)
-      //       {
-        //         m_preview->setThreshold(m_threshold->threshold());
-      //       }
-      //       view->view()->forceRender();
-
-      return true;
-    }
-  }else if(e->type() == QEvent::MouseMove)
-  {
-    QMouseEvent *me = dynamic_cast<QMouseEvent*>(e);
-    if (me->modifiers() == Qt::SHIFT)
-    {
-//       DisplayRegionList regions;
-//       DisplayRegion singlePixel;
-// 
-//       int xPos, yPos;
-//       view->eventPosition(xPos, yPos);
-//       singlePixel << QPoint(xPos,yPos);
-//       regions << singlePixel;
-// 
-//       PickList pickList = view->pick(m_filters, regions);
-//       if (pickList.size() == 0)
-//         return false;
-
-//       Q_ASSERT(pickList.size() == 1);// Only one element selected
-//       IPicker::PickedItem element = pickList.first();
-//       Q_ASSERT(element.first.size() == 1); // with one pixel
-// 
-//       QVector3D pick = element.first.first();
-//       SelectableItem *input = element.second;
-//       int seed[3] = {pick.x(), pick.y(), pick.z()};
-      //       if (null == m_preview)
-      //       {
-        // //     const int w = 40;
-      // //       int voi[6] = {seed[0] - w, seed[0] + w,
-      // //       seed[1] - w, seed[1] + w,
-      // //       seed[2] - w, seed[2] + w};
-      //
-      //         int voi[6];
-      //        view->previewextent(voi);
-      //        m_preview = new seedgrowsegmentationfilter(input->volume(), seed, m_threshold->threshold(), voi);
-      //        view->addpreview(m_preview);
-      //       }
-      //       else
-      //       {
-        //      m_preview->setinput(input->volume());
-      //        m_preview->setseed(seed);
-      //       }
-      //       view->view()->forcerender();
-    }else
-    {
-      //       if (m_preview)
-      //       {
-        // 	view->removePreview(m_preview);
-        // 	delete m_preview;
-        // 	m_preview = NULL;
-        // 	view->view()->forceRender();
-        //       }
-    }
-  }else if(e->type() == QEvent::MouseButtonPress)
-  {
-    QMouseEvent *me = dynamic_cast<QMouseEvent*>(e);
-    if (me->modifiers() != Qt::CTRL && m_picker)
-      return m_picker->filterEvent(e,view);
+    QKeyEvent *ke = static_cast<QKeyEvent *>(e);
+    if ((m_actor != NULL) && (ke->key() == Qt::Key_Shift))
+      removePreview(view);
   }
+  else
+    if (e->type() == QEvent::KeyPress)
+    {
+      QKeyEvent *ke = static_cast<QKeyEvent *>(e);
+      if ((m_actor == NULL) && (ke->key() == Qt::Key_Shift))
+        addPreview(view);
+    }
+    else
+      if (e->type() == QEvent::Wheel)
+      {
+        QWheelEvent* we = dynamic_cast<QWheelEvent*>(e);
+        if (we->modifiers() == Qt::CTRL)
+        {
+          int numSteps = we->delta() / 8 / 15; //Refer to QWheelEvent doc.
+          m_threshold->setLowerThreshold(m_threshold->lowerThreshold() + numSteps); //Using stepBy highlight the input text
+
+          return true;
+        }
+        else
+            removePreview(view);
+      }
+      else
+        if (e->type() == QEvent::MouseMove)
+        {
+          QMouseEvent *me = dynamic_cast<QMouseEvent*>(e);
+
+          if (m_viewManager->voi())
+          {
+            IVOI::Region currentVOI = m_viewManager->voiRegion();
+            double cursorPos[3];
+            view->worldCoordinates(me->pos(), cursorPos);
+
+            m_validPos = currentVOI[0] <= cursorPos[0] && cursorPos[0] <= currentVOI[1] && currentVOI[2] <= cursorPos[1]
+                && cursorPos[1] <= currentVOI[3] && currentVOI[4] <= cursorPos[2] && cursorPos[2] <= currentVOI[5];
+          }
+          else
+            m_validPos = true;
+
+          if (me->modifiers() == Qt::SHIFT)
+            addPreview(view);
+          else
+            removePreview(view);
+        }
+        else
+          if (e->type() == QEvent::MouseButtonPress)
+          {
+            QMouseEvent *me = dynamic_cast<QMouseEvent*>(e);
+            if (me->modifiers() != Qt::CTRL && m_picker && m_validPos)
+            {
+              removePreview(view);
+              return m_picker->filterEvent(e, view);
+            }
+          }
 
   return false;
 }
@@ -213,16 +213,6 @@ void SeedGrowSegmentationTool::setInUse(bool value)
     if (!m_inUse)
       emit segmentationStopped();
   }
-}
-
-//-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::previewOn()
-{
-}
-
-//-----------------------------------------------------------------------------
-void SeedGrowSegmentationTool::previewOff()
-{
 }
 
 //-----------------------------------------------------------------------------
@@ -315,7 +305,8 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
     Filter::NamedInputs inputs;
-    Filter::Arguments args;
+    Filter::Arguments   args;
+
     SeedGrowSegmentationFilter::Parameters params(args);
     params.setSeed(seed);
     params.setLowerThreshold(m_threshold->lowerThreshold());
@@ -323,7 +314,7 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
     params.setVOI(voiExtent);
     params.setCloseValue(m_settings->closing());
     inputs[SeedGrowSegmentationFilter::INPUTLINK] = channel->filter();
-    args[Filter::INPUTS] = SeedGrowSegmentationFilter::INPUTLINK + "_" + QString::number(channel->outputNumber());
+    args[Filter::INPUTS] = args.namedInput(SeedGrowSegmentationFilter::INPUTLINK, channel->outputNumber());
     SeedGrowSegmentationFilter *filter;
     filter = new SeedGrowSegmentationFilter(inputs, args);
     filter->update();
@@ -356,4 +347,217 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
     m_undoStack->push(new CreateSegmentation(channel, filter, seg, tax, m_model));
     QApplication::restoreOverrideCursor();
   }
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationTool::removePreview(EspinaRenderView *view)
+{
+  if (m_actor == NULL)
+    return;
+
+  view->removePreview(m_actor);
+  connectFilter = NULL;
+  i2v = NULL;
+  m_actor = NULL;
+  view->updateView();
+}
+
+//-----------------------------------------------------------------------------
+void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
+{
+  IPicker::DisplayRegionList regions;
+  QPolygon singlePixel;
+
+  int xPos, yPos;
+  view->eventPosition(xPos, yPos);
+
+  singlePixel << QPoint(xPos,yPos);
+  regions << singlePixel;
+
+  QSet<QString> filter;
+  filter << IPicker::CHANNEL;
+
+  IPicker::PickList pickList = view->pick(filter, regions);
+
+  if (pickList.empty() || (pickList.first().second->type() != ModelItem::CHANNEL))
+  {
+    removePreview(view);
+    return;
+  }
+
+  BestPixelSelector *selector = static_cast<BestPixelSelector*>(m_picker);
+  double *point = selector->getPickPoint(view);
+  if (point == NULL)
+  {
+    delete point;
+    removePreview(view);
+    return;
+  }
+
+  EspinaVolume *channel = pickList.first().second->itkVolume();
+  EspinaVolume::SpacingType spacing = channel->GetSpacing();
+  EspinaVolume::IndexType seed;
+  seed[0] = point[0]/spacing[0];
+  seed[1] = point[1]/spacing[1];
+  seed[2] = point[2]/spacing[2];
+
+  EspinaVolume::IndexType index;
+  EspinaVolume::SizeType size;
+
+  double bounds[6];
+  int extent[6];
+  view->previewBounds(bounds);
+  if (!m_viewManager->voi())
+  {
+    extent[0] = bounds[0]/spacing[0];
+    extent[1] = bounds[1]/spacing[0];
+    extent[2] = bounds[2]/spacing[1];
+    extent[3] = bounds[3]/spacing[1];
+    extent[4] = bounds[4]/spacing[2];
+    extent[5] = bounds[5]/spacing[2];
+
+    if (m_defaultVOI->useDefaultVOI())
+    {
+      int voiExtent[6];
+      voiExtent[0] = seed[0] - (m_settings->xSize()/spacing[0]);
+      voiExtent[1] = seed[0] + (m_settings->xSize()/spacing[0]);
+      voiExtent[2] = seed[1] - (m_settings->ySize()/spacing[1]);
+      voiExtent[3] = seed[1] + (m_settings->ySize()/spacing[1]);
+      voiExtent[4] = seed[2] - (m_settings->zSize()/spacing[2]);
+      voiExtent[5] = seed[2] + (m_settings->zSize()/spacing[2]);
+
+      extent[0] = (voiExtent[0] > extent[0]) ? voiExtent[0] : extent[0];
+      extent[1] = (voiExtent[1] < extent[1]) ? voiExtent[1] : extent[1];
+      extent[2] = (voiExtent[2] > extent[2]) ? voiExtent[2] : extent[2];
+      extent[3] = (voiExtent[3] < extent[3]) ? voiExtent[3] : extent[3];
+      extent[4] = (voiExtent[4] > extent[4]) ? voiExtent[4] : extent[4];
+      extent[5] = (voiExtent[5] < extent[5]) ? voiExtent[5] : extent[5];
+    }
+  }
+  else
+  {
+    if (!m_validPos)
+    {
+      removePreview(view);
+      return;
+    }
+
+    IVOI::Region currentVOI = m_viewManager->voiRegion();
+
+    extent[0] = ((bounds[0] < currentVOI[0]) ? currentVOI[0]/spacing[0] : bounds[0]/spacing[0]);
+    extent[1] = ((bounds[1] > currentVOI[1]) ? currentVOI[1]/spacing[0] : bounds[1]/spacing[0]);
+    extent[2] = ((bounds[2] < currentVOI[2]) ? currentVOI[2]/spacing[1] : bounds[2]/spacing[1]);
+    extent[3] = ((bounds[3] > currentVOI[3]) ? currentVOI[3]/spacing[1] : bounds[3]/spacing[1]);
+    extent[4] = ((bounds[4] < currentVOI[4]) ? currentVOI[4]/spacing[2] : bounds[4]/spacing[2]);
+    extent[5] = ((bounds[5] > currentVOI[5]) ? currentVOI[5]/spacing[2] : bounds[5]/spacing[2]);
+  }
+
+  index[0] = extent[0];
+  index[1] = extent[2];
+  index[2] = extent[4];
+  size[0] = extent[1]-extent[0] +1;
+  size[1] = extent[3]-extent[2] +1;
+  size[2] = extent[5]-extent[4] +1;
+
+  EspinaVolume::RegionType region(index, size);
+
+  typedef itk::ExtractImageFilter<EspinaVolume, EspinaVolume> ExtractType;
+  ExtractType::Pointer extract = ExtractType::New();
+  extract->SetInPlace(false);
+  extract->ReleaseDataFlagOff();
+  extract->SetInput(channel);
+  extract->SetExtractionRegion(region);
+  extract->Update();
+
+  double seedValue = static_cast<int>(extract->GetOutput()->GetPixel(seed));
+
+  if (m_actor == NULL)
+  {
+    connectFilter = ConnectedThresholdFilterType::New();
+    connectFilter->SetConnectivity(itk::ConnectedThresholdImageFilter<EspinaVolume, EspinaVolume>::FullConnectivity);
+    connectFilter->ReleaseDataFlagOff();
+    connectFilter->SetReplaceValue(1);
+  }
+  connectFilter->SetInput(extract->GetOutput());
+  connectFilter->SetLower(std::max(seedValue - m_threshold->lowerThreshold(), 0.0));
+  connectFilter->SetUpper(std::min(seedValue + m_threshold->upperThreshold(), 255.0));
+  connectFilter->SetSeed(seed);
+  connectFilter->Update();
+
+  if (m_actor == NULL)
+  {
+    i2v = itk2vtkFilterType::New();
+    i2v->ReleaseDataFlagOff();
+    i2v->SetInput(connectFilter->GetOutput());
+  }
+  i2v->Update();
+
+  if (m_actor != NULL)
+  {
+    view->updateView();
+    return;
+  }
+
+  QColor color = m_viewManager->activeTaxonomy()->color();
+
+  vtkSmartPointer<vtkLookupTable> lut = vtkSmartPointer<vtkLookupTable>::New();
+  lut->Allocate();
+  lut->SetNumberOfTableValues(2);
+  lut->Build();
+  lut->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
+  lut->SetTableValue(1, color.redF(), color.greenF(), color.blueF(), color.alphaF());
+  lut->Modified();
+
+  int plane = 0;
+  vtkSmartPointer<vtkMatrix4x4> matrix = vtkSmartPointer<vtkMatrix4x4>::New();
+  if (extent[4]==extent[5])
+  {
+    double elements[16] = { 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, extent[4]*spacing[2], 0, 0, 0, 1 };
+    matrix->DeepCopy(elements);
+    i2v->GetOutput()->SetOrigin(0,0, point[2] - (extent[4]*spacing[2])); // resolves "Fit to slices" discrepancy
+    plane = 2;
+  }
+  else if (extent[2] == extent[3])
+  {
+    double elements[16] = { 1, 0, 0, 0, 0, 0, 1, extent[2]*spacing[1], 0, -1, 0, 0, 0, 0, 0, 1 };
+    matrix->DeepCopy(elements);
+    i2v->GetOutput()->SetOrigin(0, point[1] - (extent[2]*spacing[1]), 0); // resolves "Fit to slices" discrepancy
+    plane = 1;
+  }
+  else if (extent[0] == extent[1])
+  {
+    double elements[16] = { 0, 0, -1, extent[0]*spacing[0], 1, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 1 };
+    matrix->DeepCopy(elements);
+    i2v->GetOutput()->SetOrigin(point[0] - (extent[0]*spacing[0]), 0, 0); // resolves "Fit to slices" discrepancy
+    plane = 0;
+  }
+  i2v->GetOutput()->Update();
+  delete point;
+
+  vtkSmartPointer<vtkImageResliceToColors> reslice = vtkSmartPointer<vtkImageResliceToColors>::New();
+  reslice->OptimizationOn();
+  reslice->BorderOn();
+  reslice->SetOutputFormatToRGBA();
+  reslice->AutoCropOutputOff();
+  reslice->InterpolateOff();
+  reslice->SetResliceAxes(matrix);
+  reslice->SetInputConnection(i2v->GetOutput()->GetProducerPort());
+  reslice->SetOutputDimensionality(2);
+  reslice->SetLookupTable(lut);
+  reslice->Update();
+
+  m_actor = vtkSmartPointer<vtkImageActor>::New();
+  m_actor->GetMapper()->SetInputConnection(reslice->GetOutputPort());
+  m_actor->GetMapper()->BorderOn();
+  m_actor->SetInterpolate(false);
+  m_actor->Update();
+
+  double pos[3];
+  memset(pos, 0, 3*sizeof(double));
+  int sign = ((plane == 2) ? -1 : 1);
+  pos[plane] += (sign*0.1);
+  m_actor->SetPosition(pos);
+
+  view->addPreview(m_actor);
+  view->updateView();
 }

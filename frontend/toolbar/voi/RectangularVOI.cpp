@@ -84,7 +84,6 @@ void RectangularVOI::setInUse(bool value)
   if (m_inUse)
   {
     m_enabled = true;
-    m_viewManager->setSelectionEnabled(false);
   }
   else
   {

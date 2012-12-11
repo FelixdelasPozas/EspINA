@@ -20,6 +20,8 @@
 #ifndef SEEDGROWSEGMENTATIONTOOL_H
 #define SEEDGROWSEGMENTATIONTOOL_H
 
+#include <vtkSmartPointer.h>
+
 #include <common/tools/ITool.h>
 
 #include "SeedGrowSegmentation.h"
@@ -28,6 +30,9 @@
 
 #include <QUndoCommand>
 
+#include <itkConnectedThresholdImageFilter.h>
+#include <itkImageToVTKImageFilter.h>
+
 class DefaultVOIAction;
 class ThresholdAction;
 class Channel;
@@ -35,6 +40,8 @@ class Sample;
 class Segmentation;
 class SeedGrowSegmentationFilter;
 class TaxonomyElement;
+class vtkImageActor;
+class vtkImageMapToColors;
 
 class SeedGrowSegmentationTool
 : public ITool
@@ -80,15 +87,18 @@ public:
 public slots:
   void startSegmentation(IPicker::PickList pickedItems);
 
-private:
-  void previewOn();
-  void previewOff();
-
 signals:
   void seedSelected(Channel *, EspinaVolume::IndexType);
   void segmentationStopped();
 
 private:
+  typedef itk::ConnectedThresholdImageFilter<EspinaVolume, EspinaVolume> ConnectedThresholdFilterType;
+  typedef itk::ImageToVTKImageFilter<EspinaVolume> itk2vtkFilterType;
+
+  // helper methods
+  void removePreview(EspinaRenderView*);
+  void addPreview(EspinaRenderView*);
+
   EspinaModel *m_model;
   QUndoStack  *m_undoStack;
   ViewManager *m_viewManager;
@@ -100,7 +110,10 @@ private:
 
   bool m_inUse;
   bool m_enabled;
-  SeedGrowSegmentationFilter *m_preview;
+  bool m_validPos;
+  ConnectedThresholdFilterType::Pointer connectFilter;
+  itk2vtkFilterType::Pointer i2v;
+  vtkSmartPointer<vtkImageActor> m_actor;
 };
 
 #endif // SEEDGROWSEGMENTATIONTOOL_H

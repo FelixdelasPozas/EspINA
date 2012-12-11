@@ -70,6 +70,8 @@ SegmentationInspector::SegmentationInspector(Segmentation *seg,
   m_dataView->setModel(m_sort.data());
   m_dataView->setSortingEnabled(true);// Needed to update values when segmentation is modified
   m_dataView->sortByColumn(0, Qt::AscendingOrder);
+
+  this->setWindowTitle(seg->data().toString());
 }
 
 //------------------------------------------------------------------------

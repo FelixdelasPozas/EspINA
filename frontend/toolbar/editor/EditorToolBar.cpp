@@ -31,6 +31,7 @@
 #include "common/editor/ContourSelector.h"
 #include "common/editor/ContourSource.h"
 #include "common/editor/ContourWidget.h"
+#include <editor/split/SplitFilter.h>
 #include "common/model/Channel.h"
 #include "common/model/EspinaFactory.h"
 #include "common/model/EspinaModel.h"
@@ -44,6 +45,7 @@
 #include "CircularBrush.h"
 #include "SphericalBrush.h"
 #include "FilledContour.h"
+#include "split/PlanarSplitTool.h"
 
 // Qt
 #include <QAction>
@@ -62,6 +64,7 @@ public:
     DILATE,
     ERODE
   };
+
 public:
   explicit CODECommand(QList<Segmentation *> inputs,
                        Operation op,
@@ -115,6 +118,8 @@ public:
       m_model->addRelation(newConnection.first, seg, CREATELINK);
       seg->changeFilter(newConnection.first, newConnection.second);
       seg->notifyModification(true);
+      // TODO 2012-11-05 Extensesions need to be updated when
+      // notifyModification method is called (at least with true)
     }
   }
 
@@ -150,6 +155,7 @@ EditorToolBar::EditorToolBar(EspinaModel *model,
                              QWidget* parent)
 : QToolBar(parent)
 , m_drawToolSelector(new ActionSelector(this))
+, m_splitToolSelector(new ActionSelector(this))
 , m_model(model)
 , m_undoStack(undoStack)
 , m_viewManager(vm)
@@ -162,82 +168,11 @@ EditorToolBar::EditorToolBar(EspinaModel *model,
 
   m_model->factory()->registerSettingsPanel(new EditorToolBar::SettingsPanel(m_settings));
 
-  // draw with a disc
-  QAction *discTool = new QAction(QIcon(":/espina/pencil2D.png"),
-                                   tr("Draw segmentations using a disc"),
-                                   m_drawToolSelector);
-  CircularBrush *circularBrush = new CircularBrush(m_model, m_undoStack, m_viewManager);
-  connect(circularBrush, SIGNAL(stopDrawing()),
-          this, SLOT(cancelDrawOperation()));
-  connect(circularBrush, SIGNAL(brushModeChanged(Brush::BrushMode)),
-          this, SLOT(changeCircularBrushMode(Brush::BrushMode)));
-  m_drawTools[discTool] = circularBrush;
-  m_drawToolSelector->addAction(discTool);
-
-  // draw with a sphere
-  QAction *sphereTool = new QAction(QIcon(":espina/pencil3D.png"),
-                                    tr("Draw segmentations using a sphere"),
-                                    m_drawToolSelector);
-  SphericalBrush *sphericalBrush = new SphericalBrush(m_model, m_undoStack, m_viewManager);
-  connect(sphericalBrush, SIGNAL(stopDrawing()),
-          this, SLOT(cancelDrawOperation()));
-  connect(sphericalBrush, SIGNAL(brushModeChanged(Brush::BrushMode)),
-          this, SLOT(changeSphericalBrushMode(Brush::BrushMode)));
-  m_drawTools[sphereTool] = sphericalBrush;
-  m_drawToolSelector->addAction(sphereTool);
-
-  // draw with contour
-  QAction *contourTool = new QAction(QIcon(":espina/lasso.png"),
-                                       tr("Draw segmentations using contours"),
-                                       m_drawToolSelector);
-  m_drawTools[contourTool] = new FilledContour(m_model, m_undoStack, m_viewManager);
-  m_drawToolSelector->addAction(contourTool);
-
-  m_drawToolSelector->setCheckable(true);
-  addAction(m_drawToolSelector);
-  connect(m_drawToolSelector, SIGNAL(triggered(QAction*)),
-          this, SLOT(changeDrawTool(QAction*)));
-  connect(m_drawToolSelector, SIGNAL(actionCanceled()),
-          this, SLOT(cancelDrawOperation()));
-  m_drawToolSelector->setDefaultAction(discTool);
-
-  m_addition = addAction(tr("Combine Selected Segmentations"));
-  m_addition->setIcon(QIcon(":/espina/add.svg"));
-  connect(m_addition, SIGNAL(triggered(bool)),
-          this, SLOT(combineSegmentations()));
-
-  m_substraction = addAction(tr("Subtract Selected Segmentations"));
-  m_substraction->setIcon(QIcon(":/espina/remove.svg"));
-  connect(m_substraction, SIGNAL(triggered(bool)),
-          this, SLOT(substractSegmentations()));
-
-  m_erode = addAction(tr("Erode Selected Segmentations"));
-  m_erode->setIcon(QIcon(":/espina/erode.png"));
-  connect(m_erode, SIGNAL(triggered(bool)),
-          this, SLOT(erodeSegmentations()));
-
-  m_dilate = addAction(tr("Dilate Selected Segmentations"));
-  m_dilate->setIcon(QIcon(":/espina/dilate.png"));
-  connect(m_dilate, SIGNAL(triggered(bool)),
-          this, SLOT(dilateSegmentations()));
-
-  m_open = addAction(tr("Open Selected Segmentations"));
-  m_open->setIcon(QIcon(":/espina/open.png"));
-  connect(m_open, SIGNAL(triggered(bool)),
-          this, SLOT(openSegmentations()));
-
-  m_close = addAction(tr("Close Selected Segmentations"));
-  m_close->setIcon(QIcon(":/espina/close.png"));
-  connect(m_close, SIGNAL(triggered(bool)),
-          this, SLOT(closeSegmentations()));
-
-  m_fill = addAction(tr("Fill Holes in Selected Segmentations"));
-  m_fill->setIcon(QIcon(":/espina/fillHoles.svg"));
-  connect(m_fill, SIGNAL(triggered(bool)),
-          this, SLOT(fillHoles()));
-
-  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection)),
-          this, SLOT(updateAvailableOperations()));
+  initDrawTools();
+  initSplitTools();
+  initMorphologicalTools();
+  initCODETools();
+  initFillTool();
 
   updateAvailableOperations();
 }
@@ -245,6 +180,7 @@ EditorToolBar::EditorToolBar(EspinaModel *model,
 //----------------------------------------------------------------------------
 void EditorToolBar::initFactoryExtension(EspinaFactory* factory)
 {
+  factory->registerFilter(this, SplitFilter::TYPE);
   factory->registerFilter(this, ClosingFilter::TYPE);
   factory->registerFilter(this, OpeningFilter::TYPE);
   factory->registerFilter(this, DilateFilter::TYPE);
@@ -258,6 +194,8 @@ void EditorToolBar::initFactoryExtension(EspinaFactory* factory)
 //----------------------------------------------------------------------------
 Filter* EditorToolBar::createFilter(const QString filter, Filter::NamedInputs inputs, const ModelItem::Arguments args)
 {
+  if (SplitFilter::TYPE == filter)
+    return new SplitFilter(inputs, args);
   if (ClosingFilter::TYPE == filter)
     return new ClosingFilter(inputs, args);
   if (OpeningFilter::TYPE == filter)
@@ -276,6 +214,64 @@ Filter* EditorToolBar::createFilter(const QString filter, Filter::NamedInputs in
     Q_ASSERT(false);
 
   return NULL;
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::changeCircularBrushMode(Brush::BrushMode mode)
+{
+  QString icon;
+  if (Brush::BRUSH == mode)
+    icon = ":/espina/pencil2D.png";
+  else
+    icon = ":/espina/eraser2D.png";
+
+  m_drawToolSelector->setIcon(QIcon(icon));
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::changeSphericalBrushMode(Brush::BrushMode mode)
+{
+  QString icon;
+  if (Brush::BRUSH == mode)
+    icon = ":/espina/pencil2D.png";
+  else
+    icon = ":/espina/eraser2D.png";
+
+  m_drawToolSelector->setIcon(QIcon(icon));
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::changeDrawTool(QAction *action)
+{
+  Q_ASSERT(m_drawTools.contains(action));
+  m_viewManager->setActiveTool(m_drawTools[action]);
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::cancelDrawOperation()
+{
+  m_drawToolSelector->cancel();
+
+  QAction *activeAction = m_drawToolSelector->getCurrentAction();
+  ITool *activeTool = m_drawTools[activeAction];
+  m_viewManager->unsetActiveTool(activeTool);
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::changeSplitTool(QAction *action)
+{
+  Q_ASSERT(m_splitTools.contains(action));
+  m_viewManager->setActiveTool(m_splitTools[action]);
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::cancelSplitOperation()
+{
+  m_splitToolSelector->cancel();
+
+  QAction *activeAction = m_splitToolSelector->getCurrentAction();
+  ITool *activeTool = m_splitTools[activeAction];
+  m_viewManager->unsetActiveTool(activeTool);
 }
 
 //----------------------------------------------------------------------------
@@ -391,13 +387,130 @@ SegmentationList EditorToolBar::selectedSegmentations()
 }
 
 //----------------------------------------------------------------------------
-void EditorToolBar::cancelDrawOperation()
+void EditorToolBar::initDrawTools()
 {
-  m_drawToolSelector->cancel();
+  // draw with a disc
+  QAction *discTool = new QAction(QIcon(":/espina/pencil2D.png"),
+                                  tr("Draw segmentations using a disc"),
+                                  m_drawToolSelector);
 
-  QAction *activeAction = m_drawToolSelector->getCurrentAction();
-  ITool *activeTool = m_drawTools[activeAction];
-  m_viewManager->unsetActiveTool(activeTool);
+  CircularBrush *circularBrush = new CircularBrush(m_model,
+                                                   m_undoStack,
+                                                   m_viewManager);
+  connect(circularBrush, SIGNAL(stopDrawing()),
+          this, SLOT(cancelDrawOperation()));
+  connect(circularBrush, SIGNAL(brushModeChanged(Brush::BrushMode)),
+          this, SLOT(changeCircularBrushMode(Brush::BrushMode)));
+  m_drawTools[discTool] = circularBrush;
+  m_drawToolSelector->addAction(discTool);
+
+  // draw with a sphere
+  QAction *sphereTool = new QAction(QIcon(":espina/pencil3D.png"),
+                                    tr("Draw segmentations using a sphere"),
+                                    m_drawToolSelector);
+
+  SphericalBrush *sphericalBrush = new SphericalBrush(m_model,
+                                                      m_undoStack,
+                                                      m_viewManager);
+  connect(sphericalBrush, SIGNAL(stopDrawing()),
+          this, SLOT(cancelDrawOperation()));
+  connect(sphericalBrush, SIGNAL(brushModeChanged(Brush::BrushMode)),
+          this, SLOT(changeSphericalBrushMode(Brush::BrushMode)));
+  m_drawTools[sphereTool] = sphericalBrush;
+  m_drawToolSelector->addAction(sphereTool);
+
+  // draw with contour
+  QAction *contourTool = new QAction(QIcon(":espina/lasso.png"),
+                                       tr("Draw segmentations using contours"),
+                                       m_drawToolSelector);
+
+  m_drawTools[contourTool] = new FilledContour(m_model,
+                                               m_undoStack,
+                                               m_viewManager);
+  m_drawToolSelector->addAction(contourTool);
+
+  // Add Draw Tool Selector to Editor Tool Bar
+  m_drawToolSelector->setCheckable(true);
+  addAction(m_drawToolSelector);
+  connect(m_drawToolSelector, SIGNAL(triggered(QAction*)),
+          this, SLOT(changeDrawTool(QAction*)));
+  connect(m_drawToolSelector, SIGNAL(actionCanceled()),
+          this, SLOT(cancelDrawOperation()));
+  m_drawToolSelector->setDefaultAction(discTool);
+
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::initSplitTools()
+{
+  QAction *planarSplit = new QAction(QIcon(":/espina/planar_split.svg"),
+                                    tr("Split Segmentations using an orthogonal plane"),
+                                    m_splitToolSelector);
+
+  PlanarSplitTool *planarSplitTool = new PlanarSplitTool(m_model, m_undoStack, m_viewManager);
+  connect(planarSplitTool, SIGNAL(splittingStopped()),
+          this, SLOT(cancelSplitOperation()));
+  m_splitTools[planarSplit] = planarSplitTool;
+  m_splitToolSelector->addAction(planarSplit);
+
+  // Add Split Tool Selector to Editor Tool Bar
+  addAction(m_splitToolSelector);
+  connect(m_splitToolSelector, SIGNAL(triggered(QAction*)),
+          this, SLOT(changeSplitTool(QAction*)));
+  connect(m_splitToolSelector, SIGNAL(actionCanceled()),
+          this, SLOT(cancelSplitOperation()));
+
+  m_splitToolSelector->setDefaultAction(planarSplit);
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::initMorphologicalTools()
+{
+  m_addition = addAction(tr("Combine Selected Segmentations"));
+  m_addition->setIcon(QIcon(":/espina/add.svg"));
+  connect(m_addition, SIGNAL(triggered(bool)),
+          this, SLOT(combineSegmentations()));
+
+  m_substraction = addAction(tr("Subtract Selected Segmentations"));
+  m_substraction->setIcon(QIcon(":/espina/remove.svg"));
+  connect(m_substraction, SIGNAL(triggered(bool)),
+          this, SLOT(substractSegmentations()));
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::initCODETools()
+{
+  m_erode = addAction(tr("Erode Selected Segmentations"));
+  m_erode->setIcon(QIcon(":/espina/erode.png"));
+  connect(m_erode, SIGNAL(triggered(bool)),
+          this, SLOT(erodeSegmentations()));
+
+  m_dilate = addAction(tr("Dilate Selected Segmentations"));
+  m_dilate->setIcon(QIcon(":/espina/dilate.png"));
+  connect(m_dilate, SIGNAL(triggered(bool)),
+          this, SLOT(dilateSegmentations()));
+
+  m_open = addAction(tr("Open Selected Segmentations"));
+  m_open->setIcon(QIcon(":/espina/open.png"));
+  connect(m_open, SIGNAL(triggered(bool)),
+          this, SLOT(openSegmentations()));
+
+  m_close = addAction(tr("Close Selected Segmentations"));
+  m_close->setIcon(QIcon(":/espina/close.png"));
+  connect(m_close, SIGNAL(triggered(bool)),
+          this, SLOT(closeSegmentations()));
+}
+
+//----------------------------------------------------------------------------
+void EditorToolBar::initFillTool()
+{
+  m_fill = addAction(tr("Fill Holes in Selected Segmentations"));
+  m_fill->setIcon(QIcon(":/espina/fillHoles.svg"));
+  connect(m_fill, SIGNAL(triggered(bool)),
+          this, SLOT(fillHoles()));
+
+  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection)),
+          this, SLOT(updateAvailableOperations()));
 }
 
 //----------------------------------------------------------------------------
@@ -420,10 +533,14 @@ void EditorToolBar::updateAvailableOperations()
   if (!several)
     severalToolTip = tr(" (This tool requires at least one segmentation to be selected)");
 
+  m_splitToolSelector->setEnabled(one);
+  m_splitToolSelector->setToolTip(tr("Split Segmentations using an orthogonal plane") + oneToolTip);
+
   m_addition->setEnabled(atLeastTwo);
   m_addition->setToolTip(tr("Combine Selected Segmentations") + atLeastTwoToolTip);
   m_substraction->setEnabled(atLeastTwo);
   m_substraction->setToolTip(tr("Subtract Selected Segmentations") + atLeastTwoToolTip);
+
   m_close->setEnabled(several);
   m_close->setToolTip(tr("Close Selected Segmentations") + severalToolTip);
   m_open->setEnabled(several);
@@ -432,38 +549,10 @@ void EditorToolBar::updateAvailableOperations()
   m_dilate->setToolTip(tr("Dilate Selected Segmentations") + severalToolTip);
   m_erode->setEnabled(several);
   m_erode->setToolTip(tr("Erode Selected Segmentations") + severalToolTip);
+
   m_fill->setEnabled(several);
   m_fill->setToolTip(tr("Fill Holes in Selected Segmentations") + severalToolTip);
 }
 
 
-//----------------------------------------------------------------------------
-void EditorToolBar::changeDrawTool(QAction *action)
-{
-  Q_ASSERT(m_drawTools.contains(action));
-  m_viewManager->setActiveTool(m_drawTools[action]);
-}
 
-//----------------------------------------------------------------------------
-void EditorToolBar::changeCircularBrushMode(Brush::BrushMode mode)
-{
-  QString icon;
-  if (Brush::BRUSH == mode)
-    icon = ":/espina/pencil2D.png";
-  else
-    icon = ":/espina/eraser2D.png";
-
-  m_drawToolSelector->setIcon(QIcon(icon));
-}
-
-//----------------------------------------------------------------------------
-void EditorToolBar::changeSphericalBrushMode(Brush::BrushMode mode)
-{
-  QString icon;
-  if (Brush::BRUSH == mode)
-    icon = ":/espina/pencil2D.png";
-  else
-    icon = ":/espina/eraser2D.png";
-
-  m_drawToolSelector->setIcon(QIcon(icon));
-}

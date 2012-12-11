@@ -40,15 +40,26 @@ public:
   // Implements QStandardItem interface
   virtual QVariant data(int role = Qt::UserRole + 1) const;
   virtual QString serialize() const;
+  virtual QString regionType() const { return tr("Rectangular Region"); }
 
   // Implements EspinaWidget interface
   virtual vtkAbstractWidget *createWidget();
   virtual void deleteWidget(vtkAbstractWidget* widget);
   virtual SliceWidget *createSliceWidget(PlaneType plane);
 
+  virtual bool processEvent(vtkRenderWindowInteractor* iren,
+                            long unsigned int event);
   virtual void setEnabled(bool enable);
 
-  virtual void updateBoundingRegion();
+  virtual void updateBoundingRegionImplementation();
+
+protected:
+  vtkSmartPointer<vtkPolyData> createRectangularRegion(Nm left,
+                                                       Nm top,
+                                                       Nm upper,
+                                                       Nm right,
+                                                       Nm bottom,
+                                                       Nm lower);
 
 private:
   Nm m_borders[6];

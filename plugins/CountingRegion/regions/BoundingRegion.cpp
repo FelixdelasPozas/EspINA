@@ -39,32 +39,38 @@ BoundingRegion::BoundingRegion(CountingRegionChannelExtension *channelExt,
 }
 
 //-----------------------------------------------------------------------------
+void BoundingRegion::setMargins(Nm inclusion[3], Nm exclusion[3])
+{
+  memcpy(m_inclusion, inclusion, 3*sizeof(Nm));
+  memcpy(m_exclusion, exclusion, 3*sizeof(Nm));
+
+  updateBoundingRegion();
+}
+
+//-----------------------------------------------------------------------------
 QVariant BoundingRegion::data(int role) const
 {
   if (role == DescriptionRole)
   {
-    QString desc("Type: Rectangular Region\n"
-    "Volume Information:\n"
-    "  Total Volume:\n"
-    "    %1 px\n"
-    "    %2 %3\n"
-    "  Inclusion Volume:\n"
-    "    %4 px\n"
-    "    %5 %3\n"
-    "  Exclusion Volume:\n"
-    "    %6 px\n"
-    "    %7 %3\n"
-    );
-
     double spacing[3];
     m_channelExt->channel()->spacing(spacing);
-    Nm volPixel = spacing[0]*spacing[1]*spacing[2];
-    int totalPixelVolume = totalVolume() /volPixel;
-    int inclusionPixelVolume = inclusionVolume() / volPixel;
-    int exclusionPixelVolume = exclusionVolume() / volPixel;
-    desc = desc.arg(totalPixelVolume).arg(totalVolume(),0,'f',2).arg("nm");
-    desc = desc.arg(inclusionPixelVolume).arg(inclusionVolume(),0,'f',2);
-    desc = desc.arg(exclusionPixelVolume).arg(exclusionVolume(),0,'f',2);
+    Nm voxelVol = spacing[0]*spacing[1]*spacing[2];
+    int totalVoxelVolume = totalVolume() /voxelVol;
+    int inclusionVoxelVolume = inclusionVolume() / voxelVol;
+    int exclusionVoxelVolume = exclusionVolume() / voxelVol;
+
+    QString desc;
+    desc += tr("Type: %1").arg(regionType())                + "\n";
+    desc += tr("Volume informtation:")                      + "\n";
+    desc += tr("  Total Volume:")                           + "\n";
+    desc += tr("    %1 voxel").arg(totalVoxelVolume)        + "\n";
+    desc += tr("    %1 nm³").arg(totalVolume(),0,'f',2)     + "\n";
+    desc += tr("  Inclusion Volume:")                       + "\n";
+    desc += tr("    %1 voxel").arg(inclusionVoxelVolume)    + "\n";
+    desc += tr("    %1 nm³").arg(inclusionVolume(),0,'f',2) + "\n";
+    desc += tr("  Exclusion Volume:")                       + "\n";
+    desc += tr("    %1 voxel").arg(exclusionVoxelVolume)    + "\n";
+    desc += tr("    %1 nm³").arg(exclusionVolume(),0,'f',2) + "\n";;
 
     return desc;
   }
@@ -83,17 +89,32 @@ void BoundingRegion::Execute(vtkObject* caller, long unsigned int eventId, void*
     widget->GetExclusionOffset(exOffset);
     for (int i = 0; i < 3; i++)
     {
-      m_inclusion[i] += inOffset[i];
-      m_exclusion[i] += exOffset[i];
+      m_inclusion[i] = inOffset[i];
+      if (m_inclusion[i] < 0)
+        m_inclusion[i] = 0;
+
+      m_exclusion[i] = exOffset[i];
+      if (m_exclusion[i] < 0)
+        m_exclusion[i] = 0;
     }
 
     updateBoundingRegion();
-    emit modified(this);
-
-    foreach(vtkBoundingRegionWidget *w, m_widgets)
-      w->SetBoundingRegion(m_boundingRegion);
   }
   //m_viewManager->updateViews();
 
   emitDataChanged();
+}
+
+//-----------------------------------------------------------------------------
+void BoundingRegion::updateBoundingRegion()
+{
+  updateBoundingRegionImplementation();
+
+  foreach(vtkBoundingRegionWidget *w, m_widgets2D)
+    w->SetBoundingRegion(m_representation, m_inclusion, m_exclusion);
+
+  foreach(vtkBoundingRegionWidget *w, m_widgets3D)
+    w->SetBoundingRegion(m_boundingRegion, m_inclusion, m_exclusion);
+
+  emit modified(this);
 }

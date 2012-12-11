@@ -24,16 +24,15 @@
 
 #include "common/EspinaTypes.h"
 
-#include <itkImageToVTKImageFilter.h>
 #include <vtkSmartPointer.h>
 
 #include <QColor>
 
 class vtkLookupTable;
-class ImplicitImageSource;
+class vtkImageResliceToColors;
 class vtkImageActor;
-class FreeFormSource;
-class vtkTube;
+class ImplicitImageSource;
+class vtkImageData;
 class Channel;
 class PickableItem;
 
@@ -42,7 +41,6 @@ class BrushPicker
 {
   Q_OBJECT
   typedef EspinaVolume::SpacingType Spacing;
-  typedef itk::ImageToVTKImageFilter<EspinaVolume> itk2vtkFilterType;
 
 public:
   explicit BrushPicker(PickableItem *item=NULL);
@@ -57,8 +55,8 @@ public:
 
   /// @item is used to specify the spacing of the stroke
   void setReferenceItem(PickableItem *item);
-
-  void setStrokeVisibility(bool visible);
+  void DrawingOn();
+  void DrawingOff();
 
 signals:
   void stroke(PickableItem *, double, double, double, Nm, PlaneType);
@@ -82,7 +80,6 @@ private:
   QColor m_borderColor;
   QColor m_brushColor;
 
-  bool m_previewVisible;
   bool m_tracking;
   QPoint m_lastDot;
   IPicker::WorldRegion m_stroke;
@@ -90,15 +87,15 @@ private:
   PlaneType m_plane;
   Nm        m_radius;
   Spacing   m_spacing;
-  int       m_windowSize[2];
+  int       m_viewSize[2];
   double    m_LL[3], m_UR[3];
   Nm        m_pBounds[6];
   double    m_worldSize[2];
 
   vtkSmartPointer<vtkLookupTable> m_lut;
-  EspinaVolume::Pointer m_preview;
-  itk2vtkFilterType::Pointer itk2vtk;
-  vtkImageActor  *m_actor;
+  vtkSmartPointer<vtkImageData> m_preview;
+  vtkSmartPointer<vtkImageActor> m_actor;
+  bool m_drawing;
 
   static const int MAX_RADIUS = 32;
 };

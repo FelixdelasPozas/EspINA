@@ -28,13 +28,13 @@ include_directories(
   ${CMAKE_SOURCE_DIR}/common/widgets
   ${CMAKE_SOURCE_DIR}/common/views
   ${CMAKE_CURRENT_BINARY_DIR}  #For wrap/ui files
+  ${CMAKE_BINARY_DIR} # Generated EspinaConfig.h
 )
 
 ####### EspinaCore #########
 # Add extra library containing custom code for the client.
 qt4_wrap_cpp(CORE_MOC
   colorEngines/ColorEngine.h
-  editor/BrushSelector.h
   editor/CODESettings.h
   gui/ActionSelector.h
   gui/ActionSelectorWidget.h
@@ -73,8 +73,8 @@ set (CORE_SOURCES
   colorEngines/TransparencySelectionHighlighter.cpp
   colorEngines/TaxonomyColorEngine.cpp
   colorEngines/UserColorEngine.cpp
+  editor/EspinaVolume.cpp
   editor/CODESettings.cpp
-  editor/BrushSelector.cpp
   editor/ContourSelector.cpp
   editor/FillHolesFilter.cpp
   editor/FillHolesCommand.cpp
@@ -87,6 +87,7 @@ set (CORE_SOURCES
   editor/ErodeFilter.cpp
   editor/ImageLogicFilter.cpp
   editor/vtkTube.cxx
+  editor/split/SplitFilter.cpp
   IO/EspinaIO.cpp
   extensions/Margins/MarginDetector.cpp
   extensions/Margins/MarginsChannelExtension.cpp
@@ -133,6 +134,7 @@ set (CORE_SOURCES
   undo/RemoveSegmentation.cpp
   widgets/vtkRectangularSliceRepresentation.cpp
   widgets/vtkRectangularSliceWidget.cpp
+  widgets/EspinaInteractorAdapter.cpp
   widgets/EspinaWidget.cpp
   widgets/RectangularRegion.cpp
   editor/ContourWidget.cpp

@@ -25,7 +25,6 @@
 #include <pluginInterfaces/IFilterCreator.h>
 
 // EspINA
-#include "common/editor/BrushSelector.h"
 #include "common/model/Segmentation.h"
 #include "Brush.h"
 
@@ -68,9 +67,12 @@ public:
                                Filter::NamedInputs inputs,
                                const ModelItem::Arguments args);
 protected slots:
-  void changeDrawTool(QAction *);
   void changeCircularBrushMode(Brush::BrushMode mode);
   void changeSphericalBrushMode(Brush::BrushMode mode);
+  void changeDrawTool(QAction *action);
+  void cancelDrawOperation();
+  void changeSplitTool(QAction *action);
+  void cancelSplitOperation();
   void combineSegmentations();
   void substractSegmentations();
   void closeSegmentations();
@@ -78,20 +80,32 @@ protected slots:
   void dilateSegmentations();
   void erodeSegmentations();
   void fillHoles();
-  void cancelDrawOperation();
   void updateAvailableOperations();
 
   SegmentationList selectedSegmentations();
 
 private:
+  void initDrawTools();
+  void initSplitTools();
+  void initMorphologicalTools();
+  void initCODETools();
+  void initFillTool();
+
+private:
   ActionSelector *m_drawToolSelector;
   QMap<QAction *, ITool *> m_drawTools;
+
+  ActionSelector *m_splitToolSelector;
+  QMap<QAction *, ITool *> m_splitTools;
+
   QAction *m_addition;
   QAction *m_substraction;
+
   QAction *m_erode;
   QAction *m_dilate;
   QAction *m_open;
   QAction *m_close;
+
   QAction *m_fill;
   ContourWidget *m_contourWidget;
 

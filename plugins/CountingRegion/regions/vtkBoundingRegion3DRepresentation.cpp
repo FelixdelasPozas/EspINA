@@ -632,7 +632,7 @@ void vtkBoundingRegion3DRepresentation::CreateVolume()
 }
 
 //----------------------------------------------------------------------------
-void vtkBoundingRegion3DRepresentation::SetBoundingRegion(vtkPolyData *region)
+void vtkBoundingRegion3DRepresentation::SetBoundingRegion(vtkSmartPointer<vtkPolyData> region)
 {
   BoundingRegion = region;
   BoundingRegion->Update();

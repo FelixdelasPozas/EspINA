@@ -63,7 +63,7 @@ public:
   virtual void initialize(Arguments args = Arguments());
   virtual void initializeExtensions(Arguments args = Arguments());
 
-  void setId(const QString id) {m_ID = id;}
+  void setId(const QString &id) {m_ID = id;}
 
   /// Add a new extension to the segmentation
   /// Extesion won't be available until requirements are satisfied

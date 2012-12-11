@@ -20,7 +20,6 @@
 #include "Brush.h"
 #include "BrushUndoCommand.h"
 
-#include "common/editor/BrushSelector.h"
 #include "common/editor/FreeFormSource.h"
 #include "common/gui/EspinaRenderView.h"
 #include "common/gui/ViewManager.h"
@@ -52,11 +51,10 @@ Brush::Brush(EspinaModel* model,
 , m_brush(new BrushPicker())
 , m_currentSource(NULL)
 , m_currentSeg(NULL)
-, m_currentOutput(NULL)
+, m_currentOutput(-1)
 , m_drawCommand(NULL)
 , m_eraseCommand(NULL)
 {
-  m_brush->setStrokeVisibility(false);//TODO 2012-10-26 Change once stroke preview is working
   connect(m_brush, SIGNAL(stroke(PickableItem *,IPicker::WorldRegion, Nm, PlaneType)),
           this,  SLOT(drawStroke(PickableItem *,IPicker::WorldRegion, Nm, PlaneType)));
   connect(m_brush, SIGNAL(stroke(PickableItem*,double,double,double,Nm,PlaneType)),
@@ -83,17 +81,22 @@ bool Brush::filterEvent(QEvent* e, EspinaRenderView* view)
     {
     QKeyEvent *ke = static_cast<QKeyEvent *>(e);
     if (ke->key() == Qt::Key_Control)
+    {
       m_erasing = false;
+      m_brush->DrawingOn();
+    }
     } else if (QEvent::MouseMove == e->type())
     {
       QMouseEvent *me = static_cast<QMouseEvent *>(e);
       if (Qt::CTRL != me->modifiers())
+      {
         m_erasing = false;
+        m_brush->DrawingOn();
+      }
     }
     if (!m_erasing)
     {
       m_brush->setBorderColor(QColor(Qt::green));
-      m_brush->setStrokeVisibility(false);//TODO 2012-10-26 Change once stroke preview is working
       emit brushModeChanged(BRUSH);
     }
   } else if (m_currentSource)
@@ -102,17 +105,22 @@ bool Brush::filterEvent(QEvent* e, EspinaRenderView* view)
     {
       QKeyEvent *ke = static_cast<QKeyEvent *>(e);
       if (ke->key() == Qt::Key_Control && ke->count() == 1)
+      {
         m_erasing = true;
+        m_brush->DrawingOff();
+      }
     } else if (QEvent::MouseMove == e->type())
     {
       QMouseEvent *me = static_cast<QMouseEvent *>(e);
       if (Qt::CTRL == me->modifiers())
+      {
         m_erasing = true;
+        m_brush->DrawingOff();
+      }
     }
     if (m_erasing)
     {
       m_brush->setBorderColor(QColor(Qt::red));
-      m_brush->setStrokeVisibility(false);
       emit brushModeChanged(ERASER);
     }
   }
@@ -141,14 +149,14 @@ void Brush::setInUse(bool value)
 
   if (value && m_viewManager->activeTaxonomy() && m_viewManager->activeChannel())
   {
-    m_brush->setBrushColor(m_viewManager->activeTaxonomy()->color());
-    SegmentationList segs = selectedSegmentations();
+    SegmentationList segs = m_viewManager->selectedSegmentations();
     if (segs.size() == 1)
     {
       m_currentSeg = segs.first();
       m_currentSource = m_currentSeg->filter();
       m_currentOutput = m_currentSeg->outputNumber();
 
+      m_brush->setBrushColor(m_currentSeg->taxonomy()->color());
       m_brush->setBorderColor(QColor(Qt::green));
       m_brush->setReferenceItem(m_currentSeg);
     }
@@ -158,6 +166,7 @@ void Brush::setInUse(bool value)
       m_currentSource = NULL;
       m_currentOutput = -1;
 
+      m_brush->setBrushColor(m_viewManager->activeTaxonomy()->color());
       m_brush->setBorderColor(QColor(Qt::blue));
       m_brush->setReferenceItem(m_viewManager->activeChannel());
     }
@@ -175,20 +184,6 @@ void Brush::setEnabled(bool enable)
 bool Brush::enabled() const
 {
   return true;
-}
-
-//-----------------------------------------------------------------------------
-SegmentationList Brush::selectedSegmentations() const
-{
-  SegmentationList selection;
-
-  foreach(PickableItem *item, m_viewManager->selection())
-  {
-    if (ModelItem::SEGMENTATION == item->type())
-      selection << dynamic_cast<Segmentation *>(item);
-  }
-
-  return selection;
 }
 
 //-----------------------------------------------------------------------------
@@ -215,55 +210,45 @@ void Brush::drawStroke(PickableItem* item,
       m_drawCommand = NULL;
       m_brush->setBorderColor(QColor(Qt::green));
     }
-//     BrushShapeList brushes;
-// 
-//     for (int i=0; i < centers->GetNumberOfPoints(); i++)
-//       brushes << createBrushShape(item,
-//                                   centers->GetPoint(i),
-//                                   radius,
-//                                   plane);
-// 
-//     if (!m_currentSource)
-//     {
-//       Q_ASSERT(!m_currentSeg);
-// 
-//       Q_ASSERT(ModelItem::CHANNEL == item->type());
-// 
-//       Channel *channel = dynamic_cast<Channel *>(item);
-//       double spacing[3];
-//       channel->spacing(spacing);
-// 
-//       Filter::NamedInputs inputs;
-//       Filter::Arguments args;
-//       FreeFormSource::Parameters params(args);
-//       params.setSpacing(spacing);
-//       m_currentSource = new FreeFormSource(inputs, args);
-//       m_currentOutput = 0;
-//       m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, m_currentOutput);
-// 
-//       m_undoStack->beginMacro("Draw Segmentation");
-//       // We can't add empty segmentations to the model
-//       m_undoStack->push(new DrawCommand(m_currentSource,
-//                                         m_currentOutput,
-//                                         brushes,
-//                                         SEG_VOXEL_VALUE));
-//       m_undoStack->push(new AddSegmentation(channel,
-//                                             m_currentSource,
-//                                             m_currentSeg,
-//                                             m_viewManager->activeTaxonomy(),
-//                                             m_model));
-//       m_undoStack->endMacro();
-//       m_brush->setBorderColor(QColor(Qt::green));
-//     }else
-//     {
-//       Q_ASSERT(m_currentSource && m_currentSeg);
-//       EspinaVolume::PixelType value = m_erasing?SEG_BG_VALUE:SEG_VOXEL_VALUE;
-// 
-//       m_undoStack->push(new DrawCommand(m_currentSource,
-//                                         m_currentOutput,
-//                                         brushes,
-//                                         value));
-//     }
+
+    BrushShapeList brushes;
+
+    for (int i = 0; i < centers->GetNumberOfPoints(); i++)
+      brushes << createBrushShape(item, centers->GetPoint(i), radius, plane);
+
+    if (!m_currentSource)
+    {
+      Q_ASSERT(!m_currentSeg);
+
+      Q_ASSERT(ModelItem::CHANNEL == item->type());
+
+      Channel *channel = dynamic_cast<Channel *>(item);
+      double spacing[3];
+      channel->spacing(spacing);
+
+      Filter::NamedInputs inputs;
+      Filter::Arguments args;
+      FreeFormSource::Parameters params(args);
+      params.setSpacing(spacing);
+      m_currentSource = new FreeFormSource(inputs, args);
+      m_currentOutput = 0;
+      m_currentSeg = m_model->factory()->createSegmentation(m_currentSource, m_currentOutput);
+
+      m_undoStack->beginMacro("Draw Segmentation");
+      // We can't add empty segmentations to the model
+      m_undoStack->push(new DrawCommand(m_currentSource, m_currentOutput, brushes, SEG_VOXEL_VALUE));
+      m_undoStack->push(
+          new AddSegmentation(channel, m_currentSource, m_currentSeg, m_viewManager->activeTaxonomy(), m_model));
+      m_undoStack->endMacro();
+      m_brush->setBorderColor(QColor(Qt::green));
+    }
+    else
+    {
+      Q_ASSERT(m_currentSource && m_currentSeg);
+      EspinaVolume::PixelType value = m_erasing ? SEG_BG_VALUE : SEG_VOXEL_VALUE;
+
+      m_undoStack->push(new DrawCommand(m_currentSource, m_currentOutput, brushes, value));
+    }
   }
 
 }
@@ -309,7 +294,7 @@ void Brush::drawStrokeStep(PickableItem* item,
                                               m_viewManager->activeTaxonomy(),
                                               m_model));
         m_undoStack->endMacro();
-	m_drawCommand = new SnapshotCommand(m_currentSource,
+        m_drawCommand = new SnapshotCommand(m_currentSource,
                                           m_currentOutput);
       }
       else

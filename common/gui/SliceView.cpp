@@ -109,9 +109,9 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
 , m_controlLayout(new QHBoxLayout())
 , m_view(new QVTKWidget())
 , m_scrollBar(new QScrollBar(Qt::Horizontal))
-, m_fromSlice(new QPushButton("From"))
+, m_fromSlice(new QPushButton(QIcon(":/from_slice.svg"),""))
 , m_spinBox(new QSpinBox())
-, m_toSlice(new QPushButton("To"))
+, m_toSlice(new QPushButton(QIcon(":/to_slice.svg"),""))
 , m_ruler(vtkSmartPointer<vtkAxisActor2D>::New())
 , m_plane(plane)
 , m_selectionEnabled(true)
@@ -127,6 +127,15 @@ SliceView::SliceView(ViewManager* vm, PlaneType plane, QWidget* parent)
   memset(m_crosshairPoint, 0, 3*sizeof(Nm));
 
   setupUI();
+  m_fromSlice->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+  m_fromSlice->setMinimumSize(22,22);
+  m_fromSlice->setMaximumSize(22,22);
+  m_fromSlice->setIconSize(QSize(18,18));
+
+  m_toSlice->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+  m_toSlice->setMinimumSize(22,22);
+  m_toSlice->setMaximumSize(22,22);
+  m_toSlice->setIconSize(QSize(18,18));
 
   // Color background
   QPalette pal = this->palette();
@@ -619,6 +628,36 @@ IPicker::PickList SliceView::pick(IPicker::PickableItems filter,
 }
 
 //-----------------------------------------------------------------------------
+void SliceView::worldCoordinates(const QPoint& displayPos,
+                                 double worldPos[3])
+{
+  double LL[3], UR[3];
+  int viewSize[2];
+  memcpy(viewSize, m_renderWindow->GetSize(), 2*sizeof(int));
+
+  // Display bounds in world coordinates
+  vtkSmartPointer<vtkCoordinate> coords = vtkSmartPointer<vtkCoordinate>::New();
+  coords->SetViewport(m_renderer);
+  coords->SetCoordinateSystemToNormalizedViewport();
+  coords->SetValue(0, 0); //LL
+  memcpy(LL,coords->GetComputedWorldValue(m_renderer),3*sizeof(double));
+  coords->SetValue(1, 1); //UR
+  memcpy(UR,coords->GetComputedWorldValue(m_renderer),3*sizeof(double));
+
+  int H = (SAGITTAL == m_plane)?2:0;
+  int V = (CORONAL  == m_plane)?2:1;
+
+  double worldSize[2];
+
+  worldSize[0] = fabs(UR[H] - LL[H]);
+  worldSize[1] = fabs(UR[V] - LL[V]);
+
+  worldPos[m_plane] = slicingPosition();
+  worldPos[H]       = LL[H] + displayPos.x()*worldSize[0]/viewSize[0];
+  worldPos[V]       = UR[V] + displayPos.y()*worldSize[1]/viewSize[1];
+}
+
+//-----------------------------------------------------------------------------
 void SliceView::setSelectionEnabled(bool enabe)
 {
   m_selectionEnabled = enabe;
@@ -954,8 +993,12 @@ void SliceView::updateSelection(ViewManager::Selection selection)
 void SliceView::updateSegmentationRepresentations()
 {
   if (isVisible())
+  {
     foreach(Segmentation *seg, m_segmentationReps.keys())
+    {
       updateSegmentation(seg);
+    }
+  }
 }
 
 //-----------------------------------------------------------------------------
@@ -989,12 +1032,14 @@ void SliceView::scrollValueChanged(int value/*nm*/)
 //-----------------------------------------------------------------------------
 void SliceView::selectFromSlice()
 {
+  m_fromSlice->setToolTip(tr("From Slice %1").arg(m_spinBox->value()));
   emit sliceSelected(slicingPosition(), m_plane, ViewManager::From);
 }
 
 //-----------------------------------------------------------------------------
 void SliceView::selectToSlice()
 {
+  m_toSlice->setToolTip(tr("To Slice %1").arg(m_spinBox->value()));
   emit sliceSelected(slicingPosition(), m_plane, ViewManager::To);
 }
 
@@ -1014,7 +1059,18 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
   }
 
   if (m_viewManager->filterEvent(e, this))
+  {
+    QWidget::eventFilter(caller, e);
+
     return true;
+  }
+
+  foreach (EspinaWidget *widget, m_widgets.keys())
+  {
+    if (widget->filterEvent(e, this))
+      return true;
+  }
+
 
   if (QEvent::Wheel == e->type())
   {
@@ -1045,20 +1101,6 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
     eventPosition(x, y);
     m_inThumbnail = m_thumbnail->GetDraw() && m_channelPicker->Pick(x, y, 0.1, m_thumbnail);
 
-  }
-  else if (e->type() == QEvent::MouseButtonPress)
-  {
-    QMouseEvent* me = static_cast<QMouseEvent*>(e);
-    if (me->button() == Qt::LeftButton)
-    {
-      if (me->modifiers() == Qt::CTRL)
-        centerCrosshairOnMousePosition();
-      else
-        if (m_inThumbnail)
-          centerViewOnMousePosition();
-        else if (m_selectionEnabled)
-          selectPickedItems(me->modifiers() == Qt::SHIFT);
-    }
   }
   //else if (QEvent::ContextMenu == e->type())
   //{ QContextMenuEvent *cme = dynamic_cast<QContextMenuEvent*>(e);
@@ -1102,6 +1144,22 @@ bool SliceView::eventFilter(QObject* caller, QEvent* e)
     updateRuler();
     updateThumbnail();
   }
+
+  if (e->type() == QEvent::MouseButtonPress)
+  {
+    QMouseEvent* me = static_cast<QMouseEvent*>(e);
+    if (me->button() == Qt::LeftButton)
+    {
+      if (me->modifiers() == Qt::CTRL)
+        centerCrosshairOnMousePosition();
+      else
+        if (m_inThumbnail)
+          centerViewOnMousePosition();
+        else if (m_selectionEnabled)
+          selectPickedItems(me->modifiers() == Qt::SHIFT);
+    }
+  }
+
   return QWidget::eventFilter(caller, e);
 }
 

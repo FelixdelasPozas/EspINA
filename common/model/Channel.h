@@ -63,8 +63,9 @@ public:
   class CArguments : public ModelItem::Arguments
   {
   public:
-    explicit CArguments(){}
-    explicit CArguments(const Arguments args) : Arguments(args) {}
+    explicit CArguments() : m_outputNumber(0) {}
+    explicit CArguments(const Arguments &args)
+    : Arguments(args), m_outputNumber(0) {}
 
     /// Channel dye color. Hue's value in range (0,1)
     void setColor(double color)

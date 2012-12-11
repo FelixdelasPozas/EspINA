@@ -21,11 +21,12 @@
 
 // EspINA
 #include "common/colorEngines/ColorEngine.h"
-#include "common/gui/IEspinaView.h"
 #include "common/gui/EspinaRenderView.h"
-#include "SliceView.h"
-#include "common/tools/PickableItem.h"
+#include "common/gui/IEspinaView.h"
+#include "common/gui/SliceView.h"
+#include "common/model/Segmentation.h"
 #include "common/tools/IVOI.h"
+#include "common/tools/PickableItem.h"
 
 // Qt
 #include <QDebug>
@@ -106,6 +107,20 @@ void ViewManager::setSelection(ViewManager::Selection selection)
 }
 
 //----------------------------------------------------------------------------
+SegmentationList ViewManager::selectedSegmentations() const
+{
+  SegmentationList selection;
+
+  foreach(PickableItem *item, m_selection)
+  {
+    if (ModelItem::SEGMENTATION == item->type())
+      selection << dynamic_cast<Segmentation *>(item);
+  }
+
+  return selection;
+}
+
+//----------------------------------------------------------------------------
 void ViewManager::setVOI(IVOI *voi)
 {
   if (m_voi && m_voi != voi)
@@ -133,13 +148,8 @@ void ViewManager::setActiveTool(ITool* tool)
 
   m_tool = tool;
 
-  if (m_voi)
-    m_voi->setEnabled(m_tool?false:true);
-
   if (m_tool)
     m_tool->setInUse(true);
-  else
-    setSelectionEnabled(true);
 }
 
 //----------------------------------------------------------------------------
@@ -149,7 +159,6 @@ void ViewManager::unsetActiveTool()
   {
     m_tool->setInUse(false);
     m_tool = NULL;
-    setSelectionEnabled(true);
   }
 }
 
@@ -160,7 +169,6 @@ void ViewManager::unsetActiveTool(ITool* tool)
   {
     m_tool->setInUse(false);
     m_tool = NULL;
-    setSelectionEnabled(true);
   }
 }
 
@@ -183,10 +191,10 @@ QCursor ViewManager::cursor() const
 {
   QCursor activeCursor(Qt::ArrowCursor);
 
-  if (m_voi && m_voi->enabled())
-    activeCursor = m_voi->cursor();
-  else if (m_tool)
+  if (m_tool)
     activeCursor = m_tool->cursor();
+  else if (m_voi && m_voi->enabled())
+    activeCursor = m_voi->cursor();
 
   return activeCursor;
 }

@@ -22,6 +22,7 @@
 #include <common/model/Channel.h>
 #include "vtkBoundingRegionSliceWidget.h"
 #include <common/extensions/Margins/MarginsChannelExtension.h>
+#include <common/widgets/EspinaInteractorAdapter.h>
 #include <extensions/CountingRegionChannelExtension.h>
 
 #include <vtkPolyData.h>
@@ -29,24 +30,6 @@
 #include <vtkCellArray.h>
 #include <vtkCellData.h>
 #include "vtkBoundingRegion3DWidget.h"
-
-class AdaptiveRegionWidget
-: public SliceWidget
-{
-public:
-  explicit AdaptiveRegionWidget(vtkBoundingRegionSliceWidget *widget)
-  : SliceWidget(widget)
-  , m_slicedWidget(widget)
-  {}
-
-  virtual void setSlice(Nm pos, PlaneType plane)
-  {
-    m_slicedWidget->SetSlice(pos);
-    SliceWidget::setSlice(pos, plane);
-  }
-private:
-  vtkBoundingRegionSliceWidget *m_slicedWidget;
-};
 
 //-----------------------------------------------------------------------------
 const QString AdaptiveBoundingRegion::ID = "AdaptiveBoundingRegion";
@@ -59,7 +42,6 @@ AdaptiveBoundingRegion::AdaptiveBoundingRegion(CountingRegionChannelExtension *c
 : BoundingRegion(channelExt, inclusion, exclusion, vm)
 , m_channel(channelExt->channel())
 {
-  m_boundingRegion = vtkPolyData::New();
   updateBoundingRegion();
 }
 
@@ -67,27 +49,25 @@ AdaptiveBoundingRegion::AdaptiveBoundingRegion(CountingRegionChannelExtension *c
 AdaptiveBoundingRegion::~AdaptiveBoundingRegion()
 {
   m_channelExt->removeRegion(this);
-  foreach(vtkAbstractWidget *w, m_widgets)
+  foreach(vtkAbstractWidget *w, m_widgets2D)
   {
     w->EnabledOn();
     w->Delete();
   }
-  m_widgets.clear();
-
-  if (m_boundingRegion)
-    m_boundingRegion->Delete();
+  foreach(vtkAbstractWidget *w, m_widgets3D)
+  {
+    w->EnabledOn();
+    w->Delete();
+  }
+  m_widgets2D.clear();
+  m_widgets3D.clear();
 }
 
 //-----------------------------------------------------------------------------
 QVariant AdaptiveBoundingRegion::data(int role) const
 {
   if (role == Qt::DisplayRole)
-  {
-    QString repName = QString("Adaptive Region (%1,%2,%3,%4,%5,%6)")
-      .arg(left(),0,'f',2).arg(top(),0,'f',2).arg(upper(),0,'f',2)
-      .arg(right(),0,'f',2).arg(bottom(),0,'f',2).arg(lower(),0,'f',2);
-    return repName;
-  }
+    return tr("%1 - Adaptive Region").arg(m_channelExt->channel()->data().toString());
 
   return BoundingRegion::data(role);
 }
@@ -97,20 +77,20 @@ QString AdaptiveBoundingRegion::serialize() const
 {
   return QString("%1=%2,%3,%4,%5,%6,%7")
          .arg(ID)
-	 .arg(left(),0,'f',2).arg(top(),0,'f',2).arg(upper(),0,'f',2)
+         .arg(left(),0,'f',2).arg(top(),0,'f',2).arg(upper(),0,'f',2)
          .arg(right(),0,'f',2).arg(bottom(),0,'f',2).arg(lower(),0,'f',2);
 }
 
 //-----------------------------------------------------------------------------
 vtkAbstractWidget* AdaptiveBoundingRegion::createWidget()
 {
-  vtkBoundingRegion3DWidget *w = vtkBoundingRegion3DWidget::New();
-  Q_ASSERT(w);
-  w->SetBoundingRegion(m_boundingRegion);
+  BoundingRegion3DWidgetAdapter *wa = new BoundingRegion3DWidgetAdapter();
+  Q_ASSERT(wa);
+  wa->SetBoundingRegion(m_boundingRegion, m_inclusion, m_exclusion);
 
-  m_widgets << w;
+  m_widgets3D << wa;
 
-  return w;
+  return wa;
 }
 
 //-----------------------------------------------------------------------------
@@ -119,8 +99,17 @@ void AdaptiveBoundingRegion::deleteWidget(vtkAbstractWidget* widget)
   widget->Off();
   widget->RemoveAllObservers();
 
-  vtkBoundingRegionWidget *brw = dynamic_cast<vtkBoundingRegionWidget *>(widget);
-  m_widgets.removeAll(brw);
+  BoundingRegion3DWidgetAdapter *brwa3D = dynamic_cast<BoundingRegion3DWidgetAdapter *>(widget);
+  if (brwa3D)
+    m_widgets3D.removeAll(brwa3D);
+  else
+  {
+    BoundingRegion2DWidgetAdapter *brwa2D = dynamic_cast<BoundingRegion2DWidgetAdapter *>(widget);
+    if (brwa2D)
+      m_widgets2D.removeAll(brwa2D);
+    else
+      Q_ASSERT(false);
+  }
 
   widget->Delete();
 }
@@ -128,15 +117,38 @@ void AdaptiveBoundingRegion::deleteWidget(vtkAbstractWidget* widget)
 //-----------------------------------------------------------------------------
 SliceWidget* AdaptiveBoundingRegion::createSliceWidget(PlaneType plane)
 {
-  vtkBoundingRegionSliceWidget *w = vtkBoundingRegionSliceWidget::New();
-  Q_ASSERT(w);
-  w->AddObserver(vtkCommand::EndInteractionEvent, this);
-  w->SetPlane(plane);
-  w->SetBoundingRegion(m_boundingRegion);
+  Channel *channel = m_channelExt->channel();
+  double spacing[3];
+  channel->spacing(spacing);
 
-  m_widgets << w;
+  BoundingRegion2DWidgetAdapter *wa = new BoundingRegion2DWidgetAdapter();
+  Q_ASSERT(wa);
+  wa->AddObserver(vtkCommand::EndInteractionEvent, this);
+  wa->SetPlane(plane);
+  wa->SetSlicingStep(spacing);
+  wa->SetBoundingRegion(m_representation, m_inclusion, m_exclusion);
 
-  return new AdaptiveRegionWidget(w);
+  m_widgets2D << wa;
+
+  return new BoundingRegionSliceWidget(wa);
+}
+
+//-----------------------------------------------------------------------------
+bool AdaptiveBoundingRegion::processEvent(vtkRenderWindowInteractor* iren,
+                                          long unsigned int event)
+{
+  foreach(BoundingRegion2DWidgetAdapter *wa, m_widgets2D)
+  {
+    if (wa->GetInteractor() == iren)
+      return wa->ProcessEventsHandler(event);
+  }
+  foreach(BoundingRegion3DWidgetAdapter *wa, m_widgets3D)
+  {
+    if (wa->GetInteractor() == iren)
+      return wa->ProcessEventsHandler(event);
+  }
+
+  return false;
 }
 
 
@@ -146,8 +158,10 @@ void AdaptiveBoundingRegion::setEnabled(bool enable)
   Q_ASSERT(false);
 }
 
+#include <QDebug>
+
 //-----------------------------------------------------------------------------
-void AdaptiveBoundingRegion::updateBoundingRegion()
+void AdaptiveBoundingRegion::updateBoundingRegionImplementation()
 {
   double spacing[3];
   m_channel->spacing(spacing);
@@ -155,12 +169,12 @@ void AdaptiveBoundingRegion::updateBoundingRegion()
   m_channel->extent(extent);
 
   m_inclusionVolume = 0;
-  m_totalVolume = 0;
 
   ModelItemExtension *ext = m_channel->extension(MarginsChannelExtension::ID);
   Q_ASSERT(ext);
   MarginsChannelExtension *marginsExt = dynamic_cast<MarginsChannelExtension *>(ext);
   Q_ASSERT(marginsExt);
+  m_totalVolume = marginsExt->computedVolume();
 
   vtkSmartPointer<vtkPolyData> margins = marginsExt->margins();
   Q_ASSERT(margins.GetPointer());
@@ -179,6 +193,9 @@ void AdaptiveBoundingRegion::updateBoundingRegion()
   // upper and lower refer to Espina's orientation
   Q_ASSERT(upperSlice <= lowerSlice);
 
+  m_boundingRegion = vtkSmartPointer<vtkPolyData>::New();
+  m_representation = margins;
+
   vtkSmartPointer<vtkPoints> regionVertex = vtkSmartPointer<vtkPoints>::New();
   vtkSmartPointer<vtkCellArray> faces = vtkSmartPointer<vtkCellArray>::New();
   vtkSmartPointer<vtkIntArray> faceData = vtkSmartPointer<vtkIntArray>::New();
@@ -191,27 +208,27 @@ void AdaptiveBoundingRegion::updateBoundingRegion()
     double LB[3], LT[3], RT[3], RB[3];
 
     margins->GetPoint(4*slice+0, LB);
-    roundToSlice(LB[0], leftOffset());
-    roundToSlice(LB[1], bottomOffset());
-    roundToSlice(LB[2], 0);
+    applyOffset(LB[0], leftOffset());
+    applyOffset(LB[1], bottomOffset());
+    applyOffset(LB[2], 0);
     cell[0] = regionVertex->InsertNextPoint(LB);
 
     margins->GetPoint(4*slice+1, LT);
-    roundToSlice(LT[0], leftOffset());
-    roundToSlice(LT[1], topOffset());
-    roundToSlice(LT[2], 0);
+    applyOffset(LT[0], leftOffset());
+    applyOffset(LT[1], topOffset());
+    applyOffset(LT[2], 0);
     cell[1] = regionVertex->InsertNextPoint(LT);
 
     margins->GetPoint(4*slice+2, RT);
-    roundToSlice(RT[0], rightOffset());
-    roundToSlice(RT[1], topOffset());
-    roundToSlice(RT[2], 0);
+    applyOffset(RT[0], rightOffset());
+    applyOffset(RT[1], topOffset());
+    applyOffset(RT[2], 0);
     cell[2] = regionVertex->InsertNextPoint(RT);
 
     margins->GetPoint(4*slice+3, RB);
-    roundToSlice(RB[0], rightOffset());
-    roundToSlice(RB[1], bottomOffset());
-    roundToSlice(RB[2], 0);
+    applyOffset(RB[0], rightOffset());
+    applyOffset(RB[1], bottomOffset());
+    applyOffset(RB[2], 0);
     cell[3] = regionVertex->InsertNextPoint(RB);
     if (slice == upperSlice)
     {
@@ -268,10 +285,7 @@ void AdaptiveBoundingRegion::updateBoundingRegion()
     // Update Volumes
     if (slice != lowerSlice)
     {
-      m_totalVolume += ((RT[0] - LT[0] + 1)*(LB[1] - LT[1] + 1))*spacing[2];
-      m_inclusionVolume += (((RT[0] + rightOffset())  - (LT[0] + leftOffset()))*
-                           ((LB[1] + bottomOffset()) - (LT[1] + topOffset())))*
-                           spacing[2];
+      m_inclusionVolume += (RT[0] - LT[0])*(LB[1] - LT[1])*spacing[2];
     }
   }
 
@@ -280,6 +294,4 @@ void AdaptiveBoundingRegion::updateBoundingRegion()
   vtkCellData *data = m_boundingRegion->GetCellData();
   data->SetScalars(faceData);
   data->GetScalars()->SetName("Type");
-
-  emit modified(this);
 }

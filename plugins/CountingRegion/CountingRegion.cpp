@@ -22,7 +22,10 @@
 #include <common/model/Channel.h>
 #include <common/model/EspinaModel.h>
 #include <common/model/EspinaFactory.h>
+#include <common/model/Segmentation.h>
 #include <common/gui/ViewManager.h>
+#include <common/extensions/Margins/MarginsSegmentationExtension.h>
+#include <common/EspinaRegions.h>
 
 #include "regions/RectangularBoundingRegion.h"
 #include "regions/AdaptiveBoundingRegion.h"
@@ -59,8 +62,8 @@ CountingRegion::GUI::GUI()
   rightMargin->installEventFilter(this);
   topMargin->installEventFilter(this);
   bottomMargin->installEventFilter(this);
-  lowerSlice->installEventFilter(this);
-  upperSlice->installEventFilter(this);
+  lowerMargin->installEventFilter(this);
+  upperMargin->installEventFilter(this);
 }
 
 //------------------------------------------------------------------------
@@ -76,9 +79,9 @@ bool CountingRegion::GUI::eventFilter(QObject* object, QEvent* event)
       preview->setPixmap(QPixmap(":/top.png"));
     else if (object == bottomMargin)
       preview->setPixmap(QPixmap(":/bottom.png"));
-    else if (object == upperSlice)
+    else if (object == upperMargin)
       preview->setPixmap(QPixmap(":/upper.png"));
-    else if (object == lowerSlice)
+    else if (object == lowerMargin)
       preview->setPixmap(QPixmap(":/lower.png"));
 
   }else if (event->type() == QEvent::FocusOut)
@@ -95,15 +98,15 @@ void CountingRegion::GUI::setOffsetRanges(int min, int max)
   leftMargin->setMaximum(max);
   topMargin->setMinimum(min);
   topMargin->setMaximum(max);
-  upperSlice->setMinimum(min);
-  upperSlice->setMaximum(max);
+  upperMargin->setMinimum(min);
+  upperMargin->setMaximum(max);
 
   rightMargin->setMinimum(min);
   rightMargin->setMaximum(max);
   bottomMargin->setMinimum(min);
   bottomMargin->setMaximum(max);
-  lowerSlice->setMinimum(min);
-  lowerSlice->setMaximum(max);
+  lowerMargin->setMinimum(min);
+  lowerMargin->setMaximum(max);
 }
 
 const QString CountingRegion::ID = "CountingRegionExtension";
@@ -114,6 +117,7 @@ CountingRegion::CountingRegion(QWidget * parent)
 , m_gui(new GUI())
 , m_espinaModel(NULL)
 , m_viewManager(NULL)
+, m_activeRegion(NULL)
 {
   setObjectName("CountingRegionDock");
   setWindowTitle(tr("Counting Region"));
@@ -124,32 +128,36 @@ CountingRegion::CountingRegion(QWidget * parent)
   connect(m_gui->saveDescription, SIGNAL(clicked(bool)),
           this, SLOT(saveRegionDescription()));
 
-
-  m_gui->regionView->setModel(&m_regionModel);
-  m_regionModel.setHorizontalHeaderItem(0, new QStandardItem(tr("Name")));
-//   m_regionModel.setHorizontalHeaderItem(1, new QStandardItem(tr("XY")));
-//   m_regionModel.setHorizontalHeaderItem(2, new QStandardItem(tr("YZ")));
-//   m_regionModel.setHorizontalHeaderItem(3, new QStandardItem(tr("XZ")));
-//   m_regionModel.setHorizontalHeaderItem(4, new QStandardItem(tr("3D")));
+  m_gui->regions->addItem("Create Adaptive Region");
+  m_gui->regions->addItem("Create Rectangular Region");
 
   connect(m_gui->createRegion, SIGNAL(clicked()),
           this, SLOT(createBoundingRegion()));
   connect(m_gui->removeRegion, SIGNAL(clicked()),
           this, SLOT(removeSelectedBoundingRegion()));
 
-  connect(m_gui->regionView, SIGNAL(clicked(QModelIndex)),
-          this, SLOT(showInfo(QModelIndex)));
-  connect(&m_regionModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-          this, SLOT(showInfo(QModelIndex)));
+  connect(m_gui->regions,SIGNAL(currentIndexChanged(int)),
+          this, SLOT(updateUI(int)));
 
-  connect(&m_regionModel, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
-          m_gui->regionView, SLOT(setCurrentIndex(QModelIndex)));
+  connect(m_gui->leftMargin, SIGNAL(valueChanged(int)),
+          this, SLOT(updateBoundingMargins()));
+  connect(m_gui->topMargin, SIGNAL(valueChanged(int)),
+          this, SLOT(updateBoundingMargins()));
+  connect(m_gui->upperMargin, SIGNAL(valueChanged(int)),
+          this, SLOT(updateBoundingMargins()));
+  connect(m_gui->rightMargin, SIGNAL(valueChanged(int)),
+          this, SLOT(updateBoundingMargins()));
+  connect(m_gui->bottomMargin, SIGNAL(valueChanged(int)),
+          this, SLOT(updateBoundingMargins()));
+  connect(m_gui->lowerMargin, SIGNAL(valueChanged(int)),
+          this, SLOT(updateBoundingMargins()));
 
 }
 
 //------------------------------------------------------------------------
 CountingRegion::~CountingRegion()
 {
+  clearBoundingRegions();
 }
 
 //------------------------------------------------------------------------
@@ -196,12 +204,7 @@ void CountingRegion::createAdaptiveRegion(Channel *channel,
                                                             inclusion,
                                                             exclusion,
                                                             m_viewManager));
-  channelExt->addRegion(region);
-  m_regionModel.appendRow(region);
-  m_viewManager->addWidget(region);
-  m_gui->removeRegion->setEnabled(true);
-  m_regions << region;
-  emit regionCreated(region);
+  registerRegion(channelExt, region);
 }
 
 //------------------------------------------------------------------------
@@ -222,71 +225,127 @@ void CountingRegion::createRectangularRegion(Channel *channel,
                                                                   inclusion,
                                                                   exclusion,
                                                                   m_viewManager));
-  channelExt->addRegion(region);
-  m_regionModel.appendRow(region);
-  m_viewManager->addWidget(region);
-  m_gui->removeRegion->setEnabled(true);
-  m_regions << region;
-  emit regionCreated(region);
+  registerRegion(channelExt, region);
 }
 
 //------------------------------------------------------------------------
 void CountingRegion::clearBoundingRegions()
 {
-  m_regionModel.clear();
+  while (m_gui->regions->count() > 2)
+    m_gui->regions->removeItem(2);
+
   m_gui->regionDescription->clear();
   m_gui->createRegion->setEnabled(false);
   m_gui->removeRegion->setEnabled(false);
+
+  // TODO 2012-11-06 It should be removed due to channel being destroyed
+  foreach(BoundingRegion *region, m_regions)
+  {
+    m_viewManager->removeWidget(region);
+    delete region;
+  }
+
+  m_regions.clear();
+}
+
+//------------------------------------------------------------------------
+void CountingRegion::updateUI(int row)
+{
+  if (row > RECTANGULAR)
+  {
+    m_gui->createRegion->setIcon(QIcon(":/update-cr.svg"));
+    m_gui->removeRegion   ->setEnabled(true);
+    m_gui->saveDescription->setEnabled(true);
+
+    BoundingRegion *region = m_regions.value(row-NUM_FIXED_ROWS, NULL);
+    Q_ASSERT(region);
+
+    showInfo(region);
+
+  } else
+  {
+    m_activeRegion = NULL;
+
+    m_gui->createRegion->setIcon(QIcon(":/create-cr.svg"));
+    m_gui->removeRegion   ->setEnabled(false);
+    m_gui->saveDescription->setEnabled(false);
+
+    m_gui->leftMargin  ->setValue(0);
+    m_gui->topMargin   ->setValue(0);
+    m_gui->upperMargin ->setValue(0);
+    m_gui->rightMargin ->setValue(0);
+    m_gui->bottomMargin->setValue(0);
+    m_gui->lowerMargin ->setValue(0);
+
+    m_gui->regionDescription->clear();
+
+    m_gui->regions->setFocus();
+  }
 }
 
 //------------------------------------------------------------------------
 void CountingRegion::createBoundingRegion()
 {
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-
-  Nm inclusion[3];
-  inclusion[0] = m_gui->leftMargin->value();
-  inclusion[1] = m_gui->topMargin->value();
-  inclusion[2] = m_gui->upperSlice->value();
-
-  Nm exclusion[3];
-  exclusion[0] = m_gui->rightMargin->value();
-  exclusion[1] = m_gui->bottomMargin->value();
-  exclusion[2] = m_gui->lowerSlice->value();
-
   Channel *channel = m_viewManager->activeChannel();
   Q_ASSERT(channel);
 
-  if (ADAPTIVE == m_gui->regionType->currentIndex())
-    createAdaptiveRegion(channel, inclusion, exclusion);
-  else if (RECTANGULAR == m_gui->regionType->currentIndex())
-    createRectangularRegion(channel, inclusion, exclusion);
-  else
-    Q_ASSERT(false);
+  Nm inclusion[3];
+  Nm exclusion[3];
+
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+
+  computeOptimalMargins(channel, inclusion, exclusion);
+  memset(exclusion, 0, 3*sizeof(Nm));
+
+  if (m_activeRegion)
+  {
+    m_activeRegion->setMargins(inclusion, exclusion);
+  }else
+  {
+    if (ADAPTIVE == m_gui->regions->currentIndex())
+      createAdaptiveRegion(channel, inclusion, exclusion);
+    else if (RECTANGULAR == m_gui->regions->currentIndex())
+      createRectangularRegion(channel, inclusion, exclusion);
+    else
+      Q_ASSERT(false);
+  }
+
+  updateSegmentations();
 
   QApplication::restoreOverrideCursor();
 }
 
 //------------------------------------------------------------------------
+void CountingRegion::updateBoundingMargins()
+{
+  if (!m_activeRegion)
+    return;
+
+  Nm inclusion[3];
+  Nm exclusion[3];
+
+  inclusionMargins(inclusion);
+  exclusionMargins(exclusion);
+
+  m_activeRegion->setMargins(inclusion, exclusion);
+}
+
+
+//------------------------------------------------------------------------
 void CountingRegion::removeSelectedBoundingRegion()
 {
-  int selectedRegion = m_gui->regionView->currentIndex().row();
-  if (selectedRegion >= 0 && selectedRegion < m_regionModel.rowCount())
-  {
-    QStandardItem *item = m_regionModel.item(selectedRegion);
-    BoundingRegion *region = dynamic_cast<BoundingRegion *>(item);
-    Q_ASSERT(region);
-    m_viewManager->removeWidget(region);
-    m_regions.removeAll(region);
-    emit regionRemoved(region);
-    delete region;
-    m_viewManager->updateViews();
-    m_regionModel.removeRow(selectedRegion);
-  }
+  if (!m_activeRegion)
+    return;
 
-  m_gui->regionDescription->clear();
-  m_gui->saveDescription->setEnabled(false);
-  m_gui->removeRegion->setEnabled(m_regionModel.rowCount() > 0);
+  m_viewManager->removeWidget(m_activeRegion);
+  m_regions.removeAll(m_activeRegion);
+
+  delete m_activeRegion;
+  m_activeRegion = NULL;
+
+  m_gui->regions->removeItem(m_gui->regions->currentIndex());
+
+  updateSegmentations();
 }
 
 //------------------------------------------------------------------------
@@ -294,19 +353,64 @@ void CountingRegion::channelChanged(Channel* channel)
 {
   m_gui->createRegion->setEnabled(channel != NULL);
   if (channel)
-    m_gui->setOffsetRanges(-1000,1000);
+  {
+    double bounds[6];
+    channel->bounds(bounds);
+    double lenght[3];
+    for (int i=0; i < 3; i++)
+      lenght[i] = bounds[2*i+1]-bounds[2*i];
+
+    m_gui->leftMargin  ->setMaximum(lenght[0]);
+    m_gui->topMargin   ->setMaximum(lenght[1]);
+    m_gui->upperMargin ->setMaximum(lenght[2]);
+    m_gui->rightMargin ->setMaximum(lenght[0]);
+    m_gui->bottomMargin->setMaximum(lenght[1]);
+    m_gui->lowerMargin ->setMaximum(lenght[2]);
+  }
   else
     m_gui->setOffsetRanges(0,0);
 }
 
 //------------------------------------------------------------------------
-void CountingRegion::showInfo(const QModelIndex& index)
+void CountingRegion::showInfo(BoundingRegion* region)
 {
-  m_gui->regionDescription->setText(index.data(BoundingRegion::DescriptionRole).toString());
-  m_gui->saveDescription->setEnabled(index.isValid());
+  m_activeRegion = region;
+
+  int regionIndex = m_regions.indexOf(region);
+  m_gui->regions->setCurrentIndex(regionIndex + NUM_FIXED_ROWS);
+
+  m_gui->leftMargin  ->blockSignals(true);
+  m_gui->topMargin   ->blockSignals(true);
+  m_gui->upperMargin ->blockSignals(true);
+  m_gui->rightMargin ->blockSignals(true);
+  m_gui->bottomMargin->blockSignals(true);
+  m_gui->lowerMargin ->blockSignals(true);
+
+  m_gui->leftMargin  ->setValue(region->left()  );
+  m_gui->topMargin   ->setValue(region->top()   );
+  m_gui->upperMargin ->setValue(region->upper() );
+  m_gui->rightMargin ->setValue(region->right() );
+  m_gui->bottomMargin->setValue(region->bottom());
+  m_gui->lowerMargin ->setValue(region->lower() );
+
+  m_gui->leftMargin  ->blockSignals(false);
+  m_gui->topMargin   ->blockSignals(false);
+  m_gui->upperMargin ->blockSignals(false);
+  m_gui->rightMargin ->blockSignals(false);
+  m_gui->bottomMargin->blockSignals(false);
+  m_gui->lowerMargin ->blockSignals(false);
+
+  m_gui->regionDescription->setText(region->data(BoundingRegion::DescriptionRole).toString());
+
+}
+
+//------------------------------------------------------------------------
+void CountingRegion::updateSegmentations()
+{
   m_viewManager->updateSegmentationRepresentations();
   m_viewManager->updateViews();
 }
+
 
 //------------------------------------------------------------------------
 void CountingRegion::saveRegionDescription()
@@ -323,6 +427,89 @@ void CountingRegion::saveRegionDescription()
     out << m_gui->regionDescription->toPlainText();
     file.close();
   }
+}
+
+//------------------------------------------------------------------------
+void CountingRegion::computeOptimalMargins(Channel* channel,
+                                           Nm inclusion[3],
+                                           Nm exclusion[3])
+{
+  const Nm delta[3] = {
+    0.5*channel->itkVolume()->GetSpacing()[0],
+    0.5*channel->itkVolume()->GetSpacing()[1],
+    0.5*channel->itkVolume()->GetSpacing()[2]
+  };
+
+  memset(inclusion, 0, 3*sizeof(Nm));
+  memset(exclusion, 0, 3*sizeof(Nm));
+
+  ModelItem::Vector items = channel->relatedItems(ModelItem::OUT, Channel::LINK);
+  SegmentationList channelSegs;
+  foreach(ModelItem *item, items)
+  {
+    if (ModelItem::SEGMENTATION == item->type())
+      channelSegs << dynamic_cast<Segmentation *>(item);
+  }
+
+  foreach(Segmentation *seg, channelSegs)
+  {
+    ModelItemExtension *ext = seg->extension(MarginsSegmentationExtension::ID);
+    MarginsSegmentationExtension *marginExt = dynamic_cast<MarginsSegmentationExtension *>(ext);
+    if (marginExt)
+    {
+      Nm dist2Margin[6];
+      marginExt->margins(dist2Margin);
+      double segBounds[6];
+      VolumeBounds(seg->itkVolume(), segBounds);
+
+      for (int i=0; i < 3; i++)
+      {
+        double length = segBounds[2*i+1] - segBounds[2*i];
+        length += seg->itkVolume()->GetSpacing()[i];
+        if (dist2Margin[2*i] < delta[i])
+          inclusion[i] = std::max(length, inclusion[i]);
+        if (dist2Margin[2*i+1] < delta[i])
+          exclusion[i] = std::max(length, exclusion[i]);
+      }
+    }
+  }
+  //qDebug() << "Inclusion:" << inclusion[0] << inclusion[1] << inclusion[2];
+  //qDebug() << "Exclusion:" << exclusion[0] << exclusion[1] << exclusion[2];
+}
+
+//------------------------------------------------------------------------
+void CountingRegion::inclusionMargins(double values[3])
+{
+  values[0] = m_gui->leftMargin->value();
+  values[1] = m_gui->topMargin->value();
+  values[2] = m_gui->upperMargin->value();
+}
+
+//------------------------------------------------------------------------
+void CountingRegion::exclusionMargins(double values[3])
+{
+  values[0] = m_gui->rightMargin->value();
+  values[1] = m_gui->bottomMargin->value();
+  values[2] = m_gui->lowerMargin->value();
+}
+
+//------------------------------------------------------------------------
+void CountingRegion::registerRegion(CountingRegionChannelExtension* ext,
+                                    BoundingRegion* region)
+{
+  ext->addRegion(region);
+  m_viewManager->addWidget(region);
+  m_regions << region;
+
+  connect(region, SIGNAL(modified(BoundingRegion*)),
+          this, SLOT(showInfo(BoundingRegion*)));
+  connect(region, SIGNAL(modified(BoundingRegion*)),
+          this, SLOT(updateSegmentations()));
+
+  m_gui->regions->addItem(region->data(Qt::DisplayRole).toString());
+
+
+  showInfo(region);
 }
 
 //------------------------------------------------------------------------

@@ -24,7 +24,7 @@
 AboutDialog::AboutDialog()
 {
   setupUi(this);
-  
+
   version->setText(QString("Version: %1").arg(ESPINA_VERSION));
 }
 

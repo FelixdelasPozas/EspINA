@@ -32,7 +32,8 @@ class ContourWidget
     virtual void deleteWidget(vtkAbstractWidget *widget);
     virtual SliceWidget *createSliceWidget(PlaneType plane);
 
-    virtual bool filterEvent(QEvent* e, EspinaRenderView* view) {return false;}
+    virtual bool processEvent(vtkRenderWindowInteractor* iren,
+                              long unsigned int event);
     virtual void setEnabled(bool enable);
 
     virtual QMap<PlaneType, QMap<Nm, vtkPolyData*> > GetContours();
@@ -44,6 +45,7 @@ class ContourWidget
     SliceContourWidget *m_axialSliceContourWidget;
     SliceContourWidget *m_coronalSliceContourWidget;
     SliceContourWidget *m_sagittalSliceContourWidget;
+    QList<vtkAbstractWidget *> m_widgets;
     QColor m_color;
 };
 

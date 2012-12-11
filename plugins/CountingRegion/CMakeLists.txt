@@ -39,6 +39,7 @@ qt4_wrap_ui (UI_BUILT_SOURCES
 qt4_wrap_cpp(MOC_SRCS 
   CountingRegion.h
   RegionRenderer.h
+  extensions/CountingRegionChannelExtension.h
   extensions/CountingRegionSegmentationExtension.h
   regions/BoundingRegion.h
   )
@@ -53,6 +54,9 @@ set (LOCAL_SOURCES
   )
 
 set (REGION_SOURCES
+  regions/vtkBoundingRegionAxialSliceRepresentation.cpp
+  regions/vtkBoundingRegionCoronalSliceRepresentation.cpp
+  regions/vtkBoundingRegionSagittalSliceRepresentation.cpp
   colorEngines/CountingRegionColorEngine.cpp
   regions/AdaptiveBoundingRegion.cpp
   regions/BoundingRegion.cpp

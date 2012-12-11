@@ -13,10 +13,12 @@ class QuaZipFile;
 
 class EspinaIO
 {
+  static const QString VERSION;
 public:
   enum STATUS
   { SUCCESS
   , FILE_NOT_FOUND
+  , INVALID_VERSION
   , ERROR
   };
 
@@ -58,7 +60,7 @@ public:
    * @param filepath is the path where the model must be saved
    * @param model is the EspinaModel which is saved in @param file
    */
-  static STATUS saveFile(QFileInfo file, EspinaModel *model);
+  static STATUS saveSegFile(QFileInfo file, EspinaModel *model);
 
 private:
   /**

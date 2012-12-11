@@ -22,6 +22,7 @@
 
 #include <common/EspinaTypes.h>
 
+class vtkRenderWindowInteractor;
 class ViewManager;
 class EspinaRenderView;
 class QEvent;
@@ -54,7 +55,9 @@ public:
   virtual void deleteWidget(vtkAbstractWidget *widget) = 0;
   virtual SliceWidget *createSliceWidget(PlaneType plane) = 0;
 
-  virtual bool filterEvent(QEvent *e, EspinaRenderView *view) = 0;
+  bool filterEvent(QEvent *e, EspinaRenderView *view);
+  virtual bool processEvent(vtkRenderWindowInteractor *iren,
+                            long unsigned int event) = 0;
   virtual void setEnabled(bool enable) = 0;
 
 protected:

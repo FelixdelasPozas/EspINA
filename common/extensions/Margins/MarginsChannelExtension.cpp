@@ -112,7 +112,7 @@ void MarginsChannelExtension::computeMargins()
   QApplication::setOverrideCursor(Qt::WaitCursor);
   MarginDetector *marginDetector = new MarginDetector(this);
   connect(marginDetector, SIGNAL(finished()),
-	  marginDetector, SLOT(deleteLater()));
+          marginDetector, SLOT(deleteLater()));
   marginDetector->start();
   QApplication::restoreOverrideCursor();
 }
@@ -190,10 +190,23 @@ vtkSmartPointer<vtkPolyData> MarginsChannelExtension::margins()
     computeMargins();
 
   m_borderMutex.lock();
-  m_borderMutex.unlock();
   Q_ASSERT(m_borders.GetPointer() != NULL);
+  m_borderMutex.unlock();
   return m_borders;
 }
+
+//-----------------------------------------------------------------------------
+Nm MarginsChannelExtension::computedVolume()
+{
+  // Ensure Margin Detector's finished
+  if (m_borders.GetPointer() == NULL)
+    computeMargins();
+
+  m_borderMutex.lock();
+  m_borderMutex.unlock();
+  return m_computedVolume;
+}
+
 
 //-----------------------------------------------------------------------------
 void MarginsChannelExtension::ComputeSurfaces(void)

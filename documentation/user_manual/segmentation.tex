@@ -56,3 +56,21 @@ Best voxel is defined in terms of gray scale similarity with a
 reference gray scale value. The reference value can be configured at Seed Grow
 Segmentation settings panel.\\
 
+\subsection{Seed Grow previsualization}
+
+Before applying the tool the user can use a partial preview that will show what
+voxels will be initially selected with the chosen algorithm. The preview will 
+respect the limitations imposed by the ``volume of interest'' is the user has
+defined one. \\
+
+The preview is activated using the \textbf{shift} key, and while the shift key is
+holded down a preview of the growing algorithm will be shown under the mouse cursor.\\
+
+\begin{bclogo}[couleur = yellow!33, logo=\bcattention]
+{Note} The preview is only partial since it only shows what voxels will be selected
+initially in in the current slice and doesn't take into account the underlying connectivity.
+Therefore it is possible that the result of applying the tool differs from what was shown
+in the preview. This is done this way for performance reasons.
+\end{bclogo}\\
+
+
