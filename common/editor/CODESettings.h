@@ -22,15 +22,19 @@
 
 #include <QWidget>
 
+// Forward declarations
 class QSpinBox;
 class MorphologicalEditionFilter;
+class ViewManager;
 
 class CODESettings
 : public QWidget
 {
   Q_OBJECT
 public:
-  explicit CODESettings(MorphologicalEditionFilter *filter, QString title);
+  explicit CODESettings(QString title,
+                        MorphologicalEditionFilter *filter,
+                        ViewManager *vm);
   virtual ~CODESettings();
 
 protected slots:
@@ -38,6 +42,7 @@ protected slots:
 
 private:
   MorphologicalEditionFilter *m_filter;
+  ViewManager *m_viewManager;
   QSpinBox *m_spinbox;
 };
 

@@ -20,8 +20,8 @@
 #include "MeshRenderer.h"
 #include <vtkRenderWindow.h>
 #include <model/Segmentation.h>
-#include <ColorEngine.h>
-#include <EspinaCore.h>
+#include "common/colorEngines/ColorEngine.h"
+#include <ViewManager.h>
 #include <vtkSmartPointer.h>
 #include <vtkDiscreteMarchingCubes.h>
 #include <vtkWindowedSincPolyDataFilter.h>
@@ -34,6 +34,13 @@
 #include <vtkAlgorithm.h>
 #include <vtkMath.h>
 #include <QApplication>
+
+//-----------------------------------------------------------------------------
+MeshRenderer::MeshRenderer(ViewManager* vm, QObject* parent)
+: Renderer(parent)
+, m_viewManager(vm)
+{
+}
 
 //-----------------------------------------------------------------------------
 bool MeshRenderer::addItem(ModelItem* item)
@@ -52,8 +59,7 @@ bool MeshRenderer::addItem(ModelItem* item)
       m_segmentations.remove(item);
     }
 
-  ColorEngine *engine = EspinaCore::instance()->colorSettings().engine();
-  QColor color = engine->color(seg);
+  QColor color = m_viewManager->color(seg);
 
   vtkSmartPointer<vtkDecimatePro> decimate = vtkSmartPointer<vtkDecimatePro>::New();
   decimate->ReleaseDataFlagOn();
@@ -96,7 +102,7 @@ bool MeshRenderer::addItem(ModelItem* item)
   actor->GetProperty()->SetOpacity(1);
 
   m_segmentations[seg].selected = seg->isSelected();
-  m_segmentations[seg].color = engine->color(seg);
+  m_segmentations[seg].color = m_viewManager->color(seg);
   m_segmentations[seg].actor = actor;
   m_segmentations[seg].visible = false;
 
@@ -121,10 +127,10 @@ bool MeshRenderer::updateItem(ModelItem* item)
 
    // the representation must be updated, whether displayed or not
    if (seg->isSelected() != rep.selected
-     || seg->data(Qt::DecorationRole).value<QColor>() != rep.color)
+     || m_viewManager->color(seg) != rep.color)
    {
      rep.selected = seg->isSelected();
-     rep.color = seg->data(Qt::DecorationRole).value<QColor>();
+     rep.color = m_viewManager->color(seg);
 
      double rgb[3] = { rep.color.redF(), rep.color.greenF(), rep.color.blueF() };
      double hsv[3] = { 0.0, 0.0, 0.0 };

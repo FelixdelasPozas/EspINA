@@ -22,13 +22,15 @@
 
 #include <vtkVolume.h>
 
-#include "common/pluginInterfaces/Renderer.h"
+#include "common/gui/Renderer.h"
 
 #include <QMap>
 
+class ViewManager;
 class ModelItem;
 
-class VolumetricRenderer: public Renderer
+class VolumetricRenderer
+: public Renderer
 {
   struct Representation
   {
@@ -39,6 +41,8 @@ class VolumetricRenderer: public Renderer
   };
 
 public:
+  explicit VolumetricRenderer(ViewManager *vm, QObject* parent = 0);
+
   virtual const QIcon icon() const {return QIcon(":/espina/voxel.png");}
   virtual const QString name() const {return "Volumetric";}
   virtual const QString tooltip() const {return "Segmentation's Volumes";}
@@ -50,9 +54,10 @@ public:
   virtual void hide();
   virtual void show();
 
-  virtual Renderer* clone() {return new VolumetricRenderer();}
+  virtual Renderer* clone() {return new VolumetricRenderer(m_viewManager);}
 
 private:
+  ViewManager *m_viewManager;
   QMap<ModelItem *, Representation> m_segmentations;
 };
 

@@ -19,20 +19,24 @@
 
 #include "CODESettings.h"
 
-#include "MorphologicalEditionFilter.h"
-#include <EspinaCore.h>
-#include <EspinaView.h>
-#include <QSpinBox>
+#include "common/editor/MorphologicalEditionFilter.h"
+#include "common/gui/ViewManager.h"
+
+// Qt
+#include <QApplication>
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
-#include <QApplication>
+#include <QSpinBox>
 
 //----------------------------------------------------------------------------
-CODESettings::CODESettings(MorphologicalEditionFilter* filter, QString title)
+CODESettings::CODESettings(QString title,
+                           MorphologicalEditionFilter* filter,
+                           ViewManager *vm)
 : QWidget()
 , m_filter(filter)
+, m_viewManager(vm)
 {
   QGroupBox *group = new QGroupBox(title, this);
   QLabel *label = new QLabel(tr("Radius"));
@@ -77,6 +81,6 @@ void CODESettings::modifyFilter()
   m_filter->setRadius(m_spinbox->value());
   QApplication::setOverrideCursor(Qt::WaitCursor);
   m_filter->update();
-  EspinaCore::instance()->viewManger()->currentView()->forceRender();
+  m_viewManager->updateViews();
   QApplication::restoreOverrideCursor();
 }

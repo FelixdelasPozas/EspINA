@@ -22,12 +22,14 @@
 #include "DataView.h"
 
 //----------------------------------------------------------------------------
-DataViewPanel::DataViewPanel(QWidget* parent)
-: EspinaDockWidget(parent)
+DataViewPanel::DataViewPanel(EspinaModel *model,
+                             ViewManager *vm,
+                             QWidget* parent)
+: QDockWidget(parent)
 {
   setWindowTitle(tr("Segmentation Information"));
   setObjectName("Data View Panel");
-  DataView *view = new DataView();
+  DataView *view = new DataView(model, vm);
   setWidget(view);
 }
 

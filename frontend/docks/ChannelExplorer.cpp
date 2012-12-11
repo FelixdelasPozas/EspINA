@@ -15,24 +15,26 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+
 #include "ChannelExplorer.h"
 #include <ui_ChannelExplorer.h>
 
-#include "ChannelInspector.h"
+// EspINA
+#include "common/EspinaRegions.h"
+#include "common/gui/HueSelector.h"
+#include <gui/ViewManager.h>
+#include "common/model/Channel.h"
+#include "common/model/EspinaModel.h"
+#include "common/model/ModelItem.h"
 #include "EspinaConfig.h"
-#include "EspinaRegions.h"
-#include "common/EspinaCore.h"
-#include "gui/EspinaView.h"
-#include "gui/HueSelector.h"
-#include "model/Channel.h"
-#include "model/EspinaModel.h"
-#include "model/ModelItem.h"
+#include "frontend/docks/ChannelInspector.h"
+
 #ifdef TEST_ESPINA_MODELS
   #include "common/model/ModelTest.h"
 #endif
 
+// Qt
 #include <QMessageBox>
-
 
 //------------------------------------------------------------------------
 class ChannelExplorer::CentralWidget
@@ -51,18 +53,20 @@ public:
 };
 
 //------------------------------------------------------------------------
-ChannelExplorer::ChannelExplorer(QSharedPointer< EspinaModel > model,
-				 QWidget* parent)
-: EspinaDockWidget(parent)
+ChannelExplorer::ChannelExplorer(EspinaModel *model,
+                                 ViewManager *vm,
+                                 QWidget     *parent)
+: QDockWidget(parent)
 , m_gui(new CentralWidget())
 , m_model(model)
-, m_channelProxy(new ChannelProxy())
+, m_viewManager(vm)
+, m_channelProxy(new ChannelProxy(vm))
 , m_sort(new QSortFilterProxyModel())
 {
   setWindowTitle(tr("Channel Explorer"));
   setObjectName("ChannelExplorer");
 
-  m_channelProxy->setSourceModel(m_model.data());
+  m_channelProxy->setSourceModel(m_model);
   m_sort->setSourceModel(m_channelProxy.data());
   m_gui->view->setModel(m_sort.data());
 
@@ -386,7 +390,6 @@ void ChannelExplorer::updateTooltips(int index)
 //------------------------------------------------------------------------
 void ChannelExplorer::unloadChannel()
 {
-  QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
   QModelIndex index = m_sort->mapToSource(m_gui->view->currentIndex());
   if (!index.isValid())
     return;
@@ -429,24 +432,24 @@ void ChannelExplorer::unloadChannel()
         ModelItem::Vector relatedItems = (*it)->relatedItems(ModelItem::OUT);
         if (relatedItems.size() == 1)
         {
-          model->removeRelation((*it), item, Channel::STAINLINK);
-          model->removeSample(reinterpret_cast<Sample *>(*it));
+          m_model->removeRelation((*it), item, Channel::STAINLINK);
+          m_model->removeSample(reinterpret_cast<Sample *>(*it));
           delete (*it);
         }
       }
       else
       {
-        model->removeRelation((*it), item, Channel::VOLUMELINK);
-        model->removeFilter(reinterpret_cast<Filter *>(*it));
+        m_model->removeRelation((*it), item, Channel::VOLUMELINK);
+        m_model->removeFilter(reinterpret_cast<Filter *>(*it));
         delete (*it);
       }
       it++;
     }
-    model->removeChannel(channel);
-    if (SelectionManager::instance()->activeChannel() == channel)
-    {
-      SelectionManager::instance()->setActiveChannel(NULL);
-    }
+
+    m_model->removeChannel(channel);
+
+    if (m_viewManager->activeChannel() == channel)
+      m_viewManager->setActiveChannel(NULL);
   }
 }
 
@@ -464,10 +467,11 @@ void ChannelExplorer::focusOnChannel()
     Channel *channel = dynamic_cast<Channel *>(currentItem);
     Nm bounds[6];
     VolumeBounds(channel->itkVolume(), bounds);
-    double pos[3] = { (bounds[1]-bounds[0])/2, (bounds[3]-bounds[2])/2, (bounds[5]-bounds[4])/2 };
-    EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
-    view->setCameraFocus(pos);
-    view->forceRender();
+    //TODO 2012-10-04: Use setSelection instead of setCameraFocus
+//     double pos[3] = { (bounds[1]-bounds[0])/2, (bounds[3]-bounds[2])/2, (bounds[5]-bounds[4])/2 };
+//     EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
+//     view->setCameraFocus(pos);
+//     view->forceRender();
   }
 }
 
@@ -483,7 +487,7 @@ void ChannelExplorer::showInformation()
     if (ModelItem::CHANNEL == currentItem->type())
     {
       Channel *channel = dynamic_cast<Channel *>(currentItem);
-      ChannelInspector *inspector = new ChannelInspector(channel);
+      ChannelInspector *inspector = new ChannelInspector(channel, m_viewManager);
       inspector->exec();
     }
   }
@@ -501,6 +505,6 @@ void ChannelExplorer::activateChannel()
   if (ModelItem::CHANNEL == currentItem->type())
   {
     Channel *currentChannel = dynamic_cast<Channel *>(currentItem);
-    SelectionManager::instance()->setActiveChannel(currentChannel);
+    m_viewManager->setActiveChannel(currentChannel);
   }
 }

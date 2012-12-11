@@ -31,6 +31,9 @@ class InformationProxy
 {
   Q_OBJECT
 public:
+  explicit InformationProxy();
+  virtual ~InformationProxy(){}
+
   virtual void setSourceModel(EspinaModel *sourceModel);
 
   virtual QModelIndex mapFromSource(const QModelIndex& sourceIndex) const;

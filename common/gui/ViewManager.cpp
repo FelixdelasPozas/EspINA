@@ -19,20 +19,24 @@
 
 #include "ViewManager.h"
 
+// EspINA
+#include "common/colorEngines/ColorEngine.h"
+#include "common/gui/IEspinaView.h"
+#include "common/gui/EspinaRenderView.h"
+#include "SliceView.h"
+#include "common/tools/PickableItem.h"
+#include "common/tools/IVOI.h"
+
+// Qt
 #include <QDebug>
-
-#include "common/gui/EspinaView.h"
-#include "common/gui/SliceView.h"
-// #include "gui/ViewFrame.h"
-
-#include <QDockWidget>
-#include <QLayout>
-#include <QMainWindow>
-#include <QSplitter>
-#include <QVBoxLayout>
 
 //----------------------------------------------------------------------------
 ViewManager::ViewManager()
+: m_voi(NULL)
+, m_tool(NULL)
+, m_activeChannel(NULL)
+, m_activeTaxonomy(NULL)
+, m_colorEngine(NULL)
 {
 }
 
@@ -42,45 +46,273 @@ ViewManager::~ViewManager()
 }
 
 //----------------------------------------------------------------------------
-EspinaView *ViewManager::createView(QMainWindow *window, const QString& layout)
+void ViewManager::registerView(IEspinaView* view)
 {
-//   if (layout == "squared")
-//     m_currentView = createSquaredLayout(window);
-//   else
-//     m_currentView = createDefaultLayout(window);
-
-  Q_ASSERT(false);
-  return NULL;
+  Q_ASSERT(!m_espinaViews.contains(view));
+  m_espinaViews << view;
 }
 
 //----------------------------------------------------------------------------
-EspinaView *ViewManager::createDefaultLayout(QMainWindow* window)
+void ViewManager::registerView(EspinaRenderView* view)
 {
-  return NULL;
-//   return new DefaultEspinaView(window, "Segmentation");
+  Q_ASSERT(!m_renderViews.contains(view));
+  m_renderViews << view;
+  Q_ASSERT(!m_espinaViews.contains(view));
+  m_espinaViews << view;
 }
 
 //----------------------------------------------------------------------------
-EspinaView* ViewManager::createSquaredLayout(QMainWindow* window)
+void ViewManager::registerView(SliceView* view)
 {
-  SliceView *volView = new SliceView();
-  SliceView *xyView = new SliceView();
+  Q_ASSERT(!m_renderViews.contains(view));
+  m_renderViews << view;
+  Q_ASSERT(!m_espinaViews.contains(view));
+  m_espinaViews << view;
+  Q_ASSERT(!m_sliceViews.contains(view));
+  m_sliceViews << view;
+  connect(view, SIGNAL(sliceSelected(Nm,PlaneType,ViewManager::SliceSelectors)),
+          this, SIGNAL(sliceSelected(Nm,PlaneType,ViewManager::SliceSelectors)));
+}
 
-  QSplitter *upperViews = new QSplitter(Qt::Horizontal);
-  upperViews->addWidget(volView);
-  upperViews->addWidget(xyView);
 
-  SliceView *yzView = new SliceView();
-  SliceView *xzView = new SliceView();
+//----------------------------------------------------------------------------
+void ViewManager::setSelectionEnabled(bool enable)
+{
+  foreach(EspinaRenderView *view, m_renderViews)
+    view->setSelectionEnabled(enable);
+}
 
-  QSplitter *lowerViews = new QSplitter(Qt::Horizontal);
-  lowerViews->addWidget(yzView);
-  lowerViews->addWidget(xzView);
+//----------------------------------------------------------------------------
+void ViewManager::setSelection(ViewManager::Selection selection)
+{
+  if (m_selection == selection)
+    return;
 
-  QSplitter *mainSplitter = new QSplitter(Qt::Vertical);
-  mainSplitter->addWidget(upperViews);
-  mainSplitter->addWidget(lowerViews);
+  for (int i = 0; i < m_selection.size(); i++)
+    m_selection[i]->setSelected(false);
 
-  window->setCentralWidget(mainSplitter);
-  return NULL;
+  m_selection = selection;
+
+//   qDebug() << "Selection Changed";
+  for (int i = 0; i < m_selection.size(); i++)
+  {
+    m_selection[i]->setSelected(true);
+//     qDebug() << "-" << m_selection[i]->data().toString();
+  }
+
+  //TODO 2012-10-07 computeSelectionCenter();
+
+  emit selectionChanged(m_selection);
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::setVOI(IVOI *voi)
+{
+  if (m_voi && m_voi != voi)
+    m_voi->setInUse(false);
+
+  m_voi = voi;
+
+  if (m_tool && m_voi)
+  {
+    m_tool->setInUse(false);
+    m_tool = NULL;
+  }
+
+  if (m_voi)
+    m_voi->setInUse(true);
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::setActiveTool(ITool* tool)
+{
+  Q_ASSERT(tool); 
+
+  if (m_tool && m_tool != tool)
+    m_tool->setInUse(false);
+
+  m_tool = tool;
+
+  if (m_voi)
+    m_voi->setEnabled(m_tool?false:true);
+
+  if (m_tool)
+    m_tool->setInUse(true);
+  else
+    setSelectionEnabled(true);
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::unsetActiveTool()
+{
+  if (m_tool)
+  {
+    m_tool->setInUse(false);
+    m_tool = NULL;
+    setSelectionEnabled(true);
+  }
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::unsetActiveTool(ITool* tool)
+{
+  if (m_tool == tool)
+  {
+    m_tool->setInUse(false);
+    m_tool = NULL;
+    setSelectionEnabled(true);
+  }
+}
+
+//----------------------------------------------------------------------------
+bool ViewManager::filterEvent(QEvent* e, EspinaRenderView* view)
+{
+  bool res = false;
+
+  if (m_voi)
+    res = m_voi->filterEvent(e, view);
+
+  if (!res && m_tool)
+    res = m_tool->filterEvent(e, view);
+
+  return res;
+}
+
+//----------------------------------------------------------------------------
+QCursor ViewManager::cursor() const
+{
+  QCursor activeCursor(Qt::ArrowCursor);
+
+  if (m_voi && m_voi->enabled())
+    activeCursor = m_voi->cursor();
+  else if (m_tool)
+    activeCursor = m_tool->cursor();
+
+  return activeCursor;
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::updateViews()
+{
+  foreach(EspinaRenderView *view, m_renderViews)
+  {
+    view->updateView();
+  }
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::selectSlice(Nm pos, PlaneType plane, SliceSelectors flags )
+{
+  emit sliceSelected(pos, plane, flags);
+}
+
+
+//----------------------------------------------------------------------------
+void ViewManager::setActiveChannel(Channel* channel)
+{
+  m_activeChannel = channel;
+  emit activeChannelChanged(channel);
+}
+//----------------------------------------------------------------------------
+void ViewManager::addWidget(EspinaWidget* widget)
+{
+  widget->setViewManager(this);
+  foreach(EspinaRenderView *rView, m_renderViews)
+  {
+    rView->addWidget(widget);
+  }
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::removeWidget(EspinaWidget* widget)
+{
+  foreach(EspinaRenderView *rView, m_renderViews)
+  {
+    rView->removeWidget(widget);
+  }
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::resetViewCameras()
+{
+  foreach(EspinaRenderView *view, m_renderViews)
+  {
+    view->resetCamera();
+  }
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::updateSegmentationRepresentations()
+{
+  foreach(IEspinaView *view, m_espinaViews)
+  {
+    view->updateSegmentationRepresentations();
+  }
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::showCrosshair(bool value)
+{
+  foreach(EspinaRenderView *rView, m_renderViews)
+    rView->showCrosshairs(value);
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::showSliceSelectors(ViewManager::SliceSelectors selectors)
+{
+  foreach(SliceView *view, m_sliceViews)
+    view->showSliceSelectors(selectors);
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::hideSliceSelectors(ViewManager::SliceSelectors selectors)
+{
+  foreach(SliceView *view, m_sliceViews)
+    view->hideSliceSelectors(selectors);
+}
+
+
+//----------------------------------------------------------------------------
+QColor ViewManager::color(Segmentation* seg)
+{
+  QColor segColor(Qt::blue);
+  if (m_colorEngine)
+    segColor = m_colorEngine->color(seg);
+
+  return segColor;
+}
+
+//----------------------------------------------------------------------------
+LUTPtr ViewManager::lut(Segmentation* seg)
+{
+  // Get (or create if it doesn't exit) the lut for the segmentations' images
+  if (m_colorEngine)
+    return m_colorEngine->lut(seg);
+
+  double alpha = 0.8;
+  QColor c(Qt::blue);
+  seg_lut = vtkLookupTable::New();
+  seg_lut->Allocate();
+  seg_lut->SetNumberOfTableValues(2);
+  seg_lut->Build();
+  seg_lut->SetTableValue(0, 0.0, 0.0, 0.0, 0.0);
+  seg_lut->SetTableValue(1, c.redF(), c.greenF(), c.blueF(), alpha);
+  seg_lut->Modified();
+
+  return seg_lut;
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::setColorEngine(ColorEngine* engine)
+{
+  m_colorEngine = engine;
+  updateSegmentationRepresentations();
+  updateViews();
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::focusViewsOn(Nm *center)
+{
+  foreach(EspinaRenderView *rView, m_renderViews)
+    rView->centerViewOn(center, true);
 }

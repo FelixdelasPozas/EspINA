@@ -43,8 +43,8 @@ public:
   /// Implements Model Item Interface
   virtual QVariant data(int role=Qt::DisplayRole) const;
 
-  virtual QWidget* createConfigurationWidget()
-  { return new CODESettings(this, tr("Erode")); }
+  virtual QWidget* createFilerInspector(ViewManager *vm)
+  { return new CODESettings(tr("Erode"), this, vm); }
 protected:
   /// Implements Filter Interface
   void run();

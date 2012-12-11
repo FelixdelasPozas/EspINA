@@ -16,40 +16,34 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+//----------------------------------------------------------------------------
+// File:    RemoveSegmentation.h
+// Purpose: Undo-able action to remove segmentations from the model
+//----------------------------------------------------------------------------
 #ifndef REMOVESEGMENTATION_H
 #define REMOVESEGMENTATION_H
 
 #include <QUndoCommand>
 
+// EspINA
 #include "common/model/ModelItem.h"
 
+class EspinaModel;
 class Filter;
 class Segmentation;
 
 class RemoveSegmentation
 : public QUndoCommand
 {
-  struct FilterInfo
-  {
-    FilterInfo () : filter(NULL) {}
-    FilterInfo(Filter *filter, ModelItem::RelationList list) :
-    filter(filter), relations(list)
-    {}
-    Filter *filter;
-    ModelItem::RelationList relations;
-  };
-  struct SegInfo
-  {
-    SegInfo(Segmentation *seg);
-
-    Filter * filter;
-    ModelItem::RelationList relations;
-    Segmentation *segmentation;
-  };
 public:
+  explicit RemoveSegmentation(Segmentation *seg,
+                              EspinaModel  *model,
+                              QUndoCommand *parent=0
+                             );
   explicit RemoveSegmentation(QList<Segmentation *> segs,
-			      QUndoCommand *parent=0);
+                              EspinaModel          *model,
+                              QUndoCommand         *parent=0
+                             );
 
   virtual void redo();
   virtual void undo();
@@ -59,6 +53,27 @@ private:
   void removeRelations(ModelItem::RelationList list);
 
 private:
+  struct FilterInfo
+  {
+    FilterInfo () : filter(NULL) {}
+    FilterInfo(Filter *filter, ModelItem::RelationList list) :
+    filter(filter), relations(list)
+    {}
+    Filter *filter;
+    ModelItem::RelationList relations;
+  };
+
+  struct SegInfo
+  {
+    SegInfo(Segmentation *seg);
+
+    Filter * filter;
+    ModelItem::RelationList relations;
+    Segmentation *segmentation;
+  };
+
+private:
+  EspinaModel      *m_model;
   QList<FilterInfo> m_removedFilters;
   QList<SegInfo>    m_segmentations;
 };

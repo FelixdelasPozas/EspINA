@@ -24,19 +24,25 @@
 // File:    TaxonomyExplorer.h
 // Purpose: Dock widget to manage taxonomies in the model
 //----------------------------------------------------------------------------
-#include <gui/EspinaDockWidget.h>
+#include <QDockWidget>
 
+#include <common/colorEngines/TaxonomyColorEngine.h>
 #include <QSortFilterProxyModel>
 
 class EspinaModel;
+class ViewManager;
 
-class TaxonomyExplorer : public EspinaDockWidget
+class TaxonomyExplorer
+: public QDockWidget
 {
   Q_OBJECT
 
   class GUI;
 public:
-  explicit TaxonomyExplorer(QSharedPointer<EspinaModel> model, QWidget *parent = 0);
+  explicit TaxonomyExplorer(EspinaModel *model,
+                            ViewManager *vm,
+                            TaxonomyColorEnginePtr engine,
+                            QWidget *parent = 0);
   virtual ~TaxonomyExplorer();
 
 protected slots:
@@ -51,7 +57,9 @@ protected slots:
 
 protected:
   GUI *m_gui;
-  QSharedPointer<EspinaModel> m_baseModel;
+  EspinaModel *m_baseModel;
+  ViewManager *m_viewManager;
+  TaxonomyColorEnginePtr m_engine;
   QSharedPointer<QSortFilterProxyModel> m_sort;
 };
 

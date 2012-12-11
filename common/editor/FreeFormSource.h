@@ -29,7 +29,6 @@ class FreeFormSource
 {
 public:
   static const QString TYPE;
-
   static const ModelItem::ArgumentId SPACING;
 
   class Parameters
@@ -51,9 +50,18 @@ public:
       for(int i=0; i<3; i++)
         m_spacing[i] = value[i];
       m_args[SPACING] = QString("%1,%2,%3")
-                       .arg(value[0])
-                       .arg(value[1])
-                       .arg(value[2]);
+      .arg(value[0])
+      .arg(value[1])
+      .arg(value[2]);
+    }
+    void setSpacing(EspinaVolume::SpacingType value)
+    {
+      for(int i=0; i<3; i++)
+        m_spacing[i] = value[i];
+      m_args[SPACING] = QString("%1,%2,%3")
+      .arg(value[0])
+      .arg(value[1])
+      .arg(value[2]);
     }
     EspinaVolume::SpacingType spacing() const
     {
@@ -69,9 +77,16 @@ public:
                           Arguments args);
   virtual ~FreeFormSource();
 
-  virtual void draw(OutputNumber i, vtkImplicitFunction* brush, double bounds[6], EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
-  virtual void draw(OutputNumber i, EspinaVolume::IndexType index, EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
-  virtual void draw(OutputNumber i, Nm x, Nm y, Nm z, EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+  virtual void draw(OutputNumber i,
+                    vtkImplicitFunction* brush,
+                    double bounds[6],
+                    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+  virtual void draw(OutputNumber i,
+                    EspinaVolume::IndexType index,
+                    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
+  virtual void draw(OutputNumber i,
+                    Nm x, Nm y, Nm z,
+                    EspinaVolume::PixelType value = SEG_VOXEL_VALUE);
 
   /// Implements Model Item Interface
   virtual QVariant data(int role=Qt::DisplayRole) const;

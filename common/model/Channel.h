@@ -25,7 +25,7 @@
 #ifndef CHANNEL_H
 #define CHANNEL_H
 
-#include "common/selection/SelectableItem.h"
+#include "common/tools/PickableItem.h"
 #include <itkImageIOBase.h>
 #include <itkImageFileReader.h>
 #include <itkImageToVTKImageFilter.h>
@@ -41,7 +41,7 @@ class ChannelExtension;
 class vtkAlgorithmOutput;
 
 class Channel
-: public SelectableItem
+: public PickableItem
 {
   typedef itk::ImageFileReader<EspinaVolume> EspinaVolumeReader;
 public:

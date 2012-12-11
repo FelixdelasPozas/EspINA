@@ -16,25 +16,29 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
+//----------------------------------------------------------------------------
+// File:    ChannelProxy.h
+// Purpose: Rearrange model items to group Channels by Samples
+//----------------------------------------------------------------------------
 #ifndef CHANNELPROXY_H
 #define CHANNELPROXY_H
 
 #include <QAbstractProxyModel>
 
 // Forward declaration
+class Channel;
 class ModelItem;
 class EspinaModel;
 class Sample;
-class Channel;
+class ViewManager;
 
-/// Group by Sample Espina Proxy
+/// Group Channels by Sample
 class ChannelProxy
 : public QAbstractProxyModel
 {
   Q_OBJECT
 public:
-  ChannelProxy(QObject* parent = 0);
+  explicit ChannelProxy(ViewManager *vm, QObject* parent = 0);
   virtual ~ChannelProxy();
 
   virtual void setSourceModel(EspinaModel *sourceModel);
@@ -70,6 +74,7 @@ protected:
 
 private:
   EspinaModel *m_model;
+  ViewManager *m_viewManager;
   QList<Sample *> m_samples;
   mutable QMap<Sample *, QList<ModelItem *> > m_channels;
 };

@@ -20,11 +20,15 @@
 
 #include <QToolBar>
 
-#include "common/selection/PixelSelector.h"
-#include <common/widgets/RectangularSelection.h>
-#include <QSharedPointer>
+#include "common/tools/PixelSelector.h"
+#include "common/EspinaTypes.h"
+#include <gui/ViewManager.h>
+
+#include <QMap>
 
 class ActionSelector;
+class IVOI;
+class ViewManager;
 class QAction;
 
 /// Volume Of Interest Plugin
@@ -33,26 +37,20 @@ class VolumeOfInterest
 {
   Q_OBJECT
 public:
-  explicit VolumeOfInterest(QWidget *parent=NULL);
+  explicit VolumeOfInterest(ViewManager *vm, QWidget *parent=NULL);
   virtual ~VolumeOfInterest();
 
 protected slots:
-  void changeVOISelector(QAction *action);
-  void defineVOI(SelectionHandler::MultiSelection msel);
+  void changeVOI(QAction *action);
   void cancelVOI();
-
-  void setBorderFrom(double pos/*nm*/, PlaneType plane);
-  void setBorderTo  (double pos/*nm*/, PlaneType plane);
 
 private:
   void buildVOIs();
 
-//   void addVOI(QAction *action, IVOI *voi);
-
 private:
-  ActionSelector *m_voi;
-  QSharedPointer<PixelSelector> m_selector;
-  QSharedPointer<RectangularRegion> m_voiWidget;
+  ViewManager     *m_viewManager;
+  ActionSelector  *m_voiSelector;
+  QMap<QAction *, IVOI *> m_vois;
 };
 
 #endif// VOLUMEOFINTEREST_H

@@ -20,8 +20,7 @@
 
 #include "Filter.h"
 #include "EspinaRegions.h"
-#include "common/EspinaCore.h"
-#include "common/gui/ColorEngine.h"
+#include "common/colorEngines/ColorEngine.h"
 
 #include <vtkAlgorithm.h>
 #include <vtkAlgorithmOutput.h>
@@ -47,9 +46,10 @@ Segmentation::SArguments::SArguments(const ModelItem::Arguments args)
 //-----------------------------------------------------------------------------
 QString Segmentation::SArguments::serialize() const
 {
-  QString user = EspinaCore::instance()->settings().userName();
+  /*TODO 2012-10-05 QString user = EspinaCore::instance()->settings().userName();
   SArguments *args = const_cast<SArguments *>(this);
   args->addUser(user);
+  */
   return ModelItem::Arguments::serialize();
 }
 
@@ -69,9 +69,6 @@ Segmentation::Segmentation(Filter* filter, unsigned int outputNb)
   m_args[TAXONOMY] = "Unknown";
   connect(filter, SIGNAL(modified(ModelItem *)),
           this, SLOT(notifyModification()));
-  connect(&EspinaCore::instance()->colorSettings(),SIGNAL(colorEngineChanged(ColorEngine*)),
-          this, SLOT(onColorEngineChanged()));
-
 }
 
 //------------------------------------------------------------------------
@@ -91,10 +88,13 @@ void Segmentation::changeFilter(Filter* filter, unsigned int outputNb)
           this, SLOT(notifyModification()));
 
   // update modified mesh extent to get a correct representation
-  int extent[6];
-  VolumeExtent(filter->output(outputNb), extent);
-  this->m_padfilter->SetOutputWholeExtent(extent[0]-1, extent[1]+1, extent[2]-1, extent[3]+1, extent[4]-1, extent[5]+1);
-  this->m_padfilter->Update();
+  if (NULL != m_padfilter)
+  {
+    int extent[6];
+    VolumeExtent(filter->output(outputNb), extent);
+    this->m_padfilter->SetOutputWholeExtent(extent[0]-1, extent[1]+1, extent[2]-1, extent[3]+1, extent[4]-1, extent[5]+1);
+    this->m_padfilter->Update();
+  }
 }
 
 //------------------------------------------------------------------------
@@ -140,39 +140,43 @@ QVariant Segmentation::data(int role) const
       return QString("Segmentation %1").arg(m_args.number());
     case Qt::DecorationRole:
     {
-      return EspinaCore::instance()->colorSettings().engine()->color(this);
-      //       QPixmap segIcon(3,16);
-      //       segIcon.fill(m_taxonomy->color());
-      //       return segIcon;
+      if (m_taxonomy)
+        return m_taxonomy->color();
+      else
+        return QColor(Qt::red);
     }
     case Qt::ToolTipRole:
+    {
       double bounds[6];
       VolumeBounds(itkVolume(), bounds);
-      return QString("<b>Name:</b> %1<br>"
-                     "<b>Taxonomy:</b> %2<br>"
-                     "<b>Filter:</b> %3<br>"
-                     "<b>Users:</b><br>"
-                     "%4<br>"
-                     "<b>Sections:</b><br>"
-		     "X: %5 nm-%6 nm <br>"
-		     "Y: %7 nm-%8 nm <br>"
-		     "Z: %9 nm-%10 nm")
-                     .arg(data(Qt::DisplayRole).toString())
-                     .arg(m_taxonomy->qualifiedName())
-                     .arg(filter()->data(Qt::DisplayRole).toString())
-                     .arg(m_args[USERS])
-		     .arg(bounds[0]).arg(bounds[1])
-		     .arg(bounds[2]).arg(bounds[3])
-		     .arg(bounds[4]).arg(bounds[5]);
+      QString tooltip;
+      tooltip = tooltip.append("<b>Name:</b> %1<br>").arg(data().toString());
+      tooltip = tooltip.append("<b>Taxonomy:</b> %1<br>").arg(m_taxonomy->qualifiedName());
+      tooltip = tooltip.append("<b>Filter:</b> %1<br>").arg(filter()->data().toString());
+      tooltip = tooltip.append("<b>Users:</b> %1<br>").arg(m_args[USERS]);
+      tooltip = tooltip.append("<b>Sections:</b><br>");
+      tooltip = tooltip.append("  X: %1 nm-%2 nm <br>").arg(bounds[0]).arg(bounds[1]);
+      tooltip = tooltip.append("  Y: %1 nm-%2 nm <br>").arg(bounds[2]).arg(bounds[3]);
+      tooltip = tooltip.append("  Z: %1 nm-%2 nm <br>").arg(bounds[4]).arg(bounds[5]);
+
+      if (!m_conditions.isEmpty())
+      {
+        tooltip = tooltip.append("<b>Conditions:</b><br>");
+        foreach(ConditionInfo condition, m_conditions)
+          tooltip = tooltip.append("<img src='%1' width=16 height=16>: %2<br>").arg(condition.first).arg(condition.second);
+      }
+
+      return tooltip;
+    }
     case Qt::CheckStateRole:
       return visible() ? Qt::Checked : Qt::Unchecked;
       // //     case Qt::FontRole:
       // //     {
-        // //       QFont myFont;
-      // // //       if (this->availableInformations().contains("Discarted"))
-      // // //       {
-        // // 	myFont.setStrikeOut(!visible());
-      // // //       }
+      // //       QFont myFont;
+      // //          if (this->availableInformations().contains("Discarted"))
+      // //          {
+      // // 	          myFont.setStrikeOut(!visible());
+      // //          }
       // //       return myFont;
       // //     }
     case Qt::UserRole + 1:
@@ -202,8 +206,7 @@ void Segmentation::initializeExtensions(ModelItem::Arguments args)
 //   qDebug() << "Initializing" << data().toString() << "extensions:";
   foreach(ModelItemExtension *ext, m_insertionOrderedExtensions)
   {
-    SegmentationExtension *segExt = dynamic_cast<SegmentationExtension *>(ext);
-    Q_ASSERT(segExt);
+    Q_ASSERT(ext);
     ModelItem::Arguments extArgs(args.value(ext->id(), QString()));
 //     qDebug() << ext->id();
 //     if (!args.isEmpty()) qDebug() << "*" << extArgs;
@@ -215,8 +218,11 @@ void Segmentation::initializeExtensions(ModelItem::Arguments args)
 void Segmentation::notifyModification(bool force)
 {
   m_filter->output(m_args.outputNumber())->Update();
-  itk2vtk->SetInput(m_filter->output(m_args.outputNumber()));
-  itk2vtk->Update();
+  if (itk2vtk)
+  {
+    itk2vtk->SetInput(m_filter->output(m_args.outputNumber()));
+    itk2vtk->Update();
+  }
   ModelItem::notifyModification(force);
 }
 
@@ -240,7 +246,7 @@ bool Segmentation::setData(const QVariant& value, int role)
 }
 
 //------------------------------------------------------------------------
-void Segmentation::setTaxonomy(TaxonomyNode* tax)
+void Segmentation::setTaxonomy(TaxonomyElement* tax)
 {
 	m_taxonomy = tax;
 	m_args[TAXONOMY] = Argument(tax->qualifiedName());
@@ -300,18 +306,6 @@ ModelItemExtension* Segmentation::extension(QString name)
 }
 
 //------------------------------------------------------------------------
-void Segmentation::onColorEngineChanged()
-{
-//   ColorEngineSettings &settings = EspinaCore::instance()->colorSettings();
-//   ColorEngine * engine = settings.engine();
-//   QColor color = engine->color(this);
-//   if (m_color != color)
-//   {
-//     m_color = color;
-//     notifyModification();
-//   }
-}
-
 vtkAlgorithmOutput* Segmentation::vtkVolume()
 {
   if (itk2vtk.IsNull())

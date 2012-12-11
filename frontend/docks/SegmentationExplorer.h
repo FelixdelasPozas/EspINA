@@ -24,27 +24,32 @@
 // File:    SegmentationExplorer.h
 // Purpose: Dock widget to manage segmentations in the model
 //----------------------------------------------------------------------------
-#include <common/gui/EspinaDockWidget.h>
-#include <selection/SelectionManager.h>
+#include <QDockWidget>
+#include "common/gui/IEspinaView.h"
 #include <ui_SegmentationExplorer.h>
 
-class EspinaModel;
+#include "common/gui/ViewManager.h"
 
+class EspinaModel;
+class QUndoStack;
 #ifdef TEST_ESPINA_MODELS
 class ModelTest;
 #endif
 
 class SegmentationExplorer
-: public EspinaDockWidget
+: public QDockWidget
+, public IEspinaView
 {
   Q_OBJECT
   class GUI;
-
 public:
   class Layout;
 
 public:
-  explicit SegmentationExplorer(QSharedPointer<EspinaModel> model, QWidget *parent = 0);
+  explicit SegmentationExplorer(EspinaModel *model,
+                                QUndoStack  *undoStack,
+                                ViewManager *vm,
+                                QWidget *parent = 0);
   virtual ~SegmentationExplorer();
 
 protected:
@@ -55,12 +60,19 @@ protected slots:
   void focusOnSegmentation(const QModelIndex &index);
   void showInformation();
   void deleteSegmentation();
-  void updateSelection(SelectionManager::Selection selection);
+  void updateSelection(ViewManager::Selection selection);
   void updateSelection(QItemSelection selected, QItemSelection deselected);
+
+  virtual ISettingsPanel* settingsPanel();
+  virtual void updateSegmentationRepresentations();
+  virtual void updateSelection();
 
 protected:
   GUI *m_gui;
-  QSharedPointer<EspinaModel> m_baseModel;
+
+  EspinaModel    *m_baseModel;
+  QUndoStack     *m_undoStack;
+  ViewManager    *m_viewManager;
 
   QStringList     m_layoutNames;
   QList<Layout *> m_layouts;

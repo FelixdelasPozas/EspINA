@@ -23,7 +23,7 @@
 #include <QWidgetAction>
 
 class QMenu;
-class SelectionHandler;
+class IPicker;
 class ActionSelectorWidget;
 
 class ActionSelector

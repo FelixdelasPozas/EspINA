@@ -19,84 +19,71 @@
 #define SEEDGROWINGSEGMENTATION_H
 
 #include <QToolBar>
-
-#include "common/pluginInterfaces/FilterFactory.h"
-#include "common/selection/SelectionHandler.h"
-#include <model/Taxonomy.h>
-#include <model/Segmentation.h>
-#include "SeedGrowSelector.h"
-
-#include <QSharedPointer>
-#include <QUndoCommand>
+#include <common/pluginInterfaces/IFactoryExtension.h>
+#include <common/pluginInterfaces/IFilterCreator.h>
 
 //Forward declarations
+class SeedGrowSegmentationTool;
 class ActionSelector;
 class DefaultVOIAction;
-class SeedGrowSegmentationFilter;
 class ThresholdAction;
-class SeedGrowSegmentationPanel;
-class SeedGrowSegmentationSettings;
-class Channel;
-
+class IPicker;
+class QAction;
+class ViewManager;
+class QUndoStack;
+class EspinaModel;
 
 /// Seed Growing Segmenation Plugin
 class SeedGrowSegmentation
 : public QToolBar
-, public FilterFactory
+, public IFactoryExtension
+, public IFilterCreator
 {
-  class SettingsPanel;
+public:
   class Settings;
 
-  class UndoCommand : public QUndoCommand
-  {
-  public:
-    explicit UndoCommand(Channel * channel,
-			SeedGrowSegmentationFilter *filter,
-			TaxonomyNode *taxonomy);
-    virtual void redo();
-    virtual void undo();
-  private:
-    Sample                     *m_sample;
-    Channel                    *m_channel;
-    SeedGrowSegmentationFilter *m_filter;
-    Segmentation               *m_seg;
-    TaxonomyNode               *m_taxonomy;
-  };
+private:
+  class SettingsPanel;
 
   Q_OBJECT
+  Q_INTERFACES(IFactoryExtension IFilterCreator)
+
 public:
-  SeedGrowSegmentation(QWidget *parent=NULL);
+  SeedGrowSegmentation(EspinaModel *model,
+                       QUndoStack  *undoStack,
+                       ViewManager *vm,
+                       QWidget *parent=NULL);
   virtual ~SeedGrowSegmentation();
+
+  virtual void initFactoryExtension(EspinaFactory* factory);
 
   virtual Filter* createFilter(const QString filter,
                                Filter::NamedInputs inputs,
                                const ModelItem::Arguments args);
 
 protected slots:
-  /// Wait for Seed Selection
-  void waitSeedSelection(QAction *action);
-  /// Abort current selection
-  void abortSelection();
-  void onSelectionAborted();
-  /// Starts the segmentation filter putting using @msel as seed
-  void startSegmentation(SelectionHandler::MultiSelection msel);
+  /// Change picker
+  void changePicker(QAction *action);
+  void cancelSegmentationOperation();
 
   void batchMode();
 
-signals:
-//   void productCreated(Segmentation *);
-  void selectionAborted(SelectionHandler *);
-
 private:
-  void addPixelSelector(QAction *action, SelectionHandler *handler);
+  void addPixelSelector(QAction *action, IPicker *handler);
   void buildSelectors();
 
 private:
+  EspinaModel      *m_model;
+  QUndoStack       *m_undoStack;
+  ViewManager      *m_viewManager;
+
   ThresholdAction  *m_threshold;
   DefaultVOIAction *m_useDefaultVOI;
-  ActionSelector   *m_segment;
-  QMap<QAction *, SelectionHandler *> m_selectors;
-  QSharedPointer<SeedGrowSelector> m_selector;
+  ActionSelector   *m_pickerSelector;
+
+  QMap<QAction *, IPicker *> m_selectors;
+  SeedGrowSegmentationTool * m_tool;
+
   Settings      *m_settings;
   SettingsPanel *m_settingsPanel;
 };

@@ -20,6 +20,10 @@
 #define ITOOLBAR_H
 #include <QToolBar>
 
+class EspinaModel;
+class ViewManager;
+class QUndoStack;
+
 class IToolBar
 : public QToolBar
 {
@@ -30,9 +34,14 @@ public:
   : QToolBar(title, parent){}
   virtual ~IToolBar(){}
 
+  virtual void initToolBar(EspinaModel *model,
+                           QUndoStack  *undoStack,
+                           ViewManager *viewManager) = 0;
   virtual void reset() = 0;
+public slots:
+  void resetState();
 };
 
 Q_DECLARE_INTERFACE(IToolBar,
-                    "es.upm.cesvima.EspINA.ToolBarInterface/1.0")
+                    "es.upm.cesvima.EspINA.ToolBarInterface/1.1")
 #endif //ITOOLBAR_H

@@ -17,39 +17,34 @@
 */
 #include "VolumeOfInterest.h"
 
-#include "common/gui/ActionSelector.h"
-#include "common/selection/SelectionManager.h"
-#include "common/gui/EspinaView.h"
-#include "common/EspinaCore.h"
+#include "RectangularVOI.h"
 
+// EspINA
+#include "common/model/Channel.h"
+#include "common/gui/ActionSelector.h"
+#include "common/gui/ViewManager.h"
+#include "common/tools/PickableItem.h"
+
+// Qt
 #include <QDebug>
 
 //-----------------------------------------------------------------------------
-VolumeOfInterest::VolumeOfInterest(QWidget *parent)
+VolumeOfInterest::VolumeOfInterest(ViewManager *vm, QWidget *parent)
 : QToolBar   (parent)
-, m_voi      (new ActionSelector(this))
-, m_selector (new PixelSelector())
+, m_viewManager(vm)
+, m_voiSelector(new ActionSelector(this))
 {
   setObjectName ("VolumeOfInterest");
   setWindowTitle("Volume Of Interest");
 
-  m_selector->setCursor(QCursor(QPixmap(":roi_go.svg").scaled(32,32)));
-  m_selector->setMultiSelection(false);
-  m_selector->setSelectable(SelectionHandler::EspINA_Channel);
-
   buildVOIs();
 
-  addAction(m_voi);
+  addAction(m_voiSelector);
 
-  connect(m_voi, SIGNAL(triggered(QAction*)),
-          this, SLOT(changeVOISelector(QAction*)));
-  connect(m_selector.data(), SIGNAL(selectionChanged(SelectionHandler::MultiSelection)),
-          this, SLOT(defineVOI(SelectionHandler::MultiSelection)));
-  connect(m_voi, SIGNAL(actionCanceled()),
+  connect(m_voiSelector, SIGNAL(triggered(QAction*)),
+          this, SLOT(changeVOI(QAction*)));
+  connect(m_voiSelector, SIGNAL(actionCanceled()),
           this, SLOT(cancelVOI()));
-
-  //   m_preferences = new VolumeOfInterestPreferences();
-  //   EspinaPluginManager::instance()->registerPreferencePanel(m_preferences);
 }
 
 //-----------------------------------------------------------------------------
@@ -64,108 +59,25 @@ void VolumeOfInterest::buildVOIs()
   QAction *action;
 
   // Exact Pixel Selector
-  action = new QAction(QIcon(":roi.svg"), tr("Volume Of Interest"), m_voi);
+  action = new QAction(QIcon(":roi.svg"), tr("Volume Of Interest"), m_voiSelector);
 
-  m_voi->addAction(action);
-  //   voi = new RectangularVOI();
-  //   addVOI(action, voi);
-  //   connect(voi, SIGNAL(voiCancelled()),this,SLOT(cancelVOI()));
+  m_voiSelector->addAction(action);
+  RectangularVOI *voi = new RectangularVOI(m_viewManager);
+  m_vois[action] = voi;
+  connect(voi, SIGNAL(voiDeactivated()),
+          this, SLOT(cancelVOI()));
 }
 
 //-----------------------------------------------------------------------------
-void VolumeOfInterest::changeVOISelector(QAction* action)
+void VolumeOfInterest::changeVOI(QAction* action)
 {
-  SelectionManager::instance()->setSelectionHandler(m_selector.data());
-  EspinaView *currentView = EspinaCore::instance()->viewManger()->currentView();
-  currentView->setSliceSelectors(SliceView::From|SliceView::To);
-  connect(currentView, SIGNAL(selectedFromSlice(double, PlaneType)),
-          this, SLOT(setBorderFrom(double, PlaneType)));
-  connect(currentView, SIGNAL(selectedToSlice(double, PlaneType)),
-          this, SLOT(setBorderTo(double, PlaneType)));
-}
-
-//-----------------------------------------------------------------------------
-void VolumeOfInterest::defineVOI(SelectionHandler::MultiSelection msel)
-{
-  if (msel.size() == 0)
-    return;
-
-  // Compute default bounds
-  Q_ASSERT(msel.size() == 1); //Only one element is selected
-  SelectionHandler::Selelection selection = msel.first();
-
-  Q_ASSERT(selection.first.size() == 1); //Only one pixel's selected
-  QVector3D pos = selection.first.first();
-
-  QSharedPointer<ViewManager> vm = EspinaCore::instance()->viewManger();
-  EspinaView *view = vm->currentView();
-
-  Nm spacing[3];
-  view->slicingStep(spacing);
-
-  const Nm HALF_VOXEL = 0.5;
-  const Nm XHSIZE = (40 + HALF_VOXEL)*spacing[0];
-  const Nm YHSIZE = (40 + HALF_VOXEL)*spacing[1];
-  const Nm ZHSIZE = (40 + HALF_VOXEL)*spacing[2];
-
-  Nm bounds[6] = {
-     pos.x() - XHSIZE, pos.x() + XHSIZE,
-     pos.y() - YHSIZE, pos.y() + YHSIZE,
-     pos.z() - ZHSIZE, pos.z() + ZHSIZE};
-
-  m_voiWidget = QSharedPointer<RectangularRegion>(new RectangularRegion(bounds));
-  Q_ASSERT(m_voiWidget);
-  view->addWidget(m_voiWidget.data());
-
-  SelectionManager *selectionManager = SelectionManager::instance();
-  selectionManager->unsetSelectionHandler(m_selector.data());
-  selectionManager->setVOI(m_voiWidget.data());
-  view->forceRender();
+  Q_ASSERT(m_vois.contains(action));
+  m_viewManager->setVOI(m_vois[action]);
 }
 
 //-----------------------------------------------------------------------------
 void VolumeOfInterest::cancelVOI()
 {
-  if (!m_voiWidget.isNull())
-  {
-    QSharedPointer<ViewManager> vm = EspinaCore::instance()->viewManger();
-    EspinaView *view = vm->currentView();
-    view->removeWidget(m_voiWidget.data());
-    m_voiWidget.clear();
-    view->forceRender();
-  }
-
-  SelectionManager *selectorManager = SelectionManager::instance();
-  selectorManager->unsetSelectionHandler(m_selector.data());
-  selectorManager->setVOI(NULL);
-  EspinaView *currentView = EspinaCore::instance()->viewManger()->currentView();
-  currentView->setSliceSelectors(SliceView::NoSelector);
-  disconnect(currentView, SIGNAL(selectedFromSlice(double, PlaneType)),
-             this, SLOT(setBorderFrom(double, PlaneType)));
-  disconnect(currentView, SIGNAL(selectedToSlice(double, PlaneType)),
-             this, SLOT(setBorderTo(double, PlaneType)));
-}
-
-//-----------------------------------------------------------------------------
-void VolumeOfInterest::setBorderFrom(double pos, PlaneType plane)
-{
-  if (!m_voiWidget.isNull())
-  {
-    double bounds[6];
-    m_voiWidget->bounds(bounds);
-    bounds[plane*2] = pos;
-    m_voiWidget->setBounds(bounds);
-  }
-}
-
-//-----------------------------------------------------------------------------
-void VolumeOfInterest::setBorderTo(double pos, PlaneType plane)
-{
-  if (!m_voiWidget.isNull())
-  {
-    double bounds[6];
-    m_voiWidget->bounds(bounds);
-    bounds[plane*2+1] = pos;
-    m_voiWidget->setBounds(bounds);
-  }
+  m_voiSelector->cancel();
+  m_viewManager->setVOI(NULL);
 }

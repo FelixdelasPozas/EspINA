@@ -19,7 +19,6 @@
 
 #include "Filter.h"
 
-#include "EspinaCore.h"
 #include "EspinaRegions.h"
 
 #include <itkImageAlgorithm.h>
@@ -35,6 +34,8 @@
 #include <vtkImageExport.h>
 #include <vtkMath.h>
 
+#include <QDebug>
+#include <QDir>
 #include <QMessageBox>
 #include <QWidget>
 
@@ -82,9 +83,7 @@ QList<OutputNumber> Filter::editedOutputs() const
   QList<OutputNumber> res;
   QStringList values = m_args.value(EDIT, QString()).split(",");
   foreach (QString value, values)
-  {
     res << value.toInt();
-  }
 
   return res;
 }
@@ -154,13 +153,12 @@ bool Filter::prefetchFilter()
 //----------------------------------------------------------------------------
 Filter::EspinaVolumeReader::Pointer Filter::tmpFileReader(const QString file)
 {
-  QDir tmpDir = EspinaCore::instance()->temporalDir();
-  if (tmpDir.exists(file))
+  if (m_tmpDir.exists(file))
   {
     itk::MetaImageIO::Pointer io = itk::MetaImageIO::New();
     EspinaVolumeReader::Pointer reader = EspinaVolumeReader::New();
 
-    std::string tmpFile = tmpDir.absoluteFilePath(file).toStdString();
+    std::string tmpFile = m_tmpDir.absoluteFilePath(file).toStdString();
     io->SetFileName(tmpFile.c_str());
     reader->SetImageIO(io);
     reader->SetFileName(tmpFile);
@@ -173,9 +171,9 @@ Filter::EspinaVolumeReader::Pointer Filter::tmpFileReader(const QString file)
 
 //----------------------------------------------------------------------------
 void Filter::draw(OutputNumber i,
-		  vtkImplicitFunction* brush,
-		  double bounds[6],
-		  EspinaVolume::PixelType value)
+                  vtkImplicitFunction* brush,
+                  double bounds[6],
+                  EspinaVolume::PixelType value)
 {
   EspinaVolume::SpacingType spacing = m_outputs[i]->GetSpacing();
   EspinaVolume::RegionType region = BoundsToRegion(bounds, spacing);
@@ -194,17 +192,14 @@ void Filter::draw(OutputNumber i,
       it.Set(value);
   }
   m_outputs[i]->Modified();
-  if (!m_editedOutputs.contains(QString::number(i)))
-    m_editedOutputs << QString::number(i);
-
-  m_args[EDIT] = m_editedOutputs.join(",");
+  markAsEdited(i);
   emit modified(this);
 }
 
 //----------------------------------------------------------------------------
 void Filter::draw(OutputNumber i,
-		  EspinaVolume::IndexType index,
-		  EspinaVolume::PixelType value)
+                  EspinaVolume::IndexType index,
+                  EspinaVolume::PixelType value)
 {
   EspinaVolume::RegionType region;
   region.SetIndex(index);
@@ -218,14 +213,15 @@ void Filter::draw(OutputNumber i,
   {
     image->SetPixel(index, value);
     image->Modified();
-    m_args[EDIT] = "Yes";
+    markAsEdited(i);
+    emit modified(this);
   }
 }
 
 //----------------------------------------------------------------------------
 void Filter::draw(OutputNumber i,
-		  Nm x, Nm y, Nm z,
-		  EspinaVolume::PixelType value)
+                  Nm x, Nm y, Nm z,
+                  EspinaVolume::PixelType value)
 {
   EspinaVolume *image = output(i);
   if (image)
@@ -285,8 +281,6 @@ void Filter::draw(OutputNumber i, vtkPolyData *contour, Nm slice, PlaneType plan
       break;
   }
 
-  std::cout << "changed extent:" << extent[0] << "," << extent[1] << "," << extent[2] << "," << extent[3] << "," << extent[4] << "," << extent[5] << "]\n" << std::flush;
-
   vtkSmartPointer<vtkPolyDataToImageStencil> polyDataToStencil = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
   polyDataToStencil = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
   polyDataToStencil->SetInputConnection(contour->GetProducerPort());
@@ -294,8 +288,6 @@ void Filter::draw(OutputNumber i, vtkPolyData *contour, Nm slice, PlaneType plan
   polyDataToStencil->SetOutputSpacing(spacing[0], spacing[1], spacing[2]);
   polyDataToStencil->SetOutputWholeExtent(extent[0], extent[1], extent[2], extent[3], vtkMath::Round(slice/spacing[2]), vtkMath::Round(slice/spacing[2]));
   polyDataToStencil->SetTolerance(0);
-
-  std::cout << "p2s extent:" << extent[0] << "," << extent[1] << "," << extent[2] << "," << extent[3] << "," << slice/spacing[2] << "," << slice/spacing[2] << "]\n" << std::flush;
 
   vtkSmartPointer<vtkImageStencilToImage> stencilToImage = vtkSmartPointer<vtkImageStencilToImage>::New();
   stencilToImage->SetInputConnection(polyDataToStencil->GetOutputPort());
@@ -323,7 +315,6 @@ void Filter::draw(OutputNumber i, vtkPolyData *contour, Nm slice, PlaneType plan
   importer->Update();
 
   VolumeExtent(importer->GetOutput(), extent);
-  std::cout << "importer extent:" << extent[0] << "," << extent[1] << "," << extent[2] << "," << extent[3] << "," << extent[4] << "," << extent[5] << "]\n" << std::flush;
 
   itk::Index<3> index;
   itk::ImageRegionIteratorWithIndex<EspinaVolume> init(importer->GetOutput(), importer->GetOutput()->GetLargestPossibleRegion());
@@ -363,16 +354,45 @@ void Filter::draw(OutputNumber i, vtkPolyData *contour, Nm slice, PlaneType plan
   }
 
   m_outputs[i]->Modified();
-
-  if (!m_editedOutputs.contains(QString::number(i)))
-    m_editedOutputs << QString::number(i);
-
-  m_args[EDIT] = m_editedOutputs.join(",");
+  markAsEdited(i);
+  emit modified(this);
 }
 
 //----------------------------------------------------------------------------
+void Filter::draw(OutputNumber i,
+                  EspinaVolume::Pointer volume)
+{
+  EspinaVolume::RegionType region = NormalizedRegion(volume);
+  m_outputs[i] = addRegionToVolume(m_outputs[i], region);
+
+  EspinaVolume::RegionType inputRegion  = VolumeRegion(volume, region);
+  EspinaVolume::RegionType outputRegion = VolumeRegion(m_outputs[i], region);
+  itk::ImageRegionIteratorWithIndex<EspinaVolume> it(volume, inputRegion);
+  itk::ImageRegionIteratorWithIndex<EspinaVolume> ot(m_outputs[i], outputRegion);
+  it.GoToBegin();
+  ot.GoToBegin();
+  for (; !it.IsAtEnd(); ++it, ++ot )
+  {
+    ot.Set(it.Get());
+  }
+  m_outputs[i]->Modified();
+  markAsEdited(i);
+  emit modified(this);
+}
+
+//----------------------------------------------------------------------------
+void Filter::restoreOutput(OutputNumber i, EspinaVolume::Pointer volume)
+{
+  m_outputs[i] = volume;
+  m_outputs[i]->Modified();
+  markAsEdited(i);
+  emit modified(this);
+}
+
+
+//----------------------------------------------------------------------------
 EspinaVolume::Pointer Filter::addRegionToVolume(EspinaVolume::Pointer volume,
-						EspinaVolume::RegionType region)
+                                                EspinaVolume::RegionType region)
 {
   EspinaVolume::Pointer res = volume;
 
@@ -386,7 +406,7 @@ EspinaVolume::Pointer Filter::addRegionToVolume(EspinaVolume::Pointer volume,
   EspinaVolume::RegionType normRegion = NormalizedRegion(volume);
   if (!normRegion.IsInside(region))
   {
-//     qDebug() << "Resize Image";
+    //qDebug() << "Resize Image";
     EspinaVolume::RegionType br = BoundingBoxRegion(normRegion, region);
     EspinaVolume::Pointer expandedImage = EspinaVolume::New();
     expandedImage->SetRegions(br);
@@ -408,7 +428,16 @@ EspinaVolume::Pointer Filter::addRegionToVolume(EspinaVolume::Pointer volume,
 }
 
 //----------------------------------------------------------------------------
-QWidget* Filter::createConfigurationWidget()
+void Filter::markAsEdited(OutputNumber i)
+{
+  if (!m_editedOutputs.contains(QString::number(i)))
+    m_editedOutputs << QString::number(i);
+
+  m_args[EDIT] = m_editedOutputs.join(",");
+}
+
+//----------------------------------------------------------------------------
+QWidget* Filter::createFilterInspector(QUndoStack* undoStack, ViewManager* vm)
 {
   return new QWidget();
 }

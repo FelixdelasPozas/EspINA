@@ -79,6 +79,8 @@ public:
 
   virtual SegmentationExtension* clone();
 
+  bool isDiscarted() const {return m_isDiscarted;}
+
 protected slots:
   bool discartedByRegion(BoundingBox inputBB, vtkPolyData *region);
   bool realCollision(BoundingBox interscetion);

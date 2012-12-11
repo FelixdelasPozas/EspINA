@@ -50,7 +50,6 @@ void RegionRenderer::hide()
 
   m_enable = false;
   vtkRenderWindow *rw = m_renderer->GetRenderWindow();
-  vtkRenderWindowInteractor *interactor = rw->GetInteractor();
 
   foreach(BoundingRegion *region, m_widgets.keys())
   {

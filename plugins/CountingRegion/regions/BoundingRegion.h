@@ -21,9 +21,10 @@
 #define BOUNDINGREGION_H
 
 #include <QStandardItemModel>
-#include <common/widgets/RectangularSelection.h>
+#include <common/widgets/RectangularRegion.h>
 #include <vtkCommand.h>
 
+class ViewManager;
 class CountingRegionChannelExtension;
 class vtkBoundingRegionWidget;
 class vtkPolyData;
@@ -47,12 +48,16 @@ public:
 public:
   vtkTypeMacro(BoundingRegion, vtkCommand);
   explicit BoundingRegion(CountingRegionChannelExtension *channelExt,
-			  Nm inclusion[3],
-			  Nm exclusion[3]);
+                          Nm inclusion[3],
+                          Nm exclusion[3],
+                          ViewManager *vm);
+
   virtual ~BoundingRegion(){}
 
   virtual QVariant data(int role = Qt::UserRole + 1) const;
   virtual QString serialize() const = 0;
+
+  virtual bool filterEvent(QEvent* e, EspinaRenderView* view){return false;}
 
   /// Return total volume in pixels
   virtual double totalVolume() const
@@ -82,6 +87,7 @@ protected:
   double lower() const {return m_exclusion[2];}
 
 protected:
+  ViewManager *m_viewManager;
   vtkPolyData *m_boundingRegion;
   CountingRegionChannelExtension *m_channelExt;
 

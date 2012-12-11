@@ -24,6 +24,8 @@
 
 #include <QDebug>
 
+const QString Sample::WHERE  = "where";
+
 //------------------------------------------------------------------------
 Sample::Sample(const QString id)
 : m_ID(id)

@@ -19,13 +19,15 @@
 
 #include "VolumeViewSettingsPanel.h"
 #include <model/EspinaFactory.h>
-#include <pluginInterfaces/Renderer.h>
+#include "common/gui/Renderer.h"
 
 #include <QStandardItemModel>
 
 //-----------------------------------------------------------------------------
-VolumeViewSettingsPanel::VolumeViewSettingsPanel(VolumeView::SettingsPtr settings)
-: m_settings(settings)
+VolumeViewSettingsPanel::VolumeViewSettingsPanel(const EspinaFactory *factory,
+                                                 VolumeView::SettingsPtr settings)
+: m_factory(factory)
+, m_settings(settings)
 {
   setupUi(this);
 
@@ -34,7 +36,7 @@ VolumeViewSettingsPanel::VolumeViewSettingsPanel(VolumeView::SettingsPtr setting
   active    = new QStandardItemModel(this);
   available = new QStandardItemModel(this);
 
-  foreach(Renderer *renderer, EspinaFactory::instance()->renderers())
+  foreach(Renderer *renderer, m_factory->renderers())
   {
     QStandardItem *item = new QStandardItem(renderer->icon(), renderer->name());
     item->setDropEnabled(false);
@@ -44,7 +46,7 @@ VolumeViewSettingsPanel::VolumeViewSettingsPanel(VolumeView::SettingsPtr setting
     foreach(Renderer* activeRenderer, m_settings->renderers())
     {
       if (renderer->name() == activeRenderer->name())
-	isActive = true;
+        isActive = true;
     }
     if (isActive)
       active->appendRow(item);
@@ -60,7 +62,7 @@ VolumeViewSettingsPanel::VolumeViewSettingsPanel(VolumeView::SettingsPtr setting
 void VolumeViewSettingsPanel::acceptChanges()
 {
   QList<Renderer *> renderers;
-  QMap<QString, Renderer *> rendererFactory = EspinaFactory::instance()->renderers();
+  QMap<QString, Renderer *> rendererFactory = m_factory->renderers();
 
   QAbstractItemModel *activeModel = activeRenderers->model();
   for(int i=0; i < activeModel->rowCount(); i++)
@@ -90,6 +92,6 @@ bool VolumeViewSettingsPanel::modified() const
 //-----------------------------------------------------------------------------
 ISettingsPanel* VolumeViewSettingsPanel::clone()
 {
-  return new VolumeViewSettingsPanel(m_settings);
+  return new VolumeViewSettingsPanel(m_factory, m_settings);
 }
 

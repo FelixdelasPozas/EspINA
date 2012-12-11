@@ -133,11 +133,17 @@ bookmarksopen=false
 \renewcommand{\headrulewidth}{0.5pt}
 \renewcommand{\footrulewidth}{0.5pt}
 
+% avoid text going farther than the footer line
+\addtolength{\footskip}{20pt}
+
 \usepackage{lastpage}
 \usepackage{a4wide} 
 \usepackage{moreverb}
 \usepackage{hangcaption}
 \usepackage{listings}
+
+% NOTAS 
+\usepackage[tikz]{bclogo}
 
 %Formulas
 \newcommand{\ela}{\\ \nonumber}
@@ -156,9 +162,9 @@ bookmarksopen=false
 \newcommand{\ToDo}[1]{\textit{\textbf{ToDo: } #1}}
 
 %P O R T A D A
-\author{Jorge PEÑA PASTOR}
-\title{\textbf{Esp}ina \textbf{I}nteractive \textbf{N}euron \textbf{A}nalizer}
+\author{Cajal Blue Brain \\ CeSViMa}
 
+\title{\textbf{Esp}ina \textbf{I}nteractive \textbf{N}euron \textbf{A}nalizer}
 
 \begin{document}
 
@@ -169,11 +175,25 @@ bookmarksopen=false
 
 \input{introduction.tex}
 
+\input{menus.tex}
+
+\input{views.tex}
+
+\input{generalTools.tex}
+
 \input{segmentation.tex}
 
-%\input{edition.tex}
+\input{edition.tex}
 
 \input{analysis.tex}
+
+\input{shortcuts.tex}
+
+
+\input{configuration.tex}
+
+
+\input{plugins.tex}
 
 %\bibliographystyle{alpha}
 %\bibliography{rapport-mosig}

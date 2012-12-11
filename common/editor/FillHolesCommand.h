@@ -24,17 +24,21 @@
 
 #include <model/Segmentation.h>
 
+class EspinaModel;
+
 class FillHolesCommand
 : public QUndoCommand
 {
 public:
-  explicit FillHolesCommand(SegmentationList inputs);
+  explicit FillHolesCommand(SegmentationList inputs, EspinaModel *model);
   virtual ~FillHolesCommand();
 
   virtual void redo();
   virtual void undo();
 
 private:
+  EspinaModel *m_model;
+
   typedef QPair<Filter *, unsigned int> Connection;
 
   SegmentationList  m_segmentations;

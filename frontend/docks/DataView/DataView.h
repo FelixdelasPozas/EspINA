@@ -23,8 +23,8 @@
 #include <QWidget>
 #include <ui_DataView.h>
 
-#include "InformationProxy.h"
-#include <selection/SelectionManager.h>
+#include "common/gui/ViewManager.h"
+#include "frontend/docks/DataView/InformationProxy.h"
 #include <QSortFilterProxyModel>
 
 #ifdef TEST_ESPINA_MODELS
@@ -37,7 +37,10 @@ class DataView
 {
   Q_OBJECT
 public:
-  explicit DataView(QWidget* parent = 0, Qt::WindowFlags f = 0);
+  explicit DataView(EspinaModel *model,
+                    ViewManager *vm,
+                    QWidget *parent = 0,
+                    Qt::WindowFlags f = 0);
   virtual ~DataView();
 
 protected:
@@ -47,10 +50,12 @@ protected:
 protected slots:
   void defineQuery();
   void extractInformation();
-  void updateSelection(SelectionManager::Selection selection);
+  void updateSelection(ViewManager::Selection selection);
   void updateSelection(QItemSelection selected, QItemSelection deselected);
 
 private:
+  EspinaModel                          *m_baseModel;
+  ViewManager                          *m_viewManager;
   QSharedPointer<InformationProxy>      m_model;
   QSharedPointer<QSortFilterProxyModel> m_sort;
 #ifdef TEST_ESPINA_MODELS

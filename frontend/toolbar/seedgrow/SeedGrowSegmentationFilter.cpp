@@ -16,9 +16,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 #include "SeedGrowSegmentationFilter.h"
-#include "SetupWidget.h"
+#include "FilterInspector.h"
 
-#include "EspinaCore.h"
 #include "EspinaRegions.h"
 #include "common/model/EspinaModel.h"
 
@@ -33,6 +32,7 @@
 #include <vtkImageData.h>
 
 const QString SeedGrowSegmentationFilter::TYPE = "SeedGrowSegmentation::SeedGrowSegmentationFilter";
+const QString SeedGrowSegmentationFilter::INPUTLINK = "Input";
 
 typedef ModelItem::ArgumentId ArgumentId;
 const ArgumentId SeedGrowSegmentationFilter::SEED       = "Seed";
@@ -71,7 +71,7 @@ void SeedGrowSegmentationFilter::markAsModified()
 {
   if (m_outputs.contains(0))
     m_outputs[0]->Modified();
-  
+
 //   if (bmcif.IsNull())
 //     extractFilter->Modified();
 //   else
@@ -258,7 +258,7 @@ bool SeedGrowSegmentationFilter::prefetchFilter()
 }
 
 //-----------------------------------------------------------------------------
-QWidget* SeedGrowSegmentationFilter::createConfigurationWidget()
+QWidget* SeedGrowSegmentationFilter::createFilterInspector(QUndoStack* undoStack, ViewManager* vm)
 {
-  return new SetupWidget(this);
+  return new FilterInspector(this, vm);
 }

@@ -8,17 +8,18 @@
 #ifndef _CONTOURSELECTION_H_
 #define _CONTOURSELECTION_H_
 
-#include <common/selection/SelectionHandler.h>
+#include <common/tools/IPicker.h>
 
 class QCursor;
 
-class ContourSelector : public SelectionHandler
+class ContourSelector
+: public IPicker
 {
 public:
-  explicit ContourSelector(SelectionHandler *successor = NULL);
+  explicit ContourSelector(IPicker *successor = NULL);
   virtual ~ContourSelector();
 
-  virtual bool filterEvent(QEvent* e, SelectableView* view = 0);
+  virtual bool filterEvent(QEvent* e, EspinaRenderView *view = 0);
   virtual QCursor cursor();
 private:
   QCursor m_cursor;

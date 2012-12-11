@@ -19,8 +19,8 @@
 
 #include "RemoveSegmentation.h"
 
-#include "common/EspinaCore.h"
 #include "common/model/Segmentation.h"
+#include "common/model/EspinaModel.h"
 
 //------------------------------------------------------------------------
 RemoveSegmentation::SegInfo::SegInfo(Segmentation* seg)
@@ -31,27 +31,30 @@ RemoveSegmentation::SegInfo::SegInfo(Segmentation* seg)
 }
 
 //------------------------------------------------------------------------
-RemoveSegmentation::RemoveSegmentation(QList<Segmentation *> segs,
-				       QUndoCommand* parent)
+RemoveSegmentation::RemoveSegmentation(Segmentation* seg,
+                                       EspinaModel* model,
+                                       QUndoCommand* parent)
 : QUndoCommand(parent)
+, m_model(model)
 {
-  m_segmentations.clear();
-  m_removedFilters.clear();
+  m_segmentations << SegInfo(seg);
+}
 
-  QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
-  Segmentation *seg;
-  foreach(seg, segs)
-  {
+//------------------------------------------------------------------------
+RemoveSegmentation::RemoveSegmentation(QList<Segmentation *> segs,
+                                       EspinaModel          *model,
+                                       QUndoCommand         *parent)
+: QUndoCommand(parent)
+, m_model(model)
+{
+  foreach(Segmentation *seg, segs)
     m_segmentations << SegInfo(seg);
-  }
 }
 
 
 //------------------------------------------------------------------------
 void RemoveSegmentation::redo()
 {
-  QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
-
   QList<Segmentation *> segsToRemove;
   QList<Filter *>    filtersToRemove;
 
@@ -69,56 +72,44 @@ void RemoveSegmentation::redo()
       m_removedFilters << filterInfo;
     }
   }
-  model->removeSegmentation(segsToRemove);
+
+  m_model->removeSegmentation(segsToRemove);
+
   foreach(Filter *filter, filtersToRemove)
-  {
-    model->removeFilter(filter);
-  }
+    m_model->removeFilter(filter);
 }
 
 
 //------------------------------------------------------------------------
 void RemoveSegmentation::undo()
 {
-  QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
-
-  FilterInfo filterInfo;
-  foreach(filterInfo, m_removedFilters)
+  foreach(FilterInfo filterInfo, m_removedFilters)
   {
-    model->addFilter(filterInfo.filter);
+    m_model->addFilter(filterInfo.filter);
     addRelations(filterInfo.relations);
   }
   m_removedFilters.clear();
 
   QList<Segmentation *> segsToAdd;
   foreach(SegInfo segInfo, m_segmentations)
-  {
     segsToAdd << segInfo.segmentation;
-  }
-  model->addSegmentation(segsToAdd);
+  m_model->addSegmentation(segsToAdd);
+
   foreach(SegInfo segInfo, m_segmentations)
-  {
     addRelations(segInfo.relations);
-  }
 }
 
 //------------------------------------------------------------------------
 void RemoveSegmentation::addRelations(ModelItem::RelationList list)
 {
-  QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
   foreach(ModelItem::Relation rel, list)
-  {
-    model->addRelation(rel.ancestor, rel.succesor, rel.relation);
-  }
+    m_model->addRelation(rel.ancestor, rel.succesor, rel.relation);
 }
 
 
 //------------------------------------------------------------------------
 void RemoveSegmentation::removeRelations(ModelItem::RelationList list)
 {
-  QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
   foreach(ModelItem::Relation rel, list)
-  {
-    model->removeRelation(rel.ancestor, rel.succesor, rel.relation);
-  }
+    m_model->removeRelation(rel.ancestor, rel.succesor, rel.relation);
 }

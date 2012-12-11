@@ -19,39 +19,57 @@
 
 //----------------------------------------------------------------------------
 // File:    EspinaModel.h
-// Purpose: Decide how to deal with different types of resources
-//          Load/Save Files
-//          Generate required models depending on the internal state
+// Purpose: Provide a model to centralize all data required by the application
+//          Notify different views about changes in data
 //----------------------------------------------------------------------------
 #ifndef ESPinaModelMODEL_H
 #define ESPinaModelMODEL_H
 
 #include <QAbstractItemModel>
+#include <QDir>
 
-
-#include <QSharedPointer>
-
-#include "common/model/Sample.h"
-#include "common/model/Filter.h"
-#include "common/model/Taxonomy.h"
 #include "common/model/RelationshipGraph.h"
 
 class Channel;
+class EspinaFactory;
 class Filter;
 class ModelItem;
-class RelationshipGraph;
+class Sample;
 class Segmentation;
 class Taxonomy;
-class TaxonomyNode;
+class TaxonomyElement;
 
-/// Espina Interactive Neuron Analyzer
-/// The logic model for the application
-class EspinaModel : public QAbstractItemModel
+/// Current Model arranges elements in the following way:
+/// QModelIndex() (invalid index/model root index)
+/// - TaxonomyRoot
+///   - TaxonomyElement1
+///     - Sub-TaxonomyElement1-1
+///     - ...
+///   - TaxonomyElement2
+///     - ...
+///   - ...
+/// - SampleRoot
+///   - Sample1
+///   - ...
+/// - ChannelRoot
+///   - Channel1
+///   - ...
+/// - SegmentationRoot
+///   - Segmentation1
+///   - ...
+/// - FilterRoot
+///   - Filter1
+///   - ...
+class EspinaModel
+: public QAbstractItemModel
 {
     Q_OBJECT
 public:
-  explicit EspinaModel(QObject* parent = 0);
+  explicit EspinaModel(EspinaFactory *factory, QObject* parent = 0);
   virtual ~EspinaModel();
+
+  EspinaFactory *factory() const
+  { return m_factory; }
 
   void reset();
 
@@ -65,11 +83,10 @@ public:
   virtual QModelIndex parent(const QModelIndex& child) const;
   virtual QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const;
   QModelIndex index(ModelItem *item) const;
-  //     virtual QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 
   // Special Nodes of the model to refer different roots
   QModelIndex taxonomyRoot() const;
-  QModelIndex taxonomyIndex(TaxonomyNode *node) const;
+  QModelIndex taxonomyIndex(TaxonomyElement *node) const;
 
   QModelIndex sampleRoot() const;
   QModelIndex sampleIndex(Sample *sample) const;
@@ -108,13 +125,14 @@ public:
   void addChannel(Channel *channel);
   void removeChannel(Channel *channel);
   Channel *channel(const QString id) const;
+  QList<Channel *> channels() const {return m_channels;}
 
   // Segmentations
   void addSegmentation(Segmentation *seg);
   void addSegmentation(QList<Segmentation *> segs);
   void removeSegmentation(Segmentation *seg);
   void removeSegmentation(QList<Segmentation *> segs);
-  void changeTaxonomy(Segmentation *seg, TaxonomyNode *taxonomy);
+  void changeTaxonomy(Segmentation *seg, TaxonomyElement *taxonomy);
   QList<Segmentation *> segmentations() const {return m_segmentations;}
 
   void addFilter(Filter *filter);
@@ -122,30 +140,32 @@ public:
   QList<Filter *> filters() const {return m_filters;}
 
   void addRelation(ModelItem *ancestor,
-		   ModelItem *succesor,
-		   QString relation);
+                   ModelItem *succesor,
+                   QString relation);
   void removeRelation(ModelItem *ancestor,
-		      ModelItem *succesor,
-		      QString relation);
+                      ModelItem *succesor,
+                      QString relation);
 
   RelationshipGraph *relationships() {return m_relations;}
 
   void serializeRelations(std::ostream& stream, RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
-  bool loadSerialization (std::istream &stream, RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
+  bool loadSerialization (std::istream &stream, QDir tmpDir, RelationshipGraph::PrintFormat format = RelationshipGraph::BOOST);
 
 private slots:
   void itemModified(ModelItem *item);
 
 private:
-  void addTaxonomy(TaxonomyNode *tax);
+  void addTaxonomy(TaxonomyElement *tax);
 
 private:
+  EspinaFactory        *m_factory;
   Taxonomy             *m_tax;
   QList<Sample *>       m_samples;
   QList<Channel *>      m_channels;
   QList<Segmentation *> m_segmentations;
   QList<Filter *>       m_filters;
 
+  QList<QDir>           m_tmpDirs;
   RelationshipGraph    *m_relations;
 
   unsigned int          m_lastId;

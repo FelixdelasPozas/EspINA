@@ -22,24 +22,27 @@
 
 #include "common/EspinaTypes.h"
 
+/// Volume's voxel's index at given spatial position
+EspinaVolume::IndexType VolumeIndex(Nm x, Nm y, Nm z, EspinaVolume *volume);
+
 /// Get the vtk-equivalent extent defining volume
 void VolumeExtent(EspinaVolume *volume, int extent[6]);
 /// Get the vtk-equivalent bounds defining volume
 void VolumeBounds(EspinaVolume *volume, double bounds[6]);
 
-/// Get a normalized region representing for a volume with
+/// Get a normalized region for a volume with
 /// the given vtk-extent. Normalized regions are used with
 /// volumes which origin is set to zero.
 EspinaVolume::RegionType ExtentToRegion(int extent[6]);
-/// Get a normalized region representing for a volume with
+/// Get a normalized region for a volume with
 /// the given vtk-bounds. Normalized regions are used with
 /// volumes which origin is set to zero.
 EspinaVolume::RegionType BoundsToRegion(double bounds[6],
-					EspinaVolume::SpacingType spacing);
+                                        EspinaVolume::SpacingType spacing);
 
 
 EspinaVolume::RegionType BoundingBoxRegion(EspinaVolume::RegionType r1,
-					   EspinaVolume::RegionType r2);
+                                           EspinaVolume::RegionType r2);
 
 /// Return a normalized region for volume's largest region
 EspinaVolume::RegionType NormalizedRegion(const EspinaVolume *volume);

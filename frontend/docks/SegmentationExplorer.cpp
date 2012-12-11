@@ -19,27 +19,27 @@
 
 #include "SegmentationExplorer.h"
 
+
+// EspINA
+#include "common/model/Sample.h"
+#include "common/model/Segmentation.h"
+#include "common/model/proxies/SampleProxy.h"
+#include "common/model/proxies/TaxonomyProxy.h"
+#include "common/settings/ISettingsPanel.h"
+#include "common/undo/RemoveSegmentation.h"
+#include "frontend/docks/SegmentationInspector.h"
+#include "frontend/docks/SegmentationDelegate.h"
+#include "common/EspinaRegions.h"
+
 #ifdef TEST_ESPINA_MODELS
 #include "common/model/ModelTest.h"
 #endif
 
-#include "common/EspinaCore.h"
-#include <gui/EspinaView.h>
-#include <undo/RemoveSegmentation.h>
-
-#include "SegmentationInspector.h"
-#include "SegmentationDelegate.h"
-#include "common/model/proxies/SampleProxy.h"
-#include "common/model/proxies/TaxonomyProxy.h"
-#include <model/Segmentation.h>
-#include <selection/SelectionManager.h>
-
-#include <iostream>
-#include <cstdio>
-
-#include <QStringListModel>
+// Qt
 #include <QMessageBox>
 #include <QSortFilterProxyModel>
+#include <QStringListModel>
+#include <QUndoStack>
 
 //------------------------------------------------------------------------
 class SegmentationExplorer::GUI
@@ -65,17 +65,19 @@ SegmentationExplorer::GUI::GUI()
 class SegmentationExplorer::Layout
 {
 public:
-  explicit Layout(QSharedPointer<EspinaModel> model): m_model(model) {}
+  explicit Layout(EspinaModel *model): m_model(model) {}
   virtual ~Layout(){}
 
-  virtual QAbstractItemModel *model() {return m_model.data();}
+  virtual QAbstractItemModel *model()
+  {return m_model; }
   virtual ModelItem *item(const QModelIndex &index) const {return indexPtr(index);}
   virtual QModelIndex index(ModelItem *item) const
   { return m_model->index(item); }
-  virtual void deleteSegmentation(QModelIndexList indices) {};
+  virtual SegmentationList deletedSegmentations(QModelIndexList indices)
+  { return SegmentationList(); }
 
 protected:
-  QSharedPointer<EspinaModel> m_model;
+  EspinaModel *m_model;
 };
 
 bool sortSegmentationLessThan(ModelItem *left, ModelItem *right)
@@ -91,9 +93,11 @@ bool sortSegmentationLessThan(ModelItem *left, ModelItem *right)
 }
 
 //------------------------------------------------------------------------
-class SampleLayout : public SegmentationExplorer::Layout
+class SampleLayout
+: public SegmentationExplorer::Layout
 {
-  class SampleSortFilter : public QSortFilterProxyModel
+  class SampleSortFilter
+  : public QSortFilterProxyModel
   {
   protected:
     virtual bool lessThan(const QModelIndex& left, const QModelIndex& right) const
@@ -111,7 +115,7 @@ class SampleLayout : public SegmentationExplorer::Layout
   };
 
 public:
-  explicit SampleLayout(QSharedPointer<EspinaModel> model);
+  explicit SampleLayout(EspinaModel *model);
   virtual ~SampleLayout(){}
 
   virtual QAbstractItemModel* model() {return m_sort.data();}
@@ -119,7 +123,7 @@ public:
   { return indexPtr(m_sort->mapToSource(index)); }
   virtual QModelIndex index(ModelItem* item) const
   { return m_sort->mapFromSource(m_proxy->mapFromSource(Layout::index(item))); }
-  virtual void deleteSegmentation(QModelIndexList indices);
+  virtual SegmentationList deletedSegmentations(QModelIndexList indices);
 
 private:
   QSharedPointer<SampleProxy> m_proxy;
@@ -127,18 +131,18 @@ private:
 };
 
 //------------------------------------------------------------------------
-SampleLayout::SampleLayout(QSharedPointer<EspinaModel> model)
+SampleLayout::SampleLayout(EspinaModel *model)
 : Layout(model)
 , m_proxy(new SampleProxy())
 , m_sort (new SampleSortFilter())
 {
-  m_proxy->setSourceModel(m_model.data());
+  m_proxy->setSourceModel(m_model);
   m_sort->setSourceModel(m_proxy.data());
   m_sort->setDynamicSortFilter(true);
 }
 
 //------------------------------------------------------------------------
-void SampleLayout::deleteSegmentation(QModelIndexList indices)
+SegmentationList SampleLayout::deletedSegmentations(QModelIndexList indices)
 {
   QSet<Segmentation *> toDelete;
   foreach(QModelIndex index, indices)
@@ -205,25 +209,19 @@ void SampleLayout::deleteSegmentation(QModelIndexList indices)
       }
           default:
             Q_ASSERT(false);
+            break;
     }
   }
 
-  if (!toDelete.isEmpty())
-  {
-    QList<Segmentation *> deletedSegmentations = toDelete.toList();
-    SegmentationInspector::RemoveInspector(deletedSegmentations);
-    QSharedPointer<QUndoStack> undoStack = EspinaCore::instance()->undoStack();
-    undoStack->beginMacro("Delete Segmentations");
-    undoStack->push(new RemoveSegmentation(deletedSegmentations));
-    undoStack->endMacro();
-  }
-
+  return toDelete.toList();
 }
 
 //------------------------------------------------------------------------
-class TaxonomyLayout : public SegmentationExplorer::Layout
+class TaxonomyLayout
+: public SegmentationExplorer::Layout
 {
-  class TaxonomySortFilter : public QSortFilterProxyModel
+  class TaxonomySortFilter
+  : public QSortFilterProxyModel
   {
   protected:
     virtual bool lessThan(const QModelIndex& left, const QModelIndex& right) const
@@ -239,16 +237,18 @@ class TaxonomyLayout : public SegmentationExplorer::Layout
           return leftItem->type() == ModelItem::TAXONOMY;
     }
   };
+
 public:
-  explicit TaxonomyLayout(QSharedPointer<EspinaModel> model);
+  explicit TaxonomyLayout(EspinaModel *model);
   virtual ~TaxonomyLayout(){}
 
-  virtual QAbstractItemModel* model() {return m_sort.data();}
+  virtual QAbstractItemModel* model()
+  { return m_sort.data(); }
   virtual ModelItem* item(const QModelIndex& index) const
   { return indexPtr(m_sort->mapToSource(index)); }
   virtual QModelIndex index(ModelItem* item) const
   { return m_sort->mapFromSource(m_proxy->mapFromSource(Layout::index(item))); }
-  virtual void deleteSegmentation(QModelIndexList indices);
+  virtual SegmentationList deletedSegmentations(QModelIndexList indices);
 
 private:
   QSharedPointer<TaxonomyProxy> m_proxy;
@@ -256,18 +256,18 @@ private:
 };
 
 //------------------------------------------------------------------------
-TaxonomyLayout::TaxonomyLayout(QSharedPointer<EspinaModel> model)
+TaxonomyLayout::TaxonomyLayout(EspinaModel *model)
 : Layout(model)
 , m_proxy(new TaxonomyProxy())
 , m_sort (new TaxonomySortFilter())
 {
-  m_proxy->setSourceModel(m_model.data());
+  m_proxy->setSourceModel(m_model);
   m_sort->setSourceModel(m_proxy.data());
   m_sort->setDynamicSortFilter(true);
 }
 
 //------------------------------------------------------------------------
-void TaxonomyLayout::deleteSegmentation(QModelIndexList indices)
+SegmentationList TaxonomyLayout::deletedSegmentations(QModelIndexList indices)
 {
   QSet<Segmentation *> toDelete;
   foreach(QModelIndex index, indices)
@@ -291,7 +291,7 @@ void TaxonomyLayout::deleteSegmentation(QModelIndexList indices)
         if (totalSeg == 0)
           continue;
 
-        TaxonomyNode *taxonmy = dynamic_cast<TaxonomyNode *>(item);
+        TaxonomyElement *taxonmy = dynamic_cast<TaxonomyElement *>(item);
         QMessageBox msgBox;
         msgBox.setText(QString("Delete %1's segmentations").arg(taxonmy->qualifiedName()));
         msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
@@ -334,27 +334,24 @@ void TaxonomyLayout::deleteSegmentation(QModelIndexList indices)
       }
           default:
             Q_ASSERT(false);
+            break;
     }
   }
 
-  if (!toDelete.isEmpty())
-  {
-    QList<Segmentation *> deletedSegmentations = toDelete.toList();
-    SegmentationInspector::RemoveInspector(deletedSegmentations);
-    QSharedPointer<QUndoStack> undoStack = EspinaCore::instance()->undoStack();
-    undoStack->beginMacro("Delete Segmentations");
-    undoStack->push(new RemoveSegmentation(deletedSegmentations));
-    undoStack->endMacro();
-  }
+  return toDelete.toList();
 }
 
 
 //------------------------------------------------------------------------
-SegmentationExplorer::SegmentationExplorer(QSharedPointer<EspinaModel> model,
+SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
+                                           QUndoStack  *undoStack,
+                                           ViewManager *vm,
                                            QWidget* parent)
-: EspinaDockWidget(parent)
+: QDockWidget(parent)
 , m_gui(new GUI())
 , m_baseModel(model)
+, m_undoStack(undoStack)
+, m_viewManager(vm)
 , m_layout(NULL)
 {
   setWindowTitle(tr("Segmentation Explorer"));
@@ -378,10 +375,12 @@ SegmentationExplorer::SegmentationExplorer(QSharedPointer<EspinaModel> model,
           this, SLOT(deleteSegmentation()));
   connect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
           this, SLOT(updateSelection(QItemSelection, QItemSelection)));
-  connect(SelectionManager::instance(), SIGNAL(selectionChanged(SelectionManager::Selection)),
-          this, SLOT(updateSelection(SelectionManager::Selection)));
+  connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection)),
+          this, SLOT(updateSelection(ViewManager::Selection)));
+  /* TODO BUG 2012-10-05 Color Engine
   connect(&EspinaCore::instance()->colorSettings(), SIGNAL(colorEngineChanged(ColorEngine*)),
 	  m_gui->view, SLOT(update()));
+	  */
 
   setWidget(m_gui);
 }
@@ -398,7 +397,7 @@ void SegmentationExplorer::addLayout(const QString id, SegmentationExplorer::Lay
   m_layouts << proxy;
 }
 
-//------------------------------------------------------------------------sele
+//------------------------------------------------------------------------
 void SegmentationExplorer::changeLayout(int index)
 {
   Q_ASSERT(index < m_layouts.size());
@@ -407,7 +406,7 @@ void SegmentationExplorer::changeLayout(int index)
   m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_layout->model()));
 #endif
   m_gui->view->setModel(m_layout->model());
-  m_gui->view->setItemDelegate(new SegmentationDelegate());
+  m_gui->view->setItemDelegate(new SegmentationDelegate(m_baseModel, m_undoStack, m_viewManager)); //TODO 2012-10-05 Sigue sirviendo para algo??
 }
 
 //------------------------------------------------------------------------
@@ -418,10 +417,18 @@ void SegmentationExplorer::focusOnSegmentation(const QModelIndex& index)
   if (ModelItem::SEGMENTATION != item->type())
     return;
 
+  Nm bounds[6];
+  Segmentation *seg = dynamic_cast<Segmentation*>(item);
+  VolumeBounds(seg->itkVolume(), bounds);
+  Nm center[3] = { (bounds[0] + bounds[1])/2, (bounds[2] + bounds[3])/2, (bounds[4] + bounds[5])/2 };
+  m_viewManager->focusViewsOn(center);
+
+  /* TODO BUG 2012-10-05 Use "center on" selection
   const Nm *p = SelectionManager::instance()->selectionCenter();
   EspinaView *view = EspinaCore::instance()->viewManger()->currentView();
   view->setCrosshairPoint(p[0], p[1], p[2]);
-  view->setCameraFocus(p);
+  view->setCameraFocus(p);                     cbbp
+  */
 }
 
 //------------------------------------------------------------------------
@@ -435,7 +442,9 @@ void SegmentationExplorer::showInformation()
     if (ModelItem::SEGMENTATION == item->type())
     {
       Segmentation *seg = dynamic_cast<Segmentation *>(item);
-      SegmentationInspector *inspector = SegmentationInspector::CreateInspector(seg);
+      //TODO 2012-10-05: gestionar memoria
+      SegmentationInspector *inspector;
+      inspector = new SegmentationInspector(seg, m_baseModel, m_undoStack, m_viewManager);
       inspector->show();
       inspector->raise();
     }
@@ -446,17 +455,27 @@ void SegmentationExplorer::showInformation()
 void SegmentationExplorer::deleteSegmentation()
 {
   if (m_layout)
-    m_layout->deleteSegmentation(m_gui->view->selectionModel()->selectedIndexes());
+  {
+    QModelIndexList selected = m_gui->view->selectionModel()->selectedIndexes();
+    SegmentationList toDelete = m_layout->deletedSegmentations(selected);
+    if (!toDelete.isEmpty())
+    {
+      //TODO 2012-10-05 SegmentationInspector::RemoveInspector(toDelete);
+      m_undoStack->beginMacro("Delete Segmentations");
+      m_undoStack->push(new RemoveSegmentation(toDelete, m_baseModel));
+      m_undoStack->endMacro();
+    }
+  }
 }
 
 //------------------------------------------------------------------------
-void SegmentationExplorer::updateSelection(SelectionManager::Selection selection)
+void SegmentationExplorer::updateSelection(ViewManager::Selection selection)
 {
 //   qDebug() << "Update Seg Explorer Selection from Selection Manager";
   m_gui->view->blockSignals(true);
   m_gui->view->selectionModel()->blockSignals(true);
   m_gui->view->selectionModel()->reset();
-  foreach(SelectableItem *item, selection)
+  foreach(PickableItem *item, selection)
   {
     QModelIndex index = m_layout->index(item);
     if (index.isValid())
@@ -478,14 +497,33 @@ void SegmentationExplorer::updateSelection(SelectionManager::Selection selection
 //------------------------------------------------------------------------
 void SegmentationExplorer::updateSelection(QItemSelection selected, QItemSelection deselected)
 {
-  SelectionManager::Selection selection;
+  ViewManager::Selection selection;
 
   foreach(QModelIndex index, m_gui->view->selectionModel()->selection().indexes())
   {
     ModelItem *item = m_layout->item(index);
     if (ModelItem::SEGMENTATION == item->type())
-      selection << dynamic_cast<SelectableItem *>(item);
+      selection << dynamic_cast<PickableItem *>(item);
   }
 
-  SelectionManager::instance()->setSelection(selection);
+  m_viewManager->setSelection(selection);
+}
+
+//------------------------------------------------------------------------
+ISettingsPanel *SegmentationExplorer::settingsPanel()
+{
+  Q_ASSERT(false); //TODO Check if NULL is correct
+  return NULL;
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::updateSegmentationRepresentations()
+{
+
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::updateSelection()
+{
+  std::cout << "update selection\n" << std::flush;
 }

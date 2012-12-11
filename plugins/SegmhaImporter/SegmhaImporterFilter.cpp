@@ -20,11 +20,7 @@
 #include "SegmhaImporterFilter.h"
 
 // EspINA
-#include <common/EspinaCore.h>
-#include <common/model/EspinaFactory.h>
 #include <common/model/Segmentation.h>
-
-// ITK
 
 // Qt
 #include <QApplication>
@@ -144,7 +140,7 @@ void SegmhaImporterFilter::run()
 
   qDebug() << "Reading segmentation's meta data from file:";
   QList<SegmentationObject> metaData;
-  QList<TaxonomyNode *> taxonomies;
+  QList<TaxonomyElement *> taxonomies;
 
   QFile metaDataReader(m_args[FILE]);
   metaDataReader.open(QIODevice::ReadOnly);
@@ -163,7 +159,7 @@ void SegmhaImporterFilter::run()
     else if (infoType == "Segment")
     {
       TaxonomyObject tax(line);
-      TaxonomyNode *taxonomy = m_taxonomy->addElement(tax.name);
+      TaxonomyElement *taxonomy = m_taxonomy->addElement(tax.name);
       //QColor color(tax.color[0], tax.color[1], tax.color[1]);
       taxonomy->setColor(tax.color);
       taxonomies << taxonomy;
@@ -291,7 +287,7 @@ bool SegmhaImporterFilter::prefetchFilter()
 }
 
 //-----------------------------------------------------------------------------
-TaxonomyNode* SegmhaImporterFilter::taxonomy(OutputNumber i)
+TaxonomyElement* SegmhaImporterFilter::taxonomy(OutputNumber i)
 {
   return m_taxonomies.value(i, NULL);
 }

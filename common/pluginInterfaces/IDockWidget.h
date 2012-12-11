@@ -19,19 +19,30 @@
 #ifndef IDOCKWIDGET_H
 #define IDOCKWIDGET_H
 
-#include "common/gui/EspinaDockWidget.h"
+#include <QtPlugin>
+#include <QDockWidget>
+
+class EspinaModel;
+class ViewManager;
+class QUndoStack;
 
 class IDockWidget
-: public EspinaDockWidget
+: public QDockWidget
 {
 public:
   explicit IDockWidget(QWidget* parent = 0)
-  : EspinaDockWidget(parent){}
+  : QDockWidget(parent){}
   virtual ~IDockWidget(){}
 
+  virtual void initDockWidget(EspinaModel *model,
+                              QUndoStack  *undoStack,
+                              ViewManager *viewManager) = 0;
+  // Reset All Components in the Dock Widget
   virtual void reset() = 0;
+public slots:
+  void resetState();
 };
 
 Q_DECLARE_INTERFACE(IDockWidget,
-                    "es.upm.cesvima.EspINA.DockWidgetInterface/1.0")
+                    "es.upm.cesvima.EspINA.DockWidgetInterface/1.2")
 #endif //IDOCKWIDGET_H

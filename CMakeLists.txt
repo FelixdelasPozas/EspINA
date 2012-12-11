@@ -2,10 +2,13 @@ project (EspINA)
 
 cmake_minimum_required (VERSION 2.8)
 
+# needed for plugin compilation
+set (Espina_DIR ${PROJECT_BINARY_DIR})
+
 # Version Number
 set (ESPINA_VERSION_MAJOR 1)
 set (ESPINA_VERSION_MINOR 2)
-set (ESPINA_VERSION_PATCH 0)
+set (ESPINA_VERSION_PATCH 2)
 
 
 SET (TEST_ESPINA_MODELS CACHE BOOL "Build EspINA Model Test wrappers")
@@ -17,19 +20,28 @@ SET (TEST_ESPINA_MODELS CACHE BOOL "Build EspINA Model Test wrappers")
 #  enable_testing()
 #endif (${BUILD_TESTING})
 
-#SET(LIBRARY_OUTPUT_PATH "${CMAKE_BINARY_DIR}/frontend/plugins")
+set (ESPINA_LIBRARY_DIRS
+  ${PROJECT_BINARY_DIR}/common
+  )
 
-add_subdirectory(common  )
+#SET(LIBRARY_OUTPUT_PATH "${CMAKE_BINARY_DIR}/frontend/plugins" # CACHE_PATH "Single directory for all plugin binaries.")
+
+add_subdirectory(common)
 add_subdirectory(frontend)
-#add_subdirectory(plugins )
+
+# for building espina plugins in the correct directory
+set(ESPINA_PLUGINS_DIR ${PROJECT_BINARY_DIR}/frontend/plugins)
+cmake_policy(SET CMP0013 OLD)
+
+# add espina plugins below this line taking dependencies into account
+# (if dependencies between plugins exists, less dependent first)
+add_subdirectory(plugins/AppositionPlane ${ESPINA_PLUGINS_DIR})
+add_subdirectory(plugins/SegmhaImporter ${ESPINA_PLUGINS_DIR})
+add_subdirectory(plugins/CountingRegion ${ESPINA_PLUGINS_DIR})
 
 set (ESPINA_INCLUDE ${PROJECT_SOURCE_DIR})
 
 set (ESPINA_USE_FILE "${PROJECT_SOURCE_DIR}/EspinaUse.cmake")
-
-set (ESPINA_LIBRARY_DIRS
-  ${PROJECT_BINARY_DIR}/common
-  )
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/EspinaConfig.h.in"

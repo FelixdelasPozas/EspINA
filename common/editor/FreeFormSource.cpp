@@ -19,14 +19,17 @@
 
 #include "FreeFormSource.h"
 
-#include <EspinaCore.h>
-#include <EspinaRegions.h>
-#include <EspinaView.h>
-#include <model/EspinaFactory.h>
+// EspINA
+#include "common/EspinaRegions.h"
+#include "common/model/EspinaFactory.h"
 
+// ITK
 #include <itkImageRegionIteratorWithIndex.h>
 
+// Qt
 #include <QDebug>
+
+
 const QString FreeFormSource::TYPE = "EditorToolBar::FreeFormSource";
 
 typedef ModelItem::ArgumentId ArgumentId;
@@ -48,9 +51,9 @@ FreeFormSource::~FreeFormSource()
 
 //-----------------------------------------------------------------------------
 void FreeFormSource::draw(OutputNumber i,
-			  vtkImplicitFunction* brush,
-			  double bounds[6],
-			  EspinaVolume::PixelType value)
+                          vtkImplicitFunction * brush,
+                          double bounds[6],
+                          EspinaVolume::PixelType value)
 {
   Q_ASSERT(0 == i);
   if (m_outputs[i].IsNull())
@@ -68,8 +71,8 @@ void FreeFormSource::draw(OutputNumber i,
 
 //-----------------------------------------------------------------------------
 void FreeFormSource::draw(OutputNumber i,
-			  EspinaVolume::IndexType index,
-			  EspinaVolume::PixelType value)
+                          EspinaVolume::IndexType index,
+                          EspinaVolume::PixelType value)
 {
   if (m_outputs[i].IsNull())
   {

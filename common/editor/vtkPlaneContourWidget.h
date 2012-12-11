@@ -9,6 +9,7 @@
 
 #include <vtkAbstractWidget.h>
 #include <QCursor>
+#include <QColor>
 #include <EspinaTypes.h>
 
 class vtkSliceContourRepresentation;
@@ -111,6 +112,10 @@ class VTK_WIDGETS_EXPORT vtkPlaneContourWidget : public vtkAbstractWidget
 
     virtual void SetOrientation(PlaneType plane);
     virtual PlaneType GetOrientation();
+
+    virtual void setPolygonColor(QColor);
+    virtual QColor getPolygonColor();
+
   protected:
     vtkPlaneContourWidget();
     virtual ~vtkPlaneContourWidget();
@@ -159,6 +164,7 @@ class VTK_WIDGETS_EXPORT vtkPlaneContourWidget : public vtkAbstractWidget
 
     QCursor crossMinusCursor, crossPlusCursor;
     bool mouseButtonDown; // to create almost equally spaced points when using continuous drawing
+    QColor m_polygonColor;
 };
 
 #endif // _VTKPLANECONTOURWIDGET_H_

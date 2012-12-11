@@ -14,6 +14,7 @@
 #include <QMap>
 #include <QList>
 #include <QObject>
+#include <QColor>
 
 class SliceContourWidget;
 class vtkPolyData;
@@ -30,16 +31,20 @@ class ContourWidget
     virtual vtkAbstractWidget *createWidget();
     virtual void deleteWidget(vtkAbstractWidget *widget);
     virtual SliceWidget *createSliceWidget(PlaneType plane);
+
+    virtual bool filterEvent(QEvent* e, EspinaRenderView* view) {return false;}
     virtual void setEnabled(bool enable);
 
     virtual QMap<PlaneType, QMap<Nm, vtkPolyData*> > GetContours();
     virtual void SetContours(QMap<PlaneType, QMap<Nm, vtkPolyData*> >);
     virtual unsigned int GetContoursNumber();
-
+    virtual void setPolygonColor(QColor);
+    virtual QColor getPolygonColor();
   private:
     SliceContourWidget *m_axialSliceContourWidget;
     SliceContourWidget *m_coronalSliceContourWidget;
     SliceContourWidget *m_sagittalSliceContourWidget;
+    QColor m_color;
 };
 
 #endif /* CONTOURWIDGET_H_ */

@@ -55,13 +55,16 @@ const ModelItemExtension::InfoTag FD = "Feret Diameter";
 const ModelItemExtension::InfoTag EEDx = "Equivalent Ellipsoid Diameter X";
 const ModelItemExtension::InfoTag EEDy = "Equivalent Ellipsoid Diameter Y";
 const ModelItemExtension::InfoTag EEDz = "Equivalent Ellipsoid Diameter Z";
-//TODO: Review values to be used from new ITK version
 
+//TODO: Review values to be used from new ITK version
 //------------------------------------------------------------------------
 MorphologicalExtension::MorphologicalExtension()
 : m_statistic(NULL)
 , m_validInfo(false)
+, m_Size(-1)
+, m_PhysicalSize(-1)
 , m_validFeret(false)
+, m_FeretDiameter(-1)
 {
   m_availableInformations << SIZE;
   m_availableInformations << PS;
@@ -73,6 +76,16 @@ MorphologicalExtension::MorphologicalExtension()
   m_availableInformations << BPA20 << BPA21 << BPA22;
   m_availableInformations << FD;
   m_availableInformations << EEDx << EEDy << EEDz;
+
+  for(int i=0; i<3; i++)
+  {
+    m_Centroid[i] = -1;
+    m_Region[i]   = -1;
+    m_BinaryPrincipalMoments[i]  = -1;
+    m_EquivalentEllipsoidSize[i] = -1;
+  }
+  for(int i=0; i<9; i++)
+    m_BinaryPrincipalAxes[i] = -1;
 }
 
 //------------------------------------------------------------------------
@@ -112,7 +125,7 @@ QVariant MorphologicalExtension::information(QString info) const
   if (!m_init)
     return QVariant();
 
-  if (m_statistic == NULL
+  if (NULL == m_statistic
       || m_seg->itkVolume()->GetTimeStamp() > m_labelMap->GetTimeStamp()
       || (info == FD && !m_validFeret)
      )
@@ -132,10 +145,16 @@ QVariant MorphologicalExtension::information(QString info) const
 
     LabelMapType *labelMap = m_labelMap->GetOutput();
     labelMap->Update();
-    Q_ASSERT(labelMap->GetNumberOfLabelObjects() == 1);
-    m_statistic = labelMap->GetNthLabelObject(0);
+
     QApplication::restoreOverrideCursor();
+    m_validInfo = labelMap->GetNumberOfLabelObjects() == 1;
+
+    if (m_validInfo)
+      m_statistic = labelMap->GetNthLabelObject(0);
   }
+
+  if (!m_validInfo)
+    return QVariant(-1);
 
 //   EspinaVolume::SpacingType spacing = m_seg->volume()->GetSpacing();
   if (info == SIZE)

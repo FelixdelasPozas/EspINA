@@ -32,7 +32,7 @@ qt4_add_resources (RCC_BUILT_SOURCES
 qt4_wrap_cpp(MOC_SRCS 
   SeedGrowSegmentation.h
   SeedGrowSegmentationFilter.h
-  SeedGrowSelector.h
+  SeedGrowSegmentationTool.h
   SettingsPanel.h
   SetupWidget.h
   gui/DefaultVOIAction.h
@@ -59,7 +59,7 @@ set (PLUGIN_SRCS
   ${UI_BUILT_SOURCES} 
   SeedGrowSegmentation.cpp
   SeedGrowSegmentationFilter.cpp
-  SeedGrowSelector.cpp
+  SeedGrowSegmentationTool.cpp
   Settings.cpp
   SettingsPanel.cpp
   SetupWidget.cpp

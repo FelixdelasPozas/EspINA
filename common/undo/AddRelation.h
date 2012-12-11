@@ -23,6 +23,7 @@
 #include <QUndoCommand>
 #include "common/model/ModelItem.h"
 
+class EspinaModel;
 class ModelItem;
 
 class AddRelation
@@ -30,19 +31,16 @@ class AddRelation
 {
 public:
   explicit AddRelation(ModelItem *ancestor,
-		       ModelItem *successor,
-		       const QString description,
-		       QUndoCommand* parent = 0);
-
-  explicit AddRelation(ModelItemPtr ancestor,
-		       ModelItemPtr successor,
-		       const QString description,
-		       QUndoCommand* parent = 0);
+                       ModelItem *successor,
+                       const QString description,
+                       EspinaModel *model,
+                       QUndoCommand* parent = 0);
 
   virtual void redo();
   virtual void undo();
 
 private:
+  EspinaModel  *m_model;
   ModelItem    *m_ancester;
   ModelItem    *m_succesor;
   const QString m_description;

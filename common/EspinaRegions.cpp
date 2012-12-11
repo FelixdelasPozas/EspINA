@@ -21,6 +21,20 @@
 
 
 //-----------------------------------------------------------------------------
+EspinaVolume::IndexType VolumeIndex(Nm x, Nm y, Nm z, EspinaVolume *volume)
+{
+  //volume()->Print(std::cout);
+  EspinaVolume::PointType origin = volume->GetOrigin();
+  EspinaVolume::SpacingType spacing = volume->GetSpacing();
+  EspinaVolume::IndexType res;
+  // add 0.5 before int conversion rounds the index
+  res[0] = (x - origin[0]) / spacing[0] + 0.5;
+  res[1] = (y - origin[1]) / spacing[1] + 0.5;
+  res[2] = (z - origin[2]) / spacing[2] + 0.5;
+  return res;
+}
+
+//-----------------------------------------------------------------------------
 void VolumeExtent(EspinaVolume *volume, int extent[6])
 {
   EspinaVolume::SpacingType spacing = volume->GetSpacing();

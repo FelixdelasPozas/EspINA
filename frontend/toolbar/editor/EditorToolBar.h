@@ -21,29 +21,35 @@
 #define EDITORTOOLBAR_H
 
 #include <QToolBar>
-#include <common/gui/DynamicWidget.h>
-#include <editor/ContourWidget.h>
+#include <pluginInterfaces/IFactoryExtension.h>
+#include <pluginInterfaces/IFilterCreator.h>
 
-#include <common/editor/PencilSelector.h>
-#include <common/editor/ContourSelector.h>
-#include <common/model/Segmentation.h>
-#include <common/pluginInterfaces/FilterFactory.h>
-#include <common/selection/SelectionHandler.h>
+// EspINA
+#include "common/editor/BrushSelector.h"
+#include "common/model/Segmentation.h"
+#include "Brush.h"
 
-class FreeFormSource;
+class Channel;
+class ITool;
+class Brush;
+class ViewManager;
 class ActionSelector;
+class ContourSelector;
+class ContourWidget;
+class EspinaModel;
+class FreeFormSource;
 class QAction;
+class QUndoStack;
+class ModelItem;
 
 class EditorToolBar
 : public QToolBar
-, public DynamicWidget
-, public FilterFactory
+, public IFactoryExtension
+, public IFilterCreator
 {
   Q_OBJECT
-  Q_INTERFACES(FilterFactory)
+  Q_INTERFACES(IFactoryExtension IFilterCreator)
   class FreeFormCommand;
-  class DrawCommand;
-  class EraseCommand;
   class CODECommand;//CloseOpenDilateErode Command
 
 public:
@@ -51,41 +57,35 @@ public:
   class SettingsPanel;
 
 public:
-  explicit EditorToolBar(QWidget *parent = 0);
+  explicit EditorToolBar(EspinaModel *model,
+                         QUndoStack *undoStack,
+                         ViewManager *vm,
+                         QWidget *parent = 0);
 
-  virtual void setActivity(QString activity){}
-  virtual void setLOD(){}
-  virtual void decreaseLOD(){}
-  virtual void increaseLOD(){}
+  virtual void initFactoryExtension(EspinaFactory* factory);
 
   virtual Filter* createFilter(const QString filter,
                                Filter::NamedInputs inputs,
                                const ModelItem::Arguments args);
-
 protected slots:
-  void startDrawOperation(QAction*);
-  void drawSegmentation(SelectionHandler::MultiSelection msel);
-  void stopDrawing();
-  void stateChanged(PencilSelector::State state);
+  void changeDrawTool(QAction *);
+  void changeCircularBrushMode(Brush::BrushMode mode);
+  void changeSphericalBrushMode(Brush::BrushMode mode);
   void combineSegmentations();
   void substractSegmentations();
-  void erodeSegmentations();
-  void dilateSegmentations();
-  void openSegmentations();
   void closeSegmentations();
+  void openSegmentations();
+  void dilateSegmentations();
+  void erodeSegmentations();
   void fillHoles();
   void cancelDrawOperation();
+  void updateAvailableOperations();
 
   SegmentationList selectedSegmentations();
 
 private:
-  void startPencilDrawing();
-  void startContourDrawing();
-
-  ActionSelector *m_actionGroup;
-  QAction *m_pencilDisc;
-  QAction *m_pencilSphere;
-  QAction *m_contour;
+  ActionSelector *m_drawToolSelector;
+  QMap<QAction *, ITool *> m_drawTools;
   QAction *m_addition;
   QAction *m_substraction;
   QAction *m_erode;
@@ -95,11 +95,11 @@ private:
   QAction *m_fill;
   ContourWidget *m_contourWidget;
 
-  Settings       *m_settings;
-  PencilSelector *m_pencilSelector;
-  ContourSelector *m_contourSelector;
-  Filter         *m_currentSource;
-  Segmentation   *m_currentSeg;
+  EspinaModel *m_model;
+  QUndoStack  *m_undoStack;
+  ViewManager *m_viewManager;
+
+  Settings        *m_settings;
 };
 
 #endif // EDITORTOOLBAR_H

@@ -39,5 +39,6 @@ ADD_LATEX_DOCUMENT( espina-user-manual.tex  #your main file
 		  ../../frontend/rsc
 		  ../../frontend/toolbar/seedgrow/rsc
 		  ../../frontend/toolbar/voi/rsc
+		  ../../plugins/CountingRegion/rsc
 		DEFAULT_PDF
 		)

@@ -33,14 +33,14 @@ include_directories(
 ####### EspinaCore #########
 # Add extra library containing custom code for the client.
 qt4_wrap_cpp(CORE_MOC
-  EspinaCore.h
-  editor/PencilSelector.h
+  colorEngines/ColorEngine.h
+  editor/BrushSelector.h
   editor/CODESettings.h
   gui/ActionSelector.h
   gui/ActionSelectorWidget.h
-  gui/EspinaView.h
+  gui/EspinaRenderView.h
+  gui/Renderer.h
   gui/SliceView.h
-  gui/ViewManager.h
   gui/VolumeView.h
   gui/HueSelector.h
   model/EspinaModel.h
@@ -50,15 +50,12 @@ qt4_wrap_cpp(CORE_MOC
   model/proxies/ChannelProxy.h
   model/proxies/SampleProxy.h
   model/proxies/TaxonomyProxy.h
-  pluginInterfaces/Renderer.h
-  selection/SelectionHandler.h
-  selection/SelectionManager.h
-  settings/ColorEngineSettings.h
-  editor/ContourSelector.h
+  tools/IPicker.h
+  tools/BrushPicker.h
+  gui/ViewManager.h
   editor/ContourWidget.h
-  widgets/RectangularSelection.h
+  widgets/RectangularRegion.h
   editor/ContourSourceInspector.h
-  editor/ContourSource.h
   )
 
 qt4_wrap_ui (CORE_UI
@@ -69,11 +66,15 @@ qt4_wrap_ui (CORE_UI
 set (CORE_SOURCES
   ${CORE_MOC}
   ${CORE_UI}
-  EspinaCore.cpp
+  BoundingBox.cpp
   EspinaRegions.cpp
-  cache/CacheHash.cpp
+  colorEngines/MultiColorEngine.cpp
+  colorEngines/NumberColorEngine.cpp
+  colorEngines/TransparencySelectionHighlighter.cpp
+  colorEngines/TaxonomyColorEngine.cpp
+  colorEngines/UserColorEngine.cpp
   editor/CODESettings.cpp
-  editor/PencilSelector.cpp
+  editor/BrushSelector.cpp
   editor/ContourSelector.cpp
   editor/FillHolesFilter.cpp
   editor/FillHolesCommand.cpp
@@ -85,9 +86,8 @@ set (CORE_SOURCES
   editor/DilateFilter.cpp
   editor/ErodeFilter.cpp
   editor/ImageLogicFilter.cpp
-  editor/vtkImageLogicFilter.cpp
   editor/vtkTube.cxx
-  IO/FilePack.cpp
+  IO/EspinaIO.cpp
   extensions/Margins/MarginDetector.cpp
   extensions/Margins/MarginsChannelExtension.cpp
   extensions/Margins/MarginsSegmentationExtension.cpp
@@ -96,16 +96,10 @@ set (CORE_SOURCES
   extensions/SampleExtension.cpp
   gui/ActionSelector.cpp
   gui/ActionSelectorWidget.cpp
-  gui/DynamicWidget.cpp
-  gui/EspinaDockWidget.cpp
-  gui/EspinaView.cpp
+  gui/EspinaRenderView.cpp
   gui/SliceView.cpp
   gui/SliceViewState.cpp
   gui/vtkInteractorStyleEspinaSlice.cpp
-  gui/NumberColorEngine.cpp
-  gui/TaxonomyColorEngine.cpp
-  gui/UserColorEngine.cpp
-  gui/ViewFrame.cpp
   gui/ViewManager.cpp
   gui/VolumeView.cpp
   gui/HueSelector.cpp
@@ -127,10 +121,9 @@ set (CORE_SOURCES
   renderers/CrosshairRenderer.cpp
   renderers/VolumetricRenderer.cpp
   renderers/MeshRenderer.cpp
-  selection/PixelSelector.cpp
-  selection/SelectionHandler.cpp
-  selection/SelectionManager.cpp
-  settings/ColorEngineSettings.cpp
+  tools/PixelSelector.cpp
+  tools/BrushPicker.cpp
+  tools/IPicker.cpp
   settings/GeneralSettings.cpp
   undo/AddChannel.cpp
   undo/AddFilter.cpp
@@ -141,7 +134,7 @@ set (CORE_SOURCES
   widgets/vtkRectangularSliceRepresentation.cpp
   widgets/vtkRectangularSliceWidget.cpp
   widgets/EspinaWidget.cpp
-  widgets/RectangularSelection.cpp
+  widgets/RectangularRegion.cpp
   editor/ContourWidget.cpp
   editor/vtkPlaneContourWidget.cpp
   editor/vtkPlaneContourRepresentation.cpp

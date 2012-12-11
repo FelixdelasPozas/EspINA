@@ -18,7 +18,7 @@
 
 #include "SettingsPanel.h"
 
-#include <common/selection/PixelSelector.h>
+#include <common/tools/PixelSelector.h>
 #include "Settings.h"
 
 #include <QSettings>
@@ -33,7 +33,7 @@ SeedGrowSegmentation::SettingsPanel::SettingsPanel(SeedGrowSegmentation::Setting
   setupUi(this);
 
   connect(pixelValue,SIGNAL(valueChanged(int)),
-	  this, SLOT(displayColor(int)));
+          this, SLOT(displayColor(int)));
 
   pixelValue->setValue(settings->bestPixelValue());
   displayColor(pixelValue->value());

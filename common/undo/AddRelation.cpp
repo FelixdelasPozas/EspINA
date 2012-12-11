@@ -18,15 +18,17 @@
 
 
 #include "AddRelation.h"
-#include "common/EspinaCore.h"
 
+#include "common/model/EspinaModel.h"
 
 //------------------------------------------------------------------------
 AddRelation::AddRelation(ModelItem* ancestor,
 			 ModelItem* successor,
 			 const QString description,
+                         EspinaModel *model,
 			 QUndoCommand* parent)
 : QUndoCommand(parent)
+, m_model(model)
 , m_ancester(ancestor)
 , m_succesor(successor)
 , m_description(description)
@@ -34,26 +36,13 @@ AddRelation::AddRelation(ModelItem* ancestor,
 }
 
 //------------------------------------------------------------------------
-AddRelation::AddRelation(ModelItemPtr ancestor,
-			 ModelItemPtr successor,
-			 const QString description,
-			 QUndoCommand* parent)
-: QUndoCommand(parent)
-, m_ancester(ancestor.data())
-, m_succesor(successor.data())
-, m_description(description)
-{
-
-}
-
-//------------------------------------------------------------------------
 void AddRelation::redo()
 {
-  EspinaCore::instance()->model()->addRelation(m_ancester, m_succesor, m_description);
+  m_model->addRelation(m_ancester, m_succesor, m_description);
 }
 
 //------------------------------------------------------------------------
 void AddRelation::undo()
 {
-  EspinaCore::instance()->model()->removeRelation(m_ancester, m_succesor, m_description);
+  m_model->removeRelation(m_ancester, m_succesor, m_description);
 }

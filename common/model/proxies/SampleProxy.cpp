@@ -18,9 +18,12 @@
 
 #include "SampleProxy.h"
 
-#include <common/EspinaCore.h>
+// Espina
+#include "common/model/EspinaModel.h"
+#include "common/model/Sample.h"
 #include "common/model/Segmentation.h"
 
+// Qt
 #include <QPixmap>
 #include <QSet>
 
@@ -29,13 +32,13 @@ typedef QSet<ModelItem *> SegSet;
 //------------------------------------------------------------------------
 SampleProxy::SampleProxy(QObject* parent)
 : QAbstractProxyModel(parent)
+, m_model(NULL)
 {
 }
 
 //------------------------------------------------------------------------
 SampleProxy::~SampleProxy()
 {
-
 }
 
 //------------------------------------------------------------------------

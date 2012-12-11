@@ -17,13 +17,14 @@
 
 */
 
-#ifndef SAMPLEEDITOR_H
-#define SAMPLEEDITOR_H
+#ifndef CHANNELINSPECTOR_H
+#define CHANNELINSPECTOR_H
 
 #include <QDialog>
 #include "ui_ChannelInspector.h"
 
 class Channel;
+class ViewManager;
 
 class ChannelInspector
 : public QDialog
@@ -31,20 +32,18 @@ class ChannelInspector
 {
  Q_OBJECT
 public:
-  //static ChannelInspector *CreateInspector(Channel *channel);
   explicit ChannelInspector(Channel *channel,
-			    QWidget* parent = 0,
-			    Qt::WindowFlags f = 0);
-
+                            ViewManager *vm,
+                            QWidget *parent = 0,
+                            Qt::WindowFlags f = 0);
 
 public slots:
   void updateSpacing();
   void unitChanged(int unitIndex);
 
-protected:
 private:
-//   static QMap<Channel *, ChannelInspector *> m_inspectors;
-
-  Channel *m_channel;
+  Channel     *m_channel;
+  ViewManager *m_viewManager;
 };
-#endif // SAMPLEEDITOR_H
+
+#endif // CHANNELINSPECTOR_H

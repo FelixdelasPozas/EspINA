@@ -20,7 +20,7 @@
 #ifndef CROSSHAIRRENDERER_H
 #define CROSSHAIRRENDERER_H
 
-#include "common/pluginInterfaces/Renderer.h"
+#include "common/gui/Renderer.h"
 #include "common/EspinaTypes.h"
 
 #include <QMap>

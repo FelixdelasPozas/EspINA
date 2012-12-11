@@ -20,97 +20,86 @@
 #ifndef DEFAULTESPINAVIEW_H
 #define DEFAULTESPINAVIEW_H
 
-#include <common/gui/EspinaView.h>
-#include <common/EspinaTypes.h>
-#include <gui/VolumeView.h>
+#include <QAbstractItemView>
 
-class VolumeViewSettingsPanel;
+#include "common/EspinaTypes.h"
+#include "common/gui/SliceView.h"
+#include "common/gui/VolumeView.h"
+
+class EspinaFactory;
+// Forward-declaration
 class SliceViewSettingsPanel;
 class ColorEngine;
+class QMainWindow;
+class QDockWidget;
 class Segmentation;
-// Forward-declaration
-class SliceView;
-class VolumeView;
+class ViewManager;
+class VolumeViewSettingsPanel;
 
 class DefaultEspinaView
-: public EspinaView
+: public QAbstractItemView
 {
   Q_OBJECT
-
-  struct Widgtes
-  {
-    SliceWidget  *xy;
-    SliceWidget  *yz;
-    SliceWidget  *xz;
-    vtkAbstractWidget *vol;
-  };
-
   class SettingsPanel;
 
 public:
-  explicit DefaultEspinaView(QMainWindow* parent, const QString activity = QString());
+  explicit DefaultEspinaView(EspinaModel *model,
+                             ViewManager *vm,
+                             QMainWindow *parent=0
+                            );
   virtual ~DefaultEspinaView();
 
   virtual void createViewMenu(QMenu* menu);
-  virtual void restoreLayout();
-  virtual void saveLayout();
-
-  virtual void forceRender();
-  virtual void resetCamera();
-
-  virtual QSize sizeHint() const;
-
-  virtual void slicingStep(Nm steps[3]);
-  virtual void setSlicingStep(Nm steps[3]);
-
-  virtual void addWidget(EspinaWidget* widget);
-  virtual void removeWidget(EspinaWidget* widget);
-
-//   virtual void addRepresentation(pqOutputPort *oport, QColor color);
-//   virtual void removeRepresentation(pqOutputPort *oport);
-  
-  virtual void updateSegmentationRepresentations();
 
   virtual ISettingsPanel* settingsPanel();
 
-public slots:
-  virtual void setColorEngine(ColorEngine *engine);
-  virtual void showCrosshair(bool visible);
-  virtual void switchPreprocessing();
-  virtual void showSegmentations(bool visible);
-  virtual void showThumbnail(bool visible);
-
-  virtual void setCameraFocus(const Nm focus[3]);
-
-  virtual void setCrosshairPoint(Nm x, Nm y, Nm z, bool force = false);
-  virtual void setSliceSelectors(SliceView::SliceSelectors selectors);
-  virtual void changePlanePosition(PlaneType, Nm);
+  virtual QModelIndex indexAt(const QPoint& point) const
+  { return QModelIndex(); }
+  virtual void scrollTo(const QModelIndex& index, QAbstractItemView::ScrollHint hint = EnsureVisible){}
+  virtual QRect visualRect(const QModelIndex& index) const
+  { return QRect(); }
 
 protected:
-  void addChannelRepresentation(Channel *channel);
-  void removeChannelRepresentation(Channel *channel);
+  // AbstractItemView Interface
+  virtual QRegion visualRegionForSelection(const QItemSelection& selection) const {return QRegion();}
+  virtual void setSelection(const QRect& rect, QItemSelectionModel::SelectionFlags command) {}
+  virtual bool isIndexHidden(const QModelIndex& index) const {return true;}
+  virtual int verticalOffset() const {return 0;}
+  virtual int horizontalOffset() const {return 0;}
+  virtual QModelIndex moveCursor(QAbstractItemView::CursorAction cursorAction, Qt::KeyboardModifiers modifiers){return QModelIndex();}
+
+  void addChannel(Channel *channel);
+  void removeChannel(Channel *channel);
   bool updateChannel(Channel *channel);
 
   void addSegmentation(Segmentation *seg);
   void removeSegmentation(Segmentation *seg);
   bool updateSegmentation(Segmentation *seg);
 
-
 protected slots:
   virtual void rowsInserted(const QModelIndex& parent, int start, int end);
   virtual void rowsAboutToBeRemoved(const QModelIndex& parent, int start, int end);
   virtual void dataChanged(const QModelIndex& topLeft, const QModelIndex& bottomRight);
 
-  void setFitToSlices(bool fit);
+  void showCrosshair(bool visible);
   void setRulerVisibility(bool visible);
+  void showSegmentations(bool visible);
+  void showThumbnail(bool visible);
+  void switchPreprocessing();
+  void setFitToSlices(bool fit);
 
-  void selectFromSlice(double slice, PlaneType plane);
-  void selectToSlice(double slice, PlaneType plane);
+//  virtual void setCameraFocus(const Nm focus[3]);
+//
+ virtual void setCrosshairPoint(Nm x, Nm y, Nm z, bool force = false);
+//  virtual void setSliceSelectors(SliceView::SliceSelectors selectors);
+ virtual void changePlanePosition(PlaneType, Nm);
 
-  void channelSelected(Channel *channel);
-  void segmentationSelected(Segmentation *seg, bool append);
+protected:
+  /// Update XY, YZ, XZ and 3D View
+  void updateViews();
 
-  void updateSceneRanges();
+//   void selectFromSlice(double slice, PlaneType plane);
+//   void selectToSlice(double slice, PlaneType plane);
 
   void initSliceView(SliceView *view);
 
@@ -119,14 +108,12 @@ private:
   bool m_showSegmentations;
   Nm   m_slicingStep[3];
 
-  ColorEngine *m_colorEngine;
   SliceView  *xyView, *yzView, *xzView;
   VolumeView *volView;
   QDockWidget *volDock, *yzDock, *xzDock;
   QAction     *m_showRuler, *m_showThumbnail;
 
-  QList<Channel *> m_channels;
-  QMap<EspinaWidget *, Widgtes> m_widgets;
+  EspinaModel *m_model;
 };
 
 class DefaultEspinaView::SettingsPanel
@@ -134,9 +121,10 @@ class DefaultEspinaView::SettingsPanel
 {
 public:
   explicit SettingsPanel(SliceView::SettingsPtr xy,
-		        SliceView::SettingsPtr yz,
-		        SliceView::SettingsPtr xz,
-		        VolumeView::SettingsPtr vol);
+                         SliceView::SettingsPtr yz,
+                         SliceView::SettingsPtr xz,
+                         VolumeView::SettingsPtr vol,
+                         EspinaFactory *factory);
 
   virtual const QString shortDescription() {return tr("View");}
   virtual const QString longDescription() {return tr("%1 Settings").arg(shortDescription());}
@@ -149,8 +137,9 @@ public:
   virtual ISettingsPanel* clone();
 
 private:
-  Nm m_slicingStep;
   SliceView::SettingsPtr m_xy, m_yz, m_xz;
+  EspinaFactory *m_factory;
+  Nm m_slicingStep;
   SliceViewSettingsPanel *m_xyPanel, *m_yzPanel, *m_xzPanel;
   VolumeView::SettingsPtr m_vol;
   VolumeViewSettingsPanel *m_volPanel;

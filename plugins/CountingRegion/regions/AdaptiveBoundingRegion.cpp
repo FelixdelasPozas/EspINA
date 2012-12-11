@@ -53,9 +53,10 @@ const QString AdaptiveBoundingRegion::ID = "AdaptiveBoundingRegion";
 
 //-----------------------------------------------------------------------------
 AdaptiveBoundingRegion::AdaptiveBoundingRegion(CountingRegionChannelExtension *channelExt,
-					       Nm inclusion[3],
-					       Nm exclusion[3])
-: BoundingRegion(channelExt, inclusion, exclusion)
+                                               Nm inclusion[3],
+                                               Nm exclusion[3],
+                                               ViewManager *vm)
+: BoundingRegion(channelExt, inclusion, exclusion, vm)
 , m_channel(channelExt->channel())
 {
   m_boundingRegion = vtkPolyData::New();

@@ -18,35 +18,41 @@
 #ifndef SEGMHAIMPORTER_H
 #define SEGMHAIMPORTER_H
 
-#include <common/pluginInterfaces/FilterFactory.h>
-#include <common/pluginInterfaces/ReaderFactory.h>
+#include <common/pluginInterfaces/IFactoryExtension.h>
+#include <common/pluginInterfaces/IFilterCreator.h>
+#include <common/pluginInterfaces/IFileReader.h>
 #include <QUndoCommand>
 
 
 class Channel;
+class EspinaModel;
 class Sample;
 class Segmentation;
 class SegmhaImporterFilter;
+class ViewManager;
 
 /// Segmha Reader Plugin
 class SegmhaImporter
 : public QObject
-, public FilterFactory
-, public ReaderFactory
+, public IFactoryExtension
+, public IFileReader
+, public IFilterCreator
 {
   Q_OBJECT
-  Q_INTERFACES(FilterFactory ReaderFactory)
+  Q_INTERFACES(IFactoryExtension IFileReader IFilterCreator)
 
   class UndoCommand
   : public QUndoCommand
   {
   public:
     explicit UndoCommand(Sample *sample,
-			 Channel *channel,
-			 SegmhaImporterFilter *filter);
+                         Channel *channel,
+                         SegmhaImporterFilter *filter,
+                         EspinaModel *model);
     virtual void redo();
     virtual void undo();
   private:
+    EspinaModel          *m_model;
     Sample               *m_sample;
     Channel              *m_channel;
     SegmhaImporterFilter *m_filter;
@@ -57,10 +63,22 @@ public:
   explicit SegmhaImporter();
   virtual ~SegmhaImporter(){}
 
+  virtual void initFactoryExtension(EspinaFactory* factory);
+
   virtual Filter* createFilter(const QString filter,
-			       Filter::NamedInputs inputs,
-			       const ModelItem::Arguments args);
+                               Filter::NamedInputs inputs,
+                               const ModelItem::Arguments args);
+
+  virtual void initFileReader(EspinaModel* model,
+                              QUndoStack* undoStack,
+                              ViewManager* vm);
+
   virtual bool readFile(const QFileInfo file);
+
+private:
+  EspinaModel *m_model;
+  QUndoStack  *m_undoStack;
+  ViewManager *m_viewManager;
 };
 
 #endif// SEGMHAIMPORTER_H

@@ -19,11 +19,10 @@
 
 #include "ImageLogicCommand.h"
 
-#include <EspinaCore.h>
-
-#include <common/model/Channel.h>
-#include <model/EspinaFactory.h>
-#include <selection/SelectionManager.h>
+#include "common/model/Channel.h"
+#include "common/model/Segmentation.h"
+#include "common/model/EspinaFactory.h"
+#include <model/EspinaModel.h>
 
 const QString INPUTLINK     = "Input";
 const QString MERGELINK     = "Merge";
@@ -31,8 +30,11 @@ const QString SUBSTRACTLINK = "Substract";
 
 //----------------------------------------------------------------------------
 ImageLogicCommand::ImageLogicCommand(QList<Segmentation *> segmentations,
-                                     ImageLogicFilter::Operation op)
-: m_input(segmentations)
+                                     ImageLogicFilter::Operation op,
+                                     EspinaModel *model,
+                                     TaxonomyElement *taxonomy)
+: m_model(model)
+, m_input(segmentations)
 , m_op(op)
 {
   Filter::NamedInputs inputs;
@@ -49,8 +51,8 @@ ImageLogicCommand::ImageLogicCommand(QList<Segmentation *> segmentations,
   params.setOperation(op);
   m_filter = new ImageLogicFilter(inputs, args);
   m_filter->update();
-  m_seg = EspinaFactory::instance()->createSegmentation(m_filter, 0);
-  m_tax = SelectionManager::instance()->activeTaxonomy();
+  m_seg = m_model->factory()->createSegmentation(m_filter, 0);
+  m_tax = taxonomy;
 }
 
 //----------------------------------------------------------------------------
@@ -75,8 +77,6 @@ const QString ImageLogicCommand::link(Segmentation* seg)
 void ImageLogicCommand::redo()
 {
   //TODO: Combine segmentations from different channels
-  QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
-
   QSet<Channel *> channels;
   foreach(Segmentation *seg, m_input)
   {
@@ -89,7 +89,7 @@ void ImageLogicCommand::redo()
     }
   }
   // Add new filter
-  model->addFilter(m_filter);
+  m_model->addFilter(m_filter);
   QList<Segmentation *> oldSegmentations;
   foreach(SegInfo info, m_infoList)
   {
@@ -97,26 +97,26 @@ void ImageLogicCommand::redo()
     Q_ASSERT(segFilter.size() == 1);
     ModelItem *item = segFilter[0];
     Q_ASSERT(ModelItem::FILTER == item->type());
-    model->addRelation(item, m_filter, link(info.segmentation));
+    m_model->addRelation(item, m_filter, link(info.segmentation));
     // Remove Segmentation Relations
     foreach(ModelItem::Relation rel, info.relations)
     {
-      model->removeRelation(rel.ancestor, rel.succesor, rel.relation);
+      m_model->removeRelation(rel.ancestor, rel.succesor, rel.relation);
     }
     oldSegmentations << info.segmentation;
   }
   // Remove old segmentation nodes
-  model->removeSegmentation(oldSegmentations);
+  m_model->removeSegmentation(oldSegmentations);
 
   // Add new segmentation
   m_seg->setTaxonomy(m_tax);
-  model->addSegmentation(m_seg);
+  m_model->addSegmentation(m_seg);
   foreach(Channel *channel, channels)
   {
     Sample *sample = channel->sample();
-    model->addRelation(m_filter, m_seg, CREATELINK);
-    model->addRelation(sample, m_seg, "where");
-    model->addRelation(channel, m_seg, Channel::LINK);
+    m_model->addRelation(m_filter, m_seg, CREATELINK);
+    m_model->addRelation(sample, m_seg, "where");
+    m_model->addRelation(channel, m_seg, Channel::LINK);
   }
   m_seg->initializeExtensions();
 }
@@ -124,31 +124,29 @@ void ImageLogicCommand::redo()
 //----------------------------------------------------------------------------
 void ImageLogicCommand::undo()
 {
-  QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
-
   // Remove merge segmentation
   foreach(ModelItem::Relation relation,  m_seg->relations())
   {
-    model->removeRelation(relation.ancestor, relation.succesor, relation.relation);
+    m_model->removeRelation(relation.ancestor, relation.succesor, relation.relation);
   }
-  model->removeSegmentation(m_seg);
+  m_model->removeSegmentation(m_seg);
 
   // Remove filter
   foreach(ModelItem::Relation relation,  m_filter->relations())
   {
-    model->removeRelation(relation.ancestor, relation.succesor, relation.relation);
+    m_model->removeRelation(relation.ancestor, relation.succesor, relation.relation);
   }
-  model->removeFilter(m_filter);
+  m_model->removeFilter(m_filter);
 
   // Restore input segmentation
   // First we need to restore all segmentations, just in case there are
   // relations between segmentations
-  model->addSegmentation(m_input);
+  m_model->addSegmentation(m_input);
   foreach(SegInfo info, m_infoList)
   {
     foreach(ModelItem::Relation rel, info.relations)
     {
-      model->addRelation(rel.ancestor, rel.succesor, rel.relation);
+      m_model->addRelation(rel.ancestor, rel.succesor, rel.relation);
     }
   }
 }

@@ -20,13 +20,15 @@
 #ifndef ESPinaFACTORY_H
 #define ESPinaFACTORY_H
 
+#include "common/model/Filter.h"
 #include "common/extensions/ChannelExtension.h"
 #include "common/extensions/SegmentationExtension.h"
 #include "common/extensions/SampleExtension.h"
 #include "common/model/Channel.h"
 #include "common/model/Sample.h"
-#include "common/pluginInterfaces/FilterFactory.h"
-#include "common/pluginInterfaces/ReaderFactory.h"
+
+class IFileReader;
+class IFilterCreator;
 
 const QString CHANNEL_FILES = QObject::tr("Channel Files (*.mha *.mhd *.tif *.tiff)");
 const QString SEG_FILES     = QObject::tr("Espina Analysis (*.seg)");
@@ -36,14 +38,15 @@ class ISettingsPanel;
 class EspinaFactory
 {
 public:
-  static EspinaFactory *instance();
+  explicit EspinaFactory();
+  ~EspinaFactory();
 
   QStringList supportedFiles() const;
 
-  void registerFilter(const QString filter, FilterFactory *factory);
-  void registerReaderFactory(ReaderFactory *readerFactory,
-			     const QString description,
-			     const QStringList extensions);
+  void registerFilter(IFilterCreator *creator, const QString filter);
+  void registerReaderFactory(IFileReader *reader,
+                             const QString description,
+                             const QStringList extensions);
   void registerSampleExtension(SampleExtension::SPtr extension);
   void registerChannelExtension(ChannelExtension::SPtr extension);
   void registerSegmentationExtension(SegmentationExtension::SPtr extension);
@@ -56,22 +59,20 @@ public:
   Filter  *createFilter (const QString filter,
                          Filter::NamedInputs inputs,
                          const ModelItem::Arguments args);
+  bool readFile(const QString file, const QString ext);
+
   Sample  *createSample (const QString id, const QString args = "");
   Channel *createChannel(Filter *filter, OutputNumber output);
   Segmentation *createSegmentation(Filter* parent, OutputNumber output);
 
-  bool readFile(const QString file, const QString ext);
 
 private:
-  EspinaFactory();
+  QMap<QString, IFilterCreator *>    m_filterCreators;
+  QMap<QString, IFileReader    *>    m_fileReaders;
 
-  static EspinaFactory *m_instance;
-
-  QMap<QString, FilterFactory *>     m_filterFactory;
   QList<SegmentationExtension::SPtr> m_segExtensions;
   QList<SampleExtension::SPtr>       m_sampleExtensions;
   QList<ChannelExtension::SPtr>      m_channelExtensions;
-  QMap<QString, ReaderFactory *>     m_readers;
   QList<ISettingsPanel *>            m_settingsPanels;
   QMap<QString, Renderer *>          m_renderers;
   QStringList                        m_supportedFiles;

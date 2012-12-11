@@ -20,12 +20,13 @@
 #ifndef MESHRENDERER_H
 #define MESHRENDERER_H
 
-#include "common/pluginInterfaces/Renderer.h"
+#include "common/gui/Renderer.h"
 
 #include <QMap>
 #include <vtkActor.h>
 
 class ModelItem;
+class ViewManager;
 class vtkImageConstantPad;
 
 class MeshRenderer: public Renderer
@@ -38,8 +39,9 @@ class MeshRenderer: public Renderer
     QColor color;
     int extent[6];
   };
-
 public:
+  explicit MeshRenderer(ViewManager *vm, QObject* parent = 0);
+
   virtual const QIcon icon() const {return QIcon(":/espina/mesh.png");}
   virtual const QString name() const {return "Mesh";}
   virtual const QString tooltip() const {return "Segmentation's Meshes";}
@@ -52,9 +54,10 @@ public:
   virtual void show();
   virtual unsigned int getNumberOfvtkActors();
 
-  virtual Renderer* clone() {return new MeshRenderer();}
+  virtual Renderer* clone() {return new MeshRenderer(m_viewManager);}
 
 private:
+  ViewManager *m_viewManager;
   QMap<ModelItem *, Representation> m_segmentations;
 };
 

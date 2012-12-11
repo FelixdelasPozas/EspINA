@@ -526,6 +526,20 @@ void vtkPlaneContourRepresentation::SetNthNodeWorldPositionInternal(int n, doubl
   this->Internal->Nodes[n]->WorldPosition[1] = worldPos[1];
   this->Internal->Nodes[n]->WorldPosition[2] = worldPos[2];
 
+  switch(this->Orientation)
+  {
+    case AXIAL:
+      this->Internal->Nodes[n]->WorldPosition[this->Orientation] = -0.1;
+      break;
+    case CORONAL:
+    case SAGITTAL:
+      this->Internal->Nodes[n]->WorldPosition[this->Orientation] = 0.1;
+      break;
+    default:
+      Q_ASSERT(false);
+      break;
+  }
+
   this->GetRendererComputedDisplayPositionFromWorldPosition(worldPos, worldOrient, this->Internal->Nodes[n]->NormalizedDisplayPosition);
   this->Renderer->DisplayToNormalizedDisplay(this->Internal->Nodes[n]->NormalizedDisplayPosition[0], this->Internal->Nodes[n]->NormalizedDisplayPosition[1]);
 
@@ -1252,6 +1266,7 @@ bool vtkPlaneContourRepresentation::CheckAndCutContourIntersectionInFinalPoint(v
 {
   double intersection[3];
   int node;
+  bool previousNode = false;
 
   // get a unique list of points
   RemoveDuplicatedNodes();
@@ -1259,18 +1274,27 @@ bool vtkPlaneContourRepresentation::CheckAndCutContourIntersectionInFinalPoint(v
   int lastNode = this->GetNumberOfNodes()-1;
 
   // segment (lastNode-1, lastNode)
-  if (this->LineIntersection(lastNode - 1, intersection, &node))
+  if (this->LineIntersection(lastNode - 1, intersection, &node, &previousNode))
   {
     // delete useless nodes
     for (int j = 0; j <= node; j++)
       this->DeleteNthNode(0);
 
+    if (previousNode)
+    {
+      this->DeleteLastNode();
+      previousNode = false;
+    }
+
     // repeat the process to detect spiral-like contours (contours with multiple intersections of the (n-2,n-1) segment)
     lastNode = this->GetNumberOfNodes()-1;
-    while (this->LineIntersection(lastNode - 1, intersection, &node))
+    while (this->LineIntersection(lastNode - 1, intersection, &node, &previousNode))
     {
       for (int j = 0; j <= node; j++)
         this->DeleteNthNode(0);
+
+      if (previousNode)
+        this->DeleteLastNode();
 
       lastNode = this->GetNumberOfNodes()-1;
     }
@@ -1284,16 +1308,26 @@ bool vtkPlaneContourRepresentation::CheckAndCutContourIntersectionInFinalPoint(v
   }
 
   // segment (lastNode,0)
-  if (this->LineIntersection(lastNode, intersection, &node))
+  previousNode = false;
+  if (this->LineIntersection(lastNode, intersection, &node, &previousNode))
   {
     for (int j = this->GetNumberOfNodes() - 1; j > node; j--)
       this->DeleteLastNode();
 
+    if (previousNode)
+    {
+      this->DeleteLastNode();
+      previousNode = false;
+    }
+
     // repeat the process to detect spiral-like contours (contours with multiple intersections of the (n-1,0) segment)
     lastNode = this->GetNumberOfNodes()-1;
-    while (this->LineIntersection(lastNode, intersection, &node))
+    while (this->LineIntersection(lastNode, intersection, &node, &previousNode))
     {
       for (int j = this->GetNumberOfNodes() - 1; j > node; j--)
+        this->DeleteLastNode();
+
+      if (previousNode)
         this->DeleteLastNode();
 
       lastNode = this->GetNumberOfNodes()-1;
@@ -1330,18 +1364,28 @@ bool vtkPlaneContourRepresentation::CheckAndCutContourIntersection(void)
   int lastNode = (this->CheckNodesForDuplicates(this->GetNumberOfNodes()-1, this->GetNumberOfNodes()-2) ? this->GetNumberOfNodes()-2 : this->GetNumberOfNodes()-1);
 
   // segment (n-1,0)
-  if (this->LineIntersection(lastNode-1, intersection, &node))
+  bool previousNode = false;
+  if (this->LineIntersection(lastNode-1, intersection, &node, &previousNode))
   {
     // delete useless nodes
     for (int j = 0; j <= node; j++)
       this->DeleteNthNode(0);
 
+    if (previousNode)
+    {
+      this->DeleteLastNode();
+      previousNode = false;
+    }
+
     // repeat the process to detect spiral-like contours (contours with multiple intersections of the (n-2,n-1) segment)
     lastNode = (this->CheckNodesForDuplicates(this->GetNumberOfNodes()-1, this->GetNumberOfNodes()-2) ? this->GetNumberOfNodes()-2 : this->GetNumberOfNodes()-1);
-    while (LineIntersection(lastNode-1, intersection, &node))
+    while (LineIntersection(lastNode-1, intersection, &node, &previousNode))
     {
       for (int j = 0; j <= node; j++)
         this->DeleteNthNode(0);
+
+      if (previousNode)
+        this->DeleteLastNode();
 
       lastNode = (this->CheckNodesForDuplicates(this->GetNumberOfNodes()-1, this->GetNumberOfNodes()-2) ? this->GetNumberOfNodes()-2 : this->GetNumberOfNodes()-1);
     }
@@ -1357,6 +1401,7 @@ bool vtkPlaneContourRepresentation::CheckAndCutContourIntersection(void)
     this->NeedToRender = 1;
     return true;
   }
+
   return false;
 }
 
@@ -1377,7 +1422,7 @@ bool vtkPlaneContourRepresentation::CheckContourIntersection(int nodeA)
   return false;
 }
 
-bool vtkPlaneContourRepresentation::LineIntersection(int n, double *intersection, int *intersectionNode)
+bool vtkPlaneContourRepresentation::LineIntersection(int n, double *intersection, int *intersectionNode, bool *previous)
 {
   int node = n;
   int numNodes = this->GetNumberOfNodes() - 1;
@@ -1409,13 +1454,38 @@ bool vtkPlaneContourRepresentation::LineIntersection(int n, double *intersection
     if ((node == i) || (previousNode == i))
       continue;
 
+    if (NodesIntersection(previousNode, i) && (i != previousNode-1))
+    {
+      this->GetNthNodeWorldPosition(previousNode, p1);
+      this->GetNthNodeWorldPosition(node, p2);
+
+      int j = i + 1 ;
+      this->GetNthNodeWorldPosition(i, p3);
+      this->GetNthNodeWorldPosition(j % numNodes, p4);
+      while ((p3[0] == p4[0]) && (p3[1] == p4[1]) && (p3[2] == p4[2]))
+      {
+        j++;
+        this->GetNthNodeWorldPosition(j  % numNodes, p4);
+      }
+      vtkLine::Intersection(p1, p2, p3, p4, u, v);
+      *intersectionNode = i;
+      intersection[0] = p1[0] + u * (p2[0] - p1[0]);
+      intersection[1] = p1[1] + u * (p2[1] - p1[1]);
+      intersection[2] = p1[2] + u * (p2[2] - p1[2]);
+      *previous = true;
+      return true;
+    }
+
     if (NodesIntersection(node,i))
     {
-      int tempNode = i + 1 ;
+      int j = i + 1 ;
       this->GetNthNodeWorldPosition(i, p3);
-      this->GetNthNodeWorldPosition(tempNode++ % numNodes, p4);
+      this->GetNthNodeWorldPosition(j % numNodes, p4);
       while ((p3[0] == p4[0]) && (p3[1] == p4[1]) && (p3[2] == p4[2]))
-        this->GetNthNodeWorldPosition((tempNode++) % numNodes, p4);
+      {
+        j++;
+        this->GetNthNodeWorldPosition(j  % numNodes, p4);
+      }
 
       vtkLine::Intersection(p1, p2, p3, p4, u, v);
       *intersectionNode = i;
@@ -1559,19 +1629,6 @@ bool vtkPlaneContourRepresentation::NodesIntersection(int nodeA, int nodeC)
   this->GetNthNodeWorldPosition(nodeC, c);
   this->GetNthNodeWorldPosition(nodeD, d);
 
-  // there could be one duplicated node, the cursor node. take that into account
-  while ((a[0] == b[0]) && (a[1] == b[1]) && (a[2] == b[2]))
-  {
-    nodeB = (nodeB + 1) % this->GetNumberOfNodes();
-    this->GetNthNodeWorldPosition(nodeB, b);
-  }
-
-  while ((c[0] == d[0]) && (c[1] == d[1]) && (c[2] == d[2]))
-  {
-    nodeD = (nodeD + 1) % this->GetNumberOfNodes();
-    this->GetNthNodeWorldPosition(nodeD, d);
-  }
-
   // NOTE: from now on we'll only use [0] and [1] (we're working in a plane)
   switch(this->Orientation)
   {
@@ -1703,10 +1760,10 @@ bool vtkPlaneContourRepresentation::NodesIntersection(int nodeA, int nodeC)
 
   // nMitc[0] = numerator_of_M_inverse_times_c0
   // nMitc[1] = numerator_of_M_inverse_times_c1
-  double nMitc[2] = { (c[0] - a[0]) * (d[1] - c[1]) + (c[1] - a[1]) * (c[0] - d[0]), (c[0] - a[0]) * (a[1] - b[1]) + (c[1] - a[1]) * (b[0] - a[0]) };
+  double nMitc[2] = { ((c[0] - a[0]) * (d[1] - c[1])) + ((c[1] - a[1]) * (c[0] - d[0])), ((c[0] - a[0]) * (a[1] - b[1])) + ((c[1] - a[1]) * (b[0] - a[0])) };
 
   // true if an intersection between two non-parallel lines occurs between the given segment double *s.
-  return ((0 <= nMitc[0] && nMitc[0] <= det) && (0 >= nMitc[1] && nMitc[1] >= -det)) || ((0 >= nMitc[0] && nMitc[0] >= det) && (0 <= nMitc[1] && nMitc[1] <= -det));
+  return (((0 <= nMitc[0]) && (nMitc[0] <= det)) && ((0 >= nMitc[1]) && (nMitc[1] >= -det))) || (((0 >= nMitc[0]) && (nMitc[0] >= det)) && ((0 <= nMitc[1]) && (nMitc[1] <= -det)));
 }
 
 void vtkPlaneContourRepresentation::TranslatePoints(double *vector)

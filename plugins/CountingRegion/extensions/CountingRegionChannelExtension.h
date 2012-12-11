@@ -24,6 +24,7 @@
 
 class BoundingRegion;
 class CountingRegion;
+class ViewManager;
 
 class CountingRegionChannelExtension
 : public ChannelExtension
@@ -32,7 +33,7 @@ public:
   static const ExtId ID;
   static const ModelItem::ArgumentId REGIONS;
 
-  explicit CountingRegionChannelExtension(CountingRegion *plugin);;
+  explicit CountingRegionChannelExtension(CountingRegion *plugin, ViewManager *vm);
   virtual ~CountingRegionChannelExtension();
 
   virtual ModelItemExtension::ExtId id()
@@ -60,6 +61,7 @@ public:
 
 private:
   CountingRegion         *m_plugin;
+  ViewManager            *m_viewManager;
   QList<BoundingRegion *> m_regions;
   mutable ModelItem::Arguments    m_args;
 };

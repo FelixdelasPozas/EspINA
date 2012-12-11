@@ -20,14 +20,15 @@
 #include "TaxonomyExplorer.h"
 #include <ui_TaxonomyExplorer.h>
 
+// EspINA
 #include "common/model/EspinaModel.h"
 #include "common/model/Taxonomy.h"
-#include <EspinaCore.h>
-#include <gui/TaxonomyColorEngine.h>
+#include <model/Segmentation.h>
+#include "common/gui/ViewManager.h"
 
+// Qt
 #include <QColorDialog>
-#include <QSortFilterProxyModel>
-
+#include <QMessageBox>
 
 //------------------------------------------------------------------------
 class TaxonomyExplorer::GUI
@@ -39,15 +40,20 @@ public:
 };
 
 //------------------------------------------------------------------------
-TaxonomyExplorer::TaxonomyExplorer(QSharedPointer<EspinaModel> model, QWidget* parent)
-: EspinaDockWidget(parent)
+TaxonomyExplorer::TaxonomyExplorer(EspinaModel* model,
+                                   ViewManager* vm,
+                                   TaxonomyColorEnginePtr engine,
+                                   QWidget* parent)
+: QDockWidget(parent)
 , m_gui(new GUI())
 , m_baseModel(model)
+, m_viewManager(vm)
+, m_engine(engine)
 , m_sort(new QSortFilterProxyModel())
 {
   setWindowTitle(tr("Taxonomy Explorer"));
   setObjectName("TaxonomyExplorer");
-  m_sort->setSourceModel(m_baseModel.data());
+  m_sort->setSourceModel(m_baseModel);
   m_sort->setDynamicSortFilter(true);
   m_gui->treeView->setModel(m_sort.data());
   m_gui->treeView->setRootIndex(m_sort->mapFromSource(m_baseModel->taxonomyRoot()));
@@ -68,7 +74,7 @@ TaxonomyExplorer::TaxonomyExplorer(QSharedPointer<EspinaModel> model, QWidget* p
 //------------------------------------------------------------------------
 TaxonomyExplorer::~TaxonomyExplorer()
 {
-
+  delete m_gui;
 }
 
 //------------------------------------------------------------------------
@@ -109,11 +115,10 @@ void TaxonomyExplorer::changeColor()
                          Qt::DecorationRole);
     ModelItem *item = indexPtr(index);
     Q_ASSERT(ModelItem::TAXONOMY == item->type());
-    TaxonomyNode *tax = dynamic_cast<TaxonomyNode *>(item);
-    TaxonomyColorEngine::instance()->updateTaxonomyColor(tax);
-    //TODO: Make volumetric/mesh renderers use color engine luts
-    //      so updating the lut will result in updating the view
-    EspinaCore::instance()->colorSettings().setColorEngine(TaxonomyColorEngine::instance());
+    TaxonomyElement *tax = dynamic_cast<TaxonomyElement *>(item);
+    m_engine->updateTaxonomyColor(tax);
+    m_viewManager->updateSegmentationRepresentations();
+    m_viewManager->updateViews();
   }
 }
 
@@ -123,6 +128,27 @@ void TaxonomyExplorer::removeSelectedTaxonomy()
   if (m_gui->treeView->currentIndex().isValid())
   {
     QModelIndex index = m_sort->mapToSource(m_gui->treeView->currentIndex());
-    m_baseModel->removeTaxonomyElement(index);
+    ModelItem *item = indexPtr(index);
+    TaxonomyElement *tax = dynamic_cast<TaxonomyElement *>(item);
+
+    if (tax->subElements().isEmpty())
+    {
+      bool inUse = false;
+      int i = 0;
+      while (!inUse && i < m_baseModel->segmentations().size())
+	inUse = m_baseModel->segmentations()[i++]->taxonomy() == tax;
+
+      if (!inUse)
+	m_baseModel->removeTaxonomyElement(index);
+      else
+	QMessageBox::warning(this,
+			     tr("Couldn't Remove Taxonomy's Element"),
+			     tr("Selected taxonomical element is assigned to a segmentation."));
+    }
+    else
+      QMessageBox::warning(this,
+			   tr("Couldn't Remove Taxonomy's Element"),
+			   tr("Other taxonomical elements depend on this taxonomy's element.\n"
+			   "If you want to remove it, remove dependent taxonomies first."));
   }
 }

@@ -432,7 +432,7 @@ class VTK_WIDGETS_EXPORT vtkPlaneContourRepresentation : public vtkContourRepres
     double FindClosestDistanceToContour(int, int);
 
     // helper methods
-    bool LineIntersection(int, double *, int*);
+    bool LineIntersection(int, double *, int*, bool *);
     void RemoveDuplicatedNodes();
     bool NodesIntersection(int, int);
     void TranslatePoints(double *);

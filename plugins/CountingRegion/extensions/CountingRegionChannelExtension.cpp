@@ -28,8 +28,7 @@
 #include <common/model/Sample.h>
 #include <common/model/Channel.h>
 #include <common/extensions/Margins/MarginsSegmentationExtension.h>
-#include <common/EspinaCore.h>
-#include <common/gui/EspinaView.h>
+#include <common/gui/ViewManager.h>
 
 #include <QDebug>
 
@@ -40,8 +39,10 @@ const ModelItemExtension::ExtId CountingRegionChannelExtension::ID = "CountingRe
 const ArgumentId CountingRegionChannelExtension::REGIONS = "Regions";
 
 //-----------------------------------------------------------------------------
-CountingRegionChannelExtension::CountingRegionChannelExtension(CountingRegion* plugin)
+CountingRegionChannelExtension::CountingRegionChannelExtension(CountingRegion* plugin,
+                                                               ViewManager *vm)
 : m_plugin(plugin)
+, m_viewManager(vm)
 {
 
 }
@@ -75,7 +76,9 @@ void CountingRegionChannelExtension::initialize(ModelItem::Arguments args)
     else if (AdaptiveBoundingRegion::ID == type)
       m_plugin->createAdaptiveRegion(m_channel, inclusion, exclusion);
   }
-  EspinaCore::instance()->viewManger()->currentView()->updateSegmentationRepresentations();
+
+  m_viewManager->updateSegmentationRepresentations();
+  m_viewManager->updateViews();
 }
 
 //-----------------------------------------------------------------------------
@@ -100,7 +103,7 @@ ModelItemExtension::ExtIdList CountingRegionChannelExtension::dependencies() con
 //-----------------------------------------------------------------------------
 ChannelExtension* CountingRegionChannelExtension::clone()
 {
-  return new CountingRegionChannelExtension(m_plugin);
+  return new CountingRegionChannelExtension(m_plugin, m_viewManager);
 }
 
 //-----------------------------------------------------------------------------
@@ -122,7 +125,8 @@ void CountingRegionChannelExtension::addRegion(BoundingRegion* region)
       segExt->setBoundingRegions(m_regions);
     }
   }
-  EspinaCore::instance()->viewManger()->currentView()->updateSegmentationRepresentations();
+  m_viewManager->updateSegmentationRepresentations();
+  m_viewManager->updateViews();
 }
 
 //-----------------------------------------------------------------------------
@@ -144,6 +148,6 @@ void CountingRegionChannelExtension::removeRegion(BoundingRegion* region)
       segExt->setBoundingRegions(m_regions);
     }
   }
-  EspinaCore::instance()->viewManger()->currentView()->updateSegmentationRepresentations();
+  m_viewManager->updateSegmentationRepresentations();
+  m_viewManager->updateViews();
 }
-

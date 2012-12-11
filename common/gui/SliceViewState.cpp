@@ -56,8 +56,9 @@ void SliceView::AxialState::setSlicingPosition(vtkMatrix4x4* matrix, double valu
 //-----------------------------------------------------------------------------
 void SliceView::AxialState::updateCamera(vtkCamera* camera, double center[3])
 {
-  camera->SetPosition (center[0], center[1], -1);
-  camera->SetFocalPoint(center[0], center[1], 0);
+  // and the award to the weirdest camera position goes to....
+  camera->SetPosition(center[0], center[1], ((center[2] < 1) ? (center[2]-1) : (-center[2]+1)));
+  camera->SetFocalPoint(center[0], center[1], center[2]);
   camera->SetRoll(180);
 }
 

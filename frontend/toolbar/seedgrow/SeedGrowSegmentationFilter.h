@@ -30,6 +30,7 @@
 #include <itkBinaryMorphologicalClosingImageFilter.h>
 #include <itkExtractImageFilter.h>
 
+class ViewManager;
 class vtkImageData;
 class vtkConnectedThresholdImageFilter;
 
@@ -39,7 +40,7 @@ class SeedGrowSegmentationFilter
 : public Filter
 {
   Q_OBJECT
-  class SetupWidget;
+  class FilterInspector;
   typedef itk::ExtractImageFilter<EspinaVolume, EspinaVolume> ExtractType;
   typedef itk::ConnectedThresholdImageFilter<EspinaVolume, EspinaVolume> ConnectedThresholdFilterType;
   typedef itk::StatisticsLabelObject<unsigned int, 3> LabelObjectType;
@@ -50,6 +51,7 @@ class SeedGrowSegmentationFilter
 
 public:
   static const QString TYPE;
+  static const QString INPUTLINK;
 
   static const ModelItem::ArgumentId SEED;
   static const ModelItem::ArgumentId LTHRESHOLD;
@@ -65,9 +67,9 @@ public:
     void setSeed(EspinaVolume::IndexType seed)
     {
       m_args[SEED] = QString("%1,%2,%3")
-                     .arg(seed[0])
-		     .arg(seed[1])
-		     .arg(seed[2]);
+                            .arg(seed[0])
+                            .arg(seed[1])
+                            .arg(seed[2]);
     }
     EspinaVolume::IndexType seed() const
     {
@@ -114,7 +116,6 @@ public:
                                       Arguments args);
   virtual ~SeedGrowSegmentationFilter();
 
-
   void setLowerThreshold(int th);
   int lowerThreshold() const {return m_param.lowerThreshold();}
   void setUpperThreshold(int th);
@@ -141,7 +142,7 @@ public:
   virtual void releaseDataFlagOff();
   virtual bool prefetchFilter();
 
-  virtual QWidget* createConfigurationWidget();
+  virtual QWidget* createFilterInspector(QUndoStack* undoStack, ViewManager* vm);
 
 protected:
   virtual void run();
@@ -157,7 +158,7 @@ private:
   Image2LabelFilterType::Pointer image2label;
   bmcifType::Pointer bmcif;
 
-  friend class SetupWidget;
+  friend class FilterInspector;
 };
 
 #endif // SEEDGROWSEGMENTATIONFILTER_H

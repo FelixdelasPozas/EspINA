@@ -29,6 +29,7 @@ qt4_add_resources(RCC_BUILT_SOURCES
 
 # Create header's MOC files
 qt4_wrap_cpp (MOC_BUILT_SOURCES
+  ColorEngineMenu.h
   EspinaWindow.h
   SettingsDialog.h
   docks/DataView/DataView.h
@@ -40,21 +41,22 @@ qt4_wrap_cpp (MOC_BUILT_SOURCES
   docks/SegmentationExplorer.h
   docks/SegmentationInspector.h
   docks/TaxonomyExplorer.h
-  toolbar/MainToolBar.h
+  toolbar/main/MainToolBar.h
+  toolbar/main/SegRemover.h
+  toolbar/editor/Brush.h
   toolbar/editor/EditorToolBar.h
   toolbar/seedgrow/SeedGrowSegmentation.h
   toolbar/seedgrow/SeedGrowSegmentationFilter.h
-  toolbar/seedgrow/SeedGrowSelector.h
+  toolbar/seedgrow/SeedGrowSegmentationTool.h
   toolbar/seedgrow/SettingsPanel.h
-  toolbar/seedgrow/SetupWidget.h
+  toolbar/seedgrow/FilterInspector.h
   toolbar/seedgrow/gui/DefaultVOIAction.h
   toolbar/seedgrow/gui/ThresholdAction.h
   toolbar/editor/SettingsPanel.h
   toolbar/voi/VolumeOfInterest.h
-  toolbar/LODToolBar.h
+  toolbar/voi/RectangularVOI.h
   views/DefaultEspinaView.h
   views/SliceViewSettingsPanel.h
-  views/VolumeViewSettingsPanel.h
   )
 
 # Create Interface files
@@ -66,7 +68,7 @@ qt4_wrap_ui (UI_BUILT_SOURCES
   docks/SegmentationExplorer.ui
   docks/SegmentationInspector.ui
   docks/TaxonomyExplorer.ui
-  toolbar/seedgrow/SetupWidget.ui
+  toolbar/seedgrow/FilterInspector.ui
   toolbar/seedgrow/SettingsPanel.ui
   toolbar/editor/EditorToolBarSettingsPanel.ui
   views/SliceViewSettingsPanel.ui
@@ -93,20 +95,26 @@ set (DOCKS_SOURCES
   )
 
 set (TOOLBAR_SOURCES
-  toolbar/MainToolBar.cpp
-  toolbar/LODToolBar.cpp
+  toolbar/main/MainToolBar.cpp
+  toolbar/main/SegRemover.cpp
+  toolbar/editor/Brush.cpp
+  toolbar/editor/BrushUndoCommand.cpp
+  toolbar/editor/CircularBrush.cpp
+  toolbar/editor/SphericalBrush.cpp
   toolbar/editor/EditorToolBar.cpp
   toolbar/editor/Settings.cpp
   toolbar/editor/SettingsPanel.cpp
+  toolbar/editor/FilledContour.cpp
   toolbar/seedgrow/SeedGrowSegmentation.cpp
   toolbar/seedgrow/SeedGrowSegmentationFilter.cpp
-  toolbar/seedgrow/SeedGrowSelector.cpp
+  toolbar/seedgrow/SeedGrowSegmentationTool.cpp
   toolbar/seedgrow/Settings.cpp
   toolbar/seedgrow/SettingsPanel.cpp
-  toolbar/seedgrow/SetupWidget.cpp
+  toolbar/seedgrow/FilterInspector.cpp
   toolbar/seedgrow/gui/DefaultVOIAction.cpp
   toolbar/seedgrow/gui/ThresholdAction.cpp
   toolbar/voi/VolumeOfInterest.cpp
+  toolbar/voi/RectangularVOI.cpp
   )
 
 set (VIEW_SOURCES
@@ -116,6 +124,7 @@ set (VIEW_SOURCES
 set (LOCAL_SOURCES
   main.cpp
   AboutDialog.cpp
+  ColorEngineMenu.cpp
   EspinaWindow.cpp
   SettingsDialog.cpp
   RecentDocuments.cpp

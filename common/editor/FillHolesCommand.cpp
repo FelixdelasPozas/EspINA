@@ -19,12 +19,13 @@
 
 #include "FillHolesCommand.h"
 
-#include "FillHolesFilter.h"
-#include <EspinaCore.h>
+#include "common/editor/FillHolesFilter.h"
+#include "common/model/EspinaModel.h"
 
 //-----------------------------------------------------------------------------
-FillHolesCommand::FillHolesCommand(SegmentationList inputs)
-: m_segmentations(inputs)
+FillHolesCommand::FillHolesCommand(SegmentationList inputs, EspinaModel *model)
+: m_model(model)
+, m_segmentations(inputs)
 {
   foreach(Segmentation *seg, m_segmentations)
   {
@@ -48,18 +49,16 @@ FillHolesCommand::~FillHolesCommand()
 //-----------------------------------------------------------------------------
 void FillHolesCommand::redo()
 {
-  QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
-
   for(int i=0; i<m_newConnections.size(); i++)
   {
     Segmentation *seg        = m_segmentations[i];
     Connection oldConnection = m_oldConnections[i];
     Connection newConnection = m_newConnections[i];
 
-    model->removeRelation(oldConnection.first, seg, CREATELINK);
-    model->addFilter(newConnection.first);
-    model->addRelation(oldConnection.first, newConnection.first, FillHolesFilter::INPUTLINK);
-    model->addRelation(newConnection.first, seg, CREATELINK);
+    m_model->removeRelation(oldConnection.first, seg, CREATELINK);
+    m_model->addFilter(newConnection.first);
+    m_model->addRelation(oldConnection.first, newConnection.first, FillHolesFilter::INPUTLINK);
+    m_model->addRelation(newConnection.first, seg, CREATELINK);
     seg->changeFilter(newConnection.first, newConnection.second);
     seg->notifyModification(true);
   }
@@ -68,18 +67,16 @@ void FillHolesCommand::redo()
 //-----------------------------------------------------------------------------
 void FillHolesCommand::undo()
 {
-  QSharedPointer<EspinaModel> model(EspinaCore::instance()->model());
-
   for(int i=0; i<m_newConnections.size(); i++)
   {
     Segmentation *seg        = m_segmentations[i];
     Connection oldConnection = m_oldConnections[i];
     Connection newConnection = m_newConnections[i];
 
-    model->removeRelation(newConnection.first, seg, CREATELINK);
-    model->removeRelation(oldConnection.first, newConnection.first, FillHolesFilter::INPUTLINK);
-    model->removeFilter(newConnection.first);
-    model->addRelation(oldConnection.first, seg, CREATELINK);
+    m_model->removeRelation(newConnection.first, seg, CREATELINK);
+    m_model->removeRelation(oldConnection.first, newConnection.first, FillHolesFilter::INPUTLINK);
+    m_model->removeFilter(newConnection.first);
+    m_model->addRelation(oldConnection.first, seg, CREATELINK);
     seg->changeFilter(oldConnection.first, oldConnection.second);
     seg->notifyModification(true);
   }

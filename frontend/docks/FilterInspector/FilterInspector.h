@@ -20,17 +20,22 @@
 #ifndef MODIFYFILTERPANEL_H
 #define MODIFYFILTERPANEL_H
 
-#include "common/gui/EspinaDockWidget.h"
+#include <QDockWidget>
 
 #include "common/model/EspinaModel.h"
 
+class QUndoStack;
 class Segmentation;
+class ViewManager;
+
 class FilterInspector
-: public EspinaDockWidget
+: public QDockWidget
 {
   Q_OBJECT
 public:
-  explicit FilterInspector(QWidget* parent = 0);
+  explicit FilterInspector(QUndoStack *undoStack,
+                           ViewManager *vm,
+                           QWidget* parent = 0);
   virtual ~FilterInspector();
 
   virtual void showEvent(QShowEvent* e);
@@ -39,6 +44,8 @@ protected slots:
   void updatePannel();
 
 private:
+  QUndoStack   *m_undoStack;
+  ViewManager  *m_viewManager;
   Filter       *m_filter;
   Segmentation *m_seg;
 };

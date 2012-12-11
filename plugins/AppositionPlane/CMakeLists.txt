@@ -26,7 +26,7 @@ include_directories (
 qt4_add_resources (RCC_BUILT_SOURCES 
   rsc/AppositionPlane.qrc
   )
-  
+
 QT4_WRAP_CPP(MOC_SOURCES
   AppositionPlane.h
 )

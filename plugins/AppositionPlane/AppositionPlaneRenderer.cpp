@@ -62,16 +62,16 @@ bool AppositionPlaneRenderer::addItem(ModelItem* item)
 {
   if (ModelItem::SEGMENTATION != item->type())
     return false;
-  
+
   Q_ASSERT(!m_state.contains(item));
-  
+
   Representation *rep;
   if (!m_representations.contains(item))
   {
     Segmentation *seg = dynamic_cast<Segmentation *>(item);
     ModelItemExtension       *mie = seg->extension(AppositionPlaneExtension::ID);
     AppositionPlaneExtension *ape = dynamic_cast<AppositionPlaneExtension*>(mie);
-    
+
     rep = new Representation();
     rep->decimate = DecimatePro::New();
     rep->decimate->ReleaseDataFlagOn();
@@ -80,7 +80,7 @@ bool AppositionPlaneRenderer::addItem(ModelItem* item)
     rep->decimate->PreserveTopologyOn();
     rep->decimate->SplittingOff();
     rep->decimate->SetInputConnection(ape->appositionPlane()->GetProducerPort());
-    
+
     rep->smoother = Smoother::New();
     rep->smoother->ReleaseDataFlagOn();
     rep->smoother->SetGlobalWarningDisplay(false);
@@ -90,12 +90,12 @@ bool AppositionPlaneRenderer::addItem(ModelItem* item)
     rep->smoother->SetFeatureAngle(120);
     rep->smoother->SetEdgeAngle(90);
     rep->smoother->SetInputConnection(rep->decimate->GetOutputPort());
-    
+
     rep->normals = Normals::New();
     rep->normals->ReleaseDataFlagOn();
     rep->normals->SetFeatureAngle(120);
     rep->normals->SetInputConnection(rep->smoother->GetOutputPort());
-    
+
     rep->mapper = PolyDataMapper::New();
     rep->mapper->ReleaseDataFlagOn();
     rep->mapper->ImmediateModeRenderingOn();
@@ -106,21 +106,21 @@ bool AppositionPlaneRenderer::addItem(ModelItem* item)
     mapper->ImmediateModeRenderingOn();
     mapper->ScalarVisibilityOn();
     mapper->SetInputConnection(rep->normals->GetOutputPort());
-    
+
     m_representations[item] = rep;
   } else
     rep = m_representations[item];
-  
+
   State *state = new State();
   state->actor = vtkActor::New();
   state->actor->SetMapper(rep->mapper);
-  state->actor->GetProperty()->SetColor(1.0,0.0,0.0);
+  state->actor->GetProperty()->SetColor(1.0,1.0,0.0);
   state->actor->GetProperty()->SetOpacity(1.0);
-  
+
   state->visible = false;
-  
+
   m_state[item] = state;
-  
+
   return true;
 }
 
@@ -129,14 +129,14 @@ bool AppositionPlaneRenderer::updateItem(ModelItem* item)
 {
   if (ModelItem::SEGMENTATION != item->type())
     return false;
-  
+
   Q_ASSERT(m_representations.contains(item));
   Q_ASSERT(m_state.contains(item));
-  
+
   bool updated = false;
   Segmentation *seg = dynamic_cast<Segmentation *>(item);
   State        *state = m_state[item];
-  
+
   if (m_enable && seg->visible())
   {
     if (!state->visible)
@@ -144,11 +144,11 @@ bool AppositionPlaneRenderer::updateItem(ModelItem* item)
       Representation *rep = m_representations[item];
       if (rep->timeStamp != seg->itkVolume()->GetTimeStamp())
       {
-	ModelItemExtension       *mie = seg->extension(AppositionPlaneExtension::ID);
-	AppositionPlaneExtension *ape = dynamic_cast<AppositionPlaneExtension*>(mie);
-	ape->updateAppositionPlane();
-	
-	rep->timeStamp = seg->itkVolume()->GetTimeStamp();
+        ModelItemExtension       *mie = seg->extension(AppositionPlaneExtension::ID);
+        AppositionPlaneExtension *ape = dynamic_cast<AppositionPlaneExtension*>(mie);
+        ape->updateAppositionPlane();
+
+        rep->timeStamp = seg->itkVolume()->GetTimeStamp();
       }
       m_renderer->AddActor(state->actor);
       state->visible = true;
@@ -161,7 +161,7 @@ bool AppositionPlaneRenderer::updateItem(ModelItem* item)
     state->visible = false;
     updated = true;
   }
-  
+
   return updated;
 }
 
@@ -170,23 +170,21 @@ bool AppositionPlaneRenderer::removeItem(ModelItem* item)
 {
   if (ModelItem::SEGMENTATION != item->type())
     return false;
-  
-  Segmentation *seg = dynamic_cast<Segmentation *>(item);
-  
+
   Q_ASSERT(m_representations.contains(item));
   Q_ASSERT(m_state.contains(item));
-  
+
   State *state = m_state[item];
   if (state->visible)
     m_renderer->RemoveActor(state->actor);
-  
+
   state->actor->Delete();
   delete state;
   m_state.remove(item);
-  
+
   if (m_representations.contains(item))
     m_representations.remove(item);
-  
+
   return true;
 }
 

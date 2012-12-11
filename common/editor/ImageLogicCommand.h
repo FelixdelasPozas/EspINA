@@ -19,13 +19,15 @@
 #ifndef IMAGELOGICCOMMAND_H
 #define IMAGELOGICCOMMAND_H
 
-#include <QUndoStack>
+#include <QUndoCommand>
 
 #include "ImageLogicFilter.h"
 
+class EspinaModel;
 class Segmentation;
 
-class ImageLogicCommand: public QUndoCommand
+class ImageLogicCommand
+: public QUndoCommand
 {
   //TODO REVIEW: This class is also defined in RemoveSegmentationCommand
   struct SegInfo
@@ -42,7 +44,9 @@ class ImageLogicCommand: public QUndoCommand
 
 public:
   explicit ImageLogicCommand(QList<Segmentation *> segmentations,
-                             ImageLogicFilter::Operation op);
+                             ImageLogicFilter::Operation op,
+                             EspinaModel *model,
+                             TaxonomyElement *taxonomy);
 
   virtual void redo();
   virtual void undo();
@@ -50,13 +54,14 @@ public:
   const QString link(Segmentation *seg);
 
 private:
+  EspinaModel *m_model;
   QList<Segmentation *>       m_input;
   ImageLogicFilter::Operation m_op;
 
   QList<SegInfo>    m_infoList;
   ImageLogicFilter *m_filter;
   Segmentation     *m_seg;
-  TaxonomyNode     *m_tax;
+  TaxonomyElement  *m_tax;
 };
 
 #endif // IMAGELOGICCOMMAND_H

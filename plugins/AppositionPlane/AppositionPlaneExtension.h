@@ -1,20 +1,20 @@
 /*
-    <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ *    <one line to give the program's name and a brief idea of what it does.>
+ *    Copyright (C) 2011  Jorge Peña <jorge.pena.pastor@gmail.com>
+ *
+ *    This program is free software: you can redistribute it and/or modify
+ *    it under the terms of the GNU General Public License as published by
+ *    the Free Software Foundation, either version 3 of the License, or
+ *    (at your option) any later version.
+ *
+ *    This program is distributed in the hope that it will be useful,
+ *    but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *    GNU General Public License for more details.
+ *
+ *    You should have received a copy of the GNU General Public License
+ *    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 #ifndef APPOSITIONPLANEXTENSION_H
 #define APPOSITIONPLANEXTENSION_H
 
@@ -37,7 +37,7 @@
 #include <vtkTransformPolyDataFilter.h>
 
 class vtkImageData;
-class AppositionPlaneExtension 
+class AppositionPlaneExtension
 : public SegmentationExtension
 {
   typedef float DistanceType;
@@ -59,7 +59,7 @@ class AppositionPlaneExtension
   typedef vtkSmartPointer<vtkTransformPolyDataFilter>  TransformPolyDataFilter;
   typedef itk::CovariantVector<float, 3> CovariantVectorType;
   typedef itk::Image<CovariantVectorType,3> CovariantVectorImageType;
-  
+
 public:
   static const ExtId ID;
   static const InfoTag AREA;
@@ -68,29 +68,29 @@ public:
 public:
   explicit AppositionPlaneExtension();
   virtual ~AppositionPlaneExtension();
-  
+
   virtual ExtId id();
-  
+
   virtual ExtIdList dependencies() const
   { return SegmentationExtension::dependencies(); }
-  
+
   virtual InfoList availableInformations() const
   { return SegmentationExtension::availableInformations(); }
-  
+
   virtual RepList availableRepresentations() const
   { return SegmentationExtension::availableRepresentations(); }
-  
+
   virtual QVariant information(InfoTag tag) const;
-  
+
   virtual SegmentationRepresentation* representation(QString rep);
-  
+
   virtual void initialize(ModelItem::Arguments args = ModelItem::Arguments());
-  
+
   virtual SegmentationExtension* clone();
-  
+
   PolyData appositionPlane() const
   { return m_ap; }
-  
+
   //NOTE: Constness is required by information call
   bool updateAppositionPlane() const;
 private:
@@ -109,7 +109,7 @@ private:
   void project(const double *A, const double *B, double *Projection) const;
   void projectVectors(vtkImageData * vectors_image, double * unitary) const;
   void vectorImageToVTKImage(CovariantVectorImageType::Pointer vectorImage, vtkImageData *image) const;
-  
+
   // Apposition Plane Metrics
   double computeArea() const;
   double computePerimeter() const;
@@ -119,11 +119,11 @@ private:
   int      m_resolution;
   int      m_iterations;
   bool     m_converge;
-  
+
   mutable double   m_area;
   mutable double   m_perimeter;
   mutable PolyData m_ap;
-  
+
   mutable itk::TimeStamp m_lastUpdate;
 };
 

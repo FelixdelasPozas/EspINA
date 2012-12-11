@@ -16,27 +16,28 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-//TODO: Show bounding regions in volume view
-//TODO: Show bounding regions in slice view
-
 #ifndef COUNTINGREGION_H
 #define COUNTINGREGION_H
 
 #include <common/pluginInterfaces/IDockWidget.h>
+#include <common/pluginInterfaces/IColorEngineProvider.h>
 
 #include <common/model/EspinaModel.h>
+#include <common/EspinaTypes.h>
+
 #include <QStandardItemModel>
 
+// Forward declaration
 class BoundingRegion;
 class Channel;
-// Forward declaration
 
 /// Counting Region Plugin
 class CountingRegion
 : public IDockWidget
+, public IColorEngineProvider
 {
   Q_OBJECT
-  Q_INTERFACES(IDockWidget)
+  Q_INTERFACES(IDockWidget IColorEngineProvider)
   class GUI;
 public:
   static const QString ID;
@@ -47,6 +48,14 @@ public:
   explicit CountingRegion(QWidget* parent=NULL);
   virtual ~CountingRegion();
 
+  virtual void initDockWidget(EspinaModel* model,
+                              QUndoStack* undoStack,
+                              ViewManager* viewManager);
+
+  virtual EngineList colorEngines();
+
+  virtual void reset();
+
   void createAdaptiveRegion(Channel *channel,
                             Nm inclusion[3],
                             Nm exclusion[3]);
@@ -56,6 +65,9 @@ public:
 
   RegionList regions() const {return m_regions;}
 
+public slots:
+  void resetState();
+
 protected slots:
   void clearBoundingRegions();
   /// Creates a bounding region on the current focused/active
@@ -63,11 +75,9 @@ protected slots:
   /// extension discarting those that are out of the region
   void createBoundingRegion();
   void removeSelectedBoundingRegion();
-  void sampleChanged(Sample *sample);
+  void channelChanged(Channel *channel);
   void showInfo(const QModelIndex& index);
   void saveRegionDescription();
-
-  virtual void reset(){}
 
 signals:
   void regionCreated(BoundingRegion *);
@@ -76,7 +86,8 @@ signals:
 private:
   GUI *m_gui;
   QStandardItemModel m_regionModel;
-  QSharedPointer<EspinaModel> m_espinaModel;
+  EspinaModel *m_espinaModel;
+  ViewManager *m_viewManager;
   RegionList m_regions;
 };
 

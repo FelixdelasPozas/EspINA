@@ -27,12 +27,14 @@
 #include "ui_GeneralSettingsPanel.h"
 #include "ui_SettingsDialog.h"
 
+class GeneralSettings;
+
 class GeneralSettingsPanel
 : public ISettingsPanel
 , Ui::GeneralSettingsPanel
 {
 public:
-  GeneralSettingsPanel();
+  GeneralSettingsPanel(GeneralSettings *settings);
 
   virtual const QString shortDescription() {return "General";}
   virtual const QString longDescription() {return "General Settings";}
@@ -42,6 +44,9 @@ public:
   virtual bool modified() const;
 
   virtual ISettingsPanel *clone();
+
+private:
+  GeneralSettings *m_settings;
 };
 
 class SettingsDialog
@@ -50,7 +55,8 @@ class SettingsDialog
 {
   Q_OBJECT
 public:
-  explicit SettingsDialog(QWidget* parent = 0, Qt::WindowFlags f = 0);
+  explicit SettingsDialog( QWidget* parent = 0,
+                          Qt::WindowFlags f = 0);
 
   virtual void accept();
   virtual void reject();

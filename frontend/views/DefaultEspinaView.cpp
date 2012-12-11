@@ -22,32 +22,32 @@
 
 #include <QDebug>
 
+// EspINA
 #include "common/gui/SliceView.h"
-#include "common/gui/TaxonomyColorEngine.h"
 #include "common/gui/VolumeView.h"
 #include "common/model/ModelItem.h"
 #include "common/model/Channel.h"
+#include "common/model/EspinaModel.h"
 #include "common/model/Segmentation.h"
-#include "common/widgets/RectangularSelection.h"
+#include "common/settings/EspinaSettings.h"
+#include "common/widgets/RectangularRegion.h"
 
-#include <QDockWidget>
-#include <QMainWindow>
-#include <QVBoxLayout>
-#include <QSettings>
-
-#include <QDir>
-#include <QMenu>
+// Qt
 #include <QApplication>
+#include <QDir>
+#include <QDockWidget>
 #include <QGroupBox>
-#include <EspinaCore.h>
-#include <settings/EspinaSettings.h>
+#include <QMainWindow>
+#include <QSettings>
+#include <QVBoxLayout>
+#include <QMenu>
 
 //----------------------------------------------------------------------------
-DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity)
-: EspinaView(parent, activity)
-, m_colorEngine(NULL)
+DefaultEspinaView::DefaultEspinaView(EspinaModel* model, ViewManager* vm, QMainWindow *parent)
+: QAbstractItemView(parent)
 , m_showProcessing(false)
 , m_showSegmentations(true)
+, m_model(model)
 {
   double cyan[3] = { 0, 1, 1 };
   double blue[3] = { 0, 0, 1 };
@@ -56,10 +56,10 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
   setObjectName("xyView");
 
   //   qDebug() << "New Default EspinaView";
-  xyView = new SliceView(AXIAL);
-  xzView = new SliceView(CORONAL);
-  yzView = new SliceView(SAGITTAL);
-  volView = new VolumeView(this);
+  xyView = new SliceView(vm, AXIAL);
+  xzView = new SliceView(vm, CORONAL);
+  yzView = new SliceView(vm, SAGITTAL);
+  volView = new VolumeView(m_model->factory(), vm, this);
 
   xyView->setCrosshairColors(blue, magenta);
   initSliceView(xyView);
@@ -69,10 +69,8 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
 
   volDock = new QDockWidget(tr("3D"), parent);
   volDock->setObjectName("volDock");
-  connect(volView, SIGNAL(channelSelected(Channel*)),
-          this, SLOT(channelSelected(Channel*)));
-  connect(volView, SIGNAL(segmentationSelected(Segmentation*, bool)),
-          this, SLOT(segmentationSelected(Segmentation*, bool)));
+
+  //volDock->setModel(model);
   volDock->setWidget(volView);
 
   yzDock = new QDockWidget(tr("ZY"), parent);
@@ -95,6 +93,7 @@ DefaultEspinaView::DefaultEspinaView(QMainWindow* parent, const QString activity
 
   parent->setCentralWidget(this);
 
+  setModel(model);
 }
 
 //-----------------------------------------------------------------------------
@@ -107,19 +106,14 @@ void DefaultEspinaView::initSliceView(SliceView* view)
 {
   connect(view, SIGNAL(centerChanged(Nm, Nm, Nm)),
           this, SLOT(setCrosshairPoint(Nm,Nm,Nm)));
-  connect(view, SIGNAL(focusChanged(const Nm[3])),
-          this, SLOT(setCameraFocus(const Nm[3])));
-  connect(view, SIGNAL(selectedFromSlice(double, PlaneType)),
-          this, SLOT(selectFromSlice(double, PlaneType)));
-  connect(view, SIGNAL(selectedToSlice(double, PlaneType)),
-          this, SLOT(selectToSlice(double, PlaneType)));
-  connect(view, SIGNAL(channelSelected(Channel*)),
-          this, SLOT(channelSelected(Channel*)));
-  connect(view, SIGNAL(segmentationSelected(Segmentation*, bool)),
-          this, SLOT(segmentationSelected(Segmentation*, bool)));
-  connect(view, SIGNAL(showCrosshairs(bool)),
-          this, SLOT(showCrosshair(bool)));
-  connect(view, SIGNAL(sliceChanged(PlaneType, Nm)), this, SLOT(changePlanePosition(PlaneType, Nm)));
+//   connect(view, SIGNAL(focusChanged(const Nm[3])),
+//           this, SLOT(setCameraFocus(const Nm[3])));
+//   connect(view, SIGNAL(selectedFromSlice(double, PlaneType)),
+//           this, SLOT(selectFromSlice(double, PlaneType)));
+//   connect(view, SIGNAL(selectedToSlice(double, PlaneType)),
+//           this, SLOT(selectToSlice(double, PlaneType)));
+  connect(view, SIGNAL(sliceChanged(PlaneType, Nm)),
+          this, SLOT(changePlanePosition(PlaneType, Nm)));
 }
 
 //-----------------------------------------------------------------------------
@@ -132,13 +126,14 @@ void DefaultEspinaView::createViewMenu(QMenu* menu)
   //renderMenu->addSeparator();
   menu->addMenu(renderMenu);
 
-  //TODO: Synchronize with maintoolbar action
-  //QAction *toggleSegmentationsVisibility = new QAction(tr("Show Segmentations"),menu);
-  //toggleSegmentationsVisibility->setCheckable(true);
-  //toggleSegmentationsVisibility->setShortcut(QString("Space"));
-  //connect(toggleSegmentationsVisibility, SIGNAL(triggered(bool)),
-  //this, SLOT(showSegmentations(bool)));
-  //menu->addAction(toggleSegmentationsVisibility);
+//   //TODO: Synchronize with maintoolbar action
+//   QAction *toggleSegmentationsVisibility = new QAction(tr("Show Segmentations"),menu);
+//   toggleSegmentationsVisibility->setCheckable(true);
+//   toggleSegmentationsVisibility->setShortcut(QString("Space"));
+//   connect(toggleSegmentationsVisibility, SIGNAL(triggered(bool)),
+//   this, SLOT(showSegmentations(bool)));
+//   menu->addAction(toggleSegmentationsVisibility);
+
   QSettings settings(CESVIMA, ESPINA);
 
   bool sr = settings.value("ShowRuler", true).toBool();
@@ -149,7 +144,7 @@ void DefaultEspinaView::createViewMenu(QMenu* menu)
   m_showRuler->setChecked(sr);
   menu->addAction(m_showRuler);
   connect(m_showRuler, SIGNAL(toggled(bool)),
-	  this, SLOT(setRulerVisibility(bool)));
+          this, SLOT(setRulerVisibility(bool)));
 
   m_showThumbnail = new QAction(tr("Show Thumbnail"),menu);
   m_showThumbnail->setCheckable(true);
@@ -168,107 +163,53 @@ void DefaultEspinaView::createViewMenu(QMenu* menu)
   fitToSlices->setChecked(true);
   menu->addAction(fitToSlices);
   connect(fitToSlices, SIGNAL(toggled(bool)),
-	  this, SLOT(setFitToSlices(bool)));
-  connect(&EspinaCore::instance()->colorSettings(), SIGNAL(colorEngineChanged(ColorEngine*)),
-          this, SLOT(setColorEngine(ColorEngine*)));
+          this, SLOT(setFitToSlices(bool)));
 
   setRulerVisibility(sr);
   showThumbnail(st);
 }
 
-//----------------------------------------------------------------------------
-void DefaultEspinaView::restoreLayout()
-{
-  //   qDebug() << "Restore " << m_activity << volDock->objectName();
-  QSettings settings(CESVIMA, ESPINA);
+////----------------------------------------------------------------------------
+//void DefaultEspinaView::resetCamera()
+//{
+//  xyView->resetCamera();
+//  yzView->resetCamera();
+//  xzView->resetCamera();
+//  volView->resetCamera();
+//}
 
-  m_window->restoreState(settings.value(m_activity + "/state").toByteArray());
-  m_window->restoreGeometry(settings.value(m_activity + "/geometry").toByteArray());
-}
+// //----------------------------------------------------------------------------
+// void DefaultEspinaView::addWidget(EspinaWidget* widget)
+// {
+//   Widgtes widgets;
+//   widgets.xy  = widget->createSliceWidget(AXIAL);
+//   widgets.yz  = widget->createSliceWidget(SAGITTAL);
+//   widgets.xz  = widget->createSliceWidget(CORONAL);
+//   //widgets.vol = widget->createWidget();
+// 
+//   xyView->addWidget (widgets.xy);
+//   yzView->addWidget (widgets.yz);
+//   xzView->addWidget (widgets.xz);
+//   //volView->addWidget(widgets.vol);
+// 
+//   m_widgets[widget] = widgets;
+// 
+//   forceRender();
+// }
 
-//----------------------------------------------------------------------------
-QSize DefaultEspinaView::sizeHint() const
-{
-  return QSize(500, 500);
-}
-
-//----------------------------------------------------------------------------
-void DefaultEspinaView::saveLayout()
-{
-  //   qDebug() << "Save " << m_activity << volDock->objectName();
-  QSettings settings("CeSViMa", "EspINA");
-
-  settings.setValue(m_activity + "/state", m_window->saveState());
-  settings.setValue(m_activity + "/geometry", m_window->saveGeometry());
-}
-
-//----------------------------------------------------------------------------
-void DefaultEspinaView::forceRender()
-{
-  //QApplication::setOverrideCursor(Qt::WaitCursor);
-  xyView->forceRender();
-  yzView->forceRender();
-  xzView->forceRender();
-  volView->forceRender();
-  //QApplication::restoreOverrideCursor();
-}
-
-//----------------------------------------------------------------------------
-void DefaultEspinaView::resetCamera()
-{
-  xyView->resetCamera();
-  yzView->resetCamera();
-  xzView->resetCamera();
-  volView->resetCamera();
-}
-
-//----------------------------------------------------------------------------
-void DefaultEspinaView::slicingStep(Nm steps[3])
-{
-  memcpy(steps, m_slicingStep, 3 * sizeof(Nm));
-}
-
-//----------------------------------------------------------------------------
-void DefaultEspinaView::setSlicingStep(Nm steps[3])
-{
-  xyView->setSlicingStep(steps);
-  yzView->setSlicingStep(steps);
-  xzView->setSlicingStep(steps);
-  memcpy(m_slicingStep, steps, 3 * sizeof(Nm));
-}
-
-//----------------------------------------------------------------------------
-void DefaultEspinaView::addWidget(EspinaWidget* widget)
-{
-  Widgtes widgets;
-  widgets.xy  = widget->createSliceWidget(AXIAL);
-  widgets.yz  = widget->createSliceWidget(SAGITTAL);
-  widgets.xz  = widget->createSliceWidget(CORONAL);
-  //widgets.vol = widget->createWidget();
-
-  xyView->addWidget (widgets.xy);
-  yzView->addWidget (widgets.yz);
-  xzView->addWidget (widgets.xz);
-  //volView->addWidget(widgets.vol);
-
-  m_widgets[widget] = widgets;
-
-  forceRender();
-}
-
-//----------------------------------------------------------------------------
-void DefaultEspinaView::removeWidget(EspinaWidget* widget)
-{
-  Widgtes widgets = m_widgets[widget];
-
-  xyView->removeWidget (widgets.xy);
-  yzView->removeWidget (widgets.yz);
-  xzView->removeWidget (widgets.xz);
-  //volView->removeWidget(widgets.vol);
-
-  m_widgets.remove(widget);
-}
-
+// //----------------------------------------------------------------------------
+// void DefaultEspinaView::removeWidget(EspinaWidget* widget)
+// {
+//   Widgtes widgets = m_widgets[widget];
+// 
+//   xyView->removeWidget (widgets.xy);
+//   yzView->removeWidget (widgets.yz);
+//   xzView->removeWidget (widgets.xz);
+//   //volView->removeWidget(widgets.vol);
+// 
+//   m_widgets.remove(widget);
+// }
+/*
 //----------------------------------------------------------------------------
 void DefaultEspinaView::setColorEngine(ColorEngine* engine)
 {
@@ -278,152 +219,74 @@ void DefaultEspinaView::setColorEngine(ColorEngine* engine)
   xzView->setColorEngine(m_colorEngine);
   volView->setColorEngine(m_colorEngine);
   forceRender();
-}
-
-//----------------------------------------------------------------------------
-void DefaultEspinaView::updateSegmentationRepresentations()
-{
-  xyView->updateSegmentationRepresentations();
-  yzView->updateSegmentationRepresentations();
-  xzView->updateSegmentationRepresentations();
-  volView->updateSegmentationRepresentations();
-  forceRender();
-}
-
+}*/
 
 //----------------------------------------------------------------------------
 ISettingsPanel* DefaultEspinaView::settingsPanel()
 {
-  return new SettingsPanel(xyView->settings(), yzView->settings(), xzView->settings(), volView->settings());
-}
-
-//----------------------------------------------------------------------------
-void DefaultEspinaView::showCrosshair(bool visible)
-{
-  xyView->setCrosshairVisibility(visible);
-  yzView->setCrosshairVisibility(visible);
-  xzView->setCrosshairVisibility(visible);
-}
-
-//----------------------------------------------------------------------------
-void DefaultEspinaView::switchPreprocessing()
-{
-  //Current implementation changes channel visibility and then
-  //notifies it's been updated to other views
-  m_showProcessing = !m_showProcessing;
-  xyView->setShowPreprocessing(m_showProcessing);
-}
-
-//----------------------------------------------------------------------------
-void DefaultEspinaView::showSegmentations(bool visible)
-{
-  xyView->setSegmentationVisibility(visible);
-  yzView->setSegmentationVisibility(visible);
-  xzView->setSegmentationVisibility(visible);
-  //   EspinaCore::instance()->model()->serializeRelations(std::cout, RelationshipGraph::GRAPHVIZ);
-  m_showSegmentations = visible;
+  return new SettingsPanel(xyView->settings(),
+                           yzView->settings(),
+                           xzView->settings(),
+                           volView->settings(),
+                           m_model->factory());
 }
 
 //-----------------------------------------------------------------------------
-void DefaultEspinaView::showThumbnail(bool visible)
+void DefaultEspinaView::addChannel(Channel* channel)
 {
-  QSettings settings("CeSViMa", "EspINA");
-  settings.setValue("ShowThumbnail", m_showThumbnail->isChecked());
-  xyView->setThumbnailVisibility(visible);
-  yzView->setThumbnailVisibility(visible);
-  xzView->setThumbnailVisibility(visible);
+  xyView->addChannel(channel);
+  yzView->addChannel(channel);
+  xzView->addChannel(channel);
+  volView->addChannel(channel);
 }
 
 //-----------------------------------------------------------------------------
-void DefaultEspinaView::setCrosshairPoint(Nm x, Nm y, Nm z, bool force)
+void DefaultEspinaView::removeChannel(Channel* channel)
 {
-  //qDebug() << "Espina View Updating centers";
-  Nm point[3] = { x, y, z };
-  xyView->centerViewOn(point, force);
-  yzView->centerViewOn(point, force);
-  xzView->centerViewOn(point, force);
-  volView->centerViewOn(point);
-  memcpy(m_crosshairPoint, point, 3*sizeof(Nm));
-}
-
-//-----------------------------------------------------------------------------
-void DefaultEspinaView::setCameraFocus(const Nm focus[3])
-{
-  volView->setCameraFocus(focus);
-  volView->forceRender();
-}
-
-//-----------------------------------------------------------------------------
-void DefaultEspinaView::setSliceSelectors(SliceView::SliceSelectors selectors)
-{
-  xyView->setSliceSelectors(selectors);
-  yzView->setSliceSelectors(selectors);
-  xzView->setSliceSelectors(selectors);
-}
-
-//-----------------------------------------------------------------------------
-void DefaultEspinaView::addChannelRepresentation(Channel* channel)
-{
-  xyView->addChannelRepresentation(channel);
-  yzView->addChannelRepresentation(channel);
-  xzView->addChannelRepresentation(channel);
-  volView->addChannelRepresentation(channel);
-  connect(channel, SIGNAL(modified(ModelItem*)),
-	  this, SLOT(updateSceneRanges()));
-  m_channels << channel;
-}
-
-//-----------------------------------------------------------------------------
-void DefaultEspinaView::removeChannelRepresentation(Channel* channel)
-{
-  xyView->removeChannelRepresentation(channel);
-  yzView->removeChannelRepresentation(channel);
-  xzView->removeChannelRepresentation(channel);
-  volView->removeChannelRepresentation(channel);
-  disconnect(channel, SIGNAL(modified(ModelItem*)),
-	  this, SLOT(updateSceneRanges()));
-  m_channels.removeAll(channel);
+  xyView->removeChannel(channel);
+  yzView->removeChannel(channel);
+  xzView->removeChannel(channel);
+  volView->removeChannel(channel);
 }
 
 //-----------------------------------------------------------------------------
 bool DefaultEspinaView::updateChannel(Channel* channel)
 {
   bool modified = false;
-  modified = xyView->updateChannelRepresentation(channel) || modified;
-  modified = yzView->updateChannelRepresentation(channel) || modified;
-  modified = xzView->updateChannelRepresentation(channel) || modified;
-  modified = volView->updateChannelRepresentation(channel) || modified;
-
+  modified |= xyView->updateChannel(channel);
+  modified |= yzView->updateChannel(channel);
+  modified |= xzView->updateChannel(channel);
+  modified |= volView->updateChannel(channel);
   return modified;
 }
 
 //-----------------------------------------------------------------------------
 void DefaultEspinaView::addSegmentation(Segmentation* seg)
 {
-  xyView->addSegmentationRepresentation(seg);
-  yzView->addSegmentationRepresentation(seg);
-  xzView->addSegmentationRepresentation(seg);
-  volView->addSegmentationRepresentation(seg);
+  xyView->addSegmentation(seg);
+  yzView->addSegmentation(seg);
+  xzView->addSegmentation(seg);
+  volView->addSegmentation(seg);
 }
 
 //-----------------------------------------------------------------------------
 void DefaultEspinaView::removeSegmentation(Segmentation* seg)
 {
-  xyView->removeSegmentationRepresentation(seg);
-  yzView->removeSegmentationRepresentation(seg);
-  xzView->removeSegmentationRepresentation(seg);
-  volView->removeSegmentationRepresentation(seg);
+  xyView->removeSegmentation(seg);
+  yzView->removeSegmentation(seg);
+  xzView->removeSegmentation(seg);
+  volView->removeSegmentation(seg);
+
 }
 
 //-----------------------------------------------------------------------------
 bool DefaultEspinaView::updateSegmentation(Segmentation* seg)
 {
   bool modified = false;
-  modified = xyView->updateSegmentationRepresentation(seg) || modified;
-  modified = yzView->updateSegmentationRepresentation(seg) || modified;
-  modified = xzView->updateSegmentationRepresentation(seg) || modified;
-  modified = volView->updateSegmentationRepresentation(seg) || modified;
-
+  modified |= xyView->updateSegmentation(seg);
+  modified |= yzView->updateSegmentation(seg);
+  modified |= xzView->updateSegmentation(seg);
+  modified |= volView->updateSegmentation(seg);
   return modified;
 }
 
@@ -433,7 +296,6 @@ void DefaultEspinaView::rowsInserted(const QModelIndex& parent, int start, int e
   if (!parent.isValid())
     return;
 
-  bool render = false;
   for (int child = start; child <= end; child++)
   {
     QModelIndex index = parent.child(child, 0);
@@ -442,34 +304,26 @@ void DefaultEspinaView::rowsInserted(const QModelIndex& parent, int start, int e
     {
       case ModelItem::CHANNEL:
       {
-        QApplication::setOverrideCursor(Qt::WaitCursor);
         Q_ASSERT(start == end);
         // Only 1-row-at-a-time insertions are allowed
         Channel *channel = dynamic_cast<Channel *>(item);
         //       item.dynamicCast<ChannelPtr>();
-        // 	qDebug() << "Add Channel:" << channel->data(Qt::DisplayRole).toString();
+        //   qDebug() << "Add Channel:" << channel->data(Qt::DisplayRole).toString();
 
-        addChannelRepresentation(channel);
-	updateSceneRanges();
-        QApplication::restoreOverrideCursor();
-        resetCamera();
-        render = true;
+        addChannel(channel);
         break;
       }
       case ModelItem::SEGMENTATION:
       {
         Segmentation *seg = dynamic_cast<Segmentation *>(item);
-        // 	qDebug() << "Add Segmentation:" << seg->data(Qt::DisplayRole).toString();
+        //   qDebug() << "Add Segmentation:" << seg->data(Qt::DisplayRole).toString();
         addSegmentation(seg);
-        render = m_showSegmentations;
         break;
       }
       default:
         break;
     };
   }
-  if (render)
-    forceRender();
 }
 
 //-----------------------------------------------------------------------------
@@ -477,7 +331,6 @@ void DefaultEspinaView::rowsAboutToBeRemoved(const QModelIndex& parent, int star
 {
   if (!parent.isValid())
     return;
-  QSharedPointer<EspinaModel> model = EspinaCore::instance()->model();
 
   //   qDebug() << parent.data(Qt::DisplayRole).toString();
   for (int child = start; child <= end; child++)
@@ -489,16 +342,14 @@ void DefaultEspinaView::rowsAboutToBeRemoved(const QModelIndex& parent, int star
       case ModelItem::CHANNEL:
       {
         Channel *channel = dynamic_cast<Channel *>(item);
-        // 	qDebug() << "Remove Channel:" << channel->data(Qt::DisplayRole).toString();
-        removeChannelRepresentation(channel);
-	updateSceneRanges();
-
+        //   qDebug() << "Remove Channel:" << channel->data(Qt::DisplayRole).toString();
+        removeChannel(channel);
         break;
       }
       case ModelItem::SEGMENTATION:
       {
         Segmentation *seg = dynamic_cast<Segmentation *>(item);
-        // 	qDebug() << "Remove Segmentation:" << seg->data(Qt::DisplayRole).toString();
+        //   qDebug() << "Remove Segmentation:" << seg->data(Qt::DisplayRole).toString();
         removeSegmentation(seg);
         break;
       }
@@ -506,7 +357,6 @@ void DefaultEspinaView::rowsAboutToBeRemoved(const QModelIndex& parent, int star
         break;
     };
   }
-  forceRender();
 }
 
 //-----------------------------------------------------------------------------
@@ -520,113 +370,134 @@ void DefaultEspinaView::dataChanged(const QModelIndex& topLeft, const QModelInde
   {
     Channel *channel = dynamic_cast<Channel *>(item);
     if (updateChannel(channel))
-      forceRender();
+      updateViews();
   }
   else if (ModelItem::SEGMENTATION == item->type())
   {
     Segmentation *seg = dynamic_cast<Segmentation *>(item);
     if (updateSegmentation(seg))
-      forceRender();
+      updateViews();
   }
 }
+
+//----------------------------------------------------------------------------
+void DefaultEspinaView::showCrosshair(bool visible)
+{
+  xyView->showCrosshairs(visible);
+  yzView->showCrosshairs(visible);
+  xzView->showCrosshairs(visible);
+}
+
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::setRulerVisibility(bool visible)
+{
+  QSettings settings(CESVIMA, ESPINA);
+  settings.setValue("ShowRuler", m_showRuler->isChecked() );
+  xyView->setRulerVisibility(visible);
+  yzView->setRulerVisibility(visible);
+  xzView->setRulerVisibility(visible);
+}
+
+//----------------------------------------------------------------------------
+void DefaultEspinaView::showSegmentations(bool visible)
+{
+  xyView->setSegmentationVisibility(visible);
+  yzView->setSegmentationVisibility(visible);
+  xzView->setSegmentationVisibility(visible);
+  //   EspinaCore::instance()->model()->serializeRelations(std::cout, RelationshipGraph::GRAPHVIZ);
+  m_showSegmentations = visible;
+}
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::showThumbnail(bool visible)
+{
+  QSettings settings("CeSViMa", ESPINA);
+  settings.setValue("ShowThumbnail", m_showThumbnail->isChecked());
+  xyView->setThumbnailVisibility(visible);
+  yzView->setThumbnailVisibility(visible);
+  xzView->setThumbnailVisibility(visible);
+}
+
+//----------------------------------------------------------------------------
+void DefaultEspinaView::switchPreprocessing()
+{
+  //Current implementation changes channel visibility and then
+  //notifies it's been updated to other views
+  m_showProcessing = !m_showProcessing;
+  xyView->setShowPreprocessing(m_showProcessing);
+  yzView->setShowPreprocessing(m_showProcessing);
+  xzView->setShowPreprocessing(m_showProcessing);
+}
+
+//----------------------------------------------------------------------------
+void DefaultEspinaView::updateViews()
+{
+ xyView->updateView();
+ yzView->updateView();
+ xzView->updateView();
+ volView->updateView();
+}
+
+//-----------------------------------------------------------------------------
+void DefaultEspinaView::setCrosshairPoint(Nm x, Nm y, Nm z, bool force)
+{
+  //qDebug() << "Espina View Updating centers";
+  Nm point[3] = { x, y, z };
+  xyView->centerViewOn(point, force);
+  yzView->centerViewOn(point, force);
+  xzView->centerViewOn(point, force);
+  volView->centerViewOn(point, force);
+}
+
+// //-----------------------------------------------------------------------------
+// void DefaultEspinaView::setCameraFocus(const Nm focus[3])
+// {
+//   volView->setCameraFocus(focus);
+//   volView->forceRender();
+// }
+// 
+// //-----------------------------------------------------------------------------
+// void DefaultEspinaView::setSliceSelectors(SliceView::SliceSelectors selectors)
+// {
+//   xyView->setSliceSelectors(selectors);
+//   yzView->setSliceSelectors(selectors);
+//   xzView->setSliceSelectors(selectors);
+// }
 
 //-----------------------------------------------------------------------------
 void DefaultEspinaView::setFitToSlices(bool fit)
 {
   Nm step[3] = {1.0, 1.0, 1.0};
   if (fit)
-    memcpy(step, m_slicingStep, 3*sizeof(Nm));
+    memcpy(step, xyView->sceneResolution(), 3*sizeof(Nm));
 
   xyView->setSlicingStep(step);
   yzView->setSlicingStep(step);
   xzView->setSlicingStep(step);
 }
 
-//-----------------------------------------------------------------------------
-void DefaultEspinaView::setRulerVisibility(bool visible)
-{
-  QSettings settings("CeSViMa", "EspINA");
-  settings.setValue("ShowRuler", m_showRuler->isChecked() );
-  xyView->setRulerVisibility(visible);
-  yzView->setRulerVisibility(visible);
-  xzView->setRulerVisibility(visible);
-  forceRender();
-}
+// //-----------------------------------------------------------------------------
+// void DefaultEspinaView::selectFromSlice(double slice, PlaneType plane)
+// {
+//   emit selectedFromSlice(slice, plane);
+// }
+// 
+// //-----------------------------------------------------------------------------
+// void DefaultEspinaView::selectToSlice(double slice, PlaneType plane)
+// {
+//   emit selectedToSlice(slice, plane);
+// }
 
 //-----------------------------------------------------------------------------
-void DefaultEspinaView::selectFromSlice(double slice, PlaneType plane)
-{
-  emit selectedFromSlice(slice, plane);
-}
-
-//-----------------------------------------------------------------------------
-void DefaultEspinaView::selectToSlice(double slice, PlaneType plane)
-{
-  emit selectedToSlice(slice, plane);
-}
-
-//-----------------------------------------------------------------------------
-void DefaultEspinaView::channelSelected(Channel* channel)
-{
-  SelectionManager::Selection selection;
-
-  selection << channel;
-
-  SelectionManager::instance()->setSelection(selection);
-}
-
-//-----------------------------------------------------------------------------
-void DefaultEspinaView::segmentationSelected(Segmentation* seg, bool append)
-{
-  SelectionManager::Selection selection;
-
-  if (append)
-    selection = SelectionManager::instance()->selection();
-
-  if (!selection.contains(seg))
-    selection << seg;
-
-  SelectionManager::instance()->setSelection(selection);
-}
-
-//-----------------------------------------------------------------------------
-void DefaultEspinaView::updateSceneRanges()
-{
-  double spacing[3];
-  double minSpacing[3] = {1, 1, 1};
-  double bounds[6];
-  double ranges[6] = { 0, 1, 0, 1, 0, 1};
-
-  Channel *channel;
-  for(int c = 0; c < m_channels.size(); c++)
-  {
-    channel = m_channels[c];
-    if (0 == c)
-    {
-      channel->spacing(minSpacing);
-      channel->bounds(ranges);
-    }else
-    {
-      channel->spacing(spacing);
-      channel->bounds(bounds);
-      for (int i = 0; i < 3; i++)
-      {
-	minSpacing[i] = std::min(minSpacing[i], spacing[i]);
-	ranges[i] = std::min(ranges[i], bounds[i]);
-	ranges[2*i+1] = std::max(ranges[2*i+1], bounds[2*i+1]);
-      }
-    }
-  }
-
-  setSlicingStep(minSpacing);
-  xyView->setSlicingRanges(ranges);
-  yzView->setSlicingRanges(ranges);
-  xzView->setSlicingRanges(ranges);
-}
-
-//-----------------------------------------------------------------------------
-DefaultEspinaView::SettingsPanel::SettingsPanel(SliceView::SettingsPtr xy, SliceView::SettingsPtr yz, SliceView::SettingsPtr xz, VolumeView::SettingsPtr vol) :
-m_xy(xy), m_yz(yz), m_xz(xz), m_vol(vol)
+DefaultEspinaView::SettingsPanel::SettingsPanel(SliceView::SettingsPtr xy,
+                                                SliceView::SettingsPtr yz,
+                                                SliceView::SettingsPtr xz,
+                                                VolumeView::SettingsPtr vol,
+                                                EspinaFactory *factory)
+: m_xy(xy)
+, m_yz(yz)
+, m_xz(xz)
+, m_vol(vol)
+, m_factory(factory)
 {
   QVBoxLayout *layout = new QVBoxLayout();
   QGroupBox *group;
@@ -657,7 +528,7 @@ m_xy(xy), m_yz(yz), m_xz(xz), m_vol(vol)
   layout->addWidget(group);
 
   // 3D View
-  m_volPanel = new VolumeViewSettingsPanel(vol);
+  m_volPanel = new VolumeViewSettingsPanel(factory, vol);
   group = new QGroupBox(m_volPanel->shortDescription());
   groupLayout = new QVBoxLayout();
   groupLayout->addWidget(m_volPanel);
@@ -688,12 +559,30 @@ bool DefaultEspinaView::SettingsPanel::modified() const
 //-----------------------------------------------------------------------------
 ISettingsPanel* DefaultEspinaView::SettingsPanel::clone()
 {
-  return new SettingsPanel(m_xy, m_yz, m_xz, m_vol);
+  return new SettingsPanel(m_xy, m_yz, m_xz, m_vol, m_factory);
 }
 
 //-----------------------------------------------------------------------------
 void DefaultEspinaView::changePlanePosition(PlaneType plane, Nm dist)
 {
+  switch(plane)
+  {
+    case AXIAL:
+      this->yzView->UpdateCrosshairPoint(plane, dist);
+      this->xzView->UpdateCrosshairPoint(plane, dist);
+      break;
+    case CORONAL:
+      this->xyView->UpdateCrosshairPoint(plane, dist);
+      this->yzView->UpdateCrosshairPoint(plane, dist);
+      break;
+    case SAGITTAL:
+      this->xyView->UpdateCrosshairPoint(plane, dist);
+      this->xzView->UpdateCrosshairPoint(plane, dist);
+      break;
+    default:
+      Q_ASSERT(false);
+      break;
+  }
   volView->changePlanePosition(plane, dist);
-  volView->forceRender();
+  volView->updateView();
 }

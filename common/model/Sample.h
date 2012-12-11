@@ -34,8 +34,12 @@ class SampleExtension;
 class Channel;
 class Segmentation;
 
-class Sample : public ModelItem
+class Sample
+: public ModelItem
 {
+public:
+  static const QString WHERE;
+
 public:
   explicit Sample(const QString id);
   explicit Sample(const QString id, const QString args);

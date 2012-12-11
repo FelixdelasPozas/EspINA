@@ -8,9 +8,7 @@
 #include "ContourSource.h"
 #include "ContourSourceInspector.h"
 
-#include <EspinaCore.h>
 #include <EspinaRegions.h>
-#include <EspinaView.h>
 #include <model/EspinaFactory.h>
 
 #include <itkImageRegionIteratorWithIndex.h>
@@ -84,12 +82,6 @@ void ContourSource::draw(OutputNumber i, vtkPolyData *contour, Nm slice, PlaneTy
   }
   else
   {
-    for (int j = 0; j < contour->GetPoints()->GetNumberOfPoints(); j++)
-    {
-      double pos[3];
-      contour->GetPoint(j, pos);
-      std::cout << "point " << j << " [ " << pos[0] << ", " << pos[1] << ", " << pos[2] << "]\n" << std::flush;
-    }
     contour->ComputeBounds();
     contour->GetBounds(bounds);
     if (true == ImageInitializedByFilter)
@@ -137,8 +129,8 @@ void ContourSource::signalAsModified()
 
 vtkPolyData* ContourSource::TransformContour(PlaneType plane, vtkPolyData* contour)
 {
-  double spacing[3], pos[3], temporal;
-  SelectionManager::instance()->activeChannel()->spacing(spacing);
+  double pos[3], temporal;
+
   int count = contour->GetPoints()->GetNumberOfPoints();
   vtkPolyData *rotatedContour = vtkPolyData::New();
 
@@ -159,18 +151,18 @@ vtkPolyData* ContourSource::TransformContour(PlaneType plane, vtkPolyData* conto
       switch (plane)
       {
         case AXIAL:
-//          pos[2] -= 0.5 * spacing[2];
+          pos[2] -= 0.5 * m_param.spacing()[2];
           break;
         case CORONAL:
           temporal = pos[1];
           pos[1] = pos[2];
-          pos[2] = temporal; // - 0.5 * spacing[1];
+          pos[2] = temporal - 0.5 * m_param.spacing()[1];
           break;
         case SAGITTAL:
           temporal = pos[0];
           pos[0] = pos[1];
           pos[1] = pos[2];
-          pos[2] = temporal;// - 0.5 * spacing[0];
+          pos[2] = temporal - 0.5 * m_param.spacing()[0];
           break;
         default:
           Q_ASSERT(false);
@@ -197,7 +189,7 @@ vtkPolyData* ContourSource::TransformContour(PlaneType plane, vtkPolyData* conto
   return rotatedContour;
 }
 
-QWidget* ContourSource::createConfigurationWidget()
+QWidget* ContourSource::createFilterInspector(QUndoStack* undoStack, ViewManager* vm)
 {
   return new ContourSource::ContourSourceInspector(this);
 }
