@@ -21,6 +21,7 @@
 #define BOUNDINGREGION_H
 
 #include <QStandardItemModel>
+#include <boost/graph/graph_concepts.hpp>
 
 #include "vtkBoundingRegionSliceWidget.h"
 #include "vtkBoundingRegion3DWidget.h"
@@ -74,9 +75,13 @@ public:
   {
     DescriptionRole = Qt::UserRole + 1
   };
+
+  typedef int RegionId;
+
 public:
   vtkTypeMacro(BoundingRegion, vtkCommand);
-  explicit BoundingRegion(CountingRegionChannelExtension *channelExt,
+  explicit BoundingRegion(RegionId id,
+                          CountingRegionChannelExtension *channelExt,
                           Nm inclusion[3],
                           Nm exclusion[3],
                           ViewManager *vm);
@@ -88,6 +93,8 @@ public:
   virtual QVariant data(int role = Qt::UserRole + 1) const;
   virtual QString serialize() const = 0;
   virtual QString regionType() const = 0;
+
+  RegionId id() const { return m_id; }
 
   /// Return total volume in pixels
   virtual double totalVolume() const
@@ -124,6 +131,8 @@ protected:
 
   vtkSmartPointer<vtkPolyData> m_boundingRegion;
   vtkSmartPointer<vtkPolyData> m_representation;
+
+  RegionId m_id;
 
   Nm m_inclusion[3];
   Nm m_exclusion[3];

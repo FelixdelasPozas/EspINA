@@ -34,11 +34,12 @@
 const QString AdaptiveBoundingRegion::ID = "AdaptiveBoundingRegion";
 
 //-----------------------------------------------------------------------------
-AdaptiveBoundingRegion::AdaptiveBoundingRegion(CountingRegionChannelExtension *channelExt,
+AdaptiveBoundingRegion::AdaptiveBoundingRegion(RegionId id,
+                                               CountingRegionChannelExtension *channelExt,
                                                Nm inclusion[3],
                                                Nm exclusion[3],
                                                ViewManager *vm)
-: BoundingRegion(channelExt, inclusion, exclusion, vm)
+: BoundingRegion(id, channelExt, inclusion, exclusion, vm)
 , m_channel(channelExt->channel())
 {
   updateBoundingRegion();
@@ -66,7 +67,9 @@ AdaptiveBoundingRegion::~AdaptiveBoundingRegion()
 QVariant AdaptiveBoundingRegion::data(int role) const
 {
   if (role == Qt::DisplayRole)
-    return tr("%1 - Adaptive Region").arg(m_channelExt->channel()->data().toString());
+    return tr("%1 - Region %2: Adaptive")
+             .arg(m_channelExt->channel()->data().toString())
+             .arg(m_id);
 
   return BoundingRegion::data(role);
 }

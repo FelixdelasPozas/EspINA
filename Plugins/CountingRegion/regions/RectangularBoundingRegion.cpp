@@ -33,12 +33,13 @@
 const QString RectangularBoundingRegion::ID = "RectangularBoundingRegion";
 
 //-----------------------------------------------------------------------------
-RectangularBoundingRegion::RectangularBoundingRegion(CountingRegionChannelExtension *channelExt,
+RectangularBoundingRegion::RectangularBoundingRegion(RegionId id,
+                                                     CountingRegionChannelExtension *channelExt,
                                                      Nm borders[6],
                                                      Nm inclusion[3],
                                                      Nm exclusion[3],
                                                      ViewManager *vm)
-: BoundingRegion(channelExt, inclusion, exclusion, vm)
+: BoundingRegion(id, channelExt, inclusion, exclusion, vm)
 {
   memcpy(m_borders, borders, 6*sizeof(Nm));
 
@@ -68,7 +69,9 @@ RectangularBoundingRegion::~RectangularBoundingRegion()
 QVariant RectangularBoundingRegion::data(int role) const
 {
   if (role == Qt::DisplayRole)
-    return tr("%1 - Rectangular Region").arg(m_channelExt->channel()->data().toString());
+    return tr("%1 - Region %2: Rectangular")
+             .arg(m_channelExt->channel()->data().toString())
+             .arg(m_id);
 
   return BoundingRegion::data(role);
 }
