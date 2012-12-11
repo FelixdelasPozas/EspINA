@@ -32,32 +32,38 @@ SeedGrowSegmentation::SettingsPanel::SettingsPanel(SeedGrowSegmentation::Setting
 {
   setupUi(this);
 
-  connect(pixelValue,SIGNAL(valueChanged(int)),
+  connect(m_pixelValue,SIGNAL(valueChanged(int)),
           this, SLOT(displayColor(int)));
 
-  pixelValue->setValue(settings->bestPixelValue());
-  displayColor(pixelValue->value());
-  xSize->setValue(settings->xSize());
-  ySize->setValue(settings->ySize());
-  zSize->setValue(settings->zSize());
-  bool closingActive = settings->closing()>0;
-  applyClosing->setChecked(closingActive);
-  closing->setEnabled(closingActive);
-  closing->setValue(settings->closing());
+  m_pixelValue->setValue(settings->bestPixelValue());
+  displayColor(m_pixelValue->value());
 
-  connect(applyClosing, SIGNAL(toggled(bool)),
-	 closing, SLOT(setEnabled(bool)));
+  m_xSize->setValue(settings->xSize());
+  m_ySize->setValue(settings->ySize());
+  m_zSize->setValue(settings->zSize());
+  m_taxonomicalVOI->setChecked(settings->taxonomicalVOI());
+
+  bool closingActive = settings->closing()>0;
+  m_applyClosing->setChecked(closingActive);
+  m_closing->setEnabled(closingActive);
+  m_closing->setValue(settings->closing());
+
+  connect(m_applyClosing, SIGNAL(toggled(bool)),
+          m_closing, SLOT(setEnabled(bool)));
 }
 
 //------------------------------------------------------------------------
 void SeedGrowSegmentation::SettingsPanel::acceptChanges()
 {
-  m_settings->setBestPixelValue(pixelValue->value());
-  m_settings->setXSize(xSize->value());
-  m_settings->setYSize(ySize->value());
-  m_settings->setZSize(zSize->value());
-  if (applyClosing->isChecked())
-    m_settings->setClosing(closing->value());
+  m_settings->setBestPixelValue(m_pixelValue->value());
+
+  m_settings->setXSize(m_xSize->value());
+  m_settings->setYSize(m_ySize->value());
+  m_settings->setZSize(m_zSize->value());
+  m_settings->setTaxonomicalVOI(m_taxonomicalVOI->isChecked());
+
+  if (m_applyClosing->isChecked())
+    m_settings->setClosing(m_closing->value());
   else
     m_settings->setClosing(0);
 }
@@ -65,11 +71,12 @@ void SeedGrowSegmentation::SettingsPanel::acceptChanges()
 //------------------------------------------------------------------------
 bool SeedGrowSegmentation::SettingsPanel::modified() const
 {
-  return xSize->value() != m_settings->xSize()
-  || ySize->value() != m_settings->ySize()
-  || zSize->value() != m_settings->zSize()
-  || pixelValue->value() != m_settings->bestPixelValue()
-  || (applyClosing->isChecked()?closing->value():0) != m_settings->closing();
+  return m_xSize->value() != m_settings->xSize()
+      || m_ySize->value() != m_settings->ySize()
+      || m_zSize->value() != m_settings->zSize()
+      || m_taxonomicalVOI->isChecked() != m_settings->taxonomicalVOI()
+      || m_pixelValue->value() != m_settings->bestPixelValue()
+      || (m_applyClosing->isChecked()?m_closing->value():0) != m_settings->closing();
 }
 
 
@@ -85,7 +92,7 @@ void SeedGrowSegmentation::SettingsPanel::displayColor(int value)
 {
   QPixmap pic(32,32);
   pic.fill(QColor(value,value,value));
-  colorSample->setPixmap(pic);
-  colorSample->setToolTip(QString("Pixel Value: %1").arg(value));
-  pixelValue->setToolTip(QString("Pixel Value: %1").arg(value));
+  m_colorSample->setPixmap(pic);
+  m_colorSample->setToolTip(tr("Pixel Value: %1").arg(value));
+  m_pixelValue->setToolTip(tr("Pixel Value: %1").arg(value));
 }

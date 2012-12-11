@@ -41,23 +41,39 @@
 
 typedef ModelItem::ArgumentId ArgumentId;
 
-const ArgumentId Filter::ID     = "ID";
-const ArgumentId Filter::INPUTS = "Inputs";
-const ArgumentId Filter::EDIT   = "Edit";
-
-unsigned int Filter::m_lastId = 0;
+const ArgumentId Filter::ID      = "ID";
+const ArgumentId Filter::INPUTS  = "Inputs";
+const ArgumentId Filter::EDIT    = "Edit"; // Backwards compatibility
 
 //----------------------------------------------------------------------------
-void Filter::resetId()
+void Filter::setTmpDir(QDir dir)
 {
-  m_lastId = 0;
-}
+  m_tmpDir = dir;
 
+  // Load cached outputs
+  if (m_outputs.isEmpty())
+  {
+    QStringList editList;
+    if (m_args.contains(EDIT))
+      editList = m_args[EDIT].split(",");
 
-//----------------------------------------------------------------------------
-QString Filter::generateId()
-{
-  return QString::number(m_lastId++);
+    foreach(QString cachedFile, m_tmpDir.entryList())
+    {
+      QString filterIdTag = tmpId() + "_";
+      if (cachedFile.contains(filterIdTag))
+      {
+        QString id = cachedFile.split("_").last();
+        id = id.split(".").first();
+        if (cachedFile.endsWith("mhd"))
+        {
+          Output cachedOutput(this, id.toInt());
+          if (editList.contains(id))
+            cachedOutput.isEdited = true;
+          m_outputs << cachedOutput;
+        }
+      }
+    }
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -70,178 +86,119 @@ Filter::Filter(Filter::NamedInputs  namedInputs,
     m_args[ID] = "-1";
 }
 
-
 //----------------------------------------------------------------------------
-bool Filter::isEdited() const
+QString Filter::serialize() const
 {
-  return m_args.contains(EDIT);
-}
-
-//----------------------------------------------------------------------------
-QList<OutputNumber> Filter::editedOutputs() const
-{
-  QList<OutputNumber> res;
-  QStringList values = m_args.value(EDIT, QString()).split(",");
-  foreach (QString value, values)
-    res << value.toInt();
-
-  return res;
-}
-
-
-//----------------------------------------------------------------------------
-int Filter::numberOutputs() const
-{
-  return m_outputs.size();
-}
-
-//----------------------------------------------------------------------------
-EspinaVolume* Filter::output(OutputNumber i) const
-{
-  Q_ASSERT(m_outputs.contains(i));
-  return m_outputs.value(i, NULL);
-}
-
-//----------------------------------------------------------------------------
-void Filter::update()
-{
-  if (!needUpdate())
-    return;
-
-  if (!prefetchFilter())
+  QStringList editList;
+  foreach(Output filterOutput, m_outputs)
   {
-    if (m_args.contains(EDIT))
-    {
-      QMessageBox msg;
-      msg.setText("Current Segmentation has been modified by the user."
-                   "Changes will be lost if you decide to recompute it."
-                   "Do you want to proceed?");
-      msg.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
-      if (msg.exec() != QMessageBox::Yes)
-	return;
-      m_args.remove(EDIT);
-    }
-    m_inputs.clear();
-    QStringList namedInputList = m_args[INPUTS].split(",", QString::SkipEmptyParts);
-    foreach(QString namedInput, namedInputList)
-    {
-      QStringList input = namedInput.split("_");
-      Filter *inputFilter = m_namedInputs[input[0]];
-      inputFilter->update();
-      m_inputs << inputFilter->output(input[1].toUInt());
-    }
-    run();
-  }
-}
-
-//----------------------------------------------------------------------------
-bool Filter::prefetchFilter()
-{
-  QString tmpFile = id() + "_0.mhd";
-  m_cachedFilter = tmpFileReader(tmpFile);
-
-  if (m_cachedFilter.IsNotNull())
-  {
-    m_outputs[0] = m_cachedFilter->GetOutput();
-    emit modified(this);
-    return true;
+    if (filterOutput.isCached && filterOutput.isEdited)
+      editList << QString::number(filterOutput.id);
   }
 
-  return false;
+  if (!editList.isEmpty())
+    m_args[EDIT] = editList.join(",");
+
+  return m_args.serialize();
 }
 
 //----------------------------------------------------------------------------
-Filter::EspinaVolumeReader::Pointer Filter::tmpFileReader(const QString file)
-{
-  if (m_tmpDir.exists(file))
-  {
-    itk::MetaImageIO::Pointer io = itk::MetaImageIO::New();
-    EspinaVolumeReader::Pointer reader = EspinaVolumeReader::New();
-
-    std::string tmpFile = m_tmpDir.absoluteFilePath(file).toStdString();
-    io->SetFileName(tmpFile.c_str());
-    reader->SetImageIO(io);
-    reader->SetFileName(tmpFile);
-    reader->Update();
-
-    return reader;
-  }
-  return NULL;
-}
-
-//----------------------------------------------------------------------------
-void Filter::draw(OutputNumber i,
+void Filter::draw(OutputId oId,
                   vtkImplicitFunction* brush,
                   double bounds[6],
                   EspinaVolume::PixelType value)
 {
-  EspinaVolume::SpacingType spacing = m_outputs[i]->GetSpacing();
-  EspinaVolume::RegionType region = BoundsToRegion(bounds, spacing);
-  m_outputs[i] = addRegionToVolume(m_outputs[i], region);
+  Output &filterOutput = output(oId);
 
-  EspinaVolume::RegionType outputRegion = VolumeRegion(m_outputs[i], region);
-  itk::ImageRegionIteratorWithIndex<EspinaVolume> it(m_outputs[i], outputRegion);
+  EspinaVolume::Pointer     volume  = filterOutput.volume;
+  EspinaVolume::SpacingType spacing = volume->GetSpacing();
+  EspinaVolume::RegionType  region  = BoundsToRegion(bounds, spacing);
+
+  volume = expandVolume(volume, region);
+
+  EspinaVolume::RegionType outputRegion = VolumeRegion(volume, region);
+  itk::ImageRegionIteratorWithIndex<EspinaVolume>   it(volume, outputRegion);
+
   it.GoToBegin();
   for (; !it.IsAtEnd(); ++it )
   {
-    double tx = it.GetIndex()[0]*spacing[0] + m_outputs[i]->GetOrigin()[0];
-    double ty = it.GetIndex()[1]*spacing[1] + m_outputs[i]->GetOrigin()[1];
-    double tz = it.GetIndex()[2]*spacing[2] + m_outputs[i]->GetOrigin()[2];
+    double tx = it.GetIndex()[0]*spacing[0] + volume->GetOrigin()[0];
+    double ty = it.GetIndex()[1]*spacing[1] + volume->GetOrigin()[1];
+    double tz = it.GetIndex()[2]*spacing[2] + volume->GetOrigin()[2];
 
     if (brush->FunctionValue(tx, ty, tz) <= 0)
       it.Set(value);
   }
-  m_outputs[i]->Modified();
-  markAsEdited(i);
+
+  volume->Modified();
+  filterOutput.volume = volume;
+
+  markAsEdited(oId);
+
   emit modified(this);
 }
 
 //----------------------------------------------------------------------------
-void Filter::draw(OutputNumber i,
+void Filter::draw(OutputId oId,
                   EspinaVolume::IndexType index,
                   EspinaVolume::PixelType value)
 {
+  Output &filterOutput = output(oId);
+  EspinaVolume::Pointer volume = filterOutput.volume;
+
   EspinaVolume::RegionType region;
   region.SetIndex(index);
   EspinaVolume::SizeType size;
   size.Fill(1);
   region.SetSize(size);
-  m_outputs[i] = addRegionToVolume(m_outputs[i], region);
+  volume = expandVolume(volume, region);
 
-  EspinaVolume *image = m_outputs[i];
-  if (image && image->GetLargestPossibleRegion().IsInside(index))
+  if (volume && volume->GetLargestPossibleRegion().IsInside(index))
   {
-    image->SetPixel(index, value);
-    image->Modified();
-    markAsEdited(i);
+    volume->SetPixel(index, value);
+    volume->Modified();
+
+    filterOutput.volume = volume;// TODO 2012-11-20 Se podria reemplazar por una referencia en la declaracion de volume
+
+    markAsEdited(oId);
+
     emit modified(this);
   }
 }
 
 //----------------------------------------------------------------------------
-void Filter::draw(OutputNumber i,
+void Filter::draw(OutputId oId,
                   Nm x, Nm y, Nm z,
                   EspinaVolume::PixelType value)
 {
-  EspinaVolume *image = output(i);
-  if (image)
+  Output &filterOutput = output(oId);
+  EspinaVolume::Pointer volume  = filterOutput.volume;
+
+  if (volume.IsNotNull())
   {
-    EspinaVolume::SpacingType spacing = image->GetSpacing();
+    EspinaVolume::SpacingType spacing = volume->GetSpacing();
+
     EspinaVolume::IndexType index;
     index[0] = x/spacing[0]+0.5;
     index[1] = y/spacing[1]+0.5;
     index[2] = z/spacing[2]+0.5;
-    draw(i, index, value);
+
+    draw(oId, index, value);
   }
 }
 
 //----------------------------------------------------------------------------
-void Filter::draw(OutputNumber i, vtkPolyData *contour, Nm slice, PlaneType plane,
+void Filter::draw(OutputId oId,
+                  vtkPolyData *contour,
+                  Nm slice, PlaneType plane,
       EspinaVolume::PixelType value)
 {
+  Output &filterOutput = output(oId);
+  EspinaVolume::Pointer volume  = filterOutput.volume;
+
   int extent[6];
-  VolumeExtent(m_outputs[i], extent);
-  EspinaVolume::SpacingType spacing = m_outputs[i]->GetSpacing();
+  VolumeExtent(volume, extent);
+  EspinaVolume::SpacingType spacing = volume->GetSpacing();
 
   double temporal;
   int temporalvalues[2];
@@ -347,52 +304,233 @@ void Filter::draw(OutputNumber i, vtkPolyData *contour, Nm slice, PlaneType plan
           Q_ASSERT(false);
           break;
       }
-      Q_ASSERT(m_outputs[i]->GetLargestPossibleRegion().IsInside(index));
-      m_outputs[i]->SetPixel(index, value);
+      Q_ASSERT(volume->GetLargestPossibleRegion().IsInside(index));
+      volume->SetPixel(index, value);
     }
     ++init;
   }
 
-  m_outputs[i]->Modified();
-  markAsEdited(i);
+  volume->Modified();
+  filterOutput.volume = volume;
+
+  markAsEdited(oId);
+
   emit modified(this);
 }
 
 //----------------------------------------------------------------------------
-void Filter::draw(OutputNumber i,
+void Filter::draw(OutputId oId,
                   EspinaVolume::Pointer volume)
 {
-  EspinaVolume::RegionType region = NormalizedRegion(volume);
-  m_outputs[i] = addRegionToVolume(m_outputs[i], region);
+  Output &filterOutput = output(oId);
+  EspinaVolume::Pointer filterVolume = filterOutput.volume;
 
-  EspinaVolume::RegionType inputRegion  = VolumeRegion(volume, region);
-  EspinaVolume::RegionType outputRegion = VolumeRegion(m_outputs[i], region);
-  itk::ImageRegionIteratorWithIndex<EspinaVolume> it(volume, inputRegion);
-  itk::ImageRegionIteratorWithIndex<EspinaVolume> ot(m_outputs[i], outputRegion);
+  EspinaVolume::RegionType region = NormalizedRegion(volume);
+  filterVolume = expandVolume(filterVolume, region);
+
+  EspinaVolume::RegionType inputRegion  = VolumeRegion(volume,       region);
+  EspinaVolume::RegionType outputRegion = VolumeRegion(filterVolume, region);
+
+  itk::ImageRegionIteratorWithIndex<EspinaVolume> it(volume,       inputRegion);
+  itk::ImageRegionIteratorWithIndex<EspinaVolume> ot(filterVolume, outputRegion);
+
   it.GoToBegin();
   ot.GoToBegin();
   for (; !it.IsAtEnd(); ++it, ++ot )
   {
     ot.Set(it.Get());
   }
-  m_outputs[i]->Modified();
-  markAsEdited(i);
+
+  filterVolume->Modified();
+  filterOutput.volume = filterVolume;
+
+  markAsEdited(oId);
+
   emit modified(this);
 }
 
 //----------------------------------------------------------------------------
-void Filter::restoreOutput(OutputNumber i, EspinaVolume::Pointer volume)
+void Filter::restoreOutput(OutputId oId, EspinaVolume::Pointer volume)
 {
-  m_outputs[i] = volume;
-  m_outputs[i]->Modified();
-  markAsEdited(i);
+  Output &filterOutput = output(oId);
+
+  filterOutput.volume = volume;
+  filterOutput.volume ->Modified();
+
+  markAsEdited(oId);
+
   emit modified(this);
 }
 
+//----------------------------------------------------------------------------
+Filter::OutputList Filter::editedOutputs() const
+{
+  OutputList res;
+
+  foreach(Output filterOutput, m_outputs)
+  {
+    if (filterOutput.isEdited)
+      res << filterOutput;
+  }
+
+  return res;
+}
 
 //----------------------------------------------------------------------------
-EspinaVolume::Pointer Filter::addRegionToVolume(EspinaVolume::Pointer volume,
-                                                EspinaVolume::RegionType region)
+bool Filter::validOutput(Filter::OutputId oId)
+{
+  bool res = false;
+  int i = 0;
+
+  while (!res && i < m_outputs.size())
+  {
+    if (m_outputs[i].id == oId)
+      res = true;
+    i++;
+  }
+
+  return res;
+
+}
+
+//----------------------------------------------------------------------------
+Filter::Output Filter::output(OutputId oId) const
+{
+  Output res;
+
+  foreach(Output filterOutput, m_outputs)
+  {
+    if (filterOutput.id == oId)
+    {
+      res = filterOutput;
+      break;
+    }
+  }
+
+  return res;
+}
+
+//----------------------------------------------------------------------------
+Filter::Output &Filter::output(OutputId oId)
+{
+  bool found = false;
+  int i = 0;
+
+  while (!found && i < m_outputs.size())
+  {
+    if (m_outputs[i].id == oId)
+      found = true;
+    else
+      i++;
+  }
+
+  Q_ASSERT(found);
+
+  return m_outputs[i];
+}
+
+//----------------------------------------------------------------------------
+bool Filter::needUpdate() const
+{
+  bool update = true;
+
+  if (!m_outputs.isEmpty())
+  {
+    update = false;
+    foreach(Output filterOutput, m_outputs)
+    {
+      update = update || !filterOutput.isValid();
+    }
+  }
+
+  return update;
+}
+
+//----------------------------------------------------------------------------
+void Filter::update()
+{
+  if (!needUpdate())
+    return;
+
+  if (!prefetchFilter())
+  {
+    if (!editedOutputs().isEmpty())
+    {
+      QMessageBox msg;
+      msg.setText(tr("Filter contains segmentations that have been modified by the user."
+                     "Updating this filter will result in losing user modifications."
+                     "Do you want to proceed?"));
+      msg.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
+      if (msg.exec() != QMessageBox::Yes)
+        return;
+    }
+
+    m_inputs.clear();
+    m_outputs.clear();//WARNING 2012-11-20 Otra opcion seria quitar el flag de edicion a todas las salidas
+
+    QStringList namedInputList = m_args[INPUTS].split(",", QString::SkipEmptyParts);
+    foreach(QString namedInput, namedInputList)
+    {
+      QStringList input = namedInput.split("_");
+      Filter *inputFilter = m_namedInputs[input[0]];
+      inputFilter->update();
+      m_inputs << inputFilter->output(input[1].toInt()).volume.GetPointer();
+    }
+
+    run();
+  }
+}
+
+//----------------------------------------------------------------------------
+bool Filter::prefetchFilter()
+{
+  if (m_outputs.isEmpty())
+    return false;
+
+  //WARNING: Hace falta que todos filtros carguen las outputs al crearse
+  // aunque estas puedan ser invalidas NULL volume pointer
+  EspinaVolumeReader::Pointer reader;
+
+  for(int i = 0; i < m_outputs.size(); i++)
+  {
+    Output &output = m_outputs[i];
+    QString tmpFile = QString("%1_%2.mhd").arg(tmpId()).arg(output.id);
+    reader = tmpFileReader(tmpFile);
+    if (reader.IsNull())
+      return false;
+
+    output.volume = reader->GetOutput();
+    output.volume->DisconnectPipeline();
+  }
+
+  emit modified(this);
+
+  return true;
+}
+
+//----------------------------------------------------------------------------
+Filter::EspinaVolumeReader::Pointer Filter::tmpFileReader(const QString file)
+{
+  EspinaVolumeReader::Pointer reader;
+
+  if (m_tmpDir.exists(file))
+  {
+    itk::MetaImageIO::Pointer io = itk::MetaImageIO::New();
+    reader = EspinaVolumeReader::New();
+
+    std::string tmpFile = m_tmpDir.absoluteFilePath(file).toStdString();
+    io->SetFileName(tmpFile.c_str());
+    reader->SetImageIO(io);
+    reader->SetFileName(tmpFile);
+    reader->Update();
+  }
+
+  return reader;
+}
+
+//----------------------------------------------------------------------------
+EspinaVolume::Pointer Filter::expandVolume(EspinaVolume::Pointer volume,
+                                           EspinaVolume::RegionType region)
 {
   EspinaVolume::Pointer res = volume;
 
@@ -428,16 +566,40 @@ EspinaVolume::Pointer Filter::addRegionToVolume(EspinaVolume::Pointer volume,
 }
 
 //----------------------------------------------------------------------------
-void Filter::markAsEdited(OutputNumber i)
+void Filter::markAsEdited(OutputId oId)
 {
-  if (!m_editedOutputs.contains(QString::number(i)))
-    m_editedOutputs << QString::number(i);
+  output(oId).isEdited = true;
 
-  m_args[EDIT] = m_editedOutputs.join(",");
+  QStringList editedOutputList;
+  foreach(Output filterOutput, m_outputs)
+  {
+    if (filterOutput.isEdited)
+      editedOutputList << QString::number(filterOutput.id);
+  }
+
+  m_args[EDIT] = editedOutputList.join(",");
 }
 
 //----------------------------------------------------------------------------
 QWidget* Filter::createFilterInspector(QUndoStack* undoStack, ViewManager* vm)
 {
   return new QWidget();
+}
+
+//----------------------------------------------------------------------------
+void Filter::updateCacheFlags()
+{
+  QStringList namedInputList = m_args[INPUTS].split(",", QString::SkipEmptyParts);
+  foreach(QString namedInput, namedInputList)
+  {
+    QStringList input = namedInput.split("_");
+    Filter *filter = m_namedInputs[input[0]];
+    OutputId oId = input[1].toInt();
+
+    if (filter->validOutput(oId))
+    {
+      Output &output = filter->output(oId);
+      output.isCached = output.isCached || output.isEdited;
+    }
+  }
 }

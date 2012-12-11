@@ -50,6 +50,7 @@
 #include "frontend/AboutDialog.h"
 #include "frontend/views/DefaultEspinaView.h"
 #include "frontend/ColorEngineMenu.h"
+#include "frontend/toolbar/zoom/ZoomToolBar.h"
 
 #ifdef TEST_ESPINA_MODELS
   #include "common/model/ModelTest.h"
@@ -60,6 +61,8 @@
 
 // Qt
 #include <QtGui>
+
+const QString AUTOSAVE_FILE = "espina-autosave.seg";
 
 //------------------------------------------------------------------------
 EspinaWindow::EspinaWindow()
@@ -72,7 +75,7 @@ EspinaWindow::EspinaWindow()
 , m_view(NULL)
 {
 #ifdef TEST_ESPINA_MODELS
-  m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model.data()));
+  m_modelTester = QSharedPointer<ModelTest>(new ModelTest(m_model));
 #endif
 
   m_dynamicMenuRoot = new DynamicMenuNode();
@@ -194,11 +197,18 @@ EspinaWindow::EspinaWindow()
   menuBar()->addMenu(settingsMenu);
 
   m_mainToolBar = new MainToolBar(m_model, m_undoStack, m_viewManager);
-//   m_mainToolBar->setMovable(false);
   addToolBar(m_mainToolBar);
-  addToolBar(new VolumeOfInterest(m_viewManager));
-  addToolBar(new SeedGrowSegmentation(m_model, m_undoStack, m_viewManager));
-  addToolBar(new EditorToolBar(m_model, m_undoStack, m_viewManager));
+  VolumeOfInterest *voiBar = new VolumeOfInterest(m_model, m_viewManager);
+  addToolBar(voiBar);
+  SeedGrowSegmentation *seedBar = new SeedGrowSegmentation(m_model, m_undoStack, m_viewManager);
+  connect(this, SIGNAL(analysisClosed()), seedBar, SLOT(cancelSegmentationOperation()));
+  addToolBar(seedBar);
+  EditorToolBar *editorBar = new EditorToolBar(m_model, m_undoStack, m_viewManager);
+  connect(this, SIGNAL(analysisClosed()), editorBar, SLOT(resetState()));
+  addToolBar(editorBar);
+  ZoomToolBar *zoomToolBar = new ZoomToolBar(m_viewManager);
+  connect(this, SIGNAL(analysisClosed()), zoomToolBar, SLOT(resetState()));
+  addToolBar(zoomToolBar);
 
   ChannelExplorer *channelExplorer = new ChannelExplorer(m_model, m_viewManager, this);
   addDockWidget(Qt::LeftDockWidgetArea, channelExplorer);
@@ -247,6 +257,11 @@ EspinaWindow::EspinaWindow()
   m_autosave.start();
   connect(&m_autosave, SIGNAL(timeout()),
           this, SLOT(autosave()));
+
+  QShortcut *cancel = new QShortcut(Qt::Key_Escape, this, SLOT(cancelOperation()));
+//  connect(cancel, SIGNAL(activate()), this, SLOT(cancelOperation()));
+
+  checkAutosave();
 }
 
 //------------------------------------------------------------------------
@@ -404,6 +419,24 @@ void EspinaWindow::createLODMenu()
 
 
 //------------------------------------------------------------------------
+void EspinaWindow::checkAutosave()
+{
+  QDir autosavePath = m_settings->autosavePath();
+  if (autosavePath.exists(AUTOSAVE_FILE))
+  {
+    QMessageBox info;
+    info.setWindowTitle(tr("EspINA"));
+    info.setText(tr("Previous working session closed unexpectedly. "
+                    "Do you want to load auto-saved session?"));
+    info.setStandardButtons(QMessageBox::Yes|QMessageBox::No);
+    if (QMessageBox::Yes == info.exec())
+    {
+      openAnalysis(autosavePath.absoluteFilePath(AUTOSAVE_FILE));
+    }
+  }
+}
+
+//------------------------------------------------------------------------
 void EspinaWindow::closeEvent(QCloseEvent* event)
 {
   if (m_busy)
@@ -411,7 +444,7 @@ void EspinaWindow::closeEvent(QCloseEvent* event)
     QMessageBox warning;
     warning.setWindowTitle(tr("EspINA"));
     warning.setText(tr("EspINA has pending actions. Do you really want to quit anyway?"));
-    if (warning.exec() != QMessageBox::Ok)
+    if (QMessageBox::Ok != warning.exec())
     {
       event->ignore();
       return;
@@ -443,6 +476,9 @@ void EspinaWindow::closeEvent(QCloseEvent* event)
   event->accept();
 
   m_model->reset();
+
+  QDir autosavePath = m_settings->autosavePath();
+  autosavePath.remove(AUTOSAVE_FILE);
 
   exit(0);
 }
@@ -495,15 +531,20 @@ void EspinaWindow::openAnalysis(const QString file)
 
   QFileInfo fileInfo(file);
 
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-  closeCurrentAnalysis();
-
-  if (EspinaIO::SUCCESS != EspinaIO::loadFile(file,
-                                              m_model,
-                                              m_undoStack,
-                                              m_settings->autosavePath()))
+  EspinaIO::STATUS loaded;
   {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    closeCurrentAnalysis();
+
+    loaded =  EspinaIO::loadFile(file,
+                                 m_model,
+                                 m_undoStack,
+                                 m_settings->autosavePath());
     QApplication::restoreOverrideCursor();
+  }
+
+  if (EspinaIO::SUCCESS != loaded)
+  {
     QMessageBox box(QMessageBox::Warning,
                     tr("Espina"),
                     tr("File %1 could not be loaded.\n"
@@ -540,13 +581,15 @@ void EspinaWindow::openAnalysis(const QString file)
 
   updateStatus(QString("File Loaded in %1m%2s").arg(mins).arg(secs));
   QApplication::restoreOverrideCursor();
-  m_recentDocuments1.addDocument(file);
-  m_recentDocuments2.updateDocumentList();
+  if (file != m_settings->autosavePath().absoluteFilePath(AUTOSAVE_FILE))
+  {
+    m_recentDocuments1.addDocument(file);
+    m_recentDocuments2.updateDocumentList();
+  }
 
   Q_ASSERT(!m_model->channels().isEmpty());
   m_viewManager->setActiveChannel(m_model->channels().first());
-  // TODO 2012-10-05 Set proper title
-  setWindowTitle(file);
+  setWindowTitle(m_viewManager->activeChannel()->data().toString());
   m_viewManager->updateSegmentationRepresentations();
   m_viewManager->updateViews();
 }
@@ -652,7 +695,7 @@ void EspinaWindow::saveAnalysis()
     EspinaIO::saveSegFile(analysisFile, m_model);
 
     QApplication::restoreOverrideCursor();
-    updateStatus(QString("File Saved Successfuly in %1").arg(analysisFile));
+    updateStatus(tr("File Saved Successfuly in %1").arg(analysisFile));
     m_busy = false;
 
     m_recentDocuments1.addDocument(analysisFile);
@@ -715,11 +758,13 @@ void EspinaWindow::autosave()
   if (!autosavePath.exists())
     autosavePath.mkpath(autosavePath.absolutePath());
 
-  const QFileInfo analysisFile = autosavePath.absoluteFilePath("espina-autosave.seg");
+  const QFileInfo analysisFile = autosavePath.absoluteFilePath(AUTOSAVE_FILE);
 
   EspinaIO::saveSegFile(analysisFile, m_model);
 
-  updateStatus(QString("Analysis autosaved at %1").arg(QTime::currentTime().toString()));
+  updateStatus(tr("Analysis autosaved at %1").arg(QTime::currentTime().toString()));
   m_busy = false;
   m_autosave.setInterval(m_settings->autosaveInterval()*60*1000);
 }
+
+//------------------------------------------------------------------------

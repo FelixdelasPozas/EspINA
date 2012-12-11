@@ -20,16 +20,6 @@
 
 #include <common/model/Filter.h>
 
-// ITK
-#include <itkImageFileReader.h>
-#include <itkExtractImageFilter.h>
-#include <itkImageFileReader.h>
-#include <itkImageToVTKImageFilter.h>
-#include <itkLabelImageToShapeLabelMapFilter.h>
-#include <itkMetaImageIO.h>
-#include <itkShapeLabelObject.h>
-#include <itkVTKImageToImageFilter.h>
-
 // Qt
 #include <QColor>
 
@@ -41,17 +31,6 @@ class Taxonomy;
 class SegmhaImporterFilter 
 : public Filter
 {
-  typedef itk::ImageFileReader<SegmentationLabelMap> LabelMapReader;
-typedef itk::ImageToVTKImageFilter<SegmentationLabelMap> ImageToVTKImageFilterType;
-typedef itk::VTKImageToImageFilter<SegmentationLabelMap> VTKImageToImageFilterType;
-typedef itk::ShapeLabelObject<unsigned int, 3> LabelObjectType;
-typedef itk::LabelMap<LabelObjectType> LabelMapType;
-typedef itk::LabelImageToShapeLabelMapFilter<SegmentationLabelMap, LabelMapType>
-  Image2LabelFilterType;
-typedef itk::LabelMapToLabelImageFilter<LabelMapType, EspinaVolume>
-  Label2ImageFilterType;
-typedef itk::ExtractImageFilter<EspinaVolume, EspinaVolume> ExtractFilterType;
-
   struct SegmentationObject
   {
     SegmentationObject(const QString &line);
@@ -68,14 +47,6 @@ typedef itk::ExtractImageFilter<EspinaVolume, EspinaVolume> ExtractFilterType;
     QString name;
     unsigned int label;
     QColor color;
-  };
-
-  typedef itk::ImageSource<EspinaVolume> EspinaSource;
-
-  struct Source
-  {
-    LabelMapType::Pointer labelMap;
-    EspinaSource::Pointer image;
   };
 
 public:
@@ -104,9 +75,9 @@ public:
     void setSpacing(EspinaVolume::SpacingType spacing)
     {
       m_args[SPACING] = QString("%1,%2,%3")
-                        .arg(spacing[0])
-                        .arg(spacing[1])
-                        .arg(spacing[2]);
+      .arg(spacing[0])
+      .arg(spacing[1])
+      .arg(spacing[2]);
     }
     EspinaVolume::SpacingType spacing()
     {
@@ -132,13 +103,12 @@ public:
   virtual QString serialize() const;
 
   // Implements Filter Interface
-  virtual void markAsModified();
   virtual bool needUpdate() const;
 
   /// Return full taxonomy contained in segmha's meta-data
   Taxonomy *taxonomy() {return m_taxonomy;}
   /// Return the taxonomy associated with the i-th output
-  TaxonomyElement *taxonomy(OutputNumber i);
+  TaxonomyElement *taxonomy(OutputId i);
   /// Return Counting Region Definition
   void countingRegion(double inclusive[3], double exclusive[3])
   {
@@ -146,22 +116,18 @@ public:
     memcpy(exclusive, m_exclusive, 3*sizeof(Nm));
   }
 
-  void initSegmentation(Segmentation *seg, int segId);
+  void initSegmentation(Segmentation *seg, OutputId i);
 
 protected:
   virtual void run();
-  virtual bool prefetchFilter();
 
 private:
-  bool       m_needUpdate;
   Parameters m_param;
-  LabelMapReader::Pointer m_lmapReader;
-  QList<Source>           m_sources;
 
-  QList<TaxonomyElement *>   m_taxonomies;
-  QList<int>              m_labels;
-  Taxonomy               *m_taxonomy;
-  Nm                      m_inclusive[3], m_exclusive[3];
+  QList<TaxonomyElement *> m_taxonomies;
+  QList<int>               m_labels;
+  Taxonomy                *m_taxonomy;
+  Nm                       m_inclusive[3], m_exclusive[3];
 };
 
 

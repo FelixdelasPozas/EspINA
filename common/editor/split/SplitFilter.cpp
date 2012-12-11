@@ -57,8 +57,7 @@ QVariant SplitFilter::data(int role) const
 //-----------------------------------------------------------------------------
 bool SplitFilter::needUpdate() const
 {
-  //NOTE: check stencil pointer
-  return m_outputs.size() < 2 || m_outputs[0].IsNull() || m_outputs[1].IsNull();
+  return Filter::needUpdate();
 }
 
 //-----------------------------------------------------------------------------
@@ -73,18 +72,19 @@ void SplitFilter::run()
   EspinaVolume::RegionType  nRegion = NormalizedRegion(input);
   EspinaVolume::SpacingType spacing = input->GetSpacing();
 
+  EspinaVolume::Pointer volumes[2];
   for(int i=0; i < 2; i++)
   {
-    m_outputs[i] = EspinaVolume::New();
-    m_outputs[i]->SetRegions(nRegion);
-    m_outputs[i]->SetSpacing(spacing);
-    m_outputs[i]->Allocate();
-    m_outputs[i]->FillBuffer(0);
+    volumes[i] = EspinaVolume::New();
+    volumes[i]->SetRegions(nRegion);
+    volumes[i]->SetSpacing(spacing);
+    volumes[i]->Allocate();
+    volumes[i]->FillBuffer(0);
   }
 
   ConstIterator it(input, region);
-  Iterator     ot1(m_outputs[0], nRegion);
-  Iterator     ot2(m_outputs[1], nRegion);
+  Iterator     ot1(volumes[0], nRegion);
+  Iterator     ot2(volumes[1], nRegion);
 
   it .GoToBegin();
   ot1.GoToBegin();
@@ -110,41 +110,13 @@ void SplitFilter::run()
     }
   }
 
+  m_outputs.clear();
+
   if (!isEmpty1 && !isEmpty2)
   {
     for (int i = 0; i < 2; i++)
-      m_outputs[i] = strechToFitContent(m_outputs[i]);
+      m_outputs << Output(this, i, strechToFitContent(volumes[i]));
 
     emit modified(this);
   }
-  else
-  {
-    m_outputs.clear();
-  }
-}
-
-//-----------------------------------------------------------------------------
-bool SplitFilter::prefetchFilter()
-{
-  bool ok = false;
-  // TODO 2012-11-07 Unify save/restore methods for multiple-output filters
-  for (int i = 0; i < 2; i++)
-  {
-    QString tmpFile = QString("%1_%2.mhd").arg(id()).arg(i);
-    EspinaVolumeReader::Pointer tmpReader = tmpFileReader(tmpFile);
-    if (tmpReader.IsNotNull())
-    {
-      EspinaVolume::Pointer tmpVolume = tmpReader->GetOutput();
-      if (tmpVolume.IsNotNull())
-      {
-        m_outputs[i] = tmpVolume;
-        ok = true;
-      }
-    }
-  }
-
-//   if (ok)
-//     emit modified(this);
-
-  return ok;
 }

@@ -28,6 +28,7 @@
 #include "common/tools/PixelSelector.h"
 #include "common/undo/RemoveSegmentation.h"
 #include <gui/ViewManager.h>
+#include <gui/QComboTreeView.h>
 
 // Qt
 #include <QAction>
@@ -65,27 +66,17 @@ MainToolBar::MainToolBar(EspinaModel *model,
   connect(m_toggleCrosshair, SIGNAL(toggled(bool)),
           this, SLOT(toggleCrosshair(bool)));
 
-  // User selected Taxonomy Selection List
-  m_taxonomyView = new QTreeView(this);
-  m_taxonomyView->setHeaderHidden(true);
-
-  m_taxonomySelector = new QComboBox(this);
-  m_taxonomySelector->setView(m_taxonomyView); //Brutal!
+  m_taxonomySelector = new QComboTreeView(this);
   m_taxonomySelector->setModel(model);
   m_taxonomySelector->setRootModelIndex(model->taxonomyRoot());
+  connect(m_taxonomySelector,SIGNAL(activated(QModelIndex)),
+          this, SLOT(setActiveTaxonomy(QModelIndex)));
   connect(model, SIGNAL(dataChanged(QModelIndex,QModelIndex)),
           this,  SLOT(updateTaxonomy(QModelIndex,QModelIndex)));
-
-  m_taxonomySelector->setMinimumWidth(160);
   m_taxonomySelector->setToolTip( tr("Type of new segmentation") );
-  m_taxonomySelector->setSizeAdjustPolicy(QComboBox::AdjustToContents);
 
   addWidget(m_taxonomySelector);
 
-  connect(m_taxonomyView, SIGNAL(entered(QModelIndex)),
-          this, SLOT(setActiveTaxonomy(QModelIndex)));
-  connect(m_taxonomySelector,SIGNAL(currentIndexChanged(QString)),
-          this, SLOT(setActiveTaxonomy(QString)));
 
   m_segRemover = new SegRemover();
   connect(m_segRemover, SIGNAL(removalAborted()),
@@ -103,6 +94,14 @@ MainToolBar::MainToolBar(EspinaModel *model,
 //----------------------------------------------------------------------------
 void MainToolBar::setShowSegmentations(bool visible)
 {
+  std::filebuf fb;
+  fb.open("/home/lokifacio/graph.dot", ios::out);
+  std::ostream os(&fb);
+
+  m_model->relationships()->write(os, RelationshipGraph::GRAPHVIZ);
+
+  fb.close();
+
   if (visible)
     m_toggleSegVisibility->setIcon(QIcon(":/espina/show_all.svg"));
   else
@@ -112,29 +111,17 @@ void MainToolBar::setShowSegmentations(bool visible)
 }
 
 //----------------------------------------------------------------------------
-void MainToolBar::setActiveTaxonomy(QModelIndex index)
+void MainToolBar::setActiveTaxonomy(const QModelIndex& index)
 {
   if (!index.isValid())
     return;
 
-  ModelItem *item = static_cast<ModelItem *>(index.internalPointer());
+  ModelItem *item = indexPtr(index);
   Q_ASSERT(item->type() == ModelItem::TAXONOMY);
   TaxonomyElement *tax = dynamic_cast<TaxonomyElement *>(item);
   Q_ASSERT(tax);
   m_viewManager->setActiveTaxonomy(tax);
 }
-
-//----------------------------------------------------------------------------
-void MainToolBar::setActiveTaxonomy(QString taxonomy)
-{
-  if (taxonomy.isEmpty())
-    return;
-
-  TaxonomyElement *tax = m_model->taxonomy()->element(taxonomy);
-  if (tax)
-    m_viewManager->setActiveTaxonomy(tax);
-}
-
 
 //----------------------------------------------------------------------------
 void MainToolBar::updateTaxonomy(QModelIndex left, QModelIndex right)
@@ -144,7 +131,6 @@ void MainToolBar::updateTaxonomy(QModelIndex left, QModelIndex right)
     m_taxonomySelector->setCurrentIndex(0);
     setActiveTaxonomy(left.child(0,0));
   }
-  m_taxonomyView->expandAll();
 }
 
 //----------------------------------------------------------------------------

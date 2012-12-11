@@ -1,5 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>AppPlane.svg</file>
+        <file>AppSurface.svg</file>
     </qresource>
 </RCC>

@@ -27,9 +27,11 @@
 #include "common/model/Segmentation.h"
 #include "common/tools/IVOI.h"
 #include "common/tools/PickableItem.h"
+#include <vtkMath.h>
 
 // Qt
 #include <QDebug>
+#include <boost/graph/graph_concepts.hpp>
 
 //----------------------------------------------------------------------------
 ViewManager::ViewManager()
@@ -71,10 +73,34 @@ void ViewManager::registerView(SliceView* view)
   m_espinaViews << view;
   Q_ASSERT(!m_sliceViews.contains(view));
   m_sliceViews << view;
-  connect(view, SIGNAL(sliceSelected(Nm,PlaneType,ViewManager::SliceSelectors)),
-          this, SIGNAL(sliceSelected(Nm,PlaneType,ViewManager::SliceSelectors)));
 }
 
+//----------------------------------------------------------------------------
+void ViewManager::unregisterView(IEspinaView* view)
+{
+  Q_ASSERT(m_espinaViews.contains(view));
+  m_espinaViews.removeAll(view);
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::unregisterView(EspinaRenderView* view)
+{
+  Q_ASSERT(m_renderViews.contains(view));
+  m_renderViews.removeAll(view);
+  Q_ASSERT(m_espinaViews.contains(view));
+  m_espinaViews.removeAll(view);
+}
+
+//----------------------------------------------------------------------------
+void ViewManager::unregisterView(SliceView* view)
+{
+  Q_ASSERT(m_renderViews.contains(view));
+  m_renderViews.removeAll(view);
+  Q_ASSERT(m_espinaViews.contains(view));
+  m_espinaViews.removeAll(view);
+  Q_ASSERT(m_sliceViews.contains(view));
+  m_sliceViews.removeAll(view);
+}
 
 //----------------------------------------------------------------------------
 void ViewManager::setSelectionEnabled(bool enable)
@@ -149,7 +175,15 @@ void ViewManager::setActiveTool(ITool* tool)
   m_tool = tool;
 
   if (m_tool)
+  {
+    if (m_voi)
+    {
+      double *voiBounds = m_voi->region();
+      if (!vtkMath::AreBoundsInitialized(voiBounds))
+        setVOI(NULL);
+    }
     m_tool->setInUse(true);
+  }
 }
 
 //----------------------------------------------------------------------------
@@ -180,6 +214,9 @@ bool ViewManager::filterEvent(QEvent* e, EspinaRenderView* view)
   if (m_voi)
     res = m_voi->filterEvent(e, view);
 
+  if (res && m_tool)
+    m_tool->lostEvent(view);
+
   if (!res && m_tool)
     res = m_tool->filterEvent(e, view);
 
@@ -207,13 +244,6 @@ void ViewManager::updateViews()
     view->updateView();
   }
 }
-
-//----------------------------------------------------------------------------
-void ViewManager::selectSlice(Nm pos, PlaneType plane, SliceSelectors flags )
-{
-  emit sliceSelected(pos, plane, flags);
-}
-
 
 //----------------------------------------------------------------------------
 void ViewManager::setActiveChannel(Channel* channel)
@@ -266,17 +296,18 @@ void ViewManager::showCrosshair(bool value)
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::showSliceSelectors(ViewManager::SliceSelectors selectors)
+void ViewManager::addSliceSelectors(SliceSelectorWidget* widget,
+                                    ViewManager::SliceSelectors selectors)
 {
   foreach(SliceView *view, m_sliceViews)
-    view->showSliceSelectors(selectors);
+    view->addSliceSelectors(widget, selectors);
 }
 
 //----------------------------------------------------------------------------
-void ViewManager::hideSliceSelectors(ViewManager::SliceSelectors selectors)
+void ViewManager::removeSliceSelectors(SliceSelectorWidget* widget)
 {
   foreach(SliceView *view, m_sliceViews)
-    view->hideSliceSelectors(selectors);
+    view->removeSliceSelectors(widget);
 }
 
 

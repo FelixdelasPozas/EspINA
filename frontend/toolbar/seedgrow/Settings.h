@@ -17,8 +17,8 @@
 */
 
 
-#ifndef SETTINGS_H
-#define SETTINGS_H
+#ifndef SEEDGROWSEGMENTATION_SETTINGS_H
+#define SEEDGROWSEGMENTATION_SETTINGS_H
 
 #include "SeedGrowSegmentation.h"
 
@@ -28,7 +28,7 @@ class SeedGrowSegmentation::Settings
 {
 public:
   explicit Settings(BestPixelSelector *selector);
-  virtual ~Settings(){}
+  ~Settings(){}
 
   void setXSize(int value);
   int xSize() const {return m_xSize;}
@@ -39,6 +39,9 @@ public:
   void setZSize(int value);
   int zSize() const {return m_zSize;}
 
+  void setTaxonomicalVOI(bool value);
+  bool taxonomicalVOI() const { return m_taxonomicalVOI; }
+
   void setBestPixelValue(int value);
   int bestPixelValue() const;
 
@@ -48,6 +51,7 @@ public:
 private:
   BestPixelSelector *m_selector;
   int m_xSize, m_ySize, m_zSize, m_closing;
+  bool m_taxonomicalVOI;
 };
 
-#endif // SETTINGS_H
+#endif // SEEDGROWSEGMENTATION_SETTINGS_H

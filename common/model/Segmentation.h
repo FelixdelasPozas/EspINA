@@ -28,7 +28,6 @@
 #include <common/extensions/SegmentationExtension.h>
 #include "common/tools/PickableItem.h"
 #include "common/model/Taxonomy.h"
-#include "Filter.h"
 #include <itkImageToVTKImageFilter.h>
 #include <vtkAlgorithmOutput.h>
 #include <itkCommand.h>
@@ -59,7 +58,7 @@ private:
   class SArguments : public Arguments
   {
   public:
-    explicit SArguments() : m_number(-1), m_outputNumber(-1){}
+    explicit SArguments() : m_number(-1), m_outputId(-1){}
     explicit SArguments(const ModelItem::Arguments args);
 
     void setNumber(unsigned int number)
@@ -69,13 +68,13 @@ private:
     }
     unsigned int number() const {return m_number;}
 
-    void setOutputNumber(OutputNumber outputNb)
+    void setOutputId(Filter::OutputId oId)
     {
-      m_outputNumber = outputNb;
-      (*this)[OUTPUT] = QString::number(outputNb);
+      m_outputId = oId;
+      (*this)[OUTPUT] = QString::number(oId);
     }
 
-    OutputNumber outputNumber() const {return m_outputNumber;}
+    Filter::OutputId outputId() const {return m_outputId;}
 
     void addUser(const QString &user)
     {
@@ -91,20 +90,16 @@ private:
 
   private:
     unsigned int m_number;
-    int m_outputNumber;
+    int m_outputId;
   };
 
 public:
-  explicit Segmentation(Filter *filter, OutputNumber outputNb);
+  explicit Segmentation(Filter *filter, Filter::OutputId outputNb);
   virtual ~Segmentation();
 
-  Filter *filter() const {return m_filter;}
-  unsigned int outputNumber() const {return m_args.outputNumber();}
-
-  void changeFilter(Filter *filter, unsigned int outputNb);
+  void changeFilter(Filter *filter, Filter::OutputId outputNb);
 
   /// Model Item Interface
-  virtual QString id() const;
   virtual QVariant data(int role=Qt::DisplayRole) const;
   virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
   virtual ItemType type() const {return ModelItem::SEGMENTATION;}
@@ -113,13 +108,18 @@ public:
   virtual void initialize(Arguments args = Arguments());
   virtual void initializeExtensions(Arguments args = Arguments());
 
+  void updateCacheFlag();
+
   /// Get the channel from where segmentation was created
   Channel *channel();
 
   /// Selectable Item Interface
-  virtual Filter* filter(){return m_filter;}
-  virtual OutputNumber outputNumber() {return m_args.outputNumber();}
+  virtual const Filter* filter() const {return m_filter;}
+  virtual Filter* filter() { return PickableItem::filter(); }
+
+  virtual Filter::OutputId outputId() {return m_args.outputId();}
   virtual EspinaVolume *itkVolume() const;
+
   virtual EspinaVolume *itkVolume();
 
   virtual vtkAlgorithmOutput* vtkVolume();

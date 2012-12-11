@@ -8,12 +8,13 @@ set (Espina_DIR ${PROJECT_BINARY_DIR})
 # Version Number
 set (ESPINA_VERSION_MAJOR 1)
 set (ESPINA_VERSION_MINOR 2)
-set (ESPINA_VERSION_PATCH 3)
+set (ESPINA_VERSION_PATCH 4)
 
+SET (COMPILING_ESPINA 1)
 
 SET (TEST_ESPINA_MODELS CACHE BOOL "Build EspINA Model Test wrappers")
-SET (BUILD_TESTING OFF CACHE BOOL "Build EspINA Unitary Tests")
-SET (USE_DASHBOARD OFF CACHE BOOL "Use EspINA Unitary Tests Dashboard")
+SET (BUILD_TESTING OFF  CACHE BOOL "Build EspINA Unitary Tests")
+SET (USE_DASHBOARD OFF  CACHE BOOL "Use EspINA Unitary Tests Dashboard")
 
 if (${BUILD_TESTING})
   include (CTest)
@@ -21,24 +22,22 @@ if (${BUILD_TESTING})
   add_subdirectory(tests)
 endif (${BUILD_TESTING})
 
-set (ESPINA_LIBRARY_DIRS
+set (ESPINA_LIBRARY_DIRECTORIES
   ${PROJECT_BINARY_DIR}/common
   )
 
-#SET(LIBRARY_OUTPUT_PATH "${CMAKE_BINARY_DIR}/frontend/plugins" # CACHE_PATH "Single directory for all plugin binaries.")
+include_directories (${CMAKE_SOURCE_DIR})
+link_directories (${ESPINA_LIBRARY_DIRECTORIES})
 
-add_subdirectory(common)
-add_subdirectory(frontend)
+#SET(LIBRARY_OUTPUT_PATH "${CMAKE_BINARY_DIR}/frontend/plugins" # CACHE_PATH "Single directory for all plugin binaries.")
 
 # for building espina plugins in the correct directory
 set(ESPINA_PLUGINS_DIR ${PROJECT_BINARY_DIR}/frontend/plugins)
 cmake_policy(SET CMP0013 OLD)
 
-# add espina plugins below this line taking dependencies into account
-# (if dependencies between plugins exists, less dependent first)
-add_subdirectory(plugins/AppositionPlane ${ESPINA_PLUGINS_DIR})
-add_subdirectory(plugins/SegmhaImporter ${ESPINA_PLUGINS_DIR})
-add_subdirectory(plugins/CountingRegion ${ESPINA_PLUGINS_DIR})
+add_subdirectory(common)
+add_subdirectory(frontend)
+add_subdirectory(plugins)
 
 set (ESPINA_INCLUDE ${PROJECT_SOURCE_DIR})
 

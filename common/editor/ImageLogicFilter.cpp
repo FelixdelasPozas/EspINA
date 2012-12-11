@@ -22,11 +22,11 @@
 #include <model/EspinaFactory.h>
 
 #include <itkImageRegionIteratorWithIndex.h>
+#include <itkImageAlgorithm.h>
+
 #include <vtkImageAlgorithm.h>
 
-#include <QApplication>
 #include <QDebug>
-#include <itkImageAlgorithm.h>
 
 const QString ImageLogicFilter::TYPE = "EditorToolBar::ImageLogicFilter";
 
@@ -43,9 +43,6 @@ ImageLogicFilter::ImageLogicFilter(Filter::NamedInputs inputs,
                                    ModelItem::Arguments args)
 : Filter(inputs, args)
 , m_param(m_args)
-// , m_pad1(PadFilterType::New())
-// , m_pad2(PadFilterType::New())
-// , m_orFilter(OrFilterType::New())
 {
 }
 
@@ -66,14 +63,33 @@ QVariant ImageLogicFilter::data(int role) const
 //-----------------------------------------------------------------------------
 bool ImageLogicFilter::needUpdate() const
 {
-  return m_outputs[0].IsNull();
+  bool update = Filter::needUpdate();
+
+  if (!update)
+  {
+    Q_ASSERT(m_inputs.size()  == 1);
+    Q_ASSERT(m_outputs.size() == 1);
+    Q_ASSERT(m_outputs[0].volume.IsNotNull());
+
+    itk::TimeStamp inputTimeStamp = m_inputs[0]->GetTimeStamp();
+    for (int i = 1; i < m_inputs.size(); i++)
+    {
+      if (inputTimeStamp < m_inputs[i]->GetTimeStamp())
+        inputTimeStamp = m_inputs[i]->GetTimeStamp();
+    }
+
+    update = m_outputs[0].volume->GetTimeStamp() < inputTimeStamp;
+  }
+
+  return update;
 }
 
 //-----------------------------------------------------------------------------
 void ImageLogicFilter::run() //TODO: Parallelize
 {
-  QApplication::setOverrideCursor(Qt::WaitCursor);
   Q_ASSERT(m_inputs.size() > 1);
+
+  m_outputs.clear();
 
   switch (m_param.operation())
   {
@@ -86,7 +102,7 @@ void ImageLogicFilter::run() //TODO: Parallelize
     default:
       Q_ASSERT(false);
   };
-  QApplication::restoreOverrideCursor();
+
   emit modified(this);
 }
 
@@ -106,16 +122,16 @@ void ImageLogicFilter::addition()
     regions << nr;
   }
 
-  m_outputs[0] = EspinaVolume::New();
-  m_outputs[0]->SetRegions(br);
-  m_outputs[0]->SetSpacing(spacing);
-  m_outputs[0]->Allocate();
-  m_outputs[0]->FillBuffer(0);
+  EspinaVolume::Pointer volume = EspinaVolume::New();
+  volume->SetRegions(br);
+  volume->SetSpacing(spacing);
+  volume->Allocate();
+  volume->FillBuffer(0);
 
   for (int i = 0; i < regions.size(); i++)
   {
     ConstIterator it(m_inputs[i], VolumeRegion(m_inputs[i], regions[i]));
-    Iterator ot(m_outputs[0], regions[i]);
+    Iterator ot(volume, regions[i]);
     it.GoToBegin();
     ot.GetRegion();
     for (; !it.IsAtEnd(); ++it,++ot)
@@ -124,6 +140,8 @@ void ImageLogicFilter::addition()
         ot.Set(SEG_VOXEL_VALUE);
     }
   }
+
+  m_outputs << Output(this, 0, volume);
 }
 
 void ImageLogicFilter::substraction()
@@ -147,23 +165,25 @@ void ImageLogicFilter::substraction()
     }
   }
 
-  m_outputs[0] = EspinaVolume::New();
-  m_outputs[0]->SetRegions(outputRegion);
-  m_outputs[0]->SetSpacing(spacing);
-  m_outputs[0]->Allocate();
-  m_outputs[0]->FillBuffer(0);
+  EspinaVolume::Pointer volume = EspinaVolume::New();
+  volume->SetRegions(outputRegion);
+  volume->SetSpacing(spacing);
+  volume->Allocate();
+  volume->FillBuffer(0);
 
-  itk::ImageAlgorithm::Copy(m_inputs[0], m_outputs[0].GetPointer(), m_inputs[0]->GetLargestPossibleRegion(), regions[0]);
+  itk::ImageAlgorithm::Copy(m_inputs[0], volume.GetPointer(), m_inputs[0]->GetLargestPossibleRegion(), regions[0]);
   for (int i = 1; i < validInputs.size(); i++)
   {
     ConstIterator it(m_inputs[i], VolumeRegion(m_inputs[i], regions[i]));
-    Iterator ot(m_outputs[0], regions[i]);
+    Iterator ot(volume, regions[i]);
     it.GoToBegin();
     ot.GetRegion();
     for (; !it.IsAtEnd(); ++it,++ot)
     {
       if (it.Value() == SEG_VOXEL_VALUE)
-	ot.Set(0);
+        ot.Set(0);
     }
   }
+
+  m_outputs << Output(this, 0, volume);
 }

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>605</width>
-    <height>282</height>
+    <width>406</width>
+    <height>353</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,7 +32,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="colorSample">
+           <widget class="QLabel" name="m_colorSample">
             <property name="minimumSize">
              <size>
               <width>32</width>
@@ -72,7 +72,7 @@
            </widget>
           </item>
           <item>
-           <widget class="QSlider" name="pixelValue">
+           <widget class="QSlider" name="m_pixelValue">
             <property name="maximum">
              <number>255</number>
             </property>
@@ -126,12 +126,15 @@
         <item>
          <widget class="QLabel" name="label_5">
           <property name="text">
-           <string>X Size</string>
+           <string>X:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="xSize">
+         <widget class="QSpinBox" name="m_xSize">
           <property name="suffix">
            <string> nm</string>
           </property>
@@ -146,12 +149,15 @@
         <item>
          <widget class="QLabel" name="label_6">
           <property name="text">
-           <string>Y Size:</string>
+           <string>Y:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="ySize">
+         <widget class="QSpinBox" name="m_ySize">
           <property name="suffix">
            <string> nm</string>
           </property>
@@ -166,12 +172,15 @@
         <item>
          <widget class="QLabel" name="label_7">
           <property name="text">
-           <string>Z Size&gt;</string>
+           <string>Z:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QSpinBox" name="zSize">
+         <widget class="QSpinBox" name="m_zSize">
           <property name="suffix">
            <string> nm</string>
           </property>
@@ -185,6 +194,26 @@
         </item>
        </layout>
       </item>
+      <item>
+       <widget class="QCheckBox" name="m_taxonomicalVOI">
+        <property name="text">
+         <string>Use taxonomical sizes</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_9">
+        <property name="lineWidth">
+         <number>1</number>
+        </property>
+        <property name="text">
+         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Use taxonomival sizes to define default VOI dimensions.&lt;/p&gt;&lt;p&gt;Note: You can modify taxonomical sizes under Cuboid VOI tab.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+        </property>
+        <property name="textFormat">
+         <enum>Qt::RichText</enum>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>
@@ -193,36 +222,40 @@
      <property name="title">
       <string>Closing</string>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <layout class="QVBoxLayout" name="verticalLayout_5">
       <item>
-       <widget class="QLabel" name="label_8">
-        <property name="text">
-         <string>Closing Radius</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QSpinBox" name="closing"/>
-      </item>
-      <item>
-       <widget class="QCheckBox" name="applyClosing">
+       <widget class="QCheckBox" name="m_applyClosing">
         <property name="text">
          <string>Apply Closing</string>
         </property>
        </widget>
       </item>
       <item>
-       <spacer name="horizontalSpacer_3">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QLabel" name="label_8">
+          <property name="text">
+           <string>Closing Radius</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="m_closing"/>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>

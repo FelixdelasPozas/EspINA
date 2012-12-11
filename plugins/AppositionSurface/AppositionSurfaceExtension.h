@@ -37,7 +37,7 @@
 #include <vtkTransformPolyDataFilter.h>
 
 class vtkImageData;
-class AppositionPlaneExtension
+class AppositionSurfaceExtension
 : public SegmentationExtension
 {
   typedef float DistanceType;
@@ -66,8 +66,8 @@ public:
   static const InfoTag PERIMETER;
 
 public:
-  explicit AppositionPlaneExtension();
-  virtual ~AppositionPlaneExtension();
+  explicit AppositionSurfaceExtension();
+  virtual ~AppositionSurfaceExtension();
 
   virtual ExtId id();
 
@@ -88,14 +88,14 @@ public:
 
   virtual SegmentationExtension* clone();
 
-  PolyData appositionPlane() const
+  PolyData appositionSurface() const
   { return m_ap; }
 
   //NOTE: Constness is required by information call
-  bool updateAppositionPlane() const;
+  bool updateAppositionSurface() const;
 private:
   // Apposition Plane Auxiliar Functions
-  PolyData clipPlane(AppositionPlaneExtension::PolyData plane, vtkImageData* image) const;
+  PolyData clipPlane(AppositionSurfaceExtension::PolyData plane, vtkImageData* image) const;
   DistanceMapType::Pointer computeDistanceMap(EspinaVolume::Pointer volume) const;
   /// Return the 8 corners of an OBB
   Points corners(double corner[3], double max[3], double mid[3], double min[3]) const;

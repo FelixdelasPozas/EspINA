@@ -5,18 +5,9 @@ set (TEST_NAME ${COMPONENT_NAME}_test)
 # MODIFY WHEN ADDING NEW TESTS
 create_test_sourcelist(TESTS  
   ${TEST_NAME}.cpp
-  #compressFile.cpp
-
   loadWithoutSegFile.cpp
-  #loadWithoutTraceFile.cpp
-  #loadWithoutTaxFile.cpp
-  #loadSimpleFile.cpp
-
-  #saveExistingFile.cpp
-  #saveWrongSegmentationPaths.cpp
-  #saveSimpleFile.cpp
-
-  #saveAndLoad.cpp
+  loadModelFromSegFile.cpp
+  saveModelToSegFile.cpp
   )
 
 add_executable(${TEST_NAME} ${TESTS}) #helpers.cpp)

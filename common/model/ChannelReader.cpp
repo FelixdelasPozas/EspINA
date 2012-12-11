@@ -36,7 +36,6 @@ const ArgumentId ChannelReader::SPACING = "Spacing";
 ChannelReader::ChannelReader(Filter::NamedInputs inputs,
                              ModelItem::Arguments args)
 : Filter(inputs, args)
-, m_volume(NULL)
 {
 }
 
@@ -58,7 +57,7 @@ QString ChannelReader::serialize() const
 //----------------------------------------------------------------------------
 bool ChannelReader::needUpdate() const
 {
-  return m_volume == NULL;
+  return Filter::needUpdate();
 }
 
 //----------------------------------------------------------------------------
@@ -102,32 +101,22 @@ void ChannelReader::run()
   if (m_args.contains(SPACING))
     m_reader->GetOutput()->SetSpacing(spacing());
 
-  m_volume = m_reader->GetOutput();
-}
+  EspinaVolume::Pointer volume = m_reader->GetOutput();
 
-//----------------------------------------------------------------------------
-int ChannelReader::numberOutputs() const
-{
-  //Filter::update();
-  return m_volume?1:0;
-}
-
-//----------------------------------------------------------------------------
-EspinaVolume* ChannelReader::output(OutputNumber i) const
-{
-  //Filter::update();
-  if (m_volume && 0 == i)
-    return m_volume;
-
-  return NULL;
+  m_outputs.clear();
+  m_outputs << Output(this, 0, volume);
 }
 
 //----------------------------------------------------------------------------
 void ChannelReader::setSpacing(itk::Image< unsigned int, 3 >::SpacingType spacing)
 {
+  Q_ASSERT(m_outputs.size() == 1);
+
   m_args[SPACING] = QString("%1,%2,%3")
   .arg(spacing[0]).arg(spacing[1]).arg(spacing[2]);
-  m_volume->SetSpacing(spacing);
+
+  m_outputs[0].volume->SetSpacing(spacing);
+
   emit modified(this);
 }
 

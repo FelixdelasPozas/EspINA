@@ -30,6 +30,7 @@
 
 #include "common/gui/ViewManager.h"
 
+class SegmentationInspector;
 class EspinaModel;
 class QUndoStack;
 #ifdef TEST_ESPINA_MODELS
@@ -59,9 +60,12 @@ protected slots:
   void changeLayout(int index);
   void focusOnSegmentation(const QModelIndex &index);
   void showInformation();
-  void deleteSegmentation();
+  void deleteSegmentations();
+  void segmentationsDeleted(const QModelIndex parent, int start, int end);
   void updateSelection(ViewManager::Selection selection);
   void updateSelection(QItemSelection selected, QItemSelection deselected);
+
+  void releaseInspectorResources(SegmentationInspector *inspector);
 
   virtual ISettingsPanel* settingsPanel();
   virtual void updateSegmentationRepresentations();
@@ -77,6 +81,8 @@ protected:
   QStringList     m_layoutNames;
   QList<Layout *> m_layouts;
   Layout         *m_layout;
+
+  QMap<Segmentation *, SegmentationInspector *> m_inspectors;
 
 private:
 #ifdef TEST_ESPINA_MODELS

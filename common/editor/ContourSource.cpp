@@ -62,13 +62,15 @@ ContourSource::~ContourSource()
 }
 
 //-----------------------------------------------------------------------------
-void ContourSource::draw(OutputNumber i, vtkPolyData *contour, Nm slice, PlaneType plane,
-    EspinaVolume::PixelType value)
+void ContourSource::draw(OutputId oId,
+                         vtkPolyData *contour,
+                         Nm slice, PlaneType plane,
+                         EspinaVolume::PixelType value)
 {
   double bounds[6] = { 0,0,0,0,0,0 };
 
-  Q_ASSERT(0 == i);
-  if (m_outputs[i].IsNull())
+  Q_ASSERT(0 == oId);
+  if (m_outputs.isEmpty())
   {
     // need to create a dummy image to register the filter/action, we'll change it later.
     ImageInitializedByFilter = true;
@@ -78,31 +80,32 @@ void ContourSource::draw(OutputNumber i, vtkPolyData *contour, Nm slice, PlaneTy
     img->SetSpacing(m_param.spacing());
     img->Allocate();
     img->FillBuffer(0);
-    m_outputs[i] = img;
+    m_outputs << Output(this, 0, img);
   }
   else
   {
+    EspinaVolume::Pointer volume = m_outputs[oId].volume;
     contour->ComputeBounds();
     contour->GetBounds(bounds);
     if (true == ImageInitializedByFilter)
     {
       ImageInitializedByFilter = false;
       EspinaVolume::RegionType buffer = BoundsToRegion(bounds, m_param.spacing());
-      m_outputs[i]->SetRegions(buffer);
-      m_outputs[i]->SetSpacing(m_param.spacing());
-      m_outputs[i]->Allocate();
-      m_outputs[i]->FillBuffer(0);
+      volume->SetRegions(buffer);
+      volume->SetSpacing(m_param.spacing());
+      volume->Allocate();
+      volume->FillBuffer(0);
     }
     else
     {
-      EspinaVolume::SpacingType spacing = m_outputs[i]->GetSpacing();
+      EspinaVolume::SpacingType spacing = volume->GetSpacing();
       EspinaVolume::RegionType contourRegion = BoundsToRegion(bounds, spacing);
-      m_outputs[i] = addRegionToVolume(m_outputs[i], contourRegion);
+      m_outputs[oId].volume = expandVolume(volume, contourRegion);
     }
 
     vtkPolyData *newContour = this->TransformContour(plane, contour);
     m_contourMap[plane].insert(slice, newContour);
-    Filter::draw(i, newContour, slice, plane);
+    Filter::draw(oId, newContour, slice, plane);
   }
 }
 
@@ -118,7 +121,7 @@ QVariant ContourSource::data(int role) const
 //-----------------------------------------------------------------------------
 bool ContourSource::needUpdate() const
 {
-  return m_outputs[0].IsNull();
+  return Filter::needUpdate();
 }
 
 //-----------------------------------------------------------------------------

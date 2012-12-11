@@ -20,16 +20,19 @@
 // EspINA
 #include "common/gui/ViewManager.h"
 #include "common/widgets/RectangularRegion.h"
+#include <widgets/RectangularRegionSliceSelector.h>
 #include <EspinaRegions.h>
 
 // Qt
 #include <QDebug>
 #include <QMessageBox>
+#include <QCheckBox>
 
 //----------------------------------------------------------------------------
 SeedGrowSegmentationFilter::FilterInspector::FilterInspector(Filter* filter, ViewManager* vm)
 : m_viewManager(vm)
 , m_region(NULL)
+//, m_sliceSelctor(NULL)
 {
   setupUi(this);
   m_filter = dynamic_cast<SeedGrowSegmentationFilter *>(filter);
@@ -41,7 +44,7 @@ SeedGrowSegmentationFilter::FilterInspector::FilterInspector(Filter* filter, Vie
   m_threshold->setValue(m_filter->m_param.lowerThreshold());
   int voiExtent[6];
   m_filter->m_param.voi(voiExtent);
-  EspinaVolume::SpacingType spacing = filter->output(0)->GetSpacing();
+  EspinaVolume::SpacingType spacing = filter->volume(0)->GetSpacing();
   for (int i=0; i<6; i++)
     m_voiBounds[i] = voiExtent[i] * spacing[i/2];
 
@@ -81,8 +84,17 @@ SeedGrowSegmentationFilter::FilterInspector::FilterInspector(Filter* filter, Vie
   connect(m_lowerMargin, SIGNAL(valueChanged(int)),
           this, SLOT(updateRegionBounds()));
 
-//   connect(m_threshold, SIGNAL(valueChanged(int)),
-// 	  this, SLOT(modifyFilter()));
+  bool enabled = m_filter->m_param.closeValue() > 0;
+  m_closeCheckbox->setChecked(enabled);
+  connect(m_closeCheckbox, SIGNAL(stateChanged(int)),
+      this, SLOT(modifyCloseCheckbox(int)));
+
+  m_closeRadius->setEnabled(enabled);
+  m_closeRadius->setValue(m_filter->m_param.closeValue());
+  connect(m_closeRadius, SIGNAL(valueChanged(int)),
+      this, SLOT(modifyCloseValue(int)));
+
+
   connect(m_modify, SIGNAL(clicked(bool)),
 	  this, SLOT(modifyFilter()));
 }
@@ -92,9 +104,10 @@ SeedGrowSegmentationFilter::FilterInspector::~FilterInspector()
 {
   if (m_region)
   {
-    m_viewManager->hideSliceSelectors(ViewManager::From|ViewManager::To);
     m_viewManager->removeWidget(m_region);
     delete m_region;
+    //m_viewManager->removeSliceSelectors(m_sliceSelctor);
+    //delete m_sliceSelctor;
   }
 }
 
@@ -103,17 +116,18 @@ bool SeedGrowSegmentationFilter::FilterInspector::eventFilter(QObject* sender, Q
 {
   if (e->type() == QEvent::FocusIn)
   {
-    m_viewManager->showSliceSelectors(ViewManager::From|ViewManager::To);
     if (!m_region)
     {
       m_region = new RectangularRegion(m_voiBounds, m_viewManager);
       connect(m_region, SIGNAL(modified(double*)),
               this, SLOT(redefineVOI(double*)));
       m_viewManager->addWidget(m_region);
+      //m_sliceSelctor = new RectangularRegionSliceSelector(m_region);
+      //m_sliceSelctor->setLeftLabel("SVOI");
+      //m_sliceSelctor->setRightLabel("SVOI");
+      //m_viewManager->addSliceSelectors(m_sliceSelctor, ViewManager::From|ViewManager::To);
       m_viewManager->updateViews();
     }
-    connect(m_viewManager, SIGNAL(sliceSelected(Nm,PlaneType,ViewManager::SliceSelectors)),
-            this, SLOT(redefineVOI(Nm,PlaneType,ViewManager::SliceSelectors)));
   }
 
   return QObject::eventFilter(sender, e);
@@ -122,47 +136,32 @@ bool SeedGrowSegmentationFilter::FilterInspector::eventFilter(QObject* sender, Q
 //----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::FilterInspector::redefineVOI(double* bounds)
 {
-  m_leftMargin->setValue(bounds[0]);
-  m_rightMargin->setValue(bounds[1]);
-  m_topMargin->setValue(bounds[2]);
-  m_bottomMargin->setValue(bounds[3]);
-  m_upperMargin->setValue(bounds[4]);
-  m_lowerMargin->setValue(bounds[5]);
-}
+  m_leftMargin  ->blockSignals(true);
+  m_rightMargin ->blockSignals(true);
+  m_topMargin   ->blockSignals(true);
+  m_bottomMargin->blockSignals(true);
+  m_upperMargin ->blockSignals(true);
+  m_lowerMargin ->blockSignals(true);
 
-//----------------------------------------------------------------------------
-void SeedGrowSegmentationFilter::FilterInspector::redefineVOI(Nm pos,
-                                                          PlaneType plane,
-                                                          ViewManager::SliceSelectors flags)
-{
-  switch (plane)
-  {
-    case AXIAL:
-      if (flags.testFlag(ViewManager::From))
-        m_upperMargin->setValue(pos);
-      if (flags.testFlag(ViewManager::To))
-        m_lowerMargin->setValue(pos);
-      break;
-    case SAGITTAL:
-      if (flags.testFlag(ViewManager::From))
-        m_leftMargin->setValue(pos);
-      if (flags.testFlag(ViewManager::To))
-        m_rightMargin->setValue(pos);
-      break;
-    case CORONAL:
-      if (flags.testFlag(ViewManager::From))
-        m_topMargin->setValue(pos);
-      if (flags.testFlag(ViewManager::To))
-        m_bottomMargin->setValue(pos);
-      break;
-  }
-  updateRegionBounds();
+  m_leftMargin  ->setValue(bounds[0]);
+  m_rightMargin ->setValue(bounds[1]);
+  m_topMargin   ->setValue(bounds[2]);
+  m_bottomMargin->setValue(bounds[3]);
+  m_upperMargin ->setValue(bounds[4]);
+  m_lowerMargin ->setValue(bounds[5]);
+
+  m_leftMargin  ->blockSignals(false);
+  m_rightMargin ->blockSignals(false);
+  m_topMargin   ->blockSignals(false);
+  m_bottomMargin->blockSignals(false);
+  m_upperMargin ->blockSignals(false);
+  m_lowerMargin ->blockSignals(false);
 }
 
 //----------------------------------------------------------------------------
 void SeedGrowSegmentationFilter::FilterInspector::modifyFilter()
 {
-  EspinaVolume::SpacingType spacing = m_filter->output(0)->GetSpacing();
+  EspinaVolume::SpacingType spacing = m_filter->volume(0)->GetSpacing();
   double voiBounds[6];
   voiBounds[0] = m_leftMargin->value();
   voiBounds[1] = m_rightMargin->value();
@@ -199,7 +198,7 @@ void SeedGrowSegmentationFilter::FilterInspector::modifyFilter()
   // TODO 2012-10-25 Change FilerInspector API to pass segmentations
   // it can be needed to modify their conditions or even to delete them
   double segBounds[6];
-  VolumeBounds(m_filter->output(0), segBounds);
+  VolumeBounds(m_filter->volume(0), segBounds);
   //VolumeBounds(m_seg->itkVolume(), segBounds);
 
   bool incompleteSeg = false;
@@ -217,7 +216,7 @@ void SeedGrowSegmentationFilter::FilterInspector::modifyFilter()
     warning.setText(tr("New segmentation may be incomplete due to VOI restriction."));
     warning.exec();
     QString condition = tr("Touch VOI");
-    //seg->addCondition(SGS_VOI, ":roi.svg", condition);
+    //seg->addCondition(SGS_VOI, ":voi.svg", condition);
   }
 
   m_viewManager->updateViews();
@@ -236,4 +235,20 @@ void SeedGrowSegmentationFilter::FilterInspector::updateRegionBounds()
 
   if (m_region)
     m_region->setBounds(m_voiBounds);
+}
+
+//----------------------------------------------------------------------------
+void SeedGrowSegmentationFilter::FilterInspector::modifyCloseCheckbox(int enable)
+{
+  m_closeRadius->setEnabled(enable);
+
+  if (!enable)
+    m_filter->m_param.setCloseValue(0);
+  else
+      m_filter->m_param.setCloseValue(m_closeRadius->value()); // if 0 == value then is the same as disabled
+}
+
+void SeedGrowSegmentationFilter::FilterInspector::modifyCloseValue(int value)
+{
+  m_filter->m_param.setCloseValue(value);
 }

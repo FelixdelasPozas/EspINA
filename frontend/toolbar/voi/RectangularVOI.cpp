@@ -19,29 +19,53 @@
 
 #include "RectangularVOI.h"
 #include "common/model/Channel.h"
+#include "common/model/EspinaModel.h"
+#include "common/model/EspinaFactory.h"
 #include <gui/ViewManager.h>
+#include <widgets/RectangularRegionSliceSelector.h>
+#include "frontend/toolbar/voi/Settings.h"
+#include "frontend/toolbar/voi/SettingsPanel.h"
+#include <vtkMath.h>
 
 #include <QPixmap>
 #include <boost/concept_check.hpp>
 
 //-----------------------------------------------------------------------------
-RectangularVOI::RectangularVOI(ViewManager *vm)
-: m_viewManager(vm)
+RectangularVOI::RectangularVOI(EspinaModel* model,
+                               ViewManager* viewManager)
+: m_model(model)
+, m_viewManager(viewManager)
 , m_inUse(false)
 , m_enabled(true)
 , m_widget (NULL)
+, m_sliceSelector(NULL)
+, m_settings     (new Settings())
+, m_settingsPanel(new SettingsPanel(m_model, m_settings))
 {
   m_picker.setCursor(QCursor(QPixmap(":roi_go.svg").scaled(32,32)));
   m_picker.setMultiSelection(false);
   m_picker.setPickable(IPicker::CHANNEL);
   connect(&m_picker, SIGNAL(itemsPicked(IPicker::PickList)),
           this, SLOT(defineVOI(IPicker::PickList)));
+
+  vtkMath::UninitializeBounds(m_bounds);
+  model->factory()->registerSettingsPanel(m_settingsPanel);
 }
 
 //-----------------------------------------------------------------------------
 RectangularVOI::~RectangularVOI()
 {
+  delete m_settingsPanel;
+  delete m_settings;
 
+  if (m_sliceSelector)
+  {
+    m_viewManager->removeSliceSelectors(m_sliceSelector);
+    delete m_sliceSelector;
+  }
+
+  if (m_widget)
+    delete m_widget;
 }
 
 //-----------------------------------------------------------------------------
@@ -89,9 +113,9 @@ void RectangularVOI::setInUse(bool value)
   {
     if (m_widget)
     {
-      m_viewManager->hideSliceSelectors(ViewManager::From|ViewManager::To);
-      disconnect(m_viewManager, SIGNAL(sliceSelected(Nm,PlaneType,ViewManager::SliceSelectors)),
-                 this, SLOT(setBorder(Nm,PlaneType,ViewManager::SliceSelectors)));
+      m_viewManager->removeSliceSelectors(m_sliceSelector);
+      delete m_sliceSelector;
+      m_sliceSelector = NULL;
 
       m_viewManager->removeWidget(m_widget);
       delete m_widget;
@@ -117,10 +141,8 @@ void RectangularVOI::setEnabled(bool enable)
 //-----------------------------------------------------------------------------
 IVOI::Region RectangularVOI::region()
 {
-  if (!m_widget)
-    return NULL;
-
-  m_widget->bounds(m_bounds);
+  if (m_widget)
+    m_widget->bounds(m_bounds);
 
   return m_bounds;
 }
@@ -147,10 +169,9 @@ void RectangularVOI::defineVOI(IPicker::PickList channels)
   double spacing[3];
   pickedChannel->spacing(spacing);
 
-  const Nm HALF_VOXEL = 0.5;
-  const Nm XHSIZE = (40 + HALF_VOXEL)*spacing[0];
-  const Nm YHSIZE = (40 + HALF_VOXEL)*spacing[1];
-  const Nm ZHSIZE = (40 + HALF_VOXEL)*spacing[2];
+  const Nm XHSIZE = m_settings->xSize();
+  const Nm YHSIZE = m_settings->ySize();
+  const Nm ZHSIZE = m_settings->zSize();
 
   Nm bounds[6] = {
      pos[0] - XHSIZE, pos[0] + XHSIZE,
@@ -159,37 +180,12 @@ void RectangularVOI::defineVOI(IPicker::PickList channels)
 
   m_widget = new RectangularRegion(bounds, m_viewManager);
   Q_ASSERT(m_widget);
+  m_widget->setResolution(spacing);
+  m_widget->setRepresentationPattern(0xFFF0);
   m_viewManager->addWidget(m_widget);
-  m_viewManager->showSliceSelectors(ViewManager::From|ViewManager::To);
-  connect(m_viewManager, SIGNAL(sliceSelected(Nm,PlaneType,ViewManager::SliceSelectors)),
-          this, SLOT(setBorder(Nm,PlaneType,ViewManager::SliceSelectors)));
+  m_sliceSelector = new RectangularRegionSliceSelector(m_widget);
+  m_sliceSelector->setLeftLabel ("From");
+  m_sliceSelector->setRightLabel("To");
+  m_viewManager->addSliceSelectors(m_sliceSelector, ViewManager::From|ViewManager::To);
   m_viewManager->updateViews();
-}
-
-//-----------------------------------------------------------------------------
-void RectangularVOI::setBorder(Nm pos, PlaneType plane, ViewManager::SliceSelectors flags)
-{
-  if (!m_widget)
-    return;
-
-  if (flags.testFlag(ViewManager::From))
-  {
-    double bounds[6];
-    m_widget->bounds(bounds);
-    if (pos < bounds[2*plane+1])
-    {
-      bounds[2*plane] = pos;
-      m_widget->setBounds(bounds);
-    }
-  }
-  if (flags.testFlag(ViewManager::To))
-  {
-    double bounds[6];
-    m_widget->bounds(bounds);
-    if (bounds[2*plane] < pos)
-    {
-      bounds[2*plane+1] = pos;
-      m_widget->setBounds(bounds);
-    }
-  }
 }

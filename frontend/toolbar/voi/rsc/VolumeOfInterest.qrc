@@ -2,7 +2,7 @@
     <qresource prefix="/">
         <file>roi_go.svg</file>
         <file>roi_out.svg</file>
-        <file>roi.svg</file>
+        <file>voi.svg</file>
         <file>to_slice.svg</file>
         <file>from_slice.svg</file>
     </qresource>

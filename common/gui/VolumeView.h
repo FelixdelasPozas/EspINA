@@ -77,7 +77,7 @@ public:
   explicit VolumeView(const EspinaFactory *factory,
                       ViewManager* vm,
                       QWidget* parent = 0);
-  virtual ~VolumeView(){}
+  virtual ~VolumeView();
 
   void centerViewOn(Nm *center, bool);
   void setCameraFocus(const Nm center[3]);
@@ -128,6 +128,7 @@ public slots:
   void countEnabledRenderers(bool);
   /// Update Selected Items
   virtual void updateSelection(ViewManager::Selection selection);
+  void resetView();
 
 signals:
   void channelSelected(Channel *);
@@ -163,6 +164,7 @@ private:
   QVTKWidget  *m_view;
   QPushButton m_snapshot;
   QPushButton m_export;
+  QPushButton m_zoom;
   vtkSmartPointer<vtkRenderer> m_renderer;
 
   SettingsPtr m_settings;

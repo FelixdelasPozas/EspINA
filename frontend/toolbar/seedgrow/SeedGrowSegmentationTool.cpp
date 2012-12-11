@@ -109,6 +109,7 @@ SeedGrowSegmentationTool::SeedGrowSegmentationTool(EspinaModel *model,
 , m_validPos(true)
 , connectFilter(NULL)
 , m_actor(NULL)
+, m_viewOfPreview(NULL)
 {
   Q_ASSERT(m_threshold);
   setChannelPicker(picker);
@@ -134,17 +135,23 @@ bool SeedGrowSegmentationTool::filterEvent(QEvent* e, EspinaRenderView *view)
   if (!m_enabled)
     return false;
 
+  if (e->type() == QEvent::FocusOut)
+  {
+    removePreview(view);
+    return false;
+  }
+
   if (e->type() == QEvent::KeyRelease)
   {
     QKeyEvent *ke = static_cast<QKeyEvent *>(e);
-    if ((m_actor != NULL) && (ke->key() == Qt::Key_Shift))
+    if (ke->key() == Qt::Key_Shift)
       removePreview(view);
   }
   else
     if (e->type() == QEvent::KeyPress)
     {
       QKeyEvent *ke = static_cast<QKeyEvent *>(e);
-      if ((m_actor == NULL) && (ke->key() == Qt::Key_Shift))
+      if (ke->key() == Qt::Key_Shift)
         addPreview(view);
     }
     else
@@ -155,6 +162,9 @@ bool SeedGrowSegmentationTool::filterEvent(QEvent* e, EspinaRenderView *view)
         {
           int numSteps = we->delta() / 8 / 15; //Refer to QWheelEvent doc.
           m_threshold->setLowerThreshold(m_threshold->lowerThreshold() + numSteps); //Using stepBy highlight the input text
+
+          if (we->modifiers() == Qt::ShiftModifier)
+            addPreview(view);
 
           return true;
         }
@@ -178,7 +188,7 @@ bool SeedGrowSegmentationTool::filterEvent(QEvent* e, EspinaRenderView *view)
           else
             m_validPos = true;
 
-          if (me->modifiers() == Qt::SHIFT)
+          if (me->modifiers() == Qt::ShiftModifier)
             addPreview(view);
           else
             removePreview(view);
@@ -267,6 +277,9 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
   double spacing[3];
   channel->spacing(spacing);
 
+  TaxonomyElement *tax = m_viewManager->activeTaxonomy();
+  Q_ASSERT(tax);
+
   Nm voiBounds[6];
   IVOI::Region currentVOI = m_viewManager->voiRegion();
   if (currentVOI)
@@ -275,12 +288,40 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
   }
   else if (m_defaultVOI->useDefaultVOI())
   {
-    voiBounds[0] = seed[0]*spacing[0] - m_settings->xSize();
-    voiBounds[1] = seed[0]*spacing[0] + m_settings->xSize();
-    voiBounds[2] = seed[1]*spacing[1] - m_settings->ySize();
-    voiBounds[3] = seed[1]*spacing[1] + m_settings->ySize();
-    voiBounds[4] = seed[2]*spacing[2] - m_settings->zSize();
-    voiBounds[5] = seed[2]*spacing[2] + m_settings->zSize();
+    voiBounds[0] = seed[0]*spacing[0];
+    voiBounds[1] = seed[0]*spacing[0];
+    voiBounds[2] = seed[1]*spacing[1];
+    voiBounds[3] = seed[1]*spacing[1];
+    voiBounds[4] = seed[2]*spacing[2];
+    voiBounds[5] = seed[2]*spacing[2];
+
+    QVariant xTaxSize = tax->property(TaxonomyElement::X_DIM);
+    QVariant yTaxSize = tax->property(TaxonomyElement::Y_DIM);
+    QVariant zTaxSize = tax->property(TaxonomyElement::Z_DIM);
+
+    Nm xSize, ySize, zSize;
+
+    if (m_settings->taxonomicalVOI() && xTaxSize.isValid()
+     && yTaxSize.isValid() && zTaxSize.isValid())
+    {
+      xSize = xTaxSize.toDouble();
+      ySize = yTaxSize.toDouble();
+      zSize = zTaxSize.toDouble();
+    }
+    else
+    {
+      xSize = m_settings->xSize();
+      ySize = m_settings->ySize();
+      zSize = m_settings->zSize();
+    }
+
+    voiBounds[0] -= xSize;
+    voiBounds[1] += xSize;
+    voiBounds[2] -= ySize;
+    voiBounds[3] += ySize;
+    voiBounds[4] -= zSize;
+    voiBounds[5] += zSize;
+
   } else
   {
     channel->bounds(voiBounds);
@@ -314,14 +355,11 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
     params.setVOI(voiExtent);
     params.setCloseValue(m_settings->closing());
     inputs[SeedGrowSegmentationFilter::INPUTLINK] = channel->filter();
-    args[Filter::INPUTS] = args.namedInput(SeedGrowSegmentationFilter::INPUTLINK, channel->outputNumber());
+    args[Filter::INPUTS] = Filter::NamedInput(SeedGrowSegmentationFilter::INPUTLINK, channel->outputId());
     SeedGrowSegmentationFilter *filter;
     filter = new SeedGrowSegmentationFilter(inputs, args);
     filter->update();
-    Q_ASSERT(filter->numberOutputs() == 1);
-
-    TaxonomyElement *tax = m_viewManager->activeTaxonomy();
-    Q_ASSERT(tax);
+    Q_ASSERT(filter->outputs().size() == 1);
 
     Segmentation *seg = m_model->factory()->createSegmentation(filter, 0);
 
@@ -341,7 +379,7 @@ void SeedGrowSegmentationTool::startSegmentation(IPicker::PickList pickedItems)
       warning.setText(tr("New segmentation may be incomplete due to VOI restriction."));
       warning.exec();
       QString condition = tr("Touch VOI");
-      seg->addCondition(SGS_VOI, ":roi.svg", condition);
+      seg->addCondition(SGS_VOI, ":voi.svg", condition);
     }
 
     m_undoStack->push(new CreateSegmentation(channel, filter, seg, tax, m_model));
@@ -355,11 +393,12 @@ void SeedGrowSegmentationTool::removePreview(EspinaRenderView *view)
   if (m_actor == NULL)
     return;
 
-  view->removePreview(m_actor);
+  m_viewOfPreview->removePreview(m_actor);
   connectFilter = NULL;
   i2v = NULL;
   m_actor = NULL;
-  view->updateView();
+  m_viewOfPreview->updateView();
+  m_viewOfPreview = NULL;
 }
 
 //-----------------------------------------------------------------------------
@@ -393,6 +432,9 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
     removePreview(view);
     return;
   }
+
+  if (view != m_viewOfPreview)
+    removePreview(view);
 
   EspinaVolume *channel = pickList.first().second->itkVolume();
   EspinaVolume::SpacingType spacing = channel->GetSpacing();
@@ -559,5 +601,11 @@ void SeedGrowSegmentationTool::addPreview(EspinaRenderView *view)
   m_actor->SetPosition(pos);
 
   view->addPreview(m_actor);
+  m_viewOfPreview = view;
   view->updateView();
+}
+
+void SeedGrowSegmentationTool::lostEvent(EspinaRenderView *view)
+{
+  removePreview(view);
 }

@@ -55,10 +55,10 @@ void SegmhaImporter::UndoCommand::redo()
   if (m_segs.isEmpty())
   {
     Segmentation *seg;
-    for (int i=0; i < m_filter->numberOutputs(); i++)
+    foreach(Filter::Output output, m_filter->outputs())
     {
-      seg = m_model->factory()->createSegmentation(m_filter, i);
-      m_filter->initSegmentation(seg, i);
+      seg = m_model->factory()->createSegmentation(m_filter, output.id);
+      m_filter->initSegmentation(seg, output.id);
       m_segs << seg;
     }
   }
@@ -162,6 +162,7 @@ bool SegmhaImporter::readFile(const QFileInfo file)
 
   m_undoStack->beginMacro("Import Segmha");
 
+  QApplication::setOverrideCursor(Qt::ArrowCursor);
   QFileDialog fileDialog;
   fileDialog.setObjectName("SelectChannelFile");
   fileDialog.setFileMode(QFileDialog::ExistingFiles);
@@ -169,7 +170,10 @@ bool SegmhaImporter::readFile(const QFileInfo file)
   fileDialog.setDirectory(file.dir());
   fileDialog.setFilter(CHANNEL_FILES);
 
-  if (fileDialog.exec() != QDialog::Accepted)
+  int res = fileDialog.exec();
+  QApplication::restoreOverrideCursor();
+
+  if (QDialog::Accepted != res)
     return false;
 
   Channel *channel;
@@ -185,7 +189,7 @@ bool SegmhaImporter::readFile(const QFileInfo file)
   QApplication::setOverrideCursor(Qt::WaitCursor);
   SegmhaImporterFilter *filter = new SegmhaImporterFilter(inputs, args);
   filter->update();
-  if (filter->numberOutputs() == 0)
+  if (filter->outputs().isEmpty())
   {
     delete filter;
     return false;

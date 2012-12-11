@@ -21,23 +21,26 @@
 
 #include "common/editor/FillHolesFilter.h"
 #include "common/model/EspinaModel.h"
+#include <QApplication>
 
 //-----------------------------------------------------------------------------
 FillHolesCommand::FillHolesCommand(SegmentationList inputs, EspinaModel *model)
 : m_model(model)
 , m_segmentations(inputs)
 {
+  QApplication::setOverrideCursor(Qt::WaitCursor);
   foreach(Segmentation *seg, m_segmentations)
   {
     Filter::NamedInputs inputs;
     Filter::Arguments args;
     inputs[FillHolesFilter::INPUTLINK] = seg->filter();
-    args[Filter::INPUTS] = FillHolesFilter::INPUTLINK + "_" + QString::number(seg->outputNumber());
+    args[Filter::INPUTS] = Filter::NamedInput(FillHolesFilter::INPUTLINK, seg->outputId());
     Filter *filter = new FillHolesFilter(inputs, args);
     filter->update();
     m_newConnections << Connection(filter, 0);
-    m_oldConnections << Connection(seg->filter(), seg->outputNumber());
+    m_oldConnections << Connection(seg->filter(), seg->outputId());
   }
+  QApplication::restoreOverrideCursor();
 }
 
 //-----------------------------------------------------------------------------

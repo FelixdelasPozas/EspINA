@@ -21,6 +21,7 @@
 
 #include "common/model/Filter.h"
 #include "common/model/ModelItem.h"
+#include "Segmentation.h"
 
 #include <iostream>
 #undef foreach // Due to Qt-Boost incompatibility
@@ -179,6 +180,8 @@ void RelationshipGraph::removeItem(ModelItem *item)
 //-----------------------------------------------------------------------------
 void RelationshipGraph::updateVertexInformation()
 {
+  int id = 0;
+
   VertexIterator vi, vi_end;
   for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
   {
@@ -197,19 +200,34 @@ void RelationshipGraph::updateVertexInformation()
         vertex.shape = CHANNEL_SHAPE;
         break;
       case ModelItem::SEGMENTATION:
+      {
+        Segmentation *seg = dynamic_cast<Segmentation *>(item);
+        Q_ASSERT(seg);
+        seg->updateCacheFlag();
         vertex.shape = SEGMENTATION_SHAPE;
         break;
+      }
       case ModelItem::FILTER:
       {
         Filter *filter = dynamic_cast<Filter *>(item);
         Q_ASSERT(filter);
-        filter->setId(Filter::generateId());
+        filter->setTmpId(id++);
+        filter->updateCacheFlags();
         vertex.shape = FILTER_SHAPE;
         break;
       }
       default:
         Q_ASSERT(false);
     }
+  }
+  // We need to do it in two loops to ensure cache flags are set properly
+  for(boost::tie(vi, vi_end) = boost::vertices(m_graph); vi != vi_end; vi++)
+  {
+    VertexProperty &vertex = m_graph[*vi];
+    ModelItem *item = vertex.item;
+    if (!item)
+      continue;
+    Q_ASSERT(item);
     vertex.name = item->data(Qt::DisplayRole).toString().toStdString();
     vertex.args = item->serialize().toStdString();
   }
@@ -530,8 +548,6 @@ void RelationshipGraph::write(std::ostream &stream, RelationshipGraph::PrintForm
     default:
       qWarning("Format Unkown");
   };
-
-  
 }
 
 

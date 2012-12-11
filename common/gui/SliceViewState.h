@@ -58,7 +58,7 @@ public:
                              double bounds[6]);
   virtual void setSlicingPosition(vtkMatrix4x4 *matrix,
                                 double value);
-  virtual void updateActor(vtkProp3D *actor){}
+  virtual void updateActor(vtkProp3D *actor) {};
   virtual void updateCamera(vtkCamera *camera,
                             double center[3]);
   virtual void updateSlicingMatrix(vtkMatrix4x4 *matrix);

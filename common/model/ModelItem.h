@@ -45,7 +45,8 @@ QString arg6(const T val[6])
 
 
 /// Base class for every item in EspinaModel
-class ModelItem : public QObject
+class ModelItem
+: public QObject
 {
   Q_OBJECT
 public:
@@ -70,8 +71,6 @@ public:
     explicit Arguments(const QString args);
     virtual ~Arguments(){}
 
-    static QString namedInput(const QString &name, OutputNumber output)
-    { return QString("%1_%2").arg(name).arg(output); }
     virtual QString serialize() const;
     virtual QString hash() const;
 
@@ -101,7 +100,6 @@ public:
   ModelItem() : m_modified(false), m_vertex(0), m_relations(NULL) {}
   virtual ~ModelItem(){}
 
-  virtual QString  id() const = 0;
   virtual QVariant data(int role=Qt::DisplayRole) const = 0;
   virtual bool setData(const QVariant& value, int role = Qt::UserRole +1) {return false;}
   virtual QString  serialize() const = 0;

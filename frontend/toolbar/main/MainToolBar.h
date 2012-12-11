@@ -32,6 +32,7 @@
 
 #include <QModelIndex>
 
+class QComboTreeView;
 class EspinaModel;
 class PixelSelector;
 class Segmentation;
@@ -55,8 +56,7 @@ public slots:
   void setShowSegmentations(bool visible);
 
 protected slots:
-  void setActiveTaxonomy(QModelIndex index);
-  void setActiveTaxonomy(QString taxonomy);
+  void setActiveTaxonomy(const QModelIndex &index);
   void updateTaxonomy(QModelIndex left, QModelIndex right);
   void removeSegmentation(bool active);
   void removeSegmentation(Segmentation *seg);
@@ -71,10 +71,9 @@ private:
   QUndoStack    *m_undoStack;
   ViewManager   *m_viewManager;
 
-  QAction    *m_toggleSegVisibility, *m_removeSegmentation, *m_toggleCrosshair;
-  QComboBox  *m_taxonomySelector;
-  QTreeView  *m_taxonomyView;
-  SegRemover *m_segRemover;
+  QAction        *m_toggleSegVisibility, *m_removeSegmentation, *m_toggleCrosshair;
+  QComboTreeView *m_taxonomySelector;
+  SegRemover     *m_segRemover;
 };
 
 #endif // MAINTOOLBAR_H

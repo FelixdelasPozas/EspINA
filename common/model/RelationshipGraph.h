@@ -140,8 +140,6 @@ public:
   void read(std::istream& stream, RelationshipGraph::PrintFormat format = BOOST);
   void write(std::ostream& stream, RelationshipGraph::PrintFormat format = BOOST);
 
-//   void registerPlugin(QString key, IFilterFactory* factory);
-//   IFilterFactory* getRegistredPlugin(QString& key);
   /*
   void addSubtrace(const ProcessingTrace *subTrace);
   std::vector<ITraceNode *> inputs(const ITraceNode *node);
@@ -153,10 +151,6 @@ public:
   //! It retrieves the current vertex index of a ModelItem
   VertexDescriptor vertex(ModelItem* item);
 private:
-  //!Convert a string int the correct format "{argument:value;}+" in a NodeParamList
-  //ITraceNode::Arguments parseArgs( QString& raw );
-
-  // attributes
   Graph m_graph;
 };
 

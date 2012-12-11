@@ -52,6 +52,8 @@ private:
   void addRelations(ModelItem::RelationList list);
   void removeRelations(ModelItem::RelationList list);
 
+  QList<Filter *> removeFilterDependencies(Filter *filter);
+
 private:
   struct FilterInfo
   {

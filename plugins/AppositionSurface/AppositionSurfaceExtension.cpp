@@ -1,4 +1,4 @@
-#include "AppositionPlaneExtension.h"
+#include "AppositionSurfaceExtension.h"
 
 // EspINA
 #include <common/model/Segmentation.h>
@@ -31,18 +31,18 @@
 /// - Apposition Plane Area
 /// - Apposition Plane Perimeter
 
-const ModelItemExtension::ExtId   AppositionPlaneExtension::ID
-= "AppositionPlaneExtension";
+const ModelItemExtension::ExtId   AppositionSurfaceExtension::ID
+= "AppositionSurfaceExtension";
 
-const ModelItemExtension::InfoTag AppositionPlaneExtension::AREA      
-= "AP Area";
-const ModelItemExtension::InfoTag AppositionPlaneExtension::PERIMETER 
-= "AP Perimeter";
+const ModelItemExtension::InfoTag AppositionSurfaceExtension::AREA
+= "AS Area";
+const ModelItemExtension::InfoTag AppositionSurfaceExtension::PERIMETER
+= "AS Perimeter";
 
 const double UNDEFINED = -1.;
 
 //------------------------------------------------------------------------
-AppositionPlaneExtension::AppositionPlaneExtension()
+AppositionSurfaceExtension::AppositionSurfaceExtension()
 : m_resolution(50)
 , m_iterations(10)
 , m_converge  (true)
@@ -50,28 +50,28 @@ AppositionPlaneExtension::AppositionPlaneExtension()
 , m_perimeter (UNDEFINED)
 {
   m_ap = PolyData::New();
-  //m_availableRepresentations << AppositionPlaneRepresentation::ID;
+  //m_availableRepresentations << AppositionSurfaceRepresentation::ID;
   m_availableInformations << AREA << PERIMETER;
 }
 
 //------------------------------------------------------------------------
-AppositionPlaneExtension::~AppositionPlaneExtension()
+AppositionSurfaceExtension::~AppositionSurfaceExtension()
 {
 }
 
 //------------------------------------------------------------------------
-ModelItemExtension::ExtId AppositionPlaneExtension::id()
+ModelItemExtension::ExtId AppositionSurfaceExtension::id()
 {
   return ID;
 }
 
 //------------------------------------------------------------------------
-QVariant AppositionPlaneExtension::information(ModelItemExtension::InfoTag tag) const
+QVariant AppositionSurfaceExtension::information(ModelItemExtension::InfoTag tag) const
 {
   if (!m_init)
     return QVariant();
 
-  if (updateAppositionPlane() || UNDEFINED == m_area || UNDEFINED == m_perimeter)
+  if (updateAppositionSurface() || UNDEFINED == m_area || UNDEFINED == m_perimeter)
   {
     //qDebug() << "Update Apposition Plane";
     m_area = computeArea();
@@ -89,9 +89,9 @@ QVariant AppositionPlaneExtension::information(ModelItemExtension::InfoTag tag) 
 }
 
 //------------------------------------------------------------------------
-SegmentationRepresentation* AppositionPlaneExtension::representation(QString rep)
+SegmentationRepresentation* AppositionSurfaceExtension::representation(QString rep)
 {
-  //   if (rep == AppositionPlaneRepresentation::ID)
+  //   if (rep == AppositionSurfaceRepresentation::ID)
   //     return m_planeRep;
   //
   qWarning() << ID << ":" << rep << " is not provided";
@@ -100,19 +100,19 @@ SegmentationRepresentation* AppositionPlaneExtension::representation(QString rep
 }
 
 //------------------------------------------------------------------------
-void AppositionPlaneExtension::initialize(ModelItem::Arguments args)
+void AppositionSurfaceExtension::initialize(ModelItem::Arguments args)
 {
   m_init = true;
 }
 
 //------------------------------------------------------------------------
-SegmentationExtension* AppositionPlaneExtension::clone()
+SegmentationExtension* AppositionSurfaceExtension::clone()
 {
-  return new AppositionPlaneExtension();
+  return new AppositionSurfaceExtension();
 }
 
 //------------------------------------------------------------------------
-bool AppositionPlaneExtension::updateAppositionPlane() const
+bool AppositionSurfaceExtension::updateAppositionSurface() const
 {
   if (m_seg->itkVolume()->GetTimeStamp() <= m_lastUpdate)
     return false;
@@ -240,15 +240,15 @@ bool AppositionPlaneExtension::updateAppositionPlane() const
   normals->SplittingOff();
   normals->Update();
 
-  vtkSmartPointer<vtkPolyData> appositionPlane = normals->GetOutput();
-  //ESPINA_DEBUG(appositionPlane->GetNumberOfCells() << " cells in apppositionPlane");
+  vtkSmartPointer<vtkPolyData> appositionSurface = normals->GetOutput();
+  //ESPINA_DEBUG(appositionSurface->GetNumberOfCells() << " cells in apppositionPlane");
 
   //   qDebug() << "Create Mesh";
-  //m_ap->DeepCopy(appositionPlane);
+  //m_ap->DeepCopy(appositionSurface);
   m_ap->Initialize();
-  m_ap->SetPoints(appositionPlane->GetPoints());
-  m_ap->SetPolys(appositionPlane->GetPolys());
-  m_ap->SetLines(appositionPlane->GetLines());
+  m_ap->SetPoints(appositionSurface->GetPoints());
+  m_ap->SetPolys(appositionSurface->GetPolys());
+  m_ap->SetLines(appositionSurface->GetLines());
   m_ap->Modified();
 
   m_lastUpdate = m_seg->itkVolume()->GetTimeStamp();
@@ -258,7 +258,7 @@ bool AppositionPlaneExtension::updateAppositionPlane() const
 }
 
 //------------------------------------------------------------------------
-AppositionPlaneExtension::PolyData AppositionPlaneExtension::clipPlane(AppositionPlaneExtension::PolyData plane, vtkImageData* image) const
+AppositionSurfaceExtension::PolyData AppositionSurfaceExtension::clipPlane(AppositionSurfaceExtension::PolyData plane, vtkImageData* image) const
 {
   vtkSmartPointer<vtkImplicitVolume> implicitVolFilter =
   vtkSmartPointer<vtkImplicitVolume>::New();
@@ -279,7 +279,7 @@ AppositionPlaneExtension::PolyData AppositionPlaneExtension::clipPlane(Appositio
 }
 
 //------------------------------------------------------------------------
-AppositionPlaneExtension::DistanceMapType::Pointer AppositionPlaneExtension::computeDistanceMap(EspinaVolume::Pointer volume) const
+AppositionSurfaceExtension::DistanceMapType::Pointer AppositionSurfaceExtension::computeDistanceMap(EspinaVolume::Pointer volume) const
 {
   SDDistanceMapFilterType::Pointer sddm_filter = SDDistanceMapFilterType::New();
   sddm_filter->InsideIsPositiveOn();
@@ -292,7 +292,7 @@ AppositionPlaneExtension::DistanceMapType::Pointer AppositionPlaneExtension::com
 }
 
 //------------------------------------------------------------------------
-AppositionPlaneExtension::Points AppositionPlaneExtension::corners(double corner[3], double max[3], double mid[3], double min[3]) const
+AppositionSurfaceExtension::Points AppositionSurfaceExtension::corners(double corner[3], double max[3], double mid[3], double min[3]) const
 {
   Points points = Points::New();
   double x[3];
@@ -342,7 +342,7 @@ AppositionPlaneExtension::Points AppositionPlaneExtension::corners(double corner
 }
 
 //------------------------------------------------------------------------
-void AppositionPlaneExtension::maxDistancePoint(itk::Image< AppositionPlaneExtension::DistanceType, 3 >::Pointer map, AppositionPlaneExtension::Points points, double avgMaxDistPoint[3]) const
+void AppositionSurfaceExtension::maxDistancePoint(itk::Image< AppositionSurfaceExtension::DistanceType, 3 >::Pointer map, AppositionSurfaceExtension::Points points, double avgMaxDistPoint[3]) const
 {
   DistanceType maxDist = 0;
   DistanceMapType::PointType origin = map->GetOrigin();
@@ -392,7 +392,7 @@ void AppositionPlaneExtension::maxDistancePoint(itk::Image< AppositionPlaneExten
 }
 
 //------------------------------------------------------------------------
-void AppositionPlaneExtension::project(const double* A, const double* B, double* Projection) const
+void AppositionSurfaceExtension::project(const double* A, const double* B, double* Projection) const
 {
   double scale = vtkMath::Dot(A,B)/pow(vtkMath::Norm(B), 2);
   for(unsigned int i = 0; i < 3; i++)
@@ -400,7 +400,7 @@ void AppositionPlaneExtension::project(const double* A, const double* B, double*
 }
 
 //------------------------------------------------------------------------
-void AppositionPlaneExtension::projectVectors(vtkImageData* vectors_image, double* unitary) const
+void AppositionSurfaceExtension::projectVectors(vtkImageData* vectors_image, double* unitary) const
 {
   vtkSmartPointer<vtkDataArray> vectors = vectors_image->GetPointData()->GetVectors();
   int numTuples = vectors->GetNumberOfTuples();
@@ -429,7 +429,7 @@ void AppositionPlaneExtension::projectVectors(vtkImageData* vectors_image, doubl
 }
 
 //------------------------------------------------------------------------
-AppositionPlaneExtension::Points AppositionPlaneExtension::segmentationPoints(EspinaVolume::Pointer seg) const
+AppositionSurfaceExtension::Points AppositionSurfaceExtension::segmentationPoints(EspinaVolume::Pointer seg) const
 {
   EspinaVolume::PointType   origin  = seg->GetOrigin();
   EspinaVolume::SpacingType spacing = seg->GetSpacing();
@@ -454,7 +454,7 @@ AppositionPlaneExtension::Points AppositionPlaneExtension::segmentationPoints(Es
 }
 
 //------------------------------------------------------------------------
-void AppositionPlaneExtension::vectorImageToVTKImage(itk::Image< AppositionPlaneExtension::CovariantVectorType, 3 >::Pointer vectorImage, vtkImageData* image) const
+void AppositionSurfaceExtension::vectorImageToVTKImage(itk::Image< AppositionSurfaceExtension::CovariantVectorType, 3 >::Pointer vectorImage, vtkImageData* image) const
 {
 
   CovariantVectorImageType::PointType origin = vectorImage->GetOrigin();
@@ -515,7 +515,7 @@ void AppositionPlaneExtension::vectorImageToVTKImage(itk::Image< AppositionPlane
 }
 
 //------------------------------------------------------------------------
-double AppositionPlaneExtension::computeArea() const
+double AppositionSurfaceExtension::computeArea() const
 {
   int nc = m_ap->GetNumberOfCells();
   double totalArea = nc?0.0:UNDEFINED;
@@ -526,7 +526,7 @@ double AppositionPlaneExtension::computeArea() const
 }
 
 //------------------------------------------------------------------------
-double AppositionPlaneExtension::computePerimeter() const
+double AppositionSurfaceExtension::computePerimeter() const
 {
   double totalPerimeter = 0.0;
   try
@@ -627,7 +627,7 @@ double AppositionPlaneExtension::computePerimeter() const
 }
 
 //------------------------------------------------------------------------
-bool AppositionPlaneExtension::isPerimeter(vtkIdType cellId, vtkIdType p1, vtkIdType p2) const
+bool AppositionSurfaceExtension::isPerimeter(vtkIdType cellId, vtkIdType p1, vtkIdType p2) const
 {
   vtkSmartPointer<vtkIdList> neighborCellIds = vtkSmartPointer<vtkIdList>::New();
   m_ap->GetCellEdgeNeighbors(cellId, p1, p2, neighborCellIds);

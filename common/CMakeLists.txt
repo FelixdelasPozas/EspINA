@@ -42,6 +42,7 @@ qt4_wrap_cpp(CORE_MOC
   gui/Renderer.h
   gui/SliceView.h
   gui/VolumeView.h
+  gui/QComboTreeView.h
   gui/HueSelector.h
   model/EspinaModel.h
   model/ModelTest.h
@@ -55,6 +56,7 @@ qt4_wrap_cpp(CORE_MOC
   gui/ViewManager.h
   editor/ContourWidget.h
   widgets/RectangularRegion.h
+  widgets/RectangularRegionSliceSelector.h
   editor/ContourSourceInspector.h
   )
 
@@ -98,6 +100,7 @@ set (CORE_SOURCES
   gui/ActionSelector.cpp
   gui/ActionSelectorWidget.cpp
   gui/EspinaRenderView.cpp
+  gui/QComboTreeView.cpp
   gui/SliceView.cpp
   gui/SliceViewState.cpp
   gui/vtkInteractorStyleEspinaSlice.cpp
@@ -125,6 +128,7 @@ set (CORE_SOURCES
   tools/PixelSelector.cpp
   tools/BrushPicker.cpp
   tools/IPicker.cpp
+  tools/PickableItem.cpp
   settings/GeneralSettings.cpp
   undo/AddChannel.cpp
   undo/AddFilter.cpp
@@ -132,6 +136,7 @@ set (CORE_SOURCES
   undo/AddSample.cpp
   undo/AddSegmentation.cpp
   undo/RemoveSegmentation.cpp
+  widgets/RectangularRegionSliceSelector.cpp
   widgets/vtkRectangularSliceRepresentation.cpp
   widgets/vtkRectangularSliceWidget.cpp
   widgets/EspinaInteractorAdapter.cpp

@@ -2,8 +2,11 @@
 #define ESPINATYPES_H
 
 #include <itkImage.h>
+
+#include <QList>
 #include <QString>
 
+class Filter;
 class Channel;
 class Segmentation;
 
@@ -12,7 +15,7 @@ typedef QList<Segmentation *> SegmentationList;
 
 typedef itk::Image<unsigned short,3> SegmentationLabelMap;
 typedef itk::Image<unsigned char, 3> EspinaVolume;
-typedef unsigned int OutputNumber;
+
 
 typedef double Nm;
 

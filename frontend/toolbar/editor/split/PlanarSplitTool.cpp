@@ -136,13 +136,13 @@ void PlanarSplitTool::splitSegmentation()
   Filter::Arguments   args;
 
   inputs[SplitFilter::INPUTLINK] = seg->filter();
-  args[Filter::INPUTS] = args.namedInput(SplitFilter::INPUTLINK, seg->outputNumber());
+  args[Filter::INPUTS] = Filter::NamedInput(SplitFilter::INPUTLINK, seg->outputId());
 
   SplitFilter *filter = new SplitFilter(inputs, args);
   filter->setStencil(m_widget->getStencilForVolume(seg->itkVolume()));
   filter->update();
 
-  if (filter->numberOutputs() == 2)
+  if (filter->outputs().size() == 2)
   {
     Segmentation  *splitSeg[2];
     EspinaFactory *factory = m_model->factory();
@@ -152,7 +152,7 @@ void PlanarSplitTool::splitSegmentation()
       splitSeg[i]->setTaxonomy(seg->taxonomy());
     }
 
-    if (filter->numberOutputs() == 2)
+    if (filter->outputs().size() == 2)
       m_undoStack->push(new SplitUndoCommand(seg, filter, splitSeg, m_model));
     else
     {

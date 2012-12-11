@@ -76,6 +76,7 @@ protected slots:
   void addState()  {m_menuState = ADD_STATE;}
 
   void autosave();
+  void cancelOperation() {emit analysisClosed(); }
 
 signals:
   void analysisClosed();
@@ -84,6 +85,9 @@ protected:
   void createActivityMenu();
   void createDynamicMenu(MenuEntry entry);
   void createLODMenu();
+
+  void checkAutosave();
+
   virtual void closeEvent(QCloseEvent* );
 
   void loadPlugins();

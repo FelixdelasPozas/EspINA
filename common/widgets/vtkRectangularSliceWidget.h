@@ -50,6 +50,10 @@ public:
   // this is an instance of the vtkRectangularRectangularRepresentation class.
   void CreateDefaultRepresentation();
 
+  // modify representation methods
+  void setRepresentationColor(double *);
+  void setRepresentationPattern(int);
+
 protected:
   vtkRectangularSliceWidget();
   ~vtkRectangularSliceWidget();
@@ -71,6 +75,8 @@ protected:
   PlaneType Plane;
   Nm Slice;
   double Bounds[6];
+  double m_color[3];
+  int m_pattern;
 
 private:
   vtkRectangularSliceWidget(const vtkRectangularSliceWidget&);  //Not implemented

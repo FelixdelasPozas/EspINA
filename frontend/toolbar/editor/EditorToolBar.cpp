@@ -74,6 +74,8 @@ public:
   : m_model(model)
   , m_segmentations(inputs)
   {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+
     foreach(Segmentation *seg, m_segmentations)
     {
       Filter *filter;
@@ -82,7 +84,7 @@ public:
       MorphologicalEditionFilter::Parameters params(args);
       params.setRadius(radius);
       inputs[INPUTLINK] = seg->filter();
-      args[Filter::INPUTS] = INPUTLINK + "_" + QString::number(seg->outputNumber());
+      args[Filter::INPUTS] = Filter::NamedInput(INPUTLINK, seg->outputId());
       switch (op)
       {
         case CLOSE:
@@ -100,8 +102,10 @@ public:
       }
       filter->update();
       m_newConnections << Connection(filter, 0);
-      m_oldConnections << Connection(seg->filter(), seg->outputNumber());
+      m_oldConnections << Connection(seg->filter(), seg->outputId());
     }
+
+    QApplication::restoreOverrideCursor();
   }
 
   virtual void redo()
@@ -554,5 +558,12 @@ void EditorToolBar::updateAvailableOperations()
   m_fill->setToolTip(tr("Fill Holes in Selected Segmentations") + severalToolTip);
 }
 
+//----------------------------------------------------------------------------
+void EditorToolBar::resetState()
+{
+  if (m_drawToolSelector->isChecked())
+    cancelDrawOperation();
 
-
+  if (m_splitToolSelector->isChecked())
+    cancelSplitOperation();
+}

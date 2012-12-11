@@ -66,8 +66,8 @@ public:
 //   vtkSetMacro(Slice,int);
   virtual void SetPlane(PlaneType plane);
   virtual void SetSlice(Nm pos);
-  virtual void SetBounds(double bounds[6]);
-  virtual void GetBounds(double bounds[6]);
+  virtual void SetCuboidBounds(double bounds[6]);
+  virtual void GetCuboidBounds(double bounds[6]);
 
   // Description:
   // These are methods that satisfy vtkWidgetRepresentation's API.
@@ -88,7 +88,7 @@ public:
 
 
 //BTX - used to manage the state of the widget
-  enum {Outside=0,
+  enum {Outside=0, Inside,
     MoveLeft, MoveRight, MoveTop, MoveBottom, Translating
   };
 
@@ -104,6 +104,10 @@ public:
   // further.
   void SetInteractionState(int state);
 
+  // modify representation methods
+  void setRepresentationColor(double *);
+  void setRepresentationPattern(int);
+
 protected:
   vtkRectangularSliceRepresentation();
   ~vtkRectangularSliceRepresentation();
@@ -118,6 +122,7 @@ protected:
   vtkPoints	    *Vertex;
 
   void HighlightEdge(vtkActor *actor);
+  void Highlight();
 
   // Do the picking
   vtkCellPicker *EdgePicker;
@@ -134,10 +139,6 @@ protected:
 
   int hCoord() const {return SAGITTAL == Plane?2:0;}
   int vCoord() const {return CORONAL  == Plane?2:1;}
-  double leftEdge() {return Bounds[hCoord()*2];}
-  double topEdge() {return Bounds[vCoord()*2];}
-  double rightEdge() {return Bounds[hCoord()*2+1];}
-  double bottomEdge() {return Bounds[vCoord()*2+1];}
 
   // Helper methods to create face representations
   virtual void CreateRegion();
@@ -151,6 +152,7 @@ protected:
   void MoveRightEdge(double *p1, double *p2);
   void MoveTopEdge(double *p1, double *p2);
   void MoveBottomEdge(double *p1, double *p2);
+  void Translate(double *p1, double *p2);
 
   PlaneType Plane;
   Nm Slice;
@@ -167,6 +169,14 @@ private:
   int NumVertex;
 
   double RepBounds[6];
+
+  double LeftEdge;
+  double TopEdge;
+  double RightEdge;
+  double BottomEdge;
+
+  double m_color[3];
+  int m_pattern;
 };
 
 #endif

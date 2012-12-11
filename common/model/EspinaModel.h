@@ -124,7 +124,6 @@ public:
   // Channels
   void addChannel(Channel *channel);
   void removeChannel(Channel *channel);
-  Channel *channel(const QString id) const;
   QList<Channel *> channels() const {return m_channels;}
 
   // Segmentations

@@ -22,7 +22,6 @@
 #include <model/EspinaFactory.h>
 
 #include <QDebug>
-#include <QApplication>
 
 const QString ErodeFilter::TYPE = "EditorToolBar::ErodeFilter";
 
@@ -43,8 +42,6 @@ ErodeFilter::~ErodeFilter()
 //-----------------------------------------------------------------------------
 void ErodeFilter::run()
 {
-  QApplication::setOverrideCursor(Qt::WaitCursor);
-
   Q_ASSERT(m_inputs.size() == 1);
   m_input = m_inputs.first();
 
@@ -58,9 +55,11 @@ void ErodeFilter::run()
   m_filter->SetKernel(ball);
   m_filter->SetObjectValue(SEG_VOXEL_VALUE);
   m_filter->Update();
-  QApplication::restoreOverrideCursor();
 
-  m_outputs[0] = m_filter->GetOutput();
+  m_outputs.clear();
+  m_outputs << Output(this, 0, m_filter->GetOutput());
+
+  emit modified(this);
 }
 
 //-----------------------------------------------------------------------------

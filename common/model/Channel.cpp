@@ -50,12 +50,12 @@ const QString Channel::NAME       = "Name";
 const QString Channel::VOLUMETRIC = "Volumetric";
 
 //-----------------------------------------------------------------------------
-Channel::Channel(Filter* filter, OutputNumber outputNumber)
+Channel::Channel(Filter* filter, Filter::OutputId oId)
 : m_visible(true)
 , m_filter(filter)
 {
   memset(m_pos, 0, 3*sizeof(Nm));
-  m_args.setOutputNumber(outputNumber);
+  m_args.setOutputId(oId);
 }
 
 //-----------------------------------------------------------------------------
@@ -64,32 +64,22 @@ Channel::~Channel()
 }
 
 //------------------------------------------------------------------------
-Filter* Channel::filter()
+const Filter* Channel::filter() const
 {
   return m_filter;
 }
 
 //------------------------------------------------------------------------
-OutputNumber Channel::outputNumber()
+Filter::OutputId Channel::outputId()
 {
-  return m_args.outputNumber();
+  return m_args.outputId();
 }
 
 //------------------------------------------------------------------------
 EspinaVolume *Channel::itkVolume()
 {
-  return m_filter->output(m_args.outputNumber());
+  return m_filter->volume(m_args.outputId());
 }
-
-//------------------------------------------------------------------------
-// EspinaVolume::IndexType Channel::index(Nm x, Nm y, Nm z)
-// {
-//   EspinaVolume::IndexType res;
-//   res[0] = x / volume()->GetSpacing()[0];
-//   res[1] = y / volume()->GetSpacing()[1];
-//   res[2] = z / volume()->GetSpacing()[2];
-//   return res;
-// }
 
 //------------------------------------------------------------------------
 void Channel::extent(int out[6])
@@ -269,7 +259,7 @@ vtkAlgorithmOutput* Channel::vtkVolume()
     //qDebug() << " from ITK to VTK (channel)";
     itk2vtk = itk2vtkFilterType::New();
     itk2vtk->ReleaseDataFlagOn();
-    itk2vtk->SetInput(m_filter->output(m_args.outputNumber()));
+    itk2vtk->SetInput(m_filter->volume(m_args.outputId()));
     itk2vtk->Update();
   }
 

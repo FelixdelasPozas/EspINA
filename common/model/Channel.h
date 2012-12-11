@@ -63,9 +63,9 @@ public:
   class CArguments : public ModelItem::Arguments
   {
   public:
-    explicit CArguments() : m_outputNumber(0) {}
+    explicit CArguments() : m_outputId(0) {}
     explicit CArguments(const Arguments &args)
-    : Arguments(args), m_outputNumber(0) {}
+    : Arguments(args), m_outputId(0) {}
 
     /// Channel dye color. Hue's value in range (0,1)
     void setColor(double color)
@@ -78,21 +78,21 @@ public:
       return (*this)[COLOR].toFloat();
     }
 
-    void setOutputNumber(OutputNumber number)
+    void setOutputId(Filter::OutputId oId)
     {
       (*this)[VOLUME] = QString("%1_%2")
                         .arg(VOLUMELINK)
-                        .arg(number);
-      m_outputNumber = number;
+                        .arg(oId);
+      m_outputId = oId;
     }
 
-    OutputNumber outputNumber() const
+    Filter::OutputId outputId() const
     {
-      return m_outputNumber;
+      return m_outputId;
     }
 
   private:
-    OutputNumber m_outputNumber;
+    Filter::OutputId m_outputId;
     //double m_spacing[3];
   };
 
@@ -113,7 +113,6 @@ public:
   bool isVisible() const {return m_visible;}
 
   /// Model Item Interface
-  virtual QString id() const {return m_args[ID];}
   virtual QVariant data(int role=Qt::DisplayRole) const;
   virtual bool setData(const QVariant& value, int role = Qt::UserRole +1);
   virtual ItemType type() const {return ModelItem::CHANNEL;}
@@ -129,11 +128,11 @@ public:
   /// Get the sample which channel belongs to
   Sample *sample();
 
-  /// Selectable Item Interface
-  virtual Filter* filter();
-  virtual OutputNumber outputNumber();
+  /// Pickable Item Interface
+  virtual const Filter* filter() const;
+  virtual Filter* filter() { return PickableItem::filter(); }
+  virtual Filter::OutputId outputId();
   virtual EspinaVolume *itkVolume();
-//   virtual EspinaVolume::IndexType index(Nm x, Nm y, Nm z);
 
   // vtk image of the channel
   vtkAlgorithmOutput *vtkVolume();
@@ -146,7 +145,7 @@ public slots:
   virtual void notifyModification(bool force = false);
 
 private:
-  explicit Channel(Filter *filter, OutputNumber output);
+  explicit Channel(Filter* filter, Filter::OutputId oId);
   friend class EspinaFactory;
 private:
   bool   m_visible;

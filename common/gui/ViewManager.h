@@ -39,6 +39,7 @@
 #include <vtkLookupTable.h>
 #include <vtkSmartPointer.h>
 
+class SliceSelectorWidget;
 class Channel;
 class EspinaRenderView;
 class IEspinaView;
@@ -63,6 +64,10 @@ public:
   void registerView(IEspinaView *view);
   void registerView(EspinaRenderView *view);
   void registerView(SliceView *view);
+
+  void unregisterView(IEspinaView *view);
+  void unregisterView(EspinaRenderView *view);
+  void unregisterView(SliceView *view);
 
 private:
   QList<IEspinaView *>      m_espinaViews;
@@ -129,7 +134,7 @@ public:
 public:
   enum SliceSelector
   {
-    From = 0x1, To = 0x2
+    None=0x0, From = 0x1, To = 0x2
   };Q_DECLARE_FLAGS(SliceSelectors, SliceSelector)
 
   /// Reset Camera
@@ -141,19 +146,14 @@ public:
   /// Toggle crosshair
   void showCrosshair(bool);
   /// Set Slice Selection flags to all registered Slice Views
-  void showSliceSelectors(SliceSelectors selectors);
+  void addSliceSelectors(SliceSelectorWidget *widget,
+                         SliceSelectors selectors);
   /// Unset Slice Selection flags to all registered Slice Views
-  void hideSliceSelectors(SliceSelectors selectors);
+  void removeSliceSelectors(SliceSelectorWidget *widget);
 
 public slots:
   /// Request all registered views to update themselves
   void updateViews();
-
-protected slots:
-  void selectSlice(Nm pos, PlaneType plane, SliceSelectors flags);
-
-signals:
-  void sliceSelected(Nm, PlaneType, ViewManager::SliceSelectors);
 
 
   //---------------------------------------------------------------------------

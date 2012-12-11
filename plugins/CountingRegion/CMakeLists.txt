@@ -16,8 +16,10 @@ include (${VTK_USE_FILE})
 find_package (ITK REQUIRED)
 include (${ITK_USE_FILE})
 
-find_package(Espina REQUIRED)
-include(${ESPINA_USE_FILE})
+IF (NOT COMPILING_ESPINA)
+  find_package(Espina REQUIRED)
+  include(${ESPINA_USE_FILE})
+ENDIF (NOT COMPILING_ESPINA)
 
 include_directories(
   ${CMAKE_SOURCE_DIR} #TODO: change to use espina path

@@ -26,6 +26,7 @@
 
 #include "common/gui/ViewManager.h"
 
+class RectangularRegionSliceSelector;
 class RectangularRegion;
 class SeedGrowSegmentationFilter::FilterInspector
 : public QWidget
@@ -40,14 +41,18 @@ public:
 
 protected slots:
   void redefineVOI(double *bounds);
-  void redefineVOI(Nm pos, PlaneType plane, ViewManager::SliceSelectors flags);
   void modifyFilter();
   void updateRegionBounds();
+  void modifyCloseValue(int);
+  void modifyCloseCheckbox(int);
 
 private:
   ViewManager                *m_viewManager;
   SeedGrowSegmentationFilter *m_filter;
-  RectangularRegion          *m_region;
+
+  RectangularRegion              *m_region;
+  //RectangularRegionSliceSelector *m_sliceSelctor;
+
   Nm m_voiBounds[6];
 };
 

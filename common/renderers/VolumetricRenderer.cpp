@@ -107,7 +107,9 @@ bool VolumetricRenderer::updateItem(ModelItem* item)
 
    bool updated = false;
    Segmentation *seg = dynamic_cast<Segmentation *>(item);
-   Q_ASSERT(m_segmentations.contains(seg));
+   if (!m_segmentations.contains(seg))
+     return false;
+
    Representation &rep = m_segmentations[seg];
 
   if (seg->isSelected() != rep.selected

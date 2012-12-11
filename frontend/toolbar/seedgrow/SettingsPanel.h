@@ -34,9 +34,12 @@ public:
   explicit SettingsPanel(SeedGrowSegmentation::Settings *settings);
   virtual ~SettingsPanel(){}
 
-  virtual const QString shortDescription() {return "Seed Grow Segmentation";}
-  virtual const QString longDescription() {return "Seed Grow Segmentation Settings";}
-  virtual const QIcon icon() {return QIcon(":/bestPixelSelector.svg");}
+  virtual const QString shortDescription()
+  { return tr("Seed Grow Segmentation"); }
+  virtual const QString longDescription()
+  { return tr("Seed Grow Segmentation Settings"); }
+  virtual const QIcon icon()
+  { return QIcon(":/bestPixelSelector.svg"); }
 
   virtual void acceptChanges();
 

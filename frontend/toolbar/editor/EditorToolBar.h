@@ -81,6 +81,7 @@ protected slots:
   void erodeSegmentations();
   void fillHoles();
   void updateAvailableOperations();
+  void resetState();
 
   SegmentationList selectedSegmentations();
 

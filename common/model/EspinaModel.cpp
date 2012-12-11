@@ -77,8 +77,6 @@ void EspinaModel::reset()
   }
   setTaxonomy(NULL);
   m_relations->clear();//NOTE: Should we remove every item in the previous blocks?
-  Filter::resetId();
-  m_lastId = 0;
 
   foreach(QDir tmpDir, m_tmpDirs)
   {
@@ -409,19 +407,6 @@ void EspinaModel::removeChannel(Channel *channel)
 }
 
 //------------------------------------------------------------------------
-Channel* EspinaModel::channel(const QString id) const
-{
-  Q_ASSERT(false);
-  foreach(Channel *channel, m_channels)
-  {
-    if (channel->id() == id)
-      return channel;
-  }
-  return NULL;
-}
-
-
-//------------------------------------------------------------------------
 void EspinaModel::addSegmentation(Segmentation *seg)
 {
   Q_ASSERT(m_segmentations.contains(seg) == false);
@@ -553,7 +538,6 @@ void EspinaModel::removeRelation(ModelItem* ancestor, ModelItem* successor, QStr
 //------------------------------------------------------------------------
 void EspinaModel::serializeRelations(std::ostream& stream, RelationshipGraph::PrintFormat format)
 {
-  Filter::resetId();
   m_relations->updateVertexInformation();
   m_relations->write(stream, format);
 }
@@ -609,10 +593,10 @@ bool EspinaModel::loadSerialization(istream& stream,
           Q_ASSERT(ModelItem::FILTER == item->type());
           Filter *filter =  dynamic_cast<Filter *>(item);
           filter->update();
-          Channel *channel = m_factory->createChannel(filter, link[1].toUInt());
+          Channel *channel = m_factory->createChannel(filter, link[1].toInt());
           channel->initialize(args);
-	  if (channel->itkVolume() == NULL)
-	    return false;
+          if (channel->itkVolume() == NULL)
+            return false;
           addChannel(channel);
           nonInitializedItems << NonInitilizedItem(channel, extArgs);
           input->setItem(v.vId, channel);
@@ -661,8 +645,9 @@ bool EspinaModel::loadSerialization(istream& stream,
     ModelItem *item = ancestors.first().item;
     Filter *filter =  dynamic_cast<Filter *>(item);
     filter->update();
-    if (filter->numberOutputs() == 0)
+    if (filter->outputs().isEmpty())
       return false;
+
     ModelItem::Arguments args(QString(v.args.c_str()));
     ModelItem::Arguments extArgs(args.value(ModelItem::EXTENSIONS, QString()));
     args.remove(ModelItem::EXTENSIONS);

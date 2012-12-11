@@ -3,8 +3,8 @@
 
 #include <common/pluginInterfaces/IFactoryExtension.h>
 
-//! Apposition Plane Plugin
-class AppositionPlane
+//! Apposition Surface Plugin
+class AppositionSurface
 : public QObject
 , public IFactoryExtension
 {
@@ -12,8 +12,8 @@ class AppositionPlane
   Q_INTERFACES(IFactoryExtension)
 
 public:
-  explicit AppositionPlane();
-  virtual ~AppositionPlane(){}
+  explicit AppositionSurface();
+  virtual ~AppositionSurface(){}
 
   virtual void initFactoryExtension(EspinaFactory* factory);
 };

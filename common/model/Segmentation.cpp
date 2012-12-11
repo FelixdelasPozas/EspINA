@@ -41,7 +41,7 @@ Segmentation::SArguments::SArguments(const ModelItem::Arguments args)
 : Arguments(args)
 {
   m_number = args[NUMBER].toInt();
-  m_outputNumber = args[OUTPUT].toInt();
+  m_outputId = args[OUTPUT].toInt();
 }
 
 //-----------------------------------------------------------------------------
@@ -55,7 +55,7 @@ QString Segmentation::SArguments::serialize() const
 }
 
 //-----------------------------------------------------------------------------
-Segmentation::Segmentation(Filter* filter, unsigned int outputNb)
+Segmentation::Segmentation(Filter* filter, Filter::OutputId oId)
 : m_filter(filter)
 , m_taxonomy(NULL)
 , m_isVisible(true)
@@ -66,25 +66,25 @@ Segmentation::Segmentation(Filter* filter, unsigned int outputNb)
   //   memset(m_bounds, 0, 6*sizeof(double));
   //   m_bounds[1] = -1;
   m_args.setNumber(0);
-  m_args.setOutputNumber(outputNb);
+  m_args.setOutputId(oId);
   m_args[TAXONOMY] = "Unknown";
   connect(filter, SIGNAL(modified(ModelItem *)),
           this, SLOT(notifyModification()));
 }
 
 //------------------------------------------------------------------------
-void Segmentation::changeFilter(Filter* filter, unsigned int outputNb)
+void Segmentation::changeFilter(Filter* filter, Filter::OutputId oId)
 {
   disconnect(m_filter, SIGNAL(modified(ModelItem *)),
              this, SLOT(notifyModification()));
 //   m_filter->releaseDataFlagOn();
 //   filter->releaseDataFlagOff();
+  Filter::Output output = filter->output(oId);
   filter->update();
-  filter->markAsModified();
-  itk2vtk->SetInput(filter->output(outputNb));
+  itk2vtk->SetInput(output.volume);
   itk2vtk->Update();
   m_filter = filter;
-  m_args.setOutputNumber(outputNb);
+  m_args.setOutputId(oId);
   connect(filter, SIGNAL(modified(ModelItem *)),
           this, SLOT(notifyModification()));
 
@@ -92,7 +92,7 @@ void Segmentation::changeFilter(Filter* filter, unsigned int outputNb)
   if (NULL != m_padfilter)
   {
     int extent[6];
-    VolumeExtent(filter->output(outputNb), extent);
+    VolumeExtent(output.volume, extent);
     this->m_padfilter->SetOutputWholeExtent(extent[0]-1, extent[1]+1, extent[2]-1, extent[3]+1, extent[4]-1, extent[5]+1);
     this->m_padfilter->Update();
   }
@@ -118,18 +118,13 @@ Segmentation::~Segmentation()
 //------------------------------------------------------------------------
 EspinaVolume *Segmentation::itkVolume() const
 {
-  return m_filter->output(m_args.outputNumber());
-}
-//------------------------------------------------------------------------
-EspinaVolume *Segmentation::itkVolume()
-{
-  return m_filter->output(m_args.outputNumber());
+  return m_filter->volume(m_args.outputId());
 }
 
 //------------------------------------------------------------------------
-QString Segmentation::id() const
+EspinaVolume *Segmentation::itkVolume()
 {
-  return m_filter->id() + "_" + m_args[OUTPUT];
+  return m_filter->volume(m_args.outputId());
 }
 
 //------------------------------------------------------------------------
@@ -216,6 +211,12 @@ void Segmentation::initializeExtensions(ModelItem::Arguments args)
 }
 
 //------------------------------------------------------------------------
+void Segmentation::updateCacheFlag()
+{
+  m_filter->output(m_args.outputId()).isCached = true;
+}
+
+//------------------------------------------------------------------------
 Channel* Segmentation::channel()
 {
   ChannelList channels;
@@ -234,10 +235,10 @@ Channel* Segmentation::channel()
 //------------------------------------------------------------------------
 void Segmentation::notifyModification(bool force)
 {
-  m_filter->output(m_args.outputNumber())->Update();
+  m_filter->volume(m_args.outputId())->Update();
   if (itk2vtk)
   {
-    itk2vtk->SetInput(m_filter->output(m_args.outputNumber()));
+    itk2vtk->SetInput(m_filter->volume(m_args.outputId()));
     itk2vtk->Update();
   }
   ModelItem::notifyModification(force);
@@ -330,7 +331,7 @@ vtkAlgorithmOutput* Segmentation::vtkVolume()
     //qDebug() << "Converting from ITK to VTK";
     itk2vtk = itk2vtkFilterType::New();
     itk2vtk->ReleaseDataFlagOn();
-    itk2vtk->SetInput(m_filter->output(m_args.outputNumber()));
+    itk2vtk->SetInput(m_filter->volume(m_args.outputId()));
     itk2vtk->Update();
   }
 

@@ -78,6 +78,7 @@ public:
 
   virtual QCursor cursor() const;
   virtual bool filterEvent(QEvent* e, EspinaRenderView *view = 0);
+  virtual void lostEvent(EspinaRenderView*);
   virtual bool enabled() const {return m_enabled;}
   virtual void setEnabled(bool enable);
   virtual void setInUse(bool value);
@@ -114,6 +115,7 @@ private:
   ConnectedThresholdFilterType::Pointer connectFilter;
   itk2vtkFilterType::Pointer i2v;
   vtkSmartPointer<vtkImageActor> m_actor;
+  EspinaRenderView *m_viewOfPreview;
 };
 
 #endif // SEEDGROWSEGMENTATIONTOOL_H

@@ -88,6 +88,7 @@ void MarginsChannelExtension::initialize(ModelItem::Arguments args)
     computeMargin = args[MARGINTYPE] == "Yes";
   } else
   {
+    QApplication::setOverrideCursor(Qt::ArrowCursor);
     QMessageBox msgBox;
     msgBox.setWindowTitle("Margins Channel Extension");
     msgBox.setText(tr("Compute %1's margins").arg(m_channel->data().toString()));
@@ -95,6 +96,7 @@ void MarginsChannelExtension::initialize(ModelItem::Arguments args)
     msgBox.setDefaultButton(QMessageBox::No);
     computeMargin = msgBox.exec() == QMessageBox::Yes;
     args[MARGINTYPE] = computeMargin?"Yes":"No";
+    QApplication::restoreOverrideCursor();
   }
 
   if (computeMargin)

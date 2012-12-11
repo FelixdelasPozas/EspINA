@@ -42,7 +42,7 @@ EspinaVolume::Pointer backup(EspinaVolume* volume)
 
 //-----------------------------------------------------------------------------
 Brush::DrawCommand::DrawCommand(Filter* source,
-                                OutputNumber output,
+                                Filter::OutputId output,
                                 BrushShapeList brushes,
                                 EspinaVolume::PixelType value)
 : m_source(source)
@@ -73,8 +73,8 @@ void Brush::DrawCommand::redo()
     m_source->restoreOutput(m_output, m_newVolume);
   }else
   {
-    if (m_source->numberOutputs() > 0)
-      m_prevVolume = backup(m_source->output(m_output));
+    if (!m_source->outputs().isEmpty())
+      m_prevVolume = backup(m_source->volume(m_output));
 
     for (int i=0; i<m_brushes.size(); i++)
     {
@@ -84,8 +84,8 @@ void Brush::DrawCommand::redo()
       else
         m_source->draw(m_output, brush.first, brush.second.bounds(), m_value);
     }
-    if (m_source->numberOutputs() > 0)
-      m_newVolume = backup(m_source->output(m_output));
+    if (!m_source->outputs().isEmpty())
+      m_newVolume = backup(m_source->volume(m_output));
   }
 }
 
@@ -99,11 +99,11 @@ void Brush::DrawCommand::undo()
 
 //-----------------------------------------------------------------------------
 Brush::SnapshotCommand::SnapshotCommand(Filter* source,
-                                OutputNumber output)
+                                Filter::OutputId output)
 : m_source(source)
 , m_output(output)
 {
-  m_prevVolume = backup(source->output(output));
+  m_prevVolume = backup(source->volume(output));
 }
 
 //-----------------------------------------------------------------------------
@@ -117,7 +117,7 @@ void Brush::SnapshotCommand::redo()
 void Brush::SnapshotCommand::undo()
 {
   if (m_newVolume.IsNull())
-    m_newVolume = backup(m_source->output(m_output));
+    m_newVolume = backup(m_source->volume(m_output));
   if (m_prevVolume.IsNotNull())
     m_source->restoreOutput(m_output, m_prevVolume);
 }

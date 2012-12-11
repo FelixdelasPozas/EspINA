@@ -136,7 +136,6 @@ public:
   virtual QVariant data(int role=Qt::DisplayRole) const;
 
   // Implements Filter Interface
-  virtual void markAsModified();
   virtual bool needUpdate() const;
   virtual void releaseDataFlagOn();
   virtual void releaseDataFlagOff();
@@ -148,7 +147,7 @@ protected:
   virtual void run();
 
 private:
-  bool          m_needUpdate;
+  bool          m_paramModified;
   Parameters    m_param;
   EspinaVolume *m_input;
 

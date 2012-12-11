@@ -40,6 +40,11 @@ class TaxonomyElement
 : public ModelItem
 {
 public:
+  static const QString X_DIM;
+  static const QString Y_DIM;
+  static const QString Z_DIM;
+
+public:
   explicit TaxonomyElement(const QString name, const QString RGBColor = RED );
   ~TaxonomyElement();
 
@@ -74,7 +79,6 @@ public:
   void removeChild(QString name);
 
   /// Implements ModelItem
-  virtual QString id() const {return qualifiedName();}
   virtual void initialize(Arguments args = Arguments()){};
   virtual void initializeExtensions(Arguments args = Arguments()){};
   virtual QVariant data(int role = Qt::UserRole + 1) const;

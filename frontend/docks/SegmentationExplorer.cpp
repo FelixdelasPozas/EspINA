@@ -21,6 +21,7 @@
 
 
 // EspINA
+#include "common/model/EspinaModel.h"
 #include "common/model/Sample.h"
 #include "common/model/Segmentation.h"
 #include "common/model/proxies/SampleProxy.h"
@@ -60,6 +61,10 @@ SegmentationExplorer::GUI::GUI()
     qApp->style()->standardIcon(QStyle::SP_MessageBoxInformation));
 }
 
+const QString SEGMENTATION_MESSAGE = QObject::tr("Delete %1's segmentations");
+const QString RECURSIVE_MESSAGE = QObject::tr("Delete %1's segmentations. "
+                                              "If you want to delete recursively select Yes To All");
+const QString MIXED_MESSAGE = QObject::tr("Delete recursively %1's segmentations");
 
 //------------------------------------------------------------------------
 class SegmentationExplorer::Layout
@@ -168,7 +173,7 @@ SegmentationList SampleLayout::deletedSegmentations(QModelIndexList indices)
 
         Sample *sample = dynamic_cast<Sample *>(item);
         QMessageBox msgBox;
-        msgBox.setText(QString("Delete %1's segmentations").arg(sample->id()));
+        msgBox.setText(SEGMENTATION_MESSAGE.arg(sample->id()));
         msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
         msgBox.setDefaultButton(QMessageBox::No);
 
@@ -177,11 +182,11 @@ SegmentationList SampleLayout::deletedSegmentations(QModelIndexList indices)
           if (directSeg < totalSeg)
           {
             msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::YesAll |  QMessageBox::No);
-            msgBox.setText(QString("Delete %1's segmentations. If you want to delete recursively select Yes To All").arg(sample->id()));
+            msgBox.setText(MIXED_MESSAGE.arg(sample->id()));
           }
         } else
         {
-          msgBox.setText(QString("Delete recursively %1's segmentations").arg(sample->id()));
+          msgBox.setText(RECURSIVE_MESSAGE.arg(sample->id()));
           msgBox.setStandardButtons(QMessageBox::YesAll |  QMessageBox::No);
         }
 
@@ -293,7 +298,7 @@ SegmentationList TaxonomyLayout::deletedSegmentations(QModelIndexList indices)
 
         TaxonomyElement *taxonmy = dynamic_cast<TaxonomyElement *>(item);
         QMessageBox msgBox;
-        msgBox.setText(QString("Delete %1's segmentations").arg(taxonmy->qualifiedName()));
+        msgBox.setText(SEGMENTATION_MESSAGE.arg(taxonmy->qualifiedName()));
         msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
         msgBox.setDefaultButton(QMessageBox::No);
 
@@ -302,11 +307,11 @@ SegmentationList TaxonomyLayout::deletedSegmentations(QModelIndexList indices)
           if (directSeg < totalSeg)
           {
             msgBox.setStandardButtons(QMessageBox::Yes | QMessageBox::YesAll |  QMessageBox::No);
-            msgBox.setText(QString("Delete %1's segmentations. If you want to delete recursively select Yes To All").arg(taxonmy->qualifiedName()));
+            msgBox.setText(MIXED_MESSAGE.arg(taxonmy->qualifiedName()));
           }
         } else
         {
-          msgBox.setText(QString("Delete recursively %1's segmentations").arg(taxonmy->qualifiedName()));
+          msgBox.setText(RECURSIVE_MESSAGE.arg(taxonmy->qualifiedName()));
           msgBox.setStandardButtons(QMessageBox::YesAll |  QMessageBox::No);
         }
 
@@ -372,15 +377,13 @@ SegmentationExplorer::SegmentationExplorer(EspinaModel *model,
   connect(m_gui->showInformation, SIGNAL(clicked(bool)),
           this, SLOT(showInformation()));
   connect(m_gui->deleteSegmentation, SIGNAL(clicked(bool)),
-          this, SLOT(deleteSegmentation()));
+          this, SLOT(deleteSegmentations()));
   connect(m_gui->view->selectionModel(), SIGNAL(selectionChanged(QItemSelection,QItemSelection)),
           this, SLOT(updateSelection(QItemSelection, QItemSelection)));
   connect(m_viewManager, SIGNAL(selectionChanged(ViewManager::Selection)),
           this, SLOT(updateSelection(ViewManager::Selection)));
-  /* TODO BUG 2012-10-05 Color Engine
-  connect(&EspinaCore::instance()->colorSettings(), SIGNAL(colorEngineChanged(ColorEngine*)),
-	  m_gui->view, SLOT(update()));
-	  */
+  connect(m_baseModel, SIGNAL(rowsAboutToBeRemoved(QModelIndex, int , int)),
+          this, SLOT(segmentationsDeleted(QModelIndex,int,int)));
 
   setWidget(m_gui);
 }
@@ -442,9 +445,14 @@ void SegmentationExplorer::showInformation()
     if (ModelItem::SEGMENTATION == item->type())
     {
       Segmentation *seg = dynamic_cast<Segmentation *>(item);
-      //TODO 2012-10-05: gestionar memoria
-      SegmentationInspector *inspector;
-      inspector = new SegmentationInspector(seg, m_baseModel, m_undoStack, m_viewManager);
+      SegmentationInspector *inspector = m_inspectors.value(seg, NULL);
+      if (!inspector)
+      {
+        inspector = new SegmentationInspector(seg, m_baseModel, m_undoStack, m_viewManager);
+        connect(inspector, SIGNAL(inspectorClosed(SegmentationInspector*)),
+                this, SLOT(releaseInspectorResources(SegmentationInspector*)));
+        m_inspectors[seg] = inspector;
+      }
       inspector->show();
       inspector->raise();
     }
@@ -452,7 +460,29 @@ void SegmentationExplorer::showInformation()
 }
 
 //------------------------------------------------------------------------
-void SegmentationExplorer::deleteSegmentation()
+void SegmentationExplorer::segmentationsDeleted(const QModelIndex parent, int start, int end)
+{
+  if (m_baseModel->segmentationRoot() == parent)
+  {
+    for(int row = start; row <= end; row++)
+    {
+      QModelIndex child = parent.child(row, 0);
+      ModelItem *item = indexPtr(child);
+      Segmentation *seg = dynamic_cast<Segmentation *>(item);
+      Q_ASSERT(seg);
+      SegmentationInspector *inspector = m_inspectors.value(seg, NULL);
+      if (inspector)
+      {
+        m_inspectors.remove(seg);
+        inspector->hide();
+        delete inspector;
+      }
+      }
+  }
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::deleteSegmentations()
 {
   if (m_layout)
   {
@@ -460,7 +490,6 @@ void SegmentationExplorer::deleteSegmentation()
     SegmentationList toDelete = m_layout->deletedSegmentations(selected);
     if (!toDelete.isEmpty())
     {
-      //TODO 2012-10-05 SegmentationInspector::RemoveInspector(toDelete);
       m_undoStack->beginMacro("Delete Segmentations");
       m_undoStack->push(new RemoveSegmentation(toDelete, m_baseModel));
       m_undoStack->endMacro();
@@ -507,6 +536,21 @@ void SegmentationExplorer::updateSelection(QItemSelection selected, QItemSelecti
   }
 
   m_viewManager->setSelection(selection);
+}
+
+//------------------------------------------------------------------------
+void SegmentationExplorer::releaseInspectorResources(SegmentationInspector* inspector)
+{
+  foreach(Segmentation *seg, m_inspectors.keys())
+  {
+    if (m_inspectors[seg] == inspector)
+    {
+      m_inspectors.remove(seg);
+      delete inspector;
+
+      return;
+    }
+  }
 }
 
 //------------------------------------------------------------------------

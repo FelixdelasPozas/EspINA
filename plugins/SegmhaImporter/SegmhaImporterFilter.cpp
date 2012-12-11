@@ -31,6 +31,25 @@
 #include <vtkImageReslice.h>
 #include <vtkImageChangeInformation.h>
 
+// ITK
+#include <itkImageFileReader.h>
+#include <itkImageFileReader.h>
+#include <itkImageToVTKImageFilter.h>
+#include <itkLabelImageToShapeLabelMapFilter.h>
+#include <itkMetaImageIO.h>
+#include <itkShapeLabelObject.h>
+#include <itkVTKImageToImageFilter.h>
+
+typedef itk::ImageFileReader<SegmentationLabelMap> LabelMapReader;
+typedef itk::ImageToVTKImageFilter<SegmentationLabelMap> ImageToVTKImageFilterType;
+typedef itk::VTKImageToImageFilter<SegmentationLabelMap> VTKImageToImageFilterType;
+typedef itk::ShapeLabelObject<unsigned int, 3> LabelObjectType;
+typedef itk::LabelMap<LabelObjectType> LabelMapType;
+typedef itk::LabelImageToShapeLabelMapFilter<SegmentationLabelMap, LabelMapType>
+               Image2LabelFilterType;
+typedef itk::LabelMapToLabelImageFilter<LabelMapType, EspinaVolume>
+               Label2VolumeFilterType;
+
 //---------------------------------------------------------------------------
 const ModelItem::ArgumentId SegmhaImporterFilter::FILE    = "File";
 const ModelItem::ArgumentId SegmhaImporterFilter::BLOCKS  = "Blocks";
@@ -73,7 +92,6 @@ const QString SegmhaImporterFilter::SUPPORTED_FILES = tr("Segmentation LabelMaps
 SegmhaImporterFilter::SegmhaImporterFilter(Filter::NamedInputs inputs,
                                            ModelItem::Arguments args)
 : Filter       (inputs, args)
-, m_needUpdate (false)
 , m_param      (m_args)
 , m_taxonomy   (new Taxonomy())
 {
@@ -99,24 +117,17 @@ QVariant SegmhaImporterFilter::data(int role) const
 QString SegmhaImporterFilter::serialize() const
 {
   QStringList blockList;
-  foreach(OutputNumber i, m_outputs.keys())
-    blockList << QString::number(i);
+  foreach(Output filterOutput, m_outputs)
+    blockList << QString::number(filterOutput.id);
 
   m_args[BLOCKS] = blockList.join(",");
   return Filter::serialize();
 }
 
-
-//-----------------------------------------------------------------------------
-void SegmhaImporterFilter::markAsModified()
-{
-  Filter::markAsModified();
-}
-
 //-----------------------------------------------------------------------------
 bool SegmhaImporterFilter::needUpdate() const
 {
-  return m_sources.isEmpty() || m_needUpdate;
+  return Filter::needUpdate();
 }
 
 //-----------------------------------------------------------------------------
@@ -137,7 +148,7 @@ void SegmhaImporterFilter::run()
     m_args[FILE] = fileDialog.selectedFiles().first();
   }
 
-  m_lmapReader = LabelMapReader::New();
+  LabelMapReader::Pointer labelMapReader = LabelMapReader::New();
 
   qDebug() << "Reading segmentation's meta data from file:";
   QList<SegmentationObject> metaData;
@@ -190,15 +201,15 @@ void SegmhaImporterFilter::run()
 
   //qDebug() << "Reading ITK image from file";
   // Read the original image, whose pixels are indeed labelmap object ids
-  m_lmapReader->SetFileName(m_args[FILE].toUtf8().constData());
-  m_lmapReader->SetImageIO(itk::MetaImageIO::New());
-  m_lmapReader->Update();
+  labelMapReader->SetFileName(m_args[FILE].toUtf8().constData());
+  labelMapReader->SetImageIO(itk::MetaImageIO::New());
+  labelMapReader->Update();
 
   //qDebug() << "Invert ITK image's slices";
   // EspINA python used an inversed representation of the samples
   ImageToVTKImageFilterType::Pointer originalImage =
     ImageToVTKImageFilterType::New();
-  originalImage->SetInput(m_lmapReader->GetOutput());
+  originalImage->SetInput(labelMapReader->GetOutput());
   originalImage->Update();
 
   vtkSmartPointer<vtkImageReslice> reslicer =
@@ -229,33 +240,32 @@ void SegmhaImporterFilter::run()
   qDebug() << "Number of Label Objects" << labelMap->GetNumberOfLabelObjects();
 
   LabelObjectType * object;
-  OutputNumber id = 0;
+  OutputId id = 0;
   foreach(SegmentationObject seg, metaData)
   {
     try
     {
       //qDebug() << "Loading Segmentation " << seg.label;
-      Source source;
-
       object = labelMap->GetLabelObject(seg.label);
       LabelObjectType::RegionType region = object->GetBoundingBox();
 
-      source.labelMap = LabelMapType::New();
-      source.labelMap->SetSpacing(m_param.spacing());
-      source.labelMap->SetRegions(region);
-      source.labelMap->Allocate();
+      LabelMapType::Pointer segLabelMap = LabelMapType::New();
+      segLabelMap->SetSpacing(m_param.spacing());
+      segLabelMap->SetRegions(region);
+      segLabelMap->Allocate();
+
       object->SetLabel(SEG_VOXEL_VALUE);
-      source.labelMap->AddLabelObject(object);
-      source.labelMap->Update();
 
-      Label2ImageFilterType::Pointer image = Label2ImageFilterType::New();
-      image->SetInput(source.labelMap);
-      image->Update();
+      segLabelMap->AddLabelObject(object);
+      segLabelMap->Update();
 
-      source.image = image;
+      Label2VolumeFilterType::Pointer label2volume = Label2VolumeFilterType::New();
+      label2volume->SetInput(segLabelMap);
+      label2volume->Update();
 
-      m_outputs[id++] = image->GetOutput();
-      m_sources << source;
+      Output segOutput(this, id++, label2volume->GetOutput());
+      segOutput.volume->DisconnectPipeline();
+      m_outputs << segOutput;
       m_taxonomies << taxonomies[seg.taxonomyId-1];
       m_labels << seg.label;
     } catch (...)
@@ -266,36 +276,15 @@ void SegmhaImporterFilter::run()
 }
 
 //-----------------------------------------------------------------------------
-bool SegmhaImporterFilter::prefetchFilter()
-{
-  QStringList blockList = m_args[BLOCKS].split(",");
-
-  foreach(QString block, blockList)
-  {
-    QString tmpFile = id() + "_" + block + ".mhd";
-    Source source;
-    source.image = tmpFileReader(tmpFile);
-
-    if (source.image.IsNull())
-      return false;
-
-    m_outputs[block.toInt()] = source.image->GetOutput();
-    m_sources << source;
-  }
-
-  emit modified(this);
-  return true;
-}
-
-//-----------------------------------------------------------------------------
-TaxonomyElement* SegmhaImporterFilter::taxonomy(OutputNumber i)
+TaxonomyElement* SegmhaImporterFilter::taxonomy(OutputId i)
 {
   return m_taxonomies.value(i, NULL);
 }
 
 //-----------------------------------------------------------------------------
-void SegmhaImporterFilter::initSegmentation(Segmentation* seg, int segId)
+void SegmhaImporterFilter::initSegmentation(Segmentation* seg, Filter::OutputId i)
 {
-  seg->setTaxonomy(taxonomy(segId));
-  seg->setNumber(m_labels.value(segId,-1));
+  seg->setTaxonomy(taxonomy(i));
+
+  seg->setNumber(m_labels.value(i,-1));
 }

@@ -154,7 +154,7 @@ void Brush::setInUse(bool value)
     {
       m_currentSeg = segs.first();
       m_currentSource = m_currentSeg->filter();
-      m_currentOutput = m_currentSeg->outputNumber();
+      m_currentOutput = m_currentSeg->outputId();
 
       m_brush->setBrushColor(m_currentSeg->taxonomy()->color());
       m_brush->setBorderColor(QColor(Qt::green));

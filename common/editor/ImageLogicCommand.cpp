@@ -23,6 +23,7 @@
 #include "common/model/Segmentation.h"
 #include "common/model/EspinaFactory.h"
 #include <model/EspinaModel.h>
+#include <QApplication>
 
 const QString INPUTLINK     = "Input";
 const QString MERGELINK     = "Merge";
@@ -37,6 +38,8 @@ ImageLogicCommand::ImageLogicCommand(QList<Segmentation *> segmentations,
 , m_input(segmentations)
 , m_op(op)
 {
+  QApplication::setOverrideCursor(Qt::WaitCursor);
+
   Filter::NamedInputs inputs;
   Filter::Arguments args;
   ImageLogicFilter::Parameters params(args);
@@ -44,7 +47,7 @@ ImageLogicCommand::ImageLogicCommand(QList<Segmentation *> segmentations,
   {
     Segmentation *seg = segmentations[i];
     if (i>0) args[Filter::INPUTS].append(",");
-    args[Filter::INPUTS].append(link(seg) + "_" + QString::number(seg->outputNumber()));
+    args[Filter::INPUTS].append(Filter::NamedInput(link(seg), seg->outputId()));
     inputs[link(seg)] = seg->filter();
     m_infoList << SegInfo(seg);
   }
@@ -53,6 +56,8 @@ ImageLogicCommand::ImageLogicCommand(QList<Segmentation *> segmentations,
   m_filter->update();
   m_seg = m_model->factory()->createSegmentation(m_filter, 0);
   m_tax = taxonomy;
+
+  QApplication::restoreOverrideCursor();
 }
 
 //----------------------------------------------------------------------------
