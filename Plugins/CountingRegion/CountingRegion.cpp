@@ -154,6 +154,8 @@ CountingRegion::CountingRegion(QWidget * parent)
 
   connect(m_gui->useTaxonomicalConstraint, SIGNAL(toggled(bool)),
           this, SLOT(enableTaxonomicalConstraints(bool)));
+  connect(m_gui->taxonomySelector, SIGNAL(activated(QModelIndex)),
+          this, SLOT(applyTaxonomicalConstraint()));
 }
 
 //------------------------------------------------------------------------
@@ -237,6 +239,23 @@ void CountingRegion::createRectangularRegion(Channel *channel,
 }
 
 //------------------------------------------------------------------------
+void CountingRegion::applyTaxonomicalConstraint()
+{
+  if (m_activeRegion && m_gui->useTaxonomicalConstraint->isChecked())
+  {
+    QModelIndex taxonomyIndex = m_gui->taxonomySelector->currentModelIndex();
+    if (taxonomyIndex.isValid())
+    {
+      ModelItem *item = indexPtr(taxonomyIndex);
+      Q_ASSERT(ModelItem::TAXONOMY == item->type());
+
+      TaxonomyElement *taxonomy = dynamic_cast<TaxonomyElement *>(item);
+      m_activeRegion->setTaxonomicalConstraint(taxonomy);
+    }
+  }
+}
+
+//------------------------------------------------------------------------
 void CountingRegion::clearBoundingRegions()
 {
   while (m_gui->regions->count() > 2)
@@ -260,6 +279,8 @@ void CountingRegion::clearBoundingRegions()
 void CountingRegion::enableTaxonomicalConstraints(bool enable)
 {
   m_gui->taxonomySelector->setEnabled(enable);
+
+  applyTaxonomicalConstraint();
 }
 
 //------------------------------------------------------------------------
@@ -329,16 +350,6 @@ void CountingRegion::createBoundingRegion()
     m_nextId++;
   }
 
-  if (m_gui->useTaxonomicalConstraint->isChecked())
-  {
-    QModelIndex taxonomyIndex = m_gui->taxonomySelector->currentModelIndex();
-    ModelItem *item = indexPtr(taxonomyIndex);
-    Q_ASSERT(ModelItem::TAXONOMY == item->type());
-
-    TaxonomyElement *taxonomy = dynamic_cast<TaxonomyElement *>(item);
-    m_activeRegion->setTaxonomicalConstraint(taxonomy);
-  }
-
   updateSegmentations();
 
   QApplication::restoreOverrideCursor();
@@ -380,6 +391,8 @@ void CountingRegion::removeSelectedBoundingRegion()
 //------------------------------------------------------------------------
 void CountingRegion::channelChanged(Channel* channel)
 {
+  m_gui->taxonomySelector->setRootModelIndex(m_espinaModel->taxonomyRoot());
+
   m_gui->createRegion->setEnabled(channel != NULL);
   if (channel)
   {
@@ -429,7 +442,7 @@ void CountingRegion::showInfo(BoundingRegion* region)
   m_gui->bottomMargin->blockSignals(false);
   m_gui->lowerMargin ->blockSignals(false);
 
-  m_gui->useTaxonomicalConstraint->setEnabled(NULL != region->taxonomicalConstraint());
+  m_gui->useTaxonomicalConstraint->setChecked(NULL != region->taxonomicalConstraint());
 
   m_gui->regionDescription->setText(region->data(BoundingRegion::DescriptionRole).toString());
 
@@ -541,6 +554,8 @@ void CountingRegion::registerRegion(CountingRegionChannelExtension* ext,
 
   m_gui->regions->addItem(region->data(Qt::DisplayRole).toString());
 
+  m_activeRegion = region; // To make applyTaxonomicalConstraint work
+  applyTaxonomicalConstraint();
 
   showInfo(region);
 }

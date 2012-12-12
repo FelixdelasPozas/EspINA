@@ -71,6 +71,7 @@ public slots:
   void resetState();
 
 protected slots:
+  void applyTaxonomicalConstraint();
   void clearBoundingRegions();
   void enableTaxonomicalConstraints(bool enable);
   /// Update UI depending on regions' selected row
@@ -98,6 +99,7 @@ private:
   void inclusionMargins(double values[3]);
   /// Return exclusion margins definded by the UI
   void exclusionMargins(double values[3]);
+
 
   void registerRegion(CountingRegionChannelExtension *ext,
                       BoundingRegion *region);
