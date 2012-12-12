@@ -19,19 +19,19 @@
 #include "CountingRegion.h"
 #include "ui_CountingRegion.h"
 
-#include <Core/Model/Channel.h>
-#include <Core/Model/EspinaModel.h>
-#include <Core/Model/EspinaFactory.h>
-#include <Core/Model/Segmentation.h>
-#include <GUI/ViewManager.h>
-#include <Core/Extensions/Margins/MarginsSegmentationExtension.h>
-
 #include "regions/RectangularBoundingRegion.h"
 #include "regions/AdaptiveBoundingRegion.h"
 #include "extensions/CountingRegionSegmentationExtension.h"
 #include "extensions/CountingRegionChannelExtension.h"
 #include "RegionRenderer.h"
 #include "colorEngines/CountingRegionColorEngine.h"
+
+#include <Core/Model/Channel.h>
+#include <Core/Model/EspinaModel.h>
+#include <Core/Model/EspinaFactory.h>
+#include <Core/Model/Segmentation.h>
+#include <GUI/ViewManager.h>
+#include <Core/Extensions/Margins/MarginsSegmentationExtension.h>
 
 #include <QFileDialog>
 
@@ -152,6 +152,8 @@ CountingRegion::CountingRegion(QWidget * parent)
   connect(m_gui->lowerMargin, SIGNAL(valueChanged(int)),
           this, SLOT(updateBoundingMargins()));
 
+  connect(m_gui->useTaxonomicalConstraint, SIGNAL(toggled(bool)),
+          this, SLOT(enableTaxonomicalConstraints(bool)));
 }
 
 //------------------------------------------------------------------------
@@ -173,6 +175,10 @@ void CountingRegion::initDockWidget(EspinaModel* model, QUndoStack* undoStack, V
   SegmentationExtension::SPtr segExtension(new CountingRegionSegmentationExtension());
   m_espinaModel->factory()->registerSegmentationExtension(segExtension);
   m_espinaModel->factory()->registerRenderer(new RegionRenderer(this));
+
+
+  m_gui->taxonomySelector->setModel(m_espinaModel);
+  m_gui->taxonomySelector->setRootModelIndex(m_espinaModel->taxonomyRoot());
 }
 
 //------------------------------------------------------------------------
@@ -251,6 +257,12 @@ void CountingRegion::clearBoundingRegions()
 }
 
 //------------------------------------------------------------------------
+void CountingRegion::enableTaxonomicalConstraints(bool enable)
+{
+  m_gui->taxonomySelector->setEnabled(enable);
+}
+
+//------------------------------------------------------------------------
 void CountingRegion::updateUI(int row)
 {
   if (row > RECTANGULAR)
@@ -279,10 +291,14 @@ void CountingRegion::updateUI(int row)
     m_gui->bottomMargin->setValue(0);
     m_gui->lowerMargin ->setValue(0);
 
+    m_gui->useTaxonomicalConstraint->setChecked(false);
+
     m_gui->regionDescription->clear();
 
     m_gui->regions->setFocus();
   }
+
+  m_gui->taxonomySelector->setEnabled(m_gui->useTaxonomicalConstraint->isChecked());
 }
 
 //------------------------------------------------------------------------
