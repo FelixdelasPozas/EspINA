@@ -37,6 +37,7 @@ BoundingRegion::BoundingRegion(RegionId id,
 , m_id(id)
 , m_totalVolume(0)
 , m_inclusionVolume(0)
+, m_taxonomicalConstraint(NULL)
 {
   memcpy(m_inclusion, inclusion, 3*sizeof(Nm));
   memcpy(m_exclusion, exclusion, 3*sizeof(Nm));
