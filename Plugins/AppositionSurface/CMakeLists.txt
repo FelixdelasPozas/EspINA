@@ -55,6 +55,7 @@ set (PLUGIN_SOURCES
 
 set (PLUGIN_LIBRARIES
   EspinaCore
+  vtkInfovis
   )
 
 add_library(AppositionSurfacePlugin SHARED ${PLUGIN_SOURCES})
