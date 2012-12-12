@@ -364,6 +364,26 @@
         </layout>
        </item>
        <item>
+        <widget class="QCheckBox" name="useTaxonomicalConstraint">
+         <property name="font">
+          <font>
+           <weight>75</weight>
+           <bold>true</bold>
+          </font>
+         </property>
+         <property name="text">
+          <string>Apply only to:</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboTreeView" name="taxonomySelector">
+         <property name="enabled">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
         <layout class="QHBoxLayout" name="horizontalLayout_3">
          <item>
           <widget class="QLabel" name="label_8">
@@ -430,6 +450,13 @@
    </item>
   </layout>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>QComboTreeView</class>
+   <extends>QComboBox</extends>
+   <header>GUI/QtWidget/QComboTreeView.h</header>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="rsc/CountingRegion.qrc"/>
  </resources>

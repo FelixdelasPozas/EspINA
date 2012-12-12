@@ -57,6 +57,7 @@ public:
 
   virtual void reset();
 
+
   void createAdaptiveRegion(Channel *channel,
                             Nm inclusion[3],
                             Nm exclusion[3]);
@@ -71,6 +72,7 @@ public slots:
 
 protected slots:
   void clearBoundingRegions();
+  void enableTaxonomicalConstraints(bool enable);
   /// Update UI depending on regions' selected row
   void updateUI(int row);
   void showInfo(BoundingRegion *region);
