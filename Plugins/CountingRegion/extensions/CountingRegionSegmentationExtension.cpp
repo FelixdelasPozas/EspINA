@@ -146,7 +146,7 @@ SegmentationExtension* CountingRegionSegmentationExtension::clone()
 //------------------------------------------------------------------------
 bool CountingRegionSegmentationExtension::isDiscarted() const
 {
-  bool discarted = m_isOnEdge;
+  bool discarted = false;
 
   if (!m_isDiscartedBy.isEmpty())
   {
@@ -195,7 +195,7 @@ bool CountingRegionSegmentationExtension::isDiscartedByRegion(BoundingRegion* bo
   const TaxonomyElement *taxonomicalConstraint = boundingRegion->taxonomicalConstraint();
 
   if (taxonomicalConstraint && m_seg->taxonomy() != taxonomicalConstraint)
-    return false;
+    return true;
 
   EspinaRegion inputBB = m_seg->volume()->espinaRegion();
 

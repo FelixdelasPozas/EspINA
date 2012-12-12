@@ -114,6 +114,13 @@ void BoundingRegion::Execute(vtkObject* caller, long unsigned int eventId, void*
 }
 
 //-----------------------------------------------------------------------------
+void BoundingRegion::setTaxonomicalConstraint(const TaxonomyElement* taxonomy)
+{
+  m_taxonomicalConstraint = taxonomy;
+
+  emit modified(this);
+}
+//-----------------------------------------------------------------------------
 void BoundingRegion::updateBoundingRegion()
 {
   updateBoundingRegionImplementation();

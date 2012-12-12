@@ -118,7 +118,7 @@ public:
   Nm bottom()const {return m_exclusion[1];}
   Nm lower() const {return m_exclusion[2];}
 
-  void setTaxonomicalConstraint(const TaxonomyElement *taxonomy) { m_taxonomicalConstraint = taxonomy; }
+  void setTaxonomicalConstraint(const TaxonomyElement *taxonomy);
   const TaxonomyElement * taxonomicalConstraint() const { return m_taxonomicalConstraint; }
 
 
