@@ -33,6 +33,7 @@
 #include <vtkSmartPointer.h>
 #include <vtkPolyData.h>
 
+class TaxonomyElement;
 class CountingRegionChannelExtension;
 class ViewManager;
 
@@ -117,6 +118,9 @@ public:
   Nm bottom()const {return m_exclusion[1];}
   Nm lower() const {return m_exclusion[2];}
 
+  void setTaxonomicalConstraint(const TaxonomyElement *taxonomy) { m_taxonomicalConstraint = taxonomy; }
+  const TaxonomyElement * taxonomicalConstraint() const { return m_taxonomicalConstraint; }
+
 
 signals:
   void modified(BoundingRegion *);
@@ -137,6 +141,8 @@ protected:
   Nm m_inclusion[3];
   Nm m_exclusion[3];
   Nm m_totalVolume, m_inclusionVolume;
+
+  const TaxonomyElement *m_taxonomicalConstraint;
 
   QList<BoundingRegion2DWidgetAdapter *> m_widgets2D;
   QList<BoundingRegion3DWidgetAdapter *> m_widgets3D;

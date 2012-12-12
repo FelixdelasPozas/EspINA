@@ -329,6 +329,16 @@ void CountingRegion::createBoundingRegion()
     m_nextId++;
   }
 
+  if (m_gui->useTaxonomicalConstraint->isChecked())
+  {
+    QModelIndex taxonomyIndex = m_gui->taxonomySelector->currentModelIndex();
+    ModelItem *item = indexPtr(taxonomyIndex);
+    Q_ASSERT(ModelItem::TAXONOMY == item->type());
+
+    TaxonomyElement *taxonomy = dynamic_cast<TaxonomyElement *>(item);
+    m_activeRegion->setTaxonomicalConstraint(taxonomy);
+  }
+
   updateSegmentations();
 
   QApplication::restoreOverrideCursor();
@@ -418,6 +428,8 @@ void CountingRegion::showInfo(BoundingRegion* region)
   m_gui->rightMargin ->blockSignals(false);
   m_gui->bottomMargin->blockSignals(false);
   m_gui->lowerMargin ->blockSignals(false);
+
+  m_gui->useTaxonomicalConstraint->setEnabled(NULL != region->taxonomicalConstraint());
 
   m_gui->regionDescription->setText(region->data(BoundingRegion::DescriptionRole).toString());
 

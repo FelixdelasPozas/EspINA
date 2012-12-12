@@ -192,6 +192,11 @@ void CountingRegionSegmentationExtension::evaluateBoundingRegion(BoundingRegion*
 //------------------------------------------------------------------------
 bool CountingRegionSegmentationExtension::isDiscartedByRegion(BoundingRegion* boundingRegion)
 {
+  const TaxonomyElement *taxonomicalConstraint = boundingRegion->taxonomicalConstraint();
+
+  if (taxonomicalConstraint && m_seg->taxonomy() != taxonomicalConstraint)
+    return false;
+
   EspinaRegion inputBB = m_seg->volume()->espinaRegion();
 
   vtkPolyData  *region       = boundingRegion->region();
