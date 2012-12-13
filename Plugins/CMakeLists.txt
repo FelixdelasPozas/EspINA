@@ -18,9 +18,9 @@ if (BUILD_SEGMHA_IMPORTER)
 endif()
 
 
-set (BUILD_COUNTING_REGION ON CACHE BOOL "Build Counting Region Plugin")
-if (BUILD_COUNTING_REGION)
+set (BUILD_COUNTING_FRAME ON CACHE BOOL "Build Counting Region Plugin")
+if (BUILD_COUNTING_FRAME)
 
-  add_subdirectory( CountingRegion )
+  add_subdirectory( CountingFrame )
 
 endif()
