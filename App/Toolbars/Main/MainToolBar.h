@@ -41,6 +41,7 @@ class QComboBox;
 class QTreeView;
 class QUndoStack;
 class ViewManager;
+class MeasureTool;
 
 class MainToolBar
 : public QToolBar
@@ -62,6 +63,7 @@ protected slots:
   void removeSegmentation(Segmentation *seg);
   void toggleCrosshair(bool);
   void abortRemoval();
+  void toggleMeasureTool(bool);
 
 signals:
   void showSegmentations(bool);
@@ -71,9 +73,10 @@ private:
   QUndoStack    *m_undoStack;
   ViewManager   *m_viewManager;
 
-  QAction        *m_toggleSegVisibility, *m_removeSegmentation, *m_toggleCrosshair;
+  QAction        *m_toggleSegVisibility, *m_removeSegmentation, *m_toggleCrosshair, *m_measureButton;
   QComboTreeView *m_taxonomySelector;
   SegRemover     *m_segRemover;
+  MeasureTool    *m_measureTool;
 };
 
 #endif // MAINTOOLBAR_H

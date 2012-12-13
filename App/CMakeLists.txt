@@ -127,6 +127,7 @@ set (ESPINA_SOURCES
   Undo/SplitUndoCommand.cpp
   Views/DefaultEspinaView.cpp
   Dialogs/Connectomics/ConnectomicsDialog.cpp
+  Tools/Measure/MeasureTool.cpp
   )
 
 set (ESPINA_LIBRARIES

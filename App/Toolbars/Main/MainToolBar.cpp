@@ -30,6 +30,7 @@
 #include <GUI/QtWidget/QComboTreeView.h>
 #include <GUI/ViewManager.h>
 #include <Undo/RemoveSegmentation.h>
+#include <App/Tools/Measure/MeasureTool.h>
 
 // Qt
 #include <QAction>
@@ -47,6 +48,7 @@ MainToolBar::MainToolBar(EspinaModel *model,
 , m_model(model)
 , m_undoStack(undoStack)
 , m_viewManager(vm)
+, m_measureTool(NULL)
 {
   setObjectName("MainToolBar");
   setWindowTitle("Main Tool Bar");
@@ -78,7 +80,6 @@ MainToolBar::MainToolBar(EspinaModel *model,
 
   addWidget(m_taxonomySelector);
 
-
   m_segRemover = new SegRemover();
   connect(m_segRemover, SIGNAL(removalAborted()),
           this, SLOT(abortRemoval()));
@@ -90,6 +91,13 @@ MainToolBar::MainToolBar(EspinaModel *model,
   m_removeSegmentation->setCheckable(true);
   connect(m_removeSegmentation, SIGNAL(toggled(bool)),
           this, SLOT(removeSegmentation(bool)));
+
+  m_measureButton = addAction(QIcon(":/espina/measure.png"),
+                                tr("Measure tool"));
+  m_measureButton->setCheckable(true);
+  m_measureButton->setShortcut(QKeySequence("M"));
+  connect(m_measureButton, SIGNAL(toggled(bool)),
+          this, SLOT(toggleMeasureTool(bool)));
 }
 
 //----------------------------------------------------------------------------
@@ -170,4 +178,27 @@ void MainToolBar::toggleCrosshair(bool value)
   else
     this->m_toggleCrosshair->setIcon(QIcon(":/espina/hide_planes.svg"));
   m_viewManager->showCrosshair(value);
+}
+
+//----------------------------------------------------------------------------
+void MainToolBar::toggleMeasureTool(bool enable)
+{
+  if (enable)
+  {
+    if (m_measureTool)
+      return;
+
+    m_measureTool = new MeasureTool(m_viewManager);
+    m_viewManager->setActiveTool(m_measureTool);
+    m_measureTool->setEnabled(true);
+  }
+  else
+  {
+    if (!m_measureTool)
+      return;
+    m_measureTool->setEnabled(false);
+    m_viewManager->unsetActiveTool(m_measureTool);
+    delete m_measureTool;
+    m_measureTool = NULL;
+  }
 }

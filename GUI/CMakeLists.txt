@@ -70,6 +70,8 @@ set (GUI_SOURCES
   vtkWidgets/ZoomSelectionSliceWidget.cpp
   vtkWidgets/ZoomSelectionWidget.cpp
   ViewManager.cpp
+  vtkWidgets/MeasureWidget.cpp
+  vtkWidgets/MeasureSliceWidget.cpp
   )
 
 set(GUI_EXTERNAL_LIBS
