@@ -18,9 +18,8 @@
 #ifndef APPOSITIONSURFACEXTENSION_H
 #define APPOSITIONSURFACEXTENSION_H
 
-#include <Core/Extensions/SegmentationExtension.h>
-
 // EspINA
+#include <Core/Extensions/SegmentationExtension.h>
 #include <Core/EspinaTypes.h>
 
 // ITK
@@ -39,6 +38,12 @@
 #include <vtkPolyData.h>
 #include <vtkSmartPointer.h>
 #include <vtkTransformPolyDataFilter.h>
+
+// Qt
+#include <QColor>
+
+// plugin
+#include "AppositionSurface.h"
 
 class vtkImageData;
 class AppositionSurfaceExtension
@@ -70,7 +75,7 @@ public:
   static const InfoTag PERIMETER;
 
 public:
-  explicit AppositionSurfaceExtension();
+  explicit AppositionSurfaceExtension(int resolution, int iterations, bool converge, AppositionSurface *plugin);
   virtual ~AppositionSurfaceExtension();
 
   virtual ExtId id();
@@ -96,7 +101,11 @@ public:
   { return m_ap; }
 
   //NOTE: Constness is required by information call
-  bool updateAppositionSurface() const;
+  bool updateAppositionSurface(bool force = false) const;
+
+  // get/set parameters for settings class
+  void SetParameters(int, int, bool);
+
 private:
   // Apposition Plane Auxiliar Functions
   PolyData clipPlane(AppositionSurfaceExtension::PolyData plane, vtkImageData* image) const;
@@ -123,6 +132,7 @@ private:
   int      m_resolution;
   int      m_iterations;
   bool     m_converge;
+  AppositionSurface *m_plugin;
 
   mutable double   m_area;
   mutable double   m_perimeter;

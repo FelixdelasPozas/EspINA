@@ -22,6 +22,7 @@
 
 // EspINA
 #include <Core/Model/Segmentation.h>
+#include <Core/EspinaSettings.h>
 
 // ITK
 #include <itkTimeStamp.h>
@@ -34,8 +35,9 @@
 #include <vtkPolyDataNormals.h>
 
 // Qt
-#include <QDebug>
 #include <QApplication>
+#include <QSettings>
+#include <QColor>
 
 typedef vtkSmartPointer<vtkPolyDataMapper> PolyDataMapper;
 typedef vtkSmartPointer<vtkDecimatePro> DecimatePro;
@@ -59,6 +61,21 @@ struct AppositionSurfaceRenderer::Representation
 };
 
 QMap<ModelItem *, AppositionSurfaceRenderer::Representation *> AppositionSurfaceRenderer::m_representations;
+
+//-----------------------------------------------------------------------------
+AppositionSurfaceRenderer::AppositionSurfaceRenderer(QColor color, AppositionSurface *plugin)
+: m_color(color)
+, m_plugin(plugin)
+{
+  m_plugin->registerRenderer(this);
+}
+
+//-----------------------------------------------------------------------------
+AppositionSurfaceRenderer::~AppositionSurfaceRenderer()
+{
+  m_plugin->unregisterRenderer(this);
+}
+
 
 //-----------------------------------------------------------------------------
 bool AppositionSurfaceRenderer::addItem(ModelItem* item)
@@ -117,7 +134,7 @@ bool AppositionSurfaceRenderer::addItem(ModelItem* item)
   State *state = new State();
   state->actor = vtkActor::New();
   state->actor->SetMapper(rep->mapper);
-  state->actor->GetProperty()->SetColor(1.0,1.0,0.0);
+  state->actor->GetProperty()->SetColor(m_color.redF(),m_color.greenF(),m_color.blueF());
   state->actor->GetProperty()->SetOpacity(1.0);
 
   state->visible = false;
@@ -248,6 +265,22 @@ void AppositionSurfaceRenderer::show()
 //-----------------------------------------------------------------------------
 Renderer* AppositionSurfaceRenderer::clone()
 {
-  return new AppositionSurfaceRenderer();
+  return new AppositionSurfaceRenderer(m_color, m_plugin);
 }
 
+//-----------------------------------------------------------------------------
+void AppositionSurfaceRenderer::SetColor(QColor color)
+{
+  if (color != m_color)
+  {
+    QMap<ModelItem *, State *>::iterator it = m_state.begin();
+    while (it != m_state.end())
+    {
+      (*it)->actor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
+      (*it)->actor->Modified();
+      ++it;
+    }
+    m_color = color;
+  }
+  emit renderRequested();
+}

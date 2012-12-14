@@ -20,12 +20,15 @@
 #ifndef APPOSITIONSURFACERENDERER_H
 #define APPOSITIONSURFACERENDERER_H
 
+// EspINA
 #include <GUI/Renderers/Renderer.h>
 
 // Qt
 #include <QMap>
 
+class AppositionSurface;
 class ModelItem;
+class QColor;
 
 class AppositionSurfaceRenderer
 : public Renderer
@@ -34,15 +37,12 @@ class AppositionSurfaceRenderer
   struct State;
 
 public:
-  virtual ~AppositionSurfaceRenderer(){}
+  explicit AppositionSurfaceRenderer(QColor color, AppositionSurface *plugin);
+  virtual ~AppositionSurfaceRenderer();
 
-  virtual const QIcon icon() const
-  { return QIcon(":/AppSurface.svg"); }
-  virtual const QString name() const
-  { return tr("Apposition Surface");}
-  virtual const QString tooltip() const
-  { return tr("Segmentation's Apposition Surface");}
-
+  virtual const QIcon icon() const       { return QIcon(":/AppSurface.svg"); }
+  virtual const QString name() const     { return tr("Apposition Surface");}
+  virtual const QString tooltip() const  { return tr("Segmentation's Apposition Surface");}
   virtual bool addItem(ModelItem* item);
   virtual bool updateItem(ModelItem* item);
   virtual bool removeItem(ModelItem* item);
@@ -52,7 +52,12 @@ public:
 
   virtual Renderer* clone();
 
+  // updates the color of the actors
+  void SetColor(QColor);
+
 private:
+  QColor m_color;
+  AppositionSurface* m_plugin;
   static QMap<ModelItem *, Representation*> m_representations;
   QMap<ModelItem *, State *> m_state;
 };

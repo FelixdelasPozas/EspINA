@@ -28,10 +28,16 @@ endif ()
 include_directories (
   ${CMAKE_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR} # UI files
 )
 
 qt4_add_resources (RCC_BUILT_SOURCES 
   rsc/AppositionSurface.qrc
+  )
+
+# Create Interface files
+qt4_wrap_ui (UI_BUILT_SOURCES
+  AppositionSurfaceSettings.ui
   )
 
 QT4_WRAP_CPP(MOC_SOURCES
@@ -39,11 +45,12 @@ QT4_WRAP_CPP(MOC_SOURCES
 )
 
 set (PLUGIN_SOURCES
+  ${RCC_BUILT_SOURCES}
+  ${MOC_SOURCES}
+  ${UI_BUILT_SOURCES}
   AppositionSurface.cpp
   AppositionSurfaceExtension.cpp
   AppositionSurfaceRenderer.cpp
-  ${MOC_SOURCES}
-  ${RCC_BUILT_SOURCES}
 )
 
 set (PLUGIN_LIBRARIES
