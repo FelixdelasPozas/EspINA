@@ -39,6 +39,9 @@
 #include <QSettings>
 #include <QColor>
 
+// plugin
+#include "AppositionSurface.h"
+
 typedef vtkSmartPointer<vtkPolyDataMapper> PolyDataMapper;
 typedef vtkSmartPointer<vtkDecimatePro> DecimatePro;
 typedef vtkSmartPointer<vtkWindowedSincPolyDataFilter> Smoother;

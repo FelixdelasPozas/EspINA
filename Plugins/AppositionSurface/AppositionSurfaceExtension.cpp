@@ -59,25 +59,21 @@ const ModelItemExtension::InfoTag AppositionSurfaceExtension::PERIMETER
 const double UNDEFINED = -1.;
 
 //------------------------------------------------------------------------
-AppositionSurfaceExtension::AppositionSurfaceExtension(int resolution, int iterations, bool converge, AppositionSurface *plugin)
-: m_resolution(resolution)
-, m_iterations(iterations)
-, m_converge  (converge)
-, m_plugin    (plugin)
+AppositionSurfaceExtension::AppositionSurfaceExtension()
+: m_resolution(50)
+, m_iterations(10)
+, m_converge  (true)
 , m_area      (UNDEFINED)
 , m_perimeter (UNDEFINED)
 {
   m_ap = PolyData::New();
   //m_availableRepresentations << AppositionSurfaceRepresentation::ID;
   m_availableInformations << AREA << PERIMETER;
-
-  m_plugin->registerExtension(this);
 }
 
 //------------------------------------------------------------------------
 AppositionSurfaceExtension::~AppositionSurfaceExtension()
 {
-  m_plugin->unregisterExtension(this);
 }
 
 //------------------------------------------------------------------------
@@ -129,16 +125,14 @@ void AppositionSurfaceExtension::initialize(ModelItem::Arguments args)
 //------------------------------------------------------------------------
 SegmentationExtension* AppositionSurfaceExtension::clone()
 {
-  return new AppositionSurfaceExtension(m_resolution, m_iterations, m_converge, m_plugin);
+  return new AppositionSurfaceExtension();
 }
 
 //------------------------------------------------------------------------
-bool AppositionSurfaceExtension::updateAppositionSurface(bool force) const
+bool AppositionSurfaceExtension::updateAppositionSurface() const
 {
-  if ((!m_init || (m_seg->volume()->toITK()->GetTimeStamp() <= m_lastUpdate)) && !force)
+  if (!m_init || (m_seg->volume()->toITK()->GetTimeStamp() <= m_lastUpdate))
     return false;
-
-  qDebug() << "bingo";
 
   QApplication::setOverrideCursor(Qt::WaitCursor);
   //qDebug() << "Updating Apposition Plane:" << m_seg->data().toString();
@@ -276,7 +270,6 @@ bool AppositionSurfaceExtension::updateAppositionSurface(bool force) const
   m_lastUpdate = m_seg->volume()->toITK()->GetTimeStamp();
   QApplication::restoreOverrideCursor();
 
-  qDebug() << "not ok";
   return true;
 }
 
@@ -656,17 +649,4 @@ bool AppositionSurfaceExtension::isPerimeter(vtkIdType cellId, vtkIdType p1, vtk
   m_ap->GetCellEdgeNeighbors(cellId, p1, p2, neighborCellIds);
 
   return (neighborCellIds->GetNumberOfIds() == 0);
-}
-
-//------------------------------------------------------------------------
-void AppositionSurfaceExtension::SetParameters(int resolution, int iterations, bool converge)
-{
-  if ((m_resolution != resolution) || (m_iterations != iterations) || (m_converge != converge))
-  {
-    m_resolution = resolution;
-    m_iterations = iterations;
-    m_converge = converge;
-
-    updateAppositionSurface(true);
-  }
 }

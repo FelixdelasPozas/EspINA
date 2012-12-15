@@ -49,11 +49,9 @@ public:
 
   class Settings;
 
-  // to avoid using signals and declaring renderer and extensions as QObjects
-  // every renderer and extensions registers with the plugin on creation
-  // and unregisters on destruction
-  void registerExtension(AppositionSurfaceExtension *);
-  void unregisterExtension(AppositionSurfaceExtension *);
+  // to avoid using signals and declaring renderer as a QObject every
+  // renderer registers with the plugin on creation and unregisters
+  // on destruction
   void registerRenderer(AppositionSurfaceRenderer *);
   void unregisterRenderer(AppositionSurfaceRenderer *);
 
@@ -62,7 +60,7 @@ public slots:
 
 private:
   QList<AppositionSurfaceRenderer *> m_renderersList;
-  QList<AppositionSurfaceExtension *> m_extensionsList;
+
 };
 
 class AppositionSurface::Settings
@@ -86,15 +84,9 @@ class AppositionSurface::Settings
 
   public slots:
     void changeColor();
-    void changeResolution(int);
-    void changeIterations(int);
-    void changeConverge(int);
 
   private:
     QColor m_color;
-    int m_iterations;
-    int m_resolution;
-    bool m_converge;
     bool m_modified;
     AppositionSurface *m_plugin;
 };
