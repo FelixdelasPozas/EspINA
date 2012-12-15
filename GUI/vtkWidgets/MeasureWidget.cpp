@@ -147,11 +147,9 @@ void MeasureWidget::Execute(vtkObject *caller, unsigned long int eventId, void* 
 
   if (vtkCommand::StartInteractionEvent == eventId)
   {
-
     rep->SetLabelFormat("%.1f nm");
     rep->RulerModeOn();
-    if (rep->GetDistance() < 100)
-      rep->SetRulerDistance(1.0);
+    rep->SetRulerDistance(ComputeRulerTickDistance(rep->GetDistance()));
 
     vtkProperty2D *property = reinterpret_cast<vtkPointHandleRepresentation2D*>(rep->GetPoint1Representation())->GetProperty();
     property->SetColor(0.0, 1.0, 0.0);
@@ -163,20 +161,12 @@ void MeasureWidget::Execute(vtkObject *caller, unsigned long int eventId, void* 
   }
   else if (vtkCommand::InteractionEvent == eventId)
   {
-    if (rep->GetDistance() > 100)
+    double newTickDistance = ComputeRulerTickDistance(rep->GetDistance());
+    if (rep->GetRulerDistance() != newTickDistance)
     {
-      double units = 1;
-      double distance = rep->GetDistance();
-      while (distance >= 100)
-      {
-        units *= 10.0;
-        distance /= 10.0;
-      }
-      rep->SetRulerDistance(units);
+      rep->SetRulerDistance(newTickDistance);
       rep->BuildRepresentation();
     }
-    else
-      rep->SetRulerDistance(1.0);
   }
 }
 
@@ -254,4 +244,18 @@ bool MeasureWidget::filterEvent(QEvent *e, EspinaRenderView *view)
   }
 
   return EspinaWidget::filterEvent(e, view);
+}
+
+//----------------------------------------------------------------------------
+double MeasureWidget::ComputeRulerTickDistance(double distance)
+{
+  double result = 1.0;
+
+  while (distance >= 10)
+  {
+    result *= 10.0;
+    distance /= 10.0;
+  }
+
+  return result;
 }

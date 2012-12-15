@@ -48,6 +48,9 @@ class MeasureWidget
     bool filterEvent(QEvent *e, EspinaRenderView *view);
 
   private:
+    // helper methods
+    double ComputeRulerTickDistance(double);
+
     vtkDistanceWidget *m_axial;
     vtkDistanceWidget *m_coronal;
     vtkDistanceWidget *m_sagittal;
